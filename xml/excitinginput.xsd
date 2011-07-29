@@ -691,7 +691,7 @@ xs.xsd
       <xs:all>
         <xs:element ex:importance="essential" ex:unit="" name="spin" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation> If the <pre>spin</pre> element is present calculation is done with
+            <xs:documentation> If the <elementref>spin</elementref> element is present calculation is done with
               spin polarization. </xs:documentation>
             <xs:appinfo>
               <oldname>spinpol</oldname>
@@ -714,16 +714,16 @@ xs.xsd
                   infinitesimal with no direct contribution to the total energy. In cases where the
                   magnetic field is finite (for example when computing magnetic response) the
                   external <inlinemath>{ \bf B}</inlinemath>-field energy reported in
-                  <pre>INFO.OUT</pre> should be added to the total by hand. This field is applied
+                  <filename>INFO.OUT</filename> should be added to the total by hand. This field is applied
                   throughout the entire unit cell. To apply magnetic fields in particular
-                  muffin-tins use the <pre>bfcmt</pre> vect ors in the <pre>atoms</pre> block.
+                  muffin-tins use the <attref>bfcmt</attref> vectors in the <elementref>atoms</elementref> elements.
                   Collinear calculations are more efficient if the field is applied in the
                     <inlinemath>z</inlinemath>-direction. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean">
               <xs:annotation>
-                <xs:documentation> If <pre>spinorb</pre> is <pre>"true"</pre>, then a
+                <xs:documentation> If <attref>spinorb</attref> is <pre>"true"</pre>, then a
                     <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
                   second-variational Hamiltonian. </xs:documentation>
               </xs:annotation>
@@ -1856,17 +1856,17 @@ xs.xsd
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="rgkmax" type="fortrandouble" default="7.0d0">
         <xs:annotation>
-          <xs:documentation> The parameter <pre>rgkmax</pre> implicitly determines the number of
+          <xs:documentation> The parameter <attref>rgkmax</attref> implicitly determines the number of
             basis functions and is one of the crucial parameters for the accuracy of the
             calculation. It represents the product of two quantities: <inlinemath>R_{MT,\,
               Min}</inlinemath>, the smallest of all muffin-tin radii, and <inlinemath>|{ \bf G}+{
               \bf k}|_{max}</inlinemath>, the maximum length for the <inlinemath>{ \bf G}+{ \bf
               k}</inlinemath>  vectors. Because each <inlinemath>{ \bf G}+{ \bf k}</inlinemath> 
-            vector represents one basis function, <pre>rgkmax</pre> gives the number of basis
-            functions used for solving the Kohn-Sham equations. Typical values of <pre>rgkmax</pre>
+            vector represents one basis function, <attref>rgkmax</attref> gives the number of basis
+            functions used for solving the Kohn-Sham equations. Typical values of <attref>rgkmax</attref>
             are between 6 and 9. However, for systems with very short bond-lengths, significantly
             smaller values may be sufficient. This may especially be the case for materials
-            containing carbon, where <pre>rgkmax</pre> may be 4.5-5, or hydrogen, where even values
+            containing carbon, where <attref>rgkmax</attref> may be 4.5-5, or hydrogen, where even values
             between 3 and 4 may be sufficient. In any case, a convergence check is indispensible for
             a proper choice of this parameter for your system! </xs:documentation>
         </xs:annotation>
@@ -1874,7 +1874,7 @@ xs.xsd
       <xs:attribute ex:importance="essential" ex:unit="" name="epspot" type="fortrandouble" use="optional" default="1.0d-6">
         <xs:annotation>
           <xs:documentation> If the RMS change in the effective potential and magnetic field is
-            smaller than <pre>epspot</pre>, then the self-consistent loop is considered converged
+            smaller than <attref>epspot</attref>, then the self-consistent loop is considered converged
             and exited. For structural optimization runs this results in the forces being
             calculated, the atomic positions updated and the loop restarted. See also
               <attref>maxscl</attref>. </xs:documentation>
@@ -1904,7 +1904,7 @@ xs.xsd
       <xs:attribute ex:importance="essential" ex:unit="" name="stype" default="Gaussian">
         <xs:annotation>
           <xs:documentation> A smooth approximation to the Dirac delta function is needed to compute
-            the occupancies of the Kohn-Sham states. The attribute <pre>swidth</pre> determines the
+            the occupancies of the Kohn-Sham states. The attribute <attref>swidth</attref> determines the
             width of the approximate delta function. </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
@@ -1965,7 +1965,7 @@ xs.xsd
       <xs:attribute ex:importance="expert" ex:unit="" name="fermilinengy" type="xs:boolean" default="false">
         <xs:annotation>
           <xs:documentation> If <pre>"true"</pre> the linearization energies marked as non-varying
-            are set to the Fermi level plus <pre>dlinengyfermi</pre>. </xs:documentation>
+            are set to the Fermi level plus <attref>dlinengyfermi</attref>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="isgkmax" type="xs:integer" default="-1">
@@ -1984,10 +1984,10 @@ xs.xsd
         <xs:annotation>
           <xs:documentation> Defines the number of eigenstates beyond that required for charge
             neutrality. When running metals it is not known <it>a priori</it> how many states will
-            be below the Fermi energy for each <bf>k</bf>-point. Setting <pre>nempty</pre> greater
+            be below the Fermi energy for each <bf>k</bf>-point. Setting <attref>nempty</attref> greater
             than zero allows the additional states to act as a buffer in such cases. Furthermore,
             magnetic calculations use the first-variational eigenstates as a basis for setting up
-            the second-variational Hamiltonian, and thus <pre>nempty</pre> will determine the size
+            the second-variational Hamiltonian, and thus <attref>nempty</attref> will determine the size
             of this basis set. Convergence with respect to this quantity should be checked.
           </xs:documentation>
         </xs:annotation>
@@ -2020,23 +2020,23 @@ xs.xsd
       <xs:attribute ex:importance="expert" ex:unit="" name="radkpt" type="fortrandouble" default="40.0d0">
         <xs:annotation>
           <xs:documentation> Used for the automatic determination of the <bf>k</bf>-point mesh. If
-            <pre>autokpt</pre> is set to <pre>"true"</pre> then the mesh sizes will be determined by
+            <attref>autokpt</attref> is set to <pre>"true"</pre> then the mesh sizes will be determined by
               <inlinemath>n_i=\lambda/|{ \bf A}_i|+1</inlinemath>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="nktot" type="xs:integer" default="0">
         <xs:annotation>
-          <xs:documentation> Used for the automatic determination of the k-point mesh from the total
-            number of <bf nospace="true">k</bf>-points. If <pre>nktot</pre> is set, then the mesh
+          <xs:documentation> Used for the automatic determination of the <inlinemath>{\mathbf k}</inlinemath>-point mesh from the total
+            number of <bf nospace="true">k</bf>-points. If <attref>nktot</attref> is set, then the mesh
             will be determined in such a way that the number of <bf>k</bf>-points is proportional to
             the length of the reciprocal lattice vector in each direction and that the total number
-            of <bf nospace="true">k</bf>-points is less than or equal to <pre>nktot</pre>.
+            of <bf nospace="true">k</bf>-points is less than or equal to <attref>nktot</attref>.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="reducek" type="xs:boolean" default="true">
         <xs:annotation>
-          <xs:documentation> If the attribute <pre>reducek</pre> is <pre>"true"</pre> the
+          <xs:documentation> If the attribute <attref>reducek</attref> is <pre>"true"</pre> the
               <inlinemath> \bf{k} </inlinemath>-point set is reduced with the crystal symmetries.
           </xs:documentation>
         </xs:annotation>
@@ -2358,7 +2358,7 @@ xs.xsd
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d" default="0.0d0 0.0d0 0.0d0">
         <xs:annotation>
-          <xs:documentation>The k-point offset vector in lattice coordinates.</xs:documentation>
+          <xs:documentation>The <inlinemath>{\mathbf k}</inlinemath>-point offset vector in lattice coordinates.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="npsden" type="xs:integer" default="9">
@@ -2644,7 +2644,7 @@ xs.xsd
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="kstlist" minOccurs="1">
                 <xs:annotation>
-                  <xs:documentation>k-point and state index for which the wave function should be
+                  <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point and state index for which the wave function should be
                     plotted.</xs:documentation>
                 </xs:annotation>
               </xs:element>
@@ -2662,12 +2662,12 @@ xs.xsd
                 \delta(\omega_i-e({\bf k}))d{ \bf k}.</displaymath> These are calculated by first
               interpolating the functions <inlinemath>e({ \bf k})</inlinemath> and <inlinemath>f({
                 \bf k})</inlinemath> with the trilinear method on a much finer mesh whose size is
-              determined by <pre>ngrdos</pre>. Then the <inlinemath>\omega</inlinemath> -dependent
+              determined by <attref>ngrdos</attref>. Then the <inlinemath>\omega</inlinemath>-dependent
               histogram of the integrand is accumulated over the fine mesh. If the output function
-              is noisy then either <pre>ngrdos</pre> should be increased or <pre>nwdos</pre>
+              is noisy then either <attref>ngrdos</attref> should be increased or <attref>nwdos</attref>
               decreased. Alternatively, the output function can be artificially smoothed up to a
-              level given by <pre>nsmdos</pre>. This is the number of successive 3-point averages
-              to be applied to the function <inlinemath>g</inlinemath>. </xs:documentation>
+              level given by <attref>nsmdos</attref>. This is the number of successive 3-point averages to
+              be applied to the function <inlinemath>g</inlinemath>. </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="sqados" default="0.0d0 0.0d0 1.0d0" type="vect3d">
@@ -2709,7 +2709,7 @@ xs.xsd
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="kstlist" minOccurs="0">
                 <xs:annotation>
-                  <xs:documentation> List of <inlinemath>{ \bf k}</inlinemath> -point and state
+                  <xs:documentation> List of <inlinemath>{ \bf k}</inlinemath>-point and state
                     pairs. Referenced by their index. </xs:documentation>
                 </xs:annotation>
               </xs:element>
@@ -2718,26 +2718,26 @@ xs.xsd
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="masstensor" maxOccurs="1" minOccurs="0">
           <xs:annotation>
-            <xs:documentation> Compute the effective mass tensor at the <bf>k</bf> -point given by
+            <xs:documentation> Compute the effective mass tensor at the <inlinemath>{\mathbf k}</inlinemath>-point given by
               vklem. </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="deltaem" type="fortrandouble" default="0.025d0">
               <xs:annotation>
-                <xs:documentation> The size of the k-vector displacement used when calculating
+                <xs:documentation> The size of the <inlinemath>{\mathbf k}</inlinemath>-vector displacement used when calculating
                   numerical derivatives for the effective mass tensor. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="ndspem" type="xs:integer" default="1">
               <xs:annotation>
-                <xs:documentation> The number of k-vector displacements in each direction around
+                <xs:documentation> The number of <inlinemath>{\mathbf k}</inlinemath>-vector displacements in each direction around
                   vklem when computing the numerical derivatives for the effective mass
                   tensor.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="vklem" type="vect3d" default="0.0d0 0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation>The k-point in lattice coordinates at which to compute the
+                <xs:documentation>The <inlinemath>{\mathbf k}</inlinemath>-point in lattice coordinates at which to compute the
                   effective mass tensors.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -2903,13 +2903,13 @@ xs.xsd
         <xs:element ex:importance="expert" ex:unit="" name="expiqr" minOccurs="0">
           <xs:complexType>
             <xs:annotation>
-              <xs:documentation>Write out matrix elements of plane wave for given list of k-points
+              <xs:documentation>Write out matrix elements of plane wave for given list of <inlinemath>{\mathbf k}</inlinemath>-points
                 and states</xs:documentation>
             </xs:annotation>
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="kstlist" minOccurs="0">
                 <xs:annotation>
-                  <xs:documentation>k-point list (all states are considered) for which the matrix
+                  <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point list (all states are considered) for which the matrix
                     elements are written out.</xs:documentation>
                 </xs:annotation>
               </xs:element>
@@ -3167,7 +3167,7 @@ xs.xsd
                 <xs:appinfo>
                   <oldname>ngridkscr</oldname>
                 </xs:appinfo>
-                <xs:documentation>k-point grid sizes for screening.</xs:documentation>
+                <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point grid sizes for screening.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="reducek" type="xs:boolean" default="false">
@@ -3176,7 +3176,7 @@ xs.xsd
                   <oldname>reducekscr</oldname>
                 </xs:appinfo>
                 <xs:documentation>
-                  <attref>reducek</attref> is <pre>"true"</pre> if k-points are to be reduced with crystal
+                  <attref>reducek</attref> is <pre>"true"</pre> if <inlinemath>{\mathbf k}</inlinemath>-points are to be reduced with crystal
                   symmetries for screening. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -3185,7 +3185,7 @@ xs.xsd
                 <xs:appinfo>
                   <oldname>vkloffscr</oldname>
                 </xs:appinfo>
-                <xs:documentation>k-point offset for screening.</xs:documentation>
+                <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point offset for screening.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble" default="0.0d0">
@@ -3237,7 +3237,7 @@ xs.xsd
                   <oldname>reducekbse</oldname>
                 </xs:appinfo>
                 <xs:documentation>
-                  <attref>reducek</attref> is <pre>"true"</pre> if k-points are to be reduced with crystal
+                  <attref>reducek</attref> is <pre>"true"</pre> if <inlinemath>{\mathbf k}</inlinemath>-points are to be reduced with crystal
                   symmetries for BSE. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -3246,7 +3246,7 @@ xs.xsd
                 <xs:appinfo>
                   <oldname>vkloffbse</oldname>
                 </xs:appinfo>
-                <xs:documentation>k-point offset for BSE.</xs:documentation>
+                <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point offset for BSE.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble" default="0.0d0">
@@ -3395,7 +3395,7 @@ xs.xsd
               <xs:element ex:importance="expert" ex:unit="" name="individual" minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                   <xs:documentation>A list of individual transitions consisting of an initial state
-                    a final state and a k-point is given here. If the list is empty, no transitions
+                    a final state and a <inlinemath>{\mathbf k}</inlinemath>-point is given here. If the list is empty, no transitions
                     are considered.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
@@ -3403,8 +3403,8 @@ xs.xsd
                     <xs:element ex:importance="expert" ex:unit="" name="trans" minOccurs="0" maxOccurs="unbounded">
                       <xs:annotation>
                         <xs:documentation> An individual transition consisting of an initial state a
-                          final state and a k-point is given here. Values of zero correspond to the
-                          inclusion of all initial and final states and all k-points and can be used
+                          final state and a <inlinemath>{\mathbf k}</inlinemath>-point is given here. Values of zero correspond to the
+                          inclusion of all initial and final states and all <inlinemath>{\mathbf k}</inlinemath>-points and can be used
                           as "wildcards" (default). Therefore, an empty element amounts to include
                           all transitions.</xs:documentation>
                       </xs:annotation>
@@ -3418,8 +3418,8 @@ xs.xsd
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber" type="xs:integer" default="0">
                           <xs:annotation>
-                            <xs:documentation>Number of k-points to be considered. A value of zero
-                              (default) means to include all k-points. </xs:documentation>
+                            <xs:documentation>Number of <inlinemath>{\mathbf k}</inlinemath>-points to be considered. A value of zero
+                              (default) means to include all <inlinemath>{\mathbf k}</inlinemath>-points. </xs:documentation>
                           </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="initial" type="xs:integer" default="0">
@@ -3442,7 +3442,7 @@ xs.xsd
               <xs:element ex:importance="expert" ex:unit="" name="ranges" minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                   <xs:documentation>A list of ranges of transitions (initial state as well as final
-                    state ranges) and a k-point are given here. An empty list amounts to no
+                    state ranges) and a <inlinemath>{\mathbf k}</inlinemath>-point are given here. An empty list amounts to no
                     transitions at all.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
@@ -3451,11 +3451,11 @@ xs.xsd
                       <xs:annotation>
                         <xs:documentation>A range of transitions (for initial as well as final
                           states) is given here. A range consists of a "start" and a "stop" values
-                          as well as a k-point. Values of zero correspond to starting at the first
-                          state and stopping at the last state and considering all k-points. They
+                          as well as a <inlinemath>{\mathbf k}</inlinemath>-point. Values of zero correspond to starting at the first
+                          state and stopping at the last state and considering all <inlinemath>{\mathbf k}</inlinemath>-points. They
                           can be used as "wildcards" (default). Therefore, an empty element
                           corresponds to the full initial/final state range for all
-                          k-points.</xs:documentation>
+                          <inlinemath>{\mathbf k}</inlinemath>-points.</xs:documentation>
                       </xs:annotation>
                       <xs:complexType>
                         <xs:attribute ex:importance="expert" ex:unit="" ref="action" use="optional" default="include">
@@ -3473,8 +3473,8 @@ xs.xsd
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber" type="xs:integer" default="0">
                           <xs:annotation>
-                            <xs:documentation>Number of k-point to be considered. A value of zero
-                              (default) means to include all k-point. </xs:documentation>
+                            <xs:documentation>Number of <inlinemath>{\mathbf k}</inlinemath>-point to be considered. A value of zero
+                              (default) means to include all <inlinemath>{\mathbf k}</inlinemath>-point. </xs:documentation>
                           </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="start" type="xs:integer" default="0">
@@ -3504,11 +3504,11 @@ xs.xsd
                   <xs:sequence>
                     <xs:element ex:importance="expert" ex:unit="" name="istate" minOccurs="0" maxOccurs="unbounded">
                       <xs:annotation>
-                        <xs:documentation>An initial or final state and corresponding k-point is
+                        <xs:documentation>An initial or final state and corresponding <inlinemath>{\mathbf k}</inlinemath>-point is
                           given here. Values of zero correspond to considering all initial/final
-                          states for all k-points. They can be used as "wildcards" (default).
+                          states for all <inlinemath>{\mathbf k}</inlinemath>-points. They can be used as "wildcards" (default).
                           Therefore, an empty element corresponds to the full initial/final state
-                          set for all k-points.</xs:documentation>
+                          set for all <inlinemath>{\mathbf k}</inlinemath>-points.</xs:documentation>
                       </xs:annotation>
                       <xs:complexType>
                         <xs:attribute ex:importance="expert" ex:unit="" ref="action" use="optional" default="include">
@@ -3526,8 +3526,8 @@ xs.xsd
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber" type="xs:integer" default="0">
                           <xs:annotation>
-                            <xs:documentation>Number of k-point to be consider. A value of zero
-                              (default) means to include all k-point. </xs:documentation>
+                            <xs:documentation>Number of <inlinemath>{\mathbf k}</inlinemath>-point to be consider. A value of zero
+                              (default) means to include all <inlinemath>{\mathbf k}</inlinemath>-point. </xs:documentation>
                           </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="state" type="xs:integer" default="0">
@@ -3559,7 +3559,7 @@ xs.xsd
             <xs:attribute ex:importance="expert" ex:unit="" name="tetradf" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation>
-                  <pre>"true"</pre> if tetrahedron method is used for the k-space integration in the
+                  <pre>"true"</pre> if tetrahedron method is used for the <inlinemath>{\mathbf k}</inlinemath>-space integration in the
                   Kohn-Sham response function. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -4049,7 +4049,7 @@ xs.xsd
           <xs:appinfo>
             <oldname>ngridkxs</oldname>
           </xs:appinfo>
-          <xs:documentation>k-point grid sizes.</xs:documentation>
+          <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point grid sizes.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d" default="0.0d0 0.0d0 0.0d0 ">
@@ -4057,13 +4057,13 @@ xs.xsd
           <xs:appinfo>
             <oldname>vkloffxs</oldname>
           </xs:appinfo>
-          <xs:documentation> The k-point set offset. All k-points of a regular k-mesh (a mesh
+          <xs:documentation> The <inlinemath>{\mathbf k}</inlinemath>-point set offset. All <inlinemath>{\mathbf k}</inlinemath>-points of a regular <inlinemath>{\mathbf k}</inlinemath>-mesh (a mesh
             containing the Gamma point) are shifted by a constant vector given by <inlinemath>({\rm
               vkloff}_1/N_1, {\rm vkloff}_2/N_2, {\rm vkloff}_3/N_3)</inlinemath>, where
-              <inlinemath> (N_1,N_2,N_3) </inlinemath> is the division of the k-point mesh. It
-            should be selected such that all symmetries among the k-points from the regular
+              <inlinemath> (N_1,N_2,N_3) </inlinemath> is the division of the <inlinemath>{\mathbf k}</inlinemath>-point mesh. It
+            should be selected such that all symmetries among the <inlinemath>{\mathbf k}</inlinemath>-points from the regular
             (non-shifted) mesh are broken. An exception is the case of optical spectra without local
-            field effects where symmetries among k-points are explicitly taken into account.
+            field effects where symmetries among <inlinemath>{\mathbf k}</inlinemath>-points are explicitly taken into account.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -4073,7 +4073,7 @@ xs.xsd
             <oldname>reducekxs</oldname>
           </xs:appinfo>
           <xs:documentation>
-            <attref>reducek</attref> is <pre>"true"</pre> if k-points are to be reduced (with crystal
+            <attref>reducek</attref> is <pre>"true"</pre> if <inlinemath>{\mathbf k}</inlinemath>-points are to be reduced (with crystal
             symmetries). </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -4091,7 +4091,7 @@ xs.xsd
             <oldname>reduceqxs</oldname>
           </xs:appinfo>
           <xs:documentation>
-            <pre>reducek</pre> is <pre>"true"</pre> if q-points are to be reduced (with crystal
+            <attref>reducek</attref> is <pre>"true"</pre> if q-points are to be reduced (with crystal
             symmetries). </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -4139,7 +4139,7 @@ xs.xsd
           <xs:documentation> Number of empty states. This parameter determines the energy cutoff for
             the excitation spectra. For determining the number of states related to an energy
             cutoff, perform one iteration of a SCF calculation, setting <attref>nempty</attref> to a
-            higher value and check the <pre>EIGVAL.OUT</pre>. </xs:documentation>
+            higher value and check the <filename>EIGVAL.OUT</filename>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0">

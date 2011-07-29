@@ -50,7 +50,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 \newcommand{\lapack}{LAPACK }
 \newcommand{\arpack}{ARPACK }
 \newcommand{\subsubsubsection}[1]{\paragraph{#1} \paragraph*{} }
-\newcommand{\attref}[1]{{\tt \hyperref[att#1]{\color{green} #1}}}
+\newcommand{\attref}[2]{{\tt \hyperref[att#2#1]{\color{green} #1}}}
 \newcommand{\elementref}[1]{{\tt  \hyperref[#1]{\color{blue}  #1}}}
 \newpage
 \definecolor{green}{rgb}{0,0.5,0}
@@ -162,7 +162,9 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
  <xsl:param name="att"/>
   <xsl:text>\attref{</xsl:text>
   <xsl:value-of select="$att"/>
-  <xsl:text>}</xsl:text>
+  <xsl:text>}{</xsl:text>
+ <xsl:value-of select="ancestor::xs:element[1]/@name"/>
+ <xsl:text>}</xsl:text>
  </xsl:template>
 
 
@@ -269,6 +271,8 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:text>\subsection{Attribute: {\color{green}</xsl:text>
   <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
   <xsl:text>}}  \label{att</xsl:text>
+   <xsl:value-of select="ancestor::xs:element[1]/@name"/>
+  
   <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
   <xsl:text>}
     </xsl:text>
@@ -417,6 +421,8 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
     <xsl:text>/\hyperref[</xsl:text>
     <xsl:if test="name($node)='xs:attribute'">
      <xsl:text>att</xsl:text>
+     <xsl:value-of select="ancestor::xs:element[1]/@name"/>
+    
     </xsl:if>
     <xsl:value-of select="$node/@name|$node/@ref"/>
  <xsl:text>]{</xsl:text>

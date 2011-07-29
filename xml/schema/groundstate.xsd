@@ -18,7 +18,7 @@
       <xs:all>
         <xs:element ex:importance="essential" ex:unit="" name="spin" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation> If the <pre>spin</pre> element is present calculation is done with
+            <xs:documentation> If the <elementref>spin</elementref> element is present calculation is done with
               spin polarization. </xs:documentation>
             <xs:appinfo>
               <oldname>spinpol</oldname>
@@ -43,16 +43,16 @@
                   infinitesimal with no direct contribution to the total energy. In cases where the
                   magnetic field is finite (for example when computing magnetic response) the
                   external <inlinemath>{ \bf B}</inlinemath>-field energy reported in
-                  <pre>INFO.OUT</pre> should be added to the total by hand. This field is applied
+                  <filename>INFO.OUT</filename> should be added to the total by hand. This field is applied
                   throughout the entire unit cell. To apply magnetic fields in particular
-                  muffin-tins use the <pre>bfcmt</pre> vect ors in the <pre>atoms</pre> block.
+                  muffin-tins use the <attref>bfcmt</attref> vectors in the <elementref>atoms</elementref> elements.
                   Collinear calculations are more efficient if the field is applied in the
                     <inlinemath>z</inlinemath>-direction. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean">
               <xs:annotation>
-                <xs:documentation> If <pre>spinorb</pre> is <pre>"true"</pre>, then a
+                <xs:documentation> If <attref>spinorb</attref> is <pre>"true"</pre>, then a
                     <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
                   second-variational Hamiltonian. </xs:documentation>
               </xs:annotation>
@@ -1206,17 +1206,17 @@
       <xs:attribute ex:importance="essential" ex:unit="" name="rgkmax" type="fortrandouble"
         default="7.0d0">
         <xs:annotation>
-          <xs:documentation> The parameter <pre>rgkmax</pre> implicitly determines the number of
+          <xs:documentation> The parameter <attref>rgkmax</attref> implicitly determines the number of
             basis functions and is one of the crucial parameters for the accuracy of the
             calculation. It represents the product of two quantities: <inlinemath>R_{MT,\,
               Min}</inlinemath>, the smallest of all muffin-tin radii, and <inlinemath>|{ \bf G}+{
               \bf k}|_{max}</inlinemath>, the maximum length for the <inlinemath>{ \bf G}+{ \bf
               k}</inlinemath>  vectors. Because each <inlinemath>{ \bf G}+{ \bf k}</inlinemath> 
-            vector represents one basis function, <pre>rgkmax</pre> gives the number of basis
-            functions used for solving the Kohn-Sham equations. Typical values of <pre>rgkmax</pre>
+            vector represents one basis function, <attref>rgkmax</attref> gives the number of basis
+            functions used for solving the Kohn-Sham equations. Typical values of <attref>rgkmax</attref>
             are between 6 and 9. However, for systems with very short bond-lengths, significantly
             smaller values may be sufficient. This may especially be the case for materials
-            containing carbon, where <pre>rgkmax</pre> may be 4.5-5, or hydrogen, where even values
+            containing carbon, where <attref>rgkmax</attref> may be 4.5-5, or hydrogen, where even values
             between 3 and 4 may be sufficient. In any case, a convergence check is indispensible for
             a proper choice of this parameter for your system! </xs:documentation>
         </xs:annotation>
@@ -1225,7 +1225,7 @@
         use="optional" default="1.0d-6">
         <xs:annotation>
           <xs:documentation> If the RMS change in the effective potential and magnetic field is
-            smaller than <pre>epspot</pre>, then the self-consistent loop is considered converged
+            smaller than <attref>epspot</attref>, then the self-consistent loop is considered converged
             and exited. For structural optimization runs this results in the forces being
             calculated, the atomic positions updated and the loop restarted. See also
               <attref>maxscl</attref>. </xs:documentation>
@@ -1257,7 +1257,7 @@
       <xs:attribute ex:importance="essential" ex:unit="" name="stype" default="Gaussian">
         <xs:annotation>
           <xs:documentation> A smooth approximation to the Dirac delta function is needed to compute
-            the occupancies of the Kohn-Sham states. The attribute <pre>swidth</pre> determines the
+            the occupancies of the Kohn-Sham states. The attribute <attref>swidth</attref> determines the
             width of the approximate delta function. </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
@@ -1319,7 +1319,7 @@
         default="false">
         <xs:annotation>
           <xs:documentation> If <pre>"true"</pre> the linearization energies marked as non-varying
-            are set to the Fermi level plus <pre>dlinengyfermi</pre>. </xs:documentation>
+            are set to the Fermi level plus <attref>dlinengyfermi</attref>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="isgkmax" type="xs:integer" default="-1">
@@ -1339,10 +1339,10 @@
         <xs:annotation>
           <xs:documentation> Defines the number of eigenstates beyond that required for charge
             neutrality. When running metals it is not known <it>a priori</it> how many states will
-            be below the Fermi energy for each <bf>k</bf>-point. Setting <pre>nempty</pre> greater
+            be below the Fermi energy for each <bf>k</bf>-point. Setting <attref>nempty</attref> greater
             than zero allows the additional states to act as a buffer in such cases. Furthermore,
             magnetic calculations use the first-variational eigenstates as a basis for setting up
-            the second-variational Hamiltonian, and thus <pre>nempty</pre> will determine the size
+            the second-variational Hamiltonian, and thus <attref>nempty</attref> will determine the size
             of this basis set. Convergence with respect to this quantity should be checked.
           </xs:documentation>
         </xs:annotation>
@@ -1378,24 +1378,24 @@
         default="40.0d0">
         <xs:annotation>
           <xs:documentation> Used for the automatic determination of the <bf>k</bf>-point mesh. If
-            <pre>autokpt</pre> is set to <pre>"true"</pre> then the mesh sizes will be determined by
+            <attref>autokpt</attref> is set to <pre>"true"</pre> then the mesh sizes will be determined by
               <inlinemath>n_i=\lambda/|{ \bf A}_i|+1</inlinemath>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="nktot" type="xs:integer" default="0">
         <xs:annotation>
-          <xs:documentation> Used for the automatic determination of the k-point mesh from the total
-            number of <bf nospace="true">k</bf>-points. If <pre>nktot</pre> is set, then the mesh
+          <xs:documentation> Used for the automatic determination of the <inlinemath>{\mathbf k}</inlinemath>-point mesh from the total
+            number of <bf nospace="true">k</bf>-points. If <attref>nktot</attref> is set, then the mesh
             will be determined in such a way that the number of <bf>k</bf>-points is proportional to
             the length of the reciprocal lattice vector in each direction and that the total number
-            of <bf nospace="true">k</bf>-points is less than or equal to <pre>nktot</pre>.
+            of <bf nospace="true">k</bf>-points is less than or equal to <attref>nktot</attref>.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="reducek" type="xs:boolean"
         default="true">
         <xs:annotation>
-          <xs:documentation> If the attribute <pre>reducek</pre> is <pre>"true"</pre> the
+          <xs:documentation> If the attribute <attref>reducek</attref> is <pre>"true"</pre> the
               <inlinemath> \bf{k} </inlinemath>-point set is reduced with the crystal symmetries.
           </xs:documentation>
         </xs:annotation>
@@ -1729,7 +1729,7 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d"
         default="0.0d0 0.0d0 0.0d0">
         <xs:annotation>
-          <xs:documentation>The k-point offset vector in lattice coordinates.</xs:documentation>
+          <xs:documentation>The <inlinemath>{\mathbf k}</inlinemath>-point offset vector in lattice coordinates.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="npsden" type="xs:integer" default="9">

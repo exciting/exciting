@@ -247,7 +247,7 @@
                 <xs:appinfo>
                   <oldname>ngridkscr</oldname>
                 </xs:appinfo>
-                <xs:documentation>k-point grid sizes for screening.</xs:documentation>
+                <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point grid sizes for screening.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="reducek" type="xs:boolean"
@@ -257,7 +257,7 @@
                   <oldname>reducekscr</oldname>
                 </xs:appinfo>
                 <xs:documentation>
-                  <attref>reducek</attref> is <pre>"true"</pre> if k-points are to be reduced with crystal
+                  <attref>reducek</attref> is <pre>"true"</pre> if <inlinemath>{\mathbf k}</inlinemath>-points are to be reduced with crystal
                   symmetries for screening. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -267,7 +267,7 @@
                 <xs:appinfo>
                   <oldname>vkloffscr</oldname>
                 </xs:appinfo>
-                <xs:documentation>k-point offset for screening.</xs:documentation>
+                <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point offset for screening.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble"
@@ -323,7 +323,7 @@
                   <oldname>reducekbse</oldname>
                 </xs:appinfo>
                 <xs:documentation>
-                  <attref>reducek</attref> is <pre>"true"</pre> if k-points are to be reduced with crystal
+                  <attref>reducek</attref> is <pre>"true"</pre> if <inlinemath>{\mathbf k}</inlinemath>-points are to be reduced with crystal
                   symmetries for BSE. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -333,7 +333,7 @@
                 <xs:appinfo>
                   <oldname>vkloffbse</oldname>
                 </xs:appinfo>
-                <xs:documentation>k-point offset for BSE.</xs:documentation>
+                <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point offset for BSE.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble"
@@ -497,7 +497,7 @@
                 maxOccurs="1">
                 <xs:annotation>
                   <xs:documentation>A list of individual transitions consisting of an initial state
-                    a final state and a k-point is given here. If the list is empty, no transitions
+                    a final state and a <inlinemath>{\mathbf k}</inlinemath>-point is given here. If the list is empty, no transitions
                     are considered.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
@@ -506,8 +506,8 @@
                       maxOccurs="unbounded">
                       <xs:annotation>
                         <xs:documentation> An individual transition consisting of an initial state a
-                          final state and a k-point is given here. Values of zero correspond to the
-                          inclusion of all initial and final states and all k-points and can be used
+                          final state and a <inlinemath>{\mathbf k}</inlinemath>-point is given here. Values of zero correspond to the
+                          inclusion of all initial and final states and all <inlinemath>{\mathbf k}</inlinemath>-points and can be used
                           as "wildcards" (default). Therefore, an empty element amounts to include
                           all transitions.</xs:documentation>
                       </xs:annotation>
@@ -523,8 +523,8 @@
                         <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
                           type="xs:integer" default="0">
                           <xs:annotation>
-                            <xs:documentation>Number of k-points to be considered. A value of zero
-                              (default) means to include all k-points. </xs:documentation>
+                            <xs:documentation>Number of <inlinemath>{\mathbf k}</inlinemath>-points to be considered. A value of zero
+                              (default) means to include all <inlinemath>{\mathbf k}</inlinemath>-points. </xs:documentation>
                           </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="initial"
@@ -550,7 +550,7 @@
                 maxOccurs="1">
                 <xs:annotation>
                   <xs:documentation>A list of ranges of transitions (initial state as well as final
-                    state ranges) and a k-point are given here. An empty list amounts to no
+                    state ranges) and a <inlinemath>{\mathbf k}</inlinemath>-point are given here. An empty list amounts to no
                     transitions at all.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
@@ -560,11 +560,11 @@
                       <xs:annotation>
                         <xs:documentation>A range of transitions (for initial as well as final
                           states) is given here. A range consists of a "start" and a "stop" values
-                          as well as a k-point. Values of zero correspond to starting at the first
-                          state and stopping at the last state and considering all k-points. They
+                          as well as a <inlinemath>{\mathbf k}</inlinemath>-point. Values of zero correspond to starting at the first
+                          state and stopping at the last state and considering all <inlinemath>{\mathbf k}</inlinemath>-points. They
                           can be used as "wildcards" (default). Therefore, an empty element
                           corresponds to the full initial/final state range for all
-                          k-points.</xs:documentation>
+                          <inlinemath>{\mathbf k}</inlinemath>-points.</xs:documentation>
                       </xs:annotation>
                       <xs:complexType>
                         <xs:attribute ex:importance="expert" ex:unit="" ref="action" use="optional"
@@ -585,8 +585,8 @@
                         <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
                           type="xs:integer" default="0">
                           <xs:annotation>
-                            <xs:documentation>Number of k-point to be considered. A value of zero
-                              (default) means to include all k-point. </xs:documentation>
+                            <xs:documentation>Number of <inlinemath>{\mathbf k}</inlinemath>-point to be considered. A value of zero
+                              (default) means to include all <inlinemath>{\mathbf k}</inlinemath>-point. </xs:documentation>
                           </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="start"
@@ -619,11 +619,11 @@
                     <xs:element ex:importance="expert" ex:unit="" name="istate" minOccurs="0"
                       maxOccurs="unbounded">
                       <xs:annotation>
-                        <xs:documentation>An initial or final state and corresponding k-point is
+                        <xs:documentation>An initial or final state and corresponding <inlinemath>{\mathbf k}</inlinemath>-point is
                           given here. Values of zero correspond to considering all initial/final
-                          states for all k-points. They can be used as "wildcards" (default).
+                          states for all <inlinemath>{\mathbf k}</inlinemath>-points. They can be used as "wildcards" (default).
                           Therefore, an empty element corresponds to the full initial/final state
-                          set for all k-points.</xs:documentation>
+                          set for all <inlinemath>{\mathbf k}</inlinemath>-points.</xs:documentation>
                       </xs:annotation>
                       <xs:complexType>
                         <xs:attribute ex:importance="expert" ex:unit="" ref="action" use="optional"
@@ -644,8 +644,8 @@
                         <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
                           type="xs:integer" default="0">
                           <xs:annotation>
-                            <xs:documentation>Number of k-point to be consider. A value of zero
-                              (default) means to include all k-point. </xs:documentation>
+                            <xs:documentation>Number of <inlinemath>{\mathbf k}</inlinemath>-point to be consider. A value of zero
+                              (default) means to include all <inlinemath>{\mathbf k}</inlinemath>-point. </xs:documentation>
                           </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="state"
@@ -680,7 +680,7 @@
               default="false">
               <xs:annotation>
                 <xs:documentation>
-                  <pre>"true"</pre> if tetrahedron method is used for the k-space integration in the
+                  <pre>"true"</pre> if tetrahedron method is used for the <inlinemath>{\mathbf k}</inlinemath>-space integration in the
                   Kohn-Sham response function. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -1184,7 +1184,7 @@
           <xs:appinfo>
             <oldname>ngridkxs</oldname>
           </xs:appinfo>
-          <xs:documentation>k-point grid sizes.</xs:documentation>
+          <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point grid sizes.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d"
@@ -1193,13 +1193,13 @@
           <xs:appinfo>
             <oldname>vkloffxs</oldname>
           </xs:appinfo>
-          <xs:documentation> The k-point set offset. All k-points of a regular k-mesh (a mesh
+          <xs:documentation> The <inlinemath>{\mathbf k}</inlinemath>-point set offset. All <inlinemath>{\mathbf k}</inlinemath>-points of a regular <inlinemath>{\mathbf k}</inlinemath>-mesh (a mesh
             containing the Gamma point) are shifted by a constant vector given by <inlinemath>({\rm
               vkloff}_1/N_1, {\rm vkloff}_2/N_2, {\rm vkloff}_3/N_3)</inlinemath>, where
-              <inlinemath> (N_1,N_2,N_3) </inlinemath> is the division of the k-point mesh. It
-            should be selected such that all symmetries among the k-points from the regular
+              <inlinemath> (N_1,N_2,N_3) </inlinemath> is the division of the <inlinemath>{\mathbf k}</inlinemath>-point mesh. It
+            should be selected such that all symmetries among the <inlinemath>{\mathbf k}</inlinemath>-points from the regular
             (non-shifted) mesh are broken. An exception is the case of optical spectra without local
-            field effects where symmetries among k-points are explicitly taken into account.
+            field effects where symmetries among <inlinemath>{\mathbf k}</inlinemath>-points are explicitly taken into account.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -1210,7 +1210,7 @@
             <oldname>reducekxs</oldname>
           </xs:appinfo>
           <xs:documentation>
-            <attref>reducek</attref> is <pre>"true"</pre> if k-points are to be reduced (with crystal
+            <attref>reducek</attref> is <pre>"true"</pre> if <inlinemath>{\mathbf k}</inlinemath>-points are to be reduced (with crystal
             symmetries). </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -1230,7 +1230,7 @@
             <oldname>reduceqxs</oldname>
           </xs:appinfo>
           <xs:documentation>
-            <pre>reducek</pre> is <pre>"true"</pre> if q-points are to be reduced (with crystal
+            <attref>reducek</attref> is <pre>"true"</pre> if q-points are to be reduced (with crystal
             symmetries). </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -1280,7 +1280,7 @@
           <xs:documentation> Number of empty states. This parameter determines the energy cutoff for
             the excitation spectra. For determining the number of states related to an energy
             cutoff, perform one iteration of a SCF calculation, setting <attref>nempty</attref> to a
-            higher value and check the <pre>EIGVAL.OUT</pre>. </xs:documentation>
+            higher value and check the <filename>EIGVAL.OUT</filename>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0">

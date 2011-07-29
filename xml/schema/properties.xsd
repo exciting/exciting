@@ -61,7 +61,7 @@
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="kstlist" minOccurs="1">
                 <xs:annotation>
-                  <xs:documentation>k-point and state index for which the wave function should be
+                  <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point and state index for which the wave function should be
                     plotted.</xs:documentation>
                 </xs:annotation>
               </xs:element>
@@ -79,12 +79,12 @@
                 \delta(\omega_i-e({\bf k}))d{ \bf k}.</displaymath> These are calculated by first
               interpolating the functions <inlinemath>e({ \bf k})</inlinemath> and <inlinemath>f({
                 \bf k})</inlinemath> with the trilinear method on a much finer mesh whose size is
-              determined by <pre>ngrdos</pre>. Then the <inlinemath>\omega</inlinemath> -dependent
+              determined by <attref>ngrdos</attref>. Then the <inlinemath>\omega</inlinemath>-dependent
               histogram of the integrand is accumulated over the fine mesh. If the output function
-              is noisy then either <pre>ngrdos</pre> should be increased or <pre>nwdos</pre>
+              is noisy then either <attref>ngrdos</attref> should be increased or <attref>nwdos</attref>
               decreased. Alternatively, the output function can be artificially smoothed up to a
-              level given by <pre>nsmdos</pre>. This is the number of successive 3-point averages
-              to be applied to the function <inlinemath>g</inlinemath>. </xs:documentation>
+              level given by <attref>nsmdos</attref>. This is the number of successive 3-point averages to
+              be applied to the function <inlinemath>g</inlinemath>. </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="sqados"
@@ -130,7 +130,7 @@
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="kstlist" minOccurs="0">
                 <xs:annotation>
-                  <xs:documentation> List of <inlinemath>{ \bf k}</inlinemath> -point and state
+                  <xs:documentation> List of <inlinemath>{ \bf k}</inlinemath>-point and state
                     pairs. Referenced by their index. </xs:documentation>
                 </xs:annotation>
               </xs:element>
@@ -139,21 +139,21 @@
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="masstensor" maxOccurs="1" minOccurs="0">
           <xs:annotation>
-            <xs:documentation> Compute the effective mass tensor at the <bf>k</bf> -point given by
+            <xs:documentation> Compute the effective mass tensor at the <inlinemath>{\mathbf k}</inlinemath>-point given by
               vklem. </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="deltaem" type="fortrandouble"
               default="0.025d0">
               <xs:annotation>
-                <xs:documentation> The size of the k-vector displacement used when calculating
+                <xs:documentation> The size of the <inlinemath>{\mathbf k}</inlinemath>-vector displacement used when calculating
                   numerical derivatives for the effective mass tensor. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="ndspem" type="xs:integer"
               default="1">
               <xs:annotation>
-                <xs:documentation> The number of k-vector displacements in each direction around
+                <xs:documentation> The number of <inlinemath>{\mathbf k}</inlinemath>-vector displacements in each direction around
                   vklem when computing the numerical derivatives for the effective mass
                   tensor.</xs:documentation>
               </xs:annotation>
@@ -161,7 +161,7 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="vklem" type="vect3d"
               default="0.0d0 0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation>The k-point in lattice coordinates at which to compute the
+                <xs:documentation>The <inlinemath>{\mathbf k}</inlinemath>-point in lattice coordinates at which to compute the
                   effective mass tensors.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -336,13 +336,13 @@
         <xs:element ex:importance="expert" ex:unit="" name="expiqr" minOccurs="0">
           <xs:complexType>
             <xs:annotation>
-              <xs:documentation>Write out matrix elements of plane wave for given list of k-points
+              <xs:documentation>Write out matrix elements of plane wave for given list of <inlinemath>{\mathbf k}</inlinemath>-points
                 and states</xs:documentation>
             </xs:annotation>
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="kstlist" minOccurs="0">
                 <xs:annotation>
-                  <xs:documentation>k-point list (all states are considered) for which the matrix
+                  <xs:documentation><inlinemath>{\mathbf k}</inlinemath>-point list (all states are considered) for which the matrix
                     elements are written out.</xs:documentation>
                 </xs:annotation>
               </xs:element>
