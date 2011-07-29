@@ -716,7 +716,7 @@ xs.xsd
                   external <inlinemath>{ \bf B}</inlinemath>-field energy reported in
                   <filename>INFO.OUT</filename> should be added to the total by hand. This field is applied
                   throughout the entire unit cell. To apply magnetic fields in particular
-                  muffin-tins use the <attref>bfcmt</attref> vectors in the <elementref>atoms</elementref> elements.
+                  muffin-tins use the <attref>bfcmt</attref> vectors in the <elementref>atom</elementref> elements.
                   Collinear calculations are more efficient if the field is applied in the
                     <inlinemath>z</inlinemath>-direction. </xs:documentation>
               </xs:annotation>
