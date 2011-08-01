@@ -162,7 +162,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
  <xsl:param name="att"/>
   <xsl:text>\attref{</xsl:text>
   <xsl:value-of select="$att"/>
-<xsl:value-of select="count(preceding::xs:attribute[@name=$att or@ref=$att])"/> 
+
   <xsl:text>}</xsl:text>
  </xsl:template>
 
