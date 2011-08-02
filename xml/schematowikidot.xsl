@@ -196,13 +196,17 @@
   <xsl:template match="attref">
     <xsl:call-template name="attref">
       <xsl:with-param name="att" select="."/>
+      <xsl:with-param name="parent" select="@parent"/>
     </xsl:call-template>
 
   </xsl:template>
 
   <xsl:template name="attref">
     <xsl:param name="att"/>
+    <xsl:param name="parent"/>
     <xsl:text>[[span class="attributelink"]]**{{[#att</xsl:text>
+    <xsl:value-of select="$parent"/>
+
     <xsl:value-of select="$att"/>
     <xsl:text> </xsl:text>
     <xsl:value-of select="$att"/>
@@ -333,6 +337,7 @@
 
               <xsl:call-template name="attref">
                 <xsl:with-param name="att" select="@name|@ref"/>
+                <xsl:with-param name="parent" select="../../@name"/>
 
               </xsl:call-template>
               <xsl:if test="@use='required'">
@@ -384,6 +389,10 @@
     <xsl:param name="level"/>
     <xsl:text>
   [[# att</xsl:text>
+    <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
+    <xsl:text>]]
+    [[# att</xsl:text>
+    <xsl:value-of select="$myattribute/../../@name"/>
     <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
     <xsl:text>]]
   
@@ -566,6 +575,7 @@
             </xsl:when>
             <xsl:when test="name(.)='xs:attribute'">
               <xsl:text>[#att</xsl:text>
+              <xsl:value-of select="../../@name"/>
               <xsl:value-of select="@name"/>
               <xsl:text> @</xsl:text>
               <xsl:value-of select="@name"/>
@@ -666,7 +676,8 @@
       <xsl:text> </xsl:text>
     </xsl:if>
     <xsl:value-of select="normalize-space($a)"/>
-    <xsl:if test="substring($a,string-length($a),1)=' ' or substring($a,string-length($a),1)=$newline">
+    <xsl:if
+      test="substring($a,string-length($a),1)=' ' or substring($a,string-length($a),1)=$newline">
       <xsl:text> </xsl:text>
     </xsl:if>
 

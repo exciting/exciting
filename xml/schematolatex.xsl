@@ -50,7 +50,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 \newcommand{\lapack}{LAPACK }
 \newcommand{\arpack}{ARPACK }
 \newcommand{\subsubsubsection}[1]{\paragraph{#1} \paragraph*{} }
-\newcommand{\attref}[1]{{\tt \hyperref[att#1]{\color{green} #1}}}
+\newcommand{\attref}[2]{{\tt \hyperref[#2att#1]{\color{green} #1}}}
 \newcommand{\elementref}[1]{{\tt  \hyperref[#1]{\color{blue}  #1}}}
 \newpage
 \definecolor{green}{rgb}{0,0.5,0}
@@ -160,16 +160,23 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
  </xsl:template>
 <xsl:template name="attref">
  <xsl:param name="att"/>
+ <xsl:param name="parent" select="''"/>
   <xsl:text>\attref{</xsl:text>
   <xsl:value-of select="$att"/>
 
   <xsl:text>}</xsl:text>
+ 
+  <xsl:text>{</xsl:text>
+  <xsl:value-of select="$parent"/>
+  <xsl:text>:}</xsl:text>
+  
  </xsl:template>
 
 
  <xsl:template match="attref">
  <xsl:call-template name="attref">
   <xsl:with-param name="att" select="."/>
+  <xsl:with-param name="parent" select="@parent"/>
  </xsl:call-template>
  </xsl:template>
  <xsl:template match="list">
@@ -228,6 +235,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
     
     <xsl:call-template name="attref">
      <xsl:with-param name="att" select="@name|@ref"/>
+      <xsl:with-param name="parent" select="../../@name"/>
      
     </xsl:call-template>
     <xsl:if test="@use='required'">
@@ -269,7 +277,12 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:param name="level"/>
   <xsl:text>\subsection{Attribute: {\color{green}</xsl:text>
   <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
-  <xsl:text>}}  \label{att</xsl:text>
+  <xsl:text>}}  \label{:att</xsl:text>
+  <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
+  <xsl:text>}
+  \label{</xsl:text>
+  <xsl:value-of select="$myattribute/../../@name"/>
+  <xsl:text>:att</xsl:text>
   <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
   <xsl:text>}
     </xsl:text>
@@ -417,7 +430,9 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
    <xsl:if test="$node/@name">
     <xsl:text>/\hyperref[</xsl:text>
     <xsl:if test="name($node)='xs:attribute'">
-     <xsl:text>att</xsl:text>
+     <xsl:value-of select="../../@name"/>
+     <xsl:text>:att</xsl:text>
+      
     </xsl:if>
     <xsl:value-of select="$node/@name|$node/@ref"/>
  <xsl:text>]{</xsl:text>
