@@ -53,7 +53,7 @@ Subroutine euler (rot, ang)
       Real (8), Intent (In) :: rot (3, 3)
       Real (8), Intent (Out) :: ang (3)
 ! local variables
-      Real (8), Parameter :: eps = 1.d-10
+      Real (8), Parameter :: eps = 1.d-7
       Real (8), Parameter :: pi = 3.1415926535897932385d0
       Real (8), Parameter :: twopi = 6.2831853071795864769d0
       Real (8) :: det
