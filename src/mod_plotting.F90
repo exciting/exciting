@@ -33,5 +33,7 @@ Module mod_plotting
       Integer :: np3d (3)
 ! number of states for plotting Fermi surface
 !replaced by inputstructureinteger::nstfsp
+
+
 End Module
 !

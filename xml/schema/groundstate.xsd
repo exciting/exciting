@@ -34,7 +34,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="bfieldc" type="vect3d"
               default="0.0d0 0.0d0 0.0d0 ">
               <xs:annotation>
-                <xs:documentation> Alows to apply a constant B field This is a constant magnetic
+                <xs:documentation> Allows to apply a constant B field This is a constant magnetic
                   field applied throughout the entire unit cell and enters the second-variational
                   Hamiltonian as <displaymath>\frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf B}_{\rm
                     ext},</displaymath> where <inlinemath>g_e</inlinemath> is the electron
@@ -133,7 +133,7 @@
         <xs:element ex:importance="experimental" ex:unit="" name="HartreeFock" minOccurs="0"
           maxOccurs="1">
           <xs:annotation>
-            <xs:documentation>If preset HartreeFock calculation is triggered.</xs:documentation>
+            <xs:documentation>If preset Hartree-Fock calculation is triggered.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy"
@@ -188,7 +188,7 @@
               type="xs:boolean" use="optional" default="true">
               <xs:annotation>
                 <xs:documentation> In the default calculation the matrix is sored in packed form.
-                  When using multithreaded BLAS setting this parmeter to <pre>"false"</pre>
+                  When using multi-threaded BLAS setting this parameter to <pre>"false"</pre>
                   increases efficiency. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -225,7 +225,7 @@
               default="1.0d0 0.2d0 1.5d0">
               <xs:annotation>
                 <xs:documentation> The optimised effective potential is determined using an
-                  interative method. [Phys. Rev. Lett. 98, 196405 (2007)]. At the first iteration
+                  iterative method. [Phys. Rev. Lett. 98, 196405 (2007)]. At the first iteration
                   the step length is set to tauoep(1). Dur- ing subsequent iterations, the step
                   length is scaled by tauoep(2) or tauoep(3), when the residual is increasing or
                   decreasing, respectively. See also <attref>maxitoep</attref>. </xs:documentation>
@@ -1302,7 +1302,7 @@
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="findlinentype" default="advanced">
         <xs:annotation>
-          <xs:documentation>Select method to determine the linearization
+          <xs:documentation>Select method to determine the linearisation
             energies.</xs:documentation>
           <xs:appinfo>
             <olddefault default="advanced"/>
@@ -1370,7 +1370,8 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="autokpt" type="xs:boolean"
         default="false">
         <xs:annotation>
-          <xs:documentation> Decides if the <bf>k</bf>-point set is to be determined automatically
+          <xs:documentation> Decides if the <bf>k</bf>-point set is to be determined automatically from the total 
+            number of required <bf>k</bf>-points given by <attref>nktot</attref>.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -1425,14 +1426,14 @@
       <xs:attribute ex:importance="essential" ex:unit="" name="maxscl" type="xs:integer"
         default="200">
         <xs:annotation>
-          <xs:documentation>Upper limit for te selfconsistency loop.</xs:documentation>
+          <xs:documentation>Upper limit for te self-consistency loop.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="chgexs" type="fortrandouble"
         default="0.0d0">
         <xs:annotation>
           <xs:documentation> This controls the amount of charge in the unit cell beyond that
-            required to maintain neu-trality. It can be set positive or negative depending on
+            required to maintain neutrality. It can be set positive or negative depending on
             whether electron or hole doping is required.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -1440,11 +1441,11 @@
         default="0.0025d0">
         <xs:annotation>
           <xs:documentation> Initial band energy step size The initial step length used when
-            searching for the band energy, which is used as the APW linearization energy. This is
-            done by first searching upwards in energy until the radial wavefunction at the
+            searching for the band energy, which is used as the APW linearisation energy. This is
+            done by first searching upwards in energy until the radial wave-function at the
             muffin-tin radius is zero. This is the energy at the top of the band, denoted
               <inlinemath>E_{\rm t}</inlinemath>. A downward search is now performed from
-              <inlinemath>E_{\rm t}</inlinemath> until the slope of the radial wavefunction at the
+              <inlinemath>E_{\rm t}</inlinemath> until the slope of the radial wave-function at the
             muffin-tin radius is zero. This energy, <inlinemath>E_{\rm b}</inlinemath>, is at the
             bottom of the band. The band energy is taken as <inlinemath>(E_{\rm t}+E_{\rm
               b})/2</inlinemath>. If either <inlinemath>E_{\rm t}</inlinemath> or <inlinemath>E_{\rm
@@ -1455,7 +1456,7 @@
       <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsband" type="fortrandouble"
         default="1.0d-6">
         <xs:annotation>
-          <xs:documentation>Energy tolerance for search of linearization
+          <xs:documentation>Energy tolerance for search of linearisation
             energies.</xs:documentation>
           <xs:appinfo>
             <oldname>none</oldname>
@@ -1522,7 +1523,7 @@
         default="0.4d0">
         <xs:annotation>
           <xs:documentation>Initial value for mixing parameter. Used in linear
-            mixing.</xs:documentation>
+            mixing as choosen with <attref>mixing</attref>.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="betainc" type="fortrandouble"
@@ -1734,7 +1735,7 @@
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="npsden" type="xs:integer" default="9">
         <xs:annotation>
-          <xs:documentation>oOrder of polynomial for pseudocharge density.</xs:documentation>
+          <xs:documentation>oOrder of polynomial for pseudo-charge density.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="cfdamp" type="fortrandouble"

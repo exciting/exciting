@@ -11,15 +11,16 @@
 ! !INTERFACE:
 !
 !
-Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
+Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
 ! !USES:
+	  use modplotlabels
       Use modinput
       Use modmain
       Use FoX_wxml
       use modmpi
 
 ! !INPUT/OUTPUT PARAMETERS:
-!   fnum : plot file number (in,integer)
+!   plotlabels : plot file number (in,integer)
 !   nf   : number of functions (in,integer)
 !   lmax : maximum angular momentum (in,integer)
 !   ld   : leading dimension (in,integer)
@@ -37,7 +38,7 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 !BOC
       Implicit None
 ! arguments
-      Character (Len=*), Intent (In) :: fname
+      type(plotlabels), Intent (In) :: plotlabels3d
       Integer, Intent (In) :: nf
       Integer, Intent (In) :: lmax
       Integer, Intent (In) :: ld
@@ -54,8 +55,7 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 ! allocatable arrays
       Real (8), Allocatable :: vpl (:, :)
       Real (8), Allocatable :: fp (:, :)
-      buffer = fname // "3d.xml"
- !
+  !
 !
  If (rank .Eq. 0) Then
       If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
@@ -99,8 +99,8 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
         & fp(:, i))
       End Do
 !write xml
-      Call xml_OpenFile (fname//"3d.xml", xf, replace=.True., &
-     & pretty_print=.True.)
+	  write (buffer,*) plotlabels3d%filename,"3d.xml"
+      Call xml_OpenFile ( buffer , xf, replace=.True., pretty_print=.True.)
       Call xml_NewElement (xf, "plot3d")
       Call xml_NewElement (xf, "title")
       Call xml_AddCharacters (xf, trim(input%title))
