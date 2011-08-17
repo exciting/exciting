@@ -99,8 +99,7 @@ Subroutine gndstate
          open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
      ! write out general information to INFO.OUT
          Call writeinfo (60)
-     ! write out general information to info.xml
-         Call structure_xmlout ()
+
      ! initialise or read the charge density and potentials from file
       End If
       iscl = 0
@@ -516,6 +515,8 @@ Subroutine gndstate
             If (rank .Eq. 0) Then
        ! output forces to INFO.OUT
                   Call writeforce (60)
+
+
               ! write maximum force magnitude to FORCEMAX.OUT
                   Write (64, '(G18.10)') forcemax
                   Call flushifc (64)
@@ -619,6 +620,7 @@ Subroutine gndstate
             close(68)
  ! close the PCHARGE.OUT file
             close(69)
+            Call structure_xmlout ()
             Call scl_xml_setGndstateStatus ("finished")
             Call scl_xml_out_write ()
          End If
