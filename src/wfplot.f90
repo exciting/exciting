@@ -10,11 +10,13 @@
 Subroutine wfplot(dostm)
       Use modmain
       Use modinput
+  use modplotlabels
       Implicit None
       Logical, Intent(in) :: dostm
 ! local variables
       Integer :: ik, ist
       Real (8) :: x, t1
+      type(plotlabels),pointer ::labels
 ! allocatable arrays
       Complex (8), Allocatable :: evecfv (:, :)
       Complex (8), Allocatable :: evecsv (:, :)
@@ -98,32 +100,52 @@ Subroutine wfplot(dostm)
       Call rfmtctof (rhomt)
 ! write the wavefunction modulus squared plot to file
       If (associated(input%properties%wfplot%plot1d)) Then
-         Call plot1d ("WF", 1, input%groundstate%lmaxvr, lmmaxvr, &
+      labels=>create_plotlablels("Potential","WF1D",1)
+		 call set_plotlabel_axis(labels,1,"Distance","a_0")
+		 call set_plotlabel_axis(labels,2,"Wave Function","")
+         Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%wfplot%plot1d)
+          call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(wfplot):")')
          Write (*, '(" 1D wavefunction modulus squared written to WF1D.&
-        &OUT")')
-         Write (*, '(" vertex location lines written to WFLINES.OUT")')
+        &xml")')
+       
+         
       End If
       If (associated(input%properties%wfplot%plot2d)) Then
-         Call plot2d ("WF", 1, input%groundstate%lmaxvr, lmmaxvr, &
+ labels=>create_plotlablels("Wave Function","VCL2d",2)
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
+		 call set_plotlabel_axis(labels,3,"Wave Function Norm Squared","")
+         Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%wfplot%plot2d)
+          call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(wfplot):")')
          Write (*, '(" 2D wavefunction modulus squared written to WF2D.&
         &OUT")')
       End If
       If (dostm) Then
-         Call plot2d ("STM", 1, input%groundstate%lmaxvr, lmmaxvr, &
+                  labels=>create_plotlablels("2D STM image","STM2d",2)
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
+		 call set_plotlabel_axis(labels,3,"STM","")
+             Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%STM%plot2d)
+          call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(wfplot):")')
          Write (*, '(" 2D STM image written to STM2d.xml")')
       End If
       If (associated(input%properties%wfplot%plot3d)) Then
-         Call plot3d ("WF", 1, input%groundstate%lmaxvr, lmmaxvr, &
+          call set_plotlabel_axis(labels,1,"a","lattice coordinate")
+	 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
+	  call set_plotlabel_axis(labels,3,"c","lattice coordinate")
+	 call set_plotlabel_axis(labels,3,"Wave Function Norm Squared","")
+         Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%wfplot%plot3d)
+         call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(wfplot):")')
          Write (*, '(" 3D wavefunction modulus squared written to WF3D.&
@@ -138,3 +160,4 @@ Subroutine wfplot(dostm)
       Deallocate (evecfv, evecsv)
       Return
 End Subroutine
+

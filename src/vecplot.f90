@@ -13,6 +13,7 @@
 Subroutine vecplot
 ! !DESCRIPTION:
       Use modinput
+      use modplotlabels
 !   Outputs a 2D or 3D vector field for plotting. The vector field can be the
 !   magnetisation vector field, ${\bf m}$; the exchange-correlation magnetic
 !   field, ${\bf B}_{\rm xc}$; or the electric field
@@ -35,6 +36,8 @@ Subroutine vecplot
       Integer :: is, ia, ias, ir, lm
       Real (8) :: vl1 (3), vl2 (3), vc1 (3), vc2 (3), vc3 (3), vc4 (3), &
      & t1
+     type(plotlabels),pointer ::labels
+     type(plot2d_type),pointer::plot2ddef
 ! allocatable arrays
       Real (8), Allocatable :: rvfmt (:, :, :, :)
       Real (8), Allocatable :: rvfir (:, :)
@@ -136,20 +139,31 @@ Subroutine vecplot
             rvfir (ir, 3) = dot_product (vc4(:), vc3(:))
          End Do
          If (task .Eq. 72) Then
-            Open (50, File='MAG2d.xml', Action='WRITE', Form='FORMATTED&
-           &')
+         plot2ddef=>input%properties%mvecfield%plot2d
+         labels=>create_plotlablels("MAG","MAG2d",2)
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
+		 call set_plotlabel_axis(labels,3,"Magnetization","????")
          Else If (task .Eq. 82) Then
-            Open (50, File='BXC2d.xml', Action='WRITE', Form='FORMATTED&
-           &')
+
+             labels=>create_plotlablels("BXC","MAG2d",2)
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
+		 call set_plotlabel_axis(labels,3,"BXC","????")
+		 plot2ddef=>input%properties%xcmvecfield%plot2d
          Else If (task .Eq. 142) Then
-            Open (50, File='EF2d.xml', Action='WRITE', Form='FORMATTED')
+           labels=>create_plotlablels("EF2","EF22d",2)
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
+		 call set_plotlabel_axis(labels,3,"EF2","????")
+         plot2ddef=>input%properties%electricfield%plot2d
          Else
-            Open (50, File='MCBXC2d.xml', Action='WRITE', Form='FORMATT&
-           &ED')
+          write(*,*) "error in vecplot 2d selection"
+
          End If
-         Call plot2d (50, 3, input%groundstate%lmaxvr, lmmaxvr, rvfmt, &
-        & rvfir)
-         Close (50)
+         Call plot2d (labels, 3, input%groundstate%lmaxvr, lmmaxvr, rvfmt, &
+        & rvfir, plot2ddef)
+       call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(vecplot):")')
          If (task .Eq. 72) Then
@@ -177,6 +191,7 @@ Subroutine vecplot
             Open (50, File='MCBXC3d.xml', Action='WRITE', Form='FORMATT&
            &ED')
          End If
+
          Call plot3d (50, 3, input%groundstate%lmaxvr, lmmaxvr, rvfmt, &
         & rvfir)
          Close (50)
