@@ -117,6 +117,8 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
       Call xml_AddAttribute (xf, "originrs", trim(adjustl(buffer)))
       Call xml_NewElement (xf, "axis")
       Call xml_AddAttribute (xf, "name", "a")
+              Call xml_AddAttribute (xf, "label", get_label(plotlabels3d,1))
+     Call xml_AddAttribute (xf, "unit", get_unit(plotlabels3d,1))
       Write (buffer, '(3F12.3)') plotdef%box%pointarray(1)%point%coord
       Call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
       Write (buffer, '(3F12.3)') &
@@ -131,6 +133,8 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
       !write y axis description
       Call xml_NewElement (xf, "axis")
       Call xml_AddAttribute (xf, "name", "b")
+              Call xml_AddAttribute (xf, "label", get_label(plotlabels3d,2))
+     Call xml_AddAttribute (xf, "unit", get_unit(plotlabels3d,2))
       Write (buffer, '(3F12.3)') plotdef%box%pointarray(2)%point%coord
       Call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
       Write (buffer, '(3F12.3)') &
@@ -147,6 +151,8 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
             !write z axis description
       Call xml_NewElement (xf, "axis")
       Call xml_AddAttribute (xf, "name", "c")
+              Call xml_AddAttribute (xf, "label", get_label(plotlabels3d,3))
+     Call xml_AddAttribute (xf, "unit", get_unit(plotlabels3d,3))
       Write (buffer, '(3F12.3)') plotdef%box%pointarray(3)%point%coord
       Call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
       Write (buffer, '(3F12.3)') &
@@ -159,6 +165,10 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
       Call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
 !
       Call xml_endElement (xf, "axis")
+       Call xml_NewElement (xf,"value")
+               Call xml_AddAttribute (xf, "label", get_label(plotlabels3d,4))
+     Call xml_AddAttribute (xf, "unit", get_unit(plotlabels3d,4))
+       Call xml_endElement (xf,"value")
       Call xml_endElement (xf, "grid")
 !
 !

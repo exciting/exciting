@@ -14,6 +14,7 @@ Subroutine potplot
 ! !USES:
       Use modinput
       Use modmain
+      use modplotlabels
 ! !DESCRIPTION:
 !   Outputs the exchange, correlation and Coulomb potentials, read in from
 !   {\tt STATE.OUT}, for 1D, 2D or 3D plotting.
@@ -24,54 +25,76 @@ Subroutine potplot
 !BOC
       Implicit None
 ! initialise universal variables
+type(plotlabels),pointer ::labels
       Call init0
 ! read the density and potentials from file
       Call readstate
 ! write the potential plots to file
-      Select Case (task)
-      Case (41)
-         Open (50, File='VCL1D.OUT', Action='WRITE', Form='FORMATTED')
-         Open (51, File='VLINES.OUT', Action='WRITE', Form='FORMATTED')
-         Call plot1d (50, 51, 1, input%groundstate%lmaxvr, lmmaxvr, &
-        & vclmt, vclir)
-         Close (50)
-         Close (51)
-         Open (50, File='VXC1D.OUT', Action='WRITE', Form='FORMATTED')
-         Open (51, File='VLINES.OUT', Action='WRITE', Form='FORMATTED')
-         Call plot1d (50, 51, 1, input%groundstate%lmaxvr, lmmaxvr, &
-        & vxcmt, vxcir)
-         Close (50)
-         Close (51)
+     If (associated(input%properties%exccplot%plot1d)) then
+
+        labels=>create_plotlablels("Potential","VCL1D",1)
+		 call set_plotlabel_axis(labels,1,"Distance","Bohr")
+		 call set_plotlabel_axis(labels,2,"Potential","V/m")
+         Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
+        & vclmt, vclir,input%properties%exccplot%plot1d)
+         call destroy_plotlablels(labels)
+
+  		  labels=>create_plotlablels("Potential","VXC1D",1)
+		 call set_plotlabel_axis(labels,1,"Distance","Bohr")
+		 call set_plotlabel_axis(labels,2,"Exchange Correlation Potential","V/m")
+         Call plot1d ( labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
+        & vxcmt, vxcir, input%properties%exccplot%plot1d)
+         call destroy_plotlablels(labels)
+
          Write (*,*)
          Write (*, '("Info(potplot):")')
-         Write (*, '(" 1D Coulomb potential plot written to VCL1D.OUT")&
+         Write (*, '(" 1D Coulomb potential plot written to VCL1D.xml")&
         &')
          Write (*, '(" 1D exchange-correlation potential plot written t&
-        &o VXC1D.OUT")')
-         Write (*, '(" vertex location lines written to VLINES.OUT")')
-      Case (42)
-         Open (50, File='VCL2d.xml', Action='WRITE', Form='FORMATTED')
-         Call plot2d (50, 1, input%groundstate%lmaxvr, lmmaxvr, vclmt, &
-        & vclir)
-         Close (50)
-         Open (50, File='VXC2d.xml', Action='WRITE', Form='FORMATTED')
-         Call plot2d (50, 1, input%groundstate%lmaxvr, lmmaxvr, vxcmt, &
-        & vxcir)
-         Close (50)
+        &o VXC1D.xml")')
+
+    endif
+     If (associated(input%properties%exccplot%plot2d)) then
+          labels=>create_plotlablels("Potential","VCL2d",2)
+		 call set_plotlabel_axis(labels,1,"a","Bohr")
+		 call set_plotlabel_axis(labels,2,"b","Bohr")
+		 call set_plotlabel_axis(labels,3,"Potential","V/m")
+
+         Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vclmt, &
+        & vclir,input%properties%exccplot%plot2d)
+        call destroy_plotlablels(labels)
+         labels=>create_plotlablels("Potential","VXC2d",2)
+		 call set_plotlabel_axis(labels,1,"a","Bohr")
+		 call set_plotlabel_axis(labels,2,"b","Bohr")
+		 call set_plotlabel_axis(labels,3,"Potential","V/m")
+         Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vxcmt, &
+        & vxcir,input%properties%exccplot%plot2d)
+         call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(potplot):")')
          Write (*, '(" 2D Coulomb potential plot written to VCL2d.xml")&
         &')
          Write (*, '(" 2D exchange-correlation potential plot written t&
         &o VXC2d.xml")')
-      Case (43)
-         Open (50, File='VCL3d.xml', Action='WRITE', Form='FORMATTED')
-         Call plot3d (50, 1, input%groundstate%lmaxvr, lmmaxvr, vclmt, &
-        & vclir)
-         Close (50)
-         Open (50, File='VXC3d.xml', Action='WRITE', Form='FORMATTED')
-         Call plot3d (50, 1, input%groundstate%lmaxvr, lmmaxvr, vxcmt, &
-        & vxcir)
+     endif
+      If (associated(input%properties%exccplot%plot3d)) then
+
+         labels=>create_plotlablels("Potential","VCL3d",3)
+		 call set_plotlabel_axis(labels,1,"a","Bohr")
+		 call set_plotlabel_axis(labels,2,"b","Bohr")
+		  call set_plotlabel_axis(labels,3,"c","Bohr")
+		 call set_plotlabel_axis(labels,4,"Potential","V/m")
+         Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vclmt, &
+        & vclir,input%properties%exccplot%plot3d)
+         call destroy_plotlablels(labels)
+
+           labels=>create_plotlablels("Potential","VXC3d",3)
+		 call set_plotlabel_axis(labels,1,"a","Bohr")
+		 call set_plotlabel_axis(labels,2,"b","Bohr")
+		  call set_plotlabel_axis(labels,3,"c","Bohr")
+		 call set_plotlabel_axis(labels,4,"Potential","V/m")
+         Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vxcmt, &
+        & vxcir,input%properties%exccplot%plot3d)
          Close (50)
          Write (*,*)
          Write (*, '("Info(potplot):")')
@@ -79,7 +102,7 @@ Subroutine potplot
         &')
          Write (*, '(" 3D exchange-correlation potential plot written t&
         &o VXC3d.xml")')
-      End Select
+      End if
       Write (*,*)
       Return
 End Subroutine

@@ -11,13 +11,13 @@
 ! !INTERFACE:
 !
 !
-Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
+Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
 ! !USES:
       Use modinput
       Use modmain
       Use FoX_wxml
       use modmpi
-
+  use modplotlabels
 ! !INPUT/OUTPUT PARAMETERS:
 !   fname : plot file name character(len=*)
 !   nf   : number of functions (in,integer)
@@ -37,7 +37,7 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 !BOC
       Implicit None
 ! arguments
-      Character (Len=*), Intent (In) :: fname
+      type(plotlabels), Intent (In) :: labels
       Integer, Intent (In) :: nf
       Integer, Intent (In) :: lmax
       Integer, Intent (In) :: ld
@@ -58,9 +58,8 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 !external functions
       Real(8),external::DNRM2
  If (rank .Eq. 0) Then
-      buffer = fname // "2d.xml"
-      Call xml_OpenFile (fname//"2d.xml", xf, replace=.True., &
-     & pretty_print=.True.)
+      write(buffer,*) labels%filename , ".xml"
+      Call xml_OpenFile (trim(buffer), xf, replace=.True.,  pretty_print=.True.)
       Call xml_NewElement (xf, "plot2d")
 !
       If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
@@ -126,6 +125,8 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       !write x axis description
       Call xml_NewElement (xf, "axis")
       call xml_AddAttribute (xf, "name", "a")
+        Call xml_AddAttribute (xf, "label", get_label(labels,1))
+     Call xml_AddAttribute (xf, "unit", get_unit(labels,1))
       write(buffer, '(6G18.10)') plotdef%parallelogram%pointarray(1)%point%coord
       call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
       delta=(plotdef%parallelogram%pointarray(1)%point%coord&
@@ -133,7 +134,7 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       &/ plotdef%parallelogram%grid(1)
       write(buffer, '(6G18.10)')  delta
       call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
-       write(buffer, '(6G18.10)')  DNRM2(3,delta,1)
+      write(buffer, '(6G18.10)')  DNRM2(3,delta,1)
       call xml_AddAttribute (xf, "deltas", trim(adjustl(buffer)))
 
 
@@ -141,6 +142,8 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       !write y axis description
       Call xml_NewElement (xf, "axis")
       call xml_AddAttribute (xf, "name", "b")
+      Call xml_AddAttribute (xf, "label", get_label(labels,2))
+      Call xml_AddAttribute (xf, "unit", get_unit(labels,2))
       write(buffer, '(6G18.10)') plotdef%parallelogram%pointarray(2)%point%coord
       call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
       delta=(plotdef%parallelogram%pointarray(2)%point%coord&
@@ -150,6 +153,10 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
        write(buffer, '(6G18.10)')  DNRM2(3,delta,1)
        call xml_AddAttribute (xf, "deltas", trim(adjustl(buffer)))
        Call xml_endElement (xf, "axis")
+      call xml_NewElement(xf,"value")
+       Call xml_AddAttribute (xf, "label", get_label(labels,3))
+       Call xml_AddAttribute (xf, "unit", get_unit(labels,3))
+           Call xml_endElement (xf, "value")
        Call xml_endElement (xf, "grid")
        ip=0
        Do ifunction = 1, nf

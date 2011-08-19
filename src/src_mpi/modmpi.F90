@@ -18,6 +18,7 @@
 !
 !
 Module modmpi
+implicit none
 #ifdef MPI
 #include "../build/mpiconf.inc"
 #endif
@@ -63,6 +64,7 @@ Contains
       Function firstk (process)
          Integer :: firstk
          Integer, Intent (In) :: process
+         integer::i
          firstk = 1
          Do i = 0, process - 1
             firstk = firstk + nofk (i)
@@ -70,7 +72,7 @@ Contains
       End Function firstk
 !
       Function lastk (process)
-         Integer :: lastk
+         Integer :: lastk,i
          Integer, Intent (In) :: process
          lastk = 0
          Do i = 0, process
@@ -99,6 +101,7 @@ Contains
       Function firstofset (process, set)
          Integer :: firstofset
          Integer, Intent (In) :: process, set
+         integer::i
          firstofset = 1
          Do i = 0, process - 1
             firstofset = firstofset + nofset (i, set)
@@ -108,6 +111,7 @@ Contains
       Function lastofset (process, set)
          Integer :: lastofset
          Integer, Intent (In) :: process, set
+         integer::i
          lastofset = 0
          Do i = 0, process
             lastofset = lastofset + nofset (i, set)
