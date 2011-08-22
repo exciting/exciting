@@ -15,6 +15,7 @@ Subroutine elfplot
 ! !USES:
       Use modinput
       Use modmain
+       use modplotlabels
 ! !DESCRIPTION:
 !   Outputs the electron localisation function (ELF) for 1D, 2D or 3D plotting.
 !   The spin-averaged ELF is given by
@@ -44,6 +45,7 @@ Subroutine elfplot
       Integer :: ik, is, ia, ias
       Integer :: ir, i, itp, ig, ifg
       Real (8) :: t1, t2
+      type(plotlabels),pointer ::labels
 ! allocatable arrays
       Real (8), Allocatable :: rftp1 (:), rftp2 (:), rftp3 (:)
       Real (8), Allocatable :: grfmt (:, :, :)
@@ -169,25 +171,38 @@ Subroutine elfplot
 ! plot the ELF to file
 !
       If (associated(input%properties%elfplot%plot1d)) Then
-!
-         Call plot1d ("ELF", 1, input%groundstate%lmaxvr, lmmaxvr, &
+          labels=>create_plotlablels("ELF","ELF",1)
+		 call set_plotlabel_axis(labels,1,"Distance","a_0")
+		 call set_plotlabel_axis(labels,2,"ELF","???")
+         Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & elfmt, elfir, input%properties%elfplot%plot1d)
-!
+         call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(elfplot):")')
-         Write (*, '(" 1D ELF plot written to ELF1D.OUT")')
-         Write (*, '(" vertex location lines written to ELFLINES.OUT")')
+         Write (*, '(" 1D ELF plot written to ELF1D.xml")')
+
       End If
       If (associated(input%properties%elfplot%plot2d)) Then
-         Call plot2d ("ELF", 1, input%groundstate%lmaxvr, lmmaxvr, &
+        labels=>create_plotlablels("DBXC","DBXC",2)
+		 call set_plotlabel_axis(labels,1,"a","1")
+		 call set_plotlabel_axis(labels,2,"b","1")
+		 call set_plotlabel_axis(labels,3,"elfplot","???")
+         Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & elfmt, elfir, input%properties%elfplot%plot2d)
+        call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(elfplot): 2D ELF plot written to ELF2d.xml")&
         &')
       End If
       If (associated(input%properties%elfplot%plot3d)) Then
-         Call plot3d ("ELF", 1, input%groundstate%lmaxvr, lmmaxvr, &
+       labels=>create_plotlablels("ELF","ELF",3)
+		 call set_plotlabel_axis(labels,1,"a","1")
+		 call set_plotlabel_axis(labels,2,"b","1")
+		 call set_plotlabel_axis(labels,3,"b","1")
+		 call set_plotlabel_axis(labels,4,"ELF","???")
+         Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & elfmt, elfir, input%properties%elfplot%plot3d)
+         call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(elfplot): 3D ELF plot written to ELF3d.xml")&
         &')

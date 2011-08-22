@@ -10,9 +10,11 @@
 Subroutine dbxcplot
       Use modmain
       Use modinput
+      use modplotlabels
       Implicit None
 ! local variables
       Integer :: idm, is, ia, ias, ir
+      type(plotlabels),pointer ::labels
 ! allocatable arrays
       Real (8), Allocatable :: rvfmt (:, :, :, :)
       Real (8), Allocatable :: rvfir (:, :)
@@ -64,29 +66,40 @@ Subroutine dbxcplot
          rfir (:) = rfir (:) + grfir (:, idm)
       End Do
       If (associated(input%properties%gradmvecfield%plot1d)) Then
-!
-         Call plot1d ("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, &
+         labels=>create_plotlablels("DBXC","DBXC",1)
+		 call set_plotlabel_axis(labels,1,"Distance","a_0")
+		 call set_plotlabel_axis(labels,2,"gradmvecfield","???")
+         Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rfmt, rfir, input%properties%gradmvecfield%plot1d)
-!
+         call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(dbxcplot):")')
          Write (*, '(" 1D divergence of exchange-correlation field writ&
-        &ten to DBXC1D.OUT")')
-         Write (*, '(" vertex location lines written to DBXCLINES.OUT")&
-        &')
+        &ten to DBXC1D.xml")')
+
+
       End If
       If (associated(input%properties%gradmvecfield%plot2d)) Then
-!
-         Call plot2d ("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, &
+         labels=>create_plotlablels("DBXC","DBXC",2)
+		 call set_plotlabel_axis(labels,1,"a","1")
+		 call set_plotlabel_axis(labels,2,"b","1")
+		 call set_plotlabel_axis(labels,3,"gradmvecfield","???")
+         Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rfmt, rfir, input%properties%gradmvecfield%plot2d)
-!
+         call destroy_plotlablels(labels)
          Write (*, '("Info(dbxcplot):")')
          Write (*, '(" 2D divergence of exchange-correlation field writ&
         &ten to DBXC2d.xml")')
       End If
       If (associated(input%properties%gradmvecfield%plot3d)) Then
-         Call plot3d ("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, &
+         labels=>create_plotlablels("DBXC","DBXC",3)
+		 call set_plotlabel_axis(labels,1,"a","1")
+		 call set_plotlabel_axis(labels,2,"b","1")
+		 call set_plotlabel_axis(labels,3,"b","1")
+		 call set_plotlabel_axis(labels,4,"gradmvecfield","???")
+         Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rfmt, rfir, input%properties%gradmvecfield%plot3d)
+        call destroy_plotlablels(labels)
          Write (*, '("Info(dbxcplot):")')
          Write (*, '(" 3D divergence of exchange-correlation field writ&
         &ten to DBXC3d.xml")')

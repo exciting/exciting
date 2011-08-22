@@ -38,6 +38,7 @@ Subroutine vecplot
      & t1
      type(plotlabels),pointer ::labels
      type(plot2d_type),pointer::plot2ddef
+     type(plot3d_type),pointer::plot3ddef
 ! allocatable arrays
       Real (8), Allocatable :: rvfmt (:, :, :, :)
       Real (8), Allocatable :: rvfir (:, :)
@@ -152,7 +153,7 @@ Subroutine vecplot
 		 call set_plotlabel_axis(labels,3,"BXC","????")
 		 plot2ddef=>input%properties%xcmvecfield%plot2d
          Else If (task .Eq. 142) Then
-           labels=>create_plotlablels("EF2","EF22d",2)
+           labels=>create_plotlablels("EF","EF2d",2)
 		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
 		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
 		 call set_plotlabel_axis(labels,3,"EF2","????")
@@ -180,21 +181,40 @@ Subroutine vecplot
          Write (*,*)
       Case (73, 83, 143, 153)
          If (task .Eq. 73) Then
-            Open (50, File='MAG3d.xml', Action='WRITE', Form='FORMATTED&
-           &')
+         labels=>create_plotlablels("MAG","MAG3d",3)
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
+		 call set_plotlabel_axis(labels,3,"c","lattice coordinate")
+		 call set_plotlabel_axis(labels,4,"Magnetization","????")
+           plot3ddef=>input%properties%mvecfield%plot3d
          Else If (task .Eq. 83) Then
-            Open (50, File='BXC3d.xml', Action='WRITE', Form='FORMATTED&
-           &')
+
+         labels=>create_plotlablels("BXC","BXC3d",3)
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
+		 call set_plotlabel_axis(labels,3,"c","lattice coordinate")
+		 call set_plotlabel_axis(labels,4,"BXC","????")
+           plot3ddef=>input%properties%xcmvecfield%plot3d
          Else If (task .Eq. 143) Then
-            Open (50, File='EF3d.xml', Action='WRITE', Form='FORMATTED')
+            labels=>create_plotlablels("EF","EF3d",3)
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
+		 call set_plotlabel_axis(labels,3,"c","lattice coordinate")
+		 call set_plotlabel_axis(labels,4,"EF","????")
+		  plot3ddef=>input%properties%electricfield%plot3d
          Else
-            Open (50, File='MCBXC3d.xml', Action='WRITE', Form='FORMATT&
-           &ED')
+
+            labels=>create_plotlablels("MCBXC","MCBXC3d",3)
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
+		 call set_plotlabel_axis(labels,3,"c","lattice coordinate")
+		 call set_plotlabel_axis(labels,4,"MCBXC","????")
          End If
 
-         Call plot3d (50, 3, input%groundstate%lmaxvr, lmmaxvr, rvfmt, &
-        & rvfir)
-         Close (50)
+         Call plot3d (labels, 3, input%groundstate%lmaxvr, lmmaxvr, rvfmt, &
+        & rvfir,plot3ddef)
+          call destroy_plotlablels(labels)
+
          Write (*,*)
          Write (*, '("Info(vecplot):")')
          If (task .Eq. 73) Then
