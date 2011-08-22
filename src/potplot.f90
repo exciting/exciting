@@ -32,14 +32,14 @@ type(plotlabels),pointer ::labels
 ! write the potential plots to file
      If (associated(input%properties%exccplot%plot1d)) then
 
-        labels=>create_plotlablels("Potential","VCL1D",1)
+        labels=>create_plotlablels("Potential","VCL",1)
 		 call set_plotlabel_axis(labels,1,"Distance","a_0")
 		 call set_plotlabel_axis(labels,2,"Potential","E_h/(ea_0)")
          Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & vclmt, vclir,input%properties%exccplot%plot1d)
          call destroy_plotlablels(labels)
 
-  		  labels=>create_plotlablels("Potential","VXC1D",1)
+  		  labels=>create_plotlablels("Potential","VXC",1)
 		 call set_plotlabel_axis(labels,1,"Distance","a_0")
 		 call set_plotlabel_axis(labels,2,"Exchange Correlation Potential","E_h/(ea_0)")
          Call plot1d ( labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
@@ -55,7 +55,7 @@ type(plotlabels),pointer ::labels
 
     endif
      If (associated(input%properties%exccplot%plot2d)) then
-          labels=>create_plotlablels("Potential","VCL2d",2)
+          labels=>create_plotlablels("Potential","VCL",2)
 		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
 		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
 		 call set_plotlabel_axis(labels,3,"Potential","E_h/(ea_0)")
@@ -63,7 +63,7 @@ type(plotlabels),pointer ::labels
          Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vclmt, &
         & vclir,input%properties%exccplot%plot2d)
         call destroy_plotlablels(labels)
-         labels=>create_plotlablels("Potential","VXC2d",2)
+         labels=>create_plotlablels("Potential","VXC",2)
 		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
 		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
 		 call set_plotlabel_axis(labels,3,"Potential","E_h/(ea_0)")
@@ -79,7 +79,7 @@ type(plotlabels),pointer ::labels
      endif
       If (associated(input%properties%exccplot%plot3d)) then
 
-         labels=>create_plotlablels("Potential","VCL3d",3)
+         labels=>create_plotlablels("Potential","VCL",3)
 		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
 		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
 		  call set_plotlabel_axis(labels,3,"c","lattice coordinate")
@@ -88,14 +88,14 @@ type(plotlabels),pointer ::labels
         & vclir,input%properties%exccplot%plot3d)
          call destroy_plotlablels(labels)
 
-           labels=>create_plotlablels("Potential","VXC3d",3)
+           labels=>create_plotlablels("Potential","VXC",3)
 		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
 		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
 		  call set_plotlabel_axis(labels,3,"c","lattice coordinate")
 		 call set_plotlabel_axis(labels,4,"Potential","E_h/(ea_0)")
          Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vxcmt, &
         & vxcir,input%properties%exccplot%plot3d)
-         Close (50)
+        call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(potplot):")')
          Write (*, '(" 3D Coulomb potential plot written to VCL3d.xml")&
