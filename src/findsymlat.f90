@@ -159,7 +159,7 @@ Subroutine findsymlat
          Call r3mm (input%structure%crystal%basevect, c, symlatc(:, :, &
         & i))
 ! warn for almost vanishing numers in Cartesian symmetry matrices
-         if (any(abs(symlatc(:,:,i)).lt.input%structure%epslat)) then
+         if (any((abs(symlatc(:,:,i)).lt.input%structure%epslat).and.(abs(symlatc(:,:,i)).gt.0.d0))) then
             write(*,*)
             write(*,'("Warning(findsymlat): almost vanishing numbers in Cartesian symmetry matrix")')
             write(*,'(" for lattice symmetry: ",i6," ; symmetry matrix below")') i
