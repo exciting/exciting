@@ -33,6 +33,7 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
 !   Modified, October 2008 (F. Bultmark, F. Cricchio, L. Nordstrom)
+!   Modified, February 2011 (D. Nabok) 
 !EOP
 !BOC
       Implicit None
@@ -45,17 +46,22 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Real (8), Intent (In) :: rfir (ngrtot, nf)
       Type (plot3d_type), Intent (In) :: plotdef
 ! local variables
-      Integer :: np, ip, ip1, ip2, ip3, i, ifunction, fnum = 50
+      Integer :: np, i, ip, ip1, ip2, ip3, ifunction, fnum = 50
       Real (8) :: v1 (3), v2 (3), v3 (3),tmpv(3)
       Real (8) :: t1, t2, t3
       Character (512) :: buffer, buffer1
       Character (20) :: buffer20
       Type (xmlf_t), Save :: xf
 ! allocatable arrays
-      Real (8), Allocatable :: vpl (:, :)
+      Real (8) :: boxl (3, 4)
+      Integer :: npt
+      Integer,  Allocatable :: ipmap (:,:,:)
+      Integer,  Allocatable :: ivp (:,:)
+      Real (8), Allocatable :: vpl (:,:)
+      Real (8), Allocatable :: vpc (:,:)
+      Real (8), Allocatable :: wpt (:)
       Real (8), Allocatable :: fp (:, :)
       buffer = fname // "3d.xml"
- !
 !
  If (rank .Eq. 0) Then
       If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
@@ -65,39 +71,24 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
          Write (*,*)
          Stop
       End If
-! allocate local arrays
+!
+! allocate the grid point arrays
+      Allocate (ipmap(0:plotdef%box%grid(1), &
+                    & 0:plotdef%box%grid(2), &
+                    & 0:plotdef%box%grid(3)))
       Allocate (vpl(3, &
-     & plotdef%box%grid(1)*plotdef%box%grid(2)*plotdef%box%grid(3)))
-      Allocate &
-     & (fp(plotdef%box%grid(1)*plotdef%box%grid(2)*plotdef%box%grid(3), &
-     & nf))
-! generate 3D grid
-      v1 (:) = plotdef%box%pointarray(1)%point%coord - &
-     & plotdef%box%origin%coord
-      v2 (:) = plotdef%box%pointarray(2)%point%coord - &
-     & plotdef%box%origin%coord
-      v3 (:) = plotdef%box%pointarray(3)%point%coord - &
-     & plotdef%box%origin%coord
-
-      ip = 0
-      Do ip3 = 0, plotdef%box%grid(3) - 1
-         t3 = dble (ip3) / dble (plotdef%box%grid(3))
-         Do ip2 = 0, plotdef%box%grid(2) - 1
-            t2 = dble (ip2) / dble (plotdef%box%grid(2))
-            Do ip1 = 0, plotdef%box%grid(1) - 1
-               t1 = dble (ip1) / dble (plotdef%box%grid(1))
-               ip = ip + 1
-               vpl (:, ip) = t1 * v1 (:) + t2 * v2 (:) + t3 * v3 (:) + &
-              & plotdef%box%origin%coord
-            End Do
-         End Do
-      End Do
-      np = ip
-! evaluate the functions at the grid points
+     & (plotdef%box%grid(1)+1)*(plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
+!
+! generate the 3d point grid and reduce it using the crystal symmetry
+      Call gengrid (plotdef%box%grid, np, ipmap, vpl)
+!      
+! evaluate the total density at the reduced grid points
+      Allocate (fp(np,nf))
       Do i = 1, nf
          Call rfarray (lmax, ld, rfmt(:, :, :, i), rfir(:, i), np, vpl, &
         & fp(:, i))
       End Do
+!
 !write xml
       Call xml_OpenFile (fname//"3d.xml", xf, replace=.True., &
      & pretty_print=.True.)
@@ -106,7 +97,9 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Call xml_AddCharacters (xf, trim(input%title))
       Call xml_endElement (xf, "title")
       Call xml_NewElement (xf, "grid")
-      Write (buffer, '(3I6)') plotdef%box%grid
+      Write (buffer, '(3I6)') plotdef%box%grid(1)+1, &
+                            & plotdef%box%grid(2)+1, &
+                            & plotdef%box%grid(3)+1
       Call xml_AddAttribute (xf, "gridticks", trim(adjustl(buffer)))
       Write (buffer, '(3F12.3)') plotdef%box%origin%coord
       Call xml_AddAttribute (xf, "origin", trim(adjustl(buffer)))
@@ -144,7 +137,7 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
 !
       Call xml_endElement (xf, "axis")
-            !write z axis description
+      !write z axis description
       Call xml_NewElement (xf, "axis")
       Call xml_AddAttribute (xf, "name", "c")
       Write (buffer, '(3F12.3)') plotdef%box%pointarray(3)%point%coord
@@ -163,26 +156,24 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 !
 !
 ! write functions to file
-      ip = 0
       Do ifunction = 1, nf
          Call xml_NewElement (xf, "function")
          Write (buffer20, '(I14)') np
          Call xml_AddAttribute (xf, "n", trim(adjustl(buffer20)))
-         Do ip1 = 0, plotdef%box%grid(3) - 1
+         Do ip3 = 0, plotdef%box%grid(3)
             Call xml_NewElement (xf, "row")
             Call xml_AddAttribute (xf, "const", "c")
-            Write (buffer20, '(I14)') ip1
+            Write (buffer20, '(I14)') ip3
             Call xml_AddAttribute (xf, "index", &
            & trim(adjustl(buffer20)))
-             Do ip2 = 0, plotdef%box%grid(2) - 1
+             Do ip2 = 0, plotdef%box%grid(2)
                Call xml_NewElement (xf, "row")
                Call xml_AddAttribute (xf, "const", "b")
                Write (buffer20, '(I14)') ip2
                Call xml_AddAttribute (xf, "index", &
               & trim(adjustl(buffer20)))
-               Do ip3 = 0, plotdef%box%grid(1) - 1
-                  ip = ip + 1
-                  Write (buffer20, '(6G18.10)') fp (ip, ifunction)
+               Do ip1 = 0, plotdef%box%grid(1)
+                  Write (buffer20, '(6G18.10)') fp (ipmap(ip1,ip2,ip3), ifunction)
                   Call xml_AddCharacters (xf, buffer20)
                End Do
                Call xml_endElement (xf, "row")
@@ -195,9 +186,82 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 !
 !
       Deallocate (vpl, fp)
+      Deallocate (ipmap)
       Call xml_Close (xf)
       Close (fnum)
       endif
       Return
+
+CONTAINS
+
+!
+!==================================================================
+!
+Subroutine gengrid (ngridp, npt, ipmap, vpl)
+!
+! Created, February 2011 (D. Nabok) 
+! 3D real space grid is reduced using the system symmetry
+!
+      Use modinput
+      Use modmain
+      Implicit None
+! arguments
+      Integer, Intent (In)  :: ngridp (3)
+      Integer, Intent (Out) :: npt
+      Integer, Intent (Out) :: ipmap (0:ngridp(1), &
+                                    & 0:ngridp(2), 0:ngridp(3))
+      Real (8), Intent (Out) :: vpl (3, (ngridp(1)+1)* &
+                                    & (ngridp(2)+1)*(ngridp(3)+1))
+! local variables
+      Integer :: i1, i2, i3, ip, jp, i
+      Integer :: isym, lspl, iv (3)
+      Real (8) :: v1 (3), v2 (3)
+      Real (8) :: s (3, 3), t1
+!------------------------------------------------------------------
+      If ((ngridp(1) .Le. 0) .Or. (ngridp(2) .Le. 0) .Or. (ngridp(3) &
+     & .Le. 0)) Then
+         Write (*,*)
+         Write (*, '("Error(genppts): invalid ngridp : ", 3I8)') ngridp
+         Write (*,*)
+         Stop
+      End If
+      ip = 0
+      Do i3 = 0, ngridp (3)
+         v1 (3) = dble (i3) / dble (ngridp(3))
+         Do i2 = 0, ngridp (2)
+            v1 (2) = dble (i2) / dble (ngridp(2))
+            Do i1 = 0, ngridp (1)
+               v1 (1) = dble (i1) / dble (ngridp(1))
+! determine if this point is equivalent to one already in the set
+               Do isym = 1, nsymcrys
+                  lspl = lsplsymc (isym)
+                  s (:, :) = dble (symlatc(:, :, lspl))
+                  Call r3mtv (s, v1, v2)
+                  v2 (:) = v2 (:) - vtlsymc(:, isym)
+                  Call r3frac (input%structure%epslat, v2, iv)
+                  Do jp = 1, ip
+                     t1 = Abs (vpl(1, jp)-v2(1)) + Abs (vpl(2, &
+                    & jp)-v2(2)) + Abs (vpl(3, jp)-v2(3))
+                     If (t1 .Lt. input%structure%epslat) Then
+! equivalent point found
+                        ipmap (i1, i2, i3) = jp
+                        Go To 10
+                     End If
+                  End Do
+               End Do
+! add new point to set
+               ip = ip + 1
+               ipmap (i1, i2, i3) = ip
+               vpl (:, ip) = v1 (:)
+10             Continue
+            End Do
+         End Do
+      End Do
+      npt = ip
+      Return
+End Subroutine gengrid
+
+
 End Subroutine
 !EOC
+!
