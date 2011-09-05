@@ -34,9 +34,7 @@ Module mod_plotting
 ! number of states for plotting Fermi surface
 !replaced by inputstructureinteger::nstfsp
 
-contains
-#include "plot1d.f90.inc"
-#include "plot2d.f90.inc"
-#include "plot3d.f90.inc"
+
+
 End Module
 !
