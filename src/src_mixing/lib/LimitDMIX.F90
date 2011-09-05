@@ -112,7 +112,7 @@
         dmixout(1)=min(dmix,rtrap/max(PM1,0.001D0))
 !
 #ifdef DEBUG
-        write(*,21)':INFO :  Bounds       ',qlimit1,qlimit2,rtrap/max(PM1,0.001D0),dmixout(1)
+        write(*,*)':INFO :  Bounds       ',qlimit1,qlimit2,rtrap/max(PM1,0.001D0),dmixout(1)
 #endif
 	do N=1,1
                 t=max(dmixout(N),Dbase)

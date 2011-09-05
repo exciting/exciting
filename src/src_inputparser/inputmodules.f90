@@ -346,6 +346,7 @@ type masstensor_type
  real(8)::vklem(3)
 end type
 type chargedensityplot_type
+ logical::plotgradient
   type(plot1d_type),pointer::plot1d
   type(plot2d_type),pointer::plot2d
   type(plot3d_type),pointer::plot3d
@@ -3208,6 +3209,8 @@ function getstructchargedensityplot(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(chargedensityplot_type),pointer::getstructchargedensityplot
+type(Node),pointer::np
+
 
 integer::len=1,i=0
 allocate(getstructchargedensityplot)  
@@ -3215,6 +3218,14 @@ allocate(getstructchargedensityplot)
       write(*,*)"we are at chargedensityplot"
 #endif
       
+nullify(np)  
+np=>getAttributeNode(thisnode,"plotgradient")
+getstructchargedensityplot%plotgradient= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"plotgradient",getstructchargedensityplot%plotgradient)
+       call removeAttribute(thisnode,"plotgradient")  
+endif
+
             len= countChildEmentsWithName(thisnode,"plot1d")
 getstructchargedensityplot%plot1d=>null()
 Do i=0,len-1

@@ -45,7 +45,7 @@
 !
 !       If the matrix is singular, add a diagonal component to it
         if(ifail .lt. 0)then
-                  Write(21,*)':DIRE Singular, adding ',add
+                  Write(*,*)':DIRE Singular, adding ',add
                   ninverts=ninverts+1
                   do J=1,MEMORY
                      YT(J,J)=YT(J,J)+ADD
