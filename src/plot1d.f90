@@ -20,6 +20,7 @@ Subroutine plot1d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
   use mod_atoms
   use mod_Gvector
   use modplotlabels
+  use mod_plotting
   ! !INPUT/OUTPUT PARAMETERS:
   !   lables : plot labels (character*)
   !   nf    : number of functions (in,integer)

@@ -1,7 +1,3 @@
-!
-!
-!
-!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -20,6 +16,7 @@ Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
       Use FoX_wxml
       use modmpi
   use modplotlabels
+  use mod_plotting
 ! !INPUT/OUTPUT PARAMETERS:
 !   fname : plot file name character(len=*)
 !   nf   : number of functions (in,integer)

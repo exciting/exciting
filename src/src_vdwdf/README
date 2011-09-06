@@ -1,0 +1,203 @@
+! Copyright (C) 2007-2010 D. Nabok, P. Puschnig and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU Lesser General Public
+! License. See the file COPYING for license details.
+
+=============================================================================
+
+    D. Nabok, P. Puschnig and C. Ambrosch-Draxl,
+    
+    "noloco: An efficient implementation of van der Waals density 
+             functionals based on a Monte-Carlo integration technique"
+
+    (preprint)
+    
+
+=============================================================================
+
+The program noloco performs a calculation of the 6-dimentional integral
+
+                     (
+           EcNL = 1/2 \ d3r d3r' n(r)phi(r,r')n(r'),
+                       )
+                      
+where n(r), n(r') - the electron densities at space points r and r',
+phi(r,r') - the nonlocal interaction kernel given by expression (14) of Dion2004.
+
+The Monte-Carlo method is used to evaluate this integral.
+We are using the DIVONNE algorithm implemented in an external package - 
+the CUBA library (for convenience, we have included the library in the source).
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+T. Hahn, CUBA - a library for multidimensional numerical integration.
+Computer Physics Communications, Volume 168, Issue 2, 1 June 2005, Pages 78-95 
+
+arxiv.org/hep-ph/0404043
+http://www.feynarts.de/cuba/
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Please also note, that EcNL is only a nonlocal part of the total energy.
+To get the latter, one needs to calculate the following:
+
+    E_vdW-DF  = E_PBE - Exc_PBE + (Ex_revPBE + Ec_LDA) + EcNL  (Dion2004)
+    E_vdW-DF2 = E_PBE - Exc_PBE + (Ex_PW86 + Ec_LDA) + EcNL    (Lee2010)
+    E_VV09    = E_PBE - Exc_PBE + (Ex_HF(LCA) + Ec_LDA) + EcNL (Vydrov2009)
+
+
+The kernel function phi(r,r') has been precalculated numerically and 
+tabulated in the file "vdW-DF_Phi_read.dat" (in the source directory).
+
+References:
+vdW-DF  : M.Dion, H.Rydberg, E.Schroeder, D.C.Langreth, and B.I.Lundqvist, Phys. Rev. Let. 92, 246401 (2004)
+vdW-DF2 : K.Lee, E.D.Murray, L.Kong, B.I.Lundqvist, and D.C.Langreth, Phys. Rev. B 82, 081101 (2010)
+VV09    : O.A.Vydrov, T.V.Voorhis, Phys. Rev. Lett. 103, 063004 (2009)
+
+--------------------------------------------------------------------------------
+
+Compilation
+
+1. Compiling the CUBA library:
+   Enter to Cuba-* directory and:
+   ./configure
+   make lib
+   
+2. Compiling noloco
+   In the program directory one should edit make.inc file
+   (choose a fortran compiler and optimization options) and then
+   make
+
+--------------------------------------------------------------------------------
+
+Usage:
+
+1. Edit the input file (see 'input.in' in the program directory)
+  (formatted input, important the arrangement of lines)
+
+(line 2): path to the parametrized kernel data file (kernel.dat in the source directory)
+
+(line 3): vdW-DF versions: "vdW-DF" (Dion2004); "vdW-DF2" (Lee2010); "VV09" (Vydrov2009)
+
+(line 4): nx ny nz - (positive integers) define the size of 
+   the integration space (supercell) along crystallographic a, b, and c 
+   direction (plus/minus). Thus, the supercell volume is
+   V_supercell = (2*nx+1)*(2*ny+1)*(2*nz+1)*V_unitcell
+
+   E.g., in case of nx=ny=nz=0, the integral will be evaluated within 
+   the original unitcell. This is the case of the isolated molecules which 
+   are normally treated in a supercell approximation.
+   
+   Important notice: In the latter case, the molecule must be in the
+   center of the unitcell. Otherwise, one have to use, e.g., nx=ny=nz=1
+   to have the correct (or full) density distribution around the
+   system. However, in this case one should be aware of the artificial
+   interactions between the translational images (the vacuum distance
+   should be large enough).
+
+(line 5, line 6):  relative and absolute accuracies of the MC integral estimator:
+
+     For choosing integration parameters it is better to do convergence tests,
+     but, from our experience, for the most of the systems 
+     an optimal (productive) choice (speed + accuracy) would be to use
+     the absolute accuracy about 1e-4 , 1e-5.
+
+(line 7): the size of the Monte-Carlo sampling 
+     (for more informations see description of the CUBA's key1 parameter)
+
+(line 8): the maximal number of evaluations (CUBA's maxeval). Generally,
+     this number can be chosen as large as possible 
+     (= maximal integer of the fortran integer*8 type). 
+     However, if there are problems with the integral
+     convergence (e.g., too high integration accuracy has been chosen), 
+     it can be reasonable to stop integration rather than wait forever.
+
+  - The recommended value of "key1" (line 7) is in a range of 
+    10000 - 100000.
+
+
+(line 11): Input density units: keywords "bohr" / "angs"
+     bohr - for [electron/(bohr**3)]
+     angs - for [electron/(angstrom**3)]
+
+     The program internal units are:
+     - energy - [Hartree]
+     - lattice basis vectors - [bohr]
+     - electron charge density - [electron/(bohr**3)]
+       Note the inconsistency in the units produced by generation
+       of xsf file by, e.g., QUANTUM-ESPRESSO or EXCITING codes and 
+       VASP's routine "car2xsf". The latter generates the charge density in 
+       electron/(angstrom**3).
+
+(line 12): Name of the input density (in xsf (XCrySDen) format)
+
+     This program reads the lattice structure and 
+     the electron 3d density from *.xsf XCrysDen file,
+     which has the simple structure and can be generated by many programs. 
+     Otherwise, this part of the code can be easily modified to 
+     your charge density data format.
+
+(line 13): (Optional) Name of the input density gradients (in xsf (XCrySDen) format)
+
+     In case this line is not specified (or empty), noloco calculates the density
+     gradients using a three-point method.
+
+--------------------------------------------------------------------------------
+
+HOWTO generate the xsf file with
+
+- Quantum-ESPRESSO:
+
+  Create the following density.in file and run the pp.x program:
+
+  cat > density.in << EOF
+  &inputpp
+     plot_num = 0
+     prefix='pwscf'
+     outdir='./'
+  /
+  &plot
+     weight(1) = 1.0
+     iflag = 3
+     output_format = 5
+     fileout = "output_density.xsf"
+  /
+  EOF
+  path_to_espresso/bin/pp.x < density.in >& density.out
+  
+- VASP:
+
+  Use the script v2xsf.sh from
+  http://nano.tu-dresden.de/~jkunstmann/software.html
+     
+--------------------------------------------------------------------------------
+
+Execution:
+
+
+               ./noloco < input.in > EcNL.out
+     
+
+For test purposes, in the source code directory one can find an example of
+xsf file (test.xsf) and an example of the input file (input.in).
+
+
+--------------------------------------------------------------------------------     
+
+Output:
+
+The default program output contains summary information concerning
+the program input and results of the integration.
+More detailed description of the output keywords can be found in 
+the manual to the CUBA library (LLDIVONNE subroutine).
+
+--------------------------------------------------------------------------------     
+
+For more advanced usage one can play with other parameters of MC integration
+implemented in the LLDIVONNE subroutine of the CUBA library.
+For this one should address to the Cuba library reference manual.
+
+--------------------------------------------------------------------------------
+
+For any problem or suggestions regarding the code compilation and usage
+please contact:
+  
+    dmitrii.nabok@gmail.com

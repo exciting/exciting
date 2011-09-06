@@ -17,7 +17,7 @@ Subroutine potcoul
 ! !DESCRIPTION:
 !   Calculates the Coulomb potential of the real charge density stored in the
 !   global variables {\tt rhomt} and {\tt rhoir} by solving Poisson's equation.
-!   These variables are coverted to complex representations and passed to the
+!   These variables are converted to complex representations and passed to the
 !   routine {\tt zpotcoul}.
 !
 ! !REVISION HISTORY:
