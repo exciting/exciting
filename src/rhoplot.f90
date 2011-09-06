@@ -133,7 +133,9 @@ Subroutine rhoplot
 !      
       End If
       Write (*,*)
-      Deallocate (grhomt, grhoir)
+
+        If (allocated(grhomt)) deallocate (grhomt)
+          If (allocated(modgrhomt)) deallocate (modgrhomt)
       Return
 End Subroutine
 !EOC
