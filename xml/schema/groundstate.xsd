@@ -786,7 +786,7 @@
             <xs:attribute default="none" name="xc" use="optional">
               <xs:annotation>
                 <xs:documentation> Combined functionals. If set it overrides the exchange and the
-                  correlation attributes.</xs:documentation>
+                  correlation attributes. The hybrid functionals can be configured but are not supported. They may give nonsense results.</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
