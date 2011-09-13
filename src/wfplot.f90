@@ -101,8 +101,8 @@ Subroutine wfplot(dostm)
 ! write the wavefunction modulus squared plot to file
       If (associated(input%properties%wfplot%plot1d)) Then
       labels=>create_plotlablels("Potential","WF1D",1)
-		 call set_plotlabel_axis(labels,1,"Distance","a_0")
-		 call set_plotlabel_axis(labels,2,"Wave Function","")
+		 call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
+		 call set_plotlabel_axis(labels,2,"Wave Function","","graceunit")
          Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%wfplot%plot1d)
           call destroy_plotlablels(labels)
@@ -115,9 +115,9 @@ Subroutine wfplot(dostm)
       End If
       If (associated(input%properties%wfplot%plot2d)) Then
  labels=>create_plotlablels("Wave Function","VCL2d",2)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
-		 call set_plotlabel_axis(labels,3,"Wave Function Norm Squared","")
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,3,"Wave Function Norm Squared","","graceunit")
          Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%wfplot%plot2d)
           call destroy_plotlablels(labels)
@@ -128,9 +128,9 @@ Subroutine wfplot(dostm)
       End If
       If (dostm) Then
                   labels=>create_plotlablels("2D STM image","STM2d",2)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
-		 call set_plotlabel_axis(labels,3,"STM","")
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,3,"STM","","graceunit")
              Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%STM%plot2d)
           call destroy_plotlablels(labels)
@@ -139,10 +139,10 @@ Subroutine wfplot(dostm)
          Write (*, '(" 2D STM image written to STM2d.xml")')
       End If
       If (associated(input%properties%wfplot%plot3d)) Then
-          call set_plotlabel_axis(labels,1,"a","lattice coordinate")
-	 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
-	  call set_plotlabel_axis(labels,3,"c","lattice coordinate")
-	 call set_plotlabel_axis(labels,3,"Wave Function Norm Squared","")
+          call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+	 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+	  call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
+	 call set_plotlabel_axis(labels,3,"Wave Function Norm Squared","","graceunit")
          Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%wfplot%plot3d)
          call destroy_plotlablels(labels)

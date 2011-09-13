@@ -142,21 +142,21 @@ Subroutine vecplot
          If (task .Eq. 72) Then
          plot2ddef=>input%properties%mvecfield%plot2d
          labels=>create_plotlablels("MAG","MAG2d",2)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
-		 call set_plotlabel_axis(labels,3,"Magnetization","????")
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,3,"Magnetization","????","graceunit")
          Else If (task .Eq. 82) Then
 
              labels=>create_plotlablels("BXC","MAG2d",2)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
-		 call set_plotlabel_axis(labels,3,"BXC","????")
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,3,"BXC","????","graceunit")
 		 plot2ddef=>input%properties%xcmvecfield%plot2d
          Else If (task .Eq. 142) Then
            labels=>create_plotlablels("EF","EF2d",2)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
-		 call set_plotlabel_axis(labels,3,"EF2","????")
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,3,"EF2","????","graceunit")
          plot2ddef=>input%properties%electricfield%plot2d
          Else
           write(*,*) "error in vecplot 2d selection"
@@ -182,33 +182,33 @@ Subroutine vecplot
       Case (73, 83, 143, 153)
          If (task .Eq. 73) Then
          labels=>create_plotlablels("MAG","MAG3d",3)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
-		 call set_plotlabel_axis(labels,3,"c","lattice coordinate")
-		 call set_plotlabel_axis(labels,4,"Magnetization","????")
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,4,"Magnetization","????","graceunit")
            plot3ddef=>input%properties%mvecfield%plot3d
          Else If (task .Eq. 83) Then
 
          labels=>create_plotlablels("BXC","BXC3d",3)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
-		 call set_plotlabel_axis(labels,3,"c","lattice coordinate")
-		 call set_plotlabel_axis(labels,4,"BXC","????")
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,4,"BXC","????","graceunit")
            plot3ddef=>input%properties%xcmvecfield%plot3d
          Else If (task .Eq. 143) Then
             labels=>create_plotlablels("EF","EF3d",3)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
-		 call set_plotlabel_axis(labels,3,"c","lattice coordinate")
-		 call set_plotlabel_axis(labels,4,"EF","????")
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,4,"EF","????","graceunit")
 		  plot3ddef=>input%properties%electricfield%plot3d
          Else
 
             labels=>create_plotlablels("MCBXC","MCBXC3d",3)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate")
-		 call set_plotlabel_axis(labels,3,"c","lattice coordinate")
-		 call set_plotlabel_axis(labels,4,"MCBXC","????")
+		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
+		 call set_plotlabel_axis(labels,4,"MCBXC","????","graceunit")
          End If
 
          Call plot3d (labels, 3, input%groundstate%lmaxvr, lmmaxvr, rvfmt, &

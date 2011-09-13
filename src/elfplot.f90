@@ -172,8 +172,8 @@ Subroutine elfplot
 !
       If (associated(input%properties%elfplot%plot1d)) Then
           labels=>create_plotlablels("ELF","ELF",1)
-		 call set_plotlabel_axis(labels,1,"Distance","a_0")
-		 call set_plotlabel_axis(labels,2,"ELF","???")
+		 call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
+		 call set_plotlabel_axis(labels,2,"ELF","???","graceunit")
          Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & elfmt, elfir, input%properties%elfplot%plot1d)
          call destroy_plotlablels(labels)
@@ -184,9 +184,9 @@ Subroutine elfplot
       End If
       If (associated(input%properties%elfplot%plot2d)) Then
         labels=>create_plotlablels("DBXC","DBXC",2)
-		 call set_plotlabel_axis(labels,1,"a","1")
-		 call set_plotlabel_axis(labels,2,"b","1")
-		 call set_plotlabel_axis(labels,3,"elfplot","???")
+		 call set_plotlabel_axis(labels,1,"a","1","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","1","graceunit")
+		 call set_plotlabel_axis(labels,3,"elfplot","???","graceunit")
          Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & elfmt, elfir, input%properties%elfplot%plot2d)
         call destroy_plotlablels(labels)
@@ -196,10 +196,10 @@ Subroutine elfplot
       End If
       If (associated(input%properties%elfplot%plot3d)) Then
        labels=>create_plotlablels("ELF","ELF",3)
-		 call set_plotlabel_axis(labels,1,"a","1")
-		 call set_plotlabel_axis(labels,2,"b","1")
-		 call set_plotlabel_axis(labels,3,"b","1")
-		 call set_plotlabel_axis(labels,4,"ELF","???")
+		 call set_plotlabel_axis(labels,1,"a","1","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","1","graceunit")
+		 call set_plotlabel_axis(labels,3,"b","1","graceunit")
+		 call set_plotlabel_axis(labels,4,"ELF","???","graceunit")
          Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & elfmt, elfir, input%properties%elfplot%plot3d)
          call destroy_plotlablels(labels)

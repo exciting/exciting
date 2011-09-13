@@ -2,7 +2,7 @@ module modplotlabels
   implicit none
 
   type axisdesc
-    character,pointer,dimension(:) ::label=>null(),unit=>null()
+    character,pointer,dimension(:) ::label=>null(),latexunit=>null(),graceunit=>null()
   end type
 
 
@@ -52,7 +52,7 @@ contains
 !BOP
   ! !ROUTINE: create_plotlablels
   ! !INTERFACE:
-  subroutine set_plotlabel_axis(plotlabels_,axis,label,unit)
+  subroutine set_plotlabel_axis(plotlabels_,axis,label,latexunit,graceunit)
   ! !DESCRIPTION:
     !   This subroutine sets the axis labels for dinmension axis
     !
@@ -66,10 +66,11 @@ contains
     !EOP
     type(plotlabels),pointer::plotlabels_
     integer, intent(in)::axis
-    character(len=*),intent(in)::label,unit
+    character(len=*),intent(in)::label,latexunit,graceunit
 
     plotlabels_%axis(axis)%label=>vs_str_alloc(label)
-    plotlabels_%axis(axis)%unit=>vs_str_alloc(unit)
+    plotlabels_%axis(axis)%latexunit=>vs_str_alloc(latexunit)
+    plotlabels_%axis(axis)%graceunit=>vs_str_alloc(graceunit)
    end subroutine set_plotlabel_axis
 
   subroutine destroy_plotlablels(self)
@@ -77,7 +78,8 @@ contains
     integer::i
     deallocate(self%title,self%filename)
     do  i=1,size(self%axis)
-    deallocate(self%axis(i)%label, self%axis(i)%unit)
+    deallocate(self%axis(i)%label, self%axis(i)%latexunit,self%axis(i)%graceunit)
+
     end do
     deallocate(self%axis)
     deallocate(self)
@@ -86,8 +88,8 @@ contains
 function get_unit(self,axis) result(unit)
  type(plotlabels)::self
  integer::axis
- character(size(self%axis(axis)%unit)+1)::unit
- write(unit,*) self%axis(axis)%unit
+ character(size(self%axis(axis)%latexunit)+1)::unit
+ write(unit,*) self%axis(axis)%latexunit
  end function
 
  function get_label(self,axis) result(label)

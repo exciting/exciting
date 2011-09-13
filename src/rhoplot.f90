@@ -70,8 +70,8 @@ Subroutine rhoplot
 ! write the density plot to file
       If (associated(input%properties%chargedensityplot%plot1d)) Then
         labels=>create_plotlablels("RHO","RHO",1)
-		 call set_plotlabel_axis(labels,1,"Distance","a_0")
-		 call set_plotlabel_axis(labels,2,"Density","???")
+		 call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
+		 call set_plotlabel_axis(labels,2,"Density","???","graceunit")
          Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%chargedensityplot%plot1d)
          call destroy_plotlablels(labels)
@@ -93,9 +93,9 @@ Subroutine rhoplot
       If (associated(input%properties%chargedensityplot%plot2d)) Then
 !
 		 labels=>create_plotlablels("RHO","RHO",2)
-		 call set_plotlabel_axis(labels,1,"a","1")
-		 call set_plotlabel_axis(labels,2,"b","1")
-		 call set_plotlabel_axis(labels,3,"Density","???")
+		 call set_plotlabel_axis(labels,1,"a","1","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","1","graceunit")
+		 call set_plotlabel_axis(labels,3,"Density","???","graceunit")
          Call plot2d ( labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%chargedensityplot%plot2d)
          call destroy_plotlablels(labels)
@@ -113,10 +113,10 @@ Subroutine rhoplot
       End If
       If (associated(input%properties%chargedensityplot%plot3d)) Then
          labels=>create_plotlablels("RHO","RHO",3)
-		 call set_plotlabel_axis(labels,1,"a","1")
-		 call set_plotlabel_axis(labels,2,"b","1")
-		 call set_plotlabel_axis(labels,3,"b","1")
-		 call set_plotlabel_axis(labels,4,"Density","???")
+		 call set_plotlabel_axis(labels,1,"a","1","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","1","graceunit")
+		 call set_plotlabel_axis(labels,3,"b","1","graceunit")
+		 call set_plotlabel_axis(labels,4,"Density","???","graceunit")
          Call plot3d ( labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%chargedensityplot%plot3d)
          call destroy_plotlablels(labels)

@@ -67,8 +67,8 @@ Subroutine dbxcplot
       End Do
       If (associated(input%properties%gradmvecfield%plot1d)) Then
          labels=>create_plotlablels("DBXC","DBXC",1)
-		 call set_plotlabel_axis(labels,1,"Distance","a_0")
-		 call set_plotlabel_axis(labels,2,"gradmvecfield","???")
+		 call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
+		 call set_plotlabel_axis(labels,2,"gradmvecfield","???","graceunit")
          Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rfmt, rfir, input%properties%gradmvecfield%plot1d)
          call destroy_plotlablels(labels)
@@ -81,9 +81,9 @@ Subroutine dbxcplot
       End If
       If (associated(input%properties%gradmvecfield%plot2d)) Then
          labels=>create_plotlablels("DBXC","DBXC",2)
-		 call set_plotlabel_axis(labels,1,"a","1")
-		 call set_plotlabel_axis(labels,2,"b","1")
-		 call set_plotlabel_axis(labels,3,"gradmvecfield","???")
+		 call set_plotlabel_axis(labels,1,"a","1","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","1","graceunit")
+		 call set_plotlabel_axis(labels,3,"gradmvecfield","???","graceunit")
          Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rfmt, rfir, input%properties%gradmvecfield%plot2d)
          call destroy_plotlablels(labels)
@@ -93,10 +93,10 @@ Subroutine dbxcplot
       End If
       If (associated(input%properties%gradmvecfield%plot3d)) Then
          labels=>create_plotlablels("DBXC","DBXC",3)
-		 call set_plotlabel_axis(labels,1,"a","1")
-		 call set_plotlabel_axis(labels,2,"b","1")
-		 call set_plotlabel_axis(labels,3,"b","1")
-		 call set_plotlabel_axis(labels,4,"gradmvecfield","???")
+		 call set_plotlabel_axis(labels,1,"a","1","graceunit")
+		 call set_plotlabel_axis(labels,2,"b","1","graceunit")
+		 call set_plotlabel_axis(labels,3,"b","1","graceunit")
+		 call set_plotlabel_axis(labels,4,"gradmvecfield","???","graceunit")
          Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rfmt, rfir, input%properties%gradmvecfield%plot3d)
         call destroy_plotlablels(labels)
