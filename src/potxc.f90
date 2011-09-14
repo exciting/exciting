@@ -168,24 +168,7 @@ do is=1,nspecies
          ec=ec,vx=vx,vc=vc)
       else if (xcgrad.eq.2) then
         call ggamt_2a(is,ia,g2rho,gvrho,grho2)
-#ifdef DEBUGLIBXC
- open(654,file="g2rho.out")
- Do ir=1,size(g2rho)
 
- write(654,*)g2rho(ir)
- end do
- close(654)
-  open(654,file="gvrho.out")
- Do ir=1,size(gvrho)
- write(654,*)gvrho(ir)
- end do
- close(654)
- open(654,file="grho2.out")
- Do ir=1,size(grho2)
- write(654,*)grho2(ir)
- end do
- close(654)
-#endif
         call xcifc(xctype,n=n,rho=rho,grho2=grho2,ex=ex,ec=ec,vx=vx,vc=vc, &
          dxdg2=dxdg2,dcdg2=dcdg2)
         call ggamt_2b(is,g2rho,gvrho,vx,vc,dxdg2,dcdg2)
@@ -298,13 +281,7 @@ if (associated(input%groundstate%spin)) then
   call symrvf(1,bxcmt,bxcir)
 end if
 
-#ifdef DEBUGLIBXC
-open(654,file="rho.out")
- Do ir=1,size(rho)
- write(654,*)rho(ir)
- end do
- close(654)
-#endif
+
 deallocate(rho,ex,ec,vxc)
 if (associated(input%groundstate%spin)) then
   deallocate(mag,bxc)
@@ -320,19 +297,7 @@ if (associated(input%groundstate%spin)) then
   end if
 else
 
-#ifdef DEBUGLIBXC
-write(*,*)" (potxc) xctype: ",xctype," xcgrad: ", xcgrad
- open(654,file="vx.out")
- Do ir=1,size(vx)
- write(654,*)vx(ir)
- end do
- close(654)
- open(654,file="vc.out")
- Do ir=1,size(vc)
- write(654,*)vc(ir)
- end do
- close(654)
-#endif
+
  !stop
   deallocate(vx,vc)
   if (xcgrad.eq.1) then

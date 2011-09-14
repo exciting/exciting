@@ -100,14 +100,14 @@ Subroutine rhoplot
         & rhomt, rhoir, input%properties%chargedensityplot%plot2d)
          call destroy_plotlablels(labels)
          Write (*,*)
-         Write (*, '("Info(rhoplot): 2D density plot written to RHO2D.OUT")')
+         Write (*, '("Info(rhoplot): 2D density plot written to RHO2D.xml")')
 ! when gradients are needed      
          If (input%properties%chargedensityplot%plotgradient) Then
              Call plot2d ("GRHO", 1, input%groundstate%lmaxvr, lmmaxvr, &
              & modgrhomt, modgrhoir, input%properties%chargedensityplot%plot2d)
 !
              Write (*,*)
-             Write (*, '("Info(rhoplot): 2D module of density gradient plot written to GRHO2D.OUT")')
+             Write (*, '("Info(rhoplot): 2D module of density gradient plot written to GRHO2D.xml")')
          End If
 !      
       End If
@@ -121,14 +121,14 @@ Subroutine rhoplot
         & rhomt, rhoir, input%properties%chargedensityplot%plot3d)
          call destroy_plotlablels(labels)
          Write (*,*)
-         Write (*, '("Info(rhoplot): 3D density plot written to RHO3D.OUT")')
+         Write (*, '("Info(rhoplot): 3D density plot written to RHO3D.xml")')
 ! when gradients are needed      
          If (input%properties%chargedensityplot%plotgradient) Then
              Call plot3d ("GRHO", 1, input%groundstate%lmaxvr, lmmaxvr, &
              & modgrhomt, modgrhoir, input%properties%chargedensityplot%plot3d)
 !
              Write (*,*)
-             Write (*, '("Info(rhoplot): 3D module of density gradient plot written to GRHO3D.OUT")')
+             Write (*, '("Info(rhoplot): 3D module of density gradient plot written to GRHO3D.xml")')
          End If
 !      
       End If

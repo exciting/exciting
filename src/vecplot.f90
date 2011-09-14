@@ -172,7 +172,7 @@ Subroutine vecplot
            &")')
          Else If (task .Eq. 82) Then
             Write (*, '(" 2D exchange-correlation field written to BXC2&
-           &D.OUT")')
+           &D.xml")')
          Else If (task .Eq. 142) Then
             Write (*, '(" 2D electric field written to EF2d.xml")')
          Else
@@ -222,7 +222,7 @@ Subroutine vecplot
            &")')
          Else If (task .Eq. 83) Then
             Write (*, '(" 3D exchange-correlation field written to BXC3&
-           &D.OUT")')
+           &D.xml")')
          Else If (task .Eq. 143) Then
             Write (*, '(" 3D electric field written to EF3d.xml")')
          Else

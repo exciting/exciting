@@ -9,6 +9,9 @@ endif
 
 summary::
 	perl perl/summary.pl
+	xsltproc report/collectTests.xsl directories.xml >report/reports.xml
+	xsltproc report/reports2html.xsl report/reports.xml >report/report.html
+	cp -f report/reports.xml report/oldreports.xml
 	
 test02::exciting
 	cd ./test02/runlapack ;../../../build/debug/exciting

@@ -1,7 +1,6 @@
 module modplotlabels
   implicit none
-
-  type axisdesc
+type axisdesc
     character,pointer,dimension(:) ::label=>null(),latexunit=>null(),graceunit=>null()
   end type
 
@@ -85,11 +84,20 @@ contains
     deallocate(self)
   end subroutine destroy_plotlablels
 
-function get_unit(self,axis) result(unit)
+function get_latexunit(self,axis ) result(unit)
  type(plotlabels)::self
  integer::axis
+
  character(size(self%axis(axis)%latexunit)+1)::unit
  write(unit,*) self%axis(axis)%latexunit
+ end function
+
+function get_graceunit(self,axis ) result(unit)
+ type(plotlabels)::self
+ integer::axis
+
+ character(size(self%axis(axis)%graceunit)+1)::unit
+ write(unit,*) self%axis(axis)%graceunit
  end function
 
  function get_label(self,axis) result(label)

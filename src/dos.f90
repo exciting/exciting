@@ -207,6 +207,7 @@ Subroutine dos
       Call xml_AddAttribute (xf, "label", 'Energy')
       Call xml_AddAttribute (xf, "unit", 'Hartree')
       Call xml_endElement (xf, "axis")
+      Call xml_NewElement (xf, "axis")
       Call xml_AddAttribute (xf, "label", 'DOS')
       Call xml_AddAttribute (xf, "unit", 'states/Hartree/unit cell')
       Call xml_endElement (xf, "axis")
