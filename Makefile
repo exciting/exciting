@@ -29,9 +29,9 @@ mpiandsmp:
 
 test::
 	cd test/; $(MAKE) 
-	
-testsum::
 	cd test/; $(MAKE) summary
+	
+
 	
 doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc Splitt_inputdoc
 	
