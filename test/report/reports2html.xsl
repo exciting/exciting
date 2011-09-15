@@ -36,9 +36,10 @@ function toggle(showHideDiv, switchTextDiv) {
 
                 <xsl:for-each select="/reports/report">
                     <xsl:variable name="all" select="number(count(test))"/>
+                    <xsl:variable name="testrun" select="count(/reports/report) - position()+1"/>
                     <p>
                         <div class="testsrun">
-                            <h2> Testrun: <xsl:value-of select="count(/reports/report) - position()+1"/>
+                            <h2> Testrun: <xsl:value-of select="$testrun"/>
                             </h2>
                             <div>
                                 <span> date:<xsl:value-of select="@date"/>
