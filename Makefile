@@ -89,21 +89,20 @@ debian:all doc
 	cd debian &&   bash makepackage.sh
 
 clean:
-
 	cd build/serial; $(MAKE) clean cleanlibs
 	cd build/mpi; $(MAKE) clean cleanlibs
 	cd build/smp; $(MAKE) clean cleanlibs
 	cd build/debug; $(MAKE) clean cleanlibs
 	cd build/mpiandsmp; $(MAKE) clean cleanlibs
-	cd test/build ;$(MAKE) clean cleanlibs
+	cd test/build ;$(MAKE) clean
 	cd src/eos; $(MAKE) clean
 	cd src/spacegroup; $(MAKE) clean
 	cd src/species; $(MAKE) clean
-	cd src/vdwdf; $(MAKE) clean
+	cd src/src_vdwdf; $(MAKE) clean
 	cd src/stateinfo; $(MAKE) clean
 	cd src/stateconvert; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
-	rm -f bin/exciting?*
+	rm -f bin/*
 	rm -f interfaces/*
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
@@ -113,12 +112,12 @@ clean:
 libxcclean:
 	cd src/libXC && make clean 
 
-tgz::doc libxcclean
-	tar  --exclude-from=".gitignore" -C"../" -c -v  -f ../exciting.tar  ./exciting
-	tar   -C"../" -r -v  -f ../exciting.tar   ./exciting/.git/HEAD  ./exciting/.git/refs ./exciting/.git/packed-refs \
-	./exciting/test/test02/reference/
-	gzip  -f --best ../exciting.tar 
-	du -h ../exciting.tar.gz 
+tgz::doc #libxcclean
+	tar  --exclude-from=".gitignore"  --transform 's,^,/exciting/,' -c -v  -f ./exciting.tar  *
+	tar    -r -v  -f ./exciting.tar  --transform 's,^,/exciting/,' .git/HEAD  .git/refs .git/packed-refs \
+	test/test02/reference/
+	gzip  -f --best ./exciting.tar 
+	du -h ./exciting.tar.gz 
 	
 tidy:
 	cd build/serial;\

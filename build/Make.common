@@ -122,8 +122,8 @@ lib/libxc.a:
 	xsltproc  ../../xml/schematofortran.xsl  ../../xml/species.xsd > ../../src/src_inputparser/speciesmodules.f90
 
 
-clean:cleanlibs
-	rm -f *.o *.mod *.f90 *.F90 
+clean:
+	rm -f *.o *.mod *.f90 *.F90 exciting
 
 cleanlibs:
 	rm -f *.a

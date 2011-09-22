@@ -59,4 +59,5 @@ Makefile.testxml::  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inp
 #for the rules to build the libraries include the other makefile
 
 
-
+clean:
+	rm test* 
