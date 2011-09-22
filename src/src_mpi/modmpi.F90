@@ -18,10 +18,11 @@
 !
 !
 Module modmpi
-implicit none
+
 #ifdef MPI
 #include "../build/mpiconf.inc"
 #endif
+implicit none
       Integer :: rank
       Integer :: procs
       Integer :: ierr
