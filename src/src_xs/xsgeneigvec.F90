@@ -48,8 +48,8 @@ Subroutine xsgeneigvec
      ! write eigenvectors, -values, occupancies and contracted MT coefficients
          Call writeevec (vqlt, qvkloff(1, iq), filext)
          If (.Not. tscreen) Then
-            Write (unitout, '("Info(", a, "): eigenvectors generated fo&
-           &r Q-point (iq, vql below)")') thisnam
+            Write (unitout, &
+            &'("Info(", a, "): eigenvectors generated for Q-point (iq, vql below)")') thisnam
             Write (unitout, '(i6, 3g18.10)') iq, vqlt (:)
          Else
             Write (unitout, '(a)') 'Info(' // thisnam // '): eigenvecto&

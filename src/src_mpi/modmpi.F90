@@ -149,7 +149,9 @@ Contains
       Subroutine barrier
          Implicit None
   ! do nothing if only one process
+#ifndef MPI
          If (procs .Eq. 1) Return
+#endif
   ! call the MPI barrier
 #ifdef MPI
          Call MPI_barrier (mpi_comm_world, ierr)
