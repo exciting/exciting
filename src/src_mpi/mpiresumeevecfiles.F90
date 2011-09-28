@@ -34,7 +34,7 @@ Subroutine mpiresumeevecfiles
       Real (8) :: evalfv (nstfv, nspnfv), vkl_ (3), evalsvp (nstsv), &
      & occsvp (nstsv)
       Character (256), External :: outfilenamestring
-      If (splittfile .And. (procs .Gt. 1)) Then
+      If (splittfile .And. (procs .Gt. 1) .and. (rank .lt. nkpt)) Then
          If (procs .Gt. 1) Call MPI_barrier (MPI_COMM_WORLD, ierr)
          If (rank .Ne. 0) Call mpi_recv (token, 1, MPI_INTEGER, rank-1, &
         & 1, MPI_COMM_WORLD, recvstatus, ierr)
@@ -128,7 +128,7 @@ Subroutine mpiresumeevecfiles
          If (rank .Ne. (procs-1)) Call mpi_send (token, 1, MPI_INTEGER, &
         & rank+1, 1, MPI_COMM_WORLD, ierr)
       End If
-      If (procs .Gt. 1) Call MPI_barrier (MPI_COMM_WORLD, ierr)
+      call barrier
       Call SYSTEM ("sync")
       splittfile = .False.
 #endif
