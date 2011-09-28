@@ -9,6 +9,7 @@ Subroutine readspeciesxml
       Use modsp
       Use FoX_dom
       Use modspdb
+      Use modmpi
       Implicit None
 ! local variables
       Integer :: is, ist
@@ -40,10 +41,16 @@ Subroutine readspeciesxml
              write(command,*)"curl ",trim(input%structure%speciesarray(is)%species%href)," > ",trim(spfile_string)
 #endif
 #ifndef CURL
+
              write(command,*)"wget -c ",trim(input%structure%speciesarray(is)%species%href)
+
 #endif
-!
-             call system(command)
+             If (rank .Eq. 0) Then
+                call system(command)
+             endif
+#ifdef MPI
+              Call MPI_barrier (MPI_COMM_WORLD, ierr)
+#endif
          else
              Write (spfile_string,*)trim (input%structure%speciespath) // "/" &
             & // trim (input%structure%speciesarray(is)%species%speciesfile)
