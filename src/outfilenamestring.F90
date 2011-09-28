@@ -24,7 +24,7 @@ Character (256) Function outfilenamestring (filetag, ik)
       tmp = ''
       tmp2 = ''
       scrpathtmp = ''
-      outfilenamestring = ''
+      outfilenamestring = trim (scrpathtmp) // trim (filetag)// trim(filext)
 #ifdef MPI
       If ((task .Eq. 0) .Or. (task .Eq. 1).Or. (task .Eq. 2).Or. (task .Eq. 3).or. &
         (task.eq.200)) Then
@@ -33,8 +33,9 @@ Character (256) Function outfilenamestring (filetag, ik)
             Write (tmp2, '(I5)') lastk (procofk(ik))
             krange = trim (adjustl(tmp)) // '-' // trim (adjustl(tmp2))
             scrpathtmp = scrpath
+             outfilenamestring = trim (scrpathtmp) // trim (filetag) // trim(krange) // trim(filext)
          End If
       End If
 #endif
-      outfilenamestring = trim (scrpathtmp) // trim (filetag) // trim(krange) // trim(filext)
+
 End Function outfilenamestring
