@@ -143,8 +143,8 @@ Subroutine gndstate
   ! set last iteration flag
       tlast = .False.
   ! delete any existing eigenvector files
-      If ((rank .Eq. 0) .And. (task .Eq. 0) .Or. (task &
-     & .Eq. 2)) Call delevec
+      If ((rank .Eq. 0) .And. ((task .Eq. 0) .Or. (task &
+     & .Eq. 2))) Call delevec
   ! begin the self-consistent loop
       If (rank .Eq. 0) Then
          Write (60,*)
