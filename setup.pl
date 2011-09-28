@@ -48,18 +48,7 @@ while($selected==0){
 	$MPI=<>;
 	if($MPI=~m/yes/i){
 		$selected=1;
-		system("echo \"BUILDMPI=true\">>build/make.inc");
-print "Select the mechanism to include MPI interface variables\n";
-print "    1 use MPI module (f90 interfaces) recommended if available\n";
-print "    2 use #include <mpif.h> required by some MPI implementations 
-     (edit path in build mpiconf.inc if mpif.h is not in your includepath)\n";
-print "    Note: if you do not have istalled MPI-2 include '-DMPI1'
-    in your compiler options (MPIF90_OPTS) in the
-    'build/make.inc' file after finishing this setup script.\n";
-$mpiinclude=<>;
-if($mpiinclude==1) {$includefile="mpiconf.inc.module";}
-if($mpiinclude==2) {$includefile="mpiconf.inc.include";}
-system(("cp", "build/platforms/$includefile", "build/mpiconf.inc"));
+		system("echo \"BUILDMPI=true\">>build/make.inc"); 
 
 	}elsif($MPI=~m/no/i) {
 		system("echo \"BUILDMPI=false\">>build/make.inc");
