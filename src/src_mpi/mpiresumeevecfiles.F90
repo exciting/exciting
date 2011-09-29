@@ -34,8 +34,9 @@ Subroutine mpiresumeevecfiles
       Real (8) :: evalfv (nstfv, nspnfv), vkl_ (3), evalsvp (nstsv), &
      & occsvp (nstsv)
       Character (256), External :: outfilenamestring
-      If (splittfile .And. (procs .Gt. 1)) Then
-         If (procs .Gt. 1) Call MPI_barrier (MPI_COMM_WORLD, ierr)
+      If (procs .Gt. 1) Call MPI_barrier (MPI_COMM_WORLD, ierr)
+      If (splittfile .And. (procs .Gt. 1) .and. (nkpt .gt.rank)) Then
+! start a receive in order to pass around a token from rank 0 to max
          If (rank .Ne. 0) Call mpi_recv (token, 1, MPI_INTEGER, rank-1, &
         & 1, MPI_COMM_WORLD, recvstatus, ierr)
 !
@@ -125,12 +126,16 @@ Subroutine mpiresumeevecfiles
             Write (60,*) "resumed split files"
             Call flushifc (60)
          End If
-         If (rank .Ne. (procs-1)) Call mpi_send (token, 1, MPI_INTEGER, &
+         !if I am not the last process pass on the token
+         If (rank .Ne. (procs-1) .and. (rank .ne. (nkpt-1))) then
+         Call mpi_send (token, 1, MPI_INTEGER, &
         & rank+1, 1, MPI_COMM_WORLD, ierr)
+         endif
       End If
       If (procs .Gt. 1) Call MPI_barrier (MPI_COMM_WORLD, ierr)
       Call SYSTEM ("sync")
       splittfile = .False.
+      write (*,*) "resumed on proc",rank
 #endif
 !
       Return

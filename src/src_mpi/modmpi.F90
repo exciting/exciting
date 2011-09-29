@@ -19,9 +19,7 @@
 !
 Module modmpi
 
-#ifdef MPI
-#include "../build/mpiconf.inc"
-#endif
+use mpi
 implicit none
       Integer :: rank
       Integer :: procs
