@@ -18,8 +18,9 @@
 !
 !
 Module modmpi
-
+#ifdef MPI
 use mpi
+#endif
 implicit none
       Integer :: rank
       Integer :: procs
