@@ -510,8 +510,9 @@ Subroutine gndstate
  !-----------------------!
  !     compute forces    !
  !-----------------------!
-         Call force
+
          If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
+            Call force
             If (rank .Eq. 0) Then
        ! output forces to INFO.OUT
                   Call writeforce (60)
