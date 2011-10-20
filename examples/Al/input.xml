@@ -17,20 +17,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   <groundstate vkloff="0.5  0.5  0.5" ngridk="2 2 2"
   mixer="msec" nosource="true" tforce="true"></groundstate>
   <properties>
-    <bandstructure character="true">
-      <plot1d>
-        <path steps="100">
-          <point coord=" 0.75000   0.50000   0.25000" label="W" />
-          <point coord=" 0.50000   0.50000   0.50000" label="L" />
-          <point coord=" 0.00000   0.00000   0.00000" label="GAMMA" />
-          <point coord=" 0.50000   0.50000   0.00000" label="X" />
-          <point coord=" 0.75000   0.50000   0.25000" label="W" />
-          <point coord=" 0.75000   0.37500   0.37500" label="K" />
-        </path>
-      </plot1d>
-    </bandstructure>
-    <dos/>
-    <fermisurfaceplot/>
+    
     <chargedensityplot>
 <plot2d>
 <parallelogram grid="10 10">

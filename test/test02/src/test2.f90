@@ -1,3 +1,4 @@
+
 #include "../../../src/version.inc"
 program test
 use inputdom

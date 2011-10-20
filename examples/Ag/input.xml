@@ -30,5 +30,6 @@
     </bandstructure>
     <dos/>
     <fermisurfaceplot/>
+    <elnes/>
   </properties>
 </input>

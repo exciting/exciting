@@ -95,9 +95,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:call-template name="normalizespace">
    <xsl:with-param name="a" select="."/>
   </xsl:call-template>
-  <xsl:call-template name="normalizespace">
-   <xsl:with-param name="a" select="."/>
-  </xsl:call-template>
+ 
   <xsl:text>
 \end{equation}
 </xsl:text>

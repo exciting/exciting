@@ -8,7 +8,7 @@
 !   In case of compiled without MPI support it defines the
 !   mpi specific variables such that the code behaves exactly as
 !   the unmodified scalar version
-!#include "/usr/local/include/mpif.h"
+!
 !
 ! !REVISION HISTORY:
 !   Created October 2006 (CHM)
