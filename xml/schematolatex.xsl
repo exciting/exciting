@@ -65,7 +65,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:text>\part{Reused Elements}
   The following elements can occur more than once in the input file. There for they are listed separately.
   </xsl:text>
-  <xsl:for-each
+  <xsl:for-each  
    select="/*/xs:element[@name!=/xs:schema/xs:annotation/xs:appinfo/root and contains($importancelevels,@ex:importance)]">
    <xsl:variable name="name" select="@name"/>
    <xsl:if test="count(//xs:element[@ref=$name])>1">
@@ -114,6 +114,13 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   </xsl:call-template>
   <xsl:text>}</xsl:text>
  </xsl:template>
+ <xsl:template match="pre-bf">
+  <xsl:text>{\usefont{T1}{lmtt}{b}{n} </xsl:text>
+  <xsl:call-template name="normalizespace">
+   <xsl:with-param name="a" select="."/>
+  </xsl:call-template>
+  <xsl:text>}</xsl:text>
+ </xsl:template>
  <xsl:template match="it">
   <xsl:text>{\it </xsl:text>
   <xsl:call-template name="normalizespace">
@@ -141,7 +148,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
  </xsl:template>
  <xsl:template match="xs:documentation">
   <xsl:apply-templates
-   select="text()|inlinemath|displaymath|pre|pre_ns|it|it_ns|p|exciting|a|list|li|attref|filename|filename_ns|elementref|elementref_ns"
+   select="text()|inlinemath|displaymath|pre|pre-bf|pre_ns|it|it_ns|p|exciting|a|list|li|attref|filename|filename_ns|elementref|elementref_ns"
   />
  </xsl:template>
  <xsl:template match="elementref">
@@ -222,7 +229,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 
   <xsl:apply-templates select="$myelement/xs:annotation/xs:documentation"/>
   <xsl:call-template name="TypeToDoc">
-   <xsl:with-param name="contentnode" select="$myelement | //xs:element[@name=$myelement/@ref]"/>
+   <xsl:with-param name="contentnode" select="$myelement | //xs:element[@name=$myelement/@ref and contains($importancelevels,@ex:importance) ]"/>
   </xsl:call-template>
   <xsl:if test="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]"> This element
    <xsl:text>allows for specification of the following attributes: \begin{quotation}</xsl:text>
@@ -253,7 +260,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
    </xsl:call-template>
   </xsl:for-each>
   <xsl:for-each
-   select="$myelement/*/*/xs:element[contains($importancelevels,@ex:importance)and @name]">
+   select="$myelement/*/*/xs:element[contains($importancelevels,@ex:importance) and @name]">
    <xsl:call-template name="elementToLatex">
     <xsl:with-param name="myelement" select="."/>
     <xsl:with-param name="level" select="$level+1"/>
