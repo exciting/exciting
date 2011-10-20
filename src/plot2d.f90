@@ -58,7 +58,7 @@ Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
       Real(8),external::DNRM2
  If (rank .Eq. 0) Then
       write(buffer,*) labels%filename , "2D.XML"
-      Call xml_OpenFile (trim(buffer), xf, replace=.True.,  pretty_print=.True.)
+      Call xml_OpenFile (adjustl(trim(buffer)), xf, replace=.True.,  pretty_print=.True.)
       Call xml_NewElement (xf, "plot2d")
 !
       If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then

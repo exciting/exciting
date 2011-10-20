@@ -94,7 +94,7 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
 !
 !write xml
 	  write (buffer,*) plotlabels3d%filename,"3D.XML"
-      Call xml_OpenFile ( buffer , xf, replace=.True., pretty_print=.True.)
+      Call xml_OpenFile ( adjustl(trim(buffer)) , xf, replace=.True., pretty_print=.True.)
       Call xml_NewElement (xf, "plot3d")
       Call xml_NewElement (xf, "title")
       Call xml_AddCharacters (xf, trim(input%title))

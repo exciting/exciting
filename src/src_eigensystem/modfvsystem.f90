@@ -17,6 +17,8 @@ Module modfvsystem
          Logical :: packed, ludecomposed
          Integer, Pointer :: ipiv (:)
          Complex (8), Pointer :: za (:, :), zap (:)
+         contains
+        procedure:: newm =>newmatrix
       End Type HermitianMatrix
 !
       Type evsystem
@@ -27,7 +29,7 @@ Contains
 !
 !
       Subroutine newmatrix (self, packed, rank)
-         Type (HermitianMatrix), Intent (Inout) :: self
+         class (HermitianMatrix), Intent (Inout) :: self
          Logical, Intent (In) :: packed
          Integer, Intent (In) :: rank
          self%rank = rank
