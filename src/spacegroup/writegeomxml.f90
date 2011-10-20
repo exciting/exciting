@@ -14,6 +14,9 @@ character(128)::buffer
  type(xmlf_t), save::xf
 call xml_OpenFile ("geometry.out.xml", xf, replace=.true., pretty_print=.true.)
 call xml_NewElement(xf, "input")
+call xml_NewElement(xf, "title")
+call xml_addCharacters(xf, "title")
+call xml_endElement(xf, "title")
 call xml_NewElement(xf, "structure")
 if(symmetries%lattice%primcell) buffer="true"
 if (.not. symmetries%lattice%primcell)buffer="false"
@@ -86,6 +89,9 @@ call xml_AddAttribute(xf, "speciesfile", &
   end do
   call xml_endElement(xf, "species")
 end do
+call xml_endElement(xf, "structure")
+ call xml_NewElement(xf, "groundstate")
+  call xml_AddAttribute(xf, "ngridk", " 2 2 2")
 write(*, *)
 write(*, '("Info(writegeom):")')
 write(*, '(" EXCITING lattice vectors and atomic positions written to &

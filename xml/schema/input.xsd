@@ -85,7 +85,7 @@
           </xs:annotation>
         </xs:element>
         <xs:element ex:importance="essential" ex:unit="" ref="structure" maxOccurs="1" minOccurs="1"/>
-        <xs:element ex:importance="essential" ex:unit="" ref="groundstate" maxOccurs="1"
+        <xs:element ex:importance="essential" ex:unit="" ref="groundstate" maxOccurs="1" 
           minOccurs="1"/>
         <xs:element ex:importance="essential" ex:unit="" ref="structureoptimization" maxOccurs="1"
           minOccurs="0"/>

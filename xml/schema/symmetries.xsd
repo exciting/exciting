@@ -27,10 +27,10 @@
               </xs:documentation>
             </xs:annotation>
             <xs:sequence>
+              <xs:element name="title" type="xs:string" maxOccurs="1" minOccurs="1"></xs:element>
               <xs:element ex:importance="spacegroup" ex:unit="" name="lattice" maxOccurs="1" minOccurs="1">
                 <xs:annotation>
-                  <xs:documentation>The lattice element defines lattice from a,b,c, and
-                    angles.</xs:documentation>
+                  <xs:documentation>The lattice element defines lattice from a,b,c, and angles.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                   <xs:attribute ex:importance="spacegroup" ex:unit="Bohr" name="a" type="fortrandouble" use="required">
@@ -81,7 +81,7 @@
                   </xs:attribute>
                   <xs:attribute name="epslat" type="fortrandouble" default="1.0d-6"></xs:attribute>
                   <xs:attribute name="primcell" type="xs:boolean" default="false"></xs:attribute>
-                  <xs:attribute name="speciespath" type="xs:string" default="http://xml.exciting-code.org/spesies/"></xs:attribute>
+                  <xs:attribute name="speciespath" type="xs:string" default="http://xml.exciting-code.org/species/"></xs:attribute>
                 </xs:complexType>
               </xs:element>
               <xs:element ex:importance="spacegroup" ex:unit="" name="WyckoffPositions" maxOccurs="1" minOccurs="0">

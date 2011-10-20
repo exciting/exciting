@@ -52,7 +52,9 @@ Subroutine readspeciesxml
              Write (spfile_string,*)trim (input%structure%speciespath) // "/" &
             & // trim (input%structure%speciesarray(is)%species%speciesfile)
 	     endif
+
          doc => parseFile (ADJUSTL(trim(spfile_string)),config,iostat=errorcode)
+
           if(errorcode.ne.0) then
         	 write(*,*) "### Could not open ", ADJUSTL(trim(spfile_string))
       		 write(*,*) "### Check if file exists and if it is well-formed XML."

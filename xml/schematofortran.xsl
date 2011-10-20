@@ -417,9 +417,7 @@ endif
             <xsl:value-of select="@name|@ref"/>
             <xsl:text>")
 </xsl:text>
-   <xsl:if test="@minOccurs>=1 and @ex:importance='spacegroup' and $tool='spacegroup' or
-   @minOccurs>=1 and @ex:importance!='spacegroup' and $tool!='spacegroup'
-   ">
+   <xsl:if test="@minOccurs>=1">
         <xsl:text>
         if(len.eq.0) then
         write(*,*)"Parser ERROR: The </xsl:text><xsl:value-of select="../../../@name"/>
@@ -494,6 +492,19 @@ allocate(</xsl:text> <xsl:value-of select="$struct"/>%<xsl:value-of select="@nam
 <xsl:when test="//xs:element[@name=$ref]/@type='integerpair' or @type='integerpair'" >2</xsl:when>
 <xsl:otherwise>3</xsl:otherwise>
 </xsl:choose><xsl:text>,len))</xsl:text>
+</xsl:if>
+<xsl:if test="@minOccurs>=1">
+<xsl:text>
+if (len .lt. </xsl:text><xsl:value-of select="@minOccurs" />
+<xsl:text>) then
+  write(*,*) "Parser ERROR: "
+  Write (*,*)"The Element: </xsl:text>
+  <xsl:value-of select="@name|@ref"/> 
+  <xsl:text> must occur at least </xsl:text><xsl:value-of select="@minOccurs" /><xsl:text> times in the"
+   Write (*,*) "</xsl:text><xsl:value-of select="../../../@name" />
+   <xsl:text> element"
+  stop
+endif</xsl:text>
 </xsl:if>
 <xsl:text>
 Do i=1,len

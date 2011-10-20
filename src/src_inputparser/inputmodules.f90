@@ -663,7 +663,11 @@ allocate(getstructplot1d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"path")
-getstructplot1d%path=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The plot1d element must contain at least 1 path element"
+        endif
+        getstructplot1d%path=>null()
 Do i=0,len-1
 getstructplot1d%path=>getstructpath(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -709,7 +713,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"point")
-     
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The path element must contain at least 2 point element"
+        endif
+             
 allocate(getstructpath%pointarray(len))
 Do i=0,len-1
 getstructpath%pointarray(i+1)%point=>getstructpoint(&
@@ -735,7 +743,11 @@ allocate(getstructplot2d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"parallelogram")
-getstructplot2d%parallelogram=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The plot2d element must contain at least 1 parallelogram element"
+        endif
+        getstructplot2d%parallelogram=>null()
 Do i=0,len-1
 getstructplot2d%parallelogram=>getstructparallelogram(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -781,7 +793,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"origin")
-getstructparallelogram%origin=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The parallelogram element must contain at least 1 origin element"
+        endif
+        getstructparallelogram%origin=>null()
 Do i=0,len-1
 getstructparallelogram%origin=>getstructorigin(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -789,7 +805,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"point")
-     
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The parallelogram element must contain at least 2  and maximum 2 point elements"
+        endif
+             
 allocate(getstructparallelogram%pointarray(len))
 Do i=0,len-1
 getstructparallelogram%pointarray(i+1)%point=>getstructpoint(&
@@ -815,7 +835,11 @@ allocate(getstructplot3d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"box")
-getstructplot3d%box=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The plot3d element must contain at least 1 box element"
+        endif
+        getstructplot3d%box=>null()
 Do i=0,len-1
 getstructplot3d%box=>getstructbox(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -861,7 +885,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"origin")
-getstructbox%origin=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The box element must contain at least 1 origin element"
+        endif
+        getstructbox%origin=>null()
 Do i=0,len-1
 getstructbox%origin=>getstructorigin(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -869,7 +897,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"point")
-     
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The box element must contain at least 3  and maximum 3 point elements"
+        endif
+             
 allocate(getstructbox%pointarray(len))
 Do i=0,len-1
 getstructbox%pointarray(i+1)%point=>getstructpoint(&
@@ -896,6 +928,12 @@ allocate(getstructkstlist)
       
       len= countChildEmentsWithName (thisnode,"pointstatepair")           
 allocate(getstructkstlist%pointstatepair(2,len))
+if (len .lt. 1) then
+  write(*,*) "Parser ERROR: "
+  Write (*,*)"The Element: pointstatepair must occur at least 1 times in the"
+   Write (*,*) "kstlist element"
+  stop
+endif
 Do i=1,len
 
 getstructkstlist%pointstatepair(:,i)=getvalueofpointstatepair(&
@@ -957,6 +995,12 @@ allocate(getstructqpointset)
       
       len= countChildEmentsWithName (thisnode,"qpoint")           
 allocate(getstructqpointset%qpoint(3,len))
+if (len .lt. 1) then
+  write(*,*) "Parser ERROR: "
+  Write (*,*)"The Element: qpoint must occur at least 1 times in the"
+   Write (*,*) "qpointset element"
+  stop
+endif
 Do i=1,len
 
 getstructqpointset%qpoint(:,i)=getvalueofqpoint(&
@@ -1109,7 +1153,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"crystal")
-getstructstructure%crystal=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The structure element must contain at least 1 crystal element"
+        endif
+        getstructstructure%crystal=>null()
 Do i=0,len-1
 getstructstructure%crystal=>getstructcrystal(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -1170,6 +1218,12 @@ endif
 
       len= countChildEmentsWithName (thisnode,"basevect")           
 allocate(getstructcrystal%basevect(3,len))
+if (len .lt. 3) then
+  write(*,*) "Parser ERROR: "
+  Write (*,*)"The Element: basevect must occur at least 3 times in the"
+   Write (*,*) "crystal element"
+  stop
+endif
 Do i=1,len
 
 getstructcrystal%basevect(:,i)=getvalueofbasevect(&
@@ -1232,7 +1286,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"atom")
-     
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The species element must contain at least 1 atom element"
+        endif
+             
 allocate(getstructspecies%atomarray(len))
 Do i=0,len-1
 getstructspecies%atomarray(i+1)%atom=>getstructatom(&
@@ -1391,7 +1449,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"lattice")
-getstructsymmetries%lattice=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The symmetries element must contain at least 1 lattice element"
+        endif
+        getstructsymmetries%lattice=>null()
 Do i=0,len-1
 getstructsymmetries%lattice=>getstructlattice(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -3016,7 +3078,11 @@ allocate(getstructwfplot)
 #endif
       
             len= countChildEmentsWithName(thisnode,"kstlist")
-getstructwfplot%kstlist=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The wfplot element must contain at least 1 kstlist element"
+        endif
+        getstructwfplot%kstlist=>null()
 Do i=0,len-1
 getstructwfplot%kstlist=>getstructkstlist(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -3981,7 +4047,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"qpointset")
-getstructxs%qpointset=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The xs element must contain at least 1 qpointset element"
+        endif
+        getstructxs%qpointset=>null()
 Do i=0,len-1
 getstructxs%qpointset=>getstructqpointset(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -3997,7 +4067,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"energywindow")
-getstructxs%energywindow=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The xs element must contain at least 1 energywindow element"
+        endif
+        getstructxs%energywindow=>null()
 Do i=0,len-1
 getstructxs%energywindow=>getstructenergywindow(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -4867,7 +4941,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"structure")
-getstructinput%structure=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The input element must contain at least 1 structure element"
+        endif
+        getstructinput%structure=>null()
 Do i=0,len-1
 getstructinput%structure=>getstructstructure(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -4875,7 +4953,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"groundstate")
-getstructinput%groundstate=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The input element must contain at least 1 groundstate element"
+        endif
+        getstructinput%groundstate=>null()
 Do i=0,len-1
 getstructinput%groundstate=>getstructgroundstate(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -4915,6 +4997,12 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
       len= countChildEmentsWithName (thisnode,"title")
+if (len .lt. 1) then
+  write(*,*) "Parser ERROR: "
+  Write (*,*)"The Element: title must occur at least 1 times in the"
+   Write (*,*) "input element"
+  stop
+endif
 Do i=1,len
 
 getstructinput%title=getvalueoftitle(&

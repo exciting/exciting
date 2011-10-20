@@ -7,6 +7,7 @@ type symmetries_type
  character(512)::HallSymbol
  character(512)::SchoenfliesSymbol
  character(512)::spaceGroupNumber
+ character(512)::title
   type(lattice_type),pointer::lattice
   type(WyckoffPositions_type),pointer::WyckoffPositions
 end type
@@ -112,6 +113,20 @@ getstructsymmetries%WyckoffPositions=>getstructWyckoffPositions(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "WyckoffPositions"),0)) ) 
 enddo
+
+      len= countChildEmentsWithName (thisnode,"title")
+if (len .lt. 1) then
+  write(*,*) "Parser ERROR: "
+  Write (*,*)"The Element: title must occur at least 1 times in the"
+   Write (*,*) "symmetries element"
+  stop
+endif
+Do i=1,len
+
+getstructsymmetries%title=getvalueoftitle(&
+      removechild(thisnode,item(getElementsByTagname(thisnode,&
+      "title"),0)))
+end do
 
       i=0
       len=0
@@ -230,6 +245,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"epslat")
+getstructlattice%epslat=1.0d-6
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epslat",getstructlattice%epslat)
        call removeAttribute(thisnode,"epslat")  
@@ -237,6 +253,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"primcell")
+getstructlattice%primcell= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"primcell",getstructlattice%primcell)
        call removeAttribute(thisnode,"primcell")  
@@ -244,7 +261,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"speciespath")
-getstructlattice%speciespath= "http://xml.exciting-code.org/spesies/"
+getstructlattice%speciespath= "http://xml.exciting-code.org/species/"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"speciespath",getstructlattice%speciespath)
        call removeAttribute(thisnode,"speciespath")  
@@ -341,7 +358,17 @@ endif
       len=0
       call  handleunknownnodes(thisnode)
 end function
+ 
+function getvalueoftitle(thisnode)
+implicit none
+type(Node),pointer::thisnode
+ character(512)::getvalueoftitle
 
+#ifdef INPUTDEBUG
+  write(*,*)"we are at title"
+#endif  
+   call extractDataContent(thisnode,  getvalueoftitle)
+end function
 
 function countChildEmentsWithName(nodep,name)
   implicit none

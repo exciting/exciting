@@ -58,8 +58,9 @@ Contains
             buffer = githash
             Call setAttribute (root, "versionhash", &
            & trim(adjustl(buffer)))
-            Call setAttribute (root, "title", &
-           & trim(adjustl(input%title)))
+
+            Call setAttribute (root, "title",   trim(adjustl(input%title)))
+
 !
          End If
 !
