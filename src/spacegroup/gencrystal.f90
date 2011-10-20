@@ -1,7 +1,7 @@
 
 subroutine gencrystal
 use modspacegroup
-use modinput
+use modsymmetries
 implicit none
 ! local variables
 integer::is, ia, ip, i, j
@@ -18,12 +18,12 @@ real(8)::srgrp(3, 3, 192), stgrp(3, 192)
 real(8)::r3taxi
 external r3taxi
 ! convert angles from degrees to radians
-abr=input%structure%symmetries%lattice%ab*(pi/180.d0)
-acr=input%structure%symmetries%lattice%ac*(pi/180.d0)
-bcr=input%structure%symmetries%lattice%bc*(pi/180.d0)
+abr= symmetries%lattice%ab*(pi/180.d0)
+acr= symmetries%lattice%ac*(pi/180.d0)
+bcr= symmetries%lattice%bc*(pi/180.d0)
 ! setup lattice vectors
 sab=sin(abr)
-if (abs(sab).lt.input%structure%epslat) then
+if (abs(sab).lt.symmetries%lattice%epslat) then
   write(*, *)
   write(*, '("Error(gencrystal): degenerate lattice vectors")')
   write(*, *)
@@ -32,26 +32,26 @@ end if
 cab=cos(abr)
 cac=cos(acr)
 cbc=cos(bcr)
-avecnew(1, 1)=input%structure%symmetries%lattice%a
+avecnew(1, 1)= symmetries%lattice%a
 avecnew(2, 1)=0.d0
 avecnew(3, 1)=0.d0
-avecnew(1, 2)=input%structure%symmetries%lattice%b*cab
-avecnew(2, 2)=input%structure%symmetries%lattice%b*sab
+avecnew(1, 2)= symmetries%lattice%b*cab
+avecnew(2, 2)= symmetries%lattice%b*sab
 avecnew(3, 2)=0.d0
-avecnew(1, 3)=input%structure%symmetries%lattice%c*cac
-avecnew(2, 3)=input%structure%symmetries%lattice%c*(cbc-cab*cac)/sab
-avecnew(3, 3)=input%structure%symmetries%lattice%c*sqrt(sab**2-cac**2+2.d0*cab*cac*cbc-cbc**2)/sab
+avecnew(1, 3)= symmetries%lattice%c*cac
+avecnew(2, 3)= symmetries%lattice%c*(cbc-cab*cac)/sab
+avecnew(3, 3)= symmetries%lattice%c*sqrt(sab**2-cac**2+2.d0*cab*cac*cbc-cbc**2)/sab
 do i=1, 3
   do j=1, 3
-    if (abs(avecnew(i, j)).lt.input%structure%epslat) avecnew(i, j)=0.d0
+    if (abs(avecnew(i, j)).lt.symmetries%lattice%epslat) avecnew(i, j)=0.d0
   end do
 end do
 ! scale lattice vectors by the number of unit cells
 do i=1, 3
-  avecnew(:, i)=avecnew(:, i)*dble(input%structure%symmetries%lattice%ncell(i))
+  avecnew(:, i)=avecnew(:, i)*dble( symmetries%lattice%ncell(i))
 end do
 ! determine the Hall symbol from the Hermann-Mauguin symbol
-call sgsymb(input%structure%symmetries%HermannMauguinSymbol, num, schn, hall)
+call sgsymb( symmetries%HermannMauguinSymbol, num, schn, hall)
 ! determine the space group generators
 call seitzgen(hall, ngen, srgen, stgen)
 ! compute the space group operations
@@ -63,18 +63,18 @@ do is=1, nspecies
     do j=1, ngrp
 ! apply the space group operation
       call r3mv(srgrp(:, 1, j),&
-      input%structure%symmetries%WyckoffPositions%wspeciesarray(is)%wspecies%wposarray(ip)%wpos%coord(:), v1)
+       symmetries%WyckoffPositions%wspeciesarray(is)%wspecies%wposarray(ip)%wpos%coord(:), v1)
       v1(:)=v1(:)+stgrp(:, j)
-      do i1=0, input%structure%symmetries%lattice%ncell(1)-1
-	do i2=0, input%structure%symmetries%lattice%ncell(2)-1
-	  do i3=0, input%structure%symmetries%lattice%ncell(3)-1
-	    v2(1)=(v1(1)+dble(i1))/dble(input%structure%symmetries%lattice%ncell(1))
-	    v2(2)=(v1(2)+dble(i2))/dble(input%structure%symmetries%lattice%ncell(2))
-	    v2(3)=(v1(3)+dble(i3))/dble(input%structure%symmetries%lattice%ncell(3))
-	    call r3frac(input%structure%epslat, v2, id)
+      do i1=0,  symmetries%lattice%ncell(1)-1
+	do i2=0,  symmetries%lattice%ncell(2)-1
+	  do i3=0,  symmetries%lattice%ncell(3)-1
+	    v2(1)=(v1(1)+dble(i1))/dble( symmetries%lattice%ncell(1))
+	    v2(2)=(v1(2)+dble(i2))/dble( symmetries%lattice%ncell(2))
+	    v2(3)=(v1(3)+dble(i3))/dble( symmetries%lattice%ncell(3))
+	    call r3frac(symmetries%lattice%epslat, v2, id)
 ! check if new position already exists
 	    do ia=1, natoms(is)
-	      if (r3taxi(v2, atposlnew(:, ia, is)).lt.input%structure%epslat) goto 30
+	      if (r3taxi(v2, atposlnew(:, ia, is)).lt.symmetries%lattice%epslat) goto 30
 	    end do
 ! add new position to list
 	    natoms(is)=natoms(is)+1
@@ -97,7 +97,7 @@ do is=1, nspecies
 end do
 ! set magnetic fields to zero
 ! reduce conventional cell to primitive cell if required
-if (input%structure%primcell) call findprim
+if (symmetries%lattice%primcell) call findprim
 ! find the total number of atoms
 natmtot=0
 do is=1, nspecies

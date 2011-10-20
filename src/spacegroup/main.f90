@@ -7,12 +7,12 @@
 program main
 
 use inputdom
-use modinput
+use modsymmetries
 implicit none
 ! read the input parameters from spacegroup.in
 
 call loadinputDOM("spacegroup.xml")
-input=getstructinput(inputnp)
+ symmetries=getstructsymmetries(inputnp)
 call  initatomcounters()
 ! generate the lattice and atomic basis
 call gencrystal

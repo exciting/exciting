@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:str="http://exslt.org/strings"
- xmlns:ex="inputschemaextentions.xsd">
+ xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
  <xsl:output method="text"/>
 
  <xsl:param name="importancelevels">
@@ -129,7 +129,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:text>}</xsl:text>
  </xsl:template>
  <xsl:template match="bf">
-  <xsl:text>{\bf</xsl:text>
+  <xsl:text>{\bf </xsl:text>
   <xsl:call-template name="normalizespace">
    <xsl:with-param name="a" select="."/>
   </xsl:call-template>
@@ -148,7 +148,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
  </xsl:template>
  <xsl:template match="xs:documentation">
   <xsl:apply-templates
-   select="text()|inlinemath|displaymath|pre|pre-bf|pre_ns|it|it_ns|p|exciting|a|list|li|attref|filename|filename_ns|elementref|elementref_ns"
+   select="text()|inlinemath|displaymath|pre|pre-bf|bf|pre_ns|it|it_ns|p|exciting|a|list|li|attref|filename|filename_ns|elementref|elementref_ns"
   />
  </xsl:template>
  <xsl:template match="elementref">
@@ -267,7 +267,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
    </xsl:call-template>
   </xsl:for-each>
   <xsl:for-each
-   select="$myelement/*/*/xs:element[contains($importancelevels,@ex:importance)and @ref]">
+   select="$myelement/*/*/xs:element[contains($importancelevels,@ex:importance) and @ref]">
    <xsl:variable name="ref" select="@ref"/>
    <xsl:if test="count(//xs:element[@ref=$ref])=1">
     <xsl:call-template name="elementToLatex">

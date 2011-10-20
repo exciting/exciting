@@ -65,8 +65,7 @@ Subroutine plot1d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
      End If
      write(buffer,*)  labels%filename , "1D.XML"
 	 
-     Call xml_OpenFile ( adjustl(trim(buffer), xf, replace=.True., &
-          & pretty_print=.True.)
+     Call xml_OpenFile ( adjustl(trim(buffer)), xf, replace=.True. ,  pretty_print=.True.)
      Call xml_NewElement (xf, "plot1d")
      Call xml_NewElement (xf, "title")
      Call xml_AddCharacters (xf, trim(input%title))

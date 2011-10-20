@@ -26,25 +26,22 @@ Subroutine readspeciesxml
       Do is = 1, nspecies
       spfile_string=""
 
-         if (index(input%structure%speciespath,"http://").ge.1) then
-         write(*,*) "index ",index(input%structure%speciespath,"http://")
-             If(trim(input%structure%speciesarray(is)%species%href).eq."")then
-                 write(input%structure%speciesarray(is)%species%href,*) trim(input%structure%speciespath),&
-                 &trim(input%structure%speciesarray(is)%species%speciesfile)
-             endif
-         endif
+             if (index(input%structure%speciespath,"http://").ge.1) then
 
-         If(trim(input%structure%speciesarray(is)%species%href).ne."") then
-             slash=index(input%structure%speciesarray(is)%species%href,"/",.true.)
-             write(spfile_string,*)trim(input%structure%speciesarray(is)%species%href(slash+1:))
+
 #ifdef CURL
-             write(command,*)"curl ",trim(input%structure%speciesarray(is)%species%href)," > ",trim(spfile_string)
+             write(command,*)"curl ",trim(input%structure%speciespath),&
+             trim(input%structure%speciesarray(is)%species%speciesfile)," > "&
+             ,trim(input%structure%speciesarray(is)%species%speciesfile)
 #endif
 #ifndef CURL
 
-             write(command,*)"wget -c ",trim(input%structure%speciesarray(is)%species%href)
+             write(command,*)"wget -c ",trim(input%structure%speciespath),&
+             trim(input%structure%speciesarray(is)%species%speciesfile)
+
 
 #endif
+			 write(spfile_string,*)"./", trim(input%structure%speciesarray(is)%species%speciesfile)
              If (rank .Eq. 0) Then
                 call system(command)
              endif

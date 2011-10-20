@@ -18,5 +18,5 @@ doc::
 	perl ../../utilities/scripts/genprotexdoc.pl ../../src/spacegroup/
 	mv doc.pdf spacegroup.pdf
 
-sginputmodule.f90:../../xml/schematofortran.xsl ../../xml/excitinginput.xsd
-	xsltproc --stringparam tool "spacegroup" ../../xml/schematofortran.xsl ../../xml/excitinginput.xsd >sginputmodule.f90
+sginputmodule.f90:../../xml/schematofortran.xsl ../../xml/schema/symmetries.xsd
+	xsltproc --stringparam tool "spacegroup" ../../xml/schematofortran.xsl ../../xml/schema/symmetries.xsd >sginputmodule.f90

@@ -41,7 +41,13 @@ excitingfuncdoc::
 spacegroupdoc::
 	cd src/spacegroup; $(MAKE) doc;\
 	mv spacegroup.pdf ../../docs/spacegroup
- 
+	xsltproc xml/schema/schemaexpand.xsl xml/schema/symmetries.xsd>  xml/sgroupinput.xsd
+	cd docs/spacegroup; \
+	xsltproc --stringparam importancelevels "spacegroup" ../../xml/schematolatex.xsl ../../xml/sgroupinput.xsd > symmetries.tex; \
+	xsltproc --stringparam importancelevels "spacegroup" ../../xml/schematowikidot.xsl ../../xml/sgroupinput.xsd > ../../xml/schema/wiki/spacegroup ;\
+	pdflatex symmetries.tex; \
+	pdflatex symmetries.tex; \
+
 expandedschema::
 	xsltproc xml/schema/schemaexpand.xsl xml/schema/input.xsd >xml/excitinginput.xsd ;\
  

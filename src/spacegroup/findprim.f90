@@ -11,7 +11,7 @@
 
 subroutine findprim
 ! !USES:
-use modinput
+use modsymmetries
 use modspacegroup
 ! !DESCRIPTION:
 !   This routine finds the smallest primitive cell which produces the same
@@ -41,7 +41,7 @@ external r3taxi
 do is=1, nspecies
   do ia=1, natoms(is)
 ! make sure all atomic coordinates are in [0,1)
-    call r3frac(input%structure%epslat, atposlnew(:, ia, is), iv)
+    call r3frac(symmetries%lattice%epslat, atposlnew(:, ia, is), iv)
 ! determine atomic Cartesian coordinates
     call r3mv(avecnew, atposlnew(:, ia, is), atposcnew(:, ia, is))
   end do
@@ -66,18 +66,18 @@ do ia=1, natoms(is)
       do i3=-1, 1
 	v2(3)=v1(3)+dble(i3)
 	t1=sqrt(v2(1)**2+v2(2)**2+v2(3)**2)
-	if (t1.lt.input%structure%epslat) goto 20
+	if (t1.lt.symmetries%lattice%epslat) goto 20
 ! check if vector v2 leaves conventional cell invariant
 	do js=1, nspecies
 	  do ja=1, natoms(js)
 	    v3(:)=atposlnew(:, ja, js)+v2(:)
-	    call r3frac(input%structure%epslat, v3, iv)
+	    call r3frac(symmetries%lattice%epslat, v3, iv)
 	    do ka=1, natoms(js)
 ! check both positions and magnetic fields
 
 	      t1=r3taxi(atposlnew(:, ka, js), v3)
           t2=r3taxi(bfcmt(:,ja,js),bfcmt(:,ka,js))
-	      if ((t1.lt.input%structure%epslat).and.(t2.lt.input%structure%epslat)) goto 10
+	      if ((t1.lt.symmetries%lattice%epslat).and.(t2.lt.symmetries%lattice%epslat)) goto 10
 	    end do
 ! atom ja has no equivalent under translation by v2
 	    goto 20
@@ -97,7 +97,7 @@ end do
 j=1
 t1=1.d8
 do i=1, n
-  if (dp(i).lt.t1+input%structure%epslat) then
+  if (dp(i).lt.t1+symmetries%lattice%epslat) then
     j=i
     t1=dp(i)
   end if
@@ -109,8 +109,8 @@ t1=1.d8
 do i=1, n
   call r3cross(avecnew(:, 1), vp(:, i), v1)
   t2=sqrt(v1(1)**2+v1(2)**2+v1(3)**2)
-  if (t2.gt.input%structure%epslat) then
-    if (dp(i).lt.t1+input%structure%epslat) then
+  if (t2.gt.symmetries%lattice%epslat) then
+    if (dp(i).lt.t1+symmetries%lattice%epslat) then
       j=i
       t1=dp(i)
     end if
@@ -123,8 +123,8 @@ j=1
 t1=1.d8
 do i=1, n
   t2=dot_product(vp(:, i), v1(:))
-  if (abs(t2).gt.input%structure%epslat) then
-    if (dp(i).lt.t1+input%structure%epslat) then
+  if (abs(t2).gt.symmetries%lattice%epslat) then
+    if (dp(i).lt.t1+symmetries%lattice%epslat) then
       j=i
       t1=dp(i)
     end if
@@ -137,10 +137,10 @@ do is=1, nspecies
   na=0
   do ia=1, natoms(is)
     call r3mv(ainv, atposcnew(:, ia, is), v1)
-    call r3frac(input%structure%epslat, v1, iv)
+    call r3frac(symmetries%lattice%epslat, v1, iv)
     do ja=1, na
       t1=r3taxi(apl(:, ja), v1)
-      if (t1.lt.input%structure%epslat) goto 30
+      if (t1.lt.symmetries%lattice%epslat) goto 30
     end do
     na=na+1
     apl(:, na)=v1(:)

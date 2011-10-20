@@ -68,9 +68,40 @@ type(dopart_type),pointer::dopart
  logical::autormt
  logical::primcell
  logical::tshift
-  type(symmetries_type),pointer::symmetries
   type(crystal_type),pointer::crystal
   type(species_type_array),pointer::speciesarray(:)
+  type(symmetries_type),pointer::symmetries
+end type
+type crystal_type
+ real(8)::scale
+ real(8)::stretch(3)
+ real(8),pointer::basevect(:,:)
+end type
+type species_type
+ character(1024)::speciesfile
+ character(512)::chemicalSymbol
+ integer::atomicNumber
+ real(8)::rmt
+  type(atom_type_array),pointer::atomarray(:)
+  type(LDAplusU_type),pointer::LDAplusU
+end type
+
+type species_type_array
+type(species_type),pointer::species
+ end type
+    type atom_type
+ real(8)::coord(3)
+ real(8)::bfcmt(3)
+ real(8)::mommtfix(3)
+end type
+
+type atom_type_array
+type(atom_type),pointer::atom
+ end type
+    type LDAplusU_type
+ integer::l
+ real(8)::U
+ real(8)::J
 end type
 type symmetries_type
  character(512)::HermannMauguinSymbol
@@ -109,39 +140,7 @@ end type
 type wpos_type_array
 type(wpos_type),pointer::wpos
  end type
-    type crystal_type
- real(8)::scale
- real(8)::stretch(3)
- real(8),pointer::basevect(:,:)
-end type
-type species_type
- character(1024)::speciesfile
- character(512)::chemicalSymbol
- integer::atomicNumber
- real(8)::rmt
- character(1024)::href
-  type(atom_type_array),pointer::atomarray(:)
-  type(LDAplusU_type),pointer::LDAplusU
-end type
-
-type species_type_array
-type(species_type),pointer::species
- end type
-    type atom_type
- real(8)::coord(3)
- real(8)::bfcmt(3)
- real(8)::mommtfix(3)
-end type
-
-type atom_type_array
-type(atom_type),pointer::atom
- end type
-    type LDAplusU_type
- integer::l
- real(8)::U
- real(8)::J
-end type
-type groundstate_type
+    type groundstate_type
  character(512)::do
  integer::donumber
  integer::ngridk(3)
@@ -1109,14 +1108,6 @@ if(associated(np)) then
        call removeAttribute(thisnode,"tshift")  
 endif
 
-            len= countChildEmentsWithName(thisnode,"symmetries")
-getstructstructure%symmetries=>null()
-Do i=0,len-1
-getstructstructure%symmetries=>getstructsymmetries(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"symmetries"),0)) ) 
-enddo
-
             len= countChildEmentsWithName(thisnode,"crystal")
 getstructstructure%crystal=>null()
 Do i=0,len-1
@@ -1133,6 +1124,219 @@ getstructstructure%speciesarray(i+1)%species=>getstructspecies(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "species"),0)) ) 
 enddo
+
+            len= countChildEmentsWithName(thisnode,"symmetries")
+getstructstructure%symmetries=>null()
+Do i=0,len-1
+getstructstructure%symmetries=>getstructsymmetries(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"symmetries"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructcrystal(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(crystal_type),pointer::getstructcrystal
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructcrystal)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at crystal"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"scale")
+getstructcrystal%scale=1.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"scale",getstructcrystal%scale)
+       call removeAttribute(thisnode,"scale")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"stretch")
+getstructcrystal%stretch=(/1.0d0,1.0d0,1.0d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"stretch",getstructcrystal%stretch)
+       call removeAttribute(thisnode,"stretch")  
+endif
+
+      len= countChildEmentsWithName (thisnode,"basevect")           
+allocate(getstructcrystal%basevect(3,len))
+Do i=1,len
+
+getstructcrystal%basevect(:,i)=getvalueofbasevect(&
+      removechild(thisnode,item(getElementsByTagname(thisnode,&
+      "basevect"),0)))
+end do
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructspecies(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(species_type),pointer::getstructspecies
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructspecies)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at species"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"speciesfile")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"speciesfile",getstructspecies%speciesfile)
+       call removeAttribute(thisnode,"speciesfile")  
+        else
+        write(*,*)"Parser ERROR: The element 'species' requires the attribute 'speciesfile' to be defined."
+        write(*,*)"stopped"
+        stop
+        
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"chemicalSymbol")
+getstructspecies%chemicalSymbol= ""
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"chemicalSymbol",getstructspecies%chemicalSymbol)
+       call removeAttribute(thisnode,"chemicalSymbol")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"atomicNumber")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"atomicNumber",getstructspecies%atomicNumber)
+       call removeAttribute(thisnode,"atomicNumber")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"rmt")
+getstructspecies%rmt=-1.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"rmt",getstructspecies%rmt)
+       call removeAttribute(thisnode,"rmt")  
+endif
+
+            len= countChildEmentsWithName(thisnode,"atom")
+     
+allocate(getstructspecies%atomarray(len))
+Do i=0,len-1
+getstructspecies%atomarray(i+1)%atom=>getstructatom(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"atom"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"LDAplusU")
+getstructspecies%LDAplusU=>null()
+Do i=0,len-1
+getstructspecies%LDAplusU=>getstructLDAplusU(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"LDAplusU"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructatom(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(atom_type),pointer::getstructatom
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructatom)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at atom"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"coord")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"coord",getstructatom%coord)
+       call removeAttribute(thisnode,"coord")  
+        else
+        write(*,*)"Parser ERROR: The element 'atom' requires the attribute 'coord' to be defined."
+        write(*,*)"stopped"
+        stop
+        
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"bfcmt")
+getstructatom%bfcmt=(/0.0d0,0.0d0,0.0d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"bfcmt",getstructatom%bfcmt)
+       call removeAttribute(thisnode,"bfcmt")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"mommtfix")
+getstructatom%mommtfix=(/0.0d0,0.0d0,0.0d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"mommtfix",getstructatom%mommtfix)
+       call removeAttribute(thisnode,"mommtfix")  
+endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructLDAplusU(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(LDAplusU_type),pointer::getstructLDAplusU
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructLDAplusU)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at LDAplusU"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"l")
+getstructLDAplusU%l=-1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"l",getstructLDAplusU%l)
+       call removeAttribute(thisnode,"l")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"U")
+getstructLDAplusU%U=0.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"U",getstructLDAplusU%U)
+       call removeAttribute(thisnode,"U")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"J")
+getstructLDAplusU%J=0.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"J",getstructLDAplusU%J)
+       call removeAttribute(thisnode,"J")  
+endif
 
       i=0
       len=0
@@ -1402,219 +1606,6 @@ np=>getAttributeNode(thisnode,"coord")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"coord",getstructwpos%coord)
        call removeAttribute(thisnode,"coord")  
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructcrystal(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(crystal_type),pointer::getstructcrystal
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructcrystal)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at crystal"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"scale")
-getstructcrystal%scale=1.0d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scale",getstructcrystal%scale)
-       call removeAttribute(thisnode,"scale")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"stretch")
-getstructcrystal%stretch=(/1.0d0,1.0d0,1.0d0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"stretch",getstructcrystal%stretch)
-       call removeAttribute(thisnode,"stretch")  
-endif
-
-      len= countChildEmentsWithName (thisnode,"basevect")           
-allocate(getstructcrystal%basevect(3,len))
-Do i=1,len
-
-getstructcrystal%basevect(:,i)=getvalueofbasevect(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "basevect"),0)))
-end do
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructspecies(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(species_type),pointer::getstructspecies
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructspecies)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at species"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"speciesfile")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"speciesfile",getstructspecies%speciesfile)
-       call removeAttribute(thisnode,"speciesfile")  
-        else
-        write(*,*)"Parser ERROR: The element 'species' requires the attribute 'speciesfile' to be defined."
-        write(*,*)"stopped"
-        stop
-        
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"chemicalSymbol")
-getstructspecies%chemicalSymbol= ""
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"chemicalSymbol",getstructspecies%chemicalSymbol)
-       call removeAttribute(thisnode,"chemicalSymbol")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"atomicNumber")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"atomicNumber",getstructspecies%atomicNumber)
-       call removeAttribute(thisnode,"atomicNumber")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rmt")
-getstructspecies%rmt=-1.0d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rmt",getstructspecies%rmt)
-       call removeAttribute(thisnode,"rmt")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"href")
-getstructspecies%href= ""
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"href",getstructspecies%href)
-       call removeAttribute(thisnode,"href")  
-endif
-
-            len= countChildEmentsWithName(thisnode,"atom")
-     
-allocate(getstructspecies%atomarray(len))
-Do i=0,len-1
-getstructspecies%atomarray(i+1)%atom=>getstructatom(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"atom"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"LDAplusU")
-getstructspecies%LDAplusU=>null()
-Do i=0,len-1
-getstructspecies%LDAplusU=>getstructLDAplusU(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"LDAplusU"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructatom(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(atom_type),pointer::getstructatom
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructatom)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at atom"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"coord")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"coord",getstructatom%coord)
-       call removeAttribute(thisnode,"coord")  
-        else
-        write(*,*)"Parser ERROR: The element 'atom' requires the attribute 'coord' to be defined."
-        write(*,*)"stopped"
-        stop
-        
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"bfcmt")
-getstructatom%bfcmt=(/0.0d0,0.0d0,0.0d0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"bfcmt",getstructatom%bfcmt)
-       call removeAttribute(thisnode,"bfcmt")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"mommtfix")
-getstructatom%mommtfix=(/0.0d0,0.0d0,0.0d0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"mommtfix",getstructatom%mommtfix)
-       call removeAttribute(thisnode,"mommtfix")  
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructLDAplusU(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(LDAplusU_type),pointer::getstructLDAplusU
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructLDAplusU)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at LDAplusU"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"l")
-getstructLDAplusU%l=-1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"l",getstructLDAplusU%l)
-       call removeAttribute(thisnode,"l")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"U")
-getstructLDAplusU%U=0.0d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"U",getstructLDAplusU%U)
-       call removeAttribute(thisnode,"U")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"J")
-getstructLDAplusU%J=0.0d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"J",getstructLDAplusU%J)
-       call removeAttribute(thisnode,"J")  
 endif
 
       i=0

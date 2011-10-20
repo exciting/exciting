@@ -11,8 +11,10 @@
   </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="groundstate">
     <xs:annotation>
-      <xs:documentation> The groundstate element is required for any calculation. Its attributes are
-        the parameters and methods used to calculate the groundstate density.</xs:documentation>
+      <xs:documentation> The <elementref>groundstate</elementref> 
+      element is required for any calculation. 
+      Its attributes are
+        the parameters and methods used to calculate the ground-state density.</xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
@@ -1370,7 +1372,8 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="autokpt" type="xs:boolean"
         default="false">
         <xs:annotation>
-          <xs:documentation> Decides if the <bf>k</bf>-point set is to be determined automatically from the total 
+          <xs:documentation>If  <pre>"true"</pre>, the set of <bf>k</bf>-points is determined 
+          automatically according to the total 
             number of required <bf>k</bf>-points given by <attref>nktot</attref>.
           </xs:documentation>
         </xs:annotation>
@@ -1487,7 +1490,30 @@
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="mixer" default="msec">
         <xs:annotation>
-          <xs:documentation>select the mixing (relaxation) scheme for SCF</xs:documentation>
+          <xs:documentation>
+          Select the mixing (relaxation) scheme for the SCF loop. One has the folloeing options:
+        <p/>    
+   <bf>Linear mixer</bf> (<pre>"lin"</pre>)
+   <p/>
+   Given the input  <inlinemath>\mu^i</inlinemath> and output   <inlinemath>\nu^i</inlinemath> 
+   vectors of the <inlinemath>i</inlinemath>th
+  iteration,  the next input vector to the
+    (<inlinemath>i+1</inlinemath>)th iteration is generated using an adaptive mixing scheme.
+    The <inlinemath>j</inlinemath>th component of the output
+   vector is mixed with a fraction of the same component of the input vector:
+   <displaymath>\mu^{i+1}_j=\beta^i_j\nu^i_j+(1-\beta^i_j)\mu^i_j, </displaymath>
+   where <inlinemath>\beta^i_j</inlinemath> is set to <inlinemath>\beta_0</inlinemath> at initialisation and increased by
+   scaling with <inlinemath>\beta_{\rm inc}</inlinemath> (<inlinemath>&gt;1</inlinemath>) if <inlinemath>f^i_j\equiv\nu^i_j-\mu^i_j</inlinemath> does
+   not change sign between loops. If <inlinemath>f^i_j</inlinemath> does change sign, then <inlinemath>\beta^i_j</inlinemath>
+   is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>&gt;1</inlinemath>). Note that the array {\tt nu} serves
+   for both input and output, and the arrays {\tt mu}, {\tt beta} and {\tt f}
+   are used internally and should not be changed between calls. The routine is
+   initialised at the first iteration and is thread-safe so long as each thread
+   has its own independent work array. Complex arrays may be passed as real
+   arrays with <inlinemath>n</inlinemath> doubled.
+
+          
+          </xs:documentation>
           <xs:appinfo>
             <oldname>mixtype</oldname>
             <olddefault default="lin"/>
@@ -1523,7 +1549,7 @@
         default="0.4d0">
         <xs:annotation>
           <xs:documentation>Initial value for mixing parameter. Used in linear
-            mixing as choosen with <attref>mixing</attref>.</xs:documentation>
+            mixing as choosen with <attref>mixer</attref>.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="betainc" type="fortrandouble"
