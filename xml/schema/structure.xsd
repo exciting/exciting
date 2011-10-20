@@ -66,7 +66,7 @@
         <xs:element ex:importance="essential" ex:unit="" name="species" minOccurs="0"
           maxOccurs="unbounded">
           <xs:annotation>
-            <xs:documentation>Defines the atomic species, i.e. the chemical element. The atomic
+            <xs:documentation>Defines the atomic species, <it>i.e.</it>, the chemical element. Aatomic
               coordinates and, optionally, quantities relevant for magnetic calculations are defined
               in the subelement(s) atom.</xs:documentation>
           </xs:annotation>
@@ -153,22 +153,22 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="chemicalSymbol" type="xs:string"
+            <xs:attribute ex:importance="output" ex:unit="" name="chemicalSymbol" type="xs:string"
               use="optional" default="">
               <xs:annotation>
                 <xs:documentation> Optional attribute that may be used in visualization and by
-                  converters. It is ignored by <exciting>exciting</exciting>
+                  converters. It is ignored by <exciting>exciting</exciting>.
                 </xs:documentation>
                 <xs:appinfo>
                   <oldname>spsymb</oldname>
                 </xs:appinfo>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="atomicNumber" type="xs:integer"
+            <xs:attribute ex:importance="output" ex:unit="" name="atomicNumber" type="xs:integer"
               use="optional">
               <xs:annotation>
                 <xs:documentation> Optional attribute that may be used in visualization and by
-                  converters. It is not used in <exciting>exciting</exciting>
+                  converters. It is not used in <exciting>exciting</exciting>.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -198,13 +198,15 @@
             <xs:appinfo>
               <notindocu />
             </xs:appinfo>
-            <xs:documentation>This element is used by the spacegroup tool to generate structures and
-              supercells</xs:documentation>
+            <xs:documentation>This element is used by the <pre-bf>spacegroup</pre-bf> tool to generate structures and
+              supercells as defined by <elementref>lattice</elementref> from the knowledge of  Wyckoff positions and the space group. The space group is specified by 
+              the attribute <attref>HermanMauguinSymbol</attref>. 
+ 
+              </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:annotation>
-              <xs:documentation> The symmetries element is output from the spacegroup program the
-                values are currently not used in the <exciting>exciting</exciting> program
+              <xs:documentation> 
               </xs:documentation>
             </xs:annotation>
             <xs:sequence>
@@ -291,9 +293,25 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="spacegroup" ex:unit="" name="HallSymbol" type="xs:string" />
-            <xs:attribute ex:importance="spacegroup" ex:unit="" name="SchoenfliesSymbol" type="xs:string" />
-            <xs:attribute ex:importance="spacegroup" ex:unit="" name="spaceGroupNumber" type="xs:string" />
+            <xs:attribute ex:importance="spacegroup" ex:unit="" name="HallSymbol" type="xs:string" >
+            <xs:annotation>
+                <xs:documentation>
+                
+                </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="spacegroup" ex:unit="" name="SchoenfliesSymbol" type="xs:string" >
+            <xs:annotation>
+                <xs:documentation>
+                </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="spacegroup" ex:unit="" name="spaceGroupNumber" type="xs:string" >
+            <xs:annotation>
+                <xs:documentation>
+                </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
             </xs:sequence>
