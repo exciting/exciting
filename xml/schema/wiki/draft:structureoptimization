@@ -1,0 +1,80 @@
+
+[[# structureoptimization]]
++ Element:##blue| structureoptimization##
+  
+  The element [[span class="elementlink"]]**{{[#structureoptimization structureoptimization]}}**[[/span]] activates the optimization of atomic postions.
+
+[[table ]]
+[[row]]
+[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]] no  content  
+ [[/cell]][[/row]][[row]] [[cell]] **XPath:** [[/cell]][[cell]] {{[[[draft:/input|/input]]]/[#structureoptimization structureoptimization] }}[[/cell]] [[/row]]
+  
+[[/table]]
+  
+          This element allows for specification of the following attributes:  [[span class="attributelink"]]**{{[#attstructureoptimizationepsforce epsforce]}}**[[/span]], [[span class="attributelink"]]**{{[#attstructureoptimizationresume resume]}}**[[/span]], [[span class="attributelink"]]**{{[#attstructureoptimizationtau0atm tau0atm]}}**[[/span]]
+  [[# attepsforce]]
+    [[# attstructureoptimizationepsforce]]
+  
+++ Attribute:  ##green|epsforce##  
+    Convergence tolerance for the forces during a structural optimization run.
+
+[[table ]]
+[[row]]
+[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]] no  content  
+ [[/cell]][[/row]]
+[[row]] [[cell]] **Default:** [[/cell]][[cell]] "{{5.0d-5}}" [[/cell]][[/row]]
+ 
+[[row]] [[cell]] **Use:** [[/cell]][[cell]]  optional [[/cell]][[/row]]
+ [[row]] [[cell]] **XPath:** [[/cell]][[cell]] {{[[[draft:/input|/input]]]/[#structureoptimization structureoptimization] }}[[/cell]] [[/row]]
+  
+[[/table]]
+  
+  [[# attresume]]
+    [[# attstructureoptimizationresume]]
+  
+++ Attribute:  ##green|resume##  
+     Resumption of a structural optimization run using the density in {{STATE.OUT}}, but with positions from {{input.xml}}. 
+
+[[table ]]
+[[row]]
+[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]]boolean
+ [[/cell]][[/row]]
+[[row]] [[cell]] **Default:** [[/cell]][[cell]] "{{false}}" [[/cell]][[/row]]
+ 
+[[row]] [[cell]] **Use:** [[/cell]][[cell]]  optional [[/cell]][[/row]]
+ [[row]] [[cell]] **XPath:** [[/cell]][[cell]] {{[[[draft:/input|/input]]]/[#structureoptimization structureoptimization]/[#attstructureoptimizationresume @resume] }}[[/cell]] [[/row]]
+  
+[[/table]]
+  
+  [[# atttau0atm]]
+    [[# attstructureoptimizationtau0atm]]
+  
+++ Attribute:  ##green|tau0atm##  
+     Parameter determining the step size for structural optimization.
+  
+   In each step [[$ m $]] of a structural optimization run, atom [[$ \alpha $]] is displaced according to  
+[[math label]] 
+{\bf r}_{\alpha}^{m+1}={\bf r}_{\alpha}^m+\tau_{\alpha}^m
+                            \left({ \bf F}_{\alpha}^m+{ \bf F}_{\alpha}^{m-1}\right),
+[[/math]]
+ i.e., the magnitude of the displacement in step [[$ m $]] is proportional to [[$ \tau_{\alpha}^m $]]. For the initial step, [[$ \tau_{\alpha}^0 $]] is set to [[span class="attributelink"]]**{{[#atttau0atm tau0atm]}}**[[/span]]. If the forces of two subsequent steps have the same sign, [[$ \tau_{\alpha}^m $]] is increased by [[$ \tau_{\alpha}^0 $]]. Otherwise, [[$ \tau_{\alpha}^m $]] is reset to [[$ \tau_{\alpha}^0 $]]. 
+
+[[table ]]
+[[row]]
+[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]][[[draft:common#fortrandouble|fortrandouble]]]
+ [[/cell]][[/row]]
+[[row]] [[cell]] **Default:** [[/cell]][[cell]] "{{0.2d0}}" [[/cell]][[/row]]
+ 
+[[row]] [[cell]] **Use:** [[/cell]][[cell]]  optional [[/cell]][[/row]]
+ [[row]] [[cell]] **XPath:** [[/cell]][[cell]] {{[[[draft:/input|/input]]]/[#structureoptimization structureoptimization]/[#attstructureoptimizationtau0atm @tau0atm] }}[[/cell]] [[/row]]
+  
+[[/table]]
+  
++ Reused Elements
+    
+    The following elements can occur more than once in the input file. There for they are [[[draft:common| listed separately]]].
+  
++ Data Types
+ 
+ The Input definition uses derived data types. These  [[[draft:common| are described here]]].
+  
