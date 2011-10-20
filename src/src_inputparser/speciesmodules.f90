@@ -122,7 +122,7 @@ endif
 
       i=0
       len=0
-      call  handleunknownnodes(thisnode)
+      
 end function
 
 function getstructsp(thisnode)
@@ -230,7 +230,7 @@ enddo
 
       i=0
       len=0
-      call  handleunknownnodes(thisnode)
+      
 end function
 
 function getstructmuffinTin(thisnode)
@@ -297,7 +297,7 @@ endif
 
       i=0
       len=0
-      call  handleunknownnodes(thisnode)
+      
 end function
 
 function getstructatomicState(thisnode)
@@ -376,7 +376,7 @@ endif
 
       i=0
       len=0
-      call  handleunknownnodes(thisnode)
+      
 end function
 
 function getstructbasis(thisnode)
@@ -429,7 +429,7 @@ enddo
 
       i=0
       len=0
-      call  handleunknownnodes(thisnode)
+      
 end function
 
 function getstructexception(thisnode)
@@ -468,7 +468,7 @@ enddo
 
       i=0
       len=0
-      call  handleunknownnodes(thisnode)
+      
 end function
 
 function getstructlorb(thisnode)
@@ -512,7 +512,7 @@ enddo
 
       i=0
       len=0
-      call  handleunknownnodes(thisnode)
+      
 end function
 
 function getstructspdb(thisnode)
@@ -538,7 +538,7 @@ enddo
 
       i=0
       len=0
-      call  handleunknownnodes(thisnode)
+      
 end function
 
 

@@ -103,42 +103,9 @@ type(atom_type),pointer::atom
  real(8)::U
  real(8)::J
 end type
+
 type symmetries_type
- character(512)::HermannMauguinSymbol
- character(512)::HallSymbol
- character(512)::SchoenfliesSymbol
- character(512)::spaceGroupNumber
-  type(lattice_type),pointer::lattice
-  type(WyckoffPositions_type),pointer::WyckoffPositions
-end type
-type lattice_type
- real(8)::a
- real(8)::b
- real(8)::c
- real(8)::ab
- real(8)::ac
- real(8)::bc
- integer::ncell(3)
- real(8)::scale
- real(8)::stretch(3)
-end type
-type WyckoffPositions_type
-  type(wspecies_type_array),pointer::wspeciesarray(:)
-end type
-type wspecies_type
- character(512)::speciesfile
-  type(wpos_type_array),pointer::wposarray(:)
-end type
-
-type wspecies_type_array
-type(wspecies_type),pointer::wspecies
- end type
-    type wpos_type
- real(8)::coord(3)
-end type
-
-type wpos_type_array
-type(wpos_type),pointer::wpos
+logical::exists
  end type
     type groundstate_type
  character(512)::do
@@ -608,6 +575,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -647,6 +615,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -676,6 +645,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -727,6 +697,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -756,6 +727,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -819,6 +791,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -848,6 +821,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -911,6 +885,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -943,6 +918,7 @@ end do
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -978,6 +954,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -1010,6 +987,7 @@ end do
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -1036,6 +1014,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -1067,6 +1046,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -1183,6 +1163,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -1233,6 +1214,7 @@ end do
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -1308,6 +1290,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -1355,6 +1338,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -1398,6 +1382,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -1406,273 +1391,18 @@ function getstructsymmetries(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(symmetries_type),pointer::getstructsymmetries
-type(Node),pointer::np
-
 
 integer::len=1,i=0
 allocate(getstructsymmetries)  
 #ifdef INPUTDEBUG      
       write(*,*)"we are at symmetries"
 #endif
+      getstructsymmetries%exists=.false.
+      if (associated(thisnode))  getstructsymmetries%exists=.true.
       
-nullify(np)  
-np=>getAttributeNode(thisnode,"HermannMauguinSymbol")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"HermannMauguinSymbol",getstructsymmetries%HermannMauguinSymbol)
-       call removeAttribute(thisnode,"HermannMauguinSymbol")  
-        else
-        write(*,*)"Parser ERROR: The element 'symmetries' requires the attribute 'HermannMauguinSymbol' to be defined."
-        write(*,*)"stopped"
-        stop
-        
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"HallSymbol")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"HallSymbol",getstructsymmetries%HallSymbol)
-       call removeAttribute(thisnode,"HallSymbol")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"SchoenfliesSymbol")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"SchoenfliesSymbol",getstructsymmetries%SchoenfliesSymbol)
-       call removeAttribute(thisnode,"SchoenfliesSymbol")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"spaceGroupNumber")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"spaceGroupNumber",getstructsymmetries%spaceGroupNumber)
-       call removeAttribute(thisnode,"spaceGroupNumber")  
-endif
-
-            len= countChildEmentsWithName(thisnode,"lattice")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The symmetries element must contain at least 1 lattice element"
-        endif
-        getstructsymmetries%lattice=>null()
-Do i=0,len-1
-getstructsymmetries%lattice=>getstructlattice(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"lattice"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"WyckoffPositions")
-getstructsymmetries%WyckoffPositions=>null()
-Do i=0,len-1
-getstructsymmetries%WyckoffPositions=>getstructWyckoffPositions(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"WyckoffPositions"),0)) ) 
-enddo
-
       i=0
       len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructlattice(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(lattice_type),pointer::getstructlattice
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructlattice)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at lattice"
-#endif
       
-nullify(np)  
-np=>getAttributeNode(thisnode,"a")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"a",getstructlattice%a)
-       call removeAttribute(thisnode,"a")  
-        else
-        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'a' to be defined."
-        write(*,*)"stopped"
-        stop
-        
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"b")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"b",getstructlattice%b)
-       call removeAttribute(thisnode,"b")  
-        else
-        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'b' to be defined."
-        write(*,*)"stopped"
-        stop
-        
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"c")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"c",getstructlattice%c)
-       call removeAttribute(thisnode,"c")  
-        else
-        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'c' to be defined."
-        write(*,*)"stopped"
-        stop
-        
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ab")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ab",getstructlattice%ab)
-       call removeAttribute(thisnode,"ab")  
-        else
-        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'ab' to be defined."
-        write(*,*)"stopped"
-        stop
-        
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ac")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ac",getstructlattice%ac)
-       call removeAttribute(thisnode,"ac")  
-        else
-        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'ac' to be defined."
-        write(*,*)"stopped"
-        stop
-        
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"bc")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"bc",getstructlattice%bc)
-       call removeAttribute(thisnode,"bc")  
-        else
-        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'bc' to be defined."
-        write(*,*)"stopped"
-        stop
-        
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ncell")
-getstructlattice%ncell=(/1,1,1/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ncell",getstructlattice%ncell)
-       call removeAttribute(thisnode,"ncell")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"scale")
-getstructlattice%scale=1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scale",getstructlattice%scale)
-       call removeAttribute(thisnode,"scale")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"stretch")
-getstructlattice%stretch=(/1.0d0,1.0d0,1.0d0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"stretch",getstructlattice%stretch)
-       call removeAttribute(thisnode,"stretch")  
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructWyckoffPositions(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(WyckoffPositions_type),pointer::getstructWyckoffPositions
-
-integer::len=1,i=0
-allocate(getstructWyckoffPositions)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at WyckoffPositions"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"wspecies")
-     
-allocate(getstructWyckoffPositions%wspeciesarray(len))
-Do i=0,len-1
-getstructWyckoffPositions%wspeciesarray(i+1)%wspecies=>getstructwspecies(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"wspecies"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructwspecies(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(wspecies_type),pointer::getstructwspecies
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructwspecies)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at wspecies"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"speciesfile")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"speciesfile",getstructwspecies%speciesfile)
-       call removeAttribute(thisnode,"speciesfile")  
-endif
-
-            len= countChildEmentsWithName(thisnode,"wpos")
-     
-allocate(getstructwspecies%wposarray(len))
-Do i=0,len-1
-getstructwspecies%wposarray(i+1)%wpos=>getstructwpos(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"wpos"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructwpos(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(wpos_type),pointer::getstructwpos
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructwpos)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at wpos"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"coord")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"coord",getstructwpos%coord)
-       call removeAttribute(thisnode,"coord")  
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
 end function
 
 function getstructgroundstate(thisnode)
@@ -2149,6 +1879,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2232,6 +1963,7 @@ getstructspin%fixspinnumber=stringtonumberspinfixspin(getstructspin%fixspin)
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2259,6 +1991,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2311,6 +2044,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2346,6 +2080,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2429,6 +2164,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2457,6 +2193,7 @@ getstructoutput%statenumber=stringtonumberoutputstate(getstructoutput%state)
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2503,7 +2240,7 @@ getstructlibxc%xcnumber=stringtonumberlibxcxc(getstructlibxc%xc)
 
       i=0
       len=0
-      call  handleunknownnodes(thisnode)
+      
 end function
 
 function getstructstructureoptimization(thisnode)
@@ -2546,6 +2283,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2659,6 +2397,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2710,6 +2449,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2735,6 +2475,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2754,6 +2495,7 @@ allocate(getstructreformatdynmat)
       
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2801,6 +2543,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -2994,6 +2737,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3037,6 +2781,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3062,6 +2807,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3115,6 +2861,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3190,6 +2937,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3215,6 +2963,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3258,6 +3007,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3309,6 +3059,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3350,6 +3101,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3391,6 +3143,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3424,6 +3177,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3457,6 +3211,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3490,6 +3245,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3531,6 +3287,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3566,6 +3323,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3583,6 +3341,7 @@ allocate(getstructEFG)
       
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3600,6 +3359,7 @@ allocate(getstructmossbauer)
       
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3627,6 +3387,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3679,6 +3440,7 @@ end do
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3696,6 +3458,7 @@ allocate(getstructmoke)
       
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3721,6 +3484,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3748,6 +3512,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -3775,6 +3540,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4088,6 +3854,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4244,6 +4011,7 @@ getstructtddft%donumber=stringtonumbertddftdo(getstructtddft%do)
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4329,6 +4097,7 @@ getstructscreening%screentypenumber=stringtonumberscreeningscreentype(getstructs
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4502,6 +4271,7 @@ getstructBSE%bsetypenumber=stringtonumberBSEbsetype(getstructBSE%bsetype)
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4543,6 +4313,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4569,6 +4340,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4620,6 +4392,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4646,6 +4419,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4709,6 +4483,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4735,6 +4510,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4790,6 +4566,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4849,6 +4626,7 @@ endif
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4875,6 +4653,7 @@ enddo
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -4907,6 +4686,7 @@ getstructdoonly%tasknumber=stringtonumberdoonlytask(getstructdoonly%task)
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
 
@@ -5020,6 +4800,7 @@ end do
 
       i=0
       len=0
+      
       call  handleunknownnodes(thisnode)
 end function
  

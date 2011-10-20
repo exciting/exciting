@@ -534,7 +534,10 @@ end do
       <xsl:text>
       i=0
       len=0
-      call  handleunknownnodes(thisnode)
+      </xsl:text>
+      <xsl:if test="@ex:importance!='ignore'">
+      call  handleunknownnodes(thisnode)</xsl:if>
+      <xsl:text>
 end function
 </xsl:text>
     </xsl:for-each>
