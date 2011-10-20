@@ -1,0 +1,92 @@
+ In order to perform an  {{**exciting**}}  calculation an XML input file called {{**//input.xml//**}} must be provided. 
+  
+   This web page lists all  ##blue|elements##  and ##green|attributes## that can be used in the input file of an  {{**exciting**}}  calculation:   
+*    ##blue|elements##  are defined according to the  [http://en.wikipedia.org/wiki/XML#Key_terminology  general XML conventions ]. //Example:// The element [[span class="elementlink"]]**{{[[[draft:groundstate|groundstate]]]}}**[[/span]] is used to set up a self-consistent calculation of the ground-state energy. 
+*   ##green|attributes## are defined according to the  [http://en.wikipedia.org/wiki/XML#Key_terminology  general XML conventions ]. An attribute is always connected to an element. In  {{**exciting**}}  an attribute generally specifies a parameter or a set of parameters which are connected to the corresponding element. //Example:// The attribute [[span class="attributelink"]]**{{[#attxctype xctype]}}**[[/span]] of the element [[span class="elementlink"]]**{{[[[draft:groundstate|groundstate]]]}}**[[/span]] defines which exchange-correlation potential is used in the self-consistent calculation. 
+  
+  
+   The input file of an  {{**exciting**}}  calculation is named {{**//input.xml//**}}. A simple example for an input file can be found  [http://exciting-code.org/input-file-format-overview  here]. The input file {{**//input.xml//**}} must be a valid XML file and it must contain the root element [[span class="elementlink"]]**{{[#input input]}}**[[/span]].   
+  
+   Unless explicitly stated otherwise,  {{**exciting**}}  uses atomic units ( [[$ \hbar = m_{e} = e = 1 $]] ):   
+*  Energies are given in Hartree: 
+  
+    [[$  1\ {\rm Ha} = 2\ {\rm Ry} = 27.21138386(68)\ {\rm eV} = 4.35926\cdot 10^{-18}\ {\rm J} $]]    
+*  Lengths are given in Bohr: 
+  
+    [[$  1\ a_{\rm Bohr}\ = 0.52917720859(36)\ {\buildrel _{\circ} \over {\mathrm{A}}} \ = 0.52917720859(36) \cdot 10^{-10} \ {\rm m} $]]    
+*  Magnetic fields are given in units of 
+  
+    [[$  1\ {\rm a.u.} = \displaystyle\frac{e}{a_{\rm Bohr}^2}\ = 1717.2445320376\ {\rm Tesla}.  $]]    
+  
+  
+   Note: The electron charge is positive, so that the atomic numbers [[$ Z $]] are negative.   
+[[# input]]
++ Element:##blue| input##
+  
+   The XML element [[span class="elementlink"]]**{{[#input input]}}**[[/span]] is the root element of the  {{**exciting**}}  input file. It must contain at least the elements [[span class="elementlink"]]**{{[#title title]}}**[[/span]], [[span class="elementlink"]]**{{[[[draft:structure|structure]]]}}**[[/span]], and [[span class="elementlink"]]**{{[[[draft:groundstate|groundstate]]]}}**[[/span]], each of them must be present only one time. 
+
+[[table ]]
+[[row]]
+ [[cell style=" vertical-align:top;" ]] **contains:** [[/cell]] [[cell]]  
+[[span class="elementlink"]]**{{[#title title]}}**[[/span]] (required)  
+[[span class="elementlink"]]**{{[[[draft:structure|structure]]]}}**[[/span]] (required)  
+[[span class="elementlink"]]**{{[[[draft:groundstate|groundstate]]]}}**[[/span]] (required)  
+[[span class="elementlink"]]**{{[[[draft:structureoptimization|structureoptimization]]]}}**[[/span]] (optional)  
+[[span class="elementlink"]]**{{[[[draft:properties|properties]]]}}**[[/span]] (optional)  
+[[span class="elementlink"]]**{{[[[draft:phonons|phonons]]]}}**[[/span]] (optional)  
+[[span class="elementlink"]]**{{[[[draft:xs|xs]]]}}**[[/span]] (optional)  
+[[span class="elementlink"]]**{{[#keywords keywords]}}**[[/span]] (optional)  
+ [[/cell]][[/row]][[row]] [[cell]] **XPath:** [[/cell]][[cell]] {{/[#input input] }}[[/cell]] [[/row]]
+  
+[[/table]]
+  
+          This element allows for specification of the following attributes:  [[span class="attributelink"]]**{{[#attinputscratchpath scratchpath]}}**[[/span]]
+  [[# attscratchpath]]
+    [[# attinputscratchpath]]
+  
+++ Attribute:  ##green|scratchpath##  
+     The path to the scratch space where the eigenvector related files, {{**//EVECFV.OUT//**}}, {{**//EVECSV.OUT//**}}, and {{**//OCCSV.OUT//**}} will be written. If the local directory is accessed via a network then [[span class="attributelink"]]**{{[#attscratchpath scratchpath]}}**[[/span]] can be set to a directory on a local disk. The default value is the working directory, //i.e.//, the directory where the program is started. 
+
+[[table ]]
+[[row]]
+[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]]anyURI
+ [[/cell]][[/row]]
+[[row]] [[cell]] **Default:** [[/cell]][[cell]] "{{./}}" [[/cell]][[/row]]
+ 
+[[row]] [[cell]] **Use:** [[/cell]][[cell]]  optional [[/cell]][[/row]]
+ [[row]] [[cell]] **XPath:** [[/cell]][[cell]] {{/[#input input]/[#attinputscratchpath @scratchpath] }}[[/cell]] [[/row]]
+  
+[[/table]]
+  
+[[# title]]
++ Element:##blue| title##
+  
+  The title of the input file, //e.g.//, "Ground-State Calculation for Aluminum". 
+
+[[table ]]
+[[row]]
+[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]]string
+ [[/cell]][[/row]][[row]] [[cell]] **XPath:** [[/cell]][[cell]] {{/[#input input]/[#title title] }}[[/cell]] [[/row]]
+  
+[[/table]]
+  
+[[# keywords]]
++ Element:##blue| keywords##
+  
+   The keywords tag can contain a space separated list of keywords classifying the calculation for archiving purposes. It is not used by the  {{**exciting**}}  program. 
+
+[[table ]]
+[[row]]
+[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]]string
+ [[/cell]][[/row]][[row]] [[cell]] **XPath:** [[/cell]][[cell]] {{/[#input input]/[#keywords keywords] }}[[/cell]] [[/row]]
+  
+[[/table]]
+  
++ Reused Elements
+    
+    The following elements can occur more than once in the input file. There for they are [[[draft:common| listed separately]]].
+  
++ Data Types
+ 
+ The Input definition uses derived data types. These  [[[draft:common| are described here]]].
+  
