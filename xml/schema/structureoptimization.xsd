@@ -32,16 +32,22 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="tau0atm" type="fortrandouble"
                 default="0.2d0">
                 <xs:annotation>
-                    <xs:documentation> The step size to be used for structural optimization.<p/> 
+                    <xs:documentation> Parameter determining the step size for structural optimization.<p/>                     
+                    In each step <inlinemath>m</inlinemath> of a structural optimization run,                     
+                    atom <inlinemath>\alpha</inlinemath> is displaced according to
                     
-                    The position of atom <inlinemath>\alpha</inlinemath> is updated on step
-                            <inlinemath>m</inlinemath> of a structural optimization run using
                             <displaymath>{\bf r}_{\alpha}^{m+1}={\bf r}_{\alpha}^m+\tau_{\alpha}^m
                             \left({ \bf F}_{\alpha}^m+{ \bf F}_{\alpha}^{m-1}\right),</displaymath>
-                        where <inlinemath>\tau_{\alpha}</inlinemath> is set to <pre>tau0atm</pre>
-                        for <inlinemath>m=0</inlinemath>, and incremented by the same amount if the
-                        atom is moving in the same direction between steps. If the direction changes
-                        then <inlinemath>\tau_{\alpha}</inlinemath> is reset to <pre>tau0atm</pre>.
+                    
+                        i.e., the magnitude of the displacement in step <inlinemath>m</inlinemath> is proportional 
+                        to <inlinemath>\tau_{\alpha}^m</inlinemath>. 
+                        For the initial step, <inlinemath>\tau_{\alpha}^0</inlinemath> 
+                        is set to <attref>tau0atm</attref>. 
+                        
+                        If the forces of two subsequent steps have the same sign,
+                        <inlinemath>\tau_{\alpha}^m</inlinemath> is increased by 
+                        <inlinemath>\tau_{\alpha}^0</inlinemath>. Otherwise, 
+                        <inlinemath>\tau_{\alpha}^m</inlinemath> is reset to <inlinemath>\tau_{\alpha}^0</inlinemath>.
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
