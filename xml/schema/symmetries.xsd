@@ -6,7 +6,7 @@
    <xs:annotation>
    <xs:appinfo>
       <title>
-        <exciting>spacegroup</exciting> input reference </title>
+        <pre-bf>spacegroup</pre-bf> input reference </title>
       <root>symmetries</root>
     </xs:appinfo>
   </xs:annotation>

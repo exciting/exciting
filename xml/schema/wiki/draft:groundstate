@@ -2,7 +2,7 @@
 [[# groundstate]]
 + Element:##blue| groundstate##
   
-   The groundstate element is required for any calculation. Its attributes are the parameters and methods used to calculate the groundstate density.
+   The [[span class="elementlink"]]**{{[#groundstate groundstate]}}**[[/span]] element is required for any calculation. Its attributes are the parameters and methods used to calculate the ground-state density.
 
 [[table ]]
 [[row]]
@@ -20,7 +20,7 @@
     [[# attgroundstateautokpt]]
   
 ++ Attribute:  ##green|autokpt##  
-     Decides if the **k**-point set is to be determined automatically from the total number of required **k**-points given by [[span class="attributelink"]]**{{[#attnktot nktot]}}**[[/span]]. 
+    If {{"true"}}, the set of **k**-points is determined automatically according to the total number of required **k**-points given by [[span class="attributelink"]]**{{[#attnktot nktot]}}**[[/span]]. 
 
 [[table ]]
 [[row]]
@@ -37,7 +37,7 @@
     [[# attgroundstatebeta0]]
   
 ++ Attribute:  ##green|beta0##  
-    Initial value for mixing parameter. Used in linear mixing as choosen with [[span class="attributelink"]]**{{[#attmixing mixing]}}**[[/span]].
+    Initial value for mixing parameter. Used in linear mixing as choosen with [[span class="attributelink"]]**{{[#attmixer mixer]}}**[[/span]].
 
 [[table ]]
 [[row]]
@@ -513,7 +513,15 @@
     [[# attgroundstatemixer]]
   
 ++ Attribute:  ##green|mixer##  
-    select the mixing (relaxation) scheme for SCF
+     Select the mixing (relaxation) scheme for the SCF loop. One has the folloeing options: 
+  
+    **Linear mixer** ({{"lin"}}) 
+  
+   Given the input [[$ \mu^i $]] and output [[$ \nu^i $]] vectors of the [[$ i $]]th iteration, the next input vector to the ([[$ i+1 $]])th iteration is generated using an adaptive mixing scheme. The [[$ j $]]th component of the output vector is mixed with a fraction of the same component of the input vector:  
+[[math label]] 
+\mu^{i+1}_j=\beta^i_j\nu^i_j+(1-\beta^i_j)\mu^i_j, 
+[[/math]]
+ where [[$ \beta^i_j $]] is set to [[$ \beta_0 $]] at initialisation and increased by scaling with [[$ \beta_{\rm inc} $]] ([[$ >1 $]]) if [[$ f^i_j\equiv\nu^i_j-\mu^i_j $]] does not change sign between loops. If [[$ f^i_j $]] does change sign, then [[$ \beta^i_j $]] is scaled by [[$ \beta_{\rm dec} $]] ([[$ >1 $]]). Note that the array {\tt nu} serves for both input and output, and the arrays {\tt mu}, {\tt beta} and {\tt f} are used internally and should not be changed between calls. The routine is initialised at the first iteration and is thread-safe so long as each thread has its own independent work array. Complex arrays may be passed as real arrays with [[$ n $]] doubled. 
 
 [[table ]]
 [[row]]

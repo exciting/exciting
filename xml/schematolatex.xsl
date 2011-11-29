@@ -14,6 +14,7 @@
  </xsl:param>
 
  <xsl:template match="/">
+ <xsl:variable name="root" select="/xs:schema/xs:annotation/xs:appinfo/root"/>
   <xsl:text>
 
     \documentclass{article}
@@ -471,6 +472,9 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
      </xsl:for-each>
     </xsl:when>
     <xsl:when test="contains($xpath,'input')">
+     <xsl:value-of select="$xpath"/>
+    </xsl:when>
+     <xsl:when test="contains($xpath,'symmetries')">
      <xsl:value-of select="$xpath"/>
     </xsl:when>
     <xsl:otherwise>
