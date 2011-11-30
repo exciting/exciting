@@ -17,8 +17,7 @@ Module modfvsystem
          Logical :: packed, ludecomposed
          Integer, Pointer :: ipiv (:)
          Complex (8), Pointer :: za (:, :), zap (:)
-         contains
-        !procedure:: newm =>newmatrix
+
       End Type HermitianMatrix
 !
       Type evsystem
