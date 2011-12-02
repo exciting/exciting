@@ -27,6 +27,7 @@ exciting_interfaces
 *.OUT
 *.OUT.*
 .out.xml
+*.out
 build/*/exciting
 .cdtproject
 .cproject

@@ -14,7 +14,8 @@
  </xsl:param>
 
  <xsl:template match="/">
- <xsl:variable name="root" select="/xs:schema/xs:annotation/xs:appinfo/root"/>
+
+
   <xsl:text>
 
     \documentclass{article}
@@ -452,6 +453,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   </xsl:variable>
   <xsl:for-each select="$node[last()]">
    <xsl:variable name="name" select="$node/@name"/>
+    <xsl:variable name="rootel" select="/xs:schema/xs:annotation/xs:appinfo/root"/>
    <xsl:choose>
     <xsl:when test="name(..)='xs:schema' and count(//xs:element[@ref=$name])=1">
      <xsl:call-template name="genxpath">
@@ -471,12 +473,10 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
       </xsl:call-template>
      </xsl:for-each>
     </xsl:when>
-    <xsl:when test="contains($xpath,'input')">
+    <xsl:when test="contains($xpath,$rootel)">
      <xsl:value-of select="$xpath"/>
     </xsl:when>
-     <xsl:when test="contains($xpath,'symmetries')">
-     <xsl:value-of select="$xpath"/>
-    </xsl:when>
+     
     <xsl:otherwise>
      <xsl:text>.</xsl:text>
      <xsl:value-of select="$xpath"/>

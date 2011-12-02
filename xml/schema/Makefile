@@ -8,6 +8,8 @@ wiki/*: *.xsd ../schematowikidot.xsl common
 	xsltproc $(STRPARAM) ../schematowikidot.xsl   properties.xsd >wiki/$(PREFIX)properties;\
 	xsltproc $(STRPARAM) ../schematowikidot.xsl   structureoptimization.xsd > wiki/$(PREFIX)structureoptimization;\
 	xsltproc $(STRPARAM) ../schematowikidot.xsl   xs.xsd >wiki/$(PREFIX)xs;\
+	xsltproc $(STRPARAM) ../schematowikidot.xsl   ../species.xsd >wiki/$(PREFIX)species;\
+	
 
 common:expandedschema
 	xsltproc $(STRPARAM) --stringparam common "true"  ../schematowikidot.xsl  ../excitinginput.xsd >wiki/$(PREFIX)common

@@ -33,7 +33,7 @@ test::
 	
 
 	
-doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc Splitt_inputdoc
+doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc Splitt_inputdoc speciesdoc 
 	
 excitingfuncdoc::
 	$(MAKE) -f build/Make.common doc
@@ -47,6 +47,13 @@ spacegroupdoc::
 	xsltproc --stringparam importancelevels "spacegroup" ../../xml/schematowikidot.xsl ../../xml/sgroupinput.xsd > ../../xml/schema/wiki/spacegroup ;\
 	pdflatex spacegroupinput.tex; \
 	pdflatex spacegroupinput.tex; \
+
+speciesdoc::
+	cd docs/species;\
+	xsltproc --stringparam importancelevels "spacegroup" ../../xml/schematolatex.xsl ../../xml/species.xsd > species.tex;\
+	pdflatex species.tex;pdflatex species.tex;
+	
+	
 
 expandedschema::
 	xsltproc xml/schema/schemaexpand.xsl xml/schema/input.xsd >xml/excitinginput.xsd ;\

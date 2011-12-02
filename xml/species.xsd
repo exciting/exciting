@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" >
     <xs:annotation>
-    	<xs:documentation>schema for species db</xs:documentation>
+    	<xs:documentation>
+      This document describes the file format for the species definitions.</xs:documentation>
 <xs:appinfo>
 <title>Species file format reference</title>
-<root>sp</root> 
+<root>spdb</root> 
 </xs:appinfo>
 </xs:annotation>
 <xs:simpleType name="fortrandouble">
@@ -37,7 +38,7 @@
     	
     
         <xs:annotation>
-    		<xs:documentation>Aspecies is a Atom type definition containing all information to construcht a lapw basis</xs:documentation>
+    		<xs:documentation>A species is an atom type definition containing all information to construct the basis functions.</xs:documentation>
     	</xs:annotation>
         
         <xs:complexType>
@@ -47,23 +48,43 @@
                 <xs:element name="muffinTin" minOccurs="1" maxOccurs="1">
                 
                     <xs:annotation>
-                	<xs:documentation>size and resolution of muffin tin</xs:documentation>
+                	<xs:documentation>This element gives the size of the muffin tin radius and 
+                  the resolution of the radial functions. </xs:documentation>
                 </xs:annotation>
                      
                     <xs:complexType>
     				
-                        <xs:attribute name="rmin" type="fortrandouble" use="required"></xs:attribute>
+                        <xs:attribute name="rmin" type="fortrandouble" use="required">
+                          <xs:annotation>
+                            <xs:documentation>The radius where radial mesh begins.</xs:documentation>
+                          </xs:annotation></xs:attribute>
                         
-                        <xs:attribute name="rinf" type="fortrandouble" use="required"></xs:attribute>
+                        <xs:attribute name="rinf" type="fortrandouble" use="required">
+                         <xs:annotation>
+                            <xs:documentation>Radius from which the influence on the potential is regarded to be negligible.</xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
                         
-                        <xs:attribute name="radius" type="fortrandouble" use="required"></xs:attribute>
+                        <xs:attribute name="radius" type="fortrandouble" use="required">
+                         <xs:annotation>
+                            <xs:documentation>The radius of the muffin tin sphere.</xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
                         
-                        <xs:attribute name="radialmeshPoints" type="xs:integer" use="required"></xs:attribute>
+                        <xs:attribute name="radialmeshPoints" type="xs:integer" use="required">
+                          <xs:annotation>
+                            <xs:documentation>Number of data points for radial atomic functions.</xs:documentation>
+                          </xs:annotation></xs:attribute>
                     </xs:complexType>
                 </xs:element>
                 
                 <xs:element name="atomicState" minOccurs="1" maxOccurs="unbounded">
     			
+                    <xs:annotation>
+                      <xs:documentation>The <elementref>atomicState</elementref> element lists the atomic states that schould be used to approximate the wavefunction in the sphere. 
+They can be marked as core or none core electrons by the <attref>core</attref> attribute. Core electrons are threated separately by numeric itegration.
+</xs:documentation>
+                    </xs:annotation>
                     <xs:complexType>
     				
                         <xs:attribute name="n" type="xs:integer" use="required"></xs:attribute>
@@ -126,28 +147,28 @@
             
             <xs:attribute name="chemicalSymbol" type="xs:ID" use="required">
     		<xs:annotation>
-    			<xs:documentation>Chemical Symbol serves a ID (must be uniqe) in case the speciesdef is inside a speciesdb </xs:documentation>
+    		  <xs:documentation>Chemical Symbol.</xs:documentation>
     		</xs:annotation></xs:attribute>
             
             <xs:attribute name="z" type="fortrandouble" use="required">
     		<xs:annotation>
-    			<xs:documentation>atomic number</xs:documentation>
+    		  <xs:documentation>Atomic number.</xs:documentation>
     		</xs:annotation></xs:attribute>
             
             <xs:attribute name="mass" type="fortrandouble" use="required">
     		<xs:annotation>
-    			<xs:documentation>mass in ?</xs:documentation>
+    		  <xs:documentation>mass in <inlinemath>m_e</inlinemath></xs:documentation>
     		</xs:annotation></xs:attribute>
             
             <xs:attribute name="name" type="xs:string" use="optional">
     		<xs:annotation>
-    			<xs:documentation>optional element name</xs:documentation>
+    		  <xs:documentation>Optional element name.</xs:documentation>
     		</xs:annotation></xs:attribute>
         </xs:complexType>
     </xs:element>
     <xs:element name="spdb">
            <xs:annotation>
-        	<xs:documentation>can contain species definitions</xs:documentation>
+        	<xs:documentation>Species Database element contains the species element <elementref>sp</elementref></xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
