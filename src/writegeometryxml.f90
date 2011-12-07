@@ -11,7 +11,7 @@ Subroutine writegeometryxml (topt)
 ! !USES:
       Use modmain
       Use modinput
-      Use modsp
+      Use modspdeflist
       Use modspdb
       Use FoX_wxml
 ! !INPUT/OUTPUT PARAMETERS:

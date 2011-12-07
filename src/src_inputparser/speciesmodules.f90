@@ -1,5 +1,5 @@
 
-module modsp
+module modspdb
 use inputdom
 implicit none
 type wf_type
@@ -67,7 +67,7 @@ type(lorb_type),pointer::lorb
   type(sp_type_array),pointer::sparray(:)
 end type
 
-   type(sp_type)::sp
+   type(spdb_type)::spdb
 contains
 
 function getstructwf(thisnode)

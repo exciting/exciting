@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-Module modspdb
-      Use modsp
+Module modspdeflist
+      Use modspdb
       Type (sp_type_array), Allocatable :: speziesdeflist (:)
 End Module

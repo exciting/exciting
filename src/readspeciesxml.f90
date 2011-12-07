@@ -6,7 +6,7 @@
 Subroutine readspeciesxml
       Use modmain
       Use modinput, Only: input
-      Use modsp
+      Use modspdeflist
       Use FoX_dom
       Use modspdb
       Use modmpi
