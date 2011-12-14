@@ -372,7 +372,7 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="mustar" type="fortrandouble"
               default="0.15d0">
               <xs:annotation>
-                <xs:documentation>Coulomb pseudopotential, μ*, used in the McMillan-Allen-Dynes
+                <xs:documentation>Coulomb pseudopotential, <inlinemath>\mu*</inlinemath>, used in the McMillan-Allen-Dynes
                   equation.</xs:documentation>
               </xs:annotation>
             </xs:attribute>

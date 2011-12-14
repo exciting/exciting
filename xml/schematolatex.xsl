@@ -30,17 +30,6 @@
 \usepackage{color}
 \hypersetup{colorlinks=true}
 \begin{document}
-\newcommand{\exciting}{ {\usefont{T1}{lmtt}{b}{n} exciting} }
-\title{</xsl:text>
-  <xsl:apply-templates select="/xs:schema/xs:annotation/xs:appinfo/title"/>
-  <xsl:text>} 
-\author{\exciting developers team\\
-(C. Ambrosch-Draxl, Zohreh Basirat, Thomas Dengg, \\
-Rostam Golesorkhtabar, Christian Meisenbichler, Dmitrii Nabok, \\
-Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
-
-
-\maketitle 
 
 \newcommand{\vect}[1]{\mathbf{ #1}} 
 \newcommand{\op}[1]{\mathbf {#1}}
@@ -51,9 +40,21 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 \newcommand{\blas}[0]{BLAS }
 \newcommand{\lapack}{LAPACK }
 \newcommand{\arpack}{ARPACK }
+
+
+\newcommand{\exciting}{ {\usefont{T1}{lmtt}{b}{n} exciting} }
+\title{</xsl:text>
+  <xsl:apply-templates select="/xs:schema/xs:annotation/xs:appinfo/title"/>
+  <xsl:text>} 
+\author{\exciting developers team\\
+(C. Ambrosch-Draxl, Zohreh Basirat, Thomas Dengg, \\
+Rostam Golesorkhtabar, Christian Meisenbichler, Dmitrii Nabok, \\
+Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 \newcommand{\subsubsubsection}[1]{\paragraph{#1} \paragraph*{} }
 \newcommand{\attref}[2]{{\tt \hyperref[#2att#1]{\color{green} #1}}}
 \newcommand{\elementref}[1]{{\tt  \hyperref[#1]{\color{blue}  #1}}}
+\maketitle 
+
 \newpage
 \definecolor{green}{rgb}{0,0.5,0}
 \section*{About this Document}
