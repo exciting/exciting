@@ -235,7 +235,7 @@ They can be marked as core or none core electrons by the <attref>core</attref> a
     </xs:element>
     <xs:element name="spdb">
            <xs:annotation>
-        	<xs:documentation>Species Database element contains the species element <elementref>sp</elementref></xs:documentation>
+        	<xs:documentation>Species-database element contains the species element <elementref>sp</elementref></xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>

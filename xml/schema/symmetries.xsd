@@ -135,7 +135,9 @@
             </xs:sequence>
             <xs:attribute ex:importance="spacegroup" ex:unit="" name="HermannMauguinSymbol" type="xs:string" use="required">
               <xs:annotation>
-                <xs:documentation>Herman Mauguin symbol giving the spacegroup</xs:documentation>
+                <xs:documentation>The Herman Mauguin symbol  specifies the spacegroup of the structure.
+                <a href="http://exciting-code.org/hermann-mauguin-symbol">The table of all the symbols </a> lists all possible inputs.
+                </xs:documentation>
                 <xs:appinfo>
                   <oldname>hrmg</oldname>
                 </xs:appinfo>

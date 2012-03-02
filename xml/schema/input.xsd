@@ -61,8 +61,7 @@
           <inlinemath>Z</inlinemath> are negative. </p>
     </xs:documentation>
     <xs:appinfo>
-      <title>
-        <exciting>exciting</exciting> input reference </title>
+      <title><exciting>exciting</exciting> input reference </title>
       <root>input</root>
     </xs:appinfo>
   </xs:annotation>
