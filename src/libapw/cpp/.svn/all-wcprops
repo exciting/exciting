@@ -1,0 +1,191 @@
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/1665/trunk/src/addons/cpp
+END
+mdarray_base.h
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/1660/trunk/src/addons/cpp/mdarray_base.h
+END
+mdarray_base_cpu.h
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/1658/trunk/src/addons/cpp/mdarray_base_cpu.h
+END
+lapw.h
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/1665/trunk/src/addons/cpp/lapw.h
+END
+mdarray_base_gpu.h
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/1661/trunk/src/addons/cpp/mdarray_base_gpu.h
+END
+config.h
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/1665/trunk/src/addons/cpp/config.h
+END
+linalg.h
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/1662/trunk/src/addons/cpp/linalg.h
+END
+timer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/1658/trunk/src/addons/cpp/timer.cpp
+END
+gpu_interface.h
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/1662/trunk/src/addons/cpp/gpu_interface.h
+END
+constants.h
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/1658/trunk/src/addons/cpp/constants.h
+END
+linalg_cpu.h
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/1658/trunk/src/addons/cpp/linalg_cpu.h
+END
+lapw_load_global.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/1665/trunk/src/addons/cpp/lapw_load_global.cpp
+END
+main.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/1660/trunk/src/addons/cpp/main.cpp
+END
+lapw_load_kpoint.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/1660/trunk/src/addons/cpp/lapw_load_kpoint.cpp
+END
+linalg_gpu.h
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/1662/trunk/src/addons/cpp/linalg_gpu.h
+END
+lapw_set_sv.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/1665/trunk/src/addons/cpp/lapw_set_sv.cpp
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/1663/trunk/src/addons/cpp/Makefile
+END
+lapw_eigen_states.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/1665/trunk/src/addons/cpp/lapw_eigen_states.cpp
+END
+gpu_interface.cu
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/1663/trunk/src/addons/cpp/gpu_interface.cu
+END
+lapw_fft.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/1658/trunk/src/addons/cpp/lapw_fft.cpp
+END
+lapw_density.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/1660/trunk/src/addons/cpp/lapw_density.cpp
+END
+lapw.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/1658/trunk/src/addons/cpp/lapw.cpp
+END
+mdarray.h
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/1660/trunk/src/addons/cpp/mdarray.h
+END
+lapw_load_species.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/1660/trunk/src/addons/cpp/lapw_load_species.cpp
+END
+linalg_cpu.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/1658/trunk/src/addons/cpp/linalg_cpu.cpp
+END
+lapw_seceqn_init.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/1660/trunk/src/addons/cpp/lapw_seceqn_init.cpp
+END
+timer.h
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/1658/trunk/src/addons/cpp/timer.h
+END
+lapw_execute.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/1660/trunk/src/addons/cpp/lapw_execute.cpp
+END
+lapw_init.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/1665/trunk/src/addons/cpp/lapw_init.cpp
+END
+lapw_timers.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/1658/trunk/src/addons/cpp/lapw_timers.cpp
+END
+typedefs.h
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/1658/trunk/src/addons/cpp/typedefs.h
+END
+lapw_band.h
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/1665/trunk/src/addons/cpp/lapw_band.h
+END
