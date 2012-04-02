@@ -19,6 +19,7 @@ SOURCEDIRS=	../../src/  \
 	../../src/src_xml/ \
 	../../src/src_inputparser/ \
 	../../src/src_sym/ \
+	../../src/libapw/ \
 	../../src/ \
 	
 GeneraedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	
@@ -43,11 +44,11 @@ tidy::
 	perl ../../utilities/scripts/prettyprint.pl $(SOURCEDIRS)
 
 ifeq ($(USE_SYS_LAPACK),true)
-libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox leblaiklib.a libxc.a
+libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox leblaiklib.a libxc.a libapw.a
 endif
 
 ifeq ($(USE_SYS_LAPACK),)
-libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox leblaiklib.a libxc.a
+libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox leblaiklib.a libxc.a libapw.a
 endif
 
 libblas.a:: 
@@ -77,6 +78,7 @@ libmsec.a::
 	&& $(MAKE) -f Makefile.libmsec libmsec.a 
 	
 
+	  
 
 libarpack.a::
 	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libarpack -p libarpack.a \
@@ -84,6 +86,10 @@ libarpack.a::
 	../../src/ARPACK/UTIL/ \
 	&& $(MAKE) -f Makefile.libarpack libarpack.a
 
+libapw.a::
+	cd ../../src/libapw/cpp && \
+	make 
+	cp ../../src/libapw/cpp/libapw.a ./lib 
 
 libfox:lib/libFoX_common.a
 

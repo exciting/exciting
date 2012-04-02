@@ -2,5 +2,5 @@
 
 INTSIMPLLIB=libmsec.a leblaiklib.a
 INTLIBPATH=./lib
-INTLIBS=-lxc -lFoX_dom -lFoX_sax -lFoX_utils -lFoX_wcml -lFoX_wxml -lFoX_fsys  -lFoX_common
+INTLIBS=-lxc -lapw -lFoX_dom -lFoX_sax -lFoX_utils -lFoX_wcml -lFoX_wxml -lFoX_fsys  -lFoX_common
 INTERNALLIBS=  $(INTSIMPLLIB) -L$(INTLIBPATH) $(INTLIBS)

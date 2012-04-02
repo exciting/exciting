@@ -1,4 +1,4 @@
-include ../../../make.inc
+include ../../../build/make.inc
 
 .SUFFIXES: .cpp .cu
 

@@ -1,5 +1,5 @@
 module mod_libapw
-
+implicit none
 integer nrfmtmax
 integer ordrfmtmax
 integer, allocatable :: ordrfmt(:,:)
@@ -235,9 +235,10 @@ integer n,ias,ic,is,ir,ispn1,ispn2,lm3,j1,j2
 real(8), allocatable :: fr(:,:,:)
 
 n=nrfmtmax*nrfmtmax*lmmaxvr*natmtot*nspinor*nspinor
+#ifdef MPI
 call mpi_grid_reduce(densmt(1,1,1,1,1,1),n,dims=(/dim_k/))
 call mpi_grid_reduce(densir(1,1,1),ngrtot*nspinor*nspinor,dims=(/dim_k/))
-
+#endif
 do j1=1,nrfmtmax
   densmt(j1,j1,:,:,:,:)=0.5*densmt(j1,j1,:,:,:,:)
 enddo

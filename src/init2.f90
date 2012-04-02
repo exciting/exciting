@@ -6,6 +6,7 @@
 Subroutine init2
       Use modmain
       Use modinput
+      use mod_libapw
 #ifdef XS
       Use modxs
 #endif
@@ -385,5 +386,7 @@ Subroutine init2
       Call timesec (ts1)
       timeinit = timeinit + ts1 - ts0
 !
+	  call libapw_init
+
       Return
 End Subroutine
