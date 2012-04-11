@@ -46,5 +46,10 @@ Module mod_constants
 ! conversion from Hartrees to THz (CODATA 2006):
 ! 1 Hartree / h = 6.579 683 920 722(44) * 10^{15} Hz
       real(8), parameter :: h2thz = 6.579683920722d3
+! electron g-factor (CODATA 2006)
+real(8), parameter :: gfacte=2.0023193043622d0
+! speed of light in atomic units (=1/alpha) (CODATA 2006)
+real(8), parameter :: sol=137.035999679d0
+
 End Module
 !

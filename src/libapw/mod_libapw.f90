@@ -1,5 +1,7 @@
 
 module mod_libapw
+use modinput
+
 implicit none
 integer::nrfmtmax
 integer::ordrfmtmax
@@ -20,6 +22,8 @@ contains
 
 subroutine libapw_init 
 use modmain
+use mod_addons
+
 implicit none
 integer::is, l, io, ilo, ik, ikloc
 
@@ -27,11 +31,11 @@ integer::is, l, io, ilo, ik, ikloc
 if (allocated(nrfmt)) deallocate(nrfmt)
 allocate(nrfmt(nspecies))
 if (allocated(ordrfmt)) deallocate(ordrfmt)
-allocate(ordrfmt(0:lmaxapw, nspecies))
+allocate(ordrfmt(0:input%groundstate%lmaxapw, nspecies))
 nrfmt=0
 ordrfmt=0
 do is=1, nspecies
-  do l=0, lmaxapw
+  do l=0, input%groundstate%lmaxapw
     do io=1, apword(l, is)
       nrfmt(is)=nrfmt(is)+1
       ordrfmt(l, is)=ordrfmt(l, is)+1
@@ -51,7 +55,7 @@ if (allocated(beffrad)) deallocate(beffrad)
 allocate(beffrad(lmmaxvr, nrfmtmax, nrfmtmax, natmtot, ndmag))
 hmltrad=0.d0
 if (allocated(ovlprad)) deallocate(ovlprad)
-allocate(ovlprad(0:lmaxapw, ordrfmtmax, ordrfmtmax, natmtot))
+allocate(ovlprad(0:input%groundstate%lmaxapw, ordrfmtmax, ordrfmtmax, natmtot))
 ovlprad=0.d0
 if (allocated(beffir)) deallocate(beffir)
 allocate(beffir(ngrtot, ndmag))
@@ -69,15 +73,22 @@ allocate(hrfmt(nrmtmax, nrfmtmax, natmcls))
 if (allocated(lrf)) deallocate(lrf)
 allocate(lrf(nrfmtmax, natmcls))
 
-call lapw_load_global(natmtot, nspecies, lmaxvr, lmaxapw, apwordmax, nrmtmax, &
+call lapw_load_global(natmtot, nspecies, input%groundstate%lmaxvr, input%groundstate%lmaxapw,&
+  & apwordmax, nrmtmax, &
   &ngkmax, ngvec, ngrtot, nlomax, ias2is, intgv, ivg, ivgig, ngrid, igfft, cfunir, &
-  &cfunig, gntyry, nstfv, nstsv, nmatmax, nrfmtmax, ordrfmtmax, evaltol, spinpol, &
+  &cfunig, gntyry, nstfv, nstsv, nmatmax, nrfmtmax, ordrfmtmax, input%groundstate%solver%evaltol&
+  &, associated(input%groundstate%spin), &
   &ndmag, omega, natmcls, ic2ias, natoms_in_class)
 do is=1, nspecies
   call lapw_load_species(is, nlorb(is), lorbl(1, is), apword(0, is), rmt(is), nrmt(is))
 enddo
 do ikloc=1, nkptloc
+#ifdef MPI
   ik=mpi_grid_map(nkpt, dim_k, loc=ikloc)
+#endif
+#ifndef MPI
+  ik=ikloc
+#endif
   call lapw_load_kpoint(ngk(1, ik), igkig(1, 1, ikloc), vgkc(1, 1, 1, ikloc), wkpt(ik))
 enddo
 call lapw_init
@@ -90,9 +101,13 @@ end subroutine
 
 subroutine libapw_seceqn_init
 use modmain
+use mod_potential_and_density
+use mod_addons
+use mod_spin
+
 implicit none
 integer::ir, is, ia, ic, ias, l1, l2, io1, io2, ilo1, ilo2, i1, i2, nr, i
-integer::l1tmp(0:lmaxapw), l2tmp, lm
+integer::l1tmp(0:input%groundstate%lmaxapw), l2tmp, lm
 real(8)::cb, t1
 real(8), allocatable :: bmt(:, :, :)
 real(8)::r2(nrmtmax), fr(nrmtmax), gr(nrmtmax), cf(4, nrmtmax)
@@ -102,7 +117,7 @@ do ic=1, natmcls
   ias=ic2ias(ic)
   is=ias2is(ias)
   i1=0
-  do l1=0, lmaxapw
+  do l1=0, input%groundstate%lmaxapw
     do io1=1, apword(l1, is)
       i1=i1+1
       rfmt(:, i1, ic)=apwfr(:, 1, io1, l1, ias)
@@ -118,7 +133,7 @@ do ic=1, natmcls
   enddo
 enddo
 allocate(bmt(lmmaxvr, nrmtmax, ndmag))
-cb=gfacte/(4.d0*solsc)
+cb=gfacte/(4.d0*sol)
 do ias=1, natmtot
   ic=ias2ic(ias)
   ia=ias2ia(ias)
@@ -152,7 +167,7 @@ do ias=1, natmtot
     enddo
   enddo 
 ! overlap integrals
-  do l1=0, lmaxapw
+  do l1=0, input%groundstate%lmaxapw
     do io1=1, apword(l1, is)
       ovlprad(l1, io1, io1, ias)=1.d0
     enddo
@@ -175,20 +190,21 @@ do ias=1, natmtot
     enddo
   enddo
 ! generate radial integals for magnetic field
-  if (spinpol) then
+  if (associated(input%groundstate%spin)) then
     bmt=0.d0
     ! z
     bmt(:, :, 1)=bxcmt(:, :, ias, ndmag)
-    t1=cb*(bfcmt(3, ia, is)+bfieldc(3))
+    t1=cb*(input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(3) &
+         +input%groundstate%spin%bfieldc(3))
     bmt(1, :, 1)=bmt(1, :, 1)+t1/y00
     if (ndmag.eq.3) then
       ! x
       bmt(:, :, 2)=bxcmt(:, :, ias, 1)
-      t1=cb*(bfcmt(1, ia, is)+bfieldc(1))
+      t1=cb*(input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(1)+input%groundstate%spin%bfieldc(1))
       bmt(1, :, 2)=bmt(1, :, 2)+t1/y00
       ! y
       bmt(:, :, 3)=bxcmt(:, :, ias, 2)
-      t1=cb*(bfcmt(2, ia, is)+bfieldc(2))
+      t1=cb*(input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(2)+input%groundstate%spin%bfieldc(2))
       bmt(1, :, 3)=bmt(1, :, 3)+t1/y00
     endif
     do i=1, ndmag
@@ -210,19 +226,19 @@ do ias=1, natmtot
   endif ! spinpol
 enddo !ias
 deallocate(bmt)
-if (spinpol) then
+if (associated(input%groundstate%spin)) then
   ! z
   do ir=1, ngrtot
-    beffir(ir, 1)=bxcir(ir, ndmag)+cb*bfieldc(3)
+    beffir(ir, 1)=bxcir(ir, ndmag)+cb*input%groundstate%spin%bfieldc(3)
   enddo
   if (ndmag.eq.3) then
     ! x
     do ir=1, ngrtot
-      beffir(ir, 2)=bxcir(ir, 1)+cb*bfieldc(1)
+      beffir(ir, 2)=bxcir(ir, 1)+cb*input%groundstate%spin%bfieldc(1)
     enddo
     ! y
     do ir=1, ngrtot
-      beffir(ir, 3)=bxcir(ir, 2)+cb*bfieldc(2)
+      beffir(ir, 3)=bxcir(ir, 2)+cb*input%groundstate%spin%bfieldc(2)
     enddo
   endif
 endif
@@ -235,6 +251,7 @@ end subroutine
 
 subroutine libapw_rhomag
 use modmain
+use mod_addons
 implicit none
 integer::n, ias, ic, is, ir, ispn1, ispn2, lm3, j1, j2
 real(8), allocatable :: fr(:, :, :)
@@ -266,7 +283,7 @@ do ias=1, natmtot
 	endif
       enddo 
     enddo !l1
-    if (spinpol) then
+    if(associated(input%groundstate%spin))  then
       rhomt(lm3, :, ias)=fr(:, 1, 1)+fr(:, 2, 2)
       magmt(lm3, :, ias, ndmag)=fr(:, 1, 1)-fr(:, 2, 2)
       if (ndmag.eq.3) then
@@ -279,7 +296,7 @@ do ias=1, natmtot
   enddo !lm3
 enddo !ias
 deallocate(fr)
-if (spinpol) then
+if (associated(input%groundstate%spin)) then
   rhoir(:)=densir(:, 1, 1)+densir(:, 2, 2)
   magir(:, ndmag)=densir(:, 1, 1)-densir(:, 2, 2)
   if (ndmag.eq.3) then
@@ -294,14 +311,14 @@ call timer_start(t_rho_mag_sym)
 ! symmetrise the density
 call symrf(1, rhomt, rhoir)
 ! symmetrise the magnetisation
-if (spinpol) call symrvf(1, magmt, magir)
+if (associated(input%groundstate%spin)) call symrvf(1, magmt, magir)
 call timer_stop(t_rho_mag_sym)
 ! add the core density to the total density
 call addrhocr
 ! calculate the charges
 call charge
 ! calculate the moments
-if (spinpol) call moment
+if (associated(input%groundstate%spin)) call moment
 ! normalise the density
 call rhonorm
 
