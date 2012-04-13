@@ -52,6 +52,15 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
   !-IMPORTANT: the first-variational spinor index and the k-point index have been
   ! swapped in the following arrays: ngk, igkig, vgkl, vgkc, gkc, tpgkc, sfacgk
   !
+
+call match(ngk(1,ik),gkc(:,1,ikloc),tpgkc(:,:,1,ikloc), &
+   &sfacgk(:,:,1,ikloc),apwalm(:,:,:,:,1))
+call lapw_execute(ikloc,apwalm,evalsv(1,ik),occsv(1,ik),densmt,densir,3)
+deallocate(apwalm)
+call timer_stop(t_seceqn)
+return
+
+
       Do ispn = 1, nspnfv
      ! find the matching coefficients
          Call match (ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, ispn, &
