@@ -16,6 +16,7 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
       Use modmpi
       Use sclcontroll
       Use diisinterfaces
+      use mod_libapw
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
@@ -53,11 +54,11 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
   ! swapped in the following arrays: ngk, igkig, vgkl, vgkc, gkc, tpgkc, sfacgk
   !
 
-call match(ngk(1,ik),gkc(:,1,ikloc),tpgkc(:,:,1,ikloc), &
-   &sfacgk(:,:,1,ikloc),apwalm(:,:,:,:,1))
-call lapw_execute(ikloc,apwalm,evalsv(1,ik),occsv(1,ik),densmt,densir,3)
+allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
+call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik), &
+   &sfacgk(:,:,1,ik),apwalm(:,:,:,:,1))
+call lapw_execute(ik,apwalm,evalsv(1,ik),occsv(1,ik),densmt,densir,3)
 deallocate(apwalm)
-call timer_stop(t_seceqn)
 return
 
 
