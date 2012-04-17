@@ -16,6 +16,7 @@ real(8), allocatable :: densir(:, :, :)
 real(8), allocatable :: rfmt(:, :, :)
 real(8), allocatable :: hrfmt(:, :, :)
 integer, allocatable :: lrf(:, :)
+complex(8), allocatable :: gntyry1(:,:,:)
 
 contains
 
@@ -25,7 +26,92 @@ use modmain
 use mod_addons
 
 implicit none
-integer::is, l, io, ilo, ik, ikloc
+integer :: ia, ia1, ia2, is, l, io, ilo, ik, ikloc, i, m, ias
+integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3
+complex(8), external :: gauntyry
+
+if (allocated(ias2is)) deallocate(ias2is)
+allocate(ias2is(natmtot))
+if (allocated(ias2ia)) deallocate(ias2ia)
+allocate(ias2ia(natmtot))
+do is=1,nspecies
+  do ia=1,natoms(is)
+    ias2is(idxas(ia,is))=is
+    ias2ia(idxas(ia,is))=ia
+  end do
+end do
+
+natmcls=0
+if (allocated(ias2ic)) deallocate(ias2ic)
+allocate(ias2ic(natmtot))
+ias2ic=0
+do is=1,nspecies
+  do ia1=1,natoms(is)
+    if (ias2ic(idxas(ia1,is)).eq.0) then
+      natmcls=natmcls+1
+      do ia2=1,natoms(is) 
+        if (eqatoms(ia1,ia2,is)) then
+          ias2ic(idxas(ia2,is))=natmcls
+        endif
+      enddo
+    endif
+  enddo
+enddo
+if (allocated(ic2ias)) deallocate(ic2ias)
+allocate(ic2ias(natmcls))
+do i=1,natmcls
+  do ias=1,natmtot
+    if (ias2ic(ias).eq.i) then
+      ic2ias(i)=ias 
+      exit
+    endif
+  enddo
+enddo
+if (allocated(natoms_in_class)) deallocate(natoms_in_class)
+allocate(natoms_in_class(natmcls))
+natoms_in_class=0
+do ias=1,natmtot
+  natoms_in_class(ias2ic(ias))=natoms_in_class(ias2ic(ias))+1
+enddo
+
+occsv=0.d0
+do ik=1,nkpt
+  if (ndmag.eq.0.or.ndmag.eq.3) then
+    m=int(chgval/occmax)
+    do i=1,m
+      occsv(i,ik)=occmax
+    enddo
+    occsv(m+1,ik)=chgval-m*occmax 
+  else
+    m=int(0.5d0*chgval)
+    do i=1,m
+      occsv(i,ik)=1.d0
+      occsv(i+nstfv,ik)=1.d0
+    enddo
+    occsv(m+1,ik)=0.5*chgval-m
+    occsv(m+1+nstfv,ik)=0.5*chgval-m
+  endif
+enddo
+
+! allocate and generate complex Gaunt coefficient array
+if (allocated(gntyry1)) deallocate(gntyry1)
+allocate(gntyry1(lmmaxvr,lmmaxapw,lmmaxapw))
+do l1=0,input%groundstate%lmaxapw
+  do m1=-l1,l1
+    lm1=idxlm(l1,m1)
+    do l2=0,input%groundstate%lmaxvr
+      do m2=-l2,l2
+        lm2=idxlm(l2,m2)
+        do l3=0,input%groundstate%lmaxapw
+          do m3=-l3,l3
+            lm3=idxlm(l3,m3)
+            gntyry1(lm2,lm1,lm3)=gauntyry(l1,l2,l3,m1,m2,m3)
+          end do
+        end do
+      end do
+    end do
+  end do
+end do
 
 #ifdef _LIBAPW_
 if (allocated(nrfmt)) deallocate(nrfmt)
@@ -53,7 +139,7 @@ allocate(hmltrad(lmmaxvr, nrfmtmax, nrfmtmax, natmtot))
 hmltrad=0.d0
 if (allocated(beffrad)) deallocate(beffrad)
 allocate(beffrad(lmmaxvr, nrfmtmax, nrfmtmax, natmtot, ndmag))
-hmltrad=0.d0
+beffrad=0.d0
 if (allocated(ovlprad)) deallocate(ovlprad)
 allocate(ovlprad(0:input%groundstate%lmaxapw, ordrfmtmax, ordrfmtmax, natmtot))
 ovlprad=0.d0
@@ -76,13 +162,13 @@ allocate(lrf(nrfmtmax, natmcls))
 call lapw_load_global(natmtot, nspecies, input%groundstate%lmaxvr, input%groundstate%lmaxapw,&
   & apwordmax, nrmtmax, &
   &ngkmax, ngvec, ngrtot, nlomax, ias2is, intgv, ivg, ivgig, ngrid, igfft, cfunir, &
-  &cfunig, gntyry, nstfv, nstsv, nmatmax, nrfmtmax, ordrfmtmax, input%groundstate%solver%evaltol&
+  &cfunig, gntyry1, nstfv, nstsv, nmatmax, nrfmtmax, ordrfmtmax, input%groundstate%solver%evaltol&
   &, associated(input%groundstate%spin), &
   &ndmag, omega, natmcls, ic2ias, natoms_in_class)
 do is=1, nspecies
   call lapw_load_species(is, nlorb(is), lorbl(1, is), apword(0, is), rmt(is), nrmt(is))
 enddo
-do ikloc=1, nkptloc
+do ikloc=1, nkpt !nkptloc
 #ifdef MPI
   ik=mpi_grid_map(nkpt, dim_k, loc=ikloc)
 #endif
@@ -264,7 +350,6 @@ call mpi_grid_reduce(densir(1, 1, 1), ngrtot*nspinor*nspinor, dims=(/dim_k/))
 do j1=1, nrfmtmax
   densmt(j1, j1, :, :, :, :)=0.5*densmt(j1, j1, :, :, :, :)
 enddo
-call timer_start(t_rho_mag_conv)
 allocate(fr(nrmtmax, nspinor, nspinor))
 do ias=1, natmtot
   ic=ias2ic(ias)
@@ -306,13 +391,10 @@ if (associated(input%groundstate%spin)) then
 else
   rhoir(:)=densir(:, 1, 1)
 endif
-call timer_stop(t_rho_mag_conv)
-call timer_start(t_rho_mag_sym)
 ! symmetrise the density
 call symrf(1, rhomt, rhoir)
 ! symmetrise the magnetisation
 if (associated(input%groundstate%spin)) call symrvf(1, magmt, magir)
-call timer_stop(t_rho_mag_sym)
 ! add the core density to the total density
 call addrhocr
 ! calculate the charges

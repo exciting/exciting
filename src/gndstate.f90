@@ -13,6 +13,7 @@ Subroutine gndstate
       Use modmain
       Use modmpi
       Use scl_xml_out_Module
+      Use mod_libapw
 !
   ! !DESCRIPTION:
   !   Computes the self-consistent Kohn-Sham ground-state. General information is
@@ -190,6 +191,11 @@ Subroutine gndstate
          Call olprad
      ! compute the Hamiltonian radial integrals
          Call hmlrad
+
+#ifdef _LIBAPW_
+  call libapw_seceqn_init
+#endif
+         
      ! zero partial charges
          chgpart(:,:,:)=0.d0
 #ifdef MPI
@@ -252,6 +258,11 @@ Subroutine gndstate
             magmt (:, :, :, :) = 0.d0
             magir (:, :) = 0.d0
          End If
+
+#ifdef _LIBAPW_
+  call libapw_rhomag
+#else  
+         
 #ifdef MPIRHO
          Do ik = firstk (rank), lastk (rank)
         !write the occupancies to file
@@ -292,6 +303,7 @@ Subroutine gndstate
 #ifdef MPIRHO
             Call mpisumrhoandmag
 #endif
+
 #ifdef MPI
             If (input%groundstate%xctypenumber .Lt. 0) Call &
            & mpiresumeevecfiles ()
@@ -320,6 +332,10 @@ Subroutine gndstate
             If (associated(input%groundstate%spin)) Call moment
         ! normalise the density
             Call rhonorm
+            
+#endif ! _LIBAPW_
+
+
         ! LDA+U
             If (ldapu .Ne. 0) Then
            ! generate the LDA+U density matrix

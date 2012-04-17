@@ -14,6 +14,7 @@ Subroutine init1
 ! !USES:
       Use modinput
       Use modmain
+      use mod_libapw
 #ifdef TETRA
       Use modtetra
 #endif
@@ -414,6 +415,8 @@ Subroutine init1
   chgpart(:,:,:)=0.d0
 #endif
 !
+      Call libapw_init
+      
       Call timesec (ts1)
       timeinit = timeinit + ts1 - ts0
 !
