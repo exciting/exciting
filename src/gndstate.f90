@@ -226,7 +226,9 @@ Subroutine gndstate
             Allocate (evecsv(nstsv, nstsv))
         ! solve the first- and second-variational secular equations
             Call seceqn (ik, evalfv, evecfv, evecsv)
+#ifdef _LIBAPW_
             call lapw_get_evec(ik, evecfv, evecsv)
+#endif
         ! write the eigenvalues/vectors to file
             Call putevalfv (ik, evalfv)
             Call putevalsv (ik, evalsv(:, ik))
