@@ -5,39 +5,39 @@ extern "C" void FORTRAN(lapw_seceqn_init)(double *hmltrad_, double *ovlprad_, do
                                           complex16 *veffig_)
                                      
 {
-    p.hmltrad.set_dimensions(p.lmmaxvr, p.nrfmtmax, p.nrfmtmax, p.natmtot);
-    p.hmltrad.set_ptr(hmltrad_);
+    lapw_runtime.hmltrad.set_dimensions(lapw_global.lmmaxvr, lapw_global.nrfmtmax, lapw_global.nrfmtmax, lapw_global.natmtot);
+    lapw_runtime.hmltrad.set_ptr(hmltrad_);
     
-    p.ovlprad.set_dimensions(p.lmaxapw + 1, p.ordrfmtmax, p.ordrfmtmax, p.natmtot);
-    p.ovlprad.set_ptr(ovlprad_);
+    lapw_runtime.ovlprad.set_dimensions(lapw_global.lmaxapw + 1, lapw_global.ordrfmtmax, lapw_global.ordrfmtmax, lapw_global.natmtot);
+    lapw_runtime.ovlprad.set_ptr(ovlprad_);
     
-    p.apwfr.set_dimensions(p.nrmtmax, 2, p.apwordmax, p.lmaxapw + 1, p.natmtot);
-    p.apwfr.set_ptr(apwfr_);
+    lapw_runtime.apwfr.set_dimensions(lapw_global.nrmtmax, 2, lapw_global.apwordmax, lapw_global.lmaxapw + 1, lapw_global.natmtot);
+    lapw_runtime.apwfr.set_ptr(apwfr_);
 
-    p.apwdfr.set_dimensions(p.apwordmax, p.lmaxapw + 1, p.natmtot);
-    p.apwdfr.set_ptr(apwdfr_);
+    lapw_runtime.apwdfr.set_dimensions(lapw_global.apwordmax, lapw_global.lmaxapw + 1, lapw_global.natmtot);
+    lapw_runtime.apwdfr.set_ptr(apwdfr_);
 
-    p.veffig.set_dimensions(p.ngvec);
-    p.veffig.set_ptr(veffig_);
+    lapw_runtime.veffig.set_dimensions(lapw_global.ngvec);
+    lapw_runtime.veffig.set_ptr(veffig_);
 
-    if (p.ndmag > 0) 
+    if (lapw_global.ndmag > 0) 
     {
-        p.beffrad.set_dimensions(p.lmmaxvr, p.nrfmtmax, p.nrfmtmax, p.natmtot, p.ndmag);
-        p.beffrad.set_ptr(beffrad_);
+        lapw_runtime.beffrad.set_dimensions(lapw_global.lmmaxvr, lapw_global.nrfmtmax, lapw_global.nrfmtmax, lapw_global.natmtot, lapw_global.ndmag);
+        lapw_runtime.beffrad.set_ptr(beffrad_);
 
-        p.beffir.set_dimensions(p.ngrtot, p.ndmag);
-        p.beffir.set_ptr(beffir_);
+        lapw_runtime.beffir.set_dimensions(lapw_global.ngrtot, lapw_global.ndmag);
+        lapw_runtime.beffir.set_ptr(beffir_);
         
         if (lapw_diag == full)
         {
-            p.beffig.set_dimensions(p.ngvec, p.ndmag);
-            p.beffig.allocate();
-            std::vector<complex16> zfft(p.ngrtot);
-            for (unsigned int i = 0; i < p.ndmag; i++)
+            lapw_runtime.beffig.set_dimensions(lapw_global.ngvec, lapw_global.ndmag);
+            lapw_runtime.beffig.allocate();
+            std::vector<complex16> zfft(lapw_global.ngrtot);
+            for (unsigned int i = 0; i < lapw_global.ndmag; i++)
             {
-                for (unsigned int ir = 0; ir < p.ngrtot; ir++) zfft[ir] = zone * p.beffir(ir, i) * p.cfunir[ir];
+                for (unsigned int ir = 0; ir < lapw_global.ngrtot; ir++) zfft[ir] = zone * lapw_runtime.beffir(ir, i) * lapw_global.cfunir[ir];
                 lapw_fft(-1, &zfft[0]);
-                for (unsigned int ig = 0; ig < p.ngvec; ig++) p.beffig(ig, i) = zfft[p.igfft[ig]];
+                for (unsigned int ig = 0; ig < lapw_global.ngvec; ig++) lapw_runtime.beffig(ig, i) = zfft[lapw_global.igfft[ig]];
             }
         }
     }

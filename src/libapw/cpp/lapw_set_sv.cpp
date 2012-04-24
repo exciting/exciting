@@ -1,47 +1,46 @@
 #include "lapw.h"
 
-void b_dot_wf(lapw_eigen_states& eigen_states, mdarray<complex16,3>& hwf)
+/// compute product of magnetic field with first-variational wave-functions
+void b_dot_wf(bloch_states_k *ks, mdarray<complex16,3>& hwf)
 {
     timer t("b_dot_wf");
     
-    unsigned int ngk = eigen_states.kp->ngk;
-    
     size_t szmax = 0;
-    for (unsigned int is = 0; is < geometry.species.size(); is++)
-      szmax = std::max(geometry.species[is]->ci.size(), szmax);
+    for (unsigned int is = 0; is < lapw_global.species.size(); is++)
+      szmax = std::max(lapw_global.species[is]->ci.size(), szmax);
     
-    mdarray<complex16,3> zm(NULL, szmax, szmax, p.ndmag);
+    mdarray<complex16,3> zm(NULL, szmax, szmax, lapw_global.ndmag);
     zm.allocate();
             
-    for (unsigned int ias = 0; ias < p.natmtot; ias++)
+    for (unsigned int ias = 0; ias < lapw_global.natmtot; ias++)
     {
-        int offset = geometry.atoms[ias].offset_wfmt;
-        int sz = geometry.atoms[ias].species->ci.size();
+        int offset = lapw_global.atoms[ias]->offset_wfmt;
+        int sz = lapw_global.atoms[ias]->species->ci.size();
         
         zm.zero();
 
         for (int j2 = 0; j2 < sz; j2++)
         {
-            int lm2 = geometry.atoms[ias].species->ci[j2].lm;
-            int idxrf2 = geometry.atoms[ias].species->ci[j2].idxrf;
+            int lm2 = lapw_global.atoms[ias]->species->ci[j2].lm;
+            int idxrf2 = lapw_global.atoms[ias]->species->ci[j2].idxrf;
             
-            for (unsigned int i = 0; i < p.ndmag; i++)
+            for (unsigned int i = 0; i < lapw_global.ndmag; i++)
             {
                 for (int j1 = 0; j1 <= j2; j1++)
                 {
-                    int lm1 = geometry.atoms[ias].species->ci[j1].lm;
-                    int idxrf1 = geometry.atoms[ias].species->ci[j1].idxrf;
+                    int lm1 = lapw_global.atoms[ias]->species->ci[j1].lm;
+                    int idxrf1 = lapw_global.atoms[ias]->species->ci[j1].idxrf;
                 
-                    L3_sum_gntyry(lm1, lm2, &p.beffrad(0, idxrf1, idxrf2, ias, i), zm(j1, j2, i));
+                    L3_sum_gntyry(lm1, lm2, &lapw_runtime.beffrad(0, idxrf1, idxrf2, ias, i), zm(j1, j2, i));
                 }
             }
         }
         // compute hwf = hwf + B_z*|wf_j>
-        zhemm<cpu>(0, 0, sz, p.nstfv, zone, &zm(0, 0, 0), zm.size(0), 
-            &eigen_states.scalar_wf(offset, 0), eigen_states.scalar_wf.size(0), zone, &hwf(offset, 0, 0), hwf.size(0));
+        zhemm<cpu>(0, 0, sz, lapw_global.nstfv, zone, &zm(0, 0, 0), zm.size(0), 
+            &ks->scalar_wave_functions(offset, 0), ks->scalar_wave_functions.size(0), zone, &hwf(offset, 0, 0), hwf.size(0));
         
         // compute hwf = hwf + (B_x - iB_y)|wf_j>
-        if (p.ndmag == 3)
+        if (lapw_global.ndmag == 3)
         {
             for (int j2 = 0; j2 < sz; j2++)
             {
@@ -52,91 +51,92 @@ void b_dot_wf(lapw_eigen_states& eigen_states, mdarray<complex16,3>& hwf)
                     zm(j1, j2, 0) = conj(zm(j2, j1, 1)) - zi * conj(zm(j2, j1, 2));
             }
               
-            zgemm<cpu>(0, 0, sz, p.nstfv, sz, zone, &zm(0, 0, 0), zm.size(0), 
-                &eigen_states.scalar_wf(offset, 0), eigen_states.scalar_wf.size(0), zone, &hwf(offset, 0, 2), hwf.size(0));
+            zgemm<cpu>(0, 0, sz, lapw_global.nstfv, sz, zone, &zm(0, 0, 0), zm.size(0), 
+                &ks->scalar_wave_functions(offset, 0), ks->scalar_wave_functions.size(0), zone, &hwf(offset, 0, 2), hwf.size(0));
         }
     }
 
     timer *t1 = new timer("b_dot_wf_it");
 #pragma omp parallel default(shared)
 {        
-    std::vector<complex16> wfr(p.ngrtot);
-    std::vector<complex16> zfft(p.ngrtot);
+    std::vector<complex16> wfr(lapw_global.ngrtot);
+    std::vector<complex16> zfft(lapw_global.ngrtot);
 #pragma omp for
-    for (unsigned int i = 0; i < p.nstfv; i++)
+    for (unsigned int i = 0; i < lapw_global.nstfv; i++)
     {
-        memset(&wfr[0], 0, p.ngrtot * sizeof(complex16));
-        for (unsigned int ig = 0; ig < ngk; ig++) 
-            wfr[eigen_states.kp->idxgfft[ig]] = eigen_states.scalar_wf(p.size_wfmt + ig, i);
+        memset(&wfr[0], 0, lapw_global.ngrtot * sizeof(complex16));
+        for (unsigned int ig = 0; ig < ks->ngk; ig++) 
+            wfr[ks->idxgfft[ig]] = ks->scalar_wave_functions(lapw_global.size_wfmt + ig, i);
                                     
         lapw_fft(1, &wfr[0]);
                    
-        for (unsigned int ir = 0; ir < p.ngrtot; ir++)
-            zfft[ir] = wfr[ir] * p.beffir(ir, 0) * p.cfunir[ir];
+        for (unsigned int ir = 0; ir < lapw_global.ngrtot; ir++)
+            zfft[ir] = wfr[ir] * lapw_runtime.beffir(ir, 0) * lapw_global.cfunir[ir];
                                                            
         lapw_fft(-1, &zfft[0]);
         
-        for (unsigned int ig = 0; ig < ngk; ig++) 
-            hwf(p.size_wfmt + ig, i, 0) += zfft[eigen_states.kp->idxgfft[ig]];
+        for (unsigned int ig = 0; ig < ks->ngk; ig++) 
+            hwf(lapw_global.size_wfmt + ig, i, 0) += zfft[ks->idxgfft[ig]];
 
-        if (p.ndmag == 3)
+        if (lapw_global.ndmag == 3)
         {
-            for (unsigned int ir = 0; ir < p.ngrtot; ir++)
-                zfft[ir] = wfr[ir] * (p.beffir(ir, 1) - zi * p.beffir(ir, 2)) * p.cfunir[ir];
+            for (unsigned int ir = 0; ir < lapw_global.ngrtot; ir++)
+                zfft[ir] = wfr[ir] * (lapw_runtime.beffir(ir, 1) - zi * lapw_runtime.beffir(ir, 2)) * lapw_global.cfunir[ir];
                                                                
             lapw_fft(-1, &zfft[0]);
             
-            for (unsigned int ig = 0; ig < ngk; ig++) 
-                hwf(p.size_wfmt + ig, i, 2) += zfft[eigen_states.kp->idxgfft[ig]];
+            for (unsigned int ig = 0; ig < ks->ngk; ig++) 
+                hwf(lapw_global.size_wfmt + ig, i, 2) += zfft[ks->idxgfft[ig]];
         }
     }
 }
     delete t1;
 
     // copy -B_z|wf>
-    for (unsigned int i = 0; i < p.nstfv; i++)
-        for (unsigned int j = 0; j < p.size_wfmt + ngk; j++)
+    for (unsigned int i = 0; i < lapw_global.nstfv; i++)
+        for (unsigned int j = 0; j < lapw_global.size_wfmt + ks->ngk; j++)
             hwf(j, i, 1) = -hwf(j, i, 0);
 }
 
-void lapw_set_sv(lapw_eigen_states& eigen_states)
+void lapw_set_sv(bloch_states_k *ks)
 {
     timer t("lapw_set_sv");
     
-    unsigned int wf_size = eigen_states.scalar_wf.size(0);
+    //unsigned int wf_size = eigen_states.scalar_wf.size(0);
 
     int nhwf;
-    if (p.ndmag == 0) nhwf = 1; // have only one block, nonmagnetic
-    if (p.ndmag == 1) nhwf = 2; // have up-up and dn-dn blocks, collinear
-    if (p.ndmag == 3) nhwf = 3; // have up-up, dn-dn and up-dn blocks, general case
+    if (lapw_global.ndmag == 0) nhwf = 1; // have only one block, nonmagnetic
+    if (lapw_global.ndmag == 1) nhwf = 2; // have up-up and dn-dn blocks, collinear
+    if (lapw_global.ndmag == 3) nhwf = 3; // have up-up, dn-dn and up-dn blocks, general case
 
     // product of the second-variational hamiltonian and a wave-function
-    mdarray<complex16,3> hwf(NULL, wf_size, p.nstfv, nhwf);
+    mdarray<complex16,3> hwf(NULL, ks->wave_function_size, lapw_global.nstfv, nhwf);
     hwf.allocate();
     hwf.zero();
     
     // compute product of magnetic field and wave-function 
-    if (p.ndmag > 0)
-        b_dot_wf(eigen_states, hwf);
+    if (lapw_global.ndmag > 0)
+        b_dot_wf(ks, hwf);
     
     // compute <wf_i | (h * wf_j)> for up-up block
-    zgemm<cpu>(2, 0, p.nstfv, p.nstfv, wf_size, zone, &eigen_states.scalar_wf(0, 0), wf_size, 
-        &hwf(0, 0, 0), wf_size, zzero, &eigen_states.evecsv(0, 0), p.nstsv);
+    zgemm<cpu>(2, 0, lapw_global.nstfv, lapw_global.nstfv, ks->wave_function_size, zone, &ks->scalar_wave_functions(0, 0), 
+        ks->scalar_wave_functions.size(0), &hwf(0, 0, 0), hwf.size(0), zzero, &ks->evecsv(0, 0), ks->evecsv.size(0));
         
     // compute <wf_i | (h * wf_j)> for dn-dn block
-    if (p.ndmag != 0)
-        zgemm<cpu>(2, 0, p.nstfv, p.nstfv, wf_size, zone, &eigen_states.scalar_wf(0, 0), wf_size, 
-            &hwf(0, 0, 1), wf_size, zzero, &eigen_states.evecsv(p.nstfv, p.nstfv), p.nstsv);
+    if (lapw_global.ndmag != 0)
+        zgemm<cpu>(2, 0, lapw_global.nstfv, lapw_global.nstfv, ks->wave_function_size, zone, &ks->scalar_wave_functions(0, 0), 
+        ks->scalar_wave_functions.size(0), &hwf(0, 0, 1), hwf.size(0), zzero, &ks->evecsv(lapw_global.nstfv, lapw_global.nstfv), 
+        ks->evecsv.size(0));
 
     // compute <wf_i | (h * wf_j)> for up-dn block
-    if (p.ndmag == 3)
-        zgemm<cpu>(2, 0, p.nstfv, p.nstfv, wf_size, zone, &eigen_states.scalar_wf(0, 0), wf_size,
-            &hwf(0, 0, 2), wf_size, zzero, &eigen_states.evecsv(0, p.nstfv), p.nstsv);
+    if (lapw_global.ndmag == 3)
+        zgemm<cpu>(2, 0, lapw_global.nstfv, lapw_global.nstfv, ks->wave_function_size, zone, &ks->scalar_wave_functions(0, 0), 
+        ks->scalar_wave_functions.size(0), &hwf(0, 0, 2), hwf.size(0), zzero, &ks->evecsv(0, lapw_global.nstfv), ks->evecsv.size(0));
 
-    unsigned int nspn = (p.ndmag == 0) ? 1 : 2;
-    for (unsigned int ispn = 0, i = 0; ispn < nspn; ispn++)
-        for (unsigned int ist = 0; ist < p.nstfv; ist++, i++)
-            eigen_states.evecsv(i, i) += eigen_states.evalfv[ist];
+    //unsigned int nspn = (lapw_global.ndmag == 0) ? 1 : 2;
+    for (unsigned int ispn = 0, i = 0; ispn < lapw_global.nspinor; ispn++)
+        for (unsigned int ist = 0; ist < lapw_global.nstfv; ist++, i++)
+            ks->evecsv(i, i) += ks->evalfv[ist];
 }
 
 

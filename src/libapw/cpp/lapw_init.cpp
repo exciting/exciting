@@ -1,98 +1,102 @@
 #include "lapw.h"
 
+/*! \file lapw_init.cpp
+    \brief initialize internal variables
+*/
+
 extern "C" void FORTRAN(lapw_init)()
 {
-    for (unsigned int is = 0; is < geometry.species.size(); is++)
+    for (unsigned int is = 0; is < lapw_global.species.size(); is++)
     {
-        geometry.species[is]->rfmt_order.resize(p.lmaxapw + 1, 0);
+        lapw_global.species[is]->rfmt_order.resize(lapw_global.lmaxapw + 1, 0);
         
-        for (unsigned int l = 0; l <= p.lmaxapw; l++)
+        for (unsigned int l = 0; l <= lapw_global.lmaxapw; l++)
         {
-            for (unsigned int io = 0; io < geometry.species[is]->apw_descriptors[l].radial_solution_descriptors.size(); io++)
+            for (unsigned int io = 0; io < lapw_global.species[is]->apw_descriptors[l].radial_solution_descriptors.size(); io++)
             {
-                geometry.species[is]->ci_by_idxrf.push_back(geometry.species[is]->ci.size());
-                geometry.species[is]->l_by_idxrf.push_back(l);
+                lapw_global.species[is]->ci_by_idxrf.push_back(lapw_global.species[is]->ci.size());
+                lapw_global.species[is]->l_by_idxrf.push_back(l);
                 
                 for (int m = -l; m <= (int)l; m++)
-                    geometry.species[is]->ci.push_back(mtci(l, m, geometry.species[is]->rfmt_order[l], geometry.species[is]->nrfmt));
+                    lapw_global.species[is]->ci.push_back(mtci(l, m, lapw_global.species[is]->rfmt_order[l], lapw_global.species[is]->nrfmt));
                 
-                geometry.species[is]->rfmt_order[l]++;
-                geometry.species[is]->nrfmt++;
+                lapw_global.species[is]->rfmt_order[l]++;
+                lapw_global.species[is]->nrfmt++;
             }
         }
-        geometry.species[is]->size_ci_apw = geometry.species[is]->ci.size();
+        lapw_global.species[is]->size_ci_apw = lapw_global.species[is]->ci.size();
         
-        for (unsigned int ilo = 0; ilo < geometry.species[is]->lo_descriptors.size(); ilo++)
+        for (unsigned int ilo = 0; ilo < lapw_global.species[is]->lo_descriptors.size(); ilo++)
         {
-            int l = geometry.species[is]->lo_descriptors[ilo].l;
+            int l = lapw_global.species[is]->lo_descriptors[ilo].l;
             
-            geometry.species[is]->ci_by_idxrf.push_back(geometry.species[is]->ci.size());
-            geometry.species[is]->l_by_idxrf.push_back(l);
+            lapw_global.species[is]->ci_by_idxrf.push_back(lapw_global.species[is]->ci.size());
+            lapw_global.species[is]->l_by_idxrf.push_back(l);
 
             for (int m = -l; m <= l; m++)
-                geometry.species[is]->ci.push_back(mtci(l, m, geometry.species[is]->rfmt_order[l], geometry.species[is]->nrfmt, ilo));
+                lapw_global.species[is]->ci.push_back(mtci(l, m, lapw_global.species[is]->rfmt_order[l], lapw_global.species[is]->nrfmt, ilo));
             
-            geometry.species[is]->rfmt_order[l]++;
-            geometry.species[is]->nrfmt++;
+            lapw_global.species[is]->rfmt_order[l]++;
+            lapw_global.species[is]->nrfmt++;
         }
-        geometry.species[is]->size_ci_lo = geometry.species[is]->ci.size() - geometry.species[is]->size_ci_apw;
-        geometry.species[is]->ci_lo = &geometry.species[is]->ci[geometry.species[is]->size_ci_apw];
+        lapw_global.species[is]->size_ci_lo = lapw_global.species[is]->ci.size() - lapw_global.species[is]->size_ci_apw;
+        lapw_global.species[is]->ci_lo = &lapw_global.species[is]->ci[lapw_global.species[is]->size_ci_apw];
 
         int maxorder = 0;
-        for (unsigned int l = 0; l <= p.lmaxapw; l++)
-            maxorder = std::max(maxorder, geometry.species[is]->rfmt_order[l]);
+        for (unsigned int l = 0; l <= lapw_global.lmaxapw; l++)
+            maxorder = std::max(maxorder, lapw_global.species[is]->rfmt_order[l]);
         
-        geometry.species[is]->ci_by_lmo.set_dimensions(p.lmmaxapw, maxorder);
-        geometry.species[is]->ci_by_lmo.allocate();
+        lapw_global.species[is]->ci_by_lmo.set_dimensions(lapw_global.lmmaxapw, maxorder);
+        lapw_global.species[is]->ci_by_lmo.allocate();
 
-        for (unsigned int i = 0; i < geometry.species[is]->ci.size(); i++)
-            geometry.species[is]->ci_by_lmo(geometry.species[is]->ci[i].lm, geometry.species[is]->ci[i].order) = i;
+        for (unsigned int i = 0; i < lapw_global.species[is]->ci.size(); i++)
+            lapw_global.species[is]->ci_by_lmo(lapw_global.species[is]->ci[i].lm, lapw_global.species[is]->ci[i].order) = i;
     }
 
-    p.size_wfmt_apw = 0;
-    p.size_wfmt_lo = 0;
-    p.size_wfmt = 0;
+    lapw_global.size_wfmt_apw = 0;
+    lapw_global.size_wfmt_lo = 0;
+    lapw_global.size_wfmt = 0;
     
-    for (unsigned int ias = 0; ias < geometry.atoms.size(); ias++)
+    for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)
     {
-        Atom *atom = &geometry.atoms[ias];
+        Atom *atom = lapw_global.atoms[ias];
         Species *species = atom->species;
         
-        atom->offset_apw = p.size_wfmt_apw;
-        atom->offset_lo = p.size_wfmt_lo;
-        atom->offset_wfmt = p.size_wfmt;
+        atom->offset_apw = lapw_global.size_wfmt_apw;
+        atom->offset_lo = lapw_global.size_wfmt_lo;
+        atom->offset_wfmt = lapw_global.size_wfmt;
 
-        p.size_wfmt_apw += species->size_ci_apw;
-        p.size_wfmt_lo += species->size_ci_lo;
-        p.size_wfmt += species->ci.size();
+        lapw_global.size_wfmt_apw += species->size_ci_apw;
+        lapw_global.size_wfmt_lo += species->size_ci_lo;
+        lapw_global.size_wfmt += species->ci.size();
     }
     
-    /*p.size_apwalm = 0;
-    for (unsigned int ic = 0; ic < p.natmcls; ic++)
+    /*lapw_global.size_apwalm = 0;
+    for (unsigned int ic = 0; ic < lapw_global.natmcls; ic++)
     {
-        int ias = p.ic2ias[ic];
-        Species *species = geometry.atoms[ias].species;
-        p.size_apwalm += species->size_ci_apw;
+        int ias = lapw_global.ic2ias[ic];
+        Species *species = lapw_global.atoms[ias].species;
+        lapw_global.size_apwalm += species->size_ci_apw;
     }*/
     
-    p.l_by_lm.resize(p.lmmaxapw);
-    for (unsigned int l = 0; l <= p.lmaxapw; l++)
+    lapw_global.l_by_lm.resize(lapw_global.lmmaxapw);
+    for (unsigned int l = 0; l <= lapw_global.lmaxapw; l++)
         for (int m = -l; m <= (int)l; m++)
-            p.l_by_lm[idxlm(l, m)] = l;
+            lapw_global.l_by_lm[idxlm(l, m)] = l;
 
-    assert(p.size_wfmt == (p.size_wfmt_apw + p.size_wfmt_lo));
+    assert(lapw_global.size_wfmt == (lapw_global.size_wfmt_apw + lapw_global.size_wfmt_lo));
     
-/*    for (unsigned int is = 0; is < geometry.species.size(); is++)
+/*    for (unsigned int is = 0; is < lapw_global.species.size(); is++)
     {
         std::cout << "species : " << is << std::endl 
-                  << "  size_ci : " << geometry.species[is].ci.size() << std::endl
-                  << "  size_ci_apw : " << geometry.species[is].size_ci_apw << std::endl 
-                  << "  size_ci_lo : " << geometry.species[is].size_ci_lo << std::endl;
+                  << "  size_ci : " << lapw_global.species[is].ci.size() << std::endl
+                  << "  size_ci_apw : " << lapw_global.species[is].size_ci_apw << std::endl 
+                  << "  size_ci_lo : " << lapw_global.species[is].size_ci_lo << std::endl;
     }
     
-    for (unsigned ias = 0; ias < geometry.atoms.size(); ias++)
+    for (unsigned ias = 0; ias < lapw_global.atoms.size(); ias++)
     {
-        Atom *atom = &geometry.atoms[ias];
+        Atom *atom = &lapw_global.atoms[ias];
         std::cout << "atom : " << ias << std::endl
                   << "  offset_wfmt : " << atom->offset_wfmt << std::endl
                   << "  offset_apw : " << atom->offset_apw << std::endl

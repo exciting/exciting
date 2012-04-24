@@ -1,30 +1,31 @@
-#ifndef _LAPW_GEV_H_
-#define _LAPW_GEV_H_
+#ifndef __LAPW_BAND_H__
+#define __LAPW_BAND_H__
 
 #include "lapw.h"
 
+void lapw_set_sv(bloch_states_k *ks);
+
+/// computes the muffin-tin part of the Hamiltonian times APW bassis function product
 template <spin_block sblock> 
-void hmt_dot_apw(lapw_eigen_states& eigen_states, mdarray<complex16,2>& hapw)
+void hmt_dot_apw(bloch_states_k* const ks, mdarray<complex16,2>& hapw)
 {
     timer t("hmt_dot_apw");
    
-    unsigned int ngk = eigen_states.kp->ngk;
-
     #pragma omp parallel default(shared)
     {
-        std::vector<complex16> zv(ngk);
-        std::vector<double> v1(p.lmmaxvr);
-        std::vector<complex16> v2(p.lmmaxvr);
+        std::vector<complex16> zv(ks->ngk);
+        std::vector<double> v1(lapw_global.lmmaxvr);
+        std::vector<complex16> v2(lapw_global.lmmaxvr);
         #pragma omp for
-        for (unsigned int ias = 0; ias < geometry.atoms.size(); ias++)
+        for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)
         {
-            Atom *atom = &geometry.atoms[ias];
+            Atom *atom = lapw_global.atoms[ias];
             Species *species = atom->species;
         
             // precompute apw block
             for (unsigned int j2 = 0; j2 < species->size_ci_apw; j2++)
             {
-                memset(&zv[0], 0, ngk * sizeof(complex16));
+                memset(&zv[0], 0, ks->ngk * sizeof(complex16));
                 
                 int lm2 = species->ci[j2].lm;
                 int idxrf2 = species->ci[j2].idxrf;
@@ -38,33 +39,33 @@ void hmt_dot_apw(lapw_eigen_states& eigen_states, mdarray<complex16,2>& hapw)
                     
                     if (sblock == nm)
                     {
-                        L3_sum_gntyry(lm1, lm2, &p.hmltrad(0, idxrf1, idxrf2, ias), zsum);
+                        L3_sum_gntyry(lm1, lm2, &lapw_runtime.hmltrad(0, idxrf1, idxrf2, ias), zsum);
                     }
 
                     if (sblock == uu)
                     {
-                        for (unsigned int lm3 = 0; lm3 < p.lmmaxvr; lm3++) 
-                            v1[lm3] = p.hmltrad(lm3, idxrf1, idxrf2, ias) + p.beffrad(lm3, idxrf1, idxrf2, ias, 0);
+                        for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+                            v1[lm3] = lapw_runtime.hmltrad(lm3, idxrf1, idxrf2, ias) + lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 0);
                         L3_sum_gntyry(lm1, lm2, &v1[0], zsum);
                     }
                     
                     if (sblock == dd)
                     {
-                        for (unsigned int lm3 = 0; lm3 < p.lmmaxvr; lm3++) 
-                            v1[lm3] = p.hmltrad(lm3, idxrf1, idxrf2, ias) - p.beffrad(lm3, idxrf1, idxrf2, ias, 0);
+                        for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+                            v1[lm3] = lapw_runtime.hmltrad(lm3, idxrf1, idxrf2, ias) - lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 0);
                         L3_sum_gntyry(lm1, lm2, &v1[0], zsum);
                     }
                     
                     if (sblock == ud)
                     {
-                        for (unsigned int lm3 = 0; lm3 < p.lmmaxvr; lm3++) 
-                            v2[lm3] = complex16(p.beffrad(lm3, idxrf1, idxrf2, ias, 1), -p.beffrad(lm3, idxrf1, idxrf2, ias, 2));
+                        for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+                            v2[lm3] = complex16(lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 1), -lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 2));
                         L3_sum_gntyry(lm1, lm2, &v2[0], zsum);
                     }
         
                     if (abs(zsum) > 1e-14) 
-                        for (unsigned int ig = 0; ig < ngk; ig++) 
-                            zv[ig] += zsum * eigen_states.apwalm(ig, atom->offset_apw + j1); 
+                        for (unsigned int ig = 0; ig < ks->ngk; ig++) 
+                            zv[ig] += zsum * ks->apwalm(ig, atom->offset_apw + j1); 
                 }
                 
                 // surface term
@@ -75,48 +76,44 @@ void hmt_dot_apw(lapw_eigen_states& eigen_states, mdarray<complex16,2>& hapw)
                     
                     for (unsigned int io1 = 0; io1 < species->apw_descriptors[l2].radial_solution_descriptors.size(); io1++)
                     {
-                        double t1 = 0.5 * pow(species->rmt, 2) * p.apwfr(species->nrmt - 1, 0, io1, l2, ias) * p.apwdfr(io2, l2, ias); 
-                        for (unsigned int ig = 0; ig < ngk; ig++) 
-                            zv[ig] += t1 * eigen_states.apwalm(ig, atom->offset_apw + species->ci_by_lmo(lm2, io1));
+                        double t1 = 0.5 * pow(species->rmt, 2) * lapw_runtime.apwfr(species->nrmt - 1, 0, io1, l2, ias) * lapw_runtime.apwdfr(io2, l2, ias); 
+                        for (unsigned int ig = 0; ig < ks->ngk; ig++) 
+                            zv[ig] += t1 * ks->apwalm(ig, atom->offset_apw + species->ci_by_lmo(lm2, io1));
                     }
                 }
 
-                memcpy(&hapw(0, atom->offset_apw + j2), &zv[0], ngk * sizeof(complex16));
+                memcpy(&hapw(0, atom->offset_apw + j2), &zv[0], ks->ngk * sizeof(complex16));
             }
         } 
     }
 }
 
-
+/// sets up a Hamiltonian matrix
 template <implementation impl, spin_block sblock> 
-void lapw_set_h(lapw_eigen_states& eigen_states, mdarray<complex16,2>& h)
+void lapw_set_h(bloch_states_k* const ks, mdarray<complex16,2>& h)
 {
     timer t("lapw_set_h");
    
-    unsigned int ngk = eigen_states.kp->ngk;
-    
-    mdarray<complex16,2> zm(NULL, ngk, p.size_wfmt_apw);
+    mdarray<complex16,2> zm(NULL, ks->ngk, lapw_global.size_wfmt_apw);
     zm.allocate();
     
-    hmt_dot_apw<sblock>(eigen_states, zm);
+    hmt_dot_apw<sblock>(ks, zm);
 
     if (impl == cpu)
     {
-        zgemm<cpu>(0, 2, ngk, ngk, p.size_wfmt_apw, zone, &zm(0, 0), zm.size(0), 
-                   &eigen_states.apwalm(0, 0), eigen_states.apwalm.size(0), zzero, 
-                   &h(0, 0), h.size(0));
+        zgemm<cpu>(0, 2, ks->ngk, ks->ngk, lapw_global.size_wfmt_apw, zone, &zm(0, 0), zm.size(0), 
+                   &ks->apwalm(0, 0), ks->apwalm.size(0), zzero, &h(0, 0), h.size(0));
     }
     if (impl == gpu)
     {
-        eigen_states.apwalm.allocate_on_device();
-        eigen_states.apwalm.copy_to_device();
+        ks->apwalm.allocate_on_device();
+        ks->apwalm.copy_to_device();
         zm.allocate_on_device();
         zm.copy_to_device();
         h.allocate_on_device();
         h.zero_on_device();
-        zgemm<gpu>(0, 2, ngk, ngk, p.size_wfmt_apw, zone, zm.get_ptr_device(), zm.size(0),
-                   eigen_states.apwalm.get_ptr_device(), eigen_states.apwalm.size(0), zzero, 
-                   h.get_ptr_device(), h.size(0));
+        zgemm<gpu>(0, 2, ks->ngk, ks->ngk, lapw_global.size_wfmt_apw, zone, zm.get_ptr_device(), zm.size(0),
+                   ks->apwalm.get_ptr_device(), ks->apwalm.size(0), zzero, h.get_ptr_device(), h.size(0));
         h.copy_to_host();
         h.deallocate_on_device();
         zm.deallocate_on_device();
@@ -124,12 +121,12 @@ void lapw_set_h(lapw_eigen_states& eigen_states, mdarray<complex16,2>& h)
  
     #pragma omp parallel default(shared)
     {
-        std::vector<double> v1(p.lmmaxvr);
-        std::vector<complex16> v2(p.lmmaxvr);
+        std::vector<double> v1(lapw_global.lmmaxvr);
+        std::vector<complex16> v2(lapw_global.lmmaxvr);
         #pragma omp for
-        for (unsigned int ias = 0; ias < geometry.atoms.size(); ias++)
+        for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)
         {
-            Atom *atom = &geometry.atoms[ias];
+            Atom *atom = lapw_global.atoms[ias];
             Species *species = atom->species;
     
             for (unsigned int j2 = 0; j2 < species->size_ci_lo; j2++) // loop over columns (local-orbital block) 
@@ -147,33 +144,33 @@ void lapw_set_h(lapw_eigen_states& eigen_states, mdarray<complex16,2>& h)
                     
                     if (sblock == nm)
                     {
-                        L3_sum_gntyry(lm1, lm2, &p.hmltrad(0, idxrf2, idxrf1, ias), zsum);
+                        L3_sum_gntyry(lm1, lm2, &lapw_runtime.hmltrad(0, idxrf2, idxrf1, ias), zsum);
                     }
 
                     if (sblock == uu)
                     {
-                        for (unsigned int lm3 = 0; lm3 < p.lmmaxvr; lm3++) 
-                            v1[lm3] = p.hmltrad(lm3, idxrf2, idxrf1, ias) + p.beffrad(lm3, idxrf1, idxrf2, ias, 0);
+                        for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+                            v1[lm3] = lapw_runtime.hmltrad(lm3, idxrf2, idxrf1, ias) + lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 0);
                         L3_sum_gntyry(lm1, lm2, &v1[0], zsum);
                     }
                     
                     if (sblock == dd)
                     {
-                        for (unsigned int lm3 = 0; lm3 < p.lmmaxvr; lm3++) 
-                            v1[lm3] = p.hmltrad(lm3, idxrf2, idxrf1, ias) - p.beffrad(lm3, idxrf1, idxrf2, ias, 0);
+                        for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+                            v1[lm3] = lapw_runtime.hmltrad(lm3, idxrf2, idxrf1, ias) - lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 0);
                         L3_sum_gntyry(lm1, lm2, &v1[0], zsum);
                     }
                     
                     if (sblock == ud)
                     {
-                        for (unsigned int lm3 = 0; lm3 < p.lmmaxvr; lm3++) 
-                            v2[lm3] = complex16(p.beffrad(lm3, idxrf1, idxrf2, ias, 1), -p.beffrad(lm3, idxrf1, idxrf2, ias, 2));
+                        for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+                            v2[lm3] = complex16(lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 1), -lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 2));
                         L3_sum_gntyry(lm1, lm2, &v2[0], zsum);
                     }
         
                     if (abs(zsum) > 1e-14)
-                        for (unsigned int ig = 0; ig < ngk; ig++)
-                            h(ig, ngk + atom->offset_lo + j2) += zsum * eigen_states.apwalm(ig, atom->offset_apw + j1);
+                        for (unsigned int ig = 0; ig < ks->ngk; ig++)
+                            h(ig, ks->ngk + atom->offset_lo + j2) += zsum * ks->apwalm(ig, atom->offset_apw + j1);
                 }
                 
                 unsigned int j1_end;
@@ -190,31 +187,31 @@ void lapw_set_h(lapw_eigen_states& eigen_states, mdarray<complex16,2>& h)
 
                     if (sblock == nm)
                     {
-                        L3_sum_gntyry(lm1, lm2, &p.hmltrad(0, idxrf1, idxrf2, ias), zsum);
+                        L3_sum_gntyry(lm1, lm2, &lapw_runtime.hmltrad(0, idxrf1, idxrf2, ias), zsum);
                     }
 
                     if (sblock == uu)
                     {
-                        for (unsigned int lm3 = 0; lm3 < p.lmmaxvr; lm3++) 
-                            v1[lm3] = p.hmltrad(lm3, idxrf1, idxrf2, ias) + p.beffrad(lm3, idxrf1, idxrf2, ias, 0);
+                        for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+                            v1[lm3] = lapw_runtime.hmltrad(lm3, idxrf1, idxrf2, ias) + lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 0);
                         L3_sum_gntyry(lm1, lm2, &v1[0], zsum);
                     }
                     
                     if (sblock == dd)
                     {
-                        for (unsigned int lm3 = 0; lm3 < p.lmmaxvr; lm3++) 
-                            v1[lm3] = p.hmltrad(lm3, idxrf1, idxrf2, ias) - p.beffrad(lm3, idxrf1, idxrf2, ias, 0);
+                        for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+                            v1[lm3] = lapw_runtime.hmltrad(lm3, idxrf1, idxrf2, ias) - lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 0);
                         L3_sum_gntyry(lm1, lm2, &v1[0], zsum);
                     }
                     
                     if (sblock == ud)
                     {
-                        for (unsigned int lm3 = 0; lm3 < p.lmmaxvr; lm3++) 
-                            v2[lm3] = complex16(p.beffrad(lm3, idxrf1, idxrf2, ias, 1), -p.beffrad(lm3, idxrf1, idxrf2, ias, 2));
+                        for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+                            v2[lm3] = complex16(lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 1), -lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 2));
                         L3_sum_gntyry(lm1, lm2, &v2[0], zsum);
                     }
 
-                    h(ngk + atom->offset_lo + j1, ngk + atom->offset_lo + j2) += zsum;
+                    h(ks->ngk + atom->offset_lo + j1, ks->ngk + atom->offset_lo + j2) += zsum;
                 }
             }
 
@@ -232,74 +229,72 @@ void lapw_set_h(lapw_eigen_states& eigen_states, mdarray<complex16,2>& h)
                         
                         complex16 zsum(0, 0);
                         
-                        for (unsigned int lm3 = 0; lm3 < p.lmmaxvr; lm3++) 
-                            v2[lm3] = complex16(p.beffrad(lm3, idxrf1, idxrf2, ias, 1), -p.beffrad(lm3, idxrf1, idxrf2, ias, 2));
+                        for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+                            v2[lm3] = complex16(lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 1), -lapw_runtime.beffrad(lm3, idxrf1, idxrf2, ias, 2));
                         L3_sum_gntyry(lm1, lm2, &v2[0], zsum);
                         
                         if (abs(zsum) > 1e-14)
-                            for (unsigned int ig = 0; ig < ngk; ig++)
-                                h(ngk + atom->offset_lo + j1, ig) += zsum * conj(eigen_states.apwalm(ig, atom->offset_apw + j2));
+                            for (unsigned int ig = 0; ig < ks->ngk; ig++)
+                                h(ks->ngk + atom->offset_lo + j1, ig) += zsum * conj(ks->apwalm(ig, atom->offset_apw + j2));
                     }
                 }
             }
         } 
     }
     
-    for (unsigned int j2 = 0; j2 < ngk; j2++) // loop over columns
+    for (unsigned int j2 = 0; j2 < ks->ngk; j2++) // loop over columns
     {
         unsigned int j1_end;
-        if (sblock == ud) j1_end = ngk - 1;
+        if (sblock == ud) j1_end = ks->ngk - 1;
         else j1_end = j2;
    
         double v2[3];
-        for (int k = 0; k < 3; k++) v2[k] = eigen_states.kp->vgkc(k, j2);
+        for (int k = 0; k < 3; k++) v2[k] = ks->vgkc(k, j2);
         for (unsigned int j1 = 0; j1 <= j1_end; j1++) // for each column loop over rows
         {
-            int ig = idxG12(eigen_states.kp, j1, j2);
-            double t1 = 0.5 * (eigen_states.kp->vgkc(0, j1) * v2[0] + 
-                               eigen_states.kp->vgkc(1, j1) * v2[1] + 
-                               eigen_states.kp->vgkc(2, j1) * v2[2]);
+            unsigned int ig = ks->idxG12(j1, j2);
+            double t1 = 0.5 * (ks->vgkc(0, j1) * v2[0] + 
+                               ks->vgkc(1, j1) * v2[1] + 
+                               ks->vgkc(2, j1) * v2[2]);
             if (sblock == nm)
-                h(j1, j2) += (p.veffig(ig) + t1 * p.cfunig[ig]);
+                h(j1, j2) += (lapw_runtime.veffig(ig) + t1 * lapw_global.cfunig[ig]);
             
             if (sblock == uu)
-                h(j1, j2) += (p.veffig(ig) + t1 * p.cfunig[ig] + p.beffig(ig, 0));
+                h(j1, j2) += (lapw_runtime.veffig(ig) + t1 * lapw_global.cfunig[ig] + lapw_runtime.beffig(ig, 0));
             
             if (sblock == dd)
-                h(j1, j2) += (p.veffig(ig) + t1 * p.cfunig[ig] - p.beffig(ig, 0));
+                h(j1, j2) += (lapw_runtime.veffig(ig) + t1 * lapw_global.cfunig[ig] - lapw_runtime.beffig(ig, 0));
             
             if (sblock == ud)
-                h(j1, j2) += (p.beffig(ig, 1) - zi * p.beffig(ig, 2));
+                h(j1, j2) += (lapw_runtime.beffig(ig, 1) - zi * lapw_runtime.beffig(ig, 2));
         }
     }
 }
 
 template <implementation impl> 
-void lapw_set_o(lapw_eigen_states& eigen_states, mdarray<complex16,2>& o)
+void lapw_set_o(bloch_states_k* const ks, mdarray<complex16,2>& o)
 {
     timer t("lapw_set_o");
 
-    unsigned int ngk = eigen_states.kp->ngk;
-    
     if (impl == cpu)
     {
-        zgemm<cpu>(0, 2, ngk, ngk, p.size_wfmt_apw, zone, &eigen_states.apwalm(0, 0), eigen_states.apwalm.size(0), 
-            &eigen_states.apwalm(0, 0), eigen_states.apwalm.size(0), zzero, &o(0, 0), o.size(0));
+        zgemm<cpu>(0, 2, ks->ngk, ks->ngk, lapw_global.size_wfmt_apw, zone, &ks->apwalm(0, 0), ks->apwalm.size(0), 
+            &ks->apwalm(0, 0), ks->apwalm.size(0), zzero, &o(0, 0), o.size(0));
     }
     if (impl == gpu)
     {
         o.allocate_on_device();
         o.zero_on_device();
-        zgemm<gpu>(0, 2, ngk, ngk, p.size_wfmt_apw, zone, eigen_states.apwalm.get_ptr_device(), eigen_states.apwalm.size(0),
-                   eigen_states.apwalm.get_ptr_device(), eigen_states.apwalm.size(0), zzero, o.get_ptr_device(), o.size(0));
+        zgemm<gpu>(0, 2, ks->ngk, ks->ngk, lapw_global.size_wfmt_apw, zone, ks->apwalm.get_ptr_device(), ks->apwalm.size(0),
+                   ks->apwalm.get_ptr_device(), ks->apwalm.size(0), zzero, o.get_ptr_device(), o.size(0));
         o.copy_to_host();
         o.deallocate_on_device();
-        eigen_states.apwalm.deallocate_on_device();
+        ks->apwalm.deallocate_on_device();
     }
     
-    for (unsigned int ias = 0; ias < geometry.atoms.size(); ias++)
+    for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)
     {
-        Atom *atom = &geometry.atoms[ias];
+        Atom *atom = lapw_global.atoms[ias];
         Species *species = atom->species;
 
         for (unsigned int j2 = 0; j2 < species->size_ci_lo; j2++) // loop over columns (local-orbital block) 
@@ -310,8 +305,8 @@ void lapw_set_o(lapw_eigen_states& eigen_states, mdarray<complex16,2>& o)
             
             // apw-lo block 
             for (unsigned int io1 = 0; io1 < species->apw_descriptors[l2].radial_solution_descriptors.size(); io1++)
-                for (unsigned int ig = 0; ig < ngk; ig++)
-                    o(ig, ngk + atom->offset_lo + j2) += p.ovlprad(l2, io1, order2, ias) * eigen_states.apwalm(ig, atom->offset_apw + species->ci_by_lmo(lm2, io1)); 
+                for (unsigned int ig = 0; ig < ks->ngk; ig++)
+                    o(ig, ks->ngk + atom->offset_lo + j2) += lapw_runtime.ovlprad(l2, io1, order2, ias) * ks->apwalm(ig, atom->offset_apw + species->ci_by_lmo(lm2, io1)); 
 
             // lo-lo block
             for (unsigned int j1 = 0; j1 <= j2; j1++)
@@ -319,77 +314,72 @@ void lapw_set_o(lapw_eigen_states& eigen_states, mdarray<complex16,2>& o)
                 int lm1 = species->ci_lo[j1].lm;
                 int order1 = species->ci_lo[j1].order;
                 if (lm1 == lm2) 
-                    o(ngk + atom->offset_lo + j1, ngk + atom->offset_lo + j2) += p.ovlprad(l2, order1, order2, ias);
+                    o(ks->ngk + atom->offset_lo + j1, ks->ngk + atom->offset_lo + j2) += lapw_runtime.ovlprad(l2, order1, order2, ias);
             }
         }
     }
     
-    for (unsigned int j2 = 0; j2 < ngk; j2++) // loop over columns
+    for (unsigned int j2 = 0; j2 < ks->ngk; j2++) // loop over columns
         for (unsigned int j1 = 0; j1 <= j2; j1++) // for each column loop over rows
-            o(j1, j2) += p.cfunig[idxG12(eigen_states.kp, j1, j2)];
+            o(j1, j2) += lapw_global.cfunig[ks->idxG12(j1, j2)];
 }
 
 template <implementation impl, diagonalization mode> 
-void lapw_band(lapw_eigen_states& eigen_states)
+void lapw_band(bloch_states_k* const ks)
 {
     timer t("lapw_band");
 
-    unsigned int msize = eigen_states.kp->ngk + p.size_wfmt_lo;
-    
     if (mode == second_variational)
     {
-        mdarray<complex16,2> h(NULL, msize, msize);
+        mdarray<complex16,2> h(NULL, ks->lapw_basis_size, ks->lapw_basis_size);
         h.allocate();
         h.zero();
-        mdarray<complex16,2> o(NULL, msize, msize);
+        mdarray<complex16,2> o(NULL, ks->lapw_basis_size, ks->lapw_basis_size);
         o.allocate();
         o.zero();
   
-        lapw_set_h<impl,nm>(eigen_states, h);
-        lapw_set_o<impl>(eigen_states, o);
+        lapw_set_h<impl,nm>(ks, h);
+        lapw_set_o<impl>(ks, o);
         
-        eigen_states.evecfv.set_dimensions(msize, p.nstfv);
-        eigen_states.evecfv.allocate();
-        eigen_states.evalfv.resize(p.nstfv);
+        ks->evecfv.set_dimensions(ks->lapw_basis_size, lapw_global.nstfv);
+        ks->evecfv.allocate();
+        ks->evalfv.resize(lapw_global.nstfv);
        
         timer *t1 = new timer("lapw_band:zhegv<impl>");
-        zhegv<impl>(msize, p.nstfv, p.evaltol, &h(0, 0), &o(0, 0), &eigen_states.evalfv[0], 
-            &eigen_states.evecfv(0, 0), eigen_states.evecfv.size(0));
+        zhegv<impl>(ks->lapw_basis_size, lapw_global.nstfv, lapw_global.evaltol, &h(0, 0), &o(0, 0), &ks->evalfv[0], 
+            &ks->evecfv(0, 0), ks->evecfv.size(0));
         delete t1;
 
-        eigen_states.generate_scalar_wf();
+        ks->generate_scalar_wave_functions();
 
         if (check_scalar_wf)
-            for (int i = 0; i < 3; i++) eigen_states.test_scalar_wf(i);
+            for (int i = 0; i < 3; i++) ks->test_scalar_wave_functions(i);
         
-        eigen_states.evecsv.set_dimensions(p.nstsv, p.nstsv);
-        eigen_states.evecsv.allocate();
-        eigen_states.evecsv.zero();
-        eigen_states.evalsv.resize(p.nstsv);
+        ks->evecsv.set_dimensions(lapw_global.nstsv, lapw_global.nstsv);
+        ks->evecsv.allocate();
+        ks->evecsv.zero();
+        ks->evalsv.resize(lapw_global.nstsv);
  
-        if (p.ndmag == 0)
+        if (lapw_global.ndmag == 0)
         {
-            for (unsigned int i = 0; i < p.nstfv; i++)
+            for (unsigned int i = 0; i < lapw_global.nstfv; i++)
             {
-                eigen_states.evecsv(i, i) = zone;
-                eigen_states.evalsv[i] = eigen_states.evalfv[i];
+                ks->evecsv(i, i) = zone;
+                ks->evalsv[i] = ks->evalfv[i];
             }
         } 
         else
         {
-            lapw_set_sv(eigen_states);
+            lapw_set_sv(ks);
             t1 = new timer("lapw_band:zheev<cpu>"); 
-            if (p.ndmag == 1)
+            if (lapw_global.ndmag == 1)
             {
-                zheev<cpu>(p.nstfv, &eigen_states.evecsv(0, 0), eigen_states.evecsv.size(0), 
-                    &eigen_states.evalsv[0]);
-                zheev<cpu>(p.nstfv, &eigen_states.evecsv(p.nstfv, p.nstfv), eigen_states.evecsv.size(0), 
-                    &eigen_states.evalsv[p.nstfv]);
+                zheev<cpu>(lapw_global.nstfv, &ks->evecsv(0, 0), ks->evecsv.size(0), &ks->evalsv[0]);
+                zheev<cpu>(lapw_global.nstfv, &ks->evecsv(lapw_global.nstfv, lapw_global.nstfv), ks->evecsv.size(0), &ks->evalsv[lapw_global.nstfv]);
             } 
-            if (p.ndmag == 3)
+            if (lapw_global.ndmag == 3)
             {
-                zheev<cpu>(p.nstsv, &eigen_states.evecsv(0, 0), eigen_states.evecsv.size(0), 
-                    &eigen_states.evalsv[0]);
+                zheev<cpu>(lapw_global.nstsv, &ks->evecsv(0, 0), ks->evecsv.size(0), &ks->evalsv[0]);
             } 
             delete t1;
         }
@@ -397,87 +387,87 @@ void lapw_band(lapw_eigen_states& eigen_states)
 
     if (mode == full)
     {
-        eigen_states.evecfd.set_dimensions(msize * p.nspinor, p.nstsv);
-        eigen_states.evecfd.allocate();
-        eigen_states.evalsv.resize(p.nstsv);
+        ks->evecfd.set_dimensions(ks->lapw_basis_size * lapw_global.nspinor, lapw_global.nstsv);
+        ks->evecfd.allocate();
+        ks->evalsv.resize(lapw_global.nstsv);
         
-        mdarray<complex16,2> o(NULL, msize, msize);
+        mdarray<complex16,2> o(NULL, ks->lapw_basis_size, ks->lapw_basis_size);
         o.allocate();
         o.zero();
-        lapw_set_o<impl>(eigen_states, o);
+        lapw_set_o<impl>(ks, o);
 
-        if (p.ndmag == 0)
+        if (lapw_global.ndmag == 0)
         {
-            mdarray<complex16,2> h(NULL, msize, msize);
+            mdarray<complex16,2> h(NULL, ks->lapw_basis_size, ks->lapw_basis_size);
             h.allocate();
             h.zero();
-            lapw_set_h<impl,nm>(eigen_states, h);
+            lapw_set_h<impl,nm>(ks, h);
             
             timer *t1 = new timer("lapw_band:zhegv<impl>");
-            zhegv<impl>(msize, p.nstfv, p.evaltol, &h(0, 0), &o(0, 0), &eigen_states.evalsv[0],
-                        &eigen_states.evecfd(0, 0), eigen_states.evecfd.size(0));
+            zhegv<impl>(ks->lapw_basis_size, lapw_global.nstfv, lapw_global.evaltol, &h(0, 0), &o(0, 0), &ks->evalsv[0],
+                        &ks->evecfd(0, 0), ks->evecfd.size(0));
             delete t1;
         }
 
-        if (p.ndmag == 1)
+        if (lapw_global.ndmag == 1)
         {
-            mdarray<complex16,2> o1(NULL, msize, msize);
+            mdarray<complex16,2> o1(NULL, ks->lapw_basis_size, ks->lapw_basis_size);
             o1.allocate();
             memcpy(&o1(0, 0), &o(0, 0), o.size() * sizeof(complex16));
             
-            mdarray<complex16,2> h(NULL, msize, msize);
+            mdarray<complex16,2> h(NULL, ks->lapw_basis_size, ks->lapw_basis_size);
             h.allocate();
             h.zero();
-            lapw_set_h<impl,uu>(eigen_states, h);
+            lapw_set_h<impl,uu>(ks, h);
             
             timer *t1 = new timer("lapw_band:zhegv<impl>");
-            zhegv<impl>(msize, p.nstfv, p.evaltol, &h(0, 0), &o(0, 0), &eigen_states.evalsv[0],
-                        &eigen_states.evecfd(0, 0), eigen_states.evecfd.size(0));
+            zhegv<impl>(ks->lapw_basis_size, lapw_global.nstfv, lapw_global.evaltol, &h(0, 0), &o(0, 0), &ks->evalsv[0],
+                        &ks->evecfd(0, 0), ks->evecfd.size(0));
             delete t1;
             
             h.zero();
-            lapw_set_h<impl,dd>(eigen_states, h);
+            lapw_set_h<impl,dd>(ks, h);
 
             t1 = new timer("lapw_band:zhegv<impl>");
-            zhegv<impl>(msize, p.nstfv, p.evaltol, &h(0, 0), &o1(0, 0), &eigen_states.evalsv[p.nstfv],
-                        &eigen_states.evecfd(msize, p.nstfv), eigen_states.evecfd.size(0));
+            zhegv<impl>(ks->lapw_basis_size, lapw_global.nstfv, lapw_global.evaltol, &h(0, 0), &o1(0, 0), &ks->evalsv[lapw_global.nstfv],
+                        &ks->evecfd(ks->lapw_basis_size, lapw_global.nstfv), ks->evecfd.size(0));
             delete t1;
         }
         
-        if (p.ndmag == 3)
+        if (lapw_global.ndmag == 3)
         {
-            mdarray<complex16,2> o1(NULL, msize * p.nspinor, msize * p.nspinor);
+            mdarray<complex16,2> o1(NULL, ks->lapw_basis_size * lapw_global.nspinor, ks->lapw_basis_size * lapw_global.nspinor);
             o1.allocate();
             o1.zero();
-            for (unsigned int i = 0; i < msize; i++)
+            for (unsigned int i = 0; i < ks->lapw_basis_size; i++)
             {
-                memcpy(&o1(0, i), &o(0, i), msize * sizeof(complex16));
-                memcpy(&o1(msize, msize + i), &o(0, i), msize * sizeof(complex16));
+                memcpy(&o1(0, i), &o(0, i), ks->lapw_basis_size * sizeof(complex16));
+                memcpy(&o1(ks->lapw_basis_size, ks->lapw_basis_size + i), &o(0, i), ks->lapw_basis_size * sizeof(complex16));
             }
 
-            mdarray<complex16,2> h(NULL, msize * p.nspinor, msize * p.nspinor);
+            mdarray<complex16,2> h(NULL, ks->lapw_basis_size * lapw_global.nspinor, ks->lapw_basis_size * lapw_global.nspinor);
             h.allocate();
             h.zero();
 
-            mdarray<complex16,2> huu(&h(0, 0), msize * p.nspinor, msize);
-            mdarray<complex16,2> hdd(&h(msize, msize), msize * p.nspinor, msize);
-            mdarray<complex16,2> hud(&h(0, msize), msize * p.nspinor, msize);
+            mdarray<complex16,2> huu(&h(0, 0), ks->lapw_basis_size * lapw_global.nspinor, ks->lapw_basis_size);
+            mdarray<complex16,2> hdd(&h(ks->lapw_basis_size, ks->lapw_basis_size), ks->lapw_basis_size * lapw_global.nspinor, ks->lapw_basis_size);
+            mdarray<complex16,2> hud(&h(0, ks->lapw_basis_size), ks->lapw_basis_size * lapw_global.nspinor, ks->lapw_basis_size);
 
-            lapw_set_h<impl,uu>(eigen_states, huu);
-            lapw_set_h<impl,ud>(eigen_states, hud);
-            lapw_set_h<impl,dd>(eigen_states, hdd);
+            lapw_set_h<impl,uu>(ks, huu);
+            lapw_set_h<impl,ud>(ks, hud);
+            lapw_set_h<impl,dd>(ks, hdd);
             
             timer *t1 = new timer("lapw_band:zhegv<impl>");
-            zhegv<impl>(msize * p.nspinor, p.nstsv, p.evaltol, &h(0, 0), &o1(0, 0), &eigen_states.evalsv[0],
-                        &eigen_states.evecfd(0, 0), eigen_states.evecfd.size(0));
+            zhegv<impl>(ks->lapw_basis_size * lapw_global.nspinor, lapw_global.nstsv, lapw_global.evaltol, &h(0, 0), &o1(0, 0), &ks->evalsv[0],
+                        &ks->evecfd(0, 0), ks->evecfd.size(0));
             delete t1;
         }
     }
     
-    eigen_states.generate_spinor_wf(mode);
+    ks->generate_spinor_wave_functions(mode);
     
     if (check_spinor_wf)
-        for (int i = 0; i < 3; i++) eigen_states.test_spinor_wf(i);
+        for (int i = 0; i < 3; i++) ks->test_spinor_wave_functions(i);
 }
 
-#endif // _LAPW_GEV_H_
+#endif // __LAPW_BAND_H__

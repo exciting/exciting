@@ -60,18 +60,6 @@ template <typename T, int ND> class mdarray_base
         { 
         }
         
-        mdarray_base(const mdarray_base<T,ND>& src) : mdarray_ptr(0), 
-                                                      allocated(false), 
-                                                      mdarray_ptr_device(0), 
-                                                      allocated_on_device(false) 
-        {
-            //copy_members(src);
-            //allocate();
-            //memcpy(mdarray_ptr, src.mdarray_ptr, size() * sizeof(T));
-            std::cout << "mdarray_base() copy constructor is forbidden" << std::endl;
-            exit(0);
-        }
-        
         ~mdarray_base()
         {
             deallocate();
@@ -111,7 +99,7 @@ template <typename T, int ND> class mdarray_base
             deallocate();
             
             int sz = size();
-            if (sz == 0) throw std::runtime_error("can't allocate a zero sized array");
+            if (sz == 0) throw std::runtime_error("can't allocate a zero size array");
              
             mdarray_ptr = new T[sz];
             allocated = true;
@@ -154,6 +142,15 @@ template <typename T, int ND> class mdarray_base
         bool allocated_on_device;
         dimension d[ND];
         int offset[ND];
+
+    private:
+
+        // forbid copy constructor
+        mdarray_base(const mdarray_base<T,ND>& src);
+        
+        // forbid assign operator
+        mdarray_base<T,ND>& operator=(const mdarray_base<T,ND>& src); 
+        
 };
 
 #endif // _MDARRAY_BASE_H_

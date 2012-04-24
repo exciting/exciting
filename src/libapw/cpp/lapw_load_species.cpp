@@ -5,21 +5,19 @@ extern "C" void FORTRAN(lapw_load_species)(int *is_, int *nlorb, int *lorbl, int
 {
     int is = *is_ - 1;
     
-    geometry.species[is]->rmt = *rmt;
-    geometry.species[is]->nrmt = *nrmt;
+    lapw_global.species[is]->rmt = *rmt;
+    lapw_global.species[is]->nrmt = *nrmt;
     
     for (int i = 0; i < *nlorb; i++) 
-        geometry.species[is]->lo_descriptors.push_back(radial_l_channel_descriptor(lorbl[i]));
+        lapw_global.species[is]->lo_descriptors.push_back(radial_l_descriptor(lorbl[i]));
     
-    for (unsigned int l = 0; l <= p.lmaxapw; l++) 
+    for (unsigned int l = 0; l <= lapw_global.lmaxapw; l++) 
     {
-        radial_l_channel_descriptor lch(l);
+        radial_l_descriptor lch(l);
         for (int io = 0; io < apword[l]; io++)
-        {
-            radial_solution_descriptor rs;
-            lch.radial_solution_descriptors.push_back(rs);
-        }
-        geometry.species[is]->apw_descriptors.push_back(lch);
+            lch.radial_solution_descriptors.push_back(radial_solution_descriptor());
+        
+        lapw_global.species[is]->apw_descriptors.push_back(lch);
     }
 }
 

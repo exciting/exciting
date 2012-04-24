@@ -32,103 +32,106 @@ extern "C" void FORTRAN(lapw_load_global)(int *natmtot_,
                                           int *ic2ias_,
                                           int *natoms_in_class_)
 {
-    p.natmtot = *natmtot_;
-    p.nspecies = *nspecies_;
-    p.lmaxvr = *lmaxvr_;
-    p.lmmaxvr = pow(p.lmaxvr + 1, 2);
-    p.lmaxapw = *lmaxapw_;
-    p.lmmaxapw = pow(p.lmaxapw + 1, 2);
-    p.apwordmax = *apwordmax_;
-    p.nrmtmax = *nrmtmax_;
-    p.ngkmax = *ngkmax_;
-    p.ngvec = *ngvec_;
-    p.ngrtot = *ngrtot_;
-    p.nlomax = *nlomax_;
-    p.nstfv = *nstfv_;
-    p.nstsv = *nstsv_;
-    p.nmatmax = *nmatmax_;
-    p.nrfmtmax = *nrfmtmax_;
-    p.ordrfmtmax = *ordrfmtmax_;
-    p.evaltol = *evaltol_;
+    lapw_global.natmtot = *natmtot_;
+    lapw_global.nspecies = *nspecies_;
+    lapw_global.lmaxvr = *lmaxvr_;
+    lapw_global.lmmaxvr = pow(lapw_global.lmaxvr + 1, 2);
+    lapw_global.lmaxapw = *lmaxapw_;
+    lapw_global.lmmaxapw = pow(lapw_global.lmaxapw + 1, 2);
+    lapw_global.apwordmax = *apwordmax_;
+    lapw_global.nrmtmax = *nrmtmax_;
+    lapw_global.ngkmax = *ngkmax_;
+    lapw_global.ngvec = *ngvec_;
+    lapw_global.ngrtot = *ngrtot_;
+    lapw_global.nlomax = *nlomax_;
+    lapw_global.nstfv = *nstfv_;
+    lapw_global.nstsv = *nstsv_;
+    lapw_global.nmatmax = *nmatmax_;
+    lapw_global.nrfmtmax = *nrfmtmax_;
+    lapw_global.ordrfmtmax = *ordrfmtmax_;
+    lapw_global.evaltol = *evaltol_;
     
-    p.intgv.set_dimensions(3, 2);
-    p.intgv.set_ptr(intgv_);
+    lapw_global.intgv.set_dimensions(3, 2);
+    lapw_global.intgv.set_ptr(intgv_);
     
-    p.ivgig.set_dimensions(dimension(p.intgv(0, 0), p.intgv(0, 1)),
-                           dimension(p.intgv(1, 0), p.intgv(1, 1)),
-                           dimension(p.intgv(2, 0), p.intgv(2, 1)));
-    p.ivgig.allocate();  
-    mdarray<int,3> ivgig_tmp(ivgig_, dimension(p.intgv(0, 0), p.intgv(0, 1)),
-                                     dimension(p.intgv(1, 0), p.intgv(1, 1)),
-                                     dimension(p.intgv(2, 0), p.intgv(2, 1)));
+    lapw_global.ivgig.set_dimensions(dimension(lapw_global.intgv(0, 0), lapw_global.intgv(0, 1)),
+                                     dimension(lapw_global.intgv(1, 0), lapw_global.intgv(1, 1)),
+                                     dimension(lapw_global.intgv(2, 0), lapw_global.intgv(2, 1)));
+    lapw_global.ivgig.allocate();  
+    mdarray<int,3> ivgig_tmp(ivgig_, dimension(lapw_global.intgv(0, 0), lapw_global.intgv(0, 1)),
+                                     dimension(lapw_global.intgv(1, 0), lapw_global.intgv(1, 1)),
+                                     dimension(lapw_global.intgv(2, 0), lapw_global.intgv(2, 1)));
     
-    p.ivg.set_dimensions(3, p.ngrtot);
-    p.ivg.set_ptr(ivg_);
+    for (int i = lapw_global.intgv(0, 0); i <= lapw_global.intgv(0, 1); i++)
+        for (int j = lapw_global.intgv(1, 0); j <= lapw_global.intgv(1, 1); j++)
+            for (int k = lapw_global.intgv(2, 0); k <= lapw_global.intgv(2, 1); k++)
+                lapw_global.ivgig(i, j, k) = ivgig_tmp(i, j, k) - 1;
     
-    p.igfft.resize(p.ngrtot);
-    p.cfunir.resize(p.ngrtot);
-    p.cfunig.resize(p.ngrtot);
-    for (unsigned int i = 0; i < p.ngrtot; i++)
+    lapw_global.ivg.set_dimensions(3, lapw_global.ngrtot);
+    lapw_global.ivg.set_ptr(ivg_);
+    
+    lapw_global.igfft.resize(lapw_global.ngrtot);
+    lapw_global.cfunir.resize(lapw_global.ngrtot);
+    lapw_global.cfunig.resize(lapw_global.ngrtot);
+    for (unsigned int i = 0; i < lapw_global.ngrtot; i++)
     {
-        p.cfunig[i] = cfunig_[i];
-        p.cfunir[i] = cfunir_[i];
-        p.igfft[i] = igfft_[i] - 1;
+        lapw_global.cfunig[i] = cfunig_[i];
+        lapw_global.cfunir[i] = cfunir_[i];
+        lapw_global.igfft[i] = igfft_[i] - 1;
     }
-    p.ngrid[0] = ngrid_[0];
-    p.ngrid[1] = ngrid_[1];
-    p.ngrid[2] = ngrid_[2];
+    lapw_global.ngrid[0] = ngrid_[0];
+    lapw_global.ngrid[1] = ngrid_[1];
+    lapw_global.ngrid[2] = ngrid_[2];
     
-    p.spinpol = (*spinpol_ != 0);
-    p.ndmag = *ndmag_;
-    p.nspinor = (p.spinpol) ? 2 : 1;
+    lapw_global.spinpol = (*spinpol_ != 0);
+    lapw_global.ndmag = *ndmag_;
+    lapw_global.nspinor = (lapw_global.spinpol) ? 2 : 1;
 
-    p.natmcls = *natmcls_;
-    p.ic2ias.resize(p.natmcls);
-    p.natoms_in_class.resize(p.natmcls);
-    for (unsigned int ic = 0; ic < p.ic2ias.size(); ic++)
+    lapw_global.natmcls = *natmcls_;
+    lapw_global.ic2ias.resize(lapw_global.natmcls);
+    lapw_global.natoms_in_class.resize(lapw_global.natmcls);
+    for (unsigned int ic = 0; ic < lapw_global.ic2ias.size(); ic++)
     {
-        p.ic2ias[ic] = ic2ias_[ic] - 1;
-        p.natoms_in_class[ic] = natoms_in_class_[ic];
+        lapw_global.ic2ias[ic] = ic2ias_[ic] - 1;
+        lapw_global.natoms_in_class[ic] = natoms_in_class_[ic];
     }
     
-    p.gntyry.set_dimensions(p.lmmaxvr, p.lmmaxapw, p.lmmaxapw);
-    p.gntyry.set_ptr(gntyry_);
+    lapw_global.gntyry.set_dimensions(lapw_global.lmmaxvr, lapw_global.lmmaxapw, lapw_global.lmmaxapw);
+    lapw_global.gntyry.set_ptr(gntyry_);
     
-    p.L3_gntyry.set_dimensions(p.lmmaxapw, p.lmmaxapw);
-    p.L3_gntyry.allocate();
+    lapw_global.L3_gntyry.set_dimensions(lapw_global.lmmaxapw, lapw_global.lmmaxapw);
+    lapw_global.L3_gntyry.allocate();
     
-    p.L3_gntyry_data.set_dimensions(p.lmmaxapw, p.lmmaxapw);
-    p.L3_gntyry_data.allocate();
+    //lapw_global.L3_gntyry_data.set_dimensions(lapw_global.lmmaxapw, lapw_global.lmmaxapw);
+    //lapw_global.L3_gntyry_data.allocate();
     
-    for (unsigned int lm1 = 0; lm1 < p.lmmaxapw; lm1++)
-        for (unsigned int lm2 = 0; lm2 < p.lmmaxapw; lm2++)
-            for (unsigned int lm3 = 0; lm3 < p.lmmaxvr; lm3++) 
-                if (abs(p.gntyry(lm3, lm1, lm2)) > 1e-14)
+    for (unsigned int lm1 = 0; lm1 < lapw_global.lmmaxapw; lm1++)
+        for (unsigned int lm2 = 0; lm2 < lapw_global.lmmaxapw; lm2++)
+            for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+                if (abs(lapw_global.gntyry(lm3, lm1, lm2)) > 1e-14)
                 {
-                    p.L3_gntyry(lm1, lm2).push_back(lm3);
-                    p.L3_gntyry_data(lm1, lm2).push_back(p.gntyry(lm3, lm1, lm2));
+                    lapw_global.L3_gntyry(lm1, lm2).push_back(lm3);
+                    //lapw_global.L3_gntyry_data(lm1, lm2).push_back(lapw_global.gntyry(lm3, lm1, lm2));
                 }
     
-    for (int i = p.intgv(0, 0); i <= p.intgv(0, 1); i++)
-        for (int j = p.intgv(1, 0); j <= p.intgv(1, 1); j++)
-            for (int k = p.intgv(2, 0); k <= p.intgv(2, 1); k++)
-                p.ivgig(i, j, k) = ivgig_tmp(i, j, k) - 1;
     
-    geometry.omega = *omega_;
+    lapw_global.omega = *omega_;
     
-    for (unsigned int i = 0; i < geometry.species.size(); i++)
-        delete geometry.species[i];
-    geometry.species.clear();
-    for (unsigned int i = 0; i < p.nspecies; i++)
-        geometry.species.push_back(new Species());
-    
-    geometry.atoms.clear();
-    for (unsigned int i = 0; i < p.natmtot; i++)
-        geometry.atoms.push_back(Atom(geometry.species[ias2is_[i] - 1]));
+    for (unsigned int i = 0; i < lapw_global.species.size(); i++)
+        delete lapw_global.species[i];
+    lapw_global.species.clear();
+    for (unsigned int i = 0; i < lapw_global.nspecies; i++)
+        lapw_global.species.push_back(new Species());
 
-    for (unsigned int i = 0; i < p.kpoints.size(); i++)
-        delete p.kpoints[i];
-    p.kpoints.clear();
+    for (unsigned int i = 0; i < lapw_global.atoms.size(); i++)
+        delete lapw_global.atoms[i];
+    lapw_global.atoms.clear();
+    for (unsigned int i = 0; i < lapw_global.natmtot; i++)
+        lapw_global.atoms.push_back(new Atom(lapw_global.species[ias2is_[i] - 1]));
+
+    for (unsigned int i = 0; i < lapw_runtime.bloch_states.size(); i++)
+        delete lapw_runtime.bloch_states[i];
+    lapw_runtime.bloch_states.clear();
 }
 
 

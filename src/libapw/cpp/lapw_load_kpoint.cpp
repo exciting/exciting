@@ -4,15 +4,17 @@ extern "C" void FORTRAN(lapw_load_kpoint)(int32_t *ngp_, int32_t *igpig_, double
 {
     int ngp = *ngp_;
     
-    kpoint *kp = new kpoint(ngp);
-    kp->vgkc.set_ptr(vgpc_);
-    kp->vgkc.set_dimensions(3, p.ngkmax);
-
-    p.kpoints.push_back(kp);
+    bloch_states_k *ks = new bloch_states_k(ngp);
+    
+    ks->vgkc.set_ptr(vgpc_);
+    ks->vgkc.set_dimensions(3, lapw_global.ngkmax);
+    
     for (int ig = 0; ig < ngp; ig++)
     {
-        p.kpoints.back()->idxg[ig] = igpig_[ig] - 1;
-        p.kpoints.back()->idxgfft[ig] = p.igfft[igpig_[ig] - 1];
+        ks->idxg[ig] = igpig_[ig] - 1;
+        ks->idxgfft[ig] = lapw_global.igfft[igpig_[ig] - 1];
     }
-    p.kpoints.back()->weight = *weight_;
+    ks->weight = *weight_;
+    
+    lapw_runtime.bloch_states.push_back(ks);
 }

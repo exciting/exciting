@@ -168,6 +168,7 @@ call lapw_load_global(natmtot, nspecies, input%groundstate%lmaxvr, input%grounds
 do is=1, nspecies
   call lapw_load_species(is, nlorb(is), lorbl(1, is), apword(0, is), rmt(is), nrmt(is))
 enddo
+call lapw_init
 do ikloc=1, nkpt !nkptloc
 #ifdef MPI
   ik=mpi_grid_map(nkpt, dim_k, loc=ikloc)
@@ -177,7 +178,6 @@ do ikloc=1, nkpt !nkptloc
 #endif
   call lapw_load_kpoint(ngk(1, ik), igkig(1, 1, ikloc), vgkc(1, 1, 1, ikloc), wkpt(ik))
 enddo
-call lapw_init
 #endif
 return
 end subroutine

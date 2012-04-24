@@ -5,8 +5,9 @@ include ../../../build/make.inc
 NVCC = nvcc
 
 OBJ = lapw.o lapw_init.o lapw_load_global.o lapw_load_species.o lapw_set_sv.o \
-      lapw_load_kpoint.o lapw_seceqn_init.o lapw_fft.o lapw_eigen_states.o \
-      timer.o lapw_timers.o lapw_execute.o lapw_density.o linalg_cpu.o
+      lapw_load_kpoint.o lapw_seceqn_init.o lapw_fft.o bloch_states_k.o \
+      timer.o lapw_timers.o lapw_execute.o lapw_density.o linalg_cpu.o \
+      lapw_get_evec.o
       
 ifneq (,$(findstring D_GPU_,$(CPP_OPTS)))
 	OBJ := $(OBJ) gpu_interface.o

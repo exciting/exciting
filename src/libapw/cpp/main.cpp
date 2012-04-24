@@ -1,5 +1,6 @@
 #include <memory>
 #include "mdarray.h"
+#include "lapw.h"
 
 
 int main(int argc, char **argv)
