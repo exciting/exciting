@@ -226,9 +226,9 @@ Subroutine gndstate
             Allocate (evecsv(nstsv, nstsv))
         ! solve the first- and second-variational secular equations
             Call seceqn (ik, evalfv, evecfv, evecsv)
-#ifdef _LIBAPW_
-            call lapw_get_evec(ik, evecfv, evecsv)
-#endif
+!#ifdef _LIBAPW_
+!            call lapw_get_evec(ik, evecfv, evecsv)
+!#endif
         ! write the eigenvalues/vectors to file
             Call putevalfv (ik, evalfv)
             Call putevalsv (ik, evalsv(:, ik))
@@ -262,9 +262,9 @@ Subroutine gndstate
             magir (:, :) = 0.d0
          End If
 
-!#ifdef _LIBAPW_
-!  call libapw_rhomag
-!#else  
+#ifdef _LIBAPW_
+  call libapw_rhomag
+#else  
          
 #ifdef MPIRHO
          Do ik = firstk (rank), lastk (rank)
@@ -336,7 +336,7 @@ Subroutine gndstate
         ! normalise the density
             Call rhonorm
             
-!#endif ! _LIBAPW_
+#endif ! _LIBAPW_
 
 
         ! LDA+U
@@ -652,6 +652,9 @@ Subroutine gndstate
  ! close the INFO.OUT file
          If (rank .Eq. 0) close (60)
          deallocate(rhomtref,rhoirref)
+#ifdef _LIBAPW_
+         call lapw_timers
+#endif
          Return
    End Subroutine gndstate
 !EOC

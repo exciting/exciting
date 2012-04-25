@@ -57,7 +57,7 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
 #ifdef _LIBAPW_
 call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik), &
    &sfacgk(:,:,1,ik),apwalm(:,:,:,:,1))
-call lapw_execute(ik,apwalm,evalsv(1,ik),occsv(1,ik),densmt,densir,1)
+call lapw_execute(ik,apwalm,evalsv(1,ik),occsv(1,ik),densmt,densir,3)
 deallocate(apwalm)
 return
 #endif
