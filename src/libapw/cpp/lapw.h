@@ -3,6 +3,8 @@
 
 /*! \file lapw.h
     \brief Defines basic classes, variables and inline functions.
+    
+    \defgroup functions global functions
 */
 
 #include <vector>
@@ -18,6 +20,7 @@
 #include "timer.h"
 
 void lapw_fft(int32_t direction, complex16 *data);
+double lapw_spline_integrate(int32_t n, double *x, double *f);
 
 /// composite lm index by l and m
 inline int idxlm(int l, int m)
@@ -81,13 +84,13 @@ class radial_l_descriptor
 
 /*! \brief muffin-tin combined indices
 
-    Inside each muffin-tin sphere \f$ \alpha \f$ wave-functions are expanded in radial solutions and spherical harmonics:
+    Inside each muffin-tin sphere \f$ \alpha \f$ wave-functions are expanded in radial functions and spherical harmonics:
     \f[
         \psi_{i {\bf k}}({\bf r})= \sum_{L} \sum_{\lambda=1}^{N_{\ell}^{\alpha}} 
            F_{L \lambda}^{i {\bf k},\alpha}f_{\ell \lambda}^{\alpha}(r) 
            Y_{\ell m}(\hat {\bf r}) 
     \f]
-    where functions \f$ f_{\ell \lambda}^{\alpha}(r) \f$ represent both APW and local orbitals.
+    where functions \f$ f_{\ell \lambda}^{\alpha}(r) \f$ label both APW and local orbitals.
 */
 
 class mtci
@@ -108,6 +111,224 @@ class mtci
         unsigned int order;
         unsigned int idxrf;
         unsigned int idxlo;
+};
+
+/*struct mt_composite_index_descriptor
+{
+    unsigned int l;
+    int m;
+    unsigned int lm;
+
+    /// order of radial function for a givel l (u_l, \dot{u_l}... from the APW set, then local orbitals)
+    unsigned int ordrf;
+
+    /// index of radial function in the array of radial functions
+    unsigned int idxrf;
+
+    /// index of local orbital in the list of local orbitals for a given species
+    unsigned int idxlo;
+};*/
+
+class index_mapping
+{
+    private:
+
+        struct radial_function_descriptor
+        {
+            /// l-quantum number
+            unsigned int l;
+            
+            /// order of radial function for a given l (\f$ u_l,\dot{u_l},... \f$ from the APW set, then local orbitals)
+            unsigned int ordrf;
+            
+            /// index of radial function in the array of radial functions
+            unsigned int idxrf;
+
+            /// index of local orbital in the list of local orbitals for a given species
+            unsigned int idxlo;
+        };
+
+        class basis_function_descriptor
+        {
+            public:
+                basis_function_descriptor(const radial_function_descriptor& rfd) : rfd(rfd)
+                {
+                }
+
+                int m;
+                unsigned int lm;
+                radial_function_descriptor rfd;
+        };
+
+        /// maximum l for which indices are build
+        unsigned int lmax;
+
+        /// (lmax+1)^2
+        unsigned int lmmax;
+       
+        /// size of the APW part of basis function descriptors
+        unsigned int apw_basis_function_descriptors_size;
+
+        /// size of the local orbital part of basis function descriptors
+        unsigned int lo_basis_function_descriptors_size;
+        
+        /// list of descriptors for basis basis functions \f$ f_{\ell \lambda}^{\alpha}(r)Y_{\ell m}(\hat {\bf r}) \f$
+        std::vector<basis_function_descriptor> basis_function_descriptors;
+
+        /// local-orbital part of basis function descriptors
+        basis_function_descriptor *lo_basis_function_descriptors;
+
+        /// list of descriptors for radial functions \f$ f_{\ell \lambda}^{\alpha}(r) \f$
+        std::vector<radial_function_descriptor> radial_function_descriptors;
+        
+        /// number of radial functions for a given l
+        std::vector<unsigned int> nrfl;
+
+        /// maximum number of radial functions over all values of l
+        unsigned int nrflmax;
+
+        /// mapping from l,m,order to a global index of basis function
+        mdarray<unsigned int,2> idxbf_by_lmo;
+        
+        mdarray<unsigned int,2> idxrf_by_lo;
+
+        /// l for a given radial function
+        std::vector<int> l_by_idxrf;
+    
+    public:
+        
+        index_mapping() : lmax(0), 
+                          apw_basis_function_descriptors_size(0),
+                          lo_basis_function_descriptors_size(0),
+                          lo_basis_function_descriptors(0), 
+                          nrflmax(0)
+        {
+            radial_function_descriptors.clear();
+            basis_function_descriptors.clear();
+        }
+
+        static inline unsigned int idxlm(unsigned int l, int m)
+        {
+            return l * l + l + m;
+        }
+
+        void add(unsigned int l, int idxlo = -1)
+        {
+            lmax = std::max(lmax, l);
+
+            nrfl.resize(lmax + 1, 0);
+
+            radial_function_descriptor rfd;
+            rfd.l = l;
+            rfd.ordrf = nrfl[l]++;
+            nrflmax = std::max(nrflmax, nrfl[l]);
+
+            rfd.idxrf = radial_function_descriptors.size();
+            rfd.idxlo = idxlo;
+            
+            radial_function_descriptors.push_back(rfd);
+
+            basis_function_descriptor bfd(rfd);
+
+            for (int m = -l; m <= (int)l; m++)
+            {
+                bfd.m = m;
+                bfd.lm = idxlm(l, m);
+                basis_function_descriptors.push_back(bfd);
+                
+                if (idxlo != -1 && lo_basis_function_descriptors == 0)
+                {
+                    lo_basis_function_descriptors = &basis_function_descriptors.back();
+                    apw_basis_function_descriptors_size = basis_function_descriptors.size() - 1;
+                } 
+            }
+        }
+        
+        void init()
+        {
+            lmmax = pow(lmax + 1, 2);
+
+            if (apw_basis_function_descriptors_size == 0)
+            {
+                apw_basis_function_descriptors_size = basis_function_descriptors.size();
+            }
+            else
+            {
+                lo_basis_function_descriptors_size = basis_function_descriptors.size() - apw_basis_function_descriptors_size;
+            }
+
+            idxbf_by_lmo.set_dimensions(lmmax, nrflmax);
+            idxbf_by_lmo.allocate();
+            idxbf_by_lmo.zero();
+
+            for (unsigned int i = 0; i < basis_function_descriptors.size(); i++)
+                idxbf_by_lmo(basis_function_descriptors[i].lm, basis_function_descriptors[i].rfd.ordrf) = i;
+            
+            idxrf_by_lo.set_dimensions(lmax + 1, nrflmax);
+            idxrf_by_lo.allocate();
+            idxrf_by_lo.zero();
+
+            for (unsigned int i = 0; i < radial_function_descriptors.size(); i++)
+                idxrf_by_lo(radial_function_descriptors[i].l, radial_function_descriptors[i].ordrf) = i;
+            
+            
+            /*for (unsigned int i = 0; i < basis_function_descriptors.size(); i++)
+            {
+                std::cout << "idxbf=" << i 
+                          << "  l=" << basis_function_descriptors[i].rfd.l
+                          << "  ord=" << basis_function_descriptors[i].rfd.ordrf
+                          << "  m=" << basis_function_descriptors[i].m << std::endl;
+
+
+            }*/
+        }
+        
+        inline unsigned int getidxrf(unsigned int l, unsigned int ordrf)
+        {
+            return idxrf_by_lo(l, ordrf);
+        } 
+        
+        inline unsigned int getnrf(unsigned int l)
+        {
+            return nrfl[l];
+        }
+
+        inline unsigned int getnbf()
+        {
+            return basis_function_descriptors.size();
+        }
+
+        inline unsigned int getbfl(unsigned int idxbf)
+        {
+            return basis_function_descriptors[idxbf].rfd.l;
+        }
+        
+        inline unsigned int getbfm(unsigned int idxbf)
+        {
+            return basis_function_descriptors[idxbf].m;
+        }
+
+        inline unsigned int getbflm(unsigned int idxbf)
+        {
+            return basis_function_descriptors[idxbf].lm;
+        }
+        
+        inline unsigned int getbfordrf(unsigned int idxbf)
+        {
+            return basis_function_descriptors[idxbf].rfd.ordrf;
+        }
+
+        inline unsigned int getidxbf(unsigned int lm, unsigned int ordrf)
+        {
+            return idxbf_by_lmo(lm, ordrf);
+        }
+        
+        inline unsigned int getidxbf(unsigned int l, int m, unsigned int ordrf)
+        {
+            return idxbf_by_lmo(idxlm(l, m), ordrf);
+        }
+
+
 };
 
 /// species related variables
@@ -131,6 +352,9 @@ class Species
         double rmax;
         double rmt;
         int nrmt;
+        
+        /// l for U correction
+        int lu;
   
         /// list of core levels 
         std::vector<atomic_level> core;
@@ -153,6 +377,10 @@ class Species
         std::vector<int> l_by_idxrf;
         std::vector<int> rfmt_order;
         unsigned int nrfmt;
+        
+        index_mapping idxmap;
+        
+        mdarray<double,1> radial_mesh;
 };
 
 class Atom 
@@ -163,7 +391,7 @@ class Atom
         {
         }
 
-        Atom(Species *species) : species(species)
+        Atom(Species *species, int ic) : species(species), idxclass(ic)
         {
         }
         
@@ -175,6 +403,7 @@ class Atom
         unsigned int offset_apw;
         unsigned int offset_lo;
         unsigned int offset_wfmt;
+        int idxclass;
 };
 
 /// global read-only variables initialized once at the beginning
@@ -198,11 +427,11 @@ struct lapw_global_variables
     /// (lmaxvr+1)^2
     unsigned int lmmaxvr;
     
-    /// total number of atoms
-    unsigned int natmtot;
+    unsigned int lmaxlu;
     
-    /// total number of species
-    unsigned int nspecies;
+    unsigned int lmmaxlu;
+    
+    bool ldapu;
     
     /// number of G-vectors
     unsigned int ngvec;
@@ -213,9 +442,6 @@ struct lapw_global_variables
     /// number of FFT grid points
     unsigned int ngrtot;
     
-    /// maximum number of local orbitals
-    unsigned int nlomax;
-    
     /// maximum number of radial points
     unsigned int nrmtmax;
     
@@ -224,9 +450,6 @@ struct lapw_global_variables
     
     /// number of second-variational states
     unsigned int nstsv;
-    
-    /// maximum size of Hamiltonian and overlap matrices
-    unsigned int nmatmax;
     
     /// maximum number of radial functions over all species
     unsigned int nrfmtmax;
@@ -239,6 +462,8 @@ struct lapw_global_variables
     
     /// spin-polarized calculation (T/F)
     bool spinpol;
+    
+    bool spinorb;
     
     /// number of dimensions (0,1 or 3) of the magnetization field
     unsigned int ndmag;
@@ -394,6 +619,7 @@ struct lapw_runtime_variables
 {
     mdarray<double,4> hmltrad;
     mdarray<double,4> ovlprad;
+    mdarray<double,4> socrad;
     mdarray<double,5> beffrad;
     mdarray<double,5> apwfr;
     mdarray<double,3> apwdfr;
@@ -403,8 +629,13 @@ struct lapw_runtime_variables
 
     /// collection of bloch states for a local fraction of k-points
     std::vector<bloch_states_k*> bloch_states;
-
+    
+    mdarray<complex16,5> dmatu;
+    mdarray<complex16,5> vmatu;
+    
+    mdarray<double,3> rfmt;
 };
+extern lapw_runtime_variables lapw_runtime;
 
 /*class lapw_eigen_states
 {
@@ -518,7 +749,6 @@ extern complex16 zone;
 extern complex16 zzero;
 extern complex16 zi;
 extern double y00;
-extern lapw_runtime_variables lapw_runtime;
 
 /*
     inline functions

@@ -125,6 +125,11 @@ template <typename T, int ND> class mdarray_base
             mdarray_ptr = ptr;
         }
         
+        T* get_ptr()
+        {
+            return mdarray_ptr;
+        }
+        
         /*void copy_members(const mdarray_base<impl,T,ND>& src) 
         {
             for (int i = 0; i < ND; i++) 

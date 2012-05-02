@@ -1,5 +1,7 @@
 #include "lapw.h"
 
+void lapw_gen_dmatu(const bloch_states_k* const ks, mdarray<complex16,5>& zdens);
+
 template <int N> void sum_zdens(int ias, int lm3, mdarray<complex16,5>& zdens, mdarray<complex16,2>& gtmp, 
                                 mdarray<double,6>& densmt)
 {
@@ -66,7 +68,7 @@ void lapw_density(bloch_states_k *ks, mdarray<double,6>& densmt, mdarray<double,
         }
     }
     
-    mdarray<complex16,5> zdens(NULL, szmax, szmax, lapw_global.nspinor, lapw_global.nspinor, lapw_global.natmtot);
+    mdarray<complex16,5> zdens(NULL, szmax, szmax, lapw_global.nspinor, lapw_global.nspinor, lapw_global.atoms.size());
     zdens.allocate();
     mdarray<complex16,3> wf1(NULL, szmax, idxocc.size(), lapw_global.nspinor);
     wf1.allocate();
@@ -74,7 +76,7 @@ void lapw_density(bloch_states_k *ks, mdarray<double,6>& densmt, mdarray<double,
     wf2.allocate();
 
     timer *t1 = new timer("lapw_density:zdens");    
-    for (unsigned int ias = 0; ias < lapw_global.natmtot; ias++)
+    for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)
     {
         int offset = lapw_global.atoms[ias]->offset_wfmt;
         int sz = lapw_global.atoms[ias]->species->ci.size();
@@ -93,7 +95,7 @@ void lapw_density(bloch_states_k *ks, mdarray<double,6>& densmt, mdarray<double,
                         &wf2(0, 0, ispn2), wf2.size(0), zzero, &zdens(0, 0, ispn1, ispn2, ias), zdens.size(0));
     }
     delete t1;
-    
+
     t1 = new timer("lapw_density:densmt");
     #pragma omp parallel default(shared)
     {
@@ -104,7 +106,7 @@ void lapw_density(bloch_states_k *ks, mdarray<double,6>& densmt, mdarray<double,
         {
             zcopy(gtmp.size(), &lapw_global.gntyry(lm3, 0, 0), lapw_global.lmmaxvr, &gtmp(0, 0), 1);
 
-            for (unsigned int ias = 0; ias < lapw_global.natmtot; ias++)
+            for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)
             {
                 sum_zdens<0>(ias, lm3, zdens, gtmp, densmt);
                 
@@ -162,4 +164,13 @@ void lapw_density(bloch_states_k *ks, mdarray<double,6>& densmt, mdarray<double,
         }
     }
     delete t1;
-}
+    
+    if (lapw_global.ldapu)
+    {
+        t1 = new timer("lapw_density:dmatu");
+        
+        lapw_gen_dmatu(ks, zdens);
+        
+        delete t1;
+    }
+ }

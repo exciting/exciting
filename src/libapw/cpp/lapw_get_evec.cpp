@@ -1,10 +1,11 @@
 #include "lapw.h"
 
-extern "C" void FORTRAN(lapw_get_evec)(int32_t *ikloc_, complex16 *evecfv_, complex16 *evecsv_)
+extern "C" void FORTRAN(lapw_get_evec)(int32_t *ikloc_, int32_t *nmatmax_, complex16 *evecfv_, complex16 *evecsv_)
 {
     int ikloc = *ikloc_ - 1;
+    int nmatmax = *nmatmax_;
     
-    mdarray<complex16,2> evecfv(evecfv_, lapw_global.nmatmax, lapw_global.nstfv); 
+    mdarray<complex16,2> evecfv(evecfv_, nmatmax, lapw_global.nstfv); 
     mdarray<complex16,2> evecsv(evecsv_, lapw_global.nstsv, lapw_global.nstsv);
     
     for (unsigned int i = 0; i < lapw_global.nstfv; i++)

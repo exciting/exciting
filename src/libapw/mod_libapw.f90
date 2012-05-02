@@ -17,6 +17,8 @@ real(8), allocatable :: rfmt(:, :, :)
 real(8), allocatable :: hrfmt(:, :, :)
 integer, allocatable :: lrf(:, :)
 complex(8), allocatable :: gntyry1(:,:,:)
+real(8), allocatable :: socrfmt(:,:) 
+
 
 contains
 
@@ -158,15 +160,19 @@ if (allocated(hrfmt)) deallocate(hrfmt)
 allocate(hrfmt(nrmtmax, nrfmtmax, natmcls))
 if (allocated(lrf)) deallocate(lrf)
 allocate(lrf(nrfmtmax, natmcls))
+if (allocated(socrfmt)) deallocate(socrfmt)
+allocate(socrfmt(nrmtmax,natmtot))
 
-call lapw_load_global(natmtot, nspecies, input%groundstate%lmaxvr, input%groundstate%lmaxapw,&
-  & apwordmax, nrmtmax, &
-  &ngkmax, ngvec, ngrtot, nlomax, ias2is, intgv, ivg, ivgig, ngrid, igfft, cfunir, &
-  &cfunig, gntyry1, nstfv, nstsv, nmatmax, nrfmtmax, ordrfmtmax, input%groundstate%solver%evaltol&
-  &, associated(input%groundstate%spin), &
-  &ndmag, omega, natmcls, ic2ias, natoms_in_class)
-do is=1, nspecies
-  call lapw_load_species(is, nlorb(is), lorbl(1, is), apword(0, is), rmt(is), nrmt(is))
+call lapw_load_global(input%groundstate%lmaxvr, input%groundstate%lmaxapw,&
+  & apwordmax, nrmtmax, ngkmax, ngvec, ngrtot, intgv, ivg, ivgig, ngrid, igfft, cfunir, &
+  &cfunig, gntyry1, nstfv, nrfmtmax, ordrfmtmax, input%groundstate%solver%evaltol&
+  &, associated(input%groundstate%spin), isspinorb(),&
+  &ndmag, omega, natmcls, ic2ias, natoms_in_class,ldapu)
+do is=1,nspecies
+  call lapw_load_species(nlorb(is),lorbl(1,is),apword(0,is),rmt(is),nrmt(is),llu(is),spr(1,is))
+enddo
+do ias=1,natmtot
+  call lapw_load_atom(ias2is(ias),ias2ic(ias))
 enddo
 call lapw_init
 do ikloc=1, nkpt !nkptloc
@@ -328,7 +334,21 @@ if (associated(input%groundstate%spin)) then
     enddo
   endif
 endif
-call lapw_seceqn_init(hmltrad, ovlprad, beffrad, apwfr, apwdfr, beffir, veffig) 
+if (isspinorb()) then
+  cso=1.d0/(4.d0*solsc**2)
+  do ias=1,natmtot
+    is=ias2is(ias)
+! radial derivative of the spherical part of the potential
+    fr(1:nrmt(is))=veffmt(1,1:nrmt(is),ias)*y00
+    call fderiv(1,nrmt(is),spr(:,is),fr,gr,cf)
+    do ir=1,nrmt(is)
+      rm=1.d0-2.d0*cso*fr(ir)
+      socrfmt(ir,ias)=cso*gr(ir)/(spr(ir,is)*rm**2)
+    enddo
+  enddo
+endif
+call lapw_seceqn_init(hmltrad, ovlprad, beffrad, apwfr, apwdfr, beffir, veffig, &
+  &vmatlu, rfmt, socrfmt) 
 densmt=0.d0
 densir=0.d0
 return

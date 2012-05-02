@@ -16,7 +16,7 @@ void bloch_states_k::copy_apwalm(complex16 *apwalm_)
     apwalm.set_dimensions(ngk, lapw_global.size_wfmt_apw);
     apwalm.allocate();
     
-    mdarray<complex16,4> apwalm_tmp(apwalm_, lapw_global.ngkmax, lapw_global.apwordmax, lapw_global.lmmaxapw, lapw_global.natmtot);
+    mdarray<complex16,4> apwalm_tmp(apwalm_, lapw_global.ngkmax, lapw_global.apwordmax, lapw_global.lmmaxapw, lapw_global.atoms.size());
     
     for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)
     {
@@ -35,7 +35,7 @@ void bloch_states_k::copy_apwalm(complex16 *apwalm_)
 
 inline void move_apw_blocks(complex16 *wf)
 {
-    for (unsigned int ias = lapw_global.natmtot - 1; ias > 0; ias--)
+    for (unsigned int ias = lapw_global.atoms.size() - 1; ias > 0; ias--)
     {
         unsigned int final_block_offset = lapw_global.atoms[ias]->offset_wfmt;
         unsigned int initial_block_offset = lapw_global.atoms[ias]->offset_apw;
@@ -47,7 +47,7 @@ inline void move_apw_blocks(complex16 *wf)
 
 inline void copy_lo_blocks(complex16 *wf, complex16 *evec)
 {
-    for (unsigned int ias = 0; ias < lapw_global.natmtot; ias++)
+    for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)
     {
         unsigned int final_block_offset = lapw_global.atoms[ias]->offset_wfmt + lapw_global.atoms[ias]->species->size_ci_apw;
         unsigned int initial_block_offset = lapw_global.atoms[ias]->offset_lo;
@@ -168,7 +168,7 @@ void bloch_states_k::test_scalar_wave_functions(int use_fft)
         for (unsigned int j2 = 0; j2 < lapw_global.nstfv; j2++)
         {
             complex16 zsum(0,0);
-            for (unsigned int ias = 0; ias < lapw_global.natmtot; ias++)
+            for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)
             {
                 int offset_wfmt = lapw_global.atoms[ias]->offset_wfmt;
                 mdarray<int,2> *ci_by_lmo = &lapw_global.atoms[ias]->species->ci_by_lmo;
@@ -276,7 +276,7 @@ void bloch_states_k::test_spinor_wave_functions(int use_fft)
             
             for (unsigned int ispn = 0; ispn < lapw_global.nspinor; ispn++)
             {
-                for (unsigned int ias = 0; ias < lapw_global.natmtot; ias++)
+                for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)
                 {
                     int offset_wfmt = lapw_global.atoms[ias]->offset_wfmt;
                     mdarray<int,2> *ci_by_lmo = &lapw_global.atoms[ias]->species->ci_by_lmo;
