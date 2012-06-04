@@ -187,7 +187,7 @@
               </xs:simpleType>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="packedmatrixstorage"
-              type="xs:boolean" use="optional" default="true">
+              type="xs:boolean" use="optional" default="false">
               <xs:annotation>
                 <xs:documentation> In the default calculation the matrix is sored in packed form.
                   When using multi-threaded BLAS setting this parameter to <pre>"false"</pre>
