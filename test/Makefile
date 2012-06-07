@@ -1,7 +1,7 @@
 include ../build/make.inc
 
 
-ifeq ($(BUILDMPI),true)
+ifeq ($(TestMPI),true)
 test: cleantests  test02 test03 test04 test05 test07 testmpi
 else
 test: cleantests  test02 test03 test04 test05 test07

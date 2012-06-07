@@ -1717,7 +1717,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"xctype")
-getstructgroundstate%xctype= "LSDAPerdew-Wang"
+getstructgroundstate%xctype= "GGAPBEsol"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"xctype",getstructgroundstate%xctype)
        call removeAttribute(thisnode,"xctype")  
