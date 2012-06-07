@@ -6,65 +6,34 @@
 
 extern "C" void FORTRAN(lapw_init)()
 {
-    for (unsigned int is = 0; is < lapw_global.species.size(); is++)
+    lapw_global.max_mt_index_size = 0;
+
+    for (int is = 0; is < (int)lapw_global.species.size(); is++)
     {
-        lapw_global.species[is]->rfmt_order.resize(lapw_global.lmaxapw + 1, 0);
-        
-        for (unsigned int l = 0; l <= lapw_global.lmaxapw; l++)
+        for (int l = 0; l <= lapw_global.lmaxapw; l++)
         {
-            for (unsigned int io = 0; io < lapw_global.species[is]->apw_descriptors[l].radial_solution_descriptors.size(); io++)
-            {
-                lapw_global.species[is]->ci_by_idxrf.push_back(lapw_global.species[is]->ci.size());
-                lapw_global.species[is]->l_by_idxrf.push_back(l);
-                
-                for (int m = -l; m <= (int)l; m++)
-                    lapw_global.species[is]->ci.push_back(mtci(l, m, lapw_global.species[is]->rfmt_order[l], lapw_global.species[is]->nrfmt));
-                
-                lapw_global.species[is]->rfmt_order[l]++;
-                lapw_global.species[is]->nrfmt++;
-                
-                lapw_global.species[is]->idxmap.add(l);
-            }
+            for (int io = 0; io < (int)lapw_global.species[is]->apw_descriptors[l].radial_solution_descriptors.size(); io++)
+                lapw_global.species[is]->radial_index.add(l);
         }
-        lapw_global.species[is]->size_ci_apw = lapw_global.species[is]->ci.size();
         
-        for (unsigned int ilo = 0; ilo < lapw_global.species[is]->lo_descriptors.size(); ilo++)
+        for (int ilo = 0; ilo < (int)lapw_global.species[is]->lo_descriptors.size(); ilo++)
         {
             int l = lapw_global.species[is]->lo_descriptors[ilo].l;
             
-            lapw_global.species[is]->ci_by_idxrf.push_back(lapw_global.species[is]->ci.size());
-            lapw_global.species[is]->l_by_idxrf.push_back(l);
-
-            for (int m = -l; m <= l; m++)
-                lapw_global.species[is]->ci.push_back(mtci(l, m, lapw_global.species[is]->rfmt_order[l], lapw_global.species[is]->nrfmt, ilo));
-            
-            lapw_global.species[is]->rfmt_order[l]++;
-            lapw_global.species[is]->nrfmt++;
-            
-            lapw_global.species[is]->idxmap.add(l, ilo);
+            lapw_global.species[is]->radial_index.add(l, ilo);
 
         }
-        lapw_global.species[is]->size_ci_lo = lapw_global.species[is]->ci.size() - lapw_global.species[is]->size_ci_apw;
-        lapw_global.species[is]->ci_lo = &lapw_global.species[is]->ci[lapw_global.species[is]->size_ci_apw];
-
-        int maxorder = 0;
-        for (unsigned int l = 0; l <= lapw_global.lmaxapw; l++)
-            maxorder = std::max(maxorder, lapw_global.species[is]->rfmt_order[l]);
-        
-        lapw_global.species[is]->ci_by_lmo.set_dimensions(lapw_global.lmmaxapw, maxorder);
-        lapw_global.species[is]->ci_by_lmo.allocate();
-
-        for (unsigned int i = 0; i < lapw_global.species[is]->ci.size(); i++)
-            lapw_global.species[is]->ci_by_lmo(lapw_global.species[is]->ci[i].lm, lapw_global.species[is]->ci[i].order) = i;
             
-        lapw_global.species[is]->idxmap.init();
+        lapw_global.species[is]->radial_index.init();
+        lapw_global.species[is]->index.init(lapw_global.species[is]->radial_index);
+        lapw_global.max_mt_index_size = std::max(lapw_global.species[is]->index.size(), lapw_global.max_mt_index_size);
     }
 
     lapw_global.size_wfmt_apw = 0;
     lapw_global.size_wfmt_lo = 0;
     lapw_global.size_wfmt = 0;
     
-    for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)
+    for (int ias = 0; ias < (int)lapw_global.atoms.size(); ias++)
     {
         Atom *atom = lapw_global.atoms[ias];
         Species *species = atom->species;
@@ -73,9 +42,9 @@ extern "C" void FORTRAN(lapw_init)()
         atom->offset_lo = lapw_global.size_wfmt_lo;
         atom->offset_wfmt = lapw_global.size_wfmt;
 
-        lapw_global.size_wfmt_apw += species->size_ci_apw;
-        lapw_global.size_wfmt_lo += species->size_ci_lo;
-        lapw_global.size_wfmt += species->ci.size();
+        lapw_global.size_wfmt_apw += species->index.apw_size();
+        lapw_global.size_wfmt_lo += species->index.lo_size();
+        lapw_global.size_wfmt += species->index.size();
     }
     
     /*lapw_global.size_apwalm = 0;
@@ -87,9 +56,9 @@ extern "C" void FORTRAN(lapw_init)()
     }*/
     
     lapw_global.l_by_lm.resize(lapw_global.lmmaxapw);
-    for (unsigned int l = 0; l <= lapw_global.lmaxapw; l++)
-        for (int m = -l; m <= (int)l; m++)
-            lapw_global.l_by_lm[idxlm(l, m)] = l;
+    for (int l = 0; l <= lapw_global.lmaxapw; l++)
+        for (int m = -l; m <= l; m++)
+            lapw_global.l_by_lm[mt_index::idxlm(l, m)] = l;
 
     assert(lapw_global.size_wfmt == (lapw_global.size_wfmt_apw + lapw_global.size_wfmt_lo));
     

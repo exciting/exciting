@@ -46,21 +46,21 @@ extern "C" void FORTRAN(lapw_seceqn_init)(double *hmltrad_, double *ovlprad_, do
         mdarray<double,2> socrfmt(socrfmt_, lapw_global.nrmtmax, lapw_global.atoms.size());
         
         std::vector<double> f(lapw_global.nrmtmax);
-        for (int ias = 0; ias < lapw_global.atoms.size(); ias++)
+        for (int ias = 0; ias < (int)lapw_global.atoms.size(); ias++)
         {
             Species *sp = lapw_global.atoms[ias]->species;
             int ic = lapw_global.atoms[ias]->idxclass;
 
             for (int l = 0; l <= lapw_global.lmaxapw; l++)
             {
-                int nrf = sp->idxmap.getnrf(l);
+                int nrf = sp->radial_index.nrf(l);
                 for (int io1 = 0; io1 < nrf; io1++)
                 {
                     for (int io2 = 0; io2 < nrf; io2++)
                     {
                         for (int ir = 0; ir < sp->nrmt; ir++)
-                            f[ir] = lapw_runtime.rfmt(ir, sp->idxmap.getidxrf(l, io1), ic) * socrfmt(ir, ias) * 
-                                lapw_runtime.rfmt(ir, sp->idxmap.getidxrf(l, io2), ic) * pow(sp->radial_mesh(ir), 2);
+                            f[ir] = lapw_runtime.rfmt(ir, sp->radial_index(l, io1), ic) * socrfmt(ir, ias) * 
+                                lapw_runtime.rfmt(ir, sp->radial_index(l, io2), ic) * pow(sp->radial_mesh(ir), 2);
                         lapw_runtime.socrad(l, io1, io2, ias) = lapw_spline_integrate(sp->nrmt, &sp->radial_mesh(0), &f[0]); 
                     }
                 }
@@ -92,11 +92,11 @@ extern "C" void FORTRAN(lapw_seceqn_init)(double *hmltrad_, double *ovlprad_, do
             lapw_runtime.beffig.set_dimensions(lapw_global.ngvec, lapw_global.ndmag);
             lapw_runtime.beffig.allocate();
             std::vector<complex16> zfft(lapw_global.ngrtot);
-            for (unsigned int i = 0; i < lapw_global.ndmag; i++)
+            for (int i = 0; i < lapw_global.ndmag; i++)
             {
-                for (unsigned int ir = 0; ir < lapw_global.ngrtot; ir++) zfft[ir] = zone * lapw_runtime.beffir(ir, i) * lapw_global.cfunir[ir];
+                for (int ir = 0; ir < lapw_global.ngrtot; ir++) zfft[ir] = zone * lapw_runtime.beffir(ir, i) * lapw_global.cfunir[ir];
                 lapw_fft(-1, &zfft[0]);
-                for (unsigned int ig = 0; ig < lapw_global.ngvec; ig++) lapw_runtime.beffig(ig, i) = zfft[lapw_global.igfft[ig]];
+                for (int ig = 0; ig < lapw_global.ngvec; ig++) lapw_runtime.beffig(ig, i) = zfft[lapw_global.igfft[ig]];
             }
         }
     }

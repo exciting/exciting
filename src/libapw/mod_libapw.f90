@@ -200,7 +200,7 @@ use mod_spin
 implicit none
 integer::ir, is, ia, ic, ias, l1, l2, io1, io2, ilo1, ilo2, i1, i2, nr, i
 integer::l1tmp(0:input%groundstate%lmaxapw), l2tmp, lm
-real(8)::cb, t1
+real(8)::cb, cso, rm, t1
 real(8), allocatable :: bmt(:, :, :)
 real(8)::r2(nrmtmax), fr(nrmtmax), gr(nrmtmax), cf(4, nrmtmax)
 !
@@ -238,23 +238,23 @@ do ias=1, natmtot
   do i1=1, nrfmt(is)
     do i2=1, nrfmt(is)
       if (lrf(i1, ic).eq.lrf(i2, ic)) then
-	do ir=1, nr
-	  fr(ir)=rfmt(ir, i1, ic)*hrfmt(ir, i2, ic)*r2(ir)
-	enddo
-	call fderiv(-1, nr, spr(:, is), fr, gr, cf)
-	hmltrad(1, i1, i2, ias)=gr(nr)/y00
+    do ir=1, nr
+      fr(ir)=rfmt(ir, i1, ic)*hrfmt(ir, i2, ic)*r2(ir)
+    enddo
+    call fderiv(-1, nr, spr(:, is), fr, gr, cf)
+    hmltrad(1, i1, i2, ias)=gr(nr)/y00
       else
-	hmltrad(1, i1, i2, ias)=0.d0
+    hmltrad(1, i1, i2, ias)=0.d0
       endif
       if (i1.ge.i2) then
-	do lm=2, lmmaxvr
-	  do ir=1, nr
-	    fr(ir)=rfmt(ir, i1, ic)*rfmt(ir, i2, ic)*r2(ir)*veffmt(lm, ir, ias)
-	  enddo
-	  call fderiv(-1, nr, spr(:, is), fr, gr, cf)
-	  hmltrad(lm, i1, i2, ias)=gr(nr)
-	  hmltrad(lm, i2, i1, ias)=gr(nr)
-	enddo
+    do lm=2, lmmaxvr
+      do ir=1, nr
+        fr(ir)=rfmt(ir, i1, ic)*rfmt(ir, i2, ic)*r2(ir)*veffmt(lm, ir, ias)
+      enddo
+      call fderiv(-1, nr, spr(:, is), fr, gr, cf)
+      hmltrad(lm, i1, i2, ias)=gr(nr)
+      hmltrad(lm, i2, i1, ias)=gr(nr)
+    enddo
       endif
     enddo
   enddo 
@@ -275,9 +275,9 @@ do ias=1, natmtot
     l2tmp=0
     do ilo2=1, nlorb(is)
       if (l1.eq.lorbl(ilo2, is)) then
-	l2tmp=l2tmp+1
-	ovlprad(l1, apword(l1, is)+l1tmp(l1), apword(l1, is)+l2tmp, ias)=ololo(ilo1, ilo2, ias)
-	ovlprad(l1, apword(l1, is)+l2tmp, apword(l1, is)+l1tmp(l1), ias)=ololo(ilo2, ilo1, ias)
+    l2tmp=l2tmp+1
+    ovlprad(l1, apword(l1, is)+l1tmp(l1), apword(l1, is)+l2tmp, ias)=ololo(ilo1, ilo2, ias)
+    ovlprad(l1, apword(l1, is)+l2tmp, apword(l1, is)+l1tmp(l1), ias)=ololo(ilo2, ilo1, ias)
       endif
     enddo
   enddo
@@ -301,18 +301,18 @@ do ias=1, natmtot
     endif
     do i=1, ndmag
       do i1=1, nrfmt(is)
-	do i2=1, nrfmt(is)
-	  if (i1.ge.i2) then
-	    do lm=1, lmmaxvr
-	      do ir=1, nr
-		fr(ir)=rfmt(ir, i1, ic)*rfmt(ir, i2, ic)*r2(ir)*bmt(lm, ir, i)
-	      enddo
-	      call fderiv(-1, nr, spr(:, is), fr, gr, cf)
-	      beffrad(lm, i1, i2, ias, i)=gr(nr)
-	      beffrad(lm, i2, i1, ias, i)=gr(nr)
-	    enddo !lm
-	  endif
-	enddo
+    do i2=1, nrfmt(is)
+      if (i1.ge.i2) then
+        do lm=1, lmmaxvr
+          do ir=1, nr
+        fr(ir)=rfmt(ir, i1, ic)*rfmt(ir, i2, ic)*r2(ir)*bmt(lm, ir, i)
+          enddo
+          call fderiv(-1, nr, spr(:, is), fr, gr, cf)
+          beffrad(lm, i1, i2, ias, i)=gr(nr)
+          beffrad(lm, i2, i1, ias, i)=gr(nr)
+        enddo !lm
+      endif
+    enddo
       enddo
     enddo !i
   endif ! spinpol
@@ -335,7 +335,7 @@ if (associated(input%groundstate%spin)) then
   endif
 endif
 if (isspinorb()) then
-  cso=1.d0/(4.d0*solsc**2)
+  cso=1.d0/(4.d0*sol**2)
   do ias=1,natmtot
     is=ias2is(ias)
 ! radial derivative of the spherical part of the potential
@@ -378,22 +378,22 @@ do ias=1, natmtot
     fr=0.d0
     do ispn1=1, nspinor
       do ispn2=1, nspinor
-	if ((ndmag.eq.1.and.(ispn1.eq.ispn2)).or.ndmag.ne.1) then
-	  do j2=1, nrfmtmax
-	    do j1=1, j2
-	      fr(:, ispn1, ispn2) = fr(:, ispn1, ispn2) + 2 * densmt(j1, j2, lm3, ias, ispn1, ispn2) * &
-		&rfmt(:, j1, ic) * rfmt(:, j2, ic)
-	    enddo
-	  enddo
-	endif
+    if ((ndmag.eq.1.and.(ispn1.eq.ispn2)).or.ndmag.ne.1) then
+      do j2=1, nrfmtmax
+        do j1=1, j2
+          fr(:, ispn1, ispn2) = fr(:, ispn1, ispn2) + 2 * densmt(j1, j2, lm3, ias, ispn1, ispn2) * &
+        &rfmt(:, j1, ic) * rfmt(:, j2, ic)
+        enddo
+      enddo
+    endif
       enddo 
     enddo !l1
     if(associated(input%groundstate%spin))  then
       rhomt(lm3, :, ias)=fr(:, 1, 1)+fr(:, 2, 2)
       magmt(lm3, :, ias, ndmag)=fr(:, 1, 1)-fr(:, 2, 2)
       if (ndmag.eq.3) then
-	magmt(lm3, :, ias, 1)=fr(:, 1, 2)
-	magmt(lm3, :, ias, 2)=fr(:, 2, 1)
+    magmt(lm3, :, ias, 1)=fr(:, 1, 2)
+    magmt(lm3, :, ias, 2)=fr(:, 2, 1)
       endif
     else
       rhomt(lm3, :, ias)=fr(:, 1, 1)
