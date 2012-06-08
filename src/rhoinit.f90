@@ -40,15 +40,6 @@ Subroutine rhoinit
       Real (8), Allocatable :: ffacg (:)
       Complex (8), Allocatable :: zfmt (:, :)
       Complex (8), Allocatable :: zfft (:)
-! maximum angular momentum for density initialisation
-      lmax = 1
-      lmmax = (lmax+1) ** 2
-! allocate local arrays
-      Allocate (jlgr(0:lmax, nrcmtmax))
-      Allocate (th(nrmtmax, nspecies))
-      Allocate (ffacg(ngvec))
-      Allocate (zfmt(lmmax, nrcmtmax))
-      Allocate (zfft(ngrtot))
 ! zero the charge density and magnetisation arrays
       rhomt (:, :, :) = 0.d0
       rhoir (:) = 0.d0
@@ -56,91 +47,29 @@ Subroutine rhoinit
          magmt (:, :, :, :) = 0.d0
          magir (:, :) = 0.d0
       End If
-! compute the superposition of all the atomic density tails
-      zfft (:) = 0.d0
-      Do is = 1, nspecies
-! generate smooth step function
-         Do ir = 1, nrmt (is)
-            th (ir, is) = (spr(ir, is)/rmt(is)) ** n
-         End Do
-         Do ig = 1, ngvec
-            Do ir = 1, spnr (is)
-               x = gc (ig) * spr (ir, is)
-               Call sbessel (0, x, jlgr(0, 1))
-               t1 = sprho (ir, is) * jlgr (0, 1) * spr (ir, is) ** 2
-               If (ir .Lt. nrmt(is)) Then
-                  fr (ir) = th (ir, is) * t1
-               Else
-                  fr (ir) = t1
-               End If
-            End Do
-            Call fderiv (-1, spnr(is), spr(:, is), fr, gr, cf)
-            ffacg (ig) = (fourpi/omega) * gr (spnr(is))
-         End Do
-         Do ia = 1, natoms (is)
-            ias = idxas (ia, is)
-            Do ig = 1, ngvec
-               ifg = igfft (ig)
-               zfft (ifg) = zfft (ifg) + ffacg (ig) * conjg (sfacg(ig, &
-              & ias))
-            End Do
-         End Do
-      End Do
-! compute the tails in each muffin-tin
+      
+      t1=0.d0
+      t2=0.d0
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
-            zfmt (:, :) = 0.d0
-            Do ig = 1, ngvec
-               ifg = igfft (ig)
-               Do irc = 1, nrcmt (is)
-                  x = gc (ig) * rcmt (irc, is)
-                  Call sbessel (lmax, x, jlgr(:, irc))
-               End Do
-               zt1 = fourpi * zfft (ifg) * sfacg (ig, ias)
-               lm = 0
-               Do l = 0, lmax
-                  zt2 = zt1 * zil (l)
-                  Do m = - l, l
-                     lm = lm + 1
-                     zt3 = zt2 * conjg (ylmg(lm, ig))
-                     Do irc = 1, nrcmt (is)
-                        zfmt (lm, irc) = zfmt (lm, irc) + jlgr (l, irc) &
-                       & * zt3
-                     End Do
-                  End Do
-               End Do
-            End Do
-            irc = 0
-            Do ir = 1, nrmt (is), input%groundstate%lradstep
-               irc = irc + 1
-               Call ztorflm (lmax, zfmt(:, irc), rhomt(:, ir, ias))
-            End Do
-         End Do
-      End Do
-! convert the density from a coarse to a fine radial mesh
-      Call rfmtctof (rhomt)
-! add the atomic charge density and the excess charge in each muffin-tin
-      t1 = input%groundstate%chgexs / omega
-      Do is = 1, nspecies
-         Do ia = 1, natoms (is)
-            ias = idxas (ia, is)
-            Do ir = 1, nrmt (is)
-               t2 = (t1+(1.d0-th(ir, is))*sprho(ir, is)) / y00
-               rhomt (1, ir, ias) = rhomt (1, ir, ias) + t2
-            End Do
-         End Do
-      End Do
-! interstitial density determined from the atomic tails and excess charge
-      Call zfftifc (3, ngrid, 1, zfft)
-      Do ir = 1, ngrtot
-         rhoir (ir) = dble (zfft(ir)) + t1
-      End Do
+            do ir = 1, nrmt(is)
+              rhomt(1,ir,ias)=sprho(ir,is)/y00
+              fr(ir)=sprho(ir,is)*(spr(ir,is)**2)
+            enddo
+            Call fderiv (-1, nrmt(is), spr(:, is), fr, gr, cf)
+            t1 = t1 + fourpi * gr (nrmt(is))
+            t2 = t2 + (fourpi/3)*(rmt(is)**3)
+         enddo
+      enddo
+      do ir=1,ngrtot
+        rhoir(ir)=(chgtot-t1)/(omega-t2)
+      enddo
+
 ! compute the total charge
       Call charge
 ! normalise the density
       Call rhonorm
-      Deallocate (jlgr, th, ffacg, zfmt, zfft)
       Return
 End Subroutine
 !EOC

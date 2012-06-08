@@ -154,6 +154,18 @@ Subroutine gndstate
          Write (60, '("+------------------------------+")')
       End If
       Do iscl = 1, input%groundstate%maxscl
+
+#ifdef _LIBAPW_      
+         call lapw_timer_start("iteration")
+#endif
+
+#ifdef _LIBAPW_      
+         call lapw_timer_start("atoms")
+#endif
+         
+         write(*,*)"start of iteration :",iscl
+         call timestamp
+      
          If (rank .Eq. 0) Then
             Write (60,*)
             Write (60, '("+-------------------------+")')
@@ -192,10 +204,19 @@ Subroutine gndstate
      ! compute the Hamiltonian radial integrals
          Call hmlrad
 
-#ifdef _LIBAPW_
-  call libapw_seceqn_init
+#ifdef _LIBAPW_      
+         call lapw_timer_stop("atoms")
 #endif
-         
+
+#ifdef _LIBAPW_
+  call lapw_timer_start("libapw_seceqn_init")  
+  call libapw_seceqn_init
+  call lapw_timer_stop("libapw_seceqn_init")  
+#endif
+
+#ifdef _LIBAPW_
+  call lapw_timer_start("k_loop")  
+#endif         
      ! zero partial charges
          chgpart(:,:,:)=0.d0
 #ifdef MPI
@@ -232,10 +253,19 @@ Subroutine gndstate
         ! write the eigenvalues/vectors to file
             Call putevalfv (ik, evalfv)
             Call putevalsv (ik, evalsv(:, ik))
+#ifndef _LIBAPW_        
             Call putevecfv (ik, evecfv)
             Call putevecsv (ik, evecsv)
+#endif
         ! calculate partial charges
-            call genpchgs(ik,evecfv,evecsv)
+        ! A.K.: this is VERY slow
+!#ifdef _LIBAPW_  
+!     call lapw_timer_start("genpchgs")     
+!#endif
+!            !call genpchgs(ik,evecfv,evecsv)
+!#ifdef _LIBAPW_  
+!     call lapw_timer_stop("genpchgs")     
+!#endif
             Deallocate (evalfv, evecfv, evecsv)
          End Do
 #ifdef KSMP
@@ -246,8 +276,19 @@ Subroutine gndstate
          call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
          Call MPI_barrier (MPI_COMM_WORLD, ierr)
 #endif
+#ifdef _LIBAPW_
+  call lapw_timer_stop("k_loop")  
+#endif         
+
+#ifdef _LIBAPW_
+  call lapw_timer_start("occupy")  
+#endif         
      ! find the occupation numbers and Fermi energy
          Call occupy
+#ifdef _LIBAPW_
+  call lapw_timer_stop("occupy")  
+#endif         
+
          If (rank .Eq. 0) Then
         ! write out the eigenvalues and occupation numbers
             Call writeeval
@@ -263,7 +304,9 @@ Subroutine gndstate
          End If
 
 #ifdef _LIBAPW_
+  call lapw_timer_start("libapw_rhomag")  
   call libapw_rhomag
+  call lapw_timer_stop("libapw_rhomag")  
 #else  
          
 #ifdef MPIRHO
@@ -336,7 +379,7 @@ Subroutine gndstate
         ! normalise the density
             Call rhonorm
             
-#endif ! _LIBAPW_
+#endif
 
 
         ! LDA+U
@@ -353,8 +396,19 @@ Subroutine gndstate
         ! store density to reference
             rhoirref(:)=rhoir(:)
             rhomtref(:,:,:)=rhomt(:,:,:)
+
+#ifdef _LIBAPW_
+        call lapw_timer_start("poteff")
+#endif
         ! compute the effective potential
             Call poteff
+#ifdef _LIBAPW_
+        call lapw_timer_stop("poteff")
+#endif
+
+#ifdef _LIBAPW_
+        call lapw_timer_start("mixer")
+#endif
         ! pack interstitial and muffin-tin effective potential and field into one array
             Call packeff (.True., n, v)
         ! mix in the old potential and field with the new
@@ -366,6 +420,10 @@ Subroutine gndstate
 #endif
  ! unpack potential and field
             Call packeff (.False., n, v)
+#ifdef _LIBAPW_
+        call lapw_timer_stop("mixer")
+#endif
+
         ! add the fixed spin moment effect field
             If (getfixspinnumber() .Ne. 0) Call fsmfield
         ! Fourier transform effective potential to G-space
@@ -448,6 +506,11 @@ Subroutine gndstate
               & scl_xml_write_moments ()
                Call scl_xml_out_write ()
             End If
+
+#ifdef _LIBAPW_
+            call lapw_timer_stop("iteration")
+#endif
+
  ! exit self-consistent loop if last iteration is complete
             If (tlast) Go To 20
             If (rank .Eq. 0) Then
@@ -512,8 +575,16 @@ Subroutine gndstate
             Call MPI_bcast (tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
             Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
 #endif
+         
+         write(*,*)"finish of iteration :",iscl
+         call timestamp
+
          End Do
 20       Continue
+
+         write(*,*)"finish of scf loop"
+         call timestamp
+         
          If (rank .Eq. 0) Then
             Write (60,*)
             Write (60, '("+------------------------------+")')
@@ -658,3 +729,12 @@ Subroutine gndstate
          Return
    End Subroutine gndstate
 !EOC
+
+subroutine timestamp
+implicit none
+integer values(8)
+call date_and_time(values=values)
+write(*,'("timestamp: ",I2.2,".",I2.2,".",I4.4,"  ",I2.2,":",I2.2,":",I2.2)') &
+  &values(3),values(2),values(1),values(5),values(6),values(7)
+return
+end subroutine

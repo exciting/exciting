@@ -42,3 +42,9 @@ extern "C" void FORTRAN(lapw_timer_start)(char *name_, int32_t name_len)
     std::string name(name_, name_len);
     ftimers[name] = new timer(name);
 }
+
+extern "C" void FORTRAN(lapw_timer_stop)(char *name_, int32_t name_len)
+{
+    std::string name(name_, name_len);
+    if (ftimers.count(name)) delete ftimers[name];
+}
