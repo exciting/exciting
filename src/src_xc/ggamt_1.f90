@@ -48,8 +48,9 @@ do i=1, 3
 end do
 grho(:, 1:nr)=sqrt(gvrho(:, 1:nr, 1)**2+gvrho(:, 1:nr, 2)**2+gvrho(:, 1:nr, 3)**2)
 ! grad^2 rho
-call grad2rfmt(input%groundstate%lmaxvr, nr, spr(:, is),&
-& lmmaxvr, rhomt(:, :, ias), g2rho)
+call grad2rfmt(input%groundstate%lmaxvr, nr, spr(:, is), lmmaxvr, rhomt(:, :, ias), rfmt)
+call dgemm('N', 'N', lmmaxvr, nr, lmmaxvr, 1.d0, rbshtvr, lmmaxvr, rfmt, lmmaxvr, 0.d0, &
+ g2rho, lmmaxvr)
 ! (grad rho).(grad |grad rho|)
 call dgemm('N', 'N', lmmaxvr, nr, lmmaxvr, 1.d0, rfshtvr, lmmaxvr,&
 & grho, lmmaxvr, 0.d0, &

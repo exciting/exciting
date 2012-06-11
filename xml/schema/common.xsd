@@ -44,7 +44,7 @@
   </xs:simpleType>
   <xs:simpleType name="vect2d">
     <xs:annotation>
-      <xs:documentation> Three dimensional vector as three space separated floating point
+      <xs:documentation> Two dimensional vector as three space separated floating point
         numbers.</xs:documentation>
     </xs:annotation>
     <xs:restriction base="vector">
