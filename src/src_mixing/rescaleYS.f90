@@ -58,8 +58,7 @@ Subroutine rescaleYS (noldsteps, n, S, Y, potential, residual)
       scl_plane = scl_plane * Rescale
 !
 !
-
-!
+#endif
       Do j = 1, noldstepsmax
          T1 = 0.
 !
@@ -68,12 +67,14 @@ Subroutine rescaleYS (noldsteps, n, S, Y, potential, residual)
          End Do
          yhist (j) = T1
 !       Renormalize
+         if (T1.ne.0.0) then
          T1 = 1.D0 / Sqrt (T1)
          Do k = 1, n
-         write(*,*) S (k, j),  T1
+       !  write(*,*) S (k, j),  T1
             S (k, j) = S (k, j) * T1
             Y (k, j) = Y (k, j) * T1
          End Do
+         endif
       End Do
-#endif
+
 End Subroutine

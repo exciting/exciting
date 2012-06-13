@@ -2020,7 +2020,7 @@ getstructsolver%typenumber=stringtonumbersolvertype(getstructsolver%type)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"packedmatrixstorage")
-getstructsolver%packedmatrixstorage= .true.
+getstructsolver%packedmatrixstorage= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"packedmatrixstorage",getstructsolver%packedmatrixstorage)
        call removeAttribute(thisnode,"packedmatrixstorage")  
