@@ -8,7 +8,7 @@ test: cleantests  test02 test03 test04 test05 test07
 endif	
 
 summary::
-	perl perl/summary.pl
+	perl perl/makedlist.pl
 	xsltproc report/collectTests.xsl directories.xml >report/reports.xml
 	xsltproc report/reports2html.xsl report/reports.xml >report/report.html
 	cp -f report/reports.xml report/oldreports.xml
