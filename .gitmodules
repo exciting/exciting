@@ -1,3 +1,0 @@
-[submodule "src/libbzint"]
-	path = src/libbzint
-	url = git://github.com/exciting/libbzint.git 
