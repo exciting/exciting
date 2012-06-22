@@ -1,0 +1,1347 @@
+\documentclass[10pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hangcaption}
+\textheight     9.6in
+\topmargin      0pt
+\headsep        1cm
+\headheight     0pt
+\textwidth      6.5in
+\oddsidemargin  0in
+\evensidemargin 0in
+\marginparpush  0pt
+\pagestyle{myheadings}
+\markboth{}{}
+%-------------------------------------------------------------
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{0pt}
+\setlength{\baselineskip}{11pt}
+ 
+%--------------------- SHORT-HAND MACROS ----------------------
+\def\bv{\begin{verbatim}}
+\def\ev{\end{verbatim}}
+\def\be{\begin{equation}}
+\def\ee{\end{equation}}
+\def\bea{\begin{eqnarray}}
+\def\eea{\end{eqnarray}}
+\def\bi{\begin{itemize}}
+\def\ei{\end{itemize}}
+\def\bn{\begin{enumerate}}
+\def\en{\end{enumerate}}
+\def\bd{\begin{description}}
+\def\ed{\end{description}}
+\def\({\left (}
+\def\){\right )}
+\def\[{\left [}
+\def\]{\right ]}
+\def\<{\left  \langle}
+\def\>{\right \rangle}
+\def\cI{{\cal I}}
+\def\diag{\mathop{\rm diag}}
+\def\tr{\mathop{\rm tr}}
+%-------------------------------------------------------------
+%/////////////////////////////////////////////////////////////
+%\setcounter{tocdepth}{2}
+
+\begin{document}
+\title{The bzint library:\\ Package for Brillouin Zone integrations }
+
+\author{Xinzheng Li and Ricardo G\'omez-Abal \\Fritz-Haber-Institut der Max-Planck-Geselschaft \\ Faradayweg 4-6, D-14195 Berlin, Germany}
+
+\maketitle
+
+\tableofcontents
+\newpage
+\section{Tetrahedron method}
+
+\subsection{Tetrahedron method for Brillouin-zone integrations}
+
+In this section we revisit the basics of the tetrahedron method for Brillouin-zone integrations.
+Following mostly the work of Bl{\"o}chl \textit{et al}, Phys.Rev.B \textbf{49}, 16223(1994). but extending the basic mathematical
+details to give a more tutorial view.
+
+\subsubsection{Standard linear tetrahedron method}
+
+The expectation value $\langle X \rangle$ of an operator $X$ is obtained by integrating the matrix
+elements
+
+\begin{equation}\label{Xn}
+X_n(\vec{k})=\langle \Psi_n(\vec{k})|X|\Psi_n(\vec{k})\rangle
+\end{equation}
+over all occupied bands in reciprocal space
+
+\begin{equation}\label{X}
+\langle X \rangle=\frac{1}{V_G}\sum\limits_n{\int_{V_G}{X_n(\vec{k})f(\varepsilon_n(\vec{k}))d^3k}}
+\end{equation}
+where $V_G$ is the volume of the reciprocal unit cell and $f(\varepsilon)$ is the occupation number.
+
+In numerical calculations we know the values of $X_n(\vec{k}_i)$ for a discrete set of vectors
+$\vec{k}_i$ at the vertices of the tetrahedra. A function $\bar{X}_n(\vec{k})$ obtained by linearly
+interpolating the function $X_n(\vec{k})$ within the tetrahedra can be written as a superposition of
+functions $w_i(\vec{k})$, such that;
+
+\begin{equation}\label{barX}
+\bar{X}_n(\vec{k})=\sum\limits_i{X_n(\vec{k}_i)w_i(\vec{k})}
+\end{equation}
+where $w_i(\vec{k}_j)=\delta_{ij}$ and linear within each tetrahedron. Now, replacing $X_n(\vec{k})$ in
+Equation [\ref{Xn}] by it's linear approximation (Eq. [\ref{barX}]) we have
+
+\begin{equation}\label{maintet}
+\begin{align}
+\langle X\rangle\cong&\frac{1}{V_G}\sum\limits_n{\int_{V_G}{\bar{X}_n(\vec{k})%
+f(\varepsilon_n(\vec{k}))d^3k}}\\
+=&\frac{1}{V_G}\sum\limits_n{\int_{V_G}{\sum\limits_i{X_n(\vec{k_i})%
+w_i(\vec{k})f(\varepsilon_n(\vec{k}))d^3k}}}\\
+=&\sum\limits_n{\sum\limits_i{X_n(\vec{k_i})\frac{1}{V_G}\int_{V_G}{%
+w_i(\vec{k})f(\varepsilon_n(\vec{k}))d^3k}}}
+\end{align}
+\end{equation}
+
+Defining:
+
+\begin{equation}\label{weight}
+w_{ni}=\frac{1}{V_G}\int_{V_G}{w_i(\vec{k})f(\varepsilon_n(\vec{k}))d^3k}
+\end{equation}
+the last line of Equation [\ref{maintet}] becomes:
+
+\begin{equation}\label{wsum}
+\langle X\rangle=\sum\limits_{i,n}{X_n(\vec{k}_i) w_{ni}}
+\end{equation}
+
+\subsubsection{The isoparametric transfromation}
+
+The function behaviour is approximated inside each tetrahedron by a linear interpolation between the
+function values at the vertices, also called nodal points. Let $\mathcal{F}$ be such a function, and $x$,
+$y$ and $z$ coordinates, then:
+
+\begin{equation}\label{mf}
+\mathcal{F}= A\cdot x+B \cdot y +C \cdot z + D
+\end{equation}
+where the constants $A$, $B$, $C$ and $D$ are to be determined. Substituting $x=x_i$, $y=y_i$ and $z=z_i$
+where $i=0,1,2,3$ label the nodal points. Then, the values of $\mathcal{F}_i$ at the nodal points (which
+are known) can be written as:
+
+\begin{equation}\label{mfi}
+\mathcal{F}_i= A\cdot x_i+B \cdot y_i +C \cdot z_i + D
+\end{equation}
+
+Clearly, Equation [\ref{mfi}] for $i=0$ can be used to eliminate the constant $D$. Then we have
+\begin{equation}\label{mf-d}
+\mathcal{F}-\mathcal{F}_0= A\cdot (x-x_0)+B \cdot (y-y_0) +C \cdot (z-z_0)
+\end{equation}
+
+Then the constants $A$, $B$ and $C$ are determined by solving the system of equations:
+\begin{equation}\label{mf-d}
+\begin{align}
+\mathcal{F}_1-\mathcal{F}_0=& A\cdot (x_1-x_0)+B \cdot (y_1-y_0) +C \cdot (z_1-z_0)\\
+\mathcal{F}_2-\mathcal{F}_0=& A\cdot (x_2-x_0)+B \cdot (y_2-y_0) +C \cdot (z_2-z_0)\\
+\mathcal{F}_3-\mathcal{F}_0=& A\cdot (x_3-x_0)+B \cdot (y_3-y_0) +C \cdot (z_3-z_0)
+\end{align}
+\end{equation}
+with solution:
+
+\begin{equation}\label{abc}
+\begin{pmatrix}
+  A \\
+  B \\
+  C \\
+\end{pmatrix}
+=\begin{pmatrix}
+  x_1-x_0 & y_1-y_0 & z_1-z_0 \\
+  x_2-x_0 & y_2-y_0 & z_2-z_0 \\
+  x_3-x_0 & y_3-y_0 & z_3-z_0 \\
+\end{pmatrix}^{-1}\begin{pmatrix}
+  \mathcal{F}_1-\mathcal{F}_0\\
+  \mathcal{F}_2-\mathcal{F}_0 \\
+  \mathcal{F}_3-\mathcal{F}_0 \\
+\end{pmatrix}
+\end{equation}
+
+Thus, we can conclude that $A$, $B$, $C$, and hence $\mathcal{F}-\mathcal{F}_0$ must be linear
+expressions in $\{(\mathcal{F}_i-\mathcal{F}_0)\}$:
+
+\begin{equation}\label{tfti}
+\begin{align}
+\mathcal{F}-\mathcal{F}_0=&\xi(\mathcal{F}_1-\mathcal{F}_0)+\eta(\mathcal{F}_2-\mathcal{F}_0)%
++\zeta(\mathcal{F}_3-\mathcal{F}_0)\\
+=&\begin{pmatrix}
+  \xi & \eta & \zeta \\
+\end{pmatrix}
+\begin{pmatrix}
+  \mathcal{F}_1-\mathcal{F}_0\\
+  \mathcal{F}_2-\mathcal{F}_0\\
+  \mathcal{F}_3-\mathcal{F}_0\\
+\end{pmatrix}
+\\ =&\begin{pmatrix}
+  \xi & \eta & \zeta \\
+\end{pmatrix}
+\begin{pmatrix}
+  x_1-x_0 & y_1-y_0 & z_1-z_0 \\
+  x_2-x_0 & y_2-y_0 & z_2-z_0 \\
+  x_3-x_0 & y_3-y_0 & z_3-z_0 \\
+\end{pmatrix}\begin{pmatrix}
+  A\\
+  B\\
+  C\\
+\end{pmatrix}
+\end{align}
+\end{equation}
+
+Equation [\ref{mf-d}] can be written as:
+
+\begin{equation}\label{mf-dmat}
+\mathcal{F}-\mathcal{F}_0=\begin{pmatrix}
+  x-x_0 & y-y_0 & z-z_0 \\
+\end{pmatrix}
+\begin{pmatrix}
+  A\\
+  B\\
+  C\\
+\end{pmatrix}
+\end{equation}
+
+Hence:
+
+\begin{equation}\label{parxyz}
+\begin{align}
+x-x_0=&\xi(x_1-x_0)+\eta(x_2-x_0)+\zeta(x_3-x_0)\\
+y-y_0=&\xi(y_1-y_0)+\eta(y_2-y_0)+\zeta(y_3-y_0)\\
+z-z_0=&\xi(z_1-z_0)+\eta(z_2-z_0)+\zeta(z_3-z_0)
+\end{align}
+\end{equation}
+
+But also
+\begin{equation}\label{parmf}
+\mathcal{F}-\mathcal{F}_0=\xi(\mathcal{F}_1-\mathcal{F}_0)+\eta(\mathcal{F}_2-\mathcal{F}_0)%
++\zeta(\mathcal{F}_3-\mathcal{F}_0)
+\end{equation}
+
+Therefore the \textit{same} expression holds for the function $\mathcal{F}$ as well as for the
+coordinates $x$, $y$, and $z$. This is called an isoparametric transformation.
+
+\subsubsection{Integrals in one tetrahedron}
+
+If one wants to integrate the function $\mathcal{F}$ inside one tetrahedron by applying the isoparametric
+transformation, one gets:
+
+\begin{equation}\label{intmf}
+\begin{align}
+\iiint\limits_{V_T}{\mathcal{F}(x,y,z)dxdydz}=&\int\limits_0^1{\int\limits_0^{1-\zeta}{%
+\int\limits_0^{1-\zeta-\eta}{\bigl[\xi(\mathcal{F}_1-\mathcal{F}_0)+%
+\eta(\mathcal{F}_2-\mathcal{F}_0)+}}}\\
+&\hspace{20mm}\zeta(\mathcal{F}_3-\mathcal{F}_0)+\mathcal{F}_0\bigr]\left|\frac{\partial(xyz)}%
+{\partial(\xi\eta\zeta)}\right| d\xi d\eta d\zeta
+\end{align}
+\end{equation}
+where $V_T$ is the volume of the tetrahedron and $|\tfrac{\partial(xyz)}{\partial(\xi\eta\zeta)}|$ is the
+Jacobian determinant given by:
+
+\begin{equation}\label{jacobi}
+\left|\frac{\partial(xyz)}{\partial(\xi\eta\zeta)}\right|=
+\begin{vmatrix}
+  \frac{\partial x}{\partial\xi} &   \frac{\partial x}{\partial\eta} &   \frac{\partial x}{\partial\zeta}  \\
+  \frac{\partial y}{\partial\xi} &   \frac{\partial y}{\partial\eta} &   \frac{\partial y}{\partial\zeta}  \\
+  \frac{\partial z}{\partial\xi} &   \frac{\partial z}{\partial\eta} &   \frac{\partial z}{\partial\zeta}  \\
+\end{vmatrix}
+=
+\begin{vmatrix}
+  x_1-x_0 & y_1-y_0 & z_1-z_0 \\
+  x_2-x_0 & y_2-y_0 & z_2-z_0 \\
+  x_3-x_0 & y_3-y_0 & z_3-z_0 \\
+\end{vmatrix}
+\end{equation}
+defining $\vec{r}=(x,y,z)$ we have
+
+\begin{equation}\label{jacobi2}
+\left|\frac{\partial(xyz)}{\partial(\xi\eta\zeta)}\right|=
+\begin{vmatrix}
+  x_1-x_0 & y_1-y_0 & z_1-z_0 \\
+  x_2-x_0 & y_2-y_0 & z_2-z_0 \\
+  x_3-x_0 & y_3-y_0 & z_3-z_0 \\
+\end{vmatrix}
+=(\vec{r}_1-\vec{r}_0)\cdot[(\vec{r}_2-\vec{r}_0)\times(\vec{r}_3-\vec{r}_0)]
+\end{equation}
+
+It is known that the scalar triple product $\vec{a}\cdot(\vec{b}\times\vec{c})$ gives the volume of a
+parallelepiped whose sides are given by the vectors $\vec{a}$,$\vec{b}$,$\vec{c}$ which can easily be
+shown to be six times the volume of the tetrahedron. Thus we have:
+
+\begin{equation}\label{jacobi3}
+\left|\frac{\partial(xyz)}{\partial(\xi\eta\zeta)}\right|=6 V_T
+\end{equation}
+
+and then Equation [\ref{intmf}] is just:
+
+\begin{equation}\label{intmf2}
+\iiint\limits_{V_T}{\mathcal{F}(x,y,z)dxdydz}=6V_T\int\limits_0^1{\int\limits_0^{1-\zeta}{%
+\int\limits_0^{1-\zeta-\eta}{\bigl[\xi(\mathcal{F}_1-\mathcal{F}_0)+
+\eta(\mathcal{F}_2-\mathcal{F}_0)+\zeta(\mathcal{F}_3-\mathcal{F}_0)+\mathcal{F}_0\bigr] d\xi} d\eta} d\zeta}
+\end{equation}
+
+\subsubsection{The integration weights}
+
+To solve Equation [\ref{weight}], first we transform the Brillouin integral into a sum of tetrahedra
+integrals. Since $w_i$ is zero for all $\{\vec{k}_j\}$ except $\vec{k}_i$, we can rewrite the weights as:
+
+\begin{equation}\label{wi}
+w_{ni}=\frac{1}{V_G}\sum\limits_{T_i}{\iiint_{V_T}{w_i(\vec{k})f(\varepsilon_n(\vec{k}))d^3k}}=
+\sum\limits_{T_i}{w_{ni}^{1T}}
+\end{equation}
+where $T_i$ means that the sum runs only over those tetrahedra containing $\vec{k}_i$ as one of their
+vertices. And we have defined
+$w_{ni}^{1T}=\tfrac{1}{V_G}\iiint_{V_T}{w_i(\vec{k})f(\varepsilon_n(\vec{k}))d^3k}$.
+
+Let's take one of the tetrahedra, and set $\vec{k}_3=\vec{k}_i$. Then we isoparametrize $w_i(\vec{k})$
+and $\varepsilon_{n}(\vec{k})$. This gives:
+
+\begin{subequations}\label{isowep}
+\begin{align}
+w_i(\vec{k})=&\zeta \\
+\varepsilon_{n}(\vec{k})=&\xi(\varepsilon_{n1}-\varepsilon_{n0})+%
+\eta(\varepsilon_{n2}-\varepsilon_{n0})+%
+\zeta(\varepsilon_{n3}-\varepsilon_{n0})+\varepsilon_{n0}
+\end{align}
+\end{subequations}
+where we have used the shorthand notation $\varepsilon_{ni}=\varepsilon_{n}(\vec{k}_i)$.  If the four
+energies are below the Fermi energy, the occupation is identically one and we have:
+
+\begin{equation}\label{4oc}
+\begin{align}
+w_{ni}^{1T}=&\frac{6V_T}{V_G}\int\limits_0^1{\int\limits_0^{1-\zeta}{%
+\int\limits_0^{1-\zeta-\eta}{\zeta d\xi} d\eta}
+d\zeta}=\frac{6V_T}{V_G}\int\limits_0^1{\int\limits_0^{1-\zeta}{\zeta(1-\zeta-\eta) d\eta}d\zeta}\\
+=&\frac{6V_T}{V_G}\int\limits_0^1{\frac{1}{2}\zeta(1-\zeta)^2d\zeta}=
+\frac{3V_T}{V_G}(\frac{1}{2}-\tfrac{2}{3}+\tfrac{1}{4})=\frac{V_T}{4V_G}
+\end{align}
+\end{equation}
+
+Let's now take the case where only $\varepsilon_{n1}>\varepsilon_{F}$ and, for the sake of simplicity
+$\varepsilon_{n3}>\varepsilon_{n2}>\varepsilon_{n1}>\varepsilon_{n0}$, then the integration limits are
+changed, and one gets:
+
+\begin{equation}\label{1oc}
+\begin{align}
+w_{n3}^{1T}=&\frac{6V_T}{V_G}\int\limits_0^{\frac{\varepsilon_F-\varepsilon_0}{\varepsilon_3-\varepsilon_0}}%
+{\int\limits_0^{\frac{\varepsilon_F-\varepsilon_0-\zeta(\varepsilon_3-\varepsilon_0)}{\varepsilon_2-\varepsilon_0}}{%
+\int\limits_0^{\frac{\varepsilon_F-\varepsilon_0-\zeta(\varepsilon_3-\varepsilon_0)-\eta(\varepsilon_2-\varepsilon_0)}%
+{\varepsilon_1-\varepsilon_0}}{\zeta d\xi} d\eta}
+d\zeta}\\
+=&\frac{V_T}{4V_G}\frac{(\varepsilon_F-\varepsilon_0)^4}
+{(\varepsilon_1-\varepsilon_0)(\varepsilon_2-\varepsilon_0)(\varepsilon_3-\varepsilon_0)^2}
+\end{align}
+\end{equation}
+
+A similar calculation leads to:
+
+\begin{equation}\label{1oc2}
+\begin{align}
+w_{n2}^{1T}=&\frac{V_T}{4V_G}\frac{(\varepsilon_F-\varepsilon_0)^4}
+{(\varepsilon_1-\varepsilon_0)(\varepsilon_2-\varepsilon_0)^2(\varepsilon_3-\varepsilon_0)}\\
+w_{n1}^{1T}=&\frac{V_T}{4V_G}\frac{(\varepsilon_F-\varepsilon_0)^4}
+{(\varepsilon_1-\varepsilon_0)^2(\varepsilon_2-\varepsilon_0)(\varepsilon_3-\varepsilon_0)}\\
+w_{n0}^{1T}=&\frac{V_T}{4V_G}-w_{n1}^{1T}-w_{n2}^{1T}-w_{n3}^{1T}
+\end{align}
+\end{equation}
+
+The last line in Equation [\ref{1oc2}] can be calculated using
+$w_0(\vec{k})=1-\xi-\eta-\zeta=1-w_1(\vec{k})-w_2(\vec{k})-w_3(\vec{k})$.
+
+To calculate the case when three nodal points are below the Fermi energy, one can just make the
+difference between the values of Equation [\ref{4oc}] and [\ref{1oc}],[\ref{1oc2}]. When two are occupied and
+two unoccupied, the calculation is more cumbersome, the results can be found in Blochl \textit{et al}, Phys.Rev.B \textbf{49}, 16223(1994).
+
+\subsubsection{Improved tetrahedron method}
+
+{\sf The correction formula}
+
+According to the paper of Blochl \textit{et al}, Phys.Rev.B \textbf{49}, 16223(1994). The weight on each vertex of the tetrahedron could be corrected according to this equation:
+
+\begin{equation}\label{weightcorrect}
+d\omega_i=\frac{d\delta<X>}{dX_i}=\sum\limits_{T}\frac{1}{40}D_T(\epsilon_F)\sum\limits_{j=1}\limits^{4}(\epsilon_{j}-\epsilon_{i})
+\end{equation}
+
+to deal with part of the systematic error due to the linear interpolation method.
+
+\subsection{Tetrahedron method for $q$-dependent Brillouin-zone(BZ) Integration}
+
+
+In below, we will introduce the case of integration when the weight depends on two tetrahedra related by a $q$ vector, and divide this convolutional integration into three cases. Since the $q$-dependence looks like a convolution, in below, convolution means the same thing as $q$-dependent integration. \\
+
+
+The idea of the isoparametrization in the former section is to linearize both the energy and the expectation value of the operator to be integrated in terms of the coordinates. We first define a weight following the same idea of standard linearized tetrahedron method. For the case of polarization, this assumption brings a logical contradiction, since the operator to be integrated is proportional to the inverse of the eigen-energy difference to be integrated, we can not take both this operator and eigen-energy to be linearized simultaneously. For this reason, we include the energy-dependent part of the operator into the weight and further divide it into another two cases by using real and imaginary frequency respectively. The latter two weights are frequency-dependent, which means we must calculate them for every frequency we take and it is more expensive.\\ 
+
+
+\subsubsection{Normal convolution}
+
+
+In this case, we want to calculate the mean value of some $\vec{q}$-dependent operator. It's matrix
+elements are:
+
+\begin{equation}\label{xqmat}
+X_{nn'}(\vec{k},\vec{q})=\langle \Psi_n(\vec{k})|X(\vec{q})|\Psi_{n'}(\vec{k}-\vec{q})\rangle
+\end{equation}
+
+and usually, the integration runs over occupied states for $n$ and unoccupied statesfor $n'$, thus:
+\begin{equation}\label{Xqint}
+\langle
+X(\vec{q})\rangle=\frac{1}{V_G}\sum\limits_{n,n'}{\int_{V_G}{X_{nn'}(\vec{k},\vec{q})%
+f[\varepsilon_n(\vec{k})]\left(1-f[\varepsilon_{n'}(\vec{k}-\vec{q})]\right)d^3k}}
+\end{equation}
+
+Following the same procedure as for integrations, we interpolate the function $X_{nn'}(\vec{k},\vec{q})$
+linearly, and write it as:
+
+\begin{equation}\label{barxq}
+\bar{X}_{nn'}(\vec{k},\vec{q})=\sum\limits_i{X_{nn'}(\vec{k}_i,\vec{q})w_i(\vec{k},\vec{q})}
+\end{equation}
+
+If we take $\vec{q}$ to be
+commensurate with the difference between two vectors of the $\{\vec{k}_i\}$ sublattice, then, whenever
+$\vec{k}_i$ corresponds to a nodal point, also does $\vec{k}_i-\vec{q}$, in this case the linearization
+can be written:
+
+\begin{equation}\label{barxq1}
+\bar{X}_{nn'}(\vec{k},\vec{q})=\sum\limits_i{X_{nn'}(\vec{k}_i,\vec{q})w_i(\vec{k})}
+\end{equation}
+
+where $w_i(\vec{k})$ is the same as defined in Equation [\ref{barX}], the same isoparametrization can be
+made on the tetrahedron at $\vec{k}_i$ and the corresponding one at $\vec{k}_i-\vec{q}$. From equations
+[\ref{maintet}] to [\ref{wsum}] that we can write:
+
+\begin{equation}\label{manconv}
+\langle X(\vec{q})\rangle=\sum\limits_{i,n,n'}{X_{nn'}(\vec{k}_i,\vec{q}) w_{nn'i}(\vec{q})}
+\end{equation}
+with
+\begin{equation}\label{weightq}
+w_{nn'i}(\vec{q})=\frac{1}{V_G}\int_{V_G}{w_i(\vec{k})f[\varepsilon_n(\vec{k})]%
+\left(1-f[\varepsilon_{n'}(\vec{k}-\vec{q})]\right)d^3k}
+\end{equation}
+
+The next step is to calculate the weights, following the steps of the previous section we have:
+
+\begin{equation}\label{wiq}
+w_{nn'i}(\vec{q})=\sum\limits_{T_i}{w_{nn'i}^{1T}}(\vec{q})
+\end{equation}
+where
+\begin{equation}\label{w1T}
+{w_{nn'i}^{1T}}(\vec{q})=\frac{1}{V_G}\iiint_{V_T}{w_i(\vec{k})f[\varepsilon_n(\vec{k})]%
+\left(1-f[\varepsilon_{n'}(\vec{k}-\vec{q})]\right)d^3k}
+\end{equation}
+
+Again, taking one tetrahedron, and setting $\vec{k}_3=\vec{k}_i$, we can isoparametrize the above equations, obtaining:
+
+\begin{subequations}\label{isowepq}
+\begin{align}
+w_i(\vec{k})=&\zeta \\
+\varepsilon_{n}(\vec{k})=&\xi(\varepsilon_{n1}-\varepsilon_{n0})+%
+\eta(\varepsilon_{n2}-\varepsilon_{n0})+%
+\zeta(\varepsilon_{n3}-\varepsilon_{n0})+\varepsilon_{n0}\\
+\varepsilon_{n'}(\vec{k}-\vec{q})=&\xi(\varepsilon_{n'1}-\varepsilon_{n'0})+%
+\eta(\varepsilon_{n'2}-\varepsilon_{n'0})+%
+\zeta(\varepsilon_{n'3}-\varepsilon_{n'0})+\varepsilon_{n'0}
+\end{align}
+\end{subequations}
+where we have used the shorthand notation $\varepsilon_{ni}=\varepsilon_{n}(\vec{k}_i)$ and
+$\varepsilon_{n'i}=\varepsilon_{n'}(\vec{k}_i-\vec{q})$.\\
+
+Then, the general formula for the contribution of one tetrahedron to the weight is:
+\begin{eqnarray} 
+{w_{nn'i}^{1T}}(\vec{q})=&\frac{6V_T}{V_G}%
+\int\limits_0^1{\int\limits_0^{1-\zeta}{%
+\int\limits_0^{1-\zeta-\eta}{\zeta \Theta[\varepsilon_F-\xi(\varepsilon_{n1}-\varepsilon_{n0})-%
+\eta(\varepsilon_{n2}-\varepsilon_{n0})-
+\zeta(\varepsilon_{n3}-\varepsilon_{n0})-\varepsilon_{n0}]\times}}}\nonumber\\
+&\Theta[\xi(\varepsilon_{n'1}-\varepsilon_{n'0})+%
+\eta(\varepsilon_{n'2}-\varepsilon_{n'0})+
+ \zeta(\varepsilon_{n'3}-\varepsilon_{n'0})+\varepsilon_{n'0}-\varepsilon_F] d\xi d\eta d\zeta
+\label{wiTgenaa}
+\end{eqnarray}
+
+\subsubsection{The mesh and tetrahedron}
+
+To treat the $\Theta$ functions for both the $k$ and $k-q$ mesh in Equation.[\ref{wiTgenaa}]. We use the Fermi surface to cut these two tetrahedra in each mesh. For insulator and semiconductor, the tetrahedron for each band is either totally occupied or totally unoccupied, we just take the whole region or no region in the tetrahedron. But for metals, the problem is a little bit complicated. There are cases when the Fermi suface only cut the $k$ mesh tetrahedron, when it only cuts the $k-q$ mesh tetrahedron, and when it cuts both $k$ mesh tetrahedron and $k-q$ mesh tetrahedron. For these cases, first we need to find the region to be integrated, and then divide it into tetrahedra in which we don't have to do with the $\Theta$ functions.\\ 
+
+To do this, first we will use some graphes to illustrate how the mesh is like in the BZ, how the tetrahedra are related by a $q$ vector, how each tetrahedron is cut by the Fermi surface, and how the region to be integrated is formed by the tetrahedron and the Fermi surfaces. And then, we will discuss all the cases about how this region looks like and how do we divide it into tetrahedra.  \\
+
+First of all, we use a two-dimensional sketch (Fig.\ref{integration}) to illustrate how the $k-$mesh looks like and how the triangles (corresponding to the tetrahedra in the three-dimensional case) are related by a $q$ vector. \\
+
+\begin{figure}[h]
+\includegraphics*[angle=0,width=150mm]{integration.pdf}
+\caption{A two-dimensional sketch of the k-mesh, the triangle of k and k-q points and how they are connected} \label{integration}
+\end{figure}
+
+In the three-dimensional case, $q$ vector relates the tetrahedron in the $k-$mesh and the corresponding one in the $k-q$ mesh as in Fig.\ref{tetrahedra}. The energy on the vertices of the tetrahedron with a blue region corresponds to the $\epsilon_{n'k-q}$, and the blue region is the unoccupied region for this energy. The other one corresponds to the $\epsilon_{nk}$ and red region is the occupied region for $\epsilon_{nk}$. When one of them is extended to the whole tetrahedron, then the region to be integration is just the region in the other tetrahedron which is partly occupied or unoccupied. The case in this figure is the extreme case when both of these two tetrahedra are partly occupied. Then the two Fermi surface cut each other inside the tetrahedron, and the region to be integrated is shown on the right side of the figure(purple region). \\
+
+\begin{figure}[h]
+\includegraphics*[angle=0,width=150mm]{tetrahedra.pdf}
+\caption{How the tetrahedron defined by $k$ is related to that of $k-q$.} 
+\label{tetrahedra}
+\end{figure}
+
+There are totally 9 cases for this region to be like, except for the simplest case which is a tetrahedron, all the others are listed in Fig.\ref{region}. For the case of the region to be with five nodes we can further divide it into two tetrahedra. For the case of it to be with six nodes, we can further divide it into three tetrahedra. For the case when it has seven nodes, we divide it into one region with five nodes and another region with six nodes, or two regions with five nodes. And for the case when it is a region with eight nodes, we further divide it into two regions with six nodes. The way to divide these regions is shown by the red lines.   
+
+\begin{figure}[h]
+\includegraphics*[angle=0,width=150mm]{region.pdf}
+\caption{Cases for the region to be integrated and how then are further divided into tetrahedra} 
+\label{region}
+\end{figure}
+
+After all these procedures, we can calculate the weights on the vertices of each small tetrahedron, and linearly distribute them into the $k$ mesh points in the end.  \\
+
+
+\subsubsection{Convoluting the polarization in the BZ for real frequency}
+
+The polarization matrix of our calculation in the real frequency space is:
+
+\begin{eqnarray} 
+P_{i,j}(\vec{q},\omega)=\frac{N_c}{\hbar}\sum\limits_{\vec{k}}\limits^{BZ}\sum\limits_{n}\limits^{occ}\sum\limits_{n'}\limits^{unocc}M_{nn'}^{i}(\vec{k},\vec{q})[M_{nn'}^{i}(\vec{k},\vec{q})]^{*}\{\frac{1}{\omega-\epsilon_{n'\vec{k}-\vec{q}}+\epsilon_{n\vec{k}}+i\eta}-\frac{1}{\omega-\epsilon_{n\vec{k}}+\epsilon_{n'\vec{k}-\vec{q}}-i\eta}\}
+\label{polarizamatrix}
+\end{eqnarray}
+
+Since it needs both the state of $\vec{k}$ to be occupied and that of $\vec{k}-\vec{q}$ to be unoccupied, we can first try to use the same procedure as the above subsection to calculation the polarization element by defining the matrix element as:
+
+\begin{eqnarray}
+X_{nn'}(\vec{k_{i}},\vec{q})=\langle \Psi_{n'}(\vec{k_{i}}-\vec{q})|\frac{1}{\omega-\epsilon_{n'}(\vec{k_i}-\vec{q})+\epsilon_{n\vec{k_i}}+i\eta}-\frac{1}{\omega-\epsilon_{n\vec{k}}+\epsilon_{n'\vec{k}-\vec{q}}-i\eta} |\Psi_{n}(\vec{k_i}) \rangle
+\label{matrelem}
+\end{eqnarray}
+
+. The testing results are very bad when we take the free electron case and compare them with \textbf{Lindhard equation}.\\
+
+
+The reason has been mentioned before(the contradiction to linearize the energy and polarization simultaneously), to go around this problem, we include the energy-dependent part of the polarization into the weight and define it in a way like this: 
+
+\begin{equation}
+w_{nn'i}(\vec{q},\omega)=\sum\limits_{T_i}w_{nn'i}^{1T}(\vec{q},\omega)
+\label{wtofki}
+\end{equation} 
+
+where
+\begin{eqnarray}\label{wtofkiT}
+{w_{nn'i}^{1T}}(\vec{q},\omega)=&\frac{1}{V_G}
+\int\int\int_{V_T}w_i(\vec{k})f[\epsilon_n(\vec{k})](1-f[\epsilon_{n'}(\vec{k}-\vec{q})])\times
+\nonumber\\
+&\{\frac{1}{\omega-\epsilon_{n'}(\vec{k}-\vec{q})+\epsilon_{n}(\vec{k})+i\eta}-\frac{1}{\omega-\epsilon_{n}(\vec{k})+\epsilon_{n'}(\vec{k}-\vec{q})-i\eta}\}d^3\vec{k}	
+\end{eqnarray}
+
+
+We put a frequency dependence on the weight here which will increase the calculation effort in the program. After this, we need to get the analytical expression of the weights on each $\vec{k_i}$ point from this equation.\\
+
+
+For this purpose, first, we need to do a coordinate transition from the coordinate of the reciprocal cell to the coordinate of the tetrahedron, we are left with the following equation for calculating the contribution from this tetrahedron to the weight on $\vec{k_i}$:
+
+\begin{eqnarray}\label{wtofkiT2}
+{w_{nn'i}^{1T}}(\vec{q})=&\frac{6V_T}{V_G}
+\int\limits_0\limits^1\int\limits_0\limits^{1-\varsigma}\int\limits_0\limits^{1-\varsigma-\eta}w_i(\vec{k})\Theta[\epsilon_F-\xi(\epsilon_{n1}-\epsilon_{n0})-\eta(\epsilon_{n2}-\epsilon_{n0})-\varsigma(\epsilon_{n3}-
+\nonumber\\
+&\epsilon_{n0})-\epsilon_{n0}]\Theta[\xi(\epsilon_{n'1}-\epsilon_{n'0})+\eta(\epsilon_{n'2}-\epsilon_{n'0})+\varsigma(\epsilon_{n'3}-\epsilon_{n'0})\nonumber\\&+\epsilon_{n'0}-\epsilon_F]\{\frac{1}{\omega-\epsilon_{n'}(\vec{k}-\vec{q})+\epsilon_{n}(\vec{k})+i\eta}-\frac{1}{\omega-\epsilon_{n}(\vec{k})+\epsilon_{n'}(\vec{k}-\vec{q})-i\eta}\}d^3\vec{k}	
+\end{eqnarray}\\
+
+Then we do the same as the normal case to find the region to be intregrated, and devide it into tetrahedra. Within the small tetrahedron which is fully occupied for $\vec{k}$ states and unoccupied for $\vec{k}-\vec{q}$ states, we define the weights on its vertices according to the following equations:
+
+\begin{subequations}\label{wtdif}
+\begin{align}
+&{w}_{0}=\int\limits_0\limits^1\int\limits_0\limits^{1-z}\int\limits_0\limits^{1-y-z}\frac{1-x-y-z}{\omega-x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0}}\textbf{d}x\textbf{d}y\textbf{d}z\\
+&{w}_{1}=\int\limits_0\limits^1\int\limits_0\limits^{1-z}\int\limits_0\limits^{1-y-z}\frac{x}{\omega-x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0}}\textbf{d}x\textbf{d}y\textbf{d}z\\
+&{w}_{2}=\int\limits_0\limits^1\int\limits_0\limits^{1-z}\int\limits_0\limits^{1-y-z}\frac{y}{\omega-x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0}}\textbf{d}x\textbf{d}y\textbf{d}z\\
+&{w}_{3}=\int\limits_0\limits^1\int\limits_0\limits^{1-z}\int\limits_0\limits^{1-y-z}\frac{z}{\omega-x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0}}\textbf{d}x\textbf{d}y\textbf{d}z\\
+&{w}_{total}={w}_{0}+{w}_{1}+{w}_{2}+{w}_{3}=\int\limits_0\limits^1\int\limits_0\limits^{1-z}\int\limits_0\limits^{1-y-z}\frac{1}{\omega-x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0}}\textbf{d}x\textbf{d}y\textbf{d}z
+\end{align}
+\end{subequations}
+
+where
+
+\begin{subequations}\label{wtdif2}
+\begin{align}
+&\Delta_{i,j}=\Delta_{i}-\Delta_{j}\\
+&\Delta_{i}=\epsilon_{n'}(k_i-q)-\epsilon_{n}(k_i)
+\end{align}
+\end{subequations}
+
+These equations are fully implemented into the program, and the \textbf{actual weight will be the summation of the weights when we use this equation with $\omega$ and $-\omega$, we do this automatically in the program}, the weights on the vertice of the small tetrahedra will then be linearly distributed into the mesh points.\\ 
+
+In order to get an analytical expression for the above integration equation, we first reorder the vertice of the tetrahedron, so that $\Delta_0$ has the biggest chance of being equal to others and the next $\Delta_1$, $\Delta_2$ and $\Delta_3$ accordingly. The general results are:
+
+\begin{subequations}\label{wtt1}
+\begin{align}
+w_{total}=&\frac{1}{2\Delta_{10}\Delta_{20}\Delta_{21}\Delta_{30}\Delta_{31}\Delta_{32}}(-Log|\omega-\Delta_3|(\omega-\Delta_3)^2\Delta_{10}\Delta_{20}\Delta_{21}+\nonumber\\&
+Log|\omega-\Delta_2|(\omega-\Delta_2)^2\Delta_{10}\Delta_{30}\Delta_{31}-Log|\omega-\Delta_1|(\omega-\Delta_1)^2\Delta_{20}\Delta_{30}\Delta_{32}+\nonumber\\&Log|\omega-\Delta_0|(\omega-\Delta_0)^2\Delta_{21}\Delta_{31}\Delta_{32})\\
+w_{1}=&-\frac{1}{6\Delta_{10}^2\Delta_{20}\Delta_{21}^2\Delta_{30}\Delta_{31}^2\Delta_{32}}(-Log|\omega-\Delta_3|(\omega-\Delta_3)^3\Delta_{10}^2\Delta_{20}\Delta_{21}+\nonumber\\&
+Log|\omega-\Delta_2|(\omega-\Delta_2)^3\Delta_{10}^2\Delta_{30}\Delta_{31}^2-Log|\omega-\Delta_1|(\omega-\Delta_1)^2\nonumber\\&\Delta_{20}\Delta_{30}\Delta_{32}(\Delta_{10}\Delta_{21}(\omega-\Delta_3)-(\omega-\Delta_0)\Delta_{21}\Delta_{31}+\Delta_{10}(\omega-\Delta_2)\Delta_{31})\nonumber\\&+(\omega-\Delta_1)^2\Delta_{10}\Delta_{20}\Delta_{21}\Delta_{30}\Delta_{31}\Delta_{32}-Log|\omega-\Delta_0|(\omega-\Delta_0)^3\Delta_{21}^2\Delta_{31}^2\Delta_{32})
+\end{align}
+\end{subequations}
+ 
+$w_2$ and $w_3$ can be calculated with the equation for $w_1$ by exchanging $\Delta_2$ and $\Delta_3$ with $\Delta_1$. And then $w_0=w_{total}-w_1-w_2-w_3$.\\
+
+As we can see from the above equations, there are some cases when $\Delta_{ij}=0$ or $\omega=\Delta_i$ which brings singularity in the above equation. We need to further divide the situation into the following cases:
+
+\textbf{Case I}: When $\omega\neq\Delta_{i}$ while $\Delta_{ij}$ could be zero\\
+ 
+Subcase when $\Delta_{0}=\Delta_{1}$ and others not equal to each other:\\
+
+\begin{subequations}\label{wtt2}
+\begin{align}
+w_{total}=&-\frac{1}{2\Delta_{20}^2\Delta_{30}^2\Delta_{32}}(Log|\omega-\Delta_3|(\omega-\Delta_3)^2\Delta_{20}^2-Log|\omega-\Delta_2|(\omega-\Delta_2)^2\Delta_{30}^2\nonumber\\
+&+Log|\omega-\Delta_0|(\omega-\Delta_0)(\Delta_{20}(\omega-\Delta_3)+(\omega-\Delta_2)\Delta_{30})\Delta_{32}-(\omega-\Delta_0)\Delta_{20}\Delta_{30}\Delta_{32})\\
+w_{1}=&-\frac{1}{12\Delta_{20}^3\Delta_{30}^3\Delta_{32}}(-2Log|\omega-\Delta_3|(\omega-\Delta_3)^3\Delta_{20}^3+
+2Log|\omega-\Delta_2|(\omega-\Delta_2)^3\Delta_{30}^3\nonumber\\
+&-2Log|\omega-\Delta_0|(\omega-\Delta_0)(\Delta_{20}^2(\omega-\Delta_3)^2+(\omega-\Delta_2)\Delta_{20}(\omega-\Delta_{3})\Delta_{30}+(\omega-\Delta_2)^2\Delta_{30}^2)\Delta_{32}\nonumber\\&-(\omega-\Delta_0)(\Delta_{20}\Delta_{30}-2\Delta_{20}(\omega-\Delta_3)-2(\omega-\Delta_2)\Delta_{30})\Delta_{20}\Delta_{30}\Delta_{32})\\
+w_{2}=&-\frac{1}{6\Delta_{20}^3\Delta_{30}^2\Delta_{32}^2}(-Log|\omega-\Delta_3|(\omega-\Delta_3)^3\Delta_{20}^3-Log|\omega-\Delta_2|(\omega-\Delta_2)^2(2\Delta_{32}(\omega-\Delta_0)-\Delta_{20}(\omega-\Delta_3))\nonumber\\&\Delta_{30}^2-((\omega-\Delta_2)^2\Delta_{30}+(\omega-\Delta_{0})^2\Delta_{32})\Delta_{20}\Delta_{30}\Delta_{32}+\nonumber\\&Log|\omega-\Delta_0|(\omega-\Delta_{0})^2(2(\omega-\Delta_2)\Delta_{30}+\Delta_{20}(\omega-\Delta_3))\Delta_{32}^2)
+\end{align}
+\end{subequations}
+
+$w_3$ can be calculated with the equation for $w_2$ by exchanging $\Delta_2$ and $\Delta_3$. Since $\Delta_{01}=0$, we have $w_0=w_1$.\\
+
+Subcase when $\Delta_{0}=\Delta_{1}=\Delta_2$ and others not equal to each other:\\
+
+\begin{subequations}\label{wtt3}
+\begin{align}
+&w_{total}=\frac{2(Log|\omega-\Delta_0|-Log|\omega-\Delta_3|)(\omega-\Delta_3)^2+\Delta_{30}(3\Delta_{30}-2(\omega-\Delta_0))}{4\Delta_{30}^3}\\
+&w_{1}=w_2=\frac{6(Log|\omega-\Delta_3|-Log|\omega-\Delta_0|)(\omega-\Delta_3)^3+\Delta_{30}(6(\omega-\Delta_0)^2-15(\omega-\Delta_0)\Delta_{30}+11\Delta_{30}^2)}{36\Delta_{30}^4}\\
+&w_3=\frac{6(\omega-\Delta_0)(Log|\omega-\Delta_0|-Log|\omega-\Delta_3|)(\omega-\Delta_3)^2+\Delta_{30}(\Delta_0^2-5\Delta_0\Delta_3-2\Delta_3^2+3\Delta_0\omega+9\Delta_3\omega-6\omega^2)}{12\Delta_{30}^4}
+\end{align}
+\end{subequations}
+
+Subcase when $\Delta_{0}=\Delta_{1}$ and $\Delta{2}=\Delta_3$, while they are not equal to each other:\\
+
+\begin{subequations}\label{wtt4}
+\begin{align}
+&w_{total}=\frac{2(\omega-\Delta_0)(-Log|\omega-\Delta_0|+Log|\omega-\Delta_2|)(\omega-\Delta_2)+\Delta_{20}(2\omega-\Delta_0-\Delta_2)}{2\Delta_{20}^3}\\
+&w_{1}=\frac{6(\omega-\Delta_0)(Log|\omega-\Delta_0|-Log|\omega-\Delta_2|)(\omega-\Delta_2)^2+\Delta_{20}(-6(\omega-\Delta_0)^2+9(\omega-\Delta_0)\Delta_{20}-2\Delta_{20}^2)}{12\Delta_{20}^4}\\
+&w_2=w_3=\frac{6(\omega-\Delta_0)^2(Log|\omega-\Delta_2|-Log|\omega-\Delta_0|)(\omega-\Delta_2)-\Delta_{20}(-6(\omega-\Delta_0)^2+3(\omega-\Delta_0)\Delta_{20}+2\Delta_{20}^2)}{12\Delta_{20}^4}
+\end{align}
+\end{subequations}
+
+Subcase when $\Delta_{0}=\Delta_{1}=\Delta{2}=\Delta_3$:\\
+
+\begin{subequations}\label{wtt5}
+\begin{align}
+&w_{total}=\frac{1}{6(\omega-\Delta_{0})}\\
+&w_{1}=w_2=w_3=\frac{1}{24(\omega-\Delta_{0})}
+\end{align}
+\end{subequations}
+
+
+\textbf{Case II}: When $\omega=\Delta_{0}$\\
+
+Subcase when $\Delta_i$ not equal to each other:\\
+
+\begin{subequations}\label{wtt6}
+\begin{align}
+&w_{total}=-\frac{Log|\Delta_{30}|\Delta_{21}\Delta_{30}-Log|\Delta_{20}|\Delta_{20}\Delta_{31}+Log|\Delta_{10}|\Delta_{10}\Delta_{32}}{2\Delta_{21}\Delta_{31}\Delta_{32}}\\
+&w_{1}=-\frac{Log|\Delta_{30}|\Delta_{21}^2\Delta_{30}^2-Log|\Delta_{20}|\Delta_{20}^2\Delta_{31}^2+\Delta_{10}\Delta_{32}(Log|\Delta_{10}|(\Delta_{21}\Delta_{30}+\Delta_{20}\Delta_{31})+\Delta_{21}\Delta_{31})}{6\Delta_{21}^2\Delta_{31}^2\Delta_{32}}\\
+&w_{2}=\frac{Log|\Delta_{10}|\Delta_{10}^2\Delta_{32}^2-Log|\Delta_{30}|\Delta_{21}^2\Delta_{30}^2+\Delta_{20}\Delta_{31}(Log|\Delta_{20}|(\Delta_{21}\Delta_{30}-\Delta_{10}\Delta_{32})+\Delta_{21}\Delta_{32})}{6\Delta_{21}^2\Delta_{31}\Delta_{32}^2}\\
+&w_{3}=\frac{Log|\Delta_{10}|\Delta_{10}^2\Delta_{32}^2-Log|\Delta_{20}|\Delta_{20}^2\Delta_{31}^2+\Delta_{21}\Delta_{30}(Log|\Delta_{30}|(\Delta_{20}\Delta_{31}+\Delta_{10}\Delta_{32})-\Delta_{31}\Delta_{32})}{6\Delta_{21}\Delta_{31}^2\Delta_{32}^2}
+\end{align}
+\end{subequations}
+
+Subcase when $\Delta_0=\Delta_1$, while others not equal to each other:\\
+
+\begin{subequations}\label{wtt7}
+\begin{align}
+&w_{total}=\frac{Log|\Delta_{20}|-Log|\Delta_{30}|}{2\Delta_{32}}\\
+&w_{1}=\frac{Log|\Delta_{20}|-Log|\Delta_{30}|}{6\Delta_{32}}\\
+&w_2=\frac{\Delta_{32}+(Log|\Delta_{20}|-Log|\Delta_{30}|)\Delta_{30}}{6\Delta_{32}^2}\\
+&w_3=\frac{(Log|\Delta_{30}|-Log|\Delta_{20}|)\Delta_{20}-\Delta_{32}}{6\Delta_{32}^2}
+\end{align}
+\end{subequations}\\
+
+Subcase when $\Delta_0=\Delta_1\neq\Delta_2=\Delta_3$:
+\begin{subequations}\label{wtt8}
+\begin{align}
+&w_{total}=-\frac{1}{2\Delta_{20}}\\
+&w_{1}=-\frac{1}{6\Delta_{20}}\\
+&w_2=w_3=-\frac{1}{12\Delta_{20}}
+\end{align}
+\end{subequations}
+
+\textbf{Case III}: When $\omega=\Delta_{1}$\\
+
+Subcase when $\Delta_i$ not equal to each other:\\
+
+\begin{subequations}\label{wtt9}
+\begin{align}
+&w_{total}=\frac{Log|\Delta_{10}|\Delta_{10}\Delta_{32}+Log|\Delta_{21}|\Delta_{21}\Delta_{30}-Log|\Delta_{31}|\Delta_{20}\Delta_{31}}{2\Delta_{20}\Delta_{32}\Delta_{30}}\\
+&w_{1}=\frac{Log|\Delta_{10}|\Delta_{10}\Delta_{32}+Log|\Delta_{21}|\Delta_{21}\Delta_{30}-Log|\Delta_{31}|\Delta_{20}\Delta_{31}}{6\Delta_{20}\Delta_{32}\Delta_{30}}\\
+&w_{2}=\frac{-Log|\Delta_{31}|\Delta_{20}^2\Delta_{31}^2+Log|\Delta_{10}|\Delta_{10}^2\Delta_{32}^2+\Delta_{21}\Delta_{30}(Log|\Delta_{21}|(\Delta_{31}\Delta_{20}+\Delta_{32}\Delta_{10})+\Delta_{20}\Delta_{32})}{6\Delta_{20}^2\Delta_{30}\Delta_{32}^2}\\
+&w_{3}=\frac{Log|\Delta_{10}|\Delta_{10}^2\Delta_{32}^2-Log|\Delta_{21}|\Delta_{21}^2\Delta_{30}^2+\Delta_{20}\Delta_{31}(Log|\Delta_{31}|(\Delta_{30}\Delta_{21}-\Delta_{10}\Delta_{32})-\Delta_{30}\Delta_{32})}{6\Delta_{20}\Delta_{32}^2\Delta_{30}^2}
+\end{align}
+\end{subequations}
+
+\textbf{Case IV}: When $\omega=\Delta_{2}$\\
+
+Subcase when $\Delta_i$ not equal to each other:\\
+
+\begin{subequations}\label{wtt10}
+\begin{align}
+&w_{total}=\frac{Log|\Delta_{20}|\Delta_{20}\Delta_{31}-Log|\Delta_{21}|\Delta_{21}\Delta_{30}-Log|\Delta_{32}|\Delta_{10}\Delta_{32}}{2\Delta_{10}\Delta_{31}\Delta_{30}}\\
+&w_{1}=\frac{Log|\Delta_{20}|\Delta_{20}^2\Delta_{31}^2-Log|\Delta_{32}|\Delta_{10}^2\Delta_{32}^2-\Delta_{21}\Delta_{30}(Log|\Delta_{21}|(\Delta_{31}\Delta_{20}+\Delta_{32}\Delta_{10})+\Delta_{10}\Delta_{31})}{6\Delta_{10}^2\Delta_{31}^2\Delta_{30}}\\
+&w_{2}=\frac{Log|\Delta_{20}|\Delta_{20}\Delta_{31}-Log|\Delta_{21}|\Delta_{21}\Delta_{30}-Log|\Delta_{32}|\Delta_{10}\Delta_{32}}{6\Delta_{10}\Delta_{31}\Delta_{30}}\\
+&w_{3}=\frac{Log|\Delta_{20}|\Delta_{20}^2\Delta_{31}^2-Log|\Delta_{21}|\Delta_{21}^2\Delta_{30}^2-\Delta_{10}\Delta_{32}(Log|\Delta_{32}|(\Delta_{30}\Delta_{21}+\Delta_{31}\Delta_{20})+\Delta_{31}\Delta_{30})}{6\Delta_{10}\Delta_{31}^2\Delta_{30}^2}
+\end{align}
+\end{subequations}
+
+Subcase when $\Delta_0=\Delta_1$, while others not equal to each other:\\
+
+\begin{subequations}\label{wtt11}
+\begin{align}
+&w_{total}=\frac{(Log|\Delta_{20}|-Log|\Delta_{32}|)\Delta_{32}+\Delta_{30}}{2\Delta_{30}^2}\\
+&w_{1}=\frac{2(Log|\Delta_{20}|-Log|\Delta_{32}|)\Delta_{32}^2+\Delta_{30}(2\Delta_{32}+\Delta_{30})}{12\Delta_{30}^3}\\
+&w_{2}=\frac{(Log|\Delta_{20}|-Log|\Delta_{32}|)\Delta_{32}+\Delta_{30}}{6\Delta_{30}^2}\\
+&w_{3}=\frac{2(Log|\Delta_{20}|-Log|\Delta_{32}|)\Delta_{20}\Delta_{32}+(\Delta_{20}-\Delta_{32})\Delta_{30}}{6\Delta_{30}^3}
+\end{align}
+\end{subequations}
+
+Subcase when $\Delta_0=\Delta_1\neq\Delta_2=\Delta_3$:
+\begin{subequations}\label{wtt12}
+\begin{align}
+&w_{total}=-\frac{1}{2\Delta_{20}}\\
+&w_{1}=\frac{1}{12\Delta_{20}}\\
+&w_2=w_3=\frac{1}{6\Delta_{20}}
+\end{align}
+\end{subequations}
+
+\textbf{Case V}: When $\omega=\Delta_{3}$\\
+
+Subcase when $\Delta_i$ not equal to each other:\\
+
+\begin{subequations}\label{wtt13}
+\begin{align}
+&w_{total}=\frac{Log|\Delta_{32}|\Delta_{10}\Delta_{32}+Log|\Delta_{30}|\Delta_{21}\Delta_{30}-Log|\Delta_{31}|\Delta_{20}\Delta_{31}}{2\Delta_{10}\Delta_{21}\Delta_{20}}\\
+&w_{1}=\frac{-Log|\Delta_{32}|\Delta_{21}^2\Delta_{30}^2+Log|\Delta_{30}|\Delta_{21}^2\Delta_{30}^2-\Delta_{20}\Delta_{31}((Log|\Delta_{31}|-Log|\Delta_{32}|)(\Delta_{21}\Delta_{30}-\Delta_{10}\Delta_{32})+\Delta_{10}\Delta_{21})}{6\Delta_{10}^2\Delta_{21}^2\Delta_{20}}\\
+&w_{2}=\frac{-Log|\Delta_{31}|\Delta_{21}^2\Delta_{31}^2+Log|\Delta_{30}|\Delta_{21}^2\Delta_{30}^2-\Delta_{10}\Delta_{32}((Log|\Delta_{32}|-Log|\Delta_{31}|)(\Delta_{12}\Delta_{30}-\Delta_{31}\Delta_{20})+\Delta_{20}\Delta_{12})}{6\Delta_{10}\Delta_{21}^2\Delta_{20}^2}\\
+&w_{3}=\frac{Log|\Delta_{32}|\Delta_{10}\Delta_{32}+Log|\Delta_{30}|\Delta_{21}\Delta_{30}-Log|\Delta_{31}|\Delta_{20}\Delta_{31}}{6\Delta_{10}\Delta_{21}\Delta_{20}}
+\end{align}
+\end{subequations}
+
+Subcase when $\Delta_0=\Delta_1$, while others not equal to each other:\\
+
+\begin{subequations}\label{wtt14}
+\begin{align}
+&w_{total}=\frac{(Log|\Delta_{32}|-Log|\Delta_{30}|)\Delta_{32}+\Delta_{20}}{2\Delta_{20}^2}\\
+&w_{1}=\frac{-2(Log|\Delta_{32}|-Log|\Delta_{30}|)\Delta_{32}^2+\Delta_{20}(\Delta_{20}-2\Delta_{32})}{12\Delta_{20}^3}\\
+&w_{2}=\frac{-2(Log|\Delta_{30}|-Log|\Delta_{32}|)\Delta_{30}\Delta_{32}+\Delta_{20}(\Delta_{32}+\Delta_{30})}{6\Delta_{20}^3}\\
+&w_{3}=\frac{(Log|\Delta_{32}|-Log|\Delta_{30}|)\Delta_{32}+\Delta_{20}}{6\Delta_{20}^2}
+\end{align}
+\end{subequations}
+
+Subcase when $\Delta_0=\Delta_1=\Delta_2\neq\Delta_3$:\\
+
+\begin{subequations}\label{wtt15}
+\begin{align}
+&w_{total}=-\frac{1}{4\Delta_{30}}\\
+&w_{1}=w_2=\frac{1}{18\Delta_{30}}\\
+&w_3=\frac{1}{12\Delta_{20}}
+\end{align}
+\end{subequations}
+
+
+After these, we can get the weights on the vertices of the small tetrahedra inside each $k$ mesh tetrahedra. The next thing to do is just to linearly distribute them into each $k$ mesh point. 
+
+
+\subsubsection{Convoluting the polarization in the BZ for imaginary frequency}
+
+The things in this subsection is essentially the same as the former one. 
+
+The polarization matrix for the imaginary frequency case is:
+
+\begin{eqnarray} 
+P_{i,j}(\vec{q},i\omega)=&\frac{N_c}{\hbar}\sum\limits_{\vec{k}}\limits^{BZ}\sum\limits_{n}\limits^{occ}\sum\limits_{n'}\limits^{unocc}M_{nn'}^{i}(\vec{k},\vec{q})[M_{nn'}^{i}(\vec{k},\vec{q})]^{*}\frac{-2(\epsilon_{n'\vec{k}-\vec{q}}-\epsilon_{n\vec{k}})}{\omega^2+(\epsilon_{n'\vec{k}-\vec{q}}+\epsilon_{n\vec{k}})^2}d^3\vec{k}
+\label{polarmatimag}
+\end{eqnarray}
+
+Accordingly, we define the weight for each $\vec{k_i}$ as:
+
+\begin{equation}
+w_{nn'i}(\vec{q},\omega)=\sum\limits_{T_i}w_{nn'i}^{1T}(\vec{q},\omega)
+\label{wtofkiimag}
+\end{equation} 
+
+where
+
+\begin{eqnarray}\label{wtofkiTimag}
+{w_{nn'i}^{1T}}(\vec{q},\omega)=&\frac{1}{V_G}
+\int\int\int_{V_T}w_i(\vec{k})f[\epsilon_n(\vec{k})](1-f[\epsilon_{n'}(\vec{k}-\vec{q})])\frac{-2(\epsilon_{n'\vec{k}-\vec{q}}-\epsilon_{n\vec{k}})}{\omega^2+(\epsilon_{n'\vec{k}-\vec{q}}-\epsilon_{n\vec{k}})^2}d^3\vec{k}	
+\end{eqnarray}\\
+
+After the same coordinate transition from the reciprocal cell to the grid tetrahedron as the above subsection, we get:
+
+\begin{eqnarray}\label{wtofkiT2imag}
+{w_{nn'i}^{1T}}(\vec{q})=&\frac{6V_T}{V_G}
+\int\limits_0\limits^1\int\limits_0\limits^{1-\varsigma}\int\limits_0\limits^{1-\varsigma-\eta}w_i(\vec{k})\Theta[\epsilon_F-\xi(\epsilon_{n1}-\epsilon_{n0})-\eta(\epsilon_{n2}-\epsilon_{n0})-\varsigma(\epsilon_{n3}-
+\epsilon_{n0})-\epsilon_{n0}]\nonumber\\
+&\Theta[\xi(\epsilon_{n'1}-\epsilon_{n'0})+\eta(\epsilon_{n'2}-\epsilon_{n'0})+\varsigma(\epsilon_{n'3}-\epsilon_{n'0})+\epsilon_{n'0}-\epsilon_F] \frac{-2(\epsilon_{n'\vec{k}-\vec{q}}-\epsilon_{n\vec{k}})}{\omega^2+(\epsilon_{n'\vec{k}-\vec{q}}-\epsilon_{n\vec{k}})^2}d^3\vec{k}	
+\end{eqnarray}
+
+Also same as the case of the real frequency, we first get the region with $\vec{k}$ energy smaller than $E_F$ and $\vec{k}-\vec{q}$ energy greater than $E_F$, divide it into small tetrahedra and then make a coordinate transition from the big grid tetrahedron to the small tetrahedron. With the above equation without considering the $\Theta$ function we can get the weight of this integration on the vertices of the small tetrahedron. Then we linearly distribute these weights into the vertices of the grid tetrahedra. \\
+
+For the tetrahedron which is fully occupied for the $\vec{k}$ state and unoccupied for the $\vec{k}-\vec{q}$ state, we define the weight as:
+
+\begin{subequations}\label{wtidif}
+\begin{align}
+{w}_{0}=&\int\limits_0\limits^1\int\limits_0\limits^{1-z}\int\limits_0\limits^{1-y-z}\frac{-2(1-x-y-z)(x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0})}{\omega^2+(x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0})^2}\textbf{d}x\textbf{d}y\textbf{d}z\\
+{w}_{1}=&\int\limits_0\limits^1\int\limits_0\limits^{1-z}\int\limits_0\limits^{1-y-z}\frac{-2x(x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0})}{\omega^2+(x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0})^2}\textbf{d}x\textbf{d}y\textbf{d}z\\
+{w}_{2}=&\int\limits_0\limits^1\int\limits_0\limits^{1-z}\int\limits_0\limits^{1-y-z}\frac{-2y(x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0})}{\omega^2+(x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0})^2}\textbf{d}x\textbf{d}y\textbf{d}z\\
+{w}_{3}=&\int\limits_0\limits^1\int\limits_0\limits^{1-z}\int\limits_0\limits^{1-y-z}\frac{-2z(x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0})}{\omega^2+(x\Delta_{10}-y\Delta_{20}-z\Delta_{30}-\Delta_{0})^2}\textbf{d}x\textbf{d}y\textbf{d}z
+\end{align}
+\end{subequations}
+
+Where 
+
+\begin{subequations}\label{wtidif2}
+\begin{align}
+\Delta_{i,j}=&\Delta_{i}-\Delta_{j}\\
+\Delta_{i}=&\epsilon_{n'}(k_i-q)-\epsilon_{n}(k_i)
+\end{align}
+\end{subequations}
+
+A little bit difference from the real frequency case here is that these above equations are the actual weights and also the weights we implemented in the program. We don't have to bother with a further step to get the actual weights here. And we have the following cases for the analytical solution of each weight. We still order the 
+nodes according to their equality. The first node has the biggest possibility of being equal to others and it decreases accordingly with the order.\\
+
+For the imaginary frequency, we don't have to worry about the relation between $\omega$ and $\Delta_i$. The general results for the weights are:
+
+\begin{eqnarray}\label{wtti1}
+w_{total}=\frac{a+b}{c}
+\end{eqnarray}
+
+Where
+
+\begin{subequations}\label{wtti1a}
+\begin{align}
+a=&-4\Delta_0\Delta_{12}\Delta_{13}\Delta_{23}\omega ArcTan[\frac{\Delta_0}{\omega}]+4\Delta_1\Delta_{02}\Delta_{03}\Delta_{23}\omega ArcTan[\frac{\Delta_1}{\omega}]\nonumber\\&-4\Delta_2\Delta_{01}\Delta_{03}\Delta_{13}\omega ArcTan[\frac{\Delta_2}{\omega}]+4\Delta_3\Delta_{01}\Delta_{02}\Delta_{12}\omega ArcTan[\frac{\Delta_3}{\omega}]\\
+b=&\Delta_{12}\Delta_{13}\Delta_{23}(\omega^2-\Delta_0^2)Log[\Delta_0^2+\omega^2]-\Delta_{02}\Delta_{03}\Delta_{23}(\omega^2-\Delta_1^2)Log[\Delta_1^2+\omega^2]+\nonumber\\&\Delta_{01}\Delta_{03}\Delta_{13}(\omega^2-\Delta_2^2)Log[\Delta_2^2+\omega^2]-\Delta_{01}\Delta_{02}\Delta_{12}(\omega^2-\Delta_3^2)Log[\Delta_3^2+\omega^2]\\
+c=&2\Delta_{12}\Delta_{13}\Delta_{01}\Delta_{03}\Delta_{02}\Delta_{23}
+\end{align}
+\end{subequations}
+
+The weight on the vertex 3 samely follows Equation \ref{wtti1} with different $a$, $b$, $c$ values as: 
+
+\begin{subequations}\label{wtti1az}
+\begin{align}
+a=&2\Delta_{01}\Delta_{02}\Delta_{12}\Delta_{03}\Delta_{13}\Delta_{23}(\Delta_{3}^2-\omega^2) +2\Delta_{12}\Delta_{13}^2\Delta_{23}^2\omega(\omega^2-3\Delta_0^2)ArcTan[\frac{\Delta_0}{\omega}]\nonumber\\ &-2\Delta_{02}\Delta_{03}^2\Delta_{23}^2\omega(\omega^2-3\Delta_2^2) ArcTan[\frac{\Delta_1}{\omega}]+2\Delta_{01}\Delta_{03}^2\Delta_{13}^2\omega(\omega^2-3\Delta_2^2)ArcTan[\frac{\Delta_2}{\omega}]\nonumber\\&-2\Delta{01}\Delta_{02}\Delta_{12}\omega[3\Delta_3(\Delta_1\Delta_2\Delta_3-\Delta_3^3+\Delta_0\Delta_1\Delta_3+\Delta_0\Delta_2\Delta_3-2\Delta_0\Delta_1\Delta_2)\nonumber\\&+\omega^2(\Delta_{13}\Delta_{23}+\Delta_{03}\Delta_{23}+\Delta_{13}\Delta_{03})]ArcTan[\frac{\Delta_3}{\omega}]\\
+b=&-\Delta_{0}\Delta_{12}\Delta_{13}^2\Delta_{23}^2(\Delta_0^2-3\omega^2)Log[\Delta_0^2+\omega^2]+\Delta_{1}\Delta_{02}\Delta_{03}^2\Delta_{23}^2(\Delta_1^2-3\omega^2)Log[\Delta_1^2+\omega^2]\nonumber\\&-\Delta_{01}\Delta_{2}\Delta_{03}^2\Delta_{13}^2(\Delta_2^2-3\omega^2)Log[\Delta_2^2+\omega^2]+[3\omega^2(\Delta_3^2\Delta_{32}+\Delta_3^2\Delta_{31}+\Delta_0\Delta_1\Delta_2-\Delta_3^2\Delta_0)-\nonumber\\&\Delta_3^2(\Delta_3\Delta_1\Delta_{32}+\Delta_3\Delta_2\Delta_{31}+2\Delta_0\Delta_1\Delta_{23}+\Delta_0\Delta_2\Delta_{13}+\Delta_0\Delta_3\Delta_{32})]Log[\Delta_3^2+\omega^2]\\
+c=&6\Delta_{01}\Delta_{02}\Delta_{12}\Delta_{03}^2\Delta_{13}^2\Delta_{23}^2
+\end{align}
+\end{subequations}\\
+
+The weight on vertex 1 can be calculated by the same equation as above after we exchange $\Delta_0$ and $\Delta_2$, so does that of vertex 2 after we exchange $\Delta_1$ and $\Delta_2$. And $w_0=w_{total}-w_1-w_2-w_3$.\\
+
+As we can see, there are some cases when $\Delta_{ij}=0$ and the above equations diverge. We further divide these situations into the following case:
+
+\textbf{Case I}, when $\Delta_0=\Delta_1$ and others do not equal to each other:\\
+
+
+For this case, the total weight on the tetrahedron can be achieved by Equation (\ref{wtti1}) with $a$, $b$, $c$ values as:
+
+\begin{subequations}\label{wtti2a}
+\begin{align}
+a=&-2\Delta_{0}\Delta_{02}\Delta_{03}\Delta_{23}+4\Delta_{23}(\Delta_0^2-\Delta_2\Delta_3)\omegaArcTan[\frac{\Delta_0}{\omega}]-4\Delta_{2}\Delta_{03}^2\omegaArcTan[\frac{\Delta_2}{\omega}]+4\Delta_{02}^2\Delta_{3}\omegaArcTan[\frac{\Delta_3}{\omega}]\\
+b=&-\Delta_{23}[\omega^2(\Delta_{02}+\Delta_{03})-\Delta_0(\Delta_2\Delta_{03}+\Delta_3\Delta_{02})]Log[\Delta_0^2+\omega^2]\nonumber\\&+\Delta_{03}^2(\omega^2-\Delta_{2}^2)Log[\Delta_2^2+\omega^2]-\Delta_{02}^2(\omega^2-\Delta_{3}^2)Log[\Delta_3^2+\omega^2]\\
+c=&2\Delta_{02}^2\Delta_{03}^2\Delta_{23}
+\end{align}
+\end{subequations}\\
+
+Those for the weight on the vertex 3 are:
+
+\begin{subequations}\label{wtti2az}
+\begin{align}
+a=&-2\Delta_{02}\Delta_{03}\Delta_{23}^2[\Delta_{32}(\omega^2-\Delta_0^2)+\Delta_{20}(\Delta_{3}^2-\omega^2)]+2\Delta_{23}^2\omega[\omega^2(2\Delta_{20}+\Delta_{30})+3\Delta_0(\Delta_0^2-\Delta_2\Delta_3)+3\Delta_0\Delta_3\Delta_{02}]\nonumber\\&ArcTan[\frac{\Delta_0}{\omega}]+2\omega\Delta_{03}^3\Delta_{32}(3\Delta_2^2-\omega^2)ArcTan[\frac{\Delta_2}{\omega}]+2\omega\Delta_{02}^2\Delta_{23}[\omega^2(2\Delta_{32}+\Delta_{30})\nonumber\\&-3\Delta_3(\Delta_3\Delta_{30}-2\Delta_0\Delta_2)]ArcTan[\frac{\Delta_3}{\omega}]\\
+b=&\Delta_{23}^3[3\omega^2\Delta_0\Delta_2+3\omega^2\Delta_2\Delta_3+\Delta_0^3(\Delta_2+2\Delta_3)-3\Delta_0^2(2\omega^2-\Delta_2\Delta_3)]Log[\Delta_0^2+\omega^2]\nonumber\\&-\Delta_2\Delta_{03}^3(\Delta_2^2-3\omega^2)Log[\Delta_2^2+\omega^2]+\Delta_{23}\Delta_{02}^2[\Delta_0(3\Delta_3^2\Delta_2-2\Delta_3^3-3\Delta_2\omega^2)\nonumber\\&-\Delta_{3}(3\Delta_2\omega^2+\Delta_2\Delta_3^2-6\omega^2\Delta_3)]Log[\Delta_3^2+\omega^2]\\
+c=&6\Delta_{02}^2\Delta_{03}^3\Delta_{23}^3
+\end{align}
+\end{subequations}\\
+
+The weight on vertex 2 can be calculated by the same equation as above after we exchange $\Delta_2$ and $\Delta_3$.\\
+
+The weight on vertex 1 is equal to the weight on vertex 0. When the weight on vertex 2, 3 and the whole tetrahedron are known, the weight on vertex 1 and 0 is half of value for the total weight minus by those of vertex 2 and 3. \\
+
+\textbf{Case II}, when $\Delta_0=\Delta_1$ and $\Delta_2=\Delta_3$:\\
+
+The weight on the whole tetrahedron is:
+\begin{eqnarray}\label{wtti3a}
+w_{total}=&\frac{4\Delta_0\Delta_3-\Delta_{0}^2-3\Delta_{3}^2-4\Delta_{3}\omega(ArcTan[\frac{\Delta_0}{\omega}]-ArcTan[\frac{\Delta_3}{\omega}])+(\omega^2-\Delta_3^2)(Log[\frac{\Delta_0^2+\omega^2}{\Delta_3^2+\omega^2}]}{2\Delta_{03}^3}
+\end{eqnarray}
+
+The weight on vertex 3 is:
+\begin{eqnarray}\label{wtti3az}
+w_{z}=&\frac{\Delta_{02}(6\omega^2-2\Delta_0^2-5\Delta_0\Delta_2+\Delta_2^2)+6\omega^2(\Delta_0^2+2\Delta_0\Delta_2-\omega^2)(ArcTan[\frac{\Delta_0}{\omega}]-ArcTan[\frac{\Delta_2}{\omega}])-[6\omega^2\Delta_0+3(\omega^2-\Delta_0^2)\Delta_2]Log[\frac{\Delta_0^2+\omega^2}{\Delta_2^2+\omega^2}]}{6\Delta_{02}^4}
+\end{eqnarray}
+
+The weight on vertex 2 is equal to that on vertex 3. The weight on vertex 0 is equal to that on vertex 1. Using these relations, knowing the total weight and the weight on vertex 3, we can get the weight on each vertex. \\
+
+\textbf{Case III}, when $\Delta_0=\Delta_1=\Delta_2$:
+
+The weight on the whole tetrahedron is:
+\begin{eqnarray}\label{wtti4a}
+w_{total}=&\frac{\Delta_0\Delta_{30}+3\Delta_3\Delta_{03}-4\Delta_3\omega(ArcTan[\frac{\Delta_0}{\omega}]-ArcTan[\frac{\Delta_3}{\omega}])+(\omega^2-\Delta_{3}^2)Log[\frac{\Delta_0^2+\omega^2}{\Delta_3^2+\omega^2}]}{2\Delta_{03}^3}
+\end{eqnarray}
+The weight on vertex 3 is:
+\begin{eqnarray}\label{wtti4az}
+w_{z}=&\frac{\Delta_{30}(\Delta_0^2-5\Delta_0\Delta_3-2\Delta_3^2+6\omega^2)+6\omega(\omega^2-2\Delta_0\Delta_3-\Delta_3^2)(ArcTan[\frac{\Delta_0}{\omega}]-ArcTan[\frac{\Delta_3}{\omega}])+3[\Delta_0(\omega^2-\Delta_3^2)+2\omega^2\Delta_3]Log[\frac{\Delta_0^2+\omega^2}{\Delta_3^2+\omega^2}]}{6\Delta_{03}^4}
+\end{eqnarray}
+
+The weight on vertex 2 is equal to those on vertex 1 and vertex 0. Using these relations, knowing the total weight and the weight on vertex 3, we can get the weight on each vertex. \\
+
+\textbf{Case IV}, when $\Delta_0=\Delta_1=\Delta_2=\Delta_3$:\\
+
+\begin{eqnarray}\label{wtti4az}
+w_0=w_1=w_2=w_3=\frac{-\Delta_0}{12(\Delta_0^2+\omega^2)}
+\end{eqnarray}\\
+
+\subsection{A transtion from convolution to integration---the case when one state is a core state}
+
+For the case when both of the two states in the $M$ matrix are valence or conduction states, since the $M$ matrix depents on both $k$ and $q$, we must use the convolution method which is relatively more time-consuming. But for the case when the occupied state is a core state, since the $M$ matrix just depend on $k-q$ vector now, as:\\
+
+\begin{eqnarray}\label{matcn}
+M_{cn}^i(\vec{k},\vec{q})=\int_{\Omega}[\tilde{\chi}_i^{\vec{q}}(\vec{r})\Psi_{n,\vec{k}-\vec{q}}(\vec{r})]^{*}\Psi_{c\vec{k}}(\vec{r})d^3 r=M_{cn}^i(\vec{k}-\vec{q})
+\end{eqnarray}
+
+, we can use the weight which just depend on $k-q$ and $n$. The convolution becomes:
+
+\begin{eqnarray}\label{matpkq}
+P_{ij}(\vec{q},\omega)=&\frac{N_c}{\hbar}\sum\limits_{\vec{k}}\limits^{BZ}\sum\limits_{n}\limits^{occ}\sum\limits_{n'}\limits^{unocc}M_{cn}^i(\vec{k}-\vec{q})[M_{cn}^j(\vec{k}-\vec{q})]^{*}\times \nonumber \\
+& \{\frac{1}{\omega-\epsilon_{n'\vec{k}-\vec{q}}+\epsilon_{c}+i\eta}-\frac{1}{\omega-\epsilon_{c}+\epsilon_{n'\vec{k}-\vec{q}}-i\eta}\}
+\end{eqnarray}
+ 
+Since it is equivalent for the $k$ mesh and $k-q$ mesh integration, we can just sign it at the integration over $k-q$.  
+
+\begin{eqnarray}\label{matpk}
+P_{ij}(\vec{q},\omega)=&\frac{N_c}{\hbar}\sum\limits_{\vec{k}-\vec{q}}\limits^{BZ}\sum\limits_{n}\limits^{occ}\sum\limits_{n'}\limits^{unocc}M_{cn}^i(\vec{k}-\vec{q})[M_{cn}^j(\vec{k}-\vec{q})]^{*}\times \nonumber \\ &
+\{\frac{1}{\omega-\epsilon_{n'\vec{k}-\vec{q}}+\epsilon_{c}+i\eta}-\frac{1}{\omega-\epsilon_{c}+\epsilon_{n'\vec{k}-\vec{q}}-i\eta}\}
+\end{eqnarray}\\
+
+For this integration, we follow the same way as the above subsection to calculate the weight. Since it is sure that the core state is occupied, so, for the normal case when we just calculate the possibility of $k-q$ mesh to be unoccupied, the weight just depend on $n$ and $k-q$. If we consider the effect of the frequency, the energy of the core state will also be included in the calculation of the weight no matter it is the real frequency case or the imaginary frequency case. There will still be three indices for the weight this way. In the code, we use three indices for all of these three cases, the only difference is that for the first case, we just need to calculate the weight for one $c$ state and put the same value into the others, which is not frequency-dependent. \\
+
+\subsection{The integration over the Fermi surface}
+
+Except for the q-independent integration and q-dependent integration over bulk region listed above, there are 
+still some cases for the metal material when $q$ equals zero case, then there is 
+an item of $-\frac{\delta{f}}{\delta{\epsilon}}$, this item will bring us an integration
+over the Fermi surface of the $k$ space. To deal with this problem, we use a similar algebra as 
+we use above, except that here we make an integration over a surface. The surface is defined as:
+
+\begin{eqnarray}\label{fermisurf}
+\epsilon_{Fermi}=&\xi(\epsilon_{n1}-\epsilon_{n0})+\eta(\epsilon_{n2}-\epsilon_{n0})
++\zeta(\epsilon_{n3}-\epsilon_{n0})+\epsilon_{n0}
+\end{eqnarray}
+
+. And the weight over each vertices can be got as:
+
+\begin{eqnarray}\label{weightvert}
+\omega_0(\vec{k})=&1-\xi-\eta-\zeta \nonumber \\
+ \omega_1(\vec{k})=&\xi    \nonumber \\
+ \omega_2(\vec{k})=&\eta   \nonumber \\
+ \omega_3(\vec{k})=&\zeta
+\end{eqnarray}
+
+. Since the weight on the vertex is an integration over the $\delta$ function 
+and the weight interpolation function. It can be written as:
+
+\begin{eqnarray}\label{weightonvert}
+\omega^{T}_{ni}=\frac{6V_T}{V_G}\int\limits_0\limits^1\int\limits_0\limits^{1-\zeta}\int\limits_0^{1-\zeta-\eta}\omega_i(\vec{k})\delta[\xi(\epsilon_{n1}-\epsilon_{n0})+\eta(\epsilon_{n2}-\epsilon_{n0})
++\zeta(\epsilon_{n3}-\epsilon_{n0})+\epsilon_{n0}-\epsilon_{Fermi})]d\xi d\eta d\zeta
+\end{eqnarray}
+
+. After the energy on the vertices are ordered, there are total 3 cases when this surface contributes to the integration. They are the case when one, two, or three of the vertices lie under the Fermi energy. Accordingly the calculation becomes much simplier. We take three nodes on the Fermi surface. And get two vectors $U_a$,$U_b$ from them, by adding another vector $U_{\epsilon}$, we can define a new coordinate system. With three basis vectors as:
+
+\begin{eqnarray}\label{newcoordinates}
+&\vec{U_a}=\vec{n_2}-\vec{n_1} \nonumber \\
+& \vec{U_b}=\vec{n_3}-\vec{n_1} \nonumber \\
+& \vec{U_{\epsilon}}=\frac{(\epsilon_1-\epsilon_0,\epsilon_2-\epsilon_0,\epsilon_3-\epsilon_0)}{\sqrt{(\epsilon_1-\epsilon_0)^2+(\epsilon_2-\epsilon_0)^2+(\epsilon_3-\epsilon_0)^2}} 
+\end{eqnarray}
+
+In the old coordinate, a point is represented as: $\vec{\xi}=(\xi,\eta,\zeta)$. And in the new system, the point is represented as: $\vec{\xi}=a\vec{U_a}+b\vec{U_b}+\epsilon \vec{U_{\epsilon}}$. The energy on this point is:
+
+\begin{eqnarray}\label{energyi}
+\epsilon(\vec{k})=&\xi(\epsilon_{n1}-\epsilon_{n0})+\eta(\epsilon_{n2}-\epsilon_{n0})
++\zeta(\epsilon_{n3}-\epsilon_{n0})+\epsilon_{n0} \nonumber \\
+=&\sqrt{(\epsilon_1-\epsilon_0)^2+(\epsilon_2-\epsilon_0)^2+(\epsilon_3-\epsilon_0)^2}\vec{\xi}\cdot\vec{U_{e}}  \nonumber \\
+=&\sqrt{(\epsilon_1-\epsilon_0)^2+(\epsilon_2-\epsilon_0)^2(\epsilon_3-\epsilon_0)^2}\epsilon}
+\end{eqnarray}
+
+Here, $\epsilon(\vec{k})$ is the energy of the point, while $\epsilon$ is the coordinate of this point in the new coordinate system, it is normalized without the unit of energy. 
+
+In the new coordinates, the $\delta$ function can be expressed as a function of only one variable, that is the normalized $\epsilon$. The integration becomes:
+
+\begin{eqnarray}\label{weightvertex}
+\omega_{i}=\frac{6V_T}{V_G}\left|(\vec{U_a}\times\vec{U_b})\cdot\vec{U_{\epsilon}}\right|\int\int\int\omega_i(\vec{k})\delta[\sqrt{(\epsilon_1-\epsilon_0)^2+(\epsilon_2-\epsilon_0)^2+(\epsilon_3-\epsilon_0)^2}\epsilon+\epsilon_{n0}-\epsilon_{Fermi}]da db d\epsilon
+\end{eqnarray}
+
+We express $\omega_i(k)$ in terms of the new ordinates, it is $a\vec{U_a}+b\vec{U_b}+\epsilon \vec{U_\epsilon}$, and the integration gives:
+
+\begin{eqnarray}\label{vertexweight}
+\omega_{i}&=\frac{6V_T}{V_G}\left|(\vec{U_a}\times\vec{U_b})\cdot\vec{U_{\epsilon}}\right|\int\int\int(aU^a_i+bU^b_i+\epsilon U^{\epsilon}_i)\delta[\sqrt{(\epsilon_1-\epsilon_0)^2+(\epsilon_2-\epsilon_0)^2+(\epsilon_3-\epsilon_0)^2}\epsilon+\epsilon_{n0}-\epsilon_{Fermi}]da db d\epsilon \nonumber \\
+&=\frac{6V_T\left|(\vec{U_a}\times\vec{U_b})\cdot\vec{U_{\epsilon}}\right|}{V_G\sqrt{(\epsilon_1-\epsilon_0)^2+(\epsilon_2-\epsilon_0)^2+(\epsilon_3-\epsilon_0)^2}}[\omega^aU^a_i+\omega^bU^b_i+\omega^{\epsilon}U^{\epsilon}_i]
+\end{eqnarray}
+
+And:
+
+\begin{eqnarray}\label{omegaii}
+&\omega^a=\int\limits_{a_1}\limits^{1+a_1}\int\limits_{b_1}\limits^{1+a_1+b_1-a}a da db=\frac{1}{6}+\frac{a_1}{2} \nonumber \\
+&\omega^b=\int\limits_{a_1}\limits^{1+a_1}\int\limits_{b_1}\limits^{1+a_1+b_1-a}b da db =\frac{1}{6}+\frac{b_1}{2}\nonumber \\
+&\omega^{\epsilon}=\frac{\epsilon_{Fermi}-\epsilon_0}{\sqrt{(\epsilon_1-\epsilon_0)^2+(\epsilon_2-\epsilon_0)^2+(\epsilon_3-\epsilon_0)^2}}\int\limits_{a_1}\limits^{1+a_1}\int\limits_{b_1}\limits^{1+a_1+b_1-a} da db=\frac{\epsilon_{Fermi}-\epsilon_0}{2\sqrt{(\epsilon_1-\epsilon_0)^2+(\epsilon_2-\epsilon_0)^2+(\epsilon_3-\epsilon_0)^2}} 
+\end{eqnarray}
+
+
+To note is that for the Fermi surface in the tetrahedron, in the new coordinate, the range of variables $a$ and $b$ are not the triangle from $0$ to $1$ any more. We need to calculate the coordinate of node $1$ in the new coordinates first. If that is $(a_1,b_1,\epsilon_1)$, then we need to integrate the weight taking variable $a$ from $a_1$ to $1+a_1$ and variable $b$ from $b_1$ to $1+b_1$. The solution for $a_1$ and $b_1$ is:
+
+\begin{subequations}\label{solutab}
+\begin{align}
+a_1=&\frac{1}{U_a^xU_b^y-U_b^xU_a^y}[U_b^y(n_1^x-(\epsilon_{Fermi}-\epsilon_0)U_{\epsilon}^x]-U_b^x[n_1^y-\frac{\epsilon_{Fermi}-\epsilon_0}{\Delta}U_{\epsilon}^y)]\\
+b_1=&\frac{1}{U_a^xU_b^y-U_b^xU_a^y}[U_a^x(n_1^y-(\epsilon_{Fermi}-\epsilon_0)U_{\epsilon}^y]-U_a^y[n_1^x-\frac{\epsilon_{Fermi}-\epsilon_0}{\Delta}U_{\epsilon}^x)]\\
+\Delta=&\sqrt{(\epsilon_1-\epsilon_0)^2+(\epsilon_2-\epsilon_0)^2+(\epsilon_3-\epsilon_0)^2}
+\end{align}
+\end{subequations}
+
+The unit for the weight if $1/energy$, this is because the defination of the $\delta$ function is taking energy as the variable. And to test this, we use the free electron gas case. The summation of the weight multiplied by $\frac{8\pi^3}{V_{cell}}$ equals to:
+
+\begin{eqnarray}\label{weightsummation}
+\Sigma &=\int\int\int\delta[\epsilon-\epsilon_{Fermi}]dk_x dk_y dk_z \nonumber \\
+& =4\pi\int k^2 \delta[{\frac{\hbar^2k^2}{2m}-\epsilon_{Fermi}]dk \nonumber \\
+& =4\pi \frac{m}{\hbar^2}\int k \delta[\frac{\hbar^2k^2}{2m}-\epsilon_{Fermi}]d\frac{\hbar^2k^2}{2m} \nonumber \\
+& =4\pi \frac{m}{\hbar^2} k_{Fermi}
+\end{eqnarray}
+
+And we use the weight to get the integration of energy on the Fermi surface, we can campare the production of the result multiplied by $\frac{8\pi^3}{V_{cell}}$ with:
+
+\begin{eqnarray}\label{energysummation}
+\Sigma{\epsilon} & =\int\int\int\epsilon_{k}\delta[\epsilon-\epsilon_{fermi}]dk_x dk_y dk_z \nonumber \\
+& =4\pi \frac{m}{\hbar^2} \epsilon_{fermi} k_{fermi}
+\end{eqnarray}
+
+\subsection{q-dependent integration over a frequency surface}
+
+In the \textbf{GW} code we are developping, we also have an integration with the form:
+
+\begin{eqnarray}\label{qdepsurf}
+X(\vec{q})=\frac{1}{V_G}\sum\limits_{n,n'}\int_{V_G}X_{nn'}(\vec{k},\vec{q})f(\epsilon_{n}(\vec{k}))(1-f[\epsilon_{n'}(\vec{k}-\vec{q})])\delta(\epsilon_{n}(\vec{k})-\epsilon_{n'}(\vec{k}-\vec{q})+\omega)d^3k
+\end{eqnarray}
+
+This integration follows the normal case q-dependent integration a lot, with the difference that we need to make a surface integration inside the integration region instead of the bulk integration. We can combine the methods with which we used for finding the integration region, dividing it into little tetrahedra, making a surface integration inside each little tetrahedron, and linearly distributing the weights on the nodes to the $k$-mesh points together to do with this integration. With the only difference that in the surface integration, we define the surface with an energy difference here instead of an energy in the former section.
+
+
+\newpage
+\section{The Structure of the Program}
+
+\markboth{Left}{The Structure of the Program,  Date: Fri Mar 18 15:00:09 CEST 2005
+}
+
+\subsection{The way the program is organized}
+
+
+The aims of this library include dealing with the $q$-independent volume integration over $k-$mesh with improved tetrahedron method following mostly the work of Bl{\"o}chl \textit{et al}, Phys.Rev.B \textbf{49}, 16223(1994), $q-$dependent volume integration, and the $q$-dependent integration over a certain energy surface. For the second part, $q-$dependent volume integration, there are some cases we can not linearize both the energy and the operator to be integrated simultaneously, so we further divide this integration into three cases, which are the case when can linearize both of them, the case when can't do that and we include the energy dependent part of the operator into the weights with real frequency, and the case when we can't do that and we include the energy dependent part of the operator into the weights with imaginary frequency. In below, we will illustrate how we realize this step by step.\\
+
+First of all, we need to generate the $k-$mesh and $q-$mesh. Further, we need to know when given a $q$ vector, how one tetrahedron in the $k-$ mesh is related to the other one in the $k-$mesh which corresponds to the $k-q$ states. And also, we need to know how to calculate the weight and distribute it into different $k$ points. For these purposes, the programs can be divided into six groups, they are:
+
+\textbf{I}, the module section which could be used by the subroutines in the library.\\
+
+\textbf{II}, the subroutines for the generation of the k-points which could be called by the programs outside.\\
+
+\textbf{III}, the subroutines supporting the k-points generation which can only be called within the library.\\
+
+\textbf{IV}, the subroutines for the all the integrations we want which could be called by the programs outside.\\
+
+\textbf{V}, the subroutines supporting the calculation of the weights which can only be called within the library.\\
+
+\textbf{VI}, some general subroutines which could be called by both the subroutines outside and inside the library.\\
+
+In the following "Routine/Function Prologues" section, the source codes are listed according to the order we introduced here. Instructions for how each section is organized will be stated in the according section.\\ 
+
+
+\subsection{The module section}
+
+
+There are four files in this part. \\
+
+
+In the file 'order.f90', there are two subroutines, which aims at ordering the value of integer vector(sorti) and real vector(sortr) seperately. These two subroutines are often used in the integration part.\\
+
+
+In the file 'kgen\_internal.f90', the datum related to the definition of the $k$-mesh. Which are generally used in the $k$-mesh generation program and their subroutines are defined. \\
+
+
+In the file 'tetra\_internal.f90', the datum related to the definition of the tetrahedron-related things. Which are used for the tetrahedra integration. Including those for the defination of the tetrahedra, those for relating them to the corresponding $k$ points, and those for the band energy information.\\
+
+
+In the file 'polyhedron.f90', the datum which are used for the description of how one tetrahedron is cutted by the Fermi surface are defined. These datum are gererally use in the $q$-dependent integration programs and their subroutines. We need this part only for metals. \\
+
+
+\subsection{The k-point generation programs and its supporting subroutines}
+
+
+There are three subroutines to be called by the main program here. 'kgen()' is called to generate the $k-$mesh. 
+'kgenq' is called to generate the information about how the $k-$points tetrahedron is linked with the $k-q$ points tetrahedron for a specific $q$ vector. 'kqgen' is called to generate both the $k-$mesh and $q-$mesh and the information how the tetrahedra in different meshes are linked together by every $q$. Among them, 'kgen' is called before 'tetiw' for the generation of the integration weights. 'kgenq' is always called before 'tetcw' for a specific $q$ vector to generate the $q-$dependent integration weights. The supporting subroutines are for the realization of these three programs.\\
+
+
+\subsection{The tetrahedron integration programs and its supporting subroutines}
+
+
+'tetiw' is called to get the weights on $k-$point for a $q$-independent bulk integration. \\
+
+
+'tetcw' is called to generate the weight on each $k$ point for the convolutional integration for a specific $q$ vector. There is one parameter 'sigfreq' for input in this program, when it equals $1$, it correpsonds to the case when we can linearize the energy and the operator to be integrated simultaneously. When it equals $2$, it is for the case when we can't do this and we include the energy dependent part of polarization into the weights by using the real frequency. When it equals $3$, it is the same as the former case except that we use imaginary frequency here. When it equals $4$, it is for the case of $q$-dependent surface integration.  \\
+
+
+'tetiwsurf' is called to generate the weight on each $k-$point for $q$-independent surface integration for a certain energy.  \\
+
+
+'tetcorecw' is called to generate the weight on each $k-q$ point for the case when one of the state is a core state. The function of this program can be realized by 'tetcw', we write this program just for efficiency of this specific case. \\
+
+
+\subsection{Subroutines that can be called separately}
+
+
+'cartezian' is the subroutine which transforms the submesh coordinates into cartesian coordinates in the reciprocal space. 'gbass' is the subroutine which gets the reciprocal lattice vector from real space lattice vectors. 'rbass' generates the real space lattice vactor from the reciprocal space lattice vector without $2\pi$ factor. 'intern' transforms the submesh coordinates of the $k$-point into internal coordinates in the basis vectors of the reciprocal lattice. \\
+
+
+\newpage
+
+
+\section{User Guide for Calling this Library}
+
+
+\markboth{Left}{User Guide for Calling this Library,  Date: Fri Mar 18 15:00:09 CEST 2005
+}
+
+
+Special cares must be paid to the interface when calling each subroutine from outside.\\
+
+
+\subsection{Compiling}
+
+
+Before calling libray, we need to compile the library. Go to the directory for the library and use:\\
+
+
+      $>$ make\\
+      
+
+to generate the executable library file for the calling program.   \\
+
+
+Then enter the directory for your program and do the things under the instruction of the following subsections. \\
+
+ 
+\subsection{Calling 'kgen'}
+
+Before calling this subroutine, one has to know in which coordinates are the symmetry operations defined, in other word, which coordinates are used by the calling program. If the symmetry operations are defined in the defined in cartesian coordinates, like what Wien2k package does, the subroutine \textbf{sym2int} must be called first to transform the symmetry operations into internal coordinates. And the subroutine \textbf{cartezian} must be called afterwards to transform the k-points coordinates back to the cartesian ones. If the calling program is already in the internal coordinates, we don't have to bother with this transformations and we just call \textbf{kgen} directly. The following procedures are written in a way for the relatively complicated case when we need to care about the transformation. 
+
+The input and out put datum for \textbf{sym2int} are:\\
+
+integer(4), intent(in) :: \textbf{nsym}  ! Number of symmetry operations\\
+
+integer(4), intent(in) :: \textbf{symopc(3,3,*)}  ! The symmetry operations in the cartesian coordinates\\
+
+real(8), intent(in) :: \textbf{rbas(3,3)}  ! The basis vectors of the Bravais lattice\\
+
+integer(4), intent(out) :: \textbf{symopi(3,3,*)}  ! The symmetry operations in the internal coordinates\\
+ 
+
+Then the symmetry operations are already in the internal coordinates. We call call the \textbf{kgen} subroutine by:
+
+call kgen(rbas, nsymt, symop, ndiv, nshift, nik, klist, idiv, wk, & \\
+          ntet, tetk, wtet, vtet, ikpid1, redk, mnd)\\
+          
+The input datum and their properties are:\\
+
+real(8), dimension(3,3), intent(in) :: \textbf{rbas}------The Basis vector of the Bravais lattice, first index is for the basis and the second for the x,y,z direction. \textbf{rbas}(1,1:3) is the first axis vector.\\
+
+integer(4), intent(in) :: \textbf{nsymt}------Number of symmetry operations. \\
+
+integer(4), dimension(3), intent(in) :: \textbf{ndiv}------Number of divisions of the BZ in each direction, ndiv(1) is for how the first vector is divided.  \\
+
+integer(4), intent(in), target :: \textbf{symop(1:3,1:3,*)}------ The symmetry operations in the internal coordinates.\\
+
+integer(4), dimension(3), intent(in) :: \textbf{nshift}------Divided by two is coordinates in the internal coordinates of the shift vector for the k-point mesh, if \textbf{nshift}=(1,1,1), the mesh is shifted half a mesh grid in each direction.  \\
+
+
+The output datum are:\\
+
+integer(4), intent(out) :: \textbf{nik}------Number of irreducible k-points\\
+
+integer(4), intent(out) :: \textbf{klist(3,*)}------Integer coordinates of the irreducible k-points, combined with \textbf{idiv} to give the coordinates of the the k-point. \textbf{klist(1:3,i)}/\textbf{idiv} is the internal coordinates for the \textbf{i}th k point in the reciprocal space. \\
+
+integer(4), intent(out) :: \textbf{idiv}------Minimum common divisor of the irreducible k-points\\
+
+integer(4), intent(out) :: \textbf{wk(*)}------The weight of each k-point\\
+
+integer(4), intent(out) :: \textbf{ntet}------number of irreducible tetrahedra\\
+
+integer(4), intent(out) :: \textbf{tetk(4,*)}------ID number of the k-points corresponding to the nodes of each tetrahedron\\
+
+integer(4), intent(out) :: \textbf{wtet(*)}------Weight of each tetrahedron\\
+
+real(8), intent(out) :: \textbf{vtet}------volume of each tetrahedron, which is 1/(6*ndiv(1)*ndiv(2)*ndiv(3))\\
+
+integer(4), intent(out) :: \textbf{ikpid1(*)}------Order number of the irreducible k-point. Which means it is the first, second or n^{th} irreducible k-point\\
+   
+integer(4), intent(out) :: \textbf{redk}------ID number of the irreducible k-points, by this, we can find the coordinates of the k-point\\
+
+integer(4), intent(out) :: \textbf{mndg}------Number to tell which diagonal of the mesh cube is the shortest, this will be used in the interpolation process, when we want to draw the bandstructure for single particle excitation.\\
+
+After this, if we want to know the actual coordinates of each k point in the cartesian coordinates, we need to call \textbf{cartezian} this way:
+
+call cartezian(nkp, div, aaa, rbas, klist, idiv)
+
+And the properties for the input and output datum are:
+
+integer(4), intent(in) :: \textbf{nkp}  ! Number of k-points\\
+
+integer(4), intent(in) :: \textbf{div(3)} ! Number of divisions of the submesh in each direction\\
+
+real(8), intent(in) :: \textbf{aaa(3)}  ! lattice constants\\
+
+real(8), intent(in) :: \textbf{rbas(3,3)}  ! Basis vectors of the direct lattice\\
+
+integer(4), intent(inout) :: \textbf{klist(3,*)}  ! integer coordinates of the kpoints\\
+
+integer(4), intent(inout) :: \textbf{idiv}  ! minimum common divisor for the integer coordinates of the k-points\\
+
+
+\subsection{Calling 'kgenq'}
+
+For a given $q$ vector, this subroutine gives the necessary datum to relate the tetrahedron in the $k-$mesh and the correponding one in the $k-q$-mesh. This subroutine is always called before the convolution. For each $q$, we use this subroutine to get the weight for convolutional integration. The same thing as \textbf{kgen} needs to be cared again here, when the calling program is in cartesian coordinates, we need to call \textbf{sym2int} before this and \textbf{cartezian} afterward the same way as the former subsection. We don't need to bother with it again. Here only the illustrations about \textbf{kgenq} will be given.\\
+
+The input datum are:\\
+
+real(8), dimension(3,3), intent(in) :: \textbf{rbas}------The Basis vector of the Bravais lattice, \textbf{rbas}(1,1:3) is the first axis vector.\\
+
+integer(4), intent(in) :: \textbf{nsymt}------Number of symmetry operations, these symmetry operations could be not only defined by the lattice, but also defined by the $q$ vector. It depends on how we use symmetry in the calling program. \\
+
+integer(4), intent(in), target :: \textbf{symop(1:3,1:3,*)}------ Symmetry operations in internal coordinates.\\
+
+integer(4), dimension(3), intent(in) :: \textbf{ndiv}------Number of divisions of the BZ in each direction. \\
+      
+integer(4), dimension(3), intent(in) :: \textbf{nshift}------Shift vector for the k-point mesh, if \textbf{nshift}=(1,1,1), the mesh is shifted half a mesh grid in each direction. \\
+
+integer(4), dimension(3), intent(in) :: \textbf{qv}------The vector of $q$\\
+
+
+The output datum are:\\
+
+integer(4), intent(out) :: \textbf{nik}------Number of irreducible k-points calculated by the symmetry operations we inputted.\\
+
+integer(4), intent(out) :: \textbf{klist(3,*)}------The list of irreducible k-points, together with \textbf{idiv} to give the coordinates in internal coordinates.\\
+
+integer(4), intent(out) :: \textbf{idiv}------Minimum common divisor of the irreducible k-points\\
+
+integer(4), intent(out) :: \textbf{wk(*)}------The weight of each k-point\\
+ 
+integer(4), intent(out) :: \textbf{ntet}------number of irreducible tetrahedra\\
+
+integer(4), intent(out) :: \textbf{tetk(4,*)}------ID number of the k-points corresponding to the nodes of each tetrahedron\\
+
+integer(4), intent(out) :: \textbf{linkt(*)}------Index of the tetrahedron linked to the one in the index by the vector $q$\\
+
+real(8), intent(out) :: \textbf{vtet}------volume of each tetrahedron, which is 1/(6*ndiv(1)*ndiv(2)*ndiv(3))\\
+
+
+\subsection{Calling 'tetiw'}
+
+This subroutine is called after 'kgen', from this we can get the weight on each irreducible k-point, and use these weight to calculate the integration equation we want.  The input datum are:\\
+
+integer(4), intent(in) :: \textbf{nik}------Number of irreducible k-points\\
+
+integer(4), intent(in) :: \textbf{nt}------Number of irreducible tetrahedra\\
+
+integer(4), intent(in) :: \textbf{nb}------Number of bands considered\\
+
+real(8), target, intent(in) :: \textbf{ebd(nik,*)}------ebd(nik,nib) is the energy on point 'nik' of band 'nib'\\
+
+integer(4), target, intent(in) :: \textbf{tetc(4,*)}------ID numbers of the corners of the tetrahedron\\
+    
+integer(4), target, intent(in) :: \textbf{wtet(*)}------Weight of each tetrahedron\\
+
+real(8), intent(in) :: \textbf{v}------Volume of the tetrahedron\\
+      
+real(8), intent(in) :: \textbf{efer}------Fermi energy\\
+
+The output datum are:\\
+
+real(8), intent(out) :: \textbf{iw(nik,nb)}------iw(nk,nib) states the weight on point 'nk' of band 'nib'\\
+
+\subsection{Calling 'tetcw'}
+
+This subroutine is called after 'kgenq' for a specific $q$, from this we can get the weight on each irreducible k-point and k-q point, and use these weight to calculate the convolutional integration equation we want.  The input datum are:\\
+
+integer(4), intent(in) :: \textbf{nik}------Number of irreducible k-points\\
+
+integer(4), intent(in) :: \textbf{nt}------Number of irreducible tetrahedra\\
+
+integer(4), intent(in) :: \textbf{nb}------Number of bands considered\\
+
+real(8), target, intent(in) :: \textbf{ebd(nik,nb)}------ebd(nk,1:nib) are the energy on point 'nk' of 'nb'bands\\
+     
+integer(4), target, intent(in) :: \textbf{tetc(4,*)}------ID numbers of the corners of the tetrahedron\\
+
+integer(4), target, intent(in) :: \textbf{linkt(*)}------Index of the tetrahedron linked to the one in the index by the vector $q$\\
+
+real(8), intent(in) :: \textbf{v}------Volume of the tetrahedron\\
+
+real(8), intent(in) :: \textbf{efer}------Fermi energy\\
+      
+real(8), intent(in) :: \textbf{omega}------Frequency we used to generate the weight to be calculated\\
+      
+integer(4), intent(in) :: \textbf{sigfreq}------Kind of convoluction we need, sigfreq=2 or 3 means convolution for real or imaginary frequency seperately. sigfreq=4 means the $q$-dependent surface integration, the surface is defined in the way that $\epsilon_{n'k-q}-\epsilon_{n,k}$ equals $\omega$
+
+The output datum are:\\
+
+real(8), intent(out) :: \textbf{cw(nik,nb,nb)}------cw(1:nik,1:nb,1:nb) state the convolution weights on the k-points for this $\vec{q}$\\
+
+\subsection{Calling 'tetcorecw'}
+
+This subroutine is called after 'kgenq' for a specific $q$, from this we can get the weight on each irreducible k-point for this $q$ convolution, and use these weight to calculate the convolutional integration equation we want.  The input datum are:\\
+
+integer(4), intent(in) :: \textbf{nik}------Number of irreducible k-points\\
+
+integer(4), intent(in) :: \textbf{nt}------Number of irreducible tetrahedra\\
+
+integer(4), intent(in) :: \textbf{nb}------Number of bands considered\\
+      
+integer(4), intent(in) :: \textbf{nc}------Number of core states involved\\
+      
+real(8), target, intent(in) :: \textbf{ebd(nik,*)}------ebd(nk,nb) are the energy on point 'nk' of 'nib'bands\\
+
+real(8), target, intent(in) :: \textbf{ec(*)}------Energy of the core states\\
+      
+integer(4), target, intent(in) :: \textbf{tetc(4,*)}------ID numbers of the corners of the tetrahedron\\
+      
+integer(4), target, intent(in) :: \textbf{linkt(*)}------Index of the tetrahedron linked to the one in the index by the vector $q$\\
+
+real(8), intent(in) :: \textbf{v}------Volume of the tetrahedron\\
+
+real(8), intent(in) :: \textbf{efer}------Fermi energy\\
+
+real(8), intent(in) :: \textbf{omega}------Frequency for the weight to be calculated\\
+      
+integer(4), intent(in) :: \textbf{sigfreq}------Kind of convoluction we need, sigfreq=2 or 3 means convolution for real or imaginary frequency seperately.
+
+The output datum are:\\
+
+real(8), intent(out) :: \textbf{cw(nik,nb,nc)}------cw(1:nik,1:nb,1:nc) state the convolution weights on the k-points for this $\vec{q}$\\
+
+
+\subsection{Calling 'tetiwsurf'}
+
+
+This subroutine is called to generate the weight on each $k$ point for a surface integration:\\
+
+integer(4), intent(in) :: \textbf{nik}------Number of irreducible k-points\\
+      
+integer(4), intent(in) :: \textbf{nt}------Number of irreducible tetrahedra\\
+
+integer(4), intent(in) :: \textbf{nb}------Number of bands considered\\
+
+real(8), target, intent(in) :: \textbf{ebd(nik,*)}------ebd(nk,nib) are the energy on point 'nk' of 'nib' band\\
+
+integer(4), target, intent(in) :: \textbf{tetc(4,*)}------ID numbers of the corners of the tetrahedron\\
+
+integer(4), target, intent(in) :: \textbf{wtet(*)}------Weight of each tetrahedron\\
+
+real(8), intent(in) :: \textbf{v}------Volume of the tetrahedron\\
+
+real(8), intent(in) :: \textbf{omeg}------Energy for the surface integration\\
+
+The output datum are:\\
+
+real(8), intent(out) :: \textbf{iwsurf(nik,nb)}------iwsurf(1:nik,1:nb) state the weights on the k-points for the surface integration\\
