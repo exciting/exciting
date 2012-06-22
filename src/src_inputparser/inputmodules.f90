@@ -1701,7 +1701,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lradstep")
-getstructgroundstate%lradstep=4
+getstructgroundstate%lradstep=1
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lradstep",getstructgroundstate%lradstep)
        call removeAttribute(thisnode,"lradstep")  
@@ -4923,8 +4923,6 @@ case('Lapack')
  stringtonumbersolvertype=1
 case('Arpack')
  stringtonumbersolvertype=2
-case('DIIS')
- stringtonumbersolvertype=3
 case('')
  stringtonumbersolvertype=0
 case default
@@ -5284,7 +5282,7 @@ case('GGA-Wu-Cohen')
 case('GGAArmiento-Mattsson')
  stringtonumbergroundstatexctype=30
 case('EXX')
- stringtonumbergroundstatexctype=-1
+ stringtonumbergroundstatexctype=-2
 case('none')
  stringtonumbergroundstatexctype=1
 case('')

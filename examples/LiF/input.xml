@@ -17,7 +17,9 @@
 		</species>
 	</structure>
 	<groundstate lradstep="2" swidth="0.005" nempty="10"
-		ngridk="10 10 10" tforce="true" />
+		ngridk="10 10 10" tforce="true" >
+		<solver packedmatrixstorage="true"/>
+   </groundstate>
 	<properties>
 		<bandstructure character="true">
 			<plot1d>

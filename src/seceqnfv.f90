@@ -55,11 +55,9 @@ Subroutine seceqnfv (nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !     Hamiltonian and overlap set up     !
   !----------------------------------------!
 !
-       If (associated(input%groundstate%solver)) Then
-         packed = input%groundstate%solver%packedmatrixstorage
-      Else
-         packed = .True.
-      End If
+
+      packed = input%groundstate%solver%packedmatrixstorage
+
 
       Call newsystem (system, packed, nmatp)
       Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
