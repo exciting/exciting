@@ -163,6 +163,7 @@ logical::exists
  logical::tevecsv
  integer::nwrite
  logical::ptnucl
+ logical::tetra
   type(spin_type),pointer::spin
   type(HartreeFock_type),pointer::HartreeFock
   type(solver_type),pointer::solver
@@ -536,7 +537,74 @@ end type
 type doonly_type_array
 type(doonly_type),pointer::doonly
  end type
-    type input_type
+    type gw_type
+ character(512)::taskname
+ integer::tasknamenumber
+ integer::iik
+ integer::jjk
+ integer::igmin
+ integer::igmax
+ integer::ibmin
+ integer::ibmax
+ integer::ibmin2
+ integer::ibmax2
+ integer::at1
+ integer::at2
+ integer::ibgw
+ integer::nbgw
+ real(8)::emaxpol
+ logical::rpmat
+ logical::reps
+ character(512)::corflag
+ integer::corflagnumber
+ integer::nelfc
+ real(8)::q0eps(3)
+ real(8)::barcevtol
+ logical::reduceq
+  type(bzconv_type),pointer::bzconv
+  type(interp_type),pointer::interp
+  type(freqgrid_type),pointer::freqgrid
+  type(selfenergy_type),pointer::selfenergy
+  type(mixbasis_type),pointer::mixbasis
+  type(gapshift_type),pointer::gapshift
+  type(barecoul_type),pointer::barecoul
+end type
+type bzconv_type
+ character(512)::bzcon
+ integer::bzconnumber
+ character(512)::fdep
+ integer::fdepnumber
+end type
+type interp_type
+ character(512)::interp
+ real(8)::rmax
+ real(8)::efermi2
+end type
+type freqgrid_type
+ character(512)::fgrid
+ integer::nomeg
+ real(8)::freqmax
+ integer::maxexp
+end type
+type selfenergy_type
+ integer::npol
+ integer::iopes
+ integer::iopac
+end type
+type mixbasis_type
+ real(8)::kmr
+ integer::lmaxapwmix
+ real(8)::wftol
+end type
+type gapshift_type
+ integer::ibshift
+ real(8)::gapshift
+end type
+type barecoul_type
+ real(8)::pwm
+ real(8)::stctol
+end type
+type input_type
  character(1024)::xsltpath
  character(1024)::scratchpath
  character(512)::title
@@ -546,6 +614,7 @@ type(doonly_type),pointer::doonly
   type(properties_type),pointer::properties
   type(phonons_type),pointer::phonons
   type(xs_type),pointer::xs
+  type(gw_type),pointer::gw
  character(512)::keywords
 end type
 
@@ -1819,6 +1888,14 @@ getstructgroundstate%ptnucl= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ptnucl",getstructgroundstate%ptnucl)
        call removeAttribute(thisnode,"ptnucl")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"tetra")
+getstructgroundstate%tetra= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"tetra",getstructgroundstate%tetra)
+       call removeAttribute(thisnode,"tetra")  
 endif
 
             len= countChildEmentsWithName(thisnode,"spin")
@@ -4690,6 +4767,546 @@ getstructdoonly%tasknumber=stringtonumberdoonlytask(getstructdoonly%task)
       call  handleunknownnodes(thisnode)
 end function
 
+function getstructgw(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(gw_type),pointer::getstructgw
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructgw)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at gw"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"taskname")
+getstructgw%taskname= "gw"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"taskname",getstructgw%taskname)
+       call removeAttribute(thisnode,"taskname")  
+endif
+getstructgw%tasknamenumber=stringtonumbergwtaskname(getstructgw%taskname)
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"iik")
+getstructgw%iik=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"iik",getstructgw%iik)
+       call removeAttribute(thisnode,"iik")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"jjk")
+getstructgw%jjk=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"jjk",getstructgw%jjk)
+       call removeAttribute(thisnode,"jjk")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"igmin")
+getstructgw%igmin=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"igmin",getstructgw%igmin)
+       call removeAttribute(thisnode,"igmin")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"igmax")
+getstructgw%igmax=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"igmax",getstructgw%igmax)
+       call removeAttribute(thisnode,"igmax")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ibmin")
+getstructgw%ibmin=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ibmin",getstructgw%ibmin)
+       call removeAttribute(thisnode,"ibmin")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ibmax")
+getstructgw%ibmax=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ibmax",getstructgw%ibmax)
+       call removeAttribute(thisnode,"ibmax")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ibmin2")
+getstructgw%ibmin2=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ibmin2",getstructgw%ibmin2)
+       call removeAttribute(thisnode,"ibmin2")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ibmax2")
+getstructgw%ibmax2=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ibmax2",getstructgw%ibmax2)
+       call removeAttribute(thisnode,"ibmax2")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"at1")
+getstructgw%at1=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"at1",getstructgw%at1)
+       call removeAttribute(thisnode,"at1")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"at2")
+getstructgw%at2=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"at2",getstructgw%at2)
+       call removeAttribute(thisnode,"at2")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ibgw")
+getstructgw%ibgw=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ibgw",getstructgw%ibgw)
+       call removeAttribute(thisnode,"ibgw")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"nbgw")
+getstructgw%nbgw=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nbgw",getstructgw%nbgw)
+       call removeAttribute(thisnode,"nbgw")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"emaxpol")
+getstructgw%emaxpol=-1.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"emaxpol",getstructgw%emaxpol)
+       call removeAttribute(thisnode,"emaxpol")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"rpmat")
+getstructgw%rpmat= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"rpmat",getstructgw%rpmat)
+       call removeAttribute(thisnode,"rpmat")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"reps")
+getstructgw%reps= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"reps",getstructgw%reps)
+       call removeAttribute(thisnode,"reps")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"corflag")
+getstructgw%corflag= "all"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"corflag",getstructgw%corflag)
+       call removeAttribute(thisnode,"corflag")  
+endif
+getstructgw%corflagnumber=stringtonumbergwcorflag(getstructgw%corflag)
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"nelfc")
+getstructgw%nelfc=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nelfc",getstructgw%nelfc)
+       call removeAttribute(thisnode,"nelfc")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"q0eps")
+getstructgw%q0eps=(/0.577350269d0,0.577350269d0,0.577350269d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"q0eps",getstructgw%q0eps)
+       call removeAttribute(thisnode,"q0eps")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"barcevtol")
+getstructgw%barcevtol=-1.0d-10
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"barcevtol",getstructgw%barcevtol)
+       call removeAttribute(thisnode,"barcevtol")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"reduceq")
+getstructgw%reduceq= .true.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"reduceq",getstructgw%reduceq)
+       call removeAttribute(thisnode,"reduceq")  
+endif
+
+            len= countChildEmentsWithName(thisnode,"bzconv")
+getstructgw%bzconv=>null()
+Do i=0,len-1
+getstructgw%bzconv=>getstructbzconv(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"bzconv"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"interp")
+getstructgw%interp=>null()
+Do i=0,len-1
+getstructgw%interp=>getstructinterp(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"interp"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"freqgrid")
+getstructgw%freqgrid=>null()
+Do i=0,len-1
+getstructgw%freqgrid=>getstructfreqgrid(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"freqgrid"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"selfenergy")
+getstructgw%selfenergy=>null()
+Do i=0,len-1
+getstructgw%selfenergy=>getstructselfenergy(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"selfenergy"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"mixbasis")
+getstructgw%mixbasis=>null()
+Do i=0,len-1
+getstructgw%mixbasis=>getstructmixbasis(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"mixbasis"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"gapshift")
+getstructgw%gapshift=>null()
+Do i=0,len-1
+getstructgw%gapshift=>getstructgapshift(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"gapshift"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"barecoul")
+getstructgw%barecoul=>null()
+Do i=0,len-1
+getstructgw%barecoul=>getstructbarecoul(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"barecoul"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructbzconv(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(bzconv_type),pointer::getstructbzconv
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructbzconv)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at bzconv"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"bzcon")
+getstructbzconv%bzcon= "tetra"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"bzcon",getstructbzconv%bzcon)
+       call removeAttribute(thisnode,"bzcon")  
+endif
+getstructbzconv%bzconnumber=stringtonumberbzconvbzcon(getstructbzconv%bzcon)
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"fdep")
+getstructbzconv%fdep= "imfreq"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"fdep",getstructbzconv%fdep)
+       call removeAttribute(thisnode,"fdep")  
+endif
+getstructbzconv%fdepnumber=stringtonumberbzconvfdep(getstructbzconv%fdep)
+
+      i=0
+      len=0
+      
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructinterp(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(interp_type),pointer::getstructinterp
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructinterp)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at interp"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"interp")
+getstructinterp%interp= "fouri"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"interp",getstructinterp%interp)
+       call removeAttribute(thisnode,"interp")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"rmax")
+getstructinterp%rmax=20.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"rmax",getstructinterp%rmax)
+       call removeAttribute(thisnode,"rmax")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"efermi2")
+getstructinterp%efermi2=0.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"efermi2",getstructinterp%efermi2)
+       call removeAttribute(thisnode,"efermi2")  
+endif
+
+      i=0
+      len=0
+      
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructfreqgrid(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(freqgrid_type),pointer::getstructfreqgrid
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructfreqgrid)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at freqgrid"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"fgrid")
+getstructfreqgrid%fgrid= "gaule2"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"fgrid",getstructfreqgrid%fgrid)
+       call removeAttribute(thisnode,"fgrid")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"nomeg")
+getstructfreqgrid%nomeg=16
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nomeg",getstructfreqgrid%nomeg)
+       call removeAttribute(thisnode,"nomeg")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"freqmax")
+getstructfreqgrid%freqmax=0.42d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"freqmax",getstructfreqgrid%freqmax)
+       call removeAttribute(thisnode,"freqmax")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"maxexp")
+getstructfreqgrid%maxexp=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"maxexp",getstructfreqgrid%maxexp)
+       call removeAttribute(thisnode,"maxexp")  
+endif
+
+      i=0
+      len=0
+      
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructselfenergy(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(selfenergy_type),pointer::getstructselfenergy
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructselfenergy)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at selfenergy"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"npol")
+getstructselfenergy%npol=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"npol",getstructselfenergy%npol)
+       call removeAttribute(thisnode,"npol")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"iopes")
+getstructselfenergy%iopes=2
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"iopes",getstructselfenergy%iopes)
+       call removeAttribute(thisnode,"iopes")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"iopac")
+getstructselfenergy%iopac=2
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"iopac",getstructselfenergy%iopac)
+       call removeAttribute(thisnode,"iopac")  
+endif
+
+      i=0
+      len=0
+      
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructmixbasis(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(mixbasis_type),pointer::getstructmixbasis
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructmixbasis)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at mixbasis"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"kmr")
+getstructmixbasis%kmr=1.0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"kmr",getstructmixbasis%kmr)
+       call removeAttribute(thisnode,"kmr")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"lmaxapwmix")
+getstructmixbasis%lmaxapwmix=3
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"lmaxapwmix",getstructmixbasis%lmaxapwmix)
+       call removeAttribute(thisnode,"lmaxapwmix")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"wftol")
+getstructmixbasis%wftol=1.0d-4
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"wftol",getstructmixbasis%wftol)
+       call removeAttribute(thisnode,"wftol")  
+endif
+
+      i=0
+      len=0
+      
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructgapshift(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(gapshift_type),pointer::getstructgapshift
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructgapshift)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at gapshift"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"ibshift")
+getstructgapshift%ibshift=-1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ibshift",getstructgapshift%ibshift)
+       call removeAttribute(thisnode,"ibshift")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"gapshift")
+getstructgapshift%gapshift=0.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"gapshift",getstructgapshift%gapshift)
+       call removeAttribute(thisnode,"gapshift")  
+endif
+
+      i=0
+      len=0
+      
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructbarecoul(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(barecoul_type),pointer::getstructbarecoul
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructbarecoul)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at barecoul"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"pwm")
+getstructbarecoul%pwm=2.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"pwm",getstructbarecoul%pwm)
+       call removeAttribute(thisnode,"pwm")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"stctol")
+getstructbarecoul%stctol=1.0d-15
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"stctol",getstructbarecoul%stctol)
+       call removeAttribute(thisnode,"stctol")  
+endif
+
+      i=0
+      len=0
+      
+      call  handleunknownnodes(thisnode)
+end function
+
 function getstructinput(thisnode)
 
 implicit none
@@ -4774,6 +5391,14 @@ Do i=0,len-1
 getstructinput%xs=>getstructxs(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "xs"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"gw")
+getstructinput%gw=>null()
+Do i=0,len-1
+getstructinput%gw=>getstructgw(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"gw"),0)) ) 
 enddo
 
       len= countChildEmentsWithName (thisnode,"title")
@@ -5284,7 +5909,7 @@ case('GGA-Wu-Cohen')
 case('GGAArmiento-Mattsson')
  stringtonumbergroundstatexctype=30
 case('EXX')
- stringtonumbergroundstatexctype=-1
+ stringtonumbergroundstatexctype=-2
 case('none')
  stringtonumbergroundstatexctype=1
 case('')
@@ -5575,6 +6200,106 @@ case('')
  stringtonumberxsgqmaxtype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forgqmaxtype "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberbzconvbzcon(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('tetra')
+ stringtonumberbzconvbzcon=-1
+case('sum')
+ stringtonumberbzconvbzcon=-1
+case('')
+ stringtonumberbzconvbzcon=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forbzcon "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberbzconvfdep(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('nofreq')
+ stringtonumberbzconvfdep=-1
+case('refreq')
+ stringtonumberbzconvfdep=-1
+case('imfreq')
+ stringtonumberbzconvfdep=-1
+case('')
+ stringtonumberbzconvfdep=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forfdep "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumbergwtaskname(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('gw')
+ stringtonumbergwtaskname=-1
+case('lapw')
+ stringtonumbergwtaskname=-1
+case('evec')
+ stringtonumbergwtaskname=-1
+case('prod')
+ stringtonumbergwtaskname=-1
+case('mixf')
+ stringtonumbergwtaskname=-1
+case('comp')
+ stringtonumbergwtaskname=-1
+case('coul')
+ stringtonumbergwtaskname=-1
+case('acon')
+ stringtonumbergwtaskname=-1
+case('emac')
+ stringtonumbergwtaskname=-1
+case('epsev')
+ stringtonumbergwtaskname=-1
+case('epgw')
+ stringtonumbergwtaskname=-1
+case('wev')
+ stringtonumbergwtaskname=-1
+case('sepl')
+ stringtonumbergwtaskname=-1
+case('vxc')
+ stringtonumbergwtaskname=-1
+case('ex')
+ stringtonumbergwtaskname=-1
+case('band')
+ stringtonumbergwtaskname=-1
+case('rotmat')
+ stringtonumbergwtaskname=-1
+case('')
+ stringtonumbergwtaskname=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection fortaskname "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumbergwcorflag(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('all')
+ stringtonumbergwcorflag=-1
+case('val')
+ stringtonumbergwcorflag=-1
+case('vab')
+ stringtonumbergwcorflag=-1
+case('xal')
+ stringtonumbergwcorflag=-1
+case('')
+ stringtonumbergwcorflag=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forcorflag "
 stop 
 end select
 end function

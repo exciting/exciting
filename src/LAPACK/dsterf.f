@@ -1,8 +1,95 @@
+*> \brief \b DSTERF
+*
+*  =========== DOCUMENTATION ===========
+*
+* Online html documentation available at 
+*            http://www.netlib.org/lapack/explore-html/ 
+*
+*> \htmlonly
+*> Download DSTERF + dependencies 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dsterf.f"> 
+*> [TGZ]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dsterf.f"> 
+*> [ZIP]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dsterf.f"> 
+*> [TXT]</a>
+*> \endhtmlonly 
+*
+*  Definition:
+*  ===========
+*
+*       SUBROUTINE DSTERF( N, D, E, INFO )
+* 
+*       .. Scalar Arguments ..
+*       INTEGER            INFO, N
+*       ..
+*       .. Array Arguments ..
+*       DOUBLE PRECISION   D( * ), E( * )
+*       ..
+*  
+*
+*> \par Purpose:
+*  =============
+*>
+*> \verbatim
+*>
+*> DSTERF computes all eigenvalues of a symmetric tridiagonal matrix
+*> using the Pal-Walker-Kahan variant of the QL or QR algorithm.
+*> \endverbatim
+*
+*  Arguments:
+*  ==========
+*
+*> \param[in] N
+*> \verbatim
+*>          N is INTEGER
+*>          The order of the matrix.  N >= 0.
+*> \endverbatim
+*>
+*> \param[in,out] D
+*> \verbatim
+*>          D is DOUBLE PRECISION array, dimension (N)
+*>          On entry, the n diagonal elements of the tridiagonal matrix.
+*>          On exit, if INFO = 0, the eigenvalues in ascending order.
+*> \endverbatim
+*>
+*> \param[in,out] E
+*> \verbatim
+*>          E is DOUBLE PRECISION array, dimension (N-1)
+*>          On entry, the (n-1) subdiagonal elements of the tridiagonal
+*>          matrix.
+*>          On exit, E has been destroyed.
+*> \endverbatim
+*>
+*> \param[out] INFO
+*> \verbatim
+*>          INFO is INTEGER
+*>          = 0:  successful exit
+*>          < 0:  if INFO = -i, the i-th argument had an illegal value
+*>          > 0:  the algorithm failed to find all of the eigenvalues in
+*>                a total of 30*N iterations; if INFO = i, then i
+*>                elements of E have not converged to zero.
+*> \endverbatim
+*
+*  Authors:
+*  ========
+*
+*> \author Univ. of Tennessee 
+*> \author Univ. of California Berkeley 
+*> \author Univ. of Colorado Denver 
+*> \author NAG Ltd. 
+*
+*> \date November 2011
+*
+*> \ingroup auxOTHERcomputational
+*
+*  =====================================================================
       SUBROUTINE DSTERF( N, D, E, INFO )
 *
-*  -- LAPACK routine (version 3.1) --
-*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
-*     November 2006
+*  -- LAPACK computational routine (version 3.4.0) --
+*  -- LAPACK is a software package provided by Univ. of Tennessee,    --
+*  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+*     November 2011
 *
 *     .. Scalar Arguments ..
       INTEGER            INFO, N
@@ -10,34 +97,6 @@
 *     .. Array Arguments ..
       DOUBLE PRECISION   D( * ), E( * )
 *     ..
-*
-*  Purpose
-*  =======
-*
-*  DSTERF computes all eigenvalues of a symmetric tridiagonal matrix
-*  using the Pal-Walker-Kahan variant of the QL or QR algorithm.
-*
-*  Arguments
-*  =========
-*
-*  N       (input) INTEGER
-*          The order of the matrix.  N >= 0.
-*
-*  D       (input/output) DOUBLE PRECISION array, dimension (N)
-*          On entry, the n diagonal elements of the tridiagonal matrix.
-*          On exit, if INFO = 0, the eigenvalues in ascending order.
-*
-*  E       (input/output) DOUBLE PRECISION array, dimension (N-1)
-*          On entry, the (n-1) subdiagonal elements of the tridiagonal
-*          matrix.
-*          On exit, E has been destroyed.
-*
-*  INFO    (output) INTEGER
-*          = 0:  successful exit
-*          < 0:  if INFO = -i, the i-th argument had an illegal value
-*          > 0:  the algorithm failed to find all of the eigenvalues in
-*                a total of 30*N iterations; if INFO = i, then i
-*                elements of E have not converged to zero.
 *
 *  =====================================================================
 *
@@ -53,7 +112,7 @@
      $                   NMAXIT
       DOUBLE PRECISION   ALPHA, ANORM, BB, C, EPS, EPS2, GAMMA, OLDC,
      $                   OLDGAM, P, R, RT1, RT2, RTE, S, SAFMAX, SAFMIN,
-     $                   SIGMA, SSFMAX, SSFMIN
+     $                   SIGMA, SSFMAX, SSFMIN, RMAX
 *     ..
 *     .. External Functions ..
       DOUBLE PRECISION   DLAMCH, DLANST, DLAPY2
@@ -89,6 +148,7 @@
       SAFMAX = ONE / SAFMIN
       SSFMAX = SQRT( SAFMAX ) / THREE
       SSFMIN = SQRT( SAFMIN ) / EPS2
+      RMAX = DLAMCH( 'O' )
 *
 *     Compute the eigenvalues of the tridiagonal matrix.
 *
@@ -127,9 +187,11 @@
 *
 *     Scale submatrix in rows and columns L to LEND
 *
-      ANORM = DLANST( 'I', LEND-L+1, D( L ), E( L ) )
+      ANORM = DLANST( 'M', LEND-L+1, D( L ), E( L ) )
       ISCALE = 0
-      IF( ANORM.GT.SSFMAX ) THEN
+      IF( ANORM.EQ.ZERO )
+     $   GO TO 10      
+      IF( (ANORM.GT.SSFMAX) ) THEN
          ISCALE = 1
          CALL DLASCL( 'G', 0, 0, ANORM, SSFMAX, LEND-L+1, 1, D( L ), N,
      $                INFO )

@@ -18,4 +18,8 @@ Subroutine tasklauncher
 
       If (associated(input%xs)) &
         Call xstasklauncher ()
+
+      If (associated(input%gw)) &
+        Call gwtasklauncher ()
+
 End Subroutine

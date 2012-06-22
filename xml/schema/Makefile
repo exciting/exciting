@@ -9,6 +9,7 @@ wiki/*: *.xsd ../schematowikidot.xsl common
 	xsltproc $(STRPARAM) ../schematowikidot.xsl   structureoptimization.xsd > wiki/$(PREFIX)structureoptimization;\
 	xsltproc $(STRPARAM) ../schematowikidot.xsl   xs.xsd >wiki/$(PREFIX)xs;\
 	xsltproc $(STRPARAM) ../schematowikidot.xsl   ../species.xsd >wiki/$(PREFIX)species;\
+	xsltproc $(STRPARAM) ../schematowikidot.xsl   gw.xsd >wiki/$(PREFIX)gw;\
 	
 
 common:expandedschema

@@ -1799,6 +1799,14 @@
             distribution. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="tetra" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation>
+            The attrubute <pre>"tetra"</pre> determines whether LIBBZINT library is used 
+            for k-/q-point generation and integration (experimental option).
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
 </xs:schema>

@@ -20,6 +20,7 @@ Subroutine init1
 #ifdef XS
       Use modxs
 #endif
+      Use modgw
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
 !   variables which depend on the $k$-point set.
@@ -37,6 +38,9 @@ Subroutine init1
       Real (8) :: vl (3), vc (3), boxl (3, 4), lambda
       Real (8) :: ts0, ts1
       Real (8) :: blen(3), lambdab
+      integer(4) :: nsym, isym, lspl
+      integer(4), allocatable :: symmat(:,:,:)
+      
 ! external functions
       Complex (8) gauntyry
       External gauntyry
@@ -161,10 +165,78 @@ Subroutine init1
          Allocate (ikmap(0:input%groundstate%ngridk(1)-1, &
         & 0:input%groundstate%ngridk(2)-1, &
         & 0:input%groundstate%ngridk(3)-1))
+!
 ! generate the reduced k-point set
-         Call genppts (input%groundstate%reducek, .False., &
-        & input%groundstate%ngridk, boxl, nkpt, ikmap, ivk, vkl, vkc, &
-        & wkpt)
+!
+         if (input%groundstate%tetra) then    
+
+! suppress debug output in tetrahedron integration library (0)
+             call tetrasetdbglv (0)
+!
+             nkpt = input%groundstate%ngridk(1)* &
+        &           input%groundstate%ngridk(2)* &
+        &           input%groundstate%ngridk(3)
+             ntet = 6*nkpt
+             
+             if (allocated(indkp)) deallocate(indkp)
+             allocate(indkp(nkpt))
+             if (allocated(iwkp)) deallocate(iwkp)
+             allocate(iwkp(nkpt))
+             if (allocated(wtet)) deallocate(wtet)
+             allocate(wtet(ntet))
+             if (allocated(tnodes)) deallocate(tnodes)
+             allocate(tnodes(4,ntet))
+!
+             nsym=1
+             If (input%groundstate%reducek) nsym = nsymcrys
+!             
+!            get rotational part of crystal symmetries
+!
+             if(allocated(symmat))deallocate(symmat)
+             allocate(symmat(3,3,nsym))
+             Do isym = 1, nsym
+                lspl = lsplsymc(isym)
+!               transpose of rotation for use with the library
+                Do i1 = 1, 3
+                   Do i2 = 1, 3
+                      symmat(i1,i2,isym) = symlat(i2,i1,lspl)
+                   End Do
+                End Do
+             End Do
+
+             call factorize(3,input%groundstate%vkloff,ikloff,dkloff)
+
+             call kgen(bvec,nsym,symmat,input%groundstate%ngridk,ikloff,dkloff,&
+        &       nkpt,ivk,dvk,indkp,iwkp,ntet,tnodes,wtet,tvol,mnd)
+
+!            getting ikmap array
+             ik=0
+             do i3=0,input%groundstate%ngridk(3)-1
+             do i2=0,input%groundstate%ngridk(2)-1
+             do i1=0,input%groundstate%ngridk(1)-1
+                ik=ik+1
+                ikmap(i1,i2,i3)=indkp(ik)
+             end do
+             end do
+             end do
+              
+!            fractional and cartesian coordinates, and k-point weight
+             do ik=1,nkpt
+                vkl(:,ik)=dble(ivk(:,ik))/dble(dvk)
+                call r3mv(bvec,vkl(:,ik),vkc(:,ik))
+                wkpt(ik)=dble(iwkp(ik))/dble(input%groundstate%ngridk(1)*    &
+        &           input%groundstate%ngridk(2)*input%groundstate%ngridk(3))
+             enddo ! ik
+             
+             deallocate(symmat)
+!
+         else
+!
+           Call genppts (input%groundstate%reducek, .False., &
+        &    input%groundstate%ngridk, boxl, nkpt, ikmap, ivk, vkl, vkc, wkpt)
+!
+         end if ! tetra
+
 ! allocate the non-reduced k-point set arrays
          nkptnr = input%groundstate%ngridk(1) * &
         & input%groundstate%ngridk(2) * input%groundstate%ngridk(3)

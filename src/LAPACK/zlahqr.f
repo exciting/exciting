@@ -1,9 +1,204 @@
+*> \brief \b ZLAHQR
+*
+*  =========== DOCUMENTATION ===========
+*
+* Online html documentation available at 
+*            http://www.netlib.org/lapack/explore-html/ 
+*
+*> \htmlonly
+*> Download ZLAHQR + dependencies 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/zlahqr.f"> 
+*> [TGZ]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/zlahqr.f"> 
+*> [ZIP]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/zlahqr.f"> 
+*> [TXT]</a>
+*> \endhtmlonly 
+*
+*  Definition:
+*  ===========
+*
+*       SUBROUTINE ZLAHQR( WANTT, WANTZ, N, ILO, IHI, H, LDH, W, ILOZ,
+*                          IHIZ, Z, LDZ, INFO )
+* 
+*       .. Scalar Arguments ..
+*       INTEGER            IHI, IHIZ, ILO, ILOZ, INFO, LDH, LDZ, N
+*       LOGICAL            WANTT, WANTZ
+*       ..
+*       .. Array Arguments ..
+*       COMPLEX*16         H( LDH, * ), W( * ), Z( LDZ, * )
+*       ..
+*  
+*
+*> \par Purpose:
+*  =============
+*>
+*> \verbatim
+*>
+*>    ZLAHQR is an auxiliary routine called by CHSEQR to update the
+*>    eigenvalues and Schur decomposition already computed by CHSEQR, by
+*>    dealing with the Hessenberg submatrix in rows and columns ILO to
+*>    IHI.
+*> \endverbatim
+*
+*  Arguments:
+*  ==========
+*
+*> \param[in] WANTT
+*> \verbatim
+*>          WANTT is LOGICAL
+*>          = .TRUE. : the full Schur form T is required;
+*>          = .FALSE.: only eigenvalues are required.
+*> \endverbatim
+*>
+*> \param[in] WANTZ
+*> \verbatim
+*>          WANTZ is LOGICAL
+*>          = .TRUE. : the matrix of Schur vectors Z is required;
+*>          = .FALSE.: Schur vectors are not required.
+*> \endverbatim
+*>
+*> \param[in] N
+*> \verbatim
+*>          N is INTEGER
+*>          The order of the matrix H.  N >= 0.
+*> \endverbatim
+*>
+*> \param[in] ILO
+*> \verbatim
+*>          ILO is INTEGER
+*> \endverbatim
+*>
+*> \param[in] IHI
+*> \verbatim
+*>          IHI is INTEGER
+*>          It is assumed that H is already upper triangular in rows and
+*>          columns IHI+1:N, and that H(ILO,ILO-1) = 0 (unless ILO = 1).
+*>          ZLAHQR works primarily with the Hessenberg submatrix in rows
+*>          and columns ILO to IHI, but applies transformations to all of
+*>          H if WANTT is .TRUE..
+*>          1 <= ILO <= max(1,IHI); IHI <= N.
+*> \endverbatim
+*>
+*> \param[in,out] H
+*> \verbatim
+*>          H is COMPLEX*16 array, dimension (LDH,N)
+*>          On entry, the upper Hessenberg matrix H.
+*>          On exit, if INFO is zero and if WANTT is .TRUE., then H
+*>          is upper triangular in rows and columns ILO:IHI.  If INFO
+*>          is zero and if WANTT is .FALSE., then the contents of H
+*>          are unspecified on exit.  The output state of H in case
+*>          INF is positive is below under the description of INFO.
+*> \endverbatim
+*>
+*> \param[in] LDH
+*> \verbatim
+*>          LDH is INTEGER
+*>          The leading dimension of the array H. LDH >= max(1,N).
+*> \endverbatim
+*>
+*> \param[out] W
+*> \verbatim
+*>          W is COMPLEX*16 array, dimension (N)
+*>          The computed eigenvalues ILO to IHI are stored in the
+*>          corresponding elements of W. If WANTT is .TRUE., the
+*>          eigenvalues are stored in the same order as on the diagonal
+*>          of the Schur form returned in H, with W(i) = H(i,i).
+*> \endverbatim
+*>
+*> \param[in] ILOZ
+*> \verbatim
+*>          ILOZ is INTEGER
+*> \endverbatim
+*>
+*> \param[in] IHIZ
+*> \verbatim
+*>          IHIZ is INTEGER
+*>          Specify the rows of Z to which transformations must be
+*>          applied if WANTZ is .TRUE..
+*>          1 <= ILOZ <= ILO; IHI <= IHIZ <= N.
+*> \endverbatim
+*>
+*> \param[in,out] Z
+*> \verbatim
+*>          Z is COMPLEX*16 array, dimension (LDZ,N)
+*>          If WANTZ is .TRUE., on entry Z must contain the current
+*>          matrix Z of transformations accumulated by CHSEQR, and on
+*>          exit Z has been updated; transformations are applied only to
+*>          the submatrix Z(ILOZ:IHIZ,ILO:IHI).
+*>          If WANTZ is .FALSE., Z is not referenced.
+*> \endverbatim
+*>
+*> \param[in] LDZ
+*> \verbatim
+*>          LDZ is INTEGER
+*>          The leading dimension of the array Z. LDZ >= max(1,N).
+*> \endverbatim
+*>
+*> \param[out] INFO
+*> \verbatim
+*>          INFO is INTEGER
+*>           =   0: successful exit
+*>          .GT. 0: if INFO = i, ZLAHQR failed to compute all the
+*>                  eigenvalues ILO to IHI in a total of 30 iterations
+*>                  per eigenvalue; elements i+1:ihi of W contain
+*>                  those eigenvalues which have been successfully
+*>                  computed.
+*>
+*>                  If INFO .GT. 0 and WANTT is .FALSE., then on exit,
+*>                  the remaining unconverged eigenvalues are the
+*>                  eigenvalues of the upper Hessenberg matrix
+*>                  rows and columns ILO thorugh INFO of the final,
+*>                  output value of H.
+*>
+*>                  If INFO .GT. 0 and WANTT is .TRUE., then on exit
+*>          (*)       (initial value of H)*U  = U*(final value of H)
+*>                  where U is an orthognal matrix.    The final
+*>                  value of H is upper Hessenberg and triangular in
+*>                  rows and columns INFO+1 through IHI.
+*>
+*>                  If INFO .GT. 0 and WANTZ is .TRUE., then on exit
+*>                      (final value of Z)  = (initial value of Z)*U
+*>                  where U is the orthogonal matrix in (*)
+*>                  (regardless of the value of WANTT.)
+*> \endverbatim
+*
+*  Authors:
+*  ========
+*
+*> \author Univ. of Tennessee 
+*> \author Univ. of California Berkeley 
+*> \author Univ. of Colorado Denver 
+*> \author NAG Ltd. 
+*
+*> \date November 2011
+*
+*> \ingroup complex16OTHERauxiliary
+*
+*> \par Contributors:
+*  ==================
+*>
+*> \verbatim
+*>
+*>     02-96 Based on modifications by
+*>     David Day, Sandia National Laboratory, USA
+*>
+*>     12-04 Further modifications by
+*>     Ralph Byers, University of Kansas, USA
+*>     This is a modified version of ZLAHQR from LAPACK version 3.0.
+*>     It is (1) more robust against overflow and underflow and
+*>     (2) adopts the more conservative Ahues & Tisseur stopping
+*>     criterion (LAWN 122, 1997).
+*> \endverbatim
+*>
+*  =====================================================================
       SUBROUTINE ZLAHQR( WANTT, WANTZ, N, ILO, IHI, H, LDH, W, ILOZ,
      $                   IHIZ, Z, LDZ, INFO )
 *
-*  -- LAPACK auxiliary routine (version 3.1) --
-*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
-*     November 2006
+*  -- LAPACK auxiliary routine (version 3.4.0) --
+*  -- LAPACK is a software package provided by Univ. of Tennessee,    --
+*  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+*     November 2011
 *
 *     .. Scalar Arguments ..
       INTEGER            IHI, IHIZ, ILO, ILOZ, INFO, LDH, LDZ, N
@@ -13,110 +208,7 @@
       COMPLEX*16         H( LDH, * ), W( * ), Z( LDZ, * )
 *     ..
 *
-*     Purpose
-*     =======
-*
-*     ZLAHQR is an auxiliary routine called by CHSEQR to update the
-*     eigenvalues and Schur decomposition already computed by CHSEQR, by
-*     dealing with the Hessenberg submatrix in rows and columns ILO to
-*     IHI.
-*
-*     Arguments
-*     =========
-*
-*     WANTT   (input) LOGICAL
-*          = .TRUE. : the full Schur form T is required;
-*          = .FALSE.: only eigenvalues are required.
-*
-*     WANTZ   (input) LOGICAL
-*          = .TRUE. : the matrix of Schur vectors Z is required;
-*          = .FALSE.: Schur vectors are not required.
-*
-*     N       (input) INTEGER
-*          The order of the matrix H.  N >= 0.
-*
-*     ILO     (input) INTEGER
-*     IHI     (input) INTEGER
-*          It is assumed that H is already upper triangular in rows and
-*          columns IHI+1:N, and that H(ILO,ILO-1) = 0 (unless ILO = 1).
-*          ZLAHQR works primarily with the Hessenberg submatrix in rows
-*          and columns ILO to IHI, but applies transformations to all of
-*          H if WANTT is .TRUE..
-*          1 <= ILO <= max(1,IHI); IHI <= N.
-*
-*     H       (input/output) COMPLEX*16 array, dimension (LDH,N)
-*          On entry, the upper Hessenberg matrix H.
-*          On exit, if INFO is zero and if WANTT is .TRUE., then H
-*          is upper triangular in rows and columns ILO:IHI.  If INFO
-*          is zero and if WANTT is .FALSE., then the contents of H
-*          are unspecified on exit.  The output state of H in case
-*          INF is positive is below under the description of INFO.
-*
-*     LDH     (input) INTEGER
-*          The leading dimension of the array H. LDH >= max(1,N).
-*
-*     W       (output) COMPLEX*16 array, dimension (N)
-*          The computed eigenvalues ILO to IHI are stored in the
-*          corresponding elements of W. If WANTT is .TRUE., the
-*          eigenvalues are stored in the same order as on the diagonal
-*          of the Schur form returned in H, with W(i) = H(i,i).
-*
-*     ILOZ    (input) INTEGER
-*     IHIZ    (input) INTEGER
-*          Specify the rows of Z to which transformations must be
-*          applied if WANTZ is .TRUE..
-*          1 <= ILOZ <= ILO; IHI <= IHIZ <= N.
-*
-*     Z       (input/output) COMPLEX*16 array, dimension (LDZ,N)
-*          If WANTZ is .TRUE., on entry Z must contain the current
-*          matrix Z of transformations accumulated by CHSEQR, and on
-*          exit Z has been updated; transformations are applied only to
-*          the submatrix Z(ILOZ:IHIZ,ILO:IHI).
-*          If WANTZ is .FALSE., Z is not referenced.
-*
-*     LDZ     (input) INTEGER
-*          The leading dimension of the array Z. LDZ >= max(1,N).
-*
-*     INFO    (output) INTEGER
-*           =   0: successful exit
-*          .GT. 0: if INFO = i, ZLAHQR failed to compute all the
-*                  eigenvalues ILO to IHI in a total of 30 iterations
-*                  per eigenvalue; elements i+1:ihi of W contain
-*                  those eigenvalues which have been successfully
-*                  computed.
-*
-*                  If INFO .GT. 0 and WANTT is .FALSE., then on exit,
-*                  the remaining unconverged eigenvalues are the
-*                  eigenvalues of the upper Hessenberg matrix
-*                  rows and columns ILO thorugh INFO of the final,
-*                  output value of H.
-*
-*                  If INFO .GT. 0 and WANTT is .TRUE., then on exit
-*          (*)       (initial value of H)*U  = U*(final value of H)
-*                  where U is an orthognal matrix.    The final
-*                  value of H is upper Hessenberg and triangular in
-*                  rows and columns INFO+1 through IHI.
-*
-*                  If INFO .GT. 0 and WANTZ is .TRUE., then on exit
-*                      (final value of Z)  = (initial value of Z)*U
-*                  where U is the orthogonal matrix in (*)
-*                  (regardless of the value of WANTT.)
-*
-*     Further Details
-*     ===============
-*
-*     02-96 Based on modifications by
-*     David Day, Sandia National Laboratory, USA
-*
-*     12-04 Further modifications by
-*     Ralph Byers, University of Kansas, USA
-*
-*       This is a modified version of ZLAHQR from LAPACK version 3.0.
-*       It is (1) more robust against overflow and underflow and
-*       (2) adopts the more conservative Ahues & Tisseur stopping
-*       criterion (LAWN 122, 1997).
-*
-*     =========================================================
+*  =========================================================
 *
 *     .. Parameters ..
       INTEGER            ITMAX
@@ -177,6 +269,13 @@
       IF( ILO.LE.IHI-2 )
      $   H( IHI, IHI-2 ) = ZERO
 *     ==== ensure that subdiagonal entries are real ====
+      IF( WANTT ) THEN
+         JLO = 1
+         JHI = N
+      ELSE
+         JLO = ILO
+         JHI = IHI
+      END IF
       DO 20 I = ILO + 1, IHI
          IF( DIMAG( H( I, I-1 ) ).NE.RZERO ) THEN
 *           ==== The following redundant normalization
@@ -185,13 +284,6 @@
             SC = H( I, I-1 ) / CABS1( H( I, I-1 ) )
             SC = DCONJG( SC ) / ABS( SC )
             H( I, I-1 ) = ABS( H( I, I-1 ) )
-            IF( WANTT ) THEN
-               JLO = 1
-               JHI = N
-            ELSE
-               JLO = ILO
-               JHI = IHI
-            END IF
             CALL ZSCAL( JHI-I+1, SC, H( I, I ), LDH )
             CALL ZSCAL( MIN( JHI, I+1 )-JLO+1, DCONJG( SC ),
      $                  H( JLO, I ), 1 )
@@ -289,7 +381,13 @@
             I2 = I
          END IF
 *
-         IF( ITS.EQ.10 .OR. ITS.EQ.20 ) THEN
+         IF( ITS.EQ.10 ) THEN
+*
+*           Exceptional shift.
+*
+            S = DAT1*ABS( DBLE( H( L+1, L ) ) )
+            T = S + H( L, L )
+         ELSE IF( ITS.EQ.20 ) THEN
 *
 *           Exceptional shift.
 *
@@ -326,13 +424,13 @@
             H11 = H( M, M )
             H22 = H( M+1, M+1 )
             H11S = H11 - T
-            H21 = H( M+1, M )
+            H21 = DBLE( H( M+1, M ) )
             S = CABS1( H11S ) + ABS( H21 )
             H11S = H11S / S
             H21 = H21 / S
             V( 1 ) = H11S
             V( 2 ) = H21
-            H10 = H( M, M-1 )
+            H10 = DBLE( H( M, M-1 ) )
             IF( ABS( H10 )*ABS( H21 ).LE.ULP*
      $          ( CABS1( H11S )*( CABS1( H11 )+CABS1( H22 ) ) ) )
      $          GO TO 70
@@ -340,7 +438,7 @@
          H11 = H( L, L )
          H22 = H( L+1, L+1 )
          H11S = H11 - T
-         H21 = H( L+1, L )
+         H21 = DBLE( H( L+1, L ) )
          S = CABS1( H11S ) + ABS( H21 )
          H11S = H11S / S
          H21 = H21 / S

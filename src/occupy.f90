@@ -17,6 +17,10 @@ Subroutine occupy
 #ifdef TETRAOCC_DOESNTWORK
       Use modtetra
 #endif
+#ifdef TETRA
+      Use modtetra
+#endif
+
 ! !DESCRIPTION:
 !   Finds the Fermi energy and sets the occupation numbers for the
 !   second-variational states using the routine {\tt fermi}.
@@ -26,6 +30,7 @@ Subroutine occupy
 !   Modifiactions for tetrahedron method, November 2007 (RGA alias
 !     Ricardo Gomez-Abal)
 !   Modifications for tetrahedron method, 2007-2010 (Sagmeister)
+!   Modifications for tetrahedron method, 2011 (DIN)
 !EOP
 !BOC
       Implicit None
@@ -36,6 +41,8 @@ Subroutine occupy
       Real (8) :: e0, e1, chg, x, t1
 ! external functions
       Real (8) :: sdelta, stheta
+      real(8) :: egap
+      real(8), external :: dostet
       External sdelta, stheta
 ! find minimum and maximum eigenvalues
       e0 = evalsv (1, 1)
@@ -52,9 +59,12 @@ Subroutine occupy
          &minimum linearization energy : ",2g18.10)') e0, mine0
          write(*,'("for s.c. loop ", i5)') iscl
       End If
-#ifdef TETRAOCC_DOESNTWORK
-      If ( .Not. istetraocc()) Then
-#endif
+
+!#ifdef TETRAOCC_DOESNTWORK
+!      If ( .Not. istetraocc()) Then
+!#endif
+
+      if ( .not. input%groundstate%tetra) then
          t1 = 1.d0 / input%groundstate%swidth
 ! determine the Fermi energy using the bisection method
          Do it = 1, maxit
@@ -96,22 +106,44 @@ Subroutine occupy
             End If
          End Do
          fermidos = fermidos * occmax
-#ifdef TETRAOCC_DOESNTWORK
+
       Else
-  ! calculate the Fermi energy and the density of states at the Fermi energy
-         Call fermitetifc (nkpt, nstsv, evalsv, chgval, &
-        & associated(input%groundstate%spin), efermi, fermidos)
-         Call tetiwifc (nkpt, nstsv, evalsv, efermi, occsv)
+
+!#ifdef TETRAOCC_DOESNTWORK
+!  ! calculate the Fermi energy and the density of states at the Fermi energy
+!         Call fermitetifc (nkpt, nstsv, evalsv, chgval, &
+!        & associated(input%groundstate%spin), efermi, fermidos)
+!         Call tetiwifc (nkpt, nstsv, evalsv, efermi, occsv)
+!         Do ik = 1, nkpt
+!    ! The "occsv" variable returned from "tetiw" already contains the
+!    ! weight "wkpt" and does not account for spin degeneracy - rescaling is
+!    ! necessary (S. Sagmeister).
+!            Do ist = 1, nstsv
+!               occsv (ist, ik) = (occmax/wkpt(ik)) * occsv (ist, ik)
+!            End Do
+!         End Do
+!#endif
+
+!        The fermi energy calculated using LIBBZINT
+         call fermi(nkpt,nstfv,evalsv,ntet,tnodes,wtet,tvol, &
+        &   chgval,associated(input%groundstate%spin),efermi,egap)
+
+!        DOS at the fermi level
+         fermidos=occmax*dostet(nkpt,nstfv,evalsv,ntet,tnodes,wtet,tvol,efermi)
+
+!        Calculate the occupation
+         call tetiw(nkpt,ntet,nstfv,evalsv,tnodes,wtet,tvol,efermi,occsv)
          Do ik = 1, nkpt
-    ! The "occsv" variable returned from "tetiw" already contains the
-    ! weight "wkpt" and does not account for spin degeneracy - rescaling is
-    ! necessary (S. Sagmeister).
+!           The "occsv" variable returned from "tetiw" already contains the
+!           weight "wkpt" and does not account for spin degeneracy - rescaling is
+!           necessary (S. Sagmeister).
             Do ist = 1, nstsv
-               occsv (ist, ik) = (occmax/wkpt(ik)) * occsv (ist, ik)
+               occsv(ist,ik) = (occmax/wkpt(ik))*occsv(ist,ik)
             End Do
          End Do
-      End If
-#endif
+
+      End If ! tetra
+
       Return
 End Subroutine
 !EOC

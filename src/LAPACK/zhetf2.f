@@ -1,8 +1,191 @@
+*> \brief \b ZHETF2
+*
+*  =========== DOCUMENTATION ===========
+*
+* Online html documentation available at 
+*            http://www.netlib.org/lapack/explore-html/ 
+*
+*> \htmlonly
+*> Download ZHETF2 + dependencies 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/zhetf2.f"> 
+*> [TGZ]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/zhetf2.f"> 
+*> [ZIP]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/zhetf2.f"> 
+*> [TXT]</a>
+*> \endhtmlonly 
+*
+*  Definition:
+*  ===========
+*
+*       SUBROUTINE ZHETF2( UPLO, N, A, LDA, IPIV, INFO )
+* 
+*       .. Scalar Arguments ..
+*       CHARACTER          UPLO
+*       INTEGER            INFO, LDA, N
+*       ..
+*       .. Array Arguments ..
+*       INTEGER            IPIV( * )
+*       COMPLEX*16         A( LDA, * )
+*       ..
+*  
+*
+*> \par Purpose:
+*  =============
+*>
+*> \verbatim
+*>
+*> ZHETF2 computes the factorization of a complex Hermitian matrix A
+*> using the Bunch-Kaufman diagonal pivoting method:
+*>
+*>    A = U*D*U**H  or  A = L*D*L**H
+*>
+*> where U (or L) is a product of permutation and unit upper (lower)
+*> triangular matrices, U**H is the conjugate transpose of U, and D is
+*> Hermitian and block diagonal with 1-by-1 and 2-by-2 diagonal blocks.
+*>
+*> This is the unblocked version of the algorithm, calling Level 2 BLAS.
+*> \endverbatim
+*
+*  Arguments:
+*  ==========
+*
+*> \param[in] UPLO
+*> \verbatim
+*>          UPLO is CHARACTER*1
+*>          Specifies whether the upper or lower triangular part of the
+*>          Hermitian matrix A is stored:
+*>          = 'U':  Upper triangular
+*>          = 'L':  Lower triangular
+*> \endverbatim
+*>
+*> \param[in] N
+*> \verbatim
+*>          N is INTEGER
+*>          The order of the matrix A.  N >= 0.
+*> \endverbatim
+*>
+*> \param[in,out] A
+*> \verbatim
+*>          A is COMPLEX*16 array, dimension (LDA,N)
+*>          On entry, the Hermitian matrix A.  If UPLO = 'U', the leading
+*>          n-by-n upper triangular part of A contains the upper
+*>          triangular part of the matrix A, and the strictly lower
+*>          triangular part of A is not referenced.  If UPLO = 'L', the
+*>          leading n-by-n lower triangular part of A contains the lower
+*>          triangular part of the matrix A, and the strictly upper
+*>          triangular part of A is not referenced.
+*>
+*>          On exit, the block diagonal matrix D and the multipliers used
+*>          to obtain the factor U or L (see below for further details).
+*> \endverbatim
+*>
+*> \param[in] LDA
+*> \verbatim
+*>          LDA is INTEGER
+*>          The leading dimension of the array A.  LDA >= max(1,N).
+*> \endverbatim
+*>
+*> \param[out] IPIV
+*> \verbatim
+*>          IPIV is INTEGER array, dimension (N)
+*>          Details of the interchanges and the block structure of D.
+*>          If IPIV(k) > 0, then rows and columns k and IPIV(k) were
+*>          interchanged and D(k,k) is a 1-by-1 diagonal block.
+*>          If UPLO = 'U' and IPIV(k) = IPIV(k-1) < 0, then rows and
+*>          columns k-1 and -IPIV(k) were interchanged and D(k-1:k,k-1:k)
+*>          is a 2-by-2 diagonal block.  If UPLO = 'L' and IPIV(k) =
+*>          IPIV(k+1) < 0, then rows and columns k+1 and -IPIV(k) were
+*>          interchanged and D(k:k+1,k:k+1) is a 2-by-2 diagonal block.
+*> \endverbatim
+*>
+*> \param[out] INFO
+*> \verbatim
+*>          INFO is INTEGER
+*>          = 0: successful exit
+*>          < 0: if INFO = -k, the k-th argument had an illegal value
+*>          > 0: if INFO = k, D(k,k) is exactly zero.  The factorization
+*>               has been completed, but the block diagonal matrix D is
+*>               exactly singular, and division by zero will occur if it
+*>               is used to solve a system of equations.
+*> \endverbatim
+*
+*  Authors:
+*  ========
+*
+*> \author Univ. of Tennessee 
+*> \author Univ. of California Berkeley 
+*> \author Univ. of Colorado Denver 
+*> \author NAG Ltd. 
+*
+*> \date November 2011
+*
+*> \ingroup complex16HEcomputational
+*
+*> \par Further Details:
+*  =====================
+*>
+*> \verbatim
+*>
+*>  If UPLO = 'U', then A = U*D*U**H, where
+*>     U = P(n)*U(n)* ... *P(k)U(k)* ...,
+*>  i.e., U is a product of terms P(k)*U(k), where k decreases from n to
+*>  1 in steps of 1 or 2, and D is a block diagonal matrix with 1-by-1
+*>  and 2-by-2 diagonal blocks D(k).  P(k) is a permutation matrix as
+*>  defined by IPIV(k), and U(k) is a unit upper triangular matrix, such
+*>  that if the diagonal block D(k) is of order s (s = 1 or 2), then
+*>
+*>             (   I    v    0   )   k-s
+*>     U(k) =  (   0    I    0   )   s
+*>             (   0    0    I   )   n-k
+*>                k-s   s   n-k
+*>
+*>  If s = 1, D(k) overwrites A(k,k), and v overwrites A(1:k-1,k).
+*>  If s = 2, the upper triangle of D(k) overwrites A(k-1,k-1), A(k-1,k),
+*>  and A(k,k), and v overwrites A(1:k-2,k-1:k).
+*>
+*>  If UPLO = 'L', then A = L*D*L**H, where
+*>     L = P(1)*L(1)* ... *P(k)*L(k)* ...,
+*>  i.e., L is a product of terms P(k)*L(k), where k increases from 1 to
+*>  n in steps of 1 or 2, and D is a block diagonal matrix with 1-by-1
+*>  and 2-by-2 diagonal blocks D(k).  P(k) is a permutation matrix as
+*>  defined by IPIV(k), and L(k) is a unit lower triangular matrix, such
+*>  that if the diagonal block D(k) is of order s (s = 1 or 2), then
+*>
+*>             (   I    0     0   )  k-1
+*>     L(k) =  (   0    I     0   )  s
+*>             (   0    v     I   )  n-k-s+1
+*>                k-1   s  n-k-s+1
+*>
+*>  If s = 1, D(k) overwrites A(k,k), and v overwrites A(k+1:n,k).
+*>  If s = 2, the lower triangle of D(k) overwrites A(k,k), A(k+1,k),
+*>  and A(k+1,k+1), and v overwrites A(k+2:n,k:k+1).
+*> \endverbatim
+*
+*> \par Contributors:
+*  ==================
+*>
+*> \verbatim
+*>  09-29-06 - patch from
+*>    Bobby Cheng, MathWorks
+*>
+*>    Replace l.210 and l.393
+*>         IF( MAX( ABSAKK, COLMAX ).EQ.ZERO ) THEN
+*>    by
+*>         IF( (MAX( ABSAKK, COLMAX ).EQ.ZERO) .OR. DISNAN(ABSAKK) ) THEN
+*>
+*>  01-01-96 - Based on modifications by
+*>    J. Lewis, Boeing Computer Services Company
+*>    A. Petitet, Computer Science Dept., Univ. of Tenn., Knoxville, USA
+*> \endverbatim
+*
+*  =====================================================================
       SUBROUTINE ZHETF2( UPLO, N, A, LDA, IPIV, INFO )
 *
-*  -- LAPACK routine (version 3.1) --
-*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
-*     November 2006
+*  -- LAPACK computational routine (version 3.4.0) --
+*  -- LAPACK is a software package provided by Univ. of Tennessee,    --
+*  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+*     November 2011
 *
 *     .. Scalar Arguments ..
       CHARACTER          UPLO
@@ -12,114 +195,6 @@
       INTEGER            IPIV( * )
       COMPLEX*16         A( LDA, * )
 *     ..
-*
-*  Purpose
-*  =======
-*
-*  ZHETF2 computes the factorization of a complex Hermitian matrix A
-*  using the Bunch-Kaufman diagonal pivoting method:
-*
-*     A = U*D*U'  or  A = L*D*L'
-*
-*  where U (or L) is a product of permutation and unit upper (lower)
-*  triangular matrices, U' is the conjugate transpose of U, and D is
-*  Hermitian and block diagonal with 1-by-1 and 2-by-2 diagonal blocks.
-*
-*  This is the unblocked version of the algorithm, calling Level 2 BLAS.
-*
-*  Arguments
-*  =========
-*
-*  UPLO    (input) CHARACTER*1
-*          Specifies whether the upper or lower triangular part of the
-*          Hermitian matrix A is stored:
-*          = 'U':  Upper triangular
-*          = 'L':  Lower triangular
-*
-*  N       (input) INTEGER
-*          The order of the matrix A.  N >= 0.
-*
-*  A       (input/output) COMPLEX*16 array, dimension (LDA,N)
-*          On entry, the Hermitian matrix A.  If UPLO = 'U', the leading
-*          n-by-n upper triangular part of A contains the upper
-*          triangular part of the matrix A, and the strictly lower
-*          triangular part of A is not referenced.  If UPLO = 'L', the
-*          leading n-by-n lower triangular part of A contains the lower
-*          triangular part of the matrix A, and the strictly upper
-*          triangular part of A is not referenced.
-*
-*          On exit, the block diagonal matrix D and the multipliers used
-*          to obtain the factor U or L (see below for further details).
-*
-*  LDA     (input) INTEGER
-*          The leading dimension of the array A.  LDA >= max(1,N).
-*
-*  IPIV    (output) INTEGER array, dimension (N)
-*          Details of the interchanges and the block structure of D.
-*          If IPIV(k) > 0, then rows and columns k and IPIV(k) were
-*          interchanged and D(k,k) is a 1-by-1 diagonal block.
-*          If UPLO = 'U' and IPIV(k) = IPIV(k-1) < 0, then rows and
-*          columns k-1 and -IPIV(k) were interchanged and D(k-1:k,k-1:k)
-*          is a 2-by-2 diagonal block.  If UPLO = 'L' and IPIV(k) =
-*          IPIV(k+1) < 0, then rows and columns k+1 and -IPIV(k) were
-*          interchanged and D(k:k+1,k:k+1) is a 2-by-2 diagonal block.
-*
-*  INFO    (output) INTEGER
-*          = 0: successful exit
-*          < 0: if INFO = -k, the k-th argument had an illegal value
-*          > 0: if INFO = k, D(k,k) is exactly zero.  The factorization
-*               has been completed, but the block diagonal matrix D is
-*               exactly singular, and division by zero will occur if it
-*               is used to solve a system of equations.
-*
-*  Further Details
-*  ===============
-*
-*  09-29-06 - patch from
-*    Bobby Cheng, MathWorks
-*
-*    Replace l.210 and l.393
-*         IF( MAX( ABSAKK, COLMAX ).EQ.ZERO ) THEN
-*    by
-*         IF( (MAX( ABSAKK, COLMAX ).EQ.ZERO) .OR. DISNAN(ABSAKK) ) THEN
-*
-*  01-01-96 - Based on modifications by
-*    J. Lewis, Boeing Computer Services Company
-*    A. Petitet, Computer Science Dept., Univ. of Tenn., Knoxville, USA
-*
-*  If UPLO = 'U', then A = U*D*U', where
-*     U = P(n)*U(n)* ... *P(k)U(k)* ...,
-*  i.e., U is a product of terms P(k)*U(k), where k decreases from n to
-*  1 in steps of 1 or 2, and D is a block diagonal matrix with 1-by-1
-*  and 2-by-2 diagonal blocks D(k).  P(k) is a permutation matrix as
-*  defined by IPIV(k), and U(k) is a unit upper triangular matrix, such
-*  that if the diagonal block D(k) is of order s (s = 1 or 2), then
-*
-*             (   I    v    0   )   k-s
-*     U(k) =  (   0    I    0   )   s
-*             (   0    0    I   )   n-k
-*                k-s   s   n-k
-*
-*  If s = 1, D(k) overwrites A(k,k), and v overwrites A(1:k-1,k).
-*  If s = 2, the upper triangle of D(k) overwrites A(k-1,k-1), A(k-1,k),
-*  and A(k,k), and v overwrites A(1:k-2,k-1:k).
-*
-*  If UPLO = 'L', then A = L*D*L', where
-*     L = P(1)*L(1)* ... *P(k)*L(k)* ...,
-*  i.e., L is a product of terms P(k)*L(k), where k increases from 1 to
-*  n in steps of 1 or 2, and D is a block diagonal matrix with 1-by-1
-*  and 2-by-2 diagonal blocks D(k).  P(k) is a permutation matrix as
-*  defined by IPIV(k), and L(k) is a unit lower triangular matrix, such
-*  that if the diagonal block D(k) is of order s (s = 1 or 2), then
-*
-*             (   I    0     0   )  k-1
-*     L(k) =  (   0    I     0   )  s
-*             (   0    v     I   )  n-k-s+1
-*                k-1   s  n-k-s+1
-*
-*  If s = 1, D(k) overwrites A(k,k), and v overwrites A(k+1:n,k).
-*  If s = 2, the lower triangle of D(k) overwrites A(k,k), A(k+1,k),
-*  and A(k+1,k+1), and v overwrites A(k+2:n,k:k+1).
 *
 *  =====================================================================
 *
@@ -178,7 +253,7 @@
 *
       IF( UPPER ) THEN
 *
-*        Factorize A as U*D*U' using the upper triangle of A
+*        Factorize A as U*D*U**H using the upper triangle of A
 *
 *        K is the main loop index, decreasing from N to 1 in steps of
 *        1 or 2
@@ -295,7 +370,7 @@
 *
 *              Perform a rank-1 update of A(1:k-1,1:k-1) as
 *
-*              A := A - U(k)*D(k)*U(k)' = A - W(k)*1/D(k)*W(k)'
+*              A := A - U(k)*D(k)*U(k)**H = A - W(k)*1/D(k)*W(k)**H
 *
                R1 = ONE / DBLE( A( K, K ) )
                CALL ZHER( UPLO, K-1, -R1, A( 1, K ), 1, A, LDA )
@@ -314,8 +389,8 @@
 *
 *              Perform a rank-2 update of A(1:k-2,1:k-2) as
 *
-*              A := A - ( U(k-1) U(k) )*D(k)*( U(k-1) U(k) )'
-*                 = A - ( W(k-1) W(k) )*inv(D(k))*( W(k-1) W(k) )'
+*              A := A - ( U(k-1) U(k) )*D(k)*( U(k-1) U(k) )**H
+*                 = A - ( W(k-1) W(k) )*inv(D(k))*( W(k-1) W(k) )**H
 *
                IF( K.GT.2 ) THEN
 *
@@ -361,7 +436,7 @@
 *
       ELSE
 *
-*        Factorize A as L*D*L' using the lower triangle of A
+*        Factorize A as L*D*L**H using the lower triangle of A
 *
 *        K is the main loop index, increasing from 1 to N in steps of
 *        1 or 2
@@ -481,7 +556,7 @@
 *
 *                 Perform a rank-1 update of A(k+1:n,k+1:n) as
 *
-*                 A := A - L(k)*D(k)*L(k)' = A - W(k)*(1/D(k))*W(k)'
+*                 A := A - L(k)*D(k)*L(k)**H = A - W(k)*(1/D(k))*W(k)**H
 *
                   R1 = ONE / DBLE( A( K, K ) )
                   CALL ZHER( UPLO, N-K, -R1, A( K+1, K ), 1,
@@ -499,8 +574,8 @@
 *
 *                 Perform a rank-2 update of A(k+2:n,k+2:n) as
 *
-*                 A := A - ( L(k) L(k+1) )*D(k)*( L(k) L(k+1) )'
-*                    = A - ( W(k) W(k+1) )*inv(D(k))*( W(k) W(k+1) )'
+*                 A := A - ( L(k) L(k+1) )*D(k)*( L(k) L(k+1) )**H
+*                    = A - ( W(k) W(k+1) )*inv(D(k))*( W(k) W(k+1) )**H
 *
 *                 where L(k) and L(k+1) are the k-th and (k+1)-th
 *                 columns of L

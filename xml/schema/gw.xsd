@@ -1,0 +1,327 @@
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
+    <xs:include id="common" schemaLocation="common.xsd"/>
+    <xs:annotation>
+        <xs:appinfo>
+            <parent>/input</parent>
+            <root>gw</root>
+        </xs:appinfo>
+    </xs:annotation>
+    <xs:element ex:importance="expert" ex:unit="" name="gw">
+        <xs:annotation>
+            <xs:documentation>G0W0 calculation setup.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:all>
+            <xs:element ex:importance="expert" ex:unit="" name="bzconv" maxOccurs="1" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>BZ convolution parameters.</xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:attribute ex:importance="expert" ex:unit="" name="bzcon" default="tetra">
+                  <xs:annotation>
+                    <xs:documentation>
+                       BZ convolution option:
+                          tetra - Use the linearized tetrahedron method;
+                          sum   - Simple sum over k-points.
+                    </xs:documentation>
+                  </xs:annotation>
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:enumeration value="tetra"/>
+                      <xs:enumeration value="sum"/>
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:attribute>
+                <xs:attribute ex:importance="expert" ex:unit="" name="fdep" default="imfreq">
+                  <xs:annotation>
+                    <xs:documentation>
+                       BZ frequency option:
+                          nofreq - No frequecy dependence of the weights;
+                          refreq - weights calculated for real frequecies;
+                          imfreq - weights calculated for imaginary frequecies (default).
+                       Warning: GW for real frequecies not yet implemented.
+                    </xs:documentation>
+                  </xs:annotation>
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:enumeration value="nofreq"/>
+                      <xs:enumeration value="refreq"/>
+                      <xs:enumeration value="imfreq"/>
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:attribute>
+              </xs:complexType>
+            </xs:element>
+                          
+            <xs:element ex:importance="expert" ex:unit="" name="interp" maxOccurs="1" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>Task Band: interpolation parameters.</xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="interp" default="fouri"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="rmax" default="20.0d0"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="efermi2" default="0.0d0"> </xs:attribute>
+              </xs:complexType>
+            </xs:element>
+
+            <xs:element ex:importance="expert" ex:unit="" name="freqgrid" maxOccurs="1" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>
+                   Parameters for the frequecy grid:
+                     fgrid: 'eqdis'  - equidistant frequencies from 0 to freqmax
+                            'gaulag' - Gauss-Laguerre quadrature from 0 to inf
+                            'gauleg' - Gauss-Legendre quadrature from 0 to freqmax
+                            'gaule2' - double Gauss-Legendre quadrature from 0 to freqmax and 
+                                       from freqmax to inf
+                     nomeg: 16 (default) 
+                     omegmax: 0.42 (default)
+                     maxexp:  1 (default) Maximum exponent for analytic continuation
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="fgrid" default="gaule2"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nomeg" default="16"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="freqmax" default="0.42d0"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="maxexp" default="1"> </xs:attribute>
+              </xs:complexType>
+            </xs:element>
+ 
+            <xs:element ex:importance="expert" ex:unit="" name="selfenergy" maxOccurs="1" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>
+                   Option for correlation self-energy: 
+                      npol: Number of poles ( previous maxexp + 1, valid range: 2.. nomeg/2 );
+                      iopes: 0/1/2/3 - without or with itereration; 
+                      iopac: 0/1 - Pade's approximation / RGN method(Rojas, Godby and Needs)
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="npol" default="0"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="iopes" default="2"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="iopac" default="2"> </xs:attribute>
+              </xs:complexType>
+            </xs:element>
+                              
+            <xs:element ex:importance="expert" ex:unit="" name="mixbasis" maxOccurs="1" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>
+                    Read the options for the mixed basis functions.
+                    Mixbasis options for each inequivalent atom.
+                 </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="kmr" default="1.0"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="lmaxapwmix" default="3"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wftol" default="1.0d-4"> </xs:attribute>
+              </xs:complexType>
+            </xs:element>
+                          
+            <xs:element ex:importance="expert" ex:unit="" name="gapshift" maxOccurs="1" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>
+                    Shift value added to the conductance bands to increase manually the band gap.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="ibshift" default="-1"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="Hartree" name="gapshift" default="0.0d0"> </xs:attribute>
+              </xs:complexType>
+            </xs:element>
+                              
+            <xs:element ex:importance="expert" ex:unit="" name="barecoul" maxOccurs="1" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>
+                    Parameters for the bare coulomb potential.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="pwm" default="2.0d0"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="stctol" default="1.0d-15"> </xs:attribute>
+              </xs:complexType>
+            </xs:element>
+          </xs:all>
+
+          <xs:attribute ex:importance="expert" ex:unit="" name="taskname" default="gw">
+            <xs:annotation>
+              <xs:documentation>
+                  Type of calculations.
+	      </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="gw"/>
+                <xs:enumeration value="lapw"/>
+                <xs:enumeration value="evec"/>
+                <xs:enumeration value="prod"/>
+                <xs:enumeration value="mixf"/>
+                <xs:enumeration value="comp"/>
+                <xs:enumeration value="coul"/>
+                <xs:enumeration value="acon"/>
+                <xs:enumeration value="emac"/>
+                <xs:enumeration value="epsev"/>
+                <xs:enumeration value="epgw"/>
+                <xs:enumeration value="wev"/>
+                <xs:enumeration value="sepl"/>
+                <xs:enumeration value="vxc"/>
+                <xs:enumeration value="ex"/>
+                <xs:enumeration value="band"/>
+                <xs:enumeration value="rotmat"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="iik" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>First k-point number</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="jjk" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>Second k-point number</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="igmin" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>First G-vector number</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="igmax" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>Second G-vector number</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="ibmin" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>Lower bound for the band number</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="ibmax" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>Upper bound for the band number</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="ibmin2" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+             <xs:documentation>Lower bound for the band number</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="ibmax2" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>Upper bound for the band number</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="at1" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>First atom number</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="at2" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>Second atom number</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="ibgw" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>Lower band index for GW output.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="nbgw" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>Upper band index for GW output.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="Hartree" name="emaxpol" type="fortrandouble" use="optional" default="-1.0d0">
+            <xs:annotation>
+              <xs:documentation>
+                  The energy cut-off for polarization matrix calculation.
+                  When emaxpol is negative, same number of unoccupied bands are used for polmat and selfenergy calculations.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="rpmat" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation>
+	          Read option for the momentum matrix.
+	      </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="reps" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation>
+	          Read option for the dielectric function matrix elements from file.
+	      </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+
+          <xs:attribute ex:importance="expert" ex:unit="" name="corflag" default="all">
+            <xs:annotation>
+              <xs:documentation>
+                  Option for treating core. Valid options are:
+                      all - All electron calculation;
+                      val - Valence electrons only;
+                      vab - Valence-only without cores in mixbasis;
+                      xal - All electron for exchange only.
+                  Default value: all.
+              </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="all"/>
+                <xs:enumeration value="val"/>
+                <xs:enumeration value="vab"/>
+                <xs:enumeration value="xal"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="nelfc" type="xs:integer" use="optional" default="0">
+            <xs:annotation>
+              <xs:documentation>Number of frozen core electrons.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="q0eps" type="vect3d" default="0.577350269d0 0.577350269d0 0.577350269d0">
+            <xs:annotation>
+              <xs:documentation>
+                  q0eps - the direction q --> 0
+                  Default: (1/sqrt(3),1/sqrt(3),1/sqrt(3))
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="barcevtol" type="fortrandouble" default="-1.0d-10">
+            <xs:annotation>
+              <xs:documentation>
+                Tolerance to choose basis functions from bare Coulomb matrix eigenvectors.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean" default="true">
+            <xs:annotation>
+              <xs:documentation>
+	          Use the symmetry to calculate the dielectric function and perform q-point BZ integration.
+	      </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

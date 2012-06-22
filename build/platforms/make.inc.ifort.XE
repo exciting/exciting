@@ -11,8 +11,12 @@ LIB_BZINT=libbzint.a
 
 LIBS=  $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
 
-F90_DEBUGOPTS=-g  -O0 -warn all -check all -traceback -ftrapuv
-F77_DEBUGOPTS=-g  -O0 -warn all -check all -traceback -ftrapuv
+F90_DEBUGOPTS=-g -debug all -check all -implicitnone -warn unused \
+   -fp-stack-check -heap-arrays -ftrapuv -check pointers \
+   -check bounds
+F77_DEBUGOPTS=-g -debug all -check all -implicitnone -warn unused \
+   -fp-stack-check -heap-arrays -ftrapuv -check pointers \
+   -check bounds
 
 #Ignore if you don't have MPI or smplibs
 

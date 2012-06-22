@@ -1,8 +1,124 @@
+*> \brief \b ZHPTRS
+*
+*  =========== DOCUMENTATION ===========
+*
+* Online html documentation available at 
+*            http://www.netlib.org/lapack/explore-html/ 
+*
+*> \htmlonly
+*> Download ZHPTRS + dependencies 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/zhptrs.f"> 
+*> [TGZ]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/zhptrs.f"> 
+*> [ZIP]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/zhptrs.f"> 
+*> [TXT]</a>
+*> \endhtmlonly 
+*
+*  Definition:
+*  ===========
+*
+*       SUBROUTINE ZHPTRS( UPLO, N, NRHS, AP, IPIV, B, LDB, INFO )
+* 
+*       .. Scalar Arguments ..
+*       CHARACTER          UPLO
+*       INTEGER            INFO, LDB, N, NRHS
+*       ..
+*       .. Array Arguments ..
+*       INTEGER            IPIV( * )
+*       COMPLEX*16         AP( * ), B( LDB, * )
+*       ..
+*  
+*
+*> \par Purpose:
+*  =============
+*>
+*> \verbatim
+*>
+*> ZHPTRS solves a system of linear equations A*X = B with a complex
+*> Hermitian matrix A stored in packed format using the factorization
+*> A = U*D*U**H or A = L*D*L**H computed by ZHPTRF.
+*> \endverbatim
+*
+*  Arguments:
+*  ==========
+*
+*> \param[in] UPLO
+*> \verbatim
+*>          UPLO is CHARACTER*1
+*>          Specifies whether the details of the factorization are stored
+*>          as an upper or lower triangular matrix.
+*>          = 'U':  Upper triangular, form is A = U*D*U**H;
+*>          = 'L':  Lower triangular, form is A = L*D*L**H.
+*> \endverbatim
+*>
+*> \param[in] N
+*> \verbatim
+*>          N is INTEGER
+*>          The order of the matrix A.  N >= 0.
+*> \endverbatim
+*>
+*> \param[in] NRHS
+*> \verbatim
+*>          NRHS is INTEGER
+*>          The number of right hand sides, i.e., the number of columns
+*>          of the matrix B.  NRHS >= 0.
+*> \endverbatim
+*>
+*> \param[in] AP
+*> \verbatim
+*>          AP is COMPLEX*16 array, dimension (N*(N+1)/2)
+*>          The block diagonal matrix D and the multipliers used to
+*>          obtain the factor U or L as computed by ZHPTRF, stored as a
+*>          packed triangular matrix.
+*> \endverbatim
+*>
+*> \param[in] IPIV
+*> \verbatim
+*>          IPIV is INTEGER array, dimension (N)
+*>          Details of the interchanges and the block structure of D
+*>          as determined by ZHPTRF.
+*> \endverbatim
+*>
+*> \param[in,out] B
+*> \verbatim
+*>          B is COMPLEX*16 array, dimension (LDB,NRHS)
+*>          On entry, the right hand side matrix B.
+*>          On exit, the solution matrix X.
+*> \endverbatim
+*>
+*> \param[in] LDB
+*> \verbatim
+*>          LDB is INTEGER
+*>          The leading dimension of the array B.  LDB >= max(1,N).
+*> \endverbatim
+*>
+*> \param[out] INFO
+*> \verbatim
+*>          INFO is INTEGER
+*>          = 0:  successful exit
+*>          < 0: if INFO = -i, the i-th argument had an illegal value
+*> \endverbatim
+*
+*  Authors:
+*  ========
+*
+*> \author Univ. of Tennessee 
+*> \author Univ. of California Berkeley 
+*> \author Univ. of Colorado Denver 
+*> \author NAG Ltd. 
+*
+*> \date November 2011
+*
+*> \ingroup complex16OTHERcomputational
+*
+*  =====================================================================
       SUBROUTINE ZHPTRS( UPLO, N, NRHS, AP, IPIV, B, LDB, INFO )
 *
-*  -- LAPACK routine (version 3.1) --
-*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
-*     November 2006
+*  -- LAPACK computational routine (version 3.4.0) --
+*  -- LAPACK is a software package provided by Univ. of Tennessee,    --
+*  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+*     November 2011
 *
 *     .. Scalar Arguments ..
       CHARACTER          UPLO
@@ -12,49 +128,6 @@
       INTEGER            IPIV( * )
       COMPLEX*16         AP( * ), B( LDB, * )
 *     ..
-*
-*  Purpose
-*  =======
-*
-*  ZHPTRS solves a system of linear equations A*X = B with a complex
-*  Hermitian matrix A stored in packed format using the factorization
-*  A = U*D*U**H or A = L*D*L**H computed by ZHPTRF.
-*
-*  Arguments
-*  =========
-*
-*  UPLO    (input) CHARACTER*1
-*          Specifies whether the details of the factorization are stored
-*          as an upper or lower triangular matrix.
-*          = 'U':  Upper triangular, form is A = U*D*U**H;
-*          = 'L':  Lower triangular, form is A = L*D*L**H.
-*
-*  N       (input) INTEGER
-*          The order of the matrix A.  N >= 0.
-*
-*  NRHS    (input) INTEGER
-*          The number of right hand sides, i.e., the number of columns
-*          of the matrix B.  NRHS >= 0.
-*
-*  AP      (input) COMPLEX*16 array, dimension (N*(N+1)/2)
-*          The block diagonal matrix D and the multipliers used to
-*          obtain the factor U or L as computed by ZHPTRF, stored as a
-*          packed triangular matrix.
-*
-*  IPIV    (input) INTEGER array, dimension (N)
-*          Details of the interchanges and the block structure of D
-*          as determined by ZHPTRF.
-*
-*  B       (input/output) COMPLEX*16 array, dimension (LDB,NRHS)
-*          On entry, the right hand side matrix B.
-*          On exit, the solution matrix X.
-*
-*  LDB     (input) INTEGER
-*          The leading dimension of the array B.  LDB >= max(1,N).
-*
-*  INFO    (output) INTEGER
-*          = 0:  successful exit
-*          < 0: if INFO = -i, the i-th argument had an illegal value
 *
 *  =====================================================================
 *
@@ -103,7 +176,7 @@
 *
       IF( UPPER ) THEN
 *
-*        Solve A*X = B, where A = U*D*U'.
+*        Solve A*X = B, where A = U*D*U**H.
 *
 *        First solve U*D*X = B, overwriting B with X.
 *
@@ -178,7 +251,7 @@
          GO TO 10
    30    CONTINUE
 *
-*        Next solve U'*X = B, overwriting B with X.
+*        Next solve U**H *X = B, overwriting B with X.
 *
 *        K is the main loop index, increasing from 1 to N in steps of
 *        1 or 2, depending on the size of the diagonal blocks.
@@ -196,7 +269,7 @@
 *
 *           1 x 1 diagonal block
 *
-*           Multiply by inv(U'(K)), where U(K) is the transformation
+*           Multiply by inv(U**H(K)), where U(K) is the transformation
 *           stored in column K of A.
 *
             IF( K.GT.1 ) THEN
@@ -217,7 +290,7 @@
 *
 *           2 x 2 diagonal block
 *
-*           Multiply by inv(U'(K+1)), where U(K+1) is the transformation
+*           Multiply by inv(U**H(K+1)), where U(K+1) is the transformation
 *           stored in columns K and K+1 of A.
 *
             IF( K.GT.1 ) THEN
@@ -246,7 +319,7 @@
 *
       ELSE
 *
-*        Solve A*X = B, where A = L*D*L'.
+*        Solve A*X = B, where A = L*D*L**H.
 *
 *        First solve L*D*X = B, overwriting B with X.
 *
@@ -324,7 +397,7 @@
          GO TO 60
    80    CONTINUE
 *
-*        Next solve L'*X = B, overwriting B with X.
+*        Next solve L**H *X = B, overwriting B with X.
 *
 *        K is the main loop index, decreasing from N to 1 in steps of
 *        1 or 2, depending on the size of the diagonal blocks.
@@ -343,7 +416,7 @@
 *
 *           1 x 1 diagonal block
 *
-*           Multiply by inv(L'(K)), where L(K) is the transformation
+*           Multiply by inv(L**H(K)), where L(K) is the transformation
 *           stored in column K of A.
 *
             IF( K.LT.N ) THEN
@@ -364,7 +437,7 @@
 *
 *           2 x 2 diagonal block
 *
-*           Multiply by inv(L'(K-1)), where L(K-1) is the transformation
+*           Multiply by inv(L**H(K-1)), where L(K-1) is the transformation
 *           stored in columns K-1 and K of A.
 *
             IF( K.LT.N ) THEN
