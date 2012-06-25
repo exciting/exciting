@@ -47,7 +47,7 @@ module modgw
 ! spin factor to treat the spin degeneracy
       real(8) :: sfact=2.0d0
 ! Ha --> eV
-      real(8), parameter :: hev=27.2116
+      real(8), parameter :: hev=27.2113961
 
 !----------------------------!
 !     frequency grid         !

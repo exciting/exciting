@@ -119,14 +119,7 @@
 !
 !     Read the BZ convolution method
 !           
-      if(associated(input%gw%BZconv)) then
-        bzcon = trim(input%gw%BZconv%bzcon)
-        fdep = trim(input%gw%BZconv%fdep)
-      else
-        bzcon = 'tetra'
-        fdep = 'imfreq'
-      end if
-      select case (bzcon)
+      select case (input%gw%bzconv)
         case ('sum','SUM')
           convflg=0
         case ('tetra','TETRA')
@@ -136,40 +129,16 @@
           write(fgw,*) 'tetra: Use the linearized tetrahedrom method'
           write(fgw,*) 'sum: Simple sum over k-points'
           write(fgw,*) 'Taking default value: tetra'
-          bzcon='tetra'
           convflg=1
       end select
-      select case (fdep)
-        case ('nofreq')
-          fflg=1
-          if((test.eq.'gw').or.(test.eq.'GW'))then
-            write(fgw,*) 'Warning: GW for real frequecies not yet implemented'
-            write(fgw,*) 'Changing to default value: imfreq'
-            fdep='imfreq'
-            fflg=3
-          endif  
-        case ('refreq')
-          fflg=2
-          if((test.eq.'gw').or.(test.eq.'GW'))then
-            write(fgw,*) 'Warning: GW for real frequecies not yet implemented'
-            write(fgw,*) 'Changing to default value: imfreq'
-            fdep='imfreq'
-            fflg=3
-          endif  
-        case ('imfreq','IMFREQ')
-          fflg=3
-        case default  
-          write(fgw,*) &
-      &     'Warning: Wrong BZ frequency option!! Valid options are:'  
-          write(fgw,*) 'nofreq: no frequecy dependence of the weights'
-          write(fgw,*) 'refreq: weights calculated for real frequecies'
-          write(fgw,*) 'imfreq: weights calculated for imaginary frequecies'
-          write(fgw,*) 'Taking default value: imfreq'
-          fdep='imfreq'
-          fflg=3
-      end select
-      write(fgw,*)'BZ Convolution method'
-      write(fgw,*) bzcon, '   ', fdep
+!
+!     Current implementation is only using imaginary frequencies (see FHI-gap for more info)
+!
+      fdep='imfreq'
+      fflg=3
+
+      write(fgw,*)'BZ Convolution method:'
+      write(fgw,*) trim(input%gw%bzconv), '   ', fdep
 
       call linmsg(fgw,'-','')
 !      
@@ -298,17 +267,16 @@
       if(associated(input%gw%BareCoul)) then
         pwm = input%gw%BareCoul%pwm
         stctol = input%gw%BareCoul%stctol
+        barcevtol=input%gw%BareCoul%barcevtol
       else
         pwm=2.0
-        stctol = 1.E-10
+        stctol=1.0d-10
+        barcevtol=-1.0d-10
       endif 
       write(fgw,*) 'Bare Coulomb parameters:'
-      write(fgw,*) 'Maximum |G| in kmr units, error tolerance for struct. const.'
-      write(fgw,*) pwm,stctol
-      
-      barcevtol=input%gw%barcevtol
-      write(fgw,*) 'Tolerance used to reduce the bare Coulomb matrix eigenvectors as the basis set:'
-      write(fgw,*) barcevtol
+      write(fgw,*) 'Maximum |G| in kmr units:',pwm
+      write(fgw,*) 'Error tolerance for struct. const.:', stctol
+      write(fgw,*) 'Tolerance to choose basis functions from bare Coulomb matrix eigenvectors: ', barcevtol
 
       call linmsg(fgw,'-','')
 !
