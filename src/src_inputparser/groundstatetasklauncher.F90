@@ -4,28 +4,32 @@
 ! See the file COPYING for license details.
 
 Subroutine groundstatetasklauncher
-      Use modinput
-      Use modmain, Only: task
-      Use inputdom
-      Implicit None
-      If (input%groundstate%do .Eq. "fromscratch") Then
-         If (associated(input%structureoptimization)) Then
+    Use modinput
+    Use modmain, Only: task
+    Use inputdom
+    Implicit None
+    If ( .Not. (associated(input%groundstate%solver))) Then
+        ! set the default values if tddft element not present
+        input%groundstate%solver => getstructsolver (emptynode)
+    End If
+    If (input%groundstate%do .Eq. "fromscratch") Then
+        If (associated(input%structureoptimization)) Then
             task = 2
-         Else
+        Else
             task = 0
-         End If
-      Else
-         If (associated(input%structureoptimization)) Then
+        End If
+    Else
+        If (associated(input%structureoptimization)) Then
             task = 3
-         Else
+        Else
             task = 1
-         End If
-      End If
-      If (input%groundstate%do .Ne. "skip") then
+        End If
+    End If
+    If (input%groundstate%do .Ne. "skip") then
         Call gndstate
         ! do conversion to XML format if requested
         if (associated(input%groundstate%output)) then
-          if (input%groundstate%output%state .eq. "XML") call portstate(1)
+            if (input%groundstate%output%state .eq. "XML") call portstate(1)
         end if
-      end if
+    end if
 end subroutine
