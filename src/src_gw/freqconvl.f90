@@ -9,9 +9,7 @@ complex(8) function freqconvl(iom,nomg,om,enk,mwm,omg,womg)
 ! !DESCRIPTION:
 !!
 !! subroutine for the following frequency convolution 
-!! S(i\omega; \epsilon ) 
-!!    = 1/\pi \int_0^\infity \frac{ \epsilon - i \omega ) W(i\omega')} 
-!!      { (\epsilon - i \omega)^2 + \omega'^2} d\omega'
+!! $$ S(i\omega; \epsilon ) = 1/\pi \int_0^\infty \frac{ \epsilon - i \omega ) W(i\omega')}  { (\epsilon - i \omega)^2 + \omega'^2} d\omega'$$
 !!    
 
 ! !LOCAL VARIABLES:            

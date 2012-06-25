@@ -1,9 +1,9 @@
 !BOP
 !
-! !ROUTINE: init_gw
+! !ROUTINE: initgw
 !
 ! !INTERFACE
-      subroutine init_gw
+      subroutine initgw
 
 ! !DESCRIPTION:
 !
@@ -46,7 +46,7 @@
       if (.not.input%groundstate%tetra) then
         write(*,*)'GW EMERGENCY STOP!!!'
         write(*,*)'k-point meshes should be generated with tetra =.true.'
-        stop 'ERROR in init_gw'
+        stop 'ERROR in initgw'
       endif
       spinpol=associated(input%groundstate%spin)
       if (spinpol) then
@@ -68,7 +68,7 @@
       gmaxbarc=min(pwm*gqmax,input%groundstate%gmaxvr)
       
       if(gmaxbarc.gt.input%groundstate%gmaxvr)then
-        write(*,*)'WARNING(init_gw)! One should increase the value of gmaxvr:'
+        write(*,*)'WARNING(initgw)! One should increase the value of gmaxvr:'
         write(*,*) 'gkmax=',gkmax,'    gqmax=',gqmax
         write(*,*) 'gmaxvr',input%groundstate%gmaxvr,'    gmaxbarc=',gmaxbarc
       end if
@@ -148,5 +148,5 @@
       call intipw
 
       return
-      end subroutine init_gw
+      end subroutine initgw
 !EOC

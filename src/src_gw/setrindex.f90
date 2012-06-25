@@ -9,7 +9,7 @@
 ! This module declares the R-vectors and stars for the Fourier transform
 !
 
-! !PUBLIC VARIABLES:
+! !PUBLIC TYPES:
 
       real(8)    :: rmax=40.0d0
 

@@ -72,9 +72,9 @@ subroutine gw_main
       
 !     Initialize GW global parameters
       call cpu_time(t(1))
-      call init_gw
+      call initgw
       call cpu_time(t(2))
-      call write_cputime(fgw,t(2)-t(1),'INIT_GW')
+      call write_cputime(fgw,t(2)-t(1),'initgw')
 
       select case(testid)
 !!

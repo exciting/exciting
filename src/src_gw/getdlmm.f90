@@ -11,7 +11,7 @@ complex(8) function getdlmm(rot,l,m1,m2)
 !   m1    : 
 !   m2    : 
 ! !DESCRIPTION:
-!   Calculates the rotational matrix $D^l_{mm'} for the given rotation matrix $R$.
+!   Calculates the rotational matrix $D^l_{mm'}$ for the given rotation matrix $R$.
 !   This is done by first the computing the Euler angles $(\alpha,\beta,\gamma)$
 !   of $R^{-1}$ (see routine {\tt euler}) and then generating the rotation
 !   matrix for spherical harmonics, $D^l_{mm'}(\alpha,\beta,\gamma)$, with which

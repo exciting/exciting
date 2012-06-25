@@ -11,7 +11,7 @@ SUBROUTINE gensmallq
 !
 ! !DESCRIPTION:
 !
-!  Generates the small group of q-vectors, i.e., all R's that R q = q + G_{R}.
+!  Generates the small group of q-vectors, i.e., all R's that $R q = q + G_{R}$.
 !  Then the q-dependent BZ(q) is searched.
 !  As a last step the subroup of R is determined which regenerate from k=BZ(q) the full BZ.
 !

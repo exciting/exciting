@@ -7,7 +7,7 @@
       
 ! !DESCRIPTION:
 !
-! This subroutine interpolate function f1_n( k ) defined on the kmesh 1, to kmesh 2 
+! This subroutine interpolate function $f1_n( k )$ defined on the kmesh 1, to kmesh 2
 ! using 3D Smooth Fourier transform according to 
 ! PRB 38, 2721 (1988).
 !

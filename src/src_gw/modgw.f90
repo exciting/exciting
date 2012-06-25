@@ -1,7 +1,7 @@
 !BOP
 ! !MODULE: modgw
 ! !DESCRIPTION:
-!   Contains all the global variables required by the GW_EXCITING code.
+!   Contains all the global variables required by the GW EXCITING code.
 !
 ! !REVISION HISTORY:
 !

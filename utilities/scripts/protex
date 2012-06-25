@@ -95,7 +95,7 @@
 # -------------------------------------------
   $[ = 1;                 # set array base to 1
   $, = ' ';               # set output field separator
-  $\ = "\n";              # set output record separator
+  $\ = "\n";              # set output record separatorhttp://comments.gmane.org/gmane.editors.lyx.general/67526
 
 # Set valid options lists
 # -----------------------
@@ -301,7 +301,7 @@ LINE:
 #       !PARAMETERS: really mean !ARGUMENTS:
 #       ------------------------------------
 #        s/!PARAMETERS:/!ARGUMENTS:/g;
-
+		#if(!m/^\s*!/){s/_/\\_/g;}
         @Fld = split(' ', $_, 9999);
 
 #       Straight quote
@@ -627,6 +627,7 @@ LINE:
         if ($prologue) {
 KEY:       foreach $key ( @keys ) {
               if ( /$key/ ) {
+               
                  if ($verb) {
 		    printf "\\end{verbatim}";
 		    $verb = 0;
@@ -1029,6 +1030,8 @@ sub print_preamble {
     print "%------------------------ PREAMBLE --------------------------";
     print "\\documentclass[11pt]{article}";
     print "\\usepackage{amsmath}";
+    print "\\usepackage{amssymb}";
+   # print "\\usepackage{underscore}";
     print "\\usepackage{epsfig}";
     print "\\usepackage{hangcaption}";
     print "\\usepackage{tabularx}";
