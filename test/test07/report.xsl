@@ -17,7 +17,7 @@
         </status>
         <name> BSE loss funktion works</name>
         <description>pass if loss funktion is written</description>
-        <directory>test05/runBSE</directory>
+        <directory>test07/runBSE</directory>
       </test>
           
       <test>
@@ -33,7 +33,7 @@
         </status>
         <name> BSE dielectric funktion works</name>
         <description>pass if dielectric funktion is written</description>
-        <directory>test05/runBSE</directory>
+        <directory>test07/runBSE</directory>
       </test>
        <test>
         <status>
@@ -48,7 +48,7 @@
         </status>
         <name> BSE loss funktion works</name>
         <description>pass if loss funktion is written</description>
-        <directory>test05/runBSE</directory>
+        <directory>test07/runBSE</directory>
       </test>
           
       <test>
@@ -64,7 +64,7 @@
         </status>
         <name> BSE dielectric funktion works</name>
         <description>pass if dielectric funktion is written</description>
-        <directory>test05/runBSE</directory>
+        <directory>test07/runBSE</directory>
       </test>
     </report>
   </xsl:template>
