@@ -11,10 +11,10 @@ LIB_BZINT=libbzint.a
 
 LIBS=  $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
 
-F90_DEBUGOPTS=-g -debug all -check all -implicitnone -warn unused \
+F90_DEBUGOPTS=-g -debug all   -implicitnone -warn unused \
    -fp-stack-check -heap-arrays -ftrapuv -check pointers \
    -check bounds
-F77_DEBUGOPTS=-g -debug all -check all -implicitnone -warn unused \
+F77_DEBUGOPTS=-g -debug all   -implicitnone -warn unused \
    -fp-stack-check -heap-arrays -ftrapuv -check pointers \
    -check bounds
 
@@ -30,5 +30,7 @@ SMPF90_OPTS=$(F90_OPTS)
 SMPF77_OPTS=$(SMPF90_OPTS)
 MPISMPF90_OPTS=$(SMPF90_OPTS)  -DMPI -DMPIRHO -DMPISECBUILDMPI=false
 MPIF90MT=$(MPIF90)
+BUILDMPI=true
+BUILDSMP=true
 BUILDMPI=true
 BUILDSMP=true
