@@ -49,13 +49,15 @@
       real(8), parameter :: etol=1.0d-6
       integer, parameter :: nitmax=100
 
-! A critical parameters used in this subroutine is iopes, 
-! which control how Fermi energy shift is treated 
+! A critical parameters used in this subroutine is iopes, which control how Fermi energy shift is 
+! treated 
 !     iopes =    
 !          0 -- perturbative G0W0 without energy shift
 !          1 -- perturbative G0W0 with energy shift
 !          2 -- iterative G0W0 with energy shift
 !          3 -- iterative G0W0 without energy shift
+!         -1 -- selfconsitent GW0 without energy shift (not done yet)
+!
  
 ! !EXTERNAL ROUTINES: 
 
@@ -90,8 +92,8 @@
 !----------------------------------
 !     Start iterative procedure
 !----------------------------------      
-      eferqp=0.0
-      egap=0.0
+      es=0.0d0
+      egap=0.0d0
       ierr=0
 
       do it = 0, nitmax
@@ -141,16 +143,16 @@
               vxcnk=real(vxcnn(ie,ikp))
               
               select case(iopes) 
-              case(0)
-                delta=znk*(snk-vxcnk)
-              case(1) 
-                delta=znk*(snk-vxcnk)+(1.0d0-znk)*es
               case (2) 
                 if(it.eq.0) then
                   delta=znk*(snk-vxcnk)
                 else
                   delta=snk-vxcnk
                 endif
+              case(1) 
+                delta=znk*(snk-vxcnk)+(1.d0-znk)*es
+              case(0)
+                delta=znk*(snk-vxcnk)
               case(3) 
                 delta=snk-vxcnk
               end select 
@@ -166,14 +168,14 @@
          if(it.eq.0) then 
             egap0=egap
             write(fgw,8) 
-         endif 
+         endif
        
          if(egap.gt.0.0d0) then                                                
-            write(fgw,9) it,eferqp,es,egap*hev,(eqp(minunoband,1)-eqp(maxoccband,1))*hev
+            write(fgw,*) it,eferqp,es,egap*hev,(eqp(minunoband,1)-eqp(maxoccband,1))*hev
          else                                                                 
             write(fgw,*) 'WARNING(calceqp):!!! metallic, DOS at Fermi level', -egap                
          endif 
-    
+
          if(it.ne.0)then 
            if(abs(egap-egap0).gt.0.2d0) then
              write(fgw,*) 'WARNING(calceqp): --- Band gap deviates from initial GW gap more than 0.2 Ha'
@@ -181,7 +183,7 @@
              exit 
            end if
          end if
-
+         
          if( (iopes.eq.0).or. &
         &   ((abs(es-eferqp).lt.etol).and.(abs(egap-egapold).le.etol)) ) exit
 

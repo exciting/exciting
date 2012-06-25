@@ -557,23 +557,14 @@ type(doonly_type),pointer::doonly
  logical::reps
  character(512)::corflag
  integer::corflagnumber
- integer::nelfc
  real(8)::q0eps(3)
- real(8)::barcevtol
  logical::reduceq
-  type(bzconv_type),pointer::bzconv
+ character(512)::bzconv
   type(interp_type),pointer::interp
   type(freqgrid_type),pointer::freqgrid
   type(selfenergy_type),pointer::selfenergy
   type(mixbasis_type),pointer::mixbasis
-  type(gapshift_type),pointer::gapshift
   type(barecoul_type),pointer::barecoul
-end type
-type bzconv_type
- character(512)::bzcon
- integer::bzconnumber
- character(512)::fdep
- integer::fdepnumber
 end type
 type interp_type
  character(512)::interp
@@ -596,13 +587,10 @@ type mixbasis_type
  integer::lmaxapwmix
  real(8)::wftol
 end type
-type gapshift_type
- integer::ibshift
- real(8)::gapshift
-end type
 type barecoul_type
  real(8)::pwm
  real(8)::stctol
+ real(8)::barcevtol
 end type
 type input_type
  character(1024)::xsltpath
@@ -4920,27 +4908,11 @@ endif
 getstructgw%corflagnumber=stringtonumbergwcorflag(getstructgw%corflag)
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"nelfc")
-getstructgw%nelfc=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nelfc",getstructgw%nelfc)
-       call removeAttribute(thisnode,"nelfc")  
-endif
-
-nullify(np)  
 np=>getAttributeNode(thisnode,"q0eps")
 getstructgw%q0eps=(/0.577350269d0,0.577350269d0,0.577350269d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"q0eps",getstructgw%q0eps)
        call removeAttribute(thisnode,"q0eps")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"barcevtol")
-getstructgw%barcevtol=-1.0d-10
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"barcevtol",getstructgw%barcevtol)
-       call removeAttribute(thisnode,"barcevtol")  
 endif
 
 nullify(np)  
@@ -4951,13 +4923,13 @@ if(associated(np)) then
        call removeAttribute(thisnode,"reduceq")  
 endif
 
-            len= countChildEmentsWithName(thisnode,"bzconv")
-getstructgw%bzconv=>null()
-Do i=0,len-1
-getstructgw%bzconv=>getstructbzconv(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"bzconv"),0)) ) 
-enddo
+nullify(np)  
+np=>getAttributeNode(thisnode,"bzconv")
+getstructgw%bzconv= "tetra"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"bzconv",getstructgw%bzconv)
+       call removeAttribute(thisnode,"bzconv")  
+endif
 
             len= countChildEmentsWithName(thisnode,"interp")
 getstructgw%interp=>null()
@@ -4991,14 +4963,6 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "mixbasis"),0)) ) 
 enddo
 
-            len= countChildEmentsWithName(thisnode,"gapshift")
-getstructgw%gapshift=>null()
-Do i=0,len-1
-getstructgw%gapshift=>getstructgapshift(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"gapshift"),0)) ) 
-enddo
-
             len= countChildEmentsWithName(thisnode,"barecoul")
 getstructgw%barecoul=>null()
 Do i=0,len-1
@@ -5006,44 +4970,6 @@ getstructgw%barecoul=>getstructbarecoul(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "barecoul"),0)) ) 
 enddo
-
-      i=0
-      len=0
-      
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructbzconv(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(bzconv_type),pointer::getstructbzconv
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructbzconv)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at bzconv"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"bzcon")
-getstructbzconv%bzcon= "tetra"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"bzcon",getstructbzconv%bzcon)
-       call removeAttribute(thisnode,"bzcon")  
-endif
-getstructbzconv%bzconnumber=stringtonumberbzconvbzcon(getstructbzconv%bzcon)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"fdep")
-getstructbzconv%fdep= "imfreq"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"fdep",getstructbzconv%fdep)
-       call removeAttribute(thisnode,"fdep")  
-endif
-getstructbzconv%fdepnumber=stringtonumberbzconvfdep(getstructbzconv%fdep)
 
       i=0
       len=0
@@ -5163,7 +5089,7 @@ allocate(getstructselfenergy)
       
 nullify(np)  
 np=>getAttributeNode(thisnode,"npol")
-getstructselfenergy%npol=0
+getstructselfenergy%npol=2
 if(associated(np)) then
        call extractDataAttribute(thisnode,"npol",getstructselfenergy%npol)
        call removeAttribute(thisnode,"npol")  
@@ -5171,7 +5097,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"iopes")
-getstructselfenergy%iopes=2
+getstructselfenergy%iopes=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"iopes",getstructselfenergy%iopes)
        call removeAttribute(thisnode,"iopes")  
@@ -5235,42 +5161,6 @@ endif
       call  handleunknownnodes(thisnode)
 end function
 
-function getstructgapshift(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(gapshift_type),pointer::getstructgapshift
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructgapshift)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at gapshift"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"ibshift")
-getstructgapshift%ibshift=-1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ibshift",getstructgapshift%ibshift)
-       call removeAttribute(thisnode,"ibshift")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"gapshift")
-getstructgapshift%gapshift=0.0d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"gapshift",getstructgapshift%gapshift)
-       call removeAttribute(thisnode,"gapshift")  
-endif
-
-      i=0
-      len=0
-      
-      call  handleunknownnodes(thisnode)
-end function
-
 function getstructbarecoul(thisnode)
 
 implicit none
@@ -5299,6 +5189,14 @@ getstructbarecoul%stctol=1.0d-15
 if(associated(np)) then
        call extractDataAttribute(thisnode,"stctol",getstructbarecoul%stctol)
        call removeAttribute(thisnode,"stctol")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"barcevtol")
+getstructbarecoul%barcevtol=-1.0d-10
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"barcevtol",getstructbarecoul%barcevtol)
+       call removeAttribute(thisnode,"barcevtol")  
 endif
 
       i=0
@@ -6205,45 +6103,9 @@ end select
 end function
 
  
- integer function  stringtonumberbzconvbzcon(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('tetra')
- stringtonumberbzconvbzcon=-1
-case('sum')
- stringtonumberbzconvbzcon=-1
-case('')
- stringtonumberbzconvbzcon=0
-case default
-write(*,*) "Parser ERROR: '", string,"' is not valid selection forbzcon "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberbzconvfdep(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('nofreq')
- stringtonumberbzconvfdep=-1
-case('refreq')
- stringtonumberbzconvfdep=-1
-case('imfreq')
- stringtonumberbzconvfdep=-1
-case('')
- stringtonumberbzconvfdep=0
-case default
-write(*,*) "Parser ERROR: '", string,"' is not valid selection forfdep "
-stop 
-end select
-end function
-
- 
  integer function  stringtonumbergwtaskname(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
-case('gw')
- stringtonumbergwtaskname=-1
 case('lapw')
  stringtonumbergwtaskname=-1
 case('evec')
@@ -6275,6 +6137,8 @@ case('ex')
 case('band')
  stringtonumbergwtaskname=-1
 case('rotmat')
+ stringtonumbergwtaskname=-1
+case('gw')
  stringtonumbergwtaskname=-1
 case('')
  stringtonumbergwtaskname=0
