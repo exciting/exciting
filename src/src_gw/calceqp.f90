@@ -143,8 +143,6 @@
               vxcnk=real(vxcnn(ie,ikp))
               
               select case(iopes) 
-              case (-1) ! selfconsitent GW0
-                delta=znk*(snk-vxcnk+enk0-enk)
               case (2) 
                 if(it.eq.0) then
                   delta=znk*(snk-vxcnk)
