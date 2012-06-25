@@ -42,7 +42,7 @@ SUBROUTINE gensmallq
 !EOP
 !BOC
 
-    if(DEBUG)then
+    if(debug)then
        call boxmsg(99,'-','Generate the small group of q-vectors')
     endif
     
@@ -74,10 +74,6 @@ SUBROUTINE gensmallq
 !   for each q from IBZ
 !
     do iqp = 1, nqpt
-      
-      write(99,*)
-      write(99,*) "iqp = ", iqp
-      write(99,*)
 
 !--------------------------------------------------------------------------------
 !     find the small group of q
@@ -156,7 +152,9 @@ SUBROUTINE gensmallq
 !     Debug information
 !
       if (debug) then
-        
+      
+        write(99,*)
+        write(99,*) "iqp = ", iqp
         write(99,*)
         write(99,*) "    nsymq: ", nsymq(iqp)
         write(99,*) "    nkptq: ", nkptq(iqp)
