@@ -28,7 +28,6 @@ mpiandsmp:
 	cd build/mpiandsmp; $(MAKE)
 
 test::
-	cd test/; $(MAKE) 
 	cd test/; $(MAKE) summary
 	
 
