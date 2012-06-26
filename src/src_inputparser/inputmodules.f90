@@ -5805,7 +5805,7 @@ case('GGA-Wu-Cohen')
 case('GGAArmiento-Mattsson')
  stringtonumbergroundstatexctype=30
 case('EXX')
- stringtonumbergroundstatexctype=-2
+ stringtonumbergroundstatexctype=-1
 case('none')
  stringtonumbergroundstatexctype=1
 case('')
