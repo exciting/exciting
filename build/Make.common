@@ -23,12 +23,12 @@ SOURCEDIRS=	../../src/  \
 	../../src/src_gw/src_acfreq/ \
 	../../src/ \
 	
-GeneraedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	
+GeneratedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	
 LIBXCMOD= ../../src/libXC/src/libxc.f90  ../../src/libXC/src/libxc_funcs.f90
 
 #all:bin
 
-bin::../make.inc libs $(GeneraedFiles)  $(LIBXCMOD)
+bin::../make.inc libs $(GeneratedFiles)  $(LIBXCMOD)
 	perl ../../utilities/versionstamp.pl  
 	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
 	$(SOURCEDIRS)  $(LIBXCMOD)	../../src/mainxml/ \
