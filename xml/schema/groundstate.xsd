@@ -1673,7 +1673,7 @@
             <xs:enumeration value="EXX">
               <xs:annotation>
                 <xs:appinfo><!-- set to "-2" or lower for EXX -->
-                  <oldnr>-2</oldnr>
+                  <oldnr>-1</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
