@@ -82,7 +82,7 @@
          write(fgw,*) "  maxoccband = minunoband - 1 is forced!"
          maxoccband = minunoband-1
       endif
-      
+
       write(fgw,*)'maxoccband = ', maxoccband   
       write(fgw,*)'minunoband = ', minunoband
           

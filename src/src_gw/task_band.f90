@@ -26,15 +26,16 @@ subroutine task_band
     integer(4) :: ik, ib
     integer(4) :: np, ip
     
-    real(8) :: emin,emax,e,dos
-    real(8) :: tstart,tend
+    real(8) :: emin, emax
+    real(8) :: tstart, tend
+    real(8) :: e, dos0, dos1
     
     complex(8), allocatable :: dek1(:,:), dek2(:,:)
     
     integer(4) :: i1, i2
     integer(4) :: nsym, isym, lspl
-    integer, allocatable :: symc (:, :, :)
-
+    integer, allocatable :: symc(:,:,:)
+    
 !
 ! !INTRINSIC ROUTINES:
     external  kgen
@@ -101,12 +102,15 @@ subroutine task_band
 !--------------------------------------------------
 !     Initialize k-point grid for BZ integration
 !--------------------------------------------------
+     
+      call init0
+     
       nkpt = input%groundstate%ngridk(1)* &
      &       input%groundstate%ngridk(2)* &
      &       input%groundstate%ngridk(3)
       ntet = 6*nkpt
 
-! allocate the reduced k-point set arrays
+!     allocate the reduced k-point set arrays
       if (allocated(ivk)) deallocate (ivk)
       allocate (ivk(3,nkpt))
       if (allocated(vkl)) deallocate (vkl)
@@ -129,9 +133,9 @@ subroutine task_band
 !             
 !     get rotational part of crystal symmetries
 !
-      Allocate (symc(3,3,nsymcrys))
-      Do isym = 1, nsymcrys
-        lspl = lsplsymc (isym)
+      Allocate (symc(3,3,nsym))
+      Do isym = 1, nsym
+        lspl = lsplsymc(isym)
 !       transpose of rotation for use with the library
         Do i1 = 1, 3
            Do i2 = 1, 3
@@ -141,35 +145,39 @@ subroutine task_band
       End Do
 
 !     suppress debug output in tetrahedron integration library (0)
-      call tetrasetdbglv (0)
+      call tetrasetdbglv(0)
 !
       call factorize(3,input%groundstate%vkloff,ikloff,dkloff)
 !
       call kgen(bvec,nsym,symc,input%groundstate%ngridk,ikloff,dkloff,&
      &     nkpt,ivk,dvk,indkp,iwkp,ntet,tnodes,wtet,tvol,mnd)
-
 !
 !     Calculate DOS
 !      
-      open(50,file='DOS-QP.OUT',action='WRITE',form='FORMATTED')
+      open(50,file='TDOS-KS-QP.OUT',action='WRITE',form='FORMATTED')
 
       emin=minval(eqp1(ibgw:nbgw,:))
       emax=maxval(eqp1(ibgw:nbgw,:))
-      
+
       np=200
-      do ip = 1, np
-         e=emin+dble(ip-1)*(emax-emin)/(np-1)
-         dos=occmax*dostet(nkpt,nbandsgw,eqp1(ibgw:nbgw,:),ntet,tnodes,wtet,tvol,e)
-         write(50,'(3G18.10)') e, dos
-      enddo
+
+      do ip = 1, np 
+        e=emin+dble(ip-1)*(emax-emin)/(np-1)
+        dos0=dostet(nkpt,nbandsgw,eks1(ibgw:nbgw,:),ntet,tnodes(1:4,1:ntet),wtet(1:ntet),tvol,e)
+        dos1=dostet(nkpt,nbandsgw,eqp1(ibgw:nbgw,:),ntet,tnodes(1:4,1:ntet),wtet(1:ntet),tvol,e)
+        write(50,'(3G18.10)') e, dos0, dos1
+      enddo 
+
       close(50)
       
+      write(fgw,*)
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
       call write_cputime(fgw,tend-tstart, 'TASK_BAND')
  
       deallocate(eks1,eks2,eqp1,eqp2,dek1,dek2)
       deallocate(symc)
+      deallocate(ivk,vkl,vkc,wkpt,indkp,iwkp,wtet,tnodes)
 
 end subroutine
 !!EOC

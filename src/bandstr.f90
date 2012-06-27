@@ -12,6 +12,10 @@ Subroutine bandstr
       Use modinput
       Use modmain
       Use FoX_wxml
+
+  !   requred by GW task="band"
+      Use modgw,  only: nkp2, kvecs2, eks2
+
   ! !DESCRIPTION:
   !   Produces a band structure along the path in reciprocal-space which connects
   !   the vertices in the array {\tt vvlp1d}. The band structure is obtained from
@@ -24,6 +28,7 @@ Subroutine bandstr
   !
   ! !REVISION HISTORY:
   !   Created June 2003 (JKD)
+  !   Modified June 2012 (DIN)
   !EOP
   !BOC
       Implicit None
@@ -273,6 +278,19 @@ Call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
       Write (*,*)
       Write (*, '(" vertex location lines written to BANDLINES.OUT")')
       Write (*,*)
+!      
+!     store the bandstructure klist and corresponding energies 
+!     to be used in GW routine task_band.f90
+!      
+      if(associated(input%gw))then
+         nkp2=nkpt
+         allocate(kvecs2(3,nkp2))
+         allocate(eks2(nstsv,nkp2))
+         do ik = 1, nkp2
+            kvecs2(1:3,ik)=vkl(1:3,ik)
+            eks2(1:nstsv,ik)=e(1:nstsv,ik)
+         end do !ik
+      endif
       Deallocate (e)
       If (input%properties%bandstructure%character) deallocate (bc)
       Call xml_close (xf)
