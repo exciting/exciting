@@ -210,9 +210,11 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
-        <xs:element ex:importance="experimental" ex:unit="" name="OEP" minOccurs="0" maxOccurs="1">
+        <xs:element ex:importance="expert" ex:unit="" name="OEP" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation>If present exact exchange calculation is triggered.
+            <!--xs:documentation>If present exact exchange calculation is triggered.
+              (experimental)</xs:documentation-->
+            <xs:documentation>Necessary, if exact exchange calculation is to be performed.
               (experimental)</xs:documentation>
           </xs:annotation>
           <xs:complexType>
@@ -228,7 +230,7 @@
               <xs:annotation>
                 <xs:documentation> The optimised effective potential is determined using an
                   iterative method. [Phys. Rev. Lett. 98, 196405 (2007)]. At the first iteration
-                  the step length is set to tauoep(1). Dur- ing subsequent iterations, the step
+                  the step length is set to tauoep(1). During subsequent iterations, the step
                   length is scaled by tauoep(2) or tauoep(3), when the residual is increasing or
                   decreasing, respectively. See also <attref>maxitoep</attref>. </xs:documentation>
               </xs:annotation>
@@ -1602,6 +1604,8 @@
                 <bf>73</bf>, 235116 (2006) </li>
               <li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it> Phys. Rev. B</it>
                 <bf>72</bf>, 085108 (2005) </li>
+              <li> EXX, Exact Exchange, <it> Phys. Rev. Lett</it>
+                <bf>95</bf>, 136402 (2005) </li>
             </list>
           </xs:documentation>
         </xs:annotation>

@@ -6,9 +6,22 @@
 ! See the file COPYING for license details.
 !
 !
+!
+!BOP
+! !ROUTINE: oepmain
+! !INTERFACE:
 Subroutine oepmain
+! !USES:
       Use modmain
       Use modinput
+! !DESCRIPTION:
+!   Main routine for the calculation of the optimized effective potential.
+!
+! !REVISION HISTORY:
+!   .....
+!EOP
+!BOC
+
       Implicit None
 ! local variables
       Integer :: is, ia, ias, ik
