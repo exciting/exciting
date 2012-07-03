@@ -64,7 +64,7 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
       Real (8), Allocatable :: vpc (:,:)
       Real (8), Allocatable :: wpt (:)
       Real (8), Allocatable :: fp (:, :)
-  !
+!
 !
  If (rank .Eq. 0) Then
       If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
@@ -76,6 +76,7 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
       End If
 !
 ! allocate the grid point arrays
+!
       Allocate (ipmap(0:plotdef%box%grid(1), &
                     & 0:plotdef%box%grid(2), &
                     & 0:plotdef%box%grid(3)))
@@ -83,17 +84,20 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
      & (plotdef%box%grid(1)+1)*(plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
 !
 ! generate the 3d point grid and reduce it using the crystal symmetry
+!
       Call gengrid (plotdef%box%grid, np, ipmap, vpl)
 !      
 ! evaluate the total density at the reduced grid points
+!
       Allocate (fp(np,nf))
       Do i = 1, nf
          Call rfarray (lmax, ld, rfmt(:, :, :, i), rfir(:, i), np, vpl, &
         & fp(:, i))
       End Do
 !
-!write xml
-	  write (buffer,*) plotlabels3d%filename,"3D.XML"
+! write xml
+!
+      write (buffer,*) plotlabels3d%filename,"3D.xml"
       Call xml_OpenFile ( adjustl(trim(buffer)) , xf, replace=.True., pretty_print=.True.)
       Call xml_NewElement (xf, "plot3d")
       Call xml_NewElement (xf, "title")
