@@ -55,7 +55,7 @@ subroutine gw_main
 !     General output file
       fgw=700
       open(fgw,file='GWINFO.OUT',action='write')
-      call boxmsg(fgw,'$','Main GW output file')
+      call boxmsg(fgw,'=','Main GW output file')
 
 !     Parse input data
       call cpu_time(t(1))      

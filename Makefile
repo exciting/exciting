@@ -136,5 +136,5 @@ tidy:
 	$(MAKE) -f ../Make.common tidy 
 
 vdwdf:
-	cd src/vdwdf
+	cd src/src_vdwdf
 	$(MAKE)

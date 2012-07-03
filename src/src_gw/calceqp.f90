@@ -171,7 +171,7 @@
          endif
        
          if(egap.gt.0.0d0) then                                                
-            write(fgw,*) it,eferqp,es,egap*hev,(eqp(minunoband,1)-eqp(maxoccband,1))*hev
+            write(fgw,9) it,eferqp,es,egap*hev,(eqp(minunoband,1)-eqp(maxoccband,1))*hev
          else                                                                 
             write(fgw,*) 'WARNING(calceqp):!!! metallic, DOS at Fermi level', -egap                
          endif 
@@ -212,9 +212,9 @@
 !     QP band structure
       call bandanaly(ibgw,nbgw,nkpt,vkl,eqp(ibgw:nbgw,:),eferqp,"G0W0",fgw)
 
-   8  format( ' #iter',7x,"Ef_QP",10x,"es",9x,"Eg/eV",2x,'Eg(k=0)/eV')
-   9  format( i6,4f12.6)
-
+   8  format( ' #iter',4x,"Ef_QP",4x,"es",4x,"Eg/eV",4x,'Eg(k=0)/eV')
+   9  format(i4,4f12.6)
+   
       return
       end subroutine calceqp
 

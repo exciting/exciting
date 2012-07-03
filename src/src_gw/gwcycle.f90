@@ -185,7 +185,7 @@
 !          Set the size of the basis for the corresponding q-point
 !        
            matsiz=locmatsiz+ngq(iq)
-           write(fgw,101) ik, iq, locmatsiz, ngq(iq), matsiz
+           write(fgw,101) ikp, iq, locmatsiz, ngq(iq), matsiz
 !      
 !          Calculate the interstitial mixed basis functions
 !       

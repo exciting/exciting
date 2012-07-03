@@ -159,8 +159,7 @@ subroutine task_band
       emin=minval(eqp1(ibgw:nbgw,:))
       emax=maxval(eqp1(ibgw:nbgw,:))
 
-      np=200
-
+      np=400
       do ip = 1, np 
         e=emin+dble(ip-1)*(emax-emin)/(np-1)
         dos0=dostet(nkpt,nbandsgw,eks1(ibgw:nbgw,:),ntet,tnodes(1:4,1:ntet),wtet(1:ntet),tvol,e)

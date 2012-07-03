@@ -89,6 +89,9 @@ subroutine calcpmat
     if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
     call write_cputime(fgw,tend-tstart, 'CALCPMAT')
 
-    deallocate(apwalmt,evecfvt,evecsvt,pmat,pmatc)
+    deallocate(apwalmt,evecfvt,evecsvt,pmat)
+    if(wcore)then
+      deallocate(pmatc)
+    end if
 end subroutine
 !EOC
