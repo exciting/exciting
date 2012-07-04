@@ -1564,7 +1564,7 @@
           <xs:documentation>Mixing parameter decrease. Used in linear mixing.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="lradstep" type="xs:integer" default="1">
+      <xs:attribute ex:importance="expert" ex:unit="" name="lradstep" type="xs:integer" default="4">
         <xs:annotation>
           <xs:documentation> Some muffin-tin functions (such as the density) are calculated on a
             coarse radial mesh and then interpolated onto a fine mesh. This is done for the sake of

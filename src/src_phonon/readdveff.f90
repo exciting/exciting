@@ -35,11 +35,11 @@ Subroutine readdveff (iq, is, ia, ip, dveffmt, dveffir)
       Read (50) version_
       If ((version(1) .Ne. version_(1)) .Or. (version(2) .Ne. &
      & version_(2)) .Or. (version(3) .Ne. version_(3))) Then
-         Write (*,*)
-         Write (*, '("Warning(readdveff): different versions")')
-         Write (*, '(" current	 : ", I3.3, ".", I3.3, ".", I3.3)') &
+         Write (70,*)
+         Write (70, '("Warning(readdveff): different versions")')
+         Write (70, '(" current	 : ", I3.3, ".", I3.3, ".", I3.3)') &
         & version
-         Write (*, '(" DVEFF.OUT : ", I3.3, ".", I3.3, ".", I3.3)') &
+         Write (70, '(" DVEFF.OUT : ", I3.3, ".", I3.3, ".", I3.3)') &
         & version_
       End If
       Read (50) nspecies_

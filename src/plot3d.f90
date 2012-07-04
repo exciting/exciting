@@ -254,6 +254,7 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
                   lspl = lsplsymc (isym)
                   s(:,:) = dble(symlatc(:,:,lspl))
                   Call r3mv(s,v2,v3)
+                  !Call r3frac (input%structure%epslat, v3, iv)
                   Do jp = 1, ip
                      t1 = Abs(vpl(1,jp)-v3(1)) + &
                     &     Abs(vpl(2,jp)-v3(2)) + &
@@ -268,6 +269,7 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
 ! add new point to set
                ip = ip+1
                ipmap(i1,i2,i3) = ip
+               !Call r3frac (input%structure%epslat, v1, iv)
                vpl(:,ip) = v1(:)
 10             Continue
             End Do

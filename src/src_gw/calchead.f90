@@ -94,7 +94,7 @@
             if(edsq.gt.1.0d-10)then
               pnm(ie2)=psq/edsq
             else
-              write(6,*)'WARNING(calchead): Degenerated CB and VB'
+              write(fgw,*)'WARNING(calchead): Degenerated CB and VB'
               pnm(ie2)=zzero  
             endif
           enddo ! ie2
@@ -141,7 +141,7 @@
               if(edsq.gt.1.0d-10)then
                 pnm(ie2)=psq/edsq
               else
-                write(6,*)'WARNING(calchead): Degenerated Core and VB!'
+                write(fgw,*)'WARNING(calchead): Degenerated Core and VB!'
                 pnm(ie2)=zzero
               endif
             enddo ! ie2

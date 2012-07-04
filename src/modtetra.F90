@@ -95,11 +95,11 @@ Contains
             Stop
          End If
          If (dx .Gt. 1.d-12) Then
-            Write (*,*)
-            Write (*, '("Warning(modtetra:rtorat): small deviation in f&
+            Write (70,*)
+            Write (70, '("Warning(modtetra:rtorat): small deviation in f&
            &actorization")')
-            Write (*, '(" maximum deviation :",g18.10)') dx
-            Write (*,*)
+            Write (70, '(" maximum deviation :",g18.10)') dx
+            Write (70,*)
          End If
       End Subroutine rtorat
 !EOC
@@ -116,11 +116,11 @@ Contains
     ! check factorization
          If ((sum(Abs(r)) .Lt. eps2) .And. (sum(Abs(r)) .Gt. 0.d0)) &
         & Then
-            Write (*,*)
-            Write (*, '("Warning(modtetra:r3fraction): very small offse&
+            Write (70,*)
+            Write (70, '("Warning(modtetra:r3fraction): very small offse&
            &t:")')
-            Write (*, '(" kgen and related routines might fail")')
-            Write (*,*)
+            Write (70, '(" kgen and related routines might fail")')
+            Write (70,*)
          End If
       End Subroutine r3fraction
 !
@@ -421,13 +421,13 @@ Contains
             tnodes (:, :) = tnodest (:, :)
             wtet (:) = wtett (:)
          Else If (sum(Abs(vpl)) .Gt. eps) Then
-            Write (*,*)
-            Write (*, '("Warning(gentetlink): using WTET and TNODES arr&
+            Write (70,*)
+            Write (70, '("Warning(gentetlink): using WTET and TNODES arr&
            &ays from KGEN routine")')
-            Write (*, '(" but arrays from KQGEN_EXCITING are differring&
+            Write (70, '(" but arrays from KQGEN_EXCITING are differring&
            & for")')
-            Write (*, '(" non-Gamma q-point: ",3g18.10)') vpl
-            Write (*,*)
+            Write (70, '(" non-Gamma q-point: ",3g18.10)') vpl
+            Write (70,*)
          End If
     ! deallocate local arrays
          Deallocate (ivkt, ivqt)

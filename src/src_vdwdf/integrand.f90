@@ -89,7 +89,7 @@ integer :: i
    
    else
    
-       write(*,*) 'WARNING: Unknown vdW-DF version!'
+       write(*,*) 'ERROR(integrand.f90): Unknown vdW-DF version!'
        stop
    
    end if

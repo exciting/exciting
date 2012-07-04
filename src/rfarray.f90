@@ -43,6 +43,7 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
 ! begin loop over all points
       Do ip = 1, np
          v2 (:) = vpl (:, ip)
+         Call r3frac (input%structure%epslat, v2, iv)
 ! convert point to Cartesian coordinates
          Call r3mv (input%structure%crystal%basevect, v2, v1)
 ! check if point is in a muffin-tin

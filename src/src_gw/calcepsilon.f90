@@ -218,7 +218,7 @@ subroutine calcepsilon(iqp)
                 if(abs(edif).gt.1.0d-10)then
                   pm(ie12)=coefw*pmn/edif
                 else
-                  write(6,*)'WARNING(calcwing): Degenerated CB and VB'
+                  write(fgw,*)'WARNING(calcwing): Degenerated CB and VB'
                   pm(ie12)=zzero
                 endif
               enddo ! ie2
@@ -346,7 +346,7 @@ subroutine calcepsilon(iqp)
                   if(abs(edif).gt.1.0d-10)then
                     pm(ie12)=pmn/edif
                   else
-                    write(6,*)'WARNING(calcepsilon): Strange degeneracy of Core and VB'
+                    write(fgw,*)'WARNING(calcepsilon): Strange degeneracy of Core and VB'
                   endif
                 enddo ! ie2
               enddo ! icg

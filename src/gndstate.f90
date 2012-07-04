@@ -97,6 +97,8 @@ Subroutine gndstate
          open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
      ! open PCHARGE.OUT
          open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
+     ! NEW: open WARNINGS.OUT
+         open(70,file='WARNINGS'//trim(filext),action='WRITE',form='FORMATTED')
      ! write out general information to INFO.OUT
          Call writeinfo (60)
 

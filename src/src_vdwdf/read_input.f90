@@ -38,11 +38,13 @@ subroutine read_input()
       xsfgradients=adjustl(xsfgradients)
       i=index(xsfgradients,' ')
       xsfgradients=xsfgradients(1:i)
+  else
+      xsfgradients=''
   end if
   call read_gradients()
   
   write(*,*)
-  write(*,*) '**********************  OUTPUT OF PROGRAM vdWDF.x  **********************' 
+  write(*,*) '**********************  noloco  **********************' 
   write(* ,'(a,a)')     '   vdW-DF kernel file            : ', trim(phifile)
   write(* ,'(a,a)')     '   vdW-DF type                   : ', vdWDF_version
   write(*,'(a,i2,2x,i2,2x,i2)')&
@@ -51,6 +53,8 @@ subroutine read_input()
   write(* ,'(a,D12.3)') '   absolute integration accuracy : ', epsabs
   write(*,*)
   write(* ,'(a,a)')     '   Density file                  : ', trim(xsffile)
-  write(* ,'(a,a)')     '   Density gradients file        : ', trim(xsfgradients)
+  if (LEN_TRIM(xsfgradients)>0) then
+    write(* ,'(a,a)')     '   Density gradients file        : ', trim(xsfgradients)
+  end if
 
 end subroutine read_input
