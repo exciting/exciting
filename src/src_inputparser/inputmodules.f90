@@ -1911,7 +1911,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lradstep")
-getstructgroundstate%lradstep=1
+getstructgroundstate%lradstep=4
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lradstep",getstructgroundstate%lradstep)
        call removeAttribute(thisnode,"lradstep")  

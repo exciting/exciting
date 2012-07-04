@@ -54,8 +54,8 @@ Subroutine charge
          Write (70,*)
          Write (70, '("Warning(charge): total charge density incorrect f&
         &or s.c. loop ", I5)') iscl
-         Write (*, '(" Calculated : ", G18.10)') chgcalc
-         Write (*, '(" Required   : ", G18.10)') chgtot
+         Write (70, '(" Calculated : ", G18.10)') chgcalc
+         Write (70, '(" Required   : ", G18.10)') chgtot
       End If
       Return
 End Subroutine
