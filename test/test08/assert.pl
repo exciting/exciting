@@ -14,8 +14,8 @@ $writer= Test::initreport("report.xml");
 	"rungw/QPENE-eV.OUT",1.0e-5);
  Test::writetestreport({
  		"directory"=>"test08/ ",
- 		"name"=>"GW  Quasy-particle banstructure",
- 		"description"=>"The test is passed if the  Quasy-particle banstructure   differs
+ 		"name"=>"GW quasiparticle banstructure",
+ 		"description"=>"The test is passed if the quasiparticle banstructure differs
  		 less than $tol between runlgw/QPENE-eV.OUT and reference file 
  		 reference/QPENE-eV.OUT difference=".  %statusse->{maxerror},
  		"status"=> %statusse->{status}}, $writer);
