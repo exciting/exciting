@@ -97,8 +97,6 @@ Subroutine gndstate
          open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
      ! open PCHARGE.OUT
          open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
-     ! NEW: open WARNINGS.OUT
-         open(70,file='WARNINGS'//trim(filext),action='WRITE',form='FORMATTED')
      ! write out general information to INFO.OUT
          Call writeinfo (60)
 
@@ -165,6 +163,8 @@ Subroutine gndstate
             If (rank .Eq. 0) Then
                Write (60,*)
                Write (60, '("Reached self-consistent loops maximum")')
+               Write (70,*)
+               Write (70, '("Warning(gndstate): Reached self-consistent loops maximum")')
             End If
             tlast = .True.
          End If
@@ -303,7 +303,7 @@ Subroutine gndstate
                call writepchgs(69,input%groundstate%lmaxvr)
                call flushifc(69)
             end if
- ! symmetrise the density
+        ! symmetrise the density
             Call symrf (input%groundstate%lradstep, rhomt, rhoir)
         ! symmetrise the magnetisation
             If (associated(input%groundstate%spin)) Call symrvf &

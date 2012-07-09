@@ -6,6 +6,10 @@
 Subroutine tasklauncher
       Use modinput
       Implicit None
+      
+! open WARNINGS.OUT
+      open(70,file='WARNINGS.OUT',action='WRITE',form='FORMATTED')
+      
 ! Note that the order of the calls below may be important!
       If (associated(input%groundstate)) &
         call groundstatetasklauncher()
@@ -21,5 +25,8 @@ Subroutine tasklauncher
 
       If (associated(input%gw)) &
         Call gwtasklauncher ()
+
+! close the WARNIGNS.OUT file
+       close(70)
 
 End Subroutine
