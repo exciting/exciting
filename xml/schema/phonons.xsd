@@ -191,7 +191,7 @@
                         corresponding to a particular <inlinemath>{\bf q}</inlinemath>-vector and
                         making small periodic sin- and cos-like displacements of the atoms. The amplitude of this
                         displacement, in cartesian coordinates for each component, is given by <pre>deltaph</pre> (in units of Bohr).
-                        Note that additionally a displacment of <pre>2*deltaph</pre> is done, so in general each atom is displaced four times.</p>
+                        Additionally a displacement of <pre>2*deltaph</pre> is done, so in general each atom is displaced four times.</p>
                         <p><pre>deltaph</pre> should not be made too large, as
                         anharmonic terms could then become significant, neither should it be too
                         small as this can introduce a numerical error.</p> </xs:documentation>
