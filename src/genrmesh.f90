@@ -81,7 +81,7 @@ Subroutine genrmesh
 ! find the inner part of the muffin-tin (where rho is calculated with lmaxinr)
       Do is = 1, nspecies
          t1 = input%groundstate%fracinr * rmt (is)
-         nrmtinr (is) = nrmt (is)
+         nrmtinr (is) = 0
          Do ir = 1, nrmt (is)
             If (spr(ir, is) .Gt. t1) Then
                nrmtinr (is) = ir

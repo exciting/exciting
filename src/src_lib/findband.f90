@@ -186,10 +186,10 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e, tfnd)
          tfnd=.true.
          Return
 40       Continue
-         Write (*,*)
-         Write (*, '("Warning(findband): no energy limits found for l=",i&
+         Write (70,*)
+         Write (70, '("Warning(findband): no energy limits found for l=",i&
         &2)') l
-         Write (*, '("E-bottom ",g18.10,4x,"E-top ",g18.10)') e1, e2
+         Write (70, '("E-bottom ",g18.10,4x,"E-top ",g18.10)') e1, e2
          tfnd=.false.
          return
       Case Default

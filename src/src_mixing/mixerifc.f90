@@ -60,8 +60,8 @@ Subroutine mixerifc (mtype, n, v, dv, mode)
       Case (3)
  ! Pulay mixing
          If (associated(input%groundstate%spin)) Then
-            Write (*,*)
-            Write (*, '("Warning(mixerifc): Pulay mixing problematic wi&
+            Write (70,*)
+            Write (70, '("Warning(mixerifc): Pulay mixing problematic wi&
            &th spin-polarised calculations")')
          End If
          If (mode .Eq.-1) Then
