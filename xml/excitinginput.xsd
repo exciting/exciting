@@ -781,7 +781,7 @@ gw.xsd
             <!--xs:documentation>If present exact exchange calculation is triggered.
               (experimental)</xs:documentation-->
             <xs:documentation>Necessary, if exact exchange calculation is to be performed.
-              (experimental)</xs:documentation>
+              </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="maxitoep" type="xs:integer" default="120">
@@ -793,7 +793,8 @@ gw.xsd
             <xs:attribute ex:importance="expert" ex:unit="" name="tauoep" type="vect3d" default="1.0d0 0.2d0 1.5d0">
               <xs:annotation>
                 <xs:documentation> The optimised effective potential is determined using an
-                  iterative method. [Phys. Rev. Lett. 98, 196405 (2007)]. At the first iteration
+                  iterative method. [<it> Phys. Rev. Lett</it>
+                <bf>98</bf>, 196405 (2007)]. At the first iteration
                   the step length is set to tauoep(1). During subsequent iterations, the step
                   length is scaled by tauoep(2) or tauoep(3), when the residual is increasing or
                   decreasing, respectively. See also <attref>maxitoep</attref>. </xs:documentation>
@@ -2101,7 +2102,7 @@ gw.xsd
           <xs:documentation>Mixing parameter decrease. Used in linear mixing.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="lradstep" type="xs:integer" default="1">
+      <xs:attribute ex:importance="expert" ex:unit="" name="lradstep" type="xs:integer" default="4">
         <xs:annotation>
           <xs:documentation> Some muffin-tin functions (such as the density) are calculated on a
             coarse radial mesh and then interpolated onto a fine mesh. This is done for the sake of
@@ -2142,6 +2143,7 @@ gw.xsd
               <li> EXX, Exact Exchange, <it> Phys. Rev. Lett</it>
                 <bf>95</bf>, 136402 (2005) </li>
             </list>
+		If EXX is chosen, the element <elementref>OEP</elementref> has to be specified.
           </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
