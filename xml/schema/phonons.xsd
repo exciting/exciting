@@ -137,6 +137,7 @@
                         </xs:attribute>
                     </xs:complexType>
                 </xs:element>
+                <xs:element ex:importance="expert" ex:unit="" ref="parts" minOccurs="0" maxOccurs="1"/>
             </xs:all>
             <xs:attribute ex:importance="experimental" ex:unit="" name="phonontype" default="supercell">
                 <xs:annotation>
@@ -160,7 +161,8 @@
                     </xs:appinfo>
                     <xs:documentation> Specify if the phonon calculation is performed (value <pre>fromscratch</pre>)
                         or skipped (value <pre>skip</pre>.) In the latter case the dynamical matrix is read from files produced in a previous
-                        run with the same parameters.</xs:documentation>
+                        run with the same parameters. The value <pre>fromscratch</pre> can also be used to continue an
+                        incomplete calculation.</xs:documentation>
                 </xs:annotation>
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
