@@ -92,7 +92,7 @@ Subroutine mixmsec (iscl, potential, residualnorm, n)
 		!call MSEC2(Y,S,YY,residual,broydenstep,n,noldstepsmax,DMIXM,IFAIL,DELTA)
 !
          If (ifail .Ne. 0) Then
-            Write (*,*) ':WARNING: Inversion of Multi-Secant Matrix Fa&
+            Write (70,*) ':WARNING: Inversion of Multi-Secant Matrix Fa&
            &iled'
 !
             Stop

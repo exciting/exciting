@@ -163,6 +163,8 @@ Subroutine gndstate
             If (rank .Eq. 0) Then
                Write (60,*)
                Write (60, '("Reached self-consistent loops maximum")')
+               Write (70,*)
+               Write (70, '("Warning(gndstate): Reached self-consistent loops maximum")')
             End If
             tlast = .True.
          End If
@@ -301,7 +303,7 @@ Subroutine gndstate
                call writepchgs(69,input%groundstate%lmaxvr)
                call flushifc(69)
             end if
- ! symmetrise the density
+        ! symmetrise the density
             Call symrf (input%groundstate%lradstep, rhomt, rhoir)
         ! symmetrise the magnetisation
             If (associated(input%groundstate%spin)) Call symrvf &

@@ -5,7 +5,7 @@
  
 default: build/make.inc all 
 
-all: serial mpi  smp mpiandsmp  eos spacegroup stateinfo stateconvert species
+all:    serial mpi smp spacegroup stateinfo stateconvert species
 
 build/make.inc:
 	perl ./setup.pl

@@ -76,11 +76,11 @@ Subroutine readstate
       Read (50) version_
       If ((version(1) .Ne. version_(1)) .Or. (version(2) .Ne. &
      & version_(2)) .Or. (version(3) .Ne. version_(3))) Then
-         Write (*,*)
-         Write (*, '("Warning(readstate): different versions")')
-         Write (*, '(" current   : ", I3.3, ".", I3.3, ".", I3.3)') &
+         Write (70,*)
+         Write (70, '("Warning(readstate): different versions")')
+         Write (70, '(" current   : ", I3.3, ".", I3.3, ".", I3.3)') &
         & version
-         Write (*, '(" STATE.OUT : ", I3.3, ".", I3.3, ".", I3.3)') &
+         Write (70, '(" STATE.OUT : ", I3.3, ".", I3.3, ".", I3.3)') &
         & version_
       End If
 ! versions > 10.04.14 (April 14, 2010)
@@ -91,10 +91,10 @@ Subroutine readstate
          githash_ = ''
       End If
       if (githash_ .ne. githash) then
-        write(*,*)
-        write(*,'("Warning(readstate): different version hashes")')
-        Write(*, '(" current   : ", a40)') githash
-        Write(*, '(" STATE.OUT : ", a40)') githash_
+        write(70,*)
+        write(70,'("Warning(readstate): different version hashes")')
+        Write(70, '(" current   : ", a40)') githash
+        Write(70, '(" STATE.OUT : ", a40)') githash_
       end if
       Read (50) spinpol_
       Read (50) nspecies_
@@ -109,19 +109,19 @@ Subroutine readstate
       Read (50) lmmaxvr_
 #ifdef XS
       If (lmmaxvr .Ne. lmmaxvr_) Then
-         Write (*,*)
-         Write (*, '("Warning(readstate): differing lmmaxvr values ")')
-         Write (*, '(" current   : ", I4)') lmmaxvr
-         Write (*, '(" STATE.OUT : ", I4)') lmmaxvr_
+         Write (70,*)
+         Write (70, '("Warning(readstate): differing lmmaxvr values ")')
+         Write (70, '(" current   : ", I4)') lmmaxvr
+         Write (70, '(" STATE.OUT : ", I4)') lmmaxvr_
       End If
 #endif
       Read (50) nrmtmax_
 #ifdef XS
       If (nrmtmax .Ne. nrmtmax_) Then
-         Write (*,*)
-         Write (*, '("Warning(readstate): differing nrmtmax values ")')
-         Write (*, '(" current   : ", I4)') nrmtmax
-         Write (*, '(" STATE.OUT : ", I4)') nrmtmax_
+         Write (70,*)
+         Write (70, '("Warning(readstate): differing nrmtmax values ")')
+         Write (70, '(" current   : ", I4)') nrmtmax
+         Write (70, '(" STATE.OUT : ", I4)') nrmtmax_
       End If
 #endif
       Allocate (spr_(nrmtmax_, nspecies))
@@ -139,11 +139,11 @@ Subroutine readstate
          Read (50) nrmt_ (is)
 #ifdef XS
          If (nrmt(is) .Ne. nrmt_(is)) Then
-            Write (*,*)
-            Write (*, '("Warning(readstate): differing nrmt for species&
+            Write (70,*)
+            Write (70, '("Warning(readstate): differing nrmt for species&
            & ", I4)') is
-            Write (*, '(" current   : ", I4)') nrmt (is)
-            Write (*, '(" STATE.OUT : ", I4)') nrmt_ (is)
+            Write (70, '(" current   : ", I4)') nrmt (is)
+            Write (70, '(" STATE.OUT : ", I4)') nrmt_ (is)
          End If
 #endif
          Read (50) spr_ (1:nrmt_(is), is)
@@ -151,10 +151,10 @@ Subroutine readstate
          If (nrmt(is) .Eq. nrmt_(is)) Then
             If (any(Abs(spr(1:nrmt(is), is)-spr_(1:nrmt(is), is)) > &
            & 1.d-10)) Then
-               Write (*,*)
-               Write (*, '("Warning(readstate): differing spr for speci&
+               Write (70,*)
+               Write (70, '("Warning(readstate): differing spr for speci&
               &es ", I4)') is
-               Write (*, '(" average RMS of difference   : ", G18.10)') &
+               Write (70, '(" average RMS of difference   : ", G18.10)') &
               & Sqrt (sum((spr(1:nrmt(is), is)-spr_(1:nrmt(is), &
               & is))**2)/nrmt(is))
             End If
@@ -164,28 +164,28 @@ Subroutine readstate
       Read (50) ngrid_
 #ifdef XS
       If (any(ngrid .Ne. ngrid_)) Then
-         Write (*,*)
-         Write (*, '("Warning(readstate): differing ngrid values ")')
-         Write (*, '(" current   : ", 3I4)') ngrid
-         Write (*, '(" STATE.OUT : ", 3I4)') ngrid_
+         Write (70,*)
+         Write (70, '("Warning(readstate): differing ngrid values ")')
+         Write (70, '(" current   : ", 3I4)') ngrid
+         Write (70, '(" STATE.OUT : ", 3I4)') ngrid_
       End If
 #endif
       Read (50) ngvec_
 #ifdef XS
       If (ngvec .Ne. ngvec_) Then
-         Write (*,*)
-         Write (*, '("Warning(readstate): differing ngvec values ")')
-         Write (*, '(" current   : ", I9)') ngvec
-         Write (*, '(" STATE.OUT : ", I9)') ngvec_
+         Write (70,*)
+         Write (70, '("Warning(readstate): differing ngvec values ")')
+         Write (70, '(" current   : ", I9)') ngvec
+         Write (70, '(" STATE.OUT : ", I9)') ngvec_
       End If
 #endif
       Read (50) ndmag_
 #ifdef XS
       If (ndmag .Ne. ndmag_) Then
-         Write (*,*)
-         Write (*, '("Warning(readstate): differing ndmag values ")')
-         Write (*, '(" current   : ", I4)') ndmag
-         Write (*, '(" STATE.OUT : ", I4)') ndmag_
+         Write (70,*)
+         Write (70, '("Warning(readstate): differing ndmag values ")')
+         Write (70, '(" current   : ", I4)') ndmag
+         Write (70, '(" STATE.OUT : ", I4)') ndmag_
       End If
 #endif
       If ((spinpol_) .And. (ndmag_ .Ne. 1) .And. (ndmag_ .Ne. 3)) Then

@@ -147,7 +147,7 @@ subroutine genmbrotmat(iq,isym)
           g3(:)=matmul(g2(:),dble(s))-g1(:)+g0(:)
           ig=ivgig(g3(1),g3(2),g3(3))                 ! index of (RG-G'+G_{R}) vector
           if((ig.lt.1).or.(ig.gt.ngrtot)) then
-            write(*,*)'WARNING (getmbrotmat): Wrong ig!'
+            write(fgw,*) 'ERROR(getmbrotmat): Wrong ig!'
             stop 'genmbrotmat'
           end if
           

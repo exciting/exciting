@@ -108,8 +108,8 @@
               enddo ! l1
               bl=bigl(ias,irm)
             elseif(bigl(ias,irm).lt.bl)then
-              write(*,*)'WARNING!!!!'
-              write(*,*)'radial mixed functions not ordered by ', &
+              write(fgw,*)'WARNING!!!!'
+              write(fgw,*)'radial mixed functions not ordered by ', &
      &                  'increasing bl'
               do l1=bigl(ias,irm),bl
                 do ir=1,nrmt(is)
@@ -151,8 +151,8 @@
               enddo ! l1
               bl=bigl(ias,irm)
             elseif(bigl(ias,irm).lt.bl)then
-              write(*,*)'WARNING!!!!'
-              write(*,*)'radial mixed functions not ordered by ', &
+              write(fgw,*)'WARNING!!!!'
+              write(fgw,*)'radial mixed functions not ordered by ', &
              &          'increasind bl'
               do l1=bigl(ias,irm),bl
                 do ir=1,nrmt(is)

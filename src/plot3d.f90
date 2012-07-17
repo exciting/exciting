@@ -13,7 +13,7 @@
 !
 Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
 ! !USES:
-	  use modplotlabels
+      use modplotlabels
       Use modinput
       use mod_muffin_tin
       use mod_atoms
@@ -64,7 +64,7 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
       Real (8), Allocatable :: vpc (:,:)
       Real (8), Allocatable :: wpt (:)
       Real (8), Allocatable :: fp (:, :)
-  !
+!
 !
  If (rank .Eq. 0) Then
       If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
@@ -76,6 +76,7 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
       End If
 !
 ! allocate the grid point arrays
+!
       Allocate (ipmap(0:plotdef%box%grid(1), &
                     & 0:plotdef%box%grid(2), &
                     & 0:plotdef%box%grid(3)))
@@ -83,17 +84,20 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
      & (plotdef%box%grid(1)+1)*(plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
 !
 ! generate the 3d point grid and reduce it using the crystal symmetry
+!
       Call gengrid (plotdef%box%grid, np, ipmap, vpl)
 !      
 ! evaluate the total density at the reduced grid points
+!
       Allocate (fp(np,nf))
       Do i = 1, nf
          Call rfarray (lmax, ld, rfmt(:, :, :, i), rfir(:, i), np, vpl, &
         & fp(:, i))
       End Do
 !
-!write xml
-	  write (buffer,*) plotlabels3d%filename,"3D.XML"
+! write xml
+!
+      write (buffer,*) plotlabels3d%filename,"3D.xml"
       Call xml_OpenFile ( adjustl(trim(buffer)) , xf, replace=.True., pretty_print=.True.)
       Call xml_NewElement (xf, "plot3d")
       Call xml_NewElement (xf, "title")
@@ -223,53 +227,50 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
       Use modmain
       Implicit None
 ! arguments
-      Integer, Intent (In)  :: ngridp (3)
+      Integer, Intent (In)  :: ngridp(3)
       Integer, Intent (Out) :: npt
-      Integer, Intent (Out) :: ipmap (0:ngridp(1), &
-                                    & 0:ngridp(2), 0:ngridp(3))
-      Real (8), Intent (Out) :: vpl (3, (ngridp(1)+1)* &
-                                    & (ngridp(2)+1)*(ngridp(3)+1))
+      Integer, Intent (Out) :: ipmap(0:ngridp(1), &
+                                   & 0:ngridp(2), 0:ngridp(3))
+      Real (8), Intent (Out) :: vpl(3,(ngridp(1)+1)* &
+                                   &  (ngridp(2)+1)*(ngridp(3)+1))
 ! local variables
       Integer :: i1, i2, i3, ip, jp, i
-      Integer :: isym, lspl, iv (3)
-      Real (8) :: v1 (3), v2 (3)
-      Real (8) :: s (3, 3), t1
+      Integer :: isym, lspl, ilspl, iv (3)
+      Real (8) :: v1(3), v2(3), v3(3)
+      Real (8) :: s(3,3), t1
+
 !------------------------------------------------------------------
-      If ((ngridp(1) .Le. 0) .Or. (ngridp(2) .Le. 0) .Or. (ngridp(3) &
-     & .Le. 0)) Then
-         Write (*,*)
-         Write (*, '("Error(genppts): invalid ngridp : ", 3I8)') ngridp
-         Write (*,*)
-         Stop
-      End If
+
       ip = 0
-      Do i3 = 0, ngridp (3)
-         v1 (3) = dble (i3) / dble (ngridp(3))
+      Do i3 = 0, ngridp(3)
+         v1 (3) = dble(i3) / dble(ngridp(3))
          Do i2 = 0, ngridp (2)
-            v1 (2) = dble (i2) / dble (ngridp(2))
-            Do i1 = 0, ngridp (1)
-               v1 (1) = dble (i1) / dble (ngridp(1))
+            v1 (2) = dble(i2) / dble(ngridp(2))
+            Do i1 = 0, ngridp(1)
+               v1 (1) = dble(i1) / dble(ngridp(1))
 ! determine if this point is equivalent to one already in the set
                Do isym = 1, nsymcrys
+                  v2(:) = v2(:)+vtlsymc(:,isym)
                   lspl = lsplsymc (isym)
-                  s (:, :) = dble (symlatc(:, :, lspl))
-                  Call r3mtv (s, v1, v2)
-                  v2 (:) = v2 (:) - vtlsymc(:, isym)
-                  Call r3frac (input%structure%epslat, v2, iv)
+                  s(:,:) = dble(symlatc(:,:,lspl))
+                  Call r3mv(s,v2,v3)
+                  !Call r3frac (input%structure%epslat, v3, iv)
                   Do jp = 1, ip
-                     t1 = Abs (vpl(1, jp)-v2(1)) + Abs (vpl(2, &
-                    & jp)-v2(2)) + Abs (vpl(3, jp)-v2(3))
+                     t1 = Abs(vpl(1,jp)-v3(1)) + &
+                    &     Abs(vpl(2,jp)-v3(2)) + &
+                    &     Abs(vpl(3,jp)-v3(3))
                      If (t1 .Lt. input%structure%epslat) Then
 ! equivalent point found
-                        ipmap (i1, i2, i3) = jp
+                        ipmap(i1,i2,i3) = jp
                         Go To 10
                      End If
                   End Do
                End Do
 ! add new point to set
-               ip = ip + 1
-               ipmap (i1, i2, i3) = ip
-               vpl (:, ip) = v1 (:)
+               ip = ip+1
+               ipmap(i1,i2,i3) = ip
+               !Call r3frac (input%structure%epslat, v1, iv)
+               vpl(:,ip) = v1(:)
 10             Continue
             End Do
          End Do
