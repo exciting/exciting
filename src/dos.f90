@@ -203,6 +203,8 @@ Subroutine dos
       Open (50, File='TDOS.OUT', Action='WRITE', Form='FORMATTED')
       Call xml_NewElement (xf, "dos")
       Call xml_NewElement (xf, "title")
+      Call xml_AddCharacters (xf, trim(input%title))
+      Call xml_endElement (xf, "title")
       Call xml_NewElement (xf, "axis")
       Call xml_AddAttribute (xf, "label", 'Energy')
       Call xml_AddAttribute (xf, "unit", 'Hartree')
@@ -211,8 +213,6 @@ Subroutine dos
       Call xml_AddAttribute (xf, "label", 'DOS')
       Call xml_AddAttribute (xf, "unit", 'states/Hartree/unit cell')
       Call xml_endElement (xf, "axis")
-      Call xml_AddCharacters (xf, trim(input%title))
-      Call xml_endElement (xf, "title")
       Call xml_NewElement (xf, "totaldos")
       Do ispn = 1, nspinor
          Call xml_NewElement (xf, "diagram")

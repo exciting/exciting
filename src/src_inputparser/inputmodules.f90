@@ -2651,7 +2651,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"nsmdos")
-getstructphonondos%nsmdos=0
+getstructphonondos%nsmdos=0 
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nsmdos",getstructphonondos%nsmdos)
        call removeAttribute(thisnode,"nsmdos")  
