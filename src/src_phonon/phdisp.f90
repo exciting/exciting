@@ -21,6 +21,8 @@ Subroutine phdisp
 ! initialise universal variables
       Call init0
       Call init2
+      nvp1d = size(input%phonons%phonondispplot%plot1d%path%pointarray)
+      npp1d = input%phonons%phonondispplot%plot1d%path%steps
       n = 3 * natmtot
       Allocate (wp(n, npp1d))
       Allocate (ev(n, n))
@@ -34,8 +36,6 @@ Subroutine phdisp
 ! Fourier transform the dynamical matrices to real-space
       Call dynqtor (dynq, dynr)
 ! generate a set of q-point vectors along a path in the Brillouin zone
-      nvp1d = size(input%phonons%phonondispplot%plot1d%path%pointarray)
-      npp1d = input%phonons%phonondispplot%plot1d%path%steps
       If (allocated(dvp1d)) deallocate (dvp1d)
       Allocate (dvp1d(nvp1d))
       If (allocated(vplp1d)) deallocate (vplp1d)
