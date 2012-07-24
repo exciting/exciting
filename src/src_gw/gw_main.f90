@@ -74,7 +74,7 @@ subroutine gw_main
       call cpu_time(t(1))
       call initgw
       call cpu_time(t(2))
-      call write_cputime(fgw,t(2)-t(1),'initgw')
+      call write_cputime(fgw,t(2)-t(1),'INITGW')
 
       select case(testid)
 !!

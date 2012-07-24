@@ -8,7 +8,7 @@ Subroutine tasklauncher
       Implicit None
       
 ! open WARNINGS.OUT
-      open(70,file='WARNINGS.OUT',action='WRITE',form='FORMATTED')
+      open(100,file='WARNINGS.OUT',action='WRITE',form='FORMATTED')
       
 ! Note that the order of the calls below may be important!
       If (associated(input%groundstate)) &
@@ -27,6 +27,6 @@ Subroutine tasklauncher
         Call gwtasklauncher ()
 
 ! close the WARNIGNS.OUT file
-       close(70)
+       close(100)
 
 End Subroutine

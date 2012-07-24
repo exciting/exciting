@@ -64,7 +64,8 @@
       do iq=1,nqptnr
         if (kqid(ik,iq).eq.jk) exit
       enddo
-      write(*,*) 'Q-point: iq=', iq, 'vql=', vql(:,iq) 
+      write(*,*) 'Corresponding Q-point: iq=', iq
+      write(*,'(a,3f12.4)') 'vql=', vql(:,iq) 
 !
       call diagsgi(iq)
 !

@@ -128,7 +128,7 @@
       call setlocmixind
 
 !     Calculate the coefficients tildeg needed for the structure constants
-      call calctildeg(2*(lmaxapwmix+1))
+      call calctildeg(2*(input%gw%MixBasis%lmaxmb+1))
       
       close(701)
 

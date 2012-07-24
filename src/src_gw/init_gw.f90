@@ -64,13 +64,13 @@
 
 !     Determine G-vector cutoff parameters
       gkmax=input%groundstate%rgkmax/rmtmin
-      gqmax=kmr*gkmax
+      gqmax=input%gw%MixBasis%gmb*gkmax
       gmaxbarc=min(pwm*gqmax,input%groundstate%gmaxvr)
       
       if(gmaxbarc.gt.input%groundstate%gmaxvr)then
         write(*,*)'WARNING(initgw)! One should increase the value of gmaxvr:'
-        write(*,*) 'gkmax=',gkmax,'    gqmax=',gqmax
-        write(*,*) 'gmaxvr',input%groundstate%gmaxvr,'    gmaxbarc=',gmaxbarc
+        write(*,*) 'gkmax=',gkmax,'    gqmax=', gqmax
+        write(*,*) 'gmaxvr',input%groundstate%gmaxvr,'    gmaxbarc=', gmaxbarc
       end if
       
 !     initialise universal variables
@@ -144,7 +144,8 @@
       end do
 
 !     Calculate the overlap between two PW 
-!     NB: exciting's conjg(cfunig(:)) = ipwint(:)
+!     In exciting there is the same quantity: conjg(cfunig(:)) = ipwint(:)
+!     But beed to be checked!!!
       call intipw
 
       return

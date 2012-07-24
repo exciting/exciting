@@ -233,27 +233,20 @@
 !
       ibgw=input%gw%ibgw
       nbgw=input%gw%nbgw
-      write(fgw,'(a,2i7)') " GW output band range ", ibgw, nbgw
+      write(fgw,'(a,2i7)') "GW output band range ", ibgw, nbgw
+      write(fgw,*)
 !
 !     Read the options for the mixed basis functions
 !
-      if(associated(input%gw%MixBasis)) then
-         kmr = input%gw%MixBasis%kmr
-         lmaxapwmix = input%gw%MixBasis%lmaxapwmix
-         wftol = input%gw%MixBasis%wftol
-      else
-         kmr = 1.0
-         lmaxapwmix = 3
-         wftol = 1.0d-4
-      end if
-      write(fgw,*) 'Mixed basis parameters'
-      write(fgw,*) 'Interstitial: Maximum |G| of ipw in rkmax units'
-      write(fgw,*) kmr
-      write(fgw,*) 'MT-Spheres: Maximum l, Linear dependence tolerance'
-      write(fgw,*) lmaxapwmix, wftol
+      write(fgw,*) 'Mixed basis parameters:'
+      write(fgw,*) '- Interstitial:'
+      write(fgw,*) '  -- maximum |G| of IPW in gmaxvr units (gmb):', input%gw%MixBasis%gmb
+      write(fgw,*) '- MT-Spheres:'
+      write(fgw,*) '  -- l_max (lmaxmb): ', input%gw%MixBasis%lmaxmb
+      write(fgw,*) '  -- linear dependence tolerance (epsmb): ', input%gw%MixBasis%epsmb
       call linmsg(fgw,'-','')
 !
-!     !!! Not yet implemented into input file, use default
+!     !!! Not implemented into input file, use default
 !
 !     set default values
       allocate(mixopt(0:input%groundstate%lmaxapw,nspecies,2))
@@ -274,7 +267,7 @@
         barcevtol=-1.0d-10
       endif 
       write(fgw,*) 'Bare Coulomb parameters:'
-      write(fgw,*) 'Maximum |G| in kmr units:',pwm
+      write(fgw,*) 'Maximum |G| in gmaxvr*gmb units:', pwm
       write(fgw,*) 'Error tolerance for struct. const.:', stctol
       write(fgw,*) 'Tolerance to choose basis functions from bare Coulomb matrix eigenvectors: ', barcevtol
 
@@ -312,12 +305,6 @@
       write(fgw,*)'corflag = ', corflag
 
       call linmsg(fgw,'-','')
-!
-!     Read the energy cut-off for polarization matrix calculation 
-!     when emaxpol is negative, same number of unoccupied bands are used for polmat 
-!     and selfenergy calculations
-!
-      emaxpol=input%gw%emaxpol
       
       !q0_eps=(/1.d0,1.d0,1.d0/)/sqrt(3.0d0)
       q0_eps=input%gw%q0eps

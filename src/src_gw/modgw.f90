@@ -254,10 +254,6 @@ module modgw
 !----------------------------!
 !     mixed basis (MT Spheres)!
 !----------------------------!
-! maximum l of apw's used for the mixbasis
-      integer(4) :: lmaxapwmix
-! nonorthogonality tolerance for radial mixed functions.
-      real(8) :: wftol
 ! Maximum L of the left product functions
       integer(4) :: lleftmax
 ! Selects the role of the wave function when forming the mixed basis:
@@ -308,8 +304,6 @@ module modgw
 !---------------------------------!
 !     mixed basis (Interstitial)  !
 !---------------------------------!
-! maximum G for the mixed basis (in kmax units)
-      real(8) :: kmr
 ! G-vector cut-off for the mixed basis
       real(8) :: gqmax
 !  number of G+q-vectors for the mixed basis
@@ -337,7 +331,7 @@ module modgw
 !----------------------------!
 !     Bare Coulomb matrix !
 !----------------------------!
-! maximum G for the pw expansion of the bare Coulomb potential (in kmax*kmr units)
+! maximum G for the pw expansion of the bare Coulomb potential (in gmaxvr*gmb units)
       real(8) :: pwm
 ! convergence tolerance of the structure constants.
       real(8) :: stctol
@@ -384,10 +378,7 @@ module modgw
 !----------------------------!
 !     Dielectric matrix      !
 !----------------------------!
-! the energy cut-off for polarization matrix calculation
-      real(8) :: emaxpol
-! number of bands for polarization matrix calculation (determined by emaxpol)
-      integer :: nbpol      
+
 ! The dielectric function matrix matrix
       complex(8), allocatable :: epsilon(:,:,:)
 ! The inverse of the dielectric matrix
@@ -458,24 +449,6 @@ module modgw
 !----------------------------!
 ! qp energies
       real(8), allocatable :: eqp(:,:)
-
-!----------------------------!
-!     BZ interpolation       !
-!----------------------------!
-! kind of points to be interpolated. 
-! If sigkp=0, it is the point for bandstructure, 
-! sigkp=1, it is for a dense integration mesh.
-      integer(1) :: sigkp
-! Interpolation method
-! 1- fourier interpolation
-! 2- trilinear interpolation
-      integer(4) :: ipol
-
-!--------------------------------!
-!    Fourier BZ interpolation    !
-!--------------------------------!
-! Maximum length of lattice vectors used.
-      real(8) :: rmax
 
 !---------------------------------------!
 !     Macroscopic dielectric function   !

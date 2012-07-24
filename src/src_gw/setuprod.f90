@@ -55,12 +55,12 @@
 !           Product of core and valence states                         !
 !----------------------------------------------------------------------!
 !     Set the maximum possible number of product functions
-      maxnup=2*(ncmax+lmaxapwmix+nlomax+1)*(lmaxapwmix+nlomax+1)
+      maxnup=2*(ncmax+input%gw%MixBasis%lmaxmb+nlomax+1)*(input%gw%MixBasis%lmaxmb+nlomax+1)
 
       write(701,*) 'ncmax,lmaxapw,nlomax:', ncmax,input%groundstate%lmaxapw,nlomax
       write(701,*) 'ncore:', ncore(1)
       write(701,*) 'nlorb:', nlorb(1)
-      write(701,*) 'lmaxapwmix:', lmaxapwmix
+      write(701,*) 'lmaxmb:', input%gw%MixBasis%lmaxmb
       write(701,*) 'maxnup:', maxnup
 
 !     Allocate the array for the product functions and initialize
@@ -79,7 +79,7 @@
 !         Product of core and apw functions
 !----------------------------------------------------------------------!
           do ist=1,ncore(is)
-            do l2=0,lmaxapwmix
+            do l2=0,input%gw%MixBasis%lmaxmb
               if(mixopt(l2,is,2))then
                 ipr1=ipr1+1
                 eles(ias,ipr1,1)=spl(ist,is)
@@ -111,10 +111,10 @@
 !----------------------------------------------------------------------!
 !         products between valence/conduction states                   !
 !----------------------------------------------------------------------!
-          do l1=0,lmaxapwmix
+          do l1=0,input%gw%MixBasis%lmaxmb
             if(mixopt(l1,is,1))then
               io1=1
-              do l2=l1,lmaxapwmix
+              do l2=l1,input%gw%MixBasis%lmaxmb
                 if(mixopt(l2,is,2))then
                   io2=1
                   ipr1=ipr1+1
@@ -135,7 +135,7 @@
           do ilo1=1,nlorb(is)
             l1=lorbl(ilo1,is)
             if(mixopt(l1,is,1))then
-              do l2=0,lmaxapwmix
+              do l2=0,input%gw%MixBasis%lmaxmb
                 if(mixopt(l2,is,2))then
                   io2=1
                   ipr1=ipr1+1

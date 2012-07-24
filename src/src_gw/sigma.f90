@@ -116,7 +116,7 @@
 !BOC
 
       if(allocated(sgm))deallocate(sgm)
-      allocate(sgm(natmtot,natmtot,(4*(lmaxapwmix+1)+1)*(4*(lmaxapwmix+1)+1)))
+      allocate(sgm(natmtot,natmtot,(4*(input%gw%MixBasis%lmaxmb+1)+1)*(4*(input%gw%MixBasis%lmaxmb+1)+1)))
       sgm=zzero
 !
 !     Lattice sums cutoff parameters

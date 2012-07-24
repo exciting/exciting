@@ -153,30 +153,14 @@ subroutine readevaldft
     endif 
     nbandsgw=nbgw-ibgw+1
     nvelgw=chgval-2.d0*dble(ibgw-1)
-!
-!   set nbpol, the number of bands used for polmat calculations 
-!
-    if(emaxpol.le.0.0d0 )then 
-      nbpol=nstfv
-    else
-      nbpol=0
-      do ik=1,nkpt
-        do ist=1,nstfv
-          if(evaldft(ist,ik).le.emaxpol)then 
-            nbpol=nbpol+1
-          endif 
-        enddo 
-      enddo
-    endif 
 
-    write(fgw,101)'Number of bands (lapw):                        ', nstfv
-    write(fgw,101)'Maximun Number of bands used in polarization:  ', nbpol
+    write(fgw,101)'Number of LAPW states (determined by rgkmax):  ', nmatmax
+    write(fgw,101)'Number of bands used in GW:                    ', nstfv
     write(fgw,101)'Number of gw bands (gw output):                ', nbandsgw
-    write(fgw,*)  'Range of GW bands:                             ', ibgw,nbgw
+    write(fgw,*)  'Range of GW bands:                             ', ibgw, nbgw
     write(fgw,*)  'Number of valence electrons:                   ', int(chgval) 
     write(fgw,*)  'Number of valence electrons included in gw band', int(nvelgw) 
 101 format(a,2i4)
-
 !
 !   Treatment of the symmetry requires averaging over degenerated states.
 !   Array n12dgn contains lower and upper indexes of the degenerated states.

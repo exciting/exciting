@@ -180,7 +180,7 @@
               
               i2=0
               do i1=1,nl(l)
-                if(uol(i1).gt.wftol)i2=i2+1
+                if(uol(i1).gt.input%gw%MixBasis%epsmb)i2=i2+1
               enddo 
               nli=i2
               
@@ -188,7 +188,7 @@
 
 !             transform the umix 
               do i1=1,nl(l)
-                if(uol(i1).gt.wftol)then
+                if(uol(i1).gt.input%gw%MixBasis%epsmb)then
                   j2=j2+1
                   do i2=1,nl(l)
                     do ir=1,nrmt(is)

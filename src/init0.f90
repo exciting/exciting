@@ -190,8 +190,8 @@ Subroutine init0
          ncmag = .False.
       End If
       If ((ncmag) .And. (xcgrad .Gt. 0)) Then
-         Write (70,*)
-         Write (70, '("Warning(init0): GGA inconsistent with non-colline&
+         Write (100,*)
+         Write (100, '("Warning(init0): GGA inconsistent with non-colline&
         &ar magnetism")')
       End If
 ! set fixed spin moment effective field to zero

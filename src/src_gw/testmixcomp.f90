@@ -19,7 +19,8 @@
       
       implicit none
       
-      integer(4) :: ik, jk, iq     
+      integer(4) :: ik, jk, iq
+      integer(4) :: ikp, jkp
       integer(4) :: ib1, ib2
       integer(4) :: ml,ngr
 
@@ -41,9 +42,26 @@
 !BOC
 
 !------------------------------------------------------------------------
+      call boxmsg(6,'-','TESTMIXCOMP')
 
       ik=input%gw%iik
       jk=input%gw%jjk
+      
+      ikp=indkp(ik)
+      jkp=indkp(jk)
+      
+      write(*,*) 'Parameters:'
+      write(*,*) 'first k-point number (iik): ', ik
+      write(*,*) 'second k-point number (jjk): ', jk
+      write(*,*) 'corresponding first irreducible k-point number (ikp): ', ikp
+      write(*,*) 'corresponding second irreducible k-point number (jkp): ', jkp
+      write(*,*) 'lower bound for band number (ibmin): ', input%gw%ibmin
+      write(*,*) 'upper bound for band number (ibmax): ', input%gw%ibmax
+      write(*,*) 'lower bound for band number (ibmin2): ', input%gw%ibmin2
+      write(*,*) 'upper bound for band number (ibmax2): ', input%gw%ibmax2
+      write(*,*)
+
+!------------------------------------------------------------------------
       
   71  format('intevppat-',i4,'-',i4,'.out')
       write(fnat,71) ik, jk
@@ -89,22 +107,20 @@
         if (kqid(ik,iq).eq.jk) exit
       enddo  
 
-      open(98,file='TESTMIXCOMP.OUT',action='write')
-
       call cpu_time(tt(1))
       call diagsgi(iq)
       call cpu_time(tt(2))
-      write(98,101)tt(2)-tt(1)
+      call write_cputime(fgw,tt(2)-tt(1),'DIAGSGI')
 
       call cpu_time(tt(1))
       call calcmpwipw(iq)
       call cpu_time(tt(2))
-      write(98,102)tt(2)-tt(1)
+      call write_cputime(fgw,tt(2)-tt(1),'CALCMPIPW')
 
       call cpu_time(tt(1))
       call eptest(ik,jk,iq)
       call cpu_time(tt(2))
-      write(98,103)tt(2)-tt(1)
+      call write_cputime(fgw,tt(2)-tt(1),'EPTEST') 
       
 ! ----------------------------------------------------------
       ml=input%groundstate%lmaxapw
@@ -118,7 +134,7 @@
         enddo  
       enddo  
       call cpu_time(tt(2))
-      write(98,104)tt(2)-tt(1)
+      call write_cputime(fgw,tt(2)-tt(1),'INTEVECPP')
 
       rewind(71)
       rewind(72)
@@ -132,7 +148,7 @@
         enddo  
       enddo  
       call cpu_time(tt(2))
-      write(98,105)tt(2)-tt(1)
+      call write_cputime(fgw,tt(2)-tt(1),'INTEVECPM')
 
       close(71)
       close(72)
@@ -140,13 +156,7 @@
       close(74)
       close(75)
       close(76)
-  101 format(' diagsgi    -->',f14.5,' seconds')
-  102 format(' calcmpwipw -->',f14.5,' seconds')
-  103 format(' eptest     -->',f14.5,' seconds')
-  104 format(' integral prods -->',f14.5,' seconds')
-  105 format(' integral mix   -->',f14.5,' seconds')
+
       return
-      
       end subroutine testmixcomp
-            
 !EOC

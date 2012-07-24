@@ -223,7 +223,7 @@
 !EOP
 !BOC
 !
-      gmax=10*kmr*gkmax
+      gmax=10*input%gw%MixBasis%gmb*gkmax
       ng1=idint(gmax*pia(1))+1
       ng2=idint(gmax*pia(2))+1
       ng3=idint(gmax*pia(3))+1

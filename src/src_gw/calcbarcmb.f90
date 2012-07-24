@@ -141,7 +141,7 @@
 !     Calculate the matrix sigma for the structure constants
 !
       call cpu_time(t1)
-      call sigma(iq,4*(lmaxapwmix+1))
+      call sigma(iq,4*(input%gw%MixBasis%lmaxmb+1))
       call cpu_time(t2)
       call write_cputime(fgw,t2-t1,'    SIGMA')
 

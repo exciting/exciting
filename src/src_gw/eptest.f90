@@ -60,7 +60,7 @@
 !          
 !     calculate the matrix elements $M^i_{nm}(\vec{k},\vec{q})$:
 !
-      call calcminm(ik,iq)
+      call calcminm(ik,iq,0)
 !
       deallocate(eveck)
       deallocate(eveckp)

@@ -40,9 +40,7 @@ subroutine init_freq
 !
 !EOP
 !BOC
-      write(fgw,*)'-----------------------------------------------------'
-      write(fgw,*)'                frequency grid'
-      write(fgw,*)'-----------------------------------------------------'
+      call boxmsg(fgw,'-','Frequency grid')
       if(wflag.eq.3)then
         n=nomeg/2
         nomeg=n*2
@@ -102,8 +100,9 @@ subroutine init_freq
           do i=1,nomeg
             write(fgw,104)i,freqs(i),womeg(i)
           enddo
-          write(fgw,*)'-----------------------------------------------------'
       end if
+      
+      call linmsg(fgw,'-','')
 
   101 format(' wflag=',i2,a)
   102 format(2x,a)

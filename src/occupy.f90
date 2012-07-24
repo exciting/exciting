@@ -54,10 +54,10 @@ Subroutine occupy
          End Do
       End Do
       If (e0-mine0 .lt. -de0) Then
-         Write (70,*)
-         Write (70, '("Warning(occupy): smallest valence eigenvalue less than&
+         Write (100,*)
+         Write (100, '("Warning(occupy): smallest valence eigenvalue less than&
          &minimum linearization energy : ",2g18.10)') e0, mine0
-         write(70,'("for s.c. loop ", i5)') iscl
+         write(100,'("for s.c. loop ", i5)') iscl
       End If
 
 !#ifdef TETRAOCC_DOESNTWORK
@@ -100,8 +100,8 @@ Subroutine occupy
                  & (input%groundstate%stypenumber, x) * t1
             End Do
             If (occsv(nstsv, ik) .Gt. input%groundstate%epsocc) Then
-               Write (70,*)
-               Write (70, '("Warning(occupy): not enough empty states fo&
+               Write (100,*)
+               Write (100, '("Warning(occupy): not enough empty states fo&
               &r k-point ", I6)') ik
             End If
          End Do

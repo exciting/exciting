@@ -606,16 +606,16 @@ subroutine checkinput
   end if
   if (associated(input%xs)) then
     if (input%xs%broad.le.0.d0) then
-      write(70,*)
-      write(70,'("Warning(checkinput): /input/xs/@broad <= 0 : ",g18.10)') input%xs%broad
-      write(70,*)
+      write(*,*)
+      write(*,'("Warning(checkinput): /input/xs/@broad <= 0 : ",g18.10)') input%xs%broad
+      write(*,*)
     end if
   end if
   if (associated(input%xs)) then
     if (input%xs%epsdfde.le.0.d0) then
-      write(70,*)
-      write(70,'("Warning(checkinput): /input/xs/@epsdfde <= 0 : ",g18.10)') input%xs%epsdfde
-      write(70,*)
+      write(*,*)
+      write(*,'("Warning(checkinput): /input/xs/@epsdfde <= 0 : ",g18.10)') input%xs%epsdfde
+      write(*,*)
     end if
   end if
   if (associated(input%xs)) then

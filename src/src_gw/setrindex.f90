@@ -41,7 +41,7 @@
 
 ! !DESCRIPTION:
 !
-!Sets the indexes of the real space lattice vectors used for  Fourier interpolation 
+! Sets the indexes of the real space lattice vectors used for  Fourier interpolation 
 ! ordered by increasing length
 !
 ! !USES:

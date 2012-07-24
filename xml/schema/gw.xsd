@@ -16,17 +16,6 @@
         <xs:complexType>
           <xs:all>
 
-            <xs:element ex:importance="expert" ex:unit="" name="interp" maxOccurs="1" minOccurs="0">
-              <xs:annotation>
-                <xs:documentation>Task Band: interpolation parameters.</xs:documentation>
-              </xs:annotation>
-              <xs:complexType>
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="interp" default="fouri"> </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="rmax" default="20.0d0"> </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="efermi2" default="0.0d0"> </xs:attribute>
-              </xs:complexType>
-            </xs:element>
-
             <xs:element ex:importance="expert" ex:unit="" name="freqgrid" maxOccurs="1" minOccurs="0">
               <xs:annotation>
                 <xs:documentation>
@@ -72,9 +61,9 @@
                  </xs:documentation>
               </xs:annotation>
               <xs:complexType>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="kmr" default="1.0"> </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="lmaxapwmix" default="3"> </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wftol" default="1.0d-4"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="lmaxmb" default="3"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="epsmb" default="1.0d-4"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="gmb" default="1.0"> </xs:attribute>
               </xs:complexType>
             </xs:element>
                           
@@ -82,7 +71,7 @@
               <xs:annotation>
                 <xs:documentation>
                     Parameters for the bare coulomb potential:
-                      pwm - Maximum G for the pw basis (in kmax*kmr units)
+                      pwm - Maximum G for the pw basis (in gmaxvr*gmb units)
                       stctol - Convergence tolerance of the struct. const.
                       barcevtol - Tolerance to choose basis functions from bare Coulomb matrix eigenvectors.
                 </xs:documentation>
@@ -126,25 +115,25 @@
           
           <xs:attribute ex:importance="expert" ex:unit="" name="iik" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>First k-point number</xs:documentation>
+              <xs:documentation>Lower bound for the k-point number</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="jjk" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>Second k-point number</xs:documentation>
+              <xs:documentation>>Upper bound for the k-point number</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="igmin" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>First G-vector number</xs:documentation>
+              <xs:documentation>Lower bound for the G-vector number</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="igmax" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>Second G-vector number</xs:documentation>
+              <xs:documentation>Upper bound for the G-vector number</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
@@ -193,15 +182,6 @@
           <xs:attribute ex:importance="expert" ex:unit="" name="nbgw" type="xs:integer" use="optional" default="1">
             <xs:annotation>
               <xs:documentation>Upper band index for GW output.</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          
-          <xs:attribute ex:importance="expert" ex:unit="Hartree" name="emaxpol" type="fortrandouble" use="optional" default="-1.0d0">
-            <xs:annotation>
-              <xs:documentation>
-                  The energy cut-off for polarization matrix calculation.
-                  When emaxpol is negative, same number of unoccupied bands are used for polmat and selfenergy calculations.
-              </xs:documentation>
             </xs:annotation>
           </xs:attribute>
           

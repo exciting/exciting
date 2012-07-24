@@ -245,7 +245,7 @@ Subroutine init2
 !---------------------!
 ! warning for small gqmax
       If (input%xs%gqmax .Ge. gkmax) Then
-         Write (70, '(a, 2g18.10)') 'Warning(init2/xs): input%xs%gqmax >&
+         Write (*, '(a, 2g18.10)') 'Warning(init2/xs): input%xs%gqmax >&
         &= gkmax: ', input%xs%gqmax, gkmax
       End If
 ! check consistency with FFT G-vector array

@@ -163,8 +163,8 @@ Subroutine gndstate
             If (rank .Eq. 0) Then
                Write (60,*)
                Write (60, '("Reached self-consistent loops maximum")')
-               Write (70,*)
-               Write (70, '("Warning(gndstate): Reached self-consistent loops maximum")')
+               Write (100,*)
+               Write (100, '("Warning(gndstate): Reached self-consistent loops maximum")')
             End If
             tlast = .True.
          End If

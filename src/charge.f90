@@ -51,11 +51,11 @@ Subroutine charge
       chgcalc = chgmttot + chgir
       t1 = chgtot / chgcalc
       If (Abs(t1-1.d0) .Gt. input%groundstate%epschg) Then
-         Write (70,*)
-         Write (70, '("Warning(charge): total charge density incorrect f&
+         Write (100,*)
+         Write (100, '("Warning(charge): total charge density incorrect f&
         &or s.c. loop ", I5)') iscl
-         Write (70, '(" Calculated : ", G18.10)') chgcalc
-         Write (70, '(" Required   : ", G18.10)') chgtot
+         Write (100, '(" Calculated : ", G18.10)') chgcalc
+         Write (100, '(" Required   : ", G18.10)') chgtot
       End If
       Return
 End Subroutine

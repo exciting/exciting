@@ -3,7 +3,7 @@
 ! !ROUTINE: intevecpp
 !
 ! !INTERFACE:
-      subroutine intevecpp(ikp,jkp,ib1,ib2)
+      subroutine intevecpp(ik,jk,ib1,ib2)
 
 ! !DESCRIPTION:
 !
@@ -20,9 +20,9 @@
 
       implicit none
 
-      integer(4), intent(in) :: ikp ! The k-point for which the (L)APW+lo
+      integer(4), intent(in) :: ik  ! The k-point for which the (L)APW+lo
                                     ! function is ploted
-      integer(4), intent(in) :: jkp ! The k-point for which the (L)APW+lo
+      integer(4), intent(in) :: jk  ! The k-point for which the (L)APW+lo
                                     ! function is ploted
       integer(4), intent(in) :: ib1 ! The band index of the function
       integer(4), intent(in) :: ib2 ! The band index of the function
@@ -93,28 +93,28 @@
           ias=idxas(ia,is)
 
 !----------------------------------------------------------------------------!
-!         calculate wavefunction ( ikp, ib1 )
+!         calculate wavefunction ( ik, ib1 )
 !----------------------------------------------------------------------------!
-          call getevecfv(vklnr(:,ikp),vgklnr(:,:,:,ikp),evecfv)
-          zzk(1:ngknr(1,ikp),1:nstfv)=evecfv(1:ngknr(1,ikp),1:nstfv,1)
+          call getevecfv(vklnr(:,ik),vgklnr(:,:,:,ik),evecfv)
+          zzk(1:ngknr(1,ik),1:nstfv)=evecfv(1:ngknr(1,ik),1:nstfv,1)
 
-          call match(ngknr(1,ikp),gkcnr(:,1,ikp),tpgkcnr(:,:,1,ikp), &
-         &  sfacgknr(:,:,1,ikp),apwalm(:,:,:,:,1))
+          call match(ngknr(1,ik),gkcnr(:,1,ik),tpgkcnr(:,:,1,ik), &
+         &  sfacgknr(:,:,1,ik),apwalm(:,:,:,:,1))
 
           call wavefmt(input%groundstate%lradstep,input%groundstate%lmaxapw, &
-         &  is,ia,ngknr(1,ikp),apwalm,evecfv(:,ib1,1),lmmaxapw,evecmtlm1)
+         &  is,ia,ngknr(1,ik),apwalm,evecfv(:,ib1,1),lmmaxapw,evecmtlm1)
 
 !----------------------------------------------------------------------------!
 !         calculate wavefunction( jkp, ib2 )
 !----------------------------------------------------------------------------!
-          call getevecfv(vklnr(:,jkp),vgklnr(:,:,:,jkp),evecfv)
-          zzq(1:ngknr(1,jkp),1:nstfv)=evecfv(1:ngknr(1,jkp),1:nstfv,1)
+          call getevecfv(vklnr(:,jk),vgklnr(:,:,:,jk),evecfv)
+          zzq(1:ngknr(1,jk),1:nstfv)=evecfv(1:ngknr(1,jk),1:nstfv,1)
           
-          call match(ngknr(1,jkp),gkcnr(:,1,jkp),tpgkcnr(:,:,1,jkp), &
-         &  sfacgknr(:,:,1,jkp),apwalm(:,:,:,:,1))
+          call match(ngknr(1,jk),gkcnr(:,1,jk),tpgkcnr(:,:,1,jk), &
+         &  sfacgknr(:,:,1,jk),apwalm(:,:,:,:,1))
 
           call wavefmt(input%groundstate%lradstep,input%groundstate%lmaxapw, &
-         &  is,ia,ngknr(1,jkp),apwalm,evecfv(:,ib2,1),lmmaxapw,evecmtlm2)
+         &  is,ia,ngknr(1,jk),apwalm,evecfv(:,ib2,1),lmmaxapw,evecmtlm2)
 
 !----------------------------------------------------------------------------!
 !         calculate the product |wfmt(ikp,ib1)*conjg(wfmt(jkp,ib2))|^2
@@ -162,22 +162,26 @@
 !     Interstitial region
 !-----------------------------
       do iq=1,nqptnr
-        if (kqid(ikp,iq).eq.jkp) exit
-      enddo  
+        if (kqid(ik,iq).eq.jk) exit
+      enddo
 
       cepii=zzero
-      do ik1=1,ngknr(1,ikp)
-        do ik2=1,ngknr(1,jkp)
+      do ik1=1,ngknr(1,ik)
+        do ik2=1,ngknr(1,jk)
           fac1=zzk(ik1,ib1)*conjg(zzq(ik2,ib2))
-          do ik3=1,ngknr(1,ikp)
+          do ik3=1,ngknr(1,ik)
             fac2=fac1*conjg(zzk(ik3,ib1))
-            do ik4=1,ngknr(1,jkp)
-              igv(1:3)=ivg(1:3,igkig(ik1,1,ikp))- &
-             &         ivg(1:3,igkig(ik2,1,jkp))- &
-             &         ivg(1:3,igkig(ik3,1,ikp))+ &
-             &         ivg(1:3,igkig(ik4,1,jkp))
-              ig=ivgig(igv(1),igv(2),igv(3))
-              cepii=cepii+fac2*zzq(ik4,ib2)*ipwint(ig)
+            do ik4=1,ngknr(1,jk)
+              igv(1:3)=ivg(1:3,igkignr(ik1,1,ik))- &
+             &         ivg(1:3,igkignr(ik2,1,jk))- &
+             &         ivg(1:3,igkignr(ik3,1,ik))+ &
+             &         ivg(1:3,igkignr(ik4,1,jk))
+              if((igv(1).ge.intgv(1,1)).and.(igv(1).le.intgv(1,2)).and.       &
+             &   (igv(2).ge.intgv(2,1)).and.(igv(2).le.intgv(2,2)).and.       &
+             &   (igv(3).ge.intgv(3,1)).and.(igv(3).le.intgv(3,2)))        then
+                  ig=ivgig(igv(1),igv(2),igv(3))
+                  cepii=cepii+fac2*zzq(ik4,ib2)*ipwint(ig)
+              end if
             enddo
           enddo        
         enddo

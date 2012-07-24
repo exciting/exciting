@@ -61,12 +61,12 @@ Subroutine linengy
                          & spr(:, is), vr, input%groundstate%deband, input%groundstate%epsband, &
                          & apwe(io1, l, ias),tfnd)
                         if (.not.tfnd) then
-                          write(70,*)
-                          write(70,'("Warning(linengy): linearisation energy not found")')
-                          write(70,'(" for species ",I4," and atom ",I4)') is, ia
-                          write(70,'(" APW angular momentum ",I4)') l
-                          write(70,'(" order ",I4)') io1
-                          write(70,'(" and s.c. loop ",I5)') iscl
+                          write(100,*)
+                          write(100,'("Warning(linengy): linearisation energy not found")')
+                          write(100,'(" for species ",I4," and atom ",I4)') is, ia
+                          write(100,'(" APW angular momentum ",I4)') l
+                          write(100,'(" order ",I4)') io1
+                          write(100,'(" and s.c. loop ",I5)') iscl
                         end if
                      else
                        if (input%groundstate%fermilinengy) &
@@ -100,12 +100,12 @@ Subroutine linengy
                          & spr(:, is), vr, input%groundstate%deband, input%groundstate%epsband, &
                          & lorbe(io1, ilo, ias),tfnd)
                         if (.not.tfnd) then
-                          write(70,*)
-                          write(70,'("Warning(linengy): linearisation energy not found")')
-                          write(70,'(" for species ",I4," and atom ",I4)') is, ia
-                          write(70,'(" local-orbital ",I4)') ilo
-                          write(70,'(" order ",I4)') io1
-                          write(70,'(" and s.c. loop",I5)') iscl
+                          write(100,*)
+                          write(100,'("Warning(linengy): linearisation energy not found")')
+                          write(100,'(" for species ",I4," and atom ",I4)') is, ia
+                          write(100,'(" local-orbital ",I4)') ilo
+                          write(100,'(" order ",I4)') io1
+                          write(100,'(" and s.c. loop",I5)') iscl
                         end if
                      else
                        if (input%groundstate%fermilinengy) &
