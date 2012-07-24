@@ -36,7 +36,7 @@ Subroutine writeinfo (fnum)
 #endif
       Character (10) :: dat, tim
       Write (fnum, '("+-----------------------------------------------------------+")')
-      Write (fnum, '("| EXCITING helium    (",I2.2,".",I2.2,".",I2.2,") started                     |")') version
+      Write (fnum, '("| EXCITING Lithium    (",I2.2,".",I2.2,".",I2.2,") started                     |")') version
       Write (fnum, '("| version hash id: ",a," |")') githash
 #ifdef MPI
       Write (fnum, '("| MPI version using ",i6," processor(s)                     |")') procs
