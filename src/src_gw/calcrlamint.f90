@@ -85,14 +85,14 @@
       allocate(fr(nrmtmax),gr(nrmtmax),cf(3,nrmtmax))      
 
       do is=1,nspecies
-        write(701,100)is,trim(spname(is))
+        if(debug)write(701,100)is,trim(spname(is))
         do ia=1,natoms(is)
           ias=idxas(ia,is)
 !-----------------------------------------------------------------
 !                      Calculate rtl
 !----------------------------------------------------------------- 
-          write(701,*)
-          write(701,101)
+          if(debug)write(701,*)
+          if(debug)write(701,101)
           rrtol(1:nrmt(is))=spr(1:nrmt(is),is)
           bl=0
           ijrm=0
@@ -128,7 +128,7 @@
             else
               rtl(ias,irm)=gr(nrmt(is))
             endif
-            write(701,102)irm,rtl(ias,irm)
+            if(debug)write(701,102)irm,rtl(ias,irm)
           enddo ! irm
 
 
@@ -138,7 +138,7 @@
           rrtol(1:nrmt(is))=spr(1:nrmt(is),is)
           bl=0
           ijrm=0
-          write(701,20)
+          if(debug)write(701,20)
           do irm=1,nmix(ias)
 !
 !           if bl has changed, calculate r^(bl+1) for each grid point 
@@ -169,8 +169,8 @@
             ijrm=irm+(irm*(irm-1))/2
             call drinteg(is,rxov)
             rrint(ias,ijrm)=rxov
-            write(701,21)irm,irm,bigl(ias,irm),bigl(ias,irm), &
-           &             rrint(ias,ijrm)
+            if(debug)write(701,21)irm,irm,bigl(ias,irm),bigl(ias,irm), &
+           &                      rrint(ias,ijrm)
 !          
 !           now loop over jrm for the double integrals
 !
@@ -183,8 +183,8 @@
                 rxov=0.0d0
               endif
               rrint(ias,ijrm)=rxov
-              write(701,21)irm,jrm,bigl(ias,irm),bigl(ias,jrm),      &
-             &             rrint(ias,ijrm)
+              if(debug)write(701,21)irm,jrm,bigl(ias,irm),bigl(ias,jrm),      &
+             &                      rrint(ias,ijrm)
 
             enddo ! jrm
           enddo ! irm

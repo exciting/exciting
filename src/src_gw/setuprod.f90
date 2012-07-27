@@ -57,11 +57,13 @@
 !     Set the maximum possible number of product functions
       maxnup=2*(ncmax+input%gw%MixBasis%lmaxmb+nlomax+1)*(input%gw%MixBasis%lmaxmb+nlomax+1)
 
-      write(701,*) 'ncmax,lmaxapw,nlomax:', ncmax,input%groundstate%lmaxapw,nlomax
-      write(701,*) 'ncore:', ncore(1)
-      write(701,*) 'nlorb:', nlorb(1)
-      write(701,*) 'lmaxmb:', input%gw%MixBasis%lmaxmb
-      write(701,*) 'maxnup:', maxnup
+      if(debug)then
+        write(701,*) 'ncmax,lmaxapw,nlomax:', ncmax,input%groundstate%lmaxapw,nlomax
+        write(701,*) 'ncore:', ncore(1)
+        write(701,*) 'nlorb:', nlorb(1)
+        write(701,*) 'lmaxmb:', input%gw%MixBasis%lmaxmb
+        write(701,*) 'maxnup:', maxnup
+      end if
 
 !     Allocate the array for the product functions and initialize
       allocate(uprod(natmtot,maxnup,nrmtmax))
@@ -173,7 +175,7 @@
 
 !         reset nup to the exact number of product functions
           nup(ias)=ipr1
-          write(701,*) "setuprod: # of uprod for atom",ias,nup(ias)
+          if(debug)write(701,*) "setuprod: # of uprod for atom",ias,nup(ias)
 
         enddo ! ia
       enddo !is
@@ -197,22 +199,23 @@
           enddo ! ipr1
         enddo ! ia
       enddo !is
-      
-! DEBUG
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
-          write(701,*) 
-          write(701,*) "###umat for Atom ", ias
-          do ipr1=1,nup(ias)
-            do ipr2=ipr1,nup(ias)
-                write(701,'(2i4,f20.6)') ipr1,ipr2,umat(ias,ipr1,ipr2)
+!      
+      if(debug)then
+        do is=1,nspecies
+          do ia=1,natoms(is)
+            ias=idxas(ia,is)
+            write(701,*) 
+            write(701,*) "###umat for Atom ", ias
+            do ipr1=1,nup(ias)
+              do ipr2=ipr1,nup(ias)
+                  write(701,'(2i4,f20.6)') ipr1,ipr2,umat(ias,ipr1,ipr2)
 
-            enddo ! ipr2
-          enddo ! ipr1
-          write(701,*)        
-        enddo ! ia            
-      enddo !is
+              enddo ! ipr2
+            enddo ! ipr1
+            write(701,*)        
+          enddo ! ia            
+        enddo !is
+      end if
       
       return
       end subroutine setuprod

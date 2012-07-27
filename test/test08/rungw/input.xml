@@ -1,9 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<input xsi:noNamespaceSchemaLocation="/scratch/din/CODES/exciting/xml/excitinginput.xsd"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="/scratch/din/CODES/exciting/xml"
-  scratchpath="/tmp">
-  <title>Ar dimer</title>
-  <structure speciespath="../../../species" autormt="false">
+<input>
+  <title>Si crystal</title>
+  <structure speciespath="/home1/dnabok/CODES/EXCITING/exciting/species" autormt="false">
     <crystal>
       <basevect>5.13 5.13 0.00</basevect>
       <basevect>5.13 0.00 5.13</basevect>
@@ -11,70 +8,28 @@
     </crystal>
     <species speciesfile="Si_LAPW.xml" rmt="2.1">
       <atom coord="0.00 0.00 0.00"></atom>
-      <atom coord="0.75 0.75 0.75"></atom>
+      <atom coord="0.25 0.25 0.25"></atom>
     </species>
   </structure>
   <groundstate
     do="fromscratch"
-    nwrite="10"
-    mixer="msec"
-    maxscl="100"
     rgkmax="7.0"
-    gmaxvr="14"
+    gmaxvr="12"
     ngridk="2 2 2"
     xctype="LSDAPerdew-Wang"
     tetra="true"
-    reducek="true"
-    nempty="17"
-    lradstep="4"
+    nempty="50"
     >
   </groundstate>
-  <!--properties>
-    <bandstructure character="false">
-      <plot1d>
-        <path steps="100">
-          <point coord=" 0.750   0.500   0.250" label="W" />
-          <point coord=" 0.500   0.500   0.500" label="L" />
-          <point coord=" 0.000   0.000   0.000" label="GAMMA" />
-          <point coord=" 0.500   0.500   0.000" label="X" />
-          <point coord=" 0.750   0.500   0.250" label="W" />
-          <point coord=" 0.750   0.375   0.375" label="K" />
-        </path>
-      </plot1d>
-    </bandstructure>
-  </properties-->
   <gw
     taskname="gw"
-    iik="2"
-    jjk="3"
-    igmin="1"
-    igmax="1"
-    ibmin="4"
-    ibmax="4"
-    ibmin2="10"
-    ibmax2="10"
-    at1="1"
-    at2="2"
-    corflag="all"
-    rpmat="false"
-    reps="false"
     ibgw="1"
     nbgw="15"
-    reduceq="true"
     >
     <mixbasis
-      wftol="1.0d-4"
-      kmr="1.0"
-      lmaxapwmix="3">
-    </mixbasis>
-    <barecoul
-      pwm="2"
-      stctol="1.0d-10">
-    </barecoul>
-    <selfenergy
-      npol="2"
-      iopes="0"
-      iopac="1">
-    </selfenergy>
+      lmaxmb="3"
+      epsmb="1.0d-4"
+      gmb="1.0"
+    ></mixbasis>
   </gw>
 </input>

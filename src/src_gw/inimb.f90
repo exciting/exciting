@@ -54,7 +54,7 @@
 !      
 !EOP
 !BOC
-      open(701,file='MIXEDBASIS.OUT',action='WRITE',status='UNKNOWN',form='FORMATTED')
+      if(debug)open(701,file='MIXEDBASIS.OUT',action='WRITE',status='UNKNOWN',form='FORMATTED')
 
 !     Generate the core wavefunctions and densities
       call gencore
@@ -85,7 +85,6 @@
              do ir=1,nrmt(is)
                 rwfcr(ir,1,ist,ias)=norm*rwfcr(ir,1,ist,ias)/spr(ir,is)
              end do
-             !if((ist==2).or.(ist==3))rwfcr(:,1,ist,ias)=(-1.d0)*rwfcr(:,1,ist,ias)
           enddo ! ist
         end do
       end do
@@ -120,7 +119,7 @@
           locmatsiz=locmatsiz+lms
         enddo ! ia
       enddo ! ias
-      write(701,101) lmixmax, locmatsiz
+      if(debug)write(701,101) lmixmax, locmatsiz
 
 !     The maximum size of MB basis
       matsizmax=locmatsiz+ngqmax   
@@ -130,7 +129,7 @@
 !     Calculate the coefficients tildeg needed for the structure constants
       call calctildeg(2*(input%gw%MixBasis%lmaxmb+1))
       
-      close(701)
+      if(debug)close(701)
 
       return
   101 format(' Max. nr. of MT-sphere wavefunctions per atom ',i6,/,      &

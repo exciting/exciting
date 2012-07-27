@@ -41,9 +41,6 @@
       real(8), allocatable :: cwparsurf(:,:,:)   ! weight between the two bands
       
       real(8) :: tstart,tend
-            
-      logical :: lprt=.true.
-
 !
 !EOP
 !BOC
@@ -175,7 +172,7 @@
 !-------------------------
 !     DEBUG INFORMATION
 !-------------------------
-      if(lprt)then
+      if(debug)then
          if(iq==1)open(74,file='QDEPW.OUT')
          write(74,*)'------------------------------------------------------'
          write(74,*)'       convolution weights for iq =',iq
@@ -205,7 +202,7 @@
              enddo
            enddo
          enddo
-         if(iq==nqptnr)close(74)
+         if(iq==nqpt)close(74)
     1    format(' iat =',i4,' ic =',i4,' ik =',i4,' jb =',i4,' unw =',g18.10)
     2    format(' ik =',i4,' ib =',i4,' jb =',i4,' kcw =',g18.10)
       end if

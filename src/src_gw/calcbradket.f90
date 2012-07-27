@@ -83,7 +83,7 @@
       do is=1,nspecies
         do ia=1,natoms(is)
           ias=idxas(ia,is)
-          write(701,100)ias,trim(spname(is))
+          if(debug)write(701,100)ias,trim(spname(is))
 !         Loop over radial mixed functions
           do irm=1,nmix(ias)
 !---------------------------------------------------------------------------!
@@ -100,17 +100,17 @@
                 l2=spl(ist2,is)
 !               Check the triangular rule for L, l1 and l2
                 if((iabs(l1-l2).le.bigl(ias,irm)).and.              &
-     &             (l1+l2.ge.bigl(ias,irm)))then
+               &   (l1+l2.ge.bigl(ias,irm)))then
                   do ir=1,nrmt(is)
                     fr(ir)=umix(ias,irm,ir)*rwfcr(ir,1,ist1,ias)*   &
-     &                     rwfcr(ir,1,ist2,ias)*spr(ir,is)
+                 &         rwfcr(ir,1,ist2,ias)*spr(ir,is)
                   enddo ! ir
 !                 Calculate the integral:
                   call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
                   bradketc(ias,irm,ist1,ist2,io2,1)=gr(nrmt(is))
-                  write(701,1)irm,bigl(ias,irm),l1,ftype(1),utype(io1), &
-    &                        l2,ftype(1),utype(io2),                      &
-    &                        bradketc(ias,irm,ist1,ist2,io2,1)
+                  if(debug)write(701,1)irm,bigl(ias,irm),l1,ftype(1),utype(io1), &
+                 &                     l2,ftype(1),utype(io2),                      &
+                 &                     bradketc(ias,irm,ist1,ist2,io2,1)
                 endif
               enddo ! ist2
 !
@@ -128,9 +128,9 @@
 !                   Calculate the integral:
                     call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
                     bradketc(ias,irm,ist1,l2,io2,2)=gr(nrmt(is))
-                    write(701,1)irm,bigl(ias,irm),l1,ftype(1),      &
-                   &           utype(io1),l2,ftype(2),utype(io2),   &
-                   &           bradketc(ias,irm,ist1,l2,io2,2)
+                    if(debug)write(701,1)irm,bigl(ias,irm),l1,ftype(1),      &
+                   &                     utype(io1),l2,ftype(2),utype(io2),   &
+                   &                     bradketc(ias,irm,ist1,l2,io2,2)
                   enddo ! io2
                 endif
               enddo ! l2
@@ -149,9 +149,9 @@
   !                   Calculate the integral:
                       call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
                       bradketc(ias,irm,ist1,ilo2,io2,3)=gr(nrmt(is))
-                      write(701,1)irm,bigl(ias,irm),l1,ftype(1),utype(io1),&
-                     &            l2,ftype(3),utype(io2),                  &
-                     &            bradketc(ias,irm,ist1,ilo2,io2,3)
+                      if(debug)write(701,1)irm,bigl(ias,irm),l1,ftype(1),utype(io1),&
+                     &                     l2,ftype(3),utype(io2),                  &
+                     &                     bradketc(ias,irm,ist1,ilo2,io2,3)
                     end do ! io2
                 endif
               enddo ! ilo2
@@ -180,9 +180,9 @@
 !                   Calculate the integral:
                     call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
                     bradketa(ias,irm,l1,io1,ist2,io2,1)=gr(nrmt(is))
-                    write(701,1)irm,bigl(ias,irm),l1,ftype(2),        &
-                   &           utype(io1),l2,ftype(1),utype(io2),     &
-                   &           bradketa(ias,irm,l1,io1,ist2,io2,1)
+                    if(debug)write(701,1)irm,bigl(ias,irm),l1,ftype(2),        &
+                   &                     utype(io1),l2,ftype(1),utype(io2),     &
+                   &                     bradketa(ias,irm,l1,io1,ist2,io2,1)
                   endif
                 enddo ! ist2
 !
@@ -200,9 +200,9 @@
 !                     Calculate the integral:
                       call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
                       bradketa(ias,irm,l1,io1,l2,io2,2)=gr(nrmt(is))
-                      write(701,1)irm,bigl(ias,irm),l1,ftype(2),         &
-                     &           utype(io1),l2,ftype(2),utype(io2),     &
-                     &           bradketa(ias,irm,l1,io1,l2,io2,2)
+                      if(debug)write(701,1)irm,bigl(ias,irm),l1,ftype(2),         &
+                     &                     utype(io1),l2,ftype(2),utype(io2),     &
+                     &                     bradketa(ias,irm,l1,io1,l2,io2,2)
                     enddo ! io2
                   endif
                 enddo ! l2
@@ -221,9 +221,9 @@
 !                      Calculate the integral:
                        call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
                        bradketa(ias,irm,l1,io1,ilo2,io2,3)=gr(nrmt(is))
-                       write(701,1)irm,bigl(ias,irm),l1,ftype(2),         &
-                      &           utype(io1),l2,ftype(3),utype(io2),      &
-                      &           bradketa(ias,irm,l1,io1,ilo2,io2,3)
+                       if(debug)write(701,1)irm,bigl(ias,irm),l1,ftype(2),         &
+                      &                     utype(io1),l2,ftype(3),utype(io2),      &
+                      &                     bradketa(ias,irm,l1,io1,ilo2,io2,3)
                    end do !io2
                   endif
                 enddo ! ilo2
@@ -252,9 +252,9 @@
 !                    Calculate the integral:
                      call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
                      bradketlo(ias,irm,ilo1,ist2,io2,1)=gr(nrmt(is))
-                     write(701,1)irm,bigl(ias,irm),l1,ftype(3),           &
-                    &           utype(io1),l2,ftype(1),utype(io2),       &
-                    &           bradketlo(ias,irm,ilo1,ist2,io2,1)
+                     if(debug)write(701,1)irm,bigl(ias,irm),l1,ftype(3),           &
+                    &                     utype(io1),l2,ftype(1),utype(io2),       &
+                    &                     bradketlo(ias,irm,ilo1,ist2,io2,1)
                    endif
                  enddo ! ist2
 !
@@ -263,20 +263,20 @@
                  do l2=0,input%groundstate%lmaxapw
 !                  Check the triangular rule for L,l1 and l2
                    if((iabs(l1-l2).le.bigl(ias,irm)).and.                  &
-     &                (l1+l2.ge.bigl(ias,irm)))then
+                  &   (l1+l2.ge.bigl(ias,irm)))then
                      do io2=1,apword(l2,is)
                        lini2=ncore(is)+(io2-1)*input%groundstate%lmaxapw+1
                        ll2=lini2+l2
                        do ir=1,nrmt(is)
                          fr(ir)=umix(ias,irm,ir)*lofr(ir,1,ilo1,ias)*      &
-     &                          apwfr(ir,1,io2,l2,ias)*spr(ir,is)
+                      &         apwfr(ir,1,io2,l2,ias)*spr(ir,is)
                        enddo ! ir
 !                      Calculate the integral:
                        call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
                        bradketlo(ias,irm,ilo1,l2,io2,2)=gr(nrmt(is))
-                       write(701,1)irm,bigl(ias,irm),l1,ftype(3),           &
-    &                             utype(io1),l2,ftype(2),utype(io2),       &
-    &                             bradketlo(ias,irm,ilo1,l2,io2,2)
+                       if(debug)write(701,1)irm,bigl(ias,irm),l1,ftype(3),           &
+                      &                     utype(io1),l2,ftype(2),utype(io2),       &
+                      &                     bradketlo(ias,irm,ilo1,l2,io2,2)
                      enddo ! io2
                    endif
                  enddo ! l2
@@ -287,18 +287,18 @@
                    l2=lorbl(ilo2,is)
                    ll2=ncore(is)+(input%groundstate%lmaxapw+1)*apwordmax+ilo2
                    if((iabs(l1-l2).le.bigl(ias,irm)).and.                  &
-     &                (l1+l2.ge.bigl(ias,irm)))then
+                  &   (l1+l2.ge.bigl(ias,irm)))then
                       do io2=1,lorbord(ilo2,is)
                         do ir=1,nrmt(is)
                           fr(ir)=umix(ias,irm,ir)*lofr(ir,1,ilo1,ias)*        &
-     &                           lofr(ir,1,ilo2,ias)*spr(ir,is)
+                       &         lofr(ir,1,ilo2,ias)*spr(ir,is)
                         enddo ! ir
 !                       Calculate the integral:
                         call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
                         bradketlo(ias,irm,ilo1,ilo2,io2,3)=gr(nrmt(is))
-                        write(701,1)irm,bigl(ias,irm),l1,ftype(3),             &
-    &                              utype(io1),l2,ftype(3),utype(io2),         &
-    &                              bradketlo(ias,irm,ilo1,ilo2,io2,3)
+                        if(debug)write(701,1)irm,bigl(ias,irm),l1,ftype(3),             &
+                       &                     utype(io1),l2,ftype(3),utype(io2),         &
+                       &                     bradketlo(ias,irm,ilo1,ilo2,io2,3)
                       end do !io2
                    endif
                  enddo ! ilo2 

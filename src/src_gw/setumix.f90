@@ -106,7 +106,7 @@
 !     total number of orbitals
 !
       do is=1,nspecies
-        write(701,100)spname(is)
+        if(debug)write(701,100)spname(is)
         
         do ia=1,natoms(is)
           ias=idxas(ia,is)
@@ -164,10 +164,12 @@
                 endif
               enddo ! i1
               
-              write(701,*) "###uml for L=", l
-              do k=1,nl(l)
-                write(701,'(100f16.8)') uml(1:nl(l),k)
-              enddo 
+              if(debug)then
+                write(701,*) "###uml for L=", l
+                do k=1,nl(l)
+                  write(701,'(100f16.8)') uml(1:nl(l),k)
+                enddo
+              end if
               
 !             diagonalize the L-block overlap matrix
 
@@ -184,7 +186,7 @@
               enddo 
               nli=i2
               
-              write(701,101) l,nl(l),nli
+              if(debug)write(701,101) l,nl(l),nli
 
 !             transform the umix 
               do i1=1,nl(l)
@@ -210,9 +212,11 @@
               enddo ! i1
             
 !             write the mixed wave functions to disk          
-              do ir=1,nrmt(is)
-                write(701,*)spr(ir,is),(umix(ias,i1,ir)/spr(ir,is),i1=nor+1,nor+nli)
-              enddo
+              if(debug)then
+                do ir=1,nrmt(is)
+                  write(701,*)spr(ir,is),(umix(ias,i1,ir)/spr(ir,is),i1=nor+1,nor+nli)
+                enddo
+              end if
               
               nor=nor+nli
               nl(l)=nli
@@ -228,7 +232,7 @@
 !
             else if (nl(l).eq.1) then
               
-              write(701,101) l,nl(l)
+              if(debug)write(701,101) l,nl(l)
               
               do i1=1,nup(ias)
                 lammax=eles(ias,i1,1)+eles(ias,i1,2)
@@ -246,10 +250,12 @@
               nor=nor+1
              
 !             write the wave function to disk
-              write(701,*)  
-              do ir=1,nrmt(is)
-                write(701,11)spr(ir,is),umix(ias,j2,ir)/spr(ir,is)
-              enddo
+              if(debug)then
+                write(701,*)  
+                do ir=1,nrmt(is)
+                  write(701,11)spr(ir,is),umix(ias,j2,ir)/spr(ir,is)
+                enddo
+              end if
               
             endif
           enddo ! l
@@ -258,15 +264,17 @@
           if(nmix(ias).gt.maxnmix) maxnmix=nmix(ias)
           mbl(ias)=maxval(bigl(ias,:))
           if(mbl(ias).gt.maxbigl) maxbigl=mbl(ias)
-          write(701,102) nmix(ias), mbl(ias)
-          write(701,103)
-
-          nwf=0
-          do i=1,nor
-            write(701,104)i,bigl(ias,i),2*bigl(ias,i)+1
-            nwf=nwf+2*bigl(ias,i)+1
-          enddo
-          write(701,105) nwf
+          
+          if(debug)then
+            write(701,102) nmix(ias), mbl(ias)
+            write(701,103)
+            nwf=0
+            do i=1,nor
+              write(701,104)i,bigl(ias,i),2*bigl(ias,i)+1
+              nwf=nwf+2*bigl(ias,i)+1
+            enddo
+            write(701,105) nwf
+          end if
 
         enddo ! ia
       enddo ! is
