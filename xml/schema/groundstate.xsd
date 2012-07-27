@@ -1494,10 +1494,10 @@
       <xs:attribute ex:importance="essential" ex:unit="" name="mixer" default="msec">
         <xs:annotation>
           <xs:documentation>
-          Select the mixing (relaxation) scheme for the SCF loop. One has the folloeing options:
-        <p/>    
-   <bf>Linear mixer</bf> (<pre>"lin"</pre>)
-   <p/>
+          Select the mixing (relaxation) scheme for the SCF loop. One has the following options:
+         <p/>
+        <bf>Linear mixer</bf> (<pre>"lin"</pre>):
+        <p/>
    Given the input  <inlinemath>\mu^i</inlinemath> and output   <inlinemath>\nu^i</inlinemath> 
    vectors of the <inlinemath>i</inlinemath>th
   iteration,  the next input vector to the
@@ -1508,14 +1508,13 @@
    where <inlinemath>\beta^i_j</inlinemath> is set to <inlinemath>\beta_0</inlinemath> at initialisation and increased by
    scaling with <inlinemath>\beta_{\rm inc}</inlinemath> (<inlinemath>&gt;1</inlinemath>) if <inlinemath>f^i_j\equiv\nu^i_j-\mu^i_j</inlinemath> does
    not change sign between loops. If <inlinemath>f^i_j</inlinemath> does change sign, then <inlinemath>\beta^i_j</inlinemath>
-   is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>&gt;1</inlinemath>). Note that the array {\tt nu} serves
-   for both input and output, and the arrays {\tt mu}, {\tt beta} and {\tt f}
-   are used internally and should not be changed between calls. The routine is
-   initialised at the first iteration and is thread-safe so long as each thread
-   has its own independent work array. Complex arrays may be passed as real
-   arrays with <inlinemath>n</inlinemath> doubled.
-
-          
+   is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>&gt;1</inlinemath>).
+          <p/> 
+          <bf>Multisecant Broyden potential mixing</bf> (<pre>"msec"</pre>)
+          <p/>
+          <bf>Pulay mixing</bf> (<pre>"pulay"</pre>):
+          <p/>
+          Pulay's mixing scheme which uses direct inversion in the iterative subspace (DIIS). See <it>Chem. Phys. Lett.</it> <bf>73</bf>, 393 (1980).
           </xs:documentation>
           <xs:appinfo>
             <oldname>mixtype</oldname>
