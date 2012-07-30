@@ -22,8 +22,9 @@
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
               <xs:annotation>
-                <xs:documentation> The intraband attribute is <pre>"true"</pre> if the intraband
-                  term is to be added to the optical matrix (q=0). </xs:documentation>
+                <xs:documentation> By setting it to <pre>"true"</pre>, the intraband
+                  contribution is included in the calculation for the finite q. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="torddf" type="xs:boolean"
