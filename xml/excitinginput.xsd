@@ -2696,7 +2696,12 @@ gw.xsd
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos" default="500"> </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="100"> </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0" type="xs:integer"> </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0" type="xs:integer"> 
+              <xs:annotation>
+                <xs:documentation>This attribute indicates the type of smearing for the resulting DOS. In particular, the value 0 means no smearing at all, 1 that a three nearest point averaging is performed, 2 that two such consecutive averagings are done, etc. 
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="winddos" default="-0.5d0 0.5d0" type="vect2d">
               <xs:annotation>
                 <xs:documentation>Frequency/energy window for the DOS or optics
