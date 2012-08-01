@@ -29,7 +29,7 @@
       open(92,file='SELFX.OUT',action='WRITE',form='FORMATTED')
       write(92,*)'# band       selfex [eV]'
       do ikp = 1, nkpt
-        write(92,1) vkl(1:3,ikp),ikp,ibgw,nbgw
+        write(92,1) vkl(1:3,ikp), ikp, ibgw, nbgw
         do ie = ibgw, nbgw
           write(92,2) ie, real(selfex(ie,ikp))*hev, aimag(selfex(ie,ikp))*hev
         enddo

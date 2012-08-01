@@ -16,8 +16,8 @@
        
 ! !LOCAL VARIABLES:
       
-      integer(4) :: ie,i !(Counter) Runs over bands
-      integer(4) :: ikp  !(Counter) Runs over k-points
+      integer(4) :: ie,i     !(Counter) Runs over bands
+      integer(4) :: ikp, ik  !(Counter) Runs over k-points
       real(8)    :: kvec(3)
       real(8)    :: sxr, sxi
       integer(4) :: ib, nb
@@ -31,10 +31,17 @@
       open(92,file='SELFX.OUT',action='READ',form='FORMATTED')
       read(92,*)
       do ikp = 1, nkpt
-        read(92,*) kvec, ib, nb
+        read(92,*) kvec, ik, ib, nb
+        if(ik.ne.ikp)then
+          write(6,*)'ERROR(readselfx): Inconsistent input parameters'
+          write(6,*)'ik=',ik,'ikp=',ikp
+          stop
+        end if
         if ((ib.ne.ibgw).or.(nb.ne.nbgw)) then
           write(6,*)'ERROR(readselfx): Inconsistent input parameters'
+          write(6,*)'ib=',ib,'nb=',nb
           write(6,*)'ibgw=',ibgw,'nbgw=',nbgw
+          stop
         end if
         do ie = ibgw, nbgw
           read(92,*) i, sxr, sxi

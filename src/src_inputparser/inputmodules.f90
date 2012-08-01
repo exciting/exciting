@@ -700,6 +700,7 @@ type gw_type
  real(8)::q0eps(3)
  logical::reduceq
  character(512)::bzconv
+ logical::debug
   type(freqgrid_type),pointer::freqgrid
   type(selfenergy_type),pointer::selfenergy
   type(mixbasis_type),pointer::mixbasis
@@ -5065,6 +5066,14 @@ getstructgw%bzconv= "tetra"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"bzconv",getstructgw%bzconv)
        call removeAttribute(thisnode,"bzconv")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"debug")
+getstructgw%debug= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"debug",getstructgw%debug)
+       call removeAttribute(thisnode,"debug")  
 endif
 
             len= countChildEmentsWithName(thisnode,"freqgrid")

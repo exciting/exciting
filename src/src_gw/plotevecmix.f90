@@ -152,11 +152,11 @@
       endif  
       rdlen=sqrt(rd(1)*rd(1)+rd(2)*rd(2)+rd(3)*rd(3))
 
-      write(72,'(a)')'# plotevecmix: atposl,rd,rlen'
-      write(72,'(a,3f12.4)')'# atposl 1:', atposl(:,ia1,is1)
-      write(72,'(a,3f12.4)')'# atposl 1:', atposl(:,ia2,is2)
-      write(72,'(a,f12.4)')'# rd:', rd
-      write(72,'(a,f12.4)')'# rdlen:', rdlen
+      write(*,'(a)')'# plotevecmix: atposl,rd,rlen'
+      write(*,'(a,3f12.4)')'# atposl 1:', atposl(:,ia1,is1)
+      write(*,'(a,3f12.4)')'# atposl 1:', atposl(:,ia2,is2)
+      write(*,'(a,3f12.4)')'# rd:', rd
+      write(*,'(a,f12.4)')'# rdlen:', rdlen
 
       ias1=idxas(ia1,is1)
       ias2=idxas(ia2,is2)

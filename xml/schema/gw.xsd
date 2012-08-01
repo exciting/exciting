@@ -249,6 +249,15 @@
             </xs:annotation>
           </xs:attribute>
           
+          <xs:attribute ex:importance="expert" ex:unit="" name="debug" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation>
+	          Print debugging information.
+	      </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          
         </xs:complexType>
     </xs:element>
 </xs:schema>
