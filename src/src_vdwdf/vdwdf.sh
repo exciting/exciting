@@ -7,7 +7,7 @@
 #====================================================
 #
 # This script shows how to calculate the vdW-DF total 
-# energy using the EXCITING-helium code
+# energy using the EXCITING code
 #
 #====================================================
 
