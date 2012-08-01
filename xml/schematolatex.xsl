@@ -60,7 +60,7 @@
 \Large
 \vfill
 \ \\
-July 2012
+August 2012
 \end{center}
 \end{titlepage}
 

@@ -1506,9 +1506,9 @@
    vector is mixed with a fraction of the same component of the input vector:
    <displaymath>\mu^{i+1}_j=\beta^i_j\nu^i_j+(1-\beta^i_j)\mu^i_j, </displaymath>
    where <inlinemath>\beta^i_j</inlinemath> is set to <inlinemath>\beta_0</inlinemath> at initialisation and increased by
-   scaling with <inlinemath>\beta_{\rm inc}</inlinemath> (<inlinemath>&gt;1</inlinemath>) if <inlinemath>f^i_j\equiv\nu^i_j-\mu^i_j</inlinemath> does
+   scaling with <inlinemath>\beta_{\rm inc}</inlinemath> (<inlinemath>>1</inlinemath>) if <inlinemath>f^i_j\equiv\nu^i_j-\mu^i_j</inlinemath> does
    not change sign between loops. If <inlinemath>f^i_j</inlinemath> does change sign, then <inlinemath>\beta^i_j</inlinemath>
-   is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>&gt;1</inlinemath>).
+   is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>>1</inlinemath>).
           <p/> 
           <bf>Multisecant Broyden potential mixing</bf> (<pre>"msec"</pre>)
           <p/>

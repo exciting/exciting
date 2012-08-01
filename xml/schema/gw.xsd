@@ -121,7 +121,7 @@
           
           <xs:attribute ex:importance="expert" ex:unit="" name="jjk" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>>Upper bound for the k-point number</xs:documentation>
+              <xs:documentation>Upper bound for the k-point number</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
@@ -225,7 +225,7 @@
           <xs:attribute ex:importance="expert" ex:unit="" name="q0eps" type="vect3d" default="0.577350269d0 0.577350269d0 0.577350269d0">
             <xs:annotation>
               <xs:documentation>
-                  q0eps - the direction q --> 0
+                  q0eps - the direction q <inlinemath>\to</inlinemath> 0.
                   Default: (1/sqrt(3),1/sqrt(3),1/sqrt(3))
               </xs:documentation>
             </xs:annotation>
