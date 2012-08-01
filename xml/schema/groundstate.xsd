@@ -229,8 +229,8 @@
               default="1.0d0 0.2d0 1.5d0">
               <xs:annotation>
                 <xs:documentation> The optimised effective potential is determined using an
-                  iterative method. [<it> Phys. Rev. Lett</it>
-                <bf>98</bf>, 196405 (2007)]. At the first iteration
+                  iterative method. <it>Phys. Rev. Lett.</it>
+                <bf>98</bf>, 196405 (2007). At the first iteration
                   the step length is set to tauoep(1). During subsequent iterations, the step
                   length is scaled by tauoep(2) or tauoep(3), when the residual is increasing or
                   decreasing, respectively. See also <attref>maxitoep</attref>. </xs:documentation>
@@ -1586,7 +1586,7 @@
         <xs:annotation>
           <xs:documentation> Type of exchange-correlation functional to be used <list>
               <li> No exchange-correlation funtional ( <inlinemath>E_{\rm xc}\equiv 0</inlinemath> ) </li>
-              <li> LDA, Perdew-Zunger/Ceperley-Alder, <it> Phys. Rev. B</it>
+              <li> LDA, Perdew-Zunger/Ceperley-Alder, <it>Phys. Rev. B</it>
                 <bf>23</bf>, 5048 (1981) </li>
               <li> LSDA, Perdew-Wang/Ceperley-Alder, <it>Phys. Rev. B</it>
                 <bf>45</bf>, 13244 (1992) </li>
@@ -1596,14 +1596,14 @@
                 <bf>5</bf>, 1629 (1972) </li>
               <li> GGA, Perdew-Burke-Ernzerhof, <it>Phys. Rev. Lett.</it>
                 <bf>77</bf>, 3865 (1996) </li>
-              <li> GGA, Revised PBE, Zhang-Yang, <it> Phys. Rev. Lett.</it>
+              <li> GGA, Revised PBE, Zhang-Yang, <it>Phys. Rev. Lett.</it>
                 <bf>80</bf>, 890 (1998) </li>
               <li> GGA, PBEsol, arXiv:0707.2088v1 (2007) </li>
               <li> GGA, Wu-Cohen exchange (WC06) with PBE correlation, <it>Phys. Rev. B</it>
                 <bf>73</bf>, 235116 (2006) </li>
-              <li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it> Phys. Rev. B</it>
+              <li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it>Phys. Rev. B</it>
                 <bf>72</bf>, 085108 (2005) </li>
-              <li> EXX, Exact Exchange, <it> Phys. Rev. Lett</it>
+              <li> EXX, Exact Exchange, <it>Phys. Rev. Lett.</it>
                 <bf>95</bf>, 136402 (2005) </li>
             </list>
 		If EXX is chosen, the element <elementref>OEP</elementref> has to be specified.
