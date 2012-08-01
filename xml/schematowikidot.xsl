@@ -497,9 +497,9 @@
     <xsl:text> [[/cell]][[/row]]</xsl:text>
     <xsl:if test="$contentnode/@default">
       <xsl:text>
-[[row]] [[cell]] **Default:** [[/cell]][[cell]] "{{</xsl:text>
+[[row]] [[cell]] **Default:** [[/cell]][[cell]] {{"</xsl:text>
       <xsl:value-of select="$contentnode/@default"/>
-      <xsl:text>}}" [[/cell]][[/row]]
+      <xsl:text>"}} [[/cell]][[/row]]
  </xsl:text>
     </xsl:if>
     <xsl:if test="$contentnode/@use or local-name($contentnode)='attribute'">

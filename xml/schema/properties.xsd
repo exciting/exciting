@@ -107,7 +107,7 @@
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos" default="500"> </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="100"> </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0"> </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0" type="xs:integer"> </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="winddos"
               default="-0.5d0 0.5d0" type="vect2d">
               <xs:annotation>

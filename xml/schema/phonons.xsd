@@ -62,7 +62,7 @@
                               </xs:documentation>
                            </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0 " type="xs:integer" >
+                        <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0" type="xs:integer" >
                         <xs:annotation>
                               <xs:documentation>
                               Number of 3-point averaging runs to smoothen the DOS. One run corresponds to setting the DOS value for
