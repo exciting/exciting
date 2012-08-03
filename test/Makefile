@@ -2,9 +2,9 @@ include ../build/make.inc
 
 
 ifeq ($(TestMPI),true)
-TESTDIRS =test02 test03 test04 test05 test07 test08 testmpi
+TESTDIRS =test02 test03 test04 test05 test07 test08 test09  testmpi
 else
-TESTDIRS =test02 test03 test04 test05 test07 test08
+TESTDIRS =test02 test03 test04 test05 test07 test08 test09
 endif	
 
 test: 
@@ -54,7 +54,12 @@ test07:: test07a test07b
 
 test08::exciting  
 	cd test08/rungw && ../../../build/debug/exciting
-	cd test08 && perl assert.pl  
+	cd test08 && perl assert.pl 
+	 
+test09::
+	cd test09 && bash validate.sh
+	cd test09 && perl assert.pl  
+
 
 
 testmpi::
