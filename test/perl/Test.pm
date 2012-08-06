@@ -11,9 +11,10 @@ sub assert_file_same_within {
 	$tol=$_[2];
 	@numbers1=[];
 	@numbers2=[];
-	@error=0;
-	open FILE1,$file1;
-	open FILE2, $file2;
+	$error=[];
+	open FILE1,$file1 or die "cannot open :$file1 $!";
+	open FILE2, $file2 or die "cannot open :$file2 $!";
+
 	while(<FILE1>)
 	{
 		$linefile1=$_;
