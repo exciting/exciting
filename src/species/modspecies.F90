@@ -5,7 +5,7 @@
 
 module   modspecies
 
-character(*), parameter :: version='0.9.224'
+character(*), parameter :: version='Lithium'
 integer, parameter :: maxapword=4
 character(256) :: bname,str,apwdescr,apwtype,suffix,inspecies
 integer :: apword,apwdm(maxapword),nlorbsc

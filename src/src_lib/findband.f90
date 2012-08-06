@@ -49,7 +49,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e, tfnd)
       Integer, Parameter :: maxstp = 1000
       Character * 4, Parameter :: emain = 'continue'
       Real (8), Parameter :: etoolow = - 1000.d0
-      Real (8), Parameter :: ecutlow = - 30.d0
+      Real (8), Parameter :: ecutlow = - 100.d0
       Real (8), Parameter :: efermibands = 0.5d0
       Real (8), Parameter :: erangebands = 2.d0
       Real (8), Parameter :: ediffusebands = efermibands + erangebands

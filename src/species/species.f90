@@ -269,6 +269,14 @@ if ((.not.locorb).and.locorbsc) nlorb=nlorbsc
 ! case for only small lo's
 if (locorb.and.(.not.locorbsc)) nlorb=maxl+1
 
+!---------------------------------
+! Generate only species.xml files
+!---------------------------------
+call writexmlspecies()
+! read another element from file
+goto 10
+
+
 ! open the atomic data file
 open(50,file=trim(spsymb)//trim(suffix)//'.in',action='WRITE',form='FORMATTED')
 write(50,'(" ''",A,"''",T45,": spsymb")') trim(spsymb)
@@ -350,7 +358,5 @@ write(50,'("# Exciting code version : ",a)') version
 write(50,'("# Description of method : ",a)') trim(apwdescr)
 
 close(50)
- call writexmlspecies()
-! read another element from file
-goto 10
+
 end program

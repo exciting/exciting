@@ -4,8 +4,9 @@
     <muffinTin rmin="0.100000E-05" radius="1.4500" rinf="32.5113" radialmeshPoints="300"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="false"/>
-    <basis order="1">
+    <basis order="2">
       <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
+      <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
       <exception l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
       </exception>
@@ -21,8 +22,8 @@
       <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
       <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
     </lorb>
-    <!-- Exciting code version : 0.9.224-->
+    <!-- Exciting code version : Lithium-->
     <!-- Description of method:-->
-    <!-- APW+lo (default) -->
+    <!-- APW+lo/LAPW basis set -->
   </sp>
 </spdb>
