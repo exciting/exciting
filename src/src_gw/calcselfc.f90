@@ -147,7 +147,7 @@
 
       call cpu_time(tcore)
 
-      if(wcore)then      
+      if(iopcore.eq.0)then      
 
         dimtk=nbandsgw*ncg
         allocate(mmat(mbsiz,dimtk))
@@ -199,14 +199,14 @@
         enddo ! iom
         deallocate(mwm)
 
-      endif ! wcore
+      endif ! core
       
 !----------------------------------------
 !     Sum up the contributions
 !----------------------------------------
 
       write(96,*)'-------- CALCSELFC -------------, ikp = ', ikp, '    iqp = ', iqp
-      if(wcore)then
+      if(iopcore.eq.0)then
         write(96,*)'# omega      core        valence        selfec'
         do ie1 = ibgw, nbgw
           write(96,*)'band nr. = ', ie1

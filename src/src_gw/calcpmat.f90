@@ -40,7 +40,7 @@ subroutine calcpmat
       
 !   allocate the momentum matrix array
     allocate(pmat(3,nstfv,nstfv))
-    if(wcore)then
+    if(iopcore.eq.0)then
       allocate(pmatc(3,ncg,nstfv))
     end if
 
@@ -48,7 +48,7 @@ subroutine calcpmat
     recl=16*(3*nstsv*nstsv)
     open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
      status='REPLACE',recl=recl)
-    if(wcore)then 
+    if(iopcore.eq.0)then 
       recl2=16*(3*ncg*nstsv)
       open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
        status='REPLACE',recl=recl2)
@@ -70,14 +70,14 @@ subroutine calcpmat
       write(50,rec=ik) pmat
 
 !     core-valence contribution      
-      if(wcore)then
+      if(iopcore.eq.0)then
         call genpmatcor(ik,ngk(1,ik),apwalmt,evecfvt,evecsvt,pmatc)
         write(51,rec=ik) pmatc
       endif
 
     end do
 
-    if(wcore)close(51)   
+    if(iopcore.eq.0)close(51)   
     close(50)
 
     write(fgw,*)
@@ -90,7 +90,7 @@ subroutine calcpmat
     call write_cputime(fgw,tend-tstart, 'CALCPMAT')
 
     deallocate(apwalmt,evecfvt,evecsvt,pmat)
-    if(wcore)then
+    if(iopcore.eq.0)then
       deallocate(pmatc)
     end if
 end subroutine

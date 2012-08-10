@@ -695,8 +695,8 @@ type gw_type
  integer::nbgw
  logical::rpmat
  logical::reps
- character(512)::corflag
- integer::corflagnumber
+ character(512)::coreflag
+ integer::coreflagnumber
  real(8)::q0eps(3)
  logical::reduceq
  character(512)::bzconv
@@ -5035,13 +5035,13 @@ if(associated(np)) then
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"corflag")
-getstructgw%corflag= "all"
+np=>getAttributeNode(thisnode,"coreflag")
+getstructgw%coreflag= "all"
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"corflag",getstructgw%corflag)
-       call removeAttribute(thisnode,"corflag")  
+       call extractDataAttribute(thisnode,"coreflag",getstructgw%coreflag)
+       call removeAttribute(thisnode,"coreflag")  
 endif
-getstructgw%corflagnumber=stringtonumbergwcorflag(getstructgw%corflag)
+getstructgw%coreflagnumber=stringtonumbergwcoreflag(getstructgw%coreflag)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"q0eps")
@@ -6257,22 +6257,22 @@ end select
 end function
 
  
- integer function  stringtonumbergwcorflag(string) 
+ integer function  stringtonumbergwcoreflag(string) 
 ! Do not edit this Fortran file! It is generated from the Schema.
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('all')
- stringtonumbergwcorflag=-1
+ stringtonumbergwcoreflag=-1
 case('val')
- stringtonumbergwcorflag=-1
+ stringtonumbergwcoreflag=-1
 case('vab')
- stringtonumbergwcorflag=-1
+ stringtonumbergwcoreflag=-1
 case('xal')
- stringtonumbergwcorflag=-1
+ stringtonumbergwcoreflag=-1
 case('')
- stringtonumbergwcorflag=0
+ stringtonumbergwcoreflag=0
 case default
-write(*,*) "Parser ERROR: '", string,"' is not valid selection forcorflag "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forcoreflag "
 stop 
 end select
 end function

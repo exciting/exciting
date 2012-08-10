@@ -66,7 +66,7 @@ subroutine calcpmatgw
     recl=16*(3*nstsv*nstsv)
     open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED', &
    &    access='DIRECT',status='REPLACE',recl=recl)
-    if(wcore)then 
+    if(iopcore.eq.0)then 
       recl2=16*(3*nstsv*nclm*natmtot)
       open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED', &
      &    access='DIRECT',status='REPLACE',recl=recl2)
@@ -96,7 +96,7 @@ subroutine calcpmatgw
     Call pmatrad
 
 !   core-valence
-    if (wcore) then
+    if (iopcore.eq.0) then
        if (allocated(ripacor)) deallocate(ripacor)
        allocate(ripacor(apwordmax,lmmaxapw,ncmax,nclm,natmtot,3))
        if (allocated(ripcora)) deallocate(ripcora)
@@ -130,7 +130,7 @@ subroutine calcpmatgw
 
        write(50,rec=ik) pmat
 
-       if(wcore)then
+       if(iopcore.eq.0)then
 
 !        calculate the core-valence momentum matrix elements
          call genpmatxscor(ik,pmatc)
@@ -141,7 +141,7 @@ subroutine calcpmatgw
       
     end do
 
-    if(wcore)close(51)   
+    if(iopcore.eq.0)close(51)   
     close(50)
 
     write(fgw,*)
@@ -157,7 +157,7 @@ subroutine calcpmatgw
     deallocate(pmat,pmatc)
     deallocate(apwcmt,ripaa)
     if(nlotot.gt.0)deallocate(locmt,ripalo,riploa,riplolo)
-    if(wcore)deallocate(ripacor,ripcora)
+    if(iopcore.eq.0)deallocate(ripacor,ripcora)
 
 end subroutine
 !EOC

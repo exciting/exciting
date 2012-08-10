@@ -199,8 +199,12 @@ module modgw
 !----------------------------!
 !     Core states            !
 !----------------------------!
-! if .true. core states are included in the calculation
-      logical :: wcore
+      integer :: iopcore   ! option for core treatment 
+                           !  iopcore  = 0  --- core states are included in all calculations 
+                           !           = 1  --- core states are included in exchange  but not in correlation 
+                           !           = 2  --- core states are excluded in all calculations, but kept in 
+                           !                    the construction of mixed basis 
+                           !           = 3  -- core states are excluded completely
 ! maximum number of core states per atom
       integer(4) :: ncmax
 ! Max. num of core states including lm
@@ -218,6 +222,11 @@ module modgw
 !     corind(:,4)=l
 !     corind(:,5)=m
       integer(4), allocatable :: corind(:,:)
+
+!----------------------------!
+!     Local orbitals         !
+!----------------------------!
+      real(8), allocatable :: lorwf(:,:,:,:,:)
         
 !----------------------------!
 !     XC potential           !
@@ -256,8 +265,6 @@ module modgw
 !----------------------------!
 ! Maximum L of the left product functions
       integer(4) :: lleftmax
-! Selects the role of the wave function when forming the mixed basis:
-      logical, allocatable :: mixopt(:,:,:)
 ! Radial product functions
       real(8), allocatable :: uprod(:,:,:)
 ! Overlap matrix of the product functions

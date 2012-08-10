@@ -91,7 +91,7 @@
 !EOP
 !BOC
 !
-!     Generate the possible radial function products
+!     Generate all possible radial function products
 !
       call setuprod
 !

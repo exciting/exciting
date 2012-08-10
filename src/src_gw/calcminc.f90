@@ -167,7 +167,6 @@
                   l2m2=l2*l2+l2+m2+1
                   
                   ! Gaunt coefficient
-                  !angint=getcgcoef(l2,bl,l1,m2,bm) ! original
                   angint=gaunt(l2,l1,bl,m2,m1,bm)
                   
                   if(abs(angint).gt.1.0d-8)then

@@ -74,7 +74,7 @@
 !          
 !     Calculate the matrix elements M^i_{nm} where n is a core state
 !
-      if(wcore)then
+      if(iopcore.eq.0)then
         
         call calcmicm(ik,iq,flag)
         call calcminc(ik,iq,flag)

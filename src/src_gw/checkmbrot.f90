@@ -18,7 +18,7 @@ subroutine checkmbrot(iq)
     ! irreducible q-point index
     iqp=indkpq(iq,1)
     
-    if (wcore) then
+    if (iopcore.eq.0) then
       
 !--------------------------------------------
 !   Check core-valence M^i_{cm} rotation
@@ -231,7 +231,7 @@ subroutine checkmbrot(iq)
       deallocate(mincmat)
       close(39)
     
-    end if ! wcore
+    end if ! core
 
 !--------------------------------------------
 !   Check valence-valence M^i_{nm} rotation

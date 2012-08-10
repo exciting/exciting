@@ -98,7 +98,7 @@
       end do ! ikp
       
       deallocate(minmmat)
-      if(wcore)deallocate(mincmat)
+      if(iopcore.eq.0)deallocate(mincmat)
       close(96)
 !
 !     Write the exchange term to file

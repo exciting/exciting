@@ -77,7 +77,7 @@ subroutine calcepsilon(iqp)
         open(50,file='PMAT.OUT',action='READ',form='UNFORMATTED', &
        &  access='DIRECT',recl=recl)
 
-        if(wcore)then
+        if(iopcore.eq.0)then
           allocate(pmatc(3,ncg,nstsv))
           recl=16*(3*ncg*nstsv)
           open(51,file='PMATCOR.OUT',action='READ',form='UNFORMATTED', &
@@ -279,7 +279,7 @@ subroutine calcepsilon(iqp)
 !---------------------------------------------------------------------!
 !                       Core contributions                            !
 !---------------------------------------------------------------------!
-          if (wcore) then
+          if (iopcore.eq.0) then
             
             dimtk=ncg*(nstfv-minunoband+1)
             allocate(micm(1:locmatsiz,1:dimtk))
@@ -391,7 +391,7 @@ subroutine calcepsilon(iqp)
             deallocate(micm,temp)
             if(iq.eq.1)deallocate(pm)
       
-          endif ! wcore
+          endif ! core
           
         end do ! i (symmetry)
         
@@ -399,12 +399,12 @@ subroutine calcepsilon(iqp)
       
       deallocate(body)
       deallocate(minmmat)
-      if(wcore)deallocate(micmmat)
+      if(iopcore.eq.0)deallocate(micmmat)
       if(allocated(rotmat))deallocate(rotmat)
       if(iq.eq.1)then
         deallocate(pmat)
         close(50)
-        if(wcore)then
+        if(iopcore.eq.0)then
           deallocate(pmatc)
           close(51)
         end if

@@ -165,7 +165,6 @@
 !
 !                     Calculate the angular integral:
 !
-                      !angint=getcgcoef(l2,bl,l1,m2,bm) ! original
                       angint=gaunt(l1,l2,bl,m1,m2,bm)
                       
                       if(abs(angint).gt.1.0d-8) then

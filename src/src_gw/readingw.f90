@@ -28,8 +28,6 @@
       
 ! !EXTERNAL ROUTINES: 
 
-!      external setmixop
-
 !EOP
 !BOC
       call boxmsg(fgw,'*',"GW input parameters")
@@ -245,15 +243,6 @@
       write(fgw,*) '  -- l_max (lmaxmb): ', input%gw%MixBasis%lmaxmb
       write(fgw,*) '  -- linear dependence tolerance (epsmb): ', input%gw%MixBasis%epsmb
       call linmsg(fgw,'-','')
-!
-!     !!! Not implemented into input file, use default
-!
-!     set default values
-      allocate(mixopt(0:input%groundstate%lmaxapw,nspecies,2))
-      mixopt(:,:,:)=.true.
-!      write(fgw,*)'mixop'      
-!      call setmixop      
-!      write(fgw,*) '------------------------------------------------------'
 !      
 !     Read the parameters for the Bare coulomb potential
 !      
@@ -287,25 +276,23 @@
             
       call linmsg(fgw,'-','')    
 !
-      corflag=trim(input%gw%corflag)
-      select case (corflag)
+      select case (input%gw%coreflag)
         case('all','ALL')
-          wcore=.true.
-        case('val','VAL')
-          wcore=.false.
-        case default    
-          write(fgw,*)'WARNING: Wrong core option!! Valid options are:'  
-          write(fgw,*)'all - All electron calculation'
-          write(fgw,*)'val - Valence electrons only'
-          write(fgw,*)'Taking default value: all'
-          corflag='all'
-          wcore=.true.
-      end select
-      write(fgw,*)'Treatment of all electrons (core+valence) or only valence electrons:'
-      write(fgw,*)'corflag = ', corflag
-
+          iopcore=0
+          write(fgw,*)' all: All electron calculation'
+        case('xal','XAL')
+          iopcore=1
+          write(fgw,*)' xal: all electron for exchange, valcence only for correlation'
+        case('val')
+          iopcore=2
+          write(fgw,*)' val: Valence electrons only'
+        case('vab')
+          iopcore=3
+          write(fgw,*)' vab: Valence-only without core states in mixbasis'
+       end select
+!
       call linmsg(fgw,'-','')
-      
+!      
       !q0_eps=(/1.d0,1.d0,1.d0/)/sqrt(3.0d0)
       q0_eps=input%gw%q0eps
       

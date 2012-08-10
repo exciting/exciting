@@ -201,7 +201,7 @@
             </xs:annotation>
           </xs:attribute>
 
-          <xs:attribute ex:importance="expert" ex:unit="" name="corflag" default="all">
+          <xs:attribute ex:importance="expert" ex:unit="" name="coreflag" default="all">
             <xs:annotation>
               <xs:documentation>
                   Option for treating core. Valid options are:
