@@ -42,12 +42,8 @@
 !
       allocate(selfex(ibgw:nbgw,nkpt))
       allocate(selfec(ibgw:nbgw,nkpt,nomeg))
-      allocate(selfcs1(nstfv,nkpt,nomeg))
-      allocate(selfcs2(nstfv,nkpt,nomeg))
       selfex(:,:)=zzero
       selfec(:,:,:)=zzero
-      selfcs1(:,:,:)=zzero
-      selfcs2(:,:,:)=zzero
 !
 !     Calculate the integration weights using the linearized tetrahedron method
 !

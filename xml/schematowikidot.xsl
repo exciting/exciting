@@ -354,7 +354,7 @@
       </xsl:if>
       <xsl:for-each select="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
         <xsl:sort select="@name|@ref"/>
-        <xsl:call-template name="attributetolatex">
+        <xsl:call-template name="attributeDocToWiki">
           <xsl:with-param name="myattribute" select="."/>
           <xsl:with-param name="level" select="$level"/>
         </xsl:call-template>
@@ -384,7 +384,7 @@
       </xsl:for-each>
     </xsl:if>
   </xsl:template>
-  <xsl:template name="attributetolatex">
+  <xsl:template name="attributeDocToWiki">
     <xsl:param name="myattribute"/>
     <xsl:param name="level"/>
     <xsl:text>
@@ -402,60 +402,61 @@
     <xsl:text>##</xsl:text>
     <xsl:text>  
     </xsl:text>
-    <xsl:apply-templates select="$myattribute/xs:annotation/xs:documentation"/>
+    <xsl:apply-templates select="($myattribute/xs:annotation/xs:documentation|document('schema/common.xsd')//xs:attribute[@name=$myattribute/@ref])[1]"/>
     <xsl:call-template name="TypeToDoc">
       <xsl:with-param name="contentnode"
-        select="$myattribute | //xs:attribute[@name=$myattribute/@ref]"/>
+        select="$myattribute "/>
     </xsl:call-template>
   </xsl:template>
   <xsl:template name="TypeToDoc">
     <xsl:param name="contentnode"/>
+    <xsl:variable name="attdef" select=" ($contentnode[@name]|document('schema/common.xsd')//xs:attribute[@name=$contentnode/@ref])[1]"></xsl:variable>
     <xsl:text>
 
 [[table ]]
 [[row]]
 </xsl:text>
     <xsl:choose>
-      <xsl:when test="$contentnode/@type">
+      <xsl:when test="$attdef/@type">
         <xsl:text>[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]]</xsl:text>
         <xsl:choose>
 
 
-          <xsl:when test="not(contains($contentnode/@type,'xs:'))">
+          <xsl:when test="not(contains($attdef/@type,'xs:'))">
             <xsl:choose>
 
-              <xsl:when test="//xs:simpleType[@name=$contentnode/@type]">
+              <xsl:when test="//xs:simpleType[@name=$attdef/@type]">
                 <xsl:text>[#</xsl:text>
-                <xsl:value-of select="$contentnode/@type"/>
+                <xsl:value-of select="$attdef/@type"/>
                 <xsl:text> </xsl:text>
-                <xsl:value-of select="$contentnode/@type"/>
+                <xsl:value-of select="$attdef/@type"/>
                 <xsl:text>]</xsl:text>
               </xsl:when>
               <xsl:otherwise>
                 <xsl:text>[[[</xsl:text>
                 <xsl:value-of select="$prefix"/>
                 <xsl:text>common#</xsl:text>
-                <xsl:value-of select="$contentnode/@type"/>
+                <xsl:value-of select="$attdef/@type"/>
                 <xsl:text>|</xsl:text>
-                <xsl:value-of select="$contentnode/@type"/>
+                <xsl:value-of select="$attdef/@type"/>
                 <xsl:text>]]]</xsl:text>
               </xsl:otherwise>
             </xsl:choose>
 
           </xsl:when>
           <xsl:otherwise>
-            <xsl:value-of select="str:replace(($contentnode/@type),'xs:','')"/>
+            <xsl:value-of select="str:replace(($attdef/@type),'xs:','')"/>
           </xsl:otherwise>
         </xsl:choose>
 
         <xsl:text>
 </xsl:text>
       </xsl:when>
-      <xsl:when test="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
+      <xsl:when test="$attdef/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
         <xsl:text> [[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]] **choose from:**  
 </xsl:text>
         <xsl:for-each
-          select="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
+          select="$attdef/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
           <xsl:text> </xsl:text>
           <xsl:value-of select="@value"/>
           <xsl:text/>
@@ -464,12 +465,12 @@
         </xsl:for-each>
         <xsl:text/>
       </xsl:when>
-      <xsl:when test="$contentnode/xs:complexType/*[xs:element] ">
+      <xsl:when test="$attdef/xs:complexType/*[xs:element] ">
         <xsl:text> [[cell style=" vertical-align:top;" ]] **contains:** [[/cell]] [[cell]]</xsl:text>
         <xsl:text>  
 </xsl:text>
         <xsl:for-each
-          select="$contentnode/xs:complexType/*/xs:element[contains($importancelevels,@ex:importance)]">
+          select="$attdef/xs:complexType/*/xs:element[contains($importancelevels,@ex:importance)]">
           <xsl:call-template name="elementref">
             <xsl:with-param name="elem" select="@name|@ref"/>
           </xsl:call-template>
@@ -497,9 +498,9 @@
     <xsl:text> [[/cell]][[/row]]</xsl:text>
     <xsl:if test="$contentnode/@default">
       <xsl:text>
-[[row]] [[cell]] **Default:** [[/cell]][[cell]] "{{</xsl:text>
+[[row]] [[cell]] **Default:** [[/cell]][[cell]] {{"</xsl:text>
       <xsl:value-of select="$contentnode/@default"/>
-      <xsl:text>}}" [[/cell]][[/row]]
+      <xsl:text>"}} [[/cell]][[/row]]
  </xsl:text>
     </xsl:if>
     <xsl:if test="$contentnode/@use or local-name($contentnode)='attribute'">
@@ -513,10 +514,10 @@
  </xsl:text>
     </xsl:if>
     <xsl:choose>
-      <xsl:when test="$contentnode/@ex:unit!=''">
+      <xsl:when test="$attdef/@ex:unit!=''">
         <xsl:text>
 [[row]] [[cell]] **Unit:** [[/cell]][[cell]]</xsl:text>
-        <xsl:value-of select="$contentnode/@ex:unit"/>
+        <xsl:value-of select="$attdef/@ex:unit"/>
         <xsl:text>  [[/cell]] [[/row]]
   </xsl:text>
       </xsl:when>
@@ -552,8 +553,9 @@
     <xsl:param name="node"/>
     <xsl:variable name="name" select="$node/@name"/>
     <xsl:variable name="current_name">
-      <xsl:for-each select="$node[last()]">
-        <xsl:if test="@name">
+       
+      <xsl:for-each select="$node[1]">
+        <xsl:if test="@name or (name(.)='xs:attribute')">
           <xsl:text>/</xsl:text>
           <xsl:choose>
             <xsl:when test="ancestor-or-self::xs:element[contains(//xs:appinfo/includes,@name)]">
@@ -576,9 +578,9 @@
             <xsl:when test="name(.)='xs:attribute'">
               <xsl:text>[#att</xsl:text>
               <xsl:value-of select="../../@name"/>
-              <xsl:value-of select="@name"/>
+              <xsl:value-of select="@name|@ref"/>
               <xsl:text> @</xsl:text>
-              <xsl:value-of select="@name"/>
+              <xsl:value-of select="@name|@ref"/>
               <xsl:text>]</xsl:text>
             </xsl:when>
             <xsl:otherwise>

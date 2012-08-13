@@ -430,10 +430,6 @@ module modgw
       integer(4) :: iopes
 ! The correlation term of the selfenergy
       complex(8), allocatable :: selfec(:,:,:) 
-! Singular term (q^-1) of the correlation selfenergy
-      complex(8), allocatable :: selfcs1(:,:,:) 
-! Singular term (q^-2) of the correlation selfenergy
-      complex(8), allocatable :: selfcs2(:,:,:) 
 ! The exchange term of the selfenergy
       complex(8), allocatable :: selfex(:,:) 
 ! Singular term (q^-2) of the exchange selfenergy

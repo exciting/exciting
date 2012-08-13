@@ -41,10 +41,8 @@ subroutine gw_main
 !EOP
 !BOC
 
-      debug=.false.
-      if(debug)then
-        open(55,file='debug.info',action='write')
-      end if
+      debug=input%gw%debug
+      if(debug)open(55,file='debug.info',action='write')
 
 !---------------------------------------
 !     Initializations

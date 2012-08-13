@@ -23,6 +23,7 @@
 
 
 \usepackage{amsmath}
+\usepackage{graphicx}
 
 \bibliographystyle {plain}
 \errorstopmode
@@ -40,20 +41,28 @@
 \newcommand{\blas}[0]{BLAS }
 \newcommand{\lapack}{LAPACK }
 \newcommand{\arpack}{ARPACK }
-
-
-\newcommand{\exciting}{ {\usefont{T1}{lmtt}{b}{n} exciting} }
-\title{</xsl:text>
-  <xsl:apply-templates select="/xs:schema/xs:annotation/xs:appinfo/title"/>
-  <xsl:text>} 
-\author{\exciting developers team\\
-(C. Ambrosch-Draxl, Zohreh Basirat, Thomas Dengg, \\
-Rostam Golesorkhtabar, Christian Meisenbichler, Dmitrii Nabok, \\
-Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 \newcommand{\subsubsubsection}[1]{\paragraph{#1} \paragraph*{} }
 \newcommand{\attref}[2]{{\tt \hyperref[#2att#1]{\color{green} #1}}}
 \newcommand{\elementref}[1]{{\tt  \hyperref[#1]{\color{blue}  #1}}}
-\maketitle 
+\newcommand{\exciting}{ {\usefont{T1}{lmtt}{b}{n} exciting} }
+
+\begin{titlepage}
+\begin{center}
+\includegraphics{../../xml/exciting.jpg}
+\ \\
+\ \\
+\ \\
+\ \\
+\ \\
+\Huge \textbf{</xsl:text><xsl:apply-templates select="/xs:schema/xs:annotation/xs:appinfo/title"/><xsl:text>} \\
+\ \\
+\huge \textbf{version \texttt{lithium}} \\
+\Large
+\vfill
+\ \\
+August 2012
+\end{center}
+\end{titlepage}
 
 \newpage
 \definecolor{green}{rgb}{0,0.5,0}
@@ -66,7 +75,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
    <xsl:with-param name="level" select="0"/>
   </xsl:call-template>
   <xsl:text>\part{Reused Elements}
-  The following elements can occur more than once in the input file. There for they are listed separately.
+  The following elements can occur more than once in the input file. Therefore they are listed separately.
   </xsl:text>
   <xsl:for-each  
    select="/*/xs:element[@name!=/xs:schema/xs:annotation/xs:appinfo/root and contains($importancelevels,@ex:importance)]">
@@ -113,7 +122,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
  <xsl:template match="pre">
   <xsl:text>{\tt </xsl:text>
   <xsl:call-template name="normalizespace">
-   <xsl:with-param name="a" select="."/>
+   <xsl:with-param name="a" select="str:replace(., '_','\_')"/>
   </xsl:call-template>
   <xsl:text>}</xsl:text>
  </xsl:template>
@@ -163,7 +172,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 
  <xsl:template match="filename">
   <xsl:text>{\usefont{T1}{lmtt}{b}{n}  </xsl:text>
-  <xsl:value-of select="."/>
+  <xsl:value-of select="str:replace(.,'_','\_')"/>
   <xsl:text>}</xsl:text>
  </xsl:template>
 <xsl:template name="attref">

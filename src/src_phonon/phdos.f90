@@ -118,7 +118,7 @@ Subroutine phdos
          f (iw) = gw (iw) * w (iw)
       End Do
       Call fderiv (-1, input%phonons%phonondos%nwdos, w, f, g, cf)
-      t1 = 0.5d0 * dble (natmtot) * g (input%phonons%phonondos%nwdos)
+      t1 = 0.5d0 * g (input%phonons%phonondos%nwdos)
       Write (50,*)
       Write (50, '("Zero-point energy : ", G18.10)') t1
       Call xml_NewElement (xf, "zeropointenergy")
@@ -151,7 +151,7 @@ Subroutine phdos
             End If
          End Do
          Call fderiv (-1, input%phonons%phonondos%nwdos, w, f, g, cf)
-         t1 = 0.5d0 * dble (natmtot) * g (input%phonons%phonondos%nwdos)
+         t1 = 0.5d0 * g (input%phonons%phonondos%nwdos)
          Write (50, '(2G18.10)') temp (i), t1
          Call xml_NewElement (xf, "map")
          Write (buffer, '(4g18.10)') temp(i)
@@ -186,7 +186,7 @@ Subroutine phdos
             End If
          End Do
          Call fderiv (-1, input%phonons%phonondos%nwdos, w, f, g, cf)
-         t1 = dble (natmtot) * kboltz * temp (i) * g &
+         t1 = kboltz * temp (i) * g &
         & (input%phonons%phonondos%nwdos)
          Write (50, '(2G18.10)') temp (i), t1
          Call xml_NewElement (xf, "map")
@@ -248,7 +248,7 @@ Subroutine phdos
             End If
          End Do
          Call fderiv (-1, input%phonons%phonondos%nwdos, w, f, g, cf)
-         t1 = dble (natmtot) * kboltz * g (input%phonons%phonondos%nwdos)
+         t1 = kboltz * g (input%phonons%phonondos%nwdos)
          Write (50, '(2G18.10)') temp (i), t1
          Call xml_NewElement (xf, "map")
          Write (buffer, '(4g18.10)') temp(i)

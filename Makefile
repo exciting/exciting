@@ -127,7 +127,7 @@ libxcclean:
 tgz::doc #libxcclean
 	tar  --exclude-from=".gitignore"  --transform 's,^,/exciting/,' -c -v  -f ./exciting.tar  *
 	tar    -r -v  -f ./exciting.tar  --transform 's,^,/exciting/,' .git/HEAD  .git/refs .git/packed-refs \
-	test/test02/reference/
+	test/test02/reference/ test/test08/reference/
 	gzip  -f --best ./exciting.tar 
 	du -h ./exciting.tar.gz 
 	

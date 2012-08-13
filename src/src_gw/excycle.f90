@@ -60,7 +60,6 @@
 !        
            matsiz=locmatsiz+ngq(iq)
            write(fgw,101) ik, iq, locmatsiz, ngq(iq), matsiz
-           write(*,  101) ik, iq, locmatsiz, ngq(iq), matsiz
 !      
 !          Calculate the interstitial mixed basis functions
 !       

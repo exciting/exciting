@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
- <experiment>
-    <set unitcellscaling="0.95" path="unitcellscaling_0.95"/>
-    <set unitcellscaling="0.975" path="unitcellscaling_0.975" />
-    <set unitcellscaling="1" path="unitcellscaling_1"/>
-    <set unitcellscaling="1.025" path="unitcellscaling_1.025"/>
-    <set unitcellscaling="1.05" path="unitcellscaling_1.05"/>
- </experiment>

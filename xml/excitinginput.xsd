@@ -793,8 +793,8 @@ gw.xsd
             <xs:attribute ex:importance="expert" ex:unit="" name="tauoep" type="vect3d" default="1.0d0 0.2d0 1.5d0">
               <xs:annotation>
                 <xs:documentation> The optimised effective potential is determined using an
-                  iterative method. [<it> Phys. Rev. Lett</it>
-                <bf>98</bf>, 196405 (2007)]. At the first iteration
+                  iterative method. <it>Phys. Rev. Lett.</it>
+                <bf>98</bf>, 196405 (2007). At the first iteration
                   the step length is set to tauoep(1). During subsequent iterations, the step
                   length is scaled by tauoep(2) or tauoep(3), when the residual is increasing or
                   decreasing, respectively. See also <attref>maxitoep</attref>. </xs:documentation>
@@ -2032,10 +2032,10 @@ gw.xsd
       <xs:attribute ex:importance="essential" ex:unit="" name="mixer" default="msec">
         <xs:annotation>
           <xs:documentation>
-          Select the mixing (relaxation) scheme for the SCF loop. One has the folloeing options:
-        <p/>    
-   <bf>Linear mixer</bf> (<pre>"lin"</pre>)
-   <p/>
+          Select the mixing (relaxation) scheme for the SCF loop. One has the following options:
+         <p/>
+        <bf>Linear mixer</bf> (<pre>"lin"</pre>):
+        <p/>
    Given the input  <inlinemath>\mu^i</inlinemath> and output   <inlinemath>\nu^i</inlinemath> 
    vectors of the <inlinemath>i</inlinemath>th
   iteration,  the next input vector to the
@@ -2046,14 +2046,13 @@ gw.xsd
    where <inlinemath>\beta^i_j</inlinemath> is set to <inlinemath>\beta_0</inlinemath> at initialisation and increased by
    scaling with <inlinemath>\beta_{\rm inc}</inlinemath> (<inlinemath>&gt;1</inlinemath>) if <inlinemath>f^i_j\equiv\nu^i_j-\mu^i_j</inlinemath> does
    not change sign between loops. If <inlinemath>f^i_j</inlinemath> does change sign, then <inlinemath>\beta^i_j</inlinemath>
-   is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>&gt;1</inlinemath>). Note that the array {\tt nu} serves
-   for both input and output, and the arrays {\tt mu}, {\tt beta} and {\tt f}
-   are used internally and should not be changed between calls. The routine is
-   initialised at the first iteration and is thread-safe so long as each thread
-   has its own independent work array. Complex arrays may be passed as real
-   arrays with <inlinemath>n</inlinemath> doubled.
-
-          
+   is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>&gt;1</inlinemath>).
+          <p/> 
+          <bf>Multisecant Broyden potential mixing</bf> (<pre>"msec"</pre>)
+          <p/>
+          <bf>Pulay mixing</bf> (<pre>"pulay"</pre>):
+          <p/>
+          Pulay's mixing scheme which uses direct inversion in the iterative subspace (DIIS). See <it>Chem. Phys. Lett.</it> <bf>73</bf>, 393 (1980).
           </xs:documentation>
           <xs:appinfo>
             <oldname>mixtype</oldname>
@@ -2122,7 +2121,7 @@ gw.xsd
         <xs:annotation>
           <xs:documentation> Type of exchange-correlation functional to be used <list>
               <li> No exchange-correlation funtional ( <inlinemath>E_{\rm xc}\equiv 0</inlinemath> ) </li>
-              <li> LDA, Perdew-Zunger/Ceperley-Alder, <it> Phys. Rev. B</it>
+              <li> LDA, Perdew-Zunger/Ceperley-Alder, <it>Phys. Rev. B</it>
                 <bf>23</bf>, 5048 (1981) </li>
               <li> LSDA, Perdew-Wang/Ceperley-Alder, <it>Phys. Rev. B</it>
                 <bf>45</bf>, 13244 (1992) </li>
@@ -2132,14 +2131,14 @@ gw.xsd
                 <bf>5</bf>, 1629 (1972) </li>
               <li> GGA, Perdew-Burke-Ernzerhof, <it>Phys. Rev. Lett.</it>
                 <bf>77</bf>, 3865 (1996) </li>
-              <li> GGA, Revised PBE, Zhang-Yang, <it> Phys. Rev. Lett.</it>
+              <li> GGA, Revised PBE, Zhang-Yang, <it>Phys. Rev. Lett.</it>
                 <bf>80</bf>, 890 (1998) </li>
               <li> GGA, PBEsol, arXiv:0707.2088v1 (2007) </li>
               <li> GGA, Wu-Cohen exchange (WC06) with PBE correlation, <it>Phys. Rev. B</it>
                 <bf>73</bf>, 235116 (2006) </li>
-              <li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it> Phys. Rev. B</it>
+              <li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it>Phys. Rev. B</it>
                 <bf>72</bf>, 085108 (2005) </li>
-              <li> EXX, Exact Exchange, <it> Phys. Rev. Lett</it>
+              <li> EXX, Exact Exchange, <it>Phys. Rev. Lett.</it>
                 <bf>95</bf>, 136402 (2005) </li>
             </list>
 		If EXX is chosen, the element <elementref>OEP</elementref> has to be specified.
@@ -2428,14 +2427,14 @@ gw.xsd
                         <p>From the DOS <inlinemath>g(\omega)</inlinemath> the following thermodynamical properties are obtained:
                         <list>
                         <li>the zero-point energy <inlinemath>E_{\rm ZP} = \frac{1}{2} N_{\rm at} \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}}  
-                                                                   \omega\, g(\omega)</inlinemath></li>
-                        <li>the vibrational energy <inlinemath>E_{\rm vib} = \frac{1}{2} N_{\rm at}
-                            \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}}  \omega\, g(\omega) \coth\frac{\omega}{2k_B T}</inlinemath></li> 
+                                                                   d\omega\; \omega\, g(\omega)</inlinemath></li>
+                        <li>the vibrational internal energy <inlinemath>E_{\rm vib} = \frac{1}{2} N_{\rm at}
+                            \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}} d\omega\; \omega\, g(\omega) \coth\frac{\omega}{2k_B T}</inlinemath></li> 
                         <li>the vibrational free energy <inlinemath>F_{\rm vib} = N_{\rm at} k_B T
-                            \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}}  g(\omega) \log\left(2 \sinh \frac{\omega}{2k_B T}\right)</inlinemath></li>
+                            \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}} d\omega\; g(\omega) \log\left(2 \sinh \frac{\omega}{2k_B T}\right)</inlinemath></li>
                         <li>the vibrational entropy <inlinemath>S_{\rm vib} = \frac{E_{\rm vib}-F_{\rm vib}}{T}</inlinemath></li>
                         <li>the heat capacity <inlinemath>c = N_{\rm at} k_B
-                            \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}}  g(\omega)  \left(\frac{\omega}{k_B T}\right)^{\!\!\! 2} 
+                            \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}} d\omega\;  g(\omega)  \left(\frac{\omega}{k_B T}\right)^{\!\!\! 2} 
                             {\exp\left(\frac{\omega}{k_B T}\right)}{\left[\exp(\frac{\omega}{k_B T})-1\right]^{-2}}</inlinemath></li>
                         </list> 
                         where <inlinemath>N_{\rm at}</inlinemath> is the number of atoms in the unit cell. These quantities are computed for
@@ -2444,21 +2443,21 @@ gw.xsd
                         </xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
-                        <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos" default="500" type="xs:integer"> 
+                        <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos" default="500"> 
                            <xs:annotation>
                               <xs:documentation>
                               Number of steps between the lowest and highest phonon frequency for the DOS.
                               </xs:documentation>
                            </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="100" type="xs:integer"> 
+                        <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="100"> 
                         <xs:annotation>
                               <xs:documentation>
                               Number of grid points in each lattice direction on which the eigenvalues are interpolated.
                               </xs:documentation>
                            </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0 " type="xs:integer">
+                        <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0">
                         <xs:annotation>
                               <xs:documentation>
                               Number of 3-point averaging runs to smoothen the DOS. One run corresponds to setting the DOS value for
@@ -2497,20 +2496,20 @@ gw.xsd
                             files and outputs them as <inlinemath>3\times 3</inlinemath> blocks for
                             each atom combination to the file <pre>DYNMAT.OUT</pre>.
                             A corrected dynamical matrix which fulfills the accoustic sumrule is output to the
-                            file <pre>DYNMAT\_SUMRULE.OUT</pre>.  
+                            file <pre>DYNMAT_SUMRULE.OUT</pre>.  
                             It is obtained by subtracting the three lowest eigenvectors from the original matrix:
                             <inlinemath>D_{ij}^{\bf q}\rightarrow D_{ij}^{\bf q}-\sum_{k=1}^3 \omega_k^0 v_{k;i}^0 v_{k;j}^0</inlinemath>
                             for all <inlinemath>{\bf q}</inlinemath>, where <inlinemath>\omega_k^0</inlinemath> 
                             is the <inlinemath>k</inlinemath>th eigenvalue of the <inlinemath>{\bf q}=0</inlinemath> dynamical matrix 
                             and <inlinemath>v_{k;i}^0</inlinemath> the <inlinemath>i</inlinemath>th component of its eigenvector.</p>
                             <p>Symmetrized forms are written to the files
-                            <pre>DYNMAT\_SYM.OUT</pre> and <pre>DYNMAT\_SYM\_SUMRULE.OUT</pre>.</p></xs:documentation>
+                            <pre>DYNMAT_SYM.OUT</pre> and <pre>DYNMAT_SYM_SUMRULE.OUT</pre>.</p></xs:documentation>
                     </xs:annotation>
                 </xs:element>
                 <xs:element ex:importance="expert" ex:unit="" name="interpolate" maxOccurs="1" minOccurs="0">
                     <xs:annotation>
                         <xs:documentation>Interpolates the phonon frequencies, and optionally eigenvectors, on a given <inlinemath>{\bf q}</inlinemath>-point
-                            grid and outputs them to file <pre>PHONON\_INTERPOLATE.OUT</pre>.</xs:documentation>
+                            grid and outputs them to file <pre>PHONON_INTERPOLATE.OUT</pre>.</xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
                         <xs:attribute ex:importance="essential" ex:unit="" name="ngridq" type="integertriple" use="required">
@@ -2697,7 +2696,12 @@ gw.xsd
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos" default="500"> </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="100"> </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0"> </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0"> 
+              <xs:annotation>
+                <xs:documentation>This attribute indicates the type of smearing for the resulting DOS. In particular, the value 0 means no smearing at all, 1 that a three nearest point averaging is performed, 2 that two such consecutive averagings are done, etc. 
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="winddos" default="-0.5d0 0.5d0" type="vect2d">
               <xs:annotation>
                 <xs:documentation>Frequency/energy window for the DOS or optics
@@ -2974,8 +2978,9 @@ gw.xsd
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
               <xs:annotation>
-                <xs:documentation> The intraband attribute is <pre>"true"</pre> if the intraband
-                  term is to be added to the optical matrix (q=0). </xs:documentation>
+                <xs:documentation> By setting it to <pre>"true"</pre>, the intraband
+                  contribution is included in the calculation for the finite q. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="torddf" type="xs:boolean" default="false">
@@ -4284,7 +4289,7 @@ gw.xsd
           
           <xs:attribute ex:importance="expert" ex:unit="" name="jjk" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>&gt;Upper bound for the k-point number</xs:documentation>
+              <xs:documentation>Upper bound for the k-point number</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
@@ -4388,7 +4393,7 @@ gw.xsd
           <xs:attribute ex:importance="expert" ex:unit="" name="q0eps" type="vect3d" default="0.577350269d0 0.577350269d0 0.577350269d0">
             <xs:annotation>
               <xs:documentation>
-                  q0eps - the direction q --&gt; 0
+                  q0eps - the direction q <inlinemath>\to</inlinemath> 0.
                   Default: (1/sqrt(3),1/sqrt(3),1/sqrt(3))
               </xs:documentation>
             </xs:annotation>
@@ -4411,6 +4416,15 @@ gw.xsd
 	      </xs:documentation>
             </xs:annotation>
           </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="debug" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation>
+	          Print debugging information.
+	      </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
           
         </xs:complexType>
     </xs:element>

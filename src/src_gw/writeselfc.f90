@@ -31,19 +31,19 @@
 !BOC
 !
       open(93,file='SELFC.OUT',form='FORMATTED',status='UNKNOWN')
-      write(93,*)'# band          selfec [eV]        selfcs1 [eV]        selfcs2 [eV]'
       do ikp = 1, nkpt
-        write(93,*) 'ikp =', ikp
         do ie = ibgw, nbgw
-          write(93,*) 'band nr. =', ie
+          write(93,*)'# k-vector        ikp        band'
+          write(93,*) vkl(:,ikp), ikp, ie
+          write(93,*)'# omega           selfec [eV]'
           do iom = 1, nomeg
-            write(93,2) freqs(iom), selfec(ie,ikp,iom)*hev,                   &
-     &                  selfcs1(ie,ikp,iom)*hev, selfcs2(ie,ikp,iom)*hev
+            write(93,1) freqs(iom), real(selfec(ie,ikp,iom))*hev, &
+           &                       aimag(selfec(ie,ikp,iom))*hev
           enddo ! iom
         enddo ! ie
       enddo !ikp
       close(93)
-    2 format(g15.5,' ',2g15.5,' ',2g15.5,' ',2g15.5)
+    1 format(f15.5,' ',2f19.12)
       
       return
       end subroutine

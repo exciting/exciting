@@ -229,8 +229,8 @@
               default="1.0d0 0.2d0 1.5d0">
               <xs:annotation>
                 <xs:documentation> The optimised effective potential is determined using an
-                  iterative method. [<it> Phys. Rev. Lett</it>
-                <bf>98</bf>, 196405 (2007)]. At the first iteration
+                  iterative method. <it>Phys. Rev. Lett.</it>
+                <bf>98</bf>, 196405 (2007). At the first iteration
                   the step length is set to tauoep(1). During subsequent iterations, the step
                   length is scaled by tauoep(2) or tauoep(3), when the residual is increasing or
                   decreasing, respectively. See also <attref>maxitoep</attref>. </xs:documentation>
@@ -1494,10 +1494,10 @@
       <xs:attribute ex:importance="essential" ex:unit="" name="mixer" default="msec">
         <xs:annotation>
           <xs:documentation>
-          Select the mixing (relaxation) scheme for the SCF loop. One has the folloeing options:
-        <p/>    
-   <bf>Linear mixer</bf> (<pre>"lin"</pre>)
-   <p/>
+          Select the mixing (relaxation) scheme for the SCF loop. One has the following options:
+         <p/>
+        <bf>Linear mixer</bf> (<pre>"lin"</pre>):
+        <p/>
    Given the input  <inlinemath>\mu^i</inlinemath> and output   <inlinemath>\nu^i</inlinemath> 
    vectors of the <inlinemath>i</inlinemath>th
   iteration,  the next input vector to the
@@ -1506,16 +1506,15 @@
    vector is mixed with a fraction of the same component of the input vector:
    <displaymath>\mu^{i+1}_j=\beta^i_j\nu^i_j+(1-\beta^i_j)\mu^i_j, </displaymath>
    where <inlinemath>\beta^i_j</inlinemath> is set to <inlinemath>\beta_0</inlinemath> at initialisation and increased by
-   scaling with <inlinemath>\beta_{\rm inc}</inlinemath> (<inlinemath>&gt;1</inlinemath>) if <inlinemath>f^i_j\equiv\nu^i_j-\mu^i_j</inlinemath> does
+   scaling with <inlinemath>\beta_{\rm inc}</inlinemath> (<inlinemath>>1</inlinemath>) if <inlinemath>f^i_j\equiv\nu^i_j-\mu^i_j</inlinemath> does
    not change sign between loops. If <inlinemath>f^i_j</inlinemath> does change sign, then <inlinemath>\beta^i_j</inlinemath>
-   is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>&gt;1</inlinemath>). Note that the array {\tt nu} serves
-   for both input and output, and the arrays {\tt mu}, {\tt beta} and {\tt f}
-   are used internally and should not be changed between calls. The routine is
-   initialised at the first iteration and is thread-safe so long as each thread
-   has its own independent work array. Complex arrays may be passed as real
-   arrays with <inlinemath>n</inlinemath> doubled.
-
-          
+   is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>>1</inlinemath>).
+          <p/> 
+          <bf>Multisecant Broyden potential mixing</bf> (<pre>"msec"</pre>)
+          <p/>
+          <bf>Pulay mixing</bf> (<pre>"pulay"</pre>):
+          <p/>
+          Pulay's mixing scheme which uses direct inversion in the iterative subspace (DIIS). See <it>Chem. Phys. Lett.</it> <bf>73</bf>, 393 (1980).
           </xs:documentation>
           <xs:appinfo>
             <oldname>mixtype</oldname>
@@ -1587,7 +1586,7 @@
         <xs:annotation>
           <xs:documentation> Type of exchange-correlation functional to be used <list>
               <li> No exchange-correlation funtional ( <inlinemath>E_{\rm xc}\equiv 0</inlinemath> ) </li>
-              <li> LDA, Perdew-Zunger/Ceperley-Alder, <it> Phys. Rev. B</it>
+              <li> LDA, Perdew-Zunger/Ceperley-Alder, <it>Phys. Rev. B</it>
                 <bf>23</bf>, 5048 (1981) </li>
               <li> LSDA, Perdew-Wang/Ceperley-Alder, <it>Phys. Rev. B</it>
                 <bf>45</bf>, 13244 (1992) </li>
@@ -1597,14 +1596,14 @@
                 <bf>5</bf>, 1629 (1972) </li>
               <li> GGA, Perdew-Burke-Ernzerhof, <it>Phys. Rev. Lett.</it>
                 <bf>77</bf>, 3865 (1996) </li>
-              <li> GGA, Revised PBE, Zhang-Yang, <it> Phys. Rev. Lett.</it>
+              <li> GGA, Revised PBE, Zhang-Yang, <it>Phys. Rev. Lett.</it>
                 <bf>80</bf>, 890 (1998) </li>
               <li> GGA, PBEsol, arXiv:0707.2088v1 (2007) </li>
               <li> GGA, Wu-Cohen exchange (WC06) with PBE correlation, <it>Phys. Rev. B</it>
                 <bf>73</bf>, 235116 (2006) </li>
-              <li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it> Phys. Rev. B</it>
+              <li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it>Phys. Rev. B</it>
                 <bf>72</bf>, 085108 (2005) </li>
-              <li> EXX, Exact Exchange, <it> Phys. Rev. Lett</it>
+              <li> EXX, Exact Exchange, <it>Phys. Rev. Lett.</it>
                 <bf>95</bf>, 136402 (2005) </li>
             </list>
 		If EXX is chosen, the element <elementref>OEP</elementref> has to be specified.
