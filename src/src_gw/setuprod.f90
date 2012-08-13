@@ -72,7 +72,6 @@
       allocate(nup(natmtot))
       uprod=0.0d0
 
-!     Reset maxnup to zero
       do is=1,nspecies
         do ia=1,natoms(is)
           ias=idxas(ia,is)
@@ -85,43 +84,46 @@
 !
           if(iopcore.ne.3) then 
 
+            do ist=1,ncore(is)
+              l1=spl(ist,is)
+              if(l1.le.input%gw%MixBasis%lmaxmb)then
+
 !----------------------------------------------------------------------!
 !         Product of core and apw functions
 !----------------------------------------------------------------------!
-            do ist=1,ncore(is)
-
-              do l2=0,input%gw%MixBasis%lmaxmb
-                do io2=1,apword(l2,is)
-                  if (apwdm(io2,l2,is).eq.0) then
-                    ipr1=ipr1+1
-                    nupcore=nupcore+1
-                    eles(ias,ipr1,1)=spl(ist,is)
-                    eles(ias,ipr1,2)=l2
-                    do ir=1,nrmt(is)
-                      uprod(ias,ipr1,ir)=rwfcr(ir,1,ist,ias)* &
-                   &                     apwfr(ir,1,io2,l2,ias)*spr(ir,is)
-                    enddo ! ir
-                  end if ! apwdm=0
-                end do ! io2
-              enddo ! l2
+                do l2=0,input%gw%MixBasis%lmaxmb
+                  do io2=1,apword(l2,is)
+                    if (apwdm(io2,l2,is).eq.0) then
+                      ipr1=ipr1+1
+                      nupcore=nupcore+1
+                      eles(ias,ipr1,1)=l1
+                      eles(ias,ipr1,2)=l2
+                      do ir=1,nrmt(is)
+                        uprod(ias,ipr1,ir)=rwfcr(ir,1,ist,ias)* &
+                     &                     apwfr(ir,1,io2,l2,ias)*spr(ir,is)
+                      enddo ! ir
+                    end if ! apwdm=0
+                  end do ! io2
+                enddo ! l2
               
 !----------------------------------------------------------------------!
 !         Product of core and local orbital functions
 !----------------------------------------------------------------------!
-              do ilo2=1,nlorb(is)
-                l2=lorbl(ilo2,is)
-                if (l2.le.input%gw%MixBasis%lmaxmb) then
-                  ipr1=ipr1+1
-                  nupcore=nupcore+1
-                  eles(ias,ipr1,1)=spl(ist,is)
-                  eles(ias,ipr1,2)=l2 
-                  do ir=1,nrmt(is)
-                    uprod(ias,ipr1,ir)=rwfcr(ir,1,ist,ias)* &
-                 &                     lofr(ir,1,ilo2,ias)*spr(ir,is)
-                  enddo ! ir
-                end if ! l2
-              enddo ! ilo2
-
+                do ilo2=1,nlorb(is)
+                  l2=lorbl(ilo2,is)
+                  if (l2.le.input%gw%MixBasis%lmaxmb) then
+                    ipr1=ipr1+1
+                    nupcore=nupcore+1
+                    eles(ias,ipr1,1)=l1
+                    eles(ias,ipr1,2)=l2 
+                    do ir=1,nrmt(is)
+                      uprod(ias,ipr1,ir)=rwfcr(ir,1,ist,ias)* &
+                   &                     lofr(ir,1,ilo2,ias)*spr(ir,is)
+                    enddo ! ir
+                  end if ! l2
+                enddo ! ilo2
+              
+              end if ! l1.le.lmaxmb
             enddo ! ist
           
           end if ! iopcore.ne.3

@@ -71,11 +71,6 @@
 !     generate the local-orbital radial functions for LAPW
       call genlofr
 
-!     generate the local-orbital radial functions for GW code
-!      if (allocated(lorwf)) deallocate(lorwf)
-!      allocate(lorwf(nrmtmax,2,maxlorbord,nlomax,natmtot))
-!      call genlorwf
-
 !------------------------------------------------------------------------------
 !     According to the definition of core wafefunction in FHIgap code
 !     Eq.(1.1.3) one has to include the following prefactor into radial part.
@@ -94,7 +89,7 @@
         end do
       end do
 
-      core_ortho=.false.    
+      core_ortho=.true.    
       if(core_ortho) call orthog_corewf
       
 !------------------------------------------------------------------------------
@@ -138,8 +133,6 @@
 !      
 !     Deallocate all unused arrays
 !            
-!     deallocate(lorwf)
-      
       return
   101 format(' Max. nr. of MT-sphere wavefunctions per atom ',i6,/,      &
      &       ' Total  nr. of MT-sphere wavefunctions        ',i6)
