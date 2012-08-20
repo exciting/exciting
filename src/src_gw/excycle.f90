@@ -72,11 +72,7 @@
 !          Calculate the bare coulomb matrix
 !
            call calcbarcmb(iq)
-
-           if( barcevtol.gt.0.d0) then
-             write(6,'(a,f8.4)')" -Use reduced basis: barcevtol=",&
-          &                        barcevtol 
-           endif
+!
            call setbarcev(iq,barcevtol)
 !        
 !          Calculate the Minm(k,q) matrix elements for given k and q

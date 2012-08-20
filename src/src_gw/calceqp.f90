@@ -131,9 +131,9 @@
 
 !             Set the normalization factor              
               znk=1.0d0/(1.0d0-real(dsig))
-              if(znk.gt.1.d0 .or. znk.lt.0.d0) then
+              if((znk.gt.1.d0).or.(znk.lt.0.d0)) then
                write(fgw,*)'WARNING(calceqp): nonphysical Znk for ikp=', ikp
-               znk=0.8 
+               !znk=0.8 
               endif
               znorm(ie,ikp)=znk
 !            

@@ -80,8 +80,8 @@
  
       complex(8) :: phs
       complex(8) :: sumterms
-      complex(8) :: naterm(apwordmax)
-      complex(8) :: nloterm(nlomax)
+      complex(8) :: apwterm(apwordmax)
+      complex(8) :: loterm(nlomax)
       
       complex(8), allocatable :: minm(:,:,:)
       complex(8), allocatable :: zzk(:,:)
@@ -157,11 +157,10 @@
                 do l2=l2min,l2max
                   
                   do m1=-l1,l1
-                    l1m1 = l1*l1+l1+m1+1
+                    l1m1=idxlm(l1,m1)
                     m2=-bm+m1
-                    
                     if(abs(m2).le.l2) then
-                      l2m2=l2*l2+l2+m2+1
+                      l2m2=idxlm(l2,m2)
 !
 !                     Calculate the angular integral:
 !
@@ -169,66 +168,77 @@
                       
                       if(abs(angint).gt.1.0d-8) then
 !
-!                       Loop over eigenfunctions at k
+!                       Loop over eigenfunctions at k-q
 !
-                        do ist1 = 1, nstfv
+                        do ist2 = 1, nstfv
 
-                          naterm=zzero
-                          do io2=1,apword(l2,is)
-                            do io1=1,apword(l1,is)
-                              naterm(io2)= naterm(io2)+                 &
-     &                          bradketa(ias,irm,l1,io1,l2,io2,2)*      &
-     &                          eveckalm(ist1,io1,l1m1,ias,1)
-                            enddo ! io2
-                            do ilo1=1,nlorb(is)
-                              if(lorbl(ilo1,is).eq.l1)then
-                                igk1=ngk(1,ikp)+idxlo(l1m1,ilo1,ias)
-                                naterm(io2)=naterm(io2)+                &
-     &                            bradketlo(ias,irm,ilo1,l2,io2,2)*     &
-     &                            eveck(igk1,ist1,1)
-                               endif
-                            enddo ! ilo1   
-                          enddo ! io2 
-                          
-                          nloterm=zzero 
-                          do ilo2=1,nlorb(is)
-                            if(lorbl(ilo2,is).eq.l2)then
-                              do io1=1,apword(l1,is)
-                                nloterm(ilo2)= nloterm(ilo2)+           &
-     &                            bradketa(ias,irm,l1,io1,ilo2,1,3)*    &
-     &                            eveckalm(ist1,io1,l1m1,ias,1)
-                              enddo ! io1
-                              do ilo1=1,nlorb(is)
-                                if(lorbl(ilo1,is).eq.l1)then
-                                  igk1=ngk(1,ikp)+idxlo(l1m1,ilo1,ias)
-                                  nloterm(ilo2)=nloterm(ilo2)+            &
-     &                              bradketlo(ias,irm,ilo1,ilo2,1,3)*     &
-     &                              eveck(igk1,ist1,1)
-                                endif
-                              enddo ! ilo1   
-                            endif  
-                          enddo ! io2  
-!
-!                         Loop over basis functions at k-q
-! 
-                          do ist2 = 1, nstfv
-                            sumterms=zzero
+                          apwterm=zzero
+                          do io1=1,apword(l1,is)
+                            
                             do io2=1,apword(l2,is)
-                              sumterms=sumterms+naterm(io2)*eveckpalm(ist2,io2,l2m2,ias,1)
-                            enddo ! io2 
+                              apwterm(io1)= apwterm(io1)+                &
+                             &  eveckpalm(ist2,io2,l2m2,ias,1)*          &
+                             &  bradketa(ias,irm,l1,io1,l2,io2,2)
+                            end do ! io2
+                            
                             do ilo2=1,nlorb(is)
-                              if(lorbl(ilo2,is).eq.l2)then
+                              if (lorbl(ilo2,is).eq.l2) then
                                 igk2=ngk(1,jkp)+idxlo(l2m2,ilo2,ias)
-                                sumterms=sumterms+nloterm(ilo2)*eveckp(igk2,ist2,1)
+                                apwterm(io1)=apwterm(io1)+               &
+                               &  eveckp(igk2,ist2,1)*                   &
+                               &  bradketa(ias,irm,l1,io1,ilo2,1,3)
+                               end if
+                            end do ! ilo2
+                          
+                          end do ! io1 
+                          
+                          loterm=zzero
+                          do ilo1=1,nlorb(is)
+                            if (lorbl(ilo1,is).eq.l1) then
+
+                              do io2=1,apword(l2,is)
+                                loterm(ilo1)= loterm(ilo1)+           &
+                               &  eveckpalm(ist2,io2,l2m2,ias,1)*       &      
+                               &  bradketlo(ias,irm,ilo1,l2,io2,2)
+                              end do ! io1
+                              
+                              do ilo2=1,nlorb(is)
+                                if (lorbl(ilo2,is).eq.l2) then
+                                  igk2=ngk(1,jkp)+idxlo(l2m2,ilo2,ias)
+                                  loterm(ilo1)=loterm(ilo1)+            &
+                                 &  eveckp(igk2,ist2,1)*                  &
+                                 &  bradketlo(ias,irm,ilo1,ilo2,1,3)
+                                end if
+                              end do ! ilo2   
+
+                            end if
+                          end do ! ilo1
+!
+!                         Loop over basis functions at k
+! 
+                          do ist1 = 1, nstfv
+                            
+                            sumterms=zzero
+                            
+                            do io1=1,apword(l1,is)
+                              sumterms=sumterms+eveckalm(ist1,io1,l1m1,ias,1)*apwterm(io1)
+                            enddo ! io1
+                            
+                            do ilo1=1,nlorb(is)
+                              if (lorbl(ilo1,is).eq.l1) then
+                                igk1=ngk(1,ikp)+idxlo(l1m1,ilo1,ias)
+                                sumterms=sumterms+eveck(igk1,ist1,1)*loterm(ilo1)
                               endif
                             enddo ! ilo2 
-                            minm(imix,ist1,ist2) = minm(imix,ist1,ist2)+ &
-                           &                       phs*angint*sumterms
+                            
+                            minm(imix,ist1,ist2) = minm(imix,ist1,ist2)+phs*angint*sumterms
+                          
                           enddo ! ist2
                         
                         enddo !ist1
                       endif
                     endif
+                    
                   enddo ! m1     
                 enddo ! l2
               enddo ! l1

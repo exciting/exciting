@@ -91,10 +91,6 @@
 !EOP
 !BOC
 !
-!     Generate all possible radial function products
-!
-      call setuprod
-!
       allocate(nmix(natmtot))
       allocate(umix(natmtot,maxnup,nrmtmax))
       allocate(bigl(natmtot,maxnup))

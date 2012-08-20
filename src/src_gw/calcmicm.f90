@@ -144,7 +144,7 @@
           icore=corind(icg,3)
           l1=corind(icg,4)
           m1=corind(icg,5)
-          l1m1=l1m1+1
+          l1m1=idxlm(l1,m1)
 !
 !         Loop over mixed functions:
 ! 
@@ -162,8 +162,8 @@
               do l2=l2min,l2max
                 m2=-bm+m1
                 if(iabs(m2).le.l2)then
-                  l2m2=l2*l2+l2+m2+1
-                  
+                  l2m2=idxlm(l2,m2)
+                                    
                   ! Gaunt coefficient
                   angint=gaunt(l1,l2,bl,m1,m2,bm)
                   
@@ -172,8 +172,9 @@
                     apwterm=zzero
                     do io2=1,apword(l2,is)
                       apwterm = apwterm + &
-                     &          bradketc(ias,irm,icore,l2,io2,2)*    &
-                     &          eveckpalm(jst,io2,l2m2,ias,1)
+                     &          eveckpalm(jst,io2,l2m2,ias,1)* &
+                     &          bradketc(ias,irm,icore,l2,io2,2)
+                     
                     enddo
                     
                     loterm=zzero
@@ -181,8 +182,9 @@
                       if(lorbl(ilo2,is).eq.l2)then
                         igk2=ngk(1,jkp)+idxlo(l2m2,ilo2,ias)
                         loterm = loterm + &
-                       &         bradketc(ias,irm,icore,ilo2,1,3)*   &
-                       &         eveckp(igk2,jst,1)
+                       &         eveckp(igk2,jst,1)* &
+                       &         bradketc(ias,irm,icore,ilo2,1,3)
+                       
                       endif
                     enddo  
                     

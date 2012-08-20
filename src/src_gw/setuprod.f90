@@ -121,7 +121,7 @@
                    &                     lofr(ir,1,ilo2,ias)*spr(ir,is)
                     enddo ! ir
                   end if ! l2
-                enddo ! ilo2
+                enddo! ilo2
               
               end if ! l1.le.lmaxmb
             enddo ! ist

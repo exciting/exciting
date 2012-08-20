@@ -39,14 +39,14 @@
       real(8), allocatable :: uc(:)
       real(8), allocatable :: uval(:)
 
-      real(8) :: fr(nrmtmax)
-      real(8) :: gr(nrmtmax) 
-      real(8) :: cf(3,nrmtmax)
+      real(8) :: fr(spnrmax)
+      real(8) :: gr(spnrmax) 
+      real(8) :: cf(3,spnrmax)
 
 ! !EXTERNAL ROUTINES: 
 
       external fderiv      
-     
+    
 !
 !EOP
 !BOC      
@@ -61,27 +61,25 @@
       
           do icore = 1, ncore(is) 
             lc=spl(icore,is)
-
+!
+!           The norm of the core wave function ucore 
+!
             uc(1:npt)=rwfcr(1:npt,1,icore,ias)
             do ir = 1, npt
                fr(ir) = uc(ir)*uc(ir)*spr(ir,is)**2.d0
             end do !ir
-!
-!           The norm of the core wave function ucore 
-!
             call fderiv(-1,npt,spr(1:npt,is),fr,gr,cf)
             normcore=gr(npt)
-            
-            write(*,*) 'icore=', icore, 'normcore0 =', normcore
-
+            write(6,*) 'ias, icore, lc, normcore: ', ias, icore, lc, normcore
 !
 !           Orthogonalize to apwfr
 !
             do io = 1, apword(lc,is)
-               uval(1:npt) = apwfr(1:npt,1,io,lc,ias)
-               call orthogonalize
+              if (apwdm(io,lc,is).eq.0) then
+                uval(1:npt) = apwfr(1:npt,1,io,lc,ias)
+                call orthogonalize
+              end if
             end do !io
-
 !
 !           Orthogonalize to local orbital
 !        
@@ -89,7 +87,7 @@
               if (lc.eq.lorbl(ilo,is)) then
                 uval(1:npt) = lofr(1:npt,1,ilo,ias)
                 call orthogonalize
-              endif ! loor
+              endif
             end do ! ilo
 !
 !           Restore core wave function
@@ -105,57 +103,57 @@
 
       CONTAINS
       
-      subroutine orthogonalize
+        subroutine orthogonalize
       
-        implicit none
+          implicit none
 
-        integer(4) :: irp     ! index of the radial mesh
+          integer(4) :: irp     ! index of the radial mesh
 
-        real(8) :: overlap_factor 
-        real(8) :: renorm_factor
-        real(8) :: overlap
-        real(8) :: normafter
-        real(8) :: normval
+          real(8) :: overlap_factor 
+          real(8) :: renorm_factor
+          real(8) :: overlap
+          real(8) :: normafter
+          real(8) :: normval
 !
-!       The norm of the valence radial function 
+!         The norm of the valence radial function 
 !
-        do irp = 1, npt
-           fr(irp) = uval(irp)*uval(irp)*spr(irp,is)**2.d0
-        end do !irp
-        call fderiv(-1,npt,spr(1:npt,is),fr,gr,cf)
-        normval=gr(npt)
+          do irp = 1, npt
+             fr(irp) = uval(irp)*uval(irp)*spr(irp,is)**2.d0
+          end do !irp
+          call fderiv(-1,npt,spr(1:npt,is),fr,gr,cf)
+          normval=gr(npt)
 !
-!       Overlap between valence and core
-!        
-        do irp = 1, npt
-           fr(irp) = uval(irp)*uc(irp)*spr(irp,is)**2.d0
-        end do !irp
-        call fderiv(-1,npt,spr(1:npt,is),fr,gr,cf)
-        overlap=gr(npt)
+!         Overlap between valence and core
+!          
+          do irp = 1, npt
+             fr(irp) = uval(irp)*uc(irp)*spr(irp,is)**2.d0
+          end do !irp
+          call fderiv(-1,npt,spr(1:npt,is),fr,gr,cf)
+          overlap=gr(npt)
 !
-!       Orthogonalization (Gramm-Schmith like)
-!       
-        overlap_factor = overlap/normval
-        do irp = 1, npt
-          uc(irp) = uc(irp) - overlap_factor * uval(irp)
-        enddo ! irp
+!         Orthogonalization (Gramm-Schmith like)
+!         
+          overlap_factor = overlap/normval
+          do irp = 1, npt
+            uc(irp) = uc(irp) - overlap_factor * uval(irp)
+          enddo ! irp
 !
-!       Norm of the orthogonalized core function
+!         Norm of the orthogonalized core function
 !
-        do irp = 1, npt
-           fr(irp) = uc(irp)*uc(irp)*spr(irp,is)**2.d0
-        end do !irp
-        call fderiv(-1,npt,spr(1:npt,is),fr,gr,cf)
-        normafter=gr(npt)
+          do irp = 1, npt
+             fr(irp) = uc(irp)*uc(irp)*spr(irp,is)**2.d0
+          end do !irp
+          call fderiv(-1,npt,spr(1:npt,is),fr,gr,cf)
+          normafter=gr(npt)
 !
-!       Renormalization
-!        
-        renorm_factor = sqrt(normcore/normafter)
-        do irp = 1, npt
-          uc(irp) = renorm_factor * uc(irp)
-        enddo  
+!         Renormalization
+!          
+          renorm_factor = sqrt(normcore/normafter)
+          do irp = 1, npt
+            uc(irp) = renorm_factor * uc(irp)
+          enddo  
 
-      end subroutine orthogonalize  
+        end subroutine orthogonalize  
       
       end subroutine orthog_corewf
 !EOC  

@@ -59,21 +59,9 @@
 !     Generate the core wavefunctions and densities
       call gencore
 
-!     find the linearisation energies
-      call linengy
-
-!     write out the linearisation energies
-      call writelinen
-
-!     generate the APW radial functions
-      call genapwfr
-
-!     generate the local-orbital radial functions for LAPW
-      call genlofr
-
 !------------------------------------------------------------------------------
-!     According to the definition of core wafefunction in FHIgap code
-!     Eq.(1.1.3) one has to include the following prefactor into radial part.
+!     According to the definition of core wafefunction in FHIgap code [Eq.(1.1.3)],
+!     one has to include the following prefactor into radial part.
 !     In addition I change the EXCITING definition, where rwfcr = r*ucore
 !     
       do is=1,nspecies
@@ -89,10 +77,30 @@
         end do
       end do
 
-      core_ortho=.true.    
-      if(core_ortho) call orthog_corewf
+!------------------------------------------------------------------------------      
+
+!     find the linearisation energies
+      call linengy
+
+!     write out the linearisation energies
+      call writelinen
+
+!     generate the APW radial functions
+      call genapwfr
+
+!     generate the local-orbital radial functions for LAPW
+      call genlofr
+      
+!     generate the local-orbital radial functions to be used with MB
+!     call genlorwf
+
+      !core_ortho=.true.    
+      !if(core_ortho) call orthog_corewf
       
 !------------------------------------------------------------------------------
+
+!     Generate all possible radial function products
+      call setuprod
 
 !     calculate the radial part of the mixed basis functions
       call setumix
@@ -130,9 +138,6 @@
       call calctildeg(2*(input%gw%MixBasis%lmaxmb+1))
       
       if(debug)close(701)
-!      
-!     Deallocate all unused arrays
-!            
       return
   101 format(' Max. nr. of MT-sphere wavefunctions per atom ',i6,/,      &
      &       ' Total  nr. of MT-sphere wavefunctions        ',i6)
