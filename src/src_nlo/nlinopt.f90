@@ -11,13 +11,13 @@
 ! dw                : energy step [real]
 ! emesh             : number of energy mesh points [integer]
 ! sc                : scissors operator in Ry units (self energy) [real]
-! tol               : Tolerence (to avoid singularities) [real]
+! tol               : Tolerance (to avoid singularities) [real]
 ! v1                : component of $\chi^{{\bf v1}v2v3}(2\omega,\omega,\omega)$ [integer]
 ! v2                : component of $\chi^{v1{\bf v2}v3}(2\omega,\omega,\omega)$ [integer]
 ! v3                : component of $\chi^{v1v2{\bf v3}}(2\omega,\omega,\omega)$ [integer]
 ! omega             : volume of the unit cell in a.u. (from case.scf) [real]
 ! nkpt              : maximum number of $k$-points [integer]
-! evalfv(:,:)       : eigenvalue (band,kpoint) [real]
+! evalsv(:,:)       : eigenvalue (band,kpoint) [real]
 ! wkpt(:)           : weight of the k-pt [real]
 ! pmat(:,:,:)       : opticalmatirix element (kpoint,frm-kpt,to-kpt,component) [complex]
 ! noval(:)          : number of valence bands (kpoint) [integer]
@@ -117,8 +117,8 @@
 !                                                                : 3=l>m
 ! r(k,n,m,x): r MEs = p_nm/(i*w_nm*m)
 ! SYM        : symmetry tensor
-! evalfv(n,s): eigenvalue for nth band at sth k-point
-! wnm        : evalfv(n,k)-evalfv(m,k)
+! evalsv(n,s): eigenvalue for nth band at sth k-point
+! wnm        : evalsv(n,k)-evalsv(m,k)
 ! px(n,m,x,y,z) : symmetrised r_nm wrt y and z
 ! py(n,m,x,y,z) : symmetrized r_nm wrt x and z
 !..................................................................................................
@@ -215,8 +215,8 @@
 
       do ik=1,nkpt
         do ist=banmin,banmax
-          emin=min(emin,evalfv(ist,ik))
-          emax=max(emax,evalfv(ist,ik))
+          emin=min(emin,evalsv(ist,ik))
+          emax=max(emax,evalsv(ist,ik))
         end do
       end do
 
@@ -265,9 +265,9 @@
 ! check eqn # 20 to 23 of paper PRB53 10751 for this.
 !
         do ist1=banmin,noval(ik)
-          e1=evalfv(ist1,ik)
+          e1=evalsv(ist1,ik)
           do ist2=noval(ik)+1,banmax
-            e2=evalfv(ist2,ik)
+            e2=evalsv(ist2,ik)
 
             e12=e1-e2
             e21=-e12
@@ -288,9 +288,9 @@
 !................ Symmetrizing the r_nm matrix elements ...........................................
        
         do ist1=banmin,noval(ik)
-          e1=evalfv(ist1,ik)
+          e1=evalsv(ist1,ik)
           do ist2=noval(ik)+1,banmax
-            e2=evalfv(ist2,ik)
+            e2=evalsv(ist2,ik)
             do lx=1,3
               do ly=1,3
                 do lz=1,3
@@ -344,11 +344,11 @@
 !ss..................start the calculation:.................................
 
        do istn=banmin,noval(ik)                   !ss the state n (valence)
-        en=evalfv(istn,ik)
+        en=evalsv(istn,ik)
         if(abs(en).gt.1.d-5) then                 !ss to ensure band passes this k-pt
 
          do istm=noval(ik)+1,banmax               !ss the state m (conduction)
-          em=evalfv(istm,ik)
+          em=evalsv(istm,ik)
           if(abs(em).gt.1.d-5) then
 
             wn=en
@@ -395,7 +395,7 @@
 !.......... l < valence band (istn)  ...The B(4) term of PRB48.....................................
            
             do istl=banmin,istn-1               !ss the valence state below n
-            el=evalfv(istl,ik)
+            el=evalsv(istl,ik)
             if(abs(el).gt.1.d-7) then
               
               wl=el
@@ -476,7 +476,7 @@
 !................. val(istn) < l < cond(istm)......................................................
 
             do istl=istn+1,istm-1
-            el=evalfv(istl,ik)
+            el=evalsv(istl,ik)
             if (abs(el).gt.1.d-7) then
 
               mat2w=0.d0
@@ -580,7 +580,7 @@
 
 !...................... l > cond(istm).............................................................
             do istl=istm+1,banmax
-            el=evalfv(istl,ik)
+            el=evalsv(istl,ik)
             if(dabs(el).gt.1.d-7) then
 
               wl=el+sc

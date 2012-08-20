@@ -93,11 +93,11 @@ subroutine readinp
   do ik = 1, nkpt
   
 ! ......... get the eigenvalues and occupancies from file ............
-    call getevalfv(vkl(:,ik),evalfv(:,ik))
+    call getevalsv(vkl(:,ik),evalsv(:,ik))
 
 ! ................... fool proof......................................
 
-    if(evalfv(banmin,ik).gt.efermi) then
+    if(evalsv(banmin,ik).gt.efermi) then
        write(6,*) 'ERROR(nlo): No transitions:'
        write(6,*) 'ERROR(nlo): Lowest band above fermi level'
        stop
@@ -105,7 +105,7 @@ subroutine readinp
     
 !  ..... Counting the total number of valence and conduction bands .....
     do ib = 1, nstfv
-      if(evalfv(ib,ik).le.efermi) then
+      if(evalsv(ib,ik).le.efermi) then
         noval(ik)=noval(ik)+1
       else
         nocond(ik)=nocond(ik)+1
