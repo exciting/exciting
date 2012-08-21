@@ -3,26 +3,6 @@
 ! !INTERFACE:
       subroutine nlinopt
 ! !USES             : Module optica
-! !INPUT PARAMETERS :
-! nstfv             : maximum number of bands for allocation [integer]
-! banmin            : minimum band from which optical transitions start [integer]
-! banmax            : maximum band to which optical transitions are allowed [integer]
-! idel1             : broadening in Ry units [real]
-! dw                : energy step [real]
-! emesh             : number of energy mesh points [integer]
-! sc                : scissors operator in Ry units (self energy) [real]
-! tol               : Tolerance (to avoid singularities) [real]
-! v1                : component of $\chi^{{\bf v1}v2v3}(2\omega,\omega,\omega)$ [integer]
-! v2                : component of $\chi^{v1{\bf v2}v3}(2\omega,\omega,\omega)$ [integer]
-! v3                : component of $\chi^{v1v2{\bf v3}}(2\omega,\omega,\omega)$ [integer]
-! omega             : volume of the unit cell in a.u. (from case.scf) [real]
-! nkpt              : maximum number of $k$-points [integer]
-! evalsv(:,:)       : eigenvalue (band,kpoint) [real]
-! wkpt(:)           : weight of the k-pt [real]
-! pmat(:,:,:)       : opticalmatirix element (kpoint,frm-kpt,to-kpt,component) [complex]
-! noval(:)          : number of valence bands (kpoint) [integer]
-! nocond(:)         : number of comduction bands(kpoint) [integer]
-! tot_ban(:)        : total number of bands (kpoint) [integer]
 !
 ! !OUTPUT PARAMETERS:
 ! inter1w(:)        : 1$\omega$ interband contribution to the SHG $\chi$ in units esu and pm/V [complex]
@@ -163,13 +143,14 @@
 !..............................................................................
 !bernd  const=(-9.4013754040482201E-10)*4.d0*(pi**3)*(1.d0/omega)
 !sas    const=-32.d0*(1/omega)*4.6393930614E-9*(0.5d0)*(0.5d0)
+!din    const=-0.5d0/omega*au2esu
 
 ! 32          : converting all energies in denominator(E^5) from Ry to au
 ! -ve         : sign for electron charge
 ! omega       : unit cell volume
 ! 0.5         : dividing by the sum of the weights which is 2
 
-      const_au=-32.d0*(1/omega)*(0.5d0)
+      const_au=-0.5d0/omega
 
 ! 4.63939E-9  : au2esu : bohr*c*10^4/4pi*2*ry2ev
 !               bohr: 5.29177E-11
@@ -186,7 +167,9 @@
 ! the ME from optic doesn't include this hbar^^^
  
       const=const_au*(au2esu)                      ! in esu
+
 !......................................................................................
+
       ii=(0.d0,1.d0)
       r(:,:,:,:)=0.d0
       sym(:,:,:)=0.d0
