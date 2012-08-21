@@ -176,24 +176,24 @@
             l1=lorbl(ilo1,is)
             if (l1.le.input%gw%MixBasis%lmaxmb) then
 
-              do l2=l1,input%gw%MixBasis%lmaxmb
-                do io2=1,apword(l2,is)
-                  if (apwdm(io2,l2,is).eq.0) then
-                    ipr1=ipr1+1
-                    eles(ias,ipr1,1)=l1
-                    eles(ias,ipr1,2)=l2 
-                    do ir=1,nrmt(is)
-                      uprod(ias,ipr1,ir)=lofr(ir,1,ilo1,ias)* &
-                   &                     apwfr(ir,1,io2,l2,ias)*spr(ir,is)
-                    enddo ! ir
-                  end if ! apwdm
-                end do ! io2
-              enddo ! l2
+!             do l2=l1,input%gw%MixBasis%lmaxmb
+!               do io2=1,apword(l2,is)
+!                 if (apwdm(io2,l2,is).eq.0) then
+!                   ipr1=ipr1+1
+!                   eles(ias,ipr1,1)=l1
+!                   eles(ias,ipr1,2)=l2 
+!                   do ir=1,nrmt(is)
+!                     uprod(ias,ipr1,ir)=lofr(ir,1,ilo1,ias)* &
+!                  &                     apwfr(ir,1,io2,l2,ias)*spr(ir,is)
+!                   enddo ! ir
+!                 end if ! apwdm
+!               end do ! io2
+!             enddo ! l2
 
 !----------------------------------------------------------------------!         
 !        products between local and local orbitals
 !----------------------------------------------------------------------!
-              do ilo2=1,nlorb(is)
+              do ilo2=ilo1,nlorb(is)
                 l2=lorbl(ilo2,is)
                 if (l2.le.input%gw%MixBasis%lmaxmb) then
                   ipr1=ipr1+1

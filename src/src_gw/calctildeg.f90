@@ -1,13 +1,9 @@
-!BOP
-!
-! !MODULE: selfenergy
+
       module gtil
       
-! !PUBLIC VARIABLES:
       real(8), allocatable :: tilg(:)        ! The tildeg coefficients
 
       end module gtil
-!EOP
             
 !BOP
 !
@@ -45,7 +41,6 @@
 
  
 ! !EXTERNAL ROUTINES: 
-
       
       real(8), external :: tildeg
 

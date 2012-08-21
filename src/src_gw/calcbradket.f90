@@ -70,7 +70,7 @@
 !     Initializations
       nrwf=max(spnstmax,input%groundstate%lmaxapw,nlomax)
       allocate(bradketc(natmtot,maxnmix,spnstmax,0:nrwf,apwordmax,3))
-      allocate(bradketa(natmtot,maxnmix,0:input%groundstate%lmaxapw,&
+      allocate(bradketa(natmtot,maxnmix,0:input%groundstate%lmaxapw, &
      &  apwordmax,0:nrwf,apwordmax,3))
       allocate(bradketlo(natmtot,maxnmix,nlomax,0:nrwf,apwordmax,3))
       bradketc=0.0d0
@@ -80,7 +80,9 @@
       do is=1,nspecies
         do ia=1,natoms(is)
           ias=idxas(ia,is)
+          
           if(debug)write(701,100)ias,trim(spname(is))
+
 !         Loop over radial mixed functions
           do irm=1,nmix(ias)
 
@@ -129,7 +131,7 @@
                     bradketc(ias,irm,ist1,l2,io2,2)=gr(nrmt(is))
 
                     if(debug)write(701,1)irm,bigl(ias,irm),l1,ftype(1),      &
-                   &                     utype(io1),l2,ftype(2),utype(io2),   &
+                   &                     utype(io1),l2,ftype(2),utype(io2),  &
                    &                     bradketc(ias,irm,ist1,l2,io2,2)
                   enddo ! io2
                 endif
@@ -233,7 +235,9 @@
 !---------------------------------------------------------------------------!
 !           The left function is a lo        
 !---------------------------------------------------------------------------!
+            io1=1
             do ilo1=1,nlorb(is)
+              l1=lorbl(ilo1,is)
 
 !---------------------------------------------------------------------------!
 !                the right function of the product is a core wf.
@@ -254,7 +258,7 @@
                   if(debug)write(701,1)irm,bigl(ias,irm),l1,ftype(3),           &
                  &                     utype(io1),l2,ftype(1),utype(io2),       &
                  &                     bradketlo(ias,irm,ilo1,ist2,io2,1)
-                   endif
+                endif
               enddo ! ist2
 
 !---------------------------------------------------------------------------!
@@ -301,7 +305,9 @@
               enddo ! ilo2
               
             enddo ! ilo1
+
           enddo ! irm
+
         enddo ! ia
       enddo ! is
 

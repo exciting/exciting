@@ -56,10 +56,11 @@
 !BOC
       if(debug)open(701,file='MIXEDBASIS.OUT',action='WRITE',status='UNKNOWN',form='FORMATTED')
 
+!------------------------------------------------------------------------------
+
 !     Generate the core wavefunctions and densities
       call gencore
 
-!------------------------------------------------------------------------------
 !     According to the definition of core wafefunction in FHIgap code [Eq.(1.1.3)],
 !     one has to include the following prefactor into radial part.
 !     In addition I change the EXCITING definition, where rwfcr = r*ucore
@@ -81,8 +82,6 @@
 
 !     find the linearisation energies
       call linengy
-
-!     write out the linearisation energies
       call writelinen
 
 !     generate the APW radial functions
@@ -91,10 +90,7 @@
 !     generate the local-orbital radial functions for LAPW
       call genlofr
       
-!     generate the local-orbital radial functions to be used with MB
-!     call genlorwf
-
-      !core_ortho=.true.    
+      !core_ortho=.false.    
       !if(core_ortho) call orthog_corewf
       
 !------------------------------------------------------------------------------
@@ -127,7 +123,10 @@
           locmatsiz=locmatsiz+lms
         enddo ! ia
       enddo ! ias
+
       if(debug)write(701,101) lmixmax, locmatsiz
+  101 format(' Max. nr. of MT-sphere wavefunctions per atom ',i6,/,      &
+     &       ' Total  nr. of MT-sphere wavefunctions        ',i6)
 
 !     The maximum size of MB basis
       matsizmax=locmatsiz+ngqmax   
@@ -138,9 +137,7 @@
       call calctildeg(2*(input%gw%MixBasis%lmaxmb+1))
       
       if(debug)close(701)
+      
       return
-  101 format(' Max. nr. of MT-sphere wavefunctions per atom ',i6,/,      &
-     &       ' Total  nr. of MT-sphere wavefunctions        ',i6)
-
       end subroutine inimb
 !EOC
