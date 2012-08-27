@@ -70,7 +70,7 @@
                               </xs:documentation>
                            </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="ntemp" type="xs:integer" default="10">
+                        <xs:attribute ex:importance="expert" ex:unit="" name="ntemp" type="xs:integer" default="200">
                             <xs:annotation>
                                 <xs:documentation>Number of temperatures in the range up to
                                     the maximal temperature <inlinemath>T_{\rm max}</inlinemath> for the calculation
