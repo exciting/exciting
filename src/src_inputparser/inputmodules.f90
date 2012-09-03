@@ -2651,7 +2651,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ntemp")
-getstructphonondos%ntemp=10
+getstructphonondos%ntemp=200
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ntemp",getstructphonondos%ntemp)
        call removeAttribute(thisnode,"ntemp")  

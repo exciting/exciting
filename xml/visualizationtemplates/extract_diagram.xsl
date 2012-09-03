@@ -6,25 +6,23 @@
 <xsl:param name="ID"/>
 <!--*************************************************************************************-->
 <xsl:template match="/">
-   <xsl:element name="dos">
-<xsl:text>
-</xsl:text>
-<title><xsl:value-of select="/dos/title"/></title>
-<xsl:text>
-</xsl:text>
-      <xsl:choose>
-         <xsl:when test="contains($ID,',')='true'">
-            <xsl:call-template name="ID_parser">
-               <xsl:with-param name="id1"><xsl:value-of select="substring-before($ID,',')"/></xsl:with-param>
-               <xsl:with-param name="id2"><xsl:value-of select="substring-after($ID,',')"/></xsl:with-param>
-            </xsl:call-template>
-         </xsl:when>
-         <xsl:otherwise>                   <!--"contains($ID,',')='false'"-->
-            <xsl:call-template name="main">
-               <xsl:with-param name="id1"><xsl:value-of select="$ID"/></xsl:with-param>
-            </xsl:call-template>
-         </xsl:otherwise>
-      </xsl:choose>
+  <xsl:element name="dos">
+    <xsl:text></xsl:text>
+    <title><xsl:value-of select="/dos/title"/></title>
+    <xsl:text></xsl:text>
+    <xsl:choose>
+      <xsl:when test="contains($ID,',')='true'">
+	<xsl:call-template name="ID_parser">
+	  <xsl:with-param name="id1"><xsl:value-of select="substring-before($ID,',')"/></xsl:with-param>
+	  <xsl:with-param name="id2"><xsl:value-of select="substring-after($ID,',')"/></xsl:with-param>
+	</xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>                   <!--"contains($ID,',')='false'"-->
+	<xsl:call-template name="main">
+	  <xsl:with-param name="id1"><xsl:value-of select="$ID"/></xsl:with-param>
+	</xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
    </xsl:element>
 </xsl:template>
 <!--*************************************************************************************-->
