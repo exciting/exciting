@@ -17,7 +17,6 @@ subroutine checkmbrot(iq)
     
     ! irreducible q-point index
     iqp=indkpq(iq,1)
-    
 
 !--------------------------------------------
 !   Check valence-valence M^i_{nm} rotation
@@ -63,7 +62,7 @@ subroutine checkmbrot(iq)
           enddo ! jst
       enddo ! ist
 
-      ikp = idikpq(indkpq(ik,iqp),iqp)
+      ikp=idikpq(indkpq(ik,iqp),iqp)
       read(41,rec=ikp) minmmat
       
       ijst=0
