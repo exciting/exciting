@@ -71,7 +71,7 @@
 !         Product of core and apw functions
           do ist=1,ncore(is)
             bandpar(1,:)=evalcr(ist,ias)       
-            call tetiw(nkptnr,ntet,1,bandpar,tnodes,wtet,tvol,efermi,cwpar)
+            call tetiw(nkptnr,ntetnr,1,bandpar,tnodesnr,wtetnr,tvol,efermi,cwpar)
             ciw(ias,ist)=cwpar(1,1)
           enddo ! ist
         enddo ! ia
@@ -87,9 +87,9 @@
          bandpar(1:nstfv,ik)=evaldft(1:nstfv,ikp)
       enddo  
 
-      call tetiw(nkptnr,ntet,nstfv,bandpar,tnodes,wtet,tvol,efermi,kiw)
+      call tetiw(nkptnr,ntetnr,nstfv,bandpar,tnodesnr,wtetnr,tvol,efermi,kiw)
 
-      call tetiwsurf(nkptnr,ntet,nstfv,bandpar,tnodes,wtet,tvol,efermi,kwfer)
+      call tetiwsurf(nkptnr,ntetnr,nstfv,bandpar,tnodesnr,wtetnr,tvol,efermi,kwfer)
       
       deallocate(bandpar)
       

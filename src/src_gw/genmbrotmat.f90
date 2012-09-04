@@ -23,7 +23,7 @@ subroutine genmbrotmat(iq,isym)
       
       integer(4) :: ia, is, ias
       integer(4) :: ja, js, jas
-      integer(4) :: ieq, lspl
+      integer(4) :: ieq, lspl, ilspl
       integer(4) :: irm, jrm
       integer(4) :: l1, l2, m1, m2
       integer(4) :: imix,jmix   
@@ -31,10 +31,10 @@ subroutine genmbrotmat(iq,isym)
       integer(4) :: iqp
       
       integer(4) :: ig, igq1, igq2
-      integer(4) :: s(3,3)
+      integer(4) :: s(3,3), si(3,3)
       integer(4) :: g0(3), g1(3), g2(3), g3(3)
 
-      real(8)    :: c(3,3)
+      real(8)    :: c(3,3), ci(3,3)
       real(8)    :: t1
       real(8)    :: tstart, tend
       
@@ -64,17 +64,22 @@ subroutine genmbrotmat(iq,isym)
       allocate(rotmat(matsiz,matsiz))
       rotmat(:,:)=zzero
       
-!     index of the irreducible q-point in the full (non-reduced) grid      
+!     index of the irreducible q-point in the complete (non-reduced) grid      
       iqp=idikpq(indkpq(iq,1),1) 
 
       lspl=lsplsymc(isym)
       s(:,:)=symlat(:,:,lspl)
       c(:,:)=symlatc(:,:,lspl)
+
+!     the inverse of the spatial symmetry
+      ilspl=isymlat (lspl)
+      si(:,:)=symlat(:,:,ilspl)
+      ci(:,:)=symlatc(:,:,ilspl)
       
      ! G^{q}_{R}
       v(:)=matmul(vql(:,iq),dble(s))-vql(:,iqp)
       call r3frac(input%structure%epslat,v,g0)
-     
+
 !----------------------------------
 !              MT part
 !----------------------------------
@@ -84,10 +89,11 @@ subroutine genmbrotmat(iq,isym)
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias=idxas(ia,is)
-!
-!         Index of the symmetry equivalent atom: R[r_eq]=r_a
-!          
-          ieq=ieqatom(ia,is,isym)
+
+!         equivalent atom         
+          ja=ieqatom(ia,is,isym)
+          jas=idxas(ja,is)
+
 !
 !         Loop over mixed functions:
 !
@@ -97,40 +103,30 @@ subroutine genmbrotmat(iq,isym)
             do m1 = -l1, l1
               imix=imix+1
               im=locmixind(ias,imix)
-!
-!             Loop over atoms:
-!
-              do js = 1, nspecies
-                do ja = 1, natoms(js)
-                  jas=idxas(ja,js)
-!
-!                 Loop over mixed functions:
-!
-                  jmix=0
-                  do jrm = 1, nmix(jas)
-                    l2=bigl(jas,jrm)
-                    do m2 = -l2, l2
-                      jmix=jmix+1
-                      jm=locmixind(jas,jmix)
 
-                      ieq=ieqatom(ia,is,isym)
-                      if((ieq.eq.jas).and.(irm.eq.jrm).and.(l1.eq.l2))then
-                        t1=twopi*dot_product(v(:),atposl(:,ia,is))
-                        zt1=cmplx(cos(t1),sin(t1),8)
-                        t1=-twopi*dot_product(vql(:,iq),vtlsymc(:,isym))
-                        zt1=zt1*cmplx(cos(t1),sin(t1),8)
-                        rotmat(jm,im)=zt1*getdlmm(c,l1,m2,m1)
-                      endif
+              jmix=0
+              do jrm = 1, nmix(jas)
+                l2=bigl(jas,jrm)
+                do m2 = -l2, l2
+                  jmix=jmix+1
+                  jm=locmixind(jas,jmix)
 
-                    enddo ! m1
-                  enddo ! irm
-                enddo ! ia
-              enddo ! is 
+                  if ((irm.eq.jrm).and.(l1.eq.l2)) then
+                    t1=twopi*dot_product(v(:),atposl(:,ia,is))
+                    zt1=cmplx(cos(t1),sin(t1),8)
+                    t1=-twopi*dot_product(vql(:,iq),vtlsymc(:,isym))
+                    zt1=zt1*cmplx(cos(t1),sin(t1),8)
+                    rotmat(jm,im)=zt1*getdlmm(c,l1,m2,m1)
+                  endif
+                
+                enddo  ! m2
+              enddo ! jrm
 
-            enddo ! m2
-          enddo ! jrm
-        enddo ! ja
-      enddo ! jas
+        
+            enddo ! m1
+          enddo ! irm
+        enddo ! ia
+      enddo ! ias
 
 !-----------------------------------------------------------------
 !       Calculation of the matrix elements between two IPW's
@@ -142,8 +138,8 @@ subroutine genmbrotmat(iq,isym)
       do igq1 = 1, ngq(iqp)   ! loop over q0+G
         do igq2 = 1, ngq(iq)   ! loop over q1+G'
         
-          g1(:)=ivg(:,igqig(igq1,iqp))                ! get G vector of q0+G
-          g2(:)=ivg(:,igqig(igq2,iq))                 ! get G' vector of q1+G'
+          g1(:)=ivg(:,igqig(igq1,iqp))
+          g2(:)=ivg(:,igqig(igq2,iq)) 
           g3(:)=matmul(g2(:),dble(s))-g1(:)+g0(:)
           ig=ivgig(g3(1),g3(2),g3(3))                 ! index of (RG-G'+G_{R}) vector
           if((ig.lt.1).or.(ig.gt.ngrtot)) then

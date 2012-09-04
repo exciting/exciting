@@ -87,7 +87,7 @@
 
 !     find the matching coefficients
       call match(ngknr(1,ik),gkcnr(:,1,ik),tpgkcnr(:,:,1,ik), &
-     &    sfacgknr(:,:,1,ik),apwalm(:,:,:,:,1))
+     &  sfacgknr(:,:,1,ik),apwalm(:,:,:,:,1))
 
       select case (trans)
       case ('t','T')

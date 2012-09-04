@@ -51,9 +51,9 @@
       allocate(eveckp(nmatmax,nstfv,nspnfv))
 !
 !     get the eigenvectors from file
-      call getevecfv(vklnr(:,jk),vgklnr(:,:,:,jk),eveck)
+      call getevecfvgw(jk,eveck)
       eveckp=conjg(eveck)
-      call getevecfv(vklnr(:,ik),vgklnr(:,:,:,ik),eveck)
+      call getevecfvgw(ik,eveck)
 !
       call expand_evec(ik,'t')
       call expand_evec(jk,'c')

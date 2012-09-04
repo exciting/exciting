@@ -162,7 +162,7 @@
            enddo ! ie
          enddo ! ikp
 
-         call fermi(nkpt,nbandsgw,eqp,nirtet,tndi,wirtet,tvol, &
+         call fermi(nkpt,nbandsgw,eqp,ntet,tnodes,wtet,tvol, &
         &    nvelgw,.false.,eferqp,egap)
 
          if(it.eq.0) then 

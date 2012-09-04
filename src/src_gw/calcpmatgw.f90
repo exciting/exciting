@@ -26,7 +26,7 @@ subroutine calcpmatgw
 ! !LOCAL VARIABLES:
     implicit none
 
-    integer(4) :: ik,recl,recl2
+    integer(4) :: ik,ik0,recl,recl2
     
     real(8)    :: tstart, tend
 
@@ -109,9 +109,11 @@ subroutine calcpmatgw
 !---------------------------------!
     do ik=1,nkpt
 
+       ik0=idikp(ik)
+
 !      get the eigenvectors and values from file
-       call getevecfv(vkl(1,ik),vgkl(1,1,1,ik),evecfvt)
-       call getevecsv(vkl(1,ik),evecsvt)
+       call getevecfvgw(ik0,evecfvt)
+       call getevecsvgw(ik0,evecsvt)
 
 !      find the matching coefficients
        call match(ngk(1,ik),gkc(1,1,ik),tpgkc(1,1,1,ik), &

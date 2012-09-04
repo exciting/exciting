@@ -92,8 +92,8 @@
       allocate(evecfv(nmatmax,nstfv,nspnfv))
 
 !     get eigenvalues
-      call getevecfv(vklnr(:,ik),vgklnr(:,:,:,ik),evecfv)
-
+      call getevecfvgw(ik,evecfv)
+      
 !     find the matching coefficients
       call match(ngknr(1,ik),gkcnr(:,1,ik),tpgkcnr(:,:,1,ik), &
      &    sfacgknr(:,:,1,ik),apwalm(:,:,:,:,1))

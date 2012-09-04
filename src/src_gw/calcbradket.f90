@@ -269,7 +269,7 @@
                 if((iabs(l1-l2).le.bigl(ias,irm)).and.(l1+l2.ge.bigl(ias,irm)))then
                   do io2=1,apword(l2,is)
                     do ir=1,nrmt(is)
-                       fr(ir)=umix(ias,irm,ir)*lofr(ir,1,ilo1,ias)*      &
+                       fr(ir)=umix(ias,irm,ir)*lofr(ir,1,ilo1,ias)* &
                    &          apwfr(ir,1,io2,l2,ias)*spr(ir,is)
                     enddo ! ir
 !                   Calculate the integral:
@@ -291,7 +291,7 @@
                 l2=lorbl(ilo2,is)
                 if((iabs(l1-l2).le.bigl(ias,irm)).and.(l1+l2.ge.bigl(ias,irm)))then
                   do ir=1,nrmt(is)
-                    fr(ir)=umix(ias,irm,ir)*lofr(ir,1,ilo1,ias)*        &
+                    fr(ir)=umix(ias,irm,ir)*lofr(ir,1,ilo1,ias)* &
                  &         lofr(ir,1,ilo2,ias)*spr(ir,is)
                   enddo ! ir
 !                 Calculate the integral:

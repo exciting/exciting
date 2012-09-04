@@ -95,7 +95,7 @@
 !----------------------------------------------------------------------------!
 !         calculate wavefunction ( ik, ib1 )
 !----------------------------------------------------------------------------!
-          call getevecfv(vklnr(:,ik),vgklnr(:,:,:,ik),evecfv)
+          call getevecfvgw(ik,evecfv)
           zzk(1:ngknr(1,ik),1:nstfv)=evecfv(1:ngknr(1,ik),1:nstfv,1)
 
           call match(ngknr(1,ik),gkcnr(:,1,ik),tpgkcnr(:,:,1,ik), &
@@ -107,7 +107,7 @@
 !----------------------------------------------------------------------------!
 !         calculate wavefunction( jkp, ib2 )
 !----------------------------------------------------------------------------!
-          call getevecfv(vklnr(:,jk),vgklnr(:,:,:,jk),evecfv)
+          call getevecfvgw(jk,evecfv)
           zzq(1:ngknr(1,jk),1:nstfv)=evecfv(1:ngknr(1,jk),1:nstfv,1)
           
           call match(ngknr(1,jk),gkcnr(:,1,jk),tpgkcnr(:,:,1,jk), &

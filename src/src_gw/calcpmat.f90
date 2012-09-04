@@ -22,7 +22,7 @@ subroutine calcpmat
 !EOP
 !BOC
     implicit none
-    integer(4)              :: recl,recl2,ik
+    integer(4)              :: recl,recl2,ik,ik0
     complex(8), allocatable :: apwalmt(:,:,:,:)
     complex(8), allocatable :: evecfvt(:,:)
     complex(8), allocatable :: evecsvt(:,:)
@@ -54,19 +54,21 @@ subroutine calcpmat
        status='REPLACE',recl=recl2)
     endif   
 
-    do ik=1,nkpt
+    do ik = 1, nkpt
+
+      ik0=idikp(ik)
 
 !     get the eigenvectors and values from file
-      call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfvt)
-      call getevecsv(vkl(:,ik),evecsvt)
+      call getevecfvgw(ik0,evecfvt)
+      call getevecsvgw(ik0,evecsvt)
       
 !     find the matching coefficients
       call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik), &
-     &    sfacgk(:,:,1,ik),apwalmt)
+     &  sfacgk(:,:,1,ik),apwalmt)
 
 !     valence-valence matrix elements
-      call genpmat(ngk(1,ik),igkig(1,1,ik),vgkc(1,1,1,ik),apwalmt, &
-     &  evecfvt,evecsvt,pmat)
+      call genpmat(ngk(1,ik),igkig(1,1,ik),vgkcnr(1,1,1,ik), &
+     &  apwalmt,evecfvt,evecsvt,pmat)
       write(50,rec=ik) pmat
 
 !     core-valence contribution      

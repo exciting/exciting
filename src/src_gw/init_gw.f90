@@ -3,7 +3,7 @@
 ! !ROUTINE: initgw
 !
 ! !INTERFACE
-      subroutine initgw
+      subroutine init_gw
 
 ! !DESCRIPTION:
 !
@@ -48,44 +48,43 @@
         write(*,*)'k-point meshes should be generated with tetra =.true.'
         stop 'ERROR in initgw'
       endif
+      
       spinpol=associated(input%groundstate%spin)
       if (spinpol) then
         write(*,*)'GW EMERGENCY STOP!!!'
         stop 'Spin polarization is not implemented yet'
       end if
 
-!     Minimal muffin-tin radius
-      rmtmin=rmt(1)
-      if(nspecies.gt.1)then
-        do is=2,nspecies
-          if (rmt(is).lt.rmtmin) rmtmin=rmt(is)
-        enddo
-      endif
-
-!     Determine G-vector cutoff parameters
-      gkmax=input%groundstate%rgkmax/rmtmin
-      gqmax=input%gw%MixBasis%gmb*gkmax
-      gmaxbarc=min(pwm*gqmax,input%groundstate%gmaxvr)
-      
-      if(gmaxbarc.gt.input%groundstate%gmaxvr)then
-        write(*,*)'WARNING(initgw)! One should increase the value of gmaxvr:'
-        write(*,*) 'gkmax=',gkmax,'    gqmax=', gqmax
-        write(*,*) 'gmaxvr',input%groundstate%gmaxvr,'    gmaxbarc=', gmaxbarc
-      end if
-      
-!     initialise universal variables
+! initialise global variables
       call init0
+
+! Calculate eigenvectors for the complete (non-reduced) k-point set
+      if (input%groundstate%reducek) then
+        call geneigenvectors
+      end if
+
+!     Generate the k- and q-point meshes      
       call init1
+      call init_kqpts
 
-!     initialize or read the charge density and potentials from file
-      call readstate
+! initialise the charge density and potentials from file
+      Call readstate
 
-!     Generate the frequency mesh and integration weights.
-      call init_freq
+! generate the core wavefunctions and densities
+      Call gencore
+
+! find the new linearisation energies
+      Call linengy
+
+! write out the linearisation energies
+      Call writelinen
+
+! generate the APW radial functions
+      Call genapwfr
+
+! generate the local-orbital radial functions
+      Call genlofr
       
-!     Generate the k- and q-point meshes
-      call initkqpts
-
 !     Tranform xc potential to reciprocal space
       call genvxcig
 
@@ -145,9 +144,12 @@
 
 !     Calculate the overlap between two PW 
 !     In exciting there is the same quantity: conjg(cfunig(:)) = ipwint(:)
-!     But beed to be checked!!!
+!     (still need to be checked!!!)
       call intipw
 
+!     Generate the frequency mesh and integration weights.
+      call init_freq
+
       return
-      end subroutine initgw
+      end subroutine
 !EOC

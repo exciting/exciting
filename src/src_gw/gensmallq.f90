@@ -42,14 +42,12 @@ SUBROUTINE gensmallq
 !EOP
 !BOC
 
-    if(debug)then
-       call boxmsg(99,'-','Generate the small group of q-vectors')
-    endif
-    
-    nsym=1
     if (input%gw%reduceq) then
       nqpt=nkpt
       nsym=nsymcrys
+    else
+      nqpt=nqptnr
+      nsym=1
     end if  
 
     allocate(nsymq(nqpt))
@@ -83,7 +81,6 @@ SUBROUTINE gensmallq
       else
         v1(:)=vql(:,iqp)
       end if  
-      !write(*,*) 'v1=', v1
       
       call findgroupq(.false.,v1,input%structure%epslat, &
      &   bvec,symlat,nsym,lsplsymc,nsymq(iqp),scmapq,ivwrapq)
@@ -151,8 +148,9 @@ SUBROUTINE gensmallq
 !      
 !     Debug information
 !
-      if (debug) then
-      
+      if (debug.and.input%gw%reduceq) then
+ 
+        call boxmsg(99,'-','Generate a small group of q-vectors')
         write(99,*)
         write(99,*) "iqp = ", iqp
         write(99,*)

@@ -29,7 +29,7 @@ subroutine testmbrotmat()
 !BOC
       iq=input%gw%iik
       iqp=indkp(iq) ! irreducible
-      iq=idikp(iqp)
+      !iq=idikp(iqp)
       
       write(*,*)
       write(*,*)'iq = ', iq, 'iqp = ', iqp
@@ -66,12 +66,12 @@ subroutine testmbrotmat()
       open(41,file='minmmat.io',action='WRITE',form='UNFORMATTED', &
      &  access='DIRECT',recl=recl)
    
-      do ik = 1, nkptnr
-        call expand_prods(ik,iq,0)
-        write(39,rec=ik) mincmat
-        write(40,rec=ik) micmmat
-        write(41,rec=ik) minmmat
-      end do
+       do ik = 1, nkptnr
+         call expand_prods(ik,iq,0)
+         write(39,rec=ik) mincmat
+         write(40,rec=ik) micmmat
+         write(41,rec=ik) minmmat
+       end do
       close(39)
       close(40)
       close(41)

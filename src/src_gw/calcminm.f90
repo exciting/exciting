@@ -138,35 +138,37 @@
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias=idxas(ia,is)
-          arg=atposl(1,ia,is)*qvec(1)+atposl(2,ia,is)*qvec(2)+          &
-     &        atposl(3,ia,is)*qvec(3)
+          arg=atposl(1,ia,is)*qvec(1)+ &
+         &    atposl(2,ia,is)*qvec(2)+ &
+         &    atposl(3,ia,is)*qvec(3)
           phs=cmplx(cos(2.0d0*pi*arg),-sin(2.0d0*pi*arg),8)
 !
 !         Loop over mixed functions:
 !
           do irm = 1, nmix(ias)
-            bl=bigl(ias,irm)
 
-            do bm=-bl,bl
-              imix = imix + 1
+            bl=bigl(ias,irm)
+            do bm = -bl, bl
+              
+              imix = imix+1
 
               do l1=0,input%groundstate%lmaxapw
+                
                 l2min=abs(bl-l1)
                 l2max=min(bl+l1,input%groundstate%lmaxapw)
-                
                 do l2=l2min,l2max
                   
                   do m1=-l1,l1
                     l1m1=idxlm(l1,m1)
                     m2=-bm+m1
-                    if(abs(m2).le.l2) then
+                    if (abs(m2).le.l2) then
                       l2m2=idxlm(l2,m2)
 !
 !                     Calculate the angular integral:
 !
                       angint=gaunt(l1,l2,bl,m1,m2,bm)
                       
-                      if(abs(angint).gt.1.0d-8) then
+                      if (abs(angint).gt.1.0d-8) then
 !
 !                       Loop over eigenfunctions at k-q
 !
@@ -231,19 +233,24 @@
                               endif
                             enddo ! ilo2 
                             
-                            minm(imix,ist1,ist2) = minm(imix,ist1,ist2)+phs*angint*sumterms
+                            minm(imix,ist1,ist2) = minm(imix,ist1,ist2) &
+                           &                     + phs*angint*sumterms
                           
-                          enddo ! ist2
+                          enddo ! ist1
                         
-                        enddo !ist1
-                      endif
-                    endif
+                        enddo !ist2
+                      
+                      endif ! angint
+                    
+                    endif ! m2
                     
                   enddo ! m1     
                 enddo ! l2
               enddo ! l1
+
             enddo ! bm
           enddo ! irm
+
         enddo ! ia
       enddo ! is
 !

@@ -18,6 +18,171 @@ subroutine checkmbrot(iq)
     ! irreducible q-point index
     iqp=indkpq(iq,1)
     
+
+!--------------------------------------------
+!   Check valence-valence M^i_{nm} rotation
+!--------------------------------------------
+
+    recl=16*(matsiz*nstfv*nstsv)
+    open(41,file='minmmat.io',action='READ',form='UNFORMATTED', &
+   &     access='DIRECT',recl=recl)
+
+    if(allocated(minmmat))deallocate(minmmat)
+    allocate(minmmat(matsiz,nstfv,nstfv))
+
+    dimtk=maxoccband*(nstfv-minunoband+1)
+    allocate(mmatk(1:matsiz,1:dimtk))
+    allocate(mmatkp(1:matsiz,1:dimtk))
+    allocate(rmmat(1:matsiz,1:dimtk))
+    
+    allocate(tmat(1:matsiz,1:matsiz))
+    allocate(m2tot(1:matsiz,1:matsiz))
+    allocate(m2k(1:matsiz,1:matsiz))
+    allocate(m2r(1:matsiz,1:matsiz))
+
+    open(31,file='rotminm1.dat')
+    write(31,*)'***** Mi_nm *****'
+    open(32,file='rotminm2.dat')
+    write(32,*)'***** Mi_nm^2 *****'
+
+!-------------------------------------------------------------------
+!   Direct BZ summation and check for M^i_{nm} rotation
+!-------------------------------------------------------------------
+    m2tot(:,:)=zzero
+    do ik = 1, nkptnr
+!
+!     Read the matrix elements M^i_{nm}
+!
+      read(41,rec=ik) minmmat
+      
+      ijst=0
+      do ist = 1, maxoccband
+         do jst = minunoband, nstfv
+            ijst=ijst+1
+            mmatk(1:matsiz,ijst)=minmmat(1:matsiz,ist,jst)
+          enddo ! jst
+      enddo ! ist
+
+      ikp = idikpq(indkpq(ik,iqp),iqp)
+      read(41,rec=ikp) minmmat
+      
+      ijst=0
+      do ist = 1, maxoccband
+         do jst = minunoband, nstfv
+            ijst=ijst+1
+            mmatkp(1:matsiz,ijst)=minmmat(1:matsiz,ist,jst)
+          enddo ! jst
+      enddo ! ist
+!
+!     Get the matrix elements M^i_{nm} by symmetry
+!
+      isym=iksymq(ik,iqp)
+!
+!     Generate the MB rotation matrix according to the group symmetry operations
+!
+      call genmbrotmat(iq,isym)
+
+!     Rotate M^i_{nm}
+      call zgemm('c','n',matsiz,dimtk,matsiz, &
+     &     zone,rotmat,matsiz,mmatkp,matsiz,zzero,rmmat,matsiz) 
+
+      call boxmsg(31,'#','New K-point')
+      write(31,*)
+      write(31,*) 'ik = ', ik
+      do jst = 1, ijst, 10
+        do ist = 1, matsiz
+          word="MT"; if(ist>locmatsiz)word="PW"
+          write(31,'(a,2i5,6f12.6)') word, ist, jst, mmatk(ist,jst), rmmat(ist,jst), abs(mmatk(ist,jst)-rmmat(ist,jst))
+        end do
+      end do
+      write(31,*)
+
+!     calculate \sum_{nm} M^{i}_{nm} \times M^{j}_{nm}^{*} 
+      call zgemm('n','c',matsiz,matsiz,dimtk, &
+     &  zone,mmatk,matsiz,mmatk,matsiz,zzero,m2k,matsiz)
+      
+      m2tot(:,:)=m2tot(:,:)+m2k(:,:)
+
+      call zgemm('n','c',matsiz,matsiz,dimtk, &
+     &  zone,rmmat,matsiz,rmmat,matsiz,zzero,m2r,matsiz)
+
+      call boxmsg(32,'#','New K-point')
+      write(32,*)
+      write(32,*) 'ik = ', ik
+      do jst = 1, matsiz, 10
+        do ist = 1, matsiz
+          word="MT"; if(ist>locmatsiz)word="PW"
+          write(32,'(a,2i5,6f12.6)') word, ist, jst, m2k(ist,jst), m2r(ist,jst), abs(m2k(ist,jst)-m2r(ist,jst))
+        end do
+      end do
+      write(32,*)
+
+    end do ! ik
+    deallocate(mmatk)
+    close(31)
+    close(32)
+
+!---------------------------------------------------------
+!   \sum_{k}^{BZ} -> \sum_{k}^{BZ_q} \sum_{i}^{star(k)}
+!---------------------------------------------------------
+
+    open(36,file='summinm2.dat')
+    write(36,*)'***** sum_k Mi_nm*Mj_nm *****'
+
+    m2r(:,:)=zzero
+    do ik = 1, nkptq(iqp)
+      
+      ikp = idikpq(ik,iqp)
+      read(41,rec=ikp) minmmat
+      
+      ijst=0
+      do ist = 1, maxoccband
+         do jst = minunoband, nstfv
+            ijst=ijst+1
+            mmatkp(1:matsiz,ijst)=minmmat(1:matsiz,ist,jst)
+          enddo ! jst
+      enddo ! ist
+
+      ! get M^i_{nm}*M^j_{nm}^{*}
+      call zgemm('n','c',matsiz,matsiz,dimtk, &
+     &     zone,mmatkp,matsiz,mmatkp,matsiz,zone,m2r,matsiz)
+      
+      ! sum over the symmetry operations which form the star of k
+      do i = 2, nsymkstar(ik,iqp)
+      
+        isym = isymkstar(i,ik,iqp)
+
+        ! Generate the MB rotation matrix according to the group symmetry operations
+        call genmbrotmat(iq,isym)
+        
+        ! Rotate M^i_{nm}
+        call zgemm('c','n',matsiz,dimtk,matsiz, &
+       &     zone,rotmat,matsiz,mmatkp,matsiz,zzero,rmmat,matsiz) 
+
+        ! M^i_{nm}*M^j_{nm}^{*}
+        call zgemm('n','c',matsiz,matsiz,dimtk, &
+       &     zone,rmmat,matsiz,rmmat,matsiz,zone,m2r,matsiz)
+      
+      end do ! i
+    
+    end do ! ik    
+
+    call boxmsg(36,'#','Sum over k-points of Minm*Mjnm')
+    write(36,*)
+    do ist = 1, matsiz, 10
+      do jst = 1, matsiz
+        write(36,'(2i5,6f12.6)') ist, jst, m2tot(ist,jst), m2r(ist,jst), abs(m2tot(ist,jst)-m2r(ist,jst))
+      end do
+    end do
+    close(36)
+
+    deallocate(mmatkp)
+    deallocate(rmmat) 
+    deallocate(m2k,m2r,m2tot)
+    
+    deallocate(minmmat)
+    close(41)
+
     if (iopcore.eq.0) then
       
 !--------------------------------------------
@@ -232,170 +397,6 @@ subroutine checkmbrot(iq)
       close(39)
     
     end if ! core
-
-!--------------------------------------------
-!   Check valence-valence M^i_{nm} rotation
-!--------------------------------------------
-
-    recl=16*(matsiz*nstfv*nstsv)
-    open(41,file='minmmat.io',action='READ',form='UNFORMATTED', &
-   &     access='DIRECT',recl=recl)
-
-    if(allocated(minmmat))deallocate(minmmat)
-    allocate(minmmat(matsiz,nstfv,nstfv))
-
-    dimtk=maxoccband*(nstfv-minunoband+1)
-    allocate(mmatk(1:matsiz,1:dimtk))
-    allocate(mmatkp(1:matsiz,1:dimtk))
-    allocate(rmmat(1:matsiz,1:dimtk))
-    
-    allocate(tmat(1:matsiz,1:matsiz))
-    allocate(m2tot(1:matsiz,1:matsiz))
-    allocate(m2k(1:matsiz,1:matsiz))
-    allocate(m2r(1:matsiz,1:matsiz))
-
-    open(31,file='rotminm1.dat')
-    write(31,*)'***** Mi_nm *****'
-    open(32,file='rotminm2.dat')
-    write(32,*)'***** Mi_nm^2 *****'
-
-!-------------------------------------------------------------------
-!   Direct BZ summation and check for M^i_{nm} rotation
-!-------------------------------------------------------------------
-    m2tot(:,:)=zzero
-    do ik = 1, nkptnr
-!
-!     Read the matrix elements M^i_{nm}
-!
-      read(41,rec=ik) minmmat
-      
-      ijst=0
-      do ist = 1, maxoccband
-         do jst = minunoband, nstfv
-            ijst=ijst+1
-            mmatk(1:matsiz,ijst)=minmmat(1:matsiz,ist,jst)
-          enddo ! jst
-      enddo ! ist
-
-      ikp = idikpq(indkpq(ik,iqp),iqp)
-      read(41,rec=ikp) minmmat
-      
-      ijst=0
-      do ist = 1, maxoccband
-         do jst = minunoband, nstfv
-            ijst=ijst+1
-            mmatkp(1:matsiz,ijst)=minmmat(1:matsiz,ist,jst)
-          enddo ! jst
-      enddo ! ist
-!
-!     Get the matrix elements M^i_{cm} by symmetry
-!
-      isym=iksymq(ik,iqp)
-!
-!     Generate the MB rotation matrix according to the group symmetry operations
-!
-      call genmbrotmat(iq,isym)
-
-!     Rotate M^i_{nm}
-      call zgemm('c','n',matsiz,dimtk,matsiz, &
-     &     zone,rotmat,matsiz,mmatkp,matsiz,zzero,rmmat,matsiz) 
-
-      call boxmsg(31,'#','New K-point')
-      write(31,*)
-      write(31,*) 'ik = ', ik
-      do jst = 1, ijst, 10
-        do ist = 1, matsiz
-          word="MT"; if(ist>locmatsiz)word="PW"
-          write(31,'(a,2i5,6f12.6)') word, ist, jst, mmatk(ist,jst), rmmat(ist,jst), abs(mmatk(ist,jst)-rmmat(ist,jst))
-        end do
-      end do
-      write(31,*)
-
-!     calculate \sum_{nm} M^{i}_{nm} \times M^{j}_{nm}^{*} 
-      call zgemm('n','c',matsiz,matsiz,dimtk, &
-     &  zone,mmatk,matsiz,mmatk,matsiz,zzero,m2k,matsiz)
-      
-      m2tot(:,:)=m2tot(:,:)+m2k(:,:)
-
-      call zgemm('n','c',matsiz,matsiz,dimtk, &
-     &  zone,rmmat,matsiz,rmmat,matsiz,zzero,m2r,matsiz)
-
-      call boxmsg(32,'#','New K-point')
-      write(32,*)
-      write(32,*) 'ik = ', ik
-      do jst = 1, matsiz, 10
-        do ist = 1, matsiz
-          word="MT"; if(ist>locmatsiz)word="PW"
-          write(32,'(a,2i5,6f12.6)') word, ist, jst, m2k(ist,jst), m2r(ist,jst), abs(m2k(ist,jst)-m2r(ist,jst))
-        end do
-      end do
-      write(32,*)
-
-    end do ! ik
-    deallocate(mmatk)
-    close(31)
-    close(32)
-
-!---------------------------------------------------------
-!   \sum_{k}^{BZ} -> \sum_{k}^{BZ_q} \sum_{i}^{star(k)}
-!---------------------------------------------------------
-
-    open(36,file='summinm2.dat')
-    write(36,*)'***** sum_k Mi_nm*Mj_nm *****'
-
-    m2r(:,:)=zzero
-    do ik = 1, nkptq(iqp)
-      
-      ikp = idikpq(ik,iqp)
-      read(41,rec=ikp) minmmat
-      
-      ijst=0
-      do ist = 1, maxoccband
-         do jst = minunoband, nstfv
-            ijst=ijst+1
-            mmatkp(1:matsiz,ijst)=minmmat(1:matsiz,ist,jst)
-          enddo ! jst
-      enddo ! ist
-
-      ! get M^i_{nm}*M^j_{nm}^{*}
-      call zgemm('n','c',matsiz,matsiz,dimtk, &
-     &     zone,mmatkp,matsiz,mmatkp,matsiz,zone,m2r,matsiz)
-      
-      ! sum over the symmetry operations which form the star of k
-      do i = 2, nsymkstar(ik,iqp)
-      
-        isym = isymkstar(i,ik,iqp)
-
-        ! Generate the MB rotation matrix according to the group symmetry operations
-        call genmbrotmat(iq,isym)
-        
-        ! Rotate M^i_{nm}
-        call zgemm('c','n',matsiz,dimtk,matsiz, &
-       &     zone,rotmat,matsiz,mmatkp,matsiz,zzero,rmmat,matsiz) 
-
-        ! M^i_{nm}*M^j_{nm}^{*}
-        call zgemm('n','c',matsiz,matsiz,dimtk, &
-       &     zone,rmmat,matsiz,rmmat,matsiz,zone,m2r,matsiz)
-      
-      end do ! i
-    
-    end do ! ik    
-
-    call boxmsg(36,'#','Sum over k-points of Minm*Mjnm')
-    write(36,*)
-    do ist = 1, matsiz, 10
-      do jst = 1, matsiz
-        write(36,'(2i5,6f12.6)') ist, jst, m2tot(ist,jst), m2r(ist,jst), abs(m2tot(ist,jst)-m2r(ist,jst))
-      end do
-    end do
-    close(36)
-
-    deallocate(mmatkp)
-    deallocate(rmmat) 
-    deallocate(m2k,m2r,m2tot)
-    
-    deallocate(minmmat)
-    close(41)
     
     return
 end subroutine

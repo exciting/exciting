@@ -70,22 +70,29 @@ subroutine gw_main
       
 !     Initialize GW global parameters
       call cpu_time(t(1))
-      call initgw
+      call init_gw
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'INITGW')
 
       select case(testid)
-!!
-!!         testid = 1: Calculate LAPW basis functions for plotting
-!!
-          case (1) 
-              call plotlapw
-              goto 1000
+!
+!       testid = 1: Calculate LAPW basis functions for plotting
+!
+        case (1) 
+          call plotlapw
+          goto 1000
+!
+!       testid = 2: Calculate LAPW eigenvectors for plotting
+!              
+        case(2)
+          call plotevec
+          goto 1000
+            
       end select
 
 !     Mixed basis initialization
       call cpu_time(t(1))
-      call inimb
+      call init_mb
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'INIMB')
       
@@ -108,11 +115,6 @@ subroutine gw_main
 !!            
           case (0)
               call gwcycle
-!
-!         testid = 2: Calculate LAPW eigenvectors for plotting
-!
-          case (2)
-              call plotevec
 !!
 !!        testid = 3: Calculate LAPW eigenvectors products for plotting
 !!

@@ -176,7 +176,7 @@
             l1=lorbl(ilo1,is)
             if (l1.le.input%gw%MixBasis%lmaxmb) then
 
-!             do l2=l1,input%gw%MixBasis%lmaxmb
+!             do l2=0,input%gw%MixBasis%lmaxmb
 !               do io2=1,apword(l2,is)
 !                 if (apwdm(io2,l2,is).eq.0) then
 !                   ipr1=ipr1+1

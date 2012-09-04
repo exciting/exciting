@@ -63,7 +63,7 @@ subroutine readevaldft
 !    write(fgw,*)'(readevaldft) Fermi energy EXCITING [Ha]: ', efermi
 
 !   The fermi energy calculated using LIBBZINT
-    call fermi(nkpt,nstfv,evaldft,nirtet,tndi,wirtet,tvol, &
+    call fermi(nkpt,nstfv,evaldft,ntet,tnodes,wtet,tvol, &
                chgval,.false.,efermi,egap)
     write(fgw,*)
     write(fgw,*)'(readevaldft)     Fermi energy (KS) [Ha]: ', efermi

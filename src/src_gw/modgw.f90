@@ -22,8 +22,6 @@ module modgw
 !----------------------------!
 ! Task identification number
       integer(4) :: testid
-! minimal muffintin radius
-      real(8)    :: rmtmin
 ! record length for EIGVEC.OUT
       integer(4) :: reclev
 ! general gw output file
@@ -116,17 +114,16 @@ module modgw
       integer(4) dvq
 ! auxiliary arrays
 #endif
-! number of the tetrahedra linked to by the corresponding q vector
+      
+      integer(4), allocatable :: indkp(:)
+      integer(4), allocatable :: idikp(:)     ! kpoint index of the irred. kpoint
+
+      integer(4) :: ntetnr                    ! Total number of tetrahedra
+      integer(4), allocatable :: wtetnr(:)    ! weight of each tetrahedron  for integration
+      integer(4), allocatable :: tnodesnr(:,:)! index of the k-points corresponding to the nodes of each tetrahedra for integration
+
       integer(4), allocatable :: linkq(:,:)
       integer(4), allocatable :: iwkp(:)
-      integer(4), allocatable :: indkp(:)
-      
-      integer(4) :: nirtet   ! Number of irreducible tetrahedra
-      integer(4), allocatable :: idikp(:)   ! kpoint index of the irred. kpoint
-      integer(4), allocatable :: ivkir(:,:) ! List of irreducible k-points in submesh coordinates
-      integer(4), allocatable :: wkir(:)    ! Geometrical weight of each irreducible k-point 
-      integer(4), allocatable :: wirtet(:)  ! weight of each irred. tetrahedron  for integration
-      integer(4), allocatable :: tndi(:,:)  ! index of the k-points corresponding to the nodes of each tetrahedra for integration
 
 !------------------------------!
 !     Non-reduced G+k arrays   !

@@ -77,7 +77,7 @@
       do ikp = 1, nkpt
       
         ik=idikp(ikp)
-        coef=zone*wkir(ikp)*sfact*cpivi
+        coef=zone*iwkp(ikp)*sfact*cpivi
         
 !---------------------------------          
 !       Valence-valence
