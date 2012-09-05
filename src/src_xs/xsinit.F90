@@ -109,8 +109,10 @@ Subroutine xsinit
       If (associated(input%groundstate%spin)) Then
          Write (unitout,*)
          Write (unitout, '("Error(xsinit): xs-part not working for spin-polari&
-        &zed")')
+        &zed systems.")')
          Write (unitout,*)
+         Write (100, '("Warning(xsinit): xs-part not working for spin-polari&
+        &zed systems.")')
          Call terminate
       End If
   ! no spin-spirals
@@ -118,6 +120,8 @@ Subroutine xsinit
          Write (unitout,*)
          Write (unitout, '("Error(xsinit): xs-part not working for spin&
         &-spirals")')
+         Write (100, '("Warning(xsinit): xs-part not working for spin&
+        &-spirals.")')
          Write (unitout,*)
          Call terminate
       End If
