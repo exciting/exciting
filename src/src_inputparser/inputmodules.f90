@@ -691,6 +691,7 @@ type gw_type
  integer::ibmax2
  integer::at1
  integer::at2
+ integer::nempty
  integer::ibgw
  integer::nbgw
  logical::rpmat
@@ -701,6 +702,7 @@ type gw_type
  logical::reduceq
  character(512)::bzconv
  logical::debug
+ integer::ngridq(3)
   type(freqgrid_type),pointer::freqgrid
   type(selfenergy_type),pointer::selfenergy
   type(mixbasis_type),pointer::mixbasis
@@ -5004,6 +5006,14 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"nempty")
+getstructgw%nempty=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nempty",getstructgw%nempty)
+       call removeAttribute(thisnode,"nempty")  
+endif
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"ibgw")
 getstructgw%ibgw=1
 if(associated(np)) then
@@ -5013,7 +5023,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"nbgw")
-getstructgw%nbgw=1
+getstructgw%nbgw=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nbgw",getstructgw%nbgw)
        call removeAttribute(thisnode,"nbgw")  
@@ -5074,6 +5084,14 @@ getstructgw%debug= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"debug",getstructgw%debug)
        call removeAttribute(thisnode,"debug")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ngridq")
+getstructgw%ngridq=(/0,0,0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ngridq",getstructgw%ngridq)
+       call removeAttribute(thisnode,"ngridq")  
 endif
 
             len= countChildEmentsWithName(thisnode,"freqgrid")
@@ -6256,6 +6274,8 @@ case('band')
 case('rotmat')
  stringtonumbergwtaskname=-1
 case('gw')
+ stringtonumbergwtaskname=-1
+case('skip')
  stringtonumbergwtaskname=-1
 case('')
  stringtonumbergwtaskname=0

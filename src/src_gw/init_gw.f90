@@ -24,7 +24,11 @@
       integer(4) :: il
       integer(4) :: is      
       integer(4) :: ist      
-      integer(4) :: m
+      integer(4) :: m, n
+      
+      Integer :: recl, nmatmax_, nstfv_, nspnfv_
+      Real(8) :: vkl_(3)
+      Complex (8) :: evecfv_(nmatmax,nstfv,nspnfv)
  
 ! !EXTERNAL ROUTINES: 
 
@@ -55,16 +59,11 @@
         stop 'Spin polarization is not implemented yet'
       end if
 
-! initialise global variables
-      call init0
-
 ! Calculate eigenvectors for the complete (non-reduced) k-point set
-      if (input%groundstate%reducek) then
-        call geneigenvectors
-      end if
+! (when it is required)
+      call genevecs
 
 !     Generate the k- and q-point meshes      
-      call init1
       call init_kqpts
 
 ! initialise the charge density and potentials from file

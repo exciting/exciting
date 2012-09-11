@@ -25,6 +25,7 @@
       character(6) :: fdep
       character(6) :: fgrid
       character(3) :: corflag
+      integer(4)   :: nstfv_
       
 ! !EXTERNAL ROUTINES: 
 
@@ -227,11 +228,29 @@
 
       call linmsg(fgw,'-','')
 !
-!     Parameters for determine nbandsgw
+!     Number of the empty bands used in GW code
 !
+      if ((input%gw%nempty<1).or.(input%gw%nempty>nmatmax)) then
+        input%gw%nempty=input%groundstate%nempty
+      end if
+      write(fgw,*)'Number of empty states (groundstate): ', input%groundstate%nempty
+      write(fgw,*)'Number of empty states (GW): ', input%gw%nempty
+      write(fgw,*)
+!
+!     Band interval where GW corections are applied
+!
+!     new number (to be used in GW) of first-variational states
+      nstfv_=int(chgval/2.d0)+input%gw%nempty+1
+
       ibgw=input%gw%ibgw
+      if ((ibgw<1).or.(ibgw>nstfv_)) then
+        ibgw=1
+      end if
       nbgw=input%gw%nbgw
-      write(fgw,'(a,2i7)') "GW output band range ", ibgw, nbgw
+      if ((nbgw<1).or.(nbgw>nstfv_)) then
+        nbgw=nstfv_
+      end if
+      write(fgw,'(a,2i7)') 'GW output band range: ', ibgw, nbgw
       write(fgw,*)
 !
 !     Read the options for the mixed basis functions
@@ -282,7 +301,7 @@
           write(fgw,*)' all: All electron calculation'
         case('xal','XAL')
           iopcore=1
-          write(fgw,*)' xal: all electron for exchange, valcence only for correlation'
+          write(fgw,*)' xal: all electron for exchange, valence only for correlation'
         case('val')
           iopcore=2
           write(fgw,*)' val: Valence electrons only'
@@ -292,9 +311,30 @@
        end select
 !
       call linmsg(fgw,'-','')
+!
+!     To take into account anisotropy of \epsilon for q->0
 !      
       !q0_eps=(/1.d0,1.d0,1.d0/)/sqrt(3.0d0)
       q0_eps=input%gw%q0eps
+     
+!
+!     K/Q point grids
+!     
+      if ((input%gw%ngridq(1).gt.0).and. &
+     &    (input%gw%ngridq(2).gt.0).and. &
+          (input%gw%ngridq(3).gt.0)) then
+        if ((input%gw%ngridq(1).ne.input%groundstate%ngridk(1)).and. &
+       &    (input%gw%ngridq(2).ne.input%groundstate%ngridk(2)).and. &
+            (input%gw%ngridq(3).ne.input%groundstate%ngridk(3))) then
+          write(fgw,*)
+          write(fgw,*)'Attention! Different k/q grids are specified for the groundstate and GW calculations!'
+          write(fgw,*)'           Please note, that the GW results are very sensitive to the quality &
+         &  of the starting quantities (groundstate calculations).'
+          write(fgw,*)
+          write(fgw,*)'New k/q-grid: ngridq = ', input%gw%ngridq
+          input%groundstate%ngridk=input%gw%ngridq
+        end if
+      end if
       
       return
       end subroutine readingw

@@ -109,6 +109,7 @@
                 <xs:enumeration value="band"/>
                 <xs:enumeration value="rotmat"/> 
                 <xs:enumeration value="gw"/>
+                <xs:enumeration value="skip"/>
               </xs:restriction>
             </xs:simpleType>
           </xs:attribute>
@@ -172,6 +173,13 @@
               <xs:documentation>Second atom number</xs:documentation>
             </xs:annotation>
           </xs:attribute>
+
+          <xs:attribute ex:importance="expert" ex:unit="" name="nempty" type="xs:integer" use="optional" default="0">
+            <xs:annotation>
+              <xs:documentation>Number of empty states (cutoff parameter) used in GW. If not specified, 
+              the same number as for the groundstate calculations is used.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="ibgw" type="xs:integer" use="optional" default="1">
             <xs:annotation>
@@ -179,9 +187,10 @@
             </xs:annotation>
           </xs:attribute>
           
-          <xs:attribute ex:importance="expert" ex:unit="" name="nbgw" type="xs:integer" use="optional" default="1">
+          <xs:attribute ex:importance="expert" ex:unit="" name="nbgw" type="xs:integer" use="optional" default="0">
             <xs:annotation>
-              <xs:documentation>Upper band index for GW output.</xs:documentation>
+              <xs:documentation>Upper band index for GW output. If not specified, 
+              the maximum number of the available states is used.</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
@@ -256,7 +265,15 @@
 	      </xs:documentation>
             </xs:annotation>
           </xs:attribute>
-          
+
+          <xs:attribute ex:importance="essential" ex:unit="" name="ngridq" type="integertriple" default="0 0 0">
+            <xs:annotation>
+              <xs:documentation>
+                k/q-point grid size to be used in GW calculations. 
+                If not specified,  <attref>ngridk</attref> value is used.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
           
         </xs:complexType>
     </xs:element>

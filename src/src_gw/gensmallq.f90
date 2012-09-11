@@ -21,14 +21,12 @@ SUBROUTINE gensmallq
       
     integer :: iqp, ikp  ! q-, k-point indexes for IBZ
     integer :: ik
-      
-    real(8), allocatable :: vklq(:,:)
-    
     integer :: ip, jp, iv(3)
     integer :: isym, lspl, nsym
 
     real(8) :: s(3,3), v1(3), v2(3), t1
     
+    real(8), allocatable :: vklq(:,:)
     integer, allocatable :: scmapq(:)    
     integer, allocatable :: ivwrapq(:,:)
     integer, allocatable :: iwkpq(:)
@@ -121,7 +119,7 @@ SUBROUTINE gensmallq
       nkptq(iqp) = ip ! save the number N(q) of k-points
 
 !     Q-dependent k-point weight      
-      do ik = 1, nkptnr
+      do ik = 1, nkptq(iqp)
         wkpq(ik,iqp)=dble(iwkpq(ik))/dble(nkptnr)
       end do
       
@@ -152,21 +150,21 @@ SUBROUTINE gensmallq
  
         call boxmsg(99,'-','Generate a small group of q-vectors')
         write(99,*)
-        write(99,*) "iqp = ", iqp
+        write(99,*) 'iqp = ', iqp
         write(99,*)
-        write(99,*) "    nsymq: ", nsymq(iqp)
-        write(99,*) "    nkptq: ", nkptq(iqp)
-        write(99,*) "    vklq: "
+        write(99,*) '    nsymq: ', nsymq(iqp)
+        write(99,*) '    nkptq: ', nkptq(iqp)
+        write(99,*) '    vklq: '
         do ikp = 1, nkptq(iqp)
-          write(99,'(i4,3f12.4)') ikp, vklq(:,ikp)
+          write(99,'(i4,3f12.4)') ikp, vklq(:,ikp), wkpq(ikp,iqp)
         end do
-        write(99,*) "    iwkpq: ", iwkpq(1:nkptq(iqp))
-        write(99,*) "    idikpq: ", idikpq(1:nkptq(iqp),iqp)      
-        write(99,*) "    indkpq: ", indkpq(:,iqp)
-        write(99,*) "    iksymq: ", iksymq(:,iqp)
-        do ik = 1, nkptq(iqp)
-          write(99,*)'iqp',iqp, 'ik =', ik, ' nsymkstar =', nsymkstar(ik,iqp)
-          write(99,*)'isymkstar =', isymkstar(1:nsymkstar(ik,iqp),ik,iqp)
+        write(99,*) '    idikpq: ', idikpq(1:nkptq(iqp),iqp)      
+        write(99,*) '    indkpq: ', indkpq(:,iqp)
+        write(99,*) '    iksymq: ', iksymq(:,iqp)
+        do ikp = 1, nkptq(iqp)
+          write(99,*) 'ikp =', ikp
+          write(99,*) 'nsymkstar =', nsymkstar(ikp,iqp)
+          write(99,*) 'isymkstar =', isymkstar(1:nsymkstar(ikp,iqp),ikp,iqp)
         enddo
       
 !       write(99,*)'iqp=',iqp
@@ -189,6 +187,7 @@ SUBROUTINE gensmallq
     end do ! iqp
 
     deallocate(iwkpq)
+    deallocate(vklq)
     deallocate(scmapq)
     deallocate(ivwrapq)
       

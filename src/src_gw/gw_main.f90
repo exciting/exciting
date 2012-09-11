@@ -41,6 +41,8 @@ subroutine gw_main
 !EOP
 !BOC
 
+      if (input%gw%taskname.eq.'skip') return
+
       debug=input%gw%debug
       if(debug)open(55,file='debug.info',action='write')
 
@@ -54,6 +56,10 @@ subroutine gw_main
       fgw=700
       open(fgw,file='GWINFO.OUT',action='write')
       call boxmsg(fgw,'=','Main GW output file')
+
+!     initialise global variables
+      call init0
+      call init1
 
 !     Parse input data
       call cpu_time(t(1))      

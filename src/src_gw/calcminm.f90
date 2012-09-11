@@ -125,7 +125,7 @@
         x=vklnr(i,ik)-vklnr(i,jk)-qvec(i)
         ig0(i)=nint(x)
       enddo
-      write(*,*)'calcminm: ik, jk, ig0: ', ik, jk, ig0
+      !write(*,*)'calcminm: ik, jk, ig0: ', ik, jk, ig0
       
       ikp=indkp(ik)
       jkp=indkp(jk)

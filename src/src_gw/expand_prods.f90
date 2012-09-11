@@ -60,13 +60,6 @@
 
       call expand_evec(ik,'t')
       call expand_evec(jk,'c')
-
-      if ((flag>0).and.(debug)) then
-        write(fgw,*)
-        write(fgw,*) 'WARNING(expand_prods): Minm matrix elements are transformed to &
-     &                 the eigenvalues of the bare coulomb potential'
-        write(fgw,*)
-      end if
 !
 !     Calculate the matrix elements $M^i_{nm}(\vec{k},\vec{q})$:
 !
