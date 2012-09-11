@@ -15,14 +15,14 @@ Subroutine wfplot(dostm)
     Logical, Intent(in) :: dostm
     ! local variables
     Integer :: ik, ist
-    Real (8) :: x, t1
+    Real (8) :: x, y, t1, bias
     type(plotlabels),pointer ::labels
     ! allocatable arrays
     Complex (8), Allocatable :: evecfv (:, :)
     Complex (8), Allocatable :: evecsv (:, :)
     ! external functions
-    Real (8) :: sdelta
-    External sdelta
+    Real (8) :: sdelta, stheta
+    External sdelta, stheta
     ! initialise universal variables
     Call init0
     Call init1
@@ -69,19 +69,33 @@ Subroutine wfplot(dostm)
         occsv (:, :) = 0.d0
         occsv (ist, ik) = 1.d0
     Else
-        If (input%properties%STM%bias)
-        ! plotting an STM image by setting occupancies to be a delta function at the
-        ! Fermi energy
-        t1 = 1.d0 / input%groundstate%swidth
-        Do ik = 1, nkpt
-            ! get the eigenvalues from file
-            Call getevalsv (vkl(:, ik), evalsv(:, ik))
-            Do ist = 1, nstsv
-                x = (efermi-evalsv(ist, ik)) * t1
-                occsv (ist, ik) = occmax * wkpt (ik) * sdelta &
-                    & (input%groundstate%stypenumber, x) * t1
+        bias = input%properties%STM%bias
+        If (bias .Eq. 0.d0) Then
+            ! plotting an STM image by setting occupancies to be a delta function at the
+            ! Fermi energy
+            t1 = 1.d0 / input%groundstate%swidth
+            Do ik = 1, nkpt
+                ! get the eigenvalues from file
+                Call getevalsv (vkl(:, ik), evalsv(:, ik))
+                Do ist = 1, nstsv
+                    x = (efermi-evalsv(ist, ik)) * t1
+                    occsv (ist, ik) = occmax * wkpt (ik) * sdelta &
+                        & (input%groundstate%stypenumber, x) * t1
+                End Do
             End Do
-        End Do
+        Else
+            Do ik = 1, nkpt
+                ! get the eigenvalues from file
+                Call getevalsv (vkl(:, ik), evalsv(:, ik))
+                Do ist = 1, nstsv
+                    x = sign(1.0,bias)*(efermi+bias-evalsv(ist, ik)) * t1
+                    y = sign(1.0,bias)*(evalsv(ist, ik)-efermi) * t1
+                    occsv (ist, ik) = occmax * wkpt (ik) * stheta &
+                        & (input%groundstate%stypenumber, x)*&
+                        & stheta(input%groundstate%stypenumber, y)
+                End Do
+            End Do
+        End If
     End If
     ! set the charge density to zero
     rhomt (:, :, :) = 0.d0
