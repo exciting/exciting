@@ -2639,6 +2639,11 @@ gw.xsd
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
             </xs:all>
+            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="bias" default="0.0d0" type="fortrandouble">
+              <xs:annotation>
+                <xs:documentation>Value of the STM bias voltage in Hartree. A positive value gives an empty states STM image while a negative bias gives a filled states images.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="wfplot" maxOccurs="1" minOccurs="0">

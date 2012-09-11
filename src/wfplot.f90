@@ -40,7 +40,7 @@ Subroutine wfplot(dostm)
     Call genlofr
     ! set the occupancies
     If ( .Not. dostm) Then
-        ! kstlist should only contain one k-point and state for STM plot
+        ! kstlist should only contain one k-point and state for wave-function plot
         if (size(input%properties%wfplot%kstlist%pointstatepair,2).ne.1) then
             write(*,*)
             write(*,'("Error(wfplot): /input/properties/wfplot/kstlist must contain")')
@@ -69,6 +69,7 @@ Subroutine wfplot(dostm)
         occsv (:, :) = 0.d0
         occsv (ist, ik) = 1.d0
     Else
+        If (input%properties%STM%bias)
         ! plotting an STM image by setting occupancies to be a delta function at the
         ! Fermi energy
         t1 = 1.d0 / input%groundstate%swidth
