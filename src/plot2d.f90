@@ -87,14 +87,20 @@ Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
      & input%structure%crystal%basevect(:, 3)
       d1 = Sqrt (vc1(1)**2+vc1(2)**2+vc1(3)**2)
       d2 = Sqrt (vc2(1)**2+vc2(2)**2+vc2(3)**2)
+      d12 = (vc1(1)*vc2(1)+vc1(2)*vc2(2)+vc1(3)*vc2(3)) / (d1*d2)
       If ((d1 .Lt. input%structure%epslat) .Or. (d2 .Lt. &
-     & input%structure%epslat)) Then
+     & input%structure%epslat) ) Then
          Write (*,*)
          Write (*, '("Error(plot2d): zero length plotting vectors")')
          Write (*,*)
          Stop
       End If
-      d12 = (vc1(1)*vc2(1)+vc1(2)*vc2(2)+vc1(3)*vc2(3)) / (d1*d2)
+      If ((1.d0-d12 .Lt. input%structure%epslat) .Or. (1.d0+d12 .Lt. input%structure%epslat)) Then
+         Write (*,*)
+         Write (*, '("Error(plot2d): zero angle between vectors defining the parallelogram")')
+         Write (*,*)
+         Stop
+      End If
       ip = 0
       Do ip1 = 0, plotdef%parallelogram%grid(1) - 1
          Do ip2 = 0, plotdef%parallelogram%grid(2) - 1

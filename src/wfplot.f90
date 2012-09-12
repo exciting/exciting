@@ -88,8 +88,8 @@ Subroutine wfplot(dostm)
                 ! get the eigenvalues from file
                 Call getevalsv (vkl(:, ik), evalsv(:, ik))
                 Do ist = 1, nstsv
-                    x = sign(1.0,bias)*(efermi+bias-evalsv(ist, ik)) * t1
-                    y = sign(1.0,bias)*(evalsv(ist, ik)-efermi) * t1
+                    x = sign(1.d0,bias)*(efermi+bias-evalsv(ist, ik)) * t1
+                    y = sign(1.d0,bias)*(evalsv(ist, ik)-efermi) * t1
                     occsv (ist, ik) = occmax * wkpt (ik) * stheta &
                         & (input%groundstate%stypenumber, x)*&
                         & stheta(input%groundstate%stypenumber, y)
