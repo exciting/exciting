@@ -107,7 +107,7 @@ Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
             ip = ip + 1
             t1 = dble (ip1) / dble (plotdef%parallelogram%grid(1))
             t2 = dble (ip2) / dble (plotdef%parallelogram%grid(2))
-            vpl (:, ip) = t1 * vl1 (:) + t2 * vl2 (:) + vclp2d (:, 1)
+            vpl (:, ip) = t1 * vl1 (:) + t2 * vl2 (:) + plotdef%parallelogram%origin%coord
          End Do
       End Do
 ! evaluate the functions at the grid points
