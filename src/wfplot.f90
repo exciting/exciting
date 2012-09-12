@@ -85,7 +85,9 @@ Subroutine wfplot(dostm)
             End Do
         Else
             Do ik = 1, nkpt
-                ! get the eigenvalues from file
+                ! Plots the local density of states integrated between Ef y Ef + bias for positive bias or
+                ! between Ef-bias and Ef for negative bias. This way simple STM plot in the Tersoff-Hamann
+                ! aproximation can be obtained (PRB 31,805 (1985)).
                 Call getevalsv (vkl(:, ik), evalsv(:, ik))
                 Do ist = 1, nstsv
                     x = sign(1.d0,bias)*(efermi+bias-evalsv(ist, ik)) * t1
