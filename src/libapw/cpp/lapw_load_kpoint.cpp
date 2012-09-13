@@ -4,7 +4,7 @@ extern "C" void FORTRAN(lapw_load_kpoint)(int32_t *ngp_, int32_t *igpig_, double
 {
     int ngp = *ngp_;
     
-    bloch_states_k *ks = new bloch_states_k(ngp);
+    bloch_states_k *ks = new bloch_states_k(int(ngp));
     
     ks->vgkc.set_ptr(vgpc_);
     ks->vgkc.set_dimensions(3, lapw_global.ngkmax);

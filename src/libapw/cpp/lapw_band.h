@@ -145,6 +145,7 @@ void lapw_set_h(bloch_states_k* const ks, mdarray<complex16,2>& h)
         zgemm<cpu>(0, 2, ks->ngk, ks->ngk, lapw_global.size_wfmt_apw, zone, &zm(0, 0), zm.size(0), 
                    &ks->apwalm(0, 0), ks->apwalm.size(0), zzero, &h(0, 0), h.size(0));
     }
+#ifdef _GPU_
     if (impl == gpu)
     {
         ks->apwalm.allocate_on_device();
@@ -159,7 +160,7 @@ void lapw_set_h(bloch_states_k* const ks, mdarray<complex16,2>& h)
         h.deallocate_on_device();
         zm.deallocate_on_device();
     }
- 
+#endif
     #pragma omp parallel default(shared)
     {
         std::vector<double> v1(lapw_global.lmmaxvr);
@@ -322,6 +323,7 @@ void lapw_set_o(bloch_states_k* const ks, mdarray<complex16,2>& o)
         zgemm<cpu>(0, 2, ks->ngk, ks->ngk, lapw_global.size_wfmt_apw, zone, &ks->apwalm(0, 0), ks->apwalm.size(0), 
             &ks->apwalm(0, 0), ks->apwalm.size(0), zzero, &o(0, 0), o.size(0));
     }
+#ifdef _GPU_
     if (impl == gpu)
     {
         o.allocate_on_device();
@@ -332,6 +334,7 @@ void lapw_set_o(bloch_states_k* const ks, mdarray<complex16,2>& o)
         o.deallocate_on_device();
         ks->apwalm.deallocate_on_device();
     }
+#endif
     
     for (int ias = 0; ias < (int)lapw_global.atoms.size(); ias++)
     {

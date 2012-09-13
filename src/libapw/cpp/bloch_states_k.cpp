@@ -1,6 +1,6 @@
 #include "lapw.h"
 
-bloch_states_k::bloch_states_k(int ngk) : ngk(ngk)
+bloch_states_k::bloch_states_k(int ngk)
 {
     idxg.resize(ngk);
     idxgfft.resize(ngk);

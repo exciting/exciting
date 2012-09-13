@@ -1,0 +1,3 @@
+include ../../../build/make.inc
+CC=icc
+CPPFLAGS= -openmp

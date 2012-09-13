@@ -12,14 +12,14 @@ OBJ = lapw.o lapw_init.o lapw_load_global.o lapw_load_species.o lapw_load_atom.o
 ifneq (,$(findstring D_GPU_,$(CPP_OPTS)))
 	OBJ := $(OBJ) gpu_interface.o
 endif
-	
-.cpp.o:
+headers:=$(wildcard *.h)	
+.cpp.o:.cpp $(headers)
 	$(CXX) $(CXX_OPTS) -c $<
 
 .cu.o:
 	$(NVCC) -DADD_ -I/project/s299/magma/magma-1.1_my-xk6-gcc-4.6.2-libsci/include -c $<
 
-all: $(OBJ)
+all: *.o
 	ar -r libapw.a $(OBJ)
 
 clean:

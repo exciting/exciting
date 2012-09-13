@@ -5,7 +5,7 @@
  
 default: build/make.inc all 
 
-all: serial mpi  smp mpiandsmp  eos spacegroup stateinfo stateconvert species
+all: serial mpi  smp mpiandsmp   spacegroup stateinfo stateconvert species
 
 build/make.inc:
 	perl ./setup.pl
@@ -114,6 +114,7 @@ clean:
 	cd src/src_vdwdf; $(MAKE) clean
 	cd src/stateinfo; $(MAKE) clean
 	cd src/stateconvert; $(MAKE) clean
+	cd src/libapw/cpp; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
 	rm -f bin/*
 	rm -f interfaces/*

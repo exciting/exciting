@@ -1,7 +1,7 @@
 include ../make.inc
 include ../libraries.inc
 FC = $(F90)
-
+CPPFLAGS=-g
 FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT) -I./finclude
 LD = $(FC)
 LDFLAGS = $(LIBS) $(F90_DEBUGOPTS) $(INTERNALLIBS)

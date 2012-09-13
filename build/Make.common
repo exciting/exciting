@@ -19,6 +19,7 @@ SOURCEDIRS=	../../src/  \
 	../../src/src_xml/ \
 	../../src/src_inputparser/ \
 	../../src/src_sym/ \
+	../../src/libapw/cpp \
 	../../src/libapw/ \
 	../../src/ \
 	
@@ -27,8 +28,8 @@ LIBXCMOD= ../../src/libXC/src/libxc.f90  ../../src/libXC/src/libxc_funcs.f90
 
 #all:bin
 
-bin::../make.inc libs $(GeneraedFiles)  $(LIBXCMOD)
-	perl ../../utilities/versionstamp.pl  
+bin::../make.inc libs $(GeneraedFiles)  $(LIBXCMOD) 
+	perl ../../utilities/versionstamp.pl 
 	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
 	$(SOURCEDIRS)  $(LIBXCMOD)	../../src/mainxml/ \
 	&& $(MAKE) -f Makefile.mkmf exciting \
@@ -44,11 +45,11 @@ tidy::
 	perl ../../utilities/scripts/prettyprint.pl $(SOURCEDIRS)
 
 ifeq ($(USE_SYS_LAPACK),true)
-libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox leblaiklib.a libxc.a libapw.a
+libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox leblaiklib.a libxc.a 
 endif
 
 ifeq ($(USE_SYS_LAPACK),)
-libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox leblaiklib.a libxc.a libapw.a
+libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox leblaiklib.a libxc.a 
 endif
 
 libblas.a:: 
@@ -87,9 +88,9 @@ libarpack.a::
 	&& $(MAKE) -f Makefile.libarpack libarpack.a
 
 libapw.a::
-	cd ../../src/libapw/cpp && \
-	make 
-	cp ../../src/libapw/cpp/libapw.a ./lib 
+	cd ../../src/libapw/build && \
+	$(MAKE) 
+	cp ../../src/libapw/build/libapw.a ./lib 
 
 libfox:lib/libFoX_common.a
 

@@ -1,21 +1,21 @@
 AR=xiar
-F90=gfortran  
-CXX=gcc
+F90=ifort  
+CXX=icc
 CC=$(CXX)
-OPENMPFLAG= -openmp
-F90_OPTS = -O3   
+F90_OPTS = -O3 -xSSE4.2 -ip -unroll  -scalar_rep  
 CPP_ON_OPT = -cpp -DXS -DISO -DTETRA -DLIBXC -D_LIBAPW_
 F77=$(F90)
-F77_OPTS = -O3 
+F77_OPTS = -O3 -xSSE4.2 -ip -unroll  -scalar_rep 
 LIB_ARP =libarpack.a
-LIB_LPK =liblapack.a libblas.a 
+export USE_SYS_LAPACK=true
+LIB_LPK = /users/sol/chm/benchmark/libgoto2.a
 LIB_FFT = fftlib.a
 LIB_BZINT=libbzint.a
 
 LIBS=  $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) 
 
-F90_DEBUGOPTS=-g  
-F77_DEBUGOPTS=-g  
+F90_DEBUGOPTS=#-g  
+F77_DEBUGOPTS=#-g  
 
 #Ignore if you don't have MPI or smplibs
  
@@ -25,7 +25,7 @@ MPIF90_OPTS=$(F90_OPTS) $(CPP_ON_OPT) -DMPI -DMPIRHO -DMPISEC
 F77MT=$(F77)
 F90MT=$(F90)
 SMP_LIBS=$(LIB_LPK)   $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
-SMPF90_OPTS=$(F90_OPTS) -lpthread
+SMPF90_OPTS=$(F90_OPTS) 
 SMPF77_OPTS=$(SMPF90_OPTS) 
 MPIF77MT=$(MPIF77)
 MPIF90MT=$(MPIF90)

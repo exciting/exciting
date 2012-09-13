@@ -6,7 +6,7 @@
 #include <complex>
 #include "config.h"
 #include "linalg_cpu.h"
-#include "linalg_gpu.h"
+//#include "linalg_gpu.h"
 
 template<implementation impl> 
 void zgemm(int transa, int transb, int32_t m, int32_t n, int32_t k, complex16 alpha, 
@@ -19,11 +19,12 @@ void zgemm(int transa, int transb, int32_t m, int32_t n, int32_t k, complex16 al
         FORTRAN(zgemm)(trans[transa], trans[transb], &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, 
             c, &ldc, (int32_t)1, (int32_t)1);
     }
-    
+#ifdef _GPU_
     if (impl == gpu)
     {    
         gpu_zgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
     }
+#endif
 }
 
 template<implementation impl> 
@@ -72,10 +73,12 @@ void zhegv(int32_t n, int32_t nv, double abstol, complex16 *a, complex16 *b,
         }
         memcpy(eval, &w[0], nv * sizeof(double));
     }
+#ifdef _GPU_
     if (impl == gpu)
     {
         gpu_zhegvx(n, nv, abstol, a, b, eval, z, ldz);
     }
+#endif
 }
 
 template<implementation impl> 
