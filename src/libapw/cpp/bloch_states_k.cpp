@@ -1,8 +1,6 @@
 #include "lapw.h"
-#include <iostream>
 
-
-bloch_states_k::bloch_states_k(int ngk)
+bloch_states_k::bloch_states_k(int ngk) : ngk(ngk)
 {
     idxg.resize(ngk);
     idxgfft.resize(ngk);
@@ -14,13 +12,9 @@ bloch_states_k::bloch_states_k(int ngk)
 
 /// copy matching coefficients
 void bloch_states_k::copy_apwalm(complex16 *apwalm_)
-{    std::cout<<" apwalm_ "<< apwalm_<<" lapw_global.ngkmax "<< lapw_global.ngkmax
-	<<" lapw_global.apwordmax "<<lapw_global.apwordmax
-	<<" lapw_global.lmmaxapw "<< lapw_global.lmmaxapw
-	<<" lapw_global.atoms.size() "<< lapw_global.atoms.size()<<"\n";
+{   
     apwalm.set_dimensions(ngk, lapw_global.size_wfmt_apw);
     apwalm.allocate();
-
     
     mdarray<complex16,4> apwalm_tmp(apwalm_, lapw_global.ngkmax, lapw_global.apwordmax, lapw_global.lmmaxapw, lapw_global.atoms.size());
     

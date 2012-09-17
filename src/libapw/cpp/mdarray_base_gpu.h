@@ -1,4 +1,5 @@
-#ifdef _MDARRAY_BASE_GPU_H_
+#ifndef _MDARRAY_BASE_GPU_H_
+#define _MDARRAY_BASE_GPU_H_
 
 #include <iostream>
 #include "gpu_interface.h"
