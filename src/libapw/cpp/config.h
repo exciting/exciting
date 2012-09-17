@@ -5,7 +5,7 @@
 #include "typedefs.h"
 
 #define FORTRAN(x) x##_
-
+#define _MDARRAY_BASE_CPU_H_
 const bool check_evecfv = false;
 
 const bool check_scalar_wf = false;
