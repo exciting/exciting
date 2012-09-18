@@ -106,6 +106,7 @@ void lapw_set_h(bloch_states_k* const ks, mdarray<complex16,2>& h)
     }
     if (impl == gpu)
     {
+#ifdef _GPU_
         ks->apwalm.allocate_on_device();
         ks->apwalm.copy_to_device();
         zm.allocate_on_device();
@@ -117,6 +118,7 @@ void lapw_set_h(bloch_states_k* const ks, mdarray<complex16,2>& h)
         h.copy_to_host();
         h.deallocate_on_device();
         zm.deallocate_on_device();
+#endif
     }
  
     #pragma omp parallel default(shared)
@@ -283,6 +285,7 @@ void lapw_set_o(bloch_states_k* const ks, mdarray<complex16,2>& o)
     }
     if (impl == gpu)
     {
+#ifdef _GPU_
         o.allocate_on_device();
         o.zero_on_device();
         zgemm<gpu>(0, 2, ks->ngk, ks->ngk, lapw_global.size_wfmt_apw, zone, ks->apwalm.get_ptr_device(), ks->apwalm.size(0),
@@ -290,6 +293,7 @@ void lapw_set_o(bloch_states_k* const ks, mdarray<complex16,2>& o)
         o.copy_to_host();
         o.deallocate_on_device();
         ks->apwalm.deallocate_on_device();
+#endif
     }
     
     for (unsigned int ias = 0; ias < lapw_global.atoms.size(); ias++)

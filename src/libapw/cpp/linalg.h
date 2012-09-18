@@ -22,7 +22,9 @@ void zgemm(int transa, int transb, int32_t m, int32_t n, int32_t k, complex16 al
     
     if (impl == gpu)
     {    
+#ifdef _GPU_
         gpu_zgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
+#endif
     }
 }
 
@@ -74,7 +76,9 @@ void zhegv(int32_t n, int32_t nv, double abstol, complex16 *a, complex16 *b,
     }
     if (impl == gpu)
     {
+#ifdef _GPU_
         gpu_zhegvx(n, nv, abstol, a, b, eval, z, ldz);
+#endif
     }
 }
 
