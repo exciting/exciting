@@ -26,10 +26,6 @@ Subroutine gendmatlu
 ! zero the LDA+U density matrix
       dmatlu (:, :, :, :, :) = 0.d0
 ! begin loop over k-points
-#ifdef _LIBAPW_
-call lapw_get_dmatu(dmatlu)
-#else      
-! begin loop over k-points
       Do ik = 1, nkpt
 ! get the eigenvectors and occupancies from file
          Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
@@ -55,7 +51,6 @@ call lapw_get_dmatu(dmatlu)
             End Do
          End Do
       End Do
-#endif
 ! symmetrise the density matrix
       Call symdmat (lmaxlu, lmmaxlu, dmatlu)
       Deallocate (evecfv, evecsv, apwalm, dmat)

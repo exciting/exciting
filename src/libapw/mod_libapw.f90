@@ -17,8 +17,6 @@ real(8), allocatable :: rfmt(:, :, :)
 real(8), allocatable :: hrfmt(:, :, :)
 integer, allocatable :: lrf(:, :)
 complex(8), allocatable :: gntyry1(:,:,:)
-real(8), allocatable :: socrfmt(:,:) 
-
 
 contains
 
@@ -82,7 +80,6 @@ do ik=1,nkpt
     m=int(chgval/occmax)
     do i=1,m
       occsv(i,ik)=occmax
-
     enddo
     occsv(m+1,ik)=chgval-m*occmax 
   else
@@ -116,6 +113,7 @@ do l1=0,input%groundstate%lmaxapw
   end do
 end do
 
+#ifdef _LIBAPW_
 if (allocated(nrfmt)) deallocate(nrfmt)
 allocate(nrfmt(nspecies))
 if (allocated(ordrfmt)) deallocate(ordrfmt)
@@ -160,19 +158,15 @@ if (allocated(hrfmt)) deallocate(hrfmt)
 allocate(hrfmt(nrmtmax, nrfmtmax, natmcls))
 if (allocated(lrf)) deallocate(lrf)
 allocate(lrf(nrfmtmax, natmcls))
-if (allocated(socrfmt)) deallocate(socrfmt)
-allocate(socrfmt(nrmtmax,natmtot))
 
-call lapw_load_global(input%groundstate%lmaxvr, input%groundstate%lmaxapw,&
-  & apwordmax, nrmtmax, ngkmax, ngvec, ngrtot, intgv, ivg, ivgig, ngrid, igfft, cfunir, &
-  &cfunig, gntyry1, nstfv, nrfmtmax, ordrfmtmax, input%groundstate%solver%evaltol&
-  &, associated(input%groundstate%spin), isspinorb(),&
-  &ndmag, omega, natmcls, ic2ias, natoms_in_class,ldapu)
-do is=1,nspecies
-  call lapw_load_species(nlorb(is),lorbl(1,is),apword(0,is),rmt(is),nrmt(is),llu(is),spr(1,is))
-enddo
-do ias=1,natmtot
-  call lapw_load_atom(ias2is(ias),ias2ic(ias))
+call lapw_load_global(natmtot, nspecies, input%groundstate%lmaxvr, input%groundstate%lmaxapw,&
+  & apwordmax, nrmtmax, &
+  &ngkmax, ngvec, ngrtot, nlomax, ias2is, intgv, ivg, ivgig, ngrid, igfft, cfunir, &
+  &cfunig, gntyry1, nstfv, nstsv, nmatmax, nrfmtmax, ordrfmtmax, input%groundstate%solver%evaltol&
+  &, associated(input%groundstate%spin), &
+  &ndmag, omega, natmcls, ic2ias, natoms_in_class)
+do is=1, nspecies
+  call lapw_load_species(is, nlorb(is), lorbl(1, is), apword(0, is), rmt(is), nrmt(is))
 enddo
 call lapw_init
 do ikloc=1, nkpt !nkptloc
@@ -184,10 +178,11 @@ do ikloc=1, nkpt !nkptloc
 #endif
   call lapw_load_kpoint(ngk(1, ik), igkig(1, 1, ikloc), vgkc(1, 1, 1, ikloc), wkpt(ik))
 enddo
-
+#endif
 return
 end subroutine
 
+#ifdef _LIBAPW_
 
 
 subroutine libapw_seceqn_init
@@ -199,7 +194,7 @@ use mod_spin
 implicit none
 integer::ir, is, ia, ic, ias, l1, l2, io1, io2, ilo1, ilo2, i1, i2, nr, i
 integer::l1tmp(0:input%groundstate%lmaxapw), l2tmp, lm
-real(8)::cb, cso, rm, t1
+real(8)::cb, t1
 real(8), allocatable :: bmt(:, :, :)
 real(8)::r2(nrmtmax), fr(nrmtmax), gr(nrmtmax), cf(4, nrmtmax)
 !
@@ -237,23 +232,23 @@ do ias=1, natmtot
   do i1=1, nrfmt(is)
     do i2=1, nrfmt(is)
       if (lrf(i1, ic).eq.lrf(i2, ic)) then
-    do ir=1, nr
-      fr(ir)=rfmt(ir, i1, ic)*hrfmt(ir, i2, ic)*r2(ir)
-    enddo
-    call fderiv(-1, nr, spr(:, is), fr, gr, cf)
-    hmltrad(1, i1, i2, ias)=gr(nr)/y00
+	do ir=1, nr
+	  fr(ir)=rfmt(ir, i1, ic)*hrfmt(ir, i2, ic)*r2(ir)
+	enddo
+	call fderiv(-1, nr, spr(:, is), fr, gr, cf)
+	hmltrad(1, i1, i2, ias)=gr(nr)/y00
       else
-    hmltrad(1, i1, i2, ias)=0.d0
+	hmltrad(1, i1, i2, ias)=0.d0
       endif
       if (i1.ge.i2) then
-    do lm=2, lmmaxvr
-      do ir=1, nr
-        fr(ir)=rfmt(ir, i1, ic)*rfmt(ir, i2, ic)*r2(ir)*veffmt(lm, ir, ias)
-      enddo
-      call fderiv(-1, nr, spr(:, is), fr, gr, cf)
-      hmltrad(lm, i1, i2, ias)=gr(nr)
-      hmltrad(lm, i2, i1, ias)=gr(nr)
-    enddo
+	do lm=2, lmmaxvr
+	  do ir=1, nr
+	    fr(ir)=rfmt(ir, i1, ic)*rfmt(ir, i2, ic)*r2(ir)*veffmt(lm, ir, ias)
+	  enddo
+	  call fderiv(-1, nr, spr(:, is), fr, gr, cf)
+	  hmltrad(lm, i1, i2, ias)=gr(nr)
+	  hmltrad(lm, i2, i1, ias)=gr(nr)
+	enddo
       endif
     enddo
   enddo 
@@ -274,9 +269,9 @@ do ias=1, natmtot
     l2tmp=0
     do ilo2=1, nlorb(is)
       if (l1.eq.lorbl(ilo2, is)) then
-    l2tmp=l2tmp+1
-    ovlprad(l1, apword(l1, is)+l1tmp(l1), apword(l1, is)+l2tmp, ias)=ololo(ilo1, ilo2, ias)
-    ovlprad(l1, apword(l1, is)+l2tmp, apword(l1, is)+l1tmp(l1), ias)=ololo(ilo2, ilo1, ias)
+	l2tmp=l2tmp+1
+	ovlprad(l1, apword(l1, is)+l1tmp(l1), apword(l1, is)+l2tmp, ias)=ololo(ilo1, ilo2, ias)
+	ovlprad(l1, apword(l1, is)+l2tmp, apword(l1, is)+l1tmp(l1), ias)=ololo(ilo2, ilo1, ias)
       endif
     enddo
   enddo
@@ -300,18 +295,18 @@ do ias=1, natmtot
     endif
     do i=1, ndmag
       do i1=1, nrfmt(is)
-    do i2=1, nrfmt(is)
-      if (i1.ge.i2) then
-        do lm=1, lmmaxvr
-          do ir=1, nr
-        fr(ir)=rfmt(ir, i1, ic)*rfmt(ir, i2, ic)*r2(ir)*bmt(lm, ir, i)
-          enddo
-          call fderiv(-1, nr, spr(:, is), fr, gr, cf)
-          beffrad(lm, i1, i2, ias, i)=gr(nr)
-          beffrad(lm, i2, i1, ias, i)=gr(nr)
-        enddo !lm
-      endif
-    enddo
+	do i2=1, nrfmt(is)
+	  if (i1.ge.i2) then
+	    do lm=1, lmmaxvr
+	      do ir=1, nr
+		fr(ir)=rfmt(ir, i1, ic)*rfmt(ir, i2, ic)*r2(ir)*bmt(lm, ir, i)
+	      enddo
+	      call fderiv(-1, nr, spr(:, is), fr, gr, cf)
+	      beffrad(lm, i1, i2, ias, i)=gr(nr)
+	      beffrad(lm, i2, i1, ias, i)=gr(nr)
+	    enddo !lm
+	  endif
+	enddo
       enddo
     enddo !i
   endif ! spinpol
@@ -333,21 +328,7 @@ if (associated(input%groundstate%spin)) then
     enddo
   endif
 endif
-if (isspinorb()) then
-  cso=1.d0/(4.d0*sol**2)
-  do ias=1,natmtot
-    is=ias2is(ias)
-! radial derivative of the spherical part of the potential
-    fr(1:nrmt(is))=veffmt(1,1:nrmt(is),ias)*y00
-    call fderiv(1,nrmt(is),spr(:,is),fr,gr,cf)
-    do ir=1,nrmt(is)
-      rm=1.d0-2.d0*cso*fr(ir)
-      socrfmt(ir,ias)=cso*gr(ir)/(spr(ir,is)*rm**2)
-    enddo
-  enddo
-endif
-call lapw_seceqn_init(hmltrad, ovlprad, beffrad, apwfr, apwdfr, beffir, veffig, &
-  &vmatlu, rfmt, socrfmt) 
+call lapw_seceqn_init(hmltrad, ovlprad, beffrad, apwfr, apwdfr, beffir, veffig) 
 densmt=0.d0
 densir=0.d0
 return
@@ -377,22 +358,22 @@ do ias=1, natmtot
     fr=0.d0
     do ispn1=1, nspinor
       do ispn2=1, nspinor
-    if ((ndmag.eq.1.and.(ispn1.eq.ispn2)).or.ndmag.ne.1) then
-      do j2=1, nrfmtmax
-        do j1=1, j2
-          fr(:, ispn1, ispn2) = fr(:, ispn1, ispn2) + 2 * densmt(j1, j2, lm3, ias, ispn1, ispn2) * &
-        &rfmt(:, j1, ic) * rfmt(:, j2, ic)
-        enddo
-      enddo
-    endif
+	if ((ndmag.eq.1.and.(ispn1.eq.ispn2)).or.ndmag.ne.1) then
+	  do j2=1, nrfmtmax
+	    do j1=1, j2
+	      fr(:, ispn1, ispn2) = fr(:, ispn1, ispn2) + 2 * densmt(j1, j2, lm3, ias, ispn1, ispn2) * &
+		&rfmt(:, j1, ic) * rfmt(:, j2, ic)
+	    enddo
+	  enddo
+	endif
       enddo 
     enddo !l1
     if(associated(input%groundstate%spin))  then
       rhomt(lm3, :, ias)=fr(:, 1, 1)+fr(:, 2, 2)
       magmt(lm3, :, ias, ndmag)=fr(:, 1, 1)-fr(:, 2, 2)
       if (ndmag.eq.3) then
-    magmt(lm3, :, ias, 1)=fr(:, 1, 2)
-    magmt(lm3, :, ias, 2)=fr(:, 2, 1)
+	magmt(lm3, :, ias, 1)=fr(:, 1, 2)
+	magmt(lm3, :, ias, 2)=fr(:, 2, 1)
       endif
     else
       rhomt(lm3, :, ias)=fr(:, 1, 1)
@@ -428,6 +409,6 @@ end subroutine
 
 
 
-
+#endif
 
 end module

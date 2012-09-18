@@ -3,8 +3,6 @@
 
 /*! \file lapw.h
     \brief Defines basic classes, variables and inline functions.
-    
-    \defgroup functions global functions
 */
 
 #include <vector>
@@ -20,19 +18,24 @@
 #include "timer.h"
 
 void lapw_fft(int32_t direction, complex16 *data);
-double lapw_spline_integrate(int32_t n, double *x, double *f);
+
+/// composite lm index by l and m
+inline int idxlm(int l, int m)
+{
+    return l * l + l + m;
+}
 
 /// describes single atomic level
 struct atomic_level 
 {
     /// principal quantum number
-    int n;
+    unsigned int n;
     
-    /// angular momentum quantum number
-    int l;
+    /// angular quantum number
+    unsigned int l;
     
     /// quantum number k
-    int k;
+    unsigned int k;
     
     /// level occupancy
     int occupancy;
@@ -42,13 +45,13 @@ struct atomic_level
 struct radial_solution_descriptor
 {
     /// principal quantum number
-    int n;
+    unsigned int n;
 
-    /// angular momentum quantum number
-    int l;
+    /// angular quantum number
+    unsigned int l;
 
     /// order of energy derivative
-    int dme;
+    unsigned int dme;
 
     /// energy of the solution
     double enu;
@@ -57,7 +60,7 @@ struct radial_solution_descriptor
     bool auto_enu;
 };
 
-/// collection of radial solutions for a given angular momentum quantum number l
+/// collection of radial solutions for a given angular quantum number l
 class radial_l_descriptor
 {
     public:
@@ -65,238 +68,46 @@ class radial_l_descriptor
         {
         }
         
-        radial_l_descriptor(int l) : l(l)
+        radial_l_descriptor(unsigned int l) : l(l)
         {
         }
     
-        /// angular momentum quantum number
-        int l;
+        /// angular quantum number
+        unsigned int l;
 
         /// list of radial solution descriptors
         std::vector<radial_solution_descriptor> radial_solution_descriptors;
 };
 
-struct mt_radial_function_descriptor
-{
-    /// l-quantum number
-    int l;
-    
-    /// order of radial function for a given l (\f$ u_l,\dot{u_l},... \f$ from the APW set, then local orbitals)
-    int order;
-    
-    /// index of local orbital in the list of local orbitals for a given species
-    int idxlo;
-};
-
-class mt_radial_index
-{
-    public:
-
-        mt_radial_index() : lmax(0), nrflmax(0)
-        {
-        }
-        
-        /// add radial function for an angular momentum quantum number l to the list of radial functions
-        void add(int l, int idxlo = -1)
-        {
-            lmax = std::max(lmax, l);
-
-            nrfl.resize(lmax + 1, 0);
-
-            mt_radial_function_descriptor rfd;
-            rfd.l = l;
-            rfd.order = nrfl[l]++;
-            rfd.idxlo = idxlo;
-            
-            radial_function_descriptors.push_back(rfd);
-            
-            nrflmax = std::max(nrflmax, nrfl[l]);
-        }
-
-        /// initialize backward mapping
-        void init()
-        {
-            index_by_lo.set_dimensions(lmax + 1, nrflmax);
-            index_by_lo.allocate();
-            index_by_lo.zero();
-
-            for (int i = 0; i < (int)radial_function_descriptors.size(); i++)
-                index_by_lo(radial_function_descriptors[i].l, radial_function_descriptors[i].order) = i;
-        }
-
-        inline const mt_radial_function_descriptor& operator [](int i)
-        {
-            return radial_function_descriptors[i];
-        }
-        
-        inline int operator()(int l, int order)
-        {
-            return index_by_lo(l, order);
-        }
-         
-        /// number of radial functions for a given l
-        inline int nrf(int l)
-        {
-            return nrfl[l];
-        }
-        
-        /// total number of radial functions
-        inline int size()
-        {
-            return radial_function_descriptors.size();
-        }
-
-        inline int getlmax()
-        {
-            return lmax;
-        }
-        
-        inline int getnrflmax()
-        {
-            return nrflmax;
-        }
-
-    private:
-
-        /// maximum l for which indices are built
-        int lmax;
-
-        /// list of descriptors for radial functions \f$ f_{\ell \lambda}^{\alpha}(r) \f$
-        std::vector<mt_radial_function_descriptor> radial_function_descriptors;
-        
-        /// number of radial functions for a given l
-        std::vector<int> nrfl;
-
-        /// maximum number of radial functions over all values of l
-        int nrflmax;
-
-        mdarray<int,2> index_by_lo;
-};
-
-struct mt_function_descriptor
-{
-    /// l-quantum number
-    int l;
-
-    /// magnetic quantum number
-    int m;
-
-    /// composite lm index
-    int lm;
-    
-    /// order of radial function for a given l (\f$ u_l,\dot{u_l},... \f$ from the APW set, then local orbitals)
-    int order;
-
-    /// index of radial function
-    int idxrf;
-    
-    /// index of local orbital in the list of local orbitals for a given species
-    int idxlo;
-};
-
 /*! \brief muffin-tin combined indices
 
-    Inside each muffin-tin sphere \f$ \alpha \f$ wave-functions are expanded in radial functions and spherical harmonics:
+    Inside each muffin-tin sphere \f$ \alpha \f$ wave-functions are expanded in radial solutions and spherical harmonics:
     \f[
         \psi_{i {\bf k}}({\bf r})= \sum_{L} \sum_{\lambda=1}^{N_{\ell}^{\alpha}} 
            F_{L \lambda}^{i {\bf k},\alpha}f_{\ell \lambda}^{\alpha}(r) 
            Y_{\ell m}(\hat {\bf r}) 
     \f]
-    where functions \f$ f_{\ell \lambda}^{\alpha}(r) \f$ label both APW and local orbitals.
+    where functions \f$ f_{\ell \lambda}^{\alpha}(r) \f$ represent both APW and local orbitals.
 */
-class mt_index
+
+class mtci
 {
-       
     public:
-        
-        mt_index() : apw_function_descriptors_size(0), lo_function_descriptors_size(0)
+        mtci(unsigned int l, int m, unsigned int order, unsigned int idxrf) : l(l), m(m), order(order), idxrf(idxrf), idxlo(-1)
         {
+            lm = idxlm(l, m);
+        }
+        mtci(unsigned int l, int m, unsigned int order, unsigned int idxrf, unsigned int idxlo) : l(l), m(m), order(order), idxrf(idxrf), idxlo(idxlo)
+        {
+            lm = idxlm(l, m);
         }
         
-        /// composite lm index by l and m
-        inline static int idxlm(int l, int m)
-        {
-            return l * l + l + m;
-        }
-
-        /// initialize muffin-tin indices and backward mapping
-        void init(mt_radial_index& ri)
-        {
-            for (int i = 0; i < ri.size(); i++)
-            {
-                int l = ri[i].l;
-                for (int m = -l; m <= l; m++)
-                {
-                    mt_function_descriptor fd;
-                    fd.l = l;
-                    fd.m = m;
-                    fd.lm = idxlm(l, m);
-                    fd.order = ri[i].order;
-                    fd.idxrf = i;
-                    fd.idxlo = ri[i].idxlo;
-                    function_descriptors.push_back(fd);
-                }
-                if (ri[i].idxlo == -1)
-                    apw_function_descriptors_size = function_descriptors.size();
-            }
-            
-            lo_function_descriptors_size = function_descriptors.size() - apw_function_descriptors_size;
-
-            int lmmax = pow(ri.getlmax() + 1, 2);
-            index_by_lmo.set_dimensions(lmmax, ri.getnrflmax());
-            index_by_lmo.allocate();
-            index_by_lmo.zero();
-
-            for (int i = 0; i < (int)function_descriptors.size(); i++)
-                index_by_lmo(function_descriptors[i].lm, function_descriptors[i].order) = i;
-        }
-        
-        /// total number of basis functions
-        inline int size()
-        {
-            return function_descriptors.size();
-        }
-        
-        /// number of APW basis functions
-        inline int apw_size()
-        {
-            return apw_function_descriptors_size;
-        }
-
-        /// number of local orbital basis functions        
-        inline int lo_size()
-        {
-            return lo_function_descriptors_size;
-        }
-        
-        inline const mt_function_descriptor& operator[](int i)
-        {
-            return function_descriptors[i];
-        }
-
-        inline int operator()(int lm, int order)
-        {
-           return index_by_lmo(lm, order);
-        }
-
-        inline int operator()(int l, int m, int order)
-        {
-           return index_by_lmo(idxlm(l, m), order);
-        }
-
-    private:
-
-        /// size of the APW part of basis function descriptors
-        int apw_function_descriptors_size;
-
-        /// size of the local orbital part of basis function descriptors
-        int lo_function_descriptors_size;
-        
-        /// list of descriptors for basis basis functions \f$ f_{\ell \lambda}^{\alpha}(r)Y_{\ell m}(\hat {\bf r}) \f$
-        std::vector<mt_function_descriptor> function_descriptors;
-
-        /// mapping from l,m,order to a global index of basis function
-        mdarray<int,2> index_by_lmo;
+        unsigned int l;
+        int m;
+        unsigned int lm;
+        unsigned int order;
+        unsigned int idxrf;
+        unsigned int idxlo;
 };
 
 /// species related variables
@@ -304,7 +115,7 @@ class Species
 {
     public:
 
-        Species() 
+        Species() : size_ci_lo(0), size_ci_apw(0), nrfmt(0)
         {
         }
     
@@ -320,9 +131,6 @@ class Species
         double rmax;
         double rmt;
         int nrmt;
-        
-        /// l for U correction
-        int lu;
   
         /// list of core levels 
         std::vector<atomic_level> core;
@@ -333,10 +141,18 @@ class Species
         /// list of radial descriptors used to construct apw functions 
         std::vector<radial_l_descriptor> apw_descriptors;
 
-        mt_radial_index radial_index;
-        mt_index index;
-        
-        mdarray<double,1> radial_mesh;
+        /// list of combined indices for the muffin-tin representation of wave-functions    
+        std::vector<mtci> ci;
+
+        /// local-orbital part of combined indices
+        mtci *ci_lo;
+        unsigned int size_ci_lo;
+        unsigned int size_ci_apw;
+        mdarray<int,2> ci_by_lmo;
+        std::vector<int> ci_by_idxrf;
+        std::vector<int> l_by_idxrf;
+        std::vector<int> rfmt_order;
+        unsigned int nrfmt;
 };
 
 class Atom 
@@ -347,81 +163,76 @@ class Atom
         {
         }
 
-        Atom(Species *species, int ic) : species(species), idxclass(ic)
+        Atom(Species *species) : species(species)
         {
         }
         
-        /// atom position in lattice coordinates
         double posl[3];
-        
-        /// atom position in Cartesian coordinates
         double posc[3];
-        
-        /// muffin-tin magnetic field in Cartesian coordinates
         double bfcmt[3];
-        
-        /// pointer to species class
+        int symclass;
         Species *species;
-        
-        /// offset of APW matching coefficients in the array apwalm 
-        int offset_apw;
-        int offset_lo;
-        int offset_wfmt;
-        
-        /// index of symmetry class
-        int idxclass;
+        unsigned int offset_apw;
+        unsigned int offset_lo;
+        unsigned int offset_wfmt;
 };
 
 /// global read-only variables initialized once at the beginning
 struct lapw_global_variables
 {
     /// maximum number of G+k vectors
-    int ngkmax;
+    unsigned int ngkmax;
     
     /// maximum order of APW functions 
-    int apwordmax;
+    unsigned int apwordmax;
     
     /// maximum l for APW functions
-    int lmaxapw;
+    unsigned int lmaxapw;
     
     /// (lmaxapw+1)^2
-    int lmmaxapw;
+    unsigned int lmmaxapw;
     
     /// maximum l for potential and density
-    int lmaxvr;
+    unsigned int lmaxvr;
     
     /// (lmaxvr+1)^2
-    int lmmaxvr;
+    unsigned int lmmaxvr;
     
-    int lmaxlu;
+    /// total number of atoms
+    unsigned int natmtot;
     
-    int lmmaxlu;
-    
-    bool ldapu;
+    /// total number of species
+    unsigned int nspecies;
     
     /// number of G-vectors
-    int ngvec;
+    unsigned int ngvec;
     
     /// FFT grid dimensions
     int ngrid[3];
     
     /// number of FFT grid points
-    int ngrtot;
+    unsigned int ngrtot;
+    
+    /// maximum number of local orbitals
+    unsigned int nlomax;
     
     /// maximum number of radial points
-    int nrmtmax;
+    unsigned int nrmtmax;
     
     /// number of first-variational states
-    int nstfv;
+    unsigned int nstfv;
     
     /// number of second-variational states
-    int nstsv;
+    unsigned int nstsv;
+    
+    /// maximum size of Hamiltonian and overlap matrices
+    unsigned int nmatmax;
     
     /// maximum number of radial functions over all species
-    int nrfmtmax;
+    unsigned int nrfmtmax;
     
     /// maximum number (order) order of radial functions over all species and l-channels 
-    int ordrfmtmax;
+    unsigned int ordrfmtmax;
     
     /// tolerance for generalized eigen-value solver
     double evaltol;
@@ -429,13 +240,11 @@ struct lapw_global_variables
     /// spin-polarized calculation (T/F)
     bool spinpol;
     
-    bool spinorb;
-    
     /// number of dimensions (0,1 or 3) of the magnetization field
-    int ndmag;
+    unsigned int ndmag;
     
     /// number of spinor components (1 or 2)
-    int nspinor;
+    unsigned int nspinor;
 
     /// mapping from G-vector index to FFT grid
     std::vector<int> igfft;
@@ -464,12 +273,13 @@ struct lapw_global_variables
     /// non-zero gntyry elements
     //mdarray<std::vector<complex16>,2> L3_gntyry_data;
     
-    int size_wfmt_apw;
-    int size_wfmt_lo;
-    int size_wfmt;
+    unsigned int size_wfmt_apw;
+    unsigned int size_apwalm; 
+    unsigned int size_wfmt_lo;
+    unsigned int size_wfmt;
     std::vector<int> l_by_lm;
     
-    int natmcls;
+    unsigned int natmcls;
     std::vector<int> ic2ias;
     std::vector<int> natoms_in_class;
     
@@ -500,8 +310,6 @@ struct lapw_global_variables
     /// list of atoms
     std::vector<Atom*> atoms;
 
-    int max_mt_index_size;
-
 };
 extern lapw_global_variables lapw_global;
 
@@ -510,7 +318,7 @@ class bloch_states_k
 {
     public:
 
-        bloch_states_k(int ngk);
+        bloch_states_k(unsigned int ngk);
 
         void copy_apwalm(complex16 *apwalm_);
         
@@ -522,14 +330,23 @@ class bloch_states_k
         
         void test_spinor_wave_functions(int use_fft);
         
+        /// returns global index of G1-G2 vector, where G1 and G2 vectors are specified by their local indices
+        inline unsigned int idxG12(unsigned int ig1, unsigned int ig2)
+        {
+            return lapw_global.ivgig(lapw_global.ivg(0, idxg[ig1]) - lapw_global.ivg(0, idxg[ig2]), 
+                                     lapw_global.ivg(1, idxg[ig1]) - lapw_global.ivg(1, idxg[ig2]),
+                                     lapw_global.ivg(2, idxg[ig1]) - lapw_global.ivg(2, idxg[ig2]));
+
+        }
+
         /// number of G+k vectors
-        int ngk;
+        unsigned int ngk;
 
         /// number of LAPW basis functions (number of plane-waves + number of local orbitals)
-        int lapw_basis_size;
+        unsigned int lapw_basis_size;
 
         /// number of wave-function expansion coefficients (number of plane-waves + number of MT lm- coefficients)
-        int wave_function_size;
+        unsigned int wave_function_size;
 
         /// G+k vectors in Cartesian coordinates
         mdarray<double,2> vgkc;
@@ -577,7 +394,6 @@ struct lapw_runtime_variables
 {
     mdarray<double,4> hmltrad;
     mdarray<double,4> ovlprad;
-    mdarray<double,4> socrad;
     mdarray<double,5> beffrad;
     mdarray<double,5> apwfr;
     mdarray<double,3> apwdfr;
@@ -587,40 +403,154 @@ struct lapw_runtime_variables
 
     /// collection of bloch states for a local fraction of k-points
     std::vector<bloch_states_k*> bloch_states;
-    
-    mdarray<complex16,5> dmatu;
-    mdarray<complex16,5> vmatu;
-    
-    mdarray<double,3> rfmt;
-};
-extern lapw_runtime_variables lapw_runtime;
 
+};
+
+/*class lapw_eigen_states
+{
+    public:
+
+        lapw_eigen_states(kpoint *kp) : kp(kp)
+        {
+        }
+                
+        void pack_apwalm(complex16 *apwalm_);
+        
+        void generate_scalar_wf(); 
+        
+        void generate_spinor_wf(diagonalization mode);
+        
+        void test_scalar_wf(int use_fft);
+        
+        void test_spinor_wf(int use_fft);
+        
+        kpoint *kp;
+        mdarray<complex16,2> apwalm;
+        mdarray<complex16,2> evecfv;
+        mdarray<complex16,2> evecsv;
+        mdarray<complex16,2> evecfd;
+        mdarray<complex16,2> scalar_wf;
+        mdarray<complex16,3> spinor_wf;
+        std::vector<double> evalfv;
+        std::vector<double> evalsv;
+        std::vector<double> occsv;
+}; */
+
+/*class Geometry 
+{
+    public:
+    
+        std::vector< std::vector<double> > avec;
+        double avec_m[9];
+        double ainv_m[9];
+        std::vector< std::vector<double> > bvec;
+        double bvec_m[9];
+        double binv_m[9];
+        std::vector<Species*> species;
+        std::vector<Atom> atoms;
+        double omega;
+};*/
+
+/*class Parameters
+{
+    public:
+        unsigned int ngkmax;
+        unsigned int apwordmax;
+        unsigned int lmmaxapw;
+        unsigned int natmtot;
+        unsigned int nspecies;
+        unsigned int lmaxvr;
+        unsigned int lmmaxvr;
+        unsigned int lmaxapw;
+        unsigned int ngvec;
+        unsigned int ngrtot;
+        unsigned int nlomax;
+        unsigned int nrmtmax;
+        unsigned int nstfv;
+        unsigned int nstsv;
+        unsigned int nmatmax;
+        unsigned int nrfmtmax;
+        unsigned int ordrfmtmax;
+        double evaltol;
+        int ngrid[3];
+        bool spinpol;
+        unsigned int ndmag;
+        unsigned int nspinor;
+        std::vector<int> igfft;
+        std::vector< std::complex<double> > cfunig;
+        std::vector<double> cfunir;
+        mdarray<int,2> intgv;
+        mdarray<int,2> ivg;
+        mdarray<int,3> ivgig;
+        mdarray<std::complex<double>,3> gntyry;
+        mdarray<std::vector<int>,2> L3_gntyry;
+        mdarray<std::vector<complex16>,2> L3_gntyry_data;
+        
+        /// collection of bloch states for a local fraction of k-points
+        std::vector<bloch_states_k*> bloch_states;
+        
+        unsigned int size_wfmt_apw;
+        unsigned int size_apwalm; 
+        unsigned int size_wfmt_lo;
+        unsigned int size_wfmt;
+        mdarray<double,4> hmltrad;
+        mdarray<double,4> ovlprad;
+        mdarray<double,5> beffrad;
+        mdarray<double,5> apwfr;
+        mdarray<double,3> apwdfr;
+        mdarray<double,2> beffir;
+        mdarray<complex16,2> beffig;
+        mdarray<complex16,1> veffig;
+        std::vector<int> l_by_lm;
+        
+        unsigned int natmcls;
+        std::vector<int> ic2ias;
+        std::vector<int> natoms_in_class;
+};*/
+
+
+/*
+    global variables
+*/
+//extern Geometry geometry;
+//extern Parameters p;
 extern complex16 zone;
 extern complex16 zzero;
 extern complex16 zi;
 extern double y00;
+extern lapw_runtime_variables lapw_runtime;
 
-inline int idxG12(int ig1, int ig2)
+/*
+    inline functions
+*/
+/*inline int idxlm(int l, int m)
 {
-    return lapw_global.ivgig(lapw_global.ivg(0, ig1) - lapw_global.ivg(0, ig2), 
-                             lapw_global.ivg(1, ig1) - lapw_global.ivg(1, ig2),
-                             lapw_global.ivg(2, ig1) - lapw_global.ivg(2, ig2));
+    return l * l + l + m;
+}*/
+
+/*inline int idxG12(const kpoint& kp, int ig1, int ig2)
+{
+    return p.ivgig(p.ivg(0, kp.idxg[ig1]) - p.ivg(0, kp.idxg[ig2]), 
+                   p.ivg(1, kp.idxg[ig1]) - p.ivg(1, kp.idxg[ig2]),
+                   p.ivg(2, kp.idxg[ig1]) - p.ivg(2, kp.idxg[ig2]));
 }
+
+inline int idxG12(const kpoint *kp, int ig1, int ig2)
+{
+    return p.ivgig(p.ivg(0, kp->idxg[ig1]) - p.ivg(0, kp->idxg[ig2]), 
+                   p.ivg(1, kp->idxg[ig1]) - p.ivg(1, kp->idxg[ig2]),
+                   p.ivg(2, kp->idxg[ig1]) - p.ivg(2, kp->idxg[ig2]));
+}*/
 
 template <typename T>
 inline void L3_sum_gntyry(int lm1, int lm2, T *v, std::complex<double>& zsum)
 {
-    for (int k = 0; k < (int)lapw_global.L3_gntyry(lm1, lm2).size(); k++)
+    for (unsigned int k = 0; k < lapw_global.L3_gntyry(lm1, lm2).size(); k++)
     {
         int lm3 = lapw_global.L3_gntyry(lm1, lm2)[k];
         zsum += lapw_global.gntyry(lm3, lm1, lm2) * v[lm3];
     }
 }
-
-inline bool use_spin_block(int ispn1, int ispn2)
-{
-    return ((lapw_global.ndmag == 1 && ispn1 == ispn2) || (lapw_global.ndmag != 1));
-}
+        
 
 #endif // __LAPW_H__
-

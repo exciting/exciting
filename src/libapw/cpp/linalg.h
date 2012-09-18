@@ -5,11 +5,9 @@
 #include <iostream>
 #include <complex>
 #include "config.h"
-#ifndef _GPU_
 #include "linalg_cpu.h"
-#else
 #include "linalg_gpu.h"
-#endif
+
 template<implementation impl> 
 void zgemm(int transa, int transb, int32_t m, int32_t n, int32_t k, complex16 alpha, 
            complex16 *a, int32_t lda, complex16 *b, int32_t ldb, complex16 beta, 
@@ -23,10 +21,8 @@ void zgemm(int transa, int transb, int32_t m, int32_t n, int32_t k, complex16 al
     }
     
     if (impl == gpu)
-    {
-#ifdef _GPU_
+    {    
         gpu_zgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
-#endif
     }
 }
 
@@ -78,9 +74,7 @@ void zhegv(int32_t n, int32_t nv, double abstol, complex16 *a, complex16 *b,
     }
     if (impl == gpu)
     {
-#ifdef _GPU_
         gpu_zhegvx(n, nv, abstol, a, b, eval, z, ldz);
-#endif
     }
 }
 

@@ -1,33 +1,39 @@
 #include "lapw.h"
 
-extern "C" void FORTRAN(lapw_load_global)(int *lmaxvr_,
+extern "C" void FORTRAN(lapw_load_global)(int *natmtot_,
+                                          int *nspecies_,
+                                          int *lmaxvr_,
                                           int *lmaxapw_,
                                           int *apwordmax_,
                                           int *nrmtmax_,
                                           int *ngkmax_,
                                           int *ngvec_,
                                           int *ngrtot_,
+                                          int *nlomax_,
+                                          int *ias2is_,
                                           int *intgv_,
                                           int *ivg_,
                                           int *ivgig_,
                                           int *ngrid_,
                                           int *igfft_,
                                           double *cfunir_,
-                                          complex16 *cfunig_,
-                                          complex16 *gntyry_,
+                                          std::complex<double> *cfunig_,
+                                          std::complex<double> *gntyry_,
                                           int *nstfv_,
+                                          int *nstsv_,
+                                          int *nmatmax_,
                                           int *nrfmtmax_,
                                           int *ordrfmtmax_,
                                           double *evaltol_,
                                           int *spinpol_,
-                                          int *spinorb_,
                                           int *ndmag_,
                                           double *omega_,
                                           int *natmcls_,
                                           int *ic2ias_,
-                                          int *natoms_in_class_,
-                                          int *ldapu_)
+                                          int *natoms_in_class_)
 {
+    lapw_global.natmtot = *natmtot_;
+    lapw_global.nspecies = *nspecies_;
     lapw_global.lmaxvr = *lmaxvr_;
     lapw_global.lmmaxvr = pow(lapw_global.lmaxvr + 1, 2);
     lapw_global.lmaxapw = *lmaxapw_;
@@ -37,13 +43,13 @@ extern "C" void FORTRAN(lapw_load_global)(int *lmaxvr_,
     lapw_global.ngkmax = *ngkmax_;
     lapw_global.ngvec = *ngvec_;
     lapw_global.ngrtot = *ngrtot_;
+    lapw_global.nlomax = *nlomax_;
     lapw_global.nstfv = *nstfv_;
+    lapw_global.nstsv = *nstsv_;
+    lapw_global.nmatmax = *nmatmax_;
     lapw_global.nrfmtmax = *nrfmtmax_;
     lapw_global.ordrfmtmax = *ordrfmtmax_;
     lapw_global.evaltol = *evaltol_;
-    
-    lapw_global.lmaxlu = 3;
-    lapw_global.lmmaxlu = pow(lapw_global.lmaxlu + 1, 2);
     
     lapw_global.intgv.set_dimensions(3, 2);
     lapw_global.intgv.set_ptr(intgv_);
@@ -67,7 +73,7 @@ extern "C" void FORTRAN(lapw_load_global)(int *lmaxvr_,
     lapw_global.igfft.resize(lapw_global.ngrtot);
     lapw_global.cfunir.resize(lapw_global.ngrtot);
     lapw_global.cfunig.resize(lapw_global.ngrtot);
-    for (int i = 0; i < lapw_global.ngrtot; i++)
+    for (unsigned int i = 0; i < lapw_global.ngrtot; i++)
     {
         lapw_global.cfunig[i] = cfunig_[i];
         lapw_global.cfunir[i] = cfunir_[i];
@@ -80,15 +86,11 @@ extern "C" void FORTRAN(lapw_load_global)(int *lmaxvr_,
     lapw_global.spinpol = (*spinpol_ != 0);
     lapw_global.ndmag = *ndmag_;
     lapw_global.nspinor = (lapw_global.spinpol) ? 2 : 1;
-    lapw_global.nstsv = lapw_global.nstfv * lapw_global.nspinor;
-    
-    lapw_global.spinorb = (*spinorb_ != 0);
-    lapw_global.ldapu = (*ldapu_ != 0);
 
     lapw_global.natmcls = *natmcls_;
     lapw_global.ic2ias.resize(lapw_global.natmcls);
     lapw_global.natoms_in_class.resize(lapw_global.natmcls);
-    for (int ic = 0; ic < (int)lapw_global.ic2ias.size(); ic++)
+    for (unsigned int ic = 0; ic < lapw_global.ic2ias.size(); ic++)
     {
         lapw_global.ic2ias[ic] = ic2ias_[ic] - 1;
         lapw_global.natoms_in_class[ic] = natoms_in_class_[ic];
@@ -100,26 +102,34 @@ extern "C" void FORTRAN(lapw_load_global)(int *lmaxvr_,
     lapw_global.L3_gntyry.set_dimensions(lapw_global.lmmaxapw, lapw_global.lmmaxapw);
     lapw_global.L3_gntyry.allocate();
     
-    for (int lm1 = 0; lm1 < lapw_global.lmmaxapw; lm1++)
-        for (int lm2 = 0; lm2 < lapw_global.lmmaxapw; lm2++)
-            for (int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
+    //lapw_global.L3_gntyry_data.set_dimensions(lapw_global.lmmaxapw, lapw_global.lmmaxapw);
+    //lapw_global.L3_gntyry_data.allocate();
+    
+    for (unsigned int lm1 = 0; lm1 < lapw_global.lmmaxapw; lm1++)
+        for (unsigned int lm2 = 0; lm2 < lapw_global.lmmaxapw; lm2++)
+            for (unsigned int lm3 = 0; lm3 < lapw_global.lmmaxvr; lm3++) 
                 if (abs(lapw_global.gntyry(lm3, lm1, lm2)) > 1e-14)
                 {
                     lapw_global.L3_gntyry(lm1, lm2).push_back(lm3);
+                    //lapw_global.L3_gntyry_data(lm1, lm2).push_back(lapw_global.gntyry(lm3, lm1, lm2));
                 }
     
     
     lapw_global.omega = *omega_;
     
-    for (int i = 0; i < (int)lapw_global.species.size(); i++)
+    for (unsigned int i = 0; i < lapw_global.species.size(); i++)
         delete lapw_global.species[i];
     lapw_global.species.clear();
+    for (unsigned int i = 0; i < lapw_global.nspecies; i++)
+        lapw_global.species.push_back(new Species());
 
-    for (int i = 0; i < (int)lapw_global.atoms.size(); i++)
+    for (unsigned int i = 0; i < lapw_global.atoms.size(); i++)
         delete lapw_global.atoms[i];
     lapw_global.atoms.clear();
+    for (unsigned int i = 0; i < lapw_global.natmtot; i++)
+        lapw_global.atoms.push_back(new Atom(lapw_global.species[ias2is_[i] - 1]));
 
-    for (int i = 0; i < (int)lapw_runtime.bloch_states.size(); i++)
+    for (unsigned int i = 0; i < lapw_runtime.bloch_states.size(); i++)
         delete lapw_runtime.bloch_states[i];
     lapw_runtime.bloch_states.clear();
 }
