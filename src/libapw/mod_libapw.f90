@@ -82,6 +82,7 @@ do ik=1,nkpt
     m=int(chgval/occmax)
     do i=1,m
       occsv(i,ik)=occmax
+
     enddo
     occsv(m+1,ik)=chgval-m*occmax 
   else
@@ -115,7 +116,6 @@ do l1=0,input%groundstate%lmaxapw
   end do
 end do
 
-#ifdef _LIBAPW_
 if (allocated(nrfmt)) deallocate(nrfmt)
 allocate(nrfmt(nspecies))
 if (allocated(ordrfmt)) deallocate(ordrfmt)
@@ -184,11 +184,10 @@ do ikloc=1, nkpt !nkptloc
 #endif
   call lapw_load_kpoint(ngk(1, ik), igkig(1, 1, ikloc), vgkc(1, 1, 1, ikloc), wkpt(ik))
 enddo
-#endif
+
 return
 end subroutine
 
-#ifdef _LIBAPW_
 
 
 subroutine libapw_seceqn_init
@@ -429,6 +428,6 @@ end subroutine
 
 
 
-#endif
+
 
 end module

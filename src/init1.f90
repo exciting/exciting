@@ -415,6 +415,7 @@ Subroutine init1
   chgpart(:,:,:)=0.d0
 #endif
 !
+	  write(*,*) "##call libapwinit##"
       Call libapw_init
       
       Call timesec (ts1)
