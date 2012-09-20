@@ -14,7 +14,7 @@ Subroutine wfplot(dostm)
     Implicit None
     Logical, Intent(in) :: dostm
     ! local variables
-    Integer :: ik, ist
+    Integer :: ik, ist, stmmode, stmtype
     Real (8) :: x, y, t1, bias
     type(plotlabels),pointer ::labels
     ! allocatable arrays
@@ -69,10 +69,24 @@ Subroutine wfplot(dostm)
         occsv (:, :) = 0.d0
         occsv (ist, ik) = 1.d0
     Else
+        Select Case (trim(input%properties%STM%stmtype))
+            Case ('differentialConductance')
+                stmtype=1
+            Case ('integratedLDOS')
+                stmtype=2
+        End Select
+        Select Case (trim(input%properties%STM%stmmode))
+            Case ('constantHeight')
+                stmmode=1
+            Case ('topographic')
+                stmmode=2
+        End Select
+
         bias = input%properties%STM%bias
-        If (bias .Eq. 0.d0) Then
-            ! plotting an STM image by setting occupancies to be a delta function at the
-            ! Fermi energy
+
+        If ( bias .Eq. 0.d0) Then
+            ! plotting an STM differential-conductance image by setting occupancies to be a
+            ! delta function at the Fermi energy
             t1 = 1.d0 / input%groundstate%swidth
             Do ik = 1, nkpt
                 ! get the eigenvalues from file
