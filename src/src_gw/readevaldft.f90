@@ -145,12 +145,14 @@ subroutine readevaldft
 
     e0=maxval(evaldft(nstfv,:))
     write(fgw,*)'Highest energy of unoccupied states [Ha]:    ', e0
+    write(fgw,*)'Highest energy of unoccupied states [eV]:    ', e0*heV
 
     write(fgw,*)'Number of gw bands (gw output):              ', nbandsgw
     write(fgw,*)'Range of GW bands:                           ', ibgw, nbgw
     e0=minval(evaldft(ibgw,:))
     e1=maxval(evaldft(nbgw,:))
     write(fgw,*)'Range of GW bands [Ha]:                      ', e0, e1
+    write(fgw,*)'Range of GW bands [eV]:                      ', e0*heV, e1*heV
     write(fgw,*)'Number of valence electrons:                 ', int(chgval) 
     write(fgw,*)'Number of valence electrons included in gw band', int(nvelgw) 
 !
