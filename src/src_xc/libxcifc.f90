@@ -191,17 +191,25 @@ do k=2,3
       ex(1:n)=0.d0
       if (present(rho)) then
         vx(1:n)=0.d0
+        if (present(dxdg2))  dxdg2(1:n)=0.d0
       else
         vxup(1:n)=0.d0
         vxdn(1:n)=0.d0
+        if (present(dxdgu2))  dxdgu2(1:n)=0.d0
+        if (present(dxdgd2))  dxdgd2(1:n)=0.d0
+        if (present(dxdgud))  dxdgud(1:n)=0.d0
       end if
     else
       ec(1:n)=0.d0
       if (present(rho)) then
         vc(1:n)=0.d0
+        if (present(dcdg2)) dcdg2(1:n)=0.d0
       else
         vcup(1:n)=0.d0
         vcdn(1:n)=0.d0
+        if (present(dcdgu2))  dcdgu2(1:n)=0.d0
+        if (present(dcdgd2))  dcdgd2(1:n)=0.d0
+        if (present(dcdgud))  dcdgud(1:n)=0.d0
       end if
     end if
   end if
