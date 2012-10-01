@@ -67,7 +67,7 @@
 !
       call calcbarcmb(iq)
 !
-      call setbarcev(iq,barcevtol)
+      call setbarcev(barcevtol)
 !
 !     Calculate the q-dependent integration weights
 !   

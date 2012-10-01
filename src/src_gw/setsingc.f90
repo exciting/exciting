@@ -1,7 +1,7 @@
 subroutine setsingc()
         
       use modmain
-      use modgw, only: fgw,nqptnr,singc1,singc2
+      use modgw, only: fgw,nqptnr,singc1,singc2,Gamma,gammapoint
 
       real(8) :: beta
       real(8) :: f1
@@ -20,6 +20,7 @@ subroutine setsingc()
       sumf1=0.0d0
       sumf2=0.0d0
       do iq = 1, nqptnr
+        Gamma=gammapoint(iq)
         call genauxf(iq,beta,f1,f2)
         sumf1 = sumf1 + f1
         sumf2 = sumf2 + f2

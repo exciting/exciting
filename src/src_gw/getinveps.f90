@@ -85,7 +85,7 @@
       call diagsgi(iqp)
       call calcmpwipw(iqp)
       call calcbarcmb(iqp)
-      call setbarcev(iqp,barcevtol)
+      call setbarcev(barcevtol)
       
       call zgemm('c','n',mbsiz,mbsiz,matsiz, &
      &           zone,vbas,matsiz,temp,matsiz,zzero,rmat,mbsiz)
@@ -120,7 +120,7 @@
     end if ! isym
 
     ! data used for treating q->0 singularities
-    if (iq.eq.1) then
+    if (Gamma) then
 
       if(allocated(head))deallocate(head)
       allocate(head(1:nomeg))
@@ -148,7 +148,7 @@
 !--------------------------------------------
 
     do iom = 1, nomeg
-      if (iq.eq.1) head(iom)=head(iom)-zone
+      if (Gamma) head(iom)=head(iom)-zone
       do im=1,mbsiz
         inveps(im,im,iom)=inveps(im,im,iom)-zone
       enddo  

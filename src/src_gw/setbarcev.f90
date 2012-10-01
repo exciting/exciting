@@ -3,7 +3,7 @@
 ! !ROUTINE: setbarcev
 !
 ! !INTERFACE:
-      subroutine setbarcev(iq,evtol)
+      subroutine setbarcev(evtol)
 
 ! !DESCRIPTION:
 !
@@ -18,7 +18,6 @@
 ! !INPUT PARAMETERS: 
 
       implicit none
-      integer(4), intent(in) :: iq    ! index of the q-point
       real(8),    intent(in) :: evtol 
 !
 ! !LOCAL VARIABLES:
@@ -54,7 +53,7 @@
 !     Construct new basis set for q=0 by removing
 !     all eigenvectors with eigenvalues smaller than evtol  
 !
-      if (iq.eq.1) then
+      if (Gamma) then
         call calcwmix0
         call zgemv('c',matsiz,matsiz,zone,vmat,matsiz,wi0,1,zzero,wi0new,1)
         !! find the index of the diagonalized barc eigenvector that has maximal overlapw with

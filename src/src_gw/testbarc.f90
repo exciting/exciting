@@ -183,7 +183,7 @@
 !================================================!
       allocate(exev(matsiz))
       exev(:)=0.d0
-      if(iq.eq.1)then
+      if (Gamma) then
         do i=1,matsiz
           gvec(1:3)=vgc(1:3,igqigb(matsiz-i+2,iq))
           qg1len=gvec(1)*gvec(1)+gvec(2)*gvec(2)+gvec(3)*gvec(3)

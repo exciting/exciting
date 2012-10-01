@@ -43,6 +43,7 @@ subroutine readevaldft
     do ik = 1, nkpt
       ik0=idikp(ik)
       Read(70, Rec=ik0) vkl_, nstfv_, nspnfv_, evaldft(:,ik)
+      if (nstfv_.ne.nstfv) write(*,*) "Hey... Something's wrong: nstfv.ne.nstfv_"
     end do ! ik
     Close (70)
     

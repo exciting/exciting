@@ -90,6 +90,7 @@
 !         Calculate the interstitial mixed basis functions
 !
           iq=idikpq(iqp,1)
+          Gamma=gammapoint(iq)
           matsiz=locmatsiz+ngq(iq)
 !
 !         Interstitial mixed basis functions
@@ -104,7 +105,7 @@
 !         Reduce the basis size by choosing eigenvectors of barc with 
 !         eigenvalues larger than evtol
 !
-          call setbarcev(iq,barcevtol)
+          call setbarcev(barcevtol)
 !
 !         Calculate the q-dependent integration weights
 !   
@@ -177,6 +178,7 @@
            
            ik=idikp(ikp)
            iq=idikpq(iqp,ikp)
+           Gamma=gammapoint(iq)
 !
 !          Set the size of the basis for the corresponding q-point
 !        
@@ -194,7 +196,7 @@
 !          Calculate the bare coulomb potential matrix
 !
            call calcbarcmb(iq)
-           call setbarcev(iq,barcevtol)
+           call setbarcev(barcevtol)
 !        
 !          Calculate the Minm(k,q) matrix elements for given k and q
 !        

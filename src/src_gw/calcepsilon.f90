@@ -70,7 +70,7 @@ subroutine calcepsilon(iqp)
       iq=idikpq(iqp,1)
       coefw=2.0d0*sqrt(pi*vi)
 
-      if (iq.eq.1) then
+      if (Gamma) then
         
         allocate(pmat(3,nstsv,nstsv))
         recl=16*(3*nstsv*nstsv)
@@ -187,7 +187,7 @@ subroutine calcepsilon(iqp)
 !======================================================================+
 !                             WINGS
 !======================================================================+
-          if (iq.eq.1) then
+          if (Gamma) then
             
             ik0=indkp(ik)
             if (input%gw%reduceq) then
@@ -224,7 +224,7 @@ subroutine calcepsilon(iqp)
               enddo ! ie2
             end do ! ie1
             
-          end if ! iq.eq.1
+          end if ! Gamma
 
 !---------------------------------------------------------------------!
 !         Frequency loop
@@ -252,7 +252,7 @@ subroutine calcepsilon(iqp)
             enddo ! im
             
             ! Wings
-            if (iq.eq.1) then 
+            if (Gamma) then 
               
               call zgemv('n',mbsiz,dimtk,-zone,temp,mbsiz,pm,1,zzero,wtmp,1)
               epsw1(:,iom)=epsw1(:,iom)+wtmp(:)
@@ -269,12 +269,12 @@ subroutine calcepsilon(iqp)
               endif ! fflg.eq.2
               epsw2(:,iom)=epsw2(:,iom)+conjg(wtmp(:))
 
-            endif ! iq.eq.1
+            endif ! Gamma
         
           end do ! iom
           
           deallocate(minm,temp)
-          if(iq.eq.1)deallocate(pm)
+          if(Gamma)deallocate(pm)
           
 !---------------------------------------------------------------------!
 !                       Core contributions                            !
@@ -318,7 +318,7 @@ subroutine calcepsilon(iqp)
 !======================================================================+
 !                             WINGS
 !======================================================================+
-            if (iq.eq.1) then
+            if (Gamma) then
 
               read(51,rec=ik0) pmatc
               
@@ -351,7 +351,7 @@ subroutine calcepsilon(iqp)
                 enddo ! ie2
               enddo ! icg
 
-            end if ! iq.eq.1
+            end if ! Gamma
             
             allocate(temp(1:mbsiz,1:dimtk))
             
@@ -380,7 +380,7 @@ subroutine calcepsilon(iqp)
               enddo ! im
               
               ! Wings
-              if (iq.eq.1) then                                               
+              if (Gamma) then                                               
                 call zgemv('n',mbsiz,dimtk,-zone,temp,mbsiz,pm,1,zzero,wtmp,1) 
                 epsw1(:,iom)=epsw1(:,iom)+wtmp(:)                             
                 epsw2(:,iom)=epsw2(:,iom)+conjg(wtmp(:))                      
@@ -389,7 +389,7 @@ subroutine calcepsilon(iqp)
             end do ! iom
             
             deallocate(micm,temp)
-            if(iq.eq.1)deallocate(pm)
+            if (Gamma) deallocate(pm)
       
           endif ! core
           
@@ -401,7 +401,7 @@ subroutine calcepsilon(iqp)
       deallocate(minmmat)
       if(iopcore.eq.0)deallocate(micmmat)
       if(allocated(rotmat))deallocate(rotmat)
-      if(iq.eq.1)then
+      if(Gamma)then
         deallocate(pmat)
         close(50)
         if(iopcore.eq.0)then
@@ -409,7 +409,7 @@ subroutine calcepsilon(iqp)
           close(51)
         end if
         deallocate(wtmp)
-      end if ! iq.eq.1
+      end if ! Gamma
  
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'

@@ -73,7 +73,7 @@
 !
            call calcbarcmb(iq)
 !
-           call setbarcev(iq,barcevtol)
+           call setbarcev(barcevtol)
 !        
 !          Calculate the Minm(k,q) matrix elements for given k and q
 !        

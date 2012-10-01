@@ -62,7 +62,7 @@ module modgw
       real(8), allocatable :: womeg(:) 
 
 !--------------------------------------------!
-!     Brillouin zone convolution             !
+!     Brillouin zone integration             !
 !--------------------------------------------!
 ! flag for the frequency dependence of the  q dependent integration.
 !              =1 No frequency dependence included
@@ -87,6 +87,7 @@ module modgw
       real(8), allocatable :: ciw(:,:)
       
       logical :: metallic
+      logical :: Gamma
 
 !-----------------------------------!
 !     tetrahedron method variables  !
@@ -480,6 +481,24 @@ module modgw
 
       real(8), allocatable :: wleb(:) ! weight of the grid point ileb.
       integer(4) :: nleb              ! number of grip point in the sphere.
+
+contains
+
+      logical function gammapoint(iq)
+        use mod_qpoint, only: vql
+        implicit none
+        integer(4) :: iq
+        real(8)    :: len
+
+        len=vql(1,iq)**2+vql(2,iq)**2+vql(3,iq)**2
+        if (len.gt.1.0d-6) then
+          gammapoint=.false.
+        else
+          gammapoint=.true.
+        endif
+        
+        return
+      end function gammapoint
 
 end module modgw
 !EOP

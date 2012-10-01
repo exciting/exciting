@@ -109,7 +109,7 @@
           do ie1 = ibgw, nbgw
             ie12=ie12+1
             mwm(iom,ie1,ie2)=wkpq(iqp,ikp)*zdotc(mbsiz,mmat(:,ie12),1,wm(:,ie12),1)
-            if ((iq.eq.1).and.(ie1.eq.ie2)) then
+            if ((Gamma).and.(ie1.eq.ie2)) then
               mwm(iom,ie1,ie2)=mwm(iom,ie1,ie2) + &
            &    coefs2*head(iom) + &
            &    coefs1*(zdotu(mbsiz,mmat(:,ie12),1,epsw2(:,iom),1) + &

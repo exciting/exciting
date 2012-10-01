@@ -51,7 +51,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e, tfnd)
       Real (8), Parameter :: etoolow = - 1000.d0
       Real (8), Parameter :: ecutlow = - 30.d0
       Real (8), Parameter :: efermibands = 0.5d0
-      Real (8), Parameter :: erangebands = 2.d0
+      Real (8), Parameter :: erangebands = 8.d0
       Real (8), Parameter :: ediffusebands = efermibands + erangebands
       Real (8), Parameter :: erange1 = 3.d0
       Real (8), Parameter :: edefault1 = 1.d0
