@@ -428,43 +428,31 @@
         <xs:element ex:importance="expert" ex:unit="" name="nlo" minOccurs="0">
           <xs:complexType>
             
-            <xs:attribute ex:importance="essential" ex:unit="" name="banmin" type="xs:integer" default="1">
+            <xs:attribute ex:importance="essential" ex:unit="" name="emax" type="fortrandouble" default="0.5">
               <xs:annotation>
-                <xs:documentation>Minimum band index from which optical transitions start.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="essential" ex:unit="" name="banmax" type="xs:integer" default="0">
-              <xs:annotation>
-                <xs:documentation>Maximum band to which optical transitions are allowed.</xs:documentation>
+                <xs:documentation>Upper energy limit for SHG calculations.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             
-            <xs:attribute ex:importance="expert" ex:unit="" name="delta" type="fortrandouble" default="0.004d0">
+            <xs:attribute ex:importance="essential" ex:unit="" name="emesh" type="xs:integer" default="100">
+              <xs:annotation>
+                <xs:documentation>Number of grid points inside [0,emax] interval.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.01d0">
               <xs:annotation>
                 <xs:documentation>Broadening factor.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             
-            <xs:attribute ex:importance="expert" ex:unit="" name="dw" type="fortrandouble" default="0.001d0">
-              <xs:annotation>
-                <xs:documentation>Energy step.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            
-            <xs:attribute ex:importance="essential" ex:unit="" name="emesh" type="xs:integer" default="400">
-              <xs:annotation>
-                <xs:documentation>Number of energy mesh points.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            
-            <xs:attribute ex:importance="expert" ex:unit="" name="sc" type="fortrandouble" default="0.049d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="scissor" type="fortrandouble" default="0.0d0">
               <xs:annotation>
                 <xs:documentation>Scissors operator.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             
-            <xs:attribute ex:importance="expert" ex:unit="" name="tol" type="fortrandouble" default="0.001d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="etol" type="fortrandouble" default="0.004d0">
               <xs:annotation>
                 <xs:documentation>Tolerence factor (to avoid singularities).</xs:documentation>
               </xs:annotation>

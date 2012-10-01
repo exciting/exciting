@@ -159,7 +159,7 @@ Subroutine propertylauncher
       
       If (associated(input%properties%nlo) .And. rank .Eq. 0) Then
          call rereadinput
-         Call nlomain
+         Call nonlinopt
       End If
 
 End Subroutine propertylauncher
