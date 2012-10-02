@@ -108,15 +108,20 @@ Subroutine xsinit
   ! warn for spin polarized calculations
       If (associated(input%groundstate%spin)) Then
          Write (unitout,*)
-         Write (unitout, '("Warning(xsinit): calculation is spin-polari&
-        &zed - formalism may be incomplete")')
+         Write (unitout, '("Error(xsinit): xs-part not working for spin-polari&
+        &zed systems.")')
          Write (unitout,*)
+         Write (100, '("Warning(xsinit): xs-part not working for spin-polari&
+        &zed systems.")')
+         Call terminate
       End If
   ! no spin-spirals
       If (isspinspiral()) Then
          Write (unitout,*)
          Write (unitout, '("Error(xsinit): xs-part not working for spin&
         &-spirals")')
+         Write (100, '("Warning(xsinit): xs-part not working for spin&
+        &-spirals.")')
          Write (unitout,*)
          Call terminate
       End If
