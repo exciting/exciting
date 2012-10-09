@@ -61,7 +61,7 @@
 
 ! Calculate eigenvectors for the complete (non-reduced) k-point set
 ! (when it is required)
-      call genevecs
+      call recalcevecs
 
 !     Generate the k- and q-point meshes      
       call init_kqpts

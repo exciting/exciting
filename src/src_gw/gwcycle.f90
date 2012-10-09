@@ -228,11 +228,15 @@
 !
 !     Write the exchange term to file
 !      
-      call writeselfx
+      open(92,file='SELFX.OUT',form='UNFORMATTED',status='UNKNOWN')
+      write(92) ibgw, nbgw, nkpt, selfex
+      close(92)
 !
 !     Write the correlation term to file
 !      
-      call writeselfc
+      open(93,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
+      write(93) ibgw, nbgw, nkpt, nomeg, selfec
+      close(93)
 !
 !     Calculate the diagonal matrix elements of the DFT exchange-correlation potential
 !

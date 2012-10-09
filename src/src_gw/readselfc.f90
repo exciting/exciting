@@ -17,14 +17,7 @@
 ! !LOCAL VARIABLES:
       
       implicit none
-      
-      integer(4) :: ie, ib    ! (Counter) Runs over bands.
-      integer(4) :: ikp, ik   ! (Counter) Runs over k-points.
-      integer(4) :: iom       ! (Counter) Runs over frequencies.
-      real(8)    :: om
-      real(8)    :: scr, sci
-      real(8)    :: kvec(3)
-      character(20):: string
+      integer(4) :: ib, nb, nk, no
       
 ! !REVISION HISTORY:
 !
@@ -33,31 +26,28 @@
 !EOP
 !BOC
 !
-      open(93,file='SELFC.OUT',form='FORMATTED',status='UNKNOWN')
-      read(93,*)
-      do ikp = 1, nkpt
-        do ie = ibgw, nbgw
-          read(93,*)
-          read(93,*) kvec, ik, ib
-          read(93,*)
-          if(ik.ne.ikp)then
-            write(6,*)'ERROR(readselfc): Inconsistent input parameters'
-            write(6,*)'ik=',ik,'ikp=',ikp
-            stop
-          end if
-          if ((ib<ibgw).or.(ib>nbgw)) then
-            write(6,*)'ERROR(readselfc): Inconsistent input parameters'
-            write(6,*)'ib=',ib
-            write(6,*)'ibgw=',ibgw,'nbgw=',nbgw
-            stop
-          end if
-          do iom = 1, nomeg
-            read(93,*) om, scr, sci
-            selfec(ie,ikp,iom)=cmplx(scr,sci,8)/hev
-          enddo ! iom
-        enddo ! ie
-      enddo !ikp
+      open(93,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
+      read(93) ib, nb, nk, no, selfec
       close(93)
+
+      if (nk.ne.nkpt) then
+        write(6,*)'ERROR(readselfc): Wrong number of k-points'
+        write(6,*)'    nk=', nk, '    nkpt=', nkpt
+        stop
+      end if
+
+      if ((ib.ne.ibgw).or.(nb.ne.nbgw)) then
+        write(6,*)'ERROR(readselfc): Wrong band bounds'
+        write(6,*)'    ib=',   ib, '    nb=', nb
+        write(6,*)'  ibgw=', ibgw, '  nbgw=', nbgw
+        stop
+      end if
+
+      if (no.ne.nomeg) then
+        write(6,*)'ERROR(readselfc): Wrong number of frequencies'
+        write(6,*)'    no=', no, '    nomeg=', nomeg
+        stop
+      end if
      
       return
       end subroutine

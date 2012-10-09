@@ -27,7 +27,7 @@
       integer(4) :: npar ! Number of parameters of the analitic cont. of
 !                          the selfenergy
       integer(4) :: it
-      integer(4) :: ierr
+      integer(4) :: ierr, Recl
       
       real(8) :: enk,snk,vxcnk,znk
       real(8) :: delta 
@@ -198,9 +198,34 @@
          write(fgw,*) 'WARNING(calceqp): --- Failed to converge!!!'
       endif 
 !      
-!     Write quasi-particle energies to disk
+!     Write quasi-particle energies into QPENE-eV.OUT
 !      
       call writeqp(sigc,znorm)
+!
+!     Save the data similar to that in EVALSV.OUT files
+!
+      Inquire (IoLength=Recl) vkl(:,1), nbandsgw, eqp(:,1)
+      Open (70, File='EVALQP.OUT', Action='WRITE', &
+     & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+
+      do ikp = 1, nkpt
+        Write(70, Rec=ikp) vkl(:,ikp), nbandsgw, eqp(:,ikp)
+
+        write(555,*)
+        write(555,*) ikp, vkl(:,ikp)
+        do ie = ibgw, nbgw
+          write(555,*) evaldft(ie,ikp),  eqp(ie,ikp)
+        end do
+
+      end do ! ikp
+
+      Close(70)
+!
+!     QP Fermi energy
+!      
+      Open(50, File='EFERMIQP.OUT', Action='WRITE', Form='FORMATTED')
+      Write(50,'(G18.10)') eferqp
+      Close(50)
       
       deallocate(a)
       deallocate(znorm)

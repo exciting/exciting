@@ -708,6 +708,7 @@ type gw_type
  character(512)::bzconv
  logical::debug
  integer::ngridq(3)
+ real(8)::vqloff(3)
   type(freqgrid_type),pointer::freqgrid
   type(selfenergy_type),pointer::selfenergy
   type(mixbasis_type),pointer::mixbasis
@@ -5125,6 +5126,14 @@ getstructgw%ngridq=(/0,0,0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ngridq",getstructgw%ngridq)
        call removeAttribute(thisnode,"ngridq")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"vqloff")
+getstructgw%vqloff=(/0.0d0,0.0d0,0.0d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"vqloff",getstructgw%vqloff)
+       call removeAttribute(thisnode,"vqloff")  
 endif
 
             len= countChildEmentsWithName(thisnode,"freqgrid")

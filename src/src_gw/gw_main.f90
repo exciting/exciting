@@ -62,13 +62,13 @@ subroutine gw_main
       call init1
 
 !     Parse input data
-      call cpu_time(t(1))      
+      call cpu_time(t(1))
       call readingw
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'READINGW')
-!!
-!!    testid = 16: Calculate the bandstructure
-!!            
+!
+!     testid = 16: Calculate bandstructure
+!            
       if (testid==16) then
           call task_band
           goto 1000

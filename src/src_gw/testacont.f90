@@ -32,9 +32,9 @@
 !BOC
 
 !     Allocate the arrays
-      allocate(vxcnn(nstfv,nkpt))
-      allocate(selfex(nstfv,nkpt))
-      allocate(selfec(nstfv,nkpt,nomeg))
+      allocate(vxcnn(ibgw:nbgw,nkpt))
+      allocate(selfex(ibgw:nbgw,nkpt))
+      allocate(selfec(ibgw:nbgw,nkpt,nomeg))
 !
 !     Read the exchange correlation matrix elements
 !

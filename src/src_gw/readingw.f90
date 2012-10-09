@@ -26,6 +26,7 @@
       character(6) :: fgrid
       character(3) :: corflag
       integer(4)   :: nstfv_
+      real(8)      :: len
       
 ! !EXTERNAL ROUTINES: 
 
@@ -328,12 +329,22 @@
             (input%gw%ngridq(3).ne.input%groundstate%ngridk(3))) then
           write(fgw,*)
           write(fgw,*)'Attention! Different k/q grids are specified for the groundstate and GW calculations!'
-          write(fgw,*)'           Please note, that the GW results are very sensitive to the quality &
-         &  of the starting quantities (groundstate calculations).'
+          write(fgw,*)'           Please note, that the GW results could be influenced by this choice.'
           write(fgw,*)
           write(fgw,*)'New k/q-grid: ngridq = ', input%gw%ngridq
           input%groundstate%ngridk=input%gw%ngridq
         end if
+      end if
+
+      len=input%gw%vqloff(1)**2+ &
+     &    input%gw%vqloff(2)**2+ &
+     &    input%gw%vqloff(3)**2
+      if (len.gt.1.0d-10) then
+        write(fgw,*)
+        write(fgw,*)'Attention! k/q-point shift is specified!'
+        write(fgw,*)
+        write(fgw,*)'k/q-shift: vqloff = ', input%gw%vqloff
+        input%groundstate%vkloff=input%gw%vqloff
       end if
       
       return

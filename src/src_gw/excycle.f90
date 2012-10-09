@@ -96,10 +96,6 @@
       if(iopcore.eq.0)deallocate(mincmat)
       close(96)
 !
-!     Write the exchange term to file
-!      
-      call writeselfx
-!
 !     Calculate the diagonal matrix elements of the DFT exchange-correlation potential
 !
       call calcvxcnn

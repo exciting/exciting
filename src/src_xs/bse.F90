@@ -112,6 +112,11 @@ Subroutine bse
      & oszs (:), spectr (:), sigma(:), buf(:,:,:)
   ! external functions
       Integer, External :: l2int
+
+      integer :: Recl, nstsv_
+      real(8) :: vkl_(3)
+      
+      
   ! routine not yet parallelized
   if (rank .ne. 0) goto 10
   !---------------------------!
@@ -188,10 +193,29 @@ Subroutine bse
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
       Allocate (ham(hamsiz, hamsiz))
       ham (:, :) = zzero
+
   ! read in energies
-      Do iknr = 1, nkptnr
-         Call getevalsv (vkl(1, iknr), evalsv(1, iknr))
-      End Do
+
+      if (associated(input%gw)) then
+        
+        ! Read quasi particle energies
+        open(50, File='EFERMIQP.OUT', Action='READ', &
+       &  Form='FORMATTED', Status='OLD')
+        read(50,*) efermi
+        close(50)
+      
+        do iknr = 1, nkptnr
+          call getevalqp (vkl(1, iknr), evalsv(1, iknr))
+        end do
+      
+      else
+    
+        Do iknr = 1, nkptnr
+          Call getevalsv (vkl(1, iknr), evalsv(1, iknr))
+        End Do
+    
+      end if ! GW
+
   ! read mean value of diagonal of direct term
       bsed = 0.d0
       If ((trim(input%xs%bse%bsetype) .Eq. 'singlet') .Or. &

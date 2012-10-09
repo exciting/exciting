@@ -275,6 +275,15 @@
             </xs:annotation>
           </xs:attribute>
           
+          <xs:attribute ex:importance="expert" ex:unit="" name="vqloff" type="vect3d" default="0.0d0 0.0d0 0.0d0">
+            <xs:annotation>
+              <xs:documentation>
+                The <inlinemath>{\mathbf k/q}</inlinemath>-point offset vector in lattice coordinates.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          
         </xs:complexType>
     </xs:element>
 </xs:schema>
