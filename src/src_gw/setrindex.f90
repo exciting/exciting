@@ -46,6 +46,7 @@
 !
 ! !USES:
 
+      use modinput
       use modmain,    only: pi,nsymcrys,symlat,lsplsymc
       use modgw,      only: avec
       use fouri,      only: rindex,nrr,rst,nst,rmax
@@ -77,8 +78,6 @@
       integer :: ierr
       character(len=10)::sname="setrindex"
 
-      logical :: lprt=.false.      
-
 ! !EXTERNAL ROUTINES: 
 
 
@@ -90,10 +89,13 @@
 !
 !EOP
 !BOC
+!     shortcut for basis vectors 
+      avec(:,1)=input%structure%crystal%basevect(:,1)
+      avec(:,2)=input%structure%crystal%basevect(:,2)
+      avec(:,3)=input%structure%crystal%basevect(:,3)
+
       do i=1,3
-        rvec(i)=sqrt(avec(1,i)*avec(1,i)+ &
-       &             avec(2,i)*avec(2,i)+ &
-       &             avec(3,i)*avec(3,i)) 
+        rvec(i)=sqrt(avec(1,i)**2+avec(2,i)**2+avec(3,i)**2)
       enddo
       
       nr1=2*nint(rmax/rvec(1))
@@ -104,7 +106,7 @@
       allocate(rlen(nr),rind(3,nr),stat=ierr)
       call errmsg(ierr.ne.0,sname,"error in allocation") 
 
-      if(lprt) then 
+      if (input%gw%debug) then 
          write(6,*) '--------- R vectors generation ----------'
          write(6,*)'  Parameters'
          write(6,12) rmax,nr1,nr2,nr3,nr
@@ -184,17 +186,14 @@
       enddo ! ippw
       nst=ist      
 
-      if(lprt) write(6,*) " nrr=", nrr
-      if(lprt) write(6,*) " nst=", nst
+      if (input%gw%debug) write(6,*) " nrr=", nrr
+      if (input%gw%debug) write(6,*) " nst=", nst
 
       deallocate(invrindex,rlen,rind)
 
    10 format(i6,3i4,4f12.6,2i4)
-  111 format(2(i6,3i4)) 
-   12 format('rmax = ',f15.10,' nr1 =',i4,' nr3 =',i4,' nr3 =',i4, &
-     &       ' nr =',i8)
- 6110 format (2(3i2,/),3i2)
- 6111 format(4x,i4)
+  111 format('(setrindex) ',2(i6,3i4)) 
+   12 format('rmax = ',f15.10,' nr1 =',i4,' nr3 =',i4,' nr3 =',i4,' nr =',i8)
  
       end subroutine setrindex
 !EOC

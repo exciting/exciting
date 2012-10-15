@@ -202,23 +202,14 @@
 !      
       call writeqp(sigc,znorm)
 !
-!     Save the data similar to that in EVALSV.OUT files
+!     Save QP energies into binary file
 !
-      Inquire (IoLength=Recl) vkl(:,1), nbandsgw, eqp(:,1)
+      Inquire (IoLength=Recl) nkpt, vkl(:,1), ibgw, nbgw, eqp(:,1), evaldft(:,1)
       Open (70, File='EVALQP.OUT', Action='WRITE', &
-     & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
-
+     &  Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
       do ikp = 1, nkpt
-        Write(70, Rec=ikp) vkl(:,ikp), nbandsgw, eqp(:,ikp)
-
-        write(555,*)
-        write(555,*) ikp, vkl(:,ikp)
-        do ie = ibgw, nbgw
-          write(555,*) evaldft(ie,ikp),  eqp(ie,ikp)
-        end do
-
+        Write(70, Rec=ikp) nkpt, vkl(:,ikp), ibgw, nbgw, eqp(ibgw:nbgw,ikp), evaldft(ibgw:nbgw,ikp)
       end do ! ikp
-
       Close(70)
 !
 !     QP Fermi energy

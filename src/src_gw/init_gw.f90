@@ -25,10 +25,7 @@
       integer(4) :: is      
       integer(4) :: ist      
       integer(4) :: m, n
-      
-      Integer :: recl, nmatmax_, nstfv_, nspnfv_
-      Real(8) :: vkl_(3)
-      Complex (8) :: evecfv_(nmatmax,nstfv,nspnfv)
+      logical    :: reduce
  
 ! !EXTERNAL ROUTINES: 
 
@@ -47,23 +44,29 @@
 !
 !EOP
 !BOC
-      if (.not.input%groundstate%tetra) then
-        write(*,*)'GW EMERGENCY STOP!!!'
-        write(*,*)'k-point meshes should be generated with tetra =.true.'
-        stop 'ERROR in initgw'
-      endif
-      
       spinpol=associated(input%groundstate%spin)
       if (spinpol) then
         write(*,*)'GW EMERGENCY STOP!!!'
         stop 'Spin polarization is not implemented yet'
       end if
 
-! Calculate eigenvectors for the complete (non-reduced) k-point set
-! (when it is required)
-      call recalcevecs
+! Importantly, current implementation uses exclusively 
+! "Extended linear tetrahedron method for the calculation of q-dependent
+! dynamical response functions", to be published in Comp. Phys. Commun. (2010)
+      input%groundstate%tetra=.true.
 
-!     Generate the k- and q-point meshes      
+! Calculate eigenvectors for the complete (non-reduced) k-point set
+      reduce=input%groundstate%reducek
+      input%groundstate%reducek=.false.          
+      input%groundstate%nempty=input%gw%nempty
+      
+      task = 1
+      input%groundstate%maxscl = 1
+      
+      call gndstate
+      
+! Generate the k- and q-point meshes      
+      input%groundstate%reducek=reduce
       call init_kqpts
 
 ! initialise the charge density and potentials from file
@@ -121,7 +124,7 @@
       avec(:,1)=input%structure%crystal%basevect(:,1)
       avec(:,2)=input%structure%crystal%basevect(:,2)
       avec(:,3)=input%structure%crystal%basevect(:,3)
-      
+
 !     reciprocal lattice basis lengths
       do i=1,3
          alat(i)=dsqrt(avec(1,i)*avec(1,i)+ &

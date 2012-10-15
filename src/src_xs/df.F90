@@ -69,7 +69,7 @@ Subroutine df
      ! call for q-point
          Call dfq (iq)
          If (tscreen) Call writegqpts (iq, filex)
-         Write (unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sahm&
+         Write (unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sham&
         & response function finished for q - point:', iq
       End Do
   ! synchronize

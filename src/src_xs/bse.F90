@@ -194,26 +194,26 @@ Subroutine bse
       Allocate (ham(hamsiz, hamsiz))
       ham (:, :) = zzero
 
-  ! read in energies
+  ! read KS energies
+      Do iknr = 1, nkptnr
+        Call getevalsv (vkl(1, iknr), evalsv(1, iknr))
+      End Do
 
       if (associated(input%gw)) then
         
+        ! if scissor correction is presented, nullify it
+        input%xs%scissor=0.0d0
+        
         ! Read quasi particle energies
-        open(50, File='EFERMIQP.OUT', Action='READ', &
-       &  Form='FORMATTED', Status='OLD')
+        open(50, File='EFERMIQP.OUT',Action='READ',Form='FORMATTED',Status='OLD')
         read(50,*) efermi
         close(50)
-      
-        do iknr = 1, nkptnr
-          call getevalqp (vkl(1, iknr), evalsv(1, iknr))
-        end do
-      
-      else
-    
-        Do iknr = 1, nkptnr
-          Call getevalsv (vkl(1, iknr), evalsv(1, iknr))
-        End Do
-    
+        write(unitout,'("  Fermi energy is read from EFERMIQP.OUT : Efermi=", &
+       &  f12.6)') efermi
+        
+        call getevalqp(nkptnr)
+        Write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
+
       end if ! GW
 
   ! read mean value of diagonal of direct term
@@ -276,7 +276,7 @@ Subroutine bse
                        & nrnst3)
                         s2 = hamidx (ist2-nsta1+1, ist4-nsta2+1, jknr, nrnst2, &
                        & nrnst4)
-					    kdocc (s1) = docc (ist1-nsta1+1, ist3-nsta2+1)
+			kdocc (s1) = docc (ist1-nsta1+1, ist3-nsta2+1)
                      ! add diagonal term
                         If (s1 .Eq. s2) Then
                            de = evalsv (ist3+istl3-1, iknr) - evalsv &
@@ -285,10 +285,10 @@ Subroutine bse
                           & bsed
                         End If
                     ! write partially occupied states in the output    
-						If (kdocc (s1) .Gt. input%groundstate%epsocc .And. kdocc (s1) &
-						  .Lt. 2.d0-input%groundstate%epsocc) Then
-							Write (*,*) 'kdocc s1', kdocc(s1), s1
-						End If
+			If (kdocc (s1) .Gt. input%groundstate%epsocc .And. kdocc (s1) &
+			  .Lt. 2.d0-input%groundstate%epsocc) Then
+			   Write (*,*) 'kdocc s1', kdocc(s1), s1
+			End If
                     ! add exchange term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('RPA', 'singlet')

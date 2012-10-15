@@ -54,8 +54,17 @@ subroutine gw_main
 
 !     General output file
       fgw=700
-      open(fgw,file='GWINFO.OUT',action='write')
+      open(fgw,file='GWINFO.OUT',action='Write',access='Append')
       call boxmsg(fgw,'=','Main GW output file')
+!
+!     testid = 16: Calculate bandstructure
+!            
+      select case(input%gw%taskname)
+        case('BAND','band')
+          testid=16
+          call task_band
+          goto 1000
+      end select
 
 !     initialise global variables
       call init0
@@ -66,13 +75,6 @@ subroutine gw_main
       call readingw
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'READINGW')
-!
-!     testid = 16: Calculate bandstructure
-!            
-      if (testid==16) then
-          call task_band
-          goto 1000
-      end if
       
 !     Initialize GW global parameters
       call cpu_time(t(1))
