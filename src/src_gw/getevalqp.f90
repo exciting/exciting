@@ -24,7 +24,7 @@ subroutine getevalqp(nkp2)
 
 !     local variables
       logical :: exist
-      integer :: ik, ib
+      integer :: ik, ik1, ik2, ib, isym
       integer :: recl
       real(8) :: v(3), t1
       character (256) :: file
@@ -58,39 +58,20 @@ subroutine getevalqp(nkp2)
       end do ! ik
       close(70)
       
+      if (.not.present(nkp2)) return
+      
 !-----------------------------------------------------------------------------
 !     Interpolate the energies
 !-----------------------------------------------------------------------------      
-      
-      if (.not.present(nkp2)) nkp2=nkpt
       
       if ((ibgw.ne.1).or.(nbgw.lt.nstsv)) then
         write(*,*)
         write(*,*)'WARNING(getevalqp):'
         write(*,*)'  Quasiparticle energies has been calculated for the interval of bands:'
         write(*,*)'  [ibgw,nbgw]=[', ibgw, nbgw,']' 
-        write(*,*)'  Regenerate your EVALQP.OUT file if it is needed'
+        write(*,*)'  If it creates problems - regenerate your EVALQP.OUT.'
         write(*,*)
       end if
-!
-!     if k-point grid is the same for both GW and BSE
-!
-      if (nkp1.eq.nkp2) then
-        t1=0.0d0
-        do ik = 1, nkp2
-          t1 = t1 + abs(vkl(1,ik)-kvecs1(1,ik)) + &
-         &          abs(vkl(2,ik)-kvecs1(2,ik)) + &
-         &          abs(vkl(3,ik)-kvecs1(3,ik))
-        end do
-        if (t1.lt.input%structure%epslat) then
-          evalsv(ibgw:nbgw,1:nkp1)=eqp1(ibgw:nbgw,1:nkp1)
-          return
-        end if
-      end if
-
-!--------------------------------------------------
-!       Fourier interpolation
-!--------------------------------------------------
 
       allocate(de1(ibgw:nbgw,nkp1),de2(ibgw:nbgw,nkp2))
 
