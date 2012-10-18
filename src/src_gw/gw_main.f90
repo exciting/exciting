@@ -13,6 +13,7 @@ subroutine gw_main
 ! !USES:
     use modmain
     use modgw
+    use modmpi
 !
 ! !DEFINED PARAMETERS:
 
@@ -22,7 +23,7 @@ subroutine gw_main
 ! !LOCAL VARIABLES:
 !
     real(8) :: tstart, tend, t(2)
-
+    character(124)::sbuffer
 ! !INTRINSIC ROUTINES:
 
     intrinsic cpu_time
@@ -54,7 +55,8 @@ subroutine gw_main
 
 !     General output file
       fgw=700
-      open(fgw,file='GWINFO.OUT',action='write')
+      write(sbuffer,*)rank
+      open(fgw,file='GWINFO'//trim(adjustl(sbuffer))//'.OUT',action='write')
       call boxmsg(fgw,'=','Main GW output file')
 
 !     initialise global variables
@@ -77,6 +79,7 @@ subroutine gw_main
 !     Initialize GW global parameters
       call cpu_time(t(1))
       call init_gw
+      call barrier
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'INITGW')
 
@@ -95,11 +98,14 @@ subroutine gw_main
           goto 1000
             
       end select
-
+ 
 !     Mixed basis initialization
+
       call cpu_time(t(1))
       call init_mb
+     
       call cpu_time(t(2))
+      
       call write_cputime(fgw,t(2)-t(1),'INIMB')
       
       call boxmsg(fgw,'-',"Mixed WF info")
@@ -107,14 +113,16 @@ subroutine gw_main
       write(fgw,*)'Max num of IPW for Mixbasis:', ngqmax
       write(fgw,*)'Max. nr. of mixed functions per atom:', lmixmax
       write(fgw,*)'Mixed basis set size:', lmixmax+ngqmax
-      call linmsg(fgw,'-','')
-      
+     
 !     Read the eigenenergies from the  "EIGVAL.OUT" file
       call cpu_time(t(1))      
+ 
       call readevaldft
+     
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'READEVALDFT')
-      
+     
+      call barrier()
       select case(testid)
 !!
 !!        testid = 0 or none of below:  Run the GW calculation

@@ -33,6 +33,7 @@
 
       use modmain
       use modgw
+      use modmpi
       use q0barc
 !
 ! !LOCAL VARIABLES:
@@ -89,7 +90,10 @@
       call cpu_time(t1)
       call calcsing
       call cpu_time(t2)
-      
+      write(500+rank,*)sing
+      write(*,*)"sing500"
+       write(600+rank,*)phase
+      write(*,*)"phase600" 
       imix=0
       do is=1,nspecies
         do ia=1,natoms(is)
@@ -163,7 +167,7 @@
       use modmain
       use modgw
       use q0barc
-
+	use modmpi
 ! !LOCAL VARIABLES:
 !
       implicit none
@@ -252,7 +256,8 @@
           enddo
         enddo
       enddo
-
+      write(800+rank,*)gvec,kk
+      write(*,*)"gvec,kk 800"
       ng = ipw
 !     sort by increasing length using shell algorithm
       call shelsort(ng,gind(:,1:ng),glen(1:ng))
@@ -337,6 +342,9 @@
             enddo ! irm
           enddo ! igl
         enddo ! ia  
+        write(900+rank,*)umix
+        write(*,*)"umix900"
+        
         deallocate(rp)
         deallocate(fr)
         deallocate(gr)

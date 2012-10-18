@@ -23,7 +23,7 @@ Subroutine getevecfvgw(ik, evecfv)
         Open (70, File=outfilenamestring(filetag, ik), Action='READ&
        &', Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
       Else
-        Write (*,*) '(getevecfvgw): Error when reading EVECFV.OUT file!'
+        Write (*,*) '(getevecfvgw): Error when reading",outfilenamestring(filetag, ik)," file!'
         Stop
       End If
       Read (70, Rec=ik) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv

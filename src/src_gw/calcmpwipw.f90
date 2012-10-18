@@ -14,7 +14,7 @@
 
       use modmain
       use modgw
-
+      use modmpi
 ! !INPUT PARAMETERS:
 
       implicit none
@@ -51,6 +51,7 @@
       if(allocated(mpwipw))deallocate(mpwipw)
       allocate(mpwipw(ngq(iq),ngbarc(iq)))
       allocate(tmat(ngq(iq),ngbarc(iq)))
+      mpwipw=zzero
 !
 !     Calculate the integral between pw's and IPW's
 !
@@ -69,11 +70,11 @@
           end if
         enddo ! jpw  
       enddo ! ipw
-        
+      
 !     Calculate the overlap PW-IPW integral
       call zgemm('t','n',ngq(iq),ngbarc(iq),ngq(iq),zone,sgi,ngq(iq), &
      &           tmat,ngq(iq),zzero,mpwipw,ngq(iq))
-      
+        
       if (debug) then
            write(55,*) 'CALCMPWIPW, iq = ', iq
            write(55,*) 'CALCMPWIPW, ngq = ', ngq(iq)

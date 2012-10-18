@@ -15,6 +15,7 @@
 
       use modmain
       use modgw
+      use modmpi
             
 ! !LOCAL VARIABLES:
 
@@ -23,7 +24,7 @@
       integer(4) :: iq, iqp
       integer(4) :: ik, ikp
       integer(4) :: recl
-      
+      character(128)::sbuffer
       real(8)    :: tq1, tq2, tq11, tq22
 
 ! !REVISION HISTORY:
@@ -47,21 +48,25 @@
 !
 !     Calculate the integration weights using the linearized tetrahedron method
 !
-      call kintw
+        call kintw
 
 !=========================================================================================
 !     Calculate the momentum matrix elements
 !=========================================================================================
+    
       if(.not.input%gw%rpmat)then
-        call calcpmat        ! <--- original (RGA's) version
+         call calcpmat        ! <--- original (RGA's) version
         !call calcpmatgw     ! <--- modified xs (SAG's) version
       else
         write(fgw,*)'PMAT and PMATC are read from file'
       end if
-
+   
+    call barrier()
+ 
 !=========================================================================================
 !     Calculate the dielectric function matrix
 !=========================================================================================
+    
       if (.not.input%gw%reps) then
       
         call cpu_time(tq1)
@@ -76,15 +81,17 @@
 !       The direct access file to store the values of the inverse dielectric matrix
 !--------------------------------------------------------------------------
         recl=16*(matsizmax*matsizmax*nomeg)
-        open(44,file='INVEPS.OUT',action='WRITE',form='UNFORMATTED', &
+        write(sbuffer,*)rank
+        open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED', &
        &  access='DIRECT',status='REPLACE',recl=recl)
 !
 !       Loop over q-points
 !        
         call boxmsg(fgw,'-','Calculation of the dielectric matrix')
-
+          
         do iqp = 1, nqpt
-        
+          if (0.eq.0)then
+          write(*,*)"dielM",rank,iqp
           call cpu_time(tq11)
 !      
 !         Calculate the interstitial mixed basis functions
@@ -96,11 +103,18 @@
 !         Interstitial mixed basis functions
 !
           call diagsgi(iq)
+    
           call calcmpwipw(iq)
 !
+ write(300+rank,*) mpwipw
+     write(*,*)" mpwipw"
 !         Calculate the bare coulomb potential matrix and its square root
 !
           call calcbarcmb(iq)
+ write(200+rank,*) barc
+     write(*,*)" barc"
+     call barrier()
+     stop
 !
 !         Reduce the basis size by choosing eigenvectors of barc with 
 !         eigenvalues larger than evtol
@@ -119,39 +133,44 @@
 !   
           call calcepsilon(iqp)
 !
-!         Calculate inverse of the dielectric finction
+!         Calculate inverse of the dielectric function
 !   
           call calcinveps(iqp)
           
           ! store the inverse dielmat into file INVEPS.OUT
           write(44,rec=iqp) inveps
 
-          if(iqp.eq.1)then
+          if((iqp.eq.1) )then
+          	 
             ! store the data used for treating q->0 singularities
-            open(42,file='INVHEAD.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
+            open(42,file='INVHEAD'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
             write(42)head
             close(42)
-            open(43,file='INVWING1.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
+            open(43,file='INVWING1'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
             write(43)epsw1
             close(43)
-            open(43,file='INVWING2.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
+            open(43,file='INVWING2'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
             write(43)epsw2
             close(43)
+            endif
             deallocate(head)
             deallocate(epsw1,epsw2)
             deallocate(emac)
-          endif
           
+          call barrier() !! carefull 
           call cpu_time(tq22)
           
           write(fgw,*) 'q-point =', iqp, '    takes ', tq22-tq11, ' CPU seconds'
-
+		end if
         end do ! iqp
-        
+     
+        close(44)
+         call barrier
         deallocate(epsilon)
         deallocate(inveps)
-
-        close(44)
+	call finitmpi()
+	stop
+        
         
         call cpu_time(tq2)
         write(fgw,*)
@@ -165,15 +184,16 @@
 !=========================================================================================
 
 !     The file to store intermediate (q-dependent) values of \Sigma_{x,c}
-      open(96,file='ADDSELFE.OUT',form='FORMATTED',status='UNKNOWN')
+      open(96,file='ADDSELFE'//trim(adjustl(sbuffer))//'.OUT',form='FORMATTED',status='UNKNOWN')
 
 !     Calculate the integrals to treat the singularities at G+q->0
       call setsingc
-
+call barrier
       do ikp = 1, nkpt ! IBZ
-         
+          
          do iqp = 1, nkptq(ikp)  ! EIBZ(k)
-         
+           if (rank.eq.0)then
+           
            call cpu_time(tq1)
            
            ik=idikp(ikp)
@@ -218,16 +238,19 @@
            write(fgw,*)
            call write_cputime(fgw,tq2-tq1,'Q-POINT CYCLE TAKES')
            write(fgw,*)
-  
+        endif 
         end do ! iqp
-
+      
       end do ! ikp
-      deallocate(minmmat)
-      if(iopcore.eq.0)deallocate(mincmat)
+!##############################      
+     call barrier
+      if (allocated(minmmat))deallocate(minmmat)
+      if(iopcore.eq.0 .and. allocated(mincmat))deallocate(mincmat)
       close(96)
 !
 !     Write the exchange term to file
 !      
+	if (rank.eq.0) then
       open(92,file='SELFX.OUT',form='UNFORMATTED',status='UNKNOWN')
       write(92) ibgw, nbgw, nkpt, selfex
       close(92)
@@ -254,7 +277,7 @@
       
       close(46) ! ADDSELFE.OUT
       close(52) ! STRCONST.OUT
-      
+    endif  
       return
       end subroutine gwcycle
 !EOC      

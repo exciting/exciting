@@ -14,7 +14,8 @@
 ! !USES:
 
       use modmain
-      use modgw      
+      use modgw 
+      use modmpi     
 !
 ! !INPUT PARAMETERS: 
 
@@ -149,11 +150,15 @@
 !
 !     Set kpmin: Starting value of the index for G vectors. =2 if iq=1 (if q=0, discard G=0)
 !
+    
       kpmin=1
       if (Gamma) then
         kpmin=2
         call barcq0
+      
       endif
+          write(400+rank,*)barc
+        write(*,*)"barc0 400"
 !
 !     Calculate all the products rtl*rtl
 !

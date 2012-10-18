@@ -7,6 +7,7 @@ Subroutine groundstatetasklauncher
     Use modinput
     Use modmain, Only: task
     Use inputdom
+    use modmpi
     Implicit None
     If ( .Not. (associated(input%groundstate%solver))) Then
         ! set the default values if tddft element not present
@@ -31,5 +32,7 @@ Subroutine groundstatetasklauncher
         if (associated(input%groundstate%output)) then
             if (input%groundstate%output%state .eq. "XML") call portstate(1)
         end if
+    else
+   splittfile= .False.
     end if
 end subroutine

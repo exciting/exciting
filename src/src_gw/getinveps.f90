@@ -13,6 +13,7 @@
 
     use modmain
     use modgw
+    use modmpi
 
 ! !INPUT PARAMETERS:
       
@@ -30,7 +31,7 @@
 
     complex(8), allocatable :: eps(:,:), tmat(:,:)
     complex(8), allocatable :: rmat(:,:), temp(:,:)
-    
+    character(128)::sbuffer
 ! !EXTERNAL ROUTINES: 
 
     external zgemm
@@ -53,7 +54,8 @@
     allocate(inveps(matsizmax,matsizmax,nomeg))
     
     recl=16*(matsizmax*matsizmax*nomeg)
-    open(44,file='INVEPS.OUT',action='READ',form='UNFORMATTED', &
+    write(sbuffer,*)rank
+    open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT',action='READ',form='UNFORMATTED', &
    &  access='DIRECT',status='OLD',recl=recl)
     
     iqp=indkpq(iq,1)
