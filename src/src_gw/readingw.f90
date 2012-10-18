@@ -21,7 +21,6 @@
       implicit none
       
       character(8) :: test
-      character(5) :: bzcon, interp
       character(6) :: fdep
       character(6) :: fgrid
       character(3) :: corflag

@@ -25,8 +25,6 @@ subroutine task_band
 
     integer(4) :: ik, ib
     real(8) :: tstart, tend
-    complex(8), allocatable :: dek1(:,:), dek2(:,:)
-   
 !
 ! !INTRINSIC ROUTINES:
     external  kgen
