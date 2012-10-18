@@ -26,6 +26,7 @@
       integer(4) :: recl
       character(128)::sbuffer
       real(8)    :: tq1, tq2, tq11, tq22
+      complex(8),allocatable::buffer(:)
 
 ! !REVISION HISTORY:
 !
@@ -81,6 +82,8 @@
 !       The direct access file to store the values of the inverse dielectric matrix
 !--------------------------------------------------------------------------
         recl=16*(matsizmax*matsizmax*nomeg)
+        allocate(buffer(matsizmax*matsizmax*nomeg))
+        buffer=zzero
         write(sbuffer,*)rank
         open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED', &
        &  access='DIRECT',status='REPLACE',recl=recl)
@@ -106,21 +109,21 @@
     
           call calcmpwipw(iq)
 !
- write(300+rank,*) mpwipw
-     write(*,*)" mpwipw"
+
 !         Calculate the bare coulomb potential matrix and its square root
 !
           call calcbarcmb(iq)
- write(200+rank,*) barc
-     write(*,*)" barc"
-     call barrier()
-     stop
+
+
+
 !
 !         Reduce the basis size by choosing eigenvectors of barc with 
 !         eigenvalues larger than evtol
 !
           call setbarcev(barcevtol)
-!
+
+
+
 !         Calculate the q-dependent integration weights
 !   
           if(convflg.eq.0)then
@@ -138,26 +141,28 @@
           call calcinveps(iqp)
           
           ! store the inverse dielmat into file INVEPS.OUT
+          write(44,rec=iqp) buffer
           write(44,rec=iqp) inveps
 
           if((iqp.eq.1) )then
-          	 
+          	 if( rank.eq.0)then
             ! store the data used for treating q->0 singularities
-            open(42,file='INVHEAD'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
+            open(42,file='INVHEAD.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
             write(42)head
             close(42)
-            open(43,file='INVWING1'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
+            open(43,file='INVWING1.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
             write(43)epsw1
             close(43)
-            open(43,file='INVWING2'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
+            open(43,file='INVWING2.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
             write(43)epsw2
+
             close(43)
-            endif
+			endif
             deallocate(head)
             deallocate(epsw1,epsw2)
             deallocate(emac)
-          
-          call barrier() !! carefull 
+          endif
+
           call cpu_time(tq22)
           
           write(fgw,*) 'q-point =', iqp, '    takes ', tq22-tq11, ' CPU seconds'
@@ -168,8 +173,7 @@
          call barrier
         deallocate(epsilon)
         deallocate(inveps)
-	call finitmpi()
-	stop
+
         
         
         call cpu_time(tq2)
@@ -192,7 +196,7 @@ call barrier
       do ikp = 1, nkpt ! IBZ
           
          do iqp = 1, nkptq(ikp)  ! EIBZ(k)
-           if (rank.eq.0)then
+           if (0.eq.0)then
            
            call cpu_time(tq1)
            
@@ -250,7 +254,7 @@ call barrier
 !
 !     Write the exchange term to file
 !      
-	if (rank.eq.0) then
+	if (1.eq.1) then
       open(92,file='SELFX.OUT',form='UNFORMATTED',status='UNKNOWN')
       write(92) ibgw, nbgw, nkpt, selfex
       close(92)

@@ -180,8 +180,9 @@
                 write(*,*) 'l =',l,' nl =',nl(l),'info = ',info
                 stop
               endif
+#ifdef MPI
              call mpi_bcast(uml,nl(l)*nl(l),MPI_DOUBLE,0,MPI_COMM_WORLD,ierr)
-            
+#endif
               
               i2=0
               do i1=1,nl(l)
