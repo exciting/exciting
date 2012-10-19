@@ -22,7 +22,7 @@
       implicit none
 
       integer(4) :: iq, iqp
-      integer(4) :: ik, ikp
+      integer(4) :: ik, ikp,ikpqp
       integer(4) :: recl
       character(128)::sbuffer
       real(8)    :: tq1, tq2, tq11, tq22
@@ -91,10 +91,10 @@
 !       Loop over q-points
 !        
         call boxmsg(fgw,'-','Calculation of the dielectric matrix')
-          
-        do iqp = 1, nqpt
+          write(*,*)"Do qp",firstofset(rank,nqpt)," to ", lastofset(rank,nqpt)
+        do iqp = firstofset(rank,nqpt), lastofset(rank,nqpt)
           if (0.eq.0)then
-          write(*,*)"dielM",rank,iqp
+
           call cpu_time(tq11)
 !      
 !         Calculate the interstitial mixed basis functions
@@ -142,7 +142,8 @@
           
           ! store the inverse dielmat into file INVEPS.OUT
           write(44,rec=iqp) buffer
-          write(44,rec=iqp) inveps
+          write(44,rec=iqp-firstofset(rank,nqpt)+1) inveps
+    write(*,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
 
           if((iqp.eq.1) )then
           	 if( rank.eq.0)then
@@ -193,10 +194,13 @@
 !     Calculate the integrals to treat the singularities at G+q->0
       call setsingc
 call barrier
+  	  ikpqp=0 ! initialize counter for k-points
       do ikp = 1, nkpt ! IBZ
-          
+
          do iqp = 1, nkptq(ikp)  ! EIBZ(k)
-           if (0.eq.0)then
+         ikpqp=ikpqp+1
+
+         if (mod(ikpqp-1,procs).eq.rank) then
            
            call cpu_time(tq1)
            
@@ -247,7 +251,12 @@ call barrier
       
       end do ! ikp
 !##############################      
-     call barrier
+#ifdef MPI
+ call MPI_ALLREDUCE(MPI_IN_PLACE, selfec, (nbgw-ibgw+1) *nkpt*nomeg,  MPI_DOUBLE_COMPLEX,  MPI_SUM,&
+       & MPI_COMM_WORLD, ierr)
+ call MPI_ALLREDUCE(MPI_IN_PLACE, selfex, (nbgw-ibgw+1) *nkpt,  MPI_DOUBLE_COMPLEX,  MPI_SUM,&
+       & MPI_COMM_WORLD, ierr)
+#endif
       if (allocated(minmmat))deallocate(minmmat)
       if(iopcore.eq.0 .and. allocated(mincmat))deallocate(mincmat)
       close(96)

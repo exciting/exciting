@@ -52,14 +52,20 @@
     
     if(allocated(inveps))deallocate(inveps)
     allocate(inveps(matsizmax,matsizmax,nomeg))
-    
+
+    iqp=indkpq(iq,1)
     recl=16*(matsizmax*matsizmax*nomeg)
-    write(sbuffer,*)rank
+
+    write(*,*)"read iqp ",iqp,"in file: ",procofindex (iqp, nqpt),&
+    &"at rec:" ,iqp-firstofset(procofindex (iqp, nqpt),nqpt)+1
+
+    write(sbuffer,*)procofindex (iqp, nqpt)
     open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT',action='READ',form='UNFORMATTED', &
    &  access='DIRECT',status='OLD',recl=recl)
     
-    iqp=indkpq(iq,1)
-    read(44,rec=iqp) inveps
+
+    read(44,rec=iqp-firstofset(procofindex (iqp, nqpt),nqpt)+1) inveps
+
     close(44)
     
     ! if the q-point is non-reduced, the dielectric matrix is calculated by symmetry
