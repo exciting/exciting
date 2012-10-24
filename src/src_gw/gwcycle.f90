@@ -85,15 +85,18 @@
         allocate(buffer(matsizmax*matsizmax*nomeg))
         buffer=zzero
         write(sbuffer,*)rank
-        open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED', &
+       if (rank.lt.nqpt) open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED', &
        &  access='DIRECT',status='REPLACE',recl=recl)
 !
 !       Loop over q-points
 !        
         call boxmsg(fgw,'-','Calculation of the dielectric matrix')
-          write(*,*)"Do qp",firstofset(rank,nqpt)," to ", lastofset(rank,nqpt)
+        call barrier
+
+         write(*,*)"Do qp",firstofset(rank,nqpt)," to ", lastofset(rank,nqpt)
+
         do iqp = firstofset(rank,nqpt), lastofset(rank,nqpt)
-          if (0.eq.0)then
+
 
           call cpu_time(tq11)
 !      
@@ -141,10 +144,11 @@
           call calcinveps(iqp)
           
           ! store the inverse dielmat into file INVEPS.OUT
-          write(44,rec=iqp) buffer
-          write(44,rec=iqp-firstofset(rank,nqpt)+1) inveps
-    write(*,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
-
+          if (rank.lt.nqpt) then
+          	 write(44,rec=iqp-firstofset(rank,nqpt)+1) buffer
+        	 write(44,rec=iqp-firstofset(rank,nqpt)+1) inveps
+   			 write(*,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
+		  endif
           if((iqp.eq.1) )then
           	 if( rank.eq.0)then
             ! store the data used for treating q->0 singularities
@@ -167,10 +171,10 @@
           call cpu_time(tq22)
           
           write(fgw,*) 'q-point =', iqp, '    takes ', tq22-tq11, ' CPU seconds'
-		end if
+
         end do ! iqp
-     
-        close(44)
+
+        if (rank.lt.nqpt)close(44)
          call barrier
         deallocate(epsilon)
         deallocate(inveps)

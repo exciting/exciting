@@ -92,10 +92,15 @@ Contains
 !
 !-------------generalized partition!
       Function nofset (process, set)
+      !calculates number of items for proc
          Integer :: nofset
          Integer, Intent (In) :: process, set
+         if (process.lt.0) then
+         nofset=0
+         else
          nofset = set / procs
          If ((Mod(set, procs) .Gt. process)) nofset = nofset + 1
+		 endif
       End Function nofset
 !
       Function firstofset (process, set)
@@ -103,9 +108,10 @@ Contains
          Integer, Intent (In) :: process, set
          integer::i
          firstofset = 1
-         Do i = 0, process - 1
+         Do i = 0, min( process-1,set-1)
             firstofset = firstofset + nofset (i, set)
          End Do
+         if(set.le.process) firstofset=set
       End Function firstofset
 !
       Function lastofset (process, set)
