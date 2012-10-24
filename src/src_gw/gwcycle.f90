@@ -150,7 +150,7 @@
    			 write(*,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
 		  endif
           if((iqp.eq.1) )then
-          	 if( rank.eq.0)then
+
             ! store the data used for treating q->0 singularities
             open(42,file='INVHEAD.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
             write(42)head
@@ -162,7 +162,7 @@
             write(43)epsw2
 
             close(43)
-			endif
+
             deallocate(head)
             deallocate(epsw1,epsw2)
             deallocate(emac)
