@@ -74,16 +74,18 @@
        
         if(allocated(epsilon))deallocate(epsilon)
         allocate(epsilon(matsizmax,matsizmax,nomeg))
-
+	    epsilon=zzero
         if(allocated(inveps))deallocate(inveps)
         allocate(inveps(matsizmax,matsizmax,nomeg))
-
+		inveps=zzero
 !--------------------------------------------------------------------------
 !       The direct access file to store the values of the inverse dielectric matrix
 !--------------------------------------------------------------------------
         recl=16*(matsizmax*matsizmax*nomeg)
+       !this buffer is used only for making INVEPS files more comparable
         allocate(buffer(matsizmax*matsizmax*nomeg))
         buffer=zzero
+        !each process opens its own file except there is no q-point left
         write(sbuffer,*)rank
        if (rank.lt.nqpt) open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED', &
        &  access='DIRECT',status='REPLACE',recl=recl)
@@ -94,7 +96,7 @@
         call barrier
 
          write(*,*)"Do qp",firstofset(rank,nqpt)," to ", lastofset(rank,nqpt)
-
+		!each process does a subset
         do iqp = firstofset(rank,nqpt), lastofset(rank,nqpt)
 
 
@@ -145,9 +147,9 @@
           
           ! store the inverse dielmat into file INVEPS.OUT
           if (rank.lt.nqpt) then
-          	 write(44,rec=iqp-firstofset(rank,nqpt)+1) buffer
+          	 write(44,rec=iqp-firstofset(rank,nqpt)+1) buffer !fill file with zeroes
         	 write(44,rec=iqp-firstofset(rank,nqpt)+1) inveps
-   			 write(*,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
+   			 write(fgw,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
 		  endif
           if((iqp.eq.1) )then
 
@@ -197,13 +199,13 @@
 
 !     Calculate the integrals to treat the singularities at G+q->0
       call setsingc
-call barrier
+      call barrier
   	  ikpqp=0 ! initialize counter for k-points
       do ikp = 1, nkpt ! IBZ
 
          do iqp = 1, nkptq(ikp)  ! EIBZ(k)
          ikpqp=ikpqp+1
-
+		! decide if point is done by this process
          if (mod(ikpqp-1,procs).eq.rank) then
            
            call cpu_time(tq1)

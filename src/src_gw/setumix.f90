@@ -181,6 +181,8 @@
                 stop
               endif
 #ifdef MPI
+			! the result uml can vary because math libs can be nondeterministic
+			! this broadcast just ensures that each process starts with the exact same data
              call mpi_bcast(uml,nl(l)*nl(l),MPI_DOUBLE,0,MPI_COMM_WORLD,ierr)
 #endif
               

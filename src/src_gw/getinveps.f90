@@ -56,8 +56,8 @@
     iqp=indkpq(iq,1)
     recl=16*(matsizmax*matsizmax*nomeg)
 
-    write(*,*)"read iqp ",iqp,"in file: ",procofindex (iqp, nqpt),&
-    &"at rec:" ,iqp-firstofset(procofindex (iqp, nqpt),nqpt)+1
+  !  write(*,*)"read iqp ",iqp,"in file: ",procofindex (iqp, nqpt),&
+  !  &"at rec:" ,iqp-firstofset(procofindex (iqp, nqpt),nqpt)+1
 
     write(sbuffer,*)procofindex (iqp, nqpt)
     open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT',action='READ',form='UNFORMATTED', &
