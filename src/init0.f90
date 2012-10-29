@@ -83,6 +83,7 @@ Subroutine init0
       Do l = 0, input%groundstate%lmaxapw
          zil (l) = zi ** l
       End Do
+  write(*,*) 'Hellow world'
 !
 !------------------------------------!
 !     index to atoms and species     !
