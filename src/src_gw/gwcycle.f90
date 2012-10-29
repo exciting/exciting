@@ -178,6 +178,7 @@
 
         if (rank.lt.nqpt)close(44)
          call barrier
+
         deallocate(epsilon)
         deallocate(inveps)
 
@@ -190,6 +191,14 @@
         
       end if
       
+      !debug info
+      if(rank.eq.0)then
+      do iqp=1,nkpt
+      call getinveps(iqp)
+      write(8888,*)inveps
+      end do
+      end if
+
 !=========================================================================================
 !                                  MAIN LOOP
 !=========================================================================================
