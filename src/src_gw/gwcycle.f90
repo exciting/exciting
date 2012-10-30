@@ -192,7 +192,7 @@
       end if
       
       !debug info
-      if(rank.eq.0)then
+      if(1.eq.0)then
       do iqp=1,nkpt
       call getinveps(iqp)
       write(8888,*)inveps
@@ -278,7 +278,7 @@
 !
 !     Write the exchange term to file
 !      
-	if (1.eq.1) then
+	if (rank.eq.0) then
       open(92,file='SELFX.OUT',form='UNFORMATTED',status='UNKNOWN')
       write(92) ibgw, nbgw, nkpt, selfex
       close(92)
@@ -303,9 +303,10 @@
      &       'Number of interstitial basis functions: ',i4,/,10x,     &
      &       'Total number of basis functions:        ',i4,/)
       
-      close(46) ! ADDSELFE.OUT
+
       close(52) ! STRCONST.OUT
     endif  
+        close(46) ! ADDSELFE.OUT
       return
       end subroutine gwcycle
 !EOC      

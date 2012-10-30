@@ -212,9 +212,6 @@
         Write(70, Rec=ikp) vkl(:,ikp), nbandsgw, eqp(:,ikp)
 
       
-        do ie = ibgw, nbgw
-          write(555,*) evaldft(ie,ikp),  eqp(ie,ikp)
-        end do
 
       end do ! ikp
 

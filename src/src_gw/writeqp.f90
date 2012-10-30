@@ -32,7 +32,7 @@
       real(8) :: vxc,sx,sc,z
       real(8) :: evmks,evmhf,evmgw
       real(8) :: kvec(3)
-      character(128) ::sbuffer
+
 ! !REVISION HISTORY:
 !
 ! Created 16.08.05 by RGA
@@ -44,8 +44,8 @@
       evmks=maxval(evaldft(maxoccband,:))
       evmhf=maxval(evaldft(maxoccband,:)+real(selfex(maxoccband,:))-real(vxcnn(maxoccband,:)))
       evmgw=maxval(eqp(maxoccband,:))
-	 write(sbuffer,*)rank
-      open(64,file='QPENE-eV'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='FORMATTED')
+
+      open(64,file='QPENE-eV.OUT',action='WRITE',form='FORMATTED')
 
       do ikp = 1, nkpt
 
