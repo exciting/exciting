@@ -3,81 +3,94 @@
 ! !ROUTINE: getevalqp
 ! !INTERFACE:
 !
-subroutine getevalqp (vpl, evalsvp)
+subroutine getevalqp(nkp2)
 ! !USES:
-      use modmain
       use modinput
+      use modmain
+      use modgw,    only: ibgw, nbgw, nkp1, kvecs1, eks1, eqp1
+
 ! !DESCRIPTION:
 !   The file where the quasiparticle energies are stored is {\tt EVALQP.OUT}.
 !   It is a direct-access binary file, the record length of which can be
 !   determined with the help of the array sizes and data type information.
-!   One record of this file has the following structure
 !
 !EOP
 !BOC
       implicit none
-  ! arguments
-      real(8), intent (In) :: vpl(3)
-      real(8), intent (Out):: evalsvp(nstsv)
-  ! local variables
+      
+      integer, optional, intent(in) :: nkp2
+      ! if not specified - only read the QP energies
+      ! otherwise        - read and interpolate QPE
+
+!     local variables
       logical :: exist
-      integer :: isym, ik
-      integer :: recl, nstsv_
-      real(8) :: vkl_ (3), t1
+      integer :: ik, ik1, ik2, ib, isym
+      integer :: recl
+      real(8) :: v(3), t1
       character (256) :: file
-  ! to access arrays for only a subset of bands
-      Real (8), Allocatable :: evalsv_(:)
+      complex(8), allocatable :: de1(:,:), de2(:,:)
 
-  ! find the k-point number
-      Call findkpt(vpl,isym,ik)
-
-  ! find the record length
-      Inquire(IoLength=Recl) vkl_, nstsv_, evalsvp
+!-----------------------------------------------------------------------------
+!     Just read the file
+!-----------------------------------------------------------------------------      
 
       file='EVALQP.OUT'
-      inquire(File=file, Exist=Exist)
-      if (exist) then
-        open (70, File=file, Action='READ', Form='UNFORMATTED', &
-       &  Access='DIRECT', Recl=Recl)
-      else
-        write(*,*)'ERROR(getevalqp) File EVALQP.OUT does not exist!'
+      inquire(File=file,Exist=exist)
+      if (.not.exist) then
+        write(*,*)'ERROR(getevalqp): File EVALQP.OUT does not exist!'
         stop
       end if
       
-      read(70, Rec=1) vkl_, nstsv_
+      inquire(IoLength=Recl) nkp1, v, ibgw, nbgw
+      open (70, File=file, Action='READ', Form='UNFORMATTED', &
+     &  Access='DIRECT', Recl=Recl)
+      read(70, Rec=1) nkp1, v, ibgw, nbgw
       close(70)
-      if (nstsv .gt. nstsv_) Then
-         write (*,*)
-         write (*, '("Error(getevalqp): invalid nstsv")')
-         write (*, '(" current      : ",I8)') nstsv
-         write (*, '(" EVALSVQP.OUT : ",I8)') nstsv_
-         write (*,*)
-         stop
+      
+      allocate(kvecs1(1:3,nkp1))
+      allocate(eqp1(ibgw:nbgw,nkp1))
+      allocate(eks1(ibgw:nbgw,nkp1))
+      inquire(IoLength=Recl) nkp1, kvecs1(:,1), ibgw, nbgw, eqp1(:,1), eks1(:,1)
+      open (70, File=file, Action='READ', Form='UNFORMATTED', &
+     &  Access='DIRECT', Recl=Recl)
+      do ik = 1, nkp1
+        read(70, Rec=ik) nkp1, kvecs1(:,ik), ibgw, nbgw, eqp1(:,ik), eks1(:,ik)
+      end do ! ik
+      close(70)
+      
+      if (.not.present(nkp2)) return
+      
+!-----------------------------------------------------------------------------
+!     Interpolate the energies
+!-----------------------------------------------------------------------------      
+      
+      if ((ibgw.ne.1).or.(nbgw.lt.nstsv)) then
+        write(*,*)
+        write(*,*)'WARNING(getevalqp):'
+        write(*,*)'  Quasiparticle energies has been calculated for the interval of bands:'
+        write(*,*)'  [ibgw,nbgw]=[', ibgw, nbgw,']' 
+        write(*,*)'  If it creates problems - regenerate your EVALQP.OUT.'
+        write(*,*)
       end if
 
-      allocate(evalsv_(nstsv_))
-      inquire(IoLength=Recl) vkl_, nstsv_, evalsv_
-      open(70, File=file, Action='READ', Form='UNFORMATTED', &
-     &  access='DIRECT', Recl=Recl)
-      read(70, Rec=ik) vkl_, nstsv_, evalsv_
-  ! retreive subset
-      evalsvp (:) = evalsv_ (:nstsv)
-      deallocate(evalsv_)
-      close (70)
-!
-      t1 = Abs(vkl(1, ik)-vkl_(1)) + &
-     &     Abs(vkl(2, ik)-vkl_(2)) + &
-     &     abs(vkl(3, ik)-vkl_(3))
-      if (t1 .gt. input%structure%epslat) then
-         write (*,*)
-         write (*, '("Error(getevalsv): differing vectors for k-point "&
-        &,i8)') ik
-         write (*, '(" current    : ",3G18.10)') vkl (:, ik)
-         write (*, '(" EVALQP.OUT : ",3G18.10)') vkl_
-         write (*,*)
-         stop
-      end if
-!
+      allocate(de1(ibgw:nbgw,nkp1),de2(ibgw:nbgw,nkp2))
+
+      do ik = 1, nkp1
+         de1(ibgw:nbgw,ik)=cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
+      enddo
+
+      de2(:,:)=0.0d0
+      call fourintp(nbgw-ibgw+1,nkp1,kvecs1,de1,nkp2,vkl,de2)
+
+      do ib = ibgw, min(nbgw,nstsv)
+         do ik = 1, nkp2
+            evalsv(ib,ik)=evalsv(ib,ik)+real(de2(ib,ik))
+         enddo 
+      enddo
+      
+      deallocate(de1,de2)
+      deallocate(kvecs1,eqp1,eks1)
+
       return
 end subroutine
 !EOC

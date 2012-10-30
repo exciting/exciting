@@ -21,7 +21,6 @@
       implicit none
       
       character(8) :: test
-      character(5) :: bzcon, interp
       character(6) :: fdep
       character(6) :: fgrid
       character(3) :: corflag
@@ -87,8 +86,8 @@
         case('EX','ex')
           testid=14
 !
-        case('BAND','band')
-          testid=16
+!        case('BAND','band')
+!          testid=16
 !          
         case('ROTMAT','rotmat')
           testid=18   
@@ -110,7 +109,7 @@
           write(fgw,*)'sepl - Plot Selfenergy as a function of frequency'
           write(fgw,*)'vxc  - Calculate the matrix elements of the DFT exchange-correlation potential'
           write(fgw,*)'ex   - Hartree-Fock calculation (exchange only)'
-          write(fgw,*)'band - Calculate the bandstructure'
+          !write(fgw,*)'band - Calculate the bandstructure'
           write(fgw,*)'rotmat - Calculate and check the MB rotation matrices (symmetry feature)'
           write(fgw,*)'gw   - Performs one complete GW cycle'
           write(fgw,*)
@@ -324,14 +323,12 @@
       if ((input%gw%ngridq(1).gt.0).and. &
      &    (input%gw%ngridq(2).gt.0).and. &
           (input%gw%ngridq(3).gt.0)) then
-        if ((input%gw%ngridq(1).ne.input%groundstate%ngridk(1)).and. &
-       &    (input%gw%ngridq(2).ne.input%groundstate%ngridk(2)).and. &
+        if ((input%gw%ngridq(1).ne.input%groundstate%ngridk(1)).or. &
+       &    (input%gw%ngridq(2).ne.input%groundstate%ngridk(2)).or. &
             (input%gw%ngridq(3).ne.input%groundstate%ngridk(3))) then
           write(fgw,*)
-          write(fgw,*)'Attention! Different k/q grids are specified for the groundstate and GW calculations!'
-          write(fgw,*)'           Please note, that the GW results could be influenced by this choice.'
-          write(fgw,*)
-          write(fgw,*)'New k/q-grid: ngridq = ', input%gw%ngridq
+          write(fgw,*)'GW calculations performed on the k/q-grid:'
+          write(fgw,*)'ngridq = ', input%gw%ngridq
           input%groundstate%ngridk=input%gw%ngridq
         end if
       end if

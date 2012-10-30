@@ -3,7 +3,7 @@
 ! !ROUTINE: fourintp
 !
 ! !INTERFACE:
-      subroutine fourintp(f1,nk1,kvecs1,f2,nk2,kvecs2,nb)
+      subroutine fourintp(nb,nk1,kvecs1,f1,nk2,kvecs2,f2)
       
 ! !DESCRIPTION:
 !
@@ -22,10 +22,10 @@
 ! !LOCAL VARIABLES:
 
       implicit none
-      integer(4),intent(in) :: nk1,nk2,nb
+      integer(4),intent(in) :: nb,nk1,nk2
       real(8),   intent(in) :: kvecs1(3,nk1),kvecs2(3,nk2)
-      complex(8),intent(in) :: f1(nk1,1:nb)
-      complex(8),intent(out):: f2(nk2,1:nb) 
+      complex(8),intent(in) :: f1(1:nb,nk1)
+      complex(8),intent(out):: f2(1:nb,nk2) 
       
       integer(4) :: i
       integer(4) :: ib
@@ -35,7 +35,6 @@
       integer(4) :: ist
       integer(4) :: jk
       integer(4), allocatable  :: ipiv(:)
-      logical :: lprt=.true.
       
       real(8) :: den
       real(8) :: pref
@@ -61,7 +60,7 @@
 !
 !EOP
 !BOC
-      if(lprt) call linmsg(6,'-',' Fourier interpolation: Start')
+      if (input%gw%debug) call linmsg(6,'-',' Fourier interpolation: Start')
 
 !     shortcut for basis vectors 
       avec(:,1)=input%structure%crystal%basevect(:,1)
@@ -71,27 +70,26 @@
 !     Set rindex to prepare for Fourier interpolation
 !
       if(.not.setrindex_done) then  
-        nsymcrys=1
         call setrindex
         setrindex_done = .true.
       endif 
 
+      den=dble(nsymcrys)
+
       c1=0.25d0
       c2=0.25d0
-      allocate(smat1(nk1,nst),     &
-     &         smat2(nk2,nst),     &
-     &         rho(nst),            &
-     &         coef(nst,nb),       &
+      allocate(smat1(nst,nk1),     &
+     &         smat2(nst,nk2),     &
+     &         rho(nst),           &
+     &         coef(nb,nst),       &
      &         ipiv(1:nk1-1),      &
-     &         sm2(1:nk1-1,1:nst), &
+     &         sm2(1:nst,1:nk1-1), &
      &         h(1:nk1-1,1:nk1-1), &
-     &         dele(1:nk1-1,1:nb))
-
-      den=dble(nsymcrys)
+     &         dele(1:nb,1:nk1-1))
 !
 !     Calculate the star expansion function at each irreducible k-point
 !
-      smat1(1:nk1,1:nst)=zzero
+      smat1(1:nst,1:nk1)=zzero
       do ik=1,nk1
         kvec(1:3)=kvecs1(1:3,ik)
         do ir=2,nrr
@@ -100,7 +98,7 @@
           r(1:3)=dble(rindex(1:3,ir))
           kdotr=2.0d0*pi*(r(1)*kvec(1)+r(2)*kvec(2)+r(3)*kvec(3)) 
           expkr=cmplx(cos(kdotr),sin(kdotr),8)
-          smat1(ik,ist)=smat1(ik,ist)+pref*expkr/den
+          smat1(ist,ik)=smat1(ist,ik)+pref*expkr/den
         enddo
       enddo 
 !
@@ -129,10 +127,10 @@
 !
       do ik=1,nk1-1
         do ist=2,nst
-          sm2(ik,ist)=smat1(ik,ist)-smat1(nk1,ist)
+          sm2(ist,ik)=smat1(ist,ik)-smat1(ist,nk1)
         enddo
         do ib=1,nb
-          dele(ik,ib)=f1(ik,ib)-f1(nk1,ib)
+          dele(ib,ik)=f1(ib,ik)-f1(ib,nk1)
         enddo
       enddo
 !
@@ -142,7 +140,7 @@
       do ik=1,nk1-1
         do jk=1,nk1-1
           do ist=2,nst
-            h(ik,jk)=h(ik,jk)+sm2(ik,ist)*conjg(sm2(jk,ist))/rho(ist)
+            h(ik,jk)=h(ik,jk)+sm2(ist,ik)*conjg(sm2(ist,jk))/rho(ist)
           enddo
         enddo
       enddo
@@ -152,25 +150,24 @@
       call zgetrf(nk1-1,nk1-1,h,nk1-1,ipiv,info)
       call errmsg(info.ne.0,"fourintp","error when calling zgetrf")
 
-      call zgetrs('n',nk1-1,nb,h,nk1-1,ipiv,dele,nk1-1,info)
+      call zgetrs('n',nk1-1,nk1-1,h,nk1-1,ipiv,dele,nb,info)
       call errmsg(info.ne.0,"fourintp","error when calling zgetrs")
 !
 !     Calculate the coefficients of the Star expansion
 !
-      coef(1,1:nb)=f1(nk1,1:nb)
+      coef(1:nb,1)=f1(1:nb,nk1)
       do ist=2,nst
-        coef(ist,1:nb)=zzero
+        coef(1:nb,ist)=zzero
         do ik=1,nk1-1
-          coef(ist,1:nb)=coef(ist,1:nb)+dele(ik,1:nb)*conjg(sm2(ik,ist))
+          coef(1:nb,ist)=coef(1:nb,ist)+dele(1:nb,ik)*conjg(sm2(ist,ik))
         enddo
-        coef(ist,1:nb)=coef(ist,1:nb)/rho(ist)
-        coef(1,1:nb)=coef(1,1:nb)-coef(ist,1:nb)*smat1(nk1,ist)
+        coef(1:nb,ist)=coef(1:nb,ist)/rho(ist)
+        coef(1:nb,1)=coef(1:nb,1)-coef(1:nb,ist)*smat1(ist,nk1)
       enddo
-
 !
-! Calculate the interpolated function on the new mesh 
+!     Calculate the interpolated function on the new mesh 
 !
-      smat2(1:nk2,1:nst)=zzero
+      smat2(1:nst,1:nk2)=zzero
       do ik=1,nk2
         kvec(1:3)=kvecs2(1:3,ik)
         do ir=1,nrr
@@ -179,16 +176,16 @@
           r(1:3)=dble(rindex(1:3,ir))
           kdotr=2.0d0*pi*sum(r*kvec) 
           expkr=cmplx(cos(kdotr),-sin(kdotr),8)
-          smat2(ik,ist)=smat2(ik,ist)+pref*expkr/den
+          smat2(ist,ik)=smat2(ist,ik)+pref*expkr/den
         enddo 
       enddo 
-      call zgemm('n','n',nk2,nb,nst,zone,smat2,nk2,coef,nst,zzero,f2,nk2)
+      call zgemm('n','n',nb,nk2,nst,zone,coef,nb,smat2,nst,zzero,f2,nb)
       
-      if(lprt) call linmsg(6,'-','Fourier interpolation: Done')
+      if (input%gw%debug) call linmsg(6,'-','Fourier interpolation: Done')
 
       deallocate(smat1,smat2,coef,rho,ipiv,sm2,h,dele)
-      return
       
+      return
       end subroutine fourintp
 !EOC   
       

@@ -20,11 +20,11 @@ Subroutine tasklauncher
       If (associated(input%phonons)) &
         call phononstasklauncher()
 
-      If (associated(input%xs)) &
-        Call xstasklauncher ()
-
       If (associated(input%gw)) &
         Call gwtasklauncher ()
+
+      If (associated(input%xs)) &
+        Call xstasklauncher ()
 
 ! close the WARNIGNS.OUT file
        close(100)

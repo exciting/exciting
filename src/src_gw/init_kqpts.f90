@@ -22,9 +22,7 @@ subroutine init_kqpts
       integer(4) :: igq, igb
       real(8)    :: gpq(3), gqlen
       real(8)    :: len
-      Integer :: i1, i2, i3
-      integer(4) :: nsym, isym, lspl, ispn
-      integer(4), allocatable :: symmat(:,:,:)
+      integer(4) :: ispn
       real(8) :: v1(3), v2(3), t1
       Real (8), External :: r3taxi  
 !
@@ -34,7 +32,6 @@ subroutine init_kqpts
 !EOP
 !BOC
 !
-
 !     k-grid shifts
       len=input%groundstate%vkloff(1)**2+ &
      &    input%groundstate%vkloff(2)**2+ &
@@ -43,6 +40,8 @@ subroutine init_kqpts
         write(*,*)'WARNING: k-grid shift is used!'
         write(*,*)'Beware, this choice can have a critical influence on the final results!'
       end if
+     
+      call init1
 
 !---------------------------------------------------!
 !     Generate non-reduced k- and q-points meshes   !
