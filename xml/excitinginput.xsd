@@ -4492,6 +4492,16 @@ gw.xsd
             </xs:annotation>
           </xs:attribute>
           
+          <xs:attribute ex:importance="expert" ex:unit="" name="skipgnd" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation>
+	          Skip recalculation KS eigenvalues and eigenvectors
+                  for the complete k-point grid (used for debugging).
+	      </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          
           
         </xs:complexType>
     </xs:element>

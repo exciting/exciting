@@ -26,8 +26,8 @@
       integer(4) :: ikp  !(Counter) Runs over k-points
       integer(4) :: npar ! Number of parameters of the analitic cont. of
 !                          the selfenergy
-      integer(4) :: it
-      integer(4) :: ierr, Recl
+      integer(4) :: it, ierr
+      integer(8) :: Recl
       
       real(8) :: enk,snk,vxcnk,znk
       real(8) :: delta 
@@ -204,11 +204,13 @@
 !
 !     Save QP energies into binary file
 !
-      Inquire (IoLength=Recl) nkpt, vkl(:,1), ibgw, nbgw, eqp(:,1), evaldft(:,1)
-      Open (70, File='EVALQP.OUT', Action='WRITE', &
-     &  Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+      Inquire (IoLength=Recl) nkpt, vkl(:,1), ibgw, nbgw, &
+        eqp(ibgw:nbgw,1), evaldft(ibgw:nbgw,1)
+      Open (70, File='EVALQP.OUT', Action='WRITE', Form='UNFORMATTED', &
+     &   Access='DIRECT', status='REPLACE', Recl=Recl)
       do ikp = 1, nkpt
-        Write(70, Rec=ikp) nkpt, vkl(:,ikp), ibgw, nbgw, eqp(ibgw:nbgw,ikp), evaldft(ibgw:nbgw,ikp)
+        write(70, Rec=ikp) nkpt, vkl(:,ikp), ibgw, nbgw, &
+     &    eqp(ibgw:nbgw,ikp), evaldft(ibgw:nbgw,ikp)
       end do ! ikp
       Close(70)
 !

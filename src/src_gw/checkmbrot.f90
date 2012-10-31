@@ -4,11 +4,11 @@ subroutine checkmbrot(iq)
     use modgw
     
     implicit none
-    integer :: iq, iqp
-    integer :: recl
-    integer :: ik, ikp
-    integer :: isym, i
-    integer :: ist, jst, ijst, icg, dimtk
+    integer(4) :: iq, iqp
+    integer(8) :: Recl
+    integer(4) :: ik, ikp
+    integer(4) :: isym, i
+    integer(4) :: ist, jst, ijst, icg, dimtk
     
     complex(8), allocatable :: mmatk(:,:), mmatkp(:,:), rmmat(:,:), tmat(:,:)
     complex(8), allocatable :: m2k(:,:), m2r(:,:), m2tot(:,:)
@@ -22,9 +22,9 @@ subroutine checkmbrot(iq)
 !   Check valence-valence M^i_{nm} rotation
 !--------------------------------------------
 
-    recl=16*(matsiz*nstfv*nstsv)
+    inquire(IoLength=Recl) minmmat
     open(41,file='minmmat.io',action='READ',form='UNFORMATTED', &
-   &     access='DIRECT',recl=recl)
+   &     access='DIRECT',recl=Recl)
 
     if(allocated(minmmat))deallocate(minmmat)
     allocate(minmmat(matsiz,nstfv,nstfv))
@@ -188,9 +188,9 @@ subroutine checkmbrot(iq)
 !   Check core-valence M^i_{cm} rotation
 !--------------------------------------------
 
-      recl=16*(locmatsiz*ncg*nstfv)
+      inquire(IoLength=Recl) micmmat
       open(40,file='micmmat.io',action='READ',form='UNFORMATTED', &
-   &       access='DIRECT',recl=recl)
+   &       access='DIRECT',recl=Recl)
 
       if(allocated(micmmat))deallocate(micmmat)
       allocate(micmmat(locmatsiz,ncg,nstfv))
@@ -293,9 +293,10 @@ subroutine checkmbrot(iq)
 !--------------------------------------------
 !   Check core-valence M^i_{nc} rotation
 !--------------------------------------------
-      recl=16*(locmatsiz*nstfv*ncg)
+
+      inquire(IoLength=Recl) mincmat
       open(39,file='mincmat.io',action='READ',form='UNFORMATTED', &
-   &       access='DIRECT',recl=recl)
+   &       access='DIRECT',recl=Recl)
 
       if(allocated(mincmat))deallocate(mincmat)
       allocate(mincmat(locmatsiz,nstfv,ncg))

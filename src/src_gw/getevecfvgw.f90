@@ -10,7 +10,8 @@ Subroutine getevecfvgw(ik, evecfv)
       Integer, Intent (In) :: ik
       Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv, nspnfv)
   ! local variables
-      Integer :: recl, nmatmax_, nstfv_, nspnfv_
+      Integer(8) :: recl 
+      Integer(4) :: nmatmax_, nstfv_, nspnfv_
       Real(8) :: vkl_(3)
       Character (256) :: filetag
       Character (256), External :: outfilenamestring

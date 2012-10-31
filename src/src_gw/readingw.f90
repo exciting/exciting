@@ -24,7 +24,6 @@
       character(6) :: fdep
       character(6) :: fgrid
       character(3) :: corflag
-      integer(4)   :: nstfv_
       real(8)      :: len
       
 ! !EXTERNAL ROUTINES: 
@@ -232,23 +231,29 @@
 !
       if ((input%gw%nempty<1).or.(input%gw%nempty>nmatmax)) then
         input%gw%nempty=input%groundstate%nempty
+      else
+        input%groundstate%nempty=input%gw%nempty
+        nstfv=int(chgval/2.d0)+input%gw%nempty+1
+        nstsv=nstfv*nspinor
       end if
       write(fgw,*)'Number of empty states (groundstate): ', input%groundstate%nempty
       write(fgw,*)'Number of empty states (GW): ', input%gw%nempty
       write(fgw,*)
 !
+!     new number of first-variational states (to be used in GW)
+!
+!
 !     Band interval where GW corections are applied
 !
-!     new number (to be used in GW) of first-variational states
-      nstfv_=int(chgval/2.d0)+input%gw%nempty+1
-
       ibgw=input%gw%ibgw
-      if ((ibgw<1).or.(ibgw>nstfv_)) then
+      if ((ibgw<1).or.(ibgw>nstfv)) then
         ibgw=1
       end if
       nbgw=input%gw%nbgw
-      if ((nbgw<1).or.(nbgw>nstfv_)) then
-        nbgw=nstfv_
+      if ((nbgw<1).or.(nbgw>nstfv)) then
+        !!! Usually, there is no need to ccalculate QP corrections for all
+        !!! unoccupied states. Hence, default nbgw is num. val. states + 20
+        nbgw=int(chgval/2.d0)+20         
       end if
       write(fgw,'(a,2i7)') 'GW output band range: ', ibgw, nbgw
       write(fgw,*)

@@ -26,7 +26,8 @@ subroutine calcpmatgw
 ! !LOCAL VARIABLES:
     implicit none
 
-    integer(4) :: ik,ik0,recl,recl2
+    integer(4) :: ik,ik0
+    integer(8) :: recl,recl2
     
     real(8)    :: tstart, tend
 
@@ -34,7 +35,7 @@ subroutine calcpmatgw
     complex(8), allocatable :: evecfvt(:,:)
     complex(8), allocatable :: evecsvt(:,:)
     complex(8), allocatable :: pmat(:,:,:)
-    complex(8), allocatable :: pmatc(:,:,:,:)
+    complex(8), allocatable :: pmatc(:,:,:)
 
 ! !EXTERNAL ROUTINES: 
     external pmatrad
@@ -57,19 +58,19 @@ subroutine calcpmatgw
     allocate(apwalmt(ngkmax,apwordmax,lmmaxapw,natmtot))
     allocate(evecfvt(nmatmax,nstfv))
     allocate(evecsvt(nstsv,nstsv))
-      
-!   allocate the momentum matrix array
-    allocate(pmat(3,nstsv,nstsv))
-    allocate(pmatc(3,nstsv,nclm,natmtot))
 
-!   record length for momentum matrix elements file
-    recl=16*(3*nstsv*nstsv)
-    open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED', &
-   &    access='DIRECT',status='REPLACE',recl=recl)
-    if(iopcore.eq.0)then 
-      recl2=16*(3*nstsv*nclm*natmtot)
-      open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED', &
-     &    access='DIRECT',status='REPLACE',recl=recl2)
+!   allocate the momentum matrix array
+
+    allocate(pmat(3,nstfv,nstfv))
+    inquire(IoLength=Recl) pmat
+    open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
+     status='REPLACE',recl=Recl)
+
+    if (iopcore.eq.0) then 
+      allocate(pmatc(3,ncg,nstfv))
+      inquire(IoLength=Recl) pmatc
+      open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
+       status='REPLACE',recl=Recl)
     endif   
 
 !----------------------------------------------------------------------!
@@ -129,16 +130,12 @@ subroutine calcpmatgw
 !      calculate the valence-valence momentum matrix elements
        call genpmatxs(ngk(1,ik),igkig(1,1,ik),vgkc(1,1,1,ik), &
       &  evecfvt,evecsvt,pmat)
-
        write(50,rec=ik) pmat
 
+!      calculate the core-valence momentum matrix elements
        if(iopcore.eq.0)then
-
-!        calculate the core-valence momentum matrix elements
-         call genpmatxscor(ik,pmatc)
-
+         call genpmatxscor(ik,ngk(1,ik),apwalmt,evecfvt,evecsvt,pmatc)
          write(51,rec=ik) pmatc
-
        endif
       
     end do

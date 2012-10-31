@@ -22,7 +22,8 @@ subroutine readevaldft
     real(8) :: egap, e0, e1
     real(8), parameter :: eps=1.0d-4
     
-    Integer :: recl, nstfv_, nspnfv_
+    Integer(8) :: recl
+    Integer(4) :: nstfv_, nspnfv_
     Real(8) :: vkl_(3)
     
     real(8), external  :: idos, dostet
@@ -43,7 +44,12 @@ subroutine readevaldft
     do ik = 1, nkpt
       ik0=idikp(ik)
       Read(70, Rec=ik0) vkl_, nstfv_, nspnfv_, evaldft(:,ik)
-      if (nstfv_.ne.nstfv) write(*,*) "Hey... Something's wrong: nstfv.ne.nstfv_"
+      if (nstfv_.lt.nstfv) then
+        write(*,*) 'ERROR(readevaldft) nstfv.lt.nstfv_'
+        write(*,*) '  nstfv=', nstfv,'  nstfv_=', nstfv_
+        write(*,*) '  Wrong number of KS states in EVALFV.OUT'
+        stop
+      end if
     end do ! ik
     Close (70)
     

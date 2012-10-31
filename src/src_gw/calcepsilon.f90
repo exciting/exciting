@@ -32,7 +32,7 @@ subroutine calcepsilon(iqp)
       integer(4) :: i, isym, lspl, isym0
       integer(4) :: im, jm
       integer(4) :: dimtk
-      integer(4) :: recl
+      integer(8) :: Recl
       
       real(8)    :: tstart,tend
       real(8)    :: edif, pmn, pvec(3)
@@ -73,15 +73,15 @@ subroutine calcepsilon(iqp)
       if (Gamma) then
         
         allocate(pmat(3,nstsv,nstsv))
-        recl=16*(3*nstsv*nstsv)
+        inquire(IoLength=Recl) pmat
         open(50,file='PMAT.OUT',action='READ',form='UNFORMATTED', &
-       &  access='DIRECT',recl=recl)
+       &  access='DIRECT',recl=Recl)
 
         if(iopcore.eq.0)then
           allocate(pmatc(3,ncg,nstsv))
-          recl=16*(3*ncg*nstsv)
+          inquire(IoLength=Recl) pmatc
           open(51,file='PMATCOR.OUT',action='READ',form='UNFORMATTED', &
-         &   access='DIRECT',recl=recl)
+         &   access='DIRECT',recl=Recl)
         end if 
 
 !=====================================================================+

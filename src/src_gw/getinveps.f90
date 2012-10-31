@@ -22,7 +22,7 @@
 !                                   polarization matrix is calculated
     integer(4) :: iqp
     integer(4) :: isym
-    integer(4) :: recl
+    integer(8) :: Recl
     integer(4) :: im
     integer(4) :: iom
     
@@ -52,9 +52,9 @@
     if(allocated(inveps))deallocate(inveps)
     allocate(inveps(matsizmax,matsizmax,nomeg))
     
-    recl=16*(matsizmax*matsizmax*nomeg)
+    inquire(IoLength=Recl) inveps
     open(44,file='INVEPS.OUT',action='READ',form='UNFORMATTED', &
-   &  access='DIRECT',status='OLD',recl=recl)
+   &  access='DIRECT',status='OLD',recl=Recl)
     
     iqp=indkpq(iq,1)
     read(44,rec=iqp) inveps

@@ -24,8 +24,9 @@ subroutine getevalqp(nkp2)
 
 !     local variables
       logical :: exist
-      integer :: ik, ik1, ik2, ib, isym
-      integer :: recl
+      integer(4) :: ik, ik1, ik2, isym
+      integer(4) :: ib, nb, nk
+      integer(8) :: recl
       real(8) :: v(3), t1
       character (256) :: file
       complex(8), allocatable :: de1(:,:), de2(:,:)
@@ -50,11 +51,15 @@ subroutine getevalqp(nkp2)
       allocate(kvecs1(1:3,nkp1))
       allocate(eqp1(ibgw:nbgw,nkp1))
       allocate(eks1(ibgw:nbgw,nkp1))
-      inquire(IoLength=Recl) nkp1, kvecs1(:,1), ibgw, nbgw, eqp1(:,1), eks1(:,1)
+      
+      inquire(IoLength=Recl) nkp1, kvecs1(1:3,1), ibgw, nbgw, &
+        eqp1(ibgw:nbgw,1), eks1(ibgw:nbgw,1)
       open (70, File=file, Action='READ', Form='UNFORMATTED', &
      &  Access='DIRECT', Recl=Recl)
+      
       do ik = 1, nkp1
-        read(70, Rec=ik) nkp1, kvecs1(:,ik), ibgw, nbgw, eqp1(:,ik), eks1(:,ik)
+        read(70, Rec=ik) nk, kvecs1(:,ik), ib, nb, &
+          eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik)
       end do ! ik
       close(70)
       
@@ -73,18 +78,17 @@ subroutine getevalqp(nkp2)
         write(*,*)
       end if
 
-      allocate(de1(ibgw:nbgw,nkp1),de2(ibgw:nbgw,nkp2))
-
+      allocate(de1(nkp1,ibgw:nbgw),de2(nkpt,ibgw:nbgw))
       do ik = 1, nkp1
-         de1(ibgw:nbgw,ik)=cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
+         de1(ik,:)=cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
       enddo
 
-      de2(:,:)=0.0d0
-      call fourintp(nbgw-ibgw+1,nkp1,kvecs1,de1,nkp2,vkl,de2)
+      de2(:,:)=zzero
+      call fourintp(de1,nkp1,kvecs1,de2,nkp2,vkl,nbgw-ibgw+1)
 
       do ib = ibgw, min(nbgw,nstsv)
-         do ik = 1, nkp2
-            evalsv(ib,ik)=evalsv(ib,ik)+real(de2(ib,ik))
+         do ik = 1, nkpt
+            evalsv(ib,ik)=evalsv(ib,ik)+real(de2(ik,ib))
          enddo 
       enddo
       

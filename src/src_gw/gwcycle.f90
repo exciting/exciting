@@ -22,7 +22,7 @@
 
       integer(4) :: iq, iqp
       integer(4) :: ik, ikp
-      integer(4) :: recl
+      integer(8) :: Recl
       
       real(8)    :: tq1, tq2, tq11, tq22
 
@@ -75,9 +75,9 @@
 !--------------------------------------------------------------------------
 !       The direct access file to store the values of the inverse dielectric matrix
 !--------------------------------------------------------------------------
-        recl=16*(matsizmax*matsizmax*nomeg)
+        inquire(IoLength=Recl) inveps
         open(44,file='INVEPS.OUT',action='WRITE',form='UNFORMATTED', &
-       &  access='DIRECT',status='REPLACE',recl=recl)
+       &  access='DIRECT',status='REPLACE',recl=Recl)
 !
 !       Loop over q-points
 !        

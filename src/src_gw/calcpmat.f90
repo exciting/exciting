@@ -22,7 +22,8 @@ subroutine calcpmat
 !EOP
 !BOC
     implicit none
-    integer(4)              :: recl,recl2,ik,ik0
+    integer(4)              :: ik,ik0
+    integer(8)              :: Recl
     complex(8), allocatable :: apwalmt(:,:,:,:)
     complex(8), allocatable :: evecfvt(:,:)
     complex(8), allocatable :: evecsvt(:,:)
@@ -39,19 +40,17 @@ subroutine calcpmat
     allocate(evecsvt(nstsv,nstsv))
       
 !   allocate the momentum matrix array
-    allocate(pmat(3,nstfv,nstfv))
-    if(iopcore.eq.0)then
-      allocate(pmatc(3,ncg,nstfv))
-    end if
 
-!   record length for momentum matrix elements file
-    recl=16*(3*nstsv*nstsv)
+    allocate(pmat(3,nstfv,nstfv))
+    inquire(IoLength=Recl) pmat
     open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-     status='REPLACE',recl=recl)
-    if(iopcore.eq.0)then 
-      recl2=16*(3*ncg*nstsv)
+     status='REPLACE',recl=Recl)
+
+    if (iopcore.eq.0) then 
+      allocate(pmatc(3,ncg,nstfv))
+      inquire(IoLength=Recl) pmatc
       open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-       status='REPLACE',recl=recl2)
+       status='REPLACE',recl=Recl)
     endif   
 
     do ik = 1, nkpt

@@ -22,8 +22,6 @@ module modgw
 !----------------------------!
 ! Task identification number
       integer(4) :: testid
-! record length for EIGVEC.OUT
-      integer(4) :: reclev
 ! general gw output file
       integer(4) :: fgw
 ! shortcut for atomic position array

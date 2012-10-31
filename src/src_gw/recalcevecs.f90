@@ -13,7 +13,8 @@ subroutine recalcevecs
     Complex (8), Allocatable :: evecfv (:, :, :)
     Complex (8), Allocatable :: evecsv (:, :)
     
-    Integer :: Recl, nmatmax_, nstfv_, nspnfv_
+    Integer(8) :: Recl
+    Integer(4) :: nmatmax_, nstfv_, nspnfv_
     Real(8) :: vkl_(3)
     integer :: iostat, n
     Logical :: exist

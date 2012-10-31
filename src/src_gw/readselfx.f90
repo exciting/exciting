@@ -35,10 +35,9 @@
       end if
 
       if ((ib.ne.ibgw).or.(nb.ne.nbgw)) then
-        write(6,*)'ERROR(readselfx): Wrong band bounds'
+        write(6,*)'WARNING(readselfx): Different band bounds'
         write(6,*)'    ib=',   ib, '    nb=', nb
         write(6,*)'  ibgw=', ibgw, '  nbgw=', nbgw
-        stop
       end if
       
       return

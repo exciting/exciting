@@ -26,6 +26,7 @@
       integer(4) :: ist      
       integer(4) :: m, n
       logical    :: reduce
+      real(8)    :: tstart, tend
  
 ! !EXTERNAL ROUTINES: 
 
@@ -55,18 +56,24 @@
 ! dynamical response functions", to be published in Comp. Phys. Commun. (2010)
       input%groundstate%tetra=.true.
 
-! Calculate eigenvectors for the complete (non-reduced) k-point set
-      reduce=input%groundstate%reducek
-      input%groundstate%reducek=.false.          
-      input%groundstate%nempty=input%gw%nempty
-      
-      task = 1
-      input%groundstate%maxscl = 1
-      
-      call gndstate
+      if (.not.input%gw%skipgnd) then
+!
+! Generate eigenvectors for the complete (non-reduced) k-point set
+!
+        reduce=input%groundstate%reducek
+        input%groundstate%reducek=.false.          
+        task=1
+        input%groundstate%maxscl=1
+        input%groundstate%nwrite=0
+        call cpu_time(tstart)
+        call gndstate
+        call cpu_time(tend)
+        if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
+        call write_cputime(fgw,tend-tstart,'GNDSTATE')
+        input%groundstate%reducek=reduce
+      end if
       
 ! Generate the k- and q-point meshes      
-      input%groundstate%reducek=reduce
       call init_kqpts
 
 ! initialise the charge density and potentials from file

@@ -24,11 +24,10 @@ subroutine task_band
 ! !LOCAL VARIABLES:
 
     integer(4) :: ik, ib
-    real(8) :: tstart, tend
+    real(8)    :: tstart, tend
+    complex(8), allocatable :: de1(:,:), de2(:,:)
 !
 ! !INTRINSIC ROUTINES:
-    external  kgen
-    real(8), external :: dostet
     intrinsic cpu_time
 
 !
@@ -48,23 +47,25 @@ subroutine task_band
 !
       call linmsg(fgw,'-',"BAND STRUCTURE")
 
-! ---- Old way
-!      call readeqp
-!      allocate(dek1(ibgw:nbgw,nkp1),dek2(ibgw:nbgw,nkpt))
-!      do ik = 1, nkp1
-!         dek1(ibgw:nbgw,ik)=cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
-!      enddo
-!      dek2(:,:)=zzero
-!      call fourintp(nbgw-ibgw+1,nkp1,kvecs1,dek1,nkpt,vkl,dek2)
-!      do ib = ibgw, min(nbgw,nstsv)
-!         do ik = 1, nkpt
-!            evalsv(ib,ik)=evalsv(ib,ik)+real(dek2(ib,ik))
-!         enddo 
-!      enddo
-! ----
+! ---- Old way (read data from QPENE-eV.OUT)
 
-!     shift KS energies
-      evalsv(:,:)=evalsv(:,:)-efermi
+!     call readeqp
+!     
+!     allocate(de1(nkp1,ibgw:nbgw),de2(nkpt,ibgw:nbgw))
+!     do ik = 1, nkp1
+!        de1(ik,:)=cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
+!     enddo
+
+!     de2(:,:)=zzero
+!     call fourintp(de1,nkp1,kvecs1,de2,nkpt,vkl,nbgw-ibgw+1)
+
+!     do ib = ibgw, min(nbgw,nstsv)
+!        do ik = 1, nkpt
+!           evalsv(ib,ik)=evalsv(ib,ik)+real(de2(ik,ib))
+!        enddo 
+!     enddo
+
+! ----
 
 !     read QP energies and perform Fourier interpolation 
       call getevalqp(nkpt)
@@ -73,7 +74,7 @@ subroutine task_band
       open(50,file='BAND-QP.OUT',action='WRITE',form='FORMATTED')
       do ib = ibgw, min(nbgw,nstsv)
         do ik = 1, nkpt
-           write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)
+           write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)-efermi
         end do !ik
         write(50,*)
       end do !ib

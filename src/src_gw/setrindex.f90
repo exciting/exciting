@@ -11,7 +11,7 @@
 
 ! !PUBLIC TYPES:
 
-      real(8)    :: rmax=40.0d0
+      real(8)    :: rmax
 
       integer(4) :: nrr                       ! Number of R vectors
       integer(4) :: nst                       ! Number of stars
@@ -89,14 +89,11 @@
 !
 !EOP
 !BOC
-!     shortcut for basis vectors 
-      avec(:,1)=input%structure%crystal%basevect(:,1)
-      avec(:,2)=input%structure%crystal%basevect(:,2)
-      avec(:,3)=input%structure%crystal%basevect(:,3)
-
       do i=1,3
         rvec(i)=sqrt(avec(1,i)**2+avec(2,i)**2+avec(3,i)**2)
       enddo
+      
+      rmax=40.0d0
       
       nr1=2*nint(rmax/rvec(1))
       nr2=2*nint(rmax/rvec(2))
@@ -159,21 +156,17 @@
         ir3=rindex(3,ippw)
         invrindex(ir1,ir2,ir3)=ippw
       enddo  
+
       rst(1,1)=1
       rst(2,1)=nsymcrys
       ist=1
-      do ippw=2,nrr
-        if(rst(1,ippw).eq.0)then
+      do ippw = 2, nrr
+        if (rst(1,ippw).eq.0) then
           ist=ist+1
           rst(1,ippw)=ist
           do isym=1,nsymcrys
             lspl=lsplsymc(isym)
-            do i=1,3
-              irvec(i)=0
-              do j=1,3
-                irvec(i)=irvec(i)+symlat(i,j,lspl)*rindex(j,ippw)
-              enddo ! j
-            enddo ! i
+            irvec(:)=matmul(symlat(:,:,lspl),rindex(:,ippw))
             jppw=invrindex(irvec(1),irvec(2),irvec(3))
             if(jppw.le.0)then
               write(6,111) ippw,rindex(1:3,ippw),isym,irvec(1:3)
@@ -186,8 +179,10 @@
       enddo ! ippw
       nst=ist      
 
-      if (input%gw%debug) write(6,*) " nrr=", nrr
-      if (input%gw%debug) write(6,*) " nst=", nst
+      if (input%gw%debug) then 
+        write(6,*) " nrr=", nrr
+        write(6,*) " nst=", nst
+      end if
 
       deallocate(invrindex,rlen,rind)
 
