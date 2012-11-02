@@ -26,10 +26,17 @@ Subroutine groundstatetasklauncher
         End If
     End If
     If (input%groundstate%do .Ne. "skip") then
-        Call gndstate
+        ! Hartree Fock 
+        If  (associated(input%groundstate%HartreeFock)) Then
+            task = 5
+            Call hartfock
+        ! DFT / OEP
+        Else
+            Call gndstate
+        End If
         ! do conversion to XML format if requested
         if (associated(input%groundstate%output)) then
-            if (input%groundstate%output%state .eq. "XML") call portstate(1)
+             if (input%groundstate%output%state .eq. "XML") call portstate(1)
         end if
     end if
 end subroutine
