@@ -208,6 +208,7 @@ type groundstate_type
  real(8)::cfdamp
  logical::nosource
  logical::tevecsv
+ logical::tpartcharges
  integer::nwrite
  logical::ptnucl
  logical::tetra
@@ -2010,6 +2011,14 @@ getstructgroundstate%tevecsv= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tevecsv",getstructgroundstate%tevecsv)
        call removeAttribute(thisnode,"tevecsv")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"tpartcharges")
+getstructgroundstate%tpartcharges= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"tpartcharges",getstructgroundstate%tpartcharges)
+       call removeAttribute(thisnode,"tpartcharges")  
 endif
 
 nullify(np)  

@@ -96,7 +96,7 @@ Subroutine gndstate
      ! open CHGDIST.OUT
          open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
      ! open PCHARGE.OUT
-         open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
+         if (input%groundstate%tpartcharges) open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
      ! write out general information to INFO.OUT
          Call writeinfo (60)
 
@@ -298,7 +298,7 @@ Subroutine gndstate
             If (input%groundstate%xctypenumber .Lt. 0) Call &
            & mpiresumeevecfiles ()
 #endif
-            If (rank .Eq. 0) Then
+            If ((rank .Eq. 0) .and. (input%groundstate%tpartcharges)) Then
         ! write out partial charges
                call writepchgs(69,input%groundstate%lmaxvr)
                call flushifc(69)
@@ -571,7 +571,7 @@ Subroutine gndstate
                Write (66,*)
                if (input%groundstate%tforce) Write (67,*)
                Write (68,*)
-               Write (69,*)
+               if (input%groundstate%tpartcharges) Write (69,*)
             End If
            ! begin new self-consistent loop with updated positions
             Go To 10
@@ -622,7 +622,7 @@ Subroutine gndstate
  ! close the CHGDIST.OUT file
             close(68)
  ! close the PCHARGE.OUT file
-            close(69)
+            if (input%groundstate%tpartcharges) close(69)
             Call structure_xmlout ()
             Call scl_xml_setGndstateStatus ("finished")
             Call scl_xml_out_write ()
