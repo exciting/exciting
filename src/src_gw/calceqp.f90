@@ -26,7 +26,7 @@
       integer(4) :: ikp  !(Counter) Runs over k-points
       integer(4) :: npar ! Number of parameters of the analitic cont. of
 !                          the selfenergy
-      integer(4) :: it, ierr
+      integer(4) :: it, ierr, nb
       integer(8) :: Recl
       
       real(8) :: enk,snk,vxcnk,znk
@@ -162,7 +162,10 @@
            enddo ! ie
          enddo ! ikp
 
-         call fermi(nkpt,nbandsgw,eqp,ntet,tnodes,wtet,tvol, &
+!        to calculate Fermi energy there is no need to use all available
+!        unoccupied states
+         nb=int(chgval/2.d0)+11
+         call fermi(nkpt,nb,eqp(ibgw:nb,:),ntet,tnodes,wtet,tvol, &
         &    nvelgw,.false.,eferqp,egap)
 
          if(it.eq.0) then 
@@ -201,9 +204,10 @@
 !     Write quasi-particle energies into QPENE-eV.OUT
 !      
       call writeqp(sigc,znorm)
-!
+
+!----------------------------------------
 !     Save QP energies into binary file
-!
+!----------------------------------------
       Inquire (IoLength=Recl) nkpt, vkl(:,1), ibgw, nbgw, &
         eqp(ibgw:nbgw,1), evaldft(ibgw:nbgw,1)
       Open (70, File='EVALQP.OUT', Action='WRITE', Form='UNFORMATTED', &
@@ -213,23 +217,24 @@
      &    eqp(ibgw:nbgw,ikp), evaldft(ibgw:nbgw,ikp)
       end do ! ikp
       Close(70)
-!
+
+!----------------------------------------
 !     QP Fermi energy
-!      
+!----------------------------------------  
+
       Open(50, File='EFERMIQP.OUT', Action='WRITE', Form='FORMATTED')
       Write(50,'(G18.10)') eferqp
       Close(50)
       
-      deallocate(a)
-      deallocate(znorm)
-      deallocate(sigc)
-
 !     KS band structure
       call bandanaly(ibgw,nbgw,nkpt,vkl,evaldft(ibgw:nbgw,:),efermi,"KS",fgw)
 
 !     QP band structure
       call bandanaly(ibgw,nbgw,nkpt,vkl,eqp(ibgw:nbgw,:),eferqp,"G0W0",fgw)
 
+      deallocate(a)
+      deallocate(znorm)
+      deallocate(sigc)
    8  format( ' #iter',4x,"Ef_QP",4x,"es",4x,"Eg/eV",4x,'Eg(k=0)/eV')
    9  format(i4,4f12.6)
    

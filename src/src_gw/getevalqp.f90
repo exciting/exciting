@@ -7,7 +7,7 @@ subroutine getevalqp(nkp2)
 ! !USES:
       use modinput
       use modmain
-      use modgw,    only: ibgw, nbgw, nkp1, kvecs1, eks1, eqp1
+      use modgw,    only: fgw, ibgw, nbgw, nkp1, kvecs1, eks1, eqp1
 
 ! !DESCRIPTION:
 !   The file where the quasiparticle energies are stored is {\tt EVALQP.OUT}.
@@ -60,6 +60,14 @@ subroutine getevalqp(nkp2)
       do ik = 1, nkp1
         read(70, Rec=ik) nk, kvecs1(:,ik), ib, nb, &
           eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik)
+        
+        !write(fgw,*) '# ik    kvecs1    ibgw,    nbgw'
+        !write(fgw,*) ik, kvecs1(:,ik), ib, nb
+        !write(fgw,*) '# ib    eqp1    eks1'
+        !do ib = ibgw, nbgw
+        !  write(fgw,*) ib, eqp1(ib,ik), eks1(ib,ik)
+        !end do 
+          
       end do ! ik
       close(70)
       

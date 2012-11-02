@@ -242,7 +242,6 @@
 !
 !     new number of first-variational states (to be used in GW)
 !
-!
 !     Band interval where GW corections are applied
 !
       ibgw=input%gw%ibgw
@@ -251,7 +250,7 @@
       end if
       nbgw=input%gw%nbgw
       if ((nbgw<1).or.(nbgw>nstfv)) then
-        !!! Usually, there is no need to ccalculate QP corrections for all
+        !!! Usually, there is no need to calculate QP corrections for all
         !!! unoccupied states. Hence, default nbgw is num. val. states + 20
         nbgw=int(chgval/2.d0)+20         
       end if

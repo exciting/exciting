@@ -23,31 +23,31 @@ subroutine readevaldft
     real(8), parameter :: eps=1.0d-4
     
     Integer(8) :: recl
-    Integer(4) :: nstfv_, nspnfv_
+    Integer(4) :: nstsv_
     Real(8) :: vkl_(3)
     
     real(8), external  :: idos, dostet
     external fermi
 
     if (allocated(evaldft)) deallocate(evaldft)
-    allocate(evaldft(nstfv,nkpt))
+    allocate(evaldft(nstsv,nkpt))
 
 !-------------------------------------------------------------------
 !   read the KS eigenenergies (only for the irreducible k-points)
 !-------------------------------------------------------------------
 
-! find the record length
-    Inquire (IoLength=Recl) vkl_, nstfv_, nspnfv_, evaldft(:,1)
-    Open (70, File='EVALFV.OUT', Action='READ', &
+!   find the record length
+    Inquire (IoLength=Recl) vkl_, nstsv_, evaldft(:,1)
+    Open (70, File='EVALSV.OUT', Action='READ', &
    &  Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
 
     do ik = 1, nkpt
       ik0=idikp(ik)
-      Read(70, Rec=ik0) vkl_, nstfv_, nspnfv_, evaldft(:,ik)
-      if (nstfv_.lt.nstfv) then
-        write(*,*) 'ERROR(readevaldft) nstfv.lt.nstfv_'
-        write(*,*) '  nstfv=', nstfv,'  nstfv_=', nstfv_
-        write(*,*) '  Wrong number of KS states in EVALFV.OUT'
+      Read(70, Rec=ik0) vkl_, nstsv_, evaldft(:,ik)
+      if (nstsv_.lt.nstsv) then
+        write(*,*) 'ERROR(readevaldft) nstsv.lt.nstsv_'
+        write(*,*) '  nstsv=', nstsv,'  nstsv_=', nstsv_
+        write(*,*) '  Wrong number of KS states in EVALSV.OUT'
         stop
       end if
     end do ! ik
@@ -58,8 +58,10 @@ subroutine readevaldft
 !    write(fgw,*)'(readevaldft) Fermi energy EXCITING [Ha]: ', efermi
 
 !   The fermi energy calculated using LIBBZINT
-    call fermi(nkpt,nstfv,evaldft,ntet,tnodes,wtet,tvol, &
+    n=int(chgval/2.d0)+11
+    call fermi(nkpt,n,evaldft(1:n,:),ntet,tnodes,wtet,tvol, &
                chgval,.false.,efermi,egap)
+    
     write(fgw,*)
     write(fgw,*)'(readevaldft)     Fermi energy (KS) [Ha]: ', efermi
     write(fgw,*)'(readevaldft)         Band gap (KS) [Ha]: ', egap
@@ -72,7 +74,7 @@ subroutine readevaldft
 ! shift all energies to make efermi=0 
 !----------------------------------------
     do ik=1,nkpt
-      do ist=1,nstfv
+      do ist=1,nstsv
         evaldft(ist,ik)=evaldft(ist,ik)-efermi
       enddo
     enddo     
@@ -100,7 +102,7 @@ subroutine readevaldft
     do ik = 1, nkpt
        io=0
        iu=1000
-       do ist=1,nstfv
+       do ist=1,nstsv
           if(evaldft(ist,ik).lt.efermi)then
              if(ist.gt.io)io=ist
           else
@@ -115,8 +117,8 @@ subroutine readevaldft
        write(*,'("Error(readeval): maxoccband < 1 : ", i8)')maxoccband
        write(*,*)
        stop
-    elseif(maxoccband.ge.nstfv)then
-       write(*,'("Error(readeval): maxoccband > nstfv : ", i8)')maxoccband
+    elseif(maxoccband.ge.nstsv)then
+       write(*,'("Error(readeval): maxoccband > nstsv : ", i8)')maxoccband
        write(*,*)
        stop
     endif
@@ -124,8 +126,8 @@ subroutine readevaldft
        write(*,'("Error(readeval): minunoband < 1 : ", i8)')minunoband
        write(*,*)
        stop
-    elseif(minunoband.ge.nstfv)then
-       write(*,'("Error(readeval): minunoband > nstfv : ", i8)')minunoband
+    elseif(minunoband.ge.nstsv)then
+       write(*,'("Error(readeval): minunoband > nstsv : ", i8)')minunoband
        write(*,*)
        stop
     endif
@@ -142,15 +144,15 @@ subroutine readevaldft
        write(6,*) " or"
        write(6,*) " nbgw <= maxoccband=",nbgw,maxoccband
        ibgw=1
-       nbgw=nstfv
+       nbgw=nstsv
     endif 
     nbandsgw=nbgw-ibgw+1
     nvelgw=chgval-2.d0*dble(ibgw-1)
 
     write(fgw,*)'Number of LAPW states (determined by rgkmax):', nmatmax
-    write(fgw,*)'Number of bands used in GW:                  ', nstfv
+    write(fgw,*)'Number of bands used in GW:                  ', nstsv
 
-    e0=maxval(evaldft(nstfv,:))
+    e0=maxval(evaldft(nstsv,:))
     write(fgw,*)'Highest energy of unoccupied states [Ha]:    ', e0
     write(fgw,*)'Highest energy of unoccupied states [eV]:    ', e0*heV
 
@@ -168,18 +170,18 @@ subroutine readevaldft
 !   This array is used then in the routines to calculate the self-energies.
 !
     if(allocated(n12dgn))deallocate(n12dgn)
-    allocate(n12dgn(2,nstfv,nkpt))
+    allocate(n12dgn(2,nstsv,nkpt))
     
     do ik = 1, nkpt
 
        if (input%gw%reduceq) then
 
          ist=1
-         do while (ist<=nstfv)
+         do while (ist<=nstsv)
             e0=evaldft(ist,ik)
             ! calculate the number of degenerated states
             n=1; jst=ist+1
-            do while (jst<=nstfv)
+            do while (jst<=nstsv)
                if(abs(evaldft(jst,ik)-e0)<eps)then
                   n=n+1
                   jst=jst+1
@@ -198,7 +200,7 @@ subroutine readevaldft
        else
        
          ! no symmetry: degeneracy index is set to 1
-         do ist = 1, nstfv
+         do ist = 1, nstsv
            n12dgn(1,ist,ik)=ist
            n12dgn(2,ist,ik)=ist
          end do
@@ -210,7 +212,7 @@ subroutine readevaldft
 
          write(55,*)
          write(55,*)'Degeneracy KS bands: ik = ', ik
-         do ist=1,nstfv
+         do ist=1,nstsv
             write(55,*)'ist, n12dgn: ', ist, n12dgn(:,ist,ik)
          end do
          write(55,*)
