@@ -27,7 +27,7 @@
       character(128)::sbuffer
       real(8)    :: tq1, tq2, tq11, tq22
       complex(8),allocatable::buffer(:)
-
+	  integer :: COMM_LEVEL2
 ! !REVISION HISTORY:
 !
 ! Created 16.09.2005 by RGA
@@ -95,9 +95,13 @@
         call boxmsg(fgw,'-','Calculation of the dielectric matrix')
         call barrier
 
-         write(*,*)"Do qp",firstofset(rank,nqpt)," to ", lastofset(rank,nqpt)
+         write(*,*)"Do qp",firstofset(mod(rank,nqpt),nqpt)," to ", lastofset(mod(rank,nqpt),nqpt)
+#ifdef MPI
+         call MPI_COMM_SPLIT(MPI_COMM_WORLD,firstofset(mod(rank,nqpt),nqpt),  rank/nqpt, COMM_LEVEL2,ierr)
+        # write(*,*) "proc ",rank,"does color ", firstofset(mod(rank,nqpt),nqpt), "with key(rank)", rank/nqpt
+#endif
 		!each process does a subset
-        do iqp = firstofset(rank,nqpt), lastofset(rank,nqpt)
+        do iqp = firstofset(mod(rank,nqpt),nqpt), lastofset(mod(rank,nqpt),nqpt)
 
 
           call cpu_time(tq11)
@@ -139,7 +143,7 @@
 !
 !         Calculate the dielectric finction
 !   
-          call calcepsilon(iqp)
+          call calcepsilon(iqp,COMM_LEVEL2)
 !
 !         Calculate inverse of the dielectric function
 !   

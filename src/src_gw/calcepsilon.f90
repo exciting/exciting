@@ -3,7 +3,7 @@
 ! !ROUTINE: calcpolmat
 !
 ! !INTERFACE:
-subroutine calcepsilon(iqp)
+subroutine calcepsilon(iqp,COMM_LEVEL2)
 
 ! !DESCRIPTION:
 !
@@ -13,13 +13,15 @@ subroutine calcepsilon(iqp)
 
       use modmain
       use modgw
+      use modmpi
 
 ! !INPUT PARAMETERS:
       
       implicit none
-
+	  integer(4), intent(in) :: iqp
+	  integer(4), intent(in) :: COMM_LEVEL2 !MPI Communicator allocated for this routine
 ! !LOCAL VARIABLES:
-      integer(4), intent(in) :: iqp
+
 
       integer(4) :: ia
       integer(4) :: is
@@ -33,6 +35,7 @@ subroutine calcepsilon(iqp)
       integer(4) :: im, jm
       integer(4) :: dimtk
       integer(4) :: recl
+      integer:: level2rank,level2procs
       
       real(8)    :: tstart,tend
       real(8)    :: edif, pmn, pvec(3)
@@ -116,11 +119,22 @@ subroutine calcepsilon(iqp)
 !======================================================================+
      
       allocate(body(1:mbsiz,1:mbsiz))
+#ifdef MPI
+   Call mpi_comm_size ( COMM_LEVEL2, level2procs, ierr)
+   Call mpi_comm_rank ( COMM_LEVEL2,level2rank, ierr)
+   call mpi_barrier(COMM_LEVEL2,ierr)
+#endif
+#ifndef MPI
+level2rank=0
+level2procs=1
+#endif
 
 !---------------------------------------------------------------------!
 !     BZ summation
 !---------------------------------------------------------------------!     
       do ikp = 1, nkptq(iqp)
+      if(mod(ikp,level2procs).eq.level2rank) then
+      write(*,*)" for q ",iqp,"do ikp ",ikp," as ",level2rank, " on proc ",rank
 
         ik = idikpq(ikp,iqp)
         jk = kqid(ik,iq)
@@ -394,9 +408,21 @@ subroutine calcepsilon(iqp)
           endif ! core
           
         end do ! i (symmetry)
-        
+      endif ! if k is to be done by this proc
       end do ! ik
       
+#ifdef MPI
+ call MPI_ALLREDUCE(MPI_IN_PLACE, epsilon, matsizmax*matsizmax*nomeg,  MPI_DOUBLE_COMPLEX,  MPI_SUM,&
+       & COMM_LEVEL2, ierr)
+       if(Gamma) then
+call MPI_ALLREDUCE(MPI_IN_PLACE, epsw1,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM,&
+       & COMM_LEVEL2, ierr)
+call MPI_ALLREDUCE(MPI_IN_PLACE, epsw2,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM,&
+       & COMM_LEVEL2, ierr)
+       endif
+
+#endif
+
       deallocate(body)
       deallocate(minmmat)
       if(iopcore.eq.0)deallocate(micmmat)
