@@ -426,8 +426,8 @@ call MPI_ALLREDUCE(MPI_IN_PLACE, epsw2,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM
 #endif
 
       deallocate(body)
-      deallocate(minmmat)
-      if(iopcore.eq.0)deallocate(micmmat)
+      if(allocated(minmmat)) deallocate(minmmat)
+      if(iopcore.eq.0 .and. allocated(micmmat))deallocate(micmmat)
       if(allocated(rotmat))deallocate(rotmat)
       if(Gamma)then
         deallocate(pmat)
