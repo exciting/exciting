@@ -133,7 +133,9 @@ level2procs=1
 !     BZ summation
 !---------------------------------------------------------------------!     
       do ikp = 1, nkptq(iqp)
-      if(mod(ikp,level2procs).eq.level2rank) then
+      if  (mod(ikp-1,level2procs).eq.level2rank .and. level2rank .ge. nkptq(iqp))&
+      &write(*,*)"proc", rank ,"is", level2rank, "and has to whait. k",ikp,"q",iqp
+      if(mod(ikp-1,level2procs).eq.level2rank .and. level2rank .lt. nkptq(iqp) ) then
       write(*,*)" for q ",iqp,"do ikp ",ikp," as ",level2rank, " on proc ",rank
 
         ik = idikpq(ikp,iqp)
@@ -436,6 +438,7 @@ call MPI_ALLREDUCE(MPI_IN_PLACE, epsw2,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM
         end if
         deallocate(wtmp)
       end if ! Gamma
+
  
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'

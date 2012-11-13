@@ -97,8 +97,9 @@
 
          write(*,*)"Do qp",firstofset(mod(rank,nqpt),nqpt)," to ", lastofset(mod(rank,nqpt),nqpt)
 #ifdef MPI
+		! create  communicator object for each qpoint
          call MPI_COMM_SPLIT(MPI_COMM_WORLD,firstofset(mod(rank,nqpt),nqpt),  rank/nqpt, COMM_LEVEL2,ierr)
-        # write(*,*) "proc ",rank,"does color ", firstofset(mod(rank,nqpt),nqpt), "with key(rank)", rank/nqpt
+        ! write(*,*) "proc ",rank,"does color ", firstofset(mod(rank,nqpt),nqpt), "with key(rank)", rank/nqpt
 #endif
 		!each process does a subset
         do iqp = firstofset(mod(rank,nqpt),nqpt), lastofset(mod(rank,nqpt),nqpt)
@@ -153,10 +154,12 @@
           if (rank.lt.nqpt) then
           	 write(44,rec=iqp-firstofset(rank,nqpt)+1) buffer !fill file with zeroes
         	 write(44,rec=iqp-firstofset(rank,nqpt)+1) inveps
+        	! write(1100+iqp,*)epsilon
+        	! write(900+iqp,*)inveps
    			 write(fgw,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
 		  endif
           if((iqp.eq.1) )then
-
+			if( rank.lt.nqpt)then
             ! store the data used for treating q->0 singularities
             open(42,file='INVHEAD.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
             write(42)head
@@ -168,7 +171,7 @@
             write(43)epsw2
 
             close(43)
-
+			endif
             deallocate(head)
             deallocate(epsw1,epsw2)
             deallocate(emac)
@@ -180,8 +183,8 @@
 
         end do ! iqp
 
-        if (rank.lt.nqpt)close(44)
-         call barrier
+        if (rank.lt.nqpt) close(44)
+        call barrier
 
         deallocate(epsilon)
         deallocate(inveps)
@@ -220,6 +223,7 @@
          ikpqp=ikpqp+1
 		! decide if point is done by this process
          if (mod(ikpqp-1,procs).eq.rank) then
+         write(*,*) "do q",iqp,"and k", ikp,"as",ikpqp, "on",rank
            
            call cpu_time(tq1)
            
