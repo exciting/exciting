@@ -15,6 +15,7 @@
 !
       use modmain
       use modgw
+      use modmpi
 !
 ! !INPUT PARAMETERS:
 
@@ -172,7 +173,7 @@
 !-------------------------
 !     DEBUG INFORMATION
 !-------------------------
-      if(debug)then
+      if(debug .and. rank.eq.0)then
          if(iq==1)open(74,file='QDEPW.OUT')
          write(74,*)'------------------------------------------------------'
          write(74,*)'       convolution weights for iq =',iq

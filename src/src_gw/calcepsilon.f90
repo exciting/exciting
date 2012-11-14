@@ -133,8 +133,7 @@ level2procs=1
 !     BZ summation
 !---------------------------------------------------------------------!     
       do ikp = 1, nkptq(iqp)
-      if  (mod(ikp-1,level2procs).eq.level2rank .and. level2rank .ge. nkptq(iqp))&
-      &write(*,*)"proc", rank ,"is", level2rank, "and has to whait. k",ikp,"q",iqp
+
       if(mod(ikp-1,level2procs).eq.level2rank .and. level2rank .lt. nkptq(iqp) ) then
       write(*,*)" for q ",iqp,"do ikp ",ikp," as ",level2rank, " on proc ",rank
 
@@ -173,7 +172,6 @@ level2procs=1
               minm(1:matsiz,ie12)=minmmat(1:matsiz,ie1,ie2)
             end do
           end do
-                     
           ! Get M^i_{nm} by symmetry if needed
           if (isym>1) then
 !
@@ -183,6 +181,7 @@ level2procs=1
 !
 !           Rotate M^i_{nm}
 !
+
             call zgemm('c','n',matsiz,dimtk,matsiz, &
            &     zone,rotmat(1:matsiz,1:matsiz),matsiz, &
            &     minm,matsiz,zzero,temp,matsiz)
@@ -325,7 +324,6 @@ level2procs=1
 ! 
             deallocate(micm)
             allocate(micm(1:mbsiz,1:dimtk))
-
             call zgemm('c','n',mbsiz,dimtk,locmatsiz, &
            &  zone,barcvm,locmatsiz,temp,locmatsiz,zzero,micm,mbsiz)
            
@@ -335,9 +333,7 @@ level2procs=1
 !                             WINGS
 !======================================================================+
             if (Gamma) then
-
               read(51,rec=ik0) pmatc
-              
               allocate(pm(dimtk))
 
               ie12=0
@@ -422,7 +418,6 @@ call MPI_ALLREDUCE(MPI_IN_PLACE, epsw1,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM
 call MPI_ALLREDUCE(MPI_IN_PLACE, epsw2,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM,&
        & COMM_LEVEL2, ierr)
        endif
-
 #endif
 
       deallocate(body)

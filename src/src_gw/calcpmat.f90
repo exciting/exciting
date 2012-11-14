@@ -51,19 +51,15 @@ subroutine calcpmat
     if(rank.eq.0)then 
     open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
      status='REPLACE',recl=recl)
-     else
-      open(50,file='PMAT1.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-     status='REPLACE',recl=recl)
+
      endif
      
     if(iopcore.eq.0)then 
       recl2=16*(3*ncg*nstsv)
        if(rank.eq.0)then
-       open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-       status='REPLACE',recl=recl2)
-       else
-        open(51,file='PMATCOR1.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-       status='REPLACE',recl=recl2)
+         open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
+         status='REPLACE',recl=recl2)
+
        endif
     endif   
 
@@ -83,13 +79,13 @@ subroutine calcpmat
       call genpmat(ngk(1,ik),igkig(1,1,ik),vgkcnr(1,1,1,ik), &
      &  apwalmt,evecfvt,evecsvt,pmat)
  
-       write(50,rec=ik) pmat
+      if(rank.eq.0) write(50,rec=ik) pmat
 
 !     core-valence contribution      
       if(iopcore.eq.0)then
         call genpmatcor(ik,ngk(1,ik),apwalmt,evecfvt,evecsvt,pmatc)
  
-        write(51,rec=ik) pmatc
+          if(rank.eq.0) write(51,rec=ik) pmatc
       endif
 
     end do

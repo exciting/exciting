@@ -95,7 +95,7 @@
         call boxmsg(fgw,'-','Calculation of the dielectric matrix')
         call barrier
 
-         write(*,*)"Do qp",firstofset(mod(rank,nqpt),nqpt)," to ", lastofset(mod(rank,nqpt),nqpt)
+         write(*,*)"On proc",rank,"do qp",firstofset(mod(rank,nqpt),nqpt)," to ", lastofset(mod(rank,nqpt),nqpt)
 #ifdef MPI
 		! create  communicator object for each qpoint
          call MPI_COMM_SPLIT(MPI_COMM_WORLD,firstofset(mod(rank,nqpt),nqpt),  rank/nqpt, COMM_LEVEL2,ierr)
@@ -108,7 +108,7 @@
           call cpu_time(tq11)
 !      
 !         Calculate the interstitial mixed basis functions
-!
+!  
           iq=idikpq(iqp,1)
           Gamma=gammapoint(iq)
           matsiz=locmatsiz+ngq(iq)
@@ -159,7 +159,7 @@
    			 write(fgw,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
 		  endif
           if((iqp.eq.1) )then
-			if( rank.lt.nqpt)then
+			if( rank.eq.0)then
             ! store the data used for treating q->0 singularities
             open(42,file='INVHEAD.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
             write(42)head
@@ -269,7 +269,9 @@
            write(fgw,*)
            call write_cputime(fgw,tq2-tq1,'Q-POINT CYCLE TAKES')
            write(fgw,*)
-        endif 
+
+
+        endif
         end do ! iqp
       
       end do ! ikp
