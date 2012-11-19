@@ -56,9 +56,13 @@ subroutine gw_main
 !     General output file
       fgw=700
 
+#ifdef MPI
       write(sbuffer,*)rank
       open(fgw,file='GWINFO'//trim(adjustl(sbuffer))//'.OUT',action='write',access='Append')
-
+#endif
+#ifndef MPI
+      open(fgw,file='GWINFO.OUT',action='write',access='Append')
+#endif
       call boxmsg(fgw,'=','Main GW output file')
 !
 !     testid = 16: Calculate bandstructure
@@ -208,7 +212,9 @@ subroutine gw_main
 
       if(debug)close(55)
       close(fgw)
-     
+#ifdef MPI
+      call  cat_logfiles('GWINFO')
+#endif
       return
 end subroutine gw_main
 !!EOC

@@ -94,9 +94,10 @@
 !        
         call boxmsg(fgw,'-','Calculation of the dielectric matrix')
         call barrier
-
-         write(*,*)"On proc",rank,"do qp",firstofset(mod(rank,nqpt),nqpt)," to ", lastofset(mod(rank,nqpt),nqpt)
 #ifdef MPI
+		if (rank.eq.0) write(*,*) "Calculation of the dielectric matrix"
+        write(*,*)"On proc",rank,"do qp",firstofset(mod(rank,nqpt),nqpt)," to ", lastofset(mod(rank,nqpt),nqpt)
+
 		! create  communicator object for each qpoint
          call MPI_COMM_SPLIT(MPI_COMM_WORLD,firstofset(mod(rank,nqpt),nqpt),  rank/nqpt, COMM_LEVEL2,ierr)
         ! write(*,*) "proc ",rank,"does color ", firstofset(mod(rank,nqpt),nqpt), "with key(rank)", rank/nqpt
@@ -211,8 +212,15 @@
 !=========================================================================================
 
 !     The file to store intermediate (q-dependent) values of \Sigma_{x,c}
+#ifdef MPI
+	  write(sbuffer,*)rank
       open(96,file='ADDSELFE'//trim(adjustl(sbuffer))//'.OUT',form='FORMATTED',status='UNKNOWN')
+      if (rank.eq.0)write(*,*)"Calculate Self Energy"
+#endif
+#ifndef MPI
+      open(96,file='ADDSELFE.OUT',form='FORMATTED',status='UNKNOWN')
 
+#endif
 !     Calculate the integrals to treat the singularities at G+q->0
       call setsingc
       call barrier
@@ -223,8 +231,9 @@
          ikpqp=ikpqp+1
 		! decide if point is done by this process
          if (mod(ikpqp-1,procs).eq.rank) then
-         write(*,*) "do q",iqp,"and k", ikp,"as",ikpqp, "on",rank
-           
+#ifdef MPI
+         write(*,*) "do q",iqp,"and k", ikp,"as number",ikpqp, "on",rank
+#endif
            call cpu_time(tq1)
            
            ik=idikp(ikp)
@@ -317,6 +326,9 @@
       close(52) ! STRCONST.OUT
     endif  
         close(46) ! ADDSELFE.OUT
+#ifdef MPI
+      call  cat_logfiles('ADDSELFE')
+#endif
       return
       end subroutine gwcycle
 !EOC      

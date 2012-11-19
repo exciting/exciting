@@ -9,6 +9,7 @@ Subroutine groundstatetasklauncher
     Use inputdom
     use modmpi
     Implicit None
+     splittfile= .true.
     If ( .Not. (associated(input%groundstate%solver))) Then
         ! set the default values if tddft element not present
         input%groundstate%solver => getstructsolver (emptynode)
