@@ -1480,8 +1480,8 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble"
         default="1.0d-3">
         <xs:annotation>
-          <xs:documentation>Maximum allowed error in the calculated total charge beyond which a
-            warning message will be issued.</xs:documentation>
+          <xs:documentation>Convergence criterion for the maximum allowed error 
+           in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="epsocc" type="fortrandouble"
@@ -1788,6 +1788,12 @@
             eigenvectors are calculated. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="tpartcharges" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation> The attribute tpartcharges is <pre>"true"</pre> if partial charges 
+          for each state j, atom alpha and for each lm combination are calculated. </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>   
       <xs:attribute ex:importance="expert" ex:unit="" name="nwrite" type="xs:integer" default="0">
         <xs:annotation>
           <xs:documentation> Normally, the density and potentials are written to the file STATE.OUT
