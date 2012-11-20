@@ -58,7 +58,8 @@ Subroutine gndstate
          Call writeiad (.False.)
      ! write symmetry matrices to file
          Call writesym
-#ifdef XS
+#ifdef XS      
+
      ! write realtion to inverse symmetries
          Call writesymi
      ! write advanced information on symmetry group
