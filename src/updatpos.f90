@@ -46,6 +46,11 @@ Subroutine updatpos
                tauatm (ias) = input%structureoptimization%tau0atm
             End If
 ! check for negative mass
+! GB 26.10.2012 CONSTRAIN RELAXATION
+      If (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock) Then 
+         tauatm (ias)= 0.0 
+      Endif
+
             If (spmass(is) .Gt. 0.d0) Then
                atposc (:, ia, is) = atposc (:, ia, is) + tauatm (ias) * &
               & (forcetot(:, ias)+forcetp(:, ias))
@@ -63,6 +68,8 @@ Subroutine updatpos
       End Do
 ! write lattice vectors and optimised atomic positions to file
       Call writegeom (.True.)
+! GB 17.10.2012 The following line write a geometrically optimized xml file. Otherwise never written
+      Call writegeometryxml (.True.)
 ! write the optimised interatomic distances to file
       Call writeiad (.True.)
 ! check for overlapping muffin-tins

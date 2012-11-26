@@ -50,12 +50,6 @@ Subroutine init1
 !---------------------!
 !     k-point set     !
 !---------------------!
-! check if the system is an isolated molecule
-      If (input%structure%molecule) Then
-         input%groundstate%ngridk (:) = 1
-         input%groundstate%vkloff (:) = 0.d0
-         input%groundstate%autokpt = .False.
-      End If
 ! k-point set and box for Fermi surface plots
       If ((task .Eq. 100) .Or. (task .Eq. 101)) Then
          input%groundstate%ngridk (:) = np3d (:)

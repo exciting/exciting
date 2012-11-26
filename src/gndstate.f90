@@ -68,9 +68,6 @@ Subroutine gndstate
 #endif
      ! output the k-point set to file
          Call writekpts
-     ! write lattice vectors and atomic positions to file
-         Call writegeom (.False.)
-         Call writegeometryxml (.False.)
      ! open INFO.OUT file
          Open (60, File='INFO'//trim(filext), Action='WRITE', Form='FOR&
         &MATTED')

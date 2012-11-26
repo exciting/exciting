@@ -275,12 +275,6 @@ subroutine checkinput
       stop
     end if
   end if
-  if (input%structure%vacuum.lt.0.d0) then
-    write(*,*)
-    write(*,'("Error(checkinput): /input/structure/@vacuum < 0 : ",G18.10)') input%structure%vacuum
-    write(*,*)
-    stop
-  end if
   if (associated(input%structure%speciesarray)) then
     if (size(input%structure%speciesarray).gt.maxspecies) then ! (nspecies > maxspecies)
       write(*,*)

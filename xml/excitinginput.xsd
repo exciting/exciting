@@ -410,6 +410,15 @@ gw.xsd
                         coordinates.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
+
+                  <xs:attribute ex:importance="expert" ex:unit="" name="lock" type="xs:boolean" default="false" use="optional">
+                    <xs:annotation>
+                      <xs:documentation> Temporary switch for contrained relaxation </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+
+
+
                   <xs:attribute ex:importance="expert" ex:unit="" name="mommtfix" type="vect3d" default="0.0d0 0.0d0 0.0d0" use="optional">
                     <xs:annotation>
                       <xs:documentation>The desired muffin-tin moment for a Fixed Spin Moment (FSM)
@@ -513,23 +522,24 @@ gw.xsd
           </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="molecule" type="xs:boolean" default="false">
+<!-- Giulio Biddau 1.11.2012-->
+      <xs:attribute ex:importance="expert" ex:unit="" name="cartesian" type="xs:boolean" default="false">
         <xs:annotation>
-          <xs:documentation> If <pre>"true"</pre>, a calculation for an isolated molecule is
-            performed. In this case, the atomic positions specified by the
-              <elementref>atom</elementref> subelement of the <elementref>species</elementref>
-            element must be given in cartesian coordinates. The lattice vectors are set up
-            automatically as <displaymath>{\bf A}^{(i)}=A_i\,\,\hat{\bf e}^{(i)} \qquad
-              i=1,2,3</displaymath> with <displaymath>A_i=\max_{\alpha,\beta}\left|{
-              a}^{(\alpha)}_i-{a}^{(\beta)}_i\right| +d_{\rm vac}</displaymath> where
-              <inlinemath>{a}_i^{(\alpha)} </inlinemath> is the catesian component of the atom
-            labeled by <inlinemath>\alpha</inlinemath> in the <inlinemath>i</inlinemath>-th
-            direction specified by the unit vector <inlinemath>\hat{\bf e}^{(i)}</inlinemath>.
-            Furthermore, <inlinemath>d_{\rm vac}</inlinemath> represents the size of the vacuum
-            around the molecule as defined by the attribute <attref>vacuum</attref>.
-          </xs:documentation>
+          <xs:documentation> If <pre>"true"</pre> the input is in cartesian                                                                             </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+<!-- Giulio Biddau 1.11.2012                                                                                                                        <xs:attribute ex:importance="expert" ex:unit="" name="minverb" type="xs:boolean" default="false"> 
+        <xs:annotation>                                              
+          <xs:documentation> If <pre>"true"</pre> only few files are generated.                                                               
+         </xs:documentation>                                                                                                                  
+        </xs:annotation>                                                                                                                      
+      </xs:attribute>                                                                                                                         
+      <xs:attribute ex:importance="essential" ex:unit="" name="historyunit" type="xs:boolean" default="false">                                
+<xs:annotation>                                                                                                                               
+<xs:documentation> If <pre>"true"/"false"</pre> the units of HISTORY.OUT file are Angstrom/Bohr for positions and eV/Ang / Ha/Bohr for forces.
+</xs:documentation>                                                                                                                           
+</xs:annotation>                                                                                                                              
+</xs:attribute>-->
       <xs:attribute ex:importance="expert" ex:unit="" name="rmtapm" type="vect2d" default="0.25d0 0.95d0">
         <xs:annotation>
           <xs:documentation> This attribute assigns the two parameters governing the automatic
@@ -541,12 +551,6 @@ gw.xsd
             distance between the muffin-tin speheres is determined by the value of
               <attref>rmtapm</attref>(2): When <attref>rmtapm</attref>(2)=1, the closest muffin-tin
             spheres will touch each other. </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="Bohr" name="vacuum" type="fortrandouble" default="10.0d0">
-        <xs:annotation>
-          <xs:documentation>Determines the size of the vacuum around the molecule, see the
-              <attref>molecule</attref> attribute.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="Bohr" name="epslat" type="fortrandouble" default="1.0d-6">
@@ -2359,6 +2363,7 @@ gw.xsd
                 <xs:documentation> Structural optimization run. Atomic positions are written to
                     <pre>geometry.xml</pre>. </xs:documentation>
             </xs:annotation>
+
             <xs:attribute ex:importance="essential" ex:unit="" ref="epsforce" default="5.0d-5">
                 <xs:annotation>
                     <xs:documentation>Convergence tolerance for the forces during a structural
@@ -2396,6 +2401,16 @@ gw.xsd
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="history" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation> If <pre>"true"</pre> history.xyz file is generated. For each relaxation step: Line 1 contains the total number of atoms. Line 2 contains the comment line here with total energy in eV. Line 3 and following are atomic specie, cartesian c\
+oordinates in Angstrom in x, y, z and the forces (eV/Ang) on x,y and z.                                                                                                                                                                                                        
+		</xs:documentation>
+	      </xs:annotation>
+	    </xs:attribute>
+
+
         </xs:complexType>
     </xs:element>
   <xs:annotation>

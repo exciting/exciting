@@ -23,31 +23,29 @@ Subroutine initlattice
       input%structure%crystal%basevect(:, :) = &
      & input%structure%crystal%scale * &
      & input%structure%crystal%basevect(:, :)
-! check if system is an isolated molecule
-      If (input%structure%molecule) Then
-! set up cubic unit cell with vacuum region around molecule
-         input%structure%crystal%basevect(:, :) = 0.d0
-         Do is = 1, nspecies
-            Do ia = 1, natoms (is)
-               Do js = 1, nspecies
-                  Do ja = 1, natoms (is)
-                     Do i = 1, 3
-                        t1 = Abs (input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(i)-&
-                       & input%structure%speciesarray(js)%species%atomarray(ja)%atom%coord(i))
-                        If (t1 .Gt. input%structure%crystal%basevect(i, &
-                       & i)) input%structure%crystal%basevect(i, i) = &
-                       & t1
-                     End Do
-                  End Do
-               End Do
-            End Do
-         End Do
+!         Do is = 1, nspecies
+!            Do ia = 1, natoms (is)
+!               Do js = 1, nspecies
+!                  Do ja = 1, natoms (is)
+!                     Do i = 1, 3
+!                        t1 = Abs (input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(i)-&
+!                       & input%structure%speciesarray(js)%species%atomarray(ja)%atom%coord(i))
+!                        If (t1 .Gt. input%structure%crystal%basevect(i, &
+!                       & i)) input%structure%crystal%basevect(i, i) = &
+!                       & t1
+!                     End Do
+!                  End Do
+!               End Do
+!            End Do
+!         End Do
          Do i = 1, 3
             input%structure%crystal%basevect(i, i) = &
-           & input%structure%crystal%basevect(i, i) + &
-           & input%structure%vacuum
+           & input%structure%crystal%basevect(i, i)
          End Do
 ! convert atomic positions from Cartesian to lattice coordinates
+
+!GB 3.10.2012  check if system has a cartesian input
+      If (input%structure%cartesian) Then
          Call r3minv (input%structure%crystal%basevect, ainv)
          Do is = 1, nspecies
             Do ia = 1, natoms (is)

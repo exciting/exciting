@@ -29,58 +29,32 @@ Subroutine writegeom (topt)
 ! arguments
       Logical, Intent (In) :: topt
 ! local variables
-      Integer :: is, ia
+      Integer :: is, ia, ias
       Real (8) :: v (3)
       If (topt) Then
-         Open (50, File='GEOMETRY_OPT'//trim(filext), Action='WRITE', &
-        & Form='FORMATTED')
-      Else
-         Open (50, File='GEOMETRY'//trim(filext), Action='WRITE', &
-        & Form='FORMATTED')
+! GB 04.10.2012 new file with geometrical optimization history (xyz format)
+     If (input%structureoptimization%history) Then
+         Open (51, File='history.xyz', Action='WRITE', &
+        & POSITION='APPEND')
+! GB 04.10.2012   END
       End If
-      Write (50,*)
-      Write (50, '("scale")')
-      Write (50, '(" 1.0")')
-      Write (50,*)
-      Write (50, '("scale1")')
-      Write (50, '(" 1.0")')
-      Write (50,*)
-      Write (50, '("scale2")')
-      Write (50, '(" 1.0")')
-      Write (50,*)
-      Write (50, '("scale3")')
-      Write (50, '(" 1.0")')
-      Write (50,*)
-      Write (50, '("avec")')
-      Write (50, '(3G18.10)') input%structure%crystal%basevect(:, 1)
-      Write (50, '(3G18.10)') input%structure%crystal%basevect(:, 2)
-      Write (50, '(3G18.10)') input%structure%crystal%basevect(:, 3)
-      If (input%structure%molecule) Then
-         Write (50,*)
-         Write (50, '("molecule")')
-         Write (50, '(" ", L1)') input%structure%molecule
       End If
-      Write (50,*)
-      Write (50, '("atoms")')
-      Write (50, '(I4, T40, " : nspecies")') nspecies
+
+      Write (51,*) natmtot
+     If (input%structureoptimization%history) Then
+      Write (51,*) "Total Energy =",  engytot*27.211396641344194, " eV "
+     End If
       Do is = 1, nspecies
-         Write (50, '(" ''", A, "''", T40, " : spfname")') trim &
-        & (input%structure%speciesarray(is)%species%speciesfile)
-         Write (50, '(I4, T40, " : natoms; atpos, bfcmt below")') &
-        & natoms (is)
          Do ia = 1, natoms (is)
-            If (input%structure%molecule) Then
-! write Cartesian coordinates for the molecular case
-               Call r3mv (input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
+            ias = idxas (ia, is)
+            Call r3mv (input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
               & v)
-            Else
-! otherwise write lattice coordinates
-               v (:) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-            End If
-            Write (50, '(3F14.8, "  ", 3F12.8)') v (:), input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:)
+           Write (51,'(A6, 3F14.8, 3F14.8)')(input%structure%speciesarray(is)%species%chemicalSymbol), ((v (:)))*0.529177249, &
+                & (forcetot (:, ias))*51.42208245
+! GB 4.10.2012 END
          End Do
       End Do
-      Close (50)
+      Close (51)
       Return
 End Subroutine
 !EOC

@@ -87,11 +87,13 @@ Subroutine init0
 !------------------------------------!
 !     index to atoms and species     !
 !------------------------------------!
-! check if the system is an isolated molecule
-      If (input%structure%molecule) Then
-         input%structure%primcell = .False.
+
+! GB 3.10.2012 
+      If (input%structure%cartesian) Then
+         input%structure%primcell = .True.
          input%structure%tshift = .False.
       End If
+
 ! find primitive cell if required
       If (input%structure%primcell) Call findprim
       natmmax = 0
@@ -211,7 +213,7 @@ Subroutine init0
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
 ! map atomic lattice coordinates to [0,1) if not in molecule mode
-            If ( .Not. input%structure%molecule) Call r3frac (input%structure%epslat, &
+             If ( .Not. input%structure%cartesian) Call r3frac (input%structure%epslat, &
            & input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), iv)
 ! determine atomic Cartesian coordinates
             Call r3mv (input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
