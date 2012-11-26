@@ -26,7 +26,7 @@ subroutine cat_logfiles(filenameslug)
 !BOC
 !open new empty file
 	if (rank.eq.0)then
-		open(901,file=trim(adjustl(filenameslug))//'.OUT',action='write',access='Append')
+		open(901,file=trim(adjustl(filenameslug))//'.OUT',action='write')
 		do i=0,procs-1
 			write(buffer,*)i
 			! open file from proc i

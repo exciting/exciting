@@ -316,9 +316,17 @@ level2procs=1
               !
               ! Rotate M^i_{cm}
               !
+             write(*,*) "shape(rotmat)",shape(rotmat)
+             write(*,*)"locmatsiz",locmatsiz
+             write(*,*)"dimtk",dimtk
+             write(*,*)"shape(micm)",shape(micm)
+			write(*,*)"matsiz",matsiz
+
               call zgemm('c','n',locmatsiz,dimtk,locmatsiz, &
-             &   zone,rotmat(1:locmatsiz,1:locmatsiz), &
-             &   locmatsiz,micm,locmatsiz,zzero,temp,locmatsiz)
+             &   zone,rotmat, &
+             &   matsiz,micm,locmatsiz,zzero,temp,locmatsiz)
+			write(*,*)"over zgemm"
+
             else
               temp = micm
             end if
@@ -413,9 +421,15 @@ level2procs=1
       end do ! ik
       
 #ifdef MPI
+ if  (level2rank .ge. nkptq(iqp))epsilon=zzero
+
  call MPI_ALLREDUCE(MPI_IN_PLACE, epsilon, matsizmax*matsizmax*nomeg,  MPI_DOUBLE_COMPLEX,  MPI_SUM,&
        & COMM_LEVEL2, ierr)
        if(Gamma) then
+        if  (level2rank .ge. nkptq(iqp)) then
+        epsw1=zzero
+        epsw2=zzero
+        endif
 call MPI_ALLREDUCE(MPI_IN_PLACE, epsw1,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM,&
        & COMM_LEVEL2, ierr)
 call MPI_ALLREDUCE(MPI_IN_PLACE, epsw2,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM,&

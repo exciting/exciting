@@ -23,7 +23,7 @@
 
       integer(4) :: iq, iqp
       integer(4) :: ik, ikp,ikpqp
-      integer(4) :: recl
+      integer(8) :: recl
       character(128)::sbuffer
       real(8)    :: tq1, tq2, tq11, tq22
       complex(8),allocatable::buffer(:)
@@ -82,6 +82,8 @@
 !       The direct access file to store the values of the inverse dielectric matrix
 !--------------------------------------------------------------------------
         recl=16*(matsizmax*matsizmax*nomeg)
+        write(*,*)"recl",recl
+        write(*,*)  matsizmax,matsizmax,nomeg
        !this buffer is used only for making INVEPS files more comparable
         allocate(buffer(matsizmax*matsizmax*nomeg))
         buffer=zzero
@@ -100,7 +102,7 @@
 
 		! create  communicator object for each qpoint
          call MPI_COMM_SPLIT(MPI_COMM_WORLD,firstofset(mod(rank,nqpt),nqpt),  rank/nqpt, COMM_LEVEL2,ierr)
-        ! write(*,*) "proc ",rank,"does color ", firstofset(mod(rank,nqpt),nqpt), "with key(rank)", rank/nqpt
+         write(*,*) "proc ",rank,"does color ", firstofset(mod(rank,nqpt),nqpt), "with key(rank)", rank/nqpt
 #endif
 		!each process does a subset
         do iqp = firstofset(mod(rank,nqpt),nqpt), lastofset(mod(rank,nqpt),nqpt)
@@ -173,7 +175,7 @@
 
             close(43)
 			endif
-            deallocate(head)
+           ! deallocate(head)
             deallocate(epsw1,epsw2)
             deallocate(emac)
           endif
