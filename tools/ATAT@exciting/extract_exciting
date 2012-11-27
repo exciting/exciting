@@ -1,0 +1,10 @@
+#!/usr/bin/tcsh
+
+
+set ene_file = info.xml
+
+
+awk '/totalEnergy/' $ene_file|\
+tr " " "\n" | \
+awk -F'"' '/totalEnergy/{ene=$2};END{printf "%20.8f\n", ene*2*13.6058}' > energy
+

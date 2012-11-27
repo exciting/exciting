@@ -1,0 +1,50 @@
+#!/bin/csh
+
+set strout="str_hint.out"
+
+if ( ! -e $strout ) then
+  set strout="str.out"
+endif
+
+if (! -e $strout ) then
+  echo str.out or str_hint.out does not exist
+  echo NOTE: $0 needs to be run within the subdirectory containing a structure.
+  exit 1
+endif
+
+set wrapfilename="flapw.wrap"
+
+set wrapfile="$wrapfilename"
+if (! -e $wrapfile) then
+  set wrapfile="../$wrapfilename"
+  if (! -e $wrapfile) then
+    set wrapfile="../../$wrapfilename"
+    if (! -e $wrapfile) then
+      set wrapfile="../../../$wrapfilename"
+      if (! -e $wrapfile) then
+        echo You need a $wrapfilename file in $PWD , $PWD/.. , $PWD/../.. or $PWD/../../..
+        echo NOTE: $0 needs to be run within the numbered subdirectory.
+        exit 1
+      endif
+    endif
+  endif
+endif
+
+( echo 1.0 ; cat $strout | cellcvrt -f | head -3 ) >! flapwcell.tmp
+
+( echo internal ; cat $strout | cellcvrt -f | tail +7 | awk '{print "   " $4,$1,$2,$3;}' ) >! flapwatom.tmp
+
+set nbkp=`getvalue '[kK][pP][pP][rR][aA]' < $wrapfile`
+set spa=`getvalue '[sS][pP][aA]' < $wrapfile`
+set nbat=`cellcvrt -pn < $strout`
+( echo $nbkp $nbat | awk '{print $1/$2}'; cat $strout | cellcvrt -f | head -3 ) | kmesh -q -r >& flapwkpoint.tmp
+
+awk '{if ($1=="INSERTCELL") {system("cat flapwcell.tmp");} \
+      else if ($1=="INSERTATOMS") {system("cat flapwatom.tmp");} \
+      else if (tolower($1)=="kppra") {system("cat flapwkpoint.tmp");} \
+      else if (tolower($1)=="spa") {print "number of states:" '$nbat'*'$spa';} \
+      else {print $0;} \
+}' $wrapfile >! flapw.in
+
+rm flapwcell.tmp flapwatom.tmp flapwkpoint.tmp
+

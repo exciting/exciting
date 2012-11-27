@@ -97,9 +97,6 @@ species::libs
 libs:
 	cd build/serial; $(MAKE) libs
 
-debian:all doc
-	cd debian &&   bash makepackage.sh
-
 clean:
 	cd build/serial; $(MAKE) clean cleanlibs
 	cd build/mpi; $(MAKE) clean cleanlibs
@@ -118,7 +115,6 @@ clean:
 	rm -f interfaces/*
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
-	rm -rf debian/debian/usr
 	rm -f src/leblaiklib/*.o src/leblaiklib/*.a
 
 libxcclean:

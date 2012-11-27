@@ -1,0 +1,219 @@
+#--- Grace_d2E.par --------------------
+page size 840, 595
+with line
+    line on
+    line 0.08, 0.40, 0.08, 0.54
+line def
+with line
+    line on
+    line 0.08, 0.31, 0.08, 0.37
+line def
+with string
+    string on
+    string 0.055, 0.400
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "d\S2\NE(\xh\f{})"
+with string
+    string on
+    string 0.138, 0.426
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "d\xh\f{}\S2\N"
+with string
+    string on
+    string 0.065, 0.326
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "1"
+with string
+    string on
+    string 0.126, 0.320
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "V\s0\N"
+with string
+    string on
+    string 0.086, 0.610
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "( GPa )"
+#--------------------------------------
+
+#--- Grace_d3E.par --------------------
+page size 840, 595
+with line
+    line on
+    line 0.08, 0.40, 0.08, 0.54
+line def
+with line
+    line on
+    line 0.08, 0.31, 0.08, 0.37
+line def
+with string
+    string on
+    string 0.055, 0.400
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "d\S3\NE(\xh\f{})"
+with string
+    string on
+    string 0.138, 0.426
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "d\xh\f{}\S3\N"
+with string
+    string on
+    string 0.065, 0.326
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "1"
+with string
+    string on
+    string 0.126, 0.320
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "V\s0\N"
+with string
+    string on
+    string 0.086, 0.610
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "( TPa )"
+#--------------------------------------
+
+#--- Grace_d1S.par --------------------
+page size 840, 595
+with line
+    line on
+    line 0.08, 0.41, 0.08, 0.50
+line def
+with string
+    string on
+    string 0.055, 0.407
+    string rot 90
+    string font 4
+    string char size 1.600
+    string def "d\xt\f{}(\xh\f{})"
+with string
+    string on
+    string 0.130, 0.430
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "d\xh\f{}\N"
+with string
+    string on
+    string 0.085750, 0.58
+    string font 4
+    string rot 90
+    string font 4
+    string char size 1.600
+    string def "( GPa )"
+#--------------------------------------
+
+#--- Grace_d2S.par --------------------
+page size 840, 595
+with line
+    line on
+    line 0.08, 0.4, 0.08, 0.52
+line def
+with string
+    string on
+    string 0.055, 0.407
+    string rot 90
+    string font 4
+    string char size 1.600
+    string def "d\S2\N\xt\f{}(\xh\f{})"
+with string
+    string on
+    string 0.130, 0.430
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "d\xh\f{}\N\S2\N"
+with string
+    string on
+    string 0.085750, 0.58
+    string rot 90
+    string font 4
+    string char size 1.600
+    string def "( TPa )"
+#--------------------------------------
+
+#--- Grace_CVe.par --------------------
+page size 840, 595
+with string
+    string on
+    string 0.1, 0.35
+    string font 4
+    string rot 90
+    string char size 1.600
+    string def "Cross-Validation Error"
+#--------------------------------------
+
+with g0
+    view 0.300, 0.130, 1.350, 0.930
+    subtitle font 4
+    subtitle size 1.200
+    xaxis  label "\xh\N\f{}\smax\N"
+    xaxis  label font 4
+    xaxis  label char size 2.250
+    xaxis  label place spec
+    xaxis  label place 0.000, 0.090
+    xaxis  tick place rounded true
+    xaxis  tick major linewidth 3.5
+    xaxis  tick minor linewidth 3.5
+    xaxis  ticklabel offset auto
+    xaxis  ticklabel char size 1.550
+    xaxis  ticklabel font 4
+    xaxis  ticklabel start type auto
+    xaxis  ticklabel stop type auto
+    yaxis  label place 0.000, 0.180
+    yaxis  tick place rounded true
+    yaxis  tick major linewidth 3.5
+    yaxis  tick minor linewidth 3.5
+    yaxis  ticklabel offset auto
+    yaxis  ticklabel char size 1.550
+    yaxis  ticklabel font 4
+    yaxis  ticklabel start type auto
+    yaxis  ticklabel stop type auto
+    legend 0.34, 0.89
+    legend font 4
+    legend char size 1.500
+    legend box linewidth 2.5
+    frame linewidth 3.5
+    s0 symbol 1
+    s0 symbol size 0.750
+    s0 symbol color 15
+    s0 symbol fill color 15
+    s0 symbol fill pattern 1
+    s0 symbol char 65
+    s0 line linewidth 3.0
+    s0 line color 15
+    s1 symbol 2
+    s1 symbol size 0.750
+    s1 symbol color 4
+    s1 symbol fill color 4
+    s1 symbol fill pattern 1
+    s1 symbol char 65
+    s1 line linewidth 3.0
+    s1 line color 4
+    s2 symbol 4
+    s2 symbol size 0.800
+    s2 symbol color 2
+    s2 symbol fill color 2
+    s2 symbol fill pattern 1
+    s2 symbol char 65
+    s2 line linewidth 3.0
+    s2 line color 2

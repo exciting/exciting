@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+
+'''
+this is pure laziness to submit python scripts to PBS
+without the usual cd $PBS_O_WORKDIR stuff
+'''
+
+import os,sys, tempfile
+from optparse import OptionParser
+
+parser = OptionParser(usage='pysub',
+                      version='0.1')
+parser.add_option('-q',
+                  nargs=1,
+                  help = 'submit job to the queue with options to qsub')
+
+parser.add_option('-n',
+                  nargs=1,
+                  help='number of nodes to ask for')
+
+options,args = parser.parse_args()
+
+qdict = {'short':' -l cput=24:00:00,mem=500mb -j oe',
+         'long':' -l cput=168:00:00,mem=500mb -j oe',
+         'hogs':' -l cput=24:00:00,mem=2500mb -j oe',
+         'hogl':' -l cput=168:00:00,mem=2800mb -j oe',}
+
+for pyscript in args:
+
+    h,fname = tempfile.mkstemp()
+
+    cmd ='''\
+#!/bin/tcsh
+
+cd $PBS_O_WORKDIR
+
+python %s
+
+#end''' % pyscript
+
+    f = open(fname,'w')
+    f.write(cmd)
+    f.close()
+
+    if options.q is None:
+        qsub_options = '-l cput=24:00:00,mem=2500mb -j oe'
+    elif options.q in qdict:
+        qsub_options = qdict[options.q]
+    else:
+        qsub_options = options.q
+
+    if options.n is not None:
+        qsub_options += ' -l nodes=%i' % int(options.n)
+
+    cmd = 'qsub -N %(name)s %(options)s %(script)s' % {'name':pyscript,
+                                           'options':qsub_options,
+                                           'script':fname}
+
+    print cmd
+
+    os.system(cmd)
+    os.close(h)
+    os.remove(fname)

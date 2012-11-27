@@ -1,0 +1,8 @@
+#!/bin/csh
+sed -e 's/LinkedList<Real>/LinkedList<Aggregate<Real> >/g;' \
+ -e 's/LinkedList<int>/LinkedList<Aggregate<int> >/g;' \
+ -e 's/LinkedListIterator<Real>/LinkedListIterator<Aggregate<Real> >/g;' \
+ -e 's/LinkedListIterator<int>/LinkedListIterator<Aggregate<int> >/g;' \
+ -e 's/<< new Real/<< new Aggregate<Real>/g;' \
+ -e 's/<< new int/<< new Aggregate<int>/g;' \
+ -e 's/add\(new int/add\(new Aggregate<int>/g;'

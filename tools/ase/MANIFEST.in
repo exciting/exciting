@@ -1,0 +1,5 @@
+include ase/lattice/spacegroup/spacegroup.dat
+include ase/gui/po/ag.pot
+include ase/gui/po/makefile
+include ase/gui/po/??_??/LC_MESSAGES/ag.po
+

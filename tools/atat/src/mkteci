@@ -1,0 +1,50 @@
+#!/bin/csh
+
+if ( $#argv == 0 ) then
+  echo No T-dependent eci files specified: using T-independent file eci.out only.
+  echo Use -h option for help.
+endif
+
+if ( "xx$1" == "xx-h" ) then
+  echo "Syntax: mkteci file1.eci ..."
+  echo " where file1.eci etc. is a list of T-dependent eci files obtained with"
+  echo " the clusterexpand command, e.g. "
+  echo " clusterexpand fvib    in the case of vibrational free energy or"
+  echo " clusterexpand felec   in the case of electronic free energy."
+  echo "Usually the file list is: fvib.eci felec.eci"
+  echo "                          ^vibrational ^electronic free energy "
+  exit
+endif
+
+if ( ! -e Trange.in ) then
+  echo Creating default Trange.in file... Please rerun mkteci.
+  echo 2000 21 >! Trange.in
+  echo "(see svsl -h for more info)"
+  exit 1
+endif
+
+set nblin=`(cat eci.out | wc -l ; awk '{print $2}' Trange.in) | awk '{c=$1; getline; t=$1; print (c+1)*t}'`
+
+set filelist=""
+
+foreach file ( $* )
+  set curfile=`echo ${file}.eci | sed 's/.eci.eci/.eci/g'`
+  if ( ! -e $curfile ) then
+    echo $curfile does not exist
+    exit 1
+  endif
+  if ( `cat $curfile | wc -l` != $nblin ) then
+    echo The length of $curfile is incompatible with the lengths of eci.out and the Trange.in file.
+    echo You may need to rerun clusterexpand and/or recalculate free energies for each structure.
+    exit 1
+  endif
+  set filelist="$filelist $curfile"
+end
+
+awk 'BEGIN {getline < "Trange.in"; nT=$2; neci=0;} {neci++; eci[neci]=$1;} END {for (T=1; T<=nT; T++) {for (n=1; n<=neci; n++) {print eci[n];}; print "";}}' eci.out >! E.eci
+
+cat Trange.in >! teci.out
+
+paste E.eci $filelist | awk '{if ($1=="") {print "";} else {n=split($0,a); s=0; for (i=1; i<=n; i++) {s+=a[i];} print s;}}' >> teci.out
+
+rm -f E.eci
