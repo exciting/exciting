@@ -316,16 +316,9 @@ level2procs=1
               !
               ! Rotate M^i_{cm}
               !
-             write(*,*) "shape(rotmat)",shape(rotmat)
-             write(*,*)"locmatsiz",locmatsiz
-             write(*,*)"dimtk",dimtk
-             write(*,*)"shape(micm)",shape(micm)
-			write(*,*)"matsiz",matsiz
-
-              call zgemm('c','n',locmatsiz,dimtk,locmatsiz, &
-             &   zone,rotmat, &
-             &   matsiz,micm,locmatsiz,zzero,temp,locmatsiz)
-			write(*,*)"over zgemm"
+               call zgemm('c','n',locmatsiz,dimtk,locmatsiz, &
+               &   zone,rotmat, &
+               &   matsiz,micm,locmatsiz,zzero,temp,locmatsiz)
 
             else
               temp = micm

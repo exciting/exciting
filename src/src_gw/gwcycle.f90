@@ -82,8 +82,7 @@
 !       The direct access file to store the values of the inverse dielectric matrix
 !--------------------------------------------------------------------------
         recl=16*(matsizmax*matsizmax*nomeg)
-        write(*,*)"recl",recl
-        write(*,*)  matsizmax,matsizmax,nomeg
+
        !this buffer is used only for making INVEPS files more comparable
         allocate(buffer(matsizmax*matsizmax*nomeg))
         buffer=zzero
