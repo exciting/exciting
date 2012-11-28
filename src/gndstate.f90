@@ -459,17 +459,14 @@ Subroutine gndstate
                   call flushifc(68)
                   Write (65, '(G18.10)') currentconvergence
                   Call flushifc (65)
-                  If (((.not. tconvcritenergy) .or. &
-                 & (tconvcritenergy) .and. (deltae .lt. input%groundstate%epsengy)).and. &
-                 
-                 & ((.not. tconvcritvks).or. &
-                 & ((tconvcritvks).and.(currentconvergence .lt. input%groundstate%epspot))).and. &
-
-                 & ( (.not. tconvcritcharge) .or. &
-                 & (tconvcritcharge) .and. (chgdst .lt. input%groundstate%epschg)).and. &
-
-                 & ((.not.tconvcritforces) &
-                 & (dforcemax .lt. input%groundstate%epsforce))) Then
+                  If ( ((.not. input%groundstate%tconvcritenergy) .or. &
+                 & ((input%groundstate%tconvcritenergy) .and. (deltae .lt. input%groundstate%epsengy))).and. &                 
+                 & ((.not. input%groundstate%tconvcritvks).or. &
+                 & ((input%groundstate%tconvcritvks).and.(currentconvergence .lt. input%groundstate%epspot))).and. &
+                 & ((.not. input%groundstate%tconvcritcharge) .or. &
+                 & ((input%groundstate%tconvcritcharge) .and. (chgdst .lt. input%groundstate%epschg))).and. &
+                 & ((.not. input%groundstate%tconvcritforces) .or. &
+                 &  ((input%groundstate%tconvcritforces) .and. (dforcemax .lt. input%groundstate%epsforce) ) ) ) Then
                      Write (60,*)
                      Write (60, '("Convergence targets achieved")')
                      tlast = .True.
