@@ -2020,7 +2020,7 @@ gw.xsd
       <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble" default="1.0d-3">
         <xs:annotation>
           <xs:documentation>Convergence criterion for the maximum allowed error 
-          in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
+           in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="epsocc" type="fortrandouble" default="1.0d-8">

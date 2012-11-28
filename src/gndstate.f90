@@ -426,7 +426,7 @@ Subroutine gndstate
                End If
                ! update convergence criteria
                deltae=abs(et-engytot)
-               dforcemax=abs(fm-forcemax)
+               dforcemax=abs(fm-forcemax) 
                Call scl_iter_xmlout ()
                If (associated(input%groundstate%spin)) Call &
               & scl_xml_write_moments ()
@@ -459,10 +459,17 @@ Subroutine gndstate
                   call flushifc(68)
                   Write (65, '(G18.10)') currentconvergence
                   Call flushifc (65)
-                  If ((currentconvergence .Lt. input%groundstate%epspot).and. &
-                 & (deltae .lt. input%groundstate%epsengy).and. &
-                 & (chgdst .lt. input%groundstate%epschg).and. &
-                 & (dforcemax .lt. input%groundstate%epsforce)) Then
+                  If (((.not. tconvcritenergy) .or. &
+                 & (tconvcritenergy) .and. (deltae .lt. input%groundstate%epsengy)).and. &
+                 
+                 & ((.not. tconvcritvks).or. &
+                 & ((tconvcritvks).and.(currentconvergence .lt. input%groundstate%epspot))).and. &
+
+                 & ( (.not. tconvcritcharge) .or. &
+                 & (tconvcritcharge) .and. (chgdst .lt. input%groundstate%epschg)).and. &
+
+                 & ((.not.tconvcritforces) &
+                 & (dforcemax .lt. input%groundstate%epsforce))) Then
                      Write (60,*)
                      Write (60, '("Convergence targets achieved")')
                      tlast = .True.
