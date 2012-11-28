@@ -1,6 +1,0 @@
-#! /bin/sh
- chmod 755 /usr/bin/eos
- chmod 755 /usr/bin/exciting
- chmod 755 /usr/bin/spacegroup
- chmod 755 /usr/bin/species
-

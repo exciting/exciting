@@ -1,0 +1,44 @@
+#!/bin/csh
+
+if ( $#argv == 0 || x"$1" == "x-h" ) then
+  cat - <<EOF
+Syntax: foreachfile [-e] [-d depth] filename command
+Execute the specified command in every first-level subdirectory containing the file filename.
+The -e option cause foreachfile to skip directories containing the file "error".
+The -d option specifies to go down to lower level subdirectories as well (the default is 1).
+EOF
+exit
+endif
+
+set depth=1
+
+while ( $#argv != 0 )
+    switch ($1)
+	case "-e":
+	    set skiperror
+	breaksw
+	case "-d":
+	    set depth=$2
+	    shift
+	breaksw
+	default:
+	    break
+	breaksw
+    endsw
+    shift
+end
+
+@ depth = $depth + 1
+
+foreach dirfile ( `find -mindepth 2 -maxdepth $depth -name $1` )
+  set dir=`echo $dirfile | sed "s+/$1++g"`
+  pushd $dir >& /dev/null
+  if ( $?skiperror ) then
+    if ( ! -e error ) then
+      csh -c "$argv[2-]"
+    endif
+  else
+    csh -c "$argv[2-]"
+  endif
+  popd >& /dev/null
+end

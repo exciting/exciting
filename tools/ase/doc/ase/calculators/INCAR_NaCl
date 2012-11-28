@@ -1,0 +1,5 @@
+INCAR created by Atomic Simulation Environment
+ PREC = Accurate
+ LREAL = .FALSE.
+ ISPIN = 2
+ MAGMOM = 1*1.9280 1*0.7500 

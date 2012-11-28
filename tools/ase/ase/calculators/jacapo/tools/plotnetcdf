@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+from optparse import OptionParser
+import os, tempfile
+from ase.calculators.jacapo import *
+from ase.io.pdb import *
+
+parser = OptionParser(usage='%prog [-r R1 R2 R3]] ncfile',
+                      version='%prog 0.1')
+
+parser.add_option('-r', '--repeat', type='int', nargs=3,
+                  help='Repeat R1, R2, R3 times along the three axes',
+                  metavar='R1 R2 R3')
+
+parser.add_option('-t', '--time', type='int', nargs=1,
+                  help='sleep for t seconds',
+                  metavar='t')
+
+options, args = parser.parse_args()
+ncfile = args[0]
+
+if options.repeat is None:
+    options.repeat = (1,1,1)
+
+atoms = Jacapo.read_atoms(ncfile)
+
+handle,tempfilename = tempfile.mkstemp()
+write_pdb(tempfilename,atoms.repeat(options.repeat))
+
+script = '''\
+zap
+load %s
+script %s/.rasmolrc
+select all
+spacefill
+#rotate x 180
+#rotate z 180
+''' % (tempfilename,os.environ['HOME'])
+
+handle,tempscriptname = tempfile.mkstemp()
+f = open(tempscriptname,'w')
+f.write(script)
+f.close()
+
+os.system('rasmol -script %s' % tempscriptname)
+        
+os.remove(tempfilename)
+os.remove(tempscriptname)

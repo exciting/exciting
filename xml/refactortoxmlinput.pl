@@ -1,6 +1,6 @@
 use lib "../test/perl/";
 use lib "../test/perl/lib";
-use lib "../utilities/lib";
+use lib "../build/utilities/lib";
 use XML::Simple;
 use XML::Writer;
 use IO::File;

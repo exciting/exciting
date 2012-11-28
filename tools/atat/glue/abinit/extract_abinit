@@ -1,0 +1,27 @@
+#!/bin/csh
+source ~/.atat.rc
+
+set outfile="$1"
+
+getlines -af "-outvars: echo values of variables after computation" < $outfile >! out.tmp
+
+cat out.tmp | grep acell | cut -c 12- | awk '{c=1.88973; print $1/c,0,0; print 0,$2/c,0; print 0,0,$3/c;}' >! cell.tmp
+grep -q rprim out.tmp
+if ($status == 1) then
+  (echo 1 0 0 ; echo 0 1 0 ; echo 0 0 1 ) >>! cell.tmp
+else
+  cat out.tmp | getlines -af rprim | sed 's/rprim/     /g' | getlines -jbf '^ *[a-z=]' | cut -c 12- >>! cell.tmp
+endif
+
+cat cell.tmp | cellcvrt -f >! str_relax.out
+
+cat out.tmp | getlines -af xred | sed 's/xred/    /g' | getlines -jbf '^ *[a-z=]' | cut -c 12- >! atompos.tmp
+cat out.tmp | getlines -af " typat" | sed 's/typat/     /g' | getlines -jbf '^ *[a-z=]' | cut -c 12- | blanktonl | grep -v '^ *$' >! atomnum.tmp
+
+cat out.tmp | getlines -af " znucl" | sed 's/znucl/     /g' | getlines -jbf '^ *[a-z=]' | cut -c 12- | blanktonl | grep -v '^ *$' | sed 's/\.0*//g'>! atomz.tmp
+
+awk '{symb[$2]=$1;} END {t=1; while (getline < "atomz.tmp") {name[t]=symb[$1]; t++;} while (getline < "atomnum.tmp") {print name[$1];}}' $atatdir/data/atomz.in >! atoms.tmp
+
+paste atompos.tmp atoms.tmp >>! str_relax.out
+#rm out.tmp cell.tmp atompos.tmp atomnum.tmp atomz.tmp atoms.tmp
+

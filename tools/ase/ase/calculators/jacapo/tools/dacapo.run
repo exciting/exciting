@@ -1,0 +1,200 @@
+#!/usr/bin/env python
+
+'''
+This script runs dacapo in either serial or parallel
+depending on the existance of an environment variable
+from a queue system. Three queue systems are currently 
+supported:
+PBS               PBS_NODEFILE
+Sun grid engine   PE_HOSTFILE
+LoadLeveler       LOADL_STEP_TYPE
+
+If one of these is found, then the parallel environement
+is set up for lam-mpi and the job run
+
+otherwise a serial job is run
+
+dacapo executables are found from one of these environment
+variables:
+
+DACAPOEXE_SERIAL      default serial executable
+DACAPOEXE_PARALLEL    default parallel executable
+
+You can trick it into running in parallel at the command line
+like this:
+
+env PBS_NODEFILE=pbs.nodes mydacapo.run CO.nc CO.nc -out CO.txt
+env PE_HOSTFILE=sge.nodes mydacapo.run CO.nc CO.nc -out CO.txt
+
+where pbs.nodes is a pbs-style nodefile
+and sge.nodes is a sun grid engine style nodefile
+
+python scripts as a rule tend to return zero I have found, even if you
+tell it to return something else with sys.exit(5) for example. The
+only thing I have been able to get to work is to return zero or not
+zero. sys.exit('anystring') makes the script return non-zero if an
+error occurs. That is why there are so many of these types of commands
+here.  I use the non-zero status to know if an error has occurred
+during the calculation.
+
+
+John Kitchin <jkitchin@andrew.cmu.edu>
+05/22/05
+'''
+
+import os,string,sys
+from subprocess import *    
+
+ARGS = string.join(sys.argv[1:],' ')
+
+def RunSerialDacapo(ARGS):
+    DACAPOEXE = os.environ.get('DACAPOEXE_SERIAL')
+    if DACAPOEXE is None:
+        raise Exception, 'DACAPOEXE_SERIAL was not found in your environment'
+    cmd = string.join([DACAPOEXE,ARGS],' ')
+    status = os.system(cmd)
+    if status != 0:
+        sys.exit('"%s" failed' % cmd)
+        
+### check if LoadLeveler
+'''
+the loadleveler I am familiar with does not use a nodefile
+that the user needs to know aobut. it uses the poe command
+which does this stuff for you. according to an old note in
+the original dacapo.run shell script the nodelist can be
+found in $LOADL_PROCESSOR_LIST
+'''
+if 'LOADL_STEP_TYPE' in os.environ.keys():
+    LL_type = os.environ.get('LOADL_STEP_TYPE')
+    if LL_type == 'PARALLEL':
+        os.environ['OMP_NUM_THREADS'] = '1'
+        MPICMD = 'poe'
+        DACAPOEXE = os.environ.get('DACAPOEXE_PARALLEL')
+        parcmd = string.join([MPICMD,DACAPOEXE,ARGS],' ')
+        status = os.system(parcmd)
+        if status != 0:
+            sys.exit('"%s" failed' % parcmd)
+            
+    elif LL_type == 'SERIAL':
+        RunSerialDacapo(ARGS)
+
+### next check for PBS or SGE
+elif ('PBS_NODEFILE' in os.environ.keys() or
+      'PE_HOSTFILE' in os.environ.keys()):
+
+    #print 'PBS_NODEFILE = ',os.environ.get('PBS_NODEFILE')
+    if 'PBS_NODEFILE' in os.environ.keys():
+        MACHINEFILE = os.environ.get('PBS_NODEFILE')
+        NPROCS = len(open(MACHINEFILE,'r').readlines())
+        JOBID = os.environ.get('PBS_JOBID')
+
+        import shutil
+        nodefile = 'pbs.%s.nodes' % JOBID
+        # i make a copy here for debugging purposes
+        # it is deleted after the job if finished
+        # and the PBS_NODEFILE is temporary somewhere anyway
+        shutil.copy(MACHINEFILE,nodefile)
+
+    # if its not PBS here it must be SGE, but
+    # I check again anyway
+    elif 'PE_HOSTFILE' in os.environ.keys():
+        '''
+        here is the typical contents of the PE_HOSTFILE
+
+        n14.bc.rzg.mpg.de 2 all.q@n14.bc.rzg.mpg.de UNDEFINED
+        o06.bc.rzg.mpg.de 2 all.q@o06.bc.rzg.mpg.de UNDEFINED
+        n11.bc.rzg.mpg.de 2 all.q@n11.bc.rzg.mpg.de UNDEFINED
+
+        below, I parse the contents of this file to create the nodefile
+        for lam-mpi:
+
+        n14.bc.rzg.mpg.de
+        n14.bc.rzg.mpg.de
+        o06.bc.rzg.mpg.de
+        o06.bc.rzg.mpg.de
+        n11.bc.rzg.mpg.de
+        n11.bc.rzg.mpg.de
+        '''
+
+        MACHINEFILE = os.environ.get('PE_HOSTFILE')    
+        JOBID = os.environ.get('JOB_ID')
+        NPROCS = 0
+
+        nodefile = 'sge.%s.nodes' % JOBID
+        nf = open(nodefile,'w')
+
+        for line in open(MACHINEFILE,'r'):
+            # nodename = fields[0]
+            # ncpus = fields[1]
+            # queue = fields[2]
+            # UNDEFINED = fields[3]
+            fields = string.split(line)
+            if __debug__:
+                print fields
+
+            nodename = fields[0]
+            nprocs = int(fields[1])
+            if __debug__:
+                print nodename,nprocs
+            for n in range(nprocs):
+                nodeline = '%s\n' % (fields[0])
+                nf.write(nodeline)
+
+            NPROCS += nprocs
+
+        nf.close()
+
+        if __debug__:
+            print 'SGE_O_WORKDIR = ',os.environ.get('SGE_O_WORKDIR')
+            print 'NHOSTS = ',os.environ.get('NHOSTS')
+            print 'NSLOTS = ',os.environ.get('NSLOTS')
+
+
+    if NPROCS > 1:
+        # now construct the mpirun command
+        MPICMD = 'mpirun -np %i' % NPROCS
+        DACAPOEXE = os.environ.get('DACAPOEXE_PARALLEL')
+        parcmd = string.join([MPICMD,DACAPOEXE,ARGS],' ')
+        if __debug__: print parcmd
+
+        print 'Running "%s"' % parcmd
+        p = Popen(parcmd,
+                  shell=True,
+                  stdin=PIPE,
+                  stdout=PIPE,
+                  close_fds=True,
+                  cwd=os.getcwd())
+
+        p_pid = p.pid
+
+        status = p.wait()
+
+        if status != 0:
+            (sout,serr) = p.communicate()
+            print 'stdout = ',sout
+            print 'stderr = ',serr
+            all_is_ok = False
+            print '**** the command failed ****'
+
+        if not all_is_ok:
+            sys.exit('"%s" failed' % parcmd)
+
+        print
+        print 'One iteration from parallel run complete'
+        print '*******************************************************'
+        print
+    else:
+        RunSerialDacapo(ARGS)
+   
+      
+else:
+    # serial job, no parallel environment found.
+    RunSerialDacapo(ARGS)
+
+#remove the nodefile
+try:
+    if os.path.exists(nodefile):
+        os.remove(nodefile)
+except:
+    pass
+        

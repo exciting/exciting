@@ -3,7 +3,7 @@ include ../../build/make.inc
 bin:stateinfobin
 
 stateinfobin:: ../../build/make.inc 
-	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p stateinfo \
+	../../build/utilities/mkmf -t ./template -f -m Makefile.mkmf -p stateinfo \
 	./ ../portstate.F90   \
 	 ../ioarray.F90   \
 	 ../mod_misc.F90   \
@@ -16,5 +16,5 @@ clean:
 
 doc::
 	cd ../../docs/stateinfo/
-	perl ../../utilities/scripts/genprotexdoc.pl ../../src/stateinfo/
+	perl ../../build/utilities/scripts/genprotexdoc.pl ../../src/stateinfo/
 	mv doc.pdf stateinfo.pdf

@@ -1,0 +1,30 @@
+#!/bin/csh
+set thereiserr=0
+
+if (-e vasp.out.static) then
+  foreach errmsg ( "rrrr" "cnorm" )
+    grep -i -q $errmsg vasp.out.static
+    if ( $status == 0 ) then
+      set thereiserr=1
+    endif
+  end
+endif
+
+if (-e vasp.out.relax) then
+  foreach errmsg ( "failed" "non-integer" )
+    grep -i -q $errmsg vasp.out.relax
+    if ( $status == 0 ) then
+      set thereiserr=1
+    endif
+  end
+endif
+
+if ( $thereiserr == 1 && x$1 == "x-e" ) then
+  touch error
+endif
+
+if ( $thereiserr == 1 && x$1 == "x-p" ) then
+  echo Error in `pwd`
+endif
+
+exit $thereiserr

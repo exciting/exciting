@@ -177,8 +177,8 @@ release:
 	cp README $(RELEASE)
 	cp ../Makefile $(RELEASE)
 	cp ../setup $(RELEASE)
-	mkdir $(RELEASE)/utilities
-	cp -r NEdit $(RELEASE)/utilities
+	mkdir $(RELEASE)/build/utilities
+	cp -r NEdit $(RELEASE)/build/utilities
 	$(MAKE) doc
 	cp exciting.pdf docs/exciting
 	cd spacegroup;$(MAKE) doc;cp spacegroup.pdf ../docs/spacegroup;$(MAKE) clean

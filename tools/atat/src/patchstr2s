@@ -1,0 +1,3 @@
+#!/bin/csh
+#sed -e 's/<strstream>/<sstream>/g;' -e 's/istrstream/istringstream/g;' -e 's/ostrstream/ostringstream/g;' -e 's/\.str()/.str().c_str()/g;' | ./patchdoth
+./patchdoth | sed -e 's/<strstream>/<sstream>/g;' -e 's/strstream /stringstream /g;' -e 's/\.str()/.str().c_str()/g;'

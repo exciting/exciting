@@ -1,0 +1,43 @@
+#!/bin/csh
+if ( $#argv == 0 || x"$1" == "x-h" ) then
+  cat - <<EOF
+Syntax: getlines [-h] [ -af | -bf | -bt | -jaf | -jbf | -bt ] string1 string2
+Copies selected lines of standard input to standard output.
+-h   print this help.
+-af  print all lines located *after* a line containing string1
+-bf  print all lines located *before* a line containing string1
+-bt  print all lines located between a line containing string1 and a line containing string2
+     (If there are multiple blocks of lines braketed by [begin string]
+      and [end string] they are all copied.)
+The prefix j means "just", indicating that the line(s) containing the matching string(s) is (are) ommited.
+Don't forget to quote your strings if they contain spaces.
+EOF
+  exit
+endif
+
+set opt="$1"
+shift
+
+switch ("$opt")
+  case "-af":
+    awk -F\\n "/$1/,/imposiible to fffind/"
+    breaksw
+  case "-bf":
+    awk -F\\n '{print $1} $1 ~ '\""$1"\"' {exit}'
+    breaksw
+  case "-bt":
+    awk -F\\n "/$1/,/$2/"
+    breaksw
+  case "-jaf":
+    awk -F\\n "/$1/,/imposiible to fffind/" | tail +2
+    breaksw
+  case "-jbf":
+    awk -F\\n '$1 ~ '\""$1"\"' {exit} {print $1}'
+    breaksw
+  case "-jbt":
+    awk -F\\n "/$1/,/$2/" | grep -v "$1" | grep -v "$2"
+    breaksw
+  default:
+    echo Invalid option: use getlines -h for help
+    breaksw
+endsw

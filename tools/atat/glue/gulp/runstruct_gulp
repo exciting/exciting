@@ -1,0 +1,122 @@
+#!/bin/csh
+
+set wrap="gulp.wrap"
+set strfile="str_hint.out"
+if ( ! -e $strfile ) then
+  set strfile="str.out"
+endif
+
+while ( $#argv != 0 )
+  switch ("$1")
+    case "-h":
+      cat - <<EOF
+runstruct_gulp [-w file] [-ng] [-nr] [-ex] cmdprefix
+  where file is an alternate wrap file
+  -ng means do not generate a gulp.in file, use the existing one.
+  -nr means do not run gulp, just generate input files
+  -ex means do not generate gulp.in, do not run gulp, but extract info from gulp output file
+  cmdprefix is the prefix needed for vasp to run on a remote machine,
+            such as "node -s node2" 
+EOF
+      exit 1
+      breaksw
+    case "-w":
+      set wrap="$2"
+      shift
+    breaksw
+    case "-ng":
+      set notgengulpin
+    breaksw;
+    case "-nr":
+      set notrungulp
+    breaksw;
+    case "-ex":
+      set extractonly
+    breaksw;
+    default:
+      break;
+  endsw
+  shift
+end
+
+if ( ! -e $wrap ) then
+  set wrap="../$wrap"
+endif
+if ( ! -e $wrap ) then
+  set wrap="../../$wrap"
+endif
+if ( ! -e $wrap ) then
+  echo gulp.wrap not found.
+  exit 1
+endif
+
+if ( ! $?extractonly ) then
+
+  if ( ! $?notgengulpin ) then
+
+    getlines -jbf 'INSERTPOS' < $wrap | grep -v addshell >! gulp.in
+
+    grep addshell $wrap | sed 's/.*addshell *//g' | blanktonl >! shell.tmp
+
+    cat $strfile | cellcvrt -f -sig=9 >! str.tmp
+    echo vectors >> gulp.in
+    head -3 str.tmp >> gulp.in
+    echo fractional >> gulp.in
+    tail +7 str.tmp | awk 'BEGIN {while (getline < "shell.tmp") {s[$1]=1;}} {if (s[$4]==1) {print $4,"core",$1,$2,$3; print $4,"shell",$1,$2,$3} else {print $4,"core",$1,$2,$3}}' >> gulp.in
+
+    getlines -jaf 'INSERTPOS' < $wrap | grep -v addshell >> gulp.in
+
+  endif
+
+  if ( $?notrungulp ) exit
+
+  $* gulp < gulp.in >! gulp.out
+
+endif
+
+cellcvrt -abc -f < $strfile >! str_o.tmp
+
+getvalue "Final energy" < gulp.out | tail -1 >! energy
+if (`cat energy | wc -w` == "0") then
+  grep eV gulp.out | getvalue "Total lattice energy" >! energy
+endif
+
+grep -q "Final cell parameters and derivatives" gulp.out
+if ( $status == 1 ) then
+  cat $strfile | cellcvrt -f | head -6 >! str_relax.tmp
+else
+ echo -n >! str_relax.tmp
+ getlines -af "Final cell parameters and derivatives" < gulp.out | tail +4 | getlines -jbf "\-\-\-\-\-\-" | awk '{print $2}' | nltoblank >> str_relax.tmp
+ cat - >> str_relax.tmp <<EOF
+
+1 0 0
+0 1 0
+0 0 1
+EOF
+endif
+
+grep -q "Final .* coordinates" gulp.out
+if ( $status == 1 ) then
+  cat $strfile | cellcvrt -f | tail +7 >> str_relax.tmp
+else
+  getlines -af "Final .* coordinates" < gulp.out | tail +7 | getlines -jbf "\-\-\-\-\-\-" | awk '{if ($3=="c") {print $4,$5,$6,$2}}' >> str_relax.tmp
+  cellcvrt -osf=str_o.tmp -fsf=$strfile -f -sig=9 < str_relax.tmp >! str_relax.out
+endif
+
+getlines -af "Final internal derivatives" < gulp.out | tail +7 | getlines -jbf "\-\-\-\-\-\-" | awk '{if ($3=="c") {print $4,$5,$6; s[1]+=$4; s[2]+=$5; s[3]+=$6; n++}} END {print s[1],s[2],s[3] > "sumf.tmp"}' >! force.tmp
+
+cellcvrt -r < str_relax.out >! recip.tmp	
+
+awk 'BEGIN {for (i=1; i<=3; i++) {getline < "recip.tmp"; a[1,i]=$1; a[2,i]=$2; a[3,i]=$3; } getline < "sumf.tmp"; sg[1]=$1; sg[2]=$2; sg[3]=$3;} { \
+split($0,g); \
+for (i=1; i<=3; i++) { \
+ f[i]=0; \
+ for (j=1; j<=3; j++) { \
+  f[i]-=a[i,j]*(g[j]-sg[j]); \
+ } \
+} \
+print f[1],f[2],f[3]; \
+sg[1]=0; sg[2]=0; sg[3]=0; \
+}' force.tmp >! force.out 
+
+rm -f str_o.tmp str.tmp str_relax.tmp force.tmp sumf.tmp recip.tmp shell.tmp
