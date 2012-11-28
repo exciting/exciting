@@ -1,0 +1,19 @@
+#!/bin/csh
+if ( x$1 == "x-h" ) then
+  echo "Prints the amount of relaxation each structure in */str_relax.out has"
+  echo "undergone, relative to */str.out"
+  echo "Typically, values above 0.1 are considered too much for the"
+  echo "cluster expansion to be applicable and the offending structures"
+  echo "should be disabled using the command:"
+  echo " touch structure_number/error"
+  echo "where structure_number is the appropriate directory name."
+  exit
+endif
+echo -n "" >! tmpcheckrelax.out
+foreach file (*/str_relax.out)
+  echo -n $file >>! tmpcheckrelax.out
+  echo -n " " >>! tmpcheckrelax.out
+  ( cat `echo $file | sed 's+_relax++g'` | cellcvrt -f | head -3 ; cat $file | cellcvrt -f | head -3 ) | checkcell -q >>! tmpcheckrelax.out
+end
+awk '{print $2,$1}' tmpcheckrelax.out | sort -n
+rm -f tmpcheckrelax.out

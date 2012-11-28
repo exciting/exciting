@@ -1,0 +1,14 @@
+#!/bin/csh
+zcat OUTCAR.static.gz | getlines -bt 'absolut eigen' '-----' | grep -v '\-\-\-' | tail +3 |\
+awk '{x=$4; y=$5; z=$6; getline;\
+if ($1!="") {\
+  cb=""; vb="";\
+  while (1) {\
+    getline;\
+    if ($1=="") break;\
+    if ($3>0.5) {vb=$2;}\
+    if ($3<0.5 && cb=="") {cb=$2;}\
+  }\
+  print x,y,z,vb,cb;\
+}\
+}'

@@ -1,0 +1,310 @@
+#!/bin/csh
+
+if ( ! -e ~/.ezvasp.rc ) then
+cat - >! ~/.ezvasp.rc <<EOF
+#!/bin/csh
+#enter name of vasp executable here
+set VASPCMD="vasp"
+#enter the directories containing the pseudopotentials here
+set POTLDA="/usr/local/lib/pot_lda"
+set POTGGA="/usr/local/lib/pot_gga"
+set POTPAWLDA="/usr/local/lib/paw_lda"
+set POTPAWGGA="/usr/local/lib/paw_gga"
+set POTPAWPBE="/usr/local/lib/paw_pbe"
+EOF
+cat - <<EOF
+I have created a default ~/.ezvasp.rc configuration file for you.
+Please edit it to match your vasp installation before rerunning ezvasp.
+EOF
+exit
+else
+  source ~/.ezvasp.rc
+endif
+
+if ( $#argv == 0 ) then
+  echo "Syntax: ezvasp [-options] input_file"
+  echo "-h: help"
+  echo "-c: cell patch"
+  echo "-s: do static run afterward"
+  echo "-n: do not run vasp"
+  echo "-p: specifies the vasp command (default: vasp)"
+  exit 1
+endif
+
+foreach option ( $* )
+  if (x$1 == "x-p") then
+    shift
+    set VASPCMD="$1"
+    shift
+  endif
+  if (x$1 == "x-h") then
+cat - <<EOF
+Syntax: ezvasp [-c] [-s] [-n] [-p "..."] input_file
+
+-c: Cell patch. This option will convert the cell you entered into a cell that has the symmetry needed for
+    vasp to work properly. The atom positions are altered correspondingly.
+
+-s: Static run. After the relaxations are completed, this option makes vasp start again, turning off relaxations
+    and turning on tetrahedron integration with bloech correction. Can acheive the same effect by
+    including DOSTATIC in the INCAR portion of the input file.
+
+-n: do Not run vasp. If you want to create the input files now and run them later, perhaps on another machine.
+
+-p: name of the vasp command ("vasp" by default). You can include addition prefix such as:
+    ezvasp -p "rsh remote.machine nice +5 /usr/local/bin/vasp" vasp.in
+
+Here is an example of input file:
+
+[INCAR]
+SYSTEM = FeNi
+ISPIN = 2
+PREC = HIGH
+ISMEAR = 1
+NSW=41
+SIGMA = 0.1
+IBRION = 2
+ISIF = 3
+ENMAX = 400
+EDIFF = 1e-6
+EDIFFG = 1e-4
+KPPRA = 1000
+USEPOT = PAWGGA
+DOSTATIC
+SUBATOM = s/Fe/Fe_h/g
+KSCHEME = GAMMA
+MAGATOM =
+
+[POSCAR]
+ SOME TITLE
+ 3.55
+  -.500000000     -.500000000    -1.000000000   
+   .500000000    -1.000000000     -.500000000   
+  -.500000000      .500000000     1.000000000   
+ 1 2
+ Direct
+  .33333     .33333     .00000     Fe+5
+  .00000     .00000     .00000     Vac
+  .66667     .66667     .00000     Fe-5
+
+End of example.
+
+Note that there 5 new tokens in the INCAR section.
+
+1) KPPRA stands for "K-Point Per Reciprocal Atom". This is a way to automatically set the k-point mesh for
+   a number of similar systems. Here is how it works. If you know that you need 500 k-points for a 2-atom
+   structure, then you type in 1000. If you now try a similar structure with 4 atoms, the code automatically
+   use 250 k-points. The mesh along the three axes is automatically chosen to make the mesh as uniform as possible.
+   (For the algorithm, see atat/src/kmesh.cc).
+   You can also specify KPPRA = UPDIR which indicates that the KPOINTS file
+   found one directory above should be used.
+   (This is useful for cell distorsions used in elastic constant calculations of constituent strain runs).
+   If this token is ommited, you need to specify a [KPOINT] section in the input file that contains what
+   you want the KPOINT file to be.
+
+2) DOSTATIC indicates that a static run must be done after the relaxation run (NSW tag is removed and the ISIF and IBRION
+   token are ajusted accordingly). The output files named *.relax contain the result of the (first)
+   relaxation run while the files named *.static contain the results of the (second) static run.
+   When DOSTATIC is not specified, all output files are named *.static , whether the VASP input parameters
+   allow relaxations or not.
+
+3) KSCHEME specifies the type mesh to use: Gamma shift or Monkorst-Pack. The default is Monkorst-Pack if KSCHEME is ommited.
+
+4) MAGATOM is similar to the usual token MAGMOM used to specify the moment on each atom. The novelty is that you specify the
+   moments in the POSCAR section. If this token is ommited, no moment will be given even if they are specified in the
+   POSCAR section.
+   The usual MAGMOM token is still available (but you cannot use both MAGMOM and MAGATOM).
+
+5) USEPOT 
+   selects the potentials used: LDA GGA PAWLDA PAWGGA PAWPBE (or any other potential defined in .ezvasp.rc)
+   By default, LDA (without PAW) is used.
+   For backward compatibility, you can also use the tag DOGGA instead of USEPOT = GGA
+
+6) The SUBATOM token lets you specify a sed-like substitution command to be
+   applied to the name of the atomic species.
+   For instance, SUBATOM= s/Fe/Fe_h/g  will cause ezvasp to use the Fe_h
+   pseudopotential instead of the Fe one. Multiple SUBATOM token can be given,
+   one for each substitution. Don't forget the s/ and /g
+
+There are new features in the POSCAR section as well.
+1) The line that specify the number of atoms (here 1 2) can be ommited (it is ignored).
+2) The atomic species are specified to the right of the atom positions.
+   The corresponding POTCAR are automatically copied. You can specify pseudopotentials like Li_h or O_s.
+3) The number following the species is the magnetic moment on the atom (if MAGMOM is in the INCAR section).
+   If MAGMOM is ommited, these numbers can be used to make two atoms symmetrically distinct to allow
+   symmetry-breaking relaxations.
+4) Do not specify "selective dynamics". It will be written to the INCAR file
+   automatically if you include T's and F's after the atom species, e.g.:
+    0.5 0.5 0.5 Al T T F
+5) The element "Vac" stands for vacancy. It is ignored for everything but
+   to compute the k-point mesh with the KPPRA option.
+EOF
+    exit 1
+  endif
+  if (x$1 == "x-c") then
+    set latvectpatch
+    shift
+  endif
+  if (x$1 == "x-s") then
+    set dostatic
+    shift
+  endif
+  if (x$1 == "x-n") then
+    set norun
+    shift
+  endif
+  if (x$1 == "x-d") then
+    set debug
+    shift
+  endif
+end
+
+if (! -e $1) then
+  echo Cannot open $1
+  exit
+endif
+
+getlines -jaf "\[[Ii][Nn][Cc]" < $1 | getlines -jbf "\\[" | grep -v '^[ 	]*$' | \
+  grep -v -i subatom | grep -v -i magatom | grep -v -i kppra | grep -v -i kscheme | grep -v -i dostat | grep -v -i dogga | grep -v -i usepot >! INCAR
+
+grep -i subatom $1 | sed 's/.*=//g' >! sed.tmp
+
+(getlines -jaf "\[[Pp][Oo][Ss]" < $1 | getlines -jbf "\\[") | grep -v '^[ 	]*$' >! preposcar.tmp
+cat preposcar.tmp | sed -f sed.tmp >! poscar.tmp
+
+cat preposcar.tmp | tail +7 | awk '{print $4}' >! atomlabel.tmp1
+cat preposcar.tmp | tail +7 | awk '{print $4}' | sed -f sed.tmp >! atomlabel.tmp2
+paste atomlabel.tmp2 atomlabel.tmp1 | sort -k 1,1 -s | awk '{print $2}' >! atomlabel.tmp
+
+tail +3 poscar.tmp | head -3 >! oldcell.tmp
+
+set posmode=`head -6 poscar.tmp | tail -1`
+
+tail +7 poscar.tmp | awk '{print $5,$6,$7}' | grep -q '[TF]'
+if ( $status == 0 ) then
+  set seldyn
+endif
+
+if ($?latvectpatch) then
+  cat oldcell.tmp | fixcell -c >! newcell.tmp
+  cp newcell.tmp cell.tmp
+else
+  cp oldcell.tmp newcell.tmp
+  cp oldcell.tmp cell.tmp
+endif
+
+tail +6 poscar.tmp | head -1 | grep -q -i '^d'
+if ($status == 0 && $?latvectpatch) then
+  tail +7 poscar.tmp | \
+   awk 'BEGIN {for (i=1; i<=3; i++) {getline < "oldcell.tmp"; a[1,i]=$1; a[2,i]=$2; a[3,i]=$3; }} \
+       {c[1]=0; c[2]=0; c[3]=0; b[1]=$1; b[2]=$2; b[3]=$3; \
+        for (i=1; i<=3; i++) { \
+          for (j=1; j<=3; j++) {c[i]=c[i]+a[i,j]*b[j]} \
+        } \
+        print $4,c[1],c[2],c[3],$5,$6,$7}' | sort -k 1,1 -s >! vacpos.tmp
+    set posmode=Cartesian
+else
+    tail +7 poscar.tmp | awk '{print $4,$1,$2,$3,$5,$6,$7}' | sort -k 1,1 -s >! vacpos.tmp
+endif
+
+grep -v Vac vacpos.tmp >! pos.tmp
+
+awk '{nb_atom[$1]++} END {for (atom in nb_atom) {print atom,nb_atom[atom]}}' pos.tmp | sort -k 1,1 -s >! atom.tmp
+( head -2 poscar.tmp ; \
+  cat cell.tmp ; \
+  echo `awk '{print $2}' atom.tmp` ; \
+  if ($?seldyn) echo Selective Dynamics ; \
+  echo $posmode ; \
+  awk '{print $2,$3,$4,$5,$6,$7,$1}' pos.tmp \
+) >! POSCAR
+
+grep -q -i dostat $1
+if ($status == 0) then
+  set dostatic
+endif
+
+grep -q -i kppra $1
+if ($status == 0) then
+  grep -q -i 'kppra *= *updir' $1
+  if ($status == 0) then
+    cp ../KPOINTS .
+  else
+    grep -q -i kscheme $1
+    if ($status == 0) then
+	set kscheme=`grep -i kscheme $1 | sed 's/^.*=[ 	]*//g'`
+    else
+	set kscheme="Gamma"
+    endif
+    ( echo KPOINTS file ; echo 0 ; echo $kscheme ) >! KPOINTS
+    echo $kscheme | grep -q "^[Mm]"
+    if ( $status == 0 ) then  
+	( echo `grep -i kppra $1 | sed 's/^.*=//g'` `cat vacpos.tmp | wc -l` | awk '{print $1/$2}' ; cat cell.tmp ) | kmesh -q -e >>! KPOINTS
+    else
+	( echo `grep -i kppra $1 | sed 's/^.*=//g'` `cat vacpos.tmp | wc -l` | awk '{print $1/$2}' ; cat cell.tmp ) | kmesh -q -r >>! KPOINTS
+    endif
+    echo 0 0 0 >>! KPOINTS
+  endif
+else
+  (getlines -jaf "\[[Kk][Pp][Oo]" < $1 | getlines -jbf "\\[") | grep -v '^[ 	]*$' >! KPOINTS
+endif
+
+grep -q -i dogga $1
+if ($status == 0) then
+  set POTPATH="$POTGGA"
+else
+  set POTPATH="$POTLDA"
+endif
+
+grep -q -i usepot $1
+if ($status == 0) then
+  echo set POTPATH=\$POT`grep -i usepot $1 | tail -1 | sed -e 's/ *[^ =]*[ =]//g' -e 's/ *$//g'` > tmpez.sh
+  source tmpez.sh
+  rm -f tmpez.sh
+endif
+
+echo -n  >! POTCAR
+foreach element ( `sed 's/[+-].*$//g' atom.tmp | awk '{print $1}'` )
+  if ( -e $POTPATH/$element/POTCAR ) then
+    cat $POTPATH/$element/POTCAR >>! POTCAR
+  else
+    zcat $POTPATH/$element/POTCAR.Z >>! POTCAR
+  endif
+  if ( $status == 1 ) then
+    echo Cannot read $POTPATH/$element/POTCAR\*
+    exit 1
+  endif
+end
+
+awk '{print $1}' pos.tmp | sed 's/^[^-+]*//g' | awk '{print $1+0}' >! moment.tmp
+grep -q -i MAGATOM $1
+if ($status == 0) then
+  echo "MAGMOM= " `cat moment.tmp` >>! INCAR
+endif
+
+if (! $?debug ) then
+  rm -f sed.tmp cell.tmp oldcell.tmp newcell.tmp pos.tmp vacpos.tmp atom.tmp poscar.tmp moment.tmp cell.log atomlabel.tmp1 atomlabel.tmp2 preposcar.tmp >& /dev/null
+endif
+
+if (! $?norun ) then
+  echo | $VASPCMD >&! vasp.out
+
+  if ($?dostatic) then
+    foreach file (INCAR POSCAR OSZICAR OUTCAR CONTCAR KPOINTS vasp.out)
+      cp $file ${file}.relax
+    end
+    cp CONTCAR POSCAR
+    cat INCAR.relax | \
+        grep -v -i ismear | \
+        grep -v -i isigma | \
+        grep -v -i nsw | \
+        grep -v -i ibrion | \
+        grep -v  -i isif >! INCAR
+    echo ISMEAR=-5 >>! INCAR
+    echo IBRION=-1 >>! INCAR
+    echo ISIF=2 >>! INCAR
+
+    echo | $VASPCMD >&! vasp.out
+  endif
+  foreach file (INCAR POSCAR OSZICAR OUTCAR CONTCAR KPOINTS vasp.out DOSCAR)
+    cp $file ${file}.static
+  end
+endif

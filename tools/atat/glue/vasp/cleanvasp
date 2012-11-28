@@ -1,0 +1,17 @@
+#!/bin/csh
+rm -f CHG CHGCAR WAVECAR POTCAR
+rm -f EIGENVAL IBZKPT PCDAT XDATCAR
+rm -f INCAR POSCAR KPOINTS
+if ( -e TMPBROYD ) rm -f TMPBROYD
+if ( "x"$1 == "x-s" ) then
+  cat OUTCAR | awk 'BEGIN {v=1;} /FEWALD/ {v=0;} /EDIFF/ {v=1;} {if (v==1) print $0;}' | \
+               awk 'BEGIN {v=1;} /non-local-force/ {v=0;} /TOTAL-FORCE/ {v=1;} {if (v==1) print $0;}'>! OUTCAR.short
+  rm -f OUTCAR
+endif
+if ( "x"$1 == "x-v") then
+  rm -f CONTCAR OSZICAR OUTCAR vasp.out DOSCAR
+endif
+if ( "x"$1 == "x-f") then
+  rm -f CONTCAR
+  mv OSZICAR OSZICAR.done
+endif

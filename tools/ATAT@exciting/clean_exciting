@@ -1,0 +1,102 @@
+#!/bin/tcsh -f    
+#
+# AUTHOR
+# juergen.spitaler@mu-leoben.at
+#
+# DATE: Tue Mar 27 15:42:07 DFT 2007
+#
+# SYNTAX:
+# ex_clean [-a] [-A] [-k file_name(s)]
+#
+# EXPLANATION:
+# Removes all files created by exciting calculation,
+# except for INFO.OUT and STATE.OUT
+# OPTIONS:
+# -a               ... remove also the files INFO.OUT, STATE.OUT and ex_out.
+# -A               ... remove also the files exciting.in, INFO.OUT, STATE.OUT, EIGVAL.OUT and ex_out.
+# -k  file_name(s) ... keep (=do not remove) the file(s) filename(s).
+# -f               ... force cleanup, don't ask user again.
+
+# Check if help is needed
+
+if (  "$1" == "-h" || "$1" == "-H" ) then
+    goto help
+endif
+
+#
+# Define all (default) files to be removed
+
+touch fort.dummy
+
+set files_all = (BAND.OUT BAND.OUT.eV BANDLINES.OUT EIGVAL2.OUT  EIGVAL.OUT EQATOMS.OUT \
+  EVALCORE.OUT EVALFV.OUT EVALSV.OUT EVECFV.OUT EVECSV.OUT FERMIDOS.OUT GEOMETRY.OUT \
+  IADIST.OUT  IAD.OUT LATTICE.OUT LINENGY.OUT OCCSV.OUT RMSDVEFF.OUT  \
+  SYMCRYS.OUT SYMLAT.OUT SYMSITE.OUT fort.* BROYDEN.OUT  DTOTENERGY.OUT \
+  PCHARGE.OUT  SYMGENR.OUT  SYMMULT.OUT SYMT2.OUT CHGDIST.OUT\
+  KPOINTS.OUT  STATE.OUT    SYMINV.OUT   SYMMULT_TABLE.OUT   \
+  DFORCEMAX.OUT FORCEMAX.OUT)
+#
+# Check arguments
+
+
+
+alias sb 'shift; breaksw'	#definition used in switch
+
+while ($#argv)
+#  echo "switch: $#argv, argv=($argv),  argu=$argu,  comm=$comm, files=($files)"
+  switch ($1)
+    case -k:
+      shift;
+      while ("$1" != "-a" && "$1" != "-A" && "$1" != "-k" && $#argv)
+        set files_all = (`echo $files_all | tr " " "\n" | grep -v $1`)
+        shift
+      end
+      breaksw
+    case -a:
+      set files_all = (ex_out INFO.OUT KPOINTS.OUT STATE.OUT TOTENERGY.OUT EIGVAL.OUT info.xml EFERMI.OUT  $files_all); sb
+    case -A:
+      set files_all = (input.xml ex_out INFO.OUT KPOINTS.OUT STATE.OUT TOTENERGY.OUT info.xml EFERMI.OUT $files_all); sb
+    case -f:
+      shift;
+      set force_cleanup
+      breaksw
+    default:
+      echo "Unknown argument" $1; exit
+  endsw
+end # ... while $#argv
+
+
+#
+# Check, which of the defined files exist:
+
+set files
+
+foreach i ($files_all)
+    if (-f $i) set files = ($files $i)
+end
+
+
+#
+# Ask user to confirm the removal of the files:
+
+if ( ! $?force_cleanup) then
+  echo '>> Do you really want to delete the following files (y/n):'
+  echo "   $files"
+  set input_dummy = ($<)
+else
+  set input_dummy = "y"
+endif
+
+set input = `echo $input_dummy|tr '[A-Z]' '[a-z]'`
+
+if (($input == "y") || ($input == "yes") || ($input == "j")  || ($input == "ja"))  then
+	rm $files
+endif		
+
+
+
+exit
+
+help:
+awk '/# *SYNTAX:/,$0 !~ / *#.*[a-zA-Z]+/;\
+     /# *EXPLANATION:/,$0 !~ / *#.*[a-zA-Z]+/' < $0

@@ -1,5 +1,5 @@
 
-    use lib "../test/perl/"; use lib "../test/perl/lib"; use lib "../utilities/lib"; use XML::Writer; use IO::File; use Switch; $npt="[-+]?[0-9]*\.?[0-9]*";
+    use lib "../test/perl/"; use lib "../test/perl/lib"; use lib "../build/utilities/lib"; use XML::Writer; use IO::File; use Switch; $npt="[-+]?[0-9]*\.?[0-9]*";
     local $/ = undef; open BLOCKINPUT, $ARGV[0] or die "Couldn't open file:$ARGV[0] $!"; binmode BLOCKINPUT; $blockinput = <BLOCKINPUT>."\n\n";
 $blockinput=~s/[!:](.*)\n/\n/g;
 $/="\n";

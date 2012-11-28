@@ -1,0 +1,169 @@
+MultiComponent Easy Monte Carlo Code (emc2)
+by Axel van de Walle
+
+Command line parameters:
+
+-er : enclosed radius. The Monte Carlo cell will the smallest possible
+      supercell of unit cell of the initial configuration such that a
+      sphere of that radius fits inside it.  This allows you to specify
+      the system size in a structure-independent fashion.
+
+-cf : Control file specifying the ranges of temperature and chemical potentials
+      scanned (default: control.in). See file format below.
+
+-eq : number of equilibration passes. (Equilibration is performed at
+      the beginning of each step of the outer loop.)
+
+-n  : number of Monte Carlo passes performed to evaluate thermodynamic
+      quanties at each step of the inner loop.
+
+-tp : instead of specifying -eq and -n, you can ask the code to equilibrate
+      and run for a time such that the average energy is accurate
+      within the target precision specifified by -tp=.
+
+-aq : Alternative quantity that must meet the tolerance specified by -tp.
+      0: energy (default), 1: long-range order, 2-: concentations, correlations
+
+-gs : Gives the index of the ground state to use as an initial spin
+      configuration (starting at 0). The ground states are listed in
+      gs_str.out.
+      If the index is -1, the disordered state with equiatomic composition is used.
+      (If -gs=-1, the LTE and MF approximations are not calculated.
+      If you want the LTE and MF ouputs, use one of the 'pure' end members as a starting point.)
+
+-tstat : Critical value of the test for discontinuity. The code is
+         able to catch phase transformations (most of the time) when
+         going from an ordered phase to another or to the disordered
+         state. This involves a statistical test which a
+         user-specified confidence level. The default, 3, corresponds
+         to a 0.4% chance of finding a transition where there is
+         none. (Refer to a standard normal table.)  -tstat=0 turns off
+         this option.  Suggestion: if a phase transition is
+         undetected, first try to reduce temperature or chem. pot. steps
+         or increase n or decrease tp before toying around with this parameter.
+         Also: beware of hysteresis.
+
+-sigdig : Number of significant digits printed. Default is 6.
+
+-o:       Name of the output file (default: mc.out).
+
+-k : Sets boltzman's constant (default k=1). This only affects how
+     temperatures are converted in energies.  -k=8.617e-5 lets you enter
+     temperatures in kelvins when energies are in eV.
+     (You can also select this value by using the -keV option.)
+
+ -mft : Mean field threshold. If the grand canonical potential obtained via
+        the mean field approximation and the low temperature expansion are
+        less than this threshold, Monte Carlo simulation are skipped
+        and mean field values are used instead. (They replace the MC values
+        in the output file.
+        The column labelled use_mf is equal to 1 when this substitution is made.
+        Note: When use_mf=1, the correlations in the output file are incorrectly
+              set to their values in an ideal fully ordered structure.
+              All other columns are reliable.
+
+ -mftq: Quantity that must meet the tolerance specified by -mft.
+        0: phi (default) , 1: energy , 2: long-range order, 3-: concentrations
+
+Tricks:
+
+   To read parameters from a file, use:
+    memc2 `cat inputfile`
+   where inputfile contains the commands line options.
+
+   To selectively display a few of the output quantities, use:
+    memc2 [options] | cut -f n1,n2,n3,...
+   where n1,n2,n3,... are the column number desired (see below).
+
+-> Input files:
+
+control.in   : range of temperature and chemical potentials to scan.
+
+ The first line of this file specifies the initial conditions and has the format:
+   temperature chemical_potentials_1 ... chemical_potentials_n
+ where the chemical potentials are for each specie.
+ Each subsequent line of this file indicates one of the axes along which to scan and has the format:
+   temperature chemical_potentials_1 ... chemical_potentials_n number_of_steps
+ where number_of_steps is the the number of steps made between the initial conditions
+ and the final conditions given on the line.
+ Example: to scan the region in (T,mu1,mu2,mu3)-space defined by
+          100 <= T < 200  and 0 <= mu1 < 1.0 and 0 <= mu2 < 0.5 and mu3 == 0.0
+          with a 10x5x5 grid
+ the control.in file should be
+ 100 0.0 0.0 0.0
+ 200 0.0 0.0 0.0 10
+ 100 0.0 0.5 0.0 5
+ 100 1.0 0.0 0.0 5
+ Note: Temperatures are given in units of energy unless the -k or -eV options are set.
+       By default, the finals conditions are excluded from the scan (in the example above
+       the chemical potentials scanned in the last line are 0.0 0.2 0.4 0.6 0.8)
+       This behavior can be changed with the -il option, to give: 0.0 0.25 0.5 0.75 1.0)
+       Alternatively, the -hf option gives: 0.1 0.3 0.5 0.7 0.9 .
+
+NOTE: The mmaps code generates a file called chempot.out which contains special values of the
+chemical potential that stabilize various types of equilibria. These values are useful guidelines
+to select relevant regions in mu-space to scan.
+
+-> Other input files:
+
+lat.in       : description of the lattice.
+clusters.out : describes the clusters. 
+eci.out      : provides the ECI. 
+gs_str.out   : a list of ground states, in increasing order of concentration.
+
+   These 4 files can be created by maps.
+   See maps documentation (maps -h) for a description of the formats.
+
+-> Optional input files:
+
+teci.out     : if present, provides temperature-dependent eci (overrides eci.out)
+               (Note that, even when the teci.out file is used, column 6 of the output file
+                reflects only the configurational contribution to the heat capacity.)
+
+The format this file is:
+[maximum temperature: Tm]
+[number of temperatures where eci are provided: nT]
+[ECIs for temperature 0]
+[ECIs for temperature Tm/(nT-1)]
+[ECIs for temperature 2*Tm/(nT-1)]
+...
+[ECIs for temperature Tm]
+
+Note that these numbers can be seperated by blanks or newlines, as desired.
+
+conccons.in : Specifies linear constraints on the composition that spin flips must obey.
+              (The code will generate multi-spin flips if necessary.)
+              Here is an example of such file:
+                     1.0*Al -1.0*Li +0.1*Co = 0.5
+              Please use rational numbers only - infinite loop will result otherwise.
+              Composition is determined by the user-supplied initial configuration
+              (via the -g or -is options).
+
+-> Format of the output file
+
+The file mcheader.out gives the content of column of the output file.
+The following abreviations are used:
+ T:     temperature
+ mu(A): chemical potentials of specie A
+ x(A):  concentration of specie A
+ E:     energy (per active site)
+ Egc:   grand canonical energy (per active site) , i.e., E - sum_i mu(i)*x(i)
+ lro:   long Range Order parameter of the initial ordered phase
+        (=0 if initial phase is disordered)
+ F:     Helmholtz free energy (per active site)
+ phi:   grand canonical potential: F - sum_i mu(i)*x(i)
+ use_mf: flag that is 1 if mf values have been used instead of mc values
+ corr_n_d:  the average correlations associated with each cluster
+            n is the number of points in the cluster
+            d is the diameter of the cluster
+
+Suffixes: 
+  _lte: obtained with low temperature expansion
+  _mf:  obtained with mean field approximation
+  _mc:  obtained with Monte Carlo simulations
+
+NOTE: to obtain 'canonical' rather than grand canonical quantities (adding mu*x),
+      to all (free) energies use the -g2c option.
+
+NOTE: an 'active site' is one that can host more than one possible atom type.
+Energy and free energy are reported per 'active site' not per total sites.
