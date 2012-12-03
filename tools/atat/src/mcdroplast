@@ -1,0 +1,9 @@
+#!/bin/csh
+if ( x$1 == "x-h" ) then
+  echo This script reads the output file of a mc run and deletes
+  echo the last data point of each inner loop.
+  echo \(The point after a phase transition occured.\)
+  echo Same effect as the -dl option of emc2.
+  exit
+endif
+awk 'BEGIN {ig=1;} {if ($0=="") {print ""; ig=1;} else {if (ig==0) {print l;} l=$0; ig=0}}'

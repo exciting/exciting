@@ -1,0 +1,5 @@
+#!/bin/csh
+foreach file (*.bak)
+  set nobak=`echo $file | sed 's/.bak//g'`
+  cp $file $nobak
+end

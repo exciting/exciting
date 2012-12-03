@@ -1,0 +1,2 @@
+#!/bin/csh
+emc2 -T0=50 -T1=700 -dT=25 -mu0=0.5 -mu1=1.5 -dmu=0.05 -er=40 -gs=0 -o=mc.out -k=8.617e-5 -dx=0.005

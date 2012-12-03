@@ -1,0 +1,121 @@
+#!/usr/bin/tcsh
+
+set wrapfile="exciting.wrap"
+
+set bin = $0:h
+
+cd $bin
+
+set bin = $cwd
+
+echo 
+echo "========================================================================"
+echo
+echo "runstruct_exciting:"
+echo "   Scripts directory is: $bin"
+
+cd -
+
+while ( $#argv != 0 )
+  switch ("$1")
+    case "-h":
+      cat - <<EOF
+
+========================================================================
+
+runstruct_exciting [-w file] [-p] [-lu] [-ng] [-nr] [-ex] 
+  file is an optional alternate wrap file (default: exciting.wrap)
+       If the wrap file is not found in the current directory,
+       it searches in the parent directories .. and ../..
+   -p  preserve exciting output files
+   -lu look up one directory for STATE.OUT to use as starting point.
+   -ng do not generate a exciting input.xml file, use the existing one.
+   -nr do not run exciting, just generate input files
+   -ex do not generate the exciting input.xml file, do not run exciting, 
+       but extract info from exciting output file
+========================================================================
+
+EOF
+      exit 1
+      breaksw
+    case "-w":
+      set wrapfile="$2"
+      shift
+    breaksw
+    case "-p":
+      set preservefiles
+    breaksw
+    case "-lu":
+      set lookup
+    breaksw
+    case "-ng":
+      set notgenexcitingin
+    breaksw;
+    case "-nr":
+      set notrunexciting
+    breaksw;
+    case "-ex":
+      set extractonly
+    breaksw;
+    default:
+      break;
+  endsw
+  shift
+end
+
+if ( ! $?extractonly ) then 
+
+  if ( ! -e ~/.ezexciting.rc ) then
+    $bin/ezexciting
+    exit
+  else
+    source ~/.ezexciting.rc
+  endif
+
+  if (! $?notgenexcitingin ) then
+  echo "   Generating the input.xml file from $wrapfile and str.out ..."
+    $bin/str2ezexciting $wrapfile > input.xml
+  endif
+
+  if ( $?lookup ) then
+    if ( -e ../STATE.OUT ) then
+      cp ../STATE.OUT .
+    endif
+  endif
+
+  set notrunexcitingswitch=""
+
+  if ( $?notrunexciting ) then
+    set notrunexcitingswitch="-n"
+  endif
+
+  if ( $#argv == 0 ) then
+    #single machine mode if no argument
+    echo "   Invoking ezexciting ..."
+    echo
+    $bin/ezexciting $notrunexcitingswitch input.xml
+  else
+    #multiple machine mode if argument is remote command
+    $bin/ezexciting $notrunexcitingswitch input.xml
+  endif
+
+endif
+
+if ( ! $?notrunexciting ) then
+  $bin/extract_exciting
+  if ( $?lookup ) then
+    cp STATE.OUT ../
+  endif
+  gzip -f STATE.OUT >& /dev/null
+  if ( ! $?extractonly ) then
+    if ( ! $?preservefiles  ) then
+      $bin/clean_exciting -f
+    endif
+
+    $bin/checkerr_exciting -e
+  endif
+endif
+
+echo 
+echo "========================================================================"
+echo

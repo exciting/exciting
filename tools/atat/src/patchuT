@@ -1,0 +1,4 @@
+#!/bin/csh
+sed -e 's/_T/uT/g'
+
+

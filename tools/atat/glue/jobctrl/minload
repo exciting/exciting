@@ -1,0 +1,43 @@
+#!/bin/csh
+if ( x"$1" == "x-h" ) then
+  cat - <<EOF
+Syntax: minload [-m alternate_machine_config_file] [-w]
+Returns the command prefix needed to run a command on the remote
+machine having the minimum load, among the
+machines listed in the ~/.machines.rc file
+(or as specified by the -m option).
+A default ~/.machines.rc file is created the first time
+the chl command is run and the file format is described
+in the comments therein.
+EOF
+exit
+endif
+
+set machinefile="~/.machines.rc"
+
+while ( $#argv != 0 )
+  switch ($1)
+    case "-m":
+      set machinefile="$2"
+      shift
+    breaksw
+    case "-w":
+      set waitforavail
+    default:
+      break;
+    breaksw
+  endsw
+  shift
+end
+
+if ( $?waitforavail ) then
+   set waitbetweenpoll=`grep '^set ' $machinefile | getvalue waitbetweenpoll`
+   while ( 1 )
+     set node=`minload -m $machinefile`
+     if ( "$node" != "none" ) break
+     sleep $waitbetweenpoll
+   end
+   echo $node
+else
+  chl -m $machinefile | sort -r -n | tail -1 | sed 's/^[^+]*+//g' | sed 's/^ *//g' | sed 's/ *$//g'
+endif

@@ -1,0 +1,2 @@
+#!/bin/csh
+sed -e 's/stream.h>/stream>/g;'  -e 's/iomanip.h>/iomanip>/g;'  -e 's/complex.h>/complex>/g;'

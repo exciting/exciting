@@ -1,0 +1,145 @@
+#!/bin/csh
+
+set wrapfilename="abinit.wrap"
+
+while ( $#argv != 0 )
+  switch ("$1")
+    case "-h":
+      cat - <<EOF
+runstruct_abinit [-w file] [-nr] [-ex] [-clean] cmdprefix
+  where file is an optional alternate wrap file (default: abinit.wrap)
+    If the wrap file is not found in the current directory,
+    it searches in the parent directories .. and ../.. and ../../..
+  -nr means do not run abinit, just generate input files
+  -ex means do not generate abinit.in, do not run abinit, but extract info from abinit output file
+  -clean deletes ALL abinit output files: CAUTION.
+  cmdprefix is the prefix needed for abinit to run on a remote machine,
+            such as "node -s node2" 
+EOF
+      exit 1
+      breaksw
+    case "-w":
+      set wrapfilename="$2"
+      shift
+    breaksw
+    case "-nr":
+      set notrunabinit
+    breaksw;
+    case "-ex":
+      set extractonly
+    breaksw;
+    case "-clean":
+      rm -f abinit.out* abo_* tmp_*
+      exit
+    breaksw;
+    default:
+      break;
+  endsw
+  shift
+end
+
+set strout="str_hint.out"
+
+if ( ! -e $strout ) then
+  set strout="str.out"
+endif
+
+if (! -e $strout ) then
+  echo str.out or str_hint.out does not exist
+  echo NOTE: runstruct_abinit needs to be run within the subdirectory containing a structure.
+  exit 1
+endif
+
+if (! $?extractonly ) then
+
+set wrapfile="$wrapfilename"
+if (! -e $wrapfile) then
+  set wrapfile="../$wrapfilename"
+  if (! -e $wrapfile) then
+    set wrapfile="../../$wrapfilename"
+    if (! -e $wrapfile) then
+      set wrapfile="../../../$wrapfilename"
+      if (! -e $wrapfile) then
+        echo You need a $wrapfilename file in $PWD , $PWD/.. , $PWD/../.. or $PWD/../../..
+        echo NOTE: runstruct_abinit needs to be run within the numbered subdirectory.
+        exit 1
+      endif
+    endif
+  endif
+endif
+
+source ~/.atat.rc
+cp $atatdir/data/atomz.in .
+
+if (-e ~/.ezabinit.rc) then
+  source ~/.ezabinit.rc
+else
+  cat - >! ~/.ezabinit.rc <<EOF
+#!/bin/csh
+#enter name of abinit executable here
+set ABINITCMD=~/bin/abinip
+#enter the directory containing the pseudopotentials here
+set POTDIR=~/abinit/pp/
+EOF
+  echo I have created a default ~/.ezabinit.rc file. Please edit it to match your configuration.
+  exit 1
+endif
+
+set CMDPREFIX="$1"
+
+cat $strout | cellcvrt -sc=1.8897259886 -f -sig=9 >! str.tmp
+tail +7 str.tmp | awk '{print $4}' | sort -u |\
+ awk 'BEGIN {while (getline < "atomz.in") {z[$1]=$2;}} {print $1,z[$1];}' >! atoms.tmp
+
+grep -q kppra $wrapfile
+if ($status == 0) then
+  echo `getvalue kppra < $wrapfile ; tail +7 str.tmp | wc -l` | awk '{print $1/$2}' >! nkpts.tmp
+  set kppra=`cat nkpts.tmp`
+endif
+
+grep -i subatom $wrapfile | sed 's/.*[ =]//g' >! sed.tmp
+
+cat $wrapfile | grep -v -i -e kppra -e subatom | sed 's/{natom}/'`tail +7 str.tmp | wc -l`'/g' >! abinit.in
+echo rprim `head -3 str.tmp` >>! abinit.in
+echo ntypat `cat atoms.tmp | wc -l` >>! abinit.in
+echo natom `tail +7 str.tmp | wc -l` >>! abinit.in
+echo znucl `awk '{print $2}' atoms.tmp` >>! abinit.in
+echo typat `tail +7 str.tmp | awk 'BEGIN {n=1; while (getline < "atoms.tmp") {t[$1]=n; n++;}} {print t[$4];}'` >>! abinit.in
+echo acell "3*1" >>! abinit.in
+echo xred >>! abinit.in
+tail +7 str.tmp | awk '{print "  ",$1,$2,$3}' >>! abinit.in
+if ($?kppra) then
+  echo ngkpt `(echo $kppra ; head -3 str.tmp ) | kmesh -q -r` >>! abinit.in
+endif
+
+echo abinit.in >! abinit.files
+echo abinit.out >>! abinit.files
+echo abi >>! abinit.files
+echo abo >>! abinit.files
+echo tmp >>! abinit.files
+awk '{print "'$POTDIR'/" $2 $1}' atoms.tmp | sed -f sed.tmp >>! abinit.files
+
+rm -f str.tmp atoms.tmp nkpts.tmp atomz.in sed.tmp
+
+if (! $?notrunabinit) then 
+  $CMDPREFIX $ABINITCMD < abinit.files >& log.out
+endif
+
+endif
+
+if (! $?notrunabinit) then
+  set lastout=`ls -1 abinit.out* | sort | tail -1`
+  tail +`grep -n "BROYDEN STEP NUMBER" $lastout | tail -1 | sed 's/:.*//g'` $lastout | getlines -bf "== END DATASET" >! abinitoutlast.tmp
+  cat abinitoutlast.tmp | getvalue "Etotal" | tail -1 | awk '{print $1*27.21138386}' >! energy
+  cat abinitoutlast.tmp | grep acell | sed 's/.*=//g' >! acell.tmp
+  cat abinitoutlast.tmp | getlines -af rprim | sed 's/.*=//g' | head -3 >! rprim.tmp
+  cat abinitoutlast.tmp | getlines -jaf 'reduced coordinates .array xred.' | getlines -jbf 'rms' >! xred.tmp
+  awk 'BEGIN {CONVFMT="%.9g"; sc=1.8897259886; getline < "acell.tmp"; s[1]=$1/sc; s[2]=$2/sc; s[3]=$3/sc; } {n++; print s[n]*$1,s[n]*$2,s[n]*$3}' rprim.tmp>! str_relax.out
+  ( echo 1 0 0 ; echo 0 1 0 ; echo 0 0 1 ) >> str_relax.out
+  cat $strout | cellcvrt -f | tail +7 | awk '{print $4}' >! typat.tmp
+  paste xred.tmp typat.tmp >> str_relax.out
+
+  cat abinitoutlast.tmp | getlines -jbt 'cartesian forces .eV.Angstrom. at end:' 'frms,max,avg' | awk '{print $2,$3,$4}' >! force.out
+
+  rm -f abinitout.tmp xred.tmp rprim.tmp acell.tmp typat.tmp abinitoutlast.tmp
+endif

@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+          created from template
+        -->
+<input>
+  <title>N3O</title>
+  <structure speciespath="./">
+    <crystal xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <basevect>1.88972595820018 0.00000000000000 0.00000000000000</basevect>
+      <basevect>0.00000000000000 1.88972595820018 0.00000000000000</basevect>
+      <basevect>0.00000000000000 0.00000000000000 1.88972595820018</basevect>
+    </crystal>
+    <species xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" chemicalSymbol="N" speciesfile="N.xml">
+      <atom coord="0.00000000000000 0.00000000000000 0.00000000000000"/>
+      <atom coord="0.00000000000000 0.00000000000000 0.00000000000000"/>
+      <atom coord="0.00000000000000 0.00000000000000 0.00000000000000"/>
+    </species>
+    <species xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" chemicalSymbol="O" speciesfile="O.xml">
+      <atom coord="0.50000000000000 0.50000000000000 0.50000000000000"/>
+    </species>
+  </structure>
+  <groundstate tforce="true" ngridk="4 4 3" maxscl="3"/>
+</input>

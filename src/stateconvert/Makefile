@@ -3,7 +3,7 @@ include ../../build/make.inc
 bin:stateconvertbin
 
 stateconvertbin:: ../../build/make.inc 
-	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p stateconvert \
+	../../build/utilities/mkmf -t ./template -f -m Makefile.mkmf -p stateconvert \
 	./ ../portstate.F90   \
 	 ../ioarray.F90   \
 	 ../mod_misc.F90   \
@@ -16,5 +16,5 @@ clean:
 
 doc::
 	cd ../../docs/stateconvert/
-	perl ../../utilities/scripts/genprotexdoc.pl ../../src/stateconvert/
+	perl ../../build/utilities/scripts/genprotexdoc.pl ../../src/stateconvert/
 	mv doc.pdf stateconvert.pdf

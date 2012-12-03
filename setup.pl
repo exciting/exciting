@@ -1,6 +1,8 @@
 #! /usr/bin/perl
 # setupscript
 # setupscript for the exciting code
+$num_args = $#ARGV + 1;
+if ($num_args == 0) {
 print "---------------------------------------------------------\n";
 
 opendir(PDIR, "build/platforms") || die("Cannot open directory");
@@ -76,4 +78,29 @@ if($SMP=~m/yes/i){
 		
 }
 }
+}
 
+if ($num_args == 2) {
+    if($ARGV[0] == "tidy") {
+$selected=0;
+while($selected==0){
+    print "\nWARNING:";
+    print "\n \"make tidy\" is an experimental feature. Running it fixes indentation \n";
+    print "of all src files in the program, among other things. Use with caution. \n";
+    print "Backup all files before use.\n\n";
+    print "Do you really want to run \"make tidy\"? (yes/No) ";
+    $TIDY=<STDIN>;
+    if($TIDY=~m/yes/i){
+	system("cd build/serial && ${ARGV[1]} -f ../Make.common tidy");
+	$selected=1;
+    }elsif ($TIDY=~m/no/i)
+    {
+	$selected=1;
+    }else{
+	print "please chose yes or no";
+		
+    }
+}
+
+}
+}

@@ -1,0 +1,81 @@
+2010-07-08  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.get_psp): added a line to return None when sym and z is None, that probably means nothing is being asked for, but that must be caught.
+
+2010-06-16  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.set_nbands): added code to delete teh number_of)bands nc dimension. if you change the number of bands in a calculator, you need to delete this so that the new dimension can be fixed.
+	(valid_kpts): changed ot (str(x.dtype)[0:5] to make sure the string comparison works.
+	(valid_kpts): fixed to [0:7]
+
+2010-06-02  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (ados_changed): fixed error in the comparison. it used to return True if ados was None and x is not None. I added cases for each possibility.
+	(calculate_stress_changed): added.
+	(xc_changed): added.
+
+2009-12-21  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (get_dipole_moment): fixed code to actually calculate the dipole moment.
+
+2009-12-08  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py: fixed get_forces for when atoms is None, e.g. when the calculator itself tries to get the forces, not the atoms.
+	(Jacapo.get_pseudopotentials): added this function.
+	(Jacapo.get_ncoutput): added this function.
+	(Jacapo.get_debug): added this function.
+	(_set_electronic_minimization): added all the _set_kw methods
+
+2009-04-14  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.get_spin_polarized): added variable existence check so that __str__ works if spin-polarization or nbands has not been defined.
+	(read_only_atoms): added reading the constraints from the netcdf file
+	(Jacapo.set_atoms): added support for saving a pickled string of the constraints to the netcdf file.
+
+2009-04-02  Lars C Grabow <grabow@fysik.dtu.dk>
+
+        * jacapo.py (Jacapo.initial_wannier): uses wannier.py instead of legacyASE2.py 
+          (Jacapo.get_wannier_localization_matrix): uses wannier.py instead of legacyASE2.py
+          (Jacapo.get_pseudo_wave_function): new implementation without legacyASE2.py
+          (Jacapo.get_wave_function): new implementation without legacyASE2.py
+          (Jacapo.get_fftgrid): closed open nc file.
+          (Jacapo.set_atoms): fixed the frame pointer bug
+          (Jacapo.calculate): fixed the frame pointer bug
+          (Jacapo.__init__): fixed the frame pointer bug
+          (Jacapo.get_effective_potential): using get_fftgrid() to get hardgrid
+          (Jacapo.get_electrostatic_potential): using get_fftgrid() to get hardgrid
+          (Jacapo.get_charge_density): using get_fftgrid() to get hardgrid
+         * utils/wannier.py: added.
+         * legacyASE2.py: removed.
+         * version.py: changed version number to 0.6.7
+
+2009-03-24  Lars C Grabow <grabow@fysik.dtu.dk>
+
+        * jacapo.py (__init__, __del__, _set_frame_number, _increment_frame, calculate, execute_external_dynamics, write_nc):
+          stay_alive support was added using a new variable self._frame.
+        (Jacapo.get_potential_energy): Now raises a runtime error if fortran executable didn't finish correctly.
+
+2009-02-05  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.get_charge_density): I had not divided the density array by the volume before. this is fixed now.
+
+2009-02-04  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.get_nbands): v.NumberOfBands was returning a list for some reason. I changed it to return a number
+	(Jacapo.set_fftgrid): fixed error in delete_ncattdimvar. ncfile arg was missing.
+
+2009-02-03  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.read_only_atoms): new ase suggests use set_initial_magnetic moments instead. 
+
+2009-02-02  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.set_fixmagmom): fixed spelling error in FixedMagneticMoment attribute
+	(Jacapo.set_kpts): added capability to specify a list of kpts for band structure calculations.
+
+	* 0.6.4 fixed error in placement of set_psp_database.
+
+2009-02-01  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.get_magnetic_moment): added.
+

@@ -1,0 +1,2 @@
+#!/bin/csh
+sed -e 's/^GenericPlugIn</template <> GenericPlugIn</g' -e 's/^CS_KSpaceECI/template <> CS_KSpaceECI/g' -e 's/^inline void BoundingBox/template<> inline void BoundingBox/g'

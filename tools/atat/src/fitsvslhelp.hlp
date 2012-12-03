@@ -1,0 +1,75 @@
+This code determines bond stiffness vs bond length relationship for the purpose
+of calculating vibrational properties (with the svsl code).
+
+It requires the following files as an input.
+1) A lattice file (by default, lat.in, but this can be overridden with the -l option) which 
+   allows the code to determine what chemical bonds are present in the system.
+   The format is as described in the maps documentation (see maps -h).
+2) A list of directories containing structures that will be used to calculate force constants
+   (by default strname.in, but this can be overridden with the -dn option).
+   Each of the listed directory must contain 
+   a) a str.out file containing an ideal unrelaxed structure that will be used to automatically
+      determine the nearest neighbor shell,
+   b) a str_relax.out file containing the relaxed structure that will be used to calculate
+      bond lengths and that the code will perturb in various ways to determine the force constants.
+
+The code can operate in two modes: a structure generation mode and a fitting mode (indicated by the
+-f option).
+
+In structure generation mode:
+
+  All the above input files are needed and the option
+  -er must be specified in order to indicate the size of the supercells generated.
+  The -er option indicates how far from each other a displaced atom must be from
+  its periodic images, the code will infer the smallest supercell satisfying this constraint.
+  Typically, -er should be 3 or 4 times the nearest neighbor distance. All of these distances
+  are measured using the ideal structures (*/str.out).
+
+  The following parameters have reasonable default values which can be overridden:
+   -dr specifies the displacement of the perturbed atom, which is 0.2 Angstrom by default.
+   -ms specifies the maximum (linear) expansion of the structures for the purpose of
+       lengthing the bond lenght. For instance -ms=0.01 (the default) indicates that the
+       supercells will be stretched by up to 1% isotropically.
+   -ns indicates the number of intermediate lattice parameters sampled (by default 2, which is
+       the minimum in order to be able to determine the length dependence of bond stiffness).
+
+After the structure generation step:
+
+  Each of the directory specified in strname.in will contain multiple subdirectories,
+  each of which contains
+    a) the ideal unrelaxed supercell in a str_ideal.out file.
+    b) the relaxed but unperturbed supercell in a str_unpert.out file.
+    c) the actual geometry of perturbed supercell calculation in a str.out file.
+  The appropriate first-principles calculations can be performed using the other utilities in the atat
+  package, such as runstruct_vasp. Of course a corresponding vasp.wrap file must given
+  in order to provide the input parameters for the first-principles calculations.
+  Make sure that these parameters indicate a static run (no relaxations!).
+  After all (or some) of these calculations are done, each subdirectory will contain
+    a force.out file containing the forces acting on each atoms
+    a str_relax.out file containing the atomic positions (in the same order as in force.out)
+
+The fitting mode (-f option) of ftsvsl then needs to be used.
+  The lattice file (e.g. lat.in) must be present and the code will look for all files of the form
+  */force.out and */*/force.out   and the corresponding files */str*.out and */*/str*.out .
+  The code will then use that information to create the length-dependent force constants
+  (this may take a few minutes) and ouputs them in
+     slspring.out
+  Here is an example of the format of this file:
+    Al Al         (gives the type of bond)
+    2             (2 parameters: linear fit is used)
+    50.28971      \\  polynomial coeficients of the stiffness vs length relationship for stretching term
+    7.88973       /  (typically, stiffness is in eV/Angstrom^2 and length is in Angstrom)
+    2             \\
+    6.12722        | idem for bending term
+    -1.01641      /
+    Ti Al          (repeat for each type of chemical bond)
+    3
+    etc.
+  The only option controling this process is -op, which specifies the order of the polynomial
+  used to fit the length dependence (by default -op=1 and a linear fit is used).
+  (Contact the author for information about the -sf option.)
+
+Diagnostic files are also output:
+  fitsvsl.log                     (a log file)
+  fitsvsl.gnu and f_*.dat         (to plot the s vs l relationship)
+

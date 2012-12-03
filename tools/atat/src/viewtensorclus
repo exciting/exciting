@@ -1,0 +1,32 @@
+#!/bin/csh
+cat - > viewclus.gnu <<EOF
+unset key
+set term png
+set out 'clus.png'
+set size 0.75,1
+set pointsize 10
+unset xtics
+unset ytics
+unset ztics
+splot 'clusl.tmp' w l 2,'clusp.tmp' w p 1 7
+#pause -1
+set term png
+set out 'sh.png'
+#set view ,,,1.5
+set cbrange [-1.0:1.0]
+unset colorbox
+unset border
+unset xtics
+unset ytics
+unset ztics
+#set pm3d scansautomatic 
+set pm3d at s
+set pm3d scansbackward
+set nosurf
+splot 'sh.tmp' u 1:2:3:4 w l
+#pause -1
+EOF
+gnuplot viewclus.gnu
+pngtopnm.exe < sh.png |  pnmsmooth -h 7 -w 7 | pnmcrop -margin 20 > tmp1.pnm
+pngtopnm.exe < clus.png | pnmcrop -margin 20 > tmp2.pnm
+pnmcat -leftright tmp1.pnm tmp2.pnm > shclus${1}.pnm

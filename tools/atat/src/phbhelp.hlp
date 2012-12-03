@@ -1,0 +1,87 @@
+This is Monte Carlo code which automatically follows a given phase boundary.
+
+Input files: (see maps documentation)
+  lat.in         (describes the lattice)
+  gs_str.out     (lists the ground states)
+  eci.out        (ECI)
+  clusters.out    (clusters)
+
+You have to provide, on the command line, the following parameters:
+
+-The two phases which are in equilibrium.
+  For instance,
+    -gs1=0 -gs2=1
+  If there are n ground states, phases are numbered from 0 to n-1 .
+  These ground states are read in from gs_str.out
+  The disordered state is labelled by the number -1.
+
+  If the two phases are on different lattices, you need to specify
+  the path that give access to the files 
+    lat.in
+    gs_str.out
+    eci.out
+    clusters.out
+  for each lattice. For instance
+   -d1=../fcc/ -d2=../hcp/
+  If either or both options are omitted, the files are read from the
+  current directory.
+  
+-The starting temperature and chemical potential
+  for instance,
+  -T=100 -mu=0.125
+  (Make sure to set blotzmann's constant appropriately.)
+  (If you tracing the phase boundary between two ordered phases, starting from
+  0K, you do not need to specify a starting T and mu.)
+
+-The temperature step
+  for instance -dT=50
+
+-The 'enclosed radius', which sets the system size
+  for instance, -er=35
+  (see emc2 documentation for more information)
+
+-The precision of the calculation
+ This is expressed as the desired precision of the average concentration.
+  For instance, -dx=1e-3
+ The code automatically finds the equilibration time and the number
+ Monte Carlo steps needed to obtain the target standard deviation
+ of the average concentration.
+
+There are a number of optional parameters as well.
+
+ -ltep: The low temperature expansion is used to find the free energy
+  at low temperature. -ltep gives the maximum error allowed before
+  Monte Carlo is used instead of LTE.
+
+ -dmu: The step in chemical potential used when scanning in search
+  of the phase boundary.
+  for instance, -dmu=0.005
+  Sometimes, the algorithm looses track of the phase boundary
+  (because of statistical errors). When that happens, it scans
+  a range of values of the chemical potential in search of the
+  boudary of the hysteresis loop associated with the first
+  order transition of interest. It then position itself in the
+  middle of it. dmu is the step size used for that search.
+  Note that the code will automatically shrink dmu if needed.
+  By default, dmu is automaticaly set to the formation energy
+  of a disordered alloy times 0.01.
+
+  -mug lets you specify a small difference in chemical potential 
+  between the phases, to make the code less sensitive to accidental
+  phase transition.
+
+  -k sets boltzman's constant (see emc2 documentation)
+  -keV
+
+  -dn indicates that the boundary must be folowed downward
+   (decreasing  T)
+
+Output file:
+
+  Column      Value
+  1           temperature
+  2           chemical potential
+  3           concentration of phase 1 in [-1,1]
+  4           concentration of phase 2 in [-1,1]
+  5           energy of phase 1
+  6           energy of phase 2

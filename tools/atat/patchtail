@@ -1,0 +1,2 @@
+#!/bin/csh
+perl -pi.bak -e 's/tail ([+-][0-9]*)/tail -n \1/g;' src/* glue/*/* >& /dev/null
