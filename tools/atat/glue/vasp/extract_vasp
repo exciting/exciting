@@ -1,0 +1,79 @@
+#!/bin/csh
+
+set oszicar=OSZICAR.static
+if ( ! -e $oszicar ) then
+  set oszicar=OSZICAR
+endif
+
+if ( ! -e $oszicar ) then
+  echo unable to open OSZICAR or OSZICAR.static
+  exit 1
+endif
+
+foreach tryposcar (CONTCAR.static CONTCAR POSCAR.static POSCAR )
+  set poscar=$tryposcar
+  if ( -e $poscar ) then
+    break
+  endif
+end
+
+if ( ! -e $poscar ) then
+  echo Cannot open CONTCAR.static or CONTCAR or POSCAR.static or POSCAR
+  exit 1
+endif
+
+set outcar=OUTCAR.static
+
+if ( ! -e $outcar ) then
+  if ( -e OUTCAR.static.gz ) then
+    gunzip OUTCAR.static.gz
+  else
+    set outcar=OUTCAR
+  endif
+endif
+
+if ( ! -e $outcar ) then
+  if ( -e OUTCAR.gz ) then
+    gunzip OUTCAR.gz
+  else
+    echo unable to open OUTCAR.static or OUTCAR
+    exit 1
+  endif
+endif
+
+getvalue F < $oszicar | tail -1 >! energy
+
+if ( -e atomlabel.tmp ) then
+  cat atomlabel.tmp >! atoms_rep.tmp
+else
+  grep TITEL $outcar | sed 's/.*=//g' | awk '{print $2}' | sed 's/_.*//g' >! atoms.tmp
+
+  tail +6 $poscar | head -1 | blanktonl >! rep.tmp
+  paste atoms.tmp rep.tmp | awk '{for (i=1; i<=$2+0; i++) {print $1;}}' >! atoms_rep.tmp
+  rm -f atoms.tmp rep.tmp
+endif
+
+tail +2 $poscar | getlines -jaf '^[DdCc]' | awk '{print $1,$2,$3}' | getlines -jbf '^ *$' >! pos.tmp
+
+tail +2 $poscar | grep -q "^[cC]"
+if ( $status == 1 ) then
+  tail +2 $poscar | head -4 | awk 'BEGIN {getline; s=$1} {print s*$1,s*$2,s*$3}' >! str_relax.out
+  ( echo 1 0 0 ; echo 0 1 0 ; echo 0 0 1 ) >> str_relax.out
+else
+  ( echo 1 0 0 ; echo 0 1 0 ; echo 0 0 1 ) >! str_relax.out
+  tail +2 $poscar | head -4 | awk 'BEGIN {getline; s=$1} {print s*$1,s*$2,s*$3}' >> str_relax.out
+endif
+paste pos.tmp atoms_rep.tmp >> str_relax.out
+
+rm -f atoms_rep.tmp pos.tmp
+
+tail +`cat $outcar | grep -n 'TOTAL-FORCE' | sed 's/:.*//g' | tail -1` $outcar | tail +3 | getlines -jbf '----' | awk '{print $4,$5,$6}' >! force.out
+
+cat $outcar | grep "in kB" | tail -1 | sed 's/in kB//g' | awk '{print $1,$4,$6; print $4,$2,$5; print $6,$5,$3}' >! stress.out
+
+cat $outcar | getlines -bt "Following reciprocal coordinates:" "Following cartesian coordinates:" | tail +2 | awk '{if ($4!="") print $4;}' >! kweights.tmp
+cat $outcar | getlines -jbt "band No." '^$' >! eigen.tmp
+echo 501 `sort -n -k 2 eigen.tmp | head -1 | awk '{print $2}' ; sort -n -k 2 eigen.tmp | tail -1 | awk '{print $2}' ; getvalue NELECT < $outcar ; getvalue ISPIN < $outcar` >! dat.tmp
+
+awk 'BEGIN {getline < "dat.tmp"; Emin=$2; dE=0.05; m=int(($3-$2)/dE)+1; nelec=$4; if (NF==5) {s=$5} else {s=$6}; n=0; tw=0; while (getline < "kweights.tmp") {n++; w[n]=$1; tw+=$1;} maxn=n; n=0; for (i=0; i<=m; i++) dos[i]=0;} {if ($1==1) {n++;if (n>maxn) {n=1;}} dos[int(($2-Emin)/dE)]+=(3-s)*w[n]/tw/dE; } END {print nelec,dE,1.; for (i=0; i<=m; i++) {print dos[i];}}' eigen.tmp >! dos.out
+rm -f kweights.tmp eigen.tmp dat.tmp

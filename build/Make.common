@@ -30,8 +30,8 @@ LIBXCMOD= ../../src/libXC/src/libxc.f90  ../../src/libXC/src/libxc_funcs.f90
 #all:bin
 
 bin::../make.inc libs $(GeneratedFiles)  $(LIBXCMOD)
-	perl ../../utilities/versionstamp.pl  
-	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
+	perl ../../build/utilities/versionstamp.pl  
+	../../build/utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
 	$(SOURCEDIRS)  $(LIBXCMOD)	../../src/mainxml/ \
 	&& $(MAKE) -f Makefile.mkmf exciting \
 	&& cp exciting ../../bin/exciting$(SUFFIX)
@@ -39,11 +39,11 @@ bin::../make.inc libs $(GeneratedFiles)  $(LIBXCMOD)
 	
 doc::
 	cd ./docs/exciting; \
-	perl ../../utilities/scripts/genprotexdoc.pl ../../src/mainxml/  $(SOURCEDIRS)  ;\
+	perl ../../build/utilities/scripts/genprotexdoc.pl ../../src/mainxml/  $(SOURCEDIRS)  ;\
 	mv doc.pdf excitingsubroutines.pdf
 
 tidy::
-	perl ../../utilities/scripts/prettyprint.pl $(SOURCEDIRS)
+	perl ../../build/utilities/scripts/prettyprint.pl $(SOURCEDIRS)
 
 ifeq ($(USE_SYS_LAPACK),true)
 libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox leblaiklib.a libxc.a
@@ -54,35 +54,35 @@ libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox l
 endif
 
 libblas.a:: 
-	../../utilities/mkmf -t ./template.f77 -f -m Makefile.blas -p libblas.a \
+	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.blas -p libblas.a \
 	../../src/BLAS\
 	&& $(MAKE) -f Makefile.blas libblas.a 
 	
 
 liblapack.a:: 
-	../../utilities/mkmf -t ./template.f77 -f -m Makefile.lapack -p liblapack.a \
+	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.lapack -p liblapack.a \
 	../../src/LAPACK\
 	&& $(MAKE) -f Makefile.lapack liblapack.a 
 	
 fftlib.a::
-	../../utilities/mkmf -t ./template -f -m Makefile.fft -p fftlib.a \
+	../../build/utilities/mkmf -t ./template -f -m Makefile.fft -p fftlib.a \
 	../../src/fftlib\
 	&& $(MAKE) -f Makefile.fft fftlib.a 
 
 libbzint.a:: 
-	../../utilities/mkmf -t ./template -f -m Makefile.libbzint -p libbzint.a \
+	../../build/utilities/mkmf -t ./template -f -m Makefile.libbzint -p libbzint.a \
 	../../src/libbzint\
 	&& $(MAKE) -f Makefile.libbzint libbzint.a 
 	
 libmsec.a:: 
-	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libmsec -p libmsec.a \
+	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.libmsec -p libmsec.a \
 	../../src/src_mixing/lib/ \
 	&& $(MAKE) -f Makefile.libmsec libmsec.a 
 	
 
 
 libarpack.a::
-	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libarpack -p libarpack.a \
+	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.libarpack -p libarpack.a \
 	../../src/ARPACK/SRC/ \
 	../../src/ARPACK/UTIL/ \
 	&& $(MAKE) -f Makefile.libarpack libarpack.a

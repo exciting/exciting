@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<input xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://xml.exciting-code.org/excitinginput.xsd">
+  <title></title>
+  <structure>
+    <crystal>
+      <basevect>1.88972595820018 0.00000000000000 0.00000000000000</basevect>
+      <basevect>0.00000000000000 1.88972595820018 0.00000000000000</basevect>
+      <basevect>0.00000000000000 0.00000000000000 1.88972595820018</basevect>
+    </crystal>
+    <species chemicalSymbol="N" speciesfile="N.xml">
+      <atom coord="0.00000000000000 0.00000000000000 0.00000000000000"/>
+      <atom coord="0.00000000000000 0.00000000000000 0.00000000000000"/>
+    </species>
+    <species chemicalSymbol="N" speciesfile="N.xml" rmt="2.30000000000000">
+      <atom coord="0.00000000000000 0.00000000000000 0.00000000000000"/>
+    </species>
+    <species chemicalSymbol="O" speciesfile="O.xml" rmt="2.00000000000000">
+      <atom coord="0.50000000000000 0.50000000000000 0.50000000000000"/>
+    </species>
+  </structure>
+</input>

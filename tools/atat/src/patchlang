@@ -1,0 +1,2 @@
+#!/bin/csh
+cat - |  ./patchdoth |  ./patchstr2s |  ./patchtemplate |  ./patchstatic

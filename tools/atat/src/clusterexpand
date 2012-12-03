@@ -1,0 +1,98 @@
+#!/bin/csh
+if ( $#argv == 0 || "xx$1" == "xx-h" ) then
+  echo Syntax: clusterexpand '[-e]' '[-pa]' '[-s "1,0,1, ..."]' filename
+  echo Cluster expands the quantity stored in '*/filename'
+  echo Uses the clusters in clusters.out
+  echo Outputs to filename.eci filename.ecimult
+  echo ecimult contains the eci multiplied by multiplicity
+  echo the option -e causes the structures flagged with an error file to be ignored
+  echo the option -pa indicates that the quantity is per atom already
+  echo "   so that the code must NOT divide it by the number of atoms"
+  echo the option -s lets you select which cluster to include '(1)' or exclude '(0)'
+  echo the option -g selects a generalized "(tensor)" cluster expansion
+  exit 1
+endif
+
+set skiperror=""
+while ( $#argv != 0 )
+  set theopt=`echo $1 | sed 's/=.*//g'`
+  switch ($theopt)
+    case "-e":
+	set skiperror="-e"
+    breaksw
+    case "-pa":
+        set nodivideperatom
+    breaksw
+    case "-cv":
+        set printcv
+    breaksw
+    case "-g":
+        set usegce
+    breaksw
+    case "-s":
+	if ( "x$1" == "x$theopt" ) then
+	    set selectcol="-s=$2"
+	    shift
+	else
+	    set selectcol="$1"
+	endif
+    breaksw
+    default:
+        break
+  endsw
+  shift
+end
+
+if ( "x$2" != "x" ) then
+  echo Syntax error at: $2
+  exit 1
+endif
+
+echo -n "" >! allstr.out
+echo -n "" >! allstrname.out
+echo -n "" >! all${1}.tmp
+echo -n "" >! allnbatom.out
+foreachfile $skiperror $1 pwd >! allstrname.out
+if ( `cat allstrname.out | wc -l` == 0 ) then
+  echo No files called $1 found in subdirectories.
+  exit 1
+endif
+foreachfile $skiperror $1 'cat str.out; echo end; echo ""' >! allstr.out
+if ($?usegce) then
+  foreachfile $skiperror $1 "blanktonl < $1" | grep -v '^ *$' >! all${1}.tmp
+  set nbrep=`wc -w */$1 | head -1 | awk '{print $1}'`
+else
+  foreachfile $skiperror $1 "nltoblank < $1 ; echo ''" >! all${1}.tmp
+  set nbrep=1
+endif
+
+foreachfile $skiperror $1 'cat str.out | cellcvrt -pn' | awk '{for (i=1; i<='$nbrep'; i++) {print $1} }' >! allnbatom.out
+
+if ( $?nodivideperatom ) then
+  cp all${1}.tmp all${1}.out
+else
+  paste allnbatom.out all${1}.tmp | awk '{n=split($0,a); for (i=2; i<=n; i++) {printf a[i]/a[1] " ";} print "";}' >! all${1}.out
+endif
+rm -f all${1}.tmp
+
+if ($?usegce) then
+  gce -c -s=allstr.out >! allcorr.out
+else
+  corrdump -c -s=allstr.out >! allcorr.out
+endif
+if ( $?selectcol ) then
+  lsfit "$selectcol" -colin -x=allcorr.out -y=all${1}.out >! ${1}.ecimult
+  if ( $?printcv ) then
+    echo Crossvalidation score:
+    lsfit "$selectcol" -colin -x=allcorr.out -y=all${1}.out -cv
+  endif
+else
+  lsfit -colin -x=allcorr.out -y=all${1}.out >! ${1}.ecimult
+  if ( $?printcv ) then
+    echo Crossvalidation score:
+    lsfit -colin -x=allcorr.out -y=all${1}.out -cv
+  endif
+endif
+cat lat.in | cellcvrt -f | tail +7 | wc -l >! nbinlat.out
+getclus | awk 'BEGIN {getline < "nbinlat.out"; l=$1} {print $3/l}' >! clusmult.out
+awk 'BEGIN {while (getline < "clusmult.out") {c++; m[c]=$1;} maxc=c; c=0;} {if ($1 != "") {c++; print $1/m[c]} else {c=0; print ""}}' ${1}.ecimult >! ${1}.eci

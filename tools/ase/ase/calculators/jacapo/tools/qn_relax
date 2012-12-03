@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+from torque import *
+from ase import *
+from ase.optimize import QuasiNewton
+from ase.constraints import FixAtoms
+from ase.calculators.jacapo import *
+
+import os, string, sys, tempfile
+
+from optparse import OptionParser
+
+'''
+qn_relax -q "-l cput=168:00:00,mem=2000mb -l nodes=3 -j oe"
+
+relax atoms tagged with 5 and 6
+qn_relax -t 5,6
+'''
+
+parser = OptionParser(usage='qn_relax',
+                      version='0.1')
+parser.add_option('-q',
+                  nargs=1,
+                  help = 'submit job to the queue with options to qsub')
+
+parser.add_option('-n',
+                  nargs=1,
+                  help = 'number of nodes to ask for')
+
+parser.add_option('-t',
+                  nargs=1,
+                  help = 'specify which tags to relax, comma-separated list')
+
+options,args = parser.parse_args()
+
+for ncfile in args:
+ 
+    base,ext = os.path.splitext(ncfile)
+    atoms = Jacapo.read_atoms(ncfile)
+
+    if options.t is None:
+        freetags = [1]
+    elif options.t == 'all':
+        freetags = atoms.get_tags()
+    else:
+        freetags = [int(x) for x in options.t.split(',')]
+
+    #True means fixed
+    mask = [atom.get_tag() not in freetags for atom in atoms]
+    
+    #if False not in mask:
+    #    raise Exception, 'No free atoms found!'
+
+    atoms.set_constraint(FixAtoms(mask=mask))
+
+    if options.q is None:
+        calc = atoms.get_calculator()
+        calc.stay_alive = True
+        qn = QuasiNewton(atoms,trajectory=base+'.traj')
+        qn.run(fmax=0.05)
+
+    else:
+        
+        h,fname = tempfile.mkstemp() 
+        script = '''\
+#!/bin/tcsh
+
+cd $PBS_O_WORKDIR
+
+qn_relax -t %(tags)s %(ncfile)s
+
+#end''' % {'ncfile':ncfile,
+        'tags':string.join([str(t) for t in freetags],',')}
+
+        print script
+        f = open(fname,'w')
+        f.write(script)
+        f.close()
+
+        qdict = {'short':'-l cput=24:00:00,mem=500mb -j oe',
+                 'long':'-l cput=168:00:00,mem=500mb -j oe',
+                 'hogs':'-l cput=24:00:00,mem=2500mb -j oe',
+                 'hogl':'-l cput=168:00:00,mem=2800mb -j oe',
+                 }
+
+        if options.q in qdict:
+            qsub_options = qdict[options.q]
+        else:
+            qsub_options = options.q
+
+        if options.n is not None:
+            qsub_options += ' -l nodes=%i' % int(options.n)
+
+        cmd = 'qsub -N %(name)s %(options)s %(script)s' % {'name':ncfile,
+                                                           'options':qsub_options,
+                                                           'script':fname}
+
+        print cmd
+
+        os.system(cmd)
+        os.close(h)
+        os.remove(fname)

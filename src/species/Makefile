@@ -2,7 +2,7 @@ include ../../build/make.inc
 bin:speciesbin
 
 speciesbin:: ../../build/make.inc 
-	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p species \
+	../../build/utilities/mkmf -t ./template -f -m Makefile.mkmf -p species \
 	./ ../src_lib ../src_xc ../modxcifc.f90 ../atom.f90 \
 	../zfftifc.f90 \
 	../mod_muffin_tin.F90 \

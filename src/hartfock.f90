@@ -6,9 +6,20 @@
 ! See the file COPYING for license details.
 !
 !
+!BOP
+! !ROUTINE: hartfock
+! !INTERFACE:
 Subroutine hartfock
+! !USES:
       Use modmain
       Use modinput
+! !DESCRIPTION:
+!  Computes the self-consistent Hartree Fock ground state.
+!
+! !REVISION HISTORY:
+!  ... 
+!EOP
+!BOC
       Implicit None
 ! local variables
       Logical :: exist

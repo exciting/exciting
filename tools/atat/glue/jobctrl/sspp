@@ -1,0 +1,54 @@
+#!/bin/csh
+if ( x"$1" == "x-h" ) then
+cat - <<EOF
+  Simple symbolic pre-processor
+  reads from stdin, writes to stdout (also writes temporary file tmp.awk)
+  Interprets simple definitions and evaluates numerical expressions with
+  constants definitions.
+  invoking sspp -nb produces a output file where all blank
+  lines have been removed
+ 
+  input file syntax:
+   understands any C pre-processor commands (see man cpp)
+   also understands #const [var1]=[value2]; [var2]=[value2]
+   the variables var1 ... can be used later in the file.
+   Expression to be evaluated must be enclosed in braces {}
+   except when they are in a #const declaration.
+   Understands c++ comment char //
+
+  Examples:
+   #const x=2*3.14
+   The value is {1+cos(x)}
+   #define PLUS(x,y) ((x)+(y))
+   The answer is {PLUS(1,2)}
+
+  Implementation details:
+   Any line beginning with #const or #awk
+   is interpreted as an awk command (see man awk).
+   Expression in braces are awk expressions.
+   The file tmp.awk is the file sent to awk for interpretation.
+
+  BUGS
+
+   Never start a line with %
+   # is not a comment character
+
+EOF
+  exit 1
+endif
+
+echo -n 'BEGIN {OFMT="%.8g"; ' >! tmp.awk
+sed -e 's/^#const/%/g' -e 's/#awk/%/g' -e 'sI//.*IIg' | \
+cpp -P | sed -e '\/^[^%]/ s/\"/\\"/g' | \
+sed -e '\/^[^%]/ s/^.*$/print "&"/g' \
+    -e '\/^[^%]/ s/{\([^{}]*\)}/" (\1) "/g' \
+    -e '\/^%/ s/^%/print ""; /g' \
+    -e 's/^$/print ""/g' \
+    >> tmp.awk
+echo "}" >> tmp.awk
+if ("x-nb" == x"$1") then
+  awk -f tmp.awk | grep -v '^$'
+else
+  awk -f tmp.awk
+endif
+rm -f tmp.awk

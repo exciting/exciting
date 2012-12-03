@@ -1,0 +1,134 @@
+This code fits a reciprocal-space cluster expansion of the constituent strain
+energy for binary systems with cubic symmetry.
+
+USAGE:
+
+csfit needs, as an input, 4 files. 
+
+1) A lat.in file defining the geometry of the lattice (same format as maps).
+2) Two str_relax.out residing in given directories (-pa and -pb options, or, by 
+   default 0/ and 1/ ) and providing the relaxed geometry of the two pure
+   end members for the system.
+3) A dir.in file listing the directions along which to compute epitaxial
+   deformation energy in order to fit the expansion.
+   Directions are specified as miller indices in the coordinate system
+   defined in lat.in .
+
+The code then generates subdirectories (in 0/ and 1/ or any other directory
+you specify) with deformed structures whose energy will be used to fit the
+expansion. The -np and -nl options let you control the number of structures
+generated: -np provides the number of intermediate epitaxial strain
+(perpendicular to specified directions) considered between the lattice parameters
+of the 2 pure elements while -nl provides the number of different values of
+strain along the directions specified. The range of strains spanned is
+given by the -ml option (+/- that value, 0 strain being the strain that
+keeps volume constant). The -ns option controls the numerical energy
+minimization (it is the number of mesh points used in the search for a
+minimum) and has no effect of the number of generated structures.
+
+All default values are very reasonable. You may want to increase -ml and
+-nl for systems with a large size mismatch.
+
+The files generated are compatible with the 'pollmach'
+automatic job control utility. If you use vasp, you would
+typically type
+  csfit -d &
+  pollmach runstruct_vasp -w csvasp.wrap &
+
+where the csvasp.wrap contains the parameters needed for a vasp run
+that does not relax the structure geometry (see atat/examples directory).
+
+WARNING: you are free to rerun csfit many times, adding new lines in dir.in
+but you CANNOT rerun it with different -ml -np -nl settings without first
+deleting the subdirectories generated.
+
+The csfit programs waits until all calculations are done and then fits
+the expansion and writes the results to the cs.in file.
+The cs.log contains the constituent strain as a function of concentration (rows)
+for long period superlattices along the specified directions (columns).
+
+You can use the resulting expansion in maps by using the -p=cs option
+and in emc2 or phb by using the -ks=cs option.
+
+CONVENTIONS:
+
+We expand the concentration-dependent reciprocal space ECI associated with
+constituent strain as:
+
+  J_{CS}(x,k) = sum_{l=0,2,4,... } a_{l}(x) K_{l}(k)
+
+where |K_{l}(k)|^2 is normalized to integrate to one over the unit spherical
+shell |k|=1.
+By combining Equations (12) and  (19) in V. Ozolins, C. Wolverton, and A. Zunger,
+Phys. Rev. B, 57, 6427 (1998), we see that the coefficients a_{l}(x) are
+related to the c_{l}(x) coefficients defined in this paper through:
+
+  a_{l}(x)=c_{l}(x)/(4x(1-x))
+
+The configuration-dependent constituent strain energy is given by
+
+ Delta E_{CS}(sigma) = sum_{k} Delta J_{CS}(x,k) |S(sigma,k)|^2 exp(-|k|^2/k_c^2)
+
+(see Equation (22) in C. Wolverton, V. Ozolins, A. Zunger, J. Phys: Condems. Matter, 12, 2749 (2000)).
+
+The S(sigma,k) is computed according to the following convention:
+
+  S(sigma,k)=sum_{j in unit cell of structure} S_j exp(i 2 pi k . R_j) *
+     * (number of atom in unit cell of parent lattice)/
+       (number of atom in unit cell of structure)
+
+Delta E_{CS}(sigma) is thus given per unit cell of the parent lattice.
+
+1/kc is given in the same unit of length as in the lat.in file (for instance, Angstroms).
+
+The ouput file cs.in contains:
+
+[1/k_c, set to 0 to turn off 'attenuation']
+[Number of kubic harmonic to use, e.g. 2 to use K_0 and K_4]
+[Number n of mesh point in concentration grid, including x=0 and x=1]
+
+a_{0}(0)
+a_{0}(1/(n-1))
+a_{0}(2/(n-1))
+.
+.
+.
+a_{0}(1)
+
+a_{4}(0)
+a_{4}(1/(n-1))
+a_{4}(2/(n-1))
+.
+.
+.
+a_{4}(1)
+
+a_{6}(0)
+a_{6}(1/(n-1))
+a_{6}(2/(n-1))
+.
+.
+.
+a_{6}(1)
+
+etc.
+
+
+Additional output files
+
+cs.log
+
+Contains the constituent strain energy (cse) of superstructures along
+the specified directions as a function of concentration.
+Format:
+[concentration] [cse along direction 1 of dir.in] [cse along direction 2 of dir.in] etc.
+repeat for each concentration
+
+csdebug.out
+
+Contains the raw energies for each calculation.
+The outer loop is on the directions of the dir.in file.
+The middle loop is on the element (which pure end member).
+The inner loop is on the stretching perpendicular to the k-vector.
+Each line contains the energy for various amount of stretching along the
+direction parallel to the k-vector.

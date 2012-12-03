@@ -1,0 +1,173 @@
+Calculates vibrational properties by fitting a spring model to
+reaction forces resulting from imposed atomic displacements.
+
+The examples below are given assuming that one uses the vasp code,
+although other ab initio codes would work as well.
+
+The calculations proceed as follows: 
+
+1) You first need to fully relax the structure of interest.  The code
+   expects the relaxed geometry in the file str_relax.out. It also
+   expects a str.out file containing the unrelaxed geometry (which may be
+   the same as the relaxed geometry, if you wish). The unrelaxed geometry
+   will be used to determine the neighbor shells and measure distances
+   between atoms.  Typically the user would specify the str.out file,
+   then obtain the str_relax.out file by runing an ab initio code with a
+   command of the form
+       runstruct_vasp 
+   (making sure the vasp.wrap file indicates that all degrees of freedom
+   must be relaxed).
+
+2) Generation of the pertubations.
+2a) A typical command line is as follows:
+    fitfc -er=11.5 -ns=3 -ms=0.02 -dr=0.1
+-er specifies how far apart the periodic images of the displaced atom must be.
+    The code then finds the size of the supercell satisfying this constraint.
+    Distances are measured according to the atomic positions given in str.out
+    and in the same units.
+-ns specifies the number of different strain at which phonon calculations
+    will be performed.
+    (-ns=1 implies a purely harmonic model, the default while values greater
+    than 1 will invoke a quasiharmonic model)
+-ms specifies the maximum strain (0.02 signifies a 2% elongation along
+    every direction).
+-dr the magnitude of the displacement of the perturbed atom.
+The above command writes out a series of subdirectories vol_*, one for
+each level of strain.
+If the structure has cubic symmetry or if you are willing to assume that
+thermal expansion is isotropic or if you only which to use the harmonic
+approximation, the fitfc command should be invoked with the -nrr option
+(do Not ReRelax) and you can now skip to step 3).
+
+2b) Each volume subdirectory now contains a str.out file which is
+    stretched version of the main str_relax.out file provided.
+    You then need to run the ab initio code to rerelax the geometry at
+    the various levels of imposed strain and obtain the energy as a
+    function of strain. Typically, this is acheived by typing:
+      pollmach runstruct_vasp &
+    (make sure that the vasp.wrap file is modified so that all degrees
+    of freedom except volume are allowed to relax.)
+    After this command each subdirectory will contain an energy and
+    a str_relax.out file.
+    Type
+      touch stoppoll
+    after all energies have been calculated.
+    The runstruct_vasp command can also be executed manually in each
+    subdirectory or as follows:
+       foreachfile wait runstruct_vasp \\; rm wait
+
+2c) Now you need to reinvoke fitfc to generate perturbations of the
+    atomic position for each level of strain.
+      fitfc -er=11.5 -ns=3 -ms=0.02 -dr=0.1
+    This is exactly the same commmand as before but the code notices
+    the presence on the new files and can proceed further.
+
+3) At this point the files generated are arranged as follows.
+   At the top level, there is one subdirectory per level of strain
+   (vol_*, where * is the strain in percent), and in each
+   subdirectory, there are a number of subsubdirectories,
+   each containing a different perturbation. The pertubation
+   names have the form p<+/-><dr>_<er>_<index>, where
+   <pertmag> is the number given by the -dr option,
+   <er> by the -er option and <index> is a number used to distinguish 
+   between different pertubations. Two perturbations that differ only
+   by their signs are sometimes generated and are distinguished
+   by a + or - prefix.
+   If you want to ensure that the third-order force constants
+   cancel out exactly in the fit, you need to consider both 
+   perturbations.
+   Otherwise, only the 'positive' perturbation will be sufficient.
+   Note that whenever the third-order terms cancel out by
+   symmetry, only the 'positive' perturbation will be generated.
+
+   You then need to use the ab initio code to calculate reaction
+   forces for each perturbation.
+   This will typically be accomplished by typing
+     pollmach runstruct_vasp &
+   (make sure that the vasp.wrap file indicates that no degrees of
+   freedom are allowed to relax and the smearing is used
+   for Brillouin zone integration. Do not use the DOSTATIC option.)
+
+4) Fitting the force constants and phonon calculations.
+   This mode is invoked with the -f option.
+   In addition, you need to specify the range of the springs included
+   in the fit using the -fr=... option.
+   Usually, the range specified with -fr should be not more than
+   half the distance specified with the -er option ealier.
+   Distances are measured according to the atomic positions given
+   in str.out and in the same units.
+   It is a good idea to try different values of -fr (starting with
+   the nearest neighbor bond length) and check that
+   the vibrational properties converge as -fr is increased.
+
+5) Sometimes you will get the message 'Unstable modes found. Aborting.'
+   This indicates that the structure considered may be mechanically unstable.
+   If, in addition, you see the warning 'Warning: p... is an unstable mode.',
+   then the structure is certainly unstable. Otherwise, it may be a artifact
+   of the fitting procedure.
+   To find out, you can tell the code to generate perturbations along the unstable
+   directions and let your ab initio code calculate the reaction forces
+   which can then be included in the fit to settle this issue.
+   First, to view the unstable modes, use the -fu option: the output is in
+   vol_*/unstable.out and has the form:
+     u [index] [nb_atom] [kpoint] [branch] [frequency]
+     [displacements...]
+   where [index] is a reference number, nb_atom is the size of the supercell
+   needed to represent this mode (the other entries are self-explanatory).
+   (If this file contains only entries with nb_atom=too_large,
+   you need to increase the -mau option beyond its default of 64.)
+   You can pick one of these modes to written out to disk with the option
+   -gu=[index] where [index] is the one reported in the unstable.out file.
+   You can run your ab initio code in the subdirectory generated (named vol_*/p_uns_<dr>_<kmesh>_<number>)
+   and rerun fitfc -f -fr=...
+   If you see 'Warning: p... is an unstable mode.' then you have found a true
+   instability. If you only see 'Unstable modes found. Aborting.' you may repeat the
+   process until the message disappear or a truly unstable mode is found.
+
+   Note: If you want to generate a phonon DOS even if there are unstable modes,
+   use the -fn option. The unstable modes will be shown as negative frequencies.
+
+-> Phonon Dispersion curves
+The -df=inputfile option invokes the phonon dispersion curve module.
+The syntax of the input file is:
+[nb of points] [kx1] [ky1] [kz1] [kx2] [ky2] [kz2]
+repeat...
+
+Each line of input defines one segment (kx1,ky1,kz1)-(kx2,ky2,kz2)
+along which the dispersion curve is to be calculated.
+[nb of points] specifies the number of points sampled along the segment.
+The coordinates are in multiple of the reciprocal cell defined by the axes in the
+file specified by the -si option (or, by default, in the str.out file).
+(The k-point coordinates are appropriately strained
+by the amount needed for the str.out file to be identical to the str_relax.out file.)
+The phonon frequencies are output in the eigenfreq.out file,
+in the vol_* subdirectories.
+
+Output files:
+   fitfc.log       : A general log file.
+   vol_*/vdos.out  : the phonon density of states for each volume considered
+   vol_*/fc.out    : The force constants.
+                     For each force constant a summary line gives:
+                         (i)   the atomic species involved
+                         (ii)  the 'bond length'
+                         (iii) the stretching and bending terms
+                     Then, each separate component of the force constant is
+                     given and, finally, their sum.
+  vol_*/svib_ht    : gives the high-temperature limit of the vibrational
+                     entropy (in units of kB/atom) in the harmonic approximation,
+                     excluding the configuration-independent contribution at each 
+                     unit cell volume considered (so, this just -3 times the
+                     average log phonon frequency).
+
+The following 3 files give the output of the quasiharmonic approximation if ns>1 and
+the harmonic approximation if ns=1:
+   
+  fitfc.out        : gives along each row, the temperature, the free energy,
+                     and the linear thermal expansion
+                      (e.g. 0.01 means that the lattice has expansion by 1%
+                       at that temperature).
+  fvib             : gives only the free energy
+  svib             : gives only the entropy (in energy/temperature, by default, eV/K)
+
+  eos0.out         : equation of state at 0K (one strain,energy pair per line)
+  eos0.gnu         : gnuplot script to plot polynomial & data

@@ -1,0 +1,5 @@
+#!/bin/csh
+cellcvrt -c < str.out | tail +7 > strc.out
+cellcvrt -c < str_unpert.out | tail +7 > strc_unpert.out
+#paste strc.out strc_unpert.out force.out | awk '{print $1-$5,$2-$6,$3-$7,$9,$10,$11}'
+paste strc.out strc_unpert.out force.out | awk '{s+=($1-$5)*$9+($2-$6)*$10+($3-$7)*$11} END {print -s;}'
