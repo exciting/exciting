@@ -198,6 +198,15 @@ subroutine gw_main
 
       if(debug)close(55)
       close(fgw)
+
+!     return back some global variable which have been changed in GW
+!
+!     if BSE is used just after GW, libbzint
+!     may create the segmentation faults when try to use a general
+!     k-point shift vkloff
+!
+      input%groundstate%tetra=.false.
+
      
       return
 end subroutine gw_main

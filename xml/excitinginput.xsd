@@ -2890,13 +2890,16 @@ gw.xsd
             <xs:documentation>Writes Fermi surface data to file.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
+            <xs:all>
+              <xs:element ex:importance="essential" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="essential" ex:unit="" ref="plot3d" minOccurs="0"/>
+            </xs:all>
             <xs:attribute ex:importance="essential" ex:unit="" name="nstfsp" type="xs:integer" default="6">
               <xs:annotation>
                 <xs:documentation>Number of states to be included in the Fermi surface plot
                   file.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="" name="separate" type="xs:boolean" default="false"/>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="EFG" maxOccurs="1" minOccurs="0">

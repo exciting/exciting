@@ -1,269 +1,200 @@
-!
-!
-!
-!
-! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and
-!C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-!
-!
-Subroutine fermisurf
-      Use modmain
-      Use modinput
-      Use FoX_wxml
-      Implicit None
-  ! local variables
-      Integer :: ik, jk, ist, i
-      Integer :: ist0, ist1, nst
 
-      Character (128) :: buffer
-      Type (xmlf_t), Save :: xf
-      integer :: minexp
-!
-  ! allocatable arrays
-      Real (8), Allocatable :: evalfv (:, :)
-        Real (8), Allocatable :: prod1 (:),prod2(:)
-      Complex (8), Allocatable :: evecfv (:, :, :)
-      Complex (8), Allocatable :: evecsv (:, :)
-  ! initialise universal variables
-!
-      Call init0
-      Call init1
-  ! read density and potentials from file
-      Call readstate
-  ! read Fermi energy from file
-      Call readfermi
-  ! find the new linearisation energies
-      Call linengy
-  ! generate the APW radial functions
-      Call genapwfr
-  ! generate the local-orbital radial functions
-      Call genlofr
-  ! compute the overlap radial integrals
-      Call olprad
-  ! compute the Hamiltonian radial integrals
-      Call hmlrad
-  ! begin parallel loop over reduced k-points set
+subroutine fermisurf
 
-      Do ik = 1, nkpt
-         Allocate (evalfv(nstfv, nspnfv))
-         Allocate (evecfv(nmatmax, nstfv, nspnfv))
-         Allocate (evecsv(nstsv, nstsv))
+  use modmain
+  implicit none
 
+! local variables
+  integer :: ik,ist,ist0,ist1
+  integer :: fnum,fnum0,fnum1
+  integer :: lst,nst,i,i1,i2,i3
+  real(8) :: vc(3,4)
 
-         Write (*, '("Info(fermisurf): ", I6, " of ", I6, " k-points")') ik, nkpt
+! allocatable arrays
+  real(8), allocatable :: evalfv(:,:)
+  complex(8), allocatable :: evecfv(:,:,:)
+  complex(8), allocatable :: evecsv(:,:)
 
-     ! solve the first- and second-variational secular equations
-         Call seceqn (ik, evalfv, evecfv, evecsv)
-         Deallocate (evalfv, evecfv, evecsv)
-     ! end loop over reduced k-points set
-      End Do
+! initialise universal variables
+  call init0
+  call init1
+! read density and potentials from file
+  call readstate
+! read Fermi energy from file
+  call readfermi
+! find the new linearisation energies
+  call linengy
+! generate the APW radial functions
+  call genapwfr
+! generate the local-orbital radial functions
+  call genlofr
+! compute the overlap radial integrals
+  call olprad
+! compute the Hamiltonian radial integrals
+  call hmlrad
 
-      Call xml_OpenFile ("fermisurface.xml", xf, replace=.True., &
-     & pretty_print=.True.)
-      Call xml_NewElement (xf, "fermisurface")
-      Call xml_NewElement (xf, "runitcell")
-      Write (buffer, '(3I6)') np3d (:)
-      Call xml_addAttribute (xf, "grid", trim(adjustl(buffer)))
-      Do i = 1, 3
-         Call xml_NewElement (xf, "bvec")
-         Write (buffer, '(4G18.10)') bvec (:, i)
-         Call xml_AddCharacters (xf, trim(adjustl(buffer)))
-         Call xml_endElement (xf, "bvec")
-      End Do
-      Call xml_endElement (xf, "runitcell")
-      If (ndmag .Eq. 1) Then
+! begin parallel loop over reduced k-points set
+!$OMP PARALLEL DEFAULT(SHARED) &
+!$OMP PRIVATE(evalfv,evecfv,evecsv)
+!$OMP DO
+  do ik=1,nkpt
+    allocate(evalfv(nstfv,nspnfv))
+    allocate(evecfv(nmatmax,nstfv,nspnfv))
+    allocate(evecsv(nstsv,nstsv))
+!$OMP CRITICAL
+    write(*,'("Info(fermisurf): ",I6," of ",I6," k-points")') ik,nkpt
+!$OMP END CRITICAL
+! solve the first- and second-variational secular equations
+    call seceqn(ik,evalfv,evecfv,evecsv)
+    deallocate(evalfv,evecfv,evecsv)
+! end loop over reduced k-points set
+  end do ! ik
+!$OMP END DO
+!$OMP END PARALLEL
 
-     ! special case of collinear magnetism
-         Open (50, File='FERMISURF_UP.OUT', Action='WRITE', Form='FORMA&
-        &TTED')
-         Open (51, File='FERMISURF_DN.OUT', Action='WRITE', Form='FORMA&
-        &TTED')
-         If (task .Eq. 100) Then
+  if (task.Eq.101) then
+!---------------------------------------------------
+! 2D plot
+!---------------------------------------------------
+    fnum0=50
+    fnum1=50
+    if (ndmag.eq.1) then
+    ! special case of collinear magnetism
+      open(50,file='FERMISURF2D_UP.xsf',action='WRITE',form='FORMATTED')
+      open(51,file='FERMISURF2D_DN.xsf',action='WRITE',form='FORMATTED')
+      fnum1=51
+      ist=nstfv-input%groundstate%nempty
+      ist0=max(ist-input%properties%fermisurfaceplot%nstfsp/2,1)
+      ist1=min(ist+input%properties%fermisurfaceplot%nstfsp/2,nstfv)
+    else
+    ! spin-unpolarised and non-collinear cases
+      open(50,file='FERMISURF2D.xsf',action='WRITE',form='FORMATTED')
+      ist=(nstfv-input%groundstate%nempty)*nspinor
+      ist0=max(ist-input%properties%fermisurfaceplot%nstfsp/2,1)
+      ist1=min(ist+input%properties%fermisurfaceplot%nstfsp/2,nstsv)
+    end if
+    nst=ist1-ist0+1
+    ! produce the 2D Fermi surface plot           
+    do i=1,3
+      vc(:,i)=bvec(:,1)*vclp2d(1,i)+bvec(:,2)*vclp2d(2,i)+bvec(:,3)*vclp2d(3,i)
+    end do
 
-        ! write product of eigenstates minus the Fermi energy
-            Write (50, '(3I6, " : grid size")') np3d (:)
-            Write (51, '(3I6, " : grid size")') np3d (:)
-             allocate (prod1(nkptnr),prod2(nkptnr))
-            prod1=1.d0
-			prod2=1.d0
-            Do ik = 1, nkptnr
-!
-               jk = ikmap (ivknr(1, ik), ivknr(2, ik), ivknr(3, ik))
+    lst=0
+    do fnum=fnum0,fnum1 
+      if ((ndmag.eq.1).and.(fnum.eq.fnum1)) lst=nstfv
+      write(fnum,*)'CRYSTAL'
+      write(fnum,*)
+      write(fnum,*)'PRIMVEC'
+      do i = 1, 3
+        write(fnum,'(3f14.9)') bvec(:,i) 
+      end do
+      write(fnum,*)
+      write(fnum,*)'PRIMCOORD'
+      write(fnum,*)'1 1'
+      write(fnum,*)'0 0 0 0'
+      write(fnum,*)
+      if ((ndmag.eq.1).and.(fnum.eq.fnum1)) lst=nstfv
+      do ist=ist0,ist1
+        write(fnum,*)'BEGIN_BLOCK_DATAGRID_2D'
+        write(fnum,*)'  band_energies #', ist
+        write(fnum,*)'BEGIN_DATAGRID_2D'
+        write(fnum,'(2i6)') np2d(:)
+        do i=1,3
+          write(fnum,'(3G18.10)') vc(:,i)
+        end do
+        do ik = 1, nkpt
+          write(fnum,'(G18.10)') evalsv(ist+lst,ik)-efermi
+        end do
+        write(fnum,*)'END_DATAGRID_2D'
+        write(fnum,*)'END_BLOCK_DATAGRID_2D'
+        end do ! ist
+      close(fnum)
+    end do ! fnum
+    write(*,*)
+    write(*,'("Info(fermisurf):")')
+    if (ndmag.eq.1) then
+      write(*,'(" 2D Fermi surface data written to FERMISURF2D_UP.xsf and &
+       &FERMISURF2D_DN.xsf")')
+    else
+      write(*,'(" 2D Fermi surface data written to FERMISURF2D.xsf")')
+    end if
+    write(*,'(" for plotting with XCrysDen (Fermi energy set to zero)")')
+    write(*,*)
+    write(*,'(" Launch as: xcrysden --xsf FERMISURF(_UP/_DN).xsf")')
 
-               minexp=1
-               Do ist = 1, nstfv
-                  prod1(ik) = prod1(ik) * (evalsv(ist, jk)-efermi)
-                  prod2(ik) =   prod2(ik) * (evalsv(nstfv+ist, jk)-efermi)
-               End Do
-               if(exponent(prod1(ik))<minexp)then
-               minexp= exponent(prod1(ik))
-               endif
-                if(exponent(prod2(ik))<minexp)then
-               minexp= exponent(prod2(ik))
-               endif
+  else
+  !--------------------------------------------------
+  ! 3D plot
+  !--------------------------------------------------
+    fnum0=50
+    fnum1=50
+    if (ndmag.eq.1) then
+    ! special case of collinear magnetism
+      open(50,file='FERMISURF_UP.bxsf',action='WRITE',form='FORMATTED')
+      open(51,file='FERMISURF_DN.bxsf',action='WRITE',form='FORMATTED')
+      fnum1=51
+      ist=nstfv-input%groundstate%nempty
+      ist0=max(ist-input%properties%fermisurfaceplot%nstfsp/2,1)
+      ist1=min(ist+input%properties%fermisurfaceplot%nstfsp/2,nstfv)
+    else
+    ! spin-unpolarised and non-collinear cases
+      open(50,file='FERMISURF.bxsf',action='WRITE',form='FORMATTED')
+      ist=(nstfv-input%groundstate%nempty)*nspinor
+      ist0=max(ist-input%properties%fermisurfaceplot%nstfsp/2,1)
+      ist1=min(ist+input%properties%fermisurfaceplot%nstfsp/2,nstsv)
+    end if
+    nst=ist1-ist0+1
+    ! plotting box in Cartesian coordinates
+    do i=1,4
+      vc(:,i)=bvec(:,1)*vclp3d(1,i)+bvec(:,2)*vclp3d(2,i)+bvec(:,3)*vclp3d(3,i)
+    end do
+    ! produce the Fermi surface plot
+    lst=0
+    do fnum=fnum0,fnum1
+      if ((ndmag.eq.1).and.(fnum.eq.fnum1)) lst=nstfv
+      write(fnum,'(" BEGIN_INFO")')
+      write(fnum,'(" # Band-XCRYSDEN-Structure-File for Fermi surface plotting")')
+      write(fnum,'(" # created by Elk version ",I1.1,".",I1.1,".",I2.2)') version
+      write(fnum,'(" # Launch as: xcrysden --bxsf FERMISURF(_UP/_DN).bxsf")')
+      write(fnum,'("   Fermi Energy: ",G18.10)') 0.d0
+      write(fnum,'(" END_INFO")')
+      write(fnum,'(" BEGIN_BLOCK_BANDGRID_3D")')
+      write(fnum, '(" band_energies")')
+      write(fnum,'(" BANDGRID_3D_BANDS")')
+      write(fnum,'(I4)') nst
+      write(fnum,'(3I6)') np3d(:)
+      do i=1,4
+        write(fnum,'(3G18.10)') vc(:,i)
+      end do
+      do ist=ist0,ist1
+        write(fnum,'(" BAND: ",I4)') ist
+        do i1=0,np3d(1)-1
+          do i2=0,np3d(2)-1
+            do i3=0,np3d(3)-1
+              ik=ikmap(i1,i2,i3)
+              write(fnum,'(G18.10)') evalsv(ist+lst,ik)-efermi
             end do
-            Do ik = 1, nkptnr
-               Call xml_NewElement (xf, "point")
-               Write (buffer, '(4G18.10)') vkcnr (1, ik)
-               Call xml_addAttribute (xf, "x", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') vkcnr (2, ik)
-               Call xml_addAttribute (xf, "y", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') vkcnr (3, ik)
-               Call xml_addAttribute (xf, "z", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)')  prod1(ik)* 10**(-minexp)
-               Call xml_addAttribute (xf, "up", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)')  prod2(ik)* 10**(-minexp)
-               Call xml_addAttribute (xf, "down", &
-              & trim(adjustl(buffer)))
-               Call xml_endElement (xf, "point")
-               Write (50, '(4G18.10)') vkcnr (:, ik),  prod1(ik)* 10**(-minexp)
-               Write (51, '(4G18.10)') vkcnr (:, ik),  prod2(ik)* 10**(-minexp)
-            End Do
-             deallocate (prod1,prod2)
-         Else
-        ! write the eigenvalues minus the Fermi energy separately
+          end do
+        end do
+      end do
+      write(fnum,'(" END_BANDGRID_3D")')
+      write(fnum,'(" END_BLOCK_BANDGRID_3D")')
+      close(fnum)
+    end do
+    write(*,*)
+    write(*,'("Info(fermisurf):")')
+    if (ndmag.eq.1) then
+      write(*,'(" 3D Fermi surface data written to FERMISURF_UP.bxsf and &
+       &FERMISURF_DN.bxsf")')
+    else
+      write(*,'(" 3D Fermi surface data written to FERMISURF.bxsf")')
+    end if
+    write(*,'(" for plotting with XCrysDen (Fermi energy set to zero)")')
+    write(*,*)
+    write(*,'(" Launch as: xcrysden --bxsf FERMISURF(_UP/_DN).bxsf")')
 
-!
-            ist = nstfv - input%groundstate%nempty
-            ist0 = Max (ist-input%properties%fermisurfaceplot%nstfsp/2, &
-           & 1)
-            ist1 = Min (ist+input%properties%fermisurfaceplot%nstfsp/2, &
-           & nstfv)
-            nst = ist1 - ist0 + 1
-            Write (50, '(4I6, " : grid size, number of states")') np3d &
-           & (:), nst
-            Write (51, '(4I6, " : grid size, number of states")') np3d &
-           & (:), nst
-!
+  end if 
 
-            Do ik = 1, nkptnr
-               jk = ikmap (ivknr(1, ik), ivknr(2, ik), ivknr(3, ik))
-               Write (50, '(G18.10)', Advance='NO') vkcnr (:, ik)
-               Write (51, '(G18.10)', Advance='NO') vkcnr (:, ik)
-               Call xml_NewElement (xf, "point")
-               Write (buffer, '(4G18.10)') vkcnr (1, ik)
-               Call xml_addAttribute (xf, "x", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') vkcnr (2, ik)
-               Call xml_addAttribute (xf, "y", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') vkcnr (3, ik)
-               Call xml_addAttribute (xf, "z", trim(adjustl(buffer)))
-               Do ist = ist0, ist1
-                  Call xml_NewElement (xf, "band")
-                  Write (buffer, '(4G18.10)') evalsv (ist, jk) - efermi
-                  Call xml_addAttribute (xf, "evalup", &
-                 & trim(adjustl(buffer)))
-                  Write (buffer, '(4G18.10)') evalsv (nstfv+ist, jk) - &
-                 & efermi
-                  Call xml_addAttribute (xf, "evaldown", &
-                 & trim(adjustl(buffer)))
-                  Call xml_endElement (xf, "band")
-                  Write (50, '(F14.8)', Advance='NO') evalsv (ist, jk) &
-                 & - efermi
-                  Write (51, '(F14.8)', Advance='NO') evalsv &
-                 & (nstfv+ist, jk) - efermi
-               End Do
-               Call xml_endElement (xf, "point")
-               Write (50,*)
-               Write (51,*)
-            End Do
-         End If
-         Close (50)
-         Close (51)
-      Else
-     ! spin-unpolarised and non-collinear cases
-         Open (50, File='FERMISURF.OUT', Action='WRITE', Form='FORMATTE&
-        &D')
+  return
+end subroutine
 
-         If (task .Eq. 100) Then
-        ! write product of eigenstates minus the Fermi energy
-            Write (50, '(3I6, " : grid size")') np3d (:)
-            allocate (prod1(nkptnr))
- 			prod1=1
- 			minexp=1
-            Do ik = 1, nkptnr
-               jk = ikmap (ivknr(1, ik), ivknr(2, ik), ivknr(3, ik))
-
-               Do ist = 1, nstsv
-                  prod1(ik) = prod1(ik)* (evalsv(ist, jk)-efermi)
-               End Do
-                if(exponent(prod1(ik))<minexp)then
-               minexp= exponent(prod1(ik))
-               endif
-            end do
-            Do ik = 1, nkptnr
-               Write (50, '(4G18.10)') vkcnr (:, ik), prod1(ik) * 10**(-minexp)
-               Call xml_NewElement (xf, "point")
-               Write (buffer, '(4G18.10)') vkcnr (1, ik)
-               Call xml_addAttribute (xf, "x", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') vkcnr (2, ik)
-               Call xml_addAttribute (xf, "y", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') vkcnr (3, ik)
-               Call xml_addAttribute (xf, "z", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') prod1(ik) * 10**(-minexp)
-               Call xml_addAttribute (xf, "product", &
-              & trim(adjustl(buffer)))
-               Call xml_endElement (xf, "point")
-            End Do
-             deallocate (prod1)
-         Else
-        ! write the eigenvalues minus the Fermi energy separately
-            ist = (nstfv-input%groundstate%nempty) * nspinor
-            ist0 = Max (ist-input%properties%fermisurfaceplot%nstfsp/2, &
-           & 1)
-            ist1 = Min (ist+input%properties%fermisurfaceplot%nstfsp/2, &
-           & nstsv)
-            nst = ist1 - ist0 + 1
-            Write (50, '(4I6, " : grid size, number of states")') np3d &
-           & (:), nst
-!
-            Do ik = 1, nkptnr
-               Call xml_NewElement (xf, "point")
-               Write (buffer, '(4G18.10)') vkcnr (1, ik)
-               Call xml_addAttribute (xf, "x", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') vkcnr (2, ik)
-               Call xml_addAttribute (xf, "y", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') vkcnr (3, ik)
-               Call xml_addAttribute (xf, "z", trim(adjustl(buffer)))
-!
-               jk = ikmap (ivknr(1, ik), ivknr(2, ik), ivknr(3, ik))
-               Write (50, '(3G18.10)', Advance='NO') vkcnr (:, ik)
-               Do ist = ist0, ist1
-                  Call xml_NewElement (xf, "band")
-                  Write (buffer, '(4G18.10)') evalsv (ist, jk) - efermi
-                  Call xml_addAttribute (xf, "eval", &
-                 & trim(adjustl(buffer)))
-                  Write (buffer,*) ist
-                  Call xml_addAttribute (xf, "nr", &
-                 & trim(adjustl(buffer)))
-                  Call xml_endElement (xf, "band")
-                  Write (50, '(F14.8)', Advance='NO') evalsv (ist, jk) &
-                 & - efermi
-               End Do
-               Call xml_endElement (xf, "point")
-               Write (50,*)
-            End Do
-         End If
-         Close (50)
-      End If
-      Call xml_close (xf)
-      Write (*,*)
-      Write (*, '("Info(fermisurf):")')
-      If (ndmag .Eq. 1) Then
-         Write (*, '(" 3D Fermi surface data written to FERMISURF_UP.OU&
-        &T and FERMISURF_DN.OUT")')
-      Else
-         Write (*, '(" 3D Fermi surface data written to FERMISURF.OUT")&
-        &')
-      End If
-      If (task .Eq. 100) Then
-         Write (*, '(" in terms of the product of eigenvalues minus the&
-        & Fermi energy")')
-      Else
-         Write (*, '(" in terms of separate eigenvalues minus the Fermi&
-        & energy")')
-      End If
-      Write (*,*)
-      Return
-End Subroutine fermisurf
