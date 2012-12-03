@@ -116,11 +116,8 @@ clean:
 	rm -f interfaces/*
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
-<<<<<<< HEAD
 	rm -rf debian/debian/usr
-=======
 	rm -f src/leblaiklib/*.o src/leblaiklib/*.a
->>>>>>> 66cdb9cf26f911ae976e877846552bc764785d65
 
 libxcclean:
 	cd src/libXC && make clean 
