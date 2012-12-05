@@ -26,19 +26,19 @@
                 <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="0" maxOccurs="1"/>
                 <xs:element ex:importance="expert" ex:unit="" name="phonondos" maxOccurs="1" minOccurs="0">
                     <xs:annotation>
-                        <xs:documentation> <p>Compute the phonon density of states (DOS) and thermodynamical properties. This is done by calculating the
+                        <xs:documentation> <p>Compute the phonon density of states (DOS) <inlinemath>g(\omega)</inlinemath> and thermodynamical properties. This is done by calculating the
                         phonon eigenvalues on a dense grid, specified by <attref>ngrdos</attref>. The DOS is output to
-                        file <pre>PHDOS.OUT</pre>.</p>
+                        file <pre>PHDOS.OUT</pre>. Note that <inlinemath>\int\limits_{\omega_{\rm min}}^{\omega_{\rm max}} d\omega\; g(\omega) = 3N_{\rm at}</inlinemath></p>
                         <p>From the DOS <inlinemath>g(\omega)</inlinemath> the following thermodynamical properties are obtained:
                         <list>
-                        <li>the zero-point energy <inlinemath>E_{\rm ZP} = \frac{1}{2} N_{\rm at} \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}}  
+                        <li>the zero-point energy <inlinemath>E_{\rm ZP} = \frac{1}{2} \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}}  
                                                                    d\omega\; \omega\, g(\omega)</inlinemath></li>
-                        <li>the vibrational internal energy <inlinemath>E_{\rm vib} = \frac{1}{2} N_{\rm at}
+                        <li>the vibrational internal energy <inlinemath>E_{\rm vib} = \frac{1}{2}
                             \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}} d\omega\; \omega\, g(\omega) \coth\frac{\omega}{2k_B T}</inlinemath></li> 
-                        <li>the vibrational free energy <inlinemath>F_{\rm vib} = N_{\rm at} k_B T
+                        <li>the vibrational free energy <inlinemath>F_{\rm vib} = k_B T
                             \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}} d\omega\; g(\omega) \log\left(2 \sinh \frac{\omega}{2k_B T}\right)</inlinemath></li>
                         <li>the vibrational entropy <inlinemath>S_{\rm vib} = \frac{E_{\rm vib}-F_{\rm vib}}{T}</inlinemath></li>
-                        <li>the heat capacity <inlinemath>c = N_{\rm at} k_B
+                        <li>the heat capacity <inlinemath>c = k_B
                             \int\limits_{\omega_{\rm min}}^{\omega_{\rm max}} d\omega\;  g(\omega)  \left(\frac{\omega}{k_B T}\right)^{\!\!\! 2} 
                             {\exp\left(\frac{\omega}{k_B T}\right)}{\left[\exp(\frac{\omega}{k_B T})-1\right]^{-2}}</inlinemath></li>
                         </list> 
@@ -48,21 +48,21 @@
                         </xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
-                        <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos" default="500" type="xs:integer"> 
+                        <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos" default="500"  > 
                            <xs:annotation>
                               <xs:documentation>
                               Number of steps between the lowest and highest phonon frequency for the DOS.
                               </xs:documentation>
                            </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="100" type="xs:integer" > 
+                        <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="100"  > 
                         <xs:annotation>
                               <xs:documentation>
                               Number of grid points in each lattice direction on which the eigenvalues are interpolated.
                               </xs:documentation>
                            </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0" type="xs:integer" >
+                        <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0"  >
                         <xs:annotation>
                               <xs:documentation>
                               Number of 3-point averaging runs to smoothen the DOS. One run corresponds to setting the DOS value for
@@ -70,7 +70,7 @@
                               </xs:documentation>
                            </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="ntemp" type="xs:integer" default="10">
+                        <xs:attribute ex:importance="expert" ex:unit="" name="ntemp" type="xs:integer" default="200">
                             <xs:annotation>
                                 <xs:documentation>Number of temperatures in the range up to
                                     the maximal temperature <inlinemath>T_{\rm max}</inlinemath> for the calculation
@@ -101,20 +101,20 @@
                             files and outputs them as <inlinemath>3\times 3</inlinemath> blocks for
                             each atom combination to the file <pre>DYNMAT.OUT</pre>.
                             A corrected dynamical matrix which fulfills the accoustic sumrule is output to the
-                            file <pre>DYNMAT\_SUMRULE.OUT</pre>.  
+                            file <pre>DYNMAT_SUMRULE.OUT</pre>.  
                             It is obtained by subtracting the three lowest eigenvectors from the original matrix:
                             <inlinemath>D_{ij}^{\bf q}\rightarrow D_{ij}^{\bf q}-\sum_{k=1}^3 \omega_k^0 v_{k;i}^0 v_{k;j}^0</inlinemath>
                             for all <inlinemath>{\bf q}</inlinemath>, where <inlinemath>\omega_k^0</inlinemath> 
                             is the <inlinemath>k</inlinemath>th eigenvalue of the <inlinemath>{\bf q}=0</inlinemath> dynamical matrix 
                             and <inlinemath>v_{k;i}^0</inlinemath> the <inlinemath>i</inlinemath>th component of its eigenvector.</p>
                             <p>Symmetrized forms are written to the files
-                            <pre>DYNMAT\_SYM.OUT</pre> and <pre>DYNMAT\_SYM\_SUMRULE.OUT</pre>.</p></xs:documentation>
+                            <pre>DYNMAT_SYM.OUT</pre> and <pre>DYNMAT_SYM_SUMRULE.OUT</pre>.</p></xs:documentation>
                     </xs:annotation>
                 </xs:element>
                 <xs:element ex:importance="expert" ex:unit="" name="interpolate" maxOccurs="1" minOccurs="0">
                     <xs:annotation>
                         <xs:documentation>Interpolates the phonon frequencies, and optionally eigenvectors, on a given <inlinemath>{\bf q}</inlinemath>-point
-                            grid and outputs them to file <pre>PHONON\_INTERPOLATE.OUT</pre>.</xs:documentation>
+                            grid and outputs them to file <pre>PHONON_INTERPOLATE.OUT</pre>.</xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
                         <xs:attribute ex:importance="essential" ex:unit="" name="ngridq" type="integertriple" use="required">

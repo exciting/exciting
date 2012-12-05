@@ -1,0 +1,8 @@
+#!/bin/csh
+if ( ! -e ../qit.wrap ) then
+  echo Cannot find qit.wrap
+  exit 1
+endif
+
+cat ../qit.wrap | sed 's+\$THECWD+'`pwd`'+g' | sed 's+\$THECMD+'$argv[1-]'+g' >! llscript
+llsubmit llscript

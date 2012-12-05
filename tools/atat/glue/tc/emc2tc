@@ -1,0 +1,92 @@
+#!/bin/csh
+#if ( $#argv == 0 || x"$1" == "x-h" ) then
+if ( x"$1" == "x-h" ) then
+  cat - <<EOF
+emc2tc by Gautam Ghosh and Axel van de Walle
+Syntax: emc2tc [-h] [-g] [-p prefix]
+Converts Monte Carlo output from emc2 into an input file for the
+Parrot module of Thermocalc.
+-h prints this help.
+-g exports free energies (otherwise exports enthapies)
+-p specifies to prefix for all input and output file (default: data)
+Input files:
+  prefix_mc.in : emc2 output file
+  prefix_ref.in : file containing reference energies of the 2 elements
+                  (format: 2 numbers on one line)
+                  By default, the reference energies are 0 0
+  prefix_head.in : contains the thermocalc header to be prepended to the data.
+                   If nonexistent a skeleton of this file is created and the
+                   command terminates. This file must be edited before the
+                   command is to be run a second time, creating the output
+                    file.
+Output file: prefix_tc.out contains the thermocalc parrot input file.
+EOF
+  exit
+endif
+
+set prefix="data"
+
+set energy="HMR"
+
+while ( $#argv != 0 )
+  set theopt=`echo $1 | sed 's/=.*//g'`
+  switch ($theopt)
+    case "-p":
+        if ( "x$1" == "x$theopt" ) then
+            set prefix="$2"
+            shift
+        else
+            set prefix=`echo $1 | sed 's/^-p.//g'`
+        endif
+        breaksw
+    case "-g":
+        set energy="GMR"
+        breaksw
+    default:
+        break
+  endsw
+  shift
+end
+
+if ( ! -e ${prefix}_mc.in ) then
+  echo Could not open Monte Carlo data file ${prefix}_mc.in
+  echo Type emc2tc -h for more help
+  exit
+endif
+
+if ( ! -e ${prefix}_ref.in ) then
+  echo 0 0 >! ${prefix}_ref.in
+  echo ${prefix}_ref.in file created with 0 as reference energies.
+  echo Type emc2tc -h for more help
+endif
+
+if ( ! -e ${prefix}_head.in ) then
+  cat - >! ${prefix}_head.in <<EOF
+\$ Please edit ALL entries enclosed in {} (and remove the {} afterwards!)
+TABLE-HEAD {numeric_data_identifier}
+CREATE_NEW  @@,1
+\$ lattice is one of FCC, BCC or HCP
+CHANGE_STATUS PHASE {lattice}=FIX, 1
+SET-REF-STATUS {element_A} {lattice},,,,,,
+SET-REF-STATUS {element_B} {lattice},,,,,,
+SET-CONDITION T={temperature}, P=1E5, X({element_B})=@1
+\$ make sure that you use HMR for enthalpy and GMR for free energies
+EXPERIMENT $energy({lattice})=@2:{percent_error}%
+S-S-V Y({lattice},{element_B})=@1
+TABLE-VALUES
+EOF
+  echo File ${prefix}_head.in created. Please edit it before rerunning this command.
+  exit
+endif
+
+cat ${prefix}_head.in >! ${prefix}_tc.out
+
+if ( "$energy" == "GMR" ) then
+  awk '{print ((1+$4)/2), ($5+$2*$4)}' ${prefix}_mc.in | \
+  awk 'BEGIN {getline < "'${prefix}_ref.in'"; a=$1; b=$2} {print ($1), (($2-(1-$1)*a-($1*b))*96325)}' >> ${prefix}_tc.out
+else
+  awk '{print ((1+$4)/2), ($3+$2*$4)}' ${prefix}_mc.in | \
+  awk 'BEGIN {getline < "'${prefix}_ref.in'"; a=$1; b=$2} {print ($1), (($2-(1-$1)*a-($1*b))*96325)}' >> ${prefix}_tc.out
+endif
+
+echo TABLE-END >> ${prefix}_tc.out

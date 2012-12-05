@@ -1,0 +1,40 @@
+Title: InSb bulk
+Mode: bulk
+**** lattice vectors *********************
+INSERTCELL
+* atomic number cartesian or internal coordinates 
+INSERTATOMS
+*** GENERAL OPTIONS ***********************
+Density of states:F ,Band structure:F
+Treat non-MT potential in second variation:F
+Force calculation:F
+Geometry optimization:F
+Screened exchange:F
+Frequency calculation:F
+Spin-Orbit coupling:F ,self-consistent:F, option:default
+%%%P matrix calculation:F, Longitudinal form:F, MCD:F
+P matrix calculation:F, Longitudinal form:F
+L matrix calculation:F, option:default
+*******************************************
+star-function cut-off: 8.0
+jspins=1
+nwin=1
+plane-wave cut off: 3.60
+SPA = 15
+In rmt=2.50 ncore=12 lmt=8   
+Sb rmt=2.60 ncore=14 lmt=8  0   0   0.2  0   
+*** SPECIAL K-POINTS **********************
+Include time-reversal symmetry:T
+Division along axis (each window new line)
+KPPRA = 8000
+Tedrahedron method:T 
+gauss=T 0.0010
+*** MIXING  OPTIONS ***********************
+(B)royden or (S)traight mixing for density:B
+Maximum number of iterations: 40
+Mixing parameter: .1
+Convergency: 0.05
+****  OPTIONS FOR SPIN-POLARIZED CASE  ****
+spin-options:default
+****  ADVANCED SETTINGS  ******************
+advanced setup:default

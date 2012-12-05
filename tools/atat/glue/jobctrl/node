@@ -1,0 +1,59 @@
+#!/bin/csh
+
+if ( $#argv == 0 || x"$1" == "x-h" ) then
+  cat - <<EOF
+This command is basically like rsh, except that the command
+makes sure that the current directory on the remote machine 
+is the same as on the local machine.
+(If the two machines do not share the same disk space, use the -r option.)
+
+Syntax: node [-s] [-r] user@host command
+ -s: use ssh instead of rsh
+ -r: copy files in current directory to remote host before running command
+ if user is the same on remote host, use may use
+   node [-s] [-r] host command
+EOF
+  exit
+endif
+
+while ( $#argv != 0 )
+  switch ($1) 
+    case "-s":
+      set besecure
+    breaksw
+    case "-r":
+      set beremote
+    breaksw
+      default:
+	break;
+  endsw
+  shift
+end
+
+set host="$1"
+set cmd="$argv[2-]"
+
+if ($?besecure) then
+  set SSH=ssh
+  set SCP="scp -q -r"
+else
+  set SSH=rsh
+  set SCP=rcp
+endif
+
+echo $host | grep -q '@'
+if ( ( $status == 0 ) && ( ! $?besecure ) ) then
+  set host="-l `echo $host | sed 's/@.*//g'` `echo $host | sed 's/.*@//g'` "
+endif
+
+if ($?beremote) then
+  set remdir=`mktemp slave.XXXXXX`
+  rm -f $remdir
+  $SSH $host mkdir $remdir
+  $SCP * ${host}:$remdir
+  $SSH $host cd $remdir \; $cmd
+  $SCP "${host}:${remdir}/*" .
+  $SSH $host rm -f -r $remdir
+else
+  ${SSH} $host cd `pwd` \; $cmd
+endif

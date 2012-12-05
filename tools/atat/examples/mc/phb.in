@@ -1,0 +1,2 @@
+#!/bin/csh
+phb -dT=10 -dmu=0.001 -ltep=1e-3 -er=40 -gs1=0 -gs2=1 -o=phb.out -k=8.617e-5 -dx=1e-4

@@ -1,0 +1,14 @@
+[INCAR]
+PREC = high
+SIGMA = 0.1
+ISMEAR=-5
+IBRION=-1
+ISIF=2
+
+[KPOINTS]
+KPOINTS file
+0
+Gamma
+11 11 11
+0 0 0
+

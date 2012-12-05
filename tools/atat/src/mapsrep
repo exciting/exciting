@@ -1,0 +1,93 @@
+#!/bin/csh
+if ( "x$1" == "x-h" ) then
+  echo Display the output of maps in graphical form.
+  echo "Syntax: mapsrep [-e]"
+  echo the optional switch -e tells the code to plot structures flagged with error too.
+  exit
+endif
+if ( "x$1" == "x-e" ) then
+  grep e predstr.out | grep -v b >! error.out
+else
+  echo -n "" >! error.out
+endif
+cat maps.log
+getclus -e | grep -v '^0' | grep -v '^1' >! clusinfo.out
+#grep "^2" clusinfo.out >! eci2.out
+#grep "^3" clusinfo.out >! eci3.out
+#grep "^4" clusinfo.out >! eci4.out
+grep g predstr.out >! newgs.out
+cat - >! mapsrep.gnu << END
+set xlabel "concentration"
+set ylabel "energy"
+set title "Fitted Energies"
+END
+if ( `cat newgs.out | wc -l` == 0 ) then
+  cat - >> mapsrep.gnu <<END
+plot [0:1] \
+'predstr.out' u 1:3 t "predicted" w p 2, \
+'fit.out' u 1:3 t  "known str" w p 1, \
+'gs.out' u 1:3 t "known gs" w linesp 3
+END
+else
+  cat - >> mapsrep.gnu <<END
+plot [0:1] \
+'predstr.out' u 1:3 t "predicted" w p 2, \
+'fit.out' u 1:3 t  "known str" w p 1, \
+'gs.out' u 1:3 t "known gs" w linesp 3, \
+'newgs.out' u 1:3 t "predicted gs" w p 4
+END
+endif
+cat - >> mapsrep.gnu <<END
+pause -1
+set title "Calculated Energies"
+END
+if ( `cat error.out | wc -l` == 0 ) then
+cat - >> mapsrep.gnu <<END
+plot [0:1] \
+'fit.out' u 1:2 t  "known str" w p 5, \
+'gs.out' u 1:2 t "known gs" w linesp 6
+END
+else
+cat - >> mapsrep.gnu <<END
+plot [0:1] \
+'fit.out' u 1:2 t  "known str" w p 5, \
+'gs.out' u 1:2 t "known gs" w linesp 6, \
+'error.out' u 1:2 t "error" w p 7
+END
+endif
+
+cat - >> mapsrep.gnu <<END
+pause -1
+set title "Calculated and Fitted Energies"
+plot [0:1] \
+'fit.out' u 1:2 t  "calculated" w p 5, \
+'fit.out' u 1:3 t  "fitted" w p 1 
+pause -1
+set xlabel "diameter"
+set ylabel "energy"
+set title "ECI vs cluster diameter"
+set nokey
+set xzeroaxis
+set xtics ("pair" 0,"5" 5,"10" 10,"15" 15, "trip" 20,"5" 25,"10" 30,"15" 35, "quad" 40,"5" 45,"10" 50,"15" 55)
+plot [-5:60] 'clusinfo.out' u ((\$1-2)*20.+\$2):(\$4)
+pause -1
+set title "Residuals of the fit (same order as in fit.out)"
+set xtics autofreq
+set ylabel "energy"
+set xlabel "line number in fit.out"
+plot 'fit.out' u 4
+pause -1
+set title "Fitted vs Calculated Energies"
+set ylabel "predicted energy"
+set xlabel "actual energy"
+set nokey
+plot \
+'fit.out' u 2:3 w p 1,x
+pause -1
+END
+gnuplot mapsrep.gnu
+if ( $status == 1 ) then
+  echo Error running gnuplot or ...
+  echo You do not have gnuplot installed.
+  echo You can download gnuplot from "http://www.gnuplot.info/"
+endif

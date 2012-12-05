@@ -1,0 +1,28 @@
+#!/bin/csh
+if ( x$1 == "x-u" ) then
+  shift
+  if ( "x"$1 == "x" ) then
+    sed 's/$//g'
+  else
+    foreach file ( $* )
+      cp $file ${file}.bak
+      cat ${file}.bak | sed 's/$//g' >! $file
+#      rm -f ${file}.bak
+    end
+  endif
+else if ( x$1 == "x-p" ) then
+  shift
+  if ( "x"$1 == "x" ) then
+    awk '{print $0 "";}'
+  else
+    foreach file ( $* )
+      cp $file ${file}.bak
+      cat ${file}.bak | awk '{print $0 "";}' >! $file
+#      rm -f ${file}.bak
+    end
+  endif
+else
+  echo "converts text files to unix (-u) or to pc (-p) format."
+  echo "Syntax: fixeol -u|-p [file1, file2 ...]"
+  exit
+endif

@@ -122,7 +122,7 @@ August 2012
  <xsl:template match="pre">
   <xsl:text>{\tt </xsl:text>
   <xsl:call-template name="normalizespace">
-   <xsl:with-param name="a" select="."/>
+   <xsl:with-param name="a" select="str:replace(., '_','\_')"/>
   </xsl:call-template>
   <xsl:text>}</xsl:text>
  </xsl:template>
@@ -172,7 +172,7 @@ August 2012
 
  <xsl:template match="filename">
   <xsl:text>{\usefont{T1}{lmtt}{b}{n}  </xsl:text>
-  <xsl:value-of select="."/>
+  <xsl:value-of select="str:replace(.,'_','\_')"/>
   <xsl:text>}</xsl:text>
  </xsl:template>
 <xsl:template name="attref">

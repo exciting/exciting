@@ -1,0 +1,176 @@
+#!/bin/csh
+
+if ( $#argv == 0 || x"$1" == "x-h" ) then
+  cat - <<EOF
+Syntax: pollmach [-f] [-e] [-m alternate_machine_configuration_file] [-s] [-w] command_to_run
+
+This command periodically checks the load on various machines
+(specified in the file ~/.machines.rc)
+and looks for subdirectories containing a file called "wait".
+If the load on a machine is sufficiently low, it executes command_to_run
+on that machine, in the directory where the oldest wait file lies.
+A default ~/.machines.rc file is created the first time the chl command
+is run. The format of the file is explained in the comments therein.
+If no ~/.machines.rc file exists, command_to_run is run sequentially on
+the local computer in each directory containing a "wait" file.
+This is the single-machine mode.
+
+When using this command with maps, command_to_run will typically be runstruct_vasp
+
+The -m option overrides the default ~/.machines.rc (it is optional).
+
+The -e option specifies that the command should terminate when no more
+"wait" files are to be found (only works in single-machine (sequential) mode,
+when no ~/.machines.rc file is given).
+
+The -f option forces the command to run even if of pollmach_is_running file exists.
+
+The -s option cause pollmach to self-manage the load (it does not poll the nodes for their loads
+but instead keeps track of where it sends a job and does not send any other job to that node until it is done.
+The first column in the machine_configuration_file is ignored and can be omitted.
+
+The -w option tells pollmach to wait until all sub processes have finished before quitting.
+
+ To cleanly stop this program, type
+        touch stoppoll
+EOF
+  exit
+endif
+
+set machinefile="~/.machines.rc"
+
+while ( $#argv != 0 )
+  switch ("$1")
+    case "-f":
+        set forcerun=1
+    breaksw
+    case "-e":
+	set exitwhendone=1
+    breaksw
+    case "-m":
+	set machinefile="$2"
+	shift
+    breaksw
+    case "-s":
+	set usesema=1
+    breaksw
+    case "-w":
+	set waitforchildren=1
+    breaksw
+    default:
+	break
+  endsw
+  shift
+end
+
+if ( -e pollmach_is_running && ! $?forcerun ) then
+  echo pollmach is already running. Aborting.
+  echo To override this behavior, type rm pollmach_is_running or use -f option
+  exit 1
+endif
+
+which $1 >& /dev/null
+if ( $status == 1 ) then
+  echo Cannot find command $1
+  exit 1
+endif
+
+touch pollmach_is_running
+
+set commandtorun="$*"
+
+if ( ! -e $machinefile ) then
+  echo Warning: File $machinefile not found, running in single machine mode...
+  echo for more information on the multiple machine mode type chl
+
+  while (! -e stoppoll)
+    find . -name wait |& grep -q wait
+    if ($status == 1) then
+      if ( $?exitwhendone ) goto myexit
+      while (-e ready)
+        sleep 3
+      end
+      touch ready
+      while (-e ready)
+        sleep 3
+      end
+    endif
+
+    pushd `find . -name wait -printf "%A@ %p\n" |& sed 's+/wait++g' | sort -n -r | tail -1 | awk '{print $2}'` >& /dev/null
+    rm -f wait
+    echo Running in $PWD
+    $commandtorun < /dev/null
+    echo Done running in $PWD
+    popd >& /dev/null
+  end
+
+else
+
+  if ( $?usesema ) then
+    rm -f pollmachload*.tmp
+    grep -v -e '^#' -e '^set' $machinefile | awk 'BEGIN {n=1;} {print "0" > "pollmachload"n".tmp"; n++;}'
+  endif
+  set waitbetweenpoll=`grep '^set ' $machinefile | getvalue waitbetweenpoll`
+  while (! -e stoppoll)
+    find . -name wait |& grep -q wait
+    if ($status == 1) then
+      while (-e ready)
+        sleep 3
+      end
+      touch ready
+      while (-e ready)
+        if (-e stoppoll) goto myexit
+        sleep 3
+      end
+    endif
+
+    if ( $?usesema ) then
+      while (1)
+        if (-e stoppoll) goto myexit
+        grep -q '^0$' pollmachload*.tmp
+        if ( $status == 0 ) break
+        sleep $waitbetweenpoll
+      end
+      set nodenumber=`grep -l '^0$' pollmachload*.tmp | tail -1 | sed -e 's/pollmachload//g' -e 's/.tmp//g'`
+      set node=`grep -v -e '^#' -e '^set' $machinefile | tail +$nodenumber | head -1 | sed 's/^.*+//g'`
+      set curdir=`find . -name wait -printf "%A@ %p\n" |& sed 's+/wait++g' | sort -n -r | tail -1 | awk '{print $2}'` >& /dev/null
+      rm -f ${curdir}/wait
+      (echo 1 >! pollmachload${nodenumber}.tmp ; \
+       pushd $curdir; \
+       echo Running in $PWD on $nodenumber ; \
+       $commandtorun "$node" < /dev/null ; \
+       echo Done running in $PWD on $nodenumber; \
+       popd >& /dev/null ; \
+       echo 0 >! pollmachload${nodenumber}.tmp ) &
+      sleep $waitbetweenpoll
+
+    else
+
+      while ( 1 )
+        if (-e stoppoll) goto myexit
+        set node=`minload -m $machinefile`
+        if ( "$node" != "none" ) break
+        sleep $waitbetweenpoll
+      end
+
+      pushd `find . -name wait -printf "%A@ %p\n" |& sed 's+/wait++g' | sort -n -r | tail -1 | awk '{print $2}'` >& /dev/null
+      rm -f wait
+      echo Running in $PWD on $node
+      ($commandtorun "$node" < /dev/null ; echo Done running in $PWD on $node) &
+      popd >& /dev/null
+      sleep $waitbetweenpoll
+    endif
+  end
+endif
+
+myexit:
+rm -f stoppoll
+if (-e ready) then
+  rm -f ready
+endif
+
+if ( $?waitforchildren ) then
+  wait
+endif
+
+rm -f pollmach_is_running
