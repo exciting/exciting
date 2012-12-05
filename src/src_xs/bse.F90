@@ -268,16 +268,15 @@ Subroutine bse
                     ! add exchange term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('RPA', 'singlet')
-                        	ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
-                           & (ist1, ist3, ist2, ist4) * &
+                        ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
+                           & (ist1-nsta1+1, ist3-nsta2+1, ist2-nsta1+1, ist4-nsta2+1) * &
                            & kdocc (s1) * 0.5
                         End Select
                     ! add correlation term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('singlet', 'triplet')
-                        	ham (s1, s2) = ham (s1, s2) - sccli (ist1, &
-                           & ist3, ist2, ist4) * &
-                           & kdocc (s1)	* 0.5						
+                        ham (s1, s2) = ham (s1, s2) - sccli (ist1-nsta1+1, &
+                           & ist3-nsta2+1, ist2-nsta1+1, ist4-nsta2+1) * kdocc (s1) * 0.5
                         End Select
                      End Do
                   End Do
