@@ -1,6 +1,7 @@
+
 ! input species; if empty all elements of species.dat file will be generated
-!inspecies
-!  'Si'
+inspecies
+  'Si'
 
 ! core-valence cut-off energy (Hartree); default is -3.5d0
 ecvcut
@@ -12,11 +13,11 @@ esccut
 
 ! string for description of method, written to the species files
 apwdescr
-  'APW+lo/LAPW basis set'
+  'NEW'
 
 ! string contained in filename appended after the species symbol string
 suffix
-  ''
+  'APW_LAPW'
 
 ! APW-block
 ! dm ........ matching order
@@ -55,8 +56,31 @@ fullsearchlocorbsc
 
 ! energy convergence tolerance for Dirac equation solver
 !epsedirac
-!  1.d-11
+!  1.d-10
 
 ! potential convergence tolerance for SCF of atom
 !epspot
-!  1.d-6
+!  1.d-7
+
+
+
+!------------------------------------------------------------------------------!
+
+
+
+! Parameter sets for default cutoffs for atomistic calculation.
+
+! parameterset corresponding to some of the shipped species-files
+!epsedirac
+!  1.d-10
+
+!epspot
+!  1.d-7  
+
+! parameterset corresponding to original source code of species program -
+! this is the default setting
+!epsedirac
+!  1.d-11
+
+!epspot
+!  1.d-6 
