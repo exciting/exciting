@@ -299,8 +299,7 @@ subroutine calcepsilon(iqp)
               ! Rotate M^i_{cm}
               !
               call zgemm('c','n',locmatsiz,dimtk,locmatsiz, &
-             &   zone,rotmat(1:locmatsiz,1:locmatsiz), &
-             &   locmatsiz,micm,locmatsiz,zzero,temp,locmatsiz)
+             &  zone,rotmat,matsiz,micm,locmatsiz,zzero,temp,locmatsiz)
             else
               temp = micm
             end if
