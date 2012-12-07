@@ -3,26 +3,12 @@
   <sp chemicalSymbol="H" name="hydrogen" z="-1.00000" mass="1837.362220">
     <muffinTin rmin="0.200000E-05" radius="1.1000" rinf="28.6988" radialmeshPoints="200"/>
     <atomicState n="1" l="0" kappa="1" occ="1.00000" core="false"/>
-    <basis order="2">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
-      <exception l="0">
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      </exception>
-      <exception l="1">
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      </exception>
+    <basis>
+      <default type="lapw" trialEnergy="0.1500" searchE="false"/>
+      <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
     </basis>
-    <lorb l="0">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-    </lorb>
-    <lorb l="1">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-    </lorb>
-    <!-- Exciting code version : Lithium-->
-    <!-- Description of method:-->
-    <!-- APW+lo/LAPW basis set -->
+    <!-- Exciting code version: Lithium -->
+    <!-- Generation Scheme: simple -->
   </sp>
 </spdb>

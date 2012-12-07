@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Ge" name="germanium" z="-32.0000" mass="132359.9329">
-    <muffinTin rmin="0.353553E-06" radius="2.0000" rinf="41.0986" radialmeshPoints="500"/>
+    <muffinTin rmin="0.353553E-06" radius="2.0000" rinf="37.4309" radialmeshPoints="500"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -14,50 +14,19 @@
     <atomicState n="4" l="0" kappa="1" occ="2.00000" core="false"/>
     <atomicState n="4" l="1" kappa="1" occ="1.00000" core="false"/>
     <atomicState n="4" l="1" kappa="2" occ="1.00000" core="false"/>
-    <basis order="2">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
-      <exception l="0">
+    <basis>
+      <default type="lapw" trialEnergy="0.1500" searchE="false"/>
+      <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <custom l="2" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <custom l="3" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <lo l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      </exception>
-      <exception l="1">
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      </exception>
-      <exception l="2">
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      </exception>
-      <exception l="3">
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      </exception>
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.0975" searchE="true"/>
+      </lo>
     </basis>
-    <lorb l="0">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-    </lorb>
-    <lorb l="1">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-    </lorb>
-    <lorb l="2">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-    </lorb>
-    <lorb l="3">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-    </lorb>
-    <lorb l="2">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="0" trialEnergy="-1.0225" searchE="true"/>
-    </lorb>
-    <lorb l="0">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="0" trialEnergy="-0.3630" searchE="true"/>
-    </lorb>
-    <!-- Exciting code version : Lithium-->
-    <!-- Description of method:-->
-    <!-- APW+lo/LAPW basis set -->
+    <!-- Exciting code version: Lithium -->
+    <!-- Generation Scheme: simple -->
   </sp>
 </spdb>
