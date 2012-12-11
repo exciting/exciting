@@ -205,16 +205,10 @@ Subroutine bse
         allocate(eval0(nstsv,nkptnr))
         eval0(:,:)=evalsv(:,:)
         
-        ! if scissor correction is presented, nullify it
+        ! if scissor correction is presented, one should nullify it
         input%xs%scissor=0.0d0
         
-        ! Read quasi particle energies
-        open(50, File='EFERMIQP.OUT',Action='READ',Form='FORMATTED',Status='OLD')
-        read(50,*) efermi
-        close(50)
-        write(unitout,'("  Fermi energy is read from EFERMIQP.OUT : Efermi=", &
-       &  f12.6)') efermi
-        
+        ! Read QP Fermi energies and eigenvalues from file
         call getevalqp(nkptnr)
         Write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
 

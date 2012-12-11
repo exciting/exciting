@@ -42,24 +42,24 @@ subroutine getevalqp(nkp2)
         stop
       end if
       
-      inquire(IoLength=Recl) nkp1, v, ibgw, nbgw
+      inquire(IoLength=Recl) nkp1, ibgw, nbgw
       open (70, File=file, Action='READ', Form='UNFORMATTED', &
      &  Access='DIRECT', Recl=Recl)
-      read(70, Rec=1) nkp1, v, ibgw, nbgw
+      read(70, Rec=1) nkp1, ibgw, nbgw
       close(70)
       
       allocate(kvecs1(1:3,nkp1))
       allocate(eqp1(ibgw:nbgw,nkp1))
       allocate(eks1(ibgw:nbgw,nkp1))
       
-      inquire(IoLength=Recl) nkp1, kvecs1(1:3,1), ibgw, nbgw, &
-        eqp1(ibgw:nbgw,1), eks1(ibgw:nbgw,1)
+      inquire(IoLength=Recl) nkp1, ibgw, nbgw, &
+     &  kvecs1(1:3,1), eqp1(ibgw:nbgw,1), eks1(ibgw:nbgw,1)
       open (70, File=file, Action='READ', Form='UNFORMATTED', &
      &  Access='DIRECT', Recl=Recl)
       
       do ik = 1, nkp1
-        read(70, Rec=ik) nk, kvecs1(:,ik), ib, nb, &
-          eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik)
+        read(70, Rec=ik) nk, ib, nb, &
+       &  kvecs1(:,ik), eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik)
         
         !write(fgw,*) '# ik    kvecs1    ibgw,    nbgw'
         !write(fgw,*) ik, kvecs1(:,ik), ib, nb
@@ -99,7 +99,7 @@ subroutine getevalqp(nkp2)
             evalsv(ib,ik)=evalsv(ib,ik)+real(de2(ik,ib))
          enddo 
       enddo
-      
+
       deallocate(de1,de2)
       deallocate(kvecs1,eqp1,eks1)
 

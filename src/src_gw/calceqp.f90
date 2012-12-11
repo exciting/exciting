@@ -162,11 +162,11 @@
            enddo ! ie
          enddo ! ikp
 
-!        to calculate Fermi energy there is no need to use all available
-!        unoccupied states
+!        to calculate Fermi energy it is better to use 
+!        only limited low energy amount unoccupied states
          nb=int(chgval/2.d0)+11
-         call fermi(nkpt,nb,eqp(ibgw:nb,:),ntet,tnodes,wtet,tvol, &
-        &    nvelgw,.false.,eferqp,egap)
+         call fermi(nkpt,nb-ibgw+1,eqp(ibgw:nb,:),ntet,tnodes,wtet,tvol, &
+        &  nvelgw,.false.,eferqp,egap)
 
          if(it.eq.0) then 
             egap0=egap
@@ -200,36 +200,36 @@
       if(ierr.ne.0) then 
          write(fgw,*) 'WARNING(calceqp): --- Failed to converge!!!'
       endif 
-!      
-!     Write quasi-particle energies into QPENE-eV.OUT
-!      
-      call writeqp(sigc,znorm)
+      
+!----------------------------------------
+!     Set QP fermi energy to zero
+!----------------------------------------
+      eqp(:,:)=eqp(:,:)-eferqp
+      eferqp=0.d0
 
 !----------------------------------------
 !     Save QP energies into binary file
 !----------------------------------------
-      Inquire (IoLength=Recl) nkpt, vkl(:,1), ibgw, nbgw, &
-        eqp(ibgw:nbgw,1), evaldft(ibgw:nbgw,1)
+      Inquire (IoLength=Recl) nkpt, ibgw, nbgw, &
+     &  vkl(:,1), eqp(ibgw:nbgw,1), evaldft(ibgw:nbgw,1)
       Open (70, File='EVALQP.OUT', Action='WRITE', Form='UNFORMATTED', &
      &   Access='DIRECT', status='REPLACE', Recl=Recl)
       do ikp = 1, nkpt
-        write(70, Rec=ikp) nkpt, vkl(:,ikp), ibgw, nbgw, &
-     &    eqp(ibgw:nbgw,ikp), evaldft(ibgw:nbgw,ikp)
+        write(70, Rec=ikp) nkpt, ibgw, nbgw, &
+     &    vkl(:,ikp), eqp(ibgw:nbgw,ikp), evaldft(ibgw:nbgw,ikp)
       end do ! ikp
       Close(70)
-
-!----------------------------------------
-!     QP Fermi energy
-!----------------------------------------  
-
-      Open(50, File='EFERMIQP.OUT', Action='WRITE', Form='FORMATTED')
-      Write(50,'(G18.10)') eferqp
-      Close(50)
-      
+!      
+!     Write quasi-particle energies into QPENE-eV.OUT
+!      
+      call writeqp(sigc,znorm)
+!      
 !     KS band structure
+!
       call bandanaly(ibgw,nbgw,nkpt,vkl,evaldft(ibgw:nbgw,:),efermi,"KS",fgw)
-
+!
 !     QP band structure
+!
       call bandanaly(ibgw,nbgw,nkpt,vkl,eqp(ibgw:nbgw,:),eferqp,"G0W0",fgw)
 
       deallocate(a)
