@@ -56,60 +56,117 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e, tfnd)
       Real (8), Parameter :: erange1 = 3.d0
       Real (8), Parameter :: edefault1 = 1.d0
       Integer :: ie, nn
-      Real (8) :: de, et, eb, t, tp
+      Real (8) :: de, et, eb, t0, t1, pt, pb, dl, dl0
       Real (8) :: u, uup, udn, upold, ddnold, dnold, du, dudn, dupold, &
      & duup, utst, dutst
       Real (8) :: e1, e2, eidn, eiup
   ! automatic arrays
       Real (8) :: p0 (nr), p1 (nr), q0 (nr), q1 (nr)
+      character(10) :: fname
+
       tfnd=.false.
+
+      de = Abs(de0)
+
+!     visualize the logarithmic derivative D_l
+      write(fname,'("dl_l=",i1,".dat")') l
+      write(*,*) fname
+      open(777,file=fname,action='write')
+      eb = -10.d0
+      do while (eb.le.30.d0)
+        call rschroddme(0, l, k, eb, np, nr, r, vr, nn, p0, p1, q0, q1)
+        t0 = p0(nr)
+        t1 = p1(nr)
+        if (dabs(t0)>1.0d-6) then
+          ! shifted value of the logarithmic derivative
+          dl = r(nr)*t1/t0+(l+1)/r(nr)
+          write(777,*) eb, dl
+        end if
+        eb = eb + de
+      end do ! eb
+      close(777)
+
+
       Select Case (trim(findlinentype))
+
+!-------------------------------------------
       Case ('simple')
-         tp = 0.d0
-     ! find the top of the band
-         de = Abs (de0)
-         et = e
-         Do ie = 1, maxstp
-            et = et + de
-            Call rschroddme (0, l, k, et, np, nr, r, vr, nn, p0, p1, &
-           & q0, q1)
-            t = p0 (nr)
-            If (ie .Gt. 1) Then
-               If (t*tp .Le. 0.d0) Then
-                  If (Abs(de) .Lt. etol) Go To 10
-                  de = - 0.5d0 * de
-               End If
-            End If
-            tp = t
-         End Do
-         Go To 30
-10       Continue
-     ! find the bottom of the band
-         de = - Abs (de0)
-         eb = et + 5.d0 * Abs (de0)
-         Do ie = 1, maxstp
-            eb = eb + de
-            Call rschroddme (0, l, k, eb, np, nr, r, vr, nn, p0, p1, &
-           & q0, q1)
-            t = p1 (nr)
-            If (ie .Gt. 1) Then
-               If (t*tp .Le. 0.d0) Then
-                  If (Abs(de) .Lt. etol) Go To 20
-                  de = - 0.5d0 * de
-               End If
-            End If
-            tp = t
-         End Do
-         Go To 30
-20       Continue
-     ! set the band energy to the mid-point
-         e = (et+eb) / 2.d0
+!-------------------------------------------
+         de = Abs(de0)
+
+!        find the Linearization Energy from the equation D_{l}(E)=-(l+1)/R_{MT}
+         eb = e
+         
+         call rschroddme(0, l, k, eb, np, nr, r, vr, nn, p0, p1, q0, q1)
+         t0 = p0(nr)
+         t1 = p1(nr)
+         if (dabs(t0)>1.0d-6) then
+           dl0 = r(nr)*t1/t0+(l+1)/r(nr)
+         else
+           dl0 = 1000.d0*dsign(1.d0,t0)*dsign(1.d0,t1)
+         end if
+        
+         do while (eb < 30.0d0)
+           eb = eb + de
+           call rschroddme(0, l, k, eb, np, nr, r, vr, nn, p0, p1, q0, q1)
+           t0 = p0(nr)
+           t1 = p1(nr)
+           if (dabs(t0)>1.0d-6) then
+             ! shifted value of the logarithmic derivative
+             dl = r(nr)*t1/t0+(l+1)/r(nr)
+             if (dl*dl0.le.0.d0) then
+               dl0 = dl
+               if (dabs(dl).le.1.0d0) then
+                 e = eb
+                 exit
+               end if
+             end if
+           end if
+         end do
+
+!        eb = -10.0d0
+!        call rschroddme(0, l, k, eb, np, nr, r, vr, nn, p0, p1, q0, q1)
+!        pt = p0(nr)
+!        pb = p1(nr)
+!        
+!        ! search up in the energy
+!        do while (eb < 30.0d0)
+!           
+!           eb = eb + de
+!           Call rschroddme(0, l, k, eb, np, nr, r, vr, nn, p0, p1, q0, q1)
+!          
+!           t0 = p0(nr)
+!           t1 = p1(nr)
+!           if (t1*pb .Le. 0.d0) then
+!             e1 = eb
+!             write(*,*) 'Node DOWN found: Ebottom=', e1
+!             pb = t1
+!             pt = t0
+!             ! search down in the energy
+!             do while (eb < 30.0d0)
+!              eb = eb + de
+!              Call rschroddme(0, l, k, eb, np, nr, r, vr, nn, p0, p1, q0, q1)
+!              t0 = p0(nr)
+!              if (t0*pt .Le. 0.d0) then
+!                e2 = eb
+!                write(*,*) 'Node UP found: Etop=', e2
+!                write(*,*) 'l=', l, '    LE=', 0.5d0*(e1+e2)
+!                exit
+!              end if
+!             end do
+!           end if
+!            
+!        end do ! eb
+         
          tfnd=.true.
 30       Continue
+
+!-------------------------------------------
       Case ('advanced')
+!-------------------------------------------
+
          de = de0
-         Call rschroddme (0, l, k, e, np, nr, r, vr, nn, p0, p1, q0, &
-        & q1)
+         Call rschroddme(0, l, k, e, np, nr, r, vr, nn, p0, p1, q0, q1)
          u = p0 (nr)
          du = p1 (nr)
          eiup = e
@@ -122,8 +179,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e, tfnd)
          ddnold = du
 11       Continue
          eiup = eiup + de
-         Call rschroddme (0, l, k, eiup, np, nr, r, vr, nn, p0, p1, q0, &
-        & q1)
+         Call rschroddme(0, l, k, eiup, np, nr, r, vr, nn, p0, p1, q0, q1)
          uup = p0 (nr)
          duup = p1 (nr)
          utst = upold * uup
@@ -141,8 +197,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e, tfnd)
          If ((e1 .Lt. ecutlow) .And. (eiup .Lt. ediffusebands)) Then
 21          Continue
             eidn = eidn - de
-            Call rschroddme (0, l, k, eidn, np, nr, r, vr, nn, p0, p1, &
-           & q0, q1)
+            Call rschroddme(0, l, k, eidn, np, nr, r, vr, nn, p0, p1, q0, q1)
             udn = p0 (nr)
             dudn = p1 (nr)
             utst = dnold * udn

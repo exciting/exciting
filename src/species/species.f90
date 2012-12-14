@@ -30,6 +30,8 @@ locorbsc=.true.
 searchlocorb=.false.
 fullsearchlocorbsc=.false.
 
+!===============================================================================
+
 ! get generation strategy from input file 'species.input'
 open(50,file='species.input',action='READ',status='OLD',form='FORMATTED', &
  iostat=iostat)
@@ -144,7 +146,7 @@ stop
 300 continue
 close(50)
 
-
+!===============================================================================
 
 open(40,file='species.dat',action='READ',status='OLD',form='FORMATTED')
 10 continue
