@@ -46,7 +46,7 @@ Subroutine init2
       If (input%structure%molecule) ngridq (:) = 1
 ! OEP, Hartree-Fock or RDMFT
       If ((input%groundstate%xctypenumber .Lt. 0) .Or. (task .Eq. 5) &
-     & .Or. (task .Eq. 6) .Or. (task .Eq. 300)) Then
+     & .Or. (task .Eq. 6) .Or. (task .Eq. 300) .Or.  (xctype(2) .Ge. 400)) Then
          ngridq (:) = input%groundstate%ngridk(:)
          redq = .False.
       End If
@@ -328,13 +328,13 @@ Subroutine init2
 !     OEP, Hartree-Fock and RDMFT variables     !
 !-----------------------------------------------!
       If ((input%groundstate%xctypenumber .Lt. 0) .Or. (task .Eq. 5) &
-     & .Or. (task .Eq. 6) .Or. (task .Eq. 300)) Then
+     & .Or. (task .Eq. 6) .Or. (task .Eq. 300) .Or.  (xctype(2) .Ge. 400)) Then
 ! determine the 1/q^2 integral weights if required
          Call genwiq2
 ! output the 1/q^2 integrals to WIQ2.OUT
          Call writewiq2
       End If
-      If (input%groundstate%xctypenumber .Lt. 0) Then
+      If ((input%groundstate%xctypenumber .Lt. 0) .Or.  (xctype(2) .Ge. 400)) Then
 ! initialise OEP residual magnitude
          resoep = 1.d0
 ! find maximum core states over all species

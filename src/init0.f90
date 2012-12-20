@@ -119,7 +119,7 @@ Subroutine init0
             Write (*,*)
             Stop
          End Select
-         If (input%groundstate%xctypenumber .Lt. 0) Then
+         If ((input%groundstate%xctypenumber .Lt. 0).Or. (xctype(2) .Ge. 400)) Then
             Write (*,*)
             Write (*, '("Error(init0): spin-spirals do not work with th&
            &e OEP method")')

@@ -26,7 +26,7 @@ Subroutine oepmain
 ! local variables
       Integer :: is, ia, ias, ik
       Integer :: ir, irc, it, idm
-      Real (8) :: tau, resp, t1
+      Real (8) :: tau, resp, t1,alpha_x
 ! allocatable arrays
       Real (8), Allocatable :: rflm (:)
       Real (8), Allocatable :: rfmt (:, :, :)
@@ -61,6 +61,12 @@ Subroutine oepmain
          Allocate (rvfir(ngrtot, ndmag))
          Allocate (dbxmt(lmmaxvr, nrcmtmax, natmtot, ndmag))
          Allocate (dbxir(ngrtot, ndmag))
+      End If
+! Value of the mixing paramater alpha for exact exchange
+      If (xctype(2) .Ge. 400) Then
+         alpha_x=0.25
+      Else
+         alpha_x=1.0
       End If
 ! zero the complex potential
       zvxmt (:, :, :) = 0.d0
@@ -192,8 +198,9 @@ Subroutine oepmain
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
             Do ir = 1, nrmt (is)
-               vxcmt (:, ir, ias) = vxcmt (:, ir, ias) + rfmt (:, ir, &
+               vxcmt (:, ir, ias) = vxcmt (:, ir, ias) + alpha_x*rfmt (:, ir, &
               & ias)
+               ! check if alpha_x needed also here for hybrids
                Do idm = 1, ndmag
                   bxcmt (:, ir, ias, idm) = bxcmt (:, ir, ias, idm) + &
                  & rvfmt (:, ir, ias, idm)
@@ -201,8 +208,9 @@ Subroutine oepmain
             End Do
          End Do
       End Do
-      vxcir (:) = vxcir (:) + dble (zvxir(:))
+      vxcir (:) = vxcir (:) + alpha_x* (dble (zvxir(:)))
       Do idm = 1, ndmag
+! check if alpha_x also needed here for hybrids
          bxcir (:, idm) = bxcir (:, idm) + dble (zbxir(:, idm))
       End Do
 ! symmetrise the exchange potential and field

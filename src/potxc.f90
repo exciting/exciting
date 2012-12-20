@@ -270,8 +270,8 @@ else
   end if
   vxcir(1:ngrtot)=vx(1:ngrtot)+vc(1:ngrtot)
 end if
-! optimised effective potential
-if (xctype(1).lt.0) call oepmain
+! OEP or HYBRIDS 
+if ((xctype(1).lt.0) .Or. (xctype(2) .Ge. 400)) call oepmain
 ! symmetrise the exchange-correlation potential
 call symrf(1,vxcmt,vxcir)
 if (associated(input%groundstate%spin)) then

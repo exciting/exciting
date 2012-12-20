@@ -149,9 +149,9 @@ Subroutine energy
 !-------------------------!
 ! exchange energy from the density
       engyx = rfinp (1, rhomt, exmt, rhoir, exir)
-! exact exchange for OEP-EXX or Hartree-Fock on last iteration
+! exact exchange for OEP-EXX, HYBRIDS or Hartree-Fock on last iteration
       If ((input%groundstate%xctypenumber .Lt. 0) .Or. (task .Eq. 5) &
-     & .Or. (task .Eq. 6)) Then
+     & .Or. (task .Eq. 6) .Or. (xctype(2) .Ge. 400)) Then
          If (tlast) Call exxengy
       End If
 !----------------------------!

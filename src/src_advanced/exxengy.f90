@@ -13,7 +13,7 @@ Subroutine exxengy
 ! local variables
       Integer :: is, ia, nrc, m1, m2
       Integer :: ik, ist, jst
-      Real (8) :: evv, ecv, ecc
+      Real (8) :: evv, ecv, ecc,alpha_x
       Complex (8) zt1
 ! allocatable arrays
       Complex (8), Allocatable :: wfcr1 (:, :, :)
@@ -32,6 +32,12 @@ Subroutine exxengy
       evv = 0.d0
       ecv = 0.d0
       ecc = 0.d0
+! Value of the mixing paramater alpha for exact exchange
+      If (xctype(2) .Ge. 400) Then
+         alpha_x=0.25
+      Else
+         alpha_x=1.0 
+      End If  
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
       Do ik = 1, nkpt
@@ -87,7 +93,8 @@ Subroutine exxengy
          End Do
       End Do
 ! total exchange energy
-      engyx = evv + ecv + ecc
+!      engyx = evv + ecv + ecc
+      engyx = engyx + alpha_x*(evv + ecv + ecc)
       Deallocate (wfcr1, wfcr2, zrhomt, zvclmt, zfmt)
       Return
 End Subroutine
