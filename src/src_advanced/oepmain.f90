@@ -26,7 +26,7 @@ Subroutine oepmain
 ! local variables
       Integer :: is, ia, ias, ik
       Integer :: ir, irc, it, idm
-      Real (8) :: tau, resp, t1 !,alpha_x
+      Real (8) :: tau, resp, t1 
 ! allocatable arrays
       Real (8), Allocatable :: rflm (:)
       Real (8), Allocatable :: rfmt (:, :, :)
@@ -62,12 +62,6 @@ Subroutine oepmain
          Allocate (dbxmt(lmmaxvr, nrcmtmax, natmtot, ndmag))
          Allocate (dbxir(ngrtot, ndmag))
       End If
-! Value of the mixing paramater alpha for exact exchange
-!      If (xctype(2) .Ge. 400) Then
-!         alpha_x=0.25
-!      Else
-!         alpha_x=1.0
-!      End If
 ! zero the complex potential
       zvxmt (:, :, :) = 0.d0
       zvxir (:) = 0.d0
