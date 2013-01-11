@@ -23,8 +23,8 @@
 #define XC_GGA_X_B86_MGC      105 /* Becke 86 Xalfa,beta,gamma (with mod. grad. correction) */
 
 static inline void
-func(const XC(gga_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
+func(const XC(func_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
 {
   static const FLOAT beta  = 0.00375;
   static const FLOAT gamma = 0.007;
@@ -44,7 +44,6 @@ func(const XC(gga_type) *p, int order, FLOAT x,
   df2 = ddp*x;
 
   *dfdx = (df1*f2 - f1*df2)/(f2*f2);
-  *ldfdx= beta/X_FACTOR_C;
 
   if(order < 2) return;
 
@@ -64,6 +63,7 @@ const XC(func_info_type) XC(func_info_gga_x_b86_mgc) = {
   "AD Becke, J. Chem. Phys 84, 4524 (1986)\n"
   "AD Becke, J. Chem. Phys 85, 7184 (1986)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   NULL, NULL, NULL,
   work_gga_x
 };

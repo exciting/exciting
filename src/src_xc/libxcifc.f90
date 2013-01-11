@@ -269,7 +269,8 @@ do k=2,3
       call xc_f90_info_name(info,name)
 ! get mixing coefficient for exchange  
       WRITE(*,*) "ex_coef before call",ex_coef 
-      call xc_f90_hyb_gga_exx_coef(p,ex_coef) 
+       call xc_f90_hyb_exx_coef(p,ex_coef)
+!      call xc_f90_hyb_gga_exx_coef(p,ex_coef) 
       WRITE(*,*) "ex_coef after call",ex_coef
       call xc_f90_func_end(p)
 ! post-processed gradients required

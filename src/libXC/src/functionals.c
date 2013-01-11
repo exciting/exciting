@@ -17,15 +17,49 @@
 */
 
 #include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 #include <assert.h>
 
 #include "xc.h"
+#include "funcs_key.c"
 
 extern XC(func_info_type) 
   *XC(lda_known_funct)[], 
   *XC(gga_known_funct)[],
   *XC(hyb_gga_known_funct)[],
-  *XC(mgga_known_funct)[];
+  *XC(mgga_known_funct)[],
+  *XC(hyb_mgga_known_funct)[];
+
+
+/*------------------------------------------------------*/
+int XC(functional_get_number)(const char *name)
+{
+  int ii;
+
+  for(ii=0;;ii++){
+    if(XC(functional_keys)[ii].number == -1)
+      return -1;
+    if(strncasecmp(XC(functional_keys)[ii].name, name, 256) == 0) 
+      return XC(functional_keys)[ii].number;
+  }
+}
+
+
+/*------------------------------------------------------*/
+char *XC(functional_get_name)(int number)
+{
+  int ii;
+
+  for(ii=0;;ii++){
+    if(XC(functional_keys)[ii].number == -1)
+      return NULL;
+    if(XC(functional_keys)[ii].number == number)
+      /* return duplicated: caller has the responsibility to dealloc string */
+      return strdup(XC(functional_keys)[ii].name);
+  }
+}
+
 
 /*------------------------------------------------------*/
 int XC(family_from_id)(int id, int *family, int *number)
@@ -68,6 +102,15 @@ int XC(family_from_id)(int id, int *family, int *number)
     }
   }
 
+  /* or is it a hybrid meta GGA? */
+  for(ii=0; XC(hyb_mgga_known_funct)[ii]!=NULL; ii++){
+    if(XC(hyb_mgga_known_funct)[ii]->number == id){
+      if(family != NULL) *family = XC_FAMILY_HYB_MGGA;
+      if(number != NULL) *number = ii;
+      return XC_FAMILY_HYB_MGGA;
+    }
+  }
+
   return XC_FAMILY_UNKNOWN;
 }
 
@@ -84,23 +127,23 @@ int XC(func_init)(XC(func_type) *p, int functional, int nspin)
 
   switch(XC(family_from_id)(functional, NULL, &number)){
   case(XC_FAMILY_LDA):
-    p->lda  = (XC(lda_type) *) malloc(sizeof(XC(lda_type)));
     p->info = XC(lda_known_funct)[number];
     return XC(lda_init)(p, p->info, nspin);
 
   case(XC_FAMILY_GGA):
-    p->gga = (XC(gga_type) *) malloc(sizeof(XC(gga_type)));
     p->info = XC(gga_known_funct)[number];
     return XC(gga_init)(p, p->info, nspin);
 
   case(XC_FAMILY_HYB_GGA):
-    p->gga = (XC(gga_type) *) malloc(sizeof(XC(gga_type)));
     p->info = XC(hyb_gga_known_funct)[number];
     return XC(gga_init)(p, p->info, nspin);
 
   case(XC_FAMILY_MGGA):
-    p->mgga = (XC(mgga_type) *) malloc(sizeof(XC(mgga_type)));
     p->info = XC(mgga_known_funct)[number];
+    return XC(mgga_init)(p, p->info, nspin);
+
+  case(XC_FAMILY_HYB_MGGA):
+    p->info = XC(hyb_mgga_known_funct)[number];
     return XC(mgga_init)(p, p->info, nspin);
 
   default:
@@ -117,20 +160,37 @@ void XC(func_end)(XC(func_type) *p)
   switch(p->info->family){
   case(XC_FAMILY_LDA):
     XC(lda_end)(p);
-    free(p->lda);
     break;
 
   case(XC_FAMILY_GGA):
   case(XC_FAMILY_HYB_GGA):
     XC(gga_end)(p);
-    free(p->gga);
     break;
 
   case(XC_FAMILY_MGGA):
+  case(XC_FAMILY_HYB_MGGA):
     XC(mgga_end)(p);
-    free(p->mgga);
     break;
   }
 
   p->info = NULL;  
+}
+
+/* returns the mixing coefficient for the hybrid GGAs */
+FLOAT XC(hyb_exx_coef)(const XC(func_type) *p)
+{
+   assert(p!=NULL);
+ 
+  return p->cam_alpha;
+}
+
+
+/* returns the mixing coefficient for the hybrid GGAs */
+void XC(hyb_cam_coef)(const XC(func_type) *p, FLOAT *omega, FLOAT *alpha, FLOAT *beta)
+{
+  assert(p!=NULL);
+
+  *omega = p->cam_omega;
+  *alpha = p->cam_alpha;
+  *beta  = p->cam_beta;
 }

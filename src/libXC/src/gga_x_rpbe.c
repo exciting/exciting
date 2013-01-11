@@ -30,31 +30,22 @@ typedef struct{
 
 
 static void 
-gga_x_rpbe_init(void *p_)
+gga_x_rpbe_init(XC(func_type) *p)
 {
-  XC(gga_type) *p = (XC(gga_type) *)p_;
-
-  assert(p->params == NULL);
+  assert(p!=NULL && p->params == NULL);
   p->params = malloc(sizeof(gga_x_rpbe_params));
 
-  XC(gga_x_rpbe_set_params_)(p, 0.8040, 0.00361218645365094697);
+  /* same parameters as standard PBE */
+  XC(gga_x_rpbe_set_params)(p, 0.8040, 0.2195149727645171);
 }
 
 
 void 
 XC(gga_x_rpbe_set_params)(XC(func_type) *p, FLOAT kappa, FLOAT mu)
 {
-  assert(p != NULL && p->gga != NULL);
-  XC(gga_x_rpbe_set_params_)(p->gga, kappa, mu);
-}
-
-
-void 
-XC(gga_x_rpbe_set_params_)(XC(gga_type) *p, FLOAT kappa, FLOAT mu)
-{
   gga_x_rpbe_params *params;
 
-  assert(p->params != NULL);
+  assert(p != NULL && p->params != NULL);
   params = (gga_x_rpbe_params *) (p->params);
 
   params->kappa = kappa;
@@ -63,15 +54,15 @@ XC(gga_x_rpbe_set_params_)(XC(gga_type) *p, FLOAT kappa, FLOAT mu)
 
 
 /* RPBE: see PBE for more details */
-static inline void 
-func(const XC(gga_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
+void XC(gga_x_rpbe_enhance) 
+  (const XC(func_type) *p, int order, FLOAT x, 
+   FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
 {
   FLOAT kappa, mu, f0, df0, d2f0;
 
   assert(p->params != NULL);
   kappa = ((gga_x_rpbe_params *) (p->params))->kappa;
-  mu    = ((gga_x_rpbe_params *) (p->params))->mu;
+  mu    = ((gga_x_rpbe_params *) (p->params))->mu*X2S*X2S;
 
   f0 = exp(-mu*x*x/kappa);
   *f = 1.0 + kappa*(1.0 - f0);
@@ -81,7 +72,6 @@ func(const XC(gga_type) *p, int order, FLOAT x,
   df0 = -2.0*x*mu/kappa*f0;
   
   *dfdx  = -kappa*df0;
-  *ldfdx = mu;
 
   if(order < 2) return;
 
@@ -90,7 +80,9 @@ func(const XC(gga_type) *p, int order, FLOAT x,
 }
 
 
+#define func XC(gga_x_rpbe_enhance)
 #include "work_gga_x.c"
+
 
 const XC(func_info_type) XC(func_info_gga_x_rpbe) = {
   XC_GGA_X_RPBE,
@@ -99,6 +91,7 @@ const XC(func_info_type) XC(func_info_gga_x_rpbe) = {
   XC_FAMILY_GGA,
   "B Hammer, LB Hansen and JK Nørskov, Phys. Rev. B 59, 7413 (1999)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_rpbe_init, 
   NULL, NULL,
   work_gga_x

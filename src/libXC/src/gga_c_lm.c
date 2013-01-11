@@ -30,10 +30,9 @@
 #define XC_GGA_C_LM          137 /* Langreth and Mehl correlation          */
 
 static void 
-gga_c_lm_init(void *p_)
+gga_c_lm_init(XC(func_type) *p)
 {
-  XC(gga_type) *p = (XC(gga_type) *)p_;
-
+  p->n_func_aux  = 1;
   p->func_aux    = (XC(func_type) **) malloc(1*sizeof(XC(func_type) *));
   p->func_aux[0] = (XC(func_type) *)  malloc(  sizeof(XC(func_type)));
 
@@ -41,112 +40,122 @@ gga_c_lm_init(void *p_)
 }
 
 
-static void 
-gga_c_lm_end(void *p_)
+static inline void 
+func(const XC(func_type) *p, XC(gga_work_c_t) *r)
 {
-  XC(gga_type) *p = (XC(gga_type) *)p_;
-
-  free(p->func_aux[0]);
-  free(p->func_aux);
-}
-
-
-static void 
-my_gga_c_lm(const void *p_, const FLOAT *rho, const FLOAT *sigma,
-	 FLOAT *e, FLOAT *vrho, FLOAT *vsigma,
-	 FLOAT *v2rho2, FLOAT *v2rhosigma, FLOAT *v2sigma2)
-{
-  XC(gga_type) *p = (XC(gga_type) *)p_;
-  XC(perdew_t) pt;
-
-  int order;
-  FLOAT me;
-  FLOAT H, dHdx1, d2Hdx12, dx1dt, dx1dphi;
-  FLOAT grad_to_t;
-  FLOAT x1;
-
-  const FLOAT a1 = 4.28e-3/2.0; /* The factor of 2 converts from Rydberg to Hartree */
   const FLOAT a2 = -0.262;
-  const FLOAT a3 = 7.0/9.0;
+  const FLOAT a3 = -7.0/(9.0*2.0*M_CBRT2*M_CBRT2);
 
-  order = 0;
-  if(vrho   != NULL) order = 1;
-  if(v2rho2 != NULL) order = 2;
+  FLOAT a1, alpha;
+  FLOAT opz, omz, opz13, omz13, DD, dDDdz, d2DDdz2;
+  FLOAT aux1, aux2, daux1drs, daux1dxt, d2aux1drs2, d2aux1dxt2, d2aux1drsxt;
+  FLOAT t1, t2, dt1drs, dt1dz, dt1dxt, dt2dz, d2t1drs2, d2t1dxt2, d2t1dz2, d2t2dz2, d2t1drsz, d2t1drsxt, d2t1dzxt;
 
-  XC(perdew_params)(p, rho, sigma, order, &pt);
-  if(pt.dens < MIN_DENS) return;
+  XC(lda_work_t) pw;
 
-  grad_to_t = sqrt(4.0/M_PI)*POW(3*M_PI*M_PI, 1.0/6.0);
-  x1 = 2.0*grad_to_t*pt.phi*pt.t;
+  alpha = POW(4.0*M_PI/3.0, 1.0/6.0);
+  a1    = M_PI/(16.0*POW(3*M_PI*M_PI, 4/3)); /* 4.28e-3/2.0, where the 2 comes from the covertion from Ryd. to Hartree */
 
-  H = a1*x1*x1*(exp(a2*x1) - a3);
+  pw.order = r->order;
+  pw.rs[0] = SQRT(r->rs);
+  pw.rs[1] = r->rs;
+  pw.rs[2] = r->rs*r->rs;
+  pw.zeta  = r->zeta;
 
-  me = pt.ecunif + H;
-  if(e != NULL) *e = me;
+  XC(lda_c_hl_func)(p->func_aux[0], &pw);
 
-  if(order >= 1){
-    dHdx1      = a1*x1*((2.0 + x1*a2)*exp(a2*x1) - 2.0*a3);
-    dx1dphi    = 2.0*grad_to_t*  pt.t;
-    dx1dt      = 2.0*grad_to_t*pt.phi;
+  opz   = 1.0 + r->zeta;
+  omz   = 1.0 - r->zeta;
+  opz13 = CBRT(opz);
+  omz13 = CBRT(omz);
 
-    pt.dphi    = dHdx1 * dx1dphi;
-    pt.dt      = dHdx1 * dx1dt;
-    pt.decunif = 1.0;
+  DD = SQRT(opz*opz13*opz13 + omz*omz13*omz13)/M_SQRT2;
+
+  aux1 = exp(a2*r->xt/(alpha*pw.rs[0]));
+  aux2 = a1/(alpha*alpha*r->rs);
+
+  t1   = r->xt*r->xt*aux1/DD;
+  t2   = a3*(r->xs[0]*r->xs[0]*opz*opz13 + r->xs[1]*r->xs[1]*omz*omz13);
+
+  r->f = pw.zk + aux2*(t1 + t2);
+
+  if(r->order < 1) return;
+
+  dDDdz    =  5.0/(3.0*4.0*DD)*(opz13*opz13 - omz13*omz13);
+  daux1drs = -a2*r->xt/(2.0*alpha*r->rs*pw.rs[0])*aux1;
+  daux1dxt =  a2/(alpha*pw.rs[0])*aux1;
+
+  dt1drs  =  r->xt*r->xt*daux1drs/DD;
+  dt1dz   = -r->xt*r->xt*aux1*dDDdz/(DD*DD);
+  dt1dxt  =  r->xt*(2.0*aux1 + r->xt*daux1dxt)/DD;
+
+  dt2dz   = a3*(4.0/3.0)*(r->xs[0]*r->xs[0]*opz13 - r->xs[1]*r->xs[1]*omz13);
+
+  r->dfdrs    = pw.dedrs + aux2*(-(t1 + t2)/r->rs + dt1drs);
+  r->dfdz     = pw.dedz + aux2*(dt1dz + dt2dz);
+  r->dfdxt    = aux2*dt1dxt;
+  r->dfdxs[0] = aux2*(a3*2.0*r->xs[0]*opz*opz13);
+  r->dfdxs[1] = aux2*(a3*2.0*r->xs[1]*omz*omz13);
+
+  if(r->order < 2) return;
+
+  d2DDdz2 = d2t2dz2 = 0.0;
+  if(r->zeta < 1.0){
+    d2DDdz2 += 1.0/omz13;
+    d2t2dz2 += r->xs[1]*r->xs[1]/(omz13*omz13);
+  }
+  if(r->zeta > -1.0){
+    d2DDdz2 += 1.0/opz13;
+    d2t2dz2 += r->xs[0]*r->xs[0]/(opz13*opz13);
   }
 
-  if(order >= 2){
-    d2Hdx12 = a1*((2.0 + a2*x1*(4.0 + a2*x1))*exp(a2*x1) - 2.0*a3);
+  d2DDdz2 = -dDDdz*dDDdz/DD + 10.0/(36.0*DD)*d2DDdz2;
+  d2t2dz2 = a3*(4.0/9.0)*d2t2dz2;
 
-    pt.d2phi2 = d2Hdx12*dx1dphi*dx1dphi;
-    pt.d2phit = 2.0*grad_to_t*dHdx1 + d2Hdx12*dx1dphi*dx1dt;
-    pt.d2t2   = d2Hdx12*dx1dt*dx1dt;
-  }
+  d2aux1drs2  = -a2*r->xt/(2.0*alpha*r->rs*pw.rs[0])*(-3.0/2.0*aux1/r->rs + daux1drs);
+  d2aux1drsxt = -a2/(2.0*alpha*r->rs*pw.rs[0])*(aux1 + r->xt*daux1dxt);
+  d2aux1dxt2  =  a2/(alpha*pw.rs[0])*daux1dxt;
 
-  XC(perdew_potentials)(&pt, rho, me, order, vrho, vsigma, v2rho2, v2rhosigma, v2sigma2);
+  d2t1drs2   =  r->xt*r->xt*d2aux1drs2/DD;
+  d2t1drsz   = -r->xt*r->xt*daux1drs*dDDdz/(DD*DD);
+  d2t1drsxt  =  r->xt*(2.0*daux1drs + r->xt*d2aux1drsxt)/DD;
+  d2t1dz2    =  r->xt*r->xt*aux1*(2.0*dDDdz*dDDdz - DD*d2DDdz2)/(DD*DD*DD);
+  d2t1dzxt   = -r->xt*(2.0*aux1 + r->xt*daux1dxt)*dDDdz/(DD*DD);
+
+  d2t1dxt2   =  (2.0*aux1 + 4.0*r->xt*daux1dxt + r->xt*r->xt*d2aux1dxt2)/DD;
+
+  r->d2fdrs2     =  pw.d2edrs2 + aux2*(d2t1drs2 - 2.0*dt1drs/r->rs + 2.0*(t1 + t2)/pw.rs[2]);
+  r->d2fdrsz     =  pw.d2edrsz + aux2*(d2t1drsz - (dt1dz + dt2dz)/r->rs);
+  r->d2fdrsxt    =  aux2*(d2t1drsxt - dt1dxt/r->rs);
+  r->d2fdrsxs[0] = -aux2/r->rs*(a3*2.0*r->xs[0]*opz*opz13);
+  r->d2fdrsxs[1] = -aux2/r->rs*(a3*2.0*r->xs[1]*omz*omz13);
+  r->d2fdz2      =  pw.d2edz2 + aux2*(d2t1dz2 + d2t2dz2);
+  r->d2fdzxt     =  aux2*d2t1dzxt;;
+  r->d2fdzxs[0]  =  aux2*(a3*8.0/3.0*r->xs[0]*opz13);
+  r->d2fdzxs[1]  = -aux2*(a3*8.0/3.0*r->xs[1]*omz13);
+  r->d2fdxt2     =  aux2*d2t1dxt2;
+  r->d2fdxtxs[0] =  0.0;
+  r->d2fdxtxs[1] =  0.0;
+  r->d2fdxs2[0]  =  aux2*(a3*2.0*opz*opz13);
+  r->d2fdxs2[1]  =  0.0;
+  r->d2fdxs2[2]  =  aux2*(a3*2.0*omz*omz13);
+
 }
 
-/* Warning: this is a workaround to support blocks while waiting for the next interface */
-static void 
-gga_c_lm(const void *p_, int np, const FLOAT *rho, const FLOAT *sigma,
-	  FLOAT *zk, FLOAT *vrho, FLOAT *vsigma,
-	  FLOAT *v2rho2, FLOAT *v2rhosigma, FLOAT *v2sigma2)
-{
-  int ip;
-  const XC(gga_type) *p = p_;
-
-  for(ip=0; ip<np; ip++){
-    my_gga_c_lm(p_, rho, sigma, zk, vrho, vsigma, v2rho2, v2rhosigma, v2sigma2);
-
-    /* increment pointers */
-    rho   += p->n_rho;
-    sigma += p->n_sigma;
-    
-    if(zk != NULL)
-      zk += p->n_zk;
-    
-    if(vrho != NULL){
-      vrho   += p->n_vrho;
-      vsigma += p->n_vsigma;
-    }
-
-    if(v2rho2 != NULL){
-      v2rho2     += p->n_v2rho2;
-      v2rhosigma += p->n_v2rhosigma;
-      v2sigma2   += p->n_v2sigma2;
-    }
-  }
-}
+#include "work_gga_c.c"
 
 const XC(func_info_type) XC(func_info_gga_c_lm) = {
   XC_GGA_C_LM,
   XC_CORRELATION,
   "Langreth & Mehl",
   XC_FAMILY_GGA,
-  "DC Langreth and MJ Mehl, Phys. Rev. Lett. 47, 446 (1981)",
+  "DC Langreth and MJ Mehl, Phys. Rev. Lett. 47, 446 (1981)\n"
+  "CD Hu and DC Langreth, Phys. Scr. 32, 391 (1985)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-10, 1e-32, 0.0, 1e-32,
   gga_c_lm_init,
-  gga_c_lm_end,
+  NULL,
   NULL,            /* this is not an LDA                   */
-  gga_c_lm,
+  work_gga_c,
 };
 

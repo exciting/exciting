@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: libxc
 Description: Library of exchange and correlation functionals to be used in DFT codes
 Requires: 
-Version: 1.0
+Version: 2.0.0
 Libs: -L${libdir} -lxc
 Cflags: -I${includedir}

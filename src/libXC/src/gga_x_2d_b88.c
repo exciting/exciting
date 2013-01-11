@@ -27,45 +27,23 @@ typedef struct{
   FLOAT beta;
 } gga_x_2d_b88_params;
 
-void XC(gga_x_2d_b88_set_params_)(XC(gga_type) *p, FLOAT beta);
 
-static void gga_x_2d_b88_init(void *p_)
+static void gga_x_2d_b88_init(XC(func_type) *p)
 {
-  XC(gga_type) *p = (XC(gga_type) *)p_;
-  gga_x_2d_b88_params *params;
-
   assert(p->params == NULL);
 
   p->params = malloc(sizeof(gga_x_2d_b88_params));
-  params = (gga_x_2d_b88_params *) (p->params);
 
   /* value of beta in standard Becke 88 2D functional */
-  XC(gga_x_2d_b88_set_params_)(p, 0.018641);
-}
-
-
-static void gga_x_2d_b88_end(void *p_)
-{
-  XC(gga_type) *p = (XC(gga_type) *)p_;
-
-  assert(p->params != NULL);
-  free(p->params);
-  p->params = NULL;
+  XC(gga_x_2d_b88_set_params)(p, 0.018641);
 }
 
 
 void XC(gga_x_2d_b88_set_params)(XC(func_type) *p, FLOAT beta)
 {
-  assert(p != NULL && p->gga != NULL);
-  XC(gga_x_2d_b88_set_params_)(p->gga, beta);
-}
-
-
-void XC(gga_x_2d_b88_set_params_)(XC(gga_type) *p, FLOAT beta)
-{
   gga_x_2d_b88_params *params;
 
-  assert(p->params != NULL);
+  assert(p != NULL && p->params != NULL);
   params = (gga_x_2d_b88_params *) (p->params);
 
   params->beta = beta;
@@ -73,8 +51,8 @@ void XC(gga_x_2d_b88_set_params_)(XC(gga_type) *p, FLOAT beta)
 
 
 static inline void 
-func(const XC(gga_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
+func(const XC(func_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
 {
   FLOAT f1, f2, df1, df2, d2f1, d2f2;
   FLOAT beta, csi;
@@ -90,15 +68,14 @@ func(const XC(gga_type) *p, int order, FLOAT x,
   if(order < 1) return;
 
   df1 = 2.0*beta/X_FACTOR_2D_C*x;
-  df2 = csi*beta*(asinh(x) + x/sqrt(1.0 + x*x));
+  df2 = csi*beta*(asinh(x) + x/SQRT(1.0 + x*x));
 
   *dfdx = (df1*f2 - f1*df2)/(f2*f2);
-  *ldfdx= beta/X_FACTOR_2D_C;
 
   if(order < 2) return;
 
   d2f1 = 2.0*beta/X_FACTOR_2D_C;
-  d2f2 = csi*beta*(2.0 + x*x)/pow(1.0 + x*x, 3.0/2.0);
+  d2f2 = csi*beta*(2.0 + x*x)/POW(1.0 + x*x, 3.0/2.0);
 
   *d2fdx2 = (2.0*f1*df2*df2 + d2f1*f2*f2 - f2*(2.0*df1*df2 + f1*d2f2))/(f2*f2*f2);
 }
@@ -114,8 +91,9 @@ const XC(func_info_type) XC(func_info_gga_x_2d_b88) = {
   "G Vilhena, MAL Marques, unpublished\n"
   "AD Becke, Phys. Rev. A 38, 3098 (1988)",
   XC_FLAGS_2D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_2d_b88_init, 
-  gga_x_2d_b88_end, 
+  NULL,
   NULL,
   work_gga_x
 };

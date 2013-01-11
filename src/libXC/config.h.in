@@ -38,8 +38,17 @@
    */
 #undef HAVE_ALLOCA_H
 
+/* libm includes cbrt */
+#undef HAVE_CBRT
+
+/* libm includes cbrtf */
+#undef HAVE_CBRTF
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
+
+/* libm includes feenableexcept */
+#undef HAVE_FEENABLEEXCEPT
 
 /* Defined if libxc is compiled with fortran support */
 #undef HAVE_FORTRAN
@@ -49,6 +58,9 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* libm includes sqrtf */
+#undef HAVE_SQRTF
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -124,3 +136,6 @@
 #ifndef __cplusplus
 #undef inline
 #endif
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t

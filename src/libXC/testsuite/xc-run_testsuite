@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # $Id:  $
 
 if [ -n "$SKIP_CHECK" ]; then
@@ -10,15 +10,31 @@ if [ -z "$srcdir" ]; then
   srcdir="./"
 fi
 
-datadir=${srcdir:-.}
+if [ -z "$builddir" ]; then
+  builddir="./"
+fi
 
+ok=0
 echo -e "\033[33;1mComparing against reference data\033[0m"
-for i in `ls $datadir/*.data | sort`; do
-  func=`basename $i .data`
-  echo -e "\033[0m :: Testing \033[32;1m$func\033[31;1m"
-  $srcdir/xc-reference.pl -f $func
+for i in `ls $srcdir/regression/*.data.bz2 | sort`; do
+  bunzip2 -c $i >/tmp/$$.data_ref
+
+  func=`basename $i .data.bz2`
+  fname=`printf '%-30s' $func`
+  echo -ne "\033[0m :: Testing \033[35;1m$fname"
+  $builddir/xc-regression $func >/tmp/$$data_test
+
+  res=`diff -q /tmp/$$.data_ref /tmp/$$data_test`
+  if [ "x$res" = "x" ]; then
+    echo -e "\033[32;1mOK"
+  else
+    echo -e "\033[31;1mFAIL"
+    ok=$((ok + 1));
+  fi
 done
 echo -e "\033[0m"
+
+exit $ok
 
 #echo -e "\033[33;1mInternal consistency\033[0m"
 #for i in `grep -E 'XC_LDA|XC_GGA' $srcdir/../src/xc_funcs.h | awk '{printf("%s,%d\n",$2, $3)}'`; do
