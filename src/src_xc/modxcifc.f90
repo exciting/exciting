@@ -285,7 +285,7 @@ end subroutine
 !BOP
 ! !ROUTINE: getxcdata
 ! !INTERFACE:
-subroutine getxcdata(xctype,xcdescr,xcspin,xcgrad)
+subroutine getxcdata(xctype,xcdescr,xcspin,xcgrad,ex_coef)
 ! !INPUT/OUTPUT PARAMETERS:
 !   xctype  : type of exchange-correlation functional (in,integer(3))
 !   xcdescr : description of functional (out,character(256))
@@ -309,6 +309,10 @@ integer, intent(in) :: xctype(3)
 character(512), intent(out) :: xcdescr
 integer, intent(out) :: xcspin
 integer, intent(out) :: xcgrad
+real(8), intent(out) :: ex_coef
+! initial value of exchange mixing parameter
+! not modified in case of OEP/HF 
+ex_coef=1.0d0
 select case(abs(xctype(1)))
 case(1)
   xcdescr='No density-derived exchange-correlation energy or potential'
@@ -355,7 +359,7 @@ case(30)
   xcgrad=1
 case(100)
 ! libxc library functionals
-  call xcdata_libxc(xctype,xcdescr,xcspin,xcgrad)
+  call xcdata_libxc(xctype,xcdescr,xcspin,xcgrad,ex_coef)
 case default
   write(*,*)
   write(*,'("Error(getxcdata): xctype not defined : ",I8)') xctype(1)

@@ -151,7 +151,7 @@ Subroutine init0
      & input%groundstate%tevecsv = .True.
 ! get exchange-correlation functional data
       Call getxcdata ( xctype, xcdescr, xcspin, &
-     & xcgrad)
+     & xcgrad,ex_coef)
       If ((associated(input%groundstate%spin)) .And. (xcspin .Eq. 0)) &
      & Then
          Write (*,*)

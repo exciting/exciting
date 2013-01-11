@@ -221,7 +221,7 @@ return
 
 end subroutine
 
-subroutine xcdata_libxc(xctype,xcdescr,xcspin,xcgrad)
+subroutine xcdata_libxc(xctype,xcdescr,xcspin,xcgrad,ex_coef)
 
 implicit none
 ! arguments
@@ -229,6 +229,7 @@ integer, intent(in) :: xctype(3)
 character(512), intent(out) :: xcdescr
 integer, intent(out) :: xcspin
 integer, intent(out) :: xcgrad
+real(8), intent(out) :: ex_coef
 #ifdef LIBXC
 
 ! local variables
@@ -236,15 +237,12 @@ integer xcf,id,k
 character(256) name
 type(xc_f90_pointer_t) p
 type(xc_f90_pointer_t) info
-real(8) ex_coef
-ex_coef=1.0d0
 ! unknown spin polarisation
 xcspin=-1
 ! no gradients by default
 xcgrad=0
 do k=2,3
   id=xctype(k)
-  WRITE(*,*) k, id 
   if (id.gt.0) then
     xcf=xc_f90_family_from_id(id)
     select case(xcf)
@@ -268,10 +266,7 @@ do k=2,3
       call xc_f90_func_init(p,info,id,XC_UNPOLARIZED)
       call xc_f90_info_name(info,name)
 ! get mixing coefficient for exchange  
-      WRITE(*,*) "ex_coef before call",ex_coef 
-       call xc_f90_hyb_exx_coef(p,ex_coef)
-!      call xc_f90_hyb_gga_exx_coef(p,ex_coef) 
-      WRITE(*,*) "ex_coef after call",ex_coef
+      call xc_f90_hyb_exx_coef(p,ex_coef)
       call xc_f90_func_end(p)
 ! post-processed gradients required
       xcgrad=2

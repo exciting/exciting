@@ -20,6 +20,8 @@ Module mod_potential_and_density
       Integer :: xcspin
 ! exchange-correlation functional density gradient treatment
       Integer :: xcgrad
+! exchange mixing parameter for hybrid functionals
+      Real (8) :: ex_coef
 !
       Integer :: maxncv
 ! muffin-tin charge density
