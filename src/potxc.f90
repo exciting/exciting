@@ -174,7 +174,12 @@ do is=1,nspecies
         call ggamt_2b(is,g2rho,gvrho,vx,vc,dxdg2,dcdg2)
       end if
 ! exchange-correlation potential
-      vxc(1:n)=vx(1:n)+vc(1:n)
+! For Exciting Hybrids muliply exchange part by mixing parameter
+      If (xctype(1).Ge.400) Then
+        vxc(1:n)=(1-ex_coef)*vx(1:n)+vc(1:n)
+      Else
+        vxc(1:n)=vx(1:n)+vc(1:n)
+      End If
     end if
 ! convert exchange and correlation energy densities to spherical harmonics
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,ex,lmmaxvr, &
@@ -268,10 +273,15 @@ else
      vc=vc,dxdg2=dxdg2,dcdg2=dcdg2)
     call ggair_2b(g2rho,gvrho,vx,vc,dxdg2,dcdg2)
   end if
-  vxcir(1:ngrtot)=vx(1:ngrtot)+vc(1:ngrtot)
+! For Exciting Hybrids muliply exchange part by mixing parameter
+  If (xctype(1).Ge.400) Then
+    vxcir(1:ngrtot)=(1-ex_coef)*vx(1:ngrtot)+vc(1:ngrtot)
+  Else
+    vxcir(1:ngrtot)=vx(1:ngrtot)+vc(1:ngrtot)
+  End If
 end if
 ! OEP or HYBRIDS 
-if ((xctype(1).lt.0) .Or. (xctype(2) .Ge. 400)) call oepmain
+if ((xctype(1).lt.0) .Or. (xctype(2) .Ge. 400) .Or. (xctype(1) .Ge. 400)) call oepmain
 ! symmetrise the exchange-correlation potential
 call symrf(1,vxcmt,vxcir)
 if (associated(input%groundstate%spin)) then

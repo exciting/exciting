@@ -5943,6 +5943,8 @@ case('GGA-Wu-Cohen')
  stringtonumbergroundstatexctype=26
 case('GGAArmiento-Mattsson')
  stringtonumbergroundstatexctype=30
+case('HYB_PBE0')
+ stringtonumbergroundstatexctype=406
 case('EXX')
  stringtonumbergroundstatexctype=-1
 case('none')

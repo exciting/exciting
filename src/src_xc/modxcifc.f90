@@ -177,7 +177,7 @@ case(5)
   else
     goto 10
   end if
-case(20,21,22)
+case(20,21,22,406)
 ! original PBE kappa
   kappa=0.804d0
   if (xctype(1).eq.21) then
@@ -357,6 +357,11 @@ case(30)
   xcdescr='Armiento-Mattsson functional, Phys. Rev. B 72, 85108 (2005)'
   xcspin=0
   xcgrad=1
+case(406)
+  xcdescr='PBE0, M. Ernzerhof, G. E. Scuseria, J. Chem. Phys. 110 , 5029 (1999)'
+  xcspin=0
+  xcgrad=1
+  ex_coef=0.25
 case(100)
 ! libxc library functionals
   call xcdata_libxc(xctype,xcdescr,xcspin,xcgrad,ex_coef)

@@ -2209,6 +2209,13 @@ gw.xsd
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
+            <xs:enumeration value="HYB_PBE0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldnr>406</oldnr>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:enumeration>
             <xs:enumeration value="EXX">
               <xs:annotation>
                 <xs:appinfo><!-- set to "-2" or lower for EXX -->
