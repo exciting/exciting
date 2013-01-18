@@ -1175,6 +1175,14 @@
                       <xs:documentation> Schmider-Becke 98 parameterization 2c</xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_HSE03">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 427 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> 2003 version of the screened hybrid HSE</xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>

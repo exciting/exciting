@@ -5834,6 +5834,8 @@ case('XC_HYB_GGA_XC_SB98_2b')
  stringtonumberlibxcxc=424
 case('XC_HYB_GGA_XC_SB98_2c')
  stringtonumberlibxcxc=425
+case('XC_HYB_GGA_XC_HSE03')
+ stringtonumberlibxcxc=427
 case('')
  stringtonumberlibxcxc=0
 case default
