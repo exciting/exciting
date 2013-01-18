@@ -85,7 +85,15 @@
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="taufsm" type="fortrandouble"
-              default="0.01d0"/>
+              default="0.01d0">
+              <xs:annotation>
+                <xs:documentation> The effective magnetic field required for fixing the spin moment
+                to a given value, is updated according to 
+                <displaymath> {\bf B}_{\rm FSM}^{i+1}={\bf B}_{\rm FSM}^i+\tau_{fsm}\left(
+                \boldsymbol{\mu}^i-\boldsymbol{\mu}_{\rm FSM}\right), </displaymath>
+                for iteration <inlinemath>i</inlinemath>. It must be positive. </xs:documentation>
+              </xs:annotation>
+              </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="reducebf" type="fortrandouble"
               default="1.0d0">
               <xs:annotation>
