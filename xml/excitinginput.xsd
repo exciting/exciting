@@ -876,26 +876,58 @@ gw.xsd
             <xs:attribute default="XC_GGA_X_PBE" name="exchange" use="optional">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
-                  <xs:enumeration value="XC_LDA_X">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 1 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Exchange</xs:documentation>
-                    </xs:annotation>
-                  </xs:enumeration>
                   <xs:enumeration value="XC_LDA_X_2D">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 19 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Exchange in 2D</xs:documentation>
+                      <xs:documentation> Exchange in 2D </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_LDA_X_1D">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 21 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Exchange in 1D </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_SSB_SW">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 90 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Swarta, Sola and Bickelhaupt correction to PBE </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_SSB">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 91 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Swarta, Sola and Bickelhaupt </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_SSB_D">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 92 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Swarta, Sola and Bickelhaupt dispersion </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_BPCCAC">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 98 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> BPCCAC (GRAC for the energy) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_PBE">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>101 </oldnr>
+                        <oldnr> 101 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Perdew, Burke &amp; Ernzerhof exchange </xs:documentation>
                     </xs:annotation>
@@ -903,57 +935,55 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_PBE_R">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>102 </oldnr>
+                        <oldnr> 102 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Perdew, Burke &amp; Ernzerhof exchange (revised)
-                      </xs:documentation>
+                      <xs:documentation> Perdew, Burke &amp; Ernzerhof exchange (revised) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_B86">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>103 </oldnr>
+                        <oldnr> 103 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 86 Xalfa,beta,gamma</xs:documentation>
+                      <xs:documentation> Becke 86 Xalfa,beta,gamma </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_X_B86_R">
+                  <xs:enumeration value="XC_GGA_X_HERMAN">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>104 </oldnr>
+                        <oldnr> 104 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 86 Xalfa,beta,gamma (reoptimized)</xs:documentation>
+                      <xs:documentation> Herman et al original GGA </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_B86_MGC">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>105 </oldnr>
+                        <oldnr> 105 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 86 Xalfa,beta,gamma (with mod. grad.
-                        correction)</xs:documentation>
+                      <xs:documentation> Becke 86 Xalfa,beta,gamma (with mod. grad. correction) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_B88">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>106 </oldnr>
+                        <oldnr> 106 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 88</xs:documentation>
+                      <xs:documentation> Becke 88 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_G96">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>107 </oldnr>
+                        <oldnr> 107 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Gill 96</xs:documentation>
+                      <xs:documentation> Gill 96 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_PW86">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>108 </oldnr>
+                        <oldnr> 108 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Perdew &amp; Wang 86 </xs:documentation>
                     </xs:annotation>
@@ -961,7 +991,7 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_PW91">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>109 </oldnr>
+                        <oldnr> 109 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Perdew &amp; Wang 91 </xs:documentation>
                     </xs:annotation>
@@ -969,7 +999,7 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_OPTX">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>110 </oldnr>
+                        <oldnr> 110 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Handy &amp; Cohen OPTX 01 </xs:documentation>
                     </xs:annotation>
@@ -977,7 +1007,7 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_DK87_R1">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>111 </oldnr>
+                        <oldnr> 111 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> dePristo &amp; Kress 87 (version R1) </xs:documentation>
                     </xs:annotation>
@@ -985,7 +1015,7 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_DK87_R2">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>112 </oldnr>
+                        <oldnr> 112 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> dePristo &amp; Kress 87 (version R2) </xs:documentation>
                     </xs:annotation>
@@ -993,7 +1023,7 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_LG93">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>113 </oldnr>
+                        <oldnr> 113 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Lacks &amp; Gordon 93 </xs:documentation>
                     </xs:annotation>
@@ -1001,7 +1031,7 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_FT97_A">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>114 </oldnr>
+                        <oldnr> 114 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Filatov &amp; Thiel 97 (version A) </xs:documentation>
                     </xs:annotation>
@@ -1009,7 +1039,7 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_FT97_B">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>115 </oldnr>
+                        <oldnr> 115 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Filatov &amp; Thiel 97 (version B) </xs:documentation>
                     </xs:annotation>
@@ -1017,16 +1047,15 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_PBE_SOL">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>116 </oldnr>
+                        <oldnr> 116 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Perdew, Burke &amp; Ernzerhof exchange (solids)
-                      </xs:documentation>
+                      <xs:documentation> Perdew, Burke &amp; Ernzerhof exchange (solids) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_RPBE">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>117 </oldnr>
+                        <oldnr> 117 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Hammer, Hansen &amp; Norskov (PBE-like) </xs:documentation>
                     </xs:annotation>
@@ -1034,24 +1063,23 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_WC">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>118 </oldnr>
+                        <oldnr> 118 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Wu &amp;amp; Cohen </xs:documentation>
+                      <xs:documentation> Wu &amp; Cohen </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_X_mPW91">
+                  <xs:enumeration value="XC_GGA_X_MPW91">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>119 </oldnr>
+                        <oldnr> 119 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Modified form of PW91 by Adamo &amp; Barone
-                      </xs:documentation>
+                      <xs:documentation> Modified form of PW91 by Adamo &amp; Barone </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_AM05">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>120 </oldnr>
+                        <oldnr> 120 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Armiento &amp; Mattsson 05 exchange </xs:documentation>
                     </xs:annotation>
@@ -1059,15 +1087,15 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_PBEA">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>121 </oldnr>
+                        <oldnr> 121 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Madsen (PBE-like)</xs:documentation>
+                      <xs:documentation> Madsen (PBE-like) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_MPBE">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>122 </oldnr>
+                        <oldnr> 122 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Adamo &amp; Barone modification to PBE </xs:documentation>
                     </xs:annotation>
@@ -1075,279 +1103,680 @@ gw.xsd
                   <xs:enumeration value="XC_GGA_X_XPBE">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>123 </oldnr>
+                        <oldnr> 123 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> xPBE reparametrization by Xu &amp; Goddard
-                      </xs:documentation>
+                      <xs:documentation> xPBE reparametrization by Xu &amp; Goddard </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_2D_B86_MGC">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>124 </oldnr>
+                        <oldnr> 124 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 86 MGC for 2D systems</xs:documentation>
+                      <xs:documentation> Becke 86 MGC for 2D systems </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_BAYESIAN">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>125 </oldnr>
+                        <oldnr> 125 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Bayesian best fit for the enhancement
-                        factor</xs:documentation>
+                      <xs:documentation> Bayesian best fit for the enhancement factor </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_X_PBE_JSJR">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr>126 </oldnr>
+                        <oldnr> 126 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> JSJR reparametrization by Pedroza, Silva &amp; Capelle
-                      </xs:documentation>
+                      <xs:documentation> JSJR reparametrization by Pedroza, Silva &amp; Capelle </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <!-- as MGGA is not supported <xs:enumeration value="XC_MGGA_X_LTA"> <xs:annotation> <xs:appinfo> <oldnr>201 </oldnr> </xs:appinfo> <xs:documentation> 
-                    Local tau approximation of Ernzerhof &amp; Scuseria </xs:documentation> </xs:annotation> </xs:enumeration> <xs:enumeration value="XC_MGGA_X_TPSS"> <xs:annotation> 
-                    <xs:appinfo> <oldnr>202 </oldnr> </xs:appinfo> <xs:documentation> Perdew, Tao, Staroverov &amp; Scuseria exchange </xs:documentation> </xs:annotation> </xs:enumeration> 
-                    <xs:enumeration value="XC_MGGA_X_M06L"> <xs:annotation> <xs:appinfo> <oldnr>203 </oldnr> </xs:appinfo> <xs:documentation> Zhao, Truhlar exchange </xs:documentation> 
-                    </xs:annotation> </xs:enumeration> <xs:enumeration value="XC_MGGA_X_GVT4"> <xs:annotation> <xs:appinfo> <oldnr>204 </oldnr> </xs:appinfo> <xs:documentation> GVT4 
-                    from Van Voorhis and Scuseria (exchange part) </xs:documentation> </xs:annotation> </xs:enumeration> <xs:enumeration value="XC_MGGA_X_TAU_HCTH"> <xs:annotation> 
-                    <xs:appinfo> <oldnr>205 </oldnr> </xs:appinfo> <xs:documentation> tau-HCTH from Boese and Handy </xs:documentation> </xs:annotation> </xs:enumeration> <xs:enumeration 
-                    value="XC_MGGA_X_BR89"> <xs:annotation> <xs:appinfo> <oldnr>206 </oldnr> </xs:appinfo> <xs:documentation> Becke-Roussel 89 </xs:documentation> </xs:annotation> </xs:enumeration> 
-                    <xs:enumeration value="XC_MGGA_X_BJ06"> <xs:annotation> <xs:appinfo> <oldnr>207 </oldnr> </xs:appinfo> <xs:documentation> Becke &amp; Johnson correction to Becke-Roussel 
-                    89 </xs:documentation> </xs:annotation> </xs:enumeration> <xs:enumeration value="XC_MGGA_X_TB09"> <xs:annotation> <xs:appinfo> <oldnr>208 </oldnr> </xs:appinfo> 
-                    <xs:documentation> Tran &amp; Blaha correction to Becke &amp; Johnson </xs:documentation> </xs:annotation> </xs:enumeration> -->
+                  <xs:enumeration value="XC_GGA_X_2D_B88">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 127 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Becke 88 in 2D </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_2D_B86">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 128 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Becke 86 Xalfa,beta,gamma </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_2D_PBE">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 129 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Perdew, Burke &amp; Ernzerhof exchange in 2D </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_OPTB88_VDW">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 139 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Becke 88 reoptimized to be used with vdW functional of Dion et </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_PBEK1_VDW">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 140 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> PBE reparametrization for vdW </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_OPTPBE_VDW">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 141 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> PBE reparametrization for vdW </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_RGE2">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 142 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Regularized PBE </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_RPW86">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 144 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> refitted Perdew &amp; Wang 86 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_KT1">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 145 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Keal and Tozer version 1 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_MB88">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 149 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Modified Becke 88 for proton transfer </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_SOGGA">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 150 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Second-order generalized gradient approximation </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_SOGGA11">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 151 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Second-order generalized gradient approximation 2011 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_C09X">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 158 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> C09x to be used with the VdW of Rutgers-Chalmers </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_LB">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 160 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> van Leeuwen &amp; Baerends </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_LBM">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 182 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> van Leeuwen &amp; Baerends modified </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_OL2">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 183 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Exchange form based on Ou-Yang and Levy v.2 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_APBE">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 184 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> mu fixed from the semiclassical neutral atom </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_HTBS">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 191 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Haas, Tran, Blaha, and Schwarz </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_AIRY">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 192 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Constantin et al based on the Airy gas </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_LAG">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 193 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Local Airy Gas </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_WPBEH">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 524 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> short-range version of the PBE </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_HJS_PBE">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 525 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HJS screened exchange PBE version </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_HJS_PBE_SOL">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 526 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HJS screened exchange PBE_SOL version </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_HJS_B88">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 527 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HJS screened exchange B88 version </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_HJS_B97X">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 528 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HJS screened exchange B97x version </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_ITYH">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 529 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> short-range recipe for exchange GGA functionals </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_X_SOGGA11_X">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 426 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Hybrid based on SOGGA11 form </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
             <xs:attribute default="XC_GGA_C_PBE" name="correlation" use="optional">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
-                  <xs:enumeration value="XC_LDA_C_WIGNER">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 2 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Wigner parametrization</xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_WIGNER">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 2 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Wigner parametrization </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_RPA">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 3 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Random Phase Approximation</xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_RPA">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 3 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Random Phase Approximation </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_HL">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 4 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Hedin &amp; Lundqvist </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_HL">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 4 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Hedin &amp; Lundqvist </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_GL">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 5 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Gunnarson &amp; Lundqvist </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_GL">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 5 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Gunnarson &amp; Lundqvist </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_XALPHA">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 6 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Slaters Xalpha</xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_XALPHA">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 6 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Slater Xalpha </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_VWN">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 7 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Vosko, Wilk, &amp; Nussair </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_VWN">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 7 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Vosko, Wilk, &amp; Nussair (5) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_VWN_RPA">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 8 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Vosko, Wilk, &amp; Nussair (RPA) </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_VWN_RPA">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 8 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Vosko, Wilk, &amp; Nussair (RPA) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_PZ">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 9 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Perdew &amp; Zunger </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_PZ">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 9 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Perdew &amp; Zunger </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_PZ_MOD">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 10 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Perdew &amp; Zunger (Modified) </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_PZ_MOD">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 10 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Perdew &amp; Zunger (Modified) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_OB_PZ">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 11 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Ortiz &amp; Ballone (PZ) </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_OB_PZ">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 11 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Ortiz &amp; Ballone (PZ) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_PW">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 12 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Perdew &amp; Wang </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_PW">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 12 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Perdew &amp; Wang </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_PW_MOD">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 13 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Perdew &amp; Wang (Modified) </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_PW_MOD">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 13 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Perdew &amp; Wang (Modified) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_OB_PW">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 14 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Ortiz &amp; Ballone (PW) </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_OB_PW">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 14 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Ortiz &amp; Ballone (PW) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_2D_AMGB">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 15 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Attacalite et al</xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_2D_AMGB">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 15 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Attacalite et al </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_2D_PRM">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 16 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Pittalis, Rasanen &amp; Marques correlation in 2D
-                      </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_2D_PRM">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 16 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Pittalis, Rasanen &amp; Marques correlation in 2D </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_vBH">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 17 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> von Barth &amp; Hedin </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_vBH">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 17 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> von Barth &amp; Hedin </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_LDA_C_1D_CSC">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr> 18 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Casula, Sorella, and Senatore 1D
-                        correlation</xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_1D_CSC">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 18 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Casula, Sorella, and Senatore 1D correlation </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_C_PBE">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>130 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Perdew, Burke &amp; Ernzerhof correlation
-                      </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_ML1">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 22 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Modified LSD (version 1) of Proynov and Salahub </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_C_LYP">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>131 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Lee, Yang &amp; Parr </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_ML2">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 23 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Modified LSD (version 2) of Proynov and Salahub </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_C_P86">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>132 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Perdew 86</xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_GOMBAS">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 24 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Gombas parametrization </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_C_PBE_SOL">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>133 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Perdew, Burke &amp; Ernzerhof correlation SOL
-                      </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_PW_RPA">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 25 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Perdew &amp; Wang fit of the RPA </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_C_PW91">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>134 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Perdew &amp; Wang 91 </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_1D_LOOS">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 26 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> P-F Loos correlation LDA </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_C_AM05">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>135 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Armiento &amp; Mattsson 05 correlation </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_RC04">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 27 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Ragot-Cortona </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_C_XPBE">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>136 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> xPBE reparametrization by Xu &amp; Goddard
-                      </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_VWN_1">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 28 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Vosko, Wilk, &amp; Nussair (1) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_C_LM">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>137 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> Langreth and Mehl correlation</xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_VWN_2">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 29 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Vosko, Wilk, &amp; Nussair (2) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_C_PBE_JRGX">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>138 </oldnr>
-                      </xs:appinfo>
-                      <xs:documentation> JRGX reparametrization by Pedroza, Silva &amp; Capelle
-                      </xs:documentation>
+                   <xs:enumeration value="XC_LDA_C_VWN_3">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 30 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Vosko, Wilk, &amp; Nussair (3) </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <!-- <xs:enumeration value="XC_MGGA_C_TPSS"> <xs:annotation> <xs:appinfo> <oldnr>231 </oldnr> </xs:appinfo> <xs:documentation> Perdew, Tao, Staroverov 
-                    &amp; Scuseria correlation </xs:documentation> </xs:annotation> </xs:enumeration> <xs:enumeration value="XC_MGGA_C_VSXC"> <xs:annotation> <xs:appinfo> <oldnr>232 
-                    </oldnr> </xs:appinfo> <xs:documentation> VSxc from Van Voorhis and Scuseria (correlation part) </xs:documentation> </xs:annotation> </xs:enumeration> -->
+                   <xs:enumeration value="XC_LDA_C_VWN_4">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 31 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Vosko, Wilk, &amp; Nussair (4) </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_OP_XALPHA">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 84 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> one-parameter progressive functional (G96 version) </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_OP_G96">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 85 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> one-parameter progressive functional (G96 version) </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_OP_PBE">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 86 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> one-parameter progressive functional (PBE version) </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_OP_B88">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 87 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> one-parameter progressive functional (B88 version) </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_FT97">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 88 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Filatov &amp; Thiel correlation </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_SPBE">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 89 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> PBE correlation to be used with the SSB exchange </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_REVTCA">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 99 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Tognetti, Cortona, Adamo (revised) </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_TCA">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 100 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Tognetti, Cortona, Adamo </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_PBE">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 130 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Perdew, Burke &amp; Ernzerhof correlation </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_LYP">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 131 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Lee, Yang &amp; Parr </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_P86">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 132 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Perdew 86 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_PBE_SOL">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 133 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Perdew, Burke &amp; Ernzerhof correlation SOL </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_PW91">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 134 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Perdew &amp; Wang 91 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_AM05">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 135 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Armiento &amp; Mattsson 05 correlation </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_XPBE">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 136 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> xPBE reparametrization by Xu &amp; Goddard </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_LM">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 137 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Langreth and Mehl correlation </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_PBE_JRGX">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 138 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> JRGX reparametrization by Pedroza, Silva &amp; Capelle </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_RGE2">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 143 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Regularized PBE </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_WL">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 147 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Wilson &amp; Levy </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_WI">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 148 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Wilson &amp; Ivanov </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_SOGGA11">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 152 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Second-order generalized gradient approximation 2011 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_WI0">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 153 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Wilson &amp; Ivanov initial version </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_SOGGA11_X">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 159 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> To be used with hyb_gga_x_SOGGA11-X </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_APBE">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 186 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> mu fixed from the semiclassical neutral atom </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                   <xs:enumeration value="XC_GGA_C_OPTC">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 200 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Optimized correlation functional of Cohen and Handy </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
             <xs:attribute default="none" name="xc" use="optional">
               <xs:annotation>
                 <xs:documentation> Combined functionals. If set it overrides the exchange and the
-                  correlation attributes. The hybrid functionals can be configured but are not supported. They may give nonsense results.</xs:documentation>
+                  correlation attributes.</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -1357,13 +1786,93 @@ gw.xsd
                         <oldnr>0</oldnr>
                       </xs:appinfo>
                     </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_XC_LB">
+                   </xs:enumeration>
+                  <xs:enumeration value="XC_LDA_XC_TETER93">
                     <xs:annotation>
                       <xs:appinfo>
-                        <oldnr> 160 </oldnr>
+                        <oldnr> 20 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> van Leeuwen &amp; Baerends </xs:documentation>
+                      <xs:documentation> Teter 93 parametrization </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_HCTH_407P">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 93 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HCTH/407+ </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_HCTH_P76">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 94 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HCTH p=7/6 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_HCTH_P14">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 95 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HCTH p=1/4 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_B97_GGA1">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 96 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Becke 97 GGA-1 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_HCTH_A">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 97 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HCTH-A </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_KT2">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 146 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Keal and Tozer version 2 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_TH1">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 154 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Tozer and Handy v. 1 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_TH2">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 155 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Tozer and Handy v. 2 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_TH3">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 156 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Tozer and Handy v. 3 </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_TH4">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 157 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Tozer and Handy v. 4 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_HCTH_93">
@@ -1371,7 +1880,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 161 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> HCTH functional fitted to 93 molecules</xs:documentation>
+                      <xs:documentation> HCTH functional fitted to 93 molecules </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_HCTH_120">
@@ -1379,7 +1888,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 162 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> HCTH functional fitted to 120 molecules</xs:documentation>
+                      <xs:documentation> HCTH functional fitted to 120 molecules </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_HCTH_147">
@@ -1387,7 +1896,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 163 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> HCTH functional fitted to 147 molecules</xs:documentation>
+                      <xs:documentation> HCTH functional fitted to 147 molecules </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_HCTH_407">
@@ -1395,7 +1904,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 164 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> HCTH functional fitted to 147 molecules</xs:documentation>
+                      <xs:documentation> HCTH functional fitted to 407 molecules </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_EDF1">
@@ -1403,8 +1912,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 165 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Empirical functionals from Adamson, Gill, and
-                        Pople</xs:documentation>
+                      <xs:documentation> Empirical functionals from Adamson, Gill, and Pople </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_XLYP">
@@ -1412,7 +1920,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 166 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> XLYP functional</xs:documentation>
+                      <xs:documentation> XLYP functional </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_B97">
@@ -1420,7 +1928,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 167 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 97</xs:documentation>
+                      <xs:documentation> Becke 97 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_B97_1">
@@ -1428,7 +1936,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 168 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 97-1</xs:documentation>
+                      <xs:documentation> Becke 97-1 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_B97_2">
@@ -1436,7 +1944,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 169 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 97-2</xs:documentation>
+                      <xs:documentation> Becke 97-2 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_B97_D">
@@ -1444,8 +1952,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 170 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Grimme functional to be used with C6 vdW
-                        term</xs:documentation>
+                      <xs:documentation> Grimme functional to be used with C6 vdW term </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_B97_K">
@@ -1453,7 +1960,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 171 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Boese-Martin for Kinetics</xs:documentation>
+                      <xs:documentation> Boese-Martin for Kinetics </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_B97_3">
@@ -1461,7 +1968,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 172 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 97-3</xs:documentation>
+                      <xs:documentation> Becke 97-3 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_PBE1W">
@@ -1469,7 +1976,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 173 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Functionals fitted for water</xs:documentation>
+                      <xs:documentation> Functionals fitted for water </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_MPWLYP1W">
@@ -1477,7 +1984,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 174 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Functionals fitted for water</xs:documentation>
+                      <xs:documentation> Functionals fitted for water </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_PBELYP1W">
@@ -1485,7 +1992,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 175 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Functionals fitted for water</xs:documentation>
+                      <xs:documentation> Functionals fitted for water </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_SB98_1a">
@@ -1493,7 +2000,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 176 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 1a</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 1a </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_SB98_1b">
@@ -1501,7 +2008,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 177 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 1b</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 1b </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_SB98_1c">
@@ -1509,7 +2016,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 178 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 1c</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 1c </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_SB98_2a">
@@ -1517,7 +2024,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 179 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 2a</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 2a </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_SB98_2b">
@@ -1525,7 +2032,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 180 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 2b</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 2b </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_GGA_XC_SB98_2c">
@@ -1533,7 +2040,55 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 181 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 2c</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 2c </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_MOHLYP">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 194 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Functional for organometallic chemistry </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_MOHLYP2">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 195 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Functional for barrier heights </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_TH_FL">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 196 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Tozer and Handy v. FL </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_TH_FC">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 197 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Tozer and Handy v. FC </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_TH_FCFO">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 198 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Tozer and Handy v. FCFO </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_XC_TH_FCO">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 199 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Tozer and Handy v. FCO </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
@@ -1541,7 +2096,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 401 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> The original hybrid proposed by Becke</xs:documentation>
+                      <xs:documentation> The original (ACM) hybrid of Becke </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_B3LYP">
@@ -1549,7 +2104,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 402 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> The (in)famous B3LYP</xs:documentation>
+                      <xs:documentation> The (in)famous B3LYP </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_B3P86">
@@ -1557,7 +2112,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 403 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Perdew 86 hybrid similar to B3PW91</xs:documentation>
+                      <xs:documentation> Perdew 86 hybrid similar to B3PW91 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_O3LYP">
@@ -1565,7 +2120,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 404 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> hybrid using the optx functional</xs:documentation>
+                      <xs:documentation> hybrid using the optx functional </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_mPW1K">
@@ -1573,8 +2128,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 405 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> mixture of mPW91 and PW91 optimized for
-                        kinetics</xs:documentation>
+                      <xs:documentation> mixture of mPW91 and PW91 optimized for kinetics </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_PBEH">
@@ -1582,7 +2136,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 406 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> aka PBE0 or PBE1PBE</xs:documentation>
+                      <xs:documentation> aka PBE0 or PBE1PBE </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_B97">
@@ -1590,7 +2144,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 407 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 97</xs:documentation>
+                      <xs:documentation> Becke 97 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_B97_1">
@@ -1598,7 +2152,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 408 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 97-1</xs:documentation>
+                      <xs:documentation> Becke 97-1 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_B97_2">
@@ -1606,7 +2160,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 410 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 97-2</xs:documentation>
+                      <xs:documentation> Becke 97-2 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_X3LYP">
@@ -1614,7 +2168,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 411 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> maybe the best hybrid</xs:documentation>
+                      <xs:documentation> maybe the best hybrid </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_B1WC">
@@ -1622,7 +2176,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 412 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 1-parameter mixture of WC and PBE</xs:documentation>
+                      <xs:documentation> Becke 1-parameter mixture of WC and PBE </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_B97_K">
@@ -1630,7 +2184,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 413 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Boese-Martin for Kinetics</xs:documentation>
+                      <xs:documentation> Boese-Martin for Kinetics </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_B97_3">
@@ -1638,15 +2192,15 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 414 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 97-3</xs:documentation>
+                      <xs:documentation> Becke 97-3 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_HYB_GGA_XC_mPW3PW">
+                  <xs:enumeration value="XC_HYB_GGA_XC_MPW3PW">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 415 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> mixture with the mPW functional</xs:documentation>
+                      <xs:documentation> mixture with the mPW functional </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_B1LYP">
@@ -1654,7 +2208,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 416 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 1-parameter mixture of B88 and LYP</xs:documentation>
+                      <xs:documentation> Becke 1-parameter mixture of B88 and LYP </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_B1PW91">
@@ -1662,8 +2216,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 417 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 1-parameter mixture of B88 and
-                        PW91</xs:documentation>
+                      <xs:documentation> Becke 1-parameter mixture of B88 and PW91 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_mPW1PW">
@@ -1671,16 +2224,15 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 418 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Becke 1-parameter mixture of mPW91 and
-                        PW91</xs:documentation>
+                      <xs:documentation> Becke 1-parameter mixture of mPW91 and PW91 </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_HYB_GGA_XC_mPW3LYP">
+                  <xs:enumeration value="XC_HYB_GGA_XC_MPW3LYP">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 419 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> mixture of mPW and LYP</xs:documentation>
+                      <xs:documentation> mixture of mPW and LYP </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_SB98_1a">
@@ -1688,7 +2240,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 420 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 1a</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 1a </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_SB98_1b">
@@ -1696,7 +2248,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 421 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 1b</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 1b </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_SB98_1c">
@@ -1704,7 +2256,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 422 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 1c</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 1c </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_SB98_2a">
@@ -1712,7 +2264,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 423 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 2a</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 2a </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_SB98_2b">
@@ -1720,7 +2272,7 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 424 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 2b</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 2b </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                   <xs:enumeration value="XC_HYB_GGA_XC_SB98_2c">
@@ -1728,7 +2280,95 @@ gw.xsd
                       <xs:appinfo>
                         <oldnr> 425 </oldnr>
                       </xs:appinfo>
-                      <xs:documentation> Schmider-Becke 98 parameterization 2c</xs:documentation>
+                      <xs:documentation> Schmider-Becke 98 parameterization 2c </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_HSE03">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 427 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> the 2003 version of the screened hybrid HSE </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_HSE06">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 428 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> the 2006 version of the screened hybrid HSE </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_HJS_PBE">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 429 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HJS hybrid screened exchange PBE version </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_HJS_PBE_SOL">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 430 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HJS hybrid screened exchange PBE_SOL version </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_HJS_B88">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 431 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HJS hybrid screened exchange B88 version </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_HJS_B97X">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 432 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> HJS hybrid screened exchange B97x version </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_CAM_B3LYP">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 433 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> CAM version of B3LYP </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_TUNED_CAM_B3LYP">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 434 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> CAM version of B3LYP tunes for excitations </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 435 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Becke half-and-half </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_BHANDHLYP">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 436 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Becke half-and-half with B88 exchange </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_HYB_GGA_XC_MB3LYP_RC04">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 437 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> B3LYP with RC04 LDA </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
                 </xs:restriction>
