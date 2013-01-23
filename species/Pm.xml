@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Pm" name="promethium" z="-61.0000" mass="264318.8303">
-    <muffinTin rmin="0.256074E-06" radius="2.2000" rinf="39.7915" radialmeshPoints="700"/>
+    <muffinTin rmin="0.256074E-06" radius="2.2000" rinf="42.6138" radialmeshPoints="700"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

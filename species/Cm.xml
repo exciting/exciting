@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Cm" name="curium" z="-96.0000" mass="450253.4558">
-    <muffinTin rmin="0.204124E-06" radius="2.2000" rinf="45.0742" radialmeshPoints="800"/>
+    <muffinTin rmin="0.204124E-06" radius="2.2000" rinf="43.2838" radialmeshPoints="800"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

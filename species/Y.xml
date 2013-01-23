@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Y" name="yttrium" z="-39.0000" mass="162065.4502">
-    <muffinTin rmin="0.320256E-06" radius="2.2000" rinf="43.3587" radialmeshPoints="600"/>
+    <muffinTin rmin="0.320256E-06" radius="2.2000" rinf="41.1385" radialmeshPoints="600"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -21,7 +21,6 @@
       <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="2" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <custom l="3" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>

@@ -32,21 +32,15 @@
       <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="2" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <custom l="3" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <lo l="2">
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-2.6519" searchE="true"/>
-      </lo>
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="0" trialEnergy="-1.2846" searchE="true"/>
       </lo>
-      <lo l="1">
+      <lo l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-0.7682" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.6519" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

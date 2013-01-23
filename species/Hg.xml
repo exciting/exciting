@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Hg" name="mercury" z="-80.0000" mass="365653.2012">
-    <muffinTin rmin="0.223607E-06" radius="2.0000" rinf="31.7289" radialmeshPoints="700"/>
+    <muffinTin rmin="0.223607E-06" radius="2.0000" rinf="29.6224" radialmeshPoints="700"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -29,7 +29,6 @@
       <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="2" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <custom l="3" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>

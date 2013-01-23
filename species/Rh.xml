@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Rh" name="rhodium" z="-45.0000" mass="187585.2510">
-    <muffinTin rmin="0.298142E-06" radius="2.0000" rinf="42.4801" radialmeshPoints="600"/>
+    <muffinTin rmin="0.298142E-06" radius="2.0000" rinf="37.2565" radialmeshPoints="600"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -22,7 +22,6 @@
       <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="2" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <custom l="3" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>

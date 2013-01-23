@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Ba" name="barium" z="-56.0000" mass="250331.8070">
-    <muffinTin rmin="0.267261E-06" radius="2.2000" rinf="45.3164" radialmeshPoints="700"/>
+    <muffinTin rmin="0.267261E-06" radius="2.2000" rinf="48.5216" radialmeshPoints="700"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -25,21 +25,15 @@
       <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="2" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <custom l="3" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <lo l="2">
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-3.3480" searchE="true"/>
-      </lo>
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="0" trialEnergy="-1.2408" searchE="true"/>
       </lo>
-      <lo l="1">
+      <lo l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-0.7448" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-3.3480" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

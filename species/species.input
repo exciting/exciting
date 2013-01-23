@@ -1,15 +1,8 @@
 
 ! input species; if empty all elements of species.dat file will be generated
 inspecies
-  ''
+  'O'
 
-! core-valence cut-off energy (Hartree); default is -3.5d0
-ecvcut
-  -3.5d0
-  
-! semi-core cut-off energy (Hartree); default is -0.35d0
-esccut
-  -0.50d0
 
 ! string for description of method, written to the species files: simple, advanced
 apwdescr
@@ -53,5 +46,30 @@ searchlocorb
 ! u and u_dot. in any case the linearization energy (E_lo) is searched
 fullsearchlocorbsc
   .true.
+
+! core-valence cut-off energy (Hartree); default is -3.5d0
+ecvcut
+  -3.5d0
+  
+! semi-core cut-off energy (Hartree); default is -0.5d0
+esccut
+  -0.5d0
+
+!------------------------------------------------------------------------------!
+
+locorbxs
+  .false.
+
+searchlocorbxs
+  .false.
+
+lxsmax
+  5
+
+exsmax
+  10.0
+
+exscut
+  1.0  
 
 !------------------------------------------------------------------------------!

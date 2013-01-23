@@ -168,7 +168,7 @@ Subroutine init1
 !
 ! generate the reduced k-point set
 !
-         if (input%groundstate%tetra) then    
+         if (input%groundstate%stypenumber < 0) then    
 
 ! suppress debug output in tetrahedron integration library (0)
              call tetrasetdbglv (0)

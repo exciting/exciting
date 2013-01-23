@@ -91,6 +91,9 @@ Subroutine getsdata (stype, sdescr)
       Integer, Intent (In) :: stype
       Character (256), Intent (Out) :: sdescr
       Select Case (stype)
+      Case (-1)
+         sdescr = 'Extended linear tetrahedron method (LIBBZINT library) (experimental option)'
+         Return
       Case (0)
          sdescr = 'Gaussian'
          Return

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Bi" name="bismuth" z="-83.0000" mass="380947.9283">
-    <muffinTin rmin="0.219529E-06" radius="2.0000" rinf="36.5066" radialmeshPoints="700"/>
+    <muffinTin rmin="0.219529E-06" radius="2.0000" rinf="41.8899" radialmeshPoints="700"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -31,16 +31,10 @@
       <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="2" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <custom l="3" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <lo l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="0" trialEnergy="-1.0607" searchE="true"/>
-      </lo>
-      <lo l="0">
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-0.5393" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

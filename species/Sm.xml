@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Sm" name="samarium" z="-62.0000" mass="274089.5126">
-    <muffinTin rmin="0.254000E-06" radius="2.2000" rinf="39.8420" radialmeshPoints="700"/>
+    <muffinTin rmin="0.254000E-06" radius="2.2000" rinf="45.6974" radialmeshPoints="700"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

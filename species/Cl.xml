@@ -13,12 +13,6 @@
       <default type="lapw" trialEnergy="0.1500" searchE="false"/>
       <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <custom l="2" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <lo l="0">
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-0.7601" searchE="true"/>
-      </lo>
     </basis>
     <!-- Exciting code version: Lithium -->
     <!-- Generation Scheme: simple -->

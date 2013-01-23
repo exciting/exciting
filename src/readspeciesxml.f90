@@ -176,7 +176,7 @@ Subroutine readspeciesxml
      if (size(speziesdeflist(is)%sp%basis%default%wfarray)>0) then
        
 !      DEFAULT: Element wf is specified
-!      The definition bases on the augmentation type is (if present) ignored
+!      The definition based on the augmentation type is (if present) ignored
 
        apword(0, is) = size(speziesdeflist(is)%sp%basis%default%wfarray)
        If (apword(0, is) .Le. 0) Then
@@ -217,13 +217,13 @@ Subroutine readspeciesxml
      else
        
        string=trim(speziesdeflist(is)%sp%basis%default%type)
-       if (string .eq. 'apw+lo') then
+       if ((string .eq. 'apw+lo').or.(string .eq. 'apw')) then
          apword(0, is) = 1
        else if (string .eq. 'lapw') then
          apword(0, is) = 2
        else
          write (*, *) 'Error(readspeciesxml): Unknown APW basis type = ', adjustl(string)
-         write (*, *) 'Available options: lapw, apw+lo'
+         write (*, *) 'Available options: lapw, apw, apw+lo'
          stop
        end if
        do io = 1, apword(0, is)                                              
@@ -322,13 +322,13 @@ Subroutine readspeciesxml
         else
         
           string = trim(speziesdeflist(is)%sp%basis%customarray(ilx)%custom%type)
-          if (string .eq. 'apw+lo') then
+          if ((string .eq. 'apw+lo').or.(string .eq. 'apw')) then
             apword(lx, is) = 1
           else if (string .eq. 'lapw') then
             apword(lx, is) = 2
           else
             write (*, *) 'Error(readspeciesxml): Unknown APW basis type = ', adjustl(string)
-            write (*, *) 'Available options: lapw, apw+lo'
+            write (*, *) 'Available options: lapw, apw, apw+lo'
             stop
           end if
           Do io = 1, apword(lx, is)
@@ -340,7 +340,7 @@ Subroutine readspeciesxml
 !        
 !         lo in APW+lo method
 !
-          if (apword(lx, is).eq.1) then
+          if (string .eq. 'apw+lo') then
             nlo = nlo+1
             lorbl(nlo, is) = lx
             if (lorbl(nlo, is) .Gt. input%groundstate%lmaxmat) then

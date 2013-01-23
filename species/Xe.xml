@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Xe" name="xenon" z="-54.0000" mass="239327.0292">
-    <muffinTin rmin="0.272166E-06" radius="2.0000" rinf="26.8245" radialmeshPoints="600"/>
+    <muffinTin rmin="0.272166E-06" radius="2.0000" rinf="27.5419" radialmeshPoints="600"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -24,16 +24,10 @@
       <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <custom l="2" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <custom l="3" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
       <lo l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="0" trialEnergy="-2.2256" searchE="true"/>
-      </lo>
-      <lo l="0">
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-0.7334" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

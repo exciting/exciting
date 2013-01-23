@@ -11,7 +11,9 @@ subroutine  writexmlspecies
 
   implicit none
   type(xmlf_t), save::xf
-  character(100)::buffer,buffer2
+  character(100)::buffer,buffer1,buffer2
+  real(8) :: e
+  integer :: order
 
   call xml_OpenFile (trim(spsymb)//trim(suffix)//'.xml', xf, replace=.true.,pretty_print=.true.)
   call xml_NewElement (xf, "spdb")
@@ -104,7 +106,7 @@ subroutine  writexmlspecies
           write(*,*) 'Not supported basis type: apwordx>2'
           stop
         end if
-        write(buffer,'(F8.4)') boe
+        write(buffer,'(F8.4)') elval(l)
         call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
         if (apwvex(1)) then
           call xml_AddAttribute(xf, "searchE", "true")
@@ -147,7 +149,7 @@ subroutine  writexmlspecies
           call xml_NewElement (xf, "wf")
           write(buffer,*) apwdmx(io)
           call xml_AddAttribute(xf, "matchingOrder", trim(adjustl(buffer)))
-          write(buffer,'(F8.4)') boe
+          write(buffer,'(F8.4)') elval(l)
           call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
           if(apwvex(io)) then
             call xml_AddAttribute(xf, "searchE", "true")
@@ -168,13 +170,13 @@ subroutine  writexmlspecies
             call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
             call xml_NewElement (xf, "wf")
             call xml_AddAttribute(xf, "matchingOrder", "0")
-            write(buffer,'(F8.4)')boe
+            write(buffer,'(F8.4)') elval(l)
             call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
             call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
             call xml_endElement (xf, "wf")
             call xml_NewElement (xf, "wf")
             call xml_AddAttribute(xf, "matchingOrder", "1")
-            write(buffer,'(F8.4)')boe
+            write(buffer,'(F8.4)') elval(l)
             call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
             call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
             call xml_endElement (xf, "wf")
@@ -185,43 +187,86 @@ subroutine  writexmlspecies
     end if
   end if
 !
-! Local Orbitals
+! Semi-Core Local Orbitals
 !
-   buffer2="false"
-   if (fullsearchlocorbsc) buffer2="true"
+  if ( locorbsc ) then
+    buffer2="false"
+    if (searchlocorb) buffer2="true"
+    do l = 0, lmax
+      do i = 1, nl(l)
+        e = el(l,i)
+        if (e.lt.esccut) then
+            call xml_NewElement (xf, "lo")
+            write(buffer,*) l
+            call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
+            call xml_NewElement (xf, "wf")
+            call xml_AddAttribute(xf, "matchingOrder", "0")
+            write(buffer,'(F8.4)') elval(l)
+            call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
+            call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
+            call xml_endElement (xf, "wf")
+            call xml_NewElement (xf, "wf")
+            call xml_AddAttribute(xf, "matchingOrder", "1")
+            write(buffer,'(F8.4)') elval(l)
+            call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
+            call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
+            call xml_endElement (xf, "wf")
+            call xml_NewElement (xf, "wf")
+            call xml_AddAttribute(xf, "matchingOrder", "0")
+            write(buffer,'(F8.4)') e
+            call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
+            call xml_AddAttribute(xf, "searchE", "true")
+            call xml_endElement (xf, "wf")
+            call xml_endElement (xf, "lo")
+        end if
+      end do
+    end do
+  endif ! locorbsc
+  
+!-------------------------------------------------
+! Exciting States Local Orbitals
+!-------------------------------------------------
 
-   if (locorbsc) then
-     do ist=1,spnst
-       if (.not.spcore(ist)) then
-         if ((spl(ist).eq.0).or.(spl(ist).eq.spk(ist))) then
-           if (eval(ist).lt.esccut) then
-             call xml_NewElement (xf, "lo")
-             write(buffer,*)spl(ist)
-             call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
-             call xml_NewElement (xf, "wf")
-             call xml_AddAttribute(xf, "matchingOrder", "0")
-             write(buffer,'(F8.4)')boe
-             call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
-             call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
-             call xml_endElement (xf, "wf")
-             call xml_NewElement (xf, "wf")
-             call xml_AddAttribute(xf, "matchingOrder", "1")
-             write(buffer,'(F8.4)')boe
-             call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
-             call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
-             call xml_endElement (xf, "wf")
-             call xml_NewElement (xf, "wf")
-             call xml_AddAttribute(xf, "matchingOrder", "0")
-             write(buffer,'(F8.4)') eval(ist)
-             call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
-             call xml_AddAttribute(xf, "searchE", "true")
-             call xml_endElement (xf, "wf")
-             call xml_endElement (xf, "lo")
-           end if
-         end if
-       end if
-     end do
-   endif ! locorbsc
+  if ( locorbxs ) then
+    buffer2="false"
+    if (searchlocorbxs) buffer2="true"
+    do l = 0, lxsmax
+      buffer1="false"
+      if ((l<=maxl).and.(apwvex(1))) buffer1="true"
+      ! ----
+      order=apword
+      if (l<=maxl) order=apwordx
+      ! ----
+      do i = 1, nl(l)
+        e = el(l,i)
+        if (e.gt.exscut) then
+          call xml_NewElement (xf, "lo")
+          write(buffer,*) l
+          call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
+          ! valence radial function
+          do io = 0, order-1
+            call xml_NewElement (xf, "wf")
+            write(buffer,*) io
+            call xml_AddAttribute(xf, "matchingOrder", trim(adjustl(buffer)))
+            write(buffer,'(F8.4)') elval(l)
+            call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
+            call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer1)))
+            call xml_endElement (xf, "wf")
+          end do
+          ! xs radial function
+          io = 0
+          call xml_NewElement (xf, "wf")
+          write(buffer,*) io
+          call xml_AddAttribute(xf, "matchingOrder", trim(adjustl(buffer)))
+          write(buffer,'(F8.4)') e
+          call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
+          call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
+          call xml_endElement (xf, "wf")
+          call xml_endElement (xf, "lo")
+        end if
+      end do ! i
+    end do ! l
+  endif ! locorbxs
 
   call xml_endElement (xf, "basis")
 
