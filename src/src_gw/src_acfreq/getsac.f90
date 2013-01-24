@@ -47,7 +47,7 @@
          enddo
          call acpatrd(npar,ein-en,comega,apar,sc,dsc)
       endif 
-			write(9000,*)"apar",apar
+
 
 
 

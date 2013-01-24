@@ -13,6 +13,7 @@ subroutine cat_logfiles(filenameslug)
 ! !USES:
 
     use modmpi
+    use modinput
 !
 ! !DEFINED PARAMETERS:
 	character(*)::filenameslug
@@ -31,12 +32,14 @@ subroutine cat_logfiles(filenameslug)
 			write(buffer,*)i
 			! open file from proc i
 			open(902,file=trim(adjustl(filenameslug))//trim(adjustl(buffer))//'.OUT' )
-			write(901,*)"####### OUTPUT FROM PROC",i," ######"
-			do ! while file not ends
+			if (input%gw%debug .or. i.eq.0) then
+			     write(901,*)"####### OUTPUT FROM PROC",i," ######"
+			     do ! while file not ends
 				buffer=""
 				read(902, '(A)', end=999) buffer !read line
-				write(901,*)buffer ! write line
-			end do
+				write(901,*)trim(buffer) ! write line
+			     end do
+			endif
 999 continue
 			close (902, status='delete')
 		end do

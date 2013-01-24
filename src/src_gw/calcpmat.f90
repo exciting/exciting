@@ -44,7 +44,7 @@ subroutine calcpmat
 
     allocate(pmat(3,nstfv,nstfv))
     inquire(IoLength=Recl) pmat
-    open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
+     if(rank.eq.0) open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
      status='REPLACE',recl=Recl)
 
     if (iopcore.eq.0) then 

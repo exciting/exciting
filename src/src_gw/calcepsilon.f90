@@ -124,7 +124,7 @@ subroutine calcepsilon(iqp,COMM_LEVEL2)
    Call mpi_comm_size ( COMM_LEVEL2, level2procs, ierr)
    Call mpi_comm_rank ( COMM_LEVEL2,level2rank, ierr)
    call mpi_barrier(COMM_LEVEL2,ierr)
-   if(rank.eq.1) write(*,*) "epsilon BZ summation:"
+   if (input%gw%debug .and. rank.eq.1) write(*,*) "epsilon BZ summation:"
 #endif
 #ifndef MPI
 level2rank=0
@@ -139,7 +139,7 @@ level2procs=1
 
       if(mod(ikp-1,level2procs).eq.level2rank .and. level2rank .lt. nkptq(iqp) ) then
 #ifdef MPI
-      write(*,*)"for q ",iqp,"do ikp ",ikp," on proc", rank
+      if (input%gw%debug) write(*,*)"for q ",iqp,"do ikp ",ikp," on proc", rank
 #endif
         ik = idikpq(ikp,iqp)
         jk = kqid(ik,iq)

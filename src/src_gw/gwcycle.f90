@@ -96,15 +96,15 @@
 !
 !       Loop over q-points
 !        
-        call boxmsg(fgw,'-','Calculation of the dielectric matrix')
+        if (input%gw%debug )call boxmsg(fgw,'-','Calculation of the dielectric matrix')
         call barrier
 #ifdef MPI
 		if (rank.eq.0) write(*,*) "Calculation of the dielectric matrix"
-        write(*,*)"On proc",rank,"do qp",firstofset(mod(rank,nqpt),nqpt)," to ", lastofset(mod(rank,nqpt),nqpt)
+        if (input%gw%debug ) write(*,*)"On proc",rank,"do qp",firstofset(mod(rank,nqpt),nqpt)," to ", lastofset(mod(rank,nqpt),nqpt)
 
 		! create  communicator object for each qpoint
          call MPI_COMM_SPLIT(MPI_COMM_WORLD,firstofset(mod(rank,nqpt),nqpt),  rank/nqpt, COMM_LEVEL2,ierr)
-         write(*,*) "proc ",rank,"does color ", firstofset(mod(rank,nqpt),nqpt), "with key(rank)", rank/nqpt
+        if (input%gw%debug ) write(*,*) "proc ",rank,"does color ", firstofset(mod(rank,nqpt),nqpt), "with key(rank)", rank/nqpt
 #endif
 		!each process does a subset
         do iqp = firstofset(mod(rank,nqpt),nqpt), lastofset(mod(rank,nqpt),nqpt)
@@ -161,8 +161,8 @@
         	 write(44,rec=iqp-firstofset(rank,nqpt)+1) inveps
         	! write(1100+iqp,*)epsilon
         	! write(900+iqp,*)inveps
-   			 write(fgw,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
-		  endif
+                if (input%gw%debug )write(fgw,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
+          endif
           if((iqp.eq.1) )then
 			if( rank.eq.0)then
             ! store the data used for treating q->0 singularities
@@ -219,7 +219,7 @@
 #ifdef MPI
 	  write(sbuffer,*)rank
       open(96,file='ADDSELFE'//trim(adjustl(sbuffer))//'.OUT',form='FORMATTED',status='UNKNOWN')
-      if (rank.eq.0)write(*,*)"Calculate Self Energy"
+      if (rank.eq.0 .and. input%gw%debug)write(*,*)"Calculate Self Energy"
 #endif
 #ifndef MPI
       open(96,file='ADDSELFE.OUT',form='FORMATTED',status='UNKNOWN')
@@ -236,7 +236,7 @@
 		! decide if point is done by this process
          if (mod(ikpqp-1,procs).eq.rank) then
 #ifdef MPI
-         write(*,*) "do q",iqp,"and k", ikp,"as number",ikpqp, "on",rank
+         if (input%gw%debug)write(*,*) "do q",iqp,"and k", ikp,"as number",ikpqp, "on",rank
 #endif
            call cpu_time(tq1)
            
