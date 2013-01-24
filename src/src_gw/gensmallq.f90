@@ -156,7 +156,7 @@ SUBROUTINE gensmallq
         write(99,*) '    nkptq: ', nkptq(iqp)
         write(99,*) '    vklq: '
         do ikp = 1, nkptq(iqp)
-          write(99,'(i4,3f12.4)') ikp, vklq(:,ikp), wkpq(ikp,iqp)
+          write(99,'(i4,4f12.4)') ikp, vklq(:,ikp), wkpq(ikp,iqp)
         end do
         write(99,*) '    idikpq: ', idikpq(1:nkptq(iqp),iqp)      
         write(99,*) '    indkpq: ', indkpq(:,iqp)

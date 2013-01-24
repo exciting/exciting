@@ -33,6 +33,7 @@
 
       use modmain
       use modgw
+      use modmpi
       use q0barc
 !
 ! !LOCAL VARIABLES:
@@ -89,7 +90,7 @@
       call cpu_time(t1)
       call calcsing
       call cpu_time(t2)
-      
+
       imix=0
       do is=1,nspecies
         do ia=1,natoms(is)
@@ -163,7 +164,7 @@
       use modmain
       use modgw
       use q0barc
-
+	use modmpi
 ! !LOCAL VARIABLES:
 !
       implicit none
@@ -337,6 +338,7 @@
             enddo ! irm
           enddo ! igl
         enddo ! ia  
+
         deallocate(rp)
         deallocate(fr)
         deallocate(gr)

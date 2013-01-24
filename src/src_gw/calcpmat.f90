@@ -11,6 +11,7 @@ subroutine calcpmat
     use modmain
     use modgw
     use modxs
+    use modmpi
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
 !   writes them to direct access file {\tt PMAT.OUT}.
@@ -31,7 +32,7 @@ subroutine calcpmat
     complex(8), allocatable :: pmatc(:,:,:)
     
     real(8) :: tstart, tend
-    
+    character(128)::sbuffer
     call cpu_time(tstart)
     if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
     
@@ -49,8 +50,10 @@ subroutine calcpmat
     if (iopcore.eq.0) then 
       allocate(pmatc(3,ncg,nstfv))
       inquire(IoLength=Recl) pmatc
-      open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-       status='REPLACE',recl=Recl)
+      if(rank.eq.0)then
+        open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
+          status='REPLACE',recl=Recl)
+      endif
     endif   
 
     do ik = 1, nkpt
@@ -68,18 +71,20 @@ subroutine calcpmat
 !     valence-valence matrix elements
       call genpmat(ngk(1,ik),igkig(1,1,ik),vgkcnr(1,1,1,ik), &
      &  apwalmt,evecfvt,evecsvt,pmat)
-      write(50,rec=ik) pmat
+ 
+      if(rank.eq.0) write(50,rec=ik) pmat
 
 !     core-valence contribution      
       if(iopcore.eq.0)then
         call genpmatcor(ik,ngk(1,ik),apwalmt,evecfvt,evecsvt,pmatc)
-        write(51,rec=ik) pmatc
+ 
+          if(rank.eq.0) write(51,rec=ik) pmatc
       endif
 
     end do
 
-    if(iopcore.eq.0)close(51)   
-    close(50)
+    if(iopcore.eq.0.and.rank.eq.0)close(51)   
+    if(rank.eq.0)close(50)
 
     write(fgw,*)
     write(fgw,'(" Info(calcpmat):")')

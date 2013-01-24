@@ -47,6 +47,7 @@
       use modinput
       use modmain
       use modgw
+      use modmpi
       use reallocate
  
 ! !LOCAL VARIABLES:
@@ -132,12 +133,15 @@
 !             vector (uol), the working space and the indexes
 !
               allocate(uml(nl(l),nl(l)))
+              uml=0
               allocate(uol(nl(l)))
+              uol=0
               allocate(work(3*nl(l)-1))
               allocate(ind(nl(l)))
 !
 !             generate the L-block overlap matrix
 !
+				 
               j=0
               do i1=1,nup(ias)
                 lammax=eles(ias,i1,1)+eles(ias,i1,2)
@@ -167,13 +171,20 @@
               end if
               
 !             diagonalize the L-block overlap matrix
-
-              call dsyev('v','u',nl(l),uml,nl(l),uol,work,3*nl(l)-1,info)
+ 
+			 
+              call dsyev('V','U',nl(l),uml,nl(l),uol,work,3*nl(l)-1,info)
+             
               if(info.ne.0)then
                 write(*,*) 'setumix: error in calling dsyev '
                 write(*,*) 'l =',l,' nl =',nl(l),'info = ',info
                 stop
               endif
+#ifdef MPI
+			! the result uml can vary because math libs can be nondeterministic
+			! this broadcast just ensures that each process starts with the exact same data
+             call mpi_bcast(uml,nl(l)*nl(l),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+#endif
               
               i2=0
               do i1=1,nl(l)
@@ -195,6 +206,8 @@
                   enddo ! i2 
                 endif
               enddo ! i1
+           
+              
 !
 !             normalize the radial mixed wave functions
 !

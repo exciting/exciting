@@ -13,6 +13,7 @@
 
     use modmain
     use modgw
+    use modmpi
 
 ! !INPUT PARAMETERS:
       
@@ -30,7 +31,7 @@
 
     complex(8), allocatable :: eps(:,:), tmat(:,:)
     complex(8), allocatable :: rmat(:,:), temp(:,:)
-    
+    character(128)::sbuffer
 ! !EXTERNAL ROUTINES: 
 
     external zgemm
@@ -51,13 +52,17 @@
     
     if(allocated(inveps))deallocate(inveps)
     allocate(inveps(matsizmax,matsizmax,nomeg))
-    
-    inquire(IoLength=Recl) inveps
-    open(44,file='INVEPS.OUT',action='READ',form='UNFORMATTED', &
-   &  access='DIRECT',status='OLD',recl=Recl)
-    
+
     iqp=indkpq(iq,1)
-    read(44,rec=iqp) inveps
+    inquire(IoLength=Recl) inveps
+    write(sbuffer,*)procofindex (iqp, nqpt)
+    open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT',action='READ',form='UNFORMATTED', &
+   &  access='DIRECT',status='OLD',recl=Recl)
+
+    
+
+    read(44,rec=iqp-firstofset(procofindex (iqp, nqpt),nqpt)+1) inveps
+
     close(44)
     
     ! if the q-point is non-reduced, the dielectric matrix is calculated by symmetry

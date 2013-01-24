@@ -13,6 +13,7 @@
 !
       use modmain
       use modgw
+      use modmpi
       
       implicit none     
 
