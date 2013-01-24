@@ -76,3 +76,4 @@ Makefile.libarpack
 Makefile.libbzint
 Makefile.libmsec
 Makefile.mkmf
+*.pdf
