@@ -5710,18 +5710,6 @@ case('XC_GGA_X_AIRY')
  stringtonumberlibxcexchange=192
 case('XC_GGA_X_LAG')
  stringtonumberlibxcexchange=193
-case('XC_GGA_X_WPBEH')
- stringtonumberlibxcexchange=524
-case('XC_GGA_X_HJS_PBE')
- stringtonumberlibxcexchange=525
-case('XC_GGA_X_HJS_PBE_SOL')
- stringtonumberlibxcexchange=526
-case('XC_GGA_X_HJS_B88')
- stringtonumberlibxcexchange=527
-case('XC_GGA_X_HJS_B97X')
- stringtonumberlibxcexchange=528
-case('XC_GGA_X_ITYH')
- stringtonumberlibxcexchange=529
 case('XC_HYB_GGA_X_SOGGA11_X')
  stringtonumberlibxcexchange=426
 case('')
@@ -5980,22 +5968,6 @@ case('XC_HYB_GGA_XC_SB98_2b')
  stringtonumberlibxcxc=424
 case('XC_HYB_GGA_XC_SB98_2c')
  stringtonumberlibxcxc=425
-case('XC_HYB_GGA_XC_HSE03')
- stringtonumberlibxcxc=427
-case('XC_HYB_GGA_XC_HSE06')
- stringtonumberlibxcxc=428
-case('XC_HYB_GGA_XC_HJS_PBE')
- stringtonumberlibxcxc=429
-case('XC_HYB_GGA_XC_HJS_PBE_SOL')
- stringtonumberlibxcxc=430
-case('XC_HYB_GGA_XC_HJS_B88')
- stringtonumberlibxcxc=431
-case('XC_HYB_GGA_XC_HJS_B97X')
- stringtonumberlibxcxc=432
-case('XC_HYB_GGA_XC_CAM_B3LYP')
- stringtonumberlibxcxc=433
-case('XC_HYB_GGA_XC_TUNED_CAM_B3LYP')
- stringtonumberlibxcxc=434
 case('XC_HYB_GGA_XC_BHANDH')
  stringtonumberlibxcxc=435
 case('XC_HYB_GGA_XC_BHANDHLYP')

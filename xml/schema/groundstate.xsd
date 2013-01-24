@@ -736,7 +736,8 @@
                       <xs:documentation> Local Airy Gas </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_GGA_X_WPBEH">
+		  <!-- Range seperated / screened functionals currently not implemented-->
+                  <!--xs:enumeration value="XC_GGA_X_WPBEH">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 524 </oldnr>
@@ -783,7 +784,7 @@
                       </xs:appinfo>
                       <xs:documentation> short-range recipe for exchange GGA functionals </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
                   <xs:enumeration value="XC_HYB_GGA_X_SOGGA11_X">
                     <xs:annotation>
                       <xs:appinfo>
@@ -1727,7 +1728,8 @@
                       <xs:documentation> Schmider-Becke 98 parameterization 2c </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_HYB_GGA_XC_HSE03">
+		  <!-- Range seperated / screened functionals currently not implemented-->
+                  <!--xs:enumeration value="XC_HYB_GGA_XC_HSE03">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 427 </oldnr>
@@ -1790,7 +1792,7 @@
                       </xs:appinfo>
                       <xs:documentation> CAM version of B3LYP tunes for excitations </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
                   <xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
                     <xs:annotation>
                       <xs:appinfo>
