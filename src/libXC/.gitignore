@@ -4,7 +4,7 @@ Makefile
 testsuite/xc-consistency
 testsuite/xc-get_data
 *.lo
-config.h'
-config.status'
+config.h
+config.status
 libtool
-src/libxc.f90'
+src/libxc.f90
