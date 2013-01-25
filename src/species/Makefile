@@ -13,7 +13,7 @@ speciesbin:: ../../build/make.inc
     ../src_inputparser/inputmodules.f90 \
     ../src_inputparser/modinputdom.f90 \
 	&& $(MAKE) -f Makefile.mkmf species \
-	&& cp species ../../bin/species
+	&& mv species ../../bin/species
 	
 clean:
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno gmon.out $(EXE)
