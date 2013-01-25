@@ -997,7 +997,7 @@ bell labs, nov. 1981.
   *resasc *= dhlgth;
   *abserr = ABS((resk - resg) * hlgth);
   if (*resasc != 0. && *abserr != 0.) {
-    *abserr = *resasc * min(1., pow(*abserr * 200. / *resasc, 1.5));
+    *abserr = *resasc * min(1., POW(*abserr * 200. / *resasc, 1.5));
   }
   if (*resabs > uflow / (epmach * 50.)) {
     *abserr = max(epmach * 50. * *resabs, *abserr);

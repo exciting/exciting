@@ -35,11 +35,9 @@ typedef struct{
 static FLOAT br89_gamma = 0.8;
 
 
-static void mgga_x_tb09_init(void *p_)
+static void 
+mgga_x_tb09_init(XC(func_type) *p)
 {
-  XC(mgga_type) *p = (XC(mgga_type) *)p_;
-  mgga_x_tb09_params *params;
-
   assert(p->params == NULL);
 
   switch(p->info->number){
@@ -50,42 +48,24 @@ static void mgga_x_tb09_init(void *p_)
   }
 
   p->params = malloc(sizeof(mgga_x_tb09_params));
-  params = (mgga_x_tb09_params *) (p->params);
 
   /* value of c in Becke-Johnson */
-  XC(mgga_x_tb09_set_params_)(p, 1.0);
-}
-
-
-static void mgga_x_tb09_end(void *p_)
-{
-  XC(mgga_type) *p = (XC(mgga_type) *)p_;
-
-  assert(p->params != NULL);
-  free(p->params);
-  p->params = NULL;
-
+  XC(mgga_x_tb09_set_params)(p, 1.0);
 }
 
 
 void XC(mgga_x_tb09_set_params)(XC(func_type) *p, FLOAT c)
 {
-  assert(p != NULL && p->mgga != NULL);
-  XC(mgga_x_tb09_set_params_)(p->mgga, c);
-}
-
-void XC(mgga_x_tb09_set_params_)(XC(mgga_type) *p, FLOAT c)
-{
   mgga_x_tb09_params *params;
 
-  assert(p->params != NULL);
+  assert(p != NULL && p->params != NULL);
   params = (mgga_x_tb09_params *) (p->params);
 
   params->c = c;
 }
 
 /* This code follows the inversion done in the PINY_MD package */
-FLOAT inline 
+static FLOAT
 br_newt_raph(FLOAT a, FLOAT tol,  FLOAT * res, int *ierr)
 {
   int count;
@@ -121,6 +101,45 @@ br_newt_raph(FLOAT a, FLOAT tol,  FLOAT * res, int *ierr)
    return x;
 }
 
+static FLOAT
+br_bisect(FLOAT a, FLOAT tol, int *ierr) { 
+  int count; 
+  FLOAT f, x, x1, x2; 
+  static int max_iter = 500; 
+ 	 
+  *ierr = 1; 
+  if(a == 0.0) 
+    return 0.0; 
+		   
+  /* starting interval */ 
+  if(a > 0.0) { 
+    x1 = 2.0 + tol; 
+    x2 = 1.0/a + 2.0;
+  }else{ 
+    x2 = 2.0 - tol; 
+    x1 = 0.0; 
+  } 
+	 	 
+  /* bisection */ 
+  count = 0; 
+  do{ 
+    FLOAT arg, eee, xm2; 
+    x   = 0.5*(x1 + x2); 
+    xm2 = x - 2.0; 
+    arg = 2.0*x/3.0; 
+    eee = exp(-arg); 
+    f   = x*eee - a*xm2; 
+	 	 
+    if(f > 0.0) x1 = x; 
+    if(f < 0.0) x2 = x; 
+	 	 
+    count++; 
+  }while((fabs(f) > tol)  && (count < max_iter)); 
+ 	 
+  if(count == max_iter) *ierr=0;  
+  return x; 
+} 
+	 	 
 FLOAT XC(mgga_x_br89_get_x)(FLOAT Q)
 {
   FLOAT rhs, br_x, tol, res;
@@ -138,30 +157,33 @@ FLOAT XC(mgga_x_br89_get_x)(FLOAT Q)
 
   br_x = br_newt_raph(rhs, tol, &res, &ierr);
   if(ierr == 0){
-    fprintf(stderr, 
-	    "Warning: Convergence not reached in Becke-Roussel functional\n"
-	    "For rhs = %20.14lf (residual = %e)\n", rhs, res);
+    br_x = br_bisect(rhs, tol, &ierr);
+    if(ierr == 0){
+      fprintf(stderr, 
+	      "Warning: Convergence not reached in Becke-Roussel functional\n"
+	      "For rhs = %e (residual = %e)\n", rhs, res);
+    }
   }
 
   return br_x;
 }
 
 static void 
-func(const XC(mgga_type) *pt, FLOAT x, FLOAT t, FLOAT u, int order,
-     FLOAT *f, FLOAT *vrho0, FLOAT *dfdx, FLOAT *dfdt, FLOAT *dfdu,
-     FLOAT *d2fdx2, FLOAT *d2fdxt, FLOAT *d2fdt2)
+func(const XC(func_type) *pt, XC(mgga_work_x_t) *r)
 {
-  FLOAT Q, br_x, dfdbx, dxdu, ff, dff, v_BR;
-  FLOAT cnst, exp1, exp2;
+  FLOAT Q, br_x, v_BR, dv_BRdbx, d2v_BRdbx2, dxdQ, d2xdQ2, ff, dffdx, d2ffdx2;
+  FLOAT cnst, c_TB09, c_HEG, exp1, exp2;
 
-  Q  = (u - 2.0*br89_gamma*t + 0.5*br89_gamma*x*x)/6.0;
+  Q = (r->u - 4.0*br89_gamma*r->t + 0.5*br89_gamma*r->x*r->x)/6.0;
+  if(abs(Q) < MIN_DENS) Q = (Q < 0) ? -MIN_DENS : MIN_DENS;
+
   br_x = XC(mgga_x_br89_get_x)(Q);
 
-  cnst = -2.0*POW(M_PI, 1.0/3.0)/X_FACTOR_C;
+  cnst = -2.0*CBRT(M_PI)/X_FACTOR_C;
   exp1 = exp(br_x/3.0);
   exp2 = exp(-br_x);
 
-  v_BR = (ABS(br_x) > MIN_TAU) ?
+  v_BR = (ABS(br_x) > pt->info->min_tau) ?
     exp1*(1.0 - exp2*(1.0 + br_x/2.0))/br_x :
     1.0/2.0 + br_x/6.0 - br_x*br_x/18.0;
 
@@ -169,41 +191,71 @@ func(const XC(mgga_type) *pt, FLOAT x, FLOAT t, FLOAT u, int order,
 
   if(pt->func == 0){ /* XC_MGGA_X_BR89 */
     /* we have also to include the factor 1/2 from Eq. (9) */
-    *f = - v_BR / 2.0;
+    r->f = - v_BR / 2.0;
   }else{ /* XC_MGGA_X_BJ06 & XC_MGGA_X_TB09 */
-    *f = 0.0;
+    r->f = 0.0;
   }
 
-  if(order < 1) return;
+  if(r->order < 1) return;
 
-  if(pt->func == 0){ /* XC_MGGA_X_BR89 */
-    dfdbx = (ABS(br_x) > MIN_TAU) ?
+  if(pt->func == 0 || r->order > 1){
+    dv_BRdbx = (ABS(br_x) > pt->info->min_tau) ?
       (3.0 + br_x*(br_x + 2.0) + (br_x - 3.0)/exp2) / (3.0*exp1*exp1*br_x*br_x) :
       1.0/6.0 - br_x/9.0;
-    dfdbx *= cnst;
-  
-    ff  = br_x*exp(-2.0/3.0*br_x)/(br_x - 2);
-    dff = -2.0/3.0 + 1.0/br_x - 1.0/(br_x - 2.0); /* dff / ff */
+    dv_BRdbx *= cnst;
+    
+    ff    = br_x*exp(-2.0/3.0*br_x)/(br_x - 2);
+    dffdx = ff*(-2.0/3.0 + 1.0/br_x - 1.0/(br_x - 2.0));
+    dxdQ  = -ff/(Q*dffdx);
+  }
 
-    dxdu  = -1.0/(6.0*Q*dff);
-
-    *dfdx =    x*br89_gamma*dfdbx*dxdu / 2.0;
-    *dfdt = -2.0*br89_gamma*dfdbx*dxdu / 2.0;
-    *dfdu =                 dfdbx*dxdu / 2.0;
+  if(pt->func == 0){ /* XC_MGGA_X_BR89 */
+    r->dfdx = -r->x*br89_gamma*dv_BRdbx*dxdQ/12.0;
+    r->dfdt =   4.0*br89_gamma*dv_BRdbx*dxdQ/12.0;
+    r->dfdu =                 -dv_BRdbx*dxdQ/12.0;
 
   }else{
-    if(pt->func == 1 || pt->func == 2) { /* XC_MGGA_X_BJ0 & XC_MGGA_X_TB09 */
-      FLOAT c;
-    
-      assert(pt->params != NULL);
-      c = ((mgga_x_tb09_params *) (pt->params))->c;
-    
-      *vrho0 = - c*v_BR - (3.0*c - 2.0)*sqrt(5.0/12.0)*sqrt(t)/(X_FACTOR_C*M_PI);
+    assert(pt->params != NULL);
+    c_TB09 = ((mgga_x_tb09_params *) (pt->params))->c;
 
-    }else{ /* XC_MGGA_X_RPP09 */
-      *vrho0 = - v_BR - sqrt(5.0/12.0)*sqrt(max(t - x*x/4.0, 0.0))/(X_FACTOR_C*M_PI);
-    }
+    r->dfdrs = -c_TB09*v_BR;
+
+    c_HEG  = (3.0*c_TB09 - 2.0)*SQRT(5.0/12.0)/(X_FACTOR_C*M_PI);
+    
+    if(pt->func == 1 || pt->func == 2) /* XC_MGGA_X_BJ0 & XC_MGGA_X_TB09 */
+      r->dfdrs -= c_HEG*SQRT(2.0*r->t);
+    else /* XC_MGGA_X_RPP09 */
+      r->dfdrs -= c_HEG*SQRT(max(2.0*r->t - r->x*r->x/4.0, 0.0));
+
+    r->dfdrs /= -r->rs; /* due to the definition of dfdrs */
   }
+
+  if(r->order < 2) return;
+  
+  if(pt->func == 0 || r->order > 2){
+    d2v_BRdbx2 = (ABS(br_x) > pt->info->min_tau) ?
+      ((18.0 + (br_x - 6.0)*br_x)/exp2 - 2.0*(9.0 + br_x*(6.0 + br_x*(br_x + 2.0)))) 
+      / (9.0*exp1*exp1*br_x*br_x*br_x) :
+      -1.0/9.0;
+    d2v_BRdbx2 *= cnst;
+
+    d2ffdx2 = dffdx*dffdx/ff + ff*(-1.0/(br_x*br_x) + 1.0/((br_x - 2.0)*(br_x - 2.0)));
+    d2xdQ2 = -(2.0*dxdQ/Q + d2ffdx2*dxdQ*dxdQ/dffdx);
+  }
+
+  if(pt->func == 0){ /* XC_MGGA_X_BR89 */
+    FLOAT aux1 = d2v_BRdbx2*dxdQ*dxdQ + dv_BRdbx*d2xdQ2;
+
+    r->d2fdx2 = -(aux1*br89_gamma*r->x*r->x/6.0 + dv_BRdbx*dxdQ)*br89_gamma/12.0;
+    r->d2fdxt =  aux1*br89_gamma*br89_gamma*r->x/18.0;
+    r->d2fdxu = -aux1*br89_gamma*r->x/72.0;
+    r->d2fdt2 = -aux1*2.0*br89_gamma*br89_gamma/9.0;
+    r->d2fdtu =  aux1*br89_gamma/18.0;
+    r->d2fdu2 = -aux1/72.0;
+  }else{
+    
+  }
+
 }
 
 #include "work_mgga_x.c"
@@ -214,7 +266,8 @@ const XC(func_info_type) XC(func_info_mgga_x_br89) = {
   "Becke-Roussel 89",
   XC_FAMILY_MGGA,
   "AD Becke and MR Roussel, Phys. Rev. A 39, 3761 (1989)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  MIN_DENS, MIN_GRAD, MIN_TAU, MIN_ZETA,
   NULL, NULL,
   NULL, NULL,        /* this is not an LDA                   */
   work_mgga_x,
@@ -227,8 +280,9 @@ const XC(func_info_type) XC(func_info_mgga_x_bj06) = {
   XC_FAMILY_MGGA,
   "AD Becke and ER Johnson, J. Chem. Phys. 124, 221101 (2006)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_VXC,
+  1e-22, 1e-32, 1e-22, 1e-22,
   mgga_x_tb09_init,
-  mgga_x_tb09_end,
+  NULL,
   NULL, NULL,        /* this is not an LDA                   */
   work_mgga_x,
 };
@@ -236,12 +290,13 @@ const XC(func_info_type) XC(func_info_mgga_x_bj06) = {
 const XC(func_info_type) XC(func_info_mgga_x_tb09) = {
   XC_MGGA_X_TB09,
   XC_EXCHANGE,
-  "Tran & Blaha 89",
+  "Tran & Blaha 09",
   XC_FAMILY_MGGA,
   "F Tran and P Blaha, Phys. Rev. Lett. 102, 226401 (2009)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_VXC,
+  MIN_DENS, MIN_GRAD, MIN_TAU, MIN_ZETA,
   mgga_x_tb09_init,
-  mgga_x_tb09_end,
+  NULL,
   NULL, NULL,        /* this is not an LDA                   */
   work_mgga_x,
 };
@@ -251,10 +306,11 @@ const XC(func_info_type) XC(func_info_mgga_x_rpp09) = {
   XC_EXCHANGE,
   "Rasanen, Pittalis & Proetto 09",
   XC_FAMILY_MGGA,
-  "E Rasanen, S Pittalis & C Proetto, arXiv:0909.1477 (2009)",
+  "E Rasanen, S Pittalis & C Proetto, J. Chem. Phys. 132, 044112 (2010)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_VXC,
+  1e-22, 1e-22, 1e-22, 1e-22,
   mgga_x_tb09_init,
-  mgga_x_tb09_end,
+  NULL,
   NULL, NULL,        /* this is not an LDA                   */
   work_mgga_x,
 };

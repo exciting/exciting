@@ -43,13 +43,13 @@ static FLOAT beta = 1.3386, ax = 0.0;
 
 /* Initialization */
 static void
-lda_c_2d_amgb_init(void *p)
+lda_c_2d_amgb_init(XC(func_type) *p)
 {
   int i;
   
   /* initialize a couple of constants */
   for(i=0; i<3; i++) d[i] = -a[i]*h[i];
-  ax = -4.0/(3.0*M_PI*sqrt(2.0));
+  ax = -4.0/(3.0*M_PI*M_SQRT2);
 }
 
 static void
@@ -98,7 +98,7 @@ malpha(int order, int i, FLOAT *rs,
 
 
 static void
-func(const XC(lda_type) *p, XC(lda_rs_zeta) *r)
+func(const XC(func_type) *p, XC(lda_work_t) *r)
 {
   FLOAT ecp, vcp, fcp, kcp;
   FLOAT ecf, vcf, fcf, kcf;
@@ -122,7 +122,7 @@ func(const XC(lda_type) *p, XC(lda_rs_zeta) *r)
     z3  = r->zeta*z2;
     z4  = r->zeta*z3;
 
-    ex  = -4.0*sqrt(2.0)/(3.0*M_PI*r->rs[1]) ;
+    ex  = -4.0*M_SQRT2/(3.0*M_PI*r->rs[1]) ;
     fz  = 0.5*(POW(1.0 + r->zeta, 3.0/2.0) + POW(1.0 - r->zeta, 3.0/2.0));
     ex6 = ex*(fz - 1.0 - 3.0/8.0*z2 - 3.0/128.0*z4);
 
@@ -136,7 +136,7 @@ func(const XC(lda_type) *p, XC(lda_rs_zeta) *r)
   else{
     dex = -ex/r->rs[1];
 
-    dfz = 3.0/4.0*(POW(1.0 + r->zeta, 1.0/2.0) - POW(1.0 - r->zeta, 1.0/2.0));
+    dfz = 3.0/4.0*(SQRT(1.0 + r->zeta) - SQRT(1.0 - r->zeta));
 
     dex6drs = dex*(fz - 1.0 - (3.0/8.0)*z2 - (3.0/128.0)*z4);
     dex6dz  =  ex*(dfz - 2.0*(3.0/8.0)*r->zeta - 4.0*(3.0/128.0)*z3);
@@ -152,7 +152,7 @@ func(const XC(lda_type) *p, XC(lda_rs_zeta) *r)
   else{
     d2ex = -2.0*dex/r->rs[1];
 
-    d2fz = 3.0/8.0*(POW(1.0 + r->zeta, -1.0/2.0) + POW(1.0 - r->zeta, -1.0/2.0));
+    d2fz = 3.0/8.0*(1.0 / SQRT(1.0 + r->zeta) + 1.0 / SQRT(1.0 - r->zeta));
     
     d2ex6drs2 = d2ex*(  fz - 1.0 - (3.0/8.0)*z2          - (3.0/128.0)*z4);
     d2ex6drsz =  dex*( dfz   - 2.0*(3.0/8.0)*r->zeta - 4.0*(3.0/128.0)*z3);
@@ -198,6 +198,7 @@ const XC(func_info_type) XC(func_info_lda_c_2d_amgb) = {
   "C Attacalite et al, Phys. Rev. Lett. 88, 256601 (2002)\n"
   "C Attacalite, PhD thesis",
   XC_FLAGS_2D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC | XC_FLAGS_HAVE_KXC,
+  1e-9, 0.0, 0.0, 1e-32,
   lda_c_2d_amgb_init,
   NULL,
   work_lda

@@ -21,83 +21,70 @@
 ################################################
 # Check size of a fortran integer
 # ----------------------------------
-AC_DEFUN([ACX_FC_INTEGER_SIZE],
-[AC_MSG_CHECKING([for the size of a Fortran integer])
+AC_DEFUN([ACX_FC_INTEGER_SIZE],[
   AC_REQUIRE([AC_PROG_FC])
+
   if test -z "$FC_INTEGER_SIZE"; then
-  cat >intsizetest.f90 <<EOF
-program integer_size
+    AC_MSG_CHECKING([for the size of a Fortran integer])
+    AC_RUN_IFELSE([AC_LANG_PROGRAM([],[
   integer    :: i
   integer(8) :: i8
 
   i8 = huge(i)
+
   select case(i8)
   case(127_8);                 i = 1
   case(32767_8);               i = 2
   case(2147483647_8);          i = 4
   case(9223372036854775807_8); i = 8
+  case default; write(*,'(a,i20)') "unrecognized size ", i8; stop 999
   end select
 
-  write(*,'(i1)') i
-
-end program integer_size
-EOF
-  ac_try='$FC $FCFLAGS $LDFLAGS -o intsizetest.x intsizetest.f90 1>&AC_FD_CC'
-  if AC_TRY_EVAL(ac_try); then
-    ac_try=""
-    ac_fcintegersize=`./intsizetest.x`;
+  open(1, file='conftest.out')
+  write(1,'(i1)') i
+])],
+      [ac_fcintegersize=`cat conftest.out`],
+      [AC_MSG_FAILURE(f90 program to find the size of a Fortran integer failed)],
+      [ac_fcintegersize=4; echo -n "cross-compiling; assuming... "])
+    AC_MSG_RESULT([${ac_fcintegersize} bytes])
   else
-    echo "configure: failed program was:" >&AC_FD_CC
-    cat intsizetest.f90 >&AC_FD_CC
-    AC_MSG_WARN(failed to compile f90 program to find the size of a Fortran integer)
-    ac_fcintegersize=4
+    ac_fcintegersize=$FC_INTEGER_SIZE
   fi
-  rm -f intsizetest*
-else
-  ac_fcintegersize=$FC_INTEGER_SIZE
-fi
-AC_DEFINE_UNQUOTED(FC_INTEGER_SIZE, ${ac_fcintegersize}, [The size of a Fortran integer])
-AC_MSG_RESULT([${ac_fcintegersize} bytes])
+  AC_DEFINE_UNQUOTED(FC_INTEGER_SIZE, ${ac_fcintegersize}, [The size of a Fortran integer])
 ])
 
 ################################################
 # Check which C type corresponds to Fortran int
 # ----------------------------------
-AC_DEFUN([ACX_CC_FORTRAN_INT],
-[AC_MSG_CHECKING([for which C type corresponds to Fortran integer])
+AC_DEFUN([ACX_CC_FORTRAN_INT],[
+  AC_MSG_CHECKING([for which C type corresponds to Fortran integer])
   AC_REQUIRE([ACX_FC_INTEGER_SIZE])
   AC_REQUIRE([AC_PROG_CC])
   if test -z "$CC_FORTRAN_INT"; then
-  cat >ccfortranint.c <<EOF
+    AC_LANG_PUSH([C])
+    AC_RUN_IFELSE([AC_LANG_PROGRAM([
 #include <stdio.h>
-
-int main(void)
-{
+],[
+  FILE* fp;
+  fp = fopen("conftest.out", "w");
   if(${ac_fcintegersize} == sizeof(char))
-    printf("char");
+    fprintf(fp, "char");
   else if(${ac_fcintegersize} == sizeof(short))
-    printf("short");
+    fprintf(fp, "short");
   else if(${ac_fcintegersize} == sizeof(int))
-    printf("int");
+    fprintf(fp, "int");
   else if(${ac_fcintegersize} == sizeof(long))
-    printf("long");
-  return 1;
-}
-EOF
-  ac_try='$CC $CFLAGS $LDFLAGS -o ccfortranint.x ccfortranint.c 1>&AC_FD_CC'
-  if AC_TRY_EVAL(ac_try); then
-    ac_try=""
+    fprintf(fp, "long");
   else
-    echo "configure: failed program was:" >&AC_FD_CC
-    cat ccfortranint.c >&AC_FD_CC
-    rm -f ccfortranint*
-    AC_MSG_ERROR(failed to compile C program to find the C type of a Fortran integer)
+    return 1;
+])],
+      [ac_ccfortranint=`cat conftest.out`],
+      [AC_MSG_FAILURE(C program failed to find the C type of a Fortran integer)],
+      [ac_ccfortranint="int"; echo -n "cross-compiling; assuming... "])
+    AC_LANG_POP([C])
+    AC_MSG_RESULT([${ac_ccfortranint}])
+  else
+    ac_ccfortranint=$CC_FORTRAN_INT
   fi
-  ac_ccfortranint=`./ccfortranint.x`;
-  rm -f ccfortranint*
-else
- ac_ccfortranint=$CC_FORTRAN_INT
-fi
-AC_DEFINE_UNQUOTED(CC_FORTRAN_INT, ${ac_ccfortranint}, [The C type of a Fortran integer])
-AC_MSG_RESULT([${ac_ccfortranint}])
+  AC_DEFINE_UNQUOTED(CC_FORTRAN_INT, ${ac_ccfortranint}, [The C type of a Fortran integer])
 ])

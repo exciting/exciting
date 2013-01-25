@@ -17,18 +17,52 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 #include "util.h"
 
 #define XC_GGA_X_OPTX         110 /* Handy & Cohen OPTX 01                          */
 
-static inline void
-func(const XC(gga_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
-{
-  static const FLOAT a = 1.05151, b = 1.43169/X_FACTOR_C, gamma = 0.006;
+typedef struct{
+  FLOAT a, b, gamma;
+} gga_x_optx_params;
 
+
+static void 
+gga_x_optx_init(XC(func_type) *p)
+{
+  assert(p!=NULL && p->params == NULL);
+  p->params = malloc(sizeof(gga_x_optx_params));
+
+  XC(gga_x_optx_set_params)(p, 1.05151, 1.43169/X_FACTOR_C, 0.006);
+}
+
+
+void 
+XC(gga_x_optx_set_params)(XC(func_type) *p, FLOAT a, FLOAT b, FLOAT gamma)
+{
+  gga_x_optx_params *params;
+
+  assert(p != NULL && p->params != NULL);
+  params = (gga_x_optx_params *) (p->params);
+
+  params->a     = a;
+  params->b     = b;
+  params->gamma = gamma;
+}
+
+
+static inline void
+func(const XC(func_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
+{
+  FLOAT a, b, gamma;
   FLOAT f1, u, du, d2u;
+
+  assert(p->params != NULL);
+  a     = ((gga_x_optx_params *) (p->params))->a;
+  b     = ((gga_x_optx_params *) (p->params))->b;
+  gamma = ((gga_x_optx_params *) (p->params))->gamma;
 
   f1 = 1.0 + gamma*x*x;
   u  = gamma*x*x/f1;
@@ -40,7 +74,6 @@ func(const XC(gga_type) *p, int order, FLOAT x,
   du  = 2.0*gamma*x/(f1*f1);
 
   *dfdx  = 2.0*b*u*du;
-  *ldfdx = 0.0;
 
   if(order < 2) return;
 
@@ -57,6 +90,8 @@ const XC(func_info_type) XC(func_info_gga_x_optx) = {
   XC_FAMILY_GGA,
   "NC Handy and AJ Cohen, Mol. Phys. 99, 403 (2001)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  NULL, NULL, NULL,
+  1e-32, 1e-32, 0.0, 1e-32,
+  gga_x_optx_init,
+  NULL, NULL,
   work_gga_x
 };

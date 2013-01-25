@@ -34,7 +34,7 @@
 #define XC_HYB_GGA_XC_SB98_2c  425 /* Schmider-Becke 98 parameterization 2c    */
 
 static void
-hyb_gga_xc_b97_init(void *p_)
+hyb_gga_xc_b97_init(XC(func_type) *p)
 {
   const struct { int iGGA; FLOAT a0; } par[] = {
     {XC_GGA_XC_B97,     0.1943},
@@ -52,8 +52,6 @@ hyb_gga_xc_b97_init(void *p_)
 
   int func;
   FLOAT one = 1.0;
-
-  XC(gga_type) *p = (XC(gga_type) *)p_;
 
   switch(p->info->number){
   case XC_HYB_GGA_XC_B97:      func =  0; break;
@@ -73,8 +71,8 @@ hyb_gga_xc_b97_init(void *p_)
     break;
   }
 
-  gga_init_mix(p, 1, &(par[func].iGGA), &one);
-  p->exx_coef = par[func].a0;
+  XC(mix_init)(p, 1, &(par[func].iGGA), &one);
+  p->cam_alpha = par[func].a0;
 }
 
 
@@ -82,9 +80,10 @@ const XC(func_info_type) XC(func_info_hyb_gga_xc_b97) = {
   XC_HYB_GGA_XC_B97,
   XC_EXCHANGE_CORRELATION,
   "Becke 97",
-  XC_FAMILY_GGA,
+  XC_FAMILY_HYB_GGA,
   "AD Becke, J. Chem. Phys. 107, 8554 (1997)",
-  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   hyb_gga_xc_b97_init,
   NULL, NULL, NULL /* this is taken care by the generic routine */
 };
@@ -93,9 +92,10 @@ const XC(func_info_type) XC(func_info_hyb_gga_xc_b97_1) = {
   XC_HYB_GGA_XC_B97_1,
   XC_EXCHANGE_CORRELATION,
   "Becke 97-1",
-  XC_FAMILY_GGA,
+  XC_FAMILY_HYB_GGA,
   "FA Hamprecht, AJ Cohen, DJ Tozer, and NC Handy, J. Chem. Phys. 109, 6264 (1998)",
-  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   hyb_gga_xc_b97_init,
   NULL, NULL, NULL
 };
@@ -104,9 +104,10 @@ const XC(func_info_type) XC(func_info_hyb_gga_xc_b97_2) = {
   XC_HYB_GGA_XC_B97_2,
   XC_EXCHANGE_CORRELATION,
   "Becke 97-2",
-  XC_FAMILY_GGA,
+  XC_FAMILY_HYB_GGA,
   "PJ Wilson, TJ Bradley, and DJ Tozer, J. Chem. Phys. 115, 9233 (2001)",
-  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   hyb_gga_xc_b97_init, 
   NULL, NULL, NULL
 };
@@ -115,9 +116,10 @@ const XC(func_info_type) XC(func_info_hyb_gga_xc_b97_k) = {
   XC_HYB_GGA_XC_B97_K,
   XC_EXCHANGE_CORRELATION,
   "Boese-Martin for Kinetics",
-  XC_FAMILY_GGA,
+  XC_FAMILY_HYB_GGA,
   "AD Boese and JML Martin, J. Chem. Phys., Vol. 121, 3405 (2004)",
-  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   hyb_gga_xc_b97_init, 
   NULL, NULL, NULL
 };
@@ -126,9 +128,10 @@ const XC(func_info_type) XC(func_info_hyb_gga_xc_b97_3) = {
   XC_HYB_GGA_XC_B97_3,
   XC_EXCHANGE_CORRELATION,
   "Becke 97-3",
-  XC_FAMILY_GGA,
+  XC_FAMILY_HYB_GGA,
   "TW Keal and DJ Tozer, J. Chem. Phys. 123, 121103 (2005)",
-  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   hyb_gga_xc_b97_init, 
   NULL, NULL, NULL
 };
@@ -137,9 +140,10 @@ const XC(func_info_type) XC(func_info_hyb_gga_xc_sb98_1a) = {
   XC_HYB_GGA_XC_SB98_1a,
   XC_EXCHANGE_CORRELATION,
   "SB98 (1a)",
-  XC_FAMILY_GGA,
+  XC_FAMILY_HYB_GGA,
   "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   hyb_gga_xc_b97_init, 
   NULL, NULL, NULL
 };
@@ -148,9 +152,10 @@ const XC(func_info_type) XC(func_info_hyb_gga_xc_sb98_1b) = {
   XC_HYB_GGA_XC_SB98_1b,
   XC_EXCHANGE_CORRELATION,
   "SB98 (1b)",
-  XC_FAMILY_GGA,
+  XC_FAMILY_HYB_GGA,
   "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   hyb_gga_xc_b97_init, 
   NULL, NULL, NULL
 };
@@ -159,9 +164,10 @@ const XC(func_info_type) XC(func_info_hyb_gga_xc_sb98_1c) = {
   XC_HYB_GGA_XC_SB98_1c,
   XC_EXCHANGE_CORRELATION,
   "SB98 (1c)",
-  XC_FAMILY_GGA,
+  XC_FAMILY_HYB_GGA,
   "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   hyb_gga_xc_b97_init, 
   NULL, NULL, NULL
 };
@@ -170,9 +176,10 @@ const XC(func_info_type) XC(func_info_hyb_gga_xc_sb98_2a) = {
   XC_HYB_GGA_XC_SB98_2a,
   XC_EXCHANGE_CORRELATION,
   "SB98 (2a)",
-  XC_FAMILY_GGA,
+  XC_FAMILY_HYB_GGA,
   "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   hyb_gga_xc_b97_init, 
   NULL, NULL, NULL
 };
@@ -181,9 +188,10 @@ const XC(func_info_type) XC(func_info_hyb_gga_xc_sb98_2b) = {
   XC_HYB_GGA_XC_SB98_2b,
   XC_EXCHANGE_CORRELATION,
   "SB98 (2b)",
-  XC_FAMILY_GGA,
+  XC_FAMILY_HYB_GGA,
   "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   hyb_gga_xc_b97_init, 
   NULL, NULL, NULL
 };
@@ -192,9 +200,10 @@ const XC(func_info_type) XC(func_info_hyb_gga_xc_sb98_2c) = {
   XC_HYB_GGA_XC_SB98_2c,
   XC_EXCHANGE_CORRELATION,
   "SB98 (2c)",
-  XC_FAMILY_GGA,
+  XC_FAMILY_HYB_GGA,
   "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   hyb_gga_xc_b97_init, 
   NULL, NULL, NULL
 };

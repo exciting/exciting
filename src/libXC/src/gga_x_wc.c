@@ -25,15 +25,15 @@
 static FLOAT wc_mu, wc_c;
 
 static void
-gga_x_wc_init(void *p_)
+gga_x_wc_init(XC(func_type) *p_)
 {
   wc_mu  = 0.2195149727645171;
   wc_c   = (146.0/2025.0)*(4.0/9.0) - (73.0/405.0)*(2.0/3.0) + (wc_mu - 10.0/81.0);
 }
 
-static inline void 
-func(const XC(gga_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
+void 
+XC(gga_x_wc_enhance) (const XC(func_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
 {
   const FLOAT kappa = 0.8040;
 
@@ -54,7 +54,6 @@ func(const XC(gga_type) *p, int order, FLOAT x,
   df0 = 20.0/81.0*s + 2.0*s*aux1*aux2*(1.0 - s2) + 4.0*wc_c*s*s2/(1.0 + wc_c*s2*s2);
 
   *dfdx  = X2S*kappa*kappa*df0/(f0*f0);
-  *ldfdx = X2S*X2S*wc_mu;
 
   if(order < 2) return;
 
@@ -65,7 +64,7 @@ func(const XC(gga_type) *p, int order, FLOAT x,
   *d2fdx2 = X2S*X2S*kappa*kappa/(f0*f0)*(d2f0 - 2.0*df0*df0/f0);
 }
 
-
+#define func XC(gga_x_wc_enhance)
 #include "work_gga_x.c"
 
 
@@ -76,6 +75,7 @@ const XC(func_info_type) XC(func_info_gga_x_wc) = {
   XC_FAMILY_GGA,
   "Z Wu and RE Cohen, Phys. Rev. B 73, 235116 (2006)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_wc_init, 
   NULL, NULL,
   work_gga_x

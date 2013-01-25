@@ -61,9 +61,7 @@ eq_29(int order, FLOAT x, FLOAT *ux, FLOAT *duxdx)
 }
 
 static void 
-func(const XC(mgga_type) *pt, FLOAT x, FLOAT t, FLOAT u, int order,
-     FLOAT *f, FLOAT *vrho0, FLOAT *dfdx, FLOAT *dfdt, FLOAT *dfdu,
-     FLOAT *d2fdx2, FLOAT *d2fdxt, FLOAT *d2fdt2)
+func(const XC(func_type) *pt, XC(mgga_work_x_t) *r)
 {
   const FLOAT cx_local [4] = {1.10734, -1.0534, 6.3491, -2.5531};
   const FLOAT cx_nlocal[4] = {0.00110, -0.3041, 6.9543, -0.7235};
@@ -71,22 +69,22 @@ func(const XC(mgga_type) *pt, FLOAT x, FLOAT t, FLOAT u, int order,
   FLOAT ux, ux2, gxl, gxnl, fx;
   FLOAT duxdx, dgxldu, dgxnldu, dfxdt;
 
-  eq_29(order, x, &ux, &duxdx);
-  eq_22(order, t, &fx, &dfxdt);
+  eq_29(r->order,     r->x, &ux, &duxdx);
+  eq_22(r->order, 2.0*r->t, &fx, &dfxdt);
 
   ux2  = ux*ux;
   gxl  = cx_local [0] + ux*(cx_local [1] + cx_local [2]*ux + cx_local [3]*ux2);
   gxnl = cx_nlocal[0] + ux*(cx_nlocal[1] + cx_nlocal[2]*ux + cx_nlocal[3]*ux2);
 
-  *f = gxl + gxnl*fx;
+  r->f = gxl + gxnl*fx;
 
-  if(order < 1) return;
+  if(r->order < 1) return;
 
   dgxldu  = cx_local [1] + 2.0*cx_local [2]*ux + 3.0*cx_local [3]*ux2;
   dgxnldu = cx_nlocal[1] + 2.0*cx_nlocal[2]*ux + 3.0*cx_nlocal[3]*ux2;
 
-  *dfdx = (dgxldu + dgxnldu*fx)*duxdx;
-  *dfdt = gxnl*dfxdt;
+  r->dfdx = (dgxldu + dgxnldu*fx)*duxdx;
+  r->dfdt = 2.0*gxnl*dfxdt;
 }
 
 #include "work_mgga_x.c"
@@ -98,6 +96,7 @@ const XC(func_info_type) XC(func_info_mgga_x_tau_hcth) = {
   XC_FAMILY_MGGA,
   "AD Boese and NC Handy, JCP 116, 9559 (2002)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC,
+  MIN_DENS, MIN_GRAD, MIN_TAU, MIN_ZETA,
   NULL, NULL,
   NULL, NULL,        /* this is not an LDA                   */
   work_mgga_x,
