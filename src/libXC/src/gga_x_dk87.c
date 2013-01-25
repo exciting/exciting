@@ -24,8 +24,8 @@
 #define XC_GGA_X_DK87_R2      112 /* dePristo & Kress 87 (version R2)               */
 
 static inline void 
-func(const XC(gga_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
+func(const XC(func_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
 {
   static const FLOAT a1[2] = {0.861504, 0.861213}, 
     b1[2] = {0.044286, 0.042076}, alpha[2] = {1.0, 0.98};
@@ -51,7 +51,6 @@ func(const XC(gga_type) *p, int order, FLOAT x,
   df2 = 2.0*b1[func]*x;
 
   *dfdx  = (df1*f2 - f1*df2)/(f2*f2);
-  *ldfdx = betag;
   
   if(order < 2) return;
 
@@ -70,6 +69,7 @@ const XC(func_info_type) XC(func_info_gga_x_dk87_r1) = {
   XC_FAMILY_GGA,
   "AE DePristo and JD Kress, J. Chem. Phys. 86, 1425 (1987)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-24, 1e-24, 0.0, 1e-32,
   NULL, NULL, NULL,
   work_gga_x
 };
@@ -81,6 +81,7 @@ const XC(func_info_type) XC(func_info_gga_x_dk87_r2) = {
   XC_FAMILY_GGA,
   "AE DePristo and JD Kress, J. Chem. Phys. 86, 1425 (1987)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   NULL, NULL, NULL,
   work_gga_x
 };

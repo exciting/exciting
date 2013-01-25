@@ -26,7 +26,7 @@ Subroutine oepmain
 ! local variables
       Integer :: is, ia, ias, ik
       Integer :: ir, irc, it, idm
-      Real (8) :: tau, resp, t1
+      Real (8) :: tau, resp, t1 
 ! allocatable arrays
       Real (8), Allocatable :: rflm (:)
       Real (8), Allocatable :: rfmt (:, :, :)
@@ -192,8 +192,9 @@ Subroutine oepmain
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
             Do ir = 1, nrmt (is)
-               vxcmt (:, ir, ias) = vxcmt (:, ir, ias) + rfmt (:, ir, &
+               vxcmt (:, ir, ias) = vxcmt (:, ir, ias) + ex_coef*rfmt (:, ir, &
               & ias)
+               ! check if ex_coef needed also here for hybrids
                Do idm = 1, ndmag
                   bxcmt (:, ir, ias, idm) = bxcmt (:, ir, ias, idm) + &
                  & rvfmt (:, ir, ias, idm)
@@ -201,8 +202,9 @@ Subroutine oepmain
             End Do
          End Do
       End Do
-      vxcir (:) = vxcir (:) + dble (zvxir(:))
+      vxcir (:) = vxcir (:) + ex_coef* (dble (zvxir(:)))
       Do idm = 1, ndmag
+! check if ex_coef also needed here for hybrids
          bxcir (:, idm) = bxcir (:, idm) + dble (zbxir(:, idm))
       End Do
 ! symmetrise the exchange potential and field

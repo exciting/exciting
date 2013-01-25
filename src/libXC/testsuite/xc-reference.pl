@@ -36,7 +36,7 @@ read_xc_h(\%constants);
 $constants{"$opt_f"} || die "Functional '$opt_f' not found";
 
 # check if we have a data file
-my $data_file = "$top_srcdir/testsuite/$opt_f.data";
+my $data_file = "$top_srcdir/testsuite/df_repo/$opt_f.data";
 (-f $data_file && -r $data_file) || die "Could not read data file '$data_file'";
 open DATA, "<$data_file";
 

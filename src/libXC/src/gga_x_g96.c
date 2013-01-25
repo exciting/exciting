@@ -22,25 +22,25 @@
 
 #define XC_GGA_X_G96          107 /* Gill 96                                        */
 
-static inline void
-func(const XC(gga_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
+void
+XC(gga_x_g96_enhance)(const XC(func_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
 {
   static const FLOAT c1 = 1.0/137.0;
-  FLOAT sx = sqrt(x);
+  FLOAT sx = SQRT(x);
 
   *f     = 1.0 + c1/X_FACTOR_C*x*sx;
 
   if(order < 1) return;
 
   *dfdx  = 3.0*c1/(2.0*X_FACTOR_C)*sx;
-  *ldfdx = 0.0; /* This is not true, but I think this functional diverges */
 
   if(order < 2) return;
 
-  *d2fdx2 = 3.0*c1/(4.0*X_FACTOR_C)/sx;
+  *d2fdx2 = 3.0*c1/(4.0*X_FACTOR_C*sx);
 }
 
+#define func XC(gga_x_g96_enhance)
 #include "work_gga_x.c"
 
 const XC(func_info_type) XC(func_info_gga_x_g96) = {
@@ -50,6 +50,7 @@ const XC(func_info_type) XC(func_info_gga_x_g96) = {
   XC_FAMILY_GGA,
   "PMW Gill, Mol. Phys. 89, 433 (1996)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   NULL, NULL, NULL,
   work_gga_x
 };

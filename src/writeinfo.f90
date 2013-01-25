@@ -344,8 +344,10 @@ Subroutine writeinfo (fnum)
       If ( .Not. tetocc) Then
 #endif
          Write (fnum, '(" ", A)') trim (sdescr)
-         Write (fnum, '("Smearing width : ", G18.10)') &
+         if (input%groundstate%stypenumber.ge.0) then
+           Write (fnum, '("Smearing width : ", G18.10)') &
           & input%groundstate%swidth
+         end if
 #ifdef TETRA
       Else
          Write (fnum, '(" ", A)') 'No smearing - using the linear&

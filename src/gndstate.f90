@@ -50,7 +50,7 @@ Subroutine gndstate
       If (allocated(rhoirref)) deallocate (rhoir)
       Allocate (rhoirref(ngrtot))
   ! initialise OEP variables if required
-      If (input%groundstate%xctypenumber .Lt. 0) Call init2
+      If ((input%groundstate%xctypenumber .Lt. 0) .Or. (xctype(2) .Ge. 400) .Or. (xctype(1) .Ge. 400)) Call init2
       If (rank .Eq. 0) Then
      ! write the real and reciprocal lattice vectors to file
          Call writelat
@@ -181,7 +181,7 @@ Subroutine gndstate
             End If
          End Select
      ! find the new linearisation energies
-         Call linengy
+         Call linengy(iscl)
      ! write out the linearisation energies
          if (rank .eq. 0) Call writelinen
      ! generate the APW radial functions
@@ -295,7 +295,7 @@ Subroutine gndstate
             Call mpisumrhoandmag
 #endif
 #ifdef MPI
-            If (input%groundstate%xctypenumber .Lt. 0) Call &
+            If ((input%groundstate%xctypenumber .Lt. 0).Or. (xctype(2) .Ge. 400).Or. (xctype(1) .Ge. 400))  Call &
            & mpiresumeevecfiles ()
 #endif
             If (rank .Eq. 0) Then
@@ -469,7 +469,7 @@ Subroutine gndstate
                End If
                et = engytot
                fm = forcemax
-               If (input%groundstate%xctypenumber .Lt. 0) Then
+               If ((input%groundstate%xctypenumber .Lt. 0).Or. (xctype(2) .Ge. 400).Or. (xctype(1) .Ge. 400)) Then
                   Write (60,*)
                   Write (60, '("Magnitude of OEP residual : ", G18.10)') resoep
                End If

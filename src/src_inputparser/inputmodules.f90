@@ -210,7 +210,6 @@ type groundstate_type
  logical::tevecsv
  integer::nwrite
  logical::ptnucl
- logical::tetra
   type(spin_type),pointer::spin
   type(HartreeFock_type),pointer::HartreeFock
   type(solver_type),pointer::solver
@@ -2031,14 +2030,6 @@ getstructgroundstate%ptnucl= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ptnucl",getstructgroundstate%ptnucl)
        call removeAttribute(thisnode,"ptnucl")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tetra")
-getstructgroundstate%tetra= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tetra",getstructgroundstate%tetra)
-       call removeAttribute(thisnode,"tetra")  
 endif
 
             len= countChildEmentsWithName(thisnode,"spin")
@@ -5651,17 +5642,25 @@ end function
 ! Do not edit this Fortran file! It is generated from the Schema.
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
-case('XC_LDA_X')
- stringtonumberlibxcexchange=1
 case('XC_LDA_X_2D')
  stringtonumberlibxcexchange=19
+case('XC_LDA_X_1D')
+ stringtonumberlibxcexchange=21
+case('XC_GGA_X_SSB_SW')
+ stringtonumberlibxcexchange=90
+case('XC_GGA_X_SSB')
+ stringtonumberlibxcexchange=91
+case('XC_GGA_X_SSB_D')
+ stringtonumberlibxcexchange=92
+case('XC_GGA_X_BPCCAC')
+ stringtonumberlibxcexchange=98
 case('XC_GGA_X_PBE')
  stringtonumberlibxcexchange=101
 case('XC_GGA_X_PBE_R')
  stringtonumberlibxcexchange=102
 case('XC_GGA_X_B86')
  stringtonumberlibxcexchange=103
-case('XC_GGA_X_B86_R')
+case('XC_GGA_X_HERMAN')
  stringtonumberlibxcexchange=104
 case('XC_GGA_X_B86_MGC')
  stringtonumberlibxcexchange=105
@@ -5691,7 +5690,7 @@ case('XC_GGA_X_RPBE')
  stringtonumberlibxcexchange=117
 case('XC_GGA_X_WC')
  stringtonumberlibxcexchange=118
-case('XC_GGA_X_mPW91')
+case('XC_GGA_X_MPW91')
  stringtonumberlibxcexchange=119
 case('XC_GGA_X_AM05')
  stringtonumberlibxcexchange=120
@@ -5707,6 +5706,48 @@ case('XC_GGA_X_BAYESIAN')
  stringtonumberlibxcexchange=125
 case('XC_GGA_X_PBE_JSJR')
  stringtonumberlibxcexchange=126
+case('XC_GGA_X_2D_B88')
+ stringtonumberlibxcexchange=127
+case('XC_GGA_X_2D_B86')
+ stringtonumberlibxcexchange=128
+case('XC_GGA_X_2D_PBE')
+ stringtonumberlibxcexchange=129
+case('XC_GGA_X_OPTB88_VDW')
+ stringtonumberlibxcexchange=139
+case('XC_GGA_X_PBEK1_VDW')
+ stringtonumberlibxcexchange=140
+case('XC_GGA_X_OPTPBE_VDW')
+ stringtonumberlibxcexchange=141
+case('XC_GGA_X_RGE2')
+ stringtonumberlibxcexchange=142
+case('XC_GGA_X_RPW86')
+ stringtonumberlibxcexchange=144
+case('XC_GGA_X_KT1')
+ stringtonumberlibxcexchange=145
+case('XC_GGA_X_MB88')
+ stringtonumberlibxcexchange=149
+case('XC_GGA_X_SOGGA')
+ stringtonumberlibxcexchange=150
+case('XC_GGA_X_SOGGA11')
+ stringtonumberlibxcexchange=151
+case('XC_GGA_X_C09X')
+ stringtonumberlibxcexchange=158
+case('XC_GGA_X_LB')
+ stringtonumberlibxcexchange=160
+case('XC_GGA_X_LBM')
+ stringtonumberlibxcexchange=182
+case('XC_GGA_X_OL2')
+ stringtonumberlibxcexchange=183
+case('XC_GGA_X_APBE')
+ stringtonumberlibxcexchange=184
+case('XC_GGA_X_HTBS')
+ stringtonumberlibxcexchange=191
+case('XC_GGA_X_AIRY')
+ stringtonumberlibxcexchange=192
+case('XC_GGA_X_LAG')
+ stringtonumberlibxcexchange=193
+case('XC_HYB_GGA_X_SOGGA11_X')
+ stringtonumberlibxcexchange=426
 case('')
  stringtonumberlibxcexchange=0
 case default
@@ -5754,6 +5795,42 @@ case('XC_LDA_C_vBH')
  stringtonumberlibxccorrelation=17
 case('XC_LDA_C_1D_CSC')
  stringtonumberlibxccorrelation=18
+case('XC_LDA_C_ML1')
+ stringtonumberlibxccorrelation=22
+case('XC_LDA_C_ML2')
+ stringtonumberlibxccorrelation=23
+case('XC_LDA_C_GOMBAS')
+ stringtonumberlibxccorrelation=24
+case('XC_LDA_C_PW_RPA')
+ stringtonumberlibxccorrelation=25
+case('XC_LDA_C_1D_LOOS')
+ stringtonumberlibxccorrelation=26
+case('XC_LDA_C_RC04')
+ stringtonumberlibxccorrelation=27
+case('XC_LDA_C_VWN_1')
+ stringtonumberlibxccorrelation=28
+case('XC_LDA_C_VWN_2')
+ stringtonumberlibxccorrelation=29
+case('XC_LDA_C_VWN_3')
+ stringtonumberlibxccorrelation=30
+case('XC_LDA_C_VWN_4')
+ stringtonumberlibxccorrelation=31
+case('XC_GGA_C_OP_XALPHA')
+ stringtonumberlibxccorrelation=84
+case('XC_GGA_C_OP_G96')
+ stringtonumberlibxccorrelation=85
+case('XC_GGA_C_OP_PBE')
+ stringtonumberlibxccorrelation=86
+case('XC_GGA_C_OP_B88')
+ stringtonumberlibxccorrelation=87
+case('XC_GGA_C_FT97')
+ stringtonumberlibxccorrelation=88
+case('XC_GGA_C_SPBE')
+ stringtonumberlibxccorrelation=89
+case('XC_GGA_C_REVTCA')
+ stringtonumberlibxccorrelation=99
+case('XC_GGA_C_TCA')
+ stringtonumberlibxccorrelation=100
 case('XC_GGA_C_PBE')
  stringtonumberlibxccorrelation=130
 case('XC_GGA_C_LYP')
@@ -5772,6 +5849,22 @@ case('XC_GGA_C_LM')
  stringtonumberlibxccorrelation=137
 case('XC_GGA_C_PBE_JRGX')
  stringtonumberlibxccorrelation=138
+case('XC_GGA_C_RGE2')
+ stringtonumberlibxccorrelation=143
+case('XC_GGA_C_WL')
+ stringtonumberlibxccorrelation=147
+case('XC_GGA_C_WI')
+ stringtonumberlibxccorrelation=148
+case('XC_GGA_C_SOGGA11')
+ stringtonumberlibxccorrelation=152
+case('XC_GGA_C_WI0')
+ stringtonumberlibxccorrelation=153
+case('XC_GGA_C_SOGGA11_X')
+ stringtonumberlibxccorrelation=159
+case('XC_GGA_C_APBE')
+ stringtonumberlibxccorrelation=186
+case('XC_GGA_C_OPTC')
+ stringtonumberlibxccorrelation=200
 case('')
  stringtonumberlibxccorrelation=0
 case default
@@ -5787,8 +5880,28 @@ end function
  select case(trim(adjustl(string)))
 case('none')
  stringtonumberlibxcxc=0
-case('XC_GGA_XC_LB')
- stringtonumberlibxcxc=160
+case('XC_LDA_XC_TETER93')
+ stringtonumberlibxcxc=20
+case('XC_GGA_XC_HCTH_407P')
+ stringtonumberlibxcxc=93
+case('XC_GGA_XC_HCTH_P76')
+ stringtonumberlibxcxc=94
+case('XC_GGA_XC_HCTH_P14')
+ stringtonumberlibxcxc=95
+case('XC_GGA_XC_B97_GGA1')
+ stringtonumberlibxcxc=96
+case('XC_GGA_XC_HCTH_A')
+ stringtonumberlibxcxc=97
+case('XC_GGA_XC_KT2')
+ stringtonumberlibxcxc=146
+case('XC_GGA_XC_TH1')
+ stringtonumberlibxcxc=154
+case('XC_GGA_XC_TH2')
+ stringtonumberlibxcxc=155
+case('XC_GGA_XC_TH3')
+ stringtonumberlibxcxc=156
+case('XC_GGA_XC_TH4')
+ stringtonumberlibxcxc=157
 case('XC_GGA_XC_HCTH_93')
  stringtonumberlibxcxc=161
 case('XC_GGA_XC_HCTH_120')
@@ -5831,6 +5944,18 @@ case('XC_GGA_XC_SB98_2b')
  stringtonumberlibxcxc=180
 case('XC_GGA_XC_SB98_2c')
  stringtonumberlibxcxc=181
+case('XC_GGA_XC_MOHLYP')
+ stringtonumberlibxcxc=194
+case('XC_GGA_XC_MOHLYP2')
+ stringtonumberlibxcxc=195
+case('XC_GGA_XC_TH_FL')
+ stringtonumberlibxcxc=196
+case('XC_GGA_XC_TH_FC')
+ stringtonumberlibxcxc=197
+case('XC_GGA_XC_TH_FCFO')
+ stringtonumberlibxcxc=198
+case('XC_GGA_XC_TH_FCO')
+ stringtonumberlibxcxc=199
 case('XC_HYB_GGA_XC_B3PW91')
  stringtonumberlibxcxc=401
 case('XC_HYB_GGA_XC_B3LYP')
@@ -5857,7 +5982,7 @@ case('XC_HYB_GGA_XC_B97_K')
  stringtonumberlibxcxc=413
 case('XC_HYB_GGA_XC_B97_3')
  stringtonumberlibxcxc=414
-case('XC_HYB_GGA_XC_mPW3PW')
+case('XC_HYB_GGA_XC_MPW3PW')
  stringtonumberlibxcxc=415
 case('XC_HYB_GGA_XC_B1LYP')
  stringtonumberlibxcxc=416
@@ -5865,7 +5990,7 @@ case('XC_HYB_GGA_XC_B1PW91')
  stringtonumberlibxcxc=417
 case('XC_HYB_GGA_XC_mPW1PW')
  stringtonumberlibxcxc=418
-case('XC_HYB_GGA_XC_mPW3LYP')
+case('XC_HYB_GGA_XC_MPW3LYP')
  stringtonumberlibxcxc=419
 case('XC_HYB_GGA_XC_SB98_1a')
  stringtonumberlibxcxc=420
@@ -5879,6 +6004,12 @@ case('XC_HYB_GGA_XC_SB98_2b')
  stringtonumberlibxcxc=424
 case('XC_HYB_GGA_XC_SB98_2c')
  stringtonumberlibxcxc=425
+case('XC_HYB_GGA_XC_BHANDH')
+ stringtonumberlibxcxc=435
+case('XC_HYB_GGA_XC_BHANDHLYP')
+ stringtonumberlibxcxc=436
+case('XC_HYB_GGA_XC_MB3LYP_RC04')
+ stringtonumberlibxcxc=437
 case('')
  stringtonumberlibxcxc=0
 case default
@@ -5921,6 +6052,8 @@ case('Fermi Dirac')
  stringtonumbergroundstatestype=3
 case('Square-wave impulse')
  stringtonumbergroundstatestype=4
+case('libbzint')
+ stringtonumbergroundstatestype=-1
 case('')
  stringtonumbergroundstatestype=0
 case default
@@ -5934,9 +6067,15 @@ end function
 ! Do not edit this Fortran file! It is generated from the Schema.
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
-case('simple')
- stringtonumbergroundstatefindlinentype=-1
 case('advanced')
+ stringtonumbergroundstatefindlinentype=-1
+case('lcharge')
+ stringtonumbergroundstatefindlinentype=-1
+case('logderiv')
+ stringtonumbergroundstatefindlinentype=-1
+case('mixed-1')
+ stringtonumbergroundstatefindlinentype=-1
+case('mixed-2')
  stringtonumbergroundstatefindlinentype=-1
 case('')
  stringtonumbergroundstatefindlinentype=0
@@ -5988,6 +6127,8 @@ case('GGA-Wu-Cohen')
  stringtonumbergroundstatexctype=26
 case('GGAArmiento-Mattsson')
  stringtonumbergroundstatexctype=30
+case('HYB_PBE0')
+ stringtonumbergroundstatexctype=406
 case('EXX')
  stringtonumbergroundstatexctype=-1
 case('none')

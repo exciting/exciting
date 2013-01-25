@@ -1,246 +1,356 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" >
-    <xs:annotation>
-    	<xs:documentation>
-      This document describes the file format for the species definitions.</xs:documentation>
-<xs:appinfo>
-<title>Species file format reference</title>
-<root>spdb</root> 
-</xs:appinfo>
-</xs:annotation>
-<xs:simpleType name="fortrandouble">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 <xs:annotation>
-  <xs:documentation> The type <pre>fortrandouble</pre> allows to use the letters
-        <pre>"eEdDqQ"</pre> for exponent operators. This alters in what precision the number is
-        parsed. </xs:documentation>
-        </xs:annotation>
+  <xs:documentation>
+    This document describes the file format for the species definitions.
+  </xs:documentation>
+  <xs:appinfo>
+    <title>Species file format reference</title>
+    <root>spdb</root>
+  </xs:appinfo>
+</xs:annotation>
+
+<!-- ============================================================== -->
+
+<xs:simpleType name="fortrandouble">
+  <xs:annotation>
+    <xs:documentation> 
+    The type <pre>fortrandouble</pre> allows to use the letters
+    <pre>"eEdDqQ"</pre> for exponent operators. This alters in what precision the number is parsed. 
+    </xs:documentation>
+  </xs:annotation>
   <xs:restriction base="xs:token">
     <xs:pattern value="[-]?[0-9]*\.?[0-9]+([eEdDqQ][-+]?[0-9]+)?"/>
   </xs:restriction>
 </xs:simpleType>
-    <xs:element name="wf" >
-        <xs:annotation>
-        	<xs:documentation>Defines the radial part of an  atomic wavefunction. This functions used to construct a lapw orbital. 
-          The actual basis functions  for the calculation inside the MT are linear combinations of these and <inlinemath>Y_{lm}</inlinemath>.</xs:documentation>
-        </xs:annotation>
-        
-        <xs:complexType>
-    		
-            <xs:attribute name="trialEnergy" type="fortrandouble" use="required">
-    			<xs:annotation>
-    				<xs:documentation>Energy level of the radial wave function (initial condition for numerical radial Schrodinger equation)</xs:documentation>
-    			</xs:annotation></xs:attribute>
-            
-            <xs:attribute name="matchingOrder" type="xs:integer" use="required">
-            <xs:annotation>
-            <xs:documentation>
-            Gives the order of the derivative that must be matched to the plain wave.
-            </xs:documentation>
-            </xs:annotation>
-            </xs:attribute>
-            
-            <xs:attribute name="searchE" type="xs:boolean" use="required">
-    			<xs:annotation>
-    				<xs:documentation>If <pre>true</pre> the energy of the radial wave function,
-            <inlinemath>E_0</inlinemath> is optimized to match the boundary condition 
-            
-            <displaymath>\psi(R_{MT})=0.</displaymath></xs:documentation>
-    			</xs:annotation></xs:attribute>
-        </xs:complexType>
-    </xs:element>
-    
-    <xs:element name="sp">
-    	
-    
-        <xs:annotation>
-    		<xs:documentation>A species is an atom type definition containing all information to construct the basis functions.</xs:documentation>
-    	</xs:annotation>
-        
-        <xs:complexType>
-    	
-            <xs:sequence>
-    		
-                <xs:element name="muffinTin" minOccurs="1" maxOccurs="1">
-                
-                    <xs:annotation>
-                	<xs:documentation>This element gives the size of the muffin tin radius and 
-                  the resolution of the radial functions. </xs:documentation>
-                </xs:annotation>
-                     
-                    <xs:complexType>
-    				
-                        <xs:attribute name="rmin" type="fortrandouble" use="required">
-                          <xs:annotation>
-                            <xs:documentation>The radius where radial mesh begins.</xs:documentation>
-                          </xs:annotation></xs:attribute>
-                        
-                        <xs:attribute name="rinf" type="fortrandouble" use="required">
-                         <xs:annotation>
-                            <xs:documentation>Radius from which the influence on the potential is regarded to be negligible.</xs:documentation>
-                          </xs:annotation>
-                        </xs:attribute>
-                        
-                        <xs:attribute name="radius" type="fortrandouble" use="required">
-                         <xs:annotation>
-                            <xs:documentation>The radius of the muffin tin sphere.</xs:documentation>
-                          </xs:annotation>
-                        </xs:attribute>
-                        
-                        <xs:attribute name="radialmeshPoints" type="xs:integer" use="required">
-                          <xs:annotation>
-                            <xs:documentation>Number of data points for radial atomic functions.</xs:documentation>
-                          </xs:annotation></xs:attribute>
-                    </xs:complexType>
-                </xs:element>
-                
-                <xs:element name="atomicState" minOccurs="1" maxOccurs="unbounded">
-    			
-                    <xs:annotation>
-                      <xs:documentation>The <elementref>atomicState</elementref> element lists the atomic states that schould be used to approximate the wavefunction in the sphere. 
-They can be marked as core or none core electrons by the <attref>core</attref> attribute. Core electrons are threated separately by numeric itegration.
-</xs:documentation>
-                    </xs:annotation>
-                    <xs:complexType>
-    				
-                        <xs:attribute name="n" type="xs:integer" use="required">
-                        <xs:annotation>
-                        <xs:documentation>
-                        Principal quantum number.
-                        </xs:documentation>
-                        </xs:annotation>
-                        </xs:attribute>
-                        
-                        <xs:attribute name="l" type="xs:integer" use="required">
-                        <xs:annotation>
-                        <xs:documentation>
-                        Azimuthal quantum number.
-                        </xs:documentation>
-                        </xs:annotation>
-                        </xs:attribute>
-                        
-                        <xs:attribute name="kappa" type="xs:integer" use="required">
-                   
-                        <xs:annotation>
-                        <xs:documentation>
-                        Relativistic quantum number.
-                        </xs:documentation>
-                        </xs:annotation>
-                        </xs:attribute>
-                   
-                        
-                        <xs:attribute name="occ" type="fortrandouble" use="required">
-                         <xs:annotation>
-                        <xs:documentation>
-                       Ocuppation number.
-                        </xs:documentation>
-                        </xs:annotation>
-                        </xs:attribute>
-                        
-                        <xs:attribute name="core" type="xs:boolean" use="required">
-                          <xs:annotation>
-                        <xs:documentation>
-                        If <pre>true</pre>, state is threated as core state in the calculation.
-                        </xs:documentation>
-                        </xs:annotation>
-                        </xs:attribute>
-                    </xs:complexType>
-                </xs:element>
-                
 
-                <xs:element name="basis" minOccurs="1" maxOccurs="1">
-                
-                    <xs:annotation>
-                	<xs:documentation>Defines APW basis.</xs:documentation>
-                </xs:annotation>
-                    
-                    <xs:complexType>
-    				
-                        <xs:sequence>
-    					
-                            <xs:element ref="wf" maxOccurs="unbounded" minOccurs="1" />
-                            
-                            <xs:element name="exception" minOccurs="0" maxOccurs="unbounded">
-                            <xs:annotation>
-                            <xs:documentation>
-                            This element allows for defining exceptions to the APW basis functions.
-                            </xs:documentation>
-                            </xs:annotation>						
-                                <xs:complexType>
-                                    <xs:sequence>
-                                        <xs:element ref="wf" maxOccurs="unbounded" minOccurs="1"/>
-                                    </xs:sequence>
-                            
-                                    <xs:attribute name="l" type="xs:integer">
-                                    <xs:annotation>
-                                    <xs:documentation>
-                                    Spezifies the azimuthal quantum number for which the exception applies.
-                                    
-                                    </xs:documentation>
-                                    </xs:annotation>
-                                    </xs:attribute>
-                                   
-                                </xs:complexType>
-                            </xs:element>
-                        </xs:sequence>
+<!-- ============================================================== -->
+
+<xs:element name="atomicState">
+  <xs:annotation>
+    <xs:documentation>
+    The <elementref>atomicState</elementref> element lists the atomic states
+    that schould be used to approximate the wavefunction in the sphere. 
+    They can be marked as core or none core electrons by the <attref>core</attref> 
+    attribute. Core electrons are threated separately by numeric itegration.
+    </xs:documentation>
+  </xs:annotation>
+  <xs:complexType>
                         
-                        <xs:attribute name="order" type="xs:integer" use="required"></xs:attribute>
-                    </xs:complexType>
-                </xs:element>
-                
-                <xs:element name="lorb" maxOccurs="unbounded" minOccurs="0">
-                
-                    <xs:annotation>
-                	<xs:documentation>Local orbital (APW+lo or LAPW+lo).</xs:documentation>
-                </xs:annotation>
-                    
-                    <xs:complexType>
-    				
-                        <xs:sequence>
-    					
-                            <xs:element ref="wf" minOccurs="1" maxOccurs="unbounded"></xs:element>
-                        </xs:sequence>
-                        
-                        <xs:attribute name="l" type="xs:integer" use="required">
-                        <xs:annotation>
-                        <xs:documentation>
-                        Azimuthal quantum number for which the local orbital is defined.
-                        
-                        </xs:documentation>
-                        </xs:annotation>
-                        </xs:attribute>
-                    </xs:complexType>
-                </xs:element>
-            </xs:sequence>
-            
-            <xs:attribute name="chemicalSymbol" type="xs:ID" use="required">
-    		<xs:annotation>
-    		  <xs:documentation>Chemical Symbol.</xs:documentation>
-    		</xs:annotation></xs:attribute>
-            
-            <xs:attribute name="z" type="fortrandouble" use="required">
-    		<xs:annotation>
-    		  <xs:documentation>Atomic number.</xs:documentation>
-    		</xs:annotation></xs:attribute>
-            
-            <xs:attribute name="mass" type="fortrandouble" use="required">
-    		<xs:annotation>
-    		  <xs:documentation>Mass in <inlinemath>m_e</inlinemath>.</xs:documentation>
-    		</xs:annotation></xs:attribute>
-            
-            <xs:attribute name="name" type="xs:string" use="optional">
-    		<xs:annotation>
-    		  <xs:documentation>Optional element name.</xs:documentation>
-    		</xs:annotation></xs:attribute>
-        </xs:complexType>
-    </xs:element>
-    <xs:element name="spdb">
-           <xs:annotation>
-        	<xs:documentation>Species-database element contains the species element <elementref>sp</elementref></xs:documentation>
+    <xs:attribute name="n" type="xs:integer" use="required">
+    <xs:annotation>
+    <xs:documentation>
+    Principal quantum number.
+    </xs:documentation>
+    </xs:annotation>
+    </xs:attribute>
+    
+    <xs:attribute name="l" type="xs:integer" use="required">
+    <xs:annotation>
+    <xs:documentation>
+    Azimuthal quantum number.
+    </xs:documentation>
+    </xs:annotation>
+    </xs:attribute>
+    
+    <xs:attribute name="kappa" type="xs:integer" use="required">
+    <xs:annotation>
+    <xs:documentation>
+    Relativistic quantum number.
+    </xs:documentation>
+    </xs:annotation>
+    </xs:attribute>
+    
+    <xs:attribute name="occ" type="fortrandouble" use="required">
+    <xs:annotation>
+    <xs:documentation>
+    Ocuppation number.
+    </xs:documentation>
+    </xs:annotation>
+    </xs:attribute>
+    
+    <xs:attribute name="core" type="xs:boolean" use="required">
+    <xs:annotation>
+    <xs:documentation>
+    If <pre>true</pre>, state is threated as core state in the calculation.
+    </xs:documentation>
+    </xs:annotation>
+    </xs:attribute>
+
+  </xs:complexType>
+</xs:element>
+
+<!-- ============================================================== -->
+
+<xs:element name="wf">
+  <xs:annotation>
+    <xs:documentation>Defines the radial part of an  atomic wavefunction. This functions used to construct a lapw orbital. 
+    The actual basis functions  for the calculation inside the MT are linear combinations of these and <inlinemath>Y_{lm}</inlinemath>.</xs:documentation>
+  </xs:annotation>
+  <xs:complexType>
+      <xs:attribute name="trialEnergy" type="fortrandouble" use="required">
+        <xs:annotation>
+        <xs:documentation>
+          Energy level of the radial wave function (initial condition for numerical radial Schrodinger equation)
+        </xs:documentation>
         </xs:annotation>
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element ref="sp" maxOccurs="unbounded"></xs:element>
-            </xs:sequence>
-        </xs:complexType>
+      </xs:attribute>
+      <xs:attribute name="matchingOrder" type="xs:integer" use="required">
+        <xs:annotation>
+        <xs:documentation>
+          Gives the order of the derivative that must be matched to the plain wave.
+        </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="searchE" type="xs:boolean" use="required">
+        <xs:annotation>
+        <xs:documentation>
+          If <pre>true</pre> the energy of the radial wave function,
+          <inlinemath>E_0</inlinemath> is optimized to match the boundary condition 
+          <displaymath>\psi(R_{MT})=0.</displaymath>
+        </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+  </xs:complexType>
+</xs:element>
+
+<!-- ============================================================== -->
+
+<xs:element name="custom">
+  <xs:annotation>
+  <xs:documentation>
+    Custom definition of APW for a given L.
+  </xs:documentation>
+  </xs:annotation>                                            
+  <xs:complexType>
+
+    <xs:attribute name="l" type="xs:integer" use="required">
+      <xs:annotation>
+      <xs:documentation>
+        Specifies the azimuthal quantum number for which the custom definition of APW function applies.
+      </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    
+    <xs:attribute name="type" type="xs:string" default="apw+lo">
+      <xs:annotation>
+      <xs:documentation>
+      Augmentation type (LAPW or APW+lo). Default apw+lo.
+      </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+
+    <xs:attribute name="trialEnergy" type="fortrandouble" default="0.15d0">
+      <xs:annotation>
+      <xs:documentation>
+        Energy level of the radial wave function (initial condition for numerical radial Schrodinger equation)
+      </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+
+    <xs:attribute name="searchE" type="xs:boolean" default="true">
+      <xs:annotation>
+      <xs:documentation>
+        If <pre>true</pre> the energy of the radial wave function,
+        <inlinemath>E_0</inlinemath> is optimized to match the boundary condition 
+        <displaymath>\psi(R_{MT})=0.</displaymath>
+      </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   
+    <xs:sequence>
+      <xs:element ref="wf" minOccurs="0" maxOccurs="unbounded"></xs:element>
+    </xs:sequence>
+       
+  </xs:complexType>
+</xs:element>
+
+<!-- ============================================================== -->
+
+<xs:element name="lo">
+  <xs:annotation>
+  <xs:documentation>
+    Definition of the local orbitals (LO). 
+    Note that the local orbitals corresponding to the APW+lo basis 
+    type are included automatically and need not to be specified here.
+  </xs:documentation>
+  </xs:annotation>
+  <xs:complexType>
+      
+    <xs:attribute name="l" type="xs:integer" use="required">
+      <xs:annotation>
+      <xs:documentation>
+      Azimuthal quantum number for which the local orbital is defined.
+      </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+              
+    <xs:sequence>
+      <xs:element ref="wf" minOccurs="1" maxOccurs="unbounded"></xs:element>
+    </xs:sequence>
+      
+  </xs:complexType>
+</xs:element>
+
+<!-- ============================================================== -->
+
+<xs:element name="sp">
+  <xs:annotation>
+  <xs:documentation>
+  A species is an atom type definition containing all information to construct the basis functions.
+  </xs:documentation>
+  </xs:annotation>
+  <xs:complexType>
+  
+    <xs:attribute name="chemicalSymbol" type="xs:ID" use="required">
+    <xs:annotation>
+    <xs:documentation>Chemical Symbol.</xs:documentation>
+    </xs:annotation>
+    </xs:attribute>
+    
+    <xs:attribute name="z" type="fortrandouble" use="required">
+    <xs:annotation>
+    <xs:documentation>Atomic number.</xs:documentation>
+    </xs:annotation>
+    </xs:attribute>
+    
+    <xs:attribute name="mass" type="fortrandouble" use="required">
+    <xs:annotation>
+    <xs:documentation>Mass in <inlinemath>m_e</inlinemath>.</xs:documentation>
+    </xs:annotation>
+    </xs:attribute>
+    
+    <xs:attribute name="name" type="xs:string" use="optional">
+    <xs:annotation>
+    <xs:documentation>Optional element name.</xs:documentation>
+    </xs:annotation>
+    </xs:attribute>
+
+    <xs:sequence>
+
+    <xs:element name="muffinTin" minOccurs="1" maxOccurs="1">
+      <xs:annotation>
+        <xs:documentation>
+        This element gives the size of the muffin tin radius and 
+        the resolution of the radial functions. 
+        </xs:documentation>
+      </xs:annotation>
+      <xs:complexType>
+                  
+        <xs:attribute name="rmin" type="fortrandouble" use="required">
+          <xs:annotation>
+          <xs:documentation>
+          The radius where radial mesh begins.
+          </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        
+        <xs:attribute name="rinf" type="fortrandouble" use="required">
+          <xs:annotation>
+          <xs:documentation>
+          Radius from which the influence on the potential is regarded to be negligible.
+          </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        
+        <xs:attribute name="radius" type="fortrandouble" use="required">
+          <xs:annotation>
+          <xs:documentation>
+          The radius of the muffin tin sphere.
+          </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        
+        <xs:attribute name="radialmeshPoints" type="xs:integer" use="required">
+          <xs:annotation>
+          <xs:documentation>
+          Number of data points for radial atomic functions.
+          </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+
+      </xs:complexType>
     </xs:element>
+            
+    <xs:element ref="atomicState" minOccurs="1" maxOccurs="unbounded"></xs:element>
+
+    <xs:element name="basis" minOccurs="1" maxOccurs="1">
+      <xs:annotation>
+      <xs:documentation>
+        Definion of the APW basis.
+      </xs:documentation>
+      </xs:annotation>
+      <xs:complexType>
+        
+        <xs:sequence>              
+        <xs:element name="default" maxOccurs="1" minOccurs="1">
+          <xs:annotation>
+          <xs:documentation>
+            Global definition of APW functions (valid for all L <inlinemath>\le</inlinemath> <attref>lmaxapw</attref>).
+          </xs:documentation>
+          </xs:annotation>                                            
+          <xs:complexType>
+        
+            <xs:attribute name="type" type="xs:string" default="lapw">
+              <xs:annotation>
+              <xs:documentation>
+                Augmentation type (LAPW or APW+lo). Default lapw.
+              </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="trialEnergy" type="fortrandouble" default="0.15d0">
+              <xs:annotation>
+              <xs:documentation>
+                Energy level of the radial wave function (initial condition for numerical radial Schrodinger equation)
+              </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="searchE" type="xs:boolean" default="true">
+              <xs:annotation>
+              <xs:documentation>
+                If <pre>true</pre> the energy of the radial wave function,
+                <inlinemath>E_0</inlinemath> is optimized to match the boundary condition 
+                <displaymath>\psi(R_{MT})=0.</displaymath>
+              </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:sequence>
+              <xs:element ref="wf" minOccurs="0" maxOccurs="unbounded"></xs:element>
+            </xs:sequence>
+
+          </xs:complexType>
+        </xs:element>
+        </xs:sequence>
+        
+        <xs:sequence>
+          <xs:element ref="custom" minOccurs="0" maxOccurs="unbounded"></xs:element>
+        </xs:sequence>
+        
+        <xs:sequence>
+          <xs:element ref="lo" minOccurs="0" maxOccurs="unbounded"></xs:element>
+        </xs:sequence>
+
+      </xs:complexType>
+    </xs:element>
+     
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+
+<!-- ============================================================== -->
+
+<xs:element name="spdb">
+  <xs:annotation>
+    <xs:documentation>Species-database element contains the species element <elementref>sp</elementref></xs:documentation>
+  </xs:annotation>
+  <xs:complexType>
+    <xs:sequence>
+      <xs:element ref="sp" maxOccurs="unbounded"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+
 </xs:schema>

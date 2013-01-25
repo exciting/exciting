@@ -64,7 +64,7 @@ Subroutine occupy
 !      If ( .Not. istetraocc()) Then
 !#endif
 
-      if ( .not. input%groundstate%tetra) then
+      if ( input%groundstate%stypenumber .ge. 0 ) then
          t1 = 1.d0 / input%groundstate%swidth
 ! determine the Fermi energy using the bisection method
          Do it = 1, maxit

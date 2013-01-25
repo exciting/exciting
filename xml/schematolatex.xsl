@@ -29,9 +29,10 @@
 \errorstopmode
 \usepackage{hyperref}
 \usepackage{color}
+\usepackage{longtable}
 \hypersetup{colorlinks=true}
 \begin{document}
-
+\setlength{\LTleft}{0pt}
 \newcommand{\vect}[1]{\mathbf{ #1}} 
 \newcommand{\op}[1]{\mathbf {#1}}
 \newcommand{\bra}[1]{\ensuremath{\left\langle #1\right|}}
@@ -313,8 +314,8 @@ August 2012
   <xsl:param name="contentnode"/>
   <xsl:text>
 
-  \begin{center}
-\begin{tabular*}{\textwidth}{ll}
+\begin{longtable}{ll}
+
 
  </xsl:text>
   <xsl:choose>
@@ -436,8 +437,7 @@ August 2012
   
   <xsl:text>
 
-\end{tabular*}
-\end{center}
+\end{longtable}
   </xsl:text>
  </xsl:template>
  <xsl:template name="genxpath">

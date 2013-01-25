@@ -177,7 +177,7 @@ case(5)
   else
     goto 10
   end if
-case(20,21,22)
+case(20,21,22,406)
 ! original PBE kappa
   kappa=0.804d0
   if (xctype(1).eq.21) then
@@ -285,7 +285,7 @@ end subroutine
 !BOP
 ! !ROUTINE: getxcdata
 ! !INTERFACE:
-subroutine getxcdata(xctype,xcdescr,xcspin,xcgrad)
+subroutine getxcdata(xctype,xcdescr,xcspin,xcgrad,ex_coef)
 ! !INPUT/OUTPUT PARAMETERS:
 !   xctype  : type of exchange-correlation functional (in,integer(3))
 !   xcdescr : description of functional (out,character(256))
@@ -309,6 +309,10 @@ integer, intent(in) :: xctype(3)
 character(512), intent(out) :: xcdescr
 integer, intent(out) :: xcspin
 integer, intent(out) :: xcgrad
+real(8), intent(out) :: ex_coef
+! initial value of exchange mixing parameter
+! not modified in case of OEP/HF 
+ex_coef=1.0d0
 select case(abs(xctype(1)))
 case(1)
   xcdescr='No density-derived exchange-correlation energy or potential'
@@ -353,9 +357,14 @@ case(30)
   xcdescr='Armiento-Mattsson functional, Phys. Rev. B 72, 85108 (2005)'
   xcspin=0
   xcgrad=1
+case(406)
+  xcdescr='PBE0, M. Ernzerhof, G. E. Scuseria, J. Chem. Phys. 110 , 5029 (1999)'
+  xcspin=0
+  xcgrad=1
+  ex_coef=0.25
 case(100)
 ! libxc library functionals
-  call xcdata_libxc(xctype,xcdescr,xcspin,xcgrad)
+  call xcdata_libxc(xctype,xcdescr,xcspin,xcgrad,ex_coef)
 case default
   write(*,*)
   write(*,'("Error(getxcdata): xctype not defined : ",I8)') xctype(1)

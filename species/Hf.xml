@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Hf" name="hafnium" z="-72.0000" mass="325367.3657">
-    <muffinTin rmin="0.235702E-06" radius="2.0000" rinf="39.5554" radialmeshPoints="700"/>
+    <muffinTin rmin="0.235702E-06" radius="2.0000" rinf="44.3371" radialmeshPoints="700"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -23,54 +23,29 @@
     <atomicState n="5" l="1" kappa="2" occ="4.00000" core="false"/>
     <atomicState n="5" l="2" kappa="2" occ="2.00000" core="false"/>
     <atomicState n="6" l="0" kappa="1" occ="2.00000" core="false"/>
-    <basis order="1">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
-      <exception l="0">
+    <basis>
+      <default type="lapw" trialEnergy="0.1500" searchE="false"/>
+      <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <custom l="2" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <custom l="3" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      </exception>
-      <exception l="1">
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.4529" searchE="true"/>
+      </lo>
+      <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      </exception>
-      <exception l="2">
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.5099" searchE="true"/>
+      </lo>
+      <lo l="3">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      </exception>
-      <exception l="3">
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      </exception>
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.6494" searchE="true"/>
+      </lo>
     </basis>
-    <lorb l="0">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-    </lorb>
-    <lorb l="1">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-    </lorb>
-    <lorb l="2">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-    </lorb>
-    <lorb l="3">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-    </lorb>
-    <lorb l="3">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
-      <wf matchingOrder="0" trialEnergy="-0.5744" searchE="true"/>
-    </lorb>
-    <lorb l="0">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
-      <wf matchingOrder="0" trialEnergy="-2.3779" searchE="true"/>
-    </lorb>
-    <lorb l="1">
-      <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
-      <wf matchingOrder="0" trialEnergy="-1.4349" searchE="true"/>
-    </lorb>
-    <!-- Exciting code version : 0.9.224-->
-    <!-- Description of method:-->
-    <!-- APW+lo (default) -->
+    <!-- Exciting code version: Lithium -->
+    <!-- Generation Scheme: simple -->
   </sp>
 </spdb>
