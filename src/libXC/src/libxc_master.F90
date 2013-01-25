@@ -223,10 +223,12 @@ module XC_F90(lib_m)
       real(xc_f90_kind),      intent(in)     :: alpha
     end subroutine XC_F90(lda_c_xalpha_set_par)
 
-    subroutine XC_F90(lda_x_set_par)(p, relativistic)
+    subroutine XC_F90(lda_x_set_par)(p, alpha, relativistic, omega)
       use XC_F90(types_m)
       type(XC_F90(pointer_t)), intent(inout)  :: p
+      real(xc_f90_kind),       intent(in)     :: alpha  ! of Xalpha, set to 4/3 to obtain standard LDA
       integer,                 intent(in)     :: relativistic
+      real(xc_f90_kind),       intent(in)     :: omega
     end subroutine XC_F90(lda_x_set_par)
 
     subroutine XC_F90(lda_c_1d_csc_set_par)(p, interaction, bb)
@@ -331,11 +333,39 @@ module XC_F90(lib_m)
 
   !----------------------------------------------------------------
   interface
-    subroutine XC_F90(hyb_gga_exx_coef)(p, coef)
+    subroutine XC_F90(hyb_exx_coef)(p, coef)
       use XC_F90(types_m)
-      type(XC_F90(pointer_t)),   intent(in)  :: p
-      real(xc_f90_kind), intent(out) :: coef
-    end subroutine XC_F90(hyb_gga_exx_coef)
+      type(XC_F90(pointer_t)), intent(in)  :: p
+      real(xc_f90_kind),       intent(out) :: coef
+    end subroutine XC_F90(hyb_exx_coef)
+  end interface
+
+
+  !----------------------------------------------------------------
+  interface
+    subroutine XC_F90(gga_x_wpbeh_set_par)(p, omega)
+      use XC_F90(types_m)
+      type(XC_F90(pointer_t)), intent(in)  :: p
+      real(xc_f90_kind),       intent(in)  :: omega       ! range separation
+    end subroutine XC_F90(gga_x_wpbeh_set_par)
+  end interface
+  
+  !----------------------------------------------------------------
+  interface
+    subroutine XC_F90(gga_x_hjs_set_par)(p, omega)
+      use XC_F90(types_m)
+      type(XC_F90(pointer_t)), intent(in)  :: p
+      real(xc_f90_kind),       intent(in)  :: omega       ! range separation
+    end subroutine XC_F90(gga_x_hjs_set_par)
+  end interface
+
+  !----------------------------------------------------------------
+  interface
+    subroutine XC_F90(hyb_gga_xc_hse_set_par)(p, omega)
+      use XC_F90(types_m)
+      type(XC_F90(pointer_t)), intent(in)  :: p
+      real(xc_f90_kind),       intent(in)  :: omega       ! range separation
+    end subroutine XC_F90(hyb_gga_xc_hse_set_par)
   end interface
 
 
@@ -442,21 +472,6 @@ module XC_F90(lib_m)
     end subroutine XC_F90(mgga_x_tb09_set_par)
   end interface
 
-
-  ! the LCAs
-  !----------------------------------------------------------------
-  interface
-    subroutine XC_F90(lca)(p, rho, v, e, dedd, dedv)
-      use XC_F90(types_m)
-      type(XC_F90(pointer_t)),   intent(in)  :: p
-      real(xc_f90_kind), intent(in)  :: rho   ! rho(nspin) the density
-      real(xc_f90_kind), intent(in)  :: v     ! v(3,nspin) the vorticity
-      real(xc_f90_kind), intent(out) :: e     ! the energy per unit particle
-      real(xc_f90_kind), intent(out) :: dedd  ! dedd(nspin) the derivative of the energy
-                                              ! in terms of the density
-      real(xc_f90_kind), intent(out) :: dedv  ! and in terms of the vorticity
-    end subroutine XC_F90(lca)
-  end interface
 
 end module XC_F90(lib_m)
 

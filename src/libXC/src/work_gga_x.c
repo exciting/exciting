@@ -37,15 +37,15 @@ work_gga_k
 #else
 work_gga_x
 #endif
-(const void *p_, int np, const FLOAT *rho, const FLOAT *sigma,
+(const XC(func_type) *p, int np, const FLOAT *rho, const FLOAT *sigma,
  FLOAT *zk, FLOAT *vrho, FLOAT *vsigma,
  FLOAT *v2rho2, FLOAT *v2rhosigma, FLOAT *v2sigma2)
 {
-  const XC(gga_type) *p = p_;
-
-  FLOAT sfact, sfact2, x_factor_c, alpha, beta, dens;
+  FLOAT sfact, x_factor_c, alpha, beta, dens;
   int is, ip, order;
-
+#if HEADER == 2
+  FLOAT sfact2;
+#endif
   /* alpha is the power of rho in the corresponding LDA
      beta  is the power of rho in the expression for x */
 
@@ -65,13 +65,15 @@ work_gga_x
 #  if XC_DIMENSIONS == 2
 #  else /* three dimensions */
   alpha = 5.0/3.0;
-  x_factor_c = 2.0*K_FACTOR_C; /* the 2.0 is due to our definition of tau */
+  x_factor_c = K_FACTOR_C;
 #  endif
 
 #endif
 
   sfact = (p->nspin == XC_POLARIZED) ? 1.0 : 2.0;
+#if HEADER == 2
   sfact2 = sfact*sfact;
+#endif
 
   order = -1;
   if(zk     != NULL) order = 0;
@@ -81,30 +83,30 @@ work_gga_x
 
   for(ip = 0; ip < np; ip++){
     dens = (p->nspin == XC_UNPOLARIZED) ? rho[0] : rho[0] + rho[1];
-    if(dens < MIN_DENS) goto end_ip_loop;
+    if(dens < p->info->min_dens) goto end_ip_loop;
 
     for(is=0; is<p->nspin; is++){
       FLOAT gdm, ds, rhoLDA;
-      FLOAT x, f, dfdx, ldfdx, d2fdx2, lvsigma, lv2sigma2, lvsigmax, lvrho;
+      FLOAT x, f, dfdx, d2fdx2, lvsigma, lv2sigma2, lvsigmax, lvrho;
       int js = (is == 0) ? 0 : 2;
       int ks = (is == 0) ? 0 : 5;
 
-      if(rho[is] < MIN_DENS) continue;
+      if(rho[is] < p->info->min_dens) continue;
 
-      gdm    = SQRT(sigma[js])/sfact;
+      gdm    = max(SQRT(sigma[js])/sfact, p->info->min_grad);
       ds     = rho[is]/sfact;
       rhoLDA = POW(ds, alpha);
       x      = gdm/POW(ds, beta);
       
-      dfdx = ldfdx = d2fdx2 = 0.0;
+      dfdx = d2fdx2 = 0.0;
       lvsigma = lv2sigma2 = lvsigmax = lvrho = 0.0;
 
 #if   HEADER == 1
-      func(p, order, x, &f, &dfdx, &ldfdx, &d2fdx2);
+      func(p, order, x, &f, &dfdx, &d2fdx2);
 #elif HEADER == 2
       /* this second header is useful for functionals that depend
 	 explicitly both on x and on sigma */
-      func(p, order, x, gdm*gdm, &f, &dfdx, &ldfdx, &lvsigma, &d2fdx2, &lv2sigma2, &lvsigmax);
+      func(p, order, x, gdm*gdm, &f, &dfdx, &lvsigma, &d2fdx2, &lv2sigma2, &lvsigmax);
       
       lvsigma   /= sfact2;
       lvsigmax  /= sfact2;
@@ -122,7 +124,7 @@ work_gga_x
 	vrho[is] += x_factor_c*(rhoLDA/ds)*(alpha*f - beta*dfdx*x)
 	  + x_factor_c*rhoLDA*lvrho;
 	
-	if(gdm>MIN_GRAD)
+	if(gdm>p->info->min_grad)
 	  vsigma[js] = sfact*x_factor_c*rhoLDA*(lvsigma + dfdx*x/(2.0*sigma[js]));
       }
       
@@ -130,7 +132,7 @@ work_gga_x
 	v2rho2[js] = x_factor_c*rhoLDA/(ds*ds) *
 	  ((alpha - 1.0)*alpha*f + beta*(beta - 2.0*alpha + 1.0)*x*dfdx + beta*beta*x*x*d2fdx2)/sfact;
 	
-	if(gdm>MIN_GRAD){
+	if(gdm>p->info->min_grad){
 	  v2rhosigma[ks] = x_factor_c*(rhoLDA/ds) *
 	    (alpha*lvsigma - beta*x*lvsigmax + ((alpha - beta)*x*dfdx - beta*x*x*d2fdx2)/(2.0*sigma[js]));
 	  v2sigma2  [ks] = sfact*x_factor_c*rhoLDA*

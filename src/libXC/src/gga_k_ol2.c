@@ -25,10 +25,8 @@
 #define XC_GGA_X_OL2          183 /* Exchange form based on Ou-Yang and Levy v.2 */
 
 static void 
-gga_k_ol2_init(void *p_)
+gga_k_ol2_init(XC(func_type) *p)
 {
-  XC(gga_type) *p = (XC(gga_type) *)p_;
-
   switch(p->info->number){
   case XC_GGA_K_OL2: p->func = 0; break;
   case XC_GGA_X_OL2: p->func = 1; break;
@@ -36,15 +34,14 @@ gga_k_ol2_init(void *p_)
 }
 
 static inline void 
-func(const XC(gga_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
+func(const XC(func_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
 {
   static const FLOAT aa[2] = {    1.0,            M_CBRT2*0.07064/X_FACTOR_C};
   static const FLOAT bb[2] = {    1.0/K_FACTOR_C, M_CBRT2*0.07064/X_FACTOR_C};
   static const FLOAT cc[2] = {0.00887/K_FACTOR_C, M_CBRT2*M_CBRT2*0.07064*34.0135/X_FACTOR_C};
-  FLOAT x2, denom;
+  FLOAT denom;
 
-  x2   = x*x;
   denom = M_CBRT2 + 4.0*x;
 
   *f = aa[p->func] + bb[p->func]*x*x/72.0 + cc[p->func]*x/denom;
@@ -52,7 +49,6 @@ func(const XC(gga_type) *p, int order, FLOAT x,
   if(order < 1) return;
 
   *dfdx = 2.0*bb[p->func]*x/72.0 + cc[p->func]*M_CBRT2/(denom*denom);
-  *ldfdx= bb[p->func]/72.0;
   
   if(order < 2) return;
 
@@ -66,8 +62,9 @@ const XC(func_info_type) XC(func_info_gga_x_ol2) = {
   "Exchange form based on Ou-Yang and Levy v.2",
   XC_FAMILY_GGA,
   "P Fuentealba and O Reyes, Chem. Phys. Lett. 232, 31-34 (1995)\n"
-  "H Ou-Yang, M Levy, Int. J. of Quant. Chem. 40, 379–388 (1991)",
+  "H Ou-Yang, M Levy, Int. J. of Quant. Chem. 40, 379-388 (1991)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   gga_k_ol2_init,
   NULL, NULL,
   work_gga_x
@@ -82,8 +79,9 @@ const XC(func_info_type) XC(func_info_gga_k_ol2) = {
   XC_KINETIC,
   "Ou-Yang and Levy v.2",
   XC_FAMILY_GGA,
-  "H Ou-Yang, M Levy, Int. J. of Quant. Chem. 40, 379–388 (1991)",
+  "H Ou-Yang, M Levy, Int. J. of Quant. Chem. 40, 379-388 (1991)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   gga_k_ol2_init, 
   NULL, NULL,
   work_gga_k

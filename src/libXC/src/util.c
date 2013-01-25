@@ -16,9 +16,11 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <stdio.h>
 #include <assert.h>
 
 #include "util.h"
+
 
 /* this function converts the spin-density into total density and
 	 relative magnetization */
@@ -30,7 +32,7 @@ XC(rho2dzeta)(int nspin, const FLOAT *rho, FLOAT *d, FLOAT *zeta)
     *zeta = 0.0;
   }else{
     *d    = max(rho[0] + rho[1], 0.0);
-    *zeta = (*d > MIN_DENS) ? (rho[0] - rho[1])/(*d) : 0.0;
+    *zeta = (rho[0] - rho[1])/(*d);
     *zeta = min(*zeta,  1.0);
     *zeta = max(*zeta, -1.0);
   }
@@ -62,3 +64,26 @@ XC(fast_fzeta)(const FLOAT x, const int nspin, const int order, FLOAT * fz){
     fz[3] = 0.0;
   }
 }
+
+/* initializes the mixing */
+void 
+XC(mix_init)(XC(func_type) *p, int n_funcs, const int *funcs_id, const FLOAT *mix_coef)
+{
+  int ii;
+
+  assert(p != NULL);
+  assert(p->func_aux == NULL && p->mix_coef == NULL);
+
+  /* allocate structures needed for */
+  p->n_func_aux = n_funcs;
+  p->mix_coef   = (FLOAT *) malloc(n_funcs*sizeof(FLOAT));
+  p->func_aux   = (XC(func_type) **) malloc(n_funcs*sizeof(XC(func_type) *));
+
+  for(ii=0; ii<n_funcs; ii++){
+    p->mix_coef[ii] = mix_coef[ii];
+    p->func_aux[ii] = (XC(func_type) *) malloc(sizeof(XC(func_type)));
+    XC(func_init) (p->func_aux[ii], funcs_id[ii], p->nspin);
+  }
+  
+}
+

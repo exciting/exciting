@@ -23,14 +23,12 @@
 
 #include "util.h"
 #include "funcs_mgga.c"
+#include "funcs_hyb_mgga.c"
 
 /* initialization */
-int XC(mgga_init)(XC(func_type) *p, const XC(func_info_type) *info, int nspin)
+int XC(mgga_init)(XC(func_type) *func, const XC(func_info_type) *info, int nspin)
 {
-  XC(mgga_type) *func;
-
-  assert(p != NULL && p->mgga != NULL);
-  func = p->mgga;
+  assert(func != NULL);
 
   /* initialize structure */
   func->info   = info;
@@ -56,7 +54,7 @@ int XC(mgga_init)(XC(func_type) *p, const XC(func_info_type) *info, int nspin)
   }else{
     func->n_sigma = func->n_vsigma = 3;
     func->n_v2rho2 = func->n_v2tau2 = func->n_v2lapl2 = 3;
-    func->n_v2rhotau = func->n_v2rholapl = func->n_v2lapltau = 3;
+    func->n_v2rhotau = func->n_v2rholapl = func->n_v2lapltau = 4;
     func->n_v2sigma2 = 6;
     func->n_v2rhosigma = func->n_v2sigmatau = func->n_v2sigmalapl = 6;
   }
@@ -68,12 +66,9 @@ int XC(mgga_init)(XC(func_type) *p, const XC(func_info_type) *info, int nspin)
 }
 
 
-void XC(mgga_end)(XC(func_type) *p)
+void XC(mgga_end)(XC(func_type) *func)
 {
-  XC(mgga_type) *func;
-
-  assert(p != NULL && p->mgga != NULL);
-  func = p->mgga;
+  assert(func != NULL);
 
   /* call internal termination routine */
   if(func->info->end != NULL)
@@ -104,17 +99,14 @@ void XC(mgga_end)(XC(func_type) *p)
 
 
 void 
-XC(mgga)(const XC(func_type) *p, int np,
+XC(mgga)(const XC(func_type) *func, int np,
 	 const FLOAT *rho, const FLOAT *sigma, const FLOAT *lapl, const FLOAT *tau,
 	 FLOAT *zk, FLOAT *vrho, FLOAT *vsigma, FLOAT *vlapl, FLOAT *vtau,
 	 FLOAT *v2rho2, FLOAT *v2sigma2, FLOAT *v2lapl2, FLOAT *v2tau2,
 	 FLOAT *v2rhosigma, FLOAT *v2rholapl, FLOAT *v2rhotau, 
 	 FLOAT *v2sigmalapl, FLOAT *v2sigmatau, FLOAT *v2lapltau)
 {
-  XC(mgga_type) *func;
-
-  assert(p != NULL && p->mgga != NULL);
-  func = p->mgga;
+  assert(func != NULL);
 
   /* sanity check */
   if(zk != NULL && !(func->info->flags & XC_FLAGS_HAVE_EXC)){
@@ -172,14 +164,11 @@ XC(mgga)(const XC(func_type) *p, int np,
 		     v2rho2, v2sigma2, v2lapl2, v2tau2, v2rhosigma, v2rholapl, v2rhotau,
 		     v2sigmalapl, v2sigmatau, v2lapltau);
 
-  /* Mixing still not implemented for mggas
-  if(func->mix_coef != NULL){
-    XC(mix_func)(p, func->n_func_aux, func->func_aux, func->mix_coef, 
-		 np, rho, sigma, zk, vrho, vsigma,
-		  v2rho2, v2sigma2, v2lapl2, v2tau2, v2rhosigma, v2rholapl, v2rhotau,
-		  v2sigmalapl, v2sigmatau, v2lapltau);
-  }
-  */
+  if(func->mix_coef != NULL)
+    XC(mix_func)(func, np, rho, sigma, lapl, tau, zk, vrho, vsigma, vlapl, vtau, 
+		 v2rho2, v2sigma2, v2lapl2, v2tau2, v2rhosigma, v2rholapl, v2rhotau,
+		 v2sigmalapl, v2sigmatau, v2lapltau);
+
 }
 
 /* specializations */
@@ -221,5 +210,3 @@ XC(mgga_fxc)(const XC(func_type) *p, int np,
 	   v2rho2, v2sigma2, v2lapl2, v2tau2, v2rhosigma, v2rholapl, v2rhotau,
 	   v2sigmalapl, v2sigmatau, v2lapltau);
 }
-
-

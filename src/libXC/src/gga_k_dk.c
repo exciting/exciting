@@ -32,12 +32,10 @@ typedef struct{
 } gga_k_dk_params;
 
 static void 
-gga_k_dk_init(void *p_)
+gga_k_dk_init(XC(func_type) *p)
 {
   int i;
   FLOAT ff, *aa, *bb;
-
-  XC(gga_type) *p = (XC(gga_type) *)p_;
 
   assert(p->params == NULL);
   p->params = malloc(sizeof(gga_k_dk_params));
@@ -57,15 +55,15 @@ gga_k_dk_init(void *p_)
     ff = 5.0*X2S*X2S/27.0; /* = t2/t0 = 1.0/(72.0*K_FACTOR_C) */
 
     bb[0] =  1.0;
-    bb[1] = -0.05   /ff;
-    bb[2] =  9.99802/(ff*ff);
-    bb[3] =  2.96085/(ff*ff*ff);
+    bb[1] = -0.05   *ff;
+    bb[2] =  9.99802*(ff*ff);
+    bb[3] =  2.96085*(ff*ff*ff);
 
     aa[0] =   1.0;
-    aa[1] =   0.95   /ff;
-    aa[2] =  14.28111/(ff*ff);
-    aa[3] = -19.57962/(ff*ff*ff);
-    aa[4] =   9.0*bb[3]/ff;
+    aa[1] =   0.95   *ff;
+    aa[2] =  14.28111*(ff*ff);
+    aa[3] = -19.57962*(ff*ff*ff);
+    aa[4] =   9.0*bb[3]*ff;
 
     break;
 
@@ -85,12 +83,12 @@ gga_k_dk_init(void *p_)
     ff = 5.0*X2S*X2S/27.0; /* = t2/t0 = 1.0/(72.0*K_FACTOR_C) */
 
     bb[0] =  1.0;
-    bb[1] = -0.05     /ff;
-    bb[2] =  0.396    /(ff*ff);
+    bb[1] = -0.05     *ff;
+    bb[2] =  0.396    *(ff*ff);
 
     aa[0] =  1.0;
-    aa[1] =  0.95     /ff;
-    aa[3] =  9.0*bb[2]/ff;
+    aa[1] =  0.95     *ff;
+    aa[3] =  9.0*bb[2]*ff;
 
     break;
 
@@ -103,7 +101,7 @@ gga_k_dk_init(void *p_)
 
     aa[0] =  1.0;
     aa[1] =  0.8944 *ff;
-    aa[3] = -bb[2];
+    aa[3] = -bb[2]  *ff;
 
     break;
 
@@ -123,8 +121,8 @@ gga_k_dk_init(void *p_)
 
 
 static inline void 
-func(const XC(gga_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
+func(const XC(func_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
 {
   FLOAT xx2, xx4, num, denom, dnum, ddenom, d2num, d2denom;
   FLOAT *aa, *bb;
@@ -166,6 +164,7 @@ const XC(func_info_type) XC(func_info_gga_k_dk) = {
   XC_FAMILY_GGA,
   "AE DePristo and JD Kress, Phys. Rev. A 35, 438-441 (1987)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   gga_k_dk_init,
   NULL, NULL,
   work_gga_k
@@ -178,6 +177,7 @@ const XC(func_info_type) XC(func_info_gga_k_perdew) = {
   XC_FAMILY_GGA,
   "JP Perdew, Phys. Lett. A 165, 79 (1992)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   gga_k_dk_init,
   NULL, NULL,
   work_gga_k
@@ -190,6 +190,7 @@ const XC(func_info_type) XC(func_info_gga_k_vsk) = {
   XC_FAMILY_GGA,
   "L Vitos, HL Skriver, and J. Kollár, Phys. Rev. B 57, 12611-12615 (1998)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   gga_k_dk_init,
   NULL, NULL,
   work_gga_k
@@ -202,6 +203,7 @@ const XC(func_info_type) XC(func_info_gga_k_vjks) = {
   XC_FAMILY_GGA,
   "L Vitos, B Johansson, J. Kollár, and HL Skriver, Phys. Rev. A 61, 052511 (2000)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   gga_k_dk_init,
   NULL, NULL,
   work_gga_k
@@ -214,6 +216,7 @@ const XC(func_info_type) XC(func_info_gga_k_ernzerhof) = {
   XC_FAMILY_GGA,
   "M Ernzerhof, J. Mol. Struct.:THEOCHEM 501-502, 59 (2000)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   gga_k_dk_init,
   NULL, NULL,
   work_gga_k

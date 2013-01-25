@@ -30,7 +30,7 @@ Module mod_APW_LO
 ! derivate of radial functions at the muffin-tin surface
       Real (8), Allocatable :: apwdfr (:, :, :)
 ! maximum number of local-orbitals
-      Integer, Parameter :: maxlorb = 20
+      Integer, Parameter :: maxlorb = 100
 ! maximum allowable local-orbital order
       Integer, Parameter :: maxlorbord = 4
 ! number of local-orbitals

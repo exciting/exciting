@@ -26,8 +26,8 @@
 #define XC_GGA_X_AM05         120 /* Armiento & Mattsson 05 exchange                */
 
 static inline void 
-func(const XC(gga_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
+func(const XC(func_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
 {
   const FLOAT am05_c      = 0.7168;
   const FLOAT am05_alpha  = 2.804;
@@ -39,10 +39,8 @@ func(const XC(gga_type) *p, int order, FLOAT x,
   FLOAT dww, dz_t, dz_tt, dfx_b, dxx, dflaa_1, dflaa_2, dflaa;
   FLOAT d2ww, d2z_t, d2z_tt, d2fx_b, d2xx, d2flaa_1, d2flaa_2, d2flaa;;
 
-  if(x < MIN_GRAD){
+  if(x < p->info->min_grad){
     *f    = 1.0;
-    if(order >= 1) *ldfdx = -am05_alpha*X2S*X2S;
-    if(order >= 2) *d2fdx2 = 0.0;
     return;
   }
 
@@ -83,10 +81,7 @@ func(const XC(gga_type) *p, int order, FLOAT x,
   dflaa   = (dflaa_1*flaa_2 - flaa_1*dflaa_2)/(flaa_2*flaa_2);
 
   *dfdx  = dxx*(1.0 - flaa) + dflaa*(1.0 - xx);
-  *ldfdx = -am05_alpha; /* -alpha?? */
-
-  *dfdx  *= X2S;
-  *ldfdx *= X2S*X2S;
+  *dfdx *= X2S;
 
   if(order < 2) return;
 
@@ -120,6 +115,7 @@ const XC(func_info_type) XC(func_info_gga_x_am05) = {
   "R Armiento and AE Mattsson, Phys. Rev. B 72, 085108 (2005)\n"
   "AE Mattsson, R Armiento, J Paier, G Kresse, JM Wills, and TR Mattsson, J. Chem. Phys. 128, 084714 (2008).",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   NULL, NULL, NULL,
   work_gga_x
 };

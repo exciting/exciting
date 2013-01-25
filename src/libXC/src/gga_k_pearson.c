@@ -24,8 +24,8 @@
 #define XC_GGA_K_PEARSON          511 /* Pearson */
 
 static inline void 
-func(const XC(gga_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
+func(const XC(func_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
 {
   FLOAT ss, ss2, ss6, denom;
 
@@ -39,7 +39,6 @@ func(const XC(gga_type) *p, int order, FLOAT x,
   if(order < 1) return;
 
   *dfdx = X2S*5.0/27.0 * 2.0*ss*(1.0 - 2.0*ss6)/(denom*denom);
-  *ldfdx= X2S*X2S*5.0/27.0;
   
   if(order < 2) return;
 
@@ -55,8 +54,10 @@ const XC(func_info_type) XC(func_info_gga_k_pearson) = {
   "Pearson 1992",
   XC_FAMILY_GGA,
   "DJ Lacks and RG Gordon, J. Chem. Phys. 100, 4446 (1994)\n"
-  "E Pearson, Ph.D. thesis, Harvard University (1992)",
+  "E W Pearson and R G Gordon, J. Chem. Phys. 82, 881 (1985)\n"
+  "E W Pearson, Ph.D. thesis, Harvard University (1983)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
+  1e-32, 1e-32, 0.0, 1e-32,
   NULL, NULL, NULL,
   work_gga_k
 };
