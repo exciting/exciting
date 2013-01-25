@@ -24,8 +24,8 @@
 #define XC_GGA_X_FT97_B       115 /* Filatov & Thiel 97 (version B) */
 
 static inline void
-func(const XC(func_type) *p, int order, FLOAT x, FLOAT sigma, 
-     FLOAT *f, FLOAT *dfdx,
+func(const XC(gga_type) *p, int order, FLOAT x, FLOAT sigma, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, 
      FLOAT *vsigma, FLOAT *d2fdx2, FLOAT *v2sigma2, FLOAT *v2sigmax)
 {
   static const FLOAT 
@@ -62,6 +62,7 @@ func(const XC(func_type) *p, int order, FLOAT x, FLOAT sigma,
   dbetadsigma = (func == 0) ? 0.0 : beta1*beta2/(f1*f1);
 
   *dfdx = beta/X_FACTOR_C*x*(2.0*f3 - x*df3)/(f3*f3);
+  *ldfdx= beta0/X_FACTOR_C;
 
   df3df2  = 9.0*x2*f2/f3;
   *vsigma = dbetadsigma*x2/(f3*X_FACTOR_C)*(1.0 - f2*df3df2/f3);
@@ -94,7 +95,6 @@ const XC(func_info_type) XC(func_info_gga_x_ft97_a) = {
   XC_FAMILY_GGA,
   "M Filatov and W Thiel, Mol. Phys 91, 847 (1997)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   NULL, NULL, NULL, 
   work_gga_x
 };
@@ -106,7 +106,6 @@ const XC(func_info_type) XC(func_info_gga_x_ft97_b) = {
   XC_FAMILY_GGA,
   "M Filatov and W Thiel, Mol. Phys 91, 847 (1997)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   NULL, NULL, NULL, 
   work_gga_x
 };

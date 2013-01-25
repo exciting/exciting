@@ -27,13 +27,6 @@
 #include "xc.h"
 #include "string_f.h"
 
-/* version */
-void XC_FC_FUNC(f90_version, F90_VERSION)
-     (int *major, int *minor)
-{
-  XC(version)(major, minor);
-}
-
 /* info */
 
 CC_FORTRAN_INT XC_FC_FUNC(f90_info_number, F90_INFO_NUMBER)
@@ -185,9 +178,9 @@ void XC_FC_FUNC(f90_lda_c_xalpha_set_par, F90_LDA_C_XALPHA_SET_PAR)
 
 /* relativistic option of LDA_X */
 void XC_FC_FUNC(f90_lda_x_set_par, F90_LDA_X_SET_PAR)
-  (void **p, FLOAT *alpha, CC_FORTRAN_INT *relativistic, FLOAT *omega)
+  (void **p, CC_FORTRAN_INT *relativistic)
 {
-  XC(lda_x_set_params)((XC(func_type) *)(*p), *alpha, *relativistic, *omega);
+  XC(lda_x_set_params)((XC(func_type) *)(*p), *relativistic);
 }
 
 /* parameter of CSC */
@@ -253,25 +246,18 @@ void XC_FC_FUNC(f90_gga_lb_set_par, F90_GGA_LB_SET_PAR)
 void XC_FC_FUNC(f90_gga_lb_modified, F90_GGA_LB_MODIFIED)
      (void **p, CC_FORTRAN_INT *np, FLOAT *rho, FLOAT *sigma, FLOAT *r, FLOAT *vrho)
 {
-  XC(gga_lb_modified)((XC(func_type) *)(*p), *np, rho, sigma, *r, vrho);
+  const XC(gga_type) *gga = ((XC(func_type) *)(*p))->gga;
+  assert(gga != NULL);
+
+  XC(gga_lb_modified)(gga, *np, rho, sigma, *r, vrho);
 }
 
-void XC_FC_FUNC(f90_gga_x_wpbeh_set_par, F90_GGA_X_WPBEH_SET_PAR)
-  (void **p, FLOAT *omega)
-{
-  XC(gga_x_wpbeh_set_params)((XC(func_type) *)(*p), *omega);
-}
 
-void XC_FC_FUNC(f90_hyb_gga_xc_hse_set_par, F90_HYB_GGA_XC_HSE_SET_PAR)
-  (void **p, FLOAT *omega)
-{
-  XC(hyb_gga_xc_hse_set_params)((XC(func_type) *)(*p), *omega);
-}
-
-void XC_FC_FUNC(f90_hyb_exx_coef, F90_HYB_EXX_COEF)
+void XC_FC_FUNC(f90_hyb_gga_exx_coef, F90_HYB_GGA_EXX_COEF)
    (void **p, FLOAT *coef)
 {
-   *coef = XC(hyb_exx_coef)((XC(func_type) *)(*p));
+   const XC(gga_type) *gga = ((XC(func_type) *)(*p))->gga;
+   *coef = XC(hyb_gga_exx_coef)(gga);
 }
 
 
@@ -337,5 +323,14 @@ void XC_FC_FUNC(f90_mgga_x_tb09_set_par, F90_MGGA_X_TB09_SET_PAR)
   XC(mgga_x_tb09_set_params)((XC(func_type) *)(*p), *cc);
 }
 
+
+/* LCAs */
+
+void XC_FC_FUNC(f90_lca, F90_LCA)
+     (void **p, FLOAT *rho, FLOAT *v, 
+      FLOAT *e, FLOAT *dedd, FLOAT *dedv)
+{
+  XC(lca)((XC(lca_type) *)(*p), rho, v, e, dedd, dedv);
+}
 
 #endif

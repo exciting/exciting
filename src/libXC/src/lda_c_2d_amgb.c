@@ -43,7 +43,7 @@ static FLOAT beta = 1.3386, ax = 0.0;
 
 /* Initialization */
 static void
-lda_c_2d_amgb_init(XC(func_type) *p)
+lda_c_2d_amgb_init(void *p)
 {
   int i;
   
@@ -98,7 +98,7 @@ malpha(int order, int i, FLOAT *rs,
 
 
 static void
-func(const XC(func_type) *p, XC(lda_work_t) *r)
+func(const XC(lda_type) *p, XC(lda_rs_zeta) *r)
 {
   FLOAT ecp, vcp, fcp, kcp;
   FLOAT ecf, vcf, fcf, kcf;
@@ -198,7 +198,6 @@ const XC(func_info_type) XC(func_info_lda_c_2d_amgb) = {
   "C Attacalite et al, Phys. Rev. Lett. 88, 256601 (2002)\n"
   "C Attacalite, PhD thesis",
   XC_FLAGS_2D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC | XC_FLAGS_HAVE_KXC,
-  1e-9, 0.0, 0.0, 1e-32,
   lda_c_2d_amgb_init,
   NULL,
   work_lda

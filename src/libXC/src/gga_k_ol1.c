@@ -24,8 +24,8 @@
 #define XC_GGA_K_OL1          512 /* Ou-Yang and Levy v.1 */
 
 static inline void 
-func(const XC(func_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
+func(const XC(gga_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
 {
   const FLOAT c4 = 0.00677;
   FLOAT ss, ss2;
@@ -38,6 +38,7 @@ func(const XC(func_type) *p, int order, FLOAT x,
   if(order < 1) return;
 
   *dfdx = (2.0*ss/72.0 + c4)/(K_FACTOR_C*M_CBRT2);
+  *ldfdx= 1.0/(72.0*K_FACTOR_C*M_CBRT2*M_CBRT2);
   
   if(order < 2) return;
 
@@ -52,9 +53,8 @@ const XC(func_info_type) XC(func_info_gga_k_ol1) = {
   XC_KINETIC,
   "Ou-Yang and Levy v.1",
   XC_FAMILY_GGA,
-  "H Ou-Yang, M Levy, Int. J. of Quant. Chem. 40, 379-388 (1991)",
+  "H Ou-Yang, M Levy, Int. J. of Quant. Chem. 40, 379–388 (1991)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   NULL, NULL, NULL,
   work_gga_k
 };

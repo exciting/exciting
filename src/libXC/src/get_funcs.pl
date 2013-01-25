@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 # Copyright (C) 2006-2007 M.A.L. Marques
 #
@@ -21,9 +21,9 @@ $top_builddir = shift;
 
 $builddir = "$top_builddir/src";
 
-my @funcs = ("lda", "gga", "hyb_gga", "mgga", "hyb_mgga");
+my @funcs = ("lda", "gga", "hyb_gga", "mgga", "lca");
 
-$s0 = ""; $s3 = ""; $s4 = ""; $s5 = "";
+$s0 = ""; $s3 = "";
 foreach $func (@funcs){
   undef %deflist_f;
   undef %deflist_c;
@@ -35,14 +35,11 @@ foreach $func (@funcs){
     $s0 .= sprintf "%s %-20s %3s  /*%-60s*/\n", "#define ",
       $deflist_f{$key}, $key, $deflist_c{$key};
 
-    $t = $deflist_f{$key};
-    $t =~ s/XC_(.*)/\L$1/;
-
-    $s4 .= ",\n" if($s4);
-    $s4 .= sprintf "{\"%s\", %d}", $t, $key;
-
     $s3 .= sprintf "  %s %-20s = %3s  ! %s\n", "integer, parameter ::",
       $deflist_f{$key}, $key, $deflist_c{$key};
+
+    $t = $deflist_f{$key};
+    $t =~ s/XC_(.*)/\L$1/;
 
     $s1 .= "extern XC(func_info_type) XC(func_info_$t);\n";
     $s2 .= "  &XC(func_info_$t),\n";
@@ -61,17 +58,6 @@ EOF
     ;
   close OUT;
 }
-
-  open(OUT, ">$builddir/funcs_key.c");
-print OUT <<EOF
-#include "util.h"
-
-XC(functional_key_t) XC(functional_keys)[] = {
-$s4,
-{"", -1}
-};
-EOF
-  ;
 
 open(OUT, ">$builddir/xc_funcs.h");
 print OUT $s0;
@@ -98,12 +84,9 @@ sub read_file() {
   my $TYPE = $type;
   $TYPE =~ s/(.*)/\U$1/;
 
-  # we remove the hyb from the filenames
-  $type =~ s/^hyb_//;
-
   opendir(DIR, "$dir/") || die "cannot opendir '$dir': $!";
   while($_ = readdir(DIR)){
-    next if(!/^${type}_.*\.c$/ && !/^hyb_${type}_.*\.c$/ );
+    next if(!/^${type}_.*\.c$/);
 
     open(IN, "<$dir/$_");
     while($_=<IN>){

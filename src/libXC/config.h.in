@@ -47,9 +47,6 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* libm includes feenableexcept */
-#undef HAVE_FEENABLEEXCEPT
-
 /* Defined if libxc is compiled with fortran support */
 #undef HAVE_FORTRAN
 

@@ -23,8 +23,8 @@
 #define XC_GGA_X_HERMAN          104 /* Herman et al original GGA                  */
 
 static inline void 
-func(const XC(func_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
+func(const XC(gga_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
 {
   static const FLOAT beta  = 0.003/X_FACTOR_C;
 
@@ -33,6 +33,7 @@ func(const XC(func_type) *p, int order, FLOAT x,
   if(order < 1) return;
 
   *dfdx  = 2.0*beta*x;
+  *ldfdx = beta;
 
   if(order < 2) return;
 
@@ -49,7 +50,6 @@ const XC(func_info_type) XC(func_info_gga_x_herman) = {
   "F Herman, JP Van Dyke, and IB Ortenburger, Phys. Rev. Lett. 22, 807 (1969)\n"
   "F Herman, IB Ortenburger, and JP Van Dyke, Int. J. Quantum Chem. Symp. 3, 827 (1970)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   NULL, NULL, NULL,
   work_gga_x
 };

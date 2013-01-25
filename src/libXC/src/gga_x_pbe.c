@@ -42,7 +42,7 @@ typedef struct{
 
 
 static void 
-gga_x_pbe_init(XC(func_type) *p)
+gga_x_pbe_init(void *p_)
 {
   static const FLOAT kappa[13] = {
     0.8040,  /* original PBE */
@@ -61,12 +61,12 @@ gga_x_pbe_init(XC(func_type) *p)
   };
 
   static const FLOAT mu[13] = {
-    0.2195149727645171,     /* PBE: mu = beta*pi^2/3, beta = 0.06672455060314922 */
-    0.2195149727645171,     /* PBE rev: as PBE */
+    0.066725*M_PI*M_PI/3.0, /* PBE: mu = beta*pi^2/3, beta = 0.066725 */
+    0.066725*M_PI*M_PI/3.0, /* PBE rev: as PBE */
     10.0/81.0,              /* PBE sol */
     0.23214,                /* xPBE */
     0.046*M_PI*M_PI/3.0,    /* PBE_JSJR */
-    0.2195149727645171,     /* PBEK1_VDW: as PBE */
+    0.066725*M_PI*M_PI/3.0, /* PBEK1_VDW: as PBE */
     10.0/81.0,              /* RGE2      */
     0.260,                  /* APBE (X)  */
     0.23889,                /* APBE (K)  */
@@ -76,7 +76,9 @@ gga_x_pbe_init(XC(func_type) *p)
     0.2309                  /* TW4       */
   };
 
-  assert(p!=NULL && p->params == NULL);
+  XC(gga_type) *p = (XC(gga_type) *)p_;
+
+  assert(p->params == NULL);
   p->params = malloc(sizeof(gga_x_pbe_params));
  
   switch(p->info->number){
@@ -98,16 +100,24 @@ gga_x_pbe_init(XC(func_type) *p)
     exit(1);
   }
 
-  XC(gga_x_pbe_set_params)(p, kappa[p->func], mu[p->func]);
+  XC(gga_x_pbe_set_params_)(p, kappa[p->func], mu[p->func]);
 }
 
 
 void 
 XC(gga_x_pbe_set_params)(XC(func_type) *p, FLOAT kappa, FLOAT mu)
 {
+  assert(p != NULL && p->gga != NULL);
+  XC(gga_x_pbe_set_params_)(p->gga, kappa, mu);
+}
+
+
+void 
+XC(gga_x_pbe_set_params_)(XC(gga_type) *p, FLOAT kappa, FLOAT mu)
+{
   gga_x_pbe_params *params;
 
-  assert(p != NULL && p->params != NULL);
+  assert(p->params != NULL);
   params = (gga_x_pbe_params *) (p->params);
 
   params->kappa = kappa;
@@ -115,9 +125,9 @@ XC(gga_x_pbe_set_params)(XC(func_type) *p, FLOAT kappa, FLOAT mu)
 }
 
 
-void XC(gga_x_pbe_enhance) 
-  (const XC(func_type) *p, int order, FLOAT x, 
-   FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
+static inline void 
+func(const XC(gga_type) *p, int order, FLOAT x, 
+     FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
 {
   FLOAT kappa, mu, ss, ss2, f0, df0, d2f0;
 
@@ -141,6 +151,7 @@ void XC(gga_x_pbe_enhance)
     df0 += 4.0*mu*mu*ss2*ss/kappa;
 
   *dfdx  = X2S*kappa*kappa*df0/(f0*f0);
+  *ldfdx = X2S*X2S*mu;
 
   if(order < 2) return;
 
@@ -152,9 +163,15 @@ void XC(gga_x_pbe_enhance)
 }
 
 
-#define func XC(gga_x_pbe_enhance)
-#include "work_gga_x.c"
+void 
+XC(gga_x_pbe_enhance)(const XC(gga_type) *p, int order, FLOAT x, 
+		      FLOAT *f, FLOAT *dfdx, FLOAT *ldfdx, FLOAT *d2fdx2)
+{
+  func(p, x, order, f, dfdx, ldfdx, d2fdx2);
+}
 
+
+#include "work_gga_x.c"
 
 const XC(func_info_type) XC(func_info_gga_x_pbe) = {
   XC_GGA_X_PBE,
@@ -164,7 +181,6 @@ const XC(func_info_type) XC(func_info_gga_x_pbe) = {
   "JP Perdew, K Burke, and M Ernzerhof, Phys. Rev. Lett. 77, 3865 (1996)\n"
   "JP Perdew, K Burke, and M Ernzerhof, Phys. Rev. Lett. 78, 1396(E) (1997)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init, 
   NULL, NULL,
   work_gga_x
@@ -177,7 +193,6 @@ const XC(func_info_type) XC(func_info_gga_x_pbe_r) = {
   XC_FAMILY_GGA,
   "Y Zhang and W Yang, Phys. Rev. Lett 80, 890 (1998)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init, 
   NULL, NULL,
   work_gga_x
@@ -190,7 +205,6 @@ const XC(func_info_type) XC(func_info_gga_x_pbe_sol) = {
   XC_FAMILY_GGA,
   "JP Perdew, et al, Phys. Rev. Lett. 100, 136406 (2008)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init, 
   NULL, NULL,
   work_gga_x
@@ -203,7 +217,6 @@ const XC(func_info_type) XC(func_info_gga_x_xpbe) = {
   XC_FAMILY_GGA,
   "X Xu and WA Goddard III, J. Chem. Phys. 121, 4068 (2004)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init, 
   NULL, NULL,
   work_gga_x
@@ -216,7 +229,6 @@ const XC(func_info_type) XC(func_info_gga_x_pbe_jsjr) = {
   XC_FAMILY_GGA,
   "LS Pedroza, AJR da Silva, and K. Capelle, Phys. Rev. B 79, 201106(R) (2009)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init, 
   NULL, NULL,
   work_gga_x
@@ -229,7 +241,6 @@ const XC(func_info_type) XC(func_info_gga_x_pbek1_vdw) = {
   XC_FAMILY_GGA,
   "J Klimes, DR Bowler, and A Michaelides, J. Phys.: Condens. Matter 22, 022201 (2010)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init, 
   NULL, NULL,
   work_gga_x
@@ -242,7 +253,6 @@ const XC(func_info_type) XC(func_info_gga_x_rge2) = {
   XC_FAMILY_GGA,
   "A Ruzsinszky, GI Csonka, and G Scuseria, J. Chem. Theory Comput. 5, 763 (2009)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init,
   NULL, NULL,
   work_gga_x
@@ -255,7 +265,6 @@ const XC(func_info_type) XC(func_info_gga_x_apbe) = {
   XC_FAMILY_GGA,
   "LA Constantin, E Fabiano, S Laricchia, and F Della Sala, Phys. Rev. Lett. 106, 186406 (2011)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init,
   NULL, NULL,
   work_gga_x
@@ -271,7 +280,6 @@ const XC(func_info_type) XC(func_info_gga_k_apbe) = {
   XC_FAMILY_GGA,
   "LA Constantin, E Fabiano, S Laricchia, and F Della Sala, Phys. Rev. Lett. 106, 186406 (2011)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init,
   NULL, NULL,
   work_gga_k
@@ -284,7 +292,6 @@ const XC(func_info_type) XC(func_info_gga_k_tw1) = {
   XC_FAMILY_GGA,
   "F Tran and TA Wesolowski, Int. J. Quant. Chem. 89, 441-446 (2002)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init,
   NULL, NULL,
   work_gga_k
@@ -297,7 +304,6 @@ const XC(func_info_type) XC(func_info_gga_k_tw2) = {
   XC_FAMILY_GGA,
   "F Tran and TA Wesolowski, Int. J. Quant. Chem. 89, 441-446 (2002)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init,
   NULL, NULL,
   work_gga_k
@@ -310,7 +316,6 @@ const XC(func_info_type) XC(func_info_gga_k_tw3) = {
   XC_FAMILY_GGA,
   "F Tran and TA Wesolowski, Int. J. Quant. Chem. 89, 441-446 (2002)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init,
   NULL, NULL,
   work_gga_k
@@ -323,7 +328,6 @@ const XC(func_info_type) XC(func_info_gga_k_tw4) = {
   XC_FAMILY_GGA,
   "F Tran and TA Wesolowski, Int. J. Quant. Chem. 89, 441-446 (2002)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_x_pbe_init,
   NULL, NULL,
   work_gga_k

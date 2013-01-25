@@ -26,7 +26,7 @@
 #define XC_LDA_C_GOMBAS  24   /* Gombas parametrization       */
 
 static inline void 
-func(const XC(func_type) *p, XC(lda_work_t) *r)
+func(const XC(lda_type) *p, XC(lda_rs_zeta) *r)
 {
   static FLOAT a1=-0.0357, a2=0.0562, b1=-0.0311, b2=2.39;
   FLOAT t1, t2, cnst_rs, x;
@@ -65,9 +65,8 @@ const XC(func_info_type) XC(func_info_lda_c_gombas) = {
   XC_CORRELATION,
   "Gombas",
   XC_FAMILY_LDA,
-  "P. Gombas, Pseudopotentiale (Springer-Verlag, Wien, New York, 1967)",
+  "P. Gombas, Pseudopotentiale (Springer-Verlag, New York, 1967)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC | XC_FLAGS_HAVE_KXC,
-  1e-32, 0.0, 0.0, 1e-32,
   NULL,     /* init */
   NULL,     /* end  */
   work_lda, /* lda  */

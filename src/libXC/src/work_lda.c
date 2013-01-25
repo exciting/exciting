@@ -28,10 +28,12 @@
 #endif
 
 static void 
-work_lda(const XC(func_type) *p, int np, const FLOAT *rho, 
+work_lda(const void *p_, int np, const FLOAT *rho, 
 	 FLOAT *zk, FLOAT *vrho, FLOAT *v2rho2, FLOAT *v3rho3)
 {
-  XC(lda_work_t) r;
+  const XC(lda_type) *p = p_;
+
+  XC(lda_rs_zeta) r;
   int is, ip;
   FLOAT dens, drs, d2rs, d3rs;
 
@@ -41,7 +43,7 @@ work_lda(const XC(func_type) *p, int np, const FLOAT *rho,
 # elif XC_DIMENSIONS == 2
   const FLOAT cnst_rs = 0.56418958354775627928; /* = 1.0/sqrt(M_PI) */
 # else /* three dimensions */
-  const FLOAT cnst_rs = 0.6203504908994000866;  /* = POW(3.0/(4*M_PI), 1.0/3.0)*/
+  const FLOAT cnst_rs = 0.6203504908994000866; /* = POW(3.0/(4*M_PI), 1.0/3.0)*/
 # endif
 
   r.order = -1;
@@ -54,7 +56,7 @@ work_lda(const XC(func_type) *p, int np, const FLOAT *rho,
   for(ip = 0; ip < np; ip++){
     XC(rho2dzeta)(p->nspin, rho, &dens, &r.zeta);
 
-    if(dens < p->info->min_dens) goto end_ip_loop;
+    if(dens < MIN_DENS) goto end_ip_loop;
 
     r.rs[1] = cnst_rs*POW(dens, -1.0/XC_DIMENSIONS);
     r.rs[0] = SQRT(r.rs[1]);

@@ -23,200 +23,157 @@
 #include "util.h"
 
 static void 
-work_gga_c(const XC(func_type) *p, int np, const FLOAT *rho, const FLOAT *sigma,
+work_gga_c(const void *p_, int np, const FLOAT *rho, const FLOAT *sigma,
 	   FLOAT *zk, FLOAT *vrho, FLOAT *vsigma,
 	   FLOAT *v2rho2, FLOAT *v2rhosigma, FLOAT *v2sigma2)
 {
-  XC(gga_work_c_t) r;
-  FLOAT min_grad2 = p->info->min_grad*p->info->min_grad;
-  int ip;
+  const XC(gga_type) *p = p_;
 
-  r.order = -1;
-  if(zk     != NULL) r.order = 0;
-  if(vrho   != NULL) r.order = 1;
-  if(v2rho2 != NULL) r.order = 2;
+  FLOAT min_grad2 = MIN_GRAD*MIN_GRAD;
+  int ip, order;
 
-  if(r.order < 0) return;
+  order = -1;
+  if(zk     != NULL) order = 0;
+  if(vrho   != NULL) order = 1;
+  if(v2rho2 != NULL) order = 2;
+
+  if(order < 0) return;
 
   for(ip = 0; ip < np; ip++){
-    FLOAT drs, dxt;
-    FLOAT d2rs, d2xt;
-    FLOAT ndzdn[2], dxsdn[2];
-    FLOAT dxtds, d2xtds2, d2xtdns, dxsds[2], d2xsdn2[2], d2xsds2[2], d2xsdns[2];
+    FLOAT dens, zeta, rs, ds[2], sigmat, sigmas[3], xt, xs[2];
+    FLOAT f, drs, dxt, dfdrs, dfdz, dfdxt, dfdxs[2];
+    FLOAT d2rs, d2xt, d2fdrs2, d2fdrsz, d2fdrsxt, d2fdrsxs[2], d2fdz2, d2fdzxt, d2fdzxs[2], d2fdxt2, d2fdxtxs[2], d2fdxs2[3];
 
-    XC(rho2dzeta)(p->nspin, rho, &(r.dens), &(r.zeta));
+    XC(rho2dzeta)(p->nspin, rho, &dens, &zeta);
 
-    if(r.dens < p->info->min_dens) goto end_ip_loop;
+    if(dens < MIN_DENS) goto end_ip_loop;
 
-    r.rs = RS(r.dens);
+    rs = RS(dens);
     if(p->nspin == XC_UNPOLARIZED){
-      r.ds[0]  = r.dens/2.0;
-      r.ds[1]  = r.ds[0];
+      ds[0]  = dens/2.0;
+      ds[1]  = ds[0];
 
-      r.sigmat = max(min_grad2, sigma[0]);
-      r.xt     = SQRT(r.sigmat)/ POW(r.dens, 4.0/3.0);
+      sigmat = max(min_grad2, sigma[0]);
+      xt     = SQRT(sigmat)/ POW(dens, 4.0/3.0);
 
-      r.sigmas[0] = r.sigmat/4.0;
-      r.sigmas[1] = r.sigmas[0];
-      r.sigmas[2] = r.sigmas[0];
+      sigmas[0] = sigmat/4.0;
+      sigmas[1] = sigmas[0];
+      sigmas[2] = sigmas[0];
 
-      r.xs[0]  = CBRT(2.0)*r.xt;
-      r.xs[1]  = r.xs[0];
+      xs[0]  = CBRT(2.0)*xt;
+      xs[1]  = xs[0];
     }else{
-      r.ds[0]  = max(p->info->min_dens, rho[0]);
-      r.ds[1]  = max(p->info->min_dens, rho[1]);
+      ds[0]  = max(MIN_DENS, rho[0]);
+      ds[1]  = max(MIN_DENS, rho[1]);
       
-      r.sigmat = max(min_grad2, sigma[0] + 2.0*sigma[1] + sigma[2]);
-      r.xt     = SQRT(r.sigmat)/ POW(r.dens, 4.0/3.0);
+      sigmat = max(min_grad2, sigma[0] + 2.0*sigma[1] + sigma[2]);
+      xt     = SQRT(sigmat)/ POW(dens, 4.0/3.0);
       
-      r.sigmas[0] = max(min_grad2, sigma[0]);
-      r.sigmas[1] = max(min_grad2, sigma[1]);
-      r.sigmas[2] = max(min_grad2, sigma[2]);
+      sigmas[0] = max(min_grad2, sigma[0]);
+      sigmas[1] = max(min_grad2, sigma[1]);
+      sigmas[2] = max(min_grad2, sigma[2]);
 
-      r.xs[0] = SQRT(r.sigmas[0])/POW(r.ds[0], 4.0/3.0);
-      r.xs[1] = SQRT(r.sigmas[2])/POW(r.ds[1], 4.0/3.0);
+      xs[0] = SQRT(sigmas[0])/POW(ds[0], 4.0/3.0);
+      xs[1] = SQRT(sigmas[2])/POW(ds[1], 4.0/3.0);
     }
   
-    func(p, &r);
+    func(p, order, rs, zeta, xt, xs, &f, &dfdrs, &dfdz, &dfdxt, dfdxs,
+	 &d2fdrs2, &d2fdrsz, &d2fdrsxt, d2fdrsxs, &d2fdz2, &d2fdzxt, d2fdzxs, &d2fdxt2, d2fdxtxs, d2fdxs2);
 
     if(zk != NULL && (p->info->flags & XC_FLAGS_HAVE_EXC))
-      *zk = r.f;
+      *zk = f;
 
-    if(r.order < 1) goto end_ip_loop;
+    if(order < 1) goto end_ip_loop;
     
-    /* setup auxiliary variables */
-    drs   =     -r.rs/(3.0*r.dens);
-    dxt   = -4.0*r.xt/(3.0*r.dens);
-    dxtds = r.xt/(2.0*r.sigmat);
-    if(p->nspin == XC_POLARIZED){
-      ndzdn[1] = -(r.zeta + 1.0);
-      ndzdn[0] = -(r.zeta - 1.0);
-
-      dxsdn[1] = -4.0/3.0*r.xs[1]/r.ds[1];
-      dxsdn[0] = -4.0/3.0*r.xs[0]/r.ds[0];
-
-      dxsds[1] = r.xs[1]/(2.0*r.sigmas[2]);
-      dxsds[0] = r.xs[0]/(2.0*r.sigmas[0]);
-    }else{
-      dxsdn[0] = M_CBRT2*dxt;
-      dxsds[0] = M_CBRT2*dxtds;
-    }
+    drs =     -rs/(3.0*dens);
+    dxt = -4.0*xt/(3.0*dens);
 
     if(vrho != NULL && (p->info->flags & XC_FLAGS_HAVE_VXC)){
-      vrho[0]   = r.f + r.dens*(r.dfdrs*drs + r.dfdxt*dxt);
-      vsigma[0] = r.dens*r.dfdxt*dxtds;
+      vrho[0]   = f + dens*(dfdrs*drs + dfdxt*dxt);
+      if(sigmat > min_grad2)
+	vsigma[0] = dens*dfdxt*xt/(2.0*sigmat);
 
       if(p->nspin == XC_POLARIZED){
-	vrho[1] = vrho[0] + r.dfdz*ndzdn[1] + r.dens*r.dfdxs[1]*dxsdn[1];
-	vrho[0] = vrho[0] + r.dfdz*ndzdn[0] + r.dens*r.dfdxs[0]*dxsdn[0];;
+        vrho[1] = vrho[0] - (zeta + 1.0)*dfdz - 4.0/3.0*xs[1]*dfdxs[1] * 2.0/(1.0 - zeta);
+        vrho[0] = vrho[0] - (zeta - 1.0)*dfdz - 4.0/3.0*xs[0]*dfdxs[0] * 2.0/(1.0 + zeta);
 
-	vsigma[2] = vsigma[0] + r.dens*r.dfdxs[1]*dxsds[1];
+	if(sigmas[2] > min_grad2)
+	  vsigma[2] = vsigma[0] + dens*dfdxs[1]*xs[1]/(2.0*sigmas[2]);
 	vsigma[1] = 2.0*vsigma[0];
-	vsigma[0] = vsigma[0] + r.dens*r.dfdxs[0]*dxsds[0];
-	
+	if(sigmas[0] > min_grad2)
+	  vsigma[0] = vsigma[0] + dens*dfdxs[0]*xs[0]/(2.0*sigmas[0]);
+
       }else{
-	vrho[0]   += 2.0*r.dens*r.dfdxs[0]*dxsdn[0]; /* factor of 2 comes from sum over sigma */
-	vsigma[0] += 2.0*r.dens*r.dfdxs[0]*dxsds[0];
+	vrho[0] += -8.0/3.0*xs[0]*dfdxs[0];
+	if(sigmas[0] > min_grad2)
+	  vsigma[0] += dens*dfdxs[0]*xs[0]/(4.0*sigmas[0]);
       }
     }
 
-    if(r.order < 2) goto end_ip_loop;
+    if(order < 2) goto end_ip_loop;
   
-    /* setup auxiliary variables */
-    d2rs    = -4.0*drs/(3.0*r.dens);
-    d2xt    = -7.0*dxt/(3.0*r.dens);
-    d2xtds2 = -dxtds/(2.0*r.sigmat);
-    d2xtdns =    dxt/(2.0*r.sigmat);
-    if(p->nspin == XC_POLARIZED){
-      d2xsdn2[0] = -7.0*dxsdn[0]/(3.0*r.ds[0]);
-      d2xsdn2[1] = -7.0*dxsdn[1]/(3.0*r.ds[1]);
-
-      d2xsdns[0] = -4.0/3.0*dxsds[0]/r.ds[0];
-      d2xsdns[1] = -4.0/3.0*dxsds[1]/r.ds[1];
-
-      d2xsds2[0] = -dxsds[0]/(2.0*r.sigmas[0]);
-      d2xsds2[1] = -dxsds[1]/(2.0*r.sigmas[2]);
-    }else{
-      d2xsdn2[0] = M_CBRT2*d2xt;
-      d2xsdns[0] = M_CBRT2*d2xtdns;
-      d2xsds2[0] = M_CBRT2*d2xtds2;
-    }
+    d2rs = -4.0*drs/(3.0*dens);
+    d2xt = -7.0*dxt/(3.0*dens);
 
     if(v2rho2 != NULL && (p->info->flags & XC_FLAGS_HAVE_FXC)){
-      v2rho2[0]     = 2.0*r.dfdrs*drs + 2.0*r.dfdxt*dxt +
-	r.dens*(r.d2fdrs2*drs*drs + r.d2fdxt2*dxt*dxt + r.dfdrs*d2rs + r.dfdxt*d2xt + 2.0*r.d2fdrsxt*drs*dxt);
+      v2rho2[0] = 2.0*dfdrs*drs + 2.0*dfdxt*dxt +
+	dens*(d2fdrs2*drs*drs + d2fdxt2*dxt*dxt + dfdrs*d2rs + dfdxt*d2xt + 2.0*d2fdrsxt*drs*dxt);
 
-      v2sigma2[0]   = r.dens*(r.d2fdxt2*dxtds*dxtds + r.dfdxt*d2xtds2);
-
-      v2rhosigma[0] = r.dfdxt*dxtds + r.dens*(r.d2fdrsxt*drs*dxtds + r.d2fdxt2*dxt*dxtds + r.dfdxt*d2xtdns);
+      if(sigmat > min_grad2){
+	v2sigma2[0]   = dens*(d2fdxt2*xt - dfdxt)*xt/(4.0*sigmat*sigmat);
+	v2rhosigma[0] = (dfdxt*xt + dens*(d2fdrsxt*drs*xt + d2fdxt2*dxt*xt + dfdxt*dxt))/(2.0*sigmat);
+      }
 
       if(p->nspin == XC_POLARIZED){
+        FLOAT sign[3][2] = {{1.0, 1.0}, {1.0, -1.0}, {-1.0, -1.0}};
 	int is;
 
         for(is=2; is>=0; is--){
 	  int s1 = (is > 1) ?  1 :  0;         /* {0, 0, 1}[is] */
 	  int s2 = (is > 0) ?  1 :  0;         /* {0, 1, 1}[is] */
+	  FLOAT delta = (is == 1) ? 0.0 : 1.0; /* delta_{s1,s2} */
 
-	  v2rho2[is]  = v2rho2[0];
+	  /* derivative wrt rs and xt */
+	  v2rho2[is] = v2rho2[0] +
+	    (- (zeta - sign[is][0])*(d2fdrsz*drs + d2fdzxt*dxt) 
+	     -  4.0/3.0*xs[s1]*2.0/(1.0 + sign[is][0]*zeta)*(d2fdrsxs[s1]*drs + d2fdxtxs[s1]*dxt));
 
-	  v2rho2[is] += r.dfdxs[s1]*dxsdn[s1] + 
-	    ndzdn[s1]*(r.d2fdrsz*drs + r.d2fdzxt*dxt + r.d2fdzxs[s2]*dxsdn[s2]) + 
-	    r.dens*(r.d2fdrsxs[s1]*drs*dxsdn[s1] + r.d2fdxtxs[s1]*dxt*dxsdn[s1]);
+	  /* derivative wrt zeta */
+          v2rho2[is] += -(zeta - sign[is][1])/dens *
+	    (+ dens*(d2fdrsz*drs + d2fdzxt*dxt)
+	     - (zeta - sign[is][0])*d2fdz2
+	     - 4.0/3.0*xs[s1]*(d2fdzxs[s1] - dfdxs[s1]*sign[is][0]/(1.0 + sign[is][0]*zeta))*2.0/(1.0 + sign[is][0]*zeta)
+	     );
 
-	  v2rho2[is] += r.dfdxs[s2]*dxsdn[s2] + 
-	    ndzdn[s2]*(r.d2fdrsz*drs + r.d2fdzxt*dxt + r.d2fdzxs[s1]*dxsdn[s1]) + 
-	    r.dens*(r.d2fdrsxs[s2]*drs*dxsdn[s2] + r.d2fdxtxs[s2]*dxt*dxsdn[s2]);
-
-	  v2rho2[is] += r.d2fdz2*ndzdn[s1]*ndzdn[s2]/r.dens + r.dens*r.d2fdxs2[is]*dxsdn[s1]*dxsdn[s2];
-
-	  if(is != 1)
-	    v2rho2[is] += r.dens*r.dfdxs[s1]*d2xsdn2[s1];
+	  /* derivative wrt xs */
+	  v2rho2[is] += -4.0/3.0*xs[s2]*2.0/(1.0 + sign[is][1]*zeta)/dens *
+	    (dfdxs[s2] + dens*(d2fdrsxs[s2]*drs + d2fdxtxs[s2]*dxt)
+	     - (zeta - sign[is][0])*d2fdzxs[s2]
+	     - 4.0/3.0*2.0/(1.0 + sign[is][0]*zeta)*(delta*dfdxs[s1] + xs[s1]*d2fdxs2[is])
+	     );
 	}
 
-	/* v2sigma */
-	v2sigma2[5] =     v2sigma2[0] + r.dens*
-	  (2.0*r.d2fdxtxs[1]*dxtds*dxsds[1] + r.d2fdxs2[2]*dxsds[1]*dxsds[1] + r.dfdxs[1]*d2xsds2[1]);
-	v2sigma2[4] = 2.0*v2sigma2[0] + r.dens*
-	  (2.0*r.d2fdxtxs[1]*dxtds*dxsds[1]);
-	v2sigma2[3] = 4.0*v2sigma2[0];
-	v2sigma2[2] =     v2sigma2[0] + r.dens*
-	  (    dxtds*(r.d2fdxtxs[0]*dxsds[0] + r.d2fdxtxs[1]*dxsds[1]) + r.d2fdxs2[1]*dxsds[0]*dxsds[1]);
-	v2sigma2[1] =  2.0*v2sigma2[0] + r.dens*
-	  (2.0*r.d2fdxtxs[0]*dxtds*dxsds[0]);
-	v2sigma2[0] =     v2sigma2[0] + r.dens*
-	  (2.0*r.d2fdxtxs[0]*dxtds*dxsds[0] + r.d2fdxs2[0]*dxsds[0]*dxsds[0] + r.dfdxs[0]*d2xsds2[0]);
-
-	/* v2rhosigma */
-	v2rhosigma[5] =     v2rhosigma[0] + r.dfdxs[1]*dxsds[1] + ndzdn[1]*(r.d2fdzxt*dxtds + r.d2fdzxs[1]*dxsds[1]) + 
-	  r.dens*(r.d2fdrsxs[1]*drs*dxsds[1] + r.d2fdxtxs[1]*(dxsdn[1]*dxtds + dxt*dxsds[1]) + r.d2fdxs2[2]*dxsdn[1]*dxsds[1] +
-		r.dfdxs[1]*d2xsdns[1]);
-
-	v2rhosigma[4] = 2.0*v2rhosigma[0] + 2.0*ndzdn[1]*r.d2fdzxt*dxtds + 
-		  2.0*r.dens*r.d2fdxtxs[1]*dxsdn[1]*dxtds;
-
-	v2rhosigma[3] =     v2rhosigma[0] + r.dfdxs[0]*dxsds[0] + ndzdn[1]*(r.d2fdzxt*dxtds + r.d2fdzxs[0]*dxsds[0]) + 
-	  r.dens*(r.d2fdrsxs[0]*drs*dxsds[0] + r.d2fdxtxs[1]*(dxsdn[1]*dxtds + dxt*dxsds[0]) + r.d2fdxs2[1]*dxsdn[1]*dxsds[0]);
-
-	v2rhosigma[2] =     v2rhosigma[0] + r.dfdxs[1]*dxsds[1] + ndzdn[0]*(r.d2fdzxt*dxtds + r.d2fdzxs[1]*dxsds[1]) + 
-	  r.dens*(r.d2fdrsxs[1]*drs*dxsds[1] + r.d2fdxtxs[0]*(dxsdn[0]*dxtds + dxt*dxsds[1]) + r.d2fdxs2[1]*dxsdn[0]*dxsds[1]);
-
-	v2rhosigma[1] = 2.0*v2rhosigma[0] + 2.0*ndzdn[0]*r.d2fdzxt*dxtds + 
-	  2.0*r.dens*r.d2fdxtxs[0]*dxsdn[0]*dxtds;
-	
-	v2rhosigma[0] =     v2rhosigma[0] + r.dfdxs[0]*dxsds[0] + ndzdn[0]*(r.d2fdzxt*dxtds + r.d2fdzxs[0]*dxsds[0]) + 
-	  r.dens*(r.d2fdrsxs[0]*drs*dxsds[0] + r.d2fdxtxs[0]*(dxsdn[0]*dxtds + dxt*dxsds[0]) + r.d2fdxs2[0]*dxsdn[0]*dxsds[0] + 
-		r.dfdxs[0]*d2xsdns[0]);
-
+	/* WARNING: v2sigma and v2rhosigma missing */
+	if(sigmat > min_grad2){
+	  v2sigma2[5] = v2sigma2[0] + dens*
+	    (2.0*d2fdxtxs[1]*xt/sigmat - dfdxs[1]*xs[1]/sigma[1])*xs[1]/(4.0*sigma[1]);
+	  v2sigma2[4] = 0.0;
+	  v2sigma2[3] = 4.0*v2sigma2[0];
+	  v2sigma2[2] = 0.0;
+	  v2sigma2[1] = 0.0;
+	  v2sigma2[0] = 0.0;
+	}
       }else{
-	v2rho2[0]     += 2.0*dxsdn[0]*
-	  (2.0*r.dfdxs[0] + r.dens*(2.0*r.d2fdrsxs[0]*drs + 2.0*r.d2fdxtxs[0]*dxt + (r.d2fdxs2[0] + r.d2fdxs2[1])*dxsdn[0]))
-	  + 2.0*r.dens*r.dfdxs[0]*d2xsdn2[0];
+	v2rho2[0] += -8.0*xs[0]/(3.0*dens) * (dfdxs[0] + 2.0*dens*(d2fdrsxs[0]*drs + d2fdxtxs[0]*dxt))
+	  + (8.0*4.0)/(3.0*3.0)*(dfdxs[0] + 2.0*xs[0]*d2fdxs2[0])*xs[0]/dens;
 
-	v2sigma2[0]   += 2.0*r.dens*((r.d2fdxs2[0] + r.d2fdxs2[1])*dxsds[0]*dxsds[0] + r.dfdxs[0]*d2xsds2[0] + 2.0*r.d2fdxtxs[0]*dxtds*dxsds[0]);
-
-	v2rhosigma[0] += 2.0*r.dens*r.d2fdxtxs[0]*(dxsdn[0]*dxtds + dxt*dxsds[0]) +
-	  2.0*(r.dfdxs[0] + r.dens*(r.d2fdrsxs[0]*drs + (r.d2fdxs2[0] + r.d2fdxs2[1])*dxsdn[0]))*dxsds[0]
-	  + 2.0*r.dens*r.dfdxs[0]*d2xsdns[0];
+	if(sigmat > min_grad2){
+	  v2sigma2[0]   += dens*(2.0*d2fdxtxs[0]*xt*xs[0]/(8.0*sigmat*sigmas[0]) +
+				 xs[0]/(16.0*sigmas[0]*sigmas[0])*(d2fdxs2[0]*xs[0] - dfdxs[0]/2.0));
+	  v2rhosigma[0] += xs[0]/(2.0*sigmat) * 
+	    (-8.0/3.0*(xt*d2fdxtxs[0] + dfdxs[0] + 2.0*xs[0]*d2fdxs2[0]) +
+	     2.0*(dfdxs[0] + dens*(d2fdrsxs[0]*drs + d2fdxtxs[0]*dxt)));
+	}
       }
     }
 

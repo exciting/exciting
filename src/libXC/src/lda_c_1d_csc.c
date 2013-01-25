@@ -31,22 +31,38 @@ typedef struct{
 } lda_c_1d_csc_params;
 
 static void 
-lda_c_1d_csc_init(XC(func_type) *p)
+lda_c_1d_csc_init(void *p_)
 {
-  assert(p != NULL && p->params == NULL);
+  XC(lda_type) *p = (XC(lda_type) *)p_;
+
+  assert(p->params == NULL);
   p->params = malloc(sizeof(lda_c_1d_csc_params));
 
   /* default value is soft-Coulomb with beta=1.0 */
-  XC(lda_c_1d_csc_set_params)(p, 1, 1.0);
+  XC(lda_c_1d_csc_set_params_)(p, 1, 1.0);
+}
+
+static void 
+lda_c_1d_csc_end(void *p_)
+{
+  XC(lda_type) *p = (XC(lda_type) *)p_;
+
+  assert(p->params != NULL);
+  free(p->params);
+  p->params = NULL;
 }
 
 void 
 XC(lda_c_1d_csc_set_params)(XC(func_type) *p, int interaction, FLOAT bb)
 {
-  lda_c_1d_csc_params *params;
+  assert(p != NULL && p->lda != NULL);
+  XC(lda_c_1d_csc_set_params_)(p->lda, interaction, bb);
+}
 
-  assert(p != NULL && p->params != NULL);
-  params = (lda_c_1d_csc_params *)(p->params);
+void 
+XC(lda_c_1d_csc_set_params_)(XC(lda_type) *p, int interaction, FLOAT bb)
+{
+  lda_c_1d_csc_params *params = (lda_c_1d_csc_params *)(p->params);
 
   assert(params != NULL);
 
@@ -90,11 +106,10 @@ typedef struct {
 
 
 static void
-csc_func(lda_csc_param_t *pp, XC(lda_work_t) *r, FLOAT *func, FLOAT *dfunc, FLOAT *d2func)
+csc_func(lda_csc_param_t *pp, XC(lda_rs_zeta) *r, FLOAT *func, FLOAT *dfunc)
 {
-  FLOAT rs_n1, rs_n2, rs_m, arg, larg, den, aux, num;
-  FLOAT darg, dnum, dden, daux;
-  FLOAT d2arg, d2num, d2den, d2aux;
+  FLOAT rs_n1, rs_n2, rs_m, arg, larg, den, num;
+  FLOAT darg, dden, dnum;
 
   rs_n1 = POW(r->rs[1], pp->n1);
   rs_n2 = POW(r->rs[1], pp->n2);
@@ -104,35 +119,23 @@ csc_func(lda_csc_param_t *pp, XC(lda_work_t) *r, FLOAT *func, FLOAT *dfunc, FLOA
   larg = LOG(arg);
 
   den  = pp->A + pp->B*r->rs[1] + pp->C*rs_n1 + pp->D*rs_n2;
-  aux  = r->rs[1] + pp->E*r->rs[2];
-  num  = -aux*larg;
+  num  = r->rs[1] + pp->E*r->rs[2];
  
-  *func = num/den;
+  *func = -num*larg/den;
   *func /= 2.0; /* conversion from Ry to Hartree */
 
   if(r->order < 1) return;
 
   darg = pp->alpha + pp->beta*pp->m*rs_m/r->rs[1];
   dden = pp->B + pp->C*pp->n1*rs_n1/r->rs[1] + pp->D*pp->n2*rs_n2/r->rs[1];
-  daux = 1.0 + 2.0*pp->E*r->rs[1];
-  dnum = -(daux*larg + aux*darg/arg);
+  dnum = 1.0 + 2.0*pp->E*r->rs[1];
 
-  *dfunc  = (dnum*den - dden*num)/(den*den);
+  *dfunc  = -((dnum*larg + num*darg/arg)*den - dden*num*larg)/(den*den);
   *dfunc /= 2.0; /* conversion from Ry to Hartree */
-
-  if(r->order < 2) return;
-
-  d2arg = pp->beta*pp->m*(pp->m - 1.0)*rs_m/r->rs[2];
-  d2den = pp->C*pp->n1*(pp->n1 - 1.0)*rs_n1/r->rs[2] + pp->D*pp->n2*(pp->n2 - 1.0)*rs_n2/r->rs[2];
-  d2aux = 2.0*pp->E;
-  d2num = -(2.0*daux*arg*darg - aux*darg*darg + d2aux*arg*arg*larg + aux*arg*d2arg)/(arg*arg);
-
-  *d2func = (2.0*num*dden*dden - 2.0*den*dden*dnum - den*num*d2den + den*den*d2num)/(den*den*den);
-  *d2func /= 2.0; /* conversion from Ry to Hartree */
 }
 
 static inline void
-func(const XC(func_type) *p, XC(lda_work_t) *r)
+func(const XC(lda_type) *p, XC(lda_rs_zeta) *r)
 {
   lda_csc_param_t pp[2][9] = {
     { /* paramagnetic */
@@ -161,16 +164,18 @@ func(const XC(func_type) *p, XC(lda_work_t) *r)
   };
 
   int ii;
-  FLOAT zk_p, zk_f, dzk_p, dzk_f, d2zk_p, d2zk_f;
+  FLOAT rs_n1, rs_n2, rs_m, arg, larg, den, num;
+  FLOAT darg, dden, dnum;
+  FLOAT zk_p, zk_f, dzk_p, dzk_f;
 
   assert(p->params != NULL);
   ii = ((lda_c_1d_csc_params *)p->params)->ii;
 
-  csc_func(&(pp[0][ii]), r, &zk_p, &dzk_p, &d2zk_p);
+  csc_func(&(pp[0][ii]), r, &zk_p, &dzk_p);
   r->zk = zk_p;
 
   if(p->nspin == XC_POLARIZED){
-    csc_func(&(pp[1][ii]), r, &zk_f, &dzk_f, &d2zk_f);
+    csc_func(&(pp[1][ii]), r, &zk_f, &dzk_f);
 
     r->zk += (zk_f - zk_p)*r->zeta*r->zeta;
   }
@@ -185,17 +190,8 @@ func(const XC(func_type) *p, XC(lda_work_t) *r)
     r->dedz  = 0.0;
 
   if(r->order < 2) return;
-  
-  r->d2edrs2 = d2zk_p;
-  if(p->nspin == XC_POLARIZED){
-    r->d2edrs2 += (d2zk_f - d2zk_p)*r->zeta*r->zeta;
-    r->d2edrsz  = 2.0*(dzk_f - dzk_p)*r->zeta;
-    r->d2edz2   = 2.0*(zk_f - zk_p);
-  }else{
-    r->d2edrsz  = 0.0;
-    r->d2edz2   = 0.0;
-  }
 
+  /* TODO : second derivatives */
 }
 
 #define XC_DIMENSIONS 1
@@ -207,9 +203,8 @@ const XC(func_info_type) XC(func_info_lda_c_1d_csc) = {
   "Casula, Sorella & Senatore",
   XC_FAMILY_LDA,
   "M Casula, S Sorella, and G Senatore, Phys. Rev. B 74, 245427 (2006)",
-  XC_FLAGS_1D |  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 0.0, 0.0, 1e-32,
+  XC_FLAGS_1D |  XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC,
   lda_c_1d_csc_init,    /* init */
-  NULL,                 /* end  */
+  lda_c_1d_csc_end,     /* end  */
   work_lda,             /* lda  */
 };

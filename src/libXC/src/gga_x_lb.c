@@ -50,8 +50,9 @@ typedef struct{
 ************************************************************************/
 
 static void
-gga_lb_init(XC(func_type) *p)
+gga_lb_init(void *p_)
 {
+  XC(gga_type) *p = (XC(gga_type) *)p_;
   XC(gga_x_lb_params) *params;
 
   assert(p->params == NULL);
@@ -63,7 +64,7 @@ gga_lb_init(XC(func_type) *p)
   XC(func_init)(p->func_aux[0], XC_LDA_X, p->nspin);
 
   p->params = malloc(sizeof(XC(gga_x_lb_params)));
-  XC(gga_lb_set_params)(p, 0, 0.0, 1e-32, 0.0);
+  XC(gga_lb_set_params_)(p, 0, 0.0, 0.0, 0.0);
 
   params = (XC(gga_x_lb_params) *) (p->params);
   switch(p->info->number){
@@ -82,9 +83,16 @@ gga_lb_init(XC(func_type) *p)
 void
 XC(gga_lb_set_params)(XC(func_type) *p, int modified, FLOAT threshold, FLOAT ip, FLOAT qtot)
 {
+  assert(p!=NULL && p->gga!=NULL);
+  XC(gga_lb_set_params_)(p->gga, modified, threshold, ip, qtot);
+}
+
+void
+XC(gga_lb_set_params_)(XC(gga_type) *p, int modified, FLOAT threshold, FLOAT ip, FLOAT qtot)
+{
   XC(gga_x_lb_params) *params;
 
-  assert(p!=NULL && p->params!=NULL);
+  assert(p->params != NULL);
   params = (XC(gga_x_lb_params) *) (p->params);
 
   params->modified  = modified;
@@ -103,7 +111,7 @@ XC(gga_lb_set_params)(XC(func_type) *p, int modified, FLOAT threshold, FLOAT ip,
 
 
 void 
-XC(gga_lb_modified)(const XC(func_type) *func, int np, const FLOAT *rho, const FLOAT *sigma, FLOAT r, FLOAT *vrho)
+XC(gga_lb_modified)(const XC(gga_type) *func, int np, const FLOAT *rho, const FLOAT *sigma, FLOAT r, FLOAT *vrho)
 {
   int ip, is;
   FLOAT gdm, x;
@@ -127,7 +135,7 @@ XC(gga_lb_modified)(const XC(func_type) *func, int np, const FLOAT *rho, const F
 	 (rho[is] > params->threshold && gdm > params->threshold)){
 	FLOAT f;
       
-	if(rho[is] <= func->info->min_dens) continue;
+	if(rho[is] <= MIN_DENS) continue;
 	
 	x =  gdm/POW(rho[is], 4.0/3.0);
 	
@@ -160,22 +168,21 @@ XC(gga_lb_modified)(const XC(func_type) *func, int np, const FLOAT *rho, const F
 
 
 static void 
-gga_x_lb(const XC(func_type) *p, int np, const FLOAT *rho, const FLOAT *sigma,
+gga_x_lb(const void *p_, int np, const FLOAT *rho, const FLOAT *sigma,
 	  FLOAT *zk, FLOAT *vrho, FLOAT *vsigma,
 	  FLOAT *v2rho2, FLOAT *v2rhosigma, FLOAT *v2sigma2)
 {
-  XC(gga_lb_modified)(p, np, rho, sigma, 0.0, vrho);
+  XC(gga_lb_modified)((XC(gga_type) *)p_, np, rho, sigma, 0.0, vrho);
 }
 
 
 XC(func_info_type) XC(func_info_gga_x_lb) = {
   XC_GGA_X_LB,
-  XC_EXCHANGE,
+  XC_EXCHANGE_CORRELATION,
   "van Leeuwen & Baerends",
   XC_FAMILY_GGA,
   "R van Leeuwen and EJ Baerends, Phys. Rev. A. 49, 2421 (1994)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_VXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_lb_init,
   NULL,
   NULL,
@@ -184,13 +191,12 @@ XC(func_info_type) XC(func_info_gga_x_lb) = {
 
 XC(func_info_type) XC(func_info_gga_x_lbm) = {
   XC_GGA_X_LBM,
-  XC_EXCHANGE,
+  XC_EXCHANGE_CORRELATION,
   "van Leeuwen & Baerends modified",
   XC_FAMILY_GGA,
   "PRT Schipper, OV Gritsenko, SJA van Gisbergen, and EJ Baerends, J. Chem. Phys. 112, 1344 (2000)\n"
   "R van Leeuwen and EJ Baerends, Phys. Rev. A. 49, 2421 (1994)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_VXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_lb_init,
   NULL,
   NULL,

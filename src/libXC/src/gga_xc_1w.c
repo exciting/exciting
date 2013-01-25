@@ -27,12 +27,13 @@
 #define XC_GGA_XC_PBELYP1W 175  /* Functionals fitted for water */
 
 static void
-gga_xc_xlyp_init(XC(func_type) *p)
+gga_xc_xlyp_init(void *p_)
 {
   static int   funcs_id  [4] = {XC_LDA_X, XC_GGA_X_B88, XC_GGA_X_PW91, XC_GGA_C_LYP};
   static FLOAT funcs_coef[4] = {1.0 - 0.722 - 0.347, 0.722, 0.347, 1.0};
+  XC(gga_type) *p = (XC(gga_type) *)p_;
 
-  XC(mix_init)(p, 4, funcs_id, funcs_coef);
+  gga_init_mix(p, 4, funcs_id, funcs_coef);
 }
 
 const XC(func_info_type) XC(func_info_gga_xc_xlyp) = {
@@ -41,20 +42,20 @@ const XC(func_info_type) XC(func_info_gga_xc_xlyp) = {
   "XLYP",
   XC_FAMILY_GGA,
   "X Xu and WA Goddard, III, PNAS 101, 2673 (2004)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC,
   gga_xc_xlyp_init, 
   NULL, NULL, NULL
 };
 
 
 static void
-gga_xc_pbe1w_init(XC(func_type) *p)
+gga_xc_pbe1w_init(void *p_)
 {
   static int   funcs_id  [3] = {XC_LDA_C_VWN, XC_GGA_X_PBE, XC_GGA_C_PBE};
   static FLOAT funcs_coef[3] = {1.0 - 74.0/100.0, 1.0, 74.0/100.0};
+  XC(gga_type) *p = (XC(gga_type) *)p_;
 
-  XC(mix_init)(p, 3, funcs_id, funcs_coef);
+  gga_init_mix(p, 3, funcs_id, funcs_coef);
 }
 
 const XC(func_info_type) XC(func_info_gga_xc_pbe1w) = {
@@ -64,19 +65,19 @@ const XC(func_info_type) XC(func_info_gga_xc_pbe1w) = {
   XC_FAMILY_GGA,
   "EE Dahlke and DG Truhlar, J. Phys. Chem. B 109, 15677 (2005)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   gga_xc_pbe1w_init, 
   NULL, NULL, NULL
 };
 
 
 static void
-gga_xc_mpwlyp1w_init(XC(func_type) *p)
+gga_xc_mpwlyp1w_init(void *p_)
 {
-  static int   funcs_id  [3] = {XC_LDA_C_VWN, XC_GGA_X_MPW91, XC_GGA_C_LYP};
+  static int   funcs_id  [3] = {XC_LDA_C_VWN, XC_GGA_X_mPW91, XC_GGA_C_LYP};
   static FLOAT funcs_coef[3] = {1.0 - 88.0/100.0, 1.0, 88.0/100.0};
+  XC(gga_type) *p = (XC(gga_type) *)p_;
 
-  XC(mix_init)(p, 3, funcs_id, funcs_coef);
+  gga_init_mix(p, 3, funcs_id, funcs_coef);
 }
 
 const XC(func_info_type) XC(func_info_gga_xc_mpwlyp1w) = {
@@ -85,20 +86,20 @@ const XC(func_info_type) XC(func_info_gga_xc_mpwlyp1w) = {
   "mPWLYP1w",
   XC_FAMILY_GGA,
   "EE Dahlke and DG Truhlar, J. Phys. Chem. B 109, 15677 (2005)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC,
   gga_xc_mpwlyp1w_init, 
   NULL, NULL, NULL
 };
 
 
 static void
-gga_xc_pbelyp1w_init(XC(func_type) *p)
+gga_xc_pbelyp1w_init(void *p_)
 {
   static int   funcs_id  [3] = {XC_LDA_C_VWN, XC_GGA_X_PBE, XC_GGA_C_LYP};
   static FLOAT funcs_coef[3] = {1.0 - 74.0/100.0, 1.0, 74.0/100.0};
+  XC(gga_type) *p = (XC(gga_type) *)p_;
 
-  XC(mix_init)(p, 3, funcs_id, funcs_coef);
+  gga_init_mix(p, 3, funcs_id, funcs_coef);
 }
 
 const XC(func_info_type) XC(func_info_gga_xc_pbelyp1w) = {
@@ -107,8 +108,7 @@ const XC(func_info_type) XC(func_info_gga_xc_pbelyp1w) = {
   "PBELYP1W",
   XC_FAMILY_GGA,
   "EE Dahlke and DG Truhlar, J. Phys. Chem. B 109, 15677 (2005)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
+  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC,
   gga_xc_pbelyp1w_init, 
   NULL, NULL, NULL
 };

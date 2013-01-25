@@ -25,43 +25,46 @@
 #define XC_GGA_C_WL  147 /* Wilson & Levy */
 
 static inline void 
-func(const XC(func_type) *p, XC(gga_work_c_t) *r)
+func(const XC(gga_type) *p, int order, FLOAT rs, FLOAT zeta, FLOAT xt, FLOAT *xs,
+     FLOAT *f, FLOAT *dfdrs, FLOAT *dfdz, FLOAT *dfdxt, FLOAT *dfdxs,
+     FLOAT *d2fdrs2, FLOAT *d2fdrsz, FLOAT *d2fdrsxt, FLOAT *d2fdrsxs, FLOAT *d2fdz2, 
+     FLOAT *d2fdzxt, FLOAT *d2fdzxs, FLOAT *d2fdxt2, FLOAT *d2fdxtxs, FLOAT *d2fdxs2)
 {
   const FLOAT a=-0.74860, b=0.06001, c=3.60073, d=0.90000;
 
   FLOAT aux, num, den;
 
-  aux = SQRT(1.0 - r->zeta*r->zeta);
-  num = a + b*r->xt;
-  den = c + d*(r->xs[0] + r->xs[1]) + r->rs;
+  aux = SQRT(1.0 - zeta*zeta);
+  num = a + b*xt;
+  den = c + d*(xs[0] + xs[1]) + rs;
 
-  r->f  = aux * num/den;
+  *f  = aux * num/den;
 
-  if(r->order < 1) return;
+  if(order < 1) return;
 
-  r->dfdrs    = -r->f/den;
-  r->dfdz     = -r->zeta/aux * num/den;
-  r->dfdxt    = b*aux/den;
-  r->dfdxs[0] = -d*r->f/den;
-  r->dfdxs[1] = r->dfdxs[0];
+  *dfdrs   = -(*f)/den;
+  *dfdz    = -zeta/aux * num/den;
+  *dfdxt   = b*aux/den;
+  dfdxs[0] = -d*(*f)/den;
+  dfdxs[1] = dfdxs[0];
 
-  if(r->order < 2) return;
+  if(order < 2) return;
 
-  r->d2fdrs2     = -2.0*(r->dfdrs)/den;
-  r->d2fdrsz     = r->zeta/aux * num/(den*den);
-  r->d2fdrsxt    = -b*aux/(den*den);
-  r->d2fdrsxs[0] = -2.0*d*(r->dfdrs)/den;
-  r->d2fdrsxs[1] = r->d2fdrsxs[0];
-  r->d2fdz2      = -num/(den*aux*aux*aux);
-  r->d2fdzxt     = -r->zeta/aux * b/den;
-  r->d2fdzxs[0]  = r->zeta/aux * d*num/(den*den);
-  r->d2fdzxs[1]  = r->d2fdzxs[0];
-  r->d2fdxt2     = 0.0;
-  r->d2fdxtxs[0] = -b*d*aux/(den*den);
-  r->d2fdxtxs[1] = r->d2fdxtxs[0];
-  r->d2fdxs2[0]  = -2.0*d*r->dfdxs[0]/den;
-  r->d2fdxs2[1]  = r->d2fdxs2[0];
-  r->d2fdxs2[2]  = r->d2fdxs2[0];
+  *d2fdrs2    = -2.0*(*dfdrs)/den;
+  *d2fdrsz    =  zeta/aux * num/(den*den);
+  *d2fdrsxt   = -b*aux/(den*den);
+  d2fdrsxs[0] = -2.0*d*(*dfdrs)/den;
+  d2fdrsxs[1] = d2fdrsxs[0];
+  *d2fdz2     = -num/(den*aux*aux*aux);
+  *d2fdzxt    = -zeta/aux * b/den;
+  d2fdzxs[0]  = zeta/aux * d*num/(den*den);
+  d2fdzxs[1]  = d2fdzxs[0];
+  *d2fdxt2    = 0.0;
+  d2fdxtxs[0] = -b*d*aux/(den*den);
+  d2fdxtxs[1] = d2fdxtxs[0];
+  d2fdxs2[0]  = -2.0*d*dfdxs[0]/den;
+  d2fdxs2[1]  = d2fdxs2[0];
+  d2fdxs2[2]  = d2fdxs2[0];
 }
 
 #include "work_gga_c.c"
@@ -73,7 +76,6 @@ const XC(func_info_type) XC(func_info_gga_c_wl) = {
   XC_FAMILY_GGA,
   "LC Wilson and M Levy, Phys. Rev. B 41, 12930 (1990)",
   XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
   NULL, NULL, NULL,
   work_gga_c
 };
