@@ -43,11 +43,6 @@
 !
 !EOP
 !BOC
-      if (.not.input%groundstate%tetra) then
-        write(*,*)'GW EMERGENCY STOP!!!'
-        write(*,*)'k-point meshes should be generated with tetra =.true.'
-        stop 'ERROR in initgw'
-      endif
       spinpol=associated(input%groundstate%spin)
       if (spinpol) then
         write(*,*)'GW EMERGENCY STOP!!!'

@@ -181,7 +181,7 @@ Subroutine gndstate
             End If
          End Select
      ! find the new linearisation energies
-         Call linengy
+         Call linengy(iscl)
      ! write out the linearisation energies
          if (rank .eq. 0) Call writelinen
      ! generate the APW radial functions

@@ -62,6 +62,8 @@ Module mod_APW_LO
 ! minimum of the default linearisation energy over all APW and local-orbitals
 ! functions
       real(8) :: mine0
+      
+      Real (8), Allocatable :: elcharge(:, :)
 
 End Module
 !

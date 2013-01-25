@@ -1952,6 +1952,17 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
+            <xs:enumeration value="libbzint">
+              <xs:annotation>
+              <xs:appinfo>
+                <oldnr>-1</oldnr>
+              </xs:appinfo>
+              <xs:documentation>
+              Extended linear tetrahedron method (LIBBZINT library) 
+              is used for k-point generation and integration (experimental option).
+              </xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
@@ -1965,8 +1976,11 @@
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="simple"/>
             <xs:enumeration value="advanced"/>
+            <xs:enumeration value="lcharge"/>
+            <xs:enumeration value="logderiv"/>
+            <xs:enumeration value="mixed-1"/>
+            <xs:enumeration value="mixed-2"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
@@ -2458,14 +2472,6 @@
           <xs:documentation> The attrubute ptnucl is <pre>"true"</pre> if the nuclei are to be
             treated as point charges, if <pre>"false"</pre> the nuclei have a finite spherical
             distribution. </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="tetra" type="xs:boolean" default="false">
-        <xs:annotation>
-          <xs:documentation>
-            The attrubute <pre>"tetra"</pre> determines whether LIBBZINT library is used 
-            for k-/q-point generation and integration (experimental option).
-          </xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>

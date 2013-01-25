@@ -210,7 +210,6 @@ type groundstate_type
  logical::tevecsv
  integer::nwrite
  logical::ptnucl
- logical::tetra
   type(spin_type),pointer::spin
   type(HartreeFock_type),pointer::HartreeFock
   type(solver_type),pointer::solver
@@ -2026,14 +2025,6 @@ getstructgroundstate%ptnucl= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ptnucl",getstructgroundstate%ptnucl)
        call removeAttribute(thisnode,"ptnucl")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tetra")
-getstructgroundstate%tetra= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tetra",getstructgroundstate%tetra)
-       call removeAttribute(thisnode,"tetra")  
 endif
 
             len= countChildEmentsWithName(thisnode,"spin")
@@ -6016,6 +6007,8 @@ case('Fermi Dirac')
  stringtonumbergroundstatestype=3
 case('Square-wave impulse')
  stringtonumbergroundstatestype=4
+case('libbzint')
+ stringtonumbergroundstatestype=-1
 case('')
  stringtonumbergroundstatestype=0
 case default
@@ -6029,9 +6022,15 @@ end function
 ! Do not edit this Fortran file! It is generated from the Schema.
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
-case('simple')
- stringtonumbergroundstatefindlinentype=-1
 case('advanced')
+ stringtonumbergroundstatefindlinentype=-1
+case('lcharge')
+ stringtonumbergroundstatefindlinentype=-1
+case('logderiv')
+ stringtonumbergroundstatefindlinentype=-1
+case('mixed-1')
+ stringtonumbergroundstatefindlinentype=-1
+case('mixed-2')
  stringtonumbergroundstatefindlinentype=-1
 case('')
  stringtonumbergroundstatefindlinentype=0
