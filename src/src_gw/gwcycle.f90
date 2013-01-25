@@ -99,14 +99,16 @@
         if (input%gw%debug )call boxmsg(fgw,'-','Calculation of the dielectric matrix')
         call barrier
 #ifdef MPI
-		if (rank.eq.0) write(*,*) "Calculation of the dielectric matrix"
-        if (input%gw%debug ) write(*,*)"On proc",rank,"do qp",firstofset(mod(rank,nqpt),nqpt)," to ", lastofset(mod(rank,nqpt),nqpt)
+        if (input%gw%debug ) then
+          if (rank.eq.0) write(*,*) "Calculation of the dielectric matrix"
+          write(*,*)"On proc",rank,"do qp",firstofset(mod(rank,nqpt),nqpt)," to ", lastofset(mod(rank,nqpt),nqpt)
+        end if
 
-		! create  communicator object for each qpoint
+	! create  communicator object for each qpoint
          call MPI_COMM_SPLIT(MPI_COMM_WORLD,firstofset(mod(rank,nqpt),nqpt),  rank/nqpt, COMM_LEVEL2,ierr)
         if (input%gw%debug ) write(*,*) "proc ",rank,"does color ", firstofset(mod(rank,nqpt),nqpt), "with key(rank)", rank/nqpt
 #endif
-		!each process does a subset
+	!each process does a subset
         do iqp = firstofset(mod(rank,nqpt),nqpt), lastofset(mod(rank,nqpt),nqpt)
 
 
