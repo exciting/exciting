@@ -27,6 +27,7 @@
       integer(4) :: m, n
       logical    :: reduce
       real(8)    :: tstart, tend
+      integer(4) :: stype_
  
 ! !EXTERNAL ROUTINES: 
 
@@ -54,7 +55,8 @@
 ! Importantly, current implementation uses exclusively 
 ! "Extended linear tetrahedron method for the calculation of q-dependent
 ! dynamical response functions", to be published in Comp. Phys. Commun. (2010)
-      input%groundstate%tetra=.true.
+      stype_=input%groundstate%stypenumber
+      input%groundstate%stypenumber=-1
 
       if (.not.input%gw%skipgnd) then
 !
@@ -73,8 +75,14 @@
         input%groundstate%reducek=reduce
       end if
       
-! Generate the k- and q-point meshes      
+! Generate the k- and q-point meshes
       call init_kqpts
+      
+!     if BSE is used just after GW, libbzint
+!     may create the segmentation faults when try to use a general
+!     k-point shift vkloff
+!
+      input%groundstate%stypenumber=stype_
 
 ! initialise the charge density and potentials from file
       Call readstate
