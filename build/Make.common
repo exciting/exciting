@@ -97,7 +97,8 @@ lib/libFoX_common.a:
 	
 leblaiklib.a::
 	cd ../../src/leblaiklib && make
-	cp ../../src/leblaiklib/leblaiklib.a ./
+	mv ../../src/leblaiklib/leblaiklib.a ./
+	rm -f ../../src/leblaiklib/*.o
 	
 libxc.a:lib/libxc.a
 
