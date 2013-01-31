@@ -171,17 +171,13 @@ Subroutine gndstate
          If (rank .Eq. 0) Call flushifc (60)
      ! generate the core wavefunctions and densities
          Call gencore
-         Select Case (trim(input%groundstate%findlinentype))
-         Case ('simple')
-         Case ('advanced')
-            If (rank .Eq. 0) Then
-               Write (60,*)
-               Write (60, '("Using advanced method for search of linear&
-              &ization energies")')
-            End If
-         End Select
      ! find the new linearisation energies
-         Call linengy(iscl)
+         If (rank .Eq. 0) Then
+           Write (60,*)
+           Write (60,*) 'Linearization energies are searched by using the "', &
+          & trim(input%groundstate%findlinentype), '" method'
+         End If
+         Call linengy
      ! write out the linearisation energies
          if (rank .eq. 0) Call writelinen
      ! generate the APW radial functions
