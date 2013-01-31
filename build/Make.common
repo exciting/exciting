@@ -95,11 +95,13 @@ lib/libFoX_common.a:
 	
 leblaiklib.a::
 	cd ../../src/leblaiklib && make
-	cp ../../src/leblaiklib/leblaiklib.a ./
+	mv ../../src/leblaiklib/leblaiklib.a ./
+	rm -f ../../src/leblaiklib/*.o
 
 liblbfgs.a::
 	cd ../../src/Lbfgsb.3.0 && make
 	cp ../../src/Lbfgsb.3.0/liblbfgs.a ./
+	rm -f ../../src/Lbfgsb.3.0/*.o
 	
 libxc.a:lib/libxc.a
 

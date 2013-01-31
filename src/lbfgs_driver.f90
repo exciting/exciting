@@ -42,7 +42,9 @@
 !
 !    **************
 subroutine lbfgs_driver
-      
+!
+!     Exciting interface created by DIN (31.01.2013)
+!
       use modinput
       use modmain      
       Use modmpi
@@ -149,15 +151,13 @@ subroutine lbfgs_driver
             end do
             
             ! check force convergence
-            force_converged = .False.
             If (forcemax .Le. input%structureoptimization%epsforce) Then
                If (rank .Eq. 0) Then
                   Write (60,*)
                   Write (60, '("Force convergence target achieved")')
                End If
-               force_converged = .True.
+               Return
             End If
-            If (force_converged) return
             
           end if ! 'NEW_X'
           
@@ -561,26 +561,6 @@ subroutine calcEnergyForces(ndim,x,f,g)
           Call writeforce (60)
         End If
      End If
-
-! output timing information
-     If (rank .Eq. 0) Then
-        Write (60,*)
-        Write (60, '("Timings (CPU seconds) :")')
-        Write (60, '(" initialisation", T40, ": ", F12.2)') timeinit
-        Write (60, '(" Hamiltonian and overlap matrix set up", T40, ": ", F12.2)') timemat
-        Write (60, '(" first-variational secular equation", T40, ": ", F12.2)') timefv
-        If (associated(input%groundstate%spin)) Then
-           Write (60, '(" second-variational calculation", T40, ": ", F12.2)') timesv
-        End If
-        Write (60, '(" charge density calculation", T40, ": ", F12.2)') timerho
-        Write (60, '(" potential calculation", T40, ": ", F12.2)') timepot
-        If (input%groundstate%tforce) Then
-           Write (60, '(" force calculation", T40, ": ", F12.2)') timefor
-        End If
-        timetot = timeinit + timemat + timefv + timesv + timerho + timepot + timefor
-        Write (60, '(" total", T40, ": ", F12.2)') timetot
-        Write (60,*)
-     end if
 
      !set nwork to -2 to tell interface to call the deallocation functions
      If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, -2)

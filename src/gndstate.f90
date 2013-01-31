@@ -578,25 +578,6 @@ Subroutine gndstate
               goto 10
 
             else if (input%structureoptimization%method=="lbfgs") then
-              
-              ! output timing information before running BFGS
-              If (rank .Eq. 0) Then
-                Write (60,*)
-                Write (60, '("Timings (CPU seconds) :")')
-                Write (60, '(" initialisation", T40, ": ", F12.2)') timeinit
-                Write (60, '(" Hamiltonian and overlap matrix set up", T40,": ", F12.2)') timemat
-                Write (60, '(" first-variational secular equation", T40, ": ", F12.2)') timefv
-                If (associated(input%groundstate%spin)) Then
-                   Write (60, '(" second-variational calculation", T40, ": ", F12.2)') timesv
-                End If
-                Write (60, '(" charge density calculation", T40, ": ", F12.2)') timerho
-                Write (60, '(" potential calculation", T40, ": ", F12.2)') timepot
-                If (input%groundstate%tforce) Then
-                   Write (60, '(" force calculation", T40, ": ", F12.2)') timefor
-                End If
-                timetot = timeinit + timemat + timefv + timesv + timerho + timepot + timefor
-                Write (60, '(" total", T40, ": ", F12.2)') timetot
-              End If
 
               call lbfgs_driver
               goto 30
