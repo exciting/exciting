@@ -129,6 +129,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
       End Do
 ! start of self-consistent loop
       Do iscl = 1, maxscl
+!!        write(*,*) iscl
 ! solve the Dirac equation for each state
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
@@ -202,6 +203,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
 ! add nuclear potential
             vr (ir) = vr (ir) + vn (ir)
          End Do
+!         write(*,*) iscl,eval(1), dv
 ! check for convergence
          If ((iscl .Gt. 2) .And. (dv .Lt. eps)) Go To 10
 ! end self-consistent loop
@@ -209,11 +211,28 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
       Write (100,*)
       Write (100, '("Warning(atom): maximum iterations exceeded")')
 10    Continue
+!      Do ir = 1, nr
+!       write(*,*) r(ir),vx(ir)
+!      enddo
+!      stop
+!     do ist=1,nst
+!       do ir=1,nr
+!         write(*,*) r(ir), rwf(ir, 1, ist)**2+rwf(ir, 2, ist)**2
+!       write(*,*) r(ir),vx(ir)+vc(ir)
+ !      enddo
+  !     write(*,*)
+!      enddo
+!      stop
       Deallocate (vn, vh, ex, ec, vx, vc, vrp)
       Deallocate (ri, fr1, fr2, gr1, gr2, cf)
       If (xcgrad .Eq. 1) Then
          Deallocate (grho, g2rho, g3rho)
       End If
+!      Do ist = 1, nst
+!       write(*,*) eval(ist)
+!      enddo
+!      write(*,*) 
+!      stop
       Return
 End Subroutine
 !EOC
