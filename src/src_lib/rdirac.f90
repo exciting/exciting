@@ -10,7 +10,8 @@
 ! !INTERFACE:
 !
 !
-Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0)
+Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
+use mod_timing
 ! !INPUT/OUTPUT PARAMETERS:
 !   n    : principal quantum number (in,integer)
 !   l    : quantum number l (in,integer)
@@ -36,6 +37,7 @@ Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0)
 !BOC
       Implicit None
 ! arguments
+      Logical dirac_eq
       Integer, Intent (In) :: n
       Integer, Intent (In) :: l
       Integer, Intent (In) :: k
@@ -57,6 +59,10 @@ Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0)
       Real (8) :: t1, de
 ! automatic arrays
       Real (8) :: g1 (nr), f1 (nr), fr (nr), gr (nr), cf (3, nr)
+! timer
+      Real (8) :: ts0,ts1
+  
+      Call timesec(ts0)
       If (k .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(rdirac): k <= 0 : ", I8)') k
@@ -89,13 +95,17 @@ Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0)
       End If
       de = 0.01d0
       nndp = 0
-count=1
+! count=1
       lo_found=.false.
       hi_found=.false.
 !         write(*,*) 'bracketting'
 !write(*,*) 'initial guess', eval
 ! integrate the Dirac equation
+       if (dirac_eq) then
          Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+       else
+         Call rschroddme (0, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+       endif
 !      if (nn.eq.n-l)   f_hi=g0(ir)
 
          if (nn.le.n-l-1) then
@@ -105,8 +115,12 @@ count=1
                lo_found=(nn.eq.n-l-1) 
                de=de*2d0
                eval = eval + de
-               Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
-               count=count+1
+       if (dirac_eq) then
+         Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+       else
+         Call rschroddme (0, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+       endif
+!               count=count+1
            enddo
            e_hi=eval
            hi_found=(nn.eq.n-l)
@@ -117,16 +131,24 @@ count=1
                hi_found=(nn.eq.n-l)
                de=de*2d0
                eval = eval - de
-               Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
-               count=count+1
+       if (dirac_eq) then
+         Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+       else
+         Call rschroddme (0, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+       endif
+!               count=count+1
            enddo
            e_lo=eval
            lo_found=(nn.eq.n-l)
          endif
          do while ((.not.lo_found).or.(.not.hi_found))
-           count=count+1
+!           count=count+1
            eval=0.5d0*(e_lo+e_hi)
-           Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+       if (dirac_eq) then
+         Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+       else
+         Call rschroddme (0, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+       endif
            if (nn.gt.n-l-1) then
              e_hi=eval
              hi_found=(nn.eq.n-l)
@@ -149,14 +171,22 @@ count=1
 
 if (eval.eq.e_lo) then
  f_lo=g0(ir)
- Call rdiracdme (0, kpa, e_hi, np, nr, r, vr, nn, g0, g1, f0, f1)
+       if (dirac_eq) then
+         Call rdiracdme (0, kpa, e_hi, np, nr, r, vr, nn, g0, g1, f0, f1)
+       else
+         Call rschroddme (0, l, 0, e_hi, np, nr, r, vr, nn, g0, g1, f0, f1)
+       endif
  f_hi=g0(ir)
 else
  f_hi=g0(ir)
- Call rdiracdme (0, kpa, e_lo, np, nr, r, vr, nn, g0, g1, f0, f1)
+       if (dirac_eq) then
+         Call rdiracdme (0, kpa, e_lo, np, nr, r, vr, nn, g0, g1, f0, f1)
+       else
+         Call rschroddme (0, l, 0, e_lo, np, nr, r, vr, nn, g0, g1, f0, f1)
+       endif
  f_lo=g0(ir)
 endif
-count=count+1
+! count=count+1
 !f_lo=g0(ir)
 !Call rdiracdme (0, kpa, e_hi, np, nr, r, vr, nn, g0, g1, f0, f1)
 !f_hi=g0(ir)
@@ -177,9 +207,13 @@ count=count+1
 !that passes through the three points: (e_lo,f_lo), (e_mi,f_mi) and (e_lo,f_lo)
 
 e_mi=0.5d0*(e_hi+e_lo)
-Call rdiracdme (0, kpa, e_mi, np, nr, r, vr, nn, g0, g1, f0, f1)
+       if (dirac_eq) then
+         Call rdiracdme (0, kpa, e_mi, np, nr, r, vr, nn, g0, g1, f0, f1)
+       else
+         Call rschroddme (0, l, 0, e_mi, np, nr, r, vr, nn, g0, g1, f0, f1)
+       endif
 f_mi=g0(ir)
-count=count+1
+! count=count+1
 ! step 1. searching for C
 !      write(*,*) e_lo,f_lo
 !      write(*,*) e_mi,f_mi
@@ -259,8 +293,12 @@ count=count+1
           write(*,*) 'watch out for NaN'
           stop
         endif
-        Call rdiracdme (0, kpa, e_guess, np, nr, r, vr, nn, g0, g1, f0, f1)       
-        count=count+1 
+       if (dirac_eq) then
+         Call rdiracdme (0, kpa, e_guess, np, nr, r, vr, nn, g0, g1, f0, f1)
+       else
+         Call rschroddme (0, l, 0, e_guess, np, nr, r, vr, nn, g0, g1, f0, f1)
+       endif
+!        count=count+1 
 !        write(*,*) e_lo,e_hi,e_mi,e_guess
 !        write(*,*) f_lo,f_hi,f_mi
 
@@ -351,6 +389,8 @@ count=count+1
       End If
       g0 (:) = t1 * g0 (:)
       f0 (:) = t1 * f0 (:)
+      call timesec(ts1)
+      time_rdirac=ts1-ts0+time_rdirac
       Return
 End Subroutine
 !EOC

@@ -54,6 +54,8 @@ Subroutine init0
       time_olplolon=0d0
       time_hmlistln=0d0
       time_olpistln=0d0
+      time_rdirac=0d0
+      time_rschrod=0d0
       Call timesec (ts0)
 
 !------------------------------------!

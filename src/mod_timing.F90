@@ -49,6 +49,9 @@ Module mod_timing
       Real (8) :: time_init1
       Real (8) :: time_density_init
       Real (8) :: time_pot_init
-    
+
+! Radial solvers   
+      Real (8) :: time_rdirac
+      Real (8) :: time_rschrod 
 End Module
 !

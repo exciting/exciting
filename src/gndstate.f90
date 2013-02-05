@@ -753,6 +753,10 @@ Subroutine gndstate
             Call timesec(tsg1)
             Write (60, '(" total", T40, ": ", F12.2)') tsg1-tsg0
             Write (60,*)
+            Write (60, '("More timings (seconds)!")')
+            Write (60, '(" Dirac eqn solver", T40, ": ", F12.2)') time_rdirac
+            Write (60, '(" Rel. Schroedinger eqn solver", T40, ": ", F12.2)') time_rschrod
+            Write (60, '(" Total time spent in radial solvers", T40, ": ", F12.2)') time_rdirac+time_rschrod
             Write (60, '("+----------------------------+")')
             Write (60, '("| Groundstate module stopped |")')
             Write (60, '("+----------------------------+")')

@@ -60,7 +60,7 @@ Subroutine gencore
                      Call rdirac (spn(ist, is), spl(ist, is), spk(ist, &
                     & is), input%groundstate%nprad, spnr(is), spr(:, &
                     & is), vr, evalcr(ist, ias), rwfcr(:, 1, ist, ias), &
-                    & rwfcr(:, 2, ist, ias))
+                    & rwfcr(:, 2, ist, ias),.true.)
                      t1 = spocc (ist, is)
 !$OMP CRITICAL
                      Do ir = 1, spnr (is)
