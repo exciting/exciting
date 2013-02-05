@@ -168,7 +168,7 @@ Subroutine init1
 !
 ! generate the reduced k-point set
 !
-         if (input%groundstate%stypenumber < 0) then    
+         if (input%groundstate%stypenumber < 0) then
 
 ! suppress debug output in tetrahedron integration library (0)
              call tetrasetdbglv (0)
@@ -487,7 +487,7 @@ Subroutine init1
 #endif
 !
       Call timesec (ts1)
-      timeinit = timeinit + ts1 - ts0
+!      timeinit = timeinit + ts1 - ts0
 !
       Return
 End Subroutine

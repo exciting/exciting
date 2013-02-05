@@ -386,7 +386,7 @@ Subroutine init2
       End If
 !
       Call timesec (ts1)
-      timeinit = timeinit + ts1 - ts0
+!      timeinit = timeinit + ts1 - ts0
 !
       Return
 End Subroutine

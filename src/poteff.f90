@@ -51,7 +51,7 @@ Subroutine poteff
 ! interstitial part
       veffir (:) = vclir (:) + vxcir (:)
       Call timesec (ts1)
-      timepot = timepot + ts1 - ts0
+!      timepot = timepot + ts1 - ts0
       Return
 End Subroutine
 !EOC

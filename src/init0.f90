@@ -42,8 +42,20 @@ Subroutine init0
       timerho = 0.d0
       timepot = 0.d0
       timefor = 0.d0
+      timeio=0d0
+      timemt=0d0
+      timemixer=0d0
+      timematch=0d0
+      time_hmlaan=0d0
+      time_hmlalon=0d0
+      time_hmllolon=0d0
+      time_olpaan=0d0
+      time_olpalon=0d0
+      time_olplolon=0d0
+      time_hmlistln=0d0
+      time_olpistln=0d0
       Call timesec (ts0)
-!
+
 !------------------------------------!
 !     angular momentum variables     !
 !------------------------------------!
@@ -485,7 +497,7 @@ Subroutine init0
       tlast = .False.
 !
       Call timesec (ts1)
-      timeinit = timeinit + ts1 - ts0
+!!      timeinit = timeinit + ts1 - ts0
 !
       Return
 End Subroutine
