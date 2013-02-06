@@ -2765,7 +2765,7 @@ gw.xsd
           <xs:documentation>Mixing parameter decrease. Used in linear mixing.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="lradstep" type="xs:integer" default="4">
+      <xs:attribute ex:importance="expert" ex:unit="" name="lradstep" type="xs:integer" default="1">
         <xs:annotation>
           <xs:documentation> Some muffin-tin functions (such as the density) are calculated on a
             coarse radial mesh and then interpolated onto a fine mesh. This is done for the sake of
@@ -2776,9 +2776,18 @@ gw.xsd
           </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="radial_grid_type" type="xs:string" default="cubic">
+        <xs:annotation>
+          <xs:documentation> The parameter defines a functional form how radial-grid points are distributed.
+                             Choose from "cubic", "exponential" and "expocubic". "cubic" is the most suitable
+                             one for a majority of calculations, but use "expocubic" if you want to move the 
+                             innermost grid points much closer to nuclei.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="nprad" type="xs:integer" default="4">
         <xs:annotation>
-          <xs:documentation>Order of predictor-corrector polynomial.</xs:documentation>
+          <xs:documentation>(Obsolete) Order of predictor-corrector polynomial.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGAPBEsol">
