@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Zn" name="zinc" z="-30.0000" mass="119198.6780">
-    <muffinTin rmin="0.365148E-06" radius="2.0000" rinf="31.8739" radialmeshPoints="500"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="37.6804" radialmeshPoints="165"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

@@ -8,6 +8,7 @@ speciesbin:: ../../build/make.inc
 	../mod_muffin_tin.F90 \
 	../mod_atoms.F90 \
 	../mod_Gvector.F90 \
+	../mod_timing.F90 \
     ../mod_SHT.F90 \
     ../mod_potential_and_density.F90 \
     ../src_inputparser/inputmodules.f90 \

@@ -3,7 +3,7 @@ include ../../build/libraries.inc
 FC = $(F90) -g  -I../../build/serial/finclude -I../../build/serial
 FFLAGS = $(F90_OPTS) $(CPP_ON_OPT)
 LD = $(FC)
-LDFLAGS = $(F90_OPTS)    -L../../build/serial -llapack -lblas ../../build/serial/fftlib.a -L../../build/serial/lib    $(INTLIBS) 
+LDFLAGS = $(F90_OPTS)    -L../../build/serial  ../../build/serial/fftlib.a -L../../build/serial/lib    $(INTLIBS) $(LIB_LPK) 
 AR = ar
 ARFLAGS = -rc
 F77=$(F77) $(F77_OPTS)

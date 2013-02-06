@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="S" name="sulphur" z="-16.0000" mass="58452.74216">
-    <muffinTin rmin="0.500000E-06" radius="1.4500" rinf="28.5113" radialmeshPoints="400"/>
+    <muffinTin rmin="0.100000E-04" radius="1.4500" rinf="28.5994" radialmeshPoints="144"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

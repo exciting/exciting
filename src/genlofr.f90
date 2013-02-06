@@ -48,7 +48,40 @@ Subroutine genlofr
 ! external functions
       Real (8) :: polynom
       External polynom
-! polynomial order
+! variables for the lo recommendation
+      Real (8) energy
+      integer nodes
+
+! The following segment is useful if you want to come up 
+! with energies for local orbitals with several nodes.
+! Cheers,
+! Andris.
+! -------------------------------------
+!      allocate(dwf1(mtnr),dwf2(mtnr))
+      if (input%groundstate%lo_recommendation) then
+       write(*,*) 'Energy parameters'
+       write(*,*) '------------'
+       do is=1,nspecies
+       write(*,*) 'species',is
+       nr = nrmt (is)
+       ias = idxas (1, is)
+       vr(1:nr)=veffmt (1, 1:nr, ias) * y00
+       do ilo=0,6
+        write(*,*) 'l=',ilo
+        do nodes=0,10
+          energy=0d0
+          Call rdirac (nodes+ilo+1, ilo, ilo+1, nodes, nr, spr(:,is), vr, &
+            & energy, p0s,q0s,.false.)
+          write(*,*) 'n=',nodes,energy
+        enddo
+        write(*,*)
+       enddo
+       enddo
+       write(*,*) '------------'
+      endif
+!     deallocate(dwf1,dwf2)
+! ------------------------------------
+
       np = Max (maxlorbord+1, 4)
       Allocate (ipiv(np))
       Allocate (xa(np), ya(np), c(np))

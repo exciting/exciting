@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Ir" name="iridium" z="-77.0000" mass="350390.1559">
-    <muffinTin rmin="0.227921E-06" radius="2.0000" rinf="31.6397" radialmeshPoints="700"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="28.2646" radialmeshPoints="235"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -33,12 +33,12 @@
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-2.3758" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.3756" searchE="true"/>
       </lo>
       <lo l="3">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-2.3442" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.3445" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

@@ -194,6 +194,7 @@ type groundstate_type
  real(8)::betainc
  real(8)::betadec
  integer::lradstep
+ logical::lo_recommendation
  character(512)::radial_grid_type
  integer::nprad
  character(512)::xctype
@@ -1912,6 +1913,14 @@ getstructgroundstate%lradstep=1
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lradstep",getstructgroundstate%lradstep)
        call removeAttribute(thisnode,"lradstep")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"lo_recommendation")
+getstructgroundstate%lo_recommendation= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"lo_recommendation",getstructgroundstate%lo_recommendation)
+       call removeAttribute(thisnode,"lo_recommendation")  
 endif
 
 nullify(np)  

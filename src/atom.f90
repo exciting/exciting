@@ -224,8 +224,8 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
 ! Andris.
 ! -------------------------------------
 !      allocate(dwf1(mtnr),dwf2(mtnr))
-!       do llo=0,3
-!        do nodes=0,20
+!       do llo=0,0
+!        do nodes=0,10
 !         energy=0d0
 !         Call rdirac (nodes+llo+1, llo, llo+1, nodes, mtnr, r, vr, &
 !           & energy, dwf1, dwf2,.false.)

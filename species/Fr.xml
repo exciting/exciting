@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Fr" name="francium" z="-87.0000" mass="406504.1321">
-    <muffinTin rmin="0.214423E-06" radius="2.2000" rinf="51.5112" radialmeshPoints="800"/>
+    <muffinTin rmin="0.100000E-04" radius="2.2000" rinf="43.0726" radialmeshPoints="250"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

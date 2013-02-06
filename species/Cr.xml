@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Cr" name="chromium" z="-24.0000" mass="94783.09195">
-    <muffinTin rmin="0.408248E-06" radius="2.0000" rinf="38.8959" radialmeshPoints="500"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="47.2202" radialmeshPoints="156"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -20,7 +20,7 @@
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-2.7020" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.7021" searchE="true"/>
       </lo>
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>

@@ -2241,6 +2241,20 @@
           </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="lo_recommendation" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation> Local orbitals may be used for improving unoccupied states. But what 
+                             energy parameters to use? Set this parameter to true, and you will get
+                             a list of energies at which the radial wavefunction turns to zero on the 
+                             muffin-tin sphere. These energies are calculated using atomic potential, 
+                             and to make them transferable to a general system, use the average of two
+                             consecutive atomic energies.
+          </xs:documentation>
+          <xs:appinfo>
+            <oldname>lradstp</oldname>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="radial_grid_type" type="xs:string" default="cubic">
         <xs:annotation>
           <xs:documentation> The parameter defines a functional form how radial-grid points are distributed.

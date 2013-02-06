@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Rh" name="rhodium" z="-45.0000" mass="187585.2510">
-    <muffinTin rmin="0.298142E-06" radius="2.0000" rinf="37.2565" radialmeshPoints="600"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="34.0116" radialmeshPoints="187"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -25,12 +25,12 @@
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-3.0301" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-3.0299" searchE="true"/>
       </lo>
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-1.9543" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.9541" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->
