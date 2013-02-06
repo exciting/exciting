@@ -174,7 +174,7 @@ Subroutine gndstate
      ! find the new linearisation energies
          If (rank .Eq. 0) Then
            Write (60,*)
-           Write (60,*) 'Linearization energies are searched by using the "', &
+           Write (60,*) 'Linearization energies are searched using the "', &
           & trim(input%groundstate%findlinentype), '" method'
          End If
          Call linengy
