@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: initkqpts
 ! !INTERFACE:
-subroutine initkqpts
+subroutine init_kqpts
 ! !USES:
       use modinput
       use modmain
@@ -22,11 +22,9 @@ subroutine initkqpts
       integer(4) :: igq, igb
       real(8)    :: gpq(3), gqlen
       real(8)    :: len
-      real (8), allocatable :: weight(:)
-      integer(4) :: ikvec(3)
-      integer(4) :: irkvec(3)
-      logical :: found
-      
+      integer(4) :: ispn
+      real(8) :: v1(3), v2(3), t1
+      Real (8), External :: r3taxi  
 !
 ! !REVISION HISTORY:
 !   Created May 2006 (RGA)
@@ -34,58 +32,48 @@ subroutine initkqpts
 !EOP
 !BOC
 !
-
-!    No k-grid shift is allowed
-     len=input%groundstate%vkloff(1)**2+ &
-    &    input%groundstate%vkloff(2)**2+ &
-    &    input%groundstate%vkloff(3)**2
-     if(len.gt.1.0d-10)then
-        write(*,*)'WARNING: Not shifted k-grids are only valid for the current version of GW code.'
-        write(*,*)'         Please change vkloff option to (0,0,0) and recalculate the eigenvalues and eigenvectors.'
-        stop '(initkqpts) vkloff .ne. (0,0,0)'
-     end if
-
-!-------------------------------!
-!     Irreducible k-mesh data   !
-!-------------------------------!
-      nirtet = ntet
-      allocate(ivkir(3,nkpt))
-      allocate(wkir(nkpt))
-      allocate(wirtet(nirtet))
-      allocate(tndi(4,nirtet))      
-      ivkir(1:3,1:nkpt)=ivk(1:3,1:nkpt)
-      wkir(1:nkpt)=iwkp(1:nkpt)
-      wirtet(1:nirtet)=wtet(1:nirtet)
-      tndi(1:4,1:nirtet)=tnodes(1:4,1:nirtet)
+!     k-grid shifts
+      len=input%groundstate%vkloff(1)**2+ &
+     &    input%groundstate%vkloff(2)**2+ &
+     &    input%groundstate%vkloff(3)**2
+      if(len.gt.1.0d-10)then
+        write(*,*)'WARNING: k-grid shift is used!'
+        write(*,*)'Beware, this choice can have a critical influence on the final results!'
+      end if
+     
+      call init1
 
 !---------------------------------------------------!
 !     Generate non-reduced k- and q-points meshes   !
 !---------------------------------------------------!
-      nqpt=input%groundstate%ngridk(1) * &
-     &     input%groundstate%ngridk(2) * &
-     &     input%groundstate%ngridk(3)
-      ntet=6*nqpt
-      
-      allocate(ivq(3,nqpt))
-      if (allocated(vql)) deallocate(vql)
-      allocate(vql(3,nqpt))
-      if (allocated(vqc)) deallocate(vqc)
-      allocate(vqc(3,nqpt))
-      if (allocated(linkq)) deallocate(linkq)
-      allocate(linkq(ntet,nqpt))
-      if (allocated(kqid)) deallocate(kqid)
-      allocate(kqid(nqpt,nqpt))
-
-!     Generate the k- and q-points meshes
-      call kqgen(bvec,input%groundstate%ngridk,ikloff,dkloff,nqpt, &
-        ivk,ivq,dvk,dvq,kqid,ntet,tnodes,wtet,linkq,tvol)
- 
-!-------------------------------------------------------------!
-!     Non-reduced K-point set and corresponding G+k vectors   !
-!-------------------------------------------------------------!
       nkptnr=input%groundstate%ngridk(1) * &
      &       input%groundstate%ngridk(2) * &
      &       input%groundstate%ngridk(3)
+      ntetnr=6*nkptnr
+      nqptnr=nkptnr
+
+      if (allocated(wtetnr)) deallocate(wtetnr)
+      allocate(wtetnr(ntetnr))
+      if (allocated(tnodesnr)) deallocate(tnodesnr)
+      allocate(tnodesnr(4,ntetnr))
+      
+      allocate(ivq(3,nqptnr))
+      if (allocated(vql)) deallocate(vql)
+      allocate(vql(3,nqptnr))
+      if (allocated(vqc)) deallocate(vqc)
+      allocate(vqc(3,nqptnr))
+      if (allocated(linkq)) deallocate(linkq)
+      allocate(linkq(ntetnr,nqptnr))
+      if (allocated(kqid)) deallocate(kqid)
+      allocate(kqid(nqptnr,nqptnr))
+
+!     Generate the k- and q-points meshes
+      call kqgen(bvec,input%groundstate%ngridk,ikloff,dkloff,nkptnr, &
+        ivk,ivq,dvk,dvq,kqid,ntetnr,tnodesnr,wtetnr,linkq,tvol)
+
+!-------------------------------------------------!
+!     K-point set and corresponding k+G vectors   !
+!-------------------------------------------------!
 
 !     non-reduced k-points
       if (allocated(vklnr)) deallocate(vklnr)
@@ -97,6 +85,7 @@ subroutine initkqpts
         vklnr(:,ik)=dble(ivk(:,ik))/dble(dvk)
         call r3mv(bvec,vklnr(:,ik),vkcnr(:,ik))
       end do
+      deallocate(ivk)
 
 !     allocate corresponding G+k-vector arrays
       if (allocated(ngknr)) deallocate(ngknr)
@@ -115,34 +104,39 @@ subroutine initkqpts
       allocate (sfacgknr(ngkmax,natmtot,nspnfv,nkptnr))
 
       do ik = 1, nkptnr
-         ! generate the G+k-vectors
-         call gengpvec(vklnr(:,ik),vkcnr(:,ik),ngknr(1,ik),igkignr(:,1,ik), &
-        &  vgklnr(:,:,1,ik),vgkcnr(:,:,1,ik),gkcnr(:,1,ik),tpgkcnr(:,:,1,ik))
-         ! generate structure factors for G+k-vectors
-         call gensfacgp(ngknr(1,ik),vgkcnr(:,:,1,ik),ngkmax,sfacgknr(:,:,1,ik))
+        do ispn = 1, nspnfv
+          ! generate the G+k-vectors
+          call gengpvec(vklnr(:,ik),vkcnr(:,ik),ngknr(ispn,ik),igkignr(:,ispn,ik), &
+         &  vgklnr(:,:,ispn,ik),vgkcnr(:,:,ispn,ik),gkcnr(:,ispn,ik),tpgkcnr(:,:,ispn,ik))
+          ! generate structure factors for G+k-vectors
+          call gensfacgp(ngknr(ispn,ik),vgkcnr(:,:,ispn,ik),ngkmax,sfacgknr(:,:,ispn,ik))
+        end do
       end do
 
       if(allocated(idikp))deallocate(idikp)
       allocate(idikp(nkpt))
       
       do ik = 1, nkptnr
-         ikvec(1:3)=ivk(1:3,ik)
-         irkvec(1:3)=ivkir(1:3,indkp(ik))
-         found=(ikvec(1).eq.irkvec(1)).and. &
-        &      (ikvec(2).eq.irkvec(2)).and. &
-        &      (ikvec(3).eq.irkvec(3))  
-         if(found)then
-            idikp(indkp(ik))=ik
-         end if
+        v1(:)=vklnr(:,ik)
+        v2(:)=vkl(:,indkp(ik))
+        t1 = r3taxi(v1,v2)
+        if (t1.lt.input%structure%epslat) then
+          idikp(indkp(ik))=ik
+        end if
       end do ! ik
       
 !-------------------------------------------------!
-!     Q-point set and corresponding G+q vectors   !
+!     Q-point set and corresponding q+G vectors   !
 !-------------------------------------------------!
-!
-!     K- and Q-grids are essentially the same    
-! 
-      nqptnr=nkptnr
+!     Determine G-vector cutoff parameters
+      gqmax=input%gw%MixBasis%gmb*gkmax
+      gmaxbarc=min(pwm*gqmax,input%groundstate%gmaxvr)
+      
+      if(gmaxbarc.gt.input%groundstate%gmaxvr)then
+        write(*,*)'WARNING(initgw)! One should increase the value of gmaxvr:'
+        write(*,*) 'gkmax=',gkmax,'    gqmax=', gqmax
+        write(*,*) 'gmaxvr',input%groundstate%gmaxvr,'    gmaxbarc=', gmaxbarc
+      end if
 
       do iq = 1, nqptnr
         vql(:,iq)= dble(ivq(:,iq))/dble(dvq)
@@ -216,70 +210,64 @@ subroutine initkqpts
          end do
       enddo ! iq
 
-!---------------
-!     DEBUG
-!---------------
+      open(99,file='INITKQPTS.OUT',action='write')
+!
+!     Write the list of k-points
+!       
+      write(99,*) '# Irreducible k-points:'
+      call writeklist(nkpt,vkl,vkc)
 
-      if (debug) then
-        
-        open(99,file='INITKQPTS.OUT',action='write')
-        
-        write(99,*) "### ngrtot, ngkmax, ngqmax, ngbarcmax ###"
-        write(99,*) ngrtot, ngkmax, ngqmax, ngbarcmax
-        write(99,*) 
-        write(99,*) "### igqig (indgw) ###"
-        do iq=1,nqptnr
-          write(99,*) 
-          write(99,*) "iq= ",iq
-          do ig=1,ngq(iq),ngq(iq)/20
-            write(99,'(2i5)') ig, igqig(ig,iq)
-          enddo
-        enddo
-        do iq=1,nqptnr
-          write(99,*) 
-          write(99,*) "iq= ",iq
-          do ig=1,ngbarc(iq),ngbarc(iq)/20
-            write(99,'(2i5)') ig, igqigb(ig,iq)
-          enddo
-        enddo
+      write(99,*) '# All k-points:'
+      call writeklist(nkptnr,vklnr,vkcnr)
+
+      write(99,*) '# ngrtot, ngkmax, ngqmax, ngbarcmax'
+      write(99,*) ngrtot, ngkmax, ngqmax, ngbarcmax
+      write(99,*) 
 !
-!       Write the list of k-points in WIEN2k format
-!         
-        write(99,*) "# Reducible k-points "
-        call writeklist(nkpt,input%groundstate%ngridk,dvk,wkpt,ivkir)
+!     Write the list of q-points in WIEN2k format
+!      
+      write(99,*) "# All q-points:"
+      call writeklist(nqptnr,vql,vqc)
 !
-!       Write the list of k-points in WIEN2k format
-!         
-        allocate(weight(nkptnr))
-        weight(:)=1.0d0/dble(nkptnr)
-        write(99,*) "# All k-points "
-        call writeklist(nkptnr,input%groundstate%ngridk,dvk,weight,ivk)
+!     Write the tetrahedra data to file
 !
-!       Write the list of q-points in WIEN2k format
-!        
-        write(99,*) "# All q-points "
-        call writeklist(nqptnr,input%groundstate%ngridk,dvq,weight,ivq)
-        deallocate(weight)
-!
-!       Write the tetrahedra data to file
-!
-        call writeqgen
-        
-!       Symmetry
-        write(99,*) "indkp: ", indkp(:)
-        write(99,*) "idikp: ", idikp(:)
-        
-      end if ! DEBUG
+      call writeqgen
+      
+!     Mapping between irreducible and complete grid k-points
+      write(99,*)
+      write(99,*) '# INDKP: mapping from the complete k-point set to the corresponding irreducible:'
+      write(99,*) 'indkp: ', indkp(:)
+      write(99,*)
+      write(99,*) '# IDIKP: index of the irreducible k-point in the complete set:'
+      write(99,*) 'idikp: ', idikp(:)
+      write(99,*)
 
 !-------------------------------------------------!
-!     Generate the small/little group of q        !
+!     Generate the small group of q               !
 !-------------------------------------------------!
 
       call gensmallq
       
-      ! close file INITKQPTS.OUT
-      if (debug) close(99) 
+!-------------------------------------------------!
+!     k/q points summary
+!-------------------------------------------------!     
+      call linmsg(fgw,'-','K-points')
+      write(fgw,*) 'Total number (NKPTNR) = ', nkptnr
+      write(fgw,*) 'Irreducible (NKPT) = ', nkpt
+      write(fgw,*) 'Mapping from the complete k-point set to the corresponding irreducible (INDKP):'
+      write(fgw,*) indkp(:)
+      write(fgw,*) 'Index of the irreducible k-point in the complete set (IDIKP):'
+      write(fgw,*) idikp(:)
+      write(fgw,*)
+      call linmsg(fgw,'-','Q-points')
+      write(fgw,*) 'Total number (NQPTNR) = ', nqptnr
+      write(fgw,*) 'Reduced (NQPT) = ', nqpt
+      write(fgw,*) 'Small group of q-vectors:'
+      do iq = 1, nqpt
+        write(fgw,*) 'iq=', iq, '    nsymq=', nsymq(iq), '    nkptq=', nkptq(iq)
+      end do
 
+      close(99)
       return
 end subroutine
 !EOC

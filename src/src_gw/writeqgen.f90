@@ -8,7 +8,7 @@
 ! !DESCRIPTION:
 !
 ! This subroutine writes the identification number of the nodal points of
-! each tetrahedron to file case.qgen
+! each tetrahedron 
 !
 ! !USES:
       
@@ -29,18 +29,18 @@
 
       write(99,*) "#writeqgen: Nodal points of tetrahedron"
   
-      write(99,101) nkpt,nirtet,tvol
-      do itet=1,nirtet
-        write(99,*)itet,(tndi(i,itet),i=1,4),wirtet(itet)
+      write(99,101) nkpt,ntet,tvol
+      do itet=1,ntet
+        write(99,*)itet,(tnodes(i,itet),i=1,4),wtet(itet)
       enddo 
 
       call boxmsg(99,'=',"Non reducible part:")
       
       write(99,*) "#writeqgen: Nodal points of tetrahedron"
   
-      write(99,101) nkptnr,ntet,tvol
-      do itet=1,ntet
-        write(99,*)itet,(tnodes(i,itet),i=1,4),wtet(itet),(linkq(itet,j),j=1,nkpt)
+      write(99,101) nkptnr,ntetnr,tvol
+      do itet=1,ntetnr
+        write(99,*)itet,(tnodesnr(i,itet),i=1,4),wtetnr(itet),(linkq(itet,j),j=1,nkptnr)
       enddo 
 !
 !     Write the k-dependent q and k' weights

@@ -26,7 +26,8 @@ subroutine calcpmatgw
 ! !LOCAL VARIABLES:
     implicit none
 
-    integer(4) :: ik,recl,recl2
+    integer(4) :: ik,ik0
+    integer(8) :: recl,recl2
     
     real(8)    :: tstart, tend
 
@@ -34,7 +35,7 @@ subroutine calcpmatgw
     complex(8), allocatable :: evecfvt(:,:)
     complex(8), allocatable :: evecsvt(:,:)
     complex(8), allocatable :: pmat(:,:,:)
-    complex(8), allocatable :: pmatc(:,:,:,:)
+    complex(8), allocatable :: pmatc(:,:,:)
 
 ! !EXTERNAL ROUTINES: 
     external pmatrad
@@ -57,19 +58,19 @@ subroutine calcpmatgw
     allocate(apwalmt(ngkmax,apwordmax,lmmaxapw,natmtot))
     allocate(evecfvt(nmatmax,nstfv))
     allocate(evecsvt(nstsv,nstsv))
-      
-!   allocate the momentum matrix array
-    allocate(pmat(3,nstsv,nstsv))
-    allocate(pmatc(3,nstsv,nclm,natmtot))
 
-!   record length for momentum matrix elements file
-    recl=16*(3*nstsv*nstsv)
-    open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED', &
-   &    access='DIRECT',status='REPLACE',recl=recl)
-    if(wcore)then 
-      recl2=16*(3*nstsv*nclm*natmtot)
-      open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED', &
-     &    access='DIRECT',status='REPLACE',recl=recl2)
+!   allocate the momentum matrix array
+
+    allocate(pmat(3,nstfv,nstfv))
+    inquire(IoLength=Recl) pmat
+    open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
+     status='REPLACE',recl=Recl)
+
+    if (iopcore.eq.0) then 
+      allocate(pmatc(3,ncg,nstfv))
+      inquire(IoLength=Recl) pmatc
+      open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
+       status='REPLACE',recl=Recl)
     endif   
 
 !----------------------------------------------------------------------!
@@ -96,7 +97,7 @@ subroutine calcpmatgw
     Call pmatrad
 
 !   core-valence
-    if (wcore) then
+    if (iopcore.eq.0) then
        if (allocated(ripacor)) deallocate(ripacor)
        allocate(ripacor(apwordmax,lmmaxapw,ncmax,nclm,natmtot,3))
        if (allocated(ripcora)) deallocate(ripcora)
@@ -109,9 +110,11 @@ subroutine calcpmatgw
 !---------------------------------!
     do ik=1,nkpt
 
+       ik0=idikp(ik)
+
 !      get the eigenvectors and values from file
-       call getevecfv(vkl(1,ik),vgkl(1,1,1,ik),evecfvt)
-       call getevecsv(vkl(1,ik),evecsvt)
+       call getevecfvgw(ik0,evecfvt)
+       call getevecsvgw(ik0,evecsvt)
 
 !      find the matching coefficients
        call match(ngk(1,ik),gkc(1,1,ik),tpgkc(1,1,1,ik), &
@@ -127,21 +130,17 @@ subroutine calcpmatgw
 !      calculate the valence-valence momentum matrix elements
        call genpmatxs(ngk(1,ik),igkig(1,1,ik),vgkc(1,1,1,ik), &
       &  evecfvt,evecsvt,pmat)
-
        write(50,rec=ik) pmat
 
-       if(wcore)then
-
-!        calculate the core-valence momentum matrix elements
-         call genpmatxscor(ik,pmatc)
-
+!      calculate the core-valence momentum matrix elements
+       if(iopcore.eq.0)then
+         call genpmatxscor(ik,ngk(1,ik),apwalmt,evecfvt,evecsvt,pmatc)
          write(51,rec=ik) pmatc
-
        endif
       
     end do
 
-    if(wcore)close(51)   
+    if(iopcore.eq.0)close(51)   
     close(50)
 
     write(fgw,*)
@@ -157,7 +156,7 @@ subroutine calcpmatgw
     deallocate(pmat,pmatc)
     deallocate(apwcmt,ripaa)
     if(nlotot.gt.0)deallocate(locmt,ripalo,riploa,riplolo)
-    if(wcore)deallocate(ripacor,ripcora)
+    if(iopcore.eq.0)deallocate(ripacor,ripcora)
 
 end subroutine
 !EOC

@@ -22,10 +22,6 @@ module modgw
 !----------------------------!
 ! Task identification number
       integer(4) :: testid
-! minimal muffintin radius
-      real(8)    :: rmtmin
-! record length for EIGVEC.OUT
-      integer(4) :: reclev
 ! general gw output file
       integer(4) :: fgw
 ! shortcut for atomic position array
@@ -64,7 +60,7 @@ module modgw
       real(8), allocatable :: womeg(:) 
 
 !--------------------------------------------!
-!     Brillouin zone convolution             !
+!     Brillouin zone integration             !
 !--------------------------------------------!
 ! flag for the frequency dependence of the  q dependent integration.
 !              =1 No frequency dependence included
@@ -89,6 +85,7 @@ module modgw
       real(8), allocatable :: ciw(:,:)
       
       logical :: metallic
+      logical :: Gamma
 
 !-----------------------------------!
 !     tetrahedron method variables  !
@@ -116,17 +113,16 @@ module modgw
       integer(4) dvq
 ! auxiliary arrays
 #endif
-! number of the tetrahedra linked to by the corresponding q vector
+      
+      integer(4), allocatable :: indkp(:)
+      integer(4), allocatable :: idikp(:)     ! kpoint index of the irred. kpoint
+
+      integer(4) :: ntetnr                    ! Total number of tetrahedra
+      integer(4), allocatable :: wtetnr(:)    ! weight of each tetrahedron  for integration
+      integer(4), allocatable :: tnodesnr(:,:)! index of the k-points corresponding to the nodes of each tetrahedra for integration
+
       integer(4), allocatable :: linkq(:,:)
       integer(4), allocatable :: iwkp(:)
-      integer(4), allocatable :: indkp(:)
-      
-      integer(4) :: nirtet   ! Number of irreducible tetrahedra
-      integer(4), allocatable :: idikp(:)   ! kpoint index of the irred. kpoint
-      integer(4), allocatable :: ivkir(:,:) ! List of irreducible k-points in submesh coordinates
-      integer(4), allocatable :: wkir(:)    ! Geometrical weight of each irreducible k-point 
-      integer(4), allocatable :: wirtet(:)  ! weight of each irred. tetrahedron  for integration
-      integer(4), allocatable :: tndi(:,:)  ! index of the k-points corresponding to the nodes of each tetrahedra for integration
 
 !------------------------------!
 !     Non-reduced G+k arrays   !
@@ -199,8 +195,12 @@ module modgw
 !----------------------------!
 !     Core states            !
 !----------------------------!
-! if .true. core states are included in the calculation
-      logical :: wcore
+      integer :: iopcore   ! option for core treatment 
+                           !  iopcore  = 0  --- core states are included in all calculations 
+                           !           = 1  --- core states are included in exchange  but not in correlation 
+                           !           = 2  --- core states are excluded in all calculations, but kept in 
+                           !                    the construction of mixed basis 
+                           !           = 3  -- core states are excluded completely
 ! maximum number of core states per atom
       integer(4) :: ncmax
 ! Max. num of core states including lm
@@ -218,6 +218,11 @@ module modgw
 !     corind(:,4)=l
 !     corind(:,5)=m
       integer(4), allocatable :: corind(:,:)
+
+!----------------------------!
+!     Local orbitals         !
+!----------------------------!
+      real(8), allocatable :: lorwf(:,:,:,:,:)
         
 !----------------------------!
 !     XC potential           !
@@ -256,8 +261,6 @@ module modgw
 !----------------------------!
 ! Maximum L of the left product functions
       integer(4) :: lleftmax
-! Selects the role of the wave function when forming the mixed basis:
-      logical, allocatable :: mixopt(:,:,:)
 ! Radial product functions
       real(8), allocatable :: uprod(:,:,:)
 ! Overlap matrix of the product functions
@@ -476,6 +479,24 @@ module modgw
 
       real(8), allocatable :: wleb(:) ! weight of the grid point ileb.
       integer(4) :: nleb              ! number of grip point in the sphere.
+
+contains
+
+      logical function gammapoint(iq)
+        use mod_qpoint, only: vql
+        implicit none
+        integer(4) :: iq
+        real(8)    :: len
+
+        len=vql(1,iq)**2+vql(2,iq)**2+vql(3,iq)**2
+        if (len.gt.1.0d-6) then
+          gammapoint=.false.
+        else
+          gammapoint=.true.
+        endif
+        
+        return
+      end function gammapoint
 
 end module modgw
 !EOP

@@ -62,6 +62,7 @@ subroutine vxcrad
                     end do
                   end do
                 end if
+                
               end do
             end do
           end do

@@ -2,7 +2,7 @@
 ! !ROUTINE: inimb
 !
 ! !INTERFACE:
-      subroutine inimb
+      subroutine init_mb
 
 ! !DESCRIPTION:
 !
@@ -54,26 +54,12 @@
 !      
 !EOP
 !BOC
-      if(debug)open(701,file='MIXEDBASIS.OUT',action='WRITE',status='UNKNOWN',form='FORMATTED')
-
-!     Generate the core wavefunctions and densities
-      call gencore
-
-!     find the linearisation energies
-      call linengy
-
-!     write out the linearisation energies
-      call writelinen
-
-!     generate the APW radial functions
-      call genapwfr
-
-!     generate the local-orbital radial functions
-      call genlofr
+      if (debug) open(701,file='MIXEDBASIS.OUT',action='WRITE',status='UNKNOWN',form='FORMATTED')
 
 !------------------------------------------------------------------------------
-!     According to the definition of core wafefunction in FHIgap code
-!     Eq.(1.1.3) one has to include the following prefactor into radial part.
+
+!     According to the definition of core wafefunction in FHIgap code [Eq.(1.1.3)],
+!     one has to include the following prefactor into radial part.
 !     In addition I change the EXCITING definition, where rwfcr = r*ucore
 !     
       do is=1,nspecies
@@ -89,10 +75,13 @@
         end do
       end do
 
-      core_ortho=.false.    
-      if(core_ortho) call orthog_corewf
+      !core_ortho=.false.    
+      !if(core_ortho) call orthog_corewf
       
 !------------------------------------------------------------------------------
+
+!     Generate all possible radial function products
+      call setuprod
 
 !     calculate the radial part of the mixed basis functions
       call setumix
@@ -119,7 +108,10 @@
           locmatsiz=locmatsiz+lms
         enddo ! ia
       enddo ! ias
+
       if(debug)write(701,101) lmixmax, locmatsiz
+  101 format(' Max. nr. of MT-sphere wavefunctions per atom ',i6,/,      &
+     &       ' Total  nr. of MT-sphere wavefunctions        ',i6)
 
 !     The maximum size of MB basis
       matsizmax=locmatsiz+ngqmax   
@@ -130,10 +122,7 @@
       call calctildeg(2*(input%gw%MixBasis%lmaxmb+1))
       
       if(debug)close(701)
-
+      
       return
-  101 format(' Max. nr. of MT-sphere wavefunctions per atom ',i6,/,      &
-     &       ' Total  nr. of MT-sphere wavefunctions        ',i6)
-
-      end subroutine inimb
+      end subroutine
 !EOC

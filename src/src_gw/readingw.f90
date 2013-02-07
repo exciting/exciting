@@ -21,14 +21,12 @@
       implicit none
       
       character(8) :: test
-      character(5) :: bzcon, interp
       character(6) :: fdep
       character(6) :: fgrid
       character(3) :: corflag
+      real(8)      :: len
       
 ! !EXTERNAL ROUTINES: 
-
-!      external setmixop
 
 !EOP
 !BOC
@@ -87,8 +85,8 @@
         case('EX','ex')
           testid=14
 !
-        case('BAND','band')
-          testid=16
+!        case('BAND','band')
+!          testid=16
 !          
         case('ROTMAT','rotmat')
           testid=18   
@@ -110,7 +108,7 @@
           write(fgw,*)'sepl - Plot Selfenergy as a function of frequency'
           write(fgw,*)'vxc  - Calculate the matrix elements of the DFT exchange-correlation potential'
           write(fgw,*)'ex   - Hartree-Fock calculation (exchange only)'
-          write(fgw,*)'band - Calculate the bandstructure'
+          !write(fgw,*)'band - Calculate the bandstructure'
           write(fgw,*)'rotmat - Calculate and check the MB rotation matrices (symmetry feature)'
           write(fgw,*)'gw   - Performs one complete GW cycle'
           write(fgw,*)
@@ -229,11 +227,34 @@
 
       call linmsg(fgw,'-','')
 !
-!     Parameters for determine nbandsgw
+!     Number of the empty bands used in GW code
+!
+      if ((input%gw%nempty<1).or.(input%gw%nempty>nmatmax)) then
+        input%gw%nempty=input%groundstate%nempty
+      else
+        input%groundstate%nempty=input%gw%nempty
+        nstfv=int(chgval/2.d0)+input%gw%nempty+1
+        nstsv=nstfv*nspinor
+      end if
+      write(fgw,*)'Number of empty states (groundstate): ', input%groundstate%nempty
+      write(fgw,*)'Number of empty states (GW): ', input%gw%nempty
+      write(fgw,*)
+!
+!     new number of first-variational states (to be used in GW)
+!
+!     Band interval where GW corections are applied
 !
       ibgw=input%gw%ibgw
+      if ((ibgw<1).or.(ibgw>nstfv)) then
+        ibgw=1
+      end if
       nbgw=input%gw%nbgw
-      write(fgw,'(a,2i7)') "GW output band range ", ibgw, nbgw
+      if ((nbgw<1).or.(nbgw>nstfv)) then
+        !!! Usually, there is no need to calculate QP corrections for all
+        !!! unoccupied states. Hence, default nbgw is num. val. states + 20
+        nbgw=int(chgval/2.d0)+20         
+      end if
+      write(fgw,'(a,2i7)') 'GW output band range: ', ibgw, nbgw
       write(fgw,*)
 !
 !     Read the options for the mixed basis functions
@@ -245,15 +266,6 @@
       write(fgw,*) '  -- l_max (lmaxmb): ', input%gw%MixBasis%lmaxmb
       write(fgw,*) '  -- linear dependence tolerance (epsmb): ', input%gw%MixBasis%epsmb
       call linmsg(fgw,'-','')
-!
-!     !!! Not implemented into input file, use default
-!
-!     set default values
-      allocate(mixopt(0:input%groundstate%lmaxapw,nspecies,2))
-      mixopt(:,:,:)=.true.
-!      write(fgw,*)'mixop'      
-!      call setmixop      
-!      write(fgw,*) '------------------------------------------------------'
 !      
 !     Read the parameters for the Bare coulomb potential
 !      
@@ -287,27 +299,54 @@
             
       call linmsg(fgw,'-','')    
 !
-      corflag=trim(input%gw%corflag)
-      select case (corflag)
+      select case (input%gw%coreflag)
         case('all','ALL')
-          wcore=.true.
-        case('val','VAL')
-          wcore=.false.
-        case default    
-          write(fgw,*)'WARNING: Wrong core option!! Valid options are:'  
-          write(fgw,*)'all - All electron calculation'
-          write(fgw,*)'val - Valence electrons only'
-          write(fgw,*)'Taking default value: all'
-          corflag='all'
-          wcore=.true.
-      end select
-      write(fgw,*)'Treatment of all electrons (core+valence) or only valence electrons:'
-      write(fgw,*)'corflag = ', corflag
-
+          iopcore=0
+          write(fgw,*)' all: All electron calculation'
+        case('xal','XAL')
+          iopcore=1
+          write(fgw,*)' xal: all electron for exchange, valence only for correlation'
+        case('val')
+          iopcore=2
+          write(fgw,*)' val: Valence electrons only'
+        case('vab')
+          iopcore=3
+          write(fgw,*)' vab: Valence-only without core states in mixbasis'
+       end select
+!
       call linmsg(fgw,'-','')
-      
+!
+!     To take into account anisotropy of \epsilon for q->0
+!      
       !q0_eps=(/1.d0,1.d0,1.d0/)/sqrt(3.0d0)
       q0_eps=input%gw%q0eps
+     
+!
+!     K/Q point grids
+!     
+      if ((input%gw%ngridq(1).gt.0).and. &
+     &    (input%gw%ngridq(2).gt.0).and. &
+          (input%gw%ngridq(3).gt.0)) then
+        if ((input%gw%ngridq(1).ne.input%groundstate%ngridk(1)).or. &
+       &    (input%gw%ngridq(2).ne.input%groundstate%ngridk(2)).or. &
+            (input%gw%ngridq(3).ne.input%groundstate%ngridk(3))) then
+          write(fgw,*)
+          write(fgw,*)'GW calculations performed on the k/q-grid:'
+          write(fgw,*)'ngridq = ', input%gw%ngridq
+          input%groundstate%ngridk=input%gw%ngridq
+        end if
+      end if
+
+      len=input%gw%vqloff(1)**2+ &
+     &    input%gw%vqloff(2)**2+ &
+     &    input%gw%vqloff(3)**2
+      if (len.gt.1.0d-10) then
+        write(fgw,*)
+        write(fgw,*)'Attention! k/q-point shift is specified!'
+        write(fgw,*)
+        write(fgw,*)'k/q-shift: vqloff = ', input%gw%vqloff
+        input%groundstate%vkloff=input%gw%vqloff
+      end if
       
       return
       end subroutine readingw

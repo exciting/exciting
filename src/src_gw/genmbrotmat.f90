@@ -64,17 +64,16 @@ subroutine genmbrotmat(iq,isym)
       allocate(rotmat(matsiz,matsiz))
       rotmat(:,:)=zzero
       
-!     index of the irreducible q-point in the full (non-reduced) grid      
+!     index of the irreducible q-point in the complete (non-reduced) grid      
       iqp=idikpq(indkpq(iq,1),1) 
 
       lspl=lsplsymc(isym)
       s(:,:)=symlat(:,:,lspl)
       c(:,:)=symlatc(:,:,lspl)
-      
+
      ! G^{q}_{R}
       v(:)=matmul(vql(:,iq),dble(s))-vql(:,iqp)
-      call r3frac(input%structure%epslat,v,g0)
-     
+
 !----------------------------------
 !              MT part
 !----------------------------------
@@ -84,10 +83,8 @@ subroutine genmbrotmat(iq,isym)
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias=idxas(ia,is)
-!
-!         Index of the symmetry equivalent atom: R[r_eq]=r_a
-!          
-          ieq=ieqatom(ia,is,isym)
+          ja=ieqatom(ia,is,isym)
+          jas=idxas(ja,is)
 !
 !         Loop over mixed functions:
 !
@@ -98,69 +95,59 @@ subroutine genmbrotmat(iq,isym)
               imix=imix+1
               im=locmixind(ias,imix)
 !
-!             Loop over atoms:
+!             Loop over mixed functions:
 !
-              do js = 1, nspecies
-                do ja = 1, natoms(js)
-                  jas=idxas(ja,js)
-!
-!                 Loop over mixed functions:
-!
-                  jmix=0
-                  do jrm = 1, nmix(jas)
-                    l2=bigl(jas,jrm)
-                    do m2 = -l2, l2
-                      jmix=jmix+1
-                      jm=locmixind(jas,jmix)
+              jmix=0
+              do jrm = 1, nmix(jas)
+                l2=bigl(jas,jrm)
+                do m2 = -l2, l2
+                  jmix=jmix+1
+                  jm=locmixind(jas,jmix)
 
-                      ieq=ieqatom(ia,is,isym)
-                      if((ieq.eq.jas).and.(irm.eq.jrm).and.(l1.eq.l2))then
-                        t1=twopi*dot_product(v(:),atposl(:,ia,is))
-                        zt1=cmplx(cos(t1),sin(t1),8)
-                        t1=-twopi*dot_product(vql(:,iq),vtlsymc(:,isym))
-                        zt1=zt1*cmplx(cos(t1),sin(t1),8)
-                        rotmat(jm,im)=zt1*getdlmm(c,l1,m2,m1)
-                      endif
-
-                    enddo ! m1
-                  enddo ! irm
-                enddo ! ia
-              enddo ! is 
-
-            enddo ! m2
-          enddo ! jrm
-        enddo ! ja
-      enddo ! jas
+                  if ((irm.eq.jrm).and.(l1.eq.l2)) then
+                    t1=twopi*dot_product(v(:),atposl(:,ja,is))
+                    zt1=cmplx(cos(t1),sin(t1),8)
+                    rotmat(jm,im)=zt1*getdlmm(c,l1,m2,m1)
+                  endif
+                
+                enddo  ! m2
+              enddo ! jrm
+                    
+            enddo ! m1
+          enddo ! irm
+        enddo ! ia
+      enddo ! ias
 
 !-----------------------------------------------------------------
 !       Calculation of the matrix elements between two IPW's
 !-----------------------------------------------------------------
+      call r3frac(input%structure%epslat,v,g0)
       
-      allocate(tmat1(ngq(iq),ngq(iq)))
+      allocate(tmat1(ngq(iq),ngq(iqp)))
       tmat1(:,:)=zzero
       
-      do igq1 = 1, ngq(iqp)   ! loop over q0+G
-        do igq2 = 1, ngq(iq)   ! loop over q1+G'
+      do igq1 = 1, ngq(iq)   ! loop over q+G
+        do igq2 = 1, ngq(iqp)  ! loop over q'+G'
         
-          g1(:)=ivg(:,igqig(igq1,iqp))                ! get G vector of q0+G
-          g2(:)=ivg(:,igqig(igq2,iq))                 ! get G' vector of q1+G'
-          g3(:)=matmul(g2(:),dble(s))-g1(:)+g0(:)
-          ig=ivgig(g3(1),g3(2),g3(3))                 ! index of (RG-G'+G_{R}) vector
+          g1(:)=ivg(:,igqig(igq1,iq))
+          g2(:)=ivg(:,igqig(igq2,iqp)) 
+          g3(:)=matmul(g1(:),dble(s))-g2(:)+g0(:)
+          ig=ivgig(g3(1),g3(2),g3(3)) ! index of (RG-G'+G_{R}) vector
           if((ig.lt.1).or.(ig.gt.ngrtot)) then
             write(fgw,*) 'ERROR(getmbrotmat): Wrong ig!'
             stop 'genmbrotmat'
           end if
           
-          v1(:)=vgql(:,igq2,iq)
+          v1(:)=vgql(:,igq1,iq)
           t1=-twopi*dot_product(v1(:),vtlsymc(:,isym))
           zt1=cmplx(cos(t1),sin(t1),8)
           
-          tmat1(igq2,igq1)=zt1*ipwint(ig)
+          tmat1(igq1,igq2)=zt1*ipwint(ig)
           
         enddo ! igq1
       enddo ! igq2
 
-      allocate(sgip(ngq(iq),ngq(iq)))
+      allocate(sgip(ngq(iqp),ngq(iqp)))
       allocate(tmat2(ngq(iq),ngq(iq)))
 
       if(iq.ne.iqp)then
@@ -175,8 +162,8 @@ subroutine genmbrotmat(iq,isym)
         sgip(:,:)=sgi(:,:)
       end if
       
-      call zgemm('n','n',ngq(iq),ngq(iq),ngq(iq), &
-     &           zone,tmat1,ngq(iq),sgip,ngq(iq),zzero,tmat2,ngq(iq))
+      call zgemm('n','n',ngq(iq),ngq(iqp),ngq(iq), &
+     &           zone,tmat1,ngq(iq),sgip,ngq(iqp),zzero,tmat2,ngq(iq))
      
       call zgemm('c','n',ngq(iq),ngq(iq),ngq(iq), &
      &           zone,sgi,ngq(iq),tmat2,ngq(iq),zzero,tmat1,ngq(iq))

@@ -24,9 +24,9 @@
 
 ! !EXTERNAL ROUTINES: 
 
-      real(8), external :: calceta
-      real(8), external :: gcutoff
-      real(8), external :: rcutoff
+      real(8) calceta
+      real(8) gcutoff
+      real(8) rcutoff
 
 ! !REVISION HISTORY:
 !
@@ -60,6 +60,8 @@
         write(97,*)'#              iq = ', iq
         write(97,*)'#----------------------------------------------'
         
+        Gamma=gammapoint(iq)
+        
         call diagsgi(iq)
         
         matsiz=locmatsiz+ngq(iq)
@@ -67,7 +69,7 @@
         
         call calcmpwipw(iq)
         
-        if(iq.eq.1)then
+        if (Gamma) then
           call calcwmix0
         end if
         

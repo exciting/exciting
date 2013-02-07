@@ -11,6 +11,7 @@ subroutine calcpmat
     use modmain
     use modgw
     use modxs
+    use modmpi
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
 !   writes them to direct access file {\tt PMAT.OUT}.
@@ -22,7 +23,8 @@ subroutine calcpmat
 !EOP
 !BOC
     implicit none
-    integer(4)              :: recl,recl2,ik
+    integer(4)              :: ik,ik0
+    integer(8)              :: Recl
     complex(8), allocatable :: apwalmt(:,:,:,:)
     complex(8), allocatable :: evecfvt(:,:)
     complex(8), allocatable :: evecsvt(:,:)
@@ -30,7 +32,7 @@ subroutine calcpmat
     complex(8), allocatable :: pmatc(:,:,:)
     
     real(8) :: tstart, tend
-    
+    character(128)::sbuffer
     call cpu_time(tstart)
     if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
     
@@ -39,46 +41,50 @@ subroutine calcpmat
     allocate(evecsvt(nstsv,nstsv))
       
 !   allocate the momentum matrix array
-    allocate(pmat(3,nstfv,nstfv))
-    if(wcore)then
-      allocate(pmatc(3,ncg,nstfv))
-    end if
 
-!   record length for momentum matrix elements file
-    recl=16*(3*nstsv*nstsv)
-    open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-     status='REPLACE',recl=recl)
-    if(wcore)then 
-      recl2=16*(3*ncg*nstsv)
-      open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-       status='REPLACE',recl=recl2)
+    allocate(pmat(3,nstfv,nstfv))
+    inquire(IoLength=Recl) pmat
+     if(rank.eq.0) open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
+     status='REPLACE',recl=Recl)
+
+    if (iopcore.eq.0) then 
+      allocate(pmatc(3,ncg,nstfv))
+      inquire(IoLength=Recl) pmatc
+      if(rank.eq.0)then
+        open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
+          status='REPLACE',recl=Recl)
+      endif
     endif   
 
-    do ik=1,nkpt
+    do ik = 1, nkpt
+
+      ik0=idikp(ik)
 
 !     get the eigenvectors and values from file
-      call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfvt)
-      call getevecsv(vkl(:,ik),evecsvt)
+      call getevecfvgw(ik0,evecfvt)
+      call getevecsvgw(ik0,evecsvt)
       
 !     find the matching coefficients
       call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik), &
-     &    sfacgk(:,:,1,ik),apwalmt)
+     &  sfacgk(:,:,1,ik),apwalmt)
 
 !     valence-valence matrix elements
-      call genpmat(ngk(1,ik),igkig(1,1,ik),vgkc(1,1,1,ik),apwalmt, &
-     &  evecfvt,evecsvt,pmat)
-      write(50,rec=ik) pmat
+      call genpmat(ngk(1,ik),igkig(1,1,ik),vgkcnr(1,1,1,ik), &
+     &  apwalmt,evecfvt,evecsvt,pmat)
+ 
+      if(rank.eq.0) write(50,rec=ik) pmat
 
 !     core-valence contribution      
-      if(wcore)then
+      if(iopcore.eq.0)then
         call genpmatcor(ik,ngk(1,ik),apwalmt,evecfvt,evecsvt,pmatc)
-        write(51,rec=ik) pmatc
+ 
+          if(rank.eq.0) write(51,rec=ik) pmatc
       endif
 
     end do
 
-    if(wcore)close(51)   
-    close(50)
+    if(iopcore.eq.0.and.rank.eq.0)close(51)   
+    if(rank.eq.0)close(50)
 
     write(fgw,*)
     write(fgw,'(" Info(calcpmat):")')
@@ -90,7 +96,7 @@ subroutine calcpmat
     call write_cputime(fgw,tend-tstart, 'CALCPMAT')
 
     deallocate(apwalmt,evecfvt,evecsvt,pmat)
-    if(wcore)then
+    if(iopcore.eq.0)then
       deallocate(pmatc)
     end if
 end subroutine

@@ -13,6 +13,7 @@ subroutine gw_main
 ! !USES:
     use modmain
     use modgw
+    use modmpi
 !
 ! !DEFINED PARAMETERS:
 
@@ -22,7 +23,7 @@ subroutine gw_main
 ! !LOCAL VARIABLES:
 !
     real(8) :: tstart, tend, t(2)
-
+    character(124)::sbuffer
 ! !INTRINSIC ROUTINES:
 
     intrinsic cpu_time
@@ -41,6 +42,8 @@ subroutine gw_main
 !EOP
 !BOC
 
+      if (input%gw%taskname.eq.'skip') return
+
       debug=input%gw%debug
       if(debug)open(55,file='debug.info',action='write')
 
@@ -52,41 +55,65 @@ subroutine gw_main
 
 !     General output file
       fgw=700
-      open(fgw,file='GWINFO.OUT',action='write')
+
+#ifdef MPI
+      write(sbuffer,*)rank
+      open(fgw,file='GWINFO'//trim(adjustl(sbuffer))//'.OUT',action='write',access='Append')
+#endif
+#ifndef MPI
+      open(fgw,file='GWINFO.OUT',action='write',access='Append')
+#endif
       call boxmsg(fgw,'=','Main GW output file')
+!
+!     testid = 16: Calculate bandstructure
+!            
+      select case(input%gw%taskname)
+        case('BAND','band')
+          testid=16
+          call task_band
+          goto 1000
+      end select
+
+!     initialise global variables
+      call init0
+      call init1
 
 !     Parse input data
-      call cpu_time(t(1))      
+      call cpu_time(t(1))
       call readingw
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'READINGW')
-!!
-!!    testid = 16: Calculate the bandstructure
-!!            
-      if (testid==16) then
-          call task_band
-          goto 1000
-      end if
       
 !     Initialize GW global parameters
       call cpu_time(t(1))
-      call initgw
+      call init_gw
+      call barrier
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'INITGW')
 
       select case(testid)
-!!
-!!         testid = 1: Calculate LAPW basis functions for plotting
-!!
-          case (1) 
-              call plotlapw
-              goto 1000
+!
+!       testid = 1: Calculate LAPW basis functions for plotting
+!
+        case (1) 
+          call plotlapw
+          goto 1000
+!
+!       testid = 2: Calculate LAPW eigenvectors for plotting
+!              
+        case(2)
+          call plotevec
+          goto 1000
+            
       end select
-
+ 
 !     Mixed basis initialization
+
       call cpu_time(t(1))
-      call inimb
+      call init_mb
+     
       call cpu_time(t(2))
+      
       call write_cputime(fgw,t(2)-t(1),'INIMB')
       
       call boxmsg(fgw,'-',"Mixed WF info")
@@ -94,25 +121,22 @@ subroutine gw_main
       write(fgw,*)'Max num of IPW for Mixbasis:', ngqmax
       write(fgw,*)'Max. nr. of mixed functions per atom:', lmixmax
       write(fgw,*)'Mixed basis set size:', lmixmax+ngqmax
-      call linmsg(fgw,'-','')
-      
+     
 !     Read the eigenenergies from the  "EIGVAL.OUT" file
       call cpu_time(t(1))      
+ 
       call readevaldft
+     
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'READEVALDFT')
-      
+     
+      call barrier()
       select case(testid)
 !!
 !!        testid = 0 or none of below:  Run the GW calculation
 !!            
           case (0)
               call gwcycle
-!
-!         testid = 2: Calculate LAPW eigenvectors for plotting
-!
-          case (2)
-              call plotevec
 !!
 !!        testid = 3: Calculate LAPW eigenvectors products for plotting
 !!
@@ -188,7 +212,10 @@ subroutine gw_main
 
       if(debug)close(55)
       close(fgw)
-     
+
+#ifdef MPI
+      call  cat_logfiles('GWINFO')
+#endif 
       return
 end subroutine gw_main
 !!EOC

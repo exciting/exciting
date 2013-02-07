@@ -38,7 +38,6 @@
     external zhetrf, zhetri
     complex(8), external :: zdotc, zdotu
 
-
 ! !INTRINSIC ROUTINES: 
       
     intrinsic conjg
@@ -84,7 +83,7 @@
 !                    Gamma point                                       !
 !----------------------------------------------------------------------!
 
-      if(iqp.eq.1) then
+      if (Gamma) then
 
         if(fflg.eq.2) then 
           call zgemv('n',mbsiz,mbsiz,zone,eps,mbsiz, &
@@ -112,7 +111,7 @@
         enddo
 
 
-      endif ! iq.eq.1
+      endif ! iq.eq.Gamma
 
       inveps(1:mbsiz,1:mbsiz,iom)=eps(1:mbsiz,1:mbsiz)
 

@@ -48,4 +48,7 @@
          call acpatrd(npar,ein-en,comega,apar,sc,dsc)
       endif 
 
+
+
+
       end subroutine 

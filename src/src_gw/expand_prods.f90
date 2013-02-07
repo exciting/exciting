@@ -54,19 +54,12 @@
       jk=kqid(ik,iq) ! index of k-q vector
 
 !     get the eigenvectors from file
-      call getevecfv(vklnr(:,jk),vgklnr(:,:,:,jk),eveck)
+      call getevecfvgw(jk,eveck)
       eveckp=conjg(eveck)
-      call getevecfv(vklnr(:,ik),vgklnr(:,:,:,ik),eveck)
+      call getevecfvgw(ik,eveck)
 
       call expand_evec(ik,'t')
       call expand_evec(jk,'c')
-
-      if ((flag>0).and.(debug)) then
-        write(fgw,*)
-        write(fgw,*) 'WARNING(expand_prods): Minm matrix elements are transformed to &
-     &                 the eigenvalues of the bare coulomb potential'
-        write(fgw,*)
-      end if
 !
 !     Calculate the matrix elements $M^i_{nm}(\vec{k},\vec{q})$:
 !
@@ -74,7 +67,7 @@
 !          
 !     Calculate the matrix elements M^i_{nm} where n is a core state
 !
-      if(wcore)then
+      if(iopcore.eq.0)then
         
         call calcmicm(ik,iq,flag)
         call calcminc(ik,iq,flag)

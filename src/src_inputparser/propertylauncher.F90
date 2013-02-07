@@ -20,7 +20,7 @@ Subroutine propertylauncher
       End If
       If (associated(input%properties%fermisurfaceplot) .And. rank .Eq. 0) Then
          call rereadinput
-         If (input%properties%fermisurfaceplot%separate) Then
+         if (associated(input%properties%fermisurfaceplot%plot2d)) then
             task = 101
             Call fermisurf
          Else

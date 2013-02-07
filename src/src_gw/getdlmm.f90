@@ -13,7 +13,7 @@ complex(8) function getdlmm(rot,l,m1,m2)
 ! !DESCRIPTION:
 !   Calculates the rotational matrix $D^l_{mm'}$ for the given rotation matrix $R$.
 !   This is done by first the computing the Euler angles $(\alpha,\beta,\gamma)$
-!   of $R^{-1}$ (see routine {\tt euler}) and then generating the rotation
+!   of $R$ (see routine {\tt euler}) and then generating the rotation
 !   matrix for spherical harmonics, $D^l_{mm'}(\alpha,\beta,\gamma)$, with which
 !   $$ Y_{lm}(\theta',\phi')=\sum_{m'}D^l_{mm'}(\alpha,\beta,\gamma)Y_{lm'}
 !    (\theta,\phi), $$
@@ -109,7 +109,7 @@ complex(8) function getdlmm(rot,l,m1,m2)
       t2 = -dble(m1)*ang(1)-dble(m2)*ang(3)
       getdlmm = sum*t1*cmplx(cos(t2),sin(t2),8)
       if ((p.eq.-1).and.(mod(l,2).ne.0)) getdlmm = -getdlmm
-
+      
       return
 end function
 !EOC
@@ -131,8 +131,6 @@ subroutine testdlmm()
    
    complex(8) :: getdlmm
    external      getdlmm
-   complex(8) :: getdjmm
-   external      getdjmm
 
    lmax=4
 
@@ -176,7 +174,6 @@ subroutine testdlmm()
        do m2=-l,l
          lm2=l*l+l+m2+1        
          dlmm=getdlmm(c,l,m2,m1)
-         !dlmm=getdjmm(isym,l,m2,m1)
          ylm2(lm1)=ylm2(lm1)+dlmm*ylm0(lm2)
        end do
        

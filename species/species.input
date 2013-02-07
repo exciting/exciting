@@ -57,13 +57,13 @@ esccut
 !------------------------------------------------------------------------------!
 
 locorbxs
-  .false.
+  .true.
 
 searchlocorbxs
   .false.
 
 lxsmax
-  5
+  4
 
 exsmax
   10.0

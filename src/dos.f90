@@ -62,7 +62,7 @@ Subroutine dos
 ! initialise universal variables
       Call init0
       Call init1
-      lmax = Min (3, input%groundstate%lmaxapw)
+      lmax = Min (4, input%groundstate%lmaxapw)
       lmmax = (lmax+1) ** 2
 ! allocate local arrays
       Allocate (e(nstsv, nkpt, nspinor))

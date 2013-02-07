@@ -3,7 +3,7 @@
 ! !ROUTINE: calcpolmat
 !
 ! !INTERFACE:
-subroutine calcepsilon(iqp)
+subroutine calcepsilon(iqp,COMM_LEVEL2)
 
 ! !DESCRIPTION:
 !
@@ -13,13 +13,15 @@ subroutine calcepsilon(iqp)
 
       use modmain
       use modgw
+      use modmpi
 
 ! !INPUT PARAMETERS:
       
       implicit none
-
+	  integer(4), intent(in) :: iqp
+	  integer(4), intent(in) :: COMM_LEVEL2 !MPI Communicator allocated for this routine
 ! !LOCAL VARIABLES:
-      integer(4), intent(in) :: iqp
+
 
       integer(4) :: ia
       integer(4) :: is
@@ -32,7 +34,9 @@ subroutine calcepsilon(iqp)
       integer(4) :: i, isym, lspl, isym0
       integer(4) :: im, jm
       integer(4) :: dimtk
-      integer(4) :: recl
+      integer(8) :: Recl
+      integer:: level2rank,level2procs
+ 
       
       real(8)    :: tstart,tend
       real(8)    :: edif, pmn, pvec(3)
@@ -70,18 +74,18 @@ subroutine calcepsilon(iqp)
       iq=idikpq(iqp,1)
       coefw=2.0d0*sqrt(pi*vi)
 
-      if (iq.eq.1) then
+      if (Gamma) then
         
         allocate(pmat(3,nstsv,nstsv))
-        recl=16*(3*nstsv*nstsv)
+        inquire(IoLength=Recl) pmat
         open(50,file='PMAT.OUT',action='READ',form='UNFORMATTED', &
-       &  access='DIRECT',recl=recl)
+       &  access='DIRECT',recl=Recl)
 
-        if(wcore)then
+        if(iopcore.eq.0)then
           allocate(pmatc(3,ncg,nstsv))
-          recl=16*(3*ncg*nstsv)
+          inquire(IoLength=Recl) pmatc
           open(51,file='PMATCOR.OUT',action='READ',form='UNFORMATTED', &
-         &   access='DIRECT',recl=recl)
+         &   access='DIRECT',recl=Recl)
         end if 
 
 !=====================================================================+
@@ -116,12 +120,27 @@ subroutine calcepsilon(iqp)
 !======================================================================+
      
       allocate(body(1:mbsiz,1:mbsiz))
+#ifdef MPI
+   Call mpi_comm_size ( COMM_LEVEL2, level2procs, ierr)
+   Call mpi_comm_rank ( COMM_LEVEL2,level2rank, ierr)
+   call mpi_barrier(COMM_LEVEL2,ierr)
+   if (input%gw%debug .and. rank.eq.1) write(*,*) "epsilon BZ summation:"
+#endif
+#ifndef MPI
+level2rank=0
+level2procs=1
+#endif
 
 !---------------------------------------------------------------------!
 !     BZ summation
-!---------------------------------------------------------------------!     
+!---------------------------------------------------------------------!
+
       do ikp = 1, nkptq(iqp)
 
+      if(mod(ikp-1,level2procs).eq.level2rank .and. level2rank .lt. nkptq(iqp) ) then
+#ifdef MPI
+      if (input%gw%debug) write(*,*)"for q ",iqp,"do ikp ",ikp," on proc", rank
+#endif
         ik = idikpq(ikp,iqp)
         jk = kqid(ik,iq)
         
@@ -157,7 +176,6 @@ subroutine calcepsilon(iqp)
               minm(1:matsiz,ie12)=minmmat(1:matsiz,ie1,ie2)
             end do
           end do
-                     
           ! Get M^i_{nm} by symmetry if needed
           if (isym>1) then
 !
@@ -167,9 +185,9 @@ subroutine calcepsilon(iqp)
 !
 !           Rotate M^i_{nm}
 !
+
             call zgemm('c','n',matsiz,dimtk,matsiz, &
-           &     zone,rotmat(1:matsiz,1:matsiz),matsiz, &
-           &     minm,matsiz,zzero,temp,matsiz)
+           &     zone,rotmat,matsiz,minm,matsiz,zzero,temp,matsiz)
           else
             temp = minm
           end if
@@ -187,7 +205,7 @@ subroutine calcepsilon(iqp)
 !======================================================================+
 !                             WINGS
 !======================================================================+
-          if (iq.eq.1) then
+          if (Gamma) then
             
             ik0=indkp(ik)
             if (input%gw%reduceq) then
@@ -224,7 +242,7 @@ subroutine calcepsilon(iqp)
               enddo ! ie2
             end do ! ie1
             
-          end if ! iq.eq.1
+          end if ! Gamma
 
 !---------------------------------------------------------------------!
 !         Frequency loop
@@ -252,7 +270,7 @@ subroutine calcepsilon(iqp)
             enddo ! im
             
             ! Wings
-            if (iq.eq.1) then 
+            if (Gamma) then 
               
               call zgemv('n',mbsiz,dimtk,-zone,temp,mbsiz,pm,1,zzero,wtmp,1)
               epsw1(:,iom)=epsw1(:,iom)+wtmp(:)
@@ -269,17 +287,17 @@ subroutine calcepsilon(iqp)
               endif ! fflg.eq.2
               epsw2(:,iom)=epsw2(:,iom)+conjg(wtmp(:))
 
-            endif ! iq.eq.1
+            endif ! Gamma
         
           end do ! iom
           
           deallocate(minm,temp)
-          if(iq.eq.1)deallocate(pm)
+          if(Gamma)deallocate(pm)
           
 !---------------------------------------------------------------------!
 !                       Core contributions                            !
 !---------------------------------------------------------------------!
-          if (wcore) then
+          if (iopcore.eq.0) then
             
             dimtk=ncg*(nstfv-minunoband+1)
             allocate(micm(1:locmatsiz,1:dimtk))
@@ -298,9 +316,12 @@ subroutine calcepsilon(iqp)
               !
               ! Rotate M^i_{cm}
               !
-              call zgemm('c','n',locmatsiz,dimtk,locmatsiz, &
-             &   zone,rotmat(1:locmatsiz,1:locmatsiz), &
-             &   locmatsiz,micm,locmatsiz,zzero,temp,locmatsiz)
+ 
+               call zgemm('c','n',locmatsiz,dimtk,locmatsiz, &
+               &   zone,rotmat, &
+               &   matsiz,micm,locmatsiz,zzero,temp,locmatsiz)
+
+ 
             else
               temp = micm
             end if
@@ -309,7 +330,6 @@ subroutine calcepsilon(iqp)
 ! 
             deallocate(micm)
             allocate(micm(1:mbsiz,1:dimtk))
-
             call zgemm('c','n',mbsiz,dimtk,locmatsiz, &
            &  zone,barcvm,locmatsiz,temp,locmatsiz,zzero,micm,mbsiz)
            
@@ -318,10 +338,8 @@ subroutine calcepsilon(iqp)
 !======================================================================+
 !                             WINGS
 !======================================================================+
-            if (iq.eq.1) then
-
+            if (Gamma) then
               read(51,rec=ik0) pmatc
-              
               allocate(pm(dimtk))
 
               ie12=0
@@ -351,7 +369,7 @@ subroutine calcepsilon(iqp)
                 enddo ! ie2
               enddo ! icg
 
-            end if ! iq.eq.1
+            end if ! Gamma
             
             allocate(temp(1:mbsiz,1:dimtk))
             
@@ -380,7 +398,7 @@ subroutine calcepsilon(iqp)
               enddo ! im
               
               ! Wings
-              if (iq.eq.1) then                                               
+              if (Gamma) then                                               
                 call zgemv('n',mbsiz,dimtk,-zone,temp,mbsiz,pm,1,zzero,wtmp,1) 
                 epsw1(:,iom)=epsw1(:,iom)+wtmp(:)                             
                 epsw2(:,iom)=epsw2(:,iom)+conjg(wtmp(:))                      
@@ -389,27 +407,45 @@ subroutine calcepsilon(iqp)
             end do ! iom
             
             deallocate(micm,temp)
-            if(iq.eq.1)deallocate(pm)
+            if (Gamma) deallocate(pm)
       
-          endif ! wcore
+          endif ! core
           
         end do ! i (symmetry)
-        
+      endif ! if k is to be done by this proc
       end do ! ik
       
+#ifdef MPI
+ if  (level2rank .ge. nkptq(iqp))epsilon=zzero
+
+ call MPI_ALLREDUCE(MPI_IN_PLACE, epsilon, matsizmax*matsizmax*nomeg,  MPI_DOUBLE_COMPLEX,  MPI_SUM,&
+       & COMM_LEVEL2, ierr)
+       if(Gamma) then
+        if  (level2rank .ge. nkptq(iqp)) then
+        epsw1=zzero
+        epsw2=zzero
+        endif
+call MPI_ALLREDUCE(MPI_IN_PLACE, epsw1,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM,&
+       & COMM_LEVEL2, ierr)
+call MPI_ALLREDUCE(MPI_IN_PLACE, epsw2,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM,&
+       & COMM_LEVEL2, ierr)
+       endif
+#endif
+
       deallocate(body)
-      deallocate(minmmat)
-      if(wcore)deallocate(micmmat)
+      if(allocated(minmmat)) deallocate(minmmat)
+      if(iopcore.eq.0 .and. allocated(micmmat))deallocate(micmmat)
       if(allocated(rotmat))deallocate(rotmat)
-      if(iq.eq.1)then
+      if(Gamma)then
         deallocate(pmat)
         close(50)
-        if(wcore)then
+        if(iopcore.eq.0)then
           deallocate(pmatc)
           close(51)
         end if
         deallocate(wtmp)
-      end if ! iq.eq.1
+      end if ! Gamma
+
  
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'

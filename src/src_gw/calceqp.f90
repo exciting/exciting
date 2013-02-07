@@ -26,8 +26,8 @@
       integer(4) :: ikp  !(Counter) Runs over k-points
       integer(4) :: npar ! Number of parameters of the analitic cont. of
 !                          the selfenergy
-      integer(4) :: it
-      integer(4) :: ierr
+      integer(4) :: it, ierr, nb
+      integer(8) :: Recl
       
       real(8) :: enk,snk,vxcnk,znk
       real(8) :: delta 
@@ -131,9 +131,9 @@
 
 !             Set the normalization factor              
               znk=1.0d0/(1.0d0-real(dsig))
-              if(znk.gt.1.d0 .or. znk.lt.0.d0) then
+              if((znk.gt.1.d0).or.(znk.lt.0.d0)) then
                write(fgw,*)'WARNING(calceqp): nonphysical Znk for ikp=', ikp
-               znk=0.8 
+               !znk=0.8 
               endif
               znorm(ie,ikp)=znk
 !            
@@ -162,8 +162,11 @@
            enddo ! ie
          enddo ! ikp
 
-         call fermi(nkpt,nbandsgw,eqp,nirtet,tndi,wirtet,tvol, &
-        &    nvelgw,.false.,eferqp,egap)
+!        to calculate Fermi energy it is better to use 
+!        only limited low energy amount unoccupied states
+         nb=int(chgval/2.d0)+11
+         call fermi(nkpt,nb-ibgw+1,eqp(ibgw:nb,:),ntet,tnodes,wtet,tvol, &
+        &  nvelgw,.false.,eferqp,egap)
 
          if(it.eq.0) then 
             egap0=egap
@@ -197,21 +200,41 @@
       if(ierr.ne.0) then 
          write(fgw,*) 'WARNING(calceqp): --- Failed to converge!!!'
       endif 
+      
+!----------------------------------------
+!     Set QP fermi energy to zero
+!----------------------------------------
+      eqp(:,:)=eqp(:,:)-eferqp
+      eferqp=0.d0
+
+!----------------------------------------
+!     Save QP energies into binary file
+!----------------------------------------
+      Inquire (IoLength=Recl) nkpt, ibgw, nbgw, &
+     &  vkl(:,1), eqp(ibgw:nbgw,1), evaldft(ibgw:nbgw,1)
+      Open (70, File='EVALQP.OUT', Action='WRITE', Form='UNFORMATTED', &
+     &   Access='DIRECT', status='REPLACE', Recl=Recl)
+      do ikp = 1, nkpt
+        write(70, Rec=ikp) nkpt, ibgw, nbgw, &
+     &    vkl(:,ikp), eqp(ibgw:nbgw,ikp), evaldft(ibgw:nbgw,ikp)
+      end do ! ikp
+      Close(70)
 !      
-!     Write quasi-particle energies to disk
+!     Write quasi-particle energies into QPENE-eV.OUT
 !      
       call writeqp(sigc,znorm)
-      
+!      
+!     KS band structure
+!
+      call bandanaly(ibgw,nbgw,nkpt,vkl,evaldft(ibgw:nbgw,:),efermi,"KS",fgw)
+!
+!     QP band structure
+!
+      call bandanaly(ibgw,nbgw,nkpt,vkl,eqp(ibgw:nbgw,:),eferqp,"G0W0",fgw)
+
       deallocate(a)
       deallocate(znorm)
       deallocate(sigc)
-
-!     KS band structure
-      call bandanaly(ibgw,nbgw,nkpt,vkl,evaldft(ibgw:nbgw,:),efermi,"KS",fgw)
-
-!     QP band structure
-      call bandanaly(ibgw,nbgw,nkpt,vkl,eqp(ibgw:nbgw,:),eferqp,"G0W0",fgw)
-
    8  format( ' #iter',4x,"Ef_QP",4x,"es",4x,"Eg/eV",4x,'Eg(k=0)/eV')
    9  format(i4,4f12.6)
    

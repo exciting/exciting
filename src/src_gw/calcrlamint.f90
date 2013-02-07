@@ -88,26 +88,31 @@
         if(debug)write(701,100)is,trim(spname(is))
         do ia=1,natoms(is)
           ias=idxas(ia,is)
+
 !-----------------------------------------------------------------
 !                      Calculate rtl
 !----------------------------------------------------------------- 
           if(debug)write(701,*)
           if(debug)write(701,101)
+
           rrtol(1:nrmt(is))=spr(1:nrmt(is),is)
           bl=0
-          ijrm=0
           do irm=1,nmix(ias)
 !
 !           if bl has changed, calculate r^(bl+1) for each grid point
 !
             if(bigl(ias,irm).gt.bl)then
+
               do l1=bl+1,bigl(ias,irm)
                 do ir=1,nrmt(is)
                   rrtol(ir)=rrtol(ir)*spr(ir,is)
                 enddo ! ir
               enddo ! l1
+
               bl=bigl(ias,irm)
-            elseif(bigl(ias,irm).lt.bl)then
+
+            else if (bigl(ias,irm).lt.bl) then
+
               write(fgw,*)'WARNING!!!!'
               write(fgw,*)'radial mixed functions not ordered by ', &
      &                  'increasing bl'
@@ -117,20 +122,24 @@
                 enddo
               enddo
               bl=bigl(ias,irm)  
+
             endif
+
             do ir=1,nrmt(is)
               fr(ir)=umix(ias,irm,ir)*rrtol(ir)
             enddo
             call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
-            if(gr(nrmt(is)).lt.0.0d0)then
+            
+            if (gr(nrmt(is)).lt.0.0d0) then
               rtl(ias,irm)=-1.0d0*gr(nrmt(is))
               umix(ias,irm,1:nrmt(is))=-1.0d0*umix(ias,irm,1:nrmt(is))
             else
               rtl(ias,irm)=gr(nrmt(is))
             endif
+            
             if(debug)write(701,102)irm,rtl(ias,irm)
-          enddo ! irm
 
+          enddo ! irm
 
 !-----------------------------------------------------------------
 !                      Calculate rrint 
@@ -139,18 +148,21 @@
           bl=0
           ijrm=0
           if(debug)write(701,20)
+
           do irm=1,nmix(ias)
 !
 !           if bl has changed, calculate r^(bl+1) for each grid point 
 !
-            if(bigl(ias,irm).gt.bl)then
+            if (bigl(ias,irm).gt.bl) then
+              
               do l1=bl+1,bigl(ias,irm)
                 do ir=1,nrmt(is)
                   rrtol(ir)=rrtol(ir)*spr(ir,is)
                 enddo ! ir
               enddo ! l1
               bl=bigl(ias,irm)
-            elseif(bigl(ias,irm).lt.bl)then
+            
+            else if (bigl(ias,irm).lt.bl) then
               write(fgw,*)'WARNING!!!!'
               write(fgw,*)'radial mixed functions not ordered by ', &
              &          'increasind bl'
@@ -160,6 +172,7 @@
                 enddo ! ir
               enddo ! l1
               bl=bigl(ias,irm)  
+            
             endif
 !
 !           store the corresponding mixed function in a local array
@@ -167,10 +180,12 @@
             ui(1:nrmt(is))=umix(ias,irm,1:nrmt(is))
             uj(1:nrmt(is))=ui(1:nrmt(is))
             ijrm=irm+(irm*(irm-1))/2
+            
             call drinteg(is,rxov)
             rrint(ias,ijrm)=rxov
-            if(debug)write(701,21)irm,irm,bigl(ias,irm),bigl(ias,irm), &
-           &                      rrint(ias,ijrm)
+            
+            if(debug)write(701,21)irm,irm,bigl(ias,irm), &
+           &                      bigl(ias,irm),rrint(ias,ijrm)
 !          
 !           now loop over jrm for the double integrals
 !
@@ -183,11 +198,13 @@
                 rxov=0.0d0
               endif
               rrint(ias,ijrm)=rxov
+              
               if(debug)write(701,21)irm,jrm,bigl(ias,irm),bigl(ias,jrm),      &
              &                      rrint(ias,ijrm)
-
             enddo ! jrm
+
           enddo ! irm
+
         enddo ! ia
       enddo ! is
 
@@ -203,6 +220,9 @@
 
       CONTAINS
 
+!-----------------------------------------------------------------------
+!
+!-----------------------------------------------------------------------
       subroutine drinteg(is,xint)
 !
 ! The procedure used consists in writing it as:

@@ -47,6 +47,7 @@
       use modinput
       use modmain
       use modgw
+      use modmpi
       use reallocate
  
 ! !LOCAL VARIABLES:
@@ -62,7 +63,7 @@
       integer(4) :: i,j,k,l
       integer(4) :: nli,nor
       integer(4) :: lammax, lammin, nwf
-      integer(4) :: i1,i2,inf,j2
+      integer(4) :: i1,i2,info,j2
 
       integer(4) :: nl(0:2*maxlapw)
       real(8) :: fr(nrmtmax)
@@ -91,58 +92,56 @@
 !EOP
 !BOC
 !
-!     Generate the possible radial function products
-!
-      call setuprod
-!
       allocate(nmix(natmtot))
       allocate(umix(natmtot,maxnup,nrmtmax))
       allocate(bigl(natmtot,maxnup))
       allocate(mbl(natmtot))
       maxnmix=0
       maxbigl=0
+
+      do is=1,nspecies
+        if(debug)write(701,100)spname(is)
+        do ia=1,natoms(is)
+          ias=idxas(ia,is)
 !
 !     Calculate the number of radial product functions for each L and the 
 !     total number of orbitals
 !
-      do is=1,nspecies
-        if(debug)write(701,100)spname(is)
-        
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
- 
           nmix(ias)=0
           nl(:)=0
-          nuor=0
           do jprod=1,nup(ias)
             lammax=eles(ias,jprod,1)+eles(ias,jprod,2)
             lammin=abs(eles(ias,jprod,1)-eles(ias,jprod,2))
             do l=0,2*input%groundstate%lmaxapw
               if((l.le.lammax).and.(l.ge.lammin))then
                 nl(l)=nl(l)+1
-                nuor=nuor+1
               endif 
             enddo ! l
           enddo ! jprod
 
           umix(ias,:,:)=0.0d0
           bigl(ias,:)=0
-
+!
+!     diagonalize the overlap matrix of the product functions for each  L-block
+!
           j2=0
           nor=0
           do l=0,2*input%groundstate%lmaxapw
-            if(nl(l).gt.1)then
+            if (nl(l).gt.1) then
 !
 !             allocate the L-block overlap matrix (uml), the eigenvalues
 !             vector (uol), the working space and the indexes
 !
               allocate(uml(nl(l),nl(l)))
+              uml=0
               allocate(uol(nl(l)))
+              uol=0
               allocate(work(3*nl(l)-1))
               allocate(ind(nl(l)))
 !
 !             generate the L-block overlap matrix
 !
+				 
               j=0
               do i1=1,nup(ias)
                 lammax=eles(ias,i1,1)+eles(ias,i1,2)
@@ -172,23 +171,31 @@
               end if
               
 !             diagonalize the L-block overlap matrix
-
-              call dsyev('v','u',nl(l),uml,nl(l),uol,work,3*nl(l)-1,inf)
-              if(inf.ne.0)then
+ 
+			 
+              call dsyev('V','U',nl(l),uml,nl(l),uol,work,3*nl(l)-1,info)
+             
+              if(info.ne.0)then
                 write(*,*) 'setumix: error in calling dsyev '
-                write(*,*) 'l =',l,' nl =',nl(l),'info = ',inf
+                write(*,*) 'l =',l,' nl =',nl(l),'info = ',info
                 stop
               endif
+#ifdef MPI
+			! the result uml can vary because math libs can be nondeterministic
+			! this broadcast just ensures that each process starts with the exact same data
+             call mpi_bcast(uml,nl(l)*nl(l),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+#endif
               
               i2=0
               do i1=1,nl(l)
-                if(uol(i1).gt.input%gw%MixBasis%epsmb)i2=i2+1
+                if (uol(i1).gt.input%gw%MixBasis%epsmb) i2=i2+1
               enddo 
               nli=i2
               
               if(debug)write(701,101) l,nl(l),nli
-
+!
 !             transform the umix 
+!
               do i1=1,nl(l)
                 if(uol(i1).gt.input%gw%MixBasis%epsmb)then
                   j2=j2+1
@@ -199,6 +206,8 @@
                   enddo ! i2 
                 endif
               enddo ! i1
+           
+              
 !
 !             normalize the radial mixed wave functions
 !
@@ -262,6 +271,7 @@
 
           nmix(ias)=nor
           if(nmix(ias).gt.maxnmix) maxnmix=nmix(ias)
+          
           mbl(ias)=maxval(bigl(ias,:))
           if(mbl(ias).gt.maxbigl) maxbigl=mbl(ias)
           

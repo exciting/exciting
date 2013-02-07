@@ -36,12 +36,13 @@
 !EOP
 !BOC
       if(debug)then
-      write(701,*)'------------------------------------------------------'
-      write(701,*)'     Indexes of MT-sphere mixed basis functions'
-      write(701,*)'------------------------------------------------------'
-      write(701,*)'   chi_i=v_(aNL)Y_(LM)   (a = atom)'
-      write(701,101)
+        write(701,*)'------------------------------------------------------'
+        write(701,*)'     Indexes of MT-sphere mixed basis functions'
+        write(701,*)'------------------------------------------------------'
+        write(701,*)'   chi_i=v_(aNL)Y_(LM)   (a = atom)'
+        write(701,101)
       end if
+      
       allocate(locmixind(natmtot,lmixmax))
       locmixind(:,:)=0
       im=0
@@ -60,9 +61,11 @@
           enddo ! irm
         enddo ! ia
       enddo ! is
+      
       if(debug)write(701,*)'------------------------------------------------------'
   101 format(5x,'i',5x,'a',5x,'N',5x,'L',5x,'M')
   102 format(5i6) 
+      
       return
       end subroutine setlocmixind
 !EOC            

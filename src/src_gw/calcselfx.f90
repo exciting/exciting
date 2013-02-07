@@ -90,7 +90,7 @@
 
       call cpu_time(tcore)
 
-      if (wcore) then
+      if (iopcore.le.1) then
 
         allocate(sxqcor(ibgw:nbgw))
         sxqcor(ibgw:nbgw)=zzero
@@ -110,14 +110,14 @@
            sxqcor(ie1)=sxqcor(ie1)-sum*wkpq(iqp,ikp)/dble(m2-m1+1)
         enddo ! ie1
  
-      endif ! wcore
+      endif ! core
       
 !----------------------------------------
 !     Sum up the contributions
 !----------------------------------------
 
       write(96,*)'-------- CALCSELFX -------------, ikp = ', ikp, '    iqp = ', iqp
-      if (wcore) then
+      if (iopcore.le.1) then
         write(96,*)'# band nr.       core           valence        selfex'
         do ie1 = ibgw, nbgw
           selfex(ie1,ikp)=selfex(ie1,ikp)+sxqval(ie1)+sxqcor(ie1)

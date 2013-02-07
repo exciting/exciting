@@ -66,12 +66,8 @@
 !     Calculate the bare coulomb potential matrix and its square root
 !
       call calcbarcmb(iq)
-
-      if( barcevtol.gt.0.d0) then
-        write(6,'(a,f8.4)')" -Use reduced basis: barcevtol=",&
-     &                      barcevtol 
-      endif
-      call setbarcev(iq,barcevtol)
+!
+      call setbarcev(barcevtol)
 !
 !     Calculate the q-dependent integration weights
 !   

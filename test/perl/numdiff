@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+ 
+ use lib "./";
+ use IO::File;
+use List::Util qw[min max]; 
+sub assert_file_same_within {
+	$file1=$_[0];
+	$file2=$_[1];
+	$tol=$_[2];
+	@numbers1=[];
+	@numbers2=[];
+	$error=[];
+	open FILE1,$file1 or die "cannot open :$file1 $!";
+	open FILE2, $file2 or die "cannot open :$file2 $!";
+
+	while(<FILE1>)
+	{
+		$linefile1=$_;
+		$linefile2=<FILE2>;
+			while ($linefile1=~s/([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)//){
+			$n1=$1;
+			push(@numbers1,$n1)	;
+			$linefile2=~s/([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)//;
+			$n2=$1;
+			push(@numbers2,$n2);
+			push(@error,abs($n1-$n2));
+			
+ 		}
+		
+	}
+	print @error;
+	$status='failed';
+if(max( @error) <$tol)
+	{
+ 	$status='passed';
+ 	}
+ 	close  FILE1;
+ 	close  FILE2;
+ 	$maxerror=max(@error );
+
+%test=(status => $status,
+	line => $linenr,
+	column => $collumn, 
+	maxerror=> $maxerror,
+	averageerror=> $averageerr
+	);
+return %test;
+}
+ print assert_file_same_within( $ARGV[0],   $ARGV[1],.00001);

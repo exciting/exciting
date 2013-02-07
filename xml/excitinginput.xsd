@@ -3576,13 +3576,16 @@ gw.xsd
             <xs:documentation>Writes Fermi surface data to file.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
+            <xs:all>
+              <xs:element ex:importance="essential" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="essential" ex:unit="" ref="plot3d" minOccurs="0"/>
+            </xs:all>
             <xs:attribute ex:importance="essential" ex:unit="" name="nstfsp" type="xs:integer" default="6">
               <xs:annotation>
                 <xs:documentation>Number of states to be included in the Fermi surface plot
                   file.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="" name="separate" type="xs:boolean" default="false"/>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="EFG" maxOccurs="1" minOccurs="0">
@@ -5004,6 +5007,7 @@ gw.xsd
                 <xs:enumeration value="band"/>
                 <xs:enumeration value="rotmat"/> 
                 <xs:enumeration value="gw"/>
+                <xs:enumeration value="skip"/>
               </xs:restriction>
             </xs:simpleType>
           </xs:attribute>
@@ -5067,6 +5071,13 @@ gw.xsd
               <xs:documentation>Second atom number</xs:documentation>
             </xs:annotation>
           </xs:attribute>
+
+          <xs:attribute ex:importance="expert" ex:unit="" name="nempty" type="xs:integer" use="optional" default="0">
+            <xs:annotation>
+              <xs:documentation>Number of empty states (cutoff parameter) used in GW. If not specified, 
+              the same number as for the groundstate calculations is used.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="ibgw" type="xs:integer" use="optional" default="1">
             <xs:annotation>
@@ -5074,9 +5085,10 @@ gw.xsd
             </xs:annotation>
           </xs:attribute>
           
-          <xs:attribute ex:importance="expert" ex:unit="" name="nbgw" type="xs:integer" use="optional" default="1">
+          <xs:attribute ex:importance="expert" ex:unit="" name="nbgw" type="xs:integer" use="optional" default="0">
             <xs:annotation>
-              <xs:documentation>Upper band index for GW output.</xs:documentation>
+              <xs:documentation>Upper band index for GW output. If not specified, 
+              the maximum number of the available states is used.</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
@@ -5096,7 +5108,7 @@ gw.xsd
             </xs:annotation>
           </xs:attribute>
 
-          <xs:attribute ex:importance="expert" ex:unit="" name="corflag" default="all">
+          <xs:attribute ex:importance="expert" ex:unit="" name="coreflag" default="all">
             <xs:annotation>
               <xs:documentation>
                   Option for treating core. Valid options are:
@@ -5151,6 +5163,33 @@ gw.xsd
 	      </xs:documentation>
             </xs:annotation>
           </xs:attribute>
+
+          <xs:attribute ex:importance="essential" ex:unit="" name="ngridq" type="integertriple" default="0 0 0">
+            <xs:annotation>
+              <xs:documentation>
+                k/q-point grid size to be used in GW calculations. 
+                If not specified,  <attref>ngridk</attref> value is used.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="vqloff" type="vect3d" default="0.0d0 0.0d0 0.0d0">
+            <xs:annotation>
+              <xs:documentation>
+                The <inlinemath>{\mathbf k/q}</inlinemath>-point offset vector in lattice coordinates.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="skipgnd" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation>
+	          Skip recalculation KS eigenvalues and eigenvectors
+                  for the complete k-point grid (used for debugging).
+	      </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
           
           
         </xs:complexType>

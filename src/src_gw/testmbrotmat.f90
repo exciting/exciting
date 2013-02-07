@@ -16,7 +16,7 @@ subroutine testmbrotmat()
 ! !LOCAL VARIABLES:
       implicit none
       integer(4) :: ik, iq, iqp
-      integer(4) :: recl
+      integer(8) :: Recl
       
 ! !EXTERNAL ROUTINES: 
 
@@ -28,13 +28,9 @@ subroutine testmbrotmat()
 !EOP
 !BOC
       iq=input%gw%iik
-      iqp=indkp(iq) ! irreducible
-      iq=idikp(iqp)
+      iqp=indkpq(iq,1) ! irreducible q-point
+      iq=idikpq(iqp,1) ! index of the irreducible q-point in the complete q-grid
       
-      write(*,*)
-      write(*,*)'iq = ', iq, 'iqp = ', iqp
-      write(*,*)
-
       write(*,*)
       call boxmsg(fgw,'-','q-dependent parameters')
       write(*,*)
@@ -52,26 +48,27 @@ subroutine testmbrotmat()
 !
       call calcmpwipw(iq)
 !      
-!     Calculate the Minm matrix elements for the total (non-reduced) k-grid
+!     Calculate and store Minm matrix elements for the all (non-reduced) k-points
 !      
-      recl=16*(locmatsiz*nstfv*ncg)
+      inquire(IoLength=Recl) mincmat
       open(39,file='mincmat.io',action='WRITE',form='UNFORMATTED', &
-     &  access='DIRECT',recl=recl)
+     &  access='DIRECT',recl=Recl)
 
-      recl=16*(locmatsiz*ncg*nstfv)
+      inquire(IoLength=Recl) micmmat
       open(40,file='micmmat.io',action='WRITE',form='UNFORMATTED', &
-     &  access='DIRECT',recl=recl)
+     &  access='DIRECT',recl=Recl)
    
-      recl=16*(matsiz*nstfv*nstsv)
+      inquire(IoLength=Recl) minmmat
       open(41,file='minmmat.io',action='WRITE',form='UNFORMATTED', &
-     &  access='DIRECT',recl=recl)
+     &  access='DIRECT',recl=Recl)
    
       do ik = 1, nkptnr
-        call expand_prods(ik,iq,0)
-        write(39,rec=ik) mincmat
-        write(40,rec=ik) micmmat
-        write(41,rec=ik) minmmat
+         call expand_prods(ik,iq,0)
+         write(39,rec=ik) mincmat
+         write(40,rec=ik) micmmat
+         write(41,rec=ik) minmmat
       end do
+
       close(39)
       close(40)
       close(41)

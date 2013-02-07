@@ -91,7 +91,7 @@ stateinfo::
 stateconvert::
 	cd src/stateconvert; $(MAKE)  
 
-species::libs
+species::
 	cd src/species; $(MAKE)
 
 libs:
@@ -110,12 +110,13 @@ clean:
 	cd src/src_vdwdf; $(MAKE) clean
 	cd src/stateinfo; $(MAKE) clean
 	cd src/stateconvert; $(MAKE) clean
+	cd src/leblaiklib; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
 	rm -f bin/*
 	rm -f interfaces/*
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
-	rm -f src/leblaiklib/*.o src/leblaiklib/*.a
+	rm -rf debian/debian/usr
 
 libxcclean:
 	cd src/libXC && make clean 

@@ -33,7 +33,7 @@ Subroutine allatoms
 ! always use LDA to setup atomic densities
       Integer, Parameter :: xctype_ = 3
       Integer, Parameter :: xcgrad_ = 0
-      Integer :: is
+      Integer :: is, i
 ! allocatable arrays
       Real (8), Allocatable :: rwf (:, :, :)
 ! allocate global species charge density and potential arrays

@@ -72,7 +72,7 @@
 !     KS band structure
       call bandanaly(ibgw,nbgw,nkpt,vkl,evaldft(ibgw:nbgw,:),efermi,"KS",fgw)
 
-      call fermi(nkpt,nbandsgw,eqp(ibgw:nbgw,:),nirtet,tndi,wirtet,tvol, &
+      call fermi(nkpt,nbandsgw,eqp(ibgw:nbgw,:),ntet,tnodes,wtet,tvol, &
      &           nvelgw,.false.,eferqp,egap)
 
 !     QP band structure

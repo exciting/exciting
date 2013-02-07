@@ -12,6 +12,7 @@
 !
 !
 ! !USES:
+      use modinput
       use modmain
       use modgw
 
@@ -21,15 +22,15 @@
       
       integer(4) :: ik
       integer(4) :: ist
-      integer(4) :: np
+      integer(4) :: ia, is
+      integer(4) :: ngp
       
       complex(8) :: zt1
       complex(8), allocatable :: apwalm(:,:,:,:)
       complex(8), allocatable :: evecfv(:,:)
-      complex(8), allocatable :: evec1(:)
-      complex(8), allocatable :: evec2(:)
-      complex(8), allocatable :: vxcapw(:)
-      
+      complex(8), allocatable :: evec(:)
+      complex(8), allocatable :: h(:)
+
       real(8)    :: tstart, tend
 !
 ! !EXTERNAL ROUTINES: 
@@ -37,7 +38,6 @@
       complex(8), external :: zdotc
       
       external getevecfv
-      external genvxcapw
       external match      
 
 ! !INTRINSIC ROUTINES: 
@@ -58,53 +58,63 @@
 
 !     allocate exchange-correlation integral arrays
       if (allocated(vxcraa)) deallocate(vxcraa)
-      allocate(vxcraa(maxapword,0:input%groundstate%lmaxmat,maxapword,0:input%groundstate%lmaxapw,0:lmmaxvr,natmtot))
+      allocate(vxcraa(apwordmax,0:input%groundstate%lmaxmat,apwordmax,0:input%groundstate%lmaxapw,0:lmmaxvr,natmtot))
       if (allocated(vxcrloa)) deallocate(vxcrloa)
-      allocate(vxcrloa(nlomax,maxapword,0:input%groundstate%lmaxmat,0:lmmaxvr,natmtot))
+      allocate(vxcrloa(nlomax,apwordmax,0:input%groundstate%lmaxmat,0:lmmaxvr,natmtot))
       if (allocated(vxcrlolo)) deallocate(vxcrlolo)
       allocate(vxcrlolo(nlomax,nlomax,0:lmmaxvr,natmtot))
-      
+!      
       call vxcrad
-      
-      allocate(apwalm(ngkmax,maxapword,lmmaxapw,natmtot))
+!      
+      allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
       allocate(evecfv(nmatmax,nstfv))
-      allocate(evec1(nmatmax))
-      allocate(evec2(nmatmax))
-
+      allocate(evec(nmatmax))
       allocate(vxcnn(nstfv,nkpt))
 
       do ik = 1, nkpt
         
-        np=npmat(1,ik)
-        allocate(vxcapw(np))
+        ngp=ngk(1,ik)
 
 !       get the eigenvectors from file
-        call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+        call getevecfvgw(idikp(ik),evecfv)
 
 !       find the matching coefficients
-        call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik), &
-       &     sfacgk(:,:,1,ik),apwalm)
+        call match(ngp,gkc(:,1,ik),tpgkc(:,:,1,ik),sfacgk(:,:,1,ik),apwalm)
 
-        call genvxcapw(ik,apwalm,vxcapw)
+        do ist = 1, nstfv
+
+          allocate(h(nmat(1,ik)))
+          h(:)=zzero
+
+!         muffin-tin contributions
+          do is = 1, nspecies
+            do ia = 1, natoms(is)
+
+              call vxcaa (.True., is, ia, ngp, apwalm, evecfv(:,ist), h)
+              call vxcalo (.True., is, ia, ngp, apwalm, evecfv(:,ist), h)
+              call vxclolo (.True., is, ia, ngp, evecfv(:,ist), h)
+
+            end do
+          end do
+
+!         interstitial contributions
+          call vxcistl(.True., ngp, igkig(:,1,ik), evecfv(:,ist), h)
         
-        do ist=1,nstfv
-          evec1(:)=evecfv(:,ist)
-          call zhpmv('U',nmat(1,ik),zone,vxcapw,evec1,1,zzero,evec2,1)
-          zt1=zdotc(nmat(1,ik),evec1,1,evec2,1)
-          vxcnn(ist,ik)=zt1
-        enddo !ist  
+          vxcnn(ist,ik)=zdotc(nmat(1,ik),evecfv(:,ist),1,h,1)
         
-        deallocate(vxcapw)
-      
+          deallocate(h)
+        
+        end do ! ist
+        
       enddo ! ik  
 
+!     print results into file VXCNN.OUT
       call writevxcnn
 
       deallocate(apwalm)
       deallocate(evecfv)
-      deallocate(evec1)
-      deallocate(evec2)
-      
+      deallocate(evec)
+       
       deallocate(vxcraa)
       deallocate(vxcrloa)
       deallocate(vxcrlolo)

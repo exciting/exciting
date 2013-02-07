@@ -3,7 +3,7 @@
 ! !ROUTINE: initgw
 !
 ! !INTERFACE
-      subroutine initgw
+      subroutine init_gw
 
 ! !DESCRIPTION:
 !
@@ -24,7 +24,10 @@
       integer(4) :: il
       integer(4) :: is      
       integer(4) :: ist      
-      integer(4) :: m
+      integer(4) :: m, n
+      logical    :: reduce
+      real(8)    :: tstart, tend
+      integer(4) :: stype_
  
 ! !EXTERNAL ROUTINES: 
 
@@ -49,38 +52,56 @@
         stop 'Spin polarization is not implemented yet'
       end if
 
-!     Minimal muffin-tin radius
-      rmtmin=rmt(1)
-      if(nspecies.gt.1)then
-        do is=2,nspecies
-          if (rmt(is).lt.rmtmin) rmtmin=rmt(is)
-        enddo
-      endif
+! Importantly, current implementation uses exclusively 
+! "Extended linear tetrahedron method for the calculation of q-dependent
+! dynamical response functions", to be published in Comp. Phys. Commun. (2010)
+      stype_=input%groundstate%stypenumber
+      input%groundstate%stypenumber=-1
 
-!     Determine G-vector cutoff parameters
-      gkmax=input%groundstate%rgkmax/rmtmin
-      gqmax=input%gw%MixBasis%gmb*gkmax
-      gmaxbarc=min(pwm*gqmax,input%groundstate%gmaxvr)
-      
-      if(gmaxbarc.gt.input%groundstate%gmaxvr)then
-        write(*,*)'WARNING(initgw)! One should increase the value of gmaxvr:'
-        write(*,*) 'gkmax=',gkmax,'    gqmax=', gqmax
-        write(*,*) 'gmaxvr',input%groundstate%gmaxvr,'    gmaxbarc=', gmaxbarc
+      if (.not.input%gw%skipgnd) then
+!
+! Generate eigenvectors for the complete (non-reduced) k-point set
+!
+        reduce=input%groundstate%reducek
+        input%groundstate%reducek=.false.          
+        task=1
+        input%groundstate%maxscl=1
+        input%groundstate%nwrite=0
+        call cpu_time(tstart)
+        call gndstate
+        call cpu_time(tend)
+        if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
+        call write_cputime(fgw,tend-tstart,'GNDSTATE')
+        input%groundstate%reducek=reduce
       end if
       
-!     initialise universal variables
-      call init0
-      call init1
-
-!     initialize or read the charge density and potentials from file
-      call readstate
-
-!     Generate the frequency mesh and integration weights.
-      call init_freq
+! Generate the k- and q-point meshes
+      call init_kqpts
       
-!     Generate the k- and q-point meshes
-      call initkqpts
+!     if BSE is used just after GW, libbzint
+!     may create the segmentation faults when try to use a general
+!     k-point shift vkloff
+!
+      input%groundstate%stypenumber=stype_
 
+! initialise the charge density and potentials from file
+      Call readstate
+
+! generate the core wavefunctions and densities
+      Call gencore
+
+! find the new linearisation energies
+      Call linengy
+
+! write out the linearisation energies
+      Call writelinen
+
+! generate the APW radial functions
+      Call genapwfr
+
+! generate the local-orbital radial functions
+      Call genlofr
+      
 !     Tranform xc potential to reciprocal space
       call genvxcig
 
@@ -118,7 +139,7 @@
       avec(:,1)=input%structure%crystal%basevect(:,1)
       avec(:,2)=input%structure%crystal%basevect(:,2)
       avec(:,3)=input%structure%crystal%basevect(:,3)
-      
+
 !     reciprocal lattice basis lengths
       do i=1,3
          alat(i)=dsqrt(avec(1,i)*avec(1,i)+ &
@@ -140,9 +161,12 @@
 
 !     Calculate the overlap between two PW 
 !     In exciting there is the same quantity: conjg(cfunig(:)) = ipwint(:)
-!     But beed to be checked!!!
+!     (still need to be checked!!!)
       call intipw
 
+!     Generate the frequency mesh and integration weights.
+      call init_freq
+
       return
-      end subroutine initgw
+      end subroutine
 !EOC

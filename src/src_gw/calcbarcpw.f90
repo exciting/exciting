@@ -57,7 +57,7 @@
       if(t2.lt.0.0d0)write(fgw,*)'warning, t2 < 0'
       
       ipin=1
-      if(iq.eq.1)ipin=2
+      if (Gamma) ipin=2
       
       do ipw=ipin,ngbarc(iq)
 !

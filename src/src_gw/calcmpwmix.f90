@@ -81,7 +81,7 @@
       
       qvec(1:3)=vqc(1:3,iq) 
       
-      if(iq.eq.1)then
+      if (Gamma) then
         mpwmix(1:matsiz,1)=wi0(1:matsiz)
         ipin=2
       else

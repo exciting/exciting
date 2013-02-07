@@ -213,17 +213,13 @@ Subroutine gndstate
          Call timesec (ts0)
      ! generate the core wavefunctions and densities
          Call gencore
-         Select Case (trim(input%groundstate%findlinentype))
-         Case ('simple')
-         Case ('advanced')
-            If (rank .Eq. 0) Then
-               Write (60,*)
-               Write (60, '("Using advanced method for search of linear&
-              &ization energies")')
-            End If
-         End Select
      ! find the new linearisation energies
-         Call linengy(iscl)
+         If (rank .Eq. 0) Then
+           Write (60,*)
+           Write (60,*) 'Linearization energies are searched using the "', &
+          & trim(input%groundstate%findlinentype), '" method'
+         End If
+         Call linengy
      ! write out the linearisation energies
          if (rank .eq. 0) Call writelinen
      ! generate the APW radial functions
@@ -282,7 +278,7 @@ Subroutine gndstate
             Call putevecfv (ik, evecfv)
             Call putevecsv (ik, evecsv)
         ! calculate partial charges
-            call genpchgs(ik,evecfv,evecsv)
+            !call genpchgs(ik,evecfv,evecsv)
             Deallocate (evalfv, evecfv, evecsv)
          End Do
 #ifdef KSMP
@@ -360,7 +356,7 @@ Subroutine gndstate
 #endif
             If (rank .Eq. 0) Then
         ! write out partial charges
-               call writepchgs(69,input%groundstate%lmaxvr)
+               !call writepchgs(69,input%groundstate%lmaxvr)
                call flushifc(69)
             end if
 

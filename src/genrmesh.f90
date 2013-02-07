@@ -13,7 +13,8 @@
 Subroutine genrmesh
 ! !USES:
       Use modinput
-      Use modmain
+      Use mod_atoms
+      Use mod_muffin_tin
 ! !DESCRIPTION:
 !   Generates the coarse and fine radial meshes for each atomic species in the
 !   crystal. Also determines which points are in the inner part of the

@@ -10,7 +10,7 @@
 ! !INTERFACE:
 !
 !
-Subroutine genpmatxscor(ikp,pmatc)
+Subroutine genpmatxscor(ik,ngp,apwalm,evecfv,evecsv,pmatc)
 ! !USES:
 
       Use modinput
@@ -41,12 +41,15 @@ Subroutine genpmatxscor(ikp,pmatc)
 !BOC
       Implicit None
 !     arguments
-      Integer, Intent (In) :: ikp
-      Complex(8), Intent (Out) :: pmatc(3,nstsv,nclm,natmtot)
-
+      integer, intent(in)     :: ik
+      integer, intent(in)     :: ngp
+      complex(8), intent(in)  :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
+      complex(8), intent(in)  :: evecfv(nmatmax,nstfv)
+      complex(8), intent(in)  :: evecsv(nstsv,nstsv)
+      complex(8), intent(out) :: pmatc(3,ncg,nstsv)
 !     local variables
       Integer :: is, ia, ias, ist, j
-      Integer :: l1, m1, lm1, l3, m3, lm3, io, icor
+      Integer :: l1, m1, lm1, l3, m3, lm3, io, icor, icg
       
       real(8)    :: arg
       complex(8) :: phs
@@ -60,6 +63,7 @@ Subroutine genpmatxscor(ikp,pmatc)
       allocate(pmvc(nstsv,nclm,3))
 
 !     loop over species and atoms
+      icg = 0
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
             ias = idxas(ia, is)
@@ -125,9 +129,9 @@ Subroutine genpmatxscor(ikp,pmatc)
            pmcv(:,:,:) = -zi*pmcv(:,:,:)
            
            ! add the core wavefunction phases
-           arg = atposl(1,ia,is)*vkl(1,ikp)+ &
-                 atposl(2,ia,is)*vkl(2,ikp)+ &
-                 atposl(3,ia,is)*vkl(3,ikp)
+           arg = atposl(1,ia,is)*vkl(1,ik)+ &
+                 atposl(2,ia,is)*vkl(2,ik)+ &
+                 atposl(3,ia,is)*vkl(3,ik)
            
            phs = cmplx(cos(2.0d0*pi*arg),sin(2.0d0*pi*arg),8)
            pmvc(:,:,:) = pmvc(:,:,:)*phs
@@ -136,23 +140,20 @@ Subroutine genpmatxscor(ikp,pmatc)
            pmcv(:,:,:) = pmcv(:,:,:)*phs
            
            ! the output array
-           if(lhermit)then
+           do icor = 1, ncore(is)
+             icg = icg+1 ! counter over total amount of core states
 
-             do ist = 1, nstfv
-               do icor = 1, ncore(is)
-                 pmatc(1,ist,icor,ias) = 0.5d0*(pmcv(ist,icor,1)+conjg(pmvc(ist,icor,1)))
-                 pmatc(2,ist,icor,ias) = 0.5d0*(pmcv(ist,icor,2)+conjg(pmvc(ist,icor,2)))
-                 pmatc(3,ist,icor,ias) = 0.5d0*(pmcv(ist,icor,3)+conjg(pmvc(ist,icor,3)))
-               end do
-             end do
+             if(lhermit)then
+               pmatc(1,icg,:) = 0.5d0*(pmcv(:,icor,1)+conjg(pmvc(:,icor,1)))
+               pmatc(2,icg,:) = 0.5d0*(pmcv(:,icor,2)+conjg(pmvc(:,icor,2)))
+               pmatc(3,icg,:) = 0.5d0*(pmcv(:,icor,3)+conjg(pmvc(:,icor,3)))
+             else           
+               pmatc(1,icg,:) = pmcv(:,icor,1)
+               pmatc(2,icg,:) = pmcv(:,icor,2)
+               pmatc(3,icg,:) = pmcv(:,icor,3)
+             end if
            
-           else           
-
-             do j = 1, 3           
-                pmatc(j,:,:,ias) = pmcv(:,:,j)
-             end do
-
-           end if
+           end do ! icor
 
         ! end loop over atoms and species
          End Do

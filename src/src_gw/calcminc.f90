@@ -108,7 +108,7 @@
 !BOC
 !
 !     ---------------------------------------------------
-!      n => core state, n' => Valence or conduction state
+!      n => Valence or conduction state, n' => core state
 !     ---------------------------------------------------
 
       call cpu_time(tstart)
@@ -136,13 +136,12 @@
 
 !       reset istlms if it is a new atom 
         if(ias.ne.ias0)then
-          l1m1=0
           ias0=ias
         endif  
         icore=corind(icg,3)
         l1=corind(icg,4)
         m1=corind(icg,5)
-        l1m1=l1m1+1
+        l1m1=idxlm(l1,m1)
 !
 !       Loop over APW states
 !
@@ -153,30 +152,34 @@
           imix=0
           do irm = 1, nmix(ias)
             bl=bigl(ias,irm)
+            
             do bm=-bl,bl
               imix=imix+1
               im=locmixind(ias,imix)
               
               l2min=iabs(bl-l1)
               l2max=min(bl+l1,input%groundstate%lmaxapw)
+              
               suml2m2 = zzero
-
               do l2=l2min,l2max
+                
                 m2=bm+m1
+                
                 if(iabs(m2).le.l2)then
-                  l2m2=l2*l2+l2+m2+1
-                  
+                  l2m2=idxlm(l2,m2)
+
                   ! Gaunt coefficient
-                  !angint=getcgcoef(l2,bl,l1,m2,bm) ! original
-                  angint=gaunt(l2,l1,bl,m2,m1,bm)
+                  angint=gaunt(l2,l1,bl,m2,m1,bm) 
                   
                   if(abs(angint).gt.1.0d-8)then
+                    
                     apwterm=zzero
                     do io2=1,apword(l2,is)
                       apwterm = apwterm + &
      &                          bradketc(ias,irm,icore,l2,io2,2)*  &
      &                          eveckalm(ist,io2,l2m2,ias,1)
                     enddo
+                  
                     loterm=zzero
                     do ilo2=1,nlorb(is)
                       if(lorbl(ilo2,is).eq.l2)then
@@ -186,8 +189,10 @@
      &                           eveck(igk2,ist,1)
                       endif
                     enddo  
+                  
                     sumterms = apwterm + loterm
                     suml2m2 = suml2m2 + angint * sumterms
+                  
                   endif
                 endif  
               enddo ! l2

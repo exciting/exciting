@@ -4,11 +4,11 @@ subroutine checkmbrot(iq)
     use modgw
     
     implicit none
-    integer :: iq, iqp
-    integer :: recl
-    integer :: ik, ikp
-    integer :: isym, i
-    integer :: ist, jst, ijst, icg, dimtk
+    integer(4) :: iq, iqp
+    integer(8) :: Recl
+    integer(4) :: ik, ikp
+    integer(4) :: isym, i
+    integer(4) :: ist, jst, ijst, icg, dimtk
     
     complex(8), allocatable :: mmatk(:,:), mmatkp(:,:), rmmat(:,:), tmat(:,:)
     complex(8), allocatable :: m2k(:,:), m2r(:,:), m2tot(:,:)
@@ -17,229 +17,14 @@ subroutine checkmbrot(iq)
     
     ! irreducible q-point index
     iqp=indkpq(iq,1)
-    
-    if (wcore) then
-      
-!--------------------------------------------
-!   Check core-valence M^i_{cm} rotation
-!--------------------------------------------
-
-      recl=16*(locmatsiz*ncg*nstfv)
-      open(40,file='micmmat.io',action='READ',form='UNFORMATTED', &
-   &       access='DIRECT',recl=recl)
-
-      if(allocated(micmmat))deallocate(micmmat)
-      allocate(micmmat(locmatsiz,ncg,nstfv))
-    
-      dimtk=(nstfv-minunoband+1)*ncg
-      allocate(mmatk(1:locmatsiz,1:dimtk))
-      allocate(mmatkp(1:locmatsiz,1:dimtk))
-      allocate(rmmat(1:locmatsiz,1:dimtk))
-      allocate(m2k(1:locmatsiz,1:locmatsiz))
-      allocate(m2r(1:locmatsiz,1:locmatsiz))
-      mmatk=zzero
-      mmatkp=zzero
-      rmmat=zzero
-      m2k=zzero
-      m2r=zzero
-      
-      open(31,file='rotmicm1.dat')
-      write(31,*)'***** Mi_cm *****'
-      open(32,file='rotmicm2.dat')
-      write(32,*)'***** Mi_cm^2 *****'
-      
-      do ik = 1, nkptnr
-!
-!       Read the matrix elements M^i_{cm}
-!
-        read(40,rec=ik) micmmat
-
-        ijst=0
-        do jst = minunoband, nstfv
-          do icg = 1, ncg
-            ijst=ijst+1
-            mmatk(1:locmatsiz,ijst)=micmmat(1:locmatsiz,icg,jst)
-          enddo ! icg
-        enddo ! jst
-
-        ikp=idikpq(indkpq(ik,iqp),iqp)
-        read(40,rec=ikp) micmmat
-
-        ijst=0
-        do jst = minunoband, nstfv
-          do icg = 1, ncg
-            ijst=ijst+1
-            mmatkp(1:locmatsiz,ijst)=micmmat(1:locmatsiz,icg,jst)
-          enddo ! icg
-        enddo ! jst
-!
-!       Get the matrix elements M^i_{cm} by symmetry
-!
-        isym=iksymq(ik,iqp)
-!
-!       Generate the MB rotation matrices according to the group symmetry operations
-!
-        call genmbrotmat(iq,isym)
-
-!       Rotate M^i_{cm}
-        call zgemm('n','n',locmatsiz,ijst,locmatsiz, &
-       &     zone,rotmat(1:locmatsiz,1:locmatsiz),locmatsiz,mmatkp,locmatsiz,zzero,rmmat,locmatsiz)
-
-        call boxmsg(31,'#','New K-point')
-        write(31,*)
-        write(31,*) 'ik = ', ik
-        do jst = 1, ijst, 10
-          do ist = 1, locmatsiz
-            word="MT"
-            write(31,'(a,2i5,6f12.6)') word, ist, jst, mmatk(ist,jst), rmmat(ist,jst), abs(mmatk(ist,jst)-rmmat(ist,jst))
-          end do
-        end do
-        write(31,*)
-
-!       calculate \sum_{nm} M^{i}_{nm} \times M^{j}_{nm}^{*} 
-        call zgemm('n','c',locmatsiz,locmatsiz,ijst,zone,mmatk,locmatsiz,   &
-       &            mmatk,locmatsiz,zzero,m2k,locmatsiz)
-        
-        call zgemm('n','c',locmatsiz,locmatsiz,ijst,zone,rmmat,locmatsiz,   &
-       &            rmmat,locmatsiz,zzero,m2r,locmatsiz)
-
-        call boxmsg(32,'#','New K-point')
-        write(32,*)
-        write(32,*) 'ik = ', ik
-        do jst = 1, locmatsiz, 10
-          do ist = 1, locmatsiz
-            word="MT"
-            write(32,'(a,2i5,6f12.6)') word, ist, jst, m2k(ist,jst), m2r(ist,jst), abs(m2k(ist,jst)-m2r(ist,jst))
-          end do
-        end do
-        write(32,*)
-
-      end do ! ik
-      deallocate(mmatk)
-      deallocate(mmatkp)
-      deallocate(rmmat) 
-      deallocate(m2k,m2r)
-      
-      close(31)
-      close(32)
-      
-      deallocate(micmmat)
-      close(40)
-      
-!--------------------------------------------
-!   Check core-valence M^i_{nc} rotation
-!--------------------------------------------
-      recl=16*(locmatsiz*nstfv*ncg)
-      open(39,file='mincmat.io',action='READ',form='UNFORMATTED', &
-   &       access='DIRECT',recl=recl)
-
-      if(allocated(mincmat))deallocate(mincmat)
-      allocate(mincmat(locmatsiz,nstfv,ncg))
-    
-      dimtk=(nstfv-minunoband+1)*ncg
-      allocate(mmatk(1:locmatsiz,1:dimtk))
-      allocate(mmatkp(1:locmatsiz,1:dimtk))
-      allocate(rmmat(1:locmatsiz,1:dimtk))
-      allocate(m2k(1:locmatsiz,1:locmatsiz))
-      allocate(m2r(1:locmatsiz,1:locmatsiz))
-      mmatk=zzero
-      mmatkp=zzero
-      rmmat=zzero
-      m2k=zzero
-      m2r=zzero
-      
-      open(31,file='rotminc1.dat')
-      write(31,*)'***** Mi_nc *****'
-      open(32,file='rotminc2.dat')
-      write(32,*)'***** Mi_nc^2 *****'
-      
-      do ik = 1, nkptnr
-!
-!       Read the matrix elements M^i_{nc}
-!
-        read(39,rec=ik) mincmat
-
-        ijst=0
-        do ist = minunoband, nstfv
-          do icg = 1, ncg
-            ijst=ijst+1
-            mmatk(1:locmatsiz,ijst)=mincmat(1:locmatsiz,ist,icg)
-          enddo ! icg
-        enddo ! jst
-
-        ikp=idikpq(indkpq(ik,iqp),iqp)
-        read(39,rec=ikp) mincmat
-
-        ijst=0
-        do ist = minunoband, nstfv
-          do icg = 1, ncg
-            ijst=ijst+1
-            mmatkp(1:locmatsiz,ijst)=mincmat(1:locmatsiz,ist,icg)
-          enddo ! icg
-        enddo ! jst
-!
-!       Get the matrix elements M^i_{cm} by symmetry
-!
-        isym=iksymq(ik,iqp)
-!
-!       Generate the MB rotation matrices according to the group symmetry operations
-!
-        call genmbrotmat(iq,isym)
-
-!       Rotate M^i_{cm}
-        call zgemm('n','n',locmatsiz,ijst,locmatsiz, &
-       &     zone,rotmat(1:locmatsiz,1:locmatsiz),locmatsiz,mmatkp,locmatsiz,zzero,rmmat,locmatsiz)
-
-        call boxmsg(31,'#','New K-point')
-        write(31,*)
-        write(31,*) 'ik = ', ik
-        do jst = 1, ijst, 10
-          do ist = 1, locmatsiz
-            word="MT"
-            write(31,'(a,2i5,6f12.6)') word, ist, jst, mmatk(ist,jst), rmmat(ist,jst), abs(mmatk(ist,jst)-rmmat(ist,jst))
-          end do
-        end do
-        write(31,*)
-
-!       calculate \sum_{nm} M^{i}_{nm} \times M^{j}_{nm}^{*} 
-        call zgemm('n','c',locmatsiz,locmatsiz,ijst,zone,mmatk,locmatsiz,   &
-       &            mmatk,locmatsiz,zzero,m2k,locmatsiz)
-        
-        call zgemm('n','c',locmatsiz,locmatsiz,ijst,zone,rmmat,locmatsiz,   &
-       &            rmmat,locmatsiz,zzero,m2r,locmatsiz)
-
-        call boxmsg(32,'#','New K-point')
-        write(32,*)
-        write(32,*) 'ik = ', ik
-        do jst = 1, locmatsiz, 10
-          do ist = 1, locmatsiz
-            word="MT"
-            write(32,'(a,2i5,6f12.6)') word, ist, jst, m2k(ist,jst), m2r(ist,jst), abs(m2k(ist,jst)-m2r(ist,jst))
-          end do
-        end do
-        write(32,*)
-
-      end do ! ik
-      deallocate(mmatk)
-      deallocate(mmatkp)
-      deallocate(rmmat) 
-      deallocate(m2k,m2r)
-      
-      close(31)
-      close(32)
-
-      deallocate(mincmat)
-      close(39)
-    
-    end if ! wcore
 
 !--------------------------------------------
 !   Check valence-valence M^i_{nm} rotation
 !--------------------------------------------
 
-    recl=16*(matsiz*nstfv*nstsv)
+    inquire(IoLength=Recl) minmmat
     open(41,file='minmmat.io',action='READ',form='UNFORMATTED', &
-   &     access='DIRECT',recl=recl)
+   &     access='DIRECT',recl=Recl)
 
     if(allocated(minmmat))deallocate(minmmat)
     allocate(minmmat(matsiz,nstfv,nstfv))
@@ -277,7 +62,7 @@ subroutine checkmbrot(iq)
           enddo ! jst
       enddo ! ist
 
-      ikp = idikpq(indkpq(ik,iqp),iqp)
+      ikp=idikpq(indkpq(ik,iqp),iqp)
       read(41,rec=ikp) minmmat
       
       ijst=0
@@ -288,7 +73,7 @@ subroutine checkmbrot(iq)
           enddo ! jst
       enddo ! ist
 !
-!     Get the matrix elements M^i_{cm} by symmetry
+!     Get the matrix elements M^i_{nm} by symmetry
 !
       isym=iksymq(ik,iqp)
 !
@@ -396,6 +181,222 @@ subroutine checkmbrot(iq)
     
     deallocate(minmmat)
     close(41)
+
+    if (iopcore.eq.0) then
+      
+!--------------------------------------------
+!   Check core-valence M^i_{cm} rotation
+!--------------------------------------------
+
+      inquire(IoLength=Recl) micmmat
+      open(40,file='micmmat.io',action='READ',form='UNFORMATTED', &
+   &       access='DIRECT',recl=Recl)
+
+      if(allocated(micmmat))deallocate(micmmat)
+      allocate(micmmat(locmatsiz,ncg,nstfv))
+    
+      dimtk=(nstfv-minunoband+1)*ncg
+      allocate(mmatk(1:locmatsiz,1:dimtk))
+      allocate(mmatkp(1:locmatsiz,1:dimtk))
+      allocate(rmmat(1:locmatsiz,1:dimtk))
+      allocate(m2k(1:locmatsiz,1:locmatsiz))
+      allocate(m2r(1:locmatsiz,1:locmatsiz))
+      mmatk=zzero
+      mmatkp=zzero
+      rmmat=zzero
+      m2k=zzero
+      m2r=zzero
+      
+      open(31,file='rotmicm1.dat')
+      write(31,*)'***** Mi_cm *****'
+      open(32,file='rotmicm2.dat')
+      write(32,*)'***** Mi_cm^2 *****'
+      
+      do ik = 1, nkptnr
+!
+!       Read the matrix elements M^i_{cm}
+!
+        read(40,rec=ik) micmmat
+
+        ijst=0
+        do jst = minunoband, nstfv
+          do icg = 1, ncg
+            ijst=ijst+1
+            mmatk(1:locmatsiz,ijst)=micmmat(1:locmatsiz,icg,jst)
+          enddo ! icg
+        enddo ! jst
+
+        ikp=idikpq(indkpq(ik,iqp),iqp)
+        read(40,rec=ikp) micmmat
+
+        ijst=0
+        do jst = minunoband, nstfv
+          do icg = 1, ncg
+            ijst=ijst+1
+            mmatkp(1:locmatsiz,ijst)=micmmat(1:locmatsiz,icg,jst)
+          enddo ! icg
+        enddo ! jst
+!
+!       Get the matrix elements M^i_{cm} by symmetry
+!
+        isym=iksymq(ik,iqp)
+!
+!       Generate the MB rotation matrices according to the group symmetry operations
+!
+        call genmbrotmat(iq,isym)
+
+!       Rotate M^i_{cm}
+        call zgemm('n','n',locmatsiz,ijst,locmatsiz, &
+       &     zone,rotmat(1:locmatsiz,1:locmatsiz),locmatsiz,mmatkp,locmatsiz,zzero,rmmat,locmatsiz)
+
+        call boxmsg(31,'#','New K-point')
+        write(31,*)
+        write(31,*) 'ik = ', ik
+        do jst = 1, ijst, 10
+          do ist = 1, locmatsiz
+            word="MT"
+            write(31,'(a,2i5,6f12.6)') word, ist, jst, mmatk(ist,jst), rmmat(ist,jst), abs(mmatk(ist,jst)-rmmat(ist,jst))
+          end do
+        end do
+        write(31,*)
+
+!       calculate \sum_{nm} M^{i}_{nm} \times M^{j}_{nm}^{*} 
+        call zgemm('n','c',locmatsiz,locmatsiz,ijst,zone,mmatk,locmatsiz,   &
+       &            mmatk,locmatsiz,zzero,m2k,locmatsiz)
+        
+        call zgemm('n','c',locmatsiz,locmatsiz,ijst,zone,rmmat,locmatsiz,   &
+       &            rmmat,locmatsiz,zzero,m2r,locmatsiz)
+
+        call boxmsg(32,'#','New K-point')
+        write(32,*)
+        write(32,*) 'ik = ', ik
+        do jst = 1, locmatsiz, 10
+          do ist = 1, locmatsiz
+            word="MT"
+            write(32,'(a,2i5,6f12.6)') word, ist, jst, m2k(ist,jst), m2r(ist,jst), abs(m2k(ist,jst)-m2r(ist,jst))
+          end do
+        end do
+        write(32,*)
+
+      end do ! ik
+      deallocate(mmatk)
+      deallocate(mmatkp)
+      deallocate(rmmat) 
+      deallocate(m2k,m2r)
+      
+      close(31)
+      close(32)
+      
+      deallocate(micmmat)
+      close(40)
+      
+!--------------------------------------------
+!   Check core-valence M^i_{nc} rotation
+!--------------------------------------------
+
+      inquire(IoLength=Recl) mincmat
+      open(39,file='mincmat.io',action='READ',form='UNFORMATTED', &
+   &       access='DIRECT',recl=Recl)
+
+      if(allocated(mincmat))deallocate(mincmat)
+      allocate(mincmat(locmatsiz,nstfv,ncg))
+    
+      dimtk=(nstfv-minunoband+1)*ncg
+      allocate(mmatk(1:locmatsiz,1:dimtk))
+      allocate(mmatkp(1:locmatsiz,1:dimtk))
+      allocate(rmmat(1:locmatsiz,1:dimtk))
+      allocate(m2k(1:locmatsiz,1:locmatsiz))
+      allocate(m2r(1:locmatsiz,1:locmatsiz))
+      mmatk=zzero
+      mmatkp=zzero
+      rmmat=zzero
+      m2k=zzero
+      m2r=zzero
+      
+      open(31,file='rotminc1.dat')
+      write(31,*)'***** Mi_nc *****'
+      open(32,file='rotminc2.dat')
+      write(32,*)'***** Mi_nc^2 *****'
+      
+      do ik = 1, nkptnr
+!
+!       Read the matrix elements M^i_{nc}
+!
+        read(39,rec=ik) mincmat
+
+        ijst=0
+        do ist = minunoband, nstfv
+          do icg = 1, ncg
+            ijst=ijst+1
+            mmatk(1:locmatsiz,ijst)=mincmat(1:locmatsiz,ist,icg)
+          enddo ! icg
+        enddo ! jst
+
+        ikp=idikpq(indkpq(ik,iqp),iqp)
+        read(39,rec=ikp) mincmat
+
+        ijst=0
+        do ist = minunoband, nstfv
+          do icg = 1, ncg
+            ijst=ijst+1
+            mmatkp(1:locmatsiz,ijst)=mincmat(1:locmatsiz,ist,icg)
+          enddo ! icg
+        enddo ! jst
+!
+!       Get the matrix elements M^i_{cm} by symmetry
+!
+        isym=iksymq(ik,iqp)
+!
+!       Generate the MB rotation matrices according to the group symmetry operations
+!
+        call genmbrotmat(iq,isym)
+
+!       Rotate M^i_{cm}
+        call zgemm('n','n',locmatsiz,ijst,locmatsiz, &
+       &     zone,rotmat(1:locmatsiz,1:locmatsiz),locmatsiz,mmatkp,locmatsiz,zzero,rmmat,locmatsiz)
+
+        call boxmsg(31,'#','New K-point')
+        write(31,*)
+        write(31,*) 'ik = ', ik
+        do jst = 1, ijst, 10
+          do ist = 1, locmatsiz
+            word="MT"
+            write(31,'(a,2i5,6f12.6)') word, ist, jst, mmatk(ist,jst), rmmat(ist,jst), abs(mmatk(ist,jst)-rmmat(ist,jst))
+          end do
+        end do
+        write(31,*)
+
+!       calculate \sum_{nm} M^{i}_{nm} \times M^{j}_{nm}^{*} 
+        call zgemm('n','c',locmatsiz,locmatsiz,ijst,zone,mmatk,locmatsiz,   &
+       &            mmatk,locmatsiz,zzero,m2k,locmatsiz)
+        
+        call zgemm('n','c',locmatsiz,locmatsiz,ijst,zone,rmmat,locmatsiz,   &
+       &            rmmat,locmatsiz,zzero,m2r,locmatsiz)
+
+        call boxmsg(32,'#','New K-point')
+        write(32,*)
+        write(32,*) 'ik = ', ik
+        do jst = 1, locmatsiz, 10
+          do ist = 1, locmatsiz
+            word="MT"
+            write(32,'(a,2i5,6f12.6)') word, ist, jst, m2k(ist,jst), m2r(ist,jst), abs(m2k(ist,jst)-m2r(ist,jst))
+          end do
+        end do
+        write(32,*)
+
+      end do ! ik
+      deallocate(mmatk)
+      deallocate(mmatkp)
+      deallocate(rmmat) 
+      deallocate(m2k,m2r)
+      
+      close(31)
+      close(32)
+
+      deallocate(mincmat)
+      close(39)
+    
+    end if ! core
     
     return
 end subroutine

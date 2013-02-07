@@ -61,7 +61,7 @@
       call cpu_time(tstart)
 
       allocate(pmat(3,nstsv,nstsv))
-      if(wcore)then
+      if(iopcore.eq.0)then
         allocate(pmatc(3,ncg,nstsv))
       end if 
 !
@@ -77,7 +77,7 @@
       do ikp = 1, nkpt
       
         ik=idikp(ikp)
-        coef=zone*wkir(ikp)*sfact*cpivi
+        coef=zone*iwkp(ikp)*sfact*cpivi
         
 !---------------------------------          
 !       Valence-valence
@@ -121,10 +121,10 @@
           enddo 
         endif 
         
-        if(wcore)then
 !---------------------------------
 !         core-valence
 !---------------------------------
+        if(iopcore.eq.0)then
  
           read(51,rec=ikp) pmatc
 
@@ -151,13 +151,13 @@
             end do
           enddo ! icg
        
-        endif ! wcore 
+        endif ! iopcore.eq.0
 
       enddo ! ikp
 
       deallocate(fnm,pnm)
       deallocate(pmat)
-      if(wcore)then
+      if(iopcore.eq.0)then
         deallocate(pmatc)
       end if
 !      

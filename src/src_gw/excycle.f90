@@ -72,12 +72,8 @@
 !          Calculate the bare coulomb matrix
 !
            call calcbarcmb(iq)
-
-           if( barcevtol.gt.0.d0) then
-             write(6,'(a,f8.4)')" -Use reduced basis: barcevtol=",&
-          &                        barcevtol 
-           endif
-           call setbarcev(iq,barcevtol)
+!
+           call setbarcev(barcevtol)
 !        
 !          Calculate the Minm(k,q) matrix elements for given k and q
 !        
@@ -97,12 +93,8 @@
       end do ! ikp
       
       deallocate(minmmat)
-      if(wcore)deallocate(mincmat)
+      if(iopcore.eq.0)deallocate(mincmat)
       close(96)
-!
-!     Write the exchange term to file
-!      
-      call writeselfx
 !
 !     Calculate the diagonal matrix elements of the DFT exchange-correlation potential
 !

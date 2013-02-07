@@ -105,13 +105,18 @@ Subroutine bse
   ! allocatable arrays
       Integer, Allocatable :: sor (:)
       Real (8), Allocatable :: beval (:), w (:), oszsa (:), loss(:), &
-     & docc(:,:), kdocc (:)
+     & docc(:,:), kdocc (:), eval0(:,:)
       Complex (8), Allocatable :: excli (:, :, :, :), sccli (:, :, :, &
      & :), ham (:, :)
       Complex (8), Allocatable :: bevec (:, :), pm (:, :, :), pmat (:), &
      & oszs (:), spectr (:), sigma(:), buf(:,:,:)
   ! external functions
       Integer, External :: l2int
+
+      integer :: Recl, nstsv_
+      real(8) :: vkl_(3)
+      
+      
   ! routine not yet parallelized
   if (rank .ne. 0) goto 10
   !---------------------------!
@@ -188,10 +193,27 @@ Subroutine bse
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
       Allocate (ham(hamsiz, hamsiz))
       ham (:, :) = zzero
-  ! read in energies
+
+  ! read KS energies
       Do iknr = 1, nkptnr
-         Call getevalsv (vkl(1, iknr), evalsv(1, iknr))
+        Call getevalsv (vkl(1, iknr), evalsv(1, iknr))
       End Do
+
+      if (associated(input%gw)) then
+        
+        ! to KS eigenvalues to use them later for renormalizing PMAT
+        allocate(eval0(nstsv,nkptnr))
+        eval0(:,:)=evalsv(:,:)
+        
+        ! if scissor correction is presented, one should nullify it
+        input%xs%scissor=0.0d0
+        
+        ! Read QP Fermi energies and eigenvalues from file
+        call getevalqp(nkptnr)
+        Write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
+
+      end if ! GW
+
   ! read mean value of diagonal of direct term
       bsed = 0.d0
       If ((trim(input%xs%bse%bsetype) .Eq. 'singlet') .Or. &
@@ -252,7 +274,7 @@ Subroutine bse
                        & nrnst3)
                         s2 = hamidx (ist2-nsta1+1, ist4-nsta2+1, jknr, nrnst2, &
                        & nrnst4)
-					    kdocc (s1) = docc (ist1-nsta1+1, ist3-nsta2+1)
+			kdocc (s1) = docc (ist1-nsta1+1, ist3-nsta2+1)
                      ! add diagonal term
                         If (s1 .Eq. s2) Then
                            de = evalsv (ist3+istl3-1, iknr) - evalsv &
@@ -261,21 +283,21 @@ Subroutine bse
                           & bsed
                         End If
                     ! write partially occupied states in the output    
-						If (kdocc (s1) .Gt. input%groundstate%epsocc .And. kdocc (s1) &
-						  .Lt. 2.d0-input%groundstate%epsocc) Then
-							Write (*,*) 'kdocc s1', kdocc(s1), s1
-						End If
+			If (kdocc (s1) .Gt. input%groundstate%epsocc .And. kdocc (s1) &
+			  .Lt. 2.d0-input%groundstate%epsocc) Then
+			   Write (*,*) 'kdocc s1', kdocc(s1), s1
+			End If
                     ! add exchange term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('RPA', 'singlet')
-                        ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
+                           ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
                            & (ist1-nsta1+1, ist3-nsta2+1, ist2-nsta1+1, ist4-nsta2+1) * &
                            & kdocc (s1) * 0.5
                         End Select
                     ! add correlation term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('singlet', 'triplet')
-                        ham (s1, s2) = ham (s1, s2) - sccli (ist1-nsta1+1, &
+                           ham (s1, s2) = ham (s1, s2) - sccli (ist1-nsta1+1, &
                            & ist3-nsta2+1, ist2-nsta1+1, ist4-nsta2+1) * kdocc (s1) * 0.5
                         End Select
                      End Do
@@ -325,13 +347,20 @@ Subroutine bse
      ! read momentum matrix elements
          Allocate (pm(3, nstsv, nstsv))
          Do iknr = 1, nkptnr
-            Call getpmat (iknr, vkl, 1, nstsv, 1, nstsv, .True., 'PMAT_XS.OUT',&
-            & pm)
+            Call getpmat (iknr, vkl, 1, nstsv, 1, nstsv, .True., &
+           & 'PMAT_XS.OUT', pm)
             Do ist1 = nsta1, nsto1
                Do ist2 = istl3 + nsta2 - 1, istl3 + nsto2 - 1
+! DIN: Renormalize pm according to DelSole PRB48, 11789 (1993)
+                  if (associated(input%gw)) then
+                     pm(1:3,ist1,ist2)=pm(1:3,ist1,ist2)  * &
+                    &  (evalsv(ist2,iknr)-evalsv(ist1,iknr)) / &
+                    &   (eval0(ist2,iknr)- eval0(ist1,iknr))
+                  end if 
+! DIN
                   s1 = hamidx (ist1-nsta1+1, ist2-istl3-nsta2+2,&
                  & iknr, nrnst1, nrnst3)              
-                  	pmat (s1) = pm (oct, ist1, ist2)
+                  pmat (s1) = pm (oct, ist1, ist2)
                End Do
             End Do
          End Do
@@ -429,6 +458,7 @@ Subroutine bse
          Call writesumrls (iq, sumrls, trim(fnsumrules))
       end do
       deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
+      if (associated(input%gw)) deallocate(eval0)
 10 continue
       call barrier      
 Contains

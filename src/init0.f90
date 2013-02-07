@@ -197,6 +197,7 @@ Subroutine init0
       Else
          ndmag = 0
       End If
+      
 ! set the non-collinear flag
       If (ndmag .Eq. 3) Then
          ncmag = .True.

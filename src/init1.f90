@@ -37,6 +37,8 @@ Subroutine init1
       Integer :: n1, n2, n3
       Real (8) :: vl (3), vc (3), boxl (3, 4), lambda
       Real (8) :: ts0, ts1
+      real (8) :: vl1(3),vl2(3),vc1(3),vc2(3)
+      real (8) :: d1,d2,d12,t1,t2
       Real (8) :: blen(3), lambdab
       integer(4) :: nsym, isym, lspl
       integer(4), allocatable :: symmat(:,:,:)
@@ -50,17 +52,34 @@ Subroutine init1
 !---------------------!
 !     k-point set     !
 !---------------------!
+
 ! check if the system is an isolated molecule
       If (input%structure%molecule) Then
          input%groundstate%ngridk (:) = 1
          input%groundstate%vkloff (:) = 0.d0
          input%groundstate%autokpt = .False.
       End If
-! k-point set and box for Fermi surface plots
-      If ((task .Eq. 100) .Or. (task .Eq. 101)) Then
-         input%groundstate%ngridk (:) = np3d (:)
-         boxl (:, :) = vclp3d (:, :)
+
+      If (task.Eq.100) Then
+!
+!     3D fermisurface plot
+!
+        if (associated(input%properties%fermisurfaceplot%plot3d)) then
+          np3d(:) = input%properties%fermisurfaceplot%plot3d%box%grid(:)
+          vclp3d(:,1) = input%properties%fermisurfaceplot%plot3d%box%origin%coord(:)
+          vclp3d(:,2) = input%properties%fermisurfaceplot%plot3d%box%pointarray(1)%point%coord(:)
+          vclp3d(:,3) = input%properties%fermisurfaceplot%plot3d%box%pointarray(2)%point%coord(:)
+          vclp3d(:,4) = input%properties%fermisurfaceplot%plot3d%box%pointarray(3)%point%coord(:)         
+        else
+          np3d(:)=(/10,10,10/)
+          vclp3d(:,1)=(/0.d0,0.d0,0.d0/)
+          vclp3d(:,2)=(/1.d0,0.d0,0.d0/)
+          vclp3d(:,3)=(/0.d0,1.d0,0.d0/)
+          vclp3d(:,4)=(/0.d0,0.d0,1.d0/)
+        end if
+        input%groundstate%ngridk(:)=np3d(:)
       End If
+
       If ((task .Eq. 20) .Or. (task .Eq. 21)) Then
 ! for band structure plots generate k-points along a line
          nvp1d = size &
@@ -118,6 +137,51 @@ Subroutine init1
                End Do
             End Do
          End Do
+
+      Else If (task .Eq. 101) Then
+!
+!          2D fermisurface plot
+!
+           np2d(:) = input%properties%fermisurfaceplot%plot2d%parallelogram%grid(:)
+           vclp2d(:,1) = input%properties%fermisurfaceplot%plot2d%parallelogram%origin%coord(:)
+           vclp2d(:,2) = input%properties%fermisurfaceplot%plot2d%parallelogram%pointarray(1)%point%coord(:)
+           vclp2d(:,3) = input%properties%fermisurfaceplot%plot2d%parallelogram%pointarray(2)%point%coord(:)
+           ! generate 2D grid of k-points
+           vl1(:) = vclp2d(:,2)-vclp2d(:,1)
+           vl2(:) = vclp2d(:,3)-vclp2d(:,1)    
+           vc1(:) = bvec(:,1)*vl1(1)+bvec(:,2)*vl1(2)+bvec(:,3)*vl1(3)
+           vc2(:) = bvec(:,1)*vl2(1)+bvec(:,2)*vl2(2)+bvec(:,3)*vl2(3)
+           d1 = sqrt(vc1(1)**2+vc1(2)**2+vc1(3)**2)
+           d2 = sqrt(vc2(1)**2+vc2(2)**2+vc2(3)**2)
+           d12 = (vc1(1)*vc2(1)+vc1(2)*vc2(2)+vc1(3)*vc2(3))/(d1*d2)
+           if ( (d1.lt.input%structure%epslat) .or. (d2.lt.input%structure%epslat) ) then
+             write (*,*)
+             write (*, '("Error(fermisurf): zero length plotting vectors")')
+             write (*,*)
+             stop
+           end if
+           if ((1.d0-d12 .Lt. input%structure%epslat) .Or. (1.d0+d12 .Lt. input%structure%epslat)) then
+              write (*,*)
+              write (*, '("Error(fermisurf): zero angle between vectors defining the parallelogram")')
+              write (*,*)
+              stop
+           end if
+           nkpt = np2d(1)*np2d(2)
+           If (allocated(vkl)) deallocate (vkl)
+           Allocate (vkl(3, nkpt))
+           If (allocated(vkc)) deallocate (vkc)
+           Allocate (vkc(3, nkpt))
+           ik = 0
+           Do i1 = 0, np2d(1)-1
+              Do i2 = 0, np2d(2)-1
+                 ik = ik+1
+                 t1 = dble(i1)/dble(np2d(1))
+                 t2 = dble(i2)/dble(np2d(2))
+                 vkl(:,ik) = t1*vl1(:)+t2*vl2(:)+vclp2d(:,1)
+                 Call r3mv(bvec,vkl(:, ik),vkc(:, ik))
+              End Do
+           End Do
+
       Else
 ! determine the k-point grid automatically from radkpt if required
          If (input%groundstate%autokpt) Then

@@ -15,6 +15,7 @@
 !
       use modmain
       use modgw
+      use modmpi
 !
 ! !INPUT PARAMETERS:
 
@@ -51,8 +52,8 @@
       unw=0.0d0
       kcw=0.0d0
       sgw=5-2*fflg
-      allocate(lt(ntet))
-      lt(1:ntet)=linkq(1:ntet,iq)
+      allocate(lt(ntetnr))
+      lt(1:ntetnr)=linkq(1:ntetnr,iq)
 
 !---------------------------------------------------------------------
 !                 core-valence     
@@ -96,7 +97,7 @@
 !
 !                 calculate the convolution weights for the two bands
 !     
-                  call tetcw(nkptnr,ntet,2,wtet,bandpar,tnodes,lt,tvol,        &
+                  call tetcw(nkptnr,ntetnr,2,wtetnr,bandpar,tnodesnr,lt,tvol,        &
      &                       efermi,freqs(iom),1,cwpar)
      
                   do ik=1,nkptnr
@@ -107,7 +108,7 @@
      &                                     edif/(omsq-edsq)
                   enddo  
                   if((testid.eq.7).and.(fflg.eq.2))then
-                    call tetcw(nkptnr,ntet,2,wtet,bandpar,tnodes,lt,tvol,   &
+                    call tetcw(nkptnr,ntetnr,2,wtetnr,bandpar,tnodesnr,lt,tvol,   &
      &                       efermi,freqs(iom),4,cwpar)
                     
                     do ik=1,nkptnr
@@ -136,13 +137,13 @@
          bandpar(1:nstfv,ik)=evaldft(1:nstfv,ikp)
       end do
 
-      lt(1:ntet)=linkq(1:ntet,iq)        
+      lt(1:ntetnr)=linkq(1:ntetnr,iq)
       do iom=1,nomeg
-        call tetcw(nkptnr,ntet,nstfv,wtet,bandpar,tnodes,lt,tvol,efermi,     &
-     &             freqs(iom),fflg,cwpar)
+        call tetcw(nkptnr,ntetnr,nstfv,wtetnr,bandpar,tnodesnr,lt, &
+       &  tvol,efermi,freqs(iom),fflg,cwpar)
         if((testid.eq.7).and.(fflg.eq.2))then
-            call tetcw(nkptnr,ntet,nstfv,wtet,bandpar,tnodes,lt,tvol,efermi, &
-     &                 freqs(iom),4,cwparsurf)
+            call tetcw(nkptnr,ntetnr,nstfv,wtetnr,bandpar,tnodesnr,lt, &
+           &  tvol,efermi,freqs(iom),4,cwparsurf)
         endif
         do ik=1,nkptnr
           do ib=1,nstfv
@@ -172,7 +173,7 @@
 !-------------------------
 !     DEBUG INFORMATION
 !-------------------------
-      if(debug)then
+      if(debug .and. rank.eq.0)then
          if(iq==1)open(74,file='QDEPW.OUT')
          write(74,*)'------------------------------------------------------'
          write(74,*)'       convolution weights for iq =',iq

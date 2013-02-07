@@ -71,7 +71,7 @@
 !      
       qvec(1:3)=vqc(1:3,iq)
       ipwin=1
-      if(iq.eq.1)ipwin=2 
+      if(Gamma)ipwin=2 
 !
 !     Initializations
 !

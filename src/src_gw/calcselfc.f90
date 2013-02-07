@@ -109,7 +109,7 @@
           do ie1 = ibgw, nbgw
             ie12=ie12+1
             mwm(iom,ie1,ie2)=wkpq(iqp,ikp)*zdotc(mbsiz,mmat(:,ie12),1,wm(:,ie12),1)
-            if ((iq.eq.1).and.(ie1.eq.ie2)) then
+            if ((Gamma).and.(ie1.eq.ie2)) then
               mwm(iom,ie1,ie2)=mwm(iom,ie1,ie2) + &
            &    coefs2*head(iom) + &
            &    coefs1*(zdotu(mbsiz,mmat(:,ie12),1,epsw2(:,iom),1) + &
@@ -147,7 +147,7 @@
 
       call cpu_time(tcore)
 
-      if(wcore)then      
+      if(iopcore.eq.0)then      
 
         dimtk=nbandsgw*ncg
         allocate(mmat(mbsiz,dimtk))
@@ -199,14 +199,14 @@
         enddo ! iom
         deallocate(mwm)
 
-      endif ! wcore
+      endif ! core
       
 !----------------------------------------
 !     Sum up the contributions
 !----------------------------------------
 
       write(96,*)'-------- CALCSELFC -------------, ikp = ', ikp, '    iqp = ', iqp
-      if(wcore)then
+      if(iopcore.eq.0)then
         write(96,*)'# omega      core        valence        selfec'
         do ie1 = ibgw, nbgw
           write(96,*)'band nr. = ', ie1

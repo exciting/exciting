@@ -14,7 +14,8 @@
 ! !USES:
 
       use modmain
-      use modgw      
+      use modgw 
+      use modmpi     
 !
 ! !INPUT PARAMETERS: 
 
@@ -92,8 +93,7 @@
  
 ! !EXTERNAL ROUTINES: 
       
-      real(8), external :: gettildeg
-
+      real(8)  gettildeg
       external calcjlam
       external sigma
       external ylm
@@ -150,11 +150,14 @@
 !
 !     Set kpmin: Starting value of the index for G vectors. =2 if iq=1 (if q=0, discard G=0)
 !
+    
       kpmin=1
-      if(iq.eq.1)then
+      if (Gamma) then
         kpmin=2
         call barcq0
+      
       endif
+
 !
 !     Calculate all the products rtl*rtl
 !
@@ -211,7 +214,7 @@
                     do m2=-l2,l2
                       jmix=jmix+1
                       
-                      if((iq.ne.1).or.(l1.ne.0).or.(l2.ne.0))then
+                      if((.not.Gamma).or.(l1.ne.0).or.(l2.ne.0))then
 
                         ! old (RGA's implementation)
                         !tg=gettildeg(l1,l2,-m1,m2)
@@ -255,7 +258,7 @@
 !             Calculation of the matrix element between an atomic
 !             mixed function and an IPW
 !
-             if(iq.eq.1) vtemp(1,imix)=zzero
+             if (Gamma) vtemp(1,imix)=zzero
              do ipw = kpmin, ngbarc(iq)
 
                gvecl(1:3)=dble(ivg(1:3,igqigb(ipw,iq)))

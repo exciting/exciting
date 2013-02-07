@@ -17,54 +17,51 @@ subroutine readevaldft
 !BOC
     implicit none
 ! local variables
-    integer :: ik,ist,jst,is,ia,ias,io,iu
+    integer :: ik,ik0,ist,jst,is,ia,ias,io,iu
     integer :: i,n
-    integer :: ik_, ist_, nkpt_, nstsv_
-    real(8) :: egap
-    real(8) :: t1, vkl_(3), e0
+    real(8) :: egap, e0, e1
     real(8), parameter :: eps=1.0d-4
+    
+    Integer(8) :: recl
+    Integer(4) :: nstsv_
+    Real(8) :: vkl_(3)
     
     real(8), external  :: idos, dostet
     external fermi
 
-!   allocate second-variational arrays
     if (allocated(evaldft)) deallocate(evaldft)
     allocate(evaldft(nstsv,nkpt))
 
-!   read the valence eigenvalues
-    open(50, File='EIGVAL'//trim(filext), Action='READ', Form='FORMATTED')
-    read(50,'(I6)') nkpt_
-    if (nkpt_.ne.nkpt) stop "readeval: EIGVAL.OUT has different number of k-points"
-    read(50,'(I6)') nstsv_
-    if (nstsv_.ne.nstsv) stop "readeval: EIGVAL.OUT has different number of states"
-    do ik = 1, nkpt
-       read(50,*)
-       read(50,'(I6,3G18.10)') ik_, vkl_(:)
-       t1 = Abs(vkl(1,ik)-vkl_(1)) + Abs(vkl(2, ik)-vkl_(2)) + &
-   &        Abs(vkl(3, ik)-vkl_(3))
-       if (t1.gt.eps) then
-         write (*,*)
-         write (*, '("Error(readevaldft): differing vectors for k-point ",I8)') ik
-         write (*, '(" current    : ",3G18.10)') vkl (:, ik)
-         write (*, '(" EIGVAL.OUT : ",3G18.10)') vkl_
-         write (*,*)
-         stop
-       end if
-       read(50,*)
-       do ist = 1, nstsv
-          read(50,'(I6,2G18.10)') ist_, evaldft(ist,ik), occsv(ist,ik)
-       end do
-       read(50,*)
-    end do
-    close (50)
+!-------------------------------------------------------------------
+!   read the KS eigenenergies (only for the irreducible k-points)
+!-------------------------------------------------------------------
 
+!   find the record length
+    Inquire (IoLength=Recl) vkl_, nstsv_, evaldft(:,1)
+    Open (70, File='EVALSV.OUT', Action='READ', &
+   &  Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+
+    do ik = 1, nkpt
+      ik0=idikp(ik)
+      Read(70, Rec=ik0) vkl_, nstsv_, evaldft(:,ik)
+      if (nstsv_.lt.nstsv) then
+        write(*,*) 'ERROR(readevaldft) nstsv.lt.nstsv_'
+        write(*,*) '  nstsv=', nstsv,'  nstsv_=', nstsv_
+        write(*,*) '  Wrong number of KS states in EVALSV.OUT'
+        stop
+      end if
+    end do ! ik
+    Close (70)
+    
 !   read Fermi energy from file    
 !    call readfermi
 !    write(fgw,*)'(readevaldft) Fermi energy EXCITING [Ha]: ', efermi
 
 !   The fermi energy calculated using LIBBZINT
-    call fermi(nkpt,nstfv,evaldft,nirtet,tndi,wirtet,tvol, &
+    n=int(chgval/2.d0)+11
+    call fermi(nkpt,n,evaldft(1:n,:),ntet,tnodes,wtet,tvol, &
                chgval,.false.,efermi,egap)
+    
     write(fgw,*)
     write(fgw,*)'(readevaldft)     Fermi energy (KS) [Ha]: ', efermi
     write(fgw,*)'(readevaldft)         Band gap (KS) [Ha]: ', egap
@@ -77,7 +74,7 @@ subroutine readevaldft
 ! shift all energies to make efermi=0 
 !----------------------------------------
     do ik=1,nkpt
-      do ist=1,nstfv
+      do ist=1,nstsv
         evaldft(ist,ik)=evaldft(ist,ik)-efermi
       enddo
     enddo     
@@ -105,7 +102,7 @@ subroutine readevaldft
     do ik = 1, nkpt
        io=0
        iu=1000
-       do ist=1,nstfv
+       do ist=1,nstsv
           if(evaldft(ist,ik).lt.efermi)then
              if(ist.gt.io)io=ist
           else
@@ -120,8 +117,8 @@ subroutine readevaldft
        write(*,'("Error(readeval): maxoccband < 1 : ", i8)')maxoccband
        write(*,*)
        stop
-    elseif(maxoccband.ge.nstfv)then
-       write(*,'("Error(readeval): maxoccband > nstfv : ", i8)')maxoccband
+    elseif(maxoccband.ge.nstsv)then
+       write(*,'("Error(readeval): maxoccband > nstsv : ", i8)')maxoccband
        write(*,*)
        stop
     endif
@@ -129,8 +126,8 @@ subroutine readevaldft
        write(*,'("Error(readeval): minunoband < 1 : ", i8)')minunoband
        write(*,*)
        stop
-    elseif(minunoband.ge.nstfv)then
-       write(*,'("Error(readeval): minunoband > nstfv : ", i8)')minunoband
+    elseif(minunoband.ge.nstsv)then
+       write(*,'("Error(readeval): minunoband > nstsv : ", i8)')minunoband
        write(*,*)
        stop
     endif
@@ -141,44 +138,50 @@ subroutine readevaldft
 !   Determine the range of GW bands ibgw..nbgw and 
 !   the number of valence electrons included in gw bands
 !
-    if(ibgw.le.0) ibgw=1
-    if(nbgw.le.0) nbgw=nstfv
     if(ibgw.ge.minunoband .or. nbgw.le.maxoccband) then 
-       write(6,*) "(readevaldft) WARNING: wrong range of gw bands!!!"
+       write(6,*) "WARNING(readevaldft): wrong range of gw bands!!!"
        write(6,*) " ibgw >= minunoband=",ibgw,minunoband
        write(6,*) " or"
        write(6,*) " nbgw <= maxoccband=",nbgw,maxoccband
        ibgw=1
-       nbgw=nstfv
+       nbgw=nstsv
     endif 
     nbandsgw=nbgw-ibgw+1
     nvelgw=chgval-2.d0*dble(ibgw-1)
 
-    write(fgw,101)'Number of LAPW states (determined by rgkmax):  ', nmatmax
-    write(fgw,101)'Number of bands used in GW:                    ', nstfv
-    write(fgw,101)'Number of gw bands (gw output):                ', nbandsgw
-    write(fgw,*)  'Range of GW bands:                             ', ibgw, nbgw
-    write(fgw,*)  'Number of valence electrons:                   ', int(chgval) 
-    write(fgw,*)  'Number of valence electrons included in gw band', int(nvelgw) 
-101 format(a,2i4)
+    write(fgw,*)'Number of LAPW states (determined by rgkmax):', nmatmax
+    write(fgw,*)'Number of bands used in GW:                  ', nstsv
+
+    e0=maxval(evaldft(nstsv,:))
+    write(fgw,*)'Highest energy of unoccupied states [Ha]:    ', e0
+    write(fgw,*)'Highest energy of unoccupied states [eV]:    ', e0*heV
+
+    write(fgw,*)'Number of gw bands (gw output):              ', nbandsgw
+    write(fgw,*)'Range of GW bands:                           ', ibgw, nbgw
+    e0=minval(evaldft(ibgw,:))
+    e1=maxval(evaldft(nbgw,:))
+    write(fgw,*)'Range of GW bands [Ha]:                      ', e0, e1
+    write(fgw,*)'Range of GW bands [eV]:                      ', e0*heV, e1*heV
+    write(fgw,*)'Number of valence electrons:                 ', int(chgval) 
+    write(fgw,*)'Number of valence electrons included in gw band', int(nvelgw) 
 !
 !   Treatment of the symmetry requires averaging over degenerated states.
 !   Array n12dgn contains lower and upper indexes of the degenerated states.
 !   This array is used then in the routines to calculate the self-energies.
 !
     if(allocated(n12dgn))deallocate(n12dgn)
-    allocate(n12dgn(2,nstfv,nkpt))
+    allocate(n12dgn(2,nstsv,nkpt))
     
     do ik = 1, nkpt
 
        if (input%gw%reduceq) then
 
          ist=1
-         do while (ist<=nstfv)
+         do while (ist<=nstsv)
             e0=evaldft(ist,ik)
             ! calculate the number of degenerated states
             n=1; jst=ist+1
-            do while (jst<=nstfv)
+            do while (jst<=nstsv)
                if(abs(evaldft(jst,ik)-e0)<eps)then
                   n=n+1
                   jst=jst+1
@@ -197,7 +200,7 @@ subroutine readevaldft
        else
        
          ! no symmetry: degeneracy index is set to 1
-         do ist = 1, nstfv
+         do ist = 1, nstsv
            n12dgn(1,ist,ik)=ist
            n12dgn(2,ist,ik)=ist
          end do
@@ -209,7 +212,7 @@ subroutine readevaldft
 
          write(55,*)
          write(55,*)'Degeneracy KS bands: ik = ', ik
-         do ist=1,nstfv
+         do ist=1,nstsv
             write(55,*)'ist, n12dgn: ', ist, n12dgn(:,ist,ik)
          end do
          write(55,*)

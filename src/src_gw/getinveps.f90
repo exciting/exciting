@@ -13,6 +13,7 @@
 
     use modmain
     use modgw
+    use modmpi
 
 ! !INPUT PARAMETERS:
       
@@ -22,7 +23,7 @@
 !                                   polarization matrix is calculated
     integer(4) :: iqp
     integer(4) :: isym
-    integer(4) :: recl
+    integer(8) :: Recl
     integer(4) :: im
     integer(4) :: iom
     
@@ -30,7 +31,7 @@
 
     complex(8), allocatable :: eps(:,:), tmat(:,:)
     complex(8), allocatable :: rmat(:,:), temp(:,:)
-    
+    character(128)::sbuffer
 ! !EXTERNAL ROUTINES: 
 
     external zgemm
@@ -51,13 +52,17 @@
     
     if(allocated(inveps))deallocate(inveps)
     allocate(inveps(matsizmax,matsizmax,nomeg))
-    
-    recl=16*(matsizmax*matsizmax*nomeg)
-    open(44,file='INVEPS.OUT',action='READ',form='UNFORMATTED', &
-   &  access='DIRECT',status='OLD',recl=recl)
-    
+
     iqp=indkpq(iq,1)
-    read(44,rec=iqp) inveps
+    inquire(IoLength=Recl) inveps
+    write(sbuffer,*)procofindex (iqp, nqpt)
+    open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT',action='READ',form='UNFORMATTED', &
+   &  access='DIRECT',status='OLD',recl=Recl)
+
+    
+
+    read(44,rec=iqp-firstofset(procofindex (iqp, nqpt),nqpt)+1) inveps
+
     close(44)
     
     ! if the q-point is non-reduced, the dielectric matrix is calculated by symmetry
@@ -85,7 +90,7 @@
       call diagsgi(iqp)
       call calcmpwipw(iqp)
       call calcbarcmb(iqp)
-      call setbarcev(iqp,barcevtol)
+      call setbarcev(barcevtol)
       
       call zgemm('c','n',mbsiz,mbsiz,matsiz, &
      &           zone,vbas,matsiz,temp,matsiz,zzero,rmat,mbsiz)
@@ -120,7 +125,7 @@
     end if ! isym
 
     ! data used for treating q->0 singularities
-    if (iq.eq.1) then
+    if (Gamma) then
 
       if(allocated(head))deallocate(head)
       allocate(head(1:nomeg))
@@ -148,7 +153,7 @@
 !--------------------------------------------
 
     do iom = 1, nomeg
-      if (iq.eq.1) head(iom)=head(iom)-zone
+      if (Gamma) head(iom)=head(iom)-zone
       do im=1,mbsiz
         inveps(im,im,iom)=inveps(im,im,iom)-zone
       enddo  
