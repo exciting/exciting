@@ -10,7 +10,7 @@
 ! !INTERFACE:
 !
 !
-Subroutine genlofr
+Subroutine genlofr(last_iteration)
 ! !USES:
       Use modinput
       Use modmain
@@ -29,6 +29,7 @@ Subroutine genlofr
 !EOP
 !BOC
       Implicit None
+      Logical last_iteration
 ! local variables
       Integer :: np, is, ia, ias, nr, ir
       Integer :: ilo, io1, io2
@@ -49,7 +50,7 @@ Subroutine genlofr
       Real (8) :: polynom
       External polynom
 ! variables for the lo recommendation
-      Real (8) energy
+      Real (8) energy,energyp,tmp,tmp2,ens(0:6),elo,ehi,flo,fhi,emi,fmi
       integer nodes
 
 ! The following segment is useful if you want to come up 
@@ -58,7 +59,19 @@ Subroutine genlofr
 ! Andris.
 ! -------------------------------------
 !      allocate(dwf1(mtnr),dwf2(mtnr))
-      if (input%groundstate%lo_recommendation) then
+     
+      if ((input%groundstate%lo_recommendation).and.(last_iteration)) then
+!       energy=-6d0
+!       vr(1:nrmt (1))=veffmt (1, 1:nrmt (1), 1) * y00
+!       do while (energy.lt.25d0)
+!           Call rschroddme (0, 0, 0, energy, 2, nrmt (1), spr(:,1), vr, nodes, p0s, hp0, q0s,q1s)
+!           tmp=p0s(nrmt (1))
+!           tmp2=(p0s(nrmt (1))-p0s(nrmt (1)-1))/(spr(nrmt (1),1)-spr(nrmt (1)-1,1))
+!           Call rschroddme (1, 0, 0, energy, 2, nrmt (1), spr(:,1), vr, nodes, p0s, hp0, q0s,q1s)
+!           write(*,*) energy,tmp,p0s(nrmt (1))
+!           energy=energy+0.05d0
+!       enddo
+!       stop
        write(*,*) 'Energy parameters'
        write(*,*) '------------'
        do is=1,nspecies
@@ -66,14 +79,56 @@ Subroutine genlofr
        nr = nrmt (is)
        ias = idxas (1, is)
        vr(1:nr)=veffmt (1, 1:nr, ias) * y00
-       do ilo=0,6
+       do ilo=0,3
         write(*,*) 'l=',ilo
         do nodes=0,6
-          energy=0d0
-          Call rdirac (nodes+ilo+1, ilo, ilo+1, nodes, nr, spr(:,is), vr, &
-            & energy, p0s,q0s,.false.)
-          write(*,*) 'n=',nodes,energy
+          ens(nodes)=0d0
+!         energyp=0d0
+          Call rdirac (0,nodes+ilo+1, ilo, ilo+1, nodes, nr, spr(:,is), vr, &
+            & ens(nodes), p0s,q0s,.false.)
+!          Call rdirac (1,nodes+ilo+1, ilo, ilo+1, nodes, nr, spr(:,is), vr, &
+!            & energyp, p0s,q0s,.false.)
+!         write(*,*) 'n=',nodes,0.5d0*(energy+energyp)
         enddo
+
+        do nodes=0,6
+          ehi=ens(nodes)
+          Call rschroddme (0, ilo, 0, ehi, 2, nr, spr(:,is), vr, nn, p0s, hp0, q0s,q1s)
+          fhi=hp0(nrmt (is))
+          if (p0s(nrmt (is)).eq.p0s(nrmt (is)-1)) then
+           elo=ehi
+          else
+           if (nodes.eq.0) then 
+             elo=2*ens(0)-ens(1) ! assuming lowest eigenenergy is  negative
+           else
+             elo=ens(nodes-1)
+           endif
+           Call rschroddme (0, ilo, 0, elo, 2, nr, spr(:,is), vr, nn, p0s, hp0, q0s,q1s) 
+           flo=hp0(nrmt (is))
+!(p0s(nrmt (is))-p0s(nrmt (is)-1))/(spr(nrmt (is),1)-spr(nrmt (is)-1,1))
+!(p0s(nrmt (is))-p0s(nrmt (is)-1))/(spr(nrmt (is),1)-spr(nrmt (is)-1,1))
+           if (ehi.lt.elo) then
+              write(*,*) 'warning'
+              stop
+           endif
+           do while (ehi-elo.gt.1d-6)
+             emi=0.5d0*(ehi+elo)
+             Call rschroddme (0, ilo, 0, emi, 2, nr, spr(:,is), vr, nn, p0s, hp0, q0s,q1s)
+             fmi=hp0(nrmt (is))
+!(p0s(nrmt (is))-p0s(nrmt (is)-1))/(spr(nrmt (is),1)-spr(nrmt (is)-1,1))
+             if (fmi*fhi.lt.0) then
+                flo=fmi
+                elo=emi
+             else
+                fhi=fmi
+                ehi=emi
+             endif
+           enddo
+          endif
+          write(*,*) 'n=',nodes,0.5d0*(ens(nodes)+0.5d0*(ehi+elo))
+!          write(*,*) ens(nodes),0.5d0*(ehi+emi)
+        enddo
+
         write(*,*)
        enddo
        enddo

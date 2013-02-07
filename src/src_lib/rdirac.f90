@@ -10,8 +10,9 @@
 ! !INTERFACE:
 !
 !
-Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
+Subroutine rdirac (m, n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
 ! !INPUT/OUTPUT PARAMETERS:
+!   m    : energy-derivative order (in,integer)
 !   n    : principal quantum number (in,integer)
 !   l    : quantum number l (in,integer)
 !   k    : quantum number k (l or l+1) (in,integer)
@@ -37,6 +38,7 @@ Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
       Implicit None
 ! arguments
       Logical dirac_eq
+      Integer, Intent (In) :: m
       Integer, Intent (In) :: n
       Integer, Intent (In) :: l
       Integer, Intent (In) :: k
@@ -98,9 +100,9 @@ Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
 !write(*,*) 'initial guess', eval
 ! integrate the Dirac equation
        if (dirac_eq) then
-         Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rdiracdme (m, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
        else
-         Call rschroddme (0, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rschroddme (m, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
        endif
 !      if (nn.eq.n-l)   f_hi=g0(ir)
 
@@ -112,9 +114,9 @@ Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
                de=de*2d0
                eval = eval + de
        if (dirac_eq) then
-         Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rdiracdme (m, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
        else
-         Call rschroddme (0, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rschroddme (m, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
        endif
 !               count=count+1
            enddo
@@ -128,9 +130,9 @@ Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
                de=de*2d0
                eval = eval - de
        if (dirac_eq) then
-         Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rdiracdme (m, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
        else
-         Call rschroddme (0, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rschroddme (m, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
        endif
 !               count=count+1
            enddo
@@ -141,9 +143,9 @@ Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
 !           count=count+1
            eval=0.5d0*(e_lo+e_hi)
        if (dirac_eq) then
-         Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rdiracdme (m, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
        else
-         Call rschroddme (0, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rschroddme (m, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
        endif
            if (nn.gt.n-l-1) then
              e_hi=eval
@@ -168,17 +170,17 @@ Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
 if (eval.eq.e_lo) then
  f_lo=g0(ir)
        if (dirac_eq) then
-         Call rdiracdme (0, kpa, e_hi, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rdiracdme (m, kpa, e_hi, np, nr, r, vr, nn, g0, g1, f0, f1)
        else
-         Call rschroddme (0, l, 0, e_hi, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rschroddme (m, l, 0, e_hi, np, nr, r, vr, nn, g0, g1, f0, f1)
        endif
  f_hi=g0(ir)
 else
  f_hi=g0(ir)
        if (dirac_eq) then
-         Call rdiracdme (0, kpa, e_lo, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rdiracdme (m, kpa, e_lo, np, nr, r, vr, nn, g0, g1, f0, f1)
        else
-         Call rschroddme (0, l, 0, e_lo, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rschroddme (m, l, 0, e_lo, np, nr, r, vr, nn, g0, g1, f0, f1)
        endif
  f_lo=g0(ir)
 endif
@@ -204,9 +206,9 @@ endif
 
 e_mi=0.5d0*(e_hi+e_lo)
        if (dirac_eq) then
-         Call rdiracdme (0, kpa, e_mi, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rdiracdme (m, kpa, e_mi, np, nr, r, vr, nn, g0, g1, f0, f1)
        else
-         Call rschroddme (0, l, 0, e_mi, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rschroddme (m, l, 0, e_mi, np, nr, r, vr, nn, g0, g1, f0, f1)
        endif
 f_mi=g0(ir)
 ! count=count+1
@@ -290,9 +292,9 @@ f_mi=g0(ir)
           stop
         endif
        if (dirac_eq) then
-         Call rdiracdme (0, kpa, e_guess, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rdiracdme (m, kpa, e_guess, np, nr, r, vr, nn, g0, g1, f0, f1)
        else
-         Call rschroddme (0, l, 0, e_guess, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rschroddme (m, l, 0, e_guess, np, nr, r, vr, nn, g0, g1, f0, f1)
        endif
 !        count=count+1 
 !        write(*,*) e_lo,e_hi,e_mi,e_guess

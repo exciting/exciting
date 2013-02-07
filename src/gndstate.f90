@@ -229,7 +229,7 @@ Subroutine gndstate
      ! generate the APW radial functions
          Call genapwfr
      ! generate the local-orbital radial functions
-         Call genlofr
+         Call genlofr(tlast)
      ! compute the overlap radial integrals
          Call olprad
      ! compute the Hamiltonian radial integrals

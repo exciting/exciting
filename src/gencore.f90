@@ -57,7 +57,7 @@ Subroutine gencore
                Do ist = 1, spnst (is)
                   If (spcore(ist, is)) Then
 ! solve the Dirac equation
-                     Call rdirac (spn(ist, is), spl(ist, is), spk(ist, &
+                     Call rdirac (0,spn(ist, is), spl(ist, is), spk(ist, &
                     & is), input%groundstate%nprad, spnr(is), spr(:, &
                     & is), vr, evalcr(ist, ias), rwfcr(:, 1, ist, ias), &
                     & rwfcr(:, 2, ist, ias),.true.)

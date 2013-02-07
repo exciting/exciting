@@ -140,7 +140,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
          Do ist = 1, nst
-            Call rdirac (n(ist), l(ist), k(ist), np, nr, r, vr, &
+            Call rdirac (0, n(ist), l(ist), k(ist), np, nr, r, vr, &
            & eval(ist), rwf(:, 1, ist), rwf(:, 2, ist),.true.)
          End Do
 !$OMP END DO
@@ -227,7 +227,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
 !       do llo=0,0
 !        do nodes=0,10
 !         energy=0d0
-!         Call rdirac (nodes+llo+1, llo, llo+1, nodes, mtnr, r, vr, &
+!         Call rdirac (0, nodes+llo+1, llo, llo+1, nodes, mtnr, r, vr, &
 !           & energy, dwf1, dwf2,.false.)
 !         write(*,*) nodes,llo,energy
 !       enddo
