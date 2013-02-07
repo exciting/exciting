@@ -23,11 +23,11 @@ Subroutine hartfock
       Implicit None
 ! local variables
       Logical :: exist
-      Integer :: ik, is, ia, idm
-      Real (8) :: etp, de
+      Integer :: ik, is, ia, idm, Recl
+      Real(8) :: etp, de
 ! allocatable arrays
-      Complex (8), Allocatable :: evecfv (:, :, :)
-      Complex (8), Allocatable :: evecsv (:, :)
+      Complex(8), Allocatable :: evecfv (:, :, :)
+      Complex(8), Allocatable :: evecsv (:, :)
 ! initialise universal variables
       Call init0
       Call init1
@@ -270,10 +270,9 @@ Subroutine hartfock
       End If
 30    Continue
       Write (60,*)
-      Write (60, '("+----------------------------------+")')
-      Write (60, '("| EXCITING version ", I1.1, ".", I1.1, ".", I3.3, "&
-     & stopped |")') version
-      Write (60, '("+----------------------------------+")')
+      Write (60, '("+-------------------------+")')
+      Write (60, '("| EXCITING Lithium stopped |")')
+      Write (60, '("+-------------------------+")')
 ! close the INFO.OUT file
       Close (60)
 ! close the TOTENERGY.OUT file
@@ -286,5 +285,18 @@ Subroutine hartfock
       If (input%groundstate%tforce) close (64)
 ! close the DENERGY.OUT file
       Close (65)
+
+!----------------------------------------
+! Save HF energies into binary file
+!----------------------------------------
+
+      Inquire (IoLength=Recl) nkpt, nstsv, vkl(:,1), evalsv(:,1)
+      Open (70, File='EVALHF.OUT', Action='WRITE', Form='UNFORMATTED', &
+     &   Access='DIRECT', status='REPLACE', Recl=Recl)
+      do ik = 1, nkpt
+        write(70, Rec=ik) nkpt, nstsv, vkl(:,ik), evalsv(:,ik)-efermi
+      end do ! ik
+      Close(70)
+      
       Return
 End Subroutine

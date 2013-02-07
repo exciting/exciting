@@ -154,7 +154,6 @@ subroutine fermisurf
       if ((ndmag.eq.1).and.(fnum.eq.fnum1)) lst=nstfv
       write(fnum,'(" BEGIN_INFO")')
       write(fnum,'(" # Band-XCRYSDEN-Structure-File for Fermi surface plotting")')
-      write(fnum,'(" # created by Elk version ",I1.1,".",I1.1,".",I2.2)') version
       write(fnum,'(" # Launch as: xcrysden --bxsf FERMISURF(_UP/_DN).bxsf")')
       write(fnum,'("   Fermi Energy: ",G18.10)') 0.d0
       write(fnum,'(" END_INFO")')

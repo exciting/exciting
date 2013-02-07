@@ -100,14 +100,13 @@
       nr3=2*nint(rmax/rvec(3))
       nr = (2*nr1+1)*(2*nr2+1)*(2*nr3+1)
 
+      !write(6,*) '--------- R vectors generation ----------'
+      !write(6,*)'  Parameters'
+      !write(6,12) rmax,nr1,nr2,nr3,nr
+
       allocate(rlen(nr),rind(3,nr),stat=ierr)
       call errmsg(ierr.ne.0,sname,"error in allocation") 
 
-      if (input%gw%debug) then 
-         write(6,*) '--------- R vectors generation ----------'
-         write(6,*)'  Parameters'
-         write(6,12) rmax,nr1,nr2,nr3,nr
-      endif 
       
       ippw=0
       do ir1=-nr1,nr1
@@ -179,10 +178,8 @@
       enddo ! ippw
       nst=ist      
 
-      if (input%gw%debug) then 
-        write(6,*) " nrr=", nrr
-        write(6,*) " nst=", nst
-      end if
+      !write(6,*) " nrr=", nrr
+      !write(6,*) " nst=", nst
 
       deallocate(invrindex,rlen,rind)
 
