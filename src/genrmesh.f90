@@ -95,8 +95,9 @@ Subroutine genrmesh
            elseif (input%groundstate%radial_grid_type.eq."exponential") then
              spr (ir, is) = sprmin (is) * Exp (dble(ir-1)*t1*t2)
            else
-             spr (ir, is) = 0.5d0*(erf(5d0*dble(ir-cutoff)/nrmt(is))+1d0)*(sprmin (is)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is)))+ &
-                     (1d0-0.5d0*(erf(5d0*dble(ir-cutoff)/nrmt(is))+1d0))*sprmin (is) * Exp(dble(ir-1)*t1*t2)
+             spr (ir, is) = 0.5d0*(erf(5d0*dble(ir-cutoff)/nrmt(is))+1d0)* &
+            &  (sprmin (is)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is)))+ &
+            &  (1d0-0.5d0*(erf(5d0*dble(ir-cutoff)/nrmt(is))+1d0))*sprmin (is) * Exp(dble(ir-1)*t1*t2)
            endif
 !            write(*,*) spr (ir, is)
          End Do
