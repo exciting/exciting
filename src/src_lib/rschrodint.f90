@@ -68,7 +68,7 @@ Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
       Real (8), Intent (Out) :: q0 (nr)
       Real (8), Intent (Out) :: q1 (nr)
 ! local variables
-      Integer :: ir, ir0, npl,iter,itmax,step
+      Integer :: ir, ir0, iter,itmax,step
       parameter (itmax=32)
       real (8) pest(itmax),qest(itmax),errorq,error,errorbound
       parameter (errorbound=1d-10)
@@ -145,8 +145,6 @@ Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
          t1 = dble (l*(l+1)) / (2.d0*rm*r(ir)**2)
          t2 = t1 + vr (ir) - e
 ! predictor-corrector order
-         npl = 2 
-         ir0 = ir - npl + 1
 
 
       logBA=log(r(ir)/r(ir-1))
@@ -172,7 +170,6 @@ Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
             rm = 1.d0 - 0.5d0 * (alpha**2) * vr2
             t1 = dble (l*(l+1)) / (2.d0*rm*r2**2)
             t2 = t1 + vr2 - e
-          if (npl.eq.2) then
             A=-(r2-r1)*0.5d0
             tmp1=p0old+p1old*(r2-r1)*0.5d0
             tmp2=q0old+q1old*(r2-r1)*0.5d0
@@ -181,10 +178,6 @@ Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
               tmp2=tmp2 + A*dble (m) * p00p
             End If
 
-          else
-            write(*,*) 'npl is too high'
-            stop
-          endif
           B1=-2.d0*rm
           B2=-t2
 
@@ -253,7 +246,6 @@ Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
             t1 = dble (l*(l+1)) / (2.d0*rm*r2**2)
             t2 = t1 + vr2 - e
 
-          if (npl.eq.2) then
             A=-(r2-r1)*0.5d0
             tmp1=p0old+p1old*(r2-r1)*0.5d0
             tmp2=q0old+q1old*(r2-r1)*0.5d0
@@ -261,11 +253,6 @@ Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
               p00p=p0p(ir-1)+(r2-r(ir-1))*(pcf(1,ir-1)+(r2-r(ir-1))*(pcf(2,ir-1)+(r2-r(ir-1))*pcf(3,ir-1)))
               tmp2=tmp2 + A*dble (m) * p00p
             End If
-
-          else
-            write(*,*) 'npl is too high'
-            stop
-          endif
 
           B1=-2.d0*rm
           B2=-t2

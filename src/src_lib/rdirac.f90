@@ -11,7 +11,6 @@
 !
 !
 Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
-use mod_timing
 ! !INPUT/OUTPUT PARAMETERS:
 !   n    : principal quantum number (in,integer)
 !   l    : quantum number l (in,integer)
@@ -59,10 +58,7 @@ use mod_timing
       Real (8) :: t1, de
 ! automatic arrays
       Real (8) :: g1 (nr), f1 (nr), fr (nr), gr (nr), cf (3, nr)
-! timer
-      Real (8) :: ts0,ts1
   
-      Call timesec(ts0)
       If (k .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(rdirac): k <= 0 : ", I8)') k
@@ -389,8 +385,6 @@ f_mi=g0(ir)
       End If
       g0 (:) = t1 * g0 (:)
       f0 (:) = t1 * f0 (:)
-      call timesec(ts1)
-      time_rdirac=ts1-ts0+time_rdirac
       Return
 End Subroutine
 !EOC

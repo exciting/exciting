@@ -247,14 +247,14 @@ Subroutine rdiracint (m, kpa, e, np, nr, r, vr, nn, g0p, f0p, g0, g1, &
             ri=1d0/r2
            vr2=rvr(ir-1)+(r2-r(ir-1))*(cf(1,ir-1)+(r2-r(ir-1))*(cf(2,ir-1)+(r2-r(ir-1))*cf(3,ir-1)))
             vr2=vr2*ri*ri
-          if (npl.eq.2) then
+!          if (npl.eq.2) then
             A=-(r2-r1)*0.5d0
             t1=g0old+g1old*(r2-r1)*0.5d0
             t2=f0old+f1old*(r2-r1)*0.5d0
-          else
-            write(*,*) 'npl is too high'
-            stop
-          endif
+!          else
+!            write(*,*) 'npl is too high'
+!            stop
+!          endif
 
           B1=-alpha*(e+2.d0*e0-vr2)
           B2=alpha*(e-vr2)

@@ -68,7 +68,7 @@ Subroutine genlofr
        vr(1:nr)=veffmt (1, 1:nr, ias) * y00
        do ilo=0,6
         write(*,*) 'l=',ilo
-        do nodes=0,10
+        do nodes=0,6
           energy=0d0
           Call rdirac (nodes+ilo+1, ilo, ilo+1, nodes, nr, spr(:,is), vr, &
             & energy, p0s,q0s,.false.)
