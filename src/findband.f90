@@ -116,25 +116,6 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e0, tfnd)
            end if
          end do
          
-         if (tlast) then
-!          visualize the logarithmic derivative D_l
-           write(fname,'("dl_l=",i1,".dat")') l
-           open(777,file=fname,action='write')
-           e = edncut
-           do while (e .le. eupcut)
-             call rschroddme(0, l, k, e, np, nr, r, vr, nn, p0, p1, q0, q1)
-             t0 = p0(nr)
-             t1 = p1(nr)
-             if (dabs(t0)>1.0d-6) then
-               ! shifted value of the logarithmic derivative
-               dl = r(nr)*t1/t0+(l+1)
-               write(777,*) e, dl
-             end if
-             e = e + de
-           end do ! e
-           close(777)
-         end if
-         
 !-------------------------------------------
       Case ('advanced', 'mixed-1')
 !-------------------------------------------

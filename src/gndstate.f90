@@ -224,7 +224,7 @@ Subroutine gndstate
             Call putevecfv (ik, evecfv)
             Call putevecsv (ik, evecsv)
         ! calculate partial charges
-            call genpchgs(ik,evecfv,evecsv)
+            !call genpchgs(ik,evecfv,evecsv)
             Deallocate (evalfv, evecfv, evecsv)
          End Do
 #ifdef KSMP
@@ -296,7 +296,7 @@ Subroutine gndstate
 #endif
             If (rank .Eq. 0) Then
         ! write out partial charges
-               call writepchgs(69,input%groundstate%lmaxvr)
+               !call writepchgs(69,input%groundstate%lmaxvr)
                call flushifc(69)
             end if
         ! symmetrise the density
