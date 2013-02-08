@@ -9,7 +9,7 @@ Subroutine groundstatetasklauncher
     Use inputdom
     use modmpi
     Implicit None
-     splittfile= .true.
+    splittfile= .true.
     If ( .Not. (associated(input%groundstate%solver))) Then
         ! set the default values if tddft element not present
         input%groundstate%solver => getstructsolver (emptynode)
@@ -41,6 +41,7 @@ Subroutine groundstatetasklauncher
              if (input%groundstate%output%state .eq. "XML") call portstate(1)
         end if
     else
-   splittfile= .False.
+        splittfile= .False.
     end if
+    
 end subroutine
