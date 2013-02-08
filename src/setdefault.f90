@@ -77,7 +77,8 @@ Subroutine setdefault
       ldapu = 0
       llu (:) = - 1
       ujlu (:, :) = 0.d0
-      tseqit = .False.
+!      tseqit = .False.
+      tseqit = .false.
       nseqit = 40
       tauseq = 0.1d0
 #ifdef TETRA

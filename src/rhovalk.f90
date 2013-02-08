@@ -60,11 +60,12 @@ Subroutine rhovalk (ik, evecfv, evecsv)
       Real (8) :: magir_k (ngrtot, ndmag)
       Real (8) :: rhomt_k (lmmaxvr, nrmtmax, natmtot)
       Real (8) :: magmt_k (lmmaxvr, nrmtmax, natmtot, ndmag)
+
+      Call timesec (ts0)
       rhoir_k (:) = 0
       magir_k (:, :) = 0
       rhomt_k (:, :, :) = 0
       magmt_k (:, :, :, :) = 0
-      Call timesec (ts0)
       If (associated(input%groundstate%spin)) Then
          If (ncmag) Then
             nsd = 4
@@ -284,7 +285,7 @@ Subroutine rhovalk (ik, evecfv, evecsv)
       End Do
       Deallocate (done, rflm, rfmt, apwalm, wfmt1, wfmt3, zfft)
       If (input%groundstate%tevecsv) deallocate (wfmt2)
-      Call timesec (ts1)
+!      Call timesec (ts1)
 !$OMP CRITICAL
       rhoir (:) = rhoir (:) + rhoir_k (:)
 !
@@ -293,8 +294,10 @@ Subroutine rhovalk (ik, evecfv, evecsv)
          magmt (:, :, :, :) = magmt (:, :, :, :) + magmt_k (:, :, :, :)
          magir (:, :) = magir (:, :) + magir_k (:, :)
       End If
-      timerho = timerho + ts1 - ts0
+!      timerho = timerho + ts1 - ts0
 !$OMP END CRITICAL
+      Call timesec (ts1)
+      timerho = timerho + ts1 - ts0
       Return
 End Subroutine
 !EOC

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Rf" name="rutherfordium" z="-104.000" mass="475773.8946">
-    <muffinTin rmin="0.196116E-06" radius="2.0000" rinf="40.6124" radialmeshPoints="800"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="41.1560" radialmeshPoints="276"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -39,17 +39,17 @@
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-2.8179" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.8192" searchE="true"/>
       </lo>
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-1.8072" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.8080" searchE="true"/>
       </lo>
       <lo l="3">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-0.6701" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.6700" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

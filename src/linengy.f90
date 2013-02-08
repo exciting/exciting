@@ -30,7 +30,11 @@ Subroutine linengy
       Logical :: done (natmmax)
       Real (8) :: vr (nrmtmax)
       logical :: tfnd
-      character(256) :: linenetype
+      character(256) :: linenetype, fname
+!
+      integer :: nr, nn
+      real(8) :: t0, t1, e, dl
+      real(8), allocatable :: p0 (:), p1 (:), q0 (:), q1 (:)
 !
 !     l-charge based schemes
 !
@@ -77,7 +81,7 @@ Subroutine linengy
                               End If
                            End If
                         End Do
-! For the mixed scheme, APW E_l are put strictly into valence region
+! For the mixed scheme, APW E_l are strictly in the valence region
                         if ((trim(linenetype).eq.'mixed-1').or. &
                             (trim(linenetype).eq.'mixed-2')) then
                           apwe(io1, l, ias) = elcharge(l, ias)
@@ -170,9 +174,34 @@ Subroutine linengy
                   End If
                End Do
             End If
-! end loops over atoms and species
-         End Do
-      End Do
+         End Do ! ia
+!
+! Visualize the logarithmic derivatives if required
+!
+         if ((trim(linenetype).eq.'logderiv').and.(tlast)) then
+           nr = nrmt(is)
+           allocate(p0(nr),p1(nr),q0(nr),q1(nr))
+           do l = 0, 4
+             write(fname,'("dl_l=",i1,"_is=",i1,".dat")') l, is
+             open(777,file=fname,action='write')
+             e = -10.d0
+             do while (e .le. 10.d0)
+               call rschroddme(0, l, 0, e, input%groundstate%nprad, &
+              &  nr, spr(:, is), vr, nn, p0, p1, q0, q1)
+               t0 = p0(nr)
+               t1 = p1(nr)
+               if (dabs(t0)>1.0d-6) then
+             	 ! shifted value of the logarithmic derivative
+             	 dl = spr(nr,is)*t1/t0+(l+1)
+             	 write(777,*) e, dl
+               end if
+               e = e + input%groundstate%deband
+             end do ! e
+             close(777)
+           end do ! l
+           deallocate(p0,p1,q0,q1)
+         end if
+      End Do ! is
 
       Return
 End Subroutine

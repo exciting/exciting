@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Ru" name="ruthenium" z="-44.0000" mass="184239.3392">
-    <muffinTin rmin="0.301511E-06" radius="2.0000" rinf="37.1894" radialmeshPoints="600"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="36.8113" radialmeshPoints="186"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -25,12 +25,12 @@
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-2.8048" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.8047" searchE="true"/>
       </lo>
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-1.7932" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.7930" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

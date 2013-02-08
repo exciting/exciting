@@ -327,8 +327,9 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Deallocate (bmt, bir, vr, drv, cf, sor, rwork)
       Deallocate (wfmt1, wfmt2, zfft1, zfft2, zv, work)
       Call timesec (ts1)
+      timesv = timesv + ts1 - ts0       
 !$OMP CRITICAL
-      timesv = timesv + ts1 - ts0
+!!      timesv = timesv + ts1 - ts0
 !$OMP END CRITICAL
       Return
 20    Continue

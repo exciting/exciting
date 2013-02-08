@@ -11,6 +11,7 @@
 !
 !
 Subroutine rschroddme (m, l, k, e, np, nr, r, vr, nn, p0, p1, q0, q1)
+use mod_timing
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   l   : angular momentum quantum number (in,integer)
@@ -57,6 +58,10 @@ Subroutine rschroddme (m, l, k, e, np, nr, r, vr, nn, p0, p1, q0, q1)
       Real (8), Allocatable :: g0 (:), g1 (:)
       Real (8), Allocatable :: f0 (:), f1 (:)
       Real (8), Allocatable :: cf (:, :)
+! timer
+      Real (8) ts0, ts1
+
+      call timesec(ts0)
       If (nr .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(rschroddme): invalid nr : ", I8)') nr
@@ -110,6 +115,8 @@ Subroutine rschroddme (m, l, k, e, np, nr, r, vr, nn, p0, p1, q0, q1)
          Call fderiv (1, nr, r, q0, q1, cf)
          Deallocate (g0, g1, f0, f1, cf)
       End If
+      call timesec(ts1)
+      time_rschrod=ts1-ts0+time_rschrod
       Return
 End Subroutine
 !EOC

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Ga" name="gallium" z="-31.0000" mass="127097.2538">
-    <muffinTin rmin="0.359211E-06" radius="2.0000" rinf="47.8915" radialmeshPoints="500"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="39.9560" radialmeshPoints="166"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

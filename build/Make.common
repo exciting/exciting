@@ -97,11 +97,14 @@ leblaiklib.a::
 	cd ../../src/leblaiklib && make
 	mv ../../src/leblaiklib/leblaiklib.a ./
 	rm -f ../../src/leblaiklib/*.o
+<<<<<<< HEAD
 
 liblbfgs.a::
 	cd ../../src/Lbfgsb.3.0 && make
 	cp ../../src/Lbfgsb.3.0/liblbfgs.a ./
 	rm -f ../../src/Lbfgsb.3.0/*.o
+=======
+>>>>>>> 5ff54b0f0abf7afbd4356e6724576d7489979105
 	
 libxc.a:lib/libxc.a
 

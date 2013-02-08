@@ -13,7 +13,8 @@
 Subroutine genrmesh
 ! !USES:
       Use modinput
-      Use modmain
+      Use mod_atoms
+      Use mod_muffin_tin
 ! !DESCRIPTION:
 !   Generates the coarse and fine radial meshes for each atomic species in the
 !   crystal. Also determines which points are in the inner part of the
@@ -53,16 +54,27 @@ Subroutine genrmesh
 !BOC
       Implicit None
 ! local variables
-      Integer :: is, ir, irc
+      Integer :: is, ir, irc,cutoff
       Real (8) :: t1, t2
 ! estimate the number of radial mesh points to infinity
+      if ((input%groundstate%radial_grid_type.ne."cubic").and. &
+          (input%groundstate%radial_grid_type.ne."expocubic").and. &
+          (input%groundstate%radial_grid_type.ne."exponential")) then 
+         write(*,*) 'Wrong radial_grid_type.'
+         write(*,*) 'Choose between cubic, expocubic and exponential!'
+         write(*,*) 'Terminating...'
+         stop
+      endif
       spnrmax = 1
       Do is = 1, nspecies
-! logarithmic mesh
-         t1 = Log (sprmax(is)/sprmin(is)) / Log (rmt(is)/sprmin(is))
-         t2 = dble (nrmt(is)-1) * t1
-         spnr (is) = Nint (t2) + 1
-         spnrmax = Max (spnrmax, spnr(is))
+         if (input%groundstate%radial_grid_type.eq."exponential") then
+           t1 = Log (sprmax(is)/sprmin(is)) / Log (rmt(is)/sprmin(is))
+           t2 = dble (nrmt(is)-1) * t1
+           spnr (is) = Nint (t2) + 1
+         else
+           spnr (is) =2+Nint(dble(nrmt(is)-1)*((sprmax(is)-sprmin(is))/(rmt(is)-sprmin(is)))**0.333333333333333d0)
+         endif
+           spnrmax = Max (spnrmax, spnr(is))
       End Do
 ! allocate the global radial mesh arrays
       If (allocated(spr)) deallocate (spr)
@@ -74,9 +86,22 @@ Subroutine genrmesh
          t1 = 1.d0 / dble (nrmt(is)-1)
 ! logarithmic mesh
          t2 = Log (rmt(is)/sprmin(is))
+!         cutoff=min(Nint(nrmt(is)*0.5d0),150)
+         cutoff=Nint(nrmt(is)*0.5d0)
+
          Do ir = 1, spnr (is)
-            spr (ir, is) = sprmin (is) * Exp (dble(ir-1)*t1*t2)
+           if (input%groundstate%radial_grid_type.eq."cubic") then
+             spr (ir, is) = sprmin (is)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is))
+           elseif (input%groundstate%radial_grid_type.eq."exponential") then
+             spr (ir, is) = sprmin (is) * Exp (dble(ir-1)*t1*t2)
+           else
+             spr (ir, is) = 0.5d0*(erf(5d0*dble(ir-cutoff)/nrmt(is))+1d0)* &
+            &  (sprmin (is)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is)))+ &
+            &  (1d0-0.5d0*(erf(5d0*dble(ir-cutoff)/nrmt(is))+1d0))*sprmin (is) * Exp(dble(ir-1)*t1*t2)
+           endif
+!            write(*,*) spr (ir, is)
          End Do
+!         stop
       End Do
 ! find the inner part of the muffin-tin (where rho is calculated with lmaxinr)
       Do is = 1, nspecies

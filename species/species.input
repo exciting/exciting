@@ -1,8 +1,7 @@
 
 ! input species; if empty all elements of species.dat file will be generated
 inspecies
-  'O'
-
+ ''
 
 ! string for description of method, written to the species files: simple, advanced
 apwdescr
@@ -58,13 +57,13 @@ esccut
 !------------------------------------------------------------------------------!
 
 locorbxs
-  .false.
+  .true.
 
 searchlocorbxs
   .false.
 
 lxsmax
-  5
+  4
 
 exsmax
   10.0

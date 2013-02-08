@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Ti" name="titanium" z="-22.0000" mass="87256.20311">
-    <muffinTin rmin="0.426401E-06" radius="2.0000" rinf="38.6155" radialmeshPoints="500"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="39.1857" radialmeshPoints="153"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

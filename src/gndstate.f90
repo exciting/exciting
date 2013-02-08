@@ -38,12 +38,27 @@ Subroutine gndstate
       Complex (8), Allocatable :: evecfv (:, :, :)
       Complex (8), Allocatable :: evecsv (:, :)
       Logical :: force_converged, tibs
+  ! time measurements
+      Real(8) :: ts0,ts1,tsg0,tsg1,tin1,tin0
+
+
+
+!! TIME - Initialisation segment
+    Call timesec (tsg0)
+    Call timesec (ts0)
+     
   ! require forces for structural optimisation
       If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = &
      & .True.
   ! initialise global variables
+      Call timesec (tin0)
       Call init0
+      Call timesec (tin1)
+      time_init0=tin1-tin0
+      Call timesec (tin0)
       Call init1
+      Call timesec (tin1)
+      time_init1=tin1-tin0
   ! initialize reference density
       If (allocated(rhomtref)) deallocate (rhomtref)
       Allocate (rhomtref(lmmaxvr, nrmtmax, natmtot))
@@ -113,12 +128,18 @@ Subroutine gndstate
          If (rank .Eq. 0) write (60, '("Supercell potential constructed&
         & from STATE.OUT")')
       Else
+         Call timesec(tin0)
          Call rhoinit
+         Call timesec(tin1)
+         time_density_init=tin1-tin0
   ! store density to reference
          rhoirref(:)=rhoir(:)
          rhomtref(:,:,:)=rhomt(:,:,:)
+         Call timesec(tin0)
          Call poteff
          Call genveffig
+         Call timesec(tin1)
+         time_pot_init=tin1-tin0
          If (rank .Eq. 0) write (60, '("Density and potential initialis&
         &ed from atomic data")')
       End If
@@ -132,7 +153,16 @@ Subroutine gndstate
       Allocate (v(n))
   ! set stop flag
       tstop = .False.
+
+      Call timesec (ts1)
+      timeinit = timeinit+ts1-ts0
+!! TIME - End of initialisation segment
+
+
 10    Continue
+
+!! TIME - Mixer segment
+      Call timesec (ts0)
   !call mixing array allocation functions by setting
       nwork = - 1
   !and call interface
@@ -140,6 +170,12 @@ Subroutine gndstate
      & v, currentconvergence, nwork)
       et = 0.d0
       fm = 0.d0
+      Call timesec (ts1)
+      timemixer = ts1-ts0+timemixer
+!! TIME - End of mixer segment
+
+!! TIME - First IO segment
+      Call timesec (ts0)
   ! set last iteration flag
       tlast = .False.
   ! delete any existing eigenvector files
@@ -169,31 +205,41 @@ Subroutine gndstate
             tlast = .True.
          End If
          If (rank .Eq. 0) Call flushifc (60)
+         Call timesec (ts1)
+         timeio=ts1-ts0+timeio
+!! TIME - End of first IO segment
+
+!! TIME - Muffin-tin segment
+         Call timesec (ts0)
      ! generate the core wavefunctions and densities
          Call gencore
-         Select Case (trim(input%groundstate%findlinentype))
-         Case ('simple')
-         Case ('advanced')
-            If (rank .Eq. 0) Then
-               Write (60,*)
-               Write (60, '("Using advanced method for search of linear&
-              &ization energies")')
-            End If
-         End Select
      ! find the new linearisation energies
-         Call linengy(iscl)
+         If (rank .Eq. 0) Then
+           Write (60,*)
+           Write (60,*) 'Linearization energies are searched using the "', &
+          & trim(input%groundstate%findlinentype), '" method'
+         End If
+         Call linengy
      ! write out the linearisation energies
          if (rank .eq. 0) Call writelinen
      ! generate the APW radial functions
          Call genapwfr
      ! generate the local-orbital radial functions
-         Call genlofr
+         Call genlofr(tlast)
      ! compute the overlap radial integrals
          Call olprad
      ! compute the Hamiltonian radial integrals
          Call hmlrad
      ! zero partial charges
          chgpart(:,:,:)=0.d0
+
+         Call timesec (ts1)
+         timemt=ts1-ts0+timemt
+!! TIME - End of muffin-tin segment
+
+
+!! TIME - Second IO segment       
+          Call timesec (ts0)
 #ifdef MPI
          Call MPI_barrier (MPI_COMM_WORLD, ierr)
          If (rank .Eq. 0) Call delevec ()
@@ -220,15 +266,19 @@ Subroutine gndstate
             Allocate (evalfv(nstfv, nspnfv))
             Allocate (evecfv(nmatmax, nstfv, nspnfv))
             Allocate (evecsv(nstsv, nstsv))
+!! TIME - seceqn does not belong to IO
+            Call timesec(ts1)
+            timeio=ts1-ts0+timeio            
         ! solve the first- and second-variational secular equations
             Call seceqn (ik, evalfv, evecfv, evecsv)
+            Call timesec(ts0)
         ! write the eigenvalues/vectors to file
             Call putevalfv (ik, evalfv)
             Call putevalsv (ik, evalsv(:, ik))
             Call putevecfv (ik, evecfv)
             Call putevecsv (ik, evecsv)
         ! calculate partial charges
-            call genpchgs(ik,evecfv,evecsv)
+            !call genpchgs(ik,evecfv,evecsv)
             Deallocate (evalfv, evecfv, evecsv)
          End Do
 #ifdef KSMP
@@ -281,10 +331,16 @@ Subroutine gndstate
            ! get the eigenvectors from file
                Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
                Call getevecsv (vkl(:, ik), evecsv)
+
+!! TIME - rhovalk does not belong to IO
+               Call timesec(ts1)
+               timeio=ts1-ts0+timeio
            ! add to the density and magnetisation
                Call rhovalk (ik, evecfv, evecsv)
                Deallocate (evecfv, evecsv)
+               Call timesec(ts0)
             End Do
+
 #ifndef MPIRHO
 #ifdef KSMP
         !$OMP END DO
@@ -300,9 +356,16 @@ Subroutine gndstate
 #endif
             If (rank .Eq. 0) Then
         ! write out partial charges
-               call writepchgs(69,input%groundstate%lmaxvr)
+               !call writepchgs(69,input%groundstate%lmaxvr)
                call flushifc(69)
             end if
+
+            Call timesec(ts1)
+            timeio=ts1-ts0+timeio
+!! TIME - End of second IO segment
+
+!! TIME - potential
+           Call timesec(ts0)
         ! symmetrise the density
             Call symrf (input%groundstate%lradstep, rhomt, rhoir)
         ! symmetrise the magnetisation
@@ -369,13 +432,25 @@ Subroutine gndstate
             End If
         ! compute the energy components
             Call energy
+           Call timesec(ts1)
+           timepot=ts1-ts0+timepot
+!! TIME - End of potential
+
+!! TIME - Third IO segment
         ! compute the forces (without IBS corrections)
+            Call timesec(ts0)
             If (input%groundstate%tforce) Then
                tibs=input%groundstate%tfibs
                input%groundstate%tfibs=.false.
+!! forces do no belong to IO
+               Call timesec(ts1)
+               timeio=ts1-ts0+timeio
                call force
+               Call timesec(ts0)
+               
                input%groundstate%tfibs=tibs
                If (rank .Eq. 0) Then
+                  
        ! output forces to INFO.OUT
                   Call writeforce (60)
                   ! write maximum force magnitude to FORCEMAX.OUT
@@ -431,8 +506,15 @@ Subroutine gndstate
               & scl_xml_write_moments ()
                Call scl_xml_out_write ()
             End If
+            Call timesec(ts1)
+            timeio=ts1-ts0+timeio
+!! TIME - End of third IO segment
+
  ! exit self-consistent loop if last iteration is complete
             If (tlast) Go To 20
+
+!! TIME - Fourth IO segment
+            Call timesec(ts0)
             If (rank .Eq. 0) Then
     ! check for convergence
                If (iscl .Ge. 2) Then
@@ -484,19 +566,25 @@ Subroutine gndstate
                   Open (50, File='STOP')
                   Close (50, Status='DELETE')
                End If
-           ! output the current total CPU time
+           ! output the current total time
                timetot = timeinit + timemat + timefv + timesv + timerho &
-              & + timepot + timefor
+              & + timepot + timefor+timeio+timemt+timemixer
                Write (60,*)
-               Write (60, '("Time (CPU seconds) : ", F12.2)') timetot
+               Write (60, '("Wall time (seconds) : ", F12.2)') timetot
            ! end the self-consistent loop
             End If
 #ifdef MPI
             Call MPI_bcast (tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
             Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
 #endif
+            Call timesec(ts1)
+            timeio=ts1-ts0+timeio
+!! TIME - End of fourth IO segment
          End Do
 20       Continue
+
+!! TIME - Fifth IO segment
+         Call timesec(ts0)
          If (rank .Eq. 0) Then
             Write (60,*)
             Write (60, '("+------------------------------+")')
@@ -590,8 +678,8 @@ Subroutine gndstate
             end if
 
          End If
-
 30       Continue
+
      ! output timing information
          If (rank .Eq. 0) Then
             Write (60,*)
@@ -639,10 +727,71 @@ Subroutine gndstate
          If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, -2)
          Deallocate (v)
          Call mpiresumeevecfiles ()
+         Call timesec(ts1)
+         timeio=ts1-ts0+timeio
+!! TIME - End of fifth IO segment
+
  ! close the INFO.OUT file
-         If (rank .Eq. 0) close (60)
          if(allocated(rhomtref))deallocate(rhomtref)
          if(allocated(rhoirref))deallocate(rhoirref)
+
+         If (rank .Eq. 0) then
+            Write (60,*)
+            Write (60, '("Timings (seconds) :")')
+            Write (60, '(" initialisation", T40, ": ", F12.2)') timeinit
+            Write (60, '("            - init0", T40,": ", F13.2)') time_init0
+            Write (60, '("            - init1", T40,": ", F13.2)') time_init1
+            Write (60, '("            - rhoinit", T40,": ", F13.2)') time_density_init
+            Write (60, '("            - potential initialisation", T40,": ", F13.2)') time_pot_init
+            Write (60, '("            - others", T40,": ", F13.2)') timeinit-time_init0-time_init1-time_density_init-time_pot_init
+            Write (60, '(" Hamiltonian and overlap matrix set up", T40,&
+           & ": ", F12.2)') timemat
+            Write (60, '("            - hmlaan", T40,": ", F13.2)') time_hmlaan
+            Write (60, '("            - hmlalon", T40,": ", F13.2)') time_hmlalon
+            Write (60, '("            - hmllolon", T40,": ", F13.2)') time_hmllolon
+            Write (60, '("            - olpaan", T40,": ", F13.2)') time_olpaan
+            Write (60, '("            - olpalon", T40,": ", F13.2)') time_olpalon
+            Write (60, '("            - olplolon", T40,": ", F13.2)') time_olplolon
+            Write (60, '("            - hmlistln", T40,": ", F13.2)') time_hmlistln
+            Write (60, '("            - olpistln", T40,": ", F13.2)') time_olpistln
+
+            Write (60, '(" first-variational secular equation", T40, ":&
+           & ", F12.2)') timefv
+            If (associated(input%groundstate%spin)) Then
+               Write (60, '(" second-variational calculation", T40, ": ", F12.2)') timesv
+            End If
+            Write (60, '(" charge density calculation", T40, ": ", F12.&
+           &2)') timerho
+            Write (60, '(" potential calculation", T40, ": ", F12.2)') &
+           & timepot
+            Write (60, '(" muffin-tin manipulations", T40, ": ", F12.2)') &
+           & timemt
+            Write (60, '(" APW matching", T40, ": ", F12.2)') &
+           & timematch
+            Write (60, '(" disk reads/writes", T40, ": ", F12.2)') &
+           & timeio
+            Write (60, '(" mixing efforts", T40, ": ", F12.2)') &
+           & timemixer
+            If (input%groundstate%tforce) Then
+               Write (60, '(" force calculation", T40, ": ", F12.2)') &
+              & timefor
+            End If
+            timetot = timeinit + timemat + timefv + timesv + timerho + &
+           & timepot + timefor+timeio+timemt+timemixer+timematch
+            Write (60, '(" sum", T40, ": ", F12.2)') timetot
+            Call timesec(tsg1)
+            Write (60, '(" total", T40, ": ", F12.2)') tsg1-tsg0
+            Write (60,*)
+            Write (60, '("More timings (seconds)!")')
+            Write (60, '(" Dirac eqn solver", T40, ": ", F12.2)') time_rdirac
+            Write (60, '(" Rel. Schroedinger eqn solver", T40, ": ", F12.2)') time_rschrod
+            Write (60, '(" Total time spent in radial solvers", T40, ": ", F12.2)') time_rdirac+time_rschrod
+            Write (60, '("+----------------------------+")')
+            Write (60, '("| Groundstate module stopped |")')
+            Write (60, '("+----------------------------+")')
+            close (60)
+         endif
+
          Return
    End Subroutine gndstate
 !EOC

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Pr" name="praseodymium" z="-59.0000" mass="256858.9326">
-    <muffinTin rmin="0.260378E-06" radius="2.2000" rinf="44.4846" radialmeshPoints="700"/>
+    <muffinTin rmin="0.100000E-04" radius="2.2000" rinf="45.0922" radialmeshPoints="208"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -30,12 +30,12 @@
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-1.4342" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.4341" searchE="true"/>
       </lo>
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-0.8623" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.8622" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

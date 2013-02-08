@@ -204,9 +204,9 @@ program species
   ! nuclear charge in units of e
   spzn=-dble(nz)
   ! minimum radial mesh point proportional to 1/sqrt(Z)
-  sprmin=2.d-6/sqrt(abs(dble(spzn)))
+  sprmin=1.d-5
   ! set the number of radial mesh points proportional to number of nodes
-  nrmt=100*(spn(spnst)+1)
+  nrmt=120+dint(1.5d0*nz)
   ! find the optimal effective infinity
   sprmax=80.d0
   do i=1,2
