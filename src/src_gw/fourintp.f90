@@ -74,7 +74,7 @@
         nsymcrys=1
         call setrindex
         setrindex_done = .true.
-      endif 
+      endif
 
       c1=0.25d0
       c2=0.25d0
