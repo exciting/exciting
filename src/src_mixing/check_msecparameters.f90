@@ -14,11 +14,10 @@ Subroutine check_msecparameters ()
       Logical :: usererror
       usererror = .False.
       If (qmx_input .Ge. 0.6) Then
-         Write (60,*) ':WARNING: Mixing parameter may be too large and &
-        &greedy'
+         call warning('WARNING(check_msecparameters): Mixing parameter may be too large and greedy.')
          usererror = .True.
       Else If (qmx_input .Le. 0.025) Then
-         Write (60,*) ':WARNING: Mixing parameter may be too small'
+         call warning('WARNING(check_msecparameters): Mixing parameter may be too small')
          usererror = .True.
       End If
 !

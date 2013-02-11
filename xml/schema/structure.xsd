@@ -91,6 +91,14 @@
                       </xs:appinfo>
                     </xs:annotation>
                   </xs:attribute>
+
+                  <xs:attribute ex:importance="expert" ex:unit="" name="lock" type="booleantriple"
+                    default="false false false" use="optional">
+                    <xs:annotation>
+                      <xs:documentation>Switches to constrain atomic movement along x/y/z directions.</xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+
                   <xs:attribute ex:importance="expert" ex:unit="" name="bfcmt" type="vect3d"
                     default="0.0d0 0.0d0 0.0d0" use="optional">
                     <xs:annotation>
@@ -211,24 +219,24 @@
           </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="molecule" type="xs:boolean"
-        default="false">
+<!-- Giulio Biddau 1.11.2012-->
+      <xs:attribute ex:importance="expert" ex:unit="" name="cartesian" type="xs:boolean" default="false">
         <xs:annotation>
-          <xs:documentation> If <pre>"true"</pre>, a calculation for an isolated molecule is
-            performed. In this case, the atomic positions specified by the
-              <elementref>atom</elementref> subelement of the <elementref>species</elementref>
-            element must be given in cartesian coordinates. The lattice vectors are set up
-            automatically as <displaymath>{\bf A}^{(i)}=A_i\,\,\hat{\bf e}^{(i)} \qquad
-              i=1,2,3</displaymath> with <displaymath>A_i=\max_{\alpha,\beta}\left|{
-              a}^{(\alpha)}_i-{a}^{(\beta)}_i\right| +d_{\rm vac}</displaymath> where
-              <inlinemath>{a}_i^{(\alpha)} </inlinemath> is the catesian component of the atom
-            labeled by <inlinemath>\alpha</inlinemath> in the <inlinemath>i</inlinemath>-th
-            direction specified by the unit vector <inlinemath>\hat{\bf e}^{(i)}</inlinemath>.
-            Furthermore, <inlinemath>d_{\rm vac}</inlinemath> represents the size of the vacuum
-            around the molecule as defined by the attribute <attref>vacuum</attref>.
-          </xs:documentation>
+          <xs:documentation> If <pre>"true"</pre> the input is in cartesian                                                                             </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+<!-- Giulio Biddau 1.11.2012                                                                                                                        <xs:attribute ex:importance="expert" ex:unit="" name="minverb" type="xs:boolean" default="false"> 
+        <xs:annotation>                                              
+          <xs:documentation> If <pre>"true"</pre> only few files are generated.                                                               
+         </xs:documentation>                                                                                                                  
+        </xs:annotation>                                                                                                                      
+      </xs:attribute>                                                                                                                         
+      <xs:attribute ex:importance="essential" ex:unit="" name="historyunit" type="xs:boolean" default="false">                                
+<xs:annotation>                                                                                                                               
+<xs:documentation> If <pre>"true"/"false"</pre> the units of HISTORY.OUT file are Angstrom/Bohr for positions and eV/Ang / Ha/Bohr for forces.
+</xs:documentation>                                                                                                                           
+</xs:annotation>                                                                                                                              
+</xs:attribute>-->
       <xs:attribute ex:importance="expert" ex:unit="" name="rmtapm" type="vect2d"
         default="0.25d0 0.95d0">
         <xs:annotation>
@@ -241,13 +249,6 @@
             distance between the muffin-tin speheres is determined by the value of
               <attref>rmtapm</attref>(2): When <attref>rmtapm</attref>(2)=1, the closest muffin-tin
             spheres will touch each other. </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="Bohr" name="vacuum" type="fortrandouble"
-        default="10.0d0">
-        <xs:annotation>
-          <xs:documentation>Determines the size of the vacuum around the molecule, see the
-              <attref>molecule</attref> attribute.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="Bohr" name="epslat" type="fortrandouble"

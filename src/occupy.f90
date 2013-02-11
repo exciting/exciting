@@ -43,6 +43,7 @@ Subroutine occupy
       Real (8) :: sdelta, stheta
       real(8) :: egap
       real(8), external :: dostet
+      character(1024) :: message
       External sdelta, stheta
 ! find minimum and maximum eigenvalues
       e0 = evalsv (1, 1)
@@ -53,11 +54,13 @@ Subroutine occupy
             e1 = Max (e1, evalsv(ist, ik))
          End Do
       End Do
-      If (e0-mine0 .lt. -de0) Then
-         Write (100,*)
-         Write (100, '("Warning(occupy): smallest valence eigenvalue less than&
-         &minimum linearization energy : ",2g18.10)') e0, mine0
-         write(100,'("for s.c. loop ", i5)') iscl
+      If (e0-mine0 .lt. -de0) Then 
+         call warning('Warning(occupy):')
+         Write(message, '(" Smallest valence eigenvalue less than&
+         &  minimum linearization energy : ",2g18.10)') e0, mine0
+         call warning(message)
+         write(message,'("for s.c. loop ", i5)') iscl
+         call warning(message)
       End If
 
 !#ifdef TETRAOCC_DOESNTWORK
@@ -100,9 +103,9 @@ Subroutine occupy
                  & (input%groundstate%stypenumber, x) * t1
             End Do
             If (occsv(nstsv, ik) .Gt. input%groundstate%epsocc) Then
-               Write (100,*)
-               Write (100, '("Warning(occupy): not enough empty states fo&
-              &r k-point ", I6)') ik
+               call warning('Warning(occupy):')
+               Write (message, '(" Not enough empty states for k-point ", I6)') ik
+               call warning(message)
             End If
          End Do
          fermidos = fermidos * occmax

@@ -4,29 +4,26 @@
 ! See the file COPYING for license details.
 
 Subroutine tasklauncher
-      Use modinput
-      Implicit None
+    Use modinput
+    Implicit None
       
-! open WARNINGS.OUT
-      open(100,file='WARNINGS.OUT',action='WRITE',form='FORMATTED')
-      
+! Initialize WARNINGS.OUT file
+    call warning()
+    
 ! Note that the order of the calls below may be important!
-      If (associated(input%groundstate)) &
+    If (associated(input%groundstate)) &
         call groundstatetasklauncher()
 
-      If (associated(input%properties)) &
+    If (associated(input%properties)) &
         Call propertylauncher()
 
-      If (associated(input%phonons)) &
+    If (associated(input%phonons)) &
         call phononstasklauncher()
 
-      If (associated(input%gw)) &
+    If (associated(input%gw)) &
         Call gwtasklauncher ()
 
-      If (associated(input%xs)) &
+    If (associated(input%xs)) &
         Call xstasklauncher ()
-
-! close the WARNIGNS.OUT file
-       close(100)
 
 End Subroutine

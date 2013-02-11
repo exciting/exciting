@@ -36,6 +36,7 @@ Subroutine readstate
       Integer :: ngrid_ (3), ngrtot_, ngvec_, ndmag_
       Integer :: nspinor_, ldapu_, lmmaxlu_
       Character(40) :: githash_
+      character(1024) :: message
       Real (8) :: t1
       logical, external :: versions_gt
 ! allocatable arrays
@@ -76,12 +77,13 @@ Subroutine readstate
       Read (50) version_
       If ((version(1) .Ne. version_(1)) .Or. (version(2) .Ne. &
      & version_(2)) .Or. (version(3) .Ne. version_(3))) Then
-         Write (100,*)
-         Write (100, '("Warning(readstate): different versions")')
-         Write (100, '(" current   : ", I3.3, ".", I3.3, ".", I3.3)') &
-        & version
-         Write (100, '(" STATE.OUT : ", I3.3, ".", I3.3, ".", I3.3)') &
-        & version_
+         call warning('Warning(readstate):')
+         Write(message, '(" Different versions")')
+         call warning(message)
+         Write(message, '(" current   : ", I3.3, ".", I3.3, ".", I3.3)') version
+         call warning(message)
+         Write(message, '(" STATE.OUT : ", I3.3, ".", I3.3, ".", I3.3)') version_
+        call warning(message)
       End If
 ! versions > 10.04.14 (April 14, 2010)
       If (versions_gt(version_,refversion_gitstate)) Then
@@ -91,10 +93,13 @@ Subroutine readstate
          githash_ = ''
       End If
       if (githash_ .ne. githash) then
-        write(100,*)
-        write(100,'("Warning(readstate): different version hashes")')
-        Write(100, '(" current   : ", a40)') githash
-        Write(100, '(" STATE.OUT : ", a40)') githash_
+        call warning('Warning(readstate):')
+        write(message,'(" Different version hashes")')
+        call warning(message)
+        Write(message, '(" current   : ", a40)') githash
+        call warning(message)
+        Write(message, '(" STATE.OUT : ", a40)') githash_
+        call warning(message)
       end if
       Read (50) spinpol_
       Read (50) nspecies_
@@ -109,19 +114,25 @@ Subroutine readstate
       Read (50) lmmaxvr_
 #ifdef XS
       If (lmmaxvr .Ne. lmmaxvr_) Then
-         Write (100,*)
-         Write (100, '("Warning(readstate): differing lmmaxvr values ")')
-         Write (100, '(" current   : ", I4)') lmmaxvr
-         Write (100, '(" STATE.OUT : ", I4)') lmmaxvr_
+         call warning('Warning(readstate):')
+         Write (message, '(" Differing lmmaxvr values ")')
+         call warning(message)
+         Write (message, '(" current   : ", I4)') lmmaxvr
+         call warning(message)
+         Write (message, '(" STATE.OUT : ", I4)') lmmaxvr_
+         call warning(message)
       End If
 #endif
       Read (50) nrmtmax_
 #ifdef XS
       If (nrmtmax .Ne. nrmtmax_) Then
-         Write (100,*)
-         Write (100, '("Warning(readstate): differing nrmtmax values ")')
-         Write (100, '(" current   : ", I4)') nrmtmax
-         Write (100, '(" STATE.OUT : ", I4)') nrmtmax_
+         call warning('Warning(readstate):')
+         Write (message, '(" Differing nrmtmax values ")')
+         call warning(message)
+         Write (message, '(" current   : ", I4)') nrmtmax
+         call warning(message)
+         Write (message, '(" STATE.OUT : ", I4)') nrmtmax_
+         call warning(message)
       End If
 #endif
       Allocate (spr_(nrmtmax_, nspecies))
@@ -139,24 +150,26 @@ Subroutine readstate
          Read (50) nrmt_ (is)
 #ifdef XS
          If (nrmt(is) .Ne. nrmt_(is)) Then
-            Write (100,*)
-            Write (100, '("Warning(readstate): differing nrmt for species&
-           & ", I4)') is
-            Write (100, '(" current   : ", I4)') nrmt (is)
-            Write (100, '(" STATE.OUT : ", I4)') nrmt_ (is)
+            call warning('Warning(readstate):')
+            Write (message, '(" Differing nrmt for species", I4)') is
+            call warning(message)
+            Write (message, '(" current   : ", I4)') nrmt (is)
+            call warning(message)
+            Write (message, '(" STATE.OUT : ", I4)') nrmt_ (is)
+            call warning(message)
          End If
 #endif
          Read (50) spr_ (1:nrmt_(is), is)
 #ifdef XS
          If (nrmt(is) .Eq. nrmt_(is)) Then
-            If (any(Abs(spr(1:nrmt(is), is)-spr_(1:nrmt(is), is)) > &
-           & 1.d-10)) Then
-               Write (100,*)
-               Write (100, '("Warning(readstate): differing spr for speci&
-              &es ", I4)') is
-               Write (100, '(" average RMS of difference   : ", G18.10)') &
+            If (any(Abs(spr(1:nrmt(is), is)-spr_(1:nrmt(is), is)) > 1.d-10)) Then
+               call warning('Warning(readstate):')
+               Write (message, '(" Differing spr for species ", I4)') is
+               call warning(message)
+               Write (message, '(" average RMS of difference   : ", G18.10)') &
               & Sqrt (sum((spr(1:nrmt(is), is)-spr_(1:nrmt(is), &
               & is))**2)/nrmt(is))
+              call warning(message)
             End If
          End If
 #endif
@@ -164,28 +177,34 @@ Subroutine readstate
       Read (50) ngrid_
 #ifdef XS
       If (any(ngrid .Ne. ngrid_)) Then
-         Write (100,*)
-         Write (100, '("Warning(readstate): differing ngrid values ")')
-         Write (100, '(" current   : ", 3I4)') ngrid
-         Write (100, '(" STATE.OUT : ", 3I4)') ngrid_
+         call warning('Warning(readstate):')
+         Write (message, '(" Differing ngrid values ")')
+         Write (message, '(" current   : ", 3I4)') ngrid
+         Write (message, '(" STATE.OUT : ", 3I4)') ngrid_
       End If
 #endif
       Read (50) ngvec_
 #ifdef XS
       If (ngvec .Ne. ngvec_) Then
-         Write (100,*)
-         Write (100, '("Warning(readstate): differing ngvec values ")')
-         Write (100, '(" current   : ", I9)') ngvec
-         Write (100, '(" STATE.OUT : ", I9)') ngvec_
+         call warning('Warning(readstate):')
+         Write (message, '(" Differing ngvec values ")')
+         call warning(message)
+         Write (message, '(" current   : ", I9)') ngvec
+         call warning(message)
+         Write (message, '(" STATE.OUT : ", I9)') ngvec_
+         call warning(message)
       End If
 #endif
       Read (50) ndmag_
 #ifdef XS
       If (ndmag .Ne. ndmag_) Then
-         Write (100,*)
-         Write (100, '("Warning(readstate): differing ndmag values ")')
-         Write (100, '(" current   : ", I4)') ndmag
-         Write (100, '(" STATE.OUT : ", I4)') ndmag_
+         call warning('Warning(readstate):')
+         Write (message, '(" Differing ndmag values ")')
+         call warning(message)
+         Write (message, '(" current   : ", I4)') ndmag
+         call warning(message)
+         Write (message, '(" STATE.OUT : ", I4)') ndmag_
+         call warning(message)
       End If
 #endif
       If ((spinpol_) .And. (ndmag_ .Ne. 1) .And. (ndmag_ .Ne. 3)) Then

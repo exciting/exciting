@@ -28,6 +28,7 @@ Subroutine charge
       Real (8) :: sum, t1
 ! automatic arrays
       Real (8) :: fr (nrmtmax), gr (nrmtmax), cf (3, nrmtmax)
+      character(1024) :: message
 ! find the muffin-tin charges
       chgmttot = 0.d0
       Do is = 1, nspecies
@@ -51,11 +52,13 @@ Subroutine charge
       chgcalc = chgmttot + chgir
       t1 = chgtot / chgcalc
       If (Abs(t1-1.d0) .Gt. input%groundstate%epschg) Then
-         Write (100,*)
-         Write (100, '("Warning(charge): total charge density incorrect f&
-        &or s.c. loop ", I5)') iscl
-         Write (100, '(" Calculated : ", G18.10)') chgcalc
-         Write (100, '(" Required   : ", G18.10)') chgtot
+         call warning('Warning(charge):')
+         write(message,'(" Total charge density incorrect for s.c. loop ", I5)') iscl
+         call warning(message)
+         write(message,'(" Calculated : ", G18.10)') chgcalc
+         call warning(message)
+         write(message,'(" Required   : ", G18.10)') chgtot
+         call warning(message)
       End If
       Return
 End Subroutine

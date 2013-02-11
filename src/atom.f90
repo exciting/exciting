@@ -214,8 +214,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
          If ((iscl .Gt. 2) .And. (dv .Lt. eps)) Go To 10
 ! end self-consistent loop
       End Do
-      Write (100,*)
-      Write (100, '("Warning(atom): maximum iterations exceeded")')
+      call warning('Warning(atom): Maximum iterations exceeded')
 10    Continue
 
 ! The following segment is useful if you want to come up 
@@ -235,8 +234,6 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
 !      enddo
 !      deallocate(dwf1,dwf2)
 ! ------------------------------------
-
-
 
       Deallocate (vn, vh, ex, ec, vx, vc, vrp)
       Deallocate (ri, fr1, fr2, gr1, gr2, cf)

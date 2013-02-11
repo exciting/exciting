@@ -52,14 +52,7 @@ Subroutine init1
 !---------------------!
 !     k-point set     !
 !---------------------!
-
-! check if the system is an isolated molecule
-      If (input%structure%molecule) Then
-         input%groundstate%ngridk (:) = 1
-         input%groundstate%vkloff (:) = 0.d0
-         input%groundstate%autokpt = .False.
-      End If
-
+!
       If (task.Eq.100) Then
 !
 !     3D fermisurface plot

@@ -35,6 +35,7 @@ Subroutine linengy
       integer :: nr, nn
       real(8) :: t0, t1, e, dl
       real(8), allocatable :: p0 (:), p1 (:), q0 (:), q1 (:)
+      character(1024) :: message
 !
 !     l-charge based schemes
 !
@@ -94,12 +95,17 @@ Subroutine linengy
                        &  spr(:, is), vr, input%groundstate%deband, input%groundstate%epsband, &
                        &  apwe(io1, l, ias),tfnd)
                         if (.not.tfnd) then
-                          write(100,*)
-                          write(100,'("Warning(linengy): linearisation energy not found")')
-                          write(100,'(" for species ",I4," and atom ",I4)') is, ia
-                          write(100,'(" APW angular momentum ",I4)') l
-                          write(100,'(" order ",I4)') io1
-                          write(100,'(" and s.c. loop ",I5)') iscl
+                          call warning('Warning(linengy):')
+                          write(message,'(" Linearisation energy not found")')
+                          call warning(message)
+                          write(message,'(" for species ",I4," and atom ",I4)') is, ia
+                          call warning(message)
+                          write(message,'(" APW angular momentum ",I4)') l
+                          call warning(message)
+                          write(message,'(" order ",I4)') io1
+                          call warning(message)
+                          write(message,'(" and s.c. loop ",I5)') iscl
+                          call warning(message)
                         end if
                      else
                        if (input%groundstate%fermilinengy) &
@@ -141,12 +147,17 @@ Subroutine linengy
                        &  spr(:, is), vr, input%groundstate%deband, input%groundstate%epsband, &
                        &  lorbe(io1, ilo, ias),tfnd)
                         if (.not.tfnd) then
-                          write(100,*)
-                          write(100,'("Warning(linengy): linearisation energy not found")')
-                          write(100,'(" for species ",I4," and atom ",I4)') is, ia
-                          write(100,'(" local-orbital ",I4)') ilo
-                          write(100,'(" order ",I4)') io1
-                          write(100,'(" and s.c. loop",I5)') iscl
+                          call warning('Warning(linengy):')
+                          write(message,'(" Linearisation energy not found")')
+                          call warning(message)
+                          write(message,'(" for species ",I4," and atom ",I4)') is, ia
+                          call warning(message)
+                          write(message,'(" local-orbital ",I4)') ilo
+                          call warning(message)
+                          write(message,'(" order ",I4)') io1
+                          call warning(message)
+                          write(message,'(" and s.c. loop",I5)') iscl
+                          call warning(message)
                         end if
                      else
                        if (input%groundstate%fermilinengy) &

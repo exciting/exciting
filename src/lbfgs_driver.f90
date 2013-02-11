@@ -93,6 +93,8 @@ subroutine lbfgs_driver
         do ia = 1, natoms(is)
           ias = idxas(ia,is)
           do i = 1, 3
+!           apply the constrain
+            if (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) cycle
             j = j+1
             nbd(j) = 0
             x(j) = atposc(i,ia,is)
@@ -102,7 +104,7 @@ subroutine lbfgs_driver
         end do
       end do
 
-!        ------- the beginning of the loop ----------
+!     BEGIN the loop
       ctask = 'START'
       do while (ctask(1:2).eq.'FG'    .or. &
                 ctask(1:5).eq.'NEW_X' .or. &
@@ -124,7 +126,8 @@ subroutine lbfgs_driver
           if (ctask(1:5) .eq. 'NEW_X') then   
             
             ! write lattice vectors and optimised atomic positions to file
-            Call writegeom (.True.)
+            Call writehistory
+            Call writegeometryxml (.True.)
             ! write the optimised interatomic distances to file
             Call writeiad (.True.)
 
@@ -165,7 +168,7 @@ subroutine lbfgs_driver
         end if
 
       end do
-!           ---------- the end of the loop -------------
+!     END the loop
 
       j = 0
       do is = 1, nspecies

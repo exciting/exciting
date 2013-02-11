@@ -283,7 +283,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"searchE")
-getstructcustom%searchE= .true.
+getstructcustom%searchE=.true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"searchE",getstructcustom%searchE)
        call removeAttribute(thisnode,"searchE")  
@@ -592,7 +592,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"searchE")
-getstructdefault%searchE= .true.
+getstructdefault%searchE=.true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"searchE",getstructdefault%searchE)
        call removeAttribute(thisnode,"searchE")  

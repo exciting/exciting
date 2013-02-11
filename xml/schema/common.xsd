@@ -18,6 +18,23 @@
       <xs:pattern value="\-?[0-9]*\.?[0-9]+([eEdDqQ][\-+]?[0-9]+)?"/>
     </xs:restriction>
   </xs:simpleType>
+
+  <xs:simpleType name="booleanlist">
+    <xs:annotation>
+      <xs:documentation> List of space separated booleans.</xs:documentation>
+    </xs:annotation>
+    <xs:list itemType="xs:boolean"/>
+  </xs:simpleType>
+  <xs:simpleType name="booleantriple">
+    <xs:annotation>
+      <xs:documentation> Space separated list of three booleans. <p>Example: <pre> "true false true" </pre></p>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="booleanlist">
+      <xs:length value="3"/>
+    </xs:restriction>
+  </xs:simpleType>
+
   <xs:simpleType name="vector">
     <xs:annotation>
       <xs:documentation> A vector is a space separated list of floating point numbers. <p> Example:
@@ -26,7 +43,7 @@
       </xs:documentation>
     </xs:annotation>
     <xs:list itemType="fortrandouble"/>
-  </xs:simpleType>
+  </xs:simpleType>  
   <xs:simpleType name="integerlist">
     <xs:annotation>
       <xs:documentation> List of space separated integers.</xs:documentation>

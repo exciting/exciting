@@ -33,7 +33,7 @@ Subroutine gndstate
 !! TIME - Initialisation segment
     Call timesec (tsg0)
     Call timesec (ts0)
-     
+
 ! initialise global variables
     Call timesec (tin0)
     Call init0
@@ -44,6 +44,8 @@ Subroutine gndstate
     Call timesec (tin1)
     time_init1=tin1-tin0
     
+! require forces for structural optimisation
+    If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = .True.    
 ! initialise OEP variables if required
     if ((input%groundstate%xctypenumber .Lt. 0) .Or. &
    &    (xctype(2) .Ge. 400) .Or. (xctype(1) .Ge. 400)) then
@@ -67,7 +69,6 @@ Subroutine gndstate
 ! output the k-point set to file
       Call writekpts
 ! write lattice vectors and atomic positions to file
-      Call writegeom (.False.)
       Call writegeometryxml (.False.)
 ! open INFO.OUT file
       Open (60, File='INFO'//trim(filext), Action='WRITE', Form='FORMATTED')
@@ -78,13 +79,15 @@ Subroutine gndstate
 ! open MOMENT.OUT if required
       If (associated(input%groundstate%spin)) open (63, file='MOMENT'//trim(filext), action='WRITE', form='FORMATTED')
 ! open FORCEMAX.OUT if required
-      If (input%groundstate%tforce) open (64, file='FORCEMAX'//trim(filext), action='WRITE', form='FORMATTED')
+      If (input%groundstate%tforce) then 
+        open(64, file='FORCEMAX'//trim(filext), action='WRITE', form='FORMATTED')
+! open DFORCEMAX.OUT
+        open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
+      End If
 ! open RMSDVEFF.OUT
       Open (65, File='RMSDVEFF'//trim(filext), Action='WRITE', Form='FORMATTED')
 ! open DTOTENERGY.OUT
       open(66,file='DTOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
-! open DFORCEMAX.OUT
-      if (input%groundstate%tforce) open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
 ! open CHGDIST.OUT
       open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
 ! open PCHARGE.OUT
@@ -159,14 +162,16 @@ Subroutine gndstate
         Close (62)
 ! close the MOMENT.OUT file
         If (associated(input%groundstate%spin)) close (63)
+        If (input%groundstate%tforce) Then 
 ! close the FORCEMAX.OUT file
-        If (input%groundstate%tforce) close (64)
+            close (64)
+! close the DFORCEMAX.OUT file
+            close(67)
+        End If
 ! close the RMSDVEFF.OUT file
         Close (65)
 ! close the DTOTENERGY.OUT file
         close(66)
-! close the DFORCEMAX.OUT file
-        if (input%groundstate%tforce) close(67)
 ! close the CHGDIST.OUT file
         close(68)
 ! close the PCHARGE.OUT file

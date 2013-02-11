@@ -18,6 +18,17 @@ subroutine structureoptimization
 !BOC
     Implicit None
     integer :: is, ia
+    Logical :: exist
+
+! Write first the starting configuration
+    if (input%structureoptimization%history) then
+        Inquire (File='history.xyz', Exist=exist)
+        If (exist) Then
+            Open(50, File='history.xyz')
+            Close(50, Status='DELETE')
+        End If   
+        call writehistory
+    end if
 
     if (input%structureoptimization%method=="simple") then
         
@@ -54,7 +65,7 @@ subroutine structureoptimization
 
     else
       
-        write(*,*) 'ERROR(structureoptimization.f90): Unknown method for structure optimization!'
+        write(*,*) 'ERROR(structureoptimization): Unknown method for structure optimization!'
         stop
       
     end if

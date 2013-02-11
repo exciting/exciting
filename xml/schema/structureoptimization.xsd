@@ -20,7 +20,6 @@
                 <xs:documentation> Structural optimization run. Atomic positions are written to
                     <pre>geometry.xml</pre>. </xs:documentation>
             </xs:annotation>
-            
             <xs:attribute ex:importance="essential" ex:unit="" name="method" type="xs:string" default="simple">
                 <xs:annotation>
                     <xs:documentation>
@@ -28,8 +27,6 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            
-            
             <xs:attribute ex:importance="essential" ex:unit="" ref="epsforce" default="5.0d-5">
                 <xs:annotation>
                     <xs:documentation>Convergence tolerance for the forces during a structural
@@ -69,6 +66,15 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="history" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation> If <pre>"true"</pre> history.xyz file is generated. For each relaxation step: Line 1 contains the total number of atoms. Line 2 contains the comment line here with total energy in eV. Line 3 and following are atomic specie, cartesian c\
+oordinates in Angstrom in x, y, z and the forces (eV/Ang) on x,y and z.                                                                                                                                                                                                        
+		</xs:documentation>
+	      </xs:annotation>
+	    </xs:attribute>
+
         </xs:complexType>
     </xs:element>
 

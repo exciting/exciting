@@ -31,7 +31,7 @@ Subroutine updatpos
 !BOC
       Implicit None
 ! local variables
-      Integer :: ik, ispn, is, ia, ias
+      Integer :: ik, ispn, is, ia, ias, i
       Real (8) :: t1
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
@@ -45,11 +45,11 @@ Subroutine updatpos
             Else
                tauatm (ias) = input%structureoptimization%tau0atm
             End If
-! check for negative mass
-            If (spmass(is) .Gt. 0.d0) Then
-               atposc (:, ia, is) = atposc (:, ia, is) + tauatm (ias) * &
-              & (forcetot(:, ias)+forcetp(:, ias))
-            End If
+            do i = 1, 3
+                if (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) cycle
+                atposc(i,ia,is) = atposc(i,ia,is) + tauatm(ias)*(forcetot(i,ias)+forcetp(i,ias))
+            end do ! i
+            
          End Do
       End Do
       Do is = 1, nspecies
@@ -62,7 +62,9 @@ Subroutine updatpos
          End Do
       End Do
 ! write lattice vectors and optimised atomic positions to file
-      Call writegeom (.True.)
+      Call writehistory
+! GB 17.10.2012 The following line write a geometrically optimized xml file. Otherwise never written
+      Call writegeometryxml (.True.)
 ! write the optimised interatomic distances to file
       Call writeiad (.True.)
 ! check for overlapping muffin-tins

@@ -31,22 +31,25 @@ Subroutine writegeometryxml (topt)
       Integer :: is, ia, i
       Character (128) :: buffer
       Type (xmlf_t), Save :: xf
+      Real (8) :: v (3)
+      Logical :: lock(3)
       If (topt) Then
-         Call xml_OpenFile ("geometry_opt"//trim(filext)//".xml", xf, &
+         Call xml_OpenFile ("geometry_opt.xml", xf, &
         & replace=.True., pretty_print=.True.)
       Else
-         Call xml_OpenFile ("geometry"//trim(filext)//".xml", xf, &
+         Call xml_OpenFile ("geometry.xml", xf, &
         & replace=.True., pretty_print=.True.)
       End If
-      Call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
-      &'/inputfileconverter/inputtohtml.xsl" type="text/xsl"')
       Call xml_NewElement (xf, "input")
       Call xml_NewElement (xf, "structure")
-      If (input%structure%primcell) buffer = "true"
-      If ( .Not. input%structure%primcell) buffer = "false"
-      Call xml_AddAttribute (xf, "primcell", trim(adjustl(buffer)))
       Call xml_AddAttribute (xf, "speciespath", &
      & trim(adjustl(input%structure%speciespath)))
+! GB 6.11.2012
+            If (input%structure%cartesian)Then
+               Write(buffer,*) "true"
+               Call xml_AddAttribute (xf,"cartesian", &
+                    & trim(adjustl(buffer)))
+            End If
       Call xml_NewElement (xf, "crystal")
       Do i = 1, 3
          Call xml_NewElement (xf, "basevect")
@@ -60,14 +63,33 @@ Subroutine writegeometryxml (topt)
          Call xml_NewElement (xf, "species")
          Call xml_AddAttribute (xf, "speciesfile", trim(adjustl(input%structure%speciesarray(is)%species%speciesfile)))
          Write (buffer,*) Int (-1.0*speziesdeflist(is)%sp%z)
-         Call xml_AddAttribute (xf, "atomicNumber", &
-        & trim(adjustl(buffer)))
-         Call xml_AddAttribute (xf, "chemicalSymbol", &
-        & trim(adjustl(speziesdeflist(is)%sp%chemicalSymbol)))
          Do ia = 1, natoms (is)
             Call xml_NewElement (xf, "atom")
-            Write (buffer, '(3G18.10)') input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord
+! GB 04.10.2012 adding the CARTESIAN switch, so that geometry_opt.xml will be consistent with Cartesian input 
+            If (input%structure%cartesian) Then  !GB
+! write Cartesian coordinates for the molecular case   
+               Call r3mv (input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
+              & v)
+            Else
+! otherwise write lattice coordinates  
+               v (:) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+            End If
+! END CHANGES
+            Write (buffer, '(3G18.10)') (v (:)) 
             Call xml_AddAttribute (xf, "coord", trim(adjustl(buffer)))
+            
+            lock=input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock
+            if (lock(1).or.lock(2).or.lock(3)) then
+                write (buffer, *)  lock(:)
+                call xml_AddAttribute (xf, "lock", trim(adjustl(buffer)))
+            End If
+            
+            If (associated(input%groundstate%spin)) Then
+            Write (buffer, *)  input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:)
+            Call xml_AddAttribute (xf, "bfcmt", &
+                 & trim(adjustl(buffer)))
+            End If
+
             Call xml_endElement (xf, "atom")
          End Do
          Call xml_endElement (xf, "species")

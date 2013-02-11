@@ -94,8 +94,6 @@ subroutine scf_cycle
     tlast = .False.
 ! set stop flag
     tstop = .False.
-! require forces for structural optimisation
-    If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = .True.    
     et = 0.d0
     fm = 0.d0
 
@@ -116,8 +114,7 @@ subroutine scf_cycle
             If (rank .Eq. 0) Then
                 Write (60,*)
                 Write (60, '("Reached self-consistent loops maximum")')
-                Write (100,*)
-                Write (100, '("Warning(gndstate): Reached self-consistent loops maximum")')
+                call warning('Warning(gndstate): Reached self-consistent loops maximum')
             End If
             tlast = .True.
         End If
