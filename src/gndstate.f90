@@ -753,6 +753,11 @@ Subroutine gndstate
             Write (60, '(" Dirac eqn solver", T40, ": ", F12.2)') time_rdirac
             Write (60, '(" Rel. Schroedinger eqn solver", T40, ": ", F12.2)') time_rschrod
             Write (60, '(" Total time spent in radial solvers", T40, ": ", F12.2)') time_rdirac+time_rschrod
+
+            If (input%groundstate%xctypenumber .Lt. 0) Then 
+              Write (60, '(" Time spent for oepvnl ", T40,": ", F12.2)') time_oepvnl
+              Write (60, '(" Time spent for oep iteration ", T40,": ", F12.2)') time_oep_iter
+            End If    
             Write (60, '("+----------------------------+")')
             Write (60, '("| Groundstate module stopped |")')
             Write (60, '("+----------------------------+")')
