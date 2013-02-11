@@ -65,10 +65,10 @@ Subroutine mixmsec (iscl, potential, residualnorm, n)
         & potential, residual)
          Call write_current_to_broyden_file (n, iscl, potential, &
         & residual)
-		!write(*,210)':PLANE:  INTERSTITIAL TOTAL ',Tplane, ' DISTAN ',Splane
-     	! write(*,210)':CHARG:  CLM CHARGE   TOTAL ',TCharge,' DISTAN ',SCharge
+         !write(*,210)':PLANE:  INTERSTITIAL TOTAL ',Tplane, ' DISTAN ',Splane
+         ! write(*,210)':CHARG:  CLM CHARGE   TOTAL ',TCharge,' DISTAN ',SCharge
          Call stepbound (sreduction)
-         Write (60, 4141) sreduction, qmx
+         !Write (60, 4141) sreduction, qmx
          Call rescaleYS (noldsteps, n, S, Y, potential, residual)
          Call setup_YY (iscl, n, S, Y, YY)
 !
