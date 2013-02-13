@@ -497,7 +497,7 @@ Subroutine gndstate
 #endif
          End Do
 20       Continue
-         If (rank .Eq. 0) Then
+         If (rank .Eq. 0 .or.  (.not. input%sharedfs .and. firstinnode)) Then
             Write (60,*)
             Write (60, '("+------------------------------+")')
             Write (60, '("| Self-consistent loop stopped |")')

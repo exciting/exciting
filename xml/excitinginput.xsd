@@ -4574,6 +4574,17 @@ gw.xsd
             program is started. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute name="sharedfs" type="xs:boolean" default="true">
+      <xs:annotation>
+      <xs:documentation>
+      This attributes tells if a parallel job has a shared file system. 
+      Set it to <pre>false</pre> if the processes of the job do not share a common file system.
+      It gives exciting a chance to adress this for the features that are developed with this conzept in mind.
+      
+      
+      </xs:documentation>
+      </xs:annotation>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
 </xs:schema>
