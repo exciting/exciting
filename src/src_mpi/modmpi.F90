@@ -39,6 +39,7 @@ Contains
          Call mpi_comm_rank (mpi_comm_world, rank, ierr)
 
          splittfile = .True.
+         firstinnode=.True.
          call get_isfirstinnode(200*procs)
 #endif
 #ifndef MPI
@@ -49,8 +50,9 @@ Contains
       End Subroutine initMPI
 !
 subroutine get_isfirstinnode(strsize)
+         integer,intent(in)::strsize
 #ifdef MPI
-		 integer,intent(in)::strsize
+
 	     integer::tag,request,recvstatus (MPI_STATUS_SIZE)
 	     character(len=strsize)::neighbors,neighborssend
 	     character(200)::procname
@@ -73,7 +75,6 @@ subroutine get_isfirstinnode(strsize)
          else
          firstinnode=.true.
          endif
-         write(*,*)rank,":","firstinnode",firstinnode
 #endif
 end subroutine
       Subroutine finitMPI
