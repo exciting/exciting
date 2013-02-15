@@ -106,6 +106,8 @@ Subroutine gndstate
 !   SCF cycle
 !------------------------------------!
     call scf_cycle
+! generate the new species files with the optimized linearization energies
+    If ((rank .Eq. 0).and.(input%groundstate%tspecies)) Call updatespecies
  
 !------------------------------------!
 !   perform structure optimization

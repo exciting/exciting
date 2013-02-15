@@ -32,10 +32,9 @@ Subroutine writehistory
             Do is = 1, nspecies
                 Do ia = 1, natoms (is)
                     ias = idxas (ia, is)
-                    Call r3mv (input%structure%crystal%basevect, &
-                    &    input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), v)
+                    v(:) = atposc(:,ia,is)
                     Write (51,'(A6, 3F14.8, 3F14.8)')(input%structure%speciesarray(is)%species%chemicalSymbol), &
-                    &    ((v(:)))*0.529177249, (forcetot(:, ias))*51.42208245
+                    &    v(:)*0.529177249, forcetot(:, ias)*51.42208245
                 End Do
             End Do
             Close (51)

@@ -30,6 +30,8 @@ subroutine structureoptimization
         call writehistory
     end if
 
+! Use "fromfile" option during the optimization run
+    task = 1
     if (input%structureoptimization%method=="simple") then
         
         do while (forcemax > input%structureoptimization%epsforce)
@@ -54,13 +56,14 @@ subroutine structureoptimization
         end do
 
     else if (input%structureoptimization%method=="lbfgs") then
-        
+
         If (rank .Eq. 0) Then
             Write (60,*)
             Write (60, '("+---------------------------------------------------------+")')
             Write (60, '("| Use L-BFGS-B method for optimizing the atomic positions |")')
             Write (60, '("+---------------------------------------------------------+")')
         End If
+        
         call lbfgs_driver
 
     else

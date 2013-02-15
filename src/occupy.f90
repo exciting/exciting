@@ -54,14 +54,18 @@ Subroutine occupy
             e1 = Max (e1, evalsv(ist, ik))
          End Do
       End Do
-      If (e0-mine0 .lt. -de0) Then 
-         call warning('Warning(occupy):')
-         Write(message, '(" Smallest valence eigenvalue less than&
-         &  minimum linearization energy : ",2g18.10)') e0, mine0
-         call warning(message)
-         write(message,'("for s.c. loop ", i5)') iscl
-         call warning(message)
-      End If
+
+! (commented by DIN) this message is typically happens for 0 or 1 scf
+! cycle when the linearization jumps and can be very puzzling for normal users 
+! how to react to this warning
+!      If (e0-mine0 .lt. -de0) Then 
+!         call warning('Warning(occupy):')
+!         Write(message, '(" Smallest valence eigenvalue less than&
+!         &  minimum linearization energy : ",2g18.10)') e0, mine0
+!         call warning(message)
+!         write(message,'("for s.c. loop ", i5)') iscl
+!         call warning(message)
+!      End If
 
 !#ifdef TETRAOCC_DOESNTWORK
 !      If ( .Not. istetraocc()) Then

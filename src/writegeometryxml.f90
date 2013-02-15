@@ -45,11 +45,11 @@ Subroutine writegeometryxml (topt)
       Call xml_AddAttribute (xf, "speciespath", &
      & trim(adjustl(input%structure%speciespath)))
 ! GB 6.11.2012
-            If (input%structure%cartesian)Then
-               Write(buffer,*) "true"
-               Call xml_AddAttribute (xf,"cartesian", &
-                    & trim(adjustl(buffer)))
-            End If
+      If (input%structure%cartesian)Then
+        Write(buffer,*) "true"
+        Call xml_AddAttribute (xf,"cartesian", &
+        & trim(adjustl(buffer)))
+      End If
       Call xml_NewElement (xf, "crystal")
       Do i = 1, 3
          Call xml_NewElement (xf, "basevect")
@@ -75,7 +75,7 @@ Subroutine writegeometryxml (topt)
                v (:) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
             End If
 ! END CHANGES
-            Write (buffer, '(3G18.10)') (v (:)) 
+            Write (buffer, '(3F18.10)') (v (:)) 
             Call xml_AddAttribute (xf, "coord", trim(adjustl(buffer)))
             
             lock=input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock

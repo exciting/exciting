@@ -56,11 +56,11 @@ subroutine lbfgs_driver
 !     We suppress both code-supplied stopping tests because the
 !     user is providing his/her own stopping criteria.
  
-      integer,  parameter    :: iprint = -1
       integer,  parameter    :: dp = kind(1.0d0)
       real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0
       
-      integer                :: n, m
+      integer                :: n
+      integer                :: m, iprint
       integer                :: is, ia, ias, ik, ispn
       
       character(len=60)      :: ctask, csave
@@ -72,34 +72,53 @@ subroutine lbfgs_driver
       real(dp), allocatable  :: x(:), g(:)
       real(dp), allocatable  :: l(:), u(:), wa(:)
 !
-      real(dp)               :: xc(3), xl(3), fc(3)
-      real(dp)               :: t1, t2
-      real(dp)               :: alpha
+      real(dp)               :: v(3)
       integer                :: i, j
-      Logical                :: force_converged
+      character(1024)        :: message
+      integer, allocatable   :: amap(:,:)
+      logical                :: force_conv
 
-!    Total number of variables
-      n = 3*natmtot
-      m = 4 ! <-- this should go into input parameters
+      m = input%structureoptimization%lbfgsnumcor
+      iprint = input%structureoptimization%lbfgsverbosity
+      force_conv = .false.
+
+!     Total number of variables taking into account constraints
+      n = 0
+      do is = 1, nspecies
+        do ia = 1, natoms(is)
+          do i = 1, 3
+            if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) then
+              n = n+1
+            end if
+          end do
+        end do
+      end do
+      if (n==0) then
+        call warning('WARNING(lbfgs_driver):')
+        write(message,'(" No active degrees of freedom = Nothing to relax! Check lock options in your input file")')
+        call warning(message)
+        return
+      end if
       
-      alpha=10.d0
-
       allocate( nbd(n), x(n), l(n), u(n), g(n) )
       allocate( iwa(3*n) )
       allocate( wa(2*m*n + 5*n + 11*m*m + 8*m) )
+      allocate( amap(3,n) )
 
       j = 0
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias = idxas(ia,is)
           do i = 1, 3
-!           apply the constrain
-            if (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) cycle
-            j = j+1
-            nbd(j) = 0
-            x(j) = atposc(i,ia,is)
-            l(j) = atposc(i,ia,is)-input%structureoptimization%tau0atm
-            u(j) = atposc(i,ia,is)+input%structureoptimization%tau0atm
+            if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) then
+              j = j+1
+              amap(1,j)=i; amap(2,j)=ia; amap(3,j)=is
+              nbd(j) = 2 ! constraint optimization (see src/Lbfgsb.3.0/README)
+              x(j) = atposc(i,ia,is)
+              ! l and u boundaries are used only when nbd > 0
+              l(j) = x(j)-input%structureoptimization%tau0atm
+              u(j) = x(j)+input%structureoptimization%tau0atm
+            end if
           end do
         end do
       end do
@@ -113,54 +132,50 @@ subroutine lbfgs_driver
 !     This is the call to the L-BFGS-B code
 
         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa,ctask,iprint, &
-       &  csave,lsave,isave,dsave)
+        &   csave,lsave,isave,dsave)
 
         if (ctask(1:2) .eq. 'FG') then
 
 !         the minimization routine has returned to request the
 !         function f and gradient g values at the current x.
-          call calcEnergyForces(n,x,f,g)
+          call calcEnergyForces
           
         else 
           
           if (ctask(1:5) .eq. 'NEW_X') then   
             
-            ! write lattice vectors and optimised atomic positions to file
-            Call writehistory
-            Call writegeometryxml (.True.)
-            ! write the optimised interatomic distances to file
-            Call writeiad (.True.)
-
             Write (60,*)
             Write (60, '("+--------------------------+")')
             Write (60, '("| Updated atomic positions |")')
             Write (60, '("+--------------------------+")')
             
-            j = 0
+            call updatepositions
+            
             do is = 1, nspecies
-              Write (60,*)
-              Write (60, '("Species : ", I4, " (", A, ")")') &
-             &  is, trim (input%structure%speciesarray(is)%species%chemicalSymbol)
-              Write (60, '(" atomic positions (lattice) :")')
+              write (60,*)
+              write (60, '("Species : ", I4, " (", A, ")")') &
+              &   is, trim (input%structure%speciesarray(is)%species%chemicalSymbol)
+              write (60, '(" atomic positions (lattice) :")')
               do ia = 1, natoms(is)
-                ias = idxas(ia,is)
-                do i = 1, 3
-                  j = j+1
-                  xc(i) = x(j)
-                end do
-                ! compute the lattice coordinates of the atomic positions
-                Call r3mv(ainv, xc, xl)
-                Write (60, '(I4, " : ", 3F14.8)') ia, xl
-              end do
-            end do
+                write (60, '(I4, " : ", 3F14.8)') ia, &
+                &   input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+              end do ! ia
+            end do ! is
+
+            ! write lattice vectors and optimised atomic positions to file
+            Call writehistory
+            Call writegeometryxml (.True.)
+            ! write the optimized interatomic distances to file
+            Call writeiad (.True.)
             
             ! check force convergence
             If (forcemax .Le. input%structureoptimization%epsforce) Then
-               If (rank .Eq. 0) Then
-                  Write (60,*)
-                  Write (60, '("Force convergence target achieved")')
-               End If
-               ctask = 'STOP'
+              If (rank .Eq. 0) Then
+                Write (60,*)
+                Write (60, '("Force convergence target achieved")')
+              End If
+              ctask = 'STOP'
+              force_conv = .true.
             End If
             
           end if ! 'NEW_X'
@@ -170,54 +185,32 @@ subroutine lbfgs_driver
       end do
 !     END the loop
 
-      j = 0
-      do is = 1, nspecies
-        do ia = 1, natoms(is)
-          ias = idxas(ia,is)
-          do i = 1, 3
-            j = j+1
-            atposc(i,ia,is) = x(j)
-          end do
-          ! compute the lattice coordinates of the atomic positions
-          Call r3mv(ainv, atposc(:, ia, is), &
-         &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))
-        end do
-      end do
-
+      if (.not.force_conv) then
+        write(60,*)
+        write(60,'("ATTENTION(L-BFGS): Required force convergence has not been reached!")')
+        write(60,'(" forcemax=",f12.8," > epsforce=",f12.8)') forcemax, input%structureoptimization%epsforce
+        write(60,*)
+      end if
+      
       deallocate( nbd, x, l, u, g )
       deallocate( iwa )
       deallocate( wa )
 
 contains
 
-    subroutine calcEnergyForces(ndim,x,f,g)
+    subroutine calcEnergyForces
      
         implicit none
-    
-        integer :: ndim
-        real(8) :: x(ndim), f, g(ndim)
-        Integer :: is, ia, i, j
-    
-        j = 0
-        do is = 1, nspecies
-            do ia = 1, natoms(is)
-                ias = idxas(ia,is)
-                do i = 1, 3
-                    j = j+1
-                    atposc(i,ia,is) = x(j)
-                end do
-! compute the lattice coordinates of the atomic positions
-                Call r3mv(ainv, atposc(:, ia, is), &
-               &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))
-            end do
-        end do
+        integer :: is, ia, i, j
+
+! update atomic positions
+        call updatepositions
 
 !-----------------------!
-!       GROUNDSTATE
+!   Reinitialization
 !-----------------------!
-
 ! check for overlapping muffin-tins
-        Call checkmt
+        call checkmt
 ! generate structure factors for G-vectors
         Call gensfacgp (ngvec, vgc, ngvec, sfacg)
 ! generate the characteristic function
@@ -233,29 +226,47 @@ contains
         Call energynn
 
 !-----------------------!
-!       SCF cycle
+!   SCF cycle
 !-----------------------!
-        
-        task = 1
         call scf_cycle
 
 !-----------------------!
-!       OUTPUT
+!   Output
 !-----------------------!
-
+        ! total energy
         f = engytot
-        j = 0
-        do is = 1, nspecies
-            do ia = 1, natoms(is)
-                ias = idxas(ia,is)
-                do i = 1, 3
-                    j = j+1
-                    g(j) = -forcetot(i,ias)
-                end do
-            end do
+        
+        ! energy gradients = total forces
+        do j = 1, n
+          i = amap(1,j); ia = amap(2,j); is = amap(3,j)
+          ias = idxas(ia,is)
+          g(j) = -forcetot(i,ias)
         end do
       
         return
     end subroutine calcEnergyForces
+!-------------------------------------------------------------------------------
+!
+!-------------------------------------------------------------------------------
+    subroutine updatepositions
+        
+        implicit none
+      
+        do j = 1, n
+            i = amap(1,j); ia = amap(2,j); is = amap(3,j)
+            atposc(i,ia,is) = x(j)
+        end do
+        do is = 1, nspecies
+            do ia = 1, natoms(is)
+! compute the lattice coordinates of the atomic positions
+                call r3mv (ainv, atposc(:, ia, is), &
+                &   input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))
+            end do
+        end do
+
+! find the crystal symmetries and shift atomic positions if required
+        call findsymcrys
+    
+    end subroutine updatepositions
       
 end subroutine

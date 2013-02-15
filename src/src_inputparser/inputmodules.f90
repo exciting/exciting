@@ -212,6 +212,7 @@ type groundstate_type
  logical::tevecsv
  integer::nwrite
  logical::ptnucl
+ logical::tspecies
   type(spin_type),pointer::spin
   type(HartreeFock_type),pointer::HartreeFock
   type(solver_type),pointer::solver
@@ -289,6 +290,8 @@ type structureoptimization_type
  real(8)::tau0atm
  logical::resume
  logical::history
+ integer::lbfgsnumcor
+ integer::lbfgsverbosity
 end type
 
 type phonons_type
@@ -2052,6 +2055,14 @@ if(associated(np)) then
        call removeAttribute(thisnode,"ptnucl")  
 endif
 
+nullify(np)  
+np=>getAttributeNode(thisnode,"tspecies")
+getstructgroundstate%tspecies=.false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"tspecies",getstructgroundstate%tspecies)
+       call removeAttribute(thisnode,"tspecies")  
+endif
+
             len= countChildEmentsWithName(thisnode,"spin")
 getstructgroundstate%spin=>null()
 Do i=0,len-1
@@ -2526,6 +2537,22 @@ getstructstructureoptimization%history=.false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"history",getstructstructureoptimization%history)
        call removeAttribute(thisnode,"history")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"lbfgsnumcor")
+getstructstructureoptimization%lbfgsnumcor=3
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"lbfgsnumcor",getstructstructureoptimization%lbfgsnumcor)
+       call removeAttribute(thisnode,"lbfgsnumcor")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"lbfgsverbosity")
+getstructstructureoptimization%lbfgsverbosity=-1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"lbfgsverbosity",getstructstructureoptimization%lbfgsverbosity)
+       call removeAttribute(thisnode,"lbfgsverbosity")  
 endif
 
       i=0

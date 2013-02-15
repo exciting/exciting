@@ -3044,6 +3044,14 @@ gw.xsd
             distribution. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="tspecies" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation> 
+          If <pre>"true"</pre>, the program generates new species files with the updated (optimized)
+          linearization energies.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
   <xs:annotation>
@@ -3109,12 +3117,42 @@ gw.xsd
 
             <xs:attribute ex:importance="essential" ex:unit="" name="history" type="xs:boolean" default="false">
               <xs:annotation>
-                <xs:documentation> If <pre>"true"</pre> history.xyz file is generated. For each relaxation step: Line 1 contains the total number of atoms. Line 2 contains the comment line here with total energy in eV. Line 3 and following are atomic specie, cartesian c\
-oordinates in Angstrom in x, y, z and the forces (eV/Ang) on x,y and z.                                                                                                                                                                                                        
-		</xs:documentation>
-	      </xs:annotation>
-	    </xs:attribute>
-
+                <xs:documentation> If <pre>"true"</pre> history.xyz file is generated. 
+                For each relaxation step: 
+                Line 1 contains the total number of atoms. 
+                Line 2 contains the comment line here with total energy in eV. 
+                Line 3 and following are atomic specie, cartesian coordinates in Angstrom and the forces (eV/Ang).
+                </xs:documentation>
+            </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="lbfgsnumcor" type="xs:integer" default="3">
+                <xs:annotation>
+                <xs:documentation>
+                The number of corrections used in the limited memory matrix.
+                It is not altered by the routine. Values of <attref>lbfgsnumcor</attref> <inlinemath>\lt</inlinemath> 3  are
+                not recommended, and large values of <attref>lbfgsnumcor</attref> can result in excessive
+                computing time. The range  3 <inlinemath>\le</inlinemath> <attref>lbfgsnumcor</attref> <inlinemath>\le</inlinemath> 20 is recommended.
+                </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="lbfgsverbosity" type="xs:integer" default="-1">
+                <xs:annotation>
+                <xs:documentation>
+                This variable controls the frequency and type of output generated:
+                <list>
+                <li><attref>lbfgsverbosity</attref> <inlinemath>\lt</inlinemath> 0 no output is generated;</li>
+                <li><attref>lbfgsverbosity</attref>: print only one line at the last iteration;</li>
+                <li>0 <inlinemath>\lt</inlinemath> <attref>lbfgsverbosity</attref> <inlinemath>\lt</inlinemath> 99: print also f and |proj g| every iprint iterations;</li>
+                <li><attref>lbfgsverbosity</attref> = 99: print details of every iteration except n-vectors;</li>
+                <li><attref>lbfgsverbosity</attref> = 100: print also the changes of active set and final x;</li>
+                <li><attref>lbfgsverbosity</attref> <inlinemath>\gt</inlinemath> 100: print details of every iteration including x and g;</li>
+                <li>When <attref>lbfgsverbosity</attref> &gt; 0, the file iterate.dat will  be created to summarize the iteration.</li>
+                </list>
+                </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
         </xs:complexType>
     </xs:element>
   <xs:annotation>
