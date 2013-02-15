@@ -27,18 +27,23 @@ implicit none
  
       Integer :: rank
       Integer :: procs
-      Integer :: ierr
-      Logical :: splittfile
+      Integer :: ierr,procnamelen
+      Logical :: splittfile,firstinnode
+
 !
 !!$  character(256)::filename
 Contains
       Subroutine initMPI
 #ifdef MPI
     !        mpi init
+
          Call mpi_init (ierr)
          Call mpi_comm_size (mpi_comm_world, procs, ierr)
          Call mpi_comm_rank (mpi_comm_world, rank, ierr)
+
          splittfile = .True.
+         firstinnode=.True.
+         call get_isfirstinnode(200*procs)
 #endif
 #ifndef MPI
          procs = 1
@@ -47,6 +52,34 @@ Contains
 #endif
       End Subroutine initMPI
 !
+subroutine get_isfirstinnode(strsize)
+         integer,intent(in)::strsize
+#ifdef MPI
+
+	     integer::tag,request,recvstatus (MPI_STATUS_SIZE)
+	     character(len=strsize)::neighbors,neighborssend
+	     character(200)::procname
+         procname=""
+         neighbors=""
+         neighborssend=""
+         call MPI_Get_processor_name(procname, procnamelen,ierr)
+
+         tag=25
+
+         if (rank.gt.0)  call MPI_recv(neighbors,strsize,MPI_CHARACTER,rank-1,tag,&
+         mpi_comm_world,recvstatus,ierr)
+         if (rank.lt.procs-1)then
+            write(neighborssend,*) adjustl(trim(neighbors))//","//adjustl(trim(procname))
+      		call MPI_send(neighborssend,strsize,MPI_CHARACTER,rank+1,tag,&
+         	&mpi_comm_world,ierr)
+		 endif
+         if(index(neighbors,adjustl(trim(procname)) ).gt.0) then
+         firstinnode=.false.
+         else
+         firstinnode=.true.
+         endif
+#endif
+end subroutine
       Subroutine finitMPI
 #ifdef MPI
          Call MPI_Finalize (ierr)

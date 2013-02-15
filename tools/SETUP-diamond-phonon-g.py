@@ -16,7 +16,7 @@ import os
 #-------------------------------------------------------------------------------
 
 if (str(os.path.exists('input.xml'))=='False'): 
-    sys.exit("ERROR: Input file input.xlm not found!\n")
+    sys.exit("ERROR: Input file input.xml not found!\n")
 
 maximum_displ = \
            input("\nEnter maximum displacement umax [u/(lat. parameter)] >>>> ")
@@ -36,7 +36,7 @@ input_rut = input_doc.getroot()
  
 xml_scale = map(float,input_doc.xpath('/input/structure/crystal/@scale'))
 if (xml_scale == []): 
-    sys.exit("ERROR: There is NO scale attribute in input.xlm!\n")
+    sys.exit("ERROR: There is NO scale attribute in input.xml!\n")
 
 str_stretch = input_doc.xpath('/input/structure/crystal/@stretch')
 if (str_stretch ==[]): 

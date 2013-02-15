@@ -29,7 +29,7 @@ min_rgkm = int(sys.argv[3]) ; max_rgkm = int(sys.argv[4])+1
 #-------------------------------------------------------------------------------
 
 if (str(os.path.exists('input.xml'))=='False'): 
-    sys.exit("\nERROR: Input file input.xlm not found!\n")
+    sys.exit("\nERROR: Input file input.xml not found!\n")
 fileobj=open("input.xml","r") 
                # Definition of the object fileobj as the file input.xml
  
