@@ -97,11 +97,22 @@ subroutine scf_cycle
     et = 0.d0
     fm = 0.d0
 
+! delete any existing eigenvector files
+    If ((rank .Eq. 0) .And. ((task .Eq. 0) .Or. (task .Eq. 2))) Call delevec
+! begin the self-consistent loop
+    If (rank .Eq. 0) Then
+        Write (60,*)
+        Write (60, '("+------------------------------+")')
+        Write (60, '("| Self-consistent loop started |")')
+        Write (60, '("+------------------------------+")')
+    End If
+
 !! TIME - First IO segment
     Call timesec (ts0)
 !----------------------------------------!
 ! begin the self-consistent loop
 !----------------------------------------!
+    iscl = 0
     Do iscl = 1, input%groundstate%maxscl
 !
         If (rank .Eq. 0) Then
@@ -153,6 +164,9 @@ subroutine scf_cycle
 #ifdef MPISEC
         splittfile = .True.
         Do ik = firstk (rank), lastk (rank)
+#endif
+#ifdef NEVERDEFINED
+        End Do
 #endif
 #ifndef MPISEC
         splittfile = .False.
