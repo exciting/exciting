@@ -44,11 +44,15 @@ Subroutine oepmain
       Real (8) :: rfinp
       Complex (8) zfint
       External rfinp, zfint
+      Real (8) :: t_0,t_1
       If (iscl .Lt. 1) Return
 ! calculate nonlocal matrix elements
       Allocate (vnlcv(ncrmax, natmtot, nstsv, nkpt))
       Allocate (vnlvv(nstsv, nstsv, nkpt))
+      Call timesec(t_0) 
       Call oepvnl (vnlcv, vnlvv)
+      Call timesec(t_1)
+      time_oepvnl=time_oepvnl+(t_1-t_0)
 ! allocate local arrays
       Allocate (rflm(lmmaxvr))
       Allocate (rfmt(lmmaxvr, nrmtmax, natmtot))
@@ -73,6 +77,7 @@ Subroutine oepmain
 ! initial step size
       tau = input%groundstate%OEP%tauoep(1)
 ! start iteration loop
+      Call timesec(t_0)
       Do it = 1, input%groundstate%OEP%maxitoep
          If (Mod(it, 10) .Eq. 0) Then
             Write (*, '("Info(oepmain): done ", I4, " iterations of ", &
@@ -163,6 +168,8 @@ Subroutine oepmain
          End Do
 ! end iteration loop
       End Do
+      Call timesec(t_1)
+      time_oep_iter=time_oep_iter+(t_1-t_0)
 ! generate the real potential and field
       Do is = 1, nspecies
          Do ia = 1, natoms (is)

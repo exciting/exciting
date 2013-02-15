@@ -56,6 +56,8 @@ Subroutine init0
       time_olpistln=0d0
       time_rdirac=0d0
       time_rschrod=0d0
+      time_oepvnl=0.0d0
+      time_oep_iter=0.0d0
       Call timesec (ts0)
 
 !------------------------------------!

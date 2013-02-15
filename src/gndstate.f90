@@ -132,6 +132,7 @@ Subroutine gndstate
         End If
 
     End If
+    Deallocate(rhomtref, rhoirref)
 
 !! TIME - Fifth IO segment
     Call timesec(ts0)
@@ -194,9 +195,8 @@ Subroutine gndstate
         Write (60, '("            - init1", T40,": ", F13.2)') time_init1
         Write (60, '("            - rhoinit", T40,": ", F13.2)') time_density_init
         Write (60, '("            - potential initialisation", T40,": ", F13.2)') time_pot_init
-        Write (60, '("            - others", T40,": ", F13.2)') timeinit-time_init0-time_init1
-        Write (60, '(" Hamiltonian and overlap matrix set up", T40,&
-       &  ": ", F12.2)') timemat
+        Write (60, '("            - others", T40,": ", F13.2)') timeinit-time_init0-time_init1-time_density_init-time_pot_init
+        Write (60, '(" Hamiltonian and overlap matrix set up", T40, ": ", F12.2)') timemat
         Write (60, '("            - hmlaan", T40,": ", F13.2)') time_hmlaan
         Write (60, '("            - hmlalon", T40,": ", F13.2)') time_hmlalon
         Write (60, '("            - hmllolon", T40,": ", F13.2)') time_hmllolon
@@ -208,7 +208,7 @@ Subroutine gndstate
 
         Write (60, '(" first-variational secular equation", T40, ": ", F12.2)') timefv
         If (associated(input%groundstate%spin)) Then
-          Write (60, '(" second-variational calculation", T40, ": ", F12.2)') timesv
+            Write (60, '(" second-variational calculation", T40, ": ", F12.2)') timesv
         End If
         Write (60, '(" charge density calculation", T40, ": ", F12.2)') timerho
         Write (60, '(" potential calculation", T40, ": ", F12.2)') timepot
@@ -216,11 +216,9 @@ Subroutine gndstate
         Write (60, '(" APW matching", T40, ": ", F12.2)') timematch
         Write (60, '(" disk reads/writes", T40, ": ", F12.2)') timeio
         Write (60, '(" mixing efforts", T40, ": ", F12.2)') timemixer
-        If (input%groundstate%tforce) Then
-          Write (60, '(" force calculation", T40, ": ", F12.2)') timefor
-        End If
+        If (input%groundstate%tforce) Write (60, '(" force calculation", T40, ": ", F12.2)') timefor
         timetot = timeinit + timemat + timefv + timesv + timerho + &
-       &          timepot + timefor + timeio + timemt + timemixer + timematch
+        &         timepot + timefor+timeio+timemt+timemixer+timematch
         Write (60, '(" sum", T40, ": ", F12.2)') timetot
         Call timesec(tsg1)
         Write (60, '(" total", T40, ": ", F12.2)') tsg1-tsg0
@@ -229,12 +227,17 @@ Subroutine gndstate
         Write (60, '(" Dirac eqn solver", T40, ": ", F12.2)') time_rdirac
         Write (60, '(" Rel. Schroedinger eqn solver", T40, ": ", F12.2)') time_rschrod
         Write (60, '(" Total time spent in radial solvers", T40, ": ", F12.2)') time_rdirac+time_rschrod
+
+        If (input%groundstate%xctypenumber .Lt. 0) Then 
+            Write (60, '(" Time spent for oepvnl ", T40,": ", F12.2)') time_oepvnl
+            Write (60, '(" Time spent for oep iteration ", T40,": ", F12.2)') time_oep_iter
+        End If    
         Write (60, '("+----------------------------+")')
         Write (60, '("| Groundstate module stopped |")')
         Write (60, '("+----------------------------+")')
         close (60)
     endif
-
+   
     Return
-End Subroutine gndstate
+   End Subroutine gndstate
 !EOC

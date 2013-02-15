@@ -53,5 +53,9 @@ Module mod_timing
 ! Radial solvers   
       Real (8) :: time_rdirac
       Real (8) :: time_rschrod 
+! OEP 
+      Real (8) :: time_oepvnl
+      Real (8) :: time_oep_iter
+
 End Module
 !
