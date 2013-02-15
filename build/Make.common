@@ -1,7 +1,7 @@
 -include ../make.inc
 .NOTPARALLEL:
 	
-SOURCEDIRS=	../../src/  \
+SOURCEDIRS=	\
 	../../src/src_xs/ \
 	../../src/src_fermisurfdx/ \
 	../../src/src_iterative_solver/ \
@@ -45,11 +45,12 @@ tidy::
 	perl ../../build/utilities/scripts/prettyprint.pl $(SOURCEDIRS)
 
 ifeq ($(USE_SYS_LAPACK),true)
-libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox leblaiklib.a libxc.a
+libs::  libbzint.a fftlib.a libarpack.a libmsec.a libfox leblaiklib.a libxc.a liblbfgs.a
 endif
 
 ifeq ($(USE_SYS_LAPACK),)
-libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox leblaiklib.a libxc.a
+libs::  libbzint.a libblas.a liblapack.a fftlib.a libarpack.a libmsec.a \
+	libfox leblaiklib.a libxc.a liblbfgs.a
 endif
 
 libblas.a:: 
@@ -72,20 +73,17 @@ libbzint.a::
 	../../build/utilities/mkmf -t ./template -f -m Makefile.libbzint -p libbzint.a \
 	../../src/libbzint\
 	&& $(MAKE) -f Makefile.libbzint libbzint.a 
-	
+
 libmsec.a:: 
 	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.libmsec -p libmsec.a \
 	../../src/src_mixing/lib/ \
 	&& $(MAKE) -f Makefile.libmsec libmsec.a 
-	
-
 
 libarpack.a::
 	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.libarpack -p libarpack.a \
 	../../src/ARPACK/SRC/ \
 	../../src/ARPACK/UTIL/ \
 	&& $(MAKE) -f Makefile.libarpack libarpack.a
-
 
 libfox:lib/libFoX_common.a
 
@@ -97,12 +95,13 @@ lib/libFoX_common.a:
 	
 leblaiklib.a::
 	cd ../../src/leblaiklib && make
-	mv ../../src/leblaiklib/leblaiklib.a ./
-	rm -f ../../src/leblaiklib/*.o
+	cp ../../src/leblaiklib/leblaiklib.a ./
+
+liblbfgs.a::
+	cd ../../src/Lbfgsb.3.0 && make
+	cp ../../src/Lbfgsb.3.0/liblbfgs.a ./
 	
 libxc.a:lib/libxc.a
-
-
 
 lib/libxc.a: 
 	cd ../../src/libXC/ && \
@@ -133,5 +132,5 @@ cleanlibs:
 	rm -rf lib finclude
 	-cd ../../src/libXC/ && make clean
 	-cd ../../src/FoX && make clean
-
-
+	-cd ../../src/leblaiklib && make clean
+	-cd ../../src/Lbfgsb.3.0 && make clean

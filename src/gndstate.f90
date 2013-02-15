@@ -47,7 +47,7 @@ Subroutine gndstate
   ! initialize reference density
       If (allocated(rhomtref)) deallocate (rhomtref)
       Allocate (rhomtref(lmmaxvr, nrmtmax, natmtot))
-      If (allocated(rhoirref)) deallocate (rhoir)
+      If (allocated(rhoirref)) deallocate (rhoirref)
       Allocate (rhoirref(ngrtot))
   ! initialise OEP variables if required
       If ((input%groundstate%xctypenumber .Lt. 0) .Or. (xctype(2) .Ge. 400) .Or. (xctype(1) .Ge. 400)) Call init2
@@ -512,28 +512,26 @@ Subroutine gndstate
          If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
             Call force
             If (rank .Eq. 0) Then
-       ! output forces to INFO.OUT
-                  Call writeforce (60)
-
-
+              ! output forces to INFO.OUT
+              Call writeforce (60)
               ! write maximum force magnitude to FORCEMAX.OUT
-                  Write (64, '(G18.10)') forcemax
-                  Call flushifc (64)
+              Write (64, '(G18.10)') forcemax
+              Call flushifc (64)
             End If
          End If
      !---------------------------------------!
      !     perform structural relaxation     !
      !---------------------------------------!
-         If (( .Not. tstop) .And. ((task .Eq. 2) .Or. (task .Eq. 3))) &
-        & Then
+         If (( .Not. tstop) .And. ((task .Eq. 2) .Or. (task .Eq. 3))) Then
+
             If (rank .Eq. 0) Then
                Write (60,*)
-               Write (60, '("Maximum force magnitude (target) : ", G18.&
-              &10, " (", G18.10, ")")') forcemax, &
-              & input%structureoptimization%epsforce
+               Write (60, '("Maximum force magnitude (target) : ", G18.10, &
+               " (", G18.10, ")")') forcemax, input%structureoptimization%epsforce
                Call flushifc (60)
             End If
- ! check force convergence
+
+            ! check force convergence
             force_converged = .False.
             If (forcemax .Le. input%structureoptimization%epsforce) Then
                If (rank .Eq. 0) Then
@@ -543,59 +541,88 @@ Subroutine gndstate
                force_converged = .True.
             End If
             If (force_converged) Go To 30
- ! update the atomic positions if forces are not converged
-            Call updatpos
-            If (rank .Eq. 0) Then
-               Write (60,*)
-               Write (60, '("+--------------------------+")')
-               Write (60, '("| Updated atomic positions |")')
-               Write (60, '("+--------------------------+")')
-               Do is = 1, nspecies
+
+            ! update the atomic positions if forces are not converged
+            if (input%structureoptimization%method=="simple") then
+
+              Call updatpos
+              If (rank .Eq. 0) Then
+                Write (60,*)
+                Write (60, '("+--------------------------+")')
+                Write (60, '("| Updated atomic positions |")')
+                Write (60, '("+--------------------------+")')
+                Do is = 1, nspecies
                   Write (60,*)
                   Write (60, '("Species : ", I4, " (", A, ")")') is, trim (input%structure%speciesarray(is)%species%chemicalSymbol)
                   Write (60, '(" atomic positions (lattice) :")')
                   Do ia = 1, natoms (is)
                      Write (60, '(I4, " : ", 3F14.8)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
                   End Do
-               End Do
-           ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and RMSDVEFF.OUT
-               Write (61,*)
-               Write (62,*)
-               If (associated(input%groundstate%spin)) write (63,*)
-               Write (65,*)
-           ! add blank line to DTOTENERGY.OUT, DFORCEMAX.OUT, CHGDIST.OUT and PCHARGE.OUT
-               Write (66,*)
-               if (input%groundstate%tforce) Write (67,*)
-               Write (68,*)
-               Write (69,*)
-            End If
-           ! begin new self-consistent loop with updated positions
-            Go To 10
+                End Do
+                ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and RMSDVEFF.OUT
+                Write (61,*)
+                Write (62,*)
+                If (associated(input%groundstate%spin)) write (63,*)
+                Write (65,*)
+                ! add blank line to DTOTENERGY.OUT, DFORCEMAX.OUT, CHGDIST.OUT and PCHARGE.OUT
+                Write (66,*)
+                if (input%groundstate%tforce) Write (67,*)
+                Write (68,*)
+                Write (69,*)
+              End If
+              ! begin new self-consistent loop with updated positions
+              goto 10
+
+            else if (input%structureoptimization%method=="lbfgs") then
+              
+              ! output timing information before running BFGS
+              If (rank .Eq. 0) Then
+                Write (60,*)
+                Write (60, '("Timings (CPU seconds) :")')
+                Write (60, '(" initialisation", T40, ": ", F12.2)') timeinit
+                Write (60, '(" Hamiltonian and overlap matrix set up", T40,": ", F12.2)') timemat
+                Write (60, '(" first-variational secular equation", T40, ": ", F12.2)') timefv
+                If (associated(input%groundstate%spin)) Then
+                   Write (60, '(" second-variational calculation", T40, ": ", F12.2)') timesv
+                End If
+                Write (60, '(" charge density calculation", T40, ": ", F12.2)') timerho
+                Write (60, '(" potential calculation", T40, ": ", F12.2)') timepot
+                If (input%groundstate%tforce) Then
+                   Write (60, '(" force calculation", T40, ": ", F12.2)') timefor
+                End If
+                timetot = timeinit + timemat + timefv + timesv + timerho + timepot + timefor
+                Write (60, '(" total", T40, ": ", F12.2)') timetot
+              End If
+
+              call lbfgs_driver
+              goto 30
+
+            else
+      
+              write(*,*) 'ERROR(updatepos): Unknown method for structure optimization!'
+              stop
+      
+            end if
+
          End If
+
 30       Continue
      ! output timing information
          If (rank .Eq. 0) Then
             Write (60,*)
             Write (60, '("Timings (CPU seconds) :")')
-            Write (60, '(" initialisation", T40, ": ", F12.2)') &
-           & timeinit
-            Write (60, '(" Hamiltonian and overlap matrix set up", T40,&
-           & ": ", F12.2)') timemat
-            Write (60, '(" first-variational secular equation", T40, ":&
-           & ", F12.2)') timefv
+            Write (60, '(" initialisation", T40, ": ", F12.2)') timeinit
+            Write (60, '(" Hamiltonian and overlap matrix set up", T40,": ", F12.2)') timemat
+            Write (60, '(" first-variational secular equation", T40, ": ", F12.2)') timefv
             If (associated(input%groundstate%spin)) Then
                Write (60, '(" second-variational calculation", T40, ": ", F12.2)') timesv
             End If
-            Write (60, '(" charge density calculation", T40, ": ", F12.&
-           &2)') timerho
-            Write (60, '(" potential calculation", T40, ": ", F12.2)') &
-           & timepot
+            Write (60, '(" charge density calculation", T40, ": ", F12.2)') timerho
+            Write (60, '(" potential calculation", T40, ": ", F12.2)') timepot
             If (input%groundstate%tforce) Then
-               Write (60, '(" force calculation", T40, ": ", F12.2)') &
-              & timefor
+               Write (60, '(" force calculation", T40, ": ", F12.2)') timefor
             End If
-            timetot = timeinit + timemat + timefv + timesv + timerho + &
-           & timepot + timefor
+            timetot = timeinit + timemat + timefv + timesv + timerho + timepot + timefor
             Write (60, '(" total", T40, ": ", F12.2)') timetot
             Write (60,*)
             Write (60, '("+-------------------------+")')
@@ -624,13 +651,13 @@ Subroutine gndstate
             Call scl_xml_out_write ()
          End If
      !set nwork to -2 to tell interface to call the deallocation functions
-         If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, &
-        & n, v, currentconvergence,-2)
+         If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, -2)
          Deallocate (v)
          Call mpiresumeevecfiles ()
  ! close the INFO.OUT file
          If (rank .Eq. 0) close (60)
-         deallocate(rhomtref,rhoirref)
+         if(allocated(rhomtref))deallocate(rhomtref)
+         if(allocated(rhoirref))deallocate(rhoirref)
          Return
    End Subroutine gndstate
 !EOC
