@@ -132,7 +132,6 @@ Subroutine gndstate
         End If
 
     End If
-    Deallocate(rhomtref, rhoirref)
 
 !! TIME - Fifth IO segment
     Call timesec(ts0)
