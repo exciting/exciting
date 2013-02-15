@@ -42,8 +42,7 @@ Subroutine init2
             vqlwrt(:,iq) = input%phonons%qpointset%qpoint(:, iq)
           end do
       end if
-! check if the system is an isolated molecule
-      If (input%structure%molecule) ngridq (:) = 1
+
 ! OEP, Hartree-Fock or RDMFT
       If ((input%groundstate%xctypenumber .Lt. 0) .Or. (task .Eq. 5) &
      & .Or. (task .Eq. 6) .Or. (task .Eq. 300) .Or.  (xctype(2) .Ge. 400)&
@@ -386,7 +385,7 @@ Subroutine init2
       End If
 !
       Call timesec (ts1)
-      timeinit = timeinit + ts1 - ts0
+!      timeinit = timeinit + ts1 - ts0
 !
       Return
 End Subroutine

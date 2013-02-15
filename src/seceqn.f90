@@ -15,7 +15,6 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
       Use modmain
       Use modmpi
       Use sclcontroll
-      Use diisinterfaces
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
@@ -38,32 +37,28 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
       Complex (8), Intent (Out) :: evecsv (nstsv, nstsv)
   ! local variables
       Integer :: ispn
+  ! time
+      Real (8) :: ts0,ts1
 !
 !
   ! allocatable arrays
       Complex (8), Allocatable :: apwalm (:, :, :, :, :)
       Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
   ! loop over first-variational spins (nspnfv=2 for spin-spirals only)
-#ifdef KSMP
-  !$OMP PARALLEL DEFAULT(SHARED)
-  !$OMP DO
-#endif
+
   !
   !-IMPORTANT: the first-variational spinor index and the k-point index have been
   ! swapped in the following arrays: ngk, igkig, vgkl, vgkc, gkc, tpgkc, sfacgk
   !
       Do ispn = 1, nspnfv
      ! find the matching coefficients
+         Call timesec(ts0)
          Call match (ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, ispn, &
         & ik), sfacgk(:, :, ispn, ik), apwalm(:, :, :, :, ispn))
+         Call timesec(ts1)
+         timematch=ts1-ts0+timematch
      ! solve the first-variational secular equation
-         If (doDIIScycle()) Then
-            Call DIISseceqnfv (ik, ispn, apwalm(:, :, :, :, ispn), &
-           & vgkc(:, :, ispn, ik), evalfv, evecfv)
-!
-            If (ik .Eq. lastk(rank)) diiscounter = diiscounter + 1
-!
-         Else If (doARPACKiteration()) Then
+          If (doARPACKiteration()) Then
             Call iterativearpacksecequn (ik, ispn, apwalm(1, 1, 1, 1, &
            & ispn), vgkc(1, 1, ispn, ik), evalfv, evecfv)
          Else If (doLAPACKsolver()) Then
@@ -84,10 +79,7 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
 !
          End If
       End Do
-#ifdef KSMP
-  !$OMP END DO
-  !$OMP END PARALLEL
-#endif
+
       If (isspinspiral()) Then
      ! solve the spin-spiral second-variational secular equation
          Call seceqnss (ik, apwalm, evalfv, evecfv, evecsv)

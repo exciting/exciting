@@ -7,12 +7,20 @@
 !
 !
 Subroutine timesec (ts)
+#ifdef MPI
+      Use modmpi
+#endif
       Implicit None
 ! arguments
       Real (8), Intent (Out) :: ts
 ! local variables
-      Integer :: count, count_rate
+      Integer(8) :: count, count_rate
+    
+#ifdef MPI
+      ts = MPI_wtime()
+#else
       Call system_clock (count=count, count_rate=count_rate)
       ts = dble (count) / dble (count_rate)
+#endif
       Return
 End Subroutine

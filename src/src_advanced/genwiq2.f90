@@ -55,11 +55,6 @@ Subroutine genwiq2
 ! allocate global wiq2 array
       If (allocated(wiq2)) deallocate (wiq2)
       Allocate (wiq2(ngridq(1)*ngridq(2)*ngridq(3)))
-! if system is a molecule wiq2 should be zero
-      If (input%structure%molecule) Then
-         wiq2 (:) = 0
-         Return
-      End If
 ! begin loop over q-points, note that the vectors vqc are assumed to be in the
 ! first Brillouin zone
       Do iq = 1, nqpt

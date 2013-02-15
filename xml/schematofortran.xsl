@@ -57,6 +57,24 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
+
+      <xsl:when test="$type='booleantriple'">
+        <xsl:text> logical</xsl:text>
+        <xsl:value-of select="$allocatable"/>
+        <xsl:text>::</xsl:text>
+        <xsl:value-of select="$varname"/>
+        <xsl:choose>
+          <xsl:when test="$allocatable!=''">
+            <xsl:text>(:,:)
+</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>(3)
+</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+
       <xsl:when test="$type='integertriple'">
         <xsl:text> integer</xsl:text>
         <xsl:value-of select="$allocatable"/>
@@ -681,26 +699,39 @@ end module
 
 </xsl:text>
   </xsl:template>
+  
   <xsl:template name="defaultvaltofortran">
-  <xsl:param name="default"/>
-   <xsl:param name="type"/>
-   <xsl:choose>
-     <xsl:when test="$type='vect3d' or $type='integerpair'or $type='vect2d' or $type='integertriple' or  $type='integerquadrupel'">
-   <xsl:text>(/</xsl:text><xsl:for-each select="str:split($default,' ')">
-   <xsl:value-of select="."/>
-   <xsl:if test="not(position()=count(str:split($default,' ')) )"><xsl:text>,</xsl:text></xsl:if> </xsl:for-each>
-    <xsl:text>/)</xsl:text>
-   </xsl:when>
-   <xsl:when test="$type='xs:boolean' ">
-   <xsl:text> .</xsl:text><xsl:value-of select="$default"/><xsl:text>.</xsl:text>
-   </xsl:when>
-   <xsl:when test="$type='xs:string'or $type='xs:anyURI'or $type='xs:ID' or $type='xs:IDREFS'">
-   <xsl:text> "</xsl:text><xsl:value-of select="$default"/><xsl:text>"</xsl:text>
-   </xsl:when>
-   <xsl:otherwise>
-   <xsl:value-of select="$default"/>
-   </xsl:otherwise>
-   </xsl:choose>
+    <xsl:param name="default"/>
+    <xsl:param name="type"/>
+    <xsl:choose>
+      <xsl:when test="$type='vect3d' or $type='integerpair' or $type='vect2d' or $type='integertriple' or $type='integerquadrupel'">
+        <xsl:text>(/</xsl:text>
+        <xsl:for-each select="str:split($default,' ')">
+          <xsl:value-of select="."/>
+          <xsl:if test="not(position()=count(str:split($default,' ')) )"><xsl:text>,</xsl:text></xsl:if> 
+        </xsl:for-each>
+        <xsl:text>/)</xsl:text>
+      </xsl:when>
+      <xsl:when test="$type='xs:boolean' ">
+        <xsl:text>.</xsl:text><xsl:value-of select="$default"/><xsl:text>.</xsl:text>
+      </xsl:when>
+      <xsl:when test="$type='booleantriple' ">
+        <xsl:text>(/</xsl:text>
+        <xsl:for-each select="str:split($default,' ')">
+          <xsl:text>.</xsl:text>
+          <xsl:value-of select="."/>
+          <xsl:if test="not(position()=count(str:split($default,' ')) )"><xsl:text>.,</xsl:text></xsl:if> 
+        </xsl:for-each>
+        <xsl:text>./)</xsl:text>
+      </xsl:when>
+      <xsl:when test="$type='xs:string'or $type='xs:anyURI'or $type='xs:ID' or $type='xs:IDREFS'">
+        <xsl:text> "</xsl:text><xsl:value-of select="$default"/><xsl:text>"</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$default"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
+
 </xsl:stylesheet>
   

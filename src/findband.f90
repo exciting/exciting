@@ -66,6 +66,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e0, tfnd)
   ! automatic arrays
       Real (8) :: p0 (nr), p1 (nr), q0 (nr), q1 (nr)
       character(10) :: fname
+      character(1024) :: message
 
       tfnd=.false.
       de = Abs(de0)
@@ -196,10 +197,12 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e0, tfnd)
          tfnd=.true.
          Return
 40       Continue
-         Write (100,*)
-         Write (100, '("Warning(findband): no energy limits found for l=",i&
-        &2)') l
-         Write (100, '("E-bottom ",g18.10,4x,"E-top ",g18.10)') e1, e2
+!        Print the warning
+         call warning('Warning(findband):')
+         Write(message, '(" No energy limits found for l=",i2)') l
+         call warning(message)
+         Write(message, '(" E-bottom ",g18.10,4x,"E-top ",g18.10)') e1, e2
+         call warning(message)
          tfnd=.false.
          return
       Case Default

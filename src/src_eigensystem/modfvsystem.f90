@@ -335,8 +335,9 @@ Contains
         End If
         Call timesec (ts1)
         !$OMP CRITICAL
-        timefv = timefv + ts1 - ts0
+!        timefv = timefv + ts1 - ts0
         !$OMP END CRITICAL
+        timefv = timefv + ts1 - ts0
         Call deleteystem (system)
         Deallocate (iwork, ifail, w, rwork, v, work)
         else
@@ -378,8 +379,9 @@ Contains
         End If
         Call timesec (ts1)
         !$OMP CRITICAL
-        timefv = timefv + ts1 - ts0
+!        timefv = timefv + ts1 - ts0
         !$OMP END CRITICAL
+        timefv = timefv + ts1 - ts0
         Call deleteystem (system)
         Deallocate (iwork, ifail, w, rwork, v, work)
         endif

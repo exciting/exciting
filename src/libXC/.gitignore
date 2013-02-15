@@ -1,5 +1,4 @@
 Makefile
-autom4te.cache/
 build/Makefile
 build/libxc.pc
 config.h

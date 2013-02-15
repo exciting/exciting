@@ -119,10 +119,10 @@ Subroutine wfplot(dostm)
                 End Do
             End Do
         Else
-            Write (100, '("Warning(wfplot): STM still not implemented for direct topographic plot.")')
-            Write (100, '("For topographic plot generation consider to make a series &
-            constant-height calculations at different heights and postprocess the &
-               output to find the iso-surface. ")')
+            call warning('Warning(wfplot): STM still not implemented for direct topographic plot.')
+            call warning('For topographic plot generation consider to make a series &
+              constant-height calculations at different heights and postprocess the &
+              output to find the iso-surface.')
         End If
     End If
     ! set the charge density to zero

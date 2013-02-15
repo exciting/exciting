@@ -42,8 +42,22 @@ Subroutine init0
       timerho = 0.d0
       timepot = 0.d0
       timefor = 0.d0
+      timeio=0d0
+      timemt=0d0
+      timemixer=0d0
+      timematch=0d0
+      time_hmlaan=0d0
+      time_hmlalon=0d0
+      time_hmllolon=0d0
+      time_olpaan=0d0
+      time_olpalon=0d0
+      time_olplolon=0d0
+      time_hmlistln=0d0
+      time_olpistln=0d0
+      time_rdirac=0d0
+      time_rschrod=0d0
       Call timesec (ts0)
-!
+
 !------------------------------------!
 !     angular momentum variables     !
 !------------------------------------!
@@ -87,11 +101,13 @@ Subroutine init0
 !------------------------------------!
 !     index to atoms and species     !
 !------------------------------------!
-! check if the system is an isolated molecule
-      If (input%structure%molecule) Then
-         input%structure%primcell = .False.
+
+! GB 3.10.2012 
+      If (input%structure%cartesian) Then
+         input%structure%primcell = .True.
          input%structure%tshift = .False.
       End If
+
 ! find primitive cell if required
       If (input%structure%primcell) Call findprim
       natmmax = 0
@@ -191,9 +207,8 @@ Subroutine init0
          ncmag = .False.
       End If
       If ((ncmag) .And. (xcgrad .Gt. 0)) Then
-         Write (100,*)
-         Write (100, '("Warning(init0): GGA inconsistent with non-colline&
-        &ar magnetism")')
+         call warning('Warning(init0):')
+         call warning(' GGA inconsistent with non-collinear magnetism')
       End If
 ! set fixed spin moment effective field to zero
       bfsmc (:) = 0.d0
@@ -212,7 +227,7 @@ Subroutine init0
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
 ! map atomic lattice coordinates to [0,1) if not in molecule mode
-            If ( .Not. input%structure%molecule) Call r3frac (input%structure%epslat, &
+             If ( .Not. input%structure%cartesian) Call r3frac (input%structure%epslat, &
            & input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), iv)
 ! determine atomic Cartesian coordinates
             Call r3mv (input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
@@ -486,7 +501,7 @@ Subroutine init0
       tlast = .False.
 !
       Call timesec (ts1)
-      timeinit = timeinit + ts1 - ts0
+!!      timeinit = timeinit + ts1 - ts0
 !
       Return
 End Subroutine

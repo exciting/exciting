@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Sr" name="strontium" z="-38.0000" mass="159721.4890">
-    <muffinTin rmin="0.324443E-06" radius="2.2000" rinf="41.0529" radialmeshPoints="600"/>
+    <muffinTin rmin="0.100000E-04" radius="2.2000" rinf="43.8164" radialmeshPoints="177"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

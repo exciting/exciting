@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Cl" name="chlorine" z="-17.0000" mass="64626.31859">
-    <muffinTin rmin="0.485071E-06" radius="1.4500" rinf="26.5971" radialmeshPoints="400"/>
+    <muffinTin rmin="0.100000E-04" radius="1.4500" rinf="25.8669" radialmeshPoints="145"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

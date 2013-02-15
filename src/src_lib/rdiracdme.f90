@@ -11,6 +11,7 @@
 !
 !
 Subroutine rdiracdme (m, kpa, e, np, nr, r, vr, nn, g0, g1, f0, f1)
+use mod_timing
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   kpa : quantum number kappa (in,integer)
@@ -52,6 +53,9 @@ Subroutine rdiracdme (m, kpa, e, np, nr, r, vr, nn, g0, g1, f0, f1)
       Integer :: im
 ! automatic arrays
       Real (8) :: g0p (nr), f0p (nr)
+! time
+      Real (8) ts0,ts1
+      call timesec(ts0)
       If (nr .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(rdiracdme): invalid nr : ", I8)') nr
@@ -75,6 +79,8 @@ Subroutine rdiracdme (m, kpa, e, np, nr, r, vr, nn, g0, g1, f0, f1)
             f0p (:) = f0 (:)
          End Do
       End If
+      call timesec(ts1)
+      time_rdirac=ts1-ts0+time_rdirac
       Return
 End Subroutine
 !EOC

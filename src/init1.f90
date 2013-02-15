@@ -52,14 +52,7 @@ Subroutine init1
 !---------------------!
 !     k-point set     !
 !---------------------!
-
-! check if the system is an isolated molecule
-      If (input%structure%molecule) Then
-         input%groundstate%ngridk (:) = 1
-         input%groundstate%vkloff (:) = 0.d0
-         input%groundstate%autokpt = .False.
-      End If
-
+!
       If (task.Eq.100) Then
 !
 !     3D fermisurface plot
@@ -232,7 +225,7 @@ Subroutine init1
 !
 ! generate the reduced k-point set
 !
-         if (input%groundstate%stypenumber < 0) then    
+         if (input%groundstate%stypenumber < 0) then
 
 ! suppress debug output in tetrahedron integration library (0)
              call tetrasetdbglv (0)
@@ -551,7 +544,7 @@ Subroutine init1
 #endif
 !
       Call timesec (ts1)
-      timeinit = timeinit + ts1 - ts0
+!      timeinit = timeinit + ts1 - ts0
 !
       Return
 End Subroutine

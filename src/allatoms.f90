@@ -49,7 +49,7 @@ Subroutine allatoms
          Call atom (input%groundstate%ptnucl, spzn(is), spnst(is), &
         & spn(:, is), spl(:, is), spk(:, is), spocc(:, is), xctype_, &
         & xcgrad_, input%groundstate%nprad, spnr(is), spr(:, is), &
-        & speval(:, is), sprho(:, is), spvr(:, is), rwf)
+        & speval(:, is), sprho(:, is), spvr(:, is), rwf,nrmt(is))
          Deallocate (rwf)
       End Do
 !$OMP END DO

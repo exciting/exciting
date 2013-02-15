@@ -11,7 +11,7 @@
 !
 !
 Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
-& r, eval, rho, vr, rwf)
+& r, eval, rho, vr, rwf,mtnr)
 ! !USES:
       Use modxcifc
 ! !INPUT/OUTPUT PARAMETERS:
@@ -59,7 +59,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
       Integer, Intent (In) :: xctype(3)
       Integer, Intent (In) :: xcgrad
       Integer, Intent (In) :: np
-      Integer, Intent (In) :: nr
+      Integer, Intent (In) :: nr,mtnr
       Real (8), Intent (In) :: r (nr)
       Real (8), Intent (Out) :: eval (nst)
       Real (8), Intent (Out) :: rho (nr)
@@ -79,6 +79,12 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
       Real (8), Allocatable :: ri (:), fr1 (:), fr2 (:), gr1 (:), gr2 &
      & (:), cf (:, :)
       Real (8), Allocatable :: grho (:), g2rho (:), g3rho (:)
+! lo-test variables
+      integer nodes,llo
+      Real (8) energy
+! dummy wavefunctions
+      Real (8), Allocatable :: dwf1(:),dwf2(:),dwf3(:),dwf4(:)
+
       If (nst .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(atom): invalid nst : ", I8)') nst
@@ -129,12 +135,13 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
       End Do
 ! start of self-consistent loop
       Do iscl = 1, maxscl
+!!        write(*,*) iscl
 ! solve the Dirac equation for each state
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
          Do ist = 1, nst
-            Call rdirac (n(ist), l(ist), k(ist), np, nr, r, vr, &
-           & eval(ist), rwf(:, 1, ist), rwf(:, 2, ist))
+            Call rdirac (0, n(ist), l(ist), k(ist), np, nr, r, vr, &
+           & eval(ist), rwf(:, 1, ist), rwf(:, 2, ist),.true.)
          End Do
 !$OMP END DO
 !$OMP END PARALLEL
@@ -202,18 +209,42 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
 ! add nuclear potential
             vr (ir) = vr (ir) + vn (ir)
          End Do
+!         write(*,*) iscl,eval(1), dv
 ! check for convergence
          If ((iscl .Gt. 2) .And. (dv .Lt. eps)) Go To 10
 ! end self-consistent loop
       End Do
-      Write (100,*)
-      Write (100, '("Warning(atom): maximum iterations exceeded")')
+      call warning('Warning(atom): Maximum iterations exceeded')
 10    Continue
+
+! The following segment is useful if you want to come up 
+! with energies for local orbitals with several nodes.
+! Cheers,
+! Andris.
+! -------------------------------------
+!      allocate(dwf1(mtnr),dwf2(mtnr))
+!       do llo=0,0
+!        do nodes=0,10
+!         energy=0d0
+!         Call rdirac (0, nodes+llo+1, llo, llo+1, nodes, mtnr, r, vr, &
+!           & energy, dwf1, dwf2,.false.)
+!         write(*,*) nodes,llo,energy
+!       enddo
+!       write(*,*)
+!      enddo
+!      deallocate(dwf1,dwf2)
+! ------------------------------------
+
       Deallocate (vn, vh, ex, ec, vx, vc, vrp)
       Deallocate (ri, fr1, fr2, gr1, gr2, cf)
       If (xcgrad .Eq. 1) Then
          Deallocate (grho, g2rho, g3rho)
       End If
+!      Do ist = 1, nst
+!       write(*,*) eval(ist)
+!      enddo
+!      write(*,*) 
+!      stop
       Return
 End Subroutine
 !EOC
