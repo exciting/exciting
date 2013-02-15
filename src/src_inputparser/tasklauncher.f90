@@ -6,9 +6,6 @@
 Subroutine tasklauncher
     Use modinput
     Implicit None
-      
-! Initialize WARNINGS.OUT file
-    call warning()
     
 ! Note that the order of the calls below may be important!
     If (associated(input%groundstate)) &
