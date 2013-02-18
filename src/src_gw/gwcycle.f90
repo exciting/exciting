@@ -29,6 +29,7 @@
       real(8)    :: tq1, tq2, tq11, tq22
       complex(8),allocatable::buffer(:)
 	  integer :: COMM_LEVEL2
+
 ! !REVISION HISTORY:
 !
 ! Created 16.09.2005 by RGA
@@ -50,7 +51,7 @@
 !
 !     Calculate the integration weights using the linearized tetrahedron method
 !
-        call kintw
+      call kintw
 
 !=========================================================================================
 !     Calculate the momentum matrix elements
@@ -63,7 +64,7 @@
         write(fgw,*)'PMAT and PMATC are read from file'
       end if
    
-    call barrier()
+      call barrier()
  
 !=========================================================================================
 !     Calculate the dielectric function matrix
@@ -83,16 +84,16 @@
 !       The direct access file to store the values of the inverse dielectric matrix
 !--------------------------------------------------------------------------
 
-       inquire(IoLength=Recl) inveps
+        inquire(IoLength=Recl) inveps
 
        !this buffer is used only for making INVEPS files more comparable
         allocate(buffer(matsizmax*matsizmax*nomeg))
         buffer=zzero
         !each process opens its own file except there is no q-point left
         write(sbuffer,*)rank
-       if (rank.lt.nqpt) open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT',action='WRITE',form='UNFORMATTED', &
-       &  access='DIRECT',status='REPLACE',recl=recl)
-
+        if (rank.lt.nqpt) open(44,file='INVEPS'//trim(adjustl(sbuffer))//'.OUT', &
+       &    action='WRITE',form='UNFORMATTED', &
+       &    access='DIRECT',status='REPLACE',recl=recl)
 !
 !       Loop over q-points
 !        
@@ -105,12 +106,11 @@
         end if
 
 	! create  communicator object for each qpoint
-         call MPI_COMM_SPLIT(MPI_COMM_WORLD,firstofset(mod(rank,nqpt),nqpt),  rank/nqpt, COMM_LEVEL2,ierr)
+        call MPI_COMM_SPLIT(MPI_COMM_WORLD,firstofset(mod(rank,nqpt),nqpt),  rank/nqpt, COMM_LEVEL2,ierr)
         if (input%gw%debug ) write(*,*) "proc ",rank,"does color ", firstofset(mod(rank,nqpt),nqpt), "with key(rank)", rank/nqpt
 #endif
-	!each process does a subset
+        !each process does a subset
         do iqp = firstofset(mod(rank,nqpt),nqpt), lastofset(mod(rank,nqpt),nqpt)
-
 
           call cpu_time(tq11)
 !      
@@ -126,21 +126,15 @@
     
           call calcmpwipw(iq)
 !
-
 !         Calculate the bare coulomb potential matrix and its square root
 !
           call calcbarcmb(iq)
-
-
-
 !
 !         Reduce the basis size by choosing eigenvectors of barc with 
 !         eigenvalues larger than evtol
 !
           call setbarcev(barcevtol)
-
-
-
+!
 !         Calculate the q-dependent integration weights
 !   
           if(convflg.eq.0)then
@@ -161,25 +155,22 @@
           if (rank.lt.nqpt) then
           	 write(44,rec=iqp-firstofset(rank,nqpt)+1) buffer !fill file with zeroes
         	 write(44,rec=iqp-firstofset(rank,nqpt)+1) inveps
-        	! write(1100+iqp,*)epsilon
-        	! write(900+iqp,*)inveps
-                if (input%gw%debug )write(fgw,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
+             if (input%gw%debug )write(fgw,*)"write iqp ",iqp,"in file: ", rank,"at rec:" ,iqp-firstofset(rank,nqpt)+1
           endif
           if((iqp.eq.1) )then
 			if( rank.eq.0)then
             ! store the data used for treating q->0 singularities
-            open(42,file='INVHEAD.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
-            write(42)head
-            close(42)
-            open(43,file='INVWING1.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
-            write(43)epsw1
-            close(43)
-            open(43,file='INVWING2.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
-            write(43)epsw2
-
-            close(43)
+              open(42,file='INVHEAD.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
+              write(42)head
+              close(42)
+              open(43,file='INVWING1.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
+              write(43)epsw1
+              close(43)
+              open(43,file='INVWING2.OUT',action='WRITE',form='UNFORMATTED',status='REPLACE')
+              write(43)epsw2
+              close(43)
 			endif
-           ! deallocate(head)
+            deallocate(head)
             deallocate(epsw1,epsw2)
             deallocate(emac)
           endif
@@ -195,22 +186,12 @@
 
         deallocate(epsilon)
         deallocate(inveps)
-
-        
         
         call cpu_time(tq2)
         write(fgw,*)
         call write_cputime(fgw,tq2-tq1,'TOTAL CPU TIME:')
         write(fgw,*)
         
-      end if
-      
-      !debug info
-      if(1.eq.0)then
-      do iqp=1,nkpt
-      call getinveps(iqp)
-      write(8888,*)inveps
-      end do
       end if
 
 !=========================================================================================
@@ -221,11 +202,10 @@
 #ifdef MPI
 	  write(sbuffer,*)rank
       open(96,file='ADDSELFE'//trim(adjustl(sbuffer))//'.OUT',form='FORMATTED',status='UNKNOWN')
-      if (rank.eq.0 .and. input%gw%debug)write(*,*)"Calculate Self Energy"
+      if (rank.eq.0 .and. input%gw%debug) write(*,*)"Calculate Self Energy"
 #endif
 #ifndef MPI
       open(96,file='ADDSELFE.OUT',form='FORMATTED',status='UNKNOWN')
-
 #endif
 !     Calculate the integrals to treat the singularities at G+q->0
       call setsingc
@@ -303,7 +283,7 @@
 !
 !     Write the exchange term to file
 !      
-	if (rank.eq.0) then
+      if (rank.eq.0) then
       open(92,file='SELFX.OUT',form='UNFORMATTED',status='UNKNOWN')
       write(92) ibgw, nbgw, nkpt, selfex
       close(92)
@@ -328,10 +308,9 @@
      &       'Number of interstitial basis functions: ',i4,/,10x,     &
      &       'Total number of basis functions:        ',i4,/)
       
-
       close(52) ! STRCONST.OUT
-    endif  
-        close(46) ! ADDSELFE.OUT
+      endif  
+      close(46) ! ADDSELFE.OUT
 #ifdef MPI
       call  cat_logfiles('ADDSELFE')
 #endif

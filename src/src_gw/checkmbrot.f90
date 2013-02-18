@@ -29,7 +29,7 @@ subroutine checkmbrot(iq)
     if(allocated(minmmat))deallocate(minmmat)
     allocate(minmmat(matsiz,nstfv,nstfv))
 
-    dimtk=maxoccband*(nstfv-minunoband+1)
+    dimtk=nomax*(nstfv-numin+1)
     allocate(mmatk(1:matsiz,1:dimtk))
     allocate(mmatkp(1:matsiz,1:dimtk))
     allocate(rmmat(1:matsiz,1:dimtk))
@@ -55,8 +55,8 @@ subroutine checkmbrot(iq)
       read(41,rec=ik) minmmat
       
       ijst=0
-      do ist = 1, maxoccband
-         do jst = minunoband, nstfv
+      do ist = 1, nomax
+         do jst = numin, nstfv
             ijst=ijst+1
             mmatk(1:matsiz,ijst)=minmmat(1:matsiz,ist,jst)
           enddo ! jst
@@ -66,8 +66,8 @@ subroutine checkmbrot(iq)
       read(41,rec=ikp) minmmat
       
       ijst=0
-      do ist = 1, maxoccband
-         do jst = minunoband, nstfv
+      do ist = 1, nomax
+         do jst = numin, nstfv
             ijst=ijst+1
             mmatkp(1:matsiz,ijst)=minmmat(1:matsiz,ist,jst)
           enddo ! jst
@@ -135,8 +135,8 @@ subroutine checkmbrot(iq)
       read(41,rec=ikp) minmmat
       
       ijst=0
-      do ist = 1, maxoccband
-         do jst = minunoband, nstfv
+      do ist = 1, nomax
+         do jst = numin, nstfv
             ijst=ijst+1
             mmatkp(1:matsiz,ijst)=minmmat(1:matsiz,ist,jst)
           enddo ! jst
@@ -195,7 +195,7 @@ subroutine checkmbrot(iq)
       if(allocated(micmmat))deallocate(micmmat)
       allocate(micmmat(locmatsiz,ncg,nstfv))
     
-      dimtk=(nstfv-minunoband+1)*ncg
+      dimtk=(nstfv-numin+1)*ncg
       allocate(mmatk(1:locmatsiz,1:dimtk))
       allocate(mmatkp(1:locmatsiz,1:dimtk))
       allocate(rmmat(1:locmatsiz,1:dimtk))
@@ -219,7 +219,7 @@ subroutine checkmbrot(iq)
         read(40,rec=ik) micmmat
 
         ijst=0
-        do jst = minunoband, nstfv
+        do jst = numin, nstfv
           do icg = 1, ncg
             ijst=ijst+1
             mmatk(1:locmatsiz,ijst)=micmmat(1:locmatsiz,icg,jst)
@@ -230,7 +230,7 @@ subroutine checkmbrot(iq)
         read(40,rec=ikp) micmmat
 
         ijst=0
-        do jst = minunoband, nstfv
+        do jst = numin, nstfv
           do icg = 1, ncg
             ijst=ijst+1
             mmatkp(1:locmatsiz,ijst)=micmmat(1:locmatsiz,icg,jst)
@@ -301,7 +301,7 @@ subroutine checkmbrot(iq)
       if(allocated(mincmat))deallocate(mincmat)
       allocate(mincmat(locmatsiz,nstfv,ncg))
     
-      dimtk=(nstfv-minunoband+1)*ncg
+      dimtk=(nstfv-numin+1)*ncg
       allocate(mmatk(1:locmatsiz,1:dimtk))
       allocate(mmatkp(1:locmatsiz,1:dimtk))
       allocate(rmmat(1:locmatsiz,1:dimtk))
@@ -325,7 +325,7 @@ subroutine checkmbrot(iq)
         read(39,rec=ik) mincmat
 
         ijst=0
-        do ist = minunoband, nstfv
+        do ist = numin, nstfv
           do icg = 1, ncg
             ijst=ijst+1
             mmatk(1:locmatsiz,ijst)=mincmat(1:locmatsiz,ist,icg)
@@ -336,7 +336,7 @@ subroutine checkmbrot(iq)
         read(39,rec=ikp) mincmat
 
         ijst=0
-        do ist = minunoband, nstfv
+        do ist = numin, nstfv
           do icg = 1, ncg
             ijst=ijst+1
             mmatkp(1:locmatsiz,ijst)=mincmat(1:locmatsiz,ist,icg)

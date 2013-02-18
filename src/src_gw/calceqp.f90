@@ -163,8 +163,8 @@
          enddo ! ikp
 
 !        to calculate Fermi energy it is better to use 
-!        only limited low energy amount unoccupied states
-         nb=int(chgval/2.d0)+11
+!        only limited, low in energy, amount unoccupied states
+         nb=min(nbgw,int(chgval/2.d0)+30)
          call fermi(nkpt,nb-ibgw+1,eqp(ibgw:nb,:),ntet,tnodes,wtet,tvol, &
         &  nvelgw,.false.,eferqp,egap)
 
@@ -174,7 +174,7 @@
          endif
        
          if(egap.gt.0.0d0) then                                                
-            write(fgw,9) it,eferqp,es,egap*hev,(eqp(minunoband,1)-eqp(maxoccband,1))*hev
+            write(fgw,9) it,eferqp,es,egap*hev,(eqp(numin,1)-eqp(nomax,1))*hev
          else                                                                 
             write(fgw,*) 'WARNING(calceqp):!!! metallic, DOS at Fermi level', -egap                
          endif 
@@ -224,13 +224,13 @@
 !      
       call writeqp(sigc,znorm)
 !      
-!     KS band structure
+!     Repeat KS band structure analysis
 !
-      call bandanaly(ibgw,nbgw,nkpt,vkl,evaldft(ibgw:nbgw,:),efermi,"KS",fgw)
+      call bandanalysis('KS',ibgw,nbgw,evaldft(ibgw:nbgw,:),efermi)
 !
 !     QP band structure
 !
-      call bandanaly(ibgw,nbgw,nkpt,vkl,eqp(ibgw:nbgw,:),eferqp,"G0W0",fgw)
+      call bandanalysis('G0W0',ibgw,nbgw,eqp(ibgw:nbgw,:),eferqp)
 
       deallocate(a)
       deallocate(znorm)

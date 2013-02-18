@@ -24,6 +24,7 @@
       
       integer(4) :: ie   !(Counter) Runs over bands
       integer(4) :: ikp  !(Counter) Runs over k-points
+      integer(4) :: nb
       real(8) :: delta   ! absolute value of the difference between
 !                          quasiparticle energies of succesive iterations 
       real(8) :: eferqp, egap
@@ -70,21 +71,22 @@
       call writeqpx
 
 !     KS band structure
-      call bandanaly(ibgw,nbgw,nkpt,vkl,evaldft(ibgw:nbgw,:),efermi,"KS",fgw)
-
-      call fermi(nkpt,nbandsgw,eqp(ibgw:nbgw,:),ntet,tnodes,wtet,tvol, &
-     &           nvelgw,.false.,eferqp,egap)
+      call bandanalysis('KS',ibgw,nbgw,evaldft(ibgw:nbgw,:),efermi)
 
 !     QP band structure
-      call bandanaly(ibgw,nbgw,nkpt,vkl,eqp(ibgw:nbgw,:),eferqp,"G0W0",fgw)
+!     to calculate Fermi energy it is better to use 
+!     only limited, low in energy, amount unoccupied states
+      nb=min(nbgw,int(chgval/2.d0)+30)
+      call fermi(nkpt,nb-ibgw+1,eqp(ibgw:nb,:),ntet,tnodes,wtet,tvol, &
+      &  nvelgw,.false.,eferqp,egap)
+
+      call bandanalysis('G0W0',ibgw,nbgw,eqp(ibgw:nbgw,:),eferqp)
 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
       call write_cputime(fgw,tend-tstart, 'CALCEQP')
 
       return
-      
       end subroutine calceqpx
-
 !EOC        
           

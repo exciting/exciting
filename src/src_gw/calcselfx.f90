@@ -73,13 +73,13 @@
          m2=min(n12dgn(2,ie1,ikp),nbgw) ! upper index
          sum=zzero
          do m = m1, m2
-           do ie2 = 1, maxoccband
+           do ie2 = 1, nomax
              mvm=zdotc(mbsiz,minmmat(1:mbsiz,m,ie2),1,minmmat(1:mbsiz,m,ie2),1)
              sum=sum+mvm
            enddo ! ie2
          end do ! m           
          sxqval(ie1)=sxqval(ie1)-sum*wkpq(iqp,ikp)/dble(m2-m1+1)
-         if ((iqp.eq.1).and.(ie1.le.maxoccband)) then
+         if ((iqp.eq.1).and.(ie1.le.nomax)) then
             sxqval(ie1)=sxqval(ie1)+sxs2*singc2
          end if
       enddo ! ie1
@@ -130,7 +130,7 @@
         write(96,*)'# band nr.       valence        selfex'  
         do ie1 = ibgw, nbgw
            selfex(ie1,ikp)=selfex(ie1,ikp)+sxqval(ie1)
-           if((iqp.eq.1).and.(ie1.le.maxoccband))then
+           if((iqp.eq.1).and.(ie1.le.nomax))then
              selfex(ie1,ikp)=selfex(ie1,ikp)+sxs2*singc2
            end if
            write(96,11)ie1,sxqval(ie1),selfex(ie1,ikp)

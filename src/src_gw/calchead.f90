@@ -67,9 +67,9 @@
 !
 !     Local arrays
 !
-      dimtk=(nstfv-minunoband+1)
-      allocate(fnm(minunoband:nstfv))
-      allocate(pnm(minunoband:nstfv))
+      dimtk=(nstfv-numin+1)
+      allocate(fnm(numin:nstfv))
+      allocate(pnm(numin:nstfv))
 !
 !     Loop over k-points
 !
@@ -85,8 +85,8 @@
 
         read(50,rec=ikp) pmat
 
-        do ie1 = 1, maxoccband
-          do ie2 = minunoband, nstfv
+        do ie1 = 1, nomax
+          do ie2 = numin, nstfv
             pvec(1:3)=pmat(1:3,ie1,ie2)
             psq=sum(pvec(1:3)*conjg(pvec(1:3)))/3.0d0
             edif=evaldft(ie2,ikp)-evaldft(ie1,ikp)
@@ -99,7 +99,7 @@
             endif
           enddo ! ie2
           do iom = 1, nomeg
-            fnm(minunoband:nstfv)=cmplx(kcw(ie1,minunoband:nstfv,iom,ik),0.0d0,8)
+            fnm(numin:nstfv)=cmplx(kcw(ie1,numin:nstfv,iom,ik),0.0d0,8)
             head(iom)=head(iom)-coef*zdotu(dimtk,fnm,1,pnm,1)
           end do
         enddo ! ie1
@@ -109,7 +109,7 @@
 !
         if(metallic) then 
           sumfs=zzero
-          do ie1 = minunoband, maxoccband
+          do ie1 = numin, nomax
             pvec(1:3)=pmat(1:3,ie1,ie1)
             psq=sum(pvec(1:3)*conjg(pvec(1:3)))/3.0d0
             sumfs=sumfs+kwfer(ie1,ik)*psq
@@ -133,7 +133,7 @@
             ia=corind(icg,2)
             ias=idxas(ia,is)
             ic=corind(icg,3)
-            do ie2 = minunoband, nstfv
+            do ie2 = numin, nstfv
               pvec(1:3)=pmatc(1:3,icg,ie2)
               psq=sum(pvec(1:3)*conjg(pvec(1:3)))/3.0d0
               edif=evaldft(ie2,ikp)-evalcr(ic,ias)
@@ -146,7 +146,7 @@
               endif
             enddo ! ie2
             do iom = 1, nomeg
-              fnm(minunoband:nstfv)=cmplx(unw(ias,ic,minunoband:nstfv,iom,ik),0.0d0,8)
+              fnm(numin:nstfv)=cmplx(unw(ias,ic,numin:nstfv,iom,ik),0.0d0,8)
               head(iom)=head(iom)-coef*zdotu(dimtk,fnm,1,pnm,1)
             end do
           enddo ! icg

@@ -76,7 +76,7 @@
 !           
             bandpar(1,1:nkptnr)=evalcr(ic,ias)
             
-            do jb=minunoband,nstfv
+            do jb=numin,nstfv
 !          
 !             take the energies of the band
 !          
@@ -153,11 +153,11 @@
             endif
           enddo
         enddo   
-        kcw(1:maxoccband,minunoband:nstfv,iom,1:nkptnr) =           &
-     &      cwpar(1:maxoccband,minunoband:nstfv,1:nkptnr)
+        kcw(1:nomax,numin:nstfv,iom,1:nkptnr) =           &
+     &      cwpar(1:nomax,numin:nstfv,1:nkptnr)
         if((testid.eq.7).and.(fflg.eq.2)) then
-          kcwsurf(1:maxoccband,minunoband:nstfv,iom,1:nkptnr) =     &
-     &          cwparsurf(1:maxoccband,minunoband:nstfv,1:nkptnr)
+          kcwsurf(1:nomax,numin:nstfv,iom,1:nkptnr) =     &
+     &          cwparsurf(1:nomax,numin:nstfv,1:nkptnr)
         endif
       enddo ! iom
 

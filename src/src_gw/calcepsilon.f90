@@ -165,13 +165,13 @@ level2procs=1
 !----------------------------------------------------------------------!
 !                       Valence contribution                             !
 !----------------------------------------------------------------------!
-          dimtk=maxoccband*(nstfv-minunoband+1)
+          dimtk=nomax*(nstfv-numin+1)
           allocate(minm(1:matsiz,1:dimtk))
           allocate(temp(1:matsiz,1:dimtk))
 
           ie12=0
-          do ie1 = 1, maxoccband
-            do ie2 = minunoband, nstfv
+          do ie1 = 1, nomax
+            do ie2 = numin, nstfv
               ie12=ie12+1
               minm(1:matsiz,ie12)=minmmat(1:matsiz,ie1,ie2)
             end do
@@ -220,8 +220,8 @@ level2procs=1
             allocate(pm(dimtk))
 
             ie12=0
-            do ie1 = 1, maxoccband
-              do ie2 = minunoband, nstfv
+            do ie1 = 1, nomax
+              do ie2 = numin, nstfv
                 ie12=ie12+1
 !               rotate the matrix element from the reduced to non-reduced k-point
 !              (note that the inverse operation is used)
@@ -252,8 +252,8 @@ level2procs=1
           do iom = 1, nomeg
             
             ie12=0
-            do ie1 = 1, maxoccband
-              do ie2 = minunoband, nstfv
+            do ie1 = 1, nomax
+              do ie2 = numin, nstfv
                 ie12=ie12+1
                 temp(1:mbsiz,ie12)=sfact*cmplx(kcw(ie1,ie2,iom,ik),0.d0,8)* &
                &                   minm(1:mbsiz,ie12)
@@ -276,8 +276,8 @@ level2procs=1
               epsw1(:,iom)=epsw1(:,iom)+wtmp(:)
               if (fflg.eq.2) then !! real freq 
                 ie12=0
-                do ie1 = 1, maxoccband
-                  do ie2 = minunoband, nstfv
+                do ie1 = 1, nomax
+                  do ie2 = numin, nstfv
                     ie12=ie12+1
                     temp(1:mbsiz,ie12)=sfact*conjg(cmplx(kcw(ie1,ie2,iom,ik),0.d0,8))* &
                    &                   minm(1:mbsiz,ie12)
@@ -299,13 +299,13 @@ level2procs=1
 !---------------------------------------------------------------------!
           if (iopcore.eq.0) then
             
-            dimtk=ncg*(nstfv-minunoband+1)
+            dimtk=ncg*(nstfv-numin+1)
             allocate(micm(1:locmatsiz,1:dimtk))
             allocate(temp(1:locmatsiz,1:dimtk))
             
             ie12=0
             do icg = 1, ncg
-              do ie2 = minunoband, nstfv
+              do ie2 = numin, nstfv
                 ie12=ie12+1
                 micm(1:locmatsiz,ie12)=micmmat(1:locmatsiz,icg,ie2)
               end do
@@ -348,7 +348,7 @@ level2procs=1
                 ia=corind(icg,2)
                 ias=idxas(ia,is)
                 ic=corind(icg,3)
-                do ie2 = minunoband, nstfv
+                do ie2 = numin, nstfv
                   ie12=ie12+1
 !                 rotate the matrix element from the reduced to non-reduced k-point
 !                 (note that the inverse operation is used)
@@ -381,7 +381,7 @@ level2procs=1
                 ia=corind(icg,2)
                 ias=idxas(ia,is)
                 ic=corind(icg,3)
-                do ie2 = minunoband, nstfv
+                do ie2 = numin, nstfv
                   ie12=ie12+1
                   temp(1:mbsiz,ie12)=sfact*cmplx(unw(ias,ic,ie2,iom,jk),0.d0,8)* &
                  &                   micm(1:mbsiz,ie12)

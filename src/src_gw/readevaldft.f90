@@ -58,17 +58,9 @@ subroutine readevaldft
 !    write(fgw,*)'(readevaldft) Fermi energy EXCITING [Ha]: ', efermi
 
 !   The fermi energy calculated using LIBBZINT
-    n=int(chgval/2.d0)+11
+    n=int(chgval/2.d0)+30
     call fermi(nkpt,n,evaldft(1:n,:),ntet,tnodes,wtet,tvol, &
-               chgval,.false.,efermi,egap)
-    
-    write(fgw,*)
-    write(fgw,*)'(readevaldft)     Fermi energy (KS) [Ha]: ', efermi
-    write(fgw,*)'(readevaldft)         Band gap (KS) [Ha]: ', egap
-    write(fgw,*)
-
-!   KS band structure analyse
-    call bandanaly(1,nstfv,nkpt,vkl,evaldft,efermi,"KS",fgw)
+    &    chgval,.false.,efermi,egap)
 
 !----------------------------------------
 ! shift all energies to make efermi=0 
@@ -91,68 +83,32 @@ subroutine readevaldft
     end do
 
     efermi=0.0d0
-
-!----------------------------------------
-! determine additional parameters
-!----------------------------------------
-    
-!   HOMO, LUMO band indices
-    maxoccband=0
-    minunoband=1000 
-    do ik = 1, nkpt
-       io=0
-       iu=1000
-       do ist=1,nstsv
-          if(evaldft(ist,ik).lt.efermi)then
-             if(ist.gt.io)io=ist
-          else
-             if(ist.lt.iu)iu=ist
-          endif    
-       enddo ! ist
-       if(io.gt.maxoccband)maxoccband=io
-       if(iu.lt.minunoband)minunoband=iu
-    enddo ! ik   
-
-    if(maxoccband.lt.1)then
-       write(*,'("Error(readeval): maxoccband < 1 : ", i8)')maxoccband
-       write(*,*)
-       stop
-    elseif(maxoccband.ge.nstsv)then
-       write(*,'("Error(readeval): maxoccband > nstsv : ", i8)')maxoccband
-       write(*,*)
-       stop
-    endif
-    if(minunoband.lt.1)then
-       write(*,'("Error(readeval): minunoband < 1 : ", i8)')minunoband
-       write(*,*)
-       stop
-    elseif(minunoband.ge.nstsv)then
-       write(*,'("Error(readeval): minunoband > nstsv : ", i8)')minunoband
-       write(*,*)
-       stop
-    endif
-    write(fgw,'("Highest occupied band:  ",i5)')maxoccband
-    write(fgw,'("Lowest unoccupied band: ",i5)')minunoband 
-
 !
-!   Determine the range of GW bands ibgw..nbgw and 
-!   the number of valence electrons included in gw bands
+!   KS band structure analyse
 !
-    if(ibgw.ge.minunoband .or. nbgw.le.maxoccband) then 
-       write(6,*) "WARNING(readevaldft): wrong range of gw bands!!!"
-       write(6,*) " ibgw >= minunoband=",ibgw,minunoband
-       write(6,*) " or"
-       write(6,*) " nbgw <= maxoccband=",nbgw,maxoccband
-       ibgw=1
-       nbgw=nstsv
+    call bandanalysis('KS',ibgw,nbgw,evaldft(ibgw:nbgw,:),efermi)
+!
+!   Check the range of GW bands [ibgw,nbgw] and 
+!   the corresponding number of valence electrons involved in GW calculations
+!
+    if (ibgw.ge.numin) then
+       write(fgw,*) "ERROR(readevaldft): Wrong band interval speciefied"
+       write(fgw,*) " ibgw=",ibgw," >= numin=",numin
+       stop
+    end if   
+    if (nbgw.le.nomax) then 
+       write(fgw,*)"ERROR(readevaldft): Wrong band interval speciefied"
+       write(fgw,*) " nbgw=", nbgw, "<= nomax=", nomax
+       stop
     endif 
     nbandsgw=nbgw-ibgw+1
     nvelgw=chgval-2.d0*dble(ibgw-1)
+    
+    write(fgw,*)
+    write(fgw,*)'Maximum number of LAPW states (determined by rgkmax):', nmatmax
+    write(fgw,*)'Number of bands used in GW:                  ', nstfv
 
-    write(fgw,*)'Number of LAPW states (determined by rgkmax):', nmatmax
-    write(fgw,*)'Number of bands used in GW:                  ', nstsv
-
-    e0=maxval(evaldft(nstsv,:))
+    e0=maxval(evaldft(nstfv,:))
     write(fgw,*)'Highest energy of unoccupied states [Ha]:    ', e0
     write(fgw,*)'Highest energy of unoccupied states [eV]:    ', e0*heV
 
@@ -163,7 +119,7 @@ subroutine readevaldft
     write(fgw,*)'Range of GW bands [Ha]:                      ', e0, e1
     write(fgw,*)'Range of GW bands [eV]:                      ', e0*heV, e1*heV
     write(fgw,*)'Number of valence electrons:                 ', int(chgval) 
-    write(fgw,*)'Number of valence electrons included in gw band', int(nvelgw) 
+    write(fgw,*)'Number of valence electrons treated in GW    ', int(nvelgw) 
 !
 !   Treatment of the symmetry requires averaging over degenerated states.
 !   Array n12dgn contains lower and upper indexes of the degenerated states.

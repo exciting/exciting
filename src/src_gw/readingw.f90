@@ -250,11 +250,10 @@
       end if
       nbgw=input%gw%nbgw
       if ((nbgw<1).or.(nbgw>nstfv)) then
-        !!! Usually, there is no need to calculate QP corrections for all
-        !!! unoccupied states. Hence, default nbgw is num. val. states + 20
-        nbgw=int(chgval/2.d0)+20         
+        ! use just 30 empty states for calculating QP states
+        nbgw=min(nstfv,int(chgval/2.d0)+30)
       end if
-      write(fgw,'(a,2i7)') 'GW output band range: ', ibgw, nbgw
+      write(fgw,'(a,2i7)') ' GW output band range: ', ibgw, nbgw
       write(fgw,*)
 !
 !     Read the options for the mixed basis functions

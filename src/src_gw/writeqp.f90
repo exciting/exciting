@@ -41,9 +41,9 @@
 !EOP
 !BOC
 
-      evmks=maxval(evaldft(maxoccband,:))
-      evmhf=maxval(evaldft(maxoccband,:)+real(selfex(maxoccband,:))-real(vxcnn(maxoccband,:)))
-      evmgw=maxval(eqp(maxoccband,:))
+      evmks=maxval(evaldft(nomax,:))
+      evmhf=maxval(evaldft(nomax,:)+real(selfex(nomax,:))-real(vxcnn(nomax,:)))
+      evmgw=maxval(eqp(nomax,:))
 
       open(64,file='QPENE-eV.OUT',action='WRITE',form='FORMATTED')
 

@@ -180,9 +180,9 @@ module modgw
 ! Spherical harmonic expansion coefficients of the eienvector at k'=k-q
       complex(8), allocatable :: eveckpalm(:,:,:,:,:)      
 ! Highest partially occupied band      
-      integer(4) :: maxoccband
+      integer(4) :: nomax
 ! Lowest partially unoccupied band      
-      integer(4) :: minunoband           
+      integer(4) :: numin           
 ! Lower band index for GW output
       integer(4) :: ibgw
 ! Upper band index for GW output

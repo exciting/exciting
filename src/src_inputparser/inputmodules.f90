@@ -5463,7 +5463,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"sharedfs")
-getstructinput%sharedfs= .true.
+getstructinput%sharedfs=.true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"sharedfs",getstructinput%sharedfs)
        call removeAttribute(thisnode,"sharedfs")  

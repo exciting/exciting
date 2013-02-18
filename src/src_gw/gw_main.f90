@@ -58,10 +58,10 @@ subroutine gw_main
 
 #ifdef MPI
       write(sbuffer,*)rank
-      open(fgw,file='GWINFO'//trim(adjustl(sbuffer))//'.OUT',action='write',access='Append')
+      open(fgw,file='GWINFO'//trim(adjustl(sbuffer))//'.OUT')
 #endif
 #ifndef MPI
-      open(fgw,file='GWINFO.OUT',action='write',access='Append')
+      open(fgw,file='GWINFO.OUT')
 #endif
       call boxmsg(fgw,'=','Main GW output file')
 !

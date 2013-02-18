@@ -238,13 +238,15 @@
          do i=1,MaxLineLength
            str(i:i)=c
          enddo
-
-         n1=(MaxLineLength-length)/2
-         n2=n1+length-1
-         str(n1:n2)=ttl(1:length)
-         str(n1-1:n1-1)='';
-         str(n2+1:n2+1)=''
+         if (length>0) then
+           n1=(MaxLineLength-length)/2
+           n2=n1+length-1
+           str(n1:n2)=ttl(1:length)
+           str(n1-1:n1-1)='';
+           str(n2+1:n2+1)=''
+         end if
          write(fid,'(A80)') str
+
       endif
       write(fid,*) 
       end subroutine
