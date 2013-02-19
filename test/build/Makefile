@@ -60,4 +60,4 @@ Makefile.testxml::  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inp
 
 
 clean:
-	rm test* 
+	rm -f test* 

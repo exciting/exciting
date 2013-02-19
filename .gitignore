@@ -76,3 +76,5 @@ Makefile.libarpack
 Makefile.libbzint
 Makefile.libmsec
 Makefile.mkmf
+xml/schema/wiki/
+xml/sgroupinput.xsd
