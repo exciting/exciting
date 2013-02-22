@@ -43,19 +43,20 @@ subroutine gw_main
 !BOC
 
       if (input%gw%taskname.eq.'skip') return
-
-      debug=input%gw%debug
-      if(debug)open(55,file='debug.info',action='write')
+!
+!     testid = 16: Calculate QP bandstructure
+!            
+      select case(input%gw%taskname)
+        case('BAND','band')
+          if (rank==0) call task_band
+          return
+      end select
 
 !---------------------------------------
 !     Initializations
 !---------------------------------------
-      call cpu_time(tstart)
-      if (tstart.lt.0.0d0) write(6,*)'warning, tstart < 0'
-
-!     General output file
+!     Main output file
       fgw=700
-
 #ifdef MPI
       write(sbuffer,*)rank
       open(fgw,file='GWINFO'//trim(adjustl(sbuffer))//'.OUT')
@@ -64,15 +65,13 @@ subroutine gw_main
       open(fgw,file='GWINFO.OUT')
 #endif
       call boxmsg(fgw,'=','Main GW output file')
-!
-!     testid = 16: Calculate bandstructure
-!            
-      select case(input%gw%taskname)
-        case('BAND','band')
-          testid=16
-          call task_band
-          goto 1000
-      end select
+
+      debug=input%gw%debug
+      if(debug)open(55,file='debug.info',action='write')
+
+!     timer
+      call cpu_time(tstart)
+      if (tstart.lt.0.0d0) write(fgw,*)'warning, tstart < 0'
 
 !     initialise global variables
       call init0
@@ -87,35 +86,33 @@ subroutine gw_main
 !     Initialize GW global parameters
       call cpu_time(t(1))
       call init_gw
-      call barrier
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'INITGW')
 
+      call barrier
       select case(testid)
-!
-!       testid = 1: Calculate LAPW basis functions for plotting
-!
+!!
+!!      testid = 1: Calculate LAPW basis functions for plotting
+!!
         case (1) 
-          call plotlapw
+          if (rank==0) call plotlapw
           goto 1000
-!
-!       testid = 2: Calculate LAPW eigenvectors for plotting
-!              
+!!
+!!      testid = 2: Calculate LAPW eigenvectors for plotting
+!!              
         case(2)
-          call plotevec
+          if (rank==0) call plotevec
           goto 1000
-            
+!!
       end select
  
 !     Mixed basis initialization
 
       call cpu_time(t(1))
       call init_mb
-     
       call cpu_time(t(2))
-      
       call write_cputime(fgw,t(2)-t(1),'INIMB')
-      
+     
       call boxmsg(fgw,'-',"Mixed WF info")
       write(fgw,*)'Max num of IPW for APW:', ngkmax
       write(fgw,*)'Max num of IPW for Mixbasis:', ngqmax
@@ -123,10 +120,8 @@ subroutine gw_main
       write(fgw,*)'Mixed basis set size:', lmixmax+ngqmax
      
 !     Read the eigenenergies from the  "EIGVAL.OUT" file
-      call cpu_time(t(1))      
- 
+      call cpu_time(t(1))
       call readevaldft
-     
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'READEVALDFT')
      
@@ -142,9 +137,9 @@ subroutine gw_main
 !!
           case (3) 
               call testprodfun
-!
-!         testid = 4: Calculate eigenvectors products compared with mix basis
-!                    expansion for plotting
+!!
+!!        testid = 4: Calculate eigenvectors products compared with mix basis
+!!                    expansion for plotting
           case (4) 
               call testmixfun
 !!            
@@ -152,9 +147,9 @@ subroutine gw_main
 !!                      sum of the Minm matrix elements
           case (5) 
               call testmixcomp
-!
-!         testid = 6 : Test the bare coulomb matrix for various q-points
-!            
+!!
+!!        testid = 6 : Test the bare coulomb matrix for various q-points
+!!            
           case (6)
               call testcoulomb
 !!
@@ -172,50 +167,47 @@ subroutine gw_main
 !!            
           case (10) 
               call task_epsev
-!            
 !!
 !!        testid = 11: Calculate the eigenvalues of the screened coulomb
 !!                      potential
 !!            
-!          case (11) 
-!            call task_wev
-!            
+!         case (11) 
+!             call task_wev
 !!
 !!        testid = 12: Plot the selfenergy
 !!            
           case (12) 
               call testselfeplot
-!            
 !!
 !!        testid = 13: Calculate LDA exchange-correlation matrix elements
 !!            
           case (13) 
               call calcvxcnn
-!            
-!
-!         testid = 14: Run the GW calculation exchange only
-!            
+!!
+!!        testid = 14: Run the exchange only GW calculation
+!!            
           case (14)
               call excycle
-!
-!         testid = 18: Check the rotational matrix for MB functions
-!
+!!
+!!        testid = 18: Check the rotational matrix for MB functions
+!!
           case (18)
              call testmbrotmat
 !   
       end select 
 
  1000 call cpu_time(tend)
-      if (tend.lt.0.0d0) write(6,*)'warning, tend < 0'
+      if (tend.lt.0.0d0) write(fgw,*)'warning, tend < 0'
       call linmsg(fgw,'=','')      
       call write_cputime(fgw,tend-tstart,'GW TOTAL CPU TIME')
 
-      if(debug)close(55)
       close(fgw)
+      if(debug)close(55)
 
 #ifdef MPI
       call  cat_logfiles('GWINFO')
 #endif 
+
       return
 end subroutine gw_main
 !!EOC

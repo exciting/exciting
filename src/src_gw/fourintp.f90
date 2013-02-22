@@ -35,7 +35,6 @@
       integer(4) :: ist
       integer(4) :: jk
       integer(4), allocatable  :: ipiv(:)
-      logical :: lprt=.true.
       
       real(8) :: den
       real(8) :: pref
@@ -61,7 +60,6 @@
 !
 !EOP
 !BOC
-      if(lprt) call linmsg(6,'-',' Fourier interpolation: Start')
 
 !     shortcut for basis vectors 
       avec(:,1)=input%structure%crystal%basevect(:,1)
@@ -166,9 +164,8 @@
         coef(ist,1:nb)=coef(ist,1:nb)/rho(ist)
         coef(1,1:nb)=coef(1,1:nb)-coef(ist,1:nb)*smat1(nk1,ist)
       enddo
-
 !
-! Calculate the interpolated function on the new mesh 
+!     Calculate the interpolated function on the new mesh 
 !
       smat2(1:nk2,1:nst)=zzero
       do ik=1,nk2
@@ -184,11 +181,9 @@
       enddo 
       call zgemm('n','n',nk2,nb,nst,zone,smat2,nk2,coef,nst,zzero,f2,nk2)
       
-      if(lprt) call linmsg(6,'-','Fourier interpolation: Done')
-
       deallocate(smat1,smat2,coef,rho,ipiv,sm2,h,dele)
+
       return
-      
       end subroutine fourintp
 !EOC   
       

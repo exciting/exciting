@@ -41,36 +41,11 @@ subroutine task_band
 !EOP
 !BOC
       call cpu_time(tstart)
-      if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
-!
-!     Read the quasiparticle energies
-!
-      call linmsg(fgw,'-',"BAND STRUCTURE")
 
-! ---- Old way (read data from QPENE-eV.OUT)
-
-!     call readeqp
-!     
-!     allocate(de1(nkp1,ibgw:nbgw),de2(nkpt,ibgw:nbgw))
-!     do ik = 1, nkp1
-!        de1(ik,:)=cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
-!     enddo
-
-!     de2(:,:)=zzero
-!     call fourintp(de1,nkp1,kvecs1,de2,nkpt,vkl,nbgw-ibgw+1)
-
-!     do ib = ibgw, min(nbgw,nstsv)
-!        do ik = 1, nkpt
-!           evalsv(ib,ik)=evalsv(ib,ik)+real(de2(ik,ib))
-!        enddo 
-!     enddo
-
-! ----
-
-!     read QP energies and perform Fourier interpolation 
+!     read QP energies from file and perform Fourier interpolation (if required)
       call getevalqp(nkpt)
 
-!     Write the bandstructure to disk
+!     Write QP bandstructure to disk
       open(50,file='BAND-QP.OUT',action='WRITE',form='FORMATTED')
       do ib = ibgw, min(nbgw,nstsv)
         do ik = 1, nkpt
@@ -80,10 +55,8 @@ subroutine task_band
       end do !ib
       close(50)
 
-      write(fgw,*)
       call cpu_time(tend)
-      if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
-      call write_cputime(fgw,tend-tstart, 'TASK_BAND')
+      if (debug) call write_cputime(55,tend-tstart, 'TASK_BAND')
  
       return
 end subroutine

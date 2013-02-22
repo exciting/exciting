@@ -7,13 +7,12 @@ Subroutine gwtasklauncher
       Use modinput
       Use modmain, Only: task
       Use inputdom
-!
+
       if (associated(input%gw)) then
          call gw_main
       else
          write (*,*) "error gwtasklauncher"
          stop
       end if
-!
-!
+
 End Subroutine gwtasklauncher
