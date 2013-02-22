@@ -508,5 +508,19 @@ subroutine scf_cycle
 
     if (allocated(rhomtref)) deallocate(rhomtref)
     if (allocated(rhoirref)) deallocate(rhoirref)
+    
+    If (rank .Eq. 0) Then
+! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and RMSDVEFF.OUT
+      Write (61,*)
+      Write (62,*)
+      If (associated(input%groundstate%spin)) write (63,*)
+      Write (65,*)
+! add blank line to DTOTENERGY.OUT, DFORCEMAX.OUT, CHGDIST.OUT and PCHARGE.OUT
+      Write (66,*)
+      If (input%groundstate%tforce) Write (67,*)
+      Write (68,*)
+      Write (69,*)
+    End If
 
+    Return
 end subroutine
