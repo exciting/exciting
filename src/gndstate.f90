@@ -29,7 +29,7 @@ Subroutine gndstate
   ! local variables
       Logical :: exist
       Integer :: ik, is, ia, idm
-      Integer :: n, nwork
+      Integer :: n, nwork, numconvcrit
       Real (8) :: timetot, et, fm
   ! allocatable arrays
       Real (8), Allocatable :: v (:)
@@ -95,7 +95,7 @@ Subroutine gndstate
      ! open DFORCEMAX.OUT
          if (input%groundstate%tforce) open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
      ! open CHGDIST.OUT
-         open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
+         If (input%groundstate%tconvcritcharge) open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
      ! open PCHARGE.OUT
          if (input%groundstate%tpartcharges) open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
      ! write out general information to INFO.OUT
@@ -147,6 +147,47 @@ Subroutine gndstate
       If ((rank .Eq. 0) .And. ((task .Eq. 0) .Or. (task &
      & .Eq. 2))) Call delevec
   ! begin the self-consistent loop
+
+      ! Some operations with self-consistent convergence criteria
+          ! In LDA+U, OEP and Hartree-Fock calculations, the convergence criteria is switched
+          !  to the Kohn-Sham potential
+      If ((ldapu .Ne. 0)  .Or. (input%groundstate%xctypenumber .Lt. 0) .Or. (task .Eq. 5) &
+        & .Or. (task .Eq. 6) ) Then
+         input%groundstate%tconvcritenergy = .false.
+         input%groundstate%tconvcritvks = .true.
+         Write (100,*)
+         Write (100, '("Warning(gndstate): The use of LDA+U / OEP / Hartree-Fock made the&
+           &convergence criterion to be switched to the Kohn-Sham potential")')
+      End If
+      numconvcrit=0
+      If (input%groundstate%tconvcritenergy .Eq. .true.) numconvcrit=numconvcrit+1
+      If (input%groundstate%tconvcritvks .Eq. .true.) numconvcrit=numconvcrit+1
+      If (input%groundstate%tconvcritcharge .Eq. .true.) numconvcrit=numconvcrit+1
+      If (input%groundstate%tconvcritforces .Eq. .true.) numconvcrit=numconvcrit+1
+      Write (60,*)
+      If (numconvcrit .Eq. 0) Then
+         Write (*,*)
+         Write (*, '(" Error(gndstate): No convergence criterion specified " )')
+         stop 
+       Else If (numconvcrit .Eq. 1) Then  
+         Write (60, '( "The convergence criterion is the " )')
+       Else  
+         Write (60, '( "The convergence criteria are: " )')
+      End If
+      If (input%groundstate%tconvcritenergy .Eq. .true.) Write (60, '("  Total energy ")')
+      If (input%groundstate%tconvcritvks .Eq. .true.) Write (60, '("  Kohn-Sham potential ")')
+      If (input%groundstate%tconvcritcharge .Eq. .true.) Write (60, '("  Atomic charge ")')
+      If (input%groundstate%tconvcritforces .Eq. .true.) Write (60, '("  Force on atoms ")')
+
+      ! Printing some information in INFO.OUT
+      If (rank .Eq. 0) Then
+         Write (60,*)
+         Write (60, '("+------------------------------+")')
+         Write (60, '("| Self-consistent loop started |")')
+         Write (60, '("+------------------------------+")')
+      End If
+
+
       If (rank .Eq. 0) Then
          Write (60,*)
          Write (60, '("+------------------------------+")')
@@ -337,8 +378,8 @@ Subroutine gndstate
         ! store density to reference
             rhoirref(:)=rhoir(:)
             rhomtref(:,:,:)=rhomt(:,:,:)
-        ! compute the effective potential
-            Call poteff
+        ! compute the effective potential 
+              Call poteff
         ! pack interstitial and muffin-tin effective potential and field into one array
             Call packeff (.True., n, v)
         ! mix in the old potential and field with the new
@@ -438,25 +479,33 @@ Subroutine gndstate
     ! check for convergence
                If (iscl .Ge. 2) Then
                   Write (60,*)
-                  Write (60, '("RMS change in effective potential (targ&
-                    &et) : ", G18.10, " (", G18.10, ")")') &
-                    & currentconvergence, input%groundstate%epspot
-                  write(60,'("Absolute change in total energy (target)   : ",G18.10," (",&
-                  &G18.10,")")') deltae, input%groundstate%epsengy
-                  if (input%groundstate%tforce) then
+                  If (input%groundstate%tconvcritvks .Eq. .true.) Then
+                    Write (60, '("RMS change in effective potential (targ&
+                      &et) : ", G18.10, " (", G18.10, ")")') &
+                      & currentconvergence, input%groundstate%epspot
+                  End if
+                  If (input%groundstate%tconvcritenergy .Eq. .true.) Then
+                    write(60,'("Absolute change in total energy (target)   : ",G18.10," (",&
+                    &G18.10,")")') deltae, input%groundstate%epsengy
+                  End if
+                  If ( (input%groundstate%tconvcritforces .Eq. .true.)  .and. (input%groundstate%tforce) ) then
                     write(60,'("Absolute change in |max. force| (target)   : ",G18.10," (",&
                     &G18.10,")")') dforcemax, input%groundstate%epsforce
-                  end if
-                  write(60,'("Charge distance (target)                   : ",G18.10," (",&
-                  &G18.10,")")') chgdst, input%groundstate%epschg
+                  End if
+                  If (input%groundstate%tconvcritcharge .Eq. .true.) Then
+                    write(60,'("Charge distance (target)                   : ",G18.10," (",&
+                    &G18.10,")")') chgdst, input%groundstate%epschg
+                  End if
                   write(66,'(G18.10)') deltae
                   call flushifc(66)
                   if (input%groundstate%tforce) then
                     write(67,'(G18.10)') dforcemax
                     call flushifc(67)
                   end if
-                  write(68,'(G18.10)') chgdst
-                  call flushifc(68)
+                  If (input%groundstate%tconvcritcharge) Then
+                     write(68,'(G18.10)') chgdst
+                     call flushifc(68)
+                  End If
                   Write (65, '(G18.10)') currentconvergence
                   Call flushifc (65)
                   If ( ((.not. input%groundstate%tconvcritenergy) .or. &
@@ -575,7 +624,7 @@ Subroutine gndstate
            ! add blank line to DTOTENERGY.OUT, DFORCEMAX.OUT, CHGDIST.OUT and PCHARGE.OUT
                Write (66,*)
                if (input%groundstate%tforce) Write (67,*)
-               Write (68,*)
+               If (input%groundstate%tconvcritcharge) Write (68,*)
                if (input%groundstate%tpartcharges) Write (69,*)
             End If
            ! begin new self-consistent loop with updated positions
@@ -625,7 +674,7 @@ Subroutine gndstate
  ! close the DFORCEMAX.OUT file
             if (input%groundstate%tforce) close(67)
  ! close the CHGDIST.OUT file
-            close(68)
+            If (input%groundstate%tconvcritcharge) close(68)
  ! close the PCHARGE.OUT file
             if (input%groundstate%tpartcharges) close(69)
             Call structure_xmlout ()

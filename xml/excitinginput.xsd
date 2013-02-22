@@ -2361,7 +2361,9 @@ gw.xsd
               of the total energy of the system is used as a convergence criterion for the 
               self-consistent procedure used to solve the Kohn-Sham equations. By default,
               this is the only used convergence criterion (exception: in LDA+U calculations,
-              the Kohn-Sham potential is automatically chosen instead). </xs:documentation>
+              the Kohn-Sham potential is automatically chosen instead).  Please note that if all
+              selected convergence criteria are satisfied in N iterations, Exciting runs for N+1
+              iterations. </xs:documentation>
             </xs:annotation>
           </xs:attribute>    
           <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritvks" type="xs:boolean" default="false">
@@ -2369,7 +2371,9 @@ gw.xsd
               <xs:documentation> The attribute tconvcritvks is <pre>"true"</pre> if the value  
               of the Kohn-Sham potential ($V_{KS}$) of the system is used as a convergence criterion for the 
               self-consistent procedure used to solve the Kohn-Sham equations. For LDA+U calculations, this is
-              the (automatically chosen) convergence criterion. </xs:documentation>
+              the (automatically chosen) convergence criterion.  Please note that if all
+              selected convergence criteria are satisfied in N iterations, Exciting runs for N+1
+              iterations. </xs:documentation>
             </xs:annotation>
           </xs:attribute>  
           <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritcharge" type="xs:boolean" default="false">
@@ -2377,14 +2381,18 @@ gw.xsd
               <xs:documentation> The attribute tconvcritcharge is <pre>"true"</pre> if the value  
               of the total charge of the system is used as a convergence criterion for the 
               self-consistent procedure used to solve the Kohn-Sham equations. (This amount should be
-              constant, but it is subject to numerical errors) </xs:documentation>
+              constant, but it is subject to numerical errors).  Please note that if all
+              selected convergence criteria are satisfied in N iterations, Exciting runs for N+1
+              iterations. </xs:documentation>
             </xs:annotation>
           </xs:attribute>  
           <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritforces" type="xs:boolean" default="false">
             <xs:annotation>
               <xs:documentation> The attribute tconvcritforces is <pre>"true"</pre> if the value  
               of the an average of forces on nuclei of the system is used as a convergence criterion for the 
-              self-consistent procedure used to solve the Kohn-Sham equations. </xs:documentation>
+              self-consistent procedure used to solve the Kohn-Sham equations.  Please note that if all
+              selected convergence criteria are satisfied in N iterations, Exciting runs for N+1
+              iterations. </xs:documentation>
             </xs:annotation>
           </xs:attribute>         
     </xs:complexType>
