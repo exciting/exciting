@@ -87,27 +87,25 @@ subroutine bandanalysis(title,ib,nb,eband,efermi)
     egap(3)= eband(numin,ikcm)-maxval(eband(ib:nomax,ikcm))
 
     if(ikvm.eq.ikcm) then ! direct gap 
-        write(fgw,112) '[Ha]', egap(1)
         write(fgw,112) '[eV]', egap(1)*hev
         write(fgw,113) vkl(:,ikvm), ikvm
     else 
-        write(fgw,114) '[Ha]', egap(1:3)
         write(fgw,114) '[eV]', egap(1:3)*hev
         write(fgw,115) vkl(:,ikvm), ikvm, vkl(:,ikcm),ikcm
     endif
 
-    write(fgw,*) ' Range of each band:'
+    write(fgw,*) ' Range of each band [eV]:'
     write(fgw,'(a5,3a12)') 'n','Bottom','Top','Width'
     do i = ib, nb
-        ebmin = minval(eband(i,1:nkpt))
-        ebmax = maxval(eband(i,1:nkpt))
-        write(fgw,'(i5,3F12.3)') i,ebmin,ebmax,ebmax-ebmin
+        ebmin = minval(eband(i,1:nkpt))*hev
+        ebmax = maxval(eband(i,1:nkpt))*hev
+        write(fgw,'(i5,3F14.6)') i,ebmin,ebmax,ebmax-ebmin
     enddo
 
 111 format(a,2i4)
-112 format('  BandGap ', a4,' = ',f8.3)
-113 format('  Direct gap at k = ',3f8.3,' ik=',i5)
-114 format('  BandGap ', a4,' = ',3f8.3)
+112 format('  BandGap ', a4,' = ',f14.6)
+113 format('  Direct gap at k = ',3f14.6,' ik=',i5)
+114 format('  BandGap ', a4,' = ',3f14.6)
 115 format('  Indirect gap, k(VBM) = ',3f8.3,' ik = ',i5,/,&
     &      '                k(CBM) = ',3f8.3,' ik = ',i5)
 

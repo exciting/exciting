@@ -130,12 +130,6 @@ subroutine readevaldft
     write(fgw,*)'    - occupied                               ', int(chgval/2.d0)
     write(fgw,*)'    - unoccupied                             ', input%gw%nempty
     
-    do ik = 1, nkpt    
-    do is = 1, nstfv    
-      write(11,*) is, evaldft(is,ik)
-    end do
-    end do
-
     e0=maxval(evaldft(nstfv,:))
     write(fgw,'("Energy cutoff corresponding to highest unoccupied state [Ha]: ",f12.6)') e0
     write(fgw,'("Energy cutoff corresponding to highest unoccupied state [eV]: ",f12.6)') e0*heV
