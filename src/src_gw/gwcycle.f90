@@ -28,7 +28,7 @@
       character(128)::sbuffer
       real(8)    :: tq1, tq2, tq11, tq22
       complex(8),allocatable::buffer(:)
-	  integer :: COMM_LEVEL2
+      integer :: COMM_LEVEL2
 
 ! !REVISION HISTORY:
 !

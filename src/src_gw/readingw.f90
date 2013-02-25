@@ -229,18 +229,20 @@
 !
 !     Number of the empty bands used in GW code
 !
-      if ((input%gw%nempty<1).or.(input%gw%nempty>nmatmax)) then
-        input%gw%nempty=input%groundstate%nempty
-      else
-        input%groundstate%nempty=input%gw%nempty
-        nstfv=int(chgval/2.d0)+input%gw%nempty+1
-        nstsv=nstfv*nspinor
+      if (input%gw%nempty<1) then
+        write(fgw,*)'WARNING(readingw): Number of empty states is not specified!'
+        write(fgw,*)'                   Use default (too small) values.'
+        input%gw%nempty=10
       end if
-      write(fgw,*)'Number of empty states (groundstate): ', input%groundstate%nempty
-      write(fgw,*)'Number of empty states (GW): ', input%gw%nempty
-      write(fgw,*)
 !
 !     new number of first-variational states (to be used in GW)
+!
+      input%groundstate%nempty=input%gw%nempty
+      nstfv=int(chgval/2.d0)+input%gw%nempty+1
+      nstfv=min(nstfv,nmatmax)
+      nstsv=nstfv*nspinor
+      write(fgw,*)'Number of empty states (GW): ', input%gw%nempty
+      write(fgw,*)
 !
 !     Band interval where GW corections are applied
 !
@@ -250,8 +252,8 @@
       end if
       nbgw=input%gw%nbgw
       if ((nbgw<1).or.(nbgw>nstfv)) then
-        ! use just 30 empty states for calculating QP states
-        nbgw=min(nstfv,int(chgval/2.d0)+30)
+        ! use just a limited number of empty states for calculating QP states
+        nbgw=min(nstfv,int(chgval/2.d0)+10)
       end if
       write(fgw,'(a,2i7)') ' GW output band range: ', ibgw, nbgw
       write(fgw,*)
