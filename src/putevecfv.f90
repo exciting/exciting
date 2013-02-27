@@ -26,7 +26,7 @@ Subroutine putevecfv (ik, evecfv)
      & evecfv
   !$OMP CRITICAL
       filetag = 'EVECFV'
-      If (splittfile .Or. (rank .Eq. 0)) Then
+      If (splittfile .Or. (rank .Eq. 0).or. (.not.input%sharedfs)) Then
          Open (70, File=outfilenamestring(filetag, ik), Action='WRITE', &
         & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
          If (splittfile) Then

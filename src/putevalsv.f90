@@ -22,7 +22,7 @@ Subroutine putevalsv (ik, evalsvp)
       Inquire (IoLength=Recl) vkl (:, ik), nstsv, evalsvp
   !$OMP CRITICAL
       filetag = 'EVALSV'
-      If (splittfile .Or. (rank .Eq. 0)) Then
+      If (splittfile .Or. (rank .Eq. 0).or. (.not.input%sharedfs)) Then
          Open (70, File=outfilenamestring(filetag, ik), Action='WRITE', &
         & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
          If (splittfile) Then

@@ -65,6 +65,7 @@ Subroutine df
       Call writeqpts
   ! loop over q-points
       Do iq = qpari, qparf
+      Write(*,*)"do ",iq," on ",rank
          Call genfilname (iq=iq, fileext=filex)
      ! call for q-point
          Call dfq (iq)

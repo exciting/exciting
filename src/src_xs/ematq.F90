@@ -54,6 +54,9 @@ Subroutine ematq (iq)
       Do ik = kpari, kparf
          Call ematqk1 (iq, ik)
       End Do
+
       Call ematqdealloc
+
+      if (.not. input%sharedfs)call cpFileTonodes(fnemat)
       Call barrier
 End Subroutine ematq

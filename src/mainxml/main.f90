@@ -12,6 +12,7 @@ implicit none
 ! set the version string
 call versionfromdate()
 call initMPI()
+call cpFileToNodes("PMAT_XS.OUT")
 call loadinputDOM("input.xml")
 !initialize default values that are not definet in the input schema
 call setdefault()

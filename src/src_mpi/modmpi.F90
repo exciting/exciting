@@ -24,7 +24,9 @@ use mpi
 implicit none
       Integer :: rank
       Integer :: procs
-      Integer :: ierr,procnamelen
+      Integer :: ierr,procnamelen,nnodes
+      integer:: world_group,firstinnode_group,firstinnode_comm
+      integer, allocatable:: nodechefs(:)
       Logical :: splittfile,firstinnode
 
 !
@@ -37,9 +39,10 @@ Contains
          Call mpi_init (ierr)
          Call mpi_comm_size (mpi_comm_world, procs, ierr)
          Call mpi_comm_rank (mpi_comm_world, rank, ierr)
-
+         nnodes=1
          splittfile = .True.
          firstinnode=.True.
+         allocate(nodechefs(procs))
          call get_isfirstinnode(200*procs)
 #endif
 #ifndef MPI
@@ -53,9 +56,10 @@ subroutine get_isfirstinnode(strsize)
          integer,intent(in)::strsize
 #ifdef MPI
 
-	     integer::tag,request,recvstatus (MPI_STATUS_SIZE)
+	     integer::tag,request,recvstatus (MPI_STATUS_SIZE),i
 	     character(len=strsize)::neighbors,neighborssend
 	     character(200)::procname
+	     logical::lbuffer
          procname=""
          neighbors=""
          neighborssend=""
@@ -75,6 +79,19 @@ subroutine get_isfirstinnode(strsize)
          else
          firstinnode=.true.
          endif
+         nnodes=0
+         do i=0,procs-1
+         lbuffer=firstinnode
+         call mpi_bcast(lbuffer,1,mpi_logical,i,mpi_comm_world,ierr)
+
+         if(lbuffer)then
+            nnodes=nnodes+1
+            nodechefs(nnodes)=i
+         endif
+         end do
+         call MPI_Comm_group(MPI_Comm_WORLD, world_group,ierr)
+         call MPI_GROUP_INCL(world_group, nnodes, nodechefs, firstinnode_group,ierr)
+         call MPI_Comm_create(MPI_Comm_World, firstinnode_group, firstinnode_comm,ierr)
 #endif
 end subroutine
       Subroutine finitMPI

@@ -149,6 +149,8 @@ Subroutine writepmatxs
          end if
       End Do
       Call barrier
+
+      Inquire (IoLength=Recl) vkl (:, ik), nstsv, pmat
       Deallocate (apwalmt, evecfvt, evecsvt, pmat)
       If (fast) Then
          Deallocate (apwcmt)
@@ -159,6 +161,8 @@ Subroutine writepmatxs
          End If
       End If
       Call barrier
+
+        if (.not. input%sharedfs) call  cpFileToNodes( trim(fnpmat))
       if (task .eq. 120) then
         close(50)
         Write (*,*)

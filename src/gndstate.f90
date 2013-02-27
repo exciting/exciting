@@ -241,7 +241,7 @@ Subroutine gndstate
 #endif
      ! find the occupation numbers and Fermi energy
          Call occupy
-         If (rank .Eq. 0) Then
+         If (rank .Eq. 0.or.(.not. input%sharedfs .and. firstinnode)) Then
         ! write out the eigenvalues and occupation numbers
             Call writeeval
         ! write the Fermi energy to file
@@ -262,7 +262,7 @@ Subroutine gndstate
          Do ik = firstk (rank), lastk (rank)
 #endif
 #ifndef MPIRHO
-            If (rank .Eq. 0) Then
+            If (rank .Eq. 0.or. (.not. input%sharedfs .and. firstinnode)) Then
                Do ik = 1, nkpt
               !write the occupancies to file
                   Call putoccsv (ik, occsv(:, ik))
@@ -298,7 +298,7 @@ Subroutine gndstate
             If (input%groundstate%xctypenumber .Lt. 0) Call &
            & mpiresumeevecfiles ()
 #endif
-            If (rank .Eq. 0) Then
+            If (rank .Eq. 0.or.(.not. input%sharedfs .and. firstinnode)) Then
         ! write out partial charges
                call writepchgs(69,input%groundstate%lmaxvr)
                call flushifc(69)
@@ -329,7 +329,7 @@ Subroutine gndstate
            ! generate the LDA+U potential matrix
                Call genvmatlu
            ! write the LDA+U matrices to file
-               if (rank .eq. 0) Call writeldapu
+               if (rank .eq. 0.or.(.not. input%sharedfs .and. firstinnode)) Call writeldapu
             End If
         ! generate charge distance
             call chgdist
@@ -375,7 +375,7 @@ Subroutine gndstate
                input%groundstate%tfibs=.false.
                call force
                input%groundstate%tfibs=tibs
-               If (rank .Eq. 0) Then
+               If (rank .Eq. 0.or.(.not. input%sharedfs .and. firstinnode)) Then
        ! output forces to INFO.OUT
                   Call writeforce (60)
                   ! write maximum force magnitude to FORCEMAX.OUT
@@ -497,18 +497,23 @@ Subroutine gndstate
 #endif
          End Do
 20       Continue
-         If (rank .Eq. 0 .or.  (.not. input%sharedfs .and. firstinnode)) Then
+         If (rank .Eq.0) Then
             Write (60,*)
             Write (60, '("+------------------------------+")')
             Write (60, '("| Self-consistent loop stopped |")')
             Write (60, '("+------------------------------+")')
+         endif
  ! write density and potentials to file only if maxscl > 1
+           If (rank .Eq. 0 .or.  (.not. input%sharedfs .and. firstinnode))then
             If (input%groundstate%maxscl .Gt. 1) Then
                Call writestate
-               Write (60,*)
-               Write (60, '("Wrote STATE.OUT")')
+               If (rank .Eq.0) Then
+                 Write (60,*)
+                 Write (60, '("Wrote STATE.OUT")')
+               end if
             End If
-         end if
+           end if
+
  !-----------------------!
  !     compute forces    !
  !-----------------------!

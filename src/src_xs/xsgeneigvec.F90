@@ -82,11 +82,12 @@ Subroutine xsgeneigvec
          End If
      ! end loop over q-points
       End Do
-      If ((rank .Eq. 0) .And. tqgamma(1) .And. ( .Not. tscreen)) Then
+      If ((rank .Eq. 0.or.(.not. input%sharedfs .and. firstinnode)) &
+      &.And. tqgamma(1) .And. ( .Not. tscreen)) Then
          Write (unitout, '("Info(", a, "): first Q-point is Gamma-point&
         & - copying relevant files")') thisnam
      ! write files again one by one
-         Call copyfilesq0
+          Call copyfilesq0
       End If
       Call barrier
       Write (unitout, '("Info(", a, "): generation of eigenvectors fini&

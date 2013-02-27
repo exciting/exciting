@@ -19,7 +19,7 @@ Subroutine writeevec (vq, voff, filxt)
       Character (*), Intent (In) :: filxt
   ! local variables
       Integer :: ik, j
-      Complex (8), Allocatable :: apwalm (:, :, :, :)
+       Complex (8), Allocatable :: apwalm (:, :, :, :)
   ! read from STATE.OUT exclusively
       isreadstate0 = .True.
   ! SCF calculation with one cycle
@@ -33,7 +33,8 @@ Subroutine writeevec (vq, voff, filxt)
       If (rank .Eq. 0) Call filedel ('APWCMT'//trim(filxt))
       If (rank .Eq. 0) Call filedel ('LOCMT'//trim(filxt))
       Call genparidxran ('k', nkpt)
-      Do ik = kpari, kparf
+
+      Do ik = 1, nkpt
          apwcmt (:, :, :, :) = zzero
          locmt (:, :, :, :) = zzero
          Call getevecfv (vkl(1, ik), vgkl(1, 1, 1, ik), evecfv)
@@ -42,17 +43,16 @@ Subroutine writeevec (vq, voff, filxt)
          Call genapwcmt (input%groundstate%lmaxapw, ngk(1, ik), 1, &
         & nstfv, apwalm, evecfv, apwcmt)
          Call genlocmt (ngk(1, ik), 1, nstfv, evecfv, locmt)
-         Do j = 0, procs - 1
-            If (rank .Eq. j) Then
+
+            If (rank.eq.0 .or. (.not. input%sharedfs .and. firstinnode)) Then
                Call putapwcmt ('APWCMT'//trim(filxt), ik, vkl(1, ik), &
               & vq, apwcmt)
                Call putlocmt ('LOCMT'//trim(filxt), ik, vkl(1, ik), vq, &
               & locmt)
             End If
-            Call barrier
-         End Do
       End Do
       Call endloopbarrier (nkpt, procs)
+
       isreadstate0 = .False.
       Deallocate (evecfv, apwalm, apwcmt, locmt)
 End Subroutine writeevec
