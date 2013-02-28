@@ -25,44 +25,101 @@ Subroutine mpiresumeevecfiles
 !EOP
       Implicit None
   ! arguments
-      Integer :: ik, proc, nmatmax_, nstfv_, nspnfv_, nstsv_, recl
-      Integer :: recvstatus (MPI_STATUS_SIZE),neighbors(procs)
+      Integer :: ik, proc, nmatmax_, nstfv_, nspnfv_, nstsv_, recl, &
+     & token
+      Integer :: recvstatus (MPI_STATUS_SIZE)
       Character (256) :: filetag
       Complex (8) :: evecfv (nmatmax, nstfv, nspnfv)
       Complex (8) :: evecsv (nstsv, nstsv)
       Real (8) :: evalfv (nstfv, nspnfv), vkl_ (3), evalsvp (nstsv), &
      & occsvp (nstsv)
       Character (256), External :: outfilenamestring
-
-      If (splittfile .And. (procs .Gt. 1) ) Then
+      If (procs .Gt. 1) Call MPI_barrier (MPI_COMM_WORLD, ierr)
+      If (splittfile .And. (procs .Gt. 1) .and. (nkpt .gt.rank)) Then
 ! start a receive in order to pass around a token from rank 0 to max
-
+         If (rank .Ne. 0) Call mpi_recv (token, 1, MPI_INTEGER, rank-1, &
+        & 1, MPI_COMM_WORLD, recvstatus, ierr)
 !
-
-
          filetag = 'EVECFV'
          Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_, &
         & evecfv
-         call resumefile(filetag,Recl)
-
+         Open (71, File=trim(filetag)//trim(filext), Action='WRITE', &
+        & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+         proc = rank
+         Open (77, File=outfilenamestring(filetag, firstk(proc)), &
+        & Action='READ', Form='UNFORMATTED', Access='DIRECT', &
+        & Recl=Recl)
+         Do ik = firstk (proc), lastk (proc)
+            Read (77, Rec=ik-firstk(procofk(ik))+1) vkl_, nmatmax_, &
+           & nstfv_, nspnfv_, evecfv
+            Write (71, Rec=ik) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
+         End Do
+         Close (77, Status='DELETE')
+         Close (71)
+!
          filetag = 'EVECSV'
          Inquire (IoLength=Recl) vkl_, nstsv_, evecsv
-         call resumefile(filetag,Recl)
-
+         Open (71, File=trim(filetag)//trim(filext), Action='WRITE', &
+        & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+         proc = rank
+         Open (77, File=outfilenamestring(filetag, firstk(proc)), &
+        & Action='READ', Form='UNFORMATTED', Access='DIRECT', &
+        & Recl=Recl)
+         Do ik = firstk (proc), lastk (proc)
+            Read (77, Rec=ik-firstk(procofk(ik))+1) vkl_, nstsv_, &
+           & evecsv
+            Write (71, Rec=ik) vkl_, nstsv_, evecsv
+         End Do
+         Close (77, Status='DELETE')
+         Close (71)
+!
          filetag = 'EVALFV'
          Inquire (IoLength=Recl) vkl_, nstfv_, nspnfv_, evalfv
-         call resumefile(filetag,Recl)
-
+         Open (71, File=trim(filetag)//trim(filext), Action='WRITE', &
+        & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+         proc = rank
+         Open (77, File=outfilenamestring(filetag, firstk(proc)), &
+        & Action='READ', Form='UNFORMATTED', Access='DIRECT', &
+        & Recl=Recl)
+         Do ik = firstk (proc), lastk (proc)
+            Read (77, Rec=ik-firstk(procofk(ik))+1) vkl_, nstfv_, &
+           & nspnfv_, evalfv
+            Write (71, Rec=ik) vkl_, nstfv_, nspnfv_, evalfv
+         End Do
+         Close (77, Status='DELETE')
+         Close (71)
 !
          filetag = 'EVALSV'
          Inquire (IoLength=Recl) vkl_, nstsv_, evalsvp
-         call resumefile(filetag,Recl)
-
+         Open (71, File=trim(filetag)//trim(filext), Action='WRITE', &
+        & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+         proc = rank
+         Open (77, File=outfilenamestring(filetag, firstk(proc)), &
+        & Action='READ', Form='UNFORMATTED', Access='DIRECT', &
+        & Recl=Recl)
+         Do ik = firstk (proc), lastk (proc)
+            Read (77, Rec=ik-firstk(procofk(ik))+1) vkl_, nstsv_, &
+           & evalsvp
+            Write (71, Rec=ik) vkl_, nstsv_, evalsvp
+         End Do
+         Close (77, Status='DELETE')
+         Close (71)
 !
          filetag = 'OCCSV'
          Inquire (IoLength=Recl) vkl_, nstsv_, occsvp
-         call resumefile(filetag,Recl)
-
+         Open (71, File=trim(filetag)//trim(filext), Action='WRITE', &
+        & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+         proc = rank
+         Open (77, File=outfilenamestring(filetag, firstk(proc)), &
+        & Action='READ', Form='UNFORMATTED', Access='DIRECT', &
+        & Recl=Recl)
+         Do ik = firstk (proc), lastk (proc)
+            Read (77, Rec=ik-firstk(procofk(ik))+1) vkl_, nstsv_, &
+           & occsvp
+            Write (71, Rec=ik) vkl_, nstsv_, occsvp
+         End Do
+         Close (77, Status='DELETE')
+         Close (71)
 !
          Call SYSTEM ("sync")
          If (rank .Eq. 0) Then
@@ -70,7 +127,10 @@ Subroutine mpiresumeevecfiles
             Call flushifc (60)
          End If
          !if I am not the last process pass on the token
-
+         If (rank .Ne. (procs-1) .and. (rank .ne. (nkpt-1))) then
+         Call mpi_send (token, 1, MPI_INTEGER, &
+        & rank+1, 1, MPI_COMM_WORLD, ierr)
+         endif
       End If
       call barrier
       Call SYSTEM ("sync")
@@ -80,45 +140,3 @@ Subroutine mpiresumeevecfiles
 !
       Return
 End Subroutine mpiresumeevecfiles
-
-subroutine resumefile(filetagarg,Recl)
-use modmpi
-use mod_misc
-use mod_kpoint
-use modinput
-
-	 Implicit None
-	 !arguments
-	character(256)::filetagarg
-	integer::Recl,reclloc
-	character,allocatable::buffer(:)
-	!local
-	integer::ik
-#ifdef MPI
-	Character (256), External :: outfilenamestring
-	allocate(buffer(Recl*4))
-	Inquire (IoLength=Reclloc) buffer
-	write(*,*)"RECL",RECL,"reclloc",reclloc,"rank",rank,filetagarg
-
-    if(rank.eq.0 .or. (.not. input%sharedfs .and. firstinnode)) then
-     Open (71, File=trim(filetagarg)//trim(filext), Action='WRITE', &
-        & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
-	endif
-    if(rank.lt.nkpt)Open (77, File=outfilenamestring(filetagarg, firstk(rank)), &
-        & Action='READ', Form='UNFORMATTED', Access='DIRECT', &
-        & Recl=Recl)
-    Do ik =1,nkpt
-    	if(procofk(ik).eq.rank .and. (rank.lt.nkpt)) then
-            Read (77, Rec=ik-firstk(procofk(ik))+1) buffer
-        endif
-        Call MPI_bcast (buffer,Recl*4 , MPI_CHARACTER, procofk(ik), MPI_COMM_WORLD, ierr)
-
-        if(rank.eq.0 .or. (.not. input%sharedfs .and. firstinnode)) then
-            Write (71, Rec=ik) buffer
-		endif
-    End Do
-    Close (77, Status='DELETE')
-    Close (71)
-    deallocate(buffer)
-#endif
-end subroutine
