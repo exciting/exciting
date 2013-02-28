@@ -34,7 +34,7 @@ Subroutine mpiresumeevecfiles
      & occsvp (nstsv)
       Character (256), External :: outfilenamestring
 
-      If (splittfile .And. (procs .Gt. 1) .and. (nkpt .gt.rank)) Then
+      If (splittfile .And. (procs .Gt. 1) ) Then
 ! start a receive in order to pass around a token from rank 0 to max
 
 !
@@ -103,11 +103,11 @@ use modinput
      Open (71, File=trim(filetagarg)//trim(filext), Action='WRITE', &
         & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
 	endif
-    Open (77, File=outfilenamestring(filetagarg, firstk(rank)), &
+    if(rank.lt.nkpt)Open (77, File=outfilenamestring(filetagarg, firstk(rank)), &
         & Action='READ', Form='UNFORMATTED', Access='DIRECT', &
         & Recl=Recl)
     Do ik =1,nkpt
-    	if(ik.ge. firstk (rank).and. ik.le. lastk (rank)) then
+    	if(procofk(ik).eq.rank .and. (rank.lt.nkpt)) then
             Read (77, Rec=ik-firstk(procofk(ik))+1) buffer
         endif
         Call MPI_bcast (buffer,Recl*4-1 , MPI_CHARACTER, procofk(ik), MPI_COMM_WORLD, ierr)

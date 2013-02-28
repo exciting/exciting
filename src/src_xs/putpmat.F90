@@ -32,6 +32,7 @@ Contains
          Inquire (IoLength=Recl) vkl (:, ik), nstsv, pm
          Call getunit (un)
 #ifdef MPI
+
          tag = 77
          If (rank .Ne. 0) Call mpi_send (pm, size(pm), &
         & MPI_DOUBLE_COMPLEX, 0, tag, MPI_COMM_WORLD, ierr)

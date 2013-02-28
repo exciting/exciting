@@ -139,12 +139,12 @@
               </xs:simpleType>
             </xs:attribute>
           </xs:complexType>
-        </xs:element>
+        </xs:element>      
         <xs:element ex:importance="experimental" ex:unit="" name="HartreeFock" minOccurs="0"
           maxOccurs="1">
           <xs:annotation>
             <xs:documentation>If preset Hartree-Fock calculation is triggered.</xs:documentation>
-          </xs:annotation>
+          </xs:annotation>                 
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy"
               type="fortrandouble" use="optional" default="1.0d-4">
@@ -1488,8 +1488,8 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble"
         default="1.0d-3">
         <xs:annotation>
-          <xs:documentation>Maximum allowed error in the calculated total charge beyond which a
-            warning message will be issued.</xs:documentation>
+          <xs:documentation>Convergence criterion for the maximum allowed error 
+           in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="epsocc" type="fortrandouble"
@@ -1796,6 +1796,12 @@
             eigenvectors are calculated. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="tpartcharges" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation> The attribute tpartcharges is <pre>"true"</pre> if partial charges 
+          for each state j, atom alpha and for each lm combination are calculated. </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>   
       <xs:attribute ex:importance="expert" ex:unit="" name="nwrite" type="xs:integer" default="0">
         <xs:annotation>
           <xs:documentation> Normally, the density and potentials are written to the file STATE.OUT
@@ -1818,7 +1824,39 @@
             for k-/q-point generation and integration (experimental option).
           </xs:documentation>
         </xs:annotation>
-      </xs:attribute>
+      </xs:attribute>    
+          <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
+            <xs:annotation>
+              <xs:documentation> The attribute tconvcritenergy is <pre>"true"</pre> if the value  
+              of the total energy of the system is used as a convergence criterion for the 
+              self-consistent procedure used to solve the Kohn-Sham equations. By default,
+              this is the only used convergence criterion (exception: in LDA+U calculations,
+              the Kohn-Sham potential is automatically chosen instead). </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>    
+          <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritvks" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation> The attribute tconvcritvks is <pre>"true"</pre> if the value  
+              of the Kohn-Sham potential ($V_{KS}$) of the system is used as a convergence criterion for the 
+              self-consistent procedure used to solve the Kohn-Sham equations. For LDA+U calculations, this is
+              the (automatically chosen) convergence criterion. </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>  
+          <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritcharge" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation> The attribute tconvcritcharge is <pre>"true"</pre> if the value  
+              of the total charge of the system is used as a convergence criterion for the 
+              self-consistent procedure used to solve the Kohn-Sham equations. (This amount should be
+              constant, but it is subject to numerical errors) </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>  
+          <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritforces" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation> The attribute tconvcritforces is <pre>"true"</pre> if the value  
+              of the an average of forces on nuclei of the system is used as a convergence criterion for the 
+              self-consistent procedure used to solve the Kohn-Sham equations. </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>         
     </xs:complexType>
   </xs:element>
 </xs:schema>

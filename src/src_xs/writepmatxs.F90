@@ -145,7 +145,9 @@ Subroutine writepmatxs
            write(50,rec=ik) pmat
          else
      ! parallel write
+        write(*,*)"putpmat ik ",ik
            Call putpmat (ik, .True., trim(fnpmat), pmat)
+            write(*,*)"putpmat ik ",ik,"done"
          end if
       End Do
       Call barrier
@@ -161,8 +163,9 @@ Subroutine writepmatxs
          End If
       End If
       Call barrier
+        write(*,*)"cp pmat"
+      if (.not. input%sharedfs) call  cpFileToNodes( trim(fnpmat))
 
-        if (.not. input%sharedfs) call  cpFileToNodes( trim(fnpmat))
       if (task .eq. 120) then
         close(50)
         Write (*,*)

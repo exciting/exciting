@@ -208,9 +208,14 @@ type groundstate_type
  real(8)::cfdamp
  logical::nosource
  logical::tevecsv
+ logical::tpartcharges
  integer::nwrite
  logical::ptnucl
  logical::tetra
+ logical::tconvcritenergy
+ logical::tconvcritvks
+ logical::tconvcritcharge
+ logical::tconvcritforces
   type(spin_type),pointer::spin
   type(HartreeFock_type),pointer::HartreeFock
   type(solver_type),pointer::solver
@@ -2014,6 +2019,14 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"tpartcharges")
+getstructgroundstate%tpartcharges= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"tpartcharges",getstructgroundstate%tpartcharges)
+       call removeAttribute(thisnode,"tpartcharges")  
+endif
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"nwrite")
 getstructgroundstate%nwrite=0
 if(associated(np)) then
@@ -2035,6 +2048,38 @@ getstructgroundstate%tetra= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tetra",getstructgroundstate%tetra)
        call removeAttribute(thisnode,"tetra")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"tconvcritenergy")
+getstructgroundstate%tconvcritenergy= .true.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"tconvcritenergy",getstructgroundstate%tconvcritenergy)
+       call removeAttribute(thisnode,"tconvcritenergy")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"tconvcritvks")
+getstructgroundstate%tconvcritvks= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"tconvcritvks",getstructgroundstate%tconvcritvks)
+       call removeAttribute(thisnode,"tconvcritvks")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"tconvcritcharge")
+getstructgroundstate%tconvcritcharge= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"tconvcritcharge",getstructgroundstate%tconvcritcharge)
+       call removeAttribute(thisnode,"tconvcritcharge")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"tconvcritforces")
+getstructgroundstate%tconvcritforces= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"tconvcritforces",getstructgroundstate%tconvcritforces)
+       call removeAttribute(thisnode,"tconvcritforces")  
 endif
 
             len= countChildEmentsWithName(thisnode,"spin")

@@ -235,7 +235,6 @@ use ioarray
       scis12 (:, :) = 0.d0
       scis21 (:, :) = 0.d0
       bsedg(:,:)=zzero
-      Write(*,*) rank,": allocated dfq arraays"
       If (input%xs%tetra%tetradf) Then
          Allocate (cw(nwdf), cwa(nwdf), cwsurf(nwdf))
          If (input%xs%tetra%cw1k) allocate (cwt(nstsv, nstsv), &
@@ -275,7 +274,7 @@ use ioarray
   ! loop over k-points
       Do ik = 1, nkpt
      ! k-point analysis
-     Write(*,*)rank,"     ! k-point analysis",ik
+
          If ( .Not. transik(ik)) Cycle
          Call chkpt (3, (/ task, iq, ik /), 'dfq: task, q-point index, &
         &k-point index')
@@ -283,14 +282,14 @@ use ioarray
          cpuupd = 0.d0
          Call cpu_time (cpu0)
          ikq = ikmapikq (ik, iq)
-         Write(*,*)"getdevaldoccsv:"
+
          Call getdevaldoccsv (iq, ik, ikq, istl1, istu1, istl2, istu2, &
         & deou, docc12, scis12)
          Call getdevaldoccsv (iq, ik, ikq, istl2, istu2, istl1, istu1, &
         & deuo, docc21, scis21)
         scis12c(:,:)=scis12(:,:)
         scis21c(:,:)=scis21(:,:)
-        write(*,*)"screen:"
+
          If (tscreen) Then
         ! do not use scissors correction for screening
             If (task .Eq. 430) Then
@@ -306,10 +305,10 @@ use ioarray
          scis12c (:, :) = scis12c (:, :) + bsedg (:, :)
          scis21c (:, :) = scis21c (:, :) + transpose (bsedg(:, :))
      ! get matrix elements (exp. expr. or momentum op.)
-     write (*,*)"getpemat"
+
          Call getpemat (iq, ik, trim(fnpmat), trim(fnemat), m12=xiou, &
         & m34=xiuo, p12=pmou, p34=pmuo)
-        Write(*,*)rank,": endpemat"
+
      ! set matrix elements to one for Lindhard function
          If (input%xs%tddft%lindhard) Then
        ! set G=0 components to one
