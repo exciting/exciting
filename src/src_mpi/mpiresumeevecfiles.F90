@@ -96,8 +96,9 @@ use modinput
 	integer::ik
 #ifdef MPI
 	Character (256), External :: outfilenamestring
-	allocate(buffer(Recl*4-1))
+	allocate(buffer(Recl*4))
 	Inquire (IoLength=Reclloc) buffer
+	write(*,*)"RECL",RECL,"reclloc",reclloc,"rank",rank,filetagarg
 
     if(rank.eq.0 .or. (.not. input%sharedfs .and. firstinnode)) then
      Open (71, File=trim(filetagarg)//trim(filext), Action='WRITE', &
@@ -110,7 +111,7 @@ use modinput
     	if(procofk(ik).eq.rank .and. (rank.lt.nkpt)) then
             Read (77, Rec=ik-firstk(procofk(ik))+1) buffer
         endif
-        Call MPI_bcast (buffer,Recl*4-1 , MPI_CHARACTER, procofk(ik), MPI_COMM_WORLD, ierr)
+        Call MPI_bcast (buffer,Recl*4 , MPI_CHARACTER, procofk(ik), MPI_COMM_WORLD, ierr)
 
         if(rank.eq.0 .or. (.not. input%sharedfs .and. firstinnode)) then
             Write (71, Rec=ik) buffer
