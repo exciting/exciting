@@ -62,6 +62,7 @@
 !
 ! Generate eigenvectors for the complete (non-reduced) k-point set
 !
+        call system('cp INFO.OUT INFO.OUT-scf')
         reduce=input%groundstate%reducek
         input%groundstate%reducek=.false.          
         task=1
