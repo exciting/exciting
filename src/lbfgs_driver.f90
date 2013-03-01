@@ -41,6 +41,7 @@
 !         Jorge Nocedal and Jose Luis Morales
 !
 !    **************
+
 subroutine lbfgs_driver
 !
 !     Exciting interface created by DIN (February 2013)
@@ -144,29 +145,31 @@ subroutine lbfgs_driver
           
           if (ctask(1:5) .eq. 'NEW_X') then   
             
-            Write (60,*)
-            Write (60, '("+--------------------------+")')
-            Write (60, '("| Updated atomic positions |")')
-            Write (60, '("+--------------------------+")')
-            
             call updatepositions
             
-            do is = 1, nspecies
-              write (60,*)
-              write (60, '("Species : ", I4, " (", A, ")")') &
-              &   is, trim (input%structure%speciesarray(is)%species%chemicalSymbol)
-              write (60, '(" atomic positions (lattice) :")')
-              do ia = 1, natoms(is)
-                write (60, '(I4, " : ", 3F14.8)') ia, &
-                &   input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-              end do ! ia
-            end do ! is
+            If (rank .Eq. 0) Then
+              Write (60,*)
+              Write (60, '("+--------------------------+")')
+              Write (60, '("| Updated atomic positions |")')
+              Write (60, '("+--------------------------+")')
 
-            ! write lattice vectors and optimised atomic positions to file
-            Call writehistory
-            Call writegeometryxml (.True.)
-            ! write the optimized interatomic distances to file
-            Call writeiad (.True.)
+              do is = 1, nspecies
+                write (60,*)
+                write (60, '("Species : ", I4, " (", A, ")")') &
+                &   is, trim (input%structure%speciesarray(is)%species%chemicalSymbol)
+                write (60, '(" atomic positions (lattice) :")')
+                do ia = 1, natoms(is)
+                  write (60, '(I4, " : ", 3F14.8)') ia, &
+                  &   input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+                end do ! ia
+              end do ! is
+
+              ! write lattice vectors and optimised atomic positions to file
+              Call writehistory
+              Call writegeometryxml (.True.)
+              ! write the optimized interatomic distances to file
+              Call writeiad (.True.)
+            End If
             
             ! check force convergence
             If (forcemax .Le. input%structureoptimization%epsforce) Then
@@ -177,7 +180,7 @@ subroutine lbfgs_driver
               ctask = 'STOP'
               force_conv = .true.
             End If
-            
+
           end if ! 'NEW_X'
           
         end if
@@ -186,10 +189,12 @@ subroutine lbfgs_driver
 !     END the loop
 
       if (.not.force_conv) then
-        write(60,*)
-        write(60,'("ATTENTION(L-BFGS): Required force convergence has not been reached!")')
-        write(60,'(" forcemax=",f12.8," > epsforce=",f12.8)') forcemax, input%structureoptimization%epsforce
-        write(60,*)
+        if (rank .Eq. 0) Then
+          write(60,*)
+          write(60,'("ATTENTION(L-BFGS): Required force convergence has not been reached!")')
+          write(60,'(" forcemax=",f12.8," > epsforce=",f12.8)') forcemax, input%structureoptimization%epsforce
+          write(60,*)
+        end if
       end if
       
       deallocate( nbd, x, l, u, g )

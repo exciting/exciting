@@ -21,13 +21,11 @@ subroutine structureoptimization
     Logical :: exist
 
 ! Write first the starting configuration
-    if (input%structureoptimization%history) then
-        Inquire (File='history.xyz', Exist=exist)
-        If (exist) Then
-            Open(50, File='history.xyz')
-            Close(50, Status='DELETE')
-        End If   
+    if (rank .Eq. 0) then
+      if (input%structureoptimization%history) then
+        call system ('rm -rf history.*')   
         call writehistory
+      end if
     end if
 
 ! Use "fromfile" option during the optimization run
@@ -50,6 +48,11 @@ subroutine structureoptimization
                         Write (60, '(I4, " : ", 3F14.8)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
                     End Do
                 End Do
+! write lattice vectors and optimised atomic positions to file
+                Call writehistory
+                Call writegeometryxml (.True.)
+! write the optimised interatomic distances to file
+                Call writeiad (.True.)
             End If
 ! begin new self-consistent loop with updated positions
             call scf_cycle

@@ -62,12 +62,6 @@ Subroutine updatpos
       End Do
 ! find the crystal symmetries and shift atomic positions if required
       Call findsymcrys
-! write lattice vectors and optimised atomic positions to file
-      Call writehistory
-! GB 17.10.2012 The following line write a geometrically optimized xml file. Otherwise never written
-      Call writegeometryxml (.True.)
-! write the optimised interatomic distances to file
-      Call writeiad (.True.)
 ! check for overlapping muffin-tins
       Call checkmt
 ! generate structure factors for G-vectors
