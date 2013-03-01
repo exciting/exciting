@@ -98,7 +98,6 @@ use modinput
 	Character (256), External :: outfilenamestring
 	allocate(buffer(Recl*4))
 	Inquire (IoLength=Reclloc) buffer
-	write(*,*)"RECL",RECL,"reclloc",reclloc,"rank",rank,filetagarg
 
     if(rank.eq.0 .or. (.not. input%sharedfs .and. firstinnode)) then
      Open (71, File=trim(filetagarg)//trim(filext), Action='WRITE', &
