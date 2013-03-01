@@ -290,6 +290,7 @@ type structureoptimization_type
  real(8)::tau0atm
  logical::resume
  logical::history
+ character(512)::historyformat
  integer::lbfgsnumcor
  integer::lbfgsverbosity
 end type
@@ -2537,6 +2538,14 @@ getstructstructureoptimization%history=.false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"history",getstructstructureoptimization%history)
        call removeAttribute(thisnode,"history")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"historyformat")
+getstructstructureoptimization%historyformat= "xyz"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"historyformat",getstructstructureoptimization%historyformat)
+       call removeAttribute(thisnode,"historyformat")  
 endif
 
 nullify(np)  

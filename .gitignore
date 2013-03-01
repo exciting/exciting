@@ -79,3 +79,5 @@ Makefile.mkmf
 *.pdf
 xml/schema/wiki/
 xml/sgroupinput.xsd
+xml/excitinginput.xsd
+src/src_inputparser/inputmodules.f90

@@ -23,11 +23,7 @@ subroutine structureoptimization
 ! Write first the starting configuration
     if (rank .Eq. 0) then
       if (input%structureoptimization%history) then
-        Inquire (File='history.xyz', Exist=exist)
-        If (exist) Then
-            Open(50, File='history.xyz')
-            Close(50, Status='DELETE')
-        End If   
+        call system ('rm -rf history.*')   
         call writehistory
       end if
     end if

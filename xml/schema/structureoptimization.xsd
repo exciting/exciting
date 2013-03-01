@@ -69,11 +69,25 @@
 
             <xs:attribute ex:importance="essential" ex:unit="" name="history" type="xs:boolean" default="false">
               <xs:annotation>
-                <xs:documentation> If <pre>"true"</pre> history.xyz file is generated. 
-                For each relaxation step: 
+                <xs:documentation> 
+                If <pre>"true"</pre> the stucture optimization history file is generated in one of the formats
+                specified in <attref>historyformat</attref>.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="historyformat" type="xs:string" default="xyz">
+              <xs:annotation>
+                <xs:documentation> 
+                If <attref>history</attref> is <pre>"true"</pre>, the structure optimization history file
+                is generated in one of the following formats:
+                <list>
+                <li> <pre>"xyz"</pre> molecular format, where
                 Line 1 contains the total number of atoms. 
                 Line 2 contains the comment line here with total energy in eV. 
-                Line 3 and following are atomic specie, cartesian coordinates in Angstrom and the forces (eV/Ang).
+                Line 3 and following are atomic species, cartesian coordinates in Angstrom and the forces (eV/Ang).</li>
+                <li> <pre>"gulp"</pre> format which useful to visualize the crystal structure changes using the GDIS program.</li>
+                </list>
                 </xs:documentation>
             </xs:annotation>
             </xs:attribute>
