@@ -11,7 +11,7 @@ species::fox
 	&& $(MAKE) -f Makefile.mkmf species \
 	&& mv species ../../bin/species
 
-fox:lib/libFoX_common.a
+fox:libFoX_common.a
 
 libFoX_common.a:
 	cd ../../src/FoX/ && \
