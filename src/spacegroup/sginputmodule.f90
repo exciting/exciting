@@ -273,7 +273,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"primcell")
-getstructlattice%primcell= .false.
+getstructlattice%primcell=.false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"primcell",getstructlattice%primcell)
        call removeAttribute(thisnode,"primcell")  
