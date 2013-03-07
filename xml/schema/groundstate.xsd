@@ -146,12 +146,6 @@
             <xs:documentation>If preset Hartree-Fock calculation is triggered.</xs:documentation>
           </xs:annotation>                 
           <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy"
-              type="fortrandouble" use="optional" default="1.0d-4">
-              <xs:annotation>
-                <xs:documentation>Energy convergence tolerance.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="solver" minOccurs="0" maxOccurs="1">
