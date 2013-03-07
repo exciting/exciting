@@ -149,14 +149,13 @@ Subroutine gndstate
   ! begin the self-consistent loop
 
       ! Some operations with self-consistent convergence criteria
-          ! In LDA+U, OEP and Hartree-Fock calculations, the convergence criteria is switched
+          ! In LDA+U and OEP calculations, the convergence criteria is switched
           !  to the Kohn-Sham potential
-      If ((ldapu .Ne. 0)  .Or. (input%groundstate%xctypenumber .Lt. 0) .Or. (task .Eq. 5) &
-        & .Or. (task .Eq. 6) ) Then
+      If ((ldapu .Ne. 0)  .Or. (input%groundstate%xctypenumber .Lt. 0) ) Then
          input%groundstate%tconvcritenergy = .false.
          input%groundstate%tconvcritvks = .true.
          Write (100,*)
-         Write (100, '("Warning(gndstate): The use of LDA+U / OEP / Hartree-Fock made the&
+         Write (100, '("Warning(gndstate): The use of LDA+U / OEP made the&
            &convergence criterion to be switched to the Kohn-Sham potential")')
       End If
       numconvcrit=0
