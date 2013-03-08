@@ -60,7 +60,7 @@ Subroutine genlofr(last_iteration)
 ! -------------------------------------
 !      allocate(dwf1(mtnr),dwf2(mtnr))
      
-      if ((input%groundstate%lo_recommendation).and.(last_iteration)) then
+      if ((input%groundstate%lorecommendation).and.(last_iteration)) then
 !       energy=-6d0
 !       vr(1:nrmt (1))=veffmt (1, 1:nrmt (1), 1) * y00
 !       do while (energy.lt.25d0)

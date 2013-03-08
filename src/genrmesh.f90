@@ -57,17 +57,17 @@ Subroutine genrmesh
       Integer :: is, ir, irc,cutoff
       Real (8) :: t1, t2
 ! estimate the number of radial mesh points to infinity
-      if ((input%groundstate%radial_grid_type.ne."cubic").and. &
-          (input%groundstate%radial_grid_type.ne."expocubic").and. &
-          (input%groundstate%radial_grid_type.ne."exponential")) then 
-         write(*,*) 'Wrong radial_grid_type.'
+      if ((input%groundstate%radialgridtype.ne."cubic").and. &
+          (input%groundstate%radialgridtype.ne."expocubic").and. &
+          (input%groundstate%radialgridtype.ne."exponential")) then 
+         write(*,*) 'Wrong radialGridType.'
          write(*,*) 'Choose between cubic, expocubic and exponential!'
          write(*,*) 'Terminating...'
          stop
       endif
       spnrmax = 1
       Do is = 1, nspecies
-         if (input%groundstate%radial_grid_type.eq."exponential") then
+         if (input%groundstate%radialgridtype.eq."exponential") then
            t1 = Log (sprmax(is)/sprmin(is)) / Log (rmt(is)/sprmin(is))
            t2 = dble (nrmt(is)-1) * t1
            spnr (is) = Nint (t2) + 1
@@ -90,9 +90,9 @@ Subroutine genrmesh
          cutoff=Nint(nrmt(is)*0.5d0)
 
          Do ir = 1, spnr (is)
-           if (input%groundstate%radial_grid_type.eq."cubic") then
+           if (input%groundstate%radialgridtype.eq."cubic") then
              spr (ir, is) = sprmin (is)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is))
-           elseif (input%groundstate%radial_grid_type.eq."exponential") then
+           elseif (input%groundstate%radialgridtype.eq."exponential") then
              spr (ir, is) = sprmin (is) * Exp (dble(ir-1)*t1*t2)
            else
              spr (ir, is) = 0.5d0*(erf(5d0*dble(ir-cutoff)/nrmt(is))+1d0)* &

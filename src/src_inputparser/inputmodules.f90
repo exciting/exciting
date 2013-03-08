@@ -194,8 +194,8 @@ type groundstate_type
  real(8)::betainc
  real(8)::betadec
  integer::lradstep
- logical::lo_recommendation
- character(512)::radial_grid_type
+ logical::lorecommendation
+ character(512)::radialgridtype
  integer::nprad
  character(512)::xctype
  integer::xctypenumber
@@ -1939,19 +1939,19 @@ if(associated(np)) then
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"lo_recommendation")
-getstructgroundstate%lo_recommendation=.false.
+np=>getAttributeNode(thisnode,"lorecommendation")
+getstructgroundstate%lorecommendation=.false.
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"lo_recommendation",getstructgroundstate%lo_recommendation)
-       call removeAttribute(thisnode,"lo_recommendation")  
+       call extractDataAttribute(thisnode,"lorecommendation",getstructgroundstate%lorecommendation)
+       call removeAttribute(thisnode,"lorecommendation")  
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"radial_grid_type")
-getstructgroundstate%radial_grid_type= "cubic"
+np=>getAttributeNode(thisnode,"radialgridtype")
+getstructgroundstate%radialgridtype= "cubic"
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"radial_grid_type",getstructgroundstate%radial_grid_type)
-       call removeAttribute(thisnode,"radial_grid_type")  
+       call extractDataAttribute(thisnode,"radialgridtype",getstructgroundstate%radialgridtype)
+       call removeAttribute(thisnode,"radialgridtype")  
 endif
 
 nullify(np)  

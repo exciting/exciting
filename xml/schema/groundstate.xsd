@@ -2241,7 +2241,7 @@
           </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="lo-recommendation" type="xs:boolean" default="false">
+      <xs:attribute ex:importance="expert" ex:unit="" name="lorecommendation" type="xs:boolean" default="false">
         <xs:annotation>
           <xs:documentation> Local orbitals may be used for improving unoccupied states. But what 
                              energy parameters to use? Set this parameter to true, and you will get
@@ -2255,7 +2255,7 @@
           </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="radial-grid-type" type="xs:string" default="cubic">
+      <xs:attribute ex:importance="expert" ex:unit="" name="radialgridtype" type="xs:string" default="cubic">
         <xs:annotation>
           <xs:documentation> The parameter defines a functional form how radial-grid points are distributed.
                              Choose from "cubic", "exponential" and "expocubic". "cubic" is the most suitable
