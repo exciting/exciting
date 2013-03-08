@@ -93,6 +93,12 @@ Contains
              ! I/O record length
                   Inquire (IoLength=Recl) vql (:, iq), vkl (:, ikr), &
                  & nstsv, ngq (iq), l1, h1, l2, h2, x12
+                 write(*,*) "write k",ikr, "in file",trim(filnam)
+                 write(*,*)"recl",recl
+                 write(*,*)"shape(l1)",shape(l1), "shape(h1)",shape(h1)
+                 write(*,*)"shape(l2)", shape(l2),"shape(h2)",shape(h2)
+                 write(*,*)"shape(x12)",shape(x12)
+
                   Open (Unit=un, File=trim(filnam), Form='unformatted', &
                  & Action='write', Access='direct', Recl=Recl)
                   Write (un, Rec=ikr) vql (:, iq), vkl (:, ikr), nstsv, &

@@ -38,15 +38,16 @@ Subroutine idf
         &ielectric function finished for q - point:', iq
       End Do
       Call barrier
-      If ((procs .Gt. 1) .And. (rank .Eq. 0)) Then
+      If ((procs .Gt. 1) ) Then
          Call idfgather
-         Write (unitout, '(a)') 'Info(' // thisnam // '): inverse diele&
+        if(rank.eq.0) Write (unitout, '(a)') 'Info(' // thisnam // '): inverse diele&
         &ctric function gathered for q - point:'
       End If
       Call barrier
       If (rank .Eq. 0) Then
          Do iq = 1, nqpt
         ! call for q-point
+            Write(unitout,*)"info(",thisnam,") start xslinopt"
             Call xslinopt (iq)
             Write (unitout, '(a, i8)') 'Info(' // thisnam // '): &
             &TDDFT linear optics finished for q - point:', iq

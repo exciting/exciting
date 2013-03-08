@@ -188,8 +188,8 @@ Subroutine hartfock
             Write (60,*)
             Write (60, '("Relative change in total energy (target) : ",&
            & G18.10, " (", G18.10, ")")') de, &
-           & input%groundstate%HartreeFock%epsengy
-            If (de .Lt. input%groundstate%HartreeFock%epsengy) Then
+           & input%groundstate%epsengy
+            If (de .Lt. input%groundstate%epsengy) Then
                Write (60,*)
                Write (60, '("Energy convergence target achieved")')
                tlast = .True.

@@ -88,7 +88,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 #endif
   !$OMP CRITICAL
       filetag = trim (filetag_evecfv)
-      Do i = 1, 100
+      Do i = 1, 10
          Inquire (File=outfilenamestring(filetag, ik), Exist=Exist)
          If (exist) Then
             Open (70, File=outfilenamestring(filetag, ik), Action='READ&

@@ -65,6 +65,7 @@ Subroutine df
       Call writeqpts
   ! loop over q-points
       Do iq = qpari, qparf
+
          Call genfilname (iq=iq, fileext=filex)
      ! call for q-point
          Call dfq (iq)
@@ -74,7 +75,7 @@ Subroutine df
       End Do
   ! synchronize
       Call barrier
-      If ((procs .Gt. 1) .And. (rank .Eq. 0) .And. ( .Not. tscreen)) &
+      If ((procs .Gt. 1)  .And. ( .Not. tscreen)) &
      & Call dfgather
       Call barrier
       Write (unitout, '(a)') "Info(" // trim (thisnam) // "): Kohn-Sham&
