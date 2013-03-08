@@ -6,6 +6,7 @@ subroutine nonlinopt
 ! !USES:
     use modinput
     use modmain
+    use modmpi
 ! !DESCRIPTION:
 !   Calculates susceptibility tensor for non-linear optical second-harmonic
 !   generation (SHG). The terms (ztm) are numbered according to Eqs. (49)-(51)
@@ -22,9 +23,10 @@ subroutine nonlinopt
 ! local variables
     integer ik,jk,ist,jst,kst
     integer iw,a,b,c,l
-    integer recl,iostat
+    integer recl, iostat
     integer isym
     real(8) sc(3,3), v1(3), v2(3), v3(3)
+    integer :: COMM_LEVEL2
 
 ! smallest eigenvalue difference allowed in denominator
     real(8) eji,eki,ekj,t1
@@ -62,8 +64,8 @@ subroutine nonlinopt
     allocate(pmat(3,nstsv,nstsv))
     inquire(iolength=recl) pmat
     deallocate(pmat)
-    open(50,file='PMAT.OUT',action='READ',form='UNFORMATTED',access='DIRECT', &
-      recl=recl,iostat=iostat)
+    open(50,File='PMAT.OUT',Action='READ',Form='UNFORMATTED',Access='DIRECT', &
+      Recl=recl,IOstat=iostat)
     if (iostat.ne.0) then
       write(*,*)
       write(*,'("Error(nonlinopt): error opening PMAT.OUT")')
@@ -86,17 +88,16 @@ subroutine nonlinopt
     chiw(:,:)=0.d0
     chi2w(:,:)=0.d0
 
-!$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(pmat,jk,ist,jst,kst) &
-!$OMP PRIVATE(eji,eki,ekj,t1,zt1) &
-!$OMP PRIVATE(pii,dji,vji,vik,vkj,ztm)
-!$OMP DO
-  
+    call barrier
+#ifdef MPI
+    ! create  communicator object for each qpoint
+    call MPI_COMM_SPLIT(MPI_COMM_WORLD,firstofset(mod(rank,nkptnr),nkptnr),rank/nkptnr,COMM_LEVEL2,ierr)
+#endif
+        
 ! parallel loop over non-reduced k-points
-    do ik = 1, nkptnr
-  
+    do ik = firstofset(mod(rank,nkptnr),nkptnr), lastofset(mod(rank,nkptnr),nkptnr)
+     
       allocate(pmat(3,nstsv,nstsv))
-      write(*,'("Info(nonlinopt): ",I6," of ",I6," k-points")') ik, nkptnr
 
 ! find the k-point number
       call findkpt(vklnr(:,ik),isym,jk)
@@ -216,7 +217,7 @@ subroutine nonlinopt
                     t1=t1/input%properties%nlo%etol**2
                   end if
                   ztm(3,2)=0.5d0*zt1*ekj*vik(a)*(vkj(b)*vji(c)+vji(b)*vkj(c))*t1
-!$OMP CRITICAL
+
                   do iw=1,input%properties%nlo%emesh
 ! 2w interband
                     chi2w(iw,1)=chi2w(iw,1)+ztm(1,1)/(eji-2.d0*w(iw)+eta)
@@ -230,20 +231,20 @@ subroutine nonlinopt
                     chiw(iw,3)=chiw(iw,3)+0.5d0*(ztm(3,1)-ztm(3,2)) &
                      /(eji-w(iw)+eta)
                   end do
-!$OMP END CRITICAL
+
                 end if
 ! end loop over kst
               end do
               ztm(2,2)=4.d0*zt1*conjg(vji(a))*(dji(b)*vji(c)+vji(b)*dji(c))/eji**4
               ztm(3,3)=0.5d0*zt1*vji(a)*(vji(b)*dji(c)+dji(b)*vji(c))/eji**4
-!$OMP CRITICAL
+
               do iw=1,input%properties%nlo%emesh
 ! 2w intraband
                 chi2w(iw,2)=chi2w(iw,2)+ztm(2,2)/(eji-2.d0*w(iw)+eta)
 ! w modulation
                 chiw(iw,3)=chiw(iw,3)+0.5d0*ztm(3,3)/(eji-w(iw)+eta)
               end do
-!$OMP END CRITICAL
+
 ! end loop over jst
             end if
           end do
@@ -251,54 +252,61 @@ subroutine nonlinopt
         end if
       end do
       deallocate(pmat)
+      
 ! end loop over k-points
     end do
-!$OMP END DO
-!$OMP END PARALLEL
 
+#ifdef MPI
+    call MPI_ALLREDUCE(MPI_IN_PLACE, chiw, 3*input%properties%nlo%emesh, &
+    &   MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE(MPI_IN_PLACE, chi2w, 2*input%properties%nlo%emesh, &  
+    &   MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
+#endif
+
+    call barrier
+    if (rank==0) then
 ! write to files
-    write(fname,'("CHI_INTER2w_",3I1,".OUT")') a,b,c
-    open(51,file=trim(fname),action='WRITE',form='FORMATTED')
-    write(fname,'("CHI_INTRA2w_",3I1,".OUT")') a,b,c
-    open(52,file=trim(fname),action='WRITE',form='FORMATTED')
-    write(fname,'("CHI_INTERw_",3I1,".OUT")') a,b,c
-    open(53,file=trim(fname),action='WRITE',form='FORMATTED')
-    write(fname,'("CHI_INTRAw_",3I1,".OUT")') a,b,c
-    open(54,file=trim(fname),action='WRITE',form='FORMATTED')
-    write(fname,'("CHI_",3I1,".OUT")') a,b,c
-    open(55,file=trim(fname),action='WRITE',form='FORMATTED')
-    do iw = 1, input%properties%nlo%emesh
-      write(51,'(3G18.10)') w(iw),dble(chi2w(iw,1))
-      write(52,'(3G18.10)') w(iw),dble(chi2w(iw,2))
-      write(53,'(3G18.10)') w(iw),dble(chiw(iw,1))
-      write(54,'(3G18.10)') w(iw),dble(chiw(iw,2))
-      t1=dble(chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3))
-      write(55,'(3G18.10)') w(iw),t1
-    end do
-    write(51,'("     ")')
-    write(52,'("     ")')
-    write(53,'("     ")')
-    write(54,'("     ")')
-    write(55,'("     ")')
-    do iw = 1, input%properties%nlo%emesh
-      write(51,'(3G18.10)') w(iw),aimag(chi2w(iw,1))
-      write(52,'(3G18.10)') w(iw),aimag(chi2w(iw,2))
-      write(53,'(3G18.10)') w(iw),aimag(chiw(iw,1))
-      write(54,'(3G18.10)') w(iw),aimag(chiw(iw,2))
-      t1=aimag(chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3))
-      write(55,'(3G18.10)') w(iw),t1
-    end do
-    close(51); close(52); close(53); close(54); close(55)
-
-    close(50)
-    write(*,*)
-    write(*,'("Info(nonlinopt):")')
-    write(*,'(" susceptibility tensor written to CHI_abc.OUT")')
-    write(*,'(" interband contributions written to CHI_INTERx_abc.OUT")')
-    write(*,'(" intraband contributions written to CHI_INTRAx_abc.OUT")')
-    write(*,'(" for components")')
-    write(*,'("  a = ",I1,", b = ",I1,", c = ",I1)') input%properties%nlo%chicomp(1:3)
-    deallocate(w,chiw,chi2w)
+        write(fname,'("CHI_INTER2w_",3I1,".OUT")') a,b,c
+        open(51,file=trim(fname),action='WRITE',form='FORMATTED')
+        write(fname,'("CHI_INTRA2w_",3I1,".OUT")') a,b,c
+        open(52,file=trim(fname),action='WRITE',form='FORMATTED')
+        write(fname,'("CHI_INTERw_",3I1,".OUT")') a,b,c
+        open(53,file=trim(fname),action='WRITE',form='FORMATTED')
+        write(fname,'("CHI_INTRAw_",3I1,".OUT")') a,b,c
+        open(54,file=trim(fname),action='WRITE',form='FORMATTED')
+        write(fname,'("CHI_",3I1,".OUT")') a,b,c
+        open(55,file=trim(fname),action='WRITE',form='FORMATTED')
+        do iw = 1, input%properties%nlo%emesh
+            write(51,'(3G18.10)') w(iw),dble(chi2w(iw,1))
+            write(52,'(3G18.10)') w(iw),dble(chi2w(iw,2))
+            write(53,'(3G18.10)') w(iw),dble(chiw(iw,1))
+            write(54,'(3G18.10)') w(iw),dble(chiw(iw,2))
+            t1=dble(chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3))
+            write(55,'(3G18.10)') w(iw),t1
+        end do
+        write(51,'("     ")')
+        write(52,'("     ")')
+        write(53,'("     ")')
+        write(54,'("     ")')
+        write(55,'("     ")')
+        do iw = 1, input%properties%nlo%emesh
+            write(51,'(3G18.10)') w(iw),aimag(chi2w(iw,1))
+            write(52,'(3G18.10)') w(iw),aimag(chi2w(iw,2))
+            write(53,'(3G18.10)') w(iw),aimag(chiw(iw,1))
+            write(54,'(3G18.10)') w(iw),aimag(chiw(iw,2))
+            t1=aimag(chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3))
+            write(55,'(3G18.10)') w(iw),t1
+        end do
+        close(50); close(51); close(52); close(53); close(54); close(55)
+        write(*,*)
+        write(*,'("Info(nonlinopt):")')
+        write(*,'(" susceptibility tensor written to CHI_abc.OUT")')
+        write(*,'(" interband contributions written to CHI_INTERx_abc.OUT")')
+        write(*,'(" intraband contributions written to CHI_INTRAx_abc.OUT")')
+        write(*,'(" for components")')
+        write(*,'("  a = ",I1,", b = ",I1,", c = ",I1)') input%properties%nlo%chicomp(1:3)
+        deallocate(w,chiw,chi2w)
+    end if
 
 return
 end subroutine

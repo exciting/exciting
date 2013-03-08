@@ -161,10 +161,12 @@ Subroutine writepmatxs
       Call barrier
       if (task .eq. 120) then
         close(50)
-        Write (*,*)
-        Write (*, '("Info(writepmatxs):")')
-        Write (*, '(" momentum matrix elements written to file PMAT.OUT")')
-        Write (*,*)
+        if (rank==0) then
+          Write (*,*)
+          Write (*, '("Info(writepmatxs):")')
+          Write (*, '(" momentum matrix elements written to file PMAT.OUT")')
+          Write (*,*)
+        end if
       else
         Write (unitout, '(a)') "Info(writepmatxs): momentum matrix elements finished"
       end if

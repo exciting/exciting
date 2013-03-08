@@ -112,7 +112,7 @@ Subroutine propertylauncher
       If (associated(input%properties%elnes) .And. rank .Eq. 0) Then
          Call elnes
       End If
-      If (associated(input%properties%momentummatrix) .And. rank .Eq. 0) Then
+      If (associated(input%properties%momentummatrix)) Then
          call rereadinput
          task = 120
          Call writepmatxs
@@ -159,7 +159,7 @@ Subroutine propertylauncher
          Call alpha2f
       End If
       
-      If (associated(input%properties%nlo) .And. rank .Eq. 0) Then
+      If (associated(input%properties%nlo)) Then
          call rereadinput
          Call nonlinopt
       End If
