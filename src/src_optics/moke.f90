@@ -27,6 +27,8 @@ Subroutine moke
       input%properties%dielectric%optcomp(2, 1) = 1
       input%properties%dielectric%optcomp(1, 2) = 1
       input%properties%dielectric%optcomp(2, 2) = 2
+      input%properties%dielectric%intraband=.true.
+      input%properties%dos%nwdos=1000
       Call dielectric
 ! allocate local arrays
       Allocate (w(input%properties%dos%nwdos))

@@ -158,5 +158,10 @@ Subroutine propertylauncher
          task=250
          Call alpha2f
       End If
+      
+      If (associated(input%properties%nlo) .And. rank .Eq. 0) Then
+         call rereadinput
+         Call nonlinopt
+      End If
 
 End Subroutine propertylauncher
