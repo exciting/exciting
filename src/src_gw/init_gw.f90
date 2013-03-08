@@ -1,13 +1,13 @@
 !BOP
 !
-! !ROUTINE: initgw
+! !ROUTINE: init_gw
 !
-! !INTERFACE
-      subroutine init_gw
+! !INTERFACE:
+subroutine init_gw
 
 ! !DESCRIPTION:
 !
-! This is the main initialization subroutine of the gw program,
+! This is the main initialization subroutine of the gw program.
 ! 
 ! !USES:
       use modmain
@@ -169,5 +169,5 @@
       call init_freq
 
       return
-      end subroutine
+end subroutine init_gw
 !EOC
