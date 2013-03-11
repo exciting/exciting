@@ -29,6 +29,7 @@
 !                          quasiparticle energies of succesive iterations 
       real(8) :: eferqp, egap
       real(8) :: tstart, tend
+      integer(8) :: Recl
 
 ! !DEFINED PARAMETERS:
 
@@ -65,13 +66,6 @@
           eqp(ie,ikp)=evaldft(ie,ikp)+delta
         enddo ! ie
       enddo ! ikp
-!      
-!     Write quasi-particle energies to disk
-!      
-      call writeqpx
-
-!     KS band structure
-      call bandanalysis('KS',ibgw,nbgw,evaldft(ibgw:nbgw,:),efermi)
 
 !     QP band structure
 !     to calculate Fermi energy it is better to use 
@@ -80,6 +74,35 @@
       call fermi(nkpt,nb-ibgw+1,eqp(ibgw:nb,:),ntet,tnodes,wtet,tvol, &
       &  nvelgw,.false.,eferqp,egap)
 
+!----------------------------------------
+!     Set QP fermi energy to zero
+!----------------------------------------
+      eqp(:,:)=eqp(:,:)-eferqp
+      eferqp=0.d0
+
+!----------------------------------------
+!     Save QP energies into binary file
+!----------------------------------------
+      Inquire (IoLength=Recl) nkpt, ibgw, nbgw, &
+     &  vkl(:,1), eqp(ibgw:nbgw,1), evaldft(ibgw:nbgw,1)
+      Open (70, File='EVALQP.OUT', Action='WRITE', Form='UNFORMATTED', &
+     &   Access='DIRECT', status='REPLACE', Recl=Recl)
+      do ikp = 1, nkpt
+        write(70, Rec=ikp) nkpt, ibgw, nbgw, &
+     &    vkl(:,ikp), eqp(ibgw:nbgw,ikp), evaldft(ibgw:nbgw,ikp)
+      end do ! ikp
+      Close(70)
+!      
+!     Write quasi-particle energies into QPENE-eV.OUT
+!      
+      call writeqpx
+!      
+!     Repeat KS band structure analysis
+!
+      call bandanalysis('KS',ibgw,nbgw,evaldft(ibgw:nbgw,:),efermi)
+!
+!     QP band structure
+!
       call bandanalysis('G0W0',ibgw,nbgw,eqp(ibgw:nbgw,:),eferqp)
 
       call cpu_time(tend)
