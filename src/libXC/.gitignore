@@ -8,3 +8,15 @@ config.h'
 config.status'
 libtool
 src/libxc.f90'
+autom4te.cache/
+config.h
+config.status
+src/.libs/
+src/funcs_gga.c
+src/funcs_hyb_gga.c
+src/funcs_lca.c
+src/funcs_lda.c
+src/funcs_mgga.c
+src/libxc.f90
+src/libxc_funcs.f90
+src/xc_funcs.h

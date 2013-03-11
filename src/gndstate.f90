@@ -149,21 +149,20 @@ Subroutine gndstate
   ! begin the self-consistent loop
 
       ! Some operations with self-consistent convergence criteria
-          ! In LDA+U, OEP and Hartree-Fock calculations, the convergence criteria is switched
+          ! In LDA+U and OEP calculations, the convergence criteria is switched
           !  to the Kohn-Sham potential
-      If ((ldapu .Ne. 0)  .Or. (input%groundstate%xctypenumber .Lt. 0) .Or. (task .Eq. 5) &
-        & .Or. (task .Eq. 6) ) Then
+      If ((ldapu .Ne. 0)  .Or. (input%groundstate%xctypenumber .Lt. 0) ) Then
          input%groundstate%tconvcritenergy = .false.
          input%groundstate%tconvcritvks = .true.
          Write (100,*)
-         Write (100, '("Warning(gndstate): The use of LDA+U / OEP / Hartree-Fock made the&
+         Write (100, '("Warning(gndstate): The use of LDA+U / OEP made the&
            &convergence criterion to be switched to the Kohn-Sham potential")')
       End If
       numconvcrit=0
-      If (input%groundstate%tconvcritenergy .Eq. .true.) numconvcrit=numconvcrit+1
-      If (input%groundstate%tconvcritvks .Eq. .true.) numconvcrit=numconvcrit+1
-      If (input%groundstate%tconvcritcharge .Eq. .true.) numconvcrit=numconvcrit+1
-      If (input%groundstate%tconvcritforces .Eq. .true.) numconvcrit=numconvcrit+1
+      If (input%groundstate%tconvcritenergy) numconvcrit=numconvcrit+1
+      If (input%groundstate%tconvcritvks) numconvcrit=numconvcrit+1
+      If (input%groundstate%tconvcritcharge) numconvcrit=numconvcrit+1
+      If (input%groundstate%tconvcritforces) numconvcrit=numconvcrit+1
       Write (60,*)
       If (numconvcrit .Eq. 0) Then
          Write (*,*)
@@ -174,10 +173,10 @@ Subroutine gndstate
        Else  
          Write (60, '( "The convergence criteria are: " )')
       End If
-      If (input%groundstate%tconvcritenergy .Eq. .true.) Write (60, '("  Total energy ")')
-      If (input%groundstate%tconvcritvks .Eq. .true.) Write (60, '("  Kohn-Sham potential ")')
-      If (input%groundstate%tconvcritcharge .Eq. .true.) Write (60, '("  Atomic charge ")')
-      If (input%groundstate%tconvcritforces .Eq. .true.) Write (60, '("  Force on atoms ")')
+      If (input%groundstate%tconvcritenergy) Write (60, '("  Total energy ")')
+      If (input%groundstate%tconvcritvks) Write (60, '("  Kohn-Sham potential ")')
+      If (input%groundstate%tconvcritcharge) Write (60, '("  Atomic charge ")')
+      If (input%groundstate%tconvcritforces) Write (60, '("  Force on atoms ")')
 
       ! Printing some information in INFO.OUT
       If (rank .Eq. 0) Then
@@ -480,20 +479,20 @@ Subroutine gndstate
     ! check for convergence
                If (iscl .Ge. 2) Then
                   Write (60,*)
-                  If (input%groundstate%tconvcritvks .Eq. .true.) Then
+                  If (input%groundstate%tconvcritvks) Then
                     Write (60, '("RMS change in effective potential (targ&
                       &et) : ", G18.10, " (", G18.10, ")")') &
                       & currentconvergence, input%groundstate%epspot
                   End if
-                  If (input%groundstate%tconvcritenergy .Eq. .true.) Then
+                  If (input%groundstate%tconvcritenergy) Then
                     write(60,'("Absolute change in total energy (target)   : ",G18.10," (",&
                     &G18.10,")")') deltae, input%groundstate%epsengy
                   End if
-                  If ( (input%groundstate%tconvcritforces .Eq. .true.)  .and. (input%groundstate%tforce) ) then
+                  If ( (input%groundstate%tconvcritforces)  .and. (input%groundstate%tforce) ) then
                     write(60,'("Absolute change in |max. force| (target)   : ",G18.10," (",&
                     &G18.10,")")') dforcemax, input%groundstate%epsforce
                   End if
-                  If (input%groundstate%tconvcritcharge .Eq. .true.) Then
+                  If (input%groundstate%tconvcritcharge) Then
                     write(60,'("Charge distance (target)                   : ",G18.10," (",&
                     &G18.10,")")') chgdst, input%groundstate%epschg
                   End if

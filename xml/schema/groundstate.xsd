@@ -146,12 +146,6 @@
             <xs:documentation>If preset Hartree-Fock calculation is triggered.</xs:documentation>
           </xs:annotation>                 
           <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy"
-              type="fortrandouble" use="optional" default="1.0d-4">
-              <xs:annotation>
-                <xs:documentation>Energy convergence tolerance.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="solver" minOccurs="0" maxOccurs="1">
@@ -1830,7 +1824,7 @@
               <xs:documentation> The attribute tconvcritenergy is <pre>"true"</pre> if the value  
               of the total energy of the system is used as a convergence criterion for the 
               self-consistent procedure used to solve the Kohn-Sham equations. By default,
-              this is the only used convergence criterion (exception: in LDA+U calculations,
+              this is the only used convergence criterion (exception: in LDA+U and OEP calculations,
               the Kohn-Sham potential is automatically chosen instead). </xs:documentation>
             </xs:annotation>
           </xs:attribute>    
@@ -1838,7 +1832,7 @@
             <xs:annotation>
               <xs:documentation> The attribute tconvcritvks is <pre>"true"</pre> if the value  
               of the Kohn-Sham potential ($V_{KS}$) of the system is used as a convergence criterion for the 
-              self-consistent procedure used to solve the Kohn-Sham equations. For LDA+U calculations, this is
+              self-consistent procedure used to solve the Kohn-Sham equations. For LDA+U and OEP calculations, this is
               the (automatically chosen) convergence criterion. </xs:documentation>
             </xs:annotation>
           </xs:attribute>  
