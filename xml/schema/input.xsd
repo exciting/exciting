@@ -1,7 +1,5 @@
-<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
-  xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
   <!-- root element starts here -->
 
 
@@ -21,13 +19,11 @@
         an <exciting>exciting</exciting> calculation: </p>
       <list>
         <li>
-          <blue>elements</blue> are defined according to the <a
-            href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions </a>.
+          <blue>elements</blue> are defined according to the <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions </a>.
             <it>Example:</it> The element <elementref>groundstate</elementref> is used to set up a
           self-consistent calculation of the ground-state energy. </li>
         <li>
-          <green>attributes</green> are defined according to the <a
-            href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions </a>. An
+          <green>attributes</green> are defined according to the <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions </a>. An
           attribute is always connected to an element. In <exciting>exciting</exciting> an attribute
           generally specifies a parameter or a set of parameters which are connected to the
           corresponding element. <it>Example:</it> The attribute <attref>xctype</attref> of the
@@ -35,8 +31,7 @@
           is used in the self-consistent calculation. </li>
       </list>
       <p> The input file of an <exciting>exciting</exciting> calculation is named
-          <filename>input.xml</filename>. A simple example for an input file can be found <a
-          href="http://exciting-code.org/input-file-format-overview">here</a>. The input file
+          <filename>input.xml</filename>. A simple example for an input file can be found <a href="http://exciting-code.org/input-file-format-overview">here</a>. The input file
           <filename>input.xml</filename> must be a valid XML file and it must contain the root
         element <elementref>input</elementref>. </p>
       <p> Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units (
@@ -78,24 +73,20 @@
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="essential" ex:unit="" name="title" type="xs:string" minOccurs="1"
-          maxOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="1" name="title" type="xs:string">
           <xs:annotation>
             <xs:documentation>The title of the input file, <it>e.g.</it>, "Ground-State
               Calculation for Aluminum". </xs:documentation>
           </xs:annotation>
         </xs:element>
-        <xs:element ex:importance="essential" ex:unit="" ref="structure" maxOccurs="1" minOccurs="1"/>
-        <xs:element ex:importance="essential" ex:unit="" ref="groundstate" maxOccurs="1"
-          minOccurs="1"/>
-        <xs:element ex:importance="essential" ex:unit="" ref="structureoptimization" maxOccurs="1"
-          minOccurs="0"/>
-        <xs:element ex:importance="essential" ex:unit="" ref="properties" maxOccurs="1"
-          minOccurs="0"/>
-        <xs:element ex:importance="expert" ex:unit="" ref="phonons" maxOccurs="1" minOccurs="0"/>
-        <xs:element ex:importance="expert" ex:unit="" ref="xs" minOccurs="0" maxOccurs="1"/>
-        <xs:element ex:importance="expert" ex:unit="" ref="gw" minOccurs="0" maxOccurs="1"/>
-        <xs:element minOccurs="0" name="keywords" type="xs:string" maxOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="1" ref="structure"/>
+        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="1" ref="groundstate"/>
+        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="0" ref="structureoptimization"/>
+        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="0" ref="properties"/>
+        <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="phonons"/>
+        <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="xs"/>
+        <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="gw"/>
+        <xs:element maxOccurs="1" minOccurs="0" name="keywords" type="xs:string">
           <xs:annotation>
             <xs:documentation> The keywords tag can contain a space separated list of keywords
               classifying the calculation for archiving purposes. It is not used by the
@@ -103,14 +94,12 @@
           </xs:annotation>
         </xs:element>
       </xs:all>
-      <xs:attribute ex:importance="experimental" ex:unit="" name="xsltpath" type="xs:anyURI"
-        default="http://xml.exciting-code.org">
+      <xs:attribute default="http://xml.exciting-code.org" ex:importance="experimental" ex:unit="" name="xsltpath" type="xs:anyURI">
         <xs:annotation>
           <xs:appinfo> </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="scratchpath" type="xs:anyURI"
-        use="optional" default="./">
+      <xs:attribute default="./" ex:importance="expert" ex:unit="" name="scratchpath" type="xs:anyURI" use="optional">
         <xs:annotation>
           <xs:documentation> The path to the scratch space where the eigenvector related files,
               <filename>EVECFV.OUT</filename>, <filename>EVECSV.OUT</filename>, and
@@ -120,12 +109,12 @@
             program is started. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="sharedfs" type="xs:boolean" default="true">
+      <xs:attribute default="true" name="sharedfs" type="xs:boolean">
       <xs:annotation>
       <xs:documentation>
       This attributes tells if a parallel job has a shared file system. 
       Set it to <pre>false</pre> if the processes of the job do not share a common file system.
-      It gives exciting a chance to adress this for the features that are developed with this conzept in mind.
+      It gives <exciting/> a chance  to adapt the file IO accordingly
       
       
       </xs:documentation>
