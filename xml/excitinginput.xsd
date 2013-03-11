@@ -727,17 +727,12 @@ gw.xsd
               </xs:simpleType>
             </xs:attribute>
           </xs:complexType>
-        </xs:element>
+        </xs:element>      
         <xs:element ex:importance="experimental" ex:unit="" name="HartreeFock" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>If preset Hartree-Fock calculation is triggered.</xs:documentation>
-          </xs:annotation>
+          </xs:annotation>                 
           <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy" type="fortrandouble" use="optional" default="1.0d-4">
-              <xs:annotation>
-                <xs:documentation>Energy convergence tolerance.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="solver" minOccurs="0" maxOccurs="1">
@@ -2700,8 +2695,8 @@ gw.xsd
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble" default="1.0d-3">
         <xs:annotation>
-          <xs:documentation>Maximum allowed error in the calculated total charge beyond which a
-            warning message will be issued.</xs:documentation>
+          <xs:documentation>Convergence criterion for the maximum allowed error 
+           in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="epsocc" type="fortrandouble" default="1.0d-8">
@@ -3029,6 +3024,12 @@ gw.xsd
             eigenvectors are calculated. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="tpartcharges" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation> The attribute tpartcharges is <pre>"true"</pre> if partial charges 
+          for each state j, atom alpha and for each lm combination are calculated. </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>   
       <xs:attribute ex:importance="expert" ex:unit="" name="nwrite" type="xs:integer" default="0">
         <xs:annotation>
           <xs:documentation> Normally, the density and potentials are written to the file STATE.OUT
@@ -3051,7 +3052,39 @@ gw.xsd
           linearization energies.
           </xs:documentation>
         </xs:annotation>
-      </xs:attribute>
+      </xs:attribute>    
+          <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
+            <xs:annotation>
+              <xs:documentation> The attribute tconvcritenergy is <pre>"true"</pre> if the value  
+              of the total energy of the system is used as a convergence criterion for the 
+              self-consistent procedure used to solve the Kohn-Sham equations. By default,
+              this is the only used convergence criterion (exception: in LDA+U and OEP calculations,
+              the Kohn-Sham potential is automatically chosen instead). </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>    
+          <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritvks" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation> The attribute tconvcritvks is <pre>"true"</pre> if the value  
+              of the Kohn-Sham potential ($V_{KS}$) of the system is used as a convergence criterion for the 
+              self-consistent procedure used to solve the Kohn-Sham equations. For LDA+U and OEP calculations, this is
+              the (automatically chosen) convergence criterion. </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>  
+          <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritcharge" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation> The attribute tconvcritcharge is <pre>"true"</pre> if the value  
+              of the total charge of the system is used as a convergence criterion for the 
+              self-consistent procedure used to solve the Kohn-Sham equations. (This amount should be
+              constant, but it is subject to numerical errors) </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>  
+          <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritforces" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation> The attribute tconvcritforces is <pre>"true"</pre> if the value  
+              of the an average of forces on nuclei of the system is used as a convergence criterion for the 
+              self-consistent procedure used to solve the Kohn-Sham equations. </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>         
     </xs:complexType>
   </xs:element>
   <xs:annotation>
@@ -5385,20 +5418,20 @@ gw.xsd
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="essential" ex:unit="" name="title" type="xs:string" minOccurs="1" maxOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="1" name="title" type="xs:string">
           <xs:annotation>
             <xs:documentation>The title of the input file, <it>e.g.</it>, "Ground-State
               Calculation for Aluminum". </xs:documentation>
           </xs:annotation>
         </xs:element>
-        <xs:element ex:importance="essential" ex:unit="" ref="structure" maxOccurs="1" minOccurs="1"/>
-        <xs:element ex:importance="essential" ex:unit="" ref="groundstate" maxOccurs="1" minOccurs="1"/>
-        <xs:element ex:importance="essential" ex:unit="" ref="structureoptimization" maxOccurs="1" minOccurs="0"/>
-        <xs:element ex:importance="essential" ex:unit="" ref="properties" maxOccurs="1" minOccurs="0"/>
-        <xs:element ex:importance="expert" ex:unit="" ref="phonons" maxOccurs="1" minOccurs="0"/>
-        <xs:element ex:importance="expert" ex:unit="" ref="xs" minOccurs="0" maxOccurs="1"/>
-        <xs:element ex:importance="expert" ex:unit="" ref="gw" minOccurs="0" maxOccurs="1"/>
-        <xs:element minOccurs="0" name="keywords" type="xs:string" maxOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="1" ref="structure"/>
+        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="1" ref="groundstate"/>
+        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="0" ref="structureoptimization"/>
+        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="0" ref="properties"/>
+        <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="phonons"/>
+        <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="xs"/>
+        <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="gw"/>
+        <xs:element maxOccurs="1" minOccurs="0" name="keywords" type="xs:string">
           <xs:annotation>
             <xs:documentation> The keywords tag can contain a space separated list of keywords
               classifying the calculation for archiving purposes. It is not used by the
@@ -5406,12 +5439,12 @@ gw.xsd
           </xs:annotation>
         </xs:element>
       </xs:all>
-      <xs:attribute ex:importance="experimental" ex:unit="" name="xsltpath" type="xs:anyURI" default="http://xml.exciting-code.org">
+      <xs:attribute default="http://xml.exciting-code.org" ex:importance="experimental" ex:unit="" name="xsltpath" type="xs:anyURI">
         <xs:annotation>
           <xs:appinfo> </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="scratchpath" type="xs:anyURI" use="optional" default="./">
+      <xs:attribute default="./" ex:importance="expert" ex:unit="" name="scratchpath" type="xs:anyURI" use="optional">
         <xs:annotation>
           <xs:documentation> The path to the scratch space where the eigenvector related files,
               <filename>EVECFV.OUT</filename>, <filename>EVECSV.OUT</filename>, and
@@ -5421,12 +5454,12 @@ gw.xsd
             program is started. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="sharedfs" type="xs:boolean" default="true">
+      <xs:attribute default="true" name="sharedfs" type="xs:boolean">
       <xs:annotation>
       <xs:documentation>
       This attributes tells if a parallel job has a shared file system. 
       Set it to <pre>false</pre> if the processes of the job do not share a common file system.
-      It gives exciting a chance to adress this for the features that are developed with this conzept in mind.
+      It gives <exciting/> a chance  to adapt the file IO accordingly
       
       
       </xs:documentation>

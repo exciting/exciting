@@ -84,6 +84,7 @@
 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
+      write(fgw,*)
       call write_cputime(fgw,tend-tstart, 'CALCEQP')
 
       return

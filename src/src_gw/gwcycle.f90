@@ -207,15 +207,20 @@
 #ifndef MPI
       open(96,file='ADDSELFE.OUT',form='FORMATTED',status='UNKNOWN')
 #endif
+
 !     Calculate the integrals to treat the singularities at G+q->0
       call setsingc
+      
       call barrier
-  	  ikpqp=0 ! initialize counter for k-points
+      
+      ikpqp=0 ! initialize counter for k-points
+      
       do ikp = 1, nkpt ! IBZ
 
          do iqp = 1, nkptq(ikp)  ! EIBZ(k)
+         
          ikpqp=ikpqp+1
-		! decide if point is done by this process
+	 ! decide if point is done by this process
          if (mod(ikpqp-1,procs).eq.rank) then
 #ifdef MPI
          if (input%gw%debug)write(*,*) "do q",iqp,"and k", ikp,"as number",ikpqp, "on",rank
