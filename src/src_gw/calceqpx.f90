@@ -3,7 +3,7 @@
 ! !ROUTINE: calceqpx
 !
 ! !INTERFACE:
-      subroutine calceqpx
+    subroutine calceqpx
 
 ! !DESCRIPTION:
 ! 
@@ -15,67 +15,86 @@
 !
 ! !USES:
 !
-      use modmain
-      use modgw     
+    use modmain
+    use modgw     
        
 ! !LOCAL VARIABLES:
       
-      implicit none
+    implicit none
       
-      integer(4) :: ie   !(Counter) Runs over bands
-      integer(4) :: ikp  !(Counter) Runs over k-points
-      integer(4) :: nb
-      real(8) :: delta   ! absolute value of the difference between
+    integer(4) :: ie   !(Counter) Runs over bands
+    integer(4) :: ikp  !(Counter) Runs over k-points
+    integer(4) :: nb
+    real(8) :: delta   ! absolute value of the difference between
 !                          quasiparticle energies of succesive iterations 
-      real(8) :: eferqp, egap
-      real(8) :: tstart, tend
-      integer(8) :: Recl
+    real(8) :: eferqp, egap
+    real(8) :: tstart, tend
+    integer(8) :: Recl
+    real(8) :: eks, ehf, egw, sx, sc, vxc, deltax, deltae, z
 
 ! !DEFINED PARAMETERS:
 
-      real(8), parameter :: tol=1.0d-3
+    real(8), parameter :: tol=1.0d-3
  
 ! !EXTERNAL ROUTINES: 
 
-      external writeqp
+    external writeqp
 
 ! !REVISION HISTORY:
 !
 ! Created: 16.08.05 by RGA
+! Readjusted: Mar 2013 by DIN
 !
 !EOP
 !BOC      
-      call cpu_time(tstart)
-      if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
+    call cpu_time(tstart)
+    if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
 !
-!     Allocate the array for the quasi-particle energies 
+!   Allocate the array for the quasi-particle energies 
 ! 
-      allocate(eqp(ibgw:nbgw,nkpt))
-!        
-!     Loop over kpoints
-! 
-      do ikp = 1, nkpt
-!         
-!       Loop over bands
-! 
-        do ie = ibgw, nbgw
-!            
-!         Calculate the new quasi-particle energy 
-!
-          delta=real(selfex(ie,ikp))-real(vxcnn(ie,ikp))
-          eqp(ie,ikp)=evaldft(ie,ikp)+delta
-        enddo ! ie
-      enddo ! ikp
+    open(64,file='QPENE.OUT',action='WRITE',form='FORMATTED')
 
-!     QP band structure
-!     to calculate Fermi energy it is better to use 
-!     only limited, low in energy, amount unoccupied states
-      nb=min(nbgw,int(chgval/2.d0)+30)
-      call fermi(nkpt,nb-ibgw+1,eqp(ibgw:nb,:),ntet,tnodes,wtet,tvol, &
-      &  nvelgw,.false.,eferqp,egap)
+    allocate(eqp(ibgw:nbgw,nkpt))
+
+    do ikp = 1, nkpt
+      write(64,1) ikp, vkl(:,ikp)
+      write(64,2)
+      do ie = ibgw, nbgw
+!            
+!       Calculate the new quasi-particle energy 
+!
+        sx=real(selfex(ie,ikp))
+        sc=0.d0
+        vxc=real(vxcnn(ie,ikp))
+        z=0.d0        
+
+        eks=evaldft(ie,ikp)
+
+        deltax=sx-vxc
+        ehf=eks+deltax
+
+        egw=0.d0
+        deltae=0.d0
+
+        eqp(ie,ikp)=ehf
+
+        write(64,3) ie, eks, ehf, egw, & 
+        &           sx, sc, vxc, deltax, deltae, z        
+        
+      enddo ! ie
+      write(64,*)
+    enddo ! ikp
+    close(64)
 
 !----------------------------------------
-!     Set QP fermi energy to zero
+!     Calculate QP Fermi energy to zero
+!----------------------------------------
+    nb=min(nbgw,int(chgval/2.d0)+30)
+    call fermi(nkpt,nb-ibgw+1,eqp(ibgw:nb,:),ntet,tnodes,wtet,tvol, &
+    &  nvelgw,.false.,eferqp,egap)
+
+!----------------------------------------
+!     Set QP Fermi energy to zero
 !----------------------------------------
       eqp(:,:)=eqp(:,:)-eferqp
       eferqp=0.d0
@@ -93,24 +112,24 @@
       end do ! ikp
       Close(70)
 !      
-!     Write quasi-particle energies into QPENE-eV.OUT
-!      
-      call writeqpx
-!      
 !     Repeat KS band structure analysis
 !
       call bandanalysis('KS',ibgw,nbgw,evaldft(ibgw:nbgw,:),efermi)
 !
 !     QP band structure
 !
-      call bandanalysis('G0W0',ibgw,nbgw,eqp(ibgw:nbgw,:),eferqp)
+      call bandanalysis('HF',ibgw,nbgw,eqp(ibgw:nbgw,:),eferqp)
 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
       write(fgw,*)
-      call write_cputime(fgw,tend-tstart, 'CALCEQP')
+      call write_cputime(fgw,tend-tstart, 'CALCEQPX')
 
-      return
-      end subroutine calceqpx
+    1 format('k-point #',i6,':',3f12.6)
+    2 format(' state    E_KS      E_HF       E_GW       Sx         Sc         Vxc         DE_HF        DE_GW       Znk')    
+    3 format(i4,'  ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5)     
+
+    return
+end subroutine calceqpx
 !EOC        
           

@@ -149,7 +149,7 @@
       else
         fgrid='gaule2'
         nomeg=16
-        freqmax=0.42
+        freqmax=0.50d0
       end if
       select case (fgrid)
         case('eqdist','EQDIST')

@@ -200,6 +200,10 @@
       if(ierr.ne.0) then 
          write(fgw,*) 'WARNING(calceqp): --- Failed to converge!!!'
       endif 
+!      
+!     Write quasi-particle energies into QPENE.OUT
+!      
+      call writeqp(sigc,znorm)
       
 !----------------------------------------
 !     Set QP fermi energy to zero
@@ -219,10 +223,6 @@
      &    vkl(:,ikp), eqp(ibgw:nbgw,ikp), evaldft(ibgw:nbgw,ikp)
       end do ! ikp
       Close(70)
-!      
-!     Write quasi-particle energies into QPENE-eV.OUT
-!      
-      call writeqp(sigc,znorm)
 !      
 !     Repeat KS band structure analysis
 !
