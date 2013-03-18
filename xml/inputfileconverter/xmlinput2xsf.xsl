@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:str="http://exslt.org/strings" xmlns:math="http://exslt.org/math">
   <xsl:output method="text" />
-  <!-- usage: xsltproc xmlinput2xcf.xsl input.xml >exciting.in -->
+  <!-- usage: xsltproc xmlinput2xsf.xsl input.xml -->
   <xsl:template name="norm">
     <xsl:param name="vectorstring" />
     <xsl:value-of
@@ -47,6 +47,7 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
       <xsl:with-param name="vectorstring" select="/input/structure/crystal/basevect[3]" />
     </xsl:call-template>
   </xsl:variable>
+  <xsl:variable name="cartesian" as="xs:boolean" select="/input/structure/@cartesian" /> 
   <xsl:template match="/">
     <xsl:text>
  CRYSTAL
@@ -105,27 +106,25 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
     <xsl:text> 1</xsl:text>
     <xsl:for-each select="input/structure/species/atom">
       <xsl:text>
-</xsl:text>
+  </xsl:text>
+      <xsl:value-of select="substring-before(../@speciesfile, '.')" />
+      <xsl:text>    </xsl:text>
       <xsl:choose>
-        <xsl:when test="../@atomicNumber">
-          <xsl:value-of select="../@atomicNumber" />
+        <xsl:when test="$cartesian">
+          <xsl:value-of select="str:tokenize(@coord)[1]" />
+          <xsl:text>  </xsl:text>
+          <xsl:value-of select="str:tokenize(@coord)[2]" />
+          <xsl:text>  </xsl:text>
+          <xsl:value-of select="str:tokenize(@coord)[3]" />
         </xsl:when>
         <xsl:otherwise>
-          <xsl:variable name="speciesfile">        
-            <xsl:value-of select="/input/structure/@speciespath" />
-            <xsl:text>/</xsl:text>
-            <xsl:value-of select="../@speciesfile" />
-          </xsl:variable>
-          <xsl:value-of select="-1*document($speciesfile)/spdb/sp/@z" />
+          <xsl:value-of select="str:tokenize(@coord)[1]*$a1 + str:tokenize(@coord)[2]*$b1  + str:tokenize(@coord)[3]*$c1" />
+          <xsl:text>  </xsl:text>
+          <xsl:value-of select="str:tokenize(@coord)[1]*$a2 + str:tokenize(@coord)[2]*$b2  + str:tokenize(@coord)[3]*$c2" />
+          <xsl:text>  </xsl:text>
+          <xsl:value-of select="str:tokenize(@coord)[1]*$a3 + str:tokenize(@coord)[2]*$b3  + str:tokenize(@coord)[3]*$c3" />
         </xsl:otherwise>
       </xsl:choose>
-      <xsl:text>   </xsl:text>
-      <xsl:value-of select="str:tokenize(@coord)[1]*$a1 + str:tokenize(@coord)[2]*$b1  + str:tokenize(@coord)[3]*$c1" />
-      <xsl:text>  </xsl:text>
-      <xsl:value-of select="str:tokenize(@coord)[1]*$a2 + str:tokenize(@coord)[2]*$b2  + str:tokenize(@coord)[3]*$c2" />
-      <xsl:text>  </xsl:text>
-      <xsl:value-of select="str:tokenize(@coord)[1]*$a3 + str:tokenize(@coord)[2]*$b3  + str:tokenize(@coord)[3]*$c3" />
-      <xsl:text>  </xsl:text>
     </xsl:for-each>
     <xsl:text>
     

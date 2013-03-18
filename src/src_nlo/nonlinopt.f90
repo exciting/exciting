@@ -119,18 +119,20 @@ subroutine nonlinopt
         end do
       end if
 
-! scissor correct the matrix elements
-      do ist = 1, nstsv
-        if (evalsv(ist,jk).lt.efermi) then
-          do jst=1,nstsv
-            if (evalsv(jst,jk).gt.efermi) then
-              eji=evalsv(jst,jk)-evalsv(ist,jk)
-              t1=(eji+input%properties%nlo%scissor)/eji
-              pmat(:,ist,jst)=t1*pmat(:,ist,jst)
-            end if
-          end do
-        end if
-      end do
+! scissor correction for the matrix elements
+      if (dabs(input%properties%nlo%scissor)>1.d-8) then
+        do ist = 1, nstsv
+          if (evalsv(ist,jk).lt.efermi) then
+            do jst=1,nstsv
+              if (evalsv(jst,jk).gt.efermi) then
+                eji=evalsv(jst,jk)-evalsv(ist,jk)
+                t1=(eji+input%properties%nlo%scissor)/eji
+                pmat(:,ist,jst)=t1*pmat(:,ist,jst)
+              end if
+            end do
+          end if
+        end do
+      end if
       zt1=zi*(occmax/omega)/dble(nkptnr)
 
 ! loop over valence states
