@@ -292,7 +292,6 @@ type structureoptimization_type
  character(512)::method
  real(8)::epsforce
  real(8)::tau0atm
- logical::resume
  logical::history
  character(512)::historyformat
  integer::lbfgsnumcor
@@ -2568,14 +2567,6 @@ getstructstructureoptimization%tau0atm=0.2d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tau0atm",getstructstructureoptimization%tau0atm)
        call removeAttribute(thisnode,"tau0atm")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"resume")
-getstructstructureoptimization%resume=.false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"resume",getstructstructureoptimization%resume)
-       call removeAttribute(thisnode,"resume")  
 endif
 
 nullify(np)  

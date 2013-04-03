@@ -3140,13 +3140,6 @@ gw.xsd
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="" name="resume" type="xs:boolean" default="false">
-                <xs:annotation>
-                    <xs:documentation> Resumption of a structural optimization run using the density in
-                        <pre>STATE.OUT</pre>, but with positions from <pre>input.xml</pre>.
-                    </xs:documentation>
-                </xs:annotation>
-            </xs:attribute>
 
             <xs:attribute ex:importance="essential" ex:unit="" name="history" type="xs:boolean" default="false">
               <xs:annotation>

@@ -16,6 +16,7 @@ subroutine nonlinopt
 !
 ! !REVISION HISTORY:
 !   Rewrote earlier version, June 2010 (Sharma)
+!   Modified by DIN, Dec 2012
 !EOP
 !BOC
     implicit none
