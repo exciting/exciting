@@ -17,12 +17,12 @@ Subroutine oepvnl (vnlcv, vnlvv)
       Integer :: ik
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
-#ifdef MPIEXX
+#ifdef MPI
       Do ik = firstk (rank), lastk (rank)
          Write (*, '("Info(oepvnl): ", I6, " of ", I6, " k-points on pr&
         &oc:", I6)') ik, nkpt, rank
 #endif
-#ifndef MPIEXX
+#ifndef MPI
          Do ik = 1, nkpt
             Write (*, '("Info(oepvnl): ", I6, " of ", I6, " k-points")') ik, nkpt
 #endif
@@ -31,7 +31,7 @@ Subroutine oepvnl (vnlcv, vnlvv)
 !$OMP END DO
 !$OMP END PARALLEL
 !
-#ifdef MPIEXX
+#ifdef MPI
         call mpi_allgatherv_ifc(nkpt,ncrmax*natmtot*nstsv,zbuf=vnlcv)
         call mpi_allgatherv_ifc(nkpt,nstsv*nstsv,zbuf=vnlvv)
 #endif
