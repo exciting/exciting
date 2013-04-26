@@ -3803,13 +3803,13 @@ gw.xsd
         <xs:element ex:importance="expert" ex:unit="" name="nlo" minOccurs="0">
           <xs:complexType>
             
-            <xs:attribute ex:importance="essential" ex:unit="" name="emax" type="fortrandouble" default="0.5">
+            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.5">
               <xs:annotation>
                 <xs:documentation>Upper energy limit for SHG calculations.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             
-            <xs:attribute ex:importance="essential" ex:unit="" name="emesh" type="xs:integer" default="100">
+            <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="100">
               <xs:annotation>
                 <xs:documentation>Number of grid points inside [0,emax] interval.</xs:documentation>
               </xs:annotation>
@@ -3833,15 +3833,63 @@ gw.xsd
               </xs:annotation>
             </xs:attribute>
             
-            <xs:attribute ex:importance="expert" ex:unit="" name="chicomp" type="integertriple" default="1 2 3" maxOccurs="1">
+            <xs:sequence>
+              <xs:element ex:importance="expert" ex:unit="" name="chicomp" type="integertriple" default="1 2 3" maxOccurs="27">
+                <xs:annotation>
+                  <xs:documentation>The components of the second-order optical tensor Chi(-2w,w,w) to
+                    be calculated.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+            </xs:sequence>
+
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ex:importance="expert" ex:unit="" name="dielmat" minOccurs="0">
+          <xs:complexType>
+          
+            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
               <xs:annotation>
-                <xs:documentation>Component of Chi(-2w,w,w) to be calculated.</xs:documentation>
+                <xs:documentation> The intraband attribute is <pre>"true"</pre> if the intraband
+                  term is to be added to the optical matrix (q=0) </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             
+            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.15">
+              <xs:annotation>
+                <xs:documentation>Upper energy limit for the dielectric matrix calculations.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="200">
+              <xs:annotation>
+                <xs:documentation>Number of grid points inside [0,wmax] interval.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.01d0">
+              <xs:annotation>
+                <xs:documentation>Broadening factor.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="scissor" type="fortrandouble" default="0.0d0">
+              <xs:annotation>
+                <xs:documentation>Scissors operator.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:sequence>
+              <xs:element ex:importance="expert" ex:unit="" name="epscomp" type="integerpair" minOccurs="1" maxOccurs="9">
+                <xs:annotation>
+                  <xs:documentation>Components of the dielectric tensor to be calculated.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+            </xs:sequence>
+
           </xs:complexType>
         </xs:element>
-        
+
       </xs:all>
     </xs:complexType>
   </xs:element>

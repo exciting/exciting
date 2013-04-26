@@ -13,6 +13,7 @@
 
       use modmain
       use modgw
+      use modmpi
       
 ! !LOCAL VARIABLES:
 
@@ -49,24 +50,23 @@
       if(.not.input%gw%rpmat)then
         call calcpmat        ! <--- original (RGA's) version
         !call calcpmatgw     ! <--- modified xs (SAG's) version
+      else
+        write(fgw,*)'PMAT and PMATC are read from file'
       end if
 
 !     Only \Gamma point
       iq=1
-!      
-!     Calculate the interstitial mixed basis functions
-!
-      matsiz=locmatsiz+ngq(iq)
+      Gamma=gammapoint(iq)
 !
 !     Interstitial mixed basis functions
 !
+      matsiz=locmatsiz+ngq(iq)
       call diagsgi(iq)
       call calcmpwipw(iq)
 !
 !     Calculate the bare coulomb potential matrix and its square root
 !
       call calcbarcmb(iq)
-!
       call setbarcev(barcevtol)
 !
 !     Calculate the q-dependent integration weights
@@ -81,8 +81,8 @@
 !      
       if(allocated(epsilon))deallocate(epsilon)
       allocate(epsilon(matsizmax,matsizmax,nomeg))
-
-      call calcepsilon(iq)
+      epsilon=zzero
+      call calcepsilon(iq,0)
 !
 !     Inverse of the dielectric function
 !      

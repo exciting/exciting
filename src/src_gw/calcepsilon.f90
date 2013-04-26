@@ -122,7 +122,7 @@ subroutine calcepsilon(iqp,COMM_LEVEL2)
       allocate(body(1:mbsiz,1:mbsiz))
 #ifdef MPI
    Call mpi_comm_size ( COMM_LEVEL2, level2procs, ierr)
-   Call mpi_comm_rank ( COMM_LEVEL2,level2rank, ierr)
+   Call mpi_comm_rank ( COMM_LEVEL2, level2rank, ierr)
    call mpi_barrier(COMM_LEVEL2,ierr)
    if (input%gw%debug .and. rank.eq.1) write(*,*) "epsilon BZ summation:"
 #endif

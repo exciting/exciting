@@ -145,7 +145,6 @@ Subroutine writepmatxs
            write(50,rec=ik) pmat
          else
      ! parallel write
-
            Call putpmat (ik, .True., trim(fnpmat), pmat)
         !    write(*,*)"putpmat ik ",ik,"done"
          end if

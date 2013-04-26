@@ -9,7 +9,8 @@ Subroutine propertylauncher
       Use modmain, Only: task
       Use modmpi, Only: rank
       Implicit None
-
+      integer :: l, a, b, c
+      
       call delete_warnings
 
 ! properties which depend on the ground state only
@@ -115,7 +116,7 @@ Subroutine propertylauncher
       If (associated(input%properties%momentummatrix)) Then
          call rereadinput
          task = 120
-         Call writepmatxs
+         Call writepmat
       End If
 
 ! properties which depend on the ground state and/or on the outputs of other properties
@@ -130,6 +131,16 @@ Subroutine propertylauncher
          task = 121
          Call dielectric
       End If
+      
+      If (associated(input%properties%dielmat)) Then
+         call rereadinput
+         do l = 1, size(input%properties%dielmat%epscomp,2)
+           a = input%properties%dielmat%epscomp(1,l)
+           b = input%properties%dielmat%epscomp(2,l)
+           call dielmat(a,b)
+         end do
+      End If    
+      
       If (associated(input%properties%moke) .And. rank .Eq. 0) Then
          call rereadinput
          ! set the default values if dos element not present
@@ -158,10 +169,16 @@ Subroutine propertylauncher
          task=250
          Call alpha2f
       End If
-      
+
+! Nonlinear optics: Second Harmonic Generation 
       If (associated(input%properties%nlo)) Then
          call rereadinput
-         Call nonlinopt
+         do l = 1, size(input%properties%nlo%chicomp,2)
+           a = input%properties%nlo%chicomp(1,l)
+           b = input%properties%nlo%chicomp(2,l)
+           c = input%properties%nlo%chicomp(3,l)
+           call nonlinopt(a,b,c)
+         end do
       End If
 
 End Subroutine propertylauncher
