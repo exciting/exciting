@@ -3760,9 +3760,43 @@ gw.xsd
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="moke" minOccurs="0">
-          <xs:complexType/>
+          <xs:complexType>
+
+            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="true">
+              <xs:annotation>
+                <xs:documentation> Use the intraband term in calculations if the dielectric matrix.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.15">
+              <xs:annotation>
+                <xs:documentation>Upper energy limit for the Kerr angle calculation.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="200">
+              <xs:annotation>
+                <xs:documentation>Number of grid points inside [0,wmax] interval.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.01d0">
+              <xs:annotation>
+                <xs:documentation>Broadening factor.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="scissor" type="fortrandouble" default="0.0d0">
+              <xs:annotation>
+                <xs:documentation>Scissors operator.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+          </xs:complexType>
         </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="expiqr" minOccurs="0">
           <xs:complexType>
             <xs:annotation>
@@ -3880,7 +3914,7 @@ gw.xsd
             </xs:attribute>
 
             <xs:sequence>
-              <xs:element ex:importance="expert" ex:unit="" name="epscomp" type="integerpair" minOccurs="1" maxOccurs="9">
+              <xs:element ex:importance="expert" ex:unit="" name="epscomp" type="integerpair" minOccurs="0" maxOccurs="9">
                 <xs:annotation>
                   <xs:documentation>Components of the dielectric tensor to be calculated.</xs:documentation>
                 </xs:annotation>

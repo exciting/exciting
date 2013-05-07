@@ -1,103 +1,117 @@
 !
-!
-!
-! Copyright (C) 2002-2005 S. Sharma, J. K. Dewhurst and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-!
-!
-Subroutine moke
-      Use modmain
-      Use modinput
-      Implicit None
+subroutine moke
+    use modmain
+    use modinput
+    use modmpi
+    implicit none
+
 ! local variables
-      Integer :: iw, iostat
-      Complex (8) zt1, zt2, zt3
+    integer :: iw, iostat
+    complex(8) :: exx, exy, zt1
+    integer :: wgrid
+
 ! allocatable arrays
-      Real (8), Allocatable :: w (:)
-      Real (8), Allocatable :: sig1 (:, :)
-      Real (8), Allocatable :: sig2 (:, :)
-      Complex (8), Allocatable :: kerr (:)
-! calculate dielectric function for the 11 and 12 components
-      noptcomp = 2
-      if (associated(input%properties%dielectric%optcomp)) &
-        deallocate(input%properties%dielectric%optcomp)
-      allocate(input%properties%dielectric%optcomp(3,noptcomp))
-      input%properties%dielectric%optcomp(1, 1) = 1
-      input%properties%dielectric%optcomp(2, 1) = 1
-      input%properties%dielectric%optcomp(1, 2) = 1
-      input%properties%dielectric%optcomp(2, 2) = 2
-      input%properties%dielectric%intraband=.true.
-      input%properties%dos%nwdos=1000
-      Call dielectric
+    real(8), allocatable :: w(:)
+    real(8), allocatable :: eps11(:,:)
+    real(8), allocatable :: eps12(:,:)
+    complex(8), allocatable :: kerr(:)
+
+! initialize variable required for MOKE
+    if (.not.associated(input%properties%dielmat)) &
+   &  input%properties%dielmat => getstructdielmat(emptynode)
+    
+    input%properties%dielmat%intraband = input%properties%moke%intraband
+    wgrid = input%properties%moke%wgrid
+    input%properties%dielmat%wgrid = wgrid
+    input%properties%dielmat%wmax = input%properties%moke%wmax
+    input%properties%dielmat%scissor = input%properties%moke%scissor
+    input%properties%dielmat%swidth = input%properties%moke%swidth
+
+! for MOKE only two optical components required
+    deallocate(input%properties%dielmat%epscomp)
+    allocate(input%properties%dielmat%epscomp(2,2))
+!   XX    
+    input%properties%dielmat%epscomp(1,1) = 1
+    input%properties%dielmat%epscomp(2,1) = 1
+!   XY
+    input%properties%dielmat%epscomp(1,2) = 1
+    input%properties%dielmat%epscomp(2,2) = 2
+    
+    call dielmat
+
+    call barrier
+    if (rank==0) then
+
 ! allocate local arrays
-      Allocate (w(input%properties%dos%nwdos))
-      Allocate (sig1(input%properties%dos%nwdos, 2), &
-     & sig2(input%properties%dos%nwdos, 2))
-      Allocate (kerr(input%properties%dos%nwdos))
+        allocate(w(wgrid))
+        allocate(eps11(wgrid,2),eps12(wgrid,2))
+        allocate(kerr(wgrid))
+
 ! read diagonal contribution to optical conductivity
-      Open (50, File='SIGMA_11.OUT', Action='READ', Status='OLD', &
-     & Form='FORMATTED', IoStat=IoStat)
-      If (iostat .Ne. 0) Then
-         Write (*,*)
-         Write (*, '("Error(moke): error opening SIGMA_11.OUT")')
-         Write (*,*)
-         Stop
-      End If
-      Do iw = 1, input%properties%dos%nwdos
-         Read (50, '(2G18.10)') w (iw), sig1 (iw, 1)
-      End Do
-      Read (50,*)
-      Do iw = 1, input%properties%dos%nwdos
-         Read (50, '(2G18.10)') w (iw), sig2 (iw, 1)
-      End Do
-      Close (50)
+        open(50, File='EPSILON_11.OUT', Action='READ', Status='OLD', Form='FORMATTED', IoStat=IoStat)
+        if (iostat .ne. 0) then
+            write (*,*)
+            write (*, '("Error(moke): error opening EPSILON_11.OUT")')
+            write (*,*)
+            stop
+        end if
+        do iw = 1, wgrid
+            read(50, *) w(iw), eps11(iw,1)
+        end do
+        read(50,*)
+        do iw = 1, wgrid
+            read (50, *) w(iw), eps11(iw,2)
+        end do
+        close(50)
+
 ! read off-diagonal contribution to optical conductivity
-      Open (50, File='SIGMA_12.OUT', Action='READ', Status='OLD', &
-     & Form='FORMATTED', IoStat=IoStat)
-      If (iostat .Ne. 0) Then
-         Write (*,*)
-         Write (*, '("Error(moke): error opening SIGMA_12.OUT")')
-         Write (*,*)
-         Stop
-      End If
-      Do iw = 1, input%properties%dos%nwdos
-         Read (50, '(2G18.10)') w (iw), sig1 (iw, 2)
-      End Do
-      Read (50,*)
-      Do iw = 1, input%properties%dos%nwdos
-         Read (50, '(2G18.10)') w (iw), sig2 (iw, 2)
-      End Do
-      Close (50)
+        open (50, File='EPSILON_12.OUT', Action='READ', Status='OLD', Form='FORMATTED', IoStat=IoStat)
+        if (iostat .ne. 0) then
+            write (*,*)
+            write (*, '("Error(moke): error opening EPSILON_12.OUT")')
+            write (*,*)
+            stop
+        end if
+        do iw = 1, wgrid
+            read(50, *) w(iw), eps12(iw,1)
+        end do
+        read(50,*)
+        do iw = 1, wgrid
+            read(50, *) w(iw), eps12(iw,2)
+        end do
+        close(50)
+
 ! calculate the complex Kerr angle
-      Do iw = 1, input%properties%dos%nwdos
-         If (w(iw) .Gt. 0.d0) Then
-            zt1 = cmplx (sig1(iw, 1), sig2(iw, 1), 8)
-            zt2 = cmplx (sig1(iw, 2), sig2(iw, 2), 8)
-            zt3 = zt1 * Sqrt (1.d0+fourpi*zi*zt1/w(iw))
-            If (Abs(zt3) .Gt. 1.d-8) Then
-               kerr (iw) = - zt2 / zt3
-            Else
-               kerr (iw) = 0.d0
-            End If
-         Else
-            kerr (iw) = 0.d0
-         End If
-      End Do
-      Open (50, File='KERR.OUT', Action='WRITE', Form='FORMATTED')
-      Do iw = 1, input%properties%dos%nwdos
-         Write (50, '(2G18.10)') w (iw), dble (kerr(iw)) * 180.d0 / pi
-      End Do
-      Write (50, '("	  ")')
-      Do iw = 1, input%properties%dos%nwdos
-         Write (50, '(2G18.10)') w (iw), aimag (kerr(iw)) * 180.d0 / pi
-      End Do
-      Close (50)
-      Write (*,*)
-      Write (*, '("Info(moke):")')
-      Write (*, '(" complex Kerr angle in degrees written to KERR.OUT")&
-     &')
-      Write (*,*)
-      Deallocate (w, sig1, sig2, kerr)
-      Return
-End Subroutine
+        do iw = 1, wgrid
+            exx = cmplx(eps11(iw,1),eps11(iw,2),8)
+            exy = cmplx(eps12(iw,1),eps12(iw,2),8)
+            zt1 = (exx-zone)*sqrt(exx)
+            if (abs(zt1) > 1.d-8) then
+                kerr(iw) = -exy / zt1
+            else
+                kerr(iw) = zzero
+            end if
+        end do
+
+! output results
+        open(50, File='KERR.OUT', Action='WRITE', Form='FORMATTED')
+        do iw = 1, wgrid
+            write(50, '(2G18.10)') w(iw), dble(kerr(iw))*180.d0/pi
+        end do
+        write(50, *)
+        do iw = 1, wgrid
+            write(50, '(2G18.10)') w(iw), aimag(kerr(iw))*180.d0/pi
+        end do
+        close(50)
+        write(*,*)
+        write(*, '("Info(moke):")')
+        write(*, '(" complex Kerr angle in degrees written to KERR.OUT")')
+        write(*,*)
+        
+        deallocate(w, eps11, eps12, kerr)
+    
+    end if ! rank
+    
+    return
+
+end subroutine

@@ -113,9 +113,11 @@ Subroutine propertylauncher
       If (associated(input%properties%elnes) .And. rank .Eq. 0) Then
          Call elnes
       End If
+
+! calculate and print the momentum matrix elements
+      
       If (associated(input%properties%momentummatrix)) Then
          call rereadinput
-         task = 120
          Call writepmat
       End If
 
@@ -131,28 +133,30 @@ Subroutine propertylauncher
          task = 121
          Call dielectric
       End If
-      
+
+! New version of the IP-RPA dielectric tensor      
       If (associated(input%properties%dielmat)) Then
          call rereadinput
-         do l = 1, size(input%properties%dielmat%epscomp,2)
-           a = input%properties%dielmat%epscomp(1,l)
-           b = input%properties%dielmat%epscomp(2,l)
-           call dielmat(a,b)
-         end do
+         call dielmat
       End If    
-      
-      If (associated(input%properties%moke) .And. rank .Eq. 0) Then
+
+! MOKE effect      
+      If (associated(input%properties%moke)) Then
          call rereadinput
-         ! set the default values if dos element not present
-         if (.not.associated(input%properties%dos)) &
-           input%properties%dos => getstructdos (emptynode)
-         ! set the default values if dielectric element not present
-         if (.not.associated(input%properties%dielectric)) &
-           input%properties%dielectric => getstructdielectric (emptynode)
-         ! this task depends on the results triggered by
-         ! "input%properties%momentummatrix"
-         Call moke
+         call moke
       End If
+
+! Nonlinear optics: Second Harmonic Generation 
+      If (associated(input%properties%nlo)) Then
+         call rereadinput
+         do l = 1, size(input%properties%nlo%chicomp,2)
+           a = input%properties%nlo%chicomp(1,l)
+           b = input%properties%nlo%chicomp(2,l)
+           c = input%properties%nlo%chicomp(3,l)
+           call nonlinopt(a,b,c)
+         end do
+      End If
+
       If (associated(input%properties%eliashberg) .And. rank .Eq. 0) Then
          ! this task depends on the results triggered by
          ! "input%properties%phonon"
@@ -168,17 +172,6 @@ Subroutine propertylauncher
          ! Eliashberg function
          task=250
          Call alpha2f
-      End If
-
-! Nonlinear optics: Second Harmonic Generation 
-      If (associated(input%properties%nlo)) Then
-         call rereadinput
-         do l = 1, size(input%properties%nlo%chicomp,2)
-           a = input%properties%nlo%chicomp(1,l)
-           b = input%properties%nlo%chicomp(2,l)
-           c = input%properties%nlo%chicomp(3,l)
-           call nonlinopt(a,b,c)
-         end do
       End If
 
 End Subroutine propertylauncher

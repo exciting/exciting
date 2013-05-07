@@ -44,7 +44,7 @@
       real(8) :: rd(3)
       real(8) :: kgvecl(3)
       
-      integer(4) :: i, j      
+      integer(4) :: i, j, ikp
       integer(4) :: igp
    
       real(8) :: rdlen
@@ -92,12 +92,16 @@
       allocate(evecfv(nmatmax,nstfv,nspnfv))
 
 !     get eigenvalues
-      call getevecfvgw(ik,evecfv)
-      
+      if (.not.input%gw%skipgnd) then
+        call getevecfvgw(ik,evecfv)
+      else
+        call getevecfv(vklnr(:,ik),vgklnr(:,:,:,ik),evecfv)
+      end if
+
 !     find the matching coefficients
       call match(ngknr(1,ik),gkcnr(:,1,ik),tpgkcnr(:,:,1,ik), &
-     &    sfacgknr(:,:,1,ik),apwalm(:,:,:,:,1))
-
+     &  sfacgknr(:,:,1,ik),apwalm(:,:,:,:,1))
+      
 !     Set the cartesian coordinates of the vector
       if((is1.eq.is2).and.(ia1.eq.ia2))then
           rd(1:3)=avec(1:3,1)
@@ -154,9 +158,9 @@
           rd2(1:3)=-1.0d0*rd(1:3)
           call ylm(rd2,input%groundstate%lmaxapw,yl)
           call wavefmt(input%groundstate%lradstep,input%groundstate%lmaxapw,&
-     &        is2,ia2,ngknr(1,ik),apwalm(:,:,:,:,1),evecfv(:,ib,1),lmmaxapw,evecmtlm)
+         &  is2,ia2,ngknr(1,ik),apwalm(:,:,:,:,1),evecfv(:,ib,1),lmmaxapw,evecmtlm)
           call zgemv('T',lmmaxapw,nrcmt(is2),zone,evecmtlm,lmmaxapw,yl,1, &
-     &                 zzero,evecmt,1)
+         &  zzero,evecmt,1)
           do irc=1,nrcmt(is2)
             jrc=nrcmt(is2)-irc+1
             krc=irc+99+nrcmt(is1)

@@ -156,11 +156,6 @@
         call str_strip(filename)
         open(unit=71,file=filename,status='unknown')
         
-        write(71,*) '#atom 1:', spsymb(is1), atposl(:,ia1,is1)
-        write(71,*) '#atom 2:', spsymb(is2), atposl(:,ia2,is2)
-        write(71,*) '#K-point:', ikp, vkl(:,ikp)
-        write(71,*) '#G-point:', igp, vgkl(:,igp,1,ikp)
-
 !       Allocate the local arrays
         allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
 

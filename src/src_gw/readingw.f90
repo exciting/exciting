@@ -85,8 +85,8 @@
         case('EX','ex')
           testid=14
 !
-!        case('BAND','band')
-!          testid=16
+        case('BAND','band')
+          testid=16
 !          
         case('ROTMAT','rotmat')
           testid=18   
@@ -108,7 +108,7 @@
           write(fgw,*)'sepl - Plot Selfenergy as a function of frequency'
           write(fgw,*)'vxc  - Calculate the matrix elements of the DFT exchange-correlation potential'
           write(fgw,*)'ex   - Hartree-Fock calculation (exchange only)'
-          !write(fgw,*)'band - Calculate the bandstructure'
+          write(fgw,*)'band - Calculate the bandstructure'
           write(fgw,*)'rotmat - Calculate and check the MB rotation matrices (symmetry feature)'
           write(fgw,*)'gw   - Performs one complete GW cycle'
           write(fgw,*)
@@ -130,7 +130,7 @@
           convflg=1
       end select
 !
-!     Current implementation is only using imaginary frequencies (see FHI-gap for more info)
+!     Current implementation is only using imaginary frequencies
 !
       fdep='imfreq'
       fflg=3
@@ -142,15 +142,11 @@
 !      
 !     Read the data for the frequecy grid
 !      
-      if (associated(input%gw%FreqGrid)) then
-        fgrid=input%gw%FreqGrid%fgrid
-        nomeg=input%gw%FreqGrid%nomeg
-        freqmax=input%gw%FreqGrid%freqmax
-      else
-        fgrid='gaule2'
-        nomeg=16
-        freqmax=0.50d0
-      end if
+      if (.not.associated(input%gw%FreqGrid)) &
+     &  input%gw%FreqGrid => getstructfreqgrid(emptynode)
+      fgrid=input%gw%FreqGrid%fgrid
+      nomeg=input%gw%FreqGrid%nomeg
+      freqmax=input%gw%FreqGrid%freqmax
       select case (fgrid)
         case('eqdist','EQDIST')
          wflag=1
@@ -163,13 +159,13 @@
         case default
           write(fgw,*) 'Warning: Wrong frequency grid option!! Valid options are:'
           write(fgw,*) 'eqdist - equidistant frequencies from 0 &
-     & to freqmax (no integration weights)'
+         & to freqmax (no integration weights)'
           write(fgw,*) 'gaulag - grid for Gauss-Laguerre &
-     & quadrature from 0 to infinity'
+         & quadrature from 0 to infinity'
           write(fgw,*) 'gauleg - grid for Gauss-Legendre &
-     & quadrature from 0 to freqmax'
+         & quadrature from 0 to freqmax'
           write(fgw,*) 'gaule2 - grid for Gauss-Legendre &
-     & quadrature from 0 to freqmax and from freqmax to infinity'
+         & quadrature from 0 to freqmax and from freqmax to infinity'
           write(fgw,*)'Taking default value: gaule2'
           fgrid='gaule2'
           wflag=3
@@ -180,17 +176,11 @@
       call linmsg(fgw,'-','')
 
 !     Options for the analytic continuation
-      if(associated(input%gw%SelfEnergy))then
-         iopes=input%gw%SelfEnergy%iopes
-         iopac=input%gw%SelfEnergy%iopac
-         npol=input%gw%SelfEnergy%npol
-      else
-         ! default values
-         npol=2
-         iopes=0
-         iopac=1
-      end if
-
+      if (.not.associated(input%gw%SelfEnergy)) &
+     &  input%gw%SelfEnergy => getstructselfenergy(emptynode)
+      iopes=input%gw%SelfEnergy%iopes
+      iopac=input%gw%SelfEnergy%iopac
+      npol=input%gw%SelfEnergy%npol
       write(fgw,*) '- Option for calculating selfenergy (iopes): ', iopes
       select case (iopes)
         case(0)
@@ -204,7 +194,6 @@
         case default
           call errmsg(1,'readingw','Wrong value for iopes')
       end select
-
       write(fgw,*) '- Type of analytic continuation (iopac): ', iopac
       select case (iopac)
         case(1) 
@@ -214,7 +203,6 @@
         case default
           call errmsg(1,'readingw','Wrong value for iopac')
       end select
-
       if(npol.eq.0) then
         write(fgw,*) "The input npol == 0: use default npol setup"
         if(iopac.eq.1) then
@@ -260,6 +248,8 @@
 !
 !     Read the options for the mixed basis functions
 !
+      if (.not.associated(input%gw%MixBasis)) &
+     &  input%gw%MixBasis => getstructmixbasis(emptynode)
       write(fgw,*) 'Mixed basis parameters:'
       write(fgw,*) '- Interstitial:'
       write(fgw,*) '  -- maximum |G| of IPW in gmaxvr units (gmb):', input%gw%MixBasis%gmb
@@ -270,15 +260,11 @@
 !      
 !     Read the parameters for the Bare coulomb potential
 !      
-      if(associated(input%gw%BareCoul)) then
-        pwm = input%gw%BareCoul%pwm
-        stctol = input%gw%BareCoul%stctol
-        barcevtol=input%gw%BareCoul%barcevtol
-      else
-        pwm=2.0
-        stctol=1.0d-10
-        barcevtol=-1.0d-10
-      endif 
+      if (.not.associated(input%gw%BareCoul)) &
+     &  input%gw%BareCoul => getstructbarecoul(emptynode)
+      pwm = input%gw%BareCoul%pwm
+      stctol = input%gw%BareCoul%stctol
+      barcevtol=input%gw%BareCoul%barcevtol
       write(fgw,*) 'Bare Coulomb parameters:'
       write(fgw,*) 'Maximum |G| in gmaxvr*gmb units:', pwm
       write(fgw,*) 'Error tolerance for struct. const.:', stctol
