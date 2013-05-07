@@ -1,7 +1,4 @@
 !
-!
-!
-!
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -10,17 +7,16 @@
 ! !ROUTINE: plot3d
 ! !INTERFACE:
 !
-!
 Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
 ! !USES:
-      use modplotlabels
-      Use modinput
-      use mod_muffin_tin
-      use mod_atoms
-      use mod_Gvector
-      Use FoX_wxml
-      use modmpi
-
+    use modplotlabels
+    use modinput
+    use mod_muffin_tin
+    use mod_atoms
+    use mod_Gvector
+    use FoX_wxml
+    use modmpi
+!
 ! !INPUT/OUTPUT PARAMETERS:
 !   plotlabels : plot file number (in,integer)
 !   nf   : number of functions (in,integer)
@@ -36,185 +32,169 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
 !   Modified, October 2008 (F. Bultmark, F. Cricchio, L. Nordstrom)
-!   Modified, February 2011 (D. Nabok) 
+!   Modified, February 2011 (D. Nabok)
+!   Bug fixing, May 2012 (DIN)
 !EOP
 !BOC
-      Implicit None
+    Implicit None
 ! arguments
-      type(plotlabels), Intent (In) :: plotlabels3d
-      Integer, Intent (In) :: nf
-      Integer, Intent (In) :: lmax
-      Integer, Intent (In) :: ld
-      Real (8), Intent (In) :: rfmt (ld, nrmtmax, natmtot, nf)
-      Real (8), Intent (In) :: rfir (ngrtot, nf)
-      Type (plot3d_type), Intent (In) :: plotdef
+    type(plotlabels), Intent (In) :: plotlabels3d
+    Integer, Intent (In) :: nf
+    Integer, Intent (In) :: lmax
+    Integer, Intent (In) :: ld
+    Real (8), Intent (In) :: rfmt (ld, nrmtmax, natmtot, nf)
+    Real (8), Intent (In) :: rfir (ngrtot, nf)
+    Type (plot3d_type), Intent (In) :: plotdef
 ! local variables
-      Integer :: np, ip, ip1, ip2, ip3, i, ifunction 
-      Real (8) :: v1 (3), v2 (3), v3 (3),tmpv(3)
-      Real (8) :: t1, t2, t3
-      Character (512) :: buffer, buffer1
-      Character (20) :: buffer20
-      Type (xmlf_t), Save :: xf
+    Integer :: np, ip1, ip2, ip3, i, ifunction 
+    Real (8) :: tmpv(3)
+    Character (512) :: buffer
+    Character (20) :: buffer20
+    Type (xmlf_t), Save :: xf
 ! allocatable arrays
-      Real (8) :: boxl (3, 4)
-      Integer :: npt
-      Integer,  Allocatable :: ipmap (:,:,:)
-      Integer,  Allocatable :: ivp (:,:)
-      Real (8), Allocatable :: vpl (:,:)
-      Real (8), Allocatable :: vpc (:,:)
-      Real (8), Allocatable :: wpt (:)
-      Real (8), Allocatable :: fp (:, :)
-!
-!
- If (rank .Eq. 0) Then
-      If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
-         Write (*,*)
-         Write (*, '("Error(plot3d): invalid number of functions : ", I&
-        &8)') nf
-         Write (*,*)
-         Stop
-      End If
+    Integer,  Allocatable :: ipmap (:,:,:)
+    Real (8), Allocatable :: vpl (:,:)
+    Real (8), Allocatable :: fp (:, :)
+
+!-------------------------------------------------------------------------------
+
+    If (rank .Eq. 0) Then
+      
+        If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
+            Write(*,*)
+            Write(*,'("Error(plot3d): invalid number of functions : ", I8)') nf
+            Write(*,*)
+            Stop
+        End If
 !
 ! allocate the grid point arrays
 !
-      Allocate (ipmap(0:plotdef%box%grid(1), &
-                    & 0:plotdef%box%grid(2), &
-                    & 0:plotdef%box%grid(3)))
-      Allocate (vpl(3, &
-     & (plotdef%box%grid(1)+1)*(plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
+        allocate(ipmap(0:plotdef%box%grid(1),&
+       &  0:plotdef%box%grid(2), 0:plotdef%box%grid(3)))
+        allocate(vpl(3,(plotdef%box%grid(1)+1)* &
+       &  (plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
 !
 ! generate the 3d point grid and reduce it using the crystal symmetry
 !
-      Call gengrid (plotdef%box%grid, np, ipmap, vpl)
+        call gengrid(plotdef%box%grid,np,ipmap,vpl)
 !      
 ! evaluate the total density at the reduced grid points
 !
-      Allocate (fp(np,nf))
-      Do i = 1, nf
-         Call rfarray (lmax, ld, rfmt(:, :, :, i), rfir(:, i), np, vpl, &
-        & fp(:, i))
-      End Do
+        allocate (fp(np,nf))
+        do i = 1, nf
+            call rfarray(lmax, ld, rfmt(:, :, :, i), rfir(:, i), np, vpl, fp(:, i))
+        end do
 !
 ! write xml
 !
-      write (buffer,*) plotlabels3d%filename,"3D.xml"
-      Call xml_OpenFile ( adjustl(trim(buffer)) , xf, replace=.True., pretty_print=.True.)
-      Call xml_NewElement (xf, "plot3d")
-      Call xml_NewElement (xf, "title")
-      Call xml_AddCharacters (xf, trim(input%title))
-      Call xml_endElement (xf, "title")
-      Call xml_NewElement (xf, "grid")
-      Write (buffer, '(3I6)') plotdef%box%grid(1)+1, &
-                            & plotdef%box%grid(2)+1, &
-                            & plotdef%box%grid(3)+1
-      Call xml_AddAttribute (xf, "gridticks", trim(adjustl(buffer)))
-      Write (buffer, '(3F12.3)') plotdef%box%origin%coord
-      Call xml_AddAttribute (xf, "origin", trim(adjustl(buffer)))
-      !write x axis description
-       call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3,&
-      plotdef%box%origin%coord,1,0.d0,tmpv(1),1)
-      Write (buffer, '(3F12.3)') tmpv
-      Call xml_AddAttribute (xf, "originrs", trim(adjustl(buffer)))
-      Call xml_NewElement (xf, "axis")
-      Call xml_AddAttribute (xf, "name", "a")
-              Call xml_AddAttribute (xf, "label", get_label(plotlabels3d,1))
-     Call xml_AddAttribute (xf, "latexunit", get_latexunit(plotlabels3d,1))
-     Call xml_AddAttribute (xf, "graceunit", get_graceunit(plotlabels3d,1))
-      Write (buffer, '(3F12.3)') plotdef%box%pointarray(1)%point%coord
-      Call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
-      Write (buffer, '(3F12.3)') &
-     & (plotdef%box%pointarray(1)%point%coord-plotdef%box%origin%coord) &
-     & / plotdef%box%grid(1)
-      Call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
-      call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3,&
-      plotdef%box%pointarray(1)%point%coord,1,0.d0,tmpv(1),1)
-      Write (buffer, '(3F12.3)') tmpv
-      Call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
-      Call xml_endElement (xf, "axis")
-      !write y axis description
-      Call xml_NewElement (xf, "axis")
-      Call xml_AddAttribute (xf, "name", "b")
-              Call xml_AddAttribute (xf, "label", get_label(plotlabels3d,2))
-     Call xml_AddAttribute (xf, "larexunit", get_latexunit(plotlabels3d,2))
-      Call xml_AddAttribute (xf, "graceunit", get_graceunit(plotlabels3d,2))
-      Write (buffer, '(3F12.3)') plotdef%box%pointarray(2)%point%coord
-      Call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
-      Write (buffer, '(3F12.3)') &
-     & (plotdef%box%pointarray(2)%point%coord-plotdef%box%origin%coord) &
-     & / plotdef%box%grid(2)
-      Call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
-
-      call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3,&
-      plotdef%box%pointarray(2)%point%coord,1,0.d0,tmpv(1),1)
-      Write (buffer, '(3F12.3)') tmpv
-      Call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
-!
-      Call xml_endElement (xf, "axis")
-      !write z axis description
-      Call xml_NewElement (xf, "axis")
-      Call xml_AddAttribute (xf, "name", "c")
-              Call xml_AddAttribute (xf, "label", get_label(plotlabels3d,3))
-     Call xml_AddAttribute (xf, "latexunit", get_latexunit(plotlabels3d,3))
-       Call xml_AddAttribute (xf, "graceunit", get_graceunit(plotlabels3d,3))
-      Write (buffer, '(3F12.3)') plotdef%box%pointarray(3)%point%coord
-      Call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
-      Write (buffer, '(3F12.3)') &
-     & (plotdef%box%pointarray(3)%point%coord-plotdef%box%origin%coord) &
-     & / plotdef%box%grid(3)
-      Call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
-       call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3,&
-      plotdef%box%pointarray(3)%point%coord,1,0.d0,tmpv(1),1)
-      Write (buffer, '(3F12.3)') tmpv
-      Call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
-!
-      Call xml_endElement (xf, "axis")
-       Call xml_NewElement (xf,"value")
-               Call xml_AddAttribute (xf, "label", get_label(plotlabels3d,4))
-     Call xml_AddAttribute (xf, "latexunit", get_latexunit(plotlabels3d,4))
-     Call xml_AddAttribute (xf, "graceunit", get_graceunit(plotlabels3d,4))
-       Call xml_endElement (xf,"value")
-      Call xml_endElement (xf, "grid")
-!
+        write (buffer,*) plotlabels3d%filename,".xml"
+        call xml_OpenFile( adjustl(trim(buffer)) , xf, replace=.True., pretty_print=.True.)
+        call xml_NewElement(xf, "plot3d")
+        call xml_NewElement(xf, "title")
+        call xml_AddCharacters(xf, trim(input%title))
+        call xml_endElement(xf, "title")
+        call xml_NewElement(xf, "grid")
+        write (buffer,'(3I6)') plotdef%box%grid(1)+1, &
+       &  plotdef%box%grid(2)+1, plotdef%box%grid(3)+1
+        call xml_AddAttribute(xf, "gridticks", trim(adjustl(buffer)))
+        write (buffer,'(3F12.3)') plotdef%box%origin%coord
+        call xml_AddAttribute(xf, "origin", trim(adjustl(buffer)))
+! write x axis description
+        call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3, &
+       &  plotdef%box%origin%coord,1,0.d0,tmpv(1),1)
+        write(buffer,'(3F12.3)') tmpv
+        call xml_AddAttribute(xf, "originrs", trim(adjustl(buffer)))
+        call xml_NewElement(xf, "axis")
+        call xml_AddAttribute(xf, "name", "a")
+        call xml_AddAttribute(xf, "label", get_label(plotlabels3d,1))
+        call xml_AddAttribute (xf, "latexunit", get_latexunit(plotlabels3d,1))
+        call xml_AddAttribute (xf, "graceunit", get_graceunit(plotlabels3d,1))
+        write(buffer,'(3F12.3)') plotdef%box%pointarray(1)%point%coord
+        call xml_AddAttribute(xf, "endpoint", trim(adjustl(buffer)))
+        write(buffer,'(3F12.3)') &
+       &  (plotdef%box%pointarray(1)%point%coord-plotdef%box%origin%coord)/ &
+       &  plotdef%box%grid(1)
+        call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
+        call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3, &
+       &  plotdef%box%pointarray(1)%point%coord,1,0.d0,tmpv(1),1)
+        write (buffer,'(3F12.3)') tmpv
+        call xml_AddAttribute(xf, "endpointrs", trim(adjustl(buffer)))
+        call xml_endElement(xf, "axis")
+! write y axis description
+        call xml_NewElement(xf, "axis")
+        call xml_AddAttribute(xf, "name", "b")
+        call xml_AddAttribute(xf, "label", get_label(plotlabels3d,2))
+        call xml_AddAttribute(xf, "latexunit", get_latexunit(plotlabels3d,2))
+        call xml_AddAttribute(xf, "graceunit", get_graceunit(plotlabels3d,2))
+        write (buffer,'(3F12.3)') plotdef%box%pointarray(2)%point%coord
+        call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
+        write (buffer,'(3F12.3)') &
+       &  (plotdef%box%pointarray(2)%point%coord-plotdef%box%origin%coord)/ &
+       &  plotdef%box%grid(2)
+        call xml_AddAttribute(xf, "delta", trim(adjustl(buffer)))
+        call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3, &
+       &  plotdef%box%pointarray(2)%point%coord,1,0.d0,tmpv(1),1)
+        write(buffer, '(3F12.3)') tmpv
+        call xml_AddAttribute(xf, "endpointrs", trim(adjustl(buffer)))
+        call xml_endElement(xf, "axis")
+! write z axis description
+        call xml_NewElement(xf, "axis")
+        call xml_AddAttribute(xf, "name", "c")
+        call xml_AddAttribute(xf, "label", get_label(plotlabels3d,3))
+        call xml_AddAttribute(xf, "latexunit", get_latexunit(plotlabels3d,3))
+        call xml_AddAttribute(xf, "graceunit", get_graceunit(plotlabels3d,3))
+        write(buffer,'(3F12.3)') plotdef%box%pointarray(3)%point%coord
+        call xml_AddAttribute(xf, "endpoint", trim(adjustl(buffer)))
+        write(buffer, '(3F12.3)') &
+       &  (plotdef%box%pointarray(3)%point%coord-plotdef%box%origin%coord)/ &
+       &  plotdef%box%grid(3)
+        call xml_AddAttribute(xf, "delta", trim(adjustl(buffer)))
+        call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3, &
+       &  plotdef%box%pointarray(3)%point%coord,1,0.d0,tmpv(1),1)
+        write (buffer, '(3F12.3)') tmpv
+        call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
+        call xml_endElement(xf, "axis")
 !
 ! write functions to file
-      Do ifunction = 1, nf
-         Call xml_NewElement (xf, "function")
-         Write (buffer20, '(I14)') np
-         Call xml_AddAttribute (xf, "n", trim(adjustl(buffer20)))
-         Do ip3 = 0, plotdef%box%grid(3)
-            Call xml_NewElement (xf, "row")
-            Call xml_AddAttribute (xf, "const", "c")
-            Write (buffer20, '(I14)') ip3
-            Call xml_AddAttribute (xf, "index", &
-           & trim(adjustl(buffer20)))
-             Do ip2 = 0, plotdef%box%grid(2)
-               Call xml_NewElement (xf, "row")
-               Call xml_AddAttribute (xf, "const", "b")
-               Write (buffer20, '(I14)') ip2
-               Call xml_AddAttribute (xf, "index", &
-              & trim(adjustl(buffer20)))
-               Do ip1 = 0, plotdef%box%grid(1)
-                  Write (buffer20, '(6G18.10)') fp (ipmap(ip1,ip2,ip3), ifunction)
-                  Call xml_AddCharacters (xf, buffer20)
-               End Do
-               Call xml_endElement (xf, "row")
-            End Do
-            Call xml_endElement (xf, "row")
-         End Do
-!
-         Call xml_NewElement (xf, "function")
-      End Do
-!
-!
-      Deallocate (vpl, fp)
-      Deallocate (ipmap)
-      Call xml_Close (xf)
+!        
+        call xml_NewElement(xf,"value")
+        call xml_AddAttribute(xf, "label", get_label(plotlabels3d,4))
+        call xml_AddAttribute(xf, "latexunit", get_latexunit(plotlabels3d,4))
+        call xml_AddAttribute(xf, "graceunit", get_graceunit(plotlabels3d,4))
+        call xml_endElement(xf,"value")
+        call xml_endElement(xf, "grid")
+        do ifunction = 1, nf
+            call xml_NewElement(xf, "function")
+            write(buffer20,'(I14)') np
+            call xml_AddAttribute(xf, "n", trim(adjustl(buffer20)))
+            do ip3 = 0, plotdef%box%grid(3)
+                call xml_NewElement(xf, "row")
+                call xml_AddAttribute(xf, "const", "c")
+                write(buffer20,'(I14)') ip3
+                call xml_AddAttribute(xf, "index", trim(adjustl(buffer20)))
+                do ip2 = 0, plotdef%box%grid(2)
+                    call xml_NewElement(xf, "row")
+                    call xml_AddAttribute(xf, "const", "b")
+                    write(buffer20,'(I14)') ip2
+                    call xml_AddAttribute(xf, "index", trim(adjustl(buffer20)))
+                    do ip1 = 0, plotdef%box%grid(1)
+                        write(buffer20,'(6G18.10)') fp(ipmap(ip1,ip2,ip3),ifunction)
+                        call xml_AddCharacters(xf, buffer20)
+                    end do
+                    call xml_endElement(xf, "row")
+                end do
+                call xml_endElement(xf, "row")
+            end do
+            call xml_NewElement(xf, "function")
+        end do
+
+        deallocate(vpl, fp)
+        deallocate(ipmap)
+        call xml_Close(xf)
       
-      endif
-      Return
-
+    endif
+    
 CONTAINS
-
 !
 !==================================================================
 !
@@ -229,13 +209,11 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
 ! arguments
       Integer, Intent (In)  :: ngridp(3)
       Integer, Intent (Out) :: npt
-      Integer, Intent (Out) :: ipmap(0:ngridp(1), &
-                                   & 0:ngridp(2), 0:ngridp(3))
-      Real (8), Intent (Out) :: vpl(3,(ngridp(1)+1)* &
-                                   &  (ngridp(2)+1)*(ngridp(3)+1))
+      Integer, Intent (Out) :: ipmap(0:ngridp(1), 0:ngridp(2), 0:ngridp(3))
+      Real (8), Intent (Out) :: vpl(3,(ngridp(1)+1)*(ngridp(2)+1)*(ngridp(3)+1))
 ! local variables
-      Integer :: i1, i2, i3, ip, jp, i
-      Integer :: isym, lspl, ilspl, iv (3)
+      Integer :: i1, i2, i3, ip, jp
+      Integer :: isym, lspl
       Real (8) :: v1(3), v2(3), v3(3)
       Real (8) :: s(3,3), t1
 
