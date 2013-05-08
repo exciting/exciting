@@ -115,26 +115,12 @@ Subroutine propertylauncher
       End If
 
 ! calculate and print the momentum matrix elements
-      
       If (associated(input%properties%momentummatrix)) Then
          call rereadinput
          Call writepmat
       End If
 
-! properties which depend on the ground state and/or on the outputs of other properties
-
-      If (associated(input%properties%dielectric) .And. rank .Eq. 0) Then
-         call rereadinput
-         ! set the default values if dos element not present
-         if (.not.associated(input%properties%dos)) &
-           input%properties%dos => getstructdos (emptynode)
-         ! this task depends on the results triggered by
-         ! "input%properties%momentummatrix"
-         task = 121
-         Call dielectric
-      End If
-
-! New version of the IP-RPA dielectric tensor      
+! IP-RPA dielectric tensor      
       If (associated(input%properties%dielmat)) Then
          call rereadinput
          call dielmat

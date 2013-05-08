@@ -1,6 +1,5 @@
 !
 subroutine dielmat
-    
     use modmain
     use modinput
     use modmpi
@@ -11,8 +10,8 @@ subroutine dielmat
     integer :: ik, jk, isym
     integer :: ist, jst, iw
     integer :: recl, iostat
-    logical :: exist, intraband
-    real(8) :: wplas, swidth, eta0, eta1, eji, t1
+    logical :: exist, intraband, drude
+    real(8) :: wplas, swidth, eta0, eta1, eji, t1, t2
     real(8) :: v1 (3), v2 (3), sc(3,3)
     complex(8) :: zt1, zt2
     character(256) :: fname
@@ -29,6 +28,8 @@ subroutine dielmat
 ! external functions
     real(8) sdelta
 
+    type(Node), pointer :: np
+    
 ! initialise universal variables
     call init0
     call init1
@@ -48,18 +49,33 @@ subroutine dielmat
         w(iw) = t1*dble(iw-1)
     End Do
 
-! input%properties%dielmat%scissor   
+! if element "drude" present, use the specified parameters for the Drude term 
+! instead of calculating the plasma frequency
+    drude = .false.
+    if (input%properties%dielmat%intraband) then
+        ! if omega_p is different from default (negative) value
+        if (input%properties%dielmat%drude(1)>1.d-8) then
+            drude = .true.
+            if (rank==0) then
+                write(*,*) 
+                write(*,*) 'WARNING(dielmat): Specified Drude model parameters:'
+                write(*,*) '     plasma frequency: ', input%properties%dielmat%drude(1)
+                write(*,*) '  lifetime broadening: ', input%properties%dielmat%drude(2)
+            end if
+        end if
+    end if
+
+! input%properties%dielmat%scissor
     scissor = input%properties%dielmat%scissor
 
 ! smearing factor
     swidth = input%properties%dielmat%swidth
 
 ! finite lifetime broadening to mimic the experimental resolution
+! chosen according to PRB86, 125139 (2012)
     allocate(eta(wgrid))
-    eta0 = 0.3/h2ev
-    eta1 = 0.03/h2ev
     do iw = 1, wgrid
-        eta(iw) = cmplx(0.d0,eta0+eta1*w(iw))
+        eta(iw) = cmplx(0.d0,swidth+0.1*swidth*w(iw))
     end do
 
 ! check for presence of the calculated momentum matrix elements
@@ -128,10 +144,10 @@ subroutine dielmat
         
         a = epscomp(1,l)
         b = epscomp(2,l)
-        
-        ! intraband contribution (for metallic cases)
-        intraband = (input%properties%dielmat%intraband .and. (a==b))
 
+! flag for calculating the intraband term
+        intraband = input%properties%dielmat%intraband .and. (a==b)
+        
         sigma(:) = zzero
         wplas = 0.0d0
 
@@ -165,11 +181,11 @@ subroutine dielmat
 !--------------------------
 ! PLASMA FREQUENCY
 !--------------------------
-            if (intraband) then
+            if (intraband.and.(.not.drude)) then
                 do ist = 1, nstsv
                     zt1 = occsvt(ist)*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
-                    t1 = (evalsvt(ist)-efermi)/swidth
-                    wplas = wplas+dble(zt1)*sdelta(0,t1)/swidth
+                    t1 = (evalsvt(ist)-efermi)/input%groundstate%swidth
+                    wplas = wplas+dble(zt1)*sdelta(0,t1)/input%groundstate%swidth
                 end do
             end if
 
@@ -227,21 +243,31 @@ subroutine dielmat
         call barrier    
 
         if (intraband) then
-            zt1 = fourpi/(omega*dble(nkptnr))
-            wplas = zt1*dabs(wplas)
-! write the plasma frequency to file
-            if (rank==0) then
-                write(fname, '("PLASMA_", 2I1, ".OUT")') a, b
-                write(*, '("  Plasma frequency written to ", a)') trim(adjustl(fname))
-                open(60, File=trim(fname), Action='WRITE', Form='FORMATTED')
-                write(60, '(G18.10, " : plasma frequency")') sqrt(wplas)
-                close(60)
+            if (drude) then
+! use specified parameters for Drude term
+                zt1 = zi/fourpi
+                do iw = 1, wgrid
+                    t1 = input%properties%dielmat%drude(1)
+                    t2 = input%properties%dielmat%drude(2)
+                    sigma(iw) = sigma(iw)+zt1*t1*t1/(w(iw)+zi*t2)
+                end do
+            else
+! use the calculated plasma frequency            
+                zt1 = fourpi/(omega*dble(nkptnr))
+                wplas = zt1*dabs(wplas)
+                if (rank==0) then
+                    write(fname, '("PLASMA_", 2I1, ".OUT")') a, b
+                    write(*, '("  Plasma frequency written to ", a)') trim(adjustl(fname))
+                    open(60, File=trim(fname), Action='WRITE', Form='FORMATTED')
+                    write(60, '(G18.10, " : plasma frequency")') sqrt(wplas)
+                    close(60)
+                end if
+! add the intraband term
+                zt1 = zi/fourpi
+                do iw = 1, wgrid
+                    sigma(iw) = sigma(iw)+zt1*wplas/(w(iw)+eta(iw))
+                end do
             end if
-! add the intraband term (Drude-like)
-            zt1 = zi/fourpi
-            do iw = 1, wgrid
-                sigma(iw) = sigma(iw)+zt1*wplas/(w(iw)+zi*swidth)
-            end do
         end if
      
         if (rank==0) then

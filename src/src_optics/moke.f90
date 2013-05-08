@@ -26,6 +26,7 @@ subroutine moke
     input%properties%dielmat%wmax = input%properties%moke%wmax
     input%properties%dielmat%scissor = input%properties%moke%scissor
     input%properties%dielmat%swidth = input%properties%moke%swidth
+    input%properties%dielmat%drude = input%properties%moke%drude
 
 ! for MOKE only two optical components required
     deallocate(input%properties%dielmat%epscomp)

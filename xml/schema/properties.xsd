@@ -333,94 +333,6 @@
         <xs:element ex:importance="expert" ex:unit="" name="mossbauer" minOccurs="0">
           <xs:complexType/>
         </xs:element>
-        <xs:element ex:importance="expert" ex:unit="" name="momentummatrix" maxOccurs="1"
-          minOccurs="0">
-          <xs:annotation>
-            <xs:documentation>Matrix elements of the momentum operator (legacy version, required by
-              dielectric-element).</xs:documentation>
-            <xs:appinfo>
-              <oldname>noname</oldname>
-            </xs:appinfo>
-          </xs:annotation>
-          <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat" default="false">
-              <xs:annotation>
-                <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu,
-                  Phys. Rev. B 48, 4250 (1993)</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-          </xs:complexType>
-        </xs:element>
-        <xs:element ex:importance="expert" ex:unit="" name="dielectric" minOccurs="0" maxOccurs="1">
-          <xs:annotation>
-            <xs:documentation>Linear optical response (without local field effects, legacy
-              version).</xs:documentation>
-            <xs:appinfo>
-              <oldname>noname</oldname>
-            </xs:appinfo>
-          </xs:annotation>
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element ex:importance="expert" ex:unit="" name="optcomp" type="integertriple"
-                default="1 1 1" maxOccurs="27">
-                <xs:annotation>
-                  <xs:documentation>The components of the first- or second-order optical tensor to
-                    be calculated.</xs:documentation>
-                </xs:annotation>
-              </xs:element>
-            </xs:sequence>
-            <xs:attribute ex:importance="expert" ex:unit="Hartree" ref="scissor" default="0.0d0"/>
-            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
-              <xs:annotation>
-                <xs:documentation> The intraband attribute is <pre>"true"</pre> if the intraband
-                  term is to be added to the optical matrix (q=0) </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="usegdft" type="xs:boolean"
-              default="false">
-              <xs:annotation>
-                <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu,
-                  Phys. Rev. B 48, 4250 (1993)</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-          </xs:complexType>
-        </xs:element>
-
-        <xs:element ex:importance="expert" ex:unit="" name="moke" minOccurs="0">
-          <xs:complexType>
-
-            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="true">
-              <xs:annotation>
-                <xs:documentation> Use the intraband term in calculations if the dielectric matrix.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            
-            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.15">
-              <xs:annotation>
-                <xs:documentation>Upper energy limit for the Kerr angle calculation.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            
-            <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="200">
-              <xs:annotation>
-                <xs:documentation>Number of grid points inside [0,wmax] interval.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.01d0">
-              <xs:annotation>
-                <xs:documentation>Broadening factor.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            
-            <xs:attribute ex:importance="expert" ex:unit="" name="scissor" type="fortrandouble" default="0.0d0">
-              <xs:annotation>
-                <xs:documentation>Scissors operator.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            
-          </xs:complexType>
-        </xs:element>
 
         <xs:element ex:importance="expert" ex:unit="" name="expiqr" minOccurs="0">
           <xs:complexType>
@@ -461,16 +373,136 @@
           </xs:complexType>
         </xs:element>
         
+        <xs:element ex:importance="expert" ex:unit="" name="momentummatrix" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>
+              Generate matrix elements of the momentum operator and store them in PMAT.OUT.
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat" default="false">
+              <xs:annotation>
+                <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu,
+                  Phys. Rev. B 48, 4250 (1993)</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ex:importance="expert" ex:unit="" name="dielmat" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>
+              Calculate the dielectric tensor in IP-RPA (without local-field effect) for q=0.
+            </xs:documentation>
+          </xs:annotation>          
+          <xs:complexType>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.30">
+              <xs:annotation>
+                <xs:documentation>Upper energy limit for the dielectric matrix calculations.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="400">
+              <xs:annotation>
+                <xs:documentation>Number of grid points inside [0,wmax] interval.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.01d0">
+              <xs:annotation>
+                <xs:documentation>Broadening factor to fit the experimental resolution.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="scissor" type="fortrandouble" default="0.0d0">
+              <xs:annotation>
+                <xs:documentation>Value of the "scissor" correction.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
+              <xs:annotation>
+                <xs:documentation> The intraband attribute is <pre>"true"</pre> if the intraband
+                  term is to be added to the optical matrix.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>            
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="drude" type="vect2d" default="0.0d0 0.0d0">
+              <xs:annotation>
+                  <xs:documentation>
+                  Parameters for the Drude term used for calculating the intraband contribution:
+                  First value determines the plasma frequency, second - the lifetime broadening.
+                  </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:sequence>
+              <xs:element ex:importance="expert" ex:unit="" name="epscomp" type="integerpair" minOccurs="0" maxOccurs="9">
+                <xs:annotation>
+                  <xs:documentation>Components of the dielectric tensor to be calculated.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+            </xs:sequence>
+
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ex:importance="expert" ex:unit="" name="moke" maxOccurs="1">
+          <xs:complexType>
+
+            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="true">
+              <xs:annotation>
+                <xs:documentation> Use the intraband term in calculations if the dielectric matrix.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.30">
+              <xs:annotation>
+                <xs:documentation>Upper energy limit for the Kerr angle calculation.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="400">
+              <xs:annotation>
+                <xs:documentation>Number of grid points inside [0,wmax] interval.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.01d0">
+              <xs:annotation>
+                <xs:documentation>Broadening factor.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="scissor" type="fortrandouble" default="0.0d0">
+              <xs:annotation>
+                <xs:documentation>Scissors operator.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="drude" type="vect2d" default="0.0d0 0.0d0">
+              <xs:annotation>
+                  <xs:documentation>
+                  Parameters for the Drude term used for calculating the intraband contribution:
+                  First value determines the plasma frequency, second - the lifetime broadening.
+                  </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+          </xs:complexType>
+        </xs:element>        
+
         <xs:element ex:importance="expert" ex:unit="" name="nlo" minOccurs="0">
           <xs:complexType>
             
-            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.5">
+            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.3">
               <xs:annotation>
                 <xs:documentation>Upper energy limit for SHG calculations.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             
-            <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="100">
+            <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="400">
               <xs:annotation>
                 <xs:documentation>Number of grid points inside [0,emax] interval.</xs:documentation>
               </xs:annotation>
@@ -500,51 +532,6 @@
                 <xs:annotation>
                   <xs:documentation>The components of the second-order optical tensor Chi(-2w,w,w) to
                     be calculated.</xs:documentation>
-                </xs:annotation>
-              </xs:element>
-            </xs:sequence>
-
-          </xs:complexType>
-        </xs:element>
-
-        <xs:element ex:importance="expert" ex:unit="" name="dielmat" minOccurs="0">
-          <xs:complexType>
-          
-            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
-              <xs:annotation>
-                <xs:documentation> The intraband attribute is <pre>"true"</pre> if the intraband
-                  term is to be added to the optical matrix (q=0) </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            
-            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.15">
-              <xs:annotation>
-                <xs:documentation>Upper energy limit for the dielectric matrix calculations.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            
-            <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="200">
-              <xs:annotation>
-                <xs:documentation>Number of grid points inside [0,wmax] interval.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.01d0">
-              <xs:annotation>
-                <xs:documentation>Broadening factor.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            
-            <xs:attribute ex:importance="expert" ex:unit="" name="scissor" type="fortrandouble" default="0.0d0">
-              <xs:annotation>
-                <xs:documentation>Scissors operator.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:sequence>
-              <xs:element ex:importance="expert" ex:unit="" name="epscomp" type="integerpair" minOccurs="0" maxOccurs="9">
-                <xs:annotation>
-                  <xs:documentation>Components of the dielectric tensor to be calculated.</xs:documentation>
                 </xs:annotation>
               </xs:element>
             </xs:sequence>
