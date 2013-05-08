@@ -5,7 +5,7 @@
 
 Subroutine groundstatetasklauncher
     Use modinput
-    Use modmain, Only: task
+    Use modmain, Only: task,xctype
     Use inputdom
     use modmpi
     Implicit None
@@ -17,6 +17,12 @@ Subroutine groundstatetasklauncher
         ! set the default values if tddft element not present
         input%groundstate%solver => getstructsolver (emptynode)
     End If
+    If ((input%groundstate%xctypenumber .Lt. 0) .Or. &
+   &    (xctype(2) .Ge. 400) .Or. (xctype(1) .Ge. 400)) then
+        If (.not.associated(input%groundstate%OEP)) Then
+           input%groundstate%OEP => getstructOEP (emptynode)
+        End If 
+    End If            
     If (input%groundstate%do .Eq. "fromscratch") Then
         If (associated(input%structureoptimization)) Then
             task = 2

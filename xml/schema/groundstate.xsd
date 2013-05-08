@@ -2287,7 +2287,6 @@
               <li> EXX, Exact Exchange, <it>Phys. Rev. Lett.</it>
                 <bf>95</bf>, 136402 (2005) </li>
             </list>
-		If EXX is chosen, the element <elementref>OEP</elementref> has to be specified.
           </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
