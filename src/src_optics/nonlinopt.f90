@@ -35,10 +35,10 @@ subroutine nonlinopt(a,b,c)
     integer :: wgrid
     
 ! smallest eigenvalue difference allowed in denominator
-    real(8) eji,eki,ekj,t1
-    complex(8) pii(3),dji(3),vji(3),vik(3),vkj(3)
-    complex(8) eta,ztm(3,3),zt1
-    character(256) fname
+    real(8)    :: eji,eki,ekj,t1,t2
+    complex(8) :: pii(3),dji(3),vji(3),vik(3),vkj(3)
+    complex(8) :: eta,ztm(3,3),zt1
+    character(256) :: fname
 
 ! allocatable arrays
     real(8), allocatable :: w(:)
@@ -266,6 +266,9 @@ subroutine nonlinopt(a,b,c)
 
     call barrier
     if (rank==0) then
+! output energy units
+        t1 = 1.0d0
+        if (input%properties%nlo%tevout) t1 = h2ev    
 ! write to files
         write(fname,'("CHI_INTER2w_",3I1,".OUT")') a,b,c
         open(51,file=trim(fname),action='WRITE',form='FORMATTED')
@@ -280,12 +283,12 @@ subroutine nonlinopt(a,b,c)
         write(fname,'("CHI_MODULE_",3I1,".OUT")') a,b,c
         open(56,file=trim(fname),action='WRITE',form='FORMATTED')
         do iw = 1, wgrid
-            write(51,'(3G18.10)') w(iw),dble(chi2w(iw,1))
-            write(52,'(3G18.10)') w(iw),dble(chi2w(iw,2))
-            write(53,'(3G18.10)') w(iw),dble(chiw(iw,1))
-            write(54,'(3G18.10)') w(iw),dble(chiw(iw,2))
-            t1=dble(chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3))
-            write(55,'(3G18.10)') w(iw),t1
+            write(51,'(3G18.10)') t1*w(iw), dble(chi2w(iw,1))
+            write(52,'(3G18.10)') t1*w(iw), dble(chi2w(iw,2))
+            write(53,'(3G18.10)') t1*w(iw), dble(chiw(iw,1))
+            write(54,'(3G18.10)') t1*w(iw), dble(chiw(iw,2))
+            t2 = dble(chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3))
+            write(55,'(3G18.10)') t1*w(iw), t2
         end do
         write(51,'("     ")')
         write(52,'("     ")')
@@ -297,12 +300,12 @@ subroutine nonlinopt(a,b,c)
             write(52,'(3G18.10)') w(iw),aimag(chi2w(iw,2))
             write(53,'(3G18.10)') w(iw),aimag(chiw(iw,1))
             write(54,'(3G18.10)') w(iw),aimag(chiw(iw,2))
-            t1=aimag(chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3))
-            write(55,'(3G18.10)') w(iw),t1
+            t1 = aimag(chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3))
+            write(55,'(3G18.10)') t1*w(iw), t2
         end do
         do iw = 1, wgrid
             zt1=chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3)
-            write(56,'(3G18.10)') w(iw),abs(zt1)
+            write(56,'(3G18.10)') t1*w(iw), abs(zt1)
         end do
         close(50); close(51); close(52); close(53); close(54); close(55); close(56)
         write(*,*)
@@ -312,6 +315,8 @@ subroutine nonlinopt(a,b,c)
         write(*,'(" intraband contributions written to CHI_INTRAx_abc.OUT")')
         write(*,'(" for components")')
         write(*,'("  a = ",I1,", b = ",I1,", c = ",I1)') a, b, c
+        if (input%properties%nlo%tevout) &
+       &  write(*, '(" Output energy is in eV")')
     end if
 
     deallocate(w,chiw,chi2w)

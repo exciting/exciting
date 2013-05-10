@@ -7,6 +7,7 @@ subroutine moke
 
 ! local variables
     integer :: iw, iostat
+    real(8) :: t1
     complex(8) :: exx, exy, zt1
     integer :: wgrid
 
@@ -16,7 +17,7 @@ subroutine moke
     real(8), allocatable :: eps12(:,:)
     complex(8), allocatable :: kerr(:)
 
-! initialize variable required for MOKE
+! initialization for DIELMAT
     if (.not.associated(input%properties%dielmat)) &
    &  input%properties%dielmat => getstructdielmat(emptynode)
     
@@ -27,6 +28,7 @@ subroutine moke
     input%properties%dielmat%scissor = input%properties%moke%scissor
     input%properties%dielmat%swidth = input%properties%moke%swidth
     input%properties%dielmat%drude = input%properties%moke%drude
+    input%properties%dielmat%tevout = .false.
 
 ! for MOKE only two optical components required
     deallocate(input%properties%dielmat%epscomp)
@@ -94,19 +96,25 @@ subroutine moke
             end if
         end do
 
+! output energy units
+        t1 = 1.0d0
+        if (input%properties%moke%tevout) t1 = h2ev
+
 ! output results
         open(50, File='KERR.OUT', Action='WRITE', Form='FORMATTED')
         do iw = 1, wgrid
-            write(50, '(2G18.10)') w(iw), dble(kerr(iw))*180.d0/pi
+            write(50, '(2G18.10)') t1*w(iw), dble(kerr(iw))*180.d0/pi
         end do
         write(50, *)
         do iw = 1, wgrid
-            write(50, '(2G18.10)') w(iw), aimag(kerr(iw))*180.d0/pi
+            write(50, '(2G18.10)') t1*w(iw), aimag(kerr(iw))*180.d0/pi
         end do
         close(50)
         write(*,*)
         write(*, '("Info(moke):")')
         write(*, '(" complex Kerr angle in degrees written to KERR.OUT")')
+        if (input%properties%moke%tevout) &
+       &  write(*, '(" Output energy is in eV")')
         write(*,*)
         
         deallocate(w, eps11, eps12, kerr)

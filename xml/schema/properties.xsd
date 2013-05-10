@@ -444,6 +444,12 @@
                 </xs:annotation>
               </xs:element>
             </xs:sequence>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation><pre>"true"</pre> if energy outputs are in eV.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>            
 
           </xs:complexType>
         </xs:element>
@@ -487,6 +493,12 @@
                   Parameters for the Drude term used for calculating the intraband contribution:
                   First value determines the plasma frequency, second - the lifetime broadening.
                   </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation><pre>"true"</pre> if energy outputs are in eV.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             
@@ -535,6 +547,12 @@
                 </xs:annotation>
               </xs:element>
             </xs:sequence>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation><pre>"true"</pre> if energy outputs are in eV.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
 
           </xs:complexType>
         </xs:element>

@@ -504,6 +504,7 @@ type dielmat_type
  real(8)::scissor
  logical::intraband
  real(8)::drude(2)
+ logical::tevout
  integer,pointer::epscomp(:,:)
 end type
 
@@ -515,6 +516,7 @@ type moke_type
  real(8)::swidth
  real(8)::scissor
  real(8)::drude(2)
+ logical::tevout
 end type
 
 type nlo_type
@@ -524,6 +526,7 @@ type nlo_type
  real(8)::swidth
  real(8)::scissor
  real(8)::etol
+ logical::tevout
  integer,pointer::chicomp(:,:)
 end type
 
@@ -3908,6 +3911,14 @@ if(associated(np)) then
        call removeAttribute(thisnode,"drude")  
 endif
 
+nullify(np)  
+np=>getAttributeNode(thisnode,"tevout")
+getstructdielmat%tevout=.false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"tevout",getstructdielmat%tevout)
+       call removeAttribute(thisnode,"tevout")  
+endif
+
       len= countChildEmentsWithName (thisnode,"epscomp")           
 allocate(getstructdielmat%epscomp(2,len))
 Do i=1,len
@@ -3985,6 +3996,14 @@ if(associated(np)) then
        call removeAttribute(thisnode,"drude")  
 endif
 
+nullify(np)  
+np=>getAttributeNode(thisnode,"tevout")
+getstructmoke%tevout=.false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"tevout",getstructmoke%tevout)
+       call removeAttribute(thisnode,"tevout")  
+endif
+
       i=0
       len=0
       
@@ -4043,6 +4062,14 @@ getstructnlo%etol=0.004d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"etol",getstructnlo%etol)
        call removeAttribute(thisnode,"etol")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"tevout")
+getstructnlo%tevout=.false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"tevout",getstructnlo%tevout)
+       call removeAttribute(thisnode,"tevout")  
 endif
 
       len= countChildEmentsWithName (thisnode,"chicomp")           

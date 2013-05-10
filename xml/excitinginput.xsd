@@ -2840,7 +2840,6 @@ gw.xsd
               <li> EXX, Exact Exchange, <it>Phys. Rev. Lett.</it>
                 <bf>95</bf>, 136402 (2005) </li>
             </list>
-		If EXX is chosen, the element <elementref>OEP</elementref> has to be specified.
           </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
@@ -3820,6 +3819,12 @@ gw.xsd
                 </xs:annotation>
               </xs:element>
             </xs:sequence>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation><pre>"true"</pre> if energy outputs are in eV.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>            
 
           </xs:complexType>
         </xs:element>
@@ -3863,6 +3868,12 @@ gw.xsd
                   Parameters for the Drude term used for calculating the intraband contribution:
                   First value determines the plasma frequency, second - the lifetime broadening.
                   </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation><pre>"true"</pre> if energy outputs are in eV.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             
@@ -3910,6 +3921,12 @@ gw.xsd
                 </xs:annotation>
               </xs:element>
             </xs:sequence>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation><pre>"true"</pre> if energy outputs are in eV.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
 
           </xs:complexType>
         </xs:element>

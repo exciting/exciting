@@ -11,7 +11,7 @@ subroutine dielmat
     integer :: ist, jst, iw
     integer :: recl, iostat
     logical :: exist, intraband, drude
-    real(8) :: wplas, swidth, eta0, eta1, eji, t1, t2
+    real(8) :: wplas, swidth, eji, t1, t2
     real(8) :: v1 (3), v2 (3), sc(3,3)
     complex(8) :: zt1, zt2
     character(256) :: fname
@@ -130,7 +130,6 @@ subroutine dielmat
         ncomp = 0
         do a = 1, 3
             do b = 1, 3
-                write(*,*) a, b, sum(abs(symt2(a,b,:,:)))
                 if (sum(abs(symt2(a,b,:,:)))>1.0d-8) then
                     ncomp = ncomp+1
                     epscomp(1,ncomp) = a
@@ -271,35 +270,50 @@ subroutine dielmat
         end if
      
         if (rank==0) then
+! output energy units
+            t1 = 1.0d0
+            if (input%properties%dielmat%tevout) t1 = h2ev
 ! write the optical conductivity
             write(fname, '("SIGMA_", 2I1, ".OUT")') a, b
-            write(*, '("  The optical conductivity tensor written to ", a)') trim(adjustl(fname))
+            write(*, '("  Optical conductivity tensor written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             do iw = 1, wgrid
-                write(60, '(2G18.10)') w(iw), dble(sigma(iw))
+                write(60, '(2G18.10)') t1*w(iw), dble(sigma(iw))
             end do
             write(60, '("     ")')
             do iw = 1, wgrid
-                write(60, '(2G18.10)') w(iw), aimag(sigma(iw))
+                write(60, '(2G18.10)') t1*w(iw), aimag(sigma(iw))
             end do
             close(60)
 ! write the dielectric function to file
             write(fname, '("EPSILON_", 2I1, ".OUT")') a, b
-            write(*, '("  The total dielectric tensor written to ", a)') trim(adjustl(fname))
+            write(*, '("  Dielectric tensor written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             zt1 = zi*fourpi
-            t1 = 0.0d0; if (a==b) t1 = 1.0d0
+            t2 = 0.0d0; if (a==b) t2 = 1.0d0
             do iw = 1, wgrid
-                zt2 = t1+zt1*sigma(iw)/(w(iw)+eta(iw))
-                write(60, '(2G18.10)') w(iw), dble(zt2)
+                zt2 = t2+zt1*sigma(iw)/(w(iw)+eta(iw))
+                write(60, '(2G18.10)') t1*w(iw), dble(zt2)
             end do
             write(60, '("     ")')
             do iw = 1, wgrid
                 zt2 = zt1*sigma(iw)/(w(iw)+eta(iw))
-                write(60, '(2G18.10)') w(iw), aimag(zt2)
+                write(60, '(2G18.10)') t1*w(iw), aimag(zt2)
             end do
             close(60)
-            write(*,*)        
+! write the EELS spectra
+            write(fname, '("LOSS_", 2I1, ".OUT")') a, b
+            write(*, '("  Electron energy loss spectrum written to ", a)') trim(adjustl(fname))
+            open(60, file=trim(fname), action='WRITE', form='FORMATTED')
+            zt1 = zi*fourpi
+            do iw = 1, wgrid
+                zt2 = zt1*sigma(iw)/(w(iw)+eta(iw))
+                write(60, '(2G18.10)') t1*w(iw), -aimag(1.0d0/zt2)
+            end do
+            close(60)
+            if (input%properties%dielmat%tevout) &
+           &  write(*, '(" Output energy is in eV")')
+            write(*,*)
         end if
     
     end do ! optical components
