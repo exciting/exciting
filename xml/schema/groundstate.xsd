@@ -221,7 +221,7 @@
           </xs:annotation>
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="maxitoep" type="xs:integer"
-              default="120">
+              default="300">
               <xs:annotation>
                 <xs:documentation>Maximum number of iterations when solving the exact exchange
                   integral equations.</xs:documentation>
@@ -236,6 +236,13 @@
                   the step length is set to tauoep(1). During subsequent iterations, the step
                   length is scaled by tauoep(2) or tauoep(3), when the residual is increasing or
                   decreasing, respectively. See also <attref>maxitoep</attref>. </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="convoep" type="fortrandouble"
+              default="1e-11">
+              <xs:annotation>
+                <xs:documentation>Convergence tolerance for OEP residue when solving the exact exchange
+                  integral equations.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
