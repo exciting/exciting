@@ -3002,6 +3002,33 @@ gw.xsd
             overlap matrix setup.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="ValenceRelativity" default="scalar">
+              <xs:annotation>
+                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for valence electrons.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="scalar"/>
+                  <xs:enumeration value="none"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="CoreRelativity" default="dirac">
+              <xs:annotation>
+                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for valence electrons.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="dirac"/>
+                  <xs:enumeration value="none"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+
       <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d" default="0.0d0 0.0d0 0.0d0">
         <xs:annotation>
           <xs:documentation>The <inlinemath>{\mathbf k}</inlinemath>-point offset vector in lattice coordinates.</xs:documentation>

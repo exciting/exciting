@@ -12,6 +12,7 @@
 !
 Subroutine rschroddme (m, l, k, e, np, nr, r, vr, nn, p0, p1, q0, q1)
 use mod_timing
+use modinput
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   l   : angular momentum quantum number (in,integer)
@@ -52,7 +53,7 @@ use mod_timing
       Integer :: im, kpa, ir
 ! fine-structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
-      Real (8) :: rm
+      Real (8) :: rm,rmfactor
 ! allocatable arrays
       Real (8), Allocatable :: p0p (:)
       Real (8), Allocatable :: g0 (:), g1 (:)
@@ -62,6 +63,11 @@ use mod_timing
       Real (8) ts0, ts1
 
       call timesec(ts0)
+      if (input%groundstate%ValenceRelativity.eq."scalar") then
+         rmfactor=1d0
+      else
+         rmfactor=0d0
+      endif
       If (nr .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(rschroddme): invalid nr : ", I8)') nr
@@ -78,12 +84,10 @@ use mod_timing
 ! use the scalar relativistic Schrodinger equation
          Allocate (p0p(nr))
          If (m .Eq. 0) Then
-            Call rschrodint (m, l, e, np, nr, r, vr, nn, p0p, p0, p1, &
-           & q0, q1)
+            Call rschrodint (m, l, e, np, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
          Else
             Do im = 0, m
-               Call rschrodint (im, l, e, np, nr, r, vr, nn, p0p, p0, &
-              & p1, q0, q1)
+               Call rschrodint (im, l, e, np, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
                p0p (:) = p0 (:)
             End Do
          End If

@@ -372,9 +372,15 @@ f_mi=g0(ir)
       End Do
       f0 (irm:nr) = 0.d0
 ! normalise
-      Do ir = 1, nr
-         fr (ir) = g0 (ir) ** 2 + f0 (ir) ** 2
-      End Do
+      if (dirac_eq) then
+        Do ir = 1, nr
+          fr (ir) = g0 (ir) ** 2 + f0 (ir) ** 2
+        End Do
+      else
+        Do ir = 1, nr
+          fr (ir) = g0 (ir) ** 2 
+        End Do
+      endif
       Call fderiv (-1, nr, r, fr, gr, cf)
       t1 = Sqrt (Abs(gr(nr)))
       If (t1 .Gt. 0.d0) Then

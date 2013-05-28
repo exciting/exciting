@@ -130,7 +130,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       ido = 0
       info = 0
       ishfts = 1
-      maxitr = 40 * nstfv
+      maxitr = 400 * nstfv
       mode = 3
       iparam (1) = ishfts
       iparam (3) = maxitr

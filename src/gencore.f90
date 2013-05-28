@@ -29,9 +29,14 @@ Subroutine gencore
 ! local variables
       Integer :: is, ia, ja, ias, jas, ist, ir
       Real (8) :: t1
+      logical dirac_eq
 ! automatic arrays
       Logical :: done (natmmax)
       Real (8) :: vr (spnrmax)
+      
+
+      dirac_eq=(input%groundstate%CoreRelativity.eq."dirac")
+     
       Do is = 1, nspecies
          done (:) = .False.
          Do ia = 1, natoms (is)
@@ -60,15 +65,22 @@ Subroutine gencore
                      Call rdirac (0,spn(ist, is), spl(ist, is), spk(ist, &
                     & is), input%groundstate%nprad, spnr(is), spr(:, &
                     & is), vr, evalcr(ist, ias), rwfcr(:, 1, ist, ias), &
-                    & rwfcr(:, 2, ist, ias),.true.)
+                    & rwfcr(:, 2, ist, ias),dirac_eq)
                      t1 = spocc (ist, is)
 !$OMP CRITICAL
-                     Do ir = 1, spnr (is)
+                     if (dirac_eq) then
+                       Do ir = 1, spnr (is)
 ! add to the core density
-                        rhocr (ir, ias) = rhocr (ir, ias) + t1 * &
-                       & (rwfcr(ir, 1, ist, ias)**2+rwfcr(ir, 2, ist, &
-                       & ias)**2)
-                     End Do
+                           rhocr (ir, ias) = rhocr (ir, ias) + t1 * &
+                         & (rwfcr(ir, 1, ist, ias)**2+rwfcr(ir, 2, ist, &
+                         & ias)**2)
+                       End Do
+                     else
+                       Do ir = 1, spnr (is)
+                           rhocr (ir, ias) = rhocr (ir, ias) + t1 * &
+                         & rwfcr(ir, 1, ist, ias)**2
+                       Enddo
+                     endif
 !$OMP END CRITICAL
                   End If
                End Do

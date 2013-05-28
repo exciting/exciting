@@ -14,6 +14,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
 & r, eval, rho, vr, rwf,mtnr)
 ! !USES:
       Use modxcifc
+      use modinput
 ! !INPUT/OUTPUT PARAMETERS:
 !   ptnucl : .true. if the nucleus is a point particle (in,logical)
 !   zn     : nuclear charge (in,real)
@@ -84,7 +85,9 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
       Real (8) energy
 ! dummy wavefunctions
       Real (8), Allocatable :: dwf1(:),dwf2(:),dwf3(:),dwf4(:)
+      logical dirac_eq
 
+      dirac_eq=(input%groundstate%CoreRelativity.eq."dirac")
       If (nst .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(atom): invalid nst : ", I8)') nst
@@ -141,17 +144,22 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
 !$OMP DO
          Do ist = 1, nst
             Call rdirac (0, n(ist), l(ist), k(ist), np, nr, r, vr, &
-           & eval(ist), rwf(:, 1, ist), rwf(:, 2, ist),.true.)
+           & eval(ist), rwf(:, 1, ist), rwf(:, 2, ist),dirac_eq)
          End Do
 !$OMP END DO
 !$OMP END PARALLEL
 ! compute the charge density
          Do ir = 1, nr
             sum = 0.d0
-            Do ist = 1, nst
-               sum = sum + occ (ist) * (rwf(ir, 1, ist)**2+rwf(ir, 2, &
-              & ist)**2)
-            End Do
+            if (dirac_eq) then
+              Do ist = 1, nst
+                 sum = sum + occ (ist) * (rwf(ir, 1, ist)**2+rwf(ir, 2, ist)**2)
+              End Do
+            else
+              Do ist = 1, nst
+                 sum = sum + occ (ist) * rwf(ir, 1, ist)**2
+              End Do
+            endif
             fr1 (ir) = sum
             fr2 (ir) = sum * ri (ir)
             rho (ir) = (1.d0/fourpi) * sum * ri (ir) ** 2
