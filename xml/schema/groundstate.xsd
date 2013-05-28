@@ -2454,7 +2454,7 @@
 
             <xs:attribute ex:importance="expert" ex:unit="" name="ValenceRelativity" default="scalar">
               <xs:annotation>
-                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for valence electrons.
+                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for valence electrons. Pick either "scalar" or "none".
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
@@ -2466,7 +2466,7 @@
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="CoreRelativity" default="dirac">
               <xs:annotation>
-                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for valence electrons.
+                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for core electrons. Pick either "dirac" or "sameasvalence".
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
