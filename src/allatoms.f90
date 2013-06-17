@@ -48,7 +48,7 @@ Subroutine allatoms
          Allocate (rwf(spnrmax, 2, spnstmax))
          Call atom (input%groundstate%ptnucl, spzn(is), spnst(is), &
         & spn(:, is), spl(:, is), spk(:, is), spocc(:, is), xctype_, &
-        & xcgrad_, input%groundstate%nprad, spnr(is), spr(:, is), &
+        & xcgrad_, spnr(is), spr(:, is), &
         & speval(:, is), sprho(:, is), spvr(:, is), rwf,nrmt(is))
          Deallocate (rwf)
       End Do

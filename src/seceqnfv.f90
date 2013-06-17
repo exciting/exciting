@@ -47,6 +47,8 @@ Subroutine seceqnfv (nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   ! local variables
       Type (evsystem) :: system
       Logical :: packed
+      integer ik,jk,ig,iv(3),ist
+      Complex (8), allocatable :: kinetic(:,:),vectors(:,:)
 
   ! allocatable arrays
 

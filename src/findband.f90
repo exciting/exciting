@@ -7,11 +7,10 @@
 ! !ROUTINE: findband
 ! !INTERFACE:
 !
-Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e0, tfnd)
+Subroutine findband (findlinentype, l, k, nr, r, vr, de0, etol, e0, tfnd)
 ! !INPUT/OUTPUT PARAMETERS:
 !   l   : angular momentum quantum number (in,integer)
 !   k   : quantum number k, zero if Dirac eqn. is not to be used (in,integer)
-!   np  : order of predictor-corrector polynomial (in,integer)
 !   nr  : number of radial mesh points (in,integer)
 !   r   : radial mesh (in,real(nr))
 !   vr  : potential on radial mesh (in,real(nr))
@@ -37,7 +36,6 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e0, tfnd)
       Character (*), Intent (In) :: findlinentype
       Integer, Intent(In)    :: l
       Integer, Intent(In)    :: k
-      Integer, Intent(In)    :: np
       Integer, Intent(In)    :: nr
       Real(8), Intent(In)    :: r (nr)
       Real(8), Intent(In)    :: vr (nr)
@@ -79,7 +77,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e0, tfnd)
          
 !        find the Linearization Energy from the equation D_{l}(E)=-(l+1)/R_{MT}
          e = e0
-         call rschroddme(0, l, k, e, np, nr, r, vr, nn, p0, p1, q0, q1)
+         call rschroddme(0, l, k, e, nr, r, vr, nn, p0, p1, q0, q1)
          t00 = p0(nr)
          t10 = p1(nr)
          if ( dabs(t00)>1.0d-8 ) then
@@ -98,7 +96,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e0, tfnd)
          end if 
            
          do while ( dabs(e) <= 100.d0 )
-           call rschroddme(0, l, k, e, np, nr, r, vr, nn, p0, p1, q0, q1)
+           call rschroddme(0, l, k, e, nr, r, vr, nn, p0, p1, q0, q1)
            t0 = p0(nr)
            t1 = p1(nr)
            if ( dabs(t0)>1.d-8 ) then
@@ -122,7 +120,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e0, tfnd)
 !-------------------------------------------
 
          de = de0
-         Call rschroddme(0, l, k, e0, np, nr, r, vr, nn, p0, p1, q0, q1)
+         Call rschroddme(0, l, k, e0, nr, r, vr, nn, p0, p1, q0, q1)
          u = p0 (nr)
          du = p1 (nr)
          eiup = e0
@@ -135,7 +133,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e0, tfnd)
          ddnold = du
 11       Continue
          eiup = eiup + de
-         Call rschroddme(0, l, k, eiup, np, nr, r, vr, nn, p0, p1, q0, q1)
+         Call rschroddme(0, l, k, eiup, nr, r, vr, nn, p0, p1, q0, q1)
          uup = p0 (nr)
          duup = p1 (nr)
          utst = upold * uup
@@ -153,7 +151,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e0, tfnd)
          If ((e1 .Lt. ecutlow) .And. (eiup .Lt. ediffusebands)) Then
 21          Continue
             eidn = eidn - de
-            Call rschroddme(0, l, k, eidn, np, nr, r, vr, nn, p0, p1, q0, q1)
+            Call rschroddme(0, l, k, eidn, nr, r, vr, nn, p0, p1, q0, q1)
             udn = p0 (nr)
             dudn = p1 (nr)
             utst = dnold * udn

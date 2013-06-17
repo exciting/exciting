@@ -10,13 +10,12 @@
 ! !INTERFACE:
 !
 !
-Subroutine rdiracdme (m, kpa, e, np, nr, r, vr, nn, g0, g1, f0, f1)
+Subroutine rdiracdme (m, kpa, e, nr, r, vr, nn, g0, g1, f0, f1,sloppy)
 use mod_timing
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   kpa : quantum number kappa (in,integer)
 !   e   : energy (in,real)
-!   np  : order of predictor-corrector polynomial (in,integer)
 !   nr  : number of radial mesh points (in,integer)
 !   r   : radial mesh (in,real(nr))
 !   vr  : potential on radial mesh (in,real(nr))
@@ -40,7 +39,6 @@ use mod_timing
       Integer, Intent (In) :: m
       Integer, Intent (In) :: kpa
       Real (8), Intent (In) :: e
-      Integer, Intent (In) :: np
       Integer, Intent (In) :: nr
       Real (8), Intent (In) :: r (nr)
       Real (8), Intent (In) :: vr (nr)
@@ -49,6 +47,7 @@ use mod_timing
       Real (8), Intent (Out) :: g1 (nr)
       Real (8), Intent (Out) :: f0 (nr)
       Real (8), Intent (Out) :: f1 (nr)
+      logical, Intent (in) :: sloppy
 ! local variables
       Integer :: im
 ! automatic arrays
@@ -69,12 +68,12 @@ use mod_timing
          Stop
       End If
       If (m .Eq. 0) Then
-         Call rdiracint (m, kpa, e, np, nr, r, vr, nn, g0p, f0p, g0, &
-        & g1, f0, f1)
+         Call rdiracint (m, kpa, e, nr, r, vr, nn, g0p, f0p, g0, &
+        & g1, f0, f1,sloppy)
       Else
          Do im = 0, m
-            Call rdiracint (im, kpa, e, np, nr, r, vr, nn, g0p, f0p, &
-           & g0, g1, f0, f1)
+            Call rdiracint (im, kpa, e, nr, r, vr, nn, g0p, f0p, &
+           & g0, g1, f0, f1,sloppy)
             g0p (:) = g0 (:)
             f0p (:) = f0 (:)
          End Do

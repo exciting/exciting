@@ -10,12 +10,11 @@
 ! !INTERFACE:
 !
 !
-Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
+Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   l   : angular momentum quantum number (in,integer)
 !   e   : energy (in,real)
-!   np  : order of predictor-corrector polynomial (in,integer)
 !   nr  : number of radial mesh points (in,integer)
 !   r   : radial mesh (in,real(nr))
 !   vr  : potential on radial mesh (in,real(nr))
@@ -57,7 +56,6 @@ Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1
       Integer, Intent (In) :: m
       Integer, Intent (In) :: l
       Real (8), Intent (In) :: e
-      Integer, Intent (In) :: np
       Integer, Intent (In) :: nr
       Real (8), Intent (In) :: r (nr)
       Real (8), Intent (In) :: vr (nr)
@@ -77,7 +75,6 @@ Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
       Real (8) :: rm, ri, tmp1, tmp2,t1,t2
 ! automatic arrays
-      Real (8) :: c (np)
 ! temporary stuff
       Real (8) :: A,B1,B2,CC,t3,det,detp,detq,rmult
       real (8) :: cf(4,nr),rvr(nr),r1,r2,vr2,p0old,q0old,p1old,q1old,logBA
@@ -290,9 +287,7 @@ Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1
          
 
 ! check for overflow
-         If ((Abs(p0(ir)) .Gt. 1.d100) .Or. (Abs(p1(ir)) .Gt. 1.d100) &
-        & .Or. (Abs(q0(ir)) .Gt. 1.d100) .Or. (Abs(q1(ir)) .Gt. &
-        & 1.d100)) Then
+         If (Abs(p0(ir)) .Gt. 1.d100) Then
             p0 (ir:nr) = p0 (ir)
             p1 (ir:nr) = p1 (ir)
             q0 (ir:nr) = q0 (ir)

@@ -10,7 +10,7 @@
 ! !INTERFACE:
 !
 !
-Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
+Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
 & r, eval, rho, vr, rwf,mtnr)
 ! !USES:
       Use modxcifc
@@ -25,7 +25,6 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
 !   occ    : occupancy of each state (inout,real(nst))
 !   xctype : exchange-correlation type (in,integer)
 !   xcgrad : 1 for GGA functional, 0 otherwise (in,integer)
-!   np     : order of predictor-corrector polynomial (in,integer)
 !   nr     : number of radial mesh points (in,integer)
 !   r      : radial mesh (in,real(nr))
 !   eval   : eigenvalue without rest-mass energy for each state (out,real(nst))
@@ -45,7 +44,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
 !   Created September 2002 (JKD)
 !   Fixed s.c. convergence problem, October 2003 (JKD)
 !   Added support for GGA functionals, June 2006 (JKD)
-!
+!   Almost entirely rewritten 2013 (Andris)
 !EOP
 !BOC
       Implicit None
@@ -59,20 +58,19 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
       Real (8), Intent (Inout) :: occ (nst)
       Integer, Intent (In) :: xctype(3)
       Integer, Intent (In) :: xcgrad
-      Integer, Intent (In) :: np
       Integer, Intent (In) :: nr,mtnr
       Real (8), Intent (In) :: r (nr)
       Real (8), Intent (Out) :: eval (nst)
       Real (8), Intent (Out) :: rho (nr)
       Real (8), Intent (Out) :: vr (nr)
       Real (8), Intent (Out) :: rwf (nr, 2, nst)
-      Integer, Parameter :: maxscl = 200
+      Integer, Parameter :: maxscl = 500
       Integer :: ir, ist, iscl
       Real (8), Parameter :: fourpi = 12.566370614359172954d0
 ! fine-structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
 ! potential convergence tolerance
-      Real (8), Parameter :: eps = 1.d-6
+      Real (8), Parameter :: eps = 1.d-8
       Real (8) :: sum, dv, dvp, ze, beta, t1
 ! allocatable arrays
       Real (8), Allocatable :: vn (:), vh (:), ex (:), ec (:), vx (:), &
@@ -85,24 +83,12 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
       Real (8) energy
 ! dummy wavefunctions
       Real (8), Allocatable :: dwf1(:),dwf2(:),dwf3(:),dwf4(:)
-      logical dirac_eq
+      logical dirac_eq,sloppy
 
       dirac_eq=(input%groundstate%CoreRelativity.eq."dirac")
       If (nst .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(atom): invalid nst : ", I8)') nst
-         Write (*,*)
-         Stop
-      End If
-      If (np .Lt. 2) Then
-         Write (*,*)
-         Write (*, '("Error(atom): np < 2 : ", I8)') np
-         Write (*,*)
-         Stop
-      End If
-      If (nr .Lt. np) Then
-         Write (*,*)
-         Write (*, '("Error(atom): nr < np : ", 2I8)') nr, np
          Write (*,*)
          Stop
       End If
@@ -136,15 +122,19 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
          t1 = 1.d0 + ((zn*alpha)**2) / t1
          eval (ist) = (1.d0/alpha**2) / Sqrt (t1) - 1.d0 / alpha ** 2
       End Do
+!      write(*,*) ist,eval
+!      read(*,*)
 ! start of self-consistent loop
+      sloppy=.true.
       Do iscl = 1, maxscl
+!         write(*,*) iscl,sloppy,eval(1)
 !!        write(*,*) iscl
 ! solve the Dirac equation for each state
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
          Do ist = 1, nst
-            Call rdirac (0, n(ist), l(ist), k(ist), np, nr, r, vr, &
-           & eval(ist), rwf(:, 1, ist), rwf(:, 2, ist),dirac_eq)
+            Call rdirac (0, n(ist), l(ist), k(ist), nr, r, vr, &
+           & eval(ist), rwf(:, 1, ist), rwf(:, 2, ist),dirac_eq,sloppy)
          End Do
 !$OMP END DO
 !$OMP END PARALLEL
@@ -219,7 +209,10 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
          End Do
 !         write(*,*) iscl,eval(1), dv
 ! check for convergence
+         sloppy=sloppy.and.(dv.gt.1d3*eps)
+         
          If ((iscl .Gt. 2) .And. (dv .Lt. eps)) Go To 10
+         
 ! end self-consistent loop
       End Do
       call warning('Warning(atom): Maximum iterations exceeded')
@@ -248,6 +241,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
       If (xcgrad .Eq. 1) Then
          Deallocate (grho, g2rho, g3rho)
       End If
+!      write(*,*) 
 !      Do ist = 1, nst
 !       write(*,*) eval(ist)
 !      enddo

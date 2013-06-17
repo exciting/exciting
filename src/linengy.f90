@@ -91,7 +91,7 @@ Subroutine linengy
 ! find the band energy starting from default
                         apwe (io1, l, ias) = apwe0 (io1, l, is)
                         Call findband (linenetype, &
-                       &  l, 0, input%groundstate%nprad, nrmt(is), &
+                       &  l, 0, nrmt(is), &
                        &  spr(:, is), vr, input%groundstate%deband, input%groundstate%epsband, &
                        &  apwe(io1, l, ias),tfnd)
                         if (.not.tfnd) then
@@ -143,7 +143,7 @@ Subroutine linengy
 ! find the band energy starting from default
                         lorbe (io1, ilo, ias) = lorbe0 (io1, ilo, is)
                         Call findband (linenetype, &
-                       &  l, 0, input%groundstate%nprad, nrmt(is), &
+                       &  l, 0, nrmt(is), &
                        &  spr(:, is), vr, input%groundstate%deband, input%groundstate%epsband, &
                        &  lorbe(io1, ilo, ias),tfnd)
                         if (.not.tfnd) then
@@ -197,7 +197,7 @@ Subroutine linengy
              open(777,file=fname,action='write')
              e = -10.d0
              do while (e .le. 10.d0)
-               call rschroddme(0, l, 0, e, input%groundstate%nprad, &
+               call rschroddme(0, l, 0, e, &
               &  nr, spr(:, is), vr, nn, p0, p1, q0, q1)
                t0 = p0(nr)
                t1 = p1(nr)

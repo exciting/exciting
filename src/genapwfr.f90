@@ -50,7 +50,7 @@ Subroutine genapwfr
                Do io1 = 1, apword (l, is)
 ! integrate the radial Schrodinger equation
                   Call rschroddme (apwdm(io1, l, is), l, 0, apwe(io1, &
-                 & l, ias), input%groundstate%nprad, nr, spr(:, is), &
+                 & l, ias), nr, spr(:, is), &
                  & vr, nn, p0(:, io1), p1, q0(:, io1), q1(:, io1))
 ! normalise radial functions
                   Do ir = 1, nr

@@ -2472,7 +2472,7 @@
               <xs:simpleType>
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="dirac"/>
-                  <xs:enumeration value="sameasvalence"/>
+                  <xs:enumeration value="none"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>

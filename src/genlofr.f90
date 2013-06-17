@@ -81,7 +81,7 @@ Subroutine genlofr(last_iteration)
        vr(1:nr)=veffmt (1, 1:nr, ias) * y00
        do ilo=0,3
         write(*,*) 'l=',ilo
-        do nodes=0,6
+        do nodes=0,20
           ens(nodes)=0d0
 !         energyp=0d0
           Call rdirac (0,nodes+ilo+1, ilo, ilo+1, nodes, nr, spr(:,is), vr, &
@@ -91,7 +91,7 @@ Subroutine genlofr(last_iteration)
 !         write(*,*) 'n=',nodes,0.5d0*(energy+energyp)
         enddo
 
-        do nodes=0,6
+        do nodes=0,20
           ehi=ens(nodes)
           Call rschroddme (0, ilo, 0, ehi, 2, nr, spr(:,is), vr, nn, p0s, hp0, q0s,q1s)
           fhi=hp0(nrmt (is))
@@ -151,7 +151,7 @@ Subroutine genlofr(last_iteration)
                Do io2 = 1, lorbord (ilo, is)
 ! integrate the radial Schrodinger equation
                   Call rschroddme (lorbdm(io2, ilo, is), l, 0, &
-                 & lorbe(io2, ilo, ias), input%groundstate%nprad, nr, &
+                 & lorbe(io2, ilo, ias), nr, &
                  & spr(:, is), vr, nn, p0(:, io2), p1, q0(:, io2), &
                  & q1(:, io2))
 ! normalise radial functions

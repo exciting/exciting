@@ -63,9 +63,8 @@ Subroutine gencore
                   If (spcore(ist, is)) Then
 ! solve the Dirac equation
                      Call rdirac (0,spn(ist, is), spl(ist, is), spk(ist, &
-                    & is), input%groundstate%nprad, spnr(is), spr(:, &
-                    & is), vr, evalcr(ist, ias), rwfcr(:, 1, ist, ias), &
-                    & rwfcr(:, 2, ist, ias),dirac_eq)
+                    & is), spnr(is), spr(:, is), vr, evalcr(ist, ias), rwfcr(:, 1, ist, ias), &
+                    & rwfcr(:, 2, ist, ias),dirac_eq,.false.)
                      t1 = spocc (ist, is)
 !$OMP CRITICAL
                      if (dirac_eq) then

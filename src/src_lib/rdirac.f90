@@ -10,13 +10,12 @@
 ! !INTERFACE:
 !
 !
-Subroutine rdirac (m, n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
+Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
 ! !INPUT/OUTPUT PARAMETERS:
 !   m    : energy-derivative order (in,integer)
 !   n    : principal quantum number (in,integer)
 !   l    : quantum number l (in,integer)
 !   k    : quantum number k (l or l+1) (in,integer)
-!   np   : order of predictor-corrector polynomial (in,integer)
 !   nr   : number of radial mesh points (in,integer)
 !   r    : radial mesh (in,real(nr))
 !   vr   : potential on radial mesh (in,real(nr))
@@ -37,29 +36,29 @@ Subroutine rdirac (m, n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
 !BOC
       Implicit None
 ! arguments
-      Logical dirac_eq
+      Logical dirac_eq,sloppy
       Integer, Intent (In) :: m
       Integer, Intent (In) :: n
       Integer, Intent (In) :: l
       Integer, Intent (In) :: k
-      Integer, Intent (In) :: np
       Integer, Intent (In) :: nr
       Real (8), Intent (In) :: r (nr)
       Real (8), Intent (In) :: vr (nr)
       Real (8), Intent (Inout) :: eval
       Real (8), Intent (Out) :: g0 (nr)
       Real (8), Intent (Out) :: f0 (nr)
+      
 ! local variables
-      Integer, Parameter :: maxit = 200
-      Integer :: kpa, it, nn, ir, irm, nnd, nndp,count
-      real(8) ::e_hi,e_lo,f_lo,f_hi,e_guess,f_mi,e_mi
-      real(8) :: xa,xb,xc,ya,yb,yc,int_c,int_b,int_a
-      logical :: lo_found,hi_found
+      Integer, Parameter :: maxit = 500
+      Integer :: kpa, it, nn, ir, maxr,nnp
+      real(8) ::e_hi,e_lo
 ! energy convergence tolerance
-      Real (8), Parameter :: eps = 1.d-11
-      Real (8) :: t1, de
+      Real (8), Parameter :: eps = 1.d-10
+      Real (8) :: t1, de, step_e
+      Real (8) :: large
+      parameter (large=1d100)
 ! automatic arrays
-      Real (8) :: g1 (nr), f1 (nr), fr (nr), gr (nr), cf (3, nr)
+      Real (8) :: g1 (nr), f1 (nr), fr (nr), gr (nr), cf (3, nr),g0p(nr),f0p(nr),g1p(nr),f1p(nr)
   
       If (k .Le. 0) Then
          Write (*,*)
@@ -91,286 +90,156 @@ Subroutine rdirac (m, n, l, k, np, nr, r, vr, eval, g0, f0,dirac_eq)
          Write (*,*)
          Stop
       End If
-      de = 0.01d0
-      nndp = 0
-! count=1
-      lo_found=.false.
-      hi_found=.false.
+
+      de = 1d0
+      e_lo=-large
+      e_hi= large 
+      step_e=1d1
+      it=0
 !         write(*,*) 'bracketting'
 !write(*,*) 'initial guess', eval
 ! integrate the Dirac equation
-       if (dirac_eq) then
-         Call rdiracdme (m, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
-       else
-         Call rschroddme (m, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
-       endif
-!      if (nn.eq.n-l)   f_hi=g0(ir)
+      do while ((it.lt.maxit).and.(abs(de).gt.eps*(1d0+abs(eval))))
+        it=it+1
+!        read(*,*) 
+!        write(*,*) eval
+        if (dirac_eq) then
+          Call rdiracdme (m, kpa, eval, nr, r, vr, nn, g0, g1, f0, f1,sloppy)
+        else
+          Call rschroddme (m, l, 0, eval, nr, r, vr, nn, g0, g1, f0, f1)
+        endif
 
-         if (nn.le.n-l-1) then
+
+        if (nn.lt.n-l-1) then
+!           write(*,*) e_lo,e_hi,nn
+!          if (e_lo.lt.eval) then
+            e_lo=eval
+!          endif
+          if (e_hi.eq.large) then
+            eval=eval+step_e
+            step_e=step_e*2d0
+          else
+            eval=(e_lo+e_hi)*0.5d0
+          endif
+        elseif (nn.gt.n-l) then
+!           write(*,*) e_lo,e_hi,nn
+!          if (e_hi.gt.eval) then
+            e_hi=eval
+!          endif
+          if (e_lo.eq.-large) then
+            eval=eval-step_e
+            step_e=step_e*2d0
+          else
+            eval=(e_lo+e_hi)*0.5d0
+          endif
+        else
+!          write(*,*) e_lo,e_hi,nn
+          if (dirac_eq) then
+!            Call rdiracdme (m+1, kpa, eval, np, nr, r, vr, nnp, g0p, g1p, f0p, f1p,sloppy)
+             Call rdiracint (m+1, kpa, eval, nr, r, vr, nnp, g0, f0, g0p, g1p, f0p, f1p,sloppy)
+          else
+             Call rschroddme (m+1, l, 0, eval, nr, r, vr, nnp , g0p, g1p, f0p, f1p)
              
-           do while (nn.le.n-l-1)
-               e_lo=eval
-               lo_found=(nn.eq.n-l-1) 
-               de=de*2d0
-               eval = eval + de
-       if (dirac_eq) then
-         Call rdiracdme (m, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
-       else
-         Call rschroddme (m, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
-       endif
-!               count=count+1
-           enddo
-           e_hi=eval
-           hi_found=(nn.eq.n-l)
-           
-         else
-           do while (nn.gt.n-l-1)
-               e_hi=eval
-               hi_found=(nn.eq.n-l)
-               de=de*2d0
-               eval = eval - de
-       if (dirac_eq) then
-         Call rdiracdme (m, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
-       else
-         Call rschroddme (m, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
-       endif
-!               count=count+1
-           enddo
-           e_lo=eval
-           lo_found=(nn.eq.n-l)
-         endif
-         do while ((.not.lo_found).or.(.not.hi_found))
-!           count=count+1
-           eval=0.5d0*(e_lo+e_hi)
-       if (dirac_eq) then
-         Call rdiracdme (m, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
-       else
-         Call rschroddme (m, l, 0, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
-       endif
-           if (nn.gt.n-l-1) then
-             e_hi=eval
-             hi_found=(nn.eq.n-l)
-           else
+          endif          
+          ir=nr
+          do while ((abs(g0(ir)).gt.1d100).or.(abs(g0p(ir)).gt.1d100))
+            ir=ir-1
+          enddo
+          maxr=ir
+          de=-g0(maxr)/g0p(maxr)
+!          write(*,*) (nn.eq.n-l-1),de
+          if (nn.eq.n-l-1) then
              e_lo=eval
-             lo_found=(nn.eq.n-l-1)
-           endif
-         enddo
-         
- 
-! searching for a boundary
-      ir=1
-      do while ((abs(g0(ir)).lt.1d50).and.(ir.lt.nr))
-         ir=ir+1
-!         write(*,*) ir,g0(ir),f0(ir)
+             if ((de.gt.0d0).and.(abs(de).lt.1d-1)) then
+!            if (de.gt.0d0) then
+!             if ((de.gt.0d0).and.(.not.sloppy)) then
+               eval=eval+de
+             elseif (e_hi.eq.large) then
+               eval=eval+step_e
+               step_e=step_e*2d0
+             else
+               eval=(e_lo+e_hi)*0.5d0
+             endif
+                 
+          else   ! case if (nn.eq.n-l) then
+             e_hi=eval 
+             if ((de.lt.0d0).and.(abs(de).lt.1d-1)) then
+!             if ((de.lt.0d0).and.(.not.sloppy)) then
+               eval=eval+de
+             elseif (e_lo.eq.-large) then
+               eval=eval-step_e
+               step_e=step_e*2d0
+             else
+               eval=(e_lo+e_hi)*0.5d0
+             endif
+            
+          endif
+
+
+
+        endif
+!        read(*,*)
+      enddo
+!      write(*,*) it
+!     read(*,*)
+
+      if (abs(de).ge.eps*(1d0+abs(eval))) then
+        Write (*,*)
+        Write (*, '("Error(rdirac): maximum iterations exceeded")')
+        Write (*,*)
+        Stop
+      endif
+
+!      if (.not.sloppy) then
+       g0=g0+g0p*de
+       g1=g1+g1p*de
+!      endif
+      ir = 2
+      nn=0
+      do while ((ir.le.nr).and.(nn.lt.n-l-1))
+        if (g0(ir-1)*g0(ir) .Lt. 0.d0) then
+         nn=nn+1
+        endif
+        ir=ir+1
+      enddo
+      do while ((ir.le.nr).and.(g1(ir)*g1(ir-1).gt.0d0))
+        ir=ir+1
+      enddo
+      ir=ir+1
+      do while ((ir.lt.nr).and.(g1(ir)*g1(ir-1).gt.0d0).and.(g0(ir)*g0(ir-1).gt.0d0))
+        ir=ir+1
       enddo
 !      write(*,*) ir
-!! Now we try to turn ir-th point to 0
-!       stop  
-
-if (eval.eq.e_lo) then
- f_lo=g0(ir)
-       if (dirac_eq) then
-         Call rdiracdme (m, kpa, e_hi, np, nr, r, vr, nn, g0, g1, f0, f1)
-       else
-         Call rschroddme (m, l, 0, e_hi, np, nr, r, vr, nn, g0, g1, f0, f1)
-       endif
- f_hi=g0(ir)
-else
- f_hi=g0(ir)
-       if (dirac_eq) then
-         Call rdiracdme (m, kpa, e_lo, np, nr, r, vr, nn, g0, g1, f0, f1)
-       else
-         Call rschroddme (m, l, 0, e_lo, np, nr, r, vr, nn, g0, g1, f0, f1)
-       endif
- f_lo=g0(ir)
-endif
-! count=count+1
-!f_lo=g0(ir)
-!Call rdiracdme (0, kpa, e_hi, np, nr, r, vr, nn, g0, g1, f0, f1)
-!f_hi=g0(ir)
-
-!write(*,*) nn
-!write(*,*) f_lo,f_hi      
-!write(*,*)
-
-! do it=0,100
-!   eval=e_lo+dble(it)*0.01*(e_hi-e_lo)
-!   Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
-!   write(*,*) g0(ir)
-! enddo
-! write(*,*)
-! stop
-      Do it = 1, maxit
-! finding parameters A, B and C for an interpolating function y=A+B*exp(-C*x) 
-!that passes through the three points: (e_lo,f_lo), (e_mi,f_mi) and (e_lo,f_lo)
-
-e_mi=0.5d0*(e_hi+e_lo)
-       if (dirac_eq) then
-         Call rdiracdme (m, kpa, e_mi, np, nr, r, vr, nn, g0, g1, f0, f1)
-       else
-         Call rschroddme (m, l, 0, e_mi, np, nr, r, vr, nn, g0, g1, f0, f1)
-       endif
-f_mi=g0(ir)
-! count=count+1
-! step 1. searching for C
-!      write(*,*) e_lo,f_lo
-!      write(*,*) e_mi,f_mi
-!      write(*,*) e_hi,f_hi
-!      write(*,*) "diff",e_hi-e_mi,e_mi-e_lo
-
       
-      if (abs(f_hi-f_mi)/(e_hi-e_mi).lt.abs(f_mi-f_lo)/(e_mi-e_lo)) then
-        xa=1d-8
-        ya=((f_hi-f_lo)*(e_mi-e_lo)/(e_hi-e_lo)-(f_mi-f_lo))*xa        
-        xb=1d0
-        yb=(f_hi-f_mi)-(f_hi-f_lo)*exp(-xb*(e_mi-e_lo)/((e_hi-e_lo)))+(f_mi-f_lo)*exp(-xb)
-        do while ((yb*ya.ge.0).and.(abs((yb-ya)/ya).gt.1d-10))
-
-           xa=xb
-           ya=yb
-           xb=xb*2d0
-           yb=(f_hi-f_mi)-(f_hi-f_lo)*exp(-xb*(e_mi-e_lo)/((e_hi-e_lo)))+(f_mi-f_lo)*exp(-xb)
-        enddo
-       else
-        xb=-1d-8
-        yb=((f_hi-f_lo)*(e_mi-e_lo)/(e_hi-e_lo)-(f_mi-f_lo))*xb
-        xa=-1d0
-        ya=(f_hi-f_mi)-(f_hi-f_lo)*exp(-xa*(e_mi-e_lo)/((e_hi-e_lo)))+(f_mi-f_lo)*exp(-xa)
-        
-        do while ((yb*ya.ge.0).and.(abs(yb).lt.1d100))
-           xb=xa
-           yb=ya
-           xa=xa*2d0
-           ya=(f_hi-f_mi)-(f_hi-f_lo)*exp(-xa*(e_mi-e_lo)/((e_hi-e_lo)))+(f_mi-f_lo)*exp(-xa)
-        enddo
-       endif
-
-      if ((abs((yb-ya)/ya).gt.1d-10).and.(abs(yb).lt.1d100)) then
-        do while ((xb-xa)/xb.gt.1d-12)
-           xc=0.5d0*(xa+xb)
-           yc=(f_hi-f_mi)-(f_hi-f_lo)*exp(-xc*(e_mi-e_lo)/((e_hi-e_lo)))+(f_mi-f_lo)*exp(-xc)
-           if (ya*yc.lt.0) then
-             xb=xc
-             yb=yc
+      if (ir.lt.nr-1) then
+!           write(*,*) ir
+           if (dirac_eq) then
+             Call rdiracdme (m  , kpa, eval, ir, r, vr, nn , g0 , g1, f0 , f1,sloppy)
+             Call rdiracint (m+1, kpa, eval, ir, r, vr, nnp, g0, f0, g0p, g1p, f0p, f1p,sloppy)
            else
-             xa=xc
-             ya=yc
+             Call rschroddme (m  , l, 0, eval, ir, r, vr, nn , g0 , g1, f0 , f1)
+             Call rschroddme (m+1, l, 0, eval, ir, r, vr, nnp, g0p, g1p, f0p, f1p)
            endif
-        enddo
-        int_c=0.5d0*(xa+xb)
-! step 2. calculating A and B
-        int_b=(f_mi-f_lo)/(exp(-int_c*(e_mi-e_lo)/(e_hi-e_lo))-1d0)        
-        int_a=f_lo-int_b
-! Now we use y=A+B*exp(-C*x), to estimate the root/eigenvalue
-        if (-int_a/int_b.gt.0d0) then
-         e_guess=e_lo+(-log(-int_a/int_b)/int_c)*(e_hi-e_lo)
-        else
-         e_guess=e_hi+abs(e_hi)
-        endif
-        
-       else
-        if (f_mi*f_lo.lt.0d0) then
-         e_guess=0.5d0*(e_mi+e_lo)
-        else
-         e_guess=0.5d0*(e_mi+e_hi)
-        endif
-       endif
-!        write(*,*)
-!        write(*,*) e_lo,e_hi
-!        write(*,*) e_mi,e_guess
- 
-        if ((e_guess.gt.e_hi).or.(e_guess.lt.e_lo)) then
-         if (f_mi*f_lo.lt.0d0) then
-          e_guess=0.5d0*(e_mi+e_lo)
-         else
-          e_guess=0.5d0*(e_mi+e_hi)
-         endif
-        endif
-         
-        if (IsNaN(e_guess)) then
-          write(*,*) 'watch out for NaN'
-          stop
-        endif
-       if (dirac_eq) then
-         Call rdiracdme (m, kpa, e_guess, np, nr, r, vr, nn, g0, g1, f0, f1)
-       else
-         Call rschroddme (m, l, 0, e_guess, np, nr, r, vr, nn, g0, g1, f0, f1)
-       endif
-!        count=count+1 
-!        write(*,*) e_lo,e_hi,e_mi,e_guess
-!        write(*,*) f_lo,f_hi,f_mi
+           de=-g0(ir)/g0p(ir)
+           g0=g0+g0p*de
+           g1=g1+g1p*de
+           f0=f0+f0p*de
+           f1=f1+f1p*de
+!      write(*,*) ir
+!      do maxr=1,nr
+!        write(*,*) maxr,g0(maxr)
+!      enddo
+!      read(*,*)
+      g0(ir+1:nr)=0d0
+      f0(ir+1:nr)=0d0
+      g1(ir+1:nr)=0d0
+      f1(ir+1:nr)=0d0
+     else
+        f0=f0+f0p*de
+!        f1=f1+f1p*de
+     endif
+    
 
-        if (e_hi-e_guess.lt.1d-11*(abs(e_guess)+0d0)) then
-           e_lo=e_guess
-           Go To 20
-        elseif (e_guess-e_lo.lt.1d-11*(abs(e_guess)+0d0)) then
-           Go To 20
-        endif
-       
-
-        if (e_guess.lt.e_mi) then
-           e_hi=e_mi
-           e_mi=e_guess
-           f_hi=f_mi
-           f_mi=g0(ir)
-        else
-           e_lo=e_mi
-           e_mi=e_guess
-           f_lo=f_mi
-           f_mi=g0(ir)
-        endif
-
-        if (f_mi*f_lo.lt.0d0) then
-          f_hi=f_mi
-          e_hi=e_mi
-        else
-          f_lo=f_mi
-          e_lo=e_mi
-        endif
-
-
-!        if (e_hi-e_lo.lt.1d-12*(abs(e_guess)+1d0)) Go To 20
-!       write(*,*) e_lo,e_hi
-!       write(*,*) f_lo,f_hi
-!        write(*,*) ':'
-!        read(*,*)
-
-!!        if (e_hi-e_lo.lt.1d-12*(abs(e_lo)+1d0)) Go To 20       
-
-!       write(*,*) e_lo,e_hi,e_guess
-
-      End Do
-
-!      stop
-      Write (*,*)
-      Write (*, '("Error(rdirac): maximum iterations exceeded")')
-      Write (*,*)
-      Stop
-20    Continue
-!      stop
-      eval=e_lo
-!      write(*,*) count
-!      write(*,*) e_lo,it
-!      write(*,*) 'it=',it
-!      if (n.eq.1) then
-!        write(*,*) ':'
-!        read(*,*)
-!      endif
-! find effective infinity and set wavefunction to zero after that point
-! major component
-      irm = nr
-      Do ir = 2, nr
-         If ((g0(ir-1)*g0(ir) .Lt. 0.d0) .Or. (g1(ir-1)*g1(ir) .Lt. &
-        & 0.d0)) irm = ir
-      End Do
-      g0 (irm:nr) = 0.d0
-! minor component
-      irm = nr
-      Do ir = 2, nr
-         If ((f0(ir-1)*f0(ir) .Lt. 0.d0) .Or. (f1(ir-1)*f1(ir) .Lt. &
-        & 0.d0)) irm = ir
-      End Do
-      f0 (irm:nr) = 0.d0
 ! normalise
       if (dirac_eq) then
         Do ir = 1, nr
@@ -386,6 +255,10 @@ f_mi=g0(ir)
       If (t1 .Gt. 0.d0) Then
          t1 = 1.d0 / t1
       Else
+!         write(*,*) t1
+!         do ir=1,nr
+!           write(*,*) ir,g0(ir)
+!         enddo 
          Write (*,*)
          Write (*, '("Error(rdirac): zero wavefunction")')
          Write (*,*)

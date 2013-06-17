@@ -10,7 +10,7 @@
 ! !INTERFACE:
 !
 !
-Subroutine rschroddme (m, l, k, e, np, nr, r, vr, nn, p0, p1, q0, q1)
+Subroutine rschroddme (m, l, k, e, nr, r, vr, nn, p0, p1, q0, q1)
 use mod_timing
 use modinput
 ! !INPUT/OUTPUT PARAMETERS:
@@ -18,7 +18,6 @@ use modinput
 !   l   : angular momentum quantum number (in,integer)
 !   k   : quantum number k, zero if Dirac eqn. is not to be used (in,integer)
 !   e   : energy (in,real)
-!   np  : order of predictor-corrector polynomial (in,integer)
 !   nr  : number of radial mesh points (in,integer)
 !   r   : radial mesh (in,real(nr))
 !   vr  : potential on radial mesh (in,real(nr))
@@ -40,7 +39,6 @@ use modinput
       Integer, Intent (In) :: l
       Integer, Intent (In) :: k
       Real (8), Intent (In) :: e
-      Integer, Intent (In) :: np
       Integer, Intent (In) :: nr
       Real (8), Intent (In) :: r (nr)
       Real (8), Intent (In) :: vr (nr)
@@ -84,10 +82,10 @@ use modinput
 ! use the scalar relativistic Schrodinger equation
          Allocate (p0p(nr))
          If (m .Eq. 0) Then
-            Call rschrodint (m, l, e, np, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
+            Call rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
          Else
             Do im = 0, m
-               Call rschrodint (im, l, e, np, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
+               Call rschrodint (im, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
                p0p (:) = p0 (:)
             End Do
          End If
@@ -108,7 +106,7 @@ use modinput
             Write (*,*)
             Stop
          End If
-         Call rdiracdme (m, kpa, e, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rdiracdme (m, kpa, e, nr, r, vr, nn, g0, g1, f0, f1)
 ! determine equivalent scalar relativistic functions
          Do ir = 1, nr
             rm = 1.d0 - 0.5d0 * (alpha**2) * vr (ir)
