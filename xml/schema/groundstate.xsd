@@ -329,6 +329,14 @@
             <xs:attribute default="XC_GGA_X_PBE" name="exchange" use="optional">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
+                  <xs:enumeration value="XC_LDA_X">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 1 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Exchange in 3D </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
                   <xs:enumeration value="XC_LDA_X_2D">
                     <xs:annotation>
                       <xs:appinfo>
