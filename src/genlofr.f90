@@ -84,16 +84,21 @@ Subroutine genlofr(last_iteration)
         do nodes=0,20
           ens(nodes)=0d0
 !         energyp=0d0
-          Call rdirac (0,nodes+ilo+1, ilo, ilo+1, nodes, nr, spr(:,is), vr, &
-            & ens(nodes), p0s,q0s,.false.)
+!          Call rdirac (0,nodes+ilo+1, ilo, ilo+1, nodes, nr, spr(:,is), vr, &
+!            & ens(nodes), p0s,q0s,.false.)
+           Call rdirac (0,nodes+ilo+1, ilo, ilo+1, nr, spr(:,is), vr, ens(nodes), p0s,q0s,.false.,.false.)
+!               rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
+
+!          Call rdirac (0, n(ist),    l(ist),k(ist), nr, r, vr, &
+!           & eval(ist), rwf(:, 1, ist), rwf(:, 2, ist),dirac_eq,sloppy)
+
 !          Call rdirac (1,nodes+ilo+1, ilo, ilo+1, nodes, nr, spr(:,is), vr, &
 !            & energyp, p0s,q0s,.false.)
 !         write(*,*) 'n=',nodes,0.5d0*(energy+energyp)
         enddo
-
         do nodes=0,20
           ehi=ens(nodes)
-          Call rschroddme (0, ilo, 0, ehi, 2, nr, spr(:,is), vr, nn, p0s, hp0, q0s,q1s)
+          Call rschroddme (0, ilo, 0, ehi, nr, spr(:,is), vr, nn, p0s, hp0, q0s,q1s)
           fhi=hp0(nrmt (is))
           if (p0s(nrmt (is)).eq.p0s(nrmt (is)-1)) then
            elo=ehi
@@ -103,7 +108,7 @@ Subroutine genlofr(last_iteration)
            else
              elo=ens(nodes-1)
            endif
-           Call rschroddme (0, ilo, 0, elo, 2, nr, spr(:,is), vr, nn, p0s, hp0, q0s,q1s) 
+           Call rschroddme (0, ilo, 0, elo, nr, spr(:,is), vr, nn, p0s, hp0, q0s,q1s) 
            flo=hp0(nrmt (is))
 !(p0s(nrmt (is))-p0s(nrmt (is)-1))/(spr(nrmt (is),1)-spr(nrmt (is)-1,1))
 !(p0s(nrmt (is))-p0s(nrmt (is)-1))/(spr(nrmt (is),1)-spr(nrmt (is)-1,1))
@@ -113,7 +118,7 @@ Subroutine genlofr(last_iteration)
            endif
            do while (ehi-elo.gt.1d-6)
              emi=0.5d0*(ehi+elo)
-             Call rschroddme (0, ilo, 0, emi, 2, nr, spr(:,is), vr, nn, p0s, hp0, q0s,q1s)
+             Call rschroddme (0, ilo, 0, emi, nr, spr(:,is), vr, nn, p0s, hp0, q0s,q1s)
              fmi=hp0(nrmt (is))
 !(p0s(nrmt (is))-p0s(nrmt (is)-1))/(spr(nrmt (is),1)-spr(nrmt (is)-1,1))
              if (fmi*fhi.lt.0) then
