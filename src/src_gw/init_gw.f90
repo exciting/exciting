@@ -68,6 +68,11 @@ subroutine init_gw
         task=1
         input%groundstate%maxscl=1
         input%groundstate%nwrite=0
+        ! we just need to resume KS calculations and diagonalize one more time
+        ! the Hamiltonian for new set of k- and nempty parameters.
+        ! Therefore no xc potential is required (critical for OEP related methods)
+        input%groundstate%xctypenumber = 1
+        xctype(1) = 1
         call cpu_time(tstart)
         call gndstate
         call cpu_time(tend)
