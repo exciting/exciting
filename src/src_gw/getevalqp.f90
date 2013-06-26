@@ -71,12 +71,12 @@ subroutine getevalqp(nkp2)
       end do ! ik
       close(70)
       
-      if (.not.present(nkp2)) return
+      if (.not.present(nkp2)) goto 10
       
 !-----------------------------------------------------------------------------
 !     Interpolate the energies
 !-----------------------------------------------------------------------------      
-      
+
       if ((ibgw.ne.1).or.(nbgw.lt.nstsv)) then
         write(*,*)
         write(*,*)'WARNING(getevalqp):'
@@ -85,7 +85,28 @@ subroutine getevalqp(nkp2)
         write(*,*)'  If it creates problems - regenerate your EVALQP.OUT.'
         write(*,*)
       end if
-
+      
+! if both k-sets are identical - no interpolation is needed
+      if (nkp1 == nkp2) then
+        t1 = 0.d0
+        do ik = 1, nkp1
+            t1 = t1+abs(kvecs1(1,ik)-vkl(1,ik))+ &
+           &        abs(kvecs1(2,ik)-vkl(2,ik))+ &
+           &        abs(kvecs1(3,ik)-vkl(3,ik))
+        end do
+        if (t1 < 1.d-6) then
+! sets are identical, just copy QP energies
+            do ib = ibgw, min(nbgw,nstsv)
+                do ik = 1, nkpt
+                    evalsv(ib,ik)=eqp1(ib,ik)
+                enddo 
+            enddo            
+! return the subroutine
+            goto 10
+        end if
+      end if
+      
+! otherwise perform interpolation
       allocate(de1(nkp1,ibgw:nbgw),de2(nkpt,ibgw:nbgw))
       do ik = 1, nkp1
          de1(ik,:)=cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
@@ -99,10 +120,11 @@ subroutine getevalqp(nkp2)
             evalsv(ib,ik)=evalsv(ib,ik)+real(de2(ik,ib))
          enddo 
       enddo
-
       deallocate(de1,de2)
-      deallocate(kvecs1,eqp1,eks1)
 
+10    continue
+      deallocate(kvecs1,eqp1,eks1)
       return
+
 end subroutine
 !EOC
