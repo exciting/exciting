@@ -10,7 +10,7 @@
 ! !INTERFACE:
 !
 !
-Subroutine rdiracdme (m, kpa, e, nr, r, vr, nn, g0, g1, f0, f1,sloppy)
+Subroutine rdiracdme (m, kpa, e, nr, r, vr, nn, g0, g1, f0, f1, sloppy)
 use mod_timing
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)

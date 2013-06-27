@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Rb" name="rubidium" z="-37.0000" mass="155798.2685">
-    <muffinTin rmin="0.100000E-04" radius="2.2000" rinf="51.9940" radialmeshPoints="175"/>
+    <muffinTin rmin="0.100000E-04" radius="2.2000" rinf="33.7402" radialmeshPoints="400"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

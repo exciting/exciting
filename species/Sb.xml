@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Sb" name="antimony" z="-51.0000" mass="221954.9019">
-    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="36.6870" radialmeshPoints="196"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="24.2716" radialmeshPoints="400"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -27,7 +27,7 @@
       <lo l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-1.2597" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.2596" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

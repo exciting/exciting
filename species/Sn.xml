@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Sn" name="tin" z="-50.0000" mass="216395.0920">
-    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="39.5769" radialmeshPoints="195"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="26.3269" radialmeshPoints="400"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -27,7 +27,7 @@
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-3.4804" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-3.4806" searchE="true"/>
       </lo>
       <lo l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>

@@ -108,8 +108,6 @@ Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
         else
           Call rschroddme (m, l, 0, eval, nr, r, vr, nn, g0, g1, f0, f1)
         endif
-
-
         if (nn.lt.n-l-1) then
 !           write(*,*) e_lo,e_hi,nn
 !          if (e_lo.lt.eval) then
@@ -174,8 +172,6 @@ Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
              endif
             
           endif
-
-
 
         endif
 !        read(*,*)

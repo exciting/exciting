@@ -61,11 +61,15 @@ use modinput
       Real (8) ts0, ts1
 
       call timesec(ts0)
+#ifdef SPECIES
+      rmfactor=1d0
+#else
       if (input%groundstate%ValenceRelativity.eq."scalar") then
          rmfactor=1d0
       else
          rmfactor=0d0
       endif
+#endif      
       If (nr .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(rschroddme): invalid nr : ", I8)') nr

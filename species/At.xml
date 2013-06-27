@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="At" name="astatine" z="-85.0000" mass="382806.5818">
-    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="30.8972" radialmeshPoints="247"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="22.5085" radialmeshPoints="450"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>

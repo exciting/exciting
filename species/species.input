@@ -1,7 +1,7 @@
 
 ! input species; if empty all elements of species.dat file will be generated
 inspecies
- 'Zn'
+ ''
 
 ! string for description of method, written to the species files: simple, advanced
 apwdescr
@@ -9,7 +9,7 @@ apwdescr
 
 ! string contained in filename appended after the species symbol string
 suffix
-  '_xsLO'
+  ''
 
 ! APW-block
 ! dm ........ matching order
@@ -57,7 +57,7 @@ esccut
 !------------------------------------------------------------------------------!
 
 locorbxs
-  .true.
+  .false.
 
 searchlocorbxs
   .false.

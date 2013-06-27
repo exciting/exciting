@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="V" name="vanadium" z="-23.0000" mass="92860.67376">
-    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="35.5784" radialmeshPoints="154"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="25.0463" radialmeshPoints="350"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -19,12 +19,12 @@
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-2.5647" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.5646" searchE="true"/>
       </lo>
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-1.6347" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.6346" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

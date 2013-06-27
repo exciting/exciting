@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Hf" name="hafnium" z="-72.0000" mass="325367.3657">
-    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="39.6318" radialmeshPoints="228"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="26.4865" radialmeshPoints="450"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -32,17 +32,17 @@
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-2.4527" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.4529" searchE="true"/>
       </lo>
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-1.5097" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.5099" searchE="true"/>
       </lo>
       <lo l="3">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-0.6496" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.6494" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

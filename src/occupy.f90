@@ -37,7 +37,7 @@ Subroutine occupy
 ! local variables
       Integer, Parameter :: maxit = 1000
       real(8), parameter :: de0=1.d0
-      Integer :: ik, ist, it
+      Integer :: ik, ist, it, nvm
       Real (8) :: e0, e1, chg, x, t1
 ! external functions
       Real (8) :: sdelta, stheta
@@ -73,7 +73,41 @@ Subroutine occupy
 
       if ( input%groundstate%stypenumber .ge. 0 ) then
          t1 = 1.d0 / input%groundstate%swidth
+!     next lines taken in part from libbzint (STK)
+!
+!!    nvm is the number of bands for an insulating system 
+!!    since for a system with gap, the procedure to determine the
+!!    band gap can be unstable, just try first whether it is an
+!!    insulating system, but such a simplistic way to determine the Fermi energy
+!!    is valid only for no spin polarized cases 
+!
+         if (.not.associated(input%groundstate%spin)) then
+           nvm  = nint(chgval/occmax)
+           e0 = maxval(evalsv(nvm,:))
+           e1 = minval(evalsv(nvm+1,:))
+           efermi = 0.5*(e0 + e1)
+
+           fermidos = 0.d0
+           chg = 0.d0
+           Do ik = 1, nkpt
+              Do ist = 1, nstsv
+                 x = (evalsv(ist, ik)-efermi) * t1
+                 fermidos = fermidos + wkpt (ik) * sdelta (input%groundstate%stypenumber, x) * t1
+                 occsv (ist, ik) = occmax * stheta (input%groundstate%stypenumber, -x)
+                 chg = chg + wkpt (ik) * occsv (ist, ik)
+              End Do
+           End Do
+           fermidos = fermidos * occmax
+           if ((e1 .ge. e0) .and. (abs(chg - chgval) .lt. input%groundstate%epsocc)) then
+!            Write (*,*)
+             Write (*, '("Info(occupy): System has gap, simplicistic method used in determining efermi and occupation")')
+!            Write (*,*)
+             goto 10
+           endif
+         end if
+!	 	 
 ! determine the Fermi energy using the bisection method
+!
          Do it = 1, maxit
             efermi = 0.5d0 * (e0+e1)
             chg = 0.d0

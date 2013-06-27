@@ -34,8 +34,11 @@ Subroutine allatoms
       Integer, Parameter :: xctype_ = 3
       Integer, Parameter :: xcgrad_ = 0
       Integer :: is, i
+      Logical :: dirac_eq
 ! allocatable arrays
       Real (8), Allocatable :: rwf (:, :, :)
+      
+      dirac_eq=(input%groundstate%CoreRelativity.eq."dirac")
 ! allocate global species charge density and potential arrays
       If (allocated(sprho)) deallocate (sprho)
       Allocate (sprho(spnrmax, nspecies))
@@ -49,7 +52,7 @@ Subroutine allatoms
          Call atom (input%groundstate%ptnucl, spzn(is), spnst(is), &
         & spn(:, is), spl(:, is), spk(:, is), spocc(:, is), xctype_, &
         & xcgrad_, spnr(is), spr(:, is), &
-        & speval(:, is), sprho(:, is), spvr(:, is), rwf,nrmt(is))
+        & speval(:, is), sprho(:, is), spvr(:, is), rwf,nrmt(is),dirac_eq)
          Deallocate (rwf)
       End Do
 !$OMP END DO

@@ -11,10 +11,10 @@
 !
 !
 Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
-& r, eval, rho, vr, rwf,mtnr)
+&  r, eval, rho, vr, rwf, mtnr, dirac_eq)
 ! !USES:
       Use modxcifc
-      use modinput
+!      use modinput
 ! !INPUT/OUTPUT PARAMETERS:
 !   ptnucl : .true. if the nucleus is a point particle (in,logical)
 !   zn     : nuclear charge (in,real)
@@ -64,6 +64,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
       Real (8), Intent (Out) :: rho (nr)
       Real (8), Intent (Out) :: vr (nr)
       Real (8), Intent (Out) :: rwf (nr, 2, nst)
+      Logical, Intent (In) :: dirac_eq
       Integer, Parameter :: maxscl = 500
       Integer :: ir, ist, iscl
       Real (8), Parameter :: fourpi = 12.566370614359172954d0
@@ -83,9 +84,9 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
       Real (8) energy
 ! dummy wavefunctions
       Real (8), Allocatable :: dwf1(:),dwf2(:),dwf3(:),dwf4(:)
-      logical dirac_eq,sloppy
+      logical sloppy
 
-      dirac_eq=(input%groundstate%CoreRelativity.eq."dirac")
+      
       If (nst .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(atom): invalid nst : ", I8)') nst
@@ -127,14 +128,14 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
 ! start of self-consistent loop
       sloppy=.true.
       Do iscl = 1, maxscl
-!         write(*,*) iscl,sloppy,eval(1)
+!!        write(*,*) iscl,sloppy,eval(1)
 !!        write(*,*) iscl
 ! solve the Dirac equation for each state
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
          Do ist = 1, nst
             Call rdirac (0, n(ist), l(ist), k(ist), nr, r, vr, &
-           & eval(ist), rwf(:, 1, ist), rwf(:, 2, ist),dirac_eq,sloppy)
+           &  eval(ist), rwf(:, 1, ist), rwf(:, 2, ist), dirac_eq, sloppy)
          End Do
 !$OMP END DO
 !$OMP END PARALLEL

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Br" name="bromine" z="-35.0000" mass="145656.0815">
-    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="31.6320" radialmeshPoints="172"/>
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="19.7413" radialmeshPoints="350"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -27,7 +27,7 @@
       <lo l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-2.4831" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.4829" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

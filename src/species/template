@@ -1,5 +1,5 @@
 include ../../build/make.inc
-FC = $(F90) -I./finclude
+FC = $(F90) -I./finclude -DSPECIES
 FFLAGS = $(F90_OPTS) -cpp
 LD = $(FC)
 LDFLAGS = $(F90_OPTS) $(LIB_LPK) -L./lib -lFoX_dom -lFoX_sax -lFoX_utils -lFoX_wcml -lFoX_wxml -lFoX_fsys  -lFoX_common
