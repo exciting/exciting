@@ -1,12 +1,10 @@
 include ../../build/make.inc
+include ../../build/libraries.inc
+FC = $(F90)
 
-FC = $(F90) -I./finclude
-
-
-FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT)
-
+FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT) -I./finclude
 LD = $(FC)
-LDFLAGS =$(F90_OPTS) $(LIBS) $(F90_DEBUGOPTS) libmsec.a leblaiklib.a   -L./lib -lFoX_dom -lFoX_sax -lFoX_utils -lFoX_wcml -lFoX_wxml -lFoX_fsys  -lFoX_common -lxc
-F77=$(F77) 
-
+LDFLAGS = $(LIBS) $(F90_DEBUGOPTS) $(INTERNALLIBS)
+F77_OPTS =$(F77_DEBUGOPTS)
 TMPFILES = *.mod
+SUFFIX=debug

@@ -396,6 +396,13 @@
             </xs:documentation>
           </xs:annotation>          
           <xs:complexType>
+            <xs:sequence>
+              <xs:element ex:importance="expert" ex:unit="" name="epscomp" type="integerpair" minOccurs="0" maxOccurs="9">
+                <xs:annotation>
+                  <xs:documentation>Components of the dielectric tensor to be calculated.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+            </xs:sequence>
             
             <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.30">
               <xs:annotation>
@@ -437,14 +444,7 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:sequence>
-              <xs:element ex:importance="expert" ex:unit="" name="epscomp" type="integerpair" minOccurs="0" maxOccurs="9">
-                <xs:annotation>
-                  <xs:documentation>Components of the dielectric tensor to be calculated.</xs:documentation>
-                </xs:annotation>
-              </xs:element>
-            </xs:sequence>
-            
+          
             <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation><pre>"true"</pre> if energy outputs are in eV.</xs:documentation>
@@ -507,6 +507,15 @@
 
         <xs:element ex:importance="expert" ex:unit="" name="nlo" minOccurs="0">
           <xs:complexType>
+            <xs:sequence>
+              <xs:element ex:importance="expert" ex:unit="" name="chicomp" type="integertriple"
+                default="1 2 3" maxOccurs="27">
+                <xs:annotation>
+                  <xs:documentation>The components of the second-order optical tensor Chi(-2w,w,w) to
+                    be calculated.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+            </xs:sequence>
             
             <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.3">
               <xs:annotation>
@@ -538,16 +547,7 @@
               </xs:annotation>
             </xs:attribute>
             
-            <xs:sequence>
-              <xs:element ex:importance="expert" ex:unit="" name="chicomp" type="integertriple"
-                default="1 2 3" maxOccurs="27">
-                <xs:annotation>
-                  <xs:documentation>The components of the second-order optical tensor Chi(-2w,w,w) to
-                    be calculated.</xs:documentation>
-                </xs:annotation>
-              </xs:element>
-            </xs:sequence>
-            
+         
             <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation><pre>"true"</pre> if energy outputs are in eV.</xs:documentation>

@@ -1,12 +1,12 @@
 <input>
   <title>Si crystal</title>
-  <structure speciespath="../../../species" autormt="false">
+  <structure speciespath="./" autormt="false">
     <crystal>
       <basevect>5.13 5.13 0.00</basevect>
       <basevect>5.13 0.00 5.13</basevect>
       <basevect>0.00 5.13 5.13</basevect>
     </crystal>
-    <species speciesfile="Si_LAPW.xml" rmt="2.1">
+    <species speciesfile="Si.xml" rmt="2.1">
       <atom coord="0.00 0.00 0.00"></atom>
       <atom coord="0.25 0.25 0.25"></atom>
     </species>
@@ -17,7 +17,6 @@
     gmaxvr="12"
     ngridk="2 2 2"
     xctype="LSDAPerdew-Wang"
-    tetra="true"
     nempty="50"
     >
   </groundstate>
