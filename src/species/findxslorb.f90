@@ -4,7 +4,7 @@ subroutine findxslorb
 
   implicit none
   integer :: nn
-  real(8) :: e, de, t0, dl, t00, t10, dl0
+  real(8) :: e, de, t0, t1, dl, t00, t10, dl0
   real(8) :: p0(nrmt), p1(nrmt), q0(nrmt), q1(nrmt)
   real(8) :: eshift
   
@@ -24,7 +24,7 @@ subroutine findxslorb
     open(777,file=fname,action='write')
 
     e = esccut
-    call rschroddme(0, l, 0, e, np, nrmt, r, vr, nn, p0, p1, q0, q1)
+    call rschroddme(0, l, 0, e, nrmt, r, vr, nn, p0, p1, q0, q1)
     t00 = p0(nrmt)
     t10 = p1(nrmt)
     if ( dabs(t00)>1.0d-6 ) then
@@ -37,7 +37,7 @@ subroutine findxslorb
     do while (e <= exsmax)
       
       e = e + de
-      call rschroddme(0, l, 0, e, np, nrmt, r, vr, nn, p0, p1, q0, q1)
+      call rschroddme(0, l, 0, e, nrmt, r, vr, nn, p0, p1, q0, q1)
       t0 = p0(nrmt)
       t1 = p1(nrmt)
       

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Ac" name="actinium" z="-89.0000" mass="413795.6861">
-    <muffinTin rmin="0.100000E-04" radius="2.2000" rinf="50.7831" radialmeshPoints="253"/>
+    <muffinTin rmin="0.100000E-04" radius="2.2000" rinf="29.4464" radialmeshPoints="500"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -41,7 +41,7 @@
       <lo l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-3.0603" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-3.0602" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

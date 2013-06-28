@@ -29,7 +29,7 @@ real(8) :: esccut
 
 ! band offset energy
 real(8), parameter :: boe=0.15d0
-real(8) spmass,rmt,spzn,sprmin,sprmax,t1
+real(8) spmass,rmt,spzn,sprmin,sprmax
 
 character(256) :: spsymb,spname
 character(256) :: bname,str,apwdescr,apwtype,suffix,inspecies

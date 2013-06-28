@@ -17,6 +17,7 @@ Subroutine phonon
       Complex (8) dyn (3, maxatoms, maxspecies)
       character(256) :: status
       logical :: finished
+      Real (8) :: genrad (3)
 ! allocatable arrays
       Real (8), Allocatable :: veffmtp (:, :, :)
       Real (8), Allocatable :: veffirp (:)
@@ -29,6 +30,16 @@ Subroutine phonon
       input%groundstate%tforce = .True.
 ! no primitive cell determination
       input%structure%primcell = .False.
+! use autokpt=.true. for supercells, if not requested in input file
+! compute radkpt from input ngridk in this case
+      if (.not. input%groundstate%autokpt) then
+         genrad(:) = dble(input%groundstate%ngridk(:) - 1) * &
+                     Sqrt(input%structure%crystal%basevect(1, :)**2 + &
+                          input%structure%crystal%basevect(2, :)**2 + &
+                          input%structure%crystal%basevect(3, :)**2)
+         input%groundstate%radkpt = Max(genrad(1), genrad(2), genrad(3))
+         input%groundstate%autokpt = .True.
+      endif
 ! initialise universal variables
       Call init0
 ! initialise q-point dependent variables
@@ -56,9 +67,6 @@ Subroutine phonon
       input%structure%autormt = .False.
 ! no shifting of atomic basis allowed
       input%structure%tshift = .False.
-! determine k-point grid size from radkpt
-      ! let the user decide whether to use an automatic k-point grid or not
-      !input%groundstate%autokpt = .True.
 ! store original parameters
       natoms0 (1:nspecies) = natoms (1:nspecies)
       natmtot0 = natmtot

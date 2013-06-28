@@ -8,6 +8,7 @@ subroutine checkinput
   use modinput
   implicit none
   integer :: is,i
+  character(1024) :: message
   if (input%structure%epslat.le.0.d0) then
     write(*,*)
     write(*,'("Error(checkinput): /input/structure/@epslat <= 0 : ",G18.10)') input%structure%epslat
@@ -18,14 +19,6 @@ subroutine checkinput
     if (input%groundstate%radkpt.le.0.d0) then
       write(*,*)
       write(*,'("Error(checkinput): /input/groundstate/@radkpt <= 0 : ",G18.10)') input%groundstate%radkpt
-      write(*,*)
-      stop
-    end if
-  end if
-  if (associated(input%groundstate))then
-    if ((input%groundstate%ngridk(1).le.0).or.(input%groundstate%ngridk(2).le.0).or.(input%groundstate%ngridk(3).le.0)) then
-      write(*,*)
-      write(*,'("Error(checkinput): invalid /input/groundstate/@ngridk : ",3I8)') input%groundstate%ngridk
       write(*,*)
       stop
     end if
@@ -500,6 +493,16 @@ subroutine checkinput
         write(*,*)
         stop
       end if
+    end if
+  end if
+! ngridk optional
+  if (associated(input%groundstate)) then
+    if(any(input%groundstate%ngridk .le. 0) .and. (.not.input%groundstate%autokpt) .and. (input%groundstate%nktot .eq. 0)) then
+      write(*,*)
+      write(*,'("Error(checkinput): components in /input/groundstate/@ngridk < 1 : ",3I10)') input%groundstate%ngridk
+      write(*,'("specifiy either /input/groundstate/@ngridk or /input/groundstate/@autokpt or /input/groundstate/@nktot ")')
+      write(*,*)
+      stop
     end if
   end if
 

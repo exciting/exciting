@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="La" name="lanthanum" z="-57.0000" mass="253209.2364">
-    <muffinTin rmin="0.100000E-04" radius="2.2000" rinf="41.5360" radialmeshPoints="205"/>
+    <muffinTin rmin="0.100000E-04" radius="2.2000" rinf="29.0411" radialmeshPoints="450"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -29,12 +29,12 @@
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-1.4320" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.4321" searchE="true"/>
       </lo>
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-0.8893" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.8894" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

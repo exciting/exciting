@@ -7,7 +7,8 @@ program species
   
   integer :: nn
   real(8), allocatable :: p0(:), p1(:), q0(:), q1(:)
-  real(8) :: e, t0, t
+  real(8) :: e, t0, t, t1, t2, cutoff
+  character(80) :: radialgridtype
 
 !===============================================================================
 !
@@ -165,7 +166,7 @@ program species
   stop
   300 continue
   close(50)
-
+  
   !===============================================================================
 
   open(40,file='species.dat',action='READ',status='OLD',form='FORMATTED')
@@ -206,40 +207,82 @@ program species
   ! minimum radial mesh point proportional to 1/sqrt(Z)
   sprmin=1.d-5
   ! set the number of radial mesh points proportional to number of nodes
-  nrmt=120+dint(1.5d0*nz)
+  nrmt=200+50*(spn(spnst)-1)
+  
   ! find the optimal effective infinity
   sprmax=80.d0
-  do i=1,2
-    t1=log(sprmax/sprmin)/log(rmt/sprmin)
-    spnr=int(t1*dble(nrmt))
+  radialgridtype="cubic"
+   
+  do i = 1, 2
+
+! generate the radial mesh
+    if ((radialgridtype.ne."cubic").and. &
+        (radialgridtype.ne."expocubic").and. &
+        (radialgridtype.ne."exponential")) then 
+        write(*,*) 'Wrong radialGridType.'
+        write(*,*) 'Choose between cubic, expocubic and exponential!'
+        write(*,*) 'Terminating...'
+        stop
+    endif
+
+! estimate the number of radial mesh points to infinity
+    if (radialgridtype.eq."exponential") then
+        t1 = Log (sprmax/sprmin) / Log (rmt/sprmin)
+        t2 = dble (nrmt-1) * t1
+        spnr = Nint (t2) + 1
+    else
+        spnr = 2+Nint(dble(nrmt-1)*((sprmax-sprmin)/(rmt-sprmin))**0.333333333333333d0)
+    endif
+
+! generate the radial meshes
+    t1 = 1.d0 / dble (nrmt-1)
+! logarithmic mesh
+    t2 = Log (rmt/sprmin)
+    cutoff=Nint(nrmt*0.5d0)
+
     if (allocated(r)) deallocate(r)
+    allocate(r(spnr))
+    Do ir = 1, spnr
+        if (radialgridtype.eq."cubic") then
+            r(ir) = sprmin+(dble(ir-1)/dble(nrmt-1))**3*(rmt-sprmin)
+        elseif (radialgridtype.eq."exponential") then
+            r(ir) = sprmin*Exp(dble(ir-1)*t1*t2)
+        else
+            r(ir) = 0.5d0*(erf(5d0*dble(ir-cutoff)/nrmt)+1d0)* &
+           &  (sprmin+(dble(ir-1)/dble(nrmt-1))**3*(rmt-sprmin))+ &
+           &  (1d0-0.5d0*(erf(5d0*dble(ir-cutoff)/nrmt)+1d0))*sprmin*Exp(dble(ir-1)*t1*t2)
+        endif
+    End Do
+
     if (allocated(rho)) deallocate(rho)
     if (allocated(vr)) deallocate(vr)
     if (allocated(rwf)) deallocate(rwf)
-    if (allocated(fr)) deallocate(fr)
-    if (allocated(gr)) deallocate(gr)
-    if (allocated(cf)) deallocate(cf)
-    allocate(r(spnr))
     allocate(rho(spnr))
     allocate(vr(spnr))
     allocate(rwf(spnr,2,spnst))
-    allocate(fr(spnr))
-    allocate(gr(spnr))
-    allocate(cf(3,spnr))
-  ! generate the radial mesh
-    call radmesh(spnr,nrmt,rmt,sprmin,r)
+
   ! solve the Kohn-Sham-Dirac equations for the atom
-    call atom(.true.,spzn,spnst,spn,spl,spk,spocc,xctype,xcgrad,np,spnr,r,eval, &
-     rho,vr,rwf)
+    call atom(.true.,spzn,spnst,spn,spl,spk,spocc,xctype,xcgrad,spnr,r,eval, &
+     rho,vr,rwf,nrmt,.true.)
+     
     do ir=spnr,1,-1
-      if (rho(ir).gt.1.d-20) then
+      if (rho(ir).gt.1.d-10) then
         sprmax=1.5d0*r(ir)
         goto 20
       end if
     end do
+
   20 continue
   end do
+  deallocate(rwf)
+  
   ! check total charge is correct
+  if (allocated(fr)) deallocate(fr)
+  allocate(fr(spnr))
+  if (allocated(gr)) deallocate(gr)
+  allocate(gr(spnr))
+  if (allocated(cf)) deallocate(cf)
+  allocate(cf(3,spnr))
   do ir=1,spnr
     fr(ir)=4.d0*pi*rho(ir)*r(ir)**2
   end do
@@ -250,7 +293,8 @@ program species
     write(*,*)
     stop
   end if
-
+  deallocate(fr,gr,cf)
+  
   ! find which states belong to core
   do ist=1,spnst
     if (eval(ist).lt.ecvcut) then
@@ -269,15 +313,15 @@ program species
     end if
   end do
 
-! default values of the lin. ene. in valence region
+! default values of linearization energy in valence region
   elval(:) = 0.15d0
 
 ! Semi-core states  
   nl(:)=0
   maxl=0
-
+  
   allocate(p0(nrmt),p1(nrmt),q0(nrmt),q1(nrmt))
-  do ist=1,spnst
+  do ist = 1, spnst
     if (.not.spcore(ist)) then
       if ((spl(ist).eq.0).or.(spl(ist).eq.spk(ist))) then
         l=spl(ist)
@@ -285,12 +329,14 @@ program species
         
           ! check whether the state is really SC one
           e = eval(ist)
-          call rschroddme(0, l, 0, e, np, nrmt, r, vr, nn, p0, p1, q0, q1)
+          call rschroddme(0, l, 0, e, nrmt, r, vr, nn, p0, p1, q0, q1)
+          
           t0 = p0(nrmt)
           
           do while (e<=elval(l))
             e = e+0.0001
-            call rschroddme(0, l, 0, e, np, nrmt, r, vr, nn, p0, p1, q0, q1)
+            call rschroddme(0, l, 0, e, nrmt, r, vr, nn, p0, p1, q0, q1)
+            
             t = p0(nrmt)
             if (t*t0<0.d0) then
               nl(l) = nl(l)+1
@@ -307,7 +353,7 @@ program species
     end if
   end do
   maxl = min(maxl,3)
-  deallocate(p0,p1,q0,q1)
+  deallocate(vr,p0,p1,q0,q1)
 
 !---------------------------------------------
 ! Advanced feature: LOs for unoccupied states

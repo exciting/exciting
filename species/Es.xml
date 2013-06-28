@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Es" name="einsteinium" z="-99.0000" mass="459367.8982">
-    <muffinTin rmin="0.100000E-04" radius="2.2000" rinf="33.0345" radialmeshPoints="268"/>
+    <muffinTin rmin="0.100000E-04" radius="2.2000" rinf="27.0399" radialmeshPoints="500"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -38,12 +38,12 @@
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-2.1318" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.1315" searchE="true"/>
       </lo>
       <lo l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-1.3028" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.3026" searchE="true"/>
       </lo>
     </basis>
     <!-- Exciting code version: Lithium -->

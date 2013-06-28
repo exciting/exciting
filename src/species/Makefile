@@ -1,5 +1,7 @@
 include ../../build/make.inc
 
+F90_OPTS=$(F90_OPTS) -DSPECIES
+
 species::fox
 	../../build/utilities/mkmf -t ./template -f -m Makefile.mkmf -p species \
 	../src_lib ../mod_timing.F90 ../warning.f90 \
@@ -11,9 +13,9 @@ species::fox
 	&& $(MAKE) -f Makefile.mkmf species \
 	&& mv species ../../bin/species
 
-fox:libFoX_common.a
+fox:lib/libFoX_common.a
 
-libFoX_common.a:
+lib/libFoX_common.a:
 	cd ../../src/FoX/ && \
 	./configure FC=$(F90) && \
 	make
