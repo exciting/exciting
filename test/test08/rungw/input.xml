@@ -1,6 +1,6 @@
 <input>
   <title>Si crystal</title>
-  <structure speciespath="./" autormt="false">
+  <structure speciespath="../../../species/" autormt="false">
     <crystal>
       <basevect>5.13 5.13 0.00</basevect>
       <basevect>5.13 0.00 5.13</basevect>

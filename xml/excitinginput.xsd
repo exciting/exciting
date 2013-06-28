@@ -2430,13 +2430,19 @@ gw.xsd
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-      <xs:attribute ex:importance="essential" ex:unit="" name="ngridk" type="integertriple" use="required">
+      <xs:attribute ex:importance="essential" ex:unit="" name="ngridk" type="integertriple" use="optional" default="0 0 0">
         <xs:annotation>
           <xs:appinfo>
             <oldname>ngridk</oldname>
           </xs:appinfo>
-          <xs:documentation>Number of k grid points along the basis vector
-            directions.</xs:documentation>
+            <xs:documentation>Number of k grid points along the basis vector
+            directions. Alternatively give <attref>autokpt</attref> and <attref>radkpt</attref>,
+            or <attref>nktot</attref>. In the latter cases any value given for <attref>ngridk</attref>
+            is not used. Notes: Phonon calculations using supercells adjust the k-grid
+            according to the supercell size; if the element <elementref>xs</elementref>
+            is given, the present attribute is overwritten by the value in <elementref>xs</elementref>
+            for xs-related groundstate calculations; the values of the present attribute are also
+            relevant for calculations related to the element <elementref>gw</elementref>.  </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="rgkmax" type="fortrandouble" default="7.0d0">
@@ -2612,9 +2618,8 @@ gw.xsd
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="autokpt" type="xs:boolean" default="false">
         <xs:annotation>
-          <xs:documentation>If  <pre>"true"</pre>, the set of <bf>k</bf>-points is determined 
-          automatically according to the total 
-            number of required <bf>k</bf>-points given by <attref>nktot</attref>.
+          <xs:documentation>If  <pre>"true"</pre>, the set of <bf>k</bf>-points is determined
+          automatically according to <attref>radkpt</attref>.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
