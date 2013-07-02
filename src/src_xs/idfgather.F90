@@ -67,7 +67,7 @@ Subroutine idfgather
                             Close (unit1)
                         endif
 #ifdef MPI
-                        call mpi_bcast(mdf1(wpari),wparf-wpari,MPI_DOUBLE_COMPLEX,iproc,MPI_COMM_WORLD,ierr)
+                        call mpi_bcast(mdf1(wpari),wparf-wpari+1,MPI_DOUBLE_COMPLEX,iproc,MPI_COMM_WORLD,ierr)
 #endif
                     End Do ! iproc
                     ! write to file
