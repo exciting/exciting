@@ -31,6 +31,7 @@ Subroutine occupy
 !     Ricardo Gomez-Abal)
 !   Modifications for tetrahedron method, 2007-2010 (Sagmeister)
 !   Modifications for tetrahedron method, 2011 (DIN)
+!   Simplicistic method for systems with gap added, 2013 (STK)
 !EOP
 !BOC
       Implicit None
@@ -45,16 +46,16 @@ Subroutine occupy
       real(8), external :: dostet
       character(1024) :: message
       External sdelta, stheta
-! find minimum and maximum eigenvalues
-      e0 = evalsv (1, 1)
-      e1 = e0
-      Do ik = 1, nkpt
-         Do ist = 1, nstsv
-            e0 = Min (e0, evalsv(ist, ik))
-            e1 = Max (e1, evalsv(ist, ik))
-         End Do
-      End Do
 
+! find minimum and maximum eigenvalues
+!     e0 = evalsv (1, 1)
+!     e1 = e0
+!     Do ik = 1, nkpt
+!        Do ist = 1, nstsv
+!           e0 = Min (e0, evalsv(ist, ik))
+!           e1 = Max (e1, evalsv(ist, ik))
+!        End Do
+!     End Do
 ! (commented by DIN) this message is typically happens for 0 or 1 scf
 ! cycle when the linearization jumps and can be very puzzling for normal users 
 ! how to react to this warning
@@ -73,12 +74,13 @@ Subroutine occupy
 
       if ( input%groundstate%stypenumber .ge. 0 ) then
          t1 = 1.d0 / input%groundstate%swidth
+
 !     next lines taken in part from libbzint (STK)
 !
 !!    nvm is the number of bands for an insulating system 
 !!    since for a system with gap, the procedure to determine the
 !!    band gap can be unstable, just try first whether it is an
-!!    insulating system, but such a simplistic way to determine the Fermi energy
+!!    insulating system, but such a simplicistic way to determine the Fermi energy
 !!    is valid only for no spin polarized cases 
 !
          if (.not.associated(input%groundstate%spin)) then
@@ -99,12 +101,20 @@ Subroutine occupy
            End Do
            fermidos = fermidos * occmax
            if ((e1 .ge. e0) .and. (abs(chg - chgval) .lt. input%groundstate%epsocc)) then
-!            Write (*,*)
-             Write (*, '("Info(occupy): System has gap, simplicistic method used in determining efermi and occupation")')
-!            Write (*,*)
+!            Write (*, '("Info(occupy): System has gap, simplicistic method used in determining efermi and occupation")')
              goto 10
            endif
          end if
+
+! find minimum and maximum eigenvalues
+         e0 = evalsv (1, 1)
+         e1 = e0
+         Do ik = 1, nkpt
+            Do ist = 1, nstsv
+               e0 = Min (e0, evalsv(ist, ik))
+               e1 = Max (e1, evalsv(ist, ik))
+            End Do
+         End Do
 !	 	 
 ! determine the Fermi energy using the bisection method
 !
