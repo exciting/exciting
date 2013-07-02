@@ -20,7 +20,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     <test>
     <status>
     <xsl:choose>
-    <xsl:when test="math:abs(/info/groundstate/scl/iter[last()]/energies/@totalEnergy+ 241.484889674)&lt;0.0001"><xsl:text>passed</xsl:text></xsl:when>
+    <xsl:when test="math:abs(/info/groundstate/scl/iter[last()]/energies/@totalEnergy+ 242.346369077)&lt;0.0001"><xsl:text>passed</xsl:text></xsl:when>
     <xsl:otherwise><xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>
     </status>
