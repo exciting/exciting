@@ -21,7 +21,7 @@ F77_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
 #Ignore if you don't have MPI or smplibs
 
 # check for the correct name of your mpif90 compiler
-MPIF90 = mpif90-ifort
+MPIF90 = mpiifort
 MPIF90_OPTS = $(F90_OPTS) $(CPP_ON_OPT) -DMPI -DMPIRHO -DMPISEC
 
 F77MT=$(F77)
