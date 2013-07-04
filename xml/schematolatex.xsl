@@ -57,11 +57,11 @@
 \ \\
 \Huge \textbf{</xsl:text><xsl:apply-templates select="/xs:schema/xs:annotation/xs:appinfo/title"/><xsl:text>} \\
 \ \\
-\huge \textbf{version \texttt{lithium}} \\
+\huge \textbf{version \texttt{beryllium}} \\
 \Large
 \vfill
 \ \\
-August 2012
+Juli 2013
 \end{center}
 \end{titlepage}
 
@@ -231,10 +231,10 @@ August 2012
 
   <xsl:text>\</xsl:text>
   <xsl:value-of select="str:padding(0,'sub')"/>
-  <xsl:text>section{ Element: {\color{blue}</xsl:text>
+  <xsl:text>section{ Element: {\textcolor{blue}{</xsl:text>
   <xsl:text/>
   <xsl:value-of select="$myelement/@name "/>
-  <xsl:text>}}
+  <xsl:text>}}}
      \label{</xsl:text>
   <xsl:value-of select="$myelement/@name"/>
   <xsl:text>}
@@ -293,9 +293,9 @@ August 2012
  <xsl:template name="attributetolatex">
   <xsl:param name="myattribute"/>
   <xsl:param name="level"/>
-  <xsl:text>\subsection{Attribute: {\color{green}</xsl:text>
+  <xsl:text>\subsection{Attribute: {\textcolor{green}{{</xsl:text>}
   <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
-  <xsl:text>}}  \label{:att</xsl:text>
+  <xsl:text>}}}  \label{:att</xsl:text>
   <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
   <xsl:text>}
   \label{</xsl:text>

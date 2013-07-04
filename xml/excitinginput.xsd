@@ -271,14 +271,8 @@ gw.xsd
             <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix"/>
           </xs:complexType>
         </xs:element>
-      </xs:all>
+      </xs:all>			
     </xs:complexType>
-  </xs:element>
-  <xs:element ex:importance="essential" ex:unit="" name="pointstatepair" type="integerpair">
-    <xs:annotation>
-      <xs:documentation> The element <pre>pointstatepair</pre> defines a <inlinemath>{ \bf
-          k}</inlinemath>-point and state index pair. </xs:documentation>
-    </xs:annotation>
   </xs:element>
   <xs:element ex:importance="essential" ex:unit="" name="kstlist">
     <xs:annotation>
@@ -288,9 +282,14 @@ gw.xsd
           L}</inlinemath>, <inlinemath>{ \bf S}</inlinemath> and <inlinemath>{ \bf J} </inlinemath>
         expectation values. </xs:documentation>
     </xs:annotation>
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ex:importance="essential" ex:unit="" ref="pointstatepair" minOccurs="1" maxOccurs="unbounded"/>
+	<xs:complexType>
+	  <xs:sequence>
+	    <xs:element ex:importance="essential" ex:unit="" name="pointstatepair" type="integerpair" minOccurs="1" maxOccurs="unbounded">
+	      <xs:annotation>
+	        <xs:documentation> The element <pre>pointstatepair</pre> defines a <inlinemath>{ \bf
+	          k}</inlinemath>-point and state index pair. </xs:documentation>
+	        </xs:annotation>
+	    </xs:element>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
