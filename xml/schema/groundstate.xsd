@@ -52,7 +52,7 @@
                     <inlinemath>z</inlinemath>-direction. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean">
+            <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation> If <attref>spinorb</attref> is <pre>"true"</pre>, then a
                     <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
