@@ -12,7 +12,7 @@
 <atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
 </species>
 </structure>
-<groundstate   vkloff="0.5  0.5  0.5"  ngridk="2 2 2 ">
+<groundstate   vkloff="0.5  0.5  0.5"  ngridk="2 2 2 " epsengy="5.0d-07">
 <solver type="Arpack" packedmatrixstorage="false" />
 </groundstate>
 <properties></properties>
