@@ -230,7 +230,8 @@ Subroutine gndstate
         If (input%groundstate%xctypenumber .Lt. 0) Then 
             Write (60, '(" Time spent for oepvnl ", T40,": ", F12.2)') time_oepvnl
             Write (60, '(" Time spent for oep iteration ", T40,": ", F12.2)') time_oep_iter
-        End If    
+        End If 
+        Write (60,*)
         Write (60, '("+----------------------------+")')
         Write (60, '("| Groundstate module stopped |")')
         Write (60, '("+----------------------------+")')

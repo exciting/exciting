@@ -36,8 +36,8 @@ Subroutine writeinfo (fnum)
 #endif
       Character (10) :: dat, tim
       Write (fnum, '("+-----------------------------------------------------------+")')
-      Write (fnum, '("| EXCITING Lithium    (",I2.2,".",I2.2,".",I2.2,") started                     |")') version
-      Write (fnum, '("| version hash id: ",a," |")') githash
+      Write (fnum, '("| EXCITING ",A)') versionname
+      Write (fnum, '("| version hash id: ",a)') githash
 #ifdef MPI
       Write (fnum, '("| MPI version using ",i6," processor(s)                     |")') procs
 #ifndef MPI1
@@ -54,10 +54,10 @@ Subroutine writeinfo (fnum)
       End If
       Call date_and_time (date=dat, time=tim)
       Write (fnum,*)
-      Write (fnum, '("Date (YYYY-MM-DD) : ", A4, "-", A2, "-", A2)') &
-     & dat (1:4), dat (5:6), dat (7:8)
-      Write (fnum, '("Time (hh:mm:ss)   : ", A2, ":", A2, ":", A2)') tim &
-     & (1:2), tim (3:4), tim (5:6)
+      Write (fnum, '("Date (DD-MM-YYYY) : ", A2, "-", A2, "-", A4)') &
+     &  dat (7:8), dat (5:6), dat (1:4)
+      Write (fnum, '("Time (hh:mm:ss)   : ", A2, ":", A2, ":", A2)') &
+     &  tim (1:2), tim (3:4), tim (5:6)
       Write (fnum,*)
       Write (fnum, '("All units are atomic (Hartree, Bohr, etc.)")')
       Select Case (task)
