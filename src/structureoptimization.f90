@@ -19,6 +19,7 @@ subroutine structureoptimization
     Implicit None
     integer :: is, ia
     Logical :: exist
+    integer :: verbosity
 
 ! Write first the starting configuration
     if (rank .Eq. 0) then
@@ -30,50 +31,67 @@ subroutine structureoptimization
 
 ! Use "fromfile" option during the optimization run
     task = 1
-    if (input%structureoptimization%method=="simple") then
-        
-        do while (forcemax > input%structureoptimization%epsforce)
-            Call updatpos
-            If (rank .Eq. 0) Then
-                Write (60,*)
-                Write (60, '("+--------------------------+")')
-                Write (60, '("| Updated atomic positions |")')
-                Write (60, '("+--------------------------+")')
-                Do is = 1, nspecies
-                    Write (60,*)
-                    Write (60, '("Species : ", I4, " (", A, ")")') &
-                   &  is, trim (input%structure%speciesarray(is)%species%chemicalSymbol)
-                    Write (60, '(" atomic positions (lattice) :")')
-                    Do ia = 1, natoms (is)
-                        Write (60, '(I4, " : ", 3F14.8)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-                    End Do
-                End Do
-! write lattice vectors and optimised atomic positions to file
-                Call writehistory
-                Call writegeometryxml (.True.)
-! write the optimised interatomic distances to file
-                Call writeiad (.True.)
-            End If
-! begin new self-consistent loop with updated positions
-            call scf_cycle
-        end do
+    
+    if (input%structureoptimization%method=="newton") then
 
-    else if (input%structureoptimization%method=="lbfgs") then
+        if (rank .Eq. 0) Then
+            write (60,*)
+            !write (60, '("+---------------------------------------------------------+")')
+            !write (60, '("| Use Newton-like method for optimizing atomic positions")')
+            !write (60, '("+---------------------------------------------------------+")')
+            call boxmsg(60,'-','Use Newton-like method for optimizing atomic positions')
+        end if
+        
+        call newton(input%structureoptimization%epsforce,verbosity)
+
+    else if (input%structureoptimization%method=="bfgs") then
 
         If (rank .Eq. 0) Then
             Write (60,*)
             Write (60, '("+---------------------------------------------------------+")')
-            Write (60, '("| Use L-BFGS-B method for optimizing the atomic positions |")')
+            Write (60, '("| Use L-BFGS-B method for optimizing atomic positions")')
             Write (60, '("+---------------------------------------------------------+")')
         End If
         
-        call lbfgs_driver
+        call lbfgs_driver(verbosity)
 
+    else if (input%structureoptimization%method=="mixed") then
+    
+        If (rank .Eq. 0) Then
+            Write (60,*)
+            Write (60, '("+---------------------------------------------------------+")')
+            Write (60, '("| Use mixed Newton/BFGS scheme for optimizing atomic positions")')
+            Write (60, '("+---------------------------------------------------------+")')
+        End If
+        
+        call newton(input%structureoptimization%epsforce0,verbosity)
+        call lbfgs_driver(verbosity)
+    
     else
-      
+        
+        write(*,*)
         write(*,*) 'ERROR(structureoptimization): Unknown method for structure optimization!'
         stop
       
+    end if
+    
+    ! check force convergence
+    if (forcemax .Le. input%structureoptimization%epsforce) Then
+        if (rank .Eq. 0) Then
+            write(60,*)
+            write(60,'("+---------------------------------------------------------+")')
+            write(60,'("| Force convergence target achieved")')
+            write(60,'("+---------------------------------------------------------+")')
+        end if
+    else
+        if (rank .Eq. 0) Then
+          write(60,*)
+          write(60,'("+---------------------------------------------------------+")')
+          write(60,'(" Required force convergence has not been reached!")')
+          write(60,'("+---------------------------------------------------------+")')
+          write(60,'(" forcemax=",f12.8," > epsforce=",f12.8)') forcemax, input%structureoptimization%epsforce
+          write(60,*)
+        end if
     end if
 
     return

@@ -271,14 +271,8 @@ gw.xsd
             <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix"/>
           </xs:complexType>
         </xs:element>
-      </xs:all>
+      </xs:all>			
     </xs:complexType>
-  </xs:element>
-  <xs:element ex:importance="essential" ex:unit="" name="pointstatepair" type="integerpair">
-    <xs:annotation>
-      <xs:documentation> The element <pre>pointstatepair</pre> defines a <inlinemath>{ \bf
-          k}</inlinemath>-point and state index pair. </xs:documentation>
-    </xs:annotation>
   </xs:element>
   <xs:element ex:importance="essential" ex:unit="" name="kstlist">
     <xs:annotation>
@@ -288,9 +282,14 @@ gw.xsd
           L}</inlinemath>, <inlinemath>{ \bf S}</inlinemath> and <inlinemath>{ \bf J} </inlinemath>
         expectation values. </xs:documentation>
     </xs:annotation>
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ex:importance="essential" ex:unit="" ref="pointstatepair" minOccurs="1" maxOccurs="unbounded"/>
+	<xs:complexType>
+	  <xs:sequence>
+	    <xs:element ex:importance="essential" ex:unit="" name="pointstatepair" type="integerpair" minOccurs="1" maxOccurs="unbounded">
+	      <xs:annotation>
+	        <xs:documentation> The element <pre>pointstatepair</pre> defines a <inlinemath>{ \bf
+	          k}</inlinemath>-point and state index pair. </xs:documentation>
+	        </xs:annotation>
+	    </xs:element>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -3078,7 +3077,7 @@ gw.xsd
       <xs:attribute ex:importance="expert" ex:unit="" name="nwrite" type="xs:integer" default="0">
         <xs:annotation>
           <xs:documentation> Normally, the density and potentials are written to the file STATE.OUT
-            only after com- pletion of the self-consistent loop. By setting nwrite to a positive
+            only after completion of the self-consistent loop. By setting nwrite to a positive
             integer the file will be written during the loop every nwrite
             iterations.</xs:documentation>
         </xs:annotation>
@@ -3129,7 +3128,21 @@ gw.xsd
               of the an average of forces on nuclei of the system is used as a convergence criterion for the 
               self-consistent procedure used to solve the Kohn-Sham equations. </xs:documentation>
             </xs:annotation>
-          </xs:attribute>         
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" type="xs:string" default="normal">
+            <xs:annotation>
+              <xs:documentation> 
+                Specify amount of information which is printed to files:
+                <list>
+                    <li>low    - minimal output is produced</li>
+                    <li>normal - (default) standard information</li>
+                    <li>high   - detailed output</li>
+                </list>
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+                   
     </xs:complexType>
   </xs:element>
   <xs:annotation>
@@ -3141,52 +3154,102 @@ gw.xsd
   <xs:element ex:importance="essential" ex:unit="" name="structureoptimization">
         <xs:annotation>
             <xs:documentation>The element <elementref>structureoptimization</elementref> activates the optimization 
-            of atomic postions.</xs:documentation>
+            of atomic positions at fixed lattice parameters.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
-            <xs:annotation>
-                <xs:documentation> Structural optimization run. Atomic positions are written to
-                    <pre>geometry.xml</pre>. </xs:documentation>
-            </xs:annotation>
-            <xs:attribute ex:importance="essential" ex:unit="" name="method" type="xs:string" default="simple">
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="outputlevel" default="normal">
+                <xs:annotation>
+                <xs:documentation> 
+                Specify amount of information which is printed to files:
+                <list>
+                    <li>low    - minimal output is produced</li>
+                    <li>normal - (default) standard information</li>
+                    <li>high   - detailed output</li>
+                </list>
+                </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="low"/>
+                        <xs:enumeration value="normal"/>
+                        <xs:enumeration value="high"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="method" type="xs:string" use="optional" default="newton">
                 <xs:annotation>
                     <xs:documentation>
-                    Type of the structural optimization: "simple" (Newton-like) or "lbfgs"
-                    </xs:documentation>
-                </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="" ref="epsforce" default="5.0d-5">
-                <xs:annotation>
-                    <xs:documentation>Convergence tolerance for the forces during a structural
-                        optimization run.</xs:documentation>
-                    <xs:appinfo>
-                        <olddefault default="5.0d-4"/>
-                    </xs:appinfo>
-                </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="tau0atm" type="fortrandouble" default="0.2d0">
-                <xs:annotation>
-                    <xs:documentation> Parameter determining the step size for structural optimization.<p/>                     
-                    In each step <inlinemath>m</inlinemath> of a structural optimization run,                     
-                    atom <inlinemath>\alpha</inlinemath> is displaced according to
-                    
-                            <displaymath>{\bf r}_{\alpha}^{m+1}={\bf r}_{\alpha}^m+\tau_{\alpha}^m
-                            \left({ \bf F}_{\alpha}^m+{ \bf F}_{\alpha}^{m-1}\right),</displaymath>
-                    
-                        i.e., the magnitude of the displacement in step <inlinemath>m</inlinemath> is proportional 
-                        to <inlinemath>\tau_{\alpha}^m</inlinemath>. 
-                        For the initial step, <inlinemath>\tau_{\alpha}^0</inlinemath> 
-                        is set to <attref>tau0atm</attref>. 
-                        
-                        If the forces of two subsequent steps have the same sign,
-                        <inlinemath>\tau_{\alpha}^m</inlinemath> is increased by 
-                        <inlinemath>\tau_{\alpha}^0</inlinemath>. Otherwise, 
-                        <inlinemath>\tau_{\alpha}^m</inlinemath> is reset to <inlinemath>\tau_{\alpha}^0</inlinemath>.
+                    Specify the method used for structural optimization: 
+                    <list>
+                      <li>"newton" - Simple (Newton-like) method;</li>
+                      <li>"bfgs"   - Limited memory algorithm for bound constrained optimization;</li>
+                      <li>"mixed"  - Combines "newton" and "bfgs" methods. The optimization
+                      is started using the "newton" method. When the maximum amplitude of the force acting on the atoms
+                      is smaller then the value specified by <attref>epsforce0</attref> the "bfgs" method is used.</li>
+                    </list>
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="history" type="xs:boolean" default="false">
+            <xs:attribute ex:importance="expert" name="maxsteps" type="xs:integer" use="optional" default="200">
+                <xs:annotation>
+                    <xs:documentation>
+                    Maximum number of the structural optimization steps.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" name="epsforce0" type="fortrandouble" default="8.0d-2" use="optional">
+                <xs:annotation>
+                    <xs:documentation>Only used if <attref>method</attref>="mixed" is used.
+                    Defines the value of maximum amplitude of the force acting on the atoms for which
+                    the optimization method switches from "newton" to "bfgs".
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>            
+            
+            <xs:attribute ex:importance="essential" name="epsforce" type="fortrandouble" default="5.0d-5" use="optional">
+                <xs:annotation>
+                    <xs:documentation>
+                    The optimization stops when the maximum amplitude of the force acting on the atoms is lower 
+                    then the value specified by <attref>epsforce</attref>.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" name="tau0atm" type="fortrandouble" default="1.0d0" use="optional">
+                <xs:annotation>
+                    <xs:documentation> Parameter determining the initial amplitude of atomic displacement 
+                    for the "newton" method of structural optimization.
+                    <p/>                     
+                    At each step <inlinemath>m</inlinemath> of a structural optimization run,                     
+                    the atom <inlinemath>\alpha</inlinemath> is displaced according to
+                    <displaymath>
+                      {\bf r}_{\alpha}^{m+1}={\bf r}_{\alpha}^m+\tau_{\alpha}^m
+                       \left({ \bf F}_{\alpha}^m+{ \bf F}_{\alpha}^{m-1}\right),
+                    </displaymath>
+                    i.e., the magnitude of the displacement at the step <inlinemath>m</inlinemath> is proportional 
+                    to <inlinemath>\tau_{\alpha}^m</inlinemath>. 
+                    For the initial step, <inlinemath>\tau_{\alpha}^0</inlinemath> 
+                    is set to <attref>tau0atm</attref>. 
+                    If the forces of two subsequent optimization steps have the same sign,
+                    <inlinemath>\tau_{\alpha}^m</inlinemath> is increased by <inlinemath>\tau_{\alpha}^0</inlinemath>. 
+                    Otherwise, <inlinemath>\tau_{\alpha}^m</inlinemath> is reset to <inlinemath>\tau_{\alpha}^0</inlinemath>.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" name="taubfgs" type="fortrandouble" default="1.0d0" use="optional">
+                <xs:annotation>
+                  <xs:documentation>
+                    Maximum atomic displacement for the structural optimization when using the "bfgs" method.
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" name="history" type="xs:boolean" default="false" use="optional">
               <xs:annotation>
                 <xs:documentation> 
                 If <pre>"true"</pre> the stucture optimization history file is generated in one of the formats
@@ -3195,7 +3258,7 @@ gw.xsd
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="historyformat" type="xs:string" default="xyz">
+            <xs:attribute ex:importance="essential" name="historyformat" type="xs:string" default="xyz" use="optional">
               <xs:annotation>
                 <xs:documentation> 
                 If <attref>history</attref> is <pre>"true"</pre>, the structure optimization history file
@@ -3204,42 +3267,13 @@ gw.xsd
                 <li> <pre>"xyz"</pre> molecular format, where
                 Line 1 contains the total number of atoms. 
                 Line 2 contains the comment line here with total energy in eV. 
-                Line 3 and following are atomic species, cartesian coordinates in Angstrom and the forces (eV/Ang).</li>
+                Line 3 and following are atomic species, cartesian coordinates in Angstrom, and the forces in eV/Angstrom.</li>
                 <li> <pre>"gulp"</pre> format which useful to visualize the crystal structure changes using the GDIS program.</li>
                 </list>
                 </xs:documentation>
             </xs:annotation>
             </xs:attribute>
             
-            <xs:attribute ex:importance="essential" ex:unit="" name="lbfgsnumcor" type="xs:integer" default="3">
-                <xs:annotation>
-                <xs:documentation>
-                The number of corrections used in the limited memory matrix.
-                It is not altered by the routine. Values of <attref>lbfgsnumcor</attref> 
-                <inlinemath>\textless</inlinemath> 3 are not recommended, and large values of 
-                <attref>lbfgsnumcor</attref> can result in excessive computing time. 
-                The range 3 <inlinemath>\leq</inlinemath> <attref>lbfgsnumcor</attref> 
-                <inlinemath>\leq</inlinemath> 20 is recommended.
-                </xs:documentation>
-                </xs:annotation>
-            </xs:attribute>
-            
-            <xs:attribute ex:importance="essential" ex:unit="" name="lbfgsverbosity" type="xs:integer" default="-1">
-                <xs:annotation>
-                <xs:documentation>
-                This variable controls the frequency and type of output generated:
-                <list>
-                <li><attref>lbfgsverbosity</attref> <inlinemath>\textless</inlinemath> 0 no output is generated;</li>
-                <li><attref>lbfgsverbosity</attref>: print only one line at the last iteration;</li>
-                <li>0 <inlinemath>\textless</inlinemath> <attref>lbfgsverbosity</attref> <inlinemath>\textless</inlinemath> 99: print also f and |proj g| every iprint iterations;</li>
-                <li><attref>lbfgsverbosity</attref> = 99: print details of every iteration except n-vectors;</li>
-                <li><attref>lbfgsverbosity</attref> = 100: print also the changes of active set and final x;</li>
-                <li><attref>lbfgsverbosity</attref> <inlinemath>\textgreater</inlinemath> 100: print details of every iteration including x and g;</li>
-                <li>When <attref>lbfgsverbosity</attref> <inlinemath>\textgreater</inlinemath> 0, the file iterate.dat will  be created to summarize the iteration.</li>
-                </list>
-                </xs:documentation>
-                </xs:annotation>
-            </xs:attribute>
         </xs:complexType>
     </xs:element>
   <xs:annotation>

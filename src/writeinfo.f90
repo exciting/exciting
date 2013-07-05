@@ -36,7 +36,7 @@ Subroutine writeinfo (fnum)
 #endif
       Character (10) :: dat, tim
       Write (fnum, '("+-----------------------------------------------------------+")')
-      Write (fnum, '("| EXCITING ",A)') versionname
+      Write (fnum, '("| EXCITING ", a, " started")') trim(versionname)
       Write (fnum, '("| version hash id: ",a)') githash
 #ifdef MPI
       Write (fnum, '("| MPI version using ",i6," processor(s)                     |")') procs
@@ -153,8 +153,7 @@ Subroutine writeinfo (fnum)
          Write (fnum, '(" muffin-tin radius : ", G18.10)') rmt (is)
          Write (fnum, '(" number of radial points in muffin-tin : ", I6&
         &)') nrmt (is)
-         Write (fnum, '(" atomic positions (lattice), magnetic fields (&
-        &Cartesian) :")')
+         Write (fnum, '(" atomic positions (lattice), magnetic fields (Cartesian) :")')
          Do ia = 1, natoms (is)
             Write (fnum, '(I4, " : ", 3F12.8, "	", 3F12.8)') ia, &
            & input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
@@ -201,13 +200,13 @@ Subroutine writeinfo (fnum)
       End If
       If ((getfixspinnumber() .Eq. 2) .Or. (getfixspinnumber() .Eq. 3)) &
      & Then
-         Write (fnum, '("  fixing local muffin-tin moments to (Cartesia&
-        &n) :")')
+         Write (fnum, '("  fixing local muffin-tin moments to (Cartesian) :")')
          Do is = 1, nspecies
             Write (fnum, '("  species : ", I4, " (", A, ")")') is, trim &
            & (spsymb(is))
             Do ia = 1, natoms (is)
-               Write (fnum, '("	", I4, 3G18.10)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%mommtfix(:)
+               Write (fnum, '("	", I4, 3G18.10)') &
+              &  ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%mommtfix(:)
             End Do
          End Do
       End If
@@ -359,6 +358,15 @@ Subroutine writeinfo (fnum)
       Write (fnum,*)
       Write (fnum, '("Radial integration step length : ", I4)') &
      & input%groundstate%lradstep
+! mixer info     
+      select case(input%groundstate%mixernumber)
+        case(1)
+          write(fnum,*) "Using Adaptive step size linear potential mixing (1)"
+        case(2)
+          write(fnum,*) "Using Multisecant Broyden potential mixing (2)"
+        case(3)
+          write(fnum,*) "Using Pulay potential mixing (3)"
+      end select
       Call flushifc (fnum)
       Return
 End Subroutine

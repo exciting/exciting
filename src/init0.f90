@@ -31,7 +31,7 @@ Subroutine init0
       Integer :: is, js, ia, ias
       Integer :: ist, l, m, lm, iv (3)
       Real (8) :: ts0, ts1, tv3 (3)
-!
+
 !-------------------------------!
 !     zero timing variables     !
 !-------------------------------!

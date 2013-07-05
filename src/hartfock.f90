@@ -230,45 +230,6 @@ Subroutine hartfock
          Write (64, '(G18.10)') forcemax
          Call flushifc (64)
       End If
-!---------------------------------------!
-!     perform structural relaxation     !
-!---------------------------------------!
-      If (( .Not. tstop) .And. (task .Eq. 6)) Then
-         Write (60,*)
-         Write (60, '("Maximum force magnitude (target) : ", G18.10, " &
-        &(", G18.10, ")")') forcemax, &
-        & input%structureoptimization%epsforce
-         Call flushifc (60)
-! check force convergence
-         If (forcemax .Le. input%structureoptimization%epsforce) Then
-            Write (60,*)
-            Write (60, '("Force convergence target achieved")')
-            Go To 30
-         End If
-! update the atomic positions if forces are not converged
-         Call updatpos
-         Write (60,*)
-         Write (60, '("+--------------------------+")')
-         Write (60, '("| Updated atomic positions |")')
-         Write (60, '("+--------------------------+")')
-         Do is = 1, nspecies
-            Write (60,*)
-            Write (60, '("Species : ", I4, " (", A, ")")') is, trim &
-           & (input%structure%speciesarray(is)%species%chemicalSymbol)
-            Write (60, '(" atomic positions (lattice) :")')
-            Do ia = 1, natoms (is)
-               Write (60, '(I4, " : ", 3F14.8)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-            End Do
-         End Do
-! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and DENERGY.OUT
-         Write (61,*)
-         Write (62,*)
-         If (associated(input%groundstate%spin)) write (63,*)
-         Write (65,*)
-! begin new self-consistent loop with updated positions
-         Go To 10
-      End If
-30    Continue
       Write (60,*)
       Write (60, '("+-------------------------+")')
       Write (60, '("| EXCITING Lithium stopped |")')

@@ -6,6 +6,7 @@
 Subroutine mixerifc (mtype, n, v, dv, mode)
 !use modmain
       Use modinput
+      Use mod_misc, Only: verbosity
       Use mod_potential_and_density, Only:
       Use mod_spin, Only:
       Use mod_convergence, Only: iscl
@@ -28,8 +29,6 @@ Subroutine mixerifc (mtype, n, v, dv, mode)
 ! calculate memmory requirement if mode negative
          If (mode .Eq.-1) Then
             mode = 0
-            Write (60,*) "Using Adaptive step size linear potential mix&
-           &ing (1)"
             If (allocated(work)) deallocate (work)
             Allocate (work(3*n))
             Return
@@ -48,8 +47,6 @@ Subroutine mixerifc (mtype, n, v, dv, mode)
          If (mode .Eq.-1) Then
             Call initmixermsec (n)
             mode = 0
-            Write (60,*) "Using Multisecant Broyden potential mixing (2&
-           &)"
             Return
          End If
          If (mode .Eq.-2) Then
@@ -63,22 +60,19 @@ Subroutine mixerifc (mtype, n, v, dv, mode)
             call warning('Warning(mixerifc): Pulay mixing problematic with spin-polarised calculations')
          End If
          If (mode .Eq.-1) Then
-            Write (60,*) "Using Pulay potential mixing (3)"
             Allocate (work(2*n*maxsd))
             mode = 0
             Return
          End If
          If (mode .Eq.-2) Then
-            Deallocate (work)
-!
+            Deallocate(work)
             Return
          End If
-         Call mixpulay (iscl, n, maxsd, v, work, work(n*maxsd+1), dv)
+         Call mixpulay(iscl, n, maxsd, v, work, work(n*maxsd+1), dv)
       Case Default
-         Write (*,*)
-         Write (*, '("Error(mixerifc): mtype not defined : ", I8)') &
-        & mtype
-         Write (*,*)
+         Write(*,*)
+         Write(*, '("Error(mixerifc): mtype not defined : ", I8)') mtype
+         Write(*,*)
          Stop
       End Select
       Return

@@ -1,7 +1,3 @@
-!                                                                                      
-!  L-BFGS-B is released under the "New BSD License" (aka "Modified BSD License"
-!  or "3-clause license")
-!  Please read attached file License.txt
 !                                        
 !    --------------------------------------------------------------
 !             CUSTOMIZED DRIVER FOR L-BFGS-B
@@ -28,11 +24,8 @@
 !       Tech. Report, NAM-11, EECS Department, Northwestern University,
 !       1994.
 !
-!
 !         (Postscript files of these papers are available via anonymous
 !          ftp to eecs.nwu.edu in the directory pub/lbfgs/lbfgs_bcm.)
-!
-!                             *  *  *
 !
 !         February 2011   (latest revision)
 !         Optimization Center at Northwestern University
@@ -42,7 +35,7 @@
 !
 !    **************
 
-subroutine lbfgs_driver
+subroutine lbfgs_driver(verbosity)
 !
 !     Exciting interface created by DIN (February 2013)
 !
@@ -51,12 +44,8 @@ subroutine lbfgs_driver
       Use modmpi
 
       implicit none
- 
-!     Declare variables and parameters needed by the code.
-!
-!     We suppress both code-supplied stopping tests because the
-!     user is providing his/her own stopping criteria.
- 
+      integer, intent(IN)    :: verbosity
+      
       integer,  parameter    :: dp = kind(1.0d0)
       real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0
       
@@ -77,11 +66,13 @@ subroutine lbfgs_driver
       integer                :: i, j
       character(1024)        :: message
       integer, allocatable   :: amap(:,:)
-      logical                :: force_conv
 
-      m = input%structureoptimization%lbfgsnumcor
-      iprint = input%structureoptimization%lbfgsverbosity
-      force_conv = .false.
+! some L-BFGS-B library parameters (see src/Lbfgs.3.0/README)
+
+! number of corrections used in the limited memory matrix
+      m = 3
+! controls the frequency and type of output generated
+      iprint = -1
 
 !     Total number of variables taking into account constraints
       n = 0
@@ -117,8 +108,8 @@ subroutine lbfgs_driver
               nbd(j) = 2 ! constraint optimization (see src/Lbfgsb.3.0/README)
               x(j) = atposc(i,ia,is)
               ! l and u boundaries are used only when nbd > 0
-              l(j) = x(j)-input%structureoptimization%tau0atm
-              u(j) = x(j)+input%structureoptimization%tau0atm
+              l(j) = x(j)-input%structureoptimization%taubfgs
+              u(j) = x(j)+input%structureoptimization%taubfgs
             end if
           end do
         end do
@@ -146,40 +137,43 @@ subroutine lbfgs_driver
           if (ctask(1:5) .eq. 'NEW_X') then   
             
             call updatepositions
-            
-            If (rank .Eq. 0) Then
-              Write (60,*)
-              Write (60, '("+--------------------------+")')
-              Write (60, '("| Updated atomic positions |")')
-              Write (60, '("+--------------------------+")')
 
-              do is = 1, nspecies
-                write (60,*)
-                write (60, '("Species : ", I4, " (", A, ")")') &
-                &   is, trim (input%structure%speciesarray(is)%species%chemicalSymbol)
-                write (60, '(" atomic positions (lattice) :")')
-                do ia = 1, natoms(is)
-                  write (60, '(I4, " : ", 3F14.8)') ia, &
-                  &   input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-                end do ! ia
-              end do ! is
-
-              ! write lattice vectors and optimised atomic positions to file
-              Call writehistory
-              Call writegeometryxml (.True.)
-              ! write the optimized interatomic distances to file
-              Call writeiad (.True.)
-            End If
+! output info
+            if (rank==0) then
+                write(60,*)
+                write(60,'("+---------------------------------------------------------+")')
+                write(60,'("| Optimization step ", I4, "    (method = bfgs)")') isave(30)
+                write(60,'("+---------------------------------------------------------+")')
+                write(60,'("Number of scf iterations : ", I4)') iscl
+                write(60,'("Maximum force magnitude (target) : ",G18.10," (", G18.10, ")")') &
+               &  forcemax, input%structureoptimization%epsforce
+                write(*,'("Maximum force magnitude (target) : ",G18.10," (", G18.10, ")")') &
+               &  forcemax, input%structureoptimization%epsforce
+                write(60,'("Updated atomic positions :")')
+                do is = 1, nspecies
+                    do ia = 1, natoms (is)
+                        write(60,'(" atom ",I4,4x,A2,T30,": ",3F14.8)') &
+                       &  ia, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+                       &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+                    end do
+                end do
+                if (verbosity>0) call writeforce(60)
+                if (verbosity==2) then
+                    write(60,'("L-BFGS-B method related information")')
+                    write(60,'("Total number of BFGS updates prior the current iteration",I4)') isave(31)
+                    write(60,'("Number of function value or gradient evaluations in the current iteration",I4)') isave(36)
+                    write(60,'("Total number of function and gradient evaluations",I4)') isave(34)
+                end if
+                call flushifc(60)
+! write lattice vectors and optimised atomic positions to file
+                Call writehistory
+                Call writegeometryxml(.True.)
+! write the optimized interatomic distances to file
+                Call writeiad(.True.)
+            end if
             
             ! check force convergence
-            If (forcemax .Le. input%structureoptimization%epsforce) Then
-              If (rank .Eq. 0) Then
-                Write (60,*)
-                Write (60, '("Force convergence target achieved")')
-              End If
-              ctask = 'STOP'
-              force_conv = .true.
-            End If
+            If (forcemax .Le. input%structureoptimization%epsforce) ctask = 'STOP'
 
           end if ! 'NEW_X'
           
@@ -187,15 +181,6 @@ subroutine lbfgs_driver
 
       end do
 !     END the loop
-
-      if (.not.force_conv) then
-        if (rank .Eq. 0) Then
-          write(60,*)
-          write(60,'("ATTENTION(L-BFGS): Required force convergence has not been reached!")')
-          write(60,'(" forcemax=",f12.8," > epsforce=",f12.8)') forcemax, input%structureoptimization%epsforce
-          write(60,*)
-        end if
-      end if
       
       deallocate( nbd, x, l, u, g )
       deallocate( iwa )
@@ -233,7 +218,7 @@ contains
 !-----------------------!
 !   SCF cycle
 !-----------------------!
-        call scf_cycle
+        call scf_cycle(0)
 
 !-----------------------!
 !   Output

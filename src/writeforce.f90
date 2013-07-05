@@ -16,26 +16,19 @@ Subroutine writeforce (fnum)
       Integer :: is, ia, ias
       Real (8) :: t1
       Write (fnum,*)
-      Write (fnum, '("Forces :")')
+      Write (fnum,'("Total atomic forces:")')
       Do is = 1, nspecies
-         Write (fnum, '(" species : ", I4, " (", A, ")")') is, trim &
-        & (input%structure%speciesarray(is)%species%chemicalSymbol)
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
-            Write (fnum, '("  atom : ", I4)') ia
-            Write (fnum, '("   Hellmann-Feynman", T30, ": ", 3F14.8)') &
-           & forcehf (:, ias)
-            Write (fnum, '("   core correction", T30, ": ", 3F14.8)') &
-           & forcecr (:, ias)
-            Write (fnum, '("   IBS", T30, ": ", 3F14.8)') forceibs (:, &
-           & ias)
-            Write (fnum, '("   total force", T30, ": ", 3F14.8)') &
-           & forcetot (:, ias)
-            t1 = Sqrt (forcetot(1, ias)**2+forcetot(2, &
-           & ias)**2+forcetot(3, ias)**2)
-            Write (fnum, '("   total magnitude", T30, ": ", F14.8)') t1
+            write(fnum,'(" atom ",I4,4x,A2,T30,": ",3F14.8)') &
+           &  ia, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+           &  forcetot(:,ias)
+            write(fnum, '(T30,"Hellmann-Feynman",4x,3F14.8)') forcehf(:,ias)
+            write(fnum, '(T30,"core correction",4x,3F14.8)') forcecr(:,ias)
+            write (fnum, '("   IBS", T30, ": ", 3F14.8)') forceibs (:,ias)
+            t1 = Sqrt (forcetot(1, ias)**2+forcetot(2,ias)**2+forcetot(3, ias)**2)
+            write(fnum,'(" total magnitude",T30,": ",F14.8)') t1
          End Do
       End Do
-!call flushifc(fnum)
       Return
 End Subroutine
