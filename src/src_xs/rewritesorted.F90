@@ -2,7 +2,6 @@
 ! !ROUTINE: rewritesorted
 ! !INTERFACE:
 Subroutine rewritesorted
-      Use modinput
 ! !USES:
       Use m_sorteval
       Use modmain
