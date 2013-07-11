@@ -357,11 +357,6 @@ case(30)
   xcdescr='Armiento-Mattsson functional, Phys. Rev. B 72, 85108 (2005)'
   xcspin=0
   xcgrad=1
-case(406)
-  xcdescr='PBE0, M. Ernzerhof, G. E. Scuseria, J. Chem. Phys. 110 , 5029 (1999)'
-  xcspin=0
-  xcgrad=1
-  ex_coef=0.25
 case(100)
 ! libxc library functionals
   call xcdata_libxc(xctype,xcdescr,xcspin,xcgrad,ex_coef)

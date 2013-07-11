@@ -1374,14 +1374,14 @@ gw.xsd
                       <xs:documentation> short-range recipe for exchange GGA functionals </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration-->
-                  <xs:enumeration value="XC_HYB_GGA_X_SOGGA11_X">
+                  <!--xs:enumeration value="XC_HYB_GGA_X_SOGGA11_X">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 426 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Hybrid based on SOGGA11 form </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
@@ -2125,7 +2125,8 @@ gw.xsd
                       <xs:documentation> Tozer and Handy v. FCO </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
+		  <!-- hybrid functionals currently not implemented-->
+                  <!--xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 401 </oldnr>
@@ -2316,7 +2317,7 @@ gw.xsd
                       </xs:appinfo>
                       <xs:documentation> Schmider-Becke 98 parameterization 2c </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
 		  <!-- Range seperated / screened functionals currently not implemented-->
                   <!--xs:enumeration value="XC_HYB_GGA_XC_HSE03">
                     <xs:annotation>
@@ -2382,7 +2383,7 @@ gw.xsd
                       <xs:documentation> CAM version of B3LYP tunes for excitations </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration-->
-                  <xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
+                  <!--xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 435 </oldnr>
@@ -2405,7 +2406,7 @@ gw.xsd
                       </xs:appinfo>
                       <xs:documentation> B3LYP with RC04 LDA </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
@@ -2922,13 +2923,6 @@ gw.xsd
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>30</oldnr>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:enumeration>
-            <xs:enumeration value="HYB_PBE0">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldnr>406</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
