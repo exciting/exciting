@@ -16,6 +16,7 @@ Subroutine xsinit
       Character (10) :: dat, tim
       Integer :: i
       Real (8) :: tv (3)
+      real(8), parameter :: eps=1.d-7
 !
   !---------------------------!
   !     initialize timing     !
@@ -110,6 +111,13 @@ Subroutine xsinit
          Write (unitout,*)
          Write (unitout, '("Warning(xsinit): calculation is spin polarized&
          & non-collinear. Formalism may be incomplete.")')
+         Write (unitout,*)
+      End If
+      If (associated(input%groundstate%spin) .And. (input%xs%gqmax .Gt. eps)) Then
+         Write (unitout,*)
+         Write (unitout, '("Warning(xsinit): spin-polarized&
+         & calculation with local field effects (gqmax > 0). &
+         &Formalism may be incomplete.")')
          Write (unitout,*)
       End If
   ! no spin-spirals
