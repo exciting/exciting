@@ -16,6 +16,7 @@ Subroutine xsinit
       Character (10) :: dat, tim
       Integer :: i
       Real (8) :: tv (3)
+      real(8), parameter :: eps=1.d-7
 !
   !---------------------------!
   !     initialize timing     !
@@ -105,23 +106,25 @@ Subroutine xsinit
   !------------------------!
   !     spin variables     !
   !------------------------!
-  ! warn for spin polarized calculations
-      If (associated(input%groundstate%spin)) Then
+  ! warn for non-collinear spin polarized calculations
+      If (ncmag) Then
          Write (unitout,*)
-         Write (unitout, '("Error(xsinit): xs-part not working for spin-polari&
-        &zed systems.")')
+         Write (unitout, '("Warning(xsinit): calculation is spin polarized&
+         & non-collinear. Formalism may be incomplete.")')
          Write (unitout,*)
-         Write (100, '("Warning(xsinit): xs-part not working for spin-polari&
-        &zed systems.")')
-         Call terminate
+      End If
+      If (associated(input%groundstate%spin) .And. (input%xs%gqmax .Gt. eps)) Then
+         Write (unitout,*)
+         Write (unitout, '("Warning(xsinit): spin-polarized&
+         & calculation with local field effects (gqmax > 0). &
+         &Formalism may be incomplete.")')
+         Write (unitout,*)
       End If
   ! no spin-spirals
       If (isspinspiral()) Then
          Write (unitout,*)
          Write (unitout, '("Error(xsinit): xs-part not working for spin&
         &-spirals")')
-         Write (100, '("Warning(xsinit): xs-part not working for spin&
-        &-spirals.")')
          Write (unitout,*)
          Call terminate
       End If
