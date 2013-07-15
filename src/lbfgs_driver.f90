@@ -35,7 +35,7 @@
 !
 !    **************
 
-subroutine lbfgs_driver(verbosity)
+subroutine lbfgs_driver
 !
 !     Exciting interface created by DIN (February 2013)
 !
@@ -44,7 +44,6 @@ subroutine lbfgs_driver(verbosity)
       Use modmpi
 
       implicit none
-      integer, intent(IN)    :: verbosity
       
       integer,  parameter    :: dp = kind(1.0d0)
       real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0
@@ -157,8 +156,8 @@ subroutine lbfgs_driver(verbosity)
                        &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
                     end do
                 end do
-                if (verbosity>0) call writeforce(60)
-                if (verbosity==2) then
+                if (input%structureoptimization%outputlevelnumber>0) call writeforce(60)
+                if (input%structureoptimization%outputlevelnumber>1) then
                     write(60,'("L-BFGS-B method related information")')
                     write(60,'("Total number of BFGS updates prior the current iteration",I4)') isave(31)
                     write(60,'("Number of function value or gradient evaluations in the current iteration",I4)') isave(36)

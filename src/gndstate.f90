@@ -29,23 +29,10 @@ Subroutine gndstate
 
 ! time measurements
     Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0
-    integer :: verbosity
 
 !! TIME - Initialisation segment
     Call timesec (tsg0)
     Call timesec (ts0)
-
-    select case(trim(input%groundstate%outputlevel))
-        case("low")
-            verbosity=0
-        case("normal")
-            verbosity=1
-        case("high")
-            verbosity=2
-        case default
-            write(*,*) 'Error(scf_cycle): Not valid outputlevel parameter!'
-            stop
-    end select
 
 ! initialise global variables
     Call timesec (tin0)
@@ -75,7 +62,7 @@ Subroutine gndstate
 ! write out general information to INFO.OUT
         call writeinfo(60)
 
-        if (verbosity>0) then
+        if (input%groundstate%outputlevelnumber>0) then
 ! write the real and reciprocal lattice vectors to file
             Call writelat
 ! write interatomic distances to file
@@ -132,7 +119,7 @@ Subroutine gndstate
         write(60, '("| Groundstate module started ")')
         write(60, '("+-----------------------------------------------------------+")')
     end if
-    call scf_cycle(verbosity)
+    call scf_cycle(input%groundstate%outputlevelnumber)
     if (rank==0) then
         write(60,*)
         write(60, '("+-----------------------------------------------------------+")')
@@ -178,7 +165,7 @@ Subroutine gndstate
 !-------------------------------------!
 !! TIME - Fifth IO segment
     call timesec(ts0)
-    if ((verbosity>0).and.(rank==0)) then
+    if ((input%groundstate%outputlevelnumber>0).and.(rank==0)) then
 ! close the TOTENERGY.OUT file
         close(61)
 ! close the FERMIDOS.OUT file

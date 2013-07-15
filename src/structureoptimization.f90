@@ -19,7 +19,6 @@ subroutine structureoptimization
     Implicit None
     integer :: is, ia
     Logical :: exist
-    integer :: verbosity
 
 ! Write first the starting configuration
     if (rank .Eq. 0) then
@@ -36,13 +35,14 @@ subroutine structureoptimization
 
         if (rank .Eq. 0) Then
             write (60,*)
-            !write (60, '("+---------------------------------------------------------+")')
-            !write (60, '("| Use Newton-like method for optimizing atomic positions")')
-            !write (60, '("+---------------------------------------------------------+")')
-            call boxmsg(60,'-','Use Newton-like method for optimizing atomic positions')
+            write (60, '("+---------------------------------------------------------+")')
+            write (60, '("| Use Newton-like method for optimizing atomic positions")')
+            write (60, '("+---------------------------------------------------------+")')
+            !call boxmsg(60,'-','Use Newton-like method for optimizing atomic positions')
+            call flushifc(60)
         end if
         
-        call newton(input%structureoptimization%epsforce,verbosity)
+        call newton(input%structureoptimization%epsforce)
 
     else if (input%structureoptimization%method=="bfgs") then
 
@@ -51,9 +51,10 @@ subroutine structureoptimization
             Write (60, '("+---------------------------------------------------------+")')
             Write (60, '("| Use L-BFGS-B method for optimizing atomic positions")')
             Write (60, '("+---------------------------------------------------------+")')
+            call flushifc(60)
         End If
         
-        call lbfgs_driver(verbosity)
+        call lbfgs_driver
 
     else if (input%structureoptimization%method=="mixed") then
     
@@ -62,10 +63,11 @@ subroutine structureoptimization
             Write (60, '("+---------------------------------------------------------+")')
             Write (60, '("| Use mixed Newton/BFGS scheme for optimizing atomic positions")')
             Write (60, '("+---------------------------------------------------------+")')
+            call flushifc(60)
         End If
         
-        call newton(input%structureoptimization%epsforce0,verbosity)
-        call lbfgs_driver(verbosity)
+        call newton(input%structureoptimization%epsforce0)
+        call lbfgs_driver
     
     else
         

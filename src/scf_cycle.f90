@@ -3,7 +3,7 @@
 ! !INTERFACE:
 !
 !
-subroutine scf_cycle(outputlevel)
+subroutine scf_cycle(verbosity)
 ! !USES:
     Use modinput
     Use modmain
@@ -17,8 +17,7 @@ subroutine scf_cycle(outputlevel)
 !EOP
 !BOC
     Implicit None
-    character(80) :: outputlevel
-    integer :: verbosity
+    integer, intent(IN) :: verbosity
     Real(8) :: et, fm
     Real(8), Allocatable :: evalfv(:, :)
     Complex (8), Allocatable :: evecfv(:, :, :)
@@ -370,7 +369,7 @@ subroutine scf_cycle(outputlevel)
 ! output effective fields for fixed spin moment calculations
             If (getfixspinnumber() .Ne. 0) Call writefsm (60)
 ! output forces to INFO.OUT
-            call writeforce(60)
+            if (input%groundstate%tforce) call writeforce(60)
 ! check for WRITE file
             Inquire (File='WRITE', Exist=exist)
             If (exist) Then
@@ -388,9 +387,6 @@ subroutine scf_cycle(outputlevel)
                     Write (60, '("Wrote STATE.OUT")')
                 End If
             End If
-! update convergence criteria
-            deltae=abs(et-engytot)
-            dforcemax=abs(fm-forcemax)
             Call scl_iter_xmlout ()
             If (associated(input%groundstate%spin)) Call scl_xml_write_moments()
             Call scl_xml_out_write()
@@ -401,6 +397,10 @@ subroutine scf_cycle(outputlevel)
 
 ! exit self-consistent loop if last iteration is complete
         If (tlast) Go To 20
+
+! update convergence criteria
+        deltae=abs(et-engytot)
+        dforcemax=abs(fm-forcemax)
 
 !! TIME - Fourth IO segment
         Call timesec(ts0)

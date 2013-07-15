@@ -6,7 +6,6 @@
 Subroutine mixerifc (mtype, n, v, dv, mode)
 !use modmain
       Use modinput
-      Use mod_misc, Only: verbosity
       Use mod_potential_and_density, Only:
       Use mod_spin, Only:
       Use mod_convergence, Only: iscl

@@ -2584,7 +2584,7 @@
             </xs:annotation>
           </xs:attribute>
           
-          <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" type="xs:string" default="normal">
+          <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" default="normal">
             <xs:annotation>
               <xs:documentation> 
                 Specify amount of information which is printed to files:
@@ -2595,6 +2595,31 @@
                 </list>
               </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="low">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>0</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="normal">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>1</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="high">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>2</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+              </xs:restriction>
+            </xs:simpleType>
           </xs:attribute>
                    
     </xs:complexType>

@@ -4,13 +4,13 @@
 !--------------------------------------------------------------
 ! Simple (Newton-like) method for atomic position optimization
 !--------------------------------------------------------------
+
         use modmain
         use modinput
         use modmpi, only: rank
         
         implicit none
         real(8), intent(IN) :: forcetol
-        integer, intent(IN) :: verbosity
         integer :: istep, is, ia
         
         istep = 0
@@ -28,7 +28,8 @@
 ! write the optimised interatomic distances to file
                 Call writeiad(.True.)
             end if
-            
+
+! update atomic positions
             Call updatpos
 
 ! begin new self-consistent loop with updated positions
@@ -49,7 +50,7 @@
                        &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
                     end do
                 end do
-                if (verbosity>0) call writeforce(60)
+                if (input%structureoptimization%outputlevelnumber>0) call writeforce(60)
                 call flushifc(60)
             end if
 !
