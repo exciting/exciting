@@ -312,7 +312,7 @@ integer, intent(out) :: xcgrad
 real(8), intent(out) :: ex_coef
 ! initial value of exchange mixing parameter
 ! not modified in case of OEP/HF 
-ex_coef=1.0d0
+!ex_coef=1.0d0
 select case(abs(xctype(1)))
 case(1)
   xcdescr='No density-derived exchange-correlation energy or potential'
@@ -361,7 +361,7 @@ case(406)
   xcdescr='PBE0, M. Ernzerhof, G. E. Scuseria, J. Chem. Phys. 110 , 5029 (1999)'
   xcspin=0
   xcgrad=1
-  ex_coef=0.25
+!  ex_coef=0.25
 case(100)
 ! libxc library functionals
   call xcdata_libxc(xctype,xcdescr,xcspin,xcgrad,ex_coef)

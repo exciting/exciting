@@ -183,17 +183,12 @@ Subroutine energy
 !-------------------------!
 ! exchange energy from the density
       engyx = rfinp (1, rhomt, exmt, rhoir, exir)
-! zero exchange energy for OEP-EXX and Hartree-Fock
-! calculate exact exchange for OEP-EXX and Hartree-Fock on last iteration
-      If ((input%groundstate%xctypenumber .Lt. 0) .Or. (task .Eq. 5) &
-     & .Or. (task .Eq. 6) ) Then
-         engyx = 0.d0
-         If (tlast) Call exxengy
-      End If
-! calculate exact exchange for Hybrids on last iteration
-      If ((xctype(2) .Ge. 400) .Or. (xctype(1) .Ge. 400)) Then
-         If (tlast) Call exxengy
-      End If      
+! zero exchange energy for OEP-EXX 
+! calculate exchange energy for OEP-EXX/Hybrids on last iteration
+       If (associated(input%groundstate%OEP)) Then
+          If (input%groundstate%xctypenumber .Lt. 0) engyx = 0.d0
+          If (tlast) Call exxengy
+       End If 
 !----------------------------!
 !     correlation energy     !
 !----------------------------!
