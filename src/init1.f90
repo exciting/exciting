@@ -537,14 +537,9 @@ Subroutine init1
       End Do
 #ifdef XS
 20    Continue
-! partial charges
-  if (allocated(chgpart)) deallocate(chgpart)
-  allocate(chgpart(lmmaxvr,natmtot,nstsv))
-  chgpart(:,:,:)=0.d0
 #endif
 !
       Call timesec (ts1)
-!      timeinit = timeinit + ts1 - ts0
 !
       Return
 End Subroutine

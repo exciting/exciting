@@ -139,8 +139,13 @@ subroutine scf_cycle(verbosity)
         Call olprad
 ! compute the Hamiltonian radial integrals
         Call hmlrad
-! zero partial charges
-        chgpart(:,:,:)=0.d0
+
+! partial charges
+        if (input%groundstate%tpartcharges) then
+            allocate(chgpart(lmmaxvr,natmtot,nstsv))
+            chgpart(:,:,:)=0.d0
+        end if
+
         Call timesec (ts1)
         timemt=ts1-ts0+timemt
 !! TIME - End of muffin-tin segment
@@ -184,7 +189,7 @@ subroutine scf_cycle(verbosity)
             Call putevecfv (ik, evecfv)
             Call putevecsv (ik, evecsv)
 ! calculate partial charges
-            !call genpchgs(ik,evecfv,evecsv)
+            if (input%groundstate%tpartcharges) call genpchgs(ik,evecfv,evecsv)
             Deallocate (evalfv, evecfv, evecsv)
         End Do
 #ifdef KSMP
@@ -263,7 +268,6 @@ subroutine scf_cycle(verbosity)
             call writepchgs(69,input%groundstate%lmaxvr)
             call flushifc(69)
         end if
-
         Call timesec(ts1)
         timeio=ts1-ts0+timeio
 !! TIME - End of second IO segment
@@ -379,17 +383,19 @@ subroutine scf_cycle(verbosity)
                 Open (50, File='WRITE')
                 Close (50, Status='DELETE')
             End If
-! write STATE.OUT file if required
-            If (input%groundstate%nwrite .Ge. 1) Then
-                If (Mod(iscl, input%groundstate%nwrite) .Eq. 0) Then
-                    Call writestate
-                    Write (60,*)
-                    Write (60, '("Wrote STATE.OUT")')
-                End If
-            End If
             Call scl_iter_xmlout ()
             If (associated(input%groundstate%spin)) Call scl_xml_write_moments()
             Call scl_xml_out_write()
+        End If
+! write STATE.OUT file if required
+        If (input%groundstate%nwrite .Ge. 1) Then
+            If (Mod(iscl, input%groundstate%nwrite) .Eq. 0) Then
+                Call writestate
+                if ((verbosity>0).and.(rank==0)) Then
+                    write(60,*)
+                    write(60, '("Wrote STATE.OUT")')
+                end if
+            End If
         End If
         Call timesec(ts1)
         timeio=ts1-ts0+timeio
@@ -491,13 +497,15 @@ subroutine scf_cycle(verbosity)
         Write (60, '("+-----------------------------------------------------------+")')
         Write (60, '("| Self-consistent loop stopped")')
         Write (60, '("+-----------------------------------------------------------+")')
+    end if
 ! write density and potentials to file only if maxscl > 1
-        If (input%groundstate%maxscl .Gt. 1) Then
-            Call writestate
+    If (input%groundstate%maxscl .Gt. 1) Then
+        Call writestate
+        If ((verbosity>0).and.(rank==0)) Then
             Write (60,*)
             Write (60, '("STATE.OUT is written")')
-        End If
-    end if
+        end if
+    End If
     Call timesec(ts1)
     timeio=ts1-ts0+timeio   
     

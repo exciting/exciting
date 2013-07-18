@@ -77,7 +77,7 @@ subroutine structureoptimization
       
     end if
     
-    ! check force convergence
+! check force convergence
     if (forcemax .Le. input%structureoptimization%epsforce) Then
         if (rank .Eq. 0) Then
             write(60,*)
@@ -94,6 +94,24 @@ subroutine structureoptimization
           write(60,'(" forcemax=",f12.8," > epsforce=",f12.8)') forcemax, input%structureoptimization%epsforce
           write(60,*)
         end if
+    end if
+
+!------------------------------------!
+!   SCF cycle for the final structure
+!------------------------------------!
+    if (rank==0) then
+        write(60,*)
+        write(60, '("+-----------------------------------------------------------+")')
+        write(60, '("| Groundstate module started ")')
+        write(60, '("+-----------------------------------------------------------+")')
+    end if
+    call scf_cycle(input%structureoptimization%outputlevelnumber)
+    if (rank==0) then
+        write(60,*)
+        write(60, '("+-----------------------------------------------------------+")')
+        write(60, '("| Groundstate module stopped ")')
+        write(60, '("+-----------------------------------------------------------+")')
+        write(60,*)
     end if
 
     return
