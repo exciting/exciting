@@ -43,6 +43,7 @@
         write(701,101)
       end if
       
+      if (allocated(locmixind)) deallocate(locmixind)
       allocate(locmixind(natmtot,lmixmax))
       locmixind(:,:)=0
       im=0

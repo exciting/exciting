@@ -133,7 +133,7 @@
 !         Reduce the basis size by choosing eigenvectors of barc with 
 !         eigenvalues larger than evtol
 !
-          call setbarcev(barcevtol)
+          call setbarcev(input%gw%BareCoul%barcevtol)
 !
 !         Calculate the q-dependent integration weights
 !   
@@ -247,7 +247,7 @@
 !          Calculate the bare coulomb potential matrix
 !
            call calcbarcmb(iq)
-           call setbarcev(barcevtol)
+           call setbarcev(input%gw%BareCoul%barcevtol)
 !        
 !          Calculate the Minm(k,q) matrix elements for given k and q
 !        

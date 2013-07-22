@@ -67,8 +67,11 @@
       end if
 
 !     Allocate the array for the product functions and initialize
+      if (allocated(uprod)) deallocate(uprod)
       allocate(uprod(natmtot,maxnup,nrmtmax))
+      if (allocated(eles)) deallocate(eles)
       allocate(eles(natmtot,maxnup,2))
+      if (allocated(nup)) deallocate(nup)
       allocate(nup(natmtot))
       uprod=0.0d0
 
@@ -222,6 +225,7 @@
 !----------------------------------------------------------------------!
 !     allocate the overlap matrix and initialize it
 !----------------------------------------------------------------------!
+      if (allocated(umat)) deallocate(umat)
       allocate(umat(natmtot,maxnup,maxnup))
       umat=0.0d0
 !     calculate the overlap matrix of product functions

@@ -9,6 +9,7 @@
 Subroutine writeengy (fnum)
       Use modmain
       Use modinput
+      Use mod_hartreefock, only: exnl
       Implicit None
       ! arguments
       Integer, Intent (In) :: fnum
@@ -35,6 +36,11 @@ Subroutine writeengy (fnum)
          write (fnum, '("  Kinetic energy"                        , T45, ": ", F22.12)') engykn
          write (fnum, '("  Coulomb energy"                        , T45, ": ", F22.12)') engycl
          Write (fnum, '("  Exchange energy"                       , T45, ": ", F22.12)') engyx
+         if (associated(input%groundstate%Hybrid)) then
+           if (input%groundstate%Hybrid%exchangetypenumber == 1) Then         
+             write (fnum, '("  Hartree-Fock energy"                       , T45, ": ", F22.12)') exnl
+           end if 
+         end if
          Write (fnum, '("  Correlation energy"                    , T45, ": ", F22.12)') engyc
          If (input%groundstate%chgexs .Ne. 0) Then
             write (fnum, '("  Correction to the background charge", T45, ": ", F22.12)') engycbc

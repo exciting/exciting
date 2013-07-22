@@ -262,13 +262,11 @@
 !      
       if (.not.associated(input%gw%BareCoul)) &
      &  input%gw%BareCoul => getstructbarecoul(emptynode)
-      pwm = input%gw%BareCoul%pwm
-      stctol = input%gw%BareCoul%stctol
-      barcevtol=input%gw%BareCoul%barcevtol
       write(fgw,*) 'Bare Coulomb parameters:'
-      write(fgw,*) 'Maximum |G| in gmaxvr*gmb units:', pwm
-      write(fgw,*) 'Error tolerance for struct. const.:', stctol
-      write(fgw,*) 'Tolerance to choose basis functions from bare Coulomb matrix eigenvectors: ', barcevtol
+      write(fgw,*) 'Maximum |G| in gmaxvr*gmb units:', input%gw%BareCoul%pwm
+      write(fgw,*) 'Error tolerance for struct. const.:', input%gw%BareCoul%stctol
+      write(fgw,*) 'Tolerance to choose basis functions from bare Coulomb matrix eigenvectors: ', &
+     &  input%gw%BareCoul%barcevtol
 
       call linmsg(fgw,'-','')
 !

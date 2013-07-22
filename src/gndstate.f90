@@ -90,7 +90,8 @@ Subroutine gndstate
 ! open CHGDIST.OUT
       open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
 ! open PCHARGE.OUT
-      open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
+      if (input%groundstate%tpartcharges) &
+        open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
 ! write out general information to INFO.OUT
       Call writeinfo (60)
       write (60,*)
@@ -104,6 +105,8 @@ Subroutine gndstate
 !------------------------------------!
 !   SCF cycle
 !------------------------------------!
+! delete any existing eigenvector files
+    If ((rank .Eq. 0) .And. ((task .Eq. 0) .Or. (task .Eq. 2))) Call delevec
     call scf_cycle
 ! generate the new species files with the optimized linearization energies
     If ((rank .Eq. 0).and.(input%groundstate%tspecies)) Call updatespecies

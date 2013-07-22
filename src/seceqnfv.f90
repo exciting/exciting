@@ -10,11 +10,12 @@
 ! !INTERFACE:
 !
 !
-Subroutine seceqnfv (nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
+Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   ! !USES:
       Use modinput
       Use modmain
       Use modfvsystem
+      Use mod_hartreefock, only: ihyb
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
@@ -36,6 +37,8 @@ Subroutine seceqnfv (nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !BOC
       Implicit None
   ! arguments
+      Integer, Intent (In) :: ispn
+      Integer, Intent (In) :: ik
       Integer, Intent (In) :: nmatp
       Integer, Intent (In) :: ngp
       Integer, Intent (In) :: igpig (ngkmax)
@@ -47,23 +50,23 @@ Subroutine seceqnfv (nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   ! local variables
       Type (evsystem) :: system
       Logical :: packed
-      integer ik,jk,ig,iv(3),ist
-      Complex (8), allocatable :: kinetic(:,:),vectors(:,:)
 
-  ! allocatable arrays
-
-!
   !----------------------------------------!
   !     Hamiltonian and overlap set up     !
   !----------------------------------------!
-!
 
       packed = input%groundstate%solver%packedmatrixstorage
 
+      Call newsystem(system,packed,nmatp)
+      Call hamiltonandoverlapsetup(system,ngp,apwalm,igpig,vgpc)
 
-      Call newsystem (system, packed, nmatp)
-      Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
-!
+  !------------------------------------------------------------------------!
+  !     If Hybrid potential is used apply the non-local exchange potential !
+  !------------------------------------------------------------------------!
+      if (input%groundstate%Hybrid%exchangetypenumber == 1) then
+        if (ihyb > 1) call add_vxnl(system,ik,nmatp)
+      end if
+
   !------------------------------------!
   !     solve the secular equation     !
   !------------------------------------!

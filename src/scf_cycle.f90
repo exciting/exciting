@@ -97,8 +97,6 @@ subroutine scf_cycle
     et = 0.d0
     fm = 0.d0
 
-! delete any existing eigenvector files
-    If ((rank .Eq. 0) .And. ((task .Eq. 0) .Or. (task .Eq. 2))) Call delevec
 ! begin the self-consistent loop
     If (rank .Eq. 0) Then
         Write (60,*)
@@ -149,8 +147,12 @@ subroutine scf_cycle
         Call olprad
 ! compute the Hamiltonian radial integrals
         Call hmlrad
-! zero partial charges
-        chgpart(:,:,:)=0.d0
+! partial charges
+        if (input%groundstate%tpartcharges) then
+            if (allocated(chgpart)) deallocate(chgpart)
+            allocate(chgpart(lmmaxvr,natmtot,nstsv))
+            chgpart(:,:,:)=0.d0
+        end if
         Call timesec (ts1)
         timemt=ts1-ts0+timemt
 !! TIME - End of muffin-tin segment
@@ -194,7 +196,7 @@ subroutine scf_cycle
             Call putevecfv (ik, evecfv)
             Call putevecsv (ik, evecsv)
 ! calculate partial charges
-            !call genpchgs(ik,evecfv,evecsv)
+            if (input%groundstate%tpartcharges) call genpchgs(ik,evecfv,evecsv)
             Deallocate (evalfv, evecfv, evecsv)
         End Do
 #ifdef KSMP
@@ -268,9 +270,9 @@ subroutine scf_cycle
         If ((input%groundstate%xctypenumber.Lt.0).Or.(xctype(2).Ge.400).Or.(xctype(1).Ge.400)) &
        &    Call mpiresumeevecfiles()
 #endif
-        If (rank .Eq. 0) Then
+        If ((rank .Eq. 0).and.(input%groundstate%tpartcharges)) Then
 ! write out partial charges
-            !call writepchgs(69,input%groundstate%lmaxvr)
+            call writepchgs(69,input%groundstate%lmaxvr)
             call flushifc(69)
         end if
 
@@ -533,7 +535,7 @@ subroutine scf_cycle
       Write (66,*)
       If (input%groundstate%tforce) Write (67,*)
       Write (68,*)
-      Write (69,*)
+      if (input%groundstate%tpartcharges) Write (69,*)
     End If
 
     Return

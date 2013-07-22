@@ -130,7 +130,7 @@ subroutine init_kqpts
 !-------------------------------------------------!
 !     Determine G-vector cutoff parameters
       gqmax=input%gw%MixBasis%gmb*gkmax
-      gmaxbarc=min(pwm*gqmax,input%groundstate%gmaxvr)
+      gmaxbarc=min(input%gw%BareCoul%pwm*gqmax,input%groundstate%gmaxvr)
       
       if(gmaxbarc.gt.input%groundstate%gmaxvr)then
         write(*,*)'WARNING(initgw)! One should increase the value of gmaxvr:'

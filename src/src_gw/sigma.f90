@@ -122,8 +122,8 @@
 !     Lattice sums cutoff parameters
 !
       eta=calceta()
-      rcf=2.0d+0*rcutoff(stctol,eta,10)
-      gcf=2.0d+0*gcutoff(stctol,eta,10)
+      rcf=2.0d+0*rcutoff(input%gw%BareCoul%stctol,eta,10)
+      gcf=2.0d+0*gcutoff(input%gw%BareCoul%stctol,eta,10)
       qvec(1:3)=-1.0d0*vqc(1:3,iq)
 
       do is = 1, nspecies

@@ -67,7 +67,7 @@
 !     Calculate the bare coulomb potential matrix and its square root
 !
       call calcbarcmb(iq)
-      call setbarcev(barcevtol)
+      call setbarcev(input%gw%BareCoul%barcevtol)
 !
 !     Calculate the q-dependent integration weights
 !   

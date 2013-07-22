@@ -14,6 +14,7 @@ Subroutine energy
 ! !USES:
       Use modinput
       Use modmain
+      Use mod_hartreefock, only: exnl
 ! !DESCRIPTION:
 !   The {\tt energy} subroutine computes the total energy and its individual contributions. 
 !   The total energy is composed of kinetic, Coulomb, and exchange-correlation energy,
@@ -183,7 +184,16 @@ Subroutine energy
 !-------------------------!
 ! exchange energy from the density
       engyx = rfinp (1, rhomt, exmt, rhoir, exir)
-! zero exchange energy for OEP-EXX 
+! Hartree-Fock energy
+      If ((task .Eq. 5).Or.(task .Eq. 6)) Then
+         If (tlast) Call exxengy
+      End If
+! Hybrids
+      if (associated(input%groundstate%Hybrid)) then
+        if (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+          engyx = engyx+ex_coef*exnl
+        end if
+      end if
 ! calculate exchange energy for OEP-EXX/Hybrids on last iteration
        If (associated(input%groundstate%OEP)) Then
           If (input%groundstate%xctypenumber .Lt. 0) engyx = 0.d0

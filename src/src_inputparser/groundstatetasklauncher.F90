@@ -23,14 +23,10 @@ Subroutine groundstatetasklauncher
     End If  
     If  (associated(input%groundstate%Hybrid)) Then
         If (input%groundstate%Hybrid%exchangetypenumber .Eq. 2) Then
-           If (.not.associated(input%groundstate%OEP)) Then
+            If (.not.associated(input%groundstate%OEP)) Then
                input%groundstate%OEP => getstructOEP (emptynode)
-           End If 
-        Else If (input%groundstate%Hybrid%exchangetypenumber .Eq. 1) Then
-           If (.not.associated(input%groundstate%HartreeFock)) Then
-             input%groundstate%HartreeFock => getstructHartreeFock (emptynode)
-           End if
-      End If                
+            End If 
+        End If                
     End If
     If (input%groundstate%xctypenumber .Lt. 0) Then
         If (.not.associated(input%groundstate%OEP)) Then
@@ -56,6 +52,8 @@ Subroutine groundstatetasklauncher
             task = 5
             Call hartfock
         ! DFT / OEP
+        Else If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+            Call gndstate_hybrids
         Else
             Call gndstate
         End If

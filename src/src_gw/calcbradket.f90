@@ -69,9 +69,12 @@
 !BOC
 !     Initializations
       nrwf=max(spnstmax,input%groundstate%lmaxapw,nlomax)
+      if (allocated(bradketc)) deallocate(bradketc)
       allocate(bradketc(natmtot,maxnmix,spnstmax,0:nrwf,apwordmax,3))
+      if (allocated(bradketa)) deallocate(bradketa)
       allocate(bradketa(natmtot,maxnmix,0:input%groundstate%lmaxapw, &
      &  apwordmax,0:nrwf,apwordmax,3))
+      if (allocated(bradketlo)) deallocate(bradketlo)
       allocate(bradketlo(natmtot,maxnmix,nlomax,0:nrwf,apwordmax,3))
       bradketc=0.0d0
       bradketa=0.0d0

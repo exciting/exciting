@@ -94,7 +94,7 @@
 !            Calculate the bare coulomb matrix
 !
              call calcbarcmb(iq)
-             call setbarcev(barcevtol)
+             call setbarcev(input%gw%BareCoul%barcevtol)
 !        
 !            Calculate the Minm(k,q) matrix elements for given k and q
 !        

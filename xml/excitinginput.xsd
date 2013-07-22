@@ -734,6 +734,48 @@ gw.xsd
           <xs:complexType>
           </xs:complexType>
         </xs:element>
+        
+        <xs:element ex:importance="experimental" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>Options for hybrid functionals.</xs:documentation>
+          </xs:annotation>                 
+          <xs:complexType>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="exchangetype" default="HF">
+              <xs:annotation>
+                  <xs:documentation> Type of exchange (Hartree Fock or OEP) 
+                  to be used for the exact exchange.
+                  </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="HF">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>1</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="OEP">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>2</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="excoeff" type="fortrandouble" default="0.25d0">
+              <xs:annotation>
+                <xs:documentation> Change value for the mixing of DFT exchange and exact exchange.
+                  ATTENTION: Do not use this option in combination with libxc, since the library
+                  has fixed defined mixing coeeficients. 
+                  </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        
         <xs:element ex:importance="expert" ex:unit="" name="solver" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Optional configuration options for eigenvector
