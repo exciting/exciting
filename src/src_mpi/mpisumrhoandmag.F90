@@ -116,7 +116,7 @@ Subroutine mpisumrhoandmag
         If (rank .Eq. 0) &
        &  write (60,*) " MPI: summation (MPI_Allreduce) over processes for density, "// &
        & "magnetisation, and partial charges done"
-#endif
       end if ! partcharges
+#endif
 End Subroutine mpisumrhoandmag
 !EOC
