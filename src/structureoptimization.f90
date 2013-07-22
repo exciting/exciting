@@ -120,23 +120,5 @@ subroutine structureoptimization
     Call timesec(ts1)
     timeio=ts1-ts0+timeio
 
-!------------------------------------!
-!   SCF cycle for the final structure
-!------------------------------------!
-!    if (rank==0) then
-!        write(60,*)
-!        write(60, '("+-----------------------------------------------------------+")')
-!        write(60, '("| Groundstate module started ")')
-!        write(60, '("+-----------------------------------------------------------+")')
-!    end if
-!    call scf_cycle(input%structureoptimization%outputlevelnumber)
-!    if (rank==0) then
-!        write(60,*)
-!        write(60, '("+-----------------------------------------------------------+")')
-!        write(60, '("| Groundstate module stopped ")')
-!        write(60, '("+-----------------------------------------------------------+")')
-!        write(60,*)
-!    end if
-
     return
 end subroutine

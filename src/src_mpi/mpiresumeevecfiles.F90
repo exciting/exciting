@@ -65,10 +65,10 @@ Subroutine mpiresumeevecfiles
 
 !
          Call SYSTEM ("sync")
-         If (rank .Eq. 0) Then
-            Write (60,*) "resumed split files"
-            Call flushifc (60)
-         End If
+!         If (rank .Eq. 0) Then
+!            Write (60,*) "resumed split files"
+!            Call flushifc (60)
+!         End If
          !if I am not the last process pass on the token
 
       End If

@@ -271,7 +271,6 @@ subroutine scf_cycle(verbosity)
         Call timesec(ts1)
         timeio=ts1-ts0+timeio
 !! TIME - End of second IO segment
-
 !! TIME - potential
         Call timesec(ts0)
 ! symmetrise the density
