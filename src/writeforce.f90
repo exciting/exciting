@@ -3,18 +3,18 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-subroutine writeforce(fnum)
+subroutine writeforce(fnum,verbosity)
     use modmain
     use modinput
     implicit none
 ! arguments
     integer, intent(in) :: fnum
+    integer, intent(in) :: verbosity
 ! local variables
     integer :: is, ia, ias
     real(8) :: t1
     
-    if ( (input%groundstate%outputlevelnumber>1).or. &
-         (input%structureoptimization%outputlevelnumber>1) ) then
+    if (verbosity > 1) then
         if (input%groundstate%tfibs) then
             write(fnum,'("Atomic force components (including IBS):")')
         else
@@ -27,12 +27,10 @@ subroutine writeforce(fnum)
             write(fnum,'("Total atomic forces (including IBS):")')
         end if
     end if
-    
     do is = 1, nspecies
         do ia = 1, natoms (is)
             ias = idxas (ia, is)
-            if ( (input%groundstate%outputlevelnumber>1).or. &
-                 (input%structureoptimization%outputlevelnumber>1) ) then
+            if (verbosity > 1) then
                 write(fnum,'("  atom ",I4,4x,A2)') &
                &  ia, trim(input%structure%speciesarray(is)%species%chemicalSymbol)
                 write(fnum,'("    Hellmann-Feynman",T30,": ",3F14.8)') forcehf(:,ias)

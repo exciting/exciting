@@ -159,7 +159,8 @@ subroutine lbfgs_driver
                        &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
                     end do
                 end do
-                if (input%structureoptimization%outputlevelnumber>0) call writeforce(60)
+                if (input%structureoptimization%outputlevelnumber>0) &
+               &  call writeforce(60,input%structureoptimization%outputlevelnumber)
                 if (input%structureoptimization%outputlevelnumber>1) then
                     write(60,'(" L-BFGS-B method related information")')
                     write(60,'("  Total number of BFGS updates prior the current iteration",I4)') isave(31)

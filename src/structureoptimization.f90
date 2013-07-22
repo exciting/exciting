@@ -112,7 +112,7 @@ subroutine structureoptimization
 ! output effective fields for fixed spin moment calculations
         If (getfixspinnumber() .Ne. 0) Call writefsm (60)
 ! output forces to INFO.OUT
-        if (input%groundstate%tforce) call writeforce(60)
+        call writeforce(60,input%structureoptimization%outputlevelnumber)
         Call scl_iter_xmlout ()
         If (associated(input%groundstate%spin)) Call scl_xml_write_moments()
         Call scl_xml_out_write()

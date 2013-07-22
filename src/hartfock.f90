@@ -225,7 +225,7 @@ Subroutine hartfock
       If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
          Call force
 ! output forces to INFO.OUT
-         Call writeforce (60)
+         Call writeforce(60,input%groundstate%outputlevelnumber)
 ! write maximum force magnitude to FORCEMAX.OUT
          Write (64, '(G18.10)') forcemax
          Call flushifc (64)

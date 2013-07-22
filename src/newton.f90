@@ -50,7 +50,8 @@
                        &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
                     end do
                 end do
-                if (input%structureoptimization%outputlevelnumber>0) call writeforce(60)
+                if (input%structureoptimization%outputlevelnumber>0) &
+               &  call writeforce(60,input%structureoptimization%outputlevelnumber)
                 call flushifc(60)
             end if
 !

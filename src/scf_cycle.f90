@@ -372,7 +372,7 @@ subroutine scf_cycle(verbosity)
 ! output effective fields for fixed spin moment calculations
             If (getfixspinnumber() .Ne. 0) Call writefsm (60)
 ! output forces to INFO.OUT
-            if (input%groundstate%tforce) call writeforce(60)
+            if (input%groundstate%tforce) call writeforce(60,verbosity)
 ! check for WRITE file
             Inquire (File='WRITE', Exist=exist)
             If (exist) Then
@@ -512,7 +512,7 @@ subroutine scf_cycle(verbosity)
     If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
         Call force
 ! output forces to INFO.OUT        
-        if ((verbosity>0).and.(rank==0)) call writeforce(60)
+        if ((verbosity>0).and.(rank==0)) call writeforce(60,verbosity)
     End If
 
 ! set nwork to -2 to tell interface to call the deallocation functions
