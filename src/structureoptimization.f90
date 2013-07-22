@@ -18,6 +18,7 @@ subroutine structureoptimization
 !BOC
     Implicit None
     integer :: is, ia
+    real(8) :: ts0, ts1
     Logical :: exist
 
 ! Write first the starting configuration
@@ -97,22 +98,45 @@ subroutine structureoptimization
     end if
 
 !------------------------------------!
+!   SCF data
+!------------------------------------!
+    Call timesec(ts0)      
+    If ((input%structureoptimization%outputlevelnumber>0).and.(rank==0)) Then
+! output energy components
+        call writeengy(60)
+        Write (60,*)
+        Write (60, '("Density of states at Fermi energy : ", G18.10)') fermidos
+        Write (60, '(" (states/Hartree/unit cell)")')
+! output charges and moments
+        Call writechg (60)
+! output effective fields for fixed spin moment calculations
+        If (getfixspinnumber() .Ne. 0) Call writefsm (60)
+! output forces to INFO.OUT
+        if (input%groundstate%tforce) call writeforce(60)
+        Call scl_iter_xmlout ()
+        If (associated(input%groundstate%spin)) Call scl_xml_write_moments()
+        Call scl_xml_out_write()
+    End If
+    Call timesec(ts1)
+    timeio=ts1-ts0+timeio
+
+!------------------------------------!
 !   SCF cycle for the final structure
 !------------------------------------!
-    if (rank==0) then
-        write(60,*)
-        write(60, '("+-----------------------------------------------------------+")')
-        write(60, '("| Groundstate module started ")')
-        write(60, '("+-----------------------------------------------------------+")')
-    end if
-    call scf_cycle(input%structureoptimization%outputlevelnumber)
-    if (rank==0) then
-        write(60,*)
-        write(60, '("+-----------------------------------------------------------+")')
-        write(60, '("| Groundstate module stopped ")')
-        write(60, '("+-----------------------------------------------------------+")')
-        write(60,*)
-    end if
+!    if (rank==0) then
+!        write(60,*)
+!        write(60, '("+-----------------------------------------------------------+")')
+!        write(60, '("| Groundstate module started ")')
+!        write(60, '("+-----------------------------------------------------------+")')
+!    end if
+!    call scf_cycle(input%structureoptimization%outputlevelnumber)
+!    if (rank==0) then
+!        write(60,*)
+!        write(60, '("+-----------------------------------------------------------+")')
+!        write(60, '("| Groundstate module stopped ")')
+!        write(60, '("+-----------------------------------------------------------+")')
+!        write(60,*)
+!    end if
 
     return
 end subroutine

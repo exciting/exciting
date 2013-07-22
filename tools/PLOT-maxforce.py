@@ -126,8 +126,6 @@ xmin = 1-iter/20. ; xmax = iter+iter/20.
 
 #-------------------------------------------------------------------------------
 
-os.system("rm tempfile")
-
 plt.plot(a,b,'b-',label='goal')
 plt.plot(x,y,'ro-',label='run')
 

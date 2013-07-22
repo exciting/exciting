@@ -62,7 +62,9 @@ Subroutine gndstate
 ! write out general information to INFO.OUT
         call writeinfo(60)
 
-        if (input%groundstate%outputlevelnumber>0) then
+        if ((input%groundstate%outputlevelnumber>0).or. &
+       &    (input%structureoptimization%outputlevelnumber>0)) then
+
 ! write the real and reciprocal lattice vectors to file
             Call writelat
 ! write interatomic distances to file
@@ -118,6 +120,7 @@ Subroutine gndstate
         write(60, '("+-----------------------------------------------------------+")')
         write(60, '("| Groundstate module started ")')
         write(60, '("+-----------------------------------------------------------+")')
+        call flushifc(60)
     end if
     call scf_cycle(input%groundstate%outputlevelnumber)
     if (rank==0) then
@@ -126,6 +129,7 @@ Subroutine gndstate
         write(60, '("| Groundstate module stopped ")')
         write(60, '("+-----------------------------------------------------------+")')
         write(60,*)
+        call flushifc(60)
     end if
 
 ! generate the new species files with the optimized linearization energies
@@ -141,6 +145,7 @@ Subroutine gndstate
             write(60, '("| Structure optimization module started ")')
             write(60, '("+-----------------------------------------------------------+")')
             write(60,*)
+            call flushifc(60)
         end if
         ! check force convergence first
         if (forcemax .Le. input%structureoptimization%epsforce) then
@@ -157,6 +162,7 @@ Subroutine gndstate
             write(60, '("| Structure optimization module stopped ")')
             write(60, '("+-----------------------------------------------------------+")')
             write(60,*)
+            call flushifc(60)
         end if    
     end if
 
@@ -165,7 +171,9 @@ Subroutine gndstate
 !-------------------------------------!
 !! TIME - Fifth IO segment
     call timesec(ts0)
-    if ((input%groundstate%outputlevelnumber>0).and.(rank==0)) then
+    if (rank==0) then
+      if ((input%groundstate%outputlevelnumber>0).or. &
+     &    (input%structureoptimization%outputlevelnumber>0)) then
 ! close the TOTENERGY.OUT file
         close(61)
 ! close the FERMIDOS.OUT file
@@ -180,6 +188,7 @@ Subroutine gndstate
         close(66)
 ! close the CHGDIST.OUT file
         close(68)
+      end if
     end if
 ! close the PCHARGE.OUT file
     if ((input%groundstate%tpartcharges).and.(rank==0)) close(69)

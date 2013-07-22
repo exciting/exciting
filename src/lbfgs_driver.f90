@@ -46,8 +46,8 @@ subroutine lbfgs_driver
       implicit none
       
       integer,  parameter    :: dp = kind(1.0d0)
-      real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0
-      
+
+      real(dp)               :: factr, pgtol
       integer                :: n
       integer                :: m, iprint
       integer                :: is, ia, ias, ik, ispn
@@ -67,12 +67,14 @@ subroutine lbfgs_driver
       integer, allocatable   :: amap(:,:)
 
 ! some L-BFGS-B library parameters (see src/Lbfgs.3.0/README)
-
 ! number of corrections used in the limited memory matrix
       m = 3
 ! controls the frequency and type of output generated
       iprint = -1
 
+      factr = 0.d0
+      pgtol = 0.d0
+      
 !     Total number of variables taking into account constraints
       n = 0
       do is = 1, nspecies
@@ -116,21 +118,21 @@ subroutine lbfgs_driver
 
 !     BEGIN the loop
       ctask = 'START'
-      do while (ctask(1:2).eq.'FG'    .or. &
-                ctask(1:5).eq.'NEW_X' .or. &
-                ctask(1:5).eq.'START')
+      do while (ctask(1:5).eq.'START' .or. &
+                ctask(1:2).eq.'FG'    .or. &
+                ctask(1:5).eq.'NEW_X')
       
 !     This is the call to the L-BFGS-B code
 
         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa,ctask,iprint, &
         &   csave,lsave,isave,dsave)
-
+        
         if (ctask(1:2) .eq. 'FG') then
 
 !         the minimization routine has returned to request the
 !         function f and gradient g values at the current x.
           call calcEnergyForces
-          
+
         else 
           
           if (ctask(1:5) .eq. 'NEW_X') then   
@@ -143,25 +145,25 @@ subroutine lbfgs_driver
                 write(60,'("+---------------------------------------------------------+")')
                 write(60,'("| Optimization step ", I4, "    (method = bfgs)")') isave(30)
                 write(60,'("+---------------------------------------------------------+")')
-                write(60,'("Number of scf iterations : ", I4)') iscl
-                write(60,'("Maximum force magnitude (target) : ",G18.10," (", G18.10, ")")') &
+                write(60,'(" Number of scf iterations : ", I4)') iscl
+                write(60,'(" Number of investigated structures : ",I4)') isave(34)
+                write(60,'(" Maximum force magnitude (target) : ",F14.8," (", F14.8, ")")') &
                &  forcemax, input%structureoptimization%epsforce
-                write(*,'("Maximum force magnitude (target) : ",G18.10," (", G18.10, ")")') &
+                write(*,'(" Maximum force magnitude (target) : ",F14.8," (", F14.8, ")")') &
                &  forcemax, input%structureoptimization%epsforce
-                write(60,'("Updated atomic positions :")')
+                write(60,'(" Updated atomic positions :")')
                 do is = 1, nspecies
                     do ia = 1, natoms (is)
-                        write(60,'(" atom ",I4,4x,A2,T30,": ",3F14.8)') &
+                        write(60,'("  atom ",I4,4x,A2,T30,": ",3F14.8)') &
                        &  ia, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
                        &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
                     end do
                 end do
                 if (input%structureoptimization%outputlevelnumber>0) call writeforce(60)
                 if (input%structureoptimization%outputlevelnumber>1) then
-                    write(60,'("L-BFGS-B method related information")')
-                    write(60,'("Total number of BFGS updates prior the current iteration",I4)') isave(31)
-                    write(60,'("Number of function value or gradient evaluations in the current iteration",I4)') isave(36)
-                    write(60,'("Total number of function and gradient evaluations",I4)') isave(34)
+                    write(60,'(" L-BFGS-B method related information")')
+                    write(60,'("  Total number of BFGS updates prior the current iteration",I4)') isave(31)
+                    write(60,'("  Number of function value or gradient evaluations in the current iteration",I4)') isave(36)
                 end if
                 call flushifc(60)
 ! write lattice vectors and optimised atomic positions to file
@@ -171,8 +173,11 @@ subroutine lbfgs_driver
                 Call writeiad(.True.)
             end if
             
-            ! check force convergence
-            If (forcemax .Le. input%structureoptimization%epsforce) ctask = 'STOP'
+            ! force convergence is reached
+            if (forcemax <= input%structureoptimization%epsforce) ctask = 'STOP'
+            
+            ! maximum number BFGS iterations is reached
+            if (isave(30) >= input%structureoptimization%maxsteps) ctask = 'STOP'
 
           end if ! 'NEW_X'
           
