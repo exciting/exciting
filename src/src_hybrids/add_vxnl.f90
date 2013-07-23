@@ -75,7 +75,7 @@ subroutine add_vxnl(system,ik,nmatp)
     end if
     
 ! Update Hamiltonian
-    system%hamilton%za(:,:) = system%hamilton%za(:,:)+ex_coef*vnlmat(:,:)
+    system%hamilton%za(:,:) = system%hamilton%za(:,:) + ex_coef*vnlmat(:,:)
     deallocate(vnlmat)
 
     return

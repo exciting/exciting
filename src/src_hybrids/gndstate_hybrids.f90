@@ -161,16 +161,13 @@ Subroutine gndstate_hybrids
             call boxmsg(60,'-','')
         end if
 
-! update the non-local energy
-        engytot = engytot-ex_coef*exnl
         exnl = 0.d0
         do ik = 1, nkpt
             exnl = exnl+wkpt(ik)*exnlk(ik)
         end do
-        engytot = engytot+ex_coef*exnl
 
 ! update convergence criteria
-        deltae=abs(et-engytot)
+        deltae=abs(et-exnl)
 
 !------------------------------------------------
 ! Store the eigenvectors from previous iteration
@@ -193,7 +190,7 @@ Subroutine gndstate_hybrids
                 ! exit ihyb-loop
                 exit
             End If
-            et = engytot
+            et = exnl
             
 ! output the current total time
             timetot = timeinit + timemat + timefv + timesv + timerho &
