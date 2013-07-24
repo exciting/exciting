@@ -63,9 +63,11 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !------------------------------------------------------------------------!
   !     If Hybrid potential is used apply the non-local exchange potential !
   !------------------------------------------------------------------------!
-      if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-        if (ihyb > 1) call add_vxnl(system,ik,nmatp)
-      end if
+      If (associated(input%groundstate%Hybrid)) Then
+         if (input%groundstate%Hybrid%exchangetypenumber == 1) then
+            if (ihyb > 1) call add_vxnl(system,ik,nmatp)
+         end if
+      End If
 
   !------------------------------------!
   !     solve the secular equation     !

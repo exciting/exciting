@@ -11,7 +11,6 @@ Subroutine groundstatetasklauncher
     Implicit None
     
     call delete_warnings
-   
     splittfile= .true.
     If ( .Not. (associated(input%groundstate%solver))) Then
         ! set the default values if tddft element not present
@@ -52,8 +51,12 @@ Subroutine groundstatetasklauncher
             task = 5
             Call hartfock
         ! DFT / OEP
-        Else If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
-            Call gndstate_hybrids
+        Else If (associated(input%groundstate%Hybrid)) Then
+                If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+                    Call gndstate_hybrids
+                Else 
+                    Call gndstate
+                End If    
         Else
             Call gndstate
         End If
