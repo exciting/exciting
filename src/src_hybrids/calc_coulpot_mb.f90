@@ -18,21 +18,18 @@ subroutine calc_coulpot_mb
 ! Calculate the integrals to treat the singularities at G+q->0
 !-----------------------------------------------------
     call setsingc
-
 !-----------------------------------------------------
 ! Precalculate Coulomb potential in MB representation
 !-----------------------------------------------------
     if (rank == 0) then
         call boxmsg(fgw,'-','Precalculate Coulomb potential in MB representation')
     end if
-
     if (allocated(vcmbsiz)) deallocate(vcmbsiz)
     allocate(vcmbsiz(nqptnr))
     vcmbsiz(:) = 0
     if (allocated(vcmb)) deallocate(vcmb)
     allocate(vcmb(matsizmax,matsizmax,nqptnr))
     vcmb(:,:,:) = zzero
- 
 #ifdef MPI
     do iq = firstofset(rank,nqptnr), lastofset(rank,nqptnr)
 #else
@@ -44,14 +41,14 @@ subroutine calc_coulpot_mb
         if (rank==0) then
             write(fgw,101) iq, locmatsiz, ngq(iq), matsiz
         end if
-! Calculate the interstitial mixed basis functions        
+! Calculate the interstitial mixed basis functions      
         call diagsgi(iq)
 ! Calculate the transformation matrix between pw's and the mixed basis functions
         call calcmpwipw(iq)
 ! Calculate the bare Coulomb matrix
         call calcbarcmb(iq)
 ! Reduce MB size by choosing eigenvectors of barc with eigenvalues larger than barcevtol
-        call setbarcev
+        call setbarcev(input%gw%BareCoul%barcevtol)
 ! store into global array
         vcmbsiz(iq) = mbsiz
         vcmb(1:matsiz,1:mbsiz,iq) = barcvm(1:matsiz,1:mbsiz)
@@ -74,7 +71,6 @@ subroutine calc_coulpot_mb
     call mpi_allgatherv_ifc(nqptnr,matsizmax*matsizmax,zbuf=vcmb)
     call barrier
 #endif
-
 ! Clean up memory (global arrays which come from modgw)
     if(allocated(barc))deallocate(barc)
     if(allocated(sqbarc))deallocate(sqbarc)
@@ -90,6 +86,5 @@ subroutine calc_coulpot_mb
     &       'Number of atomic basis functions:       ',i4,/,10x, &
     &       'Number of interstitial basis functions: ',i4,/,10x, &
     &       'Total number of basis functions:        ',i4,/)
-    
     return
 end subroutine
