@@ -247,7 +247,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
        write(*,*) eval(ist)
       enddo
       write(*,*) 
-!      stop
+      stop
       Return
 End Subroutine
 !EOC

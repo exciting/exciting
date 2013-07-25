@@ -53,7 +53,7 @@ use modinput
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
       Real (8) :: rm,rmfactor,energyref
 ! allocatable arrays
-      Real (8), Allocatable :: p0p (:)
+      Real (8), Allocatable :: p0p (:),q0p(:)
       Real (8), Allocatable :: g0 (:), g1 (:)
       Real (8), Allocatable :: f0 (:), f1 (:)
       Real (8), Allocatable :: cf (:, :)
@@ -61,16 +61,6 @@ use modinput
       Real (8) ts0, ts1
 
       call timesec(ts0)
-#ifdef SPECIES
-      rmfactor=1d0
-#else
-      energyref=input%groundstate%energyref
-      if (input%groundstate%ValenceRelativity.eq."scalar") then
-         rmfactor=1d0
-      else
-         rmfactor=0d0
-      endif
-#endif   
       If (nr .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(rschroddme): invalid nr : ", I8)') nr
@@ -84,17 +74,50 @@ use modinput
          Stop
       End If
       If (k .Eq. 0) Then
-! use the scalar relativistic Schrodinger equation
-         Allocate (p0p(nr))
-         If (m .Eq. 0) Then
-            Call rschrodint (m, l, e, nr, r, vr, nn, rmfactor, energyref, p0p, p0, p1, q0, q1)
-         Else
-            Do im = 0, m
+         if ((input%groundstate%ValenceRelativity.eq."scalar").or.(input%groundstate%ValenceRelativity.eq."none")) then
+! use ZORA Schrodinger equation
+#ifdef SPECIES
+           rmfactor=1d0
+#else
+           energyref=input%groundstate%energyref
+           if (input%groundstate%ValenceRelativity.eq."scalar") then
+           rmfactor=1d0
+           else
+             rmfactor=0d0
+           endif
+#endif
+           Allocate (p0p(nr))
+           If (m .Eq. 0) Then
+             Call rschrodint (m, l, e, nr, r, vr, nn, rmfactor, energyref, p0p, p0, p1, q0, q1)
+           Else
+             Do im = 0, m
                Call rschrodint (im, l, e, nr, r, vr, nn, rmfactor, energyref, p0p, p0, p1, q0, q1)
                p0p (:) = p0 (:)
-            End Do
-         End If
-         Deallocate (p0p)
+             End Do
+           End If
+           Deallocate (p0p)
+         elseif (input%groundstate%ValenceRelativity.eq."kh") then
+           Allocate (p0p(nr))
+           Allocate (q0p(nr))
+           if (m.eq.0) then 
+             call rkhint (0, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
+           elseif (m.eq.1) then
+             call rkhint (0, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
+             p0p (:) = p0 (:)
+             q0p (:) = q0 (:)
+             call rkhint (1, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
+           else
+             write(*,*) 'Error(rschroddme): energy derivative',m,'not implemented.'
+             stop
+           endif
+           Deallocate (p0p,q0p)
+!           write(*,*) 'howdy'
+!           stop 
+         else  
+           write(*,*) 'Error(rschroddme):',input%groundstate%ValenceRelativity,' not implemented.'
+           write(*,*) 'case sensitivity issue?'
+           stop
+         endif
       Else
 ! use the Dirac equation
          Allocate (g0(nr), g1(nr))

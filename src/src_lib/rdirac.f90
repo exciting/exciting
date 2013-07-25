@@ -49,7 +49,7 @@ Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
       Real (8), Intent (Out) :: f0 (nr)
       
 ! local variables
-      Integer, Parameter :: maxit = 500
+      Integer, Parameter :: maxit = 5000
       Integer :: kpa, it, nn, ir, maxr,nnp
       real(8) ::e_hi,e_lo
 ! energy convergence tolerance

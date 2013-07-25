@@ -3018,19 +3018,20 @@ gw.xsd
 
             <xs:attribute ex:importance="expert" ex:unit="" name="ValenceRelativity" default="scalar">
               <xs:annotation>
-                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for valence electrons. Pick either "scalar" or "none".
+                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for valence electrons. Pick either "scalar", "none" or "kh".
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="scalar"/>
+                  <xs:enumeration value="kh"/>
                   <xs:enumeration value="none"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="CoreRelativity" default="dirac">
               <xs:annotation>
-                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for core electrons. Pick either "dirac" or "sameasvalence".
+                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for core electrons. Pick either "dirac" or "none".
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
