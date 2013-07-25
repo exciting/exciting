@@ -124,9 +124,13 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       Complex (8) qmt (lmmaxvr, natmtot)
       Complex (8) qi (lmmaxvr, natmtot)
       Complex (8) zrp (lmmaxvr)
+      Complex (8), Allocatable :: charge(:),potential(:),cf(:,:) !,zvclmt (:, :, :)
+      real(8), allocatable :: pot1(:),pot2(:),ch1(:),ch2(:)
+
 ! external functions
       Real (8) :: factnm
       External factnm
+!      write(*,*) 'howdy'
       fpo = fourpi / omega
 ! solve Poisson's equation for the isolated charge in the muffin-tin
       Do is = 1, nspecies
@@ -142,6 +146,78 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 !$OMP END DO
 !$OMP END PARALLEL
       End Do
+if (.false.) then
+
+      Allocate (charge(nrmax))
+      Allocate (potential(nrmax))
+      Allocate (pot1(nrmax))
+      Allocate (pot2(nrmax))
+      Allocate (ch1(nrmax))
+      Allocate (ch2(nrmax))
+      Allocate (cf(3,nrmax))
+!      write(*,*) 'howdy'
+!      do ir=1,nr(1)
+!         t1=dble(ir-1)/dble(nr(1)-1)
+!         spr(ir,1)=spr(1,1)*(1-t1)+t1*1d0
+!         pot1(ir)=exp(-spr(ir,1))
+!      enddo
+!      Call fderiv (2, nr(1), spr(:,1), pot1, ch1 , cf)
+!      do ir=1,nr(1)
+!         write(*,*) spr(ir,1),ch1(ir),pot1(ir)
+!      enddo
+!      stop
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            write(*,*) 'atom', ias
+            lm=0
+            do l=0,input%groundstate%lmaxvr
+              do m=-l,l
+                lm=lm+1
+                potential(1:nr(is))=zvclmt(lm,1:nr(is),ias)
+               do ir=1,nr(is)
+                  potential(ir)=spr(ir,is)*potential(ir) 
+!                   potential(ir)=spr(ir,is)**2*potential(ir)
+                  
+!                   write(*,*) potential(ir)
+               enddo
+!                stop
+                pot1(:)=dble(potential(:))
+                pot2(:)=dimag(potential(:))
+
+                Call fderiv (2, nr(is), spr(:,is), pot1, ch1 , cf)
+!                Call fderiv (2, nr(is), spr(:,is), pot2, ch2 , cf)
+!                Call fderiv (1, nr(is), spr(:,is), pot1, ch2 , cf)
+
+!                charge(:)=dcmplx(ch1(:),ch2(:))
+!               do ir=1,nr(is)
+!                  charge(ir)=-(charge(ir)-dble(l*(l+1))*potential(ir)/spr(ir,is)**2)/spr(ir,is)*y00**2
+                   
+!               enddo
+                write(*,*) lm, y00**2
+                do ir=1,nr(is)
+!                 write(*,*) dble(charge(ir)),dble(zrhomt(lm, ir, ias))
+!                 write(*,*) spr(ir,is),ch1(ir)+2d0*ch2(ir)/spr(ir,is)
+!                  write(*,*) spr(ir,is),-(ch1(ir)-2d0*ch2(ir)/spr(ir,is)+2d0*pot1(ir)/spr(ir,is)**2)/spr(ir,is)**2*y00**2
+                  write(*,*) spr(ir,is),-ch1(ir)/spr(ir,is)*y00**2,pot1(ir)
+
+!ble(charge(ir))!pot1(ir)+21.2694462108662
+!ch1(ir),ch2(ir)
+!                  write(*,*) spr(ir,is),potential(ir)*spr(ir,is)
+!                 write(*,*) spr(ir,is),dble(potential(ir)/spr(ir,is))
+                enddo
+!                stop
+!                read(*,*) 
+              enddo
+            enddo
+         End Do
+      End Do
+!      read(*,*)
+      deallocate(charge,potential,pot1,pot2,ch1,ch2,cf)
+endif
+
+
+
 ! compute (R_mt)^l
       Do is = 1, nspecies
          rmtl (0, is) = 1.d0
@@ -161,6 +237,8 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
                   qmt (lm, ias) = t1 * zvclmt (lm, nr(is), ias)
                End Do
             End Do
+!            write(*,*) qmt (:, ias)
+!            write(*,*)
          End Do
       End Do
 ! Fourier transform density to G-space and store in zvclir
@@ -191,8 +269,11 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
                   qi (1, ias) = qi (1, ias) + t1 * zvclir (ifg)
                End If
             End Do
+!            write(*,*) qi (:, ias)
+!            write(*,*)
          End Do
       End Do
+!      stop
 ! find the smooth pseudocharge within the muffin-tin whose multipoles are the
 ! difference between the real muffin-tin and interstitial multipoles
       Do is = 1, nspecies
@@ -209,6 +290,8 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
                   zrp (lm) = (qmt(lm, ias)-qi(lm, ias)) * t1
                End Do
             End Do
+!            write(*,*) zrp (:)
+!            write(*,*)
 ! add the pseudocharge and real interstitial densities in G-space
             Do ig = 1, ngvec
                ifg = igfft (ig)
@@ -278,6 +361,11 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
                   End Do
                End Do
             End Do
+!            do lm=1,(input%groundstate%lmaxvr+1)**2
+!             write(*,*) sum(ylmgp(lm,1:ngvec))
+!            enddo
+!            write(*,*) vilm(:)
+!            write(*,*)
 ! add homogenous solution
             lm = 0
             Do l = 0, input%groundstate%lmaxvr

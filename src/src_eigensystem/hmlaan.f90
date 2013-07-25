@@ -49,13 +49,25 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
       Integer :: ias, io1, io2
       Integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3
       Real (8) :: t1
-      Complex (8) zt1, zsum
+      Complex (8) zt1, zsum, zt2
+      Real(8) :: alpha,a2,energyref
+      Parameter (alpha=1d0 / 137.03599911d0)
+
 ! automatic arrays
       Complex (8) zv (ngp)
 ! external functions
       Real (8) :: polynom
       Complex (8) zdotc
       External polynom, zdotc
+!      write(*,*) gntyry (1, 1, 1)
+!      stop0.5d0*alpha**2
+      energyref=input%groundstate%energyref
+      if (input%groundstate%ValenceRelativity.eq."scalar") then
+         a2=0.5d0*alpha**2
+      else
+         a2=0d0
+      endif
+      t1 = 0.25d0 * rmt (is) ** 2
       ias = idxas (ia, is)
       Do l1 = 0, input%groundstate%lmaxmat
          Do m1 = - l1, l1
@@ -73,6 +85,7 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
                      If (lm1 .Ge. lm3) Then
                         Do io2 = 1, apword (l3, is)
                            zsum = 0.d0
+                           zt2 = 0d0
                            Do l2 = 0, input%groundstate%lmaxvr
                               If (Mod(l1+l2+l3, 2) .Eq. 0) Then
                                  Do m2 = - l2, l2
@@ -86,12 +99,17 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
                                        zt1 = gntyry (lm1, lm2, lm3) * &
                                       & haa (io1, l3, io2, l1, lm2, &
                                       & ias)
+                                       
                                     End If
+!                                    zt2 = zt2 + gntyry (lm1, lm2, lm3) * (veffmt(lm2, nrmt(is), ias)/gntyry (1, 1, 1))*a2*2d0
                                     zsum = zsum + zt1
                                  End Do
                               End If
                            End Do
+!                           zt2=zt2+2d0*(gntyry (lm1, 1, lm3)*apwfr (nrmt(is), 1, io1, l1, ias) * apwdfr(io2, l1, ias))/gntyry (1, 1, 1)*(1d0-energyref*a2)
+!                           zsum=zsum+zt2*t1 
                            If (lm1 .Eq. lm3) zsum = zsum * 0.5d0
+!                           zsum=zsum+zt2*t1
                            If (Abs(dble(zsum))+Abs(aimag(zsum)) .Gt. &
                           & 1.d-20) Then
                               Call zaxpy (ngp, zsum, apwalm(1, io2, &
@@ -118,8 +136,7 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
             lm1 = idxlm (l1, m1)
             Do io1 = 1, apword (l1, is)
                Do io2 = 1, apword (l1, is)
-                  zt1 = t1 * apwfr (nrmt(is), 1, io1, l1, ias) * apwdfr &
-                 & (io2, l1, ias)
+                  zt1 = t1 * apwfr (nrmt(is), 1, io1, l1, ias) * apwdfr (io2, l1, ias) *1d0/(1d0+(energyref-veffmt(1, nrmt(is), ias)*y00)*a2)
                   x = conjg (apwalm(1:ngp, io1, lm1, ias))
                   y = conjg (apwalm(1:ngp, io2, lm1, ias))
                   Call Hermitianmatrix_rank2update (hamilton, ngp, zt1, &
@@ -128,6 +145,12 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
             End Do
          End Do
       End Do
+
+
+
+
+
+
       Return
 End Subroutine
 !EOC

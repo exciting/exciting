@@ -10,7 +10,7 @@
 ! !INTERFACE:
 !
 !
-Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
+Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor,energyref, p0p, p0, p1, q0, q1)
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   l   : angular momentum quantum number (in,integer)
@@ -66,6 +66,7 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
       Real (8), Intent (Out) :: q0 (nr)
       Real (8), Intent (Out) :: q1 (nr)
       Real (8), Intent (In) :: rmfactor
+      Real (8), Intent (In) :: energyref
 ! local variables
       Integer :: ir, ir0, iter,itmax,step
       parameter (itmax=32)
@@ -91,11 +92,11 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
 !      write(*,*) nr,nr
 !      read(*,*) 
 !      write(*,*) nr
-     do ir=1,itmax
-      do iter=1,itmax
-       ttt(ir,iter)=1d0/((dble(ir)/dble(ir-iter))**2-1d0)
-      enddo
-     enddo
+!     do ir=1,itmax
+!      do iter=1,itmax
+!       ttt(ir,iter)=1d0/((dble(ir)/dble(ir-iter))**2-1d0)
+!      enddo
+!     enddo
 
       do iter=1,nr
 !        if (abs(vr(1)*r(1)+7d0).lt.1d-1) then
@@ -119,7 +120,7 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
       else
        q1 (1) = 0d0
       endif
-      rm = 1.d0 - 0.5d0 * (alpha**2) * vr (1)*rmfactor
+      rm = 1.d0 + 0.5d0 * (alpha**2) * (energyref - vr(1))*rmfactor
       t1 = dble (l*(l+1)) / (2.d0*rm*r(1)**2)
 
       A=1d0/r(1)
@@ -138,10 +139,10 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
 !      End If
       nn = 0
       Do ir = 2, nr
-         rm = 1.d0 - 0.5d0 * (alpha**2) * vr (ir)*rmfactor
-         ri = 1.d0 / r (ir)
-         t1 = dble (l*(l+1)) / (2.d0*rm*r(ir)**2)
-         t2 = t1 + vr (ir) - e
+!         rm = 1.d0 + 0.5d0 * (alpha**2) * (energyref - vr (ir))*rmfactor
+!         ri = 1.d0 / r (ir)
+!         t1 = dble (l*(l+1)) / (2.d0*rm*r(ir)**2)
+!         t2 = t1 + vr (ir) - e
 ! predictor-corrector order
 
 
@@ -165,7 +166,7 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
 !            vr2=vr2/(r2*r2) 
              vr2=vr2/r2
 !            vr2=(vr(ir)*r(ir)*(r2-r(ir-1))+vr(ir-1)*r(ir-1)*(r(ir)-r2))/(r2*(r(ir)-r(ir-1)))
-            rm = 1.d0 - 0.5d0 * (alpha**2) * vr2*rmfactor
+            rm = 1.d0 + 0.5d0 * (alpha**2) * (energyref - vr2) *rmfactor
             t1 = dble (l*(l+1)) / (2.d0*rm*r2**2)
             t2 = t1 + vr2 - e
             A=-(r2-r1)*0.5d0
@@ -240,7 +241,7 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
             vr2=vr2/r2
 !            vr2=vr2/(r2*r2)
 !            vr2=(vr(ir)*r(ir)*(r2-r(ir-1))+vr(ir-1)*r(ir-1)*(r(ir)-r2))/(r2*(r(ir)-r(ir-1)))
-            rm = 1.d0 - 0.5d0 * (alpha**2) * vr2*rmfactor
+            rm = 1.d0 + 0.5d0 * (alpha**2) * (energyref-vr2)*rmfactor
             t1 = dble (l*(l+1)) / (2.d0*rm*r2**2)
             t2 = t1 + vr2 - e
 

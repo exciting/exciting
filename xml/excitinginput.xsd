@@ -3040,6 +3040,14 @@ gw.xsd
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="energyref" type="fortrandouble" default="0.0d0">
+        <xs:annotation>
+          <xs:documentation> Energy reference <inlinemath>\varepsilon_\textrm{ref}</inlinemath> 
+                             for the scalar-relativistic ZORA. It enters the kinetic energy expression 
+                             <inlinemath>T=\mathbf{p}\frac{c^2}{2c^2+\varepsilon-v(\mathbf{r})}\mathbf{p}</inlinemath>.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
 
       <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d" default="0.0d0 0.0d0 0.0d0">
@@ -3049,7 +3057,7 @@ gw.xsd
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="npsden" type="xs:integer" default="9">
         <xs:annotation>
-          <xs:documentation>oOrder of polynomial for pseudo-charge density.</xs:documentation>
+          <xs:documentation>Order of polynomial for pseudo-charge density.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="cfdamp" type="fortrandouble" default="0.0d0">

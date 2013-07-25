@@ -51,7 +51,7 @@ use modinput
       Integer :: im, kpa, ir
 ! fine-structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
-      Real (8) :: rm,rmfactor
+      Real (8) :: rm,rmfactor,energyref
 ! allocatable arrays
       Real (8), Allocatable :: p0p (:)
       Real (8), Allocatable :: g0 (:), g1 (:)
@@ -64,12 +64,13 @@ use modinput
 #ifdef SPECIES
       rmfactor=1d0
 #else
+      energyref=input%groundstate%energyref
       if (input%groundstate%ValenceRelativity.eq."scalar") then
          rmfactor=1d0
       else
          rmfactor=0d0
       endif
-#endif      
+#endif   
       If (nr .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(rschroddme): invalid nr : ", I8)') nr
@@ -86,10 +87,10 @@ use modinput
 ! use the scalar relativistic Schrodinger equation
          Allocate (p0p(nr))
          If (m .Eq. 0) Then
-            Call rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
+            Call rschrodint (m, l, e, nr, r, vr, nn, rmfactor, energyref, p0p, p0, p1, q0, q1)
          Else
             Do im = 0, m
-               Call rschrodint (im, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
+               Call rschrodint (im, l, e, nr, r, vr, nn, rmfactor, energyref, p0p, p0, p1, q0, q1)
                p0p (:) = p0 (:)
             End Do
          End If

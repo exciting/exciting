@@ -41,10 +41,14 @@ Subroutine genapwfr
      & (apwordmax)
       Real (8) :: q0 (nrmtmax, apwordmax), q1 (nrmtmax, apwordmax)
       Real (8) :: hp0 (nrmtmax)
+      
       Do is = 1, nspecies
          nr = nrmt (is)
+!         write(*,*) veffmt(:,nr,ias)
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
+!            write(*,*) veffmt(:,nr,ias)
+!            write(*,*) rhomt (:, nr, ias)
             vr (1:nr) = veffmt (1, 1:nr, ias) * y00
             Do l = 0, input%groundstate%lmaxapw
                Do io1 = 1, apword (l, is)
@@ -114,6 +118,7 @@ Subroutine genapwfr
             End Do
          End Do
       End Do
+      write(*,*)
       Return
 End Subroutine
 !EOC

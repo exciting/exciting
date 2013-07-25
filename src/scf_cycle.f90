@@ -62,10 +62,12 @@ subroutine scf_cycle
         Call timesec(tin0)
         Call poteff
         Call genveffig
+!        write(*,*) 'geneffig done'
         Call timesec(tin1)
         time_pot_init=tin1-tin0
         If (rank .Eq. 0) write (60, '("Density and potential initialised from atomic data")')
     End If
+    Call genmeffig
     If (rank .Eq. 0) then
         write (60, *)
         Call flushifc (60)
@@ -149,6 +151,7 @@ subroutine scf_cycle
         Call olprad
 ! compute the Hamiltonian radial integrals
         Call hmlrad
+!        write(*,*) 'hmlrad done'
 ! zero partial charges
         chgpart(:,:,:)=0.d0
         Call timesec (ts1)
@@ -186,7 +189,10 @@ subroutine scf_cycle
             Call timesec(ts1)
             timeio=ts1-ts0+timeio            
 ! solve the first- and second-variational secular equations
+!            write(*,*) 'howdy seceqn'
+            write(*,*) 'allocated', allocated(meffig)
             Call seceqn (ik, evalfv, evecfv, evecsv)
+
             Call timesec(ts0)
 ! write the eigenvalues/vectors to file
             Call putevalfv (ik, evalfv)
@@ -197,6 +203,10 @@ subroutine scf_cycle
             !call genpchgs(ik,evecfv,evecsv)
             Deallocate (evalfv, evecfv, evecsv)
         End Do
+        if (input%groundstate%ValenceRelativity.eq."scalar") then
+           deallocate(meffig)
+         endif
+
 #ifdef KSMP
 !$OMP END DO
 !$OMP END PARALLEL
@@ -327,6 +337,7 @@ subroutine scf_cycle
         If (getfixspinnumber() .Ne. 0) Call fsmfield
 ! Fourier transform effective potential to G-space
         Call genveffig
+        Call genmeffig
 ! reduce the external magnetic fields if required
         If (associated(input%groundstate%spin)) Then
             If (input%groundstate%spin%reducebf .Lt. 1.d0) Then

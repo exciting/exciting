@@ -57,7 +57,7 @@ Module mod_potential_and_density
 ! interstitial effective potential
       Real (8), Allocatable :: veffir (:)
 ! G-space interstitial effective potential
-      Complex (8), Allocatable :: veffig (:)
+      Complex (8), Allocatable :: veffig (:),meffig (:)
 ! muffin-tin exchange energy density
       Real (8), Allocatable :: exmt (:, :, :)
 ! interstitial real-space exchange energy density

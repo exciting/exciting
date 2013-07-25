@@ -120,7 +120,7 @@ Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
             eval=(e_lo+e_hi)*0.5d0
           endif
         elseif (nn.gt.n-l) then
-!           write(*,*) e_lo,e_hi,nn
+!            write(*,*) e_lo,e_hi,nn
 !          if (e_hi.gt.eval) then
             e_hi=eval
 !          endif
@@ -145,7 +145,7 @@ Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
           enddo
           maxr=ir
           de=-g0(maxr)/g0p(maxr)
-!          write(*,*) (nn.eq.n-l-1),de
+ !         write(*,*) (nn.eq.n-l-1),de
           if (nn.eq.n-l-1) then
              e_lo=eval
              if ((de.gt.0d0).and.(abs(de).lt.1d-1)) then

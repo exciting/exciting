@@ -10,7 +10,7 @@
 ! !INTERFACE:
 !
 !
-Subroutine genveffig
+Subroutine genmeffig
 ! !USES:
       Use modmain
 ! !DESCRIPTION:
@@ -30,15 +30,6 @@ Subroutine genveffig
 ! allocatable arrays
       Complex (8), Allocatable :: zfft (:)
       Allocate (zfft(ngrtot))
-! multiply effective potential with characteristic function
-      zfft (:) = veffir (:) * cfunir (:)
-! Fourier transform to G-space
-      Call zfftifc (3, ngrid,-1, zfft)
-      Do ig = 1, ngvec
-         ifg = igfft (ig)
-         veffig (ig) = zfft (ifg)
-      End Do
-if (.false.) then
       if (input%groundstate%ValenceRelativity.eq."scalar") then
 !         write(*,*) 'howdy'
          energyref=input%groundstate%energyref
@@ -59,7 +50,7 @@ if (.false.) then
 !            zfft(:)
 !         enddo
       endif
-endif
+
       Deallocate (zfft)
       Return
 End Subroutine
