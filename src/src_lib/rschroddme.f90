@@ -113,6 +113,21 @@ use modinput
            Deallocate (p0p,q0p)
 !           write(*,*) 'howdy'
 !           stop 
+         elseif (input%groundstate%ValenceRelativity.eq."lkh") then
+           Allocate (p0p(nr))
+           Allocate (q0p(nr))
+           if (m.eq.0) then
+             call rlkhint (0, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
+           elseif (m.eq.1) then
+             call rkhint (0, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
+             p0p (:) = p0 (:)
+             q0p (:) = q0 (:)
+             call rlkhint (1, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
+           else
+             write(*,*) 'Error(rschroddme): energy derivative',m,'not implemented.'
+             stop
+           endif
+           Deallocate (p0p,q0p)
          else  
            write(*,*) 'Error(rschroddme):',input%groundstate%ValenceRelativity,' not implemented.'
            write(*,*) 'case sensitivity issue?'

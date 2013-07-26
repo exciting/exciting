@@ -3025,6 +3025,7 @@ gw.xsd
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="scalar"/>
                   <xs:enumeration value="kh"/>
+                  <xs:enumeration value="lkh"/>
                   <xs:enumeration value="none"/>
                 </xs:restriction>
               </xs:simpleType>
