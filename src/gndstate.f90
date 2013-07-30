@@ -29,7 +29,6 @@ Subroutine gndstate
 
 ! time measurements
     Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0
-
 !! TIME - Initialisation segment
     Call timesec (tsg0)
     Call timesec (ts0)
@@ -61,9 +60,7 @@ Subroutine gndstate
         open(60, File='INFO'//trim(filext), Action='WRITE', Form='FORMATTED')
 ! write out general information to INFO.OUT
         call writeinfo(60)
-
-        if ((input%groundstate%outputlevelnumber>0).or. &
-       &    (input%structureoptimization%outputlevelnumber>0)) then
+         if (input%groundstate%outputlevelnumber>0) then
 
 ! write the real and reciprocal lattice vectors to file
             Call writelat
@@ -172,8 +169,7 @@ Subroutine gndstate
 !! TIME - Fifth IO segment
     call timesec(ts0)
     if (rank==0) then
-      if ((input%groundstate%outputlevelnumber>0).or. &
-     &    (input%structureoptimization%outputlevelnumber>0)) then
+        if (input%groundstate%outputlevelnumber>0) then
 ! close the TOTENERGY.OUT file
         close(61)
 ! close the FERMIDOS.OUT file
