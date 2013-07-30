@@ -96,7 +96,7 @@
                 </xs:annotation>
             </xs:attribute>
             
-            <xs:attribute ex:importance="expert" name="tau0atm" type="fortrandouble"  default="1.0d0" use="optional">
+            <xs:attribute ex:importance="expert" name="tau0atm" type="fortrandouble"  default="0.2d0" use="optional">
                 <xs:annotation>
                     <xs:documentation> Parameter determining the initial amplitude of atomic displacement 
                     for the "newton" method of structural optimization.
