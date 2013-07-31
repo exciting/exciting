@@ -55,7 +55,7 @@
             </xs:simpleType>
           </xs:attribute>
             
-            <xs:attribute ex:importance="essential" ex:unit="" name="method" type="xs:string" use="optional" default="newton">
+            <xs:attribute ex:importance="essential" ex:unit="" name="method" type="xs:string" use="optional" default="mixed">
                 <xs:annotation>
                     <xs:documentation>
                     Specify the method used for structural optimization: 
