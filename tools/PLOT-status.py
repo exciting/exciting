@@ -51,13 +51,18 @@ label = str(sys.argv[1])
 
 #-------------------------------------------------------------------------------
 
-inpf    = current+"/"+rlabel+label+'/RMSDVEFF.OUT'
-if (label == 'r'): inpf=rundir+'/xc-rundir/RMSDVEFF.OUT'
-     
+inpf = current+"/"+rlabel+label+'/RMSDVEFF.OUT'
+icol = 0
+
 if (str(os.path.exists(inpf))=='False'): 
-    sys.exit("\nERROR: file "+inpf+" not found!\n")
-    
-input_file = open(inpf,"r")
+    inpf    = current+"/"+rlabel+label+'/INFO.OUT'
+    if (str(os.path.exists(inpf))=='False'): 
+        sys.exit("\nERROR: file "+inpf+" not found!\n")
+    icol = 7
+    os.system("grep \"RMS change\" "+str(inpf)+" > tempfile")
+    input_file = open("tempfile","r")
+else:
+    input_file = open(inpf,"r")
 
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
@@ -103,12 +108,12 @@ pyl.grid(True)
 
 x = [] ; y = []
 
-iter=0
+iter=1
 alast=0
 alege=0
 
 while True:
-    line = input_file.readline().strip()
+    line = input_file.readline().strip().replace(")", "") 
     if len(line) == 0:
        if alast == 1: break
        plt.plot(x,y,'b-')
@@ -120,10 +125,12 @@ while True:
     else:
        alast = 0
        iter  = iter+1
-       y.append(float(line.split()[0]))
+       y.append(float(line.split()[icol]))
        x.append(float(iter))
  
-xmin = 1-iter/20. ; xmax = iter+iter/20.
+if (str(os.path.exists(inpf))=='False'): os.system("rm tempfile")
+
+xmin = 2-iter/20. ; xmax = iter+iter/20.
 
 #-------------------------------------------------------------------------------
    

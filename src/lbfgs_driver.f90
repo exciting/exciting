@@ -1,39 +1,37 @@
+!
+!-----------------------------------------------------------------------------80
 !                                        
-!    --------------------------------------------------------------
-!             CUSTOMIZED DRIVER FOR L-BFGS-B
-!    --------------------------------------------------------------
+! CUSTOMIZED DRIVER FOR L-BFGS-B
 !
-!       L-BFGS-B is a code for solving large nonlinear optimization
-!            problems with simple bounds on the variables.
+! L-BFGS-B is a code for solving large nonlinear optimization
+! problems with simple bounds on the variables.
 !
-!       The code can also be used for unconstrained problems and is
-!       as efficient for these problems as the earlier limited memory
-!                         code L-BFGS.
+! The code can also be used for unconstrained problems and is as 
+! efficient for these problems as the earlier limited memory code L-BFGS.
 !
-!       This driver illustrates how to control the termination of the
-!       run and how to design customized output.
+! This driver illustrates how to control the termination of the
+! run and how to design customized output.
 !
-!    References:
+! References:
 !
-!       [1] R. H. Byrd, P. Lu, J. Nocedal and C. Zhu, ``A limited
-!       memory algorithm for bound constrained optimization'',
-!       SIAM J. Scientific Computing 16 (1995), no. 5, pp. 1190--1208.
+! [1] R. H. Byrd, P. Lu, J. Nocedal and C. Zhu, ``A limited
+!     memory algorithm for bound constrained optimization'',
+!     SIAM J. Scientific Computing 16 (1995), no. 5, pp. 1190--1208.
 !
-!       [2] C. Zhu, R.H. Byrd, P. Lu, J. Nocedal, ``L-BFGS-B: FORTRAN
-!       Subroutines for Large Scale Bound Constrained Optimization''
-!       Tech. Report, NAM-11, EECS Department, Northwestern University,
-!       1994.
+! [2] C. Zhu, R.H. Byrd, P. Lu, J. Nocedal, ``L-BFGS-B: FORTRAN
+!     Subroutines for Large Scale Bound Constrained Optimization''
+!     Tech. Report, NAM-11, EECS Department, Northwestern University, 1994.
 !
-!         (Postscript files of these papers are available via anonymous
-!          ftp to eecs.nwu.edu in the directory pub/lbfgs/lbfgs_bcm.)
+! Postscript files of these papers are available via anonymous
+! ftp to eecs.nwu.edu in the directory pub/lbfgs/lbfgs_bcm.)
 !
-!         February 2011   (latest revision)
-!         Optimization Center at Northwestern University
-!         Instituto Tecnologico Autonomo de Mexico
+! February 2011   (latest revision)
+! Optimization Center at Northwestern University
+! Instituto Tecnologico Autonomo de Mexico
 !
-!         Jorge Nocedal and Jose Luis Morales
+! Jorge Nocedal and Jose Luis Morales
 !
-!    **************
+!-----------------------------------------------------------------------------80
 
 subroutine lbfgs_driver
 !
@@ -52,6 +50,7 @@ subroutine lbfgs_driver
       integer                :: m, iprint
       integer                :: is, ia, ias, ik, ispn
       
+      character(len=77)      :: string
       character(len=60)      :: ctask, csave
       logical                :: lsave(4)
       integer                :: isave(44)
@@ -65,17 +64,28 @@ subroutine lbfgs_driver
       integer                :: i, j
       character(1024)        :: message
       integer, allocatable   :: amap(:,:)
+      integer                :: nscf, nconf
+      logical                :: lnconv
 
-! some L-BFGS-B library parameters (see src/Lbfgs.3.0/README)
-! number of corrections used in the limited memory matrix
-      m = 3
-! controls the frequency and type of output generated
-      iprint = -1
+      if (istep+1>input%structureoptimization%maxsteps) return
 
-      factr = 0.d0
-      pgtol = 0.d0
+      if (rank==0) then
+          write(string,'("Optimization step ", I4,"    (method = bfgs)")') istep+1
+          call printbox(60,"-",string)
+      end if
+
+!_______________________________________________________________________
+! Initialize some L-BFGS-B library parameters (see src/Lbfgs.3.0/README)
+  
+      m = 5         ! number of corrections used in the limited memory matrix
+      iprint = -1   ! controls the frequency and type of output generated
+      factr = 0.d0  ! suppress termination test controlled by machine precision
+      pgtol = 0.d0  ! suppress termination test controlled by the component 
+                    ! of the projected gradient
       
-!     Total number of variables taking into account constraints
+!____________________________________________________________________
+! Determine total number of variables taking into account constraints
+
       n = 0
       do is = 1, nspecies
         do ia = 1, natoms(is)
@@ -86,17 +96,24 @@ subroutine lbfgs_driver
           end do
         end do
       end do
+
       if (n==0) then
         call warning('WARNING(lbfgs_driver):')
         write(message,'(" No active degrees of freedom = Nothing to relax! Check lock options in your input file")')
         call warning(message)
         return
       end if
+
+!________________
+! Allocate memory
       
       allocate( nbd(n), x(n), l(n), u(n), g(n) )
       allocate( iwa(3*n) )
       allocate( wa(2*m*n + 5*n + 11*m*m + 8*m) )
       allocate( amap(3,n) )
+
+!_______________________
+! Set search constraints
 
       j = 0
       do is = 1, nspecies
@@ -116,133 +133,206 @@ subroutine lbfgs_driver
         end do
       end do
 
-!     BEGIN the loop
+!!!!!!INITIALIZE the loop
+
+      nscf = 0
+      nconf = 0
       ctask = 'START'
-      do while (ctask(1:5).eq.'START' .or. &
-                ctask(1:2).eq.'FG'    .or. &
-                ctask(1:5).eq.'NEW_X')
+      lnconv = .True.
+
+!!!!!!BEGIN the loop
+
+      do while ( (ctask(1:5).eq.'START'  .or. &
+                  ctask(1:2).eq.'FG'     .or. &
+                  ctask(1:5).eq.'NEW_X') .and. &
+                  lnconv )
+
+                                  !write(60,*) "loop starts ", ctask
+
+!______________________________________     
+! This is the call to the L-BFGS-B code
+
+                                  !write(60,*) " before"
+                                  !write(60,'(6f12.6)') x
       
-!     This is the call to the L-BFGS-B code
-
         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa,ctask,iprint, &
-        &   csave,lsave,isave,dsave)
-        
+        &           csave,lsave,isave,dsave)
+
+                                  !write(60,*) " after"
+                                  !write(60,'(6f12.6)') x
+                                  !write(60,*) ctask, nconf
+
+!_____________________________________________________
+! the minimization routine has returned to request the
+! function f and gradient g values at the current x
+
         if (ctask(1:2) .eq. 'FG') then
-
-!         the minimization routine has returned to request the
-!         function f and gradient g values at the current x.
           call calcEnergyForces
-
         else 
           
-          if (ctask(1:5) .eq. 'NEW_X') then   
-            
-            call updatepositions
+!_____________________________________________________
+! the minimization has found a new configuration 
+! to be used in the next optimization step
 
+          if (ctask(1:5) .eq. 'NEW_X') then   
+           
+            call updatepositions
+            istep = istep+1
+
+!____________
 ! output info
+
             if (rank==0) then
-                write(60,*)
-                write(60,'("+---------------------------------------------------------+")')
-                write(60,'("| Optimization step ", I4, "    (method = bfgs)")') isave(30)
-                write(60,'("+---------------------------------------------------------+")')
-                write(60,'(" Number of scf iterations : ", I4)') iscl
-                write(60,'(" Number of investigated structures : ",I4)') isave(34)
-                write(60,'(" Maximum force magnitude (target) : ",F14.8," (", F14.8, ")")') &
+                if (input%structureoptimization%outputlevelnumber>1)  write(60,*)
+                write(60,'(" Number of investigated configurations  : ",I5)') nconf
+                write(60,'(" Number of total scf iterations         : ",I5)') nscf
+                write(60,'(" Maximum force magnitude       (target) : ",F14.8,"    (", F14.8, ")")') &
                &  forcemax, input%structureoptimization%epsforce
-                write(*,'(" Maximum force magnitude (target) : ",F14.8," (", F14.8, ")")') &
-               &  forcemax, input%structureoptimization%epsforce
-                write(60,'(" Updated atomic positions :")')
-                do is = 1, nspecies
-                    do ia = 1, natoms (is)
-                        write(60,'("  atom ",I4,4x,A2,T30,": ",3F14.8)') &
-                       &  ia, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
-                       &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-                    end do
-                end do
-                if (input%structureoptimization%outputlevelnumber>0) &
-               &  call writeforce(60,input%structureoptimization%outputlevelnumber)
-                if (input%structureoptimization%outputlevelnumber>1) then
-                    write(60,'(" L-BFGS-B method related information")')
-                    write(60,'("  Total number of BFGS updates prior the current iteration",I4)') isave(31)
-                    write(60,'("  Number of function value or gradient evaluations in the current iteration",I4)') isave(36)
+                write(60,'(" Total energy at this optimization step :",F19.9)') engytot
+                if (input%structureoptimization%outputlevelnumber>0)  then 
+                    call writepositions(60,input%structureoptimization%outputlevelnumber) 
+                    call writeforce(60,input%structureoptimization%outputlevelnumber)                    
                 end if
                 call flushifc(60)
+
+!_____________________________________________________________
 ! write lattice vectors and optimised atomic positions to file
+
                 Call writehistory
                 Call writegeometryxml(.True.)
+!__________________________________________________
 ! write the optimized interatomic distances to file
+
                 Call writeiad(.True.)
             end if
             
-            ! force convergence is reached
+!______________________________________
+! check if force convergence is reached
+
             if (forcemax <= input%structureoptimization%epsforce) ctask = 'STOP'
+
+!_________________________________________________
+! check if maximum number of iterations is reached
+
+            if (istep    >= input%structureoptimization%maxsteps) ctask = 'STOP'
             
-            ! maximum number BFGS iterations is reached
-            if (isave(30) >= input%structureoptimization%maxsteps) ctask = 'STOP'
+            nconf = 0
+            nscf = 0
+
+            if ((rank==0).and.(ctask(1:5).eq.'NEW_X')) then
+                write(string,'("Optimization step ", I4,"    (method = bfgs)")') istep+1
+                call printbox(60,"-",string)
+            end if
+
+            if (ctask(1:4).eq.'CONV') lnconv = .False.
 
           end if ! 'NEW_X'
           
+                                  !write(60,*) "else  ", ctask 
+
         end if
 
+                                  !write(60,*) "final ", ctask
+
       end do
-!     END the loop
+
+!!!!!!END the loop
+
+!____________________________________________
+! Use Newton method if BFGS does not converge
+
+      if (ctask(1:4).eq.'CONV') then
+        istep = istep+1
+        if (rank .Eq. 0) then
+          write(60,*)
+          write(60,'(" BFGS scheme not converged -> Switching to Newton method")')
+          call flushifc(60)
+          write(6,*)
+          write(6, '(" BFGS scheme not converged -> Switching to Newton method")')
+          call flushifc(6)
+        end if
+        call newton(input%structureoptimization%epsforce)
+      end if
       
+!__________________
+! Deallocate memory
+
       deallocate( nbd, x, l, u, g )
       deallocate( iwa )
       deallocate( wa )
 
 contains
-
+!
+!-----------------------------------------------------------------------------80
+!
     subroutine calcEnergyForces
      
         implicit none
         integer :: is, ia, i, j
 
+!________________________
 ! update atomic positions
+
         call updatepositions
 
-!-----------------------!
-!   Reinitialization
-!-----------------------!
+!__________________________________
 ! check for overlapping muffin-tins
+
         call checkmt
+
+!_________________________________________
 ! generate structure factors for G-vectors
+
         Call gensfacgp (ngvec, vgc, ngvec, sfacg)
+
+!_____________________________________
 ! generate the characteristic function
+
         Call gencfun
+
+!___________________________________________
 ! generate structure factors for G+k-vectors
+
         Do ik = 1, nkpt
             Do ispn = 1, nspnfv
                 Call gensfacgp (ngk(ispn, ik), vgkc(:, :, ispn, ik), &
                &  ngkmax, sfacgk(:, :, ispn, ik))
             End Do
         End Do
+
+!_________________________________________
 ! determine the new nuclear-nuclear energy
+
         Call energynn
 
-!-----------------------!
-!   SCF cycle
-!-----------------------!
-        call scf_cycle(0)
+!__________
+! SCF cycle
 
-!-----------------------!
-!   Output
-!-----------------------!
-        ! total energy
-        f = engytot
+        call scf_cycle(-1)
+        nconf = nconf + 1
+        if ((rank==0).and.(input%structureoptimization%outputlevelnumber>1))  then 
+            write(60,'(" Investigating configuration            # ",I5,"    (# of SCF cicles =",I5,")")') &
+           &      nconf, iscl
+            call flushifc(60)
+        end if
+        nscf = nscf+iscl
+
+!_______
+! Output
+
+        f = engytot                            ! total energy
         
-        ! energy gradients = total forces
         do j = 1, n
           i = amap(1,j); ia = amap(2,j); is = amap(3,j)
           ias = idxas(ia,is)
-          g(j) = -forcetot(i,ias)
+          g(j) = -forcetot(i,ias)              ! energy gradients = total forces
         end do
       
         return
     end subroutine calcEnergyForces
-!-------------------------------------------------------------------------------
 !
-!-------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------80
+!
     subroutine updatepositions
         
         implicit none
@@ -251,15 +341,20 @@ contains
             i = amap(1,j); ia = amap(2,j); is = amap(3,j)
             atposc(i,ia,is) = x(j)
         end do
+
+!________________________________________________________
+! compute the lattice coordinates of the atomic positions
+
         do is = 1, nspecies
             do ia = 1, natoms(is)
-! compute the lattice coordinates of the atomic positions
                 call r3mv (ainv, atposc(:, ia, is), &
-                &   input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))
+               &     input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))
             end do
         end do
 
+!___________________________________________________________________
 ! find the crystal symmetries and shift atomic positions if required
+
         call findsymcrys
     
     end subroutine updatepositions

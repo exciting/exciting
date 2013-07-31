@@ -175,7 +175,7 @@ Subroutine hartfock
          Write (62, '(G18.10)') fermidos
          Call flushifc (62)
 ! output charges and moments
-         Call writechg (60)
+         Call writechg (60,input%groundstate%outputlevelnumber)
 ! write total moment to MOMENT.OUT and flush
          If (associated(input%groundstate%spin)) Then
             Write (63, '(3G18.10)') momtot (1:ndmag)

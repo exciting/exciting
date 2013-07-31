@@ -29,6 +29,8 @@ Subroutine gndstate
 
 ! time measurements
     Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0
+    character*(77) :: string
+
 !! TIME - Initialisation segment
     Call timesec (tsg0)
     Call timesec (ts0)
@@ -60,49 +62,44 @@ Subroutine gndstate
         open(60, File='INFO'//trim(filext), Action='WRITE', Form='FORMATTED')
 ! write out general information to INFO.OUT
         call writeinfo(60)
-         if (input%groundstate%outputlevelnumber>0) then
-
 ! write the real and reciprocal lattice vectors to file
-            Call writelat
+        Call writelat
 ! write interatomic distances to file
-            Call writeiad (.False.)
+        Call writeiad (.False.)
 ! write symmetry matrices to file
-            Call writesym
+        Call writesym
 #ifdef XS
 ! write relation to inverse symmetries
-            Call writesymi
+        Call writesymi
 ! write advanced information on symmetry group
-            Call writesym2
+        Call writesym2
 ! write out symmetrization matrix for rank 2 tensors
-            Call writesymt2
+        Call writesymt2
 #endif
 ! output the k-point set to file
-            Call writekpts
+        Call writekpts
 ! write lattice vectors and atomic positions to file
-            Call writegeometryxml(.False.)
+        Call writegeometryxml(.False.)
 ! open TOTENERGY.OUT
-            Open (61, File='TOTENERGY'//trim(filext), Action='WRITE', Form='FORMATTED')
+        Open (61, File='TOTENERGY'//trim(filext), Action='WRITE', Form='FORMATTED')
 ! open FERMIDOS.OUT
-            Open (62, File='FERMIDOS'//trim(filext), Action='WRITE', Form='FORMATTED')
+        Open (62, File='FERMIDOS'//trim(filext), Action='WRITE', Form='FORMATTED')
 ! open MOMENT.OUT if required
-            If (associated(input%groundstate%spin)) open (63, file='MOMENT'//trim(filext), action='WRITE', form='FORMATTED')
+        If (associated(input%groundstate%spin)) open (63, file='MOMENT'//trim(filext), action='WRITE', form='FORMATTED')
 ! open FORCEMAX.OUT if required
-            If (input%groundstate%tforce) then 
+        If (input%groundstate%tforce) then 
 ! open DFORCEMAX.OUT
-                open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
-            End If
+            open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
+        End If
 ! open RMSDVEFF.OUT
-            Open (65, File='RMSDVEFF'//trim(filext), Action='WRITE', Form='FORMATTED')
+        Open (65, File='RMSDVEFF'//trim(filext), Action='WRITE', Form='FORMATTED')
 ! open DTOTENERGY.OUT
-            open(66,file='DTOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
+        open(66,file='DTOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
 ! open CHGDIST.OUT
-            open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
-        end if
-
+        open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
 ! open PCHARGE.OUT
         if (input%groundstate%tpartcharges) &
        &  open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
-    
     end if ! rank
 
     Call timesec (ts1)
@@ -113,19 +110,14 @@ Subroutine gndstate
 !   SCF cycle
 !------------------------------------!
     if (rank==0) then
-        write(60,*)
-        write(60, '("+-----------------------------------------------------------+")')
-        write(60, '("| Groundstate module started ")')
-        write(60, '("+-----------------------------------------------------------+")')
+        write(string,'("Groundstate module started")') 
+        call printbox(60,"*",string)
         call flushifc(60)
     end if
     call scf_cycle(input%groundstate%outputlevelnumber)
     if (rank==0) then
-        write(60,*)
-        write(60, '("+-----------------------------------------------------------+")')
-        write(60, '("| Groundstate module stopped ")')
-        write(60, '("+-----------------------------------------------------------+")')
-        write(60,*)
+        write(string,'("Groundstate module stopped")') 
+        call printbox(60,"*",string)
         call flushifc(60)
     end if
 
@@ -137,28 +129,17 @@ Subroutine gndstate
 !------------------------------------!
     if (( .Not. tstop) .And. ((task .Eq. 2) .Or. (task .Eq. 3))) then
         if (rank==0) then
-            write(60,*)
-            write(60, '("+-----------------------------------------------------------+")')
-            write(60, '("| Structure optimization module started ")')
-            write(60, '("+-----------------------------------------------------------+")')
-            write(60,*)
+            write(string,'("Structure-optimization module started")') 
+            call printbox(60,"*",string)
             call flushifc(60)
         end if
         ! check force convergence first
-        if (forcemax .Le. input%structureoptimization%epsforce) then
-            if (rank .Eq. 0) then
-                write(60,*)
-                write(60, '(" Force convergence target achieved")')
-            end if
-        else
+        if (forcemax .Gt. input%structureoptimization%epsforce) then
             call structureoptimization
         end if
         if (rank==0) then
-            write(60,*)
-            write(60, '("+-----------------------------------------------------------+")')
-            write(60, '("| Structure optimization module stopped ")')
-            write(60, '("+-----------------------------------------------------------+")')
-            write(60,*)
+            write(string,'("Structure-optimization module stopped")') 
+            call printbox(60,"*",string)
             call flushifc(60)
         end if    
     end if
@@ -169,7 +150,6 @@ Subroutine gndstate
 !! TIME - Fifth IO segment
     call timesec(ts0)
     if (rank==0) then
-        if (input%groundstate%outputlevelnumber>0) then
 ! close the TOTENERGY.OUT file
         close(61)
 ! close the FERMIDOS.OUT file
@@ -184,11 +164,9 @@ Subroutine gndstate
         close(66)
 ! close the CHGDIST.OUT file
         close(68)
-      end if
     end if
 ! close the PCHARGE.OUT file
     if ((input%groundstate%tpartcharges).and.(rank==0)) close(69)
-    
 ! xml output
     if (rank==0) then
         call structure_xmlout
@@ -198,10 +176,11 @@ Subroutine gndstate
     call timesec(ts1)
     timeio=ts1-ts0+timeio
 !! TIME - End of fifth IO segment
+    Call timesec(tsg1)
 
-    If (rank .Eq. 0) then
-        Write (60,*)
-        Write (60, '("Timings (seconds) :")')
+    If ((rank .Eq. 0).and.(input%groundstate%outputlevelnumber>1)) then
+        write(string,'("Timings (seconds)")') 
+        call printbox(60,"-",string)
         Write (60, '(" initialisation", T40, ": ", F12.2)') timeinit
         Write (60, '("            - init0", T40,": ", F12.2)') time_init0
         Write (60, '("            - init1", T40,": ", F12.2)') time_init1
@@ -231,10 +210,6 @@ Subroutine gndstate
         timetot = timeinit + timemat + timefv + timesv + timerho + &
         &         timepot + timefor+timeio+timemt+timemixer+timematch
         Write (60, '(" sum", T40, ": ", F12.2)') timetot
-        Call timesec(tsg1)
-        Write (60, '(" total", T40, ": ", F12.2)') tsg1-tsg0
-        Write (60,*)
-        Write (60, '("More timings (seconds)")')
         Write (60, '(" Dirac eqn solver", T40, ": ", F12.2)') time_rdirac
         Write (60, '(" Rel. Schroedinger eqn solver", T40, ": ", F12.2)') time_rschrod
         Write (60, '(" Total time spent in radial solvers", T40, ": ", F12.2)') time_rdirac+time_rschrod
@@ -242,10 +217,13 @@ Subroutine gndstate
             Write (60, '(" Time spent for oepvnl ", T40,": ", F12.2)') time_oepvnl
             Write (60, '(" Time spent for oep iteration ", T40,": ", F12.2)') time_oep_iter
         End If
-        Write (60,*)
-        Write (60, '("+-----------------------------------------------------------+")')
-        Write (60, '("| EXCITING ", a, " stopped")') trim(versionname)
-        Write (60, '("+-----------------------------------------------------------+")')
+        write (60,*)
+    end if
+
+    If (rank .Eq. 0) then
+         Write (60, '(" Total time spent", T40, ": ", F12.2)') tsg1-tsg0
+        write(string,'("EXCITING ", a, " stopped")')  trim(versionname)
+        call printbox(60,"=",string)
         close (60)
     endif
    

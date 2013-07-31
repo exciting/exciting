@@ -35,16 +35,37 @@ Subroutine writeinfo (fnum)
       logical :: tetocc
 #endif
       Character (10) :: dat, tim
-      Write (fnum, '("+-----------------------------------------------------------+")')
-      Write (fnum, '("| EXCITING ", a, " started")') trim(versionname)
-      Write (fnum, '("| version hash id: ",a)') githash
+      character*(77) :: string
+      real(8) :: dumsum 
+
+      call printline(fnum,"=")
+      write (string,'("EXCITING ", a, " started")') trim(versionname)
+      call printtext(fnum,"=",string)
+      Write (string,'("version hash id: ",a)') githash
+      call printtext(fnum,"=",string)
 #ifdef MPI
-      Write (fnum, '("| MPI version using ",i6," processor(s)                     |")') procs
-#ifndef MPI1
-      Write (fnum, '("|  using MPI-2 features                                     |")')
+      Write (string,'("MPI version using ",i6," processor(s)")') procs
+      call printtext(fnum,"=",string)
+#ifndef MPI1   
+      Write (string,'("|  using MPI-2 features")') 
+      call printtext(fnum,"=",string)
 #endif
 #endif
-      Write (fnum, '("+-----------------------------------------------------------+")')
+ 
+      Call date_and_time (date=dat, time=tim)
+
+      call printtext(fnum,"=","")
+      Write (string,'("Date (DD-MM-YYYY) : ", A2, "-", A2, "-", A4)') &
+     &  dat (7:8), dat (5:6), dat (1:4)
+      call printtext(fnum,"=",string)
+      Write (string,'("Time (hh:mm:ss)   : ", A2, ":", A2, ":", A2)') &
+     &  tim (1:2), tim (3:4), tim (5:6)
+      call printtext(fnum,"=",string)
+      call printtext(fnum,"=","")
+      Write (string,'("All units are atomic (Hartree, Bohr, etc.)")')
+      call printtext(fnum,"=",string)
+      call printline(fnum,"=")
+
       If (notelns .Gt. 0) Then
          Write (fnum,*)
          Write (fnum, '("Notes :")')
@@ -52,130 +73,114 @@ Subroutine writeinfo (fnum)
             Write (fnum, '(A)') notes (i)
          End Do
       End If
-      Call date_and_time (date=dat, time=tim)
-      Write (fnum,*)
-      Write (fnum, '("Date (DD-MM-YYYY) : ", A2, "-", A2, "-", A4)') &
-     &  dat (7:8), dat (5:6), dat (1:4)
-      Write (fnum, '("Time (hh:mm:ss)   : ", A2, ":", A2, ":", A2)') &
-     &  tim (1:2), tim (3:4), tim (5:6)
-      Write (fnum,*)
-      Write (fnum, '("All units are atomic (Hartree, Bohr, etc.)")')
+
       Select Case (task)
       Case (0)
-         Write (fnum,*)
-         Write (fnum, '("+---------------------------------------------&
-        &----+")')
-         Write (fnum, '("| Ground-state run starting from atomic densit&
-        &ies |")')
-         Write (fnum, '("+---------------------------------------------&
-        &----+")')
+         call printbox(fnum,"*","Ground-state run starting from atomic densities")
       Case (1, 200)
-         Write (fnum,*)
-         Write (fnum, '("+------------------------------------------+")&
-        &')
-         Write (fnum, '("| Ground-state run resuming from STATE.OUT |")&
-        &')
-         Write (fnum, '("+------------------------------------------+")&
-        &')
+         call printbox(fnum,"*","Ground-state run resuming from STATE.OUT")
       Case (2)
-         Write (fnum,*)
-         Write (fnum, '("+---------------------------------------------&
-        &-----------+")')
-         Write (fnum, '("| Structural optimisation starting from atomic&
-        & densities |")')
-         Write (fnum, '("+---------------------------------------------&
-        &-----------+")')
+         call printbox(fnum,"*","Structural optimisation starting from atomic densities")
       Case (3)
-         Write (fnum,*)
-         Write (fnum, '("+-----------------------------------------------------+")')
-         Write (fnum, '("| Structural optimisation run resuming from STATE.OUT |")')
-         Write (fnum, '("+-----------------------------------------------------+")')
+         call printbox(fnum,"*","Structural optimisation run resuming from STATE.OUT")
       Case (5, 6)
-         Write (fnum,*)
-         Write (fnum, '("+-------------------------------+")')
-         Write (fnum, '("| Ground-state Hartree-Fock run |")')
-         Write (fnum, '("+-------------------------------+")')
+         call printbox(fnum,"*","Ground-state Hartree-Fock run")
       Case (300)
-         Write (fnum,*)
-         Write (fnum, '("+---------------------------------------------&
-        &-+")')
-         Write (fnum, '("| Reduced density matrix functional theory run&
-        & |")')
-         Write (fnum, '("+---------------------------------------------&
-        &-+")')
+         call printbox(fnum,"*","Reduced density-matrix functional theory run")
       Case Default
-         Write (*,*)
-         Write (*, '("Error(writeinfo): task not defined : ", I8)') &
-        & task
+         Write (string,'("Error(writeinfo): task not defined : ", I8)') task
+         call printtext(6,"#",string)
          Write (*,*)
          Stop
       End Select
+
+      call printbox(fnum,"+","Starting initialization")
+
       Write (fnum,*)
-      Write (fnum, '("Lattice vectors :")')
-      Write (fnum, '(3G18.10)') input%structure%crystal%basevect(1, 1), &
+      Write (fnum, '(" Lattice vectors (cartesian) :")')
+      Write (fnum, '(3F18.10)') input%structure%crystal%basevect(1, 1), &
      & input%structure%crystal%basevect(2, 1), &
      & input%structure%crystal%basevect(3, 1)
-      Write (fnum, '(3G18.10)') input%structure%crystal%basevect(1, 2), &
+      Write (fnum, '(3F18.10)') input%structure%crystal%basevect(1, 2), &
      & input%structure%crystal%basevect(2, 2), &
      & input%structure%crystal%basevect(3, 2)
-      Write (fnum, '(3G18.10)') input%structure%crystal%basevect(1, 3), &
+      Write (fnum, '(3F18.10)') input%structure%crystal%basevect(1, 3), &
      & input%structure%crystal%basevect(2, 3), &
      & input%structure%crystal%basevect(3, 3)
       Write (fnum,*)
-      Write (fnum, '("Reciprocal lattice vectors :")')
-      Write (fnum, '(3G18.10)') bvec (1, 1), bvec (2, 1), bvec (3, 1)
-      Write (fnum, '(3G18.10)') bvec (1, 2), bvec (2, 2), bvec (3, 2)
-      Write (fnum, '(3G18.10)') bvec (1, 3), bvec (2, 3), bvec (3, 3)
-      Write (fnum,*)
-      Write (fnum, '("Unit cell volume      : ", G18.10)') omega
-      Write (fnum, '("Brillouin zone volume : ", G18.10)') (twopi**3) / &
-     & omega
-      If (input%structure%autormt) Then
+      Write (fnum, '(" Reciprocal lattice vectors (cartesian) :")')
+      Write (fnum, '(3F18.10)') bvec (1, 1), bvec (2, 1), bvec (3, 1)
+      Write (fnum, '(3F18.10)') bvec (1, 2), bvec (2, 2), bvec (3, 2)
+      Write (fnum, '(3F18.10)') bvec (1, 3), bvec (2, 3), bvec (3, 3)
+
+      if (input%groundstate%outputlevelnumber>0) then
          Write (fnum,*)
-         Write (fnum, '("Automatic determination of muffin-tin radii")')
-         Write (fnum, '(" parameters : ", 2G18.10)') &
-        & input%structure%rmtapm
-      End If
-      If (input%groundstate%frozencore) Then
-         Write (fnum,*)
-         Write (fnum, '("A frozen-core calculation is performed")')
-      End If
+         Write (fnum, '(" Unit cell volume                      : ", F18.10)') omega
+         Write (fnum, '(" Brillouin zone volume                 : ", F18.10)') (twopi**3) / omega
+         If (input%structure%autormt) Then
+            Write (fnum,*)
+            Write (fnum, '(" Automatic determination of muffin-tin radii :")')
+            Write (fnum, '("     parameters : ", 2F18.10)') input%structure%rmtapm
+         End If
+         If (input%groundstate%frozencore) Then
+            Write (fnum,*)
+            Write (fnum, '(" A frozen-core calculation is performed")')
+         End If
+      end if
+
+      dumsum = 0.
       Do is = 1, nspecies
-         Write (fnum,*)
-         Write (fnum, '("Species : ", I4, " (", A, ")")') is, trim &
-        & (spsymb(is))
-         Write (fnum, '(" parameters loaded from : ", A)') trim &
-        & (input%structure%speciesarray(is)%species%speciesfile)
-         Write (fnum, '(" name : ", A)') trim (spname(is))
-         Write (fnum, '(" nuclear charge    : ", G18.10)') spzn (is)
-         Write (fnum, '(" electronic charge : ", G18.10)') spze (is)
-         Write (fnum, '(" atomic mass : ", G18.10)') spmass (is)
-         Write (fnum, '(" muffin-tin radius : ", G18.10)') rmt (is)
-         Write (fnum, '(" number of radial points in muffin-tin : ", I6&
-        &)') nrmt (is)
-         Write (fnum, '(" atomic positions (lattice), magnetic fields (Cartesian) :")')
          Do ia = 1, natoms (is)
-            Write (fnum, '(I4, " : ", 3F12.8, "	", 3F12.8)') ia, &
-           & input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
-           & input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:)
+            Do i = 1, 3
+               dumsum = dumsum+abs(input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(i))
+            End Do
          End Do
       End Do
+
+      Do is = 1, nspecies
+         Write (fnum,*)
+         Write (fnum, '(" Species : ", I4, " (", A, ")")') is, trim (spsymb(is))
+         Write (fnum, '("     parameters loaded from            :    ", A)') trim &
+        & (input%structure%speciesarray(is)%species%speciesfile)
+         Write (fnum, '("     name                              :    ", A)') trim (spname(is))
+         if (input%groundstate%outputlevelnumber>0) then
+            Write (fnum, '("     nuclear charge                    : ", F16.8)') spzn (is)
+            Write (fnum, '("     electronic charge                 : ", F16.8)') spze (is)
+            Write (fnum, '("     atomic mass                       : ", F16.8)') spmass (is)
+            Write (fnum, '("     muffin-tin radius                 : ", F16.8)') rmt (is)
+            Write (fnum, '("     # of radial points in muffin-tin  : ", I7)') nrmt (is) 
+         end if
+         Write (fnum,*)
+         Write (fnum, '("     atomic positions (lattice) :")')
+         Do ia = 1, natoms (is)
+            Write (fnum, '(T5,I4, " : ", 3F12.8)') ia, &
+           & input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+         End Do
+
+         if (dumsum .gt. input%structure%epslat) then
+            Write (fnum,*)
+            Write (fnum, '("     magnetic fields (cartesian) :")')
+            Do ia = 1, natoms (is)
+               Write (fnum, '(T5,I4, " : ", 3F12.8)') ia, &
+              & input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:)
+            End Do
+         end if
+      End Do
+
       Write (fnum,*)
-      Write (fnum, '("Total number of atoms per unit cell : ", I4)') &
-     & natmtot
+      Write (fnum,    '(" Total number of atoms per unit cell   : ", I7)') natmtot
       Write (fnum,*)
-      Write (fnum, '("Spin treatment :")')
       If (associated(input%groundstate%spin)) Then
-         Write (fnum, '(" spin-polarised")')
+         Write (fnum, '(" Spin treatment                        :    spin-polarised")')
       Else
-         Write (fnum, '(" spin-unpolarised")')
+         Write (fnum, '(" Spin treatment                        :    spin-unpolarised")')
       End If
       If (isspinorb()) Then
-         Write (fnum, '(" spin-orbit coupling")')
+         Write (fnum, '(" Spin-orbit coupling is included")')
       End If
       If (associated(input%groundstate%spin)) Then
-         Write (fnum, '(" global magnetic field (Cartesian) : ", 3G18.1&
-        &0)') input%groundstate%spin%bfieldc
+         Write (fnum, '(" Global magnetic field (cartesian)     : ", 3F16.8)') &
+        &   input%groundstate%spin%bfieldc
          If (ncmag) Then
             Write (fnum, '(" non-collinear magnetisation")')
          Else
@@ -184,155 +189,173 @@ Subroutine writeinfo (fnum)
       End If
       If (isspinspiral()) Then
          Write (fnum, '(" spin-spiral state assumed")')
-         Write (fnum, '("  q-vector (lattice)	: ", 3G18.10)') &
-        & input%groundstate%spin%vqlss
-         Write (fnum, '("  q-vector (Cartesian) : ", 3G18.10)') vqcss
-         Write (fnum, '("  q-vector length	: ", G18.10)') Sqrt &
-        & (vqcss(1)**2+vqcss(2)**2+vqcss(3)**2)
+         if (input%groundstate%outputlevelnumber>0) then
+            Write (fnum, '("     q-vector (lattice)   : ", 3F16.8)') &
+           & input%groundstate%spin%vqlss
+            Write (fnum, '("     q-vector (cartesian) : ", 3F16.8)') vqcss
+            Write (fnum, '("     q-vector length	   : ", F16.8)') &
+           & Sqrt(vqcss(1)**2+vqcss(2)**2+vqcss(3)**2)
+         end if
       End If
       If (getfixspinnumber() .Ne. 0) Then
          Write (fnum, '(" fixed spin moment (FSM) calculation")')
       End If
-      If ((getfixspinnumber() .Eq. 1) .Or. (getfixspinnumber() .Eq. 3)) &
-     & Then
-         Write (fnum, '("  fixing total moment to (Cartesian) :")')
-         Write (fnum, '("  ", 3G18.10)') input%groundstate%spin%momfix
+      If ((getfixspinnumber() .Eq. 1) .Or. (getfixspinnumber() .Eq. 3)) Then
+         Write (fnum, '("     fixed total spin moment (cartesian) : ", 3F16.8 )') &
+        &  input%groundstate%spin%momfix
       End If
-      If ((getfixspinnumber() .Eq. 2) .Or. (getfixspinnumber() .Eq. 3)) &
-     & Then
-         Write (fnum, '("  fixing local muffin-tin moments to (Cartesian) :")')
+      If ((getfixspinnumber() .Eq. 2) .Or. (getfixspinnumber() .Eq. 3)) Then
+         Write (fnum, '("     fixing local MT moments (cartesian) : ")')
          Do is = 1, nspecies
-            Write (fnum, '("  species : ", I4, " (", A, ")")') is, trim &
-           & (spsymb(is))
+            Write (fnum, '("  species : ", I4, " (", A, ")")') is, trim (spsymb(is))
             Do ia = 1, natoms (is)
                Write (fnum, '("	", I4, 3G18.10)') &
               &  ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%mommtfix(:)
             End Do
          End Do
       End If
+
       Write (fnum,*)
-      Write (fnum, '("Number of Bravais lattice symmetries : ", I4)') &
-     & nsymlat
-      Write (fnum, '("Number of crystal symmetries	    : ", I4)') &
-     & nsymcrys
-      Write (fnum,*)
+      Write (fnum, '(" Number of Bravais lattice symmetries  : ", I7)') nsymlat
+      Write (fnum, '(" Number of crystal symmetries          : ", I7)') nsymcrys
+
       If (input%groundstate%autokpt) Then
-         Write (fnum, '("radius of sphere used to determine k-point gri&
-        &d density : ", G18.10)') input%groundstate%radkpt
+         Write (fnum,*)
+         Write (fnum, '(" Sphere radius used for k-point grid density : ", F16.8)')&
+        & input%groundstate%radkpt
       End If
-      Write (fnum, '("k-point grid : ", 3I6)') input%groundstate%ngridk
-      Write (fnum, '("k-point offset : ", 3G18.10)') &
-     & input%groundstate%vkloff
+      Write (fnum,*)
+      Write (fnum, '(" k-point grid                          : ", I7,2I5)') input%groundstate%ngridk
+      dumsum = 0.
+      Do i = 1, 3
+         dumsum = dumsum+abs(input%groundstate%vkloff(i))
+      End Do
+      if (dumsum .gt. input%structure%epslat) then
+         Write (fnum, '(" k-point offset                        :     ", 3F10.6)') &
+        & input%groundstate%vkloff
+      end if
+      Write (fnum, '(" Total number of k-points              : ", I7)') nkpt
       If (input%groundstate%reducek) Then
-         Write (fnum, '("k-point set is reduced with crystal symmetries&
-        &")')
+         Write (fnum, '(" k-point set is reduced with crystal symmetries")')
       Else
-         Write (fnum, '("k-point set is not reduced")')
+         Write (fnum, '(" k-point set is not reduced")')
       End If
-      Write (fnum, '("Total number of k-points : ", I8)') nkpt
+
       Write (fnum,*)
-      Write (fnum, '("Smallest muffin-tin radius times maximum |G+k| : &
-     &", G18.10)') input%groundstate%rgkmax
-      If ((input%groundstate%isgkmax .Ge. 1) .And. &
-     & (input%groundstate%isgkmax .Le. nspecies)) Then
-         Write (fnum, '("Species with smallest (or selected) muffin-tin&
-        & radius : ", I4, " (", A, ")")') input%groundstate%isgkmax, &
-        & trim (spsymb(input%groundstate%isgkmax))
-      End If
-      Write (fnum, '("Maximum |G+k| for APW functions	     : ", G18.10)&
-     &') gkmax
-      Write (fnum, '("Maximum |G| for potential and density : ", G18.10&
-     &)') input%groundstate%gmaxvr
-      Write (fnum, '("Polynomial order for pseudocharge density : ", I4&
-     &)') input%groundstate%npsden
+      Write (fnum, '(" R^MT_min * |G+k|_max (rgkmax)",T39," : ", F16.8)') input%groundstate%rgkmax
+      if (input%groundstate%outputlevelnumber>0) then
+         If ((input%groundstate%isgkmax .Ge. 1) .And. (input%groundstate%isgkmax .Le. nspecies)) Then
+            Write (fnum, '(" Species with R^MT_min",T39," : ", I7, " (", A, ")")') &
+           & input%groundstate%isgkmax, trim (spsymb(input%groundstate%isgkmax))
+         End If
+         Write (fnum, '(" Maximum |G+k| for APW functions",T39," : ", F16.8)') gkmax
+         Write (fnum, '(" Maximum |G| for potential and density",T39," : ", F16.8)') &
+        & input%groundstate%gmaxvr
+      end if
+      if (input%groundstate%outputlevelnumber>1) &
+     & Write (fnum, '(" Polynomial order for pseudochg. density",T55," : ", I4)') &
+     & input%groundstate%npsden
+
       Write (fnum,*)
-      Write (fnum, '("G-vector grid sizes : ", 3I6)') ngrid (1), ngrid &
+      Write (fnum, '(" G-vector grid sizes                   :  ", 3I6)') ngrid (1), ngrid &
      & (2), ngrid (3)
-      Write (fnum, '("Total number of G-vectors : ", I8)') ngvec
+      Write (fnum, '(" Total number of G-vectors             :", I8)') ngvec
+
+      if (input%groundstate%outputlevelnumber>0) Then
+         Write (fnum,*)
+         Write (fnum, '(" Maximum angular momentum used for")')
+         Write (fnum, '("     APW functions                     : ", I7)') &
+        & input%groundstate%lmaxapw
+         Write (fnum, '("     computing H and O matrix elements : ", I7)') &
+        & input%groundstate%lmaxmat
+         Write (fnum, '("     potential and density             : ", I7)') &
+        & input%groundstate%lmaxvr
+         Write (fnum, '("     inner part of muffin-tin          : ", I7)') &
+        & input%groundstate%lmaxinr
+      end if
+
       Write (fnum,*)
-      Write (fnum, '("Maximum angular momentum used for")')
-      Write (fnum, '(" APW functions                     : ", I4)') &
-     & input%groundstate%lmaxapw
-      Write (fnum, '(" computing H and O matrix elements : ", I4)') &
-     & input%groundstate%lmaxmat
-      Write (fnum, '(" potential and density             : ", I4)') &
-     & input%groundstate%lmaxvr
-      Write (fnum, '(" inner part of muffin-tin          : ", I4)') &
-     & input%groundstate%lmaxinr
+      Write (fnum, '(" Total nuclear charge                  : ", F16.8)') chgzn
+      Write (fnum, '(" Total electronic charge               : ", F16.8)') chgtot
+      if (input%groundstate%outputlevelnumber>0) Then
+         Write (fnum, '(" Total core charge                     : ", F16.8)') chgcr
+         Write (fnum, '(" Total valence charge                  : ", F16.8)') chgval
+         if (abs(input%groundstate%chgexs)>input%structure%epslat) &
+        & Write (fnum, '(" Total excess charge                   : ", F16.8)') &
+        & input%groundstate%chgexs
+      end if
+
+      if (input%groundstate%outputlevelnumber>1) Then
+         Write (fnum,*)
+         Write (fnum, '(" Effective Wigner radius, r_s          : ", F16.8)') rwigner
+      end if
+
       Write (fnum,*)
-      Write (fnum, '("Total nuclear charge    : ", G18.10)') chgzn
-      Write (fnum, '("Total core charge       : ", G18.10)') chgcr
-      Write (fnum, '("Total valence charge    : ", G18.10)') chgval
-      Write (fnum, '("Total excess charge     : ", G18.10)') &
-     & input%groundstate%chgexs
-      Write (fnum, '("Total electronic charge : ", G18.10)') chgtot
-      Write (fnum,*)
-      Write (fnum, '("Effective Wigner radius, r_s : ", G18.10)') &
-     & rwigner
-      Write (fnum,*)
-      Write (fnum, '("Number of empty states	      : ", I4)') &
+      Write (fnum, '(" Number of empty states                : ", I7)') &
      & input%groundstate%nempty
-      Write (fnum, '("Total number of valence states : ", I4)') nstsv
+      Write (fnum, '(" Total number of valence states        : ", I7)') nstsv
+      if (input%groundstate%outputlevelnumber>0) Then
+         Write (fnum,*)
+         Write (fnum, '(" Total number of local-orbitals        : ", I7)') nlotot
+      end if
+
       Write (fnum,*)
-      Write (fnum, '("Total number of local-orbitals : ", I4)') nlotot
-      Write (fnum,*)
-      If ((task .Eq. 5) .Or. (task .Eq. 6)) write (fnum, '("Hartree-Foc&
-     &k calculation using Kohn-Sham states")')
+      If ((task .Eq. 5) .Or. (task .Eq. 6)) &
+     & write (fnum, '(" Hartree-Fock calculation using Kohn-Sham states")')
       If (input%groundstate%xctypenumber .Lt. 0) Then
-         Write (fnum, '("Optimised effective potential (OEP) and exact &
-        &exchange (EXX)")')
-         Write (fnum, '(" Phys. Rev. B 53, 7024 (1996)")')
-         Write (fnum, '("Correlation type : ", I4)') Abs &
-        & (input%groundstate%xctypenumber)
-         Write (fnum, '(" ", A)') trim (xcdescr)
+         Write (fnum,*)
+         Write (fnum, '(" Optimised effective potential (OEP) and exact exchange (EXX)")')
+         Write (fnum, '("     Phys. Rev. B 53, 7024 (1996)")')
+         Write (fnum, '("     Correlation type : ", I4)') Abs(input%groundstate%xctypenumber)
+         Write (fnum, '("     ", A)') trim (xcdescr)
       Else
-         Write (fnum, '("Exchange-correlation type : ", I4)') &
-        & input%groundstate%xctypenumber
-         Write (fnum, '(" ", A)') trim (xcdescr)
+         Write (fnum, '(" Exchange-correlation type : ", I4)') input%groundstate%xctypenumber
+         Write (fnum, '("     ", A)') trim (xcdescr)
       End If
-      If (xcgrad .Eq. 1) write (fnum, '(" Generalised gradient approxim&
-     &ation (GGA)")')
+      If (xcgrad .Eq. 1) Then 
+         write (fnum, '("     Generalised gradient approximation (GGA)")')
+      End If
       If (ldapu .Ne. 0) Then
          Write (fnum,*)
-         Write (fnum, '("LDA+U calculation")')
+         Write (fnum, '(" LDA+U calculation")')
          If (ldapu .Eq. 1) Then
-            Write (fnum, '(" fully localised limit (FLL)")')
+            Write (fnum, '("     fully localised limit (FLL)")')
          Else If (ldapu .Eq. 2) Then
-            Write (fnum, '(" around mean field (AFM)")')
+            Write (fnum, '("     around mean field (AFM)")')
          Else If (ldapu .Eq. 3) Then
-            Write (fnum, '(" interpolation between FLL and AFM")')
+            Write (fnum, '("     interpolation between FLL and AFM")')
          Else
             Write (*,*)
-            Write (*, '("Error(writeinfo): ldapu not defined : ", I8)') &
-           & ldapu
+            Write (*, '(" Error(writeinfo): ldapu not defined : ", I8)') ldapu
             Write (*,*)
             Stop
          End If
-         Write (fnum, '(" see PRB 67, 153106 (2003) and PRB 52, R5467 (&
-        &1995)")')
-         Do is = 1, nspecies
-            If (llu(is) .Ge. 0) Then
-               Write (fnum, '(" species : ", I4, " (", A, ")", ", l = "&
-              &, I2, ", U = ", F12.8, ", J = ", F12.8)') is, trim &
-              & (spsymb(is)), llu (is), ujlu (1, is), ujlu (2, is)
-            End If
-         End Do
+         Write (fnum, '("     see PRB 67, 153106 (2003) and PRB 52, R5467 (1995)")')
+         if (input%groundstate%outputlevelnumber>0) Then
+            Do is = 1, nspecies
+               If (llu(is) .Ge. 0) Then
+                  Write (fnum, '("     species : ", I4, " (", A, ")", ", l = "&
+                 &, I2, ", U = ", F12.8, ", J = ", F12.8)') is, trim &
+                 & (spsymb(is)), llu (is), ujlu (1, is), ujlu (2, is)
+               End If
+            End Do
+         end if
       End If
       If (task .Eq. 300) Then
          Write (fnum,*)
-         Write (fnum, '("RDMFT calculation")')
-         Write (fnum, '(" see arXiv:0801.3787v1 [cond-mat.mtrl-sci]")')
-         Write (fnum, '(" RDMFT exchange-correlation type : ", I4)') &
+         Write (fnum, '(" RDMFT calculation")')
+         Write (fnum, '("     see arXiv:0801.3787v1 [cond-mat.mtrl-sci]")')
+         Write (fnum, '("     RDMFT exchange-correlation type : ", I4)') &
         & input%groundstate%RDMFT%rdmxctype
          If (input%groundstate%RDMFT%rdmxctype .Eq. 1) Then
-            Write (fnum, '("  Hartree-Fock functional")')
+            Write (fnum, '("     Hartree-Fock functional")')
          Else If (input%groundstate%RDMFT%rdmxctype .Eq. 2) Then
-            Write (fnum, '("  SDLG functional, exponent : ", G18.10)') &
+            Write (fnum, '("     SDLG functional, exponent : ", F16.8)') &
            & input%groundstate%RDMFT%rdmalpha
          End If
       End If
+
       Write (fnum,*)
-      Write (fnum, '("Smearing scheme :")')
 #ifdef TETRA
       tetocc=.false.
       If (associated(input%xs)) Then
@@ -342,31 +365,31 @@ Subroutine writeinfo (fnum)
       end if
       If ( .Not. tetocc) Then
 #endif
-         Write (fnum, '(" ", A)') trim (sdescr)
+         Write (fnum, '(" Smearing scheme                       :    ", A)') trim (sdescr)
          if (input%groundstate%stypenumber.ge.0) then
-           Write (fnum, '("Smearing width : ", G18.10)') &
+           Write (fnum, '(" Smearing width                        : ", F16.8)') &
           & input%groundstate%swidth
          end if
 #ifdef TETRA
       Else
-         Write (fnum, '(" ", A)') 'No smearing - using the linear&
-         & tetrahedron method'
-         Write (fnum, '(" ", A)') 'for occupation numbers and Fer&
-         &mi energy'
+         Write (fnum, '(" Using linear tetrahedron method ")')
       End If
 #endif
-      Write (fnum,*)
-      Write (fnum, '("Radial integration step length : ", I4)') &
-     & input%groundstate%lradstep
-! mixer info     
-      select case(input%groundstate%mixernumber)
-        case(1)
-          write(fnum,*) "Using Adaptive step size linear potential mixing (1)"
-        case(2)
-          write(fnum,*) "Using Multisecant Broyden potential mixing (2)"
-        case(3)
-          write(fnum,*) "Using Pulay potential mixing (3)"
-      end select
+  
+      if (input%groundstate%outputlevelnumber>0) Then
+         Write (fnum,*)
+         select case(input%groundstate%mixernumber)
+           case(1)
+             write(fnum,'(" Using adaptive step size linear potential mixing")')
+           case(2)
+             write(fnum,'(" Using multisecant Broyden potential mixing")')
+           case(3)
+             write(fnum,'(" Using Pulay potential mixing")')
+         end select
+      end if 
+
+      call printbox(fnum,"+","Ending initialization")
+
       Call flushifc (fnum)
       Return
 End Subroutine
