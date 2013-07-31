@@ -17,10 +17,10 @@ while (<INFO>) {
 	if (m/\| EXCITING.+stopped/) {
 		$status = "passed";
 	}
-	if (m/Iteration number :\s*(\d+)/) {
+	if (m/ SCF iteration number :\s*(\d+)/) {
 		$iterations = $1;
 	}
-	if (m/Using Adaptive step size linear potential mixing/) {
+	if (m/Using adaptive step size linear potential mixing/) {
 		$rightmixer = 'passed';
 	}
 }
@@ -71,7 +71,7 @@ while (<INFO>) {
 	if (m/Iteration number :\s*(\d+)/) {
 		$iterations = $1;
 	}
-	if (m/Using Multisecant Broyden/) {
+	if (m/Using multisecant Broyden potential mixing/) {
 		$rightmixer = 'passed';
 	}
 }
