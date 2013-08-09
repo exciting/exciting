@@ -14,9 +14,9 @@ subroutine writeforce(fnum,verbosity)
     i=0
     write(fnum,*)
     if (input%groundstate%tfibs) then
-        write(fnum,'(" Total atomic forces including IBS (lattice) :")')
+        write(fnum,'(" Total atomic forces including IBS (cartesian) :")')
     else
-        write(fnum,'(" Total atomic forces (lattice) :")')
+        write(fnum,'(" Total atomic forces (cartesian) :")')
     end if 
     do is = 1, nspecies
         do ia = 1, natoms (is)
