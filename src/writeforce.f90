@@ -32,9 +32,9 @@ subroutine writeforce(fnum,verbosity)
    if (verbosity > 1) then
         write(fnum,*)
         if (input%groundstate%tfibs) then
-            write(fnum,'(" Atomic force components including IBS (lattice) :")')
+            write(fnum,'(" Atomic force components including IBS (cartesian) :")')
         else
-            write(fnum,'(" Atomic force components (lattice) :")')
+            write(fnum,'(" Atomic force components (cartesian) :")')
         end if
         do is = 1, nspecies
             do ia = 1, natoms (is)
