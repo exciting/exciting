@@ -17,7 +17,7 @@
         </xs:annotation>
         <xs:complexType>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="outputlevel" default="low">
+            <xs:attribute ex:importance="essential" ex:unit="" name="outputlevel" default="normal">
                 <xs:annotation>
                 <xs:documentation> 
                 Specify amount of information which is printed to files:
