@@ -238,20 +238,28 @@ subroutine lbfgs_driver
 
 !!!!!!END the loop
 
-!____________________________________________
-! Use Newton method if BFGS does not converge
+!________________________________________________________
+! Use Newton or harmonic method if BFGS does not converge
 
       if (ctask(1:4).eq.'CONV') then
         istep = istep+1
-        if (rank .Eq. 0) then
-          write(60,*)
-          write(60,'(" BFGS scheme not converged -> Switching to Newton method")')
-          call flushifc(60)
-          write(6,*)
-          write(6, '(" BFGS scheme not converged -> Switching to Newton method")')
-          call flushifc(6)
+        if (input%structureoptimization%endbfgs.eq.'harmonic') then
+          string = "BFGS scheme not converged -> Switching to harmonic method"
+        else 
+          string = "BFGS scheme not converged -> Switching to newton method"
         end if
-        call newton(input%structureoptimization%epsforce)
+       if (rank .Eq. 0) then
+          write(60,*)
+          write(60,*) string
+          write(60,*)
+          call flushifc(60)
+          lstep = .True.
+        end if
+        if (input%structureoptimization%endbfgs.eq.'harmonic') then
+           call harmonic(input%structureoptimization%epsforce)
+        else 
+          call newton(input%structureoptimization%epsforce)
+        end if
       end if
       
 !__________________

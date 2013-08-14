@@ -11,15 +11,26 @@
         
         implicit none
         real(8), intent(IN) :: forcetol
-        integer :: is, ia
+        integer :: is, ia, nstep
         character*(77) :: string
+
+        nstep = 0
 
         do while ((forcemax>forcetol).and.(istep<input%structureoptimization%maxsteps))
 
+            nstep = nstep+1
             istep = istep+1
+
             if (rank .Eq. 0) then
-                write(string,'("Optimization step ", I4,"    (method = newton)")') istep
-                call printbox(60,"-",string)
+
+                if (lstep) then 
+                    istep = istep-1
+                    lstep = .False.
+                else
+                    write(string,'("Optimization step ", I4,"    (method = newton)")') istep
+                    call printbox(60,"-",string)
+                    call flushifc(60)
+                end if
 
 !_____________________________________________________________
 ! write lattice vectors and optimised atomic positions to file
@@ -105,12 +116,13 @@ contains
                 end do ! i
             End Do
         End Do
-        Do is = 1, nspecies
-            Do ia = 1, natoms (is)
-                ias = idxas (ia, is)
 
 !________________________________________________________
 ! compute the lattice coordinates of the atomic positions
+
+        Do is = 1, nspecies
+            Do ia = 1, natoms (is)
+                ias = idxas (ia, is)
 
                 Call r3mv(ainv,atposc(:,ia,is),input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))
 

@@ -80,26 +80,38 @@ Subroutine gndstate
         Call writekpts
 ! write lattice vectors and atomic positions to file
         Call writegeometryxml(.False.)
+
+!___________________
+! Open support files
+
+
 ! open TOTENERGY.OUT
         Open (61, File='TOTENERGY'//trim(filext), Action='WRITE', Form='FORMATTED')
-! open FERMIDOS.OUT
-        Open (62, File='FERMIDOS'//trim(filext), Action='WRITE', Form='FORMATTED')
-! open MOMENT.OUT if required
-        If (associated(input%groundstate%spin)) open (63, file='MOMENT'//trim(filext), action='WRITE', form='FORMATTED')
-! open FORCEMAX.OUT if required
-        If (input%groundstate%tforce) then 
-! open DFORCEMAX.OUT
-            open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
-        End If
+
 ! open RMSDVEFF.OUT
         Open (65, File='RMSDVEFF'//trim(filext), Action='WRITE', Form='FORMATTED')
+
+! open MOMENT.OUT if required
+        If (associated(input%groundstate%spin)) then
+            open (63, file='MOMENT'//trim(filext), action='WRITE', form='FORMATTED')
+        end if
+
+! open FERMIDOS.OUT
+!        Open (62, File='FERMIDOS'//trim(filext), Action='WRITE', Form='FORMATTED')
+! open FORCEMAX.OUT if required
+!        If (input%groundstate%tforce) then 
+! open DFORCEMAX.OUT
+!            open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
+!        End If
 ! open DTOTENERGY.OUT
-        open(66,file='DTOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
+!        open(66,file='DTOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
 ! open CHGDIST.OUT
-        open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
+!        open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
 ! open PCHARGE.OUT
+
         if (input%groundstate%tpartcharges) &
        &  open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
+
     end if ! rank
 
     Call timesec (ts1)
@@ -112,6 +124,7 @@ Subroutine gndstate
     if (rank==0) then
         write(string,'("Groundstate module started")') 
         call printbox(60,"*",string)
+        write(60,*) "Output level for this task is set to ", trim(input%groundstate%outputlevel)
         call flushifc(60)
     end if
     call scf_cycle(input%groundstate%outputlevelnumber)
@@ -131,11 +144,17 @@ Subroutine gndstate
         if (rank==0) then
             write(string,'("Structure-optimization module started")') 
             call printbox(60,"*",string)
+            write(60,*) "Output level for this task is set to ", trim(input%structureoptimization%outputlevel)
             call flushifc(60)
         end if
         ! check force convergence first
         if (forcemax .Gt. input%structureoptimization%epsforce) then
             call structureoptimization
+        else
+            if (rank==0) then
+                write (60, '(" Maximum force target reached already at the initial configuration")')
+                call flushifc(60)
+            end if
         end if
         if (rank==0) then
             write(string,'("Structure-optimization module stopped")') 
@@ -150,20 +169,26 @@ Subroutine gndstate
 !! TIME - Fifth IO segment
     call timesec(ts0)
     if (rank==0) then
+
+!____________________
+! Close support files
+
 ! close the TOTENERGY.OUT file
         close(61)
-! close the FERMIDOS.OUT file
-        close(62)
-! close the MOMENT.OUT file
-        if (associated(input%groundstate%spin)) close(63)
-! close the DFORCEMAX.OUT file
-        if (input%groundstate%tforce) close(67)
 ! close the RMSDVEFF.OUT file
         close(65)
+! close the MOMENT.OUT file
+        if (associated(input%groundstate%spin)) close(63)
+
+! close the FERMIDOS.OUT file
+!        close(62)
+! close the DFORCEMAX.OUT file
+!        if (input%groundstate%tforce) close(67)
 ! close the DTOTENERGY.OUT file
-        close(66)
+!        close(66)
 ! close the CHGDIST.OUT file
-        close(68)
+!        close(68)
+
     end if
 ! close the PCHARGE.OUT file
     if ((input%groundstate%tpartcharges).and.(rank==0)) close(69)

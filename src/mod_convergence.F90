@@ -17,6 +17,8 @@ Module mod_convergence
       Integer :: iscl
 ! current structure optimization step
       Integer :: istep
+! current structure optimization step
+      Logical :: lstep
 ! effective potential convergence tolerance
 !replaced by inputstructurereal(8)::epspot
 ! energy convergence tolerance

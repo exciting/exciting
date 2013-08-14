@@ -415,12 +415,9 @@ subroutine scf_cycle(verbosity)
             call writeengy(60)
             if (verbosity>0) Write (60,*)
             Write (60, '(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F22.12)') fermidos
-! write total energy to TOTENERGY.OUT and flush
-            Write (61, '(G22.12)') engytot
-            Call flushifc (61)
 ! write DOS at Fermi energy to FERMIDOS.OUT and flush
-            Write (62, '(G18.10)') fermidos
-            Call flushifc (62)
+!            Write (62, '(G18.10)') fermidos
+!            Call flushifc (62)
 ! output charges and moments
             Call writechg (60,input%groundstate%outputlevelnumber)
 ! write total moment to MOMENT.OUT and flush
@@ -493,14 +490,14 @@ subroutine scf_cycle(verbosity)
 !                   write(60,'(" Absolute change in |max. force|   (target) : ",G13.6,"  (",G13.6,")")') &
 !                   &    dforcemax, input%groundstate%epsforce
 !                end if
-                write(66,'(G18.10)') deltae
-                call flushifc(66)
-                if (input%groundstate%tforce) then
-                    write(67,'(G18.10)') dforcemax
-                    call flushifc(67)
-                end if
-                write(68,'(G18.10)') chgdst
-                call flushifc(68)
+!                write(66,'(G18.10)') deltae
+!                call flushifc(66)
+!                if (input%groundstate%tforce) then
+!                    write(67,'(G18.10)') dforcemax
+!                    call flushifc(67)
+!                end if
+!                write(68,'(G18.10)') chgdst
+!                call flushifc(68)
 
                 if ((input%groundstate%xctypenumber .Lt. 0).Or.(xctype(2) .Ge. 400).Or.(xctype(1) .Ge. 400)) then
                     write(60,*)
@@ -508,7 +505,9 @@ subroutine scf_cycle(verbosity)
                 end if
             end if
 
-            if (rank==0) then
+            if (rank==0) then ! write TOTOENERGY.OUT and RMSDVEFF.OUT 
+                Write (61, '(G22.12)') engytot
+                Call flushifc (61)
                 Write (65, '(G18.10)') currentconvergence
                 Call flushifc(65)
             end if
@@ -535,7 +534,6 @@ subroutine scf_cycle(verbosity)
                     Close (50, Status='DELETE')
                 End If
             end if
-
 
         End If ! iscl>2
 #ifdef MPI
@@ -571,7 +569,18 @@ subroutine scf_cycle(verbosity)
         Call force
 ! output forces to INFO.OUT        
         if ((verbosity>-1).and.(rank==0)) then
-           call printbox(60,"-","Writing atomic forces")
+           call printbox(60,"-","Writing atomic positions and forces")
+           idm = 0
+           write(60,*)
+           write(60,'(" Atomic positions (lattice) :")')
+           do is = 1, nspecies
+               do ia = 1, natoms (is)
+                   idm = idm+1
+                   write(60,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
+                  &  idm, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+                  &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+               end do
+           end do
            call writeforce(60,2)
         end if
     End If
@@ -586,20 +595,21 @@ subroutine scf_cycle(verbosity)
     
     If ((verbosity>-1).and.(rank==0)) Then
 ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and RMSDVEFF.OUT
-      Write (61,*)
-      Write (62,*)
+!      Write (62,*)
       If (associated(input%groundstate%spin)) write (63,*)
 ! add blank line to DTOTENERGY.OUT, DFORCEMAX.OUT, CHGDIST.OUT and PCHARGE.OUT
-      Write (66,*)
-      If (input%groundstate%tforce) Write (67,*)
-      Write (68,*)
+!      Write (66,*)
+!      If (input%groundstate%tforce) Write (67,*)
+!      Write (68,*)
       if (input%groundstate%tpartcharges) write(69,*)
     End If
 
     If (rank==0) Then
-! add blank line to RMSDVEFF.OUT
+! add blank line to RMSDVEFF.OUT and TOTENERGY.OUT
       Write (65,*)
       Call flushifc(65)
+      Write (61,*)
+      Call flushifc(61)
     End If
 
     Return

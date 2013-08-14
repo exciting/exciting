@@ -17,7 +17,7 @@ subroutine structureoptimization
 !EOP
 !BOC
     Implicit None
-    integer :: is, ia
+    integer :: is, ia, idm
     real(8) :: ts0, ts1
     Logical :: exist
     character*(77) :: string
@@ -37,6 +37,7 @@ subroutine structureoptimization
 
     task = 1
     istep = 0
+    lstep = .False.
 
 !_______________________________
 ! Choose the optimization method
@@ -45,22 +46,28 @@ subroutine structureoptimization
 
         if (rank .Eq. 0) Then
             call printbox(60,"+","Use Newton-like method for optimizing atomic positions")
-            call printbox(6, "+","Use Newton-like method for optimizing atomic positions")
             call writeoptminitdata(60,input%structureoptimization%outputlevelnumber)
             call flushifc(60)
-            call flushifc(6)
         end if
         
         call newton(input%structureoptimization%epsforce)
+
+    else if (input%structureoptimization%method=="harmonic") then
+
+        If (rank .Eq. 0) Then
+            call printbox(60,"+","Use harmonic method for optimizing atomic positions")
+            call writeoptminitdata(60,input%structureoptimization%outputlevelnumber)
+            call flushifc(60)
+        End If
+        
+        call harmonic(input%structureoptimization%epsforce)
 
     else if (input%structureoptimization%method=="bfgs") then
 
         If (rank .Eq. 0) Then
             call printbox(60,"+","Use L-BFGS-B method for optimizing atomic positions")
-            call printbox(6, "+","Use L-BFGS-B method for optimizing atomic positions")
             call writeoptminitdata(60,input%structureoptimization%outputlevelnumber)
             call flushifc(60)
-            call flushifc(6)
         End If
         
         call lbfgs_driver
@@ -69,19 +76,15 @@ subroutine structureoptimization
     
         If (rank .Eq. 0) Then
             call printbox(60,"+","Use mixed Newton/BFGS scheme for optimizing atomic positions")
-            call printbox(6, "+","Use mixed Newton/BFGS scheme for optimizing atomic positions")
             call writeoptminitdata(60,input%structureoptimization%outputlevelnumber)
             call flushifc(60)
-            call flushifc(6)
         End If
-
-        write(60,*) input%structureoptimization%epsforce0
         
         call newton(input%structureoptimization%epsforce0)
         call lbfgs_driver
     
     else
-         
+
         call printbox(60,"#","ERROR(structureoptimization): Unknown method for structure optimization!")
         call flushifc(60)
         stop
@@ -94,8 +97,6 @@ subroutine structureoptimization
     if (forcemax .Le. input%structureoptimization%epsforce) Then
         if (rank .Eq. 0) Then
 
-            write(6,*)
-            call flushifc(6)
             call printbox(60,"+","Force convergence target achieved")
             call flushifc(60)
 
@@ -103,6 +104,7 @@ subroutine structureoptimization
     else
         if (rank .Eq. 0) Then
 
+            write(6,*)
             write(60,*)
             call printline(60,"#")
             call printline(6,"#")
@@ -146,9 +148,19 @@ subroutine structureoptimization
 !____________________
 ! output optimization
 
-        Write (60,*)
-        Write (60,'(" Total energy at this optimization step :",F19.9)') engytot
-        call writepositions(60,2) 
+        !Write (60,*)
+        !Write (60,'(" Total energy at this optimization step :",F19.9)') engytot
+        idm = 0
+        write(60,*)
+        write(60,'(" Optimized atomic positions (lattice) :")')
+        do is = 1, nspecies
+            do ia = 1, natoms (is)
+                idm = idm+1
+                write(60,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
+               &  idm, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+               &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+            end do
+        end do
         call writeforce(60,2)  
 
         call flushifc(60)

@@ -234,6 +234,8 @@ Subroutine init0
 ! determine atomic Cartesian coordinates
             Call r3mv (input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
            & atposc(:, ia, is))
+! set initial atomic position in cartesian coordinates
+             atposcp(:, ia, is) = atposc(:, ia, is)
 ! lattice coordinates of the muffin-tin magnetic fields
             Call r3mv (ainv, input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:), bflmt(:, ia, is))
          End Do

@@ -112,11 +112,11 @@ Subroutine writeinfo (fnum)
       Write (fnum, '(3F18.10)') bvec (1, 1), bvec (2, 1), bvec (3, 1)
       Write (fnum, '(3F18.10)') bvec (1, 2), bvec (2, 2), bvec (3, 2)
       Write (fnum, '(3F18.10)') bvec (1, 3), bvec (2, 3), bvec (3, 3)
+      Write (fnum,*)
+      Write (fnum, '(" Unit cell volume                      : ", F18.10)') omega
+      Write (fnum, '(" Brillouin zone volume                 : ", F18.10)') (twopi**3) / omega
 
       if (input%groundstate%outputlevelnumber>0) then
-         Write (fnum,*)
-         Write (fnum, '(" Unit cell volume                      : ", F18.10)') omega
-         Write (fnum, '(" Brillouin zone volume                 : ", F18.10)') (twopi**3) / omega
          If (input%structure%autormt) Then
             Write (fnum,*)
             Write (fnum, '(" Automatic determination of muffin-tin radii :")')
