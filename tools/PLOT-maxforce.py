@@ -108,21 +108,34 @@ x = [] ; y = []
 a = [] ; b = []
 
 iter=0
+lgoal=0
 
 while True:
-    line = input_file.readline().strip().replace(")", "") 
+    line = input_file.readline().strip().replace(")", "")
     if len(line) == 0: break
     iter+=1
     y.append(float(line.split()[5]))
-    x.append(float(iter))
-    if (iter == 1): 
+    x.append(float(iter-1))
+    if (iter == 1):
+        lgoal=1
         goal=float(line.split()[7])
         b.append(goal)
-        a.append(float(iter))
+        a.append(float(iter-1))
+        
+if (lgoal < 1): 
+    os.system("rm -f tempfile")
+    print "\nData not (yet) available for visualization.\n\n",
+    sys.exit() 
+   
 b.append(goal)
-a.append(float(iter))
+a.append(float(iter-1))
 
-xmin = 1-iter/20. ; xmax = iter+iter/20.
+os.system("rm -f tempfile")
+
+xmin = 0-(iter-1)/20. ; xmax = (iter-1)+(iter-1)/20.
+
+if (iter == 1): 
+    xmin = -1 ; xmax = 1
 
 #-------------------------------------------------------------------------------
 

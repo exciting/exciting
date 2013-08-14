@@ -137,8 +137,8 @@ ymin = ymin-dyy ; ymax = ymax+dyy
 ylimits = []
 for i in range(3,len(sys.argv)): ylimits.append(float(sys.argv[i]))
 
-if (len(ylimits) == 2): ymin = float(ylimits[0])
-if (len(ylimits) > 2): ymin = float(ylimits[0]); ymax = float(ylimits[1]) 
+if (len(ylimits) == 1): ymin = float(ylimits[0])
+if (len(ylimits) > 1): ymin = float(ylimits[0]); ymax = float(ylimits[1]) 
 
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)

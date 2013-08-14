@@ -60,12 +60,10 @@ for input in $input_list ; do
     suffix=$(echo $input | cut -c7-8)
 #
     eta=$(cat $CURRENT/$WORKDIR/volume-$suffix)
-    tot=TOTENERGY.OUT
+    tot=INFO.OUT
 #
-#    awk -v eta="$eta" \
-#        '/ / {printf "%11.8f   %20.10f\n",eta,$1}' $tot | tail -n1
     awk -v eta="$eta" \
-        '/ / {printf "%11.8f   %20.10f\n",eta,$1}' $tot | tail -n1>>$OUT
+        '/Total energy    / {printf "%11.8f   %20.10f\n",eta,$4}' $tot | tail -n1>>$OUT
 #
     cd ../
 #

@@ -42,31 +42,31 @@ if (str(os.path.exists('energy-vs-volume'))=='False'):
 
 #-------------------------------------------------------------------------------
 
-order_of_fit = \
-            input("\nEnter the order of polynomial to be used in the fit >>>> ")
+order_of_fit = 6\
+            #input("\nEnter the order of polynomial to be used in the fit >>>> ")
 if (order_of_fit < 0): 
     sys.exit("ERROR: Order of polynomial must be positive!\n")
 print
 
-print "==============================="
-print "Lattice symmetry codes"
-print "-------------------------------"
-print "1 --> Simple cubic (sc)"
-print "2 --> Body-centered cubic (bcc)"
-print "3 --> Face-centered cubic (fcc)"
-print "-------------------------------"
-print "0 --> Others"
-print "===============================\n"
+#print "==============================="
+#print "Lattice symmetry codes"
+#print "-------------------------------"
+#print "1 --> Simple cubic (sc)"
+#print "2 --> Body-centered cubic (bcc)"
+#print "3 --> Face-centered cubic (fcc)"
+#print "-------------------------------"
+#print "0 --> Others"
+#print "===============================\n"
 
-scheck = \
-     raw_input("Enter lattice symmetry code [default 0] >>>> ").replace(" ", "") 
+scheck = "3"\
+     #raw_input("Enter lattice symmetry code [default 0] >>>> ").replace(" ", "") 
 
 isym   = 0
 factor = 1
 if ( scheck == "1" ): isym = 1 ; factor=1 ; slabel = "(sc) "
 if ( scheck == "2" ): isym = 2 ; factor=2 ; slabel = "(bcc)"
 if ( scheck == "3" ): isym = 3 ; factor=4 ; slabel = "(fcc)"
-print "Verification lattice symmetry code      >>>>", isym
+#print "Verification lattice symmetry code      >>>>", isym
 
 #-------------------------------------------------------------------------------
 
@@ -183,29 +183,44 @@ plt.savefig('PLOT.png',orientation='portrait',format='png',dpi=dpipng)
 
 #-------------------------------------------------------------------------------
 
-print 
-print "##############################################\n"
+#print 
+#print "##############################################\n"
 if (len(dmin) > 1): 
+    print 
+    print "##############################################\n"
     print "WARNING: Multiple minima are found!\n"
     print "##############################################\n"
 
-fmt='%17.6f'
-afmt='%12.6f'
-lmt='%13.2f'
+fmt='%10.4f'
+amt='%10.4f'
+bmt='%8.3f'
+pmt='%16.10f'
+lmt='%10.2f'
+
 for i in range(len(dmin)):
     v0=dmin[len(dmin)-1-i]
+    a0sc=(1*v0)**(0.33333333333)
+    abcc=(2*v0)**(0.33333333333)
+    afcc=(4*v0)**(0.33333333333)
     a0=(factor*v0)**(0.33333333333)
     b0=bulk(v0)*v0*unitconv
-    print 'Optimal volume   = ', fmt%(v0), '[Bohr^3]'
-    if (isym > 0): print 'Lattice constant =', slabel, afmt%(a0), '[Bohr]'
-    print 'Bulk modulus     = ', fmt%(b0), '[GPa]'
-    print
-    print 'Log(chi)         = ', lmt%(log10(chi))
+#    print 'Optimal volume   = ', fmt%(v0), '[Bohr^3]'
+#    if (isym > 0): print 'Lattice constant =', slabel, afmt%(a0), '[Bohr]'
+#    print 'Bulk modulus     = ', fmt%(b0), '[GPa]'
+#    print
+#    print 'Log(chi)         = ', lmt%(log10(chi))
+#    print
+    print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    print "     V0        B0                   a-sc       a-bcc      a-fcc     log(chi)"
+    print fmt%(v0), bmt%(b0), "          ",  
+    print amt%(a0sc), amt%(abcc), amt%(afcc), lmt%(log10(chi))
+    print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
     print
     
-if ( len(dmin) == 0): print "WARNING: No minimum in the given xrange!\n"
-    
-print "##############################################\n"
+if ( len(dmin) == 0): 
+    print
+    print "WARNING: No minimum in the given xrange!\n"
+    print "##############################################\n"
  
 if (showpyplot): plt.show()
 #-------------------------------------------------------------------------------

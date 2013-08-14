@@ -111,20 +111,25 @@ ax.text(-0.23,0.5,ylabel,size=fontlabel,
 
 #-------------------------------------------------------------------------------
 
-x = [] ; d1 = [] ; d2 = [] ; d3 = [] 
+x = [] ; d1 = [] ; d2 = [] ; d3 = []
 
 iter=0
+soglia = 0.5
 
 while True:
     line1 = ifile1.readline().strip()
     line2 = ifile2.readline().strip()   
     if len(line1) == 0: break
-    d1.append(float(line2.split()[4])-float(line1.split()[4]))
-    d2.append(float(line2.split()[5])-float(line1.split()[5]))
-    d3.append(float(line2.split()[6])-float(line1.split()[6]))
+    g = []
+    for i in range(3):
+        g.append(float(line2.split()[i+4])-float(line1.split()[i+4]))
+        if (g[i] > soglia): g[i] = g[i]-1.    
+    d1.append(g[0])
+    d2.append(g[1])
+    d3.append(g[2])
     x.append(float(iter))
     iter+=1
-
+    
 iter-=1
 
 xmin = 0-iter/20. ; xmax = iter+iter/20.
@@ -190,6 +195,11 @@ plt.legend(loc=iloc,borderaxespad=.8)
 plt.legend(bbox_to_anchor=(1.03, 1), loc=2, borderaxespad=0.)
 
 ax.yaxis.set_major_formatter(yfmt)
+
+if (abs(xmax-xmin) < 0.000000001): 
+    xmax=xmax+1
+    xmin=xmin-1
+
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
 

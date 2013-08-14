@@ -42,6 +42,8 @@ if (os.path.exists('exciting')):         ylabel = r'Energy [Ha]'
 if (os.path.exists('quantum-espresso')): ylabel = r'Energy [Ry]'
 if (os.path.exists('vasp')):             ylabel = r'Energy [Ry]'
 
+inpf = ' '
+
 if (os.path.exists('energy-vs-strain')): 
      inpf   = 'energy-vs-strain'
      xlabel = r'Lagrangian strain'

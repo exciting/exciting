@@ -292,7 +292,7 @@ INFO.close
 ###------------------------------------------- Structures maker ----------------------------------------------------###
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 
-fdis = open(dirn.lower()+'_Parameters', 'w')
+fdis = open(dirn.lower()+'-Parameters', 'w')
 print >>fdis,dirn+', Deformation Matrix = ' + Def_matrix[dirn]
 
 cont= 0

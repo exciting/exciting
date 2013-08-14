@@ -162,7 +162,7 @@ plt.plot(xx,yy,'go',label=label)
 
 #-------------------------------------------------------------------------------
 
-plt.legend(borderaxespad=.8)
+plt.legend(borderaxespad=.8, numpoints=1)
 plt.ylabel(ylabel,size=fontlabel)
 
 ax.yaxis.set_major_formatter(yfmt)

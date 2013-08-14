@@ -138,10 +138,13 @@ if (mod == 'VOL'):
         if (os.path.exists('TOTENERGY.OUT') == False):
             print '\n     ... Oops NOTICE: There is NO "TOTENERGY.OUT" file !?!?!?    \n'
 
-        e_file = open('TOTENERGY.OUT', 'r')
+        os.system("grep \"Total energy     \" INFO.OUT > tempfile") 
+            
+        e_file = open('tempfile', 'r')
         enrgis = e_file.readlines()
-        ene = float(enrgis[-1])
+        ene = float(enrgis[-1].strip().split()[3])
         e_file.close()
+        os.system("rm -f tempfile")
         energy.append(ene)
 
         os.chdir('../')
