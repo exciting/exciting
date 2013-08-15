@@ -477,8 +477,13 @@ subroutine scf_cycle(verbosity)
                 write(60,*)
                 write(60, '(" Wall time (seconds)                        : ", F12.2)') timetot
             end if
+            if ((verbosity>-1).and.(rank==0).and.(input%groundstate%scfconv.eq.'energy')) then
+                write(60,*)
+                write(60,'(" Absolute change in total energy   (target) : ",G13.6,"  (",G13.6,")")') &
+               &    deltae, input%groundstate%epsengy
+            end if
 
-            if ((verbosity>-1).and.(rank==0)) then
+            if ((verbosity>-1).and.(rank==0).and.(input%groundstate%scfconv.eq.'multiple')) then
                 write(60,*)
                 Write(60,'(" RMS change in effective potential (target) : ",G13.6,"  (",G13.6,")")') &
                &    currentconvergence, input%groundstate%epspot
@@ -512,7 +517,11 @@ subroutine scf_cycle(verbosity)
                 Call flushifc(65)
             end if
 
-            If ((currentconvergence .Lt. input%groundstate%epspot).and. &
+            If ((input%groundstate%scfconv.eq.'energy').and.(deltae .lt. input%groundstate%epsengy)) Then
+                tlast = .True.
+            End If
+            If ((input%groundstate%scfconv.eq.'multiple').and. &
+           &    (currentconvergence .Lt. input%groundstate%epspot).and. &
            &    (deltae .lt. input%groundstate%epsengy).and. &
            &    (chgdst .lt. input%groundstate%epschg).and. &
            &    (dforcemax .lt. input%groundstate%epsforce)) Then
