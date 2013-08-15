@@ -144,12 +144,12 @@ Subroutine gndstate
         if (rank==0) then
             write(string,'("Structure-optimization module started")') 
             call printbox(60,"*",string)
-            write(60,*) "Output level for this task is set to ", trim(input%structureoptimization%outputlevel)
+            write(60,*) "Output level for this task is set to ", trim(input%relax%outputlevel)
             call flushifc(60)
         end if
         ! check force convergence first
-        if (forcemax .Gt. input%structureoptimization%epsforce) then
-            call structureoptimization
+        if (forcemax .Gt. input%relax%epsforce) then
+            call relax
         else
             if (rank==0) then
                 write (60, '(" Maximum force target reached already at the initial configuration")')

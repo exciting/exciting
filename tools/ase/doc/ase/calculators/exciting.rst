@@ -47,7 +47,7 @@ When the paramdict keyword is used, the calculator translates the dictionary giv
 	calculator3 = Exciting(dir='excitingtestfiles3',
                        paramdict={ "title":{"text()":"N3O"},
                                    "groundstate":{"ngridk":"1 2 3","tforce":"true"},
-                                   "structureoptimization":{},
+                                   "relax":{},
                                    "properties":{"dos":{},
                                    "bandstructure":{"plot1d":{
                                       "path":{ "steps":"100", 
@@ -88,7 +88,7 @@ The calculator constructure above is used to create this exciting input file:
 	      <atom coord="0.50000000000000 0.50000000000000 0.50000000000000"/>
 	    </species>
 	  </structure>
-	  <structureoptimization/>
+	  <relax/>
 	  <groundstate tforce="true" ngridk="1 2 3"/>
 	  <properties>
 	    <dos/>

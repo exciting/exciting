@@ -1,9 +1,9 @@
 !BOP
-! !ROUTINE: structureoptimization
+! !ROUTINE: relax
 ! !INTERFACE:
 !
 !
-subroutine structureoptimization
+subroutine relax
 ! !USES:
     Use modinput
     Use modmain
@@ -26,11 +26,30 @@ subroutine structureoptimization
 ! Write first (if required) the starting configuration on file
 
     if (rank .Eq. 0) then
-      if (input%structureoptimization%history) then
-        call system ('rm -rf history.*')   
+      if ((input%relax%history).and. (input%relax%addtohistory)) then
+        call writehistory
+      elseif (input%relax%history) then
+        select case (trim(input%relax%historyformat))
+        case('xyz','XYZ')
+             call system ('mv history.xyz history.xyz.backup')
+        case('gulp','GULP')
+             call system ('mv history.gin history.gin.backup')
+        case default
+            write(*,*)'ERROR(relax): Unknown output format'
+            stop
+        end select
+!       call system ('cp history.* backup.history')
         call writehistory
       end if
     end if
+
+
+!    if (rank .Eq. 0) then
+!      if (input%relax%history) then
+!        call system ('rm -rf history.*')   
+!        call writehistory
+!      end if
+!    end if
 
 !__________________________________________________
 ! Use "fromfile" option during the optimization run
@@ -38,54 +57,55 @@ subroutine structureoptimization
     task = 1
     istep = 0
     lstep = .False.
+!    call readstate
 
 !_______________________________
 ! Choose the optimization method
 
-    if (input%structureoptimization%method=="newton") then
+    if (input%relax%method=="newton") then
 
         if (rank .Eq. 0) Then
             call printbox(60,"+","Use Newton-like method for optimizing atomic positions")
-            call writeoptminitdata(60,input%structureoptimization%outputlevelnumber)
+            call writeoptminitdata(60,input%relax%outputlevelnumber)
             call flushifc(60)
         end if
         
-        call newton(input%structureoptimization%epsforce)
+        call newton(input%relax%epsforce)
 
-    else if (input%structureoptimization%method=="harmonic") then
+    else if (input%relax%method=="harmonic") then
 
         If (rank .Eq. 0) Then
             call printbox(60,"+","Use harmonic method for optimizing atomic positions")
-            call writeoptminitdata(60,input%structureoptimization%outputlevelnumber)
+            call writeoptminitdata(60,input%relax%outputlevelnumber)
             call flushifc(60)
         End If
         
-        call harmonic(input%structureoptimization%epsforce)
+        call harmonic(input%relax%epsforce)
 
-    else if (input%structureoptimization%method=="bfgs") then
+    else if (input%relax%method=="bfgs") then
 
         If (rank .Eq. 0) Then
             call printbox(60,"+","Use L-BFGS-B method for optimizing atomic positions")
-            call writeoptminitdata(60,input%structureoptimization%outputlevelnumber)
+            call writeoptminitdata(60,input%relax%outputlevelnumber)
             call flushifc(60)
         End If
         
         call lbfgs_driver
 
-    else if (input%structureoptimization%method=="mixed") then
+    else if (input%relax%method=="mixed") then
     
         If (rank .Eq. 0) Then
             call printbox(60,"+","Use mixed Newton/BFGS scheme for optimizing atomic positions")
-            call writeoptminitdata(60,input%structureoptimization%outputlevelnumber)
+            call writeoptminitdata(60,input%relax%outputlevelnumber)
             call flushifc(60)
         End If
         
-        call newton(input%structureoptimization%epsforce0)
+        call newton(input%relax%epsforce0)
         call lbfgs_driver
     
     else
 
-        call printbox(60,"#","ERROR(structureoptimization): Unknown method for structure optimization!")
+        call printbox(60,"#","ERROR(relax): Unknown method for structure optimization!")
         call flushifc(60)
         stop
       
@@ -94,7 +114,7 @@ subroutine structureoptimization
 !________________________
 ! check force convergence
 
-    if (forcemax .Le. input%structureoptimization%epsforce) Then
+    if (forcemax .Le. input%relax%epsforce) Then
         if (rank .Eq. 0) Then
 
             call printbox(60,"+","Force convergence target achieved")
@@ -111,13 +131,13 @@ subroutine structureoptimization
             write(string,'("Required force convergence has not been reached!")') 
             call printtext(60,"#",string)
             call printtext(6,"#",string)
-            if (istep+1>input%structureoptimization%maxsteps) then
+            if (istep+1>input%relax%maxsteps) then
                 write(string,'("Maximum number of optimization steps reached =",I5)') &
-               &  input%structureoptimization%maxsteps
+               &  input%relax%maxsteps
                 call printtext(60,"#",string)
                 call printtext(6,"#",string)
             end if 
-            write(string,'("forcemax=",f12.8," > epsforce=",f12.8)') forcemax, input%structureoptimization%epsforce
+            write(string,'("forcemax=",f12.8," > epsforce=",f12.8)') forcemax, input%relax%epsforce
             call printtext(60,"#",string)
             call printtext(6,"#",string)
             call printline(60,"#")
@@ -193,7 +213,7 @@ subroutine writeoptminitdata(fnum,verbosity)
 
     call printbox(fnum,"-","Optimization step 0: Initialize optimization")
     write(fnum,'(" Maximum force magnitude       (target) : ",F14.8,"    (", F14.8, ")")') &
-   &  forcemax, input%structureoptimization%epsforce
+   &  forcemax, input%relax%epsforce
     write(fnum,'(" Total energy at this optimization step :",F19.9)') engytot
     call flushifc(fnum)
     if (verbosity < 1) return

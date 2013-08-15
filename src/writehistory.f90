@@ -21,13 +21,13 @@ Subroutine writehistory
     Real (8) :: v (3)
     character(80) :: historyformat
     
-    if (input%structureoptimization%history) then
+    if (input%relax%history) then
 
-        select case (trim(input%structureoptimization%historyformat))
+        select case (trim(input%relax%historyformat))
         case('xyz','XYZ')
             Open (51, File='history.xyz', Action='WRITE', POSITION='APPEND')
             Write (51,*) natmtot
-            Write (51,*) "Total Energy =",  engytot*27.211396641344194, " eV "
+            Write (51,*) "Optimization step:", istep,"   Total Energy =",  engytot*27.211396641344194, " eV "
             Do is = 1, nspecies
                 Do ia = 1, natoms (is)
                     ias = idxas (ia, is)

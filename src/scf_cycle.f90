@@ -428,7 +428,7 @@ subroutine scf_cycle(verbosity)
 ! output effective fields for fixed spin moment calculations
             If (getfixspinnumber() .Ne. 0) Call writefsm (60)
 ! output forces to INFO.OUT
-!            if (input%groundstate%tforce) call writeforce(60,input%structureoptimization%outputlevelnumber)
+!            if (input%groundstate%tforce) call writeforce(60,input%relax%outputlevelnumber)
 ! check for WRITE file
             Inquire (File='WRITE', Exist=exist)
             If (exist) Then
