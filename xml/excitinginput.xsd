@@ -2712,7 +2712,7 @@ gw.xsd
             energy.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble" default="1.0d-3">
+      <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble" default="1.0d-5">
         <xs:annotation>
           <xs:documentation>Convergence criterion for the maximum allowed error 
            in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
@@ -3220,9 +3220,13 @@ gw.xsd
                     <xs:documentation>
                     Specify the method used for structural optimization: 
                     <list>
-                      <li>"newton" - Simple (Newton-like) method;</li>
-                      <li>"bfgs"   - Limited memory algorithm for bound constrained optimization;</li>
-                      <li>"mixed"  - Combines "newton" and "bfgs" methods. The optimization
+                      <li>"newton"   - Simple (Newton-like) method;</li>
+                      <li>"harmonic" - Method based on the harmonic approximation, useful when the atomic configuration
+                      is close to the optimized one and only a few degrees of freedom are allowed for atomic relaxation;</li>
+                      <li>"bfgs"     - Limited memory algorithm for bound constrained optimization. Notice that, in some case, 
+	              the "bfgs" method can require high accuracy in the calculation of the total energy. In this case, 
+		      the default value of the attribute <attref>epsengy</attref> should be reduced by a factor 1/100;</li>
+                      <li>"mixed"    - Combines "newton" and "bfgs" methods. The optimization
                       is started using the "newton" method. When the maximum amplitude of the force acting on the atoms
                       is smaller then the value specified by <attref>epsforce0</attref> the "bfgs" method is used.</li>
                     </list>
@@ -3282,6 +3286,20 @@ gw.xsd
                 <xs:annotation>
                   <xs:documentation>
                     Maximum atomic displacement for the structural optimization when using the "bfgs" method.
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+	    
+            <xs:attribute ex:importance="expert" name="endbfgs" type="xs:string" default="newton" use="optional">
+                <xs:annotation>
+                  <xs:documentation>
+                    When using the "bfgs" method, specifies the method employed for the relaxation if the "bfgs" scheme 
+		    fails to converge.
+                    <list>
+                      <li>"newton"   - Simple (Newton-like) method;</li>
+                      <li>"harmonic" - Method based on the harmonic approximation, useful when the atomic configuration
+                      is close to the optimized one and only a few degrees of freedom are allowed for atomic relaxation.</li>
+                    </list>
                   </xs:documentation>
                 </xs:annotation>
             </xs:attribute>

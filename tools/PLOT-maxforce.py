@@ -51,7 +51,7 @@ label = str(sys.argv[1])
 
 #-------------------------------------------------------------------------------
 
-inpf    = current+"/"+rlabel+label+'/INFO.OUT'
+inpf = current+"/"+rlabel+label+'/INFO.OUT'
 if (label == 'r'): inpf=rundir+'/xc-rundir/INFO.OUT'
      
 if (str(os.path.exists(inpf))=='False'): 
@@ -59,8 +59,12 @@ if (str(os.path.exists(inpf))=='False'):
     
 #-------------------------------------------------------------------------------
 
-os.system("grep \"Maximum force\" "+str(inpf)+" > tempfile")
+os.system("grep \"Maximum force m\" "+str(inpf)+" > tempfile")
 input_file = open("tempfile","r")
+
+if ( os.path.getsize('./tempfile') == 0 ):
+    print "\nMaximum force target reached already at the initial configuration.\n\n",
+    sys.exit() 
 
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
