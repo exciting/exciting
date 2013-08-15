@@ -19,7 +19,7 @@
         atposcp(:,:,:) = atposc(:,:,:)
         atposcd(:,:,:) = atposc(:,:,:)
 
-        do while ((forcemax>forcetol).and.(istep<input%structureoptimization%maxsteps))
+        do while ((forcemax>forcetol).and.(istep<input%relax%maxsteps))
 
             nstep = nstep+1
             istep = istep+1
@@ -74,11 +74,11 @@
             if (rank .Eq. 0) then
                 write(60,'(" Number of scf iterations               : ", I5)') iscl
                 write(60,'(" Maximum force magnitude       (target) : ",F14.8,"    (", F14.8, ")")') &
-               &  forcemax, input%structureoptimization%epsforce
+               &  forcemax, input%relax%epsforce
                 write(60,'(" Total energy at this optimization step :",F19.9)') engytot
-                if (input%structureoptimization%outputlevelnumber>0) then 
-                    call writepositions(60,input%structureoptimization%outputlevelnumber) 
-                    call writeforce(60,input%structureoptimization%outputlevelnumber)
+                if (input%relax%outputlevelnumber>0) then 
+                    call writepositions(60,input%relax%outputlevelnumber) 
+                    call writeforce(60,input%relax%outputlevelnumber)
                 end if
                 call flushifc(60)
             end if
@@ -134,7 +134,7 @@ contains
         Do is = 1, nspecies
             Do ia = 1, natoms (is)
                 ias = idxas (ia, is)
-                tauatm(ias) = input%structureoptimization%tau0atm
+                tauatm(ias) = input%relax%tau0atm
 
 !____________________________________________
 ! for the first step always use Newton method

@@ -16,7 +16,7 @@
 
         nstep = 0
 
-        do while ((forcemax>forcetol).and.(istep<input%structureoptimization%maxsteps))
+        do while ((forcemax>forcetol).and.(istep<input%relax%maxsteps))
 
             nstep = nstep+1
             istep = istep+1
@@ -35,6 +35,7 @@
 !_____________________________________________________________
 ! write lattice vectors and optimised atomic positions to file
 
+!                Call writehistory(istep)
                 Call writehistory
                 Call writegeometryxml(.True.)
 
@@ -60,11 +61,11 @@
             if (rank .Eq. 0) then
                 write(60,'(" Number of scf iterations               : ", I5)') iscl
                 write(60,'(" Maximum force magnitude       (target) : ",F14.8,"    (", F14.8, ")")') &
-               &  forcemax, input%structureoptimization%epsforce
+               &  forcemax, input%relax%epsforce
                 write(60,'(" Total energy at this optimization step :",F19.9)') engytot
-                if (input%structureoptimization%outputlevelnumber>0) then 
-                    call writepositions(60,input%structureoptimization%outputlevelnumber) 
-                    call writeforce(60,input%structureoptimization%outputlevelnumber)
+                if (input%relax%outputlevelnumber>0) then 
+                    call writepositions(60,input%relax%outputlevelnumber) 
+                    call writeforce(60,input%relax%outputlevelnumber)
                 end if
                 call flushifc(60)
             end if
@@ -106,9 +107,9 @@ contains
 ! if the force is in the same direction then increase step size parameter
 
                 If (t1 .Gt. 0.d0) Then
-                    tauatm(ias) = tauatm(ias)+input%structureoptimization%tau0atm
+                    tauatm(ias) = tauatm(ias)+input%relax%tau0atm
                 Else
-                    tauatm(ias) = input%structureoptimization%tau0atm
+                    tauatm(ias) = input%relax%tau0atm
                 End If
                 do i = 1, 3
                     if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) &

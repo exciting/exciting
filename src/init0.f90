@@ -455,8 +455,8 @@ Subroutine init0
 ! initialise the previous force
       forcetp (:, :) = 0.d0
 ! initial step sizes
-      If (associated(input%structureoptimization)) Then
-         tauatm (:) = input%structureoptimization%tau0atm
+      If (associated(input%relax)) Then
+         tauatm (:) = input%relax%tau0atm
       Else
          tauatm (:) = 0
       End If

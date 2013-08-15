@@ -67,7 +67,7 @@ subroutine lbfgs_driver
       integer                :: nscf, nconf
       logical                :: lnconv
 
-      if (istep+1>input%structureoptimization%maxsteps) return
+      if (istep+1>input%relax%maxsteps) return
 
       if (rank==0) then
           write(string,'("Optimization step ", I4,"    (method = bfgs)")') istep+1
@@ -126,8 +126,8 @@ subroutine lbfgs_driver
               nbd(j) = 2 ! constraint optimization (see src/Lbfgsb.3.0/README)
               x(j) = atposc(i,ia,is)
               ! l and u boundaries are used only when nbd > 0
-              l(j) = x(j)-input%structureoptimization%taubfgs
-              u(j) = x(j)+input%structureoptimization%taubfgs
+              l(j) = x(j)-input%relax%taubfgs
+              u(j) = x(j)+input%relax%taubfgs
             end if
           end do
         end do
@@ -183,21 +183,22 @@ subroutine lbfgs_driver
 ! output info
 
             if (rank==0) then
-                if (input%structureoptimization%outputlevelnumber>1)  write(60,*)
+                if (input%relax%outputlevelnumber>1)  write(60,*)
                 write(60,'(" Number of investigated configurations  : ",I5)') nconf
                 write(60,'(" Number of total scf iterations         : ",I5)') nscf
                 write(60,'(" Maximum force magnitude       (target) : ",F14.8,"    (", F14.8, ")")') &
-               &  forcemax, input%structureoptimization%epsforce
+               &  forcemax, input%relax%epsforce
                 write(60,'(" Total energy at this optimization step :",F19.9)') engytot
-                if (input%structureoptimization%outputlevelnumber>0)  then 
-                    call writepositions(60,input%structureoptimization%outputlevelnumber) 
-                    call writeforce(60,input%structureoptimization%outputlevelnumber)                    
+                if (input%relax%outputlevelnumber>0)  then 
+                    call writepositions(60,input%relax%outputlevelnumber) 
+                    call writeforce(60,input%relax%outputlevelnumber)                    
                 end if
                 call flushifc(60)
 
 !_____________________________________________________________
 ! write lattice vectors and optimised atomic positions to file
 
+!                Call writehistory(istep) 
                 Call writehistory
                 Call writegeometryxml(.True.)
 !__________________________________________________
@@ -209,12 +210,12 @@ subroutine lbfgs_driver
 !______________________________________
 ! check if force convergence is reached
 
-            if (forcemax <= input%structureoptimization%epsforce) ctask = 'STOP'
+            if (forcemax <= input%relax%epsforce) ctask = 'STOP'
 
 !_________________________________________________
 ! check if maximum number of iterations is reached
 
-            if (istep    >= input%structureoptimization%maxsteps) ctask = 'STOP'
+            if (istep    >= input%relax%maxsteps) ctask = 'STOP'
             
             nconf = 0
             nscf = 0
@@ -243,7 +244,7 @@ subroutine lbfgs_driver
 
       if (ctask(1:4).eq.'CONV') then
         istep = istep+1
-        if (input%structureoptimization%endbfgs.eq.'harmonic') then
+        if (input%relax%endbfgs.eq.'harmonic') then
           string = "BFGS scheme not converged -> Switching to harmonic method"
         else 
           string = "BFGS scheme not converged -> Switching to newton method"
@@ -255,10 +256,10 @@ subroutine lbfgs_driver
           call flushifc(60)
           lstep = .True.
         end if
-        if (input%structureoptimization%endbfgs.eq.'harmonic') then
-           call harmonic(input%structureoptimization%epsforce)
+        if (input%relax%endbfgs.eq.'harmonic') then
+           call harmonic(input%relax%epsforce)
         else 
-          call newton(input%structureoptimization%epsforce)
+          call newton(input%relax%epsforce)
         end if
       end if
       
@@ -318,7 +319,7 @@ contains
 
         call scf_cycle(-1)
         nconf = nconf + 1
-        if ((rank==0).and.(input%structureoptimization%outputlevelnumber>1))  then 
+        if ((rank==0).and.(input%relax%outputlevelnumber>1))  then 
             write(60,'(" Investigating configuration            # ",I5,"    (# of SCF cicles =",I5,")")') &
            &      nconf, iscl
             call flushifc(60)

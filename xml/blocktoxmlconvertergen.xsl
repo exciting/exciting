@@ -133,8 +133,8 @@ switch ($1) {
 	  $writer->endTag("groundstate");
 	  if($1==2||$1==3)
 	    {
-	    $writer->startTag("structureoptimization",%atthashstructureoptimization);
-	    $writer->endTag("structureoptimization");
+	    $writer->startTag("relax",%atthashrelax);
+	    $writer->endTag("relax");
 	    }
 	  }
     case [200, 201]
