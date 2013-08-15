@@ -30,15 +30,17 @@ if [ "${1}" ==  5 ]; then CERCA="Exchange energy                            :" ;
 if [ "${1}" ==  6 ]; then CERCA="Correlation energy                         :" ; NUMERO=4; fi
 
 if [ "${1}" ==  7 ]; then CERCA="DOS at Fermi energy"                          ; NUMERO=7; fi
+if [ "${1}" ==  8 ]; then CERCA="ore leakage"                                  ; NUMERO=4; fi
 
-#if [ "${1}" ==  8 ]; then CERCA="" ; NUMERO=3; fi
-#if [ "${1}" ==  9 ]; then CERCA="" ; NUMERO=3; fi
-#if [ "${1}" == 10 ]; then CERCA="" ; NUMERO=3; fi
-#if [ "${1}" == 11 ]; then CERCA="" ; NUMERO=4; fi
-#if [ "${1}" == 12 ]; then CERCA="" ; NUMERO=3; fi
-#if [ "${1}" == 13 ]; then CERCA="" ; NUMERO=3; fi
-#if [ "${1}" == 14 ]; then CERCA="" ; NUMERO=4; fi
-#if [ "${1}" == 15 ]; then CERCA="" ; NUMERO=4; fi
+if [ "${1}" ==  9 ]; then CERCA="Sum of eigenvalues                         :" ; NUMERO=5; fi
+if [ "${1}" == 10 ]; then CERCA="Effective potential energy                 :" ; NUMERO=5; fi
+if [ "${1}" == 11 ]; then CERCA="Coulomb potential energy                   :" ; NUMERO=5; fi
+if [ "${1}" == 12 ]; then CERCA="xc potential energy                        :" ; NUMERO=5; fi
+if [ "${1}" == 13 ]; then CERCA="Hartree energy                             :" ; NUMERO=4; fi
+if [ "${1}" == 14 ]; then CERCA="Electron-nuclear energy                    :" ; NUMERO=4; fi
+if [ "${1}" == 15 ]; then CERCA="Nuclear-nuclear energy                     :" ; NUMERO=4; fi
+if [ "${1}" == 16 ]; then CERCA="Madelung energy                            :" ; NUMERO=4; fi
+if [ "${1}" == 17 ]; then CERCA="Core-electron kinetic energy               :" ; NUMERO=5; fi
 
 echo ""
 echo $CERCA $NUMERO

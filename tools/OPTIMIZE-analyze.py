@@ -77,6 +77,15 @@ def sortlist(lst1, lst2):
         lst4.append(lst2[lst1.index(temp[i])])
 
     return lst3, lst4
+#----------------------------------------------------------------------------------------------------------------------
+
+def readenergy():
+    os.system("grep \"Total energy     \" INFO.OUT > tempfile") 
+    tmpfile = open('tempfile', 'r')
+    e = float(tmpfile.readlines()[-1].strip().split()[3])
+    tmpfile.close()
+    os.system("rm -f tempfile")
+    return e
 #______________________________________________________________________________________________________________________
 
 #%%%--- Reading the INFO file ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -135,28 +144,18 @@ if (mod == 'VOL'):
                 break
         volume.append(vol)
 
-        if (os.path.exists('TOTENERGY.OUT') == False):
-            print '\n     ... Oops NOTICE: There is NO "TOTENERGY.OUT" file !?!?!?    \n'
-
-        os.system("grep \"Total energy     \" INFO.OUT > tempfile") 
-            
-        e_file = open('tempfile', 'r')
-        enrgis = e_file.readlines()
-        ene = float(enrgis[-1].strip().split()[3])
-        e_file.close()
-        os.system("rm -f tempfile")
-        energy.append(ene)
+        energy.append(readenergy())
 
         os.chdir('../')
 
     volume, energy = sortlist(volume, energy)
 
-    fvol = open('energy-vs-volume.dat', 'w')
+    fvol = open('energy-vs-volume', 'w')
     for i in range(len(energy)):
         print >>fvol, volume[i],'   ', energy[i]
     fvol.close()
 
-    data = np.loadtxt('energy-vs-volume.dat')
+    data = np.loadtxt('energy-vs-volume')
     vi, ei = data.T
     if (len(ei) < 3): sys.exit('\n     ... Oops ERROR: EOS fit needs at least 3 points.    \n')
     ei = ei*2.
@@ -259,7 +258,7 @@ if (mod == 'VOL'):
 #----------------------------------------------------------------------------------------------------------------------
 if (mod != 'VOL'):
     print
-    fee  = open('energy-vs-strain.dat', 'w')
+    fee  = open('energy-vs-strain', 'w')
 
     for i in range(1, NoP+1):
         if (i<10):
@@ -272,9 +271,9 @@ if (mod != 'VOL'):
             break
     
         os.chdir(dir_num)
-
-        if (os.path.exists('TOTENERGY.OUT') == False):
-            print '\n     ... Oops NOTICE: There is NO "TOTENERGY.OUT" file !?!?!?    \n'
+        
+        if (os.path.exists('INFO.OUT') == False):
+            print '\n     ... Oops NOTICE: There is NO "INFO.OUT" file !?!?!?    \n'
 
         s = i-(NoP+1)/2   
         r = 2*mdr*s/(NoP-1)
@@ -285,18 +284,12 @@ if (mod != 'VOL'):
         else:
             strain = str(round(r,10))
 
-        if (os.path.exists('TOTENERGY.OUT')):
-            e_file = open('TOTENERGY.OUT', 'r')
-            enrgis = e_file.readlines()
-            energy = float(enrgis[-1])
-            e_file.close()
-
-        print >>fee, strain,'   ', energy
+        print >>fee, strain,'   ', readenergy()
         os.chdir('../')
 
     fee.close()
 
-    data = np.loadtxt('energy-vs-strain.dat')
+    data = np.loadtxt('energy-vs-strain')
     si, ei = data.T
     vs = sorted([zip(si, ei)])
     s, e = np.array(vs).T
