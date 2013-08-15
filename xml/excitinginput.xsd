@@ -3313,6 +3313,15 @@ gw.xsd
               </xs:annotation>
             </xs:attribute>
 
+            <xs:attribute ex:importance="essential" name="addtohistory" type="xs:boolean" default="false" use="optional">
+              <xs:annotation>
+                <xs:documentation>
+                  If <attref>history</attref> is <pre>"true"</pre>, this switch allows newly computed optimization steps to be
+                  appended to a previously generated history file.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute ex:importance="essential" name="historyformat" type="xs:string" default="xyz" use="optional">
               <xs:annotation>
                 <xs:documentation> 
