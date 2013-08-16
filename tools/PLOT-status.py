@@ -51,19 +51,24 @@ label = str(sys.argv[1])
 
 #-------------------------------------------------------------------------------
 
-inpf = current+"/"+rlabel+label+'/RMSDVEFF.OUT'
-icol = 0
+rsmd_file = current+"/"+rlabel+label+'/RMSDVEFF.OUT'
+info_file = current+"/"+rlabel+label+'/INFO.OUT'
+lrsmd = os.path.exists(rsmd_file)
+linfo = os.path.exists(info_file)
+lonlyinfo=False
 
-if (str(os.path.exists(inpf))=='False'): 
-    inpf    = current+"/"+rlabel+label+'/INFO.OUT'
-    if (str(os.path.exists(inpf))=='False'): 
-        sys.exit("\nERROR: file "+inpf+" not found!\n")
-    icol = 7
-    os.system("grep \"RMS change\" "+str(inpf)+" > tempfile")
-    input_file = open("tempfile","r")
+if (lrsmd):
+    icol = 0
+    input_file = open(rsmd_file,"r")
 else:
-    input_file = open(inpf,"r")
-
+    if (linfo):
+        lonlyinfo=True
+        icol = 7
+        os.system("grep \"RMS change\" "+str(info_file)+" > tempfile")
+        input_file = open("tempfile","r")
+    else:
+        sys.exit("\nERROR: file "+info_file+" not found!\n")
+    
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
 
@@ -127,9 +132,10 @@ while True:
        iter  = iter+1
        y.append(float(line.split()[icol]))
        x.append(float(iter))
- 
-if (str(os.path.exists(inpf))=='False'): os.system("rm tempfile")
-if (len(x)==0): 
+       
+if (lonlyinfo): os.system("rm tempfile")
+
+if (iter == 1):
     iter = 2
     print "\nData not (yet) available for visualization.\n"
 
