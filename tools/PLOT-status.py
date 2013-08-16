@@ -129,6 +129,9 @@ while True:
        x.append(float(iter))
  
 if (str(os.path.exists(inpf))=='False'): os.system("rm tempfile")
+if (len(x)==0): 
+    iter = 2
+    print "\nData not (yet) available for visualization.\n"
 
 xmin = 2-iter/20. ; xmax = iter+iter/20.
 

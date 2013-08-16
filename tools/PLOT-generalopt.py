@@ -71,7 +71,6 @@ def relax(filin,idf):
     os.system("rm -f tempfile")
     return check
     
-    
 #-------------------------------------------------------------------------------
 
 def readstrain(dr):
@@ -104,6 +103,7 @@ a2 = str(2)
 if (len(sys.argv) > 3): a2 = str(sys.argv[3])
 
 #-------------------------------------------------------------------------------
+
 directoryroot = 'vol_'
 if (len(sys.argv) > 1): directoryroot = str(sys.argv[1])
 list_dir = glob.glob(directoryroot+"*")

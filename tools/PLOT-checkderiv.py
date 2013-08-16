@@ -49,8 +49,16 @@ def purifica(x,y,ymin,ymax):
 
 #-------------------------------------------------------------------------------
 
+narg  = len(sys.argv)-1
+
+#if (narg<2): 
+#    print "\nIncorrect number of arguments. **Usage**:\n\n",
+#    print "PLOT-checkderiv.py YMIN YMAX\n"
+#    sys.exit()
+
 ylimits = []
-for i in range(1,len(sys.argv)): ylimits.append(float(sys.argv[i]))
+if (len(sys.argv) > 1): ylimits.append(float(sys.argv[1]))
+if (len(sys.argv) > 2): ylimits.append(float(sys.argv[2]))
 
 #-------------------------------------------------------------------------------
 

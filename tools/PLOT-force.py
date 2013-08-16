@@ -11,6 +11,7 @@ import matplotlib.ticker     as ptk
 import matplotlib.pyplot     as plt
 import pylab                 as pyl
 import numpy
+import glob
 import sys
 import os
 
@@ -35,16 +36,76 @@ def shell_value(variable,vlist,default):
     for i in range(len(vlist)):
         if ( vlist[i] == variable ): v = os.environ[variable] ; e = True ; break
     return v, e
+    
+#-------------------------------------------------------------------------------
+
+def leggi(filin,idf,a):
+    x = [] ; f = True
+    if (str(os.path.exists(filin))=='False'): 
+        sys.exit("\nERROR: file "+filin+" not found!\n")
+        return x, False
+    os.system("grep -A"+a+" \""+idf+"\" "+str(filin)+" | grep \"at\" | grep \" "+a+" \" | tail -n1 > tempfile") 
+    ifile = open("tempfile","r")
+    x = ifile.readline().strip().split()[4:7]
+    ifile.close()
+    os.system("rm -f tempfile")
+    return x, f
+    
+#-------------------------------------------------------------------------------
+
+def leggishort(filin):
+    f = open(filin,"r")
+    x = float(f.readline().strip().split()[0])
+    f.close()
+    return x
 
 #-------------------------------------------------------------------------------
 
-ylabel = r'Total force [Ha/Bohr]'
-inpf   = 'force-vs-displacement'
+ylabel = r'Force (cartesian) [Ha/Bohr]'
 xlabel = u'Displacement $u$ [alat]'
 
-if (str(os.path.exists(inpf))=='False'): 
-    sys.exit("\nERROR: file "+inpf+" not found!\n")
+#-------------------------------------------------------------------------------
 
+narg  = len(sys.argv)-1
+
+print "\n**Usage**:    PLOT-force.py [ATOM YMIN YMAX]\n"
+
+#-------------------------------------------------------------------------------
+
+a = str(1)
+if (len(sys.argv) > 1): a = str(sys.argv[1])
+
+#-------------------------------------------------------------------------------
+
+label = "displ-"
+if ( os.path.exists("strain-01") ): label = "strain-"
+if ( os.path.exists("volume-01") ): label = "volume-"
+if ( os.path.exists("alat-01") ): label = "alat-"
+
+#-------------------------------------------------------------------------------
+
+directoryroot = 'rundir-'
+list_dir = glob.glob(directoryroot+"*")
+
+xx = [] ; y1 = [] ; y2 = [] ; y3 = [] 
+
+for idir in range(len(list_dir)):    
+    c = [] 
+    fileinp = list_dir[idir]+'/INFO.OUT'
+    c, fcheck = leggi(fileinp,"Total atomic forces",a)
+    if (fcheck): 
+        y1.append(float(c[0]))
+        y2.append(float(c[1]))
+        y3.append(float(c[2]))
+        xx.append(leggishort(label+list_dir[idir][-2:]))
+
+if ( label == 'displ-' ):     
+    of = open("force-vs-displacement","w")
+    fmt = '%16.8f'
+    for i in range(len(xx)):
+        print>>of, (fmt%xx[i]), (fmt%y1[i]), (fmt%y2[i]), (fmt%y3[i])
+    of.close()
+        
 #-------------------------------------------------------------------------------
 
 current = os.environ['PWD']
@@ -56,35 +117,22 @@ showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
 dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 
 #-------------------------------------------------------------------------------
-
-input_file = open(inpf,"r")
-
-x = [] ; y = []
-
-while True:
-    line = input_file.readline()
-    line = line.strip()
-    if len(line) == 0: break
-    y.append(float(line.split()[1]))
-    x.append(float(line.split()[0]))
-
-xx,yy=sortstrain(x,y)
-
-#-------------------------------------------------------------------------------
 # manipulate data for a better plot
 
-rmin  = 0 #min(yy)
-srmin = u'\u2013 '+str(abs(rmin))
-if (rmin > 0): srmin = u'+ '+str(rmin)
+xmin = min(xx)
+xmax = max(xx)
 
-for i in range(len(yy)): yy[i]=(yy[i]-rmin)
+ymin = min(y1+y2+y3)
+ymax = max(y1+y2+y3)
 
-delta = (max(yy)-min(yy))
-dxx   = abs(max(xx)-min(xx))/18
-dyy   = abs(max(yy)-min(yy))/18
+dxx  = abs(xmax-xmin)/18
+dyy  = abs(ymax-ymin)/15
 
-xmin = min(xx)-dxx ; xmax = max(xx)+dxx
-ymin = min(yy)-dyy ; ymax = max(yy)+dyy
+xmin = xmin-dxx
+xmax = xmax+dxx
+
+ymin = ymin-dyy
+ymax = ymax+dyy
 
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
@@ -103,7 +151,7 @@ params = {'ytick.minor.size': 6,
           'axes.formatter.limits': (-4, 6)}
 
 plt.rcParams.update(params)
-plt.subplots_adjust(left=0.21, right=0.93,
+plt.subplots_adjust(left=0.22, right=0.78,
                     bottom=0.18, top=0.88,
                     wspace=None, hspace=None)
                     
@@ -115,10 +163,8 @@ ax   = fig.add_subplot(111)
 
 ax.text(0.5,-0.13,xlabel,size=fontlabel,
         transform=ax.transAxes,ha='center',va='center',rotation=0)
-ax.text(-0.165,0.5,ylabel,size=fontlabel,
+ax.text(-0.23,0.5,ylabel,size=fontlabel,
         transform=ax.transAxes,ha='center',va='center',rotation=90)
-#ax.text(0.11,1.03,srmin,size=fonttext,
-#        transform=ax.transAxes,ha='left',va='center',rotation=0)
  
 for line in ax.get_xticklines() + ax.get_yticklines():
     line.set_markersize(6)
@@ -128,14 +174,27 @@ plt.xticks(size=fonttick)
 plt.yticks(size=fonttick)
 pyl.grid(True)
 
-plt.plot(xx,yy,'r-')
-plt.plot(xx,yy,'go',label='calculated')
+plt.plot(xx,y1,'ro-',label=u'$F_x$')
+plt.plot(xx,y2,'bo-',label=u'$F_y$')
+plt.plot(xx,y3,'go-',label=u'$F_z$')
+
+plt.plot(xx,y3,'go-')
+plt.plot(xx,y2,'bo-')
+plt.plot(xx,y1,'ro-')
 
 #-------------------------------------------------------------------------------
 
-plt.legend(borderaxespad=.8)
+plt.legend(bbox_to_anchor=(1.03, 1), loc=2, borderaxespad=0., numpoints=1)
 
 ax.yaxis.set_major_formatter(yfmt)
+
+if (abs(ymax-ymin) < 0.000000001): 
+    ymax=ymax+0.1
+    ymin=ymin-0.1
+
+if (len(sys.argv) > 2): ymin = float(sys.argv[2])
+if (len(sys.argv) > 3): ymax = float(sys.argv[3])
+
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
 
@@ -148,6 +207,8 @@ plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
 
 if (showpyplot): plt.show()
 #-------------------------------------------------------------------------------
+
+
 
 
 

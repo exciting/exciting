@@ -71,7 +71,7 @@ for input in $input_list ; do
     tot=INFO.OUT
 #
     awk -v eta="$uuu" \
-        '/Total energy    / {printf "%11.8f   %20.10f\n",eta,$1}' $tot | tail -n1>>$OUTE
+        '/Total energy    / {printf "%11.8f   %20.10f\n",eta,$4}' $tot | tail -n1>>$OUTE
 #
 #    grep -A12 "Forces :" INFO.OUT | tail -n1 >> dumforce
 #    awk -v eta="$uuu" \
