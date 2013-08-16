@@ -108,6 +108,10 @@ dyy   = abs(max(yy)-min(yy))/18
 xmin = min(xx)-dxx ; xmax = max(xx)+dxx
 ymin = min(yy)-dyy ; ymax = max(yy)+dyy
 
+if (len(xx) == 1): 
+    xmin = min(xx)-dxx-1 ; xmax = max(xx)+dxx+1
+    ymin = min(yy)-dyy-0.1 ; ymax = max(yy)+dyy+0.1
+
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
 
