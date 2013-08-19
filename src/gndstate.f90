@@ -246,7 +246,7 @@ Subroutine gndstate
     end if
 
     If (rank .Eq. 0) then
-         Write (60, '(" Total time spent", T40, ": ", F12.2)') tsg1-tsg0
+        Write (60, '(" Total time spent (seconds)", T40, ": ", F12.2)') tsg1-tsg0
         write(string,'("EXCITING ", a, " stopped")')  trim(versionname)
         call printbox(60,"=",string)
         close (60)

@@ -67,6 +67,9 @@
                     call writepositions(60,input%relax%outputlevelnumber) 
                     call writeforce(60,input%relax%outputlevelnumber)
                 end if
+                if (input%relax%outputlevelnumber>1)  then 
+                    call writechg (60,input%relax%outputlevelnumber)          
+                end if
                 call flushifc(60)
             end if
 

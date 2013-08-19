@@ -3230,14 +3230,15 @@ gw.xsd
             <xs:attribute ex:importance="essential" ex:unit="" name="method" type="xs:string" use="optional" default="mixed">
                 <xs:annotation>
                     <xs:documentation>
-                    Specify the method used for structural optimization: 
+                    Specify the method used for atomic relaxation: 
                     <list>
                       <li>"newton"   - Simple (Newton-like) method;</li>
                       <li>"harmonic" - Method based on the harmonic approximation, useful when the atomic configuration
                       is close to the optimized one and only a few degrees of freedom are allowed for atomic relaxation;</li>
                       <li>"bfgs"     - Limited memory algorithm for bound constrained optimization. Notice that, in some case, 
-	              the "bfgs" method can require high accuracy in the calculation of the total energy. In this case, 
-		      the default value of the attribute <attref>epsengy</attref> should be reduced by a factor 1/100;</li>
+                      the "bfgs" method can require high accuracy in the calculation of the total energy. In this case, 
+                      the default value of the attribute <attref>epsengy</attref> of the <elementref>groundstate</elementref> 
+                      element should be reduced of one or two order of magnitude;</li>
                       <li>"mixed"    - Combines "newton" and "bfgs" methods. The optimization
                       is started using the "newton" method. When the maximum amplitude of the force acting on the atoms
                       is smaller then the value specified by <attref>epsforce0</attref> the "bfgs" method is used.</li>
@@ -3249,7 +3250,7 @@ gw.xsd
             <xs:attribute ex:importance="expert" name="maxsteps" type="xs:integer" use="optional" default="200">
                 <xs:annotation>
                     <xs:documentation>
-                    Maximum number of the structural optimization steps.
+                    Maximum number of optimization steps.
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
@@ -3267,7 +3268,9 @@ gw.xsd
                 <xs:annotation>
                     <xs:documentation>
                     The optimization stops when the maximum amplitude of the force acting on the atoms is lower 
-                    then the value specified by <attref>epsforce</attref>.
+                    then the value specified by <attref>epsforce</attref>. Notice that high accuracy in the calculated
+		    forces requires high accuracy in the calculated total energy (see the attribute <attref>epsengy</attref>
+		    of the <elementref>groundstate</elementref> element).
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
@@ -3275,7 +3278,7 @@ gw.xsd
             <xs:attribute ex:importance="expert" name="tau0atm" type="fortrandouble" default="0.2d0" use="optional">
                 <xs:annotation>
                     <xs:documentation> Parameter determining the initial amplitude of atomic displacement 
-                    for the "newton" method of structural optimization.
+                    for the "newton" method of atomic relaxation.
                     <p/>                     
                     At each step <inlinemath>m</inlinemath> of a structural optimization run,                     
                     the atom <inlinemath>\alpha</inlinemath> is displaced according to
@@ -3297,7 +3300,7 @@ gw.xsd
             <xs:attribute ex:importance="expert" name="taubfgs" type="fortrandouble" default="1.0d0" use="optional">
                 <xs:annotation>
                   <xs:documentation>
-                    Maximum atomic displacement for the structural optimization when using the "bfgs" method.
+                    Maximum atomic displacement for atomic relaxation when using the "bfgs" method.
                   </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
@@ -3319,8 +3322,8 @@ gw.xsd
             <xs:attribute ex:importance="essential" name="history" type="xs:boolean" default="false" use="optional">
               <xs:annotation>
                 <xs:documentation> 
-                If <pre>"true"</pre> the stucture optimization history file is generated in one of the formats
-                specified in <attref>historyformat</attref>.
+                If <pre>"true"</pre> the atomic configuration at each relaxation step is written in a history file
+		which is generated in one of the formats specified in <attref>historyformat</attref>.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -3337,14 +3340,14 @@ gw.xsd
             <xs:attribute ex:importance="essential" name="historyformat" type="xs:string" default="xyz" use="optional">
               <xs:annotation>
                 <xs:documentation> 
-                If <attref>history</attref> is <pre>"true"</pre>, the structure optimization history file
-                is generated in one of the following formats:
+                If <attref>history</attref> is <pre>"true"</pre>, the history file, containig atomic configurations at each
+                optimization step, is generated in one of the following formats:
                 <list>
                 <li> <pre>"xyz"</pre> molecular format, where
                 Line 1 contains the total number of atoms. 
                 Line 2 contains the comment line here with total energy in eV. 
-                Line 3 and following are atomic species, cartesian coordinates in Angstrom, and the forces in eV/Angstrom.</li>
-                <li> <pre>"gulp"</pre> format which useful to visualize the crystal structure changes using the GDIS program.</li>
+                Line 3 and following are atomic species, cartesian coordinates in Angstrom, and forces in eV/Angstrom.</li>
+                <li> <pre>"gulp"</pre> format, which is useful to visualize crystal structure changes using the GDIS program.</li>
                 </list>
                 </xs:documentation>
             </xs:annotation>

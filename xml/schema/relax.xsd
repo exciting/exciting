@@ -64,8 +64,9 @@
                       <li>"harmonic" - Method based on the harmonic approximation, useful when the atomic configuration
                       is close to the optimized one and only a few degrees of freedom are allowed for atomic relaxation;</li>
                       <li>"bfgs"     - Limited memory algorithm for bound constrained optimization. Notice that, in some case, 
-	              the "bfgs" method can require high accuracy in the calculation of the total energy. In this case, 
-		      the default value of the attribute <attref>epsengy</attref> should be reduced by a factor 1/100;</li>
+                      the "bfgs" method can require high accuracy in the calculation of the total energy. In this case, 
+                      the default value of the attribute <attref>epsengy</attref> of the <elementref>groundstate</elementref> 
+                      element should be reduced of one or two order of magnitude;</li>
                       <li>"mixed"    - Combines "newton" and "bfgs" methods. The optimization
                       is started using the "newton" method. When the maximum amplitude of the force acting on the atoms
                       is smaller then the value specified by <attref>epsforce0</attref> the "bfgs" method is used.</li>
@@ -95,7 +96,9 @@
                 <xs:annotation>
                     <xs:documentation>
                     The optimization stops when the maximum amplitude of the force acting on the atoms is lower 
-                    then the value specified by <attref>epsforce</attref>.
+                    then the value specified by <attref>epsforce</attref>. Notice that high accuracy in the calculated
+		    forces requires high accuracy in the calculated total energy (see the attribute <attref>epsengy</attref>
+		    of the <elementref>groundstate</elementref> element).
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>

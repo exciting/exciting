@@ -220,6 +220,7 @@ subroutine writeoptminitdata(fnum,verbosity)
 
     call writepositions(fnum,verbosity) 
     call writeforce(fnum,verbosity)
+    if (verbosity > 1) call writechg(fnum,verbosity)
     
     return
 end subroutine

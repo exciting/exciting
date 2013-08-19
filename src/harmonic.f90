@@ -80,6 +80,9 @@
                     call writepositions(60,input%relax%outputlevelnumber) 
                     call writeforce(60,input%relax%outputlevelnumber)
                 end if
+                if (input%relax%outputlevelnumber>1)  then 
+                    call writechg (60,input%relax%outputlevelnumber)          
+                end if
                 call flushifc(60)
             end if
 
@@ -101,10 +104,10 @@ contains
 
         Implicit None
         Integer :: ik, ispn, is, ia, ias, i
-        Real (8) :: t1, beta, delta(3), zero(3)
+        Real (8) :: t1, beta, delta(3), zero(3), epsharmonic
 
         zero(:) = 0.d0
-
+        epsharmonic = 1.0d-8
  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !        write(60,*) istep, "atposcp, forcetp"
@@ -156,21 +159,26 @@ contains
                     do i = 1, 3
                         atposcd(i,ia,is) = atposc(i,ia,is)
                         l1 = .not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)
-                        l2 = ( abs(forcetot(i,ias)) .gt. input%structure%epslat/10.d0 )
+
+
+! forces with amplitude below epsharmonic are considered as zeros
+!________________________________________________________________
+
+                        l2 = ( abs(forcetot(i,ias)) .gt. epsharmonic )
                         if ( l1 .and. l2 ) then 
                             beta = forcetp(i,ias)/forcetot(i,ias)
                             atposc(i,ia,is) = atposcp(i,ia,is)/(1.-beta) - beta*atposc(i,ia,is)/(1.-beta)
                             atposcp(i,ia,is) = atposc(i,ia,is)
                         end if
                     end do
-                end if
+                 end if
              End Do
         End Do
 
 !________________________________________________________
 ! compute the lattice coordinates of the atomic positions
 
-       Do is = 1, nspecies
+        Do is = 1, nspecies
             Do ia = 1, natoms (is)
 
                 Call r3mv(ainv,atposc(:,ia,is),input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))

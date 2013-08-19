@@ -174,10 +174,46 @@ Subroutine force
          Call symvect (.False., forceibs)
          Deallocate (ffacg)
       End If
-! total force
+! remove net forces of ibs, core, and HF forces (center of mass should not move)
+
+      Do i = 1, 3
+         sum = 0.d0
+         Do ias = 1, natmtot
+            sum = sum + forceibs (i, ias)
+         End Do
+         sum = sum / dble (natmtot)
+         forceibs (i, :) = forceibs (i, :) - sum
+      End Do
+
+      Do i = 1, 3
+         sum = 0.d0
+         Do ias = 1, natmtot
+            sum = sum + forcecr (i, ias)
+         End Do
+         sum = sum / dble (natmtot)
+         forcecr (i, :) = forcecr (i, :) - sum
+      End Do
+
+      Do i = 1, 3
+         sum = 0.d0
+         Do ias = 1, natmtot
+            sum = sum + forcehf (i, ias)
+         End Do
+         sum = sum / dble (natmtot)
+         forcehf (i, :) = forcehf (i, :) - sum
+      End Do
+
+! calculate total force
+
       Do ias = 1, natmtot
          forcetot (:, ias) = forcehf (:, ias) + forcecr (:, ias) + &
         & forceibs (:, ias)
+         !write(60,*) ias
+         !write(60,*) forcetot(:, ias)
+         !write(60,*) forcehf(:, ias)
+         !write(60,*) forcecr(:, ias)
+         !write(60,*) forceibs(:, ias)
+         !call flushifc(60)
       End Do
 ! symmetrise total force
       Call symvect (.False., forcetot)
