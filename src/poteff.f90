@@ -35,8 +35,6 @@ Subroutine poteff
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
-!            write(*,*) vclmt(:,nrmt(is),ias)
-!            write(*,*)
             lmmax = lmmaxinr
             Do ir = 1, nrmt (is)
                If (ir .Gt. nrmtinr(is)) lmmax = lmmaxvr
@@ -48,22 +46,10 @@ Subroutine poteff
                   veffmt (lm, ir, ias) = 0.d0
                End Do
             End Do
-!            write(*,*) veffmt (1, nrmt(is), ias)
          End Do
       End Do
-      
-!      veffmt (1, :, :)=veffmt (1, :, :)+input%groundstate%energyref*y00
-!      write(*,*) 
 ! interstitial part
-      veffir (:) = vclir (:) + vxcir (:)!+input%groundstate%energyref
-!      do ir=1,nrmt(1)
-!        write(*,*) spr(ir,1),veffmt (1, ir, 1)
-!      enddo
-      
-!      do ir=1,60
-!        write(*,*)  4.185743066d0*sqrt(2d0)*dble(ir-1),veffir (ir)
-!      enddo
-!      stop
+      veffir (:) = vclir (:) + vxcir (:)
       Call timesec (ts1)
 !      timepot = timepot + ts1 - ts0
       Return

@@ -190,7 +190,7 @@ subroutine scf_cycle
             timeio=ts1-ts0+timeio            
 ! solve the first- and second-variational secular equations
 !            write(*,*) 'howdy seceqn'
-            write(*,*) 'allocated', allocated(meffig)
+!            write(*,*) 'allocated', allocated(meffig)
             Call seceqn (ik, evalfv, evecfv, evecsv)
 
             Call timesec(ts0)

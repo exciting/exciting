@@ -34,7 +34,7 @@ Subroutine genmeffig
 !         write(*,*) 'howdy'
          energyref=input%groundstate%energyref
 !         if (.not.allocated(meffig))
-         write(*,*) 'allocation' 
+!         write(*,*) 'allocation' 
          allocate(meffig(ngvec))
 !         zfft(:)=cfunir(:)/(1d0+(energyref-veffir(:))*a2)
          Do ig = 1, ngrtot

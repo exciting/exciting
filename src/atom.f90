@@ -242,12 +242,16 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
       If (xcgrad .Eq. 1) Then
          Deallocate (grho, g2rho, g3rho)
       End If
-      write(*,*) 
+!      write(*,*) 
       Do ist = 1, nst
        write(*,*) eval(ist)
+!       write(*,*) 
+!       do ir=1,nr
+!         write(*,*) r(ir),rwf(ir, 1, ist)
+!       enddo
       enddo
       write(*,*) 
-      stop
+!      stop
       Return
 End Subroutine
 !EOC
