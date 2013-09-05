@@ -55,6 +55,7 @@
        
       tsize=(lmax+1)*(lmax+2)*(lmax+3)*(3*lmax+2)/12
 !      write(*,*)'size of tilg =', tsize
+      if (allocated(tilg)) deallocate(tilg)
       allocate(tilg(tsize))
 !      write(*,*)'tilg initialized'
        

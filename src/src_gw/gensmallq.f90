@@ -48,16 +48,24 @@ SUBROUTINE gensmallq
       nsym=1
     end if  
 
+    if (allocated(nsymq)) deallocate(nsymq)
     allocate(nsymq(nqpt))
+    if (allocated(nkptq)) deallocate(nkptq)
     allocate(nkptq(nqpt))
     allocate(vklq(3,nkptnr))
+    if (allocated(wkpq)) deallocate(wkpq)
     allocate(wkpq(nkptnr,nqpt))
+    if (allocated(indkpq)) deallocate(indkpq)
     allocate(indkpq(nkptnr,nqpt))
+    if (allocated(iksymq)) deallocate(iksymq)
     allocate(iksymq(nkptnr,nqpt))
+    if (allocated(idikpq)) deallocate(idikpq)
     allocate(idikpq(nkptnr,nqpt))
     iksymq(:,:)=0
 
+    if (allocated(nsymkstar)) deallocate(nsymkstar)
     allocate(nsymkstar(nkptnr,nqpt))
+    if (allocated(isymkstar)) deallocate(isymkstar)
     allocate(isymkstar(nsym,nkptnr,nqpt))
     nsymkstar(:,:)=0
     isymkstar(:,:,:)=0

@@ -171,7 +171,7 @@
                     </xs:restriction>
                 </xs:simpleType>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="ngridq" type="integertriple" use="required">
+            <xs:attribute ex:importance="expert" ex:unit="" name="ngridq" type="integertriple" default="1 1 1">
                 <xs:annotation>
                     <xs:appinfo>
                         <oldname>ngridq</oldname>

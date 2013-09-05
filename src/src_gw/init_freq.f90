@@ -45,7 +45,9 @@ subroutine init_freq
         n=nomeg/2
         nomeg=n*2
       endif  
+      if (allocated(freqs)) deallocate(freqs)
       allocate(freqs(1:nomeg))
+      if (allocated(womeg)) deallocate(womeg)
       allocate(womeg(1:nomeg))
       
       select case(wflag) 

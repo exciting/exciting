@@ -69,6 +69,7 @@
 !     Allocate the array for the product functions and initialize
       allocate(uprod(natmtot,maxnup,nrmtmax))
       allocate(eles(natmtot,maxnup,2))
+      if (allocated(nup)) deallocate(nup)
       allocate(nup(natmtot))
       uprod=0.0d0
 

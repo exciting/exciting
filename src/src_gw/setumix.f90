@@ -92,9 +92,11 @@
 !EOP
 !BOC
 !
+      if (allocated(nmix)) deallocate(nmix)
       allocate(nmix(natmtot))
       allocate(umix(natmtot,maxnup,nrmtmax))
       allocate(bigl(natmtot,maxnup))
+      if (allocated(mbl)) deallocate(mbl)
       allocate(mbl(natmtot))
       maxnmix=0
       maxbigl=0

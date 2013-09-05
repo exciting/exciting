@@ -69,6 +69,7 @@
       allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
       allocate(evecfv(nmatmax,nstfv))
       allocate(evec(nmatmax))
+      if (allocated(vxcnn)) deallocate(vxcnn)
       allocate(vxcnn(nstfv,nkpt))
 
       do ik = 1, nkpt

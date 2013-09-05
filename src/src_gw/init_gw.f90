@@ -113,6 +113,7 @@ subroutine init_gw
       call genvxcig
 
 !     determine the number of core states for each species (auxiliary arrays)
+      if (allocated(ncore)) deallocate(ncore)
       allocate(ncore(nspecies))
       ncmax=0
       nclm=0
