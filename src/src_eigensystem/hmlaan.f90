@@ -95,6 +95,7 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
                                        zt1 = gntyry (lm1, lm2, lm3) * &
                                       & haa (io1, l1, io2, l3, lm2, &
                                       & ias)
+!                                      if ((l1.eq.0).and.(l3.eq.0).and.(io1.eq.1).and.(io2.eq.1).and.(lm2.eq.1)) write(*,*) zt1
                                     Else
                                        zt1 = gntyry (lm1, lm2, lm3) * &
                                       & haa (io1, l3, io2, l1, lm2, &
@@ -129,6 +130,8 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
             End Do
          End Do
       End Do
+    if (.not.input%groundstate%SymmetricKineticEnergy) then
+
 ! kinetic surface contribution
       t1 = 0.25d0 * rmt (is) ** 2
       Do l1 = 0, input%groundstate%lmaxmat
@@ -145,12 +148,9 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
             End Do
          End Do
       End Do
+    endif
 
-
-
-
-
-
+!    write(*,*) hamilton%za(2,2)
       Return
 End Subroutine
 !EOC
