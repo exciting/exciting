@@ -114,16 +114,25 @@ ax.text(-0.23,0.5,ylabel,size=fontlabel,
 x = [] ; d1 = [] ; d2 = [] ; d3 = []
 
 iter=0
-soglia = 0.5
+soglia = 0.9
 
 while True:
     line1 = ifile1.readline().strip()
     line2 = ifile2.readline().strip()   
     if len(line1) == 0: break
+
     g = []
     for i in range(3):
         g.append(float(line2.split()[i+4])-float(line1.split()[i+4]))
-        if (g[i] > soglia): g[i] = g[i]-1.    
+    if (iter > 0):
+        h = []
+        h.append(d1[iter-1])
+        h.append(d2[iter-1])
+        h.append(d3[iter-1])
+        for i in range(3): 
+            if ((g[i]-h[i]) > soglia): g[i] = g[i]-1.    
+            if ((h[i]-g[i]) > soglia): g[i] = g[i]+1. 
+            
     d1.append(g[0])
     d2.append(g[1])
     d3.append(g[2])

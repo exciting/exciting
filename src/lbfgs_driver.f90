@@ -74,6 +74,16 @@ subroutine lbfgs_driver
           call printbox(60,"-",string)
       end if
 
+      if (input%groundstate%epsengy/input%relax%epsforce .gt. 0.020001) then
+          input%groundstate%epsengy = input%relax%epsforce*0.02
+          if (rank==0) then
+              write(60,'(" Convergence target for the total energy decreased to ",G13.6," Ha")') &
+             & input%groundstate%epsengy
+              write(60,*)
+              call flushifc(60)
+          end if
+      end if
+
 !_______________________________________________________________________
 ! Initialize some L-BFGS-B library parameters (see src/Lbfgs.3.0/README)
   
@@ -169,13 +179,13 @@ subroutine lbfgs_driver
         if (ctask(1:2) .eq. 'FG') then
           call calcEnergyForces
         else 
-          
+         
 !_____________________________________________________
 ! the minimization has found a new configuration 
 ! to be used in the next optimization step
 
-          if (ctask(1:5) .eq. 'NEW_X') then   
-           
+          if (ctask(1:5) .eq. 'NEW_X') then 
+
             call updatepositions
             istep = istep+1
 
@@ -209,7 +219,7 @@ subroutine lbfgs_driver
 
                 Call writeiad(.True.)
             end if
-            
+
 !______________________________________
 ! check if force convergence is reached
 
@@ -228,7 +238,7 @@ subroutine lbfgs_driver
                 call printbox(60,"-",string)
             end if
 
-            if (ctask(1:4).eq.'CONV') lnconv = .False.
+            if ((ctask(1:4).eq.'CONV') .or. (ctask(1:4).eq.'ABNO')) lnconv = .False.
 
           end if ! 'NEW_X'
           
@@ -245,14 +255,14 @@ subroutine lbfgs_driver
 !________________________________________________________
 ! Use Newton or harmonic method if BFGS does not converge
 
-      if (ctask(1:4).eq.'CONV') then
+      if ((ctask(1:4).eq.'CONV') .or. (ctask(1:4).eq.'ABNO')) then
         istep = istep+1
         if (input%relax%endbfgs.eq.'harmonic') then
           string = "BFGS scheme not converged -> Switching to harmonic method"
         else 
           string = "BFGS scheme not converged -> Switching to newton method"
         end if
-       if (rank .Eq. 0) then
+        if (rank .Eq. 0) then
           write(60,*)
           write(60,*) string
           write(60,*)

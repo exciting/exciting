@@ -51,7 +51,7 @@ Subroutine xsinit
       If (calledxs .Eq. 1) Then
          Write (unitout,*)
          Write (unitout, '("+-----------------------------------------------------------+")')
-         Write (unitout, '("| EXCITING lithium    (",I2.2,".",I2.2,".",I2.2,") started                     |")') version
+         Write (unitout, '("| EXCITING BERYLLIUM  (",I2.2,".",I2.2,".",I2.2,") started                     |")') version
          Write (unitout, '("| version hash id: ",a," |")') githash
 #ifdef MPI
          Write (unitout, '("| MPI version using ",i6," processor(s)                     |")') procs
