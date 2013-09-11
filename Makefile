@@ -116,7 +116,6 @@ clean:
 	rm -f interfaces/*
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
-	rm -rf debian/debian/usr
 
 libxcclean:
 	cd src/libXC && make clean 

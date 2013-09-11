@@ -14,7 +14,7 @@ Subroutine writechg (fnum,verbosity)
       Integer, Intent (In) :: fnum
       integer, intent(in) :: verbosity
 ! local variables
-      Integer :: is, ia, ias
+      Integer :: is, ia, ias, i
       character*(77) :: string
 
 !_______________
@@ -25,6 +25,7 @@ Subroutine writechg (fnum,verbosity)
           return
       end if 
 
+      i = 0
       Write (fnum,*)
       Write (fnum, '(" Electron charges :")')
       Write (fnum, '("     core", T45, ": ", F18.8)') chgcr
@@ -35,8 +36,9 @@ Subroutine writechg (fnum,verbosity)
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
+            i = i+1
             write(fnum,'("                  atom ",I5,4x,A2,T45,": ",F18.8)') &
-           &  ia, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+           &  i, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
            &  chgmt (ias)
          End Do
       End Do
@@ -52,6 +54,7 @@ Subroutine writechg (fnum,verbosity)
 ! output moments
 
       If (associated(input%groundstate%spin)) Then
+         i = 0
          Write (fnum,*)
          Write (fnum, '(" Moments :")')
          Write (fnum, '("     interstitial", T28, ": ", 3F16.8)') momir &
@@ -62,7 +65,8 @@ Subroutine writechg (fnum,verbosity)
            & (input%structure%speciesarray(is)%species%chemicalSymbol)
             Do ia = 1, natoms (is)
                ias = idxas (ia, is)
-               Write (fnum, '("     atom ", I4, T28, ": ", 3F16.8)') ia, &
+               i = i+1
+               Write (fnum, '("     atom ", I4, T28, ": ", 3F16.8)') i, &
               & mommt (1:ndmag, ias)
             End Do
          End Do
