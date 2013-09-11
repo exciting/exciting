@@ -8,7 +8,7 @@
 !
 ! Integrand = n(r1)*phi(r1,r2)*n(r2)
 !============================================================
-subroutine integrand(ndim, x, ncomp, func)
+integer function integrand(ndim, x, ncomp, func)
 !-----------------------------------------
 use param
 !-----------------------------------------
@@ -94,6 +94,8 @@ integer :: i
    
    end if
    
+   integrand = 0
+   
 return
-end subroutine integrand
+end function integrand
 

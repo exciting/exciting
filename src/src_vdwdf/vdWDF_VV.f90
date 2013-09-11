@@ -14,8 +14,6 @@ real*8  :: dens1, dens2
 real*8  :: graddens1, graddens2
 
 !-----------------------------------------
-integer :: i
-real*8  :: xsc(6), xpr(6), r1(3), r2(3), dr(3)
 real*8  :: kf1, kf2
 real*8  :: omegapsq1,omegapsq2,omegagsq1,omegagsq2
 real*8  :: omega01, omega02

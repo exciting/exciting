@@ -19,7 +19,7 @@ Subroutine writegeometryxml (topt)
 !          {\tt geometry.xml} (in,logical)
 ! !DESCRIPTION:
 !   Outputs the lattice vectors and atomic positions to file, in a format
-!   which may be then used directly in {\tt exciting.in}.
+!   which may be then used directly in {\tt input.xml}.
 !
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)
@@ -62,6 +62,8 @@ Subroutine writegeometryxml (topt)
       Do is = 1, nspecies
          Call xml_NewElement (xf, "species")
          Call xml_AddAttribute (xf, "speciesfile", trim(adjustl(input%structure%speciesarray(is)%species%speciesfile)))
+         Write(buffer,'(F7.4)') rmt(is)
+         Call xml_AddAttribute (xf, "rmt", trim(adjustl(buffer)))
          Write (buffer,*) Int (-1.0*speziesdeflist(is)%sp%z)
          Do ia = 1, natoms (is)
             Call xml_NewElement (xf, "atom")
@@ -80,7 +82,9 @@ Subroutine writegeometryxml (topt)
             
             lock=input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock
             if (lock(1).or.lock(2).or.lock(3)) then
-                write (buffer, *)  lock(:)
+                write(buffer,*) printLogical(lock(1)), &
+               &                printLogical(lock(2)), &
+               &                printLogical(lock(3))
                 call xml_AddAttribute (xf, "lock", trim(adjustl(buffer)))
             End If
             
@@ -96,4 +100,14 @@ Subroutine writegeometryxml (topt)
       End Do
       Call xml_close (xf)
       Return
+
+contains      
+
+      function printLogical(flag)
+        logical, intent(IN) :: flag
+        character(5) :: printLogical
+        printLogical="false"
+        if (flag) write(printLogical,'("true")')
+      end function
+
 End Subroutine

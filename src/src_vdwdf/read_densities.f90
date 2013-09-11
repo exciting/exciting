@@ -14,8 +14,6 @@ subroutine read_densities()
   character        :: line*120
   integer          :: iostat
   
-  real*8           :: sum
-  
   open(11,file=trim(xsffile),status='old')
   
   do 
@@ -25,18 +23,18 @@ subroutine read_densities()
       if ( (line(1:23)=='BEGIN_BLOCK_DATAGRID_3D').or. &
            (line(1:22)=='BEGIN_BLOCK_DATAGRID3D') )&
       then
-      	  read(11,*);  read(11,*)
+          read(11,*);  read(11,*)
           read(11,*) nx,ny,nz
           ! note the PBC, e.i., density(1,*)=density(nx,*)
-      	  allocate(density(nx,ny,nz))
-      	  read(11,*) origin
+          allocate(density(nx,ny,nz))
+          read(11,*) origin
           read(11,*) vectors 
-      	  ! to skip empty lines which sometimes precede density data
+          ! to skip empty lines which sometimes precede density data
           iostat=1
           do while (iostat.ne.0)
               read(11,*,IOSTAT=iostat) density
           end do
-	  exit
+          exit
       end if
   
   end do

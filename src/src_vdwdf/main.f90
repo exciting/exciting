@@ -12,31 +12,24 @@ use param
 !------------------------------------------------------------------------------|
 
   implicit none
-  
-  integer             :: ifile, n, i
-       
+      
   !----------------------------------------------------
-  !              The Cuba integration parameters
+  !                Cuba integration parameters
   !----------------------------------------------------
   integer, parameter  :: ndim=6
   integer, parameter  :: ncomp=1
+  character*(*)       :: statefile
+  parameter (statefile = "")
   
-  external   integrand
+  integer, external   :: integrand
 
   real*8              :: integral(ncomp), error(ncomp), prob(ncomp)
   integer             :: nregions, fail
   integer*8           :: neval
   
-  !-----------------------------------------------------------------------!
-  !                                                                       !
-  !-----------------------------------------------------------------------!
-
   integer             :: time0, time1, corate
   integer             :: tot_time, minutes, seconds
   
-  integer             :: step, ii, jj, kk
-  real*8              :: x(6), res
-
 !------------------------------------------------------------------------------|
 !------------------ MAIN PROGRAM ----------------------------------------------|
 !------------------------------------------------------------------------------|
@@ -52,19 +45,13 @@ use param
   
 !-----------------------
 ! the main execution block (lldivonne is the Cuba library's routine)
-
-!  call lldivonne(ndim, ncomp, integrand,     &
-!    epsrel, epsabs, flags, mineval, maxeval, &
-!    key1, key2, key3, maxpass,               &
-!    border, maxchisq, mindeviation,          &
-!    ngiven, ldxgiven, 0., nextra, 0.,        &
-!    nregions, neval, fail, integral, error, prob)
-
+  
   call lldivonne(ndim, ncomp, integrand, userdata, &
     epsrel, epsabs, flags, seed, mineval, maxeval, &
     key1, key2, key3, maxpass,                     &
     border, maxchisq, mindeviation,                &
     ngiven, ldxgiven, 0., nextra, 0.,              &
+    statefile,                                     &
     nregions, neval, fail, integral, error, prob)
 
 !-----------------------  
