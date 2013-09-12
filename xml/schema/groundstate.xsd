@@ -329,6 +329,14 @@
             <xs:attribute default="XC_GGA_X_PBE" name="exchange" use="optional">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
+                  <xs:enumeration value="none">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 0 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> No exchange </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
                   <xs:enumeration value="XC_LDA_X">
                     <xs:annotation>
                       <xs:appinfo>
@@ -816,6 +824,14 @@
             <xs:attribute default="XC_GGA_C_PBE" name="correlation" use="optional">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
+                   <xs:enumeration value="none">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 0 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> No correlations </xs:documentation>
+                    </xs:annotation>
+                   </xs:enumeration>
                    <xs:enumeration value="XC_LDA_C_WIGNER">
                      <xs:annotation>
                        <xs:appinfo>
@@ -1847,8 +1863,8 @@
             <oldname>nonreplace</oldname>
           </xs:appinfo>
           <xs:documentation> Decides if the ground state is calculated starting from scratch, using
-            the densities from file or if it is skipped and only its associated input parameters are
-            read in. Also applies fo structural optimization run.</xs:documentation>
+            the densities from file, or if its calculation is skipped and only the associated input parameters are
+            read in.</xs:documentation>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">

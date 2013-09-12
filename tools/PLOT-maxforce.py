@@ -125,6 +125,8 @@ while True:
         goal=float(line.split()[7])
         b.append(goal)
         a.append(float(iter-1))
+
+if (abs(y[-1]) < 1.e-8 ): y[-1] = 1.e-8
         
 if (lgoal < 1): 
     os.system("rm -f tempfile")

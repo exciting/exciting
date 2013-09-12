@@ -11,7 +11,7 @@
         
         implicit none
         real(8), intent(IN) :: forcetol
-        integer :: is, ia, nstep
+        integer :: is, ia, nstep, ias
         character*(77) :: string
 
         nstep = 0
@@ -26,6 +26,13 @@
                 if (lstep) then 
                     istep = istep-1
                     lstep = .False.
+                    do is = 1, nspecies
+                        do ia = 1, natoms (is)
+                            ias = idxas (ia, is)
+                            tauatm(ias) = 0.d0
+                            forcetp(:, ias) = 0.d0
+                        end do
+                    end do
                 else
                     write(string,'("Optimization step ", I4,"    (method = newton)")') istep
                     call printbox(60,"-",string)

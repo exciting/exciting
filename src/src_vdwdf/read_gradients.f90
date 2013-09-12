@@ -8,14 +8,10 @@ subroutine read_gradients()
   use param
   
   implicit none
-  integer          :: i, j, k
-  real*8           :: crossab(3)
  
   character        :: line*120
   integer          :: iostat
   integer          :: gnx, gny, gnz
-  
-  real*8           :: sum
   
   open(11,file=trim(xsfgradients),status='old',ERR=10)
 
@@ -54,7 +50,7 @@ subroutine read_gradients()
   return
 
 ! else if the gradient file does not exist
-  10  write(*,*) 'read_density.f90 : Density gradients are calculated using a three-point formula'
+  10  write(*,'(a)') '   Density gradients are calculated using a three-point formula'
   call evalGradients()
 
 end subroutine read_gradients

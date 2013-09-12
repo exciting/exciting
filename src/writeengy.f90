@@ -14,8 +14,9 @@ Subroutine writeengy (fnum)
       Integer, Intent (In) :: fnum
       character(len=77)    :: string
 
-      write (fnum, '(" Fermi energy", T45, ": ", F22.12)') efermi
       write (fnum, '(" Total energy", T45, ": ", F22.12)') engytot
+      write (fnum, '(" ___________________________________________________________________")')
+      write (fnum, '(" Fermi energy", T45, ": ", F22.12)') efermi
 
       If ( input%groundstate%outputlevelnumber > 0 ) Then
          write (fnum, '(" Kinetic energy"    , T45, ": ", F22.12)') engykn
