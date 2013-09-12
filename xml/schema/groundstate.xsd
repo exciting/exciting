@@ -1875,7 +1875,7 @@
         </xs:simpleType>
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="ngridk" type="integertriple"
-        use="optional" default="0 0 0" >
+        use="optional" default="1 1 1" >
         <xs:annotation>
           <xs:appinfo>
             <oldname>ngridk</oldname>
