@@ -2328,63 +2328,63 @@
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="LDAPerdew-Zunger">
+            <xs:enumeration value="LDA_PZ">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>2</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LSDAPerdew-Wang">
+            <xs:enumeration value="LDA_PW">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>3</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LDA-X-alpha">
+            <xs:enumeration value="LDA_XALPHA">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>4</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LSDA-Barth-Hedin">
+            <xs:enumeration value="LDA_vBH">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>5</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAPerdew-Burke-Ernzerhof">
+            <xs:enumeration value="GGA_PBE">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>20</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGArevPBE">
+            <xs:enumeration value="GGA_PBE_R">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>21</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAPBEsol">
+            <xs:enumeration value="GGA_PBE_SOL">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>22</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGA-Wu-Cohen">
+            <xs:enumeration value="GGA_WC">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>26</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAArmiento-Mattsson">
+            <xs:enumeration value="GGA_AM05">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>30</oldnr>
