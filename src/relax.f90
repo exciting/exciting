@@ -31,9 +31,9 @@ subroutine relax
       elseif (input%relax%history) then
         select case (trim(input%relax%historyformat))
         case('xyz','XYZ')
-             call system ('mv history.xyz history.xyz.backup')
+             call system ('mv history.xyz history.xyz.backup >& /dev/null')
         case('gulp','GULP')
-             call system ('mv history.gin history.gin.backup')
+             call system ('mv history.gin history.gin.backup >& /dev/null')
         case default
             write(*,*)'ERROR(relax): Unknown output format'
             stop
