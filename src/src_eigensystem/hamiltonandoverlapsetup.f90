@@ -66,6 +66,20 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
             Call olplolon (system%overlap, is, ia, ngp)
              Call timesec (ts1)
              time_olplolon=ts1-ts0+time_olplolon
+         if (input%groundstate%ValenceRelativity.eq.'lkh') then
+             Call timesec (ts0)
+            Call hml1aan (system%h1, is, ia, ngp, apwalm)
+             Call timesec (ts1)
+             time_hmlaan=ts1-ts0+time_hmlaan
+             Call timesec (ts0)
+            Call hml1alon (system%h1, is, ia, ngp, apwalm)
+             Call timesec (ts1)
+             time_hmlalon=ts1-ts0+time_hmlalon
+             Call timesec (ts0)
+            Call hml1lolon (system%h1, is, ia, ngp)
+             Call timesec (ts1)
+             time_hmllolon=ts1-ts0+time_hmllolon
+         endif
          End Do
       End Do
 !
@@ -78,6 +92,12 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
       Call olpistln (system%overlap, ngp, igpig)
        Call timesec (ts1)
        time_olpistln=ts1-ts0+time_olpistln
+         if (input%groundstate%ValenceRelativity.eq.'lkh') then
+            Call timesec (ts0)
+            Call hml1istln (system%h1, ngp, igpig, vgpc)
+            Call timesec (ts1)
+            time_hmlistln=ts1-ts0+time_hmlistln
+         endif
       threshold = 1e-16
 !call HermitianMatrixTruncate(system%hamilton,threshold)
 !call HermitianMatrixTruncate(system%overlap,threshold)

@@ -181,8 +181,11 @@ Subroutine rlkhint (m, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
               p00p=p0p(ir-1)+(r2-r(ir-1))*(pcf(1,ir-1)+(r2-r(ir-1))*(pcf(2,ir-1)+(r2-r(ir-1))*pcf(3,ir-1)))
               q00p=q0p(ir-1)+(r2-r(ir-1))*(qcf(1,ir-1)+(r2-r(ir-1))*(qcf(2,ir-1)+(r2-r(ir-1))*qcf(3,ir-1)))
 ! Assuming m=1
-              tmp1=tmp1 - A*q00p*(alpha**2)/((1d0-0.5d0*e*(alpha**2)/rm0)**2)
-              tmp2=tmp2 + A*p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm0*r2)**2))
+!              tmp1=tmp1 - A*q00p*(alpha**2)/((1d0-0.5d0*e*(alpha**2)/rm0)**2)
+!              tmp2=tmp2 + A*p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm0*r2)**2))
+! no assumptions
+            tmp1=tmp1 - A*q00p
+            tmp2=tmp2 + A*p00p    
               
             End If
 
@@ -196,9 +199,13 @@ Subroutine rlkhint (m, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
           detq=tmp1*A*B2+tmp2*(1d0-A*CC)
           p0old=detp/det
           q0old=detq/det
-          p1old = -B1*q0old - CC*p0old+ q00p*(alpha**2)/((1d0-0.5d0*e*(alpha**2)/rm0)**2)
 !m=1
-          q1old = -B2*p0old + CC*q0old- p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm0*r2)**2))
+!          p1old = -B1*q0old - CC*p0old+ q00p*(alpha**2)/((1d0-0.5d0*e*(alpha**2)/rm0)**2)
+!          q1old = -B2*p0old + CC*q0old- p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm0*r2)**2))
+! any m
+          p1old = -B1*q0old - CC*p0old+ q00p
+          q1old = -B2*p0old + CC*q0old- p00p
+
          enddo
          pest(itmax-step+1)=p0old
          qest(itmax-step+1)=q0old
@@ -217,8 +224,11 @@ Subroutine rlkhint (m, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
         rm = rm0/(1d0 - 0.5d0*e*(alpha**2)/rm0)
         p0(ir)=pest(itmax)
         q0(ir)=qest(itmax)
-        p1(ir) = -B1*q0(ir) - CC*p0(ir)+ q00p*(alpha**2)/((1d0-0.5d0*e*(alpha**2)/rm0)**2)
-        q1(ir) = -B2*p0(ir) + CC*q0(ir)- p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm0*r(ir))**2))
+!        p1(ir) = -B1*q0(ir) - CC*p0(ir)+ q00p*(alpha**2)/((1d0-0.5d0*e*(alpha**2)/rm0)**2)
+!        q1(ir) = -B2*p0(ir) + CC*q0(ir)- p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm0*r(ir))**2))
+        p1(ir) = -B1*q0(ir) - CC*p0(ir)+ q00p
+        q1(ir) = -B2*p0(ir) + CC*q0(ir)- p00p
+
 !          p1old = -B1*q0old - CC*p0old
 !          q1old = -B2*p0old + CC*q0old-dble (m) * p00p
 
@@ -265,8 +275,12 @@ Subroutine rlkhint (m, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
               p00p=p0p(ir-1)+(r2-r(ir-1))*(pcf(1,ir-1)+(r2-r(ir-1))*(pcf(2,ir-1)+(r2-r(ir-1))*pcf(3,ir-1)))
               q00p=q0p(ir-1)+(r2-r(ir-1))*(qcf(1,ir-1)+(r2-r(ir-1))*(qcf(2,ir-1)+(r2-r(ir-1))*qcf(3,ir-1)))
 ! Assuming m=1
-              tmp1=tmp1 - A*q00p*(alpha**2)/((1d0-0.5d0*e*(alpha**2)/rm0)**2)
-              tmp2=tmp2 + A*p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm0*r2)**2))
+!              tmp1=tmp1 - A*q00p*(alpha**2)/((1d0-0.5d0*e*(alpha**2)/rm0)**2)
+!              tmp2=tmp2 + A*p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm0*r2)**2))
+! Any m
+              tmp1=tmp1 - A*q00p
+              tmp2=tmp2 + A*p00p
+
 
             End If
 
@@ -280,8 +294,12 @@ Subroutine rlkhint (m, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
           detq=tmp1*A*B2+tmp2*(1d0-A*CC)
           p0old=detp/det
           q0old=detq/det
-          p1old = -B1*q0old - CC*p0old+q00p*(alpha**2)/((1d0-0.5d0*e*(alpha**2)/rm0)**2)
-          q1old = -B2*p0old + CC*q0old-p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm0*r2)**2))
+!          p1old = -B1*q0old - CC*p0old+q00p*(alpha**2)/((1d0-0.5d0*e*(alpha**2)/rm0)**2)
+!          q1old = -B2*p0old + CC*q0old-p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm0*r2)**2))
+!any m
+          p1old = -B1*q0old - CC*p0old+q00p
+          q1old = -B2*p0old + CC*q0old-p00p
+
 
          enddo
 !         write(*,*)

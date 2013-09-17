@@ -203,9 +203,9 @@ subroutine scf_cycle
             !call genpchgs(ik,evecfv,evecsv)
             Deallocate (evalfv, evecfv, evecsv)
         End Do
-        if (input%groundstate%ValenceRelativity.eq."scalar") then
-           deallocate(meffig)
-         endif
+        if (allocated(meffig)) deallocate(meffig)
+        if (allocated(m2effig)) deallocate(m2effig)
+
 
 #ifdef KSMP
 !$OMP END DO

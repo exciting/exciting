@@ -51,9 +51,9 @@ use modinput
       Integer :: im, kpa, ir
 ! fine-structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
-      Real (8) :: rm,rmfactor,energyref
+      Real (8) :: rm,rm0,rmfactor,energyref
 ! allocatable arrays
-      Real (8), Allocatable :: p0p (:),q0p(:)
+      Real (8), Allocatable :: p0p (:),q0p(:),pe(:,:),qe(:,:)
       Real (8), Allocatable :: g0 (:), g1 (:)
       Real (8), Allocatable :: f0 (:), f1 (:)
       Real (8), Allocatable :: cf (:, :)
@@ -75,7 +75,7 @@ use modinput
       End If
       If (k .Eq. 0) Then
          if ((input%groundstate%ValenceRelativity.eq."scalar").or.(input%groundstate%ValenceRelativity.eq."none")) then
-! use ZORA Schrodinger equation
+! ZORA
 #ifdef SPECIES
            rmfactor=1d0
 #else
@@ -97,6 +97,7 @@ use modinput
            End If
            Deallocate (p0p)
          elseif (input%groundstate%ValenceRelativity.eq."kh") then
+! Koelling-Harmon without small component
            Allocate (p0p(nr))
            Allocate (q0p(nr))
            if (m.eq.0) then 
@@ -111,18 +112,47 @@ use modinput
              stop
            endif
            Deallocate (p0p,q0p)
-!           write(*,*) 'howdy'
-!           stop 
          elseif (input%groundstate%ValenceRelativity.eq."lkh") then
-           Allocate (p0p(nr))
-           Allocate (q0p(nr))
-           if (m.eq.0) then
+! Linearized Koelling-Harmon without small component
+           Allocate (p0p(nr),q0p(nr))
+          
+           if (m.le.3) then
              call rlkhint (0, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
-           elseif (m.eq.1) then
-             call rkhint (0, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
-             p0p (:) = p0 (:)
-             q0p (:) = q0 (:)
-             call rlkhint (1, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
+             if (m.gt.0) then
+               Allocate(pe(nr,m),qe(nr,m))
+               pe(:,1)=p0(:)
+               qe(:,1)=q0(:)
+               do ir=1,nr
+                 rm0 = 1.d0 - 0.5d0 * (alpha**2) *  vr(ir)
+                 rm = rm0/(1d0 - 0.5d0*e*(alpha**2)/rm0)
+                 q0p(ir)=(alpha*rm/rm0)**2*qe(ir,1)
+                 p0p(ir)=(1d0+dble(l*(l+1))*(alpha/(2d0*rm0*r(ir)))**2)*pe(ir,1)
+               enddo
+               call rlkhint (1, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
+               if (m.gt.1) then
+                 pe(:,2)=p0(:)
+                 qe(:,2)=q0(:)
+                 do ir=1,nr
+                   rm0 = 1.d0 - 0.5d0 * (alpha**2) *  vr(ir)
+                   rm = rm0/(1d0 - 0.5d0*e*(alpha**2)/rm0)
+                   q0p(ir)=2d0*(alpha*rm/rm0)**2*qe(ir,2)+(alpha*rm/rm0)**4/rm*qe(ir,1)
+                   p0p(ir)=2d0*(1d0+dble(l*(l+1))*(alpha/(2d0*rm0*r(ir)))**2)*pe(ir,2)
+                 enddo
+                 call rlkhint (2, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
+                 if (m.gt.2) then
+                   pe(:,3)=p0(:)
+                   qe(:,3)=q0(:)
+                   do ir=1,nr
+                     rm0 = 1.d0 - 0.5d0 * (alpha**2) *  vr(ir)
+                     rm = rm0/(1d0 - 0.5d0*e*(alpha**2)/rm0)
+                     q0p(ir)=3d0*(alpha*rm/rm0)**2*qe(ir,3)+2d0*(alpha*rm/rm0)**4/rm*qe(ir,2)+1.5d0*(alpha*rm/rm0)**6/(rm**2)*qe(ir,1)
+                     p0p(ir)=3d0*(1d0+dble(l*(l+1))*(alpha/(2d0*rm0*r(ir)))**2)*pe(ir,3)
+                   enddo
+                   call rlkhint (3, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
+                 endif 
+               endif
+               deallocate(pe,qe)
+             endif
            else
              write(*,*) 'Error(rschroddme): energy derivative',m,'not implemented.'
              stop

@@ -30,13 +30,9 @@ Subroutine genmeffig
 ! allocatable arrays
       Complex (8), Allocatable :: zfft (:)
       Allocate (zfft(ngrtot))
-      if (input%groundstate%ValenceRelativity.eq."scalar") then
-!         write(*,*) 'howdy'
+      if (input%groundstate%ValenceRelativity.ne."none") then
          energyref=input%groundstate%energyref
-!         if (.not.allocated(meffig))
-!         write(*,*) 'allocation' 
          allocate(meffig(ngvec))
-!         zfft(:)=cfunir(:)/(1d0+(energyref-veffir(:))*a2)
          Do ig = 1, ngrtot
             zfft(ig)=cfunir(ig)/(1d0+(energyref-veffir(ig))*a2)
          End Do
@@ -45,10 +41,18 @@ Subroutine genmeffig
            ifg = igfft (ig)
            meffig (ig) = zfft (ifg)
          End Do
-!         write(*,*) 'done'
-!         Do ig = 1, ngvec
-!            zfft(:)
-!         enddo
+      endif
+      if (input%groundstate%ValenceRelativity.eq."lkh") then
+         energyref=input%groundstate%energyref
+         allocate(m2effig(ngvec))
+         Do ig = 1, ngrtot
+            zfft(ig)=cfunir(ig)/((1d0+(energyref-veffir(ig))*a2)**2)
+         End Do
+         Call zfftifc (3, ngrid,-1, zfft)
+         Do ig = 1, ngvec
+           ifg = igfft (ig)
+           m2effig (ig) = zfft (ifg)
+         End Do
       endif
 
       Deallocate (zfft)

@@ -29,6 +29,13 @@ Module mod_eigensystem
       Real (8), Allocatable :: hloa (:, :, :, :, :)
 ! local-orbital-local-orbital Hamiltonian integrals
       Real (8), Allocatable :: hlolo (:, :, :, :)
+! The stuff for the linearized Koelling-Harmon
+! APW-APW Hamiltonian integrals
+      Real (8), Allocatable :: h1aa (:, :, :, :)
+! local-orbital-APW Hamiltonian integrals
+      Real (8), Allocatable :: h1loa (:, :, :, :)
+! local-orbital-local-orbital Hamiltonian integrals
+      Real (8), Allocatable :: h1lolo (:, :, :)
 ! complex Gaunt coefficient array
       Complex (8), Allocatable :: gntyry (:, :, :)
 ! tseqit is .true. if the first-variational secular equation is to be solved

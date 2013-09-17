@@ -88,7 +88,7 @@ Subroutine DIISseceqnfv (ik, ispn, apwalm, vgpc, evalfv, evecfv)
       Call cpu_time (cpu0)
       packed = .False.
       jacdav = .False.
-      Call newsystem (system, packed, n)
+      Call newsystem (system, packed, n,.false.)
       Call hamiltonandoverlapsetup (system, ngk(ik, ispn), apwalm, &
      & igkig(1, ik, ispn), vgpc)
 !

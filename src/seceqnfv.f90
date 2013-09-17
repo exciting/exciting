@@ -60,14 +60,36 @@ Subroutine seceqnfv (nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
 
       packed = input%groundstate%solver%packedmatrixstorage
 
-
-      Call newsystem (system, packed, nmatp)
+!      if (input%groundstate%ValenceRelativity.eq.'lkh') then
+       Call newsystem (system, packed, nmatp,(input%groundstate%ValenceRelativity.eq.'lkh'))
+!      else
+!       Call newsystem (system, packed, nmatp,.false.)
+!      endif
       Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
 !
   !------------------------------------!
   !     solve the secular equation     !
   !------------------------------------!
-     Call solvewithlapack(system,nstfv,evecfv,evalfv)
+if (.false.) then
+      do ik=1,system%h1%rank
+        do jk=1,system%h1%rank
+          !write(*,*) real(system%h1%za(jk,ik)),real(system%hamilton%za(jk,ik)),real(system%overlap%za(jk,ik))
+          write(*,*) real(system%h1%za(jk,ik)),imag(system%h1%za(jk,ik)),abs(system%h1%za(jk,ik))
+        enddo
+        read(*,*)
+      enddo
+endif
+      if (input%groundstate%ValenceRelativity.eq.'lkh') then
+        if (packed) then
+          system%overlap%zap=system%overlap%zap+system%h1%zap
+          system%hamilton%zap=system%hamilton%zap+system%h1%zap*input%groundstate%energyref
+        else
+          system%overlap%za=system%overlap%za+system%h1%za
+          system%hamilton%za=system%hamilton%za+system%h1%za*input%groundstate%energyref
+        endif
+      endif
+      
+      Call solvewithlapack(system,nstfv,evecfv,evalfv)
 
 End Subroutine seceqnfv
 !EOC

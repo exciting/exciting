@@ -21,7 +21,7 @@ Module modfvsystem
     End Type HermitianMatrix
     !
     Type evsystem
-        Type (HermitianMatrix) :: hamilton, overlap
+        Type (HermitianMatrix) :: hamilton, overlap, h1
     End Type evsystem
 !
 Contains
@@ -55,12 +55,13 @@ Contains
     End Subroutine deletematrix
     !
     !
-    Subroutine newsystem (self, packed, rank)
+    Subroutine newsystem (self, packed, rank, h1too)
         Type (evsystem), Intent (Out) :: self
-        Logical, Intent (In) :: packed
+        Logical, Intent (In) :: packed, h1too
         Integer, Intent (In) :: rank
         Call newmatrix (self%hamilton, packed, rank)
         Call newmatrix (self%overlap, packed, rank)
+        if (h1too) Call newmatrix (self%h1, packed, rank)
     End Subroutine newsystem
     !
     !
@@ -68,6 +69,7 @@ Contains
         Type (evsystem), Intent (Inout) :: self
         Call deletematrix (self%hamilton)
         Call deletematrix (self%overlap)
+        if (associated(self%h1%za).or.associated(self%h1%zap)) Call deletematrix (self%h1)
     End Subroutine deleteystem
     !
     !
