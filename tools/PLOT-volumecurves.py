@@ -24,7 +24,7 @@ order_of_fit=2
 test=True
 dirs=[]
 print "\n################################################\n"
-print "    Enter list if working directories "
+print "    Enter list of working directories "
 print '    Entering "Quit" will terminate the input\n'
 print "################################################\n"
 
