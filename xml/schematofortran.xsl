@@ -626,7 +626,7 @@ end function</xsl:text>
 <xsl:value-of select="../../../../@name"/><xsl:value-of select="../../@name"/>
 <xsl:text>=0
 case default
-write(*,*) "Parser ERROR: '", string,"' is not valid selection for</xsl:text> <xsl:value-of select="../../../@name|../../@name"/> <xsl:text> "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection for </xsl:text> <xsl:value-of select="../../../@name|../../@name"/> <xsl:text> "
 stop 
 end select
 end function
