@@ -22,6 +22,25 @@ subroutine relax
     Logical :: exist
     character*(77) :: string
 
+!_________________________________________________________________________________________________
+! initialize step sizes, the previous forces, and atomic position in cartesian coordinates
+
+    If (allocated(forcetp)) deallocate (forcetp)
+    Allocate (forcetp(3, natmtot))
+    If (allocated(tauatm)) deallocate (tauatm)
+    Allocate (tauatm(natmtot))
+    If (allocated(tauxyz)) deallocate (tauxyz)
+    Allocate (tauxyz(3, natmtot))
+    If (associated(input%relax)) Then
+        tauatm (:) = input%relax%tau0atm
+        tauxyz (:, :) = input%relax%tau0atm
+    Else
+        tauatm (:) = 0
+        tauxyz (:, :) = 0
+    End If
+    forcetp (:, :) = 0.d0
+    atposc_1(:,:,:) = atposc(:,:,:)
+
 !_____________________________________________________________
 ! Write first (if required) the starting configuration on file
 
@@ -42,7 +61,6 @@ subroutine relax
         call writehistory
       end if
     end if
-
 
 !    if (rank .Eq. 0) then
 !      if (input%relax%history) then

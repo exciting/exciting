@@ -64,8 +64,9 @@ subroutine lbfgs_driver
       integer                :: i, j
       character(1024)        :: message
       integer, allocatable   :: amap(:,:)
-      integer                :: nscf, nconf
+      integer                :: nscf, nconf, ncheckconv
       logical                :: lnconv
+      real(dp)               :: tsec
 
       if (istep+1>input%relax%maxsteps) return
 
@@ -84,8 +85,8 @@ subroutine lbfgs_driver
           end if
       end if
 
-!_______________________________________________________________________
-! Initialize some L-BFGS-B library parameters (see src/Lbfgs.3.0/README)
+!________________________________________________________________________
+! Initialize some L-BFGS-B library parameters (see src/Lbfgsb.3.0/README)
   
       m = 5         ! number of corrections used in the limited memory matrix
       iprint = -1   ! controls the frequency and type of output generated
@@ -100,7 +101,7 @@ subroutine lbfgs_driver
       do is = 1, nspecies
         do ia = 1, natoms(is)
           do i = 1, 3
-            if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) then
+            if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) then
               n = n+1
             end if
           end do
@@ -108,6 +109,7 @@ subroutine lbfgs_driver
       end do
 
       if (n==0) then
+        call warning(' ')
         call warning('WARNING(lbfgs_driver):')
         write(message,'(" No active degrees of freedom = Nothing to relax! Check lock options in your input file")')
         call warning(message)
@@ -122,28 +124,24 @@ subroutine lbfgs_driver
       allocate( wa(2*m*n + 5*n + 11*m*m + 8*m) )
       allocate( amap(3,n) )
 
-!_______________________
-! Set search constraints
-
       j = 0
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias = idxas(ia,is)
           do i = 1, 3
-            if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) then
+            if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) then
               j = j+1
               amap(1,j)=i; amap(2,j)=ia; amap(3,j)=is
-              nbd(j) = 2 ! constraint optimization (see src/Lbfgsb.3.0/README)
-              x(j) = atposc(i,ia,is)
-              ! l and u boundaries are used only when nbd > 0
-              l(j) = x(j)-input%relax%taubfgs
-              u(j) = x(j)+input%relax%taubfgs
             end if
           end do
         end do
       end do
-
+  
 !!!!!!INITIALIZE the loop
+
+      ncheckconv = 0
+
+99    continue
 
       nscf = 0
       nconf = 0
@@ -157,27 +155,52 @@ subroutine lbfgs_driver
                   ctask(1:5).eq.'NEW_X') .and. &
                   lnconv )
 
-                                  !write(60,*) "loop starts ", ctask
+!_______________________
+! Set search constraints
+
+        if ( ctask(1:5).eq.'START' .or. ctask(1:5).eq.'NEW_X') then
+            j = 0
+            do is = 1, nspecies
+              do ia = 1, natoms(is)
+                ias = idxas(ia,is)
+                do i = 1, 3
+                  if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) then
+                    j = j+1
+                    amap(1,j)=i; amap(2,j)=ia; amap(3,j)=is
+                    nbd(j) = 2 ! constraint optimization (see src/Lbfgsb.3.0/README)
+                    x(j) = atposc(i,ia,is)
+                    ! l and u boundaries are used only when nbd > 0
+                    l(j) = x(j)-input%relax%taubfgs
+                    u(j) = x(j)+input%relax%taubfgs
+                  end if
+                end do
+              end do
+            end do
+        end if
 
 !______________________________________     
 ! This is the call to the L-BFGS-B code
-
-                                  !write(60,*) " before"
-                                  !write(60,'(6f12.6)') x
       
         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa,ctask,iprint, &
         &           csave,lsave,isave,dsave)
-
-                                  !write(60,*) " after"
-                                  !write(60,'(6f12.6)') x
-                                  !write(60,*) ctask, nconf
 
 !_____________________________________________________
 ! the minimization routine has returned to request the
 ! function f and gradient g values at the current x
 
         if (ctask(1:2) .eq. 'FG') then
-          call calcEnergyForces
+          if (nconf .ge. input%relax%maxbfgs) then
+            if (rank==0) then 
+              call warning(' ')
+              call warning('Warning(lbfgs_driver):')
+              call warning(' Reached maximum number of investigated configurations')
+              write(message,'(" for a single BFGS relaxation step :         ",I3,2X,A4)') nconf, ctask(1:4)
+              call warning(message)
+            end if 
+            ctask(1:4) = 'NCFG'
+          else
+            call calcEnergyForces
+          end if
         else 
          
 !_____________________________________________________
@@ -211,9 +234,9 @@ subroutine lbfgs_driver
 !_____________________________________________________________
 ! write lattice vectors and optimised atomic positions to file
 
-!                Call writehistory(istep) 
                 Call writehistory
                 Call writegeometryxml(.True.)
+
 !__________________________________________________
 ! write the optimized interatomic distances to file
 
@@ -238,15 +261,27 @@ subroutine lbfgs_driver
                 call printbox(60,"-",string)
             end if
 
-            if ((ctask(1:4).eq.'CONV') .or. (ctask(1:4).eq.'ABNO')) lnconv = .False.
+          end if !!!!!!!! 'NEW_X'
 
-          end if ! 'NEW_X'
+          if (ctask(1:4).eq.'CONV') then 
+              ncheckconv = ncheckconv+1
+              if (ncheckconv .lt. 20) then
+                  if (rank==0) then
+                      call warning(' ')
+                      call warning('Warning(lbfgs_driver):')
+                      write(message,'(" Restarting BFGS at step ", I3)') istep
+                      call warning(message) 
+                      write(message,'(" ctask = ",A)') trim(ctask)
+                      call warning(message) 
+                  end if
+                  goto 99
+              end if 
+              lnconv = .False.
+          end if
+
+          if (ctask(1:4).eq.'ABNO') lnconv = .False.
           
-                                  !write(60,*) "else  ", ctask 
-
         end if
-
-                                  !write(60,*) "final ", ctask
 
       end do
 
@@ -255,19 +290,21 @@ subroutine lbfgs_driver
 !________________________________________________________
 ! Use Newton or harmonic method if BFGS does not converge
 
-      if ((ctask(1:4).eq.'CONV') .or. (ctask(1:4).eq.'ABNO')) then
+      if ((ctask(1:4).eq.'CONV') .or. (ctask(1:4).eq.'ABNO') .or. (ctask(1:4).eq.'NCFG')) then
         istep = istep+1
-        if (input%relax%endbfgs.eq.'harmonic') then
-          string = "BFGS scheme not converged -> Switching to harmonic method"
-        else 
-          string = "BFGS scheme not converged -> Switching to newton method"
-        end if
         if (rank .Eq. 0) then
           write(60,*)
-          write(60,*) string
+          write(60,'(3A)') " BFGS scheme not converged -> Switching to ", trim(input%relax%endbfgs), " method"
           write(60,*)
           call flushifc(60)
           lstep = .True.
+          call warning(' ')
+          call warning('Warning(lbfgs_driver):')
+          call warning(' BFGS scheme not converged')
+          write(message,'(" ctask = ",A)') trim(ctask)
+          call warning(message) 
+          write(message,'(" -> Switching to ",A," method")') trim(input%relax%endbfgs)
+          call warning(message) 
         end if
         if (input%relax%endbfgs.eq.'harmonic') then
            call harmonic(input%relax%epsforce)
@@ -297,35 +334,10 @@ contains
 
         call updatepositions
 
-!__________________________________
-! check for overlapping muffin-tins
+!_______________________
+! restart initialization
 
-        call checkmt
-
-!_________________________________________
-! generate structure factors for G-vectors
-
-        Call gensfacgp (ngvec, vgc, ngvec, sfacg)
-
-!_____________________________________
-! generate the characteristic function
-
-        Call gencfun
-
-!___________________________________________
-! generate structure factors for G+k-vectors
-
-        Do ik = 1, nkpt
-            Do ispn = 1, nspnfv
-                Call gensfacgp (ngk(ispn, ik), vgkc(:, :, ispn, ik), &
-               &  ngkmax, sfacgk(:, :, ispn, ik))
-            End Do
-        End Do
-
-!_________________________________________
-! determine the new nuclear-nuclear energy
-
-        Call energynn
+        Call init_relax
 
 !__________
 ! SCF cycle
@@ -374,11 +386,6 @@ contains
             end do
         end do
 
-!___________________________________________________________________
-! find the crystal symmetries and shift atomic positions if required
-
-        call findsymcrys
-    
     end subroutine updatepositions
       
 end subroutine

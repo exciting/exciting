@@ -94,6 +94,10 @@ Subroutine force
       Real (8) :: rfmtinp
       External rfmtinp
       Call timesec (ts0)
+
+      If (allocated(forcetot)) deallocate (forcetot)
+      Allocate (forcetot(3, natmtot))
+
       Allocate (rfmt(lmmaxvr, nrmtmax))
       Allocate (grfmt(lmmaxvr, nrmtmax, 3))
 !--------------------------------!
@@ -232,7 +236,7 @@ Subroutine force
             ias = idxas (ia, is)
             t1 = 0.d0
             Do i = 1, 3
-               if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) &
+               if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) &
               &   t1 = t1 + forcetot(i, ias)**2
             End Do
             t1 = sqrt(t1)

@@ -22,6 +22,15 @@ def shell_value(variable,vlist,default):
     for i in range(len(vlist)):
         if ( vlist[i] == variable ): v = os.environ[variable] ; e = True ; break
     return v, e
+    
+#-------------------------------------------------------------------------------
+    
+def flen(fname):
+    i = -1
+    with open(fname) as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1
 
 #-------------------------------------------------------------------------------
 
@@ -77,6 +86,10 @@ ifile1 = open("tempfile1","r")
 os.system("grep -A"+a2+" \""+idf+"\" "+str(inpf)+" | grep \"at\" | grep \" "+a2+" \" > tempfile2") 
 ifile2 = open("tempfile2","r")
 
+if ( (flen("tempfile1") < 1) or (flen("tempfile2") < 1) ) :
+    os.system("rm tempfile1") ; os.system("rm tempfile2")
+    sys.exit("\nData not (yet) available for visualization.\n")
+
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
 
@@ -114,7 +127,7 @@ ax.text(-0.23,0.5,ylabel,size=fontlabel,
 x = [] ; d1 = [] ; d2 = [] ; d3 = []
 
 iter=0
-soglia = 0.9
+soglia = 0.80
 
 while True:
     line1 = ifile1.readline().strip()
@@ -208,6 +221,10 @@ ax.yaxis.set_major_formatter(yfmt)
 if (abs(xmax-xmin) < 0.000000001): 
     xmax=xmax+1
     xmin=xmin-1
+    
+if (abs(ymax-ymin) < 0.000000001): 
+    ymax=ymax+0.1
+    ymin=ymin-0.1
 
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)

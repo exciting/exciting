@@ -17,7 +17,7 @@ subroutine writeforce(fnum,verbosity)
     do is = 1, nspecies
         do ia = 1, natoms (is)
             do i = 1, 3
-               if (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) go to 10
+               if (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) go to 10
             end do
         end do
     end do
@@ -45,7 +45,7 @@ subroutine writeforce(fnum,verbosity)
             if (totlock) then
                 do j = 1, 3
                     clabel(j) = "F"
-                    if (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(j)) clabel(j) = "T"
+                    if (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(j)) clabel(j) = "T"
                 end do
                 write(fnum,'(" atom ",I5,2x,A2,T18,": ",3F14.8,3x,3A3)') &
                &  i, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
