@@ -49,7 +49,7 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
       Integer :: ias, io1, io2
       Integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3
       Real (8) :: t1
-      Complex (8) zt1, zsum, zt2
+      Complex (8) zt1, zsum
       Real(8) :: alpha,a2,energyref
       Parameter (alpha=1d0 / 137.03599911d0)
 
@@ -85,7 +85,6 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
                      If (lm1 .Ge. lm3) Then
                         Do io2 = 1, apword (l3, is)
                            zsum = 0.d0
-                           zt2 = 0d0
                            Do l2 = 0, input%groundstate%lmaxvr
                               If (Mod(l1+l2+l3, 2) .Eq. 0) Then
                                  Do m2 = - l2, l2
@@ -102,15 +101,11 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
                                       & ias)
                                        
                                     End If
-!                                    zt2 = zt2 + gntyry (lm1, lm2, lm3) * (veffmt(lm2, nrmt(is), ias)/gntyry (1, 1, 1))*a2*2d0
                                     zsum = zsum + zt1
                                  End Do
                               End If
                            End Do
-!                           zt2=zt2+2d0*(gntyry (lm1, 1, lm3)*apwfr (nrmt(is), 1, io1, l1, ias) * apwdfr(io2, l1, ias))/gntyry (1, 1, 1)*(1d0-energyref*a2)
-!                           zsum=zsum+zt2*t1 
                            If (lm1 .Eq. lm3) zsum = zsum * 0.5d0
-!                           zsum=zsum+zt2*t1
                            If (Abs(dble(zsum))+Abs(aimag(zsum)) .Gt. &
                           & 1.d-20) Then
                               Call zaxpy (ngp, zsum, apwalm(1, io2, &
@@ -130,8 +125,7 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
             End Do
          End Do
       End Do
-    if (.not.input%groundstate%SymmetricKineticEnergy) then
-
+     if (.not.input%groundstate%SymmetricKineticEnergy) then
 ! kinetic surface contribution
       t1 = 0.25d0 * rmt (is) ** 2
       Do l1 = 0, input%groundstate%lmaxmat

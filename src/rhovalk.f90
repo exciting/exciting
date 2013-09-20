@@ -141,10 +141,28 @@ Subroutine rhovalk (ik, evecfv, evecsv)
                      Call wavefmt (input%groundstate%lradstep, &
                     & input%groundstate%lmaxvr, is, ia, ngk(1, ik), &
                     & apwalm, evecfv(:, j, 1), lmmaxvr, wfmt1)
+if (.false.) then
+             if (j.eq.1) then
+                 do irc=1,nrcmt (is)
+                   write(*,*) spr(irc,is),real(wfmt1(1, irc)),imag(wfmt1(1, irc))
+                 enddo
+                 read(*,*)
+             endif
+endif
 ! convert from spherical harmonics to spherical coordinates
                      Call zgemm ('N', 'N', lmmaxvr, nrcmt(is), lmmaxvr, &
                     & zone, zbshtvr, lmmaxvr, wfmt1, lmmaxvr, zzero, &
                     & wfmt3, lmmaxvr)
+if (.false.) then
+             if (j.eq.1) then
+!                 do irc=1,nrcmt (is)
+!                   write(*,*) spr(irc,is),real(wfmt3(1, irc,1)),imag(wfmt3(1, irc,1))
+                 do irc=1,lmmaxvr
+                    write(*,*) real(wfmt3(irc, nrcmt (is),1)),imag(wfmt3(irc,nrcmt (is),1))
+                 enddo
+                 read(*,*)
+             endif
+endif
                   End If
 ! add to the spin density matrix
                   If (associated(input%groundstate%spin)) Then
@@ -248,10 +266,17 @@ Subroutine rhovalk (ik, evecfv, evecsv)
                   zfft (ifg, 1) = evecfv (igk, j, 1)
                End Do
             End If
+            
 ! Fourier transform wavefunction to real-space
             Do ispn = 1, nspinor
                Call zfftifc (3, ngrid, 1, zfft(:, ispn))
             End Do
+if (.false.) then
+            do ir=1,50
+              write(*,*) ir,real(zfft(ir,1)),imag(zfft(ir,1))
+            enddo
+            stop
+endif
 !
             If (associated(input%groundstate%spin)) Then
 ! spin-polarised
