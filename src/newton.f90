@@ -16,6 +16,9 @@
 
         nstep = 0
 
+!_______________________
+! start relaxation steps
+
         do while ((forcemax>forcetol).and.(istep<input%relax%maxsteps))
 
             nstep = nstep+1
@@ -42,7 +45,6 @@
 !_____________________________________________________________
 ! write lattice vectors and optimised atomic positions to file
 
-!                Call writehistory(istep)
                 Call writehistory
                 Call writegeometryxml(.True.)
 
@@ -56,6 +58,11 @@
 ! update atomic positions
 
             Call updatpos
+
+!_______________________
+! restart initialization
+
+        Call init_relax
 
 !______________________________________________________
 ! begin new self-consistent loop with updated positions
@@ -102,7 +109,7 @@ contains
 
         Implicit None
         Integer :: ik, ispn, is, ia, ias, i
-        Real (8) :: t1
+        Real (8) :: t1, xdelta
 
         Do is = 1, nspecies
             Do ia = 1, natoms (is)
@@ -122,9 +129,18 @@ contains
                     tauatm(ias) = input%relax%tau0atm
                 End If
                 do i = 1, 3
-                    if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) &
-                   &   atposc(i,ia,is) = atposc(i,ia,is) + tauatm(ias)*(forcetot(i,ias)+forcetp(i,ias))
-                end do ! i
+                    if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) then
+                        xdelta = tauatm(ias)*(forcetot(i,ias)+forcetp(i,ias))
+                        if (abs(xdelta) .gt. input%relax%tau0atm) then
+                            if (xdelta < 0.0) then 
+                                xdelta = -input%relax%tau0atm
+                            else
+                                xdelta = input%relax%tau0atm
+                            end if
+                        end if
+                        atposc(i,ia,is) = atposc(i,ia,is) + xdelta
+                    end if 
+                end do 
             End Do
         End Do
 
@@ -143,41 +159,6 @@ contains
                 forcetp(:, ias) = forcetot(:, ias)
             End Do
         End Do
-
-!___________________________________________________________________
-! find the crystal symmetries and shift atomic positions if required
-
-        Call findsymcrys
-
-!__________________________________
-! check for overlapping muffin-tins
-
-        Call checkmt
-
-!_________________________________________
-! generate structure factors for G-vectors
-
-        Call gensfacgp (ngvec, vgc, ngvec, sfacg)
-
-!_____________________________________
-! generate the characteristic function
-
-        Call gencfun
-
-!___________________________________________
-! generate structure factors for G+k-vectors
-
-        Do ik = 1, nkpt
-            Do ispn = 1, nspnfv
-                Call gensfacgp (ngk(ispn, ik), vgkc(:, :, ispn, ik), &
-               &  ngkmax, sfacgk(:, :, ispn, ik))
-            End Do
-        End Do
-
-!_________________________________________
-! determine the new nuclear-nuclear energy
-
-        Call energynn
       
         Return
     End Subroutine updatpos

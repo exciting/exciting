@@ -80,12 +80,12 @@ Subroutine writegeometryxml (topt)
             Write (buffer, '(3F18.10)') (v (:)) 
             Call xml_AddAttribute (xf, "coord", trim(adjustl(buffer)))
             
-            lock=input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock
+            lock=input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz
             if (lock(1).or.lock(2).or.lock(3)) then
                 write(buffer,*) printLogical(lock(1)), &
                &                printLogical(lock(2)), &
                &                printLogical(lock(3))
-                call xml_AddAttribute (xf, "lock", trim(adjustl(buffer)))
+                call xml_AddAttribute (xf, "lockxyz", trim(adjustl(buffer)))
             End If
             
             If (associated(input%groundstate%spin)) Then
@@ -105,7 +105,7 @@ contains
 
       function printLogical(flag)
         logical, intent(IN) :: flag
-        character(5) :: printLogical
+        character(6) :: printLogical
         printLogical="false"
         if (flag) write(printLogical,'("true")')
       end function
