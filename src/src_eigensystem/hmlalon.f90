@@ -39,7 +39,7 @@ Subroutine hmlalon (hamilton, is, ia, ngp, apwalm)
                         If (Mod(l1+l2+l3, 2) .Eq. 0) Then
                            Do m2 = - l2, l2
                               lm2 = idxlm (l2, m2)
-                              zsum = zsum + gntyry (lm1, lm2, lm3) * &
+                              zsum = zsum + gntryy (lm2, lm3, lm1) * &
                              & hloa (ilo, io, l3, lm2, ias)
                            End Do
                         End If

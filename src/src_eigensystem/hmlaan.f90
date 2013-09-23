@@ -46,85 +46,155 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
       Complex (8) :: x (ngp), y (ngp)
 !
 ! local variables
-      Integer :: ias, io1, io2
+      Integer :: ias, io1, io2, naa1, naa3, inonz,ireset1,ireset3
       Integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3
       Real (8) :: t1
-      Complex (8) zt1, zsum
-      Real(8) :: alpha,a2,energyref
+      Complex (8) zt1, zsum, integrals(lmmaxapw),viens
+! It should have been integrals(lmmaxvr), but the hard-coded condition lmmaxvr<=lmmaxapw permits it
+      Real(8) :: alpha,a2,energyref,ta,tb
       Parameter (alpha=1d0 / 137.03599911d0)
-
+      complex(8),allocatable::zm1(:,:),zm2(:,:),middle(:,:),zm3(:,:)
+      logical :: test1
+      Complex (8) zdotu
+      external zdotu
+    
 ! automatic arrays
       Complex (8) zv (ngp)
 ! external functions
       Real (8) :: polynom
       Complex (8) zdotc
       External polynom, zdotc
-!      write(*,*) gntyry (1, 1, 1)
-!      stop0.5d0*alpha**2
+
+      call timesec(ta)
       energyref=input%groundstate%energyref
       if (input%groundstate%ValenceRelativity.eq."scalar") then
          a2=0.5d0*alpha**2
       else
          a2=0d0
       endif
-      t1 = 0.25d0 * rmt (is) ** 2
-      ias = idxas (ia, is)
+ ias = idxas (ia, is)
+
+      naa1=0
+      naa3=0
       Do l1 = 0, input%groundstate%lmaxmat
          Do m1 = - l1, l1
             lm1 = idxlm (l1, m1)
             Do io1 = 1, apword (l1, is)
-               zv (:) = 0.d0
-!$#OMP parallel default(none) &
-!$#OMP private(l3,m3,io2,l2,m2,zt1,zsum,lm3,lm2) &
-!$#OMP shared(gntyry,apwalm,apword,haa,ias,idxlm,is,lm1,lmaxvr,ngp,zv,lmaxapw,io1,l1)
-!$#OMP do  reduction(+:zv)
-!
-               Do l3 = 0, input%groundstate%lmaxapw
-                  Do m3 = - l3, l3
-                     lm3 = idxlm (l3, m3)
-                     If (lm1 .Ge. lm3) Then
-                        Do io2 = 1, apword (l3, is)
-                           zsum = 0.d0
-                           Do l2 = 0, input%groundstate%lmaxvr
-                              If (Mod(l1+l2+l3, 2) .Eq. 0) Then
-                                 Do m2 = - l2, l2
-                                    lm2 = idxlm (l2, m2)
-                                    If ((l2 .Eq. 0) .Or. (l1 .Ge. l3)) &
-                                   & Then
-                                       zt1 = gntyry (lm1, lm2, lm3) * &
-                                      & haa (io1, l1, io2, l3, lm2, &
-                                      & ias)
-!                                      if ((l1.eq.0).and.(l3.eq.0).and.(io1.eq.1).and.(io2.eq.1).and.(lm2.eq.1)) write(*,*) zt1
-                                    Else
-                                       zt1 = gntyry (lm1, lm2, lm3) * &
-                                      & haa (io1, l3, io2, l1, lm2, &
-                                      & ias)
-                                       
-                                    End If
-                                    zsum = zsum + zt1
-                                 End Do
-                              End If
-                           End Do
-                           If (lm1 .Eq. lm3) zsum = zsum * 0.5d0
-                           If (Abs(dble(zsum))+Abs(aimag(zsum)) .Gt. &
-                          & 1.d-20) Then
-                              Call zaxpy (ngp, zsum, apwalm(1, io2, &
-                             & lm3, ias), 1, zv, 1)
-                           End If
-                        End Do
-                     End If
-                  End Do
-               End Do
-!#$omp end do
-!#$omp end parallel
-               x = conjg (apwalm(1:ngp, io1, lm1, ias))
-               y = conjg (zv)
-               Call Hermitianmatrix_rank2update (hamilton, ngp, zone, &
-              & x, y)
-!
+              naa1=naa1+1
             End Do
          End Do
       End Do
+      Do l3 = 0, input%groundstate%lmaxapw
+         Do m3 = - l3, l3
+            lm3 = idxlm (l3, m3)
+            Do io2 = 1, apword (l3, is)
+              naa3=naa3+1
+            End Do
+         End Do
+      End Do
+      allocate(middle(naa1,naa3))
+      allocate(zm1(ngp,naa1))
+      allocate(zm3(naa3,ngp))
+      allocate(zm2(naa1,ngp))
+      naa1=0
+      naa3=0
+      Do l1 = 0, input%groundstate%lmaxmat
+         Do m1 = - l1, l1
+            lm1 = idxlm (l1, m1)
+            Do io1 = 1, apword (l1, is)
+              naa1=naa1+1
+              zm1(:,naa1)=conjg(apwalm(1:ngp, io1, lm1, ias))
+            End Do
+         End Do
+      End Do
+      Do l3 = 0, input%groundstate%lmaxapw
+         Do m3 = - l3, l3
+            lm3 = idxlm (l3, m3)
+            Do io2 = 1, apword (l3, is)
+              naa3=naa3+1
+              zm3(naa3,:)=apwalm(1:ngp, io2, lm3, ias)
+            End Do
+         End Do
+      End Do
+      middle=zzero
+      
+      inonz=1
+      naa1=0
+call timesec(tb)
+!write(*,*) tb-ta
+ta=tb
+      Do l1 = 0, input%groundstate%lmaxmat
+         Do m1 = - l1, l1
+            lm1 = idxlm (l1, m1)
+            ireset1=inonz
+            Do io1 = 1, apword (l1, is)
+!               zv (:) = 0.d0
+               naa1=naa1+1
+               naa3=0
+               Do l3 = 0, input%groundstate%lmaxapw
+                  Do m3 = - l3, l3
+                     lm3 = idxlm (l3, m3)
+                        ireset3=inonz
+                        Do io2 = 1, apword (l3, is)
+                          naa3=naa3+1
+                          zsum = 0.d0
+                          do while ((gntnonzlm3(inonz).eq.lm3).and.(gntnonzlm1(inonz).eq.lm1))
+                            zsum=zsum+gntnonz(inonz)*haa(gntnonzlm2(inonz), io2, l3, io1, l1, ias)
+                            inonz=inonz+1
+                          enddo
+!                          integrals(1:lmmaxvr)=dcmplx(haa (1:lmmaxvr, io2, l3, io1, l1, ias),0d0)
+!                          zsum=zdotu(lmmaxvr,gntryy (1:lmmaxvr, lm3, lm1),1,integrals(1:lmmaxvr),1)
+                          middle(naa1,naa3)=zsum
+                          if (io2.ne.apword (l3, is)) inonz=ireset3
+                        End Do
+                  End Do
+               End Do
+              if (io1.ne.apword (l1, is)) inonz=ireset1
+            End Do
+         End Do
+      End Do
+call timesec(tb)
+!write(*,*) tb-ta
+ta=tb
+
+      zm2=zzero
+      viens=dcmplx(1d0,0)
+      call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                 'N', &           ! TRANSB = 'N'  op( B ) = B.
+                 naa1, &          ! M ... rows of op( A ) = rows of C
+                 ngp, &           ! N ... cols of op( B ) = cols of C
+                 naa3, &          ! K ... cols of op( A ) = rows of op( B )
+                 viens, &          ! alpha
+                 middle, &        ! A
+                 naa1,&           ! LDA ... leading dimension of A
+                 zm3, &           ! B
+                 naa3, &          ! LDB ... leading dimension of B
+                 viens, &          ! beta
+                 zm2, &  ! C
+                 naa1 &      ! LDC ... leading dimension of C
+                )
+call timesec(tb)
+!write(*,*) tb-ta
+ta=tb 
+      call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                 'N', &           ! TRANSB = 'N'  op( B ) = B.
+                 ngp, &          ! M ... rows of op( A ) = rows of C
+                 ngp, &           ! N ... cols of op( B ) = cols of C
+                 naa1, &          ! K ... cols of op( A ) = rows of op( B )
+                 viens, &          ! alpha
+                 zm1, &           ! A
+                 ngp,&           ! LDA ... leading dimension of A
+                 zm2, &           ! B
+                 naa1, &          ! LDB ... leading dimension of B
+                 viens, &          ! beta
+                 hamilton%za, &  ! C
+                 hamilton%rank &      ! LDC ... leading dimension of C
+                )
+
+       
+call timesec(tb)
+!write(*,*) tb-ta
+!stop
      if (.not.input%groundstate%SymmetricKineticEnergy) then
 ! kinetic surface contribution
       t1 = 0.25d0 * rmt (is) ** 2
@@ -143,7 +213,11 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
          End Do
       End Do
     endif
-
+if (test1) then
+    deallocate(zm1,zm2,zm3,middle)
+else
+    deallocate(zm1,zm2)
+endif
 !    write(*,*) hamilton%za(2,2)
       Return
 End Subroutine

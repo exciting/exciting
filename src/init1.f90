@@ -34,7 +34,7 @@ Subroutine init1
       Integer :: ik, is, ia, ias, io, ilo
       Integer :: i1, i2, i3, ispn, iv (3)
       Integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3
-      Integer :: n1, n2, n3
+      Integer :: n1, n2, n3, nonzcount
       Real (8) :: vl (3), vc (3), boxl (3, 4), lambda
       Real (8) :: ts0, ts1
       real (8) :: vl1(3),vl2(3),vc1(3),vc2(3)
@@ -508,11 +508,12 @@ Subroutine init1
       If (allocated(ololo)) deallocate (ololo)
       Allocate (ololo(nlomax, nlomax, natmtot))
       If (allocated(haa)) deallocate (haa)
-      Allocate (haa(apwordmax, 0:input%groundstate%lmaxmat, apwordmax, &
-     & 0:input%groundstate%lmaxapw, lmmaxvr, natmtot))
+!      Allocate (haa(apwordmax, 0:input%groundstate%lmaxmat, apwordmax, 0:input%groundstate%lmaxapw, lmmaxvr, natmtot))
+      Allocate (haa(lmmaxvr, apwordmax, 0:input%groundstate%lmaxapw, apwordmax, 0:input%groundstate%lmaxmat, natmtot))
+
       If (allocated(hloa)) deallocate (hloa)
-      Allocate (hloa(nlomax, apwordmax, 0:input%groundstate%lmaxmat, &
-     & lmmaxvr, natmtot))
+      Allocate (hloa(nlomax, apwordmax, 0:input%groundstate%lmaxmat, lmmaxvr, natmtot))
+!      Allocate (hloa(lmmaxvr, nlomax, apwordmax, 0:input%groundstate%lmaxmat, natmtot))
       If (allocated(hlolo)) deallocate (hlolo)
       Allocate (hlolo(nlomax, nlomax, lmmaxvr, natmtot))
       if (input%groundstate%ValenceRelativity.eq.'lkh') then
@@ -526,6 +527,7 @@ Subroutine init1
 ! allocate and generate complex Gaunt coefficient array
       If (allocated(gntyry)) deallocate (gntyry)
       Allocate (gntyry(lmmaxmat, lmmaxvr, lmmaxapw))
+      nonzcount=0
       Do l1 = 0, input%groundstate%lmaxmat
          Do m1 = - l1, l1
             lm1 = idxlm (l1, m1)
@@ -535,14 +537,55 @@ Subroutine init1
                   Do l3 = 0, input%groundstate%lmaxapw
                      Do m3 = - l3, l3
                         lm3 = idxlm (l3, m3)
-                        gntyry (lm1, lm2, lm3) = gauntyry (l1, l2, l3, &
-                       & m1, m2, m3)
+!                        write(*,*) lm1,lm2,lm3
+!                        read(*,*)
+                        gntyry (lm1, lm2, lm3) = gauntyry (l1, l2, l3, m1, m2, m3)
+                        if ((abs(gntyry (lm1, lm2, lm3)).gt.1d-20)) nonzcount=nonzcount+1
                      End Do
                   End Do
                End Do
             End Do
          End Do
       End Do
+      write(*,*) nonzcount
+      If (allocated(gntryy)) deallocate (gntryy)
+      If (allocated(gntnonz)) deallocate (gntnonz)
+      If (allocated(gntnonzlm1)) deallocate (gntnonzlm1) 
+      If (allocated(gntnonzlm2)) deallocate (gntnonzlm2)
+      If (allocated(gntnonzlm3)) deallocate (gntnonzlm3)
+      Allocate (gntryy(lmmaxmat, lmmaxvr, lmmaxapw))
+      allocate(gntnonz(nonzcount),gntnonzlm1(nonzcount+1),gntnonzlm2(nonzcount),gntnonzlm3(nonzcount+1))
+      i1=0
+      Do l1 = 0, input%groundstate%lmaxmat
+         Do m1 = - l1, l1
+            lm1 = idxlm (l1, m1)
+                  Do l3 = 0, input%groundstate%lmaxapw
+                     Do m3 = - l3, l3
+                        lm3 = idxlm (l3, m3)
+
+            Do l2 = 0, input%groundstate%lmaxvr
+               Do m2 = - l2, l2
+                  lm2 = idxlm (l2, m2)
+                        gntryy (lm2, lm3, lm1) = gauntyry (l1, l2, l3, m1, m2, m3)
+                        if ((abs(gntryy (lm2, lm3, lm1)).gt.1d-20)) then
+!.and.(lm1 .Ge. lm3)) then
+!                          write(*,*) lm1,lm2,lm3
+!                          read(*,*)
+
+                           i1=i1+1
+                           gntnonz(i1)=gntryy(lm2, lm3, lm1)
+                           gntnonzlm1(i1)=lm1
+                           gntnonzlm3(i1)=lm3
+                           gntnonzlm2(i1)=lm2
+                        endif
+                     End Do
+                  End Do
+               End Do
+            End Do
+         End Do
+      End Do
+      gntnonzlm3(nonzcount+1)=0
+      gntnonzlm1(nonzcount+1)=0
 #ifdef XS
 20    Continue
 ! partial charges

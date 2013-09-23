@@ -43,6 +43,7 @@ Subroutine hmlrad
      & nrmtmax),a,rm,energyref,alpha
       parameter (alpha=1d0 / 137.03599911d0)
 ! begin loops over atoms and species
+      haa=0d0
       Do is = 1, nspecies
          nr = nrmt (is)
          Do ir = 1, nr
@@ -81,7 +82,9 @@ Subroutine hmlrad
                               fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
                            End Do
                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                           haa (io1, l1, io2, l3, 1, ias) = gr (nr) / y00
+!                           haa (io1, l1, io2, l3, 1, ias) = gr (nr) / y00
+                           haa (1, io2, l3, io1, l1, ias)= gr (nr) / y00
+!                           haa (1, io1, l1, io2, l3, ias)= gr (nr) / y00
 ! calculate more integrals if linearized Koelling-Harmon is demanded
                            if (input%groundstate%ValenceRelativity.eq.'lkh') then
                              Do ir = 1, nr
@@ -94,9 +97,11 @@ Subroutine hmlrad
                              h1aa (io1, io2, l1, ias) = gr (nr) / y00
                            endif
                         Else
-                           haa (io1, l1, io2, l3, 1, ias) = 0.d0
+!                           haa (io1, l1, io2, l3, 1, ias) = 0.d0
+                           haa (1,io2, l3,io1, l1, ias) = 0.d0
+!                           haa (1,io1, l1,io2, l3, ias)= 0d0
                         End If 
-                        If (l1 .Ge. l3) Then
+!                        If (l1 .ge. l3) Then
                            Do l2 = 1, input%groundstate%lmaxvr
                               Do m2 = - l2, l2
                                  lm2 = idxlm (l2, m2)
@@ -105,10 +110,12 @@ Subroutine hmlrad
                                     fr (ir) = t1 * veffmt (lm2, ir, ias)
                                  End Do
                                  Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                                 haa (io1, l1, io2, l3, lm2, ias) = gr (nr)
+!                                 haa (io1, l1, io2, l3, lm2, ias) = gr (nr)
+                                 haa (lm2, io2, l3, io1, l1, ias) = gr (nr)
+!                                 haa (lm2, io1, l1, io2, l3, ias)= gr (nr)
                               End Do
                            End Do
-                        End If
+!                        End If
                      End Do
                   End Do
                End Do
@@ -215,9 +222,13 @@ Subroutine hmlrad
                               fr (ir) = apwfr (ir, 1, io1, l1, ias) * apwfr (ir, 2, io2, l3, ias) * r2 (ir)
                            End Do
                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                           haa (io1, l1, io2, l3, 1, ias) = gr (nr) / y00
+!                           haa (io1, l1, io2, l3, 1, ias) = gr (nr) / y00
+                           haa (1, io2, l3, io1, l1, ias) = gr (nr) / y00
+!                           haa (1, io1, l1, io2, l3, ias) = gr (nr) / y00
                         Else
-                           haa (io1, l1, io2, l3, 1, ias) = 0.d0
+!                           haa (io1, l1, io2, l3, 1, ias) = 0.d0
+                           haa (1, io2, l3, io1, l1, ias) = 0d0
+!                           haa (1, io1, l1, io2, l3, ias) = 0d0
                         End If
                         If (l1 .Ge. l3) Then
                            Do l2 = 1, input%groundstate%lmaxvr
@@ -228,7 +239,9 @@ Subroutine hmlrad
                                     fr (ir) = t1 * veffmt (lm2, ir, ias)
                                  End Do
                                  Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                                 haa (io1, l1, io2, l3, lm2, ias) = gr (nr)
+!                                 haa (io1, l1, io2, l3, lm2, ias) = gr (nr)
+                                 haa (lm2, io2, l3, io1, l1, ias) = gr (nr)
+!                                 haa (lm2, io1, l1, io2, l3, ias) = gr (nr)
                               End Do
                            End Do
                         End If

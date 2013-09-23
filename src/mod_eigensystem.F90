@@ -37,7 +37,10 @@ Module mod_eigensystem
 ! local-orbital-local-orbital Hamiltonian integrals
       Real (8), Allocatable :: h1lolo (:, :, :)
 ! complex Gaunt coefficient array
-      Complex (8), Allocatable :: gntyry (:, :, :)
+      Complex (8), Allocatable :: gntyry (:, :, :),gntryy (:, :, :),gntnonz(:)
+! list of non-zero Gaunt coefficients
+      Integer, Allocatable :: gntnonzlm1(:),gntnonzlm2(:),gntnonzlm3(:)
+!gntnonzlist (:, :, :)
 ! tseqit is .true. if the first-variational secular equation is to be solved
 ! iteratively
       Logical :: tseqit

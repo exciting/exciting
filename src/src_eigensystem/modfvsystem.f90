@@ -136,6 +136,34 @@ Contains
     End Function getrank
     !
     !
+    subroutine HermitianMatrixMatrix(self,zm1,zm2,ldzm,naa,ngp)
+      Implicit None
+      Type (HermitianMatrix),intent(inout) :: self
+      Complex(8),intent(in)::zm1(:,:),zm2(:,:)
+      integer,intent(in)::ldzm,ngp,naa
+
+      complex(8)::zone=(1.0,0.0)
+
+      ! ZGEMM  performs one of the matrix-matrix operations
+      !        C := alpha*op( A )*op( B ) + beta*C,
+      call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
+                 'N', &           ! TRANSB = 'N'  op( B ) = B.
+                 ngp, &           ! M ... rows of op( A ) = rows of C
+                 ngp, &           ! N ... cols of op( B ) = cols of C
+                 naa, &           ! K ... cols of op( A ) = rows of op( B )
+                 zone, &          ! alpha
+                 zm1, &           ! A
+                 ldzm,&           ! LDA ... leading dimension of A
+                 zm2, &           ! B
+                 ldzm, &          ! LDB ... leading dimension of B
+                 zone, &          ! beta
+                 self%za(1,1), &  ! C
+                 self%rank &      ! LDC ... leading dimension of C
+                )
+
+    end subroutine HermitianMatrixMatrix
+    !
+    !
     Subroutine HermitianmatrixLU (self)
         Type (HermitianMatrix) :: self
         Integer :: info
