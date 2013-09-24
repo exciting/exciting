@@ -45,7 +45,6 @@ Subroutine hmlrad
      & nrmtmax),a,rm,energyref,alpha
       parameter (alpha=1d0 / 137.03599911d0)
 ! begin loops over atoms and species
-
 ! APW-APW storage initialisation
       haaijSize=0
       Do is = 1, nspecies
@@ -69,7 +68,6 @@ Subroutine hmlrad
             else
               a=0d0
             endif
-      haa=0d0
 
 ! APW-LO storage initialisation
       if (allocated(haloij)) deallocate(haloij)
@@ -77,6 +75,7 @@ Subroutine hmlrad
       allocate(haloijSize(nspecies))
       maxnlo=0
       Do is = 1, nspecies
+        ias=idxas (1, is)
         ilo=nlorb (is)
         l1 = lorbl (ilo, is)
         lm1 = idxlm (l1, l1)
