@@ -92,7 +92,7 @@
                     </xs:annotation>
                   </xs:attribute>
 
-                  <xs:attribute ex:importance="expert" ex:unit="" name="lock" type="booleantriple"
+                  <xs:attribute ex:importance="expert" ex:unit="" name="lockxyz" type="booleantriple"
                     default="false false false" use="optional">
                     <xs:annotation>
                       <xs:documentation>Switches to constrain atomic movement along x/y/z directions.</xs:documentation>

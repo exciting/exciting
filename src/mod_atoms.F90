@@ -36,8 +36,7 @@ Module mod_atoms
 !replaced by inputstructure!replaced by inputstructurereal(8)::atposl(3, _MAXATOMS_, _MAXSPECIES_)
 ! atomic positions in Cartesian coordinates
       Real (8) :: atposc (3, _MAXATOMS_, _MAXSPECIES_)
-      Real (8) :: atposcp (3, _MAXATOMS_, _MAXSPECIES_)
-      Real (8) :: atposcd (3, _MAXATOMS_, _MAXSPECIES_)
+      Real (8) :: atposc_1 (3, _MAXATOMS_, _MAXSPECIES_)
 !
 !----------------------------------!
 !     atomic species variables     !

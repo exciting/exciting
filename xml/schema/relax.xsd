@@ -67,7 +67,7 @@
           </xs:attribute>
             
             <xs:attribute ex:importance="essential" ex:unit="" name="method" type="xs:string" use="optional" 
-	                  default="mixed">
+	                  default="bfgs">
                 <xs:annotation>
                     <xs:documentation>
                     Specify the method used for atomic relaxation: 
@@ -123,6 +123,16 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
+	    
+            <xs:attribute ex:importance="expert" name="maxbfgs" type="xs:integer" use="optional" 
+	                  default="5">
+                <xs:annotation>
+                    <xs:documentation>
+                    Maximum number of atomic configurations that can be investigated in a single 
+		    <pre>"bfgs"</pre> optimization step.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
             
             <xs:attribute ex:importance="expert" name="epsforce0" type="fortrandouble"  default="8.0d-2" 
 	                  use="optional">
@@ -156,16 +166,18 @@
                 </xs:annotation>
             </xs:attribute>
             
-            <xs:attribute ex:importance="expert" name="taubfgs" type="fortrandouble" default="1.0d0" 
+            <xs:attribute ex:importance="expert" name="taubfgs" type="fortrandouble" default="0.2d0" 
 	                  use="optional">
                 <xs:annotation>
                   <xs:documentation>
-                  Maximum atomic displacement for atomic relaxation when using the <pre>"bfgs"</pre> method.
+                  Maximum atomic displacement for atomic relaxation when using the <pre>"bfgs"</pre> method. 
+		  It is also used as maximum atomic displacement in the <pre>"harmonic"</pre> method when an
+		  harmonic step is performed (see <attref>harmonic</attref>).
                   </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
 	    
-            <xs:attribute ex:importance="expert" name="endbfgs" type="xs:string" default="newton" 
+            <xs:attribute ex:importance="expert" name="endbfgs" type="xs:string" default="harmonic" 
 	                  use="optional">
                 <xs:annotation>
                   <xs:documentation>
@@ -178,7 +190,7 @@
 		           Method based on the harmonic approximation, useful when the atomic 
 			   configuration is close to the optimized one and only a few degrees 
 		           of freedom are allowed for atomic relaxation. </li>
-                    </list>
+                    </list>    
                   </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
@@ -213,7 +225,8 @@
                 <li> <pre>"xyz"</pre> 
 		     molecular format. The first line of this file the total number of atoms. The second line
 		     is a comment line with total energy in eV. Finally, starting from line three, one finds 
-                     atomic species, cartesian coordinates in Angstrom, and forces in eV/Angstrom. </li>
+                     atomic species, cartesian coordinates in Angstrom, and forces in eV/Angstrom. This format 
+		     is repeated for each optimization step</li>
                 <li> <pre>"gulp"</pre> 
 		     format, which is useful to visualize crystal structure changes using the 
 		     <pre>GDIS</pre> program. </li>

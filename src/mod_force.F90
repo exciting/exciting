@@ -31,5 +31,6 @@ Module mod_force
 !replaced by inputstructurereal(8)::tau0atm
 ! step size parameters for each atom
       Real (8), Allocatable :: tauatm (:)
+      Real (8), Allocatable :: tauxyz (:, :)
 End Module
 !

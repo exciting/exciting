@@ -63,7 +63,8 @@ os.system("grep \"Maximum force m\" "+str(inpf)+" > tempfile")
 input_file = open("tempfile","r")
 
 if ( os.path.getsize('./tempfile') == 0 ):
-    print "\nMaximum force target reached already at the initial configuration.\n\n",
+    print "\nEither data file not (yet) ready for visualization",
+    print "\nor maximum force target reached already at the initial configuration.\n"
     sys.exit() 
 
 #-------------------------------------------------------------------------------
