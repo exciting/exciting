@@ -3966,7 +3966,7 @@ gw.xsd
           </xs:complexType>
         </xs:element>
         
-        <xs:element ex:importance="expert" ex:unit="" name="momentummatrix" maxOccurs="1">
+        <xs:element ex:importance="expert" ex:unit="" name="momentummatrix" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>
               Generate matrix elements of the momentum operator and store them in PMAT.OUT.
@@ -3982,7 +3982,7 @@ gw.xsd
           </xs:complexType>
         </xs:element>
 
-        <xs:element ex:importance="expert" ex:unit="" name="dielmat" maxOccurs="1">
+        <xs:element ex:importance="expert" ex:unit="" name="dielmat" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>
               Calculate the dielectric tensor in IP-RPA (without local-field effect) for q=0.
@@ -4047,7 +4047,7 @@ gw.xsd
           </xs:complexType>
         </xs:element>
 
-        <xs:element ex:importance="expert" ex:unit="" name="moke" maxOccurs="1">
+        <xs:element ex:importance="expert" ex:unit="" name="moke" minOccurs="0" maxOccurs="1">
           <xs:complexType>
 
             <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="true">
