@@ -512,8 +512,8 @@ Subroutine init1
       Allocate (haa(lmmaxvr, apwordmax, 0:input%groundstate%lmaxapw, apwordmax, 0:input%groundstate%lmaxmat, natmtot))
 
       If (allocated(hloa)) deallocate (hloa)
-      Allocate (hloa(nlomax, apwordmax, 0:input%groundstate%lmaxmat, lmmaxvr, natmtot))
-!      Allocate (hloa(lmmaxvr, nlomax, apwordmax, 0:input%groundstate%lmaxmat, natmtot))
+!      Allocate (hloa(nlomax, apwordmax, 0:input%groundstate%lmaxmat, lmmaxvr, natmtot))
+      Allocate (hloa(lmmaxvr, apwordmax, 0:input%groundstate%lmaxmat, nlomax, natmtot))
       If (allocated(hlolo)) deallocate (hlolo)
       Allocate (hlolo(nlomax, nlomax, lmmaxvr, natmtot))
       if (input%groundstate%ValenceRelativity.eq.'lkh') then
@@ -553,10 +553,13 @@ Subroutine init1
       If (allocated(gntnonzlm1)) deallocate (gntnonzlm1) 
       If (allocated(gntnonzlm2)) deallocate (gntnonzlm2)
       If (allocated(gntnonzlm3)) deallocate (gntnonzlm3)
+      If (allocated(gntnonzlindex)) deallocate (gntnonzlindex)
       Allocate (gntryy(lmmaxmat, lmmaxvr, lmmaxapw))
       allocate(gntnonz(nonzcount),gntnonzlm1(nonzcount+1),gntnonzlm2(nonzcount),gntnonzlm3(nonzcount+1))
+      allocate(gntnonzlindex(0:input%groundstate%lmaxapw))
       i1=0
       Do l1 = 0, input%groundstate%lmaxmat
+         gntnonzlindex(l1)=i1+1
          Do m1 = - l1, l1
             lm1 = idxlm (l1, m1)
                   Do l3 = 0, input%groundstate%lmaxapw

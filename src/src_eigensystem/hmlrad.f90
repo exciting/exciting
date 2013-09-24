@@ -34,15 +34,40 @@ Subroutine hmlrad
 !BOC
       Implicit None
 ! local variables
-      Integer :: is, ia, ias, nr, ir
-      Integer :: l1, l2, l3, m2, lm2
+      Integer :: is, ia, ias, nr, ir, if1,if3,inonz,ireset1,ireset3
+      Integer :: l1, l2, l3, m2, lm2, m1, m3, lm1, lm3
       Integer :: ilo, ilo1, ilo2, io, io1, io2
       Real (8) :: t1,t2,angular
+      Real (8), allocatable :: hintegrals(:,:,:,:,:),alointegrals(:,:,:,:)
+      complex(8) :: zsum
 ! automatic arrays
       Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, &
      & nrmtmax),a,rm,energyref,alpha
       parameter (alpha=1d0 / 137.03599911d0)
 ! begin loops over atoms and species
+
+      haaijSize=0
+      Do is = 1, nspecies
+        if1=0
+        Do l1 = 0, input%groundstate%lmaxmat
+          Do m1 = - l1, l1
+            lm1 = idxlm (l1, m1)
+            Do io1 = 1, apword (l1, is)
+              if1=if1+1
+            End Do
+          End Do
+        End Do
+        if (if1.gt.haaijSize) haaijSize=if1
+      Enddo
+      if (allocated(haaij)) deallocate(haaij)
+      allocate(haaij(haaijSize,haaijSize,natmtot))
+      Allocate (hintegrals(lmmaxvr, apwordmax, 0:input%groundstate%lmaxapw, apwordmax, 0:input%groundstate%lmaxmat))
+            energyref=input%groundstate%energyref
+            if (input%groundstate%ValenceRelativity.ne.'none') then
+              a=0.5d0*alpha**2
+            else
+              a=0d0
+            endif
       haa=0d0
       Do is = 1, nspecies
          nr = nrmt (is)
@@ -55,25 +80,11 @@ Subroutine hmlrad
 !     APW-APW integrals     !
 !---------------------------!
            if (input%groundstate%SymmetricKineticEnergy) then
-            energyref=input%groundstate%energyref
-            if (input%groundstate%ValenceRelativity.ne.'none') then
-              a=0.5d0*alpha**2
-            else
-              a=0d0
-            endif
             Do l1 = 0, input%groundstate%lmaxmat
                Do io1 = 1, apword (l1, is)
-                  Do l3 = 0, input%groundstate%lmaxapw
+                  Do l3 = 0, input%groundstate%lmaxmat
                      Do io2 = 1, apword (l3, is)
                         If (l1 .Eq. l3) Then
-!                           write(*,*) veffmt (1, 1, ias)*y00
-!                           Do ir = 1, nr
-!                              t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io1, l3, ias)
-!                              fr (ir) = t1*r2 (ir)
-!                           End Do
-!                           Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-!                           write(*,*) gr(nr)
-!                           stop 
                            angular=dble(l1*(l1+1))
                            Do ir = 1, nr
                               rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
@@ -82,9 +93,7 @@ Subroutine hmlrad
                               fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
                            End Do
                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-!                           haa (io1, l1, io2, l3, 1, ias) = gr (nr) / y00
-                           haa (1, io2, l3, io1, l1, ias)= gr (nr) / y00
-!                           haa (1, io1, l1, io2, l3, ias)= gr (nr) / y00
+                           hintegrals (1, io2, l3, io1, l1)= gr (nr) / y00
 ! calculate more integrals if linearized Koelling-Harmon is demanded
                            if (input%groundstate%ValenceRelativity.eq.'lkh') then
                              Do ir = 1, nr
@@ -97,11 +106,8 @@ Subroutine hmlrad
                              h1aa (io1, io2, l1, ias) = gr (nr) / y00
                            endif
                         Else
-!                           haa (io1, l1, io2, l3, 1, ias) = 0.d0
-                           haa (1,io2, l3,io1, l1, ias) = 0.d0
-!                           haa (1,io1, l1,io2, l3, ias)= 0d0
+                           hintegrals (1, io2, l3, io1, l1) = 0.d0
                         End If 
-!                        If (l1 .ge. l3) Then
                            Do l2 = 1, input%groundstate%lmaxvr
                               Do m2 = - l2, l2
                                  lm2 = idxlm (l2, m2)
@@ -110,16 +116,45 @@ Subroutine hmlrad
                                     fr (ir) = t1 * veffmt (lm2, ir, ias)
                                  End Do
                                  Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-!                                 haa (io1, l1, io2, l3, lm2, ias) = gr (nr)
-                                 haa (lm2, io2, l3, io1, l1, ias) = gr (nr)
-!                                 haa (lm2, io1, l1, io2, l3, ias)= gr (nr)
+                                 hintegrals (lm2, io2, l3, io1, l1)=gr (nr)
                               End Do
                            End Do
-!                        End If
                      End Do
                   End Do
                End Do
             End Do
+
+      if1=0
+      inonz=1
+      Do l1 = 0, input%groundstate%lmaxmat
+         Do m1 = - l1, l1
+            lm1 = idxlm (l1, m1)
+            ireset1=inonz
+            Do io1 = 1, apword (l1, is)
+               if1=if1+1
+               if3=0
+               Do l3 = 0, input%groundstate%lmaxmat
+                  Do m3 = - l3, l3
+                     lm3 = idxlm (l3, m3)
+                        ireset3=inonz
+                        Do io2 = 1, apword (l3, is)
+                          if3=if3+1
+                          zsum = 0.d0
+                          do while ((gntnonzlm3(inonz).eq.lm3).and.(gntnonzlm1(inonz).eq.lm1))
+                            zsum=zsum+gntnonz(inonz)*hintegrals (gntnonzlm2(inonz), io2, l3, io1, l1)!  haa(gntnonzlm2(inonz), io2, l3, io1, l1, ias)
+                            inonz=inonz+1
+                          enddo
+                          haaij(if1,if3,ias)=zsum
+                          if (io2.ne.apword (l3, is)) inonz=ireset3
+                        End Do
+                  End Do
+               End Do
+              if (io1.ne.apword (l1, is)) inonz=ireset1
+            End Do
+         End Do
+      End Do
+!      write(*,*) sum(haaij(:,:,ias))
+!      stop
 !--------------------------------------!
 !     local-orbital-APW integtrals     !
 !--------------------------------------!
@@ -136,7 +171,8 @@ Subroutine hmlrad
                            fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
                         End Do
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                        hloa (ilo, io, l3, 1, ias) = gr (nr) / y00
+!                        hloa (ilo, io, l3, 1, ias) = gr (nr) / y00
+                        hloa (1, io, l3, ilo, ias) = gr (nr) / y00
 ! calculate more integrals if linearized Koelling-Harmon is demanded
                         if (input%groundstate%ValenceRelativity.eq.'lkh') then
                           Do ir = 1, nr
@@ -149,7 +185,7 @@ Subroutine hmlrad
                           h1loa (ilo, io, l1, ias) = gr (nr) / y00
                         endif
                      Else
-                        hloa (ilo, io, l3, 1, ias) = 0.d0
+                        hloa (1, io, l3, ilo, ias) = 0.d0
                      End If
                      Do l2 = 1, input%groundstate%lmaxvr
                         Do m2 = - l2, l2
@@ -160,7 +196,7 @@ Subroutine hmlrad
                               fr (ir) = t1 * veffmt (lm2, ir, ias)
                            End Do
                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                           hloa (ilo, io, l3, lm2, ias) = gr (nr)
+                           hloa (lm2, io, l3, ilo, ias) = gr (nr)
                         End Do
                      End Do
                   End Do
@@ -211,26 +247,22 @@ Subroutine hmlrad
                End Do
             End Do
 
-!           write(*,*) haa (1, 0, 1, 0, 1, 1)
            else
+
+
             Do l1 = 0, input%groundstate%lmaxmat
                Do io1 = 1, apword (l1, is)
                   Do l3 = 0, input%groundstate%lmaxapw
                      Do io2 = 1, apword (l3, is)
                         If (l1 .Eq. l3) Then
                            Do ir = 1, nr
-                              fr (ir) = apwfr (ir, 1, io1, l1, ias) * apwfr (ir, 2, io2, l3, ias) * r2 (ir)
+                              fr (ir) = apwfr (ir, 1, io1, l1, ias) * apwfr (ir, 2, io2, l3, ias) * r2 (ir) 
                            End Do
                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-!                           haa (io1, l1, io2, l3, 1, ias) = gr (nr) / y00
-                           haa (1, io2, l3, io1, l1, ias) = gr (nr) / y00
-!                           haa (1, io1, l1, io2, l3, ias) = gr (nr) / y00
+                           hintegrals (1, io2, l3, io1, l1)= gr (nr) / y00
                         Else
-!                           haa (io1, l1, io2, l3, 1, ias) = 0.d0
-                           haa (1, io2, l3, io1, l1, ias) = 0d0
-!                           haa (1, io1, l1, io2, l3, ias) = 0d0
+                           hintegrals (1, io2, l3, io1, l1) = 0.d0
                         End If
-                        If (l1 .Ge. l3) Then
                            Do l2 = 1, input%groundstate%lmaxvr
                               Do m2 = - l2, l2
                                  lm2 = idxlm (l2, m2)
@@ -239,17 +271,48 @@ Subroutine hmlrad
                                     fr (ir) = t1 * veffmt (lm2, ir, ias)
                                  End Do
                                  Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-!                                 haa (io1, l1, io2, l3, lm2, ias) = gr (nr)
-                                 haa (lm2, io2, l3, io1, l1, ias) = gr (nr)
-!                                 haa (lm2, io1, l1, io2, l3, ias) = gr (nr)
+                                 hintegrals (lm2, io2, l3, io1, l1)=gr (nr)
                               End Do
                            End Do
-                        End If
                      End Do
                   End Do
                End Do
             End Do
-!            write(*,*) haa (1, 0, 1, 0, 1, 1), 0.25d0 * rmt (is) ** 2 * apwfr (nrmt(1), 1, 1, 0, 1) * apwdfr (1, 0, 1)
+
+      t1 = 0.5d0 * rmt (is) ** 2
+      if1=0
+      inonz=1
+      Do l1 = 0, input%groundstate%lmaxmat
+         Do m1 = - l1, l1
+            lm1 = idxlm (l1, m1)
+            ireset1=inonz
+            Do io1 = 1, apword (l1, is)
+               if1=if1+1
+               if3=0
+               Do l3 = 0, input%groundstate%lmaxmat
+                  Do m3 = - l3, l3
+                     lm3 = idxlm (l3, m3)
+                        ireset3=inonz
+                        Do io2 = 1, apword (l3, is)
+                          if3=if3+1
+                          zsum = 0.d0
+                          do while ((gntnonzlm3(inonz).eq.lm3).and.(gntnonzlm1(inonz).eq.lm1))
+                            zsum=zsum+gntnonz(inonz)*hintegrals (gntnonzlm2(inonz), io2, l3, io1, l1)!  haa(gntnonzlm2(inonz), io2, l3, io1, l1, ias)
+                            inonz=inonz+1
+                          enddo
+                          haaij(if1,if3,ias)=zsum
+                          if (lm1.eq.lm3) then
+                            haaij(if1,if3,ias)=haaij(if1,if3,ias)+t1*apwfr(nrmt(is),1,io1,l1,ias)*apwdfr(io2,l1,ias)*1d0/(1d0+(energyref-veffmt(1,nrmt(is),ias)*y00)*a)
+                          endif
+                          if (io2.ne.apword (l3, is)) inonz=ireset3
+                        End Do
+                  End Do
+               End Do
+              if (io1.ne.apword (l1, is)) inonz=ireset1
+            End Do
+         End Do
+      End Do
+
 !--------------------------------------!
 !     local-orbital-APW integtrals     !
 !--------------------------------------!
@@ -257,15 +320,16 @@ Subroutine hmlrad
                l1 = lorbl (ilo, is)
                Do l3 = 0, input%groundstate%lmaxmat
                   Do io = 1, apword (l3, is)
+
                      If (l1 .Eq. l3) Then
                         Do ir = 1, nr
                            fr (ir) = lofr (ir, 1, ilo, ias) * apwfr &
                           & (ir, 2, io, l3, ias) * r2 (ir)
                         End Do
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                        hloa (ilo, io, l3, 1, ias) = gr (nr) / y00
+                        hloa (1, io, l3, ilo, ias)= gr (nr) / y00
                      Else
-                        hloa (ilo, io, l3, 1, ias) = 0.d0
+                        hloa (1, io, l3, ilo, ias)= 0.d0
                      End If
                      Do l2 = 1, input%groundstate%lmaxvr
                         Do m2 = - l2, l2
@@ -276,7 +340,7 @@ Subroutine hmlrad
                               fr (ir) = t1 * veffmt (lm2, ir, ias)
                            End Do
                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                           hloa (ilo, io, l3, lm2, ias) = gr (nr)
+                           hloa (lm2, io, l3, ilo, ias) = gr (nr)
                         End Do
                      End Do
                   End Do
@@ -319,6 +383,7 @@ Subroutine hmlrad
 ! end loops over atoms and species
          End Do
       End Do
+      deallocate(hintegrals)
       Return
 End Subroutine
 !EOC

@@ -25,6 +25,8 @@ Module mod_eigensystem
       Real (8), Allocatable :: ololo (:, :, :)
 ! APW-APW Hamiltonian integrals
       Real (8), Allocatable :: haa (:, :, :, :, :, :)
+      Complex (8), Allocatable :: haaij(:,:,:)
+      integer haaijSize
 ! local-orbital-APW Hamiltonian integrals
       Real (8), Allocatable :: hloa (:, :, :, :, :)
 ! local-orbital-local-orbital Hamiltonian integrals
@@ -39,7 +41,7 @@ Module mod_eigensystem
 ! complex Gaunt coefficient array
       Complex (8), Allocatable :: gntyry (:, :, :),gntryy (:, :, :),gntnonz(:)
 ! list of non-zero Gaunt coefficients
-      Integer, Allocatable :: gntnonzlm1(:),gntnonzlm2(:),gntnonzlm3(:)
+      Integer, Allocatable :: gntnonzlm1(:),gntnonzlm2(:),gntnonzlm3(:),gntnonzlindex(:)
 !gntnonzlist (:, :, :)
 ! tseqit is .true. if the first-variational secular equation is to be solved
 ! iteratively

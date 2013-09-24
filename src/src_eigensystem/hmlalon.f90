@@ -21,47 +21,86 @@ Subroutine hmlalon (hamilton, is, ia, ngp, apwalm)
 !
 !
 ! local variables
-      Integer :: ias, io, ilo, i, j, k
-      Integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3
-      Complex (8) zsum, zt1
+      Integer :: ias, io, ilo, i, j, k, naa3, nalo1, if1, if3
+      Integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3, inonz, ireset3
+      Complex (8) zsum, zt1, viens
+      Complex (8), allocatable :: zm3(:,:),integrals(:,:)
+
       ias = idxas (ia, is)
+      viens= dcmplx(1d0,0d0)
+      allocate(zm3(haaijSize,ngp))
+      zm3=dcmplx(0d0,0d0)
+      naa3=0
+      Do l3 = 0, input%groundstate%lmaxapw
+         Do m3 = - l3, l3
+            lm3 = idxlm (l3, m3)
+            Do io = 1, apword (l3, is)
+              naa3=naa3+1
+              zm3(naa3,:)=apwalm(1:ngp, io, lm3, ias)
+            End Do
+         End Do
+      End Do
+
+     ilo=nlorb (is)
+     l1 = lorbl (ilo, is)
+     lm1 = idxlm (l1, l1)
+     l3 = lorbl (1, is)
+     lm3 = idxlm (l3, -l3)
+     nalo1=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
+     allocate(integrals(nalo1,haaijSize))
+     integrals=dcmplx(0d0,0d0)
+
+
+     if1=0 
       Do ilo = 1, nlorb (is)
          l1 = lorbl (ilo, is)
+         inonz=gntnonzlindex(l1)
          Do m1 = - l1, l1
             lm1 = idxlm (l1, m1)
             i = ngp + idxlo (lm1, ilo, ias)
+            if1=if1+1
+            if3=0
             Do l3 = 0, input%groundstate%lmaxmat
                Do m3 = - l3, l3
                   lm3 = idxlm (l3, m3)
+                  ireset3=inonz
                   Do io = 1, apword (l3, is)
+                     if3=if3+1
                      zsum = 0.d0
-                     Do l2 = 0, input%groundstate%lmaxvr
-                        If (Mod(l1+l2+l3, 2) .Eq. 0) Then
-                           Do m2 = - l2, l2
-                              lm2 = idxlm (l2, m2)
-                              zsum = zsum + gntryy (lm2, lm3, lm1) * &
-                             & hloa (ilo, io, l3, lm2, ias)
-                           End Do
-                        End If
-                     End Do
-                     If (Abs(dble(zsum))+Abs(aimag(zsum)) .Gt. 1.d-20) &
-                    & Then
-!
-! calculate the matrix elements
-              !k=((i-1)*i)/2
-                        Do j = 1, ngp
-                !k=k+1
-                           zt1 = zsum * apwalm (j, io, lm3, ias)
-!
-                           Call Hermitianmatrix_indexedupdate &
-                          & (hamilton, i, j, conjg(zt1))
-                        End Do
-!
-                     End If
+                     do while ((gntnonzlm3(inonz).eq.lm3).and.(gntnonzlm1(inonz).eq.lm1))
+                       zsum=zsum+gntnonz(inonz)*hloa(gntnonzlm2(inonz),io, l3, ilo, ias)
+                       inonz=inonz+1
+                     enddo
+                     if (io.ne.apword(l3,is)) inonz=ireset3
                   End Do
                End Do
             End Do
          End Do
       End Do
+
+     l1 = lorbl (1, is)
+     lm1 = idxlm (l1, -l1)
+
+      call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                 'N', &           ! TRANSB = 'N'  op( B ) = B.
+                 nalo1, &          ! M ... rows of op( A ) = rows of C
+                 ngp, &           ! N ... cols of op( B ) = cols of C
+                 haaijSize, &          ! K ... cols of op( A ) = rows of op( B )
+                 viens, &          ! alpha
+                 integrals, &           ! A
+                 nalo1,&           ! LDA ... leading dimension of A
+                 zm3, &           ! B
+                 haaijSize, &          ! LDB ... leading dimension of B
+                 viens, &          ! beta
+                 hamilton%za(ngp+idxlo (lm1, 1, ias),1), &  ! C
+                 hamilton%rank &      ! LDC ... leading dimension of C
+                )
+
+      l3 = lorbl (1, is)
+      lm3 = idxlm (l3, -l3)
+      do i=idxlo (lm3,1,ias)+ngp, nalo1+ngp+idxlo (lm3,1,ias)-1
+         hamilton%za(1:ngp,i)=conjg(hamilton%za(i,1:ngp))
+      enddo
+ deallocate(integrals,zm3)
       Return
 End Subroutine
