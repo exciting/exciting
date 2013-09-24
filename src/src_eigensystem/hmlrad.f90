@@ -36,9 +36,9 @@ Subroutine hmlrad
 ! local variables
       Integer :: is, ia, ias, nr, ir, if1,if3,inonz,ireset1,ireset3
       Integer :: l1, l2, l3, m2, lm2, m1, m3, lm1, lm3
-      Integer :: ilo, ilo1, ilo2, io, io1, io2
+      Integer :: ilo, ilo1, ilo2, io, io1, io2, nalo1, maxnlo
       Real (8) :: t1,t2,angular
-      Real (8), allocatable :: hintegrals(:,:,:,:,:),alointegrals(:,:,:,:)
+      Real (8), allocatable :: hintegrals(:,:,:,:,:),halointegrals(:,:,:,:)
       complex(8) :: zsum
 ! automatic arrays
       Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, &
@@ -46,6 +46,7 @@ Subroutine hmlrad
       parameter (alpha=1d0 / 137.03599911d0)
 ! begin loops over atoms and species
 
+! APW-APW storage initialisation
       haaijSize=0
       Do is = 1, nspecies
         if1=0
@@ -69,6 +70,25 @@ Subroutine hmlrad
               a=0d0
             endif
       haa=0d0
+
+! APW-LO storage initialisation
+      if (allocated(haloij)) deallocate(haloij)
+      if (allocated(haloijSize)) deallocate(haloijSize)
+      allocate(haloijSize(nspecies))
+      maxnlo=0
+      Do is = 1, nspecies
+        ilo=nlorb (is)
+        l1 = lorbl (ilo, is)
+        lm1 = idxlm (l1, l1)
+        l3 = lorbl (1, is)
+        lm3 = idxlm (l3, -l3)
+        haloijSize(is)=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
+        if (maxnlo.lt.haloijSize(is)) maxnlo=haloijSize(is)
+      Enddo
+      allocate(haloij(maxnlo,haaijSize,natmtot))
+      haloij=dcmplx(0d0,0d0)
+      Allocate (halointegrals(lmmaxvr, apwordmax, 0:input%groundstate%lmaxmat, nlomax))
+
       Do is = 1, nspecies
          nr = nrmt (is)
          Do ir = 1, nr
@@ -76,10 +96,12 @@ Subroutine hmlrad
          End Do
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
+           if (input%groundstate%SymmetricKineticEnergy) then
+! If kinetic energy is calculated as nabla*nabla
 !---------------------------!
 !     APW-APW integrals     !
 !---------------------------!
-           if (input%groundstate%SymmetricKineticEnergy) then
+! Radial integrals first
             Do l1 = 0, input%groundstate%lmaxmat
                Do io1 = 1, apword (l1, is)
                   Do l3 = 0, input%groundstate%lmaxmat
@@ -123,7 +145,7 @@ Subroutine hmlrad
                   End Do
                End Do
             End Do
-
+! Angular integrals
       if1=0
       inonz=1
       Do l1 = 0, input%groundstate%lmaxmat
@@ -141,7 +163,7 @@ Subroutine hmlrad
                           if3=if3+1
                           zsum = 0.d0
                           do while ((gntnonzlm3(inonz).eq.lm3).and.(gntnonzlm1(inonz).eq.lm1))
-                            zsum=zsum+gntnonz(inonz)*hintegrals (gntnonzlm2(inonz), io2, l3, io1, l1)!  haa(gntnonzlm2(inonz), io2, l3, io1, l1, ias)
+                            zsum=zsum+gntnonz(inonz)*hintegrals (gntnonzlm2(inonz), io2, l3, io1, l1)
                             inonz=inonz+1
                           enddo
                           haaij(if1,if3,ias)=zsum
@@ -153,11 +175,10 @@ Subroutine hmlrad
             End Do
          End Do
       End Do
-!      write(*,*) sum(haaij(:,:,ias))
-!      stop
 !--------------------------------------!
 !     local-orbital-APW integtrals     !
 !--------------------------------------!
+! Radial integrals
             Do ilo = 1, nlorb (is)
                l1 = lorbl (ilo, is)
                Do l3 = 0, input%groundstate%lmaxmat
@@ -171,8 +192,7 @@ Subroutine hmlrad
                            fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
                         End Do
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-!                        hloa (ilo, io, l3, 1, ias) = gr (nr) / y00
-                        hloa (1, io, l3, ilo, ias) = gr (nr) / y00
+                        halointegrals (1, io, l3, ilo) = gr (nr) / y00
 ! calculate more integrals if linearized Koelling-Harmon is demanded
                         if (input%groundstate%ValenceRelativity.eq.'lkh') then
                           Do ir = 1, nr
@@ -185,7 +205,7 @@ Subroutine hmlrad
                           h1loa (ilo, io, l1, ias) = gr (nr) / y00
                         endif
                      Else
-                        hloa (1, io, l3, ilo, ias) = 0.d0
+                        halointegrals (1, io, l3, ilo) = 0.d0
                      End If
                      Do l2 = 1, input%groundstate%lmaxvr
                         Do m2 = - l2, l2
@@ -196,12 +216,40 @@ Subroutine hmlrad
                               fr (ir) = t1 * veffmt (lm2, ir, ias)
                            End Do
                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                           hloa (lm2, io, l3, ilo, ias) = gr (nr)
+                           halointegrals (lm2, io, l3, ilo) = gr (nr)
                         End Do
                      End Do
                   End Do
                End Do
             End Do
+! Angular integrals
+     nalo1=haloijSize(is)
+     if1=0
+      Do ilo = 1, nlorb (is)
+         l1 = lorbl (ilo, is)
+         inonz=gntnonzlindex(l1)
+         Do m1 = - l1, l1
+            lm1 = idxlm (l1, m1)
+            if1=if1+1 
+            if3=0
+            Do l3 = 0, input%groundstate%lmaxmat
+               Do m3 = - l3, l3
+                  lm3 = idxlm (l3, m3)
+                  ireset3=inonz
+                  Do io = 1, apword (l3, is)
+                     if3=if3+1
+                     zsum = 0.d0
+                     do while ((gntnonzlm3(inonz).eq.lm3).and.(gntnonzlm1(inonz).eq.lm1))
+                       zsum=zsum+gntnonz(inonz)*halointegrals(gntnonzlm2(inonz),io, l3, ilo)
+                       inonz=inonz+1
+                     enddo
+                     haloij(if1,if3,ias)=zsum
+                     if (io.ne.apword(l3,is)) inonz=ireset3
+                  End Do
+               End Do 
+            End Do 
+         End Do 
+      End Do 
 !-----------------------------------------------!
 !     local-orbital-local-orbital integrals     !
 !-----------------------------------------------!
@@ -248,8 +296,11 @@ Subroutine hmlrad
             End Do
 
            else
-
-
+! If kinetic energy is calculated as Laplacian
+!---------------------------!
+!     APW-APW integrals     !
+!---------------------------!
+! Radial part
             Do l1 = 0, input%groundstate%lmaxmat
                Do io1 = 1, apword (l1, is)
                   Do l3 = 0, input%groundstate%lmaxapw
@@ -278,7 +329,7 @@ Subroutine hmlrad
                   End Do
                End Do
             End Do
-
+! Angular integrals including the surface contribution to the kinetic energy
       t1 = 0.5d0 * rmt (is) ** 2
       if1=0
       inonz=1
@@ -316,39 +367,67 @@ Subroutine hmlrad
 !--------------------------------------!
 !     local-orbital-APW integtrals     !
 !--------------------------------------!
+! Radial integrals
             Do ilo = 1, nlorb (is)
                l1 = lorbl (ilo, is)
                Do l3 = 0, input%groundstate%lmaxmat
                   Do io = 1, apword (l3, is)
-
                      If (l1 .Eq. l3) Then
                         Do ir = 1, nr
-                           fr (ir) = lofr (ir, 1, ilo, ias) * apwfr &
-                          & (ir, 2, io, l3, ias) * r2 (ir)
+                           fr (ir) = lofr (ir, 1, ilo, ias) * apwfr(ir, 2, io, l3, ias) * r2 (ir)
                         End Do
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                        hloa (1, io, l3, ilo, ias)= gr (nr) / y00
+                        halointegrals (1, io, l3, ilo) = gr (nr) / y00
                      Else
-                        hloa (1, io, l3, ilo, ias)= 0.d0
+                        halointegrals (1, io, l3, ilo) = 0.d0
                      End If
                      Do l2 = 1, input%groundstate%lmaxvr
                         Do m2 = - l2, l2
                            lm2 = idxlm (l2, m2)
                            Do ir = 1, nr
-                              t1 = lofr (ir, 1, ilo, ias) * apwfr (ir, &
-                             & 1, io, l3, ias) * r2 (ir)
+                              t1 = lofr (ir, 1, ilo, ias) * apwfr (ir, 1, io, l3, ias) * r2 (ir)
                               fr (ir) = t1 * veffmt (lm2, ir, ias)
                            End Do
                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                           hloa (lm2, io, l3, ilo, ias) = gr (nr)
+                           halointegrals (lm2, io, l3, ilo) = gr (nr)
                         End Do
-                     End Do
+                     End Do 
+                  End Do 
+               End Do 
+            End Do
+! Angular integrals 
+     nalo1=haloijSize(is)
+     if1=0
+      Do ilo = 1, nlorb (is)
+         l1 = lorbl (ilo, is)
+         inonz=gntnonzlindex(l1)
+         Do m1 = - l1, l1
+            lm1 = idxlm (l1, m1)
+            if1=if1+1
+            if3=0
+            Do l3 = 0, input%groundstate%lmaxmat
+               Do m3 = - l3, l3
+                  lm3 = idxlm (l3, m3)
+                  ireset3=inonz
+                  Do io = 1, apword (l3, is)
+                     if3=if3+1
+                     zsum = 0.d0
+                     do while ((gntnonzlm3(inonz).eq.lm3).and.(gntnonzlm1(inonz).eq.lm1))
+                       zsum=zsum+gntnonz(inonz)*halointegrals(gntnonzlm2(inonz),io, l3, ilo)
+                       inonz=inonz+1
+                     enddo
+                     haloij(if1,if3,ias)=zsum
+                     if (io.ne.apword(l3,is)) inonz=ireset3
                   End Do
                End Do
             End Do
+         End Do
+      End Do
+
 !-----------------------------------------------!
 !     local-orbital-local-orbital integrals     !
 !-----------------------------------------------!
+! Radial integrals
             Do ilo1 = 1, nlorb (is)
                l1 = lorbl (ilo1, is)
                Do ilo2 = 1, nlorb (is)
@@ -377,8 +456,6 @@ Subroutine hmlrad
                   End Do
                End Do
             End Do
-
-
            endif
 ! end loops over atoms and species
          End Do

@@ -507,13 +507,7 @@ Subroutine init1
       Allocate (oalo(apwordmax, nlomax, natmtot))
       If (allocated(ololo)) deallocate (ololo)
       Allocate (ololo(nlomax, nlomax, natmtot))
-      If (allocated(haa)) deallocate (haa)
-!      Allocate (haa(apwordmax, 0:input%groundstate%lmaxmat, apwordmax, 0:input%groundstate%lmaxapw, lmmaxvr, natmtot))
-      Allocate (haa(lmmaxvr, apwordmax, 0:input%groundstate%lmaxapw, apwordmax, 0:input%groundstate%lmaxmat, natmtot))
 
-      If (allocated(hloa)) deallocate (hloa)
-!      Allocate (hloa(nlomax, apwordmax, 0:input%groundstate%lmaxmat, lmmaxvr, natmtot))
-      Allocate (hloa(lmmaxvr, apwordmax, 0:input%groundstate%lmaxmat, nlomax, natmtot))
       If (allocated(hlolo)) deallocate (hlolo)
       Allocate (hlolo(nlomax, nlomax, lmmaxvr, natmtot))
       if (input%groundstate%ValenceRelativity.eq.'lkh') then
@@ -537,8 +531,6 @@ Subroutine init1
                   Do l3 = 0, input%groundstate%lmaxapw
                      Do m3 = - l3, l3
                         lm3 = idxlm (l3, m3)
-!                        write(*,*) lm1,lm2,lm3
-!                        read(*,*)
                         gntyry (lm1, lm2, lm3) = gauntyry (l1, l2, l3, m1, m2, m3)
                         if ((abs(gntyry (lm1, lm2, lm3)).gt.1d-20)) nonzcount=nonzcount+1
                      End Do
@@ -547,7 +539,6 @@ Subroutine init1
             End Do
          End Do
       End Do
-      write(*,*) nonzcount
       If (allocated(gntryy)) deallocate (gntryy)
       If (allocated(gntnonz)) deallocate (gntnonz)
       If (allocated(gntnonzlm1)) deallocate (gntnonzlm1) 

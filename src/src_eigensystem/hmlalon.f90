@@ -21,8 +21,8 @@ Subroutine hmlalon (hamilton, is, ia, ngp, apwalm)
 !
 !
 ! local variables
-      Integer :: ias, io, ilo, i, j, k, naa3, nalo1, if1, if3
-      Integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3, inonz, ireset3
+      Integer :: ias, io, ilo, i, j, k, naa3, nalo1, if1, if3, is1
+      Integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3, inonz, ireset3, maxnlo
       Complex (8) zsum, zt1, viens
       Complex (8), allocatable :: zm3(:,:),integrals(:,:)
 
@@ -41,54 +41,15 @@ Subroutine hmlalon (hamilton, is, ia, ngp, apwalm)
          End Do
       End Do
 
-     ilo=nlorb (is)
-     l1 = lorbl (ilo, is)
-     lm1 = idxlm (l1, l1)
-     l3 = lorbl (1, is)
-     lm3 = idxlm (l3, -l3)
-     nalo1=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
-     allocate(integrals(nalo1,haaijSize))
-     integrals=dcmplx(0d0,0d0)
-
-
-     if1=0 
-      Do ilo = 1, nlorb (is)
-         l1 = lorbl (ilo, is)
-         inonz=gntnonzlindex(l1)
-         Do m1 = - l1, l1
-            lm1 = idxlm (l1, m1)
-            i = ngp + idxlo (lm1, ilo, ias)
-            if1=if1+1
-            if3=0
-            Do l3 = 0, input%groundstate%lmaxmat
-               Do m3 = - l3, l3
-                  lm3 = idxlm (l3, m3)
-                  ireset3=inonz
-                  Do io = 1, apword (l3, is)
-                     if3=if3+1
-                     zsum = 0.d0
-                     do while ((gntnonzlm3(inonz).eq.lm3).and.(gntnonzlm1(inonz).eq.lm1))
-                       zsum=zsum+gntnonz(inonz)*hloa(gntnonzlm2(inonz),io, l3, ilo, ias)
-                       inonz=inonz+1
-                     enddo
-                     if (io.ne.apword(l3,is)) inonz=ireset3
-                  End Do
-               End Do
-            End Do
-         End Do
-      End Do
-
-     l1 = lorbl (1, is)
-     lm1 = idxlm (l1, -l1)
-
+      maxnlo=size(haloij,1)
       call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                  'N', &           ! TRANSB = 'N'  op( B ) = B.
                  nalo1, &          ! M ... rows of op( A ) = rows of C
                  ngp, &           ! N ... cols of op( B ) = cols of C
                  haaijSize, &          ! K ... cols of op( A ) = rows of op( B )
                  viens, &          ! alpha
-                 integrals, &           ! A
-                 nalo1,&           ! LDA ... leading dimension of A
+                 haloij(:,:,ias), &           ! A
+                 maxnlo,&           ! LDA ... leading dimension of A
                  zm3, &           ! B
                  haaijSize, &          ! LDB ... leading dimension of B
                  viens, &          ! beta
@@ -101,6 +62,6 @@ Subroutine hmlalon (hamilton, is, ia, ngp, apwalm)
       do i=idxlo (lm3,1,ias)+ngp, nalo1+ngp+idxlo (lm3,1,ias)-1
          hamilton%za(1:ngp,i)=conjg(hamilton%za(i,1:ngp))
       enddo
- deallocate(integrals,zm3)
+ deallocate(zm3)
       Return
 End Subroutine

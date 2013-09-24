@@ -20,21 +20,20 @@ Subroutine olpalon (overlap, is, ia, ngp, apwalm)
 !
 !
 ! local variables
-      Integer :: ias, ilo, io, l, m, lm, i, j, k
-      Complex (8) zsum, zv(ngp)
+      Integer :: ias, ilo, io, l, m, lm, i, j, k, lm1, lm2, j1, j2
+      Complex (8) zsum
       ias = idxas (ia, is)
       Do ilo = 1, nlorb (is)
          l = lorbl (ilo, is)
-         Do m = - l, l
-            lm = idxlm (l, m)
-            j = ngp + idxlo (lm, ilo, ias)
-! calculate the matrix elements
-            zv(:)=dcmplx(0d0,0d0)
-            Do io = 1, apword (l, is)
-              zv(:) = zv(:) + apwalm(:, io, lm, ias) * oalo (io, ilo, ias)
-            End Do
-            overlap%za(1:ngp,j)=overlap%za(1:ngp,j)+conjg(zv(:))
-            overlap%za(j,1:ngp)=overlap%za(j,1:ngp)+zv(:)
+         lm1 = idxlm (l,-l)
+         lm2 = idxlm (l, l)            
+         j1 = ngp + idxlo (lm1, ilo, ias)
+         j2 = ngp + idxlo (lm2, ilo, ias)
+         Do io = 1, apword (l, is)
+           overlap%za(1:ngp,j1:j2)=overlap%za(1:ngp,j1:j2)+conjg(apwalm(:, io, lm1:lm2, ias) * oalo (io, ilo, ias))
+         End Do
+         do j=j1,j2
+            overlap%za(j,1:ngp)=conjg(overlap%za(1:ngp,j))
          End Do
       End Do
       Return

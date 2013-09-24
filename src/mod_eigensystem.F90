@@ -29,6 +29,8 @@ Module mod_eigensystem
       integer haaijSize
 ! local-orbital-APW Hamiltonian integrals
       Real (8), Allocatable :: hloa (:, :, :, :, :)
+      Complex (8), Allocatable :: haloij(:,:,:)
+      integer, allocatable :: haloijSize(:)
 ! local-orbital-local-orbital Hamiltonian integrals
       Real (8), Allocatable :: hlolo (:, :, :, :)
 ! The stuff for the linearized Koelling-Harmon
