@@ -97,6 +97,9 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
           Call timesec (ts1)
           time_hmlaan=ts1-ts0+time_hmlaan
 
+!What if it is, say, LAPW calculation without any local orbitals?
+!No problem! Andris gives the permission. :-)
+        if (nlorb(is).ne.0) then 
 ! APW-LO part
           Call timesec (ts0)
           maxnlo=size(haloij,1)
@@ -134,6 +137,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
 
           Call timesec (ts1)
           time_hmllolon=ts1-ts0+time_hmllolon
+        endif
 !--Overlap--
 ! APW-APW part
           Call timesec (ts0)
@@ -154,6 +158,9 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
 
           Call timesec (ts1)
           time_olpaan=ts1-ts0+time_olpaan
+
+!What if it is, say, LAPW calculation without any local orbitals?
+        if (nlorb(is).ne.0) then
 ! APW-LO part
           Call timesec (ts0)
           Do ilo = 1, nlorb (is)
@@ -188,7 +195,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
           End Do
           Call timesec (ts1)
           time_olplolon=ts1-ts0+time_olplolon
-
+        endif
 
 ! A segment for the linearised Koelling-Harmon
          if (input%groundstate%ValenceRelativity.eq.'lkh') then
