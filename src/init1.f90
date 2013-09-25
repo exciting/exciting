@@ -528,7 +528,7 @@ Subroutine init1
             Do l2 = 0, input%groundstate%lmaxvr
                Do m2 = - l2, l2
                   lm2 = idxlm (l2, m2)
-                  Do l3 = 0, input%groundstate%lmaxapw
+                  Do l3 = 0, input%groundstate%lmaxmat
                      Do m3 = - l3, l3
                         lm3 = idxlm (l3, m3)
                         gntyry (lm1, lm2, lm3) = gauntyry (l1, l2, l3, m1, m2, m3)
@@ -545,17 +545,21 @@ Subroutine init1
       If (allocated(gntnonzlm2)) deallocate (gntnonzlm2)
       If (allocated(gntnonzlm3)) deallocate (gntnonzlm3)
       If (allocated(gntnonzlindex)) deallocate (gntnonzlindex)
+      If (allocated(gntnonzl2index)) deallocate (gntnonzl2index)
       Allocate (gntryy(lmmaxmat, lmmaxvr, lmmaxapw))
       allocate(gntnonz(nonzcount),gntnonzlm1(nonzcount+1),gntnonzlm2(nonzcount),gntnonzlm3(nonzcount+1))
-      allocate(gntnonzlindex(0:input%groundstate%lmaxapw))
+      allocate(gntnonzlindex(0:input%groundstate%lmaxmat))
+      allocate(gntnonzl2index(lmmaxmat,lmmaxmat))
       i1=0
       Do l1 = 0, input%groundstate%lmaxmat
          gntnonzlindex(l1)=i1+1
          Do m1 = - l1, l1
             lm1 = idxlm (l1, m1)
-                  Do l3 = 0, input%groundstate%lmaxapw
+                  Do l3 = 0, input%groundstate%lmaxmat
+!                     if (lm1.eq.idxlm (l1,-l1)) gntnonzl2index(l1,l3)=i1+1
                      Do m3 = - l3, l3
-                        lm3 = idxlm (l3, m3)
+                       lm3 = idxlm (l3, m3)
+                       gntnonzl2index(lm1,lm3)=i1+1
 
             Do l2 = 0, input%groundstate%lmaxvr
                Do m2 = - l2, l2

@@ -38,7 +38,7 @@ Subroutine hmlrad
       Integer :: l1, l2, l3, m2, lm2, m1, m3, lm1, lm3
       Integer :: ilo, ilo1, ilo2, io, io1, io2, nalo1, maxnlo
       Real (8) :: t1,t2,angular
-      Real (8), allocatable :: hintegrals(:,:,:,:,:),halointegrals(:,:,:,:)
+      Real (8), allocatable :: hintegrals(:,:,:,:,:),halointegrals(:,:,:,:),hlolointegrals(:,:,:)
       complex(8) :: zsum
 ! automatic arrays
       Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, &
@@ -87,6 +87,13 @@ Subroutine hmlrad
       allocate(haloij(maxnlo,haaijSize,natmtot))
       haloij=dcmplx(0d0,0d0)
       Allocate (halointegrals(lmmaxvr, apwordmax, 0:input%groundstate%lmaxmat, nlomax))
+
+! LO-LO storage initialisation
+      if (allocated(hloloij)) deallocate(hloloij)
+      allocate(hlolointegrals(lmmaxvr,nlomax,nlomax))
+      allocate(hloloij(maxnlo,maxnlo,natmtot))
+      hloloij=dcmplx(0d0,0d0)
+
 
       Do is = 1, nspecies
          nr = nrmt (is)
@@ -252,6 +259,7 @@ Subroutine hmlrad
 !-----------------------------------------------!
 !     local-orbital-local-orbital integrals     !
 !-----------------------------------------------!
+! Radial integrals
             Do ilo1 = 1, nlorb (is)
                l1 = lorbl (ilo1, is)
                Do ilo2 = 1, nlorb (is)
@@ -265,7 +273,7 @@ Subroutine hmlrad
                         fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
                      End Do
                      Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                     hlolo (ilo1, ilo2, 1, ias) = gr (nr) / y00
+                     hlolointegrals (1, ilo1, ilo2) = gr (nr) / y00
                      if (input%groundstate%ValenceRelativity.eq.'lkh') then
                        Do ir = 1, nr
                          rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
@@ -277,7 +285,7 @@ Subroutine hmlrad
                        h1lolo (ilo1, ilo2, ias) = gr (nr) / y00
                      endif
                   Else
-                     hlolo (ilo1, ilo2, 1, ias) = 0.d0
+                     hlolointegrals (1, ilo1, ilo2) = 0.d0
                   End If
                   Do l2 = 1, input%groundstate%lmaxvr
                      Do m2 = - l2, l2
@@ -288,13 +296,36 @@ Subroutine hmlrad
                            fr (ir) = t1 * veffmt (lm2, ir, ias)
                         End Do
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                        hlolo (ilo1, ilo2, lm2, ias) = gr (nr)
+                        hlolointegrals (lm2, ilo1, ilo2) = gr (nr)
                      End Do
                   End Do
                End Do
             End Do
-
-           else
+! Angular integrals
+            if1=0
+            Do ilo1 = 1, nlorb (is)
+              l1 = lorbl (ilo1, is)
+              Do m1 = - l1, l1
+                lm1 = idxlm (l1, m1)
+                if1=if1+1
+                if3=0
+                Do ilo2 = 1, nlorb (is)
+                  l3 = lorbl (ilo2, is)
+                  Do m3 = - l3, l3
+                    lm3 = idxlm (l3, m3)
+                    if3=if3+1
+                    zsum = 0.d0
+                    inonz=gntnonzl2index(lm1,lm3)
+                    do while ((gntnonzlm3(inonz).eq.lm3).and.(gntnonzlm1(inonz).eq.lm1))
+                      zsum=zsum+gntnonz(inonz)*dcmplx(hlolointegrals(gntnonzlm2(inonz),ilo1,ilo2),0d0)
+                      inonz=inonz+1
+                    enddo
+                    hloloij(if1,if3,ias)=zsum
+                  End Do
+                End Do
+              End Do
+            End Do
+          else
 ! If kinetic energy is calculated as Laplacian
 !---------------------------!
 !     APW-APW integrals     !
@@ -433,33 +464,58 @@ Subroutine hmlrad
                   l3 = lorbl (ilo2, is)
                   If (l1 .Eq. l3) Then
                      Do ir = 1, nr
-                        fr (ir) = lofr (ir, 1, ilo1, ias) * lofr (ir, &
-                       & 2, ilo2, ias) * r2 (ir)
+                        fr (ir) = lofr (ir, 1, ilo1, ias) * lofr (ir, 2, ilo2, ias) * r2 (ir)
                      End Do
                      Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                     hlolo (ilo1, ilo2, 1, ias) = gr (nr) / y00
+                     hlolointegrals (1, ilo1, ilo2) = gr (nr) / y00
                   Else
-                     hlolo (ilo1, ilo2, 1, ias) = 0.d0
+                     hlolointegrals (1, ilo1, ilo2) = 0.d0
                   End If
                   Do l2 = 1, input%groundstate%lmaxvr
                      Do m2 = - l2, l2
                         lm2 = idxlm (l2, m2)
                         Do ir = 1, nr
-                           t1 = lofr (ir, 1, ilo1, ias) * lofr (ir, 1, &
-                          & ilo2, ias) * r2 (ir)
+                           t1 = lofr (ir, 1, ilo1, ias) * lofr (ir, 1, ilo2, ias) * r2 (ir)
                            fr (ir) = t1 * veffmt (lm2, ir, ias)
                         End Do
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                        hlolo (ilo1, ilo2, lm2, ias) = gr (nr)
+                        hlolointegrals (lm2, ilo1, ilo2) = gr (nr)
                      End Do
                   End Do
                End Do
             End Do
+! Angular integrals
+            if1=0
+            Do ilo1 = 1, nlorb (is)
+              l1 = lorbl (ilo1, is)
+              Do m1 = - l1, l1
+                lm1 = idxlm (l1, m1)
+                if1=if1+1
+                if3=0
+                Do ilo2 = 1, nlorb (is)
+                  l3 = lorbl (ilo2, is)
+                  Do m3 = - l3, l3
+                    lm3 = idxlm (l3, m3)
+                    if3=if3+1
+                    zsum = 0.d0
+                    inonz=gntnonzl2index(lm1,lm3)
+                    do while ((gntnonzlm3(inonz).eq.lm3).and.(gntnonzlm1(inonz).eq.lm1))
+                      zsum=zsum+gntnonz(inonz)*dcmplx(hlolointegrals(gntnonzlm2(inonz),ilo1,ilo2),0d0)
+                      inonz=inonz+1
+                    enddo
+                    hloloij(if1,if3,ias)=zsum
+                  End Do
+                End Do
+              End Do
+            End Do
+
            endif
 ! end loops over atoms and species
          End Do
       End Do
       deallocate(hintegrals)
+      deallocate(halointegrals)
+      deallocate(hlolointegrals)
       Return
 End Subroutine
 !EOC

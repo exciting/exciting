@@ -32,7 +32,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
       Real (8) :: cpu0, cpu1
       Real (8) :: threshold
       Complex (8), allocatable :: apwi(:,:),zm(:,:)
-      integer if1,if3,l3,m3,lm3,io2,ias,maxnlo,ilo,j1,j2,lm1,lm2,j,io,l
+      integer if1,if3,l3,m3,lm3,io2,ias,maxnlo,ilo,j1,j2,j3,lm1,lm2,j,io,l,ilo1,ilo2,l1
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
@@ -123,7 +123,15 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
           time_hmlalon=ts1-ts0+time_hmlalon
 ! LO-LO part
           Call timesec (ts0)
-          Call hmllolon (system%hamilton, is, ia, ngp)
+          l1=lorbl (1, is)
+          lm1=idxlm (l1,-l1)
+          j1= ngp + idxlo (lm1, 1, ias)
+
+          l3=lorbl (nlorb(is),is)
+          lm3=idxlm (l3,l3)
+          j3= ngp + idxlo (lm3,nlorb(is),ias)
+          system%hamilton%za(j1:j3,j1:j3)=system%hamilton%za(j1:j3,j1:j3)+hloloij(1:1+j3-j1,1:1+j3-j1,ias)
+
           Call timesec (ts1)
           time_hmllolon=ts1-ts0+time_hmllolon
 !--Overlap--
@@ -165,11 +173,24 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
           time_olpalon=ts1-ts0+time_olpalon
 ! LO-LO part
           Call timesec (ts0)
-          Call olplolon (system%overlap, is, ia, ngp)
+          Do ilo1 = 1, nlorb (is)
+            l = lorbl (ilo1, is)
+            Do ilo2 = 1, nlorb (is)
+              If (lorbl(ilo2, is) .Eq. l) Then
+                lm1=idxlm (l,-l)
+                j1= ngp + idxlo (lm1, ilo1, ias)
+                j2= ngp + idxlo (lm1, ilo2, ias)
+                do lm2=idxlm (l,-l),idxlm (l, l)
+                  system%overlap%za(j1+lm2-lm1,j2+lm2-lm1)=system%overlap%za(j1+lm2-lm1,j2+lm2-lm1)+dcmplx(ololo(ilo1, ilo2, ias),0d0)
+                enddo
+              End If
+            End Do
+          End Do
           Call timesec (ts1)
           time_olplolon=ts1-ts0+time_olplolon
 
 
+! A segment for the linearised Koelling-Harmon
          if (input%groundstate%ValenceRelativity.eq.'lkh') then
              Call timesec (ts0)
             Call hml1aan (system%h1, is, ia, ngp, apwalm)

@@ -33,6 +33,7 @@ Module mod_eigensystem
       integer, allocatable :: haloijSize(:)
 ! local-orbital-local-orbital Hamiltonian integrals
       Real (8), Allocatable :: hlolo (:, :, :, :)
+      Complex (8), Allocatable :: hloloij(:,:,:)
 ! The stuff for the linearized Koelling-Harmon
 ! APW-APW Hamiltonian integrals
       Real (8), Allocatable :: h1aa (:, :, :, :)
@@ -43,7 +44,7 @@ Module mod_eigensystem
 ! complex Gaunt coefficient array
       Complex (8), Allocatable :: gntyry (:, :, :),gntryy (:, :, :),gntnonz(:)
 ! list of non-zero Gaunt coefficients
-      Integer, Allocatable :: gntnonzlm1(:),gntnonzlm2(:),gntnonzlm3(:),gntnonzlindex(:)
+      Integer, Allocatable :: gntnonzlm1(:),gntnonzlm2(:),gntnonzlm3(:),gntnonzlindex(:),gntnonzl2index(:,:)
 !gntnonzlist (:, :, :)
 ! tseqit is .true. if the first-variational secular equation is to be solved
 ! iteratively
