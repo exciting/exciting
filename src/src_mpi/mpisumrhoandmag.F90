@@ -96,24 +96,27 @@ Subroutine mpisumrhoandmag
          Deallocate (buffer2d)
 #endif
       End If
+      if (input%groundstate%tpartcharges) then
 !--------------------------------!
 !   muffin-tin partial charges   !
 !--------------------------------!
-      Call MPI_barrier (MPI_COMM_WORLD, ierr)
+        Call MPI_barrier (MPI_COMM_WORLD, ierr)
 #ifndef MPI1
-      call mpi_allreduce(mpi_in_place,chgpart,lmmaxvr*natmtot*nstsv, &
-      & MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+        call mpi_allreduce(mpi_in_place,chgpart,lmmaxvr*natmtot*nstsv, &
+       &  MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
 #endif
 #ifdef MPI1
-      Allocate (buffer3d(lmmaxvr,natmtot,nstsv))
-      buffer3d = 0.d0
-      call mpi_allreduce(chgpart,buffer3d,lmmaxvr*natmtot*nstsv, &
-      & MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-      chgpart = buffer3d
-      Deallocate (buffer3d)
+        Allocate (buffer3d(lmmaxvr,natmtot,nstsv))
+        buffer3d = 0.d0
+        call mpi_allreduce(chgpart,buffer3d,lmmaxvr*natmtot*nstsv, &
+       &  MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+        chgpart = buffer3d
+        Deallocate (buffer3d)
 #endif
-      If (rank .Eq. 0) write (60,*) " MPI: summation (MPI_Allreduce) over processes for density, "// &
+        If (rank .Eq. 0) &
+       &  write (60,*) " MPI: summation (MPI_Allreduce) over processes for density, "// &
        & "magnetisation, and partial charges done"
+      end if ! partcharges
 #endif
 End Subroutine mpisumrhoandmag
 !EOC

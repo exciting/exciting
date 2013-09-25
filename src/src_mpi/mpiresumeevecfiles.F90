@@ -89,15 +89,20 @@ use modinput
 
 	 Implicit None
 	 !arguments
-	character(256)::filetagarg
-	integer::Recl,reclloc
+	 integer,parameter::filetaglenth=256
+	character(filetaglenth)::filetagarg
+	integer::Recl,reclloc,recordunit_inbytes
 	character,allocatable::buffer(:)
 	!local
 	integer::ik
 #ifdef MPI
 	Character (256), External :: outfilenamestring
-	allocate(buffer(Recl*4))
-	Inquire (IoLength=Reclloc) buffer
+
+	!compute record unit in bytes abusing the filetag variable
+	Inquire (IoLength=Reclloc) filetagarg
+	recordunit_inbytes=filetaglenth/Reclloc
+
+allocate(buffer(Recl*recordunit_inbytes))
 
     if(rank.eq.0 .or. (.not. input%sharedfs .and. firstinnode)) then
      Open (71, File=trim(filetagarg)//trim(filext), Action='WRITE', &
@@ -110,7 +115,7 @@ use modinput
     	if(procofk(ik).eq.rank .and. (rank.lt.nkpt)) then
             Read (77, Rec=ik-firstk(procofk(ik))+1) buffer
         endif
-        Call MPI_bcast (buffer,Recl*4 , MPI_CHARACTER, procofk(ik), MPI_COMM_WORLD, ierr)
+        Call MPI_bcast (buffer,Recl*recordunit_inbytes , MPI_CHARACTER, procofk(ik), MPI_COMM_WORLD, ierr)
 
         if(rank.eq.0 .or. (.not. input%sharedfs .and. firstinnode)) then
             Write (71, Rec=ik) buffer
