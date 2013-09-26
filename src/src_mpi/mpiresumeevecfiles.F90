@@ -37,9 +37,6 @@ Subroutine mpiresumeevecfiles
       If (splittfile .And. (procs .Gt. 1) ) Then
 ! start a receive in order to pass around a token from rank 0 to max
 
-!
-
-
          filetag = 'EVECFV'
          Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_, &
         & evecfv
@@ -65,7 +62,7 @@ Subroutine mpiresumeevecfiles
 
 !
          Call SYSTEM ("sync")
-         If (rank .Eq. 0) Then
+         If ((verbosity>-1).and.(rank==0)) Then
             Write (60,*) "resumed split files"
             Call flushifc (60)
          End If

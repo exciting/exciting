@@ -62,7 +62,7 @@
 !_______________________
 ! restart initialization
 
-        Call init_relax
+            Call init_relax
 
 !______________________________________________________
 ! begin new self-consistent loop with updated positions
