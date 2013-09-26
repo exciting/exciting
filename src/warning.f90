@@ -1,4 +1,5 @@
 subroutine warning(message)
+    use modmain
 #ifdef MPI
     use modmpi
 #endif
@@ -7,6 +8,9 @@ subroutine warning(message)
     implicit none
     character :: message*(*)
     integer   :: unit
+    
+    lwarning = .True.
+
 #ifdef MPI
     if (rank==0) then
 #endif

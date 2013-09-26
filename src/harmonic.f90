@@ -12,7 +12,7 @@
         implicit none
         real(8), intent(IN) :: forcetol
         integer :: is, ia, nstep, ias
-        logical :: l1, l2
+        logical :: l1, l2, inittime
         character*(77) :: string, rmethod(3), newtonflag
 
         nstep = 0
@@ -30,23 +30,17 @@
                 if (lstep) then 
                     istep = istep-1
                     lstep = .False.
+                    inittime = .False.
                 else
                     write(string,'("Optimization step ", I4,"    (method = harmonic)")') istep
                     call printbox(60,"-",string)
                     call flushifc(60)
+                    inittime = .True.
                 end if
 
-!_____________________________________________________________
-! write lattice vectors and optimised atomic positions to file
-
-                Call writehistory
-                Call writegeometryxml(.True.)
-
-!__________________________________________________
-! write the optimised interatomic distances to file
-
-                Call writeiad(.True.)
             end if
+
+            if (inittime) call timesec(tsec1)
 
 !________________________________________________________________
 ! at the first step initialize atomic possitions and total forces
@@ -82,6 +76,27 @@
                     call writechg (60,input%relax%outputlevelnumber)          
                 end if
                 call flushifc(60)
+
+!_____________________________________________________________
+! write lattice vectors and optimised atomic positions to file
+
+                Call writehistory
+                Call writegeometryxml(.True.)
+
+!__________________________________________________
+! write the optimised interatomic distances to file
+
+                Call writeiad(.True.)
+            end if
+
+!_______________________________________________
+! write the time spent in this optimization step 
+
+            call timesec(tsec2)
+            if (rank==0) then
+                write(60,*)
+                write(60,'(" Time spent in this optimization step   : ",F12.2," seconds")') tsec2-tsec1
+                call flushifc(60)
             end if
 
         end do
@@ -94,10 +109,8 @@ contains
         use modinput
         use modmain
 
-!   Updates the current atomic positions according to the force on each atom. If
-!   ${\bf r}_{ij}^m$ is the position and ${\bf F}_{ij}^m$ is the force acting on
-!   it for atom $j$ of species $i$ and after time step $m$, then the new
-!   position is calculated by an harmonic approximation
+!       Updates the current atomic positions according to the force on each atom. 
+!       The new configuration is calculated using either a newton-like or a harmonic step.
 
         Implicit None
         Integer :: ik, ispn, is, ia, ias, i
@@ -118,40 +131,26 @@ contains
             Do ia = 1, natoms (is)
                 ias = idxas (ia, is)
 
-!____________________________________________
-! for the first step always use Newton method
+!_________________________________________________
+! for the first step always use a newton-like step
 
                 if (nstep<2) then
                     do i = 1, 3
                         l1 = .not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)
                         l2 = ( abs(forcetot(i,ias)) .gt. input%structure%epslat/10.d0 )
                         if ( l1 .and. l2 ) then
-                            xdelta = input%relax%tau0atm*forcetot(i,ias)
-                            if (xdelta .gt. input%relax%tau0atm/2.0) xdelta = input%relax%tau0atm/2.0
+                            xdelta = input%relax%taunewton*forcetot(i,ias)
+                            if (xdelta .gt. input%relax%taunewton/2.0) xdelta = input%relax%taunewton/2.0
                             atposc_1(i,ia,is) = atposc(i,ia,is)
                             atposc(i,ia,is) = atposc(i,ia,is) + xdelta      
-
-                   !write(60,'(T24,4F14.8)') xdelta*a, xdelta, input%relax%tau0atm/2.0, tauxyz(i,ias)
-                   !call flushifc(60)
-
                         end if
                     end do
                     tauatm(ias) = 0.0
 
-                   !write(60,*) 
-                   !write(60,'("0=> 0    ", 6F14.8,I4)') atposc(:,ia,is)*a,   forcetot(:,ias), ia
-                   !write(60,'("0=> 1    ", 6F14.8,I4)') atposc_1(:,ia,is)*a, forcetp(:,ias),  ia
-                   !call flushifc(60)
-
-!____________________________________________
+!______________________________
 ! otherwise use harmonic method
 
                 else
-
-                   !write(60,*) 
-                   !write(60,'("A=> 0    ", 6F14.8,I4)') atposc(:,ia,is)*a,   forcetot(:,ias), ia
-                   !write(60,'("A=> 1    ", 6F14.8,I4)') atposc_1(:,ia,is)*a, forcetp(:,ias),  ia
-                   !call flushifc(60)
 
                     do i = 1, 3
                         rmethod(i) = "n"
@@ -166,64 +165,56 @@ contains
                             hdelta = atposc_1(i,ia,is)/(1.-beta) - beta*atposc(i,ia,is)/(1.-beta)
                             hdelta = hdelta - atposc(i,ia,is)
 
-                   !write(60,'(T52,2F14.8,2I2)') beta, hdelta*a, ias, i 
-                   !call flushifc(60)
-
 !_________________________________________________________________________________________________
 ! if beta is positive and less then one or if the absolute value of difference between the old and 
-! the new cartesian coordinates is larger then 2.0*input%relax%taubfgs, update using newton step 
-! otherwise using harmonic step
+! the new cartesian coordinates is larger then 2.0*input%relax%taubfgs, update using a newton-like 
+! step, otherwise using a harmonic step
 
                             if ( ((beta .ge. 0.0) .and. (beta .lt. 1.0)) .or. &
                            &  (abs(hdelta) .ge. input%relax%taubfgs) ) then
  
+!_________________
+! newton-like step
+
                                 rmethod(i) = "n"
                                 checknewton = .True. 
-                                tauxyz(i,ias) = tauxyz(i,ias) + 2.0*input%relax%tau0atm
+                                tauxyz(i,ias) = tauxyz(i,ias) + 2.0*input%relax%taunewton
                                 xdelta = tauxyz(i,ias)*forcetot(i,ias)
-
-                   !write(60,'(T24,4F14.8,A)') xdelta, tauxyz(i,ias), forcetot(i,ias), input%relax%tau0atm/2.0, " qui"
-
-                                if (abs(xdelta) .gt. input%relax%tau0atm) then
+                                if (abs(xdelta) .gt. input%relax%taunewton) then
                                     if (xdelta < 0.0) then 
-                                        xdelta = -input%relax%tau0atm
+                                        xdelta = -input%relax%taunewton
                                     else
-                                        xdelta = input%relax%tau0atm
+                                        xdelta = input%relax%taunewton
                                     end if
                                 end if
 
-                   !write(60,'(T24,4F14.8)') xdelta*a, xdelta, input%relax%tau0atm/2.0, tauxyz(i,ias)
-                   !call flushifc(60)
-
                             else 
+
+!______________
+! harmonic step
+
                                 rmethod(i) = "h"
                                 checkharmonic = .True. 
                                 xdelta = hdelta
                                 tauxyz(i,ias) = 0.0
-                   
-                   !write(60,'(T24,A,F14.8)') "sono passato da harmonic  ",tauxyz(i,ias)
-                   !call flushifc(60)
 
                             end if
+
+!_____________________________
+! update old and new positions
 
                             atposc_1(i,ia,is) = atposc(i,ia,is)
                             atposc(i,ia,is) = atposc(i,ia,is) + xdelta       
 
-                   !write(60,*) "===> ", ias, i, tauxyz(i,ias), trim(rmethod(i))
-                   !call flushifc(60)
-
-
                         end if
                     end do
- 
-                   !write(60,*) 
-                   !write(60,'("B=> 0    ", 6F14.8,I4)') atposc(:,ia,is)*a,   forcetot(:,ias), ia
-                   !write(60,'("B=> 1    ", 6F14.8,I4)') atposc_1(:,ia,is)*a, forcetp(:,ias),  ia
-                   !call flushifc(60)
-
                  end if
              End Do
         End Do
+
+!________________________
+! set flags for each step
+
         newtonflag = "full newton step"
         if (checkharmonic .and. checknewton) then 
             newtonflag = "partial harmonic step"
@@ -244,32 +235,15 @@ contains
             End Do
         End Do
 
-!__________________________________________________________
-! if tshift .eq. true calculate the shift of the first atom
-
-        if (input%structure%tshift) delta(:) = atposc(:,1,1) - atposc_1(:,1,1)
+!_________________________________________________________
+! set the total forces for the previous configurations and
+! save the current atomic position in atsave
 
         Do is = 1, nspecies
             Do ia = 1, natoms (is)
                 ias = idxas (ia, is)
-
-                if (input%structure%tshift) then
-                    atposc(:,ia,is) = atposc(:,ia,is) - delta(:)
-                    atposc_1(:,ia,is) = atposc_1(:,ia,is) - delta(:)
-                end if
-
-!_____________________________________________________
-! set the total forces for the previous configurations
-
                 forcetp(:,ias) = forcetot(:,ias)
-
-                   !write(60,*) 
-                   !write(60,'("delta    ", 3F14.8)') delta(:)*a
-                   !write(60,*) 
-                   !write(60,'("C=> 0    ", 6F14.8,I4)') atposc(:,ia,is)*a,   forcetot(:,ias), ia
-                   !write(60,'("C=> 1    ", 6F14.8,I4)') atposc_1(:,ia,is)*a, forcetp(:,ias),  ia
-                   !call flushifc(60)
-
+                atsave(:,ia,is) = atposc(:,ia,is)
             End Do
         End Do
 
@@ -278,15 +252,17 @@ contains
 
         Call init_relax
 
-        !Do is = 1, nspecies
-        !    Do ia = 1, natoms (is)
-        !        ias = idxas (ia, is)
-        !           write(60,*) 
-        !           write(60,'("D=> 0    ", 6F14.8,I4)') atposc(:,ia,is)*a,   forcetot(:,ias), ia
-        !           write(60,'("D=> 1    ", 6F14.8,I4)') atposc_1(:,ia,is)*a, forcetp(:,ias),  ia
-        !           call flushifc(60)
-        !    End Do
-        !End Do
+!______________________________________________________
+! if (tshift .eq. true) shift also old atomic positions 
+
+        if (input%structure%tshift) then 
+            do is = 1, nspecies
+                do ia = 1, natoms (is)
+                   delta(:) = atposc(:,ia,is) - atsave(:,ia,is)
+                   atposc_1(:,ia,is) = atposc_1(:,ia,is) + delta(:)
+                end do
+            end do
+        end if
 
         Return
     End Subroutine updatpos_harmonic
