@@ -45,7 +45,7 @@ Subroutine effmass
 ! compute the overlap radial integrals
       Call olprad
 ! compute the Hamiltonian radial integrals
-      Call hmlrad
+      Call hmlint
       ik0 = 0
 ! begin parallel loop over k-points
 !$OMP PARALLEL DEFAULT(SHARED) &

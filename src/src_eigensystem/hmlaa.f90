@@ -56,7 +56,7 @@ Subroutine hmlaa (tapp, is, ia, ngp, apwalm, v, h)
             lm1 = idxlm (l1, m1)
             Do io1 = 1, apword (l1, is)
                zv (:) = 0.d0
-               Do l3 = 0, input%groundstate%lmaxapw
+               Do l3 = 0, input%groundstate%lmaxmat
                   Do m3 = - l3, l3
                      lm3 = idxlm (l3, m3)
                      If (lm1 .Ge. lm3) Then

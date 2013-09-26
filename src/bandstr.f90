@@ -131,7 +131,7 @@ Subroutine bandstr
   ! compute the overlap radial integrals
       Call olprad
   ! compute the Hamiltonian radial integrals
-      Call hmlrad
+      Call hmlint
       emin = 1.d5
       emax = - 1.d5
   ! begin parallel loop over k-points

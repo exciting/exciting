@@ -508,8 +508,6 @@ Subroutine init1
       If (allocated(ololo)) deallocate (ololo)
       Allocate (ololo(nlomax, nlomax, natmtot))
 
-      If (allocated(hlolo)) deallocate (hlolo)
-      Allocate (hlolo(nlomax, nlomax, lmmaxvr, natmtot))
       if (input%groundstate%ValenceRelativity.eq.'lkh') then
         If (allocated(h1aa)) deallocate (h1aa)
         Allocate (h1aa(apwordmax, apwordmax,0:input%groundstate%lmaxapw,natmtot))
@@ -546,7 +544,7 @@ Subroutine init1
       If (allocated(gntnonzlm3)) deallocate (gntnonzlm3)
       If (allocated(gntnonzlindex)) deallocate (gntnonzlindex)
       If (allocated(gntnonzl2index)) deallocate (gntnonzl2index)
-      Allocate (gntryy(lmmaxmat, lmmaxvr, lmmaxapw))
+      Allocate (gntryy(lmmaxvr, lmmaxmat, lmmaxmat))
       allocate(gntnonz(nonzcount),gntnonzlm1(nonzcount+1),gntnonzlm2(nonzcount),gntnonzlm3(nonzcount+1))
       allocate(gntnonzlindex(0:input%groundstate%lmaxmat))
       allocate(gntnonzl2index(lmmaxmat,lmmaxmat))

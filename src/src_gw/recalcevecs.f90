@@ -76,7 +76,7 @@ subroutine recalcevecs
     Call olprad
 
 ! compute the Hamiltonian radial integrals
-    Call hmlrad
+    Call hmlint
 
 ! delete any existing eigenvector files
     Call delevec

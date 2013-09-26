@@ -54,7 +54,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
           ias = idxas (ia, is)
           apwi=dcmplx(0d0,0d0)
           if3=0
-          Do l3 = 0, input%groundstate%lmaxapw
+          Do l3 = 0, input%groundstate%lmaxmat
             Do m3 = - l3, l3
             lm3 = idxlm (l3, m3)
               Do io2 = 1, apword (l3, is)

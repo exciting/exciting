@@ -158,6 +158,7 @@ Subroutine force
          Do is = 1, nspecies
             Call genffacg (is, ffacg(:, is))
          End Do
+         call hmlrad
 ! compute k-point dependent contribution to the IBS force
 #ifdef KSMP
 !$OMP PARALLEL DEFAULT(SHARED)

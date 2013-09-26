@@ -31,7 +31,7 @@ subroutine fermisurf
 ! compute the overlap radial integrals
   call olprad
 ! compute the Hamiltonian radial integrals
-  call hmlrad
+  call hmlint
 
 ! begin parallel loop over reduced k-points set
 !$OMP PARALLEL DEFAULT(SHARED) &

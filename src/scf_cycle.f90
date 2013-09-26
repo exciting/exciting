@@ -150,7 +150,7 @@ subroutine scf_cycle
 ! compute the overlap radial integrals
         Call olprad
 ! compute the Hamiltonian radial integrals
-        Call hmlrad
+        Call hmlint
 !        write(*,*) 'hmlrad done'
 ! zero partial charges
         chgpart(:,:,:)=0.d0
