@@ -4107,7 +4107,7 @@ gw.xsd
           </xs:complexType>
         </xs:element>        
 
-        <xs:element ex:importance="expert" ex:unit="" name="nlo" minOccurs="0">
+        <xs:element ex:importance="expert" ex:unit="" name="shg" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
               <xs:element ex:importance="expert" ex:unit="" name="chicomp" type="integertriple" default="1 2 3" maxOccurs="27">
