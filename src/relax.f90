@@ -32,8 +32,8 @@ subroutine relax
     If (allocated(tauxyz)) deallocate (tauxyz)
     Allocate (tauxyz(3, natmtot))
     If (associated(input%relax)) Then
-        tauatm (:) = input%relax%tau0atm
-        tauxyz (:, :) = input%relax%tau0atm
+        tauatm (:) = input%relax%taunewton
+        tauxyz (:, :) = input%relax%taunewton
     Else
         tauatm (:) = 0
         tauxyz (:, :) = 0
@@ -108,17 +108,6 @@ subroutine relax
             call flushifc(60)
         End If
         
-        call lbfgs_driver
-
-    else if (input%relax%method=="mixed") then
-    
-        If (rank .Eq. 0) Then
-            call printbox(60,"+","Use mixed Newton/BFGS scheme for optimizing atomic positions")
-            call writeoptminitdata(60,input%relax%outputlevelnumber)
-            call flushifc(60)
-        End If
-        
-        call newton(input%relax%epsforce0)
         call lbfgs_driver
     
     else

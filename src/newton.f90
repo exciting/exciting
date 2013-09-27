@@ -13,6 +13,7 @@
         real(8), intent(IN) :: forcetol
         integer :: is, ia, nstep, ias
         character*(77) :: string
+        logical :: inittime
 
         nstep = 0
 
@@ -29,6 +30,7 @@
                 if (lstep) then 
                     istep = istep-1
                     lstep = .False.
+                    inittime = .False.
                     do is = 1, nspecies
                         do ia = 1, natoms (is)
                             ias = idxas (ia, is)
@@ -40,19 +42,12 @@
                     write(string,'("Optimization step ", I4,"    (method = newton)")') istep
                     call printbox(60,"-",string)
                     call flushifc(60)
+                    inittime = .True.
                 end if
 
-!_____________________________________________________________
-! write lattice vectors and optimised atomic positions to file
-
-                Call writehistory
-                Call writegeometryxml(.True.)
-
-!__________________________________________________
-! write the optimised interatomic distances to file
-
-                Call writeiad(.True.)
             end if
+
+            if (inittime) call timesec(tsec1)
 
 !________________________
 ! update atomic positions
@@ -84,6 +79,27 @@
                 if (input%relax%outputlevelnumber>1)  then 
                     call writechg (60,input%relax%outputlevelnumber)          
                 end if
+                call flushifc(60)
+
+!_____________________________________________________________
+! write lattice vectors and optimised atomic positions to file
+
+                Call writehistory
+                Call writegeometryxml(.True.)
+
+!__________________________________________________
+! write the optimised interatomic distances to file
+
+                Call writeiad(.True.)
+            end if
+
+!_______________________________________________
+! write the time spent in this optimization step 
+
+            call timesec(tsec2)
+            if (rank==0) then
+                write(60,*)
+                write(60,'(" Time spent in this optimization step   : ",F12.2," seconds")') tsec2-tsec1
                 call flushifc(60)
             end if
 
@@ -124,18 +140,18 @@ contains
 ! if the force is in the same direction then increase step size parameter
 
                 If (t1 .Gt. 0.d0) Then
-                    tauatm(ias) = tauatm(ias)+input%relax%tau0atm
+                    tauatm(ias) = tauatm(ias)+input%relax%taunewton
                 Else
-                    tauatm(ias) = input%relax%tau0atm
+                    tauatm(ias) = input%relax%taunewton
                 End If
                 do i = 1, 3
                     if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) then
                         xdelta = tauatm(ias)*(forcetot(i,ias)+forcetp(i,ias))
-                        if (abs(xdelta) .gt. input%relax%tau0atm) then
+                        if (abs(xdelta) .gt. input%relax%taunewton) then
                             if (xdelta < 0.0) then 
-                                xdelta = -input%relax%tau0atm
+                                xdelta = -input%relax%taunewton
                             else
-                                xdelta = input%relax%tau0atm
+                                xdelta = input%relax%taunewton
                             end if
                         end if
                         atposc(i,ia,is) = atposc(i,ia,is) + xdelta

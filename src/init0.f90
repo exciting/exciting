@@ -107,7 +107,6 @@ Subroutine init0
 ! GB 3.10.2012 
       If (input%structure%cartesian) Then
          input%structure%primcell = .True.
-         input%structure%tshift = .False.
       End If
 
 ! find primitive cell if required
@@ -456,8 +455,8 @@ Subroutine init0
 !      forcetp (:, :) = 0.d0
 ! initial step sizes
 !      If (associated(input%relax)) Then
-!         tauatm (:) = input%relax%tau0atm
-!         tauxyz (:, :) = input%relax%tau0atm
+!         tauatm (:) = input%relax%taunewton
+!         tauxyz (:, :) = input%relax%taunewton
 !      Else
 !         tauatm (:) = 0
 !         tauxyz (:, :) = 0

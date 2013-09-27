@@ -7,10 +7,8 @@ for dirn in $label ; do
     cd $dirn
     cp -f $dirn.xml input.xml
     echo
-    echo '        +--------------------------------------+'
-    echo '        |  SCF calculation of "'$dirn'" starts  |'
-    echo '        +--------------------------------------+'
+    echo 'SCF calculation of "'$dirn'" starts --------------------------------'
     time $EXECUTABLE | tee output.screen
-    date
     cd ../
 done
+echo 

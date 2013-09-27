@@ -239,8 +239,8 @@ if (mod == 'VOL'):
 
     #%%%%%%%%--- PLOT PREPARATION ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
-    if (fit=='M'): fit_label = 'Murnaghan fit'
-    if (fit=='B'): fit_label = 'Birch-Murnaghan fit'
+    if (fit=='M'): fit_label = 'Murnaghan eos'
+    if (fit=='B'): fit_label = 'Birch-Murnaghan eos'
    
     xlabel = u'Volume [Bohr\u00B3]'
     ylabel = 'Energy [Ha]'
@@ -380,7 +380,7 @@ print " Optimized structure saved to file:",mod.lower()+"-optimized.xml\n"
 ax.set_xlabel(xlabel, fontsize = 18)
 ax.set_ylabel(ylabel, fontsize = 18)
 ax.plot(xx, yy, 'k', color='red'  , linewidth =2, label=fit_label)
-ax.plot(x0, y0, 'o', color='green', markersize=8, markeredgecolor='black',markeredgewidth = 1,label='Calculations')
+ax.plot(x0, y0, 'o', color='green', markersize=8, markeredgecolor='black',markeredgewidth = 1,label='DFT calculations')
 ax.legend(numpoints=1,loc=9)
 
 for label in ax.xaxis.get_ticklabels(): label.set_fontsize(15)
