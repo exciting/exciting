@@ -1,5 +1,7 @@
 subroutine warning(message)
+#ifndef SPECIES
     use modmain
+#endif
 #ifdef MPI
     use modmpi
 #endif
@@ -8,8 +10,10 @@ subroutine warning(message)
     implicit none
     character :: message*(*)
     integer   :: unit
-    
+
+#ifndef SPECIES    
     lwarning = .True.
+#endif    
 
 #ifdef MPI
     if (rank==0) then
