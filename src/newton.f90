@@ -25,26 +25,24 @@
             nstep = nstep+1
             istep = istep+1
 
-            if (rank .Eq. 0) then
-
-                if (lstep) then 
-                    istep = istep-1
-                    lstep = .False.
-                    inittime = .False.
-                    do is = 1, nspecies
-                        do ia = 1, natoms (is)
-                            ias = idxas (ia, is)
-                            tauatm(ias) = 0.d0
-                            forcetp(:, ias) = 0.d0
-                        end do
+            if (lstep) then 
+                istep = istep-1
+                lstep = .False.
+                inittime = .False.
+                do is = 1, nspecies
+                    do ia = 1, natoms (is)
+                        ias = idxas (ia, is)
+                        tauatm(ias) = 0.d0
+                        forcetp(:, ias) = 0.d0
                     end do
-                else
+                end do
+            else
+                if (rank .Eq. 0) then
                     write(string,'("Optimization step ", I4,"    (method = newton)")') istep
                     call printbox(60,"-",string)
                     call flushifc(60)
-                    inittime = .True.
                 end if
-
+                inittime = .True.
             end if
 
             if (inittime) call timesec(tsec1)
