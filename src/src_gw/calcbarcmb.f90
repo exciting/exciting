@@ -15,7 +15,7 @@
 
       use modmain
       use modgw 
-      use modmpi     
+      use modmpi, only: rank     
 !
 ! !INPUT PARAMETERS: 
 
@@ -143,7 +143,7 @@
       call cpu_time(t1)
       call sigma(iq,4*(input%gw%MixBasis%lmaxmb+1))
       call cpu_time(t2)
-      call write_cputime(fgw,t2-t1,'    SIGMA')
+      if (rank==0) call write_cputime(fgw,t2-t1,'    SIGMA')
 
 !     the cartesian coordinates of the q-point
       qvec(1:3)=vqc(1:3,iq)
@@ -352,7 +352,7 @@
 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
-      call write_cputime(fgw,tend-tstart, 'CALCBARCMB')
+      if (rank==0) call write_cputime(fgw,tend-tstart, 'CALCBARCMB')
 
       end subroutine calcbarcmb
 !EOC      

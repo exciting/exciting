@@ -9,7 +9,7 @@ subroutine calc_vxnl
             
     implicit none
 
-    integer(4) :: ikp, ik, iq
+    integer(4) :: ikp, ik, iq, ikq
     integer(4) :: ie1, ie2, ie3, icg
     real(8)    :: tstart, tend
     complex(8) :: t1, mvm
@@ -37,16 +37,9 @@ subroutine calc_vxnl
     Call hmlrad
 
 !------------------------------------------------!
-!   Calculate/Update Coulomb Potential in MB representation
+! Re-initialize Product Mixed Basis
 !------------------------------------------------!
-    if (rank .Eq. 0) call boxmsg(60,'-','Coulomb potential in MB')
-    call cpu_time(tstart)
-    call calc_coulpot_mb
-    call cpu_time(tend)
-    if (rank == 0) then
-        call write_cputime(60,tend-tstart,'calc_coul_mb')
-        call boxmsg(60,'-','')
-    end if
+    call init_mixed_basis    
 
 !------------------------------------------------!
 !   Calculate/Update the non-local exchange potential
@@ -68,6 +61,9 @@ subroutine calc_vxnl
 !---------------------------------------
 ! Loop over k-points
 !---------------------------------------
+    call barrier
+
+    ikq = 0
     do ikp = 1, nkpt
         ik = idikp(ikp)
 
@@ -80,55 +76,76 @@ subroutine calc_vxnl
 !---------------------------------------
         do iq = 1, nqptnr
 
-            Gamma = gammapoint(iq)
+            ikq = ikq+1 
+
+! decide if point is done by this process
+            if (mod(ikq-1,procs) == rank) then
+
+                Gamma = gammapoint(iq)
 ! Set the size of the basis for the corresponding q-point
-            matsiz=locmatsiz+ngq(iq)
-            if (rank == 0) write(fgw,101) iq, locmatsiz, ngq(iq), matsiz
+                matsiz=locmatsiz+ngq(iq)
+#ifdef MPI
+                write(fgw,'("Rank =", i4)') rank
+#endif
+                write(fgw,101) iq, locmatsiz, ngq(iq), matsiz
+
+!------------------------------------------------------------
+! Calculate the Coulomb matrix elements in MB representation
+!------------------------------------------------------------
 
 ! Calculate the interstitial mixed basis functions
-            call diagsgi(iq)
+                call diagsgi(iq)
+
 ! Calculate the transformation matrix between pw's and the mixed basis functions
-            call calcmpwipw(iq)
+                call calcmpwipw(iq)
+
+! Calculate the bare Coulomb matrix
+                call calcbarcmb(iq)
+
+! Reduce MB size by choosing eigenvectors of barc with eigenvalues larger than barcevtol
+                call setbarcev(input%gw%BareCoul%barcevtol)            
 
 !------------------------------------------------------------
-! calculate the M^i_{nm}(k,q) matrix elements for given k and q
+! Calculate the M^i_{nm}(k,q) matrix elements for given k and q
 !------------------------------------------------------------
-            call expand_basis(ik,iq)
+                call expand_basis(ik,iq)
 
 !------------------------------------------------------------     
 ! Calculate non-local (Hartree-Fock) potential
 !------------------------------------------------------------     
-! Valence electron contribution
-            do ie1 = 1, nstsv
-                do ie2 = 1, nstsv
-                    t1 = zzero
-                    do ie3 = 1, nomax
-                        mvm = zdotc(mbsiz,minmmat(1:mbsiz,ie1,ie3),1,minmmat(1:mbsiz,ie2,ie3),1)
-                        t1 = t1+mvm
-                    enddo ! ie3
-                    vnl(ie1,ie2) = vnl(ie1,ie2)-t1/dble(nqptnr)
-                end do ! ie2
-                if (Gamma.and.(ie1<=nomax)) then
-                    vnl(ie1,ie1) = vnl(ie1,ie1)-4.d0*pi*vi*singc2
-                end if
-            end do ! ie1
-            deallocate(minmmat)
 
-! Core electron contribution
-            if (iopcore <= 1) then
+! Valence electron contribution
                 do ie1 = 1, nstsv
                     do ie2 = 1, nstsv
                         t1 = zzero
-                        do icg = 1, ncg
-                            mvm = zdotc(mbsiz,mincmat(1:mbsiz,ie1,icg),1,mincmat(1:mbsiz,ie2,icg),1)
+                        do ie3 = 1, nomax
+                            mvm = zdotc(mbsiz,minmmat(1:mbsiz,ie1,ie3),1,minmmat(1:mbsiz,ie2,ie3),1)
                             t1 = t1+mvm
                         enddo ! ie3
                         vnl(ie1,ie2) = vnl(ie1,ie2)-t1/dble(nqptnr)
                     end do ! ie2
+                    if (Gamma .and. (ie1 <= nomax)) then
+                        vnl(ie1,ie1) = vnl(ie1,ie1)-4.d0*pi*vi*singc2
+                    end if
                 end do ! ie1
-                deallocate(mincmat)
-            end if ! iopcore
-          
+                deallocate(minmmat)
+
+! Core electron contribution
+                if (iopcore <= 1) then
+                    do ie1 = 1, nstsv
+                        do ie2 = 1, nstsv
+                            t1 = zzero
+                            do icg = 1, ncg
+                                mvm = zdotc(mbsiz,mincmat(1:mbsiz,ie1,icg),1,mincmat(1:mbsiz,ie2,icg),1)
+                                t1 = t1+mvm
+                            enddo ! ie3
+                            vnl(ie1,ie2) = vnl(ie1,ie2)-t1/dble(nqptnr)
+                        end do ! ie2
+                    end do ! ie1
+                    deallocate(mincmat)
+                end if ! iopcore
+
+            end if !   
         end do ! iq
 
 !------------------------------------------------------------
@@ -166,6 +183,13 @@ subroutine calc_vxnl
         end if
     
     end do ! ikp
+
+#ifdef MPI
+    call MPI_ALLREDUCE(MPI_IN_PLACE, exnlk, nkpt, MPI_DOUBLE_PRECISION, &
+   &  MPI_SUM, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl, nstfv*nstfv*nkpt, MPI_DOUBLE_COMPLEX, &
+   &  MPI_SUM, MPI_COMM_WORLD, ierr)
+#endif
 
 101 format(10x,/, &
     &       'Data for q-point:',i4,//,10x,'Mixed basis:',/,10x, &

@@ -4,7 +4,7 @@ module mod_hartreefock
     use modinput
     use modmain
     use modgw
-    use modmpi, only: rank, splittfile
+    use modmpi, only: rank
     implicit none
 
 ! number of HF cycles
@@ -33,7 +33,7 @@ contains
         implicit none
 
 ! print debugging information    
-        debug = .true.
+        debug = .false.
 
 !---------------------------------------
 ! MB parameters are taken from GW

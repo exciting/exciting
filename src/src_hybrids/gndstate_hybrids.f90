@@ -102,6 +102,11 @@ Subroutine gndstate_hybrids
 !---------------------------------------
     Call init_kqpts
 
+!-----------------------------------------------------
+! Calculate the integrals to treat the singularities at G+q->0
+!-----------------------------------------------------
+    call setsingc
+    
 ! non-local exchange energy
     allocate(exnlk(nkpt))
     exnlk(:) = 0.d0
@@ -127,9 +132,9 @@ Subroutine gndstate_hybrids
 
         If (rank==0) Then
             Write (60,*)
-            Write (60, '("+-------------------------+")')
+            Write (60, '("+-------------------------------------------+")')
             Write (60, '("| (Hybrids) Iteration number : ", I4, " |")') ihyb
-            Write (60, '("+-------------------------+")')
+            Write (60, '("+-------------------------------------------+")')
             Call flushifc(60)
         End If
         If (ihyb >= input%groundstate%maxscl) Then
@@ -212,9 +217,6 @@ Subroutine gndstate_hybrids
         write(60, '("+-----------------------------------------------------------+")')
         write(60,*)
     end if
-
-
-
 
 ! generate the new species files with the optimized linearization energies
     If ((rank .Eq. 0).and.(input%groundstate%tspecies)) Call updatespecies

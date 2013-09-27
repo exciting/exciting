@@ -29,11 +29,11 @@ subroutine setsingc()
       singc1=intf1-sumf1/dble(nqptnr)
       singc2=intf2-sumf2/dble(nqptnr)
 
-      call linmsg(96,'-','SETSINGC evaluation of the singularity correction factors')
-      write(96,100)beta
-      write(96,101)intf1,intf2
-      write(96,102)sumf1,sumf2
-      write(96,103)singc1,singc2
+      call linmsg(fgw,'-','SETSINGC evaluation of the singularity correction factors')
+      write(fgw,100) beta
+      write(fgw,101) intf1, intf2
+      write(fgw,102) sumf1, sumf2
+      write(fgw,103) singc1, singc2
 
   100 format('parameter beta=',f18.12,/,30x,'q^(-1)',12x,'q^(-2)')
   101 format('Numerical integration ',2f18.12)

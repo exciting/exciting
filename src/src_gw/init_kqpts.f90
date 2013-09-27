@@ -11,6 +11,7 @@ subroutine init_kqpts
       use modinput
       use modmain
       use modgw
+      use modmpi, only: rank
 !
 ! !DESCRIPTION:
 !   Generates the ${\bf k}$- and ${\bf q}$-point set and then allocates 
@@ -251,21 +252,23 @@ subroutine init_kqpts
 !-------------------------------------------------!
 !     k/q points summary
 !-------------------------------------------------!     
-      call linmsg(fgw,'-','K-points')
-      write(fgw,*) 'Total number (NKPTNR) = ', nkptnr
-      write(fgw,*) 'Irreducible (NKPT) = ', nkpt
-      write(fgw,*) 'Mapping from the complete k-point set to the corresponding irreducible (INDKP):'
-      write(fgw,*) indkp(:)
-      write(fgw,*) 'Index of the irreducible k-point in the complete set (IDIKP):'
-      write(fgw,*) idikp(:)
-      write(fgw,*)
-      call linmsg(fgw,'-','Q-points')
-      write(fgw,*) 'Total number (NQPTNR) = ', nqptnr
-      write(fgw,*) 'Reduced (NQPT) = ', nqpt
-      write(fgw,*) 'Small group of q-vectors:'
-      do iq = 1, nqpt
-        write(fgw,*) 'iq=', iq, '    nsymq=', nsymq(iq), '    nkptq=', nkptq(iq)
-      end do
+      if (rank == 0) then
+        call linmsg(fgw,'-','K-points')
+        write(fgw,*) 'Total number (NKPTNR) = ', nkptnr
+        write(fgw,*) 'Irreducible (NKPT) = ', nkpt
+        write(fgw,*) 'Mapping from the complete k-point set to the corresponding irreducible (INDKP):'
+        write(fgw,*) indkp(:)
+        write(fgw,*) 'Index of the irreducible k-point in the complete set (IDIKP):'
+        write(fgw,*) idikp(:)
+        write(fgw,*)
+        call linmsg(fgw,'-','Q-points')
+        write(fgw,*) 'Total number (NQPTNR) = ', nqptnr
+        write(fgw,*) 'Reduced (NQPT) = ', nqpt
+        write(fgw,*) 'Small group of q-vectors:'
+        do iq = 1, nqpt
+            write(fgw,*) 'iq=', iq, '    nsymq=', nsymq(iq), '    nkptq=', nkptq(iq)
+        end do
+      end if
 
       close(99)
       return
