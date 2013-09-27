@@ -31,8 +31,8 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
       Complex (8) v(1),viens,zzero
       Real (8) :: cpu0, cpu1
       Real (8) :: threshold
-      Complex (8), allocatable :: apwi(:,:),zm(:,:)
-      integer if1,if3,l3,m3,lm3,io2,ias,maxnlo,ilo,j1,j2,j3,lm1,lm2,j,io,l,ilo1,ilo2,l1
+      Complex (8), allocatable :: apwi(:,:),zm(:,:),apwi2(:,:)
+      integer if1,if3,l3,m3,lm3,io1,io2,ias,maxnlo,ilo,j1,j2,j3,lm1,lm2,j,io,l,ilo1,ilo2,l1
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
@@ -44,6 +44,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
 ! muffin-tin contributions
 
       allocate(apwi(haaijSize,ngp))
+      allocate(apwi2(ngp,haaijSize))
       allocate(zm(haaijSize,ngp))
       zzero=dcmplx(0d0,0d0)
       Do is = 1, nspecies
@@ -60,6 +61,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
               Do io2 = 1, apword (l3, is)
                 if3=if3+1
                 apwi(if3,:)=apwalm(1:ngp, io2, lm3, ias)
+                apwi2(:,if3)=conjg(apwalm(1:ngp, io2, lm3, ias))
               End Do
             End Do
           End Do
@@ -80,6 +82,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
                       zm, &  ! C
                       haaijSize &      ! LDC ... leading dimension of C
                       )
+if (.false.) then
           call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       ngp, &          ! M ... rows of op( A ) = rows of C
@@ -94,6 +97,22 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
                       system%hamilton%za, &  ! C
                       system%hamilton%rank &      ! LDC ... leading dimension of C
                      )
+endif
+          call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      ngp, &          ! M ... rows of op( A ) = rows of C
+                      ngp, &           ! N ... cols of op( B ) = cols of C
+                      haaijSize, &          ! K ... cols of op( A ) = rows of op( B )
+                      viens, &          ! alpha
+                      apwi2, &           ! A
+                      ngp,&           ! LDA ... leading dimension of A
+                      zm, &           ! B
+                      haaijSize, &          ! LDB ... leading dimension of B
+                      viens, &          ! beta
+                      system%hamilton%za, &  ! C
+                      system%hamilton%rank &      ! LDC ... leading dimension of C
+                     )
+
           Call timesec (ts1)
           time_hmlaan=ts1-ts0+time_hmlaan
 
@@ -141,20 +160,56 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
 !--Overlap--
 ! APW-APW part
           Call timesec (ts0)
-          call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
-                     'N', &           ! TRANSB = 'N'  op( B ) = B.
-                     ngp, &          ! M ... rows of op( A ) = rows of C
-                     ngp, &           ! N ... cols of op( B ) = cols of C
-                     haaijSize, &          ! K ... cols of op( A ) = rows of op( B )
-                     viens, &          ! alpha
-                     apwi, &           ! A
-                     haaijSize,&           ! LDA ... leading dimension of A
-                     apwi, &           ! B
-                     haaijSize, &          ! LDB ... leading dimension of B
-                     viens, &          ! beta
-                     system%overlap%za, &  ! C
-                     system%overlap%rank &      ! LDC ... leading dimension of C
-                     )
+          if (input%groundstate%ValenceRelativity.ne.'lkh') then
+            call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
+                       'N', &           ! TRANSB = 'N'  op( B ) = B.
+                       ngp, &          ! M ... rows of op( A ) = rows of C
+                       ngp, &           ! N ... cols of op( B ) = cols of C
+                       haaijSize, &          ! K ... cols of op( A ) = rows of op( B )
+                       viens, &          ! alpha
+                       apwi, &           ! A
+                       haaijSize,&           ! LDA ... leading dimension of A
+                       apwi, &           ! B
+                       haaijSize, &          ! LDB ... leading dimension of B
+                       viens, &          ! beta
+                       system%overlap%za, &  ! C
+                       system%overlap%rank &      ! LDC ... leading dimension of C
+                       )
+          else 
+            deallocate(zm)
+            allocate(zm(ngp,haaijSize))
+            zm=zzero
+            if3=0
+            Do l3 = 0, input%groundstate%lmaxmat
+              Do m3 = - l3, l3
+              lm3 = idxlm (l3, m3)
+               
+                Do io2 = 1, apword (l3, is)
+                  Do io1 = 1, apword (l3, is)
+!                    zm(if3+io2,:)=zm(if3+io2,:)+h1aa(io1,io2,l3,ias)*conjg(apwi2(:,if3+io1))
+                    zm(:,if3+io2)=zm(:,if3+io2)+h1aa(io1,io2,l3,ias)*apwi2(:,if3+io1)
+                  enddo
+                End Do
+                if3=if3+apword (l3, is)
+              End Do
+            End Do
+            call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
+                       'C', &           ! TRANSB = 'N'  op( B ) = B.
+                        ngp, &          ! M ... rows of op( A ) = rows of C
+                        ngp, &           ! N ... cols of op( B ) = cols of C
+                        haaijSize, &          ! K ... cols of op( A ) = rows of op( B )
+                        viens, &          ! alpha
+                        apwi, &           ! A
+                        haaijSize,&           ! LDA ... leading dimension of A
+                        zm, &           ! B
+                        ngp, &          ! LDB ... leading dimension of B
+                        viens, &          ! beta
+                        system%overlap%za, &  ! C
+                        system%overlap%rank &      ! LDC ... leading dimension of C
+                       )
+             deallocate(zm)
+             allocate(zm(haaijSize,ngp))
+          endif
 
           Call timesec (ts1)
           time_olpaan=ts1-ts0+time_olpaan
@@ -198,23 +253,9 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
         endif
 
 ! A segment for the linearised Koelling-Harmon
-         if (input%groundstate%ValenceRelativity.eq.'lkh') then
-             Call timesec (ts0)
-            Call hml1aan (system%h1, is, ia, ngp, apwalm)
-             Call timesec (ts1)
-             time_hmlaan=ts1-ts0+time_hmlaan
-             Call timesec (ts0)
-            Call hml1alon (system%h1, is, ia, ngp, apwalm)
-             Call timesec (ts1)
-             time_hmlalon=ts1-ts0+time_hmlalon
-             Call timesec (ts0)
-            Call hml1lolon (system%h1, is, ia, ngp)
-             Call timesec (ts1)
-             time_hmllolon=ts1-ts0+time_hmllolon
-         endif
-         End Do
+        End Do
       End Do
-      deallocate(apwi,zm)
+      deallocate(apwi,apwi2,zm)
 
 ! interstitial contributions
        Call timesec (ts0)

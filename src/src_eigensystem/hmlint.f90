@@ -126,16 +126,16 @@ Subroutine hmlint
                             Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                             haaintegrals (1, io2, l3, io1, l1)= gr (nr) / y00
 ! calculate more integrals if linearized Koelling-Harmon is demanded
-                            if (input%groundstate%ValenceRelativity.eq.'lkh') then
-                              Do ir = 1, nr
-                                rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
-                                t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io2, l3, ias)
-                                t2=apwfr(ir, 2, io1, l1, ias)*apwfr(ir, 2, io2, l3, ias)
-                                fr (ir) = a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2)*r2 (ir)
-                              End Do
-                              Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                              h1aa (io1, io2, l1, ias) = gr (nr) / y00
-                            endif
+!                            if (input%groundstate%ValenceRelativity.eq.'lkh') then
+!                              Do ir = 1, nr
+!                                rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+!                                t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io2, l3, ias)
+!                                t2=apwfr(ir, 2, io1, l1, ias)*apwfr(ir, 2, io2, l3, ias)
+!                                fr (ir) = a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2)*r2 (ir)
+!                              End Do
+!                              Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
+!                              h1aa (io1, io2, l1, ias) = gr (nr) / y00
+!                            endif
                           else
                             Do ir = 1, nr
                               fr (ir) = apwfr (ir, 1, io1, l1, ias) * apwfr (ir, 2, io2, l3, ias) * r2 (ir)
@@ -179,17 +179,6 @@ Subroutine hmlint
                         End Do
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                         halointegrals (1, io, l3, ilo) = gr (nr) / y00
-! calculate more integrals if linearized Koelling-Harmon is demanded
-                        if (input%groundstate%ValenceRelativity.eq.'lkh') then
-                          Do ir = 1, nr
-                            rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
-                            t1=apwfr(ir, 1, io, l1, ias)*lofr(ir, 1, ilo, ias)
-                            t2=apwfr(ir, 2, io, l1, ias)*lofr(ir, 2, ilo, ias)
-                            fr (ir) = a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2)*r2 (ir)
-                          End Do
-                          Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                          h1loa (ilo, io, l1, ias) = gr (nr) / y00
-                        endif
                        else
                         Do ir = 1, nr
                            fr (ir) = lofr (ir, 1, ilo, ias) * apwfr(ir, 2, io, l3, ias) * r2 (ir)
@@ -233,16 +222,6 @@ Subroutine hmlint
                      End Do
                      Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                      hlolointegrals (1, ilo1, ilo2) = gr (nr) / y00
-                     if (input%groundstate%ValenceRelativity.eq.'lkh') then
-                       Do ir = 1, nr
-                         rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
-                         t1=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)
-                         t2=lofr(ir, 2, ilo1, ias)*lofr(ir, 2, ilo2, ias)
-                         fr (ir) = a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2)*r2 (ir)
-                       End Do
-                       Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                       h1lolo (ilo1, ilo2, ias) = gr (nr) / y00
-                     endif
                     else
                      Do ir = 1, nr
                         fr (ir) = lofr (ir, 1, ilo1, ias) * lofr (ir, 2, ilo2, ias) * r2 (ir)
