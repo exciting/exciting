@@ -247,11 +247,8 @@ Subroutine gndstate
 
     If (rank .Eq. 0) then
         Write (60, '(" Total time spent (seconds)", T40, ": ", F12.2)') tsg1-tsg0
-        if (lwarning) then
-            write (60, *)
-            write (60, '(" CAUTION! Warnings have been written in file WARNING.OUT !")')
-        end if
-        write(string,'("EXCITING ", a, " stopped")')  trim(versionname)
+        if (lwarning) call printbox(60,"-","CAUTION! Warnings have been written in file WARNING.OUT !")
+        write(string,'("EXCITING ", a, " stopped")') trim(versionname)
         call printbox(60,"=",string)
         close (60)
     endif

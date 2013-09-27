@@ -25,19 +25,18 @@
 
             nstep = nstep+1
             istep = istep+1
-            if (rank .Eq. 0) then
 
-                if (lstep) then 
-                    istep = istep-1
-                    lstep = .False.
-                    inittime = .False.
-                else
+            if (lstep) then 
+                istep = istep-1
+                lstep = .False.
+                inittime = .False.
+            else
+                if (rank .Eq. 0) then
                     write(string,'("Optimization step ", I4,"    (method = harmonic)")') istep
                     call printbox(60,"-",string)
                     call flushifc(60)
-                    inittime = .True.
                 end if
-
+                inittime = .True.
             end if
 
             if (inittime) call timesec(tsec1)
