@@ -93,7 +93,7 @@ subroutine lbfgs_driver
 ! Initialize some L-BFGS-B library parameters (see src/Lbfgsb.3.0/README)
   
       m = 3         ! number of corrections used in the limited memory matrix
-      iprint = 100  ! controls the frequency and type of output generated
+      iprint = -1   ! controls the frequency and type of output generated
       factr = 0.d0  ! suppress termination test controlled by machine precision
       pgtol = 0.d0  ! suppress termination test controlled by the component 
                     ! of the projected gradient
