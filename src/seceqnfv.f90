@@ -79,16 +79,17 @@ if (.false.) then
         read(*,*)
       enddo
 endif
+  if (.false.) then
       if (input%groundstate%ValenceRelativity.eq.'lkh') then
         if (packed) then
-          system%overlap%zap=system%overlap%zap+system%h1%zap
+!          system%overlap%zap=system%overlap%zap+system%h1%zap
           system%hamilton%zap=system%hamilton%zap+system%h1%zap*input%groundstate%energyref
         else
-          system%overlap%za=system%overlap%za+system%h1%za
+!          system%overlap%za=system%overlap%za+system%h1%za
           system%hamilton%za=system%hamilton%za+system%h1%za*input%groundstate%energyref
         endif
       endif
-      
+      endif
       Call solvewithlapack(system,nstfv,evecfv,evalfv)
 
 End Subroutine seceqnfv
