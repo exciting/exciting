@@ -29,6 +29,7 @@ Contains
          input%groundstate%maxscl = 1
     ! call with the above parameters changed
          Call gndstate
+         Call rewritesorted
     ! restore original parameters
          filext = trim (filext_save)
          input%groundstate%vkloff = vkloff_save

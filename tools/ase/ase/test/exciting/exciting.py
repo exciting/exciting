@@ -34,7 +34,7 @@ calculator1 = Exciting(dir='excitingtestfiles1',
 calculator3 = Exciting(dir='excitingtestfiles3',
                        paramdict={ "title":{"text()":"N3O"},
                                    "groundstate":{"ngridk":"1 2 3","tforce":"true"},
-                                   "structureoptimization":{},
+                                   "relax":{},
                                    "properties":{"dos":{},
                                    "bandstructure":{"plot1d":{
                                       "path":{ "steps":"100", 

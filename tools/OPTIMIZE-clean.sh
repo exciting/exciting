@@ -9,9 +9,11 @@ for dirn in $label ; do
     mv ../$dirn.xml .
     mv ../INFO.OUT .
     mv ../RMSDVEFF.OUT .
-    mv ../GEOMETRY.OUT .
     mv ../TOTENERGY.OUT .
+    mv ../WARNINGS.OUT .
     mv ../info.xml .
+    mv ../geometry.xml .
+    mv -f ../geometry_opt.xml .
     cd ../
     ls -l | grep ^- | awk '{print $9}' | xargs rm
     mv tmp/* .

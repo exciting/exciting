@@ -426,7 +426,8 @@ endif
 </xsl:text>
 <xsl:if test="./*/xs:restriction/xs:enumeration"> 
 <xsl:text>getstruct</xsl:text><xsl:value-of select="../../@name"/>
-<xsl:text>%</xsl:text><xsl:value-of select="@name|@ref"/><xsl:text>number=stringtonumber</xsl:text>
+<xsl:text>%</xsl:text><xsl:value-of select="@name|@ref"/><xsl:text disable-output-escaping="yes">number= &amp;
+  stringtonumber</xsl:text>
 <xsl:value-of select="../../@name"/><xsl:value-of select="@name|@ref"/>
 <xsl:text>(getstruct</xsl:text><xsl:value-of select="../../@name"/>
 <xsl:text>%</xsl:text>
@@ -625,7 +626,7 @@ end function</xsl:text>
 <xsl:value-of select="../../../../@name"/><xsl:value-of select="../../@name"/>
 <xsl:text>=0
 case default
-write(*,*) "Parser ERROR: '", string,"' is not valid selection for</xsl:text> <xsl:value-of select="../../../@name|../../@name"/> <xsl:text> "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection for </xsl:text> <xsl:value-of select="../../../@name|../../@name"/> <xsl:text> "
 stop 
 end select
 end function

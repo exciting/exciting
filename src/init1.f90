@@ -64,7 +64,7 @@ Subroutine init1
           vclp3d(:,3) = input%properties%fermisurfaceplot%plot3d%box%pointarray(2)%point%coord(:)
           vclp3d(:,4) = input%properties%fermisurfaceplot%plot3d%box%pointarray(3)%point%coord(:)         
         else
-          np3d(:)=(/10,10,10/)
+          np3d(:)=(/20,20,20/)
           vclp3d(:,1)=(/0.d0,0.d0,0.d0/)
           vclp3d(:,2)=(/1.d0,0.d0,0.d0/)
           vclp3d(:,3)=(/0.d0,1.d0,0.d0/)
@@ -540,7 +540,6 @@ Subroutine init1
 #endif
 !
       Call timesec (ts1)
-!      timeinit = timeinit + ts1 - ts0
 !
       Return
 End Subroutine

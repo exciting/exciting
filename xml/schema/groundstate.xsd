@@ -372,6 +372,14 @@
             <xs:attribute default="XC_GGA_X_PBE" name="exchange" use="optional">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
+                  <xs:enumeration value="none">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 0 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> No exchange </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
                   <xs:enumeration value="XC_LDA_X">
                     <xs:annotation>
                       <xs:appinfo>
@@ -845,20 +853,28 @@
                       <xs:documentation> short-range recipe for exchange GGA functionals </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration-->
-                  <xs:enumeration value="XC_HYB_GGA_X_SOGGA11_X">
+                  <!--xs:enumeration value="XC_HYB_GGA_X_SOGGA11_X">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 426 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Hybrid based on SOGGA11 form </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
             <xs:attribute default="XC_GGA_C_PBE" name="correlation" use="optional">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
+                   <xs:enumeration value="none">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 0 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> No correlations </xs:documentation>
+                    </xs:annotation>
+                   </xs:enumeration>
                    <xs:enumeration value="XC_LDA_C_WIGNER">
                      <xs:annotation>
                        <xs:appinfo>
@@ -1596,7 +1612,8 @@
                       <xs:documentation> Tozer and Handy v. FCO </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
+		  <!-- hybrid functionals currently not implemented-->
+                  <!--xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 401 </oldnr>
@@ -1787,7 +1804,7 @@
                       </xs:appinfo>
                       <xs:documentation> Schmider-Becke 98 parameterization 2c </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
 		  <!-- Range seperated / screened functionals currently not implemented-->
                   <!--xs:enumeration value="XC_HYB_GGA_XC_HSE03">
                     <xs:annotation>
@@ -1853,7 +1870,7 @@
                       <xs:documentation> CAM version of B3LYP tunes for excitations </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration-->
-                  <xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
+                  <!--xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 435 </oldnr>
@@ -1876,7 +1893,7 @@
                       </xs:appinfo>
                       <xs:documentation> B3LYP with RC04 LDA </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
@@ -1889,8 +1906,8 @@
             <oldname>nonreplace</oldname>
           </xs:appinfo>
           <xs:documentation> Decides if the ground state is calculated starting from scratch, using
-            the densities from file or if it is skipped and only its associated input parameters are
-            read in. Also applies fo structural optimization run.</xs:documentation>
+            the densities from file, or if its calculation is skipped and only the associated input parameters are
+            read in.</xs:documentation>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
@@ -1901,7 +1918,7 @@
         </xs:simpleType>
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="ngridk" type="integertriple"
-        use="optional" default="0 0 0" >
+        use="optional" default="1 1 1" >
         <xs:annotation>
           <xs:appinfo>
             <oldname>ngridk</oldname>
@@ -2199,7 +2216,7 @@
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble"
-        default="1.0d-3">
+        default="1.0d-5">
         <xs:annotation>
           <xs:documentation>Convergence criterion for the maximum allowed error 
            in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
@@ -2326,7 +2343,7 @@
           <xs:documentation>(Obsolete) Order of predictor-corrector polynomial.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGAPBEsol">
+      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGA_PBE_SOL">
         <xs:annotation>
           <xs:documentation> Type of exchange-correlation functional to be used <list>
               <li> No exchange-correlation funtional ( <inlinemath>E_{\rm xc}\equiv 0</inlinemath> ) </li>
@@ -2354,73 +2371,66 @@
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="LDAPerdew-Zunger">
+            <xs:enumeration value="LDA_PZ">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>2</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LSDAPerdew-Wang">
+            <xs:enumeration value="LDA_PW">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>3</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LDA-X-alpha">
+            <xs:enumeration value="LDA_XALPHA">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>4</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LSDA-Barth-Hedin">
+            <xs:enumeration value="LDA_vBH">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>5</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAPerdew-Burke-Ernzerhof">
+            <xs:enumeration value="GGA_PBE">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>20</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGArevPBE">
+            <xs:enumeration value="GGA_PBE_R">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>21</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAPBEsol">
+            <xs:enumeration value="GGA_PBE_SOL">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>22</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGA-Wu-Cohen">
+            <xs:enumeration value="GGA_WC">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>26</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAArmiento-Mattsson">
+            <xs:enumeration value="GGA_AM05">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>30</oldnr>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:enumeration>
-            <xs:enumeration value="HYB_PBE0">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldnr>406</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
@@ -2574,7 +2584,7 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="nwrite" type="xs:integer" default="0">
         <xs:annotation>
           <xs:documentation> Normally, the density and potentials are written to the file STATE.OUT
-            only after com- pletion of the self-consistent loop. By setting nwrite to a positive
+            only after completion of the self-consistent loop. By setting nwrite to a positive
             integer the file will be written during the loop every nwrite
             iterations.</xs:documentation>
         </xs:annotation>
@@ -2593,8 +2603,20 @@
           linearization energies.
           </xs:documentation>
         </xs:annotation>
-      </xs:attribute>    
-          <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
+      </xs:attribute>   
+      <xs:attribute ex:importance="essential" ex:unit="" name="scfconv" type="xs:string" use="optional" default="multiple">
+         <xs:annotation>
+              <xs:documentation>
+              Specify the SCF convergence criteria
+              <list>
+                <li>"energy"   - only total energy of the system is used as a convergence criterion</li>
+                <li>"multiple" - total energy, Kohn-Sham potential and total electronic charge of the system are used as convergence criteria</li> 
+              </list>
+              </xs:documentation>
+          </xs:annotation>
+       </xs:attribute>
+ 
+          <!--xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
             <xs:annotation>
               <xs:documentation> The attribute tconvcritenergy is <pre>"true"</pre> if the value  
               of the total energy of the system is used as a convergence criterion for the 
@@ -2625,7 +2647,46 @@
               of the an average of forces on nuclei of the system is used as a convergence criterion for the 
               self-consistent procedure used to solve the Kohn-Sham equations. </xs:documentation>
             </xs:annotation>
-          </xs:attribute>         
+          </xs:attribute-->
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" default="normal">
+            <xs:annotation>
+              <xs:documentation> 
+                Specify amount of information which is printed to files:
+                <list>
+                    <li>low    - minimal output is produced</li>
+                    <li>normal - (default) standard information</li>
+                    <li>high   - detailed output</li>
+                </list>
+              </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="low">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>0</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="normal">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>1</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="high">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>2</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+                   
     </xs:complexType>
   </xs:element>
 </xs:schema>

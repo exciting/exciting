@@ -3,7 +3,7 @@
 ! !ROUTINE: writeqp
 !
 ! !INTERFACE:
-      subroutine writeqp(signnc,znk)
+    subroutine writeqp(signnc,znk)
 
 ! !DESCRIPTION:
 ! 
@@ -11,25 +11,26 @@
 !
 ! !USES:
 !
-      use modmain
-      use modgw
-      use modmpi
+    use modmain
+    use modgw
+    use modmpi
       
-      implicit none     
+    implicit none     
 
-!     the correlation self energy
-      complex(8), intent(in) :: signnc(ibgw:nbgw,nkpt)
-!     delta prefactor
-      real(8),    intent(in) :: znk(ibgw:nbgw,nkpt)   
+! the correlation self energy
+    complex(8), intent(in) :: signnc(ibgw:nbgw,nkpt)
+! delta prefactor
+    real(8),    intent(in) :: znk(ibgw:nbgw,nkpt)
        
 ! !LOCAL VARIABLES:
       
-      integer(4) :: ie   !(Counter) Runs over bands
-      integer(4) :: ikp  !(Counter) Runs over k-points
+    integer(4) :: ie   !(Counter) Runs over bands
+    integer(4) :: ikp  !(Counter) Runs over k-points
       
-      real(8) :: deltae,deltax
-      real(8) :: ehf,eks,egw
-      real(8) :: vxc,sx,sc,z
+    real(8) :: deltae,deltax
+    real(8) :: ehf,eks,egw
+    real(8) :: ehf0,eks0,egw0
+    real(8) :: vxc,sx,sc,z
 
 ! !REVISION HISTORY:
 !
@@ -39,7 +40,22 @@
 !EOP
 !BOC
 
-      open(64,file='QPENE.OUT',action='WRITE',form='FORMATTED')
+! There is a freedom in choosing the reference energy
+! 
+! Let's arrange all energies with respect to E_HOMO = 0
+!
+! find the reference energies
+    eks0 = -1.d6
+    ehf0 = -1.d6
+    egw0 = -1.d6
+    do ikp = 1, nkpt
+        eks0 = max(eks0,evaldft(nomax,ikp))
+        egw0 = max(egw0,eqp(nomax,ikp))
+        ehf0 = max(ehf0,evaldft(nomax,ikp)+real(selfex(nomax,ikp))-real(vxcnn(nomax,ikp)))
+    end do
+
+!-------------------------------------------------------------------------------
+    open(64,file='EVALQP.TXT',action='WRITE',form='FORMATTED')
       
       do ikp = 1, nkpt
 
@@ -59,7 +75,7 @@
           deltax=sx-vxc
           ehf=eks+deltax
 
-          write(64,3) ie, eks, ehf, egw, &
+          write(64,3) ie, eks-eks0, ehf-ehf0, egw-egw0, &
           &           sx, sc, vxc, deltax, deltae, z
         
         enddo ! ie

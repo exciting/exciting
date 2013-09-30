@@ -16,7 +16,7 @@
       <atom coord="0.50000000000000 0.50000000000000 0.50000000000000"/>
     </species>
   </structure>
-  <structureoptimization/>
+  <relax/>
   <groundstate tforce="true" ngridk="1 2 3"/>
   <properties>
     <dos/>

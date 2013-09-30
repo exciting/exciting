@@ -16,7 +16,6 @@ real*8  :: graddens1, graddens2
 real*8  :: Zab  
 real*8  :: kf1, rs1, ec1, q01,  kf2, rs2, ec2, q02
 real*8  :: d1, d2, D, delta
-integer :: i
 
 integer :: iD,idelta
 real*8  :: D0,delta0
@@ -26,7 +25,7 @@ real*8  :: phi11,phi12,phi21,phi22,phi1,phi2
 ! Constants
 real*8, parameter :: pi34 = 0.6203504908994d0, & ! pi34=(3/4pi)^(1/3)
                      third = 1.d0 / 3.d0,      &
-		     c2 = 3.093667726280136d0    ! c2=(3 pi^2)^(1/3)
+                     c2 = 3.093667726280136d0    ! c2=(3 pi^2)^(1/3)
 
 real*8, parameter :: CvdW = 32.6650486837726d0   ! CvdW = 12 (4*pi/9)^3
 
@@ -130,7 +129,7 @@ end
 subroutine pw (rs, ec)
 !-----------------------------------------------------------------------
   implicit none
-  real(8) :: rs, ec, vc
+  real(8) :: rs, ec
   !
   real(8) :: a, a1, b1, b2, b3, b4
   real(8) :: rs12, rs32, rs2, om, dom, olog

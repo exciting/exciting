@@ -1,4 +1,3 @@
-
 ! Copyright (C) 2009-2010 C. Meisenbichler, S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -133,13 +132,13 @@ Subroutine propertylauncher
       End If
 
 ! Nonlinear optics: Second Harmonic Generation 
-      If (associated(input%properties%nlo)) Then
+      If (associated(input%properties%shg)) Then
          call rereadinput
-         do l = 1, size(input%properties%nlo%chicomp,2)
-           a = input%properties%nlo%chicomp(1,l)
-           b = input%properties%nlo%chicomp(2,l)
-           c = input%properties%nlo%chicomp(3,l)
-           call nonlinopt(a,b,c)
+         do l = 1, size(input%properties%shg%chicomp,2)
+           a = input%properties%shg%chicomp(1,l)
+           b = input%properties%shg%chicomp(2,l)
+           c = input%properties%shg%chicomp(3,l)
+           call shg(a,b,c)
          end do
       End If
 

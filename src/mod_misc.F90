@@ -49,6 +49,5 @@ Module mod_misc
       Integer :: notelns
 ! notes to include in INFO.OUT
       Character (80) :: notes (maxnlns)
-!
 End Module
 !

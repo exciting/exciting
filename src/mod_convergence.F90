@@ -15,6 +15,10 @@ Module mod_convergence
 !replaced by inputstructureinteger::maxscl
 ! current self-consistent loop number
       Integer :: iscl
+! current structure optimization step
+      Integer :: istep
+! current structure optimization step
+      Logical :: lstep
 ! effective potential convergence tolerance
 !replaced by inputstructurereal(8)::epspot
 ! energy convergence tolerance

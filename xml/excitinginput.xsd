@@ -11,7 +11,7 @@ input.xsd
 common.xsd 
 structure.xsd 
 groundstate.xsd 
-structureoptimization.xsd 
+relax.xsd 
 phonons.xsd 
 properties.xsd 
 xs.xsd 
@@ -19,7 +19,7 @@ gw.xsd
 -->
   <xs:annotation>
     <xs:appinfo>
-      <includes>common.xsd structure.xsd groundstate.xsd structureoptimization.xsd phonons.xsd properties.xsd xs.xsd gw.xsd </includes>
+      <includes>common.xsd structure.xsd groundstate.xsd relax.xsd phonons.xsd properties.xsd xs.xsd gw.xsd </includes>
     </xs:appinfo>
   </xs:annotation>
   <xs:annotation>
@@ -419,7 +419,7 @@ gw.xsd
                     </xs:annotation>
                   </xs:attribute>
 
-                  <xs:attribute ex:importance="expert" ex:unit="" name="lock" type="booleantriple" default="false false false" use="optional">
+                  <xs:attribute ex:importance="expert" ex:unit="" name="lockxyz" type="booleantriple" default="false false false" use="optional">
                     <xs:annotation>
                       <xs:documentation>Switches to constrain atomic movement along x/y/z directions.</xs:documentation>
                     </xs:annotation>
@@ -943,6 +943,14 @@ gw.xsd
             <xs:attribute default="XC_GGA_X_PBE" name="exchange" use="optional">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
+                  <xs:enumeration value="none">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 0 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> No exchange </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
                   <xs:enumeration value="XC_LDA_X">
                     <xs:annotation>
                       <xs:appinfo>
@@ -1416,20 +1424,28 @@ gw.xsd
                       <xs:documentation> short-range recipe for exchange GGA functionals </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration-->
-                  <xs:enumeration value="XC_HYB_GGA_X_SOGGA11_X">
+                  <!--xs:enumeration value="XC_HYB_GGA_X_SOGGA11_X">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 426 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Hybrid based on SOGGA11 form </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
             <xs:attribute default="XC_GGA_C_PBE" name="correlation" use="optional">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
+                   <xs:enumeration value="none">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 0 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> No correlations </xs:documentation>
+                    </xs:annotation>
+                   </xs:enumeration>
                    <xs:enumeration value="XC_LDA_C_WIGNER">
                      <xs:annotation>
                        <xs:appinfo>
@@ -2167,7 +2183,8 @@ gw.xsd
                       <xs:documentation> Tozer and Handy v. FCO </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
+		  <!-- hybrid functionals currently not implemented-->
+                  <!--xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 401 </oldnr>
@@ -2358,7 +2375,7 @@ gw.xsd
                       </xs:appinfo>
                       <xs:documentation> Schmider-Becke 98 parameterization 2c </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
 		  <!-- Range seperated / screened functionals currently not implemented-->
                   <!--xs:enumeration value="XC_HYB_GGA_XC_HSE03">
                     <xs:annotation>
@@ -2424,7 +2441,7 @@ gw.xsd
                       <xs:documentation> CAM version of B3LYP tunes for excitations </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration-->
-                  <xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
+                  <!--xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 435 </oldnr>
@@ -2447,7 +2464,7 @@ gw.xsd
                       </xs:appinfo>
                       <xs:documentation> B3LYP with RC04 LDA </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
@@ -2460,8 +2477,8 @@ gw.xsd
             <oldname>nonreplace</oldname>
           </xs:appinfo>
           <xs:documentation> Decides if the ground state is calculated starting from scratch, using
-            the densities from file or if it is skipped and only its associated input parameters are
-            read in. Also applies fo structural optimization run.</xs:documentation>
+            the densities from file, or if its calculation is skipped and only the associated input parameters are
+            read in.</xs:documentation>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
@@ -2471,7 +2488,7 @@ gw.xsd
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-      <xs:attribute ex:importance="essential" ex:unit="" name="ngridk" type="integertriple" use="optional" default="0 0 0">
+      <xs:attribute ex:importance="essential" ex:unit="" name="ngridk" type="integertriple" use="optional" default="1 1 1">
         <xs:annotation>
           <xs:appinfo>
             <oldname>ngridk</oldname>
@@ -2753,7 +2770,7 @@ gw.xsd
             energy.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble" default="1.0d-3">
+      <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble" default="1.0d-5">
         <xs:annotation>
           <xs:documentation>Convergence criterion for the maximum allowed error 
            in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
@@ -2876,7 +2893,7 @@ gw.xsd
           <xs:documentation>(Obsolete) Order of predictor-corrector polynomial.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGAPBEsol">
+      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGA_PBE_SOL">
         <xs:annotation>
           <xs:documentation> Type of exchange-correlation functional to be used <list>
               <li> No exchange-correlation funtional ( <inlinemath>E_{\rm xc}\equiv 0</inlinemath> ) </li>
@@ -2904,73 +2921,66 @@ gw.xsd
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="LDAPerdew-Zunger">
+            <xs:enumeration value="LDA_PZ">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>2</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LSDAPerdew-Wang">
+            <xs:enumeration value="LDA_PW">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>3</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LDA-X-alpha">
+            <xs:enumeration value="LDA_XALPHA">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>4</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LSDA-Barth-Hedin">
+            <xs:enumeration value="LDA_vBH">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>5</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAPerdew-Burke-Ernzerhof">
+            <xs:enumeration value="GGA_PBE">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>20</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGArevPBE">
+            <xs:enumeration value="GGA_PBE_R">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>21</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAPBEsol">
+            <xs:enumeration value="GGA_PBE_SOL">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>22</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGA-Wu-Cohen">
+            <xs:enumeration value="GGA_WC">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>26</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAArmiento-Mattsson">
+            <xs:enumeration value="GGA_AM05">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>30</oldnr>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:enumeration>
-            <xs:enumeration value="HYB_PBE0">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldnr>406</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
@@ -3119,7 +3129,7 @@ gw.xsd
       <xs:attribute ex:importance="expert" ex:unit="" name="nwrite" type="xs:integer" default="0">
         <xs:annotation>
           <xs:documentation> Normally, the density and potentials are written to the file STATE.OUT
-            only after com- pletion of the self-consistent loop. By setting nwrite to a positive
+            only after completion of the self-consistent loop. By setting nwrite to a positive
             integer the file will be written during the loop every nwrite
             iterations.</xs:documentation>
         </xs:annotation>
@@ -3138,8 +3148,20 @@ gw.xsd
           linearization energies.
           </xs:documentation>
         </xs:annotation>
-      </xs:attribute>    
-          <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
+      </xs:attribute>   
+      <xs:attribute ex:importance="essential" ex:unit="" name="scfconv" type="xs:string" use="optional" default="multiple">
+         <xs:annotation>
+              <xs:documentation>
+              Specify the SCF convergence criteria
+              <list>
+                <li>"energy"   - only total energy of the system is used as a convergence criterion</li>
+                <li>"multiple" - total energy, Kohn-Sham potential and total electronic charge of the system are used as convergence criteria</li> 
+              </list>
+              </xs:documentation>
+          </xs:annotation>
+       </xs:attribute>
+ 
+          <!--xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
             <xs:annotation>
               <xs:documentation> The attribute tconvcritenergy is <pre>"true"</pre> if the value  
               of the total energy of the system is used as a convergence criterion for the 
@@ -3170,117 +3192,277 @@ gw.xsd
               of the an average of forces on nuclei of the system is used as a convergence criterion for the 
               self-consistent procedure used to solve the Kohn-Sham equations. </xs:documentation>
             </xs:annotation>
-          </xs:attribute>         
+          </xs:attribute-->
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" default="normal">
+            <xs:annotation>
+              <xs:documentation> 
+                Specify amount of information which is printed to files:
+                <list>
+                    <li>low    - minimal output is produced</li>
+                    <li>normal - (default) standard information</li>
+                    <li>high   - detailed output</li>
+                </list>
+              </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="low">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>0</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="normal">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>1</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="high">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>2</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+                   
     </xs:complexType>
   </xs:element>
   <xs:annotation>
         <xs:appinfo>
             <parent>/input</parent>
-            <root>structureoptimization</root>
+            <root>relax</root>
         </xs:appinfo>
     </xs:annotation>
-  <xs:element ex:importance="essential" ex:unit="" name="structureoptimization">
+  <xs:element ex:importance="essential" ex:unit="" name="relax">
         <xs:annotation>
-            <xs:documentation>The element <elementref>structureoptimization</elementref> activates the optimization 
-            of atomic postions.</xs:documentation>
+            <xs:documentation>The element <elementref>relax</elementref> activates the optimization 
+            of atomic positions at fixed lattice parameters.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
-            <xs:annotation>
-                <xs:documentation> Structural optimization run. Atomic positions are written to
-                    <pre>geometry.xml</pre>. </xs:documentation>
-            </xs:annotation>
-            <xs:attribute ex:importance="essential" ex:unit="" name="method" type="xs:string" default="simple">
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="outputlevel" default="normal">
+                <xs:annotation>
+                    <xs:documentation> 
+                    Specify the amount of information which is printed to output files:
+                    <list>
+                      <li> <pre>"low"</pre> - 
+		           Minimal output is produced. For each optimization steps, the main output file 
+		           <pre>"INFO.OUT"</pre> contains information on the number of SCF cicles performed,
+		    	   the value of the maximum force acting on the atoms, and the calculated total 
+		           energy. </li>
+		      <li> <pre>"normal"</pre> - 
+		           (default) Standard information. In addition to the output level <pre>"low"</pre>,
+			   the atomic configuration (in lattice coordinates) and the total forces (in 
+			   cartesian coordinates) acting on the atoms are also given. If a constrained 
+			   optimization is performed, the constrained (unconstrained) cartesian components 
+			   of each atom are labeled by <pre>"T"</pre> (<pre>"F"</pre>). </li>
+		      <li> <pre>"high"</pre> - 
+		           Detailed output. In addition to the output level <pre>"normal"</pre>, partial 
+		           charges and the different force contributions are also specified. </li>
+                    </list>
+                    </xs:documentation>
+                </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="low">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>0</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="normal">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>1</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="high">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>2</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="method" type="xs:string" use="optional" default="bfgs">
                 <xs:annotation>
                     <xs:documentation>
-                    Type of the structural optimization: "simple" (Newton-like) or "lbfgs"
-                    </xs:documentation>
-                </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="" ref="epsforce" default="5.0d-5">
-                <xs:annotation>
-                    <xs:documentation>Convergence tolerance for the forces during a structural
-                        optimization run.</xs:documentation>
-                    <xs:appinfo>
-                        <olddefault default="5.0d-4"/>
-                    </xs:appinfo>
-                </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="tau0atm" type="fortrandouble" default="0.2d0">
-                <xs:annotation>
-                    <xs:documentation> Parameter determining the step size for structural optimization.<p/>                     
-                    In each step <inlinemath>m</inlinemath> of a structural optimization run,                     
-                    atom <inlinemath>\alpha</inlinemath> is displaced according to
-                    
-                            <displaymath>{\bf r}_{\alpha}^{m+1}={\bf r}_{\alpha}^m+\tau_{\alpha}^m
-                            \left({ \bf F}_{\alpha}^m+{ \bf F}_{\alpha}^{m-1}\right),</displaymath>
-                    
-                        i.e., the magnitude of the displacement in step <inlinemath>m</inlinemath> is proportional 
-                        to <inlinemath>\tau_{\alpha}^m</inlinemath>. 
-                        For the initial step, <inlinemath>\tau_{\alpha}^0</inlinemath> 
-                        is set to <attref>tau0atm</attref>. 
-                        
-                        If the forces of two subsequent steps have the same sign,
-                        <inlinemath>\tau_{\alpha}^m</inlinemath> is increased by 
-                        <inlinemath>\tau_{\alpha}^0</inlinemath>. Otherwise, 
-                        <inlinemath>\tau_{\alpha}^m</inlinemath> is reset to <inlinemath>\tau_{\alpha}^0</inlinemath>.
+                    Specify the method used for atomic relaxation: 
+                    <list>
+                      <li> <pre>"newton"</pre> - 
+		           Simple (Newton-like) method. At each step <inlinemath>m</inlinemath> of a 
+			   structural optimization run, the atom <inlinemath>\alpha</inlinemath> is 
+			   displaced according to
+                           <displaymath>
+                           {\bf r}_{\alpha}^{(m+1)}={\bf r}_{\alpha}^{(m)}+\tau_{\alpha}^{(m)}
+                           \left({ \bf F}_{\alpha}^{(m)}+{ \bf F}_{\alpha}^{(m-1)}\right),
+                           </displaymath>
+                           i.e., the magnitude of the displacement at the step <inlinemath>m</inlinemath> 
+			   is proportional to <inlinemath>\tau_{\alpha}^{(m)}</inlinemath>. 
+                           For the initial step, <inlinemath>\tau_{\alpha}^{(0)}</inlinemath> 
+                           is set to <attref>taunewton</attref>. 
+                           If the forces of two subsequent optimization steps have the same sign,
+                           <inlinemath>\tau_{\alpha}^{(m)}</inlinemath> is increased by 
+			   <inlinemath>\tau_{\alpha}^{(0)}</inlinemath>. Otherwise, 
+			   <inlinemath>\tau_{\alpha}^{(m)}</inlinemath> is reset to 
+			   <inlinemath>\tau_{\alpha}^{(0)}</inlinemath>. </li>
+                      <li> <pre>"harmonic"</pre> - 
+		           Method based on the combination of the <pre>"newton"</pre> method and the 
+			   harmonic approximation. At each optimization step <inlinemath>m</inlinemath>, the 
+			   estimation of the optimized component of the position vector of 
+			   unconstrained atoms is obtained by the knowledge of positions and forces at 
+			   the last two optimization steps. At the first step, the initial guess is 
+			   obtained using the same algorithm as in <pre>"newton"</pre> (``newton step"). 
+			   Contrary to <pre>"newton"</pre>, all Cartesian components of the position vector of 
+			   each atom are treated independently.
+			   For steps after the first, the update of the atomic configuration will be still 
+			   performed using the ``newton step" unless the ``harmonic conditions" 
+			   <displaymath>
+			   \beta\equiv\frac{{ \bf F}_{\alpha}^{(m-1)}}{{ \bf F}_{\alpha}^{(m)}} \in [0,1[ 
+			   </displaymath>
+			   and  
+			   <displaymath>
+                           {\rm abs}\!\left({\bf r}_{\alpha}^{(m+1)}-{\bf r}_{\alpha}^{(m)}\right) 
+			   \le \tau_{_{\rm BFGS}},
+                           </displaymath>
+			   are fulfilled.
+			   In this case (``harmonic step"), atomic positions are updated according to
+			   <displaymath>
+                           {\bf r}_{\alpha}^{(m+1)}=\frac{ {\bf r}_{\alpha}^{(m-1)}-\beta\,{\bf r}_{\alpha}^{(m)} }
+			   { 1-\beta }\:.
+                           </displaymath>
+			   The <pre>"harmonic"</pre> method is of general validity and  
+			   it is particularly efficient when the atomic 
+			   configuration is close to the optimized one and the internal degrees of 
+		           freedom are weakly coupled. </li>
+                      <li> <pre>"bfgs"</pre> - 
+		           Limited memory algorithm for bound constrained optimization. This method requires 
+			   high accuracy for the determination of the total energy in dependence of the 
+			   maximum allowed for the residual atomic force. For this reason, the 
+			   default value of the attribute <attref>epsengy</attref> is changed to the value 
+			   of the attribute <attref>epsforce</attref> of the <elementref>relax</elementref> 
+			   element multiplied by a factor <pre>0.02</pre>. </li>
+                    </list>
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="history" type="xs:boolean" default="false">
-              <xs:annotation>
-                <xs:documentation> 
-                If <pre>"true"</pre> the stucture optimization history file is generated in one of the formats
-                specified in <attref>historyformat</attref>.
-                </xs:documentation>
-              </xs:annotation>
+            <xs:attribute ex:importance="expert" name="maxsteps" type="xs:integer" use="optional" default="200">
+                <xs:annotation>
+                    <xs:documentation>
+                    Maximum number of optimization steps.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+	    
+            <xs:attribute ex:importance="expert" name="maxbfgs" type="xs:integer" use="optional" default="5">
+                <xs:annotation>
+                    <xs:documentation>
+                    Maximum number of atomic configurations that can be investigated in a single 
+		    <pre>"bfgs"</pre> optimization step.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>        
+            
+            <xs:attribute ex:importance="essential" name="epsforce" type="fortrandouble" default="5.0d-5" use="optional">
+                <xs:annotation>
+                    <xs:documentation>
+                    The optimization stops when the maximum amplitude of the force acting on the atoms is 
+		    lower then the value specified by <pre>epsforce</pre>. Notice that, in particular 
+		    for the <pre>"bfgs"</pre> method, high accuracy in the calculated forces requires high 
+		    accuracy in the calculated total energy (see the attribute <attref>epsengy</attref>
+		    of the <elementref>groundstate</elementref> element).
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" name="taunewton" type="fortrandouble" default="0.2d0" use="optional">
+                <xs:annotation>
+                    <xs:documentation> Parameter determining the initial amplitude of atomic displacement 
+		    for the <pre>"newton"</pre> method of atomic relaxation.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" name="taubfgs" type="fortrandouble" default="0.3d0" use="optional">
+                <xs:annotation>
+                    <xs:documentation>
+                    Maximum atomic displacement for atomic relaxation when using the <pre>"bfgs"</pre> method. 
+		    At each optimization step, the optimized value of each Cartesian coordinate of each atom 
+		    is searched in a range of size <inlinemath>2\tau_{_{\rm BFGS}}</inlinemath>2 
+		    centered at the actual value
+		    of the coordinate. This attribute is also used as maximum atomic displacement in the 
+		    <pre>"harmonic"</pre> method when a harmonic step is performed (see <attref>method</attref>).
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+	    
+            <xs:attribute ex:importance="expert" name="endbfgs" type="xs:string" default="harmonic" use="optional">
+                <xs:annotation>
+                    <xs:documentation>
+                    When using the <pre>"bfgs"</pre> method, specifies the method employed for the relaxation
+		    if the <pre>"bfgs"</pre> scheme fails to converge.
+                    <list>
+		      <li> <pre>"newton"</pre> - 
+		           Simple (Newton-like) method, see also <attref>method</attref>. </li>
+		      <li> <pre>"harmonic"</pre> - 
+		           Method based on the combination of the <pre>"newton"</pre> method and the harmonic 
+			   approximation, see also <attref>method</attref>. </li>
+                    </list>    
+                    </xs:documentation>
+                </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="historyformat" type="xs:string" default="xyz">
-              <xs:annotation>
-                <xs:documentation> 
-                If <attref>history</attref> is <pre>"true"</pre>, the structure optimization history file
-                is generated in one of the following formats:
-                <list>
-                <li> <pre>"xyz"</pre> molecular format, where
-                Line 1 contains the total number of atoms. 
-                Line 2 contains the comment line here with total energy in eV. 
-                Line 3 and following are atomic species, cartesian coordinates in Angstrom and the forces (eV/Ang).</li>
-                <li> <pre>"gulp"</pre> format which useful to visualize the crystal structure changes using the GDIS program.</li>
-                </list>
-                </xs:documentation>
-            </xs:annotation>
-            </xs:attribute>
-            
-            <xs:attribute ex:importance="essential" ex:unit="" name="lbfgsnumcor" type="xs:integer" default="3">
+            <xs:attribute ex:importance="essential" name="history" type="xs:boolean" default="false" use="optional">
                 <xs:annotation>
-                <xs:documentation>
-                The number of corrections used in the limited memory matrix.
-                It is not altered by the routine. Values of <attref>lbfgsnumcor</attref> 
-                <inlinemath>\textless</inlinemath> 3 are not recommended, and large values of 
-                <attref>lbfgsnumcor</attref> can result in excessive computing time. 
-                The range 3 <inlinemath>\leq</inlinemath> <attref>lbfgsnumcor</attref> 
-                <inlinemath>\leq</inlinemath> 20 is recommended.
-                </xs:documentation>
+                    <xs:documentation> 
+                    If <pre>"true"</pre> the atomic configuration at each relaxation step is written in a history
+		    file which is generated in one of the formats specified in <attref>historyformat</attref>.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" name="addtohistory" type="xs:boolean" default="false" use="optional">
+                <xs:annotation>
+                    <xs:documentation>
+                    If <attref>history</attref> is <pre>"true"</pre>, this switch allows newly computed 
+		    optimization steps to be appended to a previously generated history file.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" name="historyformat" type="xs:string" default="xyz" use="optional">
+                <xs:annotation>
+                    <xs:documentation> 
+                    If <attref>history</attref> is <pre>"true"</pre>, the history file, containig atomic 
+		    configurations at each optimization step, is generated in one of the following formats:
+                    <list>
+                      <li> <pre>"xyz"</pre> 
+		           molecular format. The first line of this file the total number of atoms. 
+			   The second line is a comment line with total energy in eV. 
+			   Finally, starting from line three, one finds 
+                           atomic species, cartesian coordinates in Angstrom, and forces in eV/Angstrom. 
+			   This format is repeated for each optimization step. </li>
+                      <li> <pre>"gulp"</pre> 
+		           format, which is useful to visualize crystal structure changes using the 
+		           <pre>GDIS</pre> program. </li>
+                    </list>
+                    </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
             
-            <xs:attribute ex:importance="essential" ex:unit="" name="lbfgsverbosity" type="xs:integer" default="-1">
-                <xs:annotation>
-                <xs:documentation>
-                This variable controls the frequency and type of output generated:
-                <list>
-                <li><attref>lbfgsverbosity</attref> <inlinemath>\textless</inlinemath> 0 no output is generated;</li>
-                <li><attref>lbfgsverbosity</attref>: print only one line at the last iteration;</li>
-                <li>0 <inlinemath>\textless</inlinemath> <attref>lbfgsverbosity</attref> <inlinemath>\textless</inlinemath> 99: print also f and |proj g| every iprint iterations;</li>
-                <li><attref>lbfgsverbosity</attref> = 99: print details of every iteration except n-vectors;</li>
-                <li><attref>lbfgsverbosity</attref> = 100: print also the changes of active set and final x;</li>
-                <li><attref>lbfgsverbosity</attref> <inlinemath>\textgreater</inlinemath> 100: print details of every iteration including x and g;</li>
-                <li>When <attref>lbfgsverbosity</attref> <inlinemath>\textgreater</inlinemath> 0, the file iterate.dat will  be created to summarize the iteration.</li>
-                </list>
-                </xs:documentation>
-                </xs:annotation>
-            </xs:attribute>
         </xs:complexType>
     </xs:element>
   <xs:annotation>
@@ -3835,7 +4017,7 @@ gw.xsd
           </xs:complexType>
         </xs:element>
         
-        <xs:element ex:importance="expert" ex:unit="" name="momentummatrix" maxOccurs="1">
+        <xs:element ex:importance="expert" ex:unit="" name="momentummatrix" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>
               Generate matrix elements of the momentum operator and store them in PMAT.OUT.
@@ -3851,7 +4033,7 @@ gw.xsd
           </xs:complexType>
         </xs:element>
 
-        <xs:element ex:importance="expert" ex:unit="" name="dielmat" maxOccurs="1">
+        <xs:element ex:importance="expert" ex:unit="" name="dielmat" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>
               Calculate the dielectric tensor in IP-RPA (without local-field effect) for q=0.
@@ -3916,7 +4098,7 @@ gw.xsd
           </xs:complexType>
         </xs:element>
 
-        <xs:element ex:importance="expert" ex:unit="" name="moke" maxOccurs="1">
+        <xs:element ex:importance="expert" ex:unit="" name="moke" minOccurs="0" maxOccurs="1">
           <xs:complexType>
 
             <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="true">
@@ -3967,7 +4149,7 @@ gw.xsd
           </xs:complexType>
         </xs:element>        
 
-        <xs:element ex:importance="expert" ex:unit="" name="nlo" minOccurs="0">
+        <xs:element ex:importance="expert" ex:unit="" name="shg" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
               <xs:element ex:importance="expert" ex:unit="" name="chicomp" type="integertriple" default="1 2 3" maxOccurs="27">
@@ -5595,7 +5777,7 @@ gw.xsd
         </xs:element>
         <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="1" ref="structure"/>
         <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="1" ref="groundstate"/>
-        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="0" ref="structureoptimization"/>
+        <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="0" ref="relax"/>
         <xs:element ex:importance="essential" ex:unit="" maxOccurs="1" minOccurs="0" ref="properties"/>
         <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="phonons"/>
         <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="xs"/>

@@ -1,7 +1,4 @@
 !
-!
-!
-!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -9,7 +6,6 @@
 !BOP
 ! !ROUTINE: rhoplot
 ! !INTERFACE:
-!
 !
 Subroutine rhoplot
 ! !USES:
@@ -34,7 +30,7 @@ Subroutine rhoplot
       Integer :: i, j, k
 ! initialise universal variables
       type(plotlabels),pointer ::labels
-
+!
       Call init0
 ! read density from file
       Call readstate
@@ -63,15 +59,14 @@ Subroutine rhoplot
           End Do  
 ! interstitial
           Do i = 1, ngrtot
-             modgrhoir (i) = dsqrt ( grhoir(i, 1)**2 + &
-           & grhoir(i, 2)**2 + grhoir(i, 3)**2 )
+             modgrhoir(i) = dsqrt ( grhoir(i,1)**2 + grhoir(i,2)**2 + grhoir(i,3)**2 )
           End Do
       End If
 ! write the density plot to file
       If (associated(input%properties%chargedensityplot%plot1d)) Then
-        labels=>create_plotlablels("RHO","RHO",1)
-		 call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
-		 call set_plotlabel_axis(labels,2,"Density","???","graceunit")
+         labels=>create_plotlablels("RHO1D","RHO1D",1)
+         call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
+         call set_plotlabel_axis(labels,2,"Density","???","graceunit")
          Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%chargedensityplot%plot1d)
          call destroy_plotlablels(labels)
@@ -82,7 +77,7 @@ Subroutine rhoplot
 !
 ! when gradients are needed      
          If (input%properties%chargedensityplot%plotgradient) Then
-             Call plot1d ("GRHO", 1, input%groundstate%lmaxvr, lmmaxvr, &
+             Call plot1d ("GRHO1D", 1, input%groundstate%lmaxvr, lmmaxvr, &
              & modgrhomt, modgrhoir, input%properties%chargedensityplot%plot1d)
 !
              Write (*,*)
@@ -92,7 +87,7 @@ Subroutine rhoplot
       End If
       If (associated(input%properties%chargedensityplot%plot2d)) Then
 !
-		 labels=>create_plotlablels("RHO","RHO",2)
+		 labels=>create_plotlablels("RHO2D","RHO2D",2)
 		 call set_plotlabel_axis(labels,1,"a","1","graceunit")
 		 call set_plotlabel_axis(labels,2,"b","1","graceunit")
 		 call set_plotlabel_axis(labels,3,"Density","???","graceunit")
@@ -103,7 +98,7 @@ Subroutine rhoplot
          Write (*, '("Info(rhoplot): 2D density plot written to RHO2D.xml")')
 ! when gradients are needed      
          If (input%properties%chargedensityplot%plotgradient) Then
-             Call plot2d ("GRHO", 1, input%groundstate%lmaxvr, lmmaxvr, &
+             Call plot2d ("GRHO2D", 1, input%groundstate%lmaxvr, lmmaxvr, &
              & modgrhomt, modgrhoir, input%properties%chargedensityplot%plot2d)
 !
              Write (*,*)
@@ -112,11 +107,11 @@ Subroutine rhoplot
 !      
       End If
       If (associated(input%properties%chargedensityplot%plot3d)) Then
-         labels=>create_plotlablels("RHO","RHO",3)
-	 call set_plotlabel_axis(labels,1,"a","1","graceunit")
-	 call set_plotlabel_axis(labels,2,"b","1","graceunit")
-	 call set_plotlabel_axis(labels,3,"b","1","graceunit")
-	 call set_plotlabel_axis(labels,4,"Density","???","graceunit")
+         labels=>create_plotlablels("RHO3D","RHO3D",3)
+         call set_plotlabel_axis(labels,1,"a","1","graceunit")
+         call set_plotlabel_axis(labels,2,"b","1","graceunit")
+         call set_plotlabel_axis(labels,3,"b","1","graceunit")
+         call set_plotlabel_axis(labels,4,"Density","???","graceunit")
          Call plot3d ( labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rhomt, rhoir, input%properties%chargedensityplot%plot3d)
          call destroy_plotlablels(labels)
@@ -124,11 +119,11 @@ Subroutine rhoplot
          Write (*, '("Info(rhoplot): 3D density plot written to RHO3D.xml")')
 ! when gradients are needed      
          If (input%properties%chargedensityplot%plotgradient) Then
-             labels=>create_plotlablels("GRHO","GRHO",3)
-	     call set_plotlabel_axis(labels,1,"a","1","graceunit")
-	     call set_plotlabel_axis(labels,2,"b","1","graceunit")
-	     call set_plotlabel_axis(labels,3,"b","1","graceunit")
-	     call set_plotlabel_axis(labels,4,"Density","???","graceunit")
+             labels=>create_plotlablels("GRHO3D","GRHO3D",3)
+             call set_plotlabel_axis(labels,1,"a","1","graceunit")
+             call set_plotlabel_axis(labels,2,"b","1","graceunit")
+             call set_plotlabel_axis(labels,3,"b","1","graceunit")
+             call set_plotlabel_axis(labels,4,"Density","???","graceunit")
              Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
              & modgrhomt, modgrhoir, input%properties%chargedensityplot%plot3d)
              call destroy_plotlablels(labels)
@@ -138,9 +133,8 @@ Subroutine rhoplot
 !      
       End If
       Write (*,*)
-
-        If (allocated(grhomt)) deallocate (grhomt)
-          If (allocated(modgrhomt)) deallocate (modgrhomt)
+      If (allocated(grhomt)) deallocate (grhomt)
+      If (allocated(modgrhomt)) deallocate (modgrhomt)
       Return
 End Subroutine
 !EOC

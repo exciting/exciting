@@ -33,13 +33,13 @@ Subroutine groundstatetasklauncher
         End If 
     End If            
     If (input%groundstate%do .Eq. "fromscratch") Then
-        If (associated(input%structureoptimization)) Then
+        If (associated(input%relax)) Then
             task = 2
         Else
             task = 0
         End If
     Else
-        If (associated(input%structureoptimization)) Then
+        If (associated(input%relax)) Then
             task = 3
         Else
             task = 1

@@ -100,10 +100,18 @@ subroutine getevalqp(nkp2)
                 do ik = 1, nkpt
                     evalsv(ib,ik)=eqp1(ib,ik)
                 enddo 
-            enddo            
-! return the subroutine
+            enddo
+! skip interpolation            
             goto 10
         end if
+      end if
+
+! Special case of only one k-point      
+      if (nkp1==1) then
+        write(*,*) 'ERROR(getevalqp):' 
+        write(*,*) '  Interpolation is not possible!'
+        write(*,*) '  EVALQP.OUT file contains data only for a single k-point.'
+        stop
       end if
       
 ! otherwise perform interpolation

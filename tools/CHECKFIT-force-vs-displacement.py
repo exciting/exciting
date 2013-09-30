@@ -109,7 +109,8 @@ while True:
     line = input_energy.readline()
     line = line.strip()
     if len(line) == 0: break
-    eta,ene = line.split() 
+    eta = line.split()[0] 
+    ene = line.split()[1] 
 
     if (abs(float(eta)) <= maximum_displ):  
        energy.append(float(ene))

@@ -18,17 +18,16 @@ Subroutine writefsm (fnum)
       Write (fnum,*)
       If ((input%groundstate%spin%fixspinnumber .Eq. 1) .Or. &
      & (input%groundstate%spin%fixspinnumber .Eq. 3)) Then
-         Write (fnum, '("FSM global effective field", T30, ": ", 3G18.1&
-        &0)') bfsmc (1:ndmag)
+         Write (fnum, '(" FSM global effective field", T30, ": ", 3F16.8)') bfsmc (1:ndmag)
       End If
       If ((input%groundstate%spin%fixspinnumber .Eq. 2) .Or. &
      & (input%groundstate%spin%fixspinnumber .Eq. 3)) Then
-         Write (fnum, '("FSM local muffin-tin effective fields :")')
+         Write (fnum, '(" FSM local muffin-tin effective fields :")')
          Do is = 1, nspecies
-            Write (fnum, '(" species : ", I4, " (", A, ")")') is, trim &
+            Write (fnum, '("     species : ", I4, " (", A, ")")') is, trim &
            & (input%structure%speciesarray(is)%species%chemicalSymbol)
             Do ia = 1, natoms (is)
-               Write (fnum, '("  atom ", I4, T30, ": ", 3G18.10)') ia, &
+               Write (fnum, '("     atom ", I4, T30, ": ", 3F16.8)') ia, &
               & bfsmcmt (1:ndmag, ia, is)
             End Do
          End Do

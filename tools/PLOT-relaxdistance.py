@@ -22,6 +22,15 @@ def shell_value(variable,vlist,default):
     for i in range(len(vlist)):
         if ( vlist[i] == variable ): v = os.environ[variable] ; e = True ; break
     return v, e
+    
+#-------------------------------------------------------------------------------
+    
+def flen(fname):
+    i = -1
+    with open(fname) as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1
 
 #-------------------------------------------------------------------------------
 
@@ -44,7 +53,7 @@ narg  = len(sys.argv)-1
 
 if (narg < 1): 
     print "\nIncorrect number of arguments. **Usage**:\n\n",
-    print "PLOT-relaxdistance.py DIRECTORYNAME [YMIN YMAX]\n"
+    print "PLOT-relaxdistance.py DIRECTORYNAME [ATOM1 ATOM2 YMIN YMAX]\n"
     sys.exit()
 
 label = str(sys.argv[1])
@@ -60,17 +69,26 @@ if (str(os.path.exists(inpf))=='False'):
 #-------------------------------------------------------------------------------
    
 ylimits = []
-for i in range(2,len(sys.argv)): ylimits.append(float(sys.argv[i]))
+for i in range(4,len(sys.argv)): ylimits.append(float(sys.argv[i]))
     
 #-------------------------------------------------------------------------------
 
-atom1=1
-atom2=2
+idf = "Atomic positions at this step"
 
-os.system("grep \"   "+str(atom1)+" : \" "+str(inpf)+" > tempfile1")
+a1 = str(1)
+if (len(sys.argv) > 2): a1 = str(sys.argv[2])
+a2 = str(2)
+if (len(sys.argv) > 3): a2 = str(sys.argv[3])
+
+os.system("grep -A"+a1+" \""+idf+"\" "+str(inpf)+" | grep \"at\" | grep \" "+a1+" \" > tempfile1") 
 ifile1 = open("tempfile1","r")
-os.system("grep \"   "+str(atom2)+" : \" "+str(inpf)+" > tempfile2")
+
+os.system("grep -A"+a2+" \""+idf+"\" "+str(inpf)+" | grep \"at\" | grep \" "+a2+" \" > tempfile2") 
 ifile2 = open("tempfile2","r")
+
+if ( (flen("tempfile1") < 1) or (flen("tempfile2") < 1) ) :
+    os.system("rm tempfile1") ; os.system("rm tempfile2")
+    sys.exit("\nData not (yet) available for visualization.\n")
 
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
@@ -106,21 +124,37 @@ ax.text(-0.23,0.5,ylabel,size=fontlabel,
 
 #-------------------------------------------------------------------------------
 
-x = [] ; d1 = [] ; d2 = [] ; d3 = [] 
+x = [] ; d1 = [] ; d2 = [] ; d3 = []
 
 iter=0
+soglia = 0.80
 
 while True:
     line1 = ifile1.readline().strip()
     line2 = ifile2.readline().strip()   
     if len(line1) == 0: break
-    iter+=1
-    d1.append(float(line2.split()[2])-float(line1.split()[2]))
-    d2.append(float(line2.split()[3])-float(line1.split()[3]))
-    d3.append(float(line2.split()[4])-float(line1.split()[4]))
-    x.append(float(iter))
 
-xmin = 1-iter/20. ; xmax = iter+iter/20.
+    g = []
+    for i in range(3):
+        g.append(float(line2.split()[i+4])-float(line1.split()[i+4]))
+    if (iter > 0):
+        h = []
+        h.append(d1[iter-1])
+        h.append(d2[iter-1])
+        h.append(d3[iter-1])
+        for i in range(3): 
+            if ((g[i]-h[i]) > soglia): g[i] = g[i]-1.    
+            if ((h[i]-g[i]) > soglia): g[i] = g[i]+1. 
+            
+    d1.append(g[0])
+    d2.append(g[1])
+    d3.append(g[2])
+    x.append(float(iter))
+    iter+=1
+    
+iter-=1
+
+xmin = 0-iter/20. ; xmax = iter+iter/20.
 
 #-------------------------------------------------------------------------------
 # manipulate data for a better plot
@@ -183,6 +217,15 @@ plt.legend(loc=iloc,borderaxespad=.8)
 plt.legend(bbox_to_anchor=(1.03, 1), loc=2, borderaxespad=0.)
 
 ax.yaxis.set_major_formatter(yfmt)
+
+if (abs(xmax-xmin) < 0.000000001): 
+    xmax=xmax+1
+    xmin=xmin-1
+    
+if (abs(ymax-ymin) < 0.000000001): 
+    ymax=ymax+0.1
+    ymin=ymin-0.1
+
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
 
