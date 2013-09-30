@@ -15,7 +15,7 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Use modinput
       Use modmain
       Use modfvsystem
-      Use mod_hartreefock, only: ihyb
+      Use mod_hybrids, only: ihyb
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)

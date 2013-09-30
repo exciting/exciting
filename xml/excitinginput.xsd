@@ -2984,6 +2984,15 @@ gw.xsd
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
+ 
+           <xs:enumeration value="HYB_PBE0">
+               <xs:annotation>
+                 <xs:appinfo>
+                   <oldnr>406</oldnr>
+                 </xs:appinfo>
+               </xs:annotation>
+            </xs:enumeration>
+
             <xs:enumeration value="EXX">
               <xs:annotation>
                 <xs:appinfo><!-- set to "-2" or lower for EXX -->
@@ -2991,6 +3000,7 @@ gw.xsd
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
+
             <xs:enumeration value="none">
               <xs:annotation>
                 <xs:appinfo>
@@ -3199,6 +3209,7 @@ gw.xsd
               <xs:documentation> 
                 Specify amount of information which is printed to files:
                 <list>
+                    <li>none   - no output is produced</li>
                     <li>low    - minimal output is produced</li>
                     <li>normal - (default) standard information</li>
                     <li>high   - detailed output</li>
@@ -3207,6 +3218,13 @@ gw.xsd
             </xs:annotation>
             <xs:simpleType>
               <xs:restriction base="xs:string">
+                <xs:enumeration value="none">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>-1</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
                 <xs:enumeration value="low">
                   <xs:annotation>
                     <xs:appinfo>

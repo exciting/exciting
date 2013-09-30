@@ -4,7 +4,7 @@ subroutine add_vxnl(system,ik,nmatp)
     use modmain
     use modgw
     use modfvsystem
-    use mod_hartreefock
+    use mod_hybrids
     use modmpi
             
     implicit none
@@ -13,19 +13,22 @@ subroutine add_vxnl(system,ik,nmatp)
     integer(4), intent(IN) :: nmatp
    
     integer(4) :: ie1, ie2
-    
+    real(8)    :: tstart, tend    
     complex(8), allocatable :: vnl(:,:), vnlmat(:,:)
     complex(8), allocatable :: evec(:,:), overlap(:,:)
     complex(8), allocatable :: temp(:,:), temp1(:,:)
     
     complex(8), external :: zdotc
 
-    allocate(vnl(nstfv,nstfv))
-    vnl(:,:) = vxnl(:,:,ik)
+    call cpu_time(tstart)
 
 !----------------------------------------
 ! Update the Hamiltonian
 !----------------------------------------
+
+    allocate(vnl(nstfv,nstfv))
+    vnl(:,:) = vxnl(:,:,ik)
+
 
 ! S
     allocate(overlap(nmatp,nmatp))
@@ -77,6 +80,9 @@ subroutine add_vxnl(system,ik,nmatp)
 ! Update Hamiltonian
     system%hamilton%za(:,:) = system%hamilton%za(:,:) + ex_coef*vnlmat(:,:)
     deallocate(vnlmat)
+
+    call cpu_time(tend)
+    if (rank==0) call write_cputime(fgw,tend-tstart, 'ADD_VXNL')
 
     return
 end subroutine

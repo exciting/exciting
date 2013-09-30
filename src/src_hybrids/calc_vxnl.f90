@@ -4,7 +4,7 @@ subroutine calc_vxnl
     use modmain
     use modgw
     use modfvsystem
-    use mod_hartreefock
+    use mod_hybrids
     use modmpi
             
     implicit none
@@ -13,11 +13,12 @@ subroutine calc_vxnl
     integer(4) :: ie1, ie2, ie3, icg
     real(8)    :: tstart, tend
     complex(8) :: t1, mvm
-    
     real(8),    allocatable :: eval(:)
     complex(8), allocatable :: vnl(:,:)
     
     complex(8), external :: zdotc
+
+    call cpu_time(tstart)
 
 !------------------------------------------------!
 ! LAPW basis initialization
@@ -83,7 +84,7 @@ subroutine calc_vxnl
                 
 ! Set the size of the basis for the corresponding q-point
                 matsiz=locmatsiz+ngq(iq)
-                if (rank==0) write(fgw,101) iq, locmatsiz, ngq(iq), matsiz
+                if (rank==0) write(fgw,101) ikp, iq, locmatsiz, ngq(iq), matsiz
 
 !------------------------------------------------------------
 ! Calculate the Coulomb matrix elements in MB representation
@@ -189,10 +190,14 @@ subroutine calc_vxnl
 #endif
 
 101 format(10x,/, &
-    &       'Data for q-point:',i4,//,10x,'Mixed basis:',/,10x, &
+    &       'Data for (k,q)-point:',2i4,//,10x,                  &
+    &       'Mixed basis:',/,10x,                                &
     &       'Number of atomic basis functions:       ',i4,/,10x, &
     &       'Number of interstitial basis functions: ',i4,/,10x, &
     &       'Total number of basis functions:        ',i4,/)
+
+    call cpu_time(tend)
+    if (rank==0) call write_cputime(fgw,tend-tstart, 'CALC_VXNL')
       
     return
 end subroutine

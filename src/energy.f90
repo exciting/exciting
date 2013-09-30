@@ -14,7 +14,7 @@ Subroutine energy
 ! !USES:
       Use modinput
       Use modmain
-      Use mod_hartreefock, only: exnl
+      Use mod_hybrids, only: exnl
 ! !DESCRIPTION:
 !   The {\tt energy} subroutine computes the total energy and its individual contributions. 
 !   The total energy is composed of kinetic, Coulomb, and exchange-correlation energy,

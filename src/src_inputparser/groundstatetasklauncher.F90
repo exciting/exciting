@@ -53,7 +53,7 @@ Subroutine groundstatetasklauncher
         ! DFT / OEP
         Else If (associated(input%groundstate%Hybrid)) Then
                 If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
-                    Call gndstate_hybrids
+                    Call hybrids
                 Else 
                     Call gndstate
                 End If    
