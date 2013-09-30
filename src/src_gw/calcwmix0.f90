@@ -14,6 +14,7 @@
 
       use modmain
       use modgw
+      use modmpi, only: rank
 
 ! !LOCAL VARIABLES:
 
@@ -76,7 +77,7 @@
 !      enddo  
 
       call cpu_time(tend)
-      call write_cputime(fgw,tend-tstart,'CALCWMIX0')
+      if (rank == 0) call write_cputime(fgw,tend-tstart,'CALCWMIX0')
       
       end subroutine calcwmix0
 !EOC                

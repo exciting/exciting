@@ -37,7 +37,7 @@ subroutine calc_vxnl
     Call hmlrad
 
 !------------------------------------------------!
-! Re-initialize Product Mixed Basis
+! (Re)-Initialize Product Mixed Basis
 !------------------------------------------------!
     call init_mixed_basis    
 
@@ -76,22 +76,19 @@ subroutine calc_vxnl
 !---------------------------------------
         do iq = 1, nqptnr
 
-            ikq = ikq+1 
-
 ! decide if point is done by this process
+            ikq = ikq+1
             if (mod(ikq-1,procs) == rank) then
 
-                Gamma = gammapoint(iq)
+                
 ! Set the size of the basis for the corresponding q-point
                 matsiz=locmatsiz+ngq(iq)
-#ifdef MPI
-                write(fgw,'("Rank =", i4)') rank
-#endif
-                write(fgw,101) iq, locmatsiz, ngq(iq), matsiz
+                if (rank==0) write(fgw,101) iq, locmatsiz, ngq(iq), matsiz
 
 !------------------------------------------------------------
 ! Calculate the Coulomb matrix elements in MB representation
 !------------------------------------------------------------
+                Gamma = gammapoint(iq)
 
 ! Calculate the interstitial mixed basis functions
                 call diagsgi(iq)

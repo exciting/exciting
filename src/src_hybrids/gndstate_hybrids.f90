@@ -184,17 +184,21 @@ Subroutine gndstate_hybrids
 ! Check for convergence
         if (ihyb > 1) then
 
-            write(60,'("(Hybrids) Absolute change in total energy (target)   : ",G18.10," (",G18.10,")")') &
-           &  deltae, input%groundstate%epsengy
-            write(60,'("(Hybrids) Charge distance (target)                   : ",G18.10," (",G18.10,")")') &
-           &  chgdst, input%groundstate%epschg
+            if (rank==0) then
+              write(60,'("(Hybrids) Absolute change in total energy (target)   : ",G18.10," (",G18.10,")")') &
+             &  deltae, input%groundstate%epsengy
+              write(60,'("(Hybrids) Charge distance (target)                   : ",G18.10," (",G18.10,")")') &
+             &  chgdst, input%groundstate%epschg
+            end if
 
             if (deltae < input%groundstate%epsengy) Then
+              if (rank==0) then          
                 write(60,*)
                 write(60,'("(Hybrids) Convergence targets achieved")')
-                ! exit ihyb-loop
-                exit
-            End If
+              end if
+! exit ihyb-loop
+              exit
+            end if
             et = exnl
             
 ! output the current total time

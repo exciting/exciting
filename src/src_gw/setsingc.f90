@@ -1,7 +1,8 @@
 subroutine setsingc()
         
       use modmain
-      use modgw, only: fgw,nqptnr,singc1,singc2,Gamma,gammapoint
+      use modgw,  only: fgw,nqptnr,singc1,singc2,Gamma,gammapoint
+      use modmpi, only: rank
 
       real(8) :: beta
       real(8) :: f1
@@ -29,11 +30,13 @@ subroutine setsingc()
       singc1=intf1-sumf1/dble(nqptnr)
       singc2=intf2-sumf2/dble(nqptnr)
 
-      call linmsg(fgw,'-','SETSINGC evaluation of the singularity correction factors')
-      write(fgw,100) beta
-      write(fgw,101) intf1, intf2
-      write(fgw,102) sumf1, sumf2
-      write(fgw,103) singc1, singc2
+      if (rank==0) then
+        call linmsg(fgw,'-','SETSINGC evaluation of the singularity correction factors')
+        write(fgw,100) beta
+        write(fgw,101) intf1, intf2
+        write(fgw,102) sumf1, sumf2
+        write(fgw,103) singc1, singc2
+      end if
 
   100 format('parameter beta=',f18.12,/,30x,'q^(-1)',12x,'q^(-2)')
   101 format('Numerical integration ',2f18.12)

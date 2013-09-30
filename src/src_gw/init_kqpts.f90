@@ -158,7 +158,7 @@ subroutine init_kqpts
 
       ngqmax=maxval(ngq)
       ngbarcmax=maxval(ngbarc)
-      if(ngqmax.eq.ngrtot) write(6,*)'WARNING !! ngqmax = ngrtot !!!'
+      if(ngqmax.eq.ngrtot) write(*,*)'WARNING !! ngqmax = ngrtot !!!'
       if(ngbarcmax.eq.ngrtot) write(*,*)'WARNING !! ngbarcmax = ngrtot !!!'
 
 !     index from G+q to G vector for IPW and coulomb potential
@@ -211,43 +211,46 @@ subroutine init_kqpts
          end do
       enddo ! iq
 
-      open(99,file='INITKQPTS.OUT',action='write')
+      if (rank==0) then
+         open(99,file='INITKQPTS.OUT',action='write')
 !
-!     Write the list of k-points
+!        Write the list of k-points
 !       
-      write(99,*) '# Irreducible k-points:'
-      call writeklist(nkpt,vkl,vkc)
+         write(99,*) '# Irreducible k-points:'
+         call writeklist(nkpt,vkl,vkc)
 
-      write(99,*) '# All k-points:'
-      call writeklist(nkptnr,vklnr,vkcnr)
+         write(99,*) '# All k-points:'
+         call writeklist(nkptnr,vklnr,vkcnr)
 
-      write(99,*) '# ngrtot, ngkmax, ngqmax, ngbarcmax'
-      write(99,*) ngrtot, ngkmax, ngqmax, ngbarcmax
-      write(99,*) 
+         write(99,*) '# ngrtot, ngkmax, ngqmax, ngbarcmax'
+         write(99,*) ngrtot, ngkmax, ngqmax, ngbarcmax
+         write(99,*) 
 !
-!     Write the list of q-points in WIEN2k format
+!        Write the list of q-points in WIEN2k format
 !      
-      write(99,*) "# All q-points:"
-      call writeklist(nqptnr,vql,vqc)
+         write(99,*) "# All q-points:"
+         call writeklist(nqptnr,vql,vqc)
 !
-!     Write the tetrahedra data to file
+!        Write the tetrahedra data to file
 !
-      call writeqgen
+         call writeqgen
       
-!     Mapping between irreducible and complete grid k-points
-      write(99,*)
-      write(99,*) '# INDKP: mapping from the complete k-point set to the corresponding irreducible:'
-      write(99,*) 'indkp: ', indkp(:)
-      write(99,*)
-      write(99,*) '# IDIKP: index of the irreducible k-point in the complete set:'
-      write(99,*) 'idikp: ', idikp(:)
-      write(99,*)
+!        Mapping between irreducible and complete grid k-points
+         write(99,*)
+         write(99,*) '# INDKP: mapping from the complete k-point set to the corresponding irreducible:'
+         write(99,*) 'indkp: ', indkp(:)
+         write(99,*)
+         write(99,*) '# IDIKP: index of the irreducible k-point in the complete set:'
+         write(99,*) 'idikp: ', idikp(:)
+         write(99,*)
+      end if
 
 !-------------------------------------------------!
 !     Generate the small group of q               !
 !-------------------------------------------------!
 
       call gensmallq
+      if (rank==0) close(99)
       
 !-------------------------------------------------!
 !     k/q points summary
@@ -270,7 +273,6 @@ subroutine init_kqpts
         end do
       end if
 
-      close(99)
       return
 end subroutine
 !EOC
