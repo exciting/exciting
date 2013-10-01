@@ -42,13 +42,12 @@ Subroutine hmlint
       complex(8) :: zsum
 ! automatic arrays
       Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, &
-     & nrmtmax),a,rm,energyref,alpha
+     & nrmtmax),a,rm,alpha
       parameter (alpha=1d0 / 137.03599911d0)
       logical :: Tsymmetric
 
 ! Initialisation of some variables that exist just for the sake of convenience    
       Tsymmetric=input%groundstate%SymmetricKineticEnergy          ! True if kinetic energy is calculated as nabla*nabla
-      energyref=input%groundstate%energyref
       if (input%groundstate%ValenceRelativity.ne.'none') then
         a=0.5d0*alpha**2
       else
@@ -118,24 +117,13 @@ Subroutine hmlint
                           if (Tsymmetric) then
                             angular=dble(l1*(l1+1))
                             Do ir = 1, nr
-                              rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                              rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                               t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io2, l3, ias)
                               t2=apwfr(ir, 2, io1, l1, ias)*apwfr(ir, 2, io2, l3, ias)
                               fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
                             End Do
                             Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                             haaintegrals (1, io2, l3, io1, l1)= gr (nr) / y00
-! calculate more integrals if linearized Koelling-Harmon is demanded
-!                            if (input%groundstate%ValenceRelativity.eq.'lkh') then
-!                              Do ir = 1, nr
-!                                rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
-!                                t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io2, l3, ias)
-!                                t2=apwfr(ir, 2, io1, l1, ias)*apwfr(ir, 2, io2, l3, ias)
-!                                fr (ir) = a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2)*r2 (ir)
-!                              End Do
-!                              Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-!                              h1aa (io1, io2, l1, ias) = gr (nr) / y00
-!                            endif
                           else
                             Do ir = 1, nr
                               fr (ir) = apwfr (ir, 1, io1, l1, ias) * apwfr (ir, 2, io2, l3, ias) * r2 (ir)
@@ -172,7 +160,7 @@ Subroutine hmlint
                        If (Tsymmetric) then
                         angular=dble(l1*(l1+1))
                         Do ir = 1, nr
-                           rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                           rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                            t1=apwfr(ir, 1, io, l1, ias)*lofr(ir, 1, ilo, ias)
                            t2=apwfr(ir, 2, io, l1, ias)*lofr(ir, 2, ilo, ias)
                            fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
@@ -215,7 +203,7 @@ Subroutine hmlint
                     if (Tsymmetric) then
                      angular=dble(l1*(l1+1))
                      Do ir = 1, nr
-                        rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                        rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                         t1=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)
                         t2=lofr(ir, 2, ilo1, ias)*lofr(ir, 2, ilo2, ias)
                         fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
@@ -273,7 +261,7 @@ Subroutine hmlint
                           enddo
                           if ((lm1.eq.lm3).and.(.not.Tsymmetric)) then
 ! include the surface contribution to the kinetic energy
-                            haaij(if1,if3,ias)=zsum+t1*apwfr(nrmt(is),1,io1,l1,ias)*apwdfr(io2,l1,ias)*1d0/(1d0+(energyref-veffmt(1,nrmt(is),ias)*y00)*a)
+                            haaij(if1,if3,ias)=zsum+t1*apwfr(nrmt(is),1,io1,l1,ias)*apwdfr(io2,l1,ias)*1d0/(1d0-veffmt(1,nrmt(is),ias)*y00*a)
                           else
                             haaij(if1,if3,ias)=zsum
                           endif

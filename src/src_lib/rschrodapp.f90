@@ -49,15 +49,14 @@ use modinput
       Integer :: ir
 ! fine structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
-      Real (8) :: rm, t1, rmfactor,energyref
-      energyref=input%groundstate%energyref
+      Real (8) :: rm, t1, rmfactor
       if (input%groundstate%ValenceRelativity.eq."scalar") then
          rmfactor=1d0
       else
          rmfactor=0d0
       endif
       Do ir = 1, nr
-         rm = 1.d0 + 0.5d0 * (alpha**2) * (energyref-vr (ir))*rmfactor
+         rm = 1.d0 - 0.5d0 * (alpha**2) * vr (ir)*rmfactor
          t1 = dble (l*(l+1)) / (2.d0*rm*r(ir)**2)
          hp0 (ir) = (t1+vr(ir)) * p0 (ir) - q0 (ir) / r (ir) - q1 (ir)
       End Do

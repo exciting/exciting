@@ -51,7 +51,7 @@ use modinput
       Integer :: im, kpa, ir
 ! fine-structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
-      Real (8) :: rm,rm0,rmfactor,energyref
+      Real (8) :: rm,rm0,rmfactor
 ! allocatable arrays
       Real (8), Allocatable :: p0p (:),q0p(:),pe(:,:),qe(:,:)
       Real (8), Allocatable :: g0 (:), g1 (:)
@@ -79,7 +79,6 @@ use modinput
 #ifdef SPECIES
            rmfactor=1d0
 #else
-           energyref=input%groundstate%energyref
            if (input%groundstate%ValenceRelativity.eq."scalar") then
            rmfactor=1d0
            else
@@ -88,10 +87,10 @@ use modinput
 #endif
            Allocate (p0p(nr))
            If (m .Eq. 0) Then
-             Call rschrodint (m, l, e, nr, r, vr, nn, rmfactor, energyref, p0p, p0, p1, q0, q1)
+             Call rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
            Else
              Do im = 0, m
-               Call rschrodint (im, l, e, nr, r, vr, nn, rmfactor, energyref, p0p, p0, p1, q0, q1)
+               Call rschrodint (im, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
                p0p (:) = p0 (:)
              End Do
            End If

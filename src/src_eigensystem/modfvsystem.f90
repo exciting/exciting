@@ -55,13 +55,12 @@ Contains
     End Subroutine deletematrix
     !
     !
-    Subroutine newsystem (self, packed, rank, h1too)
+    Subroutine newsystem (self, packed, rank)
         Type (evsystem), Intent (Out) :: self
-        Logical, Intent (In) :: packed, h1too
+        Logical, Intent (In) :: packed
         Integer, Intent (In) :: rank
         Call newmatrix (self%hamilton, packed, rank)
         Call newmatrix (self%overlap, packed, rank)
-        if (h1too) Call newmatrix (self%h1, packed, rank)
     End Subroutine newsystem
     !
     !

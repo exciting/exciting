@@ -37,11 +37,10 @@ Subroutine olprad
 ! automatic arrays
       Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, &
      & nrmtmax)
-      Real (8) :: angular,t1,t2,rm,a,energyref,alpha
+      Real (8) :: angular,t1,t2,rm,a,alpha
       parameter (alpha=1d0 / 137.03599911d0)
 
 
-      energyref=input%groundstate%energyref
       if (input%groundstate%ValenceRelativity.ne.'none') then
         a=0.5d0*alpha**2
       else
@@ -64,7 +63,7 @@ Subroutine olprad
                   Do io2 = 1, apword (l, is)
 ! calculate more integrals if linearized Koelling-Harmon is demanded
                     Do ir = 1, nr
-                      rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                      rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                       t1=apwfr(ir, 1, io1, l, ias)*apwfr(ir, 1, io2, l, ias)
                       t2=apwfr(ir, 2, io1, l, ias)*apwfr(ir, 2, io2, l, ias)
                       fr (ir) = a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2)*r2 (ir)
@@ -95,7 +94,7 @@ Subroutine olprad
                  else
                    angular=dble(l*(l+1))
                    Do ir = 1, nr
-                     rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                     rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                      t1=apwfr(ir, 1, io, l, ias)*lofr(ir, 1, ilo, ias)
                      t2=apwfr(ir, 2, io, l, ias)*lofr(ir, 2, ilo, ias)
                      fr (ir) = (t1+a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2))*r2 (ir)
@@ -119,7 +118,7 @@ Subroutine olprad
                     else
                       angular=dble(l*(l+1))
                       Do ir = 1, nr
-                        rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                        rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                         t1=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)
                         t2=lofr(ir, 2, ilo1, ias)*lofr(ir, 2, ilo2, ias)
                         fr (ir) = (t1+a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2))*r2 (ir)

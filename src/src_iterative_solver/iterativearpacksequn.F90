@@ -153,7 +153,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
          packed = .True.
       End If
 !
-      Call newsystem (system, packed, n, .false.)
+      Call newsystem (system, packed, n)
       Call hamiltonandoverlapsetup (system, ngk(ispn, ik), apwalm, &
      & igkig(1, ispn, ik), vgpc)
 !

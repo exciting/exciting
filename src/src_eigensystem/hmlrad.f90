@@ -40,7 +40,7 @@ Subroutine hmlrad
       Real (8) :: t1,t2,angular
 ! automatic arrays
       Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, &
-     & nrmtmax),a,rm,energyref,alpha
+     & nrmtmax),a,rm,alpha
       parameter (alpha=1d0 / 137.03599911d0)
 
       If (allocated(haa)) deallocate (haa)
@@ -63,7 +63,6 @@ Subroutine hmlrad
 !     APW-APW integrals     !
 !---------------------------!
            if (input%groundstate%SymmetricKineticEnergy) then
-            energyref=input%groundstate%energyref
             if (input%groundstate%ValenceRelativity.ne.'none') then
               a=0.5d0*alpha**2
             else
@@ -76,7 +75,7 @@ Subroutine hmlrad
                         If (l1 .Eq. l3) Then
                            angular=dble(l1*(l1+1))
                            Do ir = 1, nr
-                              rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                              rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                               t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io2, l3, ias)
                               t2=apwfr(ir, 2, io1, l1, ias)*apwfr(ir, 2, io2, l3, ias)
                               fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
@@ -86,7 +85,7 @@ Subroutine hmlrad
 ! calculate more integrals if linearized Koelling-Harmon is demanded
                            if (input%groundstate%ValenceRelativity.eq.'lkh') then
                              Do ir = 1, nr
-                               rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                               rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                                t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io2, l3, ias)
                                t2=apwfr(ir, 2, io1, l1, ias)*apwfr(ir, 2, io2, l3, ias)
                                fr (ir) = a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2)*r2 (ir)
@@ -124,7 +123,7 @@ Subroutine hmlrad
                      If (l1 .Eq. l3) Then
                         angular=dble(l1*(l1+1))
                         Do ir = 1, nr
-                           rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                           rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                            t1=apwfr(ir, 1, io, l1, ias)*lofr(ir, 1, ilo, ias)
                            t2=apwfr(ir, 2, io, l1, ias)*lofr(ir, 2, ilo, ias)
                            fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
@@ -134,7 +133,7 @@ Subroutine hmlrad
 ! calculate more integrals if linearized Koelling-Harmon is demanded
                         if (input%groundstate%ValenceRelativity.eq.'lkh') then
                           Do ir = 1, nr
-                            rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                            rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                             t1=apwfr(ir, 1, io, l1, ias)*lofr(ir, 1, ilo, ias)
                             t2=apwfr(ir, 2, io, l1, ias)*lofr(ir, 2, ilo, ias)
                             fr (ir) = a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2)*r2 (ir)
@@ -170,7 +169,7 @@ Subroutine hmlrad
                   If (l1 .Eq. l3) Then
                      angular=dble(l1*(l1+1))
                      Do ir = 1, nr
-                        rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                        rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                         t1=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)
                         t2=lofr(ir, 2, ilo1, ias)*lofr(ir, 2, ilo2, ias)
                         fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
@@ -179,7 +178,7 @@ Subroutine hmlrad
                      hlolo (ilo1, ilo2, 1, ias) = gr (nr) / y00
                      if (input%groundstate%ValenceRelativity.eq.'lkh') then
                        Do ir = 1, nr
-                         rm=1d0/(1d0+a*(energyref-veffmt (1, ir, ias)*y00))
+                         rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                          t1=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)
                          t2=lofr(ir, 2, ilo1, ias)*lofr(ir, 2, ilo2, ias)
                          fr (ir) = a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2)*r2 (ir)

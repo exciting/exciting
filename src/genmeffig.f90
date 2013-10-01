@@ -25,16 +25,15 @@ Subroutine genmeffig
       Implicit None
 ! local variables
       Integer :: ig, ifg
-      Real(8) :: energyref,alpha,a2
+      Real(8) :: alpha,a2
       Parameter (alpha=1d0 / 137.03599911d0, a2=0.5d0*alpha**2)
 ! allocatable arrays
       Complex (8), Allocatable :: zfft (:)
       Allocate (zfft(ngrtot))
       if (input%groundstate%ValenceRelativity.ne."none") then
-         energyref=input%groundstate%energyref
          allocate(meffig(ngvec))
          Do ig = 1, ngrtot
-            zfft(ig)=cfunir(ig)/(1d0+(energyref-veffir(ig))*a2)
+            zfft(ig)=cfunir(ig)/(1d0-veffir(ig)*a2)
          End Do
          Call zfftifc (3, ngrid,-1, zfft)
          Do ig = 1, ngvec
@@ -43,10 +42,9 @@ Subroutine genmeffig
          End Do
       endif
       if (input%groundstate%ValenceRelativity.eq."lkh") then
-         energyref=input%groundstate%energyref
          allocate(m2effig(ngvec))
          Do ig = 1, ngrtot
-            zfft(ig)=cfunir(ig)/((1d0+(energyref-veffir(ig))*a2)**2)
+            zfft(ig)=cfunir(ig)/((1d0-veffir(ig)*a2)**2)
          End Do
          Call zfftifc (3, ngrid,-1, zfft)
          Do ig = 1, ngvec
