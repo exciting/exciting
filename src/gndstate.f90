@@ -145,6 +145,9 @@ Subroutine gndstate
             write(string,'("Structure-optimization module started")') 
             call printbox(60,"*",string)
             write(60,*) "Output level for this task is set to ", trim(input%relax%outputlevel)
+            write(60,*)
+            write(60,'(" Maximum displacement tau_BFGS   is     :",F14.4)') input%relax%taubfgs
+            write(60,'(" Maximum displacement tau_newton is     :",F14.4)') input%relax%taunewton
             call flushifc(60)
         end if
         ! check force convergence first
