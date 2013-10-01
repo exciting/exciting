@@ -14,6 +14,7 @@ Subroutine force
 ! !USES:
       Use modinput
       Use modmain
+      Use modmpi
 ! !DESCRIPTION:
 !   Computes the various contributions to the atomic forces. In principle, the
 !   force acting on a nucleus is simply the gradient at that site of the
@@ -79,6 +80,7 @@ Subroutine force
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)
 !   Fixed problem with second-variational forces, May 2008 (JKD)
+!   k-point parallelisation of IBS forces, October 2013 (Andris)
 !EOP
 !BOC
       Implicit None
@@ -90,6 +92,7 @@ Subroutine force
       Real (8), Allocatable :: rfmt (:, :)
       Real (8), Allocatable :: grfmt (:, :, :)
       Real (8), Allocatable :: ffacg (:, :)
+      Real (8), Allocatable :: forcesum (:, :)
 ! external functions
       Real (8) :: rfmtinp
       External rfmtinp
@@ -139,8 +142,34 @@ Subroutine force
 !-------------------------------------!
 ! set the IBS forces to zero
       forceibs (:, :) = 0.d0
+
+
+
       If (input%groundstate%tfibs) Then
          Allocate (ffacg(ngvec, nspecies))
+
+! generate the step function form factors
+         Do is = 1, nspecies
+            Call genffacg (is, ffacg(:, is))
+         End Do
+! compute k-point dependent contribution to the IBS force
+
+#ifdef MPI
+         Do ik = firstk (rank), lastk (rank)
+#else
+         Do ik = 1, nkpt
+#endif
+            Call forcek (ik, ffacg)
+         End Do
+
+#ifdef MPI
+        allocate(forcesum(3,natmtot))
+        forcesum=0d0
+        call MPI_ALLREDUCE(forceibs, forcesum, natmtot*3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+        forceibs=forcesum
+        deallocate(forcesum)
+#endif
+
 ! integral of effective potential with gradient of valence density
          Do is = 1, nspecies
             nr = nrmt (is)
@@ -158,22 +187,7 @@ Subroutine force
                End Do
             End Do
          End Do
-! generate the step function form factors
-         Do is = 1, nspecies
-            Call genffacg (is, ffacg(:, is))
-         End Do
-! compute k-point dependent contribution to the IBS force
-#ifdef KSMP
-!$OMP PARALLEL DEFAULT(SHARED)
-!$OMP DO
-#endif
-         Do ik = 1, nkpt
-            Call forcek (ik, ffacg)
-         End Do
-#ifdef KSMP
-!$OMP END DO
-!$OMP END PARALLEL
-#endif
+
 ! symmetrise IBS force
          Call symvect (.False., forceibs)
          Deallocate (ffacg)
