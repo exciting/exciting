@@ -139,7 +139,7 @@ contains
                 if (nstep<2) then
                     do i = 1, 3
                         l1 = .not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)
-                        l2 = ( abs(forcetot(i,ias)) .gt. input%structure%epslat/10.d0 )
+                        l2 = ( abs(forcetot(i,ias)) .gt. min(input%structure%epslat/10.d0,input%relax%epsforce) )
                         if ( l1 .and. l2 ) then
                             xdelta = input%relax%taunewton*forcetot(i,ias)
                             if (xdelta .gt. input%relax%taunewton/2.0) xdelta = input%relax%taunewton/2.0

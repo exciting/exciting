@@ -3288,7 +3288,7 @@ gw.xsd
 			   </displaymath>
 			   or
 			   <displaymath>
-			   \beta \in [3,\infty[ 
+			   \beta \in [3,\infty[\:,
 			   </displaymath>
 			   is fulfilled.
 			   In this case (``harmonic step"), atomic positions are updated according to
