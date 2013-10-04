@@ -2607,21 +2607,19 @@ gw.xsd
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="findlinentype" default="advanced">
+      <xs:attribute ex:importance="expert" ex:unit="" name="findlinentype" default="Wigner_Seitz">
         <xs:annotation>
           <xs:documentation>Select method to determine the linearisation
             energies.</xs:documentation>
           <xs:appinfo>
-            <olddefault default="advanced"/>
+            <olddefault default="Wigner_Seitz"/>
           </xs:appinfo>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="advanced"/>
+            <xs:enumeration value="Wigner_Seitz"/>
             <xs:enumeration value="lcharge"/>
             <xs:enumeration value="logderiv"/>
-            <xs:enumeration value="mixed-1"/>
-            <xs:enumeration value="mixed-2"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>

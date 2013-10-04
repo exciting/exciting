@@ -21,23 +21,6 @@ subroutine calc_vxnl
     call cpu_time(tstart)
 
 !------------------------------------------------!
-! LAPW basis initialization
-!------------------------------------------------!
-! generate the core wavefunctions and densities
-    Call gencore
-! compute linearisation energies
-    Call linengy
-    if (rank.eq.0) Call writelinen
-! generate the APW radial functions
-    Call genapwfr
-! generate the local-orbital radial functions
-    Call genlofr(.false.)
-! compute the overlap radial integrals
-    Call olprad
-! compute the Hamiltonian radial integrals
-    Call hmlrad
-
-!------------------------------------------------!
 ! (Re)-Initialize Product Mixed Basis
 !------------------------------------------------!
     call init_mixed_basis    
@@ -58,6 +41,7 @@ subroutine calc_vxnl
             if (eval(ie1)<=efermi) nomax=max(ie1,nomax)
         end do
     end do
+    deallocate(eval)
 
 !---------------------------------------
 ! Loop over k-points
@@ -150,13 +134,14 @@ subroutine calc_vxnl
 ! Store k-dependent non-local potential into global array
 !------------------------------------------------------------
         vxnl(:,:,ikp) = vnl(:,:)
+        deallocate(vnl)
     
 !------------------------------------------------------------
 ! Evaluate HF energy E_HF(k)
 !------------------------------------------------------------
         exnlk(ikp) = 0.d0
         do ie1 = 1, nomax
-            exnlk(ikp) = exnlk(ikp)+0.5d0*vnl(ie1,ie1)*occmax
+            exnlk(ikp) = exnlk(ikp)+0.5d0*vxnl(ie1,ie1,ikp)*occmax
         end do
 
 !------------------------------------------------------------
@@ -170,12 +155,12 @@ subroutine calc_vxnl
             call linmsg(fgw,'-',' Diagonal elements of Vx_NL_nn ')
             write(fgw,*) 'for k-point ', ikp
             do ie1 = 1, nstfv
-                write(fgw,*) ie1, vnl(ie1,ie1)
+                write(fgw,*) ie1, vxnl(ie1,ie1,ikp)
             end do
             call linmsg(fgw,'-','')
             call linmsg(fgw,'-',' Vx_NL_nn ')
             do ie1 = 1, nstfv
-                write(fgw,*) vnl(ie1,:)
+                write(fgw,*) vxnl(ie1,:,ikp)
             end do
             call linmsg(fgw,'-','')
         end if

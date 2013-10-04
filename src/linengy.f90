@@ -36,28 +36,14 @@ Subroutine linengy
       real(8) :: t0, t1, e, dl
       real(8), allocatable :: p0 (:), p1 (:), q0 (:), q1 (:)
       character(1024) :: message
-!
+
+!________________________________
 !     l-charge based schemes
-!
+
       linenetype = input%groundstate%findlinentype
-      if ((trim(linenetype).eq.'lcharge').or. &
-      &   (trim(linenetype).eq.'mixed-1').or. &
-      &   (trim(linenetype).eq.'mixed-2'))    then
-
-        if (allocated(elcharge)) deallocate(elcharge)
-        allocate(elcharge(0:input%groundstate%lmaxapw,natmtot))
-        do is = 1, nspecies
-          do ia = 1, natoms (is)
-            ias = idxas (ia, is)
-            do l = 0, input%groundstate%lmaxapw
-              elcharge(l,ias) = apwe (1, l, ias)
-            end do
-          end do
-        end do
-        
+      if (trim(linenetype).eq.'lcharge') then
         if (iscl>1) call lchargelinene
-        if (trim(linenetype).eq.'lcharge') return
-
+        return
       end if
       
 ! begin loops over atoms and species
@@ -82,12 +68,6 @@ Subroutine linengy
                               End If
                            End If
                         End Do
-! For the mixed scheme, APW E_l are strictly in the valence region
-                        if ((trim(linenetype).eq.'mixed-1').or. &
-                            (trim(linenetype).eq.'mixed-2')) then
-                          apwe(io1, l, ias) = elcharge(l, ias)
-                          goto 10
-                        end if
 ! find the band energy starting from default
                         apwe (io1, l, ias) = apwe0 (io1, l, is)
                         Call findband (linenetype, &
