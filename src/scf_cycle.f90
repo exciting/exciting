@@ -246,9 +246,9 @@ subroutine scf_cycle
         End If
 #ifdef KSMP
 ! begin parallel loop over k-points
-!$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(evecfv,evecsv)
-!$OMP DO
+! !$OMP PARALLEL DEFAULT(SHARED) &
+! !$OMP PRIVATE(evecfv,evecsv)
+! !$OMP DO
 #endif
         Do ik = 1, nkpt
 #endif
@@ -267,8 +267,8 @@ subroutine scf_cycle
         End Do
 #ifndef MPIRHO
 #ifdef KSMP
-!$OMP END DO
-!$OMP END PARALLEL
+! !$OMP END DO
+! !$OMP END PARALLEL
 #endif
 #endif
 #ifdef MPIRHO
@@ -368,6 +368,7 @@ subroutine scf_cycle
             timeio=ts1-ts0+timeio
             Call force
             Call timesec(ts0)
+            write(*,*) ts0-ts1
             input%groundstate%tfibs=tibs
             If (rank .Eq. 0) Then
 ! output forces to INFO.OUT
@@ -516,7 +517,10 @@ subroutine scf_cycle
     
 ! compute forces
     If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
+        Call timesec(ts0)
         Call force
+        Call timesec(ts1)
+        write(*,*) ts1-ts0
         If (rank .Eq. 0) Then
 ! output forces to INFO.OUT
             Call writeforce (60)

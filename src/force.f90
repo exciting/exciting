@@ -137,6 +137,29 @@ Subroutine force
       forceibs (:, :) = 0.d0
       If (input%groundstate%tfibs) Then
          Allocate (ffacg(ngvec, nspecies))
+! generate the step function form factors
+         Do is = 1, nspecies
+            Call genffacg (is, ffacg(:, is))
+         End Do
+!         call hmlrad
+! compute k-point dependent contribution to the IBS force
+
+#ifdef MPI
+         Do ik = firstk (rank), lastk (rank)
+#else
+         Do ik = 1, nkpt
+#endif
+            Call forcek (ik, ffacg)
+         End Do
+
+#ifdef MPI
+        allocate(forcesum(3,natmtot))
+        forcesum=0d0
+        call MPI_ALLREDUCE(forceibs, forcesum, natmtot*3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+        forceibs=forcesum
+        deallocate(forcesum)
+#endif
+
 ! integral of effective potential with gradient of valence density
          Do is = 1, nspecies
             nr = nrmt (is)
@@ -154,23 +177,7 @@ Subroutine force
                End Do
             End Do
          End Do
-! generate the step function form factors
-         Do is = 1, nspecies
-            Call genffacg (is, ffacg(:, is))
-         End Do
-         call hmlrad
-! compute k-point dependent contribution to the IBS force
-#ifdef KSMP
-!$OMP PARALLEL DEFAULT(SHARED)
-!$OMP DO
-#endif
-         Do ik = 1, nkpt
-            Call forcek (ik, ffacg)
-         End Do
-#ifdef KSMP
-!$OMP END DO
-!$OMP END PARALLEL
-#endif
+
 ! symmetrise IBS force
          Call symvect (.False., forceibs)
          Deallocate (ffacg)
