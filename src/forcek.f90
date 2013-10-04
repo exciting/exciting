@@ -43,14 +43,10 @@ Subroutine forcek (ik, ffacg)
       Real (8), Allocatable :: dp (:),dpij(:,:)
       Real (8), Allocatable :: evalfv (:, :)
       Complex (8), Allocatable :: apwalm (:, :, :, :)
-      Complex (8), Allocatable :: evecfv (:, :, :)
+      Complex (8), Allocatable :: evecfv (:, :, :),evecfv2(:,:,:)
       Complex (8), Allocatable :: evecsv (:, :)
-!      Complex (8), Allocatable :: h (:)
-!      Complex (8), Allocatable :: o (:)
-      Complex (8), Allocatable :: dlh (:),dlhij(:,:)
-      Complex (8), Allocatable :: dlo (:),dloij(:,:)
-      Complex (8), Allocatable :: vh (:)
-      Complex (8), Allocatable :: vo (:)
+      Complex (8), Allocatable :: dlhij(:,:)
+      Complex (8), Allocatable :: dloij(:,:)
       Complex (8), Allocatable :: ffv (:, :)
       Complex (8), Allocatable :: y (:)
       Complex (8), Allocatable :: apwi(:,:),zm(:,:),apwi2(:,:)
@@ -66,11 +62,8 @@ Subroutine forcek (ik, ffacg)
       Allocate (evalfv(nstfv, nspnfv))
       Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
       Allocate (evecfv(nmatmax, nstfv, nspnfv))
+      Allocate (evecfv2(nmatmax, nstfv, nspnfv))
       Allocate (evecsv(nstsv, nstsv))
-!     Allocate (h(np), o(np))
-      Allocate (dlh(np), dlo(np))
-      Allocate (vh(nmatmax))
-      Allocate (vo(nmatmax))
       Allocate (ffv(nstfv, nstfv))
       Allocate (y(nstfv))
 ! get the eigenvalues/vectors and occupancies from file
@@ -79,7 +72,15 @@ Subroutine forcek (ik, ffacg)
       Call getevecsv (vkl(:, ik), evecsv)
       Call getoccsv (vkl(:, ik), occsv(:, ik))
 
-      call timesec(ta)
+      do ispn=1, nspnfv
+        do i=1, nstfv
+          evecfv2(:,i,ispn)=evecfv(:,i,ispn)*evalfv(i,ispn)
+        enddo
+      enddo  
+
+
+
+!      call timesec(ta)
 ! begin loop over first-variational spin components
       Do ispn = 1, nspnfv
 ! find the matching coefficients
@@ -116,9 +117,9 @@ Subroutine forcek (ik, ffacg)
          allocate(dloij(nmat (ispn, ik),nmat (ispn, ik)))
          call newsystem(system,.false.,nmat (ispn, ik))
          allocate(apwi(haaijSize,ngk(ispn, ik)))
-         allocate(zm(haaijSize,ngk(ispn, ik)))
-       call timesec(tb)
-       write(*,*) 'init',tb-ta
+         allocate(apwi2(ngk(ispn, ik),haaijSize))
+!       call timesec(tb)
+!       write(*,*) 'init',tb-ta
 ! loop over species and atoms
          Do is = 1, nspecies
             Do ia = 1, natoms (is)
@@ -127,7 +128,7 @@ Subroutine forcek (ik, ffacg)
                ias = idxas (ia, is)
 
 
-        call timesec(ta)
+!        call timesec(ta)
           apwi=dcmplx(0d0,0d0)
           apwi2=dcmplx(0d0,0d0)
           if3=0
@@ -141,8 +142,9 @@ Subroutine forcek (ik, ffacg)
               End Do
             End Do
           End Do
+          allocate(zm(haaijSize,ngk(ispn, ik)))
           zm=zzero
-          viens=dcmplx(1d0,0)
+          viens=dcmplx(1d0,0d0)
 !APW-APW
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
@@ -172,6 +174,7 @@ Subroutine forcek (ik, ffacg)
                       system%hamilton%za, &  ! C
                       system%hamilton%rank &      ! LDC ... leading dimension of C
                      )
+          deallocate(zm)
 !APW-LO
         if (nlorb(is).ne.0) then
 ! APW-LO part
@@ -214,7 +217,6 @@ Subroutine forcek (ik, ffacg)
                        system%overlap%rank &      ! LDC ... leading dimension of C
                        )
           else
-            deallocate(zm)
             allocate(zm(ngk (ispn, ik),haaijSize))
             zm=zzero
             if3=0
@@ -224,7 +226,6 @@ Subroutine forcek (ik, ffacg)
 
                 Do io2 = 1, apword (l3, is)
                   Do io1 = 1, apword (l3, is)
-!                    zm(if3+io2,:)=zm(if3+io2,:)+h1aa(io1,io2,l3,ias)*conjg(apwi2(:,if3+io1))
                     zm(:,if3+io2)=zm(:,if3+io2)+h1aa(io1,io2,l3,ias)*apwi2(:,if3+io1)
                   enddo
                 End Do
@@ -246,7 +247,6 @@ Subroutine forcek (ik, ffacg)
                         system%overlap%rank &      ! LDC ... leading dimension of C
                        )
              deallocate(zm)
-             allocate(zm(haaijSize,ngk (ispn, ik)))
           endif
 
 !APW-LO
@@ -275,61 +275,84 @@ Subroutine forcek (ik, ffacg)
                Do l = 1, 3
 
 ! APW-APW contribution
-        call timesec(ta)
+!        call timesec(ta)
                   Do j = 1, ngk (ispn, ik)
-                     k = ((j-1)*j) / 2
-                     Do i = 1, j
-                        k = k + 1
-                        ig = ijg (k)
+                     Do i = 1, ngk (ispn, ik)
+                        ig = ijgij (i,j)
                         t1 = vgc (l, ig)
                         zt1 = - ffacg (ig, is) * conjg (sfacg(ig, ias))
-                        
-                        dlh (k) = (dp(k)*zt1+system%hamilton%za(i,j)) * t1
-                        dlo (k) = (zt1+system%overlap%za(i,j)) * t1
+                        dlhij (i,j) = (dpij(i,j)*zt1+system%hamilton%za(i,j)) * t1*dcmplx(0d0,1d0)
+                        dloij (i,j) = -(zt1+system%overlap%za(i,j)) * t1*dcmplx(0d0,1d0)
                      End Do
                   End Do
 ! APW-local-orbital contribution
                   Do j = ngk (ispn, ik) + 1, nmat (ispn, ik)
-                     k = ((j-1)*j) / 2
                      Do i = 1, ngk (ispn, ik)
-                        k = k + 1
                         t1 = vgkc (l, i, ispn, ik)
-                        dlh (k) = system%hamilton%za(i,j) * t1
-                        dlo (k) = system%overlap%za(i,j) * t1
-                     End Do
-                     Do i = ngk (ispn, ik) + 1, j
-                        k = k + 1
-                        dlh (k) = 0.d0
-                        dlo (k) = 0.d0
+                        dlhij (i,j) = system%hamilton%za(i,j) * t1*dcmplx(0d0,1d0)
+                        dlhij (j,i) = conjg(dlhij (i,j))
+                        dloij (i,j) = -system%overlap%za(i,j) * t1*dcmplx(0d0,1d0)
+                        dloij (j,i) = conjg(dloij (i,j))
                      End Do
                   End Do
-       call timesec(tb)
-       write(*,*) 'matrix2',tb-ta
+                  dlhij(ngk(ispn,ik)+1:nmat(ispn,ik),ngk(ispn,ik)+1:nmat(ispn,ik))=0d0
+                  dloij(ngk(ispn,ik)+1:nmat(ispn,ik),ngk(ispn,ik)+1:nmat(ispn,ik))=0d0
 
-call timesec(ta)
-! multiply by i
-                  Do k = 1, npmat (ispn, ik)
-                     dlh (k) = cmplx (-aimag(dlh(k)), dble(dlh(k)), 8)
-                     dlo (k) = cmplx (-aimag(dlo(k)), dble(dlo(k)), 8)
-                  End Do
+
+!       call timesec(tb)
+!       write(*,*) 'matrix2',tb-ta
+
+!call timesec(ta)
 ! compute the force matrix elements in the first-variational basis
-                  Do jst = 1, nstfv
-                     Call zhpmv ('U', nmat(ispn, ik), zone, dlh, &
-                    & evecfv(:, jst, ispn), 1, zzero, vh, 1)
-                     Call zhpmv ('U', nmat(ispn, ik), zone, dlo, &
-                    & evecfv(:, jst, ispn), 1, zzero, vo, 1)
-                     t1 = evalfv (jst, ispn)
-                     Do ist = 1, nstfv
-                        zt1 = zdotc (nmat(ispn, ik), evecfv(:, ist, &
-                       & ispn), 1, vh, 1)
-                        zt2 = zdotc (nmat(ispn, ik), evecfv(:, ist, &
-                       & ispn), 1, vo, 1)
-                        ffv (ist, jst) = zt1 - t1 * zt2
-                     End Do
-                  End Do
-       call timesec(tb)
-       write(*,*) 'fv',tb-ta
-call timesec(ta)
+            allocate(zm(nmat(ispn, ik),nstfv))
+            call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                       'N', &           ! TRANSB = 'N'  op( B ) = B.
+                       nmat (ispn, ik), &          ! M ... rows of op( A ) = rows of C
+                       nstfv, &          ! N ... cols of op( B ) = cols of C
+                       nmat (ispn, ik), &          ! K ... cols of op( A ) = rows of op( B )
+                       viens, &          ! alpha
+                       dlhij, &           ! A
+                       nmat (ispn, ik),&           ! LDA ... leading dimension of A
+                       evecfv(:,:,ispn), &           ! B
+                       nmatmax, &          ! LDB ... leading dimension of B
+                       zzero, &          ! beta
+                       zm, &  ! C
+                       nmat(ispn, ik) &      ! LDC ... leading dimension of C
+                       )
+            call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                       'N', &           ! TRANSB = 'N'  op( B ) = B.
+                       nmat (ispn, ik), &          ! M ... rows of op( A ) = rows of C
+                       nstfv, &          ! N ... cols of op( B ) = cols of C
+                       nmat (ispn, ik), &          ! K ... cols of op( A ) = rows of op( B )
+                       viens, &          ! alpha
+                       dloij, &           ! A
+                       nmat (ispn, ik),&           ! LDA ... leading dimension of A
+                       evecfv2(:,:,ispn), &           ! B
+                       nmatmax, &          ! LDB ... leading dimension of B
+                       viens, &          ! beta
+                       zm, &  ! C
+                       nmat(ispn, ik) &      ! LDC ... leading dimension of C
+                       )
+            call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
+                       'N', &           ! TRANSB = 'N'  op( B ) = B.
+                       nstfv, &          ! M ... rows of op( A ) = rows of C
+                       nstfv, &          ! N ... cols of op( B ) = cols of C
+                       nmat (ispn, ik), &          ! K ... cols of op( A ) = rows of op( B )
+                       viens, &          ! alpha 
+                       evecfv(:,:,ispn), &           ! A
+                       nmatmax,&           ! LDA ... leading dimension of A
+                       zm, &           ! B
+                       nmat(ispn, ik), &          ! LDB ... leading dimension of B
+                       zzero, &          ! beta
+                       ffv, &  ! C
+                       nstfv &      ! LDC ... leading dimension of C
+                       )
+
+            deallocate(zm)
+                   
+!       call timesec(tb)
+!       write(*,*) 'fv',tb-ta
+!call timesec(ta)
 ! compute the force using the second-variational coefficients if required
                   sum = 0.d0
                   If (input%groundstate%tevecsv) Then
@@ -367,8 +390,8 @@ call timesec(ta)
                   forceibs (l, ias) = forceibs (l, ias) + wkpt (ik) * &
                  & sum
 !$OMP END CRITICAL
-       call timesec(tb)
-       write(*,*) 'sv',tb-ta
+!       call timesec(tb)
+!       write(*,*) 'sv',tb-ta
 
 ! end loop over Cartesian components
                End Do
@@ -377,8 +400,8 @@ call timesec(ta)
          End Do
 ! end loop over first-variational spins
       End Do
-      Deallocate (ijg, dp, evalfv, apwalm, evecfv, evecsv)
-      Deallocate (dlh, dlo, vh, vo, ffv, y)
+      Deallocate (ijg, dp, evalfv, apwalm, evecfv, evecsv, evecfv2)
+      Deallocate (ffv, y)
       call deleteystem(system)
       deallocate(apwi)
       deallocate(ijgij,dpij,dlhij,dloij)
