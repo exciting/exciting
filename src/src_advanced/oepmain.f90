@@ -14,6 +14,7 @@ Subroutine oepmain
 ! !USES:
       Use modmain
       Use modinput
+      use modmpi
 ! !DESCRIPTION:
 !   Main routine for the calculation of the optimized effective potential.
 !
@@ -79,9 +80,9 @@ Subroutine oepmain
 ! start iteration loop
       Call timesec(t_0)
       Do it = 1, input%groundstate%OEP%maxitoep
-         If (Mod(it, 10) .Eq. 0) Then
-            Write (*, '("Info(oepmain): done ", I4, " iterations of ", &
-           &I4)') it, input%groundstate%OEP%maxitoep
+         If ((Mod(it, 10) .Eq. 0).and.(rank==0)) Then
+            Write (*, '("Info(oepmain): done ", I4, " iterations of ", I4)') &
+           &  it, input%groundstate%OEP%maxitoep
          End If
 ! zero the residual
          dvxmt (:, :, :) = 0.d0
@@ -201,8 +202,7 @@ Subroutine oepmain
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
             Do ir = 1, nrmt (is)
-               vxcmt (:, ir, ias) = vxcmt (:, ir, ias) + ex_coef*rfmt (:, ir, &
-              & ias)
+               vxcmt (:, ir, ias) = vxcmt (:, ir, ias) + ex_coef*rfmt (:, ir, ias)
                ! check if ex_coef needed also here for hybrids
                Do idm = 1, ndmag
                   bxcmt (:, ir, ias, idm) = bxcmt (:, ir, ias, idm) + &
@@ -227,5 +227,12 @@ Subroutine oepmain
          Deallocate (rvfmt, rvfir)
          Deallocate (dbxmt, dbxir)
       End If
+
+!********************************************
+! Calculation of the potential discontinuity
+!         after last iteration
+!********************************************
+      if (tlast) call deltax
+
       Return
 End Subroutine
