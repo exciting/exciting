@@ -14,8 +14,9 @@
 #
 # the files can be visualized by e.g. XCrysDen or VMD
 #
-#
-# Stefan Kontur, 2012
+# Revision history:
+# Dec 2012, script created (STK)
+# Oct 2012, bugfix for crystal/@scale not specified, and changes for molecules (STK)
 #
 #-------------------------------------------------------------------------------
 
@@ -53,10 +54,26 @@ bvec = [[0.0 for x in xrange(3)] for x in xrange(3)]
 if (str(os.path.exists('input.xml'))=='False'): 
    sys.exit("\nERROR: file input.xml not found!")
 tree = etree.parse('input.xml')
-alat = float(tree.xpath('/input/structure/crystal/@scale')[0])
+
+if (tree.xpath('/input/structure/crystal/@scale') == []):
+   alat = 1.0
+else:
+   alat = float(tree.xpath('/input/structure/crystal/@scale')[0])
+
 bvec[0][0],bvec[1][0],bvec[2][0] = [float(x) for x in tree.xpath('/input/structure/crystal/basevect[1]')[0].text.split()]
 bvec[0][1],bvec[1][1],bvec[2][1] = [float(x) for x in tree.xpath('/input/structure/crystal/basevect[2]')[0].text.split()]
 bvec[0][2],bvec[1][2],bvec[2][2] = [float(x) for x in tree.xpath('/input/structure/crystal/basevect[3]')[0].text.split()]
+
+if (tree.xpath('/input/structure/@cartesian') == []):
+   cartesian = False
+else:
+   if (tree.xpath('/input/structure/@cartesian')[0] == 'true'):
+      cartesian = True
+   else:
+      cartesian = False
+if (cartesian):
+   print 'coordinates in input.xml are interpreted as cartesian\n'
+
 
 for i in range(3):
    for j in range(3):
@@ -90,7 +107,8 @@ for isp in range(nspec):
    mass[isp] = float(stree.xpath('/spdb/sp/@mass')[0])
    symb[isp] = stree.xpath('/spdb/sp/@chemicalSymbol')[0]
    print 'species ',isp+1,' contains ',natom[isp],' ',symb[isp],' atoms'
-   print 'total number of atoms = ',natmtot
+
+print 'total number of atoms = ',natmtot,'\n'
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -137,7 +155,7 @@ while iline < filelen:
       iline +=1
 nqpt = iqpt
 
-print nqpt,' q-points read:'
+print nqpt,' q-point(s) read:'
 for iqpt in range(nqpt):
    print 'q-point ',iqpt+1,' is ',qvec[iqpt][0],qvec[iqpt][1],qvec[iqpt][2]
    for imode in range(3*natmtot):
@@ -171,7 +189,10 @@ for iqpt in range(nqpt):
       # r(R) = R + d + u(R)
                            qR = qvec[iqpt][0]*n[0]+qvec[iqpt][1]*n[1]+qvec[iqpt][2]*n[2]
                            R = n[0]*bvec[ipol][0] + n[1]*bvec[ipol][1] + n[2]*bvec[ipol][2]
-                           d = atcoord[isp][iat][0]*bvec[ipol][0] + atcoord[isp][iat][1]*bvec[ipol][1] + atcoord[isp][iat][2]*bvec[ipol][2]
+                           if (cartesian):
+                              d = atcoord[isp][iat][ipol]*bohr2ang
+                           else:
+                              d = atcoord[isp][iat][0]*bvec[ipol][0] + atcoord[isp][iat][1]*bvec[ipol][1] + atcoord[isp][iat][2]*bvec[ipol][2]
                            datcoord[isp][iat][ipol] = R + d + \
                                                       dispr[isp][iat][ipol] * cos(twopi*qR - twopi*istep/nsteps) - \
                                                       dispi[isp][iat][ipol] * sin(twopi*qR - twopi*istep/nsteps) 
