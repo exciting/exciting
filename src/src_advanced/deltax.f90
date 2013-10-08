@@ -115,6 +115,7 @@ subroutine deltax
 
 #ifdef MPI
     call mpi_allgatherv_ifc(nkpt, band1-band0+1, zbuf=delta)
+    call barrier
 #endif
 
     if (rank==0) then
@@ -127,8 +128,9 @@ subroutine deltax
             end do
             write(500,*)
         end do
+        close(500)
         write(*,*)
-        write(*,*) "Info(deltax): OEP discontinuity band shifts are printed in DELTAX.OUT"
+        write(*,*) "Info(deltax): OEP exchange potential discontinuity is printed in DELTAX.OUT"
         write(*,*)
     end if
     deallocate(delta)
