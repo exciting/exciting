@@ -5,6 +5,7 @@ subroutine lchargelinene
 ! !USES:
       use modinput
       use modmain
+      use modmpi, only: rank
 ! !DESCRIPTION:
 !
 ! Calculate the "Optimal Energy Parameters" by S.Bluegel
@@ -101,29 +102,28 @@ subroutine lchargelinene
   Deallocate (dmat, apwalm)
   Deallocate (evecfv, evecsv)
 
-  open(32,file='LCHARGE.OUT',action='write')
-  do is = 1, nspecies
-    do ia = 1, natoms(is)
-      ias = idxas(ia,is)
-      write(32,*) 'ATOM ', ias
-      write(32,*) '# state    l=0     l=1     l=2     l=3     l=4'
-      do ist = 1, nstsv
-
-        do l = 0, input%groundstate%lmaxapw
-          t1 = 0.d0
-          do ik = 1, nkpt
-            t1 = t1 + wkpt(ik)*lcharge(l,1,ias,ist,ik)
+  if (rank==0) then
+    open(32,file='LCHARGE.OUT',action='write')
+    do is = 1, nspecies
+      do ia = 1, natoms(is)
+        ias = idxas(ia,is)
+        write(32,*) 'ATOM ', ias
+        write(32,*) '# state    l=0     l=1     l=2     l=3     l=4'
+        do ist = 1, nstsv
+          do l = 0, input%groundstate%lmaxapw
+            t1 = 0.d0
+            do ik = 1, nkpt
+              t1 = t1 + wkpt(ik)*lcharge(l,1,ias,ist,ik)
+            end do
+            lstate(l,ist,ias) = t1
           end do
-          lstate(l,ist,ias) = t1
+          write(32,'(i8,5f12.6)') ist, (lstate(l,ist,ias), l = 0, 4)
         end do
-
-        write(32,'(i8,5f12.6)') ist, (lstate(l,ist,ias), l = 0, 4)
-
-      end do
-      write(32,*)
+       write(32,*)
+     end do
     end do
+    close(32)
   end do
-  close(32)
 
 !-----------------------
 ! Calculate l-energies
@@ -135,17 +135,14 @@ subroutine lchargelinene
     do ia = 1, natoms (is)
       if ( .Not. done(ia)) Then
         ias = idxas (ia, is)
-
 ! for each angular momentum
         do l = 0, lmax
-          
 ! sum over k-points
           t4 = 0.d0
           t5 = 0.d0
           do ik = 1, nkpt
             t1 = 0.d0
             t2 = 0.d0
-
 ! sum over states
             do ist = 1, nstsv
               if (abs(occsv(ist,ik)) .gt. input%groundstate%epsocc) Then
@@ -155,14 +152,10 @@ subroutine lchargelinene
                 t2 = t2+t3*occsv(ist,ik)
               end if
             end do ! ist
-
             t4 = t4 + t1*wkpt(ik)
             t5 = t5 + t2*wkpt(ik)
           end do ! ik
-
           el(l,ias) = t4/t5
-          write(33,'("    l=",i4,"    partial charge=",f12.6,"    energy",f12.6)') l, t5, el(l,ias) 
-
 ! check if previous radial functions have same default energies
           do io1 = 1, apword (l, is)
             if (apwve(io1, l, is)) then
@@ -171,9 +164,7 @@ subroutine lchargelinene
              &     (el(l,ias) <  0.5d0)) apwe(io1, l, ias) = el(l,ias)
             end if
           end do ! io1
-
-        end do ! l
-        write(33,*)
+       end do ! l
 
 !---------------------------------!
 !     local-orbital functions     !

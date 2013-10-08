@@ -219,8 +219,7 @@ Subroutine hybrids
 
             if (deltae < input%groundstate%epsengy) Then
                 If (rank==0) Then
-                    write(string,'("Reached hybrids self-consistent loops maximum : ", I4)') &
-                   &  input%groundstate%maxscl
+                    write(string,'("Convergence target is reached")')
                     call printbox(60,"+",string)
                     Call flushifc(60)
                 End If

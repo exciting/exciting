@@ -28,12 +28,11 @@ Subroutine oepvnl (vnlcv, vnlvv)
 #endif
             Call oepvnlk (ik, vnlcv(:, :, :, ik), vnlvv(:, :, ik))
          End Do
-!$OMP END DO
-!$OMP END PARALLEL
-!
 #ifdef MPI
         call mpi_allgatherv_ifc(nkpt,ncrmax*natmtot*nstsv,zbuf=vnlcv)
         call mpi_allgatherv_ifc(nkpt,nstsv*nstsv,zbuf=vnlvv)
 #endif
+!$OMP END DO
+!$OMP END PARALLEL
          Return
    End Subroutine
