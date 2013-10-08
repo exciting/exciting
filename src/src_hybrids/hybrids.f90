@@ -20,7 +20,7 @@ Subroutine hybrids
 !BOC
     Implicit None
 
-    integer :: ik
+    integer :: ik,Recl
     real(8) :: et
 ! time measurements
     Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0
@@ -341,6 +341,18 @@ Subroutine hybrids
 
     call exit_hybrids
    
+!----------------------------------------
+! Save HF energies into binary file
+!----------------------------------------
+
+      Inquire (IoLength=Recl) nkpt, nstsv, vkl(:,1), evalsv(:,1)
+      Open (70, File='EVALHF.OUT', Action='WRITE', Form='UNFORMATTED', &
+     &   Access='DIRECT', status='REPLACE', Recl=Recl)
+      do ik = 1, nkpt
+        write(70, Rec=ik) nkpt, nstsv, vkl(:,ik), evalsv(:,ik)-efermi
+      end do ! ik
+      Close(70)
+      
     Return
    End Subroutine
 !EOC

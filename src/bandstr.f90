@@ -54,16 +54,18 @@ Subroutine bandstr
       Call init0
       Call init1
 
-      if (associated(input%groundstate%HartreeFock)) then
-        
+      if ((associated(input%groundstate%Hybrid).and. &
+     & (input%groundstate%Hybrid%exchangetypenumber== 1)) &
+     & .or.(associated(input%groundstate%HartreeFock))) then
+ 
 !----------------------------------------      
-! Calculate the HF bandstructure
+! Calculate interpolated bandstructure
 !----------------------------------------
       
         fname='EVALHF.OUT'
         inquire(File=fname,Exist=exist)
         if (.not.exist) then
-          write(*,*)'ERROR(bandstr.f90): File EVALHF.OUT does not exist!'
+          write(*,*)'ERROR(bandstr.f90): File EVALHYB.OUT does not exist!'
           stop
         end if
         
@@ -96,7 +98,7 @@ Subroutine bandstr
         e1(:,:)=zzero
         call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
         
-        open(88,file='BAND-HF.OUT')
+        open(88,file='BAND.OUT')
         do ist = 1, nstsv
           do ik = 1, nkpt
             write(88,*) dpp1d(ik), dble(e1(ik,ist))
@@ -107,7 +109,7 @@ Subroutine bandstr
 
         deallocate(vkl0,ehf,e0,e1)
               
-      return
+        return
       end if 
 
   ! allocate array for storing the eigenvalues
