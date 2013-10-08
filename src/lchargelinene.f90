@@ -123,7 +123,7 @@ subroutine lchargelinene
      end do
     end do
     close(32)
-  end do
+  end if
 
 !-----------------------
 ! Calculate l-energies
@@ -215,7 +215,6 @@ subroutine lchargelinene
       end if ! done
     end do ! ia
   end do ! is
-  close(33)
 
   deallocate(lcharge,el)
   return
