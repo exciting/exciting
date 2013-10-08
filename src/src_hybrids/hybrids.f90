@@ -130,7 +130,7 @@ Subroutine hybrids
 !---------------------------------------
 ! initialise HF related input parameters
 !---------------------------------------
-    call init_hf_input_params
+    call init_hybrids
 
 !---------------------------------------
 !   Initialize k/q grids
@@ -247,7 +247,7 @@ Subroutine hybrids
     end if
 
 ! generate the new species files with the optimized linearization energies
-    If ((rank .Eq. 0).and.(input%groundstate%tspecies)) Call updatespecies
+    If ((rank==0).and.(input%groundstate%tspecies)) Call updatespecies
 
 !-------------------------------------!
 !   output timing information
@@ -338,6 +338,8 @@ Subroutine hybrids
         call printbox(60,"=",string)
         close (60)
     endif
+
+    call exit_hybrids
    
     Return
    End Subroutine

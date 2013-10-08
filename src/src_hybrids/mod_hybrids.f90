@@ -17,23 +17,23 @@ module mod_hybrids
 ! Hartree-Fock potential
     complex(8), allocatable :: vxnl(:,:,:)
 
-! Coulomb potential in MB representation
-    complex(8), allocatable :: vcmb(:,:,:)
-
-! Size of MB in which Vcmb is diagonal
-    integer, allocatable :: vcmbsiz(:)
-    
 ! KS eigenvector from previous iteration
     complex(8), allocatable :: evecfv0(:,:,:,:)
+
+! "post-hybrids" GW launcher flag
+    logical :: gwflag
     
 !*******************************************************************************
 contains
 
-    subroutine init_hf_input_params
+    subroutine init_hybrids
         implicit none
 
 ! print debugging information    
         debug = .false.
+
+! gw launcher switcher
+        gwflag = associated(input%gw)
 
 !---------------------------------------
 ! MB parameters are taken from GW
@@ -190,6 +190,21 @@ contains
         end do
         
         return
+    end subroutine
+
+!-------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
+
+! deallocate hybrids related data
+    subroutine exit_hybrids
+
+        deallocate(exnlk)
+        deallocate(vxnl)
+        deallocate(evecfv0)
+! avoid running gw launcher
+        if (.not.gwflag) input%gw%taskname="skip"
+
     end subroutine
 
 end module

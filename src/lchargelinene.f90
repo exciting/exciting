@@ -19,16 +19,13 @@ subroutine lchargelinene
   integer :: ik,l,m,lm
   integer :: lmax,lmmax
   integer :: is,ia,ias,ist
-  integer :: ispn, jspn
+  integer :: ispn
   integer :: ilo, io1, io2, ja, jas
   real(8) :: t1,t2,t3,t4,t5
 
   Real (8), Allocatable :: el(:,:)
   Real (8), Allocatable :: lcharge (:, :, :, :, :)
   Real (8), Allocatable :: lstate (:, :, :)
-  Real (8), Allocatable :: elm (:, :)
-  Complex (8), Allocatable :: ulm (:, :, :)
-  Complex (8), Allocatable :: a (:, :)
   Complex (8), Allocatable :: evecfv(:,:,:)
   Complex (8), Allocatable :: evecsv(:,:)
   Complex (8), Allocatable :: dmat (:, :, :, :, :)
@@ -89,7 +86,7 @@ subroutine lchargelinene
             If ((.not.done(ja)) .and.(eqatoms(ia,ja,is))) Then
               jas = idxas(ja, is)
               do ist = 1, nstsv
-                  lcharge(:,ispn,jas,ist,ik) = lcharge(:,ispn,ias,ist,ik)
+                  lcharge(:,:,jas,ist,ik) = lcharge(:,:,ias,ist,ik)
               end do
               done(ja) = .True.
             End If
@@ -135,6 +132,7 @@ subroutine lchargelinene
     do ia = 1, natoms (is)
       if ( .Not. done(ia)) Then
         ias = idxas (ia, is)
+
 ! for each angular momentum
         do l = 0, lmax
 ! sum over k-points
@@ -161,7 +159,11 @@ subroutine lchargelinene
             if (apwve(io1, l, is)) then
 ! for too low and too high values of el we keep the default values
               if ( (el(l,ias) > -0.5d0) .and. &
-             &     (el(l,ias) <  0.5d0)) apwe(io1, l, ias) = el(l,ias)
+             &     (el(l,ias) <  0.5d0)) then
+                apwe(io1,l,ias) = el(l,ias)
+              else
+                apwe(io1,l,ias) = apwe0(io1,l,is)
+              end if
             end if
           end do ! io1
        end do ! l
