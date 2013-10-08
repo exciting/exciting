@@ -158,11 +158,8 @@ subroutine lchargelinene
           do io1 = 1, apword (l, is)
             if (apwve(io1, l, is)) then
 ! for too low and too high values of el we keep the default values
-              if ( (el(l,ias) > -0.5d0) .and. &
-             &     (el(l,ias) <  0.5d0)) then
+              if ((el(l,ias) > -0.5d0).and.(el(l,ias) < 0.5d0)) then
                 apwe(io1,l,ias) = el(l,ias)
-              else
-                apwe(io1,l,ias) = apwe0(io1,l,is)
               end if
             end if
           end do ! io1

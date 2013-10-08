@@ -338,20 +338,20 @@ Subroutine hybrids
         call printbox(60,"=",string)
         close (60)
     endif
-
-    call exit_hybrids
    
 !----------------------------------------
 ! Save HF energies into binary file
 !----------------------------------------
 
-      Inquire (IoLength=Recl) nkpt, nstsv, vkl(:,1), evalsv(:,1)
-      Open (70, File='EVALHF.OUT', Action='WRITE', Form='UNFORMATTED', &
-     &   Access='DIRECT', status='REPLACE', Recl=Recl)
-      do ik = 1, nkpt
+    Inquire (IoLength=Recl) nkpt, nstsv, vkl(:,1), evalsv(:,1)
+    Open (70, File='EVALHF.OUT', Action='WRITE', Form='UNFORMATTED', &
+   &   Access='DIRECT', status='REPLACE', Recl=Recl)
+    do ik = 1, nkpt
         write(70, Rec=ik) nkpt, nstsv, vkl(:,ik), evalsv(:,ik)-efermi
-      end do ! ik
-      Close(70)
+    end do ! ik
+    Close(70)
+
+    call exit_hybrids
       
     Return
    End Subroutine
