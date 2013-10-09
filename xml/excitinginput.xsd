@@ -3278,24 +3278,19 @@ gw.xsd
 			   <inlinemath>\tau_{\alpha}^{(0)}</inlinemath>. </li>
                       <li> <pre>"harmonic"</pre> - 
 		           Method based on the combination of the <pre>"newton"</pre> method and the 
-			   harmonic approximation. At each optimization step <inlinemath>m</inlinemath>, the 
-			   estimation of the optimized component of the position vector of 
-			   unconstrained atoms is obtained by the knowledge of positions and forces at 
-			   the last two optimization steps. At the first step, the initial guess is 
-			   obtained using the same algorithm as in <pre>"newton"</pre> (``newton step"). 
-			   Contrary to <pre>"newton"</pre>, all Cartesian components of the position vector of 
-			   each atom are treated independently.
-			   For steps after the first, the update of the atomic configuration will be still 
-			   performed using the ``newton step" unless the ``harmonic conditions" 
+			   harmonic approximation. Contrary to <pre>"newton"</pre>, all Cartesian components 
+			   of the position vector of each atom are treated independently. 
+			   At the optimization step <inlinemath>m</inlinemath>, each Cartesian component of
+			   the position vector of each atom is updated using the same algorithm as in 
+			   <pre>"newton"</pre> (``newton step") unless the ``harmonic condition", either 
 			   <displaymath>
-			   \beta\equiv\frac{{ \bf F}_{\alpha}^{(m-1)}}{{ \bf F}_{\alpha}^{(m)}} \in [0,1[ 
+			   \beta\equiv\frac{{ \bf F}_{\alpha}^{(m-1)}}{{ \bf F}_{\alpha}^{(m)}} \in\; ]-\infty,0] 
 			   </displaymath>
-			   and  
+			   or
 			   <displaymath>
-                           {\rm abs}\!\left({\bf r}_{\alpha}^{(m+1)}-{\bf r}_{\alpha}^{(m)}\right) 
-			   \le \tau_{_{\rm BFGS}},
-                           </displaymath>
-			   are fulfilled.
+			   \beta \in [3,\infty[\:,
+			   </displaymath>
+			   is fulfilled.
 			   In this case (``harmonic step"), atomic positions are updated according to
 			   <displaymath>
                            {\bf r}_{\alpha}^{(m+1)}=\frac{ {\bf r}_{\alpha}^{(m-1)}-\beta\,{\bf r}_{\alpha}^{(m)} }
@@ -3325,7 +3320,7 @@ gw.xsd
                 </xs:annotation>
             </xs:attribute>
 	    
-            <xs:attribute ex:importance="expert" name="maxbfgs" type="xs:integer" use="optional" default="5">
+            <xs:attribute ex:importance="expert" name="maxbfgs" type="xs:integer" use="optional" default="2">
                 <xs:annotation>
                     <xs:documentation>
                     Maximum number of atomic configurations that can be investigated in a single 
@@ -3359,10 +3354,8 @@ gw.xsd
                     <xs:documentation>
                     Maximum atomic displacement for atomic relaxation when using the <pre>"bfgs"</pre> method. 
 		    At each optimization step, the optimized value of each Cartesian coordinate of each atom 
-		    is searched in a range of size <inlinemath>2\tau_{_{\rm BFGS}}</inlinemath>2 
-		    centered at the actual value
-		    of the coordinate. This attribute is also used as maximum atomic displacement in the 
-		    <pre>"harmonic"</pre> method when a harmonic step is performed (see <attref>method</attref>).
+		    is searched in a range of size <inlinemath>2\tau_{_{\rm BFGS}}</inlinemath>
+		    centered at the actual value of the coordinate.
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
@@ -3378,6 +3371,9 @@ gw.xsd
 		      <li> <pre>"harmonic"</pre> - 
 		           Method based on the combination of the <pre>"newton"</pre> method and the harmonic 
 			   approximation, see also <attref>method</attref>. </li>
+		      <li> <pre>"stop"</pre> - 
+		           Stops the <pre>"bfgs"</pre> optimization procedure at the last accepted 
+			   configuration. </li>
                     </list>    
                     </xs:documentation>
                 </xs:annotation>

@@ -25,7 +25,7 @@ subroutine scf_cycle(verbosity)
     Logical :: force_converged, tibs, exist
     Integer :: ik, is, ia, idm
     Integer :: n, nwork
-    Real(8), Allocatable :: v(:)
+    Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0
     character*(77) :: string
 
@@ -576,6 +576,16 @@ subroutine scf_cycle(verbosity)
 ! compute forces
     If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
         Call force
+#ifdef MPI
+! For whatever reason each MPI process may produce very slightly different forces.
+! At this spot, we equalise them, so that we do not end up with a different geometry 
+! for every process.
+        allocate(forcesum(3,natmtot))
+        call MPI_ALLREDUCE(forcetot, forcesum, natmtot*3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+        forcetot(1:3,1:natmtot)=forcesum(1:3,1:natmtot)/dble(procs)
+        deallocate(forcesum)
+#endif
+
 ! output forces to INFO.OUT        
         if ((verbosity>-1).and.(rank==0)) then
            call printbox(60,"-","Writing atomic positions and forces")

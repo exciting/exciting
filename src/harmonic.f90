@@ -15,6 +15,9 @@
         logical :: l1, l2, inittime
         character*(77) :: string, rmethod(3), newtonflag
 
+                  !call writepositions(60,input%relax%outputlevelnumber) 
+                  !call writeforce(60,input%relax%outputlevelnumber)  
+
         nstep = 0
         newtonflag = "full newton step"
 
@@ -113,7 +116,7 @@ contains
 
         Implicit None
         Integer :: ik, ispn, is, ia, ias, i
-        Real (8) :: t1, beta, delta(3), zero(3), epsharmonic, tstep, hdelta, xdelta, a
+        Real (8) :: t1, beta, delta(3), zero(3), epsharmonic, tstep, hdelta, xdelta, a,dumdum
         Logical :: checknewton, checkharmonic
 
         a = 1./input%structure%crystal%scale
@@ -136,12 +139,16 @@ contains
                 if (nstep<2) then
                     do i = 1, 3
                         l1 = .not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)
-                        l2 = ( abs(forcetot(i,ias)) .gt. input%structure%epslat/10.d0 )
+                        l2 = ( abs(forcetot(i,ias)) .gt. min(input%structure%epslat/10.d0,input%relax%epsforce) )
                         if ( l1 .and. l2 ) then
                             xdelta = input%relax%taunewton*forcetot(i,ias)
                             if (xdelta .gt. input%relax%taunewton/2.0) xdelta = input%relax%taunewton/2.0
                             atposc_1(i,ia,is) = atposc(i,ia,is)
-                            atposc(i,ia,is) = atposc(i,ia,is) + xdelta      
+                            atposc(i,ia,is) = atposc(i,ia,is) + xdelta   
+
+                   !write(60, '(A,4X,F12.8,3I5)') "n",xdelta,i,ia,is
+                   !call flushifc(60)
+        
                         end if
                     end do
                     tauatm(ias) = 0.0
@@ -169,9 +176,21 @@ contains
 ! the new cartesian coordinates is larger then 2.0*input%relax%taubfgs, update using a newton-like 
 ! step, otherwise using a harmonic step
 
-                            if ( ((beta .ge. 0.0) .and. (beta .lt. 1.0)) .or. &
-                           &  (abs(hdelta) .ge. input%relax%taubfgs) ) then
+                            if ( (beta .lt. 0.0) .or. (beta .ge. 3) ) then
  
+!______________
+! harmonic step
+
+                                rmethod(i) = "h"
+                                checkharmonic = .True. 
+                                xdelta = hdelta                                
+                                tauxyz(i,ias) = 0.0
+
+                   !write(60, '(A,4X,F12.8,3I5)') "h",xdelta,i,ia,is
+                   !call flushifc(60)
+
+                            else 
+
 !_________________
 ! newton-like step
 
@@ -179,24 +198,10 @@ contains
                                 checknewton = .True. 
                                 tauxyz(i,ias) = tauxyz(i,ias) + 2.0*input%relax%taunewton
                                 xdelta = tauxyz(i,ias)*forcetot(i,ias)
-                                if (abs(xdelta) .gt. input%relax%taunewton) then
-                                    if (xdelta < 0.0) then 
-                                        xdelta = -input%relax%taunewton
-                                    else
-                                        xdelta = input%relax%taunewton
-                                    end if
-                                end if
 
-                            else 
-
-!______________
-! harmonic step
-
-                                rmethod(i) = "h"
-                                checkharmonic = .True. 
-                                xdelta = hdelta
-                                tauxyz(i,ias) = 0.0
-
+                   !write(60, '(A,4X,F12.8,3I5)') "n",xdelta,i,ia,is
+                   !call flushifc(60)
+                            
                             end if
 
 !_____________________________
