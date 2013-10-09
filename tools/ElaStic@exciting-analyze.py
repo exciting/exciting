@@ -1,18 +1,17 @@
 #!/usr/bin/env python
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-#%%% -------------------------------- ElaStic@exciting-analyze ------------------------------- %%%#
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
+#%%% ------------------------------- ElaStic@exciting-analyze.py ----------------------------- %%%#
+#%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
 #
 # AUTHORS:
-# Rostam Golesorkhtabar and Pasquale Pavone 
+# Rostam Golesorkhtabar and Pasquale Pavone
 # r.golesorkhtabar@gmail.com
 # 
 # DATE:
-# Sun Jan 01 00:00:00 2012
+# Tue Jan 01 00:00:00 2013
 #
 # SYNTAX:
 # python ElaStic@exciting-analyze.py
-#        ElaStic@exciting-analyze
 # 
 # EXPLANATION:
 # 
@@ -31,14 +30,16 @@ import math
 import sys
 import os
 
-#%%%%%%%%--- CONSTANTS ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- CONSTANTS ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
+
 _e     = 1.602176565e-19              # elementary charge
 Bohr   = 5.291772086e-11              # a.u. to meter
 Ryd2eV = 13.605698066                 # Ryd to eV
-cnvrtr = (_e*Ryd2eV)/(1e9*Bohr**3)    # Ryd/[a.u.^3] to GPa
-#--------------------------------------------------------------------------------------------------
+ToGPa  = (_e*Ryd2eV)/(1e9*Bohr**3)    # Ryd/[a.u.^3] to GPa
+#__________________________________________________________________________________________________
 
-#%%%--- SUBROUTINS AND FUNCTIONS ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%!%!%--- SUBROUTINS AND FUNCTIONS ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 def sortlist(lst1, lst2):
     temp = copy.copy(lst1)
 
@@ -54,22 +55,22 @@ def sortlist(lst1, lst2):
     return lst3, lst4
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Reading the INFO_ElaStic file ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Reading the "INFO_ElaStic" file ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 INFO=open('INFO_ElaStic', 'r')
 
 l1  = INFO.readline()
 ordr= int(l1.split()[-1])
 
 if (ordr != 2 and ordr != 3):
-    sys.exit('\n     ... Oops ERROR: The order of the elastic constant is NOT clear !?!?!?'\
-             '\n                     Something is WRONG in the "INFO_ElaStic" file.\n')
+    sys.exit('\n.... Oops ERROR: The order of the elastic constant is NOT clear !?!?!?'\
+             '\n                 Something is WRONG in the "INFO_ElaStic" file.\n')
 
 l2  = INFO.readline()
 mthd= l2.split()[-1]
 
 if (mthd != 'Stress' and mthd != 'Energy'):
-    sys.exit('\n     ... Oops ERROR: The method of the calculation is NOT clear !?!?!?'\
-             '\n                     Something is WRONG in the "INFO_ElaStic" file.\n')
+    sys.exit('\n.... Oops ERROR: The method of the calculation is NOT clear !?!?!?'\
+             '\n                 Something is WRONG in the "INFO_ElaStic" file.\n')
 
 l3  = INFO.readline()
 cod = l3.split()[-1]
@@ -89,7 +90,7 @@ NoP = int(l7.split()[-1])
 INFO.close()
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Calculating the Space-Group Number and classifying it ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Calculating the Space-Group Number and classifying it ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 if (1 <= SGN and SGN <= 2):      # Triclinic
     LC = 'N'
     if (ordr == 2): ECs = 21
@@ -145,17 +146,17 @@ elif(207 <= SGN and SGN <= 230): # Cubic I
     if (ordr == 2): ECs = 3
     if (ordr == 3): ECs = 6
 
-else: sys.exit('\n     ... Oops ERROR: WRONG Space-Group Number !?!?!?    \n')
+else: sys.exit('\n.... Oops ERROR: WRONG Space-Group Number !?!?!?    \n')
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Reading the energies ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Reading the energies ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 for i in range(1, ECs+1):
     if (i<10):
         Dstn = 'Dst0'+ str(i)
     else: 
         Dstn = 'Dst' + str(i)
     if (os.path.exists(Dstn) == False):
-        sys.exit('     ... Oops ERROR: Where is the '+ Dstn +' directory !?!?!?    \n')    
+        sys.exit('.... Oops ERROR: Where is the '+ Dstn +' directory !?!?!?    \n')    
     os.chdir(Dstn)
 
     f = open(Dstn+'_Energy.dat', 'w')
@@ -169,11 +170,13 @@ for i in range(1, ECs+1):
         if (os.path.exists(Dstn_num)): 
             os.chdir(Dstn_num)
 
-            if (os.path.exists('TOTENERGY.OUT')):
-                e_file = open('TOTENERGY.OUT', 'r')
-                enrgis = e_file.readlines()
-                energy = float(enrgis[-1])
-                e_file.close()
+            if (os.path.exists('INFO.OUT') == False):
+                sys.exit('\n.... Oops ERROR: There is NO "INFO.OUT" file in "'+ Dstn_num + \
+                '" directory !?!?!?    \n')
+
+            for line in open('INFO.OUT','r'):
+                if (line.find(' Total energy                               :')>=0): 
+                    energy = float(line.split()[-1])
 
             s = j-(NoP+1)/2
             r = 2*mdr*s/(NoP-1)
@@ -191,7 +194,7 @@ for i in range(1, ECs+1):
 
 warnings.simplefilter('ignore', np.RankWarning)
 
-#%%%--- Directory management ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Directory management ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 if (os.path.exists('Energy-vs-Strain_old')):
     shutil.rmtree( 'Energy-vs-Strain_old')   
 
@@ -203,10 +206,10 @@ os.chdir('Energy-vs-Strain')
 
 os.system('cp -f ../Dst??/Dst??_Energy.dat .')
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-### --------------- Calculating the second derivative and Cross-Validation error -------------- ###
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-CONV = cnvrtr * factorial(ordr)*2.
+#%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
+#%!%!% ------------ Calculating the second derivative and Cross-Validation Error ----------- %!%!%#
+#%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
+CONV = ToGPa * factorial(ordr)*2.
 
 for i in range(1, ECs+1):
     if (i<10):
@@ -221,7 +224,7 @@ for i in range(1, ECs+1):
 
     fE = open(Dstn+'_CVe.dat', 'w')
     print >> fD, '# Max. eta    SUM(Cij) \n#'
-    print >> fE, '# Max. eta    Cross-Validation error   \n#'
+    print >> fE, '# Max. eta    Cross-Validation Error   \n#'
 
     for j in range(ordr+4, ordr-1, -2):
         if  (j == 2): nth = '2nd'
@@ -232,7 +235,7 @@ for i in range(1, ECs+1):
         print >> fD, '\n# '+ nth +' order fit.'
         print >> fE, '\n# '+ nth +' order fit.'
 
-        # Reading the input files -----------------------------------------------------------------
+        #--- Reading the input files --------------------------------------------------------------
         eta_ene= open(Dstn+'_Energy.dat', 'r')
 
         nl     = 0
@@ -249,15 +252,15 @@ for i in range(1, ECs+1):
                 energy.append(float(ene)) 
             elif (len(line) == 0): pass
             else:
-                sys.exit('\n     ... Oops ERROR: Strain and Energy are NOT defined correctly in "'+\
-                         Dstn+'_Energy.dat" !?!?!?\n')
+                sys.exit('\n.... Oops ERROR: Strain and Energy are NOT defined correctly in "' +\
+                          Dstn+'_Energy.dat" !?!?!?\n')
 
         eta_ene.close()
         strain, energy = sortlist(strain, energy)
         strain0 = copy.copy(strain)
         energy0 = copy.copy(energy)
 
-       # ------------------------------------------------------------------------------------------
+        # ------------------------------------------------------------------------------------------
         while (len(strain) > j): 
             emax  = max(strain)
             emin  = min(strain)
@@ -276,7 +279,7 @@ for i in range(1, ECs+1):
                 strain.pop()
                 energy.pop()
 
-        # Cross-Validation error calculations -----------------------------------------------------
+        #--- Cross-Validation error calculations --------------------------------------------------
         strain = copy.copy(strain0)
         energy = copy.copy(energy0)
         while (len(strain) > j+1): 
@@ -311,7 +314,7 @@ for i in range(1, ECs+1):
     fD.close()
     fE.close()
     
-    # Plotting ------------------------------------------------------------------------------------
+    #-- Plotting ----------------------------------------------------------------------------------
     if (os.path.exists('Grace.par') == False):
         os.system("cp -f $EXCITINGSCRIPTS/Grace.par .")
 
@@ -341,8 +344,9 @@ for i in range(1, ECs+1):
         print >>GdE, TMP[l],
     GdE.close()
 
-    os.system('xmgrace '+ Dstn +'_d'+str(ordr)+'E.dat -param '+Dstn+'_d'+str(ordr)+\
-              'E.par -saveall '+Dstn+'_d'+str(ordr)+'E.agr &')
+    os.system('xmgrace '+ Dstn +'_d'+str(ordr)+'E.dat -param '  + \
+                          Dstn +'_d'+str(ordr)+'E.par -saveall '+ \
+                          Dstn+'_d'+str(ordr)+'E.agr &')
 
     TMP = []
     for k in range(154, 162):
@@ -365,7 +369,7 @@ for i in range(1, ECs+1):
 
 os.chdir('../')
 
-# Writing the ElaStic_???.in file -----------------------------------------------------------------
+#--- Writing the "ElaStic_???.in" file ------------------------------------------------------------
 
 if (ordr == 2): orth  = '2nd'
 if (ordr == 3): orth  = '3rd'

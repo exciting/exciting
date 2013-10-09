@@ -133,7 +133,7 @@ def atoms2etree(images):
     scaled = atoms.get_scaled_positions()
     for aindex, symbol in enumerate(atoms.get_chemical_symbols()):
         if 'rmt' in atoms.arrays:
-            newrmt=atoms.get_array("rmt")[aindex]
+            newrmt=atoms.get_array("rmt")[aindex] / Bohr
         if symbol!=oldsymbol or newrmt!=oldrmt:
             speciesnode = ET.SubElement(structure, 'species',
                                     speciesfile='%s.xml' % symbol,

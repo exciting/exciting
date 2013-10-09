@@ -33,81 +33,77 @@ Subroutine writegeometryxml (topt)
       Type (xmlf_t), Save :: xf
       Real (8) :: v (3)
       Logical :: lock(3)
-      If (topt) Then
-         Call xml_OpenFile ("geometry_opt.xml", xf, &
-        & replace=.True., pretty_print=.True.)
-      Else
-         Call xml_OpenFile ("geometry.xml", xf, &
-        & replace=.True., pretty_print=.True.)
-      End If
-      Call xml_NewElement (xf, "input")
-      Call xml_NewElement (xf, "structure")
-      Call xml_AddAttribute (xf, "speciespath", &
-     & trim(adjustl(input%structure%speciespath)))
-! GB 6.11.2012
-      If (input%structure%cartesian)Then
-        Write(buffer,*) "true"
-        Call xml_AddAttribute (xf,"cartesian", &
-        & trim(adjustl(buffer)))
-      End If
-      Call xml_NewElement (xf, "crystal")
-      Do i = 1, 3
-         Call xml_NewElement (xf, "basevect")
-         Write (buffer, '(3G18.10)') &
-        & input%structure%crystal%basevect(:, i)
-         Call xml_AddCharacters (xf, trim(buffer))
-         Call xml_endElement (xf, "basevect")
-      End Do
-      Call xml_endElement (xf, "crystal")
-      Do is = 1, nspecies
-         Call xml_NewElement (xf, "species")
-         Call xml_AddAttribute (xf, "speciesfile", trim(adjustl(input%structure%speciesarray(is)%species%speciesfile)))
-         Write(buffer,'(F7.4)') rmt(is)
-         Call xml_AddAttribute (xf, "rmt", trim(adjustl(buffer)))
-         Write (buffer,*) Int (-1.0*speziesdeflist(is)%sp%z)
-         Do ia = 1, natoms (is)
-            Call xml_NewElement (xf, "atom")
-! GB 04.10.2012 adding the CARTESIAN switch, so that geometry_opt.xml will be consistent with Cartesian input 
-            If (input%structure%cartesian) Then  !GB
-! write Cartesian coordinates for the molecular case   
-               Call r3mv (input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
-              & v)
-            Else
-! otherwise write lattice coordinates  
-               v (:) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-            End If
-! END CHANGES
-            Write (buffer, '(3F18.10)') (v (:)) 
-            Call xml_AddAttribute (xf, "coord", trim(adjustl(buffer)))
-            
-            lock=input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz
-            if (lock(1).or.lock(2).or.lock(3)) then
-                write(buffer,*) printLogical(lock(1)), &
-               &                printLogical(lock(2)), &
-               &                printLogical(lock(3))
-                call xml_AddAttribute (xf, "lockxyz", trim(adjustl(buffer)))
-            End If
-            
-            If (associated(input%groundstate%spin)) Then
-            Write (buffer, *)  input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:)
-            Call xml_AddAttribute (xf, "bfcmt", &
-                 & trim(adjustl(buffer)))
-            End If
 
-            Call xml_endElement (xf, "atom")
-         End Do
-         Call xml_endElement (xf, "species")
-      End Do
-      Call xml_close (xf)
-      Return
+      if (topt) then
+          call xml_OpenFile ("geometry_opt.xml", xf, replace=.True., pretty_print=.True.)
+      else
+          call xml_OpenFile ("geometry.xml", xf, replace=.True., pretty_print=.True.)
+      end if
+
+      call xml_NewElement (xf, "input")
+      call xml_NewElement (xf, "structure")
+      call xml_AddAttribute (xf, "speciespath", trim(adjustl(input%structure%speciespath)))
+      if (input%structure%cartesian) call xml_AddAttribute (xf,"cartesian", trim(adjustl("true")))
+      call xml_NewElement (xf, "crystal")
+
+      do i = 1, 3
+          call xml_NewElement (xf, "basevect")
+          write (buffer, '(3G18.10)') input%structure%crystal%basevect(:, i)
+          call xml_AddCharacters (xf, trim(buffer))
+          call xml_endElement (xf, "basevect")
+      end do
+
+      call xml_endElement (xf, "crystal")
+
+      do is = 1, nspecies
+          call xml_NewElement (xf, "species")
+          call xml_AddAttribute (xf, "speciesfile", &
+         &  trim(adjustl(input%structure%speciesarray(is)%species%speciesfile)))
+          write(buffer,'(F7.4)') rmt(is)
+          call xml_AddAttribute (xf, "rmt", trim(adjustl(buffer)))
+
+          do ia = 1, natoms (is)
+              call xml_NewElement (xf, "atom")
+
+              if (input%structure%cartesian) then   
+                  call r3mv (input%structure%crystal%basevect, &
+                 &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), v)
+              else
+                  v(:) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+              end if
+              write (buffer, '(3F18.10)') (v (:)) 
+              call xml_AddAttribute (xf, "coord", trim(adjustl(buffer)))            
+
+              lock = input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz
+              if (lock(1).or.lock(2).or.lock(3)) then
+                  write(buffer,*) printLogical(lock(1)), &
+                 &                printLogical(lock(2)), &
+                 &                printLogical(lock(3))
+                  call xml_AddAttribute (xf, "lockxyz", trim(adjustl(buffer)))
+              end if
+
+              if (associated(input%groundstate%spin)) then
+                  write (buffer, *) input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:)
+                  call xml_AddAttribute (xf, "bfcmt", trim(adjustl(buffer)))
+              end if
+
+              call xml_endElement (xf, "atom")
+          end do
+
+          call xml_endElement (xf, "species")
+
+      end do
+
+      call xml_close (xf)
+      return
 
 contains      
 
       function printLogical(flag)
-        logical, intent(IN) :: flag
-        character(6) :: printLogical
-        printLogical="false"
-        if (flag) write(printLogical,'("true")')
+          logical, intent(IN) :: flag
+          character(6) :: printLogical
+          printLogical="false"
+          if (flag) write(printLogical,'("true")')
       end function
 
 End Subroutine

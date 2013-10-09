@@ -104,11 +104,6 @@ Subroutine init0
 !     index to atoms and species     !
 !------------------------------------!
 
-! GB 3.10.2012 
-      If (input%structure%cartesian) Then
-         input%structure%primcell = .True.
-      End If
-
 ! find primitive cell if required
       If (input%structure%primcell) Call findprim
       natmmax = 0
