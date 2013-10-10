@@ -25,7 +25,6 @@ subroutine task_band
 
     integer(4) :: ik, ib
     real(8)    :: tstart, tend
-    complex(8), allocatable :: de1(:,:), de2(:,:)
 !
 ! !INTRINSIC ROUTINES:
     intrinsic cpu_time

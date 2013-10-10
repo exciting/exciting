@@ -14,7 +14,7 @@ Subroutine energy
 ! !USES:
       Use modinput
       Use modmain
-      Use mod_hybrids, only: exnl
+      Use mod_hybrids, only: ihyb, exnlk
 ! !DESCRIPTION:
 !   The {\tt energy} subroutine computes the total energy and its individual contributions. 
 !   The total energy is composed of kinetic, Coulomb, and exchange-correlation energy,
@@ -107,7 +107,7 @@ Subroutine energy
 ! electron g factor
       Real (8), Parameter :: ge = 2.0023193043718d0
       Real (8), Parameter :: ga4 = ge * alpha / 4.d0
-      Real (8) :: vn
+      Real (8) :: vn, exnl
       Complex (8) zt1
 ! allocatable arrays
       Complex (8), Allocatable :: evecsv (:, :), c (:, :)
@@ -190,8 +190,12 @@ Subroutine energy
       End If
 ! Hybrids
       if (associated(input%groundstate%Hybrid)) then
-        if (input%groundstate%Hybrid%exchangetypenumber == 1) Then
-          engyx = engyx+ex_coef*exnl
+        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
+          exnl = 0.d0
+          do ik = 1, nkpt
+            exnl = exnl + wkpt(ik)*exnlk(ik)
+          end do
+          engyx = engyx + ex_coef*exnl
         end if
       end if
 ! calculate exchange energy for OEP-EXX/Hybrids on last iteration

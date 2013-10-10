@@ -45,10 +45,6 @@ Subroutine hybrids
     
 ! require forces for structural optimisation
     If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = .True.    
-! initialise OEP variables if required
-    If (associated(input%groundstate%OEP)) then
-      call init2
-    end if
 
 !-------------------
 ! print info
@@ -83,7 +79,6 @@ Subroutine hybrids
 !___________________
 ! Open support files
 
-
 ! open TOTENERGY.OUT
         Open (61, File='TOTENERGY'//trim(filext), Action='WRITE', Form='FORMATTED')
 
@@ -117,13 +112,31 @@ Subroutine hybrids
     timeinit = timeinit+ts1-ts0
 !! TIME - End of initialisation segment
 
+
 !------------------------------------!
-!   SCF cycle
+!   Pure DFT cycle
+!------------------------------------!
+    ihyb = 0
+    ex_coef = 0.d0
+    call scf_cycle(input%groundstate%outputlevelnumber)
+    ex_coef = input%groundstate%Hybrid%excoeff
+
+! continue from file
+    task = 1
+    !input%groundstate%findlinentype = "skip"
+
+! store DFT eigenvectors
+    allocate(evecfv0(nmatmax,nstfv,nspnfv,nkpt))
+    do ik = 1, nkpt
+       call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv0(:,:,:,ik))
+    end do
+
+!------------------------------------!
+!   Hybrids cycle
 !------------------------------------!
     if (rank==0) then
         write(string,'("Hybrids module started")') 
         call printbox(60,"*",string)
-        write(60,*) "Output level for this task is set to ", trim(input%groundstate%outputlevel)
         call flushifc(60)
     end if
 
@@ -142,30 +155,33 @@ Subroutine hybrids
 !--------------------------------------------------------------
     call setsingc
     
+!--------------------------------------------!
+!   Matrix elements of non-local potential   !
+!--------------------------------------------!
+
+! non-local potential
+    allocate(vxnl(nstfv,nstfv,nkpt))
+    vxnl(:,:,:) = zzero
+
 ! non-local exchange energy
     allocate(exnlk(nkpt))
     exnlk(:) = 0.d0
 
-! BZ integrated non-local energy
-    exnl = 0.d0
-
-! non-local exchange potential
-    allocate(vxnl(nstfv,nstfv,nkpt))
-    vxnl(:,:,:) = zzero
-
-! eigenvector from previous interation
-    allocate(evecfv0(nmatmax,nstfv,nspnfv,nkpt))
-    evecfv0(:,:,:,:) = zzero
+! APW matrix elements of the non-local potential
+    allocate(vnlmat(nmatmax,nmatmax,nkpt))
+    vnlmat(:,:,:) = zzero
 
 !------------------------------------------!
 ! begin the (external) self-consistent loop
 !------------------------------------------!
-    et = 0.d0
-    ihyb = 0
+
+! start from DFT energy
+    et = engytot
+
     do ihyb = 1, input%groundstate%maxscl
 
 ! exit self-consistent loop if last iteration is complete
-        If (ihyb .Ge. input%groundstate%maxscl) Then
+        If (ihyb >= input%groundstate%maxscl) Then
             If (rank==0) Then
                 write(string,'("Reached hybrids self-consistent loops maximum : ", I4)') &
                &  input%groundstate%maxscl
@@ -181,64 +197,62 @@ Subroutine hybrids
             Call flushifc(60)
         End If
 
-!----------------------------------------!
-!   KS (internal) self-consistent cycle  !
-!----------------------------------------!
-        if (ihyb > 1) task = 1
-        call scf_cycle(input%groundstate%outputlevelnumber)
-        
-!--------------------------------------------!
-!   Matrix elements of non-local potential   !
-!--------------------------------------------!
-        if (rank .Eq. 0) call boxmsg(fgw,'-','Calculation of the non-local exchange potential')
+! calculate the non-local potential
+        call timesec(ts0)
         call calc_vxnl
+        call timesec(ts1)
+        if (rank==0) then
+            write(60,*)
+            if (rank==0) call write_cputime(60,ts1-ts0, 'CALC_VXNL')
+        end if
 
-! Integrated exchange energy
-        exnl = 0.d0
-        do ik = 1, nkpt
-            exnl = exnl+wkpt(ik)*exnlk(ik)
-        end do
+! calculate the non-local potential hamiltonian matrix
+        call timesec(ts0)
+        call calc_vnlmat
+        call timesec(ts1)
+        if (rank==0) then
+            if (rank==0) call write_cputime(60,ts1-ts0, 'CALC_VNLMAT')
+            write(60,*)
+        end if        
 
-! update convergence criteria
-        deltae = abs(et-exnl)
+! DFT cycle including the non-local potential
+        call scf_cycle(-1)
 
-!------------------------------------------------
-! Store the eigenvectors from previous iteration
-!------------------------------------------------
+! store the eigenvectors for next iteration
         do ik = 1, nkpt
             call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv0(:,:,:,ik))
         end do
 
-! Check for convergence
-        if (ihyb > 1) then
+! check for convergence
+        deltae = dabs(et-engytot)
 
-            if (rank==0) then
-              write(60,'("(Hybrids) Absolute change in total energy (target)   : ",G18.10," (",G18.10,")")') &
-             &  deltae, input%groundstate%epsengy
-            end if
+        if (rank==0) then
+            write(60,'("(Hybrids) Absolute change in total energy (target)   : ",G18.10," (",G18.10,")")') &
+           &  deltae, input%groundstate%epsengy
+        end if
 
-            if (deltae < input%groundstate%epsengy) Then
-                If (rank==0) Then
-                    write(string,'("Convergence target is reached")')
-                    call printbox(60,"+",string)
-                    Call flushifc(60)
-                End If
-                exit ! exit ihyb-loop
-            end if
-            et = exnl
+        if (deltae < input%groundstate%epsengy) Then
+            if (rank==0) Then
+                write(string,'("Convergence target is reached")')
+                call printbox(60,"+",string)
+                Call flushifc(60)
+            end If
+            exit ! exit ihyb-loop
+        end if
+
+! update the energy
+        et = engytot
             
 ! output the current total time
-            timetot = timeinit + timemat + timefv + timesv + timerho &
-           &        + timepot + timefor + timeio + timemt + timemixer
+        timetot = timeinit + timemat + timefv + timesv + timerho &
+       &        + timepot + timefor + timeio + timemt + timemixer
             
-            if (rank==0) then
-                write(60,*)
-                write(60, '("Wall time (seconds) : ", F12.2)') timetot
-            end if
+        if (rank==0) then
+            write(60,*)
+            write(60, '("Wall time (seconds) : ", F12.2)') timetot
+        end if
 
-       end if ! ihyb>1
-
-    end do ! i
+    end do ! ihyb
 
     if (rank==0) then
         write(string,'("Hybrids module stopped")') 
@@ -324,10 +338,6 @@ Subroutine hybrids
         Write (60, '(" Dirac eqn solver", T40, ": ", F12.2)') time_rdirac
         Write (60, '(" Rel. Schroedinger eqn solver", T40, ": ", F12.2)') time_rschrod
         Write (60, '(" Total time spent in radial solvers", T40, ": ", F12.2)') time_rdirac+time_rschrod
-        If (input%groundstate%xctypenumber .Lt. 0) Then 
-            Write (60, '(" Time spent for oepvnl ", T40,": ", F12.2)') time_oepvnl
-            Write (60, '(" Time spent for oep iteration ", T40,": ", F12.2)') time_oep_iter
-        End If
         write (60,*)
     end if
 
@@ -351,6 +361,9 @@ Subroutine hybrids
     end do ! ik
     Close(70)
 
+!----------------------------------------
+! Clean data
+!----------------------------------------
     call exit_hybrids
       
     Return

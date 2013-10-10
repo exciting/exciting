@@ -7,11 +7,9 @@ subroutine lchargelinene
       use modmain
       use modmpi, only: rank
 ! !DESCRIPTION:
-!
-! Calculate the "Optimal Energy Parameters" by S.Bluegel
-!
+!   Calculate the "Optimal Energy Parameters" by S.Bluegel
 ! !REVISION HISTORY:
-!   
+!   Created October 2013 (DIN)
 !EOP
 !BOC
   implicit none
@@ -105,7 +103,7 @@ subroutine lchargelinene
       do ia = 1, natoms(is)
         ias = idxas(ia,is)
         write(32,*) 'ATOM ', ias
-        write(32,*) '# state    l=0     l=1     l=2     l=3     l=4'
+        write(32,*) '# state    l=0         l=1         l=2         l=3         l=4'
         do ist = 1, nstsv
           do l = 0, input%groundstate%lmaxapw
             t1 = 0.d0
@@ -144,8 +142,7 @@ subroutine lchargelinene
 ! sum over states
             do ist = 1, nstsv
               if (abs(occsv(ist,ik)) .gt. input%groundstate%epsocc) Then
-                ! get rid of nspinor index
-                t3 = sum(lcharge(l,:,ias,ist,ik))
+                t3 = sum(lcharge(l,:,ias,ist,ik)) ! get rid of nspinor index
                 t1 = t1+evalsv(ist,ik)*t3*occsv(ist,ik)
                 t2 = t2+t3*occsv(ist,ik)
               end if
@@ -158,7 +155,7 @@ subroutine lchargelinene
           do io1 = 1, apword (l, is)
             if (apwve(io1, l, is)) then
 ! for too low and too high values of el we keep the default values
-              if ((el(l,ias) > -0.5d0).and.(el(l,ias) < 0.5d0)) then
+              if ( dabs(el(l,ias)-efermi) < 0.5d0 ) then
                 apwe(io1,l,ias) = el(l,ias)
               end if
             end if
@@ -172,28 +169,24 @@ subroutine lchargelinene
           do io1 = 1, lorbord (ilo, is)
             if (lorbve(io1, ilo, is)) then
               l = lorbl (ilo, is)
-
 ! if lo radial functions have same default energies as apw
               do io2 = 1, apword (l, is)
-
                 if (apwve(io2, l, is)) then
-
                   if ( abs(lorbe0(io1,ilo,is)-apwe0(io2,l,is) ) < 1.d-4) then
                     lorbe(io1,ilo,ias) = apwe(io2,l,ias)
                   else
                     lorbe(io1,ilo,ias) = el(l,ias)
                   end if
-
                 end if
-
               end do ! io2
-
             end if
           end do ! io1
         end do ! ilo
         done (ia) = .True.
 
-!       copy to equivalent atoms
+!---------------------------------!
+!       copy to equivalent atoms  !
+!---------------------------------!
         do ja = 1, natoms (is)
            if (( .not. done(ja)) .and. (eqatoms(ia, ja, is))) then
               jas = idxas (ja, is)
@@ -214,8 +207,8 @@ subroutine lchargelinene
       end if ! done
     end do ! ia
   end do ! is
-
   deallocate(lcharge,el)
+
   return
 end subroutine
 !EOC

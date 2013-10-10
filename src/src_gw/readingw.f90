@@ -20,10 +20,7 @@
 
       implicit none
       
-      character(8) :: test
       character(6) :: fdep
-      character(6) :: fgrid
-      character(3) :: corflag
       real(8)      :: len
       
 ! !EXTERNAL ROUTINES: 
@@ -34,14 +31,13 @@
 !
 !     Define the task to calculate
 !      
-      test=input%gw%taskname
       write(fgw,*)
       call linmsg(fgw,'-','')
-      write(fgw,*)  ' TASK:', test
+      write(fgw,*)  ' TASK:', trim(input%gw%taskname)
       call linmsg(fgw,'-','')
       write(fgw,*)
 
-      select case (test)
+      select case (trim(input%gw%taskname))
 !
         case('GW','gw')
           testid=0
@@ -113,11 +109,10 @@
           write(fgw,*)'gw   - Performs one complete GW cycle'
           write(fgw,*)
       end select  
-      call linmsg(fgw,'*',"end readingw")
 !
 !     Read the BZ convolution method
 !           
-      select case (input%gw%bzconv)
+      select case (trim(input%gw%bzconv))
         case ('sum','SUM')
           convflg=0
         case ('tetra','TETRA')
@@ -144,10 +139,9 @@
 !      
       if (.not.associated(input%gw%FreqGrid)) &
      &  input%gw%FreqGrid => getstructfreqgrid(emptynode)
-      fgrid=input%gw%FreqGrid%fgrid
       nomeg=input%gw%FreqGrid%nomeg
       freqmax=input%gw%FreqGrid%freqmax
-      select case (fgrid)
+      select case (trim(input%gw%FreqGrid%fgrid))
         case('eqdist','EQDIST')
          wflag=1
         case('gaulag','GAULAG')
@@ -167,11 +161,11 @@
           write(fgw,*) 'gaule2 - grid for Gauss-Legendre &
          & quadrature from 0 to freqmax and from freqmax to infinity'
           write(fgw,*)'Taking default value: gaule2'
-          fgrid='gaule2'
+          input%gw%FreqGrid%fgrid='gaule2'
           wflag=3
       end select
       write(fgw,*) 'Frequency grid: fgrid, nomeg, freqmax'
-      write(fgw,*) fgrid, nomeg, freqmax
+      write(fgw,*) trim(input%gw%FreqGrid%fgrid), nomeg, freqmax
       
       call linmsg(fgw,'-','')
 

@@ -10,12 +10,14 @@ module mod_hybrids
 ! number of HF cycles
     integer :: ihyb
 
-! Hartree-Fock energy
+! non-local exchange energy
     real(8), allocatable :: exnlk(:)
-    real(8)              :: exnl
 
-! Hartree-Fock potential
+! non-local exchange potential
     complex(8), allocatable :: vxnl(:,:,:)
+
+! APW matrix elements of the non-local potential
+    complex(8), allocatable :: vnlmat(:,:,:)
 
 ! KS eigenvector from previous iteration
     complex(8), allocatable :: evecfv0(:,:,:,:)
@@ -28,6 +30,10 @@ contains
 
     subroutine init_hybrids
         implicit none
+        integer(4) :: i, ia, is, ias, ic, il, ist, m
+        integer(4) :: ir, l, ie1, ikp
+        real(8)    :: norm
+        real(8), allocatable :: eval(:)    
 
 ! print debugging information    
         debug = .false.
@@ -94,23 +100,6 @@ contains
             call linmsg(fgw,'=','')
             call flushifc(fgw)
         end if
-    
-        return
-    end subroutine
-
-!-------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------
-
-    subroutine init_mixed_basis
-
-        implicit none
-        integer(4) :: i, ia, is, ias, ic, il, ist, m
-        integer(4) :: ik, iq, ie, ie1, ie2
-        integer(4) :: ir, l
-        integer(4) :: kini, kend
-        real(8)    :: norm    
-        complex(8) :: sum
 
 !---------------------------------------
 ! Determine the number of core states for each species (auxiliary arrays)
@@ -170,24 +159,16 @@ contains
         allocate(ipwint(ngrtot))
         ipwint(:) = conjg(cfunig(:))
 
-!---------------------------------------
-!   Mixed basis initialization (GW routine)
-!---------------------------------------
-        call init_mb
-
-! ***** revert back from GW definition of rwfcr
-        do is=1,nspecies
-            do ia=1,natoms(is)
-                ias=idxas(ia,is)
-                do ist=1,ncore(is)
-                    l=spl(ist,is)
-                    norm=sqrt(0.5d0*spocc(ist,is)/dble(2*l+1))
-                    do ir=1,nrmt(is)
-                        rwfcr(ir,1,ist,ias)=spr(ir,is)*rwfcr(ir,1,ist,ias)/norm
-                    end do
-                end do ! ist
+        allocate(eval(nstsv))
+        call readfermi
+        nomax = 0
+        do ikp = 1, nkpt
+            call getevalsv(vkl(:,ikp),eval)
+            do ie1 = 1, nstsv
+                if (eval(ie1)<=efermi) nomax=max(ie1,nomax)
             end do
         end do
+        deallocate(eval)
         
         return
     end subroutine
@@ -199,9 +180,28 @@ contains
 ! deallocate hybrids related data
     subroutine exit_hybrids
 
+! deallocate global
         deallocate(exnlk)
         deallocate(vxnl)
+        deallocate(vnlmat)
         deallocate(evecfv0)
+
+! deallocate mixed-basis stuff
+        deallocate(ncore)
+        deallocate(corind)
+        deallocate(ipwint)
+        deallocate(nup)
+        deallocate(nmix)
+        deallocate(umix)
+        deallocate(bigl)
+        deallocate(mbl)
+        deallocate(rtl)
+        deallocate(rrint)
+        deallocate(bradketc)
+        deallocate(bradketa)
+        deallocate(bradketlo)
+        deallocate(locmixind)
+      
 ! avoid running gw launcher
         if (.not.gwflag) input%gw%taskname="skip"
 

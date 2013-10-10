@@ -11,9 +11,10 @@ subroutine calc_vxnl
 
     integer(4) :: ikp, ik, iq, ikq
     integer(4) :: ie1, ie2, ie3, icg
+    integer(4) :: ia, is, ias, ir, ist, l
+    real(8)    :: norm
     real(8)    :: tstart, tend
     complex(8) :: t1, mvm
-    real(8),    allocatable :: eval(:)
     complex(8), allocatable :: vnl(:,:)
     
     complex(8), external :: zdotc
@@ -21,27 +22,30 @@ subroutine calc_vxnl
     call cpu_time(tstart)
 
 !------------------------------------------------!
-! (Re)-Initialize Product Mixed Basis
-!------------------------------------------------!
-    call init_mixed_basis    
-
-!------------------------------------------------!
 !   Calculate/Update the non-local exchange potential
 !------------------------------------------------!
     if (rank == 0) then
         call boxmsg(fgw,'-','Calculate Vx_NL')
     end if
-    
-    allocate(eval(nstsv))
-    call readfermi
-    nomax = 0
-    do ikp = 1, nkpt
-        call getevalsv(vkl(:,ikp),eval)
-        do ie1 = 1, nstsv
-            if (eval(ie1)<=efermi) nomax=max(ie1,nomax)
-        end do
-    end do
-    deallocate(eval)
+
+!---------------------------------------
+!   Mixed basis initialization (GW routine)
+!---------------------------------------
+    call init_mb
+
+! ***** revert back from GW definition of rwfcr
+    do is=1,nspecies
+        do ia=1,natoms(is)
+            ias=idxas(ia,is)
+            do ist=1,ncore(is)
+                l=spl(ist,is)
+                norm=sqrt(0.5d0*spocc(ist,is)/dble(2*l+1))
+                do ir=1,nrmt(is)
+                    rwfcr(ir,1,ist,ias)=spr(ir,is)*rwfcr(ir,1,ist,ias)/norm
+                end do
+             end do ! ist
+         end do
+     end do
 
 !---------------------------------------
 ! Loop over k-points
@@ -71,7 +75,7 @@ subroutine calc_vxnl
                 if (rank==0) write(fgw,101) ikp, iq, locmatsiz, ngq(iq), matsiz
 
 !------------------------------------------------------------
-! Calculate the Coulomb matrix elements in MB representation
+! (Re)-Calculate the Coulomb matrix elements in MB representation
 !------------------------------------------------------------
                 Gamma = gammapoint(iq)
 
@@ -88,12 +92,12 @@ subroutine calc_vxnl
                 call setbarcev(input%gw%BareCoul%barcevtol)            
 
 !------------------------------------------------------------
-! Calculate the M^i_{nm}(k,q) matrix elements for given k and q
+! (Re)-Calculate the M^i_{nm}(k,q) matrix elements for given k and q
 !------------------------------------------------------------
                 call expand_basis(ik,iq)
 
 !------------------------------------------------------------     
-! Calculate non-local (Hartree-Fock) potential
+! (Re)-Calculate non-local (Hartree-Fock) potential
 !------------------------------------------------------------     
 
 ! Valence electron contribution

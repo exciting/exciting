@@ -76,7 +76,7 @@
        
         if(allocated(epsilon))deallocate(epsilon)
         allocate(epsilon(matsizmax,matsizmax,nomeg))
-	    epsilon=zzero
+        epsilon=zzero
         if(allocated(inveps))deallocate(inveps)
         allocate(inveps(matsizmax,matsizmax,nomeg))
 		inveps=zzero

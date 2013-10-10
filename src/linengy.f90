@@ -37,11 +37,28 @@ Subroutine linengy
       real(8), allocatable :: p0 (:), p1 (:), q0 (:), q1 (:)
       character(1024) :: message
 
-!________________________________
-!     l-charge based schemes
+      linenetype = trim(input%groundstate%findlinentype)
 
-      linenetype = input%groundstate%findlinentype
-      if (trim(linenetype).eq.'lcharge') then
+!________________________________
+!     switch off LE search
+
+      if (linenetype.eq.'no_search') then
+        do is = 1, nspecies
+          do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+! just copying default values for apw
+            apwe(:,:,ias) = apwe0(:,:,is)
+! and lo
+            lorbe(:,:,ias) = lorbe0(:,:,is)
+          end do
+        end do
+        return
+      end if
+
+!________________________________
+!     l-charge based scheme
+
+      if (linenetype.eq.'lcharge') then
         if (iscl>1) call lchargelinene
         return
       end if

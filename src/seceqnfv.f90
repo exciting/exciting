@@ -15,7 +15,7 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Use modinput
       Use modmain
       Use modfvsystem
-      Use mod_hybrids, only: ihyb
+      Use mod_hybrids, only: ihyb, vnlmat
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
@@ -63,16 +63,18 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !------------------------------------------------------------------------!
   !     If Hybrid potential is used apply the non-local exchange potential !
   !------------------------------------------------------------------------!
-      If (associated(input%groundstate%Hybrid)) Then
+      if (associated(input%groundstate%Hybrid)) then
          if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-            if (ihyb > 1) call add_vxnl(system,ik,nmatp)
+  ! Update Hamiltonian
+            if (ihyb>0) system%hamilton%za(:,:) = &
+           &  system%hamilton%za(:,:) + ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
          end if
-      End If
+      end if
 
   !------------------------------------!
   !     solve the secular equation     !
   !------------------------------------!
-     Call solvewithlapack(system,nstfv,evecfv,evalfv)
+      Call solvewithlapack(system,nstfv,evecfv,evalfv)
 
 End Subroutine seceqnfv
 !EOC
