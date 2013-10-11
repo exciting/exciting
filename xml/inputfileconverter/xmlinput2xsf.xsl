@@ -111,11 +111,11 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
       <xsl:text>    </xsl:text>
       <xsl:choose>
         <xsl:when test="$cartesian">
-          <xsl:value-of select="str:tokenize(@coord)[1]" />
+          <xsl:value-of select="str:tokenize(@coord)[1]*$bohr2angstr" />
           <xsl:text>  </xsl:text>
-          <xsl:value-of select="str:tokenize(@coord)[2]" />
+          <xsl:value-of select="str:tokenize(@coord)[2]*$bohr2angstr" />
           <xsl:text>  </xsl:text>
-          <xsl:value-of select="str:tokenize(@coord)[3]" />
+          <xsl:value-of select="str:tokenize(@coord)[3]*$bohr2angstr" />
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of select="str:tokenize(@coord)[1]*$a1 + str:tokenize(@coord)[2]*$b1  + str:tokenize(@coord)[3]*$c1" />
