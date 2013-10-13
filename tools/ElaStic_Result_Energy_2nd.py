@@ -243,7 +243,7 @@ for i in range(1, ECs+1):
             mdri   = abs(float(RoD[j+1]))
             ordri  = int(abs(float(RoD[j+2])))
 
-    ene_file= open(Dstn+'_Energy.dat', 'r')
+    ene_file= open(Dstn+'-Energy.dat', 'r')
     eta_ene = ene_file.read().strip().split()
 
     strain = []
@@ -255,7 +255,7 @@ for i in range(1, ECs+1):
             energy.append(float(eta_ene[k+1]))
 
     if (len(strain) < ordri+1):  
-        sys.exit('\n.... Oops ERROR: NOT enough energy points in "'+Dstn+'_Energy.dat"'
+        sys.exit('\n.... Oops ERROR: NOT enough energy points in "'+Dstn+'-Energy.dat"'
                  '\n                 for '+str(ordri)+' order polynomial fit.\n')
 
     coeffs = np.polyfit(strain, energy, ordri)

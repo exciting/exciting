@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
+from   lxml  import etree
 from   sys   import stdin
 from   math  import sqrt
 from   math  import factorial
@@ -76,8 +77,11 @@ def relax(filin,idf):
 def readstrain(dr):
     if ( dr == 'vol_' ): 
         ifx = open("energy-vs-volume","r")   
-    else:
-        ifx = open("energy-vs-strain","r") 
+    else: 
+        if ( dr[:3] == 'Dst'):
+            ifx = open(dr[:5]+"-Energy.dat","r") 
+        else:
+            ifx = open("energy-vs-strain","r") 
         
     x = []
         
@@ -89,6 +93,16 @@ def readstrain(dr):
     ifx.close()
     return x
     
+#-------------------------------------------------------------------------------
+
+current = os.environ['PWD']
+ev_list = os.environ.keys()
+
+rundir = shell_value('EXCITINGRUNDIR',ev_list,current)[0]
+rlabel = shell_value('RLABEL',ev_list,"rundir-")[0]
+showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
+dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
+   
 #-------------------------------------------------------------------------------
 
 narg  = len(sys.argv)-1
@@ -107,6 +121,26 @@ if (len(sys.argv) > 3): a2 = str(sys.argv[3])
 directoryroot = 'vol_'
 if (len(sys.argv) > 1): directoryroot = str(sys.argv[1])
 list_dir = glob.glob(directoryroot+"*")
+
+#-------------------------------------------------------------------------------
+
+if (str(os.path.exists(current+'/'+list_dir[0]+'/input.xml'))=='False'): 
+    sys.exit("ERROR: Input file "+current+"/"+list_dir[0]+"/input.xml not found!\n")
+
+acoord = "lattice"
+
+input_obj = open(current+"/"+list_dir[0]+"/input.xml","r")
+input_doc = etree.parse(input_obj)
+input_rut = input_doc.getroot()
+ 
+xml_cartesian = map(str,input_doc.xpath('/input/structure/@cartesian'))
+if (xml_cartesian == []):
+    acoord = "lattice"
+else:
+    if (xml_cartesian[0] == "true"): 
+        acoord = "cartesian"   
+
+#-------------------------------------------------------------------------------
 
 xx = [] ; x0 = []
 y1 = [] ; y2 = [] ; y3 = [] 
@@ -134,19 +168,9 @@ xx = readstrain(directoryroot)
 x0.append(xx[0])
 x0.append(xx[-1])
         
-ylabel  = r'Relative coordinate [crystal]'
+ylabel  = r'Relative coordinate ('+acoord+')'
 xlabel  = r'Lagrangian strain'
 if ( directoryroot == 'vol_' ): xlabel  = u'Volume [Bohr\u00B3]'
-
-#-------------------------------------------------------------------------------
-
-current = os.environ['PWD']
-ev_list = os.environ.keys()
-
-rundir = shell_value('EXCITINGRUNDIR',ev_list,current)[0]
-rlabel = shell_value('RLABEL',ev_list,"rundir-")[0]
-showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
-dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 
 #-------------------------------------------------------------------------------
 # manipulate data for a better plot

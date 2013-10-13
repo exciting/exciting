@@ -74,9 +74,8 @@
                     call writepositions(60,input%relax%outputlevelnumber) 
                     call writeforce(60,input%relax%outputlevelnumber)
                 end if
-                if (input%relax%outputlevelnumber>1)  then 
-                    call writechg (60,input%relax%outputlevelnumber)          
-                end if
+                if (input%relax%outputlevelnumber>1) call writechg (60,input%relax%outputlevelnumber)          
+                if (input%relax%printtorque) call writetorque(60)          
                 call flushifc(60)
 
 !_____________________________________________________________

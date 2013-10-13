@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
+from   lxml  import etree
 from   sys   import stdin
 from   math  import sqrt
 from   math  import factorial
@@ -34,11 +35,6 @@ def flen(fname):
 
 #-------------------------------------------------------------------------------
 
-xlabel  = u'Optimization steps'
-ylabel  = r'Relative coordinate [crystal]'
-
-#-------------------------------------------------------------------------------
-
 current = os.environ['PWD']
 ev_list = os.environ.keys()
 
@@ -57,6 +53,41 @@ if (narg < 1):
     sys.exit()
 
 label = str(sys.argv[1])
+
+#-------------------------------------------------------------------------------
+
+if (str(os.path.exists(current+'/'+rlabel+label+'/input.xml'))=='False'): 
+    sys.exit("ERROR: Input file "+current+"/"+rlabel+label+"/input.xml not found!\n")
+
+acoord = "lattice"
+cell = []
+for i in range(3): cell.append(1.) 
+
+input_obj = open(current+"/"+rlabel+label+"/input.xml","r")
+input_doc = etree.parse(input_obj)
+input_rut = input_doc.getroot()
+ 
+xml_cartesian = map(str,input_doc.xpath('/input/structure/@cartesian'))
+if (xml_cartesian == []):
+    acoord = "lattice"
+else:
+    if (xml_cartesian[0] == "true"): 
+        acoord = "cartesian"   
+        lst_basevect = input_doc.xpath('//basevect/text()')
+        xml_basevect = []
+        for ind_basevect in lst_basevect: xml_basevect.append(map(float,ind_basevect.split()))
+        axis_matrix = numpy.array(xml_basevect)        
+        cell = []
+        for i in range(3): cell.append(axis_matrix[i][i])
+        count = False
+        for i in range(3):
+	    for j in range(3):
+                if (i!=j):
+		    if ( abs(axis_matrix[i][j]) > 0.00000001): count = True
+        if (count): sys.exit("\n"+"ERROR: Lattice type non implemented!\n")
+        
+xlabel  = u'Optimization steps'
+ylabel  = r'Relative coordinate ('+acoord+')'
 
 #-------------------------------------------------------------------------------
 
@@ -143,8 +174,8 @@ while True:
         h.append(d2[iter-1])
         h.append(d3[iter-1])
         for i in range(3): 
-            if ((g[i]-h[i]) > soglia): g[i] = g[i]-1.    
-            if ((h[i]-g[i]) > soglia): g[i] = g[i]+1. 
+            if ((g[i]-h[i]) > soglia*cell[i]): g[i] = g[i]-cell[i]    
+            if ((h[i]-g[i]) > soglia*cell[i]): g[i] = g[i]+cell[i] 
             
     d1.append(g[0])
     d2.append(g[1])

@@ -159,7 +159,7 @@ for i in range(1, ECs+1):
         sys.exit('.... Oops ERROR: Where is the '+ Dstn +' directory !?!?!?    \n')    
     os.chdir(Dstn)
 
-    f = open(Dstn+'_Energy.dat', 'w')
+    f = open(Dstn+'-Energy.dat', 'w')
 
     for j in range(1, NoP+1):
         if (j<10):
@@ -204,7 +204,7 @@ if (os.path.exists('Energy-vs-Strain')):
 os.mkdir('Energy-vs-Strain')
 os.chdir('Energy-vs-Strain')
 
-os.system('cp -f ../Dst??/Dst??_Energy.dat .')
+os.system('cp -f ../Dst??/Dst??-Energy.dat .')
 
 #%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
 #%!%!% ------------ Calculating the second derivative and Cross-Validation Error ----------- %!%!%#
@@ -236,7 +236,7 @@ for i in range(1, ECs+1):
         print >> fE, '\n# '+ nth +' order fit.'
 
         #--- Reading the input files --------------------------------------------------------------
-        eta_ene= open(Dstn+'_Energy.dat', 'r')
+        eta_ene= open(Dstn+'-Energy.dat', 'r')
 
         nl     = 0
         strain = []
@@ -253,7 +253,7 @@ for i in range(1, ECs+1):
             elif (len(line) == 0): pass
             else:
                 sys.exit('\n.... Oops ERROR: Strain and Energy are NOT defined correctly in "' +\
-                          Dstn+'_Energy.dat" !?!?!?\n')
+                          Dstn+'-Energy.dat" !?!?!?\n')
 
         eta_ene.close()
         strain, energy = sortlist(strain, energy)
