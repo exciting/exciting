@@ -383,11 +383,14 @@ Subroutine dos
           Call xml_endElement (xf, "diagram")
         End Do
         Call xml_endElement (xf, "interstitialdos")
-        Close (50)
-        Call xml_close (xf)
 
       End If ! lmirep
 
+! close files
+      Close (50)
+      Call xml_endElement (xf, "dos")
+      Call xml_close (xf)
+      
       Deallocate (e, f, w, g, gp, bc)
       If (input%properties%dos%lmirep) deallocate (elm, ulm, a)
       Deallocate (dmat, sdmat, apwalm, evecfv, evecsv)
@@ -395,7 +398,6 @@ Subroutine dos
 !-----------------------------------
 ! Screen info
 !-----------------------------------
-
       Write(*,*)
       Write(*, '("Info(dos):")')
       Write(*, '(" Total density of states written to TDOS.OUT")')
