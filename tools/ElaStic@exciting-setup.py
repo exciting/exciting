@@ -1,31 +1,20 @@
 #!/usr/bin/env python
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-#%%%--------------------------------- ElaStic@exciting-setup ----------------------------------%%%#
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
+#%!%!%------------------------------- ElaStic@exciting-setup.py -----------------------------%!%!%#
+#%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
 #
 # AUTHORS:
-# Rostam Golesorkhtabar and Pasquale Pavone 
-# r.golesorkhtabar@mcl.at
+# Rostam Golesorkhtabar and Pasquale Pavone
+# r.golesorkhtabar@gmail.com
 # 
 # DATE:
-# Sun Jan 01 00:00:00 2012
+# Tue Jan 01 00:00:00 2013
 #
 # SYNTAX:
 # python ElaStic@exciting-setup.py
-#        ElaStic@exciting-setup
 # 
 # EXPLANATION:
 # 
-#__________________________________________________________________________________________________
-print'\
-\n     +-----------------------------------------------------------------+\
-\n     |*****************************************************************|\
-\n     |*                                                               *|\
-\n     |*                WELCOME TO THE ElaStic@exciting                *|\
-\n     |*        ElaStic Version 1.0.0, Release Date: 2012-01-01        *|\
-\n     |*                                                               *|\
-\n     |*****************************************************************|\
-\n     +-----------------------------------------------------------------+'
 #__________________________________________________________________________________________________
 
 from lxml  import etree as ET
@@ -39,7 +28,7 @@ import math
 import sys
 import os
 
-#%%%--- DICTIONARIS ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- DICTIONARIS ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 Ls_Dic={                       \
 '01':[ 1., 1., 1., 0., 0., 0.],\
 '02':[ 1., 0., 0., 0., 0., 0.],\
@@ -68,23 +57,20 @@ Ls_Dic={                       \
 '25':[ .5,-1., .5, 0., 0., 0.],\
 '26':[ .5, .5,-1., 0., 0., 0.],\
 '27':[ 1.,-1., 0., 0., 0., 0.],\
-'28':[ 1.,-1., 0., 2., 0., 0.],\
-'29':[ 1.,-1., 0., 0., 0., 2.],\
-'30':[ 1., 0.,-1., 0., 2., 0.],\
-'31':[ 0., 1.,-1., 0., 0., 2.],\
-'32':[ 1., 1.,-1., 2., 2., 2.],\
-'33':[ 1., 0., 0., 2., 2., 0.],\
-'34':[ 0., 1., 0., 2., 2., 0.],\
-'35':[ 1., 1., 0., 2., 2., 0.],\
-'36':[ 1., 1., 0., 2., 0., 0.],\
-'37':[ 1., 1.,-1., 0., 0., 0.],\
-'38':[ 1., 1., 1.,-2.,-2.,-2.],\
-'39':[ 1., 2., 3., 4., 5., 6.],\
-'40':[-2., 1., 4.,-3., 6.,-5.],\
-'41':[ 3.,-5.,-1., 6., 2.,-4.],\
-'42':[-4.,-6., 5., 1.,-3., 2.],\
-'43':[ 5., 4., 6.,-2.,-1.,-3.],\
-'44':[-6., 3.,-2., 5.,-4., 1.]}
+'28':[ 1.,-1., 0., 0., 0., 2.],\
+'29':[ 0., 1.,-1., 0., 0., 2.],\
+'30':[ .5, .5,-1., 0., 0., 2.],\
+'31':[ 1., 0., 0., 2., 2., 0.],\
+'32':[ 1., 1.,-1., 0., 0., 0.],\
+'33':[ 1., 1., 1.,-2.,-2.,-2.],\
+'34':[ .5, .5,-1., 2., 2., 2.],\
+'35':[ 0., 0., 0., 2., 2., 4.],\
+'36':[ 1., 2., 3., 4., 5., 6.],\
+'37':[-2., 1., 4.,-3., 6.,-5.],\
+'38':[ 3.,-5.,-1., 6., 2.,-4.],\
+'39':[-4.,-6., 5., 1.,-3., 2.],\
+'40':[ 5., 4., 6.,-2.,-1.,-3.],\
+'41':[-6., 3.,-2., 5.,-4., 1.]}
 
 Ls_str={                                     \
 '01':'(  eta,  eta,  eta,  0.0,  0.0,  0.0)',\
@@ -114,23 +100,20 @@ Ls_str={                                     \
 '25':'(.5eta, -eta,.5eta,  0.0,  0.0,  0.0)',\
 '26':'(.5eta,.5eta, -eta,  0.0,  0.0,  0.0)',\
 '27':'(  eta, -eta,  0.0,  0.0,  0.0,  0.0)',\
-'28':'(  eta, -eta,  0.0, 2eta,  0.0,  0.0)',\
-'29':'(  eta, -eta,  0.0,  0.0,  0.0, 2eta)',\
-'30':'(  eta,  0.0, -eta,  0.0, 2eta,  0.0)',\
-'31':'(  0.0,  eta, -eta,  0.0,  0.0, 2eta)',\
-'32':'(  eta,  eta, -eta, 2eta, 2eta, 2eta)',\
-'33':'(  eta,  0.0,  0.0, 2eta, 2eta,  0.0)',\
-'34':'(  0.0,  eta,  0.0, 2eta, 2eta,  0.0)',\
-'35':'(  eta,  eta,  0.0, 2eta, 2eta,  0.0)',\
-'36':'(  eta,  eta,  0.0, 2eta,  0.0,  0.0)',\
-'37':'(  eta,  eta, -eta,  0.0,  0.0,  0.0)',\
-'38':'(  eta,  eta,  eta,-2eta,-2eta,-2eta)',\
-'39':'( 1eta, 2eta, 3eta, 4eta, 5eta, 6eta)',\
-'40':'(-2eta, 1eta, 4eta,-3eta, 6eta,-5eta)',\
-'41':'( 3eta,-5eta,-1eta, 6eta, 2eta,-4eta)',\
-'42':'(-4eta,-6eta, 5eta, 1eta,-3eta, 2eta)',\
-'43':'( 5eta, 4eta, 6eta,-2eta,-1eta,-3eta)',\
-'44':'(-6eta, 3eta,-2eta, 5eta,-4eta, 1eta)'}
+'28':'(  eta, -eta,  0.0,  0.0,  0.0, 2eta)',\
+'29':'(  0.0,  eta, -eta,  0.0,  0.0, 2eta)',\
+'30':'(.5eta,.5eta, -eta,  0.0,  0.0, 2eta)',\
+'31':'(  eta,  0.0,  0.0, 2eta, 2eta,  0.0)',\
+'32':'(  eta,  eta, -eta,  0.0,  0.0,  0.0)',\
+'33':'(  eta,  eta,  eta,-2eta,-2eta,-2eta)',\
+'34':'(.5eta,.5eta, -eta, 2eta, 2eta, 2eta)',\
+'35':'(  0.0,  0.0,  0.0, 2eta, 2eta, 4eta)',\
+'36':'( 1eta, 2eta, 3eta, 4eta, 5eta, 6eta)',\
+'37':'(-2eta, 1eta, 4eta,-3eta, 6eta,-5eta)',\
+'38':'( 3eta,-5eta,-1eta, 6eta, 2eta,-4eta)',\
+'39':'(-4eta,-6eta, 5eta, 1eta,-3eta, 2eta)',\
+'40':'( 5eta, 4eta, 6eta,-2eta,-1eta,-3eta)',\
+'41':'(-6eta, 3eta,-2eta, 5eta,-4eta, 1eta)'}
 
 LC_Dic = {              \
 'CI' :'Cubic I'        ,\
@@ -146,32 +129,32 @@ LC_Dic = {              \
 'N'  :'Triclinic'} 
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Reading the method of the elastic constants calculations ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Reading the method of the elastic constants calculations ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 #print '\n     Energy  ---=>  1    \
 #       \n     Stress  ---=>  2    '
-#num = input('>>>> Please choose the method of the calculation (choose 1 or 2): ')
+#num = input('>>>> Please choose the method of the calculation (choose \'1\' or \'2\'): ')
 #if (num != 1 and num != 2):
-#    sys.exit("\n     ... Oops ERROR: Choose '1' or '2' \n")
+#    sys.exit("\n.... Oops ERROR: Choose '1' or '2' \n")
 #if (num == 1 ): mthd = 'Energy'
 #if (num == 2 ): mthd = 'Stress'
 mthd = 'Energy'
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Reading the order of the elastic constants ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Reading the order of the elastic constants ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 print '\n     2nd  ---=>  2    \
        \n     3rd  ---=>  3    '
 ordr = input('>>>> Please choose the order of the elastic constant (choose \'2\' or \'3\'): ')
 if (ordr != 2 and ordr != 3 ):
-    sys.exit("\n     ... Oops ERROR: Choose '2' or '3' \n")
+    sys.exit("\n.... Oops ERROR: Choose '2' or '3' \n")
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Checking the input file exist ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Checking the input file exist ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 INF = raw_input('\n>>>> Please enter the exciting input file name: ')
 if (os.path.exists(INF) == False):
-    sys.exit('\n    ... Oops ERROR: There is NO file with "'+ INF +'" name !?!?!?    \n')
+    sys.exit('\n.... Oops ERROR: There is NO file with "'+ INF +'" name !?!?!?    \n')
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Calculate Space-group number and classify it ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Calculate Space-group number and classify it ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 os.system('xsltproc $EXCITINGSCRIPTS/exciting2sgroup.xsl '+ INF +' > sgroup.in')
 os.system('sgroup sgroup.in 1>sgroup.out 2>sgroup.err')
 os.system('rm -f sgroup.in ')
@@ -179,7 +162,7 @@ os.system('rm -f sgroup.in ')
 if (os.path.getsize('sgroup.err') != 0):
     fer  = open('sgroup.err', 'r')
     lines= fer.readlines()
-    print '\n     ... Oops '+ lines[0]
+    print '\n.... Oops '+ lines[0]
     for i in range(1, len(lines)):
         print '                 '+ lines[i]
     fer.close()
@@ -199,17 +182,17 @@ for i in range(len(SGlins)):
 if (1 <= SGN and SGN <= 2):      # Triclinic
     LC = 'N'
     if (ordr == 2): ECs = 21
-    if (ordr == 3): ECs = 56  
+    if (ordr == 3): ECs = 56
 
 elif(3 <= SGN and SGN <= 15):    # Monoclinic
     LC = 'M'
     if (ordr == 2): ECs = 13
-    if (ordr == 3): ECs = 32 
+    if (ordr == 3): ECs = 32
 
 elif(16 <= SGN and SGN <= 74):   # Orthorhombic
     LC = 'O'
     if (ordr == 2): ECs =  9
-    if (ordr == 3): ECs = 20 
+    if (ordr == 3): ECs = 20
 
 elif(75 <= SGN and SGN <= 88):   # Tetragonal II
     LC = 'TII'
@@ -219,7 +202,7 @@ elif(75 <= SGN and SGN <= 88):   # Tetragonal II
 elif(89 <= SGN and SGN <= 142):  # Tetragonal I
     LC = 'TI'
     if (ordr == 2): ECs =  6
-    if (ordr == 3): ECs = 12  
+    if (ordr == 3): ECs = 12
 
 elif(143 <= SGN and SGN <= 148): # Rhombohedral II 
     LC = 'RII'
@@ -250,7 +233,7 @@ elif(207 <= SGN and SGN <= 230): # Cubic I
     LC = 'CI'
     if (ordr == 2): ECs =  3
     if (ordr == 3): ECs =  6
-else: sys.exit('\n     ... Oops ERROR: WRONG Space-Group Number !?!?!?    \n')
+else: sys.exit('\n.... Oops ERROR: WRONG Space-Group Number !?!?!?    \n')
 
 if (ordr == 2): order = 'second'
 if (ordr == 3): order = 'third'
@@ -259,7 +242,7 @@ print '\n     '+ SGN_explanation +'\
        \n     This structure has '+ str(ECs) +' independent '+ order +'-order elastic constants.'
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Reading the maximum Lagrangian strain ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Reading the maximum Lagrangian strain ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 if (mthd == 'Energy'):
     mdr = input('\n>>>> Please enter the maximum Lagrangian strain '\
                 '\n     The suggested value is between 0.030 and 0.150: ')
@@ -268,20 +251,20 @@ if (mthd == 'Stress'):
                 '\n     The suggested value is between 0.0010 and 0.0050: ')
 
 if (1 < mdr or mdr < 0):
-    sys.exit('\n     ... Oops ERROR: The maximum Lagrangian strain is out of range !!!!!!\n')
+    sys.exit('\n.... Oops ERROR: The maximum Lagrangian strain is out of range !!!!!!\n')
 
 mdr = round(mdr, 3)
 print '     The maximum Lagrangian strain is '+ str(mdr) + '\n'
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Reading the number of the distorted structures ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Reading the number of the distorted structures ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 NoP = input('>>>> Please enter the number of the distorted structures [odd number > 4]: ')
 NoP = int(abs(NoP))
 
 if (NoP < 5):
-    sys.exit('\n     ... Oops ERROR: The NUMBER of the distorted structures < 5 !!!!!!    \n')
+    sys.exit('\n.... Oops ERROR: The NUMBER of the distorted structures < 5 !!!!!!    \n')
 if (99 < NoP):
-    sys.exit('\n     ... Oops ERROR: The NUMBER of the distorted structures > 99 !!!!!!   \n')
+    sys.exit('\n.... Oops ERROR: The NUMBER of the distorted structures > 99 !!!!!!   \n')
 
 if (NoP%2 == 0):
     NoP   += 1
@@ -293,12 +276,12 @@ if (mthd == 'Energy'): interval = 0.0001
 if (mthd == 'Stress'): interval = 0.00001
 
 if (mdr/ptn <= interval):
-    sys.exit('     ... Oops ERROR: The interval of the strain values is < '+ str(interval) +\
-           '\n                     Choose a larger maximum Lagrangian strain'\
-           '\n                     or a less number of distorted structures.\n')
+    sys.exit('.... Oops ERROR: The interval of the strain values is < '+ str(interval) +\
+           '\n                 Choose a larger maximum Lagrangian strain'\
+           '\n                 or a less number of distorted structures.\n')
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Reading the input file ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Reading the input file ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 INOBJ= open(INF, 'r')
 doc  = ET.parse(INOBJ)
 root = doc.getroot()
@@ -307,7 +290,9 @@ root = doc.getroot()
 #%%-- Reading the scale, stretch, and base vectors from the input file and calculate the volume -%%
 scale = map(float,doc.xpath('/input/structure/crystal/@scale'))
 if (scale==[]):
-    sys.exit('\n     ... Oops ERROR: There is NO scale in '+ INF +' file !?!?!?    \n')
+    ascale=1.
+else:
+    ascale=scale[0]
 
 stretchstr = doc.xpath('/input/structure/crystal/@stretch')
 if (stretchstr==[]):
@@ -321,10 +306,10 @@ for basevect in basevectsn:
 
 M_old= np.array(bv)
 D    = np.linalg.det(M_old)
-V0   = abs(stretch[0]*stretch[1]*stretch[2]*scale[0]**3*D)
+V0   = abs(stretch[0]*stretch[1]*stretch[2]*ascale**3*D)
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Writing the INFO_ElaStic file ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Writing the INFO_ElaStic file ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 INFO = open('INFO_ElaStic','w')
 print >>INFO, 'Order of elastic constants      =', ordr         ,\
             '\nMethod of calculation           =', mthd         ,\
@@ -336,7 +321,7 @@ print >>INFO, 'Order of elastic constants      =', ordr         ,\
 INFO.close
 #--------------------------------------------------------------------------------------------------
 
-#%%%--- Directory management ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Directory management ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 OLDlist = glob.glob('Dst??_old')
 for Dstn_old in OLDlist:
     shutil.rmtree(Dstn_old)
@@ -388,17 +373,17 @@ if (mthd == 'Energy'):
         if (LC == 'RI'):
             Lag_strain_list = ['01','08','04','02','05','10','11','26','09','03','17','34','33','35']
         if (LC == 'RII'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'TI'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'TII'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'O'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'M'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'N'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
 
 if (mthd == 'Stress'):
     if (ordr == 2):
@@ -423,31 +408,31 @@ if (mthd == 'Stress'):
 
     if (ordr == 3):
         if (LC == 'CI'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'CII'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'HI'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'HII'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'RI'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'RII'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'TI'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'TII'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'O'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'M'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
         if (LC == 'N'):
-            sys.exit('\n     ... Oops SORRY: Not implemented yet. \n')
+            sys.exit('\n.... Oops SORRY: Not implemented yet. \n')
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-###------------------------------------- Structures maker --------------------------------------###
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
+#%!%! ---------------------------------- Structures Maker ----------------------------------- !%!%#
+#%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
 fdis = open('Distorted_Parameters','w')
 cont1= 0
 for i in Lag_strain_list:
@@ -494,7 +479,7 @@ for i in Lag_strain_list:
 
         eps_matrix = eta_matrix
         if (linalg.norm(eta_matrix) > 0.7):
-            sys.exit('\n     ... Oops ERROR: Too large deformation!\n') 
+            sys.exit('\n.... Oops ERROR: Too large deformation!\n') 
 
         while( norm > 1.e-10 ):
             x          = eta_matrix - dot(eps_matrix, eps_matrix)/2.
@@ -527,14 +512,14 @@ for i in Lag_strain_list:
         os.chdir(Dstn_cont2)
 
         # Writing the structure file --------------------------------------------------------------
-        fileName = Dstn_cont2 + '.xml'             
+        fileName = Dstn_cont2 + '.xml'
         OUTOBJ   = open(fileName, 'w')
         OUTOBJ.write(ET.tostring(root, method         ='xml',
                                        pretty_print   =True ,
                                        xml_declaration=True ,
                                        encoding       ='UTF-8'))
         OUTOBJ.close()
-        #------------------------------------------------------------------------------------------
+        # -----------------------------------------------------------------------------------------
         os.chdir('../')
     os.chdir('../')
 fdis.close()

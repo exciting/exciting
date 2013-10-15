@@ -216,19 +216,18 @@ subroutine lbfgs_driver
 
           if (rank==0) then
 
-              if (input%relax%outputlevelnumber>1)  write(60,*)
+              if (input%relax%outputlevelnumber>1) write(60,*)
               write(60,'(" Number of investigated configurations  : ",I5)') nconf
               write(60,'(" Number of total scf iterations         : ",I5)') nscf
               write(60,'(" Maximum force magnitude       (target) : ",F14.8,"    (", F14.8, ")")') &
              &  forcemax, input%relax%epsforce
               write(60,'(" Total energy at this optimization step :",F19.9)') engytot
-              if (input%relax%outputlevelnumber>0)  then 
+              if (input%relax%outputlevelnumber>0) then 
                   call writepositions(60,input%relax%outputlevelnumber) 
                   call writeforce(60,input%relax%outputlevelnumber)                    
               end if
-              if (input%relax%outputlevelnumber>1)  then 
-                  call writechg (60,input%relax%outputlevelnumber)          
-              end if
+              if (input%relax%outputlevelnumber>1) call writechg (60,input%relax%outputlevelnumber)          
+              if (input%relax%printtorque) call writetorque(60)          
               call flushifc(60)
 
 !_____________________________________________________________

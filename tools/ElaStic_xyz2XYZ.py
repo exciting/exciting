@@ -1,22 +1,21 @@
 #!/usr/bin/env python 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-#%%% --------------------------------------------------- ElaStic_xyz2XYZ --------------------------------------------------- %%%#
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
+#%!%!% ---------------------------------- ElaStic_xyz2XYZ ---------------------------------- %!%!%#
+#%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
 #
 # AUTHORS:
-# Rostam Golesorkhtabar and Pasquale Pavone 
-# r.golesorkhtabar@mcl.at
+# Rostam Golesorkhtabar and Pasquale Pavone
+# r.golesorkhtabar@gmail.com
 # 
 # DATE:
-# Sun Jan 01 00:00:00 2012 
+# Tue Jan 01 00:00:00 2013
 #
 # SYNTAX:
 # python ElaStic_xyz2XYZ.py 
-#        ElaStic_xyz2XYZ
 #
 # EXPLANATION:
 # 
-#________________________________________________________________________________________________________________________________
+#__________________________________________________________________________________________________
 
 from sys   import stdin
 from numpy import *
@@ -29,7 +28,7 @@ import time
 import sys
 import os
 
-#%%%--- SUBROUTINS AND FUNCTIONS ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- SUBROUTINS AND FUNCTIONS ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 def C9nmop(m,n,o,p):
     S=0.
     for i in range(3):
@@ -39,14 +38,14 @@ def C9nmop(m,n,o,p):
                     S = S + TM[m,i]*TM[n,j]*TM[o,k]*TM[p,l]*C9o[i,j,k,l]
     C9n[m,n,o,p] = S
     return C9n[m,n,o,p]
-#--------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 
 def myabs(x):
     y=sqrt(x**2)
     return y
-#--------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 
-#%%%--- Checking the Transformation_Matrix file exist ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Checking the Transformation_Matrix file exist ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 if (os.path.exists('Transformation_Matrix') == False):
     sys.exit('\n.... Oops ERROR: There is NO file with "Transformation_Matrix" name.\n\n\
      In order to transform elastic constant matrix from old cartision coordinate\n\
@@ -60,13 +59,13 @@ if (os.path.exists('Transformation_Matrix') == False):
      i\', j\' and k\' are unit vectors in new coordinate systems and            \n\
      i, j and k are unit vectors in old coordinate systems.                     \n')
 
-#--------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 
 lineseparator=' '
 for i in range(0,79):
     lineseparator=lineseparator+'%'
 
-#%%%--- Reading the Transformation_Matrix file ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Reading the Transformation_Matrix file ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 TM_f = open('Transformation_Matrix', 'r')
 TM = zeros((3,3))
 
@@ -85,7 +84,7 @@ for i in range(3):
        sys.exit('\n.... Oops ERROR: TRANSFORMATION MATRIX IS WRONG'\
                 '\n                 Sum of squares on each rows should be one.\n')  
 
-#--------------------------------------------------------------------------------------------------------------------------------      
+#--------------------------------------------------------------------------------------------------
 infile = 'ElaStic_2nd.out'
 outfile= 'xyz2XYZ_2nd.out'
 
@@ -101,7 +100,7 @@ if (os.path.exists(infile)):
             C6o[i,j] = line.split()[j]
 
     C9o = zeros((3,3,3,3))
-#%%%--- Making the C9o Matrix ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    #%!%!%--- Making the C9o Matrix ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
     C9o[0,0,0,0] = C6o[0,0]; C9o[0,0,0,1] = C6o[0,5]; C9o[0,0,0,2] = C6o[0,4]
     C9o[0,0,1,0] = C6o[0,5]; C9o[0,0,1,1] = C6o[0,1]; C9o[0,0,1,2] = C6o[0,3]
     C9o[0,0,2,0] = C6o[0,4]; C9o[0,0,2,1] = C6o[0,3]; C9o[0,0,2,2] = C6o[0,2]
@@ -137,7 +136,7 @@ if (os.path.exists(infile)):
     C9o[2,2,0,0] = C6o[0,2]; C9o[2,2,0,1] = C6o[2,5]; C9o[2,2,0,2] = C6o[2,4]
     C9o[2,2,1,0] = C6o[2,5]; C9o[2,2,1,1] = C6o[1,2]; C9o[2,2,1,2] = C6o[2,3]
     C9o[2,2,2,0] = C6o[2,4]; C9o[2,2,2,1] = C6o[2,3]; C9o[2,2,2,2] = C6o[2,2]
-#--------------------------------------------------------------------------------------------------------------------------------
+    #----------------------------------------------------------------------------------------------
     C6n = zeros((6,6))
     C9n = zeros((3,3,3,3))
     C9nmop(0,0,0,0) ;  C6n[0,0] = C9n[0,0,0,0]
@@ -167,7 +166,7 @@ if (os.path.exists(infile)):
 
     C9nmop(0,1,0,1) ;  C6n[5,5] = C9n[0,1,0,1]
 
-#%%%--- Calculating the elastic moduli ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    #%!%!%--- Calculating the elastic moduli ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
     BV = (C6n[0,0]+C6n[1,1]+C6n[2,2]+2*(C6n[0,1]+C6n[0,2]+C6n[1,2]))/9
     GV = ((C6n[0,0]+C6n[1,1]+C6n[2,2])-(C6n[0,1]+C6n[0,2]+C6n[1,2])+3*(C6n[3,3]+C6n[4,4]+C6n[5,5]))/15
     EV = (9*BV*GV)/(3*BV+GV)
@@ -182,9 +181,9 @@ if (os.path.exists(infile)):
     EH = (9.*BH*GH)/(3.*BH+GH)
     nuH= (1.5*BH-GH)/(3.*BH+GH)
     AVR= 100.*(GV-GR)/(GV+GR) 
-#--------------------------------------------------------------------------------------------------------------------------------
+    #----------------------------------------------------------------------------------------------
 
-#%%%--- Writing the output file ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%!%!%--- Writing the output file ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 fo = open(outfile, 'w')
 print >>fo,  '    The output of ElaStic_xyz2XYZ code                                    \n'\
              '    Today is '+ time.asctime() +                                         '\n'\
@@ -216,14 +215,14 @@ for i in range(0,6):
 
 print >>fo, '\n'+ lineseparator +'\n'
 
-print >>fo, '    Voigt bulk  modulus, K_V = {0}  GPa'.format('%8.2f'%(BV))
+print >>fo, '    Voigt bulk  modulus, B_V = {0}  GPa'.format('%8.2f'%(BV))
 print >>fo, '    Voigt shear modulus, G_V = {0}  GPa'.format('%8.2f'%(GV)) + '\n'
 
-print >>fo, '    Reuss bulk  modulus, K_R = {0}  GPa'.format('%8.2f'%(BR))
+print >>fo, '    Reuss bulk  modulus, B_R = {0}  GPa'.format('%8.2f'%(BR))
 print >>fo, '    Reuss shear modulus, G_R = {0}  GPa'.format('%8.2f'%(GR)) + '\n'
 
-print >>fo, '    Hill bulk  modulus, K_H  = {0}  GPa'.format('%8.2f'%(BH))
-print >>fo, '    Hill shear modulus, G_H  = {0}  GPa'.format('%8.2f'%(GH))
+print >>fo, '    Hill bulk  modulus,  B_H = {0}  GPa'.format('%8.2f'%(BH))
+print >>fo, '    Hill shear modulus,  G_H = {0}  GPa'.format('%8.2f'%(GH))
 
 print >>fo, '\n'+ lineseparator +'\n'
 
@@ -233,8 +232,8 @@ print >>fo, '    Voigt Poisson ratio, nu_V = {0}'     .format('%8.2f'%(nuV)) + '
 print >>fo, '    Reuss Young modulus,  E_R = {0}  GPa'.format('%8.2f'%(ER))
 print >>fo, '    Reuss Poisson ratio, nu_R = {0}'     .format('%8.2f'%(nuR)) + '\n'
 
-print >>fo, '    Hill Young modulus,  E_H  = {0}  GPa'.format('%8.2f'%(EH))
-print >>fo, '    Hill Poisson ratio, nu_H  = {0}'     .format('%8.2f'%(nuH))
+print >>fo, '    Hill Young modulus,   E_H = {0}  GPa'.format('%8.2f'%(EH))
+print >>fo, '    Hill Poisson ratio,  nu_H = {0}'     .format('%8.2f'%(nuH))
 
 print >>fo, '\n'+ lineseparator +'\n'
 
@@ -251,4 +250,4 @@ for i in range(6):
 print >>fo,'\n    ... Have a G00D Day, Week, Month, Year, and Century (if you are lucky) ...    '\
            '\n               Bye-Bye! Tschuess! Ciao! Poka! Zia Jian! KhodaHafez!             \n'
 fo.close()
-#--------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------

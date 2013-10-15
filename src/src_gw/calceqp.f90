@@ -201,7 +201,7 @@
          write(fgw,*) 'WARNING(calceqp): --- Failed to converge!!!'
       endif 
 !      
-!     Write quasi-particle energies into QPENE.OUT
+!     Write quasi-particle energies into EVALQP.OUT
 !      
       call writeqp(sigc,znorm)
       

@@ -66,7 +66,7 @@ if(getvalue("<xsl:value-of select="(@name|@ref|*/*/oldname)[last()]"/>"))
 my $output = new IO::File(">input.xml");
 my $writer = new XML::Writer(DATA_MODE => 1);
 $writer->xmlDecl("UTF-8");
-$writer->pi('xml-stylesheet', 'href="inputtohtml.xsl" type="text/xsl"');
+$writer->pi('xml-stylesheet', 'href="xmlinput2html.xsl" type="text/xsl"');
 
 $writer->startTag("input", 
     "xsi:noNamespaceSchemaLocation"=>"excitinginput.xsd",

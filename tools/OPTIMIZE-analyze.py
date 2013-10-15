@@ -108,11 +108,6 @@ INFO.close()
 
 #%%%--- plot definitions    ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-emt='%11.7f'
-fmt='%8.4f'
-bmt='%7.3f'
-pmt='%6.1f'
-
 params = {'axes.linewidth'        : 2.,
           'figure.subplot.bottom' : 0.14,
           'figure.subplot.right'  : 0.93, 
@@ -149,7 +144,7 @@ if (mod == 'VOL'):
         os.chdir('../')
 
     volume, energy = sortlist(volume, energy)
-
+    
     fvol = open('energy-vs-volume', 'w')
     for i in range(len(energy)):
         print >>fvol, volume[i],'   ', energy[i]
@@ -161,7 +156,7 @@ if (mod == 'VOL'):
     ei = ei*2.
 
     #%%%%%%%%--- Reading the fit type ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    fit = raw_input('\n>>>> Murnaghan or Birch-Murnaghan fit: [M/B] ').upper()
+    fit = raw_input('\n>>>> Murnaghan or Birch-Murnaghan EOS: [M/B] ').upper()
     if (fit != 'B' and fit != 'M'): sys.exit("\n.... Oops ERROR: Choose 'B' or 'M' \n")
 
     #%%%%%%%%--- FIT CALCULATIONS ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -183,23 +178,29 @@ if (mod == 'VOL'):
     B0_GPa = B0*cnvrtr
     fopt = fopt/(4.)
     fopt = sqrt(fopt)
-        
+      
     print\
-    '\n Log [Final residue in Hartree]:',pmt%(log10(fopt)),'\n'\
-    '\n === Final parameters ==='      \
-    '\n E0 = ',emt%(E0_dim), '  [Ha]'\
-    '\n V0 = ',fmt%(V0),' [a.u.^3]'\
-    '\n B0 = ',bmt%(B0_GPa),'     [GPa]'\
-    "\n B' = ",bmt%(Bp),\
-    "\n ========================\n"
-    
+    '\n =====================================================================',\
+    '\n Fit accuracy:',\
+    '\n     Log(Final residue in [Ha]): '+str(round(log10(fopt),2)),'\n'\
+    '\n Final parameters:',\
+    '\n     E_min = '+str(round(E0_dim,7))+' [Ha]',\
+    '\n     V_min = '+str(round(V0,4))+' [Bohr^3]',\
+    '\n     B_0   = '+str(round(B0_GPa,3))+' [GPa]',\
+    "\n     B'    = "+str(round(Bp,3)),'\n'
+
     vmn = min(np.min(vi), V0)
     vmx = max(np.max(vi), V0)
     dv  = vmx - vmn
     vfit = np.linspace(vmn-(0.1*dv), vmx+(0.1*dv), 1000)
 
-    if (fit=='M'): efit = M(p1, vfit)
-    if (fit=='B'): efit =BM(p1, vfit)
+    eoslabel = mod.lower()
+    if (fit=='M'): 
+        efit = M(p1, vfit)
+        eoslabel = 'M'
+    if (fit=='B'): 
+        efit =BM(p1, vfit)
+        eoslabel = 'BM'
 
     #%%%--- Writing the 'vol-optimized.xml' file ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     INOBJ= open(mod.lower()+'-xml/input.xml', 'r')
@@ -208,8 +209,10 @@ if (mod == 'VOL'):
 
     scale = map(float,doc.xpath('/input/structure/crystal/@scale'))
     if (scale==[]):
-        sys.exit('\n     ... Oops ERROR: There is NO scale in '+ INF +' file !?!?!?    \n')
-
+        ascale=1.
+    else:
+        ascale=scale[0]
+        
     stretchstr = doc.xpath('/input/structure/crystal/@stretch')
     if (stretchstr==[]):
         stretch=[1.,1.,1.]
@@ -223,14 +226,14 @@ if (mod == 'VOL'):
 
     M_old= np.array(bv)
     D    = np.linalg.det(M_old)
-    V0_in= abs(stretch[0]*stretch[1]*stretch[2]*scale[0]**3*D)
+    V0_in= abs(stretch[0]*stretch[1]*stretch[2]*ascale**3*D)
  
     crystal = doc.xpath('//crystal')
-    new_scale = scale[0]*(V0/V0_in)**(1./3.)
+    new_scale = ascale*(V0/V0_in)**(1./3.)
     crystal[0].set("scale",str(round(new_scale,10)))
 
     # Writing the structure file --------------------------------------------------------------------------------------
-    OUTOBJ   = open('vol-optimized.xml', 'w')
+    OUTOBJ   = open(eoslabel+'-optimized.xml', 'w')
     OUTOBJ.write(ET.tostring(root, method         ='xml',
                                    pretty_print   =True ,
                                    xml_declaration=True ,
@@ -245,15 +248,15 @@ if (mod == 'VOL'):
     xlabel = u'Volume [Bohr\u00B3]'
     ylabel = 'Energy [Ha]'
 
-    plt.text(0.35,0.75, 'E$_{min}$ = '+str(round(E0_dim,7))+' [Ha]',      transform = ax.transAxes)
-    plt.text(0.35,0.70, 'V$_{min}$ = '+str(round(V0,4))+u' [Bohr\u00B3]', transform = ax.transAxes)
-    plt.text(0.35,0.65, 'B$_0$ = '+str(round(B0_GPa,3))+' [GPa]',     transform = ax.transAxes)
-    plt.text(0.35,0.60, 'B$^\prime$  = '+str(round(Bp,3))       ,     transform = ax.transAxes)
+    plt.text(0.32,0.75, 'E$_{min}$ = '+str(round(E0_dim,7))+' [Ha]',      transform = ax.transAxes)
+    plt.text(0.32,0.70, 'V$_{min}$ = '+str(round(V0,4))+u' [Bohr\u00B3]', transform = ax.transAxes)
+    plt.text(0.32,0.65, 'B$_0$ = '    +str(round(B0_GPa,3))+' [GPa]',     transform = ax.transAxes)
+    plt.text(0.32,0.60, 'B$^\prime$ = '+str(round(Bp,3))       ,     transform = ax.transAxes)
 
     xx = [] ; xx = vfit
-    yy = [] ; yy = efit
+    yy = [] ; yy = efit/2.
     x0 = [] ; x0 = vi
-    y0 = [] ; y0 = ei
+    y0 = [] ; y0 = ei/2.
 
 #----------------------------------------------------------------------------------------------------------------------
 if (mod != 'VOL'):
@@ -281,7 +284,7 @@ if (mod != 'VOL'):
 
         if (r>0):
             strain ='+'+str(round(r,10))
-        else:
+        else:  
             strain = str(round(r,10))
 
         print >>fee, strain,'   ', readenergy()
@@ -373,9 +376,15 @@ if (mod != 'VOL'):
     plt.text(0.35,0.75, 'E$_{min}$ = '+str(round(e_min, 7))+' [Ha]', transform = ax.transAxes)
     plt.text(0.35,0.70, '$\epsilon_{min}$  = '+str(round(s_min,5)), transform = ax.transAxes)
     
+    print " ====================================================================="
+
 #----------------------------------------------------------------------------------------------------------------------
 
-print " Optimized structure saved to file:",mod.lower()+"-optimized.xml\n"
+plabel = mod.lower()
+if (mod == 'VOL'): plabel = eoslabel
+
+print " Optimized lattice parameters saved into the file: \""+plabel+"-optimized.xml\""
+print " =====================================================================\n"
 
 ax.set_xlabel(xlabel, fontsize = 18)
 ax.set_ylabel(ylabel, fontsize = 18)
@@ -398,7 +407,10 @@ ax.set_ylim(min(yy)-dyy,max(yy)+dyy)
 dxx = (max(xx)-min(xx))/18
 ax.set_xlim(min(xx)-dxx,max(xx)+dxx)
 
-plt.savefig(mod.lower()+'.png', orientation='portrait',format='png',dpi=80)
-plt.savefig(mod.lower()+'.ps', orientation='portrait',format='eps')
-plt.show()
+plabel = mod.lower()
+if (mod == 'VOL'): plabel = eoslabel+"_eos"
+
+plt.savefig(plabel+'.png', orientation='portrait',format='png',dpi=80)
+plt.savefig(plabel+'.eps', orientation='portrait',format='eps')
+#plt.show()
 #----------------------------------------------------------------------------------------------------------------------

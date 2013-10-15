@@ -34,9 +34,12 @@ Subroutine writeinfo (fnum)
 #ifdef TETRA
       logical :: tetocc
 #endif
-      Character (10) :: dat, tim
+      Character (10) :: dat, tim, acoord
       character*(77) :: string
       real(8) :: dumsum 
+
+      acoord = "lattice"
+      if (input%structure%cartesian) acoord = "cartesian"
 
       call printline(fnum,"=")
       write (string,'("EXCITING ", a, " started")') trim(versionname)
@@ -151,10 +154,14 @@ Subroutine writeinfo (fnum)
             Write (fnum, '("     # of radial points in muffin-tin  : ", I7)') nrmt (is) 
          end if
          Write (fnum,*)
-         Write (fnum, '("     atomic positions (lattice) :")')
+         Write (fnum, '("     atomic positions (",A,") :")') trim(acoord)
          Do ia = 1, natoms (is)
-            Write (fnum, '(T5,I4, " : ", 3F12.8)') ia, &
-           & input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+            if (input%structure%cartesian) then  
+                Write (fnum, '(T5,I4, " : ", 3F12.8)') ia, atposc(:,ia,is)
+            else
+                Write (fnum, '(T5,I4, " : ", 3F12.8)') ia, &
+               &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+            end if
          End Do
 
          if (dumsum .gt. input%structure%epslat) then

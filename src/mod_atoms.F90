@@ -37,6 +37,7 @@ Module mod_atoms
 ! atomic positions in Cartesian coordinates
       Real (8) :: atposc (3, _MAXATOMS_, _MAXSPECIES_)
       Real (8) :: atsave (3, _MAXATOMS_, _MAXSPECIES_)
+      Real (8) :: atposcm (3, _MAXATOMS_, _MAXSPECIES_)
       Real (8) :: atposc_1 (3, _MAXATOMS_, _MAXSPECIES_)
       Real (8) :: tsec1, tsec2
 !

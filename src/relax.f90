@@ -21,6 +21,7 @@ subroutine relax
     real(8) :: ts0, ts1
     Logical :: exist
     character*(77) :: string
+    character(10) :: acoord
 
 !_________________________________________________________________________________________________
 ! initialize step sizes, the previous forces, and atomic position in cartesian coordinates
@@ -40,6 +41,8 @@ subroutine relax
     End If
     forcetp (:, :) = 0.d0
     atposc_1(:,:,:) = atposc(:,:,:)
+    acoord = "lattice"
+    if (input%structure%cartesian) acoord = "cartesian"
 
 !_____________________________________________________________
 ! Write first (if required) the starting configuration on file
@@ -57,17 +60,9 @@ subroutine relax
             write(*,*)'ERROR(relax): Unknown output format'
             stop
         end select
-!       call system ('cp history.* backup.history')
         call writehistory
       end if
     end if
-
-!    if (rank .Eq. 0) then
-!      if (input%relax%history) then
-!        call system ('rm -rf history.*')   
-!        call writehistory
-!      end if
-!    end if
 
 !__________________________________________________
 ! Use "fromfile" option during the optimization run
@@ -75,7 +70,6 @@ subroutine relax
     task = 1
     istep = 0
     lstep = .False.
-!    call readstate
 
 !_______________________________
 ! Choose the optimization method
@@ -175,20 +169,25 @@ subroutine relax
 !____________________
 ! output optimization
 
-        !Write (60,*)
-        !Write (60,'(" Total energy at this optimization step :",F19.9)') engytot
         idm = 0
         write(60,*)
-        write(60,'(" Optimized atomic positions (lattice) :")')
+        write(60,'(" Optimized atomic positions (",A,") :")') trim(acoord)
         do is = 1, nspecies
             do ia = 1, natoms (is)
                 idm = idm+1
-                write(60,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
-               &  idm, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
-               &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+                if (input%structure%cartesian) then  
+                    write(60,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
+                   &  idm, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+                   &  atposc(:,ia,is)
+                else
+                    write(60,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
+                   &  idm, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+                   &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+                end if 
             end do
         end do
         call writeforce(60,2)  
+        !if (input%relax%printtorque) call writetorque(60) 
 
         call flushifc(60)
 
@@ -228,6 +227,7 @@ subroutine writeoptminitdata(fnum,verbosity)
     call writepositions(fnum,verbosity) 
     call writeforce(fnum,verbosity)
     if (verbosity > 1) call writechg(fnum,verbosity)
-    
+    if (input%relax%printtorque) call writetorque(60)
+   
     return
 end subroutine

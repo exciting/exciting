@@ -27,7 +27,10 @@ subroutine scf_cycle(verbosity)
     Integer :: n, nwork
     Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0
-    character*(77) :: string
+    character*(77) :: string, acoord
+
+    acoord = "lattice"
+    if (input%structure%cartesian) acoord = "cartesian"
 
     If ((verbosity>-1).and.(rank==0)) Then
         write(string,'("Self-consistent loop started")')
@@ -466,17 +469,17 @@ subroutine scf_cycle(verbosity)
 !! TIME - Fourth IO segment
         Call timesec(ts0)
 
+! output the current total time
+
+        timetot = timeinit+timemat+timefv+timesv+timerho+timepot+timefor+timeio+timemt+timemixer
+        if ((verbosity>-1).and.(rank==0)) then
+            write(60,*) 
+            write(60, '(" Wall time (seconds)                        : ", F12.2)') timetot
+        end if
+
 ! check for convergence
         If (iscl .Ge. 2) Then
 
-! output the current total time
-            timetot = timeinit + timemat + timefv + timesv + timerho &
-           &        + timepot + timefor+timeio+timemt+timemixer
-            
-            if ((verbosity>-1).and.(rank==0)) then
-                write(60,*)
-                write(60, '(" Wall time (seconds)                        : ", F12.2)') timetot
-            end if
             if ((verbosity>-1).and.(rank==0).and.(input%groundstate%scfconv.eq.'energy')) then
                 write(60,*)
                 write(60,'(" Absolute change in total energy   (target) : ",G13.6,"  (",G13.6,")")') &
@@ -490,20 +493,7 @@ subroutine scf_cycle(verbosity)
                 write(60,'(" Absolute change in total energy   (target) : ",G13.6,"  (",G13.6,")")') &
                &    deltae, input%groundstate%epsengy
                 write(60,'(" Charge distance                   (target) : ",G13.6,"  (",G13.6,")")') &
-                &   chgdst, input%groundstate%epschg
-!                if (input%groundstate%tforce) then
-!                   write(60,'(" Absolute change in |max. force|   (target) : ",G13.6,"  (",G13.6,")")') &
-!                   &    dforcemax, input%groundstate%epsforce
-!                end if
-!                write(66,'(G18.10)') deltae
-!                call flushifc(66)
-!                if (input%groundstate%tforce) then
-!                    write(67,'(G18.10)') dforcemax
-!                    call flushifc(67)
-!                end if
-!                write(68,'(G18.10)') chgdst
-!                call flushifc(68)
-
+               &    chgdst, input%groundstate%epschg
                 if ((input%groundstate%xctypenumber .Lt. 0).Or.(xctype(2) .Ge. 400).Or.(xctype(1) .Ge. 400)) then
                     write(60,*)
                     write(60, '(" Magnitude of OEP residual : ", F16.8)') resoep
@@ -591,13 +581,19 @@ subroutine scf_cycle(verbosity)
            call printbox(60,"-","Writing atomic positions and forces")
            idm = 0
            write(60,*)
-           write(60,'(" Atomic positions (lattice) :")')
+           write(60,'(" Atomic positions (",A,") :")') trim(acoord)
            do is = 1, nspecies
                do ia = 1, natoms (is)
                    idm = idm+1
-                   write(60,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
-                  &  idm, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
-                  &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+                   if (input%structure%cartesian) then  
+                       write(60,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
+                      &  idm, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+                      &  atposc(:,ia,is)
+                   else
+                       write(60,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
+                      &  idm, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+                      &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+                   end if
                end do
            end do
            call writeforce(60,2)

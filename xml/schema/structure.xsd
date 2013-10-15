@@ -222,21 +222,12 @@
 <!-- Giulio Biddau 1.11.2012-->
       <xs:attribute ex:importance="expert" ex:unit="" name="cartesian" type="xs:boolean" default="false">
         <xs:annotation>
-          <xs:documentation> If <pre>"true"</pre> the input is in cartesian                                                                             </xs:documentation>
+          <xs:documentation> 
+	  If <pre>"true"</pre> the input atomic positions are given in cartesian coordinates.
+	  </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-<!-- Giulio Biddau 1.11.2012                                                                                                                        <xs:attribute ex:importance="expert" ex:unit="" name="minverb" type="xs:boolean" default="false"> 
-        <xs:annotation>                                              
-          <xs:documentation> If <pre>"true"</pre> only few files are generated.                                                               
-         </xs:documentation>                                                                                                                  
-        </xs:annotation>                                                                                                                      
-      </xs:attribute>                                                                                                                         
-      <xs:attribute ex:importance="essential" ex:unit="" name="historyunit" type="xs:boolean" default="false">                                
-<xs:annotation>                                                                                                                               
-<xs:documentation> If <pre>"true"/"false"</pre> the units of HISTORY.OUT file are Angstrom/Bohr for positions and eV/Ang / Ha/Bohr for forces.
-</xs:documentation>                                                                                                                           
-</xs:annotation>                                                                                                                              
-</xs:attribute>-->
+<!-- Giulio Biddau 1.11.2012-->
       <xs:attribute ex:importance="expert" ex:unit="" name="rmtapm" type="vect2d"
         default="0.25d0 0.95d0">
         <xs:annotation>
