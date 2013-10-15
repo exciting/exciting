@@ -232,6 +232,7 @@ endif
 !------------------------------!
 !     interstitial density     !
 !------------------------------!
+if (.false.) then
       Do j = 1, nstsv
          t1 = wkpt (ik) * occsv (j, ik)
          If (Abs(t1) .Gt. input%groundstate%epsocc) Then
@@ -308,16 +309,17 @@ endif
 !
          End If
       End Do
+endif
       Deallocate (done, rflm, rfmt, apwalm, wfmt1, wfmt3, zfft)
       If (input%groundstate%tevecsv) deallocate (wfmt2)
 !      Call timesec (ts1)
 !$OMP CRITICAL
-      rhoir (:) = rhoir (:) + rhoir_k (:)
-!
+!      rhoir (:) = rhoir (:) + rhoir_k (:)
+
       rhomt (:, :, :) = rhomt (:, :, :) + rhomt_k (:, :, :)
       If (associated(input%groundstate%spin)) Then
          magmt (:, :, :, :) = magmt (:, :, :, :) + magmt_k (:, :, :, :)
-         magir (:, :) = magir (:, :) + magir_k (:, :)
+!        magir (:, :) = magir (:, :) + magir_k (:, :)
       End If
 !      timerho = timerho + ts1 - ts0
 !$OMP END CRITICAL

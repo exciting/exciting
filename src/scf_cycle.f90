@@ -230,28 +230,24 @@ subroutine scf_cycle
             magmt (:, :, :, :) = 0.d0
             magir (:, :) = 0.d0
         End If
+
+
 #ifdef MPIRHO
         Do ik = firstk (rank), lastk (rank)
 !write the occupancies to file
             Call putoccsv (ik, occsv(:, ik))
         End Do
         Do ik = firstk (rank), lastk (rank)
-#endif
-#ifndef MPIRHO
+#else
         If (rank .Eq. 0) Then
             Do ik = 1, nkpt
 !write the occupancies to file
                 Call putoccsv (ik, occsv(:, ik))
             End Do
         End If
-#ifdef KSMP
-! begin parallel loop over k-points
-! !$OMP PARALLEL DEFAULT(SHARED) &
-! !$OMP PRIVATE(evecfv,evecsv)
-! !$OMP DO
-#endif
         Do ik = 1, nkpt
 #endif
+
             Allocate (evecfv(nmatmax, nstfv, nspnfv))
             Allocate (evecsv(nstsv, nstsv))
 ! get the eigenvectors from file
@@ -262,18 +258,16 @@ subroutine scf_cycle
             timeio=ts1-ts0+timeio
 ! add to the density and magnetisation
             Call rhovalk (ik, evecfv, evecsv)
+            Call genrhoir (ik, evecfv, evecsv)
             Deallocate (evecfv, evecsv)
             Call timesec(ts0)
         End Do
-#ifndef MPIRHO
-#ifdef KSMP
-! !$OMP END DO
-! !$OMP END PARALLEL
-#endif
-#endif
+
 #ifdef MPIRHO
         Call mpisumrhoandmag
 #endif
+
+
 #ifdef MPI
         If ((input%groundstate%xctypenumber.Lt.0).Or.(xctype(2).Ge.400).Or.(xctype(1).Ge.400)) &
        &    Call mpiresumeevecfiles()

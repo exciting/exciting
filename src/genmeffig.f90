@@ -31,6 +31,7 @@ Subroutine genmeffig
       Complex (8), Allocatable :: zfft (:)
       Allocate (zfft(ngrtot))
       if (input%groundstate%ValenceRelativity.ne."none") then
+         if (allocated(meffig)) deallocate(meffig)
          allocate(meffig(ngvec))
          Do ig = 1, ngrtot
             zfft(ig)=cfunir(ig)/(1d0-veffir(ig)*a2)
@@ -42,6 +43,7 @@ Subroutine genmeffig
          End Do
       endif
       if (input%groundstate%ValenceRelativity.eq."lkh") then
+         if (allocated(m2effig)) deallocate(m2effig)
          allocate(m2effig(ngvec))
          Do ig = 1, ngrtot
             zfft(ig)=cfunir(ig)/((1d0-veffir(ig)*a2)**2)

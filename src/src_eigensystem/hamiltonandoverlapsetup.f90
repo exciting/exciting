@@ -189,6 +189,7 @@ endif
 !                    zm(if3+io2,:)=zm(if3+io2,:)+h1aa(io1,io2,l3,ias)*conjg(apwi2(:,if3+io1))
                     zm(:,if3+io2)=zm(:,if3+io2)+h1aa(io1,io2,l3,ias)*apwi2(:,if3+io1)
                   enddo
+                  zm(:,if3+io2)=zm(:,if3+io2)+apwi2(:,if3+io2)
                 End Do
                 if3=if3+apword (l3, is)
               End Do
@@ -225,7 +226,7 @@ endif
             j1 = ngp + idxlo (lm1, ilo, ias)
             j2 = ngp + idxlo (lm2, ilo, ias)
             Do io = 1, apword (l, is)
-              system%overlap%za(1:ngp,j1:j2)=system%overlap%za(1:ngp,j1:j2)+conjg(apwalm(:, io, lm1:lm2, ias) * oalo (io, ilo, ias))
+              system%overlap%za(1:ngp,j1:j2)=system%overlap%za(1:ngp,j1:j2)+conjg(apwalm(:, io, lm1:lm2, ias) * (oalo (io, ilo, ias)+h1loa(io, ilo, ias)))
             End Do
             do j=j1,j2
               system%overlap%za(j,1:ngp)=conjg(system%overlap%za(1:ngp,j))
@@ -243,7 +244,7 @@ endif
                 j1= ngp + idxlo (lm1, ilo1, ias)
                 j2= ngp + idxlo (lm1, ilo2, ias)
                 do lm2=idxlm (l,-l),idxlm (l, l)
-                  system%overlap%za(j1+lm2-lm1,j2+lm2-lm1)=system%overlap%za(j1+lm2-lm1,j2+lm2-lm1)+dcmplx(ololo(ilo1, ilo2, ias),0d0)
+                  system%overlap%za(j1+lm2-lm1,j2+lm2-lm1)=system%overlap%za(j1+lm2-lm1,j2+lm2-lm1)+dcmplx(ololo(ilo1, ilo2, ias)+h1lolo(ilo1, ilo2, ias),0d0)
                 enddo
               End If
             End Do
@@ -252,7 +253,6 @@ endif
           time_olplolon=ts1-ts0+time_olplolon
         endif
 
-! A segment for the linearised Koelling-Harmon
         End Do
       End Do
       deallocate(apwi,apwi2,zm)

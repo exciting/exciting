@@ -208,6 +208,7 @@ Subroutine force
       Deallocate (rfmt, grfmt)
       Call timesec (ts1)
       timefor = timefor + ts1 - ts0
+!      write(*,*) 'force'
       Return
 End Subroutine
 !EOC

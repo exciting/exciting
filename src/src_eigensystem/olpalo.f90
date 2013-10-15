@@ -33,7 +33,7 @@ Subroutine olpalo (tapp, is, ia, ngp, apwalm, v, o)
                   zsum = 0.d0
                   Do io = 1, apword (l, is)
                      zsum = zsum + conjg (apwalm(i, io, lm, ias)) * &
-                    & oalo (io, ilo, ias)
+                    & (oalo (io, ilo, ias)+h1loa (io, ilo, ias))
                   End Do
                   o (i) = o (i) + zsum * v (j)
                   o (j) = o (j) + conjg (zsum) * v (i)
@@ -46,7 +46,7 @@ Subroutine olpalo (tapp, is, ia, ngp, apwalm, v, o)
                   zsum = 0.d0
                   Do io = 1, apword (l, is)
                      zsum = zsum + conjg (apwalm(i, io, lm, ias)) * &
-                    & oalo (io, ilo, ias)
+                    & (oalo (io, ilo, ias)+h1loa (io, ilo, ias))
                   End Do
                   o (k) = o (k) + zsum
                End Do

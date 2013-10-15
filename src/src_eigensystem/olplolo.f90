@@ -31,12 +31,12 @@ Subroutine olplolo (tapp, is, ia, ngp, v, o)
                      If (tapp) Then
 ! apply the overlap operator to v
                         o (i) = o (i) + ololo (ilo1, ilo2, ias) * v (j)
-                        If (i .Ne. j) o (j) = o (j) + ololo (ilo1, &
-                       & ilo2, ias) * v (i)
+                        If (i .Ne. j) o (j) = o (j) + (ololo (ilo1, &
+                       & ilo2, ias)+h1lolo (ilo1, ilo2, ias)) * v (i)
                      Else
 ! calculate the matrix elements
                         k = i + ((j-1)*j) / 2
-                        o (k) = o (k) + ololo (ilo1, ilo2, ias)
+                        o (k) = o (k) + ololo (ilo1, ilo2, ias)+h1lolo (ilo1, ilo2, ias)
                      End If
                   End If
                End Do

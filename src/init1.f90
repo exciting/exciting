@@ -508,14 +508,14 @@ Subroutine init1
       If (allocated(ololo)) deallocate (ololo)
       Allocate (ololo(nlomax, nlomax, natmtot))
 
-      if (input%groundstate%ValenceRelativity.eq.'lkh') then
+!      if (input%groundstate%ValenceRelativity.eq.'lkh') then
         If (allocated(h1aa)) deallocate (h1aa)
         Allocate (h1aa(apwordmax, apwordmax,0:input%groundstate%lmaxapw,natmtot))
         If (allocated(h1loa)) deallocate (h1loa)
-        Allocate (h1loa(nlomax, apwordmax,0:input%groundstate%lmaxapw,natmtot))
+        Allocate (h1loa(apwordmax,nlomax,natmtot))
         If (allocated(h1lolo)) deallocate (h1lolo)
         Allocate (h1lolo(nlomax, nlomax, natmtot))
-      endif
+!      endif
 ! allocate and generate complex Gaunt coefficient array
       If (allocated(gntyry)) deallocate (gntyry)
       Allocate (gntyry(lmmaxmat, lmmaxvr, lmmaxapw))

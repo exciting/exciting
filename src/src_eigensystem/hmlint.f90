@@ -70,8 +70,9 @@ Subroutine hmlint
       Enddo
       if (allocated(haaij)) deallocate(haaij)
       allocate(haaij(haaijSize,haaijSize,natmtot))
+      haaij=dcmplx(0d0,0d0)
       Allocate (haaintegrals(lmmaxvr, apwordmax, 0:input%groundstate%lmaxapw, apwordmax, 0:input%groundstate%lmaxmat))
-
+      haaintegrals (:, :, :, :, :)=1d100
 ! APW-LO storage initialisation
       if (allocated(haloij)) deallocate(haloij)
       if (allocated(haloijSize)) deallocate(haloijSize)
@@ -326,7 +327,12 @@ Subroutine hmlint
               End Do
             End Do
 
+!  write(*,*) haaintegrals (:, :, :, :, :)
 
+!   do if1=1,haaijSize
+!     write(*,*) haaij(if1,if1,ias)
+!   enddo
+!   read(*,*)
 ! end loops over atoms and species
          End Do
       End Do

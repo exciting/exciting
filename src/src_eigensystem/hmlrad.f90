@@ -139,7 +139,7 @@ Subroutine hmlrad
                             fr (ir) = a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2)*r2 (ir)
                           End Do
                           Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                          h1loa (ilo, io, l1, ias) = gr (nr) / y00
+                          h1loa (io, ilo, ias) = gr (nr) / y00
                         endif
                      Else
                         hloa (ilo, io, l3, 1, ias) = 0.d0

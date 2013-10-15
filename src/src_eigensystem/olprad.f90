@@ -40,6 +40,9 @@ Subroutine olprad
       Real (8) :: angular,t1,t2,rm,a,alpha
       parameter (alpha=1d0 / 137.03599911d0)
 
+      h1aa=0d0
+      h1loa=0d0
+      h1lolo=0d0
 
       if (input%groundstate%ValenceRelativity.ne.'none') then
         a=0.5d0*alpha**2
@@ -76,7 +79,7 @@ Subroutine olprad
 !                      h1aa (io1, io2, l, ias) = gr(nr)
 !                    endif
                   End Do
-                  h1aa(io1,io1,l,ias)=1d0+h1aa(io1,io1,l,ias)
+!                 h1aa(io1,io1,l,ias)=1d0+h1aa(io1,io1,l,ias)
                 End Do
               End Do
             endif
@@ -87,21 +90,24 @@ Subroutine olprad
             Do ilo = 1, nlorb (is)
                l = lorbl (ilo, is)
                Do io = 1, apword (l, is)
-                 if (input%groundstate%ValenceRelativity.ne.'lkh') then
+!                 if (input%groundstate%ValenceRelativity.ne.'lkh') then
                    Do ir = 1, nr
                      fr (ir) = apwfr (ir, 1, io, l, ias) * lofr (ir, 1, ilo, ias) * r2 (ir)
                    End Do
-                 else
+                  Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
+                  oalo (io, ilo, ias) = gr (nr) 
+!                 else
+                  if (input%groundstate%ValenceRelativity.eq.'lkh') then
                    angular=dble(l*(l+1))
                    Do ir = 1, nr
                      rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                      t1=apwfr(ir, 1, io, l, ias)*lofr(ir, 1, ilo, ias)
                      t2=apwfr(ir, 2, io, l, ias)*lofr(ir, 2, ilo, ias)
-                     fr (ir) = (t1+a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2))*r2 (ir)
+                     fr (ir) = (a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2))*r2 (ir)
                    End Do
+                   Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
+                   h1loa (io, ilo, ias) = gr (nr)
                  endif
-                 Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                 oalo (io, ilo, ias) = gr (nr)
                End Do
             End Do
 !-----------------------------------------------!
@@ -111,21 +117,23 @@ Subroutine olprad
                l = lorbl (ilo1, is)
                Do ilo2 = 1, nlorb (is)
                   If (lorbl(ilo2, is) .Eq. l) Then
-                    if (input%groundstate%ValenceRelativity.ne.'lkh') then
+!                    if (input%groundstate%ValenceRelativity.ne.'lkh') then
                       Do ir = 1, nr
                         fr (ir) = lofr (ir, 1, ilo1, ias) * lofr (ir, 1, ilo2, ias) * r2 (ir)
                       End Do
-                    else
+                      Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
+                      ololo (ilo1, ilo2, ias) = gr (nr)
+                    if (input%groundstate%ValenceRelativity.eq.'lkh') then
                       angular=dble(l*(l+1))
                       Do ir = 1, nr
                         rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                         t1=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)
                         t2=lofr(ir, 2, ilo1, ias)*lofr(ir, 2, ilo2, ias)
-                        fr (ir) = (t1+a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2))*r2 (ir)
+                        fr (ir) = (a*(0.5d0*t2*rm**2 + 0.5d0*angular*t1*rm**2/spr(ir,is)**2))*r2 (ir)
                       End Do
+                      Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
+                      h1lolo (ilo1, ilo2, ias) = gr (nr)
                     endif
-                    Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                    ololo (ilo1, ilo2, ias) = gr (nr)
                   End If
                End Do
             End Do

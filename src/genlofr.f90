@@ -154,6 +154,7 @@ Subroutine genlofr(last_iteration)
             Do ilo = 1, nlorb (is)
                l = lorbl (ilo, is)
                Do io2 = 1, lorbord (ilo, is)
+!!!                  if (is.eq.2) write(*,*) l,lorbdm(io2, ilo, is),lorbe(io2, ilo, ias)
 ! integrate the radial Schrodinger equation
                   Call rschroddme (lorbdm(io2, ilo, is), l, 0, &
                  & lorbe(io2, ilo, ias), nr, &
@@ -223,8 +224,9 @@ Subroutine genlofr(last_iteration)
                     t1 = 1.d0 / spr (ir, is)
                     lofr (ir, 1, ilo, ias) = t1 * p0s (ir)
                     lofr (ir, 2, ilo, ias) = (p1s(ir)-p0s(ir)*t1) * t1
+!!                    if (is.eq.2) write(*,*) spr (ir, is),lofr (ir, 1, ilo, ias)
                  End Do
-
+!!                 if (is.eq.2) read(*,*)
                else
 ! apply the scalar relativistic Hamiltonian
                  Call rschrodapp (l, nr, spr(:, is), vr, p0s, q0s, q1s, hp0)

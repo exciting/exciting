@@ -49,6 +49,7 @@ Subroutine seceqnfv (nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Logical :: packed
       integer ik,jk,ig,iv(3),ist
       Complex (8), allocatable :: kinetic(:,:),vectors(:,:)
+      Complex (8), allocatable :: zm(:,:),zm2(:,:)
 
   ! allocatable arrays
 
@@ -59,14 +60,67 @@ Subroutine seceqnfv (nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
 !
 
       packed = input%groundstate%solver%packedmatrixstorage
-
+     
       Call newsystem (system, packed, nmatp)
+      h1on=(input%groundstate%ValenceRelativity.eq.'lkh')
       Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
 !
   !------------------------------------!
   !     solve the secular equation     !
   !------------------------------------!
       Call solvewithlapack(system,nstfv,evecfv,evalfv)
+
+      Call newsystem (system, packed, nmatp) 
+      h1aa=0d0
+      h1loa=0d0
+      h1lolo=0d0 
+      h1on=.false.
+      Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
+      call olprad
+      allocate(zm(nmatp,nstfv))
+      allocate(zm2(nstfv,nstfv))
+      
+   
+      call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                 'N', &           ! TRANSB = 'N'  op( B ) = B.
+                  nmatp, &          ! M ... rows of op( A ) = rows of C
+                  nstfv, &           ! N ... cols of op( B ) = cols of C
+                  nmatp, &          ! K ... cols of op( A ) = rows of op( B )
+                  zone, &          ! alpha
+                  system%overlap%za, &           ! A
+                  nmatp,&           ! LDA ... leading dimension of A
+                  evecfv, &           ! B
+                  nmatmax, &          ! LDB ... leading dimension of B
+                  zzero, &          ! beta
+                  zm, &  ! C
+                  nmatp &      ! LDC ... leading dimension of C
+                  )
+      call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
+                 'N', &           ! TRANSB = 'N'  op( B ) = B.
+                  nstfv, &          ! M ... rows of op( A ) = rows of C
+                  nstfv, &           ! N ... cols of op( B ) = cols of C
+                  nmatp, &          ! K ... cols of op( A ) = rows of op( B )
+                  zone, &          ! alpha
+                  evecfv, &           ! A
+                  nmatmax,&           ! LDA ... leading dimension of A
+                  zm, &           ! B
+                  nmatp, &          ! LDB ... leading dimension of B
+                  zzero, &          ! beta
+                  zm2, &  ! C
+                  nstfv &      ! LDC ... leading dimension of C
+                  )
+
+!     write(*,*) zm2(1:2,1:2)
+!      do ist=1,nstfv
+!        write(*,*) zm2(ist,ist)
+!      enddo
+!      write(*,*) 
+      do ist=1,nstfv
+        evecfv(:,ist)=evecfv(:,ist)/sqrt(abs(zm2(ist,ist)))
+      enddo
+      deallocate(zm,zm2)
+      Call deleteystem (system)
+
 
 End Subroutine seceqnfv
 !EOC

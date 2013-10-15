@@ -49,7 +49,8 @@ Subroutine olpistln (overlap, ngp, igpig, vgpc)
 ! calculate the matrix elements
 
 
-      if (input%groundstate%ValenceRelativity.eq.'lkh') then
+!      if (input%groundstate%ValenceRelativity.eq.'lkh') then
+       if (h1on) then
 !       if (.false.) then
         Do j = 1, ngp
           Do i = 1, j
