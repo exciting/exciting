@@ -3,7 +3,7 @@
 ! !ROUTINE: getevalqp
 ! !INTERFACE:
 !
-subroutine getevalqp(nkp2)
+subroutine getevalqp(nkp2,kvecs2,eqp2)
 ! !USES:
       use modinput
       use modmain
@@ -18,17 +18,19 @@ subroutine getevalqp(nkp2)
 !BOC
       implicit none
       
-      integer, optional, intent(in) :: nkp2
-      ! if not specified - only read the QP energies
-      ! otherwise        - read and interpolate QPE
+      integer, intent(in) :: nkp2
+      real(8), intent(in) :: kvecs2(3,nkp2)
+      real(8), intent(out):: eqp2(nstsv,nkp2)
 
 !     local variables
       logical :: exist
-      integer(4) :: ik, ik1, ik2, isym
+      integer(4) :: ik, ik1, ik2, isym, lspl, iv(3)
       integer(4) :: ib, nb, nk
       integer(8) :: recl
-      real(8) :: v(3), t1
+      real(8) :: s(3,3), v1(3), v2(3), t1
       character (256) :: file
+
+      integer, allocatable :: map(:)
       complex(8), allocatable :: de1(:,:), de2(:,:)
 
 !-----------------------------------------------------------------------------
@@ -70,51 +72,73 @@ subroutine getevalqp(nkp2)
           
       end do ! ik
       close(70)
-      
-      if (.not.present(nkp2)) goto 10
-      
-!-----------------------------------------------------------------------------
-!     Interpolate the energies
-!-----------------------------------------------------------------------------      
+
+!-------------------------------------------------------------------------------
+!     Data-set consistency check
+!-------------------------------------------------------------------------------      
 
       if ((ibgw.ne.1).or.(nbgw.lt.nstsv)) then
         write(*,*)
         write(*,*)'WARNING(getevalqp):'
         write(*,*)'  Quasiparticle energies has been calculated for the interval of bands:'
-        write(*,*)'  [ibgw,nbgw]=[', ibgw, nbgw,']' 
-        write(*,*)'  If it creates problems - regenerate your EVALQP.OUT.'
+        write(*,*)'  [ibgw,nbgw]=[', ibgw, nbgw,']'
+        write(*,*)'  Check whether it is that you need ...'
         write(*,*)
       end if
-      
-! if both k-sets are identical - no interpolation is needed
-      if (nkp1 == nkp2) then
-        t1 = 0.d0
-        do ik = 1, nkp1
-            t1 = t1+abs(kvecs1(1,ik)-vkl(1,ik))+ &
-           &        abs(kvecs1(2,ik)-vkl(2,ik))+ &
-           &        abs(kvecs1(3,ik)-vkl(3,ik))
-        end do
-        if (t1 < 1.d-6) then
-! sets are identical, just copy QP energies
-            do ib = ibgw, min(nbgw,nstsv)
-                do ik = 1, nkpt
-                    evalsv(ib,ik)=eqp1(ib,ik)
-                enddo 
-            enddo
-! skip interpolation            
-            goto 10
-        end if
-      end if
 
-! Special case of only one k-point      
+! Special case of only one k-point (molecules)
       if (nkp1==1) then
-        write(*,*) 'ERROR(getevalqp):' 
-        write(*,*) '  Interpolation is not possible!'
-        write(*,*) '  EVALQP.OUT file contains data only for a single k-point.'
-        stop
-      end if
+        if (nkp2==1) then
+          do ib = ibgw, min(nbgw,nstsv)
+            eqp2(ib,1) = eqp1(ib,1)
+          end do
+          goto 10
+        else
+          write(*,*) 'ERROR(getevalqp):' 
+          write(*,*) '  Interpolation is not possible!'
+          write(*,*) '  EVALQP.OUT file contains data only for a single k-point.'
+          stop
+        end if
+      end if 
+
+! Check if k-sets are (symmetry) identical
+      allocate(map(nkp2))
+      map(:) = 0
+      do ik2 = 1, nkp2
+        do isym = 1, nsymcrys
+          lspl = lsplsymc(isym)
+          s(:, :) = dble(symlat(:, :, lspl))
+          call r3mtv(s, kvecs2(:,ik2), v2)
+          call r3frac(input%structure%epslat, v1, iv)
+          do ik1 = 1, nkp1
+            v1(:) = kvecs1(:,ik1)
+            call r3frac (input%structure%epslat, v1, iv)
+            t1 = Abs(v2(1)-v1(1)) + Abs(v2(2)-v1(2)) + Abs(v2(3)-v1(3))
+            if (t1 > input%structure%epslat) then
+              ! not equivalent, proceed with interpolation
+              deallocate(map)
+              goto 20
+            else
+              map(ik2) = ik1 
+            end if
+          end do
+        end do ! isym
+      end do ! ik2
+
+! reached this points = sets are equivalent
+      do ik2 = 1, nkp2
+        do ib = ibgw, min(nbgw,nstsv)
+          eqp2(ib,ik2) = eqp1(ib,map(ik2))
+        end do
+      end do
+      deallocate(map)   
+      goto 10
+
+!-----------------------------------------------------------------------------
+!     Interpolate the energies
+!-----------------------------------------------------------------------------      
+20    continue
       
-! otherwise perform interpolation
       allocate(de1(nkp1,ibgw:nbgw),de2(nkpt,ibgw:nbgw))
       do ik = 1, nkp1
          de1(ik,:)=cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
@@ -125,7 +149,7 @@ subroutine getevalqp(nkp2)
 
       do ib = ibgw, min(nbgw,nstsv)
          do ik = 1, nkpt
-            evalsv(ib,ik)=evalsv(ib,ik)+real(de2(ik,ib))
+            eqp2(ib,ik)=eqp2(ib,ik)+real(de2(ik,ib))
          enddo 
       enddo
       deallocate(de1,de2)
