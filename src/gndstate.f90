@@ -146,8 +146,8 @@ Subroutine gndstate
             call printbox(60,"*",string)
             write(60,*) "Output level for this task is set to ", trim(input%relax%outputlevel)
             write(60,*)
-            write(60,'(" Maximum displacement tau_BFGS   is     :",F14.4)') input%relax%taubfgs
-            write(60,'(" Maximum displacement tau_newton is     :",F14.4)') input%relax%taunewton
+            write(60,'(" Maximum displacement tau_BFGS   is     ", T45, ":",F14.4)') input%relax%taubfgs
+            write(60,'(" Maximum displacement tau_newton is     ", T45, ":",F14.4)') input%relax%taunewton
             call flushifc(60)
         end if
         ! check force convergence first
@@ -209,47 +209,47 @@ Subroutine gndstate
     If ((rank .Eq. 0).and.(input%groundstate%outputlevelnumber>1)) then
         write(string,'("Timings (seconds)")') 
         call printbox(60,"-",string)
-        Write (60, '(" initialisation", T40, ": ", F12.2)') timeinit
-        Write (60, '("            - init0", T40,": ", F12.2)') time_init0
-        Write (60, '("            - init1", T40,": ", F12.2)') time_init1
-        Write (60, '("            - rhoinit", T40,": ", F12.2)') time_density_init
-        Write (60, '("            - potential initialisation", T40,": ", F12.2)') time_pot_init
-        Write (60, '("            - others", T40,": ", F12.2)') timeinit-time_init0-time_init1-time_density_init-time_pot_init
-        Write (60, '(" Hamiltonian and overlap matrix set up", T40, ": ", F12.2)') timemat
-        Write (60, '("            - hmlaan", T40,": ", F12.2)') time_hmlaan
-        Write (60, '("            - hmlalon", T40,": ", F12.2)') time_hmlalon
-        Write (60, '("            - hmllolon", T40,": ", F12.2)') time_hmllolon
-        Write (60, '("            - olpaan", T40,": ", F12.2)') time_olpaan
-        Write (60, '("            - olpalon", T40,": ", F12.2)') time_olpalon
-        Write (60, '("            - olplolon", T40,": ", F12.2)') time_olplolon
-        Write (60, '("            - hmlistln", T40,": ", F12.2)') time_hmlistln
-        Write (60, '("            - olpistln", T40,": ", F12.2)') time_olpistln
-        Write (60, '(" first-variational secular equation", T40, ": ", F12.2)') timefv
+        Write (60, '(" initialisation", T45, ": ", F12.2)') timeinit
+        Write (60, '("            - init0", T45,": ", F12.2)') time_init0
+        Write (60, '("            - init1", T45,": ", F12.2)') time_init1
+        Write (60, '("            - rhoinit", T45,": ", F12.2)') time_density_init
+        Write (60, '("            - potential initialisation", T45,": ", F12.2)') time_pot_init
+        Write (60, '("            - others", T45,": ", F12.2)') timeinit-time_init0-time_init1-time_density_init-time_pot_init
+        Write (60, '(" Hamiltonian and overlap matrix set up", T45, ": ", F12.2)') timemat
+        Write (60, '("            - hmlaan", T45,": ", F12.2)') time_hmlaan
+        Write (60, '("            - hmlalon", T45,": ", F12.2)') time_hmlalon
+        Write (60, '("            - hmllolon", T45,": ", F12.2)') time_hmllolon
+        Write (60, '("            - olpaan", T45,": ", F12.2)') time_olpaan
+        Write (60, '("            - olpalon", T45,": ", F12.2)') time_olpalon
+        Write (60, '("            - olplolon", T45,": ", F12.2)') time_olplolon
+        Write (60, '("            - hmlistln", T45,": ", F12.2)') time_hmlistln
+        Write (60, '("            - olpistln", T45,": ", F12.2)') time_olpistln
+        Write (60, '(" first-variational secular equation", T45, ": ", F12.2)') timefv
         If (associated(input%groundstate%spin)) Then
-            Write (60, '(" second-variational calculation", T40, ": ", F12.2)') timesv
+            Write (60, '(" second-variational calculation", T45, ": ", F12.2)') timesv
         End If
-        Write (60, '(" charge density calculation", T40, ": ", F12.2)') timerho
-        Write (60, '(" potential calculation", T40, ": ", F12.2)') timepot
-        Write (60, '(" muffin-tin manipulations", T40, ": ", F12.2)') timemt
-        Write (60, '(" APW matching", T40, ": ", F12.2)') timematch
-        Write (60, '(" disk reads/writes", T40, ": ", F12.2)') timeio
-        Write (60, '(" mixing efforts", T40, ": ", F12.2)') timemixer
-        If (input%groundstate%tforce) Write (60, '(" force calculation", T40, ": ", F12.2)') timefor
+        Write (60, '(" charge density calculation", T45, ": ", F12.2)') timerho
+        Write (60, '(" potential calculation", T45, ": ", F12.2)') timepot
+        Write (60, '(" muffin-tin manipulations", T45, ": ", F12.2)') timemt
+        Write (60, '(" APW matching", T45, ": ", F12.2)') timematch
+        Write (60, '(" disk reads/writes", T45, ": ", F12.2)') timeio
+        Write (60, '(" mixing efforts", T45, ": ", F12.2)') timemixer
+        If (input%groundstate%tforce) Write (60, '(" force calculation", T45, ": ", F12.2)') timefor
         timetot = timeinit + timemat + timefv + timesv + timerho + &
         &         timepot + timefor+timeio+timemt+timemixer+timematch
-        Write (60, '(" sum", T40, ": ", F12.2)') timetot
-        Write (60, '(" Dirac eqn solver", T40, ": ", F12.2)') time_rdirac
-        Write (60, '(" Rel. Schroedinger eqn solver", T40, ": ", F12.2)') time_rschrod
-        Write (60, '(" Total time spent in radial solvers", T40, ": ", F12.2)') time_rdirac+time_rschrod
+        Write (60, '(" sum", T45, ": ", F12.2)') timetot
+        Write (60, '(" Dirac eqn solver", T45, ": ", F12.2)') time_rdirac
+        Write (60, '(" Rel. Schroedinger eqn solver", T45, ": ", F12.2)') time_rschrod
+        Write (60, '(" Total time spent in radial solvers", T45, ": ", F12.2)') time_rdirac+time_rschrod
         If (input%groundstate%xctypenumber .Lt. 0) Then 
-            Write (60, '(" Time spent for oepvnl ", T40,": ", F12.2)') time_oepvnl
-            Write (60, '(" Time spent for oep iteration ", T40,": ", F12.2)') time_oep_iter
+            Write (60, '(" Time spent for oepvnl ", T45,": ", F12.2)') time_oepvnl
+            Write (60, '(" Time spent for oep iteration ", T45,": ", F12.2)') time_oep_iter
         End If
         write (60,*)
     end if
 
     If (rank .Eq. 0) then
-        Write (60, '(" Total time spent (seconds)", T40, ": ", F12.2)') tsg1-tsg0
+        Write (60, '(" Total time spent (seconds)", T45, ": ", F12.2)') tsg1-tsg0
         if (lwarning) call printbox(60,"-","CAUTION! Warnings have been written in file WARNING.OUT !")
         write(string,'("EXCITING ", a, " stopped")') trim(versionname)
         call printbox(60,"=",string)

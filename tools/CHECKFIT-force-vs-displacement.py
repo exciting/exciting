@@ -74,7 +74,7 @@ input_info.close()
 
 #-------------------------------------------------------------------------------
 
-maximum_displ = input("\nEnter maximum displacement for the interpolation >>>> ")
+maximum_displ = input("\nEnter maximum displacement for the fit >>>> ")
 order_of_derivative = input("\nEnter the order of derivative >>>> ")
 if (order_of_derivative < 0): 
     sys.exit("ERROR: Order of derivative must be positive!\n")
