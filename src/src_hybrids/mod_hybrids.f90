@@ -33,7 +33,6 @@ contains
         integer(4) :: i, ia, is, ias, ic, il, ist, m
         integer(4) :: ir, l, ie1, ikp
         real(8)    :: norm
-        real(8), allocatable :: eval(:)    
 
 ! print debugging information    
         debug = .false.
@@ -159,17 +158,6 @@ contains
         allocate(ipwint(ngrtot))
         ipwint(:) = conjg(cfunig(:))
 
-        allocate(eval(nstsv))
-        call readfermi
-        nomax = 0
-        do ikp = 1, nkpt
-            call getevalsv(vkl(:,ikp),eval)
-            do ie1 = 1, nstsv
-                if (eval(ie1)<=efermi) nomax=max(ie1,nomax)
-            end do
-        end do
-        deallocate(eval)
-        
         return
     end subroutine
 

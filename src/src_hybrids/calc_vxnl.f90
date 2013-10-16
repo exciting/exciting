@@ -15,6 +15,7 @@ subroutine calc_vxnl
     real(8)    :: norm
     real(8)    :: tstart, tend
     complex(8) :: t1, mvm
+    real(8), allocatable :: eval(:)    
     complex(8), allocatable :: vnl(:,:)
     
     complex(8), external :: zdotc
@@ -28,6 +29,21 @@ subroutine calc_vxnl
         call boxmsg(fgw,'-','Calculate Vx_NL')
     end if
 
+! State-index of VBM    
+    allocate(eval(nstsv))
+    call readfermi
+    nomax = 0
+    do ikp = 1, nkpt
+        call getevalsv(vkl(:,ikp),eval)
+        do ie1 = 1, nstsv
+            if (eval(ie1)>efermi) then
+                nomax = max(ie1-1,nomax)
+                exit ! ie1 loop
+            end if
+        end do
+    end do
+    deallocate(eval)
+    
 !---------------------------------------
 !   Mixed basis initialization (GW routine)
 !---------------------------------------

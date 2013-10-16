@@ -14,6 +14,7 @@ Subroutine linengy
 ! !USES:
       Use modinput
       Use modmain
+      Use scl_xml_out_Module
 ! !DESCRIPTION:
 !   Calculates the new linearisation energies for both the APW and local-orbital
 !   radial functions. See the routine {\tt findband}.
@@ -47,9 +48,17 @@ Subroutine linengy
           do ia = 1, natoms (is)
             ias = idxas (ia, is)
 ! just copying default values for apw
-            apwe(:,:,ias) = apwe0(:,:,is)
+            do l = 0, input%groundstate%lmaxapw
+              do io1 = 1, apword(l,is)
+                apwe(io1,l,ias) = apwe0(io1,l,is)
+              end do
+            end do
 ! and lo
-            lorbe(:,:,ias) = lorbe0(:,:,is)
+            do ilo = 1, nlorb(is)
+              do io1 = 1, lorbord(ilo,is)
+                lorbe(io1,ilo,ias) = lorbe0(io1,ilo,is)
+              end do
+            end do
           end do
         end do
         return
@@ -59,8 +68,8 @@ Subroutine linengy
 !     l-charge based scheme
 
       if (linenetype.eq.'lcharge') then
-        if (iscl>1) call lchargelinene
-        return
+          if ((iscl>1).and.(currentconvergence>0.0001)) call lchargelinene
+          return
       end if
       
 ! begin loops over atoms and species
@@ -75,6 +84,7 @@ Subroutine linengy
 !-----------------------!
                Do l = 0, input%groundstate%lmaxapw
                   Do io1 = 1, apword (l, is)
+                     apwe (io1, l, ias) = apwe0 (io1, l, is)
                      If (apwve(io1, l, is)) Then
 ! check if previous radial functions have same default energies
                         Do io2 = 1, io1-1
@@ -86,7 +96,6 @@ Subroutine linengy
                            End If
                         End Do
 ! find the band energy starting from default
-                        apwe (io1, l, ias) = apwe0 (io1, l, is)
                         Call findband (linenetype, &
                        &  l, 0, nrmt(is), &
                        &  spr(:, is), vr, input%groundstate%deband, input%groundstate%epsband, &
@@ -116,9 +125,9 @@ Subroutine linengy
 !---------------------------------!
                Do ilo = 1, nlorb (is)
                   Do io1 = 1, lorbord (ilo, is)
+                     lorbe (io1, ilo, ias) = lorbe0 (io1, ilo, is) 
                      If (lorbve(io1, ilo, is)) Then
                         l = lorbl (ilo, is)
-
 ! check if previous radial functions have same default energies
                         Do io2 = 1, io1 - 1
                            If (lorbve(io2, ilo, is)) Then
@@ -136,9 +145,7 @@ Subroutine linengy
                               End If
                            End If
                         End Do
-                        
 ! find the band energy starting from default
-                        lorbe (io1, ilo, ias) = lorbe0 (io1, ilo, is)
                         Call findband (linenetype, &
                        &  l, 0, nrmt(is), &
                        &  spr(:, is), vr, input%groundstate%deband, input%groundstate%epsband, &
@@ -200,8 +207,8 @@ Subroutine linengy
                t1 = p1(nr)
                if (dabs(t0)>1.0d-6) then
              	 ! shifted value of the logarithmic derivative
-             	 dl = spr(nr,is)*t1/t0+(l+1)
-             	 write(777,*) e, dl
+                 dl = spr(nr,is)*t1/t0+(l+1)
+                 write(777,*) e, dl
                end if
                e = e + input%groundstate%deband
              end do ! e

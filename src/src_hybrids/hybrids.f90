@@ -20,10 +20,10 @@ Subroutine hybrids
 !BOC
     Implicit None
 
-    integer :: ik,Recl
+    integer :: ik, Recl
     real(8) :: et
 ! time measurements
-    Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0
+    Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0, time_hyb
     character*(77) :: string
 
 !! TIME - Initialisation segment
@@ -112,28 +112,12 @@ Subroutine hybrids
     timeinit = timeinit+ts1-ts0
 !! TIME - End of initialisation segment
 
-
-!------------------------------------!
-!   Pure DFT cycle
-!------------------------------------!
-    ihyb = 0
-    ex_coef = 0.d0
-    call scf_cycle(input%groundstate%outputlevelnumber)
-    ex_coef = input%groundstate%Hybrid%excoeff
-
-! continue from file
-    task = 1
-    !input%groundstate%findlinentype = "skip"
-
-! store DFT eigenvectors
-    allocate(evecfv0(nmatmax,nstfv,nspnfv,nkpt))
-    do ik = 1, nkpt
-       call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv0(:,:,:,ik))
-    end do
-
 !------------------------------------!
 !   Hybrids cycle
 !------------------------------------!
+    time_hyb = 0.d0
+    call timesec(ts0)
+
     if (rank==0) then
         write(string,'("Hybrids module started")') 
         call printbox(60,"*",string)
@@ -171,14 +155,17 @@ Subroutine hybrids
     allocate(vnlmat(nmatmax,nmatmax,nkpt))
     vnlmat(:,:,:) = zzero
 
+! previous iteration eigenvectors
+    allocate(evecfv0(nmatmax,nstfv,nspnfv,nkpt))
+
+    call timesec(ts1)
+    time_hyb = time_hyb+ts1-ts0
+    
 !------------------------------------------!
 ! begin the (external) self-consistent loop
 !------------------------------------------!
 
-! start from DFT energy
-    et = engytot
-
-    do ihyb = 1, input%groundstate%maxscl
+    do ihyb = 0, input%groundstate%maxscl
 
 ! exit self-consistent loop if last iteration is complete
         If (ihyb >= input%groundstate%maxscl) Then
@@ -197,6 +184,55 @@ Subroutine hybrids
             Call flushifc(60)
         End If
 
+! hybrids always start after normal DFT self-consistent run
+        if (ihyb==0) ex_coef = 0.d0
+
+!____________________________________________
+! KS self-consistent run
+        
+        call scf_cycle(-1)
+
+! some output        
+        if (rank==0) then
+            call writeengy(60)
+            if (input%groundstate%outputlevelnumber>0) write(60,*)
+            write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F22.12)') fermidos
+            call writechg(60,input%groundstate%outputlevelnumber)
+        end if
+
+! check for convergence
+        if (ihyb>0) then
+            deltae = dabs(et-engytot)
+            write(60,*)
+            write(60,'(" Absolute change in total energy (target)   : ",G18.10," (",G18.10,")")') &
+           &  deltae, input%groundstate%epsengy
+            if (deltae < input%groundstate%epsengy) Then
+                if (rank==0) Then
+                    write(string,'("Convergence target is reached")')
+                    call printbox(60,"+",string)
+                    Call flushifc(60)
+                end If
+                exit ! exit ihyb-loop
+            end if
+        end if
+        et = engytot
+
+!____________________________________________
+! hybrids related routines
+
+        if (ihyb==0) then
+            ex_coef = input%groundstate%Hybrid%excoeff
+            call fix_linene
+            !input%groundstate%findlinentype = "skip"
+            input%groundstate%findlinentype = "lcharge"
+            task = 1
+        end if
+        
+! store the eigenvectors for next iteration
+        do ik = 1, nkpt
+            call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv0(:,:,:,ik))
+        end do
+        
 ! calculate the non-local potential
         call timesec(ts0)
         call calc_vxnl
@@ -205,6 +241,7 @@ Subroutine hybrids
             write(60,*)
             if (rank==0) call write_cputime(60,ts1-ts0, 'CALC_VXNL')
         end if
+        time_hyb = time_hyb+ts1-ts0
 
 ! calculate the non-local potential hamiltonian matrix
         call timesec(ts0)
@@ -213,43 +250,16 @@ Subroutine hybrids
         if (rank==0) then
             if (rank==0) call write_cputime(60,ts1-ts0, 'CALC_VNLMAT')
             write(60,*)
-        end if        
-
-! DFT cycle including the non-local potential
-        call scf_cycle(-1)
-
-! store the eigenvectors for next iteration
-        do ik = 1, nkpt
-            call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv0(:,:,:,ik))
-        end do
-
-! check for convergence
-        deltae = dabs(et-engytot)
-
-        if (rank==0) then
-            write(60,'("(Hybrids) Absolute change in total energy (target)   : ",G18.10," (",G18.10,")")') &
-           &  deltae, input%groundstate%epsengy
         end if
-
-        if (deltae < input%groundstate%epsengy) Then
-            if (rank==0) Then
-                write(string,'("Convergence target is reached")')
-                call printbox(60,"+",string)
-                Call flushifc(60)
-            end If
-            exit ! exit ihyb-loop
-        end if
-
-! update the energy
-        et = engytot
-            
+        time_hyb = time_hyb+ts1-ts0
+        
 ! output the current total time
-        timetot = timeinit + timemat + timefv + timesv + timerho &
-       &        + timepot + timefor + timeio + timemt + timemixer
+        timetot = timeinit + timemat + timefv + timesv + timerho  &
+       &        + timepot + timefor + timeio + timemt + timemixer &
+       &        + time_hyb
             
         if (rank==0) then
-            write(60,*)
-            write(60, '("Wall time (seconds) : ", F12.2)') timetot
+            write(60, '(" Wall time (seconds) : ", F12.2)') timetot
         end if
 
     end do ! ihyb
@@ -259,9 +269,6 @@ Subroutine hybrids
         call printbox(60,"+",string)
         call flushifc(60)
     end if
-
-! generate the new species files with the optimized linearization energies
-    If ((rank==0).and.(input%groundstate%tspecies)) Call updatespecies
 
 !-------------------------------------!
 !   output timing information
@@ -367,5 +374,43 @@ Subroutine hybrids
     call exit_hybrids
       
     Return
-   End Subroutine
+    
+End Subroutine
 !EOC
+
+!-------------------------------------------------------------------------------
+!
+!-------------------------------------------------------------------------------
+
+subroutine fix_linene
+    use modinput
+    use modmain
+    use modmpi, only: rank
+    implicit none
+    integer :: l, is, ia, ias, ilo, io1, io2
+
+    ! replace the default linearization energy by the optimized ones    
+    do is = 1, nspecies
+      do ia = 1, natoms(is)
+        ias = idxas(ia,is)
+        do l = 0, input%groundstate%lmaxapw
+          do io1 = 1, apword(l,is)
+            apwe0(io1,l,is) = apwe(io1,l,ias)
+            apwve(io1,l,is) = .false.
+          end do
+        end do
+        do ilo = 1, nlorb(is)
+          do io1 = 1, lorbord(ilo,is)
+            lorbe0(io1,ilo,is) = lorbe(io1,ilo,ias)
+            l = lorbl(ilo,is)
+            if (lorbe(io1,ilo,ias)==apwe(io1,l,ias)) then
+              lorbve(io1,ilo,is) = .false.
+            end if
+          end do ! io1
+        end do ! ilo
+      end do ! ia
+    end do ! is
+    if (rank==0) call updatespecies
+   
+    return
+end subroutine

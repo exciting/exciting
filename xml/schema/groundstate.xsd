@@ -2055,7 +2055,6 @@
             <xs:enumeration value="lcharge"/>
             <xs:enumeration value="logderiv"/>
             <xs:enumeration value="no_search"/>
-            <xs:enumeration value="skip"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
