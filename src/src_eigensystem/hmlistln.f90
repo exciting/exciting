@@ -57,7 +57,7 @@ Subroutine hmlistln (hamilton, ngp, igpig, vgpc)
 !#$omp parallel default(shared) &
 !#$omp shared(h) private(iv,ig,t1,i,j)
 !#$omp do
-if (input%groundstate%ValenceRelativity.eq."scalar") then
+if (input%groundstate%ValenceRelativity.ne."none") then
       Do j = 1, ngp
          Do i = 1, j
             iv (:) = ivg (:, igpig(i)) - ivg (:, igpig(j))

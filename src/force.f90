@@ -142,6 +142,8 @@ Subroutine force
             Call genffacg (is, ffacg(:, is))
          End Do
 !         call hmlrad
+!         call hmlint
+         call olprad
 ! compute k-point dependent contribution to the IBS force
 
 #ifdef MPI
@@ -160,6 +162,7 @@ Subroutine force
         deallocate(forcesum)
 #endif
 
+!         write(*,*) forceibs(:,ias)
 ! integral of effective potential with gradient of valence density
          Do is = 1, nspecies
             nr = nrmt (is)

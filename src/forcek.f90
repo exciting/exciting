@@ -54,6 +54,8 @@ Subroutine forcek (ik, ffacg)
 
       Complex (8) zdotc
       External zdotc
+
+ write(*,*)
       np = npmat (1, ik)
       If (isspinspiral()) np = Max (np, npmat(2, ik))
 ! allocate local arrays
@@ -201,7 +203,8 @@ Subroutine forcek (ik, ffacg)
         endif
 
 !APW-APW
-          if (input%groundstate%ValenceRelativity.ne.'lkh') then
+         if (input%groundstate%ValenceRelativity.ne.'lkh') then
+!if (.false.) then
             call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
                        'N', &           ! TRANSB = 'N'  op( B ) = B.
                        ngk (ispn, ik), &          ! M ... rows of op( A ) = rows of C
@@ -226,8 +229,9 @@ Subroutine forcek (ik, ffacg)
 
                 Do io2 = 1, apword (l3, is)
                   Do io1 = 1, apword (l3, is)
-                    zm(:,if3+io2)=zm(:,if3+io2)+h1aa(io1,io2,l3,ias)*apwi2(:,if3+io1)
+                    zm(:,if3+io2)=zm(:,if3+io2)+h1aa(io1,io2,l3,ias)*conjg(apwi2(:,if3+io1))
                   enddo
+                  zm(:,if3+io2)=zm(:,if3+io2)+conjg(apwi2(:,if3+io2))
                 End Do
                 if3=if3+apword (l3, is)
               End Do
@@ -248,7 +252,6 @@ Subroutine forcek (ik, ffacg)
                        )
              deallocate(zm)
           endif
-
 !APW-LO
         if (nlorb(is).ne.0) then
 ! APW-LO part
@@ -259,16 +262,13 @@ Subroutine forcek (ik, ffacg)
             j1 = ngk (ispn, ik) + idxlo (lm1, ilo, ias)
             j2 = ngk (ispn, ik) + idxlo (lm2, ilo, ias)
             Do io = 1, apword (l, is)
-              system%overlap%za(1:ngk (ispn, ik),j1:j2)=system%overlap%za(1:ngk (ispn, ik),j1:j2)+conjg(apwalm(:, io, lm1:lm2, ias) * oalo (io, ilo, ias))
+              system%overlap%za(1:ngk (ispn, ik),j1:j2)=system%overlap%za(1:ngk (ispn, ik),j1:j2)+conjg(apwalm(:, io, lm1:lm2, ias) * (oalo (io, ilo, ias) +h1loa(io, ilo, ias)))
             End Do
             do j=j1,j2
               system%overlap%za(j,1:ngk (ispn, ik))=conjg(system%overlap%za(1:ngk (ispn, ik),j))
             End Do
           End Do
         endif
-
-
-
 
 
 ! loop over Cartesian directions
@@ -384,7 +384,10 @@ Subroutine forcek (ik, ffacg)
 ! spin-unpolarised case
                      Do j = 1, nstsv
                         sum = sum + occsv (j, ik) * dble (ffv(j, j))
+!                       write(*,*) ffv(j,j),occsv(j, ik)
                      End Do
+!                    write(*,*) sum
+
                   End If
 !$OMP CRITICAL
                   forceibs (l, ias) = forceibs (l, ias) + wkpt (ik) * &
@@ -395,11 +398,13 @@ Subroutine forcek (ik, ffacg)
 
 ! end loop over Cartesian components
                End Do
+!               write(*,*)
 ! end loop over atoms and species
             End Do
          End Do
 ! end loop over first-variational spins
       End Do
+!       stop
       Deallocate (ijg, dp, evalfv, apwalm, evecfv, evecsv, evecfv2)
       Deallocate (ffv, y)
       call deleteystem(system)

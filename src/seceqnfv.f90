@@ -70,6 +70,7 @@ Subroutine seceqnfv (nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !------------------------------------!
       Call solvewithlapack(system,nstfv,evecfv,evalfv)
 
+!if (.false.) then
       Call newsystem (system, packed, nmatp) 
       h1aa=0d0
       h1loa=0d0
@@ -120,7 +121,7 @@ Subroutine seceqnfv (nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       enddo
       deallocate(zm,zm2)
       Call deleteystem (system)
-
+!endif
 
 End Subroutine seceqnfv
 !EOC

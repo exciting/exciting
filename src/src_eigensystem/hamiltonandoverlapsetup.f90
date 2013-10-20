@@ -160,7 +160,8 @@ endif
 !--Overlap--
 ! APW-APW part
           Call timesec (ts0)
-          if (input%groundstate%ValenceRelativity.ne.'lkh') then
+!          if (input%groundstate%ValenceRelativity.ne.'lkh') then
+if (.false.) then
             call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
                        'N', &           ! TRANSB = 'N'  op( B ) = B.
                        ngp, &          ! M ... rows of op( A ) = rows of C
