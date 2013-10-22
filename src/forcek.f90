@@ -55,7 +55,7 @@ Subroutine forcek (ik, ffacg)
       Complex (8) zdotc
       External zdotc
 
- write(*,*)
+ !write(*,*)
       np = npmat (1, ik)
       If (isspinspiral()) np = Max (np, npmat(2, ik))
 ! allocate local arrays

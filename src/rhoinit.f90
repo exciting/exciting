@@ -30,15 +30,16 @@ Subroutine rhoinit
       Integer, Parameter :: n = 4
       Integer :: lmax, lmmax, l, m, lm, ir, irc
       Integer :: is, ia, ias, ig, ifg
-      Real (8) :: x, t1, t2
+      Real (8) :: x, t1, t2, jlgr01
       Complex (8) zt1, zt2, zt3
+      Real (8) :: ta,tb, tc,td
 ! automatic arrays
       Real (8) :: fr (spnrmax), gr (spnrmax), cf (3, spnrmax)
 ! allocatable arrays
       Real (8), Allocatable :: jlgr (:, :)
       Real (8), Allocatable :: th (:, :)
       Real (8), Allocatable :: ffacg (:)
-      Complex (8), Allocatable :: zfmt (:, :)
+      Complex (8), Allocatable :: zfmt (:, :),z2fmt (:, :)
       Complex (8), Allocatable :: zfft (:)
 ! maximum angular momentum for density initialisation
       lmax = 1
@@ -48,6 +49,7 @@ Subroutine rhoinit
       Allocate (th(nrmtmax, nspecies))
       Allocate (ffacg(ngvec))
       Allocate (zfmt(lmmax, nrcmtmax))
+      Allocate (z2fmt(nrcmtmax, lmmax))
       Allocate (zfft(ngrtot))
 ! zero the charge density and magnetisation arrays
       rhomt (:, :, :) = 0.d0
@@ -56,6 +58,7 @@ Subroutine rhoinit
          magmt (:, :, :, :) = 0.d0
          magir (:, :) = 0.d0
       End If
+      call timesec(ta)
 ! compute the superposition of all the atomic density tails
       zfft (:) = 0.d0
       Do is = 1, nspecies
@@ -63,20 +66,31 @@ Subroutine rhoinit
          Do ir = 1, nrmt (is)
             th (ir, is) = (spr(ir, is)/rmt(is)) ** n
          End Do
+
+!         call timesec(tc)
+!$OMP PARALLEL
+!$OMP DO PRIVATE(x,t1,fr,jlgr01,cf,gr)
          Do ig = 1, ngvec
-            Do ir = 1, spnr (is)
+            Do ir = 1, nrmt (is)-1
                x = gc (ig) * spr (ir, is)
-               Call sbessel (0, x, jlgr(0, 1))
-               t1 = sprho (ir, is) * jlgr (0, 1) * spr (ir, is) ** 2
-               If (ir .Lt. nrmt(is)) Then
-                  fr (ir) = th (ir, is) * t1
-               Else
-                  fr (ir) = t1
-               End If
+               Call sbessel (0, x, jlgr01)
+               t1 = sprho (ir, is) * jlgr01 * spr (ir, is) ** 2
+               fr (ir) = th (ir, is) * t1
+            End Do
+            Do ir = nrmt (is),spnr(is)
+               x = gc (ig) * spr (ir, is)
+               Call sbessel (0, x, jlgr01)
+               t1 = sprho (ir, is) * jlgr01 * spr (ir, is) ** 2
+               fr (ir) = t1
             End Do
             Call fderiv (-1, spnr(is), spr(:, is), fr, gr, cf)
             ffacg (ig) = (fourpi/omega) * gr (spnr(is))
          End Do
+!$OMP END DO
+!$OMP END PARALLEL
+!         call timesec(td)
+!         write(*,*) td-tc
+!         call timesec(tc)
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
             Do ig = 1, ngvec
@@ -85,18 +99,30 @@ Subroutine rhoinit
               & ias))
             End Do
          End Do
+!         call timesec(td)
+!         write(*,*) td-tc
+!         read(*,*) 
       End Do
+      call timesec(tb)
+      write(*,*) 'rhoinit, step 1:',tb-ta
+      call timesec(ta)
 ! compute the tails in each muffin-tin
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
             zfmt (:, :) = 0.d0
+            z2fmt=0d0
             Do ig = 1, ngvec
                ifg = igfft (ig)
+!$OMP PARALLEL PRIVATE(x) SHARED(gc,rcmt,lmax,jlgr)
+!$OMP DO 
                Do irc = 1, nrcmt (is)
                   x = gc (ig) * rcmt (irc, is)
                   Call sbessel (lmax, x, jlgr(:, irc))
                End Do
+!$OMP END DO
+!$OMP END PARALLEL
+
                zt1 = fourpi * zfft (ifg) * sfacg (ig, ias)
                lm = 0
                Do l = 0, lmax
@@ -105,12 +131,16 @@ Subroutine rhoinit
                      lm = lm + 1
                      zt3 = zt2 * conjg (ylmg(lm, ig))
                      Do irc = 1, nrcmt (is)
-                        zfmt (lm, irc) = zfmt (lm, irc) + jlgr (l, irc) &
-                       & * zt3
+                       z2fmt(irc,lm)=z2fmt(irc,lm)+jlgr (l, irc) * zt3
                      End Do
                   End Do
                End Do
             End Do
+            do lm=1,lmmax
+              do irc=1,nrcmt (is)
+                zfmt (lm,irc) =zfmt(lm,irc)+z2fmt(irc,lm)
+              enddo
+            enddo
             irc = 0
             Do ir = 1, nrmt (is), input%groundstate%lradstep
                irc = irc + 1
@@ -118,6 +148,9 @@ Subroutine rhoinit
             End Do
          End Do
       End Do
+      call timesec(tb)
+      write(*,*) 'rhoinit, step 2:',tb-ta
+      call timesec(ta)
 ! convert the density from a coarse to a fine radial mesh
       Call rfmtctof (rhomt)
 ! add the atomic charge density and the excess charge in each muffin-tin
@@ -140,7 +173,10 @@ Subroutine rhoinit
       Call charge
 ! normalise the density
       Call rhonorm
-      Deallocate (jlgr, th, ffacg, zfmt, zfft)
+      Deallocate (jlgr, th, ffacg, zfmt, zfft,z2fmt)
+      call timesec(tb)
+      write(*,*) 'rhoinit, step 3:',tb-ta
+!      stop
       Return
 End Subroutine
 !EOC
