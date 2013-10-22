@@ -175,9 +175,9 @@ subroutine scf_cycle
         splittfile = .False.
 ! begin parallel loop over k-points
 #ifdef KSMP
-!$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(evalfv,evecfv,evecsv)
-!$OMP DO
+!!$OMP PARALLEL DEFAULT(SHARED) &
+!!$OMP PRIVATE(evalfv,evecfv,evecsv)
+!!$OMP DO
 #endif
         Do ik = 1, nkpt
 #endif
@@ -208,8 +208,8 @@ subroutine scf_cycle
 
 
 #ifdef KSMP
-!$OMP END DO
-!$OMP END PARALLEL
+!!$OMP END DO
+!!$OMP END PARALLEL
 #endif
 #ifdef MPISEC
         Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)

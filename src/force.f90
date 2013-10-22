@@ -14,6 +14,7 @@ Subroutine force
 ! !USES:
       Use modinput
       Use modmain
+      Use modmpi
 ! !DESCRIPTION:
 !   Computes the various contributions to the atomic forces. In principle, the
 !   force acting on a nucleus is simply the gradient at that site of the
@@ -90,6 +91,7 @@ Subroutine force
       Real (8), Allocatable :: rfmt (:, :)
       Real (8), Allocatable :: grfmt (:, :, :)
       Real (8), Allocatable :: ffacg (:, :)
+      Real (8), Allocatable :: forcesum(:,:)
 ! external functions
       Real (8) :: rfmtinp
       External rfmtinp
