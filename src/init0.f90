@@ -181,6 +181,9 @@ Subroutine init0
           ex_coef=1.0          
       End If
       Call getxcdata (xctype, xcdescr, xcspin, xcgrad, ex_coef)
+! reset input%groundstate%Hybrid%excoeff to ex_coef
+! in case of libxc: overwritten by ex_coef as defined by libxc
+      input%groundstate%Hybrid%excoeff=ex_coef 
       If ((associated(input%groundstate%spin)) .And. (xcspin .Eq. 0)) &
      & Then
          Write (*,*)

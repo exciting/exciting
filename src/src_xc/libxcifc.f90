@@ -145,7 +145,7 @@ do k=2,3
       end if
 ! destroy functional
       call xc_f90_func_end(p)
-    case(XC_FAMILY_GGA)
+    case(XC_FAMILY_GGA,XC_FAMILY_HYB_GGA)
 !-------------------------!
 !     GGA functionals     !
 !-------------------------!
@@ -262,6 +262,12 @@ do k=2,3
       call xc_f90_func_end(p)
 ! post-processed gradients required
       xcgrad=2
+    case(XC_FAMILY_HYB_GGA)
+      call xc_f90_func_init(p,info,id,XC_UNPOLARIZED)
+      call xc_f90_info_name(info,name)
+! get mixing coefficient for exchange
+      call xc_f90_hyb_exx_coef(p, ex_coef) 
+      call xc_f90_func_end(p)
 ! post-processed gradients required
       xcgrad=2
     case default

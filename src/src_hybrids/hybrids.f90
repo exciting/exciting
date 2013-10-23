@@ -186,7 +186,6 @@ Subroutine hybrids
 
 ! hybrids always start after normal DFT self-consistent run
         if (ihyb==0) ex_coef = 0.d0
-
 !____________________________________________
 ! KS self-consistent run
         
@@ -223,8 +222,7 @@ Subroutine hybrids
         if (ihyb==0) then
             ex_coef = input%groundstate%Hybrid%excoeff
             call fix_linene
-            !input%groundstate%findlinentype = "skip"
-            input%groundstate%findlinentype = "lcharge"
+            input%groundstate%findlinentype = "skip"
             task = 1
         end if
         

@@ -365,6 +365,7 @@ case(406)
 case(100)
 ! libxc library functionals
   call xcdata_libxc(xctype,xcdescr,xcspin,xcgrad,ex_coef)
+!  input%groundstate%Hybrid%excoeff=ex_coef      
 case default
   write(*,*)
   write(*,'("Error(getxcdata): xctype not defined : ",I8)') xctype(1)

@@ -31,7 +31,7 @@ subroutine calc_vxnl
 
 ! State-index of VBM    
     allocate(eval(nstsv))
-    call readfermi
+!    call readfermi
     nomax = 0
     do ikp = 1, nkpt
         call getevalsv(vkl(:,ikp),eval)
