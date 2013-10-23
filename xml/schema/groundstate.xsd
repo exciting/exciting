@@ -182,9 +182,9 @@
             <xs:attribute ex:importance="experimental" ex:unit="" name="excoeff" type="fortrandouble"
               default="0.25d0">
               <xs:annotation>
-                <xs:documentation> Change value for the mixing of DFT exchange and exact exchange.
-                  ATTENTION: Do not use this option in combination with libxc, since the library
-                  has fixed defined mixing coeeficients. 
+                <xs:documentation> Define value of the mixing parameter for exact exchange.
+                  ATTENTION: If you are using libxc, the libxc settings will be employed 
+                  and your choice of this parameter will be ignored. 
                   </xs:documentation>
               </xs:annotation>
             </xs:attribute>
