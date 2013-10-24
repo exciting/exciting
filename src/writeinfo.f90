@@ -186,8 +186,7 @@ Subroutine writeinfo (fnum)
          Write (fnum, '(" Spin-orbit coupling is included")')
       End If
       If (associated(input%groundstate%spin)) Then
-         Write (fnum, '(" Global magnetic field (cartesian)     ", T45, ": ", 3F16.8)') &
-        &   input%groundstate%spin%bfieldc
+         Write (fnum, '(" Global magnetic field (cartesian) :",T42, 3F13.8)') input%groundstate%spin%bfieldc
          If (ncmag) Then
             Write (fnum, '(" non-collinear magnetisation")')
          Else

@@ -81,7 +81,7 @@ subroutine lbfgs_driver
       call timesec(tsec1)
 
       if (input%groundstate%epsengy/input%relax%epsforce .gt. 0.020001) then
-          input%groundstate%epsengy = input%relax%epsforce*0.02
+          input%groundstate%epsengy = max(input%relax%epsforce*0.02,1.d-8)
           if (rank==0) then
               write(60,'(" Convergence target for the total energy decreased to ",G13.6," Ha")') &
              & input%groundstate%epsengy
@@ -217,11 +217,11 @@ subroutine lbfgs_driver
           if (rank==0) then
 
               if (input%relax%outputlevelnumber>1) write(60,*)
-              write(60,'(" Number of investigated configurations  : ",I5)') nconf
-              write(60,'(" Number of total scf iterations         : ",I5)') nscf
-              write(60,'(" Maximum force magnitude       (target) : ",F14.8,"    (", F14.8, ")")') &
+              write(60,'(" Number of investigated configurations",T45,": ",I9)') nconf
+              write(60,'(" Number of total scf iterations",T45,": ",I9)') nscf
+              write(60,'(" Maximum force magnitude",T36,"(target) : ",F18.8,"  (", F12.8, ")")') &
              &  forcemax, input%relax%epsforce
-              write(60,'(" Total energy at this optimization step :",F19.9)') engytot
+              write(60,'(" Total energy at this optimization step",T45,": ",F18.8)') engytot
               if (input%relax%outputlevelnumber>0) then 
                   call writepositions(60,input%relax%outputlevelnumber) 
                   call writeforce(60,input%relax%outputlevelnumber)                    
@@ -248,7 +248,7 @@ subroutine lbfgs_driver
           call timesec(tsec2)
           if (rank==0) then
               write(60,*)
-              write(60,'(" Time spent in this optimization step   : ",F12.2," seconds")') tsec2-tsec1
+              write(60,'(" Time spent in this optimization step",T45,": ",F12.2," seconds")') tsec2-tsec1
               call flushifc(60)
           end if
  
@@ -325,7 +325,7 @@ subroutine lbfgs_driver
         if (input%relax%endbfgs.eq.'stop') then
 
           if (rank .Eq. 0) then
-            write(60,'(" Number of investigated configurations  : ",I5)') nconf
+            write(60,'(" Number of investigated configurations",T45,": ",I9)') nconf
             write(60,*)
             write(60,'(A)') " BFGS scheme not converged -> Stopping BFGS"
             write(60,*)
@@ -343,7 +343,7 @@ subroutine lbfgs_driver
         else
 
           if (rank .Eq. 0) then
-            write(60,'(" Number of investigated configurations  : ",I5)') nconf
+            write(60,'(" Number of investigated configurations",T45,": ",I9)') nconf
             write(60,*)
             write(60,'(3A)') " BFGS scheme not converged -> Switching to ", trim(input%relax%endbfgs), " method"
             write(60,*)
@@ -420,7 +420,7 @@ contains
         call scf_cycle(-1)
         nconf = nconf + 1
         if ((rank==0).and.(input%relax%outputlevelnumber>1))  then 
-            write(60,'(" Investigating configuration            # ",I5,"    (# of SCF cicles =",I5,")")') &
+            write(60,'(" Investigating configuration",T45,"# ",I9,"  (# of SCF cicles =",I4,")")') &
            &      nconf, iscl
             call flushifc(60)
         end if

@@ -66,10 +66,10 @@
 ! output info
 
             if (rank .Eq. 0) then
-                write(60,'(" Number of scf iterations               : ", I5)') iscl
-                write(60,'(" Maximum force magnitude       (target) : ",F14.8,"    (", F14.8, ")")') &
+                write(60,'(" Number of scf iterations",T45,": ", I9)') iscl
+                write(60,'(" Maximum force magnitude",T36,"(target) : ",F18.8,"  (", F12.8, ")")') &
                &  forcemax, input%relax%epsforce
-                write(60,'(" Total energy at this optimization step :",F19.9)') engytot
+                write(60,'(" Total energy at this optimization step",T45,": ",F18.8)') engytot
                 if (input%relax%outputlevelnumber>0) then 
                     call writepositions(60,input%relax%outputlevelnumber) 
                     call writeforce(60,input%relax%outputlevelnumber)
@@ -96,7 +96,7 @@
             call timesec(tsec2)
             if (rank==0) then
                 write(60,*)
-                write(60,'(" Time spent in this optimization step   : ",F12.2," seconds")') tsec2-tsec1
+                write(60,'(" Time spent in this optimization step",T45,": ",F12.2," seconds")') tsec2-tsec1
                 call flushifc(60)
             end if
 

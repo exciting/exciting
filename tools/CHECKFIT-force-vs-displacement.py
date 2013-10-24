@@ -164,7 +164,7 @@ output_file.close()
 output_file = open('order-of-derivative',"w")
 print >> output_file, order_of_derivative
 output_file.close()
-print "#############################################"
+print "#############################################\n"
 os.system("PLOT-checkderiv.py")
 
 

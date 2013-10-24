@@ -146,8 +146,8 @@ Subroutine gndstate
             call printbox(60,"*",string)
             write(60,*) "Output level for this task is set to ", trim(input%relax%outputlevel)
             write(60,*)
-            write(60,'(" Maximum displacement tau_BFGS   is     ", T45, ":",F14.4)') input%relax%taubfgs
-            write(60,'(" Maximum displacement tau_newton is     ", T45, ":",F14.4)') input%relax%taunewton
+            write(60,'(" Maximum displacement tau_BFGS   is     ", T45, ":",F15.4)') input%relax%taubfgs
+            write(60,'(" Maximum displacement tau_newton is     ", T45, ":",F15.4)') input%relax%taunewton
             call flushifc(60)
         end if
         ! check force convergence first

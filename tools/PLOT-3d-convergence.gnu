@@ -1,6 +1,10 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
 
+dpisize=100
+len=${#DPIPNG}
+if [ "$len" -gt 0 ]; then dpisize=$DPIPNG ; fi
+
 dollar="$"
 if [ -f 'gnu-input' ] ; then rm gnu-input ; fi
 inpfile=convergence-test
@@ -85,5 +89,5 @@ cat>>gnu-input<<***
 gnuplot < gnu-input
 rm -f gnu-input idum rdum edum gdum
 #-------------------------------------------------------------------------------
-convert PLOT.ps -rotate 90 -density 80 PLOT.png
+convert -density $dpisize -rotate 90 PLOT.ps PLOT.png
 #-------------------------------------------------------------------------------

@@ -162,7 +162,7 @@ subroutine relax
 
         call writeengy(60)
         Write (60,*)
-        Write (60, '(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F22.12)') fermidos
+        Write (60, '(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
         Call writechg (60,input%groundstate%outputlevelnumber)
         If (getfixspinnumber() .Ne. 0) Call writefsm (60)
 
@@ -218,9 +218,9 @@ subroutine writeoptminitdata(fnum,verbosity)
     integer :: is, ia
 
     call printbox(fnum,"-","Optimization step 0: Initialize optimization")
-    write(fnum,'(" Maximum force magnitude       (target) : ",F14.8,"    (", F14.8, ")")') &
+    write(fnum,'(" Maximum force magnitude",T36,"(target) : ",F18.8,"  (", F12.8, ")")') &
    &  forcemax, input%relax%epsforce
-    write(fnum,'(" Total energy at this optimization step :",F19.9)') engytot
+    write(fnum,'(" Total energy at this optimization step ",T45,": ",F18.8)') engytot
     call flushifc(fnum)
     if (verbosity < 1) return
 

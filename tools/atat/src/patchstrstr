@@ -1,2 +1,0 @@
-#!/bin/csh
-sed 's/ostrstream *([^;]*);/char buf\1\[MAX_LINE_LEN\]; ostrstream \1(buf\1,MAX_LINE_LEN);/g'

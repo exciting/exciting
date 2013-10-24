@@ -91,9 +91,9 @@
 			   <inlinemath>\tau_{\alpha}^{(0)}</inlinemath>. </li>
                       <li> <pre>"harmonic"</pre> - 
 		           Method based on the combination of the <pre>"newton"</pre> method and the 
-			   harmonic approximation. Contrary to <pre>"newton"</pre>, all Cartesian components 
+			   harmonic approximation. Contrary to <pre>"newton"</pre>, all cartesian components 
 			   of the position vector of each atom are treated independently. 
-			   At the optimization step <inlinemath>m</inlinemath>, each Cartesian component of
+			   At the optimization step <inlinemath>m</inlinemath>, each cartesian component of
 			   the position vector of each atom is updated using the same algorithm as in 
 			   <pre>"newton"</pre> (``newton step") unless the ``harmonic condition", either 
 			   <displaymath>
@@ -114,10 +114,14 @@
 			   configuration is close to the optimized one and the internal degrees of 
 		           freedom are weakly coupled. </li>
                       <li> <pre>"bfgs"</pre> - 
-		           Limited memory algorithm for bound constrained optimization. This method requires 
+		           Limited memory algorithm for bound constrained optimization, see
+			   <pre>Byrd,</pre> <pre>et</pre> <pre>al.,</pre> <pre> SIAM J. Scientific Computing 16,
+			   1190 (1995)</pre>. 
+			   This method requires 
 			   high accuracy for the determination of the total energy in dependence of the 
 			   maximum allowed for the residual atomic force. For this reason, the 
-			   default value of the attribute <attref>epsengy</attref> is changed to the value 
+			   default value of the attribute <attref>epsengy</attref> is decreased in order to be
+			   at least equal to the value 
 			   of the attribute <attref>epsforce</attref> of the <elementref>relax</elementref> 
 			   element multiplied by a factor <pre>0.02</pre>. </li>
                     </list>
@@ -171,8 +175,8 @@
                 <xs:annotation>
                     <xs:documentation>
                     Maximum atomic displacement for atomic relaxation when using the <pre>"bfgs"</pre> method. 
-		    At each optimization step, the optimized value of each Cartesian coordinate of each atom 
-		    is searched in a range of size <inlinemath>2\tau_{_{\rm BFGS}}</inlinemath>
+		    At each optimization step, the optimized value of each cartesian coordinate of each atom 
+		    is searched in a range of size <inlinemath>2\tau_{\tt BFGS}</inlinemath>
 		    centered at the actual value of the coordinate.
                     </xs:documentation>
                 </xs:annotation>

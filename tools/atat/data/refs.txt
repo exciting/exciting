@@ -1,5 +1,0 @@
-The atomic radii were taken from
-
-J.C. Slater, J. Chem. Phys. 1964, 39, 3199.
-
-and multiplied by 1.05 (for additional insurance that the atoms are not too close).

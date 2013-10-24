@@ -11,17 +11,19 @@
   </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="groundstate">
     <xs:annotation>
-      <xs:documentation> The <elementref>groundstate</elementref> 
-      element is required for any calculation. 
-      Its attributes are
-        the parameters and methods used to calculate the ground-state density.</xs:documentation>
+      <xs:documentation> 
+      The <elementref>groundstate</elementref> element is required for any calculation. 
+      Its attributes are parameters and methods which are used to calculate the ground-state density.
+      </xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
         <xs:element ex:importance="essential" ex:unit="" name="spin" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation> If the <elementref>spin</elementref> element is present calculation is done with
-              spin polarization. </xs:documentation>
+            <xs:documentation> 
+	    If the <elementref>spin</elementref> element is present, calculation is done with
+            spin polarization. 
+	    </xs:documentation>
             <xs:appinfo>
               <oldname>spinpol</oldname>
             </xs:appinfo>
@@ -30,78 +32,103 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="momfix" type="vect3d"
               default="0.0d0 0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation>The desired total moment for a FSM calculation.</xs:documentation>
+                <xs:documentation>
+	        The desired total moment for a fixed spin moment (<pre>FSM</pre>) calculation.
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="bfieldc" type="vect3d"
               default="0.0d0 0.0d0 0.0d0 ">
               <xs:annotation>
-                <xs:documentation> Allows to apply a constant B field This is a constant magnetic
-                  field applied throughout the entire unit cell and enters the second-variational
-                  Hamiltonian as <displaymath>\frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf B}_{\rm
-                    ext},</displaymath> where <inlinemath>g_e</inlinemath> is the electron
-                    <inlinemath>g</inlinemath>-factor (2.0023193043718). This field is normally used
-                  to break spin symmetry for spin-polarised calculations and considered to be
-                  infinitesimal with no direct contribution to the total energy. In cases where the
-                  magnetic field is finite (for example when computing magnetic response) the
-                  external <inlinemath>{ \bf B}</inlinemath>-field energy reported in
-                  <filename>INFO.OUT</filename> should be added to the total by hand. This field is applied
-                  throughout the entire unit cell. To apply magnetic fields in particular
-                  muffin-tins use the <attref>bfcmt</attref> vectors in the <elementref>atom</elementref> elements.
-                  Collinear calculations are more efficient if the field is applied in the
-                    <inlinemath>z</inlinemath>-direction. </xs:documentation>
+                <xs:documentation> 
+		Allows to apply a constant <inlinemath>{ \bf B}_{\tt ext}</inlinemath> field. 
+		This is an external constant magnetic field applied throughout the entire unit cell 
+		and enters the second-variational Hamiltonian as 
+		<displaymath>\frac{g_e\,\alpha}{4}\;\vec{\sigma}\cdot{\bf B}_{\tt ext}\,,</displaymath>
+		where <inlinemath>g_e</inlinemath> is the electron <inlinemath>g</inlinemath>-factor
+                (<inlinemath>g_e</inlinemath>=2.0023193043718). The external magnetic field is normally used
+                to break spin symmetry for spin-polarised calculations and considered to be
+                infinitesimal with no direct contribution to the total energy. In cases where the
+                magnetic field is finite (for example when computing magnetic response) the
+                external <inlinemath>{ \bf B}</inlinemath>-field energy reported in
+                <filename>INFO.OUT</filename> (when the attribute <attref>outputlevel</attref> is set to 
+		<pre>"high"</pre>) should be added to the total energy by hand. This external magnetic field 
+		is applied hroughout the entire unit cell. To apply magnetic fields in particular muffin-tins 
+		use the <attref>bfcmt</attref> vectors in the <elementref>atom</elementref> elements.
+                Collinear calculations are more efficient if the field is applied in the
+                <inlinemath>z</inlinemath>-direction. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean" default="false">
               <xs:annotation>
-                <xs:documentation> If <attref>spinorb</attref> is <pre>"true"</pre>, then a
-                    <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
-                  second-variational Hamiltonian. </xs:documentation>
+                <xs:documentation> 
+		If <attref>spinorb</attref> is <pre>"true"</pre>, then a
+                <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
+                second-variational Hamiltonian. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="spinsprl" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation> Set to <pre>"true"</pre> if a spin-spiral calculation is
-                  required. Experimental feature for the calculation of spin-spiral states. See
-                    <attref>vqlss</attref> for details. </xs:documentation>
+                <xs:documentation> 
+		Set to <pre>"true"</pre> if a spin-spiral calculation is required. 
+                Experimental feature for the calculation of spin-spiral states.
+                See <attref>vqlss</attref> for details. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="vqlss" type="vect3d"
               default="0.0d0 0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation> Is the <inlinemath>{ \bf q}</inlinemath>-vector of the
-                  spin-spiral state in lattice coordinates. Spin-spirals arise from spinor states
-                  assumed to be of the form <displaymath> \Psi^{ \bf q}_{ \bf k}({ \bf r})= \left(
-                    \begin{array}{c} U^{{\bf q}\uparrow}_{ \bf k}({\bf r})e^{i({ \bf k+q/2})\cdot{
-                    \bf r}} \\ U^{{ \bf q}\downarrow}_{\bf k}({ \bf r})e^{i({\bf k-q/2})\cdot{ \bf
-                    r}} \\ \end{array} \right). </displaymath> These are determined using a
-                  second-variational approach, and give rise to a magnetization density of the form
-                    <displaymath> {\bf m}^{ \bf q}({ \bf r})=(m_x({\bf r})\cos({ \bf q \cdot r}),
-                    m_y({\bf r})\sin({ \bf q \cdot r}),m_z({\bf r})), </displaymath> where
-                    <inlinemath>m_x</inlinemath>, <inlinemath>m_y</inlinemath> and
-                    <inlinemath>m_z</inlinemath> are lattice periodic. See also
-                    <attref>spinsprl</attref>. </xs:documentation>
+                <xs:documentation> 
+		This attribute allows to specify the <inlinemath>{ \bf q}</inlinemath>-vector of the
+                spin-spiral state in lattice coordinates. Spin-spirals arise from spinor states
+                assumed to be of the form 
+		<displaymath> 
+		  \Psi^{ \bf q}_{ \bf k}({ \bf r})= 
+		  \left(\begin{array}{c} 
+		  U^{{ \bf q}\uparrow}_{ \bf k}({ \bf r})\;e^{i({ \bf k+q/2})\cdot{ \bf r}} \\
+		  \phantom{o} \\
+                  U^{{ \bf q}\downarrow}_{ \bf k}({ \bf r})\;e^{i({ \bf k-q/2})\cdot{ \bf r}} \\ 
+                  \end{array} \right)\,. 
+		</displaymath> 
+		These spin-spirals are determined using a second-variational approach, 
+		and give rise to a magnetization density of the form
+                <displaymath> 
+		  {\bf m}^{ \bf q}({ \bf r})=\left[m_x({\bf r})\,\cos({ \bf q \cdot r}),\;
+                  m_y({\bf r})\,\sin({ \bf q \cdot r}),\; m_z({\bf r})\right]\,, 
+		</displaymath> where
+                <inlinemath>m_x</inlinemath>, <inlinemath>m_y</inlinemath>, and <inlinemath>m_z</inlinemath>
+                have the periodicity of the lattice. See also <attref>spinsprl</attref>. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="taufsm" type="fortrandouble"
               default="0.01d0">
               <xs:annotation>
-                <xs:documentation> The effective magnetic field required for fixing the spin moment
+                <xs:documentation> 
+		The effective magnetic field required for fixing the spin moment
                 to a given value, is updated according to 
-                <displaymath> {\bf B}_{\rm FSM}^{i+1}={\bf B}_{\rm FSM}^i+\tau_{fsm}\left(
-                \boldsymbol{\mu}^i-\boldsymbol{\mu}_{\rm FSM}\right), </displaymath>
-                for iteration <inlinemath>i</inlinemath>. It must be positive. </xs:documentation>
+                <displaymath> 
+		  {\bf B}_{\tt FSM}^{i+1}={\bf B}_{\tt FSM}^i+\tau_{\tt FSM}\left(
+                  \boldsymbol{\mu}^i-\boldsymbol{\mu}_{\tt FSM}\right)\,, 
+		</displaymath>
+                for iteration <inlinemath>i</inlinemath>. It must be positive. 
+		</xs:documentation>
               </xs:annotation>
               </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="reducebf" type="fortrandouble"
               default="1.0d0">
               <xs:annotation>
-                <xs:documentation> After each iteration the external magnetic fields are multiplied
-                  with reducebf. This al- lows for a large external magnetic field at the start of
-                  the self-consistent loop to break spin symmetry, while at the end of the loop the
-                  field will be effectively zero, i.e. infinitesimal. See <attref>bfieldc</attref>
-                  and atom element. </xs:documentation>
+                <xs:documentation> 
+		After each iteration the external magnetic fields are multiplied
+                with reducebf. This allows for a large external magnetic field at the start of
+                the self-consistent loop to break spin symmetry, while at the end of the loop the
+                field will be effectively zero, i.e. infinitesimal. See <attref>bfieldc</attref>
+                and atom element. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="fixspin" default="none">
@@ -2611,9 +2638,9 @@
               <xs:documentation> 
                 Specify amount of information which is printed to files:
                 <list>
-                    <li>low    - minimal output is produced</li>
-                    <li>normal - (default) standard information</li>
-                    <li>high   - detailed output</li>
+                    <li><pre>"low"</pre>    - minimal output is produced</li>
+                    <li><pre>"normal"</pre> - (default) standard information</li>
+                    <li><pre>"high"</pre>   - detailed output</li>
                 </list>
               </xs:documentation>
             </xs:annotation>

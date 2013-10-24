@@ -400,23 +400,23 @@ Subroutine dos
 !-----------------------------------
       Write(*,*)
       Write(*, '("Info(dos):")')
-      Write(*, '(" Total density of states written to TDOS.OUT")')
+      Write(*, '("   Total density of states written to TDOS.OUT")')
       Write(*,*)
       If (input%properties%dos%lmirep) Then
-         Write(*, '(" Partial density of states written to PDOS_Sss_Aaaaa.OUT")')
-         Write(*, '(" for all species and atoms")')
+         Write(*, '("   Partial density of states written to PDOS_Sss_Aaaaa.OUT")')
+         Write(*, '("   for all species and atoms")')
          Write(*,*)
-         Write(*, '(" Eigenvalues of a random matrix in the (l, m) basis symmetrised")')
-         Write(*, '(" with the site symmetries written to ELMIREP.OUT for all")')
-         Write(*, '(" species and atoms. Degenerate eigenvalues correspond to")')
-         Write(*, '(" irreducible representations of each site symmetry group")')
+         Write(*, '("   Eigenvalues of a random matrix in the (l, m) basis symmetrised")')
+         Write(*, '("   with the site symmetries written to ELMIREP.OUT for all")')
+         Write(*, '("   species and atoms. Degenerate eigenvalues correspond to")')
+         Write(*, '("   irreducible representations of each site symmetry group")')
          Write(*,*)
-         Write(*, '(" Interstitial density of states written to IDOS.OUT")')
+         Write(*, '("   Interstitial density of states written to IDOS.OUT")')
          Write(*,*)
       End If
-      Write(*, '(" Fermi energy is at zero in plot")')
+      Write(*, '("   Fermi energy is at zero in plot")')
       Write(*,*)
-      Write(*, '(" DOS units are states/Hartree/unit cell")')
+      Write(*, '("   DOS units are states/Hartree/unit cell")')
       Write(*,*)
 
       Return

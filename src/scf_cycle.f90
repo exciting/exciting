@@ -417,7 +417,7 @@ subroutine scf_cycle(verbosity)
 ! output energy components
             call writeengy(60)
             if (verbosity>0) Write (60,*)
-            Write (60, '(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F22.12)') fermidos
+            Write (60, '(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
 ! write DOS at Fermi energy to FERMIDOS.OUT and flush
 !            Write (62, '(G18.10)') fermidos
 !            Call flushifc (62)
@@ -477,6 +477,11 @@ subroutine scf_cycle(verbosity)
             write(60, '(" Wall time (seconds)                        : ", F12.2)') timetot
         end if
 
+        if (rank==0) then ! write TOTENERGY.OUT 
+            Write (61, '(G22.12)') engytot
+            Call flushifc (61)
+        end if
+
 ! check for convergence
         If (iscl .Ge. 2) Then
 
@@ -500,9 +505,7 @@ subroutine scf_cycle(verbosity)
                 end if
             end if
 
-            if (rank==0) then ! write TOTOENERGY.OUT and RMSDVEFF.OUT 
-                Write (61, '(G22.12)') engytot
-                Call flushifc (61)
+            if (rank==0) then ! write RMSDVEFF.OUT 
                 Write (65, '(G18.10)') currentconvergence
                 Call flushifc(65)
             end if
@@ -620,9 +623,10 @@ subroutine scf_cycle(verbosity)
     End If
 
     If (rank==0) Then
-! add blank line to RMSDVEFF.OUT and TOTENERGY.OUT
+! write last total energy and add blank line to RMSDVEFF.OUT and TOTENERGY.OUT
       Write (65,*)
       Call flushifc(65)
+      Write (61, '(G22.12)') engytot
       Write (61,*)
       Call flushifc(61)
     End If
