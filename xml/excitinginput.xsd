@@ -4037,16 +4037,26 @@ gw.xsd
                                 symmetry vectors from the crystal symmetries and uses them instead of eigenvectors (this is not generally
                                 meaningful, as the symmetry vectors come out as linear combinations of eigenvectors in case several phonon modes
                                 which belong to the same irreducible representation occur, so check the output carefully). 
+                                <pre>symveccheck</pre> solely produces the symmetry vectors and stops. 
                                 </xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
                                     <xs:enumeration value="fromscratch"/>
                                     <xs:enumeration value="fromfile"/>
-                                    <xs:enumeration value="readinput"/>
                                     <xs:enumeration value="symvec"/>
+                                    <xs:enumeration value="symveccheck"/>
+                                    <xs:enumeration value="readinput"/>
                                 </xs:restriction>
                             </xs:simpleType>
+                       </xs:attribute>
+                       <xs:attribute ex:importance="expert" ex:unit="" name="mode" type="xs:integer" default="0">
+                            <xs:annotation>
+                                <xs:documentation>Optionally choose a phonon mode to compute
+                                (<inlinemath>4 \leq </inlinemath><pre>mode</pre><inlinemath> \leq 3N_{\mathrm{atm}}</inlinemath>).
+                                The default of 0 means compute spectra of all Raman active modes.
+                                </xs:documentation>
+                            </xs:annotation>
                        </xs:attribute>
                        <xs:attribute ex:importance="expert" ex:unit="" name="nstate" type="xs:integer" default="10">
                             <xs:annotation>
@@ -4057,14 +4067,14 @@ gw.xsd
                        <xs:attribute ex:importance="expert" ex:unit="" name="xmin" type="fortrandouble" default="-0.3d0">
                             <xs:annotation>
                                 <xs:documentation>Lower boundary of the oscillator problem, give a distance along
-                                                  the normal coordinate, <inlinemath>|{\bf Q}_\omega |</inlinemath> in Bohr.
+                                                  the normal coordinate, <inlinemath>|{\bf u}_i |</inlinemath> in Bohr.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
                        <xs:attribute ex:importance="expert" ex:unit="" name="xmax" type="fortrandouble" default="0.3d0">
                             <xs:annotation>
                                 <xs:documentation>Upper boundary of the oscillator problem, give a distance along
-                                                  the normal coordinate, <inlinemath>|{\bf Q}_\omega |</inlinemath> in Bohr.
+                                                  the normal coordinate, <inlinemath>|{\bf u}_i |</inlinemath> in Bohr.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
@@ -4085,14 +4095,14 @@ gw.xsd
                                 <xs:documentation>Create <pre>nstep</pre> distorted geometries in addition to the equilibrium geometry 
                                 to sample the potential and dielectric function.
                                 The distortion is done by displacing atoms along normal coordinate by 
-                                <inlinemath>|{\bf Q}_\omega | = \pm </inlinemath><attref>displ</attref>
+                                <inlinemath>|{\bf u}_i | = \pm n*</inlinemath><attref>displ</attref>
                                 In the case of <pre>nstep=1</pre> and <pre>2</pre> a harmonic potential is assumed.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="displ" type="fortrandouble" default="0.01d0">
+                       <xs:attribute ex:importance="expert" ex:unit="" name="displ" type="fortrandouble" default="0.05d0">
                             <xs:annotation>
-                                <xs:documentation>Step length for each displacement along normal coordinate, <inlinemath>|{\bf Q}_\omega |</inlinemath> in Bohr.
+                                <xs:documentation>Step length for each displacement along normal coordinate, <inlinemath>|{\bf u}_i |</inlinemath> in Bohr.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
