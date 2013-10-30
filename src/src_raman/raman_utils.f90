@@ -73,7 +73,6 @@ Contains
       use raman_input
       use m_getunit
       use modinput
-      use mod_lattice, only: omega
       implicit none
     ! arguments
       integer, intent(in) :: imode, istep, i1, i2

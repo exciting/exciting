@@ -1,5 +1,5 @@
 !
-subroutine EIGENen(lwrite)
+subroutine EIGENen
 !
 ! solve oscillator eigen problem
 !
@@ -15,7 +15,6 @@ subroutine EIGENen(lwrite)
    real(8), allocatable :: zz(:,:),z(:,:)
    real(8), allocatable :: alfi(:),alfr(:),beta(:),work(:)
    real(8) :: u(4),v(4)
-   logical :: lwrite
    character(3) :: ext
 !
 !
@@ -27,7 +26,7 @@ allocate( alfr(2*input%properties%raman%ninter) )
 allocate( beta(2*input%properties%raman%ninter) )
 allocate( work(16*input%properties%raman%ninter) )
 !
-if (lwrite) then
+if (input%properties%raman%writefunc) then
    do i = 1, input%properties%raman%nstate
       write(ext,'(i3.3)') i
       open(unit=250+i,file='RAMAN_EIGFUNC_'//trim(ext)//trim(filext),status='unknown',form='formatted')
@@ -115,25 +114,26 @@ endif
          enddo
          wnorm = wnorm*h
          wnorm = 1.d0/dsqrt(wnorm)
-         if (lwrite) then
+         if (input%properties%raman%writefunc) then
             write(66,*)
             write(66,*) 'eigen function ',i
-            if (lwrite) write(250,*) eigen(i)
+            if (input%properties%raman%writefunc) write(250,*) eigen(i)
          endif
          do ind = 1,input%properties%raman%ninter+1
             z1(ind,i) = z1(ind,i)*wnorm
             z2(ind,i) = z2(ind,i)*wnorm
-            if (lwrite .and. (ind .eq. input%properties%raman%ninter+1)) then
+            if (input%properties%raman%writefunc .and. (ind .eq. input%properties%raman%ninter+1)) then
                write(66,43) xa(input%properties%raman%ninter)+h,z1(ind,i),z2(ind,i)
-               if (lwrite) write(250+i,43) xa(input%properties%raman%ninter)+h,z1(ind,i)*0.001d0,z2(ind,i)*0.001d0
-            elseif (lwrite) then
+               if (input%properties%raman%writefunc) &
+                      &  write(250+i,43) xa(input%properties%raman%ninter)+h,z1(ind,i)*0.001d0,z2(ind,i)*0.001d0
+            elseif (input%properties%raman%writefunc) then
                write(66,43) xa(ind),z1(ind,i),z2(ind,i)
-               if (lwrite) write(250+i,43) xa(ind),z1(ind,i)*0.001d0,z2(ind,i)*0.001d0
+               if (input%properties%raman%writefunc) write(250+i,43) xa(ind),z1(ind,i)*0.001d0,z2(ind,i)*0.001d0
             endif
 43          format(3(f24.12))
          enddo
       enddo
-40    continue
+!40    continue
 !
 !     OUTPUT for all dimensions
 !
@@ -146,7 +146,7 @@ endif
       write(66,*)
 !     
 deallocate( z,zz,alfi,alfr,beta,work )
-if (lwrite) then
+if (input%properties%raman%writefunc) then
    do i = 1, input%properties%raman%nstate
       close(250+i)
    enddo

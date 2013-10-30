@@ -19,25 +19,25 @@ use raman_params, only : eps
 implicit none
 real(8) :: rdum1,rdum2,rdum3
 integer :: i,j,k,numsop,fi,numrep,tr,sop_1,sop_2,sop_3,lwork,info !cl
-integer :: no_vec_nonorth,i1,i2
-integer :: maxrot,maxrot_cl,minrot,minrot_cl,inv_cl,ia,ja,is,js !,gr
-real(8) :: sopmat(3,3,48),transl(3,48)
+integer :: i1,i2
+integer :: maxrot,maxrot_cl,minrot,minrot_cl,inv_cl,ia,ja,is, num_m, sigmah_cl
+real(8) :: transl(3,48)
 real(8) :: soprep(3,3,24)
-real(8) :: conj(3,3), tmpmat(3, 3), invmat(3, 3), latdet
-real(8) :: latv(3,3),invlat(3,3),E(3,3)
+real(8) :: conj(3,3), tmpmat(3, 3), invmat(3, 3)!, latdet
+real(8) :: E(3,3)
 real(8) :: sopmat_12(3,3),const_c(48,48,48),dim_(48)
 real(8) :: char_vec(48),char_raman(48),freq_fac_vec(48),freq_fac_raman(48),vec_one(3)
 real(8) :: char_rot(48),freq_fac_rot(48),char_equiv(48),freq_fac_vib(48)
-real(8) :: dirvec(3), v(3), atpos_sop(3)
+real(8) :: dirvec(3), atpos_sop(3)
 real(8), allocatable :: rwork(:),indet_u(:),atpos(:,:)
-complex(8), allocatable :: mat_phi(:,:),eigval(:),work(:) !,charact(:,:)
+complex(8), allocatable :: mat_phi(:,:),eigval(:),work(:)
 character(175) :: vec_sym,rot_sym,raman_sym,vib_sym
-logical :: flag(48),representative(48),vib_mode(48),grouped(100) !,raman_active(48)
-integer :: rottype(48), iv(3)  !,class(48),elem_cl(48)
-integer :: rottabl(-3:3,-1:1),rotsum(-6:6), invlsplsymc(48)
+logical :: flag(48),representative(48),grouped(100) !,raman_active(48)
+integer :: rottype(48) !iv(3)  !,class(48),elem_cl(48)
+integer :: rottabl(-3:3,-1:1),rotsum(-6:6)
 !integer, allocatable :: gr_atoms(:,:),gr_atoms_no(:)   !,atom_sop(:,:)
 character(2), dimension(-6:6) :: rotchar = (/ 'S3','  ','S4','S6',' m',' i','  ',' E','C2','C3','C4','  ','C6' /)
-character(2) :: cl_rotchar(48),chnum   !,irrep_ch(48)
+character(2) :: cl_rotchar(48),chnum
 logical :: centric,cubic,mix
 character(5) :: hmsymb,schsymb
 character(3) :: sense
@@ -79,8 +79,8 @@ representative = .true.
 fi = 1
 do i = 1,numsop
    ! use the index of SOPs referring to crystal symmetry
-   sopmat (:, :, i) = dble( symlat(:, :, lsplsymc(i)) )
-   transl (:, i) = vtlsymc(:, i)
+   sopmat(:, :, i) = dble( symlat(:, :, lsplsymc(i)) )
+   transl(:, i) = vtlsymc(:, i)
 ! check for i
    if (all(sopmat(:,:,i) .eq. -E)) fi = 2
 ! check for occurrences of (R,r1) and (R,r2)
@@ -124,23 +124,27 @@ do i = 1,numsop
 enddo
 !
 ! output classes
+! and analyze SOPs
 !
 elem_cl = 0; cl_rotchar = ''
 rotsum = 0
 maxrot = 0; maxrot_cl = 0
 minrot = 0; minrot_cl = 0
 inv_cl = 0
+sigmah_cl = 0
 write(13, '(" Symmetry analysis of given system and SOPs",/ &
  &         ," ------------------------------------------",/)') 
 write(13, '(/," The ",i2," SOPs form ",i2," classes",/)') numsop,cl
 write(13,*)
 do i = 1,cl
    write(13, '(/," Class ",i2," contains: ",/)') i
+   num_m = 0
    do j = 1,numsop
       if (class(j) .eq. i) then
          tr = nint(trace(sopmat(:,:,j)))
          rottype(j) = rottabl(tr,symlatd(lsplsymc(j)))
          rotsum(rottype(j)) = rotsum(rottype(j)) + 1
+         if (rottype(j) .eq. -2) num_m = num_m + 1
          if (rottype(j) .gt. maxrot) then
             maxrot_cl = i
             maxrot = rottype(j)
@@ -180,6 +184,7 @@ do i = 1,cl
          endif
       endif
    enddo
+   if (num_m .eq. 1) sigmah_cl = i
 enddo
 !
 ! Compute Character Table for the Group:
@@ -267,11 +272,12 @@ do i = 1,cl
 enddo
 !
 ! derive (rough) notation of irreducible representations:
+! (the arbitrary numbering is ignored)
 !
 ! (i) check for cubic groups
 cubic = .false.
 if (rotsum(3) .eq. 8) cubic = .true.
-irrep_ch = ''
+irep_ch = ''
 do j = 1,cl
 ! (ii) main notation
    ! dimension 1: A or B
@@ -280,9 +286,9 @@ do j = 1,cl
          if (-minrot .eq. 2*maxrot) then
          ! for Dnd,S2n group take from improper rotation
             if (nint(dble(charact(minrot_cl,j))) .gt. 0) then
-               irrep_ch(j) = trim(irrep_ch(j))//'A'
+               irep_ch(j) = trim(irep_ch(j))//'A'
             else
-               irrep_ch(j) = trim(irrep_ch(j))//'B'
+               irep_ch(j) = trim(irep_ch(j))//'B'
             endif
          elseif (maxrot .eq. 2 .and. rotsum(2) .eq. 3 .and. -minrot .ne. 2*maxrot) then
          ! for D2 and D2h consider all C2 SOPs (which are in seperate classes)
@@ -291,37 +297,53 @@ do j = 1,cl
                if (rottype(i) .eq. 2) k = k + nint(dble(charact(class(i),j)))
             enddo
             if (k .eq. 3) then 
-               irrep_ch(j) = trim(irrep_ch(j))//'A'
+               irep_ch(j) = trim(irep_ch(j))//'A'
             else
-               irrep_ch(j) = trim(irrep_ch(j))//'B'
+               irep_ch(j) = trim(irep_ch(j))//'B'
             endif
          else
          ! else from proper rotation
             if (nint(dble(charact(maxrot_cl,j))) .gt. 0) then
-               irrep_ch(j) = trim(irrep_ch(j))//'A'
+               irep_ch(j) = trim(irep_ch(j))//'A'
             else
-               irrep_ch(j) = trim(irrep_ch(j))//'B'
+               irep_ch(j) = trim(irep_ch(j))//'B'
             endif
          endif
       else
          ! cubic groups
-         irrep_ch(j) = trim(irrep_ch(j))//'A'
+         irep_ch(j) = trim(irep_ch(j))//'A'
       endif
    ! higher dimensions
    elseif (nint(dble(charact(1,j))) .eq. 2) then
-      irrep_ch(j) = trim(irrep_ch(j))//'E'
+      irep_ch(j) = trim(irep_ch(j))//'E'
    elseif (nint(dble(charact(1,j))) .eq. 3) then
-      irrep_ch(j) = trim(irrep_ch(j))//'T'
+      irep_ch(j) = trim(irep_ch(j))//'T'
    endif
 ! (iii) gerade or ungerade?
    if (fi .eq. 2) then
       if (nint(dble(charact(inv_cl,j))) .gt. 0) then
-         irrep_ch(j) = trim(irrep_ch(j))//'g'
+         irep_ch(j) = trim(irep_ch(j))//'g'
       else
-         irrep_ch(j) = trim(irrep_ch(j))//'u'
+         irep_ch(j) = trim(irep_ch(j))//'u'
       endif
    endif
 ! (iv) prime or double prime?
+   ! C3h and D3h
+   if (maxrot .eq. 3 .and. sigmah_cl .gt. 0) then
+      if (nint(dble(charact(sigmah_cl,j))) .gt. 0) then
+         irep_ch(j) = trim(irep_ch(j))//''''
+      else
+         irep_ch(j) = trim(irep_ch(j))//''''''
+      endif
+   endif
+   ! Cs
+   if (sigmah_cl .gt. 0 .and. cl .eq. 2) then
+      if (nint(dble(charact(sigmah_cl,j))) .gt. 0) then
+         irep_ch(j) = trim(irep_ch(j))//''''
+      else
+         irep_ch(j) = trim(irep_ch(j))//''''''
+      endif
+   endif
 enddo
 !
 ! Determine Point Group from SOPs
@@ -532,12 +554,12 @@ write(13, '(" Character Table")')
 write(13,*)
 write(13, '("              ",20("   ",i2,a2),/)') (elem_cl(i),cl_rotchar(i),i=1,cl)
 do j = 1,cl
-   write(13,'(i5,a10,20i7)') j,irrep_ch(j),(nint(dble(charact(i,j))),i=1,cl)
+   write(13,'(i5,a10,20i7)') j,irep_ch(j),(nint(dble(charact(i,j))),i=1,cl)
 enddo
 write(13,*)
 ! --- end of character table code
 !
-! determine Raman active irreps
+! determine Raman active ireps
 !
 allocate( atom_sop(natmtot, numsop) )
 !
@@ -620,7 +642,7 @@ do j = 1,cl
       write(chnum,'(i2)') nint(freq_fac_vec(j)/numsop)
       write(vec_sym,*) trim(vec_sym),trim(chnum),'*'
       write(chnum,'(i2)') j
-      write(vec_sym,*) trim(vec_sym),trim(chnum),'(',trim(irrep_ch(j)),')  ' 
+      write(vec_sym,*) trim(vec_sym),trim(chnum),'(',trim(irep_ch(j)),')  ' 
 !     vec_sym = adjustl(vec_sym)
    endif
    if (nint(freq_fac_rot(j)/numsop) .gt. 0) then
@@ -628,7 +650,7 @@ do j = 1,cl
       write(chnum,'(i2)') nint(freq_fac_rot(j)/numsop)
       write(rot_sym,*) trim(rot_sym),trim(chnum),'*'
       write(chnum,'(i2)') j
-      write(rot_sym,*) trim(rot_sym),trim(chnum),'(',trim(irrep_ch(j)),')  '
+      write(rot_sym,*) trim(rot_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
 !     rot_sym = adjustl(rot_sym)
    endif
    if (nint(freq_fac_raman(j)/numsop) .gt. 0) then
@@ -637,17 +659,19 @@ do j = 1,cl
       write(chnum,'(i2)') nint(freq_fac_raman(j)/numsop)
       write(raman_sym,*) trim(raman_sym),trim(chnum),'*'
       write(chnum,'(i2)') j
-      write(raman_sym,*) trim(raman_sym),trim(chnum),'(',trim(irrep_ch(j)),')  '
+      write(raman_sym,*) trim(raman_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
 !     raman_sym = adjustl(raman_sym)
    endif
    if (nint(freq_fac_vib(j)/numsop) .gt. 0) then
 !     write(13, *) 'class ',j,' freqfac vib ',freq_fac_vib(j)/dble(numsop)
       vib_mode(j) = .true.
       no_vec_nonorth = no_vec_nonorth + 2**(nint(freq_fac_vib(j)/numsop)-1)
+      vib_ireps(j) = nint(freq_fac_vib(j)/numsop)
+      if (vib_ireps(j) .gt. nint(dble(charact(1, j)))) sym_out = .false.
       write(chnum,'(i2)') nint(freq_fac_vib(j)/numsop)
       write(vib_sym,*) trim(vib_sym),trim(chnum),'*'
       write(chnum,'(i2)') j
-      write(vib_sym,*) trim(vib_sym),trim(chnum),'(',trim(irrep_ch(j)),')  '
+      write(vib_sym,*) trim(vib_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
 !     vib_sym = adjustl(vib_sym)
    endif
 enddo

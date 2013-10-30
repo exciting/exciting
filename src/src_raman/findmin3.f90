@@ -4,7 +4,7 @@ subroutine FINDMIN3(zmin)
 ! compute minima of polynomial describing the potential
 ! one minimum is expected between xmin and xmax
 !
-use raman_coeff, only : a0,a1,a2,a3,a4,a5,a6
+use raman_coeff, only : a1,a2,a3,a4,a5,a6
 use raman_inter, only : xmin_r,xmax_r
 use modinput
 implicit none

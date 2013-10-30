@@ -27,8 +27,8 @@ use m_genfilname
 #endif
 !
 implicit none
-integer :: maxp,it,ntp   !,num1
-integer :: i, j, ia, is, iat, ic, imode, istep
+integer :: maxp,it,ntp
+integer :: i, j, ia, is, iat, ic, imode, istep, nmode
 integer :: istep_lo, istep_hi, i_shift
 integer :: oct, oct1, oct2
 integer :: read_i
@@ -37,14 +37,16 @@ real(8) :: dph, vgamc(3)
 real(8) :: start_time_cpu, finish_time_cpu, time_cpu_tot
 real(8) :: start_time_wall, finish_time_wall, time_wall_tot
 real(8) :: read_dph, read_engy
-Real (8), Allocatable :: w (:)
-Complex (8), Allocatable :: ev (:, :)
-Complex (8), Allocatable :: dynq (:, :, :)
-Complex (8), Allocatable :: dynp (:, :)
-Complex (8), Allocatable :: dynr (:, :, :)
-Logical, Allocatable :: active(:)
-Logical :: existent, existent1, eq_done, nlf
-Character (256) :: raman_filext, raman_stepdir
+Real(8), Allocatable :: w(:)
+Complex(8), Allocatable :: ev(:, :)
+Complex(8), Allocatable :: dynq(:, :, :)
+Complex(8), Allocatable :: dynp(:, :)
+Complex(8), Allocatable :: dynr(:, :, :)
+Logical, Allocatable :: active(:), acoustic(:)
+integer, allocatable :: irep(:)
+Logical :: existent, existent1, eq_done, nlf, lt2(3, 3)
+Character(256) :: raman_filext, raman_stepdir
+character(80) :: ext
 !
 ! take time
 time_cpu_tot = 0.d0; time_wall_tot = 0.d0
@@ -53,6 +55,9 @@ call timesec(start_time_wall)
 !
 call init0
 call init2
+!
+! default number of modes
+nmode = 3*natmtot
 !
 !   unit no.,'./filename','old/unknown','FORMATTED'
 !   5 		input file
@@ -69,89 +74,53 @@ call init2
 ! open INFO file for all pre-Raman computations triggered in this subroutine
 open(unit=99,file='INFO_RAMAN.OUT',status='unknown',form='formatted')
 !
-!
-! number of wave functions, number of eigenvalues
-!     nnumber = input%properties%raman%nstate
-!     num2 = nnumber
-!
 !     boundaries
-!     read(5,*) xmin,xmax
-      xmin_r = input%properties%raman%xmin
-      xmax_r = input%properties%raman%xmax
+xmin_r = input%properties%raman%xmin
+xmax_r = input%properties%raman%xmax
 !
-!     number of intervals
-!     read(5,*) ninter
-!  -> input%properties%raman%ninter OK
-!
-!     potential options:
-!     ipot ... potential formula: 1=potx6, 2=double, 3=double2, 4=pot2, 5=dmorse, 6=dmorse2
-!     iwrit: 1 ... full calculation  2 ... stops after potential
-!     iwfunc: 1..generate output of eigenfunctions (scaled by 0.001) and eigenvalues, suitable for plotting
-!
-!     read(5,*) inpot
-!
-!     if (inpot .eq. 1) then
-!     read potential coefficients according to choice ipot
-!        read(5,*) a0,a1,a2,a3,a4,a5,a6
-!     elseif (inpot .eq. 2) then
-!     read raw data for potential and compute potential coefficients according to choice ipot
-!     code assumes a line with number of data pairs followed by this number of lines containing the individual data pairs (x,y)
-         numpot = input%properties%raman%nstep
-         if (input%properties%raman%nstep .le. 2) then
-         ! minimalistic determiantion of coefficients, equilibirum + 1 distortion gives quadratic potential and linear epsilon dep.
-            input%properties%raman%nstep = 2
-            numpot = 3
-         endif
-         allocate( potinx(3*natmtot, numpot) )
-         allocate( potiny(3*natmtot, numpot) )
-!        do i = 1,numpot
-!           read(5,*) potinx( , i),potiny( , i)
-!        enddo
-!        read(5,*) lscale
-!   use  input%structure%crystal%basevect(:, 1) ,...
-!        if (ipot .eq. 1) read(5,*) degree
-!   input%properties%raman%degree
-!     else
-!        write(*,*) ' inpot must be 1 or 2 '
-!        stop
-!     endif
+numpot = input%properties%raman%nstep
+if (input%properties%raman%nstep .le. 2) then
+! minimalistic determination of coefficients, equilibirum + 1 distortion gives quadratic potential and linear epsilon dep.
+   input%properties%raman%nstep = 2
+   numpot = 3
+endif
+allocate( potinx(3*natmtot, numpot) )
+allocate( potiny(3*natmtot, numpot) )
 !
 ! scattering volume for molecules or solids
-      if (input%properties%raman%molecule) then
-         ncell = 1
-      else
-         ncell = 100000
-      endif
+if (input%properties%raman%molecule) then
+   ncell = 1
+else
+   ncell = 100000
+endif
 ! cell volume in cm3 (for later use with cm-1)
 !     vol_cm3 = omega*1.d-24*faua**3
 !
 !     laser energy   
-      select case(trim(input%properties%raman%elaserunit))
-        case ('eV')
-           rlas = input%properties%raman%elaser * fevha
-        case ('nm')
-           rlas = 1.d0/input%properties%raman%elaser * frnmha
-        case ('cm-1')
-           rlas = input%properties%raman%elaser * fwnha
-        case default
-      end select
+select case(trim(input%properties%raman%elaserunit))
+  case ('eV')
+     rlas = input%properties%raman%elaser * fevha
+  case ('nm')
+     rlas = 1.d0/input%properties%raman%elaser * frnmha
+  case ('cm-1')
+     rlas = input%properties%raman%elaser * fwnha
+  case default
+end select
 !     rlas is now in Ha
 !
 !
 !     broadening of fundamental and overtones
-!     read(5,*) gamma1,gamma2,gamma3,gamma4
-      gamma1 = input%properties%raman%broad
-      gamma2 = input%properties%raman%broad
-      gamma3 = input%properties%raman%broad
-      gamma4 = input%properties%raman%broad
+gamma1 = input%properties%raman%broad
+gamma2 = input%properties%raman%broad
+gamma3 = input%properties%raman%broad
+gamma4 = input%properties%raman%broad
 !
 !
 !     temperature range, lattice expansion
 !     steps of tempi from tempa to tempe
-!     read(5,*) tempa,tempe,tempi
-      tempa = input%properties%raman%temp
-      tempe = input%properties%raman%temp
-      tempi = 0.d0
+tempa = input%properties%raman%temp
+tempe = input%properties%raman%temp
+tempi = 0.d0
 !
 !     read(5,*) intphonon                              ! in a solid, take other N-1 phonons into account (1) or not (0)
 !     intphonon = 0
@@ -172,6 +141,8 @@ endif
 Allocate (w(3*natmtot))
 Allocate (ev(3*natmtot, 3*natmtot))
 Allocate (active(3*natmtot))
+Allocate (acoustic(3*natmtot))
+Allocate (irep(3*natmtot))
 Allocate (dynq(3*natmtot, 3*natmtot, nqpt))
 Allocate (dynp(3*natmtot, 3*natmtot))
 Allocate (dynr(3*natmtot, 3*natmtot, ngridq(1)*ngridq(2)*ngridq(3)))
@@ -354,7 +325,7 @@ Select Case (input%properties%raman%getphonon)
       endif
       call flushifc(99)
       ! use input variable mode for direct loop over modes
-      input%properties%raman%mode = 1
+      nmode = 1
 End Select
 !
 ! take time
@@ -392,24 +363,34 @@ if (input%properties%raman%nstep .le. 2) i_shift = i_shift + 1
 ! loop over optical modes
 !do imode = 4,3*natmtot
 !
-do imode = 1, 3*natmtot
+do imode = 1, nmode
    if ((input%properties%raman%mode .ne. 0) .and. (imode .ne. input%properties%raman%mode)) cycle
    write(99, '(/,"  +--------------+",/,   &
               &  "  |  Mode ",i3," :  |",/,   &
               &  "  +--------------+",/)') imode
-! check mode if Raman active by symmetry
    write(*,*) 'mode ',ev(:, imode)
-   call check_raman (dble(ev(:, imode)), active(imode))
+! check for acoustic modes
+   call check_acoustic(dble(ev(:, imode)), acoustic(imode))
+   if (acoustic(imode)) cycle
+! check mode if Raman active by symmetry
+   call check_raman (dble(ev(:, imode)), irep(imode), active(imode))
    if (.not. active(imode)) then
       write(99, '(/,"Info(Raman): This mode is not Raman active",//)')
       cycle
    endif
 !
+!  analyze symmetry of Raman tensor
+   Write (ext, '("_MOD", I3.3, ".OUT")') imode
+   call construct_t2 (irep(imode), ext, lt2)
+   write(*, *) lt2(1, :)
+   write(*, *) lt2(2, :)
+   write(*, *) lt2(3, :)
+!
 ! displace atoms along eigenvector
    i = 1
    do istep = istep_lo, istep_hi
-         write (*,  '(/," *** Working on step ",i2," ***",/)') istep + i_shift
-         write (99, '(/," *** Working on step ",i2," ***",/)') istep + i_shift
+      write (*,  '(/," *** Working on step ",i2," ***",/)') istep + i_shift
+      write (99, '(/," *** Working on step ",i2," ***",/)') istep + i_shift
 !
 ! do equilibrium geometry only once
       if (istep .eq. 0) then
@@ -442,15 +423,15 @@ do imode = 1, 3*natmtot
       else
          write(99, '("Info(Raman): Performing groundstate calculation for mode ",i3," and step ",i2)') imode, i
 ! intermediate solution using system and chdir functions
-#ifdef IFORT
-         j = systemqq('mkdir '//trim(raman_stepdir))
+!#ifdef IFORT
+         j = system('mkdir '//trim(raman_stepdir))
          j = chdir('./'//trim(raman_stepdir))
-         j = systemqq('cp ../input.xml .')
-#else
-         call execute_command_line('mkdir '//trim(raman_stepdir))
-         call execute_command_line('cd ./'//trim(raman_stepdir))
-         call execute_command_line('cp ../input.xml .')
-#endif
+         j = system('cp ../input.xml .')
+!#else
+!         call execute_command_line('mkdir '//trim(raman_stepdir))
+!         call execute_command_line('cd ./'//trim(raman_stepdir))
+!         call execute_command_line('cp ../input.xml .')
+!#endif
 ! start anew from input geometry, construct distorted geometry and run through loop
          call rereadinput
          call init0
@@ -519,11 +500,11 @@ do imode = 1, 3*natmtot
          start_time_wall = finish_time_wall
 ! clean-up
 !        if (.not. associated(input%gw)) call raman_delgndst
-#ifdef IFORT
+!#ifdef IFORT
          j = chdir('..')
-#else
-         call execute_command_line('cd ..')
-#endif
+!#else
+!         call execute_command_line('cd ..')
+!#endif
       endif
 !
 ! --------- do XS calculation ---------------
@@ -561,13 +542,13 @@ do imode = 1, 3*natmtot
          call flushifc(99)
       else
          write (99, '("Info(Raman): Performing XS calculation for mode ",i3," and step ",i2)') imode, istep + i_shift
-#ifdef IFORT
+!#ifdef IFORT
          j = chdir('./'//trim(raman_stepdir))
-         j = systemqq('cp ../input.xml .')
-#else
-         call execute_command_line('cd ./'//trim(raman_stepdir))
-         call execute_command_line('cp ../input.xml .')
-#endif
+         j = system('cp ../input.xml .')
+!#else
+!         call execute_command_line('cd ./'//trim(raman_stepdir))
+!         call execute_command_line('cp ../input.xml .')
+!#endif
 !
 ! launch xs part according to element xs in input.xml:
 !
@@ -617,9 +598,8 @@ do imode = 1, 3*natmtot
          write(*,*) ' call to XS'
          call xstasklauncher
          write(*,*) 'XS computed'
-!     write(*,*) trim(xsfileout),trim(fneps),trim(fnloss),trim(fnsigma),trim(fnsumrules)
-        if (input%xs%xstype .eq. 'TDDFT') then
-           do oct1 = 1, 3
+         if (input%xs%xstype .eq. 'TDDFT') then
+            do oct1 = 1, 3
                Do oct2 = 1, 3
                   if (oct1 .ne. oct2 .and. .not. offdiag) cycle
                   Call genfilname (basename='EPSILON', asc=.False., &
@@ -659,11 +639,11 @@ do imode = 1, 3*natmtot
 !        call copyxsfiles
 ! clean-up
 !        call raman_delxs
-#ifdef IFORT
+!#ifdef IFORT
          j = chdir('..')
-#else
-         call execute_command_line('cd ..')
-#endif
+!#else
+!         call execute_command_line('cd ..')
+!#endif
       endif
       write(99, '("             XS calculation done.")')
       ! take time
@@ -716,7 +696,8 @@ open(unit=66,file='RAMAN.OUT',status='unknown',form='formatted')
 !
 ! === start loop over all phonon modes
 !
-do imode = 1, 3*natmtot
+do imode = 1, nmode
+      if (acoustic(imode)) cycle
       if ((input%properties%raman%mode .ne. 0) .and. (imode .ne. input%properties%raman%mode)) cycle
       if (.not. active(imode)) cycle
 !
@@ -829,7 +810,7 @@ do imode = 1, 3*natmtot
 !
       write(77,*) '# effective potential'
       call potential(maxp)
-      call eigenen(input%properties%raman%nstate,input%properties%raman%writefunc)
+      call eigenen
       write(*,*) ' main eigen solver finished'
       call transmat(input%properties%raman%ninter,h) 
       write(*,*) ' vib matrix elements computed'
@@ -892,6 +873,7 @@ deallocate( transme1,transme2,transme3,transme4,transme5,transme6 )
 deallocate( e1,e2,e3,de,indexi )
 deallocate( xa,xpot,pot,b0,b1,b2,b3,b4 )
 deallocate( potinx,potiny )
+deallocate( active, acoustic, irep)
 !
 !
 !

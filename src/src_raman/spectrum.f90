@@ -13,11 +13,11 @@ integer, intent(in) :: oct1, oct2
 character(2), intent(in) :: comp_ch
 character(*), intent(in) :: filext
 ! local variables
-integer :: i,j,ind,ii,iw,niw
+integer :: i,j,ind,iw
 real(8) :: arg,beta,dde,factl,gam1,gam2,gam3,gam4,dnc
 real(8) :: sc,sqn1,sqn2,sqn3
 real(8) :: sqn4,sqn5,sqn6
-real(8) :: spec,w,dw,zfact,zsum,zzsum, temp
+real(8) :: spec,w,dw,zfact,zsum,zzsum, temp, w_scat, w_fact
 character(80) :: fname
 real(8), allocatable :: rcont1(:),rcont2(:),rcont3(:),rcont4(:),rcont5(:),rcont6(:)
 real(8), allocatable :: ex(:)
@@ -31,23 +31,20 @@ allocate( rcont4(input%properties%raman%nstate*(input%properties%raman%nstate-1)
 allocate( rcont5(input%properties%raman%nstate*(input%properties%raman%nstate-1)/2) )
 allocate( rcont6(input%properties%raman%nstate*(input%properties%raman%nstate-1)/2) )
 !
+rcont1 = 0.d0; rcont2 = 0.d0; rcont3 = 0.d0; rcont4 = 0.d0; rcont5 = 0.d0; rcont6 = 0.d0
+!
 fname = 'RAMAN_SPEC_OC'//comp_ch//filext
 open (unit=73, file=fname, status='unknown',form='formatted')
 !
 ! scaling factor for output of scattering contributions
-if (input%properties%raman%molecule) then
-   ! includes the conversion factor for the polarizability Bohr^3 -> cm^3
-   sc = 1.d32*fau3cm3**2
-else
    sc = 1.d07
-endif
 dnc = dble(ncell)
 write(66,'(//,46("*"),"   SPECTRUM FOR OC ",a2,"   ",46("*"))') comp(oct1, oct2)
 temp = temper
 write(66,'(/," Temperature [ K ]: ",17x,f8.2,/)') temp
 if (temp .lt. 1.0e-9) then
    temp = 1.d-9
-   write(66,'(  " (adjusted to     : ",17x,e8.2,")"/)') temp
+   write(66,'(  " (adjusted to     : ",17x,e9.2,")"/)') temp
 endif
 write(66,'(/," Partition sums for eigenstates:",/)')  ! header for part sums in output
 write(66,'("  state ","         eigenvalue ","   Boltzmann factor ", &
@@ -65,21 +62,6 @@ sqn3 = sqn1*sqn2
 sqn4 = sqn2*sqn2
 sqn5 = sqn2*sqn3
 sqn6 = sqn3*sqn3
-!!     sqnn = dsqrt(dble(nc - 1)/dble(nc))
-!sqnn = dsqrt(dble(ncell - 1))/sqn1
-!sqnn2 = sqnn/ncell
-!sqnn22 = sqnn2/ncell
-!!     sqnn3 = dsqrt(dble(nc*nc - 1)/dble(nc*nc))
-!sqnn3 = dsqrt(sqn4 - 1.d0)/sqn2
-!!     sqnn33 = dsqrt(dble(nc*nc - 1)/dble(nc**5))
-!sqnn33 = dsqrt(sqn4 - 1.d0)/sqn5
-!!     sqnn4 = dsqrt(dble(nc**3 - nc)/dble(nc**3))
-!csnpw(1) = cmplx(sqrt(dnc),0.)                 ! powers of sqrt(N)
-!csnpw(2) = csnpw(1)*csnpw(1)
-!csnpw(3) = csnpw(2)*csnpw(1)
-!csnpw(4) = csnpw(2)*csnpw(2)
-!csnpw(5) = csnpw(3)*csnpw(2)
-!csnpw(6) = csnpw(3)*csnpw(3)
 do i = 1,input%properties%raman%nstate
    arg = -beta*eigen(i)*fhawn
    ex(i) = dexp(arg)
@@ -99,21 +81,16 @@ write(73,'("# Laser energy:  ",f8.6," Ha = ",f8.1," cm^-1 = ",f5.2," eV = ",  &
   &              gamma1,gamma2,gamma3,gamma4,input%properties%raman%nstate
 !
 ind = 0
-if (input%properties%raman%molecule) then
-! drop V, divide by epsilon_0 = 1/4pi (au)
-   zzsum = 4.d0*zsum/(pi*(rlas*fhawn)**4)
-   write(66,'(/," Scattering contributions in [ 10^-32 cm^2 sr^-1 ] from ", &
-     & "process of order",//,4x," Transition energy [ cm^-1 ]",            &
-     & 6x,"1",14x,"2",14x,"3",14x,"4",14x,"5",14x,"6",/)')
-else
-   zzsum = zsum/(omega*fau3cm3*pi*pi*(rlas*fhawn)**4)
+   zzsum = zsum/(omega*fau3cm3*pi*pi)
    write(66,'(/," Scattering contributions in [ 10^-7 sr^-1 cm^-1 ] from ", &
      & "process of order",//,4x," Transition energy [ cm^-1 ]",            &
      & 6x,"1",14x,"2",14x,"3",14x,"4",14x,"5",14x,"6",/)')
-endif
 do i = 1,input%properties%raman%nstate
    do j = i-1,1,-1
-      zfact = ex(j)/zzsum                    ! exp(-Ej(kT) / Sum( exp(E/kT) )
+      dde = (eigen(i) - eigen(j))*fhawn
+      w_scat = rlas*fhawn - dde              ! Stokes scattering
+      w_fact = rlas*fhawn*w_scat**3
+      zfact = ex(j)/zzsum                    ! prefactors * exp(-Ej(kT) / Sum( exp(E/kT) )
       ind = ind + 1
 !
       trans1 = deq (oct1,oct2)*transme1(ind)/factorial(1)/sqn1 + &
@@ -143,23 +120,22 @@ do i = 1,input%properties%raman%nstate
       endif
 !
 !
-      dde = (eigen(i) - eigen(j))*fhawn
       if (input%properties%raman%intphonon) then
          write(66,'(1x,I3," ->",I3,3x,f8.2,5x,6(f14.8,"  |"))') j,i,dde,             &
-     &           rcont1(ind)*sc,rcont2(ind)*sc, &
-     &           rcont3(ind)*sc,rcont4(ind)*sc, &
-     &           rcont5(ind)*sc,rcont6(ind)*sc
+     &           rcont1(ind)*sc*w_fact,rcont2(ind)*sc*w_fact, &
+     &           rcont3(ind)*sc*w_fact,rcont4(ind)*sc*w_fact, &
+     &           rcont5(ind)*sc*w_fact,rcont6(ind)*sc*w_fact
       else
          write(66,'(3x,I3," ->",I3,5x,f8.2,7x,f14.8)') j,i,dde,             &
-     &           rcont1(ind)*sc
+     &           rcont1(ind)*sc*w_fact
       endif
    enddo
 enddo
 !
 ! write out spectra
-niw = 0
 !factl = 2.d0*pi*(rlas*fhawn)**3
-factl = 2.d0*pi*(rlas*fhawn)**4
+!factl = 2.d0*pi*(rlas*fhawn)**4
+factl = 4.d0*pi*pi
 do iw = 1, input%properties%raman%energywindow%points+1
    ind = 0
    spec = 0.0d0
@@ -177,7 +153,7 @@ do iw = 1, input%properties%raman%energywindow%points+1
      &          rcont6(ind)*gamma4/((dde-w)**2 + gam4)
       enddo
    enddo
-   spec = spec*(rlas*fhawn - w)**3/factl
+   spec = spec*(rlas*fhawn - w)**3/(2.d0*pi)
    write(73,'(2g15.8)') w,spec
 enddo
 !

@@ -188,7 +188,7 @@ Subroutine dcell (vqpc, eigv, dph)
                    &   aimag( eigv((3*(iat-1)+1):(3*iat)) )*sin(t1)
 ! displacement with |u| = dph
 !              u_i = u_i / sqrt( dble(nphcell) ) / len_u * dph / sqrt( spmass(js) )
-               u_i = u_i / sqrt( dble(nphcell) ) * sqrt(fgew) * dph / sqrt( spmass(js) )
+               u_i = u_i * sqrt( fgew/spmass(js) ) * dph
                len_u2 = len_u2 + u_i(1)**2 + u_i(2)**2 + u_i(3)**2
                write(*,'("u_i(:) c ",3f8.4)') u_i(:)
                call r3mv (ainv, u_i, v2)

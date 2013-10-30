@@ -20,8 +20,11 @@ real(8), parameter :: fkry    =      1.0d0/fryk        ! 1 K = fkry Ry
 real(8), parameter :: fwnmev  =      0.1239841930d0    ! 1 cm^-1 = fwnmev meV
 real(8), parameter :: fmevwn  =      1.d0/fwnmev       ! 1 meV = fmevwn cm^-1
 real(8), parameter :: frnmha  =      1.5198298460045d-7*299792458   ! 1 Ha = frnmha 1/nm
+real(8), parameter :: famuau  =      1822.88848        ! 1 amu = famuau atomic units of mass
 ! these are derived later on from the above
 real(8) :: fener,flang
+! speed of light in vacuum
+real(8), parameter :: speed_of_light = 299792458.d0    ! m s^-1
 ! threshold for symmetry analysis
 real(8), parameter :: eps     =      1.0d-5
 ! factorial
@@ -111,7 +114,11 @@ end module raman_input
 !
 ! Raman relevant symmetry variables
 module raman_symmetry
+use raman_params
+! rotational parts of SOPs, real
+real(8) :: sopmat(3, 3, 48)
 ! character table
+! note that due to the diagonalization the eigenvector representig IREP i is in column i, instead of in row i
 complex (8),allocatable :: charact(:,:)
 ! number of classes
 integer :: cl
@@ -121,10 +128,12 @@ integer :: class(48)
 integer :: elem_cl(48)
 ! Raman active IREPs
 logical :: raman_active(48)
+! number of times an IREP occurs in the phonon symmetries
+integer :: vib_ireps(48)
 ! effect of SOPs on atoms
 integer, allocatable :: atom_sop(:, :)
 ! name of IREPs
-character(2) :: irrep_ch(48)
+character(4) :: irep_ch(48)
 ! is construction of symmetry vectors meaninful?
 logical :: sym_out
 ! number of group of atoms that mix by SOPs
@@ -133,4 +142,8 @@ integer :: gr
 integer, allocatable :: gr_atoms(:, :)
 ! number of atoms of the groups
 integer, allocatable :: gr_atoms_no(:)
+! is a phonon mode belonging to this IREP?
+logical :: vib_mode(48)
+! max number of non-orthogonal vectors in symvec
+integer :: no_vec_nonorth
 end module raman_symmetry

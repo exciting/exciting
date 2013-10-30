@@ -112,7 +112,7 @@ do k = 1, cl
     call schmidt(symvec_phon(:,1:n), 3*natmtot, n, no_vec_orth)
 !
     write(*,*)
-    write(*,'(" Symmetry vectors of IREP ",i2," (",a2,")")') k, irrep_ch(k)
+    write(*,'(" Symmetry vectors of IREP ",i2," (",a2,")")') k, irep_ch(k)
     write(*,*) 'n = ', no_vec_orth
     do m = 1, no_vec_orth
       write(*,*) ' Vector ', m
@@ -124,34 +124,35 @@ do k = 1, cl
     if (no_vec_orth .gt. vib_ireps(k)*nint(dble(charact(1, k)))) then
        write(*,'(/," The construction of symmetry vectors for this system failed.")')
        write(*,'(  " IREP : ",i1,"   (",a3,")"/," no. phonon modes : ",i3,/," no. symvecs found : ",i3,/)') &
-          &              k, irrep_ch(k), vib_ireps(k), no_vec_orth
+          &              k, irep_ch(k), vib_ireps(k), no_vec_orth
        write(*,'(" Please use the other options of input%properties%raman%getphonon",/)')
        stop
     endif
 !
 ! check for acoustic modes
     do m = 1, no_vec_orth
-       acoustic(iev+m) = .false.
-       do i = 1, 3*natmtot
-          if (abs(symvec_phon(i, m)) .le. eps) then
-             icomp(i) = 0
-          elseif (symvec_phon(i, m) .gt. eps) then
-             icomp(i) = 1
-          else
-             icomp(i) = -1
-          endif
-       enddo
-       acousticx = .false.; acousticy = .false.; acousticz = .false.
-       if (all(icomp(1:3*natmtot-2:3) .eq.  0) .or. &
-        &  all(icomp(1:3*natmtot-2:3) .eq.  1) .or. &
-        &  all(icomp(1:3*natmtot-2:3) .eq. -1) ) acousticx = .true.
-       if (all(icomp(2:3*natmtot-1:3) .eq.  0) .or. &
-        &  all(icomp(2:3*natmtot-1:3) .eq.  1) .or. &
-        &  all(icomp(2:3*natmtot-1:3) .eq. -1) ) acousticy = .true.
-       if (all(icomp(3:3*natmtot:3) .eq.  0) .or. &
-        &  all(icomp(3:3*natmtot:3) .eq.  1) .or. &
-        &  all(icomp(3:3*natmtot:3) .eq. -1) ) acousticz = .true.
-       if (acousticx .and. acousticy .and. acousticz) acoustic(iev+m) = .true.
+!      acoustic(iev+m) = .false.
+!      do i = 1, 3*natmtot
+!         if (abs(symvec_phon(i, m)) .le. eps) then
+!            icomp(i) = 0
+!         elseif (symvec_phon(i, m) .gt. eps) then
+!            icomp(i) = 1
+!         else
+!            icomp(i) = -1
+!         endif
+!      enddo
+!      acousticx = .false.; acousticy = .false.; acousticz = .false.
+!      if (all(icomp(1:3*natmtot-2:3) .eq.  0) .or. &
+!       &  all(icomp(1:3*natmtot-2:3) .eq.  1) .or. &
+!       &  all(icomp(1:3*natmtot-2:3) .eq. -1) ) acousticx = .true.
+!      if (all(icomp(2:3*natmtot-1:3) .eq.  0) .or. &
+!       &  all(icomp(2:3*natmtot-1:3) .eq.  1) .or. &
+!       &  all(icomp(2:3*natmtot-1:3) .eq. -1) ) acousticy = .true.
+!      if (all(icomp(3:3*natmtot:3) .eq.  0) .or. &
+!       &  all(icomp(3:3*natmtot:3) .eq.  1) .or. &
+!       &  all(icomp(3:3*natmtot:3) .eq. -1) ) acousticz = .true.
+!      if (acousticx .and. acousticy .and. acousticz) acoustic(iev+m) = .true.
+       call check_acoustic(symvec_phon(:, m), acoustic(iev+m))
     enddo
 !
 ! weight by sqrt of masses and renormalize

@@ -14,7 +14,7 @@ contains
       integer, dimension(3) :: ipiv
       real(8), dimension(3,3) :: mat
       logical, dimension(3) :: free
-      integer :: i,j,i1,i2
+      integer :: i,j
       !
       ! form R - \lambda E
       mat = rotmat

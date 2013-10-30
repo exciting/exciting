@@ -1,12 +1,12 @@
-subroutine check_raman (evec_phon, active)
+subroutine check_raman (evec_phon, irep, active)
 !
 use mod_atoms
 use mod_symmetry
 use raman_symmetry
-use raman_params, only : eps
 implicit none
 ! arguments
 real(8), intent(in) :: evec_phon (3*natmtot)
+integer, intent(out) :: irep
 logical, intent(out) :: active
 ! local variables
 real(8) :: evec_phon_norm(3*natmtot), evec_phon_sop(3*natmtot)
@@ -44,12 +44,13 @@ else
 endif
 !
 lassign = .false.
+!
+! apply projection operators
 do k = 1,cl
    evec_phon_sop = 0.d0
    do ia = 1,natmtot
       ! loop over SOPs
       do j = 1, numsop
-!       cartv = matmul(latv,matmul(sopmat(:,:,j),invlat))
         ja = atom_sop(ia, j)
         call r3mv (symlatc(:, :, lsplsymc(j)), evec_phon((3*(ia-1)+1):(3*ia)), rotvec(:))
         evec_phon_sop((3*(ja-1)+1):(3*ja)) = evec_phon_sop((3*(ja-1)+1):(3*ja)) &
@@ -67,8 +68,8 @@ do k = 1,cl
  &     all(abs(evec_phon_sop(:)+evec_phon_norm(:)) .lt. eps)) then
       lassign = .true.
       active = raman_active(k)
-!     write(13,228) numvec
-      write(13,230) k,irrep_ch(k)
+      irep = k
+      write(13,230) k, irep_ch(k)
       write(13,240) raman_active(k)
       exit
    endif

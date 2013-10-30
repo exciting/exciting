@@ -73,7 +73,9 @@
 !EOP
 !BOC
 !     Initializations
+      if (allocated(rtl)) deallocate(rtl)
       allocate(rtl(natmtot,maxnmix))
+      if (allocated(rrint)) deallocate(rrint)
       allocate(rrint(natmtot,maxnmix*(maxnmix+1)/2))
 
       rtl=0.0d0

@@ -17,7 +17,7 @@ complex (8) :: work(8*numpot)
 complex (8), allocatable :: dieldat(:, :, :)
 complex (8) :: diel_intpl, eps_calc
 real (8) :: t1, e_diel(input%xs%energywindow%points), xx
-character(84) :: funcout
+character(88) :: funcout
 integer :: i, j, k, m, n, iw, oct1, oct2, deg, info
 character(3) :: str_mode
 !
@@ -32,10 +32,11 @@ endif
 !
 if (input%properties%raman%molecule) then
    write(66,'(/,49("*"),"   DATA FITTING   ",49("*")," ",/,51(" "),"polarizability")')
+   write(funcout,'(a7,7(a5,i1,a4,i1))') 'alpha = b_0',(' + b_',i,'*u**',i,i=1,deg)
 else
    write(66,'(/,49("*"),"   DATA FITTING   ",49("*")," ",/,48(" "),"dielectric function")')
+   write(funcout,'(a7,7(a5,i1,a4,i1))') 'eps = b_0',(' + b_',i,'*u**',i,i=1,deg)
 endif
-write(funcout,'(a7,7(a5,i1,a4,i1))') 'y = b_0',(' + b_',i,'*x**',i,i=1,deg)
 write(66,'(//,"  Fit function: polynom ",a84)') funcout
 write(66,'(/,i8," coefficients are fitted to ",i4," datapoints:",/)') deg+1,numpot
 !
@@ -59,7 +60,7 @@ Do oct1 = 1, 3
       if (oct1 .ne. oct2 .and. .not.offdiag) cycle
       write(66,'(/,"  Fitting to data for optical component ",a2,/)') comp(oct1, oct2)
 !   interpolate for rlas
-      write(66,'("  Values of epsilon are interpolated for laser energy: ",f12.4," eV",/)') rlas*fhaev
+      write(66,'("  Values are interpolated for laser energy: ",f12.4," eV",/)') rlas*fhaev
       if (input%properties%raman%molecule) then
          write(66,'("    u [Bohr]   Re alpha [Bohr^3]   Im alpha [Bohr^3]")')
       else
