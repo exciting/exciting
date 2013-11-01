@@ -68,8 +68,8 @@ Subroutine rhoinit
          End Do
 
 !         call timesec(tc)
-!$OMP PARALLEL
-!$OMP DO PRIVATE(x,t1,fr,jlgr01,cf,gr)
+!xOMP PARALLEL DEFAULT(PRIVATE)
+!xOMP DO   ! PRIVATE(x,t1,fr,jlgr01,cf,gr)
          Do ig = 1, ngvec
             Do ir = 1, nrmt (is)-1
                x = gc (ig) * spr (ir, is)
@@ -86,8 +86,8 @@ Subroutine rhoinit
             Call fderiv (-1, spnr(is), spr(:, is), fr, gr, cf)
             ffacg (ig) = (fourpi/omega) * gr (spnr(is))
          End Do
-!$OMP END DO
-!$OMP END PARALLEL
+!xOMP END DO
+!xOMP END PARALLEL
 !         call timesec(td)
 !         write(*,*) td-tc
 !         call timesec(tc)
@@ -114,33 +114,44 @@ Subroutine rhoinit
             z2fmt=0d0
             Do ig = 1, ngvec
                ifg = igfft (ig)
-!$OMP PARALLEL PRIVATE(x) SHARED(gc,rcmt,lmax,jlgr)
-!$OMP DO 
-               Do irc = 1, nrcmt (is)
-                  x = gc (ig) * rcmt (irc, is)
-                  Call sbessel (lmax, x, jlgr(:, irc))
-               End Do
-!$OMP END DO
-!$OMP END PARALLEL
-
                zt1 = fourpi * zfft (ifg) * sfacg (ig, ias)
-               lm = 0
-               Do l = 0, lmax
-                  zt2 = zt1 * zil (l)
-                  Do m = - l, l
-                     lm = lm + 1
-                     zt3 = zt2 * conjg (ylmg(lm, ig))
-                     Do irc = 1, nrcmt (is)
-                       z2fmt(irc,lm)=z2fmt(irc,lm)+jlgr (l, irc) * zt3
-                     End Do
+!xOMP PARALLEL SHARED(jlgr,zfmt) PRIVATE(lm,zt3,zt2)  !PRIVATE(x) DEFAULT(SHARED) !DEFAULT(PRIVATE) !PRIVATE(x) SHARED(gc,rcmt,lmax,jlgr)
+!xOMP DO 
+               Do irc = 1, nrcmt (is)
+!                  x = gc (ig) * rcmt (irc, is)
+                  Call sbessel (lmax, gc (ig) * rcmt (irc, is), jlgr(:, irc))
+                  lm = 0
+                  Do l = 0, lmax
+                    zt2 = zt1 * zil (l)
+                    Do m = - l, l
+                      lm = lm + 1
+                      zt3 = zt2 * conjg (ylmg(lm, ig))
+!                      z2fmt(irc,lm)=z2fmt(irc,lm)+jlgr (l, irc) * zt3
+                      zfmt (lm,irc) =zfmt(lm,irc)+jlgr (l, irc) * zt3
+                   Enddo
                   End Do
                End Do
+
+!xOMP END DO
+!xOMP END PARALLEL
+
+!               lm = 0
+!               Do l = 0, lmax
+!                  zt2 = zt1 * zil (l)
+!                  Do m = - l, l
+!                     lm = lm + 1
+!                     zt3 = zt2 * conjg (ylmg(lm, ig))
+!                     Do irc = 1, nrcmt (is)
+!                       z2fmt(irc,lm)=z2fmt(irc,lm)+jlgr (l, irc) * zt3
+!                     End Do
+!                  End Do
+!               End Do
             End Do
-            do lm=1,lmmax
-              do irc=1,nrcmt (is)
-                zfmt (lm,irc) =zfmt(lm,irc)+z2fmt(irc,lm)
-              enddo
-            enddo
+!            do lm=1,lmmax
+!              do irc=1,nrcmt (is)
+!                zfmt (lm,irc) =zfmt(lm,irc)+z2fmt(irc,lm)
+!              enddo
+!!            enddo
             irc = 0
             Do ir = 1, nrmt (is), input%groundstate%lradstep
                irc = irc + 1

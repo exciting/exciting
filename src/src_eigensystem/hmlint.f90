@@ -81,22 +81,26 @@ Subroutine hmlint
       Do is = 1, nspecies
         ias=idxas (1, is)
         ilo=nlorb (is)
-        l1 = lorbl (ilo, is)
-        lm1 = idxlm (l1, l1)
-        l3 = lorbl (1, is)
-        lm3 = idxlm (l3, -l3)
-        haloijSize(is)=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
-        if (maxnlo.lt.haloijSize(is)) maxnlo=haloijSize(is)
+        if (ilo.gt.0) then
+          l1 = lorbl (ilo, is)
+          lm1 = idxlm (l1, l1)
+          l3 = lorbl (1, is)
+          lm3 = idxlm (l3, -l3)
+          haloijSize(is)=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
+          if (maxnlo.lt.haloijSize(is)) maxnlo=haloijSize(is)
+        endif
       Enddo
-      allocate(haloij(maxnlo,haaijSize,natmtot))
-      haloij=dcmplx(0d0,0d0)
-      Allocate (halointegrals(lmmaxvr, apwordmax, 0:input%groundstate%lmaxmat, nlomax))
+      if (maxnlo.gt.0) then 
+        allocate(haloij(maxnlo,haaijSize,natmtot))
+        haloij=dcmplx(0d0,0d0)
+        Allocate (halointegrals(lmmaxvr, apwordmax, 0:input%groundstate%lmaxmat, nlomax))
 
 ! LO-LO storage initialisation
-      if (allocated(hloloij)) deallocate(hloloij)
-      allocate(hlolointegrals(lmmaxvr,nlomax,nlomax))
-      allocate(hloloij(maxnlo,maxnlo,natmtot))
-      hloloij=dcmplx(0d0,0d0)
+        if (allocated(hloloij)) deallocate(hloloij)
+        allocate(hlolointegrals(lmmaxvr,nlomax,nlomax))
+        allocate(hloloij(maxnlo,maxnlo,natmtot))
+        hloloij=dcmplx(0d0,0d0)
+      endif
 
 ! begin loops over atoms and species
       Do is = 1, nspecies
@@ -338,8 +342,9 @@ Subroutine hmlint
       End Do
 ! cleaning up 
       deallocate(haaintegrals)
-      deallocate(halointegrals)
-      deallocate(hlolointegrals)
+  
+      if (allocated(halointegrals)) deallocate(halointegrals)
+      if (allocated(hlolointegrals)) deallocate(hlolointegrals)
       Return
 End Subroutine
 !EOC
