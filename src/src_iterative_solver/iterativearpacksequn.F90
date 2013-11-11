@@ -92,9 +92,18 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       Complex (4),allocatable :: cm(:,:)
       integer, allocatable :: luipiv(:)
       integer :: luinfo
+      real(8) ta,tb
+
+      real(8) :: DegeneracyThr
+      integer :: blockstart,blocksize
+      Complex (8), Allocatable :: h(:,:),blockH(:,:),blockS(:,:)
+      Complex (8), Allocatable :: zm2(:,:)
+      logical :: SeparateDegenerates,sorted
 
 ImproveInverse=.false.
 spLU=.false.
+SeparateDegenerates=.true.
+DegeneracyThr=1d-7
 !
 #ifdef DEBUG
       ndigit = - 3
@@ -177,6 +186,10 @@ spLU=.false.
   !calculate LU decomposition to be used in the reverse communication loop
   !#######################################################################
 !
+      if (SeparateDegenerates) then 
+        allocate(h(n,n))
+        h=system%hamilton%za
+      endif
      
 
       Call HermitianMatrixAXPY (-sigma, system%overlap, system%hamilton)
@@ -207,14 +220,18 @@ endif
   !################################################
 !
       Do i = 1, maxitr
+       call timesec(ta)
          Call znaupd (ido, bmat, n, which, nev, tol, resid, ncv, v, &
         & ldv, iparam, ipntr, workd, workl, lworkl, rwork, infoznaupd)
+       call timesec(tb)
+!       write(*,*) 'znaupd',tb-ta
          vin => workd (ipntr(1) :ipntr(1)+n-1)
          vout => workd (ipntr(2) :ipntr(2)+n-1)
 !
 !         write(*,*) ido
          If (ido .Eq.-1 .Or. ido .Eq. 1) Then
 !
+            call timesec(ta) 
             Call Hermitianmatrixvector (system%overlap, one, vin, zero, vout)
 
 if (improveinverse) then
@@ -241,6 +258,10 @@ if (improveinverse) then
 !          write(*,*)
 !          read(*,*)
 endif
+          call timesec(tb)
+!          write(*,*) 'ido-1',tb-ta
+
+
          Else If (ido .Eq. 1) Then
             Call zcopy (n, workd(ipntr(3)), 1, vout, 1)
 if (improveinverse) then
@@ -267,10 +288,14 @@ if (improveinverse) then
 endif
 
          Else If (ido .Eq. 2) Then
+            call timesec(ta)
             Call Hermitianmatrixvector (system%overlap, one, vin, zero, vout)
+            call timesec(tb)
+!            write(*,*) 'Hermitianmatrixvector',tb-ta
          Else
             Exit
-         End If
+         End If 
+!         read(*,*)
          
       End Do
   !###############
@@ -330,13 +355,135 @@ endif
          evalfv (j, ispn) = rd (idx(j))
       End Do
 !      write(*,*)
-      Call deleteystem (system)
       Deallocate (workd, resid, v, workev, workl, d)
       Deallocate (rwork, rd, idx)
       if (ImproveInverse) then
         call deletematrix(zm)
         deallocate(bres,vecupd,bvec)
       endif
+
+if (SeparateDegenerates) then
+        blockstart=1
+        do i=2,nstfv
+          if (evalfv (i, ispn)-evalfv (i-1, ispn).gt.DegeneracyThr) then
+            blocksize=i-blockstart 
+            if (blocksize.ge.2) then
+              allocate(zm2(n,blocksize))
+              allocate(blockH(blocksize,blocksize))
+              allocate(blockS(blocksize,blocksize))
+              allocate(workd(4*blocksize))
+              allocate(rwork(3*blocksize-2))
+
+              write(*,*) blocksize,blockstart
+              call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                         'N', &           ! TRANSB = 'N'  op( B ) = B.
+                         n, &          ! M ... rows of op( A ) = rows of C
+                         blocksize, &           ! N ... cols of op( B ) = cols of C
+                         n, &          ! K ... cols of op( A ) = rows of op( B )
+                         one, &          ! alpha
+                         h, &           ! A
+                         n,&           ! LDA ... leading dimension of A
+                         evecfv(:,blockstart:blockstart+blocksize-1,ispn), &           ! B
+                         nmatmax, &          ! LDB ... leading dimension of B
+                         zero, &          ! beta
+                         zm2, &  ! C
+                         n &      ! LDC ... leading dimension of C
+                         )
+              write(*,*) 0.5
+              call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
+                         'N', &           ! TRANSB = 'N'  op( B ) = B.
+                         blocksize, &          ! M ... rows of op( A ) = rows of C
+                         blocksize, &           ! N ... cols of op( B ) = cols of C
+                         n, &          ! K ... cols of op( A ) = rows of op( B )
+                         one, &          ! alpha
+                         evecfv(:,blockstart:blockstart+blocksize-1,ispn), &           ! A
+                         nmatmax,&           ! LDA ... leading dimension of A
+                         zm2, &           ! B
+                         n, &          ! LDB ... leading dimension of B
+                         zero, &          ! beta
+                         blockH, &  ! C
+                         blocksize &      ! LDC ... leading dimension of C
+                         )
+
+              write(*,*) 1
+              call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                         'N', &           ! TRANSB = 'N'  op( B ) = B.
+                         n, &          ! M ... rows of op( A ) = rows of C
+                         blocksize, &           ! N ... cols of op( B ) = cols of C
+                         n, &          ! K ... cols of op( A ) = rows of op( B )
+                         one, &          ! alpha
+                         system%overlap%za, &           ! A
+                         n,&           ! LDA ... leading dimension of A
+                         evecfv(:,blockstart:blockstart+blocksize-1,ispn), &           ! B
+                         nmatmax, &          ! LDB ... leading dimension of B
+                         zero, &          ! beta
+                         zm2, &  ! C       
+                         n &      ! LDC ... leading dimension of C
+                         )
+              call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
+                         'N', &           ! TRANSB = 'N'  op( B ) = B.
+                         blocksize, &          ! M ... rows of op( A ) = rows of C
+                         blocksize, &           ! N ... cols of op( B ) = cols of C
+                         n, &          ! K ... cols of op( A ) = rows of op( B )
+                         one, &          ! alpha
+                         evecfv(:,blockstart:blockstart+blocksize-1,ispn), &           ! A
+                         nmatmax,&           ! LDA ... leading dimension of A
+                         zm2, &           ! B
+                         n, &          ! LDB ... leading dimension of B
+                         zero, &          ! beta
+                         blockS, &  ! C
+                         blocksize &      ! LDC ... leading dimension of C
+                         )
+
+             write(*,*) 2
+             call zhegv	(1, &                ! A*x = (lambda)*B*x
+                         'V', &              ! Compute eigenvalues and eigenvectors
+                         'U', &              ! Upper triangle
+                         blocksize, &        ! Size of the problem
+                         blockH, &           ! A
+                         blocksize, &        ! leading dimension of A
+                         blockS, &           ! B
+                         blocksize, &        ! leading dimension of B
+                         evalfv (blockstart:i-1, ispn), &                ! (lambda)
+                         workd, &             ! work array
+                         4*blocksize, &            ! size of lwork
+                         rwork, &            ! another work array
+                         info &              ! info
+                        ) 	
+
+              write(*,*) 3,blockstart,blockstart+blocksize-1
+              call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                         'N', &           ! TRANSB = 'N'  op( B ) = B.
+                         n, &          ! M ... rows of op( A ) = rows of C
+                         blocksize, &           ! N ... cols of op( B ) = cols of C
+                         blocksize, &          ! K ... cols of op( A ) = rows of op( B )
+                         one, &          ! alpha
+                         evecfv(:,blockstart:blockstart+blocksize-1,ispn), &           ! B
+                         nmatmax, &          ! LDB ... leading dimension of B
+                         blockH, &           ! A
+                         blocksize,&           ! LDA ... leading dimension of A
+                         zero, &          ! beta
+                         zm2, &  ! C
+                         n &      ! LDC ... leading dimension of C
+                         )
+              evecfv(1:n,blockstart:blockstart+blocksize-1,ispn)=zm2(:,:)
+
+              deallocate(zm2,blockS,blockH,workd,rwork)
+            endif
+            blockstart=i
+          endif
+        enddo
+      deallocate(h)
+
+      sorted=.true.
+      do i=2,nstfv
+        sorted=(sorted.and.(evalfv(i,ispn).ge.evalfv(i-1,ispn)))
+      enddo 
+      if (.not.sorted) write(*,*) 'warning ARPACK eigenvals are not sorted'
+
+endif
+      
+      Call deleteystem (system)
 !      stop
       Return
 End Subroutine iterativearpacksecequn
