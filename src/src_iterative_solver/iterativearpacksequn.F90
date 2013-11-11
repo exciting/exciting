@@ -57,7 +57,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       Type (evsystem) :: system
 !
       Integer :: n
-      Real :: cpu0, cpu1, cpu2
+      Real(8) :: cpu0, cpu1, cpu2
       Complex (8) :: zero, one
       Parameter (zero=(0.0D+0, 0.0D+0), one=(1.0D+0, 0.0D+0))
   !IO vars
@@ -81,6 +81,20 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       Logical :: rvec
       Logical :: select (nmat(ispn, ik))
       Complex (8), Pointer :: vin (:), vout (:)
+
+      logical :: ImproveInverse
+      type (HermitianMatrix) :: zm
+      Complex (8), Allocatable :: bres(:),vecupd(:),bvec(:)
+      integer :: ii,ib
+      real(8) :: berr
+      
+      logical :: spLU
+      Complex (4),allocatable :: cm(:,:)
+      integer, allocatable :: luipiv(:)
+      integer :: luinfo
+
+ImproveInverse=.false.
+spLU=.false.
 !
 #ifdef DEBUG
       ndigit = - 3
@@ -158,15 +172,36 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
      & igkig(1, ispn, ik), vgpc)
 !
 !
-      Call cpu_time (cpu0)
+      Call timesec(cpu0)
   !#######################################################################
   !calculate LU decomposition to be used in the reverse communication loop
   !#######################################################################
 !
-      Call HermitianMatrixAXPY (-sigma, system%overlap, &
-     & system%hamilton)
-      Call HermitianMatrixLU (system%hamilton)
-      Call cpu_time (cpu1)
+     
+
+      Call HermitianMatrixAXPY (-sigma, system%overlap, system%hamilton)
+
+if (improveinverse) then
+      call newmatrix(zm,.false.,system%overlap%rank)
+      zm%za=system%hamilton%za
+      allocate(bres(n))
+      allocate(vecupd(n))
+      allocate(bvec(n))
+endif
+      if (spLU) then
+        allocate(cm(n,n))
+        allocate(luipiv(n)) 
+        allocate(system%hamilton%ipiv(n))
+        cm(:,:)=cmplx(system%hamilton%za(1:n,1:n))
+        Call CGETRF (n, n, cm, n, luipiv, luinfo)
+        system%hamilton%za(1:n,1:n)=dcmplx(cm(1:n,1:n))
+        system%hamilton%ipiv=luipiv
+        system%hamilton%ludecomposed = .True.
+        deallocate(cm,luipiv)
+      else
+         Call HermitianMatrixLU (system%hamilton)
+      endif
+      Call timesec(cpu1)
   !################################################
   !# reverse comunication loop of arpack library: #
   !################################################
@@ -177,21 +212,66 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
          vin => workd (ipntr(1) :ipntr(1)+n-1)
          vout => workd (ipntr(2) :ipntr(2)+n-1)
 !
+!         write(*,*) ido
          If (ido .Eq.-1 .Or. ido .Eq. 1) Then
 !
-            Call Hermitianmatrixvector (system%overlap, one, vin, zero, &
-           & vout)
+            Call Hermitianmatrixvector (system%overlap, one, vin, zero, vout)
+
+if (improveinverse) then
+            bvec=vout
+endif
+
             Call Hermitianmatrixlinsolve (system%hamilton, vout)
+
+if (improveinverse) then
+          berr=1d0
+          do while(berr.gt.1d-6)
+            Call Hermitianmatrixvector (zm, one, vout, zero, vecupd)
+            bres=bvec-vecupd
+
+            berr=0d0
+            do ib=1,n
+              berr=berr+abs(bres(ib))**2
+            enddo
+            berr=sqrt(berr/dble(n))
+
+            Call Hermitianmatrixlinsolve (system%hamilton, bres)
+            vout=vout+bres
+          enddo
+!          write(*,*)
+!          read(*,*)
+endif
          Else If (ido .Eq. 1) Then
             Call zcopy (n, workd(ipntr(3)), 1, vout, 1)
+if (improveinverse) then
+            bvec=vout
+endif
             Call Hermitianmatrixlinsolve (system%hamilton, vout)
+if (improveinverse) then
+          berr=1d0
+          do while(berr.gt.1d-6)
+            Call Hermitianmatrixvector (zm, one, vout, zero, vecupd)
+            bres=bvec-vecupd
+
+            berr=0d0
+            do ib=1,n
+              berr=berr+abs(bres(ib))**2
+            enddo
+            berr=sqrt(berr/dble(n))
+
+            Call Hermitianmatrixlinsolve (system%hamilton, bres)
+            vout=vout+bres
+          enddo
+!          write(*,*)
+!          read(*,*)
+endif
+
          Else If (ido .Eq. 2) Then
-            Call Hermitianmatrixvector (system%overlap, one, vin, zero, &
-           & vout)
-!
+            Call Hermitianmatrixvector (system%overlap, one, vin, zero, vout)
          Else
             Exit
          End If
+         
       End Do
   !###############
   ! errorhandling
@@ -228,7 +308,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
          End If
 !
       End If
-      Call cpu_time (cpu2)
+      Call timesec(cpu2)
       timefv = timefv + cpu2 - cpu0
 #ifdef DEBUG
       Close (logfil)
@@ -245,12 +325,19 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       rd = real (d)
       Call sortidx (nstfv, rd(:), idx(:))
       Do j = 1, nstfv
+!         write(*,*) d(j)
          evecfv (1:n, j, ispn) = v (1:n, idx(j))
          evalfv (j, ispn) = rd (idx(j))
       End Do
+!      write(*,*)
       Call deleteystem (system)
       Deallocate (workd, resid, v, workev, workl, d)
       Deallocate (rwork, rd, idx)
+      if (ImproveInverse) then
+        call deletematrix(zm)
+        deallocate(bres,vecupd,bvec)
+      endif
+!      stop
       Return
 End Subroutine iterativearpacksecequn
 !EOC

@@ -70,19 +70,23 @@ Subroutine rhoinit
 !         call timesec(tc)
 !xOMP PARALLEL DEFAULT(PRIVATE)
 !xOMP DO   ! PRIVATE(x,t1,fr,jlgr01,cf,gr)
-         Do ig = 1, ngvec
+         Do ig = ngvec/2, ngvec
             Do ir = 1, nrmt (is)-1
                x = gc (ig) * spr (ir, is)
                Call sbessel (0, x, jlgr01)
                t1 = sprho (ir, is) * jlgr01 * spr (ir, is) ** 2
                fr (ir) = th (ir, is) * t1
+!               write(*,*) x,jlgr01
+!               write(*,*) spr (ir, is) ,sprho (ir, is) *th (ir, is),sprho (ir, is)
             End Do
             Do ir = nrmt (is),spnr(is)
                x = gc (ig) * spr (ir, is)
                Call sbessel (0, x, jlgr01)
                t1 = sprho (ir, is) * jlgr01 * spr (ir, is) ** 2
                fr (ir) = t1
+!               write(*,*) spr (ir, is) ,sprho (ir, is) *th (ir, is),sprho (ir, is)
             End Do
+!            stop
             Call fderiv (-1, spnr(is), spr(:, is), fr, gr, cf)
             ffacg (ig) = (fourpi/omega) * gr (spnr(is))
          End Do
