@@ -98,6 +98,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       integer :: blockstart,blocksize
       Complex (8), Allocatable :: h(:,:),blockH(:,:),blockS(:,:)
       Complex (8), Allocatable :: zm2(:,:)
+      real(8), allocatable :: evals(:)
       logical :: SeparateDegenerates,sorted
 
 ImproveInverse=.false.
@@ -142,12 +143,15 @@ DegeneracyThr=1d-7
       Allocate (rd(ncvmax), idx(ncvmax))
       bmat = 'G'
       which = 'LM'
-      If (lowesteval .Eq.-1.d0) Then
-         Call minenergy (sigma)
-      Else
-         sigma = dcmplx (lowesteval, 0)
-      End If
-!
+      if (input%groundstate%solver%ArpackUserDefinedShift) then
+        sigma=input%groundstate%solver%ArpackShift
+      else
+        If (lowesteval .Eq.-1.d0) Then
+          Call minenergy (sigma)
+        Else
+          sigma = dcmplx (lowesteval, 0)
+        End If
+      endif
       resid (:) = 0.0
       tol = input%groundstate%solver%epsarpack
       ido = 0
@@ -177,6 +181,7 @@ DegeneracyThr=1d-7
       End If
 !
       Call newsystem (system, packed, n)
+      h1on=(input%groundstate%ValenceRelativity.eq.'lkh')
       Call hamiltonandoverlapsetup (system, ngk(ispn, ik), apwalm, &
      & igkig(1, ispn, ik), vgpc)
 !
@@ -374,7 +379,6 @@ if (SeparateDegenerates) then
               allocate(workd(4*blocksize))
               allocate(rwork(3*blocksize-2))
 
-              write(*,*) blocksize,blockstart
               call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                          'N', &           ! TRANSB = 'N'  op( B ) = B.
                          n, &          ! M ... rows of op( A ) = rows of C
@@ -389,7 +393,6 @@ if (SeparateDegenerates) then
                          zm2, &  ! C
                          n &      ! LDC ... leading dimension of C
                          )
-              write(*,*) 0.5
               call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
                          'N', &           ! TRANSB = 'N'  op( B ) = B.
                          blocksize, &          ! M ... rows of op( A ) = rows of C
@@ -405,7 +408,6 @@ if (SeparateDegenerates) then
                          blocksize &      ! LDC ... leading dimension of C
                          )
 
-              write(*,*) 1
               call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                          'N', &           ! TRANSB = 'N'  op( B ) = B.
                          n, &          ! M ... rows of op( A ) = rows of C
@@ -435,7 +437,6 @@ if (SeparateDegenerates) then
                          blocksize &      ! LDC ... leading dimension of C
                          )
 
-             write(*,*) 2
              call zhegv	(1, &                ! A*x = (lambda)*B*x
                          'V', &              ! Compute eigenvalues and eigenvectors
                          'U', &              ! Upper triangle
@@ -451,7 +452,6 @@ if (SeparateDegenerates) then
                          info &              ! info
                         ) 	
 
-              write(*,*) 3,blockstart,blockstart+blocksize-1
               call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                          'N', &           ! TRANSB = 'N'  op( B ) = B.
                          n, &          ! M ... rows of op( A ) = rows of C
@@ -475,16 +475,83 @@ if (SeparateDegenerates) then
         enddo
       deallocate(h)
 
+endif
+      
+      Call deleteystem (system)
+
+
+! We may have ruined the ascending order in the list of eigenvals and eigenvecs
+! Restoring it if necessary
+if (SeparateDegenerates) then
       sorted=.true.
       do i=2,nstfv
         sorted=(sorted.and.(evalfv(i,ispn).ge.evalfv(i-1,ispn)))
       enddo 
-      if (.not.sorted) write(*,*) 'warning ARPACK eigenvals are not sorted'
-
+      if (.not.sorted) then  ! we sort the eigenvals and eigenvecs
+        allocate(idx(nstfv))
+        Call sortidx (nstfv, evalfv(:,ispn), idx(:))
+        allocate(v(n,nstfv))        
+        allocate(evals(nstfv))
+        v(1:n,:)=evecfv(1:n,:,ispn)
+        evals(:)=evalfv(:,ispn)
+        Do j = 1, nstfv
+          evecfv (1:n, j, ispn) = v (1:n, idx(j))
+          evalfv (j, ispn) = evals (idx(j))
+        End Do
+        deallocate(v,evals,idx)
+      endif
 endif
-      
+
+
+! Nearly a replica of a part from seceqnfv
+if (input%groundstate%ValenceRelativity.eq.'lkh') then
+      Call newsystem (system, packed, n)
+      h1aa=0d0
+      h1loa=0d0
+      h1lolo=0d0
+      h1on=.false.
+      Call hamiltonandoverlapsetup (system, ngk(ispn, ik), apwalm, &
+     & igkig(1, ispn, ik), vgpc)
+      call olprad
+      allocate(h(n,nstfv))
+      allocate(zm2(nstfv,nstfv))
+
+
+      call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                 'N', &           ! TRANSB = 'N'  op( B ) = B.
+                  n, &          ! M ... rows of op( A ) = rows of C
+                  nstfv, &           ! N ... cols of op( B ) = cols of C
+                  n, &          ! K ... cols of op( A ) = rows of op( B )
+                  one, &          ! alpha
+                  system%overlap%za, &           ! A
+                  n,&           ! LDA ... leading dimension of A
+                  evecfv(:,:,ispn), &           ! B
+                  nmatmax, &          ! LDB ... leading dimension of B
+                  zero, &          ! beta
+                  h, &  ! C
+                  n &      ! LDC ... leading dimension of C
+                  )
+      call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
+                 'N', &           ! TRANSB = 'N'  op( B ) = B.
+                  nstfv, &          ! M ... rows of op( A ) = rows of C
+                  nstfv, &           ! N ... cols of op( B ) = cols of C
+                  n, &          ! K ... cols of op( A ) = rows of op( B )
+                  one, &          ! alpha
+                  evecfv(:,:,ispn), &           ! A
+                  nmatmax,&           ! LDA ... leading dimension of A
+                  h, &           ! B
+                  n, &          ! LDB ... leading dimension of B
+                  zero, &          ! beta
+                  zm2, &  ! C
+                  nstfv &      ! LDC ... leading dimension of C
+                  )
+
+      do i=1,nstfv
+        evecfv(:,i,ispn)=evecfv(:,i,ispn)/sqrt(abs(zm2(i,i)))
+      enddo
+      deallocate(h,zm2)
       Call deleteystem (system)
-!      stop
+endif
       Return
 End Subroutine iterativearpacksecequn
 !EOC

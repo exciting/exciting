@@ -210,6 +210,22 @@
                   LAPACK Solver</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="ArpackUserDefinedShift"
+              type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  ArpackShift will be used if this flag is set to true, otherwise the energy shift will be determined internally.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="ArpackShift"
+              type="fortrandouble" default="-1.0d0">
+              <xs:annotation>
+                <xs:documentation>
+                  Energy shift in the shift-and-invert procedure in the ARPACK solver. 
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="OEP" minOccurs="0" maxOccurs="1">
