@@ -235,6 +235,15 @@
               </xs:annotation>
             </xs:attribute>
 
+            <xs:attribute ex:importance="expert" ex:unit="" name="ArpackImproveInverse" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  Tells whether iterative improvement should be applied during the shift-and-invert procedure.
+                  Setting to true may be useful, for instance, when DecompPrec is set to "sp".
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
 
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="evaltol"
               type="fortrandouble" default="1.0d-8">
@@ -243,6 +252,7 @@
                   LAPACK Solver</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="ArpackUserDefinedShift"
               type="xs:boolean" default="false">
               <xs:annotation>
@@ -251,6 +261,7 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="ArpackShift"
               type="fortrandouble" default="-1.0d0">
               <xs:annotation>

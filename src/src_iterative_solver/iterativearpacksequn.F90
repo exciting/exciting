@@ -121,6 +121,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       SeparateDegenerates=.true.
       DegeneracyThr=1d-7
       spLU=(input%groundstate%solver%DecompPrec.eq.'sp')
+      ImproveInverse=input%groundstate%solver%ArpackImproveInverse
       select case (input%groundstate%solver%ArpackDecomp) 
       case ('LU')
         InvertMethod=LUdecomp
@@ -234,7 +235,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
 
       Call HermitianMatrixAXPY (-sigma, system%overlap, system%hamilton)
 
-      if (improveinverse) then
+      if (ImproveInverse) then
         call newmatrix(zm,.false.,system%overlap%rank)
         zm%za=system%hamilton%za
         allocate(bres(n))
@@ -411,7 +412,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
             call timesec(ta) 
 
             Call Hermitianmatrixvector (system%overlap, one, vin, zero, vout)
-            if (improveinverse) then
+            if (ImproveInverse) then
               bvec=vout
             endif
 
@@ -448,7 +449,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
 
 
 
-            if (improveinverse) then
+            if (ImproveInverse) then
               berr=1d0
               do while(berr.gt.1d-7)
                 Call Hermitianmatrixvector (zm, one, vout, zero, vecupd)
@@ -459,39 +460,40 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
                 enddo
                 berr=sqrt(berr/dble(n))
 
-                
-                select case (InvertMethod)
-                case (LUdecomp)
-                  Call Hermitianmatrixlinsolve (system%hamilton, bres)
-                  vout=vout+bres
-                case (LDLdecomp)
-                  call zhetrs('U', &                      ! upper or lower part
-                               n, &                       ! size
-                               1, &                       ! number of right-hand sides
-                               system%hamilton%za, &      ! factorized matrix
-                               n, &                       ! leading dimension
-                               system%hamilton%ipiv, &    ! pivoting indices
-                               bres, &                    ! right-hand side / solution
-                               n, &                       ! leading dimension
-                               info &                     ! error message
-                              )
-                  vout=vout+bres
-                case (LLdecomp)
-                  call zpotrs('U', &                      ! upper or lower part
-                               n,  &                      ! size
-                               1,  &                      ! number of right-hand sides
-                               system%hamilton%za, &      ! factorized matrix
-                               n, &                       ! leading dimension
-                               bres, &                    ! right-hand side / solution
-                               n, &                       ! leading dimension
-                               info &                     ! error message
-                             )
-                  vout=vout+bres
-                case (Diagdecomp)
-                  Call zgemv ('C', n, n, one, system%hamilton%za, n, bres, 1, zero, zvec, 1)
-                  zvec(:)=zvec(:)*cdiag(:)
-                  Call zgemv ('N', n, n, one, system%hamilton%za, n, zvec, 1, one, vout, 1)
-                end select
+                if (berr.gt.1d-7) then                
+                  select case (InvertMethod)
+                  case (LUdecomp)
+                    Call Hermitianmatrixlinsolve (system%hamilton, bres)
+                    vout=vout+bres
+                  case (LDLdecomp)
+                    call zhetrs('U', &                      ! upper or lower part
+                                 n, &                       ! size
+                                 1, &                       ! number of right-hand sides
+                                 system%hamilton%za, &      ! factorized matrix
+                                 n, &                       ! leading dimension
+                                 system%hamilton%ipiv, &    ! pivoting indices
+                                 bres, &                    ! right-hand side / solution
+                                 n, &                       ! leading dimension
+                                 info &                     ! error message
+                                )
+                    vout=vout+bres
+                  case (LLdecomp)
+                    call zpotrs('U', &                      ! upper or lower part
+                                 n,  &                      ! size
+                                 1,  &                      ! number of right-hand sides
+                                 system%hamilton%za, &      ! factorized matrix
+                                 n, &                       ! leading dimension
+                                 bres, &                    ! right-hand side / solution
+                                 n, &                       ! leading dimension
+                                 info &                     ! error message
+                               )
+                    vout=vout+bres
+                  case (Diagdecomp)
+                    Call zgemv ('C', n, n, one, system%hamilton%za, n, bres, 1, zero, zvec, 1)
+                    zvec(:)=zvec(:)*cdiag(:)
+                    Call zgemv ('N', n, n, one, system%hamilton%za, n, zvec, 1, one, vout, 1)
+                  end select
+                endif
               enddo
             endif
             call timesec(tb)
