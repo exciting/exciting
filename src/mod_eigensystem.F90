@@ -54,5 +54,7 @@ Module mod_eigensystem
       Integer :: nseqit
 ! iterative solver step length
       Real (8) :: tauseq
+! ARPACK seed vector
+      complex(8),allocatable :: arpackseed(:,:)
 End Module
 !

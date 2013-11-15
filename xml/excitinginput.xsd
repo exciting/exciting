@@ -788,6 +788,39 @@ gw.xsd
                   solver</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="ArpackDecomp" default="LDL">
+              <xs:annotation>
+                <xs:documentation> 
+                    Decomposition (factorization) method in linear solve during shift-and-invert process in ARPACK.
+                    Pick either LDL, LU, LL or Diag.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="LDL"/>
+                  <xs:enumeration value="LL"/>
+                  <xs:enumeration value="LU"/>
+                  <xs:enumeration value="Diag"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="DecompPrec" type="xs:string" default="dp">
+              <xs:annotation>
+                <xs:documentation>
+                   Precision used during the factorization in ARPACK.
+                   Pick either sp or dp.
+                </xs:documentation>
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:enumeration value="sp"/>
+                    <xs:enumeration value="dp"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:annotation>
+            </xs:attribute>
+
+
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="evaltol" type="fortrandouble" default="1.0d-8">
               <xs:annotation>
                 <xs:documentation>Error tolerance for the first-variational eigenvalues using the
