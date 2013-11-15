@@ -68,16 +68,13 @@ for input in $input_list ; do
     suffix=$(echo $input | cut -c7-8)
 #
     uuu=$(cat $CURRENT/$WORKDIR/displ-$suffix)
-    tot=TOTENERGY.OUT
+    tot=INFO.OUT
 #
-#    awk -v eta="$uuu" \
-#        '/ / {printf "%11.8f   %20.10f\n",eta,$1}' $tot | tail -n1
     awk -v eta="$uuu" \
-        '/ / {printf "%11.8f   %20.10f\n",eta,$1}' $tot | tail -n1>>$OUTE
-#
-    grep -A12 "Forces :" INFO.OUT | tail -n1 >> dumforce
+        '/Total energy    / {printf "%11.8f   %20.10f\n",eta,$4}' $tot | tail -n1>>$OUTE
+    grep -A2 "Total atomic forces" $tot | tail -n1 > dumforce
     awk -v eta="$uuu" \
-        '/ / {printf "%11.8f   %20.10f\n",eta,$4}' dumforce | tail -n1>>$OUTF   
+        '/  / {printf "%11.8f   %20.10f\n",eta,$5}' dumforce | tail -n1>>$OUTF     
     rm -f dumforce
 #
     cd ../

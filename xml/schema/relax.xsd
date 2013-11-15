@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
+    <xs:include id="common" schemaLocation="common.xsd"/>
+    <xs:annotation>
+        <xs:appinfo>
+            <parent>/input</parent>
+            <root>relax</root>
+        </xs:appinfo>
+    </xs:annotation>
+    <xs:element ex:importance="essential" ex:unit="" name="relax">
+        <xs:annotation>
+            <xs:documentation>The element <elementref>relax</elementref> activates the optimization 
+            of atomic positions at fixed lattice parameters.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="outputlevel" default="normal">
+                <xs:annotation>
+                    <xs:documentation> 
+                    Specify the amount of information which is printed to output files:
+                    <list>
+                      <li> <pre>"low"</pre> - 
+		           Minimal output is produced. For each optimization steps, the main output file 
+		           <pre>"INFO.OUT"</pre> contains information on the number of SCF cicles performed,
+		    	   the value of the maximum force acting on the atoms, and the calculated total 
+		           energy. </li>
+		      <li> <pre>"normal"</pre> - 
+		           (default) Standard information. In addition to the output level <pre>"low"</pre>,
+			   the atomic configuration (in lattice coordinates) and the total forces (in 
+			   cartesian coordinates) acting on the atoms are also given. If a constrained 
+			   optimization is performed, the constrained (unconstrained) cartesian components 
+			   of each atom are labeled by <pre>"T"</pre> (<pre>"F"</pre>). </li>
+		      <li> <pre>"high"</pre> - 
+		           Detailed output. In addition to the output level <pre>"normal"</pre>, partial 
+		           charges and the different force contributions are also specified. </li>
+                    </list>
+                    </xs:documentation>
+                </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="low">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>0</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="normal">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>1</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="high">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>2</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="method" type="xs:string" use="optional" 
+	                  default="bfgs">
+                <xs:annotation>
+                    <xs:documentation>
+                    Specify the method used for atomic relaxation: 
+                    <list>
+                      <li> <pre>"newton"</pre> - 
+		           Simple (Newton-like) method. At each step <inlinemath>m</inlinemath> of a 
+			   structural optimization run, the atom <inlinemath>\alpha</inlinemath> is 
+			   displaced according to
+                           <displaymath>
+                           {\bf r}_{\alpha}^{(m+1)}={\bf r}_{\alpha}^{(m)}+\tau_{\alpha}^{(m)}
+                           \left({ \bf F}_{\alpha}^{(m)}+{ \bf F}_{\alpha}^{(m-1)}\right),
+                           </displaymath>
+                           i.e., the magnitude of the displacement at the step <inlinemath>m</inlinemath> 
+			   is proportional to <inlinemath>\tau_{\alpha}^{(m)}</inlinemath>. 
+                           For the initial step, <inlinemath>\tau_{\alpha}^{(0)}</inlinemath> 
+                           is set to <attref>taunewton</attref>. 
+                           If the forces of two subsequent optimization steps have the same sign,
+                           <inlinemath>\tau_{\alpha}^{(m)}</inlinemath> is increased by 
+			   <inlinemath>\tau_{\alpha}^{(0)}</inlinemath>. Otherwise, 
+			   <inlinemath>\tau_{\alpha}^{(m)}</inlinemath> is reset to 
+			   <inlinemath>\tau_{\alpha}^{(0)}</inlinemath>. </li>
+                      <li> <pre>"harmonic"</pre> - 
+		           Method based on the combination of the <pre>"newton"</pre> method and the 
+			   harmonic approximation. Contrary to <pre>"newton"</pre>, all cartesian components 
+			   of the position vector of each atom are treated independently. 
+			   At the optimization step <inlinemath>m</inlinemath>, each cartesian component of
+			   the position vector of each atom is updated using the same algorithm as in 
+			   <pre>"newton"</pre> (``newton step") unless the ``harmonic condition", either 
+			   <displaymath>
+			   \beta\equiv\frac{{ \bf F}_{\alpha}^{(m-1)}}{{ \bf F}_{\alpha}^{(m)}} \in\; ]-\infty,0] 
+			   </displaymath>
+			   or
+			   <displaymath>
+			   \beta \in [3,\infty[\:,
+			   </displaymath>
+			   is fulfilled.
+			   In this case (``harmonic step"), atomic positions are updated according to
+			   <displaymath>
+                           {\bf r}_{\alpha}^{(m+1)}=\frac{ {\bf r}_{\alpha}^{(m-1)}-\beta\,{\bf r}_{\alpha}^{(m)} }
+			   { 1-\beta }\:.
+                           </displaymath>
+			   The <pre>"harmonic"</pre> method is of general validity and  
+			   it is particularly efficient when the atomic 
+			   configuration is close to the optimized one and the internal degrees of 
+		           freedom are weakly coupled. </li>
+                      <li> <pre>"bfgs"</pre> - 
+		           Limited memory algorithm for bound constrained optimization, see
+			   <pre>Byrd,</pre> <pre>et</pre> <pre>al.,</pre> <pre> SIAM J. Scientific Computing 16,
+			   1190 (1995)</pre>. 
+			   This method requires 
+			   high accuracy for the determination of the total energy in dependence of the 
+			   maximum allowed for the residual atomic force. For this reason, the 
+			   default value of the attribute <attref>epsengy</attref> is decreased in order to be
+			   at least equal to the value 
+			   of the attribute <attref>epsforce</attref> of the <elementref>relax</elementref> 
+			   element multiplied by a factor <pre>0.02</pre>. </li>
+                    </list>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" name="maxsteps" type="xs:integer" use="optional" 
+	                  default="200">
+                <xs:annotation>
+                    <xs:documentation>
+                    Maximum number of optimization steps.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+	    
+            <xs:attribute ex:importance="expert" name="maxbfgs" type="xs:integer" use="optional" 
+	                  default="2">
+                <xs:annotation>
+                    <xs:documentation>
+                    Maximum number of atomic configurations that can be investigated in a single 
+		    <pre>"bfgs"</pre> optimization step.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>        
+            
+            <xs:attribute ex:importance="essential" name="epsforce" type="fortrandouble" default="5.0d-5" 
+	                  use="optional">
+                <xs:annotation>
+                    <xs:documentation>
+                    The optimization stops when the maximum amplitude of the force acting on the atoms is 
+		    lower then the value specified by <pre>epsforce</pre>. Notice that, in particular 
+		    for the <pre>"bfgs"</pre> method, high accuracy in the calculated forces requires high 
+		    accuracy in the calculated total energy (see the attribute <attref>epsengy</attref>
+		    of the <elementref>groundstate</elementref> element).
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" name="taunewton" type="fortrandouble"  default="0.2d0" 
+	                  use="optional">
+                <xs:annotation>
+                    <xs:documentation> Parameter determining the initial amplitude of atomic displacement 
+		    for the <pre>"newton"</pre> method of atomic relaxation.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" name="taubfgs" type="fortrandouble" default="0.3d0" 
+	                  use="optional">
+                <xs:annotation>
+                    <xs:documentation>
+                    Maximum atomic displacement for atomic relaxation when using the <pre>"bfgs"</pre> method. 
+		    At each optimization step, the optimized value of each cartesian coordinate of each atom 
+		    is searched in a range of size <inlinemath>2\tau_{\tt BFGS}</inlinemath>
+		    centered at the actual value of the coordinate.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+	    
+            <xs:attribute ex:importance="expert" name="endbfgs" type="xs:string" default="harmonic" 
+	                  use="optional">
+                <xs:annotation>
+                    <xs:documentation>
+                    When using the <pre>"bfgs"</pre> method, specifies the method employed for the relaxation
+		    if the <pre>"bfgs"</pre> scheme fails to converge.
+                    <list>
+		      <li> <pre>"newton"</pre> - 
+		           Simple (Newton-like) method, see also <attref>method</attref>. </li>
+		      <li> <pre>"harmonic"</pre> - 
+		           Method based on the combination of the <pre>"newton"</pre> method and the harmonic 
+			   approximation, see also <attref>method</attref>. </li>
+		      <li> <pre>"stop"</pre> - 
+		           Stops the <pre>"bfgs"</pre> optimization procedure at the last accepted 
+			   configuration. </li>
+                    </list>    
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+	    
+            <xs:attribute ex:importance="expert" name="printtorque" type="xs:boolean" default="false"
+	                  use="optional">
+	        <xs:annotation>
+                    <xs:documentation> 
+                    If <pre>"true"</pre> the total torque with respect to cartesian axes with origin in 
+		    the center of mass is written on the output file <pre>INFO.OUT</pre>. 
+		    This option is useful when dealing with isolated molecules when checking if the 
+		    molecule is rotating as a whole during the optimization. If <pre>printtorque</pre>
+		    is set to <pre>"true"</pre> the cartesian coordinates of the center of mass are also 
+		    written. Notice that the definition of a <pre>center of mass</pre> is unique only 
+		    for isolated molecules. 
+                    </xs:documentation>
+                </xs:annotation>
+	    </xs:attribute>
+
+            <xs:attribute ex:importance="essential" name="history" type="xs:boolean" default="false" 
+	                  use="optional">
+                <xs:annotation>
+                    <xs:documentation> 
+                    If <pre>"true"</pre> the atomic configuration at each relaxation step is written in a history
+		    file which is generated in one of the formats specified in <attref>historyformat</attref>.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" name="addtohistory" type="xs:boolean" default="false" 
+	                  use="optional">
+                <xs:annotation>
+                    <xs:documentation>
+                    If <attref>history</attref> is <pre>"true"</pre>, this switch allows newly computed 
+		    optimization steps to be appended to a previously generated history file.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" name="historyformat" type="xs:string"  default="xyz" 
+	                  use="optional">
+                <xs:annotation>
+                    <xs:documentation> 
+                    If <attref>history</attref> is <pre>"true"</pre>, the history file, containig atomic 
+		    configurations at each optimization step, is generated in one of the following formats:
+                    <list>
+                      <li> <pre>"xyz"</pre> 
+		           molecular format. The first line of this file the total number of atoms. 
+			   The second line is a comment line with total energy in eV. 
+			   Finally, starting from line three, one finds 
+                           atomic species, cartesian coordinates in Angstrom, and forces in eV/Angstrom. 
+			   This format is repeated for each optimization step. </li>
+                      <li> <pre>"gulp"</pre> 
+		           format, which is useful to visualize crystal structure changes using the 
+		           <pre>GDIS</pre> program. </li>
+                    </list>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            
+        </xs:complexType>
+    </xs:element>
+
+
+</xs:schema>

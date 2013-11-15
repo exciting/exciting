@@ -13,7 +13,8 @@ Module mod_misc
 !     miscellaneous variables     !
 !---------------------------------!
 ! code version
-      Integer :: version (3)
+      character(40) :: versionname = 'BERYLLIUM'
+      integer :: version(3)
 ! reference version for LDA+U
       integer, parameter :: refversion_ldapu(3) = (/ 0, 9, 131 /)
 ! reference version for new exciting
@@ -48,6 +49,5 @@ Module mod_misc
       Integer :: notelns
 ! notes to include in INFO.OUT
       Character (80) :: notes (maxnlns)
-!
 End Module
 !

@@ -51,7 +51,7 @@ label = str(sys.argv[1])
 
 #-------------------------------------------------------------------------------
 
-inpf    = current+"/"+rlabel+label+'/INFO.OUT'
+inpf = current+"/"+rlabel+label+'/INFO.OUT'
 if (label == 'r'): inpf=rundir+'/xc-rundir/INFO.OUT'
      
 if (str(os.path.exists(inpf))=='False'): 
@@ -59,8 +59,13 @@ if (str(os.path.exists(inpf))=='False'):
     
 #-------------------------------------------------------------------------------
 
-os.system("grep \"Maximum force\" "+str(inpf)+" > tempfile")
+os.system("grep \"Maximum force m\" "+str(inpf)+" > tempfile")
 input_file = open("tempfile","r")
+
+if ( os.path.getsize('./tempfile') == 0 ):
+    print "\nEither data file not (yet) ready for visualization",
+    print "\nor maximum force target reached already at the initial configuration.\n"
+    sys.exit() 
 
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
@@ -108,25 +113,38 @@ x = [] ; y = []
 a = [] ; b = []
 
 iter=0
+lgoal=0
 
 while True:
-    line = input_file.readline().strip().replace(")", "") 
+    line = input_file.readline().strip().replace(")", "")
     if len(line) == 0: break
     iter+=1
     y.append(float(line.split()[5]))
-    x.append(float(iter))
-    if (iter == 1): 
+    x.append(float(iter-1))
+    if (iter == 1):
+        lgoal=1
         goal=float(line.split()[7])
         b.append(goal)
-        a.append(float(iter))
-b.append(goal)
-a.append(float(iter))
+        a.append(float(iter-1))
 
-xmin = 1-iter/20. ; xmax = iter+iter/20.
+if (abs(y[-1]) < 1.e-8 ): y[-1] = 1.e-8
+        
+if (lgoal < 1): 
+    os.system("rm -f tempfile")
+    print "\nData not (yet) available for visualization.\n\n",
+    sys.exit() 
+   
+b.append(goal)
+a.append(float(iter-1))
+
+os.system("rm -f tempfile")
+
+xmin = 0-(iter-1)/20. ; xmax = (iter-1)+(iter-1)/20.
+
+if (iter == 1): 
+    xmin = -1 ; xmax = 1
 
 #-------------------------------------------------------------------------------
-
-os.system("rm tempfile")
 
 plt.plot(a,b,'b-',label='goal')
 plt.plot(x,y,'ro-',label='run')

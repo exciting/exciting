@@ -209,8 +209,12 @@ Subroutine bse
         input%xs%scissor=0.0d0
         
         ! Read QP Fermi energies and eigenvalues from file
-        call getevalqp(nkptnr)
+        call getevalqp(nkptnr,vkl,evalsv)
         Write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
+
+        do ist1 = 1, nstsv
+          write(*,*) ist1, evalsv(ist1,1)
+        end do
 
       end if ! GW
 

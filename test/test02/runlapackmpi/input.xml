@@ -12,6 +12,6 @@
 <atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
 </species>
 </structure>
-<groundstate  vkloff="0.5  0.5  0.5" ngridk="2 2 2 " mixer="lin"></groundstate>
+<groundstate  vkloff="0.5  0.5  0.5" ngridk="2 2 2 " mixer="lin" epsengy="5.0d-07"></groundstate>
 <properties></properties>
 </input>

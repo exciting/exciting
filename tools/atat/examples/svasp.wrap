@@ -1,6 +1,0 @@
-[INCAR]
-PREC = high
-ISMEAR=-5
-IBRION=-1
-ISIF=2
-KPPRA = 1000

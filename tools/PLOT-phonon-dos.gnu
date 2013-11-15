@@ -3,6 +3,10 @@
 
 pointsize=0.01
 
+dpisize=100
+len=${#DPIPNG}
+if [ "$len" -gt 0 ]; then dpisize=$DPIPNG ; fi
+
 inpf='PHDOS.OUT'
 xlab='Frequency [cm^-^1]'
 title=''
@@ -44,5 +48,5 @@ cat>>gnu-input<<***
 gnuplot < gnu-input
 rm gnu-input gnu-file
 #-------------------------------------------------------------------------------
-convert PLOT.ps -rotate 90 -density 80 PLOT.png
+convert -density $dpisize -rotate 90 PLOT.ps PLOT.png
 #-------------------------------------------------------------------------------

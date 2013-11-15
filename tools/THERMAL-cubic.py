@@ -83,7 +83,7 @@ for i in range(len(tttt[2])): tttt[2][i]=float(tttt[2][i])
 tcut= min(max(tttt[0]),max(tttt[1]),max(tttt[2]))
 
 for i in range(len(temp)):
-    alpha=(dvib[0][i]-dvib[2][i])/(vol[2]-vol[0])/bzero/3/2
+    alpha=(dvib[0][i]-dvib[2][i])/(vol[2]-vol[0])/bzero/3
     if (temp[i] < tcut+1e-10): print>>outf, temp[i], alpha
 
 outf.close()

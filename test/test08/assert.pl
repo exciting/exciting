@@ -10,8 +10,8 @@ $writer= Test::initreport("report.xml");
 
 
 
-%statusse=Test::assert_file_same_within( "./reference/QPENE.OUT",
-	"rungw/QPENE.OUT",1.0);
+%statusse=Test::assert_file_same_within( "./reference/EVALQP.TXT",
+	"rungw/EVALQP.TXT",1.0);
  Test::writetestreport({
  		"directory"=>"test08/ ",
  		"name"=>"GW quasiparticle banstructure",

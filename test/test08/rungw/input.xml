@@ -16,7 +16,7 @@
     rgkmax="7.0"
     gmaxvr="12"
     ngridk="2 2 2"
-    xctype="LSDAPerdew-Wang"
+    xctype="LDA_PW"
     nempty="50"
     >
   </groundstate>

@@ -11,17 +11,19 @@
   </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="groundstate">
     <xs:annotation>
-      <xs:documentation> The <elementref>groundstate</elementref> 
-      element is required for any calculation. 
-      Its attributes are
-        the parameters and methods used to calculate the ground-state density.</xs:documentation>
+      <xs:documentation> 
+      The <elementref>groundstate</elementref> element is required for any calculation. 
+      Its attributes are parameters and methods which are used to calculate the ground-state density.
+      </xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
         <xs:element ex:importance="essential" ex:unit="" name="spin" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation> If the <elementref>spin</elementref> element is present calculation is done with
-              spin polarization. </xs:documentation>
+            <xs:documentation> 
+	    If the <elementref>spin</elementref> element is present, calculation is done with
+            spin polarization. 
+	    </xs:documentation>
             <xs:appinfo>
               <oldname>spinpol</oldname>
             </xs:appinfo>
@@ -30,78 +32,103 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="momfix" type="vect3d"
               default="0.0d0 0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation>The desired total moment for a FSM calculation.</xs:documentation>
+                <xs:documentation>
+	        The desired total moment for a fixed spin moment (<pre>FSM</pre>) calculation.
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="bfieldc" type="vect3d"
               default="0.0d0 0.0d0 0.0d0 ">
               <xs:annotation>
-                <xs:documentation> Allows to apply a constant B field This is a constant magnetic
-                  field applied throughout the entire unit cell and enters the second-variational
-                  Hamiltonian as <displaymath>\frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf B}_{\rm
-                    ext},</displaymath> where <inlinemath>g_e</inlinemath> is the electron
-                    <inlinemath>g</inlinemath>-factor (2.0023193043718). This field is normally used
-                  to break spin symmetry for spin-polarised calculations and considered to be
-                  infinitesimal with no direct contribution to the total energy. In cases where the
-                  magnetic field is finite (for example when computing magnetic response) the
-                  external <inlinemath>{ \bf B}</inlinemath>-field energy reported in
-                  <filename>INFO.OUT</filename> should be added to the total by hand. This field is applied
-                  throughout the entire unit cell. To apply magnetic fields in particular
-                  muffin-tins use the <attref>bfcmt</attref> vectors in the <elementref>atom</elementref> elements.
-                  Collinear calculations are more efficient if the field is applied in the
-                    <inlinemath>z</inlinemath>-direction. </xs:documentation>
+                <xs:documentation> 
+		Allows to apply a constant <inlinemath>{ \bf B}_{\tt ext}</inlinemath> field. 
+		This is an external constant magnetic field applied throughout the entire unit cell 
+		and enters the second-variational Hamiltonian as 
+		<displaymath>\frac{g_e\,\alpha}{4}\;\vec{\sigma}\cdot{\bf B}_{\tt ext}\,,</displaymath>
+		where <inlinemath>g_e</inlinemath> is the electron <inlinemath>g</inlinemath>-factor
+                (<inlinemath>g_e</inlinemath>=2.0023193043718). The external magnetic field is normally used
+                to break spin symmetry for spin-polarised calculations and considered to be
+                infinitesimal with no direct contribution to the total energy. In cases where the
+                magnetic field is finite (for example when computing magnetic response) the
+                external <inlinemath>{ \bf B}</inlinemath>-field energy reported in
+                <filename>INFO.OUT</filename> (when the attribute <attref>outputlevel</attref> is set to 
+		<pre>"high"</pre>) should be added to the total energy by hand. This external magnetic field 
+		is applied hroughout the entire unit cell. To apply magnetic fields in particular muffin-tins 
+		use the <attref>bfcmt</attref> vectors in the <elementref>atom</elementref> elements.
+                Collinear calculations are more efficient if the field is applied in the
+                <inlinemath>z</inlinemath>-direction. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean">
+            <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean" default="false">
               <xs:annotation>
-                <xs:documentation> If <attref>spinorb</attref> is <pre>"true"</pre>, then a
-                    <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
-                  second-variational Hamiltonian. </xs:documentation>
+                <xs:documentation> 
+		If <attref>spinorb</attref> is <pre>"true"</pre>, then a
+                <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
+                second-variational Hamiltonian. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="spinsprl" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation> Set to <pre>"true"</pre> if a spin-spiral calculation is
-                  required. Experimental feature for the calculation of spin-spiral states. See
-                    <attref>vqlss</attref> for details. </xs:documentation>
+                <xs:documentation> 
+		Set to <pre>"true"</pre> if a spin-spiral calculation is required. 
+                Experimental feature for the calculation of spin-spiral states.
+                See <attref>vqlss</attref> for details. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="vqlss" type="vect3d"
               default="0.0d0 0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation> Is the <inlinemath>{ \bf q}</inlinemath>-vector of the
-                  spin-spiral state in lattice coordinates. Spin-spirals arise from spinor states
-                  assumed to be of the form <displaymath> \Psi^{ \bf q}_{ \bf k}({ \bf r})= \left(
-                    \begin{array}{c} U^{{\bf q}\uparrow}_{ \bf k}({\bf r})e^{i({ \bf k+q/2})\cdot{
-                    \bf r}} \\ U^{{ \bf q}\downarrow}_{\bf k}({ \bf r})e^{i({\bf k-q/2})\cdot{ \bf
-                    r}} \\ \end{array} \right). </displaymath> These are determined using a
-                  second-variational approach, and give rise to a magnetization density of the form
-                    <displaymath> {\bf m}^{ \bf q}({ \bf r})=(m_x({\bf r})\cos({ \bf q \cdot r}),
-                    m_y({\bf r})\sin({ \bf q \cdot r}),m_z({\bf r})), </displaymath> where
-                    <inlinemath>m_x</inlinemath>, <inlinemath>m_y</inlinemath> and
-                    <inlinemath>m_z</inlinemath> are lattice periodic. See also
-                    <attref>spinsprl</attref>. </xs:documentation>
+                <xs:documentation> 
+		This attribute allows to specify the <inlinemath>{ \bf q}</inlinemath>-vector of the
+                spin-spiral state in lattice coordinates. Spin-spirals arise from spinor states
+                assumed to be of the form 
+		<displaymath> 
+		  \Psi^{ \bf q}_{ \bf k}({ \bf r})= 
+		  \left(\begin{array}{c} 
+		  U^{{ \bf q}\uparrow}_{ \bf k}({ \bf r})\;e^{i({ \bf k+q/2})\cdot{ \bf r}} \\
+		  \phantom{o} \\
+                  U^{{ \bf q}\downarrow}_{ \bf k}({ \bf r})\;e^{i({ \bf k-q/2})\cdot{ \bf r}} \\ 
+                  \end{array} \right)\,. 
+		</displaymath> 
+		These spin-spirals are determined using a second-variational approach, 
+		and give rise to a magnetization density of the form
+                <displaymath> 
+		  {\bf m}^{ \bf q}({ \bf r})=\left[m_x({\bf r})\,\cos({ \bf q \cdot r}),\;
+                  m_y({\bf r})\,\sin({ \bf q \cdot r}),\; m_z({\bf r})\right]\,, 
+		</displaymath> where
+                <inlinemath>m_x</inlinemath>, <inlinemath>m_y</inlinemath>, and <inlinemath>m_z</inlinemath>
+                have the periodicity of the lattice. See also <attref>spinsprl</attref>. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="taufsm" type="fortrandouble"
               default="0.01d0">
               <xs:annotation>
-                <xs:documentation> The effective magnetic field required for fixing the spin moment
+                <xs:documentation> 
+		The effective magnetic field required for fixing the spin moment
                 to a given value, is updated according to 
-                <displaymath> {\bf B}_{\rm FSM}^{i+1}={\bf B}_{\rm FSM}^i+\tau_{fsm}\left(
-                \boldsymbol{\mu}^i-\boldsymbol{\mu}_{\rm FSM}\right), </displaymath>
-                for iteration <inlinemath>i</inlinemath>. It must be positive. </xs:documentation>
+                <displaymath> 
+		  {\bf B}_{\tt FSM}^{i+1}={\bf B}_{\tt FSM}^i+\tau_{\tt FSM}\left(
+                  \boldsymbol{\mu}^i-\boldsymbol{\mu}_{\tt FSM}\right)\,, 
+		</displaymath>
+                for iteration <inlinemath>i</inlinemath>. It must be positive. 
+		</xs:documentation>
               </xs:annotation>
               </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="reducebf" type="fortrandouble"
               default="1.0d0">
               <xs:annotation>
-                <xs:documentation> After each iteration the external magnetic fields are multiplied
-                  with reducebf. This al- lows for a large external magnetic field at the start of
-                  the self-consistent loop to break spin symmetry, while at the end of the loop the
-                  field will be effectively zero, i.e. infinitesimal. See <attref>bfieldc</attref>
-                  and atom element. </xs:documentation>
+                <xs:documentation> 
+		After each iteration the external magnetic fields are multiplied
+                with reducebf. This allows for a large external magnetic field at the start of
+                the self-consistent loop to break spin symmetry, while at the end of the loop the
+                field will be effectively zero, i.e. infinitesimal. See <attref>bfieldc</attref>
+                and atom element. 
+		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="fixspin" default="none">
@@ -389,6 +416,14 @@
             <xs:attribute default="XC_GGA_X_PBE" name="exchange" use="optional">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
+                  <xs:enumeration value="none">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 0 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> No exchange </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
                   <xs:enumeration value="XC_LDA_X">
                     <xs:annotation>
                       <xs:appinfo>
@@ -862,20 +897,28 @@
                       <xs:documentation> short-range recipe for exchange GGA functionals </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration-->
-                  <xs:enumeration value="XC_HYB_GGA_X_SOGGA11_X">
+                  <!--xs:enumeration value="XC_HYB_GGA_X_SOGGA11_X">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 426 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Hybrid based on SOGGA11 form </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
             <xs:attribute default="XC_GGA_C_PBE" name="correlation" use="optional">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
+                   <xs:enumeration value="none">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 0 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> No correlations </xs:documentation>
+                    </xs:annotation>
+                   </xs:enumeration>
                    <xs:enumeration value="XC_LDA_C_WIGNER">
                      <xs:annotation>
                        <xs:appinfo>
@@ -1613,7 +1656,8 @@
                       <xs:documentation> Tozer and Handy v. FCO </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-                  <xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
+		  <!-- hybrid functionals currently not implemented-->
+                  <!--xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 401 </oldnr>
@@ -1804,7 +1848,7 @@
                       </xs:appinfo>
                       <xs:documentation> Schmider-Becke 98 parameterization 2c </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
 		  <!-- Range seperated / screened functionals currently not implemented-->
                   <!--xs:enumeration value="XC_HYB_GGA_XC_HSE03">
                     <xs:annotation>
@@ -1870,7 +1914,7 @@
                       <xs:documentation> CAM version of B3LYP tunes for excitations </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration-->
-                  <xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
+                  <!--xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 435 </oldnr>
@@ -1893,7 +1937,7 @@
                       </xs:appinfo>
                       <xs:documentation> B3LYP with RC04 LDA </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration>
+                  </xs:enumeration-->
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
@@ -1906,8 +1950,8 @@
             <oldname>nonreplace</oldname>
           </xs:appinfo>
           <xs:documentation> Decides if the ground state is calculated starting from scratch, using
-            the densities from file or if it is skipped and only its associated input parameters are
-            read in. Also applies fo structural optimization run.</xs:documentation>
+            the densities from file, or if its calculation is skipped and only the associated input parameters are
+            read in.</xs:documentation>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
@@ -1918,7 +1962,7 @@
         </xs:simpleType>
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="ngridk" type="integertriple"
-        use="optional" default="0 0 0" >
+        use="optional" default="1 1 1" >
         <xs:annotation>
           <xs:appinfo>
             <oldname>ngridk</oldname>
@@ -2216,7 +2260,7 @@
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble"
-        default="1.0d-3">
+        default="1.0d-5">
         <xs:annotation>
           <xs:documentation>Convergence criterion for the maximum allowed error 
            in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
@@ -2343,7 +2387,7 @@
           <xs:documentation>(Obsolete) Order of predictor-corrector polynomial.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGAPBEsol">
+      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGA_PBE_SOL">
         <xs:annotation>
           <xs:documentation> Type of exchange-correlation functional to be used <list>
               <li> No exchange-correlation funtional ( <inlinemath>E_{\rm xc}\equiv 0</inlinemath> ) </li>
@@ -2371,73 +2415,66 @@
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="LDAPerdew-Zunger">
+            <xs:enumeration value="LDA_PZ">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>2</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LSDAPerdew-Wang">
+            <xs:enumeration value="LDA_PW">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>3</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LDA-X-alpha">
+            <xs:enumeration value="LDA_XALPHA">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>4</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="LSDA-Barth-Hedin">
+            <xs:enumeration value="LDA_vBH">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>5</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAPerdew-Burke-Ernzerhof">
+            <xs:enumeration value="GGA_PBE">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>20</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGArevPBE">
+            <xs:enumeration value="GGA_PBE_R">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>21</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAPBEsol">
+            <xs:enumeration value="GGA_PBE_SOL">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>22</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGA-Wu-Cohen">
+            <xs:enumeration value="GGA_WC">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>26</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-            <xs:enumeration value="GGAArmiento-Mattsson">
+            <xs:enumeration value="GGA_AM05">
               <xs:annotation>
                 <xs:appinfo>
                   <oldnr>30</oldnr>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:enumeration>
-            <xs:enumeration value="HYB_PBE0">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldnr>406</oldnr>
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
@@ -2613,7 +2650,7 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="nwrite" type="xs:integer" default="0">
         <xs:annotation>
           <xs:documentation> Normally, the density and potentials are written to the file STATE.OUT
-            only after com- pletion of the self-consistent loop. By setting nwrite to a positive
+            only after completion of the self-consistent loop. By setting nwrite to a positive
             integer the file will be written during the loop every nwrite
             iterations.</xs:documentation>
         </xs:annotation>
@@ -2632,8 +2669,20 @@
           linearization energies.
           </xs:documentation>
         </xs:annotation>
-      </xs:attribute>    
-          <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
+      </xs:attribute>   
+      <xs:attribute ex:importance="essential" ex:unit="" name="scfconv" type="xs:string" use="optional" default="multiple">
+         <xs:annotation>
+              <xs:documentation>
+              Specify the SCF convergence criteria
+              <list>
+                <li>"energy"   - only total energy of the system is used as a convergence criterion</li>
+                <li>"multiple" - total energy, Kohn-Sham potential and total electronic charge of the system are used as convergence criteria</li> 
+              </list>
+              </xs:documentation>
+          </xs:annotation>
+       </xs:attribute>
+ 
+          <!--xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
             <xs:annotation>
               <xs:documentation> The attribute tconvcritenergy is <pre>"true"</pre> if the value  
               of the total energy of the system is used as a convergence criterion for the 
@@ -2664,7 +2713,46 @@
               of the an average of forces on nuclei of the system is used as a convergence criterion for the 
               self-consistent procedure used to solve the Kohn-Sham equations. </xs:documentation>
             </xs:annotation>
-          </xs:attribute>         
+          </xs:attribute-->
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" default="normal">
+            <xs:annotation>
+              <xs:documentation> 
+                Specify amount of information which is printed to files:
+                <list>
+                    <li><pre>"low"</pre>    - minimal output is produced</li>
+                    <li><pre>"normal"</pre> - (default) standard information</li>
+                    <li><pre>"high"</pre>   - detailed output</li>
+                </list>
+              </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="low">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>0</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="normal">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>1</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="high">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>2</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+                   
     </xs:complexType>
   </xs:element>
 </xs:schema>

@@ -74,7 +74,7 @@ input_info.close()
 
 #-------------------------------------------------------------------------------
 
-maximum_displ = input("\nEnter maximum displacement for the interpolation >>>> ")
+maximum_displ = input("\nEnter maximum displacement for the fit >>>> ")
 order_of_derivative = input("\nEnter the order of derivative >>>> ")
 if (order_of_derivative < 0): 
     sys.exit("ERROR: Order of derivative must be positive!\n")
@@ -109,7 +109,8 @@ while True:
     line = input_energy.readline()
     line = line.strip()
     if len(line) == 0: break
-    eta,ene = line.split() 
+    eta = line.split()[0] 
+    ene = line.split()[1] 
 
     if (abs(float(eta)) <= maximum_displ):  
        energy.append(float(ene))
@@ -163,7 +164,7 @@ output_file.close()
 output_file = open('order-of-derivative',"w")
 print >> output_file, order_of_derivative
 output_file.close()
-print "#############################################"
+print "#############################################\n"
 os.system("PLOT-checkderiv.py")
 
 

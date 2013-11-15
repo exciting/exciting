@@ -39,15 +39,26 @@ def shell_value(variable,vlist,default):
 #-------------------------------------------------------------------------------
 
 def leggi(filin):
+    onlyone = False
     f = open(filin,"r")
     x = [] ; y = []
-    while True:
-        line = f.readline().strip() 
-        if (len(line) == 0): break
-        x.append(float(line.split()[0]))
-        y.append(float(line.split()[1])) 
+    ilines = 0
+    ix = 0
+    lines = f.readlines()
+    while ( ilines < len(lines) ):
+        line = lines[ilines].strip() 
+        ilines = ilines+1
+        if (len(line) != 0): 
+            if (len(line.split()) == 1):
+	        onlyone = True
+                x.append(int(ix))
+                y.append(float(line.split()[0])) 
+            else:
+                x.append(float(line.split()[0]))
+                y.append(float(line.split()[1])) 
+            ix = ix+1
     f.close()
-    return x,y
+    return x,y,onlyone
 
 #-------------------------------------------------------------------------------
 
@@ -108,7 +119,7 @@ xmin = 1.e30 ; xmax = -1.e30
 ymin = 1.e30 ; ymax = -1.e30
 
 x = [] ; y = []
-x,y = leggi(filin)
+x, y, onlyone = leggi(filin)
 plt.plot(x,y,'r'+pointstyle,label="file")
 xmin=min(min(x),xmin) ; xmax=max(max(x),xmax)
 ymin=min(min(y),ymin) ; ymax=max(max(y),ymax)
@@ -137,8 +148,8 @@ ymin = ymin-dyy ; ymax = ymax+dyy
 ylimits = []
 for i in range(3,len(sys.argv)): ylimits.append(float(sys.argv[i]))
 
-if (len(ylimits) == 2): ymin = float(ylimits[0])
-if (len(ylimits) > 2): ymin = float(ylimits[0]); ymax = float(ylimits[1]) 
+if (len(ylimits) == 1): ymin = float(ylimits[0])
+if (len(ylimits) > 1): ymin = float(ylimits[0]); ymax = float(ylimits[1]) 
 
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)

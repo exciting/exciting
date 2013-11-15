@@ -168,7 +168,7 @@ doc = etree.ElementTree(root)
 root.set( NS_XSI + "noNamespaceSchemaLocation", "/fshome/dcl/EXCITING/exciting/xml/excitinginput.xsd")
 pi = etree.ProcessingInstruction(
         'xml-stylesheet',
-        'href="inputtohtml.xsl" type="text/xsl"' 
+        'href="xmlinput2html.xsl" type="text/xsl"' 
         )
 root.addprevious(pi)
 

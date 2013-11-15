@@ -31,7 +31,7 @@ Subroutine init0
       Integer :: is, js, ia, ias
       Integer :: ist, l, m, lm, iv (3)
       Real (8) :: ts0, ts1, tv3 (3)
-!
+
 !-------------------------------!
 !     zero timing variables     !
 !-------------------------------!
@@ -103,12 +103,6 @@ Subroutine init0
 !------------------------------------!
 !     index to atoms and species     !
 !------------------------------------!
-
-! GB 3.10.2012 
-      If (input%structure%cartesian) Then
-         input%structure%primcell = .True.
-         input%structure%tshift = .False.
-      End If
 
 ! find primitive cell if required
       If (input%structure%primcell) Call findprim
@@ -449,20 +443,24 @@ Subroutine init0
       Allocate (forcecr(3, natmtot))
       If (allocated(forceibs)) deallocate (forceibs)
       Allocate (forceibs(3, natmtot))
-      If (allocated(forcetot)) deallocate (forcetot)
-      Allocate (forcetot(3, natmtot))
-      If (allocated(forcetp)) deallocate (forcetp)
-      Allocate (forcetp(3, natmtot))
-      If (allocated(tauatm)) deallocate (tauatm)
-      Allocate (tauatm(natmtot))
+!      If (allocated(forcetot)) deallocate (forcetot)
+!      Allocate (forcetot(3, natmtot))
+!      If (allocated(forcetp)) deallocate (forcetp)
+!      Allocate (forcetp(3, natmtot))
+!      If (allocated(tauatm)) deallocate (tauatm)
+!      Allocate (tauatm(natmtot))
+!      If (allocated(tauxyz)) deallocate (tauxyz)
+!      Allocate (tauxyz(3, natmtot))
 ! initialise the previous force
-      forcetp (:, :) = 0.d0
+!      forcetp (:, :) = 0.d0
 ! initial step sizes
-      If (associated(input%structureoptimization)) Then
-         tauatm (:) = input%structureoptimization%tau0atm
-      Else
-         tauatm (:) = 0
-      End If
+!      If (associated(input%relax)) Then
+!         tauatm (:) = input%relax%taunewton
+!         tauxyz (:, :) = input%relax%taunewton
+!      Else
+!         tauatm (:) = 0
+!         tauxyz (:, :) = 0
+!      End If
 !
 !-------------------------!
 !     LDA+U variables     !

@@ -39,7 +39,7 @@ for input in $input_list ; do
     nk=$(cat ngridk)
     rg=$(cat rgkmax)
     awk -v nk="$nk" -v rg="$rg"\
-        '/ / {printf "%4i  %6.2f  %20.10f\n",nk,rg,$1}' TOTENERGY.OUT |\
+        '/  / {printf "%4i  %6.2f  %20.10f\n",nk,rg,$1}' TOTENERGY.OUT |\
         tail -n1>>$OUT
     cd ..
 done

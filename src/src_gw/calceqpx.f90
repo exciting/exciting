@@ -52,7 +52,7 @@
 !
 !   Allocate the array for the quasi-particle energies 
 ! 
-    open(64,file='QPENE.OUT',action='WRITE',form='FORMATTED')
+    open(64,file='EVALQP.TXT',action='WRITE',form='FORMATTED')
 
     allocate(eqp(ibgw:nbgw,nkpt))
 

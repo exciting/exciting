@@ -1,0 +1,2 @@
+#!/bin/bash
+xsltproc $EXCITINGROOT/xml/inputfileconverter/xmlinput2xsf.xsl $1

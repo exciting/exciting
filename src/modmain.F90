@@ -39,5 +39,6 @@ Module modmain
       Integer, Parameter :: maxspecies = _MAXSPECIES_
       Integer, Parameter :: maxatoms = _MAXATOMS_
       Integer, Parameter :: maxlapw = _MAXLAPW_
+      Logical :: lwarning = .False.
 End Module
 !

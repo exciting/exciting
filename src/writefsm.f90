@@ -13,25 +13,30 @@ Subroutine writefsm (fnum)
 ! arguments
       Integer, Intent (In) :: fnum
 ! local variables
-      Integer :: is, ia
-      If (input%groundstate%spin%fixspinnumber .Eq. 0) Return
+      Integer :: is, ia, fsn, i, ias
+
+      fsn = input%groundstate%spin%fixspinnumber
+
+      if (fsn .eq. 0) return
+
+      i = 0
       Write (fnum,*)
-      If ((input%groundstate%spin%fixspinnumber .Eq. 1) .Or. &
-     & (input%groundstate%spin%fixspinnumber .Eq. 3)) Then
-         Write (fnum, '("FSM global effective field", T30, ": ", 3G18.1&
-        &0)') bfsmc (1:ndmag)
-      End If
-      If ((input%groundstate%spin%fixspinnumber .Eq. 2) .Or. &
-     & (input%groundstate%spin%fixspinnumber .Eq. 3)) Then
-         Write (fnum, '("FSM local muffin-tin effective fields :")')
-         Do is = 1, nspecies
-            Write (fnum, '(" species : ", I4, " (", A, ")")') is, trim &
-           & (input%structure%speciesarray(is)%species%chemicalSymbol)
-            Do ia = 1, natoms (is)
-               Write (fnum, '("  atom ", I4, T30, ": ", 3G18.10)') ia, &
-              & bfsmcmt (1:ndmag, ia, is)
-            End Do
-         End Do
-      End If
+
+
+      if ( (fsn .eq. 1) .or. (fsn .eq. 3) ) then
+         write (fnum, '(" FSM global effective field", T35, ":", 3F15.8)') bfsmc(1:ndmag)
+      end if
+      if ( (fsn .eq. 2) .or. (fsn .eq. 3) ) then
+         write (fnum, '(" FSM effective field in muffin-tin:")')
+         do is = 1, nspecies
+            do ia = 1, natoms (is)
+               ias = idxas (ia, is)
+               i = i+1
+               write(fnum,'("     atom ",I5,4x,A2,T35,":",3F15.8)') &
+              &  i, trim(input%structure%speciesarray(is)%species%chemicalSymbol), bfsmcmt(1:ndmag,ia,is)
+            end do
+         end do
+      end if
+
       Return
 End Subroutine

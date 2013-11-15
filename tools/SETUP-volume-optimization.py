@@ -32,8 +32,9 @@ input_rut = input_doc.getroot()
  
 xml_scale = map(float,input_doc.xpath('/input/structure/crystal/@scale'))
 if (xml_scale == []): 
-    sys.exit("ERROR: There is NO scale attribute in input.xml!\n")
-ref_scale=float(xml_scale[0])
+    ref_scale = 1.0
+else: 
+    ref_scale = float(xml_scale[0])
 
 str_stretch = input_doc.xpath('/input/structure/crystal/@stretch')
 if (str_stretch ==[]): 
@@ -47,7 +48,7 @@ for ind_basevect in lst_basevect:
 
 axis_matrix = numpy.array(xml_basevect) 
 determinant = numpy.linalg.det(axis_matrix)
-volume = abs(determinant*xml_scale[0]**3\
+volume = abs(determinant*ref_scale**3\
     *xml_stretch[0]*xml_stretch[1]*xml_stretch[2])
 
 work_directory = 'workdir'

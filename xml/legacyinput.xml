@@ -5,6 +5,6 @@ Use the "species.input.APW+lo-Legacy" input file, located in the "species" direc
 generating the species files related to the old default settings.
 		  -->
   <groundstate swidth="0.01d0" findlinentype="simple" lmaxapw="8" epsband="1.0d-5" mixer="lin" lmaxvr="7"/>
-  <structureoptimization epsforce="5.0d-4"/>
+  <relax epsforce="5.0d-4"/>
   <xs swidth="0.01d0" lmaxapw="8"/>
 </input>

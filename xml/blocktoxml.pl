@@ -816,23 +816,23 @@ if(getvalue("rdmtemp"))
  
     }
    
-my %atthashstructureoptimization=();
+my %atthashrelax=();
    
 if(getvalue("epsforce"))
   {
-   $atthashstructureoptimization{"epsforce"}=getvalue("epsforce");
+   $atthashrelax{"epsforce"}=getvalue("epsforce");
  
     }
    
 if(getvalue("tau0atm"))
   {
-   $atthashstructureoptimization{"tau0atm"}=getvalue("tau0atm");
+   $atthashrelax{"tau0atm"}=getvalue("tau0atm");
  
     }
    
 if(getvalue("resume"))
   {
-   $atthashstructureoptimization{"resume"}=getvalue("resume");
+   $atthashrelax{"resume"}=getvalue("resume");
  
     }
    
@@ -1457,7 +1457,7 @@ if(getvalue("noreplace"))
 my $output = new IO::File(">input.xml");
 my $writer = new XML::Writer(DATA_MODE => 1);
 $writer->xmlDecl("UTF-8");
-$writer->pi('xml-stylesheet', 'href="inputtohtml.xsl" type="text/xsl"');
+$writer->pi('xml-stylesheet', 'href="xmlinput2html.xsl" type="text/xsl"');
 
 $writer->startTag("input", 
     "xsi:noNamespaceSchemaLocation"=>"excitinginput.xsd",
@@ -1524,8 +1524,8 @@ switch ($1) {
 	  $writer->endTag("groundstate");
 	  if($1==2||$1==3)
 	    {
-	    $writer->startTag("structureoptimization",%atthashstructureoptimization);
-	    $writer->endTag("structureoptimization");
+	    $writer->startTag("relax",%atthashrelax);
+	    $writer->endTag("relax");
 	    }
 	  }
     case [200, 201]

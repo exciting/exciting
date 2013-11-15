@@ -318,3 +318,96 @@
       end do   
 
       end subroutine                                   
+!      
+!-----------------------------------------------------------
+!
+      subroutine printbox(fid,c,ttl)
+      implicit none
+      integer,parameter::MaxLineLength=80
+      integer:: fid
+      character c
+      character(len=*) ttl
+      character(len=MaxLineLength)::str
+      integer::n1,n2,i,length
+
+      write(fid,*) 
+      length=len(ttl)
+      do i=1,MaxLineLength
+        str(i:i)=c
+      enddo
+      write(fid,'(A80)') str
+
+      if(length .GE. MaxLineLength) THEN
+        write(fid,'(A80)') ttl
+      else
+        str(1:2)="| "
+        do i=3,MaxLineLength-1
+          str(i:i)=''
+        enddo
+        str(i:i)=c
+        n1=3!(MaxLineLength-length)/2
+        n2=n1+length-1
+        str(n1:n2)=ttl(1:length)
+        str(n1-1:n1-1)='';
+        str(n2+1:n2+1)=''
+        str(i:i)=c
+        write(fid,'(A80)') str
+      endif
+      do i=1,MaxLineLength
+        str(i:i)=c
+      enddo
+      write(fid,'(A80)') str
+!      write(fid,*) 
+      end subroutine
+!      
+!-----------------------------------------------------------
+!
+      subroutine printline(fid,c)
+      implicit none
+      integer,parameter::MaxLineLength=80
+      integer:: fid
+      character c
+      character(len=MaxLineLength)::str
+      integer :: i
+
+      do i=1,MaxLineLength
+         str(i:i)=c
+      enddo
+      write(fid,'(A80)') str
+
+      end subroutine
+!      
+!-----------------------------------------------------------
+!
+      subroutine printtext(fid,c,ttl)
+      implicit none
+      integer,parameter::MaxLineLength=80
+      integer:: fid
+      character c
+      character(len=*) ttl
+      character(len=MaxLineLength)::str
+      integer::n1,n2,i,length
+
+      length=len(ttl)
+      do i=1,MaxLineLength
+        str(i:i)=c
+      enddo
+
+      if(length .GE. MaxLineLength) THEN
+        write(fid,'(A80)') ttl
+      else
+        str(1:2)="| "
+        do i=3,MaxLineLength-1
+          str(i:i)=''
+        enddo
+        str(i:i)=c
+        n1=3!(MaxLineLength-length)/2
+        n2=n1+length-1
+        str(n1:n2)=ttl(1:length)
+        str(n1-1:n1-1)='';
+        str(n2+1:n2+1)=''
+        str(i:i)=c
+        write(fid,'(A80)') str
+      endif
+
+      end subroutine

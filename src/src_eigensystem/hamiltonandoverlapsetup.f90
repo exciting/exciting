@@ -42,7 +42,6 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
 ! set the matrices to zero
 !
 ! muffin-tin contributions
-
       allocate(apwi(haaijSize,ngp))
       allocate(apwi2(ngp,haaijSize))
       allocate(zm(haaijSize,ngp))

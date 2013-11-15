@@ -100,12 +100,12 @@ Subroutine writepmatxs
       end if
       if (fast) then
          If (allocated(apwcmt)) deallocate (apwcmt)
-         Allocate (apwcmt(nstsv, apwordmax, lmmaxapw, natmtot))
+         Allocate (apwcmt(nstfv, apwordmax, lmmaxapw, natmtot))
          If (allocated(ripaa)) deallocate (ripaa)
          Allocate (ripaa(apwordmax, lmmaxapw, apwordmax, lmmaxapw,natmtot, 3))
          If (nlotot .Gt. 0) Then
             If (allocated(locmt)) deallocate (locmt)
-            Allocate (locmt(nstsv, nlomax,-lolmax:lolmax, natmtot))
+            Allocate (locmt(nstfv, nlomax,-lolmax:lolmax, natmtot))
             If (allocated(ripalo)) deallocate (ripalo)
             Allocate (ripalo(apwordmax, lmmaxapw, nlomax,-lolmax:lolmax, natmtot, 3))
             If (allocated(riploa)) deallocate (riploa)

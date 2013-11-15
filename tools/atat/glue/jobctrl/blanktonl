@@ -1,7 +1,0 @@
-#!/bin/csh
-if ( x"$1" == "x-h" ) then
-  echo Converts each contiguous sequence of blanks to a newline character.
-  exit
-endif
-sed "s/^[ 	]*//g" | sed "s/[ 	][ 	]*/\\
-/g"

@@ -108,6 +108,11 @@ for i in range(len(vmin)):
 
 xvol = numpy.linspace(strain[0],strain[-1],100)
 
+chi = 0
+for i in range(len(energy)): 
+    chi=chi+(energy[i]-curv(strain[i]))**2
+chi=sqrt(chi)/len(energy)
+
 #-------------------------------------------------------------------------------
 
 current = os.environ['PWD']
@@ -186,6 +191,7 @@ if (len(dmin) > 1):
 
 fmt='%17.6f'
 afmt='%12.6f'
+lmt='%13.2f'
 for i in range(len(dmin)):
     v0=dmin[len(dmin)-1-i]
     a0=(factor*v0)**(0.33333333333)
@@ -193,6 +199,8 @@ for i in range(len(dmin)):
     print 'Optimal volume   = ', fmt%(v0), '[Bohr^3]'
     if (isym > 0): print 'Lattice constant =', slabel, afmt%(a0), '[Bohr]'
     print 'Bulk modulus     = ', fmt%(b0), '[GPa]'
+    print
+    print 'Log(chi)         = ', lmt%(log10(chi))
     print
     
 if ( len(dmin) == 0): print "WARNING: No minimum in the given xrange!\n"

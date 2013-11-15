@@ -7,7 +7,7 @@ subroutine fermisurf
 ! local variables
   integer :: ik,ist,ist0,ist1
   integer :: fnum,fnum0,fnum1
-  integer :: lst,nst,i,i1,i2,i3
+  integer :: lst,nst,i,i1,i2,i3,j1,j2,j3
   real(8) :: vc(3,4)
 
 ! allocatable arrays
@@ -151,7 +151,6 @@ subroutine fermisurf
     ! produce the Fermi surface plot
     lst=0
     do fnum=fnum0,fnum1
-      if ((ndmag.eq.1).and.(fnum.eq.fnum1)) lst=nstfv
       write(fnum,'(" BEGIN_INFO")')
       write(fnum,'(" # Band-XCRYSDEN-Structure-File for Fermi surface plotting")')
       write(fnum,'(" # Launch as: xcrysden --bxsf FERMISURF(_UP/_DN).bxsf")')
@@ -161,16 +160,20 @@ subroutine fermisurf
       write(fnum, '(" band_energies")')
       write(fnum,'(" BANDGRID_3D_BANDS")')
       write(fnum,'(I4)') nst
-      write(fnum,'(3I6)') np3d(:)
+      write(fnum,'(3I6)') np3d(:)+1
       do i=1,4
         write(fnum,'(3G18.10)') vc(:,i)
       end do
+      if ((ndmag.eq.1).and.(fnum.eq.fnum1)) lst=nstfv
       do ist=ist0,ist1
         write(fnum,'(" BAND: ",I4)') ist
-        do i1=0,np3d(1)-1
-          do i2=0,np3d(2)-1
-            do i3=0,np3d(3)-1
-              ik=ikmap(i1,i2,i3)
+        do i1=0,np3d(1)
+          do i2=0,np3d(2)
+            do i3=0,np3d(3)
+              j1=i1; if (i1==np3d(1)) j1=0
+              j2=i2; if (i2==np3d(2)) j2=0
+              j3=i3; if (i3==np3d(3)) j3=0
+              ik=ikmap(j1,j2,j3)
               write(fnum,'(G18.10)') evalsv(ist+lst,ik)-efermi
             end do
           end do

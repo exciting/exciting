@@ -66,7 +66,7 @@ if(getvalue("<xsl:value-of select="(@name|@ref|*/*/oldname)[last()]"/>"))
 my $output = new IO::File(">input.xml");
 my $writer = new XML::Writer(DATA_MODE => 1);
 $writer->xmlDecl("UTF-8");
-$writer->pi('xml-stylesheet', 'href="inputtohtml.xsl" type="text/xsl"');
+$writer->pi('xml-stylesheet', 'href="xmlinput2html.xsl" type="text/xsl"');
 
 $writer->startTag("input", 
     "xsi:noNamespaceSchemaLocation"=>"excitinginput.xsd",
@@ -133,8 +133,8 @@ switch ($1) {
 	  $writer->endTag("groundstate");
 	  if($1==2||$1==3)
 	    {
-	    $writer->startTag("structureoptimization",%atthashstructureoptimization);
-	    $writer->endTag("structureoptimization");
+	    $writer->startTag("relax",%atthashrelax);
+	    $writer->endTag("relax");
 	    }
 	  }
     case [200, 201]

@@ -16,7 +16,7 @@
  <xsl:attribute name="href">
  <xsl:text>/exist/rest/db/calculations/</xsl:text>
  <xsl:value-of select="@hash"/>
- <xsl:text>/input.xml?_xsl=http://xml.exciting-code.org/inputfileconverter/inputtohtml.xsl</xsl:text>
+ <xsl:text>/input.xml?_xsl=http://xml.exciting-code.org/inputfileconverter/xmlinput2html.xsl</xsl:text>
  </xsl:attribute>
  calc
  </a>

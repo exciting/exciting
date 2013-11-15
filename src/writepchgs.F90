@@ -49,5 +49,6 @@ subroutine writepchgs(fnum,lmax)
       end do
     end if
   end do
+  deallocate(chgpart)
 end subroutine
 !EOC

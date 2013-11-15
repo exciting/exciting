@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
+from   lxml  import etree
 from   sys   import stdin
 from   math  import sqrt
 from   math  import factorial
@@ -36,16 +37,20 @@ def shell_value(variable,vlist,default):
     for i in range(len(vlist)):
         if ( vlist[i] == variable ): v = os.environ[variable] ; e = True ; break
     return v, e
-
+    
 #-------------------------------------------------------------------------------
 
-def leggi(filin):
-    f = open(filin,"r")
+def leggi(filin,idf,a1,a2):
+    os.system("grep -A"+a1+" \""+idf+"\" "+str(filin)+" | grep \"at\" | grep \" "+a1+" \" | tail -n1 > tempfile1") 
+    ifile1 = open("tempfile1","r")
+    os.system("grep -A"+a2+" \""+idf+"\" "+str(filin)+" | grep \"at\" | grep \" "+a2+" \" | tail -n1 > tempfile2") 
+    ifile2 = open("tempfile2","r")
     x = [] ; y = []
-    lines = f.readlines()
-    y = lines[-1].strip().split()[0:3]
-    x = lines[-2].strip().split()[0:3]
-    f.close()
+    x = ifile1.readline().strip().split()[4:7]
+    y = ifile2.readline().strip().split()[4:7]
+    ifile1.close()
+    ifile2.close()
+    os.system("rm -f tempfile1 tempfile2")
     return x,y
 
 #-------------------------------------------------------------------------------
@@ -58,7 +63,61 @@ def leggishort(filin):
 
 #-------------------------------------------------------------------------------
 
+def relax(filin,idf):
+    check = True
+    os.system("grep \""+idf+"\" "+filin+" > tempfile")
+    f = open("tempfile","r")
+    x = f.readline().strip().split()
+    if (len(x) < 1): check = False
+    os.system("rm -f tempfile")
+    return check
+    
+#-------------------------------------------------------------------------------
+
+current = os.environ['PWD']
+ev_list = os.environ.keys()
+
+rundir = shell_value('EXCITINGRUNDIR',ev_list,current)[0]
+rlabel = shell_value('RLABEL',ev_list,"rundir-")[0]
+showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
+dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
+
+#-------------------------------------------------------------------------------
+
+narg  = len(sys.argv)-1
+
+print "\n**Usage**:    PLOT-optimized-geometry.py [ATOM1 ATOM2 YMIN YMAX]\n"
+
+#-------------------------------------------------------------------------------
+
+a1 = str(1)
+if (len(sys.argv) > 1): a1 = str(sys.argv[1])
+a2 = str(2)
+if (len(sys.argv) > 2): a2 = str(sys.argv[2])
+
+#-------------------------------------------------------------------------------
+
 list_dir = glob.glob('rundir-*')
+
+#-------------------------------------------------------------------------------
+
+if (str(os.path.exists(current+'/'+list_dir[0]+'/input.xml'))=='False'): 
+    sys.exit("ERROR: Input file "+current+"/"+list_dir[0]+"/input.xml not found!\n")
+
+acoord = "lattice"
+
+input_obj = open(current+"/"+list_dir[0]+"/input.xml","r")
+input_doc = etree.parse(input_obj)
+input_rut = input_doc.getroot()
+ 
+xml_cartesian = map(str,input_doc.xpath('/input/structure/@cartesian'))
+if (xml_cartesian == []):
+    acoord = "lattice"
+else:
+    if (xml_cartesian[0] == "true"): 
+        acoord = "cartesian"   
+
+#-------------------------------------------------------------------------------
 
 xx = [] ; x0 = []
 y1 = [] ; y2 = [] ; y3 = [] 
@@ -67,11 +126,14 @@ z1 = [] ; z2 = [] ; z3 = []
 for idir in range(len(list_dir)):
     r1 = [] ; r2 = []    
     c1 = [] ; c2 = []
-    fileref = list_dir[idir]+'/GEOMETRY.OUT'
-    fileopt = list_dir[idir]+'/GEOMETRY_OPT.OUT'
-    if (str(os.path.exists(fileopt))=='False'): fileopt = fileref 
-    r1,r2 = leggi(fileref)
-    c1,c2 = leggi(fileopt)
+    fileinp = list_dir[idir]+'/INFO.OUT'
+    r1,r2 = leggi(fileinp,"Atomic positions (",a1,a2)
+    check = relax(fileinp,"Atomic positions at this step")
+    if (check):
+        c1,c2 = leggi(fileinp,"Atomic positions at this step",a1,a2)
+    else:
+        c1,c2 = leggi(fileinp,"Atomic positions (",a1,a2)
+    
     y1.append(float(c2[0])-float(c1[0]))
     y2.append(float(c2[1])-float(c1[1]))
     y3.append(float(c2[2])-float(c1[2]))
@@ -82,18 +144,8 @@ for idir in range(len(list_dir)):
         z3.append(float(r2[2])-float(r1[2]))
         x0.append(leggishort('strain-'+list_dir[idir][-2:]))
     
-ylabel  = r'Relative coordinate [crystal]'
+ylabel  = r'Relative coordinate ('+acoord+')'
 xlabel  = r'Lagrangian strain'
-
-#-------------------------------------------------------------------------------
-
-current = os.environ['PWD']
-ev_list = os.environ.keys()
-
-rundir = shell_value('EXCITINGRUNDIR',ev_list,current)[0]
-rlabel = shell_value('RLABEL',ev_list,"rundir-")[0]
-showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
-dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 
 #-------------------------------------------------------------------------------
 # manipulate data for a better plot
@@ -172,15 +224,22 @@ plt.plot(xx,y1,'ro--')
 #-------------------------------------------------------------------------------
 
 #plt.legend(loc=9,borderaxespad=.8,numpoints=1)
-plt.legend(bbox_to_anchor=(1.03, 1), loc=2, borderaxespad=0.)
+plt.legend(bbox_to_anchor=(1.03, 1), loc=2, borderaxespad=0., numpoints=1)
 
 ax.yaxis.set_major_formatter(yfmt)
 
-ylimits = []
-for i in range(1,len(sys.argv)): ylimits.append(float(sys.argv[i]))
+#ylimits = []
+#for i in range(1,len(sys.argv)): ylimits.append(float(sys.argv[i]))
 
-if (len(ylimits) == 1): ymin = float(ylimits[0])
-if (len(ylimits) > 1): ymin = float(ylimits[0]); ymax = float(ylimits[1]) 
+#if (len(ylimits) == 1): ymin = float(ylimits[0])
+#if (len(ylimits) > 1): ymin = float(ylimits[0]); ymax = float(ylimits[1]) 
+
+if (abs(ymax-ymin) < 0.000000001): 
+    ymax=ymax+0.1
+    ymin=ymin-0.1
+
+if (len(sys.argv) > 3): ymin = float(sys.argv[3])
+if (len(sys.argv) > 4): ymax = float(sys.argv[4])
 
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)

@@ -25,7 +25,7 @@ subroutine init_gw
       integer(4) :: is      
       integer(4) :: ist      
       integer(4) :: m, n
-      logical    :: reduce
+      logical    :: reduce, exist
       real(8)    :: tstart, tend
       integer(4) :: stype_
  
@@ -62,7 +62,8 @@ subroutine init_gw
 !
 ! Generate eigenvectors for the complete (non-reduced) k-point set
 !
-        call system('cp INFO.OUT INFO.OUT-scf')
+        inquire(File='INFO.OUT',Exist=exist)
+        if (exist) call system('cp INFO.OUT INFO.OUT-scf')
         reduce=input%groundstate%reducek
         input%groundstate%reducek=.false.          
         task=1

@@ -9,11 +9,16 @@ for dirn in $label ; do
     mv ../$dirn.xml .
     mv ../INFO.OUT .
     mv ../RMSDVEFF.OUT .
-    mv ../GEOMETRY.OUT .
     mv ../TOTENERGY.OUT .
+    mv ../WARNINGS.OUT .
     mv ../info.xml .
+    mv ../geometry.xml .
+    if [ -f ../geometry_opt.xml ]; then mv ../geometry_opt.xml . ; fi
     cd ../
-    ls -l | grep ^- | awk '{print $9}' | xargs rm
+    eta=$(ls -l | grep ^- | wc -l)
+    if [ $eta != '0' ]; then 
+       ls -l | grep ^- | awk '{print $9}' | xargs rm
+    fi
     mv tmp/* .
     rm -r tmp
     cd ../
