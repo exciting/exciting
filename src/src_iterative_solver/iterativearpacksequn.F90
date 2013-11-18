@@ -86,7 +86,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       logical :: ImproveInverse
       type (HermitianMatrix) :: zm
       Complex (8), Allocatable :: bres(:),vecupd(:),bvec(:)
-      integer :: ii,ib
+      integer :: ii,ib,counter
       real(8) :: berr
       
       logical :: spLU
@@ -102,13 +102,11 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       real(8), allocatable :: evals(:)
       logical :: SeparateDegenerates,sorted
 
-      logical :: InvThroughDiag
       real(8), allocatable :: rdiag(:)
       complex(8), allocatable :: cdiag(:)
       Complex (8), Allocatable :: work (:),zvec(:),cwork(:)
       integer, allocatable :: iwork(:)
 
-      logical :: cholesky
       logical :: newarpackseed
 
       integer :: InvertMethod
@@ -216,12 +214,12 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       Else
          packed = .True.
       End If
-!
+      packed=.false.
+!    
       Call newsystem (system, packed, n)
       h1on=(input%groundstate%ValenceRelativity.eq.'lkh')
       Call hamiltonandoverlapsetup (system, ngk(ispn, ik), apwalm, igkig(1, ispn, ik), vgpc)
-!
-!
+       
       Call timesec(cpu0)
   !#######################################################################
   !calculate LU decomposition to be used in the reverse communication loop
@@ -232,9 +230,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
         h=system%hamilton%za
       endif
      
-
       Call HermitianMatrixAXPY (-sigma, system%overlap, system%hamilton)
-
       if (ImproveInverse) then
         call newmatrix(zm,.false.,system%overlap%rank)
         zm%za=system%hamilton%za
@@ -263,6 +259,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
         allocate(system%hamilton%ipiv(n))
         
         if (spLU) then
+    
           allocate(cm(n,n))
           allocate(cwork(64*n))
           cm(1:n,1:n)=system%hamilton%za(1:n,1:n)
@@ -277,6 +274,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
                       )
           system%hamilton%za(1:n,1:n)=cm(1:n,1:n)
           deallocate(cm,cwork)
+          write(*,*) 'chetrf done'
         else
           allocate(work(64*n))
           call zhetrf('U', &                      ! upper or lower part
@@ -298,7 +296,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       case (LLdecomp)
         if (spLU) then
           allocate(cm(n,n))
-          cm(1:n,1:n)=system%hamilton%za(1:n,1:n)
+          cm(1:n,1:n)=cmplx(system%hamilton%za(1:n,1:n))
           call cpotrf('U',&                       ! upper or lower part
                        n, &                       ! size of matrix
                        cm, & 			  ! matrix
@@ -306,7 +304,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
                        info &                     ! error message
                       )
           if (info.ne.0) then
-            cm(1:n,1:n)=system%hamilton%za(1:n,1:n)
+            cm(1:n,1:n)=dcmplx(system%hamilton%za(1:n,1:n))
             InvertMethod=LDLdecomp                
             allocate(system%hamilton%ipiv(n))
             allocate(cwork(64*n))
@@ -404,7 +402,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
          Call znaupd (ido, bmat, n, which, nev, tol, resid, ncv, v, &
         & ldv, iparam, ipntr, workd, workl, lworkl, rwork, infoznaupd)
        call timesec(tb)
-
+!       write(*,*) 'znaupd done'
          vin => workd (ipntr(1) :ipntr(1)+n-1)
          vout => workd (ipntr(2) :ipntr(2)+n-1)
          If (ido .Eq.-1 .Or. ido .Eq. 1) Then
@@ -451,16 +449,20 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
 
             if (ImproveInverse) then
               berr=1d0
-              do while(berr.gt.1d-7)
-                Call Hermitianmatrixvector (zm, one, vout, zero, vecupd)
+              counter=0
+              do while ((berr.gt.1d-10).and.(counter.lt.10))
+               Call Hermitianmatrixvector (zm, one, vout, zero, vecupd)
                 bres=bvec-vecupd
                 berr=0d0
                 do ib=1,n
                   berr=berr+abs(bres(ib))**2
                 enddo
                 berr=sqrt(berr/dble(n))
-
-                if (berr.gt.1d-7) then                
+!                write(*,*) berr
+!                read(*,*)
+!               counter=0
+                if (berr.gt.1d-10) then                
+                  counter=counter+1
                   select case (InvertMethod)
                   case (LUdecomp)
                     Call Hermitianmatrixlinsolve (system%hamilton, bres)
@@ -580,7 +582,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       Deallocate (workd, resid, v, workev, workl, d)
       Deallocate (rwork, rd, idx)
      
-      if (InvThroughDiag) deallocate(zvec)
+      if (InvertMethod.eq.Diagdecomp) deallocate(zvec)
       if (ImproveInverse) then
         call deletematrix(zm)
         deallocate(bres,vecupd,bvec)
@@ -590,7 +592,7 @@ if (SeparateDegenerates) then
         do i=2,nstfv
           if (evalfv (i, ispn)-evalfv (i-1, ispn).gt.DegeneracyThr) then
             blocksize=i-blockstart 
-            if (blocksize.ge.2) then
+            if (blocksize.ge.1) then
               allocate(zm2(n,blocksize))
               allocate(blockH(blocksize,blocksize))
               allocate(blockS(blocksize,blocksize))

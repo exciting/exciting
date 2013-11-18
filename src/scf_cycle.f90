@@ -121,7 +121,7 @@ subroutine scf_cycle(verbosity)
     tlast = .False.
 ! set stop flag
     tstop = .False.
-    et = 0.d0
+    engytot = 0.d0
     fm = 0.d0
 
 ! delete any existing eigenvector files
@@ -400,6 +400,7 @@ subroutine scf_cycle(verbosity)
         End If
 
 ! compute the energy components
+        et=engytot
         Call energy
         Call timesec(ts1)
         timepot=ts1-ts0+timepot
@@ -523,7 +524,7 @@ subroutine scf_cycle(verbosity)
                 tlast = .True.
             End If
 
-            et = engytot
+!            et = engytot
             fm = forcemax
             
 ! check for STOP file
