@@ -26,14 +26,5 @@ Subroutine hamiltonoverlapocopy_UL (system)
             tmp (1:ohrank-1) = conjg (tmp(1:ohrank-1))
             Call zcopy (ohrank-i, tmp, 1, o(i+1, i), 1)
          End Do
-         if (associated(system%h1%za)) then
-           h => system%h1%za
-           Do i = 1, ohrank - 1
-             Call zcopy (ohrank-i, h(i, i+1), ohrank, tmp, 1)
-             tmp (1:ohrank-1) = conjg (tmp(1:ohrank-1))
-             Call zcopy (ohrank-i, tmp, 1, h(i+1, i), 1)
-           End Do
-
-         endif
       End If
 End Subroutine

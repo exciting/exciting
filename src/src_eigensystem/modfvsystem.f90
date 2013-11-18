@@ -14,15 +14,23 @@ Module modfvsystem
     Type HermitianMatrix
         !
         Integer :: rank
-        Logical :: packed, ludecomposed
+        Logical :: packed, ludecomposed, sp
         Integer, Pointer :: ipiv (:)
-        Complex (8), Pointer :: za (:, :), zap (:)
+        Complex(8), Pointer :: za (:, :), zap (:)
+        complex(8), pointer :: eigenvalues(:)
+        Complex(4), Pointer :: ca (:, :), cap (:)
+        complex(4), pointer :: eigenvaluessp(:)
 
     End Type HermitianMatrix
     !
     Type evsystem
-        Type (HermitianMatrix) :: hamilton, overlap, h1
+        Type (HermitianMatrix) :: hamilton, overlap
     End Type evsystem
+    integer, parameter :: LUdecomp = 1
+    integer, parameter :: LDLdecomp = 2
+    integer, parameter :: LLdecomp = 3 ! Cholesky decomposition
+    integer, parameter :: Diagdecomp = 4 ! decomposition through diagonalization
+
 !
 Contains
     !
@@ -34,23 +42,32 @@ Contains
         self%rank = rank
         self%packed = packed
         self%ludecomposed = .False.
-        If (packed .Eqv. .True.) Then
+        if (self%sp) then
+          If (packed) Then
+            Allocate (self%cap(rank*(rank+1)/2))
+            self%zap = 0.0
+          Else
+            Allocate (self%ca(rank, rank))
+            self%za = 0.0
+          endif
+        else
+          If (packed) Then
             Allocate (self%zap(rank*(rank+1)/2))
             self%zap = 0.0
-        Else
+          Else
             Allocate (self%za(rank, rank))
             self%za = 0.0
-        End If
+          End If
+        endif
     End Subroutine newmatrix
     !
     !
     Subroutine deletematrix (self)
         Type (HermitianMatrix), Intent (Inout) :: self
-        If (self%packed .Eqv. .True.) Then
-            Deallocate (self%zap)
-        Else
-            Deallocate (self%za)
-        End If
+        if (associated(self%zap)) Deallocate (self%zap)
+        if (associated(self%za))  Deallocate (self%za)
+        if (associated(self%cap)) Deallocate (self%cap)
+        if (associated(self%ca))  Deallocate (self%ca)  
         If (self%ludecomposed) deallocate (self%ipiv)
     End Subroutine deletematrix
     !
@@ -59,6 +76,8 @@ Contains
         Type (evsystem), Intent (Out) :: self
         Logical, Intent (In) :: packed
         Integer, Intent (In) :: rank
+        self%hamilton%sp=.false.
+        self%overlap%sp=.false.
         Call newmatrix (self%hamilton, packed, rank)
         Call newmatrix (self%overlap, packed, rank)
     End Subroutine newsystem
@@ -68,7 +87,6 @@ Contains
         Type (evsystem), Intent (Inout) :: self
         Call deletematrix (self%hamilton)
         Call deletematrix (self%overlap)
-        if (associated(self%h1%za).or.associated(self%h1%zap)) Call deletematrix (self%h1)
     End Subroutine deleteystem
     !
     !
@@ -163,43 +181,156 @@ Contains
     end subroutine HermitianMatrixMatrix
     !
     !
+    Subroutine HermitianmatrixFactorize (self,Method)
+        Type (HermitianMatrix) :: self
+        Integer, intent(in) :: Method
+        if ( ispacked(self)) Then
+          write(*,*) 'Packed matrices are not supported'
+          stop
+        endif
+        if ( .Not. self%ludecomposed) then
+          select case (Method)
+          case (LUdecomp)
+            call HermitianmatrixLU (self)
+          case (LDLdecomp)
+            call HermitianmatrixLDL (self)
+          case (LLdecomp)
+            call HermitianmatrixLL (self)
+          end select
+        self%ludecomposed = .True.
+        endif
+    End Subroutine HermitianmatrixFactorize
+    !
+    !
     Subroutine HermitianmatrixLU (self)
         Type (HermitianMatrix) :: self
         Integer :: info
-        If ( .Not. self%ludecomposed) allocate (self%ipiv(self%rank))
-        !
-        If ( .Not. self%ludecomposed) Then
-            If ( .Not. ispacked(self)) Then
-                Call ZGETRF (self%rank, self%rank, self%za, self%rank, &
-                self%ipiv, info)
-            Else
-                Call ZHPTRF ('U', self%rank, self%zap, self%ipiv, info)
-            End If
-            If (info .Ne. 0) Then
-                Write (*,*) "error in iterativearpacksecequn  Hermitianm&
-              &atrixLU "                , info
-                Stop
-            End If
-            self%ludecomposed = .True.
+        allocate (self%ipiv(self%rank))
+        if (self%sp) then
+          Call CGETRF (self%rank, self%rank, self%ca, self%rank, self%ipiv, info)
+        else
+          Call ZGETRF (self%rank, self%rank, self%za, self%rank, self%ipiv, info)
+        endif
+        If (info .Ne. 0) Then
+          Write (*,*) "error in iterativearpacksecequn  HermitianmatrixLU "                , info
+          Stop
         End If
     End Subroutine HermitianmatrixLU
     !
     !
-    Subroutine Hermitianmatrixlinsolve (self, b)
+    Subroutine HermitianmatrixLDL (self)
+        Type (HermitianMatrix) :: self
+        Integer :: info
+        complex(8), allocatable :: zwork(:)
+        complex(4), allocatable :: cwork(:)
+        allocate (self%ipiv(self%rank))
+        if (self%sp) then
+          allocate(cwork(64*self%rank))
+          call chetrf('U', &                      ! upper or lower part
+                       self%rank, &               ! size of matrix
+                       self%ca, &                 ! matrix
+                       self%rank, &               ! leading dimension
+                       self%ipiv,&                ! pivot indices
+                       cwork,&                     ! work
+                       64*self%rank, &            ! work size
+                       info &                     ! error message
+                      )
+          deallocate(cwork)
+        else
+          allocate(zwork(64*self%rank))
+          call zhetrf('U', &                      ! upper or lower part
+                       self%rank, &               ! size of matrix
+                       self%za, &                 ! matrix
+                       self%rank, &               ! leading dimension
+                       self%ipiv,&                ! pivot indices
+                       zwork,&                     ! work
+                       64*self%rank, &            ! work size
+                       info &                     ! error message
+                      )
+          deallocate(zwork)
+        endif
+        If (info .Ne. 0) Then
+          Write (*,*) "error in iterativearpacksecequn  HermitianmatrixLDL "                , info
+          Stop
+        End If
+    End Subroutine HermitianmatrixLDL 
+    !
+    !
+    Subroutine HermitianmatrixLL (self) !Cholesky decomposition
+        Type (HermitianMatrix) :: self
+        Integer :: info
+        complex(8), allocatable :: zwork(:,:)
+        complex(4), allocatable :: cwork(:,:)
+        allocate (self%ipiv(self%rank))
+        if (self%sp) then
+          allocate(cwork(self%rank,self%rank))
+          cwork=self%ca
+          call cpotrf('U',&                       ! upper or lower part
+                       self%rank, &               ! size of matrix
+                       self%ca, &                 ! matrix
+                       self%rank, &               ! leading dimension
+                       info &                     ! error message
+                      )
+        else
+          allocate(zwork(self%rank,self%rank))
+          zwork=self%za
+          call zpotrf('U',&                       ! upper or lower part
+                       self%rank, &               ! size of matrix
+                       self%za, &                 ! matrix
+                       self%rank, &               ! leading dimension
+                       info &                     ! error message
+                      )
+        endif
+        If (info .Ne. 0) Then
+          if (self%sp) self%ca=cwork
+          if (.not.self%sp) self%za=zwork
+          call HermitianmatrixLDL (self)
+        endif
+        if (self%sp) then
+          deallocate(cwork)
+        else
+          deallocate(zwork)
+        endif
+    End Subroutine HermitianmatrixLL
+    !
+    !
+    Subroutine Hermitianmatrixlinsolve (self, b, method)
         Type (HermitianMatrix) :: self
         Complex (8), Intent (Inout) :: b (:)
+        integer, Intent (In) :: method
         Integer :: info
+        if ( ispacked(self)) Then
+          write(*,*) 'Packed matrices are not supported'
+          stop
+        endif        
         If (self%ludecomposed) Then
-            If ( .Not. ispacked(self)) Then
-                Call ZGETRS ('N', self%rank, 1, self%za, self%rank, &
-                self%ipiv, b, self%rank, info)
-            Else
-                Call ZHPTRS ('U', self%rank, 1, self%zap, self%ipiv, b, &
-                self%rank, info)
-            End If
+          Select case (method)
+          case (LUdecomp)
+            Call ZGETRS ('N', self%rank, 1, self%za, self%rank, self%ipiv, b, self%rank, info)
+          case (LDLdecomp)
+            call zhetrs('U', &                      ! upper or lower part
+                         self%rank, &                       ! size
+                         1, &                       ! number of right-hand sides
+                         self%za, &      ! factorized matrix
+                         self%rank, &                       ! leading dimension
+                         self%ipiv, &    ! pivoting indices
+                         b, &                    ! right-hand side / solution
+                         self%rank, &                       ! leading dimension
+                         info &                     ! error message
+                       )
+          case (LLdecomp)
+            call zpotrs('U', &                      ! upper or lower part
+                         self%rank,  &                      ! size
+                         1,  &                      ! number of right-hand sides
+                         self%za, &      ! factorized matrix
+                         self%rank, &                       ! leading dimension
+                         b, &                    ! right-hand side / solution
+                         self%rank, &                       ! leading dimension
+                         info &                     ! error message
+                       )
+          end select
             If (info .Ne. 0) Then
-                Write (*,*) "error in iterativearpacksecequn Hermitianma&
-              &trixlinsolve "                , info
+                Write (*,*) "error in iterativearpacksecequn Hermitianmatrixlinsolve "                , info
                 Stop
             End If
         End If

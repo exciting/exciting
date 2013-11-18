@@ -30,13 +30,14 @@ Subroutine exactupdatevectors (n, iunconverged, hamilton, overlap, r, &
       Call zcopy (n*iunconverged, eigenvector(1, 1), 1, trialvecs(1, &
      & 1), 1)
       Call zcopy (n*iunconverged, r(1, 1), 1, dA(1, 1), 1)
+      HES%sp=.false.
       Call newmatrix (HES, .False., n)
       Do i = 1, iunconverged
          Call HermitianMatrixcopy (hamilton, HES)
          sigma = dcmplx (-rhizvalue(i), 0.0)
          Call HermitianMatrixAXPY (sigma, overlap, HES)
          Call HermitianmatrixLU (HES)
-         Call Hermitianmatrixlinsolve (HES, dA(:, i))
+         Call Hermitianmatrixlinsolve (HES, dA(:, i),LUdecomp)
          Call zaxpy (n,-zone, dA(1, i), 1, trialvecs(1, i), 1)
       End Do
       Call deletematrix (HES)

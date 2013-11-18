@@ -84,7 +84,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       Complex (8), Pointer :: vin (:), vout (:)
 
       logical :: ImproveInverse
-      type (HermitianMatrix) :: zm
+      type (HermitianMatrix) :: zm,cc
       Complex (8), Allocatable :: bres(:),vecupd(:),bvec(:)
       integer :: ii,ib,counter
       real(8) :: berr
@@ -110,12 +110,11 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       logical :: newarpackseed
 
       integer :: InvertMethod
-      integer, parameter :: LUdecomp = 1 
-      integer, parameter :: LDLdecomp = 2  
-      integer, parameter :: LLdecomp = 3 ! Cholesky decomposition
-      integer, parameter :: Diagdecomp = 4 ! decomposition through diagonalization
       character(len=4) :: strInvertMethod
 
+      logical :: gev
+
+      gev=.true.
       SeparateDegenerates=.true.
       DegeneracyThr=1d-7
       spLU=(input%groundstate%solver%DecompPrec.eq.'sp')
@@ -219,6 +218,9 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       Call newsystem (system, packed, n)
       h1on=(input%groundstate%ValenceRelativity.eq.'lkh')
       Call hamiltonandoverlapsetup (system, ngk(ispn, ik), apwalm, igkig(1, ispn, ik), vgpc)
+
+
+if (gev) then
        
       Call timesec(cpu0)
   !#######################################################################
@@ -232,6 +234,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
      
       Call HermitianMatrixAXPY (-sigma, system%overlap, system%hamilton)
       if (ImproveInverse) then
+        zm%sp=.false.
         call newmatrix(zm,.false.,system%overlap%rank)
         zm%za=system%hamilton%za
         allocate(bres(n))
@@ -240,129 +243,23 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       endif
 
 
-      select case (InvertMethod)
-
-      case (LUdecomp)
+      if (InvertMethod.ne.Diagdecomp) then
         if (spLU) then
-          allocate(cm(n,n))
-          allocate(system%hamilton%ipiv(n))
-          cm(1:n,1:n)=system%hamilton%za(1:n,1:n)
-          Call CGETRF (n, n, cm, n, system%hamilton%ipiv, luinfo)
-          system%hamilton%za(1:n,1:n)=cm(1:n,1:n)
-          system%hamilton%ludecomposed = .True.
-          deallocate(cm)
-        else
-          Call HermitianMatrixLU (system%hamilton)
-        endif
-        
-      case (LDLdecomp)
-        allocate(system%hamilton%ipiv(n))
-        
-        if (spLU) then
-    
-          allocate(cm(n,n))
-          allocate(cwork(64*n))
-          cm(1:n,1:n)=system%hamilton%za(1:n,1:n)
-          call chetrf('U', &                      ! upper or lower part
-                       n, &                       ! size of matrix
-                       cm, &      		  ! matrix
-                       n, &                       ! leading dimension
-                       system%hamilton%ipiv,&     ! pivot indices
-                       cwork,&                    ! work
-                       64*n, &                    ! work size
-                       info &                     ! error message
-                      )
-          system%hamilton%za(1:n,1:n)=cm(1:n,1:n)
-          deallocate(cm,cwork)
-          write(*,*) 'chetrf done'
-        else
-          allocate(work(64*n))
-          call zhetrf('U', &                      ! upper or lower part
-                       n, &                       ! size of matrix
-                       system%hamilton%za, &      ! matrix
-                       n, &                       ! leading dimension
-                       system%hamilton%ipiv,&     ! pivot indices
-                       work,&                     ! work
-                       64*n, &                    ! work size
-                       info &                     ! error message
-                      )
-          deallocate(work)
-        endif
-        if (info.ne.0) then
-          write(*,*) 'chetrf has failed in ARPACK. INFO=',info
-          stop
-        endif
-        system%hamilton%ludecomposed = .True.
-      case (LLdecomp)
-        if (spLU) then
-          allocate(cm(n,n))
-          cm(1:n,1:n)=cmplx(system%hamilton%za(1:n,1:n))
-          call cpotrf('U',&                       ! upper or lower part
-                       n, &                       ! size of matrix
-                       cm, & 			  ! matrix
-                       n, &                       ! leading dimension
-                       info &                     ! error message
-                      )
-          if (info.ne.0) then
-            cm(1:n,1:n)=dcmplx(system%hamilton%za(1:n,1:n))
-            InvertMethod=LDLdecomp                
+          cc%sp=.true.
+          call newmatrix(cc,.false.,n)
+          cc%ca=system%hamilton%za
+          call HermitianMatrixFactorize(cc,InvertMethod)
+          system%hamilton%za=cc%ca
+          if (associated(cc%ipiv)) then
             allocate(system%hamilton%ipiv(n))
-            allocate(cwork(64*n))
-            call chetrf('U', &                      ! upper or lower part
-                         n, &                       ! size of matrix
-                         cm, &      		    ! matrix
-                         n, &                       ! leading dimension
-                         system%hamilton%ipiv,&     ! pivot indices
-                         cwork,&                    ! work
-                         64*n, &                    ! work size
-                         info &                     ! error message
-                        )
-            if (info.ne.0) then
-              write(*,*) 'chetrf has failed in ARPACK. INFO=',info
-              stop
-            endif
-            deallocate(cwork)                   
+            system%hamilton%ipiv=cc%ipiv
           endif
-          system%hamilton%za(1:n,1:n)=cm(1:n,1:n)
-          deallocate(cm)
+          system%hamilton%ludecomposed=.true.
+          call deletematrix(cc)
         else
-          if (.not.SeparateDegenerates) then 
-            allocate(h(n,n))
-            h=system%hamilton%za
-          endif
-          call zpotrf('U',&                       ! upper or lower part
-                       n, &                       ! size of matrix
-                       system%hamilton%za, &      ! matrix
-                       n, &                       ! leading dimension
-                       info &                     ! error message
-                      )
-          if (info.ne.0) then
-            system%hamilton%za=h
-            if (SeparateDegenerates) then
-              Call HermitianMatrixAXPY (-sigma, system%overlap, system%hamilton)
-            endif
-            InvertMethod=LDLdecomp
-            allocate(system%hamilton%ipiv(n))
-            allocate(work(64*n))
-            call zhetrf('U', &                      ! upper or lower part
-                         n, &                       ! size of matrix
-                         system%hamilton%za, &      ! matrix
-                         n, &                       ! leading dimension
-                         system%hamilton%ipiv,&     ! pivot indices
-                         work,&                     ! work
-                         64*n, &                    ! work size
-                         info &                     ! error message
-                        )
-            deallocate(work)
-
-            if (info.ne.0) then
-              write(*,*) 'zhetrf has failed in ARPACK. INFO=',info
-              stop
-            endif
-            if (.not.SeparateDegenerates) deallocate(h)
-          endif
+          Call HermitianMatrixFactorize(system%hamilton,InvertMethod)
         endif
-      case (Diagdecomp)
+      else
         allocate(rdiag(n))
         allocate(cdiag(n))
         allocate(work(2*n-1))
@@ -380,16 +277,16 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
                      )
 
         deallocate(work,rwork)
- 
+
         do i=1,n
           cdiag(i)=dcmplx(1d0/rdiag(i),0d0)
         enddo
         deallocate(rdiag)
         allocate (zvec(n))
-      end select 
 
+      endif
       
-     Allocate (rwork(ncvmax))
+      Allocate (rwork(ncvmax))
 
       Call timesec(cpu1)
 !      write(*,*) cpu1-cpu0
@@ -402,11 +299,14 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
          Call znaupd (ido, bmat, n, which, nev, tol, resid, ncv, v, &
         & ldv, iparam, ipntr, workd, workl, lworkl, rwork, infoznaupd)
        call timesec(tb)
-!       write(*,*) 'znaupd done'
          vin => workd (ipntr(1) :ipntr(1)+n-1)
          vout => workd (ipntr(2) :ipntr(2)+n-1)
-         If (ido .Eq.-1 .Or. ido .Eq. 1) Then
 
+         If (ido .Eq.-1 .Or. ido .Eq. 1) Then
+!***********************
+! Linear solve segment *
+! (H-sigma*S)*vout=vin *
+!***********************
             call timesec(ta) 
 
             Call Hermitianmatrixvector (system%overlap, one, vin, zero, vout)
@@ -414,44 +314,21 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
               bvec=vout
             endif
 
-            select case (InvertMethod)
-
-            case (LUdecomp)
-              Call Hermitianmatrixlinsolve (system%hamilton, vout)
-            case (LDLdecomp)
-              call zhetrs('U', &                      ! upper or lower part
-                           n, &                       ! size
-                           1, &                       ! number of right-hand sides
-                           system%hamilton%za, &      ! factorized matrix
-                           n, &                       ! leading dimension
-                           system%hamilton%ipiv, &    ! pivoting indices
-                           vout, &                    ! right-hand side / solution
-                           n, &                       ! leading dimension
-                           info &                     ! error message
-                          )
-            case (LLdecomp)
-              call zpotrs('U', &                      ! upper or lower part
-                           n,  &                      ! size
-                           1,  &                      ! number of right-hand sides
-                           system%hamilton%za, &      ! factorized matrix
-                           n, &                       ! leading dimension
-                           vout, &                    ! right-hand side / solution
-                           n, &                       ! leading dimension
-                           info &                     ! error message
-                         )
-            case (Diagdecomp)
+            if (InvertMethod.ne.Diagdecomp) then
+              Call Hermitianmatrixlinsolve (system%hamilton, vout,InvertMethod)
+            else
               Call zgemv ('C', n, n, one, system%hamilton%za, n, vout, 1, zero, zvec, 1)
               zvec(:)=zvec(:)*cdiag(:)
               Call zgemv ('N', n, n, one, system%hamilton%za, n, zvec, 1, zero, vout, 1)
-            end select
+            end if
 
 
-
+! Iterative improvement of linear solve if necessary
             if (ImproveInverse) then
               berr=1d0
               counter=0
               do while ((berr.gt.1d-10).and.(counter.lt.10))
-               Call Hermitianmatrixvector (zm, one, vout, zero, vecupd)
+                Call Hermitianmatrixvector (zm, one, vout, zero, vecupd)
                 bres=bvec-vecupd
                 berr=0d0
                 do ib=1,n
@@ -460,49 +337,29 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
                 berr=sqrt(berr/dble(n))
 !                write(*,*) berr
 !                read(*,*)
-!               counter=0
                 if (berr.gt.1d-10) then                
                   counter=counter+1
-                  select case (InvertMethod)
-                  case (LUdecomp)
-                    Call Hermitianmatrixlinsolve (system%hamilton, bres)
+                  if (InvertMethod.ne.Diagdecomp) then
+                    Call Hermitianmatrixlinsolve (system%hamilton, bres,InvertMethod)
                     vout=vout+bres
-                  case (LDLdecomp)
-                    call zhetrs('U', &                      ! upper or lower part
-                                 n, &                       ! size
-                                 1, &                       ! number of right-hand sides
-                                 system%hamilton%za, &      ! factorized matrix
-                                 n, &                       ! leading dimension
-                                 system%hamilton%ipiv, &    ! pivoting indices
-                                 bres, &                    ! right-hand side / solution
-                                 n, &                       ! leading dimension
-                                 info &                     ! error message
-                                )
-                    vout=vout+bres
-                  case (LLdecomp)
-                    call zpotrs('U', &                      ! upper or lower part
-                                 n,  &                      ! size
-                                 1,  &                      ! number of right-hand sides
-                                 system%hamilton%za, &      ! factorized matrix
-                                 n, &                       ! leading dimension
-                                 bres, &                    ! right-hand side / solution
-                                 n, &                       ! leading dimension
-                                 info &                     ! error message
-                               )
-                    vout=vout+bres
-                  case (Diagdecomp)
+                  else
                     Call zgemv ('C', n, n, one, system%hamilton%za, n, bres, 1, zero, zvec, 1)
                     zvec(:)=zvec(:)*cdiag(:)
                     Call zgemv ('N', n, n, one, system%hamilton%za, n, zvec, 1, one, vout, 1)
-                  end select
+                  end if
                 endif
               enddo
             endif
+
             call timesec(tb)
 !            write(*,*) tb-ta
 !            read(*,*)
 
          Else If (ido .Eq. 2) Then
+!******************************
+! Matrix times vector segment *
+! vout=S*vin                  *
+!******************************
             call timesec(ta)
             Call Hermitianmatrixvector (system%overlap, one, vin, zero, vout)
             call timesec(tb)
@@ -785,6 +642,9 @@ endif
         enddo
         arpackseed(1:n,ik)=arpackseed(1:n,ik)/dble(nstfv)
       endif
+
+else
+endif
       Return
 End Subroutine iterativearpacksecequn
 !EOC
