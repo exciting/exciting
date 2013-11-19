@@ -112,7 +112,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       integer :: InvertMethod
       character(len=4) :: strInvertMethod
 
-      logical :: gev
+      logical :: gev,keepworking
 
       gev=.true.
       SeparateDegenerates=.true.
@@ -289,7 +289,7 @@ if (gev) then
       Allocate (rwork(ncvmax))
 
       Call timesec(cpu1)
-!      write(*,*) cpu1-cpu0
+!      write(*,*) 'LU',cpu1-cpu0
   !################################################
   !# reverse comunication loop of arpack library: #
   !################################################
@@ -299,6 +299,7 @@ if (gev) then
          Call znaupd (ido, bmat, n, which, nev, tol, resid, ncv, v, &
         & ldv, iparam, ipntr, workd, workl, lworkl, rwork, infoznaupd)
        call timesec(tb)
+      
          vin => workd (ipntr(1) :ipntr(1)+n-1)
          vout => workd (ipntr(2) :ipntr(2)+n-1)
 
@@ -404,6 +405,7 @@ if (gev) then
 !
       End If
       Call timesec(cpu2)
+!      write(*,*) 'iterations',cpu2-cpu1
       timefv = timefv + cpu2 - cpu0
 #ifdef DEBUG
       Close (logfil)
@@ -428,14 +430,14 @@ if (gev) then
   !##########################
   !sort and copy eigenvectors
   !##########################
+ !     write(*,*) i
       rd = real (d)
       Call sortidx (nstfv, rd(:), idx(:))
       Do j = 1, nstfv
-!         write(*,*) d(j)
+!         write(*,*) rd(idx(j))
          evecfv (1:n, j, ispn) = v (1:n, idx(j))
          evalfv (j, ispn) = rd (idx(j))
       End Do
-!      write(*,*)
       Deallocate (workd, resid, v, workev, workl, d)
       Deallocate (rwork, rd, idx)
      
@@ -644,6 +646,123 @@ endif
       endif
 
 else
+!**************************************************************************
+! This segment starts working if gev=.false.                              *
+! Its purpose is to test what if we solve H*x=E*S*x by reducing it        *
+! to the regular eigenvalue problem.                                      *
+! Step 1. Decompose S=U**t *U , where t stands for dagger.                *
+! Step 2. Calculate inv(U).                                               *
+! Step 3. Find eigenvalues and eigenvectors for inv(U)**t *H*inv(U)*y=Ey  *
+! Step 4 (not implemented). Calculate x=inv(U)y.                          *
+! Step 5 (not implemented). Postprocess x - normalization, sorting etc.   *
+!-------------------------------------------------------------------------*
+! Observations.                                                           *
+! a) Inverse of triangular matrix U costs about the same as the Cholesky  *
+! decomposition. Very good!                                               *
+! b) Iterations inv(U)**t *H*inv(U)*y cost 3 matrix-vector multiplies,    *
+! which makes this approach comparable and typically more expensive       *
+! time-wise to the basic shift-and-invert. Disappointing.                 *
+! c) The number of iterations required is typically higher than in shift- *
+! and-invert. Disappointing again.                                        *
+! Conclusion. I keep the thing in the code just because it is curious,    *
+! and I do not see a point in finishing it.                               *
+! Cheers,                                                                 *
+! Andris                                                                  *
+!**************************************************************************
+
+      sigma=-0d0
+      allocate(zvec(n))
+      allocate(bres(n))
+      Allocate (rwork(ncvmax))
+
+      ishfts = 1
+      mode   = 1
+      iparam(1) = ishfts
+      iparam(3) = maxitr 
+      iparam(7) = mode 
+      zm%sp=.false.
+      call newmatrix(zm,.false.,n)
+      zm%za=system%overlap%za
+      call timesec(ta)
+      call HermitianMatrixLL(zm)
+      call timesec(tb)
+      write(*,*) 'LL',tb-ta
+      do i=1,n-1
+         zm%za(i+1:n,i)=0d0
+      enddo
+      call timesec(ta)
+      call ztrtri('U', &
+                  'N', &
+                   n,  &
+                   zm%za, &
+                   n, &
+                   info & 
+                  )        
+      call timesec(tb)
+      write(*,*) 'inv',tb-ta       
+      bmat='I'      
+      which='SR'
+
+      call timesec(ta)
+      i=0
+      keepworking=.true.
+      do while ((i.lt.maxitr).and.keepworking)
+        i=i+1
+!        call timesec(ta)
+        Call znaupd (ido, bmat, n, which, nev, tol, resid, ncv, v, &
+          & ldv, iparam, ipntr, workd, workl, lworkl, rwork, infoznaupd)
+!        call timesec(tb)
+        vin => workd (ipntr(1) :ipntr(1)+n-1)
+        vout => workd (ipntr(2) :ipntr(2)+n-1)
+
+        If (ido .Eq.-1 .Or. ido .Eq. 1) Then
+!            call timesec(ta)
+
+
+            Call zgemv ('N', n, n, one, zm%za, n, vin, 1, zero, zvec, 1)
+            Call zgemv ('N', n, n, one, system%hamilton%za, n, zvec, 1, zero, bres, 1)
+            Call zgemv ('C', n, n, one, zm%za, n, bres, 1, zero, vout, 1)
+
+!            call timesec(tb)
+        else 
+          keepworking=.false.
+        endif
+      enddo
+      call timesec(tb)
+      write(*,*) 'iterations',tb-ta
+
+      write(*,*) i,ido
+      if (info.ne.0) then 
+        write(*,*) 'ARPACK (znaupd) produced info=',info
+        stop
+      endif
+      if ((ido.eq.-1).or.(ido.eq.1)) then
+        write(*,*) 'Too many ARPACK iterations'
+        stop
+      endif
+
+      rvec = .True.
+      select = .True.
+      Call zneupd (rvec, 'A', select, d, v, n, sigma, workev, bmat, &
+        & n, which, nev, tol, resid, ncv, v, n, iparam, ipntr, workd, &
+        & workl, lworkl, rwork, info2)
+      If (info2 .Ne. 0) Then
+        Print *, ' '
+        Print *, ' Error with zneupd, info = ', info2
+        Print *, ' Check the documentation of zneupd'
+        Print *, ' '
+        Write (*,*) "eval", d (1:nev)
+        Write (*,*) "iter", i
+        Stop
+      End If
+      do i=1,nstfv
+        write(*,*) dble(d(i))
+      enddo
+      stop
+
+! In case if someone decides to finish the solver,
+! here is the spot for the postprocessing.
+        
 endif
       Return
 End Subroutine iterativearpacksecequn
