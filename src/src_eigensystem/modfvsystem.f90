@@ -68,7 +68,7 @@ Contains
         if (associated(self%za))  Deallocate (self%za)
         if (associated(self%cap)) Deallocate (self%cap)
         if (associated(self%ca))  Deallocate (self%ca)  
-        If (self%ludecomposed) deallocate (self%ipiv)
+        If (associated(self%ipiv)) deallocate (self%ipiv)
     End Subroutine deletematrix
     !
     !
@@ -183,7 +183,7 @@ Contains
     !
     Subroutine HermitianmatrixFactorize (self,Method)
         Type (HermitianMatrix) :: self
-        Integer, intent(in) :: Method
+        Integer, intent(inout) :: Method
         if ( ispacked(self)) Then
           write(*,*) 'Packed matrices are not supported'
           stop
@@ -196,6 +196,7 @@ Contains
             call HermitianmatrixLDL (self)
           case (LLdecomp)
             call HermitianmatrixLL (self)
+            if (associated(self.ipiv)) Method=LDLdecomp
           end select
         self%ludecomposed = .True.
         endif
@@ -261,7 +262,6 @@ Contains
         Integer :: info
         complex(8), allocatable :: zwork(:,:)
         complex(4), allocatable :: cwork(:,:)
-        allocate (self%ipiv(self%rank))
         if (self%sp) then
           allocate(cwork(self%rank,self%rank))
           cwork=self%ca
