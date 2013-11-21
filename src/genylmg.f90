@@ -26,13 +26,16 @@ Subroutine genylmg
 ! local variables
       Integer :: ig
       Real (8) :: r, tp (2)
+      Real (8) :: ta,tb
 ! allocate global G-vector spherical harmonic array
       If (allocated(ylmg)) deallocate (ylmg)
       Allocate (ylmg(lmmaxvr, ngvec))
+      call timesec(ta)
       Do ig = 1, ngvec
          Call sphcrd (vgc(:, ig), r, tp)
          Call genylm (input%groundstate%lmaxvr, tp, ylmg(:, ig))
       End Do
+      call timesec(tb)
       Return
 End Subroutine
 !EOC

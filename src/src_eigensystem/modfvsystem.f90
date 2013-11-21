@@ -42,6 +42,11 @@ Contains
         self%rank = rank
         self%packed = packed
         self%ludecomposed = .False.
+        nullify(self%ca)
+        nullify(self%cap)
+        nullify(self%za)
+        nullify(self%zap)
+        nullify(self%ipiv)
         if (self%sp) then
           If (packed) Then
             Allocate (self%cap(rank*(rank+1)/2))
@@ -68,7 +73,7 @@ Contains
         if (associated(self%za))  Deallocate (self%za)
         if (associated(self%cap)) Deallocate (self%cap)
         if (associated(self%ca))  Deallocate (self%ca)  
-        If (associated(self%ipiv)) deallocate (self%ipiv)
+        If (associated(self%ipiv)) Deallocate (self%ipiv)
     End Subroutine deletematrix
     !
     !

@@ -106,7 +106,7 @@ Subroutine sbessel (lmax, x, jl)
             jl (l) = j1
          End Do
 ! rescaling constant
-#ifdef MKL
+#ifdef MKLa
 ! vml routines
          call vdCos(1,x,cs)
          call vdSin(1,x,sn)
@@ -118,7 +118,7 @@ Subroutine sbessel (lmax, x, jl)
          Return
       Else
 ! for large x recurse up
-#ifdef MKL
+#ifdef MKLa
          call vdSin(1,x,sn)
          jl (0) = sn * xi
 #else
@@ -126,7 +126,7 @@ Subroutine sbessel (lmax, x, jl)
 #endif
          If (lmax .Eq. 0) Return
 
-#ifdef MKL
+#ifdef MKLa
          call vdCos(1,x,cs)
          jl (1) = (jl(0)-cs) * xi
 #else
