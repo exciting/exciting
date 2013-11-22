@@ -39,14 +39,29 @@ Subroutine hmlint
       Integer :: ilo, ilo1, ilo2, io, io1, io2, nalo1, maxnlo
       Real (8) :: t1,t2,angular
       Real (8), allocatable :: haaintegrals(:,:,:,:,:),halointegrals(:,:,:,:),hlolointegrals(:,:,:)
+      Real (8) :: rmtable(nrmtmax),r2inv(nrmtmax)
       complex(8) :: zsum
 ! automatic arrays
       Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, &
      & nrmtmax),a,rm,alpha
       parameter (alpha=1d0 / 137.03599911d0)
       logical :: Tsymmetric
+      integer, allocatable :: lfromlm(:),mfromlm(:)
+
 
 ! Initialisation of some variables that exist just for the sake of convenience    
+
+      allocate (lfromlm(lmmaxvr))
+      allocate (mfromlm(lmmaxvr))
+      Do l1 = 0, input%groundstate%lmaxvr
+        Do m1 = - l1, l1
+          lm1 = idxlm (l1, m1)
+          lfromlm(lm1)=l1
+          mfromlm(lm1)=m1
+        End Do
+      End Do
+
+
       Tsymmetric=input%groundstate%SymmetricKineticEnergy          ! True if kinetic energy is calculated as nabla*nabla
       if (input%groundstate%ValenceRelativity.ne.'none') then
         a=0.5d0*alpha**2
@@ -107,9 +122,13 @@ Subroutine hmlint
          nr = nrmt (is)
          Do ir = 1, nr
             r2 (ir) = spr (ir, is) ** 2
+            r2inv(ir)=1d0/r2(ir)
          End Do
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
+            Do ir = 1, nr
+              rmtable (ir) = 1d0/(1d0-a*veffmt (1, ir, ias)*y00)
+            End Do
 !---------------------------!
 !     APW-APW integrals     !
 !---------------------------!
@@ -122,10 +141,10 @@ Subroutine hmlint
                           if (Tsymmetric) then
                             angular=dble(l1*(l1+1))
                             Do ir = 1, nr
-                              rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
+!                              rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                               t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io2, l3, ias)
                               t2=apwfr(ir, 2, io1, l1, ias)*apwfr(ir, 2, io2, l3, ias)
-                              fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
+                              fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
                             End Do
                             Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                             haaintegrals (1, io2, l3, io1, l1)= gr (nr) / y00
@@ -139,17 +158,25 @@ Subroutine hmlint
                         Else
                            haaintegrals (1, io2, l3, io1, l1) = 0.d0
                         End If 
-                           Do l2 = 1, input%groundstate%lmaxvr
-                              Do m2 = - l2, l2
-                                 lm2 = idxlm (l2, m2)
-                                 Do ir = 1, nr
-                                    t1=apwfr(ir,1,io1,l1,ias)*apwfr(ir,1,io2,l3,ias)*r2(ir)
-                                    fr (ir) = t1 * veffmt (lm2, ir, ias)
-                                 End Do
-                                 Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                                 haaintegrals (lm2, io2, l3, io1, l1)=gr (nr)
-                              End Do
-                           End Do
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(NONE) SHARED(lmmaxvr,mfromlm,lfromlm,apwfr,r2,veffmt,spr,nr,haaintegrals,io2,l3,io1,l1,is,ias) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf)
+!$OMP DO
+#endif
+                        Do lm2 = 2, lmmaxvr
+                          m2 = mfromlm(lm2)
+                          l2 = lfromlm(lm2)
+                          Do ir = 1, nr
+                            t1=apwfr(ir,1,io1,l1,ias)*apwfr(ir,1,io2,l3,ias)*r2(ir)
+                            fr (ir) = t1 * veffmt (lm2, ir, ias)
+                          End Do
+                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
+                            haaintegrals (lm2, io2, l3, io1, l1)=gr (nr)
+                        End Do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+
                      End Do
                   End Do
                End Do
@@ -165,10 +192,10 @@ Subroutine hmlint
                        If (Tsymmetric) then
                         angular=dble(l1*(l1+1))
                         Do ir = 1, nr
-                           rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
+!                           rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                            t1=apwfr(ir, 1, io, l1, ias)*lofr(ir, 1, ilo, ias)
                            t2=apwfr(ir, 2, io, l1, ias)*lofr(ir, 2, ilo, ias)
-                           fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
+                           fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
                         End Do
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                         halointegrals (1, io, l3, ilo) = gr (nr) / y00
@@ -182,18 +209,24 @@ Subroutine hmlint
                      Else
                         halointegrals (1, io, l3, ilo) = 0.d0
                      End If
-                     Do l2 = 1, input%groundstate%lmaxvr
-                        Do m2 = - l2, l2
-                           lm2 = idxlm (l2, m2)
-                           Do ir = 1, nr
-                              t1 = lofr (ir, 1, ilo, ias) * apwfr (ir, &
-                             & 1, io, l3, ias) * r2 (ir)
-                              fr (ir) = t1 * veffmt (lm2, ir, ias)
-                           End Do
-                           Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                           halointegrals (lm2, io, l3, ilo) = gr (nr)
-                        End Do
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(NONE) SHARED(lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,halointegrals,io,l3,ilo,is,ias) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf)
+!$OMP DO
+#endif
+                     Do lm2 = 2, lmmaxvr
+                       m2 = mfromlm(lm2)
+                       l2 = lfromlm(lm2)
+                       Do ir = 1, nr
+                         t1 = lofr (ir, 1, ilo, ias) * apwfr (ir, 1, io, l3, ias) * r2 (ir)
+                         fr (ir) = t1 * veffmt (lm2, ir, ias)
+                       End Do
+                       Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
+                       halointegrals (lm2, io, l3, ilo) = gr (nr)  
                      End Do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
                   End Do
                End Do
             End Do
@@ -208,10 +241,10 @@ Subroutine hmlint
                     if (Tsymmetric) then
                      angular=dble(l1*(l1+1))
                      Do ir = 1, nr
-                        rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
+!                        rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                         t1=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)
                         t2=lofr(ir, 2, ilo1, ias)*lofr(ir, 2, ilo2, ias)
-                        fr (ir) = (0.5d0*t2*rm + 0.5d0*angular*t1*rm/spr(ir,is)**2 + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
+                        fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
                      End Do
                      Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                      hlolointegrals (1, ilo1, ilo2) = gr (nr) / y00
@@ -225,18 +258,24 @@ Subroutine hmlint
                   Else
                      hlolointegrals (1, ilo1, ilo2) = 0.d0
                   End If
-                  Do l2 = 1, input%groundstate%lmaxvr
-                     Do m2 = - l2, l2
-                        lm2 = idxlm (l2, m2)
-                        Do ir = 1, nr
-                           t1 = lofr (ir, 1, ilo1, ias) * lofr (ir, 1, &
-                          & ilo2, ias) * r2 (ir)
-                           fr (ir) = t1 * veffmt (lm2, ir, ias)
-                        End Do
-                        Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                        hlolointegrals (lm2, ilo1, ilo2) = gr (nr)
-                     End Do
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(NONE) SHARED(lmmaxvr,mfromlm,lfromlm,lofr,r2,veffmt,spr,nr,hlolointegrals,ilo1,ilo2,is,ias) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf)
+!$OMP DO
+#endif
+                  Do lm2 = 2, lmmaxvr
+                    m2 = mfromlm(lm2)
+                    l2 = lfromlm(lm2)
+                    Do ir = 1, nr
+                      t1 = lofr (ir, 1, ilo1, ias) * lofr (ir, 1, ilo2, ias) * r2 (ir)
+                      fr (ir) = t1 * veffmt (lm2, ir, ias)
+                    End Do
+                    Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
+                    hlolointegrals (lm2, ilo1, ilo2) = gr (nr)
                   End Do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
                End Do
             End Do
 
@@ -342,7 +381,7 @@ Subroutine hmlint
       End Do
 ! cleaning up 
       deallocate(haaintegrals)
-  
+      deallocate(lfromlm,mfromlm)  
       if (allocated(halointegrals)) deallocate(halointegrals)
       if (allocated(hlolointegrals)) deallocate(hlolointegrals)
       Return
