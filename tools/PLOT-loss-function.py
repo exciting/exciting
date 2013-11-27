@@ -6,12 +6,31 @@ from lxml import etree
 import os
 import sys
 
+#-------------------------------------------------------------------------------
+
+def shell_value(variable,vlist,default):
+    v = default
+    e = False
+    for i in range(len(vlist)):
+        if ( vlist[i] == variable ): v = os.environ[variable] ; e = True ; break
+    return v, e
+    
+#-------------------------------------------------------------------------------
+
+current = os.environ['PWD']
+ev_list = os.environ.keys()
+
+rundir = shell_value('EXCITINGRUNDIR',ev_list,current)[0]
+rlabel = shell_value('RLABEL',ev_list,"rundir-")[0]
+showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
+dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 
 #-------------------------------------------------------------------------------
 #Check arguments
 nfiles=len(sys.argv)-1
 if nfiles<1:
-    print "\nNothing to plot\n\n*** Usage: ***\n $>PLOT-lossfkt.py path_to_loss_file1.xml path_to_loss_file2.xml ...\n**************\n"
+    print "\nERROR: Nothing to plot!\n"
+    print "**Usage**:    PLOT-loss-function.py lossfile-1.xml lossfile-2.xml\n"
     sys.exit()
 
 fnames=[]
@@ -84,5 +103,6 @@ ax.set_xlabel(str.capitalize(labels[0]["xlabel"])+" [eV]")
 ax.set_ylabel(str.capitalize(labels[0]["ylabel"]))
 
 plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
-plt.savefig('PLOT.png', orientation='portrait',format='png')
-plt.show()
+plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
+
+if (showpyplot): plt.show()

@@ -12,6 +12,7 @@ Subroutine xsfinit
       Use modmpi
       Use m_filedel
       Implicit None
+
   ! local variables
       Character (*), Parameter :: thisnam = 'xsfinit'
       Character (10) :: dat, tim
@@ -20,6 +21,8 @@ Subroutine xsfinit
       Integer :: days, hours, minutes, seconds
       Character (256) :: str1, str2
       Character (256), External :: stringtim, r2str
+      character*(77) :: string
+
   ! finalize global counters
       Call date_and_time (date=dat, time=tim)
       Call cpu_time (cputim0f)
@@ -28,54 +31,46 @@ Subroutine xsfinit
       wallt = dble (systim0f-systim0i) / dble (cntrate)
       cputcum = cputim0f - cputimcum
       walltcum = dble (systim0f-systimcum) / dble (cntrate)
+
   ! write out information
-      Write (unitout, '(a,i8,a)') 'Info(' // thisnam // '): task Nr.', &
-     & task, ' stopped gracefully'
-      Write (unitout, '(a)') 'Timings: '
-      Write (unitout, '(a)') '  Date (YYYY-MM-DD) : ' // dat (1:4) // '&
-     &-' // dat (5:6) // '-' // dat (7:8)
-      Write (unitout, '(a)') '  Time (hh:mm:ss)   : ' // tim (1:2) // '&
-     &:' // tim (3:4) // ':' // tim (5:6)
+      Write (unitout, '(a,i8,a)') 'Info(' // thisnam // '): task Nr.', task, ' stopped gracefully'
+      write (unitout,*)
+      Write (unitout, '(a)') ' Timings: '
+      Write (unitout, '(a)') '     Date (DD-MM-YYYY)      : ' // dat (7:8) // '-' // dat (5:6) // '-' // dat (1:4)
+      Write (unitout, '(a)') '     Time (hh:mm:ss)        : ' // tim (1:2) // ':' // tim (3:4) // ':' // tim (5:6)
       Call gentim (cput, hrs, days, hours, minutes, seconds)
       str1 = stringtim (cput, hrs, days, hours, minutes, seconds)
-      Write (unitout, '(a, 4g18.6)') '  CPU time		  : ' // trim (str1)
+      Write (unitout, '(a, 4g18.6)')    '     CPU time               : ' // trim (str1)
       If (procs .Eq. 1) Then
          Call gentim (dble(wallt), hrs, days, hours, minutes, seconds)
-         str1 = stringtim (dble(wallt), hrs, days, hours, minutes, &
-        & seconds)
+         str1 = stringtim (dble(wallt), hrs, days, hours, minutes, seconds)
          str2 = r2str (cput/wallt*100, '(f12.2)')
-         Write (unitout, '(a, 4g18.6)') '  wall time 	     : ' // trim &
-        & (str1)
-         Write (unitout, '(a,g18.6 )') '  CPU load               : ' // &
-        & trim (str2) // ' %'
+         Write (unitout, '(a, 4g18.6)') '     wall time              : ' // trim (str1)
+         Write (unitout, '(a,  g18.6)') '     CPU load               : ' // trim (str2) // ' %'
       End If
       Call gentim (cputcum, hrs, days, hours, minutes, seconds)
       str1 = stringtim (cputcum, hrs, days, hours, minutes, seconds)
-      Write (unitout, '(a, 4g18.6)') '  CPU time  (cumulative) : ' // &
-     & trim (str1)
+      Write (unitout, '(a, 4g18.6)') '     CPU time  (cumulative) : ' // trim (str1)
       If (procs .Eq. 1) Then
-         Call gentim (dble(walltcum), hrs, days, hours, minutes, &
-        & seconds)
-         str1 = stringtim (dble(walltcum), hrs, days, hours, minutes, &
-        & seconds)
+         Call gentim (dble(walltcum), hrs, days, hours, minutes, seconds)
+         str1 = stringtim (dble(walltcum), hrs, days, hours, minutes, seconds)
          str2 = r2str (cput/wallt*100, '(f12.2)')
-         Write (unitout, '(a, 4g18.6)') '  wall time (cumulative) : ' &
-        & // trim (str1)
-         Write (unitout, '(a,g18.6)') '  CPU load  (cumulative) : ' // &
-        & trim (str2) // ' %'
+         Write (unitout, '(a, 4g18.6)') '     wall time (cumulative) : ' // trim (str1)
+         Write (unitout, '(a,  g18.6)') '     CPU load  (cumulative) : ' // trim (str2) // ' %'
       End If
-      Write (unitout,*)
-      Write (unitout,'("+----------------------------+")')
-      Write (unitout,'("| EXCITING BERYLLIUM stopped |")')
-      Write (unitout,'("+----------------------------+")')
-      Write (unitout,*)
-      Close (unitout)
-!
+
+      write(string,'("EXCITING ", a, " stopped for task ",i6)') trim(versionname), task
+      call printbox(unitout,"=",string)
+      write(unitout,*)
+      write(unitout,*)
+      close(unitout)
+
   ! restore global variables
       Call restore0
       Call restore1
       Call restore2
-!
+
   ! remove checkpoint file
       Call filedel (trim(fnresume))
+
 End Subroutine xsfinit

@@ -15,9 +15,6 @@
         logical :: l1, l2, inittime
         character*(77) :: string, rmethod(3), newtonflag
 
-                  !call writepositions(60,input%relax%outputlevelnumber) 
-                  !call writeforce(60,input%relax%outputlevelnumber)  
-
         nstep = 0
         newtonflag = "full newton step"
 

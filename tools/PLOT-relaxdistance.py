@@ -158,7 +158,7 @@ ax.text(-0.23,0.5,ylabel,size=fontlabel,
 x = [] ; d1 = [] ; d2 = [] ; d3 = []
 
 iter=0
-soglia = 0.80
+soglia = 0.67
 
 while True:
     line1 = ifile1.readline().strip()

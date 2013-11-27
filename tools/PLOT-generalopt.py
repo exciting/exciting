@@ -120,7 +120,7 @@ if (len(sys.argv) > 3): a2 = str(sys.argv[3])
 
 directoryroot = 'vol_'
 if (len(sys.argv) > 1): directoryroot = str(sys.argv[1])
-list_dir = glob.glob(directoryroot+"*")
+list_dir = sorted(glob.glob(directoryroot+"*"))
 
 #-------------------------------------------------------------------------------
 
@@ -153,7 +153,7 @@ for idir in range(len(list_dir)):
     r1,r2 = leggi(fileinp,"Atomic positions (",a1,a2)
     check = relax(fileinp,"Atomic positions at this step")
     if (check):
-        c1,c2 = leggi(fileinp,"Atomic positions at this step",a1,a2)
+        c1,c2 = leggi(fileinp,"Atomic positions at this step",a1,a2)        
     else:
         c1,c2 = leggi(fileinp,"Atomic positions (",a1,a2)
     y1.append(float(c2[0])-float(c1[0]))
@@ -163,7 +163,7 @@ for idir in range(len(list_dir)):
         z1.append(float(r2[0])-float(r1[0]))
         z2.append(float(r2[1])-float(r1[1]))
         z3.append(float(r2[2])-float(r1[2]))
-
+    
 xx = readstrain(directoryroot)    
 x0.append(xx[0])
 x0.append(xx[-1])

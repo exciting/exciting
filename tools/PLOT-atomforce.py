@@ -133,7 +133,7 @@ plt.plot(xx,yy,'go',label='calculated')
 
 #-------------------------------------------------------------------------------
 
-plt.legend(borderaxespad=.8)
+plt.legend(borderaxespad=.8,numpoints=1)
 
 ax.yaxis.set_major_formatter(yfmt)
 ax.set_xlim(xmin,xmax)

@@ -236,7 +236,7 @@ Call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
          Close (50)
          Write (*,*)
          Write (*, '("Info(bandstr):")')
-         Write (*, '(" band structure plot written to BAND.OUT")')
+         Write (*, '("   band structure plot written to BAND.OUT")')
       Else
          Call xml_NewElement (xf, "bandstructure")
          Call xml_AddAttribute (xf, "character", "true")
@@ -301,12 +301,12 @@ Call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
          End Do
          Write (*,*)
          Write (*, '("Info(bandstr):")')
-         Write (*, '(" band structure plot written to BAND_Sss_Aaaaa.OU&
+         Write (*, '("   band structure plot written to BAND_Sss_Aaaaa.OU&
         &T")')
-         Write (*, '("	for all species and atoms")')
+         Write (*, '("	 for all species and atoms")')
       End If
       Write (*,*)
-      Write (*, '(" Fermi energy is at zero in plot")')
+      Write (*, '("   Fermi energy is at zero in plot")')
   ! output the vertex location lines
       Open (50, File='BANDLINES.OUT', Action='WRITE', Form='FORMATTED')
       Do iv = 1, nvp1d
@@ -330,7 +330,7 @@ Call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
       End Do
       Close (50)
       Write (*,*)
-      Write (*, '(" vertex location lines written to BANDLINES.OUT")')
+      Write (*, '("   vertex location lines written to BANDLINES.OUT")')
       Write (*,*)
       Deallocate(e)
       If (input%properties%bandstructure%character) deallocate(bc)

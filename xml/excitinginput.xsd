@@ -5435,7 +5435,7 @@ gw.xsd
               <xs:complexType>
                 <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="fgrid" default="gaule2"> </xs:attribute>
                 <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nomeg" default="16"> </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="freqmax" default="0.42d0"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="freqmax" default="0.5d0"> </xs:attribute>
                 <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="maxexp" default="1"> </xs:attribute>
               </xs:complexType>
             </xs:element>
