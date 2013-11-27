@@ -11,6 +11,7 @@ Subroutine bandstr
   ! !USES:
       Use modinput
       Use modmain
+      Use modmpi
       Use FoX_wxml
   ! !DESCRIPTION:
   !   Produces a band structure along the path in reciprocal-space which connects
@@ -135,6 +136,13 @@ Subroutine bandstr
       emin = 1.d5
       emax = - 1.d5
   ! begin parallel loop over k-points
+
+#ifdef MPI
+        Call MPI_barrier (MPI_COMM_WORLD, ierr)
+        If (rank .Eq. 0) Call delevec ()
+        splittfile = .True.
+        Do ik = firstk (rank), lastk (rank)
+#endif
 #ifdef KSMP
   !$OMP PARALLEL DEFAULT(SHARED) &
   !$OMP PRIVATE(evalfv,evecfv,evecsv) &
@@ -143,12 +151,16 @@ Subroutine bandstr
   !$OMP PRIVATE(l,m,lm,sum)
   !$OMP DO
 #endif
+#ifndef MPI
+       splittfile = .False.
       Do ik = 1, nkpt
+#endif
          Allocate (evalfv(nstfv, nspnfv))
          Allocate (evecfv(nmatmax, nstfv, nspnfv))
          Allocate (evecsv(nstsv, nstsv))
      !$OMP CRITICAL
-         Write (*, '("Info(bandstr): ", I6, " of ", I6, " k-points")') &
+         if (rank==0) &
+         & Write (*, '("Info(bandstr): ", I6, " of ", I6, " k-points")') &
         & ik, nkpt
      !$OMP END CRITICAL
      ! solve the first- and second-variational secular equations
@@ -202,12 +214,20 @@ Subroutine bandstr
          Deallocate (evalfv, evecfv, evecsv)
      ! end loop over k-points
       End Do
+
+#ifdef MPISEC
+        Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
+        Call MPI_barrier(MPI_COMM_WORLD, ierr)
+#endif
+
 #ifdef KSMP
   !$OMP END DO
   !$OMP END PARALLEL
 #endif
       emax = emax + (emax-emin) * 0.5d0
       emin = emin - (emax-emin) * 0.5d0
+
+if (rank==0) then
   ! output the band structure
       Call xml_OpenFile ("bandstructure.xml", xf, replace=.True., &
      & pretty_print=.True.)
@@ -339,6 +359,7 @@ Call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
       Deallocate(e)
       If (input%properties%bandstructure%character) deallocate(bc)
       Call xml_close (xf)
+      End if
       Return
 End Subroutine bandstr
 !EOC
