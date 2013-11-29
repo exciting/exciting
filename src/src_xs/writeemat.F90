@@ -41,18 +41,18 @@ Subroutine writeemat
   ! find indices for non-zero Gaunt coefficients
       Call findgntn0 (Max(input%xs%lmaxapwwf, lolmax), &
      & Max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
-      Write (unitout, '(a, 3i8)') 'Info(' // thisnam // '): Gaunt coeff&
+      Write (unitout, '(a, 3i5)') 'Info(' // thisnam // '): Gaunt coeff&
      &icients generated within lmax values:', &
      & input%groundstate%lmaxapw, input%xs%lmaxemat, &
      & input%groundstate%lmaxapw
-      Write (unitout, '(a, i6)') 'Info(' // thisnam // '): number of q-&
+      Write (unitout, '(a, i5)') 'Info(' // thisnam // '): number of q-&
      &points: ', nqpt
       Call flushifc (unitout)
   ! loop over q-points
       Do iq = 1, nqpt
      ! call for q-point
          Call ematq (iq)
-         Write (unitout, '(a, i8)') 'Info(' // thisnam // '): matrix el&
+         Write (unitout, '(a, i5)') 'Info(' // thisnam // '): matrix el&
         &ements of the exponentials finished for q - point:', iq
          Call flushifc (unitout)
       End Do

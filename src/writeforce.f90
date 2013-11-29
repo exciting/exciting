@@ -13,15 +13,19 @@ subroutine writeforce(fnum,verbosity)
     
     if (verbosity < 1) return
 
-    totlock=.True.
-    do is = 1, nspecies
-        do ia = 1, natoms (is)
-            do i = 1, 3
-               if (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) go to 10
+    totlock = .False.
+    if ( associated(input%relax) ) then 
+        do is = 1, nspecies
+            do ia = 1, natoms (is)
+                do i = 1, 3
+                    if (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) then
+                        totlock = .True.
+                        go to 10
+                    end if
+                end do
             end do
         end do
-    end do
-    totlock=.False.
+    end if
 
 10  i=0
     write(fnum,*)

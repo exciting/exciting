@@ -464,6 +464,7 @@ subroutine scf_cycle(verbosity)
 
 ! update convergence criteria
         deltae=abs(et-engytot)
+        et = engytot
         dforcemax=abs(fm-forcemax)
 
 !! TIME - Fourth IO segment
@@ -516,8 +517,7 @@ subroutine scf_cycle(verbosity)
             If ((input%groundstate%scfconv.eq.'multiple').and. &
            &    (currentconvergence .Lt. input%groundstate%epspot).and. &
            &    (deltae .lt. input%groundstate%epsengy).and. &
-           &    (chgdst .lt. input%groundstate%epschg).and. &
-           &    (dforcemax .lt. input%groundstate%epsforce)) Then
+           &    (chgdst .lt. input%groundstate%epschg)) Then
                 tlast = .True.
             End If
 
