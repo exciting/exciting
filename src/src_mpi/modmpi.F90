@@ -310,11 +310,11 @@ end subroutine
 #endif
           call mpi_allgatherv(BUFFER, &
             buf_n(rank+1), &
-            mpi_double_precision, &
+            MPI_REAL4, &
             rlpbuf, &
             buf_n, &
             buf_dspls, &
-            mpi_double_precision, &
+            MPI_REAL4, &
             mpi_comm_world, &
             ierr)
 #ifdef MPI1
