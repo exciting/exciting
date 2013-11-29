@@ -14,7 +14,7 @@ Subroutine propertylauncher
 
 ! properties which depend on the ground state only
 
-      If (associated(input%properties%bandstructure) .And. rank .Eq. 0) Then
+      If (associated(input%properties%bandstructure)) Then
          call rereadinput
          ! tasks are: 20, 21
          task = 20
