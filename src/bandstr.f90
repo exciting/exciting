@@ -210,7 +210,9 @@ Subroutine bandstr
      End Do
 
 #ifdef MPI
+        If (input%properties%bandstructure%character) Then
      Call mpi_allgatherv_ifc(nkpt,lmax*natmtot*nstsv,rlpbuf=bc)
+     End If
      Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=e)
      Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
