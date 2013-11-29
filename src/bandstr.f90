@@ -213,8 +213,8 @@ Subroutine bandstr
      ! end loop over k-points
       End Do
 
-#ifdef MPISEC
-        Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
+#ifdef MPI
+        Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=e)
         Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
 
