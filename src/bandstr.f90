@@ -355,10 +355,10 @@ Subroutine bandstr
         Write (*,*)
         Write (*, '(" vertex location lines written to BANDLINES.OUT")')
         Write (*,*)
-        Deallocate(e)
-        If (input%properties%bandstructure%character) deallocate(bc)
         Call xml_close (xf)
      End if
+     Deallocate(e)
+     If (input%properties%bandstructure%character) deallocate(bc)
      Return
    End Subroutine bandstr
    !EOC
