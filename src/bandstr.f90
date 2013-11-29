@@ -214,6 +214,7 @@ Subroutine bandstr
       End Do
 
 #ifdef MPI
+        Call mpi_allgatherv_ifc(nkpt,lmax*natmtot*nstsv,rlpbuf=bc)
         Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=e)
         Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
