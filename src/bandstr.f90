@@ -139,7 +139,6 @@ Subroutine bandstr
 
 #ifdef MPI
         Call MPI_barrier (MPI_COMM_WORLD, ierr)
-        If (rank .Eq. 0) Call delevec ()
         splittfile = .True.
         Do ik = firstk (rank), lastk (rank)
 #endif
@@ -159,9 +158,8 @@ Subroutine bandstr
          Allocate (evecfv(nmatmax, nstfv, nspnfv))
          Allocate (evecsv(nstsv, nstsv))
      !$OMP CRITICAL
-         if (rank==0) &
-         & Write (*, '("Info(bandstr): ", I6, " of ", I6, " k-points")') &
-        & ik, nkpt
+         Write (*,'("Info(bandstr):",I6," of ",I6," k-points, rank",I6)') &
+        & ik, nkpt, rank
      !$OMP END CRITICAL
      ! solve the first- and second-variational secular equations
          Call seceqn (ik, evalfv, evecfv, evecsv)
