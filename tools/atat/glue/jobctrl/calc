@@ -1,6 +1,0 @@
-#!/bin/csh
-if ( $#argv == 0 || x"$1" == "x-h" ) then
-  echo Syntax: calc \"mathematical expression\"
-  exit 1
-endif
-awk "BEGIN {print $*}"

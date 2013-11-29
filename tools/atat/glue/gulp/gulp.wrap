@@ -1,9 +1,0 @@
-opti conp gradient prop
-addshell Ni
-harmonic
-Al Al 10 0.8 0.8
-Ni Al 10 0.8 0.8
-Ni Ni 20 0.8 0.8
-INSERTPOS
-spacegroup
-  1

@@ -155,11 +155,14 @@ while iline < filelen:
       iline +=1
 nqpt = iqpt
 
+fmt = '%10.4f'
+
 print nqpt,' q-point(s) read:'
 for iqpt in range(nqpt):
    print 'q-point ',iqpt+1,' is ',qvec[iqpt][0],qvec[iqpt][1],qvec[iqpt][2]
    for imode in range(3*natmtot):
-      print 'mode ',imode+1,' with frequency ',freq[iqpt][imode]*ha2rcm,'cm-1'
+      print '   mode ',imode+1,' with frequency',(fmt%(freq[iqpt][imode]*ha2rcm)),' cm-1'
+   print
 
 for iqpt in range(nqpt):
    for imode in range(3*natmtot):

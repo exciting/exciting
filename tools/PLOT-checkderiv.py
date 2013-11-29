@@ -73,6 +73,9 @@ if (os.path.exists('energy-vs-displacement')):
 
 inpf='check-energy-derivatives'
 
+if (str(os.path.exists('order-of-derivative'))=='False'): 
+    sys.exit("\nERROR: file \"order-of-derivative\" not found!\n")
+
 startorder = 0 
 if (os.path.exists('startorder')): 
     startorder = int(open('startorder',"r").readline().strip().split()[0])

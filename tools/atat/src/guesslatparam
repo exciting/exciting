@@ -1,4 +1,0 @@
-#!/bin/csh
-source ~/.atat.rc
-nntouch -l=str.out -r ${atatdir}/data/radii.in > str_hint.out
-$*

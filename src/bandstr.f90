@@ -157,10 +157,6 @@ Subroutine bandstr
         Allocate (evalfv(nstfv, nspnfv))
         Allocate (evecfv(nmatmax, nstfv, nspnfv))
         Allocate (evecsv(nstsv, nstsv))
-        !$OMP CRITICAL
-        Write (*,'("Info(bandstr):",I6," of ",I6," k-points, rank",I6)') &
-             & ik, nkpt, rank
-        !$OMP END CRITICAL
         ! solve the first- and second-variational secular equations
         Call seceqn (ik, evalfv, evecfv, evecsv)
         Do ist = 1, nstsv
