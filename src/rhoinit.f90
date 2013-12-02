@@ -65,11 +65,11 @@ Subroutine rhoinit
       lmax = 1
       lmmax = (lmax+1) ** 2
 ! allocate local arrays
-      Allocate (jj(0:lmax, nrcmtmax))
+!      Allocate (jj(0:lmax, nrcmtmax))
       Allocate (jlgr(0:lmax))
       Allocate (ffacg(ngvec))
       Allocate (zfmt(lmmax, nrcmtmax))
-      Allocate (z2fmt(lmmax, nrcmtmax))
+!      Allocate (z2fmt(lmmax, nrcmtmax))
       Allocate (zfft(ngrtot))
       allocate(a(nspecies))
       allocate(c(nspecies))
@@ -203,6 +203,8 @@ Subroutine rhoinit
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE) SHARED(zfft,is,ias,rcmt,gc,nrcmt,ngvec,sfacg,ffacg,ylmg,zfmt,igfft,vgc) PRIVATE(ig,irc,x,zt1,zt2,zt3,jj,z2fmt,boundlo,boundhi,ifg,yy,cs,sn,update,xi,jthr,r,tp,whichthread,nthreads)
 #endif
+            Allocate (jj(0:1, nrcmt (is)))
+            Allocate (z2fmt(4, nrcmt (is)))
             z2fmt (:, :) = 0.d0
 #ifdef USEOMP
 !$OMP DO
@@ -285,6 +287,7 @@ Subroutine rhoinit
               endif
 !$OMP BARRIER
             enddo
+            deallocate(jj,z2fmt)
 !$OMP END PARALLEL
 #else
             zfmt=z2fmt
@@ -326,7 +329,7 @@ Subroutine rhoinit
       Call charge
 ! normalise the density
       Call rhonorm
-      Deallocate (jlgr, ffacg, zfmt, zfft,z2fmt,a,c,jj)
+      Deallocate (jlgr, ffacg, zfmt, zfft,a,c)
       call timesec(tb)
       write(*,*) 'rhoinit, step 3:',tb-ta
 !      stop
