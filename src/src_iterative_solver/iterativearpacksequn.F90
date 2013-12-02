@@ -86,7 +86,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       logical :: ImproveInverse
       type (HermitianMatrix) :: zm,cc
       Complex (8), Allocatable :: bres(:),vecupd(:),bvec(:)
-      integer :: ii,ib,counter
+      integer :: ii,ib,nounter
       real(8) :: berr
       
       logical :: spLU
@@ -103,23 +103,37 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       logical :: SeparateDegenerates,sorted
 
       real(8), allocatable :: rdiag(:)
-      complex(8), allocatable :: cdiag(:)
-      Complex (8), Allocatable :: work (:),zvec(:),cwork(:)
+      complex(8), allocatable :: cdiag(:),cinvdiag(:),zvec(:),rrvec(:),pvec(:),qvec(:)
+      Complex (8), Allocatable :: work (:),cwork(:)
       integer, allocatable :: iwork(:)
 
       logical :: newarpackseed
 
-      integer :: InvertMethod
+      integer :: InvertMethod,counter
       character(len=4) :: strInvertMethod
 
       logical :: gev,keepworking
+      integer :: method
 
+      Type (HermitianMatrix), pointer ::pinverse
+! sandbox variables :)
+      complex(8), allocatable :: h3(:,:),zfft(:),h2(:,:)
+      integer :: ig
+      real(8) :: summa
+      complex(8) :: rho,beta,alpha,rhoold
+      logical :: usecg
+ 
+      integer :: lwork
+      complex(8) :: worksize
+       
+
+!     usecg=.true.
       gev=.true.
       SeparateDegenerates=.true.
       DegeneracyThr=1d-7
       spLU=(input%groundstate%solver%DecompPrec.eq.'sp')
       ImproveInverse=input%groundstate%solver%ArpackImproveInverse
-      select case (input%groundstate%solver%ArpackDecomp) 
+      select case (input%groundstate%solver%ArpackLinSolve) 
       case ('LU')
         InvertMethod=LUdecomp
       case ('LDL')
@@ -128,8 +142,10 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
         InvertMethod=LLdecomp
       case ('Diag')
         InvertMethod=Diagdecomp
+      case ('InvertOnce')
+        InvertMethod=InvertOnce
       end select
-
+!     InvertMethod=InverseDiag
 !
 #ifdef DEBUG
       ndigit = - 3
@@ -218,7 +234,60 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       Call newsystem (system, packed, n)
       h1on=(input%groundstate%ValenceRelativity.eq.'lkh')
       Call hamiltonandoverlapsetup (system, ngk(ispn, ik), apwalm, igkig(1, ispn, ik), vgpc)
+!      write(*,*) '************ARPACK**************'
+!      read(*,*)
 
+! sandbox starts here
+if (.false.) then
+      Call HermitianMatrixAXPY (-sigma, system%overlap, system%hamilton)
+      do i=1,100 !ngk(ispn,ik) 
+!       write(*,*) abs(system%hamilton%za(i,i))
+       summa=0d0
+       do j=1,ngk(ispn,ik)
+         summa=summa+abs(system%hamilton%za(j,i))**2
+!         write(*,*) abs(system%hamilton%za(j,i))
+       enddo
+       write(*,*) abs(system%hamilton%za(i,i))/sqrt(summa)
+      enddo
+ 
+      stop
+      write(*,*) ngkfft
+      allocate(h2(ngktotfft,ngktotfft))
+      allocate(h3(ngktotfft,ngk(ispn,ik)))
+      allocate(zfft(ngktotfft))
+      h2=0d0
+      h3=0d0
+      do j=1,ngk(ispn,ik)
+       zfft=0d0
+       do i=1,ngk(ispn,ik)
+        ig=igkfft(i,ik)
+        zfft(ig)=system%hamilton%za(i,j)
+       enddo
+       Call zfftifc (3, ngkfft, 1, zfft)
+       h3(:,j)=zfft(:)
+      enddo
+      do j=1,ngktotfft
+       zfft=0d0
+       do i=1,ngk(ispn,ik)
+        ig=igkfft(i,ik)
+        zfft(ig)=h3(j,i)
+       enddo
+       Call zfftifc (3, ngkfft, -1, zfft)
+       h2(j,:)=zfft(:)
+      enddo
+      write(*,*)
+      do i=1,10!ngkfft(1)/2,ngkfft(1)/2 !ngktotfft/2,ngktotfft/2 !ngktotfft
+       summa=0d0
+       do j=1,ngktotfft
+         summa=summa+abs(h2(j,i))**2
+!        write(*,*) abs(h2(j,i)) !sqrt(abs(h3(j,i)**2)/(abs(h3(i,i)*abs(h3(j,j)))))
+       enddo
+       write(*,*) abs(h2(i,i)),sqrt(summa)
+      enddo
+      stop
+!      Call zfftifc (3, ngkfft, 1, zfft)
+endif
+! end of sandbox
 
 if (gev) then
        
@@ -235,21 +304,75 @@ if (gev) then
       Call HermitianMatrixAXPY (-sigma, system%overlap, system%hamilton)
       if (ImproveInverse) then
         zm%sp=.false.
-        call newmatrix(zm,.false.,system%overlap%rank)
+        call newmatrix(zm,.false.,n)
         zm%za=system%hamilton%za
         allocate(bres(n))
         allocate(vecupd(n))
         allocate(bvec(n))
+
+        allocate(pvec(n))
+        allocate(zvec(n))
+        allocate(qvec(n))
+        allocate(rrvec(n))
+        rho=0d0
       endif
 
-
+if (InvertMethod.eq.InverseDiag) then
+      allocate(cdiag(n))
+      allocate(cinvdiag(n))
+      do i=1,n
+       cdiag(i)=system%hamilton%za(i,i)
+       cinvdiag(i)=1d0/system%hamilton%za(i,i)
+      enddo
+      allocate(pvec(n))
+      allocate(zvec(n))
+      allocate(qvec(n))
+      allocate(rrvec(n))
+elseif (InvertMethod.eq.InvertOnce) then
+      if (.not.associated(arpackinverse)) then
+        write(*,*) 'init arpackinverse'
+        allocate(arpackinverse(nkpt)) 
+        do i=1,nkpt
+          nullify(arpackinverse(i)%za)
+        enddo
+      endif
+      
+      pinverse=>arpackinverse(ik)
+      if (.not.associated(pinverse%za)) then
+        pinverse%sp=.false.
+!        if (.not.associated(pinverse%za)) then
+          call newmatrix(pinverse,.false.,n)
+!        else
+!          write(*,*) 'sum',sum(pinverse%za)
+!          call deletematrix(pinverse)
+!          call newmatrix(pinverse,.false.,n)
+!        endif
+!        write(*,*) pinverse%rank,n
+        pinverse%za(1:n,1:n)=system%hamilton%za(1:n,1:n)
+        method=LLDecomp
+!        pinverse%ludecomposed=.false.
+        call HermitianMatrixFactorize(pinverse,method)
+        call HermitianMatrixInvert(pinverse,method)
+      endif
+!         cc%sp=.false.
+!         call newmatrix(cc,.false.,n)
+!         cc%za=0d0
+!         call HermitianMatrixMatrix(cc,pinverse%za,system%hamilton%za,n,n,n)
+!         write(*,*) cc%za(1:3,1:3)
+!         call deletematrix(cc)
+!         write(*,*) 'sum',sum(pinverse%za)
+!      read(*,*) 
+      system%hamilton%za=pinverse%za
+      system%hamilton%ludecomposed=.true.
+      
+else
       if (InvertMethod.ne.Diagdecomp) then
         if (spLU) then
           cc%sp=.true.
           call newmatrix(cc,.false.,n)
-          cc%ca=system%hamilton%za
+          cc%ca=cmplx(system%hamilton%za)
           call HermitianMatrixFactorize(cc,InvertMethod)
-          system%hamilton%za=cc%ca
+          system%hamilton%za=dcmplx(cc%ca)
           if (associated(cc%ipiv)) then
             allocate(system%hamilton%ipiv(n))
             system%hamilton%ipiv=cc%ipiv
@@ -260,6 +383,7 @@ if (gev) then
           Call HermitianMatrixFactorize(system%hamilton,InvertMethod)
         endif
       else
+!       system%hamilton%za=system%overlap%za
         allocate(rdiag(n))
         allocate(cdiag(n))
         allocate(work(2*n-1))
@@ -267,6 +391,7 @@ if (gev) then
         call zheev ('V', &                     ! compute eigenvals and eigenvecs
                     'U', &                     ! upper triangle is stored
                      n, &                       ! size of the matrix A
+!                     system%overlap%za, &      ! A
                      system%hamilton%za, &      ! A
                      n, &                       ! leading dimension
                      rdiag, &                   ! eigenvals
@@ -275,8 +400,10 @@ if (gev) then
                      RWORK, &                    ! another work array
                      info &                     ! error message
                      )
-
+        write(*,*) rdiag
+        stop
         deallocate(work,rwork)
+        
 
         do i=1,n
           cdiag(i)=dcmplx(1d0/rdiag(i),0d0)
@@ -285,6 +412,7 @@ if (gev) then
         allocate (zvec(n))
 
       endif
+endif
       
       Allocate (rwork(ncvmax))
 
@@ -315,46 +443,159 @@ if (gev) then
               bvec=vout
             endif
 
+If (InvertMethod.ne.InverseDiag) then
             if (InvertMethod.ne.Diagdecomp) then
+              
               Call Hermitianmatrixlinsolve (system%hamilton, vout,InvertMethod)
+
             else
               Call zgemv ('C', n, n, one, system%hamilton%za, n, vout, 1, zero, zvec, 1)
               zvec(:)=zvec(:)*cdiag(:)
               Call zgemv ('N', n, n, one, system%hamilton%za, n, zvec, 1, zero, vout, 1)
             end if
-
+else 
+              rrvec=vout 
+              zvec(:)=cinvdiag(:)*rrvec(:)
+              rho=0d0
+              do ib=1,n
+                rho=rho+conjg(rrvec(ib))*zvec(ib)
+              enddo
+              pvec=zvec
+              Call Hermitianmatrixvector (system%hamilton, one, pvec, zero, qvec)
+              
+              alpha=0d0
+              do ib=1,n
+                alpha=alpha+conjg(pvec(ib))*qvec(ib)
+              enddo   
+              alpha=rho/alpha
+              vout=vout+alpha*pvec
+              rrvec=rrvec-alpha*qvec
+              bres=rrvec
+            
+endif
 
 ! Iterative improvement of linear solve if necessary
             if (ImproveInverse) then
+If (invertMethod.ne.InverseDiag) then
+!              bres=bvec
+!              Call Hermitianmatrixvector (zm, -one,vout, one, bres)
+                Call Hermitianmatrixvector (zm, one, vout, zero, vecupd)
+                bres=bvec-vecupd
+                rrvec=bres
+
+!                rrho=0d0
+!                do ib=1,n
+!                  rho=rho+conjg(rrvec(ib))*zvec(ib)
+!                enddo
+
+endif
               berr=1d0
               counter=0
               do while ((berr.gt.1d-10).and.(counter.lt.10))
+                berr=0d0
+                do ib=1,n
+                  berr=berr+abs(bres(ib))**2
+                enddo
+             
+                berr=sqrt(berr/dble(n))
+!                write(*,*) counter,berr,InvertMethod
+!                read(*,*)
+                if (berr.gt.1d-10) then                
+!                  read(*,*)
+                  counter=counter+1
+If (invertMethod.ne.InverseDiag) then
+                  zvec=rrvec
+                  if (InvertMethod.ne.Diagdecomp) then
+                    Call Hermitianmatrixlinsolve (system%hamilton, zvec,InvertMethod)
+                  else
+!                    Call zgemv ('C', n, n, one, system%hamilton%za, n, rrvec, 1, zero, zvec, 1)
+!                    zvec(:)=zvec(:)*cdiag(:)
+!                    Call zgemv ('N', n, n, one, system%hamilton%za, n, zvec, 1, one, vout, 1)
+                  end if
+                  rhoold=rho
+                  rho=0d0
+                  do ib=1,n
+                    rho=rho+conjg(rrvec(ib))*zvec(ib)
+                  enddo
+                  if (counter.eq.1) then
+                    pvec=zvec
+                  else
+                    beta=rho/rhoold
+                    pvec=zvec+beta*pvec
+                  endif
+                  Call Hermitianmatrixvector (zm, one, pvec, zero, qvec)
+
+                  alpha=0d0
+                  do ib=1,n
+                    alpha=alpha+conjg(pvec(ib))*qvec(ib)
+                  enddo
+                  alpha=rho/alpha
+                  vout=vout+alpha*pvec
+                  rrvec=rrvec-alpha*qvec
+                  bres=rrvec
+
+!                  if (InvertMethod.ne.Diagdecomp) then
+!                    Call Hermitianmatrixlinsolve (system%hamilton, bres,InvertMethod)
+!                    vout=vout+bres
+!                  else
+!                    Call zgemv ('C', n, n, one, system%hamilton%za, n, bres, 1, zero, zvec, 1)
+!                    zvec(:)=zvec(:)*cdiag(:)
+!                    Call zgemv ('N', n, n, one, system%hamilton%za, n, zvec, 1, one, vout, 1)
+!                  end if
+!                  Call Hermitianmatrixvector (zm, one, vout, zero, vecupd)
+!                  bres=bvec-vecupd
+else
+                   zvec(:)=rrvec(:)*cinvdiag(:)
+                   rhoold=rho
+                   rho=0d0
+                   do ib=1,n
+                    rho=rho+conjg(rrvec(ib))*zvec(ib)
+                   enddo
+                   beta=rho/rhoold
+                   pvec=zvec+beta*pvec
+                   Call Hermitianmatrixvector (system%hamilton, one, pvec, zero, qvec)
+
+                   alpha=0d0
+                   do ib=1,n
+                     alpha=alpha+conjg(pvec(ib))*qvec(ib)
+                   enddo
+                   alpha=rho/alpha
+                   vout=vout+alpha*pvec
+                   rrvec=rrvec-alpha*qvec 
+                   bres=rrvec                  
+endif
+                endif
+              enddo
+              if ((counter.ge.10).and.(InvertMethod.eq.InvertOnce)) then
+                pinverse=>arpackinverse(ik)
+                pinverse%za=zm%za
+                method=LLDecomp
+                pinverse%ludecomposed=.false.
+                call HermitianMatrixFactorize(pinverse,method)
+                call HermitianMatrixInvert(pinverse,method)
+                system%hamilton%za=pinverse%za
+!                system%hamilton%ludecomposed=.true.
+                vout=bvec
+                Call Hermitianmatrixlinsolve (system%hamilton, vout,InvertMethod)
                 Call Hermitianmatrixvector (zm, one, vout, zero, vecupd)
                 bres=bvec-vecupd
                 berr=0d0
                 do ib=1,n
                   berr=berr+abs(bres(ib))**2
                 enddo
+
                 berr=sqrt(berr/dble(n))
-!                write(*,*) berr
-!                read(*,*)
-                if (berr.gt.1d-10) then                
-                  counter=counter+1
-                  if (InvertMethod.ne.Diagdecomp) then
-                    Call Hermitianmatrixlinsolve (system%hamilton, bres,InvertMethod)
-                    vout=vout+bres
-                  else
-                    Call zgemv ('C', n, n, one, system%hamilton%za, n, bres, 1, zero, zvec, 1)
-                    zvec(:)=zvec(:)*cdiag(:)
-                    Call zgemv ('N', n, n, one, system%hamilton%za, n, zvec, 1, one, vout, 1)
-                  end if
-                endif
-              enddo
+
+                write(*,*) 'inverse updated' , berr
+              endif
+
+!              endif
+!              write(*,*) 
             endif
 
             call timesec(tb)
 !            write(*,*) tb-ta
-!            read(*,*)
+!           read(*,*)
 
          Else If (ido .Eq. 2) Then
 !******************************
@@ -420,6 +661,8 @@ if (gev) then
         strInvertMethod="LL"
       case (Diagdecomp)
         strInvertMethod="Diag"
+      case (InvertOnce)
+        strInvertMethod="Inv"
       end select
     
      If (rank .Eq. 0) write (60,*) "matrixsize", n, "time ", strInvertMethod, cpu1 - &
@@ -644,7 +887,7 @@ endif
         enddo
         arpackseed(1:n,ik)=arpackseed(1:n,ik)/dble(nstfv)
       endif
-
+ write(*,*) '**********ARPACK DONE*************'
 else
 !**************************************************************************
 ! This segment starts working if gev=.false.                              *
@@ -670,16 +913,20 @@ else
 ! Andris                                                                  *
 !**************************************************************************
 
-      sigma=-0d0
+      Call HermitianMatrixAXPY (-sigma, system%overlap, system%hamilton)
+      sigma=0d0
       allocate(zvec(n))
       allocate(bres(n))
       Allocate (rwork(ncvmax))
-
+      
       ishfts = 1
       mode   = 1
       iparam(1) = ishfts
       iparam(3) = maxitr 
       iparam(7) = mode 
+!      system%hamilton%za=system%hamilton%za-sigma*system%overlap%za
+!      Call HermitianMatrixAXPY (-sigma, system%overlap, system%hamilton)
+if (.false.) then
       zm%sp=.false.
       call newmatrix(zm,.false.,n)
       zm%za=system%overlap%za
@@ -699,9 +946,11 @@ else
                    info & 
                   )        
       call timesec(tb)
+endif
       write(*,*) 'inv',tb-ta       
       bmat='I'      
-      which='SR'
+!     which='SR'
+      which='LM'
 
       call timesec(ta)
       i=0
@@ -719,9 +968,10 @@ else
 !            call timesec(ta)
 
 
-            Call zgemv ('N', n, n, one, zm%za, n, vin, 1, zero, zvec, 1)
-            Call zgemv ('N', n, n, one, system%hamilton%za, n, zvec, 1, zero, bres, 1)
-            Call zgemv ('C', n, n, one, zm%za, n, bres, 1, zero, vout, 1)
+!            Call zgemv ('N', n, n, one, zm%za, n, vin, 1, zero, zvec, 1)
+!            Call zgemv ('N', n, n, one, system%hamilton%za, n, zvec, 1, zero, bres, 1)
+!            Call zgemv ('C', n, n, one, zm%za, n, bres, 1, zero, vout, 1)
+             Call zgemv ('N', n, n, one, system%hamilton%za, n, vin, 1, zero, vout, 1)
 
 !            call timesec(tb)
         else 
@@ -755,6 +1005,7 @@ else
         Write (*,*) "iter", i
         Stop
       End If
+      write(*,*)
       do i=1,nstfv
         write(*,*) dble(d(i))
       enddo

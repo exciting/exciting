@@ -64,6 +64,8 @@ if (n.le.0) then
   write(*,*)
   stop
 end if
+!$OMP PARALLEL DEFAULT(PRIVATE) SHARED(n,ex,ec,vxup,vxdn,vcup,vcdn,a,a1,b1,b2,b3,b4,rhoup,rhodn)
+!$OMP DO
 do i=1,n
   rup=rhoup(i); rdn=rhodn(i)
 ! total density
@@ -116,7 +118,10 @@ do i=1,n
     vcup(i)=0.d0
     vcdn(i)=0.d0
   end if
+
 end do
+!$OMP END DO
+!$OMP END PARALLEL
 return
 end subroutine
 !EOC

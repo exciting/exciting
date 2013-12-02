@@ -25,7 +25,7 @@ Subroutine getngkmax
 !BOC
       Implicit None
 ! local variables
-      Integer :: ispn, ik, i, ig
+      Integer :: ispn, ik, i, ig,ngr(3)
       Real (8) :: v1 (3), v2 (3), t1, t2
       t1 = gkmax ** 2
       ngkmax = 0
@@ -42,14 +42,30 @@ Subroutine getngkmax
                v1 (:) = vkc (:, ik)
             End If
             i = 0
-            Do ig = 1, ngvec
+            
+!            Do ig = 1, ngvec
+            t2=0d0
+            ig=0
+            do while (t2.lt.t1)
+               ig=ig+1
                v2 (:) = vgc (:, ig) + v1 (:)
                t2 = v2 (1) ** 2 + v2 (2) ** 2 + v2 (3) ** 2
-               If (t2 .Lt. t1) i = i + 1
             End Do
-            ngkmax = Max (ngkmax, i)
+            ig=ig-1
+            ngkmax = Max (ngkmax, ig)
          End Do
       End Do
+
+      ngkfft (:) = Int (gkmax*&
+        & Sqrt(input%structure%crystal%basevect(1, :)**2+&
+        & input%structure%crystal%basevect(2, :)**2+&
+        & input%structure%crystal%basevect(3, :)**2)/(2d0*pi)) + 1
+! find next largest FFT-compatible grid size
+      Call nfftifc (ngkfft(1))
+      Call nfftifc (ngkfft(2))
+      Call nfftifc (ngkfft(3))
+! total number of points in grid
+      ngktotfft=ngkfft(1)*ngkfft(2)*ngkfft(3)
       Return
 End Subroutine
 !EOC

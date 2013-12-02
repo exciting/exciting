@@ -21,6 +21,7 @@ Subroutine init1
       Use modxs
 #endif
       Use modgw
+      use modfvsystem
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
 !   variables which depend on the $k$-point set.
@@ -369,6 +370,9 @@ Subroutine init1
       Allocate (tpgkc(2, ngkmax, nspnfv, nkpt))
       If (allocated(sfacgk)) deallocate (sfacgk)
       Allocate (sfacgk(ngkmax, natmtot, nspnfv, nkpt))
+      If (allocated(igkfft)) deallocate (igkfft)
+      Allocate (igkfft(ngkmax, nkpt))
+      igkfft=0
       Do ik = 1, nkpt
          Do ispn = 1, nspnfv
             If (isspinspiral()) Then
@@ -389,7 +393,7 @@ Subroutine init1
 ! generate the G+k-vectors
             Call gengpvec (vl, vc, ngk(ispn, ik), igkig(:, ispn, ik), &
            & vgkl(:, :, ispn, ik), vgkc(:, :, ispn, ik), gkc(:, ispn, &
-           & ik), tpgkc(:, :, ispn, ik))
+           & ik), tpgkc(:, :, ispn, ik),igkfft(:,ik))
 ! generate structure factors for G+k-vectors
             Call gensfacgp (ngk(ispn, ik), vgkc(:, :, ispn, ik), &
            & ngkmax, sfacgk(:, :, ispn, ik))
@@ -586,6 +590,7 @@ Subroutine init1
 20    Continue
 #endif
 !
+      nullify(arpackinverse)
       Call timesec (ts1)
 !
       Return

@@ -28,7 +28,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
       Real (8), Save :: cputot
       Real (8) :: cpuaa, cpualo, cpulolo, cpui, cpu00, cpu01,ts0,ts1
       Integer :: i, is, ia
-      Complex (8) v(1),viens,zzero
+      Complex (8) v(1),viens
       Real (8) :: cpu0, cpu1
       Real (8) :: threshold
       Complex (8), allocatable :: apwi(:,:),zm(:,:),apwi2(:,:)
@@ -45,7 +45,6 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
       allocate(apwi(haaijSize,ngp))
       allocate(apwi2(ngp,haaijSize))
       allocate(zm(haaijSize,ngp))
-      zzero=dcmplx(0d0,0d0)
       Do is = 1, nspecies
         Do ia = 1, natoms (is)
 !--Hamiltonian--
