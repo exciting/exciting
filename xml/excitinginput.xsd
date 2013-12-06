@@ -805,11 +805,11 @@ gw.xsd
                   solver</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="ArpackDecomp" default="LDL">
+            <xs:attribute ex:importance="expert" ex:unit="" name="ArpackLinSolve" default="LDL">
               <xs:annotation>
                 <xs:documentation> 
-                    Decomposition (factorization) method in linear solve during shift-and-invert process in ARPACK.
-                    Pick either LDL, LU, LL or Diag.
+                    Linear solve method during shift-and-invert process in ARPACK.
+                    Pick either LDL, LU, LL, Diag and InvertOnce.
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
@@ -818,6 +818,7 @@ gw.xsd
                   <xs:enumeration value="LL"/>
                   <xs:enumeration value="LU"/>
                   <xs:enumeration value="Diag"/>
+                  <xs:enumeration value="InvertOnce"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>

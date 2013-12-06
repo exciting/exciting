@@ -9,6 +9,7 @@
 ! data transparently allowing to choose from different datatypes
 ! more easily
 Module modfvsystem
+    use mod_constants
     Implicit None
     !
     Type HermitianMatrix
@@ -26,11 +27,20 @@ Module modfvsystem
     Type evsystem
         Type (HermitianMatrix) :: hamilton, overlap
     End Type evsystem
+    !
+!    Type MatrixArray
+!        Type (HermitianMatrix),pointer :: matrix(:)
+!    end type
+
     integer, parameter :: LUdecomp = 1
     integer, parameter :: LDLdecomp = 2
     integer, parameter :: LLdecomp = 3 ! Cholesky decomposition
     integer, parameter :: Diagdecomp = 4 ! decomposition through diagonalization
-
+    integer, parameter :: InverseDiag = 5 ! inverse is approximated by a diagonal matrix 
+    integer, parameter :: InvertOnce = 6 ! matrix inversion is done just once, result is reused 
+!
+! (H-sigma*S)^-1 needed in ARPACK if we choose to store it
+    Type (HermitianMatrix), pointer :: arpackinverse(:)
 !
 Contains
     !
@@ -53,7 +63,7 @@ Contains
             self%zap = 0.0
           Else
             Allocate (self%ca(rank, rank))
-            self%za = 0.0
+            self%ca = 0.0
           endif
         else
           If (packed) Then
@@ -128,18 +138,49 @@ Contains
     !
     !
     Subroutine Hermitianmatrixvector (self, alpha, vin, beta, vout)
+#ifdef USEOMP
+        use omp_lib
+#endif
         Implicit None
         Type (HermitianMatrix), Intent (Inout) :: self
         Complex (8), Intent (In) :: alpha, beta
         Complex (8), Intent (Inout) :: vin (:)
         Complex (8), Intent (Inout) :: vout (:)
+        integer nthreads,whichthread,nst,nfin,bandsize,i
+        Complex (8), allocatable :: outcome(:)
         !
         If (self%packed .Eqv. .True.) Then
             Call zhpmv ("U", self%rank, alpha, self%zap, vin, 1, beta, &
             vout, 1)
         Else
-            Call zhemv ("U", self%rank, alpha, self%za, self%rank, vin, &
-            1, beta, vout, 1)
+!         call zgemv ("N", self%rank,self%rank,alpha,self%za,self%rank,vin,1,beta,vout,1)
+!         call zgemv ("N", self%rank, 5,alpha,self%za(1:self%rank,1:5),self%rank,vin(1:5),1,beta,vout(1:5),1)
+
+          
+#ifdef USEOMP
+          vout=beta*vout           
+!$OMP PARALLEL DEFAULT(NONE) PRIVATE(nthreads,whichthread,bandsize,nst,nfin,outcome) SHARED(self,alpha,vin,beta,vout)
+          allocate(outcome(self%rank))
+          nthreads=omp_get_num_threads()
+          whichthread=omp_get_thread_num()
+          bandsize=self%rank/nthreads
+          nst=1+whichthread*bandsize
+          if (whichthread+1.eq.nthreads) then
+            nfin=self%rank
+          else
+            nfin=nst+bandsize-1
+          endif
+
+          call zgemv ("N", self%rank, nfin-nst+1,alpha,self%za(1,nst),self%rank,vin(nst),1,zzero,outcome,1)
+          do i=0,nthreads-1
+           if (i.eq.whichthread) vout=vout+outcome
+!$OMP BARRIER
+          enddo
+          deallocate(outcome)
+!$OMP END PARALLEL 
+#else
+           Call zhemv ("U", self%rank, alpha, self%za, self%rank, vin, 1, beta, vout, 1)
+#endif
         End If
     End Subroutine Hermitianmatrixvector
     !
@@ -184,6 +225,80 @@ Contains
                 )
 
     end subroutine HermitianMatrixMatrix
+    !
+    !
+    Subroutine HermitianmatrixInvert (self,Method)
+        Type (HermitianMatrix) :: self
+        Integer, intent(inout) :: Method
+        integer :: lwork,info
+        complex(8), allocatable :: work(:)
+        complex(8) :: worksize
+        integer i,j
+       
+        if ( ispacked(self)) Then
+          write(*,*) 'Packed matrices are not supported'
+          stop
+        endif
+        if ( self%ludecomposed) then
+          if (self%sp) then
+            write(*,*) 'single precision not implemented yet (HermitianmatrixInvert)'
+            stop
+          else
+            select case (Method)
+            case (LUdecomp)
+              call zgetri (self%rank, &            ! matrix size
+                           self%za, &              ! matrix itself
+                           self%rank, &            ! leading dimension
+                           self%ipiv, &            ! factorization pivots
+                           worksize, &                 ! workspace
+                           -1, &                ! size of the workspace
+                           info &                  ! error message
+                          )
+              lwork=int(worksize)
+              allocate(work(lwork))
+              call zgetri (self%rank, &            ! matrix size
+                           self%za, &              ! matrix itself
+                           self%rank, &            ! leading dimension
+                           self%ipiv, &            ! factorization pivots
+                           work, &                 ! workspace
+                           lwork, &                ! size of the workspace
+                           info &                  ! error message
+                          )  
+              deallocate(work)
+            case (LDLdecomp)
+              allocate(work(self%rank))
+              call zhetri ('U', &                  ! upper or lower
+                           self%rank, &            ! matrix size
+                           self%za, &              ! matrix itself
+                           self%rank, &            ! leading dimension
+                           self%ipiv, &            ! factorization pivots
+                           work, &                 ! workspace
+                           info &                  ! error message
+                          )
+              deallocate(work)
+            case (LLdecomp)
+              call zpotri ('U', &                  ! upper or lower
+                           self%rank, &            ! matrix size
+                           self%za, &              ! matrix itself
+                           self%rank, &            ! leading dimension
+                           info &                  ! error message
+                          )
+            end select
+          endif
+        endif
+        if (info.ne.0) then
+          write(*,*) 'INFO (HermitianmatrixInvert) =', info
+          stop
+        endif
+        if ((Method.eq.LLDecomp).or.(Method.eq.LDLDecomp)) then
+! fill the lower triangle too
+          do i=2,self%rank
+            do j=1,i-1
+              self%za(i,j)=conjg(self%za(j,i))
+            enddo
+          enddo
+        endif
+    End Subroutine HermitianmatrixInvert
     !
     !
     Subroutine HermitianmatrixFactorize (self,Method)
@@ -304,6 +419,7 @@ Contains
         Complex (8), Intent (Inout) :: b (:)
         integer, Intent (In) :: method
         Integer :: info
+        Complex (8), allocatable :: outcome(:)
         if ( ispacked(self)) Then
           write(*,*) 'Packed matrices are not supported'
           stop
@@ -333,6 +449,12 @@ Contains
                          self%rank, &                       ! leading dimension
                          info &                     ! error message
                        )
+          case (InvertOnce) 
+            info=0
+            allocate(outcome(self%rank))
+            call Hermitianmatrixvector (self, zone, b, zzero, outcome)
+            b=outcome
+            deallocate(outcome)
           end select
             If (info .Ne. 0) Then
                 Write (*,*) "error in iterativearpacksecequn Hermitianmatrixlinsolve "                , info

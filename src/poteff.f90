@@ -25,7 +25,7 @@ Subroutine poteff
 ! local variables
       Integer :: is, ia, ias, ir, lm, lmmax
       real (8) :: shift
-      Real (8) :: ts0, ts1
+      Real (8) :: ts0, ts1, ta, tb
       Call timesec (ts0)
 ! compute the Coulomb potential
       Call potcoul

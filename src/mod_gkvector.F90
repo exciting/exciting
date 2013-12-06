@@ -31,5 +31,12 @@ Module mod_Gkvector
       Real (8), Allocatable :: tpgkc (:, :, :, :)
 ! structure factor for the G+k-vectors
       Complex (8), Allocatable :: sfacgk (:, :, :, :)
+! dimensions of the FFT grid for APW functions
+      Integer :: ngkfft(3)
+! number of FFT grid points
+      Integer :: ngktotfft 
+! mapping to the FFT grid
+      Integer, Allocatable :: igkfft (:,:)
+      
 End Module
 !

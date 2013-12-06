@@ -50,7 +50,7 @@ Subroutine genlofr(last_iteration)
       Real (8) :: polynom
       External polynom
 ! variables for the lo recommendation
-      Real (8) energy,energyp,tmp,tmp2,ens(0:6),elo,ehi,flo,fhi,emi,fmi
+      Real (8) energy,energyp,tmp,tmp2,ens(0:20),elo,ehi,flo,fhi,emi,fmi
       integer nodes
 
 ! The following segment is useful if you want to come up 
