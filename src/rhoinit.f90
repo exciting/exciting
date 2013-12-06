@@ -291,6 +291,7 @@ Subroutine rhoinit
 !$OMP END PARALLEL
 #else
             zfmt=z2fmt
+            deallocate(jj,z2fmt)
 #endif
             irc = 0
             Do ir = 1, nrmt (is), input%groundstate%lradstep
