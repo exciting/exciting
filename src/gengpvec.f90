@@ -50,16 +50,14 @@ Subroutine gengpvec (vpl, vpc, ngp, igpig, vgpl, vgpc, gpc, tpgpc,fftmapping)
       t2 = 0d0
       igp = 0
       ig=0
-      do while (t2.lt.t1)
-         ig=ig+1
+      Do ig = 1, ngvec
          v (:) = vgc (:, ig) + vpc (:)
          t2 = v (1) ** 2 + v (2) ** 2 + v (3) ** 2
          If (t2 .Lt. t1) Then
             igp = igp + 1
             If (igp .Gt. ngkmax) Then
                Write (*,*)
-               Write (*, '("Error(gengpvec): number of G+p-vectors exce&
-              &eds ngkmax")')
+               Write (*, '("Error(gengpvec): number of G+p-vectors exceeds ngkmax")')
                Write (*,*)
                Stop
             End If
