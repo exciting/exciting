@@ -25,6 +25,7 @@ Subroutine hartfock
       Logical :: exist
       Integer :: ik, is, ia, idm, Recl
       Real(8) :: etp, de
+      character*(77) :: string
 ! allocatable arrays
       Complex(8), Allocatable :: evecfv (:, :, :)
       Complex(8), Allocatable :: evecsv (:, :)
@@ -194,8 +195,8 @@ Subroutine hartfock
                Write (60, '("Energy convergence target achieved")')
                tlast = .True.
             End If
-            Write (65, '(G18.10)') de
-            Call flushifc (65)
+!            Write (65, '(G18.10)') de
+!            Call flushifc (65)
          End If
          etp = engytot
 ! check for STOP file
@@ -227,13 +228,11 @@ Subroutine hartfock
 ! output forces to INFO.OUT
          Call writeforce(60,input%groundstate%outputlevelnumber)
 ! write maximum force magnitude to FORCEMAX.OUT
-         Write (64, '(G18.10)') forcemax
-         Call flushifc (64)
+!         Write (64, '(G18.10)') forcemax
+!         Call flushifc (64)
       End If
-      Write (60,*)
-      Write (60, '("+-------------------------+")')
-      Write (60, '("| EXCITING Lithium stopped |")')
-      Write (60, '("+-------------------------+")')
+      write(string,'("EXCITING ", a, " stopped")') trim(versionname)
+      call printbox(60,"=",string)
 ! close the INFO.OUT file
       Close (60)
 ! close the TOTENERGY.OUT file

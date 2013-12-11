@@ -60,7 +60,7 @@ subroutine lbfgs_driver
       real(dp), allocatable  :: x(:), g(:)
       real(dp), allocatable  :: l(:), u(:), wa(:)
 !
-      real(dp)               :: v(3)
+      real(dp)               :: v(3), forcesave
       integer                :: i, j
       character(1024)        :: message
       integer, allocatable   :: amap(:,:)
@@ -72,6 +72,13 @@ subroutine lbfgs_driver
 
       if (istep+1>input%relax%maxsteps) return
 
+!______________________________________________________________________________
+! save initial configuration and forces in atposc_1 and forcetp, respecctively
+
+      atposc_1(:,:,:) = atposc(:,:,:)
+      forcetp(:,:) = forcetot(:,:)
+      forcesave = forcemax
+
       if (rank==0) then
           write(string,'("Optimization step ", I4,"    (method = bfgs)")') istep+1
           call printbox(60,"-",string)
@@ -81,7 +88,7 @@ subroutine lbfgs_driver
       call timesec(tsec1)
 
       if (input%groundstate%epsengy/input%relax%epsforce .gt. 0.020001) then
-          input%groundstate%epsengy = max(input%relax%epsforce*0.02,1.d-8)
+          input%groundstate%epsengy = max(input%relax%epsforce*0.02,1.d-9)
           if (rank==0) then
               write(60,'(" Convergence target for the total energy decreased to ",G13.6," Ha")') &
              & input%groundstate%epsengy
@@ -211,6 +218,7 @@ subroutine lbfgs_driver
 
           atposc_1(:,:,:) = atposc(:,:,:)
           forcetp(:,:) = forcetot(:,:)
+          forcesave = forcemax
 
 ! output info
 
@@ -290,6 +298,7 @@ subroutine lbfgs_driver
 
                 atposc(:,:,:) = atposc_1(:,:,:)
                 forcetot(:,:) = forcetp(:,:)
+                forcemax = forcesave
                 if (rank==0) then
                     call warning(' ')
                     call warning('Warning(lbfgs_driver):')
@@ -317,11 +326,50 @@ subroutine lbfgs_driver
       if ((ctask(1:4).eq.'CONV') .or. (ctask(1:4).eq.'ABNO') .or. (ctask(1:4).eq.'NCFG')) then
         istep = istep+1
 
-!_____________________________________________
-! reset configuration to the last accepted one
+!___________________________________________________________________________________________
+! either reset configuration to the last accepted one or 
+! accept new configuration if the forcemax il lower than the value for the last accepted one
 
-        atposc(:,:,:) = atposc_1(:,:,:)
-        forcetot(:,:) = forcetp(:,:)
+        if ( forcemax .gt. (forcesave-10*input%relax%epsforce) ) then
+          atposc(:,:,:) = atposc_1(:,:,:)
+          forcetot(:,:) = forcetp(:,:)
+          forcemax = forcesave
+        else
+          if (rank==0) then
+            if (input%relax%outputlevelnumber>1) write(60,*)
+            write(60,'(" Warning: Accepted configuration has higher energy than previous one")')
+            write(60,*)
+            write(60,'(" Number of investigated configurations",T45,": ",I9)') nconf
+            write(60,'(" Number of total scf iterations",T45,": ",I9)') nscf
+            write(60,'(" Maximum force magnitude",T36,"(target) : ",F18.8,"  (", F12.8, ")")') &
+           &  forcemax, input%relax%epsforce
+            write(60,'(" Total energy at this optimization step",T45,": ",F18.8)') engytot
+            if (input%relax%outputlevelnumber>0) then 
+              call writepositions(60,input%relax%outputlevelnumber) 
+              call writeforce(60,input%relax%outputlevelnumber)                    
+            end if
+            if (input%relax%outputlevelnumber>1) call writechg (60,input%relax%outputlevelnumber)          
+            if (input%relax%printtorque) call writetorque(60)          
+            call flushifc(60)
+            Call writehistory
+            Call writegeometryxml(.True.)
+            Call writeiad(.True.)
+            call timesec(tsec2)
+            if (rank==0) then
+              write(60,*)
+              write(60,'(" Time spent in this optimization step",T45,": ",F12.2," seconds")') tsec2-tsec1
+              call flushifc(60)
+            end if
+            if (forcemax <= input%relax%epsforce) return
+            if (rank==0) then
+              write(string,'("Optimization step ", I4,"    (method = bfgs)")') istep+1
+              call printbox(60,"-",string)
+              call flushifc(60)
+            end if
+            istep = istep+1
+          end if
+        end if
+
         if (input%relax%endbfgs.eq.'stop') then
 
           if (rank .Eq. 0) then
