@@ -32,7 +32,8 @@ subroutine fermisurf
   call olprad
 ! compute the Hamiltonian radial integrals
   call hmlint
-
+! compute "relativistic mass" on the G-grid
+  Call genmeffig
 ! begin parallel loop over reduced k-points set
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(evalfv,evecfv,evecsv)
@@ -51,7 +52,8 @@ subroutine fermisurf
   end do ! ik
 !$OMP END DO
 !$OMP END PARALLEL
-
+  if (allocated(meffig)) deallocate(meffig)
+  if (allocated(m2effig)) deallocate(m2effig)
   if (task.Eq.101) then
 !---------------------------------------------------
 ! 2D plot

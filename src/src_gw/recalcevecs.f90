@@ -78,6 +78,9 @@ subroutine recalcevecs
 ! compute the Hamiltonian radial integrals
     Call hmlint
 
+! compute "relativistic mass" on the G-grid
+      Call genmeffig
+
 ! delete any existing eigenvector files
     Call delevec
      
@@ -99,7 +102,9 @@ subroutine recalcevecs
       Deallocate(evalfv, evecfv, evecsv)
     
     End Do ! ik
-     
+
+    if (allocated(meffig)) deallocate(meffig)
+    if (allocated(m2effig)) deallocate(m2effig)
     input%groundstate%reducek=.true.
     call init1
     
