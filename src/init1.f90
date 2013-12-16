@@ -372,7 +372,7 @@ Subroutine init1
       Allocate (sfacgk(ngkmax, natmtot, nspnfv, nkpt))
 !      If (allocated(igkfft)) deallocate (igkfft)
 !      Allocate (igkfft(ngkmax, nkpt))
-      igkfft=0
+!      igkfft=0
       Do ik = 1, nkpt
          Do ispn = 1, nspnfv
             If (isspinspiral()) Then
