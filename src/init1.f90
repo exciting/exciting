@@ -370,8 +370,8 @@ Subroutine init1
       Allocate (tpgkc(2, ngkmax, nspnfv, nkpt))
       If (allocated(sfacgk)) deallocate (sfacgk)
       Allocate (sfacgk(ngkmax, natmtot, nspnfv, nkpt))
-      If (allocated(igkfft)) deallocate (igkfft)
-      Allocate (igkfft(ngkmax, nkpt))
+!      If (allocated(igkfft)) deallocate (igkfft)
+!      Allocate (igkfft(ngkmax, nkpt))
       igkfft=0
       Do ik = 1, nkpt
          Do ispn = 1, nspnfv
@@ -391,9 +391,13 @@ Subroutine init1
                vc (:) = vkc (:, ik)
             End If
 ! generate the G+k-vectors
+! commented and uncommented versions differ by igkfft(:,ik)
+!            Call gengpvec (vl, vc, ngk(ispn, ik), igkig(:, ispn, ik), &
+!           & vgkl(:, :, ispn, ik), vgkc(:, :, ispn, ik), gkc(:, ispn, &
+!           & ik), tpgkc(:, :, ispn, ik),igkfft(:,ik))
             Call gengpvec (vl, vc, ngk(ispn, ik), igkig(:, ispn, ik), &
            & vgkl(:, :, ispn, ik), vgkc(:, :, ispn, ik), gkc(:, ispn, &
-           & ik), tpgkc(:, :, ispn, ik),igkfft(:,ik))
+           & ik), tpgkc(:, :, ispn, ik))
 ! generate structure factors for G+k-vectors
             Call gensfacgp (ngk(ispn, ik), vgkc(:, :, ispn, ik), &
            & ngkmax, sfacgk(:, :, ispn, ik))
