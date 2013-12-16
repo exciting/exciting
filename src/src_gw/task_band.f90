@@ -38,7 +38,7 @@ subroutine task_band
       open(50,file='BAND-QP.OUT',action='WRITE',form='FORMATTED')
       do ib = ibgw, min(nbgw,nstsv)
         do ik = 1, nkpt
-           write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)-efermi
+           write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)
         end do !ik
         write(50,*)
       end do !ib

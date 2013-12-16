@@ -36,7 +36,6 @@ Subroutine bandstr
   Character (256) :: fname
   ! allocatable arrays
   Real (8), Allocatable :: evalfv (:, :)
-  Real (8), Allocatable :: e (:, :)
   ! low precision for band character array saves memory
   Real (4), Allocatable :: bc (:, :, :, :)
   Complex (8), Allocatable :: dmat (:, :, :, :, :)
@@ -111,8 +110,6 @@ Subroutine bandstr
      return
   end if
 
-  ! allocate array for storing the eigenvalues
-  Allocate (e(nstsv, nkpt))
   ! maximum angular momentum for band character
   lmax = Min (3, input%groundstate%lmaxapw)
   lmmax = (lmax+1) ** 2
@@ -161,13 +158,13 @@ Subroutine bandstr
         Call seceqn (ik, evalfv, evecfv, evecsv)
         Do ist = 1, nstsv
            ! subtract the Fermi energy
-           e (ist, ik) = evalsv (ist, ik) - efermi
+           evalsv (ist, ik) = evalsv (ist, ik) - efermi
            ! add scissors correction
-           If (e(ist, ik) .Gt. 0.d0) e (ist, ik) = e (ist, ik) + &
+           If (evalsv(ist, ik) .Gt. 0.d0) evalsv (ist, ik) = evalsv (ist, ik) + &
                 & input%properties%bandstructure%scissor
            !$OMP CRITICAL
-           emin = Min (emin, e(ist, ik))
-           emax = Max (emax, e(ist, ik))
+           emin = Min (emin, evalsv(ist, ik))
+           emax = Max (emax, evalsv(ist, ik))
            !$OMP END CRITICAL
         End Do
         ! compute the band characters if required
@@ -213,7 +210,7 @@ Subroutine bandstr
         If (input%properties%bandstructure%character) Then
      Call mpi_allgatherv_ifc(nkpt,lmax*natmtot*nstsv,rlpbuf=bc)
      End If
-     Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=e)
+     Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
      Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
 
@@ -241,12 +238,12 @@ Subroutine bandstr
            Do ist = 1, nstsv
               Call xml_NewElement (xf, "band")
               Do ik = 1, nkpt
-                 Write (50, '(2G18.10)') dpp1d (ik), e (ist, ik)
+                 Write (50, '(2G18.10)') dpp1d (ik), evalsv (ist, ik)
                  Call xml_NewElement (xf, "point")
                  Write (buffer, '(5G18.10)') dpp1d (ik)
                  Call xml_AddAttribute (xf, "distance", &
                       & trim(adjustl(buffer)))
-                 Write (buffer, '(5G18.10)') e (ist, ik)
+                 Write (buffer, '(5G18.10)') evalsv (ist, ik)
                  Call xml_AddAttribute (xf, "eval", &
                       & trim(adjustl(buffer)))
                  Call xml_endElement (xf, "point")
@@ -291,7 +288,7 @@ Subroutine bandstr
                        Write (buffer, '(5G18.10)') dpp1d (ik)
                        Call xml_AddAttribute (xf, "distance", &
                             & trim(adjustl(buffer)))
-                       Write (buffer, '(5G18.10)') e (ist, ik)
+                       Write (buffer, '(5G18.10)') evalsv (ist, ik)
                        Call xml_AddAttribute (xf, "eval", &
                             & trim(adjustl(buffer)))
                        Write (buffer, '(5G18.10)') sum
@@ -309,7 +306,7 @@ Subroutine bandstr
                           Call xml_endElement (xf, "bc")
                        End Do
                        Call xml_endElement (xf, "point")
-                       Write (50, '(2G18.10, 8F12.6)') dpp1d (ik), e &
+                       Write (50, '(2G18.10, 8F12.6)') dpp1d (ik), evalsv &
                             & (ist, ik), sum, (bc(l, ias, ist, ik), l=0, lmax)
                     End Do
                     Call xml_endElement (xf, "band")
@@ -355,7 +352,6 @@ Subroutine bandstr
         Write (*,*)
         Call xml_close (xf)
      End if
-     Deallocate(e)
      If (input%properties%bandstructure%character) deallocate(bc)
      Return
    End Subroutine bandstr
