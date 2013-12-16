@@ -46,24 +46,25 @@ Subroutine symrfir (ngv, rfir)
 ! loop over crystal symmetries
       Do isym = 1, nsymcrys
 ! translation in Cartesian coordinates
-         Call r3mv (input%structure%crystal%basevect, vtlsymc(:, isym), &
-        & vtc)
+         Call r3mv (input%structure%crystal%basevect, vtlsymc(:, isym), vtc)
 ! index to lattice symmetry of spatial rotation
          lspl = lsplsymc (isym)
 ! inverse rotation required for rotation of G-vectors
          ilspl = isymlat (lspl)
          sym (:, :) = symlat (:, :, ilspl)
+#ifdef USEOMP
+! This PRIVATE/SHARED partitioning assumes ig maps uniquely onto jfg.
+
+!$OMP PARALLEL DEFAULT(NONE) PRIVATE(ifg,iv,ig,jg,jfg,t1,zt1) SHARED(ngv,igfft,sym,zfft2,intgv,zfft1,ngrid,ivg,vtc,vgc,ivgig)
+!$OMP DO
+#endif
          Do ig = 1, ngv
             ifg = igfft (ig)
 ! multiply the transpose of the inverse symmetry matrix with the G-vector
-            iv (1) = sym (1, 1) * ivg (1, ig) + sym (2, 1) * ivg (2, &
-           & ig) + sym (3, 1) * ivg (3, ig)
-            iv (2) = sym (1, 2) * ivg (1, ig) + sym (2, 2) * ivg (2, &
-           & ig) + sym (3, 2) * ivg (3, ig)
-            iv (3) = sym (1, 3) * ivg (1, ig) + sym (2, 3) * ivg (2, &
-           & ig) + sym (3, 3) * ivg (3, ig)
-            iv (:) = modulo (iv(:)-intgv(:, 1), ngrid(:)) + intgv (:, &
-           & 1)
+            iv (1) = sym (1, 1) * ivg (1, ig) + sym (2, 1) * ivg (2, ig) + sym (3, 1) * ivg (3, ig)
+            iv (2) = sym (1, 2) * ivg (1, ig) + sym (2, 2) * ivg (2, ig) + sym (3, 2) * ivg (3, ig)
+            iv (3) = sym (1, 3) * ivg (1, ig) + sym (2, 3) * ivg (2, ig) + sym (3, 3) * ivg (3, ig)
+            iv (:) = modulo (iv(:)-intgv(:, 1), ngrid(:)) + intgv (:, 1)
             jg = ivgig (iv(1), iv(2), iv(3))
             jfg = igfft (jg)
 ! complex phase factor for translation
@@ -71,6 +72,10 @@ Subroutine symrfir (ngv, rfir)
             zt1 = cmplx (Cos(t1), Sin(t1), 8)
             zfft2 (jfg) = zfft2 (jfg) + zt1 * zfft1 (ifg)
          End Do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
       End Do
 ! Fourier transform to real-space and normalise
       Call zfftifc (3, ngrid, 1, zfft2)
