@@ -73,7 +73,7 @@ do k = 1, cl
              do igr = 1, gr
                 ia_gr = mod(ia,gr_atoms_no(igr)) + 1
                 ! loop over SOPs
-                do j = 1, nsymcrys
+                do j = 1, numsop
                   ja = atom_sop(gr_atoms(igr,ia_gr), j)
                 ! this is the projection operator (involving only characters of IREPs), 
                 ! working on a vector times +1 or -1 (all possibilities over groups of atoms)

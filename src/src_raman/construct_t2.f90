@@ -21,15 +21,15 @@ logical :: red(3,3), done(3,3)
 Do iop1 = 1, 3
    Do iop2 = 1, 3
       s (:, :) = 0.d0
-      Do isym = 1, nsymcrys
-         sc(:, :) = dble(symlatc(:, :, lsplsymc(isym)))
+      Do isym = 1, numsop
+         sc(:, :) = dble(sopmatc(:, :, isym))
          Do i = 1, 3
             Do j = 1, 3
                s(i, j) = s(i, j) + dble(charact(class(isym), irep)) * sc(i, iop1) * sc(j, iop2)
             End Do
          End Do
       End Do
-      symt2(iop1, iop2, :, :) = s(:, :) / dble(nsymcrys)
+      symt2(iop1, iop2, :, :) = s(:, :) / dble(numsop)
    End Do
 End Do
 !
@@ -41,7 +41,7 @@ dm(2, :) = (/ 'e_21', 'e_22', 'e_23' /)
 dm(3, :) = (/ 'e_31', 'e_32', 'e_33' /)
 dmt(:, :) = dm(:, :)
 !
-! analyse the symmetrization matrices
+! analyze the symmetrization matrices
 do iop1 = 1, 3
   do iop2 = 1, 3
     t2 = sum(abs(symt2(iop1, iop2, :, :)))

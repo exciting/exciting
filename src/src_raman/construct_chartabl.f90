@@ -18,12 +18,12 @@ use m_eigvec
 use raman_params, only : eps
 implicit none
 real(8) :: rdum1,rdum2,rdum3
-integer :: i,j,k,numsop,fi,numrep,tr,sop_1,sop_2,sop_3,lwork,info !cl
+integer :: i,j,k,fi,numrep,tr,sop_1,sop_2,sop_3,lwork,info
 integer :: i1,i2
 integer :: maxrot,maxrot_cl,minrot,minrot_cl,inv_cl,ia,ja,is, num_m, sigmah_cl
 real(8) :: transl(3,48)
 real(8) :: soprep(3,3,24)
-real(8) :: conj(3,3), tmpmat(3, 3), invmat(3, 3)!, latdet
+real(8) :: conj(3,3), tmpmat(3, 3), invmat(3, 3)
 real(8) :: E(3,3)
 real(8) :: sopmat_12(3,3),const_c(48,48,48),dim_(48)
 real(8) :: char_vec(48),char_raman(48),freq_fac_vec(48),freq_fac_raman(48),vec_one(3)
@@ -32,10 +32,9 @@ real(8) :: dirvec(3), atpos_sop(3)
 real(8), allocatable :: rwork(:),indet_u(:),atpos(:,:)
 complex(8), allocatable :: mat_phi(:,:),eigval(:),work(:)
 character(175) :: vec_sym,rot_sym,raman_sym,vib_sym
-logical :: flag(48),representative(48),grouped(100) !,raman_active(48)
-integer :: rottype(48) !iv(3)  !,class(48),elem_cl(48)
+logical :: flag(48),representative(48),grouped(100)
+integer :: rottype(48) 
 integer :: rottabl(-3:3,-1:1),rotsum(-6:6)
-!integer, allocatable :: gr_atoms(:,:),gr_atoms_no(:)   !,atom_sop(:,:)
 character(2), dimension(-6:6) :: rotchar = (/ 'S3','  ','S4','S6',' m',' i','  ',' E','C2','C3','C4','  ','C6' /)
 character(2) :: cl_rotchar(48),chnum
 logical :: centric,cubic,mix
@@ -80,6 +79,8 @@ fi = 1
 do i = 1,numsop
    ! use the index of SOPs referring to crystal symmetry
    sopmat(:, :, i) = dble( symlat(:, :, lsplsymc(i)) )
+   ! save cartesian matrices and translations (both are altered in the course of the execution)
+   sopmatc(:, :, i) = symlatc(:, :, lsplsymc(i))
    transl(:, i) = vtlsymc(:, i)
 ! check for i
    if (all(sopmat(:,:,i) .eq. -E)) fi = 2
@@ -224,13 +225,18 @@ enddo
 !
 ! (b) compute matrix \Phi = Sum_i u_i M_i
 !     with the indeterminants u_i being random numbers
+!     [-> replaced by u_i = 3/4*(3/pi)**(i-1) to obtain reproducible results]
 !     and M_i(j,k) = c_ijk
 !
 allocate( indet_u(cl) )
 allocate( mat_phi(cl,cl) )
 mat_phi = cmplx(0.0,0.0)
-call random_seed
-call random_number(indet_u)
+!call random_seed
+!call random_number(indet_u)
+indet_u(1) = 0.75
+do i = 2,cl
+   indet_u(i) = indet_u(i-1)/pi*3.
+enddo
 do i = 1,cl
  do j = 1,cl
   do k = 1,cl

@@ -12,13 +12,13 @@ logical, intent(out) :: active
 real(8) :: evec_phon_norm(3*natmtot), evec_phon_sop(3*natmtot)
 real (8) :: rotvec (3)
 integer :: ia, ja, i, j, k
-integer :: numsop
+!integer :: numsop
 real (8) :: norm_factor
 logical :: lassign
 !
 open( unit=13, file='RAMAN_SYM.OUT', status='old', action='write', position='append')
 !
-numsop = nsymcrys
+!numsop = nsymcrys
 !
 ! check given mode
 !
@@ -45,14 +45,15 @@ endif
 !
 lassign = .false.
 !
-! apply projection operators
+! apply projection operators, using characters
 do k = 1,cl
    evec_phon_sop = 0.d0
    do ia = 1,natmtot
       ! loop over SOPs
       do j = 1, numsop
         ja = atom_sop(ia, j)
-        call r3mv (symlatc(:, :, lsplsymc(j)), evec_phon((3*(ia-1)+1):(3*ia)), rotvec(:))
+!       call r3mv (symlatc(:, :, lsplsymc(j)), evec_phon((3*(ia-1)+1):(3*ia)), rotvec(:))
+        call r3mv (sopmatc(:, :, j), evec_phon((3*(ia-1)+1):(3*ia)), rotvec(:))
         evec_phon_sop((3*(ja-1)+1):(3*ja)) = evec_phon_sop((3*(ja-1)+1):(3*ja)) &
  &       + dble(charact(class(j),k))*rotvec(:)
       enddo
@@ -66,6 +67,7 @@ do k = 1,cl
    if (norm_factor .gt. eps) evec_phon_sop = evec_phon_sop / sqrt(norm_factor)
    if (all(abs(evec_phon_sop(:)-evec_phon_norm(:)) .lt. eps) .or. &
  &     all(abs(evec_phon_sop(:)+evec_phon_norm(:)) .lt. eps)) then
+      ! the projected vector equals the original one
       lassign = .true.
       active = raman_active(k)
       irep = k

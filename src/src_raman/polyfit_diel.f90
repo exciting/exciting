@@ -56,7 +56,7 @@ enddo
 deq = zzero; d2eq = zzero; d3eq = zzero; d4eq = zzero; d5eq = zzero; d6eq = zzero
 !
 Do oct1 = 1, 3
-   Do oct2 = oct1, 3
+   Do oct2 = 1, 3
       if (oct1 .ne. oct2 .and. .not.offdiag) cycle
       write(66,'(/,"  Fitting to data for optical component ",a2,/)') comp(oct1, oct2)
 !   interpolate for rlas

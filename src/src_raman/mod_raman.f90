@@ -115,10 +115,14 @@ end module raman_input
 ! Raman relevant symmetry variables
 module raman_symmetry
 use raman_params
-! rotational parts of SOPs, real
+! number of crystal SOPs, for equilibirum geometry
+integer :: numsop
+! rotational parts of crystal SOPs, real, for equilibirum geometry
 real(8) :: sopmat(3, 3, 48)
+! rotational parts of crystal SOPs, cartesian, for equilibirum geometry
+real(8) :: sopmatc(3, 3, 48)
 ! character table
-! note that due to the diagonalization the eigenvector representig IREP i is in column i, instead of in row i
+! note that due to the diagonalization the eigenvector representing IREP i is in column i, instead of in row i
 complex (8),allocatable :: charact(:,:)
 ! number of classes
 integer :: cl
@@ -134,7 +138,7 @@ integer :: vib_ireps(48)
 integer, allocatable :: atom_sop(:, :)
 ! name of IREPs
 character(4) :: irep_ch(48)
-! is construction of symmetry vectors meaninful?
+! is construction of symmetry vectors meaningful?
 logical :: sym_out
 ! number of group of atoms that mix by SOPs
 integer :: gr

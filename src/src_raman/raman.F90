@@ -25,6 +25,9 @@ use m_genfilname
 #ifdef IFORT
   use ifport
 #endif
+#ifdef MPI
+  use modmpi
+#endif
 !
 implicit none
 integer :: maxp,it,ntp
@@ -242,6 +245,8 @@ Select Case (input%properties%raman%getphonon)
       enddo
       Write(99, *)
       call flushifc(99)
+      ! reset file extension to default
+      filext = '.OUT'
    Case ('fromfile')
    ! read in the dynamical matrix from files
       write(99,'("Info(Raman): Reading dynamical matrix from files.",/)')
@@ -276,7 +281,6 @@ Select Case (input%properties%raman%getphonon)
       call construct_symvec(ev)
       do imode = 1, 3*natmtot
          Write(99, '(/," Mode ",i3)') imode
-         write(99, '(" Eigenvalue: ",f15.5," cm^-1",/)') w(imode)*fhawn
          Write(99, '("      Atom   Polarization    Eigenvector")')
          do iat = 1, natmtot
             do i = 1, 3
@@ -342,7 +346,8 @@ start_time_wall = finish_time_wall
 
 !
 ! check presence of optical components from input
-if (input%xs%xstype .eq. 'TDDFT' .and. input%xs%dfoffdiag) then
+!if (input%xs%xstype .eq. 'TDDFT' .and. input%xs%dfoffdiag) then
+if (input%xs%dfoffdiag) then
    offdiag = .true.
 else
    offdiag = .false.
@@ -371,7 +376,10 @@ do imode = 1, nmode
    write(*,*) 'mode ',ev(:, imode)
 ! check for acoustic modes
    call check_acoustic(dble(ev(:, imode)), acoustic(imode))
-   if (acoustic(imode)) cycle
+   if (acoustic(imode)) then
+      write(99, '(/,"Info(Raman): Acoustic mode",//)')
+      cycle
+   endif
 ! check mode if Raman active by symmetry
    call check_raman (dble(ev(:, imode)), irep(imode), active(imode))
    if (.not. active(imode)) then
@@ -621,19 +629,22 @@ do imode = 1, nmode
                Enddo
             Enddo
          else ! it is BSE
-            Do oct = 1, 3
-               Call genfilname (basename='EPSILON', tq0=.True., oc1=oct, &
-              & oc2=oct, bsetype=input%xs%bse%bsetype, &
+           Do oct1 = 1, 3
+            Do oct2 = 1, 3
+             if (oct1 .ne. oct2 .and. .not. offdiag) cycle
+               Call genfilname (basename='EPSILON', tq0=.True., oc1=oct1, &
+              & oc2=oct2, bsetype=input%xs%bse%bsetype, &
               & scrtype=input%xs%screening%screentype, nar= .Not. &
               & input%xs%bse%aresbse, filnam=fneps)
-               call raman_readeps (imode, istep + i_shift, oct, oct, fneps)
-               call raman_writeeps (imode, istep + i_shift, oct, oct, comp(oct,oct), raman_filext)
+               call raman_readeps (imode, istep + i_shift, oct1, oct2, fneps)
+               call raman_writeeps (imode, istep + i_shift, oct1, oct2, comp(oct1,oct2), raman_filext)
                if (input%properties%raman%molecule) then
                ! use molecular polarizability instead
                ! df contains (electronic) polarizability of the molecule in Bohr^3 molecule^-1
-                  df(imode, istep+i_shift, oct, oct, :) = omega*(df(imode, istep+i_shift, oct, oct, :)-zone)/4.d0/pi
+                  df(imode, istep+i_shift, oct1, oct2, :) = omega*(df(imode, istep+i_shift, oct1, oct2, :)-zone)/4.d0/pi
                endif
-            Enddo
+            enddo
+           Enddo
          endif
 ! copy relevant files
 !        call copyxsfiles
@@ -723,19 +734,27 @@ do imode = 1, nmode
       write(66,'(/," Number of unit cells: ",2x,i8,5x," Volume of unit cell [ Bohr^3 ]: ",f16.8)')  ncell, omega
       write(66,'(  "                                                             [ cm^3 ]: ",g16.8)') omega*fau3cm3
       write(66,'(" Laser energy [ cm-1 ]: ",10x,f12.2)') fhawn*rlas
-      do oct1 = 1, 3
-         Do oct2 = 1, 3
-            if (oct1 .ne. oct2 .and. .not. offdiag) cycle
-            write(66,'(/," Derivatives of the dielectric function for optical component ",a2,/,&
-     &                   "Der",11x,"Re",15x,"Im",/,6(i3,f17.3,f17.3,/))') &
-     &                   comp(oct1, oct2),1, deq(oct1, oct2),&
-     &                                    2,d2eq(oct1, oct2),&
-     &                                    3,d3eq(oct1, oct2),&
-     &                                    4,d4eq(oct1, oct2),&
-     &                                    5,d5eq(oct1, oct2),&
-                                          6,d6eq(oct1, oct2)
-         enddo
-      enddo
+      write(66,'(/," Derivatives of the dielectric function: ",/, &
+       &           " Re                                         Im")')
+      write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+       &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+       &           "  ( ",3f12.3," )       ( ",3f12.3," ) ")') &
+       &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
+       &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
+       &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
+!     do oct1 = 1, 3
+!        Do oct2 = 1, 3
+!           if (oct1 .ne. oct2 .and. .not. offdiag) cycle
+!           write(66,'(/," Derivative of the dielectric function for optical component ",a2,/,&
+!    &                   "Der",11x,"Re",15x,"Im",/,6(i3,f17.3,f17.3,/))') &
+!    &                   comp(oct1, oct2),1, deq(oct1, oct2) !,&
+!    &                                    2,d2eq(oct1, oct2),&
+!    &                                    3,d3eq(oct1, oct2),&
+!    &                                    4,d4eq(oct1, oct2),&
+!    &                                    5,d5eq(oct1, oct2),&
+!                                         6,d6eq(oct1, oct2)
+!        enddo
+!     enddo
       write(66, '(/," Include local field effects for dielectric function : ",l1)') .not.nlf
       write(66, '(/," Broadening [ cm-1 ] : ",4f7.2)') gamma1,gamma2,gamma3,gamma4
 !
@@ -788,19 +807,29 @@ do imode = 1, nmode
       write(66,'(/,37("*"),"  Phonon potential shifted into minimum  ",38("*"),/)')
       write(66,'(/" Potential  coefficients:    ",7f11.5)') a0,a1,a2,a3,a4,a5,a6
       write(66,'(/" x between ",f7.4," and ",f7.4,"  Bohr")') xmin_r,xmax_r
-      do oct1 = 1, 3
-         Do oct2 = 1, 3
-            if (oct1 .ne. oct2 .and. .not. offdiag) cycle
-            write(66,'(/," Derivatives of the dielectric function for optical component ",a2,/,&
-     &                   "Der",11x,"Re",15x,"Im",/,6(i3,f17.3,f17.3,/))') &
-     &                   comp(oct1, oct2),1, deq(oct1, oct2),&
-     &                                    2,d2eq(oct1, oct2),&
-     &                                    3,d3eq(oct1, oct2),&
-     &                                    4,d4eq(oct1, oct2),&
-     &                                    5,d5eq(oct1, oct2),&
-                                          6,d6eq(oct1, oct2)
-         enddo
-      enddo
+
+      write(66,'(/," Derivatives of the dielectric function: ",/, &
+       &           " Re                                         Im")')
+      write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+       &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+       &           "  ( ",3f12.3," )       ( ",3f12.3," ) ")') &
+       &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
+       &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
+       &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
+
+!     do oct1 = 1, 3
+!        Do oct2 = 1, 3
+!           if (oct1 .ne. oct2 .and. .not. offdiag) cycle
+!           write(66,'(/," Derivative of the dielectric function for optical component ",a2,/,&
+!    &                   "Der",11x,"Re",15x,"Im",/,6(i3,f17.3,f17.3,/))') &
+!    &                   comp(oct1, oct2),1, deq(oct1, oct2)  !,&
+!    &                                    2,d2eq(oct1, oct2),&
+!    &                                    3,d3eq(oct1, oct2),&
+!    &                                    4,d4eq(oct1, oct2),&
+!    &                                    5,d5eq(oct1, oct2),&
+!                                         6,d6eq(oct1, oct2)
+!        enddo
+!     enddo
 
 !
 !    determine coefficients for N cells
