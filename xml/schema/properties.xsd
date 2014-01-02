@@ -637,10 +637,7 @@
                     </xs:complexType>
                 </xs:element>
 
-        <xs:element ex:importance="expert" ex:unit="" name="moke" maxOccurs="1">
-=======
         <xs:element ex:importance="expert" ex:unit="" name="moke" minOccurs="0" maxOccurs="1">
->>>>>>> 25e1269d219fd80f2a742ce803d39ea34f4afc95
           <xs:complexType>
 
             <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="true">
