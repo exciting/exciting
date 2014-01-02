@@ -14,7 +14,7 @@ Subroutine writechg (fnum,verbosity)
       Integer, Intent (In) :: fnum
       integer, intent(in) :: verbosity
 ! local variables
-      Integer :: is, ia, ias
+      Integer :: is, ia, ias, i
       character*(77) :: string
 
 !_______________
@@ -25,6 +25,7 @@ Subroutine writechg (fnum,verbosity)
           return
       end if 
 
+      i = 0
       Write (fnum,*)
       Write (fnum, '(" Electron charges :")')
       Write (fnum, '("     core", T45, ": ", F18.8)') chgcr
@@ -35,16 +36,14 @@ Subroutine writechg (fnum,verbosity)
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
+            i = i+1
             write(fnum,'("                  atom ",I5,4x,A2,T45,": ",F18.8)') &
-           &  ia, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
-           &  chgmt (ias)
+           &  i, trim(input%structure%speciesarray(is)%species%chemicalSymbol), chgmt (ias)
          End Do
       End Do
-      Write (fnum, '("     total charge in muffin-tins", T45, ": ", F18.8)') &
-     & chgmttot
+      Write (fnum, '("     total charge in muffin-tins", T45, ": ", F18.8)') chgmttot
       If (input%groundstate%chgexs .Ne. 0.d0) Then
-         Write (fnum, '("     excess charge", T45, ": ", F18.8)') &
-        & input%groundstate%chgexs
+         Write (fnum, '("     excess charge", T45, ": ", F18.8)') input%groundstate%chgexs
       End If
       Write (fnum, '("     total charge", T45, ": ", F18.8)') chgcalc
 
@@ -52,24 +51,37 @@ Subroutine writechg (fnum,verbosity)
 ! output moments
 
       If (associated(input%groundstate%spin)) Then
+         i = 0
          Write (fnum,*)
          Write (fnum, '(" Moments :")')
-         Write (fnum, '("     interstitial", T28, ": ", 3F16.8)') momir &
-        & (1:ndmag)
-         Write (fnum, '("     muffin-tins")')
-         Do is = 1, nspecies
-            Write (fnum, '("     species : ", I4, " (", A, ")")') is, trim &
-           & (input%structure%speciesarray(is)%species%chemicalSymbol)
-            Do ia = 1, natoms (is)
-               ias = idxas (ia, is)
-               Write (fnum, '("     atom ", I4, T28, ": ", 3F16.8)') ia, &
-              & mommt (1:ndmag, ias)
-            End Do
-         End Do
-         Write (fnum, '("     total in muffin-tins", T28, ": ", 3F16.8)') &
-        & mommttot (1:ndmag)
-         Write (fnum, '("     total moment", T28, ": ", 3F16.8)') momtot &
-        & (1:ndmag)
+         if (ndmag==1) then
+            Write (fnum, '("     interstitial", T45, ": ", F18.8)') momir (1:ndmag)
+            Write (fnum, '("     moment in muffin-tin spheres :")')
+            do is = 1, nspecies
+               do ia = 1, natoms (is)
+                  ias = idxas (ia, is)
+                  i = i+1
+                  write(fnum,'("                  atom ",I5,4x,A2,T45,": ",F18.8)') &
+                 &  i, trim(input%structure%speciesarray(is)%species%chemicalSymbol), mommt(1:ndmag, ias)
+               end do
+            end do
+            Write (fnum, '("     total moment in muffin-tins", T45, ": ", F18.8)') mommttot (1:ndmag)
+            Write (fnum, '("     total moment", T45, ": ", F18.8)') momtot (1:ndmag)
+         else
+            Write (fnum, '("     interstitial", T35, ":", 3F15.8)') momir (1:ndmag)
+            Write (fnum, '("     moment in muffin-tin spheres :")')
+            do is = 1, nspecies
+               do ia = 1, natoms (is)
+                  ias = idxas (ia, is)
+                  i = i+1
+                  write(fnum,'("         atom ",I5,4x,A2,T35,":",3F15.8)') &
+                 &  i, trim(input%structure%speciesarray(is)%species%chemicalSymbol), mommt(1:ndmag, ias)
+               end do
+            end do
+            Write (fnum, '("     total moment in muffin-tins", T35, ":", 3F15.8)') mommttot (1:ndmag)
+            Write (fnum, '("     total moment", T35, ":", 3F15.8)') momtot (1:ndmag)
+         end if
+
       End If
 
       call flushifc(fnum)

@@ -13,9 +13,12 @@ for dirn in $label ; do
     mv ../WARNINGS.OUT .
     mv ../info.xml .
     mv ../geometry.xml .
-    mv -f ../geometry_opt.xml .
+    if [ -f ../geometry_opt.xml ]; then mv ../geometry_opt.xml . ; fi
     cd ../
-    ls -l | grep ^- | awk '{print $9}' | xargs rm
+    eta=$(ls -l | grep ^- | wc -l)
+    if [ $eta != '0' ]; then 
+       ls -l | grep ^- | awk '{print $9}' | xargs rm
+    fi
     mv tmp/* .
     rm -r tmp
     cd ../

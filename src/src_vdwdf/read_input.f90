@@ -7,6 +7,9 @@ subroutine read_input()
   use param
   implicit none
   integer :: i, iostat
+  
+  write(*,*)
+  write(*,*) '**********************  noloco  **********************' 
     
 ! Reading of integration parameters
   read(*,*)
@@ -15,21 +18,33 @@ subroutine read_input()
   i=index(phifile,' ')
   phifile=trim(phifile(1:i))//'/kernel.dat'
   call read_phi()
+  write(* ,'(a,a)')     '   vdW-DF kernel file            : ', trim(phifile)
   
   read(*,*) vdWDF_version
+  write(* ,'(a,a)')     '   vdW-DF type                   : ', vdWDF_version
+
   read(*,*) nrx,nry,nrz
+  write(*,'(a,i2,2x,i2,2x,i2)')&
+          '   supercell size                : ', nrx,nry,nrz  
+  
   read(*,*) epsrel
+  write(* ,'(a,D12.3)') '   relative integration accuracy : ', epsrel
+  
   read(*,*) epsabs
+  write(* ,'(a,D12.3)') '   absolute integration accuracy : ', epsabs
+  write(*,*)
+  
   read(*,*) key1  
   read(*,*) maxeval
+
 ! Reading name of the density file
   read(*,*); read(*,*)
   read(*,*) densunits
   read(*,'(a)') xsffile
-
   xsffile=adjustl(xsffile)
   i=index(xsffile,' ')
   xsffile=xsffile(1:i)
+  write(* ,'(a,a)')     '   Density file                  : ', trim(xsffile)
   call read_densities()
 
 ! Reading name of the gradient density file (optional)
@@ -41,20 +56,9 @@ subroutine read_input()
   else
       xsfgradients=''
   end if
-  call read_gradients()
-  
-  write(*,*)
-  write(*,*) '**********************  noloco  **********************' 
-  write(* ,'(a,a)')     '   vdW-DF kernel file            : ', trim(phifile)
-  write(* ,'(a,a)')     '   vdW-DF type                   : ', vdWDF_version
-  write(*,'(a,i2,2x,i2,2x,i2)')&
-                        '   supercell size                : ', nrx,nry,nrz
-  write(* ,'(a,D12.3)') '   relative integration accuracy : ', epsrel
-  write(* ,'(a,D12.3)') '   absolute integration accuracy : ', epsabs
-  write(*,*)
-  write(* ,'(a,a)')     '   Density file                  : ', trim(xsffile)
   if (LEN_TRIM(xsfgradients)>0) then
     write(* ,'(a,a)')     '   Density gradients file        : ', trim(xsfgradients)
   end if
+  call read_gradients()
 
 end subroutine read_input

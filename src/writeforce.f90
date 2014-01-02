@@ -7,24 +7,58 @@ subroutine writeforce(fnum,verbosity)
     integer, intent(in) :: fnum
     integer, intent(in) :: verbosity
 ! local variables
-    integer :: is, ia, ias, i
+    integer :: is, ia, ias, i, j
+    logical :: totlock
+    character*3 :: clabel(3)
     
     if (verbosity < 1) return
 
-    i=0
+    totlock = .False.
+    if ( associated(input%relax) ) then 
+        do is = 1, nspecies
+            do ia = 1, natoms (is)
+                do i = 1, 3
+                    if (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) then
+                        totlock = .True.
+                        go to 10
+                    end if
+                end do
+            end do
+        end do
+    end if
+
+10  i=0
     write(fnum,*)
     if (input%groundstate%tfibs) then
-        write(fnum,'(" Total atomic forces including IBS (cartesian) :")')
+        if (totlock) then
+           write(fnum,'(" Total atomic forces including IBS (cartesian) + constraints (cartesian) :")')
+        else
+           write(fnum,'(" Total atomic forces including IBS (cartesian) :")')
+        end if
     else
-        write(fnum,'(" Total atomic forces (cartesian) :")')
+        if (totlock) then
+           write(fnum,'(" Total atomic forces (cartesian) + constraints (cartesian) :")')
+        else
+           write(fnum,'(" Total atomic forces (cartesian) :")')
+        end if
     end if 
     do is = 1, nspecies
         do ia = 1, natoms (is)
             ias = idxas (ia, is)
             i=i+1
-            write(fnum,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
-           &  i, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
-           &  forcetot(:,ias)
+            if (totlock) then
+                do j = 1, 3
+                    clabel(j) = "F"
+                    if (input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(j)) clabel(j) = "T"
+                end do
+                write(fnum,'(" atom ",I5,2x,A2,T18,": ",3F14.8,3x,3A3)') &
+               &  i, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+               &  forcetot(:,ias), clabel(:)
+            else
+                write(fnum,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
+               &  i, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+               &  forcetot(:,ias)
+            end if
         end do
     end do
 

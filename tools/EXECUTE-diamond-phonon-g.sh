@@ -35,6 +35,7 @@ echo "===> Output directory is \""$WORKDIR"\" <==="
 echo
 #-------------------------------------------------------------------------------
 echo $EXECUTABLE > $CURRENT/$WORKDIR/exciting
+cp $CURRENT/input.xml $CURRENT/$WORKDIR/source.xml
 #
 OUTE=$CURRENT/$WORKDIR/energy-vs-displacement
 OUTF=$CURRENT/$WORKDIR/force-vs-displacement
@@ -72,11 +73,10 @@ for input in $input_list ; do
 #
     awk -v eta="$uuu" \
         '/Total energy    / {printf "%11.8f   %20.10f\n",eta,$4}' $tot | tail -n1>>$OUTE
-#
-#    grep -A12 "Forces :" INFO.OUT | tail -n1 >> dumforce
-#    awk -v eta="$uuu" \
-#        '/ / {printf "%11.8f   %20.10f\n",eta,$4}' dumforce | tail -n1>>$OUTF   
-#    rm -f dumforce
+    grep -A2 "Total atomic forces" $tot | tail -n1 > dumforce
+    awk -v eta="$uuu" \
+        '/  / {printf "%11.8f   %20.10f\n",eta,$5}' dumforce | tail -n1>>$OUTF     
+    rm -f dumforce
 #
     cd ../
 #

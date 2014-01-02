@@ -104,12 +104,6 @@ Subroutine init0
 !     index to atoms and species     !
 !------------------------------------!
 
-! GB 3.10.2012 
-      If (input%structure%cartesian) Then
-         input%structure%primcell = .True.
-         input%structure%tshift = .False.
-      End If
-
 ! find primitive cell if required
       If (input%structure%primcell) Call findprim
       natmmax = 0
@@ -234,8 +228,6 @@ Subroutine init0
 ! determine atomic Cartesian coordinates
             Call r3mv (input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
            & atposc(:, ia, is))
-! set initial atomic position in cartesian coordinates
-             atposcp(:, ia, is) = atposc(:, ia, is)
 ! lattice coordinates of the muffin-tin magnetic fields
             Call r3mv (ainv, input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:), bflmt(:, ia, is))
          End Do
@@ -446,20 +438,24 @@ Subroutine init0
       Allocate (forcecr(3, natmtot))
       If (allocated(forceibs)) deallocate (forceibs)
       Allocate (forceibs(3, natmtot))
-      If (allocated(forcetot)) deallocate (forcetot)
-      Allocate (forcetot(3, natmtot))
-      If (allocated(forcetp)) deallocate (forcetp)
-      Allocate (forcetp(3, natmtot))
-      If (allocated(tauatm)) deallocate (tauatm)
-      Allocate (tauatm(natmtot))
+!      If (allocated(forcetot)) deallocate (forcetot)
+!      Allocate (forcetot(3, natmtot))
+!      If (allocated(forcetp)) deallocate (forcetp)
+!      Allocate (forcetp(3, natmtot))
+!      If (allocated(tauatm)) deallocate (tauatm)
+!      Allocate (tauatm(natmtot))
+!      If (allocated(tauxyz)) deallocate (tauxyz)
+!      Allocate (tauxyz(3, natmtot))
 ! initialise the previous force
-      forcetp (:, :) = 0.d0
+!      forcetp (:, :) = 0.d0
 ! initial step sizes
-      If (associated(input%relax)) Then
-         tauatm (:) = input%relax%tau0atm
-      Else
-         tauatm (:) = 0
-      End If
+!      If (associated(input%relax)) Then
+!         tauatm (:) = input%relax%taunewton
+!         tauxyz (:, :) = input%relax%taunewton
+!      Else
+!         tauatm (:) = 0
+!         tauxyz (:, :) = 0
+!      End If
 !
 !-------------------------!
 !     LDA+U variables     !

@@ -25,9 +25,12 @@ subroutine scf_cycle(verbosity)
     Logical :: force_converged, tibs, exist
     Integer :: ik, is, ia, idm
     Integer :: n, nwork
-    Real(8), Allocatable :: v(:)
+    Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0
-    character*(77) :: string
+    character*(77) :: string, acoord
+
+    acoord = "lattice"
+    if (input%structure%cartesian) acoord = "cartesian"
 
     If ((verbosity>-1).and.(rank==0)) Then
         write(string,'("Self-consistent loop started")')
@@ -414,7 +417,7 @@ subroutine scf_cycle(verbosity)
 ! output energy components
             call writeengy(60)
             if (verbosity>0) Write (60,*)
-            Write (60, '(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F22.12)') fermidos
+            Write (60, '(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
 ! write DOS at Fermi energy to FERMIDOS.OUT and flush
 !            Write (62, '(G18.10)') fermidos
 !            Call flushifc (62)
@@ -461,22 +464,28 @@ subroutine scf_cycle(verbosity)
 
 ! update convergence criteria
         deltae=abs(et-engytot)
+        et = engytot
         dforcemax=abs(fm-forcemax)
 
 !! TIME - Fourth IO segment
         Call timesec(ts0)
 
+! output the current total time
+
+        timetot = timeinit+timemat+timefv+timesv+timerho+timepot+timefor+timeio+timemt+timemixer
+        if ((verbosity>-1).and.(rank==0)) then
+            write(60,*) 
+            write(60, '(" Wall time (seconds)                        : ", F12.2)') timetot
+        end if
+
+        if (rank==0) then ! write TOTENERGY.OUT 
+            Write (61, '(G22.12)') engytot
+            Call flushifc (61)
+        end if
+
 ! check for convergence
         If (iscl .Ge. 2) Then
 
-! output the current total time
-            timetot = timeinit + timemat + timefv + timesv + timerho &
-           &        + timepot + timefor+timeio+timemt+timemixer
-            
-            if ((verbosity>-1).and.(rank==0)) then
-                write(60,*)
-                write(60, '(" Wall time (seconds)                        : ", F12.2)') timetot
-            end if
             if ((verbosity>-1).and.(rank==0).and.(input%groundstate%scfconv.eq.'energy')) then
                 write(60,*)
                 write(60,'(" Absolute change in total energy   (target) : ",G13.6,"  (",G13.6,")")') &
@@ -490,29 +499,14 @@ subroutine scf_cycle(verbosity)
                 write(60,'(" Absolute change in total energy   (target) : ",G13.6,"  (",G13.6,")")') &
                &    deltae, input%groundstate%epsengy
                 write(60,'(" Charge distance                   (target) : ",G13.6,"  (",G13.6,")")') &
-                &   chgdst, input%groundstate%epschg
-!                if (input%groundstate%tforce) then
-!                   write(60,'(" Absolute change in |max. force|   (target) : ",G13.6,"  (",G13.6,")")') &
-!                   &    dforcemax, input%groundstate%epsforce
-!                end if
-!                write(66,'(G18.10)') deltae
-!                call flushifc(66)
-!                if (input%groundstate%tforce) then
-!                    write(67,'(G18.10)') dforcemax
-!                    call flushifc(67)
-!                end if
-!                write(68,'(G18.10)') chgdst
-!                call flushifc(68)
-
+               &    chgdst, input%groundstate%epschg
                 if ((input%groundstate%xctypenumber .Lt. 0).Or.(xctype(2) .Ge. 400).Or.(xctype(1) .Ge. 400)) then
                     write(60,*)
                     write(60, '(" Magnitude of OEP residual : ", F16.8)') resoep
                 end if
             end if
 
-            if (rank==0) then ! write TOTOENERGY.OUT and RMSDVEFF.OUT 
-                Write (61, '(G22.12)') engytot
-                Call flushifc (61)
+            if (rank==0) then ! write RMSDVEFF.OUT 
                 Write (65, '(G18.10)') currentconvergence
                 Call flushifc(65)
             end if
@@ -523,8 +517,7 @@ subroutine scf_cycle(verbosity)
             If ((input%groundstate%scfconv.eq.'multiple').and. &
            &    (currentconvergence .Lt. input%groundstate%epspot).and. &
            &    (deltae .lt. input%groundstate%epsengy).and. &
-           &    (chgdst .lt. input%groundstate%epschg).and. &
-           &    (dforcemax .lt. input%groundstate%epsforce)) Then
+           &    (chgdst .lt. input%groundstate%epschg)) Then
                 tlast = .True.
             End If
 
@@ -576,18 +569,34 @@ subroutine scf_cycle(verbosity)
 ! compute forces
     If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
         Call force
+#ifdef MPI
+! For whatever reason each MPI process may produce very slightly different forces.
+! At this spot, we equalise them, so that we do not end up with a different geometry 
+! for every process.
+        allocate(forcesum(3,natmtot))
+        call MPI_ALLREDUCE(forcetot, forcesum, natmtot*3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+        forcetot(1:3,1:natmtot)=forcesum(1:3,1:natmtot)/dble(procs)
+        deallocate(forcesum)
+#endif
+
 ! output forces to INFO.OUT        
         if ((verbosity>-1).and.(rank==0)) then
            call printbox(60,"-","Writing atomic positions and forces")
            idm = 0
            write(60,*)
-           write(60,'(" Atomic positions (lattice) :")')
+           write(60,'(" Atomic positions (",A,") :")') trim(acoord)
            do is = 1, nspecies
                do ia = 1, natoms (is)
                    idm = idm+1
-                   write(60,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
-                  &  idm, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
-                  &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+                   if (input%structure%cartesian) then  
+                       write(60,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
+                      &  idm, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+                      &  atposc(:,ia,is)
+                   else
+                       write(60,'(" atom ",I5,2x,A2,T18,": ",3F14.8)') &
+                      &  idm, trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+                      &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+                   end if
                end do
            end do
            call writeforce(60,2)
@@ -614,9 +623,10 @@ subroutine scf_cycle(verbosity)
     End If
 
     If (rank==0) Then
-! add blank line to RMSDVEFF.OUT and TOTENERGY.OUT
+! write last total energy and add blank line to RMSDVEFF.OUT and TOTENERGY.OUT
       Write (65,*)
       Call flushifc(65)
+      Write (61, '(G22.12)') engytot
       Write (61,*)
       Call flushifc(61)
     End If

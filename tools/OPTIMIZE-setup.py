@@ -220,7 +220,9 @@ root = doc.getroot()
 #%%%--- Reading the scale, stretch, and base vectors from the input file and calculate the volume ---%%%%%%%%%%%%%%%%%%
 scale = map(float,doc.xpath('/input/structure/crystal/@scale'))
 if (scale==[]):
-    sys.exit('\n     ... Oops ERROR: There is NO scale in '+ INF +' file !?!?!?    \n')
+    ascale=1.
+else:
+    ascale=scale[0]
 
 stretchstr = doc.xpath('/input/structure/crystal/@stretch')
 if (stretchstr==[]):
@@ -235,7 +237,7 @@ for basevect in basevectsn:
 
 M_old= np.array(bv)
 D    = np.linalg.det(M_old)
-V0   = abs(stretch[0]*stretch[1]*stretch[2]*scale[0]**3*D)
+V0   = abs(stretch[0]*stretch[1]*stretch[2]*ascale**3*D)
 #----------------------------------------------------------------------------------------------------------------------
 
 #%%%--- Directory management ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

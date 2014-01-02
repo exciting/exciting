@@ -28,8 +28,9 @@ Module mod_force
 ! maximum force magnitude over all atoms
       Real (8) :: forcemax
 ! default step size parameter for structural optimisation
-!replaced by inputstructurereal(8)::tau0atm
+!replaced by inputstructurereal(8)::taunewton
 ! step size parameters for each atom
       Real (8), Allocatable :: tauatm (:)
+      Real (8), Allocatable :: tauxyz (:, :)
 End Module
 !

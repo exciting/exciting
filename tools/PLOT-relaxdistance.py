@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
+from   lxml  import etree
 from   sys   import stdin
 from   math  import sqrt
 from   math  import factorial
@@ -22,11 +23,15 @@ def shell_value(variable,vlist,default):
     for i in range(len(vlist)):
         if ( vlist[i] == variable ): v = os.environ[variable] ; e = True ; break
     return v, e
-
+    
 #-------------------------------------------------------------------------------
-
-xlabel  = u'Optimization steps'
-ylabel  = r'Relative coordinate [crystal]'
+    
+def flen(fname):
+    i = -1
+    with open(fname) as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1
 
 #-------------------------------------------------------------------------------
 
@@ -48,6 +53,41 @@ if (narg < 1):
     sys.exit()
 
 label = str(sys.argv[1])
+
+#-------------------------------------------------------------------------------
+
+if (str(os.path.exists(current+'/'+rlabel+label+'/input.xml'))=='False'): 
+    sys.exit("ERROR: Input file "+current+"/"+rlabel+label+"/input.xml not found!\n")
+
+acoord = "lattice"
+cell = []
+for i in range(3): cell.append(1.) 
+
+input_obj = open(current+"/"+rlabel+label+"/input.xml","r")
+input_doc = etree.parse(input_obj)
+input_rut = input_doc.getroot()
+ 
+xml_cartesian = map(str,input_doc.xpath('/input/structure/@cartesian'))
+if (xml_cartesian == []):
+    acoord = "lattice"
+else:
+    if (xml_cartesian[0] == "true"): 
+        acoord = "cartesian"   
+        lst_basevect = input_doc.xpath('//basevect/text()')
+        xml_basevect = []
+        for ind_basevect in lst_basevect: xml_basevect.append(map(float,ind_basevect.split()))
+        axis_matrix = numpy.array(xml_basevect)        
+        cell = []
+        for i in range(3): cell.append(axis_matrix[i][i])
+        count = False
+        for i in range(3):
+	    for j in range(3):
+                if (i!=j):
+		    if ( abs(axis_matrix[i][j]) > 0.00000001): count = True
+        if (count): sys.exit("\n"+"ERROR: Lattice type non implemented!\n")
+        
+xlabel  = u'Optimization steps'
+ylabel  = r'Relative coordinate ('+acoord+')'
 
 #-------------------------------------------------------------------------------
 
@@ -76,6 +116,10 @@ ifile1 = open("tempfile1","r")
 
 os.system("grep -A"+a2+" \""+idf+"\" "+str(inpf)+" | grep \"at\" | grep \" "+a2+" \" > tempfile2") 
 ifile2 = open("tempfile2","r")
+
+if ( (flen("tempfile1") < 1) or (flen("tempfile2") < 1) ) :
+    os.system("rm tempfile1") ; os.system("rm tempfile2")
+    sys.exit("\nData not (yet) available for visualization.\n")
 
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
@@ -114,16 +158,25 @@ ax.text(-0.23,0.5,ylabel,size=fontlabel,
 x = [] ; d1 = [] ; d2 = [] ; d3 = []
 
 iter=0
-soglia = 0.5
+soglia = 0.67
 
 while True:
     line1 = ifile1.readline().strip()
     line2 = ifile2.readline().strip()   
     if len(line1) == 0: break
+
     g = []
     for i in range(3):
         g.append(float(line2.split()[i+4])-float(line1.split()[i+4]))
-        if (g[i] > soglia): g[i] = g[i]-1.    
+    if (iter > 0):
+        h = []
+        h.append(d1[iter-1])
+        h.append(d2[iter-1])
+        h.append(d3[iter-1])
+        for i in range(3): 
+            if ((g[i]-h[i]) > soglia*cell[i]): g[i] = g[i]-cell[i]    
+            if ((h[i]-g[i]) > soglia*cell[i]): g[i] = g[i]+cell[i] 
+            
     d1.append(g[0])
     d2.append(g[1])
     d3.append(g[2])
@@ -199,6 +252,10 @@ ax.yaxis.set_major_formatter(yfmt)
 if (abs(xmax-xmin) < 0.000000001): 
     xmax=xmax+1
     xmin=xmin-1
+    
+if (abs(ymax-ymin) < 0.000000001): 
+    ymax=ymax+0.1
+    ymin=ymin-0.1
 
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)

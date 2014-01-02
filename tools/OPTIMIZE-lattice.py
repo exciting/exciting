@@ -24,7 +24,7 @@ import glob
 
 #%%%--- Reading the optimization INFO file ---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-INFOlist = glob.glob('INFO_*')
+INFOlist = sorted(glob.glob('INFO_*'))
 if (len(INFOlist) == 0):
     os.system('OPTIMIZE-setup.py')
 elif(len(INFOlist) == 1):

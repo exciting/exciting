@@ -14,6 +14,7 @@ Subroutine force
 ! !USES:
       Use modinput
       Use modmain
+      Use modmpi
 ! !DESCRIPTION:
 !   Computes the various contributions to the atomic forces. In principle, the
 !   force acting on a nucleus is simply the gradient at that site of the
@@ -79,6 +80,7 @@ Subroutine force
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)
 !   Fixed problem with second-variational forces, May 2008 (JKD)
+!   k-point parallelisation of IBS forces, October 2013 (Andris)
 !EOP
 !BOC
       Implicit None
@@ -90,10 +92,15 @@ Subroutine force
       Real (8), Allocatable :: rfmt (:, :)
       Real (8), Allocatable :: grfmt (:, :, :)
       Real (8), Allocatable :: ffacg (:, :)
+      Real (8), Allocatable :: forcesum (:, :)
 ! external functions
       Real (8) :: rfmtinp
       External rfmtinp
       Call timesec (ts0)
+
+      If (allocated(forcetot)) deallocate (forcetot)
+      Allocate (forcetot(3, natmtot))
+
       Allocate (rfmt(lmmaxvr, nrmtmax))
       Allocate (grfmt(lmmaxvr, nrmtmax, 3))
 !--------------------------------!
@@ -135,8 +142,34 @@ Subroutine force
 !-------------------------------------!
 ! set the IBS forces to zero
       forceibs (:, :) = 0.d0
+
+
+
       If (input%groundstate%tfibs) Then
          Allocate (ffacg(ngvec, nspecies))
+
+! generate the step function form factors
+         Do is = 1, nspecies
+            Call genffacg (is, ffacg(:, is))
+         End Do
+! compute k-point dependent contribution to the IBS force
+
+#ifdef MPI
+         Do ik = firstk (rank), lastk (rank)
+#else
+         Do ik = 1, nkpt
+#endif
+            Call forcek (ik, ffacg)
+         End Do
+
+#ifdef MPI
+        allocate(forcesum(3,natmtot))
+        forcesum=0d0
+        call MPI_ALLREDUCE(forceibs, forcesum, natmtot*3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+        forceibs=forcesum
+        deallocate(forcesum)
+#endif
+
 ! integral of effective potential with gradient of valence density
          Do is = 1, nspecies
             nr = nrmt (is)
@@ -154,22 +187,7 @@ Subroutine force
                End Do
             End Do
          End Do
-! generate the step function form factors
-         Do is = 1, nspecies
-            Call genffacg (is, ffacg(:, is))
-         End Do
-! compute k-point dependent contribution to the IBS force
-#ifdef KSMP
-!$OMP PARALLEL DEFAULT(SHARED)
-!$OMP DO
-#endif
-         Do ik = 1, nkpt
-            Call forcek (ik, ffacg)
-         End Do
-#ifdef KSMP
-!$OMP END DO
-!$OMP END PARALLEL
-#endif
+
 ! symmetrise IBS force
          Call symvect (.False., forceibs)
          Deallocate (ffacg)
@@ -206,18 +224,15 @@ Subroutine force
 ! calculate total force
 
       Do ias = 1, natmtot
-         forcetot (:, ias) = forcehf (:, ias) + forcecr (:, ias) + &
-        & forceibs (:, ias)
-         !write(60,*) ias
-         !write(60,*) forcetot(:, ias)
-         !write(60,*) forcehf(:, ias)
-         !write(60,*) forcecr(:, ias)
-         !write(60,*) forceibs(:, ias)
-         !call flushifc(60)
+         forcetot (:, ias) = forcehf (:, ias) + forcecr (:, ias) + forceibs (:, ias)
       End Do
+
 ! symmetrise total force
+
       Call symvect (.False., forcetot)
+
 ! remove net total force (center of mass should not move)
+
       Do i = 1, 3
          sum = 0.d0
          Do ias = 1, natmtot
@@ -226,13 +241,23 @@ Subroutine force
          sum = sum / dble (natmtot)
          forcetot (i, :) = forcetot (i, :) - sum
       End Do
-! compute maximum force magnitude over all atoms
+
+! compute maximum force magnitude over all non constrained atoms and components
+
       forcemax = 0.d0
-      Do ias = 1, natmtot
-         t1 = Sqrt (forcetot(1, ias)**2+forcetot(2, ias)**2+forcetot(3, &
-        & ias)**2)
-         If (t1 .Gt. forcemax) forcemax = t1
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            t1 = 0.d0
+            Do i = 1, 3
+               if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) &
+              &   t1 = t1 + forcetot(i, ias)**2
+            End Do
+            t1 = sqrt(t1)
+            If (t1 .Gt. forcemax) forcemax = t1
+         End Do
       End Do
+
       Deallocate (rfmt, grfmt)
       Call timesec (ts1)
       timefor = timefor + ts1 - ts0

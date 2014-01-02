@@ -85,7 +85,7 @@ if ( os.path.exists("alat-01") ): label = "alat-"
 #-------------------------------------------------------------------------------
 
 directoryroot = 'rundir-'
-list_dir = glob.glob(directoryroot+"*")
+list_dir = sorted(glob.glob(directoryroot+"*"))
 
 xx = [] ; y1 = [] ; y2 = [] ; y3 = [] 
 

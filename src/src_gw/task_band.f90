@@ -15,10 +15,6 @@ subroutine task_band
     use modinput
     use modmain
     use modgw
-    
-!
-! !DEFINED PARAMETERS:
-
     implicit none
 !
 ! !LOCAL VARIABLES:
@@ -26,13 +22,6 @@ subroutine task_band
     integer(4) :: ik, ib
     real(8)    :: tstart, tend
     complex(8), allocatable :: de1(:,:), de2(:,:)
-!
-! !INTRINSIC ROUTINES:
-    intrinsic cpu_time
-
-!
-! !EXTERNAL ROUTINES: 
-
 !
 ! !REVISION HISTORY:
 !       
@@ -43,13 +32,13 @@ subroutine task_band
       call cpu_time(tstart)
 
 !     read QP energies from file and perform Fourier interpolation (if required)
-      call getevalqp(nkpt)
+      call getevalqp(nkpt,vkl,evalsv)
 
 !     Write QP bandstructure to disk
       open(50,file='BAND-QP.OUT',action='WRITE',form='FORMATTED')
       do ib = ibgw, min(nbgw,nstsv)
         do ik = 1, nkpt
-           write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)-efermi
+           write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)
         end do !ik
         write(50,*)
       end do !ib

@@ -74,7 +74,7 @@ input_info.close()
 
 #-------------------------------------------------------------------------------
 
-maximum_displ = input("\nEnter maximum displacement for the interpolation >>>> ")
+maximum_displ = input("\nEnter maximum displacement for the fit >>>> ")
 order_of_derivative = input("\nEnter the order of derivative >>>> ")
 if (order_of_derivative < 0): 
     sys.exit("ERROR: Order of derivative must be positive!\n")
@@ -164,7 +164,7 @@ output_file.close()
 output_file = open('order-of-derivative',"w")
 print >> output_file, order_of_derivative
 output_file.close()
-print "#############################################"
+print "#############################################\n"
 os.system("PLOT-checkderiv.py")
 
 

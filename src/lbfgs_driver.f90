@@ -60,22 +60,45 @@ subroutine lbfgs_driver
       real(dp), allocatable  :: x(:), g(:)
       real(dp), allocatable  :: l(:), u(:), wa(:)
 !
-      real(dp)               :: v(3)
+      real(dp)               :: v(3), forcesave
       integer                :: i, j
       character(1024)        :: message
       integer, allocatable   :: amap(:,:)
-      integer                :: nscf, nconf
-      logical                :: lnconv
+      integer                :: nscf, nconf, ncheckconv
+      logical                :: lstart
+
+!________________
+! Starting checks
 
       if (istep+1>input%relax%maxsteps) return
+
+!______________________________________________________________________________
+! save initial configuration and forces in atposc_1 and forcetp, respecctively
+
+      atposc_1(:,:,:) = atposc(:,:,:)
+      forcetp(:,:) = forcetot(:,:)
+      forcesave = forcemax
 
       if (rank==0) then
           write(string,'("Optimization step ", I4,"    (method = bfgs)")') istep+1
           call printbox(60,"-",string)
+          call flushifc(60)
       end if
 
-!_______________________________________________________________________
-! Initialize some L-BFGS-B library parameters (see src/Lbfgs.3.0/README)
+      call timesec(tsec1)
+
+      if (input%groundstate%epsengy/input%relax%epsforce .gt. 0.020001) then
+          input%groundstate%epsengy = max(input%relax%epsforce*0.02,1.d-9)
+          if (rank==0) then
+              write(60,'(" Convergence target for the total energy decreased to ",G13.6," Ha")') &
+             & input%groundstate%epsengy
+              write(60,*)
+              call flushifc(60)
+          end if
+      end if
+
+!________________________________________________________________________
+! Initialize some L-BFGS-B library parameters (see src/Lbfgsb.3.0/README)
   
       m = 5         ! number of corrections used in the limited memory matrix
       iprint = -1   ! controls the frequency and type of output generated
@@ -90,14 +113,13 @@ subroutine lbfgs_driver
       do is = 1, nspecies
         do ia = 1, natoms(is)
           do i = 1, 3
-            if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) then
-              n = n+1
-            end if
+            if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) n = n+1
           end do
         end do
       end do
 
       if (n==0) then
+        call warning(' ')
         call warning('WARNING(lbfgs_driver):')
         write(message,'(" No active degrees of freedom = Nothing to relax! Check lock options in your input file")')
         call warning(message)
@@ -112,15 +134,25 @@ subroutine lbfgs_driver
       allocate( wa(2*m*n + 5*n + 11*m*m + 8*m) )
       allocate( amap(3,n) )
 
+!!!!!!INITIALIZE the searching loop
+
+      ncheckconv = 0
+
+99    continue
+
+      nscf = 0
+      nconf = 0
+      ctask = 'START'
+      lstart = .True.
+
 !_______________________
 ! Set search constraints
 
-      j = 0
-      do is = 1, nspecies
+     j = 0
+     do is = 1, nspecies
         do ia = 1, natoms(is)
-          ias = idxas(ia,is)
           do i = 1, 3
-            if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) then
+            if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) then
               j = j+1
               amap(1,j)=i; amap(2,j)=ia; amap(3,j)=is
               nbd(j) = 2 ! constraint optimization (see src/Lbfgsb.3.0/README)
@@ -133,139 +165,277 @@ subroutine lbfgs_driver
         end do
       end do
 
-!!!!!!INITIALIZE the loop
-
-      nscf = 0
-      nconf = 0
-      ctask = 'START'
-      lnconv = .True.
-
-!!!!!!BEGIN the loop
+!!!!!!BEGIN the searching loop
 
       do while ( (ctask(1:5).eq.'START'  .or. &
                   ctask(1:2).eq.'FG'     .or. &
-                  ctask(1:5).eq.'NEW_X') .and. &
-                  lnconv )
-
-                                  !write(60,*) "loop starts ", ctask
+                  ctask(1:5).eq.'NEW_X') )
 
 !______________________________________     
 ! This is the call to the L-BFGS-B code
-
-                                  !write(60,*) " before"
-                                  !write(60,'(6f12.6)') x
       
         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa,ctask,iprint, &
         &           csave,lsave,isave,dsave)
 
-                                  !write(60,*) " after"
-                                  !write(60,'(6f12.6)') x
-                                  !write(60,*) ctask, nconf
+        !write(60,'(" ctask = ",A)') trim(ctask)
+        !call flushifc(60)
 
 !_____________________________________________________
-! the minimization routine has returned to request the
+! ctask(1:2) .eq. 'FG'
+! The minimization routine has returned to request the
 ! function f and gradient g values at the current x
 
         if (ctask(1:2) .eq. 'FG') then
-          call calcEnergyForces
-        else 
-          
-!_____________________________________________________
-! the minimization has found a new configuration 
+          if (nconf .ge. input%relax%maxbfgs) then
+            if (rank==0) then 
+              call warning(' ')
+              call warning('Warning(lbfgs_driver):')
+              call warning(' Reached maximum number of investigated configurations')
+              write(message,'(" for a single BFGS relaxation step :         ",I3,2X,A4)') nconf, ctask(1:4)
+              call warning(message)
+            end if 
+            ctask(1:4) = 'NCFG'
+          else
+            call calcEnergyForces
+          end if
+        end if
+         
+!_______________________________________________
+! ctask(1:5) .eq. 'NEW_X'
+! The minimization has found a new configuration 
 ! to be used in the next optimization step
 
-          if (ctask(1:5) .eq. 'NEW_X') then   
-           
-            call updatepositions
-            istep = istep+1
+        if (ctask(1:5) .eq. 'NEW_X') then 
 
-!____________
+          istep = istep+1
+          if (lstart) then
+              nconf = nconf-1
+              lstart = .False.
+          end if
+
+!______________________________________________________________________________
+! save accepted configuration and forces in atposc_1 and forcetp, respecctively
+
+          atposc_1(:,:,:) = atposc(:,:,:)
+          forcetp(:,:) = forcetot(:,:)
+          forcesave = forcemax
+
 ! output info
 
-            if (rank==0) then
-                if (input%relax%outputlevelnumber>1)  write(60,*)
-                write(60,'(" Number of investigated configurations  : ",I5)') nconf
-                write(60,'(" Number of total scf iterations         : ",I5)') nscf
-                write(60,'(" Maximum force magnitude       (target) : ",F14.8,"    (", F14.8, ")")') &
-               &  forcemax, input%relax%epsforce
-                write(60,'(" Total energy at this optimization step :",F19.9)') engytot
-                if (input%relax%outputlevelnumber>0)  then 
-                    call writepositions(60,input%relax%outputlevelnumber) 
-                    call writeforce(60,input%relax%outputlevelnumber)                    
-                end if
-                if (input%relax%outputlevelnumber>1)  then 
-                    call writechg (60,input%relax%outputlevelnumber)          
-                end if
-                call flushifc(60)
+          if (rank==0) then
+
+              if (input%relax%outputlevelnumber>1) write(60,*)
+              write(60,'(" Number of investigated configurations",T45,": ",I9)') nconf
+              write(60,'(" Number of total scf iterations",T45,": ",I9)') nscf
+              write(60,'(" Maximum force magnitude",T36,"(target) : ",F18.8,"  (", F12.8, ")")') &
+             &  forcemax, input%relax%epsforce
+              write(60,'(" Total energy at this optimization step",T45,": ",F18.8)') engytot
+              if (input%relax%outputlevelnumber>0) then 
+                  call writepositions(60,input%relax%outputlevelnumber) 
+                  call writeforce(60,input%relax%outputlevelnumber)                    
+              end if
+              if (input%relax%outputlevelnumber>1) call writechg (60,input%relax%outputlevelnumber)          
+              if (input%relax%printtorque) call writetorque(60)          
+              call flushifc(60)
 
 !_____________________________________________________________
 ! write lattice vectors and optimised atomic positions to file
 
-!                Call writehistory(istep) 
-                Call writehistory
-                Call writegeometryxml(.True.)
+              Call writehistory
+              Call writegeometryxml(.True.)
+
 !__________________________________________________
 ! write the optimized interatomic distances to file
 
-                Call writeiad(.True.)
-            end if
-            
+              Call writeiad(.True.)
+          end if
+
+!_______________________________________________
+! write the time spent in this optimization step 
+
+          call timesec(tsec2)
+          if (rank==0) then
+              write(60,*)
+              write(60,'(" Time spent in this optimization step",T45,": ",F12.2," seconds")') tsec2-tsec1
+              call flushifc(60)
+          end if
+ 
 !______________________________________
 ! check if force convergence is reached
 
-            if (forcemax <= input%relax%epsforce) ctask = 'STOP'
+          if (forcemax <= input%relax%epsforce) ctask = 'STOP'
 
 !_________________________________________________
 ! check if maximum number of iterations is reached
 
-            if (istep    >= input%relax%maxsteps) ctask = 'STOP'
+          if (istep    >= input%relax%maxsteps) ctask = 'STOP'
             
-            nconf = 0
-            nscf = 0
+          nconf = 0
+          nscf = 0
 
-            if ((rank==0).and.(ctask(1:5).eq.'NEW_X')) then
-                write(string,'("Optimization step ", I4,"    (method = bfgs)")') istep+1
-                call printbox(60,"-",string)
-            end if
+          if ((rank==0).and.(ctask(1:5).eq.'NEW_X')) then
+              write(string,'("Optimization step ", I4,"    (method = bfgs)")') istep+1
+              call printbox(60,"-",string)
+              call flushifc(60)
+          end if
 
-            if (ctask(1:4).eq.'CONV') lnconv = .False.
+          call timesec(tsec1)
 
-          end if ! 'NEW_X'
-          
-                                  !write(60,*) "else  ", ctask 
+        end if !!!!!!!! 'NEW_X'
 
+!____________________________________________________________________________________
+! ctask(1:4) .eq. 'CONV'
+! The mininum configuration is likely outside the range of variability of parameters, 
+! the searching loop is re-initialized (unless the number of re-initialization is 
+! greater then 20
+
+        if (ctask(1:4) .eq. 'CONV') then 
+            ncheckconv = ncheckconv+1
+            if (ncheckconv .le. 20) then
+
+!__________________________________________________
+! restart bfgs from the last accepted configuration
+
+                atposc(:,:,:) = atposc_1(:,:,:)
+                forcetot(:,:) = forcetp(:,:)
+                forcemax = forcesave
+                if (rank==0) then
+                    call warning(' ')
+                    call warning('Warning(lbfgs_driver):')
+                    call warning(' Mininum configuration is likely to lie outside the searching region.')
+                    write(message,'(" Restarting BFGS at step ", I3)') istep
+                    call warning(message) 
+                    write(message,'(" ctask = ",A)') trim(ctask)
+                    call warning(message) 
+                end if
+                goto 99
+            end if 
         end if
 
-                                  !write(60,*) "final ", ctask
+!_________________________________________________________________
+! ctask(1:4) .eq. 'ABNO'
+! The searching loop is broken, end with the current configuration
 
       end do
 
-!!!!!!END the loop
+!!!!!!END the searching loop
 
 !________________________________________________________
 ! Use Newton or harmonic method if BFGS does not converge
 
-      if (ctask(1:4).eq.'CONV') then
+      if ((ctask(1:4).eq.'CONV') .or. (ctask(1:4).eq.'ABNO') .or. (ctask(1:4).eq.'NCFG')) then
         istep = istep+1
-        if (input%relax%endbfgs.eq.'harmonic') then
-          string = "BFGS scheme not converged -> Switching to harmonic method"
-        else 
-          string = "BFGS scheme not converged -> Switching to newton method"
+
+!___________________________________________________________________________________________
+! either reset configuration to the last accepted one or 
+! accept new configuration if the forcemax il lower than the value for the last accepted one
+
+        if ( forcemax .gt. (forcesave-10*input%relax%epsforce) ) then
+          atposc(:,:,:) = atposc_1(:,:,:)
+          forcetot(:,:) = forcetp(:,:)
+          forcemax = forcesave
+        else
+          if (rank==0) then
+            if (input%relax%outputlevelnumber>1) write(60,*)
+            write(60,'(" Warning: Accepted configuration has higher energy than previous one")')
+            write(60,*)
+            write(60,'(" Number of investigated configurations",T45,": ",I9)') nconf
+            write(60,'(" Number of total scf iterations",T45,": ",I9)') nscf
+            write(60,'(" Maximum force magnitude",T36,"(target) : ",F18.8,"  (", F12.8, ")")') &
+           &  forcemax, input%relax%epsforce
+            write(60,'(" Total energy at this optimization step",T45,": ",F18.8)') engytot
+            if (input%relax%outputlevelnumber>0) then 
+              call writepositions(60,input%relax%outputlevelnumber) 
+              call writeforce(60,input%relax%outputlevelnumber)                    
+            end if
+            if (input%relax%outputlevelnumber>1) call writechg (60,input%relax%outputlevelnumber)          
+            if (input%relax%printtorque) call writetorque(60)          
+            call flushifc(60)
+            Call writehistory
+            Call writegeometryxml(.True.)
+            Call writeiad(.True.)
+            call timesec(tsec2)
+            if (rank==0) then
+              write(60,*)
+              write(60,'(" Time spent in this optimization step",T45,": ",F12.2," seconds")') tsec2-tsec1
+              call flushifc(60)
+            end if
+            if (forcemax <= input%relax%epsforce) return
+            if (rank==0) then
+              write(string,'("Optimization step ", I4,"    (method = bfgs)")') istep+1
+              call printbox(60,"-",string)
+              call flushifc(60)
+            end if
+            istep = istep+1
+          end if
         end if
-       if (rank .Eq. 0) then
-          write(60,*)
-          write(60,*) string
-          write(60,*)
-          call flushifc(60)
-          lstep = .True.
-        end if
-        if (input%relax%endbfgs.eq.'harmonic') then
-           call harmonic(input%relax%epsforce)
-        else 
-          call newton(input%relax%epsforce)
+
+        if (input%relax%endbfgs.eq.'stop') then
+
+          if (rank .Eq. 0) then
+            write(60,'(" Number of investigated configurations",T45,": ",I9)') nconf
+            write(60,*)
+            write(60,'(A)') " BFGS scheme not converged -> Stopping BFGS"
+            write(60,*)
+            call flushifc(60)
+            lstep = .True.
+            call warning(' ')
+            call warning('Warning(lbfgs_driver):')
+            call warning(' BFGS scheme not converged')
+            write(message,'(" ctask = ",A)') trim(ctask)
+            call warning(message) 
+            write(message,'(" -> Stopping BFGS at optimization step ",I3)') istep
+            call warning(message)
+          end if
+
+        else
+
+          if (rank .Eq. 0) then
+            write(60,'(" Number of investigated configurations",T45,": ",I9)') nconf
+            write(60,*)
+            write(60,'(3A)') " BFGS scheme not converged -> Switching to ", trim(input%relax%endbfgs), " method"
+            write(60,*)
+            call flushifc(60)
+            lstep = .True.
+            call warning(' ')
+            call warning('Warning(lbfgs_driver):')
+            call warning(' BFGS scheme not converged')
+            write(message,'(" ctask = ",A)') trim(ctask)
+            call warning(message) 
+            write(message,'(" -> Switching to ",A," method at optimization step ",I3)') &
+           & trim(input%relax%endbfgs), istep
+            call warning(message) 
+          end if
+          if (input%relax%endbfgs.eq.'harmonic') then
+            call harmonic(input%relax%epsforce)
+          else 
+            call newton(input%relax%epsforce)
+          end if
+
         end if
       end if
-      
+
+!____________________________________________________________________________________________
+! Stop if ctask(1:5). eq. 'ERROR' : the routine has detected an error in the input parameters
+
+      if (ctask(1:5).eq.'ERROR') then
+        if (rank .Eq. 0) Then
+          write(6,*)
+          write(60,*)
+          call printline(60,"#")
+          call printline(6,"#")
+          write(string,'("ERROR(lbfgs_driver): Routine has detected an error in the input parameters")') 
+          call printtext(60,"#",string)
+          call printtext(6,"#",string)  
+          call printline(60,"#")
+          call printline(6,"#")
+          write(6,*)
+          call flushifc(60)
+          call flushifc(6)
+          stop
+        end if
+      end if
+
 !__________________
 ! Deallocate memory
 
@@ -287,35 +457,10 @@ contains
 
         call updatepositions
 
-!__________________________________
-! check for overlapping muffin-tins
+!_______________________
+! restart initialization
 
-        call checkmt
-
-!_________________________________________
-! generate structure factors for G-vectors
-
-        Call gensfacgp (ngvec, vgc, ngvec, sfacg)
-
-!_____________________________________
-! generate the characteristic function
-
-        Call gencfun
-
-!___________________________________________
-! generate structure factors for G+k-vectors
-
-        Do ik = 1, nkpt
-            Do ispn = 1, nspnfv
-                Call gensfacgp (ngk(ispn, ik), vgkc(:, :, ispn, ik), &
-               &  ngkmax, sfacgk(:, :, ispn, ik))
-            End Do
-        End Do
-
-!_________________________________________
-! determine the new nuclear-nuclear energy
-
-        Call energynn
+        Call init_relax
 
 !__________
 ! SCF cycle
@@ -323,7 +468,7 @@ contains
         call scf_cycle(-1)
         nconf = nconf + 1
         if ((rank==0).and.(input%relax%outputlevelnumber>1))  then 
-            write(60,'(" Investigating configuration            # ",I5,"    (# of SCF cicles =",I5,")")') &
+            write(60,'(" Investigating configuration",T45,"# ",I9,"  (# of SCF cicles =",I4,")")') &
            &      nconf, iscl
             call flushifc(60)
         end if
@@ -339,7 +484,10 @@ contains
           ias = idxas(ia,is)
           g(j) = -forcetot(i,ias)              ! energy gradients = total forces
         end do
-      
+
+                  !call writepositions(60,input%relax%outputlevelnumber) 
+                  !call writeforce(60,input%relax%outputlevelnumber)        
+
         return
     end subroutine calcEnergyForces
 !
@@ -364,11 +512,6 @@ contains
             end do
         end do
 
-!___________________________________________________________________
-! find the crystal symmetries and shift atomic positions if required
-
-        call findsymcrys
-    
     end subroutine updatepositions
       
 end subroutine

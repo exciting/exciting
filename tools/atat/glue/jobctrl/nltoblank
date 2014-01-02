@@ -1,7 +1,0 @@
-#!/bin/csh
-if ( x"$1" == "x-h" ) then
-  echo Converts each newline character to a space.
-  exit
-endif
-
-awk '{printf $0 " "}'

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
+from   lxml  import etree
 from   sys   import stdin
 from   math  import sqrt
 from   math  import factorial
@@ -70,6 +71,16 @@ def relax(filin,idf):
     if (len(x) < 1): check = False
     os.system("rm -f tempfile")
     return check
+    
+#-------------------------------------------------------------------------------
+
+current = os.environ['PWD']
+ev_list = os.environ.keys()
+
+rundir = shell_value('EXCITINGRUNDIR',ev_list,current)[0]
+rlabel = shell_value('RLABEL',ev_list,"rundir-")[0]
+showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
+dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 
 #-------------------------------------------------------------------------------
 
@@ -86,7 +97,27 @@ if (len(sys.argv) > 2): a2 = str(sys.argv[2])
 
 #-------------------------------------------------------------------------------
 
-list_dir = glob.glob('rundir-*')
+list_dir = sorted(glob.glob('rundir-*'))
+
+#-------------------------------------------------------------------------------
+
+if (str(os.path.exists(current+'/'+list_dir[0]+'/input.xml'))=='False'): 
+    sys.exit("ERROR: Input file "+current+"/"+list_dir[0]+"/input.xml not found!\n")
+
+acoord = "lattice"
+
+input_obj = open(current+"/"+list_dir[0]+"/input.xml","r")
+input_doc = etree.parse(input_obj)
+input_rut = input_doc.getroot()
+ 
+xml_cartesian = map(str,input_doc.xpath('/input/structure/@cartesian'))
+if (xml_cartesian == []):
+    acoord = "lattice"
+else:
+    if (xml_cartesian[0] == "true"): 
+        acoord = "cartesian"   
+
+#-------------------------------------------------------------------------------
 
 xx = [] ; x0 = []
 y1 = [] ; y2 = [] ; y3 = [] 
@@ -113,18 +144,8 @@ for idir in range(len(list_dir)):
         z3.append(float(r2[2])-float(r1[2]))
         x0.append(leggishort('strain-'+list_dir[idir][-2:]))
     
-ylabel  = r'Relative coordinate [crystal]'
+ylabel  = r'Relative coordinate ('+acoord+')'
 xlabel  = r'Lagrangian strain'
-
-#-------------------------------------------------------------------------------
-
-current = os.environ['PWD']
-ev_list = os.environ.keys()
-
-rundir = shell_value('EXCITINGRUNDIR',ev_list,current)[0]
-rlabel = shell_value('RLABEL',ev_list,"rundir-")[0]
-showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
-dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 
 #-------------------------------------------------------------------------------
 # manipulate data for a better plot

@@ -11,44 +11,51 @@
         
         implicit none
         real(8), intent(IN) :: forcetol
-        integer :: is, ia, nstep
+        integer :: is, ia, nstep, ias
         character*(77) :: string
+        logical :: inittime
 
         nstep = 0
+
+!_______________________
+! start relaxation steps
 
         do while ((forcemax>forcetol).and.(istep<input%relax%maxsteps))
 
             nstep = nstep+1
             istep = istep+1
 
-            if (rank .Eq. 0) then
-
-                if (lstep) then 
-                    istep = istep-1
-                    lstep = .False.
-                else
+            if (lstep) then 
+                istep = istep-1
+                lstep = .False.
+                inittime = .False.
+                do is = 1, nspecies
+                    do ia = 1, natoms (is)
+                        ias = idxas (ia, is)
+                        tauatm(ias) = 0.d0
+                        forcetp(:, ias) = 0.d0
+                    end do
+                end do
+            else
+                if (rank .Eq. 0) then
                     write(string,'("Optimization step ", I4,"    (method = newton)")') istep
                     call printbox(60,"-",string)
                     call flushifc(60)
                 end if
-
-!_____________________________________________________________
-! write lattice vectors and optimised atomic positions to file
-
-!                Call writehistory(istep)
-                Call writehistory
-                Call writegeometryxml(.True.)
-
-!__________________________________________________
-! write the optimised interatomic distances to file
-
-                Call writeiad(.True.)
+                inittime = .True.
             end if
+
+            if (inittime) call timesec(tsec1)
 
 !________________________
 ! update atomic positions
 
             Call updatpos
+
+!_______________________
+! restart initialization
+
+            Call init_relax
 
 !______________________________________________________
 ! begin new self-consistent loop with updated positions
@@ -59,17 +66,37 @@
 ! output info
 
             if (rank .Eq. 0) then
-                write(60,'(" Number of scf iterations               : ", I5)') iscl
-                write(60,'(" Maximum force magnitude       (target) : ",F14.8,"    (", F14.8, ")")') &
+                write(60,'(" Number of scf iterations",T45,": ", I9)') iscl
+                write(60,'(" Maximum force magnitude",T36,"(target) : ",F18.8,"  (", F12.8, ")")') &
                &  forcemax, input%relax%epsforce
-                write(60,'(" Total energy at this optimization step :",F19.9)') engytot
+                write(60,'(" Total energy at this optimization step",T45,": ",F18.8)') engytot
                 if (input%relax%outputlevelnumber>0) then 
                     call writepositions(60,input%relax%outputlevelnumber) 
                     call writeforce(60,input%relax%outputlevelnumber)
                 end if
-                if (input%relax%outputlevelnumber>1)  then 
-                    call writechg (60,input%relax%outputlevelnumber)          
-                end if
+                if (input%relax%outputlevelnumber>1) call writechg (60,input%relax%outputlevelnumber)          
+                if (input%relax%printtorque) call writetorque(60)          
+                call flushifc(60)
+
+!_____________________________________________________________
+! write lattice vectors and optimised atomic positions to file
+
+                Call writehistory
+                Call writegeometryxml(.True.)
+
+!__________________________________________________
+! write the optimised interatomic distances to file
+
+                Call writeiad(.True.)
+            end if
+
+!_______________________________________________
+! write the time spent in this optimization step 
+
+            call timesec(tsec2)
+            if (rank==0) then
+                write(60,*)
+                write(60,'(" Time spent in this optimization step",T45,": ",F12.2," seconds")') tsec2-tsec1
                 call flushifc(60)
             end if
 
@@ -95,7 +122,7 @@ contains
 
         Implicit None
         Integer :: ik, ispn, is, ia, ias, i
-        Real (8) :: t1
+        Real (8) :: t1, xdelta
 
         Do is = 1, nspecies
             Do ia = 1, natoms (is)
@@ -110,14 +137,23 @@ contains
 ! if the force is in the same direction then increase step size parameter
 
                 If (t1 .Gt. 0.d0) Then
-                    tauatm(ias) = tauatm(ias)+input%relax%tau0atm
+                    tauatm(ias) = tauatm(ias)+input%relax%taunewton
                 Else
-                    tauatm(ias) = input%relax%tau0atm
+                    tauatm(ias) = input%relax%taunewton
                 End If
                 do i = 1, 3
-                    if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lock(i)) &
-                   &   atposc(i,ia,is) = atposc(i,ia,is) + tauatm(ias)*(forcetot(i,ias)+forcetp(i,ias))
-                end do ! i
+                    if (.not.input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(i)) then
+                        xdelta = tauatm(ias)*(forcetot(i,ias)+forcetp(i,ias))
+                        if (abs(xdelta) .gt. input%relax%taunewton) then
+                            if (xdelta < 0.0) then 
+                                xdelta = -input%relax%taunewton
+                            else
+                                xdelta = input%relax%taunewton
+                            end if
+                        end if
+                        atposc(i,ia,is) = atposc(i,ia,is) + xdelta
+                    end if 
+                end do 
             End Do
         End Do
 
@@ -136,41 +172,6 @@ contains
                 forcetp(:, ias) = forcetot(:, ias)
             End Do
         End Do
-
-!___________________________________________________________________
-! find the crystal symmetries and shift atomic positions if required
-
-        Call findsymcrys
-
-!__________________________________
-! check for overlapping muffin-tins
-
-        Call checkmt
-
-!_________________________________________
-! generate structure factors for G-vectors
-
-        Call gensfacgp (ngvec, vgc, ngvec, sfacg)
-
-!_____________________________________
-! generate the characteristic function
-
-        Call gencfun
-
-!___________________________________________
-! generate structure factors for G+k-vectors
-
-        Do ik = 1, nkpt
-            Do ispn = 1, nspnfv
-                Call gensfacgp (ngk(ispn, ik), vgkc(:, :, ispn, ik), &
-               &  ngkmax, sfacgk(:, :, ispn, ik))
-            End Do
-        End Do
-
-!_________________________________________
-! determine the new nuclear-nuclear energy
-
-        Call energynn
       
         Return
     End Subroutine updatpos

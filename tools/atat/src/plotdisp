@@ -1,2 +1,0 @@
-#!/bin/csh
-awk '{i++; a[i]=$0;} END {ni=i; nj=split(a[1],h); for (j=1; j<=nj; j++) {for (i=1; i<=ni; i++) {split(a[i],b); print i-1,b[j]}; print ""}}'

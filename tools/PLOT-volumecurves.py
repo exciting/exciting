@@ -24,7 +24,7 @@ order_of_fit=2
 test=True
 dirs=[]
 print "\n################################################\n"
-print "    Enter list if working directories "
+print "    Enter list of working directories "
 print '    Entering "Quit" will terminate the input\n'
 print "################################################\n"
 
@@ -86,7 +86,7 @@ for j in range(len(dirs)-1):
 			try:
 				functional=groundstate[0].attrib['xctype']
 			except:
-				functional="GGAPBEsol"
+				functional="GGA_PBE_SOL"
 		## read values for the plot ##
 		input_energy = open(root+"/"+dir+"/energy-vs-volume","r")
 		lines=input_energy.readlines()

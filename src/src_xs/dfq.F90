@@ -191,15 +191,12 @@ use ioarray
      &tially)  unoccupied state: ', istunocc0
       Write (unitout, '(a, 4i6)') 'Info(' // thisnam // '): highest (pa&
      &rtially) occupied state  : ', istocc0
-      Write (unitout, '(a, 4i6)') 'Info(' // thisnam // '): limits for &
-     &band combinations nst1, nst2, nst3, nst4:', nst1, nst2, nst3, &
-     & nst4 !'
-      Write (unitout, '(a, 4i6)') 'Info(' // thisnam // '): limits for &
-     &band combinations istl1, istu1, istl2, istu2:', istl1, istu1, &
-     & istl2, istu2
-      Write (unitout, '(a, 4i6)') 'Info(' // thisnam // '): limits for &
-     &band combinations istl3, istu3, istl4, istu4:', istl3, istu3, &
-     & istl4, istu4
+      Write (unitout, '(a, 4i5)') 'Info(' // thisnam // '): &
+     &band-combination limits  nst1,  nst2,  nst3,  nst4:',  nst1,  nst2,  nst3,  nst4 
+      Write (unitout, '(a, 4i5)') 'Info(' // thisnam // '): &
+     &band-combination limits istl1, istu1, istl2, istu2:', istl1, istu1, istl2, istu2
+      Write (unitout, '(a, 4i5)') 'Info(' // thisnam // '): &
+     &band-combination limits istl3, istu3, istl4, istu4:', istl3, istu3, istl4, istu4
   ! allocate arrays for eigenvalue and occupation number differences
       If (allocated(deou)) deallocate (deou)
       Allocate (deou(nst1, nst2))

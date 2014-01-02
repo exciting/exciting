@@ -35,6 +35,7 @@ echo "===> Output directory is \""$WORKDIR"\" <==="
 echo
 #-------------------------------------------------------------------------------
 echo $EXECUTABLE > $CURRENT/$WORKDIR/exciting
+cp $CURRENT/input.xml $CURRENT/$WORKDIR/source.xml
 #
 OUTE=$CURRENT/$WORKDIR/energy-vs-displacement
 OUTF=$CURRENT/$WORKDIR/force-vs-displacement

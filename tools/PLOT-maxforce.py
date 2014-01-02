@@ -63,7 +63,8 @@ os.system("grep \"Maximum force m\" "+str(inpf)+" > tempfile")
 input_file = open("tempfile","r")
 
 if ( os.path.getsize('./tempfile') == 0 ):
-    print "\nMaximum force target reached already at the initial configuration.\n\n",
+    print "\nEither data file not (yet) ready for visualization",
+    print "\nor maximum force target reached already at the initial configuration.\n"
     sys.exit() 
 
 #-------------------------------------------------------------------------------
@@ -125,6 +126,8 @@ while True:
         goal=float(line.split()[7])
         b.append(goal)
         a.append(float(iter-1))
+
+if (abs(y[-1]) < 1.e-8 ): y[-1] = 1.e-8
         
 if (lgoal < 1): 
     os.system("rm -f tempfile")

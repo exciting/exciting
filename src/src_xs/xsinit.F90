@@ -17,6 +17,7 @@ Subroutine xsinit
       Integer :: i
       Real (8) :: tv (3)
       real(8), parameter :: eps=1.d-7
+      character*(77) :: string
 !
   !---------------------------!
   !     initialize timing     !
@@ -36,32 +37,36 @@ Subroutine xsinit
   !     output file     !
   !---------------------!
   ! name of output file
-      Call genfilname (nodotpar=.True., basename='INFOXS', procs=procs, &
-     & rank=rank, filnam=xsfileout)
+      Call genfilname (nodotpar=.True., basename='INFOXS', procs=procs, rank=rank, filnam=xsfileout)
   ! reset or append to output file
       Call getunit (unitout)
       If (input%xs%tappinfo .Or. (calledxs .Gt. 1)) Then
-         Open (unitout, File=trim(xsfileout), Action='write', &
-        & Position='append')
+         Open (unitout, File=trim(xsfileout), Action='write', Position='append')
       Else
-         Open (unitout, File=trim(xsfileout), Action='write', Status='r&
-        &eplace')
+         Open (unitout, File=trim(xsfileout), Action='write', Status='replace')
       End If
   ! write to info file
+
+      call printline(unitout,"=")
+      write (string,'("EXCITING ", a, " started for task ",i6)') trim(versionname), task
+      call printtext(unitout,"=",string)
+
       If (calledxs .Eq. 1) Then
-         Write (unitout,*)
-         Write (unitout, '("+-----------------------------------------------------------+")')
-         Write (unitout, '("| EXCITING lithium    (",I2.2,".",I2.2,".",I2.2,") started                     |")') version
-         Write (unitout, '("| version hash id: ",a," |")') githash
+         Write (string,'("version hash id: ",a)') githash
+         call printtext(unitout,"=",string)
+      End If
+
 #ifdef MPI
-         Write (unitout, '("| MPI version using ",i6," processor(s)                     |")') procs
-         if (rank .ne. 0) &
-         Write (unitout, '("|  rank of current processor: ",i6,"                        |")') rank
-#ifndef MPI1
-         Write (unitout, '("|  using MPI-2 features                                     |")')
+      Write (string,'("MPI version using ",i6," processor(s)")') procs
+      call printtext(unitout,"=",string)
+      !if (rank .ne. 0) &
+      !Write (unitout, '("|  rank of current processor: ",i6,"|")') rank
+#ifndef MPI1   
+      Write (string,'("|  using MPI-2 features")') 
+      call printtext(unitout,"=",string)
 #endif
 #endif
-         Write (unitout, '("+ ----------------------------------------------------------+")')
+      If (calledxs .Eq. 1) Then
          If (notelns .Gt. 0) Then
             Write (unitout,*)
             Write (unitout, '("Notes :")')
@@ -70,13 +75,15 @@ Subroutine xsinit
             End Do
          End If
       End If
-      Write (unitout,*)
-      Write (unitout, '("Date (YYYY-MM-DD) : ", A4, "-", A2, "-", A2)') &
-     & dat (1:4), dat (5:6), dat (7:8)
-      Write (unitout, '("Time (hh:mm:ss)   : ", A2, ":", A2, ":", A2)') &
-     & tim (1:2), tim (3:4), tim (5:6)
-      Write (unitout, '("Info(xsinit): task Nr.", i6, " started")') &
-     & task
+
+      If (calledxs .Eq. 1) call printtext(unitout,"=","")
+      Write (string,'("Date (DD-MM-YYYY) : ", A2, "-", A2, "-", A4)') &
+     &  dat (7:8), dat (5:6), dat (1:4)
+      call printtext(unitout,"=",string)
+      Write (string,'("Time (hh:mm:ss)   : ", A2, ":", A2, ":", A2)') &
+     &  tim (1:2), tim (3:4), tim (5:6)
+      call printline(unitout,"=")
+
       Call flushifc (unitout)
 !
   !--------------------------------------------!
