@@ -42,14 +42,15 @@ Subroutine rhoinit
       Real (8), Allocatable :: jlgr (:),jj(:,:)
       Real (8), Allocatable :: th (:, :)
       Real (8), Allocatable :: ffacg (:)
+      Real (8), Allocatable :: rhomodel(:,:)
       Complex (8), Allocatable :: zfmt (:, :),z2fmt (:,:)
       Complex (8), Allocatable :: zfft (:)
 
       integer :: auxgridsize,mtgridsize,lastpoint
       Real (8), Allocatable :: auxgrid(:),auxrho(:),a(:),c(:)
       Real (8) :: rhoder,rhoder2, tp(2),r
-      real(8), parameter :: threshold=1d-6
-      integer, parameter :: PointsPerPeriod=10
+      real(8), parameter :: threshold=1d-12
+      integer, parameter :: PointsPerPeriod=20
 
       integer:: boundhi,boundlo,middle
       real(8):: jthr,cs,sn,xi
@@ -58,8 +59,13 @@ Subroutine rhoinit
 #endif
       real(8), parameter :: sixth=1d0/6d0
       real(8), parameter :: third=1d0/3d0
-      real(8) :: cpu_seconds
-      external :: cpu_seconds
+!      real(8) :: cpu_seconds
+!      external :: cpu_seconds
+      integer :: nsw,isw,jsw,info  ! number of spherical waves
+      real(8),allocatable :: swc(:),swoverlap(:,:),sine(:),cosine(:),swgr(:)
+      real(8) :: maxswg,swg,rhotest
+      real(8) :: aa,bb,ans
+
 
 ! maximum angular momentum for density initialisation
       lmax = 1
@@ -69,6 +75,7 @@ Subroutine rhoinit
       Allocate (jlgr(0:lmax))
       Allocate (ffacg(ngvec))
       Allocate (zfmt(lmmax, nrcmtmax))
+      Allocate (rhomodel(nrcmtmax,nspecies))
 !      Allocate (z2fmt(lmmax, nrcmtmax))
       Allocate (zfft(ngrtot))
       allocate(a(nspecies))
@@ -122,67 +129,152 @@ Subroutine rhoinit
 ! Exterior is filled with the actual atomic density.
          auxrho(mtgridsize+1:auxgridsize)=sprho(nrmt(is)+1:lastpoint, is)
 
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ig,jthr,boundhi,boundlo,ir,x,sn,t1,fr,cf,gr)
-!$OMP DO
-#endif 
-         Do ig = 1, ngvec
-! First, we separate x<1d-8 from large x.
-! It is done using binary search.
-! This block implements the following commented loop.
-! See below for the explanations.
-!           do ir = 1,auxgridsize
-!              x=gc(ig)*auxgrid(ir)
-!              Call sbessel (0, x, jlgr01)
-!              fr (ir) = auxrho(ir) * jlgr01 * auxgrid(ir) ** 2
-!           enddo
-               jthr=1d-8/gc (ig)
-               boundhi=auxgridsize
-               boundlo=1
-               if (auxgrid (1).gt.jthr) then
-                 boundlo=0
-                 boundhi=1
-               elseif (auxgrid (auxgridsize).lt.jthr) then
-                 boundlo=auxgridsize
-                 boundhi=auxgridsize+1
+
+! Initialise auxiliary basis - spherical Bessel functions
+         nsw=int(2*input%groundstate%gmaxvr*auxgrid(auxgridsize)/(pi))+1
+         allocate(swc(0:nsw))
+         allocate(swgr(0:nsw))
+         allocate(swoverlap(0:nsw,0:nsw))
+         maxswg=2*input%groundstate%gmaxvr ! 2*pi*dble(nsw)/auxgrid(auxgridsize) !input%groundstate%gmaxvr
+!         write(*,*) nsw,int(input%groundstate%gmaxvr*rmt(is)/(pi))+1
+!         write(*,*) ngvec
+         allocate(sine(0:nsw))
+         allocate(cosine(0:nsw))
+
+         do isw=0,nsw
+           aa=maxswg*dble(isw)/dble(nsw)*auxgrid(auxgridsize)
+           swgr(isw)=aa
+           sine(isw)=sin(aa)
+           cosine(isw)=cos(aa)
+         enddo
+
+! Compute overlaps of the auxiliary basis functions - spherical Bessel functions
+         do isw=0,nsw
+           aa=maxswg*dble(isw)/dble(nsw)*auxgrid(auxgridsize)
+           do jsw=0,nsw
+             bb=maxswg*dble(jsw)/dble(nsw)*auxgrid(auxgridsize)
+             if (isw.lt.jsw) then
+               if (isw.eq.0) then
+                 swoverlap(isw,jsw)=auxgrid(auxgridsize)**3*(sine(jsw)-bb*cosine(jsw))/(bb**3)
+                 swoverlap(jsw,isw)=swoverlap(isw,jsw)
                else
-                 do while (boundhi-boundlo.gt.1)
-                   ir=(boundhi+boundlo)/2
-                   if (auxgrid (ir).gt.jthr) then
-                     boundhi=ir
-                   else
-                     boundlo=ir
-                   endif
-                 enddo
+                 swoverlap(isw,jsw)=auxgrid(auxgridsize)**3*(bb*cosine(jsw)*sine(isw)-aa*cosine(isw)*sine(jsw))/(aa**3*bb-aa*bb**3)
+                 swoverlap(jsw,isw)=swoverlap(isw,jsw)
                endif
+             elseif (isw.eq.jsw) then
+               if (isw.eq.0) then
+                 swoverlap(isw,isw)=auxgrid(auxgridsize)**3/3d0
+               else
+                 swoverlap(isw,jsw)=auxgrid(auxgridsize)**3*(aa-cosine(isw)*sine(isw))/(2*aa**3)
+                 swoverlap(jsw,isw)=swoverlap(isw,jsw)
+               endif
+             endif
+           enddo
+         enddo
 
-               do ir=1,boundlo
-                 x=gc (ig)*auxgrid(ir)
-                 fr (ir) = auxrho(ir) * (1d0-sixth*x**2) * auxgrid(ir) ** 2
-               enddo
+! Factorisation is necessary for the least square fit in the L^2 sense
+                  call dpotrf('U',&                       ! upper or lower part
+                       nsw+1, &               ! size of matrix
+                       swoverlap, &                 ! matrix
+                       nsw+1, &               ! leading dimension
+                       info &                     ! error message
+                      )
 
-               t1=1d0/gc (ig)
-               do ir=boundhi,auxgridsize
-                 x=gc (ig)*auxgrid(ir)
-                 sn=sin(x)
-                 fr (ir) = auxrho(ir) * sn*t1 * auxgrid(ir) 
-               enddo
-! End of block
-! Uncomment the following block for the trapezoid rule. 
-!           gr(auxgridsize)=0.5d0*fr(ir)*auxgrid(ir)
-!           do ir=2,auxgridsize
-!             gr(auxgridsize)=0.5d0*(fr(ir)+fr(ir-1))*(auxgrid(ir)-auxgrid(ir-1))+gr(auxgridsize)
-!           enddo
+! Density overlap with the auxilliary basis functions
+         do ig=0,nsw
+           swg=maxswg*dble(ig)/dble(nsw)
+           do ir = 1,auxgridsize
+             x=swg*auxgrid(ir)
+             Call sbessel (0, x, jlgr01)
+             fr (ir) = auxrho(ir) * jlgr01 * auxgrid(ir) ** 2
+           enddo
            Call fderiv (-1, auxgridsize, auxgrid, fr, gr, cf)
-           ffacg (ig) = (fourpi/omega) * gr (auxgridsize)
-         End Do
+           swc(ig)=gr(auxgridsize)
+         enddo
+
+! Density is expanded in the auxilliary basis.
+! To do it, we find coefficients that minimise 
+! \sum_i C_i \int_0^R j_0(k_i r) \rho(r) r^2 dr. 
+            call dpotrs('U', &                      ! upper or lower part
+                         nsw+1,  &                      ! size
+                         1,  &                      ! number of right-hand sides
+                         swoverlap, &      ! factorized matrix
+                         nsw+1, &                       ! leading dimension
+                         swc, &                    ! right-hand side / solution
+                         nsw+1, &                       ! leading dimension
+                         info &                     ! error message
+                       )
+
+! Calculate the smooth model density. 
+! If the number of basis fns is large enough it should coincide with a*r^2+c.
+        do irc=1,nrcmt(is)
+          rhotest=0d0
+          do ig=0,nsw
+            x=maxswg*dble(ig)/dble(nsw)*rcmt (irc, is)
+            call sbessel (0, x, jlgr01)
+            rhotest=rhotest+swc(ig)*jlgr01
+          enddo
+          rhomodel(irc,is)=rhotest
+        enddo
+
+
+! Expand the model density in plane waves.
+! To reduce the effort, we express the model density in terms of the auxilliary basis.
+        ffacg=0d0
+        ffacg(1)=ffacg(1)+third*swc(0)
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(none) PRIVATE(ig,bb) SHARED(ngvec,auxgrid,auxgridsize,gc,ffacg,swc)
+!$OMP DO 
+#endif
+        do ig=2,ngvec
+          bb=gc(ig)*auxgrid(auxgridsize)
+          ffacg(ig)=ffacg(ig)+(sin(bb)-bb*cos(bb))/(bb**3)*swc(0)
+        enddo
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif
 
-         deallocate(auxgrid,auxrho)
+        do isw=1,nsw
+          swg=maxswg*dble(isw)/dble(nsw)
+          aa=swg*auxgrid(auxgridsize)
+          ffacg(1)=ffacg(1)+(sine(isw)-aa*cosine(isw))/(aa**3)*swc(isw)
+        enddo
 
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(none) PRIVATE(ig,bb,sn,cs,aa,isw) SHARED(ngvec,auxgrid,auxgridsize,swgr,gc,ffacg,sine,cosine,swc,nsw)
+!$OMP DO 
+#endif
+          do ig=2,ngvec
+            bb=gc(ig)*auxgrid(auxgridsize)
+            sn=sin(bb)
+            cs=cos(bb)
+            if (abs(dnint(bb/swgr(1))-bb/swgr(1)).lt.1d-8) then
+              do isw=1,nsw
+               aa=swgr(isw)
+               if (abs(bb-aa).lt.1d-8) then
+                 ffacg(ig)=ffacg(ig)+(aa-cosine(isw)*sine(isw))/(2*aa**3)*swc(isw)
+               else
+                 ffacg(ig)=ffacg(ig)+(bb*cs*sine(isw)-aa*cosine(isw)*sn)/(aa**3*bb-aa*bb**3)*swc(isw)
+               endif
+             enddo
+            else
+             do isw=1,nsw
+               aa=swgr(isw)
+               ffacg(ig)=ffacg(ig)+(bb*cs*sine(isw)-aa*cosine(isw)*sn)/(aa**3*bb-aa*bb**3)*swc(isw)
+             enddo
+            endif
+          enddo
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+        deallocate(cosine,sine,swgr)
+        deallocate(swc,swoverlap)
+        ffacg=ffacg*(fourpi/omega)*auxgrid(auxgridsize)**3
+        deallocate(auxgrid,auxrho)
+
+! Sum all the contribution from different atoms that correspond to same species.
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
             Do ig = 1, ngvec
@@ -273,7 +365,7 @@ Subroutine rhoinit
                update(1)=zt1*yy(1)
                update(2:4)=zt1*yy(2:4)*zi
                Do irc = 1, nrcmt (is)
-                z2fmt (1, irc) = z2fmt (1, irc) + jj(0,irc) * update(1)
+               z2fmt (1, irc) = z2fmt (1, irc) + jj(0,irc) * update(1)
                 z2fmt (2:4, irc) = z2fmt (2:4, irc) + jj(1,irc) * update(2:4)
                End Do
             End Do
@@ -304,6 +396,15 @@ Subroutine rhoinit
       call timesec(tb)
       write(*,*) 'rhoinit, step 2:',tb-ta
       call timesec(ta)
+ 
+! Remove model density from rhomt
+      Do is = 1, nspecies
+        Do ia = 1, natoms (is)
+          ias = idxas (ia, is)
+          rhomt(1,1:nrcmt(is),ias)=rhomt(1,1:nrcmt(is),ias)-rhomodel(1:nrcmt(is),is)/y00
+        enddo
+      enddo
+
 ! convert the density from a coarse to a fine radial mesh
       Call rfmtctof (rhomt)
 ! add the atomic charge density and the excess charge in each muffin-tin
@@ -315,7 +416,8 @@ Subroutine rhoinit
 ! Actually this is sloppy, since we have to subtract the contribution that is described by plane waves.
 ! Instead we subtract the model function that we try to expand in plane waves. In the limit of large Gmax,
 ! both things are equivalent. But should we even care? This is only the initial guess.
-               t2 = (t1+sprho(ir, is)-a(is)*spr(ir,is)**2-c(is)) / y00 
+!               t2 = (t1+sprho(ir, is)-a(is)*spr(ir,is)**2-c(is)) / y00 
+               t2 = (t1+sprho(ir, is)) / y00
                rhomt (1, ir, ias) = rhomt (1, ir, ias) + t2
             End Do
          End Do
@@ -330,7 +432,7 @@ Subroutine rhoinit
       Call charge
 ! normalise the density
       Call rhonorm
-      Deallocate (jlgr, ffacg, zfmt, zfft,a,c)
+      Deallocate (jlgr, ffacg, zfmt, zfft,a,c,rhomodel)
       call timesec(tb)
       write(*,*) 'rhoinit, step 3:',tb-ta
 !      stop
