@@ -62,9 +62,10 @@ Subroutine rhoinit
 !      real(8) :: cpu_seconds
 !      external :: cpu_seconds
       integer :: nsw,isw,jsw,info  ! number of spherical waves
-      real(8),allocatable :: swc(:),swoverlap(:,:),sine(:),cosine(:),swgr(:)
+      real(8),allocatable :: swc(:),swoverlap(:,:),sine(:),cosine(:),swgr(:),pwswc(:,:),swoverlap2(:,:,:),pwswc2(:)
+      complex(8),allocatable :: swc2(:,:,:),swctmp(:,:,:)!,pwswc(:,:)
       real(8) :: maxswg,swg,rhotest
-      real(8) :: aa,bb,ans
+      real(8) :: aa,bb,ans,rmt3
 
 
 ! maximum angular momentum for density initialisation
@@ -99,6 +100,7 @@ Subroutine rhoinit
 
 ! Specifying new grid. It is equally spaced within MT and coincides with the original
 ! one outside.
+! Do we still need this new grid? Maybe not so much...
          mtgridsize=PointsPerPeriod*int(rmt(is)*input%groundstate%gmaxvr/(2d0*pi))+1
          lastpoint=spnr(is)
          do while ((lastpoint.gt.nrmt(is)).and.(sprho (lastpoint, is).lt.threshold))
@@ -131,15 +133,16 @@ Subroutine rhoinit
 
 
 ! Initialise auxiliary basis - spherical Bessel functions
-         nsw=int(2*input%groundstate%gmaxvr*auxgrid(auxgridsize)/(pi))+1
+         nsw=int(2d0*input%groundstate%gmaxvr*auxgrid(auxgridsize)/(pi))+1
          allocate(swc(0:nsw))
          allocate(swgr(0:nsw))
          allocate(swoverlap(0:nsw,0:nsw))
-         maxswg=2*input%groundstate%gmaxvr ! 2*pi*dble(nsw)/auxgrid(auxgridsize) !input%groundstate%gmaxvr
+         maxswg=2d0*input%groundstate%gmaxvr ! 2*pi*dble(nsw)/auxgrid(auxgridsize) !input%groundstate%gmaxvr
 !         write(*,*) nsw,int(input%groundstate%gmaxvr*rmt(is)/(pi))+1
 !         write(*,*) ngvec
          allocate(sine(0:nsw))
          allocate(cosine(0:nsw))
+
 
          do isw=0,nsw
            aa=maxswg*dble(isw)/dble(nsw)*auxgrid(auxgridsize)
@@ -207,6 +210,7 @@ Subroutine rhoinit
 
 ! Calculate the smooth model density. 
 ! If the number of basis fns is large enough it should coincide with a*r^2+c.
+
         do irc=1,nrcmt(is)
           rhotest=0d0
           do ig=0,nsw
@@ -216,7 +220,6 @@ Subroutine rhoinit
           enddo
           rhomodel(irc,is)=rhotest
         enddo
-
 
 ! Expand the model density in plane waves.
 ! To reduce the effort, we express the model density in terms of the auxilliary basis.
@@ -249,7 +252,7 @@ Subroutine rhoinit
             bb=gc(ig)*auxgrid(auxgridsize)
             sn=sin(bb)
             cs=cos(bb)
-            if (abs(dnint(bb/swgr(1))-bb/swgr(1)).lt.1d-8) then
+            if (abs(dnint (bb/swgr(1))-bb/swgr(1)).lt.1d-8) then
               do isw=1,nsw
                aa=swgr(isw)
                if (abs(bb-aa).lt.1d-8) then
@@ -288,6 +291,243 @@ Subroutine rhoinit
       call timesec(ta)
 ! compute the tails in each muffin-tin
 
+! Choose .false. if you want to revert to old ways
+if (.true.) then
+      Do is = 1, nspecies
+         nsw=int(2*input%groundstate%gmaxvr*rmt(is)/(pi))+1
+         allocate(swc2(0:nsw,4,natoms(is)))
+         allocate(pwswc(0:nsw,2))
+         allocate(pwswc2(0:nsw))
+         allocate(swgr(0:nsw))
+         allocate(swoverlap2(0:nsw,0:nsw,2))
+         maxswg=2d0*input%groundstate%gmaxvr ! 2*pi*dble(nsw)/auxgrid(auxgridsize) !input%groundstate%gmaxvr
+!         write(*,*) nsw !,int(input%groundstate%gmaxvr*rmt(is)/(pi))+1
+         allocate(sine(0:nsw))
+         allocate(cosine(0:nsw))
+
+
+         do isw=0,nsw
+           aa=maxswg*dble(isw)/dble(nsw)*rmt(is)
+           swgr(isw)=aa
+           sine(isw)=sin(aa)
+           cosine(isw)=cos(aa)
+         enddo
+         rmt3=rmt(is)**3
+
+! Compute overlaps of the auxiliary basis functions - spherical Bessel functions up to l=1
+         do isw=0,nsw
+           aa=maxswg*dble(isw)/dble(nsw)*rmt(is)
+           do jsw=0,nsw
+             bb=maxswg*dble(jsw)/dble(nsw)*rmt(is)
+             if (isw.lt.jsw) then
+               if (isw.eq.0) then
+                 swoverlap2(isw,jsw,1)=rmt3*(sine(jsw)-bb*cosine(jsw))/(bb**3)
+                 swoverlap2(jsw,isw,1)=swoverlap2(isw,jsw,1)
+
+                 swoverlap2(isw,jsw,2)=0d0
+                 swoverlap2(jsw,isw,2)=0d0
+
+               else
+                 swoverlap2(isw,jsw,1)=rmt3*(bb*cosine(jsw)*sine(isw)-aa*cosine(isw)*sine(jsw))/(aa**3*bb-aa*bb**3)
+                 swoverlap2(jsw,isw,1)=swoverlap2(isw,jsw,1)
+
+                 swoverlap2(isw,jsw,2)=rmt3*(aa**2*bb*cosine(jsw)*sine(isw)    &
+                                                  -aa*bb**2*cosine(isw)*sine(jsw)    &
+                                                  -(aa**2-bb**2)*sine(isw)*sine(jsw)) &
+                                                  /(aa**2*bb**2*(aa**2-bb**2))
+                 swoverlap2(jsw,isw,2)=swoverlap2(isw,jsw,2)
+               endif
+             elseif (isw.eq.jsw) then
+               if (isw.eq.0) then
+                 swoverlap2(isw,isw,1)=rmt3/3d0
+                 swoverlap2(isw,jsw,2)=0d0
+               else
+                 swoverlap2(isw,jsw,1)=rmt3*(aa-cosine(isw)*sine(isw))/(2*aa**3)
+                 swoverlap2(jsw,isw,1)=swoverlap2(isw,jsw,1)
+                 swoverlap2(isw,jsw,2)=rmt3*(aa**2-2d0*sine(isw)**2 +aa*cosine(isw)*sine(isw))/(2*aa**4)
+                 swoverlap2(jsw,isw,2)=swoverlap2(isw,jsw,2)
+               endif
+             endif
+           enddo
+         enddo
+
+
+! Invert overlap matrix - prepare for the least square fitting
+         swoverlap2(0,:,2)=0d0
+         swoverlap2(:,0,2)=0d0
+         swoverlap2(0,0,2)=1d0
+         call dpotrf('U',&                       ! upper or lower part
+                     nsw+1, &               ! size of matrix
+                     swoverlap2(0,0,1), &                 ! matrix
+                     nsw+1, &               ! leading dimension
+                     info &                     ! error message
+                    )
+         call dpotri('U',&                       ! upper or lower part
+                     nsw+1, &               ! size of matrix
+                     swoverlap2(0,0,1), &                 ! matrix
+                     nsw+1, &               ! leading dimension
+                     info &                     ! error message
+                    )
+         do isw=0,nsw
+           swoverlap2(:,isw,1)=swoverlap2(isw,:,1)
+         enddo
+         call dpotrf('U',&                       ! upper or lower part
+                     nsw+1, &               ! size of matrix
+                     swoverlap2(0,0,2), &                 ! matrix
+                     nsw+1, &               ! leading dimension
+                     info &                     ! error message
+                    )
+         call dpotri('U',&                       ! upper or lower part
+                     nsw+1, &               ! size of matrix
+                     swoverlap2(0,0,2), &                 ! matrix
+                     nsw+1, &               ! leading dimension
+                     info &                     ! error message
+                    )
+         swoverlap2(0,0,2)=0d0
+         do isw=0,nsw
+           swoverlap2(:,isw,2)=swoverlap2(isw,:,2)
+         enddo
+
+
+! Express plane waves in terms of spherical Bessel functions
+! and calculate them of the radial grid
+
+        swc2(:,:,:)=zzero
+        ifg = igfft (1)
+
+! Consider G=0 separately
+        yy=conjg(ylmg(1:4,1))
+        do ia= 1, natoms (is)
+         ias = idxas (ia, is)
+         swc2(0,1,ia)=zfft (ifg)*yy(1)*fourpi* sfacg (1, ias)
+        enddo
+
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(none) PRIVATE(ig,bb,sn,cs,aa,isw,yy,ifg,pwswc,pwswc2,swctmp,ia,ias,irc,whichthread,nthreads) SHARED(ngvec,swgr,gc,sine,cosine,nsw,ylmg,natoms,sfacg,zfft,swc2,rmt,is,igfft,swoverlap2,idxas,rmt3)
+        allocate(swctmp(0:nsw,4,natoms(is)))
+        swctmp=zzero
+!$OMP DO 
+#endif
+! Now other Gs follow
+        do ig=2,ngvec
+          ifg = igfft (ig)
+          yy=conjg(ylmg(1:4,ig))
+          bb=gc(ig)*rmt(is)
+          sn=sin(bb)
+          cs=cos(bb)
+! Plane wave expands into spherical Bessel functions, 
+! but we don't want to compute them for every G on each 
+! radial grid point.
+! Insted we expand each occuring spherical Bessel function 
+! in terms of the auxilliary basis (also spherical Bessel 
+! functions) with the size that is much smaller than the number Gs.
+
+! First, we compute overlaps
+          pwswc(0,1)=rmt3*(sn-bb*cs)/(bb**3)
+          if (abs(dnint(bb/swgr(1))-bb/swgr(1)).lt.1d-8) then
+            do isw=1,nsw
+              aa=swgr(isw)
+              if (abs(bb-aa).lt.1d-8) then
+                pwswc(isw,1)=rmt3*(aa-cosine(isw)*sine(isw))/(2*aa**3)
+                pwswc(isw,2)=rmt3*(aa**2-2d0*sine(isw)**2 +aa*cosine(isw)*sine(isw))/(2*aa**4)
+              else
+                pwswc(isw,1)=rmt3*(bb*cs*sine(isw)-aa*cosine(isw)*sn)/(aa**3*bb-aa*bb**3)
+                pwswc(isw,2)=rmt3*(aa**2*bb*cs*sine(isw)    &
+                                   -aa*bb**2*cosine(isw)*sn    &
+                                   -(aa**2-bb**2)*sine(isw)*sn) &
+                                   /(aa**2*bb**2*(aa**2-bb**2))
+              endif
+            enddo
+          else
+            do isw=1,nsw
+              aa=swgr(isw)
+              pwswc(isw,1)=rmt3*(bb*cs*sine(isw)-aa*cosine(isw)*sn)/(aa**3*bb-aa*bb**3)
+              pwswc(isw,2)=rmt3*(aa**2*bb*cs*sine(isw)    &
+                                -aa*bb**2*cosine(isw)*sn    &
+                                -(aa**2-bb**2)*sine(isw)*sn) &
+                                /(aa**2*bb**2*(aa**2-bb**2))
+            enddo
+          endif
+
+! Second, we use the overlaps to obtain the least-square coefficients
+          call dgemv('N',nsw+1,nsw+1,1d0,swoverlap2(0,0,1),nsw+1,pwswc(0,1),1,0d0,pwswc2,1)
+          pwswc(:,1)=pwswc2
+          call dgemv('N',nsw+1,nsw+1,1d0,swoverlap2(0,0,2),nsw+1,pwswc(0,2),1,0d0,pwswc2,1)
+          pwswc(:,2)=pwswc2
+! pwswc contains the expansion of j_n(G*r) in terms of the auxilliary basis
+
+! Update the contribution of rho_G for every atom of the given species.
+! This contribution is still expressed in terms of the auxilliary basis.
+          do ia= 1, natoms (is)
+            ias = idxas (ia, is)
+#ifdef USEOMP
+            swctmp(:,1,ia)=swctmp(:,1,ia)+pwswc(:,1)*zfft (ifg)*yy(1)*   fourpi* sfacg (ig, ias)
+            swctmp(:,2,ia)=swctmp(:,2,ia)+pwswc(:,2)*zfft (ifg)*yy(2)*zi*fourpi* sfacg (ig, ias)
+            swctmp(:,3,ia)=swctmp(:,3,ia)+pwswc(:,2)*zfft (ifg)*yy(3)*zi*fourpi* sfacg (ig, ias)
+            swctmp(:,4,ia)=swctmp(:,4,ia)+pwswc(:,2)*zfft (ifg)*yy(4)*zi*fourpi* sfacg (ig, ias)
+#else
+            swc2(:,1,ia)=swc2(:,1,ia)+pwswc(:,1)*zfft (ifg)*yy(1)*   fourpi* sfacg (ig, ias)
+            swc2(:,2,ia)=swc2(:,2,ia)+pwswc(:,2)*zfft (ifg)*yy(2)*zi*fourpi* sfacg (ig, ias)
+            swc2(:,3,ia)=swc2(:,3,ia)+pwswc(:,2)*zfft (ifg)*yy(3)*zi*fourpi* sfacg (ig, ias)
+            swc2(:,4,ia)=swc2(:,4,ia)+pwswc(:,2)*zfft (ifg)*yy(4)*zi*fourpi* sfacg (ig, ias)
+#endif
+          enddo
+
+
+       enddo
+#ifdef USEOMP
+!$OMP END DO
+            nthreads=omp_get_num_threads()
+            whichthread=omp_get_thread_num()
+            do irc=0,nthreads-1
+              if (irc.eq.whichthread) then
+                swc2=swctmp+swc2
+              endif
+!$OMP BARRIER
+            enddo
+            deallocate(swctmp)
+!$OMP END PARALLEL
+#endif
+
+! Calculate the density at each radial grid point on a coarse mesh
+! and transform it to the fine mesh.
+       do ia= 1, natoms (is)
+         ias = idxas (ia, is)
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(none) PRIVATE(irc,yy,x,jlgr,isw) SHARED(nsw,nrcmt,ia,swc2,maxswg,rcmt,zfmt,is)
+!$OMP DO 
+#endif
+
+         do irc=1,nrcmt(is)
+           yy=0d0
+           yy(1)=swc2(0,1,ia)
+           do isw=1,nsw
+             x=maxswg*dble(isw)/dble(nsw)*rcmt (irc, is)
+             call sbessel (1, x, jlgr)
+             yy(1)=yy(1)+swc2(isw,1,ia)*jlgr(0)
+             yy(2:4)=yy(2:4)+swc2(isw,2:4,ia)*jlgr(1)
+           enddo
+           zfmt(1:4,irc)=yy(1:4)
+         enddo
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+
+         irc = 0
+         Do ir = 1, nrmt (is), input%groundstate%lradstep
+           irc = irc + 1
+           Call ztorflm (lmax, zfmt(:, irc), rhomt(:, ir, ias))
+         End Do
+       enddo
+
+       deallocate(cosine,sine,swgr,swc2,pwswc,swoverlap2,pwswc2)
+         
+
+     enddo
+
+else
+
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
@@ -303,10 +543,7 @@ Subroutine rhoinit
 #endif
             Do ig = 1, ngvec
                ifg = igfft (ig)
-!               Call sphcrd (vgc(:, ig), r, tp)
-!               Call genylm (lmax, tp, yy)
-!               yy=conjg(yy)
-              yy=conjg(ylmg(1:4,ig))
+               yy=conjg(ylmg(1:4,ig))
                zt1 = fourpi * zfft (ifg) * sfacg (ig, ias)
 
 !               call timesec(ta)
@@ -392,6 +629,11 @@ Subroutine rhoinit
             End Do
          End Do
       End Do
+
+endif
+
+
+
 
       call timesec(tb)
       write(*,*) 'rhoinit, step 2:',tb-ta
