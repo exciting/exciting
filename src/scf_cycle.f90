@@ -110,6 +110,7 @@ subroutine scf_cycle(verbosity)
 
 !___________________
 ! and call interface
+    iscl=0
     Call packeff (.True., n, v)
     If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
     Call packeff (.False., n, v)
@@ -134,7 +135,7 @@ subroutine scf_cycle(verbosity)
 ! begin the self-consistent loop
 !----------------------------------------!
 !    write(*,*) n
-    iscl = 0
+!    iscl = 0
     Do iscl = 1, input%groundstate%maxscl
 !
 ! exit self-consistent loop if last iteration is complete

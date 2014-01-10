@@ -40,6 +40,7 @@ Subroutine mixmsec (iscl, potential, residualnorm, n)
 !
       noldsteps = noldstepsin_file
       sreduction = 1.2
+!      write(*,*) iscl
       If (iscl .Le. 2) Then
 !
          If (iscl .Ge. 2) Then
