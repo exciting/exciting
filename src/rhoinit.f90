@@ -33,13 +33,13 @@ Subroutine rhoinit
       Integer, Parameter :: n = 4
       Integer :: lmax, lmmax, l, m, lm, ir, irc
       Integer :: is, ia, ias, ig, ifg
-      Real (8) :: x, t1, t2, jlgr01
+      Real (8) :: x, t1, t2, jlgr01, jlgr(0:1)
       Complex (8) zt1, zt2, zt3,yy(4),update(4)
       Real (8) :: ta,tb, tc,td
 ! automatic arrays
       Real (8) :: fr (spnrmax), gr (spnrmax), cf (3, spnrmax)
 ! allocatable arrays
-      Real (8), Allocatable :: jlgr (:),jj(:,:)
+      Real (8), Allocatable :: jj(:,:)
       Real (8), Allocatable :: th (:, :)
       Real (8), Allocatable :: ffacg (:)
       Real (8), Allocatable :: rhomodel(:,:)
@@ -73,7 +73,7 @@ Subroutine rhoinit
       lmmax = (lmax+1) ** 2
 ! allocate local arrays
 !      Allocate (jj(0:lmax, nrcmtmax))
-      Allocate (jlgr(0:lmax))
+!      Allocate (jlgr(0:lmax))
       Allocate (ffacg(ngvec))
       Allocate (zfmt(lmmax, nrcmtmax))
       Allocate (rhomodel(nrcmtmax,nspecies))
@@ -296,8 +296,8 @@ if (.true.) then
       Do is = 1, nspecies
          nsw=int(2*input%groundstate%gmaxvr*rmt(is)/(pi))+1
          allocate(swc2(0:nsw,4,natoms(is)))
-         allocate(pwswc(0:nsw,2))
-         allocate(pwswc2(0:nsw))
+!         allocate(pwswc(0:nsw,2))
+!         allocate(pwswc2(0:nsw))
          allocate(swgr(0:nsw))
          allocate(swoverlap2(0:nsw,0:nsw,2))
          maxswg=2d0*input%groundstate%gmaxvr ! 2*pi*dble(nsw)/auxgrid(auxgridsize) !input%groundstate%gmaxvr
@@ -406,6 +406,10 @@ if (.true.) then
 !$OMP PARALLEL DEFAULT(none) PRIVATE(ig,bb,sn,cs,aa,isw,yy,ifg,pwswc,pwswc2,swctmp,ia,ias,irc,whichthread,nthreads) SHARED(ngvec,swgr,gc,sine,cosine,nsw,ylmg,natoms,sfacg,zfft,swc2,rmt,is,igfft,swoverlap2,idxas,rmt3)
         allocate(swctmp(0:nsw,4,natoms(is)))
         swctmp=zzero
+#endif
+        allocate(pwswc(0:nsw,2))
+        allocate(pwswc2(0:nsw))
+#ifdef USEOMP
 !$OMP DO 
 #endif
 ! Now other Gs follow
@@ -486,6 +490,9 @@ if (.true.) then
 !$OMP BARRIER
             enddo
             deallocate(swctmp)
+#endif
+            deallocate(pwswc,pwswc2)
+#ifdef USEOMP
 !$OMP END PARALLEL
 #endif
 
@@ -521,7 +528,7 @@ if (.true.) then
          End Do
        enddo
 
-       deallocate(cosine,sine,swgr,swc2,pwswc,swoverlap2,pwswc2)
+       deallocate(cosine,sine,swgr,swc2,swoverlap2)
          
 
      enddo
@@ -674,7 +681,7 @@ endif
       Call charge
 ! normalise the density
       Call rhonorm
-      Deallocate (jlgr, ffacg, zfmt, zfft,a,c,rhomodel)
+      Deallocate (ffacg, zfmt, zfft,a,c,rhomodel)
       call timesec(tb)
       write(*,*) 'rhoinit, step 3:',tb-ta
 !      stop
