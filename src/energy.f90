@@ -100,13 +100,14 @@ Subroutine energy
 !BOC
       Implicit None
 ! local variables
-      Integer :: is, ia, ias, ik, ist, idm, jdm
+      Integer :: is, ia, ias, ik, ist, idm, jdm, ir, lm
 ! fine structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
 ! electron g factor
       Real (8), Parameter :: ge = 2.0023193043718d0
       Real (8), Parameter :: ga4 = ge * alpha / 4.d0
       Real (8) :: vn
+      Real (8) :: v2(50)
       Complex (8) zt1
 ! allocatable arrays
       Complex (8), Allocatable :: evecsv (:, :), c (:, :)
@@ -151,21 +152,53 @@ Subroutine energy
 !----------------------------------!
 !     Coulomb potential energy     !
 !----------------------------------!
+!      rhomt(2:lmmaxvr,:,1)=0d0
+!      vclmt(2:lmmaxvr,:,1)=0d0
       engyvcl = rfinp (1, rhomt, vclmt, rhoir, vclir)
+!      rhomt(2:lmmaxvr,:,1)=0d0
+!      vclmt(2:lmmaxvr,:,1)=0d0
+!     do lm=1,1
+!      do ir=1,nrmt(1)
+!        write(*,*) spr(ir,1),rhomt(lm,ir,1),vclmt(lm,ir,1)
+!      enddo
+!      read(*,*)
+!     enddo
+!      write(*,*) engyvcl
+!      stop
 !-----------------------!
 !     Madelung term     !
 !-----------------------!
+if (.false.) then 
       engymad = 0.d0
       Do is = 1, nspecies
 ! compute the bare nucleus potential at the origin
-         Call potnucl (input%groundstate%ptnucl, 1, spr(:, is), &
-        & spzn(is), vn)
+         Call potnucl (input%groundstate%ptnucl, 1, spr(:, is), spzn(is), vn)
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
+            write(*,*) vclmt(1,1,ias)*y00,vn
             engymad = engymad + 0.5d0 * spzn (is) * (vclmt(1, 1, &
            & ias)*y00-vn)
          End Do
       End Do
+else
+      engymad = 0.d0
+      Do is = 1, nspecies
+! compute the bare nucleus potential at the origin
+         Call potnucl (input%groundstate%ptnucl, 50, spr(:, is), spzn(is), v2)
+!        do ia=1,49
+!          write(*,*) spr(ia,is),0.5d0 * spzn (is) * ((vclmt(1,ia,1)*y00-v2(ia))*spr(ia+1,is)-(vclmt(1,ia+1,1)*y00-v2(ia+1))*spr(ia,is))/(spr(ia+1,is)-spr(ia,is)),0.5d0 * spzn (is) * (vclmt(1,ia,1)*y00-v2(ia))
+!        enddo
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+!            write(*,*) vclmt(1,1,ias)*y00,v2(1)
+!            write(*,*) vclmt(1,2,ias)*y00,v2(2)
+!            write(*,*) 0.5d0 * spzn (is) * ((vclmt(1,1,ias)*y00-v2(1))*spr(2,is)-(vclmt(1,2,ias)*y00-v2(2))*spr(1,is))/(spr(2,is)-spr(1,is))
+!            write(*,*) 0.5d0 * spzn (is) * (vclmt(1,1,ias)*y00-v2(1)),0.5d0 * spzn (is) * vmad(ias)
+            engymad = engymad + 0.5d0 * spzn (is) * vmad(ias) !((vclmt(1,1,ias)*y00-v2(1))*spr(2,is)-(vclmt(1,2,ias)*y00-v2(2))*spr(1,is))/(spr(2,is)-spr(1,is))
+         End Do
+      End Do
+endif
+
 !---------------------------------------------!
 !     electron-nuclear interaction energy     !
 !---------------------------------------------!
@@ -178,6 +211,12 @@ Subroutine energy
 !     Coulomb energy     !
 !------------------------!
       engycl = engynn + engyen + engyhar
+!write(*,*) 
+!write(*,*) 'engymad',engymad
+!write(*,*) 'engynn',engynn
+!write(*,*) 'engyvcl',engyvcl
+!write(*,*) 'engyen',engyen
+
 !-------------------------!
 !     exchange energy     !
 !-------------------------!

@@ -38,6 +38,8 @@ Module mod_potential_and_density
       Real (8), Allocatable :: magir (:, :)
 ! muffin-tin Coulomb potential
       Real (8), Allocatable :: vclmt (:, :, :)
+! Madulung potential (excluding the on-ste nuclear contribution) in the innermost radial point
+      Real (8), Allocatable :: vmad (:)
 ! interstitial real-space Coulomb potential
       Real (8), Allocatable :: vclir (:)
 ! order of polynomial for pseudocharge density

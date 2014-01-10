@@ -3,7 +3,29 @@
 import sys
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import os
 
+#-------------------------------------------------------------------------------
+
+def shell_value(variable,vlist,default):
+    v = default
+    e = False
+    for i in range(len(vlist)):
+        if ( vlist[i] == variable ): v = os.environ[variable] ; e = True ; break
+    return v, e
+    
+#-------------------------------------------------------------------------------
+
+current = os.environ['PWD']
+ev_list = os.environ.keys()
+
+rundir = shell_value('EXCITINGRUNDIR',ev_list,current)[0]
+rlabel = shell_value('RLABEL',ev_list,"rundir-")[0]
+showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
+dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
+
+#-------------------------------------------------------------------------------
+  
 ###################
 # Read input data #
 ###################
@@ -135,7 +157,9 @@ ax1.set_xlim(0,max(ksene[0][0]))
 ax1.set_ylim(ymin,ymax)
 
 # save the figure
-fig.savefig('Figure.png',format='png',bbox_inches=0,dpi=50)
 
-plt.show()
+plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
+plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
+
+if (showpyplot): plt.show()
 sys.exit()    

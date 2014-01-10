@@ -42,17 +42,12 @@ Subroutine getngkmax
                v1 (:) = vkc (:, ik)
             End If
             i = 0
-            
-!            Do ig = 1, ngvec
-            t2=0d0
-            ig=0
-            do while (t2.lt.t1)
-               ig=ig+1
+            Do ig = 1, ngvec
                v2 (:) = vgc (:, ig) + v1 (:)
                t2 = v2 (1) ** 2 + v2 (2) ** 2 + v2 (3) ** 2
+               If (t2 .Lt. t1) i = i + 1
             End Do
-            ig=ig-1
-            ngkmax = Max (ngkmax, ig)
+            ngkmax = Max (ngkmax, i)
          End Do
       End Do
 

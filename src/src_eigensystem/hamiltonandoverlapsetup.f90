@@ -52,6 +52,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
           Call timesec (ts0)
           ias = idxas (ia, is)
           apwi=dcmplx(0d0,0d0)
+          apwi2=dcmplx(0d0,0d0)
           if3=0
           Do l3 = 0, input%groundstate%lmaxmat
             Do m3 = - l3, l3

@@ -228,11 +228,12 @@ end subroutine
 !
 !------------------wrappers for MPI communication
 
-      subroutine mpi_allgatherv_ifc(set,rlen,ibuf,rbuf,zbuf)
+      subroutine mpi_allgatherv_ifc(set,rlen,ibuf,rbuf,rlpbuf,zbuf)
         implicit none
         integer, intent(in) :: set,rlen
         integer, intent(inout), optional :: ibuf(*)
         real(8), intent(inout), optional :: rbuf(*)
+        real(4), intent(inout), optional :: rlpbuf(*)
         complex(8), intent(inout), optional :: zbuf(*)
         ! local variables
 #ifndef MPI1
@@ -241,13 +242,14 @@ end subroutine
 #ifdef MPI1
         complex(8), allocatable :: bufz(:)
         real(8), allocatable :: bufr(:)
+        real(4), allocatable :: bufrlp(:)
         integer, allocatable :: bufi(:)
 #endif
         integer, allocatable :: buf_n(:),buf_dspls(:)
         integer :: j
-        logical :: ti,tr,tz
-        ti=present(ibuf); tr=present(rbuf); tz=present(zbuf)
-        if (count((/ti,tr,tz/)).ne.1) then
+        logical :: ti,tr,trlp,tz
+        ti=present(ibuf); tr=present(rbuf); trlp=present(rlpbuf); tz=present(zbuf)
+        if (count((/ti,tr,trlp,tz/)).ne.1) then
           write(*,*)
           write(*,'("Error(mpi_allgatherv_ifc): exactly one array must be defined.")')
           write(*,*)
@@ -297,6 +299,26 @@ end subroutine
             ierr)
 #ifdef MPI1
           deallocate(bufr)
+#undef BUFFER
+#endif
+        end if
+        if (trlp) then
+#ifdef MPI1
+#define BUFFER bufrlp
+          allocate(bufrlp(buf_n(rank+1)))
+          bufrlp(:)=rlpbuf(buf_dspls(rank+1)+1:buf_dspls(rank+1)+buf_n(rank+1))
+#endif
+          call mpi_allgatherv(BUFFER, &
+            buf_n(rank+1), &
+            MPI_REAL4, &
+            rlpbuf, &
+            buf_n, &
+            buf_dspls, &
+            MPI_REAL4, &
+            mpi_comm_world, &
+            ierr)
+#ifdef MPI1
+          deallocate(bufrlp)
 #undef BUFFER
 #endif
         end if

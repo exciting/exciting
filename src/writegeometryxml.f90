@@ -37,7 +37,8 @@ Subroutine writegeometryxml (topt)
       if (topt) then
           call xml_OpenFile ("geometry_opt.xml", xf, replace=.True., pretty_print=.True.)
       else
-          call xml_OpenFile ("geometry.xml", xf, replace=.True., pretty_print=.True.)
+          call xml_OpenFile ("geometry"//filext(1:index(filext, ".OUT", .true.)-1)//".xml", &
+         &     xf, replace=.True., pretty_print=.True.)
       end if
 
       call xml_NewElement (xf, "input")
@@ -74,7 +75,11 @@ Subroutine writegeometryxml (topt)
               write (buffer, '(3F18.10)') (v (:)) 
               call xml_AddAttribute (xf, "coord", trim(adjustl(buffer)))            
 
-              lock = input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz
+              lock(:) = .False.
+              if ( associated(input%relax) ) then
+                  lock(:) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%lockxyz(:)
+              end if
+
               if (lock(1).or.lock(2).or.lock(3)) then
                   write(buffer,*) printLogical(lock(1)), &
                  &                printLogical(lock(2)), &

@@ -10,7 +10,9 @@
 ! !INTERFACE:
 !
 !
-Subroutine gengpvec (vpl, vpc, ngp, igpig, vgpl, vgpc, gpc, tpgpc,fftmapping)
+Subroutine gengpvec (vpl, vpc, ngp, igpig, vgpl, vgpc, gpc, tpgpc)
+!Subroutine gengpvec (vpl, vpc, ngp, igpig, vgpl, vgpc, gpc, tpgpc,fftmapping)
+! The commented version with fftmapping is useful when FFTs of wavefunctions need to be calculated
 ! !USES:
       Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -37,7 +39,7 @@ Subroutine gengpvec (vpl, vpc, ngp, igpig, vgpl, vgpc, gpc, tpgpc,fftmapping)
       Real (8), Intent (In) :: vpc (3)
       Integer, Intent (Out) :: ngp
       Integer, Intent (Out) :: igpig (ngkmax)
-      Integer, Intent (Out) :: fftmapping (ngkmax)
+!      Integer, Intent (Out) :: fftmapping (ngkmax)
       Real (8), Intent (Out) :: vgpl (3, ngkmax)
       Real (8), Intent (Out) :: vgpc (3, ngkmax)
       Real (8), Intent (Out) :: gpc (ngkmax)
@@ -50,16 +52,14 @@ Subroutine gengpvec (vpl, vpc, ngp, igpig, vgpl, vgpc, gpc, tpgpc,fftmapping)
       t2 = 0d0
       igp = 0
       ig=0
-      do while (t2.lt.t1)
-         ig=ig+1
+      Do ig = 1, ngvec
          v (:) = vgc (:, ig) + vpc (:)
          t2 = v (1) ** 2 + v (2) ** 2 + v (3) ** 2
          If (t2 .Lt. t1) Then
             igp = igp + 1
             If (igp .Gt. ngkmax) Then
                Write (*,*)
-               Write (*, '("Error(gengpvec): number of G+p-vectors exce&
-              &eds ngkmax")')
+               Write (*, '("Error(gengpvec): number of G+p-vectors exceeds ngkmax")')
                Write (*,*)
                Stop
             End If
@@ -72,20 +72,20 @@ Subroutine gengpvec (vpl, vpc, ngp, igpig, vgpl, vgpc, gpc, tpgpc,fftmapping)
 ! G+p-vector length and (theta, phi) coordinates
             Call sphcrd (vgpc(:, igp), gpc(igp), tpgpc(:, igp))
 
-! Fourier transform index
-            i1 = ivg (1, ig)
-            i2 = ivg (2, ig)
-            i3 = ivg (3, ig)
-            If (i1 .lt. 0) Then
-              i1 = ngkfft (1) + i1
-            End If
-            If (i2 .lt. 0) Then
-              i2 = ngkfft (2) + i2
-            End If
-            If (i3 .lt. 0) Then
-              i3 = ngkfft (3) + i3
-            End If
-            fftmapping (igp) = i3 * ngkfft (2) * ngkfft (1) + i2 * ngkfft (1) + i1 + 1
+! Fourier transform index if fftmapping is enabled
+!            i1 = ivg (1, ig)
+!            i2 = ivg (2, ig)
+!            i3 = ivg (3, ig)
+!            If (i1 .lt. 0) Then
+!              i1 = ngkfft (1) + i1
+!            End If
+!            If (i2 .lt. 0) Then
+!              i2 = ngkfft (2) + i2
+!            End If
+!            If (i3 .lt. 0) Then
+!              i3 = ngkfft (3) + i3
+!            End If
+!           fftmapping (igp) = i3 * ngkfft (2) * ngkfft (1) + i2 * ngkfft (1) + i1 + 1
 
          End If
       End Do

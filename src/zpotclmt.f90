@@ -98,7 +98,9 @@ Subroutine zpotclmt (ptnucl, lmax, nr, r, zn, ld, zrhomt, zvclmt)
             End Do
          End If
       End Do
+
 ! add the nuclear potential
+if (.false.) then
       If (zn .Ne. 0.d0) Then
          Call potnucl (ptnucl, nr, r, zn, vn)
          t1 = 1.d0 / y00
@@ -106,6 +108,7 @@ Subroutine zpotclmt (ptnucl, lmax, nr, r, zn, ld, zrhomt, zvclmt)
             zvclmt (1, ir) = zvclmt (1, ir) + t1 * vn (ir)
          End Do
       End If
+endif
       Return
 End Subroutine
 !EOC

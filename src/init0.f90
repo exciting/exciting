@@ -394,6 +394,8 @@ Subroutine init0
       Allocate (vclmt(lmmaxvr, nrmtmax, natmtot))
       If (allocated(vclir)) deallocate (vclir)
       Allocate (vclir(ngrtot))
+      If (allocated(vmad)) deallocate (vmad)
+      Allocate (vmad(natmtot))
 ! exchange-correlation potential
       If (allocated(vxcmt)) deallocate (vxcmt)
       Allocate (vxcmt(lmmaxvr, nrmtmax, natmtot))

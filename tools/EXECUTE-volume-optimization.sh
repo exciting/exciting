@@ -35,6 +35,7 @@ echo "===> Output directory is \""$WORKDIR"\" <==="
 echo
 #-------------------------------------------------------------------------------
 echo $EXECUTABLE > $CURRENT/$WORKDIR/exciting
+cp $CURRENT/input.xml $CURRENT/$WORKDIR/source.xml
 #
 OUT=$CURRENT/$WORKDIR/energy-vs-volume
 if [ -f $OUT ] ; then mv $OUT $OUT.save ; fi

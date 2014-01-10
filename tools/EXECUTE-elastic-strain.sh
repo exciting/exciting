@@ -35,6 +35,7 @@ echo "===> Output directory is \""$WORKDIR"\" <==="
 echo
 #-------------------------------------------------------------------------------
 echo $EXECUTABLE > $CURRENT/$WORKDIR/exciting
+cp $CURRENT/input.xml $CURRENT/$WORKDIR/source.xml
 #
 if [ -f $CURRENT/planar ] ; then cp $CURRENT/planar $CURRENT/$WORKDIR ; fi
 #
