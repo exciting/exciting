@@ -30,7 +30,7 @@ Subroutine mixerifc (mtype, n, v, dv, mode)
             mode = 0
             If (allocated(work)) deallocate (work)
             Allocate (work(3*n))
-            Return
+!            Return
          End If
          If (mode .Eq.-2) Then
             Deallocate (work)
@@ -46,7 +46,7 @@ Subroutine mixerifc (mtype, n, v, dv, mode)
          If (mode .Eq.-1) Then
             Call initmixermsec (n)
             mode = 0
-            Return
+!            Return
          End If
          If (mode .Eq.-2) Then
             Call freearraysmixermsec ()

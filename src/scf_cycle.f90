@@ -110,8 +110,9 @@ subroutine scf_cycle(verbosity)
 
 !___________________
 ! and call interface
-
+    Call packeff (.True., n, v)
     If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
+    Call packeff (.False., n, v)
     Call timesec (ts1)
     timemixer = ts1-ts0+timemixer
 
@@ -132,6 +133,7 @@ subroutine scf_cycle(verbosity)
 !----------------------------------------!
 ! begin the self-consistent loop
 !----------------------------------------!
+!    write(*,*) n
     iscl = 0
     Do iscl = 1, input%groundstate%maxscl
 !
@@ -372,7 +374,10 @@ subroutine scf_cycle(verbosity)
 ! compute the effective potential
         Call poteff
 ! pack interstitial and muffin-tin effective potential and field into one array
+!        write(*,*) n
         Call packeff (.True., n, v)
+!        write(*,*) n
+
 ! mix in the old potential and field with the new
         If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, nwork)
 #ifdef MPI
