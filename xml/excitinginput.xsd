@@ -2873,6 +2873,21 @@ gw.xsd
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="msecStoredSteps" type="xs:integer" default="8">
+        <xs:annotation>
+          <xs:documentation> How many potentials from previous steps to store. 
+           Used in msec mixing as choosen with <attref>mixer</attref>.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="PrelimLinSteps" type="xs:integer" default="2">
+        <xs:annotation>
+          <xs:documentation> After which SCF iteration is msec mixing supposed to be turned on.
+           Until then linear mixing is applied.
+           Used in msec mixing as choosen with <attref>mixer</attref>.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="beta0" type="fortrandouble" default="0.4d0">
         <xs:annotation>
           <xs:documentation>Initial value for mixing parameter. Used in linear

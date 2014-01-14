@@ -9,18 +9,19 @@ Subroutine readbroydsteps_and_init_SY (noldsteps, n, S, Y, potential, &
       Use modmixermsec, Only: record_of_last_iter, noldstepsmax
       use modmain
       Implicit None
-      Integer, Intent (In) :: noldsteps, n
+      Integer, Intent (Inout) :: noldsteps, n
       Real (8), Intent (Out) :: S (n, noldstepsmax), Y (n, &
      & noldstepsmax)
       Real (8), Intent (In) :: potential (n), residual (n)
       Integer :: i, skipp
       Character (256), External :: outfilenamestring
       Character (256) :: filetag
-      Integer :: reclength, rectoread, firstrec
+      Integer :: reclength, rectoread, firstrec, file_size
       Inquire (IoLength=reclength) potential, residual
       filetag = "BROYDEN"
-!      write(*,*) outfilenamestring(filetag, 1),task
-!      Open (23, File=outfilenamestring(filetag, 1), Access="DIRECT", &
+      INQUIRE(FILE="BROYDEN.OUT", SIZE=file_size)
+      noldsteps=file_size/(n*16)
+      
       Open (23, File="BROYDEN.OUT", Access="DIRECT", &
      & Recl=reclength, Action="READ", Form='UNFORMATTED')
       If (noldsteps .Lt. noldstepsmax) Then

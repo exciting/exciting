@@ -72,7 +72,6 @@ Subroutine mixadapt (iscl, beta0, betainc, betadec, n, nu, mu, beta, f, &
          d = 1.d0
          Return
       End If
-       write(*,*) 'mixadapt:',iscl,n,beta(1)
       Do i = 1, n
          t1 = nu (i) - mu (i)
          If (t1*f(i) .Gt. 0.d0) Then
