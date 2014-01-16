@@ -86,9 +86,9 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Allocate (rwork(3*nstsv))
       Allocate (wfmt1(lmmaxvr, nrcmtmax, nstfv))
       Allocate (wfmt2(lmmaxvr, nrcmtmax, nsc))
-      Allocate (zfft1(ngrtot))
-      Allocate (zfft2(ngrtot))
-      Allocate (zv(ngkmax, nsc))
+!      Allocate (zfft1(ngrtot))
+!      Allocate (zfft2(ngrtot))
+!      Allocate (zv(ngkmax, nsc))
       lwork = 2 * nstsv
       Allocate (work(lwork))
 ! zero the second-variational Hamiltonian (stored in the eigenvector array)
@@ -288,6 +288,16 @@ endif
               & 1)+ga4*input%groundstate%spin%bfieldc(3)) * cfunir (ir)
             End Do
          End If
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(NONE) SHARED(nstfv,ngk,igfft,igkig,ngrid,ik,evecfv,evecsv,nsc,bir,ngkmax,ngrtot) PRIVATE(zfft1,zfft2,jst,ist,igk,ifg,zv,k,i,j)
+#endif
+      Allocate (zfft1(ngrtot))
+      Allocate (zfft2(ngrtot))
+      Allocate (zv(ngkmax, nsc))
+#ifdef USEOMP
+!$OMP DO
+#endif 
+
          Do jst = 1, nstfv
             zfft1 (:) = 0.d0
             Do igk = 1, ngk (1, ik)
@@ -332,6 +342,13 @@ endif
                End Do
             End Do
          End Do
+#ifdef USEOMP
+!$OMP END DO
+#endif
+      deallocate (zfft1,zfft2,zv)
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif 
       End If
       call timesec(tb)
       write(*,*) 'sv / interstitial part', tb-ta
@@ -367,7 +384,7 @@ endif
          If (info .Ne. 0) Go To 20
       End If
       Deallocate (bmt, bir, vr, drv, cf, sor, rwork)
-      Deallocate (wfmt1, wfmt2, zfft1, zfft2, zv, work)
+      Deallocate (wfmt1, wfmt2, work)
       Call timesec (ts1)
       call timesec(tb)
       write(*,*) 'sv / diagonalization', tb-ta
