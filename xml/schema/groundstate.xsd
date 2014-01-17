@@ -2111,6 +2111,19 @@
             are set to the Fermi level plus <attref>dlinengyfermi</attref>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="modifiedsv" type="xs:boolean"
+        default="false">
+        <xs:annotation>
+          <xs:documentation> If <pre>"true"</pre>, the construction of the second-variational 
+            hamiltonian involves wavefunctions in the basis representation and wavefunctions
+            are not evaluated explicitly. Otherwise, the usual second-variational procedure 
+            is used. The first of the two approaches is generally recommended, but it is not
+            implemented for non-collinear and LDA+U calculations.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
       <xs:attribute ex:importance="expert" ex:unit="" name="isgkmax" type="xs:integer" default="-1">
         <xs:annotation>
           <xs:documentation>Species for which the muffin-tin radius will be used for calculating

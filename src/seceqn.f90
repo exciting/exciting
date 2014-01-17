@@ -84,7 +84,11 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
          Call seceqnss (ik, apwalm, evalfv, evecfv, evecsv)
       Else
      ! solve the second-variational secular equation
-         Call seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
+        if (input%groundstate%modifiedSV) then
+          Call seceqnsv2 (ik, apwalm, evalfv, evecfv, evecsv)
+        else
+          Call seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
+        endif
       End If
 !
       Deallocate (apwalm)

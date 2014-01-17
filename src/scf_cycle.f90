@@ -72,7 +72,6 @@ subroutine scf_cycle(verbosity)
         Call timesec(tin0)
         Call poteff
         Call genveffig
-!        write(*,*) 'geneffig done'
         Call timesec(tin1)
         time_pot_init=tin1-tin0
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Density and potential initialised from atomic data")')
@@ -134,8 +133,6 @@ subroutine scf_cycle(verbosity)
 !----------------------------------------!
 ! begin the self-consistent loop
 !----------------------------------------!
-!    write(*,*) n
-!    iscl = 0
     Do iscl = 1, input%groundstate%maxscl
 !
 ! exit self-consistent loop if last iteration is complete

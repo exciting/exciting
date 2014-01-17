@@ -126,7 +126,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                   End Do
                End If
                call timesec(td)
-               write(*,*) td-tc
+!               write(*,*) td-tc
                call timesec(tc)
 ! external muffin-tin magnetic field
                Do irc = 1, nrcmt (is)
@@ -136,7 +136,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                   End Do
                End Do
                call timesec(td)
-               write(*,*) td-tc
+!               write(*,*) td-tc
 ! spin-orbit radial function
                If (isspinorb()) Then
 ! radial derivative of the spherical part of the potential
@@ -159,7 +159,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
               & evecfv(:, ist), lmmaxvr, wfmt1(:, :, ist))
             End Do
             call timesec(td)
-            write(*,*) td-tc
+!            write(*,*) td-tc
             call timesec(tc)
 ! begin loop over states
 !xOMP PARALLEL DEFAULT(SHARED) PRIVATE(wfmt3,wfmt2,i,j,wfmt4)
@@ -177,41 +177,6 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                                 & lmmaxvr, wfmt3(:,:), lmmaxvr, zzero, &
                                 & wfmt2(:, :,1), lmmaxvr)
                   wfmt2 (:, :, 2) = - wfmt2 (:, :, 1)
-if (.false.) then                  
-                  Do irc = 1, nrcmt (is)
-! convert wavefunction to spherical coordinates
-                     Call zgemv ('N', lmmaxvr, lmmaxvr, zone, zbshtvr, &
-                    & lmmaxvr, wfmt1(:, irc, jst), 1, zzero, zftp1, 1)
-! apply effective magnetic field and convert to spherical harmonics
-                     zftp2 (:) = zftp1 (:) * bmt (:, irc, 3)
-                     Call zgemv ('N', lmmaxvr, lmmaxvr, zone, zfshtvr, &
-                    & lmmaxvr, zftp2, 1, zzero, wfmt2(:, irc, 1), 1)
-                     wfmt2 (:, irc, 2) = - wfmt2 (:, irc, 1)
-                     If (nsc .Eq. 3) Then
-                        zftp2 (:) = zftp1 (:) * cmplx (bmt(:, irc, &
-                       & 1),-bmt(:, irc, 2), 8)
-                        Call zgemv ('N', lmmaxvr, lmmaxvr, zone, &
-                       & zfshtvr, lmmaxvr, zftp2, 1, zzero, wfmt2(:, &
-                       & irc, 3), 1)
-                     End If
-                   enddo
-                   Do irc = 1, nrcmt (is)
-! apply spin-orbit coupling if required
-                     If (isspinorb()) Then
-                        Call lopzflm (input%groundstate%lmaxvr, &
-                       & wfmt1(:, irc, jst), lmmaxvr, zlflm)
-                        t1 = sor (irc)
-                        Do lm = 1, lmmaxvr
-                           wfmt2 (lm, irc, 1) = wfmt2 (lm, irc, 1) + t1 &
-                          & * zlflm (lm, 3)
-                           wfmt2 (lm, irc, 2) = wfmt2 (lm, irc, 2) - t1 &
-                          & * zlflm (lm, 3)
-                           wfmt2 (lm, irc, 3) = wfmt2 (lm, irc, 3) + t1 &
-                          & * (zlflm(lm, 1)-zi*zlflm(lm, 2))
-                        End Do
-                     End If
-                  End Do
-endif
                Else
                   wfmt2 (:, :, :) = 0.d0
                End If
@@ -250,19 +215,19 @@ endif
                         i = ist
                         j = jst + nstfv
                      End If
-                     If (i .Le. j) Then
+!                     If (i .Le. j) Then
                         evecsv (i, j) = evecsv (i, j) + zfmtinp &
                        & (.True., input%groundstate%lmaxmat, nrcmt(is), &
                        & rcmt(:, is), lmmaxvr, wfmt1(:, :, ist), &
                        & wfmt2(:, :, k))
-                     End If
+!                     End If
                   End Do
                End Do
             End Do
 !xOMP END DO
 !xOMP END PARALLEL
             call timesec(td)
-            write(*,*) td-tc
+!            write(*,*) td-tc
 ! end loops over atoms and species
          End Do
 !         deallocate(wfmt3)
@@ -364,6 +329,19 @@ endif
 ! diagonalise second-variational Hamiltonian
       If (ndmag .Eq. 1) Then
 ! collinear: block diagonalise H
+!         do i=1,nstfv
+!           write(*,*) dble(evecsv(i,i)),dimag(evecsv(i,i))
+!         enddo
+!       do i=1,nstfv
+!        do j=1,nstfv
+!          write(*,*) dble(evecsv(j,i)),dimag(evecsv(j,i))
+!        enddo
+!       enddo
+!stop
+!         write(*,*) dble(sum(evecsv(1:nstfv,1:nstfv))),dimag(sum(evecsv(1:nstfv,1:nstfv)))
+!         write(*,*) dble(sum(evecsv(nstfv+1:2*nstfv,nstfv+1:2*nstfv))),dimag(sum(evecsv(nstfv+1:2*nstfv,nstfv+1:2*nstfv)))
+!         write(*,*) 'sv'
+!         stop
          Call zheev ('V', 'U', nstfv, evecsv, nstsv, evalsv(:, ik), &
         & work, lwork, rwork, info)
          If (info .Ne. 0) Go To 20
