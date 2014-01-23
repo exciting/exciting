@@ -484,6 +484,19 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="ngridksub" type="integertriple"
+              default="1 1 1">
+              <xs:annotation>
+                <xs:documentation> The sub-grid of a BSE double grid run. Any value larger than
+                1 triggers a computation following this scheme: the BSE is solved several times on coarse
+                grids, as given by <attref>ngridk</attref> and <attref>ngridq</attref>, which are shifted
+                to all symmetry non-equivalent points of the sub-grid. The latter are distributed
+                uniformly between the k-points of the coarse grid. The final results are obtained by
+                averaging all the spectra yielded in this way, what is expected to be almost as good as
+                solving the BSE on the fine grid, at much less computational cost. 
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="transitions" minOccurs="0" maxOccurs="1">

@@ -454,8 +454,6 @@
           </xs:complexType>
         </xs:element>
 
-<<<<<<< HEAD
-
                 <xs:element ex:importance="expert" ex:unit="" name="raman" minOccurs="0" maxOccurs="1">
                     <xs:annotation>
                        <xs:documentation>Compute first order Raman spectra.

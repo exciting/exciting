@@ -95,7 +95,7 @@ Subroutine bse
       Integer, Parameter :: iqmt = 0
       Integer, Parameter :: noptcmp = 3
       Real (8), Parameter :: epsortho = 1.d-12
-      Character (256) :: fnexc, fnexcs
+      Character (256) :: fnexc, fnexcs, dotext
       Integer :: iknr, jknr, iqr, iq, iw, iv2 (3), s1, s2, hamsiz, &
      & nexc, ne
       Integer :: unexc, ist1, ist2, ist3, ist4, ikkp, iv, ic, &
@@ -378,14 +378,27 @@ Subroutine bse
                End Do
             End Do
          End Do
-         Call genfilname (basename='EXCITON', tq0=.True., oc1=oct1, &
-        & oc2=oct2, bsetype=input%xs%bse%bsetype, &
-        & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%bse%aresbse, filnam=fnexc)
-         Call genfilname (basename='EXCITON_SORTED', tq0=.True., &
-        & oc1=oct1, oc2=oct2, bsetype=input%xs%bse%bsetype, &
-        & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%bse%aresbse, filnam=fnexcs)
+     ! STK: add case of double grid
+         if (dgrid) then 
+            Write (dotext, '("_SG", I3.3, ".OUT")') iksubpt
+            Call genfilname (basename='EXCITON', tq0=.True., oc1=oct1, &
+        &    oc2=oct1, bsetype=input%xs%bse%bsetype, &
+        &    scrtype=input%xs%screening%screentype, nar= .Not. &
+        &    input%xs%bse%aresbse, dotext=dotext, filnam=fnexc)
+            Call genfilname (basename='EXCITON_SORTED', tq0=.True., &
+        &    oc1=oct1, oc2=oct1, bsetype=input%xs%bse%bsetype, &
+        &    scrtype=input%xs%screening%screentype, nar= .Not. &
+        &    input%xs%bse%aresbse, dotext=dotext, filnam=fnexcs)
+         else
+            Call genfilname (basename='EXCITON', tq0=.True., oc1=oct1, &
+        &    oc2=oct1, bsetype=input%xs%bse%bsetype, &
+        &    scrtype=input%xs%screening%screentype, nar= .Not. &
+        &    input%xs%bse%aresbse, filnam=fnexc)
+            Call genfilname (basename='EXCITON_SORTED', tq0=.True., &
+        &    oc1=oct1, oc2=oct1, bsetype=input%xs%bse%bsetype, &
+        &    scrtype=input%xs%screening%screentype, nar= .Not. &
+        &    input%xs%bse%aresbse, filnam=fnexcs)
+         endif
      ! oscillator strengths
          Call getunit (unexc)
          Open (unexc, File=fnexc, Form='formatted', Action='write', &
@@ -419,6 +432,9 @@ Subroutine bse
         &on volts")')
          Close (unexc)
       enddo
+
+! STK: if run is within a double grid loop stop here
+      if (dgrid) goto 10
 
       Do oct1 = 1, noptcmp
 ! STK: compute off-diagonal optical components if requested

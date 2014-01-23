@@ -6,6 +6,7 @@
 Subroutine xstasklauncher
       Use modinput
       Use modmain, Only: task
+      Use modxs, only: dgrid, nksubpt, iksubpt
       Use inputdom
 !
       If ( .Not. (associated(input%xs%tddft))) Then
@@ -111,6 +112,18 @@ Subroutine xstasklauncher
 !
       Else If (trim(input%xs%xstype) .Eq. "BSE") Then
 !
+! STK
+! apply double grid technique if requested
+       if (any(input%xs%BSE%ngridksub .gt. 1)) then
+          dgrid = .true.
+       else
+          dgrid = .false.
+          nksubpt = 1
+       endif
+       if (dgrid) call genksubpts
+       do iksubpt = 1, nksubpt
+         if (dgrid) call bsedgridinit
+!
          task = 301
          Call xsinit
          Call xsgeneigvec
@@ -159,6 +172,8 @@ Subroutine xstasklauncher
          Call xsinit
          Call BSE
          Call xsfinit
+       enddo
+       if (dgrid) call bsedgrid
       Else
          Write (*,*) "error xstasklauncher"
          Write (*,*) trim (input%xs%xstype), "no valid xstype"
