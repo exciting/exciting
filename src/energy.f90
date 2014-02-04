@@ -203,6 +203,13 @@ Subroutine energy
           If (input%groundstate%xctypenumber .Lt. 0) engyx = 0.d0
           If (tlast) Call exxengy
        End If 
+! zero exchange energy for Hartree-Fock
+! calculate exact exchange  Hartree-Fock on last iteration
+      If ((task .Eq. 5) .Or. (task .Eq. 6) ) Then
+         engyx = 0.d0
+         If (tlast) Call exxengy
+      End If
+
 !----------------------------!
 !     correlation energy     !
 !----------------------------!
