@@ -19,8 +19,11 @@ Subroutine readbroydsteps_and_init_SY (noldsteps, n, S, Y, potential, &
       Integer :: reclength, rectoread, firstrec, file_size
       Inquire (IoLength=reclength) potential, residual
       filetag = "BROYDEN"
-      INQUIRE(FILE="BROYDEN.OUT", SIZE=file_size)
-      noldsteps=file_size/(n*16)
+! Uncomment the following two lines if you want BROYDEN.OUT
+! from previous calculation to be reused. Didn't pay off for me.
+! Andris
+!      INQUIRE(FILE="BROYDEN.OUT", SIZE=file_size)
+!      noldsteps=file_size/(n*16)
       
       Open (23, File="BROYDEN.OUT", Access="DIRECT", &
      & Recl=reclength, Action="READ", Form='UNFORMATTED')
