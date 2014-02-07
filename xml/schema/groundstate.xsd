@@ -2283,6 +2283,11 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="mixerswitch" type="xs:integer" default="1">
+        <xs:annotation>
+          <xs:documentation>Switch between potential (1) and density (2) mixing.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="beta0" type="fortrandouble"
         default="0.4d0">
         <xs:annotation>
