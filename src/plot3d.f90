@@ -33,7 +33,7 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
 !   Created June 2003 (JKD)
 !   Modified, October 2008 (F. Bultmark, F. Cricchio, L. Nordstrom)
 !   Modified, February 2011 (DIN)
-!   Bug fixing, May 2012 (DIN)
+!   Fixed a bug in gengrid, February 2014 (DIN)
 !EOP
 !BOC
     Implicit None
@@ -215,7 +215,7 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
       Integer :: i1, i2, i3, ip, jp
       Integer :: isym, lspl
       integer :: iv(3)
-      Real (8) :: v1(3), v2(3), v3(3)
+      Real (8) :: v1(3), v2(3)
       Real (8) :: s(3,3), t1
 
       !-----------------------------------------------------------------
@@ -229,16 +229,15 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
                v1(1) = dble(i1)/dble(ngridp(1))
                ! determine if this point is equivalent to one already in the set
                Do isym = 1, nsymcrys
-                  v2(:) = v1(:)+vtlsymc(:,isym)+plotdef%box%origin%coord(:)
-                  Call r3frac(input%structure%epslat,v2,iv)
                   lspl = lsplsymc (isym)
-                  s(:,:) = dble(symlatc(:,:,lspl))
-                  Call r3mv(s,v2,v3)
-                  Call r3frac(input%structure%epslat,v3,iv)
+                  ! apply symmetry operation S(r+t)
+                  s(:,:) = dble(symlat(:,:,lspl))
+                  Call r3mv(s,v1(:)+vtlsymc(:,isym),v2)
+                  Call r3frac(input%structure%epslat,v2,iv)
                   Do jp = 1, ip
-                     t1 = Abs(vpl(1,jp)-v3(1)) + &
-                    &     Abs(vpl(2,jp)-v3(2)) + &
-                    &     Abs(vpl(3,jp)-v3(3))
+                     t1 = Abs(vpl(1,jp)-v2(1)) + &
+                    &     Abs(vpl(2,jp)-v2(2)) + &
+                    &     Abs(vpl(3,jp)-v2(3))
                      If (t1 .Lt. input%structure%epslat) Then
                         ! equivalent point found
                         ipmap(i1,i2,i3) = jp
@@ -249,7 +248,7 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
                ! add new point to set
                ip = ip+1
                ipmap(i1,i2,i3) = ip
-               vpl(:,ip) = v2(:)
+               vpl(:,ip) = v1(:)
 10             Continue
             End Do
          End Do
