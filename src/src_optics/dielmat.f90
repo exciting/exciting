@@ -22,9 +22,8 @@ subroutine dielmat
     complex (8), allocatable :: sigma(:)
     complex (8), allocatable :: eta(:)
     integer :: wgrid
+    integer :: kfirst, klast
     real(8) :: wmax, scissor
-    integer :: COMM_LEVEL2
-    integer :: kpari, kparf
 ! external functions
     real(8) sdelta
 
@@ -104,12 +103,12 @@ subroutine dielmat
     open(50,File='PMAT.OUT',Action='READ',Form='UNFORMATTED', &
    &  Access='DIRECT',Recl=recl,IOstat=iostat)
 
-    kpari = firstofset(rank,nkptnr)
-    kparf = lastofset(rank,nkptnr)
-
 #ifdef MPI
-    ! create communicator object
-    call MPI_COMM_SPLIT(MPI_COMM_WORLD,kpari,rank/nkptnr,COMM_LEVEL2,ierr)
+    kfirst = firstofset(rank,nkptnr)
+    klast = lastofset(rank,nkptnr)
+#else
+    kfirst = 1
+    klast = nkptnr
 #endif
 
 !-------------------------------------------------------------------------------
@@ -151,7 +150,7 @@ subroutine dielmat
         wplas = 0.0d0
 
 ! sum over non-reduced k-points
-        do ik = kpari, kparf
+        do ik = kfirst, klast
 
 ! equivalent reduced k-point
             call findkpt(vklnr(:,ik),isym,jk)
@@ -230,16 +229,27 @@ subroutine dielmat
         end do ! ik
 
 #ifdef MPI
-    call MPI_ALLREDUCE(MPI_IN_PLACE, sigma, wgrid, &
-    &   MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
-    call MPI_ALLREDUCE(MPI_IN_PLACE, wplas, 1, &
-    &   MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
+        call MPI_ALLREDUCE(MPI_IN_PLACE, &
+        &                  sigma, &
+        &                  wgrid, &
+        &                  MPI_DOUBLE_COMPLEX, &
+        &                  MPI_SUM, &
+        &                  MPI_COMM_WORLD, &
+        &                  ierr)
+        if (intraband.and.(.not.drude)) then
+          call MPI_ALLREDUCE(MPI_IN_PLACE, &
+          &                  wplas, &
+          &                  1, &
+          &                  MPI_DOUBLE_COMPLEX, &
+          &                  MPI_SUM, &
+          &                  MPI_COMM_WORLD, &
+          &                  ierr)
+        end if
+        call barrier
 #endif
 
         zt1 = zi/(omega*dble(nkptnr))
         sigma(:) = zt1*sigma(:)
-
-        call barrier    
 
         if (intraband) then
             if (drude) then

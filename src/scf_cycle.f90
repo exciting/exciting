@@ -421,6 +421,8 @@ subroutine scf_cycle(verbosity)
 ! write DOS at Fermi energy to FERMIDOS.OUT and flush
 !            Write (62, '(G18.10)') fermidos
 !            Call flushifc (62)
+! write band-gap
+            call printbandgap(60)
 ! output charges and moments
             Call writechg (60,input%groundstate%outputlevelnumber)
 ! write total moment to MOMENT.OUT and flush
