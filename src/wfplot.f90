@@ -146,7 +146,7 @@ Subroutine wfplot(dostm)
     If (associated(input%properties%wfplot)) Then
 
         If (associated(input%properties%wfplot%plot1d)) Then
-            labels=>create_plotlablels("Potential","WF1D",1)
+            labels=>create_plotlablels("Potential","WF1d",1)
             call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
             call set_plotlabel_axis(labels,2,"Wave Function","","graceunit")
             Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
@@ -154,11 +154,11 @@ Subroutine wfplot(dostm)
             call destroy_plotlablels(labels)
             Write (*,*)
             Write (*, '("Info(wfplot):")')
-            Write (*, '(" 1D wavefunction modulus squared written to WF1D.xml")')
+            Write (*, '(" 1D wavefunction modulus squared written to WF1d.xml")')
         End If
 
         If (associated(input%properties%wfplot%plot2d)) Then
-            labels=>create_plotlablels("Wave Function","VCL2d",2)
+            labels=>create_plotlablels("Wave Function","WF2d",2)
             call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
             call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
             call set_plotlabel_axis(labels,3,"Wave Function Norm Squared","","graceunit")
@@ -167,7 +167,7 @@ Subroutine wfplot(dostm)
             call destroy_plotlablels(labels)
             Write (*,*)
             Write (*, '("Info(wfplot):")')
-            Write (*, '(" 2D wavefunction modulus squared written to WF2D.OUT")')
+            Write (*, '(" 2D wavefunction modulus squared written to WF2d.xml")')
         End If
 
         If (associated(input%properties%wfplot%plot3d)) Then

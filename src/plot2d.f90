@@ -57,14 +57,13 @@ Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
 !external functions
       Real(8),external::DNRM2
  If (rank .Eq. 0) Then
-      write(buffer,*) labels%filename , "2D.XML"
+      write(buffer,*) labels%filename , ".xml"
       Call xml_OpenFile (adjustl(trim(buffer)), xf, replace=.True.,  pretty_print=.True.)
       Call xml_NewElement (xf, "plot2d")
 !
       If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
          Write (*,*)
-         Write (*, '("Error(plot2d): invalid number of functions : ", I&
-        &8)') nf
+         Write (*, '("Error(plot2d): invalid number of functions : ", I8)') nf
          Write (*,*)
          Stop
       End If
@@ -135,6 +134,8 @@ Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
      Call xml_AddAttribute (xf, "graceunit", get_graceunit(labels,1))
       write(buffer, '(6G18.10)') plotdef%parallelogram%pointarray(1)%point%coord
       call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
+      write(buffer, '(3G18.10)') vc1
+      call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
       delta=(plotdef%parallelogram%pointarray(1)%point%coord&
       &-plotdef%parallelogram%origin%coord)&
       &/ plotdef%parallelogram%grid(1)
@@ -153,6 +154,8 @@ Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
   Call xml_AddAttribute (xf, "graceunit", get_graceunit(labels,2))
       write(buffer, '(6G18.10)') plotdef%parallelogram%pointarray(2)%point%coord
       call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
+      write(buffer, '(3G18.10)') vc2
+      call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
       delta=(plotdef%parallelogram%pointarray(2)%point%coord&
       &-plotdef%parallelogram%origin%coord)&
       &/ plotdef%parallelogram%grid(2)
@@ -160,6 +163,7 @@ Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
        write(buffer, '(6G18.10)')  DNRM2(3,delta,1)
        call xml_AddAttribute (xf, "deltas", trim(adjustl(buffer)))
        Call xml_endElement (xf, "axis")
+       
       call xml_NewElement(xf,"value")
        Call xml_AddAttribute (xf, "label", get_label(labels,3))
        Call xml_AddAttribute (xf, "latexunit", get_latexunit(labels,3))
