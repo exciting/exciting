@@ -11,14 +11,23 @@ Subroutine groundstatetasklauncher
     Implicit None
     
     call delete_warnings
-   
     splittfile= .true.
     If ( .Not. (associated(input%groundstate%solver))) Then
         ! set the default values if tddft element not present
         input%groundstate%solver => getstructsolver (emptynode)
     End If
-    If ((input%groundstate%xctypenumber .Lt. 0) .Or. &
-   &    (xctype(2) .Ge. 400) .Or. (xctype(1) .Ge. 400)) then
+    If (((xctype(2) .Ge. 400).Or. (xctype(1) .Ge. 400)).and. &
+    & (.not.associated(input%groundstate%Hybrid))) Then 
+           input%groundstate%Hybrid => getstructHybrid (emptynode)
+    End If  
+    If  (associated(input%groundstate%Hybrid)) Then
+        If (input%groundstate%Hybrid%exchangetypenumber .Eq. 2) Then
+            If (.not.associated(input%groundstate%OEP)) Then
+               input%groundstate%OEP => getstructOEP (emptynode)
+            End If 
+        End If                
+    End If
+    If (input%groundstate%xctypenumber .Lt. 0) Then
         If (.not.associated(input%groundstate%OEP)) Then
            input%groundstate%OEP => getstructOEP (emptynode)
         End If 
@@ -42,6 +51,12 @@ Subroutine groundstatetasklauncher
             task = 5
             Call hartfock
         ! DFT / OEP
+        Else If (associated(input%groundstate%Hybrid)) Then
+                If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+                    Call hybrids
+                Else 
+                    Call gndstate
+                End If    
         Else
             Call gndstate
         End If

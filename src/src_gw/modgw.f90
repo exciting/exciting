@@ -334,10 +334,6 @@ module modgw
 !----------------------------!
 !     Bare Coulomb matrix !
 !----------------------------!
-! maximum G for the pw expansion of the bare Coulomb potential (in gmaxvr*gmb units)
-      real(8) :: pwm
-! convergence tolerance of the structure constants.
-      real(8) :: stctol
 ! G-vector cut-off for the bare coulomb matrix
       real(8) :: gmaxbarc
 ! number of G-vectors for the bare coulomb matrix
@@ -365,8 +361,6 @@ module modgw
 ! The square root of the singular term of the bare coulomb matrix
       complex(8), allocatable :: sqbarcs(:,:) 
 
-! tolerance used to reduce the bare Coulomb matrix eigenvectors as the basis set
-      real(8) :: barcevtol
 ! the number of eigenvectors of bare Coulomb matrix used as basis functions 
       integer(4) :: mbsiz     
 ! full set of the eigenvalues of barcoul matrix

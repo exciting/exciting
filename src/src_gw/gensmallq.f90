@@ -8,6 +8,7 @@ SUBROUTINE gensmallq
     use modinput
     use modmain
     use modgw
+    use modmpi, only: rank
 !
 ! !DESCRIPTION:
 !
@@ -146,7 +147,7 @@ SUBROUTINE gensmallq
 !      
 !     Debug information
 !
-      if (debug.and.input%gw%reduceq) then
+      if ((rank==0).and.debug.and.input%gw%reduceq) then
  
         call boxmsg(99,'-','Generate a small group of q-vectors')
         write(99,*)

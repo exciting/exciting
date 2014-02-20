@@ -14,6 +14,7 @@ Subroutine energy
 ! !USES:
       Use modinput
       Use modmain
+      Use mod_hybrids, only: ihyb, exnlk
 ! !DESCRIPTION:
 !   The {\tt energy} subroutine computes the total energy and its individual contributions. 
 !   The total energy is composed of kinetic, Coulomb, and exchange-correlation energy,
@@ -106,7 +107,7 @@ Subroutine energy
 ! electron g factor
       Real (8), Parameter :: ge = 2.0023193043718d0
       Real (8), Parameter :: ga4 = ge * alpha / 4.d0
-      Real (8) :: vn
+      Real (8) :: vn, exnl
       Complex (8) zt1
 ! allocatable arrays
       Complex (8), Allocatable :: evecsv (:, :), c (:, :)
@@ -183,17 +184,32 @@ Subroutine energy
 !-------------------------!
 ! exchange energy from the density
       engyx = rfinp (1, rhomt, exmt, rhoir, exir)
-! zero exchange energy for OEP-EXX and Hartree-Fock
-! calculate exact exchange for OEP-EXX and Hartree-Fock on last iteration
-      If ((input%groundstate%xctypenumber .Lt. 0) .Or. (task .Eq. 5) &
-     & .Or. (task .Eq. 6) ) Then
+! Hartree-Fock energy
+      If ((task .Eq. 5).Or.(task .Eq. 6)) Then
+         If (tlast) Call exxengy
+      End If
+! Hybrids
+      if (associated(input%groundstate%Hybrid)) then
+        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
+          exnl = 0.d0
+          do ik = 1, nkpt
+            exnl = exnl + wkpt(ik)*exnlk(ik)
+          end do
+          engyx = engyx + ex_coef*exnl
+        end if
+      end if
+! calculate exchange energy for OEP-EXX/Hybrids on last iteration
+       If (associated(input%groundstate%OEP)) Then
+          If (input%groundstate%xctypenumber .Lt. 0) engyx = 0.d0
+          If (tlast) Call exxengy
+       End If 
+! zero exchange energy for Hartree-Fock
+! calculate exact exchange  Hartree-Fock on last iteration
+      If ((task .Eq. 5) .Or. (task .Eq. 6) ) Then
          engyx = 0.d0
          If (tlast) Call exxengy
       End If
-! calculate exact exchange for Hybrids on last iteration
-      If ((xctype(2) .Ge. 400) .Or. (xctype(1) .Ge. 400)) Then
-         If (tlast) Call exxengy
-      End If      
+
 !----------------------------!
 !     correlation energy     !
 !----------------------------!

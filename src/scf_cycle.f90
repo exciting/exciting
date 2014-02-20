@@ -22,7 +22,7 @@ subroutine scf_cycle(verbosity)
     Real(8), Allocatable :: evalfv(:, :)
     Complex (8), Allocatable :: evecfv(:, :, :)
     Complex (8), Allocatable :: evecsv(:, :)
-    Logical :: force_converged, tibs, exist
+    Logical :: tibs, exist
     Integer :: ik, is, ia, idm
     Integer :: n, nwork
     Real(8), Allocatable :: v(:),forcesum(:,:)
@@ -58,7 +58,7 @@ subroutine scf_cycle(verbosity)
     Else If (task .Eq. 200) Then
         Call phveff
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Supercell potential constructed from STATE.OUT")')
-    Else
+    Else if (input%groundstate%findlinentype .ne. "skip") then
         Call timesec(tin0)
         Call rhoinit
         Call timesec(tin1)
@@ -167,19 +167,23 @@ subroutine scf_cycle(verbosity)
 
         Call timesec (ts0)
 
-        Call gencore          ! generate the core wavefunctions and densities
+        if (input%groundstate%findlinentype .ne. "skip") then
 
-        Call linengy          ! find the new linearization energies
-        if (rank .eq. 0) Call writelinen
+            call gencore          ! generate the core wavefunctions and densities
 
-        Call genapwfr         ! generate the APW radial functions
+            call linengy          ! find the new linearization energies
+            if (rank==0) call writelinen
+        
+            call genapwfr         ! generate the APW radial functions
 
-        Call genlofr(tlast)   ! generate the local-orbital radial functions
+            call genlofr          ! generate the local-orbital radial functions
 
-        Call olprad           ! compute the overlap radial integrals
+            call olprad           ! compute the overlap radial integrals
 
-        Call hmlrad           ! compute the Hamiltonian radial integrals
+            call hmlrad           ! compute the Hamiltonian radial integrals
 
+        end if
+           
 !________________
 ! partial charges
 
@@ -247,7 +251,6 @@ subroutine scf_cycle(verbosity)
 
 !__________________________
 ! calculate partial charges
-
             if (input%groundstate%tpartcharges) call genpchgs(ik,evecfv,evecsv)
             Deallocate (evalfv, evecfv, evecsv)
         End Do
@@ -264,11 +267,11 @@ subroutine scf_cycle(verbosity)
 
 ! find the occupation numbers and Fermi energy
         Call occupy
-        If ((verbosity>-1).and.(rank==0)) Then
+        If (rank==0) Then
 ! write out the eigenvalues and occupation numbers
             Call writeeval
 ! write the Fermi energy to file
-            Call writefermi
+            if (verbosity>-1) Call writefermi
         End If
 ! set the charge density and magnetisation to zero
         rhomt (:, :, :) = 0.d0

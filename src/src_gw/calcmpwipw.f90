@@ -14,7 +14,7 @@
 
       use modmain
       use modgw
-      use modmpi
+      use modmpi, only: rank
 ! !INPUT PARAMETERS:
 
       implicit none
@@ -105,7 +105,7 @@
 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
-      call write_cputime(fgw,tend-tstart, 'CALCMPWIPW')
+      if (rank==0) call write_cputime(fgw,tend-tstart, 'CALCMPWIPW')
 
       return
       end subroutine calcmpwipw

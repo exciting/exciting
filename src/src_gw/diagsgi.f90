@@ -11,8 +11,9 @@
 !
 ! !USES:
 
-      use modmain, only : ivgig, ivg
+      use modmain, only: ivgig, ivg
       use modgw
+      use modmpi,  only: rank
       
 ! !INPUT PARAMETERS:
        
@@ -126,7 +127,7 @@
 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
-      call write_cputime(fgw,tend-tstart, 'DIAGSGI')
+      if (rank==0) call write_cputime(fgw,tend-tstart, 'DIAGSGI')
       
       return
       end subroutine diagsgi

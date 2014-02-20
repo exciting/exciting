@@ -19,11 +19,13 @@ Subroutine packeff (tpack, n, nu)
 !   nu    : packed potential (inout,real(*))
 ! !DESCRIPTION:
 !   Packs/unpacks the muffin-tin and interstitial parts of the effective
-!   potential and magnetic field into/from the single array {\tt nu}. This array
+!   potential and magnetic field or density into/from the single
+!   array {\tt nu}. This array
 !   can then be passed directly to the mixing routine. See routine {\tt rfpack}.
 !
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
+!   modified Feb 2014 (UW)
 !EOP
 !BOC
       Implicit None
@@ -35,13 +37,19 @@ Subroutine packeff (tpack, n, nu)
       Integer :: idm, ias, lm1, lm2
       Integer :: ispn, jspn
       n = 0
-      Call rfpack (tpack, n, 1, veffmt, veffir, nu)
-      Do idm = 1, ndmag
-         Call rfpack (tpack, n, 1, bxcmt(:, :, :, idm), bxcir(:, idm), &
-        & nu)
-      End Do
-! pack the LDA+U potential if required
-      If (ldapu .Ne. 0) Then
+!      density for mixing 
+!      only tested for spin unpolarized
+      If (input%groundstate%mixerswitch .eq. 2) then
+       Call rfpack (tpack, n, 1, rhomt, rhoir, nu)
+!      potential and magnetic field for mixing
+      Else
+       Call rfpack (tpack, n, 1, veffmt, veffir, nu)
+       Do idm = 1, ndmag
+          Call rfpack (tpack, n, 1, bxcmt(:, :, :, idm), bxcir(:, idm), &
+         & nu)
+       End Do
+       ! pack the LDA+U potential if required
+       If (ldapu .Ne. 0) Then
          Do ias = 1, natmtot
             Do ispn = 1, nspinor
                Do jspn = 1, nspinor
@@ -64,6 +72,7 @@ Subroutine packeff (tpack, n, nu)
                End Do
             End Do
          End Do
+       End If
       End If
       Return
 End Subroutine

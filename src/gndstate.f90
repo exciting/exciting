@@ -48,8 +48,7 @@ Subroutine gndstate
 ! require forces for structural optimisation
     If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = .True.    
 ! initialise OEP variables if required
-    if ((input%groundstate%xctypenumber .Lt. 0) .Or. &
-   &    (xctype(2) .Ge. 400) .Or. (xctype(1) .Ge. 400)) then
+    If (associated(input%groundstate%OEP)) then
       call init2
     end if
 

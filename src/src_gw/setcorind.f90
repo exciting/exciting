@@ -32,6 +32,7 @@
 !
 !EOP
 !BOC
+      if (allocated(corind)) deallocate(corind)
       allocate(corind(ncg,5))
       icg=0
       do is=1,nspecies

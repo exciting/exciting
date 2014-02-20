@@ -87,12 +87,7 @@ Subroutine exxengy
          End Do
       End Do
 ! total exchange energy
-!      engyx = evv + ecv + ecc
-      If (xctype(2) .Ge. 400) Then
-          engyx = engyx + ex_coef*(evv + ecv + ecc)
-      Else
-          engyx=(1-ex_coef)*engyx + ex_coef*(evv + ecv + ecc)
-      End If
+      engyx = engyx + ex_coef*(evv + ecv + ecc)
       Deallocate (wfcr1, wfcr2, zrhomt, zvclmt, zfmt)
       Return
 End Subroutine

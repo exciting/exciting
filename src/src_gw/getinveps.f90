@@ -90,7 +90,7 @@
       call diagsgi(iqp)
       call calcmpwipw(iqp)
       call calcbarcmb(iqp)
-      call setbarcev(barcevtol)
+      call setbarcev(input%gw%BareCoul%barcevtol)
       
       call zgemm('c','n',mbsiz,mbsiz,matsiz, &
      &           zone,vbas,matsiz,temp,matsiz,zzero,rmat,mbsiz)

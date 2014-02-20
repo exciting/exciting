@@ -10,7 +10,7 @@
 ! !INTERFACE:
 !
 !
-Subroutine genlofr(last_iteration)
+Subroutine genlofr
 ! !USES:
       Use modinput
       Use modmain
@@ -29,7 +29,6 @@ Subroutine genlofr(last_iteration)
 !EOP
 !BOC
       Implicit None
-      Logical last_iteration
 ! local variables
       Integer :: np, is, ia, ias, nr, ir
       Integer :: ilo, io1, io2
@@ -50,7 +49,7 @@ Subroutine genlofr(last_iteration)
       Real (8) :: polynom
       External polynom
 ! variables for the lo recommendation
-      Real (8) energy,energyp,tmp,tmp2,ens(0:6),elo,ehi,flo,fhi,emi,fmi
+      Real (8) energy,energyp,tmp,tmp2,ens(0:20),elo,ehi,flo,fhi,emi,fmi
       integer nodes
 
 ! The following segment is useful if you want to come up 
@@ -60,7 +59,7 @@ Subroutine genlofr(last_iteration)
 ! -------------------------------------
 !      allocate(dwf1(mtnr),dwf2(mtnr))
      
-      if ((input%groundstate%lorecommendation).and.(last_iteration)) then
+      if ((input%groundstate%lorecommendation).and.(tlast)) then
 !       energy=-6d0
 !       vr(1:nrmt (1))=veffmt (1, 1:nrmt (1), 1) * y00
 !       do while (energy.lt.25d0)

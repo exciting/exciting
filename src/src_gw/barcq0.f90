@@ -141,8 +141,10 @@
       if(t1.lt.0.0d0)write(fgw,*)'warning, t1 < 0'
       if(t2.lt.0.0d0)write(fgw,*)'warning, t2 < 0'
       if(t3.lt.0.0d0)write(fgw,*)'warning, t3 < 0'
-      call write_cputime(fgw,t3-t1,'    BARCQ0')
-      call write_cputime(fgw,t2-t1,'    CALCSING')
+      if (rank == 0) then
+        call write_cputime(fgw,t3-t1,'    BARCQ0')
+        call write_cputime(fgw,t2-t1,'    CALCSING')
+      end if
 
       return
       end subroutine barcq0

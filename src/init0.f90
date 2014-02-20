@@ -131,7 +131,7 @@ Subroutine init0
             Write (*,*)
             Stop
          End Select
-         If ((input%groundstate%xctypenumber .Lt. 0).Or. (xctype(2) .Ge. 400).Or. (xctype(1) .Ge. 400)) Then
+          If (associated(input%groundstate%OEP)) Then
             Write (*,*)
             Write (*, '("Error(init0): spin-spirals do not work with th&
            &e OEP method")')
@@ -162,8 +162,25 @@ Subroutine init0
       If ((task .Eq. 5) .Or. (task .Eq. 6) .Or. (task .Eq. 300)) &
      & input%groundstate%tevecsv = .True.
 ! get exchange-correlation functional data
-      Call getxcdata ( xctype, xcdescr, xcspin, &
-     & xcgrad,ex_coef)
+      If  (associated(input%groundstate%HartreeFock) .And. &
+     & associated(input%groundstate%OEP)) Then
+         Write (*,*)
+         Write (*, '("Error(init0): illegal choice for exact exchange")')
+         Write (*, '("You cannot use HF and OEP simultaneously")')
+         Write (*,*)
+         Stop
+      End If
+      If  (associated(input%groundstate%Hybrid)) Then
+          ex_coef=input%groundstate%Hybrid%excoeff
+      Else
+          ex_coef=1.0          
+      End If
+      Call getxcdata (xctype, xcdescr, xcspin, xcgrad, ex_coef)
+! reset input%groundstate%Hybrid%excoeff to ex_coef
+! in case of libxc: overwritten by ex_coef as defined by libxc
+      If (associated(input%groundstate%Hybrid)) Then
+        input%groundstate%Hybrid%excoeff=ex_coef 
+      End If
       If ((associated(input%groundstate%spin)) .And. (xcspin .Eq. 0)) &
      & Then
          Write (*,*)
@@ -173,6 +190,7 @@ Subroutine init0
          Write (*,*)
          Stop
       End If
+      
 ! check for collinearity in the z-direction and set the dimension of the
 ! magnetisation and exchange-correlation vector fields
       If (associated(input%groundstate%spin)) Then

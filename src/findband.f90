@@ -72,7 +72,7 @@ Subroutine findband (findlinentype, l, k, nr, r, vr, de0, etol, e0, tfnd)
       Select Case (trim(findlinentype))
 
 !-------------------------------------------
-      Case ('logderiv', 'mixed-2')
+      Case ('logderiv')
 !-------------------------------------------
          
 !        find the Linearization Energy from the equation D_{l}(E)=-(l+1)/R_{MT}
@@ -116,7 +116,7 @@ Subroutine findband (findlinentype, l, k, nr, r, vr, de0, etol, e0, tfnd)
          end do
          
 !-------------------------------------------
-      Case ('advanced', 'mixed-1')
+      Case ('Wigner_Seitz')
 !-------------------------------------------
 
          de = de0

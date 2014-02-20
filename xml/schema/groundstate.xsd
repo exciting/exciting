@@ -175,6 +175,49 @@
           <xs:complexType>
           </xs:complexType>
         </xs:element>
+        
+        <xs:element ex:importance="experimental" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>Options for hybrid functionals.</xs:documentation>
+          </xs:annotation>                 
+          <xs:complexType>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="exchangetype" default="HF">
+              <xs:annotation>
+                  <xs:documentation> Type of exchange (Hartree Fock or OEP) 
+                  to be used for the exact exchange.
+                  </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="HF">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>1</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="OEP">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>2</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="excoeff" type="fortrandouble"
+              default="0.25d0">
+              <xs:annotation>
+                <xs:documentation> Define value of the mixing parameter for exact exchange.
+                  ATTENTION: If you are using libxc, the libxc settings will be employed 
+                  and your choice of this parameter will be ignored. 
+                  </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        
         <xs:element ex:importance="expert" ex:unit="" name="solver" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Optional configuration options for eigenvector
@@ -1596,8 +1639,7 @@
                       <xs:documentation> Tozer and Handy v. FCO </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration>
-		  <!-- hybrid functionals currently not implemented-->
-                  <!--xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
+                  <xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 401 </oldnr>
@@ -1788,7 +1830,7 @@
                       </xs:appinfo>
                       <xs:documentation> Schmider-Becke 98 parameterization 2c </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration-->
+                  </xs:enumeration>
 		  <!-- Range seperated / screened functionals currently not implemented-->
                   <!--xs:enumeration value="XC_HYB_GGA_XC_HSE03">
                     <xs:annotation>
@@ -1854,7 +1896,7 @@
                       <xs:documentation> CAM version of B3LYP tunes for excitations </xs:documentation>
                     </xs:annotation>
                   </xs:enumeration-->
-                  <!--xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
+                  <xs:enumeration value="XC_HYB_GGA_XC_BHANDH">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 435 </oldnr>
@@ -1877,7 +1919,7 @@
                       </xs:appinfo>
                       <xs:documentation> B3LYP with RC04 LDA </xs:documentation>
                     </xs:annotation>
-                  </xs:enumeration-->
+                  </xs:enumeration>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
@@ -2025,21 +2067,20 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="findlinentype" default="advanced">
+      <xs:attribute ex:importance="expert" ex:unit="" name="findlinentype" default="Wigner_Seitz">
         <xs:annotation>
           <xs:documentation>Select method to determine the linearisation
             energies.</xs:documentation>
           <xs:appinfo>
-            <olddefault default="advanced"/>
+            <olddefault default="Wigner_Seitz"/>
           </xs:appinfo>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="advanced"/>
+            <xs:enumeration value="Wigner_Seitz"/>
             <xs:enumeration value="lcharge"/>
             <xs:enumeration value="logderiv"/>
-            <xs:enumeration value="mixed-1"/>
-            <xs:enumeration value="mixed-2"/>
+            <xs:enumeration value="no_search"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
@@ -2269,6 +2310,11 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="mixerswitch" type="xs:integer" default="1">
+        <xs:annotation>
+          <xs:documentation>Switch between potential (1) and density (2) mixing.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="beta0" type="fortrandouble"
         default="0.4d0">
         <xs:annotation>
@@ -2418,6 +2464,13 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
+           <xs:enumeration value="HYB_PBE0">
+               <xs:annotation>
+                 <xs:appinfo>
+                   <oldnr>406</oldnr>
+                 </xs:appinfo>
+               </xs:annotation>
+            </xs:enumeration>
             <xs:enumeration value="EXX">
               <xs:annotation>
                 <xs:appinfo><!-- set to "-2" or lower for EXX -->
@@ -2425,6 +2478,7 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
+
             <xs:enumeration value="none">
               <xs:annotation>
                 <xs:appinfo>
@@ -2638,14 +2692,22 @@
               <xs:documentation> 
                 Specify amount of information which is printed to files:
                 <list>
-                    <li><pre>"low"</pre>    - minimal output is produced</li>
-                    <li><pre>"normal"</pre> - (default) standard information</li>
-                    <li><pre>"high"</pre>   - detailed output</li>
+                    <li>none   - no output is produced</li>
+                    <li>low    - minimal output is produced</li>
+                    <li>normal - (default) standard information</li>
+                    <li>high   - detailed output</li>
                 </list>
               </xs:documentation>
             </xs:annotation>
             <xs:simpleType>
               <xs:restriction base="xs:string">
+                <xs:enumeration value="none">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>-1</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
                 <xs:enumeration value="low">
                   <xs:annotation>
                     <xs:appinfo>

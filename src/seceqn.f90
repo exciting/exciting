@@ -70,9 +70,9 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
               & evecfv(:, :, ispn))
             Else
            ! directly
-               Call seceqnfv (nmat(ispn, ik), ngk(ispn, ik), igkig(:, &
-              & ispn, ik), vgkc(:, :, ispn, ik), apwalm(:, :, :, :, &
-              & ispn), evalfv(:, ispn), evecfv(:, :, ispn))
+               Call seceqnfv(ispn, ik, nmat(ispn,ik), ngk(ispn,ik), &
+              &  igkig(:,ispn,ik), vgkc(:,:,ispn,ik), apwalm(:,:,:,:,ispn), &
+              &  evalfv(:,ispn), evecfv(:,:,ispn))
             End If
          Else If (.True.) Then
             Write (*,*) "error in solverselect secequn.F90"

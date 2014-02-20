@@ -17,7 +17,6 @@ Subroutine writeengy (fnum)
       write (fnum, '(" Total energy", T45, ": ", F18.8)') engytot
       write (fnum, '(" _______________________________________________________________")')
       write (fnum, '(" Fermi energy", T45, ": ", F18.8)') efermi
-
       If ( input%groundstate%outputlevelnumber > 0 ) Then
          write (fnum, '(" Kinetic energy"    , T45, ": ", F18.8)') engykn
          write (fnum, '(" Coulomb energy"    , T45, ": ", F18.8)') engycl

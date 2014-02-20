@@ -257,10 +257,10 @@ end subroutine
         end if
 #ifdef MPI
         allocate(buf_n(procs),buf_dspls(procs))
-        ! displacements within receive buffer (flattened array)
-        buf_dspls=(/(rlen*(firstofset(j,set)-1),j=0,procs-1)/)
         ! number of elements in send buffer (flattened array)
         buf_n=(/(rlen*nofset(j,set),j=0,procs-1)/)
+        ! displacements within receive buffer (flattened array)
+        buf_dspls=(/(rlen*(firstofset(j,set)-1),j=0,procs-1)/)
         ! use recieve buffer as sendbuffer by specifying mpi_in_place
         if (ti) then
 #ifdef MPI1

@@ -73,7 +73,9 @@
 !EOP
 !BOC
 !     Initializations
+      if (allocated(rtl)) deallocate(rtl)
       allocate(rtl(natmtot,maxnmix))
+      if (allocated(rrint)) deallocate(rrint)
       allocate(rrint(natmtot,maxnmix*(maxnmix+1)/2))
 
       rtl=0.0d0
@@ -207,7 +209,8 @@
 
         enddo ! ia
       enddo ! is
-
+      deallocate(ui,uj,rrtol,fr,gr,cf)   
+      
    20 format(/,5x,'Double radial integrals',/,12x,'N1',2x,'N2',2x,'L1',&
      &       2x,'L2',5x,'rrint')
    21 format(10x,4i4,g18.10)
@@ -215,7 +218,6 @@
   101 format(5x,'Radial integrals',/,13x,'N',3x,'<r^L|v_L>',9x,        &
      &      '<r^(L+2)|v_L> ')
   102 format(10x,i4,(1pg18.10,1x))
-      deallocate(ui,uj,rrtol,fr,gr,cf)   
       return
 
       CONTAINS
