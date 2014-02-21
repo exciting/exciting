@@ -125,7 +125,7 @@ Subroutine writebandgap
       Write (50, '(a, i9, 4f12.6)') ' k - point (homo), energy: ', ikgf &
      & (1), vkl (:, ikgf(1)), evalsv (istho, ikgf(1))
       Write (50, '(a, i9, 4f12.6)') ' k - point (lumo), energy: ', ikgf &
-     & (2), vkl (:, istho+1), evalsv (istho+1, ikgf(2))
+     & (2), vkl (:, ikgf(2)+1), evalsv (istho+1, ikgf(2))
       Write (50, '(a, g16.8, a, g16.8, a)') 'optical gap    : ', ego, '&
      & (', h2ev * ego, ' eV )'
       Write (50, '(a, i9, 4f12.6)') ' k - point (homo), energy: ', &

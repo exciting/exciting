@@ -11,8 +11,6 @@ subroutine printbandgap(fid)
     ! local variables
     integer :: ikgf(2), ikgo, istho
     real(8) :: egf, ego
-    real(8) :: ebmax, ebmin, egap(3)
-    logical :: metallic
     
     call bandgap(nkpt,evalsv,efermi,egf,ego,ikgf,ikgo,istho)
     
@@ -22,7 +20,7 @@ subroutine printbandgap(fid)
       write(fid,'(a, i5, 4x, 3f8.4, F18.8)') '  k-point (homo), energy: ', &
       &  ikgf(1), vkl(:,ikgf(1)), evalsv(istho,ikgf(1))
       write(fid,'(a, i5, 4x, 3f8.4, F18.8)') '  k-point (lumo), energy: ', &
-      &  ikgf(2), vkl(:,istho+1), evalsv(istho+1,ikgf(2))
+      &  ikgf(2), vkl(:,ikgf(2)), evalsv(istho+1,ikgf(2))
       write(fid,'(a, T45,": ", F18.8)') ' Optical gap', ego
       write(fid,'(a, i5, 4x, 3f8.4, F18.8)') '  k-point (homo), energy: ', &
       &  ikgo, vkl(:,ikgo), evalsv(istho,ikgo)

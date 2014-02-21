@@ -1,22 +1,26 @@
 
 !BOP
-! !ROUTINE: shg
-! !INTERFACE:
+!!ROUTINE: shg
+!!INTERFACE:
+!
 subroutine shg(a,b,c)
-! !USES:
+!
+!!USES:
     use modinput
     use modmain
     use modmpi
-! !DESCRIPTION:
+    
+!!DESCRIPTION:
 !   Calculates susceptibility tensor for non-linear optical second-harmonic
 !   generation (SHG). The terms (ztm) are numbered according to Eqs. (49)-(51)
 !   of the article {\it Physica Scripta} {\bf T109}, 128 (2004). Other good
 !   references are {\it Phys. Rev. B} {\bf 48}, 11705 (1993) and
 !   {\it Phys. Rev. B} {\bf 53}, 10751 (1996).
-!
-! !REVISION HISTORY:
+
+!!REVISION HISTORY:
 !   Rewrote earlier version, June 2010 (Sharma)
 !   Modified, April 2013 (DIN)
+
 !EOP
 !BOC
     implicit none
@@ -30,8 +34,7 @@ subroutine shg(a,b,c)
     integer :: recl, iostat
     integer :: isym
     real(8) :: sc(3,3), v1(3), v2(3), v3(3)
-    integer :: COMM_LEVEL2
-    integer :: kpari, kparf
+    integer :: kfirst, klast
     integer :: wgrid
     
 ! smallest eigenvalue difference allowed in denominator
@@ -47,7 +50,13 @@ subroutine shg(a,b,c)
     complex(8), allocatable :: pmat(:,:,:)
     complex(8), allocatable :: chiw(:,:)
     complex(8), allocatable :: chi2w(:,:)
-
+    
+    if (rank==0) then
+      write(*,*)
+      write(*,'("Info(shg):")')
+      write(*,*)
+    end if
+    
 ! initialise universal variables
     call init0
     call init1
@@ -68,13 +77,13 @@ subroutine shg(a,b,c)
     if (exist) then
         if (rank==0) then
             write(*,*)
-            write(*,'("WARNING(dielmat): The momentum matrix elements are read from PMAT.OUT")')
+            write(*,'("  Momentum matrix elements read from PMAT.OUT")')
             write(*,*)
         end if
     else
         if (rank==0) then
             write(*,*)
-            write(*,'("WARNING(dielmat): Calculate the momentum matrix elements")')
+            write(*,'("  Calculate momentum matrix elements")')
             write(*,*)
         end if
         if (.not.associated(input%properties%momentummatrix)) &
@@ -90,7 +99,7 @@ subroutine shg(a,b,c)
       Recl=recl,IOstat=iostat)
     if (iostat.ne.0) then
       write(*,*)
-      write(*,'("Error(nonlinopt): error opening PMAT.OUT")')
+      write(*,'("Error(shg): error opening PMAT.OUT")')
       write(*,*)
       stop
     end if
@@ -102,17 +111,18 @@ subroutine shg(a,b,c)
     chi2w(:,:)=0.d0
 
 ! i divided by the complex relaxation time
-    eta=cmplx(0.d0,input%properties%shg%swidth,8)
+    eta = cmplx(0.d0,input%properties%shg%swidth,8)
 
-    kpari = firstofset(rank, nkptnr)
-    kparf = lastofset(rank, nkptnr)
 #ifdef MPI
-    ! create communicator object
-    call MPI_COMM_SPLIT(MPI_COMM_WORLD,kpari,rank/nkptnr,COMM_LEVEL2,ierr)
-#endif
+    kfirst = firstofset(rank,nkptnr)
+    klast = lastofset(rank,nkptnr)
+#else
+    kfirst = 1
+    klast = nkptnr
+#endif    
        
 ! parallel loop over non-reduced k-points
-    do ik = kpari, kparf
+    do ik = kfirst, klast
      
 ! find the k-point number
       call findkpt(vklnr(:,ik),isym,jk)
@@ -123,14 +133,14 @@ subroutine shg(a,b,c)
 
 ! rotate the matrix elements from the reduced to non-reduced k-point
       if (isym > 1) then
-        sc(:,:)=symlatc(:,:,lsplsymc(isym))
-        do ist=1,nstsv
-          do jst=1,nstsv
-            v1(:)=dble(pmat(:,ist,jst))
+        sc(:,:) = symlatc(:,:,lsplsymc(isym))
+        do ist = 1, nstsv
+          do jst = 1, nstsv
+            v1(:) = dble(pmat(:,ist,jst))
             call r3mv(sc,v1,v2)
-            v1(:)=aimag(pmat(:,ist,jst))
+            v1(:) = aimag(pmat(:,ist,jst))
             call r3mv(sc,v1,v3)
-            pmat(:,ist,jst)=cmplx(v2(:),v3(:),8)
+            pmat(:,ist,jst) = cmplx(v2(:),v3(:),8)
           end do
         end do
       end if
@@ -139,123 +149,122 @@ subroutine shg(a,b,c)
       allocate(evalsvt(nstsv))
       call getevalsv(vkl(:,jk),evalsvt)
 
-! scissor correct the matrix elements
+! scissor correction applied to the momentum matrix elements
       do ist = 1, nstsv
         if (evalsvt(ist) < efermi) then
           do jst = 1, nstsv
             if (evalsvt(jst) > efermi) then
-              eji=evalsvt(jst)-evalsvt(ist)
-              t1=(eji+input%properties%shg%scissor)/eji
-              pmat(:,ist,jst)=t1*pmat(:,ist,jst)
+              eji = evalsvt(jst)-evalsvt(ist)
+              t1 = (eji+input%properties%shg%scissor)/eji
+              pmat(:,ist,jst) = t1*pmat(:,ist,jst)
             end if
           end do
         end if
       end do
-      zt1=zi*(occmax/omega)/dble(nkptnr)
+      zt1 = zi*(occmax/omega)/dble(nkptnr)
 
 ! loop over valence states
       do ist = 1, nstsv
       
         if (evalsvt(ist) < efermi) then
-          pii(:)=pmat(:,ist,ist)
+          pii(:) = pmat(:,ist,ist)
 
 ! loop over conduction states
           do jst = 1, nstsv
             
             if (evalsvt(jst) > efermi) then
-              eji=evalsvt(jst)-evalsvt(ist)+input%properties%shg%scissor
-              vji(:)=pmat(:,jst,ist)
-              dji(:)=pmat(:,jst,jst)-pii(:)
+              eji = evalsvt(jst)-evalsvt(ist)+input%properties%shg%scissor
+              vji(:) = pmat(:,jst,ist)
+              dji(:) = pmat(:,jst,jst)-pii(:)
 
 ! loop over intermediate states
               do kst = 1, nstsv
 
                 if ((kst.ne.ist).and.(kst.ne.jst)) then
-                  eki=evalsvt(kst)-evalsvt(ist)
-                  ekj=evalsvt(kst)-evalsvt(jst)
+                  eki = evalsvt(kst)-evalsvt(ist)
+                  ekj = evalsvt(kst)-evalsvt(jst)
 
                   if (evalsvt(kst) > efermi) then
-                    eki=eki+input%properties%shg%scissor
+                    eki = eki+input%properties%shg%scissor
                   else
-                    ekj=ekj-input%properties%shg%scissor
+                    ekj = ekj-input%properties%shg%scissor
                   end if
-! rotate the matrix elements from the reduced to non-reduced k-point
-                  vkj(:)=pmat(:,kst,jst)
-                  vik(:)=pmat(:,ist,kst)
+                  vkj(:) = pmat(:,kst,jst)
+                  vik(:) = pmat(:,ist,kst)
 ! interband terms
-                  t1=-eji*eki*(-ekj)*(eki+ekj)
+                  t1 = -eji*eki*(-ekj)*(eki+ekj)
                   if (abs(t1).gt.input%properties%shg%etol) then
-                    t1=1.d0/t1
+                    t1 = 1.d0/t1
                   else
-                    t1=t1/input%properties%shg%etol**2
+                    t1 = t1/input%properties%shg%etol**2
                   end if
-                  ztm(1,1)=zt1*conjg(vji(a))*(conjg(vkj(b))*conjg(vik(c)) &
-                   +conjg(vik(b))*conjg(vkj(c)))*t1
-                  t1=eji*(-eki)*ekj*(-eki-eji)
+                  ztm(1,1) = zt1*conjg(vji(a))*(conjg(vkj(b))*conjg(vik(c))+ &
+                  &          conjg(vik(b))*conjg(vkj(c)))*t1
+                  t1 = eji*(-eki)*ekj*(-eki-eji)
                   if (abs(t1).gt.input%properties%shg%etol) then
-                    t1=1.d0/t1
+                    t1 = 1.d0/t1
                   else
-                    t1=t1/input%properties%shg%etol**2
+                    t1 = t1/input%properties%shg%etol**2
                   end if
-                  ztm(1,2)=0.5d0*zt1*vkj(c)*(vji(a)*vik(b)+vik(a)*vji(b))*t1
-                  t1=eji*(-eki)*ekj*(ekj-eji)
+                  ztm(1,2) = 0.5d0*zt1*vkj(c)*(vji(a)*vik(b)+vik(a)*vji(b))*t1
+                  t1 = eji*(-eki)*ekj*(ekj-eji)
                   if (abs(t1).gt.input%properties%shg%etol) then
-                    t1=1.d0/t1
+                    t1 = 1.d0/t1
                   else
-                    t1=t1/input%properties%shg%etol**2
+                    t1 = t1/input%properties%shg%etol**2
                   end if
-                  ztm(1,3)=0.5d0*zt1*vik(b)*(vkj(c)*vji(a)+vji(c)*vkj(a))*t1
+                  ztm(1,3) = 0.5d0*zt1*vik(b)*(vkj(c)*vji(a)+vji(c)*vkj(a))*t1
 ! intraband terms
-                  t1=(-eki)*ekj*eji**3
+                  t1 = (-eki)*ekj*eji**3
                   if (abs(t1).gt.input%properties%shg%etol) then
-                    t1=1.d0/t1
+                    t1 = 1.d0/t1
                   else
-                    t1=t1/input%properties%shg%etol**2
+                    t1 = t1/input%properties%shg%etol**2
                   end if
-                  ztm(2,1)=0.5d0*zt1*(eki*vik(b)*(vkj(c)*vji(a)+vji(c)*vkj(a)) &
-                   +ekj*vkj(c)*(vji(a)*vik(b)+vik(a)*vji(b)))*t1
-                  t1=(eki*(-ekj)*eji**3)/(ekj+eki)
+                  ztm(2,1) = 0.5d0*zt1*(eki*vik(b)*(vkj(c)*vji(a)+vji(c)*vkj(a))+ &
+                  &          ekj*vkj(c)*(vji(a)*vik(b)+vik(a)*vji(b)))*t1
+                  t1 = (eki*(-ekj)*eji**3)/(ekj+eki)
                   if (abs(t1).gt.input%properties%shg%etol) then
-                    t1=1.d0/t1
+                    t1 = 1.d0/t1
                   else
-                    t1=t1/input%properties%shg%etol**2
+                    t1 = t1/input%properties%shg%etol**2
                   end if
-                  ztm(2,3)=zt1*conjg(vji(a))*(conjg(vkj(b))*conjg(vik(c)) &
-                   +conjg(vik(b))*conjg(vkj(c)))*t1
+                  ztm(2,3) = zt1*conjg(vji(a))*(conjg(vkj(b))*conjg(vik(c))+ &
+                  &          conjg(vik(b))*conjg(vkj(c)))*t1
 ! modulation terms
-                  t1=ekj*(-eki)*eji**3
+                  t1 = ekj*(-eki)*eji**3
                   if (abs(t1).gt.input%properties%shg%etol) then
-                    t1=1.d0/t1
+                    t1 = 1.d0/t1
                   else
-                    t1=t1/input%properties%shg%etol**2
+                    t1 = t1/input%properties%shg%etol**2
                   end if
-                  ztm(3,1)=-0.5d0*zt1*eki*vkj(a)*(vji(b)*vik(c)+vik(b)*vji(c))*t1
-                  t1=ekj*(-eki)*eji**3
+                  ztm(3,1) = -0.5d0*zt1*eki*vkj(a)*(vji(b)*vik(c)+vik(b)*vji(c))*t1
+                  t1 = ekj*(-eki)*eji**3
                   if (abs(t1).gt.input%properties%shg%etol) then
-                    t1=1.d0/t1
+                    t1 = 1.d0/t1
                   else
-                    t1=t1/input%properties%shg%etol**2
+                    t1 = t1/input%properties%shg%etol**2
                   end if
-                  ztm(3,2)=0.5d0*zt1*ekj*vik(a)*(vkj(b)*vji(c)+vji(b)*vkj(c))*t1
+                  ztm(3,2) = 0.5d0*zt1*ekj*vik(a)*(vkj(b)*vji(c)+vji(b)*vkj(c))*t1
 
                   do iw = 1, wgrid
 ! 2w interband
-                    chi2w(iw,1)=chi2w(iw,1)+ztm(1,1)/(eji-2.d0*w(iw)+eta)
+                    chi2w(iw,1) = chi2w(iw,1)+ztm(1,1)/(eji-2.d0*w(iw)+eta)
 ! 2w intraband
-                    chi2w(iw,2)=chi2w(iw,2)+ztm(2,3)/(eji-2.d0*w(iw)+eta)
+                    chi2w(iw,2) = chi2w(iw,2)+ztm(2,3)/(eji-2.d0*w(iw)+eta)
 ! w interband
-                    chiw(iw,1)=chiw(iw,1)-(ztm(1,2)-ztm(1,3))/(eji-w(iw)+eta)
+                    chiw(iw,1) = chiw(iw,1)-(ztm(1,2)-ztm(1,3))/(eji-w(iw)+eta)
 ! w intraband
-                    chiw(iw,2)=chiw(iw,2)+ztm(2,1)/(eji-w(iw)+eta)
+                    chiw(iw,2) = chiw(iw,2)+ztm(2,1)/(eji-w(iw)+eta)
 ! w modulation
-                    chiw(iw,3)=chiw(iw,3)+0.5d0*(ztm(3,1)-ztm(3,2))/(eji-w(iw)+eta)
+                    chiw(iw,3) = chiw(iw,3)+0.5d0*(ztm(3,1)-ztm(3,2))/(eji-w(iw)+eta)
                   end do
 
                 end if
 ! end loop over kst
               end do
-              ztm(2,2)=4.d0*zt1*conjg(vji(a))*(dji(b)*vji(c)+vji(b)*dji(c))/eji**4
-              ztm(3,3)=0.5d0*zt1*vji(a)*(vji(b)*dji(c)+dji(b)*vji(c))/eji**4
+              ztm(2,2) = 4.d0*zt1*conjg(vji(a))*(dji(b)*vji(c)+vji(b)*dji(c))/eji**4
+              ztm(3,3) = 0.5d0*zt1*vji(a)*(vji(b)*dji(c)+dji(b)*vji(c))/eji**4
 
               do iw = 1, wgrid
 ! 2w intraband
@@ -279,9 +288,9 @@ subroutine shg(a,b,c)
 
 #ifdef MPI
     call MPI_ALLREDUCE(MPI_IN_PLACE, chiw, 3*wgrid, &
-    &   MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
+    &                  MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
     call MPI_ALLREDUCE(MPI_IN_PLACE, chi2w, 2*wgrid, &  
-    &   MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
+    &                  MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
 #endif
 
     call barrier
@@ -329,19 +338,18 @@ subroutine shg(a,b,c)
         end do
         close(50); close(51); close(52); close(53); close(54); close(55); close(56)
         write(*,*)
-        write(*,'("Info(shg):")')
-        write(*,'(" susceptibility tensor written to CHI_abc.OUT")')
-        write(*,'(" interband contributions written to CHI_INTERx_abc.OUT")')
-        write(*,'(" intraband contributions written to CHI_INTRAx_abc.OUT")')
-        write(*,'(" for components")')
+        write(*,'("  Susceptibility tensor written to CHI_abc.OUT")')
+        write(*,'("  Interband contributions written to CHI_INTERx_abc.OUT")')
+        write(*,'("  Intraband contributions written to CHI_INTRAx_abc.OUT")')
+        write(*,'("  for components")')
         write(*,'("  a = ",I1,", b = ",I1,", c = ",I1)') a, b, c
         if (input%properties%shg%tevout) &
-       &  write(*, '(" Output energy is in eV")')
+        &  write(*, '("  Output energy is in eV")')
     end if
 
     deallocate(w,chiw,chi2w)
 
-return
+    return
 end subroutine
 !EOC
 

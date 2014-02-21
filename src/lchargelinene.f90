@@ -5,27 +5,28 @@ subroutine lchargelinene
 ! !USES:
       use modinput
       use modmain
+      use modmpi, only: rank
 ! !DESCRIPTION:
-!
-! Calculate the "Optimal Energy Parameters" by S.Bluegel
-!
+!   Calculate the "Optimal Energy Parameters" by S.Bluegel
 ! !REVISION HISTORY:
-!   
+!   Created October 2013 (DIN)
 !EOP
 !BOC
   implicit none
   ! local variables
   integer :: ik,l,m,lm
   integer :: lmax,lmmax
-  integer :: is,ia,ias,ist
-  integer :: ispn, jspn
+  integer :: is,ia,ias,ist,n,i
+  integer :: ispn
   integer :: ilo, io1, io2, ja, jas
-  real(8) :: el,t1,t2,t3,t4,t5
+  real(8) :: t1,t2
+  real(8) :: de, de_min
+  logical :: newset
 
+  integer, allocatable  :: nl(:)
+  Real (8), Allocatable :: el(:,:,:)
   Real (8), Allocatable :: lcharge (:, :, :, :, :)
-  Real (8), Allocatable :: elm (:, :)
-  Complex (8), Allocatable :: ulm (:, :, :)
-  Complex (8), Allocatable :: a (:, :)
+  Real (8), Allocatable :: lstate (:, :, :)
   Complex (8), Allocatable :: evecfv(:,:,:)
   Complex (8), Allocatable :: evecsv(:,:)
   Complex (8), Allocatable :: dmat (:, :, :, :, :)
@@ -36,11 +37,13 @@ subroutine lchargelinene
   lmax=input%groundstate%lmaxapw
   lmmax = (lmax+1) ** 2
   
-  Allocate (evecfv(nmatmax, nstfv, nspnfv))
-  Allocate (evecsv(nstsv, nstsv))
-  Allocate (dmat(lmmax, lmmax, nspinor, nspinor, nstsv))
-  Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
-  Allocate (lcharge(0:lmax, nspinor, natmtot, nstsv, nkpt))
+  Allocate (evecfv(nmatmax,nstfv,nspnfv))
+  Allocate (evecsv(nstsv,nstsv))
+  Allocate (dmat(lmmax,lmmax,nspinor,nspinor,nstsv))
+  Allocate (apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
+  Allocate (lcharge(0:lmax,nspinor,natmtot,nstsv,nkpt))
+  Allocate (el(nstsv,0:input%groundstate%lmaxapw,natmtot))
+  Allocate (lstate(0:input%groundstate%lmaxapw,nstsv,natmtot))
   
 ! loop over k-points
   Do ik = 1, nkpt
@@ -71,7 +74,7 @@ subroutine lchargelinene
                 t1 = 0.d0
                 Do m = - l, l
                   lm = idxlm (l, m)
-                  t1 = t1 + dble (dmat(lm, lm, ispn, ispn, ist))
+                  t1 = t1 + dble(dmat(lm, lm, ispn, ispn, ist))
                 End Do
                 lcharge (l, ispn, ias, ist, ik) = t1
               End Do
@@ -81,10 +84,12 @@ subroutine lchargelinene
 
 ! copy to equivalent atoms
           Do ja = 1, natoms (is)
-            If (( .Not. done(ja)) .And. (eqatoms(ia, ja, is))) Then
-              jas = idxas (ja, is)
-              lcharge (:, ispn, jas, ist, ik) = lcharge (:, ispn, ias, ist, ik)
-              done (ja) = .True.
+            If ((.not.done(ja)) .and.(eqatoms(ia,ja,is))) Then
+              jas = idxas(ja, is)
+              do ist = 1, nstsv
+                  lcharge(:,:,jas,ist,ik) = lcharge(:,:,ias,ist,ik)
+              end do
+              done(ja) = .True.
             End If
           End Do
           
@@ -95,109 +100,148 @@ subroutine lchargelinene
   Deallocate (dmat, apwalm)
   Deallocate (evecfv, evecsv)
 
-  open(33,file='LCHARGELINENE.OUT',action='write')
-  ! for each atom
+  if (rank==0) then
+    open(32,file='LCHARGE.OUT',action='write')
+    do is = 1, nspecies
+      do ia = 1, natoms(is)
+        ias = idxas(ia,is)
+        write(32,*) 'ATOM ', ias
+        write(32,*) '# state    l=0         l=1         l=2         l=3         l=4'
+        do ist = 1, nstsv
+          do l = 0, input%groundstate%lmaxapw
+            t1 = 0.d0
+            do ik = 1, nkpt
+              t1 = t1 + wkpt(ik)*sum(lcharge(l,:,ias,ist,ik))
+            end do
+            lstate(l,ist,ias) = t1
+          end do ! l
+          write(32,'(i8,5f12.6)') ist, (lstate(l,ist,ias), l = 0, 4)
+        end do ! ist
+       write(32,*)
+     end do ! ia
+    end do ! is
+    close(32)
+  end if
+
+  allocate(nl(0:lmax))
+  nl(:) = 0
+
+! for each atom
   do is = 1, nspecies
     done (:) = .False.
     do ia = 1, natoms (is)
       if ( .Not. done(ia)) Then
         ias = idxas (ia, is)
-       
-        write(33,*)
-        write(33,*)'#############################'
-        write(33,*)'# atom ', ias
-        write(33,*)'#############################'
-        write(33,*)
 
-!-----------------------!
-!     APW functions     !
-!-----------------------!
-
-!       for each angular momentum
+!-----------------------
+! Calculate l-energies
+!-----------------------
         do l = 0, lmax
-          
-          ! sum over k-points
-          t4 = 0.d0
-          t5 = 0.d0
-          do ik = 1, nkpt
-            t1 = 0.d0
-            t2 = 0.d0
-            ! sum over states
-            do ist = 1, nstsv
-              if (abs(occsv(ist,ik)) .gt. input%groundstate%epsocc) Then
-                t3 = 0.d0
-                do ispn = 1, nspinor
-                  t3 = t3+lcharge(l,ispn,ias,ist,ik)
-                end do
-                if (evalsv(ist,ik)>-1.d0) then
-                  t1 = t1+evalsv(ist,ik)*t3*occsv(ist,ik)
-                  t2 = t2+t3*occsv(ist,ik)
-                end if
+! sum over states
+          t1 = 0.d0
+          t2 = 0.d0
+          newset = .false.
+          do ist = 1, nstsv
+            if (lstate(l,ist,ias) > 0.1d0) then
+              newset = .true.
+! integrate over BZ
+              do ik = 1, nkpt
+                t1 = t1+evalsv(ist,ik)*sum(lcharge(l,:,ias,ist,ik))*wkpt(ik)
+              end do
+              t2 = t2+lstate(l,ist,ias)
+            else
+              if (newset) then
+                nl(l) = nl(l)+1
+                el(nl(l),l,ias) = t1/t2
+                t1 = 0.d0
+                t2 = 0.d0
+                newset = .false.
               end if
-            end do ! ist
-            t4 = t4 + t1*wkpt(ik)
-            t5 = t5 + t2*wkpt(ik)
-          end do ! ik
-
-          el = t4/t5
-          elcharge(l,ias) = el
-          write(33,'("    l=",i4,"    partial charge=",f12.6,"    energy",f12.6)') l, t5, el
-
-! check if previous radial functions have same default energies
-          do io1 = 1, apword (l, is)
-            if (apwve(io1, l, is)) then
-              apwe (io1, l, ias) = el
             end if
-          end do ! io1
-
+          end do ! ist
         end do ! l
-        write(33,*)
 
 !---------------------------------!
-!     local-orbital functions     !
+!      augmented functions         !
 !---------------------------------!
-        do ilo = 1, nlorb (is)
-          do io1 = 1, lorbord (ilo, is)
-            if (lorbve(io1, ilo, is)) then
-              l = lorbl (ilo, is)
-! check if previous radial functions have same default energies
-              do io2 = 1, apword (l, is)
-                if (apwve(io2, l, is)) then
-                  if (abs(lorbe0(io1, ilo, is)-apwe0(io2, l, is)) .lt. 1.d-4) then
-                    lorbe (io1, ilo, ias) = apwe (io2, l, ias)
-                    exit
+        do l = 0, lmax 
+          do io1 = 1, apword (l, is)
+            apwe(io1,l,ias) = apwe0(io1,l,is)
+            if (apwve(io1,l,is)) then
+                n = 1
+                de_min = dabs(el(1,l,ias)-apwe0(io1,l,is))
+                do i = 2, nl(l)
+                  de = dabs(el(i,l,ias)-apwe0(io1,l,is))
+                  if (de < de_min) then
+                    n = i
+                    de_min = de 
                   end if
-                end if
-              end do ! io2
+                end do
+                apwe(io1,l,ias) = el(n,l,ias)
             end if
           end do ! io1
-        end do ! ilo
-        done (ia) = .True.
+        end do ! l
 
-!       copy to equivalent atoms
-        do ja = 1, natoms (is)
-           if (( .not. done(ja)) .and. (eqatoms(ia, ja, is))) then
-              jas = idxas (ja, is)
-              do l = 0, input%groundstate%lmaxapw
-                 do io1 = 1, apword (l, is)
-                    apwe (io1, l, jas) = apwe (io1, l, ias)
+!---------------------------------!
+!      local-orbital functions    !
+!---------------------------------!
+       do ilo = 1, nlorb (is)
+         do io1 = 1, lorbord (ilo, is)
+           lorbe(io1,ilo,ias) = lorbe0(io1,ilo,is)
+           if (lorbve(io1, ilo, is)) then
+             l = lorbl (ilo, is)
+! if lo has the same default energies as apw
+             do io2 = 1, apword (l, is)
+               if (abs(lorbe0(io1,ilo,is)-apwe0(io2,l,is) )<1.d-4) then
+                 if (apwve(io2,l,is)) then
+                   lorbe(io1,ilo,ias) = apwe(io2,l,ias)
+                 else
+                   lorbe(io1,ilo,ias) = lorbe0(io1,ilo,is)
+                 end if
+! energies are different
+               else
+                 n = 1
+                 de_min = dabs(el(1,l,ias)-lorbe0(io1,ilo,is))
+                 do i = 2, nl(l)
+                   de = dabs(el(i,l,ias)-lorbe0(io1,ilo,is))
+                   if (de < de_min) then
+                     n = i
+                     de_min = de 
+                   end if
                  end do
-              end do
-              do ilo = 1, nlorb (is)
-                 do io1 = 1, lorbord (ilo, is)
-                    lorbe (io1, ilo, jas) = lorbe (io1, ilo, ias)
-                 end do
-              end do
-              done (ja) = .true.
+                 lorbe(io1,ilo,ias) = el(n,l,ias)
+               end if
+             end do ! io2
            end if
-        end do
+         end do ! io1
+       end do ! ilo
+       done (ia) = .True.
+
+!---------------------------------!
+!      copy to equivalent atoms  !
+!---------------------------------!
+       do ja = 1, natoms (is)
+         if (( .not. done(ja)) .and. (eqatoms(ia, ja, is))) then
+           jas = idxas (ja, is)
+           do l = 0, input%groundstate%lmaxapw
+             do io1 = 1, apword (l, is)
+               apwe (io1, l, jas) = apwe (io1, l, ias)
+             end do
+           end do
+           do ilo = 1, nlorb (is)
+             do io1 = 1, lorbord (ilo, is)
+               lorbe (io1, ilo, jas) = lorbe (io1, ilo, ias)
+             end do
+           end do
+           done (ja) = .true.
+         end if
+       end do
 
       end if ! done
     end do ! ia
   end do ! is
-  close(33)
+  deallocate(lstate,lcharge,nl,el)
 
-  deallocate(lcharge)
   return
 end subroutine
 !EOC

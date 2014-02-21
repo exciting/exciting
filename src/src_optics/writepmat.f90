@@ -1,29 +1,27 @@
 
-! Copyright (C) 2005-2010 S. Sagmeister and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-
 !BOP
-! !ROUTINE: writepmat
-! !INTERFACE:
+!!ROUTINE: writepmat
+!!INTERFACE:
+!
 Subroutine writepmat
-! !USES:
+!
+!!USES:
       Use modinput
       Use modmain, Only: nkpt, ngkmax, apwordmax, lmmaxapw, natmtot, &
-     & nmatmax, nstfv, nstsv, nlotot, nlomax, lolmax, task, vkl, vgkl, &
-     & ngk, gkc, tpgkc, sfacgk, igkig, vgkc, filext
+      &  nmatmax, nstfv, nstsv, nlotot, nlomax, lolmax, task, vkl, vgkl, &
+      &  ngk, gkc, tpgkc, sfacgk, igkig, vgkc, filext
       Use modmpi
       Use modxs
 
-! !DESCRIPTION:
+!!DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
 !   writes them to direct access file {\tt PMAT.OUT}, {\tt PMAT\_XS.OUT} or
 !   {\tt PMAT\_SCR.OUT} depending on the context of the execution.
-!
-! !REVISION HISTORY:
+
+!!REVISION HISTORY:
 !   Created 2006 (S. Sagmeister)
 !   Modifications, August 2010 (S. Sagmeister)
-!   Modifications based on src_xs/writepmatxs.F90, April 2013 (DIN)
+!   Readjusted and re-parallelized, April 2013 (DIN)
 !EOP
 !BOC
       Implicit None
@@ -168,7 +166,7 @@ Subroutine writepmat
       if (rank==0) then
           Write (*,*)
           Write (*, '("Info(writepmat):")')
-          Write (*, '(" momentum matrix elements written to file PMAT.OUT")')
+          Write (*, '("  Momentum matrix elements written to file PMAT.OUT")')
           Write (*,*)
       end if
 
