@@ -36,7 +36,6 @@ Subroutine bandstr
   Character (256) :: fname
   ! allocatable arrays
   Real (8), Allocatable :: evalfv (:, :)
-  Real (8), Allocatable :: e (:, :)
   ! low precision for band character array saves memory
   Real (4), Allocatable :: bc (:, :, :, :)
   Complex (8), Allocatable :: dmat (:, :, :, :, :)
@@ -58,15 +57,16 @@ Subroutine bandstr
       if ((associated(input%groundstate%Hybrid).and. &
      & (input%groundstate%Hybrid%exchangetypenumber== 1)) &
      & .or.(associated(input%groundstate%HartreeFock))) then
- 
-!----------------------------------------      
-! Calculate interpolated bandstructure
-!----------------------------------------
+
+     !----------------------------------------      
+     ! Calculate interpolated bandstructure
+     !----------------------------------------
+
       
         fname='EVALHF.OUT'
         inquire(File=fname,Exist=exist)
         if (.not.exist) then
-          write(*,*)'ERROR(bandstr.f90): File EVALHYB.OUT does not exist!'
+          write(*,*)'ERROR(bandstr.f90): File EVALHF.OUT does not exist!'
           stop
         end if
         
@@ -98,7 +98,7 @@ Subroutine bandstr
 
         e1(:,:)=zzero
         call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
-
+        
         open(88,file='BAND.OUT')
         do ist = 1, nstsv
           do ik = 1, nkpt
@@ -109,12 +109,10 @@ Subroutine bandstr
         close(88)
 
         deallocate(vkl0,ehf,e0,e1)
-
+              
         return
-      end if
+      end if 
 
-  ! allocate array for storing the eigenvalues
-      Allocate (e(nstsv, nkpt))
   ! maximum angular momentum for band character
   lmax = Min (3, input%groundstate%lmaxapw)
   lmmax = (lmax+1) ** 2
