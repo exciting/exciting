@@ -205,7 +205,7 @@ Subroutine hybrids
             write(60,*)
             write(60,'(" Absolute change in total energy (target)   : ",G18.10," (",G18.10,")")') &
            &  deltae, input%groundstate%epsengy
-            if (deltae < input%groundstate%epsengy) Then
+             if (deltae < input%groundstate%epsengy*10) Then
                 if (rank==0) Then
                     write(string,'("Convergence target is reached")')
                     call printbox(60,"+",string)
@@ -221,7 +221,7 @@ Subroutine hybrids
 
         if (ihyb==0) then
             ex_coef = input%groundstate%Hybrid%excoeff
-            call fix_linene
+            !call fix_linene
             input%groundstate%findlinentype = "skip"
             task = 1
         end if
@@ -230,7 +230,7 @@ Subroutine hybrids
         do ik = 1, nkpt
             call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv0(:,:,:,ik))
         end do
-        
+
 ! calculate the non-local potential
         call timesec(ts0)
         call calc_vxnl
@@ -250,7 +250,7 @@ Subroutine hybrids
             write(60,*)
         end if
         time_hyb = time_hyb+ts1-ts0
-        
+
 ! output the current total time
         timetot = timeinit + timemat + timefv + timesv + timerho  &
        &        + timepot + timefor + timeio + timemt + timemixer &
@@ -401,9 +401,9 @@ subroutine fix_linene
           do io1 = 1, lorbord(ilo,is)
             lorbe0(io1,ilo,is) = lorbe(io1,ilo,ias)
             l = lorbl(ilo,is)
-            if (lorbe(io1,ilo,ias)==apwe(io1,l,ias)) then
-              lorbve(io1,ilo,is) = .false.
-            end if
+            !if (lorbe(io1,ilo,ias)==apwe(io1,l,ias)) then
+            lorbve(io1,ilo,is) = .false.
+            !end if
           end do ! io1
         end do ! ilo
       end do ! ia
