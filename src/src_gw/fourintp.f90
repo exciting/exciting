@@ -55,7 +55,7 @@ subroutine fourintp(f1,nk1,kvecs1,f2,nk2,kvecs2,nb)
 
     ! Set rindex
     if(.not.setrindex_done) then  
-      !nsymcrys = 1
+      nsymcrys = 1
       call setrindex
       setrindex_done = .true.
     endif

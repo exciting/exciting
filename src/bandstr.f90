@@ -46,7 +46,7 @@ Subroutine bandstr
   Type (xmlf_t), Save :: xf
   !
   integer :: nkpt0, nstsv0, Recl
-  real(8),    Allocatable :: vkl0(:,:), ehf(:,:)
+  real(8),    Allocatable :: vkl0(:,:), ehf(:,:), deltax(:,:)
   complex(8), allocatable :: e0(:,:), e1(:,:)
   logical :: exist
 
@@ -356,6 +356,66 @@ Subroutine bandstr
         Call xml_close (xf)
      End if
      If (input%properties%bandstructure%character) deallocate(bc)
+
+
+     if (associated(input%groundstate%OEP)) then
+
+     !----------------------------------------      
+     ! Calculate interpolated DELTAX
+     !----------------------------------------
+
+      
+        fname='DELTAX.OUT'
+        inquire(File=fname,Exist=exist)
+        if (.not.exist) then
+          write(*,*)'ERROR(bandstr.f90): File DELTAX.OUT does not exist!'
+          stop
+        end if
+        
+        open(500,file='DELTAX.OUT',action='READ',form='FORMATTED')
+        read(500,*) nkpt0, nstsv0
+
+        nstsv=min(nstsv,nstsv0)
+        allocate(vkl0(3,nkpt0))
+        allocate(deltax(nkpt0,nstsv0))
+        allocate(e0(nkpt0,nstsv))
+        allocate(e1(nkpt,nstsv))
+
+        do ik=1,nkpt0
+              read(500,*) vkl0(1,ik),vkl0(2,ik),vkl0(3,ik)
+              read(500,*) deltax(ik,1:nstsv0)
+        end do
+        close(500)
+  
+        ! Perform Fourier Interpolation
+        do ik = 1, nkpt0
+           e0(ik,1:nstsv)=cmplx(deltax(ik,1:nstsv0),0.d0,8)
+        enddo
+
+        e1(:,:)=zzero
+        call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
+        
+        open(87,file='DELTAX_INTP.OUT')
+        do ist = 1, nstsv
+          do ik = 1, nkpt
+            write(87,*) dpp1d(ik), dble(e1(ik,ist))
+          end do
+          write(87,*)
+        end do
+        close(87)
+
+        ! add discontinuity times ex_coef to bandstructure
+        open(89,file='BAND_DELTAX.OUT')
+        do ist = 1, nstsv
+          do ik = 1, nkpt
+            write(89,*) dpp1d(ik), evalsv (ist, ik)+ex_coef*dble(e1(ik,ist))
+          end do
+          write(89,*)
+        end do
+        close(89)
+        deallocate(vkl0,deltax,e0,e1)           
+        return
+      end if 
      Return
    End Subroutine bandstr
    !EOC

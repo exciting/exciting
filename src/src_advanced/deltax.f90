@@ -37,8 +37,11 @@ subroutine deltax
             end if
         end do
     end do
-    band0 = max(1,ihomo-5)
-    band1 = min(nstsv,ihomo+5)
+!    band0 = max(1,ihomo-5)
+!    band1 = min(nstsv,ihomo+5)
+
+     band0 = 1
+     band1 = nstsv 
 
 !    if (rank==0) then
 !        write(*,*) "efermi=", efermi
@@ -119,20 +122,22 @@ subroutine deltax
 #endif
 
     if (rank==0) then
-        open(500,file='DELTAX'//trim(filext),form='FORMATTED')
-        write(500,*) nkpt, band0, band1
-        do ik = 1, nkpt
-            write(500,'(3f12.8)') vkl(:,ik)
-            do ist = band0, band1        
-                write(500,'(i8,f18.6)') ist, dble(delta(ist,ik))
-            end do
-            write(500,*)
-        end do
-        close(500)
-        write(*,*)
-        write(*,*) "Info(deltax): OEP exchange potential discontinuity is printed in DELTAX.OUT"
-        write(*,*)
+          open(500,file='DELTAX'//trim(filext),action='WRITE',form='FORMATTED')
+          write(500,*) nkpt, band1
+          do ik=1,nkpt
+              write(500,'(3f12.8,i5)') vkl(1,ik), vkl(2,ik), vkl(3,ik)
+              do ist = band0, band1
+                  write(500,'(6e20.6)') dble(delta(ist,ik))
+              end do
+              write(500,*)
+          ! end loop over ik
+          end do
+          close(500)
+          write(*,*)
+          write(*,*) "Info(deltax): OEP exchange potential discontinuity is printed in DELTAX.OUT"
+          write(*,*)
     end if
+
     deallocate(delta)
 
 return
