@@ -109,10 +109,6 @@
         enddo ! ia
       enddo ! ias
 
-      if(debug)write(701,101) lmixmax, locmatsiz
-  101 format(' Max. nr. of MT-sphere wavefunctions per atom ',i6,/,      &
-     &       ' Total  nr. of MT-sphere wavefunctions        ',i6)
-
 !     The maximum size of MB basis
       matsizmax=locmatsiz+ngqmax   
       
