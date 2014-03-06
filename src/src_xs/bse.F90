@@ -200,22 +200,17 @@ Subroutine bse
       End Do
 
       if (associated(input%gw)) then
-        
         ! to KS eigenvalues to use them later for renormalizing PMAT
         allocate(eval0(nstsv,nkptnr))
         eval0(:,:)=evalsv(:,:)
-        
         ! if scissor correction is presented, one should nullify it
         input%xs%scissor=0.0d0
-        
         ! Read QP Fermi energies and eigenvalues from file
         call getevalqp(nkptnr,vkl,evalsv)
         Write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
-
-        do ist1 = 1, nstsv
-          write(*,*) ist1, evalsv(ist1,1)
-        end do
-
+        !do ist1 = 1, nstsv
+        !  write(*,*) ist1, evalsv(ist1,1)
+        !end do
       end if ! GW
 
   ! read mean value of diagonal of direct term

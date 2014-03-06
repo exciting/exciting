@@ -78,98 +78,99 @@
 !     Allocate the array for the quasi-particle energies 
 ! 
       allocate(eqp(ibgw:nbgw,nkpt))
-      eqp(ibgw:nbgw,1:nkpt)=evaldft(ibgw:nbgw,1:nkpt)
+      eqp(ibgw:nbgw,1:nkpt) = evaldft(ibgw:nbgw,1:nkpt)
       
       allocate(sigc(ibgw:nbgw,nkpt))
       allocate(znorm(ibgw:nbgw,nkpt))
 !
 !     Calculate the number of parameters of the analitic function for the selfenergy
 !      
-      npar=2*npol
+      npar = 2*npol
       allocate(a(npar),sc(nomeg),poles(npar))
       allocate(sacpar(npar,ibgw:nbgw,nkpt))
 
 !----------------------------------
 !     Start iterative procedure
 !----------------------------------      
-      es=0.0d0
-      egap=0.0d0
-      ierr=0
+      es = 0.0d0
+      egap = 0.0d0
+      ierr = 0
 
       do it = 0, nitmax
       
          do ikp = 1, nkpt
            do ie = ibgw, nbgw
            
-              enk=evaldft(ie,ikp)
+              ! not shifted KS eigenvalues
+              enk = evaldft(ie,ikp)-efermi
 !          
-!            Set up the analytic continuation parameters 
+!             Set up the analytic continuation parameters 
 !
               if(it.eq.0)then
-                 sc=selfec(ie,ikp,1:nomeg)
+                 sc = selfec(ie,ikp,1:nomeg)
                  call setsac(iopac,nomeg,npar,enk,sc,freqs,a,poles)
-                 sacpar(:,ie,ikp)=a
+                 sacpar(:,ie,ikp) = a
               else
-                 a=sacpar(:,ie,ikp)
+                 a = sacpar(:,ie,ikp)
               end if
               
               if (iopes.eq.2) then 
-                ein=cmplx(eqp(ie,ikp)-es,0.0d0,8)
+                ein = cmplx(eqp(ie,ikp)-es,0.0d0,8)
               else if (iopes.eq.3) then 
-                ein=cmplx(eqp(ie,ikp),0.0d0,8)
+                ein = cmplx(eqp(ie,ikp),0.0d0,8)
               else 
-                ein=cmplx(enk,0.0d0,8)
+                ein = cmplx(enk,0.0d0,8)
               endif 
 !
 !             Perform AC
 !
-              ein=cmplx(enk,0.0d0,8)
+              ein = cmplx(enk,0.0d0,8)
               call getsac(iopac,nomeg,npar,enk,ein,freqs,a,sigma,dsig)
 
 !             Set the correlation selfenergy
-              sigc(ie,ikp)=sigma
+              sigc(ie,ikp) = sigma
 
 !             Set the normalization factor              
-              znk=1.0d0/(1.0d0-real(dsig))
+              znk = 1.0d0/(1.0d0-real(dsig))
               if((znk.gt.1.d0).or.(znk.lt.0.d0)) then
                write(fgw,*)'WARNING(calceqp): nonphysical Znk for ikp=', ikp
                !znk=0.8 
               endif
-              znorm(ie,ikp)=znk
+              znorm(ie,ikp) = znk
 !            
 !             Calculate the new quasi-particle energy 
 !
-              snk=real(selfex(ie,ikp))+real(sigc(ie,ikp))
-              vxcnk=real(vxcnn(ie,ikp))
+              snk = real(selfex(ie,ikp))+real(sigc(ie,ikp))
+              vxcnk = real(vxcnn(ie,ikp))
               
               select case(iopes) 
+              case(0)
+                delta = znk*(snk-vxcnk)
+              case(1) 
+                delta = znk*(snk-vxcnk)+(1.d0-znk)*es
               case (2) 
                 if(it.eq.0) then
-                  delta=znk*(snk-vxcnk)
+                  delta = znk*(snk-vxcnk)
                 else
-                  delta=snk-vxcnk
+                  delta = snk-vxcnk
                 endif
-              case(1) 
-                delta=znk*(snk-vxcnk)+(1.d0-znk)*es
-              case(0)
-                delta=znk*(snk-vxcnk)
               case(3) 
-                delta=snk-vxcnk
+                delta = snk-vxcnk
               end select 
 
-              eqp(ie,ikp)=enk+delta
+              eqp(ie,ikp) = enk+delta
           
            enddo ! ie
          enddo ! ikp
 
 !        to calculate Fermi energy it is better to use 
 !        only limited, low in energy, amount unoccupied states
-         nb=min(nbgw,int(chgval/2.d0)+30)
+         nb = min(nbgw,int(chgval/2.d0)+30)
          call fermi(nkpt,nb-ibgw+1,eqp(ibgw:nb,:),ntet,tnodes,wtet,tvol, &
-        &  nvelgw,.false.,eferqp,egap)
+         &  nvelgw,.false.,eferqp,egap)
 
          if(it.eq.0) then 
-            egap0=egap
+            egap0 = egap
             write(fgw,8) 
          endif
        
@@ -182,45 +183,39 @@
          if(it.ne.0)then 
            if(abs(egap-egap0).gt.0.2d0) then
              write(fgw,*) 'WARNING(calceqp): --- Band gap deviates from initial GW gap more than 0.2 Ha'
-             ierr=1
+             ierr = 1
              exit 
            end if
          end if
          
          if( (iopes.eq.0).or. &
-        &   ((abs(es-eferqp).lt.etol).and.(abs(egap-egapold).le.etol)) ) exit
+         &   ((abs(es-eferqp).lt.etol).and.(abs(egap-egapold).le.etol)) ) exit
 
 !        Perform next iteration
-         es=eferqp
-         egapold=egap
+         es = eferqp
+         egapold = egap
          
       enddo ! it
       
-      if(it.gt.nitmax)ierr=1
-      if(ierr.ne.0) then 
+      if (it.gt.nitmax) ierr=1
+      if (ierr.ne.0) then 
          write(fgw,*) 'WARNING(calceqp): --- Failed to converge!!!'
       endif 
 !      
-!     Write quasi-particle energies into EVALQP.OUT
+!     Write quasi-particle energies into EVALQP.TXT
 !      
       call writeqp(sigc,znorm)
       
 !----------------------------------------
-!     Set QP fermi energy to zero
-!----------------------------------------
-      eqp(:,:)=eqp(:,:)-eferqp
-      eferqp=0.d0
-
-!----------------------------------------
 !     Save QP energies into binary file
 !----------------------------------------
-      Inquire (IoLength=Recl) nkpt, ibgw, nbgw, &
-     &  vkl(:,1), eqp(ibgw:nbgw,1), evaldft(ibgw:nbgw,1)
+      Inquire (IoLength=Recl) nkpt, ibgw, nbgw, vkl(:,1), &
+      &  eqp(ibgw:nbgw,1), evaldft(ibgw:nbgw,1)
       Open (70, File='EVALQP.OUT', Action='WRITE', Form='UNFORMATTED', &
-     &   Access='DIRECT', status='REPLACE', Recl=Recl)
+      &  Access='DIRECT', status='REPLACE', Recl=Recl)
       do ikp = 1, nkpt
-        write(70, Rec=ikp) nkpt, ibgw, nbgw, &
-     &    vkl(:,ikp), eqp(ibgw:nbgw,ikp), evaldft(ibgw:nbgw,ikp)
+        write(70, Rec=ikp) nkpt, ibgw, nbgw, vkl(:,ikp), &
+        &  eqp(ibgw:nbgw,ikp), evaldft(ibgw:nbgw,ikp)
       end do ! ikp
       Close(70)
 !      

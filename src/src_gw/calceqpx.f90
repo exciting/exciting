@@ -94,12 +94,6 @@
     &  nvelgw,.false.,eferqp,egap)
 
 !----------------------------------------
-!     Set QP Fermi energy to zero
-!----------------------------------------
-      eqp(:,:)=eqp(:,:)-eferqp
-      eferqp=0.d0
-
-!----------------------------------------
 !     Save QP energies into binary file
 !----------------------------------------
       Inquire (IoLength=Recl) nkpt, ibgw, nbgw, &

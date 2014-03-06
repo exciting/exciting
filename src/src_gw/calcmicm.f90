@@ -3,7 +3,7 @@
 ! !ROUTINE: calcmicm
 !
 ! !INTERFACE:
-      subroutine calcmicm(ik,iq,flag)
+      subroutine calcmicm(ik,iq)
 
 ! !DESCRIPTION:
 !
@@ -23,7 +23,6 @@
 
       integer(4), intent(in) :: ik  ! k-point
       integer(4), intent(in) :: iq  ! q-point
-      integer(4), intent(in) :: flag ! >0 - transform M^i_{cm} to another basis
 
 
 ! !LOCAL VARIABLES:
@@ -113,8 +112,9 @@
 
       call cpu_time(tstart)
       
-      allocate(micm(locmatsiz,ncg,nstfv))
-      micm=zzero
+      if (allocated(micmmat)) deallocate(micmmat)
+      allocate(micmmat(locmatsiz,ncg,nstfv))
+      micmmat = zzero
       
       jk=kqid(ik,iq)
       do i=1,3
@@ -195,7 +195,7 @@
                 endif  
               enddo ! l2
               
-              micm(im,icg,jst) = suml2m2*phs
+              micmmat(im,icg,jst) = suml2m2*phs
             
             enddo ! bm  
           enddo ! irm
@@ -203,21 +203,6 @@
         enddo ! icg
 
       enddo ! jst
-
-!------------------------------------------------------------------    
-!     Transform M^i_{cm} to the eigenvectors of the coulomb matrix
-!------------------------------------------------------------------
-      
-      if(allocated(micmmat))deallocate(micmmat)
-      if(flag>0)then
-        allocate(micmmat(mbsiz,ncg,nstfv))
-        call zgemm('c','n',mbsiz,ncg*nstfv,locmatsiz, &
-       &  zone,barcvm,matsiz,micm,locmatsiz,zzero,micmmat,mbsiz)
-      else
-        allocate(micmmat(locmatsiz,ncg,nstfv))
-        micmmat=micm
-      end if ! flag
-      deallocate(micm)
 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'

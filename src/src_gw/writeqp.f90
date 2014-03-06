@@ -41,18 +41,15 @@
 !BOC
 
 ! There is a freedom in choosing the reference energy
-! 
-! Let's arrange all energies with respect to E_HOMO = 0
 !
-! find the reference energies
-    eks0 = -1.d6
-    ehf0 = -1.d6
-    egw0 = -1.d6
-    do ikp = 1, nkpt
-        eks0 = max(eks0,evaldft(nomax,ikp))
-        egw0 = max(egw0,eqp(nomax,ikp))
-        ehf0 = max(ehf0,evaldft(nomax,ikp)+real(selfex(nomax,ikp))-real(vxcnn(nomax,ikp)))
-    end do
+    eks0 = 0.d0
+    ehf0 = eks0
+    egw0 = eks0
+!    do ikp = 1, nkpt
+!        eks0 = max(eks0,evaldft(nomax,ikp))
+!        egw0 = max(egw0,eqp(nomax,ikp))
+!        ehf0 = max(ehf0,evaldft(nomax,ikp)+real(selfex(nomax,ikp))-real(vxcnn(nomax,ikp)))
+!    end do
 
 !-------------------------------------------------------------------------------
     open(64,file='EVALQP.TXT',action='WRITE',form='FORMATTED')

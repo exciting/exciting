@@ -94,7 +94,6 @@
 !            Calculate the bare coulomb matrix
 !
              call calcbarcmb(iq)
-             call setbarcev(barcevtol)
 !        
 !            Calculate the Minm(k,q) matrix elements for given k and q
 !        
@@ -117,8 +116,8 @@
 
 !##############################      
 #ifdef MPI
- call MPI_ALLREDUCE(MPI_IN_PLACE, selfex, (nbgw-ibgw+1)*nkpt,  MPI_DOUBLE_COMPLEX,  MPI_SUM,&
-       & MPI_COMM_WORLD, ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE, selfex, (nbgw-ibgw+1)*nkpt, &
+      &  MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
 #endif
       
       deallocate(minmmat)

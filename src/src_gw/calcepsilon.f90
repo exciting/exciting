@@ -154,7 +154,7 @@ level2procs=1
 !        
 !       Calculate the matrix elements M^i_{cm} and M^i_{nm}
 !
-        call expand_prods(ik,iq,0)
+        call expand_prods(ik,iq,-1)
 !
 !       Loop over the symmetry operations
 !
@@ -196,10 +196,8 @@ level2procs=1
 ! 
           deallocate(minm)
           allocate(minm(1:mbsiz,1:dimtk))
-
           call zgemm('c','n',mbsiz,dimtk,matsiz, &
-         &  zone,barcvm,matsiz,temp,matsiz,zzero,minm,mbsiz)
-         
+          &  zone,barcvm,matsiz,temp,matsiz,zzero,minm,mbsiz)
           deallocate(temp)
           
 !======================================================================+

@@ -26,13 +26,14 @@
 
       integer(4) :: icg     ! (Counter) Runs over core states.
       integer(4) :: ie1,ie2 ! (Counter) Runs over bands.
-      integer(4) :: m,m1,m2
+      integer(4) :: m,m1,m2,nmdim
 
       real(8) :: tstart, tend, tcore
       real(8) :: sxs2
       
       complex(8) :: mvm     ! Sum_ij{M^i*W_ij(w)*conjg(M^j)}
-      complex(8), allocatable :: sxqval(:),sxqcor(:)      
+      complex(8), allocatable :: vm(:,:,:) 
+      complex(8), allocatable :: sxqval(:), sxqcor(:)      
       complex(8) :: sum
 
 ! !INTRINSIC ROUTINES: 
@@ -65,24 +66,34 @@
       
       allocate(sxqval(ibgw:nbgw))
       sxqval(ibgw:nbgw)=zzero
+      
+      ! vm_{i,nm} = \sum_j barc_{ij}*M^{j}_{nm}
+      allocate(vm(matsiz,nstfv,nstfv))
+      nmdim = nstfv*nstfv
+      call zgemm('n','n',matsiz,nmdim,matsiz, &
+      &  zone,barc,matsiz,minmmat,matsiz,zzero,vm,matsiz)
+
 !
 !     Summation over occupied bands
 !
       do ie1 = ibgw, nbgw
-         m1=max(n12dgn(1,ie1,ikp),ibgw) ! low index
-         m2=min(n12dgn(2,ie1,ikp),nbgw) ! upper index
-         sum=zzero
+         m1 = max(n12dgn(1,ie1,ikp),ibgw) ! low index
+         m2 = min(n12dgn(2,ie1,ikp),nbgw) ! upper index
+         sum = zzero
          do m = m1, m2
            do ie2 = 1, nomax
-             mvm=zdotc(mbsiz,minmmat(1:mbsiz,m,ie2),1,minmmat(1:mbsiz,m,ie2),1)
-             sum=sum+mvm
+             ! [M^{i}_{nm}]^{*}*vm_{i,nm}
+             mvm = zdotc(matsiz,minmmat(1:matsiz,m,ie2),1,vm(1:matsiz,m,ie2),1)
+             sum = sum+mvm
            enddo ! ie2
          end do ! m           
-         sxqval(ie1)=sxqval(ie1)-sum*wkpq(iqp,ikp)/dble(m2-m1+1)
+         sxqval(ie1) = sxqval(ie1)-sum*wkpq(iqp,ikp)/dble(m2-m1+1)
          if ((iqp.eq.1).and.(ie1.le.nomax)) then
-            sxqval(ie1)=sxqval(ie1)+sxs2*singc2
+            sxqval(ie1) = sxqval(ie1)+sxs2*singc2
          end if
       enddo ! ie1
+      
+      deallocate(vm)
 
 !-------------------------------- 
 !       Core electron contribution
@@ -94,6 +105,11 @@
 
         allocate(sxqcor(ibgw:nbgw))
         sxqcor(ibgw:nbgw)=zzero
+        
+        allocate(vm(locmatsiz,nstfv,ncg))
+        nmdim = nstfv*ncg
+        call zgemm('n','n',locmatsiz,nmdim,locmatsiz, &
+        &  zone,barc(1:locmatsiz,1:locmatsiz),locmatsiz,mincmat,locmatsiz,zzero,vm,locmatsiz)
 !
 !       Summation over occupied bands
 ! 
@@ -103,12 +119,14 @@
            m2=min(n12dgn(2,ie1,ikp),nbgw) ! upper index
            do m = m1, m2
              do icg = 1, ncg
-               mvm=zdotc(mbsiz,mincmat(1:mbsiz,m,icg),1,mincmat(1:mbsiz,m,icg),1)
+               mvm=zdotc(locmatsiz,mincmat(1:locmatsiz,m,icg),1,vm(1:locmatsiz,m,icg),1)
                sum=sum+mvm
              enddo ! icg
            end do ! m
            sxqcor(ie1)=sxqcor(ie1)-sum*wkpq(iqp,ikp)/dble(m2-m1+1)
         enddo ! ie1
+        
+        deallocate(vm)
  
       endif ! core
       

@@ -5486,34 +5486,12 @@ gw.xsd
             </xs:element>
           </xs:all>
 
-          <xs:attribute ex:importance="expert" ex:unit="" name="taskname" default="gw">
+          <xs:attribute ex:importance="expert" ex:unit="" name="taskname" type="xs:string" use="important" default="gw">
             <xs:annotation>
               <xs:documentation>
                   Type of calculations.
-	      </xs:documentation>
+  	          </xs:documentation>
             </xs:annotation>
-            <xs:simpleType>
-              <xs:restriction base="xs:string">
-                <xs:enumeration value="lapw"/>
-                <xs:enumeration value="evec"/>
-                <xs:enumeration value="prod"/>
-                <xs:enumeration value="mixf"/>
-                <xs:enumeration value="comp"/>
-                <xs:enumeration value="coul"/>
-                <xs:enumeration value="acon"/>
-                <xs:enumeration value="emac"/>
-                <xs:enumeration value="epsev"/>
-                <xs:enumeration value="epgw"/>
-                <xs:enumeration value="wev"/>
-                <xs:enumeration value="sepl"/>
-                <xs:enumeration value="vxc"/>
-                <xs:enumeration value="ex"/>
-                <xs:enumeration value="band"/>
-                <xs:enumeration value="rotmat"/> 
-                <xs:enumeration value="gw"/>
-                <xs:enumeration value="skip"/>
-              </xs:restriction>
-            </xs:simpleType>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="iik" type="xs:integer" use="optional" default="1">

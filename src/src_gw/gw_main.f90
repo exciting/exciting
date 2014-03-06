@@ -50,6 +50,9 @@ subroutine gw_main
         case('BAND','band')
           if (rank==0) call task_band
           return
+        case('DOS','dos')
+          if (rank==0) call task_dos
+          return
       end select
 
 !---------------------------------------

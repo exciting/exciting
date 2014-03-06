@@ -3,7 +3,7 @@
 ! !ROUTINE: calcmicm
 !
 ! !INTERFACE:
-      subroutine calcminc(ik,iq,flag)
+      subroutine calcminc(ik,iq)
 
 ! !DESCRIPTION:
 !
@@ -23,7 +23,6 @@
 
       integer(4), intent(in) :: ik  ! k-point
       integer(4), intent(in) :: iq  ! q-point
-      integer(4), intent(in) :: flag ! >0 - transform M^i_{cm} to another basis
 
 ! !LOCAL VARIABLES:
 
@@ -79,8 +78,6 @@
       complex(8) :: sumterms
       complex(8) :: apwterm  
       complex(8) :: loterm  
-      
-      complex(8), allocatable :: minc(:,:,:)
 !
 ! !EXTERNAL ROUTINES: 
       
@@ -113,8 +110,9 @@
 
       call cpu_time(tstart)
       
-      allocate(minc(locmatsiz,1:nstfv,ncg))
-      minc=zzero
+      if (allocated(mincmat)) deallocate(mincmat)
+      allocate(mincmat(locmatsiz,nstfv,ncg))
+      mincmat = zzero
 
       jk=kqid(ik,iq)
       do i=1,3
@@ -197,7 +195,7 @@
                 endif  
               enddo ! l2
 
-              minc(im,ist,icg) = suml2m2*phs
+              mincmat(im,ist,icg) = suml2m2*phs
 
             enddo ! bm  
           enddo ! irm
@@ -205,24 +203,6 @@
         enddo ! ist
 
       enddo ! icg
-      
-!------------------------------------------------------------------    
-!     Transform M^i_{nc} to the eigenvectors of the coulomb matrix
-!------------------------------------------------------------------
-      
-      if(allocated(mincmat))deallocate(mincmat)
-
-      ncdim=nstfv*ncg
-      if(flag>0)then
-        allocate(mincmat(mbsiz,1:nstfv,ncg))
-        call zgemm('c','n',mbsiz,ncdim,locmatsiz, &
-       &  zone,barcvm,matsiz,minc,locmatsiz,zzero,mincmat,mbsiz)
-      else
-        allocate(mincmat(locmatsiz,1:nstfv,ncg))
-        mincmat=minc
-      end if ! flag
-      
-      deallocate(minc)
 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'

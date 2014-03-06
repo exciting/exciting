@@ -3,7 +3,7 @@
 ! !ROUTINE: expand_prods
 !
 ! !INTERFACE:
-      subroutine expand_prods(ik,iq,flag)
+      subroutine expand_prods(ik,iq,iflag)
 
 ! !DESCRIPTION:
 !
@@ -11,21 +11,18 @@
 ! and $M^i_{nm}(k,q)$ matrix elements.
 !
 ! !USES:
-
       use modmain
       use modgw
       
 ! !INPUT PARAMETERS:
-
       implicit none
-      
       integer(4), intent(in) :: ik, iq
-      integer(4), intent(in) :: flag ! 0 - M^i_{nm}
-                                     ! 1 - M^i_{nm} in the transformed 
-                                     !     v-diag. basis set 
+      integer(4), intent(in) :: iflag   ! < 0 -- Mcm
+                                        ! = 0 -- Mnc + Mcm 
+                                        ! > 0 -- Mnc
+                                         
 
 ! !LOCAL VARIABLES:
-
       integer(4) :: jk
       real(8)    :: tstart, tend
  
@@ -63,16 +60,25 @@
 !
 !     Calculate the matrix elements $M^i_{nm}(\vec{k},\vec{q})$:
 !
-      call calcminm(ik,iq,flag)
+      call calcminm(ik,iq)
 !          
 !     Calculate the matrix elements M^i_{nm} where n is a core state
 !
-      if(iopcore.eq.0)then
+      if (iopcore==0) then
         
-        call calcmicm(ik,iq,flag)
-        call calcminc(ik,iq,flag)
+        if (iflag<0) then
+          call calcmicm(ik,iq)
+          
+        else if (iflag==0) then 
+          call calcmicm(ik,iq)
+          call calcminc(ik,iq)
+          
+        else if (iflag>0) then 
+          call calcminc(ik,iq)
+          
+        end if
 
-      endif
+      endif ! iopcore
 
       deallocate(eveck)
       deallocate(eveckp)

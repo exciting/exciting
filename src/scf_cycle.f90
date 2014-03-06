@@ -139,7 +139,7 @@ subroutine scf_cycle(verbosity)
             End If
         else
             If (iscl .Ge. input%groundstate%maxscl) Then
-                If (rank==0) Then
+                If ((verbosity>-1).and.(rank==0)) Then
                     write(string,'("Reached self-consistent loops maximum : ", I4)') &
                    &  input%groundstate%maxscl
                     call printbox(60,"+",string)
@@ -508,7 +508,7 @@ subroutine scf_cycle(verbosity)
                 end if
             end if
 
-            if (rank==0) then ! write RMSDVEFF.OUT 
+            if ((verbosity>-1).and.(rank==0)) then ! write RMSDVEFF.OUT 
                 Write (65, '(G18.10)') currentconvergence
                 Call flushifc(65)
             end if
@@ -624,7 +624,7 @@ subroutine scf_cycle(verbosity)
       if (input%groundstate%tpartcharges) write(69,*)
     End If
 
-    If (rank==0) Then
+    If ((verbosity>-1).and.(rank==0)) Then
 ! write last total energy and add blank line to RMSDVEFF.OUT and TOTENERGY.OUT
       Write (65,*)
       Call flushifc(65)
