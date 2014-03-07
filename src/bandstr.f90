@@ -26,6 +26,7 @@ Subroutine bandstr
   ! !REVISION HISTORY:
   !   Created June 2003 (JKD)
   !   Modified June 2012 (DIN)
+  !   Modified March 2014 (UW)
   !EOP
   !BOC
   Implicit None
@@ -371,7 +372,7 @@ Subroutine bandstr
           write(*,*)'ERROR(bandstr.f90): File DELTAX.OUT does not exist!'
           stop
         end if
-        
+
         open(500,file='DELTAX.OUT',action='READ',form='FORMATTED')
         read(500,*) nkpt0, nstsv0
 

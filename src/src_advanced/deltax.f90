@@ -1,145 +1,163 @@
 
-subroutine deltax
-    use modinput
-    use modmain
-    use modmpi
-    implicit none
-! local variables
-    integer :: is,ia,ias,ist,band0,band1
-    integer :: ilm,irc,ik,ir
-    integer :: ihomo, ilumo
-    complex(8) :: zvx
-! allocatable arrays
-    complex(8), allocatable :: vnlvv(:)
-    complex(8), allocatable :: delta(:,:)
-    complex(8), allocatable :: apwalm(:,:,:,:)
-    complex(8), allocatable :: evecfv(:,:)
-    complex(8), allocatable :: evecsv(:,:)
-    complex(8), allocatable :: wfmt(:,:,:,:,:)
-    complex(8), allocatable :: wfir(:,:,:)
-    complex(8), allocatable :: zrhomt(:,:,:)
-    complex(8), allocatable :: zrhoir(:)
-! external functions
-    complex(8) zfinp,zfmtinp
-    external zfinp,zfmtinp
-!_______________________________________________________________________________
+! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
 !
-! test option: range of output states
-    ihomo = 0
-    ilumo = 1000
-    do ik = 1, nkpt
-        call getevalsv(vkl(:,ik),evalsv(:,ik))
-        do ist = 1, nstsv
-            if ((evalsv(ist,ik).le.efermi).and.(evalsv(ist+1,ik).gt.efermi)) then
-                ihomo = max(ihomo,ist)
-                ilumo = min(ilumo,ist+1)
-                exit
-            end if
-        end do
-    end do
-!    band0 = max(1,ihomo-5)
-!    band1 = min(nstsv,ihomo+5)
+!Created March 2008 (DIN)
+!Revision March 2014 (UW)
 
-     band0 = 1
-     band1 = nstsv 
+subroutine deltax
+use modmain
+use modmpi
+implicit none
+! local variables
+integer is,ia,ias,ik
+integer ir,irc,it,idm
+integer :: msize
+real(8) tau,resp,t1
+! allocatable arrays
+complex(8), allocatable :: vnlvv_full(:,:)
 
-!    if (rank==0) then
-!        write(*,*) "efermi=", efermi
-!        write(*,*) "ihomo=", ihomo
-!        write(*,*) "ilumo=", ilumo
-!    end if
-
-!------------------
-! k-point loop
-!------------------
-
-    allocate(delta(band0:band1,nkpt))
-    call barrier
-
+! Indexes of HOMO and LUMO orbitals
+real(8), allocatable    :: delta(:,:)
+integer    :: ihomo, ilumo,  iband
+real(8)    :: k_Vxnl_k
+complex(8) :: k_Vx_k
+complex(8) zfinp
+external   zfinp
+! For matrix elements calculations
+integer :: ilm
+real(8), allocatable :: evalsvp(:)
+complex(8), allocatable :: apwalm(:,:,:,:)
+complex(8), allocatable :: evecfv(:,:)
+complex(8), allocatable :: evecsv(:,:)
+complex(8), allocatable :: wfmt(:,:,:,:,:)
+complex(8), allocatable :: wfir(:,:,:)
+complex(8), allocatable :: zrhomt(:,:,:)
+complex(8), allocatable :: zrhoir(:)
+if (iscl.lt.1) return
+!********************************************
+! Calculation of non local matrix elements
+!********************************************
+allocate(vnlvv_full(nstsv,nkpt))
 #ifdef MPI
-    do ik = firstofset(rank,nkpt), lastofset(rank,nkpt)
-#else    
-    do ik = 1, nkpt
+         Do ik = firstk (rank), lastk (rank)
+            Write (*, '("Info(deltax): ", I6, " of ", I6, " k-points on pr&
+        &oc:", I6)') ik, nkpt, rank
+
+#else
+         Do ik = 1, nkpt
+             Write (*, '("Info(deltax): ", I6, " of ", I6, " k-points")') ik, nkpt
+#endif       
+             call oepvnlk_deltax(ik,vnlvv_full(1,ik))     
+         End Do
+#ifdef MPI
+         msize = nstsv
+       call mpi_allgatherv_ifc(nkpt,msize,zbuf=vnlvv_full)
 #endif
 
-! get the eigenvalues/vectors from file for input k-point
-        call getevalsv(vkl(:,ik),evalsv(:,ik))
-
-        allocate(evecfv(nmatmax,nstfv))
-        call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
-
-        allocate(evecsv(nstsv,nstsv))
-        call getevecsv(vkl(:,ik),evecsv)
-
-! find the matching coefficients
-        allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
-        call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik),sfacgk(:,:,1,ik),apwalm)
-
-! calculate the wavefunctions for all states
-        allocate(wfmt(lmmaxvr,nrcmtmax,natmtot,nspinor,nstsv))
-        allocate(wfir(ngrtot,nspinor,nstsv))
-        call genwfsv(.false.,ngk(1,ik),igkig(:,1,ik),evalsv(:,ik), &
-       &  apwalm,evecfv,evecsv,wfmt,wfir)
-        deallocate(apwalm,evecfv,evecsv)
-
-! 1 step:
-! calculate <k|Vx_nl|k> matrix elements
-        allocate(vnlvv(nstsv))        
-        !call oepvnlk_diag(ik,vnlvv)
-        call oepvnlk_full(ik,vnlvv)
-
-! 2 step:
-! Calculation of  <k|Vx|k>
-        allocate(zrhomt(lmmaxvr,nrcmtmax,natmtot))
-        allocate(zrhoir(ngrtot))
-        do ist = band0, band1
-            do is = 1, nspecies
-                do ia = 1, natoms(is)
-                    ias = idxas(ia,is)
-                    do ilm = 1, lmmaxvr
-                        do irc = 1, nrcmtmax
-                            zrhomt(ilm,irc,ias) = zvxmt(ilm,irc,ias)*wfmt(ilm,irc,ias,1,ist)
-                        end do
-                    end do
-                 end do
-             end do
-             do ir = 1, ngrtot
-                 zrhoir(ir) = zvxir(ir)*wfir(ir,1,ist)
-             end do
-             zvx = zfinp(.true.,wfmt(:,:,:,:,ist),zrhomt,wfir(:,:,ist),zrhoir)
-             delta(ist,ik) = vnlvv(ist)-zvx  
-! end loop over iband
-        end do
-        deallocate(vnlvv)
-        deallocate(wfmt,wfir,zrhomt,zrhoir)
-
-! end loop over ik
-    end do
+!********************************************
+! Calculation of the potential discontinuity
+!         after last iteration
+!********************************************
+  ! For matrix elements calculations
+  allocate(evalsvp(nstsv))
+  allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
+  allocate(evecfv(nmatmax,nstfv))
+  allocate(evecsv(nstsv,nstsv))
+  allocate(wfmt(lmmaxvr,nrcmtmax,natmtot,nspinor,nstsv))
+  allocate(wfir(ngrtot,nspinor,nstsv))
+  allocate(zrhomt(lmmaxvr,nrcmtmax,natmtot))
+  allocate(zrhoir(ngrtot))
+  allocate(delta(nstsv,nkpt))
+  !write(*,*) "EFERMI = ", efermi
+  !write(*,*) "nstsv = ", nstsv
 
 #ifdef MPI
-    call mpi_allgatherv_ifc(nkpt, band1-band0+1, zbuf=delta)
-    call barrier
+Do ik = firstk (rank), lastk (rank)
+        Write (*, '("Info(deltax): ", I6, " of ", I6, " k-points on pr&
+       &oc:", I6)') ik, nkpt, rank
+
+#else
+Do ik = 1, nkpt
+        Write (*, '("Info(deltax): ", I6, " of ", I6, " k-points")') ik, nkpt
+#endif       
+
+     call getevalsv(vkl(1,ik),evalsvp)
+     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
+     call getevecsv(vkl(1,ik),evecsv)
+     ! find the matching coefficients
+     call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),apwalm)
+     ! calculate the wavefunctions for all states for the input k-point
+     call genwfsv(.false.,ngk(ik,1),igkig(1,ik,1),evalsvp,apwalm,evecfv,evecsv,& 
+      wfmt,wfir)
+
+!    For each band calculate <k|Vx_nl - Vx|k>
+     do iband=1,nstsv
+
+        k_Vxnl_k=0d0
+        k_Vx_k=0d0
+
+    
+        ! 1 step:
+        ! <k|Vx_nl|k>
+        ! The calculations are done in oepvnkl.f90
+        ! Output: k_Vxnl_k(nkpt)
+        k_Vxnl_k=vnlvv_full(iband,ik)
+
+        ! 2 step:
+        ! Calculation of  <k|Vx|k>
+        ! get the eigenvalues/vectors from file for input k-point
+
+        !  ------ <k|Vx|k> ------
+        do is=1,nspecies
+         do ia=1,natoms(is)
+            ias=idxas(ia,is)
+            do ilm=1,lmmaxvr
+            do irc=1,nrcmtmax
+               zrhomt(ilm,irc,ias)=zvxmt(ilm,irc,ias)*wfmt(ilm,irc,ias,1,iband)
+            end do
+            end do
+         end do
+        end do
+        do ir=1,ngrtot
+           zrhoir(ir)=zvxir(ir)*wfir(ir,1,iband)
+        end do
+        k_Vx_k=zfinp(.false.,wfmt(1,1,1,1,iband),zrhomt,&
+                             wfir(1,1,iband),zrhoir)
+
+        delta(iband,ik) = (k_Vxnl_k-real(k_Vx_k))
+
+      end do ! iband
+
+!  end do
+   End Do  ! kpoints
+   
+#ifdef MPI
+       call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=delta)
+      
 #endif
+! Write delta into file
+If (rank .Eq. 0) then 
+   open(500,file='DELTAX'//trim(filext),action='WRITE',form='FORMATTED')
+   write(500,*) nkpt, nstsv
+   Do ik = 1, nkpt
+      write(500,'(3f12.8,i5)') vkl(1,ik), vkl(2,ik), vkl(3,ik)
+      do iband=1,nstsv
+        write(500,'(6e20.6)') delta(iband,ik)
+      end do
+   end Do
+  close(500)
+End if
+  deallocate(evalsvp,evecfv,evecsv)
+  deallocate(apwalm)
+  deallocate(wfmt,wfir)
+  deallocate(zrhomt,zrhoir)
+  deallocate(delta)
+!end if
 
-    if (rank==0) then
-          open(500,file='DELTAX'//trim(filext),action='WRITE',form='FORMATTED')
-          write(500,*) nkpt, band1
-          do ik=1,nkpt
-              write(500,'(3f12.8,i5)') vkl(1,ik), vkl(2,ik), vkl(3,ik)
-              do ist = band0, band1
-                  write(500,'(6e20.6)') dble(delta(ist,ik))
-              end do
-              write(500,*)
-          ! end loop over ik
-          end do
-          close(500)
-          write(*,*)
-          write(*,*) "Info(deltax): OEP exchange potential discontinuity is printed in DELTAX.OUT"
-          write(*,*)
-    end if
-
-    deallocate(delta)
-
+!********************************************
+deallocate(vnlvv_full)
 return
 end subroutine
 
