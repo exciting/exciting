@@ -264,7 +264,6 @@
 !
 !          Transform M^i_{nm} to the v-diagonal basis
 !
-           ! dummy array
            allocate(minm(mbsiz,nstfv,nstfv))
            nmdim = nstfv*nstfv
            call zgemm('c','n',mbsiz,nmdim,matsiz, &
@@ -307,7 +306,7 @@
       end do ! ikp
       
       if (allocated(minmmat)) deallocate(minmmat)
-      if (iopcore.eq.0) deallocate(mincmat)
+      if (iopcore<=1) deallocate(mincmat)
       close(96)
       
 !##############################      

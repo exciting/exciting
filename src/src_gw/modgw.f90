@@ -169,8 +169,6 @@ module modgw
 !----------------------------!
 !     LAPW eigenfunctions    !
 !----------------------------!
-! KS Fermi energy
-      real(8) :: eferks
 ! LAPW eigenenergies
       real(8), allocatable :: evaldft(:,:)
 ! Eigenvectors at k

@@ -28,11 +28,11 @@
       integer(4) :: ie1,ie2 ! (Counter) Runs over bands.
       integer(4) :: m,m1,m2,nmdim
 
-      real(8) :: tstart, tend, tcore
+      real(8) :: tstart, tend
       real(8) :: sxs2
       
       complex(8) :: mvm     ! Sum_ij{M^i*W_ij(w)*conjg(M^j)}
-      complex(8), allocatable :: vm(:,:,:) 
+      complex(8), allocatable :: minm(:,:,:) 
       complex(8), allocatable :: sxqval(:), sxqcor(:)      
       complex(8) :: sum
 
@@ -57,25 +57,26 @@
 !EOP
 !BOC      
       call cpu_time(tstart)
-     
-      sxs2=-4.d0*pi*vi
+      
+      ! (non-reduced) v-diagonal basis is necessary for dealing with
+      ! q->0 singularities
+      call setbarcev(0.d0)
+      sxs2 = -4.d0*pi*vi
 
 !-------------------------------- 
 !       Valence contribution
 !-------------------------------- 
-      
+
+      allocate(minm(mbsiz,nstfv,nstfv))
+      nmdim = nstfv*nstfv
+      call zgemm('c','n',mbsiz,nmdim,matsiz, &
+      &          zone,barcvm,matsiz,minmmat,matsiz, &
+      &          zzero,minm,mbsiz)
+
       allocate(sxqval(ibgw:nbgw))
       sxqval(ibgw:nbgw)=zzero
-      
-      ! vm_{i,nm} = \sum_j barc_{ij}*M^{j}_{nm}
-      allocate(vm(matsiz,nstfv,nstfv))
-      nmdim = nstfv*nstfv
-      call zgemm('n','n',matsiz,nmdim,matsiz, &
-      &  zone,barc,matsiz,minmmat,matsiz,zzero,vm,matsiz)
-
-!
-!     Summation over occupied bands
-!
+     
+      ! Summation over occupied bands
       do ie1 = ibgw, nbgw
          m1 = max(n12dgn(1,ie1,ikp),ibgw) ! low index
          m2 = min(n12dgn(2,ie1,ikp),nbgw) ! upper index
@@ -83,50 +84,48 @@
          do m = m1, m2
            do ie2 = 1, nomax
              ! [M^{i}_{nm}]^{*}*vm_{i,nm}
-             mvm = zdotc(matsiz,minmmat(1:matsiz,m,ie2),1,vm(1:matsiz,m,ie2),1)
+             mvm = zdotc(matsiz,minm(1:mbsiz,m,ie2),1,minm(1:mbsiz,m,ie2),1)
              sum = sum+mvm
            enddo ! ie2
          end do ! m           
          sxqval(ie1) = sxqval(ie1)-sum*wkpq(iqp,ikp)/dble(m2-m1+1)
-         if ((iqp.eq.1).and.(ie1.le.nomax)) then
+         if (Gamma.and.(ie1.le.nomax)) then
             sxqval(ie1) = sxqval(ie1)+sxs2*singc2
          end if
       enddo ! ie1
       
-      deallocate(vm)
+      deallocate(minm)
 
 !-------------------------------- 
 !       Core electron contribution
 !-------------------------------- 
 
-      call cpu_time(tcore)
-
-      if (iopcore.le.1) then
+      if (iopcore<=1) then
+      
+        allocate(minm(mbsiz,nstfv,ncg))
+        nmdim = nstfv*ncg
+        call zgemm('c','n',mbsiz,nmdim,locmatsiz, &
+        &          zone,barcvm,matsiz,mincmat,locmatsiz, &
+        &          zzero,minm,mbsiz)
 
         allocate(sxqcor(ibgw:nbgw))
         sxqcor(ibgw:nbgw)=zzero
-        
-        allocate(vm(locmatsiz,nstfv,ncg))
-        nmdim = nstfv*ncg
-        call zgemm('n','n',locmatsiz,nmdim,locmatsiz, &
-        &  zone,barc(1:locmatsiz,1:locmatsiz),locmatsiz,mincmat,locmatsiz,zzero,vm,locmatsiz)
-!
-!       Summation over occupied bands
-! 
+
+        ! Summation over occupied bands
         do ie1 = ibgw, nbgw
            sum=zzero
            m1=max(n12dgn(1,ie1,ikp),ibgw) ! low index
            m2=min(n12dgn(2,ie1,ikp),nbgw) ! upper index
            do m = m1, m2
              do icg = 1, ncg
-               mvm=zdotc(locmatsiz,mincmat(1:locmatsiz,m,icg),1,vm(1:locmatsiz,m,icg),1)
+               mvm=zdotc(locmatsiz,minm(1:mbsiz,m,icg),1,minm(1:mbsiz,m,icg),1)
                sum=sum+mvm
              enddo ! icg
            end do ! m
            sxqcor(ie1)=sxqcor(ie1)-sum*wkpq(iqp,ikp)/dble(m2-m1+1)
         enddo ! ie1
         
-        deallocate(vm)
+        deallocate(minm)
  
       endif ! core
       
@@ -161,8 +160,6 @@
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
       if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
       call write_cputime(fgw,tend-tstart, 'CALCSELFX')
-      call write_cputime(fgw,tcore-tstart,'CALCSELFX: core')
-      call write_cputime(fgw,tend-tcore,  'CALCSELFX: valence')
 
    10 format(i4,2f18.10,'  | ',2f18.10,' || ',2f18.10)
    11 format(i4,2f18.10,' || ',2f18.10)

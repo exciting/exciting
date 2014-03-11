@@ -76,32 +76,10 @@ subroutine readevaldft
 ! find Fermi energy
 !----------------------------------------
 
-    n=int(chgval/2.d0)+10
+    n = int(chgval/2.d0)+10
     call fermi(nkpt,n,evaldft(1:n,:),ntet,tnodes,wtet,tvol, &
-    &    chgval,.false.,efermi,egap)
+    &          chgval,.false.,efermi,egap)
     
-!----------------------------------------
-! shift all energies to make efermi=0 
-!----------------------------------------
-    ! valence states
-    !do ik = 1, nkpt
-    !  do ist = 1, nstfv
-    !    evaldft(ist,ik) = evaldft(ist,ik)-efermi
-    !  enddo
-    !enddo     
-    ! core states
-    !do is = 1, nspecies
-    !  do ia = 1, natoms(is)
-    !    ias = idxas(ia,is)
-    !    do ist = 1, ncore(is)
-    !      evalcr(ist,ias) = evalcr(ist,ias)-efermi
-    !    end do
-    !  end do
-    !end do
-    ! KS Fermi energy
-    !eferks = efermi
-    !efermi = 0.0d0
-
 !-------------------------------
 !   KS band structure analyse
 !-------------------------------
