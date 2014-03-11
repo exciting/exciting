@@ -40,7 +40,7 @@ Subroutine bsedgrid ()
    integer :: hamsiz, nexc, ivck
    integer :: oct1, oct2, octl, octu, optcompt(3)
    integer :: iw, idum
-   real (8) :: sumrls(3), rdum
+   real (8) :: sumrls(3), rdum, real_p, imag_p
    character (256) :: fnexc, dotext
    integer :: unexc
    Real (8), Allocatable :: w (:), loss(:), bse_en(:)
@@ -61,7 +61,7 @@ Subroutine bsedgrid ()
      &     input%xs%tddft%acont, 0.d0, w_real=w)
    buf = zzero
 
-  ! start loop over coarse kpts
+  ! start loop over sub kpts
    do iksubpt = 1, nksubpt
 
     do oct1 = 1, noptcmp
@@ -74,10 +74,11 @@ Subroutine bsedgrid ()
       Call getunit (unexc)
       Open (unexc, File=fnexc, Form='formatted', Action='read', Status='old')
       Do ivck = 1, hamsiz
-         Read (unexc, '(i8, 5g18.10)') idum, bse_en(ivck), rdum, oszs(ivck, oct1)
+         Read (unexc, '(i8, 5g18.10)') idum, bse_en(ivck), rdum, rdum, real_p, imag_p
   !      Write (unexc, '(i8, 5g18.10)') s2, &
   !     & (beval(s2)+egap-dble(bsed)) * escale, &
   !     & (beval(s2)+dble(bsed)) * escale, Abs (oszs(s2, oct1))
+         oszs(ivck, oct1) = cmplx(real_p, imag_p, 8)
          bse_en(ivck) = bse_en(ivck) / escale
       End Do
       Close (unexc)

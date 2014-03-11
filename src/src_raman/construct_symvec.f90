@@ -18,6 +18,7 @@ Complex (8), intent(out) :: ev(3*natmtot, 3*natmtot)
 ! local variables
 real(8), allocatable :: vec_vib(:), symvec_phon(:, :)
 real(8) :: norm_factor
+complex(8) :: ztmp(3)
 integer :: i, k, j, ivc, igr, ia, ja, ip, is, iat, m, n, ia_gr, iev
 integer :: no_vec_orth
 integer :: icomp(3*natmtot)
@@ -182,14 +183,14 @@ enddo
 ! rearrange ev(:, :) in order to have the acoustic modes in ev(:, 1:3)
 ! for systems with more than 1 atom
 if (natmtot .gt. 1) then
-   do i = 1, 3*natmtot
-      if (acoustic(i) .and. i .gt. 3) then
+   do i = 4, 3*natmtot
+      if (acoustic(i)) then
          do j = 1, 3
             if (.not. acoustic(j)) then
                ! swap i and j
-               symvec_phon(:, 1) = dble(ev(:, i))
+               ztmp = ev(:, i)
                ev(:, i) = ev(:, j)
-               ev(:, j) = cmplx(symvec_phon(:, 1), 0.d0, 8)
+               ev(:, j) = ztmp
                acoustic(i) = .false.
                acoustic(j) = .true.
             endif

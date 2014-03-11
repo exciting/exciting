@@ -4,7 +4,7 @@
 !
 Subroutine phfext (iq, is, ia, ip, fext)
       Use modmain
-      Use modinput
+!     Use modinput
       Implicit None
 ! arguments
       Integer, Intent (In) :: iq

@@ -13,6 +13,7 @@ use mod_atoms, only: natmtot, nspecies, natoms, spmass
 use mod_energy, only: engytot
 use modinput
 use modxs
+use mod_phonon, only: atposc0, ainv0, avec0, natoms0, natmtot0
 use raman_input
 use raman_coeff
 use raman_ew
@@ -37,7 +38,7 @@ integer :: oct, oct1, oct2
 integer :: read_i
 real(8) :: rlas,sn,temp,zmin,zs, norm
 real(8) :: dph, vgamc(3)
-real(8) :: start_time_cpu, finish_time_cpu, time_cpu_tot
+real(8) :: start_time_cpu, finish_time_cpu, time_cpu_tot, t_cpu_proc
 real(8) :: start_time_wall, finish_time_wall, time_wall_tot
 real(8) :: read_dph, read_engy
 Real(8), Allocatable :: w(:)
@@ -50,14 +51,29 @@ integer, allocatable :: irep(:)
 Logical :: existent, existent1, eq_done, nlf, lt2(3, 3)
 Character(256) :: raman_filext, raman_stepdir
 character(80) :: ext
+#ifndef MPI
+integer, parameter :: rank = 0
+#endif
+!
+!
+! we require an XS input
+if (.not. associated(input%xs)) then
+   write(*, '("Error(Raman): Raman runs require the specification of the input%xs element!")')
+   stop
+endif
 !
 ! take time
 time_cpu_tot = 0.d0; time_wall_tot = 0.d0
-call cpu_time(start_time_cpu)
+call cpu_time(t_cpu_proc)
+#ifdef MPI
+   call MPI_Allreduce(t_cpu_proc, start_time_cpu, 1, MPI_Real8, MPI_Sum, MPI_Comm_World, ierr)
+#else
+   start_time_cpu = t_cpu_proc
+#endif
 call timesec(start_time_wall)
 !
 call init0
-call init2
+!call init2
 !
 ! default number of modes
 nmode = 3*natmtot
@@ -75,7 +91,9 @@ nmode = 3*natmtot
 !
 !
 ! open INFO file for all pre-Raman computations triggered in this subroutine
-open(unit=99,file='INFO_RAMAN.OUT',status='unknown',form='formatted')
+if (rank .eq. 0) then
+   open(unit=99,file='INFO_RAMAN.OUT',status='unknown',form='formatted')
+endif
 !
 !     boundaries
 xmin_r = input%properties%raman%xmin
@@ -140,15 +158,12 @@ endif
 !
 ! == allocate arrays
 !
-! eigen values and vectors, dynamical matrices
+! eigenvalues and vectors, dynamical matrices
 Allocate (w(3*natmtot))
 Allocate (ev(3*natmtot, 3*natmtot))
 Allocate (active(3*natmtot))
 Allocate (acoustic(3*natmtot))
 Allocate (irep(3*natmtot))
-Allocate (dynq(3*natmtot, 3*natmtot, nqpt))
-Allocate (dynp(3*natmtot, 3*natmtot))
-Allocate (dynr(3*natmtot, 3*natmtot, ngridq(1)*ngridq(2)*ngridq(3)))
 ! dielectric functions
 allocate( df(3*natmtot, numpot, 3, 3, nwdf) )
 ! arrays internal to Raman computation
@@ -177,22 +192,27 @@ allocate( b2(input%properties%raman%ninter) )
 allocate( b3(input%properties%raman%ninter) )
 allocate( b4(input%properties%raman%ninter) )
 !
-! header for INFO_RAMAN.OUT
-Write (99, '("+-----------------------------------------------------------+")')
-Write (99, '("| EXCITING ",A)') versionname
-Write (99, '("| version hash id: ",a)') githash
+if (rank .eq. 0) then
+   ! header for INFO_RAMAN.OUT
+   Write (99, '("+-----------------------------------------------------------+")')
+   Write (99, '("| EXCITING ",A)') versionname
+   Write (99, '("| version hash id: ",a)') githash
 #ifdef MPI
-Write (99, '("| MPI version using ",i6," processor(s)                     |")') procs
+   Write (99, '("| MPI version using ",i6," processor(s)                     |")') procs
 #ifndef MPI1
-Write (99, '("|  using MPI-2 features                                     |")')
+   Write (99, '("|  using MPI-2 features                                     |")')
 #endif
 #endif
-Write (99, '("+-----------------------------------------------------------+",//)')
-Write (99, '("+-----------------------------------------------------------+")')
-Write (99, '("|       Info file for all computation steps necessary       |")')
-Write (99, '("|             in the workflow for calculating               |")')
-Write (99, '("|              Raman scattering intensities                 |")')
-Write (99, '("+-----------------------------------------------------------+",//)')
+   Write (99, '("+-----------------------------------------------------------+",//)')
+   Write (99, '("+-----------------------------------------------------------+")')
+   Write (99, '("|       Info file for all computation steps necessary       |")')
+   Write (99, '("|             in the workflow for calculating               |")')
+   Write (99, '("|              Raman scattering intensities                 |")')
+   Write (99, '("+-----------------------------------------------------------+",//)')
+endif
+!
+! save input structure
+call raman_save_struct
 !
 ! +++ SYMMETRY ANALYSIS OF THE CRYSTAL +++
 ! +++ CONSTRUCTION OF CHARACTER TABLE  +++
@@ -200,7 +220,7 @@ Write (99, '("+-----------------------------------------------------------+",//)
 input%structure%tshift = .true.
 !call init0
 call construct_chartabl
-write(99,'("Info(Raman): Character table constructed.",/)')
+if (rank .eq. 0) write(99,'("Info(Raman): Character table constructed.",/)')
 !
 ! +++ TRIGGER ALL NECESSARY COMPUTATIONS FROM OTHER EXCITING PARTS TO +++
 ! +++     COLLECT DATA FOR POTENTIALS AND DIELECTRIC FUNCTIONS        +++
@@ -212,8 +232,10 @@ vgamc(:) = 0.d0
 Select Case (input%properties%raman%getphonon)
    Case ('fromscratch')
       ! do supercell phonon calculation
-      write(99,'("Info(Raman): Performing a supercell phonon calculation for the Gamma point.",/)')
-      call flushifc(99)
+      if (rank .eq. 0) then
+         write(99,'("Info(Raman): Performing a supercell phonon calculation for the Gamma point.",/)')
+         call flushifc(99)
+      endif
       ! create dummy phonon element if not present in the input file
       If ( .Not. (associated(input%phonons))) Then
          input%phonons => getstructphonons (emptynode)
@@ -222,10 +244,14 @@ Select Case (input%properties%raman%getphonon)
       ! set parameters for Gamma phonons
       input%phonons%do = 'fromscratch'
       input%phonons%ngridq = (/ 1, 1, 1/)
+      task = 200
       call phonon
-      ! restore original parameters
-      call rereadinput
-      ! continue with reading from files...
+      ! restore original structure
+      call raman_restore_struct
+      ! continue with reading from files... (q-points were initialized in phonon)
+      Allocate (dynq(3*natmtot, 3*natmtot, nqpt))
+      Allocate (dynp(3*natmtot, 3*natmtot))
+      Allocate (dynr(3*natmtot, 3*natmtot, ngridq(1)*ngridq(2)*ngridq(3)))
       Call readdyn (.true.,dynq)
       ! apply the acoustic sum rule
       Call sumrule (dynq)
@@ -233,29 +259,35 @@ Select Case (input%properties%raman%getphonon)
       Call dynqtor (dynq, dynr)
       Call dynrtoq (vgamc(:), dynr, dynp)
       Call dyndiag (dynp, w, ev)
-      do imode = 1, 3*natmtot
-         Write(99, '(/," Mode ",i3)') imode
-         write(99, '(" Eigenvalue: ",f15.5," cm^-1",/)') w(imode)*fhawn
-         Write(99, '("      Atom   Polarization    Eigenvector")')
-         do iat = 1, natmtot
-            do i = 1, 3
-               write(99, '(i10,i15,2f12.7)') iat, i, dble(ev(3*(iat-1)+i, imode)), aimag(ev(3*(iat-1)+i, imode))
-            enddo
-         enddo
-      enddo
-      Write(99, *)
-      call flushifc(99)
+      if (rank .eq. 0) then
+       do imode = 1, 3*natmtot
+          Write(99, '(/," Mode ",i3)') imode
+          write(99, '(" Eigenvalue: ",f15.5," cm^-1",/)') w(imode)*fhawn
+          Write(99, '("      Atom   Polarization    Eigenvector")')
+          do iat = 1, natmtot
+             do i = 1, 3
+                write(99, '(i10,i15,2f12.7)') iat, i, dble(ev(3*(iat-1)+i, imode)), aimag(ev(3*(iat-1)+i, imode))
+             enddo
+          enddo
+       enddo
+       Write(99, *)
+       call flushifc(99)
+      endif
       ! reset file extension to default
       filext = '.OUT'
    Case ('fromfile')
    ! read in the dynamical matrix from files
-      write(99,'("Info(Raman): Reading dynamical matrix from files.",/)')
+   if (rank .eq. 0) write(99,'("Info(Raman): Reading dynamical matrix from files.",/)')
       ! create dummy phonon element if not present in the input file
       If ( .Not. (associated(input%phonons))) Then
          input%phonons => getstructphonons (emptynode)
       End If
-      ! initialize general and q-dependent variables
+      ! initialize q-dependent variables
+      task = 200
       call init2
+      Allocate (dynq(3*natmtot, 3*natmtot, nqpt))
+      Allocate (dynp(3*natmtot, 3*natmtot))
+      Allocate (dynr(3*natmtot, 3*natmtot, ngridq(1)*ngridq(2)*ngridq(3)))
       ! read dynamical matrix
       Call readdyn (.true.,dynq)
       ! apply the acoustic sum rule
@@ -264,47 +296,53 @@ Select Case (input%properties%raman%getphonon)
       Call dynqtor (dynq, dynr)
       Call dynrtoq (vgamc(:), dynr, dynp)
       Call dyndiag (dynp, w, ev)
-      do imode = 1, 3*natmtot
-         Write(99, '(/," Mode ",i3)') imode
-         write(99, '(" Eigenvalue: ",f15.5," cm^-1",/)') w(imode)*fhawn
-         Write(99, '("      Atom   Polarization    Eigenvector")')
-         do iat = 1, natmtot
-            do i = 1, 3
-               write(99, '(i10,i15,2f12.7)') iat, i, dble(ev(3*(iat-1)+i, imode)), aimag(ev(3*(iat-1)+i, imode))
-            enddo
-         enddo
-      enddo
-      Write(99, *)
-      call flushifc(99)
+      if (rank .eq. 0) then
+       do imode = 1, 3*natmtot
+          Write(99, '(/," Mode ",i3)') imode
+          write(99, '(" Eigenvalue: ",f15.5," cm^-1",/)') w(imode)*fhawn
+          Write(99, '("      Atom   Polarization    Eigenvector")')
+          do iat = 1, natmtot
+             do i = 1, 3
+                write(99, '(i10,i15,2f12.7)') iat, i, dble(ev(3*(iat-1)+i, imode)), aimag(ev(3*(iat-1)+i, imode))
+             enddo
+          enddo
+       enddo
+       Write(99, *)
+       call flushifc(99)
+      endif
    Case ('symvec')
    ! construct symmetry vectors and use them as normal coordinates
       call construct_symvec(ev)
-      do imode = 1, 3*natmtot
-         Write(99, '(/," Mode ",i3)') imode
-         Write(99, '("      Atom   Polarization    Eigenvector")')
-         do iat = 1, natmtot
-            do i = 1, 3
-               write(99, '(i10,i15,2f12.7)') iat, i, dble(ev(3*(iat-1)+i, imode)), aimag(ev(3*(iat-1)+i, imode))
-            enddo
-         enddo
-      enddo
-      Write(99, *)
-      call flushifc(99)
+      if (rank .eq. 0) then
+       do imode = 1, 3*natmtot
+          Write(99, '(/," Mode ",i3)') imode
+          Write(99, '("      Atom   Polarization    Eigenvector")')
+          do iat = 1, natmtot
+             do i = 1, 3
+                write(99, '(i10,i15,2f12.7)') iat, i, dble(ev(3*(iat-1)+i, imode)), aimag(ev(3*(iat-1)+i, imode))
+             enddo
+          enddo
+       enddo
+       Write(99, *)
+       call flushifc(99)
+      endif
    Case ('symveccheck')
    ! construct symmetry vectors and return
       call construct_symvec(ev)
-      write(99, '(/," Symmetry vectors ",/, &
-           &        " ---------------- ",/)')
-      do imode = 1, 3*natmtot
-         Write(99, '(/," Mode ",i3)') imode
-         Write(99, '("      Atom   Polarization    Eigenvector")')
-         do iat = 1, natmtot
-            do i = 1, 3
-               write(99, '(i10,i15,2f12.7)') iat, i, dble(ev(3*(iat-1)+i, imode)), aimag(ev(3*(iat-1)+i, imode))
-            enddo
-         enddo
-      enddo
-      Write(99, '(/,"Info(Raman): getphonon=symveccheck, so we stop here ",/)')
+      if (rank .eq. 0) then
+       write(99, '(/," Symmetry vectors ",/, &
+            &        " ---------------- ",/)')
+       do imode = 1, 3*natmtot
+          Write(99, '(/," Mode ",i3)') imode
+          Write(99, '("      Atom   Polarization    Eigenvector")')
+          do iat = 1, natmtot
+             do i = 1, 3
+                write(99, '(i10,i15,2f12.7)') iat, i, dble(ev(3*(iat-1)+i, imode)), aimag(ev(3*(iat-1)+i, imode))
+             enddo
+          enddo
+       enddo
+       Write(99, '(/,"Info(Raman): getphonon=symveccheck, so we stop here ",/)')
+      endif
       if (associated(input%phonons)) nullify (input%phonons)
       if (associated(input%gw)) nullify (input%gw)
       nullify (input%xs)
@@ -323,24 +361,33 @@ Select Case (input%properties%raman%getphonon)
          enddo
       enddo
       if (abs(norm - 1.d0) .gt. eps .and. norm .gt. eps) then
+       if (rank .eq. 0) then
          write(99, '("Info(Raman): Norm of eigenvector is ",f14.9)') sqrt(norm)
          write(99, '("             Eigenvector will be renormalized")')
-         ev = ev / sqrt(norm)
+         call flushifc(99)
+       endif
+       ev = ev / sqrt(norm)
       endif
-      call flushifc(99)
       ! use input variable mode for direct loop over modes
       nmode = 1
 End Select
 !
 ! take time
-call cpu_time(finish_time_cpu)
+call cpu_time(t_cpu_proc)
+#ifdef MPI
+  call MPI_Allreduce(t_cpu_proc, finish_time_cpu, 1, MPI_Real8, MPI_Sum, MPI_Comm_World, ierr)
+#else 
+  finish_time_cpu = t_cpu_proc
+#endif
 call timesec(finish_time_wall)
 time_cpu_tot = time_cpu_tot + finish_time_cpu - start_time_cpu
 time_wall_tot = time_wall_tot + finish_time_wall - start_time_wall
-write(99,'(/," Total CPU time used: ",1x,f12.2," seconds (",f9.2," hrs)")') time_cpu_tot, time_cpu_tot/3600.
-write(99,'(" Total wall time used: ",f12.2," seconds (",f9.2," hrs)")') time_wall_tot, time_wall_tot/3600.
-write(99,'(" Av. CPU utilization: ",f12.2," percent ",/)')&
-&  time_cpu_tot/time_wall_tot*100.
+if (rank .eq. 0) then
+  write(99,'(/," Total CPU time used: ",1x,f12.2," seconds (",f9.2," hrs)")') time_cpu_tot, time_cpu_tot/3600.
+  write(99,'(" Total wall time used: ",f12.2," seconds (",f9.2," hrs)")') time_wall_tot, time_wall_tot/3600.
+  write(99,'(" Av. CPU utilization: ",f12.2," percent ",/)')&
+  &  time_cpu_tot/time_wall_tot*100.
+endif
 start_time_cpu = finish_time_cpu
 start_time_wall = finish_time_wall
 
@@ -366,24 +413,26 @@ i_shift = -istep_lo + 1
 if (input%properties%raman%nstep .le. 2) i_shift = i_shift + 1
 !
 ! loop over optical modes
-!do imode = 4,3*natmtot
 !
 do imode = 1, nmode
    if ((input%properties%raman%mode .ne. 0) .and. (imode .ne. input%properties%raman%mode)) cycle
-   write(99, '(/,"  +--------------+",/,   &
-              &  "  |  Mode ",i3," :  |",/,   &
-              &  "  +--------------+",/)') imode
-   write(*,*) 'mode ',ev(:, imode)
+   if (rank .eq. 0) then
+    write(99, '(/,"  +--------------+",/,   &
+               &  "  |  Mode ",i3," :  |",/,   &
+               &  "  +--------------+",/)') imode
+    write(*,*) 'mode ',ev(:, imode)
+   endif
 ! check for acoustic modes
-   call check_acoustic(dble(ev(:, imode)), acoustic(imode))
+   acoustic(imode) = .false.
+   call check_acoustic(ev(:, imode), acoustic(imode))
    if (acoustic(imode)) then
-      write(99, '(/,"Info(Raman): Acoustic mode",//)')
+      if (rank .eq. 0) write(99, '(/,"Info(Raman): Acoustic mode",//)')
       cycle
    endif
 ! check mode if Raman active by symmetry
    call check_raman (dble(ev(:, imode)), irep(imode), active(imode))
    if (.not. active(imode)) then
-      write(99, '(/,"Info(Raman): This mode is not Raman active",//)')
+      if (rank .eq. 0) write(99, '(/,"Info(Raman): This mode is not Raman active",//)')
       cycle
    endif
 !
@@ -393,125 +442,143 @@ do imode = 1, nmode
    write(*, *) lt2(1, :)
    write(*, *) lt2(2, :)
    write(*, *) lt2(3, :)
+
 !
 ! displace atoms along eigenvector
    i = 1
    do istep = istep_lo, istep_hi
       write (*,  '(/," *** Working on step ",i2," ***",/)') istep + i_shift
-      write (99, '(/," *** Working on step ",i2," ***",/)') istep + i_shift
+      if (rank .eq. 0) write (99, '(/," *** Working on step ",i2," ***",/)') istep + i_shift
 !
 ! do equilibrium geometry only once
       if (istep .eq. 0) then
-         write(99, '("Info(Raman): This is the equlibirum geometry!")')
+              if (rank .eq. 0) write(99, '("Info(Raman): This is the equlibrium geometry!")')
 ! create unambiguous file extension and directory
          Write (raman_filext, '("_MOD", I3.3, "_DISP", I2.2, ".OUT")') 0, 0
          Write (raman_stepdir, '("./MOD", I3.3, "_DISP", I2.2, "/")') 0, 0
-!        Write (scrpath, '("./MOD", I3.3, "_DISP", I2.2, "/")') 0, 0
       else
          Write (raman_filext, '("_MOD", I3.3, "_DISP", I2.2, ".OUT")') imode, istep + i_shift
          Write (raman_stepdir, '("./MOD", I3.3, "_DISP", I2.2, "/")') imode, istep + i_shift
-!        Write (scrpath, '("./MOD", I3.3, "_DISP", I2.2, "/")') imode, istep + i_shift
       endif
 ! check if computation was already done
       Inquire (file='RAMAN_POT'//trim(raman_filext), Exist=existent)
       if (existent) then
+        if (rank .eq. 0) then
          write(99, '("Info(Raman): Groundstate calculation for mode ",i3," and step ",i2, &
            &         " seems to be already done.")') imode, istep + i_shift
          write(99, '("             Reading from file ",a)') 'RAMAN_POT'//trim(filext)
-         call raman_readpot(read_i, 'RAMAN_POT'//trim(raman_filext), read_dph, read_engy)
-         if (read_i .ne. istep + i_shift) then
-            write(*,'("Error(Raman): Step number in file ",a," not consistent!")') 'RAMAN_POT'//trim(raman_filext)
-            write(*,'("Read     :  ",i2)') read_i
-            write(*,'("Expected :  ",i2)') istep + i_shift
-            stop
-         endif
-         potinx(imode, istep + i_shift) = read_dph
-         potiny(imode, istep + i_shift) = read_engy
          call flushifc(99)
+        endif
+        call raman_readpot(read_i, 'RAMAN_POT'//trim(raman_filext), read_dph, read_engy)
+        if (read_i .ne. istep + i_shift) then
+           write(*,'("Error(Raman): Step number in file ",a," not consistent!")') 'RAMAN_POT'//trim(raman_filext)
+           write(*,'("Read     :  ",i2)') read_i
+           write(*,'("Expected :  ",i2)') istep + i_shift
+           stop
+        endif
+        potinx(imode, istep + i_shift) = read_dph
+        potiny(imode, istep + i_shift) = read_engy
       else
+        if (rank .eq. 0) then
          write(99, '("Info(Raman): Performing groundstate calculation for mode ",i3," and step ",i2)') imode, i
 ! intermediate solution using system and chdir functions
 !#ifdef IFORT
          j = system('mkdir '//trim(raman_stepdir))
-         j = chdir('./'//trim(raman_stepdir))
-         j = system('cp ../input.xml .')
+         j = system('cp input.xml '//trim(raman_stepdir))
 !#else
-!         call execute_command_line('mkdir '//trim(raman_stepdir))
-!         call execute_command_line('cd ./'//trim(raman_stepdir))
-!         call execute_command_line('cp ../input.xml .')
+!        call execute_command_line('mkdir '//trim(raman_stepdir))
+!        call execute_command_line('cp input.xml '//trim(raman_stepdir))
+!#endif
+        endif
+#ifdef MPI
+        call MPI_Barrier(MPI_Comm_World, ierr)
+#endif
+!#ifdef IFORT
+        j = chdir('./'//trim(raman_stepdir))
+!#else
+!       call execute_command_line('cd ./'//trim(raman_stepdir))
 !#endif
 ! start anew from input geometry, construct distorted geometry and run through loop
-         call rereadinput
-         call init0
-         write(*, '("Equilibrium geometry coordinates")')
-         do is = 1, nspecies
-            Do ia = 1, natoms (is)
-               write(*,*) 'is, ia, coord(:) ', is, ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-            enddo
-         enddo
-         dph = input%properties%raman%displ*dble(istep)
-         write(*,'("Phonon eigenvector")')
-         iat = 1
-         do is = 1, nspecies
-            Do ia = 1, natoms (is)
-               write(*,*) 'is, ia, eigvec(:) ', is, ia, dble(ev((3*(iat-1)+1):(3*iat), imode))
-               iat = iat + 1
-            enddo
-         enddo
-         call dcell(vgamc(:), ev(:, imode), dph)
-         write(*, '("             Supercell constructed:")' )
-         do is = 1, nspecies
-            Do ia = 1, natoms (is)
-               write(*,*) 'is, ia, coord(:) ', is, ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-            enddo
-         enddo
-!        call writegeometryraman
+        call raman_restore_struct
+        call init0
+        write(*, '("Equilibrium geometry coordinates")')
+        do is = 1, nspecies
+           Do ia = 1, natoms (is)
+              write(*,*) 'is, ia, coord(:) ', is, ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+           enddo
+        enddo
+        dph = input%properties%raman%displ*dble(istep)
+        write(*,'("Phonon eigenvector")')
+        iat = 1
+        do is = 1, nspecies
+           Do ia = 1, natoms (is)
+              write(*,*) 'is, ia, eigvec(:) ', is, ia, dble(ev((3*(iat-1)+1):(3*iat), imode))
+              iat = iat + 1
+           enddo
+        enddo
+        call dcell(vgamc(:), ev(:, imode), dph)
+        write(*, '("             Supercell constructed:")' )
+        do is = 1, nspecies
+           Do ia = 1, natoms (is)
+              write(*,*) 'is, ia, coord(:) ', is, ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+           enddo
+        enddo
 ! set appropriate parameters, do groundstate calculation and compute forces
-         input%structure%primcell = .False.
-         input%structure%autormt = .False.
-         input%structure%tshift = .false.
-         input%groundstate%tforce = .true.
-         task = 0
-         notelns = 5
-         notes(1) = '                                     '
-         notes(2) = '   +--------------------------------+'
-         notes(3) = '   | GNDSTATE was called from RAMAN |'
-         notes(4) = '   +--------------------------------+'
-         notes(5) = '                                     '
-         write(*,*) 'call to groundstate'
-         call flushifc(99)
-         call gndstate
-         write(*,*) 'groundstate computed'
+        input%structure%primcell = .False.
+        input%structure%autormt = .False.
+        input%structure%tshift = .false.
+!       input%groundstate%tforce = .true.
+        task = 0
+        notelns = 5
+        notes(1) = '                                     '
+        notes(2) = '   +--------------------------------+'
+        notes(3) = '   | GNDSTATE was called from RAMAN |'
+        notes(4) = '   +--------------------------------+'
+        notes(5) = '                                     '
+        write(*,*) 'call to groundstate'
+        call gndstate
+        write(*,*) 'groundstate computed'
+        if (rank .eq. 0) then
          write(99, '("             Groundstate calculation done.")')
          call flushifc(99)
+        endif
 ! store forces
-!        Do jas = 1, natmtot
-!           force_sum = force_sum + forcetot (:, jas)
-!        End Do
+!       Do jas = 1, natmtot
+!          force_sum = force_sum + forcetot (:, jas)
+!       End Do
 ! store potential
-         write(*,*) dph, engytot
+        write(*,*) dph, engytot
+        if (rank .eq. 0) then
          call raman_writepot(istep+i_shift, '../RAMAN_POT'//trim(raman_filext), dph, engytot)
-         potinx(imode, istep + i_shift) = dph
-         potiny(imode, istep + i_shift) = engytot
+        endif
+        potinx(imode, istep + i_shift) = dph
+        potiny(imode, istep + i_shift) = engytot
       ! take time
-         call cpu_time(finish_time_cpu)
-         call timesec(finish_time_wall)
-         time_cpu_tot = time_cpu_tot + finish_time_cpu - start_time_cpu
-         time_wall_tot = time_wall_tot + finish_time_wall - start_time_wall
+        call cpu_time(t_cpu_proc)
+        call timesec(finish_time_wall)
+#ifdef MPI
+        call MPI_Allreduce(t_cpu_proc, finish_time_cpu,  1, MPI_Real8, MPI_Sum, MPI_Comm_World, ierr)
+#else
+        finish_time_cpu = t_cpu_proc
+#endif
+        time_cpu_tot = time_cpu_tot + finish_time_cpu - start_time_cpu
+        time_wall_tot = time_wall_tot + finish_time_wall - start_time_wall
+        if (rank .eq. 0) then
          write(99,'(/," Total CPU time used: ",1x,f12.2," seconds (",f9.2," hrs)")') &
            &  time_cpu_tot, time_cpu_tot/3600.
          write(99,'(" Total wall time used: ",f12.2," seconds (",f9.2," hrs)")') &
            &  time_wall_tot, time_wall_tot/3600.
          write(99,'(" Av. CPU utilization: ",f12.2," percent ",/)')&
            &  time_cpu_tot/time_wall_tot*100.
-         start_time_cpu = finish_time_cpu
-         start_time_wall = finish_time_wall
+        endif
+        start_time_cpu = finish_time_cpu
+        start_time_wall = finish_time_wall
 ! clean-up
-!        if (.not. associated(input%gw)) call raman_delgndst
+!       if (.not. associated(input%gw)) call raman_delgndst
 !#ifdef IFORT
-         j = chdir('..')
+        j = chdir('..')
 !#else
-!         call execute_command_line('cd ..')
+!       call execute_command_line('cd ..')
 !#endif
       endif
 !
@@ -528,13 +595,18 @@ do imode = 1, nmode
       enddo
       if (existent) then
       ! read previously saved data
-         write (99, '("Info(Raman): XS calculation for mode ",i3," and step ",i2,&
-           &          " seems to be already done.")') imode, istep + i_shift
+         if (rank .eq. 0) then
+          write (99, '("Info(Raman): XS calculation for mode ",i3," and step ",i2,&
+            &          " seems to be already done.")') imode, istep + i_shift
+         endif
          do oct1 = 1, 3
             do oct2 = 1, 3
                if (oct1 .ne. oct2 .and. .not. offdiag) cycle
-               write (99, '("             Reading dielectric function from file ",a)')  &
-                &         'EPSILON_OC'//comp(oct1,oct2)//trim(filext)
+               if (rank .eq. 0) then
+                write (99, '("             Reading dielectric function from file ",a)')  &
+                 &         'EPSILON_OC'//comp(oct1,oct2)//trim(filext)
+                call flushifc(99)
+               endif
                call raman_readeps (imode, istep+i_shift, oct1, oct2, 'EPSILON_OC'//comp(oct1,oct2)//trim(raman_filext))
                if (input%properties%raman%molecule) then
                ! use molecular polarizability instead
@@ -547,21 +619,24 @@ do imode = 1, nmode
                endif
             enddo
          enddo
-         call flushifc(99)
       else
-         write (99, '("Info(Raman): Performing XS calculation for mode ",i3," and step ",i2)') imode, istep + i_shift
+         if (rank .eq. 0) &
+         & write (99, '("Info(Raman): Performing XS calculation for mode ",i3," and step ",i2)') imode, istep + i_shift
+#ifdef MPI
+         call MPI_Barrier(MPI_Comm_World, ierr)
+#endif
 !#ifdef IFORT
          j = chdir('./'//trim(raman_stepdir))
-         j = system('cp ../input.xml .')
+!        if (rank .eq. 0) j = system('cp ../input.xml .')
 !#else
-!         call execute_command_line('cd ./'//trim(raman_stepdir))
-!         call execute_command_line('cp ../input.xml .')
+!        call execute_command_line('cd ./'//trim(raman_stepdir))
+!        if (rank .eq. 0) call execute_command_line('cp ../input.xml .')
 !#endif
 !
 ! launch xs part according to element xs in input.xml:
 !
 ! start anew from input geometry, construct distorted geometry and run xs
-         call rereadinput
+         call raman_restore_struct
          call init0
          dph = input%properties%raman%displ*dble(istep)
          call dcell(vgamc(:), ev(:, imode), dph)
@@ -571,7 +646,6 @@ do imode = 1, nmode
                write(*,*) 'is, ia, coord(:) ', is, ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
             enddo
          enddo
-!        call writegeometryraman
 ! set appropriate parameters, do groundstate calculation and compute forces
          input%structure%primcell = .False.
          input%structure%autormt = .False.
@@ -582,26 +656,36 @@ do imode = 1, nmode
          notes(3) = '   |    XS was called from RAMAN    |'
          notes(4) = '   +--------------------------------+'
          notes(5) = '                                     '
-         call flushifc(99)
          If (associated(input%gw)) then
-            write (99, '("Info(Raman): Performing GW calculation...")')
-            call flushifc(99)
+            if (rank .eq. 0) then
+             write (99, '("Info(Raman): Performing GW calculation...")')
+             call flushifc(99)
+            endif
             Call gwtasklauncher
-            write (99, '("             GW done")')
+            if (rank .eq. 0) then
+             write (99, '("             GW done")')
+            endif
          ! take time
-            call cpu_time(finish_time_cpu)
+            call cpu_time(t_cpu_proc)
+#ifdef MPI
+            call MPI_Allreduce(t_cpu_proc, finish_time_cpu, 1, MPI_Real8, MPI_Sum, MPI_Comm_World, ierr)
+#else
+            finish_time_cpu = t_cpu_proc
+#endif
             call timesec(finish_time_wall)
             time_cpu_tot = time_cpu_tot + finish_time_cpu - start_time_cpu
             time_wall_tot = time_wall_tot + finish_time_wall - start_time_wall
-            write(99,'(/," Total CPU time used: ",1x,f12.2," seconds (",f9.2," hrs)")') &
-              &   time_cpu_tot, time_cpu_tot/3600.
-            write(99,'(" Total wall time used: ",f12.2," seconds (",f9.2," hrs)")') &
-              &   time_wall_tot, time_wall_tot/3600.
-            write(99,'(" Av. CPU utilization: ",f12.2," percent ",/)')&
-              &   time_cpu_tot/time_wall_tot*100.
+            if (rank .eq. 0) then
+             write(99,'(/," Total CPU time used: ",1x,f12.2," seconds (",f9.2," hrs)")') &
+               &   time_cpu_tot, time_cpu_tot/3600.
+             write(99,'(" Total wall time used: ",f12.2," seconds (",f9.2," hrs)")') &
+               &   time_wall_tot, time_wall_tot/3600.
+             write(99,'(" Av. CPU utilization: ",f12.2," percent ",/)')&
+               &   time_cpu_tot/time_wall_tot*100.
+             call flushifc(99)
+            endif
             start_time_cpu = finish_time_cpu
             start_time_wall = finish_time_wall
-            call flushifc(99)
          endif
          write(*,*) ' call to XS'
          call xstasklauncher
@@ -616,7 +700,8 @@ do imode = 1, nmode
                  & fxctypestr=input%xs%tddft%fxctype, tq0=.true., &
                  & oc1=oct1, oc2=oct2, iqmt=1, filnam=fneps)
                   call raman_readeps (imode, istep + i_shift, oct1, oct2, fneps)
-                  call raman_writeeps (imode, istep + i_shift, oct1, oct2, comp(oct1,oct2), raman_filext)
+                  if (rank .eq. 0) &
+                    & call raman_writeeps (imode, istep + i_shift, oct1, oct2, comp(oct1,oct2), raman_filext)
                   if (input%properties%raman%molecule) then
                   ! use molecular polarizability instead
                   ! df contains (electronic) polarizability of the molecule in Bohr^3 molecule^-1
@@ -637,7 +722,8 @@ do imode = 1, nmode
               & scrtype=input%xs%screening%screentype, nar= .Not. &
               & input%xs%bse%aresbse, filnam=fneps)
                call raman_readeps (imode, istep + i_shift, oct1, oct2, fneps)
-               call raman_writeeps (imode, istep + i_shift, oct1, oct2, comp(oct1,oct2), raman_filext)
+               if (rank .eq. 0) &
+                 &  call raman_writeeps (imode, istep + i_shift, oct1, oct2, comp(oct1,oct2), raman_filext)
                if (input%properties%raman%molecule) then
                ! use molecular polarizability instead
                ! df contains (electronic) polarizability of the molecule in Bohr^3 molecule^-1
@@ -656,21 +742,28 @@ do imode = 1, nmode
 !         call execute_command_line('cd ..')
 !#endif
       endif
-      write(99, '("             XS calculation done.")')
+      if (rank .eq. 0) write(99, '("             XS calculation done.")')
       ! take time
-      call cpu_time(finish_time_cpu)
+      call cpu_time(t_cpu_proc)
+#ifdef MPI
+      call MPI_Allreduce(t_cpu_proc, finish_time_cpu, 1, MPI_Real8, MPI_Sum, MPI_Comm_World, ierr)
+#else
+      finish_time_cpu = t_cpu_proc
+#endif
       call timesec(finish_time_wall)
       time_cpu_tot = time_cpu_tot + finish_time_cpu - start_time_cpu
       time_wall_tot = time_wall_tot + finish_time_wall - start_time_wall
-      write(99,'(/," Total CPU time used: ",1x,f12.2," seconds (",f9.2," hrs)")') &
-          &  time_cpu_tot, time_cpu_tot/3600.
-      write(99,'(" Total wall time used: ",f12.2," seconds (",f9.2," hrs)")') &
-          &  time_wall_tot, time_wall_tot/3600.
-      write(99,'(" Av. CPU utilization: ",f12.2," percent ",/)')&
-          &  time_cpu_tot/time_wall_tot*100.
+      if (rank .eq. 0) then
+       write(99,'(/," Total CPU time used: ",1x,f12.2," seconds (",f9.2," hrs)")') &
+           &  time_cpu_tot, time_cpu_tot/3600.
+       write(99,'(" Total wall time used: ",f12.2," seconds (",f9.2," hrs)")') &
+           &  time_wall_tot, time_wall_tot/3600.
+       write(99,'(" Av. CPU utilization: ",f12.2," percent ",/)')&
+           &  time_cpu_tot/time_wall_tot*100.
+       call flushifc(99)
+      endif
       start_time_cpu = finish_time_cpu
       start_time_wall = finish_time_wall
-      call flushifc(99)
 ! turn off computation of equilibrium geometry after first mode
       if (istep .eq. 0) eq_done = .true.
       i = i + 1
@@ -681,10 +774,15 @@ do imode = 1, nmode
       potiny(imode, 1) = potiny(imode, 3)
       df(imode, 1, :, :, :) = ztwo*df(imode, 2, :, :, :) - df(imode, 3, :, :, :)
    endif
-   write(99, '("Info(Raman): Done with mode ",i3,/)') imode
-   call flushifc(99)
+   if (rank .eq. 0) then
+    write(99, '("Info(Raman): Done with mode ",i3,/)') imode
+    call flushifc(99)
+   endif
 enddo
-write(99, '(/,"Info(Raman): *** Done with all modes! ***")')
+!
+call raman_restore_struct
+!
+if (rank .eq. 0) write(99, '(/,"Info(Raman): *** Done with all modes! ***")')
 !
 ! === end loops over all phonon modes and displacements
 !
@@ -696,9 +794,14 @@ write(99, '(/,"Info(Raman): *** Done with all modes! ***")')
 ! ok, all necessary data are hopefully collected, let's do the Raman calculation now...
 !
 !
-write(99, '(/,"Info(Raman): Starting calculation of Raman scattering intensities...",/,&
-         &    "             See file RAMAN.OUT for results.",/)')
-call flushifc(99)
+if (rank .eq. 0) then
+ write(99, '(/,"Info(Raman): Starting calculation of Raman scattering intensities...",/,&
+          &    "             See file RAMAN.OUT for results.",/)')
+ call flushifc(99)
+else
+ ! actual Raman calculation is not particularly heavy and hence skipped by child procs
+ goto 477
+endif
  
 maxp = 4*input%properties%raman%ninter + 1           ! number of knots for computations of potential, one interval contains 4 knots
 !
@@ -742,19 +845,7 @@ do imode = 1, nmode
        &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
        &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
        &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
-!     do oct1 = 1, 3
-!        Do oct2 = 1, 3
-!           if (oct1 .ne. oct2 .and. .not. offdiag) cycle
-!           write(66,'(/," Derivative of the dielectric function for optical component ",a2,/,&
-!    &                   "Der",11x,"Re",15x,"Im",/,6(i3,f17.3,f17.3,/))') &
-!    &                   comp(oct1, oct2),1, deq(oct1, oct2) !,&
-!    &                                    2,d2eq(oct1, oct2),&
-!    &                                    3,d3eq(oct1, oct2),&
-!    &                                    4,d4eq(oct1, oct2),&
-!    &                                    5,d5eq(oct1, oct2),&
-!                                         6,d6eq(oct1, oct2)
-!        enddo
-!     enddo
+!
       write(66, '(/," Include local field effects for dielectric function : ",l1)') .not.nlf
       write(66, '(/," Broadening [ cm-1 ] : ",4f7.2)') gamma1,gamma2,gamma3,gamma4
 !
@@ -816,20 +907,7 @@ do imode = 1, nmode
        &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
        &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
        &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
-
-!     do oct1 = 1, 3
-!        Do oct2 = 1, 3
-!           if (oct1 .ne. oct2 .and. .not. offdiag) cycle
-!           write(66,'(/," Derivative of the dielectric function for optical component ",a2,/,&
-!    &                   "Der",11x,"Re",15x,"Im",/,6(i3,f17.3,f17.3,/))') &
-!    &                   comp(oct1, oct2),1, deq(oct1, oct2)  !,&
-!    &                                    2,d2eq(oct1, oct2),&
-!    &                                    3,d3eq(oct1, oct2),&
-!    &                                    4,d4eq(oct1, oct2),&
-!    &                                    5,d5eq(oct1, oct2),&
-!                                         6,d6eq(oct1, oct2)
-!        enddo
-!     enddo
+!
 
 !
 !    determine coefficients for N cells
@@ -865,6 +943,7 @@ do imode = 1, nmode
 ! end loop over modes
 enddo
 !
+!
 ! add CPU time used for execution
 call cpu_time(finish_time_cpu)
 call timesec(finish_time_wall)
@@ -887,6 +966,9 @@ write(99,'(" Av. CPU utilization: ",f12.2," percent ",/)')&
 ! shut down Raman specific files and arrays
 close(66); close(80); close(99)
 !
+! child procs jump here
+477 continue
+!
 ! turn off phonons after Raman
 if (associated(input%phonons)) nullify (input%phonons)
 !
@@ -903,6 +985,9 @@ deallocate( e1,e2,e3,de,indexi )
 deallocate( xa,xpot,pot,b0,b1,b2,b3,b4 )
 deallocate( potinx,potiny )
 deallocate( active, acoustic, irep)
+if (allocated(dynq)) deallocate(dynq)
+if (allocated(dynp)) deallocate(dynp)
+if (allocated(dynr)) deallocate(dynr)
 !
 !
 !

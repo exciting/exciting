@@ -5,18 +5,20 @@ use raman_params
 !
 implicit none
 ! arguments
-real(8) :: vec(3*natmtot)
+complex(8) :: vec(3*natmtot)
 logical :: acoustic
 ! local variables
+real(8) :: phi
 integer :: i
 integer :: icomp(3*natmtot)
 logical :: acousticx, acousticy, acousticz
 !
 acoustic = .false.
 do i = 1, 3*natmtot
+   phi = atan2(aimag(vec(i)), dble(vec(i)))
    if (abs(vec(i)) .le. eps) then
       icomp(i) = 0
-   elseif (vec(i) .gt. eps) then
+   elseif (phi .gt. eps) then
       icomp(i) = 1
    else
       icomp(i) = -1

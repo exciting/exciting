@@ -89,7 +89,7 @@ subroutine TEMPPOT(temp)
      &                  transme6(ind)
       enddo
       write(66,*)
-! compute Boltzmann factors
+! compute factors
       beta = 1.d0/fkwn/temp
       do i = 1,input%properties%raman%nstate
          arg = -beta*eigen(i)*frywn

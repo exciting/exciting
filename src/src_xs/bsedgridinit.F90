@@ -29,6 +29,8 @@ Subroutine bsedgridinit ()
 
      input%xs%vkloff = vksubl (:, iksubpt)
      input%groundstate%vkloff = input%xs%vkloff
+     input%xs%screening%vkloff = input%xs%vkloff
+     input%xs%BSE%vkloff = input%xs%vkloff
      input%xs%screening%reducek = .false.
      input%xs%BSE%reducek = .false.
      if (allocated(evalsv0)) deallocate (evalsv0)
@@ -38,7 +40,7 @@ Subroutine bsedgridinit ()
 
      Call genfilname (nodotpar=.True., basename='INFOXS', procs=procs, rank=rank, filnam=xsfileout)
      Call getunit (unitout)
-     open (unit=unitout, file=xsfileout, status="old", action="write")
+     open (unit=unitout, file=xsfileout, status="unknown", action="write")
      write (string,'("Sub grid point ",i3," with offset ",3f7.3)') iksubpt, vksubl (:, iksubpt)
      call printline (unitout,"=")
      call printtext (unitout,"=",string)

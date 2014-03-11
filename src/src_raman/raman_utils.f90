@@ -23,6 +23,47 @@ Contains
       Return
    End Subroutine raman_delgndst
 !
+   Subroutine raman_save_struct
+      Use mod_atoms
+      use mod_lattice, only: ainv
+      Use modinput
+      use mod_phonon, only: natoms0, natmtot0, avec0, ainv0, atposc0
+      Implicit None
+      integer :: is, ia
+      natoms0 (1:nspecies) = natoms (1:nspecies)
+      natmtot0 = natmtot
+      avec0 (:, :) = input%structure%crystal%basevect(:, :)
+      ainv0 (:, :) = ainv (:, :)
+      atposc0 (:, :, :) = 0.d0
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            atposc0 (:, ia, is) = atposc (:, ia, is)
+         End Do
+      End Do
+   end subroutine raman_save_struct
+!
+   Subroutine raman_restore_struct
+      Use mod_atoms
+      use mod_lattice, only: ainv
+      Use modinput
+      use mod_phonon, only: natoms0, natmtot0, avec0, ainv0, atposc0
+      Implicit None
+      integer :: is, ia
+      natoms (1:nspecies) = natoms0(1:nspecies)
+      natmtot = natmtot0
+      input%structure%crystal%basevect(:, :) = avec0(:, :)
+      ainv (:, :) = ainv0 (:, :)
+      atposc (:, :, :) = 0.d0
+      Do is = 1, nspecies
+       Do ia = 1, natoms (is)
+        ! restore cartesian coordinates
+        atposc (:, ia, is) = atposc0 (:, ia, is)
+        ! restore lattice coordinates in input structure
+        call r3mv (ainv, atposc(:, ia, is), input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))
+       End Do
+      End Do
+   end subroutine raman_restore_struct
+!
    subroutine raman_readpot (istep, fnam, dph, engy)
       use m_getunit
       implicit none

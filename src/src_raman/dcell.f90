@@ -4,10 +4,9 @@ Subroutine dcell (vqpc, eigv, dph)
 ! sets up (super)cell with atom displacements to compute potential and 
 ! changes in dielectric function 
 !
-      Use mod_phonon
+      Use mod_phonon, only: vphcell, avec0, nphcell
       use mod_qpoint
       use mod_atoms
-      use modmain, only: maxatoms
       use mod_lattice, only: ainv
       use m_raman_utils
       use raman_ew, only: fgew
@@ -24,9 +23,12 @@ Subroutine dcell (vqpc, eigv, dph)
       Real (8) :: u_i(3)
       real(8) :: r3dist
       external r3dist
+      ngridq(1) = 6
+      ngridq(2) = 6
+      ngridq(3) = 1
 !
-! store original lattice vectors
-      avec0 (:, :) = input%structure%crystal%basevect(:, :)
+! store original lattice vectors (done already in raman)
+!     avec0 (:, :) = input%structure%crystal%basevect(:, :)
 ! check for Gamma-point phonon
       If ((vqpc(1) .Eq. 0) .And. (vqpc(2) .Eq. 0) .And. (vqpc(3) .Eq. 0)) Then
          m(:, :) = 0

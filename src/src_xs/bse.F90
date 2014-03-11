@@ -404,15 +404,14 @@ Subroutine bse
          Open (unexc, File=fnexc, Form='formatted', Action='write', &
         & Status='replace')
          Do s2 = 1, hamsiz
-            Write (unexc, '(i8, 5g18.10)') s2, &
+            Write (unexc, '(i8, 6g18.10)') s2, &
            & (beval(s2)+egap-dble(bsed)) * escale, &
-           & (beval(s2)+dble(bsed)) * escale, Abs (oszs(s2, oct1))
+           & (beval(s2)+dble(bsed)) * escale, abs(oszs(s2, oct1)), dble(oszs(s2, oct1)), aimag(oszs(s2, oct1))
          End Do
-         Write (unexc, '("# Nr.  E		      E - E_gap        |Osc.Str.|")&
+         Write (unexc, '("# Nr.  E		      E - E_gap        |Osc.Str.|      Re      Im")&
         &')
          Write (unexc, '("# E_gap : ", g18.10)') egap * escale
-         If (input%xs%tevout) write (unexc, '("# energies are in electr&
-        &on volts")')
+         If (input%xs%tevout) write (unexc, '("# energies are in electron volts")')
          Close (unexc)
      ! oscillator strengths sorted
          oszsa(:) = Abs (oszs(:, 1))

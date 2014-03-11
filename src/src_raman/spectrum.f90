@@ -47,7 +47,7 @@ if (temp .lt. 1.0e-9) then
    write(66,'(  " (adjusted to     : ",17x,e9.2,")"/)') temp
 endif
 write(66,'(/," Partition sums for eigenstates:",/)')  ! header for part sums in output
-write(66,'("  state ","         eigenvalue ","   Boltzmann factor ", &
+write(66,'("  state ","         eigenvalue ","             factor ", &
      &           "      partition sum ","         population  "/)')
 !
 gam1 = gamma1**2/4.d0                         ! broadening parameters from input
