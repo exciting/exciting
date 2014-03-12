@@ -42,12 +42,8 @@ if (iscl.lt.1) return
 allocate(vnlvv_full(nstsv,nkpt))
 #ifdef MPI
          Do ik = firstk (rank), lastk (rank)
-            Write (*, '("Info(deltax): ", I6, " of ", I6, " k-points on pr&
-        &oc:", I6)') ik, nkpt, rank
-
 #else
          Do ik = 1, nkpt
-             Write (*, '("Info(deltax): ", I6, " of ", I6, " k-points")') ik, nkpt
 #endif       
              call oepvnlk_deltax(ik,vnlvv_full(1,ik))     
          End Do
@@ -75,12 +71,8 @@ allocate(vnlvv_full(nstsv,nkpt))
 
 #ifdef MPI
 Do ik = firstk (rank), lastk (rank)
-        Write (*, '("Info(deltax): ", I6, " of ", I6, " k-points on pr&
-       &oc:", I6)') ik, nkpt, rank
-
 #else
 Do ik = 1, nkpt
-        Write (*, '("Info(deltax): ", I6, " of ", I6, " k-points")') ik, nkpt
 #endif       
 
      call getevalsv(vkl(1,ik),evalsvp)
@@ -135,7 +127,6 @@ Do ik = 1, nkpt
    
 #ifdef MPI
        call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=delta)
-      
 #endif
 ! Write delta into file
 If (rank .Eq. 0) then 

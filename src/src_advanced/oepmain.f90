@@ -93,8 +93,6 @@ Subroutine oepmain
             dbxir(:,:) = 0.d0
          End If
 ! calculate the k-dependent residuals
-!$OMP PARALLEL DEFAULT(SHARED)
-!$OMP DO
 #ifdef MPI
          Do ik = firstk (rank), lastk (rank)
 #else
@@ -118,8 +116,6 @@ Subroutine oepmain
            &  MPI_SUM, MPI_COMM_WORLD, ierr)
          end if
 #endif
-!$OMP END DO
-!$OMP END PARALLEL
 ! convert muffin-tin residuals to spherical harmonics
          Do is = 1, nspecies
             Do ia = 1, natoms (is)

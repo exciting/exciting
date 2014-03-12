@@ -15,8 +15,6 @@ Subroutine oepvnl (vnlcv, vnlvv)
       Complex (8), Intent (Out) :: vnlvv (nstsv, nstsv, nkpt)
 ! local variables
       Integer :: ik
-!$OMP PARALLEL DEFAULT(SHARED)
-!$OMP DO
 #ifdef MPI
       Do ik = firstk (rank), lastk (rank)
          Write (*, '("Info(oepvnl): ", I6, " of ", I6, " k-points on pr&
@@ -32,7 +30,5 @@ Subroutine oepvnl (vnlcv, vnlvv)
         call mpi_allgatherv_ifc(nkpt,ncrmax*natmtot*nstsv,zbuf=vnlcv)
         call mpi_allgatherv_ifc(nkpt,nstsv*nstsv,zbuf=vnlvv)
 #endif
-!$OMP END DO
-!$OMP END PARALLEL
          Return
    End Subroutine
