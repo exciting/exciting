@@ -27,10 +27,10 @@ Subroutine poteff
       real (8) :: shift
       Real (8) :: ts0, ts1, ta, tb
       Call timesec (ts0)
-! compute the Coulomb potential
-      Call potcoul
 ! compute the exchange-correlation potential
       Call potxc
+! compute the Coulomb potential
+      Call potcoul
       shift=input%groundstate%energyref
 ! add Coulomb and exchange-correlation potentials together
 ! muffin-tin part
