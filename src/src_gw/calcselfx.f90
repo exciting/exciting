@@ -84,7 +84,7 @@
          do m = m1, m2
            do ie2 = 1, nomax
              ! [M^{i}_{nm}]^{*}*vm_{i,nm}
-             mvm = zdotc(matsiz,minm(1:mbsiz,m,ie2),1,minm(1:mbsiz,m,ie2),1)
+             mvm = zdotc(mbsiz,minm(1:mbsiz,m,ie2),1,minm(1:mbsiz,m,ie2),1)
              sum = sum+mvm
            enddo ! ie2
          end do ! m           
@@ -118,7 +118,7 @@
            m2=min(n12dgn(2,ie1,ikp),nbgw) ! upper index
            do m = m1, m2
              do icg = 1, ncg
-               mvm=zdotc(locmatsiz,minm(1:mbsiz,m,icg),1,minm(1:mbsiz,m,icg),1)
+               mvm=zdotc(mbsiz,minm(1:mbsiz,m,icg),1,minm(1:mbsiz,m,icg),1)
                sum=sum+mvm
              enddo ! icg
            end do ! m
