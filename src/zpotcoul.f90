@@ -269,7 +269,6 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(ig,ifg,zt1,t1,t2,zsum,m,l,lm,t3) SHARED(input,gpc,zvclir,rmt,qi,ias,ngvec,is,ylmgp,jlgpr,zil,rmtl,igfft,zrp,fpo,sfacgp)
 !$OMP DO    
 #endif
-
             Do ig = 1, ngvec
                ifg = igfft (ig)
                If (gpc(ig) .Gt. input%structure%epslat) Then
@@ -332,7 +331,9 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(ig,ifg,zt1,zt2,zsum,m,l,lm,t3,qilocal,nthreads,whichthread,ithr) SHARED(input,zvclir,ias,ngvec,is,ylmgp,jlgpr,zil,rmtl,igfft,sfacgp,vilm)
             qilocal=0d0
-!$OMP DO    
+!$OMP DO  
+#else
+            qilocal=0d0  
 #endif
             Do ig = 1, ngvec
                ifg = igfft (ig)
@@ -358,6 +359,8 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 !$OMP BARRIER
             enddo
 !$OMP END PARALLEL 
+#else
+            vilm  = vilm +qilocal 
 #endif
 
 ! add homogenous solution
