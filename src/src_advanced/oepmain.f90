@@ -246,7 +246,7 @@ Subroutine oepmain
 ! Calculation of the potential discontinuity
 !         after last iteration
 !********************************************
-!      if (tlast) call deltax     
+      if (tlast) call deltax     
 
       Return
 End Subroutine

@@ -114,7 +114,7 @@ Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
                            End If
                            zt2 = zde * zt1
 ! residuals for exchange potential and field
-!x$OMP CRITICAL
+!$OMP CRITICAL
                            dvxmt (:, 1:nrc, ias) = dvxmt (:, 1:nrc, ias) + &
                           &  dble (zt2*zrhomt(:, 1:nrc, ias))
                            Do idm = 1, ndmag
@@ -122,7 +122,7 @@ Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
                              &  dbxmt (:, 1:nrc, ias, idm) + &
                              &  dble (zt2*zvfmt(:, 1:nrc, idm))
                            End Do
-!x$OMP END CRITICAL
+!$OMP END CRITICAL
 ! end loop over jst
                         End If
                      End Do
@@ -164,7 +164,7 @@ Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
                   End If
                   zt2 = zde * zt1
 ! residuals for exchange potential and field
-!x$OMP CRITICAL
+!$OMP CRITICAL
                   Do is = 1, nspecies
                      nrc = nrcmt (is)
                      Do ia = 1, natoms (is)
@@ -182,7 +182,7 @@ Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
                   Do idm = 1, ndmag
                      dbxir (:, idm) = dbxir (:, idm) + dble (zt2*zmagir(:, idm))
                   End Do
-!x$OMP END CRITICAL
+!$OMP END CRITICAL
 ! end loop over jst
                End If
             End Do
