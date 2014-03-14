@@ -36,7 +36,7 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
       Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv, nspnfv)
       Complex (8), Intent (Out) :: evecsv (nstsv, nstsv)
   ! local variables
-      Integer :: ispn
+      Integer :: ispn,ib
   ! time
       Real (8) :: ts0,ts1
 !
@@ -79,13 +79,16 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
 !
          End If
       End Do
-
       If (isspinspiral()) Then
      ! solve the spin-spiral second-variational secular equation
          Call seceqnss (ik, apwalm, evalfv, evecfv, evecsv)
       Else
      ! solve the second-variational secular equation
-         Call seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
+        if (input%groundstate%modifiedSV) then
+          Call seceqnsv2 (ik, apwalm, evalfv, evecfv, evecsv)
+        else
+          Call seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
+        endif
       End If
 !
       Deallocate (apwalm)

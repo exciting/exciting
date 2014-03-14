@@ -14,7 +14,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
 &  r, eval, rho, vr, rwf, mtnr, dirac_eq)
 ! !USES:
       Use modxcifc
-!      use modinput
+      use modinput
 ! !INPUT/OUTPUT PARAMETERS:
 !   ptnucl : .true. if the nucleus is a point particle (in,logical)
 !   zn     : nuclear charge (in,real)
@@ -142,7 +142,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
 ! compute the charge density
          Do ir = 1, nr
             sum = 0.d0
-            if (dirac_eq) then
+            if ((dirac_eq).or.(input%groundstate%ValenceRelativity.eq."khs").or.(input%groundstate%ValenceRelativity.eq."lkhs")) then
               Do ist = 1, nst
                  sum = sum + occ (ist) * (rwf(ir, 1, ist)**2+rwf(ir, 2, ist)**2)
               End Do
@@ -243,10 +243,15 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
          Deallocate (grho, g2rho, g3rho)
       End If
 !      write(*,*) 
-!      Do ist = 1, nst
-!       write(*,*) eval(ist)
-!      enddo
-!      write(*,*) 
+      Do ist = 1, nst
+       write(*,*) eval(ist)
+!       write(*,*) 
+!       do ir=1,nr
+!         write(*,*) r(ir),rwf(ir, 1, ist),rwf(ir, 2, ist)
+!       enddo
+!       read(*,*)
+      enddo
+      write(*,*) 
 !      stop
       Return
 End Subroutine

@@ -10,9 +10,8 @@ Module modmixermsec
       Real (8), Allocatable :: PWHIST (:), FHIST (:), CLMHIST (:), &
      & yhist (:)
       Integer :: record_of_last_iter, noldstepsin_file, noldsteps, &
-     & MUSE, IDSCALE
-      Integer, Parameter :: icond = 1, noldstepsmax = 8, dbase = &
-     & 0.005D0
+     & MUSE, IDSCALE, noldstepsmax
+      Integer, Parameter :: icond = 1, dbase = 0.005D0
       Real (8) :: scl_plane, qmx, RedOld, RedPred, qmx_input, PM1, &
      & DIAG, dmix_last, dmixout (4)
       Real (8) :: MSECINFO (20), rtrap, SCHARGE, TCharge, splane, &
@@ -22,9 +21,10 @@ Module modmixermsec
 Contains
 
       Subroutine initmixermsec (n)
-         Use modmain, Only: CHGIR, CHGMTTOT
+         Use modmain, Only: CHGIR, CHGMTTOT, input
          Integer, Intent (In) :: n
          Integer :: niter
+         noldstepsmax=input%groundstate%msecStoredSteps
          if (allocated(residual)) deallocate(residual)
          allocate(residual(n))
          if (allocated(last_outputp)) deallocate(last_outputp)

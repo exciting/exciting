@@ -15,6 +15,9 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       Use modinput
 ! !USES:
       Use modmain
+#ifdef USEOMP
+      use omp_lib
+#endif
 ! !INPUT/OUTPUT PARAMETERS:
 !   nr     : number of radial points for each species (in,integer(nspecies))
 !   nrmax  : maximum nr over all species (in,integer)
@@ -123,7 +126,15 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       Complex (8) vilm (lmmaxvr)
       Complex (8) qmt (lmmaxvr, natmtot)
       Complex (8) qi (lmmaxvr, natmtot)
+      Complex (8) qilocal (lmmaxvr)
       Complex (8) zrp (lmmaxvr)
+      real(8) :: vn(nrmax)
+      real(8) :: third 
+      parameter (third=0.3333333333333333333333d0)
+#ifdef USEOMP
+      integer ithr,nthreads,whichthread
+#endif
+
 ! external functions
       Real (8) :: factnm
       External factnm
@@ -138,10 +149,28 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
             Call zpotclmt (input%groundstate%ptnucl, &
            & input%groundstate%lmaxvr, nr(is), r(:, is), zn(is), &
            & lmmaxvr, zrhomt(:, :, ias), zvclmt(:, :, ias))
+            ias = idxas (ia, is)
          End Do
 !$OMP END DO
 !$OMP END PARALLEL
       End Do
+
+! add nuclear contributions
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+           vmad(ias)=zvclmt (1, 1,ias)*y00
+           If (zn(is) .Ne. 0.d0) Then
+             Call potnucl (input%groundstate%ptnucl, nr(is), r(:,is), zn(is), vn)
+             t1 = 1.d0 / y00
+             Do ir = 1, nr(is)
+               zvclmt (1, ir,ias) = zvclmt (1, ir,ias) + t1 * vn (ir)
+             End Do
+           End If
+         End Do
+      Enddo
+
+
 ! compute (R_mt)^l
       Do is = 1, nspecies
          rmtl (0, is) = 1.d0
@@ -161,8 +190,11 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
                   qmt (lm, ias) = t1 * zvclmt (lm, nr(is), ias)
                End Do
             End Do
+!            write(*,*) qmt (:, ias)
+!            write(*,*)
          End Do
       End Do
+
 ! Fourier transform density to G-space and store in zvclir
       zvclir (:) = zrhoir (:)
       Call zfftifc (3, ngrid,-1, zvclir)
@@ -171,6 +203,13 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(NONE) PRIVATE(qilocal,ig,ifg,zt1,t1,lm,t2,zt2,m,l,nthreads,whichthread,ithr) SHARED(input,gpc,sfacgp,zvclir,rmt,qi,ias,ngvec,is,ylmgp,jlgpr,zil,rmtl,igfft)
+            qilocal=0d0
+!$OMP DO    
+#else
+            qilocal=0d0
+#endif
             Do ig = 1, ngvec
                ifg = igfft (ig)
                If (gpc(ig) .Gt. input%structure%epslat) Then
@@ -182,17 +221,31 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
                      zt2 = t2 * zt1 * zil (l)
                      Do m = - l, l
                         lm = lm + 1
-                        qi (lm, ias) = qi (lm, ias) + zt2 * conjg &
-                       & (ylmgp(lm, ig))
+                        qilocal (lm) = qilocal (lm) + zt2 * conjg (ylmgp(lm, ig))
                      End Do
                   End Do
                Else
                   t1 = fourpi * y00 * rmtl (3, is) / 3.d0
-                  qi (1, ias) = qi (1, ias) + t1 * zvclir (ifg)
+                  qilocal (1) = qilocal (1) + t1 * zvclir (ifg)
                End If
             End Do
+#ifdef USEOMP
+!$OMP END DO
+            nthreads=omp_get_num_threads()
+            whichthread=omp_get_thread_num()
+            do ithr=0,nthreads-1
+              if (ithr.eq.whichthread) then
+                qi(:,ias)=qi(:,ias)+qilocal(:) 
+              endif
+!$OMP BARRIER
+            enddo
+!$OMP END PARALLEL
+#else
+            qi(:,ias)=qi(:,ias)+qilocal(:)
+#endif
          End Do
       End Do
+!      stop
 ! find the smooth pseudocharge within the muffin-tin whose multipoles are the
 ! difference between the real muffin-tin and interstitial multipoles
       Do is = 1, nspecies
@@ -209,7 +262,13 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
                   zrp (lm) = (qmt(lm, ias)-qi(lm, ias)) * t1
                End Do
             End Do
+!            write(*,*) zrp (:)
+!            write(*,*)
 ! add the pseudocharge and real interstitial densities in G-space
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(NONE) PRIVATE(ig,ifg,zt1,t1,t2,zsum,m,l,lm,t3) SHARED(input,gpc,zvclir,rmt,qi,ias,ngvec,is,ylmgp,jlgpr,zil,rmtl,igfft,zrp,fpo,sfacgp)
+!$OMP DO    
+#endif
             Do ig = 1, ngvec
                ifg = igfft (ig)
                If (gpc(ig) .Gt. input%structure%epslat) Then
@@ -224,19 +283,22 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
                         lm = lm + 1
                         zsum = zsum + zrp (lm) * ylmgp (lm, ig)
                      End Do
-                     t3 = jlgpr (input%groundstate%npsden+l+1, ig, is) &
-                    & / (t2*rmtl(l, is))
-                     zvclir (ifg) = zvclir (ifg) + t3 * zt1 * zsum * &
-                    & conjg (zil(l))
+                     t3 = jlgpr (input%groundstate%npsden+l+1, ig, is) / (t2*rmtl(l, is))
+                     zvclir (ifg) = zvclir (ifg) + t3 * zt1 * zsum * conjg (zil(l))
                   End Do
                Else
-                  t1 = fpo * y00 / factnm &
-                 & (2*input%groundstate%npsden+3, 2)
+                  t1 = fpo * y00 / factnm (2*input%groundstate%npsden+3, 2)
                   zvclir (ifg) = zvclir (ifg) + t1 * zrp (1)
                End If
             End Do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL 
+#endif
+
          End Do
       End Do
+
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)
@@ -265,6 +327,14 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 ! find the spherical harmonic expansion of the interstitial potential at the
 ! muffin-tin radius
             vilm (:) = 0.d0
+
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(NONE) PRIVATE(ig,ifg,zt1,zt2,zsum,m,l,lm,t3,qilocal,nthreads,whichthread,ithr) SHARED(input,zvclir,ias,ngvec,is,ylmgp,jlgpr,zil,rmtl,igfft,sfacgp,vilm)
+            qilocal=0d0
+!$OMP DO  
+#else
+            qilocal=0d0  
+#endif
             Do ig = 1, ngvec
                ifg = igfft (ig)
                zt1 = fourpi * zvclir (ifg) * sfacgp (ig, ias)
@@ -273,12 +343,31 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
                   zt2 = jlgpr (l, ig, is) * zt1 * zil (l)
                   Do m = - l, l
                      lm = lm + 1
-                     vilm (lm) = vilm (lm) + zt2 * conjg (ylmgp(lm, &
-                    & ig))
+                     qilocal (lm) = qilocal (lm) + zt2 * conjg (ylmgp(lm, ig))
+!                     vilm (lm) = vilm (lm) + zt2 * conjg (ylmgp(lm, ig))
                   End Do
                End Do
             End Do
+#ifdef USEOMP
+!$OMP END DO
+            nthreads=omp_get_num_threads()
+            whichthread=omp_get_thread_num()
+            do ithr=0,nthreads-1
+              if (ithr.eq.whichthread) then
+                vilm  = vilm +qilocal
+              endif
+!$OMP BARRIER
+            enddo
+!$OMP END PARALLEL 
+#else
+            vilm  = vilm +qilocal 
+#endif
+
 ! add homogenous solution
+
+            zt1 = vilm (1) - zvclmt (1, nr(is), ias)
+            vmad(ias)=vmad(ias)+zt1*rl(1,0)*y00
+
             lm = 0
             Do l = 0, input%groundstate%lmaxvr
                Do m = - l, l
@@ -294,6 +383,8 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       End Do
 ! Fourier transform interstitial potential to real-space
       Call zfftifc (3, ngrid, 1, zvclir)
+
+
       Return
 End Subroutine
 !EOC

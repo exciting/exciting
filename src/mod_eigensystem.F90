@@ -25,12 +25,28 @@ Module mod_eigensystem
       Real (8), Allocatable :: ololo (:, :, :)
 ! APW-APW Hamiltonian integrals
       Real (8), Allocatable :: haa (:, :, :, :, :, :)
+      Complex (8), Allocatable :: haaij(:,:,:)
+      integer haaijSize
 ! local-orbital-APW Hamiltonian integrals
       Real (8), Allocatable :: hloa (:, :, :, :, :)
+      Complex (8), Allocatable :: haloij(:,:,:)
+      integer, allocatable :: haloijSize(:)
 ! local-orbital-local-orbital Hamiltonian integrals
       Real (8), Allocatable :: hlolo (:, :, :, :)
+      Complex (8), Allocatable :: hloloij(:,:,:)
+! The stuff for the linearized Koelling-Harmon
+! APW-APW Hamiltonian integrals
+      Real (8), Allocatable :: h1aa (:, :, :, :)
+! local-orbital-APW Hamiltonian integrals
+      Real (8), Allocatable :: h1loa (:, :, :)
+! local-orbital-local-orbital Hamiltonian integrals
+      Real (8), Allocatable :: h1lolo (:, :, :)
+      logical h1on
 ! complex Gaunt coefficient array
-      Complex (8), Allocatable :: gntyry (:, :, :)
+      Complex (8), Allocatable :: gntyry (:, :, :),gntryy (:, :, :),gntnonz(:)
+! list of non-zero Gaunt coefficients
+      Integer, Allocatable :: gntnonzlm1(:),gntnonzlm2(:),gntnonzlm3(:),gntnonzlindex(:),gntnonzl2index(:,:)
+!gntnonzlist (:, :, :)
 ! tseqit is .true. if the first-variational secular equation is to be solved
 ! iteratively
       Logical :: tseqit
@@ -38,5 +54,7 @@ Module mod_eigensystem
       Integer :: nseqit
 ! iterative solver step length
       Real (8) :: tauseq
+! ARPACK seed vector
+      complex(8),allocatable :: arpackseed(:,:)
 End Module
 !

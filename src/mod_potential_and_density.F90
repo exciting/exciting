@@ -38,6 +38,8 @@ Module mod_potential_and_density
       Real (8), Allocatable :: magir (:, :)
 ! muffin-tin Coulomb potential
       Real (8), Allocatable :: vclmt (:, :, :)
+! Madulung potential (excluding the on-ste nuclear contribution) in the innermost radial point
+      Real (8), Allocatable :: vmad (:)
 ! interstitial real-space Coulomb potential
       Real (8), Allocatable :: vclir (:)
 ! order of polynomial for pseudocharge density
@@ -57,7 +59,7 @@ Module mod_potential_and_density
 ! interstitial effective potential
       Real (8), Allocatable :: veffir (:)
 ! G-space interstitial effective potential
-      Complex (8), Allocatable :: veffig (:)
+      Complex (8), Allocatable :: veffig (:),meffig (:), m2effig (:)
 ! muffin-tin exchange energy density
       Real (8), Allocatable :: exmt (:, :, :)
 ! interstitial real-space exchange energy density

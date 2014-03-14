@@ -76,6 +76,11 @@ subroutine scf_cycle(verbosity)
         time_pot_init=tin1-tin0
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Density and potential initialised from atomic data")')
     End If
+    Call genmeffig
+    If (rank .Eq. 0) then
+        write (60, *)
+        Call flushifc (60)
+    end if
     Call timesec (ts1)
     timeinit = timeinit+ts1-ts0
 
@@ -104,8 +109,10 @@ subroutine scf_cycle(verbosity)
 
 !___________________
 ! and call interface
-
+    iscl=0
+    Call packeff (.True., n, v)
     If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
+    Call packeff (.False., n, v)
     Call timesec (ts1)
     timemixer = ts1-ts0+timemixer
 
@@ -115,7 +122,7 @@ subroutine scf_cycle(verbosity)
     tlast = .False.
 ! set stop flag
     tstop = .False.
-    et = 0.d0
+    engytot = 0.d0
     fm = 0.d0
 
 ! delete any existing eigenvector files
@@ -126,7 +133,6 @@ subroutine scf_cycle(verbosity)
 !----------------------------------------!
 ! begin the self-consistent loop
 !----------------------------------------!
-    iscl = 0
     Do iscl = 1, input%groundstate%maxscl
 !
 ! exit self-consistent loop if last iteration is complete
@@ -168,20 +174,14 @@ subroutine scf_cycle(verbosity)
         Call timesec (ts0)
 
         if (input%groundstate%findlinentype .ne. "skip") then
-
             call gencore          ! generate the core wavefunctions and densities
-
             call linengy          ! find the new linearization energies
             if (rank==0) call writelinen
-        
             call genapwfr         ! generate the APW radial functions
-
-            call genlofr          ! generate the local-orbital radial functions
-
+            call genlofr(tlast)   ! generate the local-orbital radial functions
             call olprad           ! compute the overlap radial integrals
-
-            call hmlrad           ! compute the Hamiltonian radial integrals
-
+            Call hmlint
+!            call hmlrad           ! compute the Hamiltonian radial integrals
         end if
            
 !________________
@@ -216,9 +216,9 @@ subroutine scf_cycle(verbosity)
 
 ! begin parallel loop over k-points ------------------------------------------80
 #ifdef KSMP
-!$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(evalfv,evecfv,evecsv)
-!$OMP DO
+!!OMP PARALLEL DEFAULT(SHARED) &
+!!OMP PRIVATE(evalfv,evecfv,evecsv)
+!!OMP DO
 #endif
         Do ik = 1, nkpt
 #endif
@@ -239,6 +239,7 @@ subroutine scf_cycle(verbosity)
 ! solve the first- and second-variational secular equations
 
             Call seceqn (ik, evalfv, evecfv, evecsv)
+
             Call timesec(ts0)
 
 !______________________________________
@@ -254,9 +255,13 @@ subroutine scf_cycle(verbosity)
             if (input%groundstate%tpartcharges) call genpchgs(ik,evecfv,evecsv)
             Deallocate (evalfv, evecfv, evecsv)
         End Do
+        if (allocated(meffig)) deallocate(meffig)
+        if (allocated(m2effig)) deallocate(m2effig)
+
+
 #ifdef KSMP
-!$OMP END DO
-!$OMP END PARALLEL
+!!OMP END DO
+!!OMP END PARALLEL
 #endif
 ! end parallel loop over k-points --------------------------------------------80
 
@@ -280,28 +285,24 @@ subroutine scf_cycle(verbosity)
             magmt (:, :, :, :) = 0.d0
             magir (:, :) = 0.d0
         End If
+
+
 #ifdef MPIRHO
         Do ik = firstk (rank), lastk (rank)
 !write the occupancies to file
             Call putoccsv (ik, occsv(:, ik))
         End Do
         Do ik = firstk (rank), lastk (rank)
-#endif
-#ifndef MPIRHO
+#else
         If (rank .Eq. 0) Then
             Do ik = 1, nkpt
 !write the occupancies to file
                 Call putoccsv (ik, occsv(:, ik))
             End Do
         End If
-#ifdef KSMP
-! begin parallel loop over k-points
-!$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(evecfv,evecsv)
-!$OMP DO
-#endif
         Do ik = 1, nkpt
 #endif
+
             Allocate (evecfv(nmatmax, nstfv, nspnfv))
             Allocate (evecsv(nstsv, nstsv))
 ! get the eigenvectors from file
@@ -312,18 +313,16 @@ subroutine scf_cycle(verbosity)
             timeio=ts1-ts0+timeio
 ! add to the density and magnetisation
             Call rhovalk (ik, evecfv, evecsv)
+            Call genrhoir (ik, evecfv, evecsv)
             Deallocate (evecfv, evecsv)
             Call timesec(ts0)
         End Do
-#ifndef MPIRHO
-#ifdef KSMP
-!$OMP END DO
-!$OMP END PARALLEL
-#endif
-#endif
+
 #ifdef MPIRHO
         Call mpisumrhoandmag
 #endif
+
+
 #ifdef MPI
         If ((input%groundstate%xctypenumber.Lt.0).Or.(xctype(2).Ge.400).Or.(xctype(1).Ge.400)) &
        &    Call mpiresumeevecfiles()
@@ -374,7 +373,10 @@ subroutine scf_cycle(verbosity)
 ! compute the effective potential
         Call poteff
 ! pack interstitial and muffin-tin effective potential and field into one array
+!        write(*,*) n
         Call packeff (.True., n, v)
+!        write(*,*) n
+
 ! mix in the old potential and field with the new
         If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, nwork)
 #ifdef MPI
@@ -386,6 +388,7 @@ subroutine scf_cycle(verbosity)
         If (getfixspinnumber() .Ne. 0) Call fsmfield
 ! Fourier transform effective potential to G-space
         Call genveffig
+        Call genmeffig
 ! reduce the external magnetic fields if required
         If (associated(input%groundstate%spin)) Then
             If (input%groundstate%spin%reducebf .Lt. 1.d0) Then
@@ -401,6 +404,7 @@ subroutine scf_cycle(verbosity)
         End If
 
 ! compute the energy components
+        et=engytot
         Call energy
         Call timesec(ts1)
         timepot=ts1-ts0+timepot
@@ -526,7 +530,7 @@ subroutine scf_cycle(verbosity)
                 tlast = .True.
             End If
 
-            et = engytot
+!            et = engytot
             fm = forcemax
             
 ! check for STOP file

@@ -21,6 +21,7 @@ Subroutine init1
       Use modxs
 #endif
       Use modgw
+      use modfvsystem
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
 !   variables which depend on the $k$-point set.
@@ -34,7 +35,7 @@ Subroutine init1
       Integer :: ik, is, ia, ias, io, ilo
       Integer :: i1, i2, i3, ispn, iv (3)
       Integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3
-      Integer :: n1, n2, n3
+      Integer :: n1, n2, n3, nonzcount
       Real (8) :: vl (3), vc (3), boxl (3, 4), lambda
       Real (8) :: ts0, ts1
       real (8) :: vl1(3),vl2(3),vc1(3),vc2(3)
@@ -369,6 +370,9 @@ Subroutine init1
       Allocate (tpgkc(2, ngkmax, nspnfv, nkpt))
       If (allocated(sfacgk)) deallocate (sfacgk)
       Allocate (sfacgk(ngkmax, natmtot, nspnfv, nkpt))
+!      If (allocated(igkfft)) deallocate (igkfft)
+!      Allocate (igkfft(ngkmax, nkpt))
+!      igkfft=0
       Do ik = 1, nkpt
          Do ispn = 1, nspnfv
             If (isspinspiral()) Then
@@ -387,6 +391,10 @@ Subroutine init1
                vc (:) = vkc (:, ik)
             End If
 ! generate the G+k-vectors
+! commented and uncommented versions differ by igkfft(:,ik)
+!            Call gengpvec (vl, vc, ngk(ispn, ik), igkig(:, ispn, ik), &
+!           & vgkl(:, :, ispn, ik), vgkc(:, :, ispn, ik), gkc(:, ispn, &
+!           & ik), tpgkc(:, :, ispn, ik),igkfft(:,ik))
             Call gengpvec (vl, vc, ngk(ispn, ik), igkig(:, ispn, ik), &
            & vgkl(:, :, ispn, ik), vgkc(:, :, ispn, ik), gkc(:, ispn, &
            & ik), tpgkc(:, :, ispn, ik))
@@ -507,38 +515,86 @@ Subroutine init1
       Allocate (oalo(apwordmax, nlomax, natmtot))
       If (allocated(ololo)) deallocate (ololo)
       Allocate (ololo(nlomax, nlomax, natmtot))
-      If (allocated(haa)) deallocate (haa)
-      Allocate (haa(apwordmax, 0:input%groundstate%lmaxmat, apwordmax, &
-     & 0:input%groundstate%lmaxapw, lmmaxvr, natmtot))
-      If (allocated(hloa)) deallocate (hloa)
-      Allocate (hloa(nlomax, apwordmax, 0:input%groundstate%lmaxmat, &
-     & lmmaxvr, natmtot))
-      If (allocated(hlolo)) deallocate (hlolo)
-      Allocate (hlolo(nlomax, nlomax, lmmaxvr, natmtot))
+
+!      if (input%groundstate%ValenceRelativity.eq.'lkh') then
+        If (allocated(h1aa)) deallocate (h1aa)
+        Allocate (h1aa(apwordmax, apwordmax,0:input%groundstate%lmaxapw,natmtot))
+        If (allocated(h1loa)) deallocate (h1loa)
+        Allocate (h1loa(apwordmax,nlomax,natmtot))
+        If (allocated(h1lolo)) deallocate (h1lolo)
+        Allocate (h1lolo(nlomax, nlomax, natmtot))
+!      endif
 ! allocate and generate complex Gaunt coefficient array
       If (allocated(gntyry)) deallocate (gntyry)
       Allocate (gntyry(lmmaxmat, lmmaxvr, lmmaxapw))
+      nonzcount=0
       Do l1 = 0, input%groundstate%lmaxmat
          Do m1 = - l1, l1
             lm1 = idxlm (l1, m1)
             Do l2 = 0, input%groundstate%lmaxvr
                Do m2 = - l2, l2
                   lm2 = idxlm (l2, m2)
-                  Do l3 = 0, input%groundstate%lmaxapw
+                  Do l3 = 0, input%groundstate%lmaxmat
                      Do m3 = - l3, l3
                         lm3 = idxlm (l3, m3)
-                        gntyry (lm1, lm2, lm3) = gauntyry (l1, l2, l3, &
-                       & m1, m2, m3)
+                        gntyry (lm1, lm2, lm3) = gauntyry (l1, l2, l3, m1, m2, m3)
+                        if ((abs(gntyry (lm1, lm2, lm3)).gt.1d-20)) nonzcount=nonzcount+1
                      End Do
                   End Do
                End Do
             End Do
          End Do
       End Do
+      If (allocated(gntryy)) deallocate (gntryy)
+      If (allocated(gntnonz)) deallocate (gntnonz)
+      If (allocated(gntnonzlm1)) deallocate (gntnonzlm1) 
+      If (allocated(gntnonzlm2)) deallocate (gntnonzlm2)
+      If (allocated(gntnonzlm3)) deallocate (gntnonzlm3)
+      If (allocated(gntnonzlindex)) deallocate (gntnonzlindex)
+      If (allocated(gntnonzl2index)) deallocate (gntnonzl2index)
+      Allocate (gntryy(lmmaxvr, lmmaxmat, lmmaxmat))
+      allocate(gntnonz(nonzcount),gntnonzlm1(nonzcount+1),gntnonzlm2(nonzcount),gntnonzlm3(nonzcount+1))
+      allocate(gntnonzlindex(0:input%groundstate%lmaxmat))
+      allocate(gntnonzl2index(lmmaxmat,lmmaxmat))
+      i1=0
+      Do l1 = 0, input%groundstate%lmaxmat
+         gntnonzlindex(l1)=i1+1
+         Do m1 = - l1, l1
+            lm1 = idxlm (l1, m1)
+                  Do l3 = 0, input%groundstate%lmaxmat
+!                     if (lm1.eq.idxlm (l1,-l1)) gntnonzl2index(l1,l3)=i1+1
+                     Do m3 = - l3, l3
+                       lm3 = idxlm (l3, m3)
+                       gntnonzl2index(lm1,lm3)=i1+1
+
+            Do l2 = 0, input%groundstate%lmaxvr
+               Do m2 = - l2, l2
+                  lm2 = idxlm (l2, m2)
+                        gntryy (lm2, lm3, lm1) = gauntyry (l1, l2, l3, m1, m2, m3)
+                        if ((abs(gntryy (lm2, lm3, lm1)).gt.1d-20)) then
+!.and.(lm1 .Ge. lm3)) then
+!                          write(*,*) lm1,lm2,lm3
+!                          read(*,*)
+
+                           i1=i1+1
+                           gntnonz(i1)=gntryy(lm2, lm3, lm1)
+                           gntnonzlm1(i1)=lm1
+                           gntnonzlm3(i1)=lm3
+                           gntnonzlm2(i1)=lm2
+                        endif
+                     End Do
+                  End Do
+               End Do
+            End Do
+         End Do
+      End Do
+      gntnonzlm3(nonzcount+1)=0
+      gntnonzlm1(nonzcount+1)=0
 #ifdef XS
 20    Continue
 #endif
 !
+      nullify(arpackinverse)
       Call timesec (ts1)
 !
       Return

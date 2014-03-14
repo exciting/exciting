@@ -45,7 +45,9 @@ Subroutine effmass
 ! compute the overlap radial integrals
       Call olprad
 ! compute the Hamiltonian radial integrals
-      Call hmlrad
+      Call hmlint
+! compute "relativistic mass" on the G-grid
+      Call genmeffig
       ik0 = 0
 ! begin parallel loop over k-points
 !$OMP PARALLEL DEFAULT(SHARED) &
@@ -73,6 +75,8 @@ Subroutine effmass
       End Do
 !$OMP END DO
 !$OMP END PARALLEL
+      if (allocated(meffig)) deallocate(meffig)
+      if (allocated(m2effig)) deallocate(m2effig)
 ! set up polynomial matrix
       i = 0
       Do i3 = - input%properties%masstensor%ndspem, &

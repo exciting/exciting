@@ -205,7 +205,7 @@ Subroutine gndstate
 !! TIME - End of fifth IO segment
     Call timesec(tsg1)
 
-    If ((rank .Eq. 0).and.(input%groundstate%outputlevelnumber>1)) then
+    If (rank .Eq. 0) then
         write(string,'("Timings (seconds)")') 
         call printbox(60,"-",string)
         Write (60, '(" initialisation", T45, ": ", F12.2)') timeinit

@@ -10,7 +10,7 @@
 ! !INTERFACE:
 !
 !
-Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
+Subroutine rkhint (m, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   l   : angular momentum quantum number (in,integer)
@@ -61,11 +61,11 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
       Real (8), Intent (In) :: vr (nr)
       Integer, Intent (Out) :: nn
       Real (8), Intent (In) :: p0p (nr)
+      Real (8), Intent (In) :: q0p (nr)
       Real (8), Intent (Out) :: p0 (nr)
       Real (8), Intent (Out) :: p1 (nr)
       Real (8), Intent (Out) :: q0 (nr)
       Real (8), Intent (Out) :: q1 (nr)
-      Real (8), Intent (In) :: rmfactor
 ! local variables
       Integer :: ir, ir0, iter,itmax,step
       parameter (itmax=32)
@@ -78,13 +78,10 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
 ! temporary stuff
       Real (8) :: A,B1,B2,CC,t3,det,detp,detq,rmult
       real (8) :: cf(4,nr),rvr(nr),r1,r2,vr2,p0old,q0old,p1old,q1old,logBA
-      real (8) :: pcf(4,nr),p00p,ttt(itmax,itmax)
-! external functions
-      Real (8) :: polynom
-      External polynom
+      real (8) :: pcf(4,nr),qcf(4,nr),p00p,q00p,ttt(itmax,itmax)
 ! estimate r -> 0 boundary values
        p00p=0d0
-!      write(*,*) m,l,e
+       q00p=0d0
 !      itmax=32
       
 !      write(*,*) 
@@ -109,17 +106,20 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
       call spline4(nr,r,1,rvr,cf)
       If (m .Ne. 0) Then
          call spline4(nr,r,1,p0p,pcf)
+         call spline4(nr,r,1,q0p,qcf)
       endif
 
 
 
       p1 (1) = 1.d0
+      rm = 1.d0 + 0.5d0 * (alpha**2) * (e - vr(1))
       If (m .Ne. 0) Then      
-       q1 (1) = - dble (m) * p0p (1)
+! m=1
+       q1 (1) = - p0p (1)*(1d0+(alpha**2)*dble (l*(l+1))) / (4.d0*(rm*r(1))**2)
       else
        q1 (1) = 0d0
       endif
-      rm = 1.d0 - 0.5d0 * (alpha**2) * vr(1)*rmfactor
+!      rm = 1.d0 + 0.5d0 * (alpha**2) * (e - vr(1))
       t1 = dble (l*(l+1)) / (2.d0*rm*r(1)**2)
 
       A=1d0/r(1)
@@ -133,8 +133,16 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
 !      write(*,*) detp/det,detq/det
 
 
+!      If (m .Ne. 0) Then
+!         q1 (1) = q1 (1) - dble (m) * p0p (1)
+!      End If
       nn = 0
       Do ir = 2, nr
+!         rm = 1.d0 + 0.5d0 * (alpha**2) * (energyref - vr (ir))*rmfactor
+!         ri = 1.d0 / r (ir)
+!         t1 = dble (l*(l+1)) / (2.d0*rm*r(ir)**2)
+!         t2 = t1 + vr (ir) - e
+! predictor-corrector order
 
 
       logBA=log(r(ir)/r(ir-1))
@@ -157,7 +165,7 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
 !            vr2=vr2/(r2*r2) 
              vr2=vr2/r2
 !            vr2=(vr(ir)*r(ir)*(r2-r(ir-1))+vr(ir-1)*r(ir-1)*(r(ir)-r2))/(r2*(r(ir)-r(ir-1)))
-            rm = 1.d0 - 0.5d0 * (alpha**2) * vr2 *rmfactor
+            rm = 1.d0 + 0.5d0 * (alpha**2) * (e - vr2) 
             t1 = dble (l*(l+1)) / (2.d0*rm*r2**2)
             t2 = t1 + vr2 - e
             A=-(r2-r1)*0.5d0
@@ -165,7 +173,11 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
             tmp2=q0old+q1old*(r2-r1)*0.5d0
             If (m .Ne. 0) Then
               p00p=p0p(ir-1)+(r2-r(ir-1))*(pcf(1,ir-1)+(r2-r(ir-1))*(pcf(2,ir-1)+(r2-r(ir-1))*pcf(3,ir-1)))
-              tmp2=tmp2 + A*dble (m) * p00p
+              q00p=q0p(ir-1)+(r2-r(ir-1))*(qcf(1,ir-1)+(r2-r(ir-1))*(qcf(2,ir-1)+(r2-r(ir-1))*qcf(3,ir-1)))
+! Assuming m=1
+              tmp1=tmp1 - A*q00p*(alpha**2)
+              tmp2=tmp2 + A*p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm*r2)**2))
+              
             End If
 
           B1=-2.d0*rm
@@ -178,8 +190,9 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
           detq=tmp1*A*B2+tmp2*(1d0-A*CC)
           p0old=detp/det
           q0old=detq/det
-          p1old = -B1*q0old - CC*p0old
-          q1old = -B2*p0old + CC*q0old-dble (m) * p00p
+          p1old = -B1*q0old - CC*p0old+ q00p*(alpha**2)
+!m=1
+          q1old = -B2*p0old + CC*q0old- p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm*r2)**2))
          enddo
          pest(itmax-step+1)=p0old
          qest(itmax-step+1)=q0old
@@ -194,10 +207,11 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
 !         write(*,*) step,pest(itmax)
          step=step+1
         enddo
+        rm = 1.d0 + 0.5d0 * (alpha**2) * (e - vr(ir))
         p0(ir)=pest(itmax)
         q0(ir)=qest(itmax)
-        p1(ir) = -B1*q0(ir) - CC*p0(ir)
-        q1(ir) = -B2*p0(ir) + CC*q0(ir)-dble (m) * p00p
+        p1(ir) = -B1*q0(ir) - CC*p0(ir)+ q00p*(alpha**2)
+        q1(ir) = -B2*p0(ir) + CC*q0(ir)- p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm*r(ir))**2))
 !          p1old = -B1*q0old - CC*p0old
 !          q1old = -B2*p0old + CC*q0old-dble (m) * p00p
 
@@ -232,7 +246,7 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
             vr2=vr2/r2
 !            vr2=vr2/(r2*r2)
 !            vr2=(vr(ir)*r(ir)*(r2-r(ir-1))+vr(ir-1)*r(ir-1)*(r(ir)-r2))/(r2*(r(ir)-r(ir-1)))
-            rm = 1.d0 - 0.5d0 * (alpha**2) * vr2*rmfactor
+            rm = 1.d0 + 0.5d0 * (alpha**2) * (e-vr2)
             t1 = dble (l*(l+1)) / (2.d0*rm*r2**2)
             t2 = t1 + vr2 - e
 
@@ -241,7 +255,10 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
             tmp2=q0old+q1old*(r2-r1)*0.5d0
             If (m .Ne. 0) Then
               p00p=p0p(ir-1)+(r2-r(ir-1))*(pcf(1,ir-1)+(r2-r(ir-1))*(pcf(2,ir-1)+(r2-r(ir-1))*pcf(3,ir-1)))
-              tmp2=tmp2 + A*dble (m) * p00p
+              q00p=q0p(ir-1)+(r2-r(ir-1))*(qcf(1,ir-1)+(r2-r(ir-1))*(qcf(2,ir-1)+(r2-r(ir-1))*qcf(3,ir-1)))
+! Assuming m=1
+              tmp1=tmp1 - A*q00p*(alpha**2)
+              tmp2=tmp2 + A*p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm*r2)**2))
             End If
 
           B1=-2.d0*rm
@@ -254,8 +271,8 @@ Subroutine rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
           detq=tmp1*A*B2+tmp2*(1d0-A*CC)
           p0old=detp/det
           q0old=detq/det
-          p1old = -B1*q0old - CC*p0old
-          q1old = -B2*p0old + CC*q0old-dble (m) * p00p
+          p1old = -B1*q0old - CC*p0old+q00p*(alpha**2)
+          q1old = -B2*p0old + CC*q0old-p00p*(1d0+(alpha**2)*dble (l*(l+1)) / (4.d0*(rm*r2)**2))
 
          enddo
 !         write(*,*)

@@ -65,8 +65,7 @@ Subroutine mixadapt (iscl, beta0, betainc, betadec, n, nu, mu, beta, f, &
       End Do
       d = Sqrt (d/dble(n))
 !
-!
-      If (iscl .Le. 1) Then
+      If (iscl .Lt. 1) Then
          mu (:) = nu (:)
          f (:) = 0.d0
          beta (:) = beta0

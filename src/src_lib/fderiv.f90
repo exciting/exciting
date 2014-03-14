@@ -41,6 +41,7 @@ Subroutine fderiv (m, n, x, f, g, cf)
 ! local variables
       Integer :: i
       Real (8) :: dx
+!      Real (8):: cf2 (4, n)
       If (n .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(fderiv): invalid number of points : ", I8)') n
@@ -57,6 +58,8 @@ Subroutine fderiv (m, n, x, f, g, cf)
       End If
 ! high accuracy (anti-)derivatives from a clamped spline fit to the data
       Call spline (n, x, 1, f, cf)
+!      call spline4(n, x, 1, f, cf2)
+!      cf(1:3,:)=cf2(1:3,:)
       Select Case (m)
       Case (:-1)
          g (1) = 0.d0

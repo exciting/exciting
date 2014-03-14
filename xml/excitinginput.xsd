@@ -847,10 +847,69 @@ gw.xsd
                   solver</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="ArpackLinSolve" default="LDL">
+              <xs:annotation>
+                <xs:documentation> 
+                    Linear solve method during shift-and-invert process in ARPACK.
+                    Pick either LDL, LU, LL, Diag and InvertOnce.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="LDL"/>
+                  <xs:enumeration value="LL"/>
+                  <xs:enumeration value="LU"/>
+                  <xs:enumeration value="Diag"/>
+                  <xs:enumeration value="InvertOnce"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="DecompPrec" type="xs:string" default="dp">
+              <xs:annotation>
+                <xs:documentation>
+                   Precision used during the factorization in ARPACK.
+                   Pick either sp or dp.
+                </xs:documentation>
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:enumeration value="sp"/>
+                    <xs:enumeration value="dp"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="ArpackImproveInverse" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  Tells whether iterative improvement should be applied during the shift-and-invert procedure.
+                  Setting to true may be useful, for instance, when DecompPrec is set to "sp".
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="evaltol" type="fortrandouble" default="1.0d-8">
               <xs:annotation>
                 <xs:documentation>Error tolerance for the first-variational eigenvalues using the
                   LAPACK Solver</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="ArpackUserDefinedShift" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  ArpackShift will be used if this flag is set to true, otherwise the energy shift will be determined internally.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="ArpackShift" type="fortrandouble" default="-1.0d0">
+              <xs:annotation>
+                <xs:documentation>
+                  Energy shift in the shift-and-invert procedure in the ARPACK solver. 
+                </xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
@@ -2647,6 +2706,18 @@ gw.xsd
             are set to the Fermi level plus <attref>dlinengyfermi</attref>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="modifiedsv" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation> If <pre>"true"</pre>, the construction of the second-variational 
+            hamiltonian involves wavefunctions in the basis representation and wavefunctions
+            are not evaluated explicitly. Otherwise, the usual second-variational procedure 
+            is used. The first of the two approaches is generally recommended, but it is not
+            implemented for non-collinear and LDA+U calculations.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
       <xs:attribute ex:importance="expert" ex:unit="" name="isgkmax" type="xs:integer" default="-1">
         <xs:annotation>
           <xs:documentation>Species for which the muffin-tin radius will be used for calculating
@@ -2857,6 +2928,21 @@ gw.xsd
       <xs:attribute ex:importance="expert" ex:unit="" name="mixerswitch" type="xs:integer" default="1">
         <xs:annotation>
           <xs:documentation>Switch between potential (1) and density (2) mixing.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="msecStoredSteps" type="xs:integer" default="8">
+        <xs:annotation>
+          <xs:documentation> How many potentials from previous steps to store. 
+           Used in msec mixing as choosen with <attref>mixer</attref>.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="PrelimLinSteps" type="xs:integer" default="2">
+        <xs:annotation>
+          <xs:documentation> After which SCF iteration is msec mixing supposed to be turned on.
+           Until then linear mixing is applied.
+           Used in msec mixing as choosen with <attref>mixer</attref>.
+          </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="beta0" type="fortrandouble" default="0.4d0">
@@ -3098,19 +3184,23 @@ gw.xsd
 
             <xs:attribute ex:importance="expert" ex:unit="" name="ValenceRelativity" default="scalar">
               <xs:annotation>
-                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for valence electrons. Pick either "scalar" or "none".
+                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for valence electrons. Pick either "scalar", "none" or "kh".
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="scalar"/>
+                  <xs:enumeration value="kh"/>
+                  <xs:enumeration value="khs"/>
+                  <xs:enumeration value="lkh"/>
+                  <xs:enumeration value="lkhs"/>
                   <xs:enumeration value="none"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="CoreRelativity" default="dirac">
               <xs:annotation>
-                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for core electrons. Pick either "dirac" or "sameasvalence".
+                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for core electrons. Pick either "dirac" or "none".
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
@@ -3120,6 +3210,23 @@ gw.xsd
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="energyref" type="fortrandouble" default="0.0d0">
+        <xs:annotation>
+          <xs:documentation> Energy reference <inlinemath>\varepsilon_\textrm{ref}</inlinemath> 
+                             for the scalar-relativistic ZORA. It enters the kinetic energy expression 
+                             <inlinemath>T=\mathbf{p}\frac{c^2}{2c^2+\varepsilon-v(\mathbf{r})}\mathbf{p}</inlinemath>.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="SymmetricKineticEnergy" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation> If <pre>"true"</pre>, the kinetic-energy matrix elements of muffin-tin functions are calculated by applying gradient to both bra and ket.
+           Otherwise, the whole kinetic-energy operator is applied to ket only, and the surface-term correction is applied to make the hamiltonian hermitian.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
 
 
       <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d" default="0.0d0 0.0d0 0.0d0">
@@ -3129,7 +3236,7 @@ gw.xsd
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="npsden" type="xs:integer" default="9">
         <xs:annotation>
-          <xs:documentation>oOrder of polynomial for pseudo-charge density.</xs:documentation>
+          <xs:documentation>Order of polynomial for pseudo-charge density.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="cfdamp" type="fortrandouble" default="0.0d0">

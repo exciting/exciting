@@ -412,6 +412,8 @@ Subroutine init0
       Allocate (vclmt(lmmaxvr, nrmtmax, natmtot))
       If (allocated(vclir)) deallocate (vclir)
       Allocate (vclir(ngrtot))
+      If (allocated(vmad)) deallocate (vmad)
+      Allocate (vmad(natmtot))
 ! exchange-correlation potential
       If (allocated(vxcmt)) deallocate (vxcmt)
       Allocate (vxcmt(lmmaxvr, nrmtmax, natmtot))
@@ -437,10 +439,15 @@ Subroutine init0
 ! effective potential
       If (allocated(veffmt)) deallocate (veffmt)
       Allocate (veffmt(lmmaxvr, nrmtmax, natmtot))
+!      If (allocated(vrefmt)) deallocate (vrefmt)
+!      Allocate (vrefmt(lmmaxvr, nrmtmax, natmtot))
+
       If (allocated(veffir)) deallocate (veffir)
       Allocate (veffir(ngrtot))
       If (allocated(veffig)) deallocate (veffig)
       Allocate (veffig(ngvec))
+!      If (allocated(vrefig)) deallocate (vrefig)
+!      Allocate (vrefig(ngvec))
 ! allocate muffin-tin charge and moment arrays
       If (allocated(chgmt)) deallocate (chgmt)
       Allocate (chgmt(natmtot))

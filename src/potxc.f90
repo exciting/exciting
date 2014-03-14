@@ -26,7 +26,7 @@ implicit none
 ! local variables
 integer is,ia,ias
 integer n,nr,ir,idm,i
-real(8) bext(3),t1,t2,t3,t4
+real(8) bext(3),t1,t2,t3,t4,ta,tb
 ! allocatable arrays
 real(8), allocatable :: rho(:),rhoup(:),rhodn(:)
 real(8), allocatable :: gvrho(:),gvup(:),gvdn(:)
@@ -310,7 +310,6 @@ if (associated(input%groundstate%spin)) then
 else
 
 
- !stop
   deallocate(vx,vc)
   if (xcgrad.eq.1) then
     deallocate(grho,g2rho,g3rho)

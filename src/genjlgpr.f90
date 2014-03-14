@@ -17,10 +17,19 @@ Subroutine genjlgpr (lmax, gpc, jlgpr)
       Integer :: is, ig
       Real (8) :: t1
       Do is = 1, nspecies
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(NONE) SHARED(ngvec,gpc,rmt,lmax,jlgpr,is) PRIVATE(ig,t1)
+!$OMP DO
+#endif
          Do ig = 1, ngvec
             t1 = gpc (ig) * rmt (is)
             Call sbessel (lmax, t1, jlgpr(:, ig, is))
          End Do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL 
+#endif
+
       End Do
       Return
 End Subroutine

@@ -47,6 +47,7 @@ Subroutine gridsize
 ! determine integer ranges for grid
       intgv (:, 1) = ngrid (:) / 2 - ngrid (:) + 1
       intgv (:, 2) = ngrid (:) / 2
+
       Return
 End Subroutine
 !EOC

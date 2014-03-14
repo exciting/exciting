@@ -24,14 +24,17 @@ Subroutine poteff
       Implicit None
 ! local variables
       Integer :: is, ia, ias, ir, lm, lmmax
-      Real (8) :: ts0, ts1
+      real (8) :: shift
+      Real (8) :: ts0, ts1, ta, tb
       Call timesec (ts0)
-! compute the Coulomb potential
-      Call potcoul
 ! compute the exchange-correlation potential
       Call potxc
+! compute the Coulomb potential
+      Call potcoul
+      shift=input%groundstate%energyref
 ! add Coulomb and exchange-correlation potentials together
 ! muffin-tin part
+      vclmt (1, :, :)=vclmt (1, :, :)+shift/y00
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
@@ -39,8 +42,7 @@ Subroutine poteff
             Do ir = 1, nrmt (is)
                If (ir .Gt. nrmtinr(is)) lmmax = lmmaxvr
                Do lm = 1, lmmax
-                  veffmt (lm, ir, ias) = vclmt (lm, ir, ias) + vxcmt &
-                 & (lm, ir, ias)
+                  veffmt (lm, ir, ias) = vclmt (lm, ir, ias) + vxcmt (lm, ir, ias)
                End Do
                Do lm = lmmax + 1, lmmaxvr
                   veffmt (lm, ir, ias) = 0.d0
@@ -49,9 +51,10 @@ Subroutine poteff
          End Do
       End Do
 ! interstitial part
-      veffir (:) = vclir (:) + vxcir (:)
+      vclir (:) = vclir (:) + shift
+      veffir (:) = vclir (:) + vxcir (:) 
       Call timesec (ts1)
-!      timepot = timepot + ts1 - ts0
+      timepot = timepot + ts1 - ts0
       Return
 End Subroutine
 !EOC

@@ -50,27 +50,41 @@ Subroutine hmlistln (hamilton, ngp, igpig, vgpc)
       Integer :: i, j, k, ig, iv (3)
       Real (8) :: t1
       Complex (8) zt1
+      Real(8) :: alpha,a2
+      Parameter (alpha=1d0 / 137.03599911d0, a2=0.5d0*alpha**2)
 !
 ! calculate the matrix elements
 !#$omp parallel default(shared) &
 !#$omp shared(h) private(iv,ig,t1,i,j)
 !#$omp do
+
+    if (input%groundstate%ValenceRelativity.ne."none") then
       Do j = 1, ngp
-    !k=((j-1)*j)/2
          Do i = 1, j
-      !k=k+1
             iv (:) = ivg (:, igpig(i)) - ivg (:, igpig(j))
             ig = ivgig (iv(1), iv(2), iv(3))
             If ((ig .Gt. 0) .And. (ig .Le. ngvec)) Then
                t1 = 0.5d0 * dot_product (vgpc(:, i), vgpc(:, j))
-       !h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
-               zt = veffig (ig) + t1 * cfunig (ig)
-         !  h(k)=h(k)+zt
-!
+               zt = veffig (ig) + t1 * meffig(ig)
                Call Hermitianmatrix_indexedupdate (hamilton, j, i, zt)
             End If
          End Do
       End Do
+ else
+      Do j = 1, ngp
+         Do i = 1, j
+            iv (:) = ivg (:, igpig(i)) - ivg (:, igpig(j))
+            ig = ivgig (iv(1), iv(2), iv(3))
+            If ((ig .Gt. 0) .And. (ig .Le. ngvec)) Then
+               t1 = 0.5d0 * dot_product (vgpc(:, i), vgpc(:, j))
+               zt = veffig (ig) + t1 * cfunig (ig)
+               Call Hermitianmatrix_indexedupdate (hamilton, j, i, zt)
+            End If
+         End Do
+      End Do
+
+endif
+
 !#$omp end do
 !#$omp end parallel
 !

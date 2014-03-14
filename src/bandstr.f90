@@ -133,9 +133,12 @@ Subroutine bandstr
   ! compute the overlap radial integrals
   Call olprad
   ! compute the Hamiltonian radial integrals
-  Call hmlrad
-  emin = 1.d5
-  emax = - 1.d5
+        Call hmlint
+  ! compute "relativistic mass"
+      Call genmeffig
+      emin = 1.d5
+      emax = - 1.d5
+
   ! begin parallel loop over k-points
 
 #ifdef MPI
@@ -222,6 +225,8 @@ Subroutine bandstr
      !$OMP END DO
      !$OMP END PARALLEL
 #endif
+      if (allocated(meffig)) deallocate(meffig)
+      if (allocated(m2effig)) deallocate(m2effig)
      emax = emax + (emax-emin) * 0.5d0
      emin = emin - (emax-emin) * 0.5d0
 

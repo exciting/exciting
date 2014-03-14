@@ -11,6 +11,7 @@
 !
 !
 Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
+use modinput
 ! !INPUT/OUTPUT PARAMETERS:
 !   m    : energy-derivative order (in,integer)
 !   n    : principal quantum number (in,integer)
@@ -54,9 +55,11 @@ Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
       real(8) ::e_hi,e_lo
 ! energy convergence tolerance
       Real (8), Parameter :: eps = 1.d-10
-      Real (8) :: t1, de, step_e
+      Real (8) :: t1, de, step_e,rm,rm0
       Real (8) :: large
       parameter (large=1d100)
+      Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
+
 ! automatic arrays
       Real (8) :: g1 (nr), f1 (nr), fr (nr), gr (nr), cf (3, nr),g0p(nr),f0p(nr),g1p(nr),f1p(nr)
   
@@ -120,7 +123,7 @@ Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
             eval=(e_lo+e_hi)*0.5d0
           endif
         elseif (nn.gt.n-l) then
-!           write(*,*) e_lo,e_hi,nn
+!            write(*,*) e_lo,e_hi,nn
 !          if (e_hi.gt.eval) then
             e_hi=eval
 !          endif
@@ -145,7 +148,7 @@ Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
           enddo
           maxr=ir
           de=-g0(maxr)/g0p(maxr)
-!          write(*,*) (nn.eq.n-l-1),de
+ !         write(*,*) (nn.eq.n-l-1),de
           if (nn.eq.n-l-1) then
              e_lo=eval
              if ((de.gt.0d0).and.(abs(de).lt.1d-1)) then
@@ -241,6 +244,22 @@ Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
         Do ir = 1, nr
           fr (ir) = g0 (ir) ** 2 + f0 (ir) ** 2
         End Do
+      elseif (input%groundstate%ValenceRelativity.eq."khs") then
+        
+        Do ir = 1, nr
+!          rm=1d0/(1d0-0.5d0*alpha**2*vr(ir))
+          fr (ir) = g0 (ir) ** 2 + (f0 (ir)*alpha) ** 2
+        End Do
+      elseif (input%groundstate%ValenceRelativity.eq."lkhs") then        
+        Do ir = 1, nr
+          rm0 = 1.d0 - 0.5d0 * (alpha**2) *  vr(ir)
+          rm = rm0/(1d0 - 0.5d0*eval*(alpha**2)/rm0)
+          fr (ir) = g0 (ir) ** 2 + (f0 (ir)*alpha*rm/rm0) ** 2
+!          fr (ir) = g0 (ir) ** 2 + (f0 (ir)*alpha) ** 2
+
+!          rm=1d0/(1d0-0.5d0*alpha**2*vr(ir))
+!          fr (ir) = g0 (ir) ** 2 + (0.5d0*g1 (ir)*rm*alpha) ** 2
+        End Do
       else
         Do ir = 1, nr
           fr (ir) = g0 (ir) ** 2 
@@ -251,17 +270,28 @@ Subroutine rdirac (m, n, l, k, nr, r, vr, eval, g0, f0,dirac_eq,sloppy)
       If (t1 .Gt. 0.d0) Then
          t1 = 1.d0 / t1
       Else
-!         write(*,*) t1
-!         do ir=1,nr
-!           write(*,*) ir,g0(ir)
-!         enddo 
          Write (*,*)
          Write (*, '("Error(rdirac): zero wavefunction")')
          Write (*,*)
          Stop
       End If
       g0 (:) = t1 * g0 (:)
-      f0 (:) = t1 * f0 (:)
+      if (dirac_eq) then
+        f0 (:) = t1 * f0 (:)
+      elseif (input%groundstate%ValenceRelativity.eq."khs") then
+        f0 (:) = t1 * f0 (:)*alpha
+      elseif (input%groundstate%ValenceRelativity.eq."lkhs") then
+        Do ir = 1, nr
+!          rm=1d0/(1d0-0.5d0*alpha**2*vr(ir)) 
+!          f0 (ir) = t1 * 0.5d0 * g1 (ir) * rm * alpha 
+          rm0 = 1.d0 - 0.5d0 * (alpha**2) *  vr(ir)
+          rm = rm0/(1d0 - 0.5d0*eval*(alpha**2)/rm0)
+          f0 (ir) = t1 * f0 (ir) * rm * alpha/rm0
+!          f0 (ir) = t1 * f0 (ir) * alpha
+!          fr (ir) = g0 (ir) ** 2 + (f0 (ir)*alpha*rm/rm0) ** 2
+
+        enddo
+      endif
       Return
 End Subroutine
 !EOC

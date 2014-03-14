@@ -44,6 +44,7 @@ Subroutine sbessel (lmax, x, jl)
       Real (8), Parameter :: rsc = 1.d150
       Real (8), Parameter :: rsci = 1.d0 / rsc
       Real (8) :: xi, j0, j1, jt, t1, t2
+      Real (8) ::cs,sn 
       If ((lmax .Lt. 0) .Or. (lmax .Gt. 50)) Then
          Write (*,*)
          Write (*, '("Error(sbessel): lmax out of range : ", I8)') lmax
@@ -105,14 +106,32 @@ Subroutine sbessel (lmax, x, jl)
             jl (l) = j1
          End Do
 ! rescaling constant
+#ifdef MKLa
+! vml routines
+         call vdCos(1,x,cs)
+         call vdSin(1,x,sn)
+         t1 = 1.d0 / ((jl(0)-x*jl(1))*cs+x*jl(0)*sn)
+#else
          t1 = 1.d0 / ((jl(0)-x*jl(1))*Cos(x)+x*jl(0)*Sin(x))
+#endif
          jl (:) = t1 * jl (:)
          Return
       Else
 ! for large x recurse up
+#ifdef MKLa
+         call vdSin(1,x,sn)
+         jl (0) = sn * xi
+#else
          jl (0) = Sin (x) * xi
+#endif
          If (lmax .Eq. 0) Return
+
+#ifdef MKLa
+         call vdCos(1,x,cs)
+         jl (1) = (jl(0)-cs) * xi
+#else
          jl (1) = (jl(0)-Cos(x)) * xi
+#endif
          If (lmax .Eq. 1) Return
          j0 = jl (0)
          j1 = jl (1)

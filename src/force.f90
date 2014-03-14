@@ -92,7 +92,7 @@ Subroutine force
       Real (8), Allocatable :: rfmt (:, :)
       Real (8), Allocatable :: grfmt (:, :, :)
       Real (8), Allocatable :: ffacg (:, :)
-      Real (8), Allocatable :: forcesum (:, :)
+      Real (8), Allocatable :: forcesum(:,:)
 ! external functions
       Real (8) :: rfmtinp
       External rfmtinp
@@ -147,11 +147,13 @@ Subroutine force
 
       If (input%groundstate%tfibs) Then
          Allocate (ffacg(ngvec, nspecies))
-
 ! generate the step function form factors
          Do is = 1, nspecies
             Call genffacg (is, ffacg(:, is))
          End Do
+
+         call olprad
+
 ! compute k-point dependent contribution to the IBS force
 
 #ifdef MPI
@@ -261,6 +263,7 @@ Subroutine force
       Deallocate (rfmt, grfmt)
       Call timesec (ts1)
       timefor = timefor + ts1 - ts0
+!      write(*,*) 'force'
       Return
 End Subroutine
 !EOC
