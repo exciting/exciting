@@ -9,6 +9,7 @@
 Subroutine exxengy
       Use modmain
       Use modinput
+      Use modmpi
       Implicit None
 ! local variables
       Integer :: is, ia, nrc, m1, m2
@@ -32,17 +33,21 @@ Subroutine exxengy
       evv = 0.d0
       ecv = 0.d0
       ecc = 0.d0
-!$OMP PARALLEL DEFAULT(SHARED)
-!$OMP DO
-      Do ik = 1, nkpt
-!$OMP CRITICAL
-         Write (*, '("Info(exxengy): ", I6, " of ", I6, " k-points")') &
-        & ik, nkpt
-!$OMP END CRITICAL
-         Call exxengyk (ik, evv, ecv)
-      End Do
-!$OMP END DO
-!$OMP END PARALLEL
+#ifdef MPI
+         Do ik = firstk (rank), lastk (rank)
+            Write (*, '("Info(exxengy): ", I6, " of ", I6, " k-points on pr&
+        &oc:", I6)') ik, nkpt, rank
+
+#else
+         Do ik = 1, nkpt
+             Write (*, '("Info(exxengy): ", I6, " of ", I6, " k-points")') ik, nkpt
+#endif       
+             call exxengyk (evv, ecv, ik) 
+         End Do
+#ifdef MPI
+       call MPI_ALLREDUCE(MPI_IN_PLACE, evv, 1,  MPI_DOUBLE_PRECISION,  MPI_SUM, MPI_COMM_WORLD, ierr)
+       call MPI_ALLREDUCE(MPI_IN_PLACE, ecv, 1,  MPI_DOUBLE_PRECISION,  MPI_SUM, MPI_COMM_WORLD, ierr)
+#endif
 !-----------------------------------!
 !    core-core-core contribution    !
 !-----------------------------------!
@@ -87,12 +92,7 @@ Subroutine exxengy
          End Do
       End Do
 ! total exchange energy
-!      engyx = evv + ecv + ecc
-      If (xctype(2) .Ge. 400) Then
-          engyx = engyx + ex_coef*(evv + ecv + ecc)
-      Else
-          engyx=(1-ex_coef)*engyx + ex_coef*(evv + ecv + ecc)
-      End If
+      engyx = engyx + ex_coef*(evv + ecv + ecc)
       Deallocate (wfcr1, wfcr2, zrhomt, zvclmt, zfmt)
       Return
 End Subroutine
