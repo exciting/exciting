@@ -106,7 +106,7 @@ Subroutine bse
       Real (8) :: de, egap, ts0, ts1, sumrls(3)
   ! allocatable arrays
       Integer, Allocatable :: sor (:)
-      Real (8), Allocatable :: beval (:), w (:), oszsa (:), loss(:), &
+      Real (8), Allocatable :: beval (:), w (:), oszsa (:), loss(:, :, :), &
      & docc(:,:), kdocc (:), eval0(:,:)
       Complex (8), Allocatable :: excli (:, :, :, :), sccli (:, :, :, &
      & :), ham (:, :)
@@ -335,7 +335,7 @@ Subroutine bse
       Allocate (oszs(nexc, 3), oszsa(nexc), sor(nexc), pmat(hamsiz, 3))
       Allocate (w(input%xs%energywindow%points), spectr(input%xs%energywindow%points))
       Allocate (buf(3,3,input%xs%energywindow%points))
-      Allocate (loss(input%xs%energywindow%points), sigma(input%xs%energywindow%points))
+      Allocate (loss(3, 3, input%xs%energywindow%points), sigma(input%xs%energywindow%points))
       Call genwgrid (input%xs%energywindow%points, input%xs%energywindow%intv, &
      & input%xs%tddft%acont, 0.d0, w_real=w)
       buf(:,:,:)=zzero
@@ -469,6 +469,8 @@ Subroutine bse
         enddo
       End Do
 ! STK
+      call genloss (buf, loss)
+!
       Do oct1 = 1, noptcmp
        If (input%xs%dfoffdiag) Then
              octl = 1
@@ -498,12 +500,13 @@ Subroutine bse
      ! symmetrize the macroscopic dielectric function tensor
          Call symt2app (oct1, oct2, input%xs%energywindow%points, symt2, buf, spectr)
      ! generate optical functions
-         Call genloss (spectr, loss)
+! STK
+!        Call genloss (spectr, loss)
          Call gensigma (w, spectr, optcompt, sigma)
          Call gensumrls (w, spectr, sumrls)
      ! write optical functions to file
          Call writeeps (iq, oct1, oct2, w, spectr, trim(fneps))
-         Call writeloss (iq, w, loss, trim(fnloss))
+         Call writeloss (iq, w, loss(oct1, oct2, :), trim(fnloss))
          Call writesigma (iq, w, sigma, trim(fnsigma))
          Call writesumrls (iq, sumrls, trim(fnsumrules))
         enddo

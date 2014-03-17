@@ -43,7 +43,7 @@ Subroutine bsedgrid ()
    real (8) :: sumrls(3), rdum, real_p, imag_p
    character (256) :: fnexc, dotext
    integer :: unexc
-   Real (8), Allocatable :: w (:), loss(:), bse_en(:)
+   Real (8), Allocatable :: w (:), loss(:, :, :), bse_en(:)
    Complex (8), Allocatable :: oszs (:, :), spectr (:), sigma(:), buf(:,:,:)
   ! external functions
    Integer, External :: l2int
@@ -56,7 +56,7 @@ Subroutine bsedgrid ()
    Allocate (oszs(nexc, 3), bse_en(nexc))
    Allocate (w(input%xs%energywindow%points), spectr(input%xs%energywindow%points))
    Allocate (buf(3,3,input%xs%energywindow%points))
-   Allocate (loss(input%xs%energywindow%points), sigma(input%xs%energywindow%points))
+   Allocate (loss(3, 3, input%xs%energywindow%points), sigma(input%xs%energywindow%points))
    Call genwgrid (input%xs%energywindow%points, input%xs%energywindow%intv, &
      &     input%xs%tddft%acont, 0.d0, w_real=w)
    buf = zzero
@@ -120,10 +120,12 @@ Subroutine bsedgrid ()
       End Do
    ! end loop over coarse kpts
    enddo
-   buf = buf / dble(input%xs%BSE%ngridksub(1)* &
-                &   input%xs%BSE%ngridksub(2)* &
-                &   input%xs%BSE%ngridksub(3))
-
+!  buf = buf / dble(input%xs%BSE%ngridksub(1)* &
+!               &   input%xs%BSE%ngridksub(2)* &
+!               &   input%xs%BSE%ngridksub(3))
+!
+   call genloss (buf, loss)
+!
    Do oct1 = 1, noptcmp
     If (input%xs%dfoffdiag) Then
           octl = 1
@@ -153,12 +155,11 @@ Subroutine bsedgrid ()
   ! symmetrize the macroscopic dielectric function tensor
       Call symt2app (oct1, oct2, input%xs%energywindow%points, symt2, buf, spectr)
   ! generate optical functions
-      Call genloss (spectr, loss)
       Call gensigma (w, spectr, optcompt, sigma)
       Call gensumrls (w, spectr, sumrls)
   ! write optical functions to file
       Call writeeps (1, oct1, oct2, w, spectr, trim(fneps))
-      Call writeloss (1, w, loss, trim(fnloss))
+      Call writeloss (1, w, loss(oct1, oct2, :), trim(fnloss))
       Call writesigma (1, w, sigma, trim(fnsigma))
       Call writesumrls (1, sumrls, trim(fnsumrules))
      enddo

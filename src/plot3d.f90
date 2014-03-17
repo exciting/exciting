@@ -32,8 +32,8 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
 !   Modified, October 2008 (F. Bultmark, F. Cricchio, L. Nordstrom)
-!   Modified, February 2011 (D. Nabok)
-!   Bug fixing, May 2012 (DIN)
+!   Modified, February 2011 (DIN)
+!   Fixed a bug in gengrid, February 2014 (DIN)
 !EOP
 !BOC
     Implicit None
@@ -70,9 +70,9 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
 ! allocate the grid point arrays
 !
         allocate(ipmap(0:plotdef%box%grid(1),&
-       &  0:plotdef%box%grid(2), 0:plotdef%box%grid(3)))
+        &  0:plotdef%box%grid(2), 0:plotdef%box%grid(3)))
         allocate(vpl(3,(plotdef%box%grid(1)+1)* &
-       &  (plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
+        &  (plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
 !
 ! generate the 3d point grid and reduce it using the crystal symmetry
 !
@@ -214,40 +214,40 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
 ! local variables
       Integer :: i1, i2, i3, ip, jp
       Integer :: isym, lspl
-      Real (8) :: v1(3), v2(3), v3(3)
+      integer :: iv(3)
+      Real (8) :: v1(3), v2(3)
       Real (8) :: s(3,3), t1
 
-!------------------------------------------------------------------
+      !-----------------------------------------------------------------
 
       ip = 0
       Do i3 = 0, ngridp(3)
-         v1 (3) = dble(i3) / dble(ngridp(3))
-         Do i2 = 0, ngridp (2)
-            v1 (2) = dble(i2) / dble(ngridp(2))
+         v1(3) = dble(i3)/dble(ngridp(3))
+         Do i2 = 0, ngridp(2)
+            v1(2) = dble(i2)/dble(ngridp(2))
             Do i1 = 0, ngridp(1)
-               v1 (1) = dble(i1) / dble(ngridp(1))
-! determine if this point is equivalent to one already in the set
+               v1(1) = dble(i1)/dble(ngridp(1))
+               ! determine if this point is equivalent to one already in the set
                Do isym = 1, nsymcrys
-                  v2(:) = v2(:)+vtlsymc(:,isym)
                   lspl = lsplsymc (isym)
-                  s(:,:) = dble(symlatc(:,:,lspl))
-                  Call r3mv(s,v2,v3)
-                  !Call r3frac (input%structure%epslat, v3, iv)
+                  ! apply symmetry operation S(r+t)
+                  s(:,:) = dble(symlat(:,:,lspl))
+                  Call r3mv(s,v1(:)+vtlsymc(:,isym),v2)
+                  Call r3frac(input%structure%epslat,v2,iv)
                   Do jp = 1, ip
-                     t1 = Abs(vpl(1,jp)-v3(1)) + &
-                    &     Abs(vpl(2,jp)-v3(2)) + &
-                    &     Abs(vpl(3,jp)-v3(3))
+                     t1 = Abs(vpl(1,jp)-v2(1)) + &
+                    &     Abs(vpl(2,jp)-v2(2)) + &
+                    &     Abs(vpl(3,jp)-v2(3))
                      If (t1 .Lt. input%structure%epslat) Then
-! equivalent point found
+                        ! equivalent point found
                         ipmap(i1,i2,i3) = jp
-                        Go To 10
+                        goto 10
                      End If
                   End Do
                End Do
-! add new point to set
+               ! add new point to set
                ip = ip+1
                ipmap(i1,i2,i3) = ip
-               !Call r3frac (input%structure%epslat, v1, iv)
                vpl(:,ip) = v1(:)
 10             Continue
             End Do
