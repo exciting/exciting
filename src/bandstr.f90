@@ -364,7 +364,9 @@ Subroutine bandstr
      If (input%properties%bandstructure%character) deallocate(bc)
 
 
-     if (associated(input%groundstate%OEP)) then
+      if ((associated(input%groundstate%Hybrid).and. &
+     & (input%groundstate%Hybrid%exchangetypenumber== 2)) &
+     & .or.(associated(input%groundstate%OEP))) then
 
      !----------------------------------------      
      ! Calculate interpolated DELTAX
