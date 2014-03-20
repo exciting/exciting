@@ -24,12 +24,14 @@
       
 ! !LOCAL VARIABLES:            
 
-      integer(4) :: icg     ! (Counter) Runs over core states.
-      integer(4) :: ie1,ie2 ! (Counter) Runs over bands.
+      integer(4) :: icg, ic
+      integer(4) :: ie1,ie2
       integer(4) :: m,m1,m2,nmdim
+      integer(4) :: ik, iq, jk
+      integer(4) :: is, ia, ias
 
       real(8) :: tstart, tend
-      real(8) :: sxs2
+      real(8) :: sxs2, wkq
       
       complex(8) :: mvm     ! Sum_ij{M^i*W_ij(w)*conjg(M^j)}
       complex(8), allocatable :: minm(:,:,:) 
@@ -62,6 +64,11 @@
       ! q->0 singularities
       call setbarcev(0.d0)
       sxs2 = -4.d0*pi*vi
+      
+      ! non-reduced k-grid index
+      ik = idikp(ikp)
+      iq = idikpq(iqp,ikp)
+      jk = kqid(ik,iq)
 
 !-------------------------------- 
 !       Valence contribution
@@ -83,12 +90,13 @@
          sum = zzero
          do m = m1, m2
            do ie2 = 1, nomax
-             ! [M^{i}_{nm}]^{*}*vm_{i,nm}
              mvm = zdotc(mbsiz,minm(1:mbsiz,m,ie2),1,minm(1:mbsiz,m,ie2),1)
-             sum = sum+mvm
+             ! BZ integration weight
+             wkq = nqptnr*wkpq(iqp,ikp)*kiw(ie2,jk)
+             sum = sum+wkq*mvm
            enddo ! ie2
-         end do ! m           
-         sxqval(ie1) = sxqval(ie1)-sum*wkpq(iqp,ikp)/dble(m2-m1+1)
+         end do ! m
+         sxqval(ie1) = sxqval(ie1)-sum/dble(m2-m1+1)
          if (Gamma.and.(ie1.le.nomax)) then
             sxqval(ie1) = sxqval(ie1)+sxs2*singc2
          end if
@@ -119,10 +127,16 @@
            do m = m1, m2
              do icg = 1, ncg
                mvm=zdotc(mbsiz,minm(1:mbsiz,m,icg),1,minm(1:mbsiz,m,icg),1)
-               sum=sum+mvm
+               ! BZ integration weight
+               is = corind(icg,1)
+               ia = corind(icg,2)
+               ias= idxas(ia,is)
+               ic = corind(icg,3)
+               wkq = nqptnr*wkpq(iqp,ikp)*ciw(ias,ic)
+               sum = sum+wkq*mvm
              enddo ! icg
-           end do ! m
-           sxqcor(ie1)=sxqcor(ie1)-sum*wkpq(iqp,ikp)/dble(m2-m1+1)
+           end do ! m        
+           sxqcor(ie1)=sxqcor(ie1)-sum/dble(m2-m1+1)
         enddo ! ie1
         
         deallocate(minm)
@@ -147,9 +161,6 @@
         write(96,*)'# band nr.       valence        selfex'  
         do ie1 = ibgw, nbgw
            selfex(ie1,ikp)=selfex(ie1,ikp)+sxqval(ie1)
-           if((iqp.eq.1).and.(ie1.le.nomax))then
-             selfex(ie1,ikp)=selfex(ie1,ikp)+sxs2*singc2
-           end if
            write(96,11)ie1,sxqval(ie1),selfex(ie1,ikp)
         enddo ! ie1
         write(96,*)

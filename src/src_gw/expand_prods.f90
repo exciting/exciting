@@ -64,7 +64,7 @@
 !          
 !     Calculate the matrix elements M^i_{nm} where n is a core state
 !
-      if (iopcore==0) then
+      if (iopcore<=1) then
         
         if (iflag<0) then
           call calcmicm(ik,iq)

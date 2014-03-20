@@ -86,21 +86,22 @@ subroutine bandanalysis(title,ib,nb,eband,efermi)
     egap(2)= minval(eband(numin:nb,ikvm))-eband(nomax,ikvm)
     egap(3)= eband(numin,ikcm)-maxval(eband(ib:nomax,ikcm))
 
-    if(ikvm.eq.ikcm) then ! direct gap 
+    if (.not.lmetal) then
+      if(ikvm.eq.ikcm) then ! direct gap 
         write(fgw,112) '[eV]', egap(1)*hev
         write(fgw,113) vkl(:,ikvm), ikvm
-    else 
+      else 
         write(fgw,114) '[eV]', egap(1:3)*hev
         write(fgw,115) vkl(:,ikvm), ikvm, vkl(:,ikcm),ikcm
-    endif
-
-    write(fgw,*) ' Range of each band [eV]:'
-    write(fgw,'(a5,3a12)') 'n','Bottom','Top','Width'
-    do i = ib, nb
+      end if
+      write(fgw,*) ' Range of each band [eV]:'
+      write(fgw,'(a5,3a12)') 'n','Bottom','Top','Width'
+      do i = ib, nb
         ebmin = minval(eband(i,1:nkpt))*hev
         ebmax = maxval(eband(i,1:nkpt))*hev
         write(fgw,'(i5,3F14.6)') i,ebmin,ebmax,ebmax-ebmin
-    enddo
+      enddo
+    end if
 
 111 format(a,2i4)
 112 format('  BandGap ', a4,' = ',f14.6)

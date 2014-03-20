@@ -51,6 +51,9 @@
       open(96,file='ADDSELFE.OUT',form='FORMATTED',status='UNKNOWN')
 #endif
 
+!     Calculate the integration weights using the linearized tetrahedron method
+      call kintw
+
 !     Calculate the integrals to treat the singularities at G+q->0
       call setsingc
       
