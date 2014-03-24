@@ -76,17 +76,16 @@ subroutine bandanalysis(title,ib,nb,eband,efermi)
         write(fgw,*) "numin=", numin, " > nb=", nb
         stop
     endif
-    if(nomax.ge.numin) then
-        write(fgw,*) "WARNING(bandanaly): Valence and Conductance bands overlap (metal)!"
-        lmetal=.true.
-    endif
-
+    
     write(fgw,111) '  Band index for VBM and CBM=', nv, nc
-    egap(1)= eband(numin,ikcm)-eband(nomax,ikvm)
-    egap(2)= minval(eband(numin:nb,ikvm))-eband(nomax,ikvm)
-    egap(3)= eband(numin,ikcm)-maxval(eband(ib:nomax,ikcm))
-
-    if (.not.lmetal) then
+    
+    if (nomax >= numin) lmetal=.true.
+    if (lmetal) then
+      write(fgw,*) "WARNING(bandanaly): Valence and Conductance bands overlap (metal)!"
+    else
+      egap(1)= eband(numin,ikcm)-eband(nomax,ikvm)
+      egap(2)= minval(eband(numin:nb,ikvm))-eband(nomax,ikvm)
+      egap(3)= eband(numin,ikcm)-maxval(eband(ib:nomax,ikcm))
       if(ikvm.eq.ikcm) then ! direct gap 
         write(fgw,112) '[eV]', egap(1)*hev
         write(fgw,113) vkl(:,ikvm), ikvm

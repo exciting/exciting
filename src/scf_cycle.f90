@@ -422,7 +422,7 @@ subroutine scf_cycle(verbosity)
 !            Write (62, '(G18.10)') fermidos
 !            Call flushifc (62)
 ! write band-gap
-            call printbandgap(60)
+            if (fermidos<1.0d-4) call printbandgap(60)
 ! output charges and moments
             Call writechg (60,input%groundstate%outputlevelnumber)
 ! write total moment to MOMENT.OUT and flush
