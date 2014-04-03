@@ -35,6 +35,7 @@ Complex (8) Function zfinp (tsh, zfmt1, zfmt2, zfir1, zfir2)
 !
 ! !REVISION HISTORY:
 !   Created July 2004 (Sharma)
+!   add OMP March 2014 (UW)
 !EOP
 !BOC
       Implicit None
@@ -46,15 +47,29 @@ Complex (8) Function zfinp (tsh, zfmt1, zfmt2, zfir1, zfir2)
       Complex (8), Intent (In) :: zfir2 (ngrtot)
 ! local variables
       Integer :: is, ia, ias, ir
-      Complex (8) zsum
+      Complex (8) zsum,zsum0
 ! external functions
       Complex (8) zfmtinp
       External zfmtinp
       zsum = 0.d0
 ! interstitial contribution
+
+#ifdef USEOMP
+!$OMP PARALLEL PRIVATE (ir,zsum0)
+ zsum0= 0.d0
+!$OMP DO  
+      Do ir = 1, ngrtot
+         zsum0 = zsum0 + cfunir (ir) * conjg (zfir1(ir)) * zfir2 (ir)
+      End Do
+!$OMP END DO
+!$OMP ATOMIC
+     zsum = zsum +zsum0
+!$OMP END PARALLEL  
+#else
       Do ir = 1, ngrtot
          zsum = zsum + cfunir (ir) * conjg (zfir1(ir)) * zfir2 (ir)
       End Do
+#endif
       zsum = zsum * omega / dble (ngrtot)
 ! muffin-tin contribution
       Do is = 1, nspecies

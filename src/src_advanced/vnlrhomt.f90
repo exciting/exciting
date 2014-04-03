@@ -30,6 +30,7 @@ Subroutine vnlrhomt (tsh, is, wfmt1, wfmt2, zrhomt)
 !
 ! !REVISION HISTORY:
 !   Created November 2004 (Sharma)
+!   Added OMP April 2014 (UW)
 !EOP
 !BOC
       Implicit None
@@ -46,17 +47,30 @@ Subroutine vnlrhomt (tsh, is, wfmt1, wfmt2, zrhomt)
       If (tsh) Then
 ! output density in spherical harmonics
          Allocate (zfmt(lmmaxvr, nrcmtmax))
+#ifdef USEOMP
+!$OMP PARALLEL DO
+#endif
+
          Do irc = 1, nrcmt (is)
             zfmt (:, irc) = conjg (wfmt1(:, irc)) * wfmt2 (:, irc)
          End Do
+#ifdef USEOMP
+!$OMP END PARALLEL DO
+#endif
          Call zgemm ('N', 'N', lmmaxvr, nrcmt(is), lmmaxvr, zone, &
         & zfshtvr, lmmaxvr, zfmt, lmmaxvr, zzero, zrhomt, lmmaxvr)
          Deallocate (zfmt)
       Else
 ! output density in spherical coordinates
+#ifdef USEOMP
+!$OMP PARALLEL DO
+#endif
          Do irc = 1, nrcmt (is)
             zrhomt (:, irc) = conjg (wfmt1(:, irc)) * wfmt2 (:, irc)
          End Do
+#ifdef USEOMP
+!$OMP END PARALLEL DO
+#endif
       End If
       Return
 End Subroutine

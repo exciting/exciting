@@ -153,10 +153,8 @@ Subroutine exxengyk ( evv, ecv, ikp)
                     & zvclir)
                      t1 = cfq * wiq2 (iq) * &
                     & (dble(zrho0)**2+aimag(zrho0)**2)
-!$OMP CRITICAL
                      evv = evv - 0.5d0 * occmax * wkpt (ikp) * &
                     & (wkptnr(ik)*dble(zt1)+t1)
-!$OMP END CRITICAL
 ! end loop over ist
                   End If
                End Do
@@ -200,9 +198,7 @@ Subroutine exxengyk ( evv, ecv, ikp)
                           & input%groundstate%lmaxvr, nrc, rcmt(:, is), &
                           & lmmaxvr, zrhomt(:, :, ias), zvclmt(:, :, &
                           & ias))
-!$OMP CRITICAL
                            ecv = ecv - occmax * wkpt (ikp) * dble (zt1)
-!$OMP END CRITICAL
 ! end loop over ist
                         End If
                      End Do

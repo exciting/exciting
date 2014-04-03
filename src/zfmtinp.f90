@@ -33,6 +33,7 @@ Complex (8) Function zfmtinp (tsh, lmax, nr, r, ld, zfmt1, zfmt2)
 !
 ! !REVISION HISTORY:
 !   Created November 2003 (Sharma)
+!   Add OMP April 2014 (UW)
 !EOP
 !BOC
       Implicit None
@@ -55,12 +56,18 @@ Complex (8) Function zfmtinp (tsh, lmax, nr, r, ld, zfmt1, zfmt2)
       Complex (8) zdotc
       External zdotc
       lmmax = (lmax+1) ** 2
+#ifdef USEOMP
+!$OMP PARALLEL DO private(ir,t1,zt1) 
+#endif
       Do ir = 1, nr
          t1 = r (ir) ** 2
          zt1 = zdotc (lmmax, zfmt1(:, ir), 1, zfmt2(:, ir), 1)
          fr1 (ir) = t1 * dble (zt1)
          fr2 (ir) = t1 * aimag (zt1)
       End Do
+#ifdef USEOMP
+!$OMP END PARALLEL DO  
+#endif
       Call fderiv (-1, nr, r, fr1, gr, cf)
       t1 = gr (nr)
       Call fderiv (-1, nr, r, fr2, gr, cf)

@@ -38,6 +38,7 @@ Subroutine genwfsv (tocc, ngp, igpig, evalsvp, apwalm, evecfv, evecsv, &
 !
 ! !REVISION HISTORY:
 !   Created November 2004 (Sharma)
+!   Add OMP April 2014 (UW)
 !EOP
 !BOC
       Implicit None
@@ -127,6 +128,9 @@ Subroutine genwfsv (tocc, ngp, igpig, evalsvp, apwalm, evecfv, evecsv, &
 !     interstitial wavefunction     !
 !-----------------------------------!
       t1 = 1.d0 / Sqrt (omega)
+#ifdef USEOMP
+!$OMP PARALLEL DO private(j, igp, ifg, ispn ) 
+#endif
       Do j = 1, nstsv
          wfir (:, :, j) = 0.d0
          If (( .Not. tocc) .Or. ((tocc) .And. (evalsvp(j) .Lt. &
@@ -162,6 +166,9 @@ Subroutine genwfsv (tocc, ngp, igpig, evalsvp, apwalm, evecfv, evecsv, &
             End Do
          End If
       End Do
+#ifdef USEOMP
+!$OMP END PARALLEL DO  
+#endif
       Deallocate (done, wfmt1, wfmt2)
       Return
 End Subroutine

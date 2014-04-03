@@ -5,7 +5,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-!
+!     add OMP April 2014 (UW)
 Subroutine zrhogp (gpc, jlgpr, ylmgp, sfacgp, zrhomt, zrhoir, zrho0)
       Use modmain
       Use modinput
@@ -27,6 +27,7 @@ Subroutine zrhogp (gpc, jlgpr, ylmgp, sfacgp, zrhomt, zrhoir, zrho0)
 ! automatic arrays
       Real (8) :: fr1 (nrcmtmax), fr2 (nrcmtmax)
       Real (8) :: gr (nrcmtmax), cf (3, nrcmtmax)
+
 !-----------------------------------!
 !     interstitial contribution     !
 !-----------------------------------!
@@ -44,6 +45,9 @@ Subroutine zrhogp (gpc, jlgpr, ylmgp, sfacgp, zrhomt, zrhoir, zrho0)
          nrc = nrcmt (is)
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
+#ifdef USEOMP
+!$OMP PARALLEL DO private(ir,lm,l,zsum2,zsum1,t1)
+#endif
             Do ir = 1, nrc
                zsum1 = 0.d0
                lm = 0
@@ -61,6 +65,9 @@ Subroutine zrhogp (gpc, jlgpr, ylmgp, sfacgp, zrhomt, zrhoir, zrho0)
                fr1 (ir) = dble (zsum1) * t1
                fr2 (ir) = aimag (zsum1) * t1
             End Do
+#ifdef USEOMP
+!$OMP END PARALLEL DO 
+#endif
             Call fderiv (-1, nrc, rcmt(:, is), fr1, gr, cf)
             t1 = gr (nrc)
             Call fderiv (-1, nrc, rcmt(:, is), fr2, gr, cf)

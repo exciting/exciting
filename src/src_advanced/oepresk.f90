@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-!
+!   add OMP April 2014 (UW)
 Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
       Use modmain
       Use modinput
@@ -84,6 +84,7 @@ Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
 ! calculate the complex overlap density in the muffin-tin
                            Call vnlrhomt (.False., is, wfcr(:, :, 1), &
                           & wfmt(:, :, ias, 1, jst), zrhomt(:, :, ias))
+
                            If (associated(input%groundstate%spin)) Then
                               Call vnlrhomt (.False., is, wfcr(:, :, 2), &
                              &  wfmt(:, :, ias, 2, jst), zfmt)
@@ -114,7 +115,19 @@ Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
                            End If
                            zt2 = zde * zt1
 ! residuals for exchange potential and field
-!$OMP CRITICAL
+#ifdef USEOMP
+!$OMP PARALLEL DO private(ic,idm) 
+                        Do ic=1,nrc
+                          dvxmt (:, ic, ias) = dvxmt (:, ic, ias) + &
+                         &  dble (zt2*zrhomt(:, ic, ias))
+                          Do idm = 1, ndmag
+                           dbxmt (:, ic, ias, idm) = &
+                          &  dbxmt (:, ic, ias, idm) + &
+                          &  dble (zt2*zvfmt(:, ic, idm))
+                          End Do
+                        End Do
+!$OMP END PARALLEL DO  
+#else
                            dvxmt (:, 1:nrc, ias) = dvxmt (:, 1:nrc, ias) + &
                           &  dble (zt2*zrhomt(:, 1:nrc, ias))
                            Do idm = 1, ndmag
@@ -122,7 +135,7 @@ Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
                              &  dbxmt (:, 1:nrc, ias, idm) + &
                              &  dble (zt2*zvfmt(:, 1:nrc, idm))
                            End Do
-!$OMP END CRITICAL
+#endif
 ! end loop over jst
                         End If
                      End Do
@@ -133,6 +146,7 @@ Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
 ! end loops over atoms and species
          End Do
       End Do
+
 !--------------------------------------------------------------!
 !     valence-conduction overlap density and magnetisation     !
 !--------------------------------------------------------------!
@@ -164,11 +178,24 @@ Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
                   End If
                   zt2 = zde * zt1
 ! residuals for exchange potential and field
-!$OMP CRITICAL
                   Do is = 1, nspecies
                      nrc = nrcmt (is)
+
                      Do ia = 1, natoms (is)
                         ias = idxas (ia, is)
+#ifdef USEOMP
+!$OMP PARALLEL DO private(ic,idm) 
+                        Do ic=1,nrc
+                        dvxmt (:, ic, ias) = dvxmt (:, ic, ias) + &
+                       &  dble (zt2*zrhomt(:, ic, ias))
+                          Do idm = 1, ndmag
+                           dbxmt (:, ic, ias, idm) = &
+                          &  dbxmt (:, ic, ias, idm) + &
+                          &  dble (zt2*zmagmt(:, ic, ias, idm))
+                          End Do
+                        End Do
+!$OMP END PARALLEL DO  
+#else
                         dvxmt (:, 1:nrc, ias) = dvxmt (:, 1:nrc, ias) + &
                        &  dble (zt2*zrhomt(:, 1:nrc, ias))
                         Do idm = 1, ndmag
@@ -176,19 +203,20 @@ Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
                           &  dbxmt (:, 1:nrc, ias, idm) + &
                           &  dble (zt2*zmagmt(:, 1:nrc, ias, idm))
                         End Do
+#endif
                      End Do
                   End Do
                   dvxir (:) = dvxir (:) + dble (zt2*zrhoir(:))
                   Do idm = 1, ndmag
                      dbxir (:, idm) = dbxir (:, idm) + dble (zt2*zmagir(:, idm))
                   End Do
-!$OMP END CRITICAL
 ! end loop over jst
                End If
             End Do
 ! end loop over ist
          End If
       End Do
+
       Deallocate (apwalm, evecfv, evecsv)
       Deallocate (wfmt, wfir, wfcr, zrhomt, zrhoir)
       If (associated(input%groundstate%spin)) Then
