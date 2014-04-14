@@ -44,13 +44,9 @@ Subroutine genapwfr
       
       Do is = 1, nspecies
          nr = nrmt (is)
-!         write(*,*) veffmt(:,nr,ias)
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
-!            write(*,*) veffmt(:,nr,ias)
-!            write(*,*) rhomt (:, nr, ias)
             vr (1:nr) = veffmt (1, 1:nr, ias) * y00
-!            write(*,*) vr(1)
             Do l = 0, input%groundstate%lmaxapw
                Do io1 = 1, apword (l, is)
 ! integrate the radial Schrodinger equation
@@ -109,10 +105,7 @@ Subroutine genapwfr
                        t1 = 1.d0 / spr (ir, is)
                        apwfr (ir, 1, io1, l, ias) = t1 * p0 (ir, io1)
                        apwfr (ir, 2, io1, l, ias) = (p1(ir,io1)-p0(ir, io1)*t1) * t1
-!                       write(*,*) spr (ir, is),apwfr (ir, 1, io1, l, ias),apwfr (ir, 2, io1, l, ias)
-                      
                     End Do
-!                    stop
                   else
 ! apply the Hamiltonian
                     Call rschrodapp (l, nr, spr(:, is), vr, p0(:, io1), &
