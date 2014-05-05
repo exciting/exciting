@@ -6,7 +6,7 @@
 ! See the file COPYING for license details.
 !
 !
-Subroutine exxengyk (ikp, evv, ecv)
+Subroutine exxengyk ( evv, ecv, ikp)
       Use modmain
       Use modinput
       Implicit None

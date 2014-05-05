@@ -569,6 +569,8 @@ Contains
         use mod_timing
         use modinput
         use mod_eigensystem, only:nmatmax
+        Use mod_Gvector, only : ngrid,ngrtot,igfft
+        use mod_gkvector, only : ngk
         type(evsystem)::system
         integer::nstfv
 
@@ -585,6 +587,7 @@ Contains
         Real (8), Allocatable :: rwork (:)
         Complex (8), Allocatable :: v (:)
         Complex (8), Allocatable :: work (:)
+        Complex (8), Allocatable :: zfft (:)
         Call timesec (ts0)
         if (system%hamilton%packed) then
         vl = 0.d0
@@ -639,6 +642,30 @@ Contains
         Allocate (rwork(7*nmatp))
         Allocate (v(1))
         Allocate (work(2*nmatp))
+
+! This segment tests linear dependence of basis and plots the most singular component.
+! It is meant for educational purposes. 
+if (.false.) then
+        write(*,*) ngk(1, 1),nmatp
+        call zheev('V','U',nmatp,system%overlap%za, nmatp,w,work,2*nmatp,rwork,info)
+        write(*,*) w(1)
+        write(*,*)
+        allocate(zfft(ngrtot))
+
+        zfft(:)=0d0
+        Do i = 1, ngk(1, 1)
+          zfft(igfft(i))=system%overlap%za(i,1)
+        End Do
+
+        Call zfftifc (3, ngrid, 1, zfft)        
+        write(*,*) sum(zfft)
+        write(*,*)
+        do i=1,48
+          write(*,*) dble(zfft(i)),dimag(zfft(i))
+        enddo
+        stop 
+endif
+
         !Call zhpgvx (1, 'V', 'I', 'U', nmatp, system%hamilton%zap, &
         !system%overlap%zap, vl, vu, 1, nstfv, &
         !input%groundstate%solver%evaltol, m, w, evecfv, nmatmax, work, &

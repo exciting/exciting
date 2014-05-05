@@ -124,7 +124,7 @@ Subroutine rhoinit
          rhoder=cf(1,nrmt(is))
          rhoder2=cf(2,nrmt(is))*2d0
 ! pick .false. if you need extra smoothness 
-if (.false.) then
+if (.false.) then 
 !-------- quadratic function
          a(is)=rhoder/(2d0*rmt(is))
          c(is)=sprho (nrmt(is), is)-a(is)*rmt(is)**2
@@ -143,15 +143,8 @@ else
          enddo
 endif
 
-!         a(is)=rhoder/(2d0*rmt(is))
-!         c(is)=sprho (nrmt(is), is)-a(is)*rmt(is)**2
-! Interior of MT is filled with a*r**2+c
-!         do ir = 1, mtgridsize
-!           auxrho(ir)=a(is)*auxgrid(ir)**2+c(is)
-!         enddo
 ! Exterior is filled with the actual atomic density.
          auxrho(mtgridsize+1:auxgridsize)=sprho(nrmt(is)+1:lastpoint, is)
-
 
 ! Initialise auxiliary basis - spherical Bessel functions
          nsw=int(2d0*input%groundstate%gmaxvr*auxgrid(auxgridsize)/(pi))+1
@@ -159,8 +152,6 @@ endif
          allocate(swgr(0:nsw))
          allocate(swoverlap(0:nsw,0:nsw))
          maxswg=2d0*input%groundstate%gmaxvr ! 2*pi*dble(nsw)/auxgrid(auxgridsize) !input%groundstate%gmaxvr
-!         write(*,*) nsw,int(input%groundstate%gmaxvr*rmt(is)/(pi))+1
-!         write(*,*) ngvec
          allocate(sine(0:nsw))
          allocate(cosine(0:nsw))
 
