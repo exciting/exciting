@@ -16,7 +16,7 @@
           </xsl:choose>
         </status>
         <name> BSE loss funktion works</name>
-        <description>pass if loss funktion is written</description>
+        <description>passes if loss function is written</description>
         <directory>test07/runBSE</directory>
       </test>
           
@@ -31,8 +31,8 @@
             </xsl:otherwise>
           </xsl:choose>
         </status>
-        <name> BSE dielectric funktion works</name>
-        <description>pass if dielectric funktion is written</description>
+        <name> BSE dielectric function works</name>
+        <description>passes if dielectric funktion is written</description>
         <directory>test07/runBSE</directory>
       </test>
        <test>
@@ -47,7 +47,7 @@
           </xsl:choose>
         </status>
         <name> BSE loss funktion works</name>
-        <description>pass if loss funktion is written</description>
+        <description>passes if loss function is written</description>
         <directory>test07/runBSE</directory>
       </test>
           
@@ -63,7 +63,7 @@
           </xsl:choose>
         </status>
         <name> BSE dielectric funktion works</name>
-        <description>pass if dielectric funktion is written</description>
+        <description>passes if dielectric function is written</description>
         <directory>test07/runBSE</directory>
       </test>
     </report>
