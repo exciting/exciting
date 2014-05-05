@@ -20,11 +20,14 @@ Module modmixermsec
 
 Contains
 
-      Subroutine initmixermsec (n)
+      Subroutine initmixermsec (n,nmax)
          Use modmain, Only: CHGIR, CHGMTTOT, input
+         implicit none
          Integer, Intent (In) :: n
+         Integer, Intent (In) :: nmax
          Integer :: niter
-         noldstepsmax=input%groundstate%msecStoredSteps
+         noldstepsmax=nmax
+!         noldstepsmax=input%groundstate%msecStoredSteps
          if (allocated(residual)) deallocate(residual)
          allocate(residual(n))
          if (allocated(last_outputp)) deallocate(last_outputp)

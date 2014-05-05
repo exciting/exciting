@@ -44,7 +44,7 @@ Subroutine mixerifc (mtype, n, v, dv, mode)
       Case (2)
  ! multicecant broyden
          If (mode .Eq.-1) Then
-            Call initmixermsec (n)
+            Call initmixermsec (n,input%groundstate%msecStoredSteps)
             mode = 0
 !            Return
          End If
