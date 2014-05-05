@@ -47,7 +47,7 @@ Subroutine rhoinit
       Complex (8), Allocatable :: zfft (:)
 
       integer :: auxgridsize,mtgridsize,lastpoint
-      Real (8), Allocatable :: auxgrid(:),auxrho(:),a(:),c(:)
+      Real (8), Allocatable :: auxgrid(:),auxrho(:),a(:),c(:),b(:)
       Real (8) :: rhoder,rhoder2, tp(2),r
       real(8), parameter :: threshold=1d-12
       integer, parameter :: PointsPerPeriod=20
@@ -80,6 +80,7 @@ Subroutine rhoinit
 !      Allocate (z2fmt(lmmax, nrcmtmax))
       Allocate (zfft(ngrtot))
       allocate(a(nspecies))
+      allocate(b(nspecies))
       allocate(c(nspecies))
 
 ! zero the charge density and magnetisation arrays
@@ -122,12 +123,32 @@ Subroutine rhoinit
          Call fderiv (1, spnr(is), spr(:, is), sprho (:, is), gr, cf)
          rhoder=cf(1,nrmt(is))
          rhoder2=cf(2,nrmt(is))*2d0
+! pick .false. if you need extra smoothness 
+if (.false.) then
+!-------- quadratic function
          a(is)=rhoder/(2d0*rmt(is))
          c(is)=sprho (nrmt(is), is)-a(is)*rmt(is)**2
 ! Interior of MT is filled with a*r**2+c
          do ir = 1, mtgridsize
            auxrho(ir)=a(is)*auxgrid(ir)**2+c(is)
          enddo
+else
+!-------- biquadratic function
+         a(is)=(rhoder2*rmt(is)-rhoder)/(8d0*rmt(is)**3)
+         b(is)=(3d0*rhoder-rhoder2*rmt(is))/(4d0*rmt(is))
+         c(is)=sprho (nrmt(is), is)-a(is)*rmt(is)**4-b(is)*rmt(is)**2
+! Interior of MT is filled with a*r**2+c
+         do ir = 1, mtgridsize
+           auxrho(ir)=a(is)*auxgrid(ir)**4+b(is)*auxgrid(ir)**2+c(is)
+         enddo
+endif
+
+!         a(is)=rhoder/(2d0*rmt(is))
+!         c(is)=sprho (nrmt(is), is)-a(is)*rmt(is)**2
+! Interior of MT is filled with a*r**2+c
+!         do ir = 1, mtgridsize
+!           auxrho(ir)=a(is)*auxgrid(ir)**2+c(is)
+!         enddo
 ! Exterior is filled with the actual atomic density.
          auxrho(mtgridsize+1:auxgridsize)=sprho(nrmt(is)+1:lastpoint, is)
 
@@ -428,6 +449,7 @@ if (.true.) then
 
 ! First, we compute overlaps
           pwswc(0,1)=rmt3*(sn-bb*cs)/(bb**3)
+          pwswc(0,2)=0d0
           if (abs(dnint(bb/swgr(1))-bb/swgr(1)).lt.1d-8) then
             do isw=1,nsw
               aa=swgr(isw)
@@ -681,7 +703,7 @@ endif
       Call charge
 ! normalise the density
       Call rhonorm
-      Deallocate (ffacg, zfmt, zfft,a,c,rhomodel)
+      Deallocate (ffacg, zfmt, zfft,a,b,c,rhomodel)
       call timesec(tb)
       write(*,*) 'rhoinit, step 3:',tb-ta
 !      stop
