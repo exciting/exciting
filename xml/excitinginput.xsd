@@ -799,7 +799,7 @@ gw.xsd
                   increases efficiency. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="epsarpack" type="fortrandouble" default="1.0d-8">
+            <xs:attribute ex:importance="expert" ex:unit="" name="epsarpack" type="fortrandouble" default="1.0d-14">
               <xs:annotation>
                 <xs:documentation>Tolerance parameter for the ARPACK shift invert
                   solver</xs:documentation>
@@ -848,7 +848,7 @@ gw.xsd
             </xs:attribute>
 
 
-            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="evaltol" type="fortrandouble" default="1.0d-8">
+            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="evaltol" type="fortrandouble" default="1.0d-14">
               <xs:annotation>
                 <xs:documentation>Error tolerance for the first-variational eigenvalues using the
                   LAPACK Solver</xs:documentation>
@@ -2766,7 +2766,7 @@ gw.xsd
             self-consistent cycle.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="lmaxapw" type="xs:integer" default="10">
+      <xs:attribute ex:importance="expert" ex:unit="" name="lmaxapw" type="xs:integer" default="8">
         <xs:annotation>
           <xs:documentation>Angular momentum cut-off for the APW functions.</xs:documentation>
           <xs:appinfo>
@@ -2823,7 +2823,7 @@ gw.xsd
            in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="epsocc" type="fortrandouble" default="1.0d-8">
+      <xs:attribute ex:importance="expert" ex:unit="" name="epsocc" type="fortrandouble" default="1.0d-12">
         <xs:annotation>
           <xs:documentation>smallest occupancy for which a state will contribute to the
             density.</xs:documentation>
@@ -3100,7 +3100,7 @@ gw.xsd
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="lmaxvr" type="xs:integer" default="6">
+      <xs:attribute ex:importance="expert" ex:unit="" name="lmaxvr" type="xs:integer" default="8">
         <xs:annotation>
           <xs:documentation>Angular momentum cut-off for the muffin-tin density and
             potential.</xs:documentation>
@@ -3109,7 +3109,7 @@ gw.xsd
           </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="fracinr" type="fortrandouble" default="0.25d0">
+      <xs:attribute ex:importance="expert" ex:unit="" name="fracinr" type="fortrandouble" default="0.02d0">
         <xs:annotation>
           <xs:documentation>Fraction of the muffin-tin radius up to which lmaxinr is used as the
             angular momentum cut-off.</xs:documentation>
@@ -3122,7 +3122,7 @@ gw.xsd
             also <attref>fracinr</attref>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="lmaxmat" type="xs:integer" default="5">
+      <xs:attribute ex:importance="expert" ex:unit="" name="lmaxmat" type="xs:integer" default="8">
         <xs:annotation>
           <xs:documentation>Angular momentum cut-off for the outer-most loop in the hamiltonian and
             overlap matrix setup.</xs:documentation>
@@ -3166,7 +3166,7 @@ gw.xsd
         </xs:annotation>
       </xs:attribute>
 
-      <xs:attribute ex:importance="expert" ex:unit="" name="SymmetricKineticEnergy" type="xs:boolean" default="false">
+      <xs:attribute ex:importance="expert" ex:unit="" name="SymmetricKineticEnergy" type="xs:boolean" default="true">
         <xs:annotation>
           <xs:documentation> If <pre>"true"</pre>, the kinetic-energy matrix elements of muffin-tin functions are calculated by applying gradient to both bra and ket.
            Otherwise, the whole kinetic-energy operator is applied to ket only, and the surface-term correction is applied to make the hamiltonian hermitian.
