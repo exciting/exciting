@@ -14,7 +14,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     </xsl:choose>
     </status>
     <name>  libxc  </name>
-    <description>pass if groundstate using libxc passes</description>
+    <description>passes if groundstate using libxc works</description>
     <directory>test05/ </directory>
   </test>
     <test>
@@ -25,7 +25,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     </xsl:choose>
     </status>
     <name>  libxc energy  </name>
-    <description>pass if groundstate using libxc yields total energy within range +- 0001
+    <description>passes if groundstate using libxc yields total energy within range +-0.0001
     <xsl:value-of select="/info/groundstate/scl/iter[last()]/energies/@totalEnergy"/>
     </description>
     <directory>test05/ </directory>
@@ -38,7 +38,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     </xsl:choose>
     </status>
     <name>  dos works  </name>
-    <description>pass if  DOS doesn't fail'
+    <description>passes if DOS doesn't fail'
  
     </description>
     <directory>test05/runelectrstr</directory>
@@ -52,7 +52,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     </xsl:choose>
     </status>
     <name>  bandstructure  </name>
-    <description>pass if bandstructure doesn't fail
+    <description>passes if bandstructure doesn't fail
  
     </description>
     <directory>test05/runelectrstr</directory>

@@ -12,11 +12,12 @@ program test
 	CHGIR=1.0
 		n=4
 		teststeps=24
+        noldstepsmax=8
 	allocate (S(n,noldstepsmax),Y(n,noldstepsmax),YY(noldstepsmax,noldstepsmax)&
 	,STEP(n))
 	allocate (Potential(n))
 
-	call initmixermsec(n)
+	call initmixermsec(n,noldstepsmax)
 	do iscl=1,teststeps
 		potential=4*iscl
 		residual=2*iscl

@@ -123,9 +123,8 @@ Subroutine rhoinit
          Call fderiv (1, spnr(is), spr(:, is), sprho (:, is), gr, cf)
          rhoder=cf(1,nrmt(is))
          rhoder2=cf(2,nrmt(is))*2d0
-
 ! pick .false. if you need extra smoothness 
-if (.true.) then 
+if (.false.) then 
 !-------- quadratic function
          a(is)=rhoder/(2d0*rmt(is))
          c(is)=sprho (nrmt(is), is)-a(is)*rmt(is)**2
@@ -144,12 +143,8 @@ else
          enddo
 endif
 
-
 ! Exterior is filled with the actual atomic density.
          auxrho(mtgridsize+1:auxgridsize)=sprho(nrmt(is)+1:lastpoint, is)
-!do ir=1,auxgridsize
-!  write(*,*) auxgrid(ir),auxrho(ir)
-!enddo
 
 ! Initialise auxiliary basis - spherical Bessel functions
          nsw=int(2d0*input%groundstate%gmaxvr*auxgrid(auxgridsize)/(pi))+1
@@ -157,8 +152,6 @@ endif
          allocate(swgr(0:nsw))
          allocate(swoverlap(0:nsw,0:nsw))
          maxswg=2d0*input%groundstate%gmaxvr ! 2*pi*dble(nsw)/auxgrid(auxgridsize) !input%groundstate%gmaxvr
-!         write(*,*) nsw,int(input%groundstate%gmaxvr*rmt(is)/(pi))+1
-!         write(*,*) ngvec
          allocate(sine(0:nsw))
          allocate(cosine(0:nsw))
 
@@ -447,6 +440,7 @@ if (.true.) then
 
 ! First, we compute overlaps
           pwswc(0,1)=rmt3*(sn-bb*cs)/(bb**3)
+          pwswc(0,2)=0d0
           if (abs(dnint(bb/swgr(1))-bb/swgr(1)).lt.1d-8) then
             do isw=1,nsw
               aa=swgr(isw)
