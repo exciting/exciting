@@ -14,6 +14,7 @@ Subroutine allatoms
 ! !USES:
       Use modinput
       Use modmain
+      Use FoX_wxml
 ! !DESCRIPTION:
 !   Solves the Kohn-Sham-Dirac equations for each atom type in the solid and
 !   finds the self-consistent radial wavefunctions, eigenvalues, charge
@@ -37,6 +38,7 @@ Subroutine allatoms
       Logical :: dirac_eq
 ! allocatable arrays
       Real (8), Allocatable :: rwf (:, :, :)
+      Type (xmlf_t), Save :: xf
       
       dirac_eq=(input%groundstate%CoreRelativity.eq."dirac")
 ! allocate global species charge density and potential arrays
@@ -57,6 +59,40 @@ Subroutine allatoms
       End Do
 !$OMP END DO
 !$OMP END PARALLEL
+
+      Call xml_OpenFile ("atoms.xml", xf, replace=.True., pretty_print=.True.)
+      Call xml_NewElement(xf,"atomlist")
+      Call xml_NewElement (xf,"Hamiltonian")
+      Call xml_AddAttribute (xf,"RelativityModel",trim(input%groundstate%CoreRelativity))
+      Call xml_AddAttribute (xf,"xctype",xctype_)
+      Call xml_EndElement (xf,"Hamiltonian")
+      Do is = 1, nspecies
+        Call xml_NewElement (xf,"atom")
+        Call xml_AddAttribute (xf,"chemicalSymbol", trim(input%structure%speciesarray(is)%species%chemicalSymbol)) 
+        Call xml_AddAttribute (xf,"species", trim(input%structure%speciesarray(is)%species%speciesfile))
+        Call xml_NewElement (xf,"NumericalSetup")
+        Call xml_AddAttribute (xf,"TotalNumberOfGridPoints",spnr(is))
+        Call xml_AddAttribute (xf,"NumberOfMTGridPoints",nrmt(is))
+        Call xml_AddAttribute (xf,"GridType",trim(input%groundstate%radialgridtype))
+        Call xml_AddAttribute (xf,"rmin",spr(1, is))
+        Call xml_AddAttribute (xf,"rmt",spr(nrmt(is), is))
+        Call xml_AddAttribute (xf,"rmax",spr(spnr(is), is))
+        Call xml_EndElement (xf,"NumericalSetup")
+        Call xml_NewElement (xf,"spectrum")
+        do i=1,spnst(is)
+          Call xml_NewElement (xf,"state")
+          Call xml_AddAttribute (xf,"n",spn(i, is))
+          Call xml_AddAttribute (xf,"l",spl(i, is))
+          Call xml_AddAttribute (xf,"kappa",spk(i, is))
+          Call xml_AddAttribute (xf,"energy",speval(i, is))
+          Call xml_EndElement (xf,"state")
+        enddo
+        Call xml_EndElement (xf,"spectrum")
+        Call xml_EndElement (xf,"atom")
+      End Do
+      Call xml_EndElement (xf,"atomlist")
+      Call xml_close (xf)
+
       Return
 End Subroutine
 !EOC

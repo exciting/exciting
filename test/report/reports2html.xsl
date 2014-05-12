@@ -64,7 +64,7 @@ function toggle(showHideDiv, switchTextDiv) {
                                     <xsl:value-of
                                         select="number(count(test[status='failed'])) div $all *100"/>
                                     <xsl:text>&amp;chs=</xsl:text>
-                                    <xsl:value-of select="$all * 20 "/>
+                                    <xsl:value-of select="$all * 10 "/>
                                     <xsl:text>x80&amp;chdl=passed|unspecified|failed&amp;chdlp=t&amp;chl=passed:</xsl:text>
                                     <xsl:value-of select="count(test[status='passed'])"/>
                                     <xsl:text>|unspecified:</xsl:text>
