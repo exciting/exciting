@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+
+  <title>helium</title>
+
+  <structure speciespath="./">
+    <crystal scale="15">
+      <basevect> 1.0     0.0     0.0 </basevect>
+      <basevect> 0.0     1.0     0.0 </basevect>
+      <basevect> 0.0     0.0     1.0 </basevect>
+    </crystal>
+    <species speciesfile="He.xml" rmt="6.0">
+      <atom coord="0.00 0.00 0.00" />
+    </species>
+  </structure>
+
+  <groundstate 
+    ngridk="1 1 1"
+    rgkmax="10"
+    gmaxvr="7.5" 
+    maxscl="100"
+    epsengy="1d-7"
+    lmaxmat="4"
+    lmaxapw="8"
+    lmaxvr="4"
+    mixer="msec"
+    radialgridtype="cubic"
+    CoreRelativity="none"
+    ValenceRelativity="none"
+    swidth="0.001"
+    >
+ <solver
+    type='Lapack'
+    evaltol='1d-15'
+    />
+  <libxc correlation="XC_LDA_C_VWN" exchange="XC_LDA_X"/>
+  </groundstate>
+
+</input>

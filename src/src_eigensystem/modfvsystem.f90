@@ -9,7 +9,7 @@
 ! data transparently allowing to choose from different datatypes
 ! more easily
 Module modfvsystem
-    use mod_constants
+   use mod_constants
     Implicit None
     !
     Type HermitianMatrix
@@ -46,6 +46,7 @@ Contains
     !
     !
     Subroutine newmatrix (self, packed, rank)
+        implicit none
         type (HermitianMatrix), Intent (Inout) :: self
         Logical, Intent (In) :: packed
         Integer, Intent (In) :: rank
@@ -78,6 +79,7 @@ Contains
     !
     !
     Subroutine deletematrix (self)
+        implicit none
         Type (HermitianMatrix), Intent (Inout) :: self
         if (associated(self%zap)) Deallocate (self%zap)
         if (associated(self%za))  Deallocate (self%za)
@@ -88,6 +90,7 @@ Contains
     !
     !
     Subroutine newsystem (self, packed, rank)
+        implicit none
         Type (evsystem), Intent (Out) :: self
         Logical, Intent (In) :: packed
         Integer, Intent (In) :: rank
@@ -99,13 +102,15 @@ Contains
     !
     !
     Subroutine deleteystem (self)
+        implicit none
         Type (evsystem), Intent (Inout) :: self
         Call deletematrix (self%hamilton)
         Call deletematrix (self%overlap)
     End Subroutine deleteystem
     !
     !
-    Subroutine Hermitianmatrix_rank2update (self, n, alpha, x, y)
+    Subroutine Hermitianmatrix_rank2update (self, n, alpha, x, y) 
+        implicit none
         Type (HermitianMatrix), Intent (Inout) :: self
         Integer, Intent (In) :: n
         Complex (8), Intent (In) :: alpha, x (:), y (:)
@@ -119,6 +124,7 @@ Contains
     !
     !
     Subroutine Hermitianmatrix_indexedupdate (self, i, j, z)
+        implicit none
         Type (HermitianMatrix), Intent (Inout) :: self
         Integer :: i, j
         Complex (8) :: z
@@ -186,6 +192,7 @@ Contains
     !
     !
     Function ispacked (self)
+        implicit none
         Logical :: ispacked
         Type (HermitianMatrix) :: self
         ispacked = self%packed
@@ -193,6 +200,7 @@ Contains
     !
     !
     Function getrank (self)
+        implicit none
         Integer :: getrank
         Type (HermitianMatrix) :: self
         getrank = self%rank
@@ -228,6 +236,7 @@ Contains
     !
     !
     Subroutine HermitianmatrixInvert (self,Method)
+        implicit none
         Type (HermitianMatrix) :: self
         Integer, intent(inout) :: Method
         integer :: lwork,info
@@ -302,6 +311,7 @@ Contains
     !
     !
     Subroutine HermitianmatrixFactorize (self,Method)
+        implicit none
         Type (HermitianMatrix) :: self
         Integer, intent(inout) :: Method
         if ( ispacked(self)) Then
@@ -316,7 +326,7 @@ Contains
             call HermitianmatrixLDL (self)
           case (LLdecomp)
             call HermitianmatrixLL (self)
-            if (associated(self.ipiv)) Method=LDLdecomp
+            if (associated(self%ipiv)) Method=LDLdecomp
           end select
         self%ludecomposed = .True.
         endif
@@ -324,6 +334,7 @@ Contains
     !
     !
     Subroutine HermitianmatrixLU (self)
+        implicit none
         Type (HermitianMatrix) :: self
         Integer :: info
         allocate (self%ipiv(self%rank))
@@ -340,6 +351,7 @@ Contains
     !
     !
     Subroutine HermitianmatrixLDL (self)
+        implicit none
         Type (HermitianMatrix) :: self
         Integer :: info
         complex(8), allocatable :: zwork(:)
@@ -378,6 +390,7 @@ Contains
     !
     !
     Subroutine HermitianmatrixLL (self) !Cholesky decomposition
+        implicit none
         Type (HermitianMatrix) :: self
         Integer :: info
         complex(8), allocatable :: zwork(:,:)
@@ -415,11 +428,13 @@ Contains
     !
     !
     Subroutine Hermitianmatrixlinsolve (self, b, method)
+        implicit none
         Type (HermitianMatrix) :: self
         Complex (8), Intent (Inout) :: b (:)
         integer, Intent (In) :: method
         Integer :: info
         Complex (8), allocatable :: outcome(:)
+        complex(8)::zone=(1.0,0.0)
         if ( ispacked(self)) Then
           write(*,*) 'Packed matrices are not supported'
           stop
@@ -465,6 +480,7 @@ Contains
     !
     !
     Subroutine HermitianMatrixAXPY (alpha, x, y)
+        implicit none
         Complex (8) :: alpha
         Type (HermitianMatrix) :: x, y
         Integer :: mysize
@@ -478,7 +494,8 @@ Contains
     End Subroutine HermitianMatrixAXPY
     !
     !
-    Subroutine HermitianMatrixcopy (x, y)
+    Subroutine HermitianMatrixcopy (x, y) 
+        implicit none
         Complex (8) :: alpha
         Type (HermitianMatrix) :: x, y
         Integer :: mysize
@@ -571,6 +588,7 @@ Contains
         use mod_eigensystem, only:nmatmax
         Use mod_Gvector, only : ngrid,ngrtot,igfft
         use mod_gkvector, only : ngk
+        implicit none
         type(evsystem)::system
         integer::nstfv
 
