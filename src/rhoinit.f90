@@ -108,7 +108,7 @@ Subroutine rhoinit
            lastpoint=lastpoint-1
          enddo
 
-         auxgridsize=mtgridsize+lastpoint-nrmt(is)+1
+         auxgridsize=mtgridsize+lastpoint-nrmt(is)!+1
          allocate(auxgrid(auxgridsize))
          allocate(auxrho(auxgridsize))
          auxgrid(1)=spr(1,is)
@@ -186,7 +186,6 @@ endif
              endif
            enddo
          enddo
-
 ! Factorisation is necessary for the least square fit in the L^2 sense
                   call dpotrf('U',&                       ! upper or lower part
                        nsw+1, &               ! size of matrix
@@ -206,7 +205,6 @@ endif
            Call fderiv (-1, auxgridsize, auxgrid, fr, gr, cf)
            swc(ig)=gr(auxgridsize)
          enddo
-
 ! Density is expanded in the auxilliary basis.
 ! To do it, we find coefficients that minimise 
 ! \sum_i C_i \int_0^R j_0(k_i r) \rho(r) r^2 dr. 
@@ -215,11 +213,10 @@ endif
                          1,  &                      ! number of right-hand sides
                          swoverlap, &      ! factorized matrix
                          nsw+1, &                       ! leading dimension
-                         swc, &                    ! right-hand side / solution
+                         swc(0), &                    ! right-hand side / solution
                          nsw+1, &                       ! leading dimension
                          info &                     ! error message
                        )
-
 ! Calculate the smooth model density. 
 ! If the number of basis fns is large enough it should coincide with a*r^2+c.
 
@@ -284,6 +281,7 @@ endif
 !$OMP END DO
 !$OMP END PARALLEL
 #endif
+
         deallocate(cosine,sine,swgr)
         deallocate(swc,swoverlap)
         ffacg=ffacg*(fourpi/omega)*auxgrid(auxgridsize)**3
@@ -313,7 +311,6 @@ if (.true.) then
          allocate(swgr(0:nsw))
          allocate(swoverlap2(0:nsw,0:nsw,2))
          maxswg=2d0*input%groundstate%gmaxvr ! 2*pi*dble(nsw)/auxgrid(auxgridsize) !input%groundstate%gmaxvr
-!         write(*,*) nsw !,int(input%groundstate%gmaxvr*rmt(is)/(pi))+1
          allocate(sine(0:nsw))
          allocate(cosine(0:nsw))
 
