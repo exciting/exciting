@@ -8,8 +8,6 @@ subroutine construct_chartabl                                                 !
 ! Oxford, 1970. (Oxford, 1967), Pergamon Press.
 !
 !
-! applies selection rules for Raman scattering on phonons
-!
 use modinput
 use mod_symmetry
 use raman_symmetry
@@ -22,7 +20,6 @@ integer :: i,j,k,fi,numrep,tr,sop_1,sop_2,sop_3,lwork,info
 integer :: i1,i2
 integer :: maxrot,maxrot_cl,minrot,minrot_cl,inv_cl,ia,ja,is, num_m, sigmah_cl
 real(8) :: transl(3,48)
-real(8) :: soprep(3,3,24)
 real(8) :: conj(3,3), tmpmat(3, 3), invmat(3, 3)
 real(8) :: E(3,3)
 real(8) :: sopmat_12(3,3),const_c(48,48,48),dim_(48)
@@ -370,22 +367,19 @@ if (fi .eq. 2) then
 endif 
 !
 ! reduce to representative group in order to determine point group
+! and sum over properties of rotation part in representative group; only integer tr and det occur
 !
 numrep = 0
+rotsum = 0
 do i = 1,numsop
    if (representative(i)) then
       numrep = numrep + 1
-      soprep(:,:,numrep) = sopmat(:,:,i)
+      tr = nint(trace(sopmat(:,:,i)))
+      rottype(i) = rottabl(tr,symlatd(lsplsymc(i)))
+      rotsum(rottype(i)) = rotsum(rottype(i)) + 1
    endif
 enddo
 !
-! properties of rotation part; only integer tr and det occur
-rotsum = 0
-do i = 1,numrep
-   tr = nint(trace(soprep(:,:,i)))
-   rottype(i) = rottabl(tr,symlatd(lsplsymc(i)))
-   rotsum(rottype(i)) = rotsum(rottype(i)) + 1
-enddo
 !
 ! look-up table taken from Grosse-Kunstleve, Acta Cryst. (1999) A55, 383-395
 hmsymb = 'NONE '; schsymb = 'NONE '
@@ -403,21 +397,26 @@ if (rotsum(3)+rotsum(-3) .eq. 8) then
          if (rotsum(4) .eq. 6) then
             hmsymb = '432  '
             schsymb = 'O    '
+            goto 17
          elseif (rotsum(-4) .eq. 6) then
             hmsymb = '-43m '
             schsymb = 'Td   '
+            goto 17
          endif
       elseif (centric) then
          hmsymb = 'm-3m '
          schsymb = 'Oh   '
+         goto 17
       endif
    elseif (numrep .eq. 12) then
       if (.not.centric) then
          hmsymb = '23   '
          schsymb = 'T    '
+         goto 17
       elseif (centric) then
          hmsymb = 'm-3  '
          schsymb = 'Th   '
+         goto 17
       endif
    endif
 endif
@@ -429,30 +428,37 @@ if (rotsum(6)+rotsum(-6) .eq. 2) then
             if (rotsum(2) .eq. 7) then
                hmsymb = '622  '
                schsymb = 'D6   '
+               goto 17
             elseif (rotsum(-2) .eq. 6) then
                hmsymb = '6mm  '
                schsymb = 'C6v  '
+               goto 17
             endif
          elseif (rotsum(-6) .eq. 2) then
             hmsymb = '-6m2 '
             schsymb = 'D3h  '
+            goto 17
          endif
       elseif (centric) then
          hmsymb = '6/mmm'
          schsymb = 'D6h  '
+         goto 17
       endif
    elseif (numrep .eq. 6) then
      if (.not.centric) then
          if (rotsum(6) .eq. 2) then
             hmsymb = '6    '
             schsymb = 'C6   '
+            goto 17
          elseif (rotsum(-6) .eq. 2) then
             hmsymb = '-6   '
             schsymb = 'C3h  '
+            goto 17
          endif
       elseif (centric) then
          hmsymb = '6/m  '
          schsymb = 'C6h  '
+         goto 17
       endif
    endif
 endif
@@ -462,22 +468,27 @@ if (rotsum(3)+rotsum(-3) .eq. 2) then
       if (.not.centric) then
          hmsymb = '3    '
          schsymb = 'C3   '
+         goto 17
       elseif (centric) then
          hmsymb = '-3   '
          schsymb = 'S6   '
+         goto 17
       endif
    elseif (numrep .eq. 6) then
       if (.not.centric) then
          if (rotsum(2) .eq. 3) then
             hmsymb = '32   '
             schsymb = 'D3   '
+            goto 17
          elseif (rotsum(-2) .eq. 3) then
             hmsymb = '3m   '
             schsymb = 'C3v  '
+            goto 17
          endif
       elseif (centric) then
          hmsymb = '-3m  '
          schsymb = 'D3d  '
+         goto 17
       endif
    endif
 endif
@@ -488,13 +499,16 @@ if (rotsum(4)+rotsum(-4) .eq. 2) then
          if (rotsum(4) .eq. 2) then
             hmsymb = '4    '
             schsymb = 'C4   '
+            goto 17
          elseif (rotsum(-4) .eq. 2) then
             hmsymb = '-4   '
             schsymb = 'S4   '
+            goto 17
          endif
       elseif (centric) then
          hmsymb = '4/m  '
          schsymb = 'C4h  '
+         goto 17
       endif
    elseif (numrep .eq. 8) then
       if (.not.centric) then
@@ -502,17 +516,21 @@ if (rotsum(4)+rotsum(-4) .eq. 2) then
             if (rotsum(2) .eq. 5) then
                hmsymb = '422  '
                schsymb = 'D4   '
+               goto 17
             elseif (rotsum(-2) .eq. 4) then
                hmsymb = '4mm  '
                schsymb = 'C4v  '
+               goto 17
             endif
          elseif (rotsum(-4) .eq. 2) then
             hmsymb = '-4m2 '
             schsymb = 'D2d  '
+            goto 17
          endif
       elseif (centric) then
          hmsymb = '4/mmm'
          schsymb = 'D4h  '
+         goto 17
       endif
    endif
 endif
@@ -522,26 +540,32 @@ if (rotsum(2)+rotsum(-2) .eq. 3) then
       if (rotsum(2) .eq. 3) then
          hmsymb = '222  '
          schsymb = 'D2   '
+         goto 17
       elseif (rotsum(-2) .eq. 2) then
          hmsymb = 'mm2  '
          schsymb = 'C2v  '
+         goto 17
       endif
    elseif (centric) then
       hmsymb = 'mmm  '
       schsymb = 'D2h  '
+      goto 17
    endif
 elseif (rotsum(2)+rotsum(-2) .eq. 1) then
    if (.not.centric) then
       if (rotsum(2) .eq. 1) then
          hmsymb = '2    '
          schsymb = 'C2   '
+         goto 17
       elseif (rotsum(-2) .eq. 1) then
          hmsymb = 'm    '
          schsymb = 'Cs   '
+         goto 17
       endif
    elseif (centric) then
       hmsymb = '2/m  '
       schsymb = 'C2h  '
+      goto 17
    endif
 elseif (numsop .eq. 1) then
    sym_out = .false.
@@ -553,14 +577,17 @@ elseif (numsop .eq. 1) then
       schsymb = 'Ci   '
    endif
 endif
+17 continue
+!
 write(13, '(/," The (isomorphic) point group is ",a5," (Hermann-Maugin) or ", &
   &                                               a5," (Schoenflies)")') hmsymb,schsymb
 write(13,*)
 write(13, '(" Character Table")')
 write(13,*)
-write(13, '("              ",20("   ",i2,a2),/)') (elem_cl(i),cl_rotchar(i),i=1,cl)
+write(13, '("              ",20("         ",i2,a2),/)') (elem_cl(i),cl_rotchar(i),i=1,cl)
 do j = 1,cl
-   write(13,'(i5,a10,20i7)') j,irep_ch(j),(nint(dble(charact(i,j))),i=1,cl)
+   write(13,'(i5,a10,20(" ",f5.2,",",f5.2," "))') &
+ &       j,irep_ch(j),(dble(charact(i,j)),aimag(charact(i,j)),i=1,cl)
 enddo
 write(13,*)
 ! --- end of character table code

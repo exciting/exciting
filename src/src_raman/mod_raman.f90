@@ -19,7 +19,8 @@ real(8), parameter :: fhak    =      fhawn*fwnk        ! 1 Ha = fhak K
 real(8), parameter :: fkry    =      1.0d0/fryk        ! 1 K = fkry Ry
 real(8), parameter :: fwnmev  =      0.1239841930d0    ! 1 cm^-1 = fwnmev meV
 real(8), parameter :: fmevwn  =      1.d0/fwnmev       ! 1 meV = fmevwn cm^-1
-real(8), parameter :: frnmha  =      1.5198298460045d-7*299792458   ! 1 Ha = frnmha 1/nm
+real(8), parameter :: frnmha  =      1.5198298460045d-7*299792458   ! 1/nm = frnmha Ha
+real(8), parameter :: fharnm  =      1.d0/frnmha       ! 1 Ha = fharnm 1/nm
 real(8), parameter :: famuau  =      1822.88848        ! 1 amu = famuau atomic units of mass
 ! these are derived later on from the above
 real(8) :: fener,flang
@@ -151,3 +152,4 @@ logical :: vib_mode(48)
 ! max number of non-orthogonal vectors in symvec
 integer :: no_vec_nonorth
 end module raman_symmetry
+!

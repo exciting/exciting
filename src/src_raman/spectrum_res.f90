@@ -84,7 +84,7 @@ else
    dde = (eigen(2) - eigen(1))*fhawn
    w_scat = rlas*fhawn - dde              ! Stokes scattering
    w_fact = rlas*fhawn*w_scat**3
-   zfact = ex(j)/zzsum                    ! prefactors * exp(-Ej(kT) / Sum( exp(E/kT) )
+   zfact = ex(1)/zzsum                    ! prefactors * exp(-Ej(kT) / Sum( exp(E/kT) )
 !
    trans1 = deq (oct1,oct2)*transme1(1)/factorial(1)/sqn1 + &
         &   d2eq(oct1,oct2)*transme2(1)/factorial(2)/sqn2 + &

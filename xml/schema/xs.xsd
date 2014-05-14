@@ -869,6 +869,14 @@
                             <xs:documentation>Bethe-Salpeter equation.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+                        <xs:enumeration value="bsegenspec">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>446</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Read BSE eigenvalues and regenerate dielectric and loss functions.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
                         <xs:enumeration value="kernxc_bse">
                           <xs:annotation>
                             <xs:appinfo>

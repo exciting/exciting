@@ -20,6 +20,7 @@ use raman_ew
 use raman_inter
 use raman_fij
 use raman_trmat
+use raman_work
 use m_symvec
 use m_raman_utils
 use m_genfilname
@@ -32,7 +33,7 @@ use m_genfilname
 !
 implicit none
 integer :: maxp,it,ntp
-integer :: i, j, ia, is, iat, ic, imode, istep, nmode
+integer :: i, j, ia, is, iat, ic, imode, istep, nmode, iw
 integer :: istep_lo, istep_hi, i_shift
 integer :: oct, oct1, oct2
 integer :: read_i
@@ -41,6 +42,7 @@ real(8) :: dph, vgamc(3)
 real(8) :: start_time_cpu, finish_time_cpu, time_cpu_tot, t_cpu_proc
 real(8) :: start_time_wall, finish_time_wall, time_wall_tot
 real(8) :: read_dph, read_engy
+real(8) :: wlas, ws, dwlas, S_total, Sab
 Real(8), Allocatable :: w(:)
 Complex(8), Allocatable :: ev(:, :)
 Complex(8), Allocatable :: dynq(:, :, :)
@@ -218,9 +220,10 @@ call raman_save_struct
 ! +++ CONSTRUCTION OF CHARACTER TABLE  +++
 ! 
 input%structure%tshift = .true.
-!call init0
-call construct_chartabl
-if (rank .eq. 0) write(99,'("Info(Raman): Character table constructed.",/)')
+if (rank .eq. 0) then
+   call construct_chartabl
+   write(99,'("Info(Raman): Character table constructed.",/)')
+endif
 !
 ! +++ TRIGGER ALL NECESSARY COMPUTATIONS FROM OTHER EXCITING PARTS TO +++
 ! +++     COLLECT DATA FOR POTENTIALS AND DIELECTRIC FUNCTIONS        +++
@@ -390,10 +393,9 @@ if (rank .eq. 0) then
 endif
 start_time_cpu = finish_time_cpu
 start_time_wall = finish_time_wall
-
+!
 !
 ! check presence of optical components from input
-!if (input%xs%xstype .eq. 'TDDFT' .and. input%xs%dfoffdiag) then
 if (input%xs%dfoffdiag) then
    offdiag = .true.
 else
@@ -420,39 +422,39 @@ do imode = 1, nmode
     write(99, '(/,"  +--------------+",/,   &
                &  "  |  Mode ",i3," :  |",/,   &
                &  "  +--------------+",/)') imode
-    write(*,*) 'mode ',ev(:, imode)
    endif
 ! check for acoustic modes
    acoustic(imode) = .false.
    call check_acoustic(ev(:, imode), acoustic(imode))
    if (acoustic(imode)) then
-      if (rank .eq. 0) write(99, '(/,"Info(Raman): Acoustic mode",//)')
+      if (rank .eq. 0) write(99, '(/,"Info(Raman): This mode seems to be acoustic",//)')
       cycle
    endif
 ! check mode if Raman active by symmetry
-   call check_raman (dble(ev(:, imode)), irep(imode), active(imode))
+   if (rank .eq. 0) call check_raman (dble(ev(:, imode)), irep(imode), active(imode))
+#ifdef MPI
+   call MPI_Bcast(active, nmode, MPI_Logical, 0, MPI_Comm_World, ierr)
+#endif
    if (.not. active(imode)) then
       if (rank .eq. 0) write(99, '(/,"Info(Raman): This mode is not Raman active",//)')
       cycle
    endif
 !
-!  analyze symmetry of Raman tensor
    Write (ext, '("_MOD", I3.3, ".OUT")') imode
-   call construct_t2 (irep(imode), ext, lt2)
-   write(*, *) lt2(1, :)
-   write(*, *) lt2(2, :)
-   write(*, *) lt2(3, :)
+!
+!  analyze symmetry of Raman tensor
+   if (rank .eq. 0) call construct_t2 (irep(imode), ext, lt2)
 
 !
 ! displace atoms along eigenvector
    i = 1
    do istep = istep_lo, istep_hi
-      write (*,  '(/," *** Working on step ",i2," ***",/)') istep + i_shift
+!     write (*,  '(/," *** Working on step ",i2," ***",/)') istep + i_shift
       if (rank .eq. 0) write (99, '(/," *** Working on step ",i2," ***",/)') istep + i_shift
 !
 ! do equilibrium geometry only once
       if (istep .eq. 0) then
-              if (rank .eq. 0) write(99, '("Info(Raman): This is the equlibrium geometry!")')
+              if (rank .eq. 0) write(99, '("Info(Raman): This is the equilibrium geometry!")')
 ! create unambiguous file extension and directory
          Write (raman_filext, '("_MOD", I3.3, "_DISP", I2.2, ".OUT")') 0, 0
          Write (raman_stepdir, '("./MOD", I3.3, "_DISP", I2.2, "/")') 0, 0
@@ -501,28 +503,8 @@ do imode = 1, nmode
 ! start anew from input geometry, construct distorted geometry and run through loop
         call raman_restore_struct
         call init0
-        write(*, '("Equilibrium geometry coordinates")')
-        do is = 1, nspecies
-           Do ia = 1, natoms (is)
-              write(*,*) 'is, ia, coord(:) ', is, ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-           enddo
-        enddo
         dph = input%properties%raman%displ*dble(istep)
-        write(*,'("Phonon eigenvector")')
-        iat = 1
-        do is = 1, nspecies
-           Do ia = 1, natoms (is)
-              write(*,*) 'is, ia, eigvec(:) ', is, ia, dble(ev((3*(iat-1)+1):(3*iat), imode))
-              iat = iat + 1
-           enddo
-        enddo
         call dcell(vgamc(:), ev(:, imode), dph)
-        write(*, '("             Supercell constructed:")' )
-        do is = 1, nspecies
-           Do ia = 1, natoms (is)
-              write(*,*) 'is, ia, coord(:) ', is, ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-           enddo
-        enddo
 ! set appropriate parameters, do groundstate calculation and compute forces
         input%structure%primcell = .False.
         input%structure%autormt = .False.
@@ -535,9 +517,7 @@ do imode = 1, nmode
         notes(3) = '   | GNDSTATE was called from RAMAN |'
         notes(4) = '   +--------------------------------+'
         notes(5) = '                                     '
-        write(*,*) 'call to groundstate'
         call gndstate
-        write(*,*) 'groundstate computed'
         if (rank .eq. 0) then
          write(99, '("             Groundstate calculation done.")')
          call flushifc(99)
@@ -640,13 +620,12 @@ do imode = 1, nmode
          call init0
          dph = input%properties%raman%displ*dble(istep)
          call dcell(vgamc(:), ev(:, imode), dph)
-         write(*, '("             Supercell constructed:")' )
-         do is = 1, nspecies
-            Do ia = 1, natoms (is)
-               write(*,*) 'is, ia, coord(:) ', is, ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-            enddo
-         enddo
-! set appropriate parameters, do groundstate calculation and compute forces
+!        write(*, '("             Supercell constructed:")' )
+!        do is = 1, nspecies
+!           Do ia = 1, natoms (is)
+!              write(*,*) 'is, ia, coord(:) ', is, ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+!           enddo
+!        enddo
          input%structure%primcell = .False.
          input%structure%autormt = .False.
          input%structure%tshift = .false.
@@ -687,9 +666,7 @@ do imode = 1, nmode
             start_time_cpu = finish_time_cpu
             start_time_wall = finish_time_wall
          endif
-         write(*,*) ' call to XS'
          call xstasklauncher
-         write(*,*) 'XS computed'
          if (input%xs%xstype .eq. 'TDDFT') then
             do oct1 = 1, 3
                Do oct2 = 1, 3
@@ -825,10 +802,8 @@ do imode = 1, nmode
 !  first fit desired functions to given data points
 !  for the potential
       call polyfit (imode)
-      write(*, '("Info(Raman): Potential fitted")')
 !  ...and the dielectric function
       call polyfit_diel (imode, rlas)
-      write(*, '("Info(Raman): Dielectric function fitted")')
 !
 !  write PARAMETERS to OUTPUT file
       write(66,'(//,116("*"),/46("*"),"   START CALCULATION   ",47("*"))')
@@ -918,9 +893,7 @@ do imode = 1, nmode
       write(77,*) '# effective potential'
       call potential(maxp)
       call eigenen
-      write(*,*) ' main eigen solver finished'
       call transmat(input%properties%raman%ninter,h) 
-      write(*,*) ' vib matrix elements computed'
 !    TEMPERATURE loop
       do it = 1, ntp
          temp = tempa + (it - 1)*tempi
@@ -939,6 +912,42 @@ do imode = 1, nmode
          endif
       enddo
       close (77)
+! resonance behavior of the fundamental transition
+      open(unit=77,file='RAMAN_RESONANCE'//trim(filext),status='unknown',form='formatted')
+      dwlas = (input%xs%energywindow%intv(2) - &
+   &           input%xs%energywindow%intv(1)) / &
+   &           dble(input%xs%energywindow%points)
+      if (input%properties%raman%molecule) then
+         write(77,'("# Resonance behavior of the fundamental transition",/, &
+          &         "# Elas [ Ha ]     Elas [ eV ]     Elas [ nm ]     Esc [ Ha ]     ", &
+          &         "(d sigma)/(d Omega) [ 10^-36 m^2 sr^-1 ]      ", &
+          &         "(d sigma)/(d Omega)/Esc^4 [ 10^-60 m^6 sr^-1 ]",/)')
+      else
+         write(77,'("# Resonance behavior of the fundamental transition",/, &
+          &         "# Elas [ Ha ]     Elas [ eV ]     Elas [ nm ]     Esc [ Ha ]     ", &
+          &         "S_tot [ 10^-5 sr^-1 m^-1 ]      S_tot/Esc^4 [ 10^-29 m^3 sr^-1 ]",/)')
+      endif
+      do iw = 1, input%xs%energywindow%points
+         wlas = input%xs%energywindow%intv(1) + dble(iw - 1)*dwlas
+         call polyfit_diel_res(imode, iw)
+         call epsshift(zs)
+         if (input%properties%raman%molecule) then
+            call spectrum_res(tempa, wlas, oct1, oct2, Sab, ws)
+            S_total = Sab
+         else
+           S_total = 0.d0
+           do oct1 = 1, 3
+             do oct2 = 1, 3
+                if (oct1 .ne. oct2 .and. .not.offdiag) cycle
+                call spectrum_res(tempa, wlas, oct1, oct2, Sab, ws)
+                S_total = S_total + Sab
+             enddo
+           enddo
+         endif
+         write(77,'(f12.5,3x,f12.3,3x,f12.2,3x,f12.5,5x,2g20.8)') &
+          &   wlas, wlas*fhaev, 1.d0/(wlas*fharnm), ws, S_total, S_total/(ws*fhawn)**4*1.d16
+      enddo
+      close(77)
 !
 ! end loop over modes
 enddo

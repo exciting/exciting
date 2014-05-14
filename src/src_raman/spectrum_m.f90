@@ -14,7 +14,7 @@ character(*), intent(in) :: filext
 integer :: i,j,ind,ii,iw
 integer :: oct1, oct2
 real(8) :: arg,beta,dde,gam1,gam2,gam3,gam4
-real(8) :: sc
+real(8) :: sc, total
 real(8) :: spec_par, spec_perp, spec_abs
 real(8) :: w, dw, zfact, zsum, zzsum, temp, w_scat, w_fact
 real(8) :: isoinvar, anisoinvar2, activity, depol
@@ -106,26 +106,31 @@ do i = 1,input%properties%raman%nstate
 enddo
 !
 ! write out spectra
+total = 0.d0
 do iw = 1, input%properties%raman%energywindow%points+1
    ind = 0
    spec_par = 0.0d0
    spec_perp = 0.d0
-   spec_abs = 0.d0
    w = input%properties%raman%energywindow%intv(1) + dble(iw - 1)*dw
    do i = 1,input%properties%raman%nstate
       do j = i-1,1,-1
          ind = ind + 1
          dde = (eigen(i) - eigen(j))*fhawn
-         spec_par = spec_par + rcont_par(ind)*gamma1/((dde-w)**2 + gam1)
-         spec_perp = spec_perp + rcont_perp(ind)*gamma1/((dde-w)**2 + gam1)
-         spec_abs = spec_abs + spec_par + spec_perp
+         w_scat = rlas*fhawn - dde
+         w_fact = rlas*fhawn*w_scat**3
+         spec_par = spec_par + rcont_par(ind)*w_fact/((dde-w)**2 + gam1)
+         spec_perp = spec_perp + rcont_perp(ind)*w_fact/((dde-w)**2 + gam1)
       enddo
    enddo
-   spec_par = spec_par*(rlas*fhawn - w)**3/(2.d0*pi)
-   spec_perp = spec_perp*(rlas*fhawn - w)**3/(2.d0*pi)
-   spec_abs = spec_abs*(rlas*fhawn - w)**3/(2.d0*pi)
+!   spec_par = spec_par*(rlas*fhawn - w)**3/(2.d0*pi)
+!   spec_perp = spec_perp*(rlas*fhawn - w)**3/(2.d0*pi)
+   spec_par = spec_par*sc*gamma1/(2.d0*pi)
+   spec_perp = spec_perp*sc*gamma1/(2.d0*pi)
+   spec_abs = spec_par + spec_perp
+   total = total + spec_abs*dw
    write(73,'(f12.2,3g15.8)') w, spec_par, spec_perp, spec_abs
 enddo
+write(*,*) 'total ',total
 !
 close(73)
 !

@@ -117,6 +117,9 @@ Subroutine xsmain (plan)
          Case (445)
      ! Bethe-Salpeter equation
             Call BSE
+         Case (446)
+     ! regenerate BSE spectrum from exciton output
+            Call bsegenspec
          Case (450)
      ! BSE-kernel
             Call kernxc_bse

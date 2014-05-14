@@ -82,9 +82,14 @@ write(73,'("# Laser energy:  ",f8.6," Ha = ",f8.1," cm^-1 = ",f5.2," eV = ",  &
 !
 ind = 0
    zzsum = zsum/(omega*fau3cm3*pi*pi)
-   write(66,'(/," Scattering contributions in [ 10^-7 sr^-1 cm^-1 ] from ", &
+   if (input%properties%raman%intphonon) then
+      write(66,'(/," Scattering contributions in [ 10^-5 sr^-1 m^-1 ] from ", &
      & "process of order",//,4x," Transition energy [ cm^-1 ]",            &
      & 6x,"1",14x,"2",14x,"3",14x,"4",14x,"5",14x,"6",/)')
+   else
+      write(66,'(/," Scattering contributions in [ 10^-5 sr^-1 m^-1 ]",// &
+     & ,4x," Transition energy [ cm^-1 ]",/)')
+   endif
 do i = 1,input%properties%raman%nstate
    do j = i-1,1,-1
       dde = (eigen(i) - eigen(j))*fhawn
@@ -144,16 +149,18 @@ do iw = 1, input%properties%raman%energywindow%points+1
       do j = i-1,1,-1
          ind = ind + 1
          dde = (eigen(i) - eigen(j))*fhawn
+         w_scat = rlas*fhawn - dde
+         w_fact = rlas*fhawn*w_scat**3
          spec = spec + &                        ! line broadening by Lorentzian
-     &          rcont1(ind)*gamma1/((dde-w)**2 + gam1) + &
-     &          rcont2(ind)*gamma2/((dde-w)**2 + gam2) + &
-     &          rcont3(ind)*gamma3/((dde-w)**2 + gam3) + &
-     &          rcont4(ind)*gamma4/((dde-w)**2 + gam4) + &
-     &          rcont5(ind)*gamma4/((dde-w)**2 + gam4) + &   ! 5th and 6th use gamma4
-     &          rcont6(ind)*gamma4/((dde-w)**2 + gam4)
+     &          rcont1(ind)*w_fact/((dde-w)**2 + gam1) + &
+     &          rcont2(ind)*w_fact/((dde-w)**2 + gam2) + &
+     &          rcont3(ind)*w_fact/((dde-w)**2 + gam3) + &
+     &          rcont4(ind)*w_fact/((dde-w)**2 + gam4) + &
+     &          rcont5(ind)*w_fact/((dde-w)**2 + gam4) + &   ! 5th and 6th use gamma4
+     &          rcont6(ind)*w_fact/((dde-w)**2 + gam4)
       enddo
    enddo
-   spec = spec*(rlas*fhawn - w)**3/(2.d0*pi)
+   spec = spec*gamma1*sc/(2.d0*pi)
    write(73,'(2g15.8)') w,spec
 enddo
 !

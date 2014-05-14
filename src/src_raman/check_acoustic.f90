@@ -5,8 +5,8 @@ use raman_params
 !
 implicit none
 ! arguments
-complex(8) :: vec(3*natmtot)
-logical :: acoustic
+complex(8), intent(inout) :: vec(3*natmtot)
+logical, intent(out) :: acoustic
 ! local variables
 real(8) :: phi
 integer :: i
@@ -15,13 +15,17 @@ logical :: acousticx, acousticy, acousticz
 !
 acoustic = .false.
 do i = 1, 3*natmtot
+   ! clean close-to-real numbers
+   if (abs(aimag(vec(i))) .lt. eps) vec(i) = cmplx(dble(vec(i)), 0.d0, 8)
    phi = atan2(aimag(vec(i)), dble(vec(i)))
    if (abs(vec(i)) .le. eps) then
       icomp(i) = 0
-   elseif (phi .gt. eps) then
-      icomp(i) = 1
    else
-      icomp(i) = -1
+      if (phi .gt. 0.d0) then
+         icomp(i) = 1
+      else
+         icomp(i) = -1
+      endif
    endif
 enddo
 acousticx = .false.; acousticy = .false.; acousticz = .false.
