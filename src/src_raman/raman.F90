@@ -20,7 +20,6 @@ use raman_ew
 use raman_inter
 use raman_fij
 use raman_trmat
-use raman_work
 use m_symvec
 use m_raman_utils
 use m_genfilname
