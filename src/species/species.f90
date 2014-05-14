@@ -353,7 +353,7 @@ program species
     end if
   end do
   maxl = min(maxl,3)
-  deallocate(vr,p0,p1,q0,q1)
+  deallocate(p0,p1,q0,q1)
 
 !---------------------------------------------
 ! Advanced feature: LOs for unoccupied states
@@ -370,6 +370,7 @@ program species
     end do
     
   end if
+  deallocate(vr)
 
 !------------------------------
 ! Generate species.xml files

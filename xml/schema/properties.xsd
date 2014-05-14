@@ -380,7 +380,7 @@
             </xs:documentation>
           </xs:annotation>
           <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat" default="false">
+            <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat" default="true">
               <xs:annotation>
                 <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu,
                   Phys. Rev. B 48, 4250 (1993)</xs:documentation>

@@ -29,6 +29,12 @@ subroutine dielmat
 
     type(Node), pointer :: np
     
+    if (rank==0) then
+      write(*,*)
+      write(*,*) 'Info(dielmat):'
+      write(*,*)
+    end if
+    
 ! initialise universal variables
     call init0
     call init1
@@ -57,9 +63,9 @@ subroutine dielmat
             drude = .true.
             if (rank==0) then
                 write(*,*) 
-                write(*,*) 'WARNING(dielmat): Specified Drude model parameters:'
-                write(*,*) '     plasma frequency: ', input%properties%dielmat%drude(1)
-                write(*,*) '  lifetime broadening: ', input%properties%dielmat%drude(2)
+                write(*,*) '  Drude model parameters:'
+                write(*,*) '     plasma frequency   : ', input%properties%dielmat%drude(1)
+                write(*,*) '     lifetime broadening: ', input%properties%dielmat%drude(2)
             end if
         end if
     end if
@@ -82,17 +88,17 @@ subroutine dielmat
     if (exist) then
         if (rank==0) then
             write(*,*)
-            write(*,'("WARNING(dielmat): The momentum matrix elements are read from PMAT.OUT")')
+            write(*,'("  Momentum matrix elements read from PMAT.OUT")')
             write(*,*)
         end if
     else
         if (rank==0) then
             write(*,*)
-            write(*,'("WARNING(dielmat): Calculate the momentum matrix elements")')
+            write(*,'("  Calculate momentum matrix elements")')
             write(*,*)
         end if
         if (.not.associated(input%properties%momentummatrix)) &
-       &  input%properties%momentummatrix => getstructmomentummatrix(emptynode)
+        &  input%properties%momentummatrix => getstructmomentummatrix(emptynode)
         call writepmat
     end if
 
@@ -101,7 +107,7 @@ subroutine dielmat
     inquire(iolength=recl) pmat
     deallocate(pmat)
     open(50,File='PMAT.OUT',Action='READ',Form='UNFORMATTED', &
-   &  Access='DIRECT',Recl=recl,IOstat=iostat)
+    &  Access='DIRECT',Recl=recl,IOstat=iostat)
 
 #ifdef MPI
     kfirst = firstofset(rank,nkptnr)
@@ -322,7 +328,7 @@ subroutine dielmat
             end do
             close(60)
             if (input%properties%dielmat%tevout) &
-           &  write(*, '(" Output energy is in eV")')
+           &  write(*, '("  Output energy is in eV")')
             write(*,*)
         end if
     
