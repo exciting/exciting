@@ -1,10 +1,11 @@
-subroutine check_raman (evec_phon, irep, active)
+subroutine check_raman (imode, evec_phon, irep, active)
 !
 use mod_atoms
 use mod_symmetry
 use raman_symmetry
 implicit none
 ! arguments
+integer, intent(in) :: imode
 real(8), intent(in) :: evec_phon (3*natmtot)
 integer, intent(out) :: irep
 logical, intent(out) :: active
@@ -22,11 +23,10 @@ open( unit=13, file='RAMAN_SYM.OUT', status='old', action='write', position='app
 !
 ! check given mode
 !
-write(13,*)
-write(13,*) ' Phonon eigenvector :'
-write(13,*)
+write(13, '(/," Phonon eigenvector of mode ",i3," :",/, &
+         &    " --------------------------------",/)') imode
 do ia = 1,natmtot
- write(13,220) ia,evec_phon( (3*(ia-1)+1):(3*ia) )
+ write(13, '(" Atom ",i2," : ",3f10.4)') ia,evec_phon( (3*(ia-1)+1):(3*ia) )
 enddo
 write(13,*)
 !
@@ -71,8 +71,9 @@ do k = 1,cl
       lassign = .true.
       active = raman_active(k)
       irep = k
-      write(13,230) k, irep_ch(k)
-      write(13,240) raman_active(k)
+      write(13, '(" Phonon mode belongs to IREP   : ",i2," (",a4,")")') k, irep_ch(k)
+      write(13, '(" Raman active                  : ",l2)') raman_active(k)
+      write(13, '(" Triggering Raman computation... ",/)')
       exit
    endif
 enddo
@@ -83,10 +84,10 @@ close (13)
 !
 !
 !
-220  format(' Atom ',i2,' : ',3f10.4)
-228  format(' No. degenerate modes combined : ',i2)
-230  format(' Phonon mode belongs to IREP   : ',i2,' (',a2,')')
-240  format(' Raman active                  : ',l2)
+!220  format(' Atom ',i2,' : ',3f10.4)
+!228  format(' No. degenerate modes combined : ',i2)
+!230  format(' Phonon mode belongs to IREP   : ',i2,' (',a4,')')
+!240  format(' Raman active                  : ',l2)
 !
 !
 end subroutine check_raman

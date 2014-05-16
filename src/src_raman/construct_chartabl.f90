@@ -33,10 +33,11 @@ logical :: flag(48),representative(48),grouped(100)
 integer :: rottype(48) 
 integer :: rottabl(-3:3,-1:1),rotsum(-6:6)
 character(2), dimension(-6:6) :: rotchar = (/ 'S3','  ','S4','S6',' m',' i','  ',' E','C2','C3','C4','  ','C6' /)
-character(2) :: cl_rotchar(48),chnum
+character(2) :: cl_rotchar(48)
 logical :: centric,cubic,mix
-character(5) :: hmsymb,schsymb
+character(5) :: hmsymb,schsymb,chnum
 character(3) :: sense
+character(1) :: mul_index
 ! external functions
       Real (8) :: r3mdet
       External r3mdet
@@ -348,6 +349,71 @@ do j = 1,cl
       endif
    endif
 enddo
+irep_ch(:) = adjustl(irep_ch(:))
+! 
+! account for 1-dim conjugate complex IREPs
+do i = 1, cl
+   if (all(abs(aimag(charact(:, i))) .lt. eps)) cycle
+   do j = 1, i
+      if (all(aimag(charact(:, i)) + aimag(charact(:, j)) .lt. eps)) then
+         irep_ch(i)(1:1) = 'E'
+         irep_ch(i) = trim(irep_ch(i))//'a'
+         irep_ch(i) = adjustl(irep_ch(i))
+         irep_ch(j)(1:1) = 'E'
+         irep_ch(j) = trim(irep_ch(j))//'b'
+         irep_ch(j) = adjustl(irep_ch(j))
+         exit
+      endif
+   enddo
+enddo
+!
+! add indices 1, 2 (, 3) in case there are ambiguous IREP names
+if (maxrot .eq. 2 .and. rotsum(2) .eq. 3 .and. -minrot .ne. 2*maxrot) then
+ ! D2 and D2h: arbitrary numbering of B IREPs
+ i1 = 1; i2 = 1
+ do i = 1, cl
+  if (irep_ch(i)(1:2) .eq. 'B ' .or. irep_ch(i)(1:2) .eq. 'Bg') then
+     write(mul_index, '(i1.1)') i1
+     irep_ch(i) = irep_ch(i)(1:1)//mul_index//irep_ch(i)(2:3) 
+     i1 = i1 + 1
+  endif
+  if (irep_ch(i)(1:2) .eq. 'Bu') then
+     write(mul_index, '(i1.1)') i2
+     irep_ch(i) = irep_ch(i)(1:1)//mul_index//irep_ch(i)(2:3) 
+     i2 = i2 + 1
+  endif
+ enddo
+else
+ ! all other cases
+ do i = 1, cl
+  do j = i, cl
+   if (irep_ch(j) .eq. irep_ch(i)) then
+    ! same name, need for index according to C_n with descending n
+    do i1 = 6, -6, -1
+     do i2 = 1, numsop
+      if (rottype(i2) .eq. i1) then
+       if (abs(dble(charact(class(i2), j))-dble(charact(class(i2), i))) .lt. eps) then
+        exit
+       else
+        if (dble(charact(class(i2), i)) .gt. 0.d0) then
+         irep_ch(i) = irep_ch(i)(1:1)//'1'//irep_ch(i)(2:3)
+         irep_ch(j) = irep_ch(j)(1:1)//'2'//irep_ch(j)(2:3)
+         goto 13
+        else
+         irep_ch(i) = irep_ch(i)(1:1)//'2'//irep_ch(i)(2:3)
+         irep_ch(j) = irep_ch(j)(1:1)//'1'//irep_ch(j)(2:3)
+         goto 13
+        endif
+       endif
+      endif
+     enddo
+    enddo
+   endif
+  enddo
+  13 continue
+ enddo
+endif
+         
 !
 ! Determine Point Group from SOPs
 !
@@ -672,28 +738,34 @@ do j = 1,cl
    enddo
    if (nint(freq_fac_vec(j)/numsop) .gt. 0) then
 !     write(13, *) 'class ',j,' freqfac vec ',freq_fac_vec(j)/dble(numsop)
-      write(chnum,'(i2)') nint(freq_fac_vec(j)/numsop)
-      write(vec_sym,*) trim(vec_sym),trim(chnum),'*'
+      write(chnum,'(i5)') nint(freq_fac_vec(j)/numsop)
+!     write(vec_sym,*) trim(vec_sym),trim(chnum),'*'
+      write(vec_sym,*) trim(vec_sym),trim(chnum),' '
       write(chnum,'(i2)') j
-      write(vec_sym,*) trim(vec_sym),trim(chnum),'(',trim(irep_ch(j)),')  ' 
-!     vec_sym = adjustl(vec_sym)
+!     write(vec_sym,*) trim(vec_sym),trim(chnum),'(',trim(irep_ch(j)),')  ' 
+      write(vec_sym,*) trim(vec_sym),trim(irep_ch(j)),'   '
+      vec_sym = adjustl(vec_sym)
    endif
    if (nint(freq_fac_rot(j)/numsop) .gt. 0) then
 !     write(13, *) 'class ',j,' freqfac rot ',freq_fac_rot(j)/dble(numsop)
-      write(chnum,'(i2)') nint(freq_fac_rot(j)/numsop)
-      write(rot_sym,*) trim(rot_sym),trim(chnum),'*'
+      write(chnum,'(i5)') nint(freq_fac_rot(j)/numsop)
+!     write(rot_sym,*) trim(rot_sym),trim(chnum),'*'
+      write(rot_sym,*) trim(rot_sym),trim(chnum),' '
       write(chnum,'(i2)') j
-      write(rot_sym,*) trim(rot_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
-!     rot_sym = adjustl(rot_sym)
+!     write(rot_sym,*) trim(rot_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
+      write(rot_sym,*) trim(rot_sym),trim(irep_ch(j)),'   '
+      rot_sym = adjustl(rot_sym)
    endif
    if (nint(freq_fac_raman(j)/numsop) .gt. 0) then
 !     write(13, *) 'class ',j,' freqfac raman ',freq_fac_raman(j)/dble(numsop)
       raman_active(j) = .true.
-      write(chnum,'(i2)') nint(freq_fac_raman(j)/numsop)
-      write(raman_sym,*) trim(raman_sym),trim(chnum),'*'
+      write(chnum,'(i5)') nint(freq_fac_raman(j)/numsop)
+!     write(raman_sym,*) trim(raman_sym),trim(chnum),'*'
+      write(raman_sym,*) trim(raman_sym),trim(chnum),' '
       write(chnum,'(i2)') j
-      write(raman_sym,*) trim(raman_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
-!     raman_sym = adjustl(raman_sym)
+!     write(raman_sym,*) trim(raman_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
+      write(raman_sym,*) trim(raman_sym),trim(irep_ch(j)),'   '
+      raman_sym = adjustl(raman_sym)
    endif
    if (nint(freq_fac_vib(j)/numsop) .gt. 0) then
 !     write(13, *) 'class ',j,' freqfac vib ',freq_fac_vib(j)/dble(numsop)
@@ -701,17 +773,19 @@ do j = 1,cl
       no_vec_nonorth = no_vec_nonorth + 2**(nint(freq_fac_vib(j)/numsop)-1)
       vib_ireps(j) = nint(freq_fac_vib(j)/numsop)
       if (vib_ireps(j) .gt. nint(dble(charact(1, j)))) sym_out = .false.
-      write(chnum,'(i2)') nint(freq_fac_vib(j)/numsop)
-      write(vib_sym,*) trim(vib_sym),trim(chnum),'*'
+      write(chnum,'(i5)') nint(freq_fac_vib(j)/numsop)
+!     write(vib_sym,*) trim(vib_sym),trim(chnum),'*'
+      write(vib_sym,*) trim(vib_sym),trim(chnum),' '
       write(chnum,'(i2)') j
-      write(vib_sym,*) trim(vib_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
-!     vib_sym = adjustl(vib_sym)
+!     write(vib_sym,*) trim(vib_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
+      write(vib_sym,*) trim(vib_sym),trim(irep_ch(j)),'   '
+      vib_sym = adjustl(vib_sym)
    endif
 enddo
-write(13, '("A vector transforms as         : ",a)') trim(vec_sym)
-write(13, '("Rotations transform as         : ",a)') trim(rot_sym)
-write(13, '("Symmetries of the Raman tensor : ",a)') trim(raman_sym)
-write(13, '("Symmetries of phonons are      : ",a,/)') trim(vib_sym)
+write(13, '(" Symmetries of phonons are : ",a)') trim(vib_sym)
+write(13, '(" IR active                 : ",a)') trim(vec_sym)
+write(13, '(" Raman active              : ",a)') trim(raman_sym)
+write(13, '(" Rotations                 : ",a,/)') trim(rot_sym)
 !
 !
 !

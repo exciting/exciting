@@ -1,4 +1,4 @@
-Subroutine construct_t2 (irep, ext, lt2)
+Subroutine construct_t2 (irep, lt2)
 !
 use mod_symmetry
 use raman_symmetry
@@ -6,9 +6,7 @@ use raman_symmetry
 Implicit None
 ! arguments
 integer, intent(in) :: irep
-character(80), intent(in) :: ext
 logical, intent(out) :: lt2(3, 3)
-!Real(8), Intent(Out) :: symt2(3, 3, 3, 3)
 ! local variables
 Integer :: isym, i, j, iop1, iop2, jop1, jop2
 real(8) :: symt2(3, 3, 3, 3)
@@ -36,9 +34,9 @@ End Do
 red(:, :) = .false.
 done(:, :) = .false.
 lt2 = .true.
-dm(1, :) = (/ 'e_11', 'e_12', 'e_13' /)
-dm(2, :) = (/ 'e_21', 'e_22', 'e_23' /)
-dm(3, :) = (/ 'e_31', 'e_32', 'e_33' /)
+dm(1, :) = (/ 'a_11', 'a_12', 'a_13' /)
+dm(2, :) = (/ 'a_21', 'a_22', 'a_23' /)
+dm(3, :) = (/ 'a_31', 'a_32', 'a_33' /)
 dmt(:, :) = dm(:, :)
 !
 ! analyze the symmetrization matrices
@@ -66,32 +64,11 @@ do iop1 = 1, 3
 end do
   ! output the symmetrization matrices
 open( unit=13, file='RAMAN_SYM.OUT', status='old', action='write', position='append')
-!Open (50, File='SYM_RAMANTENSOR'//trim(ext), Action='WRITE', Form='FORMATTED')
-!Write (50, *)
-!Write (50, '("Structure of the Raman tensor for phonon mode ",i3," from symmetry considerations:")')
-!Write (50, '("(with respect to Cartesian coordinates)")')
-!!Write (50, *)
-!Write (50, '(" Upper limit for number of independent components : ",i6)') 9 - count(red)
-!Write (50, *)
-Write (13, '(/,"Structure of the Raman tensor: "),/')
+Write (13, '(/," Structure of the Raman tensor: ",/)')
 Do iop1 = 1, 3
-  write(13,'(" ( ",a,"  ",a,"  ",a," )")') dmt(iop1,:)
+  write(13,'("  ( ",a,"  ",a,"  ",a," )")') dmt(iop1,:)
 End Do
 write(13, *)
-!Write (50, *)
-!Write (50, '("(symmetrization matrices are in Cartesian coordinates)")')
-!Write (50, *)
-!Do iop1 = 1, 3
-!   Do iop2 = 1, 3
-!      t1 = sum(abs(symt2(iop1, iop2, :, :)))
-!      strvar = ""
-!      if (t1 .lt. eps) strvar = '," ; zero contribution"'
-!      Write (50, '("(", i1, ", ", i2, ")-component"'//trim(strvar)//')') iop1, iop2
-!      Write (50, '(3f12.4)') (symt2(iop1, iop2, i, :), i=1, 3)
-!      Write (50, *)
-!   End Do
-!End Do
-!Close (50)
 close(13)
 !
 End Subroutine construct_t2

@@ -199,7 +199,7 @@
                         small as this can introduce a numerical error.</p> </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="gamma"  default="onestep">
+            <xs:attribute ex:importance="expert" ex:unit="" name="gamma"  default="twostep">
                 <xs:annotation>
                     <xs:documentation>
                        Determines how force constants at the <inlinemath>\Gamma</inlinemath>-point are computed. The numerical

@@ -17,7 +17,8 @@ real(8) :: arg,beta,dde,gam1,gam2,gam3,gam4
 real(8) :: sc, total
 real(8) :: spec_par, spec_perp, spec_abs
 real(8) :: w, dw, zfact, zsum, zzsum, temp, w_scat, w_fact
-real(8) :: isoinvar, anisoinvar2, activity, depol
+real(8) :: anisoinvar2, activity, depol
+complex(8) :: isoinvar
 character(80) :: fname
 real(8), allocatable :: rcont_par(:), rcont_perp(:)
 real(8), allocatable :: ex(:)
@@ -71,10 +72,10 @@ write(73,'("# Laser energy:  ",f9.6," Ha = ",f8.1," cm^-1 = ",f5.2," eV = ",  &
   &              gamma1,input%properties%raman%nstate
 !
 isoinvar = 1.d0/3.d0 * (deq(1,1) + deq(2,2) + deq(3,3))
-anisoinvar2 = 0.5 * ((deq(1,1)-deq(2,2))**2 + (deq(2,2)-deq(3,3))**2 + (deq(3,3)-deq(1,1))**2) + &
-  & 3.d0 * (deq(1,2)**2 + deq(1,3)**2 + deq(2,3)**2)
-activity = (45.d0*abs(isoinvar)**2 + 7.d0*abs(anisoinvar2)) / fgew
-depol = 3.d0 * abs(anisoinvar2) / (45.d0*abs(isoinvar)**2 + 4.d0*abs(anisoinvar2))
+anisoinvar2 = 0.5 * (abs(deq(1,1)-deq(2,2))**2 + abs(deq(2,2)-deq(3,3))**2 + abs(deq(3,3)-deq(1,1))**2) + &
+  & 3.d0 * (abs(deq(1,2))**2 + abs(deq(1,3))**2 + abs(deq(2,3))**2)
+activity = (45.d0*abs(isoinvar)**2 + 7.d0*anisoinvar2) / fgew
+depol = 3.d0 * anisoinvar2 / (45.d0*abs(isoinvar)**2 + 4.d0*anisoinvar2)
 write(66, '(//," Raman activity [ a.u. ]       : ",f14.6,/, &
        &       " Raman activity [ A^4 amu^-1 ] : ",f14.6,/, &
        &       " depolarization                : ",f14.6,/)') activity, activity*faua**4*famuau, depol
@@ -93,10 +94,10 @@ do i = 1,input%properties%raman%nstate
       zfact = ex(j)/zzsum                    ! prefactors * exp(-Ej(kT) / Sum( exp(E/kT) )
       ind = ind + 1
 !
-      rcont_par(ind)  = (45.d0*abs(isoinvar)**2 + 4.d0*abs(anisoinvar2)) / 45.d0 &
+      rcont_par(ind)  = (45.d0*abs(isoinvar)**2 + 4.d0*anisoinvar2) / 45.d0 &
      &                  * (transme1(ind)/factorial(1))**2                   &
      &                  * zfact
-      rcont_perp(ind) = 3.d0*abs(anisoinvar2) / 45.d0                            &
+      rcont_perp(ind) = 3.d0*anisoinvar2 / 45.d0                            &
      &                  * (transme1(ind)/factorial(1))**2                   &
      &                  * zfact
       write(66,'(3x,I3," ->",I3,5x,f8.2,3(7x,f14.8))') j,i,dde,             &

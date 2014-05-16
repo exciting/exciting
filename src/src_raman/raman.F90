@@ -51,7 +51,6 @@ Logical, Allocatable :: active(:), acoustic(:)
 integer, allocatable :: irep(:)
 Logical :: existent, existent1, eq_done, nlf, lt2(3, 3)
 Character(256) :: raman_filext, raman_stepdir
-character(80) :: ext
 #ifndef MPI
 integer, parameter :: rank = 0
 #endif
@@ -424,31 +423,30 @@ do imode = 1, nmode
    endif
 ! check for acoustic modes
    acoustic(imode) = .false.
-   call check_acoustic(ev(:, imode), acoustic(imode))
-   if (acoustic(imode)) then
-      if (rank .eq. 0) write(99, '(/,"Info(Raman): This mode seems to be acoustic",//)')
-      cycle
-   endif
+   active(imode) = .true.
+   if (input%properties%raman%usesym) then
+      call check_acoustic(ev(:, imode), acoustic(imode))
+      if (acoustic(imode)) then
+         if (rank .eq. 0) write(99, '(/,"Info(Raman): This mode seems to be acoustic",//)')
+         cycle
+      endif
 ! check mode if Raman active by symmetry
-   if (rank .eq. 0) call check_raman (dble(ev(:, imode)), irep(imode), active(imode))
+      if (rank .eq. 0) call check_raman (imode, dble(ev(:, imode)), irep(imode), active(imode))
 #ifdef MPI
-   call MPI_Bcast(active, nmode, MPI_Logical, 0, MPI_Comm_World, ierr)
+      call MPI_Bcast(active, nmode, MPI_Logical, 0, MPI_Comm_World, ierr)
 #endif
-   if (.not. active(imode)) then
-      if (rank .eq. 0) write(99, '(/,"Info(Raman): This mode is not Raman active",//)')
-      cycle
-   endif
-!
-   Write (ext, '("_MOD", I3.3, ".OUT")') imode
-!
+      if (.not. active(imode)) then
+         if (rank .eq. 0) write(99, '(/,"Info(Raman): This mode is not Raman active",//)')
+         cycle
+      endif
 !  analyze symmetry of Raman tensor
-   if (rank .eq. 0) call construct_t2 (irep(imode), ext, lt2)
+      if (rank .eq. 0) call construct_t2 (irep(imode), lt2)
+   endif
 
 !
 ! displace atoms along eigenvector
    i = 1
    do istep = istep_lo, istep_hi
-!     write (*,  '(/," *** Working on step ",i2," ***",/)') istep + i_shift
       if (rank .eq. 0) write (99, '(/," *** Working on step ",i2," ***",/)') istep + i_shift
 !
 ! do equilibrium geometry only once
@@ -787,166 +785,140 @@ open(unit=66,file='RAMAN.OUT',status='unknown',form='formatted')
 ! === start loop over all phonon modes
 !
 do imode = 1, nmode
-      if (acoustic(imode)) cycle
-      if ((input%properties%raman%mode .ne. 0) .and. (imode .ne. input%properties%raman%mode)) cycle
-      if (.not. active(imode)) cycle
+   if (acoustic(imode)) cycle
+   if ((input%properties%raman%mode .ne. 0) .and. (imode .ne. input%properties%raman%mode)) cycle
+   if (.not. active(imode)) cycle
 !
-      write(66,'(116("*"),/,40("*"),"   RAMAN INTENSITIES FOR MODE ",i3,"   ",40("*"),/,116("*"),//)') imode
+   write(66,'(116("*"),/,40("*"),"   RAMAN INTENSITIES FOR MODE ",i3,"   ",40("*"),/,116("*"),//)') imode
 !
 !  change file extension
-      Write (filext, '("_MOD", I3.3, ".OUT")') imode
+   Write (filext, '("_MOD", I3.3, ".OUT")') imode
 !
-      open(unit=77,file='RAMAN_POTENTIAL'//trim(filext),status='unknown',form='formatted')
+   open(unit=77,file='RAMAN_POTENTIAL'//trim(filext),status='unknown',form='formatted')
 !
 !  first fit desired functions to given data points
 !  for the potential
-      call polyfit (imode)
+   call polyfit (imode)
 !  ...and the dielectric function
-      call polyfit_diel (imode, rlas)
+   call polyfit_diel (imode, rlas)
 !
 !  write PARAMETERS to OUTPUT file
-      write(66,'(//,116("*"),/46("*"),"   START CALCULATION   ",47("*"))')
-      write(66,'(/" Potential  coefficients:    ",7f11.5)') a0,a1,a2,a3,a4,a5,a6
-      write(66,'(/" x between ",f7.4," and ",f7.4,"  Bohr")') xmin_r,xmax_r
-      write(66,'(/," Number of unit cells: ",2x,i8,5x," Volume of unit cell [ Bohr^3 ]: ",f16.8)')  ncell, omega
-      write(66,'(  "                                                             [ cm^3 ]: ",g16.8)') omega*fau3cm3
-      write(66,'(" Laser energy [ cm-1 ]: ",10x,f12.2)') fhawn*rlas
-      write(66,'(/," Derivatives of the dielectric function: ",/, &
-       &           " Re                                         Im")')
-      write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
-       &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
-       &           "  ( ",3f12.3," )       ( ",3f12.3," ) ")') &
-       &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
-       &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
-       &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
+   write(66,'(//,116("*"),/46("*"),"   START CALCULATION   ",47("*"))')
+   write(66,'(/" Potential  coefficients:    ",7f11.5)') a0,a1,a2,a3,a4,a5,a6
+   write(66,'(/" x between ",f7.4," and ",f7.4,"  Bohr")') xmin_r,xmax_r
+   write(66,'(/," Number of unit cells: ",2x,i8,5x," Volume of unit cell [ Bohr^3 ]: ",f16.8)')  ncell, omega
+   write(66,'(  "                                                             [ cm^3 ]: ",g16.8)') omega*fau3cm3
+   write(66,'(" Laser energy [ cm-1 ]: ",10x,f12.2)') fhawn*rlas
+   write(66,'(/," Derivatives of the dielectric function: ",/, &
+    &           " Re                                         Im")')
+   write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+    &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+    &           "  ( ",3f12.3," )       ( ",3f12.3," ) ")') &
+    &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
+    &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
+    &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
 !
-      write(66, '(/," Include local field effects for dielectric function : ",l1)') .not.nlf
-      write(66, '(/," Broadening [ cm-1 ] : ",4f7.2)') gamma1,gamma2,gamma3,gamma4
+   write(66, '(/," Include local field effects for dielectric function : ",l1)') .not.nlf
+   write(66, '(/," Broadening [ cm-1 ] : ",4f7.2)') gamma1,gamma2,gamma3,gamma4
 !
-      call getfgew ( ev(:, imode) )
-      sfact = 0.5d0 / fgew
+   call getfgew ( ev(:, imode) )
+   sfact = 0.5d0 / fgew
 !
-      if (abs(tempe - tempa) .lt. 1.d-5) then
+   if (abs(tempe - tempa) .lt. 1.d-5) then
+      ntp = 1
+   else
+      if (abs(tempi) .lt. 1.d-5) then
          ntp = 1
       else
-         if (abs(tempi) .lt. 1.d-5) then
-            ntp = 1
-         else
-            ntp = int( (tempe - tempa)/tempi ) + 1                ! number of temp steps
-         endif
+         ntp = int( (tempe - tempa)/tempi ) + 1                ! number of temp steps
       endif
-!     if ((intphonon .eq. 1) .and. (ntp .gt. 1)) then
-!        write(*,*) 'Warning! Phonon interaction for temp loops currently not available'
-!        write(66,*) ' Phonon interaction for temperature loop switched off.'
-!        intphonon = 0 
-!     endif
-      sn = dsqrt(dble(ncell))
-!     num1 = nnumber
-!     if (num2 .eq. 0) num2 = 1
+   endif
+   sn = dsqrt(dble(ncell))
 !
-!
-!
-!  interaction with other phonons, if requested
-!     if (intphonon .eq. 1) then
-!        call potential(maxp)
-!        call eigenen(num1,.false.)
-!        write(*,*) ' preliminary eigen solver finished'
-!
-!      determine COEFFICIENTS for TEMPERATURE temp
-!        call temppot(temp)
-!        call potential(maxp)
-!        write(*,*) ' temp averaged multi-phonon potential computed'
-!     endif
 !
 !    find MINIMUM of potential, version 3 using lapack
-      zmin = 0.d0
-      call findmin3(zmin)
+   zmin = 0.d0
+   call findmin3(zmin)
 !
 !    SHIFT everything into MINIMUM
-      zs = zmin
-      call shift(zs)
-      xmin_r = xmin_r - zs
-      xmax_r = xmax_r - zs
-      call epsshift(zs)
-      write(*,*) ' shift to potential minimum done'
-      write(66,'(/,37("*"),"  Phonon potential shifted into minimum  ",38("*"),/)')
-      write(66,'(/" Potential  coefficients:    ",7f11.5)') a0,a1,a2,a3,a4,a5,a6
-      write(66,'(/" x between ",f7.4," and ",f7.4,"  Bohr")') xmin_r,xmax_r
-
-      write(66,'(/," Derivatives of the dielectric function: ",/, &
-       &           " Re                                         Im")')
-      write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
-       &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
-       &           "  ( ",3f12.3," )       ( ",3f12.3," ) ")') &
-       &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
-       &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
-       &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
+   zs = zmin
+   call shift(zs)
+   xmin_r = xmin_r - zs
+   xmax_r = xmax_r - zs
+   call epsshift(zs)
+   write(*,*) ' shift to potential minimum done'
+   write(66,'(/,37("*"),"  Phonon potential shifted into minimum  ",38("*"),/)')
+   write(66,'(/" Potential  coefficients:    ",7f11.5)') a0,a1,a2,a3,a4,a5,a6
+   write(66,'(/" x between ",f7.4," and ",f7.4,"  Bohr")') xmin_r,xmax_r
+!
+   write(66,'(/," Derivatives of the dielectric function: ",/, &
+    &           " Re                                         Im")')
+   write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+    &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+    &           "  ( ",3f12.3," )       ( ",3f12.3," ) ")') &
+    &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
+    &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
+    &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
 !
 
 !
 !    determine coefficients for N cells
-      if( .not. input%properties%raman%molecule) call ncells(sn,ncell)
+   if( .not. input%properties%raman%molecule) call ncells(sn,ncell)
 !
 !    calculate SPECTRA
 !
-      write(77,*) '# effective potential'
-      call potential(maxp)
-      call eigenen
-      call transmat(input%properties%raman%ninter,h) 
+   write(77,*) '# effective potential'
+   call potential(maxp)
+   call eigenen
+   call transmat(input%properties%raman%ninter,h) 
 !    TEMPERATURE loop
-      do it = 1, ntp
-         temp = tempa + (it - 1)*tempi
-         if (input%properties%raman%molecule) then
-            call spectrum_m(temp, rlas, filext)
-            write(66,'(/,"Info(Raman): Spectrum computed.",/)')
-         else
-            do oct1 = 1, 3
-               do oct2 = oct1, 3
-                  if (oct1 .ne. oct2 .and. .not. offdiag) cycle
-                  call spectrum(temp, rlas, oct1, oct2, comp(oct1,oct2), filext)
-                  write(66,'(/,"Info(Raman): Spectrum for optical component ", &
-     &                      a2," computed.",/)') comp(oct1,oct2)
-               enddo
-            enddo
-         endif
-      enddo
-      close (77)
-! resonance behavior of the fundamental transition
-      open(unit=77,file='RAMAN_RESONANCE'//trim(filext),status='unknown',form='formatted')
-      dwlas = (input%xs%energywindow%intv(2) - &
-   &           input%xs%energywindow%intv(1)) / &
-   &           dble(input%xs%energywindow%points)
+   do it = 1, ntp
+      temp = tempa + (it - 1)*tempi
       if (input%properties%raman%molecule) then
-         write(77,'("# Resonance behavior of the fundamental transition",/, &
-          &         "# Elas [ Ha ]     Elas [ eV ]     Elas [ nm ]     Esc [ Ha ]     ", &
-          &         "(d sigma)/(d Omega) [ 10^-36 m^2 sr^-1 ]      ", &
-          &         "(d sigma)/(d Omega)/Esc^4 [ 10^-60 m^6 sr^-1 ]",/)')
+         call spectrum_m(temp, rlas, filext)
+         write(66,'(/,"Info(Raman): Spectrum computed.",/)')
       else
-         write(77,'("# Resonance behavior of the fundamental transition",/, &
-          &         "# Elas [ Ha ]     Elas [ eV ]     Elas [ nm ]     Esc [ Ha ]     ", &
-          &         "S_tot [ 10^-5 sr^-1 m^-1 ]      S_tot/Esc^4 [ 10^-29 m^3 sr^-1 ]",/)')
+         do oct1 = 1, 3
+            do oct2 = oct1, 3
+               if (oct1 .ne. oct2 .and. .not. offdiag) cycle
+               call spectrum(temp, rlas, oct1, oct2, comp(oct1,oct2), filext)
+               write(66,'(/,"Info(Raman): Spectrum for optical component ", &
+  &                      a2," computed.",/)') comp(oct1,oct2)
+            enddo
+         enddo
       endif
-      do iw = 1, input%xs%energywindow%points
-         wlas = input%xs%energywindow%intv(1) + dble(iw - 1)*dwlas
-         call polyfit_diel_res(imode, iw)
-         call epsshift(zs)
+   enddo
+   close (77)
+! resonance behavior of the fundamental transition
+   do oct1 = 1, 3
+      do oct2 = oct1, 3
+         if (oct1 .ne. oct2 .and. .not. offdiag) cycle
+         open(unit=77,file='RAMAN_RESONANCE_OC'//comp(oct1,oct2)//trim(filext),&
+        &             status='unknown',form='formatted')
+         dwlas = (input%xs%energywindow%intv(2) - &
+   &              input%xs%energywindow%intv(1)) / &
+   &              dble(input%xs%energywindow%points)
          if (input%properties%raman%molecule) then
-            call spectrum_res(tempa, wlas, oct1, oct2, Sab, ws)
-            S_total = Sab
+            write(77,'("# Resonance behavior of the fundamental transition",/, &
+       &          "# Elas [ Ha ]     Elas [ eV ]     Elas [ nm ]     Esc [ Ha ]     ", &
+       &          "(d sigma)/(d Omega) [ 10^-36 m^2 sr^-1 ]      ", &
+       &          "(d sigma)/(d Omega)/Esc^4 [ 10^-60 m^6 sr^-1 ]",/)')
          else
-           S_total = 0.d0
-           do oct1 = 1, 3
-             do oct2 = 1, 3
-                if (oct1 .ne. oct2 .and. .not.offdiag) cycle
-                call spectrum_res(tempa, wlas, oct1, oct2, Sab, ws)
-                S_total = S_total + Sab
-             enddo
-           enddo
+            write(77,'("# Resonance behavior of the fundamental transition",/, &
+       &          "# Elas [ Ha ]     Elas [ eV ]     Elas [ nm ]     Esc [ Ha ]     ", &
+       &          "S_tot [ 10^-5 sr^-1 m^-1 ]      S_tot/Esc^4 [ 10^-29 m^3 sr^-1 ]",/)')
          endif
-         write(77,'(f12.5,3x,f12.3,3x,f12.2,3x,f12.5,5x,2g20.8)') &
-          &   wlas, wlas*fhaev, 1.d0/(wlas*fharnm), ws, S_total, S_total/(ws*fhawn)**4*1.d16
+         do iw = 1, input%xs%energywindow%points
+            wlas = input%xs%energywindow%intv(1) + dble(iw - 1)*dwlas
+            call polyfit_diel_res(imode, iw)
+            call epsshift(zs)
+            call spectrum_res(tempa, wlas, oct1, oct2, Sab, ws)
+            write(77,'(f12.5,3x,f12.3,3x,f12.2,3x,f12.5,5x,2g20.8)') &
+       &    wlas, wlas*fhaev, 1.d0/(wlas*fharnm), ws, Sab, Sab/(ws*fhawn)**4*1.d16
+         enddo
+         close(77)
       enddo
-      close(77)
+   enddo
 !
 ! end loop over modes
 enddo

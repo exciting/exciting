@@ -588,6 +588,14 @@
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
+                       <xs:attribute ex:importance="expert" ex:unit="" name="usesym" type="xs:boolean" default="true">
+                            <xs:annotation>
+                                <xs:documentation>
+                                Flag weather to use symmetry to analyze the Raman activity of phonon modes prior to
+                                running through all computation steps.
+                                </xs:documentation>
+                            </xs:annotation>
+                       </xs:attribute>
                        <xs:attribute ex:importance="essential" ex:unit="" name="elaser" type="fortrandouble" default="0.0">
                             <xs:annotation>
                                 <xs:documentation>Energy of the incident laser beam. Set to <inlinemath>-1.0</inlinemath> to obtain
