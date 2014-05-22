@@ -50,6 +50,9 @@ subroutine gw_main
         case('BAND','band')
           if (rank==0) call task_band
           return
+        case('DOS','dos')
+          if (rank==0) call task_dos
+          return
       end select
 
 !---------------------------------------
@@ -113,11 +116,10 @@ subroutine gw_main
       call cpu_time(t(2))
       call write_cputime(fgw,t(2)-t(1),'INIMB')
      
-      call boxmsg(fgw,'-',"Mixed WF info")
-      write(fgw,*)'Max num of IPW for APW:', ngkmax
-      write(fgw,*)'Max num of IPW for Mixbasis:', ngqmax
-      write(fgw,*)'Max. nr. of mixed functions per atom:', lmixmax
-      write(fgw,*)'Mixed basis set size:', lmixmax+ngqmax
+      call boxmsg(fgw,'-',"Mixed Product Basis info")
+      write(fgw,*) 'Number of atomic basis functions           :', locmatsiz
+      write(fgw,*) 'Max. Number of interstitial basis functions:', ngqmax
+      write(fgw,*) 'Max. Total number of basis functions       :', locmatsiz+ngqmax
      
 !     Read the eigenenergies from the  "EIGVAL.OUT" file
       call cpu_time(t(1))

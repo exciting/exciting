@@ -12,18 +12,18 @@ Subroutine getevecsvgw(ik, evecsv)
 ! local variables
       Integer :: recl, nstsv_
       Real (8) :: vkl_ (3)
-      Character (256) :: filetag
-      Character (256), External :: outfilenamestring
+      character(256) :: filename
       Logical :: exist
 
-      Inquire (IoLength=Recl) vkl_, nstsv_, evecsv
-      filetag = trim (filetag_evecsv)
-      Inquire (File=outfilenamestring(filetag, ik), Exist=Exist)
+      filename = "EVECSV_GW.OUT"
+      
+      Inquire (File=trim(filename), Exist=Exist)
       If (exist) Then
-        Open (70, File=outfilenamestring(filetag, ik), Action='READ', &
+        Inquire (IoLength=Recl) vkl_, nstsv_, evecsv
+        Open (70, File=trim(filename), Action='READ', &
        &  Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
       Else
-        Write (*,*) '(getevecsvgw): Error when reading EVECSV.OUT file!'
+        Write (*,*) '(getevecsvgw): Cannot open EVECSV_GW.OUT file!'
         Stop
       End If
       Read (70, Rec=ik) vkl_, nstsv_, evecsv

@@ -13,23 +13,23 @@ Subroutine getevecfvgw(ik, evecfv)
       Integer(8) :: recl 
       Integer(4) :: nmatmax_, nstfv_, nspnfv_
       Real(8) :: vkl_(3)
-      Character (256) :: filetag
-      Character (256), External :: outfilenamestring
-      Logical :: Exist
-
-      Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
-      filetag = trim (filetag_evecfv)
-      Inquire (File=outfilenamestring(filetag, ik), Exist=Exist)
+      character(256) :: filename
+      logical :: exist
+      
+      filename = "EVECFV_GW.OUT"
+      
+      Inquire (File=trim(filename), Exist=exist)
       If (exist) Then
-        Open (70, File=outfilenamestring(filetag, ik), Action='READ&
-       &', Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+        Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
+        Open (70, File=trim(filename), Action='READ', &
+        &  Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
       Else
-        Write (*,*) '(getevecfvgw): Error when reading",outfilenamestring(filetag, ik)," file!'
+        Write (*,*) '(getevecfvgw): Cannot open EVECFV_GW.OUT file!'
         Stop
       End If
-      Read (70, Rec=ik) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
-      Close (70)
+      Read(70, Rec=ik) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
+      Close(70)
       
-Return
+      Return
 End Subroutine
-!EOC
+

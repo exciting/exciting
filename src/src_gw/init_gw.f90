@@ -12,6 +12,9 @@ subroutine init_gw
 ! !USES:
       use modmain
       use modgw
+      use modxs,  only : isreadstate0
+      use modmpi, only : rank
+      use m_filedel
 
 ! !LOCAL VARIABLES:
       
@@ -25,9 +28,11 @@ subroutine init_gw
       integer(4) :: is      
       integer(4) :: ist      
       integer(4) :: m, n
-      logical    :: reduce, exist
+      logical    :: exist
       real(8)    :: tstart, tend
       integer(4) :: stype_
+      character(256) :: filext_save
+      logical :: reducek_
  
 ! !EXTERNAL ROUTINES: 
 
@@ -51,35 +56,51 @@ subroutine init_gw
         write(*,*)'GW EMERGENCY STOP!!!'
         stop 'Spin polarization is not implemented yet'
       end if
-
+      
 ! Importantly, current implementation uses exclusively 
 ! "Extended linear tetrahedron method for the calculation of q-dependent
 ! dynamical response functions", to be published in Comp. Phys. Commun. (2010)
-      stype_=input%groundstate%stypenumber
-      input%groundstate%stypenumber=-1
+      stype_ = input%groundstate%stypenumber
+      input%groundstate%stypenumber = -1
+    
+! Extra call of the groundstate part to generate the data consisted with 
+! the specified GW parameters
 
       if (.not.input%gw%skipgnd) then
-!
-! Generate eigenvectors for the complete (non-reduced) k-point set
-!
-        inquire(File='INFO.OUT',Exist=exist)
-        if (exist) call system('cp INFO.OUT INFO.OUT-scf')
-        reduce=input%groundstate%reducek
-        input%groundstate%reducek=.false.          
-        task=1
-        input%groundstate%maxscl=1
-        input%groundstate%nwrite=0
-        ! we just need to resume KS calculations and diagonalize one more time
-        ! the Hamiltonian for new set of k- and nempty parameters.
-        ! Therefore no xc potential is required (critical for OEP related methods)
+      
+        ! Regenerate eigenvectors for the complete (non-reduced) k-point set
+        reducek_ = input%groundstate%reducek
+        input%groundstate%reducek = .false.
+        
+        ! Resume scf KS calculations and diagonalize one more time the Hamiltonian
+        ! for new set of k- and nempty parameters.
+        ! It is important at this stage to switch off the update of the effective potential
+        ! (critical for OEP/HYBRIDS related methods)
         input%groundstate%xctypenumber = 1
         xctype(1) = 1
-        call cpu_time(tstart)
-        call gndstate
-        call cpu_time(tend)
-        if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
-        call write_cputime(fgw,tend-tstart,'GNDSTATE')
-        input%groundstate%reducek=reduce
+        
+        ! initialize global exciting variables with (new) GW definitions
+        call init0
+        call init1
+        
+        task = 1
+        input%groundstate%maxscl = 1
+        
+        filext_save = trim(filext)
+        filext = "_GW.OUT"
+        isreadstate0 = .true.
+        
+        call scf_cycle(-1)
+        
+        if (rank == 0) then
+          ! safely remove unnecessary files
+          call filedel('LINENGY'//trim(filext))
+        end if
+        
+        ! restore the initial value
+        input%groundstate%reducek = reducek_
+        filext = trim (filext_save)
+
       end if
       
 ! Generate the k- and q-point meshes
@@ -99,9 +120,6 @@ subroutine init_gw
 
 ! find the new linearisation energies
       Call linengy
-
-! write out the linearisation energies
-      Call writelinen
 
 ! generate the APW radial functions
       Call genapwfr

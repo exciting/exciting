@@ -1,6 +1,6 @@
 !BOP
 !
-! !ROUTINE: initgw
+! !ROUTINE: testmbrotmat
 !
 ! !INTERFACE
 subroutine testmbrotmat()

@@ -74,7 +74,7 @@
 !           
 !           take the energies of the band
 !           
-            bandpar(1,1:nkptnr)=evalcr(ic,ias)
+            bandpar(1,1:nkptnr) = evalcr(ic,ias)
             
             do jb=numin,nstfv
 !          
@@ -82,7 +82,7 @@
 !          
               do ik=1,nkptnr
                  ikp=indkp(ik)
-                 bandpar(2,ik)=evaldft(jb,ikp)
+                 bandpar(2,ik) = evaldft(jb,ikp)
               end do
 !
 !             continue only if the band is at least partially unoccupied

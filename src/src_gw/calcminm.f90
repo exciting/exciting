@@ -3,7 +3,7 @@
 ! !ROUTINE: calcminm
 !
 ! !INTERFACE:
-      subroutine calcminm(ik,iq,flag)
+      subroutine calcminm(ik,iq)
 
 ! !DESCRIPTION:
 !
@@ -24,7 +24,6 @@
 
       integer(4), intent(in) :: ik   ! the index of the first k-point
       integer(4), intent(in) :: iq   ! the index of the q-point
-      integer(4), intent(in) :: flag ! >0 - transform M^i_{nm} to another basis
       
 ! !LOCAL VARIABLES:
       integer(4) :: jk      ! the index of the second k-point
@@ -83,7 +82,6 @@
       complex(8) :: apwterm(apwordmax)
       complex(8) :: loterm(nlomax)
       
-      complex(8), allocatable :: minm(:,:,:)
       complex(8), allocatable :: zzk(:,:)
       complex(8), allocatable :: tmat(:,:),tmat2(:,:),mnn(:,:)
 !
@@ -115,9 +113,10 @@
 !
 !BOC
       call cpu_time(tstart)
-
-      allocate(minm(matsiz,nstfv,nstfv))
-      minm=zzero
+      
+      if (allocated(minmmat)) deallocate(minmmat)
+      allocate(minmmat(matsiz,nstfv,nstfv))
+      minmmat = zzero
       
       jk=kqid(ik,iq)
       do i=1,3
@@ -233,8 +232,8 @@
                               endif
                             enddo ! ilo2 
                             
-                            minm(imix,ist1,ist2) = minm(imix,ist1,ist2) &
-                           &                     + phs*angint*sumterms
+                            minmmat(imix,ist1,ist2) = minmmat(imix,ist1,ist2) &
+                           &                        + phs*angint*sumterms
                           
                           enddo ! ist1
                         
@@ -304,7 +303,7 @@
 
         do ist2 = 1, nstfv  
           do ist1 = 1, nstfv
-            minm(igq+locmatsiz,ist1,ist2)=sqvi*mnn(ist2,ist1)
+            minmmat(igq+locmatsiz,ist1,ist2)=sqvi*mnn(ist2,ist1)
           enddo ! ist2
         enddo ! ist1
       enddo ! igq
@@ -314,24 +313,6 @@
       deallocate(tmat2)
       deallocate(mnn)
       deallocate(zzk)
-
-!------------------------------------------------------------------    
-!     Transform M^i_{nm} to the eigenvectors of the coulomb matrix
-!------------------------------------------------------------------
-
-      if(allocated(minmmat))deallocate(minmmat)
-      
-      nmdim=nstfv*nstfv
-      if(flag>0)then
-        allocate(minmmat(mbsiz,nstfv,nstfv))
-        call zgemm('c','n',mbsiz,nmdim,matsiz, &
-       &  zone,barcvm,matsiz,minm,matsiz,zzero,minmmat,mbsiz)
-      else
-        allocate(minmmat(matsiz,nstfv,nstfv))
-        minmmat=minm
-      end if ! flag
-      
-      deallocate(minm)
      
       call cpu_time(tend)
       if (tend.lt.0.0d0)   write(fgw,*) 'warning, tend < 0'

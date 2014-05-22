@@ -77,7 +77,7 @@ subroutine scf_cycle(verbosity)
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Density and potential initialised from atomic data")')
     End If
     Call genmeffig
-    If (rank .Eq. 0) then
+    If ((verbosity>-1).and.(rank==0)) then
         write (60, *)
         Call flushifc (60)
     end if
@@ -145,7 +145,7 @@ subroutine scf_cycle(verbosity)
             End If
         else
             If (iscl .Ge. input%groundstate%maxscl) Then
-                If (rank==0) Then
+                If ((verbosity>-1).and.(rank==0)) Then
                     write(string,'("Reached self-consistent loops maximum : ", I4)') &
                    &  input%groundstate%maxscl
                     call printbox(60,"+",string)
@@ -429,7 +429,7 @@ subroutine scf_cycle(verbosity)
 !            Write (62, '(G18.10)') fermidos
 !            Call flushifc (62)
 ! write band-gap
-            call printbandgap(60)
+            if (fermidos<1.0d-4) call printbandgap(60)
 ! output charges and moments
             Call writechg (60,input%groundstate%outputlevelnumber)
 ! write total moment to MOMENT.OUT and flush
@@ -515,7 +515,7 @@ subroutine scf_cycle(verbosity)
                 end if
             end if
 
-            if (rank==0) then ! write RMSDVEFF.OUT 
+            if ((verbosity>-1).and.(rank==0)) then ! write RMSDVEFF.OUT 
                 Write (65, '(G18.10)') currentconvergence
                 Call flushifc(65)
             end if
@@ -631,7 +631,7 @@ subroutine scf_cycle(verbosity)
       if (input%groundstate%tpartcharges) write(69,*)
     End If
 
-    If (rank==0) Then
+    If ((verbosity>-1).and.(rank==0)) Then
 ! write last total energy and add blank line to RMSDVEFF.OUT and TOTENERGY.OUT
       Write (65,*)
       Call flushifc(65)

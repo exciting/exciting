@@ -51,6 +51,9 @@
       open(96,file='ADDSELFE.OUT',form='FORMATTED',status='UNKNOWN')
 #endif
 
+!     Calculate the integration weights using the linearized tetrahedron method
+      call kintw
+
 !     Calculate the integrals to treat the singularities at G+q->0
       call setsingc
       
@@ -94,7 +97,6 @@
 !            Calculate the bare coulomb matrix
 !
              call calcbarcmb(iq)
-             call setbarcev(input%gw%BareCoul%barcevtol)
 !        
 !            Calculate the Minm(k,q) matrix elements for given k and q
 !        
@@ -117,8 +119,8 @@
 
 !##############################      
 #ifdef MPI
- call MPI_ALLREDUCE(MPI_IN_PLACE, selfex, (nbgw-ibgw+1)*nkpt,  MPI_DOUBLE_COMPLEX,  MPI_SUM,&
-       & MPI_COMM_WORLD, ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE, selfex, (nbgw-ibgw+1)*nkpt, &
+      &  MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
 #endif
       
       deallocate(minmmat)

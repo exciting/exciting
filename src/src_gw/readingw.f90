@@ -83,6 +83,9 @@
 !
         case('BAND','band')
           testid=16
+          
+        case('DOS','dos')
+          testid=17
 !          
         case('ROTMAT','rotmat')
           testid=18   
@@ -105,6 +108,7 @@
           write(fgw,*)'vxc  - Calculate the matrix elements of the DFT exchange-correlation potential'
           write(fgw,*)'ex   - Hartree-Fock calculation (exchange only)'
           write(fgw,*)'band - Calculate the bandstructure'
+          write(fgw,*)'dos - Calculate the QP DOS plot'
           write(fgw,*)'rotmat - Calculate and check the MB rotation matrices (symmetry feature)'
           write(fgw,*)'gw   - Performs one complete GW cycle'
           write(fgw,*)

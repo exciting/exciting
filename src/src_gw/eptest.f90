@@ -7,7 +7,7 @@
 
 ! !DESCRIPTION:
 !
-!This subroutine calculates the matrices $M^i_{cm}(k,k')$ (not yet) and
+!This subroutine calculates the matrices $M^i_{cm}(k,k')$ and
 !$M^i_{nm}(k,k')$ for the given k and k' pair. 
 ! It is only used for testing purposes... for the calculation of the
 !matrices for all pears see \verb"expand_prods"

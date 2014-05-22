@@ -103,14 +103,14 @@
       do iom = 1, nomeg
         wmat(1:mbsiz,1:mbsiz)=inveps(1:mbsiz,1:mbsiz,iom)
         call zhemm('l','u',mbsiz,dimtk, &
-       &  zone,wmat,mbsiz,mmat,mbsiz,zzero,wm,mbsiz)
+        &          zone,wmat,mbsiz,mmat,mbsiz,zzero,wm,mbsiz)
         ie12=0
         do ie2 = 1, nstfv
           do ie1 = ibgw, nbgw
             ie12=ie12+1
-            mwm(iom,ie1,ie2)=wkpq(iqp,ikp)*zdotc(mbsiz,mmat(:,ie12),1,wm(:,ie12),1)
+            mwm(iom,ie1,ie2) = wkpq(iqp,ikp)*zdotc(mbsiz,mmat(:,ie12),1,wm(:,ie12),1)
             if ((Gamma).and.(ie1.eq.ie2)) then
-              mwm(iom,ie1,ie2)=mwm(iom,ie1,ie2) + &
+              mwm(iom,ie1,ie2) = mwm(iom,ie1,ie2) + &
            &    coefs2*head(iom) + &
            &    coefs1*(zdotu(mbsiz,mmat(:,ie12),1,epsw2(:,iom),1) + &
            &            zdotc(mbsiz,mmat(:,ie12),1,epsw1(:,iom),1) )
@@ -132,11 +132,11 @@
           sum=zzero
           do m = m1, m2
             do ie2 = 1, nstfv
-              enk=evaldft(ie2,jkp)
-              sum=sum+freqconvl(iom,nomeg,freqs(iom),enk,mwm(1:nomeg,m,ie2),freqs,womeg)
+              enk = evaldft(ie2,jkp)-efermi
+              sum = sum+freqconvl(iom,nomeg,freqs(iom),enk,mwm(1:nomeg,m,ie2),freqs,womeg)
             end do ! ie2
           end do ! m
-          scqval(ie1,iom)=scqval(ie1,iom)+sum/dble(m2-m1+1)
+          scqval(ie1,iom) = scqval(ie1,iom)+sum/dble(m2-m1+1)
         enddo ! ie1
       enddo ! iom
       deallocate(mwm)
@@ -155,7 +155,7 @@
         do ie2 = 1, ncg
           do ie1 = ibgw, nbgw
             ie12=ie12+1
-            mmat(1:mbsiz,ie12)=mincmat(1:mbsiz,ie1,ie2)
+            mmat(1:mbsiz,ie12) = mincmat(1:mbsiz,ie1,ie2)
           end do
         end do
 !
@@ -167,12 +167,12 @@
         do iom = 1, nomeg
           wmat(1:mbsiz,1:mbsiz)=inveps(1:mbsiz,1:mbsiz,iom)
           call zhemm('l','u',mbsiz,dimtk, &
-         &  zone,wmat,mbsiz,mmat,mbsiz,zzero,wm,mbsiz)
+          &          zone,wmat,mbsiz,mmat,mbsiz,zzero,wm,mbsiz)
           ie12=0
           do ie2 = 1, ncg
             do ie1 = ibgw, nbgw
               ie12=ie12+1
-              mwm(iom,ie1,ie2)=wkpq(iqp,ikp)*zdotc(mbsiz,mmat(:,ie12),1,wm(:,ie12),1)
+              mwm(iom,ie1,ie2) = wkpq(iqp,ikp)*zdotc(mbsiz,mmat(:,ie12),1,wm(:,ie12),1)
             end do ! ie1
           end do ! ie2
         end do ! iom
@@ -183,17 +183,17 @@
         do iom = 1, nomeg
           do ie1 = ibgw, nbgw
             do m = m1, m2
-              sum=zzero
+              sum = zzero
               ! Sum over ie2
               do ie2 = 1, ncg
-                is=corind(ie2,1)
-                ia=corind(ie2,2)
-                ias=idxas(ia,is)
-                ic=corind(ie2,3)
-                enk=evalcr(ic,ias)
-                sum=sum+freqconvl(iom,nomeg,freqs(iom),enk,mwm(1:nomeg,m,ie2),freqs,womeg)
+                is = corind(ie2,1)
+                ia = corind(ie2,2)
+                ias = idxas(ia,is)
+                ic = corind(ie2,3)
+                enk = evalcr(ic,ias)-efermi
+                sum = sum+freqconvl(iom,nomeg,freqs(iom),enk,mwm(1:nomeg,m,ie2),freqs,womeg)
               end do ! ie2
-              scqcor(ie1,iom)=scqcor(ie1,iom)+sum/dble(m2-m1+1)
+              scqcor(ie1,iom) = scqcor(ie1,iom)+sum/dble(m2-m1+1)
             end do ! m
           enddo ! ie1
         enddo ! iom

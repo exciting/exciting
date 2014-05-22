@@ -23,11 +23,13 @@
 
       integer(4) :: iq, iqp
  
-      integer(4) :: ik, ikp,ikpqp
+      integer(4) :: ik, ikp, ikpqp
+      integer(4) :: nmdim
       integer(8) :: Recl
       character(128)::sbuffer
       real(8)    :: tq1, tq2, tq11, tq22
-      complex(8),allocatable::buffer(:)
+      complex(8), allocatable :: buffer(:)
+      complex(8), allocatable :: minm(:,:,:)
       integer :: COMM_LEVEL2
 
 ! !REVISION HISTORY:
@@ -247,7 +249,6 @@
 !          Calculate the bare coulomb potential matrix
 !
            call calcbarcmb(iq)
-           call setbarcev(input%gw%BareCoul%barcevtol)
 !        
 !          Calculate the Minm(k,q) matrix elements for given k and q
 !        
@@ -257,7 +258,35 @@
 !
            call calcselfx(ikp,iqp)
 !
-!          Calculate the dielectric function
+!          Get v-diagonal basis
+!
+           call setbarcev(input%gw%BareCoul%barcevtol)
+!
+!          Transform M^i_{nm} to the v-diagonal basis
+!
+           allocate(minm(mbsiz,nstfv,nstfv))
+           nmdim = nstfv*nstfv
+           call zgemm('c','n',mbsiz,nmdim,matsiz, &
+           &  zone,barcvm,matsiz,minmmat,matsiz,zzero,minm,mbsiz)
+           ! reallocate M^i_{nm}
+           deallocate(minmmat)
+           allocate(minmmat(mbsiz,nstfv,nstfv))
+           minmmat(:,:,:) = minm(:,:,:)
+           deallocate(minm)
+           ! core states contribution
+           if (iopcore==0) then
+             allocate(minm(mbsiz,nstfv,ncg))
+             nmdim = nstfv*ncg
+             call zgemm('c','n',mbsiz,nmdim,locmatsiz, &
+             &  zone,barcvm,matsiz,mincmat,locmatsiz,zzero,minm,mbsiz)
+             ! reallocate M^i_{nm}
+             deallocate(mincmat)
+             allocate(mincmat(mbsiz,nstfv,ncg))
+             mincmat(:,:,:) = minm(:,:,:)
+             deallocate(minm)
+           end if ! core
+!
+!          Read the invert dielectric matrix (screened Coulomb potential)
 !
            call getinveps(iq)
 !
@@ -275,16 +304,20 @@
         end do ! iqp
       
       end do ! ikp
+      
+      if (allocated(minmmat)) deallocate(minmmat)
+      if (iopcore<=1) deallocate(mincmat)
+      close(96)
+      
 !##############################      
 #ifdef MPI
- call MPI_ALLREDUCE(MPI_IN_PLACE, selfec, (nbgw-ibgw+1) *nkpt*nomeg,  MPI_DOUBLE_COMPLEX,  MPI_SUM,&
-       & MPI_COMM_WORLD, ierr)
- call MPI_ALLREDUCE(MPI_IN_PLACE, selfex, (nbgw-ibgw+1) *nkpt,  MPI_DOUBLE_COMPLEX,  MPI_SUM,&
-       & MPI_COMM_WORLD, ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE, selfec, (nbgw-ibgw+1)*nkpt*nomeg,  &
+      &                  MPI_DOUBLE_COMPLEX,  MPI_SUM, &
+      &                  MPI_COMM_WORLD, ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE, selfex, (nbgw-ibgw+1)*nkpt,  &
+      &                  MPI_DOUBLE_COMPLEX,  MPI_SUM, &
+      &                  MPI_COMM_WORLD, ierr)
 #endif
-      if (allocated(minmmat))deallocate(minmmat)
-      if(iopcore.eq.0 .and. allocated(mincmat))deallocate(mincmat)
-      close(96)
 !
 !     Write the exchange term to file
 !      
