@@ -127,8 +127,8 @@ enddo
 !
 elem_cl = 0; cl_rotchar = ''
 rotsum = 0
-maxrot = 0; maxrot_cl = 0
-minrot = 0; minrot_cl = 0
+maxrot = -6; maxrot_cl = 0
+minrot = 6; minrot_cl = 0
 inv_cl = 0
 sigmah_cl = 0
 write(13, '(" Symmetry analysis of given system and SOPs",/ &
@@ -287,9 +287,9 @@ do j = 1,cl
    ! dimension 1: A or B
    if (nint(dble(charact(1,j))) .eq. 1) then
       if (.not.cubic .and. maxrot .ge. 2) then
-         if (-minrot .eq. 2*maxrot) then
+         if (-minrot .eq. 2*maxrot .and. sigmah_cl .eq. 0) then
          ! for Dnd,S2n group take from improper rotation
-            if (nint(dble(charact(minrot_cl,j))) .gt. 0) then
+            if (dble(charact(minrot_cl,j)) .gt. 0.d0) then
                irep_ch(j) = trim(irep_ch(j))//'A'
             else
                irep_ch(j) = trim(irep_ch(j))//'B'
@@ -307,7 +307,7 @@ do j = 1,cl
             endif
          else
          ! else from proper rotation
-            if (nint(dble(charact(maxrot_cl,j))) .gt. 0) then
+            if (dble(charact(maxrot_cl,j)) .gt. 0.d0) then
                irep_ch(j) = trim(irep_ch(j))//'A'
             else
                irep_ch(j) = trim(irep_ch(j))//'B'
@@ -648,8 +648,8 @@ endif
 write(13, '(/," The (isomorphic) point group is ",a5," (Hermann-Maugin) or ", &
   &                                               a5," (Schoenflies)")') hmsymb,schsymb
 write(13,*)
-write(13, '(" Character Table")')
-write(13,*)
+write(13, '(" Character Table",/, &
+      &     " ---------------",/)')
 write(13, '("              ",20("         ",i2,a2),/)') (elem_cl(i),cl_rotchar(i),i=1,cl)
 do j = 1,cl
    write(13,'(i5,a10,20(" ",f5.2,",",f5.2," "))') &

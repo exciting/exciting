@@ -19,7 +19,7 @@ Subroutine dcell (vqpc, eigv, dph)
 ! local variables
       Integer :: js, ja, na, i, n, iv(3), iat, i_n
       Integer :: i1, i2, i3, m(3, 3)
-      Real (8) :: v1(3), v2(3), v3(3), v4(3), dmin, t1, len_u, len_v, len_u2
+      Real (8) :: v1(3), v2(3), v3(3), v4(3), dmin, t1, len_u, len_v
       Real (8) :: u_i(3)
       real(8) :: r3dist
       external r3dist
@@ -27,8 +27,6 @@ Subroutine dcell (vqpc, eigv, dph)
       ngridq(2) = 6
       ngridq(3) = 1
 !
-! store original lattice vectors (done already in raman)
-!     avec0 (:, :) = input%structure%crystal%basevect(:, :)
 ! check for Gamma-point phonon
       If ((vqpc(1) .Eq. 0) .And. (vqpc(2) .Eq. 0) .And. (vqpc(3) .Eq. 0)) Then
          m(:, :) = 0
@@ -172,8 +170,6 @@ Subroutine dcell (vqpc, eigv, dph)
 !     enddo
 !     len_u = sqrt( len_u / dble(nphcell) )
       call getfgew ( eigv )
-!     write(*,*) 'len_u, 1/sqrt(fgew) ',len_u,1.d0/sqrt(fgew)
-      len_u2 = 0.d0
 ! set up new atomic positions
       iat = 0
       Do js = 1, nspecies
@@ -183,7 +179,6 @@ Subroutine dcell (vqpc, eigv, dph)
             Do i_n = 1, nphcell
                na = na + 1
                v1(:) = vphcell(:, i_n) + atposc(:, ja, js) ! cartesian, Bohr
-               write(*,'("v1(:) orig ",3f8.4)') v1(:)
 ! add displacement along phonon eigenvector
                t1 = dot_product(vqpc(:), vphcell(:, i_n))
                u_i(:) = dble( eigv((3*(iat-1)+1):(3*iat)) )*cos(t1) - &
@@ -191,26 +186,11 @@ Subroutine dcell (vqpc, eigv, dph)
 ! displacement with |u| = dph
 !              u_i = u_i / sqrt( dble(nphcell) ) / len_u * dph / sqrt( spmass(js) )
                u_i = u_i * sqrt( fgew/spmass(js) ) * dph
-               len_u2 = len_u2 + u_i(1)**2 + u_i(2)**2 + u_i(3)**2
-               write(*,'("u_i(:) c ",3f8.4)') u_i(:)
                call r3mv (ainv, u_i, v2)
-               write(*,'("u_i(:) l ",3f8.4)') v2(:)
                v1(:) = v1(:) + u_i(:)                      ! shift atoms
-               write(*,'("v1(:) shift",3f8.4)') v1(:)
 ! convert to new lattice coordinates
                Call r3mv (ainv, v1, input%structure%speciesarray(js)%species%atomarray(na)%atom%coord(:))
-               write(*,'("atpos(:) latt ",2i5,3f8.4)') js,na, &
-      &                     input%structure%speciesarray(js)%species%atomarray(na)%atom%coord(:)
-               if (iat .eq. 1) then
-                Call r3mv (input%structure%crystal%basevect, &
-      &                     input%structure%speciesarray(js)%species%atomarray(na)%atom%coord(:), v3)
-               elseif (iat .eq. 2) then
-                Call r3mv (input%structure%crystal%basevect, &
-      &                     input%structure%speciesarray(js)%species%atomarray(na)%atom%coord(:), v4)
-               endif
                Call r3frac (input%structure%epslat, input%structure%speciesarray(js)%species%atomarray(na)%atom%coord(:), iv)
-               write(*,'("atpos(:) latt 0-1 ",2i5,3f8.4)') js,na,&
-      &                     input%structure%speciesarray(js)%species%atomarray(na)%atom%coord(:)
             End Do
          End Do
          natoms (js) = na
@@ -222,9 +202,5 @@ Subroutine dcell (vqpc, eigv, dph)
          End Do
       End Do
 !
-      write(*,*) 'len_u2 ',sqrt(len_u2)
-      write(*,'("v1(:) at1 ",3f8.4)') v3(:)
-      write(*,'("v1(:) at2 ",3f8.4)') v4(:)
-      write(*, '("Atom distance ",f8.4)') r3dist(v3, v4)
       Return
 End Subroutine

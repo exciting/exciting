@@ -111,7 +111,7 @@ Do oct1 = 1, 3
 !
 ! write fit functions for plotting
       write(str_mode,'(i3.3)') imode
-      open(unit=80,file='RAMAN_EPSILON_M'//str_mode//'_OC'//comp(oct1,oct2)//'.OUT',status='unknown',form='formatted')
+      open(unit=80,file='RAMAN_EPSILON_MOD'//str_mode//'_OC'//comp(oct1,oct2)//'.OUT',status='unknown',form='formatted')
       write(80,'(/,"# Fitted function and raw data (Re and Im) for optical component ",a2)') comp(oct1, oct2)
       do i = 1,input%properties%raman%ninter+1
          xx = xmin_r + (i - 1)*(xmax_r - xmin_r)/input%properties%raman%ninter

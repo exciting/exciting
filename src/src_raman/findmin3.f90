@@ -56,7 +56,6 @@ do i = 1,deg
    if (i .gt. 1) cm(i,i-1) = 1.d0
 enddo
 !
-!if (deg .ge. 2) then
    ! call lapack routine DGEEV to compute eigenvalues
    call DGEEV('N','N',deg,cm,deg,rootr,rooti,vec,deg,vec,deg,WORK,100,INFO)
    !
@@ -65,13 +64,20 @@ enddo
    j = 0
    do i = 1,deg
       if (rooti(i) .eq. 0.d0) then
-         if ((rootr(i) .ge. xmin_r) .and. (rootr(i) .le. xmax_r)) then
-            d2 = 2.d0*a2          +     6.d0*a3*rootr(i) +  12.d0*a4*rootr(i)**2 + &
-               & 2.d1*a5*rootr(i)**3 + 36.d0*a6*rootr(i)**4
-            if (d2 .gt. 0.d0) then
-               zmin = rootr(i)
-               j = j + 1
-            endif
+         d2 = 2.d0*a2          +     6.d0*a3*rootr(i) +  12.d0*a4*rootr(i)**2 + &
+            & 2.d1*a5*rootr(i)**3 + 36.d0*a6*rootr(i)**4
+         ! adjust limits in case we found a local maximum
+         if ((rootr(i) .gt. xmin_r) .and. (d2 .lt. 0.d0)) then
+            xmin_r = rootr(i)
+            cycle
+         endif
+         if ((rootr(i) .lt. xmax_r) .and. (d2 .lt. 0.d0)) then
+            xmax_r = rootr(i)
+            cycle
+         endif
+         if ((rootr(i) .ge. xmin_r) .and. (rootr(i) .le. xmax_r) .and. (d2 .gt. 0.d0)) then
+            zmin = rootr(i)
+            j = j + 1
          endif
       endif
    enddo
@@ -82,16 +88,12 @@ enddo
       write(*,'(i6,2f12.6)') (i,rootr(i),rooti(i),i=1,deg)
       stop
    endif
-!else
-!   ! for a quadratic function do simply the following
-!   zmin = - a1 / a2
-!endif
-write(66,94) zmin
+write(66, '(/," The oscillator problem for this mode is solved between u = ",f7.3," and ",f7.3," Bohr.")') xmin_r, xmax_r
+write(66, '(/," Potential minimum at: ",f12.6,/)') zmin
 !
 deallocate( cm,rootr,rooti,vec )
 84 format (//,43('*'),'   Find minimum of potential   ',42('*'),/)
 90 format (/,' Minima for polynomial of degree',i3,' are computed...',/)
-94  format(/,' Minimum at: ',f12.6,/)
 return
 end
 !

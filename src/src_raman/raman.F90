@@ -50,7 +50,7 @@ Complex(8), Allocatable :: dynr(:, :, :)
 Logical, Allocatable :: active(:), acoustic(:)
 integer, allocatable :: irep(:)
 Logical :: existent, existent1, eq_done, nlf, lt2(3, 3)
-Character(256) :: raman_filext, raman_stepdir
+Character(256) :: raman_filext, raman_stepdir, fileeps(3, 3)
 #ifndef MPI
 integer, parameter :: rank = 0
 #endif
@@ -100,11 +100,11 @@ xmin_r = input%properties%raman%xmin
 xmax_r = input%properties%raman%xmax
 !
 numpot = input%properties%raman%nstep
-if (input%properties%raman%nstep .le. 2) then
+!if (input%properties%raman%nstep .le. 2) then
 ! minimalistic determination of coefficients, equilibirum + 1 distortion gives quadratic potential and linear epsilon dep.
-   input%properties%raman%nstep = 2
-   numpot = 3
-endif
+!   input%properties%raman%nstep = 2
+!   numpot = 3
+!endif
 allocate( potinx(3*natmtot, numpot) )
 allocate( potiny(3*natmtot, numpot) )
 !
@@ -315,6 +315,7 @@ Select Case (input%properties%raman%getphonon)
    ! construct symmetry vectors and use them as normal coordinates
       call construct_symvec(ev)
       if (rank .eq. 0) then
+       write(99,'("Info(Raman): Symmetry vectors constructed:",/)')
        do imode = 1, 3*natmtot
           Write(99, '(/," Mode ",i3)') imode
           Write(99, '("      Atom   Polarization    Eigenvector")')
@@ -331,8 +332,7 @@ Select Case (input%properties%raman%getphonon)
    ! construct symmetry vectors and return
       call construct_symvec(ev)
       if (rank .eq. 0) then
-       write(99, '(/," Symmetry vectors ",/, &
-            &        " ---------------- ",/)')
+       write(99,'("Info(Raman): Symmetry vectors constructed:",/)')
        do imode = 1, 3*natmtot
           Write(99, '(/," Mode ",i3)') imode
           Write(99, '("      Atom   Polarization    Eigenvector")')
@@ -349,6 +349,7 @@ Select Case (input%properties%raman%getphonon)
       nullify (input%xs)
       return
    Case ('readinput')
+      if (rank .eq. 0) write(99,'("Info(Raman): Phonon eigenvectors read from input file.",/)')
       ! read from input file
       ic = 0
       norm = 0.d0
@@ -410,7 +411,7 @@ eq_done = .false.
 istep_lo = -int(dble(input%properties%raman%nstep-1) / 2.d0)
 istep_hi = nint(dble(input%properties%raman%nstep-1) / 2.d0)
 i_shift = -istep_lo + 1
-if (input%properties%raman%nstep .le. 2) i_shift = i_shift + 1
+!if (input%properties%raman%nstep .le. 2) i_shift = i_shift + 1
 !
 ! loop over optical modes
 !
@@ -482,20 +483,20 @@ do imode = 1, nmode
          write(99, '("Info(Raman): Performing groundstate calculation for mode ",i3," and step ",i2)') imode, i
 ! intermediate solution using system and chdir functions
 !#ifdef IFORT
-         j = system('mkdir '//trim(raman_stepdir))
-         j = system('cp input.xml '//trim(raman_stepdir))
+         j = system('mkdir '//trim(adjustl(raman_stepdir)))
+         if (j .ne. 0 .and. rank .eq. 0) &
+           & write(*, '("Warning(Raman): When executing mkdir ",a,", the error ",i2," was returned. ")') trim(adjustl(raman_stepdir)), j
 !#else
-!        call execute_command_line('mkdir '//trim(raman_stepdir))
-!        call execute_command_line('cp input.xml '//trim(raman_stepdir))
+!        call execute_command_line('mkdir '//trim(adjustl(raman_stepdir)))
 !#endif
         endif
 #ifdef MPI
         call MPI_Barrier(MPI_Comm_World, ierr)
 #endif
 !#ifdef IFORT
-        j = chdir('./'//trim(raman_stepdir))
+        j = chdir('./'//trim(adjustl(raman_stepdir)))
 !#else
-!       call execute_command_line('cd ./'//trim(raman_stepdir))
+!       call execute_command_line('cd ./'//trim(adjustl(raman_stepdir)))
 !#endif
 ! start anew from input geometry, construct distorted geometry and run through loop
         call raman_restore_struct
@@ -566,7 +567,22 @@ do imode = 1, nmode
       do oct1 = 1, 3
          do oct2 = 1, 3
             if (oct1 .ne. oct2 .and. .not. offdiag) cycle
-            Inquire (file='EPSILON_OC'//comp(oct1,oct2)//trim(raman_filext), Exist=existent1)
+            if (input%xs%xstype .eq. 'TDDFT') then
+               Call genfilname (basename='EPSILON', asc=.False., &
+                & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
+                & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=nlf, &
+                & fxctypestr=input%xs%tddft%fxctype, tq0=.true., &
+                & oc1=oct1, oc2=oct2, iqmt=1, filnam=fneps)
+            else
+               Call genfilname (basename='EPSILON', tq0=.True., oc1=oct1, &
+                & oc2=oct2, bsetype=input%xs%bse%bsetype, &
+                & scrtype=input%xs%screening%screentype, nar= .Not. &
+                & input%xs%bse%aresbse, filnam=fneps)
+            endif
+            fileeps(oct1, oct2) = fneps
+!           Inquire (file='EPSILON_OC'//comp(oct1,oct2)//trim(raman_filext), Exist=existent1)
+!           existent = existent .and. existent1
+            inquire (file=trim(raman_stepdir)//fileeps(oct1, oct2), Exist=existent1)
             existent = existent .and. existent1
          enddo
       enddo
@@ -579,12 +595,18 @@ do imode = 1, nmode
          do oct1 = 1, 3
             do oct2 = 1, 3
                if (oct1 .ne. oct2 .and. .not. offdiag) cycle
+!              Call genfilname (basename='EPSILON', asc=.False., &
+!                & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
+!                & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=nlf, &
+!                & fxctypestr=input%xs%tddft%fxctype, tq0=.true., &
+!                & oc1=oct1, oc2=oct2, iqmt=1, filnam=fneps)
                if (rank .eq. 0) then
-                write (99, '("             Reading dielectric function from file ",a)')  &
-                 &         'EPSILON_OC'//comp(oct1,oct2)//trim(filext)
+                write (99, '("             Reading dielectric function from file ",a)') &
+                 &          trim(adjustl(raman_stepdir))//trim(adjustl(fileeps(oct1, oct2)))
                 call flushifc(99)
                endif
-               call raman_readeps (imode, istep+i_shift, oct1, oct2, 'EPSILON_OC'//comp(oct1,oct2)//trim(raman_filext))
+!              call raman_readeps (imode, istep+i_shift, oct1, oct2, 'EPSILON_OC'//comp(oct1,oct2)//trim(raman_filext))
+               call raman_readeps (imode, istep+i_shift, oct1, oct2, trim(raman_stepdir)//fileeps(oct1, oct2))     
                if (input%properties%raman%molecule) then
                ! use molecular polarizability instead
                ! df contains (electronic) polarizability of the molecule in Bohr^3 molecule^-1
@@ -604,10 +626,8 @@ do imode = 1, nmode
 #endif
 !#ifdef IFORT
          j = chdir('./'//trim(raman_stepdir))
-!        if (rank .eq. 0) j = system('cp ../input.xml .')
 !#else
 !        call execute_command_line('cd ./'//trim(raman_stepdir))
-!        if (rank .eq. 0) call execute_command_line('cp ../input.xml .')
 !#endif
 !
 ! launch xs part according to element xs in input.xml:
@@ -668,14 +688,14 @@ do imode = 1, nmode
             do oct1 = 1, 3
                Do oct2 = 1, 3
                   if (oct1 .ne. oct2 .and. .not. offdiag) cycle
-                  Call genfilname (basename='EPSILON', asc=.False., &
-                 & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
-                 & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=nlf, &
-                 & fxctypestr=input%xs%tddft%fxctype, tq0=.true., &
-                 & oc1=oct1, oc2=oct2, iqmt=1, filnam=fneps)
-                  call raman_readeps (imode, istep + i_shift, oct1, oct2, fneps)
-                  if (rank .eq. 0) &
-                    & call raman_writeeps (imode, istep + i_shift, oct1, oct2, comp(oct1,oct2), raman_filext)
+!                 Call genfilname (basename='EPSILON', asc=.False., &
+!                & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
+!                & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=nlf, &
+!                & fxctypestr=input%xs%tddft%fxctype, tq0=.true., &
+!                & oc1=oct1, oc2=oct2, iqmt=1, filnam=fneps)
+                  call raman_readeps (imode, istep + i_shift, oct1, oct2, fileeps(oct1, oct2))
+!                 if (rank .eq. 0) &
+!                   & call raman_writeeps (imode, istep + i_shift, oct1, oct2, comp(oct1,oct2), raman_filext)
                   if (input%properties%raman%molecule) then
                   ! use molecular polarizability instead
                   ! df contains (electronic) polarizability of the molecule in Bohr^3 molecule^-1
@@ -691,11 +711,11 @@ do imode = 1, nmode
            Do oct1 = 1, 3
             Do oct2 = 1, 3
              if (oct1 .ne. oct2 .and. .not. offdiag) cycle
-               Call genfilname (basename='EPSILON', tq0=.True., oc1=oct1, &
-              & oc2=oct2, bsetype=input%xs%bse%bsetype, &
-              & scrtype=input%xs%screening%screentype, nar= .Not. &
-              & input%xs%bse%aresbse, filnam=fneps)
-               call raman_readeps (imode, istep + i_shift, oct1, oct2, fneps)
+!              Call genfilname (basename='EPSILON', tq0=.True., oc1=oct1, &
+!             & oc2=oct2, bsetype=input%xs%bse%bsetype, &
+!             & scrtype=input%xs%screening%screentype, nar= .Not. &
+!             & input%xs%bse%aresbse, filnam=fileeps(oct1, oct2))
+               call raman_readeps (imode, istep + i_shift, oct1, oct2, fileeps(oct1, oct2))
                if (rank .eq. 0) &
                  &  call raman_writeeps (imode, istep + i_shift, oct1, oct2, comp(oct1,oct2), raman_filext)
                if (input%properties%raman%molecule) then
@@ -743,11 +763,11 @@ do imode = 1, nmode
       i = i + 1
    enddo
 ! mirror data for minimalistic nstep=2 case
-   if (input%properties%raman%nstep .le. 2) then
-      potinx(imode, 1) = potinx(imode, 3)
-      potiny(imode, 1) = potiny(imode, 3)
-      df(imode, 1, :, :, :) = ztwo*df(imode, 2, :, :, :) - df(imode, 3, :, :, :)
-   endif
+!   if (input%properties%raman%nstep .le. 2) then
+!      potinx(imode, 1) = potinx(imode, 3)
+!      potiny(imode, 1) = potiny(imode, 3)
+!      df(imode, 1, :, :, :) = ztwo*df(imode, 2, :, :, :) - df(imode, 3, :, :, :)
+!   endif
    if (rank .eq. 0) then
     write(99, '("Info(Raman): Done with mode ",i3,/)') imode
     call flushifc(99)
@@ -823,6 +843,7 @@ do imode = 1, nmode
 !
    call getfgew ( ev(:, imode) )
    sfact = 0.5d0 / fgew
+   write(66, '(/," The reduced mass of this mode is [ amu ]            : ",f12.3)') fgew/famuau
 !
    if (abs(tempe - tempa) .lt. 1.d-5) then
       ntp = 1
@@ -846,7 +867,6 @@ do imode = 1, nmode
    xmin_r = xmin_r - zs
    xmax_r = xmax_r - zs
    call epsshift(zs)
-   write(*,*) ' shift to potential minimum done'
    write(66,'(/,37("*"),"  Phonon potential shifted into minimum  ",38("*"),/)')
    write(66,'(/" Potential  coefficients:    ",7f11.5)') a0,a1,a2,a3,a4,a5,a6
    write(66,'(/" x between ",f7.4," and ",f7.4,"  Bohr")') xmin_r,xmax_r

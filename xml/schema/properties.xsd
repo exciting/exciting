@@ -523,20 +523,20 @@
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="nstate" type="xs:integer" default="10">
+                       <xs:attribute ex:importance="expert" ex:unit="" name="nstate" type="xs:integer" default="5">
                             <xs:annotation>
                                 <xs:documentation>Number of vibrational states to solve for.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="xmin" type="fortrandouble" default="-0.3d0">
+                       <xs:attribute ex:importance="expert" ex:unit="" name="xmin" type="fortrandouble" default="-3.0d0">
                             <xs:annotation>
                                 <xs:documentation>Lower boundary of the oscillator problem, give a distance along
                                                   the normal coordinate, <inlinemath>|{\bf u}_i |</inlinemath> in Bohr.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="xmax" type="fortrandouble" default="0.3d0">
+                       <xs:attribute ex:importance="expert" ex:unit="" name="xmax" type="fortrandouble" default="3.0d0">
                             <xs:annotation>
                                 <xs:documentation>Upper boundary of the oscillator problem, give a distance along
                                                   the normal coordinate, <inlinemath>|{\bf u}_i |</inlinemath> in Bohr.
@@ -555,19 +555,20 @@
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="nstep" type="xs:integer" default="1">
+                       <xs:attribute ex:importance="expert" ex:unit="" name="nstep" type="xs:integer" default="5">
                             <xs:annotation>
-                                <xs:documentation>Create <pre>nstep</pre> distorted geometries in addition to the equilibrium geometry 
+                                <xs:documentation>Create <pre>nstep</pre> distorted geometries
                                 to sample the potential and dielectric function.
                                 The distortion is done by displacing atoms along normal coordinate by 
-                                <inlinemath>|{\bf u}_i | = \pm n*</inlinemath><attref>displ</attref>
-                                In the case of <pre>nstep=1</pre> and <pre>2</pre> a harmonic potential is assumed.
+                                <inlinemath>\pm n*</inlinemath><attref>displ</attref>
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="displ" type="fortrandouble" default="0.05d0">
+                       <xs:attribute ex:importance="expert" ex:unit="" name="displ" type="fortrandouble" default="0.02d0">
                             <xs:annotation>
                                 <xs:documentation>Step length for each displacement along normal coordinate, <inlinemath>|{\bf u}_i |</inlinemath> in Bohr.
+                                For solids, a value of 0.01-0.02 times the number of atoms in the unit cell is often a good choice. In any case
+                                check the obtained potential and dielectric functions carefully.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>

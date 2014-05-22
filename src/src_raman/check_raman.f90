@@ -19,7 +19,7 @@ logical :: lassign
 !
 open( unit=13, file='RAMAN_SYM.OUT', status='old', action='write', position='append')
 !
-!numsop = nsymcrys
+active = .true.
 !
 ! check given mode
 !

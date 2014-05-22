@@ -217,7 +217,6 @@ Contains
          enddo
       enddo
       fgew = 1.d0 / fgew
-      write(*,*) 'fgew ',fgew
    End Subroutine getfgew
 !
 End Module m_raman_utils
