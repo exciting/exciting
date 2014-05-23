@@ -171,7 +171,7 @@
                     </xs:restriction>
                 </xs:simpleType>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="ngridq" type="integertriple" use="required">
+            <xs:attribute ex:importance="expert" ex:unit="" name="ngridq" type="integertriple" default="1 1 1">
                 <xs:annotation>
                     <xs:appinfo>
                         <oldname>ngridq</oldname>
@@ -198,6 +198,29 @@
                         anharmonic terms could then become significant, neither should it be too
                         small as this can introduce a numerical error.</p> </xs:documentation>
                 </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="gamma"  default="twostep">
+                <xs:annotation>
+                    <xs:documentation>
+                       Determines how force constants at the <inlinemath>\Gamma</inlinemath>-point are computed. The numerical
+                       differentiation is done from (a) a displacement by <pre>deltaphi</pre> and the equilibirum
+                       (<pre>onestep</pre>), 
+                       (b) displacements by <inlinemath>\pm</inlinemath><pre>deltaphi</pre> 
+                       (<pre>twostep</pre>), or (c) displacements by 
+                       <pre>deltaphi</pre> and 2<pre>deltaphi</pre> (<pre>standard</pre>) for each atom in each cartesian direction.
+                       Note that options (a) requires <inlinemath>3N+1</inlinemath> computations, whereas option (b) and (c)
+                       require <inlinemath>6N</inlinemath> for <inlinemath>N</inlinemath> atoms.
+                       In particular if only the <inlinemath>\Gamma</inlinemath>-point is to be computed, option (b) is more accurate and
+                       yields better eigenvectors than (a).
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                       <xs:enumeration value="onestep"/>
+                       <xs:enumeration value="twostep"/>
+                       <xs:enumeration value="standard"/>
+                    </xs:restriction>
+                </xs:simpleType>
             </xs:attribute>
         </xs:complexType>
     </xs:element>

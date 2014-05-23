@@ -15,7 +15,7 @@
 # path to EXCITING source directory
 #-------------------------------
 
-EXCITINGROOT="/scratch/din/CODES/exciting"
+EXCITINGROOT="/home/kontur/beryllium/raman/exciting"
 
 #-------------------------------
 # 3D electron density grid (system dependent)

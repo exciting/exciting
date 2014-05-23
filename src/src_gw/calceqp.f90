@@ -77,6 +77,7 @@
 !
 !     Allocate the array for the quasi-particle energies 
 ! 
+      if (allocated(eqp)) deallocate(eqp)
       allocate(eqp(ibgw:nbgw,nkpt))
       eqp(ibgw:nbgw,1:nkpt) = evaldft(ibgw:nbgw,1:nkpt)
       
@@ -85,8 +86,11 @@
 !
 !     Calculate the number of parameters of the analitic function for the selfenergy
 !      
-      npar = 2*npol
+      npar=2*npol
+      if (allocated(a)) deallocate(a)
+      if (allocated(poles)) deallocate(poles)
       allocate(a(npar),sc(nomeg),poles(npar))
+      if (allocated(sacpar)) deallocate(sacpar)
       allocate(sacpar(npar,ibgw:nbgw,nkpt))
 
 !----------------------------------

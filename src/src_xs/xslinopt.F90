@@ -31,7 +31,7 @@ Subroutine xslinopt (iq)
       Character (256) :: filnam
       Complex (8), Allocatable :: mdf (:), mdf1 (:), mdf2 (:, :, :), w &
      & (:), wr (:), sigma (:)
-      Real (8), Allocatable :: wplot (:), loss (:)
+      Real (8), Allocatable :: wplot (:), loss (:, :, :)
       Real (8), Allocatable :: eps1 (:), eps2 (:), cf (:, :)
       Real (8) :: sumrls (3), brd
       Integer :: n, m, recl, iw, nc, oct1, oct2, octl, &
@@ -46,7 +46,7 @@ Subroutine xslinopt (iq)
       n = ngq (iq)
       Allocate (mdf1(nwdf), mdf2(3, 3, input%xs%energywindow%points), w(nwdf), &
      & wr(input%xs%energywindow%points), wplot(input%xs%energywindow%points), &
-     & mdf(input%xs%energywindow%points), loss(input%xs%energywindow%points), &
+     & mdf(input%xs%energywindow%points), loss(3, 3, input%xs%energywindow%points), &
      & sigma(input%xs%energywindow%points), cf(3, &
      & input%xs%energywindow%points))
       Allocate (eps1(input%xs%energywindow%points), &
@@ -99,6 +99,9 @@ Subroutine xslinopt (iq)
                mdf2 (oct1, oct2, :) = mdf (:)
             End Do
          End Do
+! STK
+         call genloss (mdf2, loss)
+!
          Do oct1 = 1, nc
             If (input%xs%dfoffdiag) Then
                octl = 1
@@ -133,12 +136,13 @@ Subroutine xslinopt (iq)
               & fxctypestr=input%xs%tddft%fxctype, tq0=tq0, &
               & oc1=oct1, oc2=oct2, iqmt=iq, filnam=fnsumrules)
            ! generate optical functions
-               Call genloss (mdf, loss)
+! STK
+!              Call genloss (mdf, loss)
                Call gensigma (wplot, mdf, optcompt, sigma)
                Call gensumrls (wplot, mdf, sumrls)
            ! write optical functions to file
                Call writeeps (iq, oct1, oct2, wplot, mdf, trim(fneps))
-               Call writeloss (iq, wplot, loss, trim(fnloss))
+               Call writeloss (iq, wplot, loss(oct1, oct2, :), trim(fnloss))
                Call writesigma (iq, wplot, sigma, trim(fnsigma))
                if (tq0) Call writesumrls (iq, sumrls, trim(fnsumrules))
            ! end loop over optical components

@@ -181,7 +181,7 @@ Subroutine init2
         & boxl, nqpt, iqmap, ivq, vql, vqc, wqpt)
          nqptr = nqpt
       End If
-      If ((task .Eq. 440) .Or. (task .Eq. 441) .Or. (task .Eq. 445) &
+      If ((task .Eq. 440) .Or. (task .Eq. 441) .Or. (task .Eq. 445) .Or. (task .Eq. 446) &
      & .Or. (task .Eq. 450) .Or. (task .Eq. 451) .Or. (task .Eq. 499) &
      & .Or. (task .Eq. 700)) Then
          If (allocated(ivqr)) deallocate (ivqr)

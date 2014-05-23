@@ -8,7 +8,7 @@
 !
 Subroutine readdyn (tsym,dynq)
       Use modmain
-      Use modinput
+      !Use modinput
       Implicit None
 ! arguments
       logical, intent(in) :: tsym
@@ -20,8 +20,8 @@ Subroutine readdyn (tsym,dynq)
       Real (8) :: a, b
       Character (256) :: fext
 ! external functions
-      Integer :: gcd
-      External gcd
+      !Integer :: gcd
+      !External gcd
       Do iq = 1, nqpt
          i = 0
          Do is = 1, nspecies

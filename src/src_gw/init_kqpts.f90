@@ -58,6 +58,7 @@ subroutine init_kqpts
       if (allocated(tnodesnr)) deallocate(tnodesnr)
       allocate(tnodesnr(4,ntetnr))
       
+      If (allocated(ivq)) deallocate (ivq)
       allocate(ivq(3,nqptnr))
       if (allocated(vql)) deallocate(vql)
       allocate(vql(3,nqptnr))
@@ -144,6 +145,8 @@ subroutine init_kqpts
         call r3mv(bvec,vql(:,iq),vqc(:,iq))
       end do
 
+      if (allocated(ngq)) deallocate(ngq)
+      if (allocated(ngbarc)) deallocate(ngbarc)
       allocate(ngq(nqptnr),ngbarc(nqptnr))
       do iq = 1, nqptnr
         ngq(iq)=0

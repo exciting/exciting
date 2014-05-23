@@ -11,12 +11,15 @@ Subroutine phonon
 ! local variables
       Integer :: is, js, ia, ja, ka, jas, kas
       Integer :: iq, ip, jp, nph, iph, i
+      integer :: task0
       Real (8) :: dph, a, b, t1
       Real (8) :: ftp (3, maxatoms, maxspecies)
+      real(8) :: ftp0(3, maxatoms, maxspecies)
       Complex (8) zt1, zt2
       Complex (8) dyn (3, maxatoms, maxspecies)
       character(256) :: status
       logical :: finished
+      logical :: gammap
       Real (8) :: genrad (3)
 ! allocatable arrays
       Real (8), Allocatable :: veffmtp (:, :, :)
@@ -83,6 +86,21 @@ Subroutine phonon
 !---------------------------------------!
 !     compute dynamical matrix rows     !
 !---------------------------------------!
+      if (input%phonons%gamma .eq. 'onestep') then
+        ! re-run the ground-state calculation for forces at equlibirum geo
+        task0 = task
+        task = 1
+        Call gndstate
+        ! store the total force for the equlibrium geometry
+        Do js = 1, nspecies
+           Do ja = 1, natoms (js)
+              jas = idxas (ja, js)
+              ftp0 (:, ja, js) = forcetot (:, jas)
+           End Do
+        End Do
+        task = task0
+      endif
+!
 10    Continue
       natoms (1:nspecies) = natoms0 (1:nspecies)
 ! find a dynamical matrix to calculate
@@ -119,8 +137,10 @@ Subroutine phonon
       End If
       task = 200
       nph = 1
-      If ((ivq(1, iq) .Eq. 0) .And. (ivq(2, iq) .Eq. 0) .And. (ivq(3, &
-     & iq) .Eq. 0)) nph = 0
+      If (all(ivq(:, iq) .Eq. 0)) then
+         nph = 0
+         gammap = .true.
+      endif
       dyn (:, :, :) = 0.d0
       dveffmt (:, :, :) = 0.d0
       dveffir (:) = 0.d0
@@ -150,14 +170,32 @@ Subroutine phonon
          natoms (1:nspecies) = natoms0 (1:nspecies)
          input%structure%crystal%basevect(:, :) = avec0 (:, :)
          atposc (:, :, :) = atposc0 (:, :, :)
-! generate the supercell again with twice the displacement
-         dph = input%phonons%deltaph + input%phonons%deltaph
+         if (gammap) then
+            select case (input%phonons%gamma)
+            case ('onestep')
+              ! nothing more to do
+              goto 67
+            case ('twostep')
+              ! displace in negative direction
+              dph = -input%phonons%deltaph
+            case default
+              dph = input%phonons%deltaph + input%phonons%deltaph
+            end select
+         else
+            ! generate the supercell again with twice the displacement
+            dph = input%phonons%deltaph + input%phonons%deltaph
+         endif
          Call phcell (iph, dph, iq, is, ia, ip)
 ! run the ground-state calculation again starting from the previous density
          task = 1
          Call gndstate
+ 67      continue
 ! compute the complex perturbing effective potential with implicit q-phase
          Call phdveff (iph, iq, veffmtp, veffirp, dveffmt, dveffir)
+         if (input%phonons%gamma .eq. 'twostep' .and. gammap) then
+            dveffmt(:, :, :) = 0.5d0 * dveffmt(:, :, :)
+            dveffir(:) = 0.5d0 * dveffir(:)
+         endif
          Deallocate (veffmtp, veffirp)
 ! Fourier transform the force differences to obtain the dynamical matrix
          zt1 = 1.d0 / (dble(nphcell)*input%phonons%deltaph)
@@ -173,8 +211,19 @@ Subroutine phonon
                   t1 = - dot_product (vqc(:, iq), vphcell(:, i))
                   zt2 = zt1 * cmplx (Cos(t1), Sin(t1), 8)
                   Do jp = 1, 3
-                     t1 = - (forcetot(jp, kas)-ftp(jp, ka, js))
-                     dyn (jp, ja, js) = dyn (jp, ja, js) + zt2 * t1
+                    if (gammap) then
+                      select case (input%phonons%gamma)
+                      case ('onestep')
+                        t1 = ftp0(jp, ka, js) - ftp(jp, ka, js)
+                      case ('twostep')
+                        t1 = 0.5d0 * (forcetot(jp, kas)-ftp(jp, ka, js))
+                      case default
+                        t1 = - (forcetot(jp, kas)-ftp(jp, ka, js))
+                      end select
+                    else
+                      t1 = - (forcetot(jp, kas)-ftp(jp, ka, js))
+                    endif
+                    dyn (jp, ja, js) = dyn (jp, ja, js) + zt2 * t1
                   End Do
                End Do
             End Do

@@ -36,8 +36,11 @@
       call cpu_time(tstart)
       if(tstart.lt.0.0d0)write(98,*)'warning, tstart < 0'
 
+      if (allocated(kiw)) deallocate(kiw)
       allocate(kiw(nstfv,nkptnr))
+      if (allocated(kwfer)) deallocate(kwfer)
       allocate(kwfer(nstfv,nkptnr))
+      if (allocated(ciw)) deallocate(ciw)
       allocate(ciw(natmtot,ncmax))
       ciw=0.0d0
       kiw=0.0d0
@@ -46,10 +49,14 @@
 !     Q-dependent integration weights used to calculate the polarizability
 !     (qdepw.f90)
 !
+      if (allocated(unw)) deallocate(unw)
       allocate(unw(natmtot,ncmax,nstfv,1:nomeg,nkptnr))
+      if (allocated(kcw)) deallocate(kcw)
       allocate(kcw(nstfv,nstfv,1:nomeg,nkptnr))
       if((testid.eq.7).and.(fflg.eq.2)) then
+        if (allocated(unwsurf)) deallocate(unwsurf)
         allocate(unwsurf(natmtot,ncmax,nstfv,1:nomeg,nkptnr))
+        if (allocated(kcwsurf)) deallocate(kcwsurf)
         allocate(kcwsurf(nstfv,nstfv,1:nomeg,nkptnr))
         kcwsurf=0.0d0
         unwsurf=0.0d0

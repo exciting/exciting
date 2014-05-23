@@ -440,4 +440,31 @@ Module modxs
       Logical :: isreadstate0
       Data isreadstate0 / .False. /
 
+!STK: include variables necessary for double grid computations
+
+  !---------------------------------------------!
+  !     sub-grid k-vectors for double grids     !
+  !---------------------------------------------!
+  ! number of sub k-points
+      Integer :: nksubpt
+  ! sub kpt that is worked on
+      Integer :: iksubpt
+  ! sub k-points in lattice coordinates
+      Real (8), Allocatable :: vksubl (:, :)
+  ! sub k-points in cartesian coordinates
+      Real (8), Allocatable :: vksubc (:, :)
+  ! k-point weights
+      Real (8), Allocatable :: wksubpt (:)
+  ! locations of k-points on integer grid
+      Integer, Allocatable :: ivksub (:, :)
+  ! map from non-reduced grid to reduced set
+      Integer, Allocatable :: iksubmap (:, :, :)
+
+  !---------------------------------------!
+  !     other double grid variables       !
+  !---------------------------------------!
+  ! are we doing a double grid run?
+      Logical :: dgrid
+
+
 End Module modxs

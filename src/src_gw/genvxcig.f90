@@ -25,6 +25,7 @@ subroutine genvxcig
 ! allocatable arrays
     complex(8), allocatable :: zfft(:)
     allocate(zfft(ngrtot))
+    if (allocated(vxcig)) deallocate(vxcig)
     allocate(vxcig(ngvec))
 ! multiply effective potential with smooth characteristic function
     zfft(:)=vxcir(:)*cfunir(:)

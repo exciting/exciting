@@ -46,7 +46,9 @@
 !     allocate the arrays needed for the calculation of
 !     the self energy
 !
+      if (allocated(selfex)) deallocate(selfex)
       allocate(selfex(ibgw:nbgw,nkpt))
+      if (allocated(selfec)) deallocate(selfec)
       allocate(selfec(ibgw:nbgw,nkpt,nomeg))
       selfex(:,:)=zzero
       selfec(:,:,:)=zzero

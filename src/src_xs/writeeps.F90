@@ -44,7 +44,7 @@ Contains
          Write (unit1, '(4g18.10)') (w(iw)*escale, eps(iw), kkeps(iw), &
         & iw=1, n)
     ! write relevant parameters to file
-         Call writevars (unit1, iq, iq)
+!        Call writevars (unit1, iq, iq)
          Close (unit1)
 !
     ! write to XML file

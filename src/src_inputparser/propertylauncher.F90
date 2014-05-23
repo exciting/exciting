@@ -159,4 +159,11 @@ Subroutine propertylauncher
          Call alpha2f
       End If
 
+      ! Raman scattering      
+      ! the subroutine raman triggers a phonon calculation, if requested there, and
+      ! requires the input of element xs
+      If (associated(input%properties%raman)) Then
+         call raman
+      End If
+
 End Subroutine propertylauncher
