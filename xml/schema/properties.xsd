@@ -592,8 +592,27 @@
                        <xs:attribute ex:importance="expert" ex:unit="" name="usesym" type="xs:boolean" default="true">
                             <xs:annotation>
                                 <xs:documentation>
-                                Flag weather to use symmetry to analyze the Raman activity of phonon modes prior to
+                                Flag wether to use symmetry to analyze the Raman activity of phonon modes prior to
                                 running through all computation steps.
+                                </xs:documentation>
+                            </xs:annotation>
+                       </xs:attribute>
+                       <xs:attribute ex:importance="expert" ex:unit="" name="useforces" type="xs:boolean" default="true">
+                            <xs:annotation>
+                                <xs:documentation>
+                                Request the use forces to fit the potential along normal coordinates (if set to <pre>true</pre>),
+                                otherwise the total energy will be used (if set to <pre>false</pre>).
+                                </xs:documentation>
+                            </xs:annotation>
+                       </xs:attribute>
+                       <xs:attribute ex:importance="expert" ex:unit="" name="doequilibrium" type="xs:boolean" default="false">
+                            <xs:annotation>
+                                <xs:documentation>
+                                Specifiy whether the true equilibirum geometry should be included in the frozen phonon calculations.
+                                On one hand the symmetry of the equilibrium might be increased and the properties slightly changed; 
+                                on the other hand the same equilibrium structure is used for all active modes and thus some computer time
+                                can be saved. The default is <pre>false</pre>, which means that a close-to-equilibrium structure with the
+                                same symmetry as the mode is used. For every mode this is a slightly different structure.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>

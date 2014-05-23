@@ -4,25 +4,6 @@ Module m_raman_utils
 Contains
 !
 !
-   Subroutine raman_delgndst
-      Use modmain
-      Implicit None
-! delete the eigenvector files
-      Call delevec
-! delete the eigenvalue files
-      Open (70, File=trim(scrpath)//'EVALFV'//trim(filext))
-      Close (70, Status='DELETE')
-      Open (70, File=trim(scrpath)//'EVALSV'//trim(filext))
-      Close (70, Status='DELETE')
-! delete the occupancy file
-      Open (70, File=trim(scrpath)//'OCCSV'//trim(filext))
-      Close (70, Status='DELETE')
-! delete the STATE.OUT file
-      Open (50, File='STATE'//trim(filext))
-      Close (50, Status='DELETE')
-      Return
-   End Subroutine raman_delgndst
-!
    Subroutine raman_save_struct
       Use mod_atoms
       use mod_lattice, only: ainv
@@ -41,6 +22,7 @@ Contains
          End Do
       End Do
    end subroutine raman_save_struct
+!
 !
    Subroutine raman_restore_struct
       Use mod_atoms
@@ -64,13 +46,14 @@ Contains
       End Do
    end subroutine raman_restore_struct
 !
-   subroutine raman_readpot (istep, fnam, dph, engy)
+!
+   subroutine raman_readpot (istep, fnam, dph, engy, force)
       use m_getunit
       implicit none
     ! arguments
       Character (*), Intent (In) :: fnam
       integer, intent(out) :: istep
-      real(8), intent(out) :: dph, engy
+      real(8), intent(out) :: dph, engy, force
     ! local variables
       logical :: existent, opened
       integer :: funit
@@ -87,25 +70,52 @@ Contains
       End If
       Call getunit (funit)
       Open (funit, File=trim(fnam), Action='read')
-      read(funit, *) istep, dph, engy
+      read(funit, *) istep, dph, engy, force
       close (funit)
    end subroutine raman_readpot
 !
-   subroutine raman_writepot (istep, fnam, dph, engy)
+!
+   subroutine raman_writepot (istep, fnam, dph, engy, force)
       use m_getunit
       implicit none
     ! arguments
       Character (*), Intent (In) :: fnam
       integer, intent(in) :: istep
-      real(8), intent(in) :: dph, engy
+      real(8), intent(in) :: dph, engy, force
     ! local variables
       integer :: funit
     !
       call getunit (funit)
       open (unit=funit, file=trim(fnam), status='unknown', action='write')
-      write (funit, '(i6,g18.8,g28.18)') istep, dph, engy
+      write (funit, '(i6,f14.6,g23.15,g21.13)') istep, dph, engy, force
       close (unit=funit)
    end subroutine raman_writepot
+!
+!
+   Subroutine getfgew ( eigv )
+    ! computes the factor f relating the atomic displacements u to the normal coordinate Q
+    ! it is also used to normalize u and represents the effective mass of the phonon mode
+      use raman_ew, only: fgew
+      use mod_atoms, only: natmtot, nspecies, natoms, spmass
+      implicit none
+    ! arguments
+      complex(8), intent(in) :: eigv(3*natmtot)  
+    ! local variables
+      integer :: i, ia, is, iat
+    !
+      fgew = 0.d0
+      iat = 0
+      do is = 1, nspecies
+         do ia = 1, natoms(is)
+            iat = iat + 1
+            do i = 1, 3
+               fgew = fgew + dble(eigv(3*(iat-1)+i))**2/spmass(is)
+            enddo
+         enddo
+      enddo
+      fgew = 1.d0 / fgew
+   End Subroutine getfgew
+!
 !
    subroutine raman_readeps (imode, istep, i1, i2, fnam)
    ! read dielectric function from file
@@ -166,57 +176,5 @@ Contains
       close (unit=funit)
    end subroutine raman_writeeps
 !
-!
-   Subroutine raman_delxs (fnam)
-      Use m_getunit
-      Implicit None
-    ! arguments
-      Character (*), Intent (In) :: fnam
-    ! local variables
-      Integer, Parameter :: verb = 0
-      Integer :: funit
-      Logical :: existent, opened
-    ! check if file exists
-      Inquire (File=trim(fnam), Exist=existent)
-      If ((verb .Gt. 0) .And. ( .Not. existent)) Then
-         Write (*, '("Warning(Raman_delxs): attempted to delete non-existent file: ", a)') trim (fnam)
-         Return
-      End If
-    ! check if file is opened
-      Inquire (File=trim(fnam), Opened=Opened, Number=funit)
-    ! close file if opened
-      If (opened) Then
-         Close (funit)
-      End If
-    ! open file for writing
-      Call getunit (funit)
-      Open (funit, File=trim(fnam), Action='write')
-    ! delete file
-      Close (funit, Status='delete')
-   End Subroutine raman_delxs
-!
-   Subroutine getfgew ( eigv )
-    ! computes the factor f relating the atomic displacements u to the normal coordinate Q
-    ! it is also used to normalize u and represents the effective mass of the phonon mode
-      use raman_ew, only: fgew
-      use mod_atoms, only: natmtot, nspecies, natoms, spmass
-      implicit none
-    ! arguments
-      complex(8), intent(in) :: eigv(3*natmtot)  
-    ! local variables
-      integer :: i, ia, is, iat
-    !
-      fgew = 0.d0
-      iat = 0
-      do is = 1, nspecies
-         do ia = 1, natoms(is)
-            iat = iat + 1
-            do i = 1, 3
-               fgew = fgew + dble(eigv(3*(iat-1)+i))**2/spmass(is)
-            enddo
-         enddo
-      enddo
-      fgew = 1.d0 / fgew
-   End Subroutine getfgew
 !
 End Module m_raman_utils

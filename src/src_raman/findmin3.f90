@@ -5,7 +5,6 @@ subroutine FINDMIN3(zmin)
 ! one minimum is expected between xmin and xmax
 !
 use raman_coeff, only : a1,a2,a3,a4,a5,a6
-use raman_inter, only : xmin_r,xmax_r
 use modinput
 implicit none
 double precision :: work(100),d2,da(6),zmin
@@ -13,37 +12,11 @@ double precision, allocatable :: cm(:,:),rootr(:),rooti(:),vec(:)
 integer :: deg,info,i,j
 !
 write(66,84)
-! determine degree of polynomial
-!degree = 0
-!if (a6 .eq. 0.d0) then
-!   if (a5 .eq. 0.d0) then
-!      if (a4 .eq. 0.d0) then
-!         if (a3 .eq. 0.d0) then
-!            if (a2 .eq. 0.d0) then
-!                if (a1 .eq. 0.d0) degree = 1
-!            else
-!                degree = 2
-!            endif
-!         else
-!            degree = 3
-!         endif
-!      else
-!         degree = 4
-!      endif
-!   else
-!      degree = 5
-!   endif
-!else
-!   degree = 6
-!endif
 write(66,90) input%properties%raman%degree
 ! search roots for d/dx V(x) with degree-1
 da(1) = a1; da(2) = 2.d0*a2
 da(3) = 3.d0*a3; da(4) = 4.d0*a4
 da(5) = 5.d0*a5; da(6) = 6.d0*a6
-!do while (abs(da(input%properties%raman%degree)) .lt. 1.d-12) 
-!   degree = degree - 1
-!enddo
 deg = input%properties%raman%degree - 1
 ! construct companion matrix
 allocate( cm(deg,deg) )
@@ -67,15 +40,16 @@ enddo
          d2 = 2.d0*a2          +     6.d0*a3*rootr(i) +  12.d0*a4*rootr(i)**2 + &
             & 2.d1*a5*rootr(i)**3 + 36.d0*a6*rootr(i)**4
          ! adjust limits in case we found a local maximum
-         if ((rootr(i) .gt. xmin_r) .and. (d2 .lt. 0.d0)) then
-            xmin_r = rootr(i)
+         if ((rootr(i) .gt. input%properties%raman%xmin) .and. (rootr(i) .lt. 0.d0) .and. (d2 .lt. 0.d0)) then
+            input%properties%raman%xmin = rootr(i)
             cycle
          endif
-         if ((rootr(i) .lt. xmax_r) .and. (d2 .lt. 0.d0)) then
-            xmax_r = rootr(i)
+         if ((rootr(i) .lt. input%properties%raman%xmax) .and. (rootr(i) .gt. 0.d0) .and. (d2 .lt. 0.d0)) then
+            input%properties%raman%xmax = rootr(i)
             cycle
          endif
-         if ((rootr(i) .ge. xmin_r) .and. (rootr(i) .le. xmax_r) .and. (d2 .gt. 0.d0)) then
+         if ((rootr(i) .ge. input%properties%raman%xmin) .and. &
+          &  (rootr(i) .le. input%properties%raman%xmax) .and. (d2 .gt. 0.d0)) then
             zmin = rootr(i)
             j = j + 1
          endif
@@ -88,7 +62,8 @@ enddo
       write(*,'(i6,2f12.6)') (i,rootr(i),rooti(i),i=1,deg)
       stop
    endif
-write(66, '(/," The oscillator problem for this mode is solved between u = ",f7.3," and ",f7.3," Bohr.")') xmin_r, xmax_r
+write(66, '(/," The oscillator problem for this mode is solved between u = ",f7.3," and ",f7.3," Bohr.")') &
+ &   input%properties%raman%xmin, input%properties%raman%xmax
 write(66, '(/," Potential minimum at: ",f12.6,/)') zmin
 !
 deallocate( cm,rootr,rooti,vec )

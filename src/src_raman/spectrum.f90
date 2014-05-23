@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-subroutine SPECTRUM(temper, rlas, oct1, oct2, comp_ch, filext)
+subroutine SPECTRUM(rlas, oct1, oct2, comp_ch, filext)
 ! ------------------------------------------------------------------------------
 use raman_ew
 use raman_input
@@ -8,16 +8,16 @@ use modinput
 use mod_lattice, only: omega
 implicit none
 ! arguments
-real (8), intent(in) :: temper, rlas
+real (8), intent(in) :: rlas
 integer, intent(in) :: oct1, oct2
 character(2), intent(in) :: comp_ch
 character(*), intent(in) :: filext
 ! local variables
 integer :: i,j,ind,iw
-real(8) :: arg,beta,dde,factl,gam1,gam2,gam3,gam4,dnc
+real(8) :: arg,beta,dde,factl,gam2,dnc
 real(8) :: sc,sqn1,sqn2,sqn3
 real(8) :: sqn4,sqn5,sqn6
-real(8) :: spec,w,dw,zfact,zsum,zzsum, temp, w_scat, w_fact
+real(8) :: spec,w,dw,zfact,zsum,zzsum, w_scat, w_fact
 character(80) :: fname
 real(8), allocatable :: rcont1(:),rcont2(:),rcont3(:),rcont4(:),rcont5(:),rcont6(:)
 real(8), allocatable :: ex(:)
@@ -40,22 +40,18 @@ open (unit=73, file=fname, status='unknown',form='formatted')
    sc = 1.d07
 dnc = dble(ncell)
 write(66,'(//,46("*"),"   SPECTRUM FOR OC ",a2,"   ",46("*"))') comp(oct1, oct2)
-temp = temper
-write(66,'(/," Temperature [ K ]: ",17x,f8.2,/)') temp
-if (temp .lt. 1.0e-9) then
-   temp = 1.d-9
-   write(66,'(  " (adjusted to     : ",17x,e9.2,")"/)') temp
+write(66,'(/," Temperature [ K ]: ",17x,f8.2,/)') input%properties%raman%temp
+if (input%properties%raman%temp .lt. 1.0e-9) then
+   input%properties%raman%temp = 1.d-9
+   write(66,'(  " (adjusted to     : ",17x,e9.2,")"/)') input%properties%raman%temp
 endif
 write(66,'(/," Partition sums for eigenstates:",/)')  ! header for part sums in output
 write(66,'("  state ","         eigenvalue ","             factor ", &
      &           "      partition sum ","         population  "/)')
 !
-gam1 = gamma1**2/4.d0                         ! broadening parameters from input
-gam2 = gamma2**2/4.d0
-gam3 = gamma3**2/4.d0
-gam4 = gamma4**2/4.d0
+gam2 = input%properties%raman%broad**2/4.d0
 zsum = 0.d0
-beta = 1.d0/fkwn/temp
+beta = 1.d0/fkwn/input%properties%raman%temp
 sqn1 = dsqrt(dnc)                             ! powers of sqrt( Nc )
 sqn2 = dnc
 sqn3 = sqn1*sqn2
@@ -75,10 +71,11 @@ write(66,'(i7,3e20.6,f20.5)') (i,eigen(i),ex(i),zsum,ex(i)/zsum,i=1,input%proper
 dw = (input%properties%raman%energywindow%intv(2) - &
    &  input%properties%raman%energywindow%intv(1)) / &
    &  dble(input%properties%raman%energywindow%points)
-write(73,'("# Laser energy:  ",f8.6," Ha = ",f8.1," cm^-1 = ",f5.2," eV = ",  &
-  &        f6.1, " nm",/,"# Temperature: ",f8.1," K",/,"# Damping: ",4(f8.1," cm^-1   |"),/, &
-  &       "# Number of eigenvalues: ",i4,/)') rlas,rlas*fhawn,rlas*fhaev,frnmha/rlas,temp, &
-  &              gamma1,gamma2,gamma3,gamma4,input%properties%raman%nstate
+write(73,'("# Laser energy:  ",f9.6," Ha = ",f8.1," cm^-1 = ",f5.2," eV = ",  &
+  &        f6.1, " nm",/,"# Temperature: ",f8.1," K",/,"# Damping: ",f8.1," cm^-1   ",/, &
+  &       "# Number of eigenvalues: ",i4,/)') rlas,rlas*fhawn,rlas*fhaev, &
+  &              frnmha/rlas,input%properties%raman%temp, &
+  &              input%properties%raman%broad,input%properties%raman%nstate
 !
 ind = 0
    zzsum = zsum/(omega*fau3cm3*pi*pi)
@@ -152,15 +149,15 @@ do iw = 1, input%properties%raman%energywindow%points+1
          w_scat = rlas*fhawn - dde
          w_fact = rlas*fhawn*w_scat**3
          spec = spec + &                        ! line broadening by Lorentzian
-     &          rcont1(ind)*w_fact/((dde-w)**2 + gam1) + &
+     &          rcont1(ind)*w_fact/((dde-w)**2 + gam2) + &
      &          rcont2(ind)*w_fact/((dde-w)**2 + gam2) + &
-     &          rcont3(ind)*w_fact/((dde-w)**2 + gam3) + &
-     &          rcont4(ind)*w_fact/((dde-w)**2 + gam4) + &
-     &          rcont5(ind)*w_fact/((dde-w)**2 + gam4) + &   ! 5th and 6th use gamma4
-     &          rcont6(ind)*w_fact/((dde-w)**2 + gam4)
+     &          rcont3(ind)*w_fact/((dde-w)**2 + gam2) + &
+     &          rcont4(ind)*w_fact/((dde-w)**2 + gam2) + &
+     &          rcont5(ind)*w_fact/((dde-w)**2 + gam2) + &
+     &          rcont6(ind)*w_fact/((dde-w)**2 + gam2)
       enddo
    enddo
-   spec = spec*gamma1*sc/(2.d0*pi)
+   spec = spec*input%properties%raman%broad*sc/(2.d0*pi)
    write(73,'(2g15.8)') w,spec
 enddo
 !

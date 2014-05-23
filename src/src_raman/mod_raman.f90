@@ -63,8 +63,9 @@ module raman_coeff
 use raman_params
 ! potential coefficients
 real(8) :: A0,A1,A2,A3,A4,A5,A6
-! potential raw data
+! potential raw data, energies
 real(8), allocatable :: potinx(:, :),potiny(:, :)
+! number of steps per mode
 integer :: numpot
 ! dielec raw data
 complex (8), allocatable :: df(:, :, :, :, :)
@@ -96,8 +97,8 @@ real(8), allocatable :: xa(:)
 real(8), allocatable :: xpot(:)
 ! potential values at maxp
 real(8), allocatable :: pot(:)
-real(8) :: xmin_r,xmax_r,h           ! lower bound, upper bound, interval height
-! integer :: ninter                         ! no. intervals, number of knots (i.e. 4 per interval)
+! interval height
+real(8) :: h
 real(8), allocatable :: b0(:),b1(:),b2(:),b3(:),b4(:)
 end module raman_inter
 !
@@ -108,8 +109,6 @@ integer :: ncell, intphonon
 ! unit cell volume in cm3
 !real(8) :: vol_cm3
 real(8) :: tempa,tempe,tempi
-! broadening
-real(8) :: gamma1,gamma2,gamma3,gamma4
 end module raman_input
 !
 !

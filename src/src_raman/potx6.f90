@@ -6,13 +6,14 @@ subroutine POTX6(maxp)
    use raman_inter
    use raman_coeff
    use raman_input
+   use modinput
    implicit none
    integer :: i,maxp
    real(8) :: h1,x
 !
-   h1 = (xmax_r - xmin_r)/dble(maxp - 1)
+   h1 = (input%properties%raman%xmax - input%properties%raman%xmin)/dble(maxp - 1)
    do i = 1,maxp
-      xpot(i) = xmin_r + dble(i - 1)*h1
+      xpot(i) = input%properties%raman%xmin + dble(i - 1)*h1
       x = xpot(i)
       pot(i) = A0 + A1*x + A2*x**2 + A3*x**3 + A4*x**4 + A5*x**5 + A6*x**6
 !        write(77,*) x,pot(i)

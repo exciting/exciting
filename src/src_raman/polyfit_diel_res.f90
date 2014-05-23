@@ -4,7 +4,6 @@ subroutine POLYFIT_DIEL_RES (imode, iw)
 !
 use modinput
 use raman_coeff
-use raman_inter, only: xmin_r,xmax_r
 use raman_params, only: zzero
 implicit none
 ! arguments

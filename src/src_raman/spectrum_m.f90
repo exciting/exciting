@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-subroutine SPECTRUM_M(temper, rlas, filext)
+subroutine SPECTRUM_M(rlas, filext)
 ! ------------------------------------------------------------------------------
 use raman_ew
 use raman_input
@@ -8,15 +8,15 @@ use modinput
 use mod_lattice, only: omega
 implicit none
 ! arguments
-real (8), intent(in) :: temper, rlas
+real (8), intent(in) :: rlas
 character(*), intent(in) :: filext
 ! local variables
 integer :: i,j,ind,ii,iw
 integer :: oct1, oct2
-real(8) :: arg,beta,dde,gam1,gam2,gam3,gam4
+real(8) :: arg,beta,dde,gam2
 real(8) :: sc, total
 real(8) :: spec_par, spec_perp, spec_abs
-real(8) :: w, dw, zfact, zsum, zzsum, temp, w_scat, w_fact
+real(8) :: w, dw, zfact, zsum, zzsum, w_scat, w_fact
 real(8) :: anisoinvar2, activity, depol
 complex(8) :: isoinvar
 character(80) :: fname
@@ -37,22 +37,18 @@ open (unit=73, file=fname, status='unknown',form='formatted')
 sc = 1.d32*fau3cm3**2
 !
 write(66,'(//,51("*"),"   SPECTRUM   ",51("*"))')
-temp = temper
-write(66,'(/," Temperature [ K ]: ",17x,f8.2,/)') temp
-if (temp .lt. 1.0e-9) then
-   temp = 1.d-9
-   write(66,'(  " (adjusted to     : ",17x,e9.2,")"/)') temp
+write(66,'(/," Temperature [ K ]: ",17x,f8.2,/)') input%properties%raman%temp
+if (input%properties%raman%temp .lt. 1.0e-9) then
+   input%properties%raman%temp = 1.d-9
+   write(66,'(  " (adjusted to     : ",17x,e9.2,")"/)') input%properties%raman%temp
 endif
 write(66,'(/," Partition sums for eigenstates:",/)')  ! header for part sums in output
 write(66,'("  state ","         eigenvalue ","             factor ", &
      &           "      partition sum ","         population  "/)')
 !
-gam1 = gamma1**2/4.d0                         ! broadening parameters from input
-gam2 = gamma1**2/4.d0
-gam3 = gamma1**2/4.d0
-gam4 = gamma1**2/4.d0
+gam2 = input%properties%raman%broad**2/4.d0
 zsum = 0.d0
-beta = 1.d0/fkwn/temp
+beta = 1.d0/fkwn/input%properties%raman%temp
 do i = 1,input%properties%raman%nstate
    arg = -beta*eigen(i)*fhawn
    ex(i) = dexp(arg)
@@ -68,8 +64,9 @@ dw = (input%properties%raman%energywindow%intv(2) - &
    &  dble(input%properties%raman%energywindow%points)
 write(73,'("# Laser energy:  ",f9.6," Ha = ",f8.1," cm^-1 = ",f5.2," eV = ",  &
   &        f6.1, " nm",/,"# Temperature: ",f8.1," K",/,"# Damping: ",f8.1," cm^-1   ",/, &
-  &       "# Number of eigenvalues: ",i4,/)') rlas,rlas*fhawn,rlas*fhaev,frnmha/rlas,temp, &
-  &              gamma1,input%properties%raman%nstate
+  &       "# Number of eigenvalues: ",i4,/)') rlas,rlas*fhawn,rlas*fhaev, &
+  &              frnmha/rlas,input%properties%raman%temp, &
+  &              input%properties%raman%broad,input%properties%raman%nstate
 !
 isoinvar = 1.d0/3.d0 * (deq(1,1) + deq(2,2) + deq(3,3))
 anisoinvar2 = 0.5 * (abs(deq(1,1)-deq(2,2))**2 + abs(deq(2,2)-deq(3,3))**2 + abs(deq(3,3)-deq(1,1))**2) + &
@@ -119,14 +116,14 @@ do iw = 1, input%properties%raman%energywindow%points+1
          dde = (eigen(i) - eigen(j))*fhawn
          w_scat = rlas*fhawn - dde
          w_fact = rlas*fhawn*w_scat**3
-         spec_par = spec_par + rcont_par(ind)*w_fact/((dde-w)**2 + gam1)
-         spec_perp = spec_perp + rcont_perp(ind)*w_fact/((dde-w)**2 + gam1)
+         spec_par = spec_par + rcont_par(ind)*w_fact/((dde-w)**2 + gam2)
+         spec_perp = spec_perp + rcont_perp(ind)*w_fact/((dde-w)**2 + gam2)
       enddo
    enddo
 !   spec_par = spec_par*(rlas*fhawn - w)**3/(2.d0*pi)
 !   spec_perp = spec_perp*(rlas*fhawn - w)**3/(2.d0*pi)
-   spec_par = spec_par*sc*gamma1/(2.d0*pi)
-   spec_perp = spec_perp*sc*gamma1/(2.d0*pi)
+   spec_par = spec_par*sc*input%properties%raman%broad/(2.d0*pi)
+   spec_perp = spec_perp*sc*input%properties%raman%broad/(2.d0*pi)
    spec_abs = spec_par + spec_perp
    total = total + spec_abs*dw
    write(73,'(f12.2,3g15.8)') w, spec_par, spec_perp, spec_abs

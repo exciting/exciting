@@ -4,7 +4,6 @@ subroutine POLYFIT_DIEL (imode, rlas)
 !
 use modinput
 use raman_coeff
-use raman_inter, only: xmin_r,xmax_r
 use raman_params, only: zzero
 implicit none
 ! arguments
@@ -114,7 +113,8 @@ Do oct1 = 1, 3
       open(unit=80,file='RAMAN_EPSILON_MOD'//str_mode//'_OC'//comp(oct1,oct2)//'.OUT',status='unknown',form='formatted')
       write(80,'(/,"# Fitted function and raw data (Re and Im) for optical component ",a2)') comp(oct1, oct2)
       do i = 1,input%properties%raman%ninter+1
-         xx = xmin_r + (i - 1)*(xmax_r - xmin_r)/input%properties%raman%ninter
+         xx = input%properties%raman%xmin + (i - 1)*(input%properties%raman%xmax - &
+            & input%properties%raman%xmin)/input%properties%raman%ninter
          eps_calc = zzero
          do k = 1, deg + 1
             eps_calc = eps_calc + B(k)*xx**(k-1)

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-subroutine SPECTRUM_RES(temper, rlas, oct1, oct2, Sab, ws)
+subroutine SPECTRUM_RES(rlas, oct1, oct2, Sab, ws)
 ! ------------------------------------------------------------------------------
 use raman_ew
 use raman_input
@@ -8,16 +8,16 @@ use modinput
 use mod_lattice, only: omega
 implicit none
 ! arguments
-real (8), intent(in) :: temper, rlas
+real (8), intent(in) :: rlas
 integer, intent(in) :: oct1, oct2
 real(8), intent(out) :: Sab
 real(8), intent(out) :: ws
 ! local variables
 integer :: i,j,ind
-real(8) :: arg,beta,dde,factl,gam1,gam2,gam3,gam4,dnc
+real(8) :: arg,beta,dde,factl,dnc
 real(8) :: sc,sqn1,sqn2,sqn3
 real(8) :: sqn4,sqn5,sqn6
-real(8) :: spec,zfact,zsum,zzsum, temp, w_scat, w_fact
+real(8) :: spec,zfact,zsum,zzsum, w_scat, w_fact
 real(8) :: rcont1,rcont2,rcont3,rcont4,rcont5,rcont6
 real(8) :: rcont_par, rcont_perp, isoinvar, anisoinvar2
 real(8), allocatable :: ex(:)
@@ -29,17 +29,12 @@ rcont1 = 0.d0; rcont2 = 0.d0; rcont3 = 0.d0; rcont4 = 0.d0; rcont5 = 0.d0; rcont
 !
 !
 dnc = dble(ncell)
-temp = temper
-if (temp .lt. 1.0e-9) then
-   temp = 1.d-9
+if (input%properties%raman%temp .lt. 1.0e-9) then
+   input%properties%raman%temp = 1.d-9
 endif
 !
-gam1 = gamma1**2/4.d0                         ! broadening parameters from input
-gam2 = gamma2**2/4.d0
-gam3 = gamma3**2/4.d0
-gam4 = gamma4**2/4.d0
 zsum = 0.d0
-beta = 1.d0/fkwn/temp
+beta = 1.d0/fkwn/input%properties%raman%temp
 sqn1 = dsqrt(dnc)                             ! powers of sqrt( Nc )
 sqn2 = dnc
 sqn3 = sqn1*sqn2

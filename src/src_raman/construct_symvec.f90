@@ -278,7 +278,7 @@ integer, intent(out) :: indep(n)
 ! local variables
 real(8) :: tempmat(m, n)
 integer, dimension(m) :: ipiv
-integer :: i,j
+integer :: i,j,n1
 !
 tempmat(:,:) = mat(:,:)
 indep(:) = 0
@@ -300,11 +300,13 @@ enddo
 !
 ! find leading ones
 k = 0
+n1 = 1
 do i = 1, m
-   do j = indep(k), n
+   do j = n1, n
       if (abs(tempmat(i,j)-1.d0) .lt. eps) then
          k = k + 1
          indep(k) = j
+         n1 = j
          exit
       endif
    enddo

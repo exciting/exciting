@@ -3651,7 +3651,7 @@ gw.xsd
                         small as this can introduce a numerical error.</p> </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="gamma" default="onestep">
+            <xs:attribute ex:importance="expert" ex:unit="" name="gamma" default="twostep">
                 <xs:annotation>
                     <xs:documentation>
                        Determines how force constants at the <inlinemath>\Gamma</inlinemath>-point are computed. The numerical
@@ -4180,20 +4180,20 @@ gw.xsd
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="nstate" type="xs:integer" default="10">
+                       <xs:attribute ex:importance="expert" ex:unit="" name="nstate" type="xs:integer" default="5">
                             <xs:annotation>
                                 <xs:documentation>Number of vibrational states to solve for.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="xmin" type="fortrandouble" default="-0.3d0">
+                       <xs:attribute ex:importance="expert" ex:unit="" name="xmin" type="fortrandouble" default="-3.0d0">
                             <xs:annotation>
                                 <xs:documentation>Lower boundary of the oscillator problem, give a distance along
                                                   the normal coordinate, <inlinemath>|{\bf u}_i |</inlinemath> in Bohr.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="xmax" type="fortrandouble" default="0.3d0">
+                       <xs:attribute ex:importance="expert" ex:unit="" name="xmax" type="fortrandouble" default="3.0d0">
                             <xs:annotation>
                                 <xs:documentation>Upper boundary of the oscillator problem, give a distance along
                                                   the normal coordinate, <inlinemath>|{\bf u}_i |</inlinemath> in Bohr.
@@ -4212,19 +4212,20 @@ gw.xsd
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="nstep" type="xs:integer" default="1">
+                       <xs:attribute ex:importance="expert" ex:unit="" name="nstep" type="xs:integer" default="5">
                             <xs:annotation>
-                                <xs:documentation>Create <pre>nstep</pre> distorted geometries in addition to the equilibrium geometry 
+                                <xs:documentation>Create <pre>nstep</pre> distorted geometries
                                 to sample the potential and dielectric function.
                                 The distortion is done by displacing atoms along normal coordinate by 
-                                <inlinemath>|{\bf u}_i | = \pm n*</inlinemath><attref>displ</attref>
-                                In the case of <pre>nstep=1</pre> and <pre>2</pre> a harmonic potential is assumed.
+                                <inlinemath>\pm n*</inlinemath><attref>displ</attref>
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="displ" type="fortrandouble" default="0.05d0">
+                       <xs:attribute ex:importance="expert" ex:unit="" name="displ" type="fortrandouble" default="0.02d0">
                             <xs:annotation>
                                 <xs:documentation>Step length for each displacement along normal coordinate, <inlinemath>|{\bf u}_i |</inlinemath> in Bohr.
+                                For solids, a value of 0.01-0.02 times the number of atoms in the unit cell is often a good choice. In any case
+                                check the obtained potential and dielectric functions carefully.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
@@ -4242,6 +4243,33 @@ gw.xsd
                                 <xs:documentation>
                                 If <pre>true</pre>, an isolated molecule is assumed. The default of <pre>false</pre> means the
                                 calculation is done for a crystal structure.
+                                </xs:documentation>
+                            </xs:annotation>
+                       </xs:attribute>
+                       <xs:attribute ex:importance="expert" ex:unit="" name="usesym" type="xs:boolean" default="true">
+                            <xs:annotation>
+                                <xs:documentation>
+                                Flag wether to use symmetry to analyze the Raman activity of phonon modes prior to
+                                running through all computation steps.
+                                </xs:documentation>
+                            </xs:annotation>
+                       </xs:attribute>
+                       <xs:attribute ex:importance="expert" ex:unit="" name="useforces" type="xs:boolean" default="true">
+                            <xs:annotation>
+                                <xs:documentation>
+                                Request the use forces to fit the potential along normal coordinates (if set to <pre>true</pre>),
+                                otherwise the total energy will be used (if set to <pre>false</pre>).
+                                </xs:documentation>
+                            </xs:annotation>
+                       </xs:attribute>
+                       <xs:attribute ex:importance="expert" ex:unit="" name="doequilibrium" type="xs:boolean" default="false">
+                            <xs:annotation>
+                                <xs:documentation>
+                                Specifiy whether the true equilibirum geometry should be included in the frozen phonon calculations.
+                                On one hand the symmetry of the equilibrium might be increased and the properties slightly changed; 
+                                on the other hand the same equilibrium structure is used for all active modes and thus some computer time
+                                can be saved. The default is <pre>false</pre>, which means that a close-to-equilibrium structure with the
+                                same symmetry as the mode is used. For every mode this is a slightly different structure.
                                 </xs:documentation>
                             </xs:annotation>
                        </xs:attribute>
@@ -5199,6 +5227,14 @@ gw.xsd
                               <oldnr>445</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Bethe-Salpeter equation.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="bsegenspec">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>446</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Read BSE eigenvalues and regenerate dielectric and loss functions.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="kernxc_bse">
