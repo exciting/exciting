@@ -9,7 +9,7 @@ subroutine RAMAN
 use mod_lattice, only: omega
 use mod_misc
 use mod_qpoint, only: nqpt, ngridq
-use mod_atoms, only: natmtot, nspecies, natoms, spmass
+use mod_atoms, only: natmtot, nspecies, natoms, spmass, idxas
 use mod_energy, only: engytot
 use mod_force, only: forcetot
 use modinput
@@ -35,7 +35,7 @@ implicit none
 integer :: maxp,it,ntp
 integer :: i, j, ia, is, iat, ic, imode, istep, nmode, iw
 integer :: istep_lo, istep_hi, i_shift
-integer :: oct, oct1, oct2, jas
+integer :: oct, oct1, oct2, ias
 integer :: read_i
 real(8) :: rlas,sn,zmin,zs, norm
 real(8) :: dph, force_sum, vgamc(3)
@@ -505,19 +505,25 @@ do imode = 1, nmode
         force_sum = 0.d0
         if (input%properties%raman%useforces) then
 !          ! store forces times eigenvector
-           Do jas = 1, natmtot
-             if (all(abs(dble(ev(:, imode))) .lt. eps)) then
-              ! account for vectors rotated to imaginary axis
-              force_sum = force_sum + forcetot(1, jas)*aimag(ev(3*jas-2, imode)) + &
-                 &                    forcetot(2, jas)*aimag(ev(3*jas-1, imode)) + &
-                 &                    forcetot(3, jas)*aimag(ev(3*jas, imode))
-             else
-              ! the usual case
-              force_sum = force_sum + forcetot(1, jas)*dble(ev(3*jas-2, imode)) + &
-                 &                    forcetot(2, jas)*dble(ev(3*jas-1, imode)) + &
-                 &                    forcetot(3, jas)*dble(ev(3*jas, imode))
-             endif
-           End Do
+           do is = 1, nspecies
+              do ia = 1, natoms(is)
+                 ias = idxas (ia, is)
+                 if (all(abs(dble(ev(:, imode))) .lt. eps)) then
+                 ! account for vectors rotated to imaginary axis
+                 force_sum = force_sum + (forcetot(1, ias)*aimag(ev(3*ias-2, imode)) + &
+                    &                     forcetot(2, ias)*aimag(ev(3*ias-1, imode)) + &
+                    &                     forcetot(3, ias)*aimag(ev(3*ias, imode)) ) / &
+                    &                     sqrt(spmass(is))
+                else
+                 ! the usual case
+                 force_sum = force_sum + (forcetot(1, ias)*dble(ev(3*ias-2, imode)) + &
+                    &                     forcetot(2, ias)*dble(ev(3*ias-1, imode)) + &
+                    &                     forcetot(3, ias)*dble(ev(3*ias, imode)) ) / &
+                    &                     sqrt(spmass(is))
+                endif
+             enddo
+           EndDo
+           force_sum = force_sum*sqrt(fgew)
         endif
 ! store potential
         if (rank .eq. 0) then
