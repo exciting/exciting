@@ -49,16 +49,19 @@ Subroutine bandstr
   integer :: nkpt0, nstsv0, Recl
   real(8),    Allocatable :: vkl0(:,:), ehf(:,:), deltax(:,:)
   complex(8), allocatable :: e0(:,:), e1(:,:)
-  logical :: exist
+  logical :: exist,hybcheck
 
   ! initialise universal variables
   Call init0
   Call init1
+hybcheck=.false.
+if (associated(input%groundstate%Hybrid)) then
+    if (input%groundstate%Hybrid%exchangetypenumber== 1)  hybcheck=.true.
+elseif (associated(input%groundstate%HartreeFock)) then
+    hybcheck=.true.
+end if
 
-      if ((associated(input%groundstate%Hybrid).and. &
-     & (input%groundstate%Hybrid%exchangetypenumber== 1)) &
-     & .or.(associated(input%groundstate%HartreeFock))) then
-
+if (hybcheck) then
      !----------------------------------------      
      ! Calculate interpolated bandstructure
      !----------------------------------------
@@ -364,9 +367,13 @@ Subroutine bandstr
      If (input%properties%bandstructure%character) deallocate(bc)
 
 
-      if ((associated(input%groundstate%Hybrid).and. &
-     & (input%groundstate%Hybrid%exchangetypenumber== 2)) &
-     & .or.(associated(input%groundstate%OEP))) then
+hybcheck=.false.
+if (associated(input%groundstate%Hybrid)) then
+    if (input%groundstate%Hybrid%exchangetypenumber== 2)   hybcheck=.true.
+elseif (input%groundstate%xctypenumber .Lt. 0) then
+       hybcheck=.true.
+end if
+if (hybcheck) then
 
      !----------------------------------------      
      ! Calculate interpolated DELTAX

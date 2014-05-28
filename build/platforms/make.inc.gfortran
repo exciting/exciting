@@ -1,6 +1,6 @@
 F90 = gfortran
 F77 = $(F90)
-F90_OPTS = -O3 -march=native
+F90_OPTS = -O3 -march=native -fopenmp -DUSEOMP -ffree-line-length-0
 F77_OPTS = $(F90_OPTS)
 CPP_ON_OPT = -cpp -DXS -DISO -DTETRA -DLIBXC
 LIB_ARP = libarpack.a
