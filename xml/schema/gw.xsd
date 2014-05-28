@@ -84,7 +84,7 @@
             </xs:element>
           </xs:all>
 
-          <xs:attribute ex:importance="expert" ex:unit="" name="taskname" type="xs:string" use="important" default="gw">
+          <xs:attribute ex:importance="expert" ex:unit="" name="taskname" type="xs:string" use="optional" default="gw">
             <xs:annotation>
               <xs:documentation>
                   Type of calculations.
