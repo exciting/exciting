@@ -2049,7 +2049,7 @@
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy" type="fortrandouble"
-        use="optional" default="1.0d-4">
+        use="optional" default="1.0d-6">
         <xs:annotation>
           <xs:documentation>Energy convergence tolerance.</xs:documentation>
         </xs:annotation>

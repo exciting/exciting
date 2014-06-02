@@ -2,6 +2,13 @@
 ! !ROUTINE: relax
 ! !INTERFACE:
 !
+!-----------------------------------------------------------------------------80.
+! Copyright (C) 2013- exciting team
+! This file is distributed under the terms of the GNU General Public License.
+! Created       on 15-10-2013 Pasquale Pavone (exciting team)
+! Modified      on 15-11-2013 Pasquale Pavone (exciting team)
+! Last modified on 14-06-2014 Pasquale Pavone (exciting team)
+!-----------------------------------------------------------------------------80
 !
 subroutine relax
 ! !USES:

@@ -31,6 +31,9 @@
 !
 ! Jorge Nocedal and Jose Luis Morales
 !
+!-----------------------------------------------------------------------------80.
+! This file is distributed under the terms of the GNU General Public License.
+! Last modified on 14-06-2014 Pasquale Pavone (exciting team)
 !-----------------------------------------------------------------------------80
 
 subroutine lbfgs_driver
