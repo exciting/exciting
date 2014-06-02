@@ -13,7 +13,7 @@ Module mod_misc
 !     miscellaneous variables     !
 !---------------------------------!
 ! code version
-      character(40) :: versionname = 'MORTADELLA'
+      character(40) :: versionname = 'BORON'
       integer :: version(3)
 ! reference version for LDA+U
       integer, parameter :: refversion_ldapu(3) = (/ 0, 9, 131 /)

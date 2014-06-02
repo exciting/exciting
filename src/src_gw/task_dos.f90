@@ -1,7 +1,7 @@
 !BOP
-!!ROUTINE: task_dos
+! !ROUTINE: task_dos
 
-!!INTERFACE:
+! !INTERFACE:
 subroutine task_dos
 
 !!DESCRIPTION:

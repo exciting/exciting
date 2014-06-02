@@ -428,7 +428,7 @@ subroutine scf_cycle(verbosity)
 ! write DOS at Fermi energy to FERMIDOS.OUT and flush
 !            Write (62, '(G18.10)') fermidos
 !            Call flushifc (62)
-! write band-gap
+! write band-gap if the dos at the Fermi energy is smaller than the given threshold
             if (fermidos<1.0d-4) call printbandgap(60)
 ! output charges and moments
             Call writechg (60,input%groundstate%outputlevelnumber)

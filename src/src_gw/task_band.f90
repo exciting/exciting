@@ -1,8 +1,8 @@
 !BOP
 !
-!!ROUTINE: task_band
+! !ROUTINE: task_band
 
-!!INTERFACE:
+! !INTERFACE:
 subroutine task_band
 
 !!DESCRIPTION:
