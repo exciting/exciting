@@ -7,8 +7,7 @@
 
 ! !DESCRIPTION:
 !
-!This subroutine calculates the matrix elements $M^i_{nm}(\vec{k},\vec{q})$ 
-!of equation \ref{Mdef}.
+!This subroutine calculates the matrix elements $M^i_{nm}(\vec{k},\vec{q})$. 
 !
 !
 ! !USES:

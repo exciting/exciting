@@ -7,8 +7,8 @@
 
 ! !DESCRIPTION:
 !
-!This subroutine calculates the matrix elements $M^i_{cm}(\vec{k},\vec{q})$ 
-!of equation \ref{Mdef}. c stands for core-state
+!This subroutine calculates the matrix elements $M^i_{cm}(\vec{k},\vec{q})$. 
+!c stands for core-state
 !
 !
 ! !USES:

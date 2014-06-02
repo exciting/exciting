@@ -19,9 +19,9 @@
 
 ! !DESCRIPTION:
 !
-!This subroutine calculates the lattice sums $\Sigma^{a,a'}_{\lambda,\mu}(\vec{q})=\sum_{\vec{R}}{\frac{e^{i\vec{q}\cdot\left(\vec{R}+\vec{r}_{aa'}\right)}}%
-!{|\vec{R}+\vec{r}_{aa'}|^{(\lambda+1)}}Y_{\lambda\mu}\left(\hat{R}_{aa'}\right)}$ using the method
-!described in appendix \ref{ewaldmeth}, in particular equation \ref{strconstdef}.
+!This subroutine calculates the lattice sums 
+!$\Sigma^{a,a'}_{\lambda,\mu}(\vec{q})=\sum_{\vec{R}}{\frac{e^{i\vec{q}\cdot\left(\vec{R}+\vec{r}_{aa'}\right)}}%
+!{|\vec{R}+\vec{r}_{aa'}|^{(\lambda+1)}}Y_{\lambda\mu}\left(\hat{R}_{aa'}\right)}$.
 !
 ! !USES:
       

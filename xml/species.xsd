@@ -286,7 +286,7 @@
         <xs:element name="default" maxOccurs="1" minOccurs="1">
           <xs:annotation>
           <xs:documentation>
-            Global definition of APW functions (valid for all L <inlinemath>\le</inlinemath> <attref>lmaxapw</attref>).
+            Global definition of APW functions (valid for all L <inlinemath>\le</inlinemath> <pre>lmaxapw</pre>).
           </xs:documentation>
           </xs:annotation>                                            
           <xs:complexType>

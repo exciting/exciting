@@ -7,8 +7,8 @@
 
 ! !DESCRIPTION:
 !
-!This subroutine calculates the matrix elements $v^{xc}_{nn}(\vec{k})$ 
-!of equation \ref{vxc-10}, only for valence states.
+!This subroutine calculates the matrix elements $v^{xc}_{nn}(\vec{k})$, 
+!only for valence states.
 !
 !
 ! !USES:
