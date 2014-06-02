@@ -136,7 +136,6 @@ subroutine scf_cycle(verbosity)
     Do iscl = 1, input%groundstate%maxscl
 !
 ! exit self-consistent loop if last iteration is complete
-
         if (tlast) then
             If ((verbosity>-1).and.(rank==0)) Then
                 write(string,'("Convergence targets achieved. Performing final SCF iteration")') 
@@ -574,7 +573,14 @@ subroutine scf_cycle(verbosity)
     End If
     Call timesec(ts1)
     timeio=ts1-ts0+timeio   
-    
+! delete BROYDEN.OUT
+            If (rank==0) then   
+                Inquire (File='BROYDEN.OUT', Exist=Exist)
+                If (exist) Then
+                    Open (23, File='BROYDEN.OUT')
+                    Close (23, Status='DELETE')
+                End If
+            End If
 ! compute forces
     If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
         Call force
