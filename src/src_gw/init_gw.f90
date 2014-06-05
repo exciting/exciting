@@ -76,8 +76,6 @@ subroutine init_gw
         ! for new set of k- and nempty parameters.
         ! It is important at this stage to switch off the update of the effective potential
         ! (critical for OEP/HYBRIDS related methods)
-!        input%groundstate%xctypenumber = 1
-!        xctype(1) = 1
         If  (associated(input%groundstate%OEP)) then
             nullify(input%groundstate%OEP)
         End if
