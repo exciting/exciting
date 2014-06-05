@@ -148,7 +148,7 @@
                 </xs:annotation>
             </xs:attribute>        
             
-            <xs:attribute ex:importance="essential" name="epsforce" type="fortrandouble" default="5.0d-5" 
+            <xs:attribute ex:importance="essential" name="epsforce" type="fortrandouble" default="2.0d-4" 
 	                  use="optional">
                 <xs:annotation>
                     <xs:documentation>

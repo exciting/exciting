@@ -12,12 +12,6 @@
 #====================================================
 
 #-------------------------------
-# path to EXCITING source directory
-#-------------------------------
-
-EXCITINGROOT="/home/kontur/beryllium/raman/exciting"
-
-#-------------------------------
 # 3D electron density grid (system dependent)
 # the grid should be large enough to describe correctly
 # the total density distribution and reliably calculate density
@@ -54,7 +48,7 @@ if (($#<1)); then
     exit
 fi
 
-# create a temporal work directory
+# create a temporary work directory
 if [ -d vdwdf ]; then
     rm -rf vdwdf
 fi

@@ -244,14 +244,14 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
       End If
 !      write(*,*) 
       Do ist = 1, nst
-       write(*,*) eval(ist)
+       !write(*,*) eval(ist)
 !       write(*,*) 
 !       do ir=1,nr
 !         write(*,*) r(ir),rwf(ir, 1, ist),rwf(ir, 2, ist)
 !       enddo
 !       read(*,*)
       enddo
-      write(*,*) 
+      !write(*,*) 
 !      stop
       Return
 End Subroutine

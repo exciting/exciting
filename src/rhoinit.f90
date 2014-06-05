@@ -297,7 +297,7 @@ endif
          End Do
       End Do
       call timesec(tb)
-      write(*,*) 'rhoinit, step 1:',tb-ta
+      !write(*,*) 'rhoinit, step 1:',tb-ta
       call timesec(ta)
 ! compute the tails in each muffin-tin
 
@@ -653,7 +653,7 @@ endif
 
 
       call timesec(tb)
-      write(*,*) 'rhoinit, step 2:',tb-ta
+      !write(*,*) 'rhoinit, step 2:',tb-ta
       call timesec(ta)
  
 ! Remove model density from rhomt
@@ -693,7 +693,7 @@ endif
       Call rhonorm
       Deallocate (ffacg, zfmt, zfft,a,b,c,rhomodel)
       call timesec(tb)
-      write(*,*) 'rhoinit, step 3:',tb-ta
+      !write(*,*) 'rhoinit, step 3:',tb-ta
 !      stop
       Return
 End Subroutine

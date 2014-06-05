@@ -57,11 +57,11 @@
 \ \\
 \Huge \textbf{</xsl:text><xsl:apply-templates select="/xs:schema/xs:annotation/xs:appinfo/title"/><xsl:text>} \\
 \ \\
-\huge \textbf{version \texttt{beryllium}} \\
+\huge \textbf{\exciting \texttt{boron}} \\
 \Large
 \vfill
 \ \\
-Juli 2013
+July 2014
 \end{center}
 \end{titlepage}
 

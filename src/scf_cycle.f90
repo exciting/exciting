@@ -427,8 +427,6 @@ subroutine scf_cycle(verbosity)
 ! write DOS at Fermi energy to FERMIDOS.OUT and flush
 !            Write (62, '(G18.10)') fermidos
 !            Call flushifc (62)
-! write band-gap
-            if (fermidos<1.0d-4) call printbandgap(60)
 ! output charges and moments
             Call writechg (60,input%groundstate%outputlevelnumber)
 ! write total moment to MOMENT.OUT and flush
@@ -440,6 +438,8 @@ subroutine scf_cycle(verbosity)
             If (getfixspinnumber() .Ne. 0) Call writefsm (60)
 ! output forces to INFO.OUT
 !            if (input%groundstate%tforce) call writeforce(60,input%relax%outputlevelnumber)
+! write band-gap if the dos at the Fermi energy is smaller than the given threshold
+            if (fermidos<1.0d-4) call printbandgap(60)
 ! check for WRITE file
             Inquire (File='WRITE', Exist=exist)
             If (exist) Then
@@ -514,7 +514,7 @@ subroutine scf_cycle(verbosity)
                 end if
             end if
 
-            if ((verbosity>-1).and.(rank==0)) then ! write RMSDVEFF.OUT 
+            if (rank==0) then ! write RMSDVEFF.OUT 
                 Write (65, '(G18.10)') currentconvergence
                 Call flushifc(65)
             end if
@@ -637,7 +637,7 @@ subroutine scf_cycle(verbosity)
       if (input%groundstate%tpartcharges) write(69,*)
     End If
 
-    If ((verbosity>-1).and.(rank==0)) Then
+    If (rank==0) Then
 ! write last total energy and add blank line to RMSDVEFF.OUT and TOTENERGY.OUT
       Write (65,*)
       Call flushifc(65)

@@ -8,7 +8,7 @@
 ! !DESCRIPTION: 
 !
 !This subroutine calculates the matrix elements
-! $< j_{\lambda}^{|\vec{G}+\vec{q}|}>_{aNL}$ according to equation \ref{jlam}
+! $< j_{\lambda}^{|\vec{G}+\vec{q}|}>_{aNL}$.
 !
 !
 ! !USES:

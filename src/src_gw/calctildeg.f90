@@ -14,8 +14,7 @@
 
 ! !DESCRIPTION:
 !
-!Calculates $\tilde{g}_{lm,l'm'}$ according to equation \ref{tildea}, that
-!is:
+!Calculates $\tilde{g}_{lm,l'm'}$ according to:
 !
 !\begin{equation}\label{calctilg}
 !\tilde{g}_{lm,l'm'}=\sqrt{4\pi}(-1)^{l}\sqrt{\frac{(l+l'+m+m')!(l+l'-m-m')!}%

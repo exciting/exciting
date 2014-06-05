@@ -378,7 +378,7 @@
               </xs:simpleType>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="sciavbd" type="xs:boolean"
-              default="false">
+              default="true">
               <xs:annotation>
                 <xs:documentation>
                   <pre>"true"</pre> if the body of the screened Coulomb interaction is to be

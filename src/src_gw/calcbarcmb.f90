@@ -7,9 +7,7 @@
 
 ! !DESCRIPTION:
 !
-!This subroutine calculates the matrix of the bare coulomb potential according to equations
-!\ref{coulsphdef},\ref{deficouloc}, \ref{coulijdefin} and
-!\ref{ipw-coul-sphere}.
+!This subroutine calculates the matrix of the bare coulomb potential according to equations.
 !
 ! !USES:
 
