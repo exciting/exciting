@@ -39,9 +39,9 @@ Subroutine propertylauncher
 #define NOTSTM .false.
          Call wfplot (NOTSTM)
       End If
-      If (associated(input%properties%STM) .And. rank .Eq. 0) Then
+      If (associated(input%properties%stm) .And. rank .Eq. 0) Then
 #define STM .true.
-         Call wfplot (STM)
+         Call stm
       End If
       If (associated(input%properties%LSJ) .And. rank .Eq. 0) Then
          call rereadinput
