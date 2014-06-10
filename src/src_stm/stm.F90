@@ -46,7 +46,7 @@ Subroutine stm
      Write(*,*)
      Write (*, '("Info(stm):")')
      Write (*, '("Setting occupations for constant-height/differential conductance.")')
-     Call stm_occ(efermi+bias,efermi+bias)
+     Call genocc(efermi+bias,efermi+bias)
   Else If ( input%properties%stm%stmtype.Eq.'integratedLDOS' &
        & .And. input%properties%stm%stmmode.Eq. 'constantHeight') Then
      Write(*,*)
@@ -54,9 +54,9 @@ Subroutine stm
      Write (*, '("Setting occupations for constant-height/Integrated LDOS.")')
      If (bias.lt.0.0d0) Then
         Write(*,*) 'negative bias'
-        Call stm_occ(efermi+bias,efermi)
+        Call genocc(efermi+bias,efermi)
      Else
-        Call stm_occ(efermi,efermi+bias)
+        Call genocc(efermi,efermi+bias)
      End If
   Else
      call warning('Error(stm): STM still not implemented for direct topographic plot.')

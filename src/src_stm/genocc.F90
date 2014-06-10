@@ -1,4 +1,4 @@
-Subroutine stm_occ(emin,emax)
+Subroutine genocc(emin,emax)
   Use modmain
   Use modinput
   ! arguments
@@ -37,4 +37,4 @@ Subroutine stm_occ(emin,emax)
      End Do
 
   End If
-End Subroutine stm_occ
+End Subroutine genocc
