@@ -13,14 +13,12 @@ Subroutine stm
   use modplotlabels
   Implicit None
   ! local variables
-  Integer :: ik, ist
-  Real (8) :: x, y, t1, bias
+  Integer :: ik
+  Real (8) ::  bias
   type(plotlabels),pointer ::labels
   ! allocatable arrays
   Complex (8), Allocatable :: evecfv (:, :)
   Complex (8), Allocatable :: evecsv (:, :)
-  ! external functions
-  External :: occstm
   ! initialise universal variables
   Call init0
   Call init1

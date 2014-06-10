@@ -7,7 +7,7 @@ Subroutine genocc(emin,emax)
   Real (8) :: sdelta, stheta
   External sdelta, stheta
   ! local variables
-  Real (8) :: t1
+  Real (8) :: x,y,t1
   Integer :: ik, ist
 
   If (emin.eq.emax) Then
@@ -32,7 +32,7 @@ Subroutine genocc(emin,emax)
            occsv (ist, ik) = occmax * wkpt (ik) * stheta &
                 & (input%groundstate%stypenumber, x)*&
                 & stheta(input%groundstate%stypenumber, y)
-           write(*,*) ist,ik,occsv(ist,ik)
+           !write(*,*) x,y,ist,ik,occsv(ist,ik)
         End Do
      End Do
 
