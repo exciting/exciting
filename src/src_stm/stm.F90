@@ -71,6 +71,7 @@ Subroutine stm
      Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
      Call getevecsv (vkl(:, ik), evecsv)
      Call rhovalk (ik, evecfv, evecsv)
+     Call genrhoir (ik, evecfv, evecsv)
   End Do
   ! symmetrise the density for the STM plot
   Call symrf (input%groundstate%lradstep, rhomt, rhoir)
