@@ -34,6 +34,8 @@ Subroutine stm
   Call genapwfr
   ! generate the local-orbital radial functions
   Call genlofr
+  ! verify consistency of input for stm
+  Call checkinput
   ! set the occupancies
 
   bias = input%properties%stm%bias
@@ -76,21 +78,8 @@ Subroutine stm
   ! convert the density from a coarse to a fine radial mesh
   Call rfmtctof (rhomt)
 
-  ! write the wavefunction modulus squared plot to file
+  Call genplot2d("STM2d")
 
-  ! plotdef%parallelogram%grid(1)
-  ! plotdef%parallelogram%grid(2)
-  ! plotdef%parallelogram%pointarray(1)%point%coord
-  ! plotdef%parallelogram%pointarray(2)%point%coord
-  ! plotdef%parallelogram%origin%coord
-
-  labels=>create_plotlablels("2D STM image","STM2d",2)
-  call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-  call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-  call set_plotlabel_axis(labels,3,"STM","","graceunit")
-  Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
-       & rhomt, rhoir, input%properties%stm%plot2d)
-  call destroy_plotlablels(labels)
   If ( input%properties%stm%stmmode.Eq.'topographic') Then
      Write (*,*)
      Write (*, '("Info(stm):")')
