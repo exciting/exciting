@@ -47,6 +47,21 @@
           <xs:complexType>
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+	      <xs:element ex:importance="essential" ex:unit="" name="plane" maxOccurs="1" minOccurs="0">
+		<xs:complexType>
+		  <xs:attribute ex:importance="expert" ex:unit="Bohr" name="height" default="0.0d0" type="fortrandouble">
+		    <xs:annotation>
+		      <xs:documentation>Height (z-coordinate) of the STM tip in Bohr radius, measured from the absolute origin of the unit cell as 
+		      defined in the structure element. Assumes the surface is in xy plane.</xs:documentation>
+		    </xs:annotation>
+		  </xs:attribute>
+		  <xs:attribute ex:importance="essential" ex:unit="" name="grid" type="integerpair">
+		    <xs:annotation>
+		      <xs:documentation>Number of grid points along first and second unit cell vectors, respectively.</xs:documentation>
+		    </xs:annotation>
+		  </xs:attribute>
+		</xs:complexType>
+	      </xs:element>
             </xs:all>
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="bias" default="0.0d0" type="fortrandouble">
               <xs:annotation>
@@ -56,10 +71,10 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="stmtype" default="differentialConductance">
               <xs:annotation>
                 <xs:documentation>Specifies the type of STM calculation.
-                  <list>
-              	    <li> differentialConductance (default): calculation of the LDOS at an energy Ef+bias. </li>
-              	    <li> integratedLDOS: integrates the LDOS in the range [Ef,Ef+bias] for positive bias and in the range [Ef+bias, Ef] for negative bias.</li>
-            	  </list>
+		<list>
+		  <li> differentialConductance (default): calculation of the LDOS at an energy Ef+bias. </li>
+		  <li> integratedLDOS: integrates the LDOS in the range [Ef,Ef+bias] for positive bias and in the range [Ef+bias, Ef] for negative bias.</li>
+		</list>
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
@@ -74,10 +89,10 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="stmmode" default="constantHeight">
               <xs:annotation>
                 <xs:documentation>Specifies the STM mode of operation to be simulated.
-                  <list>
-              	    <li> constantHeight (default): Calculates the property defined in the "stmtype" attribute on a two-dimensional mesh defined by the plot2d element. </li>
-              	    <li> topographic: (to be implemented) Calculates the iso-surface of the property defined in the "stmtype" attribute.</li>
-            	  </list>
+		<list>
+		  <li> constantHeight (default): Calculates the property defined in the "stmtype" attribute on a two-dimensional mesh defined by the plot2d element. </li>
+		  <li> topographic: (to be implemented) Calculates the iso-surface of the property defined in the "stmtype" attribute.</li>
+		</list>
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
@@ -89,23 +104,6 @@
           	</xs:restriction>
               </xs:simpleType>
             </xs:attribute>
-
-            <xs:element ex:importance="essential" ex:unit="" name="plane" maxOccurs="1" minOccurs="0">
-              <xs:complexType>
-		<xs:attribute ex:importance="expert" ex:unit="Bohr" name="height" default="0.0d0" type="fortrandouble">
-		  <xs:annotation>
-                    <xs:documentation>Height (z-coordinate) of the STM tip in Bohr radius, measured from the absolute origin of the unit cell as 
-		      defined in the structure element. Assumes the surface is in xy plane.</xs:documentation>
-		  </xs:annotation>
-		</xs:attribute>
-		<xs:attribute ex:importance="essential" ex:unit="" name="grid" type="integerpair">
-		  <xs:annotation>
-                    <xs:documentation>Number of grid points along first and second unit cell vectors, respectively.</xs:documentation>
-		  </xs:annotation>
-		</xs:attribute>
-              </xs:complexType>
-	    </xs:element>
-
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="wfplot" maxOccurs="1" minOccurs="0">
