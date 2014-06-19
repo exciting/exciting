@@ -263,7 +263,7 @@ Subroutine forcek (ik, ffacg)
             j1 = ngk (ispn, ik) + idxlo (lm1, ilo, ias)
             j2 = ngk (ispn, ik) + idxlo (lm2, ilo, ias)
             Do io = 1, apword (l, is)
-              system%overlap%za(1:ngk (ispn, ik),j1:j2)=system%overlap%za(1:ngk (ispn, ik),j1:j2)+conjg(apwalm(:, io, lm1:lm2, ias) * (oalo (io, ilo, ias) +h1loa(io, ilo, ias)))
+              system%overlap%za(1:ngk (ispn, ik),j1:j2)=system%overlap%za(1:ngk (ispn, ik),j1:j2)+conjg(apwalm(1:ngk (ispn, ik), io, lm1:lm2, ias) * (oalo (io, ilo, ias) +h1loa(io, ilo, ias)))
             End Do
             do j=j1,j2
               system%overlap%za(j,1:ngk (ispn, ik))=conjg(system%overlap%za(1:ngk (ispn, ik),j))
