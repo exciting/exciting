@@ -55,8 +55,9 @@ Character(256) :: raman_filext, raman_stepdir, fileeps(3, 3)
 #ifndef MPI
   integer, parameter :: rank = 0
 #endif
+#ifndef IFORT
   integer system, chdir
-  external  system, chdir
+#endif
 !
 !
 ! we require an XS input
