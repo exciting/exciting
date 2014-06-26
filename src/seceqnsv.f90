@@ -177,6 +177,21 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                                 & lmmaxvr, wfmt3(:,:), lmmaxvr, zzero, &
                                 & wfmt2(:, :,1), lmmaxvr)
                   wfmt2 (:, :, 2) = - wfmt2 (:, :, 1)
+                  If (isspinorb()) Then
+                     Do irc = 1, nrcmt (is)
+                        Call lopzflm (input%groundstate%lmaxvr, &
+                             & wfmt1(:, irc, jst), lmmaxvr, zlflm)
+                        t1 = sor (irc)
+                        Do lm = 1, lmmaxvr
+                           wfmt2 (lm, irc, 1) = wfmt2 (lm, irc, 1) + t1 &
+                                & * zlflm (lm, 3)
+                           wfmt2 (lm, irc, 2) = wfmt2 (lm, irc, 2) - t1 &
+                                & * zlflm (lm, 3)
+                           wfmt2 (lm, irc, 3) = wfmt2 (lm, irc, 3) + t1 &
+                                & * (zlflm(lm, 1)-zi*zlflm(lm, 2))
+                        End Do
+                     End Do
+                  End If
                Else
                   wfmt2 (:, :, :) = 0.d0
                End If
