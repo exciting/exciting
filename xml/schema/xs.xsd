@@ -20,6 +20,16 @@
       <xs:all>
         <xs:element ex:importance="expert" ex:unit="" name="tddft" minOccurs="0" maxOccurs="1">
           <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="" name="ahc" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> By setting it to <pre>"true"</pre>, the anomalous Hall conductivity (AHC)
+                  term is included in the calculation of the dielectric tensor [see PRB 86, 125139 (2012)]. 
+		  In this case, the MOKE.OUT output file is generated, containing the MOKE spectrum. 
+		  This attribute only has effect when local field effects are neglected (gqmax=0) and q=0. 
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
               <xs:annotation>
                 <xs:documentation> By setting it to <pre>"true"</pre>, the intraband
