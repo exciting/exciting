@@ -92,6 +92,7 @@ use ioarray
       Character (*), Parameter :: thisnam = 'dfq'
       Character (256) :: fnscreen
       Real (8), Parameter :: epstetra = 1.d-8
+      Real (8), Parameter :: epsw = 1.d-8
       Complex (8), Allocatable :: w (:)
       Complex (8), Allocatable :: chi0 (:, :, :), hdg (:, :, :)
       Complex (8), Allocatable :: chi0w (:, :, :, :), chi0h (:, :, :), &
@@ -499,8 +500,13 @@ use ioarray
                           & oct2, iw-wi+1) + wouh (iw) * pmou (oct1, &
                           & ist1, ist2) * conjg (pmou(oct2, ist1, &
                           & ist2)) + wuoh (iw) * pmuo (oct1, ist2, &
-                          & ist1) * conjg (pmuo(oct2, ist2, ist1)) &
-                          & - chi0hAHC (oct1, oct2) / (w(iw) + input%xs%epsdfde)
+                          & ist1) * conjg (pmuo(oct2, ist2, ist1))
+                       ! Add AHC term
+                           If ( input%xs%tddft%ahc .And. (oct1.ne.oct2) .And. (Abs(w(iw)).Gt.epsw)) Then
+                              chi0h (oct1, oct2, iw-wi+1) = chi0h (oct1, oct2, iw-wi+1) &
+                                   & - chi0hAHC (oct1, oct2) / w(iw)
+                           End If
+
                         End Do
                      End Do
                   End If
