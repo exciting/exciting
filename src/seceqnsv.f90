@@ -171,12 +171,21 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                                 & nrcmt(is), lmmaxvr, zone, zbshtvr, &
                                 & lmmaxvr, wfmt4(:,:), lmmaxvr, zzero, &
                                 & wfmt3(:, :), lmmaxvr)
-                  wfmt3(:, :)=wfmt3(:, :)*bmt (:, :, 3)
+                  wfmt4(:, :)=wfmt3(:, :)*bmt (:, :, 3)
                   Call zgemm ('N', 'N', lmmaxvr, &
                                 & nrcmt(is), lmmaxvr, zone, zfshtvr, &
-                                & lmmaxvr, wfmt3(:,:), lmmaxvr, zzero, &
+                                & lmmaxvr, wfmt4(:,:), lmmaxvr, zzero, &
                                 & wfmt2(:, :,1), lmmaxvr)
                   wfmt2 (:, :, 2) = - wfmt2 (:, :, 1)
+                  If (nsc .Eq. 3) Then
+                     wfmt4(:, :)=wfmt3(:, :) * cmplx (bmt(:, :, &
+                          & 1),-bmt(:, :, 2), 8)
+                     Call zgemm ('N', 'N', lmmaxvr, &
+                          & nrcmt(is), lmmaxvr, zone, zfshtvr, &
+                          & lmmaxvr, wfmt4(:,:), lmmaxvr, zzero, &
+                          & wfmt2(:, :,3), lmmaxvr)
+                  End If
+
                   If (isspinorb()) Then
                      Do irc = 1, nrcmt (is)
                         Call lopzflm (input%groundstate%lmaxvr, &
