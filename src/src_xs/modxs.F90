@@ -349,6 +349,8 @@ Module modxs
       Character (256) :: fnloss
   ! optical conductivity
       Character (256) :: fnsigma
+  ! MOKE spectrum
+      Character (256) :: fnmoke
   ! sumrules for optics
       Character (256) :: fnsumrules
 

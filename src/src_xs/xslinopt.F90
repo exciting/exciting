@@ -16,10 +16,12 @@ Subroutine xslinopt (iq)
       Use m_pade
       Use m_genloss
       Use m_gensigma
+      Use m_genkerr
       Use m_gensumrls
       Use m_writeeps
       Use m_writeloss
       Use m_writesigma
+      Use m_writekerr
       Use m_writesumrls
       Use m_getunit
       Use m_genfilname
@@ -30,12 +32,12 @@ Subroutine xslinopt (iq)
       Character (*), Parameter :: thisnam = 'xslinopt'
       Character (256) :: filnam
       Complex (8), Allocatable :: mdf (:), mdf1 (:), mdf2 (:, :, :), w &
-     & (:), wr (:), sigma (:)
+     & (:), wr (:), sigma (:), kerr(:)
       Real (8), Allocatable :: wplot (:), loss (:, :, :)
       Real (8), Allocatable :: eps1 (:), eps2 (:), cf (:, :)
       Real (8) :: sumrls (3), brd
       Integer :: n, m, recl, iw, nc, oct1, oct2, octl, &
-     & octu, optcompt (3)
+     & octu, optcompt (2)
       Logical :: tq0
       Logical, External :: tqgamma
       tq0 = tqgamma (iq)
@@ -47,8 +49,8 @@ Subroutine xslinopt (iq)
       Allocate (mdf1(nwdf), mdf2(3, 3, input%xs%energywindow%points), w(nwdf), &
      & wr(input%xs%energywindow%points), wplot(input%xs%energywindow%points), &
      & mdf(input%xs%energywindow%points), loss(3, 3, input%xs%energywindow%points), &
-     & sigma(input%xs%energywindow%points), cf(3, &
-     & input%xs%energywindow%points))
+     & sigma(input%xs%energywindow%points), cf(3, input%xs%energywindow%points),&
+     & kerr(input%xs%energywindow%points))
       Allocate (eps1(input%xs%energywindow%points), &
      & eps2(input%xs%energywindow%points))
       mdf2 (:, :, :) = zzero
@@ -111,7 +113,7 @@ Subroutine xslinopt (iq)
                octu = oct1
             End If
             Do oct2 = octl, octu
-               optcompt (:) = (/ oct1, oct2, 0 /)
+               optcompt (:) = (/ oct1, oct2 /)
            ! symmetrize the macroscopic dielectric function tensor
                if (tq0) Call symt2app (oct1, oct2, nwdf, symt2, mdf2, mdf)
            ! file names for spectra
@@ -148,8 +150,18 @@ Subroutine xslinopt (iq)
            ! end loop over optical components
             End Do
          End Do
+
+         Call genfilname (basename='MOKE', asc=.False., &
+              & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
+              & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=(m == 1), &
+              & fxctypestr=input%xs%tddft%fxctype, tq0=tq0, &
+              & iqmt=iq, filnam=fnmoke)
+         Call genkerr (wplot, mdf2, kerr)
+         Call writekerr (iq, wplot, kerr, trim(fnmoke))
+               
       End Do ! m
+
   ! deallocate
       Deallocate (mdf, mdf1, mdf2, w, wr, wplot, loss, sigma)
-      Deallocate (eps1, eps2, cf)
+      Deallocate (eps1, eps2, cf, kerr)
 End Subroutine xslinopt
