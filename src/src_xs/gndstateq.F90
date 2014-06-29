@@ -15,14 +15,15 @@ Contains
          Character (*), Intent (In) :: filxt
     ! local varialbes
          Character (256) :: filext_save
-         Real (8) :: vkloff_save (3), bfieldc_save(3)
+         Real (8) :: vkloff_save (3)
+!         Real (8) ::  bfieldc_save(3)
          Integer :: task_save, maxscl_save
     ! save original values
          filext_save = trim (filext)
          vkloff_save = input%groundstate%vkloff
-         If (associated(input%groundstate%spin)) Then
-            bfieldc_save = input%groundstate%spin%bfieldc
-         End If
+!         If (associated(input%groundstate%spin)) Then
+!            bfieldc_save = input%groundstate%spin%bfieldc
+!         End If
          task_save = task
          maxscl_save = input%groundstate%maxscl
     ! one iteration, new offset, special file extension
@@ -30,20 +31,20 @@ Contains
          input%groundstate%vkloff = voff
          task = 1
          input%groundstate%maxscl = 1
-         If (associated(input%groundstate%spin)) Then
-            If (input%groundstate%spin%reducebf.Gt.input%xs%epsdfde) Then
-               input%groundstate%spin%bfieldc(:) = 0.0d0
-            End If
-         End If
+ !        If (associated(input%groundstate%spin)) Then
+ !           If (input%groundstate%spin%reducebf.Gt.input%xs%epsdfde) Then
+ !              input%groundstate%spin%bfieldc(:) = 0.0d0
+ !           End If
+ !        End If
     ! call with the above parameters changed
          Call gndstate
          Call rewritesorted
     ! restore original parameters
          filext = trim (filext_save)
          input%groundstate%vkloff = vkloff_save
-         If (associated(input%groundstate%spin)) Then
-            input%groundstate%spin%bfieldc = bfieldc_save
-         End If
+  !       If (associated(input%groundstate%spin)) Then
+  !          input%groundstate%spin%bfieldc = bfieldc_save
+  !       End If
          task = task_save
          input%groundstate%maxscl = maxscl_save
       End Subroutine gndstateq
