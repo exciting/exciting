@@ -460,21 +460,20 @@ use ioarray
                zvou (:) = xiou (ist1, ist2, :)
                zvuo (:) = xiuo (ist2, ist1, :)
                
-               If (tq0) Then
-                  If ( input%xs%tddft%ahc ) Then
-                     Do oct1 = 1, 3
-                        Do oct2 = 1, 3
-                           ! head
-                           If (oct1.ne.oct2) Then
-                              zt1 =  wkpt (ik) / omega
-                              chi0hAHC (oct1, oct2) = docc12 (ist1, ist2) * zt1 * pmou (oct1, &
-                                   & ist1, ist2) * conjg (pmou(oct2, ist1, &
-                                   & ist2)) + docc21 (ist2, ist1) * zt1 * pmuo (oct1, ist2, &
-                                   & ist1) * conjg (pmuo(oct2, ist2, ist1))
-                           End If
-                        End Do
+               If ( input%xs%tddft%ahc .And. tq0 ) Then
+                  chi0hAHC (:, :) = zzero
+                  zt1 =  wkpt (ik) / omega
+                  Do oct1 = 1, 3
+                     Do oct2 = 1, 3
+                        ! head
+                        If (oct1.ne.oct2) Then
+                           chi0hAHC (oct1, oct2) = docc12 (ist1, ist2) * zt1 * pmou (oct1, &
+                                & ist1, ist2) * conjg (pmou(oct2, ist1, &
+                                & ist2)) + docc21 (ist2, ist1) * zt1 * pmuo (oct1, ist2, &
+                                & ist1) * conjg (pmuo(oct2, ist2, ist1))
+                        End If
                      End Do
-                  End If
+                  End Do
                End If
 
                Do iw = wi, wf
@@ -502,9 +501,9 @@ use ioarray
                           & ist2)) + wuoh (iw) * pmuo (oct1, ist2, &
                           & ist1) * conjg (pmuo(oct2, ist2, ist1))
                        ! Add AHC term
-                           If ( input%xs%tddft%ahc .And. (oct1.ne.oct2) .And. (Abs(w(iw)).Gt.epsw)) Then
+                           If ( input%xs%tddft%ahc .And. (oct1.ne.oct2) ) Then
                               chi0h (oct1, oct2, iw-wi+1) = chi0h (oct1, oct2, iw-wi+1) &
-                                   & - chi0hAHC (oct1, oct2) / w(iw)
+                                   & - chi0hAHC (oct1, oct2) / (w(iw)+zi*brd)
                            End If
 
                         End Do
