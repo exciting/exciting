@@ -23,7 +23,7 @@
 !                                   polarization matrix is calculated
     integer(4) :: iqp
     integer(4) :: isym
-    integer(8) :: Recl
+    integer(4) :: Recl
     integer(4) :: im
     integer(4) :: iom
     

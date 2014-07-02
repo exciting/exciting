@@ -25,7 +25,7 @@
  
       integer(4) :: ik, ikp, ikpqp
       integer(4) :: nmdim
-      integer(8) :: Recl
+      integer(4) :: Recl
       character(128)::sbuffer
       real(8)    :: tq1, tq2, tq11, tq22
       complex(8), allocatable :: buffer(:)

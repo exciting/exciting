@@ -23,7 +23,7 @@ subroutine readevaldft
     real(8) :: egap, e0, e1
     real(8), parameter :: eps=1.0d-4
     
-    integer(8) :: recl
+    integer(4) :: recl
     integer :: nstfv_, nspnfv_
     real(8) :: vkl_(3)
     logical :: exist
@@ -56,7 +56,7 @@ subroutine readevaldft
     End Do
     Read(70, Rec=1) vkl_, nstfv_, nspnfv_
     close(70)
-
+    
     if (nstfv_.lt.nstfv) then
       write(*,*) 'ERROR(readevaldft) Different number of KS states in EVALFV.OUT!'
       write(*,*) '  nstfv=', nstfv,'  nstfv_=', nstfv_

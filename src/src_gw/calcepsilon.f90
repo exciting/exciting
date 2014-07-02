@@ -34,7 +34,7 @@ subroutine calcepsilon(iqp,COMM_LEVEL2)
       integer(4) :: i, isym, lspl, isym0
       integer(4) :: im, jm
       integer(4) :: dimtk
-      integer(8) :: Recl
+      integer(4) :: Recl
       integer:: level2rank,level2procs
  
       

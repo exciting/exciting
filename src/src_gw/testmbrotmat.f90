@@ -16,7 +16,7 @@ subroutine testmbrotmat()
 ! !LOCAL VARIABLES:
       implicit none
       integer(4) :: ik, iq, iqp
-      integer(8) :: Recl
+      integer(4) :: Recl
       
 ! !EXTERNAL ROUTINES: 
 
