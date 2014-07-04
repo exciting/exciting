@@ -14,6 +14,7 @@ Contains
          Use modxs
          Use m_getunit
          Use m_writevars
+         Use mod_constants, Only: pi
          Implicit None
     ! arguments
          Integer, Intent (In) :: iq
@@ -33,7 +34,8 @@ Contains
          Call getunit (unit1)
          Open (unit1, File=trim(fn), Action='write')
     ! write data to file
-         Write (unit1, '(3g18.10)') (w(iw)*escale, kerr(iw), iw=1, n)
+         !Write (unit1, '(3g18.10)') (w(iw)*escale, kerr(iw)*180.d0/pi, iw=1, n)
+         Write (unit1, '(3g18.10)') (w(iw)*escale, kerr(iw)*180.d0/pi, iw=2, n)
     ! write relevant parameters to file
          Call writevars (unit1, iq, iq)
          Close (unit1)
