@@ -27,7 +27,7 @@ subroutine calcpmatgw
     implicit none
 
     integer(4) :: ik,ik0
-    integer(8) :: recl,recl2
+    integer(4) :: recl,recl2
     
     real(8)    :: tstart, tend
 

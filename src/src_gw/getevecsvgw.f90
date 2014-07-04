@@ -10,7 +10,8 @@ Subroutine getevecsvgw(ik, evecsv)
       Integer, Intent (In) :: ik
       Complex (8), Intent (Out) :: evecsv (nstsv, nstsv)
 ! local variables
-      Integer :: recl, nstsv_
+      Integer :: nstsv_
+      Integer(4) :: recl
       Real (8) :: vkl_ (3)
       character(256) :: filename
       Logical :: exist

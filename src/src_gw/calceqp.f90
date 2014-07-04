@@ -27,7 +27,7 @@
       integer(4) :: npar ! Number of parameters of the analitic cont. of
 !                          the selfenergy
       integer(4) :: it, ierr, nb
-      integer(8) :: Recl
+      integer(4) :: Recl
       
       real(8) :: enk,snk,vxcnk,znk
       real(8) :: delta 

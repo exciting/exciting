@@ -26,7 +26,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
       logical :: exist
       integer(4) :: ik, ik1, ik2, isym, lspl, iv(3)
       integer(4) :: ib, nb, nk
-      integer(8) :: recl
+      integer(4) :: recl
       real(8) :: s(3,3), v1(3), v2(3), t1
       character (256) :: file
 

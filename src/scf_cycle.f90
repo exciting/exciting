@@ -486,7 +486,7 @@ subroutine scf_cycle(verbosity)
             write(60, '(" Wall time (seconds)                        : ", F12.2)') timetot
         end if
 
-        if (rank==0) then ! write TOTENERGY.OUT 
+        if ((verbosity>-1).and.(rank==0)) then ! write TOTENERGY.OUT 
             Write (61, '(G22.12)') engytot
             Call flushifc (61)
         end if
@@ -514,7 +514,7 @@ subroutine scf_cycle(verbosity)
                 end if
             end if
 
-            if (rank==0) then ! write RMSDVEFF.OUT 
+            if ((verbosity>-1).and.(rank==0)) then ! write RMSDVEFF.OUT 
                 Write (65, '(G18.10)') currentconvergence
                 Call flushifc(65)
             end if
@@ -637,7 +637,7 @@ subroutine scf_cycle(verbosity)
       if (input%groundstate%tpartcharges) write(69,*)
     End If
 
-    If (rank==0) Then
+    If ((verbosity>-1).and.(rank==0)) Then
 ! write last total energy and add blank line to RMSDVEFF.OUT and TOTENERGY.OUT
       Write (65,*)
       Call flushifc(65)

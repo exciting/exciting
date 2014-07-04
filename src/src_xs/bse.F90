@@ -409,7 +409,7 @@ Subroutine bse
          If (input%xs%tevout) write (unexc, '("# energies are in electron volts")')
          Close (unexc)
      ! oscillator strengths sorted
-         oszsa(:) = Abs (oszs(:, 1))
+         oszsa(:) = Abs (oszs(:, oct1))
          Call sortidx (hamsiz, oszsa, sor)
          sor = sor (hamsiz:1:-1)
          Open (unexc, File=fnexcs, Form='formatted', Action='write', &

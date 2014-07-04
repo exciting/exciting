@@ -140,7 +140,7 @@ for i in range(len(gwene)):
 
 # Legend
 ax1.plot(ksene[0][0],ksene[0][1],'b.-',lw=2.0,label='KS')
-ax1.plot(gwene[0][0],gwene[0][1],'r.-',lw=2.0,label='GW')
+ax1.plot(gwene[0][0],gwene[0][1],'r.-',lw=2.0,label=r'G$_0$W$_0$')
 leg=ax1.legend(bbox_to_anchor=(0.48,0.25),loc=2,borderaxespad=0.)
 leg.draw_frame(False)
 
