@@ -106,7 +106,7 @@ use ioarray
      & :), cwsurf1k (:, :, :)
       Real (8), Allocatable :: scis12 (:, :), scis21 (:, :)
       Complex(8) :: zt1, winv
-      Real (8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot, wintv(2)
+      Real (8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot, wintv(2), wplas, wrel
       Integer :: n, j, i1, i2, j1, j2, ik, ikq, igq, iw, wi, wf, ist1, &
      & ist2, nwdfp
       Integer :: oct1, oct2, un
@@ -485,13 +485,13 @@ use ioarray
                                    & ist2)) + wuoh (iw) * pmuo (oct1, ist2, &
                                    & ist1) * conjg (pmuo(oct2, ist2, ist1))
                            Else
-                              winv=(w(iw)+zi*brd) / w(iw)**2
+                              winv=1.0d0/(w(iw)+zi*brd)
                               If (Abs(w(iw)).Lt.1.d-8) winv=1.d0
                               chi0h (oct1, oct2, iw-wi+1) = chi0h (oct1, oct2, iw-wi+1) + &
                                    & wouh (iw) * pmou (oct1, ist1, ist2) * conjg (pmou(oct2, ist1, ist2))*&
                                    & (deou(ist1, ist2)*winv) + &
                                    & wuoh (iw) * pmuo (oct1, ist2, ist1) * conjg (pmuo(oct2, ist2, ist1))*&
-                                   & (deuo(ist2, ist1)*winv)
+                                   & (deuo(ist2, ist1)*winv) 
                               
                            End If
 
@@ -512,6 +512,19 @@ use ioarray
          If ( .Not. tscreen) Call barrier
      ! end loop over k-points
       End Do
+
+      wplas = input%xs%tddft%drude(1)
+      wrel = input%xs%tddft%drude(2)
+      If ((wplas>1.d-8).And.(wrel>1.d-8)) then
+         Do iw = wi, wf
+            winv=1.0d0/(w(iw)+zi*brd)
+            If (Abs(w(iw)).Lt.1.d-8) winv=1.d0
+            Do oct1 = 1, 3
+               chi0h (oct1, oct1, iw-wi+1) = chi0h (oct1, oct1, iw-wi+1) + wplas**2/(w(iw)+zi*wrel)*winv
+            End Do
+         End Do
+      End If
+
       If (tscreen) Call ematqdealloc
   ! symmetrize head
       If (tq0) Then
