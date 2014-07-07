@@ -34,6 +34,11 @@ Subroutine rhoplot
       Call init0
 ! read density from file
       Call readstate
+! visualize only valence density      
+      if (input%properties%chargedensityplot%nocore) Then
+        call gencore
+        call removerhocr
+      end if
 ! when gradients are needed
       If (input%properties%chargedensityplot%plotgradient) Then
 ! allocate density gradient arrays

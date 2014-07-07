@@ -25,83 +25,72 @@ Subroutine potplot
 !BOC
       Implicit None
 ! initialise universal variables
-type(plotlabels),pointer ::labels
+      type(plotlabels),pointer ::labels
       Call init0
 ! read the density and potentials from file
       Call readstate
 ! write the potential plots to file
-     If (associated(input%properties%exccplot%plot1d)) then
-
-        labels=>create_plotlablels("Potential","VCL",1)
-		 call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
-		 call set_plotlabel_axis(labels,2,"Potential","E_h/(ea_0)","graceunit")
-         Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
+      If (associated(input%properties%exccplot%plot1d)) then
+        labels=>create_plotlablels("Potential","VCL1D",1)
+	call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
+	call set_plotlabel_axis(labels,2,"Potential","E_h/(ea_0)","graceunit")
+        Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & vclmt, vclir,input%properties%exccplot%plot1d)
-         call destroy_plotlablels(labels)
-
-  		  labels=>create_plotlablels("Potential","VXC",1)
-		 call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
-		 call set_plotlabel_axis(labels,2,"Exchange Correlation Potential","E_h/(ea_0)","graceunit")
-         Call plot1d ( labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
-        & vxcmt, vxcir, input%properties%exccplot%plot1d)
-         call destroy_plotlablels(labels)
-
-         Write (*,*)
-         Write (*, '("Info(potplot):")')
-         Write (*, '(" 1D Coulomb potential plot written to VCL1D.xml")&
-        &')
-         Write (*, '(" 1D exchange-correlation potential plot written t&
-        &o VXC1D.xml")')
-
-    endif
-     If (associated(input%properties%exccplot%plot2d)) then
-          labels=>create_plotlablels("Potential","VCL",2)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,3,"Potential","E_h/(ea_0)","graceunit")
-
-         Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vclmt, &
-        & vclir,input%properties%exccplot%plot2d)
         call destroy_plotlablels(labels)
-         labels=>create_plotlablels("Potential","VXC",2)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,3,"Potential","E_h/(ea_0)","graceunit")
-         Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vxcmt, &
-        & vxcir,input%properties%exccplot%plot2d)
-         call destroy_plotlablels(labels)
-         Write (*,*)
-         Write (*, '("Info(potplot):")')
-         Write (*, '(" 2D Coulomb potential plot written to VCL2d.xml")&
-        &')
-         Write (*, '(" 2D exchange-correlation potential plot written t&
-        &o VXC2d.xml")')
-     endif
+
+  	labels=>create_plotlablels("Potential","VXC1D",1)
+	call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
+	call set_plotlabel_axis(labels,2,"Exchange Correlation Potential","E_h/(ea_0)","graceunit")
+        Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
+        &            vxcmt, vxcir, input%properties%exccplot%plot1d)
+        call destroy_plotlablels(labels)
+
+        Write (*,*)
+        Write (*, '("Info(potplot):")')
+        Write (*, '(" 1D Coulomb potential plot written to VCL1D.xml")')
+        Write (*, '(" 1D exchange-correlation potential plot written to VXC1D.xml")')
+      endif
+      If (associated(input%properties%exccplot%plot2d)) then
+        labels=>create_plotlablels("Potential","VCL2D",2)
+	call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+	call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+	call set_plotlabel_axis(labels,3,"Potential","E_h/(ea_0)","graceunit")
+        Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vclmt, &
+        &            vclir,input%properties%exccplot%plot2d)
+        call destroy_plotlablels(labels)
+        labels=>create_plotlablels("Potential","VXC2D",2)
+        call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+	call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+	call set_plotlabel_axis(labels,3,"Potential","E_h/(ea_0)","graceunit")
+        Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vxcmt, &
+        &            vxcir,input%properties%exccplot%plot2d)
+        call destroy_plotlablels(labels)
+        Write (*,*)
+        Write (*, '("Info(potplot):")')
+        Write (*, '(" 2D Coulomb potential plot written to VCL2D.xml")')
+        Write (*, '(" 2D exchange-correlation potential plot written to VXC2D.xml")')
+      endif
       If (associated(input%properties%exccplot%plot3d)) then
-
-         labels=>create_plotlablels("Potential","VCL",3)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-		  call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,4,"Potential","E_h/(ea_0)","graceunit")
-         Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vclmt, &
-        & vclir,input%properties%exccplot%plot3d)
-         call destroy_plotlablels(labels)
-
-           labels=>create_plotlablels("Potential","VXC",3)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-		  call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,4,"Potential","E_h/(ea_0)","graceunit")
-         Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vxcmt, &
-        & vxcir,input%properties%exccplot%plot3d)
+        labels=>create_plotlablels("Potential","VCL3D",3)
+	call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+	call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+	call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
+	call set_plotlabel_axis(labels,4,"Potential","E_h/(ea_0)","graceunit")
+        Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vclmt, &
+        &            vclir,input%properties%exccplot%plot3d)
         call destroy_plotlablels(labels)
-         Write (*,*)
-         Write (*, '("Info(potplot):")')
-         Write (*, '(" 3D Coulomb potential plot written to VCL3d.xml")&
-        &')
-         Write (*, '(" 3D exchange-correlation potential plot written t&
-        &o VXC3d.xml")')
+        labels=>create_plotlablels("Potential","VXC3D",3)
+        call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+	call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+	call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
+	call set_plotlabel_axis(labels,4,"Potential","E_h/(ea_0)","graceunit")
+        Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, vxcmt, &
+        &            vxcir,input%properties%exccplot%plot3d)
+        call destroy_plotlablels(labels)
+        Write (*,*)
+        Write (*, '("Info(potplot):")')
+        Write (*, '(" 3D Coulomb potential plot written to VCL3D.xml")')
+        Write (*, '(" 3D exchange-correlation potential plot written to VXC3D.xml")')
       End if
       Write (*,*)
       Return
