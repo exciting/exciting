@@ -2,7 +2,6 @@
 subroutine SPECTRUM_RES(rlas, oct1, oct2, Sab, ws)
 ! ------------------------------------------------------------------------------
 use raman_ew
-use raman_input
 use raman_coeff
 use modinput
 use mod_lattice, only: omega
@@ -87,25 +86,8 @@ else
         &   d4eq(oct1,oct2)*transme4(1)/factorial(4)/sqn4 + &
         &   d5eq(oct1,oct2)*transme5(1)/factorial(5)/sqn5 + &
         &   d6eq(oct1,oct2)*transme6(1)/factorial(6)/sqn6
-   if (input%properties%raman%intphonon) then
-      trans2 = d2eq(oct1,oct2)*transme2(1)/factorial(2)/sqn2 + &
-        &      d4eq(oct1,oct2)*transme4(1)/factorial(4)/sqn4 + &
-        &      d6eq(oct1,oct2)*transme6(1)/factorial(6)/sqn6
-      trans3 = d3eq(oct1,oct2)*transme3(1)/factorial(3)/sqn3 + &
-        &      d6eq(oct1,oct2)*transme6(1)/factorial(6)/sqn6
-      trans4 = d4eq(oct1,oct2)*transme4(1)/factorial(4)/sqn4
-      trans5 = d5eq(oct1,oct2)*transme5(1)/factorial(5)/sqn5 
-      trans6 = d6eq(oct1,oct2)*transme6(1)/factorial(6)/sqn6
-   endif
 !
    rcont1    = dnc*zfact*              abs(trans1)**2
-   if (input%properties%raman%intphonon) then
-      rcont2 = dnc*zfact*(dnc    - 1.)*abs(trans2)**2
-      rcont3 = dnc*zfact*(dnc**2 - 1.)*abs(trans3)**2
-      rcont4 = dnc*zfact*(dnc**3 - 1.)*abs(trans4)**2
-      rcont5 = dnc*zfact*(dnc**4 - 1.)*abs(trans5)**2
-      rcont6 = dnc*zfact*(dnc**5 - 1.)*abs(trans6)**2
-   endif
 !
 !
    Sab = rcont1 + rcont2 + rcont3 + rcont4 + rcont5 + rcont6

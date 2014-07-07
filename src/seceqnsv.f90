@@ -398,8 +398,8 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Return
 20    Continue
       Write (*,*)
-      Write (*, '("Error(seceqnsv): diagonalisation of the second-varia&
-     &tional Hamiltonian failed")')
+      Write (*, '("Error(seceqnsv):& 
+     & diagonalisation of the second-variational Hamiltonian failed")')
       Write (*, '(" for k-point ", I8)') ik
       Write (*, '(" ZHEEV returned INFO = ", I8)') info
       Write (*,*)

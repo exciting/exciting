@@ -147,7 +147,7 @@ Subroutine wfplot(dostm)
     If (associated(input%properties%wfplot)) Then
 
         If (associated(input%properties%wfplot%plot1d)) Then
-            labels=>create_plotlablels("Potential","WF1d",1)
+            labels=>create_plotlablels("Potential","WF1D",1)
             call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
             call set_plotlabel_axis(labels,2,"Wave Function","","graceunit")
             Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
@@ -155,11 +155,11 @@ Subroutine wfplot(dostm)
             call destroy_plotlablels(labels)
             Write (*,*)
             Write (*, '("Info(wfplot):")')
-            Write (*, '(" 1D wavefunction modulus squared written to WF1d.xml")')
+            Write (*, '(" 1D wavefunction modulus squared written to WF1D.xml")')
         End If
 
         If (associated(input%properties%wfplot%plot2d)) Then
-            labels=>create_plotlablels("Wave Function","WF2d",2)
+            labels=>create_plotlablels("Wave Function","WF2D",2)
             call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
             call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
             call set_plotlabel_axis(labels,3,"Wave Function Norm Squared","","graceunit")
@@ -168,11 +168,11 @@ Subroutine wfplot(dostm)
             call destroy_plotlablels(labels)
             Write (*,*)
             Write (*, '("Info(wfplot):")')
-            Write (*, '(" 2D wavefunction modulus squared written to WF2d.xml")')
+            Write (*, '(" 2D wavefunction modulus squared written to WF2D.xml")')
         End If
 
         If (associated(input%properties%wfplot%plot3d)) Then
-            labels=>create_plotlablels("Wave Function","WF3d",3)
+            labels=>create_plotlablels("Wave Function","WF3D",3)
             call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
             call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
             call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
@@ -182,7 +182,7 @@ Subroutine wfplot(dostm)
             call destroy_plotlablels(labels)
             Write(*,*)
             Write(*, '("Info(wfplot):")')
-            Write(*, '(" 3D wavefunction modulus squared written to WF3d.xml")')
+            Write(*, '(" 3D wavefunction modulus squared written to WF3D.xml")')
         End If
 
     End If

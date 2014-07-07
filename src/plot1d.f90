@@ -63,7 +63,7 @@ Subroutine plot1d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
         Write (*,*)
         Stop
      End If
-     write(buffer,*)  labels%filename , "1D.XML"
+     write(buffer,*)  labels%filename , ".xml"
 	 
      Call xml_OpenFile ( adjustl(trim(buffer)), xf, replace=.True. ,  pretty_print=.True.)
      Call xml_NewElement (xf, "plot1d")
