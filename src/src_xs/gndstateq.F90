@@ -17,7 +17,8 @@ Contains
          Character (256) :: filext_save
          Real (8) :: vkloff_save (3)
 !         Real (8) ::  bfieldc_save(3)
-         Integer :: task_save, maxscl_save
+         Integer :: task_save
+!         Integer :: maxscl_save
     ! save original values
          filext_save = trim (filext)
          vkloff_save = input%groundstate%vkloff
@@ -25,12 +26,12 @@ Contains
 !            bfieldc_save = input%groundstate%spin%bfieldc
 !         End If
          task_save = task
-         maxscl_save = input%groundstate%maxscl
+ !        maxscl_save = input%groundstate%maxscl
     ! one iteration, new offset, special file extension
          filext = trim (filxt)
          input%groundstate%vkloff = voff
          task = 1
-         input%groundstate%maxscl = 1
+!         input%groundstate%maxscl = 1
  !        If (associated(input%groundstate%spin)) Then
  !           If (input%groundstate%spin%reducebf.Gt.input%xs%epsdfde) Then
  !              input%groundstate%spin%bfieldc(:) = 0.0d0
@@ -46,6 +47,6 @@ Contains
   !          input%groundstate%spin%bfieldc = bfieldc_save
   !       End If
          task = task_save
-         input%groundstate%maxscl = maxscl_save
+!         input%groundstate%maxscl = maxscl_save
       End Subroutine gndstateq
 End Module m_gndstateq

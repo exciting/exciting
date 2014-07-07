@@ -380,6 +380,10 @@ Module modxs
       Real (8) :: swidth_b
       Integer :: lmaxapw_b
       Integer :: lmaxmat_b
+  ! maximum self-consistency steps
+      Integer :: maxscl_b
+  ! bfieldc
+      Real (8) :: bfieldc_b (3)
 
   !------------------------------!
   !     parallel environment     !

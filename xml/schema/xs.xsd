@@ -1091,6 +1091,21 @@
           </xs:complexType>
         </xs:element>
       </xs:all>
+      <xs:attribute ex:importance="essential" ex:unit="" name="bfieldc" type="vect3d"
+		    default="0.0d0 0.0d0 0.0d0 ">
+	<xs:annotation>
+	  <xs:documentation> 
+	    This attribute overrides the homonym attribute from the groundstate/spin element.
+	  </xs:documentation>
+	</xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="maxscl" type="xs:integer"
+		    default="1">
+	<xs:annotation>
+	  <xs:documentation>Upper limit of the self-consistency loop for the calculation of eigenvectors and eigenvalues
+	  from an existing ground-state calculation.</xs:documentation>
+	</xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="emattype" type="xs:integer" default="1">
         <xs:annotation>
           <xs:documentation>Type of matrix element generation (band-combinations). Should only be
