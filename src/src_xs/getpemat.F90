@@ -61,13 +61,14 @@ Contains
                        & i2) * fourpisqt
                      Else
                         p12 (j, i1, i2) = zzero
-                        If (Abs(docc12(i1, i2)) .Gt. &
-                       & input%groundstate%epsocc) Then
+                        If ((Abs(docc12(i1, i2)) .Gt. &
+                       & input%groundstate%epsocc).And.(input%xs%dbglev .Gt. 0)) Then
                            Write (*, '("Warning(", a, "): divergent ene&
                           &rgy denominator: q-point, k-point, band indi&
-                          &ces 1-2:", 4i6, g18.10)') thisnam, iq, ik, &
+                          &ces 1-2, delta E12, delta Occ:", 4i6, 2g18.10)') &
+                          & thisnam, iq, ik, &
                           & i1 + istl1 - 1, i2 + istl2 - 1, deou (i1, &
-                          & i2)
+                          & i2), docc12(i1,i2)
                         End If
                      End If
                      If (present(p34)) Then
@@ -77,8 +78,8 @@ Contains
                           & (i2, i1) * fourpisqt
                         Else
                            p34 (j, i2, i1) = zzero
-                           If (Abs(docc21(i2, i1)) .Gt. &
-                          & input%groundstate%epsocc) Then
+                           If ((Abs(docc21(i2, i1)) .Gt. &
+                          & input%groundstate%epsocc).And.(input%xs%dbglev .Gt. 0)) Then
                               Write (*, '("Warning(", a, "): divergent &
                              &energy denominator: q-point, k-point, ban&
                              &d indices 3-4:", 4i6, g18.10)') thisnam, &

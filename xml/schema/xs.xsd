@@ -20,11 +20,30 @@
       <xs:all>
         <xs:element ex:importance="expert" ex:unit="" name="tddft" minOccurs="0" maxOccurs="1">
           <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="" name="ahc" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> By setting it to <pre>"true"</pre>, the anomalous Hall conductivity (AHC)
+                  term is included in the calculation of the dielectric tensor [see PRB 86, 125139 (2012)]. 
+		  In this case, the MOKE.OUT output file is generated, containing the MOKE spectrum. 
+		  This attribute only has effect when local field effects are neglected (gqmax=0) and q=0. 
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
               <xs:annotation>
                 <xs:documentation> By setting it to <pre>"true"</pre>, the intraband
                   contribution is included in the calculation for the finite q. 
 		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="drude" type="vect2d" default="0.0d0 0.0d0">
+              <xs:annotation>
+                  <xs:documentation>
+		    Parameters defining semiclassical Drude approximation to intraband term. The first
+		    value determines the plasma frequency <inlinemath>\omega_p</inlinemath> and the second the inverse relaxation time
+		    <inlinemath>\omega_{\tau}</inlinemath>:<inlinemath>\chi_0^D=\frac{1}{\omega}\frac{\omega_p^2}{\omega+i\omega_{\tau}}</inlinemath>
+                  </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="torddf" type="xs:boolean"

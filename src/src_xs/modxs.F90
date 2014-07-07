@@ -349,6 +349,8 @@ Module modxs
       Character (256) :: fnloss
   ! optical conductivity
       Character (256) :: fnsigma
+  ! MOKE spectrum
+      Character (256) :: fnmoke
   ! sumrules for optics
       Character (256) :: fnsumrules
 
@@ -439,6 +441,10 @@ Module modxs
   ! STATE.OUT file (no other file extension allowed)
       Logical :: isreadstate0
       Data isreadstate0 / .False. /
+  ! true if calculation of matrix elements of exponential expression
+  ! is needed
+      Logical :: temat
+      Data temat / .True. /
 
 !STK: include variables necessary for double grid computations
 

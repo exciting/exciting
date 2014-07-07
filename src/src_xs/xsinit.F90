@@ -306,6 +306,16 @@ Subroutine xsinit
             Call terminate
          End If
       End If
+
+      temat=.True.
+      If (input%xs%xstype.eq."TDDFT") Then
+         If ((size(input%xs%qpointset%qpoint, 2).eq.1).and.(input%xs%gqmax.Lt.eps)) Then
+            If (sum(Abs(input%xs%qpointset%qpoint(:, 1))) .Lt. eps) Then 
+               temat = .False.
+            End If
+         End If
+      End If
+
 !
   !--------------------!
   !     file names     !
