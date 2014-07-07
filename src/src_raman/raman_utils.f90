@@ -121,7 +121,6 @@ Contains
    ! read dielectric function from file
       use modxs
       use raman_coeff
-      use raman_input
       use m_getunit
       use modinput
       implicit none

@@ -2,7 +2,6 @@
 subroutine SPECTRUM_M(rlas, filext)
 ! ------------------------------------------------------------------------------
 use raman_ew
-use raman_input
 use raman_coeff
 use modinput
 use mod_lattice, only: omega
@@ -60,7 +59,7 @@ if (ex(1) .eq. 0.d0) then                     ! handle numerical problems with l
 endif
 write(66,'(i7,3e20.6,f20.5)') (i,eigen(i),ex(i),zsum,ex(i)/zsum,i=1,input%properties%raman%nstate)
 dw = (input%properties%raman%energywindow%intv(2) - &
-   &  input%properties%raman%energywindow%intv(1)) / &
+   &  input%properties%raman%energywindow%intv(1))*fhawn / &
    &  dble(input%properties%raman%energywindow%points)
 write(73,'("# Laser energy:  ",f9.6," Ha = ",f8.1," cm^-1 = ",f5.2," eV = ",  &
   &        f6.1, " nm",/,"# Temperature: ",f8.1," K",/,"# Damping: ",f8.1," cm^-1   ",/, &
@@ -109,7 +108,7 @@ do iw = 1, input%properties%raman%energywindow%points+1
    ind = 0
    spec_par = 0.0d0
    spec_perp = 0.d0
-   w = input%properties%raman%energywindow%intv(1) + dble(iw - 1)*dw
+   w = input%properties%raman%energywindow%intv(1)*fhawn + dble(iw - 1)*dw
    do i = 1,input%properties%raman%nstate
       do j = i-1,1,-1
          ind = ind + 1

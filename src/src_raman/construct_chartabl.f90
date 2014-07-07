@@ -77,7 +77,6 @@ fi = 1
 do i = 1,numsop
    ! use the index of SOPs referring to crystal symmetry
    sopmat(:, :, i) = dble( symlat(:, :, lsplsymc(i)) )
-   ! save cartesian matrices and translations (both are altered in the course of the execution)
    sopmatc(:, :, i) = symlatc(:, :, lsplsymc(i))
    transl(:, i) = vtlsymc(:, i)
 ! check for i
