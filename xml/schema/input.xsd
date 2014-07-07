@@ -99,7 +99,7 @@
           <xs:appinfo> </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute default="./" ex:importance="expert" ex:unit="" name="scratchpath" type="xs:anyURI" use="optional">
+      <!--xs:attribute default="./" ex:importance="expert" ex:unit="" name="scratchpath" type="xs:anyURI" use="optional">
         <xs:annotation>
           <xs:documentation> The path to the scratch space where the eigenvector related files,
               <filename>EVECFV.OUT</filename>, <filename>EVECSV.OUT</filename>, and
@@ -108,7 +108,7 @@
             The default value is the working directory, <it>i.e.</it>, the directory where the
             program is started. </xs:documentation>
         </xs:annotation>
-      </xs:attribute>
+      </xs:attribute-->
       <xs:attribute default="true" name="sharedfs" type="xs:boolean">
       <xs:annotation>
       <xs:documentation>

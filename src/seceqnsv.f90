@@ -233,7 +233,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 !         deallocate(wfmt3)
       End Do
       call timesec(tb)
-      write(*,*) 'sv / MT part',tb-ta
+      !write(*,*) 'sv / MT part',tb-ta
 !---------------------------!
 !     interstitial part     !
 !---------------------------!
@@ -316,7 +316,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 #endif 
       End If
       call timesec(tb)
-      write(*,*) 'sv / interstitial part', tb-ta
+      !write(*,*) 'sv / interstitial part', tb-ta
 ! add the diagonal first-variational part
       call timesec(ta)
       i = 0
@@ -365,7 +365,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Deallocate (wfmt1, wfmt2, work)
       Call timesec (ts1)
       call timesec(tb)
-      write(*,*) 'sv / diagonalization', tb-ta
+      !write(*,*) 'sv / diagonalization', tb-ta
 
       timesv = timesv + ts1 - ts0       
 !$OMP CRITICAL
@@ -374,8 +374,8 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Return
 20    Continue
       Write (*,*)
-      Write (*, '("Error(seceqnsv): diagonalisation of the second-varia&
-     &tional Hamiltonian failed")')
+      Write (*, '("Error(seceqnsv):& 
+     & diagonalisation of the second-variational Hamiltonian failed")')
       Write (*, '(" for k-point ", I8)') ik
       Write (*, '(" ZHEEV returned INFO = ", I8)') info
       Write (*,*)

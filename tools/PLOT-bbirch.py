@@ -19,6 +19,15 @@ from   scipy.optimize import leastsq
 
 #-------------------------------------------------------------------------------
 
+def findindex(x,y):
+    k=0
+    dymax=1.e10
+    for j in range(len(y)):
+        if (abs(x-y[j]) < dymax):
+	    k=j
+	    dymax=abs(x-y[j])
+    return k
+    
 def inifit(x,y):
     p=[] ; a,b,c = polyfit(x,y,2)
     p.append(-b/(2*a))               # v0
@@ -242,7 +251,19 @@ for i in range(len(xpre)-1):
     vvvv=xvol[i]+(xvol[i+1]-xvol[i])/2
     bulk.append(bbbb*vvvv)
     bvol.append(vvvv)
-
+   
+bchi = 0
+for i in range(len(bbvol)): 
+    k=findindex(bbvol[i],bvol)
+    #print (bulk[k]-bbulk[i])**2
+    bchi=bchi+(bulk[k]-bbulk[i])**2
+    #print bulk[k],bbulk[i],abs(bulk[k]-bbulk[i]),k
+    
+bchi=sqrt(bchi/len(bbvol))/10.
+    
+print  "     DB0 =",bmt%(bchi)
+print
+    
 #print energy[0],energy[1],volume[0], unitconv*10, ppre[0], xpre[0]
 
 #pvol = [] ; ppre = []
