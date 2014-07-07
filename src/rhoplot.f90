@@ -72,16 +72,14 @@ Subroutine rhoplot
          call destroy_plotlablels(labels)
          Write (*,*)
          Write (*, '("Info(rhoplot):")')
-         Write (*, '(" 1D density plot written to RHO1D.OUT")')
-         Write (*, '(" vertex location lines written to RHOLINES.OUT")')
+         Write (*, '(" 1D density plot written to RHO1D.xml")')
 !
 ! when gradients are needed      
          If (input%properties%chargedensityplot%plotgradient) Then
              Call plot1d ("GRHO1D", 1, input%groundstate%lmaxvr, lmmaxvr, &
              & modgrhomt, modgrhoir, input%properties%chargedensityplot%plot1d)
-!
              Write (*,*)
-             Write (*, '("Info(rhoplot): 1D module of density gradient plot written to GRHO1D.OUT")')
+             Write (*, '("Info(rhoplot): 1D module of density gradient plot written to GRHO1D.xml")')
          End If
 !      
       End If
@@ -100,7 +98,6 @@ Subroutine rhoplot
          If (input%properties%chargedensityplot%plotgradient) Then
              Call plot2d ("GRHO2D", 1, input%groundstate%lmaxvr, lmmaxvr, &
              & modgrhomt, modgrhoir, input%properties%chargedensityplot%plot2d)
-!
              Write (*,*)
              Write (*, '("Info(rhoplot): 2D module of density gradient plot written to GRHO2D.xml")')
          End If

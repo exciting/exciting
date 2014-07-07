@@ -59,6 +59,7 @@ Subroutine hartfock
       Call poteff
 ! Fourier transform effective potential to G-space
       Call genveffig
+      Call genmeffig
 ! generate the core wavefunctions and densities
       Call gencore
 ! find the new linearisation energies
@@ -69,6 +70,7 @@ Subroutine hartfock
       Call genlofr
 ! compute the overlap radial integrals
       Call olprad
+      Call hmlint
 ! compute the Hamiltonian radial integrals
       Call hmlrad
 ! generate the kinetic matrix elements
@@ -95,9 +97,9 @@ Subroutine hartfock
             Write (60, '("Reached self-consistent loops maximum")')
             tlast = .True.
          End If
-!$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(evecsv)
-!$OMP DO
+!x$OMP PARALLEL DEFAULT(SHARED) &
+!x$OMP PRIVATE(evecsv)
+!x$OMP DO
          Do ik = 1, nkpt
             Allocate (evecsv(nstsv, nstsv))
             Call getevecsv (vkl(:, ik), evecsv)
@@ -108,8 +110,8 @@ Subroutine hartfock
             Call putevecsv (ik, evecsv)
             Deallocate (evecsv)
          End Do
-!$OMP END DO
-!$OMP END PARALLEL
+!x$OMP END DO
+!x$OMP END PARALLEL
 ! find the occupation numbers and Fermi energy
          Call occupy
 ! write out the eigenvalues and occupation numbers

@@ -24,7 +24,7 @@ subroutine calcpmat
 !BOC
     implicit none
     integer(4)              :: ik,ik0
-    integer(8)              :: Recl
+    integer(4)              :: Recl
     complex(8), allocatable :: apwalmt(:,:,:,:)
     complex(8), allocatable :: evecfvt(:,:)
     complex(8), allocatable :: evecsvt(:,:)
