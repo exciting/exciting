@@ -5,7 +5,6 @@ subroutine POTX6(maxp)
 !
    use raman_inter
    use raman_coeff
-   use raman_input
    use modinput
    implicit none
    integer :: i,maxp

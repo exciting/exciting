@@ -15,7 +15,6 @@ use mod_force, only: forcetot
 use modinput
 use modxs
 use mod_phonon, only: atposc0, ainv0, avec0, natoms0, natmtot0
-use raman_input
 use raman_coeff
 use raman_ew
 use raman_inter
@@ -938,7 +937,7 @@ do imode = 1, nmode
             call epsshift(zs)
             call spectrum_res(wlas, oct1, oct2, Sab, ws)
             write(77,'(f12.5,3x,f12.3,3x,f12.2,3x,f12.5,5x,2g20.8)') &
-       &    wlas, wlas*fhaev, 1.d0/(wlas*fharnm), ws, Sab, Sab/(ws*fhawn)**4*1.d16
+       &    wlas, wlas*fhaev, 1.d0/(wlas*fharnm), ws, Sab, Sab/(ws*fhawn)**3/(wlas*fhawn)*1.d16
          enddo
          close(77)
       enddo

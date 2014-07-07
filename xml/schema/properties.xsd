@@ -483,8 +483,7 @@
                     </xs:element>
                     <xs:element ex:importance="expert" ex:unit="" ref="energywindow" minOccurs="1" maxOccurs="1">
                        <xs:annotation>
-                          <xs:documentation>Use this element to specify the energy range of the Raman spectrum in 
-                          cm<inlinemath>^{-1}</inlinemath>.
+                          <xs:documentation>Use this element to specify the energy range of the Raman spectrum in Ha.
                           </xs:documentation>
                        </xs:annotation>
                     </xs:element>
