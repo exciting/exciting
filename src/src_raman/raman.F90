@@ -112,7 +112,11 @@ select case(trim(input%properties%raman%elaserunit))
   case ('eV')
      rlas = input%properties%raman%elaser * fevha
   case ('nm')
-     rlas = 1.d0/input%properties%raman%elaser * frnmha
+     if (input%properties%raman%elaser .gt. 1.0d-6) then
+        rlas = 1.d0/input%properties%raman%elaser * frnmha
+     else 
+        rlas = 1.d6 * frnmha
+     endif
   case ('cm-1')
      rlas = input%properties%raman%elaser * fwnha
   case default
