@@ -2054,12 +2054,14 @@
           <xs:documentation>Energy convergence tolerance.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <!--xs:attribute ex:importance="essential" ex:unit="" ref="epsforce" default="5.0d-5">
+      <xs:attribute ex:importance="expert" ex:unit="" name="epsforcescf" type="fortrandouble" 
+                    use="optional" default="5.0d-5">
         <xs:annotation>
-          <xs:documentation>Convergence tolerance for the forces during the SCF
-            run.</xs:documentation>
+          <xs:documentation>Convergence tolerance for forces (not including IBS contribution) 
+	    during the SCF run.</xs:documentation>
         </xs:annotation>
-      </xs:attribute-->
+      </xs:attribute>
+      
 
       <xs:attribute ex:importance="essential" ex:unit="Hartree" name="swidth" type="fortrandouble"
         default="0.001d0">
@@ -2761,7 +2763,9 @@
               Specify the SCF convergence criteria
               <list>
                 <li>"energy"   - only total energy of the system is used as a convergence criterion</li>
-                <li>"multiple" - total energy, Kohn-Sham potential and total electronic charge of the system are used as convergence criteria</li> 
+                <li>"multiple" - total energy, self-consistent contributions to the atomic forces, 
+		     Kohn-Sham potential and total electronic charge of the system are used as 
+		     convergence criteria</li> 
               </list>
               </xs:documentation>
           </xs:annotation>

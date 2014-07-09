@@ -23,6 +23,7 @@ Subroutine gndstate
 !
 ! !REVISION HISTORY:
 !   Created October 2002 (JKD)
+!   last revision July 2014 (PP)
 !EOP
 !BOC
     Implicit None
@@ -44,7 +45,14 @@ Subroutine gndstate
     Call init1
     Call timesec (tin1)
     time_init1=tin1-tin0
-    
+
+! require better force accuracy for the SCF cicle then for relaxation 
+    if (associated(input%relax)) then
+        if (input%groundstate%epsforcescf/input%relax%epsforce .gt. 0.25) then
+            input%groundstate%epsforcescf = input%relax%epsforce * 0.25
+        end if   
+    end if  
+
 ! require forces for structural optimisation
     If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = .True.    
 ! initialise OEP variables if required
@@ -83,7 +91,6 @@ Subroutine gndstate
 !___________________
 ! Open support files
 
-
 ! open TOTENERGY.OUT
         Open (61, File='TOTENERGY'//trim(filext), Action='WRITE', Form='FORMATTED')
 
@@ -94,6 +101,9 @@ Subroutine gndstate
         If (associated(input%groundstate%spin)) then
             open (63, file='MOMENT'//trim(filext), action='WRITE', form='FORMATTED')
         end if
+
+! open DFSCFMAX.OUT
+       open(67,file='DFSCFMAX'//trim(filext),action='WRITE',form='FORMATTED')
 
 ! open FERMIDOS.OUT
 !        Open (62, File='FERMIDOS'//trim(filext), Action='WRITE', Form='FORMATTED')
@@ -120,6 +130,7 @@ Subroutine gndstate
 !------------------------------------!
 !   SCF cycle
 !------------------------------------!
+
     if (rank==0) then
         write(string,'("Groundstate module started")') 
         call printbox(60,"*",string)
@@ -181,7 +192,10 @@ Subroutine gndstate
         close(65)
 ! close the MOMENT.OUT file
         if (associated(input%groundstate%spin)) close(63)
+! close the DFSCFMAX.OUT file
+        close(67)
 
+! close the DTOTENERGY.OUT file
 ! close the FERMIDOS.OUT file
 !        close(62)
 ! close the DFORCEMAX.OUT file
