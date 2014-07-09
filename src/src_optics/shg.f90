@@ -1,4 +1,3 @@
-
 !BOP
 !!ROUTINE: shg
 !!INTERFACE:
@@ -54,7 +53,6 @@ subroutine shg(a,b,c)
     if (rank==0) then
       write(*,*)
       write(*,'("Info(shg):")')
-      write(*,*)
     end if
     
 ! initialise universal variables
@@ -78,13 +76,11 @@ subroutine shg(a,b,c)
         if (rank==0) then
             write(*,*)
             write(*,'("  Momentum matrix elements read from PMAT.OUT")')
-            write(*,*)
-        end if
+         end if
     else
         if (rank==0) then
             write(*,*)
             write(*,'("  Calculate momentum matrix elements")')
-            write(*,*)
         end if
         if (.not.associated(input%properties%momentummatrix)) &
        &  input%properties%momentummatrix => getstructmomentummatrix(emptynode)
@@ -338,13 +334,15 @@ subroutine shg(a,b,c)
         end do
         close(50); close(51); close(52); close(53); close(54); close(55); close(56)
         write(*,*)
-        write(*,'("  Susceptibility tensor written to CHI_abc.OUT")')
+        write(*,'("  Susceptibility (complex) tensor written to CHI_abc.OUT")')
+        write(*,'("  Susceptibility (module) tensor written to CHI_MODULE_abc.OUT")')
         write(*,'("  Interband contributions written to CHI_INTERx_abc.OUT")')
         write(*,'("  Intraband contributions written to CHI_INTRAx_abc.OUT")')
         write(*,'("  for components")')
         write(*,'("  a = ",I1,", b = ",I1,", c = ",I1)') a, b, c
         if (input%properties%shg%tevout) &
-        &  write(*, '("  Output energy is in eV")')
+        &  write(*,'("  Output energy is in eV")')
+        write(*,*)
     end if
 
     deallocate(w,chiw,chi2w)
