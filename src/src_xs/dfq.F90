@@ -96,6 +96,7 @@ use ioarray
       Complex (8), Allocatable :: chi0 (:, :, :), hdg (:, :, :)
       Complex (8), Allocatable :: chi0w (:, :, :, :), chi0h (:, :, :), &
      & eps0 (:, :, :)
+      Complex (8), Allocatable :: chi0hAHC(:, :)
       Complex (8), Allocatable :: wou (:), wuo (:), wouw (:), wuow (:), &
      & wouh (:), wuoh (:)
       Complex (8), Allocatable :: zvou (:), zvuo (:), chi0hs (:, :, :), &
@@ -104,8 +105,8 @@ use ioarray
       Real (8), Allocatable :: cwt (:, :), cw1k (:, :, :), cwa1k (:, :, &
      & :), cwsurf1k (:, :, :)
       Real (8), Allocatable :: scis12 (:, :), scis21 (:, :)
-      Complex(8) :: zt1
-      Real (8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot, wintv(2)
+      Complex(8) :: zt1, winv
+      Real (8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot, wintv(2), wplas, wrel
       Integer :: n, j, i1, i2, j1, j2, ik, ikq, igq, iw, wi, wf, ist1, &
      & ist2, nwdfp
       Integer :: oct1, oct2, un
@@ -222,6 +223,7 @@ use ioarray
       Allocate (w(nwdf))
       Allocate (wreal(nwdfp))
       Allocate (chi0h(3, 3, nwdfp))
+      Allocate (chi0hAHC(3, 3))
       Allocate (chi0w(n, 2, 3, nwdfp))
       Allocate (chi0(n, n, nwdfp))
       Allocate (wou(nwdf))
@@ -251,6 +253,7 @@ use ioarray
       chi0 (:, :, :) = zzero
       chi0w (:, :, :, :) = zzero
       chi0h (:, :, :) = zzero
+      chi0hAHC (:, :) = zzero
       If (tscreen) Then
      ! generate radial integrals wrt. sph. Bessel functions
          Call ematrad (iq)
@@ -305,7 +308,7 @@ use ioarray
 
          Call getpemat (iq, ik, trim(fnpmat), trim(fnemat), m12=xiou, &
         & m34=xiuo, p12=pmou, p34=pmuo)
-
+      
      ! set matrix elements to one for Lindhard function
          If (input%xs%tddft%lindhard) Then
        ! set G=0 components to one
@@ -455,30 +458,43 @@ use ioarray
            !----------------------------------!
                zvou (:) = xiou (ist1, ist2, :)
                zvuo (:) = xiuo (ist2, ist1, :)
+
                Do iw = wi, wf
-              ! body
+                  ! body
                   Call zgerc (n, n, wou(iw), zvou, 1, zvou, 1, chi0(:, &
-                 & :, iw-wi+1), n)
+                       & :, iw-wi+1), n)
                   Call zgerc (n, n, wuo(iw), zvuo, 1, zvuo, 1, chi0(:, &
-                 & :, iw-wi+1), n)
+                       & :, iw-wi+1), n)
                   If (tq0) Then
                      Do oct1 = 1, 3
-                    ! wings
+                        ! wings
                         chi0w (2:, 1, oct1, iw-wi+1) = chi0w (2:, 1, &
-                       & oct1, iw-wi+1) + wouw (iw) * pmou (oct1, ist1, &
-                       & ist2) * conjg (zvou(2:)) + wuow (iw) * pmuo &
-                       & (oct1, ist2, ist1) * conjg (zvuo(2:))
+                             & oct1, iw-wi+1) + wouw (iw) * pmou (oct1, ist1, &
+                             & ist2) * conjg (zvou(2:)) + wuow (iw) * pmuo &
+                             & (oct1, ist2, ist1) * conjg (zvuo(2:))
                         chi0w (2:, 2, oct1, iw-wi+1) = chi0w (2:, 2, &
-                       & oct1, iw-wi+1) + wouw (iw) * zvou (2:) * conjg &
-                       & (pmou(oct1, ist1, ist2)) + wuow (iw) * zvuo &
-                       & (2:) * conjg (pmuo(oct1, ist2, ist1))
+                             & oct1, iw-wi+1) + wouw (iw) * zvou (2:) * conjg &
+                             & (pmou(oct1, ist1, ist2)) + wuow (iw) * zvuo &
+                             & (2:) * conjg (pmuo(oct1, ist2, ist1))
                         Do oct2 = 1, 3
-                       ! head
-                           chi0h (oct1, oct2, iw-wi+1) = chi0h (oct1, &
-                          & oct2, iw-wi+1) + wouh (iw) * pmou (oct1, &
-                          & ist1, ist2) * conjg (pmou(oct2, ist1, &
-                          & ist2)) + wuoh (iw) * pmuo (oct1, ist2, &
-                          & ist1) * conjg (pmuo(oct2, ist2, ist1))
+                           ! head
+                           If(.Not.input%xs%tddft%ahc) Then
+                              chi0h (oct1, oct2, iw-wi+1) = chi0h (oct1, &
+                                   & oct2, iw-wi+1) + wouh (iw) * pmou (oct1, &
+                                   & ist1, ist2) * conjg (pmou(oct2, ist1, &
+                                   & ist2)) + wuoh (iw) * pmuo (oct1, ist2, &
+                                   & ist1) * conjg (pmuo(oct2, ist2, ist1))
+                           Else
+                              winv=1.0d0/(w(iw)+zi*brd)
+                              If (Abs(w(iw)).Lt.1.d-8) winv=1.d0
+                              chi0h (oct1, oct2, iw-wi+1) = chi0h (oct1, oct2, iw-wi+1) + &
+                                   & wouh (iw) * pmou (oct1, ist1, ist2) * conjg (pmou(oct2, ist1, ist2))*&
+                                   & (deou(ist1, ist2)*winv) + &
+                                   & wuoh (iw) * pmuo (oct1, ist2, ist1) * conjg (pmuo(oct2, ist2, ist1))*&
+                                   & (deuo(ist2, ist1)*winv) 
+                              
+                           End If
+
                         End Do
                      End Do
                   End If
@@ -496,6 +512,19 @@ use ioarray
          If ( .Not. tscreen) Call barrier
      ! end loop over k-points
       End Do
+
+      wplas = input%xs%tddft%drude(1)
+      wrel = input%xs%tddft%drude(2)
+      If ((wplas>1.d-8).And.(wrel>1.d-8)) then
+         Do iw = wi, wf
+            winv=1.0d0/(w(iw)+zi*brd)
+            If (Abs(w(iw)).Lt.1.d-8) winv=1.d0
+            Do oct1 = 1, 3
+               chi0h (oct1, oct1, iw-wi+1) = chi0h (oct1, oct1, iw-wi+1) + wplas**2/(w(iw)+zi*wrel)*winv
+            End Do
+         End Do
+      End If
+
       If (tscreen) Call ematqdealloc
   ! symmetrize head
       If (tq0) Then

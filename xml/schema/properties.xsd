@@ -231,6 +231,13 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute name="nocore" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  Visualize only the density of valence electrons.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="exccplot" maxOccurs="1" minOccurs="0">

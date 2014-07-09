@@ -17,7 +17,7 @@ Contains
     ! arguments
          Real (8), Intent (In) :: w (:)
          Complex (8), Intent (In) :: eps (:)
-         Integer, Intent (In) :: oc (3)
+         Integer, Intent (In) :: oc (2)
          Complex (8), Intent (Out) :: sigma (:)
     ! local variables
          Character (*), Parameter :: thisnam = 'gensigma'
@@ -30,9 +30,12 @@ Contains
     ! optical conductivity
          delt = 0.d0
          If (oc(1) .Eq. oc(2)) delt = 1.d0
-         sigma (:) = aimag (eps(:)) * w (:) / (4.d0*pi)
-         sigma (:) = sigma (:) + zi * &
-        & (-(dble(eps(:))-delt)*w(:)/(4.d0*pi))
+!         sigma (:) = aimag (eps(:)) * w (:) / (4.d0*pi)
+!         sigma (:) = sigma (:) + zi * &
+!        & (-(dble(eps(:))-delt)*w(:)/(4.d0*pi))
+
+        sigma (:) = zi * (eps(:) - delt) * w (:) / (4.d0*pi)
+
       End Subroutine gensigma
 !
 End Module m_gensigma

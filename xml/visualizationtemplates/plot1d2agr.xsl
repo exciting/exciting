@@ -57,7 +57,6 @@
        </xsl:for-each>
     </xsl:variable>
 
-    <xsl:variable name="max_yaxis" select="$max_y_data + ($max_y_data - $min_y_data)*0.05"/>
 <xsl:text>
 # Grace project file
 #
@@ -200,7 +199,7 @@
 @g0 stacked false
 @g0 bar hgap 0.000000
 @with g0
-@    world </xsl:text><xsl:value-of select="$min_x_data"/><xsl:text>,0 ,</xsl:text><xsl:value-of select="$max_x_data"/><xsl:text>,</xsl:text><xsl:value-of select="$max_yaxis"/><xsl:text>
+@    world </xsl:text><xsl:value-of select="$min_x_data"/><xsl:text>,</xsl:text><xsl:value-of select="$min_y_data"/><xsl:text>,</xsl:text><xsl:value-of select="$max_x_data"/><xsl:text>,</xsl:text><xsl:value-of select="$max_y_data"/><xsl:text>
 @    stack world 0, 0, 0, 0
 @    znorm 1
 @    view 0.230000, 0.150000, 1.200000, 0.850000
