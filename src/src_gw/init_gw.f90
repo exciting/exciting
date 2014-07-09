@@ -91,7 +91,7 @@ subroutine init_gw
         filext = "_GW.OUT"
         isreadstate0 = .true.
         
-        call scf_cycle(-1)
+        call scf_cycle(-2)
         
         if (rank == 0) then
           ! safely remove unnecessary files
