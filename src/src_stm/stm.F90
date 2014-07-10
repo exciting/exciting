@@ -41,14 +41,12 @@ Subroutine stm
   bias = input%properties%stm%bias
 
   ! Setting occupations for STM imaging in the Tersoff-Hamann approx (PRB 31,805 (1985)).
-  If ( input%properties%stm%stmtype.Eq.'differentialConductance' &
-       & .And. input%properties%stm%stmmode.Eq. 'constantHeight') Then
+  If ( input%properties%stm%stmtype.Eq.'differentialConductance') Then
      Write(*,*)
      Write (*, '("Info(stm):")')
      Write (*, '("Setting occupations for constant-height/differential conductance.")')
      Call genocc(efermi+bias,efermi+bias)
-  Else If ( input%properties%stm%stmtype.Eq.'integratedLDOS' &
-       & .And. input%properties%stm%stmmode.Eq. 'constantHeight') Then
+  Else If ( input%properties%stm%stmtype.Eq.'integratedLDOS') Then
      Write(*,*)
      Write (*, '("Info(stm):")')
      Write (*, '("Setting occupations for constant-height/Integrated LDOS.")')
@@ -59,8 +57,8 @@ Subroutine stm
         Call genocc(efermi,efermi+bias)
      End If
   Else
-     call warning('Error(stm): STM still not implemented for direct topographic plot.')
-     stop 'Error(stm): STM still not implemented for direct topographic plot.'
+     call warning('Error(stm): unknown stmtype value.')
+     stop 'Error(stm): unknown stmtype value.'
   End If
   ! set the charge density to zero
   rhomt (:, :, :) = 0.d0
@@ -78,22 +76,17 @@ Subroutine stm
   ! convert the density from a coarse to a fine radial mesh
   Call rfmtctof (rhomt)
 
-  Call genplot2d("STM2d")
-
-  If ( input%properties%stm%stmmode.Eq.'topographic') Then
-     Write (*,*)
-     Write (*, '("Info(stm):")')
-     Write (*, '("STM still not implemented for direct topographic plot.")')
-     Write (*, '("For topographic plot generation consider to make a series &
-          constant-height calculations at different heights and postprocess the &
-          output to find the iso-surface. ")')
-  Else
-     Write (*,*)
-     Write (*, '("Info(stm):")')
-     Write (*, '(" 2D STM image written to STM2d.xml")')
+  If( input%properties%stm%stmmode.Eq. 'constantHeight') Then
+     Call genplot2d("STM2d")
+  Else If ( input%properties%stm%stmmode.Eq. 'topographic') Then
+     Call genplot3d("STM3d")
   End If
 
   Write (*,*)
+  Write (*, '("Info(stm):")')
+  Write (*, '(" STM image written ")')
+  Write (*,*)
+
   Deallocate (evecfv, evecsv)
   Return
 End Subroutine stm
