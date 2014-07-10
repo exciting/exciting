@@ -2,7 +2,6 @@
 subroutine SPECTRUM(rlas, oct1, oct2, comp_ch, filext)
 ! ------------------------------------------------------------------------------
 use raman_ew
-use raman_input
 use raman_coeff
 use modinput
 use mod_lattice, only: omega
@@ -68,8 +67,9 @@ if (ex(1) .eq. 0.d0) then                     ! handle numerical problems with l
    zsum = 1.d0
 endif
 write(66,'(i7,3e20.6,f20.5)') (i,eigen(i),ex(i),zsum,ex(i)/zsum,i=1,input%properties%raman%nstate)
+! energy window for Raman spectrum given in Ha, spectrum computed in wave numbers
 dw = (input%properties%raman%energywindow%intv(2) - &
-   &  input%properties%raman%energywindow%intv(1)) / &
+   &  input%properties%raman%energywindow%intv(1))*fhawn / &
    &  dble(input%properties%raman%energywindow%points)
 write(73,'("# Laser energy:  ",f9.6," Ha = ",f8.1," cm^-1 = ",f5.2," eV = ",  &
   &        f6.1, " nm",/,"# Temperature: ",f8.1," K",/,"# Damping: ",f8.1," cm^-1   ",/, &
@@ -79,14 +79,8 @@ write(73,'("# Laser energy:  ",f9.6," Ha = ",f8.1," cm^-1 = ",f5.2," eV = ",  &
 !
 ind = 0
    zzsum = zsum/(omega*fau3cm3*pi*pi)
-   if (input%properties%raman%intphonon) then
-      write(66,'(/," Scattering contributions in [ 10^-5 sr^-1 m^-1 ] from ", &
-     & "process of order",//,4x," Transition energy [ cm^-1 ]",            &
-     & 6x,"1",14x,"2",14x,"3",14x,"4",14x,"5",14x,"6",/)')
-   else
-      write(66,'(/," Scattering contributions in [ 10^-5 sr^-1 m^-1 ]",// &
+   write(66,'(/," Scattering contributions in [ 10^-5 sr^-1 m^-1 ]",// &
      & ,4x," Transition energy [ cm^-1 ]",/)')
-   endif
 do i = 1,input%properties%raman%nstate
    do j = i-1,1,-1
       dde = (eigen(i) - eigen(j))*fhawn
@@ -101,36 +95,12 @@ do i = 1,input%properties%raman%nstate
      &         d4eq(oct1,oct2)*transme4(ind)/factorial(4)/sqn4 + &
      &         d5eq(oct1,oct2)*transme5(ind)/factorial(5)/sqn5 + &
      &         d6eq(oct1,oct2)*transme6(ind)/factorial(6)/sqn6
-      if (input%properties%raman%intphonon) then
-         trans2 = d2eq(oct1,oct2)*transme2(ind)/factorial(2)/sqn2 + &
-     &            d4eq(oct1,oct2)*transme4(ind)/factorial(4)/sqn4 + &
-     &            d6eq(oct1,oct2)*transme6(ind)/factorial(6)/sqn6
-         trans3 = d3eq(oct1,oct2)*transme3(ind)/factorial(3)/sqn3 + &
-     &            d6eq(oct1,oct2)*transme6(ind)/factorial(6)/sqn6
-         trans4 = d4eq(oct1,oct2)*transme4(ind)/factorial(4)/sqn4
-         trans5 = d5eq(oct1,oct2)*transme5(ind)/factorial(5)/sqn5 
-         trans6 = d6eq(oct1,oct2)*transme6(ind)/factorial(6)/sqn6
-      endif
 !
       rcont1(ind) = dnc*zfact*              abs(trans1)**2
-      if (input%properties%raman%intphonon) then
-         rcont2(ind) = dnc*zfact*(dnc    - 1.)*abs(trans2)**2
-         rcont3(ind) = dnc*zfact*(dnc**2 - 1.)*abs(trans3)**2
-         rcont4(ind) = dnc*zfact*(dnc**3 - 1.)*abs(trans4)**2
-         rcont5(ind) = dnc*zfact*(dnc**4 - 1.)*abs(trans5)**2
-         rcont6(ind) = dnc*zfact*(dnc**5 - 1.)*abs(trans6)**2
-      endif
 !
 !
-      if (input%properties%raman%intphonon) then
-         write(66,'(1x,I3," ->",I3,3x,f8.2,5x,6(f14.8,"  |"))') j,i,dde,             &
-     &           rcont1(ind)*sc*w_fact,rcont2(ind)*sc*w_fact, &
-     &           rcont3(ind)*sc*w_fact,rcont4(ind)*sc*w_fact, &
-     &           rcont5(ind)*sc*w_fact,rcont6(ind)*sc*w_fact
-      else
-         write(66,'(3x,I3," ->",I3,5x,f8.2,7x,f14.8)') j,i,dde,             &
+      write(66,'(3x,I3," ->",I3,5x,f8.2,7x,f14.8)') j,i,dde,             &
      &           rcont1(ind)*sc*w_fact
-      endif
    enddo
 enddo
 !
@@ -141,7 +111,7 @@ factl = 4.d0*pi*pi
 do iw = 1, input%properties%raman%energywindow%points+1
    ind = 0
    spec = 0.0d0
-   w = input%properties%raman%energywindow%intv(1) + dble(iw - 1)*dw
+   w = input%properties%raman%energywindow%intv(1)*fhawn + dble(iw - 1)*dw
    do i = 1,input%properties%raman%nstate
       do j = i-1,1,-1
          ind = ind + 1

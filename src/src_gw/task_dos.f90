@@ -34,9 +34,9 @@ subroutine task_dos
     ! Initialization
     !-----------------
     call init0
+    call init1
     
     ! read KS energies 
-    call init1
     do ik = 1, nkpt
       call getevalsv(vkl(:,ik),evalsv(:,ik))
     end do
@@ -45,13 +45,13 @@ subroutine task_dos
     call getevalqp(nkpt,vkl,evalsv)
     
     ! generate the k-grid for the tetrahedron integration library
-    input%groundstate%stypenumber = -1
-    call init1
-    
+    !input%groundstate%stypenumber = -1
+    !call init1
     ! calculate Fermi energy
-    n = min(int(chgval/2.d0)+10,nstsv)
-    call fermi(nkpt,n,evalsv(ibgw:n,:),ntet,tnodes,wtet,tvol, &
-    &          chgval,.false.,efermi,egap)
+    !n = min(int(chgval/2.d0)+10,nstsv)
+    !call fermi(nkpt,n,evalsv(ibgw:n,:),ntet,tnodes,wtet,tvol, &
+    !&          chgval,.false.,efermi,egap)
+    call occupy
 
     ! GW number of states
     nstsv = nbgw-ibgw+1

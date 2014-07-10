@@ -171,12 +171,36 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                                 & nrcmt(is), lmmaxvr, zone, zbshtvr, &
                                 & lmmaxvr, wfmt4(:,:), lmmaxvr, zzero, &
                                 & wfmt3(:, :), lmmaxvr)
-                  wfmt3(:, :)=wfmt3(:, :)*bmt (:, :, 3)
+                  wfmt4(:, :)=wfmt3(:, :)*bmt (:, :, 3)
                   Call zgemm ('N', 'N', lmmaxvr, &
                                 & nrcmt(is), lmmaxvr, zone, zfshtvr, &
-                                & lmmaxvr, wfmt3(:,:), lmmaxvr, zzero, &
+                                & lmmaxvr, wfmt4(:,:), lmmaxvr, zzero, &
                                 & wfmt2(:, :,1), lmmaxvr)
                   wfmt2 (:, :, 2) = - wfmt2 (:, :, 1)
+                  If (nsc .Eq. 3) Then
+                     wfmt4(:, :)=wfmt3(:, :) * cmplx (bmt(:, :, &
+                          & 1),-bmt(:, :, 2), 8)
+                     Call zgemm ('N', 'N', lmmaxvr, &
+                          & nrcmt(is), lmmaxvr, zone, zfshtvr, &
+                          & lmmaxvr, wfmt4(:,:), lmmaxvr, zzero, &
+                          & wfmt2(:, :,3), lmmaxvr)
+                  End If
+
+                  If (isspinorb()) Then
+                     Do irc = 1, nrcmt (is)
+                        Call lopzflm (input%groundstate%lmaxvr, &
+                             & wfmt1(:, irc, jst), lmmaxvr, zlflm)
+                        t1 = sor (irc)
+                        Do lm = 1, lmmaxvr
+                           wfmt2 (lm, irc, 1) = wfmt2 (lm, irc, 1) + t1 &
+                                & * zlflm (lm, 3)
+                           wfmt2 (lm, irc, 2) = wfmt2 (lm, irc, 2) - t1 &
+                                & * zlflm (lm, 3)
+                           wfmt2 (lm, irc, 3) = wfmt2 (lm, irc, 3) + t1 &
+                                & * (zlflm(lm, 1)-zi*zlflm(lm, 2))
+                        End Do
+                     End Do
+                  End If
                Else
                   wfmt2 (:, :, :) = 0.d0
                End If
@@ -233,7 +257,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 !         deallocate(wfmt3)
       End Do
       call timesec(tb)
-      write(*,*) 'sv / MT part',tb-ta
+!      write(*,*) 'sv / MT part',tb-ta
 !---------------------------!
 !     interstitial part     !
 !---------------------------!
@@ -316,7 +340,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 #endif 
       End If
       call timesec(tb)
-      write(*,*) 'sv / interstitial part', tb-ta
+!      write(*,*) 'sv / interstitial part', tb-ta
 ! add the diagonal first-variational part
       call timesec(ta)
       i = 0
@@ -365,7 +389,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Deallocate (wfmt1, wfmt2, work)
       Call timesec (ts1)
       call timesec(tb)
-      write(*,*) 'sv / diagonalization', tb-ta
+!      write(*,*) 'sv / diagonalization', tb-ta
 
       timesv = timesv + ts1 - ts0       
 !$OMP CRITICAL
@@ -374,8 +398,8 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Return
 20    Continue
       Write (*,*)
-      Write (*, '("Error(seceqnsv): diagonalisation of the second-varia&
-     &tional Hamiltonian failed")')
+      Write (*, '("Error(seceqnsv):& 
+     & diagonalisation of the second-variational Hamiltonian failed")')
       Write (*, '(" for k-point ", I8)') ik
       Write (*, '(" ZHEEV returned INFO = ", I8)') info
       Write (*,*)

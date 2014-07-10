@@ -63,6 +63,8 @@ module raman_coeff
 use raman_params
 ! potential coefficients
 real(8) :: A0,A1,A2,A3,A4,A5,A6
+! number of unit cells in scattering volume
+integer :: ncell
 ! potential raw data, energies
 real(8), allocatable :: potinx(:, :),potiny(:, :)
 ! number of steps per mode
@@ -102,14 +104,6 @@ real(8) :: h
 real(8), allocatable :: b0(:),b1(:),b2(:),b3(:),b4(:)
 end module raman_inter
 !
-!
-! input
-module raman_input
-integer :: ncell, intphonon
-! unit cell volume in cm3
-!real(8) :: vol_cm3
-real(8) :: tempa,tempe,tempi
-end module raman_input
 !
 !
 ! Raman relevant symmetry variables

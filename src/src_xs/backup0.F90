@@ -15,4 +15,6 @@ Subroutine backup0
       swidth_b = input%groundstate%swidth
       lmaxapw_b = input%groundstate%lmaxapw
       lmaxmat_b = input%groundstate%lmaxmat
+      maxscl_b = input%groundstate%maxscl
+      bfieldc_b = input%groundstate%spin%bfieldc
 End Subroutine backup0

@@ -1,0 +1,28 @@
+F90 = pgf90
+F77 = $(F90)
+F90_OPTS = -fast -O3 -Mfprelaxed -DUSEOMP -mp=allcores
+F77_OPTS = -fast -O3 -Mfprelaxed -DUSEOMP -mp=allcores
+CPP_ON_OPT = -Mpreprocess -DXS -DISO -DTETRA -DLIBXC
+LIB_ARP = libarpack.a
+# uncomment this line in case you want to use external LAPACK/BLAS library
+#export USE_SYS_LAPACK=true
+LIB_LPK = -L./ -llapack -lblas
+LIB_FFT = fftlib.a
+LIB_BZINT = libbzint.a
+
+LIBS = $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
+
+F90_DEBUGOPTS = $(F77_OPTS)  #
+F77_DEBUGOPTS = $(F90_OPTS) #
+
+
+#Ignore if you don't have MPI or smplibs
+ 
+MPIF90 = mpif90
+MPIF90_OPTS = $(F90_OPTS) $(CPP_ON_OPT) -DMPI -DMPIRHO -DMPISEC
+F77MT = $(F77)
+F90MT = $(F90)
+SMP_LIBS = $(LIBS)
+SMPF90_OPTS = -fopenmp $(F90_OPTS) 
+SMPF77_OPTS = $(SMPF90_OPTS) 
+

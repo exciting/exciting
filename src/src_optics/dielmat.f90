@@ -31,8 +31,7 @@ subroutine dielmat
     
     if (rank==0) then
       write(*,*)
-      write(*,*) 'Info(dielmat):'
-      write(*,*)
+      write(*,'("Info(dielmat):")')
     end if
     
 ! initialise universal variables
@@ -89,13 +88,11 @@ subroutine dielmat
         if (rank==0) then
             write(*,*)
             write(*,'("  Momentum matrix elements read from PMAT.OUT")')
-            write(*,*)
         end if
     else
         if (rank==0) then
             write(*,*)
             write(*,'("  Calculate momentum matrix elements")')
-            write(*,*)
         end if
         if (.not.associated(input%properties%momentummatrix)) &
         &  input%properties%momentummatrix => getstructmomentummatrix(emptynode)

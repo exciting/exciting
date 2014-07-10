@@ -6,8 +6,9 @@
 Subroutine xstasklauncher
       Use modinput
       Use modmain, Only: task
-      Use modxs, only: dgrid, nksubpt, iksubpt
+      Use modxs, only: dgrid, nksubpt, iksubpt, temat
       Use inputdom
+
 !
       If ( .Not. (associated(input%xs%tddft))) Then
   ! set the default values if tddft element not present
@@ -58,7 +59,9 @@ Subroutine xstasklauncher
 !
          task = 330
          Call xsinit
-         Call writeemat
+         If(temat) Then
+            Call writeemat
+         End If
          Call xsfinit
 !
          If (input%xs%tddft%fxctypenumber .Eq. 7 .Or. &

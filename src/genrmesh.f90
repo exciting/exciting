@@ -56,6 +56,8 @@ Subroutine genrmesh
 ! local variables
       Integer :: is, ir, irc,cutoff
       Real (8) :: t1, t2
+      Real (8) :: erf
+      external erf
 ! estimate the number of radial mesh points to infinity
       if ((input%groundstate%radialgridtype.ne."cubic").and. &
           (input%groundstate%radialgridtype.ne."expocubic").and. &

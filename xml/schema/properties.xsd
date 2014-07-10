@@ -265,6 +265,13 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute name="nocore" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  Visualize only the density of valence electrons.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="exccplot" maxOccurs="1" minOccurs="0">
@@ -495,7 +502,7 @@
             </xs:annotation>
             <xs:complexType>
                <xs:sequence>
-                    <xs:element ex:importance="essential" ex:unit="" name="eigvec" minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ex:importance="expert" ex:unit="" name="eigvec" minOccurs="0" maxOccurs="unbounded">
                       <xs:annotation>
                         <xs:documentation>
                         Input manually the eigenvector of a normal mode. Note: Not normalized eigenvectors are
@@ -503,12 +510,13 @@
                         </xs:documentation>
                       </xs:annotation>
                       <xs:complexType>
-                        <xs:attribute ex:importance="essential" ex:unit="" name="comp" type="vect2d" use="required">
+                        <xs:attribute ex:importance="expert" ex:unit="" name="comp" type="vect2d" use="required">
                           <xs:annotation>
                             <xs:documentation>A component of the phonon eigenvector. The order of the given
                             components must correspond to the order of the atoms given in <elementref>structure</elementref>,
-                            and consist of three lines for each atom (for <inlinemath>x</inlinemath>, <inlinemath>y</inlinemath> 
-                            and <inlinemath>z</inlinemath>). In each line specify two floating point numbers, which are
+                            and consist of three times the element <elementref>eigvec</elementref> for each atom 
+                            (for <inlinemath>x</inlinemath>, <inlinemath>y</inlinemath> 
+                            and <inlinemath>z</inlinemath>). Each time specify two floating point numbers, which are
                             the real and imaginary part of the component.
                             </xs:documentation>
                           </xs:annotation>
@@ -517,8 +525,7 @@
                     </xs:element>
                     <xs:element ex:importance="expert" ex:unit="" ref="energywindow" minOccurs="1" maxOccurs="1">
                        <xs:annotation>
-                          <xs:documentation>Use this element to specify the energy range of the Raman spectrum in 
-                          cm<inlinemath>^{-1}</inlinemath>.
+                          <xs:documentation>Use this element to specify the energy range of the Raman spectrum in Ha.
                           </xs:documentation>
                        </xs:annotation>
                     </xs:element>
@@ -529,12 +536,12 @@
                         <xs:documentation>
                         Prior to the calculation of Raman intensities, the normal coordinates of the phonon modes have to be
                         ready. Four choices are available: <pre>fromscratch</pre> triggers a supercell phonon calculation for
-                        the <inlinemath>\Gamma</inlinemath>-point (i.e. the supercell is just the unit cell), note that any attribute
+                        the <inlinemath>\Gamma</inlinemath>-point (i.e. the supercell is just the unit cell), note that the relevant attributes
                         given with the element <elementref>phonons</elementref> will be overwritten by suitable values; <pre>fromfile</pre>
                         reads the dynamical matrix from <pre>DYN_*.OUT</pre> files produced in a previous phonon calculation;
                         <pre>readinput</pre> enables you to input a phonon eigenvector manually; and <pre>symvec</pre> constructs
                         symmetry vectors from the crystal symmetries and uses them instead of eigenvectors (this is not generally
-                        meaningful, as the symmetry vectors come out as linear combinations of eigenvectors in case several phonon modes
+                        meaningful, as the symmetry vectors are obtained as linear combinations of eigenvectors in case several phonon modes
                         which belong to the same irreducible representation occur, so check the output carefully). 
                         <pre>symveccheck</pre> solely produces the symmetry vectors and stops. 
                         </xs:documentation>
@@ -553,7 +560,7 @@
                     <xs:annotation>
                         <xs:documentation>Optionally choose a phonon mode to compute
                         (<inlinemath>4 \leq </inlinemath><pre>mode</pre><inlinemath> \leq 3N_{\mathrm{atm}}</inlinemath>).
-                        The default of 0 means compute spectra of all Raman active modes.
+                        The default of 0 means compute spectra of all Raman active modes present.
                         </xs:documentation>
                     </xs:annotation>
                </xs:attribute>
@@ -579,7 +586,7 @@
                </xs:attribute>
                <xs:attribute ex:importance="expert" ex:unit="" name="ninter" type="xs:integer" default="500">
                     <xs:annotation>
-                        <xs:documentation>Number of intervals in FE solution of the oscillator problem.
+                        <xs:documentation>Number of intervals in numerical (FE) solution of the oscillator problem.
                         </xs:documentation>
                     </xs:annotation>
                </xs:attribute>
@@ -594,7 +601,8 @@
                         <xs:documentation>Create <pre>nstep</pre> distorted geometries
                         to sample the potential and dielectric function.
                         The distortion is done by displacing atoms along normal coordinate by 
-                        <inlinemath>\pm n*</inlinemath><attref>displ</attref>
+                        <inlinemath>n*</inlinemath><attref>displ</attref> with 
+                        <inlinemath>-1/2</inlinemath><attref>nstep</attref><inlinemath>\le n\le 1/2</inlinemath><attref>nstep</attref>.
                         </xs:documentation>
                     </xs:annotation>
                </xs:attribute>
@@ -609,17 +617,18 @@
                <xs:attribute ex:importance="expert" ex:unit="" name="degree" type="xs:integer" default="2">
                     <xs:annotation>
                         <xs:documentation>Degree of fitting polynomial for the potential. The default of <inlinemath>2</inlinemath>
-                        results in a harmonic oscillator and the same eigenvalues as computed in the basic phonon calculation.
-                        <pre>degree</pre> must be smaller than <pre>nstep</pre><inlinemath>+1</inlinemath> (with the exception of 
-                        <pre>nstep</pre>=1, where the potential and dielectric functions are mirrored about the equilibrium geometry).
+                        results in a harmonic oscillator.
+                        For the dielectric function also a polynomial of degree <attref>degree</attref> is fitted, but
+                        only the first derivative used.
                         </xs:documentation>
                     </xs:annotation>
                </xs:attribute>
                <xs:attribute ex:importance="expert" ex:unit="" name="molecule" type="xs:boolean" default="false">
                     <xs:annotation>
                         <xs:documentation>
-                        If <pre>true</pre>, an isolated molecule is assumed. The default of <pre>false</pre> means the
-                        calculation is done for a crystal structure.
+                        If <pre>true</pre>, an isolated molecule is assumed and some additional output created. 
+                        The default of <pre>false</pre> means the
+                        calculation is done for the solid state limit.
                         </xs:documentation>
                     </xs:annotation>
                </xs:attribute>
@@ -643,7 +652,7 @@
                     <xs:annotation>
                         <xs:documentation>
                         Specifiy whether the true equilibirum geometry should be included in the frozen phonon calculations.
-                        On one hand the symmetry of the equilibrium might be increased and the properties slightly changed; 
+                        On one hand the symmetry of the equilibrium might be higher and the properties slightly changed; 
                         on the other hand the same equilibrium structure is used for all active modes and thus some computer time
                         can be saved. The default is <pre>false</pre>, which means that a close-to-equilibrium structure with the
                         same symmetry as the mode is used. For every mode this is a slightly different structure.
@@ -652,8 +661,7 @@
                </xs:attribute>
                <xs:attribute ex:importance="essential" ex:unit="" name="elaser" type="fortrandouble" default="0.0">
                     <xs:annotation>
-                        <xs:documentation>Energy of the incident laser beam. Set to <inlinemath>-1.0</inlinemath> to obtain
-                        Raman intensities for the full range of the dielectric function and a resonance plot.
+                        <xs:documentation>Energy of the incident laser beam. Specify it in units of <attref>elaserunit</attref>
                         </xs:documentation>
                     </xs:annotation>
                </xs:attribute>
@@ -682,13 +690,6 @@
                     <xs:annotation>
                         <xs:documentation>Temperature in K for which the Raman spectrum is computed. This affects the 
                         occupation of vibrational states.
-                        </xs:documentation>
-                    </xs:annotation>
-               </xs:attribute>
-               <xs:attribute ex:importance="experimental" ex:unit="" name="intphonon" type="xs:boolean" default="false">
-                    <xs:annotation>
-                        <xs:documentation>Flag to turn on an estimation of phonon-phonon interactions on the potential. Turning it on
-                        makes the potential temperature dependent.
                         </xs:documentation>
                     </xs:annotation>
                </xs:attribute>

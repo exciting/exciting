@@ -29,7 +29,7 @@
 !                          quasiparticle energies of succesive iterations 
     real(8) :: eferqp, egap
     real(8) :: tstart, tend
-    integer(8) :: Recl
+    integer(4) :: Recl
     real(8) :: eks, ehf, egw, sx, sc, vxc, deltax, deltae, z
 
 ! !DEFINED PARAMETERS:

@@ -53,7 +53,7 @@ cat>>gnu-input<<***
 #set zrange [-5312.345:-5312.435]
 
  unset key
- set dgrid3d 5,9
+ set dgrid3d $2,$3
  set hidden3d
 
 # set contour base

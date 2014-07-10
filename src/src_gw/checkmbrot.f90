@@ -5,7 +5,7 @@ subroutine checkmbrot(iq)
     
     implicit none
     integer(4) :: iq, iqp
-    integer(8) :: Recl
+    integer(4) :: Recl
     integer(4) :: ik, ikp
     integer(4) :: isym, i
     integer(4) :: ist, jst, ijst, icg, dimtk

@@ -15,7 +15,6 @@ use mod_force, only: forcetot
 use modinput
 use modxs
 use mod_phonon, only: atposc0, ainv0, avec0, natoms0, natmtot0
-use raman_input
 use raman_coeff
 use raman_ew
 use raman_inter
@@ -32,6 +31,7 @@ use m_genfilname
 #endif
 !
 implicit none
+! Raman data
 integer :: maxp,it,ntp
 integer :: i, j, ia, is, iat, ic, imode, istep, nmode, iw
 integer :: istep_lo, istep_hi, i_shift
@@ -39,24 +39,33 @@ integer :: oct, oct1, oct2, ias
 integer :: read_i
 real(8) :: rlas,sn,zmin,zs, norm
 real(8) :: dph, force_sum, vgamc(3)
-real(8) :: start_time_cpu, finish_time_cpu, time_cpu_tot, t_cpu_proc
-real(8) :: start_time_wall, finish_time_wall, time_wall_tot
 real(8) :: read_dph, read_engy, read_force
 real(8) :: wlas, ws, dwlas, S_total, Sab
+! timing
+real(8) :: start_time_cpu, finish_time_cpu, time_cpu_tot, t_cpu_proc
+real(8) :: start_time_wall, finish_time_wall, time_wall_tot
+! phonons
 Real(8), Allocatable :: w(:)
 Complex(8), Allocatable :: ev(:, :)
 Complex(8), Allocatable :: dynq(:, :, :)
 Complex(8), Allocatable :: dynp(:, :)
 Complex(8), Allocatable :: dynr(:, :, :)
+! symmetrize derivatives of epsilon
+complex(8) :: deq_sym(3, 3)
+complex(8) :: sym_rt2(3, 3, 3, 3)
+! check modes
 Logical, Allocatable :: active(:), acoustic(:)
 integer, allocatable :: irep(:)
-Logical :: existent, existent1, eq_done, nlf, lt2(3, 3)
+Logical :: existent, existent1, eq_done, nlf
+! file handling
 Character(256) :: raman_filext, raman_stepdir, fileeps(3, 3)
+#ifndef IFORT
+  integer system, chdir
+#endif
+! MPI
 #ifndef MPI
   integer, parameter :: rank = 0
 #endif
-  integer system, chdir
-  external  system, chdir
 !
 !
 ! we require an XS input
@@ -103,7 +112,11 @@ select case(trim(input%properties%raman%elaserunit))
   case ('eV')
      rlas = input%properties%raman%elaser * fevha
   case ('nm')
-     rlas = 1.d0/input%properties%raman%elaser * frnmha
+     if (input%properties%raman%elaser .gt. 1.0d-6) then
+        rlas = 1.d0/input%properties%raman%elaser * frnmha
+     else 
+        rlas = 1.d6 * frnmha
+     endif
   case ('cm-1')
      rlas = input%properties%raman%elaser * fwnha
   case default
@@ -413,7 +426,10 @@ do imode = 1, nmode
          cycle
       endif
 !  analyze symmetry of Raman tensor
-      if (rank .eq. 0) call construct_t2 (irep(imode), lt2)
+      if (rank .eq. 0) call construct_t2(irep(imode), sym_rt2)
+#ifdef MPI
+!     call MPI_Bcast(sym_rt2, 81, MPI_Double_Complex, 0, MPI_Comm_World, ierr)
+#endif
    endif
 !
 ! displace atoms along eigenvector
@@ -788,6 +804,17 @@ do imode = 1, nmode
 !  endif
 !  ...and the dielectric function
    call polyfit_diel (imode, rlas)
+! STK: we can only express some general symmetry of the derivatives for all degenerate modes together so far, 
+!      so the symmetrization is not applied for the time being
+!  if (input%properties%raman%usesym) then
+!     do oct1 = 1, 3
+!        do oct2 = 1, 3
+!           write(*,*) ' optical comp ',oct1,oct2
+!           write(*,'(3f17.3)') ((sym_rt2(oct1, oct2, i, j),j=1,3),i=1,3)
+!           call symt2app_raman(oct1, oct2, 1, sym_rt2, deq, deq_sym(oct1, oct2))
+!        enddo
+!     enddo
+!  endif
 !
 !  write PARAMETERS to OUTPUT file
    write(66,'(//,116("*"),/46("*"),"   START CALCULATION   ",47("*"))')
@@ -805,6 +832,18 @@ do imode = 1, nmode
     &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
     &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
     &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
+!  if (input%properties%raman%usesym) then
+!     write(66,'(/," Symmetrized derivatives of the dielectric function: ",/, &
+!      &           " Re                                         Im")')
+!     write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+!      &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+!      &           "  ( ",3f12.3," )       ( ",3f12.3," ) ")') &
+!      &   (dble(deq_sym(1, oct2)),oct2=1,3), (aimag(deq_sym(1, oct2)),oct2=1,3), &
+!      &   (dble(deq_sym(2, oct2)),oct2=1,3), (aimag(deq_sym(2, oct2)),oct2=1,3), &
+!      &   (dble(deq_sym(3, oct2)),oct2=1,3), (aimag(deq_sym(3, oct2)),oct2=1,3)
+!      write(66,'(/," The symmetrized derivatives will be used.",/)')
+!      deq = deq_sym
+!  endif
 !
    write(66, '(/," Include local field effects for dielectric function : ",l1)') .not.nlf
    write(66, '(/," Broadening [ cm-1 ] : ",f7.2)') input%properties%raman%broad
@@ -839,6 +878,18 @@ do imode = 1, nmode
     &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
     &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
     &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
+!  if (input%properties%raman%usesym) then
+!     write(66,'(/," Symmetrized derivatives of the dielectric function: ",/, &
+!      &           " Re                                         Im")')
+!     write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+!      &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
+!      &           "  ( ",3f12.3," )       ( ",3f12.3," ) ")') &
+!      &   (dble(deq_sym(1, oct2)),oct2=1,3), (aimag(deq_sym(1, oct2)),oct2=1,3), &
+!      &   (dble(deq_sym(2, oct2)),oct2=1,3), (aimag(deq_sym(2, oct2)),oct2=1,3), &
+!      &   (dble(deq_sym(3, oct2)),oct2=1,3), (aimag(deq_sym(3, oct2)),oct2=1,3)
+!      write(66,'(/," The symmetrized derivatives will be used.",/)')
+!      deq = deq_sym
+!  endif
 !
 
 !
@@ -890,7 +941,7 @@ do imode = 1, nmode
             call epsshift(zs)
             call spectrum_res(wlas, oct1, oct2, Sab, ws)
             write(77,'(f12.5,3x,f12.3,3x,f12.2,3x,f12.5,5x,2g20.8)') &
-       &    wlas, wlas*fhaev, 1.d0/(wlas*fharnm), ws, Sab, Sab/(ws*fhawn)**4*1.d16
+       &    wlas, wlas*fhaev, 1.d0/(wlas*fharnm), ws, Sab, Sab/(ws*fhawn)**3/(wlas*fhawn)*1.d16
          enddo
          close(77)
       enddo

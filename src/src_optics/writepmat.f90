@@ -37,7 +37,7 @@ Subroutine writepmat
       integer, allocatable :: ikmap(:,:)
       
 ! check if fast (default) version of matrix elements is used
-      fast=.false.
+      fast=.true.
       if (associated(input%properties)) then
         if (associated(input%properties%momentummatrix)) then
           if (input%properties%momentummatrix%fastpmat) fast=.true.
@@ -130,7 +130,7 @@ Subroutine writepmat
             ! generate local orbital expansion coefficients for muffin-tin
             If (nlotot.Gt.0) Call genlocmt(ngk(1,ik), 1, nstfv, evecfvt, locmt)
             ! calculate the momentum matrix elements
-            Call genpmatxs(ngk(1,ik), igkig(1,1,ik), vgkc(1,1,1,ik), evecfvt, evecsvt, pmat)
+            Call genpmatxs(ngk(1,ik), igkig(1,1,ik), vgkc(1,1,1,ik), evecfvt, evecsvt, pmat(:,:,:,ikloc))
          Else
         ! calculate the momentum matrix elements
             Call genpmat(ngk(1,ik), igkig(1,1,ik), vgkc(1,1,1,ik), &

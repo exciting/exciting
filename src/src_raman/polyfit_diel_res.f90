@@ -65,12 +65,13 @@ Do oct1 = 1, 3
 !
 !  save solution vector to polynomial coefficients
 !  d*eq are assumed to be derivatives; b_k = f^(k)(0) / k!
+!  STK:  take first order only, leave higher order 0
       if (deg .ge. 1) deq  (oct1, oct2) =       B(2)
-      if (deg .ge. 2) d2eq (oct1, oct2) =  2.d0*B(3)
-      if (deg .ge. 3) d3eq (oct1, oct2) =  6.d0*B(4)
-      if (deg .ge. 4) d4eq (oct1, oct2) = 24.d0*B(5)
-      if (deg .ge. 5) d5eq (oct1, oct2) = 12.d1*B(6)
-      if (deg .eq. 6) d6eq (oct1, oct2) = 72.d1*B(7)
+!     if (deg .ge. 2) d2eq (oct1, oct2) =  2.d0*B(3)
+!     if (deg .ge. 3) d3eq (oct1, oct2) =  6.d0*B(4)
+!     if (deg .ge. 4) d4eq (oct1, oct2) = 24.d0*B(5)
+!     if (deg .ge. 5) d5eq (oct1, oct2) = 12.d1*B(6)
+!     if (deg .eq. 6) d6eq (oct1, oct2) = 72.d1*B(7)
 !
 ! end loops over optical components
    enddo

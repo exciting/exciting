@@ -410,12 +410,10 @@ subroutine scf_cycle(verbosity)
 !! TIME - End of potential
 
 ! compute the forces (without IBS corrections)
-        If (input%groundstate%tforce) Then
-            tibs=input%groundstate%tfibs
-            input%groundstate%tfibs=.false.
-            Call force
-            input%groundstate%tfibs=tibs
-        end if
+        tibs=input%groundstate%tfibs
+        input%groundstate%tfibs=.false.
+        Call force
+        input%groundstate%tfibs=tibs
 
 !! TIME - Third IO segment  
         Call timesec(ts0)      
@@ -486,7 +484,7 @@ subroutine scf_cycle(verbosity)
             write(60, '(" Wall time (seconds)                        : ", F12.2)') timetot
         end if
 
-        if (rank==0) then ! write TOTENERGY.OUT 
+        if ((verbosity>-1).and.(rank==0)) then ! write TOTENERGY.OUT 
             Write (61, '(G22.12)') engytot
             Call flushifc (61)
         end if
@@ -508,24 +506,30 @@ subroutine scf_cycle(verbosity)
                &    deltae, input%groundstate%epsengy
                 write(60,'(" Charge distance                   (target) : ",G13.6,"  (",G13.6,")")') &
                &    chgdst, input%groundstate%epschg
+                write(60,'(" Absolute change in max-scf-force  (target) : ",G13.6,"  (",G13.6,")")') &
+               &    dforcemax, input%groundstate%epsforcescf
                 if ((input%groundstate%xctypenumber .Lt. 0).Or.(xctype(2) .Ge. 400).Or.(xctype(1) .Ge. 400)) then
                     write(60,*)
                     write(60, '(" Magnitude of OEP residual : ", F16.8)') resoep
                 end if
             end if
 
-            if (rank==0) then ! write RMSDVEFF.OUT 
+            if ((verbosity>-2).and.(rank==0)) then ! write in RMSDVEFF.OUT and DFSCFMAX.OUT
                 Write (65, '(G18.10)') currentconvergence
                 Call flushifc(65)
+                Write (67, '(G22.12)') dforcemax
+                Call flushifc(67)
             end if
 
             If ((input%groundstate%scfconv.eq.'energy').and.(deltae .lt. input%groundstate%epsengy)) Then
                 tlast = .True.
             End If
+
             If ((input%groundstate%scfconv.eq.'multiple').and. &
            &    (currentconvergence .Lt. input%groundstate%epspot).and. &
            &    (deltae .lt. input%groundstate%epsengy).and. &
-           &    (chgdst .lt. input%groundstate%epschg)) Then
+           &    (chgdst .lt. input%groundstate%epschg).and. &
+           &    (dforcemax .lt. input%groundstate%epsforcescf)) Then
                 tlast = .True.
             End If
 
@@ -637,13 +641,16 @@ subroutine scf_cycle(verbosity)
       if (input%groundstate%tpartcharges) write(69,*)
     End If
 
-    If (rank==0) Then
-! write last total energy and add blank line to RMSDVEFF.OUT and TOTENERGY.OUT
-      Write (65,*)
-      Call flushifc(65)
+    If ((verbosity>-2).and.(rank==0)) Then
+! write last total energy and add blank line to TOTENERGY.OUT
       Write (61, '(G22.12)') engytot
       Write (61,*)
       Call flushifc(61)
+! add blank line to RMSDVEFF.OUT and DFSCFMAX.OUT
+      Write (65,*)
+      Call flushifc(65)
+      Write (67,*)
+      Call flushifc(67)
     End If
 
     Return

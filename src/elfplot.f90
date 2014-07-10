@@ -171,19 +171,18 @@ Subroutine elfplot
 ! plot the ELF to file
 !
       If (associated(input%properties%elfplot%plot1d)) Then
-          labels=>create_plotlablels("ELF","ELF",1)
+          labels=>create_plotlablels("ELF","ELF1D",1)
 		 call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
 		 call set_plotlabel_axis(labels,2,"ELF","???","graceunit")
          Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
         & elfmt, elfir, input%properties%elfplot%plot1d)
          call destroy_plotlablels(labels)
          Write (*,*)
-         Write (*, '("Info(elfplot):")')
-         Write (*, '(" 1D ELF plot written to ELF1D.xml")')
+         Write (*, '("Info(elfplot): 1D ELF plot written to ELF1D.xml")')
 
       End If
       If (associated(input%properties%elfplot%plot2d)) Then
-        labels=>create_plotlablels("DBXC","DBXC",2)
+        labels=>create_plotlablels("ELF","ELF2D",2)
 		 call set_plotlabel_axis(labels,1,"a","1","graceunit")
 		 call set_plotlabel_axis(labels,2,"b","1","graceunit")
 		 call set_plotlabel_axis(labels,3,"elfplot","???","graceunit")
@@ -191,11 +190,11 @@ Subroutine elfplot
         & elfmt, elfir, input%properties%elfplot%plot2d)
         call destroy_plotlablels(labels)
          Write (*,*)
-         Write (*, '("Info(elfplot): 2D ELF plot written to ELF2d.xml")&
+         Write (*, '("Info(elfplot): 2D ELF plot written to ELF2D.xml")&
         &')
       End If
       If (associated(input%properties%elfplot%plot3d)) Then
-       labels=>create_plotlablels("ELF","ELF",3)
+       labels=>create_plotlablels("ELF","ELF3D",3)
 		 call set_plotlabel_axis(labels,1,"a","1","graceunit")
 		 call set_plotlabel_axis(labels,2,"b","1","graceunit")
 		 call set_plotlabel_axis(labels,3,"b","1","graceunit")
@@ -204,7 +203,7 @@ Subroutine elfplot
         & elfmt, elfir, input%properties%elfplot%plot3d)
          call destroy_plotlablels(labels)
          Write (*,*)
-         Write (*, '("Info(elfplot): 3D ELF plot written to ELF3d.xml")&
+         Write (*, '("Info(elfplot): 3D ELF plot written to ELF3D.xml")&
         &')
       End If
       Write (*,*)

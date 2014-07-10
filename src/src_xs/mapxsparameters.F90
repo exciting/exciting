@@ -22,4 +22,6 @@ Subroutine mapxsparameters
       input%groundstate%lmaxapw = input%xs%lmaxapw
       input%groundstate%lmaxmat = input%xs%lmaxmat
       input%groundstate%nempty = input%xs%nempty
+      input%groundstate%spin%bfieldc (:) = input%xs%bfieldc(:)
+      input%groundstate%maxscl = input%xs%maxscl
 End Subroutine
