@@ -62,6 +62,25 @@
 		  </xs:attribute>
 		</xs:complexType>
 	      </xs:element>
+	      <xs:element ex:importance="essential" ex:unit="" name="region" maxOccurs="1" minOccurs="0">
+		<xs:complexType>
+		  <xs:attribute ex:importance="expert" ex:unit="Bohr" name="zmin" default="0.0d0" type="fortrandouble">
+		    <xs:annotation>
+		      <xs:documentation>Minimum z coordinate of the volumetric region for sampling the differential-conductance/ integrated-LDOS.</xs:documentation>
+		    </xs:annotation>
+		  </xs:attribute>
+		  <xs:attribute ex:importance="expert" ex:unit="Bohr" name="zmax" default="0.0d0" type="fortrandouble">
+		    <xs:annotation>
+		      <xs:documentation>Maximum z coordinate of the volumetric region for sampling the differential-conductance/ integrated-LDOS.</xs:documentation>
+		    </xs:annotation>
+		  </xs:attribute>
+		  <xs:attribute ex:importance="essential" ex:unit="" name="grid" type="integertriple">
+		    <xs:annotation>
+		      <xs:documentation>Number of grid points along first and second unit cell vectors and along the segment between zmin and zmax along the third cell vector.</xs:documentation>
+		    </xs:annotation>
+		  </xs:attribute>
+		</xs:complexType>
+	      </xs:element>
             </xs:all>
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="bias" default="0.0d0" type="fortrandouble">
               <xs:annotation>
