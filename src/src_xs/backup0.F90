@@ -16,5 +16,8 @@ Subroutine backup0
       lmaxapw_b = input%groundstate%lmaxapw
       lmaxmat_b = input%groundstate%lmaxmat
       maxscl_b = input%groundstate%maxscl
-      bfieldc_b = input%groundstate%spin%bfieldc
+      If (associated(input%groundstate%spin)) Then
+         bfieldc_b = input%groundstate%spin%bfieldc
+      End If
 End Subroutine backup0
+

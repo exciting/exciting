@@ -22,6 +22,8 @@ Subroutine mapxsparameters
       input%groundstate%lmaxapw = input%xs%lmaxapw
       input%groundstate%lmaxmat = input%xs%lmaxmat
       input%groundstate%nempty = input%xs%nempty
-      input%groundstate%spin%bfieldc (:) = input%xs%bfieldc(:)
+      If (associated(input%groundstate%spin)) Then
+         input%groundstate%spin%bfieldc (:) = input%xs%bfieldc(:)
+      End If
       input%groundstate%maxscl = input%xs%maxscl
 End Subroutine
