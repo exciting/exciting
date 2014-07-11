@@ -18,7 +18,8 @@ Subroutine genplot2d(fname)
   Integer :: i
 
   If(associated(input%properties%stm%plane)) Then
-
+     
+     ! only one of the z components must be different from zero
      Do i = 1, 3
         zc = input%structure%crystal%basevect(3, i)
         If (zc.gt.input%structure%epslat) exit

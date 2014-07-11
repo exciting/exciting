@@ -18,7 +18,7 @@ Subroutine checkinput()
      count = 0
      Do i = 1, 3
         zc = input%structure%crystal%basevect(3, i)
-        If (zc.gt.input%structure%epslat) Then
+        If (Abs(zc).gt.input%structure%epslat) Then
            count=count+1
            iz = i
         End If
@@ -32,12 +32,12 @@ Subroutine checkinput()
         stop
      End If
      xc =  input%structure%crystal%basevect(1, iz)
-     yc =  input%structure%crystal%basevect(1, iz)
-     If ((xc.gt.input%structure%epslat).or.(yc.gt.input%structure%epslat)) Then
+     yc =  input%structure%crystal%basevect(2, iz)
+     If ((Abs(xc).gt.input%structure%epslat).or.(Abs(yc).gt.input%structure%epslat)) Then
         write(*,*)
-        write(*,'("Error(stm): Lattice vector fo z component has non-null x or y component.")')
+        write(*,'("Error(stm): Lattice vector defining the normal to the surface has non-null x or y component.")')
         write(*,'("When using stm/plane element, it is assumed that")')
-        write(*,'("the lattice vector defining the z component is orthogonal to the xy plane. Stopping")')
+        write(*,'("the lattice vector defining the normal to the surface is orthogonal to the xy plane. Stopping")')
         write(*,*)
         stop
      End If
