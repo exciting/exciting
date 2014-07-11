@@ -40,7 +40,7 @@ integer :: read_i
 real(8) :: rlas,sn,zmin,zs, norm
 real(8) :: dph, force_sum, vgamc(3)
 real(8) :: read_dph, read_engy, read_force
-real(8) :: wlas, ws, dwlas, S_total, Sab
+real(8) :: wlas, ws, dwlas, S_total, Sab, t1
 ! timing
 real(8) :: start_time_cpu, finish_time_cpu, time_cpu_tot, t_cpu_proc
 real(8) :: start_time_wall, finish_time_wall, time_wall_tot
@@ -50,9 +50,6 @@ Complex(8), Allocatable :: ev(:, :)
 Complex(8), Allocatable :: dynq(:, :, :)
 Complex(8), Allocatable :: dynp(:, :)
 Complex(8), Allocatable :: dynr(:, :, :)
-! symmetrize derivatives of epsilon
-complex(8) :: deq_sym(3, 3)
-complex(8) :: sym_rt2(3, 3, 3, 3)
 ! check modes
 Logical, Allocatable :: active(:), acoustic(:)
 integer, allocatable :: irep(:)
@@ -425,8 +422,6 @@ do imode = 1, nmode
          if (rank .eq. 0) write(99, '(/,"Info(Raman): This mode is not Raman active",//)')
          cycle
       endif
-!  analyze symmetry of Raman tensor
-      if (rank .eq. 0) call construct_t2(irep(imode), sym_rt2)
 #ifdef MPI
 !     call MPI_Bcast(sym_rt2, 81, MPI_Double_Complex, 0, MPI_Comm_World, ierr)
 #endif
@@ -797,24 +792,9 @@ do imode = 1, nmode
 !
 !  first fit desired functions to given data points
 !  for the potential
-!  if (input%properties%raman%useforces) then
-!     call polyfit_forces(imode)
-!  else
-      call polyfit(imode)
-!  endif
+   call polyfit(imode)
 !  ...and the dielectric function
    call polyfit_diel (imode, rlas)
-! STK: we can only express some general symmetry of the derivatives for all degenerate modes together so far, 
-!      so the symmetrization is not applied for the time being
-!  if (input%properties%raman%usesym) then
-!     do oct1 = 1, 3
-!        do oct2 = 1, 3
-!           write(*,*) ' optical comp ',oct1,oct2
-!           write(*,'(3f17.3)') ((sym_rt2(oct1, oct2, i, j),j=1,3),i=1,3)
-!           call symt2app_raman(oct1, oct2, 1, sym_rt2, deq, deq_sym(oct1, oct2))
-!        enddo
-!     enddo
-!  endif
 !
 !  write PARAMETERS to OUTPUT file
    write(66,'(//,116("*"),/46("*"),"   START CALCULATION   ",47("*"))')
@@ -832,17 +812,6 @@ do imode = 1, nmode
     &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
     &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
     &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
-!  if (input%properties%raman%usesym) then
-!     write(66,'(/," Symmetrized derivatives of the dielectric function: ",/, &
-!      &           " Re                                         Im")')
-!     write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
-!      &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
-!      &           "  ( ",3f12.3," )       ( ",3f12.3," ) ")') &
-!      &   (dble(deq_sym(1, oct2)),oct2=1,3), (aimag(deq_sym(1, oct2)),oct2=1,3), &
-!      &   (dble(deq_sym(2, oct2)),oct2=1,3), (aimag(deq_sym(2, oct2)),oct2=1,3), &
-!      &   (dble(deq_sym(3, oct2)),oct2=1,3), (aimag(deq_sym(3, oct2)),oct2=1,3)
-!      write(66,'(/," The symmetrized derivatives will be used.",/)')
-!      deq = deq_sym
 !  endif
 !
    write(66, '(/," Include local field effects for dielectric function : ",l1)') .not.nlf
@@ -878,20 +847,16 @@ do imode = 1, nmode
     &   (dble(deq(1, oct2)),oct2=1,3), (aimag(deq(1, oct2)),oct2=1,3), &
     &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
     &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
-!  if (input%properties%raman%usesym) then
-!     write(66,'(/," Symmetrized derivatives of the dielectric function: ",/, &
-!      &           " Re                                         Im")')
-!     write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
-!      &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
-!      &           "  ( ",3f12.3," )       ( ",3f12.3," ) ")') &
-!      &   (dble(deq_sym(1, oct2)),oct2=1,3), (aimag(deq_sym(1, oct2)),oct2=1,3), &
-!      &   (dble(deq_sym(2, oct2)),oct2=1,3), (aimag(deq_sym(2, oct2)),oct2=1,3), &
-!      &   (dble(deq_sym(3, oct2)),oct2=1,3), (aimag(deq_sym(3, oct2)),oct2=1,3)
-!      write(66,'(/," The symmetrized derivatives will be used.",/)')
-!      deq = deq_sym
-!  endif
 !
-
+   t1 = 1.d0
+   if (.not. input%properties%raman%molecule) t1 = omega/4.d0/pi
+   write(66,'(/," Raman tensor for this mode [ Bohr^2 ]: ")')
+   write(66,'(/,"  ( ",3f12.3," ) ",/, &
+    &           "  ( ",3f12.3," ) ",/, &
+    &           "  ( ",3f12.3," ) ")') &
+    &   (abs(deq(1, oct2))*t1,oct2=1,3),  &
+    &   (abs(deq(2, oct2))*t1,oct2=1,3),  &
+    &   (abs(deq(3, oct2))*t1,oct2=1,3)
 !
 !    determine coefficients for N cells
    if( .not. input%properties%raman%molecule) call ncells(sn,ncell)
@@ -917,6 +882,12 @@ do imode = 1, nmode
    endif
    close (77)
 ! resonance behavior of the fundamental transition
+   ! conversion |deps/du|^2 -> Raman susceptibility |dchi'/dxi|^2 (Cardona's notation)
+   if (input%properties%raman%molecule) then
+      t1 = 1.d0/omega/fgew
+   else
+      t1 = omega/fgew/(4.d0/pi)**2
+   endif
    do oct1 = 1, 3
       do oct2 = oct1, 3
          if (oct1 .ne. oct2 .and. .not. offdiag) cycle
@@ -926,22 +897,26 @@ do imode = 1, nmode
    &              input%xs%energywindow%intv(1)) / &
    &              dble(input%xs%energywindow%points)
          if (input%properties%raman%molecule) then
-            write(77,'("# Resonance behavior of the fundamental transition",/, &
+            write(77,'("# Resonance behavior ",/, &
        &          "# Elas [ Ha ]     Elas [ eV ]     Elas [ nm ]     Esc [ Ha ]     ", &
+       &          "   |R|^2 [ au ]    ", &
        &          "(d sigma)/(d Omega) [ 10^-36 m^2 sr^-1 ]      ", &
        &          "(d sigma)/(d Omega)/Esc^4 [ 10^-60 m^6 sr^-1 ]",/)')
          else
-            write(77,'("# Resonance behavior of the fundamental transition",/, &
+            write(77,'("# Resonance behavior ",/, &
        &          "# Elas [ Ha ]     Elas [ eV ]     Elas [ nm ]     Esc [ Ha ]     ", &
+       &          "   |R|^2 [ au ]    ", &
        &          "S_tot [ 10^-5 sr^-1 m^-1 ]      S_tot/Esc^4 [ 10^-29 m^3 sr^-1 ]",/)')
          endif
          do iw = 1, input%xs%energywindow%points
             wlas = input%xs%energywindow%intv(1) + dble(iw - 1)*dwlas
+            if (wlas .lt. eps) cycle
             call polyfit_diel_res(imode, iw)
             call epsshift(zs)
             call spectrum_res(wlas, oct1, oct2, Sab, ws)
-            write(77,'(f12.5,3x,f12.3,3x,f12.2,3x,f12.5,5x,2g20.8)') &
-       &    wlas, wlas*fhaev, 1.d0/(wlas*fharnm), ws, Sab, Sab/(ws*fhawn)**3/(wlas*fhawn)*1.d16
+            write(77,'(f12.5,3x,f12.3,3x,f12.2,3x,f12.5,5x,3g20.8)') &
+       &    wlas, wlas*fhaev, 1.d0/(wlas*fharnm), ws, t1*abs(deq(oct1, oct2))**2, &
+       &       Sab, Sab/(ws*fhawn)**3/(wlas*fhawn)*1.d16
          enddo
          close(77)
       enddo
