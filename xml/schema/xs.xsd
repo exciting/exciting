@@ -1099,6 +1099,22 @@
 	  </xs:documentation>
 	</xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="dogroundstate" default="fromfile">
+	<xs:annotation>
+	  <xs:appinfo>
+	    <oldname>nonreplace</oldname>
+	  </xs:appinfo>
+          <xs:documentation> Decides if the ground state is calculated starting from scratch or using
+	  the densities from file.</xs:documentation>
+	</xs:annotation>
+	<xs:simpleType>
+	  <xs:restriction base="xs:string">
+	    <xs:enumeration value="fromscratch"/>
+	    <xs:enumeration value="fromfile"/>
+	  </xs:restriction>
+	</xs:simpleType>
+      </xs:attribute>
+
       <xs:attribute ex:importance="expert" ex:unit="" name="maxscl" type="xs:integer"
 		    default="1">
 	<xs:annotation>

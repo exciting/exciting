@@ -31,17 +31,18 @@ Contains
          filext = trim (filxt)
          input%groundstate%vkloff = voff
          task = 1
-!         input%groundstate%maxscl = 1
- !        If (associated(input%groundstate%spin)) Then
- !           If (input%groundstate%spin%reducebf.Gt.input%xs%epsdfde) Then
- !              input%groundstate%spin%bfieldc(:) = 0.0d0
- !           End If
- !        End If
+
+         !ran gs from scratch if spin polarized calculation is needed.
+         If (input%xs%dogroundstate .Eq. "fromscratch") Then
+           task=0
+         End If
     ! call with the above parameters changed
          Call gndstate
          Call rewritesorted
     ! restore original parameters
-         filext = trim (filext_save)
+         If (input%xs%dogroundstate .Ne. "fromscratch") Then
+            filext = trim (filext_save)
+         End If
          input%groundstate%vkloff = vkloff_save
   !       If (associated(input%groundstate%spin)) Then
   !          input%groundstate%spin%bfieldc = bfieldc_save

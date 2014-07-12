@@ -18,6 +18,7 @@ Subroutine init2
 #ifdef XS
       Real (8) :: v (3), t1
       Integer :: iq, iv (3)
+      Character (256) :: filex
 #endif
 
       Call timesec (ts0)
@@ -311,7 +312,17 @@ Subroutine init2
 !------------------------!
 ! read density and potentials from file (STATE.OUT) exclusively
       isreadstate0 = .True.
-      Call readstate
+      If (input%xs%dogroundstate .Ne. "fromscratch") Then 
+         Call readstate
+      Else
+         If(task .Ne. 301) Then 
+            isreadstate0 = .False.
+            filex = trim(filext)
+            filext = '_QMT001.OUT'
+            Call readstate
+            filext = trim(filex)
+         End If
+      End If
       isreadstate0 = .False.
 ! find the new linearisation energies
       Call linengy
