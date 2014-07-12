@@ -2762,10 +2762,17 @@
               <xs:documentation>
               Specify the SCF convergence criteria
               <list>
-                <li>"energy"   - only total energy of the system is used as a convergence criterion</li>
-                <li>"multiple" - total energy, self-consistent contributions to the atomic forces, 
-		     Kohn-Sham potential and total electronic charge of the system are used as 
-		     convergence criteria</li> 
+                <li>"energy"    - only the total energy of the system is used as a convergence criterion. 
+		     If the calculation of the atomic forces is required 
+		     (e.g., in the optimization of the atomic positions) the non-IBS contribution 
+		     to the atomic forces is added as a further convergence criterion.</li>
+                <li>"potential" - only the Kohn-Sham potential is used as a convergence criterion. 
+		     If atomic forces are required the convergence criterion is extended 
+		     to include non-IBS forces. </li>
+                <li>"multiple"  - total energy, Kohn-Sham potential, and total electronic charge of the system 
+		     are used as convergence criteria. 
+		     If atomic forces are required the convergence criterion 
+		     is extended to include non-IBS forces.</li> 
               </list>
               </xs:documentation>
           </xs:annotation>

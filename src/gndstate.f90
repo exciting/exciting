@@ -103,7 +103,9 @@ Subroutine gndstate
         end if
 
 ! open DFSCFMAX.OUT
-       open(67,file='DFSCFMAX'//trim(filext),action='WRITE',form='FORMATTED')
+        if (input%groundstate%tforce) then
+            open(67,file='DFSCFMAX'//trim(filext),action='WRITE',form='FORMATTED')
+        end if
 
 ! open FERMIDOS.OUT
 !        Open (62, File='FERMIDOS'//trim(filext), Action='WRITE', Form='FORMATTED')
@@ -116,10 +118,11 @@ Subroutine gndstate
 !        open(66,file='DTOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
 ! open CHGDIST.OUT
 !        open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
-! open PCHARGE.OUT
 
-        if (input%groundstate%tpartcharges) &
-       &  open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
+! open PCHARGE.OUT
+        if (input%groundstate%tpartcharges) then
+            open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
+        end if
 
     end if ! rank
 
@@ -193,7 +196,7 @@ Subroutine gndstate
 ! close the MOMENT.OUT file
         if (associated(input%groundstate%spin)) close(63)
 ! close the DFSCFMAX.OUT file
-        close(67)
+        if (input%groundstate%tforce) close(67)
 
 ! close the DTOTENERGY.OUT file
 ! close the FERMIDOS.OUT file
