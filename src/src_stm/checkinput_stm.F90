@@ -5,7 +5,7 @@
 ! See the file COPYING for license details.
 !
 !
-Subroutine checkinput()
+Subroutine checkinput_stm()
   Use modmain
   Use modinput
   use modplotlabels
@@ -14,7 +14,7 @@ Subroutine checkinput()
   Integer :: i, count, iz
   Real(8) :: xc,yc,zc
 
-  If(associated(input%properties%stm%plane)) Then
+  If(associated(input%properties%stm%region)) Then
      count = 0
      Do i = 1, 3
         zc = input%structure%crystal%basevect(3, i)
@@ -42,7 +42,7 @@ Subroutine checkinput()
         stop
      End If
   End If
-End Subroutine checkinput
+End Subroutine checkinput_stm
 
 
 
