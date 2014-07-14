@@ -4,6 +4,7 @@
 ! See the file COPYING for license details.
 !
 !Created March 2008 (DIN)
+!Modified Okt 2013 (DIN,UW) 
 !Revision March 2014 (UW)
 
 subroutine deltax

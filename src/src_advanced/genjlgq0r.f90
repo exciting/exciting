@@ -6,7 +6,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-!    Add OMP April 2014 (UW)
+!    Modified April 2014 (UW)
 Subroutine genjlgq0r (gq0, jlgq0r)
       Use modmain
       Use modinput

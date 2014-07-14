@@ -52,6 +52,9 @@ subroutine xcifc_libxc(xctype,n,rho,rhoup,rhodn,grho2,gup2,gdn2,gupdn,ex,ec, &
 ! !REVISION HISTORY:
 !   Created April 2009 (Tyrel McQueen)
 !   Modified September 2009 (JKD and TMQ)
+!   Modified September 2012 (UW)
+!   Modified Januar 2013(UW)
+!   Modified Oktober 2013 (UW)
 !EOP
 !BOC
 implicit none

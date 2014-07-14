@@ -33,7 +33,7 @@ Complex (8) Function zfmtinp (tsh, lmax, nr, r, ld, zfmt1, zfmt2)
 !
 ! !REVISION HISTORY:
 !   Created November 2003 (Sharma)
-!   Add OMP April 2014 (UW)
+!   Modified April 2014 (UW)
 !EOP
 !BOC
       Implicit None

@@ -5,7 +5,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-!
+! Modified March 2014  (UW)
 Subroutine exxengyk ( evv, ecv, ikp)
       Use modmain
       Use modinput

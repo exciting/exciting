@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-!   add OMP April 2014 (UW)
+!   Modified April 2014 (UW)
 Subroutine oepresk (ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
       Use modmain
       Use modinput
