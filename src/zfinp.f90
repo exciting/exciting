@@ -35,7 +35,7 @@ Complex (8) Function zfinp (tsh, zfmt1, zfmt2, zfir1, zfir2)
 !
 ! !REVISION HISTORY:
 !   Created July 2004 (Sharma)
-!   add OMP March 2014 (UW)
+!   Modified March 2014 (UW)
 !EOP
 !BOC
       Implicit None

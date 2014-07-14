@@ -19,7 +19,9 @@ Subroutine oepmain
 !   Main routine for the calculation of the optimized effective potential.
 !
 ! !REVISION HISTORY:
-!   .....
+!  Created ()
+!  Modified Feb 2014 (UW)
+!  Modified March 2014 (UW)
 !EOP
 !BOC
 

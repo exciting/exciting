@@ -25,7 +25,7 @@ Subroutine packeff (tpack, n, nu)
 !
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
-!   modified Feb 2014 (UW)
+!   Modified Feb 2014 (UW)
 !EOP
 !BOC
       Implicit None

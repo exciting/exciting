@@ -55,6 +55,7 @@ subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
 !
 ! !REVISION HISTORY:
 !   Created October 2002 (JKD)
+!   Modiefied Januar 2013 (UW)
 !EOP
 !BOC
 implicit none

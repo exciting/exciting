@@ -16,6 +16,8 @@ Subroutine hybrids
 !
 ! !REVISION HISTORY:
 !   Created September 2013 (DIN)
+!   Modified Oktober 2013
+!   Modified Februar 2014
 !EOP
 !BOC
     Implicit None

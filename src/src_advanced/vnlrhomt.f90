@@ -30,7 +30,7 @@ Subroutine vnlrhomt (tsh, is, wfmt1, wfmt2, zrhomt)
 !
 ! !REVISION HISTORY:
 !   Created November 2004 (Sharma)
-!   Added OMP April 2014 (UW)
+!   Modified April 2014 (UW)
 !EOP
 !BOC
       Implicit None

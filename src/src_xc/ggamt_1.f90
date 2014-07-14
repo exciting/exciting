@@ -22,6 +22,7 @@ use mod_potential_and_density
 !
 ! !REVISION HISTORY:
 !   Created November 2009 (JKD)
+!   Modified Mai 2012 (UW)
 !EOP
 !BOC
 implicit none

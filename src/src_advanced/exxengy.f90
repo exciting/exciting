@@ -5,7 +5,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-!
+! Modified March 2014 (UW)
 Subroutine exxengy
       Use modmain
       Use modinput
