@@ -51,7 +51,7 @@ Subroutine df
         & Max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
       End If
   ! read Fermi energy
-      Call readfermi
+      If (input%xs%dogroundstate .Ne. "fromscratch") Call readfermi
   ! w-point parallelization for dielectric function
       If (tscreen) Then
          nwdf = 1
@@ -66,7 +66,12 @@ Subroutine df
   ! loop over q-points
       Do iq = qpari, qparf
 
-         Call genfilname (iq=iq, fileext=filex)
+         If (input%xs%dogroundstate .Eq. "fromscratch") Then 
+            Call genfilname (iqmt=iq, fileext=filex, setfilext=.True.)
+            Call readfermi
+         Else
+            Call genfilname (iq=iq, fileext=filex)
+         End If
      ! call for q-point
          Call dfq (iq)
          If (tscreen) Call writegqpts (iq, filex)

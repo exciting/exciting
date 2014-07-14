@@ -45,6 +45,9 @@ Subroutine groundstatetasklauncher
             task = 1
         End If
     End If
+    If (associated(input%groundstate%OEP)) Then
+        input%groundstate%scfconv = 'potential'       
+    End If
     If (input%groundstate%do .Ne. "skip") then
         ! Hartree Fock 
         If  (associated(input%groundstate%HartreeFock)) Then

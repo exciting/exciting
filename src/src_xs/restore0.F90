@@ -15,4 +15,8 @@ Subroutine restore0
       input%groundstate%swidth = swidth_b
       input%groundstate%lmaxapw = lmaxapw_b
       input%groundstate%lmaxmat = lmaxmat_b
+      input%groundstate%maxscl = maxscl_b
+      If (associated(input%groundstate%spin)) Then
+         input%groundstate%spin%bfieldc = bfieldc_b
+      End If
 End Subroutine restore0

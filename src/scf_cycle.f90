@@ -403,17 +403,19 @@ subroutine scf_cycle(verbosity)
         End If
 
 ! compute the energy components
-        et=engytot
+        et = engytot
         Call energy
         Call timesec(ts1)
         timepot=ts1-ts0+timepot
 !! TIME - End of potential
 
 ! compute the forces (without IBS corrections)
-        tibs=input%groundstate%tfibs
-        input%groundstate%tfibs=.false.
-        Call force
-        input%groundstate%tfibs=tibs
+        if (input%groundstate%tforce) then
+            tibs=input%groundstate%tfibs
+            input%groundstate%tfibs=.false.
+            Call force
+            input%groundstate%tfibs=tibs
+        end if
 
 !! TIME - Third IO segment  
         Call timesec(ts0)      
@@ -471,33 +473,50 @@ subroutine scf_cycle(verbosity)
 ! update convergence criteria
         deltae=abs(et-engytot)
         et = engytot
-        dforcemax=abs(fm-forcemax)
+        if (input%groundstate%tforce) then
+            dforcemax=abs(fm-forcemax)
+            if (dforcemax .lt. 1.d-10) dforcemax=0.
+        end if
 
 !! TIME - Fourth IO segment
         Call timesec(ts0)
 
 ! output the current total time
-
         timetot = timeinit+timemat+timefv+timesv+timerho+timepot+timefor+timeio+timemt+timemixer
         if ((verbosity>-1).and.(rank==0)) then
             write(60,*) 
-            write(60, '(" Wall time (seconds)                        : ", F12.2)') timetot
+            write(60, '(" Wall time (seconds)",T45 ": ", F12.2)') timetot
         end if
 
-        if ((verbosity>-1).and.(rank==0)) then ! write TOTENERGY.OUT 
+! write TOTENERGY.OUT 
+        if ((verbosity>-1).and.(rank==0)) then 
             Write (61, '(G22.12)') engytot
             Call flushifc (61)
         end if
 
-! check for convergence
+! convergence issues
+
         If (iscl .Ge. 2) Then
 
+!...write convergence if only energy
             if ((verbosity>-1).and.(rank==0).and.(input%groundstate%scfconv.eq.'energy')) then
                 write(60,*)
                 write(60,'(" Absolute change in total energy   (target) : ",G13.6,"  (",G13.6,")")') &
                &    deltae, input%groundstate%epsengy
             end if
 
+!...write convergence if only potential
+            if ((verbosity>-1).and.(rank==0).and.(input%groundstate%scfconv.eq.'potential')) then
+                if (associated(input%groundstate%OEP)) then
+                    write(60,*)
+                    write(60, '(" Magnitude of OEP residual",T45 ": ", F18.8)') resoep
+                end if
+                write(60,*)
+                Write(60,'(" RMS change in effective potential (target) : ",G13.6,"  (",G13.6,")")') &
+               &    currentconvergence, input%groundstate%epspot
+            end if
+
+!...write convergence if multiple convergence
             if ((verbosity>-1).and.(rank==0).and.(input%groundstate%scfconv.eq.'multiple')) then
                 write(60,*)
                 Write(60,'(" RMS change in effective potential (target) : ",G13.6,"  (",G13.6,")")') &
@@ -506,35 +525,42 @@ subroutine scf_cycle(verbosity)
                &    deltae, input%groundstate%epsengy
                 write(60,'(" Charge distance                   (target) : ",G13.6,"  (",G13.6,")")') &
                &    chgdst, input%groundstate%epschg
-                write(60,'(" Absolute change in max-scf-force  (target) : ",G13.6,"  (",G13.6,")")') &
+            end if
+
+!...if tforce=true write also convergence of non-IBS forces
+            if ((verbosity>-1).and.(rank==0).and.(input%groundstate%tforce)) then
+                write(60,'(" Abs. change in max-nonIBS-force   (target) : ",G13.6,"  (",G13.6,")")') &
                &    dforcemax, input%groundstate%epsforcescf
-                if ((input%groundstate%xctypenumber .Lt. 0).Or.(xctype(2) .Ge. 400).Or.(xctype(1) .Ge. 400)) then
-                    write(60,*)
-                    write(60, '(" Magnitude of OEP residual : ", F16.8)') resoep
+            end if
+
+! write in RMSDVEFF.OUT and DFSCFMAX.OUT
+            if ((verbosity>-2).and.(rank==0)) then 
+                Write (65, '(G18.10)') currentconvergence
+                Call flushifc(65)
+                if (input%groundstate%tforce) then
+                    Write (67, '(G22.12)') dforcemax
+                    Call flushifc(67)
                 end if
             end if
 
-            if ((verbosity>-2).and.(rank==0)) then ! write in RMSDVEFF.OUT and DFSCFMAX.OUT
-                Write (65, '(G18.10)') currentconvergence
-                Call flushifc(65)
-                Write (67, '(G22.12)') dforcemax
-                Call flushifc(67)
+! check for convergence
+
+            if (input%groundstate%scfconv .eq. 'energy') &
+           &    tlast = (deltae .lt. input%groundstate%epsengy)
+
+            if (input%groundstate%scfconv .eq. 'potential') &
+           &    tlast = (currentconvergence .lt. input%groundstate%epspot)
+
+            if (input%groundstate%scfconv .eq. 'multiple') then
+                tlast = (currentconvergence .lt. input%groundstate%epspot) .and. &
+               &        (deltae .lt. input%groundstate%epsengy) .and. &
+               &        (chgdst .lt. input%groundstate%epschg)
             end if
 
-            If ((input%groundstate%scfconv.eq.'energy').and.(deltae .lt. input%groundstate%epsengy)) Then
-                tlast = .True.
-            End If
-
-            If ((input%groundstate%scfconv.eq.'multiple').and. &
-           &    (currentconvergence .Lt. input%groundstate%epspot).and. &
-           &    (deltae .lt. input%groundstate%epsengy).and. &
-           &    (chgdst .lt. input%groundstate%epschg).and. &
-           &    (dforcemax .lt. input%groundstate%epsforcescf)) Then
-                tlast = .True.
-            End If
-
-!            et = engytot
-            fm = forcemax
+            if (input%groundstate%tforce) then
+                tlast = tlast .and. (dforcemax .lt. input%groundstate%epsforcescf)
+                fm = forcemax
+            end if
             
 ! check for STOP file
             if (rank==0) then
@@ -649,8 +675,10 @@ subroutine scf_cycle(verbosity)
 ! add blank line to RMSDVEFF.OUT and DFSCFMAX.OUT
       Write (65,*)
       Call flushifc(65)
-      Write (67,*)
-      Call flushifc(67)
+      if (input%groundstate%tforce) then 
+          Write (67,*)
+          Call flushifc(67)
+      end if
     End If
 
     Return
