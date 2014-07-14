@@ -507,7 +507,7 @@ subroutine scf_cycle(verbosity)
 
 !...write convergence if only potential
             if ((verbosity>-1).and.(rank==0).and.(input%groundstate%scfconv.eq.'potential')) then
-                if ((input%groundstate%xctypenumber .Lt. 0).Or.(xctype(2) .Ge. 400).Or.(xctype(1) .Ge. 400)) then
+                if (associated(input%groundstate%OEP)) then
                     write(60,*)
                     write(60, '(" Magnitude of OEP residual",T45 ": ", F18.8)') resoep
                 end if

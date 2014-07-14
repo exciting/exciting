@@ -181,7 +181,7 @@
             <xs:documentation>Options for hybrid functionals.</xs:documentation>
           </xs:annotation>                 
           <xs:complexType>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="exchangetype" default="HF">
+            <xs:attribute ex:importance="experimental" ex:unit="" name="exchangetype" default="OEP">
               <xs:annotation>
                   <xs:documentation> Type of exchange (Hartree Fock or OEP) 
                   to be used for the exact exchange.
