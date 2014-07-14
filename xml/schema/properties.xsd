@@ -43,51 +43,77 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
-        <xs:element ex:importance="expert" ex:unit="" name="STM" minOccurs="0" maxOccurs="1">
+        <xs:element ex:importance="expert" ex:unit="" name="stm" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+	      <xs:element ex:importance="essential" ex:unit="" name="region" maxOccurs="1" minOccurs="0">
+		<xs:complexType>
+		  <xs:attribute ex:importance="expert" ex:unit="Bohr" name="height" default="0.0d0" type="fortrandouble">
+		    <xs:annotation>
+		      <xs:documentation>Height (z-coordinate) of the STM tip in Bohr radius, measured from the absolute origin of the unit cell as 
+		      defined in the structure element. Assumes the surface is in xy plane.</xs:documentation>
+		    </xs:annotation>
+		  </xs:attribute>
+		  <xs:attribute ex:importance="essential" ex:unit="" name="grid2d" default="10 10" type="integerpair">
+		    <xs:annotation>
+		      <xs:documentation>Number of grid points along first and second unit cell vectors, respectively.</xs:documentation>
+		    </xs:annotation>
+		  </xs:attribute>
+	  	  <xs:attribute ex:importance="expert" ex:unit="Bohr" name="zrange" default="0.0 0.0" type="vect2d">
+		    <xs:annotation>
+		      <xs:documentation>Pair of floats giving the minimum and maximum z coordinate of the volumetric 
+		      region for sampling the differential-conductance or integrated-LDOS in topographic mode.</xs:documentation>
+		    </xs:annotation>
+		  </xs:attribute>
+		  <xs:attribute ex:importance="essential" ex:unit="" name="grid3d" default="10 10 10" type="integertriple">
+		    <xs:annotation>
+		      <xs:documentation>Number of grid points along first and second unit cell vectors and along the segment between zmin and zmax along the third cell vector.</xs:documentation>
+		    </xs:annotation>
+		  </xs:attribute>
+		</xs:complexType>
+	      </xs:element>
             </xs:all>
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="bias" default="0.0d0" type="fortrandouble">
-            	<xs:annotation>
-                	<xs:documentation>Value of the STM bias voltage in Hartree. A positive value gives an empty states STM image while a negative bias gives a filled states images.</xs:documentation>
-              	</xs:annotation>
+              <xs:annotation>
+                <xs:documentation>Value of the STM bias voltage in Hartree. A positive value gives an empty states STM image while a negative bias gives a filled states images.</xs:documentation>
+              </xs:annotation>
             </xs:attribute>
-        	<xs:attribute ex:importance="expert" ex:unit="" name="stmtype" default="differentialConductance">
-            	<xs:annotation>
-                	<xs:documentation>Specifies the type of STM calculation.
-                		<list>
-              				<li> differentialConductance (default): calculation of the LDOS at an energy Ef+bias. </li>
-              				<li> integratedLDOS: integrates the LDOS in the range [Ef,Ef+bias] for positive bias and in the range [Ef+bias, Ef] for negative bias.</li>
-            			</list>
-                	</xs:documentation>
-              	</xs:annotation>
-              	<xs:simpleType>
-		        	<xs:restriction base="xs:string">
-            			<xs:enumeration value="differentialConductance">
-            			</xs:enumeration>
-            			<xs:enumeration value="integratedLDOS">
-            			</xs:enumeration>
-          			</xs:restriction>
-        		</xs:simpleType>
+            <xs:attribute ex:importance="expert" ex:unit="" name="stmtype" default="differentialConductance">
+              <xs:annotation>
+                <xs:documentation>Specifies the type of STM calculation.
+		<list>
+		  <li> differentialConductance (default): calculation of the LDOS at an energy Ef+bias. </li>
+		  <li> integratedLDOS: integrates the LDOS in the range [Ef,Ef+bias] for positive bias and in the range [Ef+bias, Ef] for negative bias.</li>
+		</list>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+		<xs:restriction base="xs:string">
+            	  <xs:enumeration value="differentialConductance">
+            	  </xs:enumeration>
+            	  <xs:enumeration value="integratedLDOS">
+            	  </xs:enumeration>
+          	</xs:restriction>
+              </xs:simpleType>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="stmmode" default="constantHeight">
-            	<xs:annotation>
-                	<xs:documentation>Specifies the STM mode of operation to be simulated.
-                		<list>
-              				<li> constantHeight (default): Calculates the property defined in the "stmtype" attribute on a two-dimensional mesh defined by the plot2d element. </li>
-              				<li> topographic: (to be implemented) Calculates the iso-surface of the property defined in the "stmtype" attribute.</li>
-            			</list>
-                	</xs:documentation>
-              	</xs:annotation>
-              	<xs:simpleType>
-		        	<xs:restriction base="xs:string">
-            			<xs:enumeration value="constantHeight">
-            			</xs:enumeration>
-            			<xs:enumeration value="topographic">
-            			</xs:enumeration>
-          			</xs:restriction>
-        		</xs:simpleType>
+              <xs:annotation>
+                <xs:documentation>Specifies the STM mode of operation to be simulated.
+		<list>
+		  <li> constantHeight (default): Calculates the property defined in the "stmtype" attribute on a two-dimensional mesh defined by the plot2d element. </li>
+		  <li> topographic: (to be implemented) Calculates the iso-surface of the property defined in the "stmtype" attribute.</li>
+		</list>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+		<xs:restriction base="xs:string">
+            	  <xs:enumeration value="constantHeight">
+            	  </xs:enumeration>
+            	  <xs:enumeration value="topographic">
+            	  </xs:enumeration>
+          	</xs:restriction>
+              </xs:simpleType>
             </xs:attribute>
           </xs:complexType>
         </xs:element>
