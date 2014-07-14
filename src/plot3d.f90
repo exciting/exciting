@@ -46,11 +46,12 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
     Real (8), Intent (In) :: rfir (ngrtot, nf)
     Type (plot3d_type), Intent (In) :: plotdef
 ! local variables
-    Integer :: np, ip1, ip2, ip3, i, ifunction 
+    Integer :: np, ip1, ip2, ip3, i, ifunction, ip 
     Real (8) :: tmpv(3)
     Character (512) :: buffer
     Character (20) :: buffer20
     Type (xmlf_t), Save :: xf
+    Real (8) :: v1(3), v2(3), v3(3), t1, t2, t3
 ! allocatable arrays
     Integer,  Allocatable :: ipmap (:,:,:)
     Real (8), Allocatable :: vpl (:,:)
@@ -76,7 +77,32 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
 !
 ! generate the 3d point grid and reduce it using the crystal symmetry
 !
-        call gengrid(plotdef%box%grid,np,ipmap,vpl)
+        v1 (:) = plotdef%box%pointarray(1)%point%coord - &
+             & plotdef%box%origin%coord
+        v2 (:) = plotdef%box%pointarray(2)%point%coord - &
+             & plotdef%box%origin%coord
+        v3 (:) = plotdef%box%pointarray(3)%point%coord - &
+             & plotdef%box%origin%coord
+
+        If(plotdef%usesym) Then
+           call gengrid(plotdef%box%grid,np,ipmap,vpl)
+        Else
+           ip = 0
+           Do ip3 = 0, plotdef%box%grid(3)
+              t3 = dble (ip3) / dble (plotdef%box%grid(3))
+              Do ip2 = 0, plotdef%box%grid(2)
+                 t2 = dble (ip2) / dble (plotdef%box%grid(2))
+                 Do ip1 = 0, plotdef%box%grid(1)
+                    t1 = dble (ip1) / dble (plotdef%box%grid(1))
+                    ip = ip + 1
+                    ipmap(ip1,ip2,ip3) = ip
+                    vpl (:, ip) = t1 * v1 (:) + t2 * v2 (:) + t3 * v3 (:) + &
+                         & plotdef%box%origin%coord
+                 End Do
+              End Do
+           End Do
+           np = ip
+        End If
 !      
 ! evaluate the total density at the reduced grid points
 !
@@ -109,14 +135,13 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
         call xml_AddAttribute(xf, "label", get_label(plotlabels3d,1))
         call xml_AddAttribute (xf, "latexunit", get_latexunit(plotlabels3d,1))
         call xml_AddAttribute (xf, "graceunit", get_graceunit(plotlabels3d,1))
-        write(buffer,'(3F12.3)') plotdef%box%pointarray(1)%point%coord
+        !write(buffer,'(3F12.3)') plotdef%box%pointarray(1)%point%coord
+        write(buffer,'(3F12.3)') v1
         call xml_AddAttribute(xf, "endpoint", trim(adjustl(buffer)))
-        write(buffer,'(3F12.3)') &
-       &  (plotdef%box%pointarray(1)%point%coord-plotdef%box%origin%coord)/ &
-       &  plotdef%box%grid(1)
+        write(buffer,'(3F12.3)') v1/plotdef%box%grid(1)
         call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
         call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3, &
-       &  plotdef%box%pointarray(1)%point%coord,1,0.d0,tmpv(1),1)
+       &  v1,1,0.d0,tmpv(1),1)
         write (buffer,'(3F12.3)') tmpv
         call xml_AddAttribute(xf, "endpointrs", trim(adjustl(buffer)))
         call xml_endElement(xf, "axis")
@@ -126,14 +151,13 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
         call xml_AddAttribute(xf, "label", get_label(plotlabels3d,2))
         call xml_AddAttribute(xf, "latexunit", get_latexunit(plotlabels3d,2))
         call xml_AddAttribute(xf, "graceunit", get_graceunit(plotlabels3d,2))
-        write (buffer,'(3F12.3)') plotdef%box%pointarray(2)%point%coord
+        !write (buffer,'(3F12.3)') plotdef%box%pointarray(2)%point%coord
+        write(buffer,'(3F12.3)') v2
         call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
-        write (buffer,'(3F12.3)') &
-       &  (plotdef%box%pointarray(2)%point%coord-plotdef%box%origin%coord)/ &
-       &  plotdef%box%grid(2)
+        write(buffer,'(3F12.3)') v2/plotdef%box%grid(2)
         call xml_AddAttribute(xf, "delta", trim(adjustl(buffer)))
         call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3, &
-       &  plotdef%box%pointarray(2)%point%coord,1,0.d0,tmpv(1),1)
+       &  v2,1,0.d0,tmpv(1),1)
         write(buffer, '(3F12.3)') tmpv
         call xml_AddAttribute(xf, "endpointrs", trim(adjustl(buffer)))
         call xml_endElement(xf, "axis")
@@ -143,14 +167,13 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
         call xml_AddAttribute(xf, "label", get_label(plotlabels3d,3))
         call xml_AddAttribute(xf, "latexunit", get_latexunit(plotlabels3d,3))
         call xml_AddAttribute(xf, "graceunit", get_graceunit(plotlabels3d,3))
-        write(buffer,'(3F12.3)') plotdef%box%pointarray(3)%point%coord
+        !write(buffer,'(3F12.3)') plotdef%box%pointarray(3)%point%coord
+        write(buffer,'(3F12.3)') v3
         call xml_AddAttribute(xf, "endpoint", trim(adjustl(buffer)))
-        write(buffer, '(3F12.3)') &
-       &  (plotdef%box%pointarray(3)%point%coord-plotdef%box%origin%coord)/ &
-       &  plotdef%box%grid(3)
+        write(buffer,'(3F12.3)') v3/plotdef%box%grid(3)
         call xml_AddAttribute(xf, "delta", trim(adjustl(buffer)))
         call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3, &
-       &  plotdef%box%pointarray(3)%point%coord,1,0.d0,tmpv(1),1)
+       &  v3,1,0.d0,tmpv(1),1)
         write (buffer, '(3F12.3)') tmpv
         call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
         call xml_endElement(xf, "axis")
