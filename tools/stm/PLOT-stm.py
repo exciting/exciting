@@ -138,9 +138,7 @@ if mode == 2:
     cmd=cmd+"rm input.xsf.tmp stm3d.xsf.tmp\n"
     cmd=cmd+"xcrysden --script STM3d.xcrysden\n"
 
-    print cmd
-
-    #os.system(cmd)
+    os.system(cmd)
 
 
 
