@@ -52,6 +52,7 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
     Character (20) :: buffer20
     Type (xmlf_t), Save :: xf
     Real (8) :: v1(3), v2(3), v3(3), t1, t2, t3
+    Real (8) :: boxl(3,4)
 ! allocatable arrays
     Integer,  Allocatable :: ipmap (:,:,:)
     Real (8), Allocatable :: vpl (:,:)
@@ -74,18 +75,19 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
         &  0:plotdef%box%grid(2), 0:plotdef%box%grid(3)))
         allocate(vpl(3,(plotdef%box%grid(1)+1)* &
         &  (plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
+        v1(:) = plotdef%box%pointarray(1)%point%coord
+        v2(:) = plotdef%box%pointarray(2)%point%coord
+        v3(:) = plotdef%box%pointarray(3)%point%coord
 !
-! generate the 3d point grid and reduce it using the crystal symmetry
+! generate the 3d point grid
 !
-        v1 (:) = plotdef%box%pointarray(1)%point%coord - &
-             & plotdef%box%origin%coord
-        v2 (:) = plotdef%box%pointarray(2)%point%coord - &
-             & plotdef%box%origin%coord
-        v3 (:) = plotdef%box%pointarray(3)%point%coord - &
-             & plotdef%box%origin%coord
-
-        If(plotdef%usesym) Then
-           call gengrid(plotdef%box%grid,np,ipmap,vpl)
+        If (plotdef%usesym) Then
+           boxl(:,1) = plotdef%box%origin%coord
+           boxl(:,2) = plotdef%box%pointarray(1)%point%coord
+           boxl(:,3) = plotdef%box%pointarray(2)%point%coord
+           boxl(:,4) = plotdef%box%pointarray(3)%point%coord
+           ! reduce the grid using the crystal symmetry
+           call gengrid(plotdef%box%grid,boxl,np,ipmap,vpl)
         Else
            ip = 0
            Do ip3 = 0, plotdef%box%grid(3)
@@ -96,8 +98,10 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
                     t1 = dble (ip1) / dble (plotdef%box%grid(1))
                     ip = ip + 1
                     ipmap(ip1,ip2,ip3) = ip
-                    vpl (:, ip) = t1 * v1 (:) + t2 * v2 (:) + t3 * v3 (:) + &
-                         & plotdef%box%origin%coord
+                    vpl(:, ip) = t1 * v1(:) + &
+                    &            t2 * v2(:) + &
+                    &            t3 * v3(:) + &
+                    &            plotdef%box%origin%coord
                  End Do
               End Do
            End Do
@@ -221,7 +225,7 @@ CONTAINS
 !
 !==================================================================
 !
-Subroutine gengrid (ngridp, npt, ipmap, vpl)
+  Subroutine gengrid (ngridp, b, npt, ipmap, vpl)
 !
 ! Created, February 2011 (D. Nabok) 
 ! 3D real space grid is reduced using the system symmetry
@@ -231,6 +235,7 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
       Implicit None
 ! arguments
       Integer, Intent (In)  :: ngridp(3)
+      real(8), intent(in) :: b(3,4)
       Integer, Intent (Out) :: npt
       Integer, Intent (Out) :: ipmap(0:ngridp(1), 0:ngridp(2), 0:ngridp(3))
       Real (8), Intent (Out) :: vpl(3,(ngridp(1)+1)*(ngridp(2)+1)*(ngridp(3)+1))
@@ -238,29 +243,34 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
       Integer :: i1, i2, i3, ip, jp
       Integer :: isym, lspl
       integer :: iv(3)
-      Real (8) :: v1(3), v2(3)
-      Real (8) :: s(3,3), t1
+      Real(8) :: r1(3), r2(3), r3(3), vpl_(3)
+      Real(8) :: s(3,3), t1
 
       !-----------------------------------------------------------------
-
       ip = 0
       Do i3 = 0, ngridp(3)
-         v1(3) = dble(i3)/dble(ngridp(3))
+         r1(3) = dble(i3)/dble(ngridp(3))
          Do i2 = 0, ngridp(2)
-            v1(2) = dble(i2)/dble(ngridp(2))
+            r1(2) = dble(i2)/dble(ngridp(2))
             Do i1 = 0, ngridp(1)
-               v1(1) = dble(i1)/dble(ngridp(1))
+               r1(1) = dble(i1)/dble(ngridp(1))
+               ! rescaling
+               call r3mv(b(:,2:4),r1,r2)
+               ! offset
+               r2(:) = r2(:)+b(:,1)
                ! determine if this point is equivalent to one already in the set
                Do isym = 1, nsymcrys
-                  lspl = lsplsymc (isym)
+                  lspl = lsplsymc(isym)
                   ! apply symmetry operation S(r+t)
                   s(:,:) = dble(symlat(:,:,lspl))
-                  Call r3mv(s,v1(:)+vtlsymc(:,isym),v2)
-                  Call r3frac(input%structure%epslat,v2,iv)
+                  Call r3mv(s,r2(:)+vtlsymc(:,isym),r3)
+                  Call r3frac(input%structure%epslat,r3,iv)
                   Do jp = 1, ip
-                     t1 = Abs(vpl(1,jp)-v2(1)) + &
-                    &     Abs(vpl(2,jp)-v2(2)) + &
-                    &     Abs(vpl(3,jp)-v2(3))
+                     vpl_(:) = vpl(:,jp)
+                     Call r3frac(input%structure%epslat,vpl_,iv)
+                     t1 = Abs(vpl_(1)-r3(1)) + &
+                    &     Abs(vpl_(2)-r3(2)) + &
+                    &     Abs(vpl_(3)-r3(3))
                      If (t1 .Lt. input%structure%epslat) Then
                         ! equivalent point found
                         ipmap(i1,i2,i3) = jp
@@ -271,16 +281,15 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
                ! add new point to set
                ip = ip+1
                ipmap(i1,i2,i3) = ip
-               vpl(:,ip) = v1(:)
+               vpl(:,ip) = r2(:)
 10             Continue
             End Do
          End Do
       End Do
       npt = ip
       Return
-End Subroutine gengrid
+  End Subroutine gengrid
 
 
 End Subroutine
 !EOC
-!

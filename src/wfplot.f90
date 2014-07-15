@@ -172,6 +172,7 @@ Subroutine wfplot(dostm)
         End If
 
         If (associated(input%properties%wfplot%plot3d)) Then
+            input%properties%wfplot%plot3d%usesym=.false.
             labels=>create_plotlablels("Wave Function","WF3D",3)
             call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
             call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
