@@ -75,17 +75,17 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
         &  0:plotdef%box%grid(2), 0:plotdef%box%grid(3)))
         allocate(vpl(3,(plotdef%box%grid(1)+1)* &
         &  (plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
-        v1(:) = plotdef%box%pointarray(1)%point%coord
-        v2(:) = plotdef%box%pointarray(2)%point%coord
-        v3(:) = plotdef%box%pointarray(3)%point%coord
+        v1(:) = plotdef%box%pointarray(1)%point%coord-plotdef%box%origin%coord
+        v2(:) = plotdef%box%pointarray(2)%point%coord-plotdef%box%origin%coord
+        v3(:) = plotdef%box%pointarray(3)%point%coord-plotdef%box%origin%coord
 !
 ! generate the 3d point grid
 !
         If (plotdef%usesym) Then
            boxl(:,1) = plotdef%box%origin%coord
-           boxl(:,2) = plotdef%box%pointarray(1)%point%coord
-           boxl(:,3) = plotdef%box%pointarray(2)%point%coord
-           boxl(:,4) = plotdef%box%pointarray(3)%point%coord
+           boxl(:,2) = plotdef%box%pointarray(1)%point%coord-boxl(:,1)
+           boxl(:,3) = plotdef%box%pointarray(2)%point%coord-boxl(:,1)
+           boxl(:,4) = plotdef%box%pointarray(3)%point%coord-boxl(:,1)
            ! reduce the grid using the crystal symmetry
            call gengrid(plotdef%box%grid,boxl,np,ipmap,vpl)
         Else
