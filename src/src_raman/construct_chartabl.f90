@@ -23,8 +23,9 @@ real(8) :: transl(3,48)
 real(8) :: conj(3,3), tmpmat(3, 3), invmat(3, 3)
 real(8) :: E(3,3)
 real(8) :: sopmat_12(3,3),const_c(48,48,48),dim_(48)
-real(8) :: char_vec(48),char_raman(48),freq_fac_vec(48),freq_fac_raman(48),vec_one(3)
-real(8) :: char_rot(48),freq_fac_rot(48),char_equiv(48),freq_fac_vib(48)
+real(8) :: char_vec(48),char_raman(48),vec_one(3)
+real(8) :: char_rot(48),char_equiv(48)
+complex(8) :: freq_fac_vec(48),freq_fac_raman(48),freq_fac_rot(48),freq_fac_vib(48)
 real(8) :: dirvec(3), atpos_sop(3)
 real(8), allocatable :: rwork(:),indet_u(:),atpos(:,:)
 complex(8), allocatable :: mat_phi(:,:),eigval(:),work(:)
@@ -720,64 +721,56 @@ do i = 1,cl
    enddo
 enddo
 ! reduction
-freq_fac_vec = 0.d0
-freq_fac_raman = 0.d0
-freq_fac_rot = 0.d0
-freq_fac_vib = 0.d0
+freq_fac_vec = zzero
+freq_fac_raman = zzero
+freq_fac_rot = zzero
+freq_fac_vib = zzero
 vec_sym = ''; rot_sym = ''; raman_sym = ''; vib_sym = ''
 vib_mode = .false.
 raman_active = .false.
 no_vec_nonorth = 0
 do j = 1,cl
    do i = 1,cl
-      freq_fac_vec(j) = freq_fac_vec(j) + dble(charact(i,j))*char_vec(i)*dble(elem_cl(i))
-      freq_fac_raman(j) = freq_fac_raman(j) + dble(charact(i,j))*char_raman(i)*dble(elem_cl(i))
-      freq_fac_rot(j) = freq_fac_rot(j) + dble(charact(i,j))*char_rot(i)*dble(elem_cl(i))
-      freq_fac_vib(j) = freq_fac_vib(j) + dble(charact(i,j))*char_equiv(i)*char_vec(i)*dble(elem_cl(i))
+      freq_fac_vec(j) = freq_fac_vec(j) + conjg(charact(i,j))*char_vec(i)*dble(elem_cl(i))
+      freq_fac_raman(j) = freq_fac_raman(j) + conjg(charact(i,j))*char_raman(i)*dble(elem_cl(i))
+      freq_fac_rot(j) = freq_fac_rot(j) + conjg(charact(i,j))*char_rot(i)*dble(elem_cl(i))
+      freq_fac_vib(j) = freq_fac_vib(j) + conjg(charact(i,j))*char_equiv(i)*char_vec(i)*dble(elem_cl(i))
    enddo
-   if (nint(freq_fac_vec(j)/numsop) .gt. 0) then
-!     write(13, *) 'class ',j,' freqfac vec ',freq_fac_vec(j)/dble(numsop)
-      write(chnum,'(i5)') nint(freq_fac_vec(j)/numsop)
-!     write(vec_sym,*) trim(vec_sym),trim(chnum),'*'
-      write(vec_sym,*) trim(vec_sym),trim(chnum),' '
-      write(chnum,'(i2)') j
-!     write(vec_sym,*) trim(vec_sym),trim(chnum),'(',trim(irep_ch(j)),')  ' 
-      write(vec_sym,*) trim(vec_sym),trim(irep_ch(j)),'   '
+   if (nint(dble(freq_fac_vec(j))/numsop) .gt. 0) then
+      write(chnum,'(i5)') nint(dble(freq_fac_vec(j))/numsop)
+      !write(vec_sym,*) trim(vec_sym),trim(chnum),' '
+      !write(chnum,'(i2)') j
+      !write(vec_sym,*) trim(vec_sym),trim(irep_ch(j)),'   '
+      vec_sym = trim(adjustl(vec_sym))//'   '//trim(adjustl(chnum))//trim(adjustl(irep_ch(j)))
       vec_sym = adjustl(vec_sym)
    endif
-   if (nint(freq_fac_rot(j)/numsop) .gt. 0) then
-!     write(13, *) 'class ',j,' freqfac rot ',freq_fac_rot(j)/dble(numsop)
-      write(chnum,'(i5)') nint(freq_fac_rot(j)/numsop)
-!     write(rot_sym,*) trim(rot_sym),trim(chnum),'*'
-      write(rot_sym,*) trim(rot_sym),trim(chnum),' '
-      write(chnum,'(i2)') j
-!     write(rot_sym,*) trim(rot_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
-      write(rot_sym,*) trim(rot_sym),trim(irep_ch(j)),'   '
+   if (nint(dble(freq_fac_rot(j))/numsop) .gt. 0) then
+      write(chnum,'(i5)') nint(dble(freq_fac_rot(j))/numsop)
+      !write(rot_sym,*) trim(rot_sym),trim(chnum),' '
+      !write(chnum,'(i2)') j
+      !write(rot_sym,*) trim(rot_sym),trim(irep_ch(j)),'   '
+      rot_sym = trim(adjustl(rot_sym))//'   '//trim(adjustl(chnum))//trim(adjustl(irep_ch(j)))
       rot_sym = adjustl(rot_sym)
    endif
-   if (nint(freq_fac_raman(j)/numsop) .gt. 0) then
-!     write(13, *) 'class ',j,' freqfac raman ',freq_fac_raman(j)/dble(numsop)
+   if (nint(dble(freq_fac_raman(j))/numsop) .gt. 0) then
       raman_active(j) = .true.
-      write(chnum,'(i5)') nint(freq_fac_raman(j)/numsop)
-!     write(raman_sym,*) trim(raman_sym),trim(chnum),'*'
-      write(raman_sym,*) trim(raman_sym),trim(chnum),' '
-      write(chnum,'(i2)') j
-!     write(raman_sym,*) trim(raman_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
-      write(raman_sym,*) trim(raman_sym),trim(irep_ch(j)),'   '
+      write(chnum,'(i5)') nint(dble(freq_fac_raman(j))/numsop)
+      !write(raman_sym,*) trim(raman_sym),trim(chnum),' '
+      !write(chnum,'(i2)') j
+      !write(raman_sym,*) trim(raman_sym),trim(irep_ch(j)),'   '
+      raman_sym = trim(adjustl(raman_sym))//'   '//trim(adjustl(chnum))//trim(adjustl(irep_ch(j)))
       raman_sym = adjustl(raman_sym)
    endif
-   if (nint(freq_fac_vib(j)/numsop) .gt. 0) then
-!     write(13, *) 'class ',j,' freqfac vib ',freq_fac_vib(j)/dble(numsop)
+   if (nint(dble(freq_fac_vib(j))/numsop) .gt. 0) then
       vib_mode(j) = .true.
-      no_vec_nonorth = no_vec_nonorth + 2**(nint(freq_fac_vib(j)/numsop)-1)
-      vib_ireps(j) = nint(freq_fac_vib(j)/numsop)
+      no_vec_nonorth = no_vec_nonorth + 2**(nint(dble(freq_fac_vib(j))/numsop)-1)
+      vib_ireps(j) = nint(dble(freq_fac_vib(j))/numsop)
       if (vib_ireps(j) .gt. nint(dble(charact(1, j)))) sym_out = .false.
-      write(chnum,'(i5)') nint(freq_fac_vib(j)/numsop)
-!     write(vib_sym,*) trim(vib_sym),trim(chnum),'*'
-      write(vib_sym,*) trim(vib_sym),trim(chnum),' '
-      write(chnum,'(i2)') j
-!     write(vib_sym,*) trim(vib_sym),trim(chnum),'(',trim(irep_ch(j)),')  '
-      write(vib_sym,*) trim(vib_sym),trim(irep_ch(j)),'   '
+      write(chnum,'(i5)') nint(dble(freq_fac_vib(j))/numsop)
+      !write(vib_sym,*) trim(vib_sym),trim(chnum),' '
+      !write(chnum,'(i2)') j
+      !write(vib_sym,*) trim(vib_sym),trim(irep_ch(j)),'   '
+      vib_sym = trim(adjustl(vib_sym))//'   '//trim(adjustl(chnum))//trim(adjustl(irep_ch(j)))
       vib_sym = adjustl(vib_sym)
    endif
 enddo
