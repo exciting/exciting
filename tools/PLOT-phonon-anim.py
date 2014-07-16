@@ -83,6 +83,11 @@ if (tree.xpath('/input/structure/crystal/@scale') == []):
 else:
     alat = float(tree.xpath('/input/structure/crystal/@scale')[0])
 
+str_stretch = tree.xpath('/input/structure/crystal/@stretch')
+if (str_stretch ==[]):
+    stretch = [1.,1.,1.]
+else: stretch=numpy.array(map(float,str_stretch[0].split()))
+
 blabel = "/input/structure/crystal/basevect"
 bvec[0][0],bvec[1][0],bvec[2][0] = [float(x) for x in tree.xpath(blabel+'[1]')[0].text.split()]
 bvec[0][1],bvec[1][1],bvec[2][1] = [float(x) for x in tree.xpath(blabel+'[2]')[0].text.split()]
@@ -102,7 +107,7 @@ if (cartesian):
 
 for i in range(3):
     for j in range(3):
-        bvec[i][j] = bvec[i][j]*alat*bohr2ang
+        bvec[i][j] = bvec[i][j]*alat*bohr2ang*stretch[j]
 
 nspec = int(tree.xpath('count(/input/structure/species)'))
 natom = [float(x) for x in xrange(nspec)]
