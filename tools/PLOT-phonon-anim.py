@@ -18,6 +18,7 @@
 # Dec 2012, script created (STK)
 # Oct 2012, bugfix for crystal/@scale not specified, and changes for molecules (STK)
 # Oct 2013, changed output format, species file read in $EXCITINGROOT/species (PP)
+# Jul 2014, attribute stretch is now considered, input of displacement scaling from command line (STK)
 #
 #-------------------------------------------------------------------------------
 
@@ -63,6 +64,11 @@ print "\nSupercell dimensions : ", (imt%n1), (imt%n2), (imt%n3)
 # scaling factor for vibrations
 
 scaling = 10.
+if (narg == 1):
+    scaling = int(sys.argv[1])
+
+if (narg == 4):
+    n1 = int(sys.argv[1])  ;  n2 = int(sys.argv[2])  ;  n3 = int(sys.argv[3])  ;  scaling = int(sys.argv[4])
 
 #-------------------------------------------------------------------------------
 # reading number of steps
