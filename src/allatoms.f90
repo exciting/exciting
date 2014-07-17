@@ -36,6 +36,7 @@ Subroutine allatoms
       Integer, Parameter :: xcgrad_ = 0
       Integer :: is, i
       Logical :: dirac_eq
+      character(100)::buffer
 ! allocatable arrays
       Real (8), Allocatable :: rwf (:, :, :)
       Type (xmlf_t), Save :: xf
@@ -84,7 +85,8 @@ Subroutine allatoms
           Call xml_AddAttribute (xf,"n",spn(i, is))
           Call xml_AddAttribute (xf,"l",spl(i, is))
           Call xml_AddAttribute (xf,"kappa",spk(i, is))
-          Call xml_AddAttribute (xf,"energy",speval(i, is))
+          write(buffer,'(G22.12)') speval(i,is)
+          Call xml_AddAttribute (xf,"energy",trim(adjustl(buffer)))
           Call xml_EndElement (xf,"state")
         enddo
         Call xml_EndElement (xf,"spectrum")

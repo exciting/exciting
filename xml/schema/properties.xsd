@@ -577,7 +577,7 @@
                </xs:attribute>
                <xs:attribute ex:importance="expert" ex:unit="" name="writefunc" type="xs:boolean" default="false">
                     <xs:annotation>
-                        <xs:documentation>If <pre>true</pre> output eigenfunctions of oscillator problem to file <pre>OSC_FUNC.OUT</pre>.
+                        <xs:documentation>If <pre>true</pre> output eigenfunctions of oscillator problem to files.
                         </xs:documentation>
                     </xs:annotation>
                </xs:attribute>
