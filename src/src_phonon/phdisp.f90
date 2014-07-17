@@ -8,6 +8,7 @@
 !
 Subroutine phdisp
       Use modmain
+      use modmpi
       Implicit None
 ! local variables
       Integer :: iq, i, n, iv
@@ -18,6 +19,8 @@ Subroutine phdisp
       Complex (8), Allocatable :: dynq (:, :, :)
       Complex (8), Allocatable :: dynp (:, :)
       Complex (8), Allocatable :: dynr (:, :, :)
+! writeout only in master process
+      if (rank .ne. 0) goto 10
 ! initialise universal variables
       Call init0
       Call init2
@@ -81,5 +84,9 @@ Subroutine phdisp
       Write (*, '(" vertex location lines written to PHDLINES.OUT")')
       Write (*,*)
       Deallocate (wp, ev, dynq, dynp, dynr)
+10    continue
+#ifdef MPI
+      call MPI_Barrier(MPI_Comm_World, ierr)
+#endif
       Return
 End Subroutine
