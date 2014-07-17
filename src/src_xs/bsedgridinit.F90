@@ -26,8 +26,9 @@ Subroutine bsedgridinit ()
 !   Created January 2014, S. Kontur
 !EOP
 !BOC
-
-     input%xs%vkloff = vksubl (:, iksubpt)
+ 
+     ! add subgrid offset to the one requested in input file for XS
+     input%xs%vkloff = vksubl(:, iksubpt) + vkloff_xs_b(:)
      input%groundstate%vkloff = input%xs%vkloff
      input%xs%screening%vkloff = input%xs%vkloff
      input%xs%BSE%vkloff = input%xs%vkloff
@@ -40,8 +41,8 @@ Subroutine bsedgridinit ()
 
      Call genfilname (nodotpar=.True., basename='INFOXS', procs=procs, rank=rank, filnam=xsfileout)
      Call getunit (unitout)
-     open (unit=unitout, file=xsfileout, status="unknown", action="write")
-     write (string,'("Sub grid point ",i3," with offset ",3f7.3)') iksubpt, vksubl (:, iksubpt)
+     open (unit=unitout, file=xsfileout, status="unknown", action="write", position="append")
+     write (string,'("Sub grid point ",i3," with offset ",3f7.3)') iksubpt, vksubl(:, iksubpt)+vkloff_xs_b(:)
      call printline (unitout,"=")
      call printtext (unitout,"=",string)
      call printline (unitout,"=")

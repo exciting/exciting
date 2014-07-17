@@ -6,7 +6,7 @@
 Subroutine xstasklauncher
       Use modinput
       Use modmain, Only: task
-      Use modxs, only: dgrid, nksubpt, iksubpt, temat
+      Use modxs, only: dgrid, nksubpt, iksubpt, temat, doscreen0, vkloff_xs_b
       Use inputdom
 
 !
@@ -123,7 +123,16 @@ Subroutine xstasklauncher
           dgrid = .false.
           nksubpt = 1
        endif
-       if (dgrid) call genksubpts
+       if (dgrid) then
+          ! append XS output
+          input%xs%tappinfo = .true.
+          ! backup input XS vkloff (it will be added to all generated grids)
+          vkloff_xs_b(:) = input%xs%vkloff(:)
+          ! save screening status for later use
+          doscreen0 = input%xs%screening%do
+          ! generate subgrid
+          call genksubpts
+       endif
        do iksubpt = 1, nksubpt
          if (dgrid) call bsedgridinit
 !
@@ -175,8 +184,18 @@ Subroutine xstasklauncher
          Call xsinit
          Call BSE
          Call xsfinit
+!
+         if (dgrid) input%xs%screening%do = "skip"
+!
        enddo
-       if (dgrid) call bsedgrid
+!
+       if (dgrid) then
+          call bsedgrid
+          ! restore input settings
+          input%xs%vkloff(:) = vkloff_xs_b(:)
+          input%xs%screening%do = doscreen0
+       endif
+!
       Else
          Write (*,*) "error xstasklauncher"
          Write (*,*) trim (input%xs%xstype), "no valid xstype"
