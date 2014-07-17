@@ -35,14 +35,10 @@ Subroutine writepmat
       
       integer :: n, iproc, ikloc, nkloc
       integer, allocatable :: ikmap(:,:)
-      
-! check if fast (default) version of matrix elements is used
-      fast=.true.
-      if (associated(input%properties)) then
-        if (associated(input%properties%momentummatrix)) then
-          if (input%properties%momentummatrix%fastpmat) fast=.true.
-        end if
-      end if
+
+      if (.not.associated(input%properties%momentummatrix)) &
+      &  input%properties%momentummatrix => getstructmomentummatrix(emptynode)
+      fast=input%properties%momentummatrix%fastpmat
 
 ! initialise universal variables
       Call init0
@@ -90,12 +86,12 @@ Subroutine writepmat
 
       if (fast) then
          If (allocated(apwcmt)) deallocate(apwcmt)
-         Allocate(apwcmt(nstsv,apwordmax,lmmaxapw,natmtot))
+         Allocate(apwcmt(nstfv,apwordmax,lmmaxapw,natmtot))
          If (allocated(ripaa)) deallocate(ripaa)
          Allocate(ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
          If (nlotot .Gt. 0) Then
             If (allocated(locmt)) deallocate(locmt)
-            Allocate(locmt(nstsv,nlomax,-lolmax:lolmax,natmtot))
+            Allocate(locmt(nstfv,nlomax,-lolmax:lolmax,natmtot))
             If (allocated(ripalo)) deallocate(ripalo)
             Allocate(ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax,natmtot,3))
             If (allocated(riploa)) deallocate (riploa)
@@ -115,14 +111,12 @@ Subroutine writepmat
       ikloc = 0
       Do ik = kpari, kparf
          ikloc = ikloc+1
-
 ! get the eigenvectors and values from file
          Call getevecfv (vkl(1, ik), vgkl(1, 1, 1, ik), evecfvt)
          Call getevecsv (vkl(1, ik), evecsvt)
 ! find the matching coefficients
          Call match (ngk(1, ik), gkc(1, 1, ik), tpgkc(1, 1, 1, ik), &
         &  sfacgk(1, 1, 1, ik), apwalmt)
-
          If (fast) Then
             ! generate APW expansion coefficients for muffin-tin
             Call genapwcmt(input%groundstate%lmaxapw, ngk(1, ik), 1, &

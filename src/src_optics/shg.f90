@@ -82,8 +82,6 @@ subroutine shg(a,b,c)
             write(*,*)
             write(*,'("  Calculate momentum matrix elements")')
         end if
-        if (.not.associated(input%properties%momentummatrix)) &
-       &  input%properties%momentummatrix => getstructmomentummatrix(emptynode)
         call writepmat
     end if
 
