@@ -250,13 +250,6 @@
               <xs:element ex:importance="essential" ex:unit="" ref="plot2d" minOccurs="0"/>
               <xs:element ex:importance="essential" ex:unit="" ref="plot3d" minOccurs="0"/>
             </xs:all>
-            <xs:attribute name="plotgradient" type="xs:boolean" default="false">
-              <xs:annotation>
-                <xs:documentation>
-                  Calculate and plot the module of the density gradient
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
             <xs:attribute name="nocore" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation>
