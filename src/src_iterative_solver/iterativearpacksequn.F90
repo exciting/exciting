@@ -887,7 +887,7 @@ endif
         enddo
         arpackseed(1:n,ik)=arpackseed(1:n,ik)/dble(nstfv)
       endif
- write(*,*) '**********ARPACK DONE*************'
+! write(*,*) '**********ARPACK DONE*************'
 else
 !**************************************************************************
 ! This segment starts working if gev=.false.                              *
