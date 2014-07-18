@@ -10,7 +10,7 @@ cat > input.in << EOF
 # Integration parameters
   $vdwdf_path            ! path to vdW-DF kernel 
   vdW-DF                 ! vdW-DF type (vdW-DF, vdW-DF2, VV09)
-  8 8 8                  ! number of unit cells in x/y/z-direction
+  4 4 4                  ! number of unit cells in x/y/z-direction
   1.d-16                 ! relative integration accuracy
   1.d-04                 ! absolute integration accuracy in Hartree
   10000                  ! number of Monte-Carlo sampling points

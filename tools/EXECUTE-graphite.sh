@@ -61,18 +61,18 @@ sed -e 's/fromscratch/fromfile/g' \
     -e 's/maxscl="200"/maxscl="1"/g' -i input.xml
 
 # revPBE run
-sed -e 's/GGAPerdew-Burke-Ernzerhof/GGArevPBE/g' -i input.xml
+sed -e 's/GGA_PBE/GGA_PBE_R/g' -i input.xml
 $exciting
 cp INFO.OUT ${results}/INFO_d${d}_revPBE.OUT
 
 # LDA
-sed -e 's/GGArevPBE/LSDAPerdew-Wang/g' -i input.xml
+sed -e 's/GGA_PBE_R/LDA_PW/g' -i input.xml
 $exciting
 cp INFO.OUT ${results}/INFO_d${d}_LDA.OUT
 
 done
 
-rm -rf draft.xml input.xml geometry.OUT.xml info.xml RHO3D.xml 
+rm -rf draft.xml input.xml geometry.xml info.xml RHO3D.xml atoms.xml
 rm -rf *.OUT
 
 exit
