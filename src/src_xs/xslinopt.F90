@@ -102,7 +102,7 @@ Subroutine xslinopt (iq)
             End Do
          End Do
 ! STK
-         call genloss (mdf2, loss, tq0)
+         call genloss (mdf2, loss, nc)
 !
          Do oct1 = 1, nc
             If (input%xs%dfoffdiag) Then

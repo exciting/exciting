@@ -111,11 +111,7 @@ Subroutine bsegenspec ()
         enddo
       End Do
 !
-      If (noptcmp.Gt.1) Then
-         call genloss (buf, loss, .True.)
-      Else
-         call genloss (buf, loss, .False.)
-      End If
+      call genloss (buf, loss, noptcmp)
 !
    Do oct1 = 1, noptcmp
     If (input%xs%dfoffdiag) Then

@@ -10,14 +10,14 @@ Module m_genloss
 Contains
 !
 !
-      Subroutine genloss (eps, loss, tq0)
+      Subroutine genloss (eps, loss, nc)
          Use modxs
          use modinput
          Implicit None
     ! arguments
          Complex (8), Intent (In) :: eps (:, :, :)
          Real (8), Intent (Out) :: loss (:, :, :)
-         Logical :: tq0
+         Integer, Intent (In) :: nc
     ! local variables
          integer :: iw
          complex(8) :: t3(3, 3)
@@ -31,13 +31,13 @@ Contains
          End If
     ! loss function
 ! STK
-         If(tq0) Then
+         If(nc.Eq.1) Then
+            loss (1,1,:) = - aimag (1/eps(1,1,:))
+         Else
             Do iw = 1, input%xs%energywindow%points
                call z3minv(eps(:, :, iw), t3(:, :))
                loss(:, :, iw) = -aimag(t3)
             enddo
-         Else
-            loss (1,1,:) = - aimag (1/eps(1,1,:))
          End If
       End Subroutine genloss
 !
