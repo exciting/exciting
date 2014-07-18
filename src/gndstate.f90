@@ -36,6 +36,8 @@ Subroutine gndstate
     Call timesec (tsg0)
     Call timesec (ts0)
 
+    Call gndcheck
+    
 ! initialise global variables
     Call timesec (tin0)
     Call init0
