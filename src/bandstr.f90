@@ -148,17 +148,8 @@ if (hybcheck) then
   Call MPI_barrier (MPI_COMM_WORLD, ierr)
   splittfile = .True.
   Do ik = firstk (rank), lastk (rank)
-#endif
-#ifdef USEOMP
-     !$OMP PARALLEL DEFAULT(SHARED) &
-     !$OMP PRIVATE(evalfv,evecfv,evecsv) &
-     !$OMP PRIVATE(dmat,apwalm) &
-     !$OMP PRIVATE(ispn,ist,is,ia,ias) &
-     !$OMP PRIVATE(l,m,lm,sum)
-     !$OMP DO
-#endif
-#ifndef MPI
-     splittfile = .False.
+#else
+    splittfile = .False.
      Do ik = 1, nkpt
 #endif
         Allocate (evalfv(nstfv, nspnfv))
@@ -172,10 +163,8 @@ if (hybcheck) then
            ! add scissors correction
            If (evalsv(ist, ik) .Gt. 0.d0) evalsv (ist, ik) = evalsv (ist, ik) + &
                 & input%properties%bandstructure%scissor
-           !$OMP CRITICAL
            emin = Min (emin, evalsv(ist, ik))
            emax = Max (emax, evalsv(ist, ik))
-           !$OMP END CRITICAL
         End Do
         ! compute the band characters if required
         If (input%properties%bandstructure%character) Then
@@ -224,10 +213,6 @@ if (hybcheck) then
      Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
 
-#ifdef USEOMP
-     !$OMP END DO
-     !$OMP END PARALLEL
-#endif
       if (allocated(meffig)) deallocate(meffig)
       if (allocated(m2effig)) deallocate(m2effig)
      emax = emax + (emax-emin) * 0.5d0
