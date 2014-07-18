@@ -244,13 +244,13 @@ use modinput
         Do ir = 1, nr
           fr (ir) = g0 (ir) ** 2 + f0 (ir) ** 2
         End Do
-      elseif (input%groundstate%ValenceRelativity.eq."khs") then
+      elseif (input%groundstate%ValenceRelativity.eq."kh") then
         
         Do ir = 1, nr
 !          rm=1d0/(1d0-0.5d0*alpha**2*vr(ir))
           fr (ir) = g0 (ir) ** 2 + (f0 (ir)*alpha) ** 2
         End Do
-      elseif (input%groundstate%ValenceRelativity.eq."lkhs") then        
+      elseif (input%groundstate%ValenceRelativity.eq."iora") then        
         Do ir = 1, nr
           rm0 = 1.d0 - 0.5d0 * (alpha**2) *  vr(ir)
           rm = rm0/(1d0 - 0.5d0*eval*(alpha**2)/rm0)
@@ -278,9 +278,9 @@ use modinput
       g0 (:) = t1 * g0 (:)
       if (dirac_eq) then
         f0 (:) = t1 * f0 (:)
-      elseif (input%groundstate%ValenceRelativity.eq."khs") then
+      elseif (input%groundstate%ValenceRelativity.eq."kh") then
         f0 (:) = t1 * f0 (:)*alpha
-      elseif (input%groundstate%ValenceRelativity.eq."lkhs") then
+      elseif (input%groundstate%ValenceRelativity.eq."iora") then
         Do ir = 1, nr
 !          rm=1d0/(1d0-0.5d0*alpha**2*vr(ir)) 
 !          f0 (ir) = t1 * 0.5d0 * g1 (ir) * rm * alpha 

@@ -26,7 +26,7 @@
     mixer="msec"
     radialgridtype="cubic"
     CoreRelativity="none"
-    ValenceRelativity="lkh"
+    ValenceRelativity="iora*"
     swidth="0.001"
     >
  <solver

@@ -42,7 +42,7 @@ Subroutine genmeffig
            meffig (ig) = zfft (ifg)
          End Do
       endif
-      if (input%groundstate%ValenceRelativity.eq."lkh") then
+      if (input%groundstate%ValenceRelativity.eq."iora*") then
          if (allocated(m2effig)) deallocate(m2effig)
          allocate(m2effig(ngvec))
          Do ig = 1, ngrtot
