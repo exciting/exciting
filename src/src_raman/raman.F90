@@ -354,6 +354,7 @@ Select Case (input%properties%raman%getphonon)
       endif
       ! use input variable mode for direct loop over modes
       nmode = 1
+      input%properties%raman%mode = 0
 End Select
 !
 ! take time
@@ -457,6 +458,13 @@ do imode = 1, nmode
            write(*,'("Error(Raman): Step number in file ",a," not consistent!")') 'RAMAN_POT'//trim(raman_filext)
            write(*,'("Read     :  ",i2)') read_i
            write(*,'("Expected :  ",i2)') istep + i_shift
+           stop
+        endif
+        t1 = read_dph - input%properties%raman%displ*dble(istep)
+        if (abs(t1) .gt. eps ) then
+           write(*,'("Error(Raman): Step length in file ",a," not consistent!")') 'RAMAN_POT'//trim(raman_filext)
+           write(*,'("Read     :  ",f14.6)') read_dph
+           write(*,'("Expected :  ",f14.6)') input%properties%raman%displ*dble(istep)
            stop
         endif
         potinx(imode, istep + i_shift) = read_dph

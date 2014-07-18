@@ -5,9 +5,17 @@
 
 subroutine writephn
   use modmain
+  use modmpi
   implicit none
+! writeout only in master process
+  if (rank .ne. 0) goto 10
 ! initialise universal variables
   Call init0
   Call init2
   call writephnlist(nphwrt,vqlwrt,.true.,"PHONON.OUT")
+10 continue
+#ifdef MPI
+  call MPI_Barrier(MPI_Comm_World, ierr)
+#endif
+  return
 end subroutine

@@ -10,6 +10,7 @@ Subroutine phdos
       Use modmain
       Use modinput
       Use FoX_wxml
+      use modmpi
       Implicit None
 ! local variables
       Integer :: n, iq, i, iw
@@ -28,6 +29,8 @@ Subroutine phdos
       Complex (8), Allocatable :: dynr (:, :, :)
       Complex (8), Allocatable :: dynp (:, :)
       Complex (8), Allocatable :: ev (:, :)
+! do this only in master process
+      if (rank .ne. 0) goto 10
 ! initialise universal variables
       Call init0
       Call init2
@@ -264,5 +267,9 @@ Subroutine phdos
       Write (*, '(" thermodynamic properties written to THERMO.OUT")')
       Write (*,*)
       Deallocate (wp, w, gw, f, g, cf, dynq, dynr, dynp, ev)
+10    continue
+#ifdef MPI
+      call MPI_Barrier(MPI_Comm_World, ierr)
+#endif
       Return
 End Subroutine

@@ -111,7 +111,7 @@ Subroutine bsegenspec ()
         enddo
       End Do
 !
-   call genloss (buf, loss)
+      call genloss (buf, loss, noptcmp)
 !
    Do oct1 = 1, noptcmp
     If (input%xs%dfoffdiag) Then

@@ -22,7 +22,8 @@ Subroutine readdveff (iq, is, ia, ip, dveffmt, dveffir)
       Integer :: version_ (3), nspecies_, lmmaxvr_
       Integer :: natoms_, nrcmt_, ngrid_ (3)
       Character (256) :: fext
-      Call phfext (iq, is, ia, ip, fext)
+      Character (256) :: chdummy
+      Call phfext (iq, is, ia, ip, 0, 1, chdummy, fext, chdummy)
       Open (50, File='DVEFF'//trim(fext), Action='READ', Form='UNFORMAT&
      &TED', Status='OLD', IoStat=IoStat)
       If (iostat .Ne. 0) Then
