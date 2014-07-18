@@ -10,6 +10,7 @@ for dirn in $label ; do
     mv ../INFO.OUT .
     mv ../RMSDVEFF.OUT .
     mv ../TOTENERGY.OUT .
+    mv ../DFSCFMAX.OUT .
     mv ../WARNINGS.OUT .
     mv ../info.xml .
     mv ../geometry.xml .
