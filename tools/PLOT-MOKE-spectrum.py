@@ -2,7 +2,6 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from lxml import etree
 import os
 import sys
 
@@ -29,19 +28,23 @@ dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 fname="MOKE_NLF_FXCRPA_QMT001.OUT"
 #-------------------------------------------------------------------------------
 #Parse LOSS function data files
-xdata=[]
-ydata=[]
-labels=[]
-legends=[]
-function=1
+w=[]
+sr=[]
+si=[]
 
 print "Parsing "+fname
 
-tree=etree.parse(fname)
-
-for elem in tree.xpath('/%s/map'%(rootelement)):
-    xdata[i].append(float(elem.attrib["variable1"]))
-    ydata[i].append(float(elem.attrib["function%d"%(function)]))
+f = open(fname)
+lines = f.readlines()
+for l in lines:
+    ls=l.split()
+    if len(ls)==3:
+        if '#' not in ls[0]:
+            w.append(float(ls[0]))
+            sr.append(float(ls[1]))
+            si.append(float(ls[2]))
+    
+f.close()
 
 #-------------------------------------------------------------------------------
 #Plot LOSS function/s 
@@ -66,16 +69,16 @@ plt.rcParams.update(params)
 
 ax=fig.add_subplot(111)
 
-for i in range(nfiles):
-    ax.plot(xdata[i],ydata[i],colors[np.mod(i,7)],label=legends[i])
+ax.plot(w,sr,color="black",label="$\\theta_K$")
+ax.plot(w,si,color="red",label="$\\gamma_K$")
 
-ax.legend(loc=2)
+ax.legend(loc=1)
 #ax.legend()
 
-ax.set_xlim(0.0,54.0)
-ax.set_ylim(0)
-ax.set_xlabel(str.capitalize(labels[0]["xlabel"])+" [eV]")
-ax.set_ylabel(str.capitalize(labels[0]["ylabel"]))
+#ax.set_xlim(0.0,54.0)
+#ax.set_ylim(0)
+ax.set_xlabel("Energy [eV]")
+ax.set_ylabel("deg")
 
 plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
 plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
