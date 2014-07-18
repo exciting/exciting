@@ -83,7 +83,7 @@ Subroutine hmlrad
                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                            haa (io1, l1, io2, l3, 1, ias) = gr (nr) / y00
 ! calculate more integrals if linearized Koelling-Harmon is demanded
-                           if (input%groundstate%ValenceRelativity.eq.'lkh') then
+                           if (input%groundstate%ValenceRelativity.eq.'iora*') then
                              Do ir = 1, nr
                                rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                                t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io2, l3, ias)
@@ -131,7 +131,7 @@ Subroutine hmlrad
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                         hloa (ilo, io, l3, 1, ias) = gr (nr) / y00
 ! calculate more integrals if linearized Koelling-Harmon is demanded
-                        if (input%groundstate%ValenceRelativity.eq.'lkh') then
+                        if (input%groundstate%ValenceRelativity.eq.'iora*') then
                           Do ir = 1, nr
                             rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                             t1=apwfr(ir, 1, io, l1, ias)*lofr(ir, 1, ilo, ias)
@@ -176,7 +176,7 @@ Subroutine hmlrad
                      End Do
                      Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                      hlolo (ilo1, ilo2, 1, ias) = gr (nr) / y00
-                     if (input%groundstate%ValenceRelativity.eq.'lkh') then
+                     if (input%groundstate%ValenceRelativity.eq.'iora*') then
                        Do ir = 1, nr
                          rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                          t1=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)

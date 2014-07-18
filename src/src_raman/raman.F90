@@ -354,6 +354,7 @@ Select Case (input%properties%raman%getphonon)
       endif
       ! use input variable mode for direct loop over modes
       nmode = 1
+      input%properties%raman%mode = 0
 End Select
 !
 ! take time
@@ -457,6 +458,13 @@ do imode = 1, nmode
            write(*,'("Error(Raman): Step number in file ",a," not consistent!")') 'RAMAN_POT'//trim(raman_filext)
            write(*,'("Read     :  ",i2)') read_i
            write(*,'("Expected :  ",i2)') istep + i_shift
+           stop
+        endif
+        t1 = read_dph - input%properties%raman%displ*dble(istep)
+        if (abs(t1) .gt. eps ) then
+           write(*,'("Error(Raman): Step length in file ",a," not consistent!")') 'RAMAN_POT'//trim(raman_filext)
+           write(*,'("Read     :  ",f14.6)') read_dph
+           write(*,'("Expected :  ",f14.6)') input%properties%raman%displ*dble(istep)
            stop
         endif
         potinx(imode, istep + i_shift) = read_dph
@@ -804,7 +812,7 @@ do imode = 1, nmode
    write(66,'(/," Number of unit cells: ",2x,i8,5x," Volume of unit cell [ Bohr^3 ]: ",f16.8)')  ncell, omega
    write(66,'(  "                                                             [ cm^3 ]: ",g16.8)') omega*fau3cm3
    write(66,'(" Laser energy [ cm-1 ]: ",10x,f12.2)') fhawn*rlas
-   write(66,'(/," Derivatives of the dielectric function: ",/, &
+   write(66,'(/," Derivatives of the dielectric function deps/du: ",/, &
     &           " Re                                         Im")')
    write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
     &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
@@ -839,7 +847,7 @@ do imode = 1, nmode
    write(66,'(/" x between ",f7.4," and ",f7.4,"  Bohr")') input%properties%raman%xmin, &
     &                                                      input%properties%raman%xmax
 !
-   write(66,'(/," Derivatives of the dielectric function: ",/, &
+   write(66,'(/," Derivatives of the dielectric function deps/du: ",/, &
     &           " Re                                         Im")')
    write(66,'(/,"  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
     &           "  ( ",3f12.3," )       ( ",3f12.3," ) ",/, &
@@ -848,15 +856,6 @@ do imode = 1, nmode
     &   (dble(deq(2, oct2)),oct2=1,3), (aimag(deq(2, oct2)),oct2=1,3), &
     &   (dble(deq(3, oct2)),oct2=1,3), (aimag(deq(3, oct2)),oct2=1,3)
 !
-   t1 = 1.d0
-   if (.not. input%properties%raman%molecule) t1 = omega/4.d0/pi
-   write(66,'(/," Raman tensor for this mode [ Bohr^2 ]: ")')
-   write(66,'(/,"  ( ",3f12.3," ) ",/, &
-    &           "  ( ",3f12.3," ) ",/, &
-    &           "  ( ",3f12.3," ) ")') &
-    &   (abs(deq(1, oct2))*t1,oct2=1,3),  &
-    &   (abs(deq(2, oct2))*t1,oct2=1,3),  &
-    &   (abs(deq(3, oct2))*t1,oct2=1,3)
 !
 !    determine coefficients for N cells
    if( .not. input%properties%raman%molecule) call ncells(sn,ncell)
@@ -882,11 +881,11 @@ do imode = 1, nmode
    endif
    close (77)
 ! resonance behavior of the fundamental transition
-   ! conversion |deps/du|^2 -> Raman susceptibility |dchi'/dxi|^2 (Cardona's notation)
+   ! conversion |deps/du|^2 -> Raman susceptibility |dchi'/dQ|^2
    if (input%properties%raman%molecule) then
       t1 = 1.d0/omega/fgew
    else
-      t1 = omega/fgew/(4.d0/pi)**2
+      t1 = omega/fgew/(4.d0*pi)**2
    endif
    do oct1 = 1, 3
       do oct2 = oct1, 3
@@ -899,13 +898,13 @@ do imode = 1, nmode
          if (input%properties%raman%molecule) then
             write(77,'("# Resonance behavior ",/, &
        &          "# Elas [ Ha ]     Elas [ eV ]     Elas [ nm ]     Esc [ Ha ]     ", &
-       &          "   |R|^2 [ au ]    ", &
+       &          "   |dchi/dQ|^2 [ au ]    ", &
        &          "(d sigma)/(d Omega) [ 10^-36 m^2 sr^-1 ]      ", &
        &          "(d sigma)/(d Omega)/Esc^4 [ 10^-60 m^6 sr^-1 ]",/)')
          else
             write(77,'("# Resonance behavior ",/, &
        &          "# Elas [ Ha ]     Elas [ eV ]     Elas [ nm ]     Esc [ Ha ]     ", &
-       &          "   |R|^2 [ au ]    ", &
+       &          "   |dchi/dQ|^2 [ au ]    ", &
        &          "S_tot [ 10^-5 sr^-1 m^-1 ]      S_tot/Esc^4 [ 10^-29 m^3 sr^-1 ]",/)')
          endif
          do iw = 1, input%xs%energywindow%points

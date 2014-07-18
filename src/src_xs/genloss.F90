@@ -10,17 +10,19 @@ Module m_genloss
 Contains
 !
 !
-      Subroutine genloss (eps, loss)
+      Subroutine genloss (eps, loss, nc)
          Use modxs
          use modinput
          Implicit None
     ! arguments
          Complex (8), Intent (In) :: eps (:, :, :)
          Real (8), Intent (Out) :: loss (:, :, :)
+         Integer, Intent (In) :: nc
     ! local variables
          integer :: iw
          complex(8) :: t3(3, 3)
          Character (*), Parameter :: thisnam = 'genloss'
+
     !
          If (any(shape(eps) .Ne. shape(loss))) Then
             Write (unitout, '(a)') 'Error(' // thisnam // '): input and&
@@ -29,11 +31,14 @@ Contains
          End If
     ! loss function
 ! STK
-!        loss (:) = - aimag (1/eps(:))
-         Do iw = 1, input%xs%energywindow%points
-            call z3minv(eps(:, :, iw), t3(:, :))
-            loss(:, :, iw) = -aimag(t3)
-         enddo
+         If(nc.Eq.1) Then
+            loss (1,1,:) = - aimag (1/eps(1,1,:))
+         Else
+            Do iw = 1, input%xs%energywindow%points
+               call z3minv(eps(:, :, iw), t3(:, :))
+               loss(:, :, iw) = -aimag(t3)
+            enddo
+         End If
       End Subroutine genloss
 !
 End Module m_genloss

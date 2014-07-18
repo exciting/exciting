@@ -232,7 +232,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       packed=.false.
 !    
       Call newsystem (system, packed, n)
-      h1on=(input%groundstate%ValenceRelativity.eq.'lkh')
+      h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
       Call hamiltonandoverlapsetup (system, ngk(ispn, ik), apwalm, igkig(1, ispn, ik), vgpc)
 !      write(*,*) '************ARPACK**************'
 !      read(*,*)
@@ -887,7 +887,7 @@ endif
         enddo
         arpackseed(1:n,ik)=arpackseed(1:n,ik)/dble(nstfv)
       endif
- write(*,*) '**********ARPACK DONE*************'
+! write(*,*) '**********ARPACK DONE*************'
 else
 !**************************************************************************
 ! This segment starts working if gev=.false.                              *

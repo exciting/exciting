@@ -94,8 +94,6 @@ subroutine dielmat
             write(*,*)
             write(*,'("  Calculate momentum matrix elements")')
         end if
-        if (.not.associated(input%properties%momentummatrix)) &
-        &  input%properties%momentummatrix => getstructmomentummatrix(emptynode)
         call writepmat
     end if
 
@@ -186,7 +184,7 @@ subroutine dielmat
                 do ist = 1, nstsv
                     zt1 = occsvt(ist)*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
                     t1 = (evalsvt(ist)-efermi)/input%groundstate%swidth
-                    wplas = wplas+dble(zt1)*sdelta(0,t1)/input%groundstate%swidth
+                    wplas = wplas+dble(zt1)*sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
                 end do
             end if
 

@@ -46,11 +46,13 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
     Real (8), Intent (In) :: rfir (ngrtot, nf)
     Type (plot3d_type), Intent (In) :: plotdef
 ! local variables
-    Integer :: np, ip1, ip2, ip3, i, ifunction 
+    Integer :: np, ip1, ip2, ip3, i, ifunction, ip 
     Real (8) :: tmpv(3)
     Character (512) :: buffer
     Character (20) :: buffer20
     Type (xmlf_t), Save :: xf
+    Real (8) :: v1(3), v2(3), v3(3), t1, t2, t3
+    Real (8) :: boxl(3,4)
 ! allocatable arrays
     Integer,  Allocatable :: ipmap (:,:,:)
     Real (8), Allocatable :: vpl (:,:)
@@ -73,10 +75,38 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
         &  0:plotdef%box%grid(2), 0:plotdef%box%grid(3)))
         allocate(vpl(3,(plotdef%box%grid(1)+1)* &
         &  (plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
+        v1(:) = plotdef%box%pointarray(1)%point%coord-plotdef%box%origin%coord
+        v2(:) = plotdef%box%pointarray(2)%point%coord-plotdef%box%origin%coord
+        v3(:) = plotdef%box%pointarray(3)%point%coord-plotdef%box%origin%coord
 !
-! generate the 3d point grid and reduce it using the crystal symmetry
+! generate the 3d point grid
 !
-        call gengrid(plotdef%box%grid,np,ipmap,vpl)
+        If (plotdef%usesym) Then
+           boxl(:,1) = plotdef%box%origin%coord
+           boxl(:,2) = plotdef%box%pointarray(1)%point%coord-boxl(:,1)
+           boxl(:,3) = plotdef%box%pointarray(2)%point%coord-boxl(:,1)
+           boxl(:,4) = plotdef%box%pointarray(3)%point%coord-boxl(:,1)
+           ! reduce the grid using the crystal symmetry
+           call gengrid(plotdef%box%grid,boxl,np,ipmap,vpl)
+        Else
+           ip = 0
+           Do ip3 = 0, plotdef%box%grid(3)
+              t3 = dble (ip3) / dble (plotdef%box%grid(3))
+              Do ip2 = 0, plotdef%box%grid(2)
+                 t2 = dble (ip2) / dble (plotdef%box%grid(2))
+                 Do ip1 = 0, plotdef%box%grid(1)
+                    t1 = dble (ip1) / dble (plotdef%box%grid(1))
+                    ip = ip + 1
+                    ipmap(ip1,ip2,ip3) = ip
+                    vpl(:, ip) = t1 * v1(:) + &
+                    &            t2 * v2(:) + &
+                    &            t3 * v3(:) + &
+                    &            plotdef%box%origin%coord
+                 End Do
+              End Do
+           End Do
+           np = ip
+        End If
 !      
 ! evaluate the total density at the reduced grid points
 !
@@ -109,14 +139,13 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
         call xml_AddAttribute(xf, "label", get_label(plotlabels3d,1))
         call xml_AddAttribute (xf, "latexunit", get_latexunit(plotlabels3d,1))
         call xml_AddAttribute (xf, "graceunit", get_graceunit(plotlabels3d,1))
-        write(buffer,'(3F12.3)') plotdef%box%pointarray(1)%point%coord
+        !write(buffer,'(3F12.3)') plotdef%box%pointarray(1)%point%coord
+        write(buffer,'(3F12.3)') v1
         call xml_AddAttribute(xf, "endpoint", trim(adjustl(buffer)))
-        write(buffer,'(3F12.3)') &
-       &  (plotdef%box%pointarray(1)%point%coord-plotdef%box%origin%coord)/ &
-       &  plotdef%box%grid(1)
+        write(buffer,'(3F12.3)') v1/plotdef%box%grid(1)
         call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
         call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3, &
-       &  plotdef%box%pointarray(1)%point%coord,1,0.d0,tmpv(1),1)
+       &  v1,1,0.d0,tmpv(1),1)
         write (buffer,'(3F12.3)') tmpv
         call xml_AddAttribute(xf, "endpointrs", trim(adjustl(buffer)))
         call xml_endElement(xf, "axis")
@@ -126,14 +155,13 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
         call xml_AddAttribute(xf, "label", get_label(plotlabels3d,2))
         call xml_AddAttribute(xf, "latexunit", get_latexunit(plotlabels3d,2))
         call xml_AddAttribute(xf, "graceunit", get_graceunit(plotlabels3d,2))
-        write (buffer,'(3F12.3)') plotdef%box%pointarray(2)%point%coord
+        !write (buffer,'(3F12.3)') plotdef%box%pointarray(2)%point%coord
+        write(buffer,'(3F12.3)') v2
         call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
-        write (buffer,'(3F12.3)') &
-       &  (plotdef%box%pointarray(2)%point%coord-plotdef%box%origin%coord)/ &
-       &  plotdef%box%grid(2)
+        write(buffer,'(3F12.3)') v2/plotdef%box%grid(2)
         call xml_AddAttribute(xf, "delta", trim(adjustl(buffer)))
         call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3, &
-       &  plotdef%box%pointarray(2)%point%coord,1,0.d0,tmpv(1),1)
+       &  v2,1,0.d0,tmpv(1),1)
         write(buffer, '(3F12.3)') tmpv
         call xml_AddAttribute(xf, "endpointrs", trim(adjustl(buffer)))
         call xml_endElement(xf, "axis")
@@ -143,14 +171,13 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
         call xml_AddAttribute(xf, "label", get_label(plotlabels3d,3))
         call xml_AddAttribute(xf, "latexunit", get_latexunit(plotlabels3d,3))
         call xml_AddAttribute(xf, "graceunit", get_graceunit(plotlabels3d,3))
-        write(buffer,'(3F12.3)') plotdef%box%pointarray(3)%point%coord
+        !write(buffer,'(3F12.3)') plotdef%box%pointarray(3)%point%coord
+        write(buffer,'(3F12.3)') v3
         call xml_AddAttribute(xf, "endpoint", trim(adjustl(buffer)))
-        write(buffer, '(3F12.3)') &
-       &  (plotdef%box%pointarray(3)%point%coord-plotdef%box%origin%coord)/ &
-       &  plotdef%box%grid(3)
+        write(buffer,'(3F12.3)') v3/plotdef%box%grid(3)
         call xml_AddAttribute(xf, "delta", trim(adjustl(buffer)))
         call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3, &
-       &  plotdef%box%pointarray(3)%point%coord,1,0.d0,tmpv(1),1)
+       &  v3,1,0.d0,tmpv(1),1)
         write (buffer, '(3F12.3)') tmpv
         call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
         call xml_endElement(xf, "axis")
@@ -163,7 +190,7 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
         call xml_AddAttribute(xf, "graceunit", get_graceunit(plotlabels3d,4))
         call xml_endElement(xf,"value")
         call xml_endElement(xf, "grid")
-        do ifunction = 1, nf
+        do i = 1, nf
             call xml_NewElement(xf, "function")
             write(buffer20,'(I14)') np
             call xml_AddAttribute(xf, "n", trim(adjustl(buffer20)))
@@ -178,14 +205,14 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
                     write(buffer20,'(I14)') ip2
                     call xml_AddAttribute(xf, "index", trim(adjustl(buffer20)))
                     do ip1 = 0, plotdef%box%grid(1)
-                        write(buffer20,'(6G18.10)') fp(ipmap(ip1,ip2,ip3),ifunction)
+                        write(buffer20,'(6G18.10)') fp(ipmap(ip1,ip2,ip3),i)
                         call xml_AddCharacters(xf, buffer20)
                     end do
                     call xml_endElement(xf, "row")
                 end do
                 call xml_endElement(xf, "row")
             end do
-            call xml_NewElement(xf, "function")
+            call xml_endElement(xf, "function")
         end do
 
         deallocate(vpl, fp)
@@ -198,7 +225,7 @@ CONTAINS
 !
 !==================================================================
 !
-Subroutine gengrid (ngridp, npt, ipmap, vpl)
+  Subroutine gengrid (ngridp, b, npt, ipmap, vpl)
 !
 ! Created, February 2011 (D. Nabok) 
 ! 3D real space grid is reduced using the system symmetry
@@ -208,6 +235,7 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
       Implicit None
 ! arguments
       Integer, Intent (In)  :: ngridp(3)
+      real(8), intent(in) :: b(3,4)
       Integer, Intent (Out) :: npt
       Integer, Intent (Out) :: ipmap(0:ngridp(1), 0:ngridp(2), 0:ngridp(3))
       Real (8), Intent (Out) :: vpl(3,(ngridp(1)+1)*(ngridp(2)+1)*(ngridp(3)+1))
@@ -215,29 +243,34 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
       Integer :: i1, i2, i3, ip, jp
       Integer :: isym, lspl
       integer :: iv(3)
-      Real (8) :: v1(3), v2(3)
-      Real (8) :: s(3,3), t1
+      Real(8) :: r1(3), r2(3), r3(3), vpl_(3)
+      Real(8) :: s(3,3), t1
 
       !-----------------------------------------------------------------
-
       ip = 0
       Do i3 = 0, ngridp(3)
-         v1(3) = dble(i3)/dble(ngridp(3))
+         r1(3) = dble(i3)/dble(ngridp(3))
          Do i2 = 0, ngridp(2)
-            v1(2) = dble(i2)/dble(ngridp(2))
+            r1(2) = dble(i2)/dble(ngridp(2))
             Do i1 = 0, ngridp(1)
-               v1(1) = dble(i1)/dble(ngridp(1))
+               r1(1) = dble(i1)/dble(ngridp(1))
+               ! rescaling
+               call r3mv(b(:,2:4),r1,r2)
+               ! offset
+               r2(:) = r2(:)+b(:,1)
                ! determine if this point is equivalent to one already in the set
                Do isym = 1, nsymcrys
-                  lspl = lsplsymc (isym)
+                  lspl = lsplsymc(isym)
                   ! apply symmetry operation S(r+t)
                   s(:,:) = dble(symlat(:,:,lspl))
-                  Call r3mv(s,v1(:)+vtlsymc(:,isym),v2)
-                  Call r3frac(input%structure%epslat,v2,iv)
+                  Call r3mv(s,r2(:)+vtlsymc(:,isym),r3)
+                  Call r3frac(input%structure%epslat,r3,iv)
                   Do jp = 1, ip
-                     t1 = Abs(vpl(1,jp)-v2(1)) + &
-                    &     Abs(vpl(2,jp)-v2(2)) + &
-                    &     Abs(vpl(3,jp)-v2(3))
+                     vpl_(:) = vpl(:,jp)
+                     Call r3frac(input%structure%epslat,vpl_,iv)
+                     t1 = Abs(vpl_(1)-r3(1)) + &
+                    &     Abs(vpl_(2)-r3(2)) + &
+                    &     Abs(vpl_(3)-r3(3))
                      If (t1 .Lt. input%structure%epslat) Then
                         ! equivalent point found
                         ipmap(i1,i2,i3) = jp
@@ -248,16 +281,14 @@ Subroutine gengrid (ngridp, npt, ipmap, vpl)
                ! add new point to set
                ip = ip+1
                ipmap(i1,i2,i3) = ip
-               vpl(:,ip) = v1(:)
+               vpl(:,ip) = r2(:)
 10             Continue
             End Do
          End Do
       End Do
       npt = ip
       Return
-End Subroutine gengrid
-
+  End Subroutine gengrid
 
 End Subroutine
 !EOC
-!

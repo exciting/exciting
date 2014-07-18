@@ -5,7 +5,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-!     add OMP April 2014 (UW)
+!     Modified April 2014 (UW)
 Subroutine zrhogp (gpc, jlgpr, ylmgp, sfacgp, zrhomt, zrhoir, zrho0)
       Use modmain
       Use modinput

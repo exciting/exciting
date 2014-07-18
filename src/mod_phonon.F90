@@ -38,5 +38,9 @@ Module mod_phonon
       Real (8), Allocatable :: vqlwrt (:, :)
 ! Coulomb pseudopotential
 !replaced by inputstructurereal(8)::mustar
+! file suffix for DYN files
+      Character(256) :: filextdyn
+! subdirectory name for phonon calculation
+      Character(256) :: phdirname
 End Module
 !

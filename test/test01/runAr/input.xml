@@ -26,6 +26,7 @@
     mixer="msec"
     radialgridtype="cubic"
     swidth="0.001"
+    outputlevel="normal"
     >
  <solver
     type='Lapack'

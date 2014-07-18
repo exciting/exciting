@@ -475,6 +475,11 @@ Module modxs
   !---------------------------------------!
   ! are we doing a double grid run?
       Logical :: dgrid
+  ! backup input%xs%screening%do 
+      Character (11) :: doscreen0
+  ! backup for XS vkloff
+      Real (8) :: vkloff_xs_b(3)
+      
 
 
 End Module modxs

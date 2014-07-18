@@ -91,4 +91,9 @@ cleantests::
 	-rm -f  test*/run*/atoms*
 	-rm -f  test*/run*/info*xml
 	-rm -f  test*/run*/geometry*xml
-
+	-rm -f  test*/run*/FERMISURF*
+	-rm -f  test*/run*/RHO2D*
+	-rm -f  test*/run*/err*
+	-rm -f  test*/err
+	-rm -f  test*/run*/result*
+	-rm -f  test*/result*

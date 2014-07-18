@@ -1114,7 +1114,6 @@
 	  </xs:restriction>
 	</xs:simpleType>
       </xs:attribute>
-
       <xs:attribute ex:importance="expert" ex:unit="" name="maxscl" type="xs:integer"
 		    default="1">
 	<xs:annotation>

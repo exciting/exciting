@@ -149,7 +149,7 @@ if (hybcheck) then
   splittfile = .True.
   Do ik = firstk (rank), lastk (rank)
 #endif
-#ifdef KSMP
+#ifdef USEOMP
      !$OMP PARALLEL DEFAULT(SHARED) &
      !$OMP PRIVATE(evalfv,evecfv,evecsv) &
      !$OMP PRIVATE(dmat,apwalm) &
@@ -224,7 +224,7 @@ if (hybcheck) then
      Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
 
-#ifdef KSMP
+#ifdef USEOMP
      !$OMP END DO
      !$OMP END PARALLEL
 #endif

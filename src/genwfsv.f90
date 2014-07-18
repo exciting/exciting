@@ -38,7 +38,7 @@ Subroutine genwfsv (tocc, ngp, igpig, evalsvp, apwalm, evecfv, evecsv, &
 !
 ! !REVISION HISTORY:
 !   Created November 2004 (Sharma)
-!   Add OMP April 2014 (UW)
+!   Modified April 2014 (UW)
 !EOP
 !BOC
       Implicit None

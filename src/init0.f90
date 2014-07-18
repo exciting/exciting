@@ -10,7 +10,7 @@
 ! !INTERFACE:
 !
 !
-Subroutine init0
+Subroutine init0(verbosity)
 ! !USES:
       Use modinput
       Use modmain
@@ -27,6 +27,7 @@ Subroutine init0
 !EOP
 !BOC
       Implicit None
+      integer :: verbosity
 ! local variables
       Integer :: is, js, ia, ias
       Integer :: ist, l, m, lm, iv (3)
@@ -370,7 +371,7 @@ Subroutine init0
       If (init0symonly) Go To 10
 #endif
 ! solve the Kohn-Sham-Dirac equations for all atoms
-      Call allatoms
+      Call allatoms(verbosity)
 ! allocate core state eigenvalue array and set to default
       If (allocated(evalcr)) deallocate (evalcr)
       Allocate (evalcr(spnstmax, natmtot))

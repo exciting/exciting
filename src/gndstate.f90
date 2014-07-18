@@ -36,9 +36,11 @@ Subroutine gndstate
     Call timesec (tsg0)
     Call timesec (ts0)
 
+    Call gndcheck
+    
 ! initialise global variables
     Call timesec (tin0)
-    Call init0
+    Call init0(input%groundstate%outputlevelnumber)
     Call timesec (tin1)
     time_init0=tin1-tin0
     Call timesec (tin0)

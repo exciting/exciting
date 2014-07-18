@@ -1,4 +1,5 @@
 perl refactortoxmlinput.pl ../src/  \
+	../src/src_stm/ \
 	../src/src_xs/ \
 	../src/src_sym/ \
 	../src/src_fermisurfdx/ \
