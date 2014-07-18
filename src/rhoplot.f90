@@ -29,7 +29,7 @@ Subroutine rhoplot
       real(8), allocatable :: rhoirsp(:,:)
       Integer :: i, j, k
 ! initialise universal variables
-      type(plotlabels),pointer ::labels
+      type(plotlabels), pointer :: labels
 
 !---------------------------------------------
 ! Read density (and magnetization) from file
@@ -57,11 +57,12 @@ Subroutine rhoplot
 !---------------------------------      
 ! write the density plot to file
 !---------------------------------
+      write(*,*)
 
       ! 1D plot
       if (associated(input%properties%chargedensityplot%plot1d)) Then
         if (associated(input%groundstate%spin)) then
-          ! spin-UP
+if (.false.) then
           labels=>create_plotlablels("RHOUP1D","RHOUP1D",1)
           call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
           call set_plotlabel_axis(labels,2,"Density","???","graceunit")
@@ -72,7 +73,6 @@ Subroutine rhoplot
           write(*,*)
           write(*, '("Info(rhoplot):")')
           write(*, '(" 1D spin-up density plot written to RHOUP1D.xml")')
-          ! spin-DOWN
           labels=>create_plotlablels("RHODN1D","RHODN1D",1)
           call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
           call set_plotlabel_axis(labels,2,"Density","???","graceunit")
@@ -81,6 +81,16 @@ Subroutine rhoplot
           &           input%properties%chargedensityplot%plot1d)
           call destroy_plotlablels(labels)
           write(*, '(" 1D spin-down density plot written to RHODN1D.xml")')
+end if
+          labels=>create_plotlablels("RHO1D","RHO1D",1)
+          call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
+          call set_plotlabel_axis(labels,2,"Density","???","graceunit")
+          call plot1d(labels, 2, input%groundstate%lmaxvr, lmmaxvr, &
+          &           rhomtsp, rhoirsp, &
+          &           input%properties%chargedensityplot%plot1d)
+          call destroy_plotlablels(labels)
+          write(*, '("Info(rhoplot):")')
+          write(*, '(" 1D spin-dependent density plot written to RHO1D.xml")')          
         else
           labels=>create_plotlablels("RHO1D","RHO1D",1)
           call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
@@ -88,7 +98,6 @@ Subroutine rhoplot
           call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
           &            rhomt, rhoir, input%properties%chargedensityplot%plot1d)
           call destroy_plotlablels(labels)
-          write(*,*)
           write(*, '("Info(rhoplot):")')
           write(*, '(" 1D density plot written to RHO1D.xml")')
         end if
@@ -97,6 +106,7 @@ Subroutine rhoplot
       ! 2D plot
       If (associated(input%properties%chargedensityplot%plot2d)) Then
         if (associated(input%groundstate%spin)) then
+if (.false.) then        
 	  labels=>create_plotlablels("RHOUP2D","RHOUP2D",2)
 	  call set_plotlabel_axis(labels,1,"a","1","graceunit")
 	  call set_plotlabel_axis(labels,2,"b","1","graceunit")
@@ -105,7 +115,6 @@ Subroutine rhoplot
           &           rhomtsp(:,:,:,1), rhoirsp(:,1), &
           &           input%properties%chargedensityplot%plot2d)
           call destroy_plotlablels(labels)
-          Write(*,*)
           write(*, '("Info(rhoplot):")')
           Write(*, '(" 2D spin-up density plot written to RHOUP2D.xml")')
 	  labels=>create_plotlablels("RHODN2D","RHODN2D",2)
@@ -117,6 +126,17 @@ Subroutine rhoplot
           &           input%properties%chargedensityplot%plot2d)
           call destroy_plotlablels(labels)
           Write(*, '(" 2D spin-down density plot written to RHODN2D.xml")')
+end if
+	  labels=>create_plotlablels("RHO2D","RHO2D",2)
+	  call set_plotlabel_axis(labels,1,"a","1","graceunit")
+	  call set_plotlabel_axis(labels,2,"b","1","graceunit")
+	  call set_plotlabel_axis(labels,3,"Density","???","graceunit")
+          Call plot2d(labels, 2, input%groundstate%lmaxvr, lmmaxvr, &
+          &           rhomtsp, rhoirsp, &
+          &           input%properties%chargedensityplot%plot2d)
+          call destroy_plotlablels(labels)
+          write(*, '("Info(rhoplot):")')
+          Write(*, '(" 2D spin-dependent density plot written to RHO2D.xml")')
         else
           labels=>create_plotlablels("RHO2D","RHO2D",2)
 	  call set_plotlabel_axis(labels,1,"a","1","graceunit")
@@ -125,7 +145,6 @@ Subroutine rhoplot
           Call plot2d(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
           &           rhomt, rhoir, input%properties%chargedensityplot%plot2d)
           call destroy_plotlablels(labels)
-          Write(*,*)
           write(*, '("Info(rhoplot):")')
           Write(*, '(" 2D density plot written to RHO2D.xml")')
         end if
@@ -134,6 +153,7 @@ Subroutine rhoplot
       ! 3D plot
       If (associated(input%properties%chargedensityplot%plot3d)) Then
         if (associated(input%groundstate%spin)) then
+if (.false.) then        
           labels=>create_plotlablels("RHOUP3D","RHOUP3D",3)
           call set_plotlabel_axis(labels,1,"a","1","graceunit")
           call set_plotlabel_axis(labels,2,"b","1","graceunit")
@@ -143,7 +163,6 @@ Subroutine rhoplot
           &           rhomtsp(:,:,:,1), rhoirsp(:,1), &
           &           input%properties%chargedensityplot%plot3d)
           call destroy_plotlablels(labels)
-          Write(*,*)
           write(*, '("Info(rhoplot):")')
           Write(*, '(" 3D spin-up density plot written to RHOUP3D.xml")')
           labels=>create_plotlablels("RHODN3D","RHODN3D",3)
@@ -156,6 +175,18 @@ Subroutine rhoplot
           &           input%properties%chargedensityplot%plot3d)
           call destroy_plotlablels(labels)
           Write(*, '(" 3D spin-down density plot written to RHODN3D.xml")')
+end if
+          labels=>create_plotlablels("RHO3D","RHO3D",3)
+          call set_plotlabel_axis(labels,1,"a","1","graceunit")
+          call set_plotlabel_axis(labels,2,"b","1","graceunit")
+          call set_plotlabel_axis(labels,3,"b","1","graceunit")
+          call set_plotlabel_axis(labels,4,"Density","???","graceunit")
+          Call plot3d(labels, 2, input%groundstate%lmaxvr, lmmaxvr, &
+          &           rhomtsp, rhoirsp, &
+          &           input%properties%chargedensityplot%plot3d)
+          call destroy_plotlablels(labels)
+          write(*, '("Info(rhoplot):")')
+          Write(*, '(" 3D spin-dependent density plot written to RHO3D.xml")')
         else
           labels=>create_plotlablels("RHO3D","RHO3D",3)
           call set_plotlabel_axis(labels,1,"a","1","graceunit")
@@ -163,9 +194,8 @@ Subroutine rhoplot
           call set_plotlabel_axis(labels,3,"b","1","graceunit")
           call set_plotlabel_axis(labels,4,"Density","???","graceunit")
           Call plot3d(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
-          & rhomt, rhoir, input%properties%chargedensityplot%plot3d)
+          &           rhomt, rhoir, input%properties%chargedensityplot%plot3d)
           call destroy_plotlablels(labels)
-          Write(*,*)
           write(*, '("Info(rhoplot):")')
           Write(*, '(" 3D density plot written to RHO3D.xml")')
         end if

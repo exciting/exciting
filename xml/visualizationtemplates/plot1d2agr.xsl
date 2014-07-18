@@ -22,7 +22,7 @@
    </xsl:variable>
 
    <xsl:variable name="min_x_data">
-      <xsl:for-each select="/plot1d/grid/point">
+      <xsl:for-each select="/plot1d/grid/vertex">
          <xsl:sort select="@distance" data-type="number" order="ascending"/>
          <xsl:if test="position()=1">
             <xsl:value-of select="@distance"/>
@@ -31,7 +31,7 @@
    </xsl:variable>
 
    <xsl:variable name="max_x_data">
-      <xsl:for-each select="/plot1d/grid/point">
+      <xsl:for-each select="/plot1d/grid/vertex">
          <xsl:sort select="@distance" data-type="number" order="descending"/>
          <xsl:if test="position()=1">
             <xsl:value-of select="@distance"/>
@@ -40,22 +40,12 @@
    </xsl:variable>
 
    <xsl:variable name="min_y_data">
-      <xsl:for-each select="/plot1d/grid/point">
-         <xsl:sort select="@function1" data-type="number" order="ascending"/>
-         <xsl:if test="position()=1">
-            <xsl:value-of select="@function1"/>
-         </xsl:if>
-      </xsl:for-each>
-    </xsl:variable>
+      <xsl:value-of select="/plot1d/grid/vertex/@lowerboundary"/>
+   </xsl:variable>
 
-    <xsl:variable name="max_y_data">
-       <xsl:for-each select="/plot1d/grid/point">
-          <xsl:sort select="@function1" data-type="number" order="descending"/>
-          <xsl:if test="position()=1">
-             <xsl:value-of select="@function1"/>
-          </xsl:if>
-       </xsl:for-each>
-    </xsl:variable>
+   <xsl:variable name="max_y_data">
+      <xsl:value-of select="/plot1d/grid/vertex/@upperboundary"/>
+   </xsl:variable>
 
 <xsl:text>
 # Grace project file
@@ -337,20 +327,22 @@
 @    frame background pattern 0
 </xsl:text>
 
+<xsl:for-each select="/plot1d/grid/function">
 <xsl:text>
-@target G0.S0
-@    s0 line color 3
+@target G0.S</xsl:text><xsl:value-of select="position()"/>
+<xsl:text>
 @type xy
 </xsl:text>
-   <xsl:for-each select="/plot1d/grid/point">
-   <xsl:value-of select="@distance"/>
-<xsl:text> </xsl:text>
-   <xsl:value-of select="@function1"/>
-<xsl:text>
+<xsl:for-each select="./point">
+  <xsl:value-of select="@distance"/>
+  <xsl:text> </xsl:text>
+  <xsl:value-of select="@value"/>
+  <xsl:text>
 </xsl:text>
-   </xsl:for-each>
+</xsl:for-each>
 <xsl:text>&amp;
 </xsl:text>
+</xsl:for-each>
    
 </xsl:template>
 </xsl:stylesheet>

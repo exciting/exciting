@@ -11,38 +11,40 @@ xmlns:str="http://exslt.org/strings" >
     <xsl:text>
 </xsl:text>
   </xsl:variable>
-  <xsl:variable name="bohr2angstr" select="0.529177" />
+  <xsl:variable name="bohr2angstr" select="0.529177"/>
   <xsl:template match="/">
+    <xsl:text>
+BEGIN_BLOCK_DATAGRID_3D
+</xsl:text>
+    <xsl:value-of select="str:replace(/plot3d/title,' ','_')"/>
     <xsl:for-each select="/plot3d/function">
-<xsl:text>
-BEGIN_BLOCK_DATAGRID_3D                        
-  </xsl:text><xsl:value-of select="str:replace(/plot3d/title,' ','_')"/><xsl:text>      
-   BEGIN_DATAGRID_3D_this_is_3Dgrid#1 
- </xsl:text><xsl:value-of select="/plot3d/grid/@gridticks" />
- <xsl:value-of select="$newline"/><xsl:text> </xsl:text>
- <xsl:for-each select="str:tokenize(/plot3d/grid/@originrs)">
-    <xsl:value-of select=".*$bohr2angstr"/> <xsl:text> </xsl:text>
- </xsl:for-each>
-    <xsl:value-of select="$newline"/>
-    <xsl:for-each select="/plot3d/grid/axis">
-     <xsl:text> </xsl:text>
-     <xsl:for-each select="str:tokenize(@endpointrs)">
-    <xsl:value-of select=".*$bohr2angstr"/> <xsl:text> </xsl:text>
- </xsl:for-each>
-  
+      <xsl:text>      
+BEGIN_DATAGRID_3D
+</xsl:text>
+      <xsl:value-of select="/plot3d/grid/@gridticks"/>
       <xsl:value-of select="$newline"/>
-    </xsl:for-each>    
+      <xsl:for-each select="str:tokenize(/plot3d/grid/@originrs)">
+        <xsl:value-of select=".*$bohr2angstr"/><xsl:text> </xsl:text>
+      </xsl:for-each>
+      <xsl:value-of select="$newline"/>
+      <xsl:for-each select="/plot3d/grid/axis">
+        <xsl:for-each select="str:tokenize(@endpointrs)">
+          <xsl:value-of select=".*$bohr2angstr"/><xsl:text> </xsl:text>
+        </xsl:for-each>
+        <xsl:value-of select="$newline"/>
+      </xsl:for-each>    
     
-<xsl:for-each select="row">
-  <xsl:for-each select="row">
-    <xsl:value-of select="."/>
-    <xsl:value-of select="$newline"/>
-  </xsl:for-each>
-  <xsl:value-of select="$newline"/>
-</xsl:for-each>
-    <xsl:text>   END_DATAGRID_3D                      
- END_BLOCK_DATAGRID_3D
-    </xsl:text>
-  </xsl:for-each>
+      <xsl:for-each select="row">
+        <xsl:for-each select="row">
+          <xsl:value-of select="."/>
+          <xsl:value-of select="$newline"/>
+        </xsl:for-each>
+      </xsl:for-each>
+    
+      <xsl:text>END_DATAGRID_3D
+</xsl:text>
+    </xsl:for-each>
+    <xsl:text>END_BLOCK_DATAGRID_3D
+</xsl:text>
   </xsl:template>
 </xsl:stylesheet>

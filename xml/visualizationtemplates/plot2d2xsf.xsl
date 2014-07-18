@@ -6,48 +6,41 @@ xmlns:str="http://exslt.org/strings" >
   <xsl:variable name="da" select="str:tokenize(/plot2d/grid/axis[1]/@delta)" />
   <xsl:variable name="db" select="str:tokenize(/plot2d/grid/axis[2]/@delta)" />
   <xsl:variable name="grid" select="str:tokenize(/plot2d/grid/@gridticks)" />
-  <xsl:variable name="newline">
-    <xsl:text>
+  <xsl:variable name="newline"><xsl:text>
 </xsl:text>
   </xsl:variable>
   <xsl:variable name="bohr2angstr" select="0.529177" />
   <xsl:template match="/">
-    <xsl:for-each select="/plot2d/function">
-<xsl:text>
+    <xsl:text>
 BEGIN_BLOCK_DATAGRID_2D                        
-  </xsl:text><xsl:value-of select="str:replace(/plot2d/title,' ','_')"/><xsl:text>      
-   BEGIN_DATAGRID_2D_wave_function 
- </xsl:text><xsl:value-of select="/plot2d/grid/@gridticks" />
- <xsl:value-of select="$newline"/><xsl:text> </xsl:text>
- <xsl:for-each select="str:tokenize(/plot2d/grid/@origin)">
-    <xsl:value-of select=".*$bohr2angstr"/> <xsl:text> </xsl:text>
- </xsl:for-each>
-    <xsl:value-of select="$newline"/>
-    <xsl:for-each select="/plot2d/grid/axis">
-     <xsl:text> </xsl:text>
-     <xsl:for-each select="str:tokenize(@endpointrs)">
-    <xsl:value-of select=".*$bohr2angstr"/> <xsl:text> </xsl:text>
- </xsl:for-each>
-  
-      <xsl:value-of select="$newline"/>
-    </xsl:for-each>    
-
-  <xsl:for-each select="/plot2d/function/row">
-    <xsl:variable name="indexx" select="@index"/>
-      <xsl:for-each select="str:tokenize(.)">
-        <xsl:variable name="indexy" select="position()"/>
-        <xsl:text> </xsl:text>
-        <xsl:value-of select="." />
-        <xsl:text>
+</xsl:text>  
+    <xsl:value-of select="str:replace(/plot2d/title,' ','_')"/>
+    <xsl:for-each select="/plot2d/function">
+      <xsl:text>
+BEGIN_DATAGRID_2D
 </xsl:text>
-
+      <xsl:value-of select="/plot2d/grid/@gridticks"/>
+      <xsl:value-of select="$newline"/>
+      <xsl:for-each select="str:tokenize(/plot2d/grid/@origin)">
+        <xsl:value-of select=".*$bohr2angstr"/><xsl:text> </xsl:text>
       </xsl:for-each>
+      <xsl:value-of select="$newline"/>
+      <xsl:for-each select="/plot2d/grid/axis">
+        <xsl:for-each select="str:tokenize(@endpointrs)">
+          <xsl:value-of select=".*$bohr2angstr"/><xsl:text> </xsl:text>
+        </xsl:for-each>
+        <xsl:value-of select="$newline"/>
+      </xsl:for-each>    
 
-  </xsl:for-each>
+      <xsl:for-each select="row">
+        <xsl:value-of select="."/>
+        <xsl:value-of select="$newline"/>
+      </xsl:for-each>
     
-    <xsl:text>   END_DATAGRID_2D                      
- END_BLOCK_DATAGRID_2D
-    </xsl:text>
-  </xsl:for-each>
+      <xsl:text>END_DATAGRID_2D
+</xsl:text>
+    </xsl:for-each>
+    <xsl:text>END_BLOCK_DATAGRID_2D
+</xsl:text>
   </xsl:template>
 </xsl:stylesheet>
