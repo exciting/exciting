@@ -59,7 +59,7 @@ Subroutine olprad
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
 
-            if (input%groundstate%ValenceRelativity.eq.'lkh') then
+            if (input%groundstate%ValenceRelativity.eq.'iora*') then
               Do l = 0, input%groundstate%lmaxmat
                 angular=dble(l*(l+1))
                 Do io1 = 1, apword (l, is)
@@ -97,7 +97,7 @@ Subroutine olprad
                   Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                   oalo (io, ilo, ias) = gr (nr) 
 !                 else
-                  if (input%groundstate%ValenceRelativity.eq.'lkh') then
+                  if (input%groundstate%ValenceRelativity.eq.'iora*') then
                    angular=dble(l*(l+1))
                    Do ir = 1, nr
                      rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
@@ -123,7 +123,7 @@ Subroutine olprad
                       End Do
                       Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                       ololo (ilo1, ilo2, ias) = gr (nr)
-                    if (input%groundstate%ValenceRelativity.eq.'lkh') then
+                    if (input%groundstate%ValenceRelativity.eq.'iora*') then
                       angular=dble(l*(l+1))
                       Do ir = 1, nr
                         rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)

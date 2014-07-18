@@ -2649,18 +2649,27 @@
         </xs:annotation>
       </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="ValenceRelativity" default="scalar">
+            <xs:attribute ex:importance="expert" ex:unit="" name="ValenceRelativity" default="zora">
               <xs:annotation>
-                <xs:documentation>Chooses between relativistic/non-relativistic descriptions for valence electrons. Pick either "scalar", "none" or "kh".
+                <xs:documentation>Relativistic Hamiltonian to use in groundstate calculations. 
+                <list>
+                    <li>none   - solves non-relativistic Schoedinger equation (SE) </li>
+                    <li>zora   - solves scalar-relativistic SE within zero-order regular approximation (ZORA) </li>
+                    <li>iora*  - solves scalar-relativistic SE within infinite-order regular approximation (IORA), the small component is neglected </li>
+                    <li>iora   - solves scalar-relativistic SE within infinite-order regular approximation (IORA), the small component is included  </li>
+                    <li>kh*    - solves scalar-relativistic SE for the large component, the small component is neglected  </li> 
+                    <li>kh     - solves scalar-relativistic SE for the large component, the small component is included  </li>
+                </list>
+                       iora, kh* and kh are implemented only for atoms.
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
-                  <xs:enumeration value="scalar"/>
+                  <xs:enumeration value="zora"/>
+                  <xs:enumeration value="iora*"/>
+                  <xs:enumeration value="iora"/>
+                  <xs:enumeration value="kh*"/>
                   <xs:enumeration value="kh"/>
-                  <xs:enumeration value="khs"/>
-                  <xs:enumeration value="lkh"/>
-                  <xs:enumeration value="lkhs"/>
                   <xs:enumeration value="none"/>
                 </xs:restriction>
               </xs:simpleType>

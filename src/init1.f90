@@ -516,7 +516,6 @@ Subroutine init1
       If (allocated(ololo)) deallocate (ololo)
       Allocate (ololo(nlomax, nlomax, natmtot))
 
-!      if (input%groundstate%ValenceRelativity.eq.'lkh') then
         If (allocated(h1aa)) deallocate (h1aa)
         Allocate (h1aa(apwordmax, apwordmax,0:input%groundstate%lmaxapw,natmtot))
         If (allocated(h1loa)) deallocate (h1loa)

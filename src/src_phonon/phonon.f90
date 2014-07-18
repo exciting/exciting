@@ -7,6 +7,9 @@ Subroutine phonon
       Use modmain
       use modmpi
       Use modinput
+#ifdef IFORT
+      use ifport
+#endif
       Implicit None
 ! local variables
       Integer :: is, js, ia, ja, ka, jas, kas
@@ -26,6 +29,12 @@ Subroutine phonon
       Real (8), Allocatable :: veffirp (:)
       Complex (8), Allocatable :: dveffmt (:, :, :)
       Complex (8), Allocatable :: dveffir (:)
+! subdirectory handling
+#ifndef IFORT
+      integer system, chdir
+#endif
+      integer :: j
+      logical :: existent
 !------------------------!
 !     initialisation     !
 !------------------------!
@@ -105,7 +114,7 @@ Subroutine phonon
       natoms (1:nspecies) = natoms0 (1:nspecies)
 ! find a dynamical matrix to calculate
       if (rank.eq.0) then
-        Call dyntask (80, iq, is, ia, ip, status)
+        Call dyntask (iq, is, ia, ip, status)
         finished=.false.
         if (status .eq. "finished") finished=.true.
       end if
@@ -115,24 +124,26 @@ Subroutine phonon
       Call MPI_bcast (is, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
       Call MPI_bcast (ip, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
       Call MPI_bcast (finished, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
-      Call phfext (iq, is, ia, ip, filext)
 #endif
       if (finished) goto 20
 ! phonon dry run
       If (task .Eq. 201) Go To 10
 ! check to see if mass is considered infinite
       If (spmass(is) .Le. 0.d0) Then
-         Do ip = 1, 3
-            Do js = 1, nspecies
-               Do ja = 1, natoms0 (js)
-                  Do jp = 1, 3
-                     if (rank.eq.0) Write (80, '(2G18.10, " : is = ", I4, ", ia = ", I&
-                    &4, ", ip = ", I4)') 0.d0, 0.d0, js, ja, jp
+         if (rank .eq. 0) then
+            Call phfext (iq, is, ia, ip, 0, 1, filext, filextdyn, phdirname)
+            Open (80, File='DYN'//trim(filextdyn), Action='WRITE', Form='FORMATTED')
+            Do ip = 1, 3
+               Do js = 1, nspecies
+                  Do ja = 1, natoms0 (js)
+                     Do jp = 1, 3
+                        Write (80, '(2G18.10, " : is = ", I4, ", ia = ", I4, ", ip = ", I4)') 0.d0, 0.d0, js, ja, jp
+                     End Do
                   End Do
                End Do
             End Do
-         End Do
-         if (rank.eq.0) Close (80)
+            Close (80)
+         endif
          Go To 10
       End If
       task = 200
@@ -152,8 +163,30 @@ Subroutine phonon
          atposc (:, :, :) = atposc0 (:, :, :)
 ! generate the supercell
          Call phcell (iph, input%phonons%deltaph, iq, is, ia, ip)
+! generate file names
+         Call phfext (iq, is, ia, ip, iph, 1, filext, filextdyn, phdirname)
+! create and enter subdirectory
+         if (rank .eq. 0) then
+            inquire(file=trim(adjustl(phdirname))//'.test', exist=existent)
+            if (.not. existent) then
+               j = system('mkdir '//trim(adjustl(phdirname)))
+               if (j .ne. 0) &
+             &    write(*, '("Warning(Phonon): When executing mkdir ",a,", the error ",i4," was returned. ")') &
+             &         trim(adjustl(phdirname)), j
+               open(unit=13, file=trim(adjustl(phdirname))//'.test', status='unknown')
+               close(13)
+            endif
+         endif
+#ifdef MPI
+        call MPI_Barrier(MPI_Comm_World, ierr)
+#endif
+         j = chdir('./'//trim(adjustl(phdirname)))
 ! run the ground-state calculation
+         if (task .eq. 1) call writestate
          Call gndstate
+! read STATE.OUT file with current extension
+         call readstate
+         if (rank.eq.0)  Call phdelete
 ! store the total force for the first displacement
          Do js = 1, nspecies
             Do ja = 1, natoms (js)
@@ -186,9 +219,19 @@ Subroutine phonon
             dph = input%phonons%deltaph + input%phonons%deltaph
          endif
          Call phcell (iph, dph, iq, is, ia, ip)
+! generate new file names
+         Call phfext (iq, is, ia, ip, iph, 2, filext, filextdyn, phdirname)
+! write STATE.OUT file with updated extension for use in gndstate
+         call writestate
+#ifdef MPI
+         call MPI_Barrier(MPI_Comm_World, ierr)
+#endif
 ! run the ground-state calculation again starting from the previous density
          task = 1
          Call gndstate
+! read STATE.OUT file with current extension
+         call readstate
+         if (rank.eq.0)  Call phdelete
  67      continue
 ! compute the complex perturbing effective potential with implicit q-phase
          Call phdveff (iph, iq, veffmtp, veffirp, dveffmt, dveffir)
@@ -228,8 +271,11 @@ Subroutine phonon
                End Do
             End Do
          End Do
+! return to base directory
+         j = chdir('..')
       End Do
 ! write dynamical matrix row to file
+      Open (80, File='DYN'//trim(filextdyn), Action='WRITE', Form='FORMATTED')
       Do js = 1, nspecies
          Do ja = 1, natoms0 (js)
             Do jp = 1, 3
@@ -245,8 +291,6 @@ Subroutine phonon
       Close (80)
 ! write the complex perturbing effective potential to file
       if (rank.eq.0)  Call writedveff (iq, is, ia, ip, dveffmt, dveffir)
-! delete the non-essential files
-      if (rank.eq.0)  Call phdelete
       Go To 10
 20 continue
 End Subroutine

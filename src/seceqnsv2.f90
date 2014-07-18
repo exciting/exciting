@@ -97,7 +97,7 @@ Subroutine seceqnsv2 (ik, apwalm, evalfv, evecfv, evecsv)
         packed = input%groundstate%solver%packedmatrixstorage
         
         Call newsystem (system, packed, nmat(1,ik))
-        h1on=(input%groundstate%ValenceRelativity.eq.'lkh')
+        h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
         Call hamiltonandoverlapsetup (system, ngk(1,ik), apwalm, igkig, vgkc)
         call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                    'N', &           ! TRANSB = 'N'  op( B ) = B.
@@ -158,7 +158,7 @@ Subroutine seceqnsv2 (ik, apwalm, evalfv, evecfv, evecsv)
         packed = input%groundstate%solver%packedmatrixstorage
 
         Call newsystem (system, packed, nmat(1,ik))
-        h1on=(input%groundstate%ValenceRelativity.eq.'lkh')
+        h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
         Call hamiltonandoverlapsetup (system, ngk(1,ik), apwalm, igkig, vgkc)
         call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                    'N', &           ! TRANSB = 'N'  op( B ) = B.

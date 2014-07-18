@@ -64,7 +64,6 @@ Subroutine plot1d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
         Stop
      End If
      write(buffer,*)  labels%filename , ".xml"
-	 
      Call xml_OpenFile ( adjustl(trim(buffer)), xf, replace=.True. ,  pretty_print=.True.)
      Call xml_NewElement (xf, "plot1d")
      Call xml_NewElement (xf, "title")
@@ -84,53 +83,46 @@ Subroutine plot1d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
      ! connect the plotting vertices
      nvp1d = size (plotdef%path%pointarray)
      npp1d = plotdef%path%steps
-     Allocate (fp(npp1d, nf))
      If (allocated(dvp1d)) deallocate (dvp1d)
      Allocate (dvp1d(nvp1d))
      If (allocated(vplp1d)) deallocate (vplp1d)
      Allocate (vplp1d(3, npp1d))
      If (allocated(dpp1d)) deallocate (dpp1d)
      Allocate (dpp1d(npp1d))
-     Call connect (input%structure%crystal%basevect, plotdef, &
-          & size(plotdef%path%pointarray), plotdef%path%steps, vplp1d, &
-          & dvp1d, dpp1d)
+     Call connect(input%structure%crystal%basevect, plotdef, &
+     &            size(plotdef%path%pointarray), plotdef%path%steps, &
+     &            vplp1d, dvp1d, dpp1d)
+     ! evaluate function at each point 
+     Allocate (fp(npp1d, nf))
+     fp = 0.d0
      Do i = 1, nf
-        ! evaluate function at each point
-        Call rfarray (lmax, ld, rfmt(:, :, :, i), rfir(:, i), npp1d, &
-             & vplp1d, fp(:, i))
+        Call rfarray(lmax, ld, rfmt(:, :, :, i), rfir(:, i), npp1d, vplp1d, fp(:, i))
      End Do
-     fmin = fp (1, 1)
-     fmax = fp (1, 1)
-     Do ip = 1, npp1d
-        Do i = 1, nf
-           fmin = Min (fmin, fp(ip, i))
-           fmax = Max (fmax, fp(ip, i))
-        End Do
-        ! write the point distances and function to file
-      
-        Call xml_NewElement (xf, "point")
-        Write (buffer, '(5G18.10)') dpp1d (ip)
-        Call xml_AddAttribute (xf, "distance", trim(adjustl(buffer)))
-        Do i = 1, nf
-           Write (buffer, '(5G18.10)') fp (ip, i)
-           Write (buffer1,*) i
-           Call xml_AddAttribute (xf, "function"//&
-                & trim(adjustl(buffer1)), trim(adjustl(buffer)))
-        End Do
-        Call xml_endElement (xf, "point")
-     End Do
+     ! write the point distances and function to file
+     do i = 1, nf
+        call xml_NewElement(xf, "function")
+        call xml_AddAttribute(xf, "name", "")
+        Do ip = 1, npp1d
+          Call xml_NewElement (xf, "point")
+          Write (buffer, '(G18.10)') dpp1d (ip)
+          Call xml_AddAttribute (xf, "distance", trim(adjustl(buffer)))
+          Write (buffer, '(G18.10)') fp (ip, i)
+          Call xml_AddAttribute (xf, "value", trim(adjustl(buffer)))
+          Call xml_endElement (xf, "point")
+        End Do ! ip
+        Call xml_endElement (xf, "function")
+     End Do ! nf
      ! write the vertex location lines
-     t1 = 0.5d0 * (fmax-fmin)
-     
+     fmin = minval(fp)
+     fmax = maxval(fp)    
      Do iv = 1, size (plotdef%path%pointarray)
         Call xml_NewElement (xf, "vertex")
-        !
         Write (buffer, '(5G18.10)') dvp1d (iv)
         Call xml_AddAttribute (xf, "distance", trim(adjustl(buffer)))
-        Write (buffer, '(5G18.10)') fmax + t1
+        Write (buffer, '(5G18.10)') fmax
         Call xml_AddAttribute (xf, "upperboundary", &
              & trim(adjustl(buffer)))
-        Write (buffer, '(5G18.10)') fmin - t1
+        Write (buffer, '(5G18.10)') fmin
         Call xml_AddAttribute (xf, "lowerboundary", &
              & trim(adjustl(buffer)))
         Call xml_AddAttribute (xf, "label", &

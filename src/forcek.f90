@@ -204,7 +204,7 @@ Subroutine forcek (ik, ffacg)
         endif
 
 !APW-APW
-         if (input%groundstate%ValenceRelativity.ne.'lkh') then
+         if (input%groundstate%ValenceRelativity.ne.'iora*') then
 !if (.false.) then
             call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
                        'N', &           ! TRANSB = 'N'  op( B ) = B.

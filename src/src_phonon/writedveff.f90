@@ -20,7 +20,8 @@ Subroutine writedveff (iq, is, ia, ip, dveffmt, dveffir)
 ! local variables
       Integer :: js
       Character (256) :: fext
-      Call phfext (iq, is, ia, ip, fext)
+      Character (256) :: chdummy
+      Call phfext (iq, is, ia, ip, 0, 1, chdummy, fext, chdummy)
       Open (50, File='DVEFF'//trim(fext), Action='WRITE', Form='UNFORMA&
      &TTED')
       Write (50) version

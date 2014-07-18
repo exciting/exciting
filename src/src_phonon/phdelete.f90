@@ -20,7 +20,7 @@ Subroutine phdelete
       Open (70, File=trim(scrpath)//'OCCSV'//trim(filext))
       Close (70, Status='DELETE')
 ! delete the STATE.OUT file
-      Open (50, File='STATE'//trim(filext))
-      Close (50, Status='DELETE')
+!     Open (50, File='STATE'//trim(filext))
+!     Close (50, Status='DELETE')
       Return
 End Subroutine

@@ -6,11 +6,10 @@
 ! See the file COPYING for license details.
 !
 !
-Subroutine dyntask (fnum, iq, is, ia, ip, status)
+Subroutine dyntask (iq, is, ia, ip, status)
       Use modmain
       Implicit None
 ! arguments
-      Integer, Intent (In) :: fnum
       Integer, Intent (Out) :: iq
       Integer, Intent (Out) :: is
       Integer, Intent (Out) :: ia
@@ -18,6 +17,7 @@ Subroutine dyntask (fnum, iq, is, ia, ip, status)
       character(*), intent(out) :: status
 ! local variables
       Logical :: exist
+      character(256) :: chdummy
       ip = 1
       is = 1
       ia = 1
@@ -27,11 +27,9 @@ Subroutine dyntask (fnum, iq, is, ia, ip, status)
          Do is = 1, nspecies
             Do ia = 1, natoms (is)
                Do iq = 1, nqpt
-                  Call phfext (iq, is, ia, ip, filext)
-                  Inquire (File='DYN'//trim(filext), Exist=Exist)
+                  Call phfext (iq, is, ia, ip, 0, 1, chdummy, filextdyn, chdummy)
+                  Inquire (File='DYN'//trim(filextdyn), Exist=Exist)
                   If ( .Not. exist) Then
-                     Open (fnum, File='DYN'//trim(filext), Action='WRIT&
-                    &E', Form='FORMATTED')
                      Return
                   End If
                End Do

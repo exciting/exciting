@@ -250,13 +250,6 @@
               <xs:element ex:importance="essential" ex:unit="" ref="plot2d" minOccurs="0"/>
               <xs:element ex:importance="essential" ex:unit="" ref="plot3d" minOccurs="0"/>
             </xs:all>
-            <xs:attribute name="plotgradient" type="xs:boolean" default="false">
-              <xs:annotation>
-                <xs:documentation>
-                  Calculate and plot the module of the density gradient
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
             <xs:attribute name="nocore" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation>
@@ -584,7 +577,7 @@
                </xs:attribute>
                <xs:attribute ex:importance="expert" ex:unit="" name="writefunc" type="xs:boolean" default="false">
                     <xs:annotation>
-                        <xs:documentation>If <pre>true</pre> output eigenfunctions of oscillator problem to file <pre>OSC_FUNC.OUT</pre>.
+                        <xs:documentation>If <pre>true</pre> output eigenfunctions of oscillator problem to files.
                         </xs:documentation>
                     </xs:annotation>
                </xs:attribute>

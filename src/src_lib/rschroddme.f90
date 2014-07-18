@@ -74,12 +74,12 @@ use modinput
          Stop
       End If
       If (k .Eq. 0) Then
-         if ((input%groundstate%ValenceRelativity.eq."scalar").or.(input%groundstate%ValenceRelativity.eq."none")) then
+         if ((input%groundstate%ValenceRelativity.eq."zora").or.(input%groundstate%ValenceRelativity.eq."none")) then
 ! ZORA
 #ifdef SPECIES
            rmfactor=1d0
 #else
-           if (input%groundstate%ValenceRelativity.eq."scalar") then
+           if (input%groundstate%ValenceRelativity.eq."zora") then
            rmfactor=1d0
            else
              rmfactor=0d0
@@ -95,7 +95,7 @@ use modinput
              End Do
            End If
            Deallocate (p0p)
-         elseif ((input%groundstate%ValenceRelativity.eq."kh").or.(input%groundstate%ValenceRelativity.eq."khs")) then
+         elseif ((input%groundstate%ValenceRelativity.eq."kh*").or.(input%groundstate%ValenceRelativity.eq."kh")) then
 ! Koelling-Harmon with or without small component
            Allocate (p0p(nr))
            Allocate (q0p(nr))
@@ -111,8 +111,8 @@ use modinput
              stop
            endif
            Deallocate (p0p,q0p)
-         elseif ((input%groundstate%ValenceRelativity.eq."lkh").or.(input%groundstate%ValenceRelativity.eq."lkhs")) then
-! Linearized Koelling-Harmon with or without small component
+         elseif ((input%groundstate%ValenceRelativity.eq."iora").or.(input%groundstate%ValenceRelativity.eq."iora*")) then
+! IORA with or without small component
            Allocate (p0p(nr),q0p(nr))
           
            if (m.le.3) then

@@ -50,7 +50,7 @@ use modinput
 ! fine structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
       Real (8) :: rm, t1, rmfactor
-      if (input%groundstate%ValenceRelativity.eq."scalar") then
+      if (input%groundstate%ValenceRelativity.eq."zora") then
          rmfactor=1d0
       else
          rmfactor=0d0
