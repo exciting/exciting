@@ -124,7 +124,11 @@ Subroutine bsedgrid ()
 !               &   input%xs%BSE%ngridksub(2)* &
 !               &   input%xs%BSE%ngridksub(3))
 !
-   call genloss (buf, loss)
+   If (noptcmp.Gt.1) Then
+      call genloss (buf, loss, .True.)
+   Else
+      call genloss (buf, loss, .False.)
+   End If
 !
    Do oct1 = 1, noptcmp
     If (input%xs%dfoffdiag) Then
