@@ -27,9 +27,9 @@ Subroutine init0(verbosity)
 !EOP
 !BOC
       Implicit None
-      integer :: verbosity
+      integer, optional, intent(in) :: verbosity
 ! local variables
-      Integer :: is, js, ia, ias
+      Integer :: is, js, ia, ias, vty
       Integer :: ist, l, m, lm, iv (3)
       Real (8) :: ts0, ts1, tv3 (3)
 
@@ -371,7 +371,12 @@ Subroutine init0(verbosity)
       If (init0symonly) Go To 10
 #endif
 ! solve the Kohn-Sham-Dirac equations for all atoms
-      Call allatoms(verbosity)
+      if (present(verbosity)) then
+        vty=verbosity
+      else
+        vty=-1
+      endif
+      Call allatoms(vty)
 ! allocate core state eigenvalue array and set to default
       If (allocated(evalcr)) deallocate (evalcr)
       Allocate (evalcr(spnstmax, natmtot))
