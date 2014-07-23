@@ -461,6 +461,8 @@ do imode = 1, nmode
            stop
         endif
         t1 = read_dph - input%properties%raman%displ*dble(istep)
+        if (istep .eq. 0 .and. .not.input%properties%raman%doequilibrium) &
+    &         t1 = read_dph - 100.d0*dble(natmtot)*input%structure%epslat
         if (abs(t1) .gt. eps ) then
            write(*,'("Error(Raman): Step length in file ",a," not consistent!")') 'RAMAN_POT'//trim(raman_filext)
            write(*,'("Read     :  ",f14.6)') read_dph
