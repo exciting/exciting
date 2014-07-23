@@ -10,10 +10,10 @@ for dirn in $label ; do
     mv ../INFO.OUT .
     mv ../RMSDVEFF.OUT .
     mv ../TOTENERGY.OUT .
-    mv ../DFSCFMAX.OUT .
-    mv ../WARNINGS.OUT .
     mv ../info.xml .
     mv ../geometry.xml .
+    if [ -f ../DFSCFMAX.OUT ];     then mv ../DFSCFMAX.OUT .     ; fi
+    if [ -f ../WARNINGS.OUT ];     then mv ../WARNINGS.OUT .     ; fi
     if [ -f ../geometry_opt.xml ]; then mv ../geometry_opt.xml . ; fi
     cd ../
     eta=$(ls -l | grep ^- | wc -l)
