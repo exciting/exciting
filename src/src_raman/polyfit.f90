@@ -92,7 +92,7 @@ else
    if (input%properties%raman%degree .ge. 4) a4 = B(4)
    if (input%properties%raman%degree .ge. 5) a5 = B(4)
    if (input%properties%raman%degree .eq. 6) a6 = B(6)
-   write(66,8) 0.d0,(B(i),i=1,input%properties%raman%degree)
+   write(66,8) (B(i),i=1,input%properties%raman%degree)
 endif
 !
 !

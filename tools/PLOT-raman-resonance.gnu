@@ -1,7 +1,6 @@
 #!/bin/bash
 #_______________________________________________________________________________
 
-pointsize=0.01
 ul='_'
 
 dpisize=100
@@ -22,7 +21,7 @@ for input in $input_list ; do
     set terminal postscript landscape enhanced color solid lw 2 font 22
     set output 'PLOT_RESONANCE_$suffixoc$ul$suffixmod.ps'
     set xlabel 'laser energy [eV]'
-    set xrange [1.5:4.1]
+    set xrange [1.0:4.1]
     set xtics format '%.2f'
     set logscale y 10
     set ylabel '|d{/Symbol c}{\251}/dQ|^2 [au]' offset 2.0

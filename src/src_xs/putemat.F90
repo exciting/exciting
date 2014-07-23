@@ -22,9 +22,9 @@ Contains
          Logical, Intent (In) :: tarec
          Character (*), Intent (In) :: filnam
          Integer, Intent (In) :: l1, h1, l2, h2
-         Complex (8), Intent (In) :: x12 (:, :, :)
+         Complex (8), Intent (InOut) :: x12 (:, :, :)
          Integer, Optional, Intent (In) :: l3, h3, l4, h4
-         Complex (8), Optional, Intent (In) :: x34 (:, :, :)
+         Complex (8), Optional, Intent (InOut) :: x34 (:, :, :)
     ! local variables
          Integer :: un, recl, ikr
          Logical :: tarec_

@@ -1,8 +1,6 @@
 #!/bin/bash
 #_______________________________________________________________________________
 
-pointsize=0.01
-ul='_'
 
 dpisize=100
 len=${#DPIPNG}
@@ -21,7 +19,7 @@ for input in $input_list ; do
    result=$( echo "$test_entry == 0.0" | bc -l)
    if [ $result -eq 1 ]; then continue ; fi
    suffix=$(echo $input | cut -c15-25)
-   oc=$(echo $input | cut -c24-25)
+   oc=$(echo $input | cut -c17-18)
    cat>>gnu-input<<***
     set terminal postscript enhanced color solid lw 3 size 14,7 font 22
     set output 'PLOT_EPSILON_$suffix.ps'

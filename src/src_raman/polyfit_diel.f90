@@ -31,10 +31,10 @@ endif
 !
 if (input%properties%raman%molecule) then
    write(66,'(/,49("*"),"   DATA FITTING   ",49("*")," ",/,51(" "),"polarizability")')
-   write(funcout,'(a7,7(a5,i1,a4,i1))') 'alpha = b_0',(' + b_',i,'*u**',i,i=1,deg)
+   write(funcout,'(a11,7(a5,i1,a4,i1))') 'alpha = b_0',(' + b_',i,'*u**',i,i=1,deg)
 else
    write(66,'(/,49("*"),"   DATA FITTING   ",49("*")," ",/,48(" "),"dielectric function")')
-   write(funcout,'(a7,7(a5,i1,a4,i1))') 'eps = b_0',(' + b_',i,'*u**',i,i=1,deg)
+   write(funcout,'(a9,7(a5,i1,a4,i1))') 'eps = b_0',(' + b_',i,'*u**',i,i=1,deg)
 endif
 write(66,'(//,"  Fit function: polynom ",a84)') funcout
 write(66,'(/,i8," coefficients are fitted to ",i4," datapoints:",/)') deg+1,numpot
@@ -111,7 +111,7 @@ Do oct1 = 1, 3
 !
 ! write fit functions for plotting
       write(str_mode,'(i3.3)') imode
-      open(unit=80,file='RAMAN_EPSILON_MOD'//str_mode//'_OC'//comp(oct1,oct2)//'.OUT',status='unknown',form='formatted')
+      open(unit=80,file='RAMAN_EPSILON_OC'//comp(oct1,oct2)//'_MOD'//str_mode//'.OUT',status='unknown',form='formatted')
       write(80,'(/,"# Fitted function and raw data (Re and Im) for optical component ",a2)') comp(oct1, oct2)
       do i = 1,input%properties%raman%ninter+1
          xx = input%properties%raman%xmin + (i - 1)*(input%properties%raman%xmax - &
