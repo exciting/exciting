@@ -31,10 +31,10 @@ endif
 !
 if (input%properties%raman%molecule) then
    write(66,'(/,49("*"),"   DATA FITTING   ",49("*")," ",/,51(" "),"polarizability")')
-   write(funcout,'(a7,7(a5,i1,a4,i1))') 'alpha = b_0',(' + b_',i,'*u**',i,i=1,deg)
+   write(funcout,'(a11,7(a5,i1,a4,i1))') 'alpha = b_0',(' + b_',i,'*u**',i,i=1,deg)
 else
    write(66,'(/,49("*"),"   DATA FITTING   ",49("*")," ",/,48(" "),"dielectric function")')
-   write(funcout,'(a7,7(a5,i1,a4,i1))') 'eps = b_0',(' + b_',i,'*u**',i,i=1,deg)
+   write(funcout,'(a9,7(a5,i1,a4,i1))') 'eps = b_0',(' + b_',i,'*u**',i,i=1,deg)
 endif
 write(66,'(//,"  Fit function: polynom ",a84)') funcout
 write(66,'(/,i8," coefficients are fitted to ",i4," datapoints:",/)') deg+1,numpot
