@@ -156,9 +156,12 @@ Subroutine xslinopt (iq)
               & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=(m == 1), &
               & fxctypestr=input%xs%tddft%fxctype, tq0=tq0, &
               & iqmt=iq, filnam=fnmoke)
-         Call genkerr (wplot, mdf2, kerr)
-         Call writekerr (iq, wplot, kerr, trim(fnmoke))
-               
+         
+         If (input%xs%dfoffdiag.And.(nc.Eq.3).And.(m.Eq.1)) Then
+            Call genkerr (wplot, mdf2, kerr)
+            Call writekerr (iq, wplot, kerr, trim(fnmoke))
+         End If      
+
       End Do ! m
 
   ! deallocate
