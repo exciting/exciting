@@ -94,8 +94,8 @@ Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
          Stop
       End If
       ip = 0
-      Do ip1 = 0, plotdef%parallelogram%grid(1) - 1
-         Do ip2 = 0, plotdef%parallelogram%grid(2) - 1
+      Do ip2 = 0, plotdef%parallelogram%grid(2) - 1
+         Do ip1 = 0, plotdef%parallelogram%grid(1) - 1
             ip = ip + 1
             t1 = dble (ip1) / dble (plotdef%parallelogram%grid(1))
             t2 = dble (ip2) / dble (plotdef%parallelogram%grid(2))
@@ -167,12 +167,12 @@ Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
          ip = 0
          Call xml_NewElement (xf, "function")
          call xml_AddAttribute (xf, "name", "")
-         Do ip1 = 0, plotdef%parallelogram%grid(1) - 1
+         Do ip2 = 0, plotdef%parallelogram%grid(2) - 1
             Call xml_NewElement (xf, "row")
             call xml_AddAttribute (xf, "const", "x")
             write(buffer20, '(I14)')  ip1
             call xml_AddAttribute (xf, "index", trim(adjustl(buffer20)))
-            Do ip2 = 0, plotdef%parallelogram%grid(2) - 1
+            Do ip1 = 0, plotdef%parallelogram%grid(1) - 1
                ip = ip+1
                write(buffer20, '(6G18.10)')  fp(ip, i)
                call xml_AddCharacters(xf,buffer20)
