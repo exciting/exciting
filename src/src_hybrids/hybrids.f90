@@ -92,22 +92,6 @@ Subroutine hybrids
             open (63, file='MOMENT'//trim(filext), action='WRITE', form='FORMATTED')
         end if
 
-! open FERMIDOS.OUT
-!        Open (62, File='FERMIDOS'//trim(filext), Action='WRITE', Form='FORMATTED')
-! open FORCEMAX.OUT if required
-!        If (input%groundstate%tforce) then 
-! open DFORCEMAX.OUT
-!            open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
-!        End If
-! open DTOTENERGY.OUT
-!        open(66,file='DTOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
-! open CHGDIST.OUT
-!        open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
-! open PCHARGE.OUT
-
-        if (input%groundstate%tpartcharges) &
-       &  open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
-
     end if ! rank
 
     Call timesec (ts1)
@@ -144,21 +128,8 @@ Subroutine hybrids
 !--------------------------------------------!
 !   Matrix elements of non-local potential   !
 !--------------------------------------------!
-
-! non-local potential
     allocate(vxnl(nstfv,nstfv,nkpt))
-    vxnl(:,:,:) = zzero
-
-! non-local exchange energy
-    allocate(exnlk(nkpt))
-    exnlk(:) = 0.d0
-
-! APW matrix elements of the non-local potential
     allocate(vnlmat(nmatmax,nmatmax,nkpt))
-    vnlmat(:,:,:) = zzero
-
-! previous iteration eigenvectors
-    allocate(evecfv0(nmatmax,nstfv,nspnfv,nkpt))
 
     call timesec(ts1)
     time_hyb = time_hyb+ts1-ts0
@@ -186,17 +157,17 @@ Subroutine hybrids
             Call flushifc(60)
         End If
 
-! hybrids always start after normal DFT self-consistent run
-        if (ihyb==0) ex_coef = 0.d0
 !____________________________________________
 ! KS self-consistent run
-        
+
+        ! hybrids always start after normal DFT self-consistent run
+        if (ihyb==0) ex_coef = 0.d0
         call scf_cycle(-1)
 
 ! some output        
         if (rank==0) then
             call writeengy(60)
-            if (input%groundstate%outputlevelnumber>0) write(60,*)
+            write(60,*)
             write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F22.12)') fermidos
             call writechg(60,input%groundstate%outputlevelnumber)
         end if
@@ -218,21 +189,13 @@ Subroutine hybrids
         end if
         et = engytot
 
-!____________________________________________
-! hybrids related routines
-
+! preparation for next hybrid's run
         if (ihyb==0) then
             ex_coef = input%groundstate%Hybrid%excoeff
-            !call fix_linene
             input%groundstate%findlinentype = "skip"
             task = 1
         end if
         
-! store the eigenvectors for next iteration
-        do ik = 1, nkpt
-            call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv0(:,:,:,ik))
-        end do
-
 ! calculate the non-local potential
         call timesec(ts0)
         call calc_vxnl
@@ -252,7 +215,7 @@ Subroutine hybrids
             write(60,*)
         end if
         time_hyb = time_hyb+ts1-ts0
-
+        
 ! output the current total time
         timetot = timeinit + timemat + timefv + timesv + timerho  &
        &        + timepot + timefor + timeio + timemt + timemixer &
@@ -287,18 +250,8 @@ Subroutine hybrids
 ! close the MOMENT.OUT file
         if (associated(input%groundstate%spin)) close(63)
 
-! close the FERMIDOS.OUT file
-!        close(62)
-! close the DFORCEMAX.OUT file
-!        if (input%groundstate%tforce) close(67)
-! close the DTOTENERGY.OUT file
-!        close(66)
-! close the CHGDIST.OUT file
-!        close(68)
-
     end if
-! close the PCHARGE.OUT file
-    if ((input%groundstate%tpartcharges).and.(rank==0)) close(69)
+    
 ! xml output
     if (rank==0) then
         call structure_xmlout
@@ -307,9 +260,9 @@ Subroutine hybrids
     end if
     call timesec(ts1)
     timeio=ts1-ts0+timeio
+    
 !! TIME - End of fifth IO segment
     Call timesec(tsg1)
-
     If ((rank .Eq. 0).and.(input%groundstate%outputlevelnumber>1)) then
         write(string,'("Timings (seconds)")') 
         call printbox(60,"-",string)
@@ -378,39 +331,3 @@ Subroutine hybrids
 End Subroutine
 !EOC
 
-!-------------------------------------------------------------------------------
-!
-!-------------------------------------------------------------------------------
-
-subroutine fix_linene
-    use modinput
-    use modmain
-    use modmpi, only: rank
-    implicit none
-    integer :: l, is, ia, ias, ilo, io1, io2
-
-    ! replace the default linearization energy by the optimized ones    
-    do is = 1, nspecies
-      do ia = 1, natoms(is)
-        ias = idxas(ia,is)
-        do l = 0, input%groundstate%lmaxapw
-          do io1 = 1, apword(l,is)
-            apwe0(io1,l,is) = apwe(io1,l,ias)
-            apwve(io1,l,is) = .false.
-          end do
-        end do
-        do ilo = 1, nlorb(is)
-          do io1 = 1, lorbord(ilo,is)
-            lorbe0(io1,ilo,is) = lorbe(io1,ilo,ias)
-            l = lorbl(ilo,is)
-            !if (lorbe(io1,ilo,ias)==apwe(io1,l,ias)) then
-            lorbve(io1,ilo,is) = .false.
-            !end if
-          end do ! io1
-        end do ! ilo
-      end do ! ia
-    end do ! is
-    if (rank==0) call updatespecies
-   
-    return
-end subroutine
