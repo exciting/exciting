@@ -10,7 +10,7 @@ Subroutine dos
       Use modinput
       Use modmain
       Use FoX_wxml
-      Use modmpi, Only: rank, barrier,splittfile
+      Use modmpi, Only: splittfile
 ! !DESCRIPTION:
 !   Produces a total and partial density of states (DOS) for plotting. The total
 !   DOS is written to the file {\tt TDOS.OUT} while the partial DOS is written
@@ -60,7 +60,6 @@ Subroutine dos
       Complex (8), Allocatable :: apwalm (:, :, :, :, :)
       Complex (8), Allocatable :: evecfv (:, :, :)
       Complex (8), Allocatable :: evecsv (:, :)
-if (rank.eq.0) then
 ! initialise universal variables
       splittfile=.false.
       Call init0
@@ -421,8 +420,6 @@ if (rank.eq.0) then
       Write(*,*)
       Write(*, '("   DOS units are states/Hartree/unit cell")')
       Write(*,*)
-endif
-      call barrier
       Return
 End Subroutine
 !EOC
