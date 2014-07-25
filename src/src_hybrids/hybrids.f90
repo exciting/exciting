@@ -125,12 +125,6 @@ Subroutine hybrids
 !--------------------------------------------------------------
     call setsingc
     
-!--------------------------------------------!
-!   Matrix elements of non-local potential   !
-!--------------------------------------------!
-    allocate(vxnl(nstfv,nstfv,nkpt))
-    allocate(vnlmat(nmatmax,nmatmax,nkpt))
-
     call timesec(ts1)
     time_hyb = time_hyb+ts1-ts0
     
@@ -170,6 +164,8 @@ Subroutine hybrids
             write(60,*)
             write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F22.12)') fermidos
             call writechg(60,input%groundstate%outputlevelnumber)
+            if (fermidos<1.0d-4) call printbandgap(60)
+            call flushifc(60)
         end if
 
 ! check for convergence

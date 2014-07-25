@@ -22,12 +22,14 @@ subroutine calc_vxnl
     complex(8), external :: zdotc
 
     call cpu_time(tstart)
-
-    if (rank == 0) then
-        call boxmsg(fgw,'-','Calculate Vx_NL')
-    end if
+    if (rank == 0) call boxmsg(fgw,'-','Calculate Vx_NL')
     
-    
+    !------------------------------------------!
+    ! Matrix elements of non-local potential   !
+    !------------------------------------------!
+    if (allocated(vxnl)) deallocate(vxnl)
+    allocate(vxnl(nstfv,nstfv,nkpt))
+        
     ! Calculate the integration weights using the linearized tetrahedron method
     if (allocated(evaldft)) deallocate(evaldft)
     allocate(evaldft(nstsv,nkpt))
@@ -165,7 +167,7 @@ subroutine calc_vxnl
 !------------------------------------------------------------
         do ie1 = 1, nstsv
             if (evalsv(ie1,ikp)<=efermi) then
-                exnl = exnl+2.d0*wkpt(ikp)*vxnl(ie1,ie1,ikp)
+                exnl = exnl+occmax*wkpt(ikp)*vxnl(ie1,ie1,ikp)*nkptnr
             end if
         end do
 
