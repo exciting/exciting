@@ -47,28 +47,27 @@ ha2rcm = 2.194746313708e05
 twopi = 2.0 * 3.14159265359
 
 #-------------------------------------------------------------------------------
-# supercell dimensions, defaults
+# supercell dimensions and scaling, defaults
 
 n1 = 6  ;  n2 = 6  ;  n3 = 6
+scaling = 10.
 
-# optional input for non-default supercell dimensions, from command line
+# optional input for non-default parameters, from command line
 
 narg = len(sys.argv)-1
+
+if (narg == 1):
+    scaling = float(sys.argv[1])
+
 if (narg == 3):
     n1 = int(sys.argv[1])  ;  n2 = int(sys.argv[2])  ;  n3 = int(sys.argv[3])
+
+if (narg == 4):
+    n1 = int(sys.argv[1])  ;  n2 = int(sys.argv[2])  ;  n3 = int(sys.argv[3])  ;  scaling = float(sys.argv[4])
 
 imt = '%5i'    
 print "\n############################################"
 print "\nSupercell dimensions : ", (imt%n1), (imt%n2), (imt%n3)
-
-# scaling factor for vibrations
-
-scaling = 10.
-if (narg == 1):
-    scaling = int(sys.argv[1])
-
-if (narg == 4):
-    n1 = int(sys.argv[1])  ;  n2 = int(sys.argv[2])  ;  n3 = int(sys.argv[3])  ;  scaling = int(sys.argv[4])
 
 #-------------------------------------------------------------------------------
 # reading number of steps
