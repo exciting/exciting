@@ -837,7 +837,7 @@ do imode = 1, nmode
 !
    call getfgew ( ev(:, imode) )
    sfact = 0.5d0 / fgew
-   write(66, '(/," The reduced mass of this mode is [ amu ]            : ",f12.3)') fgew/famuau
+!  write(66, '(/," The effective mass of this mode is [ amu ]            : ",f12.3)') fgew/famuau
 !
    sn = dsqrt(dble(ncell))
 !
