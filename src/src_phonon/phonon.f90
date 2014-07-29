@@ -148,6 +148,7 @@ Subroutine phonon
       End If
       task = 200
       nph = 1
+      gammap = .false.
       If (all(ivq(:, iq) .Eq. 0)) then
          nph = 0
          gammap = .true.
