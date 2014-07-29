@@ -1,5 +1,5 @@
 
-! Copyright (C) 2005-2010 C. Meisenbichler and C. Ambrosch-Draxl.
+! Copyright (C) 2005-2014 exciting team
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 

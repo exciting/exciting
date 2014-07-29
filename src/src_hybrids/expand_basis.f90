@@ -18,22 +18,20 @@ subroutine expand_basis(ik,iq)
     allocate(eveck(nmatmax,nstfv,nspnfv))
     allocate(eveckp(nmatmax,nstfv,nspnfv))
 
-    jk=kqid(ik,iq) ! index of k-q vector
+    jk = kqid(ik,iq) ! index of k-q vector
 
     call getevecfv(vklnr(:,jk),vgklnr(:,:,:,jk),eveck)
-    eveckp=conjg(eveck)
+    eveckp = conjg(eveck)
     call getevecfv(vklnr(:,ik),vgklnr(:,:,:,ik),eveck)
 
     call expand_evec(ik,'t')
     call expand_evec(jk,'c')
 
 ! Calculate the matrix elements $M^i_{nm}(\vec{k},\vec{q})$:
-    call calcminm(ik,iq,1)
+    call calcminm(ik,iq)
 
 ! Calculate the matrix elements M^i_{nm} where n is a core state
-    if(iopcore == 0)then
-        call calcminc(ik,iq,1)
-    endif
+    if (iopcore == 0) call calcminc(ik,iq)
     
     deallocate(eveck)
     deallocate(eveckp)
@@ -44,5 +42,4 @@ subroutine expand_basis(ik,iq)
     if (rank==0) call write_cputime(fgw,tend-tstart, 'EXPAND_BASIS')
 
     return
-    
 end subroutine

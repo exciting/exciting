@@ -1,3 +1,11 @@
+! Copyright (C) 2014 exciting team 
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+!
+! History:
+! created 1994, Claudia Draxl
+! adapted 2014 for exciting, Stefan Kontur
+!
 !
 subroutine TRANSMAT(ninter,h)
 !

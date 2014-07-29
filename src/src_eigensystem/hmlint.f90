@@ -1,7 +1,8 @@
 !
 !
 !
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+!
+! Copyright (C) 2013 exciting team
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
@@ -15,21 +16,8 @@ Subroutine hmlint
       Use modinput
       Use modmain
 ! !DESCRIPTION:
-!   Calculates the radial Hamiltonian integrals of the APW and local-orbital
-!   basis functions. In other words, for spin $\sigma$ and atom $j$ of species
-!   $i$, it computes integrals of the form
-!   $$ h^{\sigma;ij}_{qq';ll'l''m''}=\begin{cases}
-!    \int_0^{R_i}u^{\sigma;ij}_{q;l}(r)Hu^{\sigma;ij}_{q';l'}(r)r^2dr & l''=0 \\
-!    \int_0^{R_i}u^{\sigma;ij}_{q;l}(r)V^{\sigma;ij}_{l''m''}(r)
-!    u^{\sigma;ij}_{q';l'}(r)r^2dr & l''>0 \end{cases}, $$
-!   where $u^{\sigma;ij}_{q;l}$ is the $q$th APW radial function for angular
-!   momentum $l$; $H$ is the Hamiltonian of the radial Schr\"{o}dinger equation;
-!   and $V^{\sigma;ij}_{l''m''}$ is the effective muffin-tin potential. Similar
-!   integrals are calculated for APW-local-orbital and
-!   local-orbital-local-orbital contributions.
+!   Calculates the "muffin-tin" Hamiltonian.
 !
-! !REVISION HISTORY:
-!   Created December 2003 (JKD)
 !EOP
 !BOC
       Implicit None

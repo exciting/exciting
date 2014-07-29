@@ -73,7 +73,7 @@ if mode == 1:
             yt = r[it][jt][1]+dy
             x[i].append(xt * bohrToAng)
             y[i].append(yt * bohrToAng)
-            f[i].append(func[it][jt])
+            f[i].append(func[jt][it])
     xnp=np.array(x)
     ynp=np.array(y)
     fnp=np.array(f)

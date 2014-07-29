@@ -55,11 +55,9 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
 !      Complex (8), allocatable :: kinetic(:,:),vectors(:,:)
       Complex (8), allocatable :: zm(:,:),zm2(:,:)
 
-!
   !----------------------------------------!
   !     Hamiltonian and overlap set up     !
   !----------------------------------------!
-!
 
       packed = input%groundstate%solver%packedmatrixstorage
 
@@ -72,13 +70,12 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !------------------------------------------------------------------------!
       if (associated(input%groundstate%Hybrid)) then
          if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-  ! Update Hamiltonian
+            ! Update Hamiltonian
             if (ihyb>0) system%hamilton%za(:,:) = &
-           &  system%hamilton%za(:,:) + ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
+            &  system%hamilton%za(:,:) + ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
          end if
       end if
 
-!
   !------------------------------------!
   !     solve the secular equation     !
   !------------------------------------!

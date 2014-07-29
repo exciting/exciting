@@ -10,6 +10,7 @@ Subroutine dos
       Use modinput
       Use modmain
       Use FoX_wxml
+      Use modmpi, Only: splittfile
 ! !DESCRIPTION:
 !   Produces a total and partial density of states (DOS) for plotting. The total
 !   DOS is written to the file {\tt TDOS.OUT} while the partial DOS is written
@@ -60,6 +61,7 @@ Subroutine dos
       Complex (8), Allocatable :: evecfv (:, :, :)
       Complex (8), Allocatable :: evecsv (:, :)
 ! initialise universal variables
+      splittfile=.false.
       Call init0
       Call init1
       lmax = Min (4, input%groundstate%lmaxapw)
@@ -123,9 +125,9 @@ Subroutine dos
 ! loop over k-points
       Do ik = 1, nkpt
 ! get the eigenvalues/vectors from file
-         Call getevalsv (vkl(:, ik), evalsv(:, ik))
-         Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-         Call getevecsv (vkl(:, ik), evecsv)
+         Call getevalsv (vkl(1, ik), evalsv(1, ik))
+         Call getevecfv (vkl(1, ik), vgkl(:, :, :, ik), evecfv)
+         Call getevecsv (vkl(1, ik), evecsv)
 ! find the matching coefficients
          Do ispn = 1, nspnfv
             Call match(ngk(ispn,ik), gkc(:,ispn,ik), &
@@ -418,7 +420,6 @@ Subroutine dos
       Write(*,*)
       Write(*, '("   DOS units are states/Hartree/unit cell")')
       Write(*,*)
-
       Return
 End Subroutine
 !EOC

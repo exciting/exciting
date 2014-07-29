@@ -11,7 +11,7 @@ module mod_hybrids
     integer :: ihyb
 
 ! non-local exchange energy
-    real(8), allocatable :: exnlk(:)
+    real(8) :: exnl
 
 ! non-local exchange potential
     complex(8), allocatable :: vxnl(:,:,:)
@@ -19,12 +19,6 @@ module mod_hybrids
 ! APW matrix elements of the non-local potential
     complex(8), allocatable :: vnlmat(:,:,:)
 
-! KS eigenvector from previous iteration
-    complex(8), allocatable :: evecfv0(:,:,:,:)
-
-! "post-hybrids" GW launcher flag
-    logical :: gwflag
-    
 !*******************************************************************************
 contains
 
@@ -37,26 +31,23 @@ contains
 ! print debugging information    
         debug = .false.
 
-! gw launcher switcher
-        gwflag = associated(input%gw)
-
 !---------------------------------------
 ! MB parameters are taken from GW
 !---------------------------------------
         if (.not.associated(input%gw)) &
-       &  input%gw => getstructgw(emptynode)
+        &  input%gw => getstructgw(emptynode)
 
 !---------------------------------------
 ! Options for the mixed basis functions
 !---------------------------------------
         if (.not.associated(input%gw%MixBasis)) &
-       &  input%gw%MixBasis => getstructmixbasis(emptynode)
+        &  input%gw%MixBasis => getstructmixbasis(emptynode)
 
 !---------------------------------------
 ! Parameters for the bare coulomb potential
 !---------------------------------------
         if (.not.associated(input%gw%BareCoul)) &
-       &  input%gw%BareCoul => getstructbarecoul(emptynode)
+        &  input%gw%BareCoul => getstructbarecoul(emptynode)
 
 !---------------------------------------
 ! print out information on MB to INFO.OUT
@@ -95,7 +86,7 @@ contains
             write(fgw,*) 'Maximum |G| in gmaxvr*gmb units:', input%gw%BareCoul%pwm
             write(fgw,*) 'Error tolerance for struct. const.:', input%gw%BareCoul%stctol
             write(fgw,*) 'Tolerance to choose basis functions from bare Coulomb &
-           &  matrix eigenvectors: ', input%gw%BareCoul%barcevtol
+            &  matrix eigenvectors: ', input%gw%BareCoul%barcevtol
             call linmsg(fgw,'=','')
             call flushifc(fgw)
         end if
@@ -169,10 +160,8 @@ contains
     subroutine exit_hybrids
 
 ! deallocate global
-        deallocate(exnlk)
         deallocate(vxnl)
         deallocate(vnlmat)
-        deallocate(evecfv0)
 
 ! deallocate mixed-basis stuff
         deallocate(ncore)
@@ -190,8 +179,8 @@ contains
         deallocate(bradketlo)
         deallocate(locmixind)
       
-! avoid running gw launcher
-        if (.not.gwflag) input%gw%taskname="skip"
+! avoid running gw
+        if (associated(input%gw)) input%gw%taskname="skip"
 
     end subroutine
 

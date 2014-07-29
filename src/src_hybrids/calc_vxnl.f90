@@ -9,44 +9,35 @@ subroutine calc_vxnl
             
     implicit none
 
-    integer(4) :: ikp, ik, iq, ikq
-    integer(4) :: ie1, ie2, ie3, icg
+    integer(4) :: ikp, ik, jk, iq
+    integer(4) :: ie1, ie2, ie3, icg, ic
     integer(4) :: ia, is, ias, ir, ist, l
-    real(8)    :: norm
+    integer(4) :: n, nmdim
+    real(8)    :: norm, egap
     real(8)    :: tstart, tend
-    complex(8) :: t1, mvm
-    real(8), allocatable :: eval(:)    
+    complex(8) :: mvm, sum
+    complex(8), allocatable :: minm(:,:,:)
     complex(8), allocatable :: vnl(:,:)
     
     complex(8), external :: zdotc
 
     call cpu_time(tstart)
-
-!------------------------------------------------!
-!   Calculate/Update the non-local exchange potential
-!------------------------------------------------!
-    if (rank == 0) then
-        call boxmsg(fgw,'-','Calculate Vx_NL')
-    end if
-
-! State-index of VBM    
-    allocate(eval(nstsv))
-!    call readfermi
-    nomax = 0
-    do ikp = 1, nkpt
-        call getevalsv(vkl(:,ikp),eval)
-        do ie1 = 1, nstsv
-            if (eval(ie1)>efermi) then
-                nomax = max(ie1-1,nomax)
-                exit ! ie1 loop
-            end if
-        end do
-    end do
-    deallocate(eval)
+    if (rank == 0) call boxmsg(fgw,'-','Calculate Vx_NL')
     
-!---------------------------------------
-!   Mixed basis initialization (GW routine)
-!---------------------------------------
+    !------------------------------------------!
+    ! Matrix elements of non-local potential   !
+    !------------------------------------------!
+    if (allocated(vxnl)) deallocate(vxnl)
+    allocate(vxnl(nstfv,nstfv,nkpt))
+        
+    ! Calculate the integration weights using the linearized tetrahedron method
+    if (allocated(evaldft)) deallocate(evaldft)
+    allocate(evaldft(nstsv,nkpt))
+    evaldft(:,:) = evalsv(:,:)
+    call kintw
+    deallocate(evaldft)
+    
+    ! Initialize mixed product basis
     call init_mb
 
 ! ***** revert back from GW definition of rwfcr
@@ -59,118 +50,131 @@ subroutine calc_vxnl
                 do ir=1,nrmt(is)
                     rwfcr(ir,1,ist,ias)=spr(ir,is)*rwfcr(ir,1,ist,ias)/norm
                 end do
-             end do ! ist
-         end do
-     end do
-
+            end do ! ist
+        end do
+    end do
+    
 !---------------------------------------
 ! Loop over k-points
 !---------------------------------------
-    call barrier
 
-    ikq = 0
+    exnl = 0.d0
+
+#ifdef MPI
+    do ikp = firstk(rank), lastk(rank)
+#else
     do ikp = 1, nkpt
+#endif    
         ik = idikp(ikp)
-
-        if (allocated(vnl)) deallocate(vnl)
-        allocate(vnl(nstfv,nstfv))
-        vnl(:,:)=zzero
+       
+        vxnl(:,:,ikp) = zzero
 
 !---------------------------------------
 ! Integration over BZ
 !---------------------------------------
         do iq = 1, nqptnr
+          
+            Gamma = gammapoint(iq)
 
-! decide if point is done by this process
-            ikq = ikq+1
-            if (mod(ikq-1,procs) == rank) then
-
-                
 ! Set the size of the basis for the corresponding q-point
-                matsiz=locmatsiz+ngq(iq)
-                if (rank==0) write(fgw,101) ikp, iq, locmatsiz, ngq(iq), matsiz
-
-!------------------------------------------------------------
-! (Re)-Calculate the Coulomb matrix elements in MB representation
-!------------------------------------------------------------
-                Gamma = gammapoint(iq)
+            matsiz = locmatsiz+ngq(iq)
+            if (rank==0) write(fgw,101) ikp, iq, locmatsiz, ngq(iq), matsiz
 
 ! Calculate the interstitial mixed basis functions
-                call diagsgi(iq)
+            call diagsgi(iq)
 
-! Calculate the transformation matrix between pw's and the mixed basis functions
-                call calcmpwipw(iq)
+! Calculate the transformation matrix between pw's and the pw mixed basis functions
+            call calcmpwipw(iq)
 
+!------------------------------------               
 ! Calculate the bare Coulomb matrix
-                call calcbarcmb(iq)
-
-! Reduce MB size by choosing eigenvectors of barc with eigenvalues larger than barcevtol
-                call setbarcev(input%gw%BareCoul%barcevtol)            
+!------------------------------------
+            call calcbarcmb(iq)
 
 !------------------------------------------------------------
 ! (Re)-Calculate the M^i_{nm}(k,q) matrix elements for given k and q
 !------------------------------------------------------------
-                call expand_basis(ik,iq)
+            call expand_basis(ik,iq)
 
 !------------------------------------------------------------     
 ! (Re)-Calculate non-local (Hartree-Fock) potential
-!------------------------------------------------------------     
+!------------------------------------------------------------
+
+! Diagonalize the bare Coulomb matrix
+            call setbarcev(0.d0)
 
 ! Valence electron contribution
-                do ie1 = 1, nstsv
-                    do ie2 = 1, nstsv
-                        t1 = zzero
-                        do ie3 = 1, nomax
-                            mvm = zdotc(mbsiz,minmmat(1:mbsiz,ie1,ie3),1,minmmat(1:mbsiz,ie2,ie3),1)
-                            t1 = t1+mvm
-                        enddo ! ie3
-                        vnl(ie1,ie2) = vnl(ie1,ie2)-t1/dble(nqptnr)
-                    end do ! ie2
-                    if (Gamma .and. (ie1 <= nomax)) then
-                        vnl(ie1,ie1) = vnl(ie1,ie1)-4.d0*pi*vi*singc2
-                    end if
-                end do ! ie1
-                deallocate(minmmat)
+            allocate(minm(mbsiz,nstfv,nstfv))
+            nmdim = nstfv*nstfv
+            call zgemm('c','n',mbsiz,nmdim,matsiz, &
+            &          zone,barcvm,matsiz,minmmat,matsiz, &
+            &          zzero,minm,mbsiz)
+
+            jk = kqid(ik,iq)
+            do ie1 = 1, nstsv
+                do ie2 = 1, nstsv
+                    sum = zzero
+                    do ie3 = 1, nstsv
+                        if (dabs(kiw(ie3,jk))>1.d-6) then
+                            mvm = zdotc(mbsiz,minm(1:mbsiz,ie1,ie3),1,minm(1:mbsiz,ie2,ie3),1)
+                            sum = sum+mvm*kiw(ie3,jk)
+                        end if
+                    end do ! ie3
+                    vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp)-sum
+                end do ! ie2
+                if (Gamma .and. (evalsv(ie1,ikp)<=efermi)) then
+                    vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp)-4.d0*pi*vi*singc2
+                end if
+            end do ! ie1
+                
+            deallocate(minm)
+            deallocate(minmmat)
 
 ! Core electron contribution
-                if (iopcore <= 1) then
-                    do ie1 = 1, nstsv
-                        do ie2 = 1, nstsv
-                            t1 = zzero
-                            do icg = 1, ncg
-                                mvm = zdotc(mbsiz,mincmat(1:mbsiz,ie1,icg),1,mincmat(1:mbsiz,ie2,icg),1)
-                                t1 = t1+mvm
-                            enddo ! ie3
-                            vnl(ie1,ie2) = vnl(ie1,ie2)-t1/dble(nqptnr)
-                        end do ! ie2
-                    end do ! ie1
-                    deallocate(mincmat)
-                end if ! iopcore
+            if (iopcore<=1) then
+                
+                allocate(minm(mbsiz,nstfv,ncg))
+                nmdim = nstfv*ncg
+                call zgemm('c','n',mbsiz,nmdim,locmatsiz, &
+                &          zone,barcvm,matsiz,mincmat,locmatsiz, &
+                &          zzero,minm,mbsiz)
+                
+                do ie1 = 1, nstsv
+                    do ie2 = 1, nstsv
+                        sum = zzero
+                        do icg = 1, ncg
+                            mvm = zdotc(mbsiz,minm(1:mbsiz,ie1,icg),1,minm(1:mbsiz,ie2,icg),1)
+                            ! BZ integration weight
+                            is = corind(icg,1)
+                            ia = corind(icg,2)
+                            ias= idxas(ia,is)
+                            ic = corind(icg,3)
+                            sum = sum+mvm*ciw(ias,ic)
+                        enddo ! ie3
+                        vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp)-sum
+                    end do ! ie2
+                end do ! ie1
+                    
+                deallocate(minm)
+                deallocate(mincmat)
+                    
+            end if ! iopcore
 
-            end if !   
         end do ! iq
 
 !------------------------------------------------------------
-! Store k-dependent non-local potential into global array
-!------------------------------------------------------------
-        vxnl(:,:,ikp) = vnl(:,:)
-        deallocate(vnl)
-    
-!------------------------------------------------------------
 ! Evaluate HF energy E_HF(k)
 !------------------------------------------------------------
-        exnlk(ikp) = 0.d0
-        do ie1 = 1, nomax
-            exnlk(ikp) = exnlk(ikp)+0.5d0*vxnl(ie1,ie1,ikp)*occmax
+        do ie1 = 1, nstsv
+            if (evalsv(ie1,ikp)<=efermi) then
+                exnl = exnl+occmax*wkpt(ikp)*vxnl(ie1,ie1,ikp)*nkptnr
+            end if
         end do
 
 !------------------------------------------------------------
 ! Debugging Info
 !------------------------------------------------------------
         if ((debug).and.(rank==0)) then
-            write(fgw,*)
-            write(fgw,*) 'Hartree-Fock energy for ikp=', ikp
-            write(fgw,*) 'exnl=', exnlk(ikp)
             call linmsg(fgw,'-','')
             call linmsg(fgw,'-',' Diagonal elements of Vx_NL_nn ')
             write(fgw,*) 'for k-point ', ikp
@@ -188,10 +192,10 @@ subroutine calc_vxnl
     end do ! ikp
 
 #ifdef MPI
-    call MPI_ALLREDUCE(MPI_IN_PLACE, exnlk, nkpt, MPI_DOUBLE_PRECISION, &
-   &  MPI_SUM, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE(MPI_IN_PLACE, exnl, 1, MPI_DOUBLE_PRECISION, &
+    &                  MPI_SUM, MPI_COMM_WORLD, ierr)
     call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl, nstfv*nstfv*nkpt, MPI_DOUBLE_COMPLEX, &
-   &  MPI_SUM, MPI_COMM_WORLD, ierr)
+    &                  MPI_SUM, MPI_COMM_WORLD, ierr)
 #endif
 
 101 format(10x,/, &
@@ -203,6 +207,6 @@ subroutine calc_vxnl
 
     call cpu_time(tend)
     if (rank==0) call write_cputime(fgw,tend-tstart, 'CALC_VXNL')
-      
+    
     return
 end subroutine
