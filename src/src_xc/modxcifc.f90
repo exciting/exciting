@@ -322,12 +322,12 @@ case(1)
   xcgrad=-1
   return
 case(2)
-  xcdescr='Perdew-Zunger/Ceperley-Alder, Phys. Rev. B 23, 5048 (1981)'
+  xcdescr='Perdew-Zunger, Phys. Rev. B 23, 5048 (1981)'
   xcspin=0
   xcgrad=0
   return
 case(3)
-  xcdescr='Perdew-Wang/Ceperley-Alder, Phys. Rev. B 45, 13244 (1992)'
+  xcdescr='Perdew-Wang, Phys. Rev. B 45, 13244 (1992)'
   xcspin=1
   xcgrad=0
 case(4)
