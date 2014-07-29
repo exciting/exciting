@@ -1,3 +1,10 @@
+! Copyright (C) 2014 exciting team 
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+!
+! History:
+! created July 2014 by Stefan Kontur
+!
 ! -----------------------------------------------------------------------------
 subroutine POLYFIT_DIEL_RES (imode, iw)
 ! -----------------------------------------------------------------------------
@@ -65,7 +72,7 @@ Do oct1 = 1, 3
 !
 !  save solution vector to polynomial coefficients
 !  d*eq are assumed to be derivatives; b_k = f^(k)(0) / k!
-!  STK:  take first order only, leave higher order 0
+!  take first order only, leave higher order 0
       if (deg .ge. 1) deq  (oct1, oct2) =       B(2)
 !     if (deg .ge. 2) d2eq (oct1, oct2) =  2.d0*B(3)
 !     if (deg .ge. 3) d3eq (oct1, oct2) =  6.d0*B(4)

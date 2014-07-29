@@ -1,3 +1,11 @@
+! Copyright (C) 2014 exciting team 
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+!
+! History:
+! created 1994, Claudia Draxl
+! adapted for exciting 2014, Stefan Kontur
+!
 ! ------------------------------------------------------------------------------
 subroutine SPECTRUM(rlas, oct1, oct2, comp_ch, filext)
 ! ------------------------------------------------------------------------------
