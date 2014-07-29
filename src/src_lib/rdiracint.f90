@@ -1,9 +1,9 @@
 !
 !
 !
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU Lesser General Public
-! License. See the file COPYING for license details.
+! Copyright (C) 2013 exciting team
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
 !
 !BOP
 ! !ROUTINE: rdiracint
@@ -29,25 +29,13 @@ Subroutine rdiracint (m, kpa, e, nr, r, vr, nn, g0p, f0p, g0, g1, f0, f1,sloppy)
 !   f0  : m th energy derivative of the minor component multiplied by r
 !         (out,real(nr))
 !   f1  : radial derivative of f0 (out,real(nr))
+!   sloppy : whether a quick-and-dirty integration algorithm should be used.
 ! !DESCRIPTION:
 !   Integrates the $m$th energy derivative of the radial Dirac equation from
-!   $r=0$ outwards. This involves using the predictor-corrector method to solve
-!   the coupled first-order equations (in atomic units)
-!   \begin{align*}
-!    \left(\frac{d}{dr}+\frac{\kappa}{r}\right)G^{(m)}_\kappa&=\frac{1}{c}
-!    \{2E_0+E-V\}F^{(m)}_\kappa+\frac{m}{c}F^{(m-1)}_\kappa\\
-!    \left(\frac{d}{dr}-\frac{\kappa}{r}\right)F^{(m)}_\kappa&=
-!    -\frac{1}{c}\{E-V\}G^{(m)}_\kappa-\frac{m}{c}G^{(m-1)}_\kappa,
-!   \end{align*}
-!   where $G^{(m)}_\kappa=rg^{(m)}_\kappa$ and $F^{(m)}_\kappa=rf^{(m)}_\kappa$
-!   are the $m$th energy derivatives of the major and minor components
-!   multiplied by $r$, respectively; $V$ is the external potential; $E_0$ is the
-!   electron rest energy; $E$ is the eigen energy (excluding $E_0$); and
-!   $\kappa=l$ for $j=l-\frac{1}{2}$ or $\kappa=-(l+1)$ for $j=l+\frac{1}{2}$.
-!   If $m=0$ then the arrays {\tt g0p} and {\tt f0p} are not referenced.
+!   $r=0$ outwards. 
 !
 ! !REVISION HISTORY:
-!   Created September 2002 (JKD)
+!   Created February 2013 (Andris)
 !EOP
 !BOC
       Implicit None

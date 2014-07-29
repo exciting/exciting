@@ -1,9 +1,9 @@
 !
 !
 !
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU Lesser General Public
-! License. See the file COPYING for license details.
+! Copyright (C) 2013 exciting team 
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
 !
 !BOP
 ! !ROUTINE: rdirac
@@ -23,6 +23,8 @@ use modinput
 !   eval : eigenvalue without rest-mass energy (inout,real)
 !   g0   : major component of the radial wavefunction (out,real(nr))
 !   f0   : minor component of the radial wavefunction (out,real(nr))
+!   dirac_eq : flag to pick the equation (Dirac or Schroedinger) 
+!   sloppy   : flag to pick a quick-and-dirty algorithm for integrating the Dirac equation
 ! !DESCRIPTION:
 !   Finds the solution to the radial Dirac equation for a given potential $v(r)$
 !   and quantum numbers $n$, $k$ and $l$. The method involves integrating the
@@ -33,6 +35,8 @@ use modinput
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
+!   Rewritten 2013 (Andris)
+!    
 !EOP
 !BOC
       Implicit None

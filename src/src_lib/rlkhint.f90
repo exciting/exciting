@@ -1,12 +1,12 @@
 !
 !
 !
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU Lesser General Public
-! License. See the file COPYING for license details.
+! Copyright (C) 2013 exciting team
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
 !
 !BOP
-! !ROUTINE: rschrodint
+! !ROUTINE: rlkhint
 ! !INTERFACE:
 !
 !
@@ -26,29 +26,10 @@ Subroutine rlkhint (m, l, e, nr, r, vr, nn, p0p, q0p, p0, p1, q0, q1)
 !   q1  : radial derivative of q0 (out,real(nr))
 ! !DESCRIPTION:
 !   Integrates the $m$th energy derivative of the scalar relativistic radial
-!   Schr\"{o}dinger equation from $r=0$ outwards. This involves using the
-!   predictor-corrector method to solve the coupled first-order equations (in
-!   atomic units)
-!   \begin{align*}
-!    \frac{d}{dr}P^{(m)}_l&=2MQ^{(m)}_l+\frac{1}{r}P^{(m)}_l\\
-!    \frac{d}{dr}Q^{(m)}_l&=-\frac{1}{r}Q^{(m)}_l+\left[\frac{l(l+1)}{2Mr^2}
-!    +(V-E)\right]P^{(m)}_l-mP^{(m-1)}_l,
-!   \end{align*}
-!   where $V$ is the external potential, $E$ is the eigenenergy and
-!   $M=1-V/2c^2$. Following the convention of Koelling and Harmon, {\it J. Phys.
-!   C: Solid State Phys.} {\bf 10}, 3107 (1977), the functions $P_l$ and $Q_l$
-!   are defined by
-!   \begin{align*}
-!    P_l&=rg_l\\
-!    Q_l&=\frac{r}{2M}\frac{dg_l}{dr},
-!   \end{align*}
-!   where $g_l$ is the major component of the Dirac equation (see the routine
-!   {\tt rdiracint}). Note that in order to make the equations linear in energy,
-!   the full definition $M=1+(E-V)/2c^2$ is not used. If $m=0$ then the array
-!   {\tt p0p} is not referenced.
-!
+!   Schr\"{o}dinger equation from $r=0$ outwards. The kinetic energy operator 
+!   is based on IORA.
 ! !REVISION HISTORY:
-!   Created October 2003 (JKD)
+!   Created July 2013 (Andris)
 !EOP
 !BOC
       Implicit None
