@@ -20,7 +20,7 @@ Contains
     ! true if absolut record position is ik
          Logical, Intent (In) :: tarec
          Character (*), Intent (In) :: filnam
-         Complex (8), Intent (In) :: pm (:, :, :)
+         Complex (8), Intent (InOut) :: pm (:, :, :)
     ! local variables
          Integer :: un, recl, ikr
          Logical :: tarect
