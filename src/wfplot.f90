@@ -149,7 +149,7 @@ Subroutine wfplot(dostm)
         If (associated(input%properties%wfplot%plot1d)) Then
             labels=>create_plotlablels("Potential","WF1D",1)
             call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
-            call set_plotlabel_axis(labels,2,"Wave Function","","graceunit")
+            call set_plotlabel_axis(labels,2,"Probability Density","","graceunit")
             Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
                 & rhomt, rhoir, input%properties%wfplot%plot1d)
             call destroy_plotlablels(labels)
@@ -159,7 +159,7 @@ Subroutine wfplot(dostm)
         End If
 
         If (associated(input%properties%wfplot%plot2d)) Then
-            labels=>create_plotlablels("Wave Function","WF2D",2)
+            labels=>create_plotlablels("Probability Density","WF2D",2)
             call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
             call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
             call set_plotlabel_axis(labels,3,"Wave Function Norm Squared","","graceunit")
@@ -173,7 +173,7 @@ Subroutine wfplot(dostm)
 
         If (associated(input%properties%wfplot%plot3d)) Then
             input%properties%wfplot%plot3d%usesym=.false.
-            labels=>create_plotlablels("Wave Function","WF3D",3)
+            labels=>create_plotlablels("Probability Density","WF3D",3)
             call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
             call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
             call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")

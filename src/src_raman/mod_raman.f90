@@ -1,3 +1,11 @@
+! Copyright (C) 2014 exciting team 
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+!
+! History:
+! created July 2014 by Stefan Kontur
+!
+!
 ! parameters
 module raman_params
 ! source: http://physics.nist.gov/constants

@@ -1,3 +1,11 @@
+! Copyright (C) 2014 exciting team 
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+!
+! History:
+! created 1994, Claudia Draxl
+! adapted for exciting 2014, Stefan Kontur
+!
 ! =============================================================================
 subroutine RAMAN
 ! =============================================================================
@@ -829,7 +837,7 @@ do imode = 1, nmode
 !
    call getfgew ( ev(:, imode) )
    sfact = 0.5d0 / fgew
-   write(66, '(/," The reduced mass of this mode is [ amu ]            : ",f12.3)') fgew/famuau
+!  write(66, '(/," The effective mass of this mode is [ amu ]            : ",f12.3)') fgew/famuau
 !
    sn = dsqrt(dble(ncell))
 !
