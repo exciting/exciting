@@ -150,7 +150,7 @@ Subroutine oepmain
          End Do
          resoep = resoep / omega
 ! in case convergencece is reached go to end of iteration loop
-         If (abs(resp-resoep).le.input%groundstate%OEP%convoep) exit
+         If (abs(resoep).le.input%groundstate%OEP%convoep) exit
 ! adjust step size
          If (it .Gt. 1) Then
             If (resoep .Gt. resp) Then
