@@ -8,6 +8,7 @@ Subroutine angavsc0 (n, nmax, scrnh, scrnw, scrn, scieff)
       Use modinput
       Use modxs
       Use invert
+
       Implicit None
   ! arguments
       Integer, Intent (In) :: n, nmax
@@ -18,18 +19,19 @@ Subroutine angavsc0 (n, nmax, scrnh, scrnw, scrn, scieff)
       Integer, Parameter :: nsphcov = 5810, iq0 = 1
       Integer :: iop, jop, j1, j2, ji, itp, lm, ntpsph
       Real (8) :: vomega, t00, r, qsz
-      Complex (8) :: dtns (3, 3), w1, w2
+      Complex (8) :: dtns (3, 3), w1, w2,scol(3)
       Real (8), Allocatable :: plat (:, :), p (:), tp (:, :), spc (:, &
      & :), w (:)
       Complex (8), Allocatable :: m00lm (:), mx0lm (:), mxxlm (:)
       Complex (8), Allocatable :: ei00 (:), eix0 (:), ei0x (:), eixx &
-     & (:)
+     & (:),eitmp(:),eilmtmp(:)
       Complex (8), Allocatable :: ei00lm (:), eix0lm (:), ei0xlm (:), &
-     & eixxlm (:)
+     & eixxlm (:),spc2(:)
       Complex (8), Allocatable :: ylm (:), zylm (:, :)
       Complex (8), Allocatable :: b (:, :), bi (:, :), u (:, :), v (:, &
      & :), s (:, :), t (:, :), e3 (:, :), ie3 (:, :)
       Integer :: i1, i2
+      real(8) :: ta,tb
   ! crystal volume
       vomega = omega * product (ngridq)
   ! Wigner-Seitz radius and spherical approximation to 1/q^2 average
@@ -112,6 +114,7 @@ Subroutine angavsc0 (n, nmax, scrnh, scrnw, scrn, scieff)
         & ei0xlm(lmmaxdielt), eixxlm(lmmaxdielt))
          Allocate (ylm(lmmaxdielt), zylm(ntpsph, lmmaxdielt))
          Allocate (tp(2, ntpsph), spc(3, ntpsph))
+         Allocate (spc2(ntpsph))
          Allocate (w(ntpsph))
          If (tleblaik) Then
         ! generate Lebedev Laikov grid
@@ -147,6 +150,7 @@ Subroutine angavsc0 (n, nmax, scrnh, scrnw, scrn, scieff)
             ei00 (itp) = 1.d0 / dot_product (spc(:, itp), &
            & matmul(dielten, spc(:, itp)))
          End Do
+
      ! calculate lm-expansion coefficients
          Do lm = 1, lmmaxdielt
             ei00lm (lm) = fourpi * dot_product (zylm(:, lm), ei00*w)
@@ -159,57 +163,102 @@ Subroutine angavsc0 (n, nmax, scrnh, scrnw, scrn, scieff)
      ! subcell average (head)
          scieff (1, 1) = fourpi * t00 * dot_product (m00lm, ei00lm)
      ! loop over (G,Gp) indices
+If (input%xs%BSE%scrherm .Eq. 0) then
+
          Do j1 = 2, n
+            scol(1:3)=s(j1-1,1:3)
+            Do itp = 1, ntpsph
+              spc2(itp) = spc(1, itp)* scol(1)+spc(2, itp)* scol(2)+spc(3, itp)* scol(3)
+            End Do
+
             Do itp = 1, ntpsph
            ! wing, -p*S/(p*L*p)
-               eix0 (itp) = - dot_product (spc(:, itp), s(j1-1, :)) * &
-              & ei00 (itp)
+               eix0 (itp) = - spc2(itp) * ei00 (itp)*w(itp)
            ! wing, -p*T/(p*L*p)
-               If (input%xs%BSE%scrherm .Eq. 0) ei0x (itp) = - &
-              & dot_product (spc(:, itp), t(:, j1-1)) * ei00 (itp)
+               ei0x (itp) = - dot_product (spc(:, itp), t(:, j1-1)) * ei00 (itp)*w(itp)
             End Do
-            Do lm = 1, lmmaxdielt
-               eix0lm (lm) = fourpi * dot_product (zylm(:, lm), eix0*w)
-               If (input%xs%BSE%scrherm .Eq. 0) ei0xlm (lm) = fourpi * &
-              & dot_product (zylm(:, lm), ei0x*w)
-            End Do
+
+
+            call zgemv('C',ntpsph,lmmaxdielt,fourpi,zylm,ntpsph,eix0,1,zzero,eix0lm,1)
+            call zgemv('C',ntpsph,lmmaxdielt,fourpi,zylm,ntpsph,ei0x,1,zzero,ei0xlm,1)
         ! subcell average (wings)
-            scieff (j1, 1) = Sqrt (fourpi) * sptclg (j1, iq0) * t00 * &
-           & dot_product (mx0lm, eix0lm)
-            If (input%xs%BSE%scrherm .Eq. 0) Then
-               scieff (1, j1) = Sqrt (fourpi) * sptclg (j1, iq0) * t00 &
-              & * dot_product (mx0lm, ei0xlm)
-            Else
-               scieff (1, j1) = conjg (scieff(j1, 1))
-            End If
+            scieff (j1, 1) = Sqrt (fourpi) * sptclg (j1, iq0) * t00 * dot_product (mx0lm, eix0lm)
+            scieff (1, j1) = Sqrt (fourpi) * sptclg (j1, iq0) * t00  * dot_product (mx0lm, ei0xlm)
             If (input%xs%BSE%sciavbd) Then
-               ji = j1
-               If (input%xs%BSE%scrherm .Eq. 0) ji = 2
-               Do j2 = ji, n
+
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(eitmp,eilmtmp,j2,itp)
+               allocate(eitmp(ntpsph),eilmtmp(lmmaxdielt))
+!$OMP DO
+               Do j2 = 2, n
                   Do itp = 1, ntpsph
                  ! body, B^-1 + p*S p*T/(p*L*p)
-                     eixx (itp) = bi (j1-1, j2-1) + dot_product (spc(:, &
-                    & itp), s(j1-1, :)) * dot_product (spc(:, itp), &
-                    & t(:, j2-1)) * ei00 (itp)
+                     eitmp (itp) = w(itp)*(bi (j1-1, j2-1) + spc2(itp)*(spc(1, itp)* t(1,j2-1)+spc(2, itp)* t(2,j2-1)+spc(3, itp)* t(3,j2-1))* ei00 (itp))
                   End Do
-                  Do lm = 1, lmmaxdielt
-                     eixxlm (lm) = fourpi * dot_product (zylm(:, lm), &
-                    & eixx*w)
-                  End Do
+                  call zgemv('C',ntpsph,lmmaxdielt,fourpi,zylm,ntpsph,eitmp,1,zzero,eilmtmp,1)
               ! subcell average (body)
-                  scieff (j1, j2) = sptclg (j1, iq0) * sptclg (j2, iq0) &
-                 & * t00 * dot_product (mxxlm, eixxlm)
-                  If (input%xs%BSE%scrherm .Ne. 0) scieff (j2, j1) = &
-                 & conjg (scieff(j1, j2))
+                  scieff (j1, j2) = sptclg (j1, iq0) * sptclg (j2, iq0) * t00 * dot_product (mxxlm, eilmtmp)
+               End Do
+!$OMP END DO
+               deallocate(eitmp,eilmtmp)
+!$OMP END PARALLEL
+#else
+               Do j2 = 2, n
+                  Do itp = 1, ntpsph
+                 ! body, B^-1 + p*S p*T/(p*L*p)
+                     eixx (itp) = w(itp)*(bi (j1-1, j2-1) + spc2(itp)*(spc(1, itp)* t(1,j2-1)+spc(2, itp)* t(2,j2-1)+spc(3, itp)* t(3,j2-1))* ei00 (itp))
+                  End Do
+                  call zgemv('C',ntpsph,lmmaxdielt,fourpi,zylm,ntpsph,eixx,1,zzero,eixxlm,1)
+              ! subcell average (body)
+                  scieff (j1, j2) = sptclg (j1, iq0) * sptclg (j2, iq0) * t00 * dot_product (mxxlm, eixxlm)
+               End Do
+#endif
+            Else
+           ! no subcell average (body)
+               scieff (j1, 2:n) = bi (j1-1, :)
+            End If
+         End Do
+
+else
+
+         Do j1 = 2, n
+            scol(1:3)=s(j1-1,1:3)
+            Do itp = 1, ntpsph
+              spc2(itp) = spc(1, itp)* scol(1)+spc(2, itp)* scol(2)+spc(3, itp)* scol(3)
+            End Do
+
+            Do itp = 1, ntpsph
+           ! wing, -p*S/(p*L*p)
+               eix0 (itp) = - spc2(itp) * ei00 (itp)
+            End Do
+
+            call zgemv('C',ntpsph,lmmaxdielt,fourpi,zylm,ntpsph,ei0x,1,zzero,ei0xlm,1)
+        ! subcell average (wings)
+            scieff (j1, 1) = Sqrt (fourpi) * sptclg (j1, iq0) * t00 * dot_product (mx0lm, eix0lm)
+            scieff (1, j1) = conjg (scieff(j1, 1))
+            If (input%xs%BSE%sciavbd) Then
+               Do j2 = j1, n
+                  Do itp = 1, ntpsph
+                 ! body, B^-1 + p*S p*T/(p*L*p)
+                     eixx (itp) = w(itp)*(bi (j1-1, j2-1) + (spc(1, itp)* scol(1)+spc(2, itp)* scol(2)+spc(3, itp)* scol(3))*(spc(1, itp)* t(1,j2-1)+spc(2, itp)* t(2,j2-1)+spc(3, itp)* t(3,j2-1))* ei00 (itp))
+                  End Do
+                  call zgemv('C',ntpsph,lmmaxdielt,fourpi,zylm,ntpsph,eixx,1,zzero,eixxlm,1)
+              ! subcell average (body)
+                  scieff (j1, j2) = sptclg (j1, iq0) * sptclg (j2, iq0) * t00 * dot_product (mxxlm, eixxlm)
+                  scieff (j2, j1) = conjg (scieff(j1, j2))
                End Do
             Else
            ! no subcell average (body)
                scieff (j1, 2:n) = bi (j1-1, :)
             End If
          End Do
+
+endif
+
          Deallocate (ei00, eix0, ei0x, eixx, ei00lm, eix0lm, ei0xlm, &
         & m00lm, mx0lm, mxxlm)
          Deallocate (ylm, zylm, tp, spc, w, plat, p)
+         deallocate (spc2)
       Case ('screendiag', 'invscreendiag')
          If (input%xs%BSE%sciavbd) Then
             Write (*,*)
@@ -315,3 +364,4 @@ Subroutine angavsc0 (n, nmax, scrnh, scrnw, scrn, scieff)
       Call writedielt ('DIELTENS_NOSYM', 1, 0.d0, dtns, 1)
 
 End Subroutine angavsc0
+
