@@ -54,68 +54,60 @@ Subroutine bandstr
   ! initialise universal variables
   Call init0
   Call init1
-hybcheck=.false.
-if (associated(input%groundstate%Hybrid)) then
-    if (input%groundstate%Hybrid%exchangetypenumber== 1)  hybcheck=.true.
-elseif (associated(input%groundstate%HartreeFock)) then
-    hybcheck=.true.
-end if
-
-if (hybcheck) then
-     !----------------------------------------      
-     ! Calculate interpolated bandstructure
-     !----------------------------------------
-
-      
-        fname='EVALHF.OUT'
-        inquire(File=fname,Exist=exist)
-        if (.not.exist) then
-          write(*,*)'ERROR(bandstr.f90): File EVALHF.OUT does not exist!'
-          stop
-        end if
-        
-        inquire(IoLength=Recl) nkpt0, nstsv0
-        open (70, File=fname, Action='READ', Form='UNFORMATTED', &
-       &  Access='DIRECT', Recl=Recl)
-        read(70, Rec=1) nkpt0, nstsv0
-        close(70)
-        
-        nstsv=min(nstsv,nstsv0)
-        
-        allocate(vkl0(3,nkpt0))
-        allocate(ehf(nstsv0,nkpt0))
-        allocate(e0(nkpt0,nstsv))
-        allocate(e1(nkpt,nstsv))
-        
-        inquire(IoLength=Recl) nkpt0, nstsv0, vkl0(:,1), ehf(:,1)
-        open (70, File=fname, Action='READ', Form='UNFORMATTED', &
-       &  Access='DIRECT', Recl=Recl)
-        do ik = 1, nkpt0
-          read(70, Rec=ik) nkpt0, nstsv0, vkl0(:,ik), ehf(1:,ik)
-        end do ! ik
-        close(70)
   
-        ! Perform Fourier Interpolation
-        do ik = 1, nkpt0
-          e0(ik,1:nstsv)=cmplx(ehf(1:nstsv,ik),0.d0,8)
-        enddo
-
-        e1(:,:)=zzero
-        call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
-        
-        open(88,file='BAND.OUT')
-        do ist = 1, nstsv
-          do ik = 1, nkpt
-            write(88,*) dpp1d(ik), dble(e1(ik,ist))
-          end do
-          write(88,*)
-        end do
-        close(88)
-
-        deallocate(vkl0,ehf,e0,e1)
-              
-        return
-      end if 
+  !------------------------------------------      
+  ! Calculate bandstructure by interpolation
+  !------------------------------------------
+  hybcheck=.false.
+  if (associated(input%groundstate%Hybrid)) then
+    if (input%groundstate%Hybrid%exchangetypenumber== 1)  hybcheck=.true.
+  else if (associated(input%groundstate%HartreeFock)) then
+    hybcheck=.true.
+  end if
+  if (hybcheck) then
+    fname='EVALHF.OUT'
+    inquire(File=fname,Exist=exist)
+    if (.not.exist) then
+      write(*,*)'ERROR(bandstr.f90): File EVALHF.OUT does not exist!'
+      stop
+    end if
+    inquire(IoLength=Recl) nkpt0, nstsv0
+    open (70, File=fname, Action='READ', Form='UNFORMATTED', &
+    &  Access='DIRECT', Recl=Recl)
+    read(70, Rec=1) nkpt0, nstsv0
+    close(70)
+    nstsv=min(nstsv,nstsv0)
+    allocate(vkl0(3,nkpt0))
+    allocate(ehf(nstsv0,nkpt0))
+    allocate(e0(nkpt0,nstsv))
+    allocate(e1(nkpt,nstsv))
+    inquire(IoLength=Recl) nkpt0, nstsv0, vkl0(:,1), ehf(:,1)
+    open (70, File=fname, Action='READ', Form='UNFORMATTED', &
+    &  Access='DIRECT', Recl=Recl)
+    do ik = 1, nkpt0
+      read(70, Rec=ik) nkpt0, nstsv0, vkl0(:,ik), ehf(1:,ik)
+    end do ! ik
+    close(70)
+    ! Perform Fourier Interpolation
+    do ik = 1, nkpt0
+      e0(ik,1:nstsv)=cmplx(ehf(1:nstsv,ik),0.d0,8)
+    enddo
+    e1(:,:)=zzero
+    call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
+    open(88,file='BAND.OUT')
+    do ist = 1, nstsv
+      do ik = 1, nkpt
+        write(88,*) dpp1d(ik), dble(e1(ik,ist))
+      end do
+      write(88,*)
+    end do
+    close(88)
+    deallocate(vkl0,ehf,e0,e1)
+    return
+  end if
+  !--------------------
+  ! end Interpolation 
+  !--------------------
 
   ! maximum angular momentum for band character
   lmax = Min (3, input%groundstate%lmaxapw)
@@ -136,14 +128,15 @@ if (hybcheck) then
   ! compute the overlap radial integrals
   Call olprad
   ! compute the Hamiltonian radial integrals
-        Call hmlint
+  Call hmlint
   ! compute "relativistic mass"
-      Call genmeffig
-      emin = 1.d5
-      emax = - 1.d5
+  Call genmeffig
+  emin = 1.d5
+  emax = - 1.d5
 
+  !---------------------------------------
   ! begin parallel loop over k-points
-
+  !---------------------------------------
 #ifdef MPI
   Call MPI_barrier (MPI_COMM_WORLD, ierr)
   splittfile = .True.
@@ -206,8 +199,8 @@ if (hybcheck) then
      End Do
 
 #ifdef MPI
-        If (input%properties%bandstructure%character) Then
-     Call mpi_allgatherv_ifc(nkpt,lmax*natmtot*nstsv,rlpbuf=bc)
+     If (input%properties%bandstructure%character) Then
+       Call mpi_allgatherv_ifc(nkpt,(lmax+1)*natmtot*nstsv,rlpbuf=bc)
      End If
      Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
      Call MPI_barrier(MPI_COMM_WORLD, ierr)

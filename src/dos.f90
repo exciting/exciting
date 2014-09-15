@@ -37,7 +37,7 @@ Subroutine dos
       Logical :: tsqaz
       Integer :: lmax, lmmax, l, m, lm
       Integer :: ispn, jspn, is, ia, ias
-      Integer :: ik, nsk (3), ist, iw
+      Integer :: ik, nsk (3), ist, iw, jst, n, i
       Real (8) :: dw, th, t1
       Real (8) :: v1 (3), v2 (3), v3 (3)
       Character (512) :: buffer
@@ -48,8 +48,8 @@ Subroutine dos
       Real (8), Allocatable :: e (:, :, :)
       Real (8), Allocatable :: f (:, :)
       Real (8), Allocatable :: w (:)
-      Real (8), Allocatable :: g (:, :)
-      Real (8), Allocatable :: gp (:)
+      Real (8), Allocatable :: g(:,:), gp(:)
+      Real (8), Allocatable :: edif(:,:,:), ej(:,:), fj(:,:)
 ! low precision for band character array saves memory
       Real (4), Allocatable :: bc (:, :, :, :, :)
       Real (8), Allocatable :: elm (:, :)
@@ -256,6 +256,89 @@ Subroutine dos
       End Do
       Close (50)
       Call xml_endElement (xf, "totaldos")
+      
+!-------------------!
+!     Joint DOS     !
+!-------------------!
+      If (input%properties%dos%jdos) Then
+        open(50, File='TJDOS.OUT', Action='WRITE', Form='FORMATTED')
+        open(51, File='JDOS.OUT', Action='WRITE', Form='FORMATTED')
+        allocate(edif(nstsv,nstsv,nkpt))
+        do ispn = 1, nspinor
+          if (ispn .Eq. 1) then
+            t1 = 1.d0
+          else
+            t1 = -1.d0
+          end if
+          edif(:,:,:) = 0.d0
+          do ik = 1, nkpt
+            n = 0
+            do ist = nstsv, 1, -1
+            if (evalsv(ist,ik)<=efermi) then
+              n = n+1
+              m = 0
+              do jst = 1, nstsv
+              if (evalsv(jst,ik)>efermi) then
+                m = m+1
+                edif(n,m,ik) = evalsv(jst,ik)-evalsv(ist,ik)+input%properties%dos%scissor
+              end if
+              end do
+            end if
+            end do 
+          end do ! ik
+          ! State dependent JDOS 
+          allocate(ej(m,nkpt))
+          allocate(fj(m,nkpt))
+          fj(:,:) = 1.d0
+          do ist = 1, n
+            ej(:,:) = edif(ist,1:m,:)
+            call brzint(input%properties%dos%nsmdos, &
+            &           input%groundstate%ngridk, nsk, ikmap, &
+            &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+            &           m, m, ej, fj, gp)
+            gp(:) = occmax*gp(:)
+            do iw = 1, input%properties%dos%nwdos
+              if (dabs(w(iw))>1.d-4) then
+                write(51,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(n*m), t1*gp(iw)
+              else
+                write(51,'(3G18.10)') w(iw), 0.d0, t1*gp(iw)
+              end if  
+            end do
+            write(51,'("     ")')
+          end do ! ist
+          deallocate(ej,fj)
+          
+! total JDOS (sum over all transitions)
+          allocate(ej(n*m,nkpt))
+          allocate(fj(n*m,nkpt))
+          fj(:,:) = 1.d0
+          i = 0
+          do ist = 1, n
+          do jst = 1, m
+            i = i+1
+            ej(i,:) = edif(ist,jst,:)
+          end do
+          end do
+          call brzint(input%properties%dos%nsmdos, &
+          &           input%groundstate%ngridk, nsk, ikmap, &
+          &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+          &           n*m, n*m, ej, fj, gp)
+          gp(:) = occmax*gp(:)
+          do iw = 1, input%properties%dos%nwdos
+            if (dabs(w(iw))>1.d-4) then
+              write(50,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(n*m), t1*gp(iw)
+            else
+              write(50,'(3G18.10)') w(iw), 0.d0, t1*gp(iw)
+            end if  
+          end do
+          write(50, '("     ")')
+          deallocate(ej,fj)
+          
+        end do ! ispn
+        deallocate(edif)
+        close(50)
+        close(51)
+      end if ! JDOS
 
 !----------------------------!
 !     output partial DOS     !
@@ -402,6 +485,7 @@ Subroutine dos
 !-----------------------------------
       Write(*,*)
       Write(*, '("Info(dos):")')
+      Write(*,*)
       Write(*, '("   Total density of states written to TDOS.OUT")')
       Write(*,*)
       If (input%properties%dos%lmirep) Then
@@ -414,6 +498,10 @@ Subroutine dos
          Write(*, '("   irreducible representations of each site symmetry group")')
          Write(*,*)
          Write(*, '("   Interstitial density of states written to IDOS.OUT")')
+         Write(*,*)
+      End If
+      If (input%properties%dos%jdos) Then
+         Write(*, '("   Joint density of states written to JDOS.OUT")')
          Write(*,*)
       End If
       Write(*, '("   Fermi energy is at zero in plot")')
