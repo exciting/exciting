@@ -23,7 +23,6 @@ Subroutine bse
       Use m_writeloss
       Use m_writesigma
       Use m_writesumrls
-      Use ioarray
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation (BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem (thanks to the spectral theorem that can
@@ -95,8 +94,9 @@ Subroutine bse
   ! local variables
       
       ! CC
-      integer :: iostat, ia, is
+      integer :: iostat, ievec
       logical :: exist
+      Character (256) :: locext
   
       Integer, Parameter :: iqmt = 0
       Integer, Parameter :: noptcmp = 3
@@ -124,7 +124,6 @@ Subroutine bse
       integer :: Recl, nstsv_
       real(8) :: vkl_(3)
       
-!      GO TO 777
       
   ! routine not yet parallelized
   if (rank .ne. 0) goto 10
@@ -330,7 +329,7 @@ Subroutine bse
       Call bsesoldiag (hamsiz, ne, ham, beval, bevec)
       Call timesec (ts1)
   ! deallocate BSE-Hamiltonian
-      !Deallocate (ham)
+      Deallocate (ham)
       Write (unitout, '(" timing (in seconds)	   :", f12.3)') ts1 - ts0
   ! number of excitons to consider
       nexc = hamsiz
@@ -512,13 +511,24 @@ Subroutine bse
          Call writesigma (iq, w, sigma, trim(fnsigma))
          Call writesumrls (iq, sumrls, trim(fnsumrules))
         enddo
-      end do
-
+!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ! CC test exciton
-777   if (associated(input%xs%storeexcitons)) then
+      end do
+      if (associated(input%xs%storeexcitons)) then
         ! upon request, store array with exciton coefficients
         
-        Recl=3
+        if ( (input%xs%storeexcitons%MinNumberExcitons .lt. 1) .or. &
+          &  (input%xs%storeexcitons%MinNumberExcitons .gt. hamsiz) .or. &
+          &  (input%xs%storeexcitons%MaxNumberExcitons .lt. 1) .or. &
+          &  (input%xs%storeexcitons%MaxNumberExcitons .gt. hamsiz) .or. &
+          &  (input%xs%storeexcitons%MinNumberExcitons .gt. input%xs%storeexcitons%MaxNumberExcitons) ) then
+          write(*,*)
+          write(*,'("Error(bse): wrong range of exciton indices: ", 2I5)') &
+                & input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+          write(*,*)
+          stop
+        end if  
+        
         ! write bin
         open(50,File='EXCCOEFF.bin', & 
                 Action='WRITE',Form='UNFORMATTED', IOstat=iostat)
@@ -530,58 +540,118 @@ Subroutine bse
         end if
         
         ! write
-        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
-           write(50) bevec(1:5,is)
+        write(50) input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+        do ievec = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+           write(50) beval(ievec), bevec(1:hamsiz,ievec)
         end do
         
-        Write (*,*) "ham written"
-        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
-           write(60,'(" ",11F14.8)') beval(is), ham(1:5,is)
-        end do
+!        Write (60,*) "ham written"
+!        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+!           write(60,'(" ",11F14.8)') beval(is), ham(1:5,is)
+!        end do
         
         
-        Write (*,*) "bevec written"
-        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
-           write(60,'(" ",11F14.8)') beval(is), bevec(1:5,is)
-        end do
+!        Write (*,*) "bevec written"
+!        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+!           write(60,'(" ",11F14.8)') beval(is), bevec(1:5,is)
+!        end do
         
         close(50)
         
         ! read bin
-        inquire(file='EXCCOEFF.bin', exist=exist)
-        if (exist) then
-          if (rank==0) then
-            write(*,*)
-            write(*,'("  EXCCOEFF.bin is read")')
-          end if
-        else
-          write(*,*)
-          write(*,'("Error(bse): error reading EXCCOEFF.bin")')
-          write(*,*)
-        end if
+!        inquire(file='EXCCOEFF.bin', exist=exist)
+!        if (exist) then
+!          if (rank==0) then
+!            write(*,*)
+!            write(*,'("  EXCCOEFF.bin is read")')
+!          end if
+!        else
+!          write(*,*)
+!          write(*,'("Error(bse): error reading EXCCOEFF.bin")')
+!          write(*,*)
+!        end if
 
-        bevec=0.0
+!        bevec=0.0
         
-        open(50,File='EXCCOEFF.bin', & 
-                Action='READ',Form='UNFORMATTED', IOstat=iostat)
-        write(*,*) "iostat reading", iostat
-        !read
-        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
-           read(50) bevec(1:5,is)
-        end do
+!        open(50,File='EXCCOEFF.bin', & 
+!                Action='READ',Form='UNFORMATTED', IOstat=iostat)
+!        write(*,*) "iostat reading", iostat
+!        !read
+!        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+!           read(50) bevec(1:5,is)
+!        end do
         
-        write(60,*) "hamsize", hamsiz
+!        write(60,*) "hamsize", hamsiz
          
-        Write (*,*) "bevec read"
-        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
-           write(60,'(" ",10F14.8)') bevec(1:5,is)
-        end do
+!        Write (*,*) "bevec read"
+!        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+!           write(60,'(" ",10F14.8)') bevec(1:5,is)
+!        end do
         
-        close(50)
+!        close(50)
       end if
-        
       
-      Deallocate (ham)
+      if (associated(input%xs%excitonplot)) then
+      
+        if ( (input%xs%excitonplot%ExcitonIndex .lt. 1) .or. &
+          &  (input%xs%excitonplot%ExcitonIndex .gt. hamsiz) ) then
+          write(*,*)
+          write(*,'("Error(bse): wrong exciton index: ", I5, "  (total number of excitons = ", I8, " )")') &
+                & input%xs%excitonplot%ExcitonIndex, hamsiz
+          write(*,*)
+          stop
+        end if  
+                
+        inquire(file='EXCCOEFF.bin', exist=exist)
+        if ( (.not. exist) .and. (rank==0) ) then
+          write(*,*)
+          write(*,'("Error(bse): file EXCCOEFF.bin does not exist!")')
+          write(*,*)
+          stop
+        else
+          open(50,File='EXCCOEFF.bin', & 
+                  Action='READ',Form='UNFORMATTED', IOstat=iostat)
+          if ( (iostat.ne.0) .and. (rank==0) ) then
+            write(*,*) iostat
+            write(*,'("Error(bse): error reading EXCCOEFF.bin")')
+            write(*,*)
+            stop
+          end if
+          read(50) input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+          do ievec = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+             read(50) beval(ievec), bevec(1:hamsiz,ievec)
+          end do
+          close(50)
+        end if
+               
+        locext = filext 
+        filext = 'EVECFV_QMT000.OUT'
+        
+        inquire(file=trim(filext), exist=exist)
+        if ( (.not. exist) .and. (rank==0) ) then
+          write(*,*)
+          write(*,'("Error(bse): file EVECFV_QMT000.OUT does not exist!")')
+          write(*,*)
+          stop
+        else
+          open(50,File=trim(filext), & 
+                  Action='READ',Form='UNFORMATTED', IOstat=iostat)
+          if ( (iostat.ne.0) .and. (rank==0) ) then
+            write(*,*) iostat
+            write(*,'("Error(bse): error reading EVECFV_QMT000.OUT")')
+            write(*,*)
+            stop
+          end if
+         
+          close(50)
+        end if
+        
+        filext = locext
+        
+      end if 
+      
+!      Deallocate (ham)
+!###############################################################################################################
       deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
       if (associated(input%gw)) deallocate(eval0)
 10 continue
