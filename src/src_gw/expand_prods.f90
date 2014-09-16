@@ -60,24 +60,21 @@
 !
 !     Calculate the matrix elements $M^i_{nm}(\vec{k},\vec{q})$:
 !
-      !call calcminm(ik,iq)
-      call calcminm2(ik,iq)
+      call calcminm(ik,iq)
 !          
 !     Calculate the matrix elements M^i_{nm} where n is a core state
 !
       if (iopcore<=1) then
         
         if (iflag<0) then
-          !call calcmicm(ik,iq)
-          call calcmicm2(ik,iq)
+          call calcmicm(ik,iq)
           
         else if (iflag==0) then 
           call calcmicm(ik,iq)
           call calcminc(ik,iq)
           
         else if (iflag>0) then 
-          !call calcminc(ik,iq)
-          call calcminc2(ik,iq)
+          call calcminc(ik,iq)
           
         end if
 

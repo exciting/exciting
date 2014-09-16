@@ -21,7 +21,7 @@
       implicit none
       
       character(6) :: fdep
-      real(8)      :: len
+      real(8)      :: len, modq0
       
 ! !EXTERNAL ROUTINES: 
 
@@ -302,8 +302,17 @@
 !     To take into account anisotropy of \epsilon for q->0
 !      
       !q0_eps=(/1.d0,1.d0,1.d0/)/sqrt(3.0d0)
-      q0_eps=input%gw%q0eps
-     
+      q0eps=input%gw%q0eps
+      modq0=dsqrt(q0eps(1)**2+q0eps(2)**2+q0eps(3)**2)
+      if (modq0>1.d-8) then
+        q0eps=q0eps/modq0
+      else
+        write(*,*)'ERROR(readingw): Wrong value for input%gw%q0eps!'
+        stop
+      end if
+      write(fgw,*)' Direction of q->0 (q0eps): ', q0eps
+!
+      call linmsg(fgw,'-','')
 !
 !     K/Q point grids
 !     

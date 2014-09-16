@@ -391,7 +391,7 @@ module modgw
       complex(8), allocatable :: emac(:,:) ! emac(1,:) -- without local field effect     
                                            ! emac(2,:) -- with    local field effect
  
-      real(8) :: q0_eps(3)      
+      real(8) :: q0eps(3)
 
 !---------------------------------!
 !     momentum matrix elements    !

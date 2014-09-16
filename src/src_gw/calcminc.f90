@@ -1,214 +1,156 @@
-!BOP
 !
-! !ROUTINE: calcmicm
+    subroutine calcminc(ik,iq)
 !
-! !INTERFACE:
-      subroutine calcminc(ik,iq)
-
-! !DESCRIPTION:
+!!DESCRIPTION:
 !
-!This subroutine calculates the matrix elements $M^i_{cm}(\vec{k},\vec{q})$. 
-!c stands for core-state
+!This subroutine calculates the matrix elements $M^i_{nc}(\vec{k},\vec{q})$ 
+!(c stands for core-state)
 !
-!
-! !USES:
-      
-      use modinput
-      use modmain
-      use modgw
+!!USES:
+    use modinput
+    use modmain
+    use modgw
 
-! !INPUT PARAMETERS:
+!!INPUT PARAMETERS:
+    implicit none
+    integer(4), intent(in) :: ik   ! k-point
+    integer(4), intent(in) :: iq   ! q-point
 
-      implicit none
+!!LOCAL VARIABLES:
+    integer(4) :: bl, bm
+    integer(4) :: ia, is, ias
+    integer(4) :: igk2
+    integer(4) :: io2, ilo2
+    integer(4) :: icg, ic, ie2
+    integer(4) :: imix, irm, im
+    integer(4) :: l1, m1, l2, m2, l2m2
+    integer(4) :: l2min, l2max
+     
+    real(8) :: arg, kvec(3)
+    real(8) :: tstart, tend
+     
+    complex(8) :: phs, angint, sum
 
-      integer(4), intent(in) :: ik  ! k-point
-      integer(4), intent(in) :: iq  ! q-point
+!!EXTERNAL ROUTINES: 
+    external :: zgemm
+    real(8), external :: gaunt
 
-! !LOCAL VARIABLES:
-
-      integer(4) :: jk    ! the k-point index
-      integer(4) :: ikp
-
-      integer(4) :: bl    ! Angular momentum quantum number of the 
-!                           atomic mixed function irm.(big l)
-      integer(4) :: bm    ! z-component angular momentum quantum number
-!                           of the atomic function irm. (big m)
-      integer(4) :: i
-      integer(4) :: ia
-      integer(4) :: ias
-      integer(4) :: ias0
-      integer(4) :: igk2
-      integer(4) :: ilo2
-      integer(4) :: io2
-      integer(4) :: is
-      integer(4) :: icore ! Counter: runs over the core states of a 
-!                           given atom.
-      integer(4) :: icg   ! Runs over all core states of all atoms
-      integer(4) :: ist   ! Counter: run over the eigenvalues in 
-!                           the corresponding k-point.
-      integer(4) :: imix  ! Counter: runs over all MT-sphere mixed basis 
-!                           functions (of all the atoms)
-      integer(4) :: irm   ! Counter: runs over the radial mixed basis 
-!                           functions of each atom.
-      integer(4) :: l1    ! l-quantum number of the (L)APW eigenfunction 
-!                           at k
-      integer(4) :: l2    ! l-quantum number of the (L)APW eigenfunction 
-!                           at k' = k - q
-      integer(4) :: l1m1,l2m2   ! Counter: Runs over MTS (L)APW basis 
-!                                 functions (l1,m1 and l2,m2 
-!                                 respectively)
-      integer(4) :: l2min,l2max ! minumum and maximum (respectively)
-!                                 possible values of l2       
-      integer(4) :: m1   ! m-quantum number of the (L)APW eigenfunction 
-!                          at k
-      integer(4) :: m2   ! m-quantum number of the (L)APW eigenfunction 
-!                          at k' = k - q
-      integer(4) :: im
-      
-      integer(4) :: ncdim
-      
-      real(8) :: arg
-      real(8) :: tstart,tend
-      real(8), dimension(3) :: kqvec
-      
-      complex(8) :: phs
-      complex(8) :: angint  ! Angular integral calculated by fourylm
-      complex(8) :: suml2m2 ! intermediate sum (over (L)APW basis 
-!                             functions [l2, m2])
-      complex(8) :: sumterms
-      complex(8) :: apwterm  
-      complex(8) :: loterm  
-!
-! !EXTERNAL ROUTINES: 
-      
-      real(8), external :: gaunt
-      real(8), external :: getcgcoef
-
-! !INTRINSIC ROUTINES: 
-
-      intrinsic iabs
-      intrinsic isign
-      intrinsic min
-!
-! !REVISION HISTORY:
+!!REVISION HISTORY:
 ! 
 ! Created  23th. Feb. 2004 by RGA
 ! Last modified 20th. July 2004 by RGA
 ! Revisited: May 2011 by DIN
 !
-! !TO DO:
-!
-! - Check complex and real cases
-!
 !EOP
-!
 !BOC
-!
-!     ---------------------------------------------------
-!      n => Valence or conduction state, n' => core state
-!     ---------------------------------------------------
 
-      call cpu_time(tstart)
+    call timesec(tstart)
+
+    !---------------------------------------------------
+    ! n => Valence or conduction state, n' => core state
+    !---------------------------------------------------
+    if (allocated(mincmat)) deallocate(mincmat)
+    allocate(mincmat(locmatsiz,nstfv,ncg))
+    mincmat = zzero
+
+    ! k-q vector
+    kvec(:) = -vklnr(:,ik)
+
+    ! Loop over core states
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(icg,is,ia,ic,l1,m1,ias,arg,phs,im,irm,bl,bm,imix,l2min,l2max,l2,m2,l2m2,angint,ie2,io2,sum,ilo2,igk2)
+!$OMP DO
+#endif    
+    do icg = 1, ncg
+      is = corind(icg,1)
+      ia = corind(icg,2)
+      ic = corind(icg,3)
+      l1 = corind(icg,4)
+      m1 = corind(icg,5)
       
-      if (allocated(mincmat)) deallocate(mincmat)
-      allocate(mincmat(locmatsiz,nstfv,ncg))
-      mincmat = zzero
+      ias = idxas(ia,is)
+      arg = atposl(1,ia,is)*kvec(1)+ &
+      &     atposl(2,ia,is)*kvec(2)+ &
+      &     atposl(3,ia,is)*kvec(3)
+      phs = cmplx(cos(2.0d0*pi*arg),sin(2.0d0*pi*arg),8)
+      
+      ! Loop over mixed functions:
+      im = 0
+      do irm = 1, nmix(ias)
+        bl = bigl(ias,irm)
+        do bm = -bl, bl
+          im = im+1
+          imix = locmixind(ias,im)
+          
+          ! sum over l2m2
+          l2min = iabs(bl-l1)
+          l2max = min(bl+l1,input%groundstate%lmaxapw)
+          do l2 = l2min, l2max
+            m2 = bm+m1
+            !m2 = m1-bm !<-- FHI-gap
+            if (iabs(m2) <= l2) then
+              l2m2 = idxlm(l2,m2)
 
-      jk=kqid(ik,iq)
-      do i=1,3
-        kqvec(i)=-vklnr(i,ik)
-      enddo
-      ikp=indkp(ik)
-!
-!     Loop over core states
-!
-      ias0=0
-      do icg = 1, ncg
-        is=corind(icg,1)
-        ia=corind(icg,2)
-        ias=idxas(ia,is)
+              ! Angular integral
+              angint = gaunt(l2,bl,l1,m2,bm,m1)
+              !angint = getgauntcoef(bl,l1,l2,bm,m1)
+              !angint = getgauntcoef(l2,bl,l1,m2,bm) !<-- FHI-gap
+                  
+              if (abs(angint)>1.0d-8) then
+                
+                ! loop over valence states
+                do ie2 = 1, nstfv
+                  sum = zzero
+                  !------------------
+                  ! APW contribution
+                  !------------------
+                  do io2 = 1, apword(l2,is)
+                    sum = sum + &
+                    &     bradketc(ias,irm,ic,l2,io2,2)*  &
+                    &     eveckalm(ie2,io2,l2m2,ias,1)
+                  end do
+                  !------------------
+                  ! LO contribution
+                  !------------------
+                  do ilo2 = 1, nlorb(is)
+                    if (lorbl(ilo2,is)==l2) then
+                      igk2 = ngknr(1,ik)+idxlo(l2m2,ilo2,ias)
+                      sum = sum + &
+                      &     bradketc(ias,irm,ic,ilo2,1,3)* &
+                      &     eveck(igk2,ie2,1)
+                    end if
+                  end do  
+                  
+                  mincmat(imix,ie2,icg) = mincmat(imix,ie2,icg)+phs*angint*sum
+                  
+                end do ! ie2
+                  
+              end if ! angint
+              
+            end if
+          end do ! l2
+
+        enddo ! bm  
+      enddo ! irm
+
+    enddo ! icg
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+
+    !------------------------------------------------------------------
+    ! timing
+    call timesec(tend)
     
-        arg=atposl(1,ia,is)*kqvec(1)+atposl(2,ia,is)*kqvec(2)+        &
-     &      atposl(3,ia,is)*kqvec(3)
-        phs=cmplx(cos(2.0d0*pi*arg),sin(2.0d0*pi*arg),8)
+    !write(*,*) ' mincmat ik, iq: ', ik, iq 
+    !do imix = 1, locmatsiz, locmatsiz/10
+    !  do icg = 1, ncg
+    !    do ie2 = 1, 14
+    !      write(*,*) imix, ie2, icg, minc(imix,ie2,icg)
+    !    enddo ! ist2
+    !  enddo ! ist1
+    !end do
 
-!       reset istlms if it is a new atom 
-        if(ias.ne.ias0)then
-          ias0=ias
-        endif  
-        icore=corind(icg,3)
-        l1=corind(icg,4)
-        m1=corind(icg,5)
-        l1m1=idxlm(l1,m1)
-!
-!       Loop over APW states
-!
-        do ist = 1, nstfv
-!
-!         Loop over mixed functions:
-! 
-          imix=0
-          do irm = 1, nmix(ias)
-            bl=bigl(ias,irm)
-            
-            do bm=-bl,bl
-              imix=imix+1
-              im=locmixind(ias,imix)
-              
-              l2min=iabs(bl-l1)
-              l2max=min(bl+l1,input%groundstate%lmaxapw)
-              
-              suml2m2 = zzero
-              do l2=l2min,l2max
-                
-                m2=bm+m1
-                
-                if(iabs(m2).le.l2)then
-                  l2m2=idxlm(l2,m2)
-
-                  ! Gaunt coefficient
-                  angint=gaunt(l2,l1,bl,m2,m1,bm) 
-                  
-                  if(abs(angint).gt.1.0d-8)then
-                    
-                    apwterm=zzero
-                    do io2=1,apword(l2,is)
-                      apwterm = apwterm + &
-     &                          bradketc(ias,irm,icore,l2,io2,2)*  &
-     &                          eveckalm(ist,io2,l2m2,ias,1)
-                    enddo
-                  
-                    loterm=zzero
-                    do ilo2=1,nlorb(is)
-                      if(lorbl(ilo2,is).eq.l2)then
-                        igk2=ngk(1,ikp)+idxlo(l2m2,ilo2,ias)
-                        loterm = loterm + &
-     &                           bradketc(ias,irm,icore,ilo2,1,3)* &
-     &                           eveck(igk2,ist,1)
-                      endif
-                    enddo  
-                  
-                    sumterms = apwterm + loterm
-                    suml2m2 = suml2m2 + angint * sumterms
-                  
-                  endif
-                endif  
-              enddo ! l2
-
-              mincmat(im,ist,icg) = suml2m2*phs
-
-            enddo ! bm  
-          enddo ! irm
-
-        enddo ! ist
-
-      enddo ! icg
-
-      call cpu_time(tend)
-      if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
-      if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
-
-      end subroutine calcminc
-!EOC      
-
-
+    return
+end subroutine
