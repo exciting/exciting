@@ -12,6 +12,7 @@ subroutine calcpmat
     use modgw
     use modxs
     use modmpi
+    use m_getunit
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
 !   writes them to direct access file {\tt PMAT.OUT}.
@@ -24,17 +25,33 @@ subroutine calcpmat
 !BOC
     implicit none
     integer(4)              :: ik,ik0
-    integer(4)              :: Recl
+    integer(4)              :: fid, Recl
     complex(8), allocatable :: apwalmt(:,:,:,:)
     complex(8), allocatable :: evecfvt(:,:)
     complex(8), allocatable :: evecsvt(:,:)
-    complex(8), allocatable :: pmat(:,:,:)
-    complex(8), allocatable :: pmatc(:,:,:)
-    
+    complex(8), allocatable :: pmat(:,:,:,:)
+    complex(8), allocatable :: pmatc(:,:,:,:)
     real(8) :: tstart, tend
+    integer :: ikstart, ikend
+    integer, allocatable :: ikp2rank(:)
+    
     character(128)::sbuffer
     call cpu_time(tstart)
     if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
+    
+#ifdef MPI    
+    ikstart = firstofset(rank,nkpt)
+    ikend = lastofset(rank,nkpt)
+#else
+    ikstart = 1
+    ikend = nkpt
+#endif
+
+    allocate(ikp2rank(nkpt))
+    ikp2rank = -1
+    do ik = ikstart, ikend
+      ikp2rank(ik) = rank
+    end do ! ik
     
     allocate(apwalmt(ngkmax,apwordmax,lmmaxapw,natmtot))
     allocate(evecfvt(nmatmax,nstfv))
@@ -42,21 +59,14 @@ subroutine calcpmat
       
 !   allocate the momentum matrix array
 
-    allocate(pmat(3,nstfv,nstfv))
-    inquire(IoLength=Recl) pmat
-     if(rank.eq.0) open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-     status='REPLACE',recl=Recl)
-
+    allocate(pmat(3,nstfv,nstfv,ikstart:ikend))
+    pmat = zzero
     if (iopcore.eq.0) then 
-      allocate(pmatc(3,ncg,nstfv))
-      inquire(IoLength=Recl) pmatc
-      if(rank.eq.0)then
-        open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-          status='REPLACE',recl=Recl)
-      endif
+      allocate(pmatc(3,ncg,nstfv,ikstart:ikend))
+      pmatc = zzero
     endif   
 
-    do ik = 1, nkpt
+    do ik = ikstart, ikend
 
       ik0=idikp(ik)
 
@@ -70,34 +80,67 @@ subroutine calcpmat
 
 !     valence-valence matrix elements
       call genpmat(ngk(1,ik),igkig(1,1,ik),vgkcnr(1,1,1,ik), &
-     &  apwalmt,evecfvt,evecsvt,pmat)
+     &  apwalmt,evecfvt,evecsvt,pmat(:,:,:,ik))
  
-      if(rank.eq.0) write(50,rec=ik) pmat
-
 !     core-valence contribution      
-      if(iopcore.eq.0)then
-        call genpmatcor(ik,ngk(1,ik),apwalmt,evecfvt,evecsvt,pmatc)
- 
-          if(rank.eq.0) write(51,rec=ik) pmatc
+      if (iopcore.eq.0) then
+        call genpmatcor(ik,ngk(1,ik),apwalmt,evecfvt,evecsvt,pmatc(:,:,:,ik))
       endif
 
     end do
+    
+    deallocate(apwalmt,evecfvt,evecsvt)
+    
+    !==========================
+    ! Write results to files
+    !==========================
+    
+    ! overwrite existing files
+    if (rank==0) then
+      call getunit(fid)
+      open(fid,File='PMAT.OUT',form='UNFORMATTED',status='REPLACE')
+      close(fid)
+      if (input%gw%coreflag=='all') then
+        call getunit(fid)
+        open(fid,File='PMATCOR.OUT',form='UNFORMATTED',status='REPLACE')
+        close(fid)
+      end if
+    endif
+    call barrier
+    
+    do ik = 1, nkpt
+      if (rank==ikp2rank(ik)) then
+        call getunit(fid)
+        inquire(iolength=recl) pmat(:,:,:,ik)
+        open(fid,File='PMAT.OUT',Action='WRITE',Form='UNFORMATTED',&
+        &    Access='DIRECT',Status='OLD',Recl=recl)
+        write(fid,rec=ik) pmat(:,:,:,ik)
+        close(fid)
+        if (iopcore.eq.0) then
+          call getunit(fid)
+          inquire(iolength=recl) pmatc(:,:,:,ik)
+          open(fid,File='PMATCOR.OUT',Action='WRITE',Form='UNFORMATTED',&
+          &    Access='DIRECT',Status='OLD',Recl=recl)
+          write(fid,rec=ik) pmatc(:,:,:,ik)
+          close(fid)
+        end if
+      end if ! rank
+      call barrier
+    end do ! ikp
 
-    if(iopcore.eq.0.and.rank.eq.0)close(51)   
-    if(rank.eq.0)close(50)
+    deallocate(pmat)
+    if (iopcore.eq.0) deallocate(pmatc)
 
-    write(fgw,*)
-    write(fgw,'(" Info(calcpmat):")')
-    write(fgw,'(" Momentum matrix elements written to file PMAT.OUT and PMATCOR.OUT ")')
-    write(fgw,*)
+    if (rank==0) then
+      write(fgw,*)
+      write(fgw,'(" Info(calcpmat):")')
+      write(fgw,'(" Momentum matrix elements written to file PMAT.OUT and PMATCOR.OUT ")')
+      write(fgw,*)
+    end if
     
     call cpu_time(tend)
     if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
     call write_cputime(fgw,tend-tstart, 'CALCPMAT')
 
-    deallocate(apwalmt,evecfvt,evecsvt,pmat)
-    if(iopcore.eq.0)then
-      deallocate(pmatc)
-    end if
 end subroutine
 !EOC

@@ -301,6 +301,7 @@ module modgw
       integer(4) :: lmixmax 
 ! indexes of the local mixed basis functions
       integer(4), allocatable :: locmixind(:,:)
+      integer(4), allocatable :: mbindex(:,:)
 ! The matrix elements jlam      
       real(8), allocatable  :: jlam(:,:) 
 

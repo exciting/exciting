@@ -24,7 +24,7 @@
       integer(4) :: irm
       integer(4) :: is
       integer(4) :: lms
-      integer(4) :: ist, l, ir
+      integer(4) :: ist, l, m, lm, ir, im
       real(8)    :: norm
       logical    :: core_ortho
 
@@ -113,6 +113,41 @@
       matsizmax=locmatsiz+ngqmax   
       
       call setlocmixind
+      
+      if (maxbigl>input%groundstate%lmaxapw) then
+        if (allocated(idxlm)) deallocate (idxlm)
+        allocate(idxlm(0:maxbigl,-maxbigl:maxbigl))
+        lm = 0
+        do l = 0, maxbigl
+          do m = -l, l
+            lm = lm + 1
+            idxlm(l,m) = lm
+          end do
+        end do
+      end if
+      
+      !-------------------------------------------------------------------
+      ! mapping: MB function index -> (aNLM)
+      !-------------------------------------------------------------------
+      allocate(mbindex(locmatsiz,5))
+      mbindex(:,:) = 0
+      im = 0
+      do is = 1, nspecies
+        do ia = 1, natoms(is)
+          ias = idxas(ia,is)
+          do irm = 1, nmix(ias)
+            l = bigl(ias,irm)
+            do m = -l, l
+              im = im+1
+              mbindex(im,1) = is
+              mbindex(im,2) = ia
+              mbindex(im,3) = irm
+              mbindex(im,4) = l
+              mbindex(im,5) = m
+            end do ! m
+          end do ! irm
+        end do ! ia
+      end do ! is
 
 !     Calculate the coefficients tildeg needed for the structure constants
       call calctildeg(2*(input%gw%MixBasis%lmaxmb+1))

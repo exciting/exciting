@@ -24,7 +24,7 @@ subroutine init_gw
       integer(4) :: ia
       integer(4) :: ias
       integer(4) :: ic
-      integer(4) :: il
+      integer(4) :: l
       integer(4) :: is      
       integer(4) :: ist      
       integer(4) :: m, n
@@ -131,30 +131,37 @@ subroutine init_gw
 !     Tranform xc potential to reciprocal space
       call genvxcig
 
-!     determine the number of core states for each species (auxiliary arrays)
-      if (allocated(ncore)) deallocate(ncore)
-      allocate(ncore(nspecies))
-      ncmax=0
-      nclm=0
-      ncg=0
-      lcoremax=0
-      do is=1,nspecies
-        ncore(is)=0
-        ic = 0
-        do ist=1,spnst(is)
-          if (spcore(ist,is)) then
-            ncore(is)=ncore(is)+1
-            il=spl(ist,is)
-            do m=-spk(ist,is),spk(ist,is)-1
-              ic=ic+1
-            end do
-          end if
+! core states treatment
+      if (dabs(chgcr)>1.d-6) then
+        ! determine the number of core states for each species 
+        ! (auxiliary arrays)
+        if (allocated(ncore)) deallocate(ncore)
+        allocate(ncore(nspecies))
+        ncmax=0
+        nclm=0
+        ncg=0
+        lcoremax=0
+        do is=1,nspecies
+          ncore(is)=0
+          ic = 0
+          do ist=1,spnst(is)
+            if (spcore(ist,is)) then
+              ncore(is)=ncore(is)+1
+              l=spl(ist,is)
+              lcoremax=max(lcoremax,l)
+              do m=-spk(ist,is),spk(ist,is)-1
+                ic=ic+1
+              end do
+            end if
+          end do
+          ncmax=max(ncmax,ncore(is))
+          nclm=max(nclm,ic)
+          ncg=ncg+ic*natoms(is)
         end do
-        ncmax=max(ncmax,ncore(is))
-        nclm=max(nclm,ic)
-        lcoremax=max(lcoremax,il)
-        ncg=ncg+ic*natoms(is)
-      end do
+      else
+        ! no core states
+        iopcore = 2
+      end if
 
 !     setting a unique index for all the core states of all atoms
       call setcorind
