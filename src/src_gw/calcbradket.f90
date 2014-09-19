@@ -69,16 +69,19 @@
 !BOC
 !     Initializations
       nrwf=max(spnstmax,input%groundstate%lmaxapw,nlomax)
-      if (allocated(bradketc)) deallocate(bradketc)
-      allocate(bradketc(natmtot,maxnmix,spnstmax,0:nrwf,apwordmax,3))
+      
       if (allocated(bradketa)) deallocate(bradketa)
       allocate(bradketa(natmtot,maxnmix,0:input%groundstate%lmaxapw, &
      &  apwordmax,0:nrwf,apwordmax,3))
+      bradketa=0.0d0
       if (allocated(bradketlo)) deallocate(bradketlo)
       allocate(bradketlo(natmtot,maxnmix,nlomax,0:nrwf,apwordmax,3))
-      bradketc=0.0d0
-      bradketa=0.0d0
       bradketlo=0.0d0
+      if (iopcore<2) then
+        if (allocated(bradketc)) deallocate(bradketc)
+        allocate(bradketc(natmtot,maxnmix,spnstmax,0:nrwf,apwordmax,3))
+        bradketc=0.0d0
+      end if
       
       do is=1,nspecies
         do ia=1,natoms(is)
@@ -89,6 +92,7 @@
 !         Loop over radial mixed functions
           do irm=1,nmix(ias)
 
+            if (iopcore<2) then
 !---------------------------------------------------------------------------!
 !             the left function of the product is a core wf.
 !---------------------------------------------------------------------------!
@@ -161,6 +165,7 @@
                 endif
               enddo ! ilo2
             enddo ! ist1
+            end if ! iopcore
 
 !---------------------------------------------------------------------------!
 !           the left function of the product is a valence wf.
@@ -168,6 +173,7 @@
             do l1=0,input%groundstate%lmaxapw
               do io1=1,apword(l1,is)
                 
+                if (iopcore<2) then
 !---------------------------------------------------------------------------!
 !               the right function of the product is a core wf.
 !---------------------------------------------------------------------------!
@@ -189,6 +195,7 @@
                    &                     bradketa(ias,irm,l1,io1,ist2,io2,1)
                   endif
                 enddo ! ist2
+                end if ! iopcore
 
 !---------------------------------------------------------------------------!
 !               the right function of the product is a valence wf.
@@ -242,6 +249,7 @@
             do ilo1=1,nlorb(is)
               l1=lorbl(ilo1,is)
 
+              if (iopcore<2) then
 !---------------------------------------------------------------------------!
 !                the right function of the product is a core wf.
 !---------------------------------------------------------------------------!
@@ -263,6 +271,7 @@
                  &                     bradketlo(ias,irm,ilo1,ist2,io2,1)
                 endif
               enddo ! ist2
+              end if ! iopcore
 
 !---------------------------------------------------------------------------!
 !              the right function of the product is a valencd wf.

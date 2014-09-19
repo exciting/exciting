@@ -132,7 +132,7 @@ subroutine init_gw
       call genvxcig
 
 ! core states treatment
-      if (dabs(chgcr)>1.d-6) then
+      if (dabs(chgcr)>1.d-4) then
         ! determine the number of core states for each species 
         ! (auxiliary arrays)
         if (allocated(ncore)) deallocate(ncore)
@@ -158,11 +158,11 @@ subroutine init_gw
           nclm=max(nclm,ic)
           ncg=ncg+ic*natoms(is)
         end do
-        !     setting a unique index for all the core states of all atoms
+        ! setting a unique index for all the core states of all atoms
         call setcorind
       else
         ! no core states
-        iopcore = 2
+        iopcore = 3
       end if
 
 !     reciprocal cell volume

@@ -14,8 +14,8 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
   <xsl:variable name="bohr2angstr" select="0.529177" />
   <xsl:variable name="scale">
     <xsl:choose>
-      <xsl:when test="/input/structure/crystal/@scale">
-        <xsl:value-of select="/input/structure/crystal/@scale" />
+      <xsl:when test="/input/structure/@scale">
+        <xsl:value-of select="/input/structure/@scale" />
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="1" />
@@ -58,7 +58,7 @@ PRIMVEC
     <xsl:for-each select="/input/structure/crystal/basevect">
     <xsl:variable name="basevn" select="position()"/>
       <xsl:for-each select="str:tokenize(.)">
-        <xsl:value-of select="$scale * ./.*$bohr2angstr * str:tokenize($stretch)[$basevn]" />
+        <xsl:value-of select="$scale*$bohr2angstr *./.* str:tokenize($stretch)[$basevn]" />
         <xsl:text>   </xsl:text>
       </xsl:for-each>
       <xsl:text>

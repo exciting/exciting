@@ -49,11 +49,13 @@
 !
 !     Initialization
 !
-      unw=0.0d0
+      if (iopcore<2) unw=0.0d0
       kcw=0.0d0
       sgw=5-2*fflg
       allocate(lt(ntetnr))
       lt(1:ntetnr)=linkq(1:ntetnr,iq)
+      
+      if (iopcore<2) then
 
 !---------------------------------------------------------------------
 !                 core-valence     
@@ -122,6 +124,8 @@
         enddo ! ia  
       enddo ! is
       deallocate(bandpar,cwpar)
+      
+      end if ! iopcore
 
 !---------------------------------------------------------------------
 !                 valence-valence     
@@ -175,6 +179,7 @@
 !-------------------------
       if(debug .and. rank.eq.0)then
          if(iq==1)open(74,file='QDEPW.OUT')
+         if (iopcore<2) then
          write(74,*)'------------------------------------------------------'
          write(74,*)'       convolution weights for iq =',iq
          write(74,*)'------------------------------------------------------'
@@ -193,6 +198,7 @@
              enddo ! ic  
            enddo ! ia
          enddo ! is
+         end if ! iopcore
          write(74,*)'------------------------------------------------------'
          write(74,*)'                   VALENCE '
          write(74,*)'------------------------------------------------------'

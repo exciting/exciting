@@ -58,7 +58,7 @@
 
 !------------------------------------------------------------------------------
 
-      if (iopcore<2) then
+      if (iopcore<3) then
         ! According to the definition of core wafefunction in FHIgap code [Eq.(1.1.3)],
         ! one has to include the following prefactor into radial part.
         ! In addition I change the EXCITING definition, where rwfcr = r*ucore
