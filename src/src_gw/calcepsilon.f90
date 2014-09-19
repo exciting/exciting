@@ -445,7 +445,6 @@ call MPI_ALLREDUCE(MPI_IN_PLACE, epsw2,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM
         deallocate(wtmp)
       end if ! Gamma
 
- 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
       call write_cputime(fgw,tend-tstart,'CALCEPSILON')

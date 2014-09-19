@@ -58,25 +58,25 @@
 
 !------------------------------------------------------------------------------
 
-!     According to the definition of core wafefunction in FHIgap code [Eq.(1.1.3)],
-!     one has to include the following prefactor into radial part.
-!     In addition I change the EXCITING definition, where rwfcr = r*ucore
-!     
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
-          do ist=1,ncore(is)
-             l=spl(ist,is)
-             norm=sqrt(0.5d0*spocc(ist,is)/dble(2*l+1))
-             do ir=1,nrmt(is)
+      if (iopcore<2) then
+        ! According to the definition of core wafefunction in FHIgap code [Eq.(1.1.3)],
+        ! one has to include the following prefactor into radial part.
+        ! In addition I change the EXCITING definition, where rwfcr = r*ucore
+        do is=1,nspecies
+          do ia=1,natoms(is)
+            ias=idxas(ia,is)
+            do ist=1,ncore(is)
+              l=spl(ist,is)
+              norm=sqrt(0.5d0*spocc(ist,is)/dble(2*l+1))
+              do ir=1,nrmt(is)
                 rwfcr(ir,1,ist,ias)=norm*rwfcr(ir,1,ist,ias)/spr(ir,is)
-             end do
-          enddo ! ist
+              end do
+            enddo ! ist
+          end do
         end do
-      end do
-
-      !core_ortho=.false.    
-      !if(core_ortho) call orthog_corewf
+        !core_ortho=.false.    
+        !if(core_ortho) call orthog_corewf
+      end if
       
 !------------------------------------------------------------------------------
 

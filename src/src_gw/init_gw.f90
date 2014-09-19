@@ -158,13 +158,12 @@ subroutine init_gw
           nclm=max(nclm,ic)
           ncg=ncg+ic*natoms(is)
         end do
+        !     setting a unique index for all the core states of all atoms
+        call setcorind
       else
         ! no core states
         iopcore = 2
       end if
-
-!     setting a unique index for all the core states of all atoms
-      call setcorind
 
 !     reciprocal cell volume
       vi=1.0d0/omega
