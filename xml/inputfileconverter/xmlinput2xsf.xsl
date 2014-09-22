@@ -14,8 +14,8 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
   <xsl:variable name="bohr2angstr" select="0.529177" />
   <xsl:variable name="scale">
     <xsl:choose>
-      <xsl:when test="/input/structure/@scale">
-        <xsl:value-of select="/input/structure/@scale" />
+      <xsl:when test="/input/structure/crystal/@scale">
+        <xsl:value-of select="/input/structure/crystal/@scale" />
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="1" />
