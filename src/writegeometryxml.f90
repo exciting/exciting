@@ -42,6 +42,13 @@ Subroutine writegeometryxml (topt)
       end if
 
       call xml_NewElement (xf, "input")
+
+      ! ----- Title Element -----
+      call xml_NewElement(xf,"title")
+      call xml_AddCharacters(xf,trim(adjustl(input%title)))
+      if (topt) call xml_AddCharacters(xf," (optimized)")
+      call xml_EndElement(xf,"title")
+      
       call xml_NewElement (xf, "structure")
       call xml_AddAttribute (xf, "speciespath", trim(adjustl(input%structure%speciespath)))
       if (input%structure%cartesian) call xml_AddAttribute (xf,"cartesian", trim(adjustl("true")))
