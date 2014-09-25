@@ -6,6 +6,7 @@
 ! !INTERFACE:
 subroutine xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho, &
  g3up,g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
+Use mod_potential_and_density, only: xctype
 ! !INPUT/OUTPUT PARAMETERS:
 !   n     : number of density points (in,integer)
 !   kappa : parameter for large-gradient limit (in,real)
@@ -106,7 +107,12 @@ do i=1,n
     g2rho=g2up(i)+g2dn(i)
     vv=g2rho/(r*ksg**2)
     ww=(gup(i)**2-gdn(i)**2-z*grho(i)**2)/(r*r*ksg**2)
-    call c_pbe(beta,rs,z,t,uu,vv,ww,ec(i),vcup(i),vcdn(i))
+
+    if (xctype(1).eq.300) then
+      call c_acpbe(beta,rs,z,t,uu,vv,ww,ec(i),vcup(i),vcdn(i))
+    else
+      call c_pbe(beta,rs,z,t,uu,vv,ww,ec(i),vcup(i),vcdn(i))
+    end if
   else
     ex(i)=0.d0
     ec(i)=0.d0

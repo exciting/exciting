@@ -2557,7 +2557,14 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-           <xs:enumeration value="HYB_PBE0">
+            <xs:enumeration value="GGA_AC_PBE">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldnr>300</oldnr>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="HYB_PBE0">
                <xs:annotation>
                  <xs:appinfo>
                    <oldnr>406</oldnr>

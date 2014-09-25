@@ -4,12 +4,12 @@
 ! This routine is based on code written by K. Burke.
 !
 !
-Subroutine c_pbe (beta, rs, z, t, uu, vv, ww, ec, vcup, vcdn)
+Subroutine c_acpbe (beta, rs, z, tpbe, uu, vv, ww, ec, vcup, vcdn)
       Implicit None
 ! !INPUT/OUTPUT PARAMETERS:
 !  rs   : SEITZ RADIUS=(3/4pi rho)^(1/3)
 !  z    : RELATIVE SPIN POLARIZATION = (rhoup-rhodn)/rho
-!  t    : ABS(GRAD rho)/(rho*2.*KS*G)  
+!  tpbe : ABS(GRAD rho)/(rho*2.*KS*G)  
 !  uu   : (GRAD rho)*GRAD(ABS(GRAD rho))/(rho**2 * (2*KS*G)**3)
 !  vv   : (LAPLACIAN rho)/(rho * (2*KS*G)**2)
 !  xx   : (GRAD rho)*(GRAD ZET)/(rho * (2*KS*G)**2
@@ -49,7 +49,7 @@ Subroutine c_pbe (beta, rs, z, t, uu, vv, ww, ec, vcup, vcdn)
       Real (8), Intent (In) :: beta
       Real (8), Intent (In) :: rs
       Real (8), Intent (In) :: z
-      Real (8), Intent (In) :: t
+      Real (8), Intent (In) :: tpbe
       Real (8), Intent (In) :: uu
       Real (8), Intent (In) :: vv
       Real (8), Intent (In) :: ww
@@ -72,8 +72,22 @@ Subroutine c_pbe (beta, rs, z, t, uu, vv, ww, ec, vcup, vcdn)
       Real (8) :: hb, hrs, fact0, fact1, hbt, hrst, hz, ht, hzt
       Real (8) :: fact2, fact3, htt, pref, fact5, h, dvcup, dvcdn
       Real (8) :: delt
+! start  variables for acPBE
+      Real (8), Parameter :: C = 1.467d0
+      Real (8), Parameter :: nu = 1.d0/4.5d0
+      Real (8) :: t,p,psqrt,q,dq
       delt = beta / gamma
       rtrs = Sqrt (rs)
+
+! start  modifications for acPBE
+      p = (1.d0+nu*tpbe)/(1.d0+C*nu*tpbe)
+      psqrt = sqrt(p) 
+      t = tpbe*psqrt
+      q = (1.d0-C)*nu / (2.d0*(1.d0+nu*tpbe)*(1.d0+C*nu*tpbe))
+      dq = ((nu*nu)*(C-1.d0)*(1.d0+C+2.d0*C*nu*tpbe)) / &
+     &   (2.d0* (1.d0+nu*tpbe)*(1.d0+nu*tpbe) * (1.d0+C*nu*tpbe)*(1.d0+C*nu*tpbe))
+! end modifications for acPBE
+
 ! find LSDA energy contributions 
 ! eu    : unpolarized LSD correlation energy using [c](10) and Table I[c].
 ! eurs  : dEU/drs
@@ -142,6 +156,11 @@ Subroutine c_pbe (beta, rs, z, t, uu, vv, ww, ec, vcup, vcdn)
       fact2 = q4 * q5 + b * t2 * (q4*q9+q5)
       fact3 = 2.d0 * b * q5 * q9 + delt * fact2
       htt = 4.d0 * beta * g3 * t * (2.d0*b/q8-(q9*fact3/q8)/q8)
+! start modified potential for acPBE
+      htt = p*(1.d0+tpbe*q)*(1.d0+tpbe*q)*htt + &
+     & psqrt*(q*(2.d0+tpbe*q)+tpbe*dq)*ht
+      ht = psqrt*(1.d0+tpbe*q)*ht
+! end modified potential for acPBE
       comm = h + hrs + hrst + t2 * ht / 6.d0 + 7.d0 * t2 * t * htt / &
      & 6.d0
       pref = hz - gz * t2 * ht / g
