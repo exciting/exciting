@@ -55,9 +55,9 @@ Subroutine checkmt
                       Write (*, '("   Sum of muffin-tin radii : ", G13.5)') Sqrt (t1)
                       Write (*, '("   Distance between atoms  : ", G13.5)') Sqrt (t2)
                       Write (*, *)
-                      Write (*, '("   Please check input (or default) values of the attribute ''''rmt'''' ")')
-                      Write (*, '("   of the element ''''species'''' for species ", I4, " and ", I4)') is, js
-                      Write (*, '("   which should be reduced, accordingly")')
+                      Write (*, '("   Please check, and possibly reduce, the input (or default) values")')
+                      Write (*, '("   of the attribute ''''rmt'''' inside the element ''''species'''' ")')
+                      Write (*, '("   for species ", I4, " and ", I4)') is, js
                       Write (*, *)
                       Write (*, '("   See link: http://exciting-code.org/ref:structure#species ")')
                       Write (*, *)
