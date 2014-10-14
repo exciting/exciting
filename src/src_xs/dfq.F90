@@ -112,6 +112,10 @@ use ioarray
       Integer :: oct1, oct2, un
       Logical :: tq0
       Logical, External :: tqgamma, transik, transijst
+      real(8) :: ta,tb,tc,td
+
+      call timesec(ta)     
+
       If (input%xs%tddft%acont .And. tscreen) Then
          Write (*,*)
          Write (*, '("Error(", a, "): analytic continuation does not wo&
@@ -256,7 +260,11 @@ use ioarray
       chi0hAHC (:, :) = zzero
       If (tscreen) Then
      ! generate radial integrals wrt. sph. Bessel functions
+        call timesec(tc)
          Call ematrad (iq)
+        call timesec(td)
+!        write(*,*) td-tc
+
      ! delete timing information of previous runs
          Call filedel (trim(fnetim))
      ! write information
@@ -271,6 +279,9 @@ use ioarray
          Write (unitout, '(" mean value : ", 2g18.10)') bsed
          bsedg (:, :) = bsed
       End If
+      call timesec(tb)
+!      write(*,*) tb-ta
+!      stop
   ! loop over k-points
       Do ik = 1, nkpt
      ! k-point analysis

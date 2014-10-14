@@ -122,6 +122,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
       End If
       Allocate (evecfv_(nmatmax_, nstfv_, nspnfv_))
       Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv_
+!write(*,*) outfilenamestring(filetag, ik)
       Open (70, File=outfilenamestring(filetag, ik), Action='READ', &
      & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
       Read (70, Rec=koffset) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv_
