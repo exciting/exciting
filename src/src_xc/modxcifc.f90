@@ -178,7 +178,7 @@ case(5)
   else
     goto 10
   end if
-case(20,21,22,406)
+case(20,21,22,300,406)
 ! original PBE kappa
   kappa=0.804d0
   if (xctype(1).eq.21) then
@@ -192,6 +192,10 @@ case(20,21,22,406)
 ! PBEsol parameters
     mu=10.d0/81.d0
     beta=0.046d0
+  end if
+  if (xctype(1).eq.300) then
+! beta for acPBE
+    mu=0.249d0 
   end if
 ! Perdew-Burke-Ernzerhof generalised gradient approximation
 ! Phys. Rev. Lett. 77, 3865 (1996); 78, 1396(E) (1997)
@@ -357,6 +361,10 @@ case(26)
 case(30)
   xcdescr='Armiento-Mattsson functional, Phys. Rev. B 72, 85108 (2005)'
   xcspin=0
+  xcgrad=1
+case(300)
+  xcdescr='acPBE (asymptotically corrected PBE), arXiv:1409.4834 (2014)'
+  xcspin=1
   xcgrad=1
 case(406)
   xcdescr='PBE0, M. Ernzerhof, G. E. Scuseria, J. Chem. Phys. 110 , 5029 (1999)'
