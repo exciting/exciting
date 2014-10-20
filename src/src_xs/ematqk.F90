@@ -33,7 +33,7 @@ Subroutine ematqk (iq, ik)
       type(mtints_type) :: integrals
       
   ! arguments
-      Integer, Intent (In) :: iq, ik
+      Integer, Intent (InOut) :: iq, ik
   ! local variables
       Character (*), Parameter :: thisnam = 'ematqk'
   ! allocatable arrays
@@ -41,13 +41,34 @@ Subroutine ematqk (iq, ik)
       Complex (8), Allocatable :: evecfvu (:, :)
       Complex (8), Allocatable :: evecfvo20 (:, :)
       Complex (8), Allocatable :: evecfvu2 (:, :)
-      Integer :: ikq, igq, n, n0, is,l,m,io,naug,ia,ias,lm,ilo,whichthread
+      Complex (8), Allocatable :: zfft0(:,:),zfft(:),zfftres(:),zfftcf(:)
+      Complex (8), Allocatable :: xihir (:, :)
+      Integer :: ikq, igq, n, n0, is,l,m,io,naug,ia,ias,lm,ilo,whichthread,ig,ix,igs,ist2,ist1
       Real (8) :: cpuini, cpuread, cpumain, cpuwrite, cpuall
-      Real (8) :: cpugnt, cpumt, cpuir
+      Real (8) :: cpugnt, cpumt, cpuir, cpufft
       Real (8) :: cpumalores, cpumloares
       Real (8) :: cpumlolores, cpumirres, cpudbg
       Real (8) :: cpu0, cpu1, cpu00, cpu01, cpugntlocal, cpumtlocal
+      Real (8) :: vkql(3)
+      integer :: shift(3),iv(3)
+      logical :: umklapp
+      type (fftmap_type) :: fftmap
+      Real (8) :: emat_gmax,ta,tb
+
+
+!      write(*,*) 'howdy'
+!      read(*,*) emat_gmax
+!      call genfftmap(fftmap,emat_gmax)
+
+!      write(*,*) size(ngk)
+!      write(*,*) size(ngk0)
+!      stop
 !
+!      ik=64
+!      iq=8
+
+!     write(*,*) ik,iq
+ 
       If (task .Eq. 330) Call chkpt (3, (/ task, iq, ik /), 'ematqk: ta&
      &sk, q - point index, k - point index; q - dependent matrix elemen&
      &ts')
@@ -240,58 +261,168 @@ cpumtlocal=0d0
 #ifdef USEOMP
 !$OMP END PARALLEL
 #endif
-
       deallocate (apwcmtfun,apwcmtfun0,losize,locmtfun,locmtfun0)
       Deallocate (evecfvu, evecfvo0)
 
+
+
+
       Allocate (evecfvo20(n0, nst1))
       Allocate (evecfvu2(n, nst2))
-      Allocate (xihir(n0, n))
       evecfvu2 (:, :) = evecfv (1:ngk(1, ikq), istl2:istu2, 1)
       evecfvo20 (:, :) = evecfv0 (1:ngk0(1, ik), istl1:istu1, 1)
 
+! interstitial contribution
+if (input%xs%pwmat.eq.'mm') then
+! matrix-matrix multiplication
 
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igq,xihir,cpu00,cpu01,whichthread)
+      whichthread=omp_get_thread_num()
+#endif 
+      Allocate(xihir(n0,n))
+#ifdef USEOMP
+!$OMP DO
+#endif
       Do igq = 1, ngq (iq)
-         Call terminateqry ('ematqk')
+!         Call terminateqry ('ematqk')
          Call timesec (cpu00)
      ! interstitial contribution
-         Call ematqkgir (iq, ik, igq)
+         Call ematqkgir (iq, ik, igq,xihir,n0,n)
          Call timesec (cpu01)
-         cpuir = cpuir + cpu01 - cpu00
-!
+         if (whichthread.eq.0) cpuir = cpuir + cpu01 - cpu00
+
      ! interstitial contribution
-         Call doublesummation_simple_cz (xiou(:, :, igq), evecfvo20, &
-        & xihir, evecfvu2, zone, zone, .True.)
-!
+         Call doublesummation_simple_cz (xiou(:, :, igq), evecfvo20, xihir, evecfvu2, zone, zone, .True.)
          Call timesec (cpu00)
-         cpumirres = cpumirres + cpu00 - cpu01
-!
+         if (whichthread.eq.0) cpumirres = cpumirres + cpu00 - cpu01
+
          Call timesec (cpu01)
-         cpudbg = cpudbg + cpu01 - cpu00
+         if (whichthread.eq.0) cpudbg = cpudbg + cpu01 - cpu00
       End Do ! igq
+#ifdef USEOMP
+!$OMP END DO
+#endif
+      deallocate(xihir)
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif
 
+! elseif (input%xs%pwmat.eq.'pwmat') then
+else
+! fourier transforms
 
+      call timesec(cpu00)
+ 
+      ikq = ikmapikq (ik, iq)
+      vkql(:)=vkl(:,ik)+vql(:,iq)
+      
+! umklapp treatment
+      do ix=1,3
+        if (vkql(ix).ge.1d0-1d-13) then
+          shift(ix)=-1
+        else
+          shift(ix)=0
+        endif
+      enddo
+      
+      emat_gmax=2*gkmax +input%xs%gqmax
+        
 
+      call genfftmap(fftmap,emat_gmax)
+      allocate(zfft0(fftmap%ngrtot+1,nst1))
+      zfft0=zzero
+
+        allocate(zfftcf(fftmap%ngrtot+1))
+        zfftcf=zzero
+        do ig=1,ngvec
+         if (gc(ig).lt.emat_gmax) then
+          zfftcf(fftmap%igfft(ig))=cfunig(ig)
+         endif
+        enddo
+        Call zfftifc (3, fftmap%ngrid,1, zfftcf)
+
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ig)
+!$OMP DO
+#endif
+      do ist1=1,nst1
+        do ig=1,ngk0(1, ik)
+          zfft0(fftmap%igfft(igkig0(ig,1,ik)),ist1)=evecfvo20(ig,ist1)
+        enddo
+        Call zfftifc (3, fftmap%ngrid,1, zfft0(:,ist1))
+        zfft0(:,ist1)=conjg(zfft0(:,ist1))*zfftcf(:) 
+      enddo
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+   
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ist2,ig,zfft,iv,igs,zfftres,igq)
+#endif
+       allocate(zfftres(fftmap%ngrtot+1))
+       allocate(zfft(fftmap%ngrtot+1))
+#ifdef USEOMP
+!$OMP DO
+#endif
+      do ist2=1,nst2
+        zfft=zzero
+        if (sum(shift).ne.0) then
+          do ig=1,ngk(1, ikq)
+            iv=ivg (:, igkig(ig,1,ikq))+shift
+            igs=ivgig(iv(1),iv(2),iv(3))
+            zfft(fftmap%igfft(igs))=evecfvu2(ig,ist2)
+          enddo
+        else
+          do ig=1,ngk(1, ikq)
+            zfft(fftmap%igfft(igkig(ig,1,ikq)))=evecfvu2(ig,ist2)
+          enddo
+        endif
+        Call zfftifc (3, fftmap%ngrid,1, zfft)
+
+        do ist1=1,nst1
+          do ig=1,fftmap%ngrtot
+            zfftres(ig)=zfft(ig)*zfft0(ig,ist1) 
+          enddo
+
+          Call zfftifc (3, fftmap%ngrid,-1, zfftres)
+          do igq=1,ngq(iq)
+            xiou(ist1,ist2,igq)=xiou(ist1,ist2,igq)+zfftres(fftmap%igfft(igqig (igq, iq)))
+          enddo
+        enddo
+      enddo
+#ifdef USEOMP
+!$OMP END DO
+#endif
+      deallocate(zfftres,zfft)
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif
+
+      deallocate(fftmap%igfft)
+      deallocate(zfft0,zfftcf)
+      call timesec(cpu01)
+      cpufft=cpu01-cpu00
+
+endif
 !
       Call timesec (cpu1)
       cpumain = cpu1 - cpu0
 !
-  ! deallocate
-      Deallocate (xihir)
-!      Deallocate (evecfvu, evecfvo0)
       Deallocate (evecfvu2, evecfvo20)
       Call timesec (cpu0)
       cpuwrite = cpu0 - cpu1
       cpuall = cpuini + cpuread + cpumain + cpuwrite
-! write(*,*)
 !
   ! write timing information
-      If ((task .Ne. 441) &
+      If ((task.ne.440).and.(task .Ne. 441) &
      & .And. (task .Ne. 450) .And. (task .Ne. 451)) Then
          Call emattim (iq, ik, trim(fnetim), cpuini, cpuread, cpumain, &
         & cpuwrite, cpuall, cpugnt, cpumt, cpuir, cpumalores, &
         & cpumloares, cpumlolores, cpumirres, cpudbg, cpumtaa, &
-        & cpumtalo, cpumtloa, cpumtlolo)
+        & cpumtalo, cpumtloa, cpumtlolo,cpufft)
       End If
+
 !
 End Subroutine ematqk

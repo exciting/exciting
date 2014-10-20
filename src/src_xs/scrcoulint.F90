@@ -182,6 +182,7 @@ Subroutine scrcoulint
       bsedt (1, :) = 1.d8
       bsedt (2, :) = - 1.d8
       bsedt (3, :) = zzero
+
   ! loop over combinations of k-points
       Do ikkp = ppari, pparf
          Call chkpt (3, (/ task, 2, ikkp /), 'task,sub,(k,kp)-pair; dir&

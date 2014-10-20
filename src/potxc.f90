@@ -268,7 +268,7 @@ else
     call xcifc(xctype,n=ngrtot,rho=rhoir,ex=exir,ec=ecir,vx=vx,vc=vc)
   else if (xcgrad.eq.1) then
     call ggair_1(grho,g2rho,g3rho)
-    call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
+  call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
      ex=exir,ec=ecir,vx=vx,vc=vc)
   else if (xcgrad.eq.2) then
     call ggair_2a(g2rho,gvrho,grho2)
@@ -276,6 +276,7 @@ else
      vc=vc,dxdg2=dxdg2,dcdg2=dcdg2)
     call ggair_2b(g2rho,gvrho,vx,vc,dxdg2,dcdg2)
   end if
+
 ! For Exciting Hybrids muliply exchange part by mixing parameter
   If (xctype(1).Ge.400) Then
     vxcir(1:ngrtot)=(1-ex_coef)*vx(1:ngrtot)+vc(1:ngrtot)

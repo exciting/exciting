@@ -11,7 +11,7 @@ Contains
 !
 !
       Subroutine emattim (iq, ik, filnam, t1, t2, t3, t4, t5, t6, t7, &
-     & t8, t9, t10, t11, t12, t13, t14, t15, t16, t17)
+     & t8, t9, t10, t11, t12, t13, t14, t15, t16, t17, t18)
          Use m_getunit
          Implicit None
     ! arguments
@@ -19,7 +19,7 @@ Contains
          Character (*), Intent (In) :: filnam
          Real (8), Intent (In) :: t1, t2, t3, t4, t5, t6, t7, t8, t9, &
         & t10, t11, t12
-         Real (8), Intent (In) :: t13, t14, t15, t16, t17 !, t18, t19, t20, t21
+         Real (8), Intent (In) :: t13, t14, t15, t16, t17 , t18 !, t19, t20, t21
     ! local variables
          Integer :: un
          Real (8) :: tm
@@ -47,6 +47,7 @@ Contains
          Write (un, '("      lo -APW				   : ", f14.4)') t10
          Write (un, '("      lo -lo				   : ", f14.4)') t11
          Write (un, '("      interstitial			   : ", f14.4)') t12
+         Write (un, '("    FFT   				   : ", f14.4)') t18
          Write (un, '("    debugging				   : ", f14.4)') t13
          Write (un, '("  writing matrix elements to file	   : ", f14.4)&
         &') t4

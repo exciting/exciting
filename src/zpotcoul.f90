@@ -197,7 +197,9 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 
 ! Fourier transform density to G-space and store in zvclir
       zvclir (:) = zrhoir (:)
+!      write(*,*) 'zrhoir',sum(zvclir)
       Call zfftifc (3, ngrid,-1, zvclir)
+!      write(*,*) sum(zvclir)
 ! find the multipole moments of the interstitial charge density
       qi (:, :) = 0.d0
       Do is = 1, nspecies

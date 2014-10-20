@@ -43,25 +43,40 @@ Subroutine zfftifc (nd, n, sgn, z)
 !-------------------------------------!
 !     interface to FFTW version 3     !
 !-------------------------------------!
-!integer, parameter :: FFTW_ESTIMATE=64
-!integer i,p
-!integer(8) plan
-!real(8) t1
+
+#ifdef FFTW
+integer, parameter :: FFTW_ESTIMATE=64
+integer i,p
+integer(8) plan
+real(8) t1
+real(8) ta,tb
+if (.true.) then
 !!$OMP CRITICAL
-!call dfftw_plan_dft(plan,nd,n,z,z,sgn,FFTW_ESTIMATE)
+!call timesec(ta)
+call dfftw_plan_dft(plan,nd,n,z,z,sgn,FFTW_ESTIMATE)
+!call timesec(tb)
+!write(*,*) 'fftw',tb-ta
 !!$OMP END CRITICAL
-!call dfftw_execute(plan)
+!call timesec(ta)
+call dfftw_execute(plan)
+!call timesec(tb)
+!write(*,*) 'fftw',tb-ta
 !!$OMP CRITICAL
-!call dfftw_destroy_plan(plan)
+!call timesec(ta)
+call dfftw_destroy_plan(plan)
+!call timesec(tb)
+!write(*,*) 'fftw',tb-ta
+!read(*,*)
 !!$OMP END CRITICAL
-!if (sgn.eq.-1) then
-!  p=1
-!  do i=1,nd
-!    p=p*n(i)
-!  end do
-!  t1=1.d0/dble(p)
-!  call zdscal(p,t1,z,1)
-!end if
+if (sgn.eq.-1) then
+  p=1
+  do i=1,nd
+    p=p*n(i)
+  end do
+  t1=1.d0/dble(p)
+  call zdscal(p,t1,z,1)
+end if
+#else
 !
 !----------------------------------!
 !     interface to MKL 8.1/9.1     !
@@ -90,6 +105,7 @@ Subroutine zfftifc (nd, n, sgn, z)
 !     interface to modified FFTPACK5     !
 !----------------------------------------!
       Call cfftnd (nd, n, sgn, z)
+#endif
 !
       Return
 End Subroutine

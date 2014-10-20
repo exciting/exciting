@@ -20,6 +20,11 @@ Module modxs
         Complex (8), Allocatable :: loa (:, :, :)
         Complex (8), Allocatable :: lolo (:, :, :)        
       end type
+      Type fftmap_type
+        integer, pointer :: igfft(:)
+        integer :: ngrid(3),ngrtot
+        
+      end type
 
   !----------------------------!
   !     symmetry variables     !
@@ -243,7 +248,7 @@ Module modxs
   ! helper matrix
       Complex (8), Allocatable :: xih (:, :)
   ! helper matrix
-      Complex (8), Allocatable :: xihir (:, :)
+!      Complex (8), Allocatable :: xihir (:, :)
   ! helper matrix
       Complex (8), Allocatable :: xiohalo (:, :)
   ! helper matrix
