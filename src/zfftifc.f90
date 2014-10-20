@@ -50,7 +50,6 @@ integer i,p
 integer(8) plan
 real(8) t1
 real(8) ta,tb
-if (.true.) then
 !!$OMP CRITICAL
 !call timesec(ta)
 call dfftw_plan_dft(plan,nd,n,z,z,sgn,FFTW_ESTIMATE)
