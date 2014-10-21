@@ -129,6 +129,7 @@
       !-------------------------------------------------------------------
       ! mapping: MB function index -> (aNLM)
       !-------------------------------------------------------------------
+      if (allocated(mbindex)) deallocate(mbindex)
       allocate(mbindex(locmatsiz,5))
       mbindex(:,:) = 0
       im = 0
