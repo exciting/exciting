@@ -108,7 +108,7 @@ libxc.a:lib/libxc.a
 
 lib/libxc.a: 
 	cd ../../src/libXC/ && \
-	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPT)"  CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
+	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPT)" CC=$(CC) CPP=$(CPP) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
 	make 
 	cp -r ../../src/libXC/src/.libs/libxc.a ./lib/libxc.a
 #cp -f ../make.inc ../..

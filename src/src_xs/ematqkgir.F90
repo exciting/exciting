@@ -6,12 +6,13 @@
 ! See the file COPYING for license details.
 !
 !
-Subroutine ematqkgir (iq, ik, igq)
+Subroutine ematqkgir (iq, ik, igq,xihir,n0,n)
       Use modmain
       Use modxs
       Implicit None
   ! arguments
-      Integer, Intent (In) :: iq, ik, igq
+      Integer, Intent (In) :: iq, ik, igq, n0,n
+      complex (8) :: xihir(n0,n) 
   ! local variables
       Character (*), Parameter :: thisnam = 'ematqkgir'
       Integer :: ikq, ig, ig1, ig2, ig3, igk0, igk, iv (3), iv1 (3), &
@@ -35,6 +36,11 @@ Subroutine ematqkgir (iq, ik, igq)
         ! umklapp of k+q vector included
             iv (:) = iv1 (:) - (ivg(:, ig2)-ivu(:))
             ig = ivgig (iv(1), iv(2), iv(3))
+!            if (ig.eq.1) then 
+!              xihir (igk0, igk) = zone
+!            else
+!              xihir (igk0, igk) = zzero
+!            endif
             xihir (igk0, igk) = cfunig (ig)
          End Do
       End Do

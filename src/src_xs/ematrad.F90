@@ -16,7 +16,7 @@ Subroutine ematrad (iq)
       Integer, Intent (In) :: iq
   ! local variables
       Integer :: is, ia, ias, nr, ir, igq
-      Integer :: l1, l2, l3
+      Integer :: l1, l2, l3,lio,liomax
       Integer :: ilo, ilo1, ilo2, io, io1, io2
       Real (8) :: t1
       Integer :: lmax1, lmax2, lmax3
@@ -26,6 +26,7 @@ Subroutine ematrad (iq)
      & nrmtmax)
   ! allocatable arrays
       Real (8), Allocatable :: jl (:, :), jhelp (:)
+      integer,allocatable :: lio2l(:),lio2io(:)
 !
       lmax1 = Max (input%xs%lmaxapwwf, lolmax)
       lmax2 = input%xs%lmaxemat
@@ -42,8 +43,12 @@ Subroutine ematrad (iq)
      & ngq(iq)))
       Allocate (rilolo(nlomax, nlomax, 0:lmax2, natmtot, ngq(iq)))
   ! allocate temporary arrays
-      Allocate (jl(0:lmax2, nrmtmax))
+!     Allocate (jl(0:lmax2, nrmtmax))
+      Allocate (jl(nrmtmax,0:lmax2))
       Allocate (jhelp(0:lmax2))
+      allocate(lio2l((lmax1+1)*apwordmax))
+      allocate(lio2io((lmax1+1)*apwordmax))
+
       jl (:, :) = 0.d0
       jhelp (:) = 0.d0
   ! zero arrays for radial integrals
@@ -86,37 +91,51 @@ Subroutine ematrad (iq)
                r2 (ir) = spr (ir, is) ** 2
            ! calculate spherical Bessel functions of first kind j_l(|G+q|r_a)
                Call sbessel (lmax2, gqc(igq, iq)*spr(ir, is), jhelp)
-               jl (:, ir) = jhelp (:)
+               jl (ir,:) = jhelp (:)
             End Do
+
+            lio=0
+            Do l1 = 0, lmax1
+              Do io1 = 1, apword (l1, is)
+                lio=lio+1
+                lio2l(lio)=l1
+                lio2io(lio)=io1
+              enddo
+            enddo
+            liomax=lio
         ! begin loop over atoms
             Do ia = 1, natoms (is)
                ias = idxas (ia, is)
            !----------------!
            !     APW-APW    !
            !----------------!
-               Do l1 = 0, lmax1
-                  Do io1 = 1, apword (l1, is)
+!               Do l2 = 0, lmax2
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(lio,l1,io1,l3,io2,ir,t1,fr,cf,gr)
+!$OMP DO
+#endif
+               do lio=1,liomax
+                 l1=lio2l(lio)
+                 io1=lio2io(lio)
                      Do l3 = 0, lmax3
                         Do io2 = 1, apword (l3, is)
-                           Do l2 = 0, lmax2
-                              Do ir = 1, nr
-                                 t1 = apwfr (ir, 1, io1, l1, ias) * &
-                                & apwfr (ir, 1, io2, l3, ias) * r2 (ir)
-                                 fr (ir) = t1 * jl (l2, ir)
-                              End Do
-                              Call fderiv (-1, nr, spr(1, is), fr, gr, &
-                             & cf)
-                              riaa (l1, io1, l3, io2, l2, ias, igq) = &
-                             & gr (nr)
-                              If (input%xs%dbglev .Gt. 1) Then
-                                 Write (u11, '(7i5, g18.10)') igq, ias, &
-                                & l1, io1, l3, io2, l2, gr (nr)
-                              End If
-                           End Do
+               Do l2 = 0, lmax2
+                          Do ir = 1, nr
+                            t1 = apwfr (ir, 1, io1, l1, ias) * apwfr (ir, 1, io2, l3, ias) * r2 (ir)
+                            fr (ir) = t1 * jl (ir,l2)
+                          End Do
+                          Call fderiv (-1, nr, spr(1, is), fr, gr, cf)
+                          riaa (l3, io2, l1, io1, l2, ias, igq) = gr (nr)
+               End Do ! l2
                         End Do ! io2
                      End Do ! l3
-                  End Do ! io1
+!                  End Do ! io1
                End Do ! l1
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+!               End Do ! l2
            !----------------------------!
            !     local-orbital-APW      !
            !----------------------------!
@@ -126,16 +145,11 @@ Subroutine ematrad (iq)
                      Do io = 1, apword (l3, is)
                         Do l2 = 0, lmax2
                            Do ir = 1, nr
-                              t1 = lofr (ir, 1, ilo, ias) * apwfr (ir, &
-                             & 1, io, l3, ias) * r2 (ir)
-                              fr (ir) = t1 * jl (l2, ir)
+                              t1 = lofr (ir, 1, ilo, ias) * apwfr (ir, 1, io, l3, ias) * r2 (ir)
+                              fr (ir) = t1 * jl (ir,l2)
                            End Do
                            Call fderiv (-1, nr, spr(1, is), fr, gr, cf)
                            riloa (ilo, l3, io, l2, ias, igq) = gr (nr)
-                           If (input%xs%dbglev .Gt. 1) Then
-                              Write (u22, '(7i5, g18.10)') igq, ias, &
-                             & ilo, l1, l3, io, l2, gr (nr)
-                           End If
                         End Do ! l2
                      End Do ! io
                   End Do ! l3
@@ -149,19 +163,64 @@ Subroutine ematrad (iq)
                      l3 = lorbl (ilo2, is)
                      Do l2 = 0, lmax2
                         Do ir = 1, nr
-                           t1 = lofr (ir, 1, ilo1, ias) * lofr (ir, 1, &
-                          & ilo2, ias) * r2 (ir)
-                           fr (ir) = t1 * jl (l2, ir)
+                           t1 = lofr (ir, 1, ilo1, ias) * lofr (ir, 1, ilo2, ias) * r2 (ir)
+                           fr (ir) = t1 * jl (ir,l2)
                         End Do
                         Call fderiv (-1, nr, spr(1, is), fr, gr, cf)
                         rilolo (ilo1, ilo2, l2, ias, igq) = gr (nr)
-                        If (input%xs%dbglev .Gt. 1) Then
-                           Write (u33, '(7i5, g18.10)') igq, ias, ilo1, &
-                          & l1, ilo2, l3, l2, gr (nr)
-                        End If
                      End Do ! l2
                   End Do ! ilo2
                End Do ! ilo1
+
+!****************************************
+! Debugging segment with output to files
+!****************************************
+               If (input%xs%dbglev .Gt. 1) Then
+                   !----------------!
+                   !     APW-APW    !
+                   !----------------!
+                       Do l1 = 0, lmax1
+                          Do io1 = 1, apword (l1, is)
+                             Do l3 = 0, lmax3
+                                Do io2 = 1, apword (l3, is)
+                                   Do l2 = 0, lmax2
+                                      Write (u11, '(7i5, g18.10)') igq, ias, l1, io1, l3, io2, l2, riaa (l1, io1, l3, io2, l2, ias, igq)
+                                   End Do
+                                End Do ! io2
+                             End Do ! l3
+                          End Do ! io1
+                       End Do ! l1
+                   !----------------------------!
+                   !     local-orbital-APW      !
+                   !----------------------------!
+                       Do ilo = 1, nlorb (is)
+                          l1 = lorbl (ilo, is)
+                          Do l3 = 0, lmax3
+                             Do io = 1, apword (l3, is)
+                                Do l2 = 0, lmax2
+                                   Write (u22, '(7i5, g18.10)') igq, ias, ilo, l1, l3, io, l2, riloa (ilo, l3, io, l2, ias, igq) 
+                                End Do ! l2
+                             End Do ! io
+                          End Do ! l3
+                       End Do ! ilo
+                   !------------------------------------!
+                   !     local-orbital-local-orbital    !
+                   !------------------------------------!
+                       Do ilo1 = 1, nlorb (is)
+                          l1 = lorbl (ilo1, is)
+                          Do ilo2 = 1, nlorb (is)
+                             l3 = lorbl (ilo2, is)
+                             Do l2 = 0, lmax2
+                                Write (u33, '(7i5, g18.10)') igq, ias, ilo1, l1, ilo2, l3, l2, rilolo (ilo1, ilo2, l2, ias, igq)
+                             End Do ! l2
+                          End Do ! ilo2
+                       End Do ! ilo1
+!**************************
+! End of debugging segment
+!**************************
+                endif
+
+
            ! end loops over atoms and species
             End Do
          End Do
@@ -170,6 +229,7 @@ Subroutine ematrad (iq)
 !
   ! deallocate
       Deallocate (jl, jhelp)
+      deallocate(lio2l,lio2io)
       If (input%xs%dbglev .Gt. 1) Then
      ! close files
          Close (u11)

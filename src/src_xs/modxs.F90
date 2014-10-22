@@ -14,6 +14,18 @@ Module modxs
 !  Modifications due to XML input, 2008-2010 (Sagmeister)
       Implicit None
 
+      Type mtints_type
+        Complex (8), Allocatable :: aa (:, :, :)
+        Complex (8), Allocatable :: alo (:, :, :)
+        Complex (8), Allocatable :: loa (:, :, :)
+        Complex (8), Allocatable :: lolo (:, :, :)        
+      end type
+      Type fftmap_type
+        integer, pointer :: igfft(:)
+        integer :: ngrid(3),ngrtot
+        
+      end type
+
   !----------------------------!
   !     symmetry variables     !
   !----------------------------!
@@ -64,6 +76,12 @@ Module modxs
       Integer, Allocatable :: ngq (:)
   ! maximum number of G+q-vectors over all q-points
       Integer :: ngqmax
+  ! maximum number of augmentation functions
+      Integer :: apwmaxsize
+  ! maximum number of local orbitals 
+      Integer :: lomaxsize
+  ! number of local orbitals 
+      Integer, allocatable :: losize(:)
   ! index from G+q-vectors to G-vectors
       Integer, Allocatable :: igqig (:, :)
   ! map from integer grid to G+q-vector array
@@ -154,13 +172,18 @@ Module modxs
       Real (8), Allocatable :: evalsv0 (:, :)
   ! expansion coefficients of APW functions
       Complex (8), Allocatable :: apwcmt (:, :, :, :)
+      Complex (8), Allocatable :: apwcmtfun (:, :, :)
   ! expansion coefficients of APW functions (q=0)
       Complex (8), Allocatable :: apwcmt0 (:, :, :, :)
+      Complex (8), Allocatable :: apwcmtfun0 (:, :, :)
+
   ! expansion coefficients of local orbitals functions
       Complex (8), Allocatable :: locmt (:, :, :, :)
+      Complex (8), Allocatable :: locmtfun (:, :, :)
   ! expansion coefficients of local orbitals functions (q=0)
       Complex (8), Allocatable :: locmt0 (:, :, :, :)
-
+      Complex (8), Allocatable :: locmtfun0 (:, :, :)
+ 
   !--------------------------------------------!
   !     eigenvalue and occupancy variables     !
   !--------------------------------------------!
@@ -209,13 +232,13 @@ Module modxs
   ! Gaunt coefficients array
       Real (8), Allocatable :: xsgnt (:, :, :)
   ! radial integrals coefficients (APW-APW)
-      Complex (8), Allocatable :: intrgaa (:, :, :, :, :)
-  ! radial integrals coefficients (lo-APW)
-      Complex (8), Allocatable :: intrgloa (:, :, :, :, :)
+!      Complex (8), Allocatable :: intrgaa2 (:, :, :)
+!      Complex (8), Allocatable :: intrgalo2 (:, :, :)
+!      Complex (8), Allocatable :: intrgloa2 (:, :, :)
+!      Complex (8), Allocatable :: intrglolo2 (:, :, :)
+ ! radial integrals coefficients (lo-APW)
   ! radial integrals coefficients (APW-lo)
-      Complex (8), Allocatable :: intrgalo (:, :, :, :, :)
   ! radial integrals coefficients (lo-lo)
-      Complex (8), Allocatable :: intrglolo (:, :, :, :, :)
   ! radial integrals (APW-APW)
       Real (8), Allocatable :: riaa (:, :, :, :, :, :, :)
   ! radial integrals (lo-APW)
@@ -225,7 +248,7 @@ Module modxs
   ! helper matrix
       Complex (8), Allocatable :: xih (:, :)
   ! helper matrix
-      Complex (8), Allocatable :: xihir (:, :)
+!      Complex (8), Allocatable :: xihir (:, :)
   ! helper matrix
       Complex (8), Allocatable :: xiohalo (:, :)
   ! helper matrix
@@ -417,7 +440,7 @@ Module modxs
   ! initial and final timings for CPU timing
       Real (8) :: cputim0i, cputim0f, cputimcum
   ! muffin-tin timings
-      Real (8) :: cmt0, cmt1, cmt2, cmt3, cmt4
+!      Real (8) :: cmt0, cmt1, cmt2, cmt3, cmt4
       Real (8) :: cpumtaa, cpumtalo, cpumtloa, cpumtlolo
 
   !---------------------------------!

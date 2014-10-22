@@ -194,8 +194,8 @@ subroutine calc_vxnl
 #ifdef MPI
     call MPI_ALLREDUCE(MPI_IN_PLACE, exnl, 1, MPI_DOUBLE_PRECISION, &
     &                  MPI_SUM, MPI_COMM_WORLD, ierr)
-    call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl, nstfv*nstfv*nkpt, MPI_DOUBLE_COMPLEX, &
-    &                  MPI_SUM, MPI_COMM_WORLD, ierr)
+    call mpi_allgatherv_ifc(nkpt,nstfv*nstfv,zbuf=vxnl)
+    call barrier
 #endif
 
 101 format(10x,/, &
