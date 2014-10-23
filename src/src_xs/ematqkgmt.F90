@@ -31,6 +31,8 @@ Subroutine ematqkgmt (iq, ik, igq,integrals)
 
 #ifdef USEOMP
       whichthread=omp_get_thread_num()
+#else
+      whichthread=0
 #endif
 
 

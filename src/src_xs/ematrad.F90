@@ -18,7 +18,7 @@ Subroutine ematrad (iq)
       Integer :: is, ia, ias, nr, ir, igq
       Integer :: l1, l2, l3,lio,liomax
       Integer :: ilo, ilo1, ilo2, io, io1, io2
-      Real (8) :: t1
+      Real (8) :: t1,ta,tb
       Integer :: lmax1, lmax2, lmax3
       Integer :: u11, u22, u33
   ! automatic arrays
@@ -80,6 +80,7 @@ Subroutine ematrad (iq)
          Write (u33, '(a)') '------------------------------------------&
         &-----------'
       End If
+if (.true.) then
 !
   ! begin loop over G+q vectors
       Do igq = 1, ngq (iq)
@@ -226,6 +227,7 @@ Subroutine ematrad (iq)
          End Do
      ! end loop over G+q vectors
       End Do
+endif
 !
   ! deallocate
       Deallocate (jl, jhelp)

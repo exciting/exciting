@@ -197,7 +197,9 @@ Subroutine exccoulint
                End Do
             End Do
          End Do
+
 !
+if (.false.) then
          If ((rank .Eq. 0) .And. (ikkp .Le. 3)) Then
             Do ist1 = 1, rnst1
                Do ist2 = 1, rnst2
@@ -213,6 +215,7 @@ Subroutine exccoulint
                End Do
             End Do
          End If
+endif
 !
      ! parallel write
          Call putbsemat ('EXCLI.OUT', excli, ikkp, iknr, jknr, iq, iqr, &
