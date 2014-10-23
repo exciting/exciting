@@ -186,7 +186,7 @@ subroutine scf_cycle(verbosity)
         call olprad           ! compute the overlap radial integrals
         Call hmlint
         !call hmlrad          ! compute the Hamiltonian radial integrals
-           
+ 
 !________________
 ! partial charges
 
@@ -272,7 +272,6 @@ subroutine scf_cycle(verbosity)
         Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
         Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
-
 ! find the occupation numbers and Fermi energy
         Call occupy
         If (rank==0) Then
@@ -289,7 +288,6 @@ subroutine scf_cycle(verbosity)
             magir (:, :) = 0.d0
         End If
 
-
 #ifdef MPIRHO
         Do ik = firstk (rank), lastk (rank)
 !write the occupancies to file
@@ -305,7 +303,6 @@ subroutine scf_cycle(verbosity)
         End If
         Do ik = 1, nkpt
 #endif
-
             Allocate (evecfv(nmatmax, nstfv, nspnfv))
             Allocate (evecsv(nstsv, nstsv))
 ! get the eigenvectors from file
@@ -324,7 +321,6 @@ subroutine scf_cycle(verbosity)
 #ifdef MPIRHO
         Call mpisumrhoandmag
 #endif
-
 
 #ifdef MPI
         If ((input%groundstate%xctypenumber.Lt.0).Or.(xctype(2).Ge.400).Or.(xctype(1).Ge.400)) &
