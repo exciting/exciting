@@ -58,12 +58,18 @@ subroutine scf_cycle(verbosity)
     Else If (task .Eq. 200) Then
         Call phveff
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Supercell potential constructed from STATE.OUT")')
-    Else if (input%groundstate%findlinentype .ne. "skip") then
+    Else If (task .Eq. 7) Then
+        Call readstate
+        ex_coef = 0.d0
+        Call poteff
+        ex_coef = input%groundstate%Hybrid%excoeff
+        Call genveffig
+    Else
         Call timesec(tin0)
         Call rhoinit
         Call timesec(tin1)
         time_density_init=tin1-tin0
-
+        
 !___________________________
 ! store density to reference
 
@@ -172,16 +178,14 @@ subroutine scf_cycle(verbosity)
 
         Call timesec (ts0)
 
-        if (input%groundstate%findlinentype .ne. "skip") then
-            call gencore          ! generate the core wavefunctions and densities
-            call linengy          ! find the new linearization energies
-            if (rank==0) call writelinen
-            call genapwfr         ! generate the APW radial functions
-            call genlofr(tlast)   ! generate the local-orbital radial functions
-            call olprad           ! compute the overlap radial integrals
-            Call hmlint
-!            call hmlrad           ! compute the Hamiltonian radial integrals
-        end if
+        call gencore          ! generate the core wavefunctions and densities
+        call linengy          ! find the new linearization energies
+        if (rank==0) call writelinen
+        call genapwfr         ! generate the APW radial functions
+        call genlofr(tlast)   ! generate the local-orbital radial functions
+        call olprad           ! compute the overlap radial integrals
+        Call hmlint
+        !call hmlrad          ! compute the Hamiltonian radial integrals
            
 !________________
 ! partial charges

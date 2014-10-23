@@ -108,8 +108,8 @@
       
       deallocate(bandpar)
       
-      if(maxval(kwfer).ne.0.0d0) metallic=.true.
-      write(fgw,*)'kwfer: metallic =', metallic
+      if (maxval(kwfer).ne.0.0d0) metallic=.true.
+      !write(fgw,*)'kwfer: metallic =', metallic
       
       if(lprt)then
         if (iopcore<2) then

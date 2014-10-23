@@ -188,8 +188,7 @@ Subroutine hybrids
 ! preparation for next hybrid's run
         if (ihyb==0) then
             ex_coef = input%groundstate%Hybrid%excoeff
-            input%groundstate%findlinentype = "skip"
-            task = 1
+            task = 7
         end if
         
 ! calculate the non-local potential
@@ -198,7 +197,7 @@ Subroutine hybrids
         call timesec(ts1)
         if (rank==0) then
             write(60,*)
-            if (rank==0) call write_cputime(60,ts1-ts0, 'CALC_VXNL')
+            call write_cputime(60,ts1-ts0, 'CALC_VXNL')
         end if
         time_hyb = time_hyb+ts1-ts0
 
@@ -207,7 +206,7 @@ Subroutine hybrids
         call calc_vnlmat
         call timesec(ts1)
         if (rank==0) then
-            if (rank==0) call write_cputime(60,ts1-ts0, 'CALC_VNLMAT')
+            call write_cputime(60,ts1-ts0, 'CALC_VNLMAT')
             write(60,*)
         end if
         time_hyb = time_hyb+ts1-ts0
