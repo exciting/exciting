@@ -37,10 +37,6 @@ subroutine init_kqpts
       len=input%groundstate%vkloff(1)**2+ &
      &    input%groundstate%vkloff(2)**2+ &
      &    input%groundstate%vkloff(3)**2
-      if(len.gt.1.0d-10)then
-        write(*,*)'WARNING: k-grid shift is used!'
-        write(*,*)'Beware, this choice can have a critical influence on the final results!'
-      end if
      
       call init1
 

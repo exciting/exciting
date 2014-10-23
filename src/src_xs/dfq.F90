@@ -97,10 +97,10 @@ use ioarray
       Complex (8), Allocatable :: chi0w (:, :, :, :), chi0h (:, :, :), &
      & eps0 (:, :, :)
       Complex (8), Allocatable :: chi0hAHC(:, :)
-      Complex (8), Allocatable :: wou (:), wuo (:), wouw (:), wuow (:), &
+      Complex (8), Allocatable :: wou (:,:,:), wuo (:,:,:), wouw (:), wuow (:), &
      & wouh (:), wuoh (:)
       Complex (8), Allocatable :: zvou (:), zvuo (:), chi0hs (:, :, :), &
-     & bsedg (:, :), scis12c (:, :), scis21c (:, :)
+     & bsedg (:, :), scis12c (:, :), scis21c (:, :),zm(:,:,:)
       Real (8), Allocatable :: wreal (:), cw (:), cwa (:), cwsurf (:)
       Real (8), Allocatable :: cwt (:, :), cw1k (:, :, :), cwa1k (:, :, &
      & :), cwsurf1k (:, :, :)
@@ -230,8 +230,8 @@ use ioarray
       Allocate (chi0hAHC(3, 3))
       Allocate (chi0w(n, 2, 3, nwdfp))
       Allocate (chi0(n, n, nwdfp))
-      Allocate (wou(nwdf))
-      Allocate (wuo(nwdf))
+!      Allocate (wou(nwdf))
+!      Allocate (wuo(nwdf))
       Allocate (wouw(nwdf), wuow(nwdf), wouh(nwdf), wuoh(nwdf))
       Allocate (zvou(n), zvuo(n))
       Allocate (bsedg(nst1, nst2))
@@ -282,6 +282,8 @@ use ioarray
       call timesec(tb)
 !      write(*,*) tb-ta
 !      stop
+!write(*,*) wi,wf
+!write(*,*) 'starting loop'
   ! loop over k-points
       Do ik = 1, nkpt
      ! k-point analysis
@@ -291,7 +293,7 @@ use ioarray
         &k-point index')
          cpuosc = 0.d0
          cpuupd = 0.d0
-         Call cpu_time (cpu0)
+         Call timesec (cpu0)
          ikq = ikmapikq (ik, iq)
 
          Call getdevaldoccsv (iq, ik, ikq, istl1, istu1, istl2, istu2, &
@@ -316,9 +318,10 @@ use ioarray
          scis12c (:, :) = scis12c (:, :) + bsedg (:, :)
          scis21c (:, :) = scis21c (:, :) + transpose (bsedg(:, :))
      ! get matrix elements (exp. expr. or momentum op.)
-
+!write(*,*) 'starting getpemat'
          Call getpemat (iq, ik, trim(fnpmat), trim(fnemat), m12=xiou, &
         & m34=xiuo, p12=pmou, p34=pmuo)
+!write(*,*) 'done'
       
      ! set matrix elements to one for Lindhard function
          If (input%xs%tddft%lindhard) Then
@@ -389,10 +392,21 @@ use ioarray
                End If
             End Do
          End Do
-         Call cpu_time (cpu1)
+         Call timesec (cpu1)
          cpuread = cpu1 - cpu0
+
+
+!**********************************************************************************
+
+if (.false.) then
+      Allocate (wou(nwdf,1,1))
+      Allocate (wuo(nwdf,1,1))
+!write(*,*) nst1,nst2
          Do ist1 = 1, nst1
+!write(*,*) 'ist2 loop'
+!call timesec(ta)
             Do ist2 = 1, nst2
+
            !---------------------!
            !     denominator     !
            !---------------------!
@@ -401,7 +415,7 @@ use ioarray
                i2 = istunocc0 + ist2 - 1
            ! band analysis
                If ( .Not. transijst(ik, i1, i2)) Cycle
-               Call cpu_time (cpu0)
+               Call timesec (cpu0)
            ! user request termination
                Call terminateqry ('dfq')
                If (input%xs%tetra%tetradf) Then
@@ -423,26 +437,26 @@ use ioarray
                     & trim(fnwtet), cw, cwa, cwsurf)
                   End If
               ! include occupation number differences
-                  wou (wi:wf) = docc12 (ist1, ist2) * cmplx (cw(wi:wf), &
+                  wou (wi:wf,1,1) = docc12 (ist1, ist2) * cmplx (cw(wi:wf), &
                  & cwsurf(wi:wf), 8) / omega
-                  wuo (wi:wf) = - docc21 (ist2, ist1) * cmplx &
+                  wuo (wi:wf,1,1) = - docc21 (ist2, ist1) * cmplx &
                  & (cwa(wi:wf), 0.d0, 8) / omega
                   If (tq0) Then
                  ! rescale: use delta-function delta(e_nmk + scis_nmk - w)
                  ! take real part of BSE diagonal (being contained in scis12c)
                  ! since tetrahedron method formalism implemented does not allow
                  ! otherwise
-                     wouw (wi:wf) = cmplx (dble(wou(wi:wf)), &
-                    & aimag(wou(wi:wf))*deou(ist1, &
+                     wouw (wi:wf) = cmplx (dble(wou(wi:wf,1,1)), &
+                    & aimag(wou(wi:wf,1,1))*deou(ist1, &
                     & ist2)/(-wreal(:)-dble(scis12c(ist1, ist2))))
-                     wuow (wi:wf) = cmplx (dble(wuo(wi:wf)), &
-                    & aimag(wuo(wi:wf))*deuo(ist2, &
+                     wuow (wi:wf) = cmplx (dble(wuo(wi:wf,1,1)), &
+                    & aimag(wuo(wi:wf,1,1))*deuo(ist2, &
                     & ist1)/(-wreal(:)-dble(scis21c(ist2, ist1))))
-                     wouh (wi:wf) = cmplx (dble(wou(wi:wf)), &
-                    & aimag(wou(wi:wf))*deou(ist1, &
+                     wouh (wi:wf) = cmplx (dble(wou(wi:wf,1,1)), &
+                    & aimag(wou(wi:wf,1,1))*deou(ist1, &
                     & ist2)**2/(-wreal(:)-dble(scis12c(ist1, ist2)))**2)
-                     wuoh (wi:wf) = cmplx (dble(wuo(wi:wf)), &
-                    & aimag(wuo(wi:wf))*deuo(ist2, &
+                     wuoh (wi:wf) = cmplx (dble(wuo(wi:wf,1,1)), &
+                    & aimag(wuo(wi:wf,1,1))*deuo(ist2, &
                     & ist1)**2/(-wreal(:)-dble(scis21c(ist2, ist1)))**2)
                   End If
                Else
@@ -452,30 +466,42 @@ use ioarray
                      ! (no broadening)
                      zt1=w(iw)+deou(ist1, ist2)+scis12c(ist1,ist2)+zi*brd
                      if (abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
-                     wou (iw) = docc12 (ist1, ist2) * wkpt (ik) / omega / zt1
+                     wou (iw,1,1) = docc12 (ist1, ist2) * wkpt (ik) / omega / zt1
                      zt1=w(iw)+deuo(ist2, ist1)+scis21c(ist2,ist1)+tordf*zi*brd
                      if (abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
-                     wuo (iw) = docc21 (ist2, ist1) * wkpt (ik) / omega / zt1
+                     wuo (iw,1,1) = docc21 (ist2, ist1) * wkpt (ik) / omega / zt1
                   end do
-                  wouw (wi:wf) = wou (wi:wf)
-                  wuow (wi:wf) = wuo (wi:wf)
-                  wouh (wi:wf) = wou (wi:wf)
-                  wuoh (wi:wf) = wuo (wi:wf)
+                  wouw (wi:wf) = wou (wi:wf,1,1)
+                  wuow (wi:wf) = wuo (wi:wf,1,1)
+                  wouh (wi:wf) = wou (wi:wf,1,1)
+                  wuoh (wi:wf) = wuo (wi:wf,1,1)
                End If
-               call cpu_time(cpu1)
+               call timesec(cpu1)
                cpuosc=cpuosc+cpu1-cpu0
            !----------------------------------!
            !     update response function     !
            !----------------------------------!
+!write(*,*) 'zgerc'
+!call timesec(ta)
+
                zvou (:) = xiou (ist1, ist2, :)
                zvuo (:) = xiuo (ist2, ist1, :)
 
+!write(*,*) 'zgerc'
+!call timesec(ta)
+
                Do iw = wi, wf
+!write(*,*) 'zgerc'
+!call timesec(ta)
                   ! body
-                  Call zgerc (n, n, wou(iw), zvou, 1, zvou, 1, chi0(:, &
+                 Call zgerc (n, n, wou(iw,1,1), zvou, 1, zvou, 1, chi0(:, &
                        & :, iw-wi+1), n)
-                  Call zgerc (n, n, wuo(iw), zvuo, 1, zvuo, 1, chi0(:, &
-                       & :, iw-wi+1), n)
+                 Call zgerc (n, n, wuo(iw,1,1), zvuo, 1, zvuo, 1, chi0(:, &
+                      & :, iw-wi+1), n)
+!call timesec(tb)
+!write(*,*) tb-ta
+!write(*,*) 'zgerc done'
+!read(*,*)
                   If (tq0) Then
                      Do oct1 = 1, 3
                         ! wings
@@ -510,11 +536,221 @@ use ioarray
                      End Do
                   End If
                End Do
-               Call cpu_time (cpu0)
+!call timesec(tb)
+!write(*,*) tb-ta
+!write(*,*) 'zgerc done'
+!read(*,*)
+               Call timesec (cpu0)
+               cpuupd = cpuupd + cpu0 - cpu1
+           ! end loop over states combinations
+            End Do
+!call timesec(tb)
+!write(*,*) tb-ta
+!write(*,*) 'loop done'
+!read(*,*)
+         End Do
+!write(*,*) sum(chi0(:,:,1))
+deallocate(wuo,wou)
+!*****************************************************************************************************
+else
+      Allocate (wou(nwdf,nst1,nst2))
+      Allocate (wuo(nwdf,nst1,nst2))
+         Do ist1 = 1, nst1
+            Do ist2 = 1, nst2
+
+           !---------------------!
+           !     denominator     !
+           !---------------------!
+           ! absolute band indices
+               i1 = ist1
+               i2 = istunocc0 + ist2 - 1
+           ! band analysis
+               If ( .Not. transijst(ik, i1, i2)) Cycle
+               Call timesec (cpu0)
+           ! user request termination
+               Call terminateqry ('dfq')
+               If (input%xs%tetra%tetradf) Then
+              ! mirror index pair on diagonal if necessary
+                  If (i1 .Gt. i2) Then
+                     j1 = ist2
+                     j2 = ist1 - istunocc0 + 1
+                  Else
+                     j1 = ist1
+                     j2 = ist2
+                  End If
+              ! read weights for tetrahedron method
+                  If (input%xs%tetra%cw1k) Then
+                     cw (wi:wf) = cw1k (ist1, ist2, :)
+                     cwa (wi:wf) = cwa1k (ist1, ist2, :)
+                     cwsurf (wi:wf) = cwsurf1k (ist1, ist2, :)
+                  Else
+                     Call gettetcw (iq, ik, j1, j2, nst1, nst2, nwdf, &
+                    & trim(fnwtet), cw, cwa, cwsurf)
+                  End If
+              ! include occupation number differences
+                  wou (wi:wf,ist1,ist2) = docc12 (ist1, ist2) * cmplx (cw(wi:wf), &
+                 & cwsurf(wi:wf), 8) / omega
+                  wuo (wi:wf,ist1,ist2) = - docc21 (ist2, ist1) * cmplx &
+                 & (cwa(wi:wf), 0.d0, 8) / omega
+                  If (tq0) Then
+                 ! rescale: use delta-function delta(e_nmk + scis_nmk - w)
+                 ! take real part of BSE diagonal (being contained in scis12c)
+                 ! since tetrahedron method formalism implemented does not allow
+                 ! otherwise
+                     wouw (wi:wf) = cmplx (dble(wou(wi:wf,ist1,ist2)), &
+                    & aimag(wou(wi:wf,ist1,ist2))*deou(ist1, &
+                    & ist2)/(-wreal(:)-dble(scis12c(ist1, ist2))))
+                     wuow (wi:wf) = cmplx (dble(wuo(wi:wf,ist1,ist2)), &
+                    & aimag(wuo(wi:wf,ist1,ist2))*deuo(ist2, &
+                    & ist1)/(-wreal(:)-dble(scis21c(ist2, ist1))))
+                     wouh (wi:wf) = cmplx (dble(wou(wi:wf,ist1,ist2)), &
+                    & aimag(wou(wi:wf,ist1,ist2))*deou(ist1, &
+                    & ist2)**2/(-wreal(:)-dble(scis12c(ist1, ist2)))**2)
+                     wuoh (wi:wf) = cmplx (dble(wuo(wi:wf,ist1,ist2)), &
+                    & aimag(wuo(wi:wf,ist1,ist2))*deuo(ist2, &
+                    & ist1)**2/(-wreal(:)-dble(scis21c(ist2, ist1)))**2)
+                  End If
+               Else
+              ! include occupation number differences
+                  do iw=wi,wf
+                     ! check for vanishing denominators in case of screening
+                     ! (no broadening)
+                     zt1=w(iw)+deou(ist1, ist2)+scis12c(ist1,ist2)+zi*brd
+                     if (abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
+                     wou (iw,ist1,ist2) = docc12 (ist1, ist2) * wkpt (ik) / omega / zt1
+                     zt1=w(iw)+deuo(ist2, ist1)+scis21c(ist2,ist1)+tordf*zi*brd
+                     if (abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
+                     wuo (iw,ist1,ist2) = docc21 (ist2, ist1) * wkpt (ik) / omega / zt1
+                  end do
+                  wouw (wi:wf) = wou (wi:wf,ist1,ist2)
+                  wuow (wi:wf) = wuo (wi:wf,ist1,ist2)
+                  wouh (wi:wf) = wou (wi:wf,ist1,ist2)
+                  wuoh (wi:wf) = wuo (wi:wf,ist1,ist2)
+               End If
+               call timesec(cpu1)
+               cpuosc=cpuosc+cpu1-cpu0
+           !----------------------------------!
+           !     update response function     !
+           !----------------------------------!
+
+               zvou (:) = xiou (ist1, ist2, :)
+               zvuo (:) = xiuo (ist2, ist1, :)
+
+               Do iw = wi, wf
+                  ! body
+!                  Call zgerc (n, n, wou(iw), zvou, 1, zvou, 1, chi0(:, &
+!                       & :, iw-wi+1), n)
+!                  Call zgerc (n, n, wuo(iw), zvuo, 1, zvuo, 1, chi0(:, &
+!                       & :, iw-wi+1), n)
+                  If (tq0) Then
+                     Do oct1 = 1, 3
+                        ! wings
+                        chi0w (2:, 1, oct1, iw-wi+1) = chi0w (2:, 1, &
+                             & oct1, iw-wi+1) + wouw (iw) * pmou (oct1, ist1, &
+                             & ist2) * conjg (zvou(2:)) + wuow (iw) * pmuo &
+                             & (oct1, ist2, ist1) * conjg (zvuo(2:))
+                        chi0w (2:, 2, oct1, iw-wi+1) = chi0w (2:, 2, &
+                             & oct1, iw-wi+1) + wouw (iw) * zvou (2:) * conjg &
+                             & (pmou(oct1, ist1, ist2)) + wuow (iw) * zvuo &
+                             & (2:) * conjg (pmuo(oct1, ist2, ist1))
+                        Do oct2 = 1, 3
+                           ! head
+                           If(.Not.input%xs%tddft%ahc) Then
+                              chi0h (oct1, oct2, iw-wi+1) = chi0h (oct1, &
+                                   & oct2, iw-wi+1) + wouh (iw) * pmou (oct1, &
+                                   & ist1, ist2) * conjg (pmou(oct2, ist1, &
+                                   & ist2)) + wuoh (iw) * pmuo (oct1, ist2, &
+                                   & ist1) * conjg (pmuo(oct2, ist2, ist1))
+                           Else
+                              winv=1.0d0/(w(iw)+zi*brd)
+                              If (Abs(w(iw)).Lt.1.d-8) winv=1.d0
+                              chi0h (oct1, oct2, iw-wi+1) = chi0h (oct1, oct2, iw-wi+1) + &
+                                   & wouh (iw) * pmou (oct1, ist1, ist2) * conjg (pmou(oct2, ist1, ist2))*&
+                                   & (deou(ist1, ist2)*winv) + &
+                                   & wuoh (iw) * pmuo (oct1, ist2, ist1) * conjg (pmuo(oct2, ist2, ist1))*&
+                                   & (deuo(ist2, ist1)*winv) 
+                              
+                           End If
+
+                        End Do
+                     End Do
+                  End If
+               End Do
+               Call timesec (cpu0)
                cpuupd = cpuupd + cpu0 - cpu1
            ! end loop over states combinations
             End Do
          End Do
+
+
+         allocate(zm(n,nst1,nst2))
+         do iw=wi,wf
+           Do ist2 = 1, nst2
+             Do ist1 = 1, nst1
+              zm(:,ist1,ist2)=conjg(wou(iw,ist1,ist2)*xiou(ist1,ist2,:))
+             enddo
+           enddo
+           
+           call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                      'N', &           ! TRANSB = 'N'  op( B ) = B.
+                       n, &          ! M ... rows of op( A ) = rows of C
+                       n, &           ! N ... cols of op( B ) = cols of C
+                       nst1*nst2, &          ! K ... cols of op( A ) = rows of op( B )
+                       zone, &          ! alpha
+                       zm(1,1,1), &           ! B
+                       n, &          ! LDB ... leading dimension of B
+                       xiou(1,1,1), &           ! A
+                       nst1*nst2,&           ! LDA ... leading dimension of A
+                       zone, &          ! beta
+                       chi0(1,1,iw-wi+1), &  ! C
+                       n & ! LDC ... leading dimension of C
+                      )
+         enddo
+         deallocate(zm)
+         allocate(zm(n,nst2,nst1))
+
+         do iw=wi,wf
+           Do ist2 = 1, nst2
+             Do ist1 = 1, nst1
+              zm(:,ist2,ist1)=conjg(wuo(iw,ist1,ist2)*xiuo(ist2,ist1,:))
+             enddo
+           enddo
+
+           call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                      'N', &           ! TRANSB = 'N'  op( B ) = B.
+                       n, &          ! M ... rows of op( A ) = rows of C
+                       n, &           ! N ... cols of op( B ) = cols of C
+                       nst1*nst2, &          ! K ... cols of op( A ) = rows of op( B )
+                       zone, &          ! alpha
+                       zm(1,1,1), &           ! B
+                       n, &          ! LDB ... leading dimension of B
+                       xiuo(1,1,1), &           ! A
+                       nst1*nst2,&           ! LDA ... leading dimension of A
+                       zone, &          ! beta
+                       chi0(1,1,iw-wi+1), &  ! C
+                       n & ! LDC ... leading dimension of C
+                      )
+         enddo
+
+         chi0(:,:,:)=conjg(chi0(:,:,:))
+
+         Call timesec (cpu1)
+         cpuupd = cpuupd + cpu1 - cpu0
+
+!write(*,*) sum(chi0(:,:,1))
+
+deallocate(wou,wuo,zm)
+
+
+endif
+!do iw=1,n
+!  write(*,*) chi0(iw,2,1)
+!enddo
+!write(*,*) dble(sum(chi0(:,:,1)))
+!stop
+
+!*****************************************************************************************************
+
          cputot = cpuread + cpuosc + cpuupd
      ! timing information
          Call dftim (iq, ik, trim(fnxtim), cpuread, cpuosc, cpuupd, &
@@ -585,9 +821,12 @@ use ioarray
             Call barrier
          End Do
       End If
+!write(*,*) sum(chi0(1:10,1:20,1))
+
+
       Deallocate (chi0, chi0h, chi0w)
       Deallocate (docc12, docc21, scis12, scis21, scis12c, scis21c)
-      Deallocate (deou, deuo, wou, wuo, wouw, wuow, wouh, wuoh, zvou, &
+      Deallocate (deou, deuo, wouw, wuow, wouh, wuoh, zvou, &
      & zvuo)
       Deallocate (xiou, xiuo, pmou, pmuo)
       Deallocate (bsedg)
@@ -597,5 +836,6 @@ use ioarray
          If (input%xs%tetra%cw1k) deallocate (cwt, cw1k, cwa1k, &
         & cwsurf1k)
       End If
+!      write(*,*)
 End Subroutine dfq
 !EOC

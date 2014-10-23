@@ -55,6 +55,8 @@ Subroutine ematqk (iq, ik)
       type (fftmap_type) :: fftmap
       Real (8) :: emat_gmax,ta,tb
 
+!      write(*,*) 'nst',nst1,nst2
+!      write(*,*) 'istl/istu',istl1,istu1,istl2,istu2
 
 !      write(*,*) 'howdy'
 !      read(*,*) emat_gmax
@@ -221,6 +223,7 @@ Subroutine ematqk (iq, ik)
 !
   ! zero matrix elements array
       xiou (:, :, :) = zzero
+if (.true.) then
 !
       whichthread=0
   ! loop over G+q vectors
@@ -407,10 +410,12 @@ else
 
 endif
 !
+endif
       Call timesec (cpu1)
       cpumain = cpu1 - cpu0
 !
-      Deallocate (evecfvu2, evecfvo20)
+!      Deallocate (evecfvu2, evecfvo20)
+
       Call timesec (cpu0)
       cpuwrite = cpu0 - cpu1
       cpuall = cpuini + cpuread + cpumain + cpuwrite

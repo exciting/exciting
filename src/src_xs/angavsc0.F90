@@ -19,19 +19,20 @@ Subroutine angavsc0 (n, nmax, scrnh, scrnw, scrn, scieff)
       Integer, Parameter :: nsphcov = 5810, iq0 = 1
       Integer :: iop, jop, j1, j2, ji, itp, lm, ntpsph
       Real (8) :: vomega, t00, r, qsz
-      Complex (8) :: dtns (3, 3), w1, w2,scol(3)
+      Complex (8) :: dtns (3, 3), w1, w2,scol(3),zt
       Real (8), Allocatable :: plat (:, :), p (:), tp (:, :), spc (:, &
      & :), w (:)
       Complex (8), Allocatable :: m00lm (:), mx0lm (:), mxxlm (:)
       Complex (8), Allocatable :: ei00 (:), eix0 (:), ei0x (:), eixx &
-     & (:),eitmp(:),eilmtmp(:)
+     & (:),eitmp(:),eilmtmp(:),eitmp2(:,:),eilmtmp2(:,:)
       Complex (8), Allocatable :: ei00lm (:), eix0lm (:), ei0xlm (:), &
      & eixxlm (:),spc2(:)
       Complex (8), Allocatable :: ylm (:), zylm (:, :)
       Complex (8), Allocatable :: b (:, :), bi (:, :), u (:, :), v (:, &
      & :), s (:, :), t (:, :), e3 (:, :), ie3 (:, :)
       Integer :: i1, i2
-      real(8) :: ta,tb
+      real(8) :: ta,tb,tc,td
+      scieff=zzero
   ! crystal volume
       vomega = omega * product (ngridq)
   ! Wigner-Seitz radius and spherical approximation to 1/q^2 average
@@ -168,12 +169,12 @@ If (input%xs%BSE%scrherm .Eq. 0) then
          Do j1 = 2, n
             scol(1:3)=s(j1-1,1:3)
             Do itp = 1, ntpsph
-              spc2(itp) = spc(1, itp)* scol(1)+spc(2, itp)* scol(2)+spc(3, itp)* scol(3)
+              spc2(itp) = (spc(1, itp)* scol(1)+spc(2, itp)* scol(2)+spc(3, itp)* scol(3)) * ei00 (itp)
             End Do
 
             Do itp = 1, ntpsph
            ! wing, -p*S/(p*L*p)
-               eix0 (itp) = - spc2(itp) * ei00 (itp)*w(itp)
+               eix0 (itp) = - spc2(itp) *w(itp) !* ei00 (itp)
            ! wing, -p*T/(p*L*p)
                ei0x (itp) = - dot_product (spc(:, itp), t(:, j1-1)) * ei00 (itp)*w(itp)
             End Do
@@ -184,40 +185,39 @@ If (input%xs%BSE%scrherm .Eq. 0) then
         ! subcell average (wings)
             scieff (j1, 1) = Sqrt (fourpi) * sptclg (j1, iq0) * t00 * dot_product (mx0lm, eix0lm)
             scieff (1, j1) = Sqrt (fourpi) * sptclg (j1, iq0) * t00  * dot_product (mx0lm, ei0xlm)
-            If (input%xs%BSE%sciavbd) Then
+        enddo
 
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(eitmp,eilmtmp,j2,itp)
-               allocate(eitmp(ntpsph),eilmtmp(lmmaxdielt))
-!$OMP DO
-               Do j2 = 2, n
-                  Do itp = 1, ntpsph
-                 ! body, B^-1 + p*S p*T/(p*L*p)
-                     eitmp (itp) = w(itp)*(bi (j1-1, j2-1) + spc2(itp)*(spc(1, itp)* t(1,j2-1)+spc(2, itp)* t(2,j2-1)+spc(3, itp)* t(3,j2-1))* ei00 (itp))
-                  End Do
-                  call zgemv('C',ntpsph,lmmaxdielt,fourpi,zylm,ntpsph,eitmp,1,zzero,eilmtmp,1)
-              ! subcell average (body)
-                  scieff (j1, j2) = sptclg (j1, iq0) * sptclg (j2, iq0) * t00 * dot_product (mxxlm, eilmtmp)
-               End Do
-!$OMP END DO
-               deallocate(eitmp,eilmtmp)
-!$OMP END PARALLEL
-#else
-               Do j2 = 2, n
-                  Do itp = 1, ntpsph
-                 ! body, B^-1 + p*S p*T/(p*L*p)
-                     eixx (itp) = w(itp)*(bi (j1-1, j2-1) + spc2(itp)*(spc(1, itp)* t(1,j2-1)+spc(2, itp)* t(2,j2-1)+spc(3, itp)* t(3,j2-1))* ei00 (itp))
-                  End Do
-                  call zgemv('C',ntpsph,lmmaxdielt,fourpi,zylm,ntpsph,eixx,1,zzero,eixxlm,1)
-              ! subcell average (body)
-                  scieff (j1, j2) = sptclg (j1, iq0) * sptclg (j2, iq0) * t00 * dot_product (mxxlm, eixxlm)
-               End Do
-#endif
-            Else
+        If (input%xs%BSE%sciavbd) Then
+
+          allocate(eitmp (ntpsph),eilmtmp(lmmaxdielt))
+          do i1=1,3
+            do i2=1,3
+              eitmp(:)=w(:)*spc(i1,:)*spc(i2,:)*ei00(:)
+              call zgemv('C',ntpsph,lmmaxdielt,fourpi,zylm,ntpsph,eitmp,1,zzero,eilmtmp,1)
+              zt=t00 * dot_product (mxxlm, eilmtmp)
+              do j2=2,n
+                do j1=2,n
+                  scieff (j1, j2) = scieff (j1, j2)+sptclg (j1, iq0) * sptclg (j2, iq0) * zt *s(j1-1,i1)*t(i2,j2-1)
+                enddo
+              enddo
+            enddo
+          enddo 
+
+          eitmp(:)=dcmplx(w(:),0d0)
+          call zgemv('C',ntpsph,lmmaxdielt,fourpi,zylm,ntpsph,eitmp,1,zzero,eilmtmp,1)
+          zt=t00 * dot_product (mxxlm, eilmtmp)
+          do j2=2,n
+            do j1=2,n
+              scieff (j1, j2) = scieff (j1, j2)+ sptclg (j1, iq0) * sptclg (j2, iq0) * zt *bi(j1-1,j2-1)
+            enddo
+          enddo
+
+          deallocate(eitmp,eilmtmp)
+
+        else
            ! no subcell average (body)
                scieff (j1, 2:n) = bi (j1-1, :)
-            End If
-         End Do
+        endif
 
 else
 
