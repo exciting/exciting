@@ -29,6 +29,7 @@ subroutine calc_vxnl
     !------------------------------------------!
     if (allocated(vxnl)) deallocate(vxnl)
     allocate(vxnl(nstfv,nstfv,nkpt))
+    vxnl(:,:,:) = zzero
         
     ! Calculate the integration weights using the linearized tetrahedron method
     !if (allocated(evaldft)) deallocate(evaldft)
@@ -67,8 +68,6 @@ subroutine calc_vxnl
 #endif    
         ik = idikp(ikp)
        
-        vxnl(:,:,ikp) = zzero
-
 !---------------------------------------
 ! Integration over BZ
 !---------------------------------------

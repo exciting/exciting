@@ -171,9 +171,11 @@ Subroutine hybrids
 ! check for convergence
         if (ihyb>0) then
             deltae = dabs(et-engytot)
-            write(60,*)
-            write(60,'(" Absolute change in total energy (target)   : ",G18.10," (",G18.10,")")') &
-           &  deltae, input%groundstate%epsengy
+            if (rank==0) Then
+              write(60,*)
+              write(60,'(" Absolute change in total energy (target)   : ",G18.10," (",G18.10,")")') &
+              &  deltae, input%groundstate%epsengy
+            end if
              if (deltae < input%groundstate%epsengy*10) Then
                 if (rank==0) Then
                     write(string,'("Convergence target is reached")')
@@ -194,6 +196,7 @@ Subroutine hybrids
 ! calculate the non-local potential
         call timesec(ts0)
         call calc_vxnl
+        write(*,*) 'calc_vxnl=', sum(vxnl)
         call timesec(ts1)
         if (rank==0) then
             write(60,*)
@@ -204,6 +207,7 @@ Subroutine hybrids
 ! calculate the non-local potential hamiltonian matrix
         call timesec(ts0)
         call calc_vnlmat
+        write(*,*) 'calc_vnlmat=', sum(vnlmat)
         call timesec(ts1)
         if (rank==0) then
             call write_cputime(60,ts1-ts0, 'CALC_VNLMAT')
