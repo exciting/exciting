@@ -38,6 +38,7 @@ Subroutine occupy
 ! local variables
       Integer, Parameter :: maxit = 1000
       real(8), parameter :: de0=1.d0
+      real(8), parameter :: deltaE=1.d-12 ! Accuracy at which Fermi energy is calculated
       Integer :: ik, ist, it, nvm
       Real (8) :: e0, e1, chg, x, t1
 ! external functions
@@ -129,12 +130,12 @@ Subroutine occupy
                   chg = chg + wkpt (ik) * occsv (ist, ik)
                End Do
             End Do
-            If (chg .Lt. chgval) Then
+            If (chg .lt. chgval) Then
                e0 = efermi
             Else
                e1 = efermi
             End If
-            If ((e1-e0) .Lt. input%groundstate%epsocc) Go To 10
+            If ((e1-e0) .Lt. deltaE) Go To 10
          End Do
          Write (*,*)
          Write (*, '("Error(occupy): could not find Fermi energy")')

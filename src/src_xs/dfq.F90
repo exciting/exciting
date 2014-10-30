@@ -688,15 +688,20 @@ else
            Do ist2 = 1, nst2
              Do ist1 = 1, nst1
               zm(:,ist1,ist2)=conjg(wou(iw,ist1,ist2)*xiou(ist1,ist2,:))
+!              zm(:,ist1,ist2)=wou(iw,ist1,ist2)*xiou(ist1,ist2,:)
              enddo
            enddo
            
-           call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                      'N', &           ! TRANSB = 'N'  op( B ) = B.
+           call zgemm('n', &           ! TRANSA = 'C'  op( A ) = A**H.
+                      'n', &           ! TRANSB = 'N'  op( B ) = B.
                        n, &          ! M ... rows of op( A ) = rows of C
                        n, &           ! N ... cols of op( B ) = cols of C
                        nst1*nst2, &          ! K ... cols of op( A ) = rows of op( B )
                        zone, &          ! alpha
+!                       xiou(1,1,1), &
+!                       nst1*nst2,&
+!                       zm(1,1,1), &
+!                       n, &
                        zm(1,1,1), &           ! B
                        n, &          ! LDB ... leading dimension of B
                        xiou(1,1,1), &           ! A
@@ -713,15 +718,21 @@ else
            Do ist2 = 1, nst2
              Do ist1 = 1, nst1
               zm(:,ist2,ist1)=conjg(wuo(iw,ist1,ist2)*xiuo(ist2,ist1,:))
+!             zm(:,ist2,ist1)=wuo(iw,ist1,ist2)*xiuo(ist2,ist1,:)
              enddo
            enddo
 
-           call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                      'N', &           ! TRANSB = 'N'  op( B ) = B.
+           
+           call zgemm('n', &           ! TRANSA = 'C'  op( A ) = A**H.
+                      'n', &           ! TRANSB = 'N'  op( B ) = B.
                        n, &          ! M ... rows of op( A ) = rows of C
                        n, &           ! N ... cols of op( B ) = cols of C
                        nst1*nst2, &          ! K ... cols of op( A ) = rows of op( B )
                        zone, &          ! alpha
+!                       xiuo(1,1,1), &
+!                       nst1*nst2,&
+!                       zm(1,1,1), &
+!                       n, & 
                        zm(1,1,1), &           ! B
                        n, &          ! LDB ... leading dimension of B
                        xiuo(1,1,1), &           ! A
@@ -732,7 +743,7 @@ else
                       )
          enddo
 
-         chi0(:,:,:)=conjg(chi0(:,:,:))
+!         chi0(:,:,:)=conjg(chi0(:,:,:))
 
          Call timesec (cpu1)
          cpuupd = cpuupd + cpu1 - cpu0
@@ -750,7 +761,10 @@ endif
 !stop
 
 !*****************************************************************************************************
-
+!write(*,*) sum(chi0h)
+!write(*,*) sum(chi0w)
+!write(*,*) sum(chi0)
+!read(*,*)
          cputot = cpuread + cpuosc + cpuupd
      ! timing information
          Call dftim (iq, ik, trim(fnxtim), cpuread, cpuosc, cpuupd, &
@@ -759,6 +773,8 @@ endif
          If ( .Not. tscreen) Call barrier
      ! end loop over k-points
       End Do
+      chi0(:,:,:)=conjg(chi0(:,:,:))
+
 
       wplas = input%xs%tddft%drude(1)
       wrel = input%xs%tddft%drude(2)
