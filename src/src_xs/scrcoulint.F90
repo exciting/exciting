@@ -39,7 +39,7 @@ Subroutine scrcoulint
       Integer :: ist1, ist2, ist3, ist4, nst12, nst34, nst13, nst24
       Integer :: sta1, sto1, sta2, sto2, rnst1, rnst2, rnst3, rnst4
       Logical :: tq0, tphf
-      Real (8) :: vqr (3), vq (3), t1
+      Real (8) :: vqr (3), vq (3), t1,ta,tb
       Integer :: sc (maxsymcrys), ivgsc (3, maxsymcrys)
       Integer, Allocatable :: igqmap (:)
       Complex (8) :: zt1,prefactor
@@ -132,9 +132,6 @@ Subroutine scrcoulint
   !-----------------------------------!
       Call getunit (un)
       Call genparidxran ('q', nqptr)
-!WRITE(*,*) 'genparidxran'
-!read(*,*)
-!write(*,*) rank,qpari,qparf
 !
       Do iqr = qpari, qparf
 !         Call genfilname (basename='W_SCREEN', iq=iqr, &
@@ -147,12 +144,9 @@ Subroutine scrcoulint
          iqrnr = iqmap (ivqr(1, iqr), ivqr(2, iqr), ivqr(3, iqr))
          n = ngq (iqrnr)
 
-!write(*,*) rank,'genscclieff'
-!
      ! calculate effective screened Coulomb interaction
          Call genscclieff (iqr, ngqmax, n, scieffg(1, 1, iqr))
 
-!write(*,*) rank,'genscclieff done'
 if (.false.) then
          Call genfilname (basename='W_SCREEN', iq=iqr, &
         & filnam=fnscreeninv)
@@ -168,17 +162,13 @@ if (.false.) then
          Call writevars (un, iqr, 0)
          Close (un)
 endif
-!write(*,*) rank,'putematrad'
-!
      ! generate radial integrals for matrix elements of plane wave
          Call putematrad (iqr, iqrnr)
-!write(*,*) rank,'putematrad done'
 
       End Do
   ! communicate array-parts wrt. q-points
       call mpi_allgatherv_ifc(nqptr,ngqmax*ngqmax,zbuf=scieffg)
       Call barrier
-!write(*,*) rank,'barrier done'
 !
   ! information on size of output file
       nkkp = (nkptnr*(nkptnr+1)) / 2
@@ -204,6 +194,7 @@ endif
 
   ! loop over combinations of k-points
       Do ikkp = ppari, pparf
+call timesec(ta)
          Call chkpt (3, (/ task, 2, ikkp /), 'task,sub,(k,kp)-pair; dir&
         &ect term of BSE Hamiltonian')
          Call kkpmap (ikkp, nkptnr, iknr, jknr)
@@ -246,9 +237,8 @@ endif
          input%xs%emattype = 2
          Call ematbdcmbs (input%xs%emattype)
          Call ematqalloc
-!         write(*,*) 'ematqk1'
          Call ematqk1 (iq, iknr)
-!         write(*,*) 'ematqk1 done'
+
          input%xs%emattype = 2
          Call ematbdcmbs (input%xs%emattype)
          Call chkpt (3, (/ task, 2, ikkp /), 'task,sub,(k,kp)-pair; dir&
@@ -282,7 +272,6 @@ endif
             End Do
          End Do
          j2 = 0
-!         write(*,*) rank,shape(emat34)
          Do ist4 = sta2, sto2
             Do ist3 = sta2, sto2
                j2 = j2 + 1
@@ -292,7 +281,7 @@ endif
 !
      ! matrix elements of direct term (as in BSE-code of Peter and
      ! in the SELF-documentation of Andrea Marini)
-!write(*,*) 'mm'
+
 if (.false.) then
          scclit = matmul (conjg(emat12), matmul(tm, transpose(emat34))) &
         & / omega / nkptnr
@@ -300,7 +289,6 @@ else
            prefactor=1d0/(omega*dble(nkptnr))
            emat12(:,:)=conjg(emat12(:,:))
            allocate(zm(nst12,n))
-!scclit=zzone
            call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                       'N', &           ! TRANSB = 'N'  op( B ) = B.
                        nst12, &          ! M ... rows of op( A ) = rows of C
@@ -331,8 +319,7 @@ else
                       )
            deallocate(zm)        
 endif
-!write(*,*) 'mm done'
-!
+
      ! map back to individual band indices
          j2 = 0
          Do ist4 = 1, rnst4
@@ -379,10 +366,11 @@ endif
                End Do
             End Do
          End If
-!
+
      ! parallel write
          Call putbsemat ('SCCLI.OUT', sccli, ikkp, iknr, jknr, iq, iqr, &
         & rnst1, rnst3, rnst2, rnst4)
+
 !
          Deallocate (igqmap, emat12, emat34)
          Deallocate (tm, tmi)

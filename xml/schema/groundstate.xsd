@@ -2324,7 +2324,7 @@
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="epsocc" type="fortrandouble"
-        default="1.0d-12">
+        default="1.0d-8">
         <xs:annotation>
           <xs:documentation>smallest occupancy for which a state will contribute to the
             density.</xs:documentation>
