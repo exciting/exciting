@@ -41,14 +41,11 @@ subroutine scf_cycle(verbosity)
         call printbox(60,"+",string)
     End If
 
-
-!! TIME - Begin of initialisation segment 
-
-    Call timesec (ts0)
-
 !_______________________________________________________________
 ! initialise or read the charge density and potentials from file
 
+!! TIME - Begin of initialisation segment 
+    Call timesec (ts0)
     If ((task .Eq. 1) .Or. (task .Eq. 3)) Then
         Call readstate
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Potential read in from STATE.OUT")')
@@ -88,7 +85,6 @@ subroutine scf_cycle(verbosity)
     
     Call timesec (ts1)
     timeinit = timeinit+ts1-ts0
-
 !! TIME - End of initialisation segment    
 
 !----------------------------------------------------
@@ -271,7 +267,6 @@ subroutine scf_cycle(verbosity)
 #else
         Do ik = 1, nkpt
 #endif
-        
             Call putoccsv (ik, occsv(:, ik))
         End Do
 
@@ -361,8 +356,9 @@ subroutine scf_cycle(verbosity)
 !-----------------------------------
         Call poteff
         
-!__________________
-! Mixer
+!---------------
+! Mixing
+!---------------
 ! pack interstitial and muffin-tin effective potential and field into one array
         Call packeff (.True., n, v)
 ! mix in the old potential and field with the new
@@ -372,7 +368,7 @@ subroutine scf_cycle(verbosity)
 #endif
 ! unpack potential and field
         Call packeff (.False., n, v)
-!-----------------------------------
+!---------------
 
 ! Fourier transform effective potential to G-space
         Call genveffig
@@ -468,7 +464,7 @@ subroutine scf_cycle(verbosity)
 !! TIME - End of third IO segment
 
 ! exit self-consistent loop if last iteration is complete
-        If (tlast) Go To 20
+        If (tlast) goto 20
 
 ! update convergence criteria
         deltae=abs(et-engytot)
@@ -541,7 +537,7 @@ subroutine scf_cycle(verbosity)
                &    dforcemax, input%groundstate%epsforcescf
             end if
 
-! write in RMSDVEFF.OUT and DFSCFMAX.OUT
+!...write in RMSDVEFF.OUT and DFSCFMAX.OUT
             if ((verbosity>-2).and.(rank==0)) then 
                 Write (65, '(G18.10)') currentconvergence
                 Call flushifc(65)
@@ -551,20 +547,22 @@ subroutine scf_cycle(verbosity)
                 end if
             end if
 
+!-----------------------
 ! check for convergence
+!-----------------------
             if (input%groundstate%scfconv .eq. 'energy') &
-           &    tlast = (deltae .lt. input%groundstate%epsengy)
+            &    tlast = (deltae .lt. input%groundstate%epsengy)
 
             if (input%groundstate%scfconv .eq. 'potential') &
-           &    tlast = (currentconvergence .lt. input%groundstate%epspot)
+            &    tlast = (currentconvergence .lt. input%groundstate%epspot)
            
             if (input%groundstate%scfconv .eq. 'charge') &
             &   tlast = (chgdst .lt. input%groundstate%epschg)
 
             if (input%groundstate%scfconv .eq. 'multiple') then
                 tlast = (currentconvergence .lt. input%groundstate%epspot) .and. &
-               &        (deltae .lt. input%groundstate%epsengy) .and. &
-               &        (chgdst .lt. input%groundstate%epschg)
+                &       (deltae .lt. input%groundstate%epsengy) .and. &
+                &       (chgdst .lt. input%groundstate%epschg)
             end if
 
             if (input%groundstate%tforce) then
@@ -586,6 +584,7 @@ subroutine scf_cycle(verbosity)
             end if
 
         End If ! iscl>2
+        
 #ifdef MPI
         Call MPI_bcast (tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
         Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
@@ -594,9 +593,8 @@ subroutine scf_cycle(verbosity)
         timeio=ts1-ts0+timeio
 !! TIME - End of fourth IO segment
 
-    End Do
+    End Do ! iscl
 ! end the self-consistent loop
-
 20  Continue
 
     Call timesec(ts0)
@@ -611,17 +609,20 @@ subroutine scf_cycle(verbosity)
             Write (60, '(" STATE.OUT is written")')
         end if
     End If
-    Call timesec(ts1)
-    timeio=ts1-ts0+timeio   
 ! delete BROYDEN.OUT
-            If (rank==0) then   
-                Inquire (File='BROYDEN.OUT', Exist=Exist)
-                If (exist) Then
-                    Open (23, File='BROYDEN.OUT')
-                    Close (23, Status='DELETE')
-                End If
-            End If
-! compute forces
+    If (rank==0) then   
+        Inquire (File='BROYDEN.OUT', Exist=Exist)
+        If (exist) Then
+            Open (23, File='BROYDEN.OUT')
+            Close (23, Status='DELETE')
+        End If
+    End If
+    Call timesec(ts1)
+    timeio=ts1-ts0+timeio
+   
+!------------------    
+! Compute forces
+!------------------
     If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
         Call force
 #ifdef MPI
@@ -633,7 +634,6 @@ subroutine scf_cycle(verbosity)
         forcetot(1:3,1:natmtot)=forcesum(1:3,1:natmtot)/dble(procs)
         deallocate(forcesum)
 #endif
-
 ! output forces to INFO.OUT        
         if ((verbosity>-1).and.(rank==0)) then
            call printbox(60,"-","Writing atomic positions and forces")
@@ -656,9 +656,9 @@ subroutine scf_cycle(verbosity)
            end do
            call writeforce(60,2)
         end if
-    End If
+    End If ! compute forces
 
-! set nwork to -2 to tell interface to call the deallocation functions
+    ! set nwork to -2 to tell interface to call the deallocation functions
     If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, -2)
     Deallocate(v)
     Call mpiresumeevecfiles()

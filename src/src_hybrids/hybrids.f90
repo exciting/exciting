@@ -198,10 +198,10 @@ Subroutine hybrids
             call chgdist(rhomtref,rhoirref)
             if (rank==0) Then
               write(60,*)
-              write(60,'(" Absolute change in total energy (target)   : ",G18.10," (",G18.10,")")') &
-              &  deltae, input%groundstate%epsengy
+              write(60,'(" Absolute change in total energy   (target) : ",G18.10," (",G18.10,")")') &
+              &     deltae, input%groundstate%epsengy
               write(60,'(" Charge distance                   (target) : ",G18.10," (",G18.10,")")') &
-              &    chgdst, input%groundstate%epschg
+              &     chgdst, input%groundstate%epschg
             end if
 
             !if (deltae < input%groundstate%epsengy*10) Then
@@ -221,7 +221,7 @@ Subroutine hybrids
 !-----------------------------------
         call timesec(ts0)
         call calc_vxnl
-        write(*,*) 'calc_vxnl=', sum(vxnl)
+        !write(*,*) 'calc_vxnl=', sum(vxnl)
         call timesec(ts1)
         if (rank==0) then
             write(60,*)
@@ -232,7 +232,7 @@ Subroutine hybrids
 ! calculate the non-local potential hamiltonian matrix
         call timesec(ts0)
         call calc_vnlmat
-        write(*,*) 'calc_vnlmat=', sum(vnlmat)
+        !write(*,*) 'calc_vnlmat=', sum(vnlmat)
         call timesec(ts1)
         if (rank==0) then
             call write_cputime(60,ts1-ts0, 'CALC_VNLMAT')
