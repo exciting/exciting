@@ -83,7 +83,7 @@ subroutine genpmatcor(ik,ngp,apwalm,evecfv,evecsv,pmatc)
             irc=0
             do ir=1,nrmt(is),input%groundstate%lradstep
                 irc=irc+1
-                fr(irc)=rwfcr(ir,1,ist2,ias)*spr(ir,is)*spr(ir,is)
+                fr(irc)=ucore(ir,1,ist2,ias)*spr(ir,is)*spr(ir,is)
             enddo ! ir
             do m=-l,l
               lm=idxlm(l,m)

@@ -417,6 +417,10 @@ Subroutine init0
 ! exchange-correlation potential
       If (allocated(vxcmt)) deallocate (vxcmt)
       Allocate (vxcmt(lmmaxvr, nrmtmax, natmtot))
+      !if (allocated(vxmt)) deallocate(vxmt)
+      !allocate(vxmt(lmmaxvr,nrmtmax,natmtot))
+      !if (allocated(vcmt)) deallocate(vcmt)
+      !allocate(vcmt(lmmaxvr,nrmtmax,natmtot))
       If (allocated(vxcir)) deallocate (vxcir)
       Allocate (vxcir(ngrtot))
 ! exchange-correlation magnetic field

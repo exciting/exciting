@@ -16,7 +16,7 @@ Subroutine hybrids
 !
 ! !REVISION HISTORY:
 !   Created September 2013 (DIN)
-!   Modified Oktober 2013
+!   Modified October 2013
 !   Modified Februar 2014
 !EOP
 !BOC
@@ -27,6 +27,10 @@ Subroutine hybrids
 ! time measurements
     Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0, time_hyb
     character*(77) :: string
+    
+    ! Charge distance
+    Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
+    Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
 
 !! TIME - Initialisation segment
     Call timesec (tsg0)
@@ -132,6 +136,14 @@ Subroutine hybrids
 ! begin the (external) self-consistent loop
 !------------------------------------------!
 
+!_____________________________
+! reference density
+
+    If (allocated(rhomtref)) deallocate(rhomtref)
+    Allocate(rhomtref(lmmaxvr,nrmtmax,natmtot))
+    If (allocated(rhoirref)) deallocate(rhoirref)
+    Allocate (rhoirref(ngrtot))
+
     do ihyb = 0, input%groundstate%maxscl
 
 ! exit self-consistent loop if last iteration is complete
@@ -151,18 +163,30 @@ Subroutine hybrids
             Call flushifc(60)
         End If
 
-!____________________________________________
-! KS self-consistent run
 
         ! hybrids always start after normal DFT self-consistent run
-        if (ihyb==0) ex_coef = 0.d0
+        if (ihyb==0) then
+          task = 0
+          ex_coef = 0.d0
+        else
+          task = 7
+          ex_coef = input%groundstate%Hybrid%excoeff
+          input%groundstate%mixerswitch = 1
+          input%groundstate%scfconv = 'charge'
+          rhomtref(:,:,:) = rhomt(:,:,:)
+          rhoirref(:) = rhoir(:)
+        end if
+        
+!---------------------------
+! KS self-consistent run
+!---------------------------
         call scf_cycle(-1)
 
 ! some output        
         if (rank==0) then
             call writeengy(60)
             write(60,*)
-            write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F22.12)') fermidos
+            write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
             call writechg(60,input%groundstate%outputlevelnumber)
             if (fermidos<1.0d-4) call printbandgap(60)
             call flushifc(60)
@@ -171,12 +195,17 @@ Subroutine hybrids
 ! check for convergence
         if (ihyb>0) then
             deltae = dabs(et-engytot)
+            call chgdist(rhomtref,rhoirref)
             if (rank==0) Then
               write(60,*)
               write(60,'(" Absolute change in total energy (target)   : ",G18.10," (",G18.10,")")') &
               &  deltae, input%groundstate%epsengy
+              write(60,'(" Charge distance                   (target) : ",G18.10," (",G18.10,")")') &
+              &    chgdst, input%groundstate%epschg
             end if
-             if (deltae < input%groundstate%epsengy*10) Then
+
+            !if (deltae < input%groundstate%epsengy*10) Then
+            if (chgdst .lt. input%groundstate%epschg) then
                 if (rank==0) Then
                     write(string,'("Convergence target is reached")')
                     call printbox(60,"+",string)
@@ -186,14 +215,10 @@ Subroutine hybrids
             end if
         end if
         et = engytot
-
-! preparation for next hybrid's run
-        if (ihyb==0) then
-            ex_coef = input%groundstate%Hybrid%excoeff
-            task = 7
-        end if
-        
+       
+!-----------------------------------
 ! calculate the non-local potential
+!-----------------------------------
         call timesec(ts0)
         call calc_vxnl
         write(*,*) 'calc_vxnl=', sum(vxnl)
@@ -203,7 +228,7 @@ Subroutine hybrids
             call write_cputime(60,ts1-ts0, 'CALC_VXNL')
         end if
         time_hyb = time_hyb+ts1-ts0
-
+        
 ! calculate the non-local potential hamiltonian matrix
         call timesec(ts0)
         call calc_vnlmat

@@ -102,7 +102,7 @@
                       eles(ias,ipr1,1)=l1
                       eles(ias,ipr1,2)=l2
                       do ir=1,nrmt(is)
-                        uprod(ias,ipr1,ir)=rwfcr(ir,1,ist,ias)* &
+                        uprod(ias,ipr1,ir)=ucore(ir,1,ist,ias)* &
                      &                     apwfr(ir,1,io2,l2,ias)*spr(ir,is)
                       enddo ! ir
                     end if ! apwdm=0
@@ -120,7 +120,7 @@
                     eles(ias,ipr1,1)=l1
                     eles(ias,ipr1,2)=l2 
                     do ir=1,nrmt(is)
-                      uprod(ias,ipr1,ir)=rwfcr(ir,1,ist,ias)* &
+                      uprod(ias,ipr1,ir)=ucore(ir,1,ist,ias)* &
                    &                     lofr(ir,1,ilo2,ias)*spr(ir,is)
                     enddo ! ir
                   end if ! l2
