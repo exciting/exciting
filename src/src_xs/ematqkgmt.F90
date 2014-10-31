@@ -19,7 +19,8 @@ Subroutine ematqkgmt (iq, ik, igq,integrals)
       Implicit None
   ! arguments
       Integer, Intent (In) :: iq, ik, igq
-      type (mtints_type) :: integrals
+!      type (mtints_type) :: integrals
+      complex(8) :: integrals(apwmaxsize+lomaxsize,apwmaxsize+lomaxsize,natmtot)
   ! local variables
       Character (*), Parameter :: thisnam = 'ematqkgmt'
       Integer :: is, ia, ias, l1, m1, lm1, l3, m3, lm3, io, io1, io2, &
@@ -39,7 +40,7 @@ Subroutine ematqkgmt (iq, ik, igq,integrals)
       ikt = ik
       lmax1 = input%xs%lmaxapwwf
       lmax3 = lmax1
-      zmsize=max(apwmaxsize,lomaxsize)
+      zmsize=apwmaxsize+lomaxsize
       allocate(zm(1:istu2-istl2+1,zmsize))
 
 !      xih (:, :) = zzero
@@ -59,13 +60,13 @@ Subroutine ematqkgmt (iq, ik, igq,integrals)
           call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       nst2, &          ! M ... rows of op( A ) = rows of C
-                      apwmaxsize, &           ! N ... cols of op( B ) = cols of C
-                      apwmaxsize, &          ! K ... cols of op( A ) = rows of op( B )
+                      apwsize(is)+losize(is), &           ! N ... cols of op( B ) = cols of C
+                      apwsize(is)+losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      apwcmtfun(1,1,ias), &           ! B
+                      cmtfun(1,1,ias), &           ! B
                       nst2, &          ! LDB ... leading dimension of B
-                      integrals%aa(1,1,ias), &           ! A
-                      apwmaxsize,&           ! LDA ... leading dimension of A
+                      integrals(1,1,ias), &           ! A
+                      apwmaxsize+lomaxsize,&           ! LDA ... leading dimension of A
                       zzero, &          ! beta
                       zm, &  ! C
                       nst2 & ! LDC ... leading dimension of C
@@ -74,9 +75,9 @@ Subroutine ematqkgmt (iq, ik, igq,integrals)
                      'T', &           ! TRANSB = 'N'  op( B ) = B.
                       nst1, &    ! M ... rows of op( A ) = rows of C
                       nst2, &           ! N ... cols of op( B ) = cols of C
-                      apwmaxsize, &          ! K ... cols of op( A ) = rows of op( B )
+                      apwsize(is)+losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       prefactor, &          ! alpha
-                      apwcmtfun0(1,1,ias), &           ! B
+                      cmtfun0(1,1,ias), &           ! B
                       nst1, &          ! LDB ... leading dimension of B
                       zm, &           ! A
                       nst2,&           ! LDA ... leading dimension of A
@@ -84,114 +85,13 @@ Subroutine ematqkgmt (iq, ik, igq,integrals)
                       xiou(1,1,igq), &  ! C
                       nst1 &      ! LDC ... leading dimension of C
                      )
- 
 
             Call timesec (cmt1)
-           !--------------------------------------!
-           !     local-orbital-APW contribution   !
-           !--------------------------------------!
-           ! loop over local orbitals
-          call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                     'N', &           ! TRANSB = 'N'  op( B ) = B.
-                      nst2, &          ! M ... rows of op( A ) = rows of C
-                      losize(is), &           ! N ... cols of op( B ) = cols of C
-                      apwmaxsize, &          ! K ... cols of op( A ) = rows of op( B )
-                      zone, &          ! alpha
-                      apwcmtfun(1,1,ias), &           ! B
-                      nst2, &          ! LDB ... leading dimension of B
-                      integrals%loa(1,1,ias), &           ! A
-                      apwmaxsize,&           ! LDA ... leading dimension of A
-                      zzero, &          ! beta
-                      zm, &  ! C
-                      nst2 & ! LDC ... leading dimension of C
-                     )
-          call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                     'T', &           ! TRANSB = 'N'  op( B ) = B.
-                      nst1, &    ! M ... rows of op( A ) = rows of C
-                      nst2, &           ! N ... cols of op( B ) = cols of C
-                      losize(is), &          ! K ... cols of op( A ) = rows of op( B )
-                      prefactor, &          ! alpha
-                      locmtfun0(1,1,ias), &           ! B
-                      nst1, &          ! LDB ... leading dimension of B
-                      zm, &           ! A
-                      nst2,&           ! LDA ... leading dimension of A
-                      zone, &          ! beta
-                      xiou(1,1,igq), &  ! C
-                      nst1 &      ! LDC ... leading dimension of C
-                     )
-
-               Call timesec (cmt2)
-           !--------------------------------------!
-           !     APW-local-orbital contribution   !
-           !--------------------------------------!
-          call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                     'N', &           ! TRANSB = 'N'  op( B ) = B.
-                      nst2, &          ! M ... rows of op( A ) = rows of C
-                      apwmaxsize, &           ! N ... cols of op( B ) = cols of C
-                      losize(is), &          ! K ... cols of op( A ) = rows of op( B )
-                      zone, &          ! alpha
-                      locmtfun(1,1,ias), &           ! B
-                      nst2, &          ! LDB ... leading dimension of B
-                      integrals%alo(1,1,ias), &           ! A
-                      lomaxsize,&           ! LDA ... leading dimension of A
-                      zzero, &          ! beta
-                      zm, &  ! C
-                      nst2 & ! LDC ... leading dimension of C
-                     )
-          call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                     'T', &           ! TRANSB = 'N'  op( B ) = B.
-                      nst1, &    ! M ... rows of op( A ) = rows of C
-                      nst2, &           ! N ... cols of op( B ) = cols of C
-                      apwmaxsize, &          ! K ... cols of op( A ) = rows of op( B )
-                      prefactor, &          ! alpha
-                      apwcmtfun0(1,1,ias), &           ! B
-                      nst1, &          ! LDB ... leading dimension of B
-                      zm, &           ! A
-                      nst2,&           ! LDA ... leading dimension of A
-                      zone, &          ! beta
-                      xiou(1,1,igq), &  ! C
-                      nst1 &      ! LDC ... leading dimension of C
-                     )
- 
-               Call timesec (cmt3)
-           !------------------------------------------------!
-           !     local-orbital-local-orbital contribution   !
-           !------------------------------------------------!
-          call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                     'N', &           ! TRANSB = 'N'  op( B ) = B.
-                      nst2, &          ! M ... rows of op( A ) = rows of C
-                      losize(is), &           ! N ... cols of op( B ) = cols of C
-                      losize(is), &          ! K ... cols of op( A ) = rows of op( B )
-                      zone, &          ! alpha
-                      locmtfun(1,1,ias), &           ! B
-                      nst2, &          ! LDB ... leading dimension of B
-                      integrals%lolo(1,1,ias), &           ! A
-                      lomaxsize,&           ! LDA ... leading dimension of A
-                      zzero, &          ! beta
-                      zm, &  ! C
-                      nst2 & ! LDC ... leading dimension of C
-                     )
-          call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                     'T', &           ! TRANSB = 'N'  op( B ) = B.
-                      nst1, &    ! M ... rows of op( A ) = rows of C
-                      nst2, &           ! N ... cols of op( B ) = cols of C
-                      losize(is), &          ! K ... cols of op( A ) = rows of op( B )
-                      prefactor, &          ! alpha
-                      locmtfun0(1,1,ias), &           ! B
-                      nst1, &          ! LDB ... leading dimension of B
-                      zm, &           ! A
-                      nst2,&           ! LDA ... leading dimension of A
-                      zone, &          ! beta
-                      xiou(1,1,igq), &  ! C
-                      nst1 &      ! LDC ... leading dimension of C
-                     )
-
-            Call timesec (cmt4)
            if (whichthread.eq.0) then
             cpumtaa = cpumtaa + cmt1 - cmt0
-            cpumtloa = cpumtloa + cmt2 - cmt1
-            cpumtalo = cpumtalo + cmt3 - cmt2
-            cpumtlolo = cpumtlolo + cmt4 - cmt3
+!            cpumtloa = cpumtloa + cmt2 - cmt1
+!            cpumtalo = cpumtalo + cmt3 - cmt2
+!            cpumtlolo = cpumtlolo + cmt4 - cmt3
            endif
         ! end loop over species and atoms
          End Do ! ia

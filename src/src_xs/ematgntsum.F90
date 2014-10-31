@@ -15,7 +15,7 @@ Subroutine ematgntsum (iq, igq, integrals)
       Implicit None
   ! arguments
       Integer, Intent (In) :: iq, igq
-      type(mtints_type) :: integrals
+      complex(8) :: integrals(apwmaxsize+lomaxsize,apwmaxsize+lomaxsize,natmtot)
   ! local variables
       Integer :: is, ia, ias,iaug1,iaug2
       Integer :: l1, l2, l3, m2, lm2
@@ -50,10 +50,11 @@ Subroutine ematgntsum (iq, igq, integrals)
 !      Allocate (integrals%loa(apwmaxsize, lomaxsize, natmtot))
 !      Allocate (integrals%lolo(lomaxsize, lomaxsize, natmtot))
   ! allocate temporary arrays
-      integrals%aa(:, :, :) = zzero
-      integrals%alo( :, :, :) = zzero
-      integrals%loa(:, :, :) = zzero
-      integrals%lolo(:, :, :) = zzero
+      integrals=zzero
+!      integrals%aa(:, :, :) = zzero
+!      integrals%alo( :, :, :) = zzero
+!      integrals%loa(:, :, :) = zzero
+!      integrals%lolo(:, :, :) = zzero
       If (input%xs%dbglev .Gt. 2) Then
      ! APW-APW
          Call getunit (u1)
@@ -150,7 +151,7 @@ Subroutine ematgntsum (iq, igq, integrals)
                       do io1=1,apword(l1,is)
                         iaug1=iaug1+1
                         lm1=idxlm(l1,m1)
-                        integrals%aa(iaug2,iaug1,ias)=intrgaa (lm1, io1, lm3, io2)
+                        integrals(iaug2,iaug1,ias)=intrgaa (lm1, io1, lm3, io2)
                       enddo
                     enddo
                   enddo
@@ -210,7 +211,7 @@ Subroutine ematgntsum (iq, igq, integrals)
                   do io=1,apword(l1,is)
                     iaug1=iaug1+1
                     lm1=idxlm(l1,m1)
-                    integrals%alo(iaug2,iaug1,ias)=intrgalo (m3, ilo, lm1, io)
+                    integrals(apwsize(is)+iaug2,iaug1,ias)=intrgalo (m3, ilo, lm1, io)
                   enddo
                 enddo
                enddo
@@ -275,7 +276,7 @@ Subroutine ematgntsum (iq, igq, integrals)
                   do io=1,apword(l1,is)
                     iaug1=iaug1+1
                     lm1=idxlm(l1,m1)
-                    integrals%loa(iaug1,iaug2,ias)=intrgloa (m3, ilo, lm1, io)
+                    integrals(iaug1,apwsize(is)+iaug2,ias)=intrgloa (m3, ilo, lm1, io)
                   enddo
                 enddo
                enddo
@@ -330,7 +331,7 @@ Subroutine ematgntsum (iq, igq, integrals)
                 l1 = lorbl (ilo1, is)
                 do m1=-l1,l1
                   iaug1=iaug1+1
-                  integrals%lolo(iaug2,iaug1,ias)=intrglolo (m1, ilo1, m3, ilo2)
+                  integrals(apwsize(is)+iaug2,apwsize(is)+iaug1,ias)=intrglolo (m1, ilo1, m3, ilo2)
                 enddo
               enddo
 

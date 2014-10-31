@@ -81,7 +81,7 @@ Module modxs
   ! maximum number of local orbitals 
       Integer :: lomaxsize
   ! number of local orbitals 
-      Integer, allocatable :: losize(:)
+      Integer, allocatable :: losize(:),apwsize(:)
   ! index from G+q-vectors to G-vectors
       Integer, Allocatable :: igqig (:, :)
   ! map from integer grid to G+q-vector array
@@ -172,18 +172,16 @@ Module modxs
       Real (8), Allocatable :: evalsv0 (:, :)
   ! expansion coefficients of APW functions
       Complex (8), Allocatable :: apwcmt (:, :, :, :)
-      Complex (8), Allocatable :: apwcmtfun (:, :, :)
   ! expansion coefficients of APW functions (q=0)
       Complex (8), Allocatable :: apwcmt0 (:, :, :, :)
-      Complex (8), Allocatable :: apwcmtfun0 (:, :, :)
 
   ! expansion coefficients of local orbitals functions
       Complex (8), Allocatable :: locmt (:, :, :, :)
-      Complex (8), Allocatable :: locmtfun (:, :, :)
   ! expansion coefficients of local orbitals functions (q=0)
       Complex (8), Allocatable :: locmt0 (:, :, :, :)
-      Complex (8), Allocatable :: locmtfun0 (:, :, :)
- 
+      Complex (8), Allocatable :: cmtfun (:, :, :)
+      Complex (8), Allocatable :: cmtfun0 (:, :, :)
+
   !--------------------------------------------!
   !     eigenvalue and occupancy variables     !
   !--------------------------------------------!
