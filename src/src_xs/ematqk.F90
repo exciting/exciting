@@ -30,7 +30,7 @@ Subroutine ematqk (iq, ik)
 #endif
 
       Implicit None
-      type(mtints_type) :: integrals
+!      type(mtints_type) :: integrals
       
   ! arguments
       Integer, Intent (InOut) :: iq, ik
@@ -43,6 +43,9 @@ Subroutine ematqk (iq, ik)
       Complex (8), Allocatable :: evecfvu2 (:, :)
       Complex (8), Allocatable :: zfft0(:,:),zfft(:),zfftres(:),zfftcf(:)
       Complex (8), Allocatable :: xihir (:, :)
+  ! expansion coefficients of APW and LO functions
+      Complex (8), Allocatable :: integrals(:,:,:)
+
       Integer :: ikq, igq, n, n0, is,l,m,io,naug,ia,ias,lm,ilo,whichthread,ig,ix,igs,ist2,ist1
       Real (8) :: cpuini, cpuread, cpumain, cpuwrite, cpuall
       Real (8) :: cpugnt, cpumt, cpuir, cpufft
@@ -54,6 +57,7 @@ Subroutine ematqk (iq, ik)
       logical :: umklapp
       type (fftmap_type) :: fftmap
       Real (8) :: emat_gmax,ta,tb
+
 
 !      write(*,*) 'nst',nst1,nst2
 !      write(*,*) 'istl/istu',istl1,istu1,istl2,istu2
@@ -134,16 +138,19 @@ Subroutine ematqk (iq, ik)
 !      evecfvo20 (:, :) = evecfv0 (1:ngk0(1, ik), istl1:istu1, 1)
   ! change back file extension
 !
+
       apwmaxsize=0
+      allocate(apwsize(nspecies))
       do is=1,nspecies
         naug=0
         do l=0, input%xs%lmaxapwwf
           naug=naug+(2*l+1)*apword(l,is)
         enddo
+        apwsize(is)=naug
         apwmaxsize=max(apwmaxsize,naug)
       enddo
 
-      allocate(losize(is))
+      allocate(losize(nspecies))
       lomaxsize=0
       losize=0
       do is=1,nspecies
@@ -153,9 +160,17 @@ Subroutine ematqk (iq, ik)
         lomaxsize=max(lomaxsize,losize(is))
       enddo
 
+
+
+      allocate(cmtfun0(nst1,apwmaxsize+lomaxsize,natmtot))
+      cmtfun0=zzero
+      allocate(cmtfun(nst2,apwmaxsize+lomaxsize,natmtot))
+      cmtfun=zzero
+      apwcmt0=zzero
+      apwcmt=zzero
+
       Call getapwcmt (0, ik, 1, nstfv, input%xs%lmaxapwwf, apwcmt0)
-      allocate(apwcmtfun0(nst1,apwmaxsize,natmtot))
-      apwcmtfun0=zzero
+      ilo=0
       do is=1,nspecies
         do ia=1,natoms(is)
           naug=0
@@ -165,16 +180,17 @@ Subroutine ematqk (iq, ik)
               do io=1,apword(l,is)
                 naug=naug+1
                 lm=idxlm(l,m)
-                apwcmtfun0(1:nst1,naug,ias)=conjg(apwcmt0(istl1:istu1,io,lm,ias))
+                cmtfun0(1:nst1,naug,ias)=conjg(apwcmt0(istl1:istu1,io,lm,ias))
               enddo
             enddo
           enddo
+          cmtfun0(1:nst1,naug+1:naug+losize(is),ias)=conjg(transpose(evecfvo0 (ilo+1:ilo+losize(is), 1:nst1)))
+          ilo=ilo+losize(is)
         enddo
       enddo
 
       Call getapwcmt (iq, ikq, 1, nstfv, input%xs%lmaxapwwf, apwcmt)
-      allocate(apwcmtfun(nst2,apwmaxsize,natmtot))
-      apwcmtfun=zzero
+      ilo=0
       do is=1,nspecies
         do ia=1,natoms(is)
           naug=0
@@ -184,40 +200,15 @@ Subroutine ematqk (iq, ik)
               do io=1,apword(l,is)
                 naug=naug+1
                 lm=idxlm(l,m)
-                apwcmtfun(1:nst2,naug,ias)=apwcmt(istl2:istu2,io,lm,ias)
+                cmtfun(1:nst2,naug,ias)=apwcmt(istl2:istu2,io,lm,ias)
               enddo
             enddo
           enddo
+          cmtfun(1:nst2,naug+1:naug+losize(is),ias)=transpose(evecfvu (ilo+1:ilo+losize(is), 1:nst2))
+          ilo=ilo+losize(is)
         enddo
       enddo
 
-      locmt=zzero
-!      Call getlocmt (0, ik, 1, nstfv, locmt0)
-!      Call getlocmt (iq, ikq, 1, nstfv, locmt)
-      allocate(locmtfun0(nst1,lomaxsize,natmtot))
-      locmtfun0=zzero
-      naug=0
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
-          locmtfun0(1:nst1,1:losize(is),ias)=conjg(transpose(evecfvo0 (naug+1:naug+losize(is), 1:nst1)))
-          naug=naug+losize(is)
-        enddo
-      enddo
-
-      allocate(locmtfun(nst2,lomaxsize,natmtot))
-      locmtfun=zzero
-      naug=0
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
-          locmtfun(1:nst2,1:losize(is),ias)=transpose(evecfvu (naug+1:naug+losize(is), 1:nst2))
-          naug=naug+losize(is)
-        enddo
-      enddo
-      
-
-      
       Call timesec (cpu0)
       cpuread = cpu0 - cpu1
 !
@@ -227,28 +218,23 @@ if (.true.) then
 !
       whichthread=0
   ! loop over G+q vectors
-cpugntlocal=0d0
-cpumtlocal=0d0
+      cpugntlocal=0d0
+      cpumtlocal=0d0
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igq,integrals,cpu00,cpu01,whichthread)
 !print *,whichthread
 #endif
-      Allocate (integrals%aa(apwmaxsize,apwmaxsize, natmtot))
-      Allocate (integrals%alo(lomaxsize, apwmaxsize, natmtot))
-      Allocate (integrals%loa(apwmaxsize, lomaxsize, natmtot))
-      Allocate (integrals%lolo(lomaxsize, lomaxsize, natmtot))
+      Allocate (integrals(apwmaxsize+lomaxsize,apwmaxsize+lomaxsize, natmtot))
 #ifdef USEOMP
       whichthread=omp_get_thread_num()
 !$OMP DO
 #endif
-
       Do igq = 1, ngq (iq)
          Call timesec (cpu00)
      ! summation of Gaunt coefficients wrt radial integrals
          Call ematgntsum (iq, igq,integrals)
          Call timesec (cpu01)
          if (whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
-
      ! muffin-tin contribution
          Call ematqkgmt (iq, ik, igq,integrals)
          Call timesec (cpu00)
@@ -258,13 +244,13 @@ cpumtlocal=0d0
 #ifdef USEOMP
 !$OMP END DO
 #endif
-         
-      deallocate(integrals%aa,integrals%alo,integrals%loa,integrals%lolo)
+      deallocate(integrals)        
+!      deallocate(integrals%aa,integrals%alo,integrals%loa,integrals%lolo)
      
 #ifdef USEOMP
 !$OMP END PARALLEL
 #endif
-      deallocate (apwcmtfun,apwcmtfun0,losize,locmtfun,locmtfun0)
+      deallocate (apwsize,losize,cmtfun,cmtfun0)
       Deallocate (evecfvu, evecfvo0)
 
 
