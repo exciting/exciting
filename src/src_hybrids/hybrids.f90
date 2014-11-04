@@ -337,11 +337,11 @@ Subroutine hybrids
 ! Save HF energies into binary file
 !----------------------------------------
 
-    Inquire (IoLength=Recl) nkpt, nstsv, vkl(:,1), evalsv(:,1)
+    Inquire (IoLength=Recl) nkptnr, nstsv, vklnr(:,1), evalsv(:,1)
     Open (70, File='EVALHF.OUT', Action='WRITE', Form='UNFORMATTED', &
    &   Access='DIRECT', status='REPLACE', Recl=Recl)
-    do ik = 1, nkpt
-        write(70, Rec=ik) nkpt, nstsv, vkl(:,ik), evalsv(:,ik)-efermi
+    do ik = 1, nkptnr
+        write(70, Rec=ik) nkptnr, nstsv, vklnr(:,ik), evalsv(:,indkp(ik))-efermi
     end do ! ik
     Close(70)
 
