@@ -212,7 +212,7 @@
           <xs:attribute ex:importance="expert" ex:unit="" name="addDeltax" type="xs:boolean" default="false">
             <xs:annotation>
               <xs:documentation>
-	          Add Delta_x to KS eigenvalues (OEP only). 
+	          Optional: add $\alpha$ * $\Delta_x$ to KS eigenvalues that are used in GW (for OEP and OEP-Hybrids only). 
 	      </xs:documentation>
             </xs:annotation>
           </xs:attribute>
