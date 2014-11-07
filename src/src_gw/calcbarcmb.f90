@@ -88,7 +88,7 @@
       integer :: il, iu, neval, lwork, info, lrwork, liwork
       complex(8), allocatable :: work(:)
       real(8),    allocatable :: rwork(:)
-      integer,    allocatable :: iwork(:), ifail(:), isuppz(:)
+      integer,    allocatable :: iwork(:), isuppz(:)
  
 ! !EXTERNAL ROUTINES: 
       
@@ -358,6 +358,7 @@ else
       iu = matsiz
       abstol = 2.d0*dlamch('S')
       allocate(work(1),rwork(1),iwork(1))
+      allocate(isuppz(2*matsiz))
       call zheevr('V', 'A', 'U', matsiz, barc, matsiz, vl, vu, il, iu, &
       &           abstol, neval, barcev, vmat, matsiz, isuppz, work, lwork, rwork, &
       &           lrwork, iwork, liwork, info)
@@ -368,7 +369,6 @@ else
       ! write(*,*) lrwork,liwork,lwork
       deallocate(work,rwork,iwork)
       allocate(work(lwork),rwork(lrwork),iwork(liwork))
-      allocate(isuppz(2*matsiz))
       call zheevr('V', 'A', 'U', matsiz, barc, matsiz, vl, vu, il, iu, &
       &           abstol, neval, barcev, vmat, matsiz, isuppz, work, lwork, rwork, &
       &           lrwork, iwork, liwork, info)
