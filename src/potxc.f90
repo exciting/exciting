@@ -175,7 +175,7 @@ do is=1,nspecies
 ! exchange-correlation potential
       if (xctype(1).Ge.400) then
         ! Hybrid functionals: muliply exchange part by mixing parameter
-        vxc(1:n)=(1-ex_coef)*vx(1:n)+vc(1:n)
+        vxc(1:n)=(1-ex_coef)*vx(1:n)+ec_coef*vc(1:n)
       else
         vxc(1:n)=vx(1:n)+vc(1:n)
       end if
@@ -184,9 +184,12 @@ do is=1,nspecies
 ! convert exchange and correlation energy densities to spherical harmonics
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,ex,lmmaxvr, &
                0.d0,exmt(:,:,ias),lmmaxvr)
-    If (xctype(1).Ge.400) exmt(:,:,ias) = (1.d0-ex_coef)*exmt(:,:,ias)
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,ec,lmmaxvr, &
                0.d0,ecmt(:,:,ias),lmmaxvr)
+    if (xctype(1).Ge.400) then
+      exmt(:,:,ias) = (1.d0-ex_coef)*exmt(:,:,ias)
+      ecmt(:,:,ias) = ec_coef*ecmt(:,:,ias)
+    end if
     
 ! convert exchange-correlation potential to spherical harmonics
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,vxc,lmmaxvr, &
@@ -284,8 +287,9 @@ else
 
   if (xctype(1).Ge.400) then
     ! For Exciting Hybrids muliply exchange part by mixing parameter
-    vxcir(1:ngrtot) = (1.d0-ex_coef)*vx(1:ngrtot)+vc(1:ngrtot)
+    vxcir(1:ngrtot) = (1.d0-ex_coef)*vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
     exir(:) = (1.d0-ex_coef)*exir(:)
+    ecir(:) = ec_coef*ecir(:)
   else
     vxcir(1:ngrtot) = vx(1:ngrtot)+vc(1:ngrtot)
   end if

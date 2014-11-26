@@ -10,6 +10,7 @@
 Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
       Use modmain
       Use modinput
+      use modmpi
       Implicit None
 ! arguments
       Integer, Intent (In) :: lmax
@@ -39,28 +40,35 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
       np2 = input%groundstate%nprad / 2
 ! Fourier transform rfir to G-space
       zfft (:) = rfir (:)
-      Call zfftifc (3, ngrid,-1, zfft)
+      Call zfftifc (3, ngrid, -1, zfft)
+!-------------------------------      
 ! begin loop over all points
+!-------------------------------
+      fp(1:np) = 0.d0
+#ifdef MPI
+      Do ip = firstofset(mod(rank,np),np), lastofset(mod(rank,np),np)
+#else
       Do ip = 1, np
+#endif      
          v2 (:) = vpl (:, ip)
          Call r3frac (input%structure%epslat, v2, iv)
 ! convert point to Cartesian coordinates
          Call r3mv (input%structure%crystal%basevect, v2, v1)
 ! check if point is in a muffin-tin
          Do is = 1, nspecies
-            rmt2 = rmt (is) ** 2
-            Do ia = 1, natoms (is)
-               ias = idxas (ia, is)
+            rmt2 = rmt(is)**2
+            Do ia = 1, natoms(is)
+               ias = idxas(ia,is)
                v2 (:) = v1 (:) - atposc (:, ia, is)
                Do i1 = - 1, 1
-                  v3 (:) = v2 (:) + dble (i1) * &
-                 & input%structure%crystal%basevect(:, 1)
+                  v3(:) = v2(:) + &
+                  &        dble(i1)*input%structure%crystal%basevect(:,1)
                   Do i2 = - 1, 1
-                     v4 (:) = v3 (:) + dble (i2) * &
-                    & input%structure%crystal%basevect(:, 2)
+                     v4(:) = v3(:) + &
+                     &        dble(i2)*input%structure%crystal%basevect(:,2)
                      Do i3 = - 1, 1
-                        v5 (:) = v4 (:) + dble (i3) * &
-                       & input%structure%crystal%basevect(:, 3)
+                        v5(:) = v4(:) + &
+                        &       dble(i3)*input%structure%crystal%basevect(:, 3)
                         t1 = v5 (1) ** 2 + v5 (2) ** 2 + v5 (3) ** 2
                         If (t1 .Lt. rmt2) Then
                            Call sphcrd (v5, r, tp)
@@ -71,7 +79,7 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
                                     ir0 = 1
                                  Else If (ir .Gt. nrmt(is)-np2) Then
                                     ir0 = nrmt (is) - &
-                                   & input%groundstate%nprad + 1
+                                    &     input%groundstate%nprad + 1
                                  Else
                                     ir0 = ir - np2
                                  End If
@@ -80,14 +88,13 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
                                  Do l = 0, lmax
                                     Do m = - l, l
                                        lm = idxlm (l, m)
-                                       Do j = 1, &
-                                      & input%groundstate%nprad
+                                       Do j = 1, input%groundstate%nprad
                                           i = ir0 + j - 1
                                           ya (j) = rfmt (lm, i, ias)
                                        End Do
-                                       t2 = polynom (0, &
-                                      & input%groundstate%nprad, &
-                                      & spr(ir0, is), ya, c, r)
+                                       t2 = polynom(0, &
+                                       &            input%groundstate%nprad, &
+                                       &            spr(ir0, is), ya, c, r)
                                        sum = sum + t2 * rlm (lm)
                                     End Do
                                  End Do
@@ -111,6 +118,10 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
 10       Continue
          fp (ip) = sum
       End Do
+#ifdef MPI
+      Call mpi_allgatherv_ifc(np,1,rbuf=fp)
+      Call barrier
+#endif
       Deallocate (rlm, zfft, ya, c)
       Return
 End Subroutine

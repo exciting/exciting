@@ -57,8 +57,6 @@ Subroutine rhoplot
 !---------------------------------      
 ! write the density plot to file
 !---------------------------------
-      write(*,*)
-
       ! 1D plot
       if (associated(input%properties%chargedensityplot%plot1d)) Then
         if (associated(input%groundstate%spin)) then
@@ -195,6 +193,8 @@ end if
           call set_plotlabel_axis(labels,4,"Density","???","graceunit")
           Call plot3d(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
           &           rhomt, rhoir, input%properties%chargedensityplot%plot3d)
+          !Call plot3d_ir(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
+          !&              rhomt, rhoir, input%properties%chargedensityplot%plot3d)
           call destroy_plotlablels(labels)
           write(*, '("Info(rhoplot):")')
           Write(*, '(" 3D density plot written to RHO3D.xml")')

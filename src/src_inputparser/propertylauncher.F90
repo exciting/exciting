@@ -57,9 +57,12 @@ Subroutine propertylauncher
          Call effmass
       End If
 
-      If (associated(input%properties%chargedensityplot) .And. rank .Eq. 0) Then
+      !--------------------------------------------------------
+      If (associated(input%properties%chargedensityplot)) Then
          Call rhoplot
       End If
+      !--------------------------------------------------------
+      
       If (associated(input%properties%exccplot) .And. rank .Eq. 0) Then
          Call potplot
       End If

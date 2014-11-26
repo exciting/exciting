@@ -37,7 +37,7 @@ Subroutine hybrids
     Call timesec (ts0)
 
 ! tetrahedron method is only implemented (LIBBZINT)
-    input%groundstate%stypenumber = -1
+!    input%groundstate%stypenumber = -1
 
 ! initialise global variables
     Call timesec (tin0)
@@ -122,7 +122,7 @@ Subroutine hybrids
 !---------------------------------------
 !   Initialize k/q grids
 !---------------------------------------
-    Call init_kqpts
+    Call init_kqpts_hybrids
 
 !--------------------------------------------------------------
 ! Calculate the integrals to treat the singularities at G+q->0
@@ -166,11 +166,12 @@ Subroutine hybrids
 
         ! hybrids always start after normal DFT self-consistent run
         if (ihyb==0) then
-          task = 0
           ex_coef = 0.d0
+          ec_coef = 1.d0
         else
           task = 7
           ex_coef = input%groundstate%Hybrid%excoeff
+          ec_coef = input%groundstate%Hybrid%eccoeff
           input%groundstate%mixerswitch = 1
           input%groundstate%scfconv = 'charge'
           rhomtref(:,:,:) = rhomt(:,:,:)
@@ -203,8 +204,6 @@ Subroutine hybrids
               write(60,'(" Charge distance                   (target) : ",G18.10," (",G18.10,")")') &
               &     chgdst, input%groundstate%epschg
             end if
-
-            !if (deltae < input%groundstate%epsengy*10) Then
             if (chgdst .lt. input%groundstate%epschg) then
                 if (rank==0) Then
                     write(string,'("Convergence target is reached")')

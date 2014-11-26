@@ -22,7 +22,8 @@ Module mod_potential_and_density
       Integer :: xcgrad
 ! exchange mixing parameter for hybrid functionals
       Real (8) :: ex_coef
-!
+      Real (8) :: ec_coef
+! ?
       Integer :: maxncv
 ! muffin-tin charge density
       Real (8), Allocatable :: rhomt (:, :, :)
