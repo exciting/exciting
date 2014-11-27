@@ -172,7 +172,7 @@ subroutine init_kqpts_hybrids
          end do
       enddo ! iq
 
-      if (debug) then
+      if (.true.) then
          open(99,file='INITKQPTS.OUT',action='write')
          ! Write the list of k-points
          write(99,*) '# Irreducible k-points:'

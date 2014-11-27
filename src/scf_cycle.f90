@@ -604,11 +604,9 @@ subroutine scf_cycle(verbosity)
     end if
 ! write density and potentials to file only if maxscl > 1
     If (input%groundstate%maxscl .Gt. 1) Then
-        if (task.ne.7) then
-          Call writestate
-          If ((verbosity>-1).and.(rank==0)) Then
-              Write (60, '(" STATE.OUT is written")')
-          end if
+        Call writestate
+        If ((verbosity>-1).and.(rank==0)) Then
+            Write (60, '(" STATE.OUT is written")')
         end if
     End If
 ! delete BROYDEN.OUT
