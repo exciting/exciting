@@ -234,7 +234,7 @@ if (associated(input%groundstate%spin)) then
     call ggair_sp_2a(rhoup,rhodn,g2up,g2dn,gvup,gvdn,gup2,gdn2,gupdn)
     call xcifc(xctype,n=ngrtot,rhoup=rhoup,rhodn=rhodn,gup2=gup2,gdn2=gdn2, &
      gupdn=gupdn,ex=exir,ec=ecir,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn, &
-     dxdgu2=dxdgu2,dxdgd2=dxdgd2,dxdgud=dxdgud,dcdgu2=dxdgu2,dcdgd2=dcdgd2, &
+     dxdgu2=dxdgu2,dxdgd2=dxdgd2,dxdgud=dxdgud,dcdgu2=dcdgu2,dcdgd2=dcdgd2, &
      dcdgud=dcdgud)
     call ggair_sp_2b(g2up,g2dn,gvup,gvdn,vxup,vxdn,vcup,vcdn,dxdgu2,dxdgd2, &
      dxdgud,dcdgu2,dcdgd2,dcdgud)

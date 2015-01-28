@@ -112,7 +112,6 @@ clean:
 	cd src/stateconvert; $(MAKE) clean
 	cd src/leblaiklib; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
-	rm -f bin/*
 	rm -f interfaces/*
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
