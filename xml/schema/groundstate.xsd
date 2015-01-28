@@ -215,6 +215,12 @@
                   </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="eccoeff" type="fortrandouble"
+              default="1.0d0">
+              <xs:annotation>
+                <xs:documentation> Use for testing purposes only! </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         
@@ -2571,6 +2577,13 @@
                  </xs:appinfo>
                </xs:annotation>
             </xs:enumeration>
+            <xs:enumeration value="HYB_LDA0">
+               <xs:annotation>
+                 <xs:appinfo>
+                   <oldnr>407</oldnr>
+                 </xs:appinfo>
+               </xs:annotation>
+            </xs:enumeration>
             <xs:enumeration value="EXX">
               <xs:annotation>
                 <xs:appinfo><!-- set to "-2" or lower for EXX -->
@@ -2578,7 +2591,6 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
-
             <xs:enumeration value="none">
               <xs:annotation>
                 <xs:appinfo>

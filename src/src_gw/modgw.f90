@@ -218,6 +218,7 @@ module modgw
 !     corind(:,4)=l
 !     corind(:,5)=m
       integer(4), allocatable :: corind(:,:)
+      real(8), allocatable :: ucore(:,:,:,:)
 
 !----------------------------!
 !     Local orbitals         !

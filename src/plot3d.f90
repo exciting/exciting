@@ -59,64 +59,62 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
     Real (8), Allocatable :: fp (:, :)
 
 !-------------------------------------------------------------------------------
-
-    If (rank .Eq. 0) Then
-      
-        If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
-            Write(*,*)
-            Write(*,'("Error(plot3d): invalid number of functions : ", I8)') nf
-            Write(*,*)
-            Stop
-        End If
+    If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
+        Write(*,*)
+        Write(*,'("Error(plot3d): invalid number of functions : ", I8)') nf
+        Write(*,*)
+        Stop
+    End If
 !
 ! allocate the grid point arrays
 !
-        allocate(ipmap(0:plotdef%box%grid(1),&
-        &  0:plotdef%box%grid(2), 0:plotdef%box%grid(3)))
-        allocate(vpl(3,(plotdef%box%grid(1)+1)* &
-        &  (plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
-        v1(:) = plotdef%box%pointarray(1)%point%coord-plotdef%box%origin%coord
-        v2(:) = plotdef%box%pointarray(2)%point%coord-plotdef%box%origin%coord
-        v3(:) = plotdef%box%pointarray(3)%point%coord-plotdef%box%origin%coord
+    allocate(ipmap(0:plotdef%box%grid(1),&
+    &  0:plotdef%box%grid(2), 0:plotdef%box%grid(3)))
+    allocate(vpl(3,(plotdef%box%grid(1)+1)* &
+    &  (plotdef%box%grid(2)+1)*(plotdef%box%grid(3)+1)))
+    v1(:) = plotdef%box%pointarray(1)%point%coord-plotdef%box%origin%coord
+    v2(:) = plotdef%box%pointarray(2)%point%coord-plotdef%box%origin%coord
+    v3(:) = plotdef%box%pointarray(3)%point%coord-plotdef%box%origin%coord
 !
 ! generate the 3d point grid
 !
-        If (plotdef%usesym) Then
-           boxl(:,1) = plotdef%box%origin%coord
-           boxl(:,2) = plotdef%box%pointarray(1)%point%coord-boxl(:,1)
-           boxl(:,3) = plotdef%box%pointarray(2)%point%coord-boxl(:,1)
-           boxl(:,4) = plotdef%box%pointarray(3)%point%coord-boxl(:,1)
-           ! reduce the grid using the crystal symmetry
-           call gengrid(plotdef%box%grid,boxl,np,ipmap,vpl)
-        Else
-           ip = 0
-           Do ip3 = 0, plotdef%box%grid(3)
-              t3 = dble (ip3) / dble (plotdef%box%grid(3))
-              Do ip2 = 0, plotdef%box%grid(2)
-                 t2 = dble (ip2) / dble (plotdef%box%grid(2))
-                 Do ip1 = 0, plotdef%box%grid(1)
-                    t1 = dble (ip1) / dble (plotdef%box%grid(1))
-                    ip = ip + 1
-                    ipmap(ip1,ip2,ip3) = ip
-                    vpl(:, ip) = t1 * v1(:) + &
-                    &            t2 * v2(:) + &
-                    &            t3 * v3(:) + &
-                    &            plotdef%box%origin%coord
-                 End Do
-              End Do
-           End Do
-           np = ip
-        End If
+    If (plotdef%usesym) Then
+       boxl(:,1) = plotdef%box%origin%coord
+       boxl(:,2) = plotdef%box%pointarray(1)%point%coord-boxl(:,1)
+       boxl(:,3) = plotdef%box%pointarray(2)%point%coord-boxl(:,1)
+       boxl(:,4) = plotdef%box%pointarray(3)%point%coord-boxl(:,1)
+       ! reduce the grid using the crystal symmetry
+       call gengrid(plotdef%box%grid,boxl,np,ipmap,vpl)
+    Else
+       ip = 0
+       Do ip3 = 0, plotdef%box%grid(3)
+          t3 = dble (ip3) / dble (plotdef%box%grid(3))
+          Do ip2 = 0, plotdef%box%grid(2)
+             t2 = dble (ip2) / dble (plotdef%box%grid(2))
+             Do ip1 = 0, plotdef%box%grid(1)
+                t1 = dble (ip1) / dble (plotdef%box%grid(1))
+                ip = ip + 1
+                ipmap(ip1,ip2,ip3) = ip
+                vpl(:, ip) = t1 * v1(:) + &
+                &            t2 * v2(:) + &
+                &            t3 * v3(:) + &
+                &            plotdef%box%origin%coord
+             End Do
+          End Do
+       End Do
+       np = ip
+    End If
 !      
 ! evaluate the total density at the reduced grid points
 !
-        allocate (fp(np,nf))
-        do i = 1, nf
-            call rfarray(lmax, ld, rfmt(:, :, :, i), rfir(:, i), np, vpl, fp(:, i))
-        end do
+    allocate(fp(np,nf))
+    do i = 1, nf
+        call rfarray(lmax, ld, rfmt(:, :, :, i), rfir(:, i), np, vpl, fp(:, i))
+    end do
 !
 ! write xml
 !
+    If (rank .Eq. 0) Then
         write (buffer,*) plotlabels3d%filename,".xml"
         call xml_OpenFile( adjustl(trim(buffer)) , xf, replace=.True., pretty_print=.True.)
         call xml_NewElement(xf, "plot3d")
@@ -219,7 +217,7 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
         deallocate(ipmap)
         call xml_Close(xf)
       
-    endif
+    end if ! rank==0
     
 CONTAINS
 !

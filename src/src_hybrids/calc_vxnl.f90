@@ -42,20 +42,6 @@ subroutine calc_vxnl
     
     ! Initialize mixed product basis
     call init_mb
-
-! ***** revert back from GW definition of rwfcr
-    do is=1,nspecies
-        do ia=1,natoms(is)
-            ias=idxas(ia,is)
-            do ist=1,ncore(is)
-                l=spl(ist,is)
-                norm=sqrt(0.5d0*spocc(ist,is)/dble(2*l+1))
-                do ir=1,nrmt(is)
-                    rwfcr(ir,1,ist,ias)=spr(ir,is)*rwfcr(ir,1,ist,ias)/norm
-                end do
-            end do ! ist
-        end do
-    end do
     
 !---------------------------------------
 ! Loop over k-points
@@ -110,7 +96,7 @@ subroutine calc_vxnl
 
             jk = kqid(ik,iq)
             do ie1 = 1, nstsv
-              do ie2 = 1, nstsv
+              do ie2 = ie1, nstsv
                 sum = zzero
                 do ie3 = 1, nstsv
                   if (evalsv(ie3,ikp)<=efermi) then
@@ -134,15 +120,10 @@ subroutine calc_vxnl
               deallocate(mincmat)
                 
               do ie1 = 1, nstsv
-                do ie2 = 1, nstsv
+                do ie2 = ie1, nstsv
                   sum = zzero
                   do icg = 1, ncg
                     mvm = zdotc(mbsiz,minm(1:mbsiz,ie1,icg),1,minm(1:mbsiz,ie2,icg),1)
-                    ! BZ integration weight
-                    is = corind(icg,1)
-                    ia = corind(icg,2)
-                    ias= idxas(ia,is)
-                    ic = corind(icg,3)
                     sum = sum+mvm
                   enddo ! ie3
                   vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp)-sum/dble(nqptnr)
@@ -153,11 +134,17 @@ subroutine calc_vxnl
             end if ! iopcore
 
         end do ! iq
+        
+        do ie1 = 1, nstsv
+          do ie2 = ie1+1, nstsv
+            vxnl(ie2,ie1,ikp) = conjg(vxnl(ie1,ie2,ikp))
+          end do
+        end do
 
 !------------------------------------------------------------
 ! Debugging Info
 !------------------------------------------------------------
-        if ((debug).and.(rank==0)) then
+        if ((.true.).and.(rank==0)) then
             call linmsg(fgw,'-','')
             call linmsg(fgw,'-',' Diagonal elements of Vx_NL_nn ')
             write(fgw,*) 'for k-point ', ikp
@@ -165,11 +152,11 @@ subroutine calc_vxnl
                 write(fgw,*) ie1, vxnl(ie1,ie1,ikp)
             end do
             call linmsg(fgw,'-','')
-            call linmsg(fgw,'-',' Vx_NL_nn ')
-            do ie1 = 1, nstfv
-                write(fgw,*) vxnl(ie1,:,ikp)
-            end do
-            call linmsg(fgw,'-','')
+            !call linmsg(fgw,'-',' Vx_NL_nn ')
+            !do ie1 = 1, nstfv
+            !    write(fgw,*) vxnl(ie1,:,ikp)
+            !end do
+            !call linmsg(fgw,'-','')
         end if
     
     end do ! ikp

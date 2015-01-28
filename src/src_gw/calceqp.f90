@@ -145,8 +145,13 @@
 !             Calculate the new quasi-particle energy 
 !
               snk = real(selfex(ie,ikp))+real(sigc(ie,ikp))
-              vxcnk = real(vxcnn(ie,ikp))
-              
+              If (associated(input%groundstate%Hybrid)) Then
+                If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+                    vxcnk = real(vxcnn(ie,ikp))+ ex_coef *real(selfex(ie,ikp))
+                End If
+              Else         
+                    vxcnk = real(vxcnn(ie,ikp))
+              End If 
               select case(iopes) 
               case(0)
                 delta = znk*(snk-vxcnk)

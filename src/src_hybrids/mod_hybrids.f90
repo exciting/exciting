@@ -165,6 +165,7 @@ contains
 
 ! deallocate mixed-basis stuff
         if (allocated(ncore)) deallocate(ncore)
+        if (allocated(ucore)) deallocate(ucore)
         if (allocated(corind)) deallocate(corind)
         if (allocated(ipwint)) deallocate(ipwint)
         if (allocated(nup)) deallocate(nup)

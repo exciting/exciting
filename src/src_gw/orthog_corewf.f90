@@ -64,7 +64,7 @@
 !
 !           The norm of the core wave function ucore 
 !
-            uc(1:npt)=rwfcr(1:npt,1,icore,ias)
+            uc(1:npt)=ucore(1:npt,1,icore,ias)
             do ir = 1, npt
                fr(ir) = uc(ir)*uc(ir)*spr(ir,is)**2.d0
             end do !ir
@@ -92,7 +92,7 @@
 !
 !           Restore core wave function
 !
-            rwfcr(1:npt,1,icore,ias) = uc(1:npt)
+            ucore(1:npt,1,icore,ias) = uc(1:npt)
            
           enddo !icore
         end do !ia

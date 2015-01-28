@@ -61,7 +61,9 @@
       if (iopcore<3) then
         ! According to the definition of core wafefunction in FHIgap code [Eq.(1.1.3)],
         ! one has to include the following prefactor into radial part.
-        ! In addition I change the EXCITING definition, where rwfcr = r*ucore
+        ! In addition I change the EXCITING definition, where ucore = r*rwfcr
+        if (allocated(ucore)) deallocate(ucore)
+        allocate(ucore(spnrmax,2,spnstmax,natmtot))
         do is=1,nspecies
           do ia=1,natoms(is)
             ias=idxas(ia,is)
@@ -69,7 +71,7 @@
               l=spl(ist,is)
               norm=sqrt(0.5d0*spocc(ist,is)/dble(2*l+1))
               do ir=1,nrmt(is)
-                rwfcr(ir,1,ist,ias)=norm*rwfcr(ir,1,ist,ias)/spr(ir,is)
+                ucore(ir,1,ist,ias)=norm*rwfcr(ir,1,ist,ias)/spr(ir,is)
               end do
             enddo ! ist
           end do

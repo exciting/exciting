@@ -22,16 +22,13 @@ Module mod_potential_and_density
       Integer :: xcgrad
 ! exchange mixing parameter for hybrid functionals
       Real (8) :: ex_coef
-!
+      Real (8) :: ec_coef
+! ?
       Integer :: maxncv
 ! muffin-tin charge density
       Real (8), Allocatable :: rhomt (:, :, :)
 ! interstitial real-space charge density
       Real (8), Allocatable :: rhoir (:)
-! muffin-tin charge density (reference)
-      Real (8), Allocatable :: rhomtref (:, :, :)
-! interstitial real-space charge density (reference)
-      Real (8), Allocatable :: rhoirref (:)
 ! muffin-tin magnetisation vector field
       Real (8), Allocatable :: magmt (:, :, :, :)
 ! interstitial magnetisation vector field
@@ -46,6 +43,8 @@ Module mod_potential_and_density
 !replaced by inputstructureinteger::npsden
 ! muffin-tin exchange-correlation potential
       Real (8), Allocatable :: vxcmt (:, :, :)
+      !real (8), allocatable :: vxmt(:,:,:)
+      !real (8), allocatable :: vcmt(:,:,:)
 ! interstitial real-space exchange-correlation potential
       Real (8), Allocatable :: vxcir (:)
 ! muffin-tin exchange-correlation magnetic field

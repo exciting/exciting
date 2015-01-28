@@ -88,7 +88,7 @@
       integer :: il, iu, neval, lwork, info, lrwork, liwork
       complex(8), allocatable :: work(:)
       real(8),    allocatable :: rwork(:)
-      integer,    allocatable :: iwork(:), ifail(:), isuppz(:)
+      integer,    allocatable :: iwork(:), isuppz(:)
  
 ! !EXTERNAL ROUTINES: 
       
