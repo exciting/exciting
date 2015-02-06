@@ -29,16 +29,16 @@ Subroutine poteff
       
       Call timesec (ts0)
       
+!---------------------------------------------
+! compute the exchange-correlation potential
+!---------------------------------------------
+      Call potxc
+
 !---------------------------------
 ! compute the Coulomb potential
 !---------------------------------
       Call potcoul
       shift=input%groundstate%energyref
-
-!---------------------------------------------
-! compute the exchange-correlation potential
-!---------------------------------------------
-      Call potxc
 
 !----------------------------------------------------------
 ! add Coulomb and exchange-correlation potentials together
