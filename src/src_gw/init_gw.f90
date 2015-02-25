@@ -119,6 +119,8 @@ subroutine init_gw
            If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
 ! in case of HF hybrids use PBE potential
                statefile='STATE_PBE.OUT'
+           Else
+               statefile='STATE.OUT'
            End If
         Else         
            statefile='STATE.OUT'
