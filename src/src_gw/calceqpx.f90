@@ -68,6 +68,8 @@
         If (associated(input%groundstate%Hybrid)) Then
            If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
                vxc = real(vxcnn(ie,ikp))+ ex_coef *real(selfex(ie,ikp))
+           Else
+               vxc = real(vxcnn(ie,ikp))
            End If
         Else         
            vxc = real(vxcnn(ie,ikp))
