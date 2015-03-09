@@ -36,9 +36,8 @@ Subroutine hybrids
     Call timesec (tsg0)
     Call timesec (ts0)
 
-! tetrahedron method is only implemented (LIBBZINT)
-!    input%groundstate%stypenumber = -1
-
+! set smearing (default is LIBBZINT)
+    input%groundstate%stypenumber = input%groundstate%Hybrid%stypenumber
 ! initialise global variables
     Call timesec (tin0)
     Call init0
