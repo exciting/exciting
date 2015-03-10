@@ -259,6 +259,19 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+        <xs:element ex:importance="essential" ex:unit="" name="sphint" maxOccurs="1"
+          minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>single center integration</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:all>
+              <xs:element ex:importance="essential" ex:unit="" ref="plot1d" minOccurs="0"/>
+              <xs:element ex:importance="essential" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="essential" ex:unit="" ref="plot3d" minOccurs="0"/>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="exccplot" maxOccurs="1" minOccurs="0">
           <xs:annotation>
             <xs:documentation>Exchange-correlation and Coulomb potential plots.</xs:documentation>

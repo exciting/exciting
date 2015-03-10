@@ -62,6 +62,10 @@ Subroutine propertylauncher
          Call rhoplot
       End If
       !--------------------------------------------------------
+
+      If (associated(input%properties%sphint)) Then
+         Call sph_int
+      End If
       
       If (associated(input%properties%exccplot) .And. rank .Eq. 0) Then
          Call potplot
