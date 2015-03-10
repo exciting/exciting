@@ -21,6 +21,8 @@ Module mod_force
       Real (8), Allocatable :: forcecr (:, :)
 ! IBS core force on each atom
       Real (8), Allocatable :: forceibs (:, :)
+! DFT-D2 force on each atom
+      Real (8), Allocatable :: force_disp (:, :)
 ! total force on each atom
       Real (8), Allocatable :: forcetot (:, :)
 ! previous total force on each atom

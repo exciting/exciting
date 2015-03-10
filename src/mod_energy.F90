@@ -43,6 +43,8 @@ Module mod_energy
       Real (8) :: engyc
 ! compensating background charge energy
       Real (8) :: engycbc
+! DFT-D2 dispersion correction
+      Real (8) :: e_disp
 ! total energy
       Real (8) :: engytot
 End Module

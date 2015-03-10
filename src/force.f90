@@ -229,6 +229,17 @@ Subroutine force
          forcetot (:, ias) = forcehf (:, ias) + forcecr (:, ias) + forceibs (:, ias)
       End Do
 
+! DFT-D2 forces
+
+!      If (tlast) Then
+         If (allocated(force_disp)) deallocate (force_disp)
+         Allocate(force_disp(3,natmtot))
+         Call DFT_D2_force(force_disp,natmtot)
+         Do ias = 1, natmtot
+            forcetot (:, ias) = forcetot (:, ias) + force_disp (:, ias)
+         End Do
+!      End If 
+
 ! symmetrise total force
 
       Call symvect (.False., forcetot)

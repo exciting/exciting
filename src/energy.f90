@@ -321,6 +321,11 @@ endif
 !----------------------!
       engytot = engykn + 0.5d0 * engyvcl + engymad + engyx + engyc + &
      & engycbc
+!DFT-D2 dispersion correction
+      If (tlast) Then
+         Call DFT_D2_energy(e_disp)
+         engytot = engytot + e_disp
+      End If
 ! add the LDA+U correction if required
       If (ldapu .Ne. 0) engytot = engytot + engylu
       Return

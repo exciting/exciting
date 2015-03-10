@@ -57,6 +57,9 @@ Subroutine writeengy (fnum)
          Write (fnum, '(" Madelung energy"             , T45, ": ", F18.8)') engymad
          Write (fnum, '(" Core-electron kinetic energy", T45, ": ", F18.8)') engykncr
       End If
+      If ( tlast ) Then
+         Write (fnum, '(" DFT-D2 dispersion correction", T45, ": ", F18.8)') e_disp
+      End If
       call flushifc(fnum)
       Return
 End Subroutine
