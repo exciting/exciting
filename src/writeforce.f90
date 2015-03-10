@@ -90,7 +90,7 @@ subroutine writeforce(fnum,verbosity)
                 if (input%groundstate%tfibs) &
                &write(fnum,'(                  T18,": ",3F14.8,"   IBS correction")') &
                &  forceibs(:,ias)
-                write(fnum,'(                  T18,": ",3ES14.2,"   DFT-D2 force")') &
+                write(fnum,'(                  T18,": ",3F14.8,"   DFT-D2 force")') &
                &  force_disp(:,ias)
              end do
         end do
