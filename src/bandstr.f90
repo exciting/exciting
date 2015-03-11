@@ -105,9 +105,9 @@ Subroutine bandstr
     close(88)
     deallocate(vkl0,ehf,e0,e1)
     end if
-    #ifdef MPI
+#ifdef MPI
         Call MPI_barrier(MPI_COMM_WORLD, ierr)
-    #endif
+#endif
     return
   end if
   !--------------------
