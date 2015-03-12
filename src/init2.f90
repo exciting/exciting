@@ -45,7 +45,7 @@ Subroutine init2
       end if
 
 ! OEP, Hartree-Fock or RDMFT
-      If (associated(input%groundstate%OEP) .Or. (task .Eq. 300) &
+      If (associated(input%groundstate%OEP) .Or. associated(input%groundstate%Hybrid) .Or. (task .Eq. 300) &
       & .Or. (associated(input%groundstate%HartreeFock))) Then 
          ngridq (:) = input%groundstate%ngridk(:)
          redq = .False.

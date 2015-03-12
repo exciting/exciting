@@ -19,6 +19,9 @@ module mod_hybrids
 ! APW matrix elements of the non-local potential
     complex(8), allocatable :: vnlmat(:,:,:)
 
+! set to true if hybrids cycles are converged
+    Logical :: hyblast
+
 !*******************************************************************************
 contains
 

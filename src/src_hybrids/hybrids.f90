@@ -47,11 +47,12 @@ Subroutine hybrids
     Call init1
     Call timesec (tin1)
     time_init1=tin1-tin0
-    
+    Call init2    
 ! require forces for structural optimisation
     If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = .True.    
 ! chech if restart should be performed
     restart = input%groundstate%Hybrid%restart
+    hyblast=.false.
 !-------------------
 ! print info
 !-------------------
@@ -147,6 +148,12 @@ Subroutine hybrids
     do ihyb = 0, input%groundstate%Hybrid%maxscl
 ! exit self-consistent loop if last iteration is complete
         If (ihyb >= input%groundstate%Hybrid%maxscl) Then
+! for testing purpose
+! calculate exchange energy with exxengy.f90
+            hyblast=.true.
+            input%groundstate%maxscl=1
+            call scf_cycle(0)
+! ------------------------------------
             If (rank==0) Then
                 write(string,'("Reached hybrids self-consistent loops maximum : ", I4)') &
                &  input%groundstate%Hybrid%maxscl
@@ -203,6 +210,12 @@ Subroutine hybrids
               &     chgdst, input%groundstate%epschg
             end if
             if (chgdst .lt. input%groundstate%epschg) then
+! for testing purpose
+! calculate exchange energy with exxengy.f90
+                hyblast=.true.
+                input%groundstate%maxscl=1
+                call scf_cycle(0)
+! -----------------------
                 if (rank==0) Then
                     write(string,'("Convergence target is reached")')
                     call printbox(60,"+",string)

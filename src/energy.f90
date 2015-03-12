@@ -14,7 +14,7 @@ Subroutine energy
 ! !USES:
       Use modinput
       Use modmain
-      Use mod_hybrids, only: ihyb, exnl
+      Use mod_hybrids, only: ihyb, exnl,hyblast
 ! !DESCRIPTION:
 !   The {\tt energy} subroutine computes the total energy and its individual contributions. 
 !   The total energy is composed of kinetic, Coulomb, and exchange-correlation energy,
@@ -230,7 +230,8 @@ endif
 ! Hybrids
       if (associated(input%groundstate%Hybrid)) then
         if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
-          engyx = engyx + ex_coef*exnl
+!          engyx = engyx + ex_coef*exnl
+           If (hyblast) Call exxengy
         end if
       end if
 ! calculate exchange energy for OEP-EXX/Hybrids on last iteration
