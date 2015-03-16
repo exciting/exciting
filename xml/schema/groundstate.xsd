@@ -227,63 +227,6 @@
                 <xs:documentation>Upper limit for the Hybrids self-consistency loop.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-      <xs:attribute ex:importance="essential" ex:unit="" name="stype" default="libbzint">
-        <xs:annotation>
-          <xs:documentation> A smooth approximation to the Dirac delta function is needed to compute
-            the occupancies of the Kohn-Sham states. The attribute <attref>swidth</attref> determines the
-            width of the approximate delta function. </xs:documentation>
-        </xs:annotation>
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:enumeration value="Gaussian">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldnr>0</oldnr>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:enumeration>
-            <xs:enumeration value="Methfessel-Paxton 1">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldnr>1</oldnr>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:enumeration>
-            <xs:enumeration value="Methfessel-Paxton 2">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldnr>2</oldnr>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:enumeration>
-            <xs:enumeration value="Fermi Dirac">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldnr>3</oldnr>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:enumeration>
-            <xs:enumeration value="Square-wave impulse">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldnr>4</oldnr>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:enumeration>
-            <xs:enumeration value="libbzint">
-              <xs:annotation>
-              <xs:appinfo>
-                <oldnr>-1</oldnr>
-              </xs:appinfo>
-              <xs:documentation>
-              Extended linear tetrahedron method (LIBBZINT library) 
-              is used for k-point generation and integration (experimental option).
-              </xs:documentation>
-              </xs:annotation>
-            </xs:enumeration>
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
             <xs:attribute ex:importance="experimental" ex:unit="" name="restart" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation>
