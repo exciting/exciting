@@ -45,5 +45,7 @@ Module mod_energy
       Real (8) :: engycbc
 ! total energy
       Real (8) :: engytot
+! kinetic energies of KS states
+      Real (8), allocatable :: engyknst(:,:)
 End Module
 !

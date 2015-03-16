@@ -315,7 +315,17 @@ endif
          Deallocate (evecsv, c)
       Else
 ! Kohn-Sham case
+         engykn=0d0 !engykncr
+         do ik=1,nkpt
+           Do ist = 1, nstsv
+             engykn=engykn+engyknst(ist,ik)*wkpt (ik)*occsv (ist, ik)
+           End Do
+         enddo
+         write(*,*) engykn
          engykn = evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
+         write(*,*) engykn-engykncr
+         write(*,*)
+!         read(*,*)
       End If
 !----------------------!
 !     total energy     !

@@ -2801,6 +2801,14 @@
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="ExplicitKineticEnergy" type="xs:boolean" default="true">
+        <xs:annotation>
+          <xs:documentation> 
+            If true, the kinetic energy expectation values are calculated explicitly and, then, they are used for calculating the total energy.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
 
 
 
