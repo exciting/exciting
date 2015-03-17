@@ -48,6 +48,9 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
       integer :: ifg,ix,igk,l,m,lm,LOoffset
       real(8) :: Eiora
 
+
+
+
       if (.not.allocated(engyknst)) then
         allocate(engyknst(nstfv,nkpt))
       endif
@@ -69,8 +72,14 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 ! MT part
 
 ! APW-APW storage initialisation
-      Allocate (t_lolo( maxlorb, maxlorb))     
-      Allocate (t_alo( apwordmax, maxlorb))     
+      
+      if (nlomax.ne.0) then
+        Allocate (t_lolo( nlomax,nlomax))     
+        Allocate (t_alo( apwordmax, nlomax))     
+!        write(*,*) 'allocated'
+      endif
+!      write(*,*) nlomax
+!      read(*,*)
       Allocate (t_aa ( apwordmax, apwordmax, 0:input%groundstate%lmaxmat))
 
       allocate(zm(apwordmax*lmmaxapw,nstfv))
@@ -85,7 +94,7 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
             r2 (ir) = spr (ir, is) ** 2
             r2inv(ir)=1d0/r2(ir)
          End Do
-         allocate(zveclo(haloijSize(is)))
+         if (haloijSize(is).ne.0) allocate(zveclo(haloijSize(is)))
          Do ia = 1, natoms (is)
            ias = idxas (ia, is)
            Do ir = 1, nr
@@ -95,6 +104,7 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 !     APW-APW integrals     !
 !---------------------------!
             Do l1 = 0, input%groundstate%lmaxmat
+              write(*,*) l1
               Do io1 = 1, apword (l1, is)
                 Do io2 = 1, apword (l1, is)
                   angular=dble(l1*(l1+1))
@@ -114,7 +124,7 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
                       t2=apwfr(ir, 2, io1, l1, ias)*apwfr(ir, 2, io2, l1, ias)
                       fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir))*r2 (ir)
                     End Do
-                    Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
+			    Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                     t_aa ( io2, io1, l1)= gr (nr) !*4d0*pi
                     if (applyiora) then
 ! iora(1) correction
@@ -214,13 +224,13 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
         
 do ist=1,nstfv
               zvec=zzero
-              zveclo=zzero
+              if (haloijSize(is).ne.0) zveclo=zzero
               Do l3 = 0, input%groundstate%lmaxmat
                 Do m3 = - l3, l3
                   lm3 = idxlm (l3, m3)
                   Do io2 = 1, apword (l3, is)
                     Do io1 = 1, apword (l3, is)
-                      zvec(apwordmax*(lm3-1)+io2)=zvec(apwordmax*(lm3-1)+io2)+t_aa(io1,io2,l3)*zm(apwordmax*(lm3-1)+io1,ist)
+!                      zvec(apwordmax*(lm3-1)+io2)=zvec(apwordmax*(lm3-1)+io2)+t_aa(io1,io2,l3)*zm(apwordmax*(lm3-1)+io1,ist)
                     enddo
                   End Do
                 End Do
@@ -266,10 +276,11 @@ enddo
 ! end loops over atoms and species
          LOoffset=LOoffset+haloijSize(is)
          End Do
-         deallocate(zveclo)
+         if (haloijSize(is).ne.0) deallocate(zveclo)
       End Do
 ! cleaning up 
-      deallocate(t_aa,t_alo,t_lolo)
+      deallocate(t_aa)
+      if (nlomax.ne.0) deallocate(t_alo,t_lolo)
       deallocate(zm)
       deallocate(zvec)
 

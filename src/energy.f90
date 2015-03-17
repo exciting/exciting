@@ -315,15 +315,19 @@ endif
          Deallocate (evecsv, c)
       Else
 ! Kohn-Sham case
-         engykn=0d0 !engykncr
+!         engykn=0d0 
+         engykn=engykncr
+write(*,*) " engykn start",engykn
          do ik=1,nkpt
            Do ist = 1, nstsv
+             write(*,*) ist,ik,engyknst(ist,ik)
              engykn=engykn+engyknst(ist,ik)*wkpt (ik)*occsv (ist, ik)
            End Do
+           write(*,*) " ik ",ik, "new ",engykn
          enddo
-         write(*,*) engykn
+          write(*,*) "new sum",engykn
          engykn = evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
-         write(*,*) engykn-engykncr
+         write(*,*) "old",engykn
          write(*,*)
 !         read(*,*)
       End If
@@ -334,6 +338,7 @@ endif
      & engycbc
 ! add the LDA+U correction if required
       If (ldapu .Ne. 0) engytot = engytot + engylu
+! WRITE(*,*) "end energy"
       Return
 End Subroutine
 !EOC
