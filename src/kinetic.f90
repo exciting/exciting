@@ -49,8 +49,6 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
       real(8) :: Eiora
 
 
-
-
       if (.not.allocated(engyknst)) then
         allocate(engyknst(nstfv,nkpt))
       endif
@@ -77,10 +75,13 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
         Allocate (t_lolo( nlomax,nlomax))     
         Allocate (t_alo( apwordmax, nlomax))     
 !        write(*,*) 'allocated'
+        t_lolo=0d0
+        t_alo=0d0
       endif
 !      write(*,*) nlomax
 !      read(*,*)
       Allocate (t_aa ( apwordmax, apwordmax, 0:input%groundstate%lmaxmat))
+      t_aa=0d0
 
       allocate(zm(apwordmax*lmmaxapw,nstfv))
       allocate(zvec(apwordmax*lmmaxapw))
@@ -104,7 +105,6 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 !     APW-APW integrals     !
 !---------------------------!
             Do l1 = 0, input%groundstate%lmaxmat
-              write(*,*) l1
               Do io1 = 1, apword (l1, is)
                 Do io2 = 1, apword (l1, is)
                   angular=dble(l1*(l1+1))
@@ -230,7 +230,7 @@ do ist=1,nstfv
                   lm3 = idxlm (l3, m3)
                   Do io2 = 1, apword (l3, is)
                     Do io1 = 1, apword (l3, is)
-!                      zvec(apwordmax*(lm3-1)+io2)=zvec(apwordmax*(lm3-1)+io2)+t_aa(io1,io2,l3)*zm(apwordmax*(lm3-1)+io1,ist)
+                      zvec(apwordmax*(lm3-1)+io2)=zvec(apwordmax*(lm3-1)+io2)+t_aa(io1,io2,l3)*zm(apwordmax*(lm3-1)+io1,ist)
                     enddo
                   End Do
                 End Do

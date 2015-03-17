@@ -80,6 +80,7 @@ Subroutine hmlint
       if (allocated(haloij)) deallocate(haloij)
       if (allocated(haloijSize)) deallocate(haloijSize)
       allocate(haloijSize(nspecies))
+      haloijSize=0
       maxnlo=0
       Do is = 1, nspecies
         ias=idxas (1, is)
