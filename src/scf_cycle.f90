@@ -248,6 +248,7 @@ subroutine scf_cycle(verbosity)
 
 #ifdef MPI
         Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
+        Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=engyknst)
         Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
 
