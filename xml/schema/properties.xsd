@@ -259,7 +259,7 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
-        <xs:element ex:importance="essential" ex:unit="" name="sphint" maxOccurs="1"
+        <xs:element ex:importance="essential" ex:unit="" name="vdwTS" maxOccurs="1"
           minOccurs="0">
           <xs:annotation>
             <xs:documentation>single center integration</xs:documentation>

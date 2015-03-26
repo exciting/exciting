@@ -49,7 +49,7 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
       Do ip = firstofset(mod(rank,np),np), lastofset(mod(rank,np),np)
 #else
       Do ip = 1, np
-#endif      
+#endif
          v2 (:) = vpl (:, ip)
          Call r3frac (input%structure%epslat, v2, iv)
 ! convert point to Cartesian coordinates
@@ -109,12 +109,14 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
          End Do
 ! otherwise use interstitial function
          sum = 0.d0
+
          Do ig = 1, ngvec
             ifg = igfft (ig)
             t1 = vgc (1, ig) * v1 (1) + vgc (2, ig) * v1 (2) + vgc (3, &
            & ig) * v1 (3)
             sum = sum + dble (zfft(ifg)*cmplx(Cos(t1), Sin(t1), 8))
          End Do
+
 10       Continue
          fp (ip) = sum
       End Do

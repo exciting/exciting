@@ -63,8 +63,8 @@ Subroutine propertylauncher
       End If
       !--------------------------------------------------------
 
-      If (associated(input%properties%sphint)) Then
-         Call sph_int
+      If (associated(input%properties%vdwTS)) Then
+         Call vdwTS
       End If
       
       If (associated(input%properties%exccplot) .And. rank .Eq. 0) Then
