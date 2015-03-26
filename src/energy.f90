@@ -294,7 +294,18 @@ endif
 !     kinetic energy     !
 !------------------------!
 ! core electron kinetic energy
-      Call energykncr
+
+! in case of HF-hybrids: Update core kinetic energy only in the first (=DFT) cycle
+      if (associated(input%groundstate%Hybrid)) then
+        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb==0)) then
+            Call energykncr
+        else if ((input%groundstate%Hybrid%exchangetypenumber==2)) then
+            Call energykncr
+        end if 
+      else
+         Call energykncr
+      end if
+!      Call energykncr
 ! total electron kinetic energy
       If ((task .Eq. 5) .Or. (task .Eq. 6)) Then
 ! Hartree-Fock case
