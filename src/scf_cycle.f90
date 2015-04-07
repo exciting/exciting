@@ -248,7 +248,7 @@ subroutine scf_cycle(verbosity)
 
 #ifdef MPI
         Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
-        Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=engyknst)
+        Call mpi_allgatherv_ifc(nkpt,nstfv,rbuf=engyknst)
         Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
 
@@ -375,7 +375,7 @@ subroutine scf_cycle(verbosity)
         Call genveffig
         if (allocated(meffig)) deallocate(meffig)
         if (allocated(m2effig)) deallocate(m2effig)
- ! add the fixed spin moment effect field
+! add the fixed spin moment effect field
         If (getfixspinnumber() .Ne. 0) Call fsmfield
         Call genmeffig
 ! reduce the external magnetic fields if required
@@ -604,7 +604,7 @@ subroutine scf_cycle(verbosity)
         call printbox(60,"+",string)
     end if
 ! write density and potentials to file only if maxscl > 1
-    If (input%groundstate%maxscl .Gt. 1) Then
+    If ((input%groundstate%maxscl.Gt.1).and.(task.ne.7)) Then
         Call writestate
         If ((verbosity>-1).and.(rank==0)) Then
             Write (60, '(" STATE.OUT is written")')

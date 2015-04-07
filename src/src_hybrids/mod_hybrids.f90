@@ -15,6 +15,8 @@ module mod_hybrids
 
 ! non-local exchange potential
     complex(8), allocatable :: vxnl(:,:,:)
+    complex(8), allocatable :: vxnlcc(:,:)
+    complex(8), allocatable :: bxnl(:,:,:)
 
 ! APW matrix elements of the non-local potential
     complex(8), allocatable :: vnlmat(:,:,:)

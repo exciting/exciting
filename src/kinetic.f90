@@ -47,12 +47,9 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 
       integer :: ifg,ix,igk,l,m,lm,LOoffset
       real(8) :: Eiora
+      
+      engyknst(:,ik) = 0.d0
 
-
-      if (.not.allocated(engyknst)) then
-        allocate(engyknst(nstfv,nkpt))
-      endif
-      engyknst(:,ik)=0d0
 ! Initialisation of some variables that exist just for the sake of convenience    
 
       if (input%groundstate%ValenceRelativity.ne.'none') then

@@ -505,10 +505,13 @@ Subroutine init1
 #endif
 ! allocate second-variational arrays
       If (allocated(evalsv)) deallocate (evalsv)
-      Allocate (evalsv(nstsv, nkpt))
+      Allocate (evalsv(nstsv,nkpt))
       If (allocated(occsv)) deallocate (occsv)
-      Allocate (occsv(nstsv, nkpt))
+      Allocate (occsv(nstsv,nkpt))
       occsv (:, :) = 0.d0
+      if (allocated(engyknst)) deallocate(engyknst)
+      allocate(engyknst(nstfv,nkpt))
+      engyknst(:,:) = 0d0
 #ifdef XS
       If (allocated(occsv0)) deallocate (occsv0)
       Allocate (occsv0(nstsv, nkpt))

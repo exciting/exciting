@@ -51,8 +51,6 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Type (evsystem) :: system
       Logical :: packed
       Integer :: ist
-!      integer ik,jk,ig,iv(3),ist
-!      Complex (8), allocatable :: kinetic(:,:),vectors(:,:)
       Complex (8), allocatable :: zm(:,:),zm2(:,:)
 
   !----------------------------------------!

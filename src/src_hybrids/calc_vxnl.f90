@@ -10,14 +10,19 @@ subroutine calc_vxnl
     implicit none
 
     integer(4) :: ikp, ik, jk, iq
-    integer(4) :: ie1, ie2, ie3, icg, ic
+    integer(4) :: ie1, ie2, ie3, icg, icg1, ic
     integer(4) :: ia, is, ias, ir, ist, l
+    integer(4) :: i, j, k, jst, ispn
     integer(4) :: n, nmdim
     real(8)    :: norm, egap
     real(8)    :: tstart, tend
-    complex(8) :: mvm, sum, fnk
+    complex(8) :: mvm, zt1, fnk
+    
+    real(8) :: evalfv(nstfv)
     complex(8), allocatable :: minm(:,:,:)
     complex(8), allocatable :: vnl(:,:)
+    complex(8), allocatable :: evecsv(:,:)
+    complex(8) :: vxfv(nstsv,nstsv), tmat(nstsv,nstsv)
     
     complex(8), external :: zdotc
 
@@ -30,6 +35,18 @@ subroutine calc_vxnl
     if (allocated(vxnl)) deallocate(vxnl)
     allocate(vxnl(nstfv,nstfv,nkpt))
     vxnl(:,:,:) = zzero
+    
+    if (iopcore<=1) then
+      if (allocated(vxnlcc)) deallocate(vxnlcc)
+      allocate(vxnlcc(ncg,nkpt))
+      vxnlcc(:,:) = zzero
+    end if 
+    
+    if (input%groundstate%tevecsv) then
+      if (allocated(bxnl)) deallocate(bxnl)
+      allocate(bxnl(nstsv,nstsv,nkpt))
+      bxnl(:,:,:) = zzero
+    end if
         
     ! Calculate the integration weights using the linearized tetrahedron method
     !if (allocated(evaldft)) deallocate(evaldft)
@@ -81,6 +98,7 @@ subroutine calc_vxnl
 ! (Re)-Calculate the M^i_{nm}(k,q) matrix elements for given k and q
 !------------------------------------------------------------
             call expand_basis(ik,iq)
+            write(*,*) 'expand_basis: ik, iq=', ik, iq
 
 !------------------------------------------------------------     
 ! (Re)-Calculate non-local (Hartree-Fock) potential
@@ -93,18 +111,20 @@ subroutine calc_vxnl
             &          zone,barcvm,matsiz,minmmat,matsiz, &
             &          zzero,minm,mbsiz)
             deallocate(minmmat)
+            
+            call getevalfv(vkl(:,ikp),evalfv)
 
             jk = kqid(ik,iq)
-            do ie1 = 1, nstsv
-              do ie2 = ie1, nstsv
-                sum = zzero
-                do ie3 = 1, nstsv
-                  if (evalsv(ie3,ikp)<=efermi) then
+            do ie1 = 1, nstfv
+              do ie2 = ie1, nstfv
+                zt1 = zzero
+                do ie3 = 1, nstfv
+                  if (evalfv(ie3)<=efermi) then
                     mvm = zdotc(mbsiz,minm(1:mbsiz,ie1,ie3),1,minm(1:mbsiz,ie2,ie3),1)
-                    sum = sum+mvm
+                    zt1 = zt1+mvm
                   end if
                 end do ! ie3
-                vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp)-sum/dble(nqptnr)
+                vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp)-zt1/dble(nqptnr)
               end do ! ie2
             end do ! ie1
             deallocate(minm)
@@ -119,69 +139,150 @@ subroutine calc_vxnl
               &          zzero,minm,mbsiz)
               deallocate(mincmat)
                 
-              do ie1 = 1, nstsv
-                do ie2 = ie1, nstsv
-                  sum = zzero
+              do ie1 = 1, nstfv
+                do ie2 = ie1, nstfv
+                  zt1 = zzero
                   do icg = 1, ncg
                     mvm = zdotc(mbsiz,minm(1:mbsiz,ie1,icg),1,minm(1:mbsiz,ie2,icg),1)
-                    sum = sum+mvm
+                    zt1 = zt1+mvm
                   enddo ! ie3
-                  vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp)-sum/dble(nqptnr)
+                  vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp)-zt1/dble(nqptnr)
                 end do ! ie2
               end do ! ie1
+              deallocate(minm)
+              
+              !-----------------------------------------------------
+              allocate(minm(mbsiz,ncg,nstfv))
+              nmdim = ncg*nstfv
+              call zgemm('c','n',mbsiz,nmdim,locmatsiz, &
+              &          zone,barcvm,matsiz,micmmat,locmatsiz, &
+              &          zzero,minm,mbsiz)
+              deallocate(micmmat)
+              
+              do icg = 1, ncg
+                zt1 = zzero
+                do ie2 = 1, nstfv
+                  if (evalfv(ie2)<=efermi) then
+                    mvm = zdotc(mbsiz,minm(1:mbsiz,icg,ie2),1,minm(1:mbsiz,icg,ie2),1)
+                    zt1 = zt1+mvm
+                  end if
+                end do ! ie2
+                vxnlcc(icg,ikp) = vxnlcc(icg,ikp)-zt1/dble(nqptnr)
+              end do ! icg
+              deallocate(minm)
+              
+              !-----------------------------------------------------
+              allocate(minm(mbsiz,ncg,ncg))
+              nmdim = ncg*ncg
+              call zgemm('c','n',mbsiz,nmdim,locmatsiz, &
+              &          zone,barcvm,matsiz,miccmat,locmatsiz, &
+              &          zzero,minm,mbsiz)
+              deallocate(miccmat)
+              
+              do icg = 1, ncg
+                zt1 = zzero
+                do icg1 = 1, ncg
+                  mvm = zdotc(mbsiz,minm(1:mbsiz,icg,icg1),1,minm(1:mbsiz,icg,icg1),1)
+                  zt1 = zt1+mvm
+                end do
+                vxnlcc(icg,ikp) = vxnlcc(icg,ikp)-zt1/dble(nkpt*nqptnr)
+              end do ! icg
               deallocate(minm)
                     
             end if ! iopcore
 
         end do ! iq
         
-        do ie1 = 1, nstsv
-          do ie2 = ie1+1, nstsv
+        do ie1 = 1, nstfv
+          do ie2 = ie1+1, nstfv
             vxnl(ie2,ie1,ikp) = conjg(vxnl(ie1,ie2,ikp))
           end do
         end do
 
-!------------------------------------------------------------
-! Debugging Info
-!------------------------------------------------------------
+        !---------------------------------------------------------      
+        ! compute the second-variational \Sigma_x matrix elements
+        !---------------------------------------------------------
+        if (input%groundstate%tevecsv) then
+
+          allocate(evecsv(nstsv,nstsv))
+          call getevecsv(vkl(:,ikp),evecsv)
+          
+          vxfv(:,:) = zzero
+          vxfv(1:nstfv,1:nstfv) = vxnl(:,:,ikp)
+          vxfv(nstfv+1:nstsv,nstfv+1:nstsv) = vxnl(:,:,ikp)
+
+          call zgemm( 'n', 'n', &
+          &           nstsv, nstsv, nstsv, &
+          &           zone, &
+          &           vxfv, nstsv, &
+          &           evecsv, nstsv, &
+          &           zzero, tmat, nstsv)
+
+          call zgemm( 'c', 'n', &
+          &           nstsv, nstsv, nstsv, &
+          &           zone, &
+          &           evecsv, nstsv, &
+          &           tmat, nstsv, &
+          &           zzero, bxnl(:,:,ikp), nstsv)
+          
+          bxnl(:,:,ikp) = bxnl(:,:,ikp)-vxfv(:,:)
+          
+          if (rank==0) write(*,*) 'bxup=', sum(bxnl(1:nstfv,1:nstfv,ikp))
+          if (rank==0) write(*,*) 'bxdn=', sum(bxnl(nstfv+1:nstsv,nstfv+1:nstsv,ikp))
+          
+if (.false.) then
+          do i = 1, nstsv
+          do j = 1, nstsv
+            k = 0
+            do ispn = 1, nspinor
+              do ist = 1, nstfv
+                k = k+1
+                l = (ispn-1)*nstfv
+                do jst = 1, nstfv
+                  l = l + 1
+                  bxnl(:,:,ikp) = bxnl(:,:,ikp)+ &
+                  &  conjg(evecsv(k,i))*evecsv(l,j)*vxnl(ist,jst,ikp)
+                end do
+              end do
+            end do
+          end do
+          end do
+          deallocate(evecsv)
+          
+          bxnl(1:nstfv,1:nstfv,ikp) = bxnl(1:nstfv,1:nstfv,ikp)-vxnl(:,:,ikp)
+          bxnl(nstfv+1:nstsv,nstfv+1:nstsv,ikp) = &
+          &  bxnl(nstfv+1:nstsv,nstfv+1:nstsv,ikp)-vxnl(:,:,ikp)
+end if          
+
+        end if ! sv        
+        
+        !------------------------------------------------------------
+        ! Debugging Info
+        !------------------------------------------------------------
         if ((.true.).and.(rank==0)) then
             call linmsg(fgw,'-','')
             call linmsg(fgw,'-',' Diagonal elements of Vx_NL_nn ')
             write(fgw,*) 'for k-point ', ikp
+            i = 0
+            do ispn = 1, nspinor
             do ie1 = 1, nstfv
-                write(fgw,*) ie1, vxnl(ie1,ie1,ikp)
+                if (input%groundstate%tevecsv) then
+                  i = i+1
+                  write(fgw,'(i4,4f12.4)') ie1, vxnl(ie1,ie1,ikp), bxnl(i,i,ikp)
+                else
+                  write(fgw,'(i4,2f12.4)') ie1, vxnl(ie1,ie1,ikp)
+                end if
             end do
-            call linmsg(fgw,'-','')
-            !call linmsg(fgw,'-',' Vx_NL_nn ')
-            !do ie1 = 1, nstfv
-            !    write(fgw,*) vxnl(ie1,:,ikp)
-            !end do
-            !call linmsg(fgw,'-','')
+            end do
+            if (iopcore<=1) then
+              call linmsg(fgw,'-',' Diagonal elements of Vx_NL_CC ')
+              do icg = 1, ncg
+                write(fgw,'(i4,2f12.4)') icg, vxnlcc(icg,ikp)
+              end do
+            end if
         end if
     
     end do ! ikp
-
-#ifdef MPI
-    call mpi_allgatherv_ifc(nkpt,nstfv*nstfv,zbuf=vxnl)
-    call barrier
-#endif
-
-
-    !-----------------------------------------
-    ! Calculate the non-local exchange energy
-    !-----------------------------------------
-    exnl = 0.d0
-    do ikp = 1, nkpt
-      do ie1 = 1, nstfv
-        if (evalsv(ie1,ikp)<=efermi) then
-          fnk = occsv(ie1,ikp)/occmax
-          vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp)- &
-          &                   4.d0*pi*vi*singc2* &
-          &                   fnk
-          exnl = exnl+occmax*fnk*wkpt(ikp)*vxnl(ie1,ie1,ikp)
-        end if
-      end do
-    end do
 
 101 format(10x,/, &
     &       'Data for (k,q)-point:',2i4,//,10x,                  &
@@ -190,6 +291,36 @@ subroutine calc_vxnl
     &       'Number of interstitial basis functions: ',i4,/,10x, &
     &       'Total number of basis functions:        ',i4,/)
 
+#ifdef MPI
+    call mpi_allgatherv_ifc(nkpt,nstfv*nstfv,zbuf=vxnl)
+    call mpi_allgatherv_ifc(nkpt,ncg,zbuf=vxnlcc)
+    if (input%groundstate%tevecsv) &
+    &  call mpi_allgatherv_ifc(nkpt,nstsv*nstsv,zbuf=bxnl)
+    call barrier
+#endif
+
+    !-----------------------------------------
+    ! Calculate the non-local exchange energy
+    !-----------------------------------------
+    exnl = 0.d0
+    do ikp = 1, nkpt
+      call getevalfv(vkl(:,ikp),evalfv)
+      do ie1 = 1, nstfv
+        if (evalfv(ie1)<=efermi) then
+          vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp)- &
+          &                   4.d0*pi*vi*singc2
+          exnl = exnl+wkpt(ikp)*vxnl(ie1,ie1,ikp)
+        end if
+      end do
+      if (iopcore<=1) then
+        do icg = 1, ncg
+          exnl = exnl+wkpt(ikp)*vxnlcc(icg,ikp)
+        end do
+      end if
+    end do
+    ! counting spin degeneracy
+    exnl = 2d0*exnl
+    
     call cpu_time(tend)
     if (rank==0) call write_cputime(fgw,tend-tstart, 'CALC_VXNL')
     

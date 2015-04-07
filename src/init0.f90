@@ -171,10 +171,10 @@ Subroutine init0
          Stop
       End If
       If  (associated(input%groundstate%Hybrid)) Then
-          ex_coef=input%groundstate%Hybrid%excoeff
-          ec_coef=input%groundstate%Hybrid%eccoeff      
+          ex_coef = input%groundstate%Hybrid%excoeff
+          ec_coef = input%groundstate%Hybrid%eccoeff      
       Else
-          ex_coef=1.0          
+          ex_coef=0.0          
           ec_coef=1.0
       End If
       Call getxcdata (xctype, xcdescr, xcspin, xcgrad, ex_coef)
