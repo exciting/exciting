@@ -74,7 +74,7 @@ subroutine calc_vxnl
 !---------------------------------------
 ! Integration over BZ
 !---------------------------------------
-        do iq = 1, nqptnr
+          do iq = 1, nqptnr
           
             Gamma = gammapoint(iq)
 
@@ -111,10 +111,10 @@ subroutine calc_vxnl
             &          zone,barcvm,matsiz,minmmat,matsiz, &
             &          zzero,minm,mbsiz)
             deallocate(minmmat)
-            
-            call getevalfv(vkl(:,ikp),evalfv)
 
             jk = kqid(ik,iq)
+            call getevalfv(vkl(:,indkp(jk)),evalfv)
+            
             do ie1 = 1, nstfv
               do ie2 = ie1, nstfv
                 zt1 = zzero
@@ -185,7 +185,7 @@ subroutine calc_vxnl
                   mvm = zdotc(mbsiz,minm(1:mbsiz,icg,icg1),1,minm(1:mbsiz,icg,icg1),1)
                   zt1 = zt1+mvm
                 end do
-                vxnlcc(icg,ikp) = vxnlcc(icg,ikp)-zt1/dble(nkpt*nqptnr)
+                vxnlcc(icg,ikp) = vxnlcc(icg,ikp)-zt1/dble(nqptnr)
               end do ! icg
               deallocate(minm)
                     
@@ -314,12 +314,12 @@ end if
       end do
       if (iopcore<=1) then
         do icg = 1, ncg
+          vxnlcc(icg,ikp) = vxnlcc(icg,ikp)- &
+          &                 4.d0*pi*vi*singc2
           exnl = exnl+wkpt(ikp)*vxnlcc(icg,ikp)
         end do
       end if
     end do
-    ! counting spin degeneracy
-    exnl = 2d0*exnl
     
     call cpu_time(tend)
     if (rank==0) call write_cputime(fgw,tend-tstart, 'CALC_VXNL')

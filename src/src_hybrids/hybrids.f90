@@ -46,9 +46,6 @@ Subroutine hybrids
     Call init1
     Call timesec (tin1)
     time_init1=tin1-tin0
-    Call init2
-    if (allocated(kinmatc)) deallocate(kinmatc)
-    allocate(kinmatc(nstfv,nstfv,nkpt))
          
 ! require forces for structural optimisation
     If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = .True.    
@@ -184,7 +181,7 @@ Subroutine hybrids
 !---------------------------
 ! KS self-consistent run
 !---------------------------
-        call scf_cycle(-1)
+        call scf_cycle(0)
        
         ! some output        
         if (rank==0) then
@@ -218,24 +215,12 @@ Subroutine hybrids
         end if
         et = engytot
 
-!----------------------------------
-! Kinetic energy
-!----------------------------------
-        !call timesec(ts0)
-        if (ihyb==0) call energykncr
-        call genkinmat
-        !call timesec(ts1)
-        !if (rank==0) then
-        !  write(60,*)
-        !  call write_cputime(60,ts1-ts0, 'CALC_KINMAT')
-        !end if
-        !time_hyb = time_hyb+ts1-ts0
-       
 !-----------------------------------
 ! calculate the non-local potential
 !-----------------------------------
-        call timesec(ts0)
         if ((ihyb==0).and.(restart==.true.)) then
+          !------------------------------------------
+          call timesec(ts0)
           Call getvnlmat 
           call timesec(ts1)
           if (rank==0) then
@@ -243,7 +228,10 @@ Subroutine hybrids
               write(60,*)
           end if    
           time_hyb = time_hyb+ts1-ts0
+          
         else if  (ihyb < input%groundstate%Hybrid%maxscl-1) Then
+          !------------------------------------------
+          call timesec(ts0)
           call calc_vxnl
           if (rank==0) write(*,*) 'vxnl=', sum(vxnl)
           if (input%groundstate%tevecsv.and.(rank==0)) write(*,*) 'bxnl=', sum(bxnl)
@@ -252,8 +240,7 @@ Subroutine hybrids
               write(60,*)
               call write_cputime(60,ts1-ts0, 'CALC_VXNL')
           end if
-          
-! calculate the non-local potential hamiltonian matrix
+          !------------------------------------------
           call timesec(ts0)
           call calc_vnlmat
           if (rank==0) write(*,*) 'calc_vnlmat=', sum(vnlmat)
@@ -261,8 +248,9 @@ Subroutine hybrids
           if (rank==0) then
               call write_cputime(60,ts1-ts0, 'CALC_VNLMAT')
               write(60,*)
-          time_hyb = time_hyb+ts1-ts0
           end if
+          time_hyb = time_hyb+ts1-ts0
+          
         end if
         
 ! output the current total time

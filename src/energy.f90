@@ -324,37 +324,23 @@ endif
         if (input%groundstate%Hybrid%exchangetypenumber == 1) then
           if (ihyb>0) then
             engykn = engykncr
-if (.false.) then
-            ! kinetic energy from valence states
-            allocate(evecsv(nstsv,nstsv))
-            allocate(c(nstsv,nstsv))
-            do ik = 1, nkpt
-              call getevecsv(vkl(:,ik),evecsv)
-              call zgemm('N', 'N', nstsv, nstsv, nstsv, zone, &
-              &           kinmatc(:,:,ik), nstsv, evecsv, nstsv, zzero, c, nstsv)
-              do ist = 1, nstsv
-                zt1 = zdotc (nstsv, evecsv(:, ist), 1, c(:, ist), 1)
-                engykn = engykn + wkpt(ik)*occsv(ist,ik)*dble(zt1)
-              end do
-            end do
-            deallocate(evecsv,c)
-else
-            ! New subroutine kinetic.f90
             do ik = 1, nkpt
               do ist = 1, nstfv
                 engykn = engykn + wkpt(ik)*occsv(ist,ik)*engyknst(ist,ik)
               end do
             end do
-end if
           else
             ! Default way
             engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
+            call energykncr
           end if
         end if
+        
       else
         ! Default way
         engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
       end if
+      
 !----------------------!
 !     total energy     !
 !----------------------!
