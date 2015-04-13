@@ -181,7 +181,7 @@ Subroutine hybrids
 !---------------------------
 ! KS self-consistent run
 !---------------------------
-        call scf_cycle(0)
+        call scf_cycle(-1)
        
         ! some output        
         if (rank==0) then
