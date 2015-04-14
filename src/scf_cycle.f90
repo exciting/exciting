@@ -604,7 +604,6 @@ subroutine scf_cycle(verbosity)
         call printbox(60,"+",string)
     end if
 ! write density and potentials to file only if maxscl > 1
-!    If ((input%groundstate%maxscl.Gt.1).and.(task.ne.7)) Then
      If ((input%groundstate%maxscl.Gt.1)) Then
         Call writestate
         If ((verbosity>-1).and.(rank==0)) Then
