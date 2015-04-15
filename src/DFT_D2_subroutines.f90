@@ -153,11 +153,11 @@ contains
     cross(3) = a(1)*b(2) - a(2)*b(1)
   end function cross
   
-  subroutine getlatticerepetition(latrep)
+  subroutine getlatticerepetition(latrep, cutoff)
     use modinput
-    use DFT_D2_parameters, only : cutoff
     implicit none
-    integer :: latrep(3)
+    integer, intent(out) :: latrep(3)
+    real(8), intent(in) :: cutoff
     real(8) :: vec(3,3)
     integer :: icount
       
@@ -167,7 +167,7 @@ contains
     vec(:,3) = cross(input%structure%crystal%basevect(:,1),input%structure%crystal%basevect(:,2))
     do icount = 1,3
        vec(:,icount) = vec(:,icount)/sqrt(dot_product(vec(:,icount),vec(:,icount)))!normalize
-       latrep(icount) = int(abs(cutoff/(dot_product(input%structure%crystal%basevect(:,icount),vec(:,icount))))) + 1
+       latrep(icount) = int(abs(cutoff/(dot_product(input%structure%crystal%basevect(:,icount),vec(:,icount)))))
     enddo
   end subroutine getlatticerepetition
   

@@ -18,7 +18,7 @@ subroutine DFT_D2_energy(e_disp)
   allocate(xyz(3,numofatoms))
   allocate(iz(numofatoms))
   call getatomdata(numofatoms,xyz,iz) 
-  call getlatticerepetition(latrep)
+  call getlatticerepetition(latrep, cutoff)
 !!!!!!! calculation of e_disp !!!!!!!
   e_disp = 0
   do iat = 1,numofatoms-1

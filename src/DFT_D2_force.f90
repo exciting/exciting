@@ -19,7 +19,7 @@ subroutine DFT_D2_force(force_disp,numofatoms)
 !!$  allocate(xyz(3,numofatoms))
 !!$  allocate(iz(numofatoms))
   call getatomdata(numofatoms,xyz,iz) 
-  call getlatticerepetition(latrep)
+  call getlatticerepetition(latrep, cutoff)
 !!!!!!! calculation of force_disp !!!!!!!
   force_disp = 0
    do iat = 1,numofatoms
