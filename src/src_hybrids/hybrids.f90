@@ -176,7 +176,6 @@ Subroutine hybrids
           input%groundstate%scfconv = 'charge'
           rhomtref(:,:,:) = rhomt(:,:,:)
           rhoirref(:) = rhoir(:)
-          input%groundstate%ValenceRelativity='none'
         end if
         
 !---------------------------
