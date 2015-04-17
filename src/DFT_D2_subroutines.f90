@@ -167,7 +167,7 @@ contains
     vec(:,3) = cross(input%structure%crystal%basevect(:,1),input%structure%crystal%basevect(:,2))
     do icount = 1,3
        vec(:,icount) = vec(:,icount)/sqrt(dot_product(vec(:,icount),vec(:,icount)))!normalize
-       latrep(icount) = int(abs(cutoff/(dot_product(input%structure%crystal%basevect(:,icount),vec(:,icount)))))
+       latrep(icount) = int(abs(cutoff/(dot_product(input%structure%crystal%basevect(:,icount),vec(:,icount))))) + 1
     enddo
   end subroutine getlatticerepetition
   
