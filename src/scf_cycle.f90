@@ -260,7 +260,7 @@ subroutine scf_cycle(verbosity)
 ! write out the eigenvalues and occupation numbers
             Call writeeval
 ! write the Fermi energy to file
-            if (verbosity>-1) Call writefermi
+            Call writefermi
         End If
 !write the occupancies to file
 #ifdef MPI
