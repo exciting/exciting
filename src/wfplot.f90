@@ -20,6 +20,7 @@ Subroutine wfplot(dostm)
     ! allocatable arrays
     Complex (8), Allocatable :: evecfv (:, :)
     Complex (8), Allocatable :: evecsv (:, :)
+    character(256) :: statefile
     ! external functions
     Real (8) :: sdelta, stheta
     External sdelta, stheta
@@ -28,16 +29,33 @@ Subroutine wfplot(dostm)
     Call init1
     Allocate (evecfv(nmatmax, nstfv))
     Allocate (evecsv(nstsv, nstsv))
-    ! read the density and potentials from file
-    Call readstate
-    ! read Fermi energy from file
+! initialise the charge density and potentials from file
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+! in case of HF hybrids use PBE potential
+               statefile='STATE_PBE.OUT'
+           Else
+               statefile='STATE.OUT'
+           End If
+        Else         
+           statefile='STATE.OUT'
+        End If 
+       Call readstategw(statefile)
+! read Fermi energy from file
     Call readfermi
-    ! find the new linearisation energies
-    Call linengy
-    ! generate the APW radial functions
-    Call genapwfr
-    ! generate the local-orbital radial functions
-    Call genlofr
+! find the new linearisation energies
+      Call linengy
+! generate the APW radial functions
+      Call genapwfr
+! generate the local-orbital radial functions
+      Call genlofr
+! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               statefile='STATE_PBE0.OUT'
+               Call readstategw(statefile)
+           End If
+        End If 
     ! set the occupancies
     If ( .Not. dostm) Then
         ! kstlist should only contain one k-point and state for wave-function plot
