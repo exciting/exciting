@@ -218,9 +218,8 @@ Subroutine hybrids
 !-----------------------------------
 ! calculate the non-local potential
 !-----------------------------------
-        if ((ihyb==0).and.(restart==.true.)) then
-          !------------------------------------------
-          call timesec(ts0)
+        call timesec(ts0)
+        if ((ihyb==0).and.restart) then
           Call getvnlmat 
           call timesec(ts1)
           if (rank==0) then
