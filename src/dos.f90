@@ -41,6 +41,7 @@ Subroutine dos
       Real (8) :: dw, th, t1
       Real (8) :: v1 (3), v2 (3), v3 (3)
       Character (512) :: buffer
+      Character(256) :: string
       Type (xmlf_t), Save :: xf
       Complex (8) su2 (2, 2), dm1 (2, 2), dm2 (2, 2)
       Character (256) :: fname
@@ -84,7 +85,19 @@ Subroutine dos
       Allocate (evecfv(nmatmax, nstfv, nspnfv))
       Allocate (evecsv(nstsv, nstsv))
 ! read density and potentials from file
-      Call readstate
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+! in case of HF hybrids use PBE potential
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
+           Else
+               Call readstate
+           End If
+        Else         
+           Call readstate
+        End If 
 ! read Fermi energy from file
       Call readfermi
 ! find the new linearisation energies
@@ -93,6 +106,12 @@ Subroutine dos
       Call genapwfr
 ! generate the local-orbital radial functions
       Call genlofr
+! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               Call readstate
+           End If
+        End If 
 ! generate unitary matrices which convert the (l,m) basis into the irreducible
 ! representation basis of the symmetry group at each atomic site
       If (input%properties%dos%lmirep) Then

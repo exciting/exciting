@@ -46,7 +46,7 @@ subroutine readevaldft
 
 !   find the record length
     Inquire (IoLength=Recl) vkl_, nstfv_, nspnfv_
-    Do i = 1, 100
+    Do i = 1, 10
       Inquire (File=trim(filename), Exist=Exist)
       If (exist) Then
         Open (70, File=trim(filename), Action='READ', &

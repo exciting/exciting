@@ -9,6 +9,7 @@ subroutine scf_cycle(verbosity)
     Use modmain
     Use modmpi
     Use scl_xml_out_Module
+    Use mod_hybrids, only: ihyb
 !
 ! !DESCRIPTION:
 !
@@ -260,7 +261,7 @@ subroutine scf_cycle(verbosity)
 ! write out the eigenvalues and occupation numbers
             Call writeeval
 ! write the Fermi energy to file
-            if (verbosity>-1) Call writefermi
+            Call writefermi
         End If
 !write the occupancies to file
 #ifdef MPI
@@ -605,7 +606,18 @@ subroutine scf_cycle(verbosity)
     end if
 ! write density and potentials to file only if maxscl > 1
      If ((input%groundstate%maxscl.Gt.1)) Then
-        Call writestate
+        If (associated(input%groundstate%Hybrid)) Then
+           If ((input%groundstate%Hybrid%exchangetypenumber == 1).and.(ihyb==0)) Then
+            string=filext
+            filext='_PBE.OUT'
+            Call writestate
+            filext=string
+           Else
+               Call writestate
+           End If
+        Else
+           Call writestate
+        End If
         If ((verbosity>-1).and.(rank==0)) Then
             Write (60, '(" STATE.OUT is written")')
         end if
