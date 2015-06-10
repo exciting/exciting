@@ -34,6 +34,7 @@ Subroutine writepmatxs
       Complex (8), Allocatable :: evecfvt (:, :)
       Complex (8), Allocatable :: evecsvt (:, :)
       Complex (8), Allocatable :: pmat (:, :, :)
+      Character(256) :: string
       logical :: fast
       Logical, External :: tqgamma
       ! check if fast (default) version of matrix elements is used
@@ -77,14 +78,33 @@ Subroutine writepmatxs
   ! allocate the momentum matrix elements array
       Allocate (pmat(3, nstsv, nstsv))
       if (task .eq. 120) then
-  ! read in the density and potentials from file
-        call readstate
+! read density and potentials from file
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+! in case of HF hybrids use PBE potential
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
+           Else
+               Call readstate
+           End If
+        Else
+           Call readstate
+        End If
   ! find the new linearisation energies
         call linengy
   ! generate the APW radial functions
         call genapwfr
   ! generate the local-orbital radial functions
         call genlofr
+! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               Call readstate
+           End If
+        End If
+
   ! find the record length
         inquire(iolength=recl) pmat
         open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
