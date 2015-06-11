@@ -36,7 +36,18 @@ Subroutine copyfilesq0
       Allocate (lolm(nstfv, nlomax,-lolmax:lolmax, natmtot))
       Do ik = 1, nkpt
      ! read files
+!        If (associated(input%groundstate%Hybrid)) Then
+!           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+!               filext = '.OUT'
+!           Else
+!               filext = '_QMT001.OUT'
+!           End IF
+!       Else
+!           filext = '_QMT001.OUT'  
+!        End If  
+!!!!! only for testing
          filext = '_QMT001.OUT'
+!         WRITE(*,*) 'filext',filext
          Call getevecfv (vkl(1, ik), vgkl(1, 1, 1, ik), evecfvt)
          Call getevecsv (vkl(1, ik), evecsv)
          Call getevalsv (vkl(1, ik), evalsv(1, ik))
@@ -56,7 +67,8 @@ Subroutine copyfilesq0
         & lolm)
       End Do
   ! read files
-      filext = '_QMT001.OUT'
+!      filext = '_QMT001.OUT'
+       filext = '.OUT'
       Call readfermi
   ! write files
       filext = '_QMT000.OUT'

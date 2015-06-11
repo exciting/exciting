@@ -37,7 +37,7 @@ Contains
            task=0
          End If
     ! call with the above parameters changed
-         Call gndstate
+!         Call gndstate
          Call rewritesorted
     ! restore original parameters
          If (input%xs%dogroundstate .Ne. "fromscratch") Then

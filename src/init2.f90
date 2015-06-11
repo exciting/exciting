@@ -318,7 +318,8 @@ Subroutine init2
          If(task .Ne. 301) Then 
             isreadstate0 = .False.
             filex = trim(filext)
-            filext = '_QMT001.OUT'
+!            filext = '_QMT001.OUT'
+             filext = '.OUT'
             Call readstate
             filext = trim(filex)
          End If

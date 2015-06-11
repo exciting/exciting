@@ -241,10 +241,10 @@ Subroutine init1
 !------------------------------
 ! generate the k-point set
 !------------------------------
-         if  (associated(input%groundstate%Hybrid)) Then
-              if  (input%groundstate%Hybrid%exchangetypenumber == 1) &
-              & input%groundstate%reducek=.false.
-         end if
+!         if  (associated(input%groundstate%Hybrid)) Then
+!              if  (input%groundstate%Hybrid%exchangetypenumber == 1) &
+!              & input%groundstate%reducek=.false.
+!         end if
          if (input%groundstate%stypenumber < 0) then
 
              nsym = 1
