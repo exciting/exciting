@@ -470,7 +470,9 @@ Module modxs
   ! is needed
       Logical :: temat
       Data temat / .True. /
-
+  ! set true if HF-Hybrids are used as starting point
+      Logical :: hybridhf
+      Data  hybridhf / .false. /
 !STK: include variables necessary for double grid computations
 
   !---------------------------------------------!

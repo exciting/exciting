@@ -9,6 +9,7 @@ Contains
       Subroutine gndstateq (voff, filxt)
          Use modmain
          Use modinput
+         Use modxs, only: hybridhf
          Implicit None
     ! arguments
          Real (8), Intent (In) :: voff (:)
@@ -35,9 +36,11 @@ Contains
          !ran gs from scratch if spin polarized calculation is needed.
          If (input%xs%dogroundstate .Eq. "fromscratch") Then
            task=0
-         End If
+        End If
     ! call with the above parameters changed
-!         Call gndstate
+        If (.not.(hybridhf)) Then
+               Call gndstate
+        End If  
          Call rewritesorted
     ! restore original parameters
          If (input%xs%dogroundstate .Ne. "fromscratch") Then

@@ -85,24 +85,18 @@ subroutine init_kqpts_hybrids
       if (allocated(vqc)) deallocate(vqc)
       allocate(vqc(3,nqptnr))
       vqc(:,:) = vkcnr(:,:)
-      
+
       if (allocated(kqid)) deallocate(kqid)
       allocate(kqid(nkptnr,nkptnr))
+      kqid(:,:) = 0
       do ik = 1, nkptnr
       do iq = 1, nkptnr
-        v1(:) = vklnr(:,ik)-vklnr(:,iq)
-        call r3frac(1.d-6,v1,iv)
-        do ikq = 1, nkptnr
-          v2(:) = vklnr(:,ikq)
-          t1 = r3taxi(v1,v2)
-          if (t1<1.d-6) then
-            kqid(ik,iq) = ikq
-            exit
-          end if
-        end do ! ikq
+        iv(:) = ivknr(:,ik)-ivknr(:,iq)
+        iv(:) = modulo(iv(1:3),input%groundstate%ngridk(:))
+        kqid(ik,iq) = ikmapnr(iv(1),iv(2),iv(3))
       end do
-      end do
-            
+      end do  
+ 
       if (allocated(ngq)) deallocate(ngq)
       if (allocated(ngbarc)) deallocate(ngbarc)
       allocate(ngq(nqptnr),ngbarc(nqptnr))

@@ -79,16 +79,12 @@ Subroutine writepmatxs
       Allocate (pmat(3, nstsv, nstsv))
       if (task .eq. 120) then
 ! read density and potentials from file
-        If (associated(input%groundstate%Hybrid)) Then
-           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+        If (hybridhf) Then
 ! in case of HF hybrids use PBE potential
             string=filext
             filext='_PBE.OUT'
             Call readstate
             filext=string
-           Else
-               Call readstate
-           End If
         Else
            Call readstate
         End If
@@ -99,12 +95,7 @@ Subroutine writepmatxs
   ! generate the local-orbital radial functions
         call genlofr
 ! update potential in case if HF Hybrids
-        If (associated(input%groundstate%Hybrid)) Then
-           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
-               Call readstate
-           End If
-        End If
-
+        If (hybridhf) Call readstate
   ! find the record length
         inquire(iolength=recl) pmat
         open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &

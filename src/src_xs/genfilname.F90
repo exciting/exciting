@@ -20,7 +20,7 @@ Contains
      & revertfilext, appfilext, filnam, fileext)
 ! !USES:
          Use modmain, Only: filext
-         Use modxs, Only: filextrevert
+         Use modxs, Only: filextrevert,hybridhf
 ! !DESCRIPTION:
 !   Generates file name and extension according to optional input parameters (
 !   see routine).
@@ -49,6 +49,7 @@ Contains
          Character (256) :: s, s1
     ! if file extension in "modmain" is to be reset to last value: reset
     ! else store current file extension
+
          revert = .False.
          setfxt = .False.
          If (present(revertfilext)) revert = revertfilext
@@ -151,7 +152,7 @@ Contains
             s = trim (s) // trim (s1)
          End If
     ! screening type in screened Coulomb interaction
-         If (present(scrtype)) Then
+         If (present(scrtype)) Then  
             Write (s1, '("_SCR",a)') trim (adjustl(scrtype))
             s = trim (s) // trim (s1)
          End If
@@ -189,7 +190,11 @@ Contains
          End If
     ! extension (including the dot)
          If (present(dotext)) Then
-            s = trim (s) // trim (dotext)
+            If (hybridhf) Then
+                s = trim (s) // '.OUT'
+            Else 
+                s = trim (s) // trim (dotext)
+            End If
          Else If (appfxt) Then
             s = trim (s) // trim (filext)
          Else

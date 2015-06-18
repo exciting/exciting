@@ -312,14 +312,20 @@ Subroutine init2
 !------------------------!
 ! read density and potentials from file (STATE.OUT) exclusively
       isreadstate0 = .True.
-      If (input%xs%dogroundstate .Ne. "fromscratch") Then 
+      If (hybridhf) Then
+! in case of HF hybrids read PBE potential
+            isreadstate0 = .false. 
+            filex=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=filex
+      Else If (input%xs%dogroundstate .Ne. "fromscratch") Then 
          Call readstate
       Else
-         If(task .Ne. 301) Then 
+         If(task .Ne. 301) Then
             isreadstate0 = .False.
             filex = trim(filext)
-!            filext = '_QMT001.OUT'
-             filext = '.OUT'
+            filext = '_QMT001.OUT'
             Call readstate
             filext = trim(filex)
          End If
@@ -331,6 +337,14 @@ Subroutine init2
       Call genapwfr
 ! generate the local-orbital radial functions
       Call genlofr
+! update potential in case of HF Hybrids
+        If (hybridhf)  Then
+            filex= trim(filext)
+            filext='.OUT'
+            Call readstate
+            filext=trim(filex)
+        End If
+
   ! end for task >= 301 case
   end if
 #endif

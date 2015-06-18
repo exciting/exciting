@@ -74,16 +74,12 @@ Subroutine writepwmat
          Allocate (yiuo(nstunocc0, nstocc0, ngq(iq)))
 !
 ! read density and potentials from file
-        If (associated(input%groundstate%Hybrid)) Then
-           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+        If (hybridhf) Then
 ! in case of HF hybrids use PBE potential
             string=filext
             filext='_PBE.OUT'
             Call readstate
             filext=string
-           Else
-               Call readstate
-           End If
         Else
            Call readstate
         End If
@@ -94,12 +90,7 @@ Subroutine writepwmat
      ! generate the local-orbital radial functions
          Call genlofr
 ! update potential in case if HF Hybrids
-        If (associated(input%groundstate%Hybrid)) Then
-           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
-               Call readstate
-           End If
-        End If
-
+        If (hybridhf) Call readstate
      ! find the record length
          Inquire (IoLength=Recl) pwmat
          Call genfilname (basename='PWMAT', iqmt=iq, asc=.True., &

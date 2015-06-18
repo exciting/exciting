@@ -6,7 +6,7 @@
 Subroutine xstasklauncher
       Use modinput
       Use modmain, Only: task
-      Use modxs, only: dgrid, nksubpt, iksubpt, temat, doscreen0, vkloff_xs_b
+      Use modxs, only: dgrid, nksubpt, iksubpt, temat, doscreen0, vkloff_xs_b,hybridhf
       Use inputdom
 
 !
@@ -29,6 +29,10 @@ Subroutine xstasklauncher
   ! set the default values if tetra element not present
          input%xs%tetra => getstructtetra (emptynode)
       End If
+      If (associated(input%groundstate%Hybrid)) Then
+        If (input%groundstate%Hybrid%exchangetypenumber == 1) hybridhf = .True.
+      End If    
+
 !
       Call backup0
       Call backup1
