@@ -473,6 +473,8 @@ Module modxs
   ! set true if HF-Hybrids are used as starting point
       Logical :: hybridhf
       Data  hybridhf / .false. /
+  ! if set to true KS eingenvalues and eigenvectors are not recalculated
+      Logical :: skipgnd
 !STK: include variables necessary for double grid computations
 
   !---------------------------------------------!

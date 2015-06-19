@@ -6,7 +6,7 @@
 Subroutine xstasklauncher
       Use modinput
       Use modmain, Only: task
-      Use modxs, only: dgrid, nksubpt, iksubpt, temat, doscreen0, vkloff_xs_b,hybridhf
+      Use modxs, only: dgrid, nksubpt, iksubpt, temat, doscreen0, vkloff_xs_b,hybridhf,skipgnd
       Use inputdom
 
 !
@@ -29,10 +29,15 @@ Subroutine xstasklauncher
   ! set the default values if tetra element not present
          input%xs%tetra => getstructtetra (emptynode)
       End If
+ ! if set to true KS eingenvalues and eigenvectors are not recalculated
+      skipgnd=input%xs%skipgnd
       If (associated(input%groundstate%Hybrid)) Then
-        If (input%groundstate%Hybrid%exchangetypenumber == 1) hybridhf = .True.
+        If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+            hybridhf = .True.
+            skipgnd = .True.
+        End If
       End If    
-
+ 
 !
       Call backup0
       Call backup1
