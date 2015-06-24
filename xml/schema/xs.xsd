@@ -1188,6 +1188,13 @@
         </xs:simpleType>
       </xs:attribute>
       <!-- Here are experimental parameters -->
+      <xs:attribute ex:importance="expert" ex:unit="" name="skipgnd" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation>
+	    If set to <pre>"true"</pre>, recalculation of KS eigenvalues and eigenvectors is skipped.
+	  </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat" default="true">
         <xs:annotation>
           <xs:documentation> If set to <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW

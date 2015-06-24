@@ -9,7 +9,7 @@ Contains
       Subroutine gndstateq (voff, filxt)
          Use modmain
          Use modinput
-         Use modxs, only: hybridhf
+          Use modxs, only: skipgnd
          Implicit None
     ! arguments
          Real (8), Intent (In) :: voff (:)
@@ -38,7 +38,7 @@ Contains
            task=0
         End If
     ! call with the above parameters changed
-        If (.not.(hybridhf)) Then
+        If (.not.(skipgnd)) Then 
                Call gndstate
         End If  
          Call rewritesorted

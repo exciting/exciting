@@ -36,7 +36,7 @@ Subroutine copyfilesq0
       Allocate (lolm(nstfv, nlomax,-lolmax:lolmax, natmtot))
       Do ik = 1, nkpt
      ! read files
-        If (hybridhf) Then
+        If (skipgnd) Then
            filext = '.OUT'
         Else
            filext = '_QMT001.OUT'  
@@ -60,7 +60,7 @@ Subroutine copyfilesq0
         & lolm)
       End Do
   ! read files
-      If (hybridhf) Then
+      If (skipgnd) Then
            filext = '.OUT'
       Else
            filext = '_QMT001.OUT'  

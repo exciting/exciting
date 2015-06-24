@@ -20,7 +20,7 @@ Contains
      & revertfilext, appfilext, filnam, fileext)
 ! !USES:
          Use modmain, Only: filext
-         Use modxs, Only: filextrevert,hybridhf
+         Use modxs, Only: filextrevert,skipgnd
 ! !DESCRIPTION:
 !   Generates file name and extension according to optional input parameters (
 !   see routine).
@@ -190,7 +190,7 @@ Contains
          End If
     ! extension (including the dot)
          If (present(dotext)) Then
-            If (hybridhf) Then
+            If (skipgnd) Then
                 s = trim (s) // '.OUT'
             Else 
                 s = trim (s) // trim (dotext)
