@@ -334,6 +334,9 @@ endif
             engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
             call energykncr
           end if
+        Else
+          ! OEP-Hybrids: Default way
+           engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
         end if
         
       else
