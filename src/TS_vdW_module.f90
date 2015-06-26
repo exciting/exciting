@@ -1,13 +1,63 @@
-Module vdwTS_module
+Module TS_vdW_module
   Implicit none
+  Real(8), Parameter :: s6=1d0
+  Real(8), Parameter :: rs6=0.94d0
+  Real(8), Parameter :: damping_const=20d0
+  Real(8), Parameter :: cutoff=95d0
   Integer :: current_atom, current_species
   Integer :: num_of_atoms_in_sphere_hirshfeld
   Real(8), Allocatable :: list_of_positions_hirshfeld(:,:) ! cartesian coordinates of all atoms within a sphere with radius r  
   Integer, Allocatable :: list_of_species_hirshfeld(:)     ! corresponding list of species (index of species as found in modinput)   
-  Real(8), Allocatable :: R0_free(:)
+  Real(8), Allocatable :: C6ab(:,:), R0_eff_ab(:,:)
 
 Contains
 
+!  Subroutine get_TS_parameters(C6ab, R0_eff_ab)
+  Subroutine get_TS_parameters()!C6ab, R0_eff_ab
+    Use mod_atoms, Only: sprmax, atposc, nspecies, natoms, spzn, idxas, natmtot
+    Implicit None
+!    Real(8), Intent(out) :: C6ab(:,:), R0_eff_ab(:,:)
+    Integer :: nsph, nr
+    Real(8) :: I_numerator, I_denominator
+    Real(8) :: V_ratio
+    Real(8) :: max_sprmax
+    Real(8) :: C6_free(nspecies), alpha_free_is(nspecies)
+    Integer :: is, iat, jat
+    Real(8) :: R0_free(nspecies)
+    Real(8) :: C6_eff(natmtot), alpha_free_idxas(natmtot), R0_eff(natmtot)
+    Real(8) :: e_TS_vdW
+    max_sprmax = maxval(sprmax)
+
+    Do is = 1, nspecies
+       Call get_free_atom_vdw_param(-spzn(is), C6_free(is), alpha_free_is(is), R0_free(is))
+    End Do
+
+    nsph=590 !possible numbers are: 6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074, 3740, 3890, 4334, 4802, 5294, 5810
+    nr=120
+!!!! quick calc:
+    nsph=146
+    nr=80
+!!!!
+
+    Do current_species = 1, nspecies
+       Do current_atom = 1,natoms(current_species)
+          Call atoms_in_ambit(max_sprmax + sprmax(current_species), atposc(:, current_atom, current_species), list_of_positions_hirshfeld, list_of_species_hirshfeld, num_of_atoms_in_sphere_hirshfeld)
+          I_numerator = sph_int(atposc(:, current_atom, current_species), R0_free(current_species), nsph,nr,integrand_numerator)
+          I_denominator = sph_int( (/ 0d0, 0d0, 0d0 /), R0_free(current_species), 1, 80, integrand_denominator)
+          V_ratio = I_numerator/I_denominator
+          C6_eff(idxas(current_atom, current_species)) = V_ratio**2 * C6_free(current_species)
+          alpha_free_idxas(idxas(current_atom, current_species)) =  alpha_free_is(current_species)
+          R0_eff(idxas(current_atom, current_species)) = V_ratio**(1d0/3) * R0_free(current_species)
+       End Do ! current_atom
+    End Do ! current_species
+
+    Do iat = 1, natmtot
+       Do jat = 1, natmtot
+          C6ab(iat, jat) = 2d0 / ( alpha_free_idxas(jat)/(alpha_free_idxas(iat)*C6_eff(jat)) + alpha_free_idxas(iat)/(alpha_free_idxas(jat)*C6_eff(iat)) )
+          R0_eff_ab(iat, jat) = R0_eff(iat) + R0_eff(jat)
+       End Do
+    End Do
+  End Subroutine get_TS_parameters
 
   Function integrand_numerator(vpc,np)
     Use modmain, Only: lmmaxvr, rhoir, rhomt
@@ -225,7 +275,7 @@ Contains
   End Function nfree
 
   Subroutine atoms_in_ambit(r_max, center_c, list_of_positions, list_of_species, num_of_atoms_in_sphere)
-    Use DFT_D2_subroutines, Only: getlatticerepetition
+    Use vdw_general_routines, Only: getlatticerepetition
     Use mod_atoms, Only: natmtot, nspecies, natoms, atposc
     Use modinput
     Implicit none
@@ -666,4 +716,4 @@ Contains
 
   end subroutine get_free_atom_vdw_param
 
-End Module vdwTS_module
+End Module TS_vdW_module

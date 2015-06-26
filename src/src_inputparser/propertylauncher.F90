@@ -63,8 +63,12 @@ Subroutine propertylauncher
       End If
       !--------------------------------------------------------
 
-      If (associated(input%properties%vdwTS)) Then
-         Call vdwTS
+      If (associated(input%properties%TS_vdW)) Then
+         Call TS_vdW_energy
+      End If
+
+      If (associated(input%properties%DFT_D2)) Then
+         Call DFT_D2_energy
       End If
       
       If (associated(input%properties%exccplot) .And. rank .Eq. 0) Then
