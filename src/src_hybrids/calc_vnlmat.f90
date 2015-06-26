@@ -113,7 +113,7 @@ subroutine calc_vnlmat
     call mpi_allgatherv_ifc(nkpt,nmatmax*nmatmax,zbuf=vnlmat)
     call barrier
 #endif
-    if ((rank==0).and.(input%groundstate%Hybrid%savepotential==.true.)) then 
+    if ((rank==0).and.input%groundstate%Hybrid%savepotential) then 
          Call putvnlmat 
     end if
 call barrier

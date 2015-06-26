@@ -36,8 +36,6 @@ Subroutine hybrids
     Call timesec (tsg0)
     Call timesec (ts0)
 
-! set smearing (default is LIBBZINT)
-    input%groundstate%stypenumber = input%groundstate%Hybrid%stypenumber
 ! initialise global variables
     Call timesec (tin0)
     Call init0
@@ -217,7 +215,7 @@ Subroutine hybrids
 ! calculate the non-local potential
 !-----------------------------------
         call timesec(ts0)
-        if ((ihyb==0).and.(restart==.true.)) then
+        if ((ihyb==0).and.restart) then
           Call getvnlmat 
           call timesec(ts1)
           if (rank==0) then

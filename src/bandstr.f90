@@ -65,6 +65,7 @@ Subroutine bandstr
     hybcheck=.true.
   end if
   if (hybcheck) then
+     if (rank==0) then
     fname='EVALHF.OUT'
     inquire(File=fname,Exist=exist)
     if (.not.exist) then
@@ -103,6 +104,10 @@ Subroutine bandstr
     end do
     close(88)
     deallocate(vkl0,ehf,e0,e1)
+    end if
+#ifdef MPI
+        Call MPI_barrier(MPI_COMM_WORLD, ierr)
+#endif
     return
   end if
   !--------------------
