@@ -32,6 +32,10 @@ Subroutine init0
       Integer :: ist, l, m, lm, iv (3)
       Real (8) :: ts0, ts1, tv3 (3)
 
+! zero self-consistent loop number
+      iscl = 0
+      tlast = .False.
+      
 !-------------------------------!
 !     zero timing variables     !
 !-------------------------------!
@@ -527,9 +531,6 @@ Subroutine init0
       Allocate (vplp1d(3, npp1d))
       If (allocated(dpp1d)) deallocate (dpp1d)
       Allocate (dpp1d(npp1d))
-! zero self-consistent loop number
-      iscl = 0
-      tlast = .False.
 !
       Call timesec (ts1)
 !!      timeinit = timeinit + ts1 - ts0

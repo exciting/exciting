@@ -2827,6 +2827,23 @@
               </xs:documentation>
           </xs:annotation>
        </xs:attribute>
+       
+      <xs:attribute ex:importance="expert" ex:unit="" name="dipolecorrection" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation> 
+          If <pre>"true"</pre>, the dipole correction is applied for slabs oriented along z-direction.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      
+      <xs:attribute ex:importance="expert" ex:unit="" name="dipoleposition" type="fortrandouble" default="1.0d0">
+        <xs:annotation>
+          <xs:documentation> 
+          Location of the dipole correction potential discontinuity in the lattice vector. 
+          The discontinuity should be placed within the vacuum region of the supercell.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
  
           <!--xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
             <xs:annotation>
