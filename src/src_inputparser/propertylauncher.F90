@@ -63,11 +63,11 @@ Subroutine propertylauncher
       End If
       !--------------------------------------------------------
 
-      If (associated(input%properties%TS_vdW)) Then
+      If (associated(input%properties%TSvdW)) Then
          Call TS_vdW_energy
       End If
 
-      If (associated(input%properties%DFT_D2)) Then
+      If (associated(input%properties%DFTD2)) Then
          Call DFT_D2_energy
       End If
       

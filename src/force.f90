@@ -231,12 +231,12 @@ Subroutine force
 
 !dispersion correction
 
-      If ( tlast .And. input%groundstate%vdw_correction .Ne. "none" ) Then
+      If ( tlast .And. input%groundstate%vdWcorrection .Ne. "none" ) Then
          If (allocated(force_disp)) deallocate (force_disp)
          Allocate(force_disp(3,natmtot))
-         If ( input%groundstate%vdw_correction .Eq. "DFT_D2" ) Then
+         If ( input%groundstate%vdWcorrection .Eq. "DFTD2" ) Then
             Call DFT_D2_force
-         Else If ( input%groundstate%vdw_correction .Eq. "TS_vdW" ) Then
+         Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then
             Call TS_vdW_force
          End If
          Do ias = 1, natmtot

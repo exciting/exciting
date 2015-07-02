@@ -1,9 +1,9 @@
 Module TS_vdW_module
   Implicit none
-  Real(8), Parameter :: s6=1d0
-  Real(8), Parameter :: rs6=0.94d0
-  Real(8), Parameter :: damping_const=20d0
-  Real(8), Parameter :: cutoff=95d0
+!  Real(8), Parameter :: s6=1d0
+!  Real(8), Parameter :: rs6=0.94d0
+!  Real(8), Parameter :: damping_const=20d0
+!  Real(8), Parameter :: cutoff=95d0
   Integer :: current_atom, current_species
   Integer :: num_of_atoms_in_sphere_hirshfeld
   Real(8), Allocatable :: list_of_positions_hirshfeld(:,:) ! cartesian coordinates of all atoms within a sphere with radius r  
@@ -15,6 +15,7 @@ Contains
 !  Subroutine get_TS_parameters(C6ab, R0_eff_ab)
   Subroutine get_TS_parameters()!C6ab, R0_eff_ab
     Use mod_atoms, Only: sprmax, atposc, nspecies, natoms, spzn, idxas, natmtot
+    Use modinput
     Implicit None
 !    Real(8), Intent(out) :: C6ab(:,:), R0_eff_ab(:,:)
     Integer :: nsph, nr
@@ -32,11 +33,13 @@ Contains
        Call get_free_atom_vdw_param(-spzn(is), C6_free(is), alpha_free_is(is), R0_free(is))
     End Do
 
-    nsph=590 !possible numbers are: 6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074, 3740, 3890, 4334, 4802, 5294, 5810
-    nr=120
+    nsph=input%groundstate%TSvdWparameters%nsph
+    nr=input%groundstate%TSvdWparameters%nr
+!    nsph=590 !possible numbers are: 6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074, 3740, 3890, 4334, 4802, 5294, 5810
+!    nr=120
 !!!! quick calc:
-    nsph=146
-    nr=80
+!    nsph=146
+!    nr=80
 !!!!
 
     Do current_species = 1, nspecies

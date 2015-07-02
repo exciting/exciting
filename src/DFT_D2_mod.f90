@@ -3,11 +3,11 @@ Module DFT_D2_mod
   Real(8), Parameter :: au_to_ang = 0.52917726d0
   Real(8), Parameter :: J_to_au = 4.35974417d-18
   Real(8), Parameter :: N_A = 6.02214129d23 !1/mol
-  Real(8), Parameter :: damping_const = 20d0
+!  Real(8), Parameter :: damping_const = 20d0
   Integer, Parameter :: max_elem = 86
-  Real(8), Parameter :: cutoff = 95 !au
-  Real(8), Parameter :: s6 = 0.75 !for pbe: s6 = 0.75
-  Real(8), Parameter :: rs6 = 1.1 !for pbe: rs6 = 1.1
+!  Real(8), Parameter :: cutoff = 95 !au
+!  Real(8), Parameter :: s6 = 0.75 !for pbe: s6 = 0.75
+!  Real(8), Parameter :: rs6 = 1.1 !for pbe: rs6 = 1.1
 
 Contains
 

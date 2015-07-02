@@ -322,10 +322,10 @@ endif
       engytot = engykn + 0.5d0 * engyvcl + engymad + engyx + engyc + &
      & engycbc
 !dispersion correction
-      If ( tlast .And. input%groundstate%vdw_correction .Ne. "none" ) Then
-         If ( input%groundstate%vdw_correction .Eq. "DFT_D2" ) Then
+      If ( tlast .And. input%groundstate%vdWcorrection .Ne. "none" ) Then
+         If ( input%groundstate%vdWcorrection .Eq. "DFTD2" ) Then
             Call DFT_D2_energy
-         Else If ( input%groundstate%vdw_correction .Eq. "TS_vdW" ) Then 
+         Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then 
             Call TS_vdW_energy
          End If
          engytot = engytot + e_disp

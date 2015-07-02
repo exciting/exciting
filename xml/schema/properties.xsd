@@ -260,19 +260,19 @@
           </xs:complexType>
         </xs:element>
 
-        <xs:element ex:importance="essential" ex:unit="" name="TS_vdW" maxOccurs="1"
+        <xs:element ex:importance="essential" ex:unit="" name="TSvdW" maxOccurs="1"
           minOccurs="0">
           <xs:annotation>
-            <xs:documentation>Tkatchenko-Scheffler van der Waals correction to total energy can be found in E_TS_vdW.OUT.</xs:documentation>
+            <xs:documentation>Tkatchenko-Scheffler van der Waals correction to total energy can be found in TSvdW.OUT.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
           </xs:complexType>
         </xs:element>
 
-        <xs:element ex:importance="essential" ex:unit="" name="DFT_D2" maxOccurs="1"
+        <xs:element ex:importance="essential" ex:unit="" name="DFTD2" maxOccurs="1"
           minOccurs="0">
           <xs:annotation>
-            <xs:documentation>DFT-D2 (Grimme 2006) van der Waals correction to total energy can be found in E_DFT_D2.OUT.</xs:documentation>
+            <xs:documentation>DFT-D2 (Grimme 2006) van der Waals correction to total energy can be found in DFTD2.OUT.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
           </xs:complexType>

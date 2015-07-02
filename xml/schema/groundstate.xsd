@@ -18,7 +18,113 @@
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="essential" ex:unit="" name="spin" minOccurs="0" maxOccurs="1">
+        
+	<xs:element ex:importance="expert" ex:unit="" name="DFTD2parameters" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation> 
+	    </xs:documentation>
+            <xs:appinfo></xs:appinfo>
+          </xs:annotation>
+          <xs:complexType>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="s6" type="fortrandouble" default="0.75d0">
+              <xs:annotation>
+                <xs:documentation>
+			Global scaling factor for all $C_6$-dispersion coefficients. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="rs6" type="fortrandouble" default="1.1d0">
+              <xs:annotation>
+                <xs:documentation>
+			Scaling factor for vdW radii. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="d" type="fortrandouble" default="20.0d0">
+              <xs:annotation>
+                <xs:documentation>
+			This damping constant determines the steepnes of the damping function.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="cutoff" type="fortrandouble" default="95.0d0">
+              <xs:annotation>
+                <xs:documentation>
+			Unit cells within this cutoff radius are expected to contribute to the vdW interaction.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+	  </xs:complexType>
+	</xs:element>
+
+
+
+	<xs:element ex:importance="expert" ex:unit="" name="TSvdWparameters" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation> 
+	    </xs:documentation>
+            <xs:appinfo></xs:appinfo>
+          </xs:annotation>
+          <xs:complexType>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="s6" type="fortrandouble" default="1.0d0">
+              <xs:annotation>
+                <xs:documentation>
+			Global scaling factor for all $C_6$-dispersion coefficients.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="rs6" type="fortrandouble" default="0.94d0">
+              <xs:annotation>
+                <xs:documentation>
+			Scaling factor for vdW radii. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="d" type="fortrandouble" default="20.0d0">
+              <xs:annotation>
+                <xs:documentation>
+			This damping constant determines the steepnes of the damping function.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="cutoff" type="fortrandouble" default="95.0d0">
+              <xs:annotation>
+                <xs:documentation>
+			Unit cells within this cutoff radius are expected to contribute to the vdW interaction.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="nr" type="xs:integer" default="120">
+              <xs:annotation>
+                <xs:documentation>
+		  Number of radial grid points for the Gauss-Chebyshev quadrature.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="nsph" type="xs:integer" default="590">
+              <xs:annotation>
+                <xs:documentation>
+		  Number of Lebedev grid points. Possible numbers are: 1, 6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074, 3740, 3890, 4334, 4802, 5294, 5810.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+	  </xs:complexType>
+	</xs:element>
+
+
+	
+	<xs:element ex:importance="essential" ex:unit="" name="spin" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation> 
 	    If the <elementref>spin</elementref> element is present, calculation is done with
@@ -2016,15 +2122,17 @@
         </xs:element>
       </xs:all>
 
-      <xs:attribute ex:importance="expert" ex:unit="" name="vdw_correction" default="none">
+      <xs:attribute ex:importance="expert" ex:unit="" name="vdWcorrection"  default="none">
 	<xs:annotation>		
-	  <xs:documentation> Adds dispersion correction to total energy in last SCF iteration. If forces are calculated, an appropriate dispersion correction will be considered.</xs:documentation>
+	  <xs:documentation>
+	    Adds dispersion correction to total energy in last SCF iteration. If forces are calculated, an appropriate dispersion correction will be considered. Method-dependent parameters can be adjusted in the corresponding child element.
+	  </xs:documentation>
 	</xs:annotation>
 	<xs:simpleType>
 	  <xs:restriction base="xs:string">
 	    <xs:enumeration value="none"/>
-	    <xs:enumeration value="DFT_D2"/>
-	    <xs:enumeration value="TS_vdW"/>
+	    <xs:enumeration value="DFTD2"/>
+	    <xs:enumeration value="TSvdW"/>
 	  </xs:restriction>
 	</xs:simpleType>
       </xs:attribute>

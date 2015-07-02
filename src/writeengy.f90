@@ -57,10 +57,10 @@ Subroutine writeengy (fnum)
          Write (fnum, '(" Madelung energy"             , T45, ": ", F18.8)') engymad
          Write (fnum, '(" Core-electron kinetic energy", T45, ": ", F18.8)') engykncr
       End If
-      If ( tlast .And. input%groundstate%vdw_correction .Ne. "none" ) Then
-         If ( input%groundstate%vdw_correction .Eq. "DFT_D2" ) Then
+      If ( tlast .And. input%groundstate%vdWcorrection .Ne. "none" ) Then
+         If ( input%groundstate%vdWcorrection .Eq. "DFTD2" ) Then
             Write (fnum, '(" DFT-D2 dispersion correction", T45, ": ", F18.8)') e_disp
-         Else If ( input%groundstate%vdw_correction .Eq. "TS_vdW" ) Then
+         Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then
             Write (fnum, '(" TS-vdW dispersion correction", T45, ": ", F18.8)') e_disp
          End If
       End If
