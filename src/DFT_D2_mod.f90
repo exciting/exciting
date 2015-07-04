@@ -25,9 +25,9 @@ Contains
          0.92d0 , & ! He
          0.75d0 , & ! Li
          1.28d0 , & ! Be
-         1.35d0 , & ! B
+         1.485d0 , & ! B !!! original: 1.35d0
          1.452d0 , & ! C !!! original: 1.32d0
-         1.27d0 , & ! N
+         1.397d0 , & ! N !!! original: 1.27d0
          1.22d0 , & ! O
          1.17d0 , & ! F
          1.13d0 , & ! Ne
