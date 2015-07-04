@@ -36,7 +36,7 @@ Contains
          1.49d0 , & ! Al
          1.56d0 , & ! Si
          1.55d0 , & ! P
-         1.53d0 , & ! S
+         1.683d0 , & ! S !!! original: 1.53d0
          1.49d0 , & ! Cl
          1.45d0 , & ! Ar
          1.35d0 , & ! K
@@ -54,15 +54,15 @@ Contains
          1.50d0 , & ! Ga
          1.57d0 , & ! Ge
          1.60d0 , & ! As
-         1.61d0 , & ! Se
+         1.771d0 , & ! Se !!! original: 1.61d0
          1.59d0 , & ! Br
          1.57d0 , & ! Kr
          1.48d0 , & ! Rb
          1.46d0 , & ! Sr
          1.49d0 , & ! Y
          1.49d0 , & ! Zr
-         1.49d0 , & ! Nb
-         1.49d0 , & ! Mo
+         1.639d0 , & ! Nb !!! original: 1.49d0 
+         1.639d0 , & ! Mo !!! original: 1.49d0
          1.49d0 , & ! Tc
          1.49d0 , & ! Ru
          1.49d0 , & ! Rh
