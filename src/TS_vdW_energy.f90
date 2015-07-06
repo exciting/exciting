@@ -1,7 +1,7 @@
 Subroutine TS_vdW_energy
   !Tkatchenko-Scheffler van der Waals correction 
   Use mod_energy, Only: e_disp
-  Use TS_vdW_module, Only: get_TS_parameters, C6ab, R0_eff_ab!, s6, rs6, damping_const, cutoff
+  Use TS_vdW_module, Only: get_TS_parameters, C6ab, R0_eff_ab!, s6, sr6, damping_const, cutoff
   Use vdw_general_routines, Only: vdw_energy_pairwiseC6
   Use mod_atoms, Only: natmtot
   Use modinput
@@ -18,7 +18,7 @@ Subroutine TS_vdW_energy
      Call get_TS_parameters()
   End If
 
-  e_disp = vdw_energy_pairwiseC6(input%groundstate%TSvdWparameters%s6, input%groundstate%TSvdWparameters%rs6, input%groundstate%TSvdWparameters%d, input%groundstate%TSvdWparameters%cutoff, C6ab, R0_eff_ab)
+  e_disp = vdw_energy_pairwiseC6(input%groundstate%TSvdWparameters%s6, input%groundstate%TSvdWparameters%sr6, input%groundstate%TSvdWparameters%d, input%groundstate%TSvdWparameters%cutoff, C6ab, R0_eff_ab)
   If (associated(input%properties)) Then
      If (associated(input%properties%TSvdW)) Then
         Open(246, File="TSvdW.OUT")

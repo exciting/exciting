@@ -29,11 +29,11 @@ Contains
     End Do
   End Subroutine getlatticerepetition
 
-  Real(8) Function vdw_energy_pairwiseC6(s6, rs6, damping_const, cutoff, C6ab, R0ab)
+  Real(8) Function vdw_energy_pairwiseC6(s6, sr6, damping_const, cutoff, C6ab, R0ab)
     Use mod_atoms, Only: natmtot, nspecies, natoms, idxas, atposc
     Use modinput
     Implicit None
-    Real(8), Intent(in) :: s6, rs6, damping_const, cutoff, C6ab(natmtot, natmtot), R0ab(natmtot, natmtot)
+    Real(8), Intent(in) :: s6, sr6, damping_const, cutoff, C6ab(natmtot, natmtot), R0ab(natmtot, natmtot)
     Real(8) :: xyz(3, natmtot)
     Integer :: latrep(3)
     Integer :: iat, jat, tau_a, tau_b, tau_c, ia, is
@@ -59,7 +59,7 @@ Contains
                    dz=xyz(3,iat)-xyz(3,jat)+tau(3)
                    r=Sqrt(dx*dx+dy*dy+dz*dz)
                    If(r .Gt. cutoff) Cycle
-                   damp6=1d0/(1d0+Exp(-damping_const*(r/(rs6*R0ab(iat, jat))-1d0)))
+                   damp6=1d0/(1d0+Exp(-damping_const*(r/(sr6*R0ab(iat, jat))-1d0)))
                    r6=r**6
                    vdw_energy_pairwiseC6 =vdw_energy_pairwiseC6+C6ab(iat, jat)*damp6/r6
                 End Do
@@ -81,7 +81,7 @@ Contains
                 dz = tau(3)
                 r = Sqrt(dx*dx+dy*dy+dz*dz)
                 If(r .Gt. cutoff) Cycle
-                damp6=1d0/(1d0+Exp(-damping_const*(r/(rs6*R0ab(iat, jat))-1d0)))
+                damp6=1d0/(1d0+Exp(-damping_const*(r/(sr6*R0ab(iat, jat))-1d0)))
                 r6 = r**6
                 vdw_energy_pairwiseC6 = vdw_energy_pairwiseC6+C6ab(iat, jat)*damp6/r6*0.50d0
              End Do ! tau_c
@@ -91,11 +91,11 @@ Contains
     vdw_energy_pairwiseC6 = -s6*vdw_energy_pairwiseC6
   End Function vdw_energy_pairwiseC6
 
-  Function vdw_force_pairwiseC6(s6, rs6, damping_const, cutoff, C6ab, R0ab)
+  Function vdw_force_pairwiseC6(s6, sr6, damping_const, cutoff, C6ab, R0ab)
     Use mod_atoms, Only: natmtot, nspecies, natoms, idxas, atposc
     Use modinput
     Implicit None
-    Real(8), Intent(in) :: s6, rs6, damping_const, cutoff, C6ab(natmtot, natmtot), R0ab(natmtot, natmtot)
+    Real(8), Intent(in) :: s6, sr6, damping_const, cutoff, C6ab(natmtot, natmtot), R0ab(natmtot, natmtot)
     Real(8) :: vdw_force_pairwiseC6(3,natmtot)
     Real(8) :: xyz(3, natmtot)
     Integer :: latrep(3)
@@ -124,7 +124,7 @@ Contains
                    r=Sqrt(dx*dx+dy*dy+dz*dz)
                    If(r.Gt.cutoff) Cycle
                    r8=r**8
-                   r0ab_=rs6*R0ab(iat, jat)
+                   r0ab_=sr6*R0ab(iat, jat)
                    help1_exp=Exp(damping_const*(r/r0ab_-1.))
                    help2=C6ab(iat, jat)*help1_exp*(damping_const*r-6*r0ab_*(1+help1_exp))/r8/r0ab_/(1+help1_exp)**2
                    vdw_force_pairwiseC6(1,iat) =vdw_force_pairwiseC6(1,iat)+help2*dx

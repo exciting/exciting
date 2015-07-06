@@ -1,7 +1,7 @@
 Module TS_vdW_module
   Implicit none
 !  Real(8), Parameter :: s6=1d0
-!  Real(8), Parameter :: rs6=0.94d0
+!  Real(8), Parameter :: sr6=0.94d0
 !  Real(8), Parameter :: damping_const=20d0
 !  Real(8), Parameter :: cutoff=95d0
   Integer :: current_atom, current_species

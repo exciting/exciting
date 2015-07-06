@@ -7,7 +7,7 @@ Module DFT_D2_mod
   Integer, Parameter :: max_elem = 86
   !  Real(8), Parameter :: cutoff = 95 !au
   !  Real(8), Parameter :: s6 = 0.75 !for pbe: s6 = 0.75
-  !  Real(8), Parameter :: rs6 = 1.1 !for pbe: rs6 = 1.1
+  !  Real(8), Parameter :: sr6 = 1.1 !for pbe: sr6 = 1.1
 
 Contains
 
@@ -19,26 +19,26 @@ Contains
     Real(8) :: C6ab_idxas(natmtot, natmtot), R0ab_idxas(natmtot, natmtot)
 
     ! the published radii in S.Grimme, J.Comput.Chem. 27, (2006), 1787-1799 (tab 1)
-    ! refer to the following values multiplied by 1.1 (rs6 in this code)
+    ! refer to the following values multiplied by 1.1 (sr6 in this code)
 
     r0(1:max_elem) = (/0.91d0 , & ! H
          0.92d0 , & ! He
          0.75d0 , & ! Li
          1.28d0 , & ! Be
-         1.485d0 , & ! B !!! original: 1.35d0
-         1.452d0 , & ! C !!! original: 1.32d0
-         1.397d0 , & ! N !!! original: 1.27d0
+         1.35d0 , & ! B
+         1.32d0 , & ! C
+         1.27d0 , & ! N
          1.22d0 , & ! O
          1.17d0 , & ! F
-         1.243d0 , & ! Ne !!! original: 1.13d0
+         1.13d0 , & ! Ne
          1.04d0 , & ! Na
          1.24d0 , & ! Mg
          1.49d0 , & ! Al
          1.56d0 , & ! Si
          1.55d0 , & ! P
-         1.683d0 , & ! S !!! original: 1.53d0
+         1.53d0 , & ! S
          1.49d0 , & ! Cl
-         1.595d0 , & ! Ar !!! original: 1.45d0
+         1.45d0 , & ! Ar
          1.35d0 , & ! K
          1.34d0 , & ! Ca
          1.42d0 , & ! Sc
@@ -54,15 +54,15 @@ Contains
          1.50d0 , & ! Ga
          1.57d0 , & ! Ge
          1.60d0 , & ! As
-         1.771d0 , & ! Se !!! original: 1.61d0
+         1.61d0 , & ! Se
          1.59d0 , & ! Br
-         1.727d0 , & ! Kr !!! original: 1.57d0
+         1.57d0 , & ! Kr
          1.48d0 , & ! Rb
          1.46d0 , & ! Sr
          1.49d0 , & ! Y
          1.49d0 , & ! Zr
-         1.639d0 , & ! Nb !!! original: 1.49d0 
-         1.639d0 , & ! Mo !!! original: 1.49d0
+         1.49d0 , & ! Nb
+         1.49d0 , & ! Mo
          1.49d0 , & ! Tc
          1.49d0 , & ! Ru
          1.49d0 , & ! Rh
@@ -74,7 +74,7 @@ Contains
          1.71d0 , & ! Sb
          1.72d0 , & ! Te
          1.72d0 , & ! I
-         1.881d0 , & ! Xe !!! original: 1.71d0
+         1.71d0 , & ! Xe
          1.638d0 , & ! Cs
          1.602d0 , & ! Ba
          1.564d0 , & ! La

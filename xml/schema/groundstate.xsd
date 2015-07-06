@@ -35,7 +35,7 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="rs6" type="fortrandouble" default="1.1d0">
+            <xs:attribute ex:importance="essential" ex:unit="" name="sr6" type="fortrandouble" default="1.1d0">
               <xs:annotation>
                 <xs:documentation>
 			Scaling factor for vdW radii. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
@@ -79,7 +79,7 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="rs6" type="fortrandouble" default="0.94d0">
+            <xs:attribute ex:importance="essential" ex:unit="" name="sr6" type="fortrandouble" default="0.94d0">
               <xs:annotation>
                 <xs:documentation>
 			Scaling factor for vdW radii. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  

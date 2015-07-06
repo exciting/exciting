@@ -1,6 +1,6 @@
 Subroutine DFT_D2_energy
   Use mod_energy, Only: e_disp
-  Use DFT_D2_mod, Only : loadoldpar!, s6, rs6, damping_const, cutoff
+  Use DFT_D2_mod, Only : loadoldpar!, s6, sr6, damping_const, cutoff
   Use vdw_general_routines, Only: vdw_energy_pairwiseC6
   Use mod_atoms, Only: natmtot
   Use modinput
@@ -14,7 +14,7 @@ Subroutine DFT_D2_energy
 
   Call loadoldpar(C6ab,R0ab)
 
-  e_disp = vdw_energy_pairwiseC6(input%groundstate%DFTD2parameters%s6, input%groundstate%DFTD2parameters%rs6, input%groundstate%DFTD2parameters%d, input%groundstate%DFTD2parameters%cutoff, C6ab, R0ab)
+  e_disp = vdw_energy_pairwiseC6(input%groundstate%DFTD2parameters%s6, input%groundstate%DFTD2parameters%sr6, input%groundstate%DFTD2parameters%d, input%groundstate%DFTD2parameters%cutoff, C6ab, R0ab)
   If (associated(input%properties)) Then
      If (associated(input%properties%DFTD2)) Then
         Open(246, File="DFTD2.OUT")
