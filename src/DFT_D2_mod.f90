@@ -30,7 +30,7 @@ Contains
          1.397d0 , & ! N !!! original: 1.27d0
          1.22d0 , & ! O
          1.17d0 , & ! F
-         1.13d0 , & ! Ne
+         1.243d0 , & ! Ne !!! original: 1.13d0
          1.04d0 , & ! Na
          1.24d0 , & ! Mg
          1.49d0 , & ! Al
@@ -38,7 +38,7 @@ Contains
          1.55d0 , & ! P
          1.683d0 , & ! S !!! original: 1.53d0
          1.49d0 , & ! Cl
-         1.45d0 , & ! Ar
+         1.595d0 , & ! Ar !!! original: 1.45d0
          1.35d0 , & ! K
          1.34d0 , & ! Ca
          1.42d0 , & ! Sc
@@ -56,7 +56,7 @@ Contains
          1.60d0 , & ! As
          1.771d0 , & ! Se !!! original: 1.61d0
          1.59d0 , & ! Br
-         1.57d0 , & ! Kr
+         1.727d0 , & ! Kr !!! original: 1.57d0
          1.48d0 , & ! Rb
          1.46d0 , & ! Sr
          1.49d0 , & ! Y
@@ -74,7 +74,7 @@ Contains
          1.71d0 , & ! Sb
          1.72d0 , & ! Te
          1.72d0 , & ! I
-         1.71d0 , & ! Xe
+         1.881d0 , & ! Xe !!! original: 1.71d0
          1.638d0 , & ! Cs
          1.602d0 , & ! Ba
          1.564d0 , & ! La

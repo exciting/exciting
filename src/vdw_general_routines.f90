@@ -135,7 +135,7 @@ Contains
           End Do
        End Do
     End Do
-    vdw_force_pairwiseC6 = s6*vdw_force_pairwiseC6
+    vdw_force_pairwiseC6 = -s6*vdw_force_pairwiseC6
   End Function vdw_force_pairwiseC6
 
 
