@@ -9,6 +9,7 @@ subroutine scf_cycle(verbosity)
     Use modmain
     Use modmpi
     Use scl_xml_out_Module
+    Use TS_vdW_module, Only: C6ab
 !
 ! !DESCRIPTION:
 !
@@ -41,6 +42,8 @@ subroutine scf_cycle(verbosity)
         call printbox(60,"+",string)
     End If
 
+! reset density-dependent dispersion coefficients of Tkatchenko-Scheffler method
+    If (Allocated(C6ab)) Deallocate(C6ab)
 !_______________________________________________________________
 ! initialise or read the charge density and potentials from file
 
