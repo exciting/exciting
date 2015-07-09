@@ -120,6 +120,9 @@ Subroutine xsmain (plan)
          Case (446)
      ! regenerate BSE spectrum from exciton output
             Call bsegenspec
+         Case (447)
+     ! ASCII output of BSE eigenvectors
+            Call writebevec
          Case (450)
      ! BSE-kernel
             Call kernxc_bse

@@ -123,6 +123,11 @@ Subroutine bse
 
       integer :: Recl, nstsv_
       real(8) :: vkl_(3)
+
+
+      Character (256) :: lambda
+      Real (8) :: bevec_ksum, bevec1
+      Integer :: un
       
       
   ! routine not yet parallelized
@@ -540,24 +545,17 @@ Subroutine bse
         end if
         
         ! write
-        write(50) input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+        write(50) input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons, & 
+              & nkptnr, nsta1, nrnst1, nrnst3, hamsiz
         do ievec = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
            write(50) beval(ievec), bevec(1:hamsiz,ievec)
         end do
-        
-!        Write (60,*) "ham written"
-!        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
-!           write(60,'(" ",11F14.8)') beval(is), ham(1:5,is)
-!        end do
-        
-        
-!        Write (*,*) "bevec written"
-!        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
-!           write(60,'(" ",11F14.8)') beval(is), bevec(1:5,is)
-!        end do
+
         
         close(50)
-        
+
+
+
         ! read bin
 !        inquire(file='EXCCOEFF.bin', exist=exist)
 !        if (exist) then
@@ -617,7 +615,10 @@ Subroutine bse
             write(*,*)
             stop
           end if
-          read(50) input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+          read(50) input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons, &
+              & nkptnr, nsta1, nrnst1, nrnst3, hamsiz
+          beval=0.0
+          bevec=0.0
           do ievec = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
              read(50) beval(ievec), bevec(1:hamsiz,ievec)
           end do

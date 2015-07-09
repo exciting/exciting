@@ -946,6 +946,14 @@
                             <xs:documentation>Read BSE eigenvalues and regenerate dielectric and loss functions.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+                        <xs:enumeration value="writebevec">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>447</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>ASCII output of BSE eigenvalus.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
                         <xs:enumeration value="kernxc_bse">
                           <xs:annotation>
                             <xs:appinfo>
