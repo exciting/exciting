@@ -90,11 +90,21 @@ libarpack.a::
 
 libfox:lib/libFoX_common.a
 
+ifeq ($(HLRN),true)
+lib/libFoX_common.a:
+	cd ../../src/FoX/ && \
+	module swap craype-$(CNODE_ARCH) craype-$(LNODE_ARCH) && \
+	./configure FC=$(F90) && \
+	module swap craype-$(LNODE_ARCH) craype-$(CNODE_ARCH) && \
+	make 
+	cp -r ../../src/FoX/objs/* ./
+else
 lib/libFoX_common.a:
 	cd ../../src/FoX/ && \
 	./configure FC=$(F90) &&\
 	make 
 	cp -r ../../src/FoX/objs/* ./
+endif
 	
 leblaiklib.a::
 	cd ../../src/leblaiklib && make
@@ -106,11 +116,22 @@ liblbfgs.a::
 	
 libxc.a:lib/libxc.a
 
+ifeq ($(HLRN),true)
 lib/libxc.a: 
 	cd ../../src/libXC/ && \
-	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPT)"  CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
+	module swap craype-$(CNODE_ARCH) craype-$(LNODE_ARCH) && \
+	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPT)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
+	module swap craype-$(LNODE_ARCH) craype-$(CNODE_ARCH) && \
 	make 
 	cp -r ../../src/libXC/src/.libs/libxc.a ./lib/libxc.a
+else
+lib/libxc.a: 
+	cd ../../src/libXC/ && \
+	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPT)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
+	make 
+	cp -r ../../src/libXC/src/.libs/libxc.a ./lib/libxc.a
+endif
+
 #cp -f ../make.inc ../..
 #cd ../../src/ARPACK && $(MAKE) clean 
 #cp ../../src/ARPACK/libarpack.a .

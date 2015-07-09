@@ -56,7 +56,7 @@ while($selected==0){
 		system("echo \"BUILDMPI=false\">>build/make.inc");
 		$selected=1;
 	}else{
-		print "please chose yes or no";
+		print "please choose yes or no";
 		$selected=0;
 	}
 }
@@ -74,7 +74,7 @@ if($SMP=~m/yes/i){
 	system("echo \"BUILDSMP=false\" >>build/make.inc");
 		$selected=1;
 }else{
-	print "please chose yes or no";
+	print "please choose yes or no";
 		
 }
 }
@@ -97,7 +97,7 @@ while($selected==0){
     {
 	$selected=1;
     }else{
-	print "please chose yes or no";
+	print "please choose yes or no";
 		
     }
 }

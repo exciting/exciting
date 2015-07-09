@@ -160,24 +160,25 @@ contains
     subroutine exit_hybrids
 
 ! deallocate global
-        deallocate(vxnl)
-        deallocate(vnlmat)
+        if (allocated(vxnl)) deallocate(vxnl)
+        if (allocated(vnlmat)) deallocate(vnlmat)
 
 ! deallocate mixed-basis stuff
-        deallocate(ncore)
-        deallocate(corind)
-        deallocate(ipwint)
-        deallocate(nup)
-        deallocate(nmix)
-        deallocate(umix)
-        deallocate(bigl)
-        deallocate(mbl)
-        deallocate(rtl)
-        deallocate(rrint)
-        deallocate(bradketc)
-        deallocate(bradketa)
-        deallocate(bradketlo)
-        deallocate(locmixind)
+        if (allocated(ncore)) deallocate(ncore)
+        if (allocated(ucore)) deallocate(ucore)
+        if (allocated(corind)) deallocate(corind)
+        if (allocated(ipwint)) deallocate(ipwint)
+        if (allocated(nup)) deallocate(nup)
+        if (allocated(nmix)) deallocate(nmix)
+        if (associated(umix)) deallocate(umix)
+        if (associated(bigl)) deallocate(bigl)
+        if (allocated(mbl)) deallocate(mbl)
+        if (allocated(rtl)) deallocate(rtl)
+        if (allocated(rrint)) deallocate(rrint)
+        if (allocated(bradketc)) deallocate(bradketc)
+        if (allocated(bradketa)) deallocate(bradketa)
+        if (allocated(bradketlo)) deallocate(bradketlo)
+        if (allocated(locmixind)) deallocate(locmixind)
       
 ! avoid running gw
         if (associated(input%gw)) input%gw%taskname="skip"

@@ -123,7 +123,9 @@ for i in range(0,displ_points):
 #-------------------------------------------------------------------------------
 
     displ=i*displ_step-maximum_displ*convert
-
+    
+    if (abs(displ) < 0.000001): displ=0.000001
+    
     if (i+1 < 10): displfile = 'displ-0'+str(i+1)
     else: displfile = 'displ-'+str(i+1)
     output_dsp = open(displfile,"w")

@@ -104,9 +104,8 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       Real (8), Intent (In) :: r (ld, nspecies)
       Integer, Intent (In) :: igp0
       Real (8), Intent (In) :: gpc (ngvec)
-      Real (8), Intent (In) :: jlgpr &
-     & (0:input%groundstate%lmaxvr+input%groundstate%npsden+1, ngvec, &
-     & nspecies)
+      Real (8), Intent (In) :: jlgpr(0:input%groundstate%lmaxvr+ &
+      & input%groundstate%npsden+1, ngvec, nspecies)
       Complex (8), Intent (In) :: ylmgp (lmmaxvr, ngvec)
       Complex (8), Intent (In) :: sfacgp (ngvec, natmtot)
       Real (8), Intent (In) :: zn (nspecies)
@@ -134,6 +133,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 #ifdef USEOMP
       integer ithr,nthreads,whichthread
 #endif
+      real(8), allocatable :: vdplmt(:,:,:), vdplir(:) 
 
 ! external functions
       Real (8) :: factnm
@@ -147,8 +147,8 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
             Call zpotclmt (input%groundstate%ptnucl, &
-           & input%groundstate%lmaxvr, nr(is), r(:, is), zn(is), &
-           & lmmaxvr, zrhomt(:, :, ias), zvclmt(:, :, ias))
+            & input%groundstate%lmaxvr, nr(is), r(:, is), zn(is), &
+            & lmmaxvr, zrhomt(:, :, ias), zvclmt(:, :, ias))
             ias = idxas (ia, is)
          End Do
 !$OMP END DO
@@ -170,6 +170,20 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
          End Do
       Enddo
 
+! add dipole correction
+      !if ((iscl>0).and.(input%groundstate%dipolecorrection)) then
+      !  allocate(vdplmt(lmmaxvr,nrmax,natmtot),vdplir(ngrtot))
+      !  call dipole_correction(vdplmt,vdplir)
+      !  do is = 1, nspecies
+      !    do ia = 1, natoms(is)
+      !      ias = idxas(ia,is)
+      !      do ir = 1, nr(is)
+      !        zvclmt(1,ir,ias) = zvclmt(1,ir,ias)+vdplmt(1,ir,ias)
+      !        zvclmt(3,ir,ias) = zvclmt(3,ir,ias)+vdplmt(3,ir,ias)
+      !      end do
+      !    end do
+      !  end do
+      !end if
 
 ! compute (R_mt)^l
       Do is = 1, nspecies
@@ -384,7 +398,23 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 ! Fourier transform interstitial potential to real-space
       Call zfftifc (3, ngrid, 1, zvclir)
 
-
+! add dipole correction
+      if ((iscl>0).and.(input%groundstate%dipolecorrection)) then
+        allocate(vdplmt(lmmaxvr,nrmax,natmtot),vdplir(ngrtot))
+        call dipole_correction(vdplmt,vdplir)
+        do is = 1, nspecies
+          do ia = 1, natoms(is)
+            ias = idxas(ia,is)
+            do ir = 1, nr(is)
+              zvclmt(1,ir,ias) = zvclmt(1,ir,ias)+vdplmt(1,ir,ias)
+              zvclmt(3,ir,ias) = zvclmt(3,ir,ias)+vdplmt(3,ir,ias)
+            end do
+          end do
+        end do
+        zvclir(:) =  zvclir(:)+vdplir(:)
+        deallocate(vdplmt,vdplir)
+      end if
+      
       Return
 End Subroutine
 !EOC

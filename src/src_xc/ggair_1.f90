@@ -40,6 +40,7 @@ allocate(zfft1(ngrtot), zfft2(ngrtot),rhog(ngrtot))
 zfft1(:)=rhoir(:)
 call zfftifc(3, ngrid, -1, zfft1)
 rhog(:)=zfft1(:)
+!write(*,*) sum(rhoir)
 ! |grad rho|
 do i=1, 3
   zfft2(:)=0.d0
@@ -69,7 +70,13 @@ do i=1,3
       zfft2(ifg)=-vgc(i,ig)*vgc(j,ig)*rhog(ifg)
     end do
     call zfftifc(3, ngrid, 1, zfft2)
-    g3rho(:)=g3rho(:)+gvrho(:,i)*dble(zfft2(:))*(gvrho(:,j)/grho(:))
+!    write(*,*) i,j,sum(zfft2)
+    do ig=1,ngrtot
+     if (grho(ig).ne.0d0) then  !write(*,*) 'gotcha'
+       g3rho(ig)=g3rho(ig)+gvrho(ig,i)*dble(zfft2(ig))*(gvrho(ig,j)/grho(ig))
+     
+     endif
+    enddo
   end do
 end do
 deallocate(gvrho, zfft1, zfft2, rhog)

@@ -69,16 +69,19 @@
 !BOC
 !     Initializations
       nrwf=max(spnstmax,input%groundstate%lmaxapw,nlomax)
-      if (allocated(bradketc)) deallocate(bradketc)
-      allocate(bradketc(natmtot,maxnmix,spnstmax,0:nrwf,apwordmax,3))
+      
       if (allocated(bradketa)) deallocate(bradketa)
       allocate(bradketa(natmtot,maxnmix,0:input%groundstate%lmaxapw, &
      &  apwordmax,0:nrwf,apwordmax,3))
+      bradketa=0.0d0
       if (allocated(bradketlo)) deallocate(bradketlo)
       allocate(bradketlo(natmtot,maxnmix,nlomax,0:nrwf,apwordmax,3))
-      bradketc=0.0d0
-      bradketa=0.0d0
       bradketlo=0.0d0
+      if (iopcore<2) then
+        if (allocated(bradketc)) deallocate(bradketc)
+        allocate(bradketc(natmtot,maxnmix,spnstmax,0:nrwf,apwordmax,3))
+        bradketc=0.0d0
+      end if
       
       do is=1,nspecies
         do ia=1,natoms(is)
@@ -89,6 +92,7 @@
 !         Loop over radial mixed functions
           do irm=1,nmix(ias)
 
+            if (iopcore<2) then
 !---------------------------------------------------------------------------!
 !             the left function of the product is a core wf.
 !---------------------------------------------------------------------------!
@@ -105,8 +109,8 @@
 !               Check the triangular rule for L, l1 and l2
                 if((iabs(l1-l2).le.bigl(ias,irm)).and.(l1+l2.ge.bigl(ias,irm)))then
                   do ir=1,nrmt(is)
-                    fr(ir)=umix(ias,irm,ir)*rwfcr(ir,1,ist1,ias)*   &
-                 &         rwfcr(ir,1,ist2,ias)*spr(ir,is)
+                    fr(ir)=umix(ias,irm,ir)*ucore(ir,1,ist1,ias)*   &
+                 &         ucore(ir,1,ist2,ias)*spr(ir,is)
                   enddo ! ir
 !                 Calculate the integral:
                   call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
@@ -126,7 +130,7 @@
                 if((iabs(l1-l2).le.bigl(ias,irm)).and.(l1+l2.ge.bigl(ias,irm)))then
                   do io2=1,apword(l2,is)
                     do ir=1,nrmt(is)
-                      fr(ir)=umix(ias,irm,ir)*rwfcr(ir,1,ist1,ias)* &
+                      fr(ir)=umix(ias,irm,ir)*ucore(ir,1,ist1,ias)* &
                    &         apwfr(ir,1,io2,l2,ias)*spr(ir,is)
                     enddo ! ir
 !                   Calculate the integral:
@@ -148,7 +152,7 @@
                 l2=lorbl(ilo2,is)
                 if((iabs(l1-l2).le.bigl(ias,irm)).and.(l1+l2.ge.bigl(ias,irm)))then
                     do ir=1,nrmt(is)
-                      fr(ir)=umix(ias,irm,ir)*rwfcr(ir,1,ist1,ias)*     &
+                      fr(ir)=umix(ias,irm,ir)*ucore(ir,1,ist1,ias)*     &
                    &         lofr(ir,1,ilo2,ias)*spr(ir,is)
                     enddo ! ir
 !                   Calculate the integral:
@@ -161,6 +165,7 @@
                 endif
               enddo ! ilo2
             enddo ! ist1
+            end if ! iopcore
 
 !---------------------------------------------------------------------------!
 !           the left function of the product is a valence wf.
@@ -168,6 +173,7 @@
             do l1=0,input%groundstate%lmaxapw
               do io1=1,apword(l1,is)
                 
+                if (iopcore<2) then
 !---------------------------------------------------------------------------!
 !               the right function of the product is a core wf.
 !---------------------------------------------------------------------------!
@@ -178,7 +184,7 @@
                   if((iabs(l1-l2).le.bigl(ias,irm)).and.(l1+l2.ge.bigl(ias,irm)))then
                     do ir=1,nrmt(is)
                       fr(ir)=umix(ias,irm,ir)*apwfr(ir,1,io1,l1,ias)* &
-                   &         rwfcr(ir,1,ist2,ias)*spr(ir,is)
+                   &         ucore(ir,1,ist2,ias)*spr(ir,is)
                     enddo ! ir
 !                   Calculate the integral:
                     call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
@@ -189,6 +195,7 @@
                    &                     bradketa(ias,irm,l1,io1,ist2,io2,1)
                   endif
                 enddo ! ist2
+                end if ! iopcore
 
 !---------------------------------------------------------------------------!
 !               the right function of the product is a valence wf.
@@ -242,6 +249,7 @@
             do ilo1=1,nlorb(is)
               l1=lorbl(ilo1,is)
 
+              if (iopcore<2) then
 !---------------------------------------------------------------------------!
 !                the right function of the product is a core wf.
 !---------------------------------------------------------------------------!
@@ -252,7 +260,7 @@
                 if((iabs(l1-l2).le.bigl(ias,irm)).and.(l1+l2.ge.bigl(ias,irm)))then
                   do ir=1,nrmt(is)
                      fr(ir)=umix(ias,irm,ir)*lofr(ir,1,ilo1,ias)* &
-                 &          rwfcr(ir,1,ist2,ias)*spr(ir,is)
+                 &          ucore(ir,1,ist2,ias)*spr(ir,is)
                   enddo ! ir
 !                 Calculate the integral:
                   call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
@@ -263,6 +271,7 @@
                  &                     bradketlo(ias,irm,ilo1,ist2,io2,1)
                 endif
               enddo ! ist2
+              end if ! iopcore
 
 !---------------------------------------------------------------------------!
 !              the right function of the product is a valencd wf.

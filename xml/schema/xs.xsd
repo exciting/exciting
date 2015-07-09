@@ -1253,14 +1253,22 @@
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="fastemat" type="xs:boolean"
-        default="true">
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="pwmat" default="mm" >
         <xs:annotation>
-          <xs:documentation> If set to <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW
-            and lo-lo parts of the <inlinemath>{\bf q}</inlinemath>-dependent matrix elements in
-            the muffin-tin is used. </xs:documentation>
+          <xs:documentation> Algorithm for calculating matrix elements of plane waves.
+             Matrix multiplications (mm) are better suited for small systems, while
+             fast Fourier transforms (fft) are appropriate for large systems.
+          </xs:documentation>
         </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="mm"/>
+            <xs:enumeration value="fft"/>
+          </xs:restriction>
+        </xs:simpleType>
       </xs:attribute>
+
       <xs:attribute ex:importance="expert" ex:unit="" name="tappinfo" type="xs:boolean"
         default="false">
         <xs:annotation>

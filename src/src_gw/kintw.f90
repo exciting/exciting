@@ -40,50 +40,58 @@
       allocate(kiw(nstfv,nkptnr))
       if (allocated(kwfer)) deallocate(kwfer)
       allocate(kwfer(nstfv,nkptnr))
-      if (allocated(ciw)) deallocate(ciw)
-      allocate(ciw(natmtot,ncmax))
-      ciw=0.0d0
       kiw=0.0d0
       kwfer=0.0d0
+      
+      if (iopcore<2) then
+        if (allocated(ciw)) deallocate(ciw)
+        allocate(ciw(natmtot,ncmax))
+        ciw=0.0d0
+      end if
 !
 !     Q-dependent integration weights used to calculate the polarizability
 !     (qdepw.f90)
 !
-      if (allocated(unw)) deallocate(unw)
-      allocate(unw(natmtot,ncmax,nstfv,1:nomeg,nkptnr))
       if (allocated(kcw)) deallocate(kcw)
       allocate(kcw(nstfv,nstfv,1:nomeg,nkptnr))
+      if (iopcore<2) then
+        if (allocated(unw)) deallocate(unw)
+        allocate(unw(natmtot,ncmax,nstfv,1:nomeg,nkptnr))
+      end if
       if((testid.eq.7).and.(fflg.eq.2)) then
-        if (allocated(unwsurf)) deallocate(unwsurf)
-        allocate(unwsurf(natmtot,ncmax,nstfv,1:nomeg,nkptnr))
         if (allocated(kcwsurf)) deallocate(kcwsurf)
         allocate(kcwsurf(nstfv,nstfv,1:nomeg,nkptnr))
         kcwsurf=0.0d0
-        unwsurf=0.0d0
+        if (iopcore<2) then
+          if (allocated(unwsurf)) deallocate(unwsurf)
+          allocate(unwsurf(natmtot,ncmax,nstfv,1:nomeg,nkptnr))
+          unwsurf=0.0d0
+        end if
       endif
 !
 !     allocate local arrays
 !
       metallic = .false.
-
-      allocate(bandpar(1,nkptnr))
-      allocate(cwpar(1,nkptnr))
-
+      
+      if (iopcore<2) then
 !---------------------------------------------------------------------
 !                 core
 !---------------------------------------------------------------------
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
-!         Product of core and apw functions
-          do ist=1,ncore(is)
-            bandpar(1,:)=evalcr(ist,ias)       
-            call tetiw(nkptnr,ntetnr,1,bandpar,tnodesnr,wtetnr,tvol,efermi,cwpar)
-            ciw(ias,ist)=cwpar(1,1)
-          enddo ! ist
-        enddo ! ia
-      enddo ! is
-      deallocate(bandpar,cwpar)
+        allocate(bandpar(1,nkptnr))
+        allocate(cwpar(1,nkptnr))
+        do is=1,nspecies
+          do ia=1,natoms(is)
+            ias=idxas(ia,is)
+!           Product of core and apw functions
+            do ist=1,ncore(is)
+              bandpar(1,:)=evalcr(ist,ias)       
+              call tetiw(nkptnr,ntetnr,1,bandpar,tnodesnr,wtetnr,tvol,efermi,cwpar)
+              ciw(ias,ist)=cwpar(1,1)
+            enddo ! ist
+          enddo ! ia
+        enddo ! is
+        deallocate(bandpar,cwpar)
+      end if ! iopcore
 
 !---------------------------------------------------------------------
 !                 valence
@@ -100,12 +108,14 @@
       
       deallocate(bandpar)
       
-      if(maxval(kwfer).ne.0.0d0) metallic=.true.
-      write(fgw,*)'kwfer: metallic =', metallic
+      if (maxval(kwfer).ne.0.0d0) metallic=.true.
+      !write(fgw,*)'kwfer: metallic =', metallic
       
       if(lprt)then
-        write(15,*)'core: ciw'
-        write(15,*) ciw(1,:)
+        if (iopcore<2) then
+          write(15,*)'core: ciw'
+          write(15,*) ciw(1,:)
+        end if
         write(15,*)'valence: kiw'
         do ik=1,nkptnr
         write(15,*) ik, kiw(:,ik)

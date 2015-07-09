@@ -33,11 +33,10 @@
       real(8) :: cpivi    
       real(8) :: edif    ! energy differences
       real(8) :: edsq    ! edif^2
-      real(8) :: psq
       real(8) :: tstart, tend
       
       complex(8) :: coef
-      complex(8) :: pvec(3)
+      complex(8) :: psq, pvec(3)
       complex(8) :: sumfs
       complex(8), allocatable :: fnm(:), pnm(:)
       complex(8), allocatable :: pmat(:,:,:)
@@ -88,7 +87,9 @@
         do ie1 = 1, nomax
           do ie2 = numin, nstfv
             pvec(1:3)=pmat(1:3,ie1,ie2)
-            psq=sum(pvec(1:3)*conjg(pvec(1:3)))/3.0d0
+            psq=sum(pvec(1:3)*q0eps(1:3))
+            psq=psq*conjg(psq)
+            !psq=sum(pvec(1:3)*conjg(pvec(1:3)))/3.0d0
             edif=evaldft(ie2,ikp)-evaldft(ie1,ikp)
             edsq=edif*edif
             if(edsq.gt.1.0d-10)then
@@ -111,7 +112,9 @@
           sumfs=zzero
           do ie1 = numin, nomax
             pvec(1:3)=pmat(1:3,ie1,ie1)
-            psq=sum(pvec(1:3)*conjg(pvec(1:3)))/3.0d0
+            psq=sum(pvec(1:3)*q0eps(1:3))
+            psq=psq*conjg(psq)
+            !psq=sum(pvec(1:3)*conjg(pvec(1:3)))/3.0d0
             sumfs=sumfs+kwfer(ie1,ik)*psq
           enddo ! ie1
           !! for imaginary frequency, a negative sign is needed 
@@ -135,7 +138,9 @@
             ic=corind(icg,3)
             do ie2 = numin, nstfv
               pvec(1:3)=pmatc(1:3,icg,ie2)
-              psq=sum(pvec(1:3)*conjg(pvec(1:3)))/3.0d0
+              psq=sum(pvec(1:3)*q0eps(1:3))
+              psq=psq*conjg(psq)
+              !psq=sum(pvec(1:3)*conjg(pvec(1:3)))/3.0d0
               edif=evaldft(ie2,ikp)-evalcr(ic,ias)
               edsq=edif*edif
               if(edsq.gt.1.0d-10)then

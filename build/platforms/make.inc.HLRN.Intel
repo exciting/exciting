@@ -1,6 +1,6 @@
-F90 = ifort
-F90_OPTS = -O3 -ip -unroll  -scalar_rep -openmp -DUSEOMP 
-CPP_ON_OPT = -cpp -DXS -DISO -DTETRA -DLIBXC -DIFORT -DFFTW
+F90 = ftn
+F90_OPTS = -O3 -ip -unroll -scalar_rep -dynamic -xCORE-AVX-I -openmp 
+CPP_ON_OPT = -cpp -DXS -DISO -DTETRA -DLIBXC -DUSEOMP
 F77 = $(F90)
 F77_OPTS = -O3
 LIB_ARP =libarpack.a
@@ -21,8 +21,10 @@ F77_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
 #Ignore if you don't have MPI or smplibs
 
 # check for the correct name of your mpif90 compiler
-MPIF90 = mpif90-ifort
-MPIF90_OPTS = $(F90_OPTS) $(CPP_ON_OPT) -DMPI -DMPIRHO -DMPISEC -DMPI1
+#MPIF90 = mpif90-ifort
+#MPIF90 = ftn -fopenmp  
+MPIF90 = ftn -dynamic -xCORE-AVX-I
+MPIF90_OPTS = $(F90_OPTS) $(CPP_ON_OPT) -DMPI -DMPIRHO -DMPISEC 
 
 F77MT=$(F77)
 F90MT=$(F90)
@@ -33,3 +35,16 @@ MPISMPF90_OPTS = $(SMPF90_OPTS) -DMPI -DMPIRHO -DMPISECBUILDMPI=false
 MPIF90MT = $(MPIF90)
 BUILDMPI = true
 BUILDSMP = true
+
+# Processor architecture for login and compute nodes (LNODE and CNODE resp.)
+# Set CNODE_ARCH to ivybridge or haswell. This setting must
+# conincide with the loaded module in HLRN at compile time, 
+# correspondingly: craype-ivybridge or craype-haswell.
+# Code compiled using haswell features will work on mpp2q queue 
+# but could not work on other queues (check HLRN documentation).
+# Set LNODE_ARCH to the login node architecture, usually sandybridge or ivybridge.  
+
+CNODE_ARCH = ivybridge
+LNODE_ARCH = sandybridge
+
+HLRN = true

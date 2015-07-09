@@ -190,8 +190,8 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0"
-            />
+            <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0"/>
+            <xs:attribute ex:importance="expert" ex:unit="" name="jdos" type="xs:boolean" default="false"/>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="LSJ" maxOccurs="1" minOccurs="0">

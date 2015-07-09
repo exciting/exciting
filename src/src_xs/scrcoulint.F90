@@ -39,14 +39,14 @@ Subroutine scrcoulint
       Integer :: ist1, ist2, ist3, ist4, nst12, nst34, nst13, nst24
       Integer :: sta1, sto1, sta2, sto2, rnst1, rnst2, rnst3, rnst4
       Logical :: tq0, tphf
-      Real (8) :: vqr (3), vq (3), t1
+      Real (8) :: vqr (3), vq (3), t1,ta,tb
       Integer :: sc (maxsymcrys), ivgsc (3, maxsymcrys)
       Integer, Allocatable :: igqmap (:)
-      Complex (8) :: zt1
+      Complex (8) :: zt1,prefactor
       Complex (8), Allocatable :: scclit (:, :), sccli (:, :, :, :), &
      & scclid (:, :)
       Complex (8), Allocatable :: scieffg (:, :, :), tm (:, :), tmi (:, &
-     & :), bsedt (:, :)
+     & :), bsedt (:, :),zm(:,:)
       Complex (8), Allocatable :: phf (:, :), emat12 (:, :), emat34 (:, &
      & :)
   ! external functions
@@ -79,6 +79,7 @@ Subroutine scrcoulint
   ! find indices for non-zero Gaunt coefficients
       Call findgntn0 (Max(input%xs%lmaxapwwf, lolmax), &
      & Max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
+
       Write (unitout, '(a,3i8)') 'Info(' // thisnam // '): Gaunt coeffi&
      &cients generated within lmax values:', input%groundstate%lmaxapw, &
      & input%xs%lmaxemat, input%groundstate%lmaxapw
@@ -95,6 +96,7 @@ Subroutine scrcoulint
         &")') trim (thisnam)					  
          Write (*,*)
       End If
+
   ! check number of empty states
       If (input%xs%screening%nempty .Lt. input%groundstate%nempty) Then
          Write (*,*)
@@ -125,7 +127,6 @@ Subroutine scrcoulint
 !
   ! set file extension
       Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
-!
   !-----------------------------------!
   !     loop over reduced q-points    !
   !-----------------------------------!
@@ -133,18 +134,25 @@ Subroutine scrcoulint
       Call genparidxran ('q', nqptr)
 !
       Do iqr = qpari, qparf
-         Call genfilname (basename='W_SCREEN', iq=iqr, &
-        & filnam=fnscreeninv)
-         Open (un, File=trim(fnscreeninv), Form='formatted', Action='wr&
-        &ite', Status='replace')
+!         Call genfilname (basename='W_SCREEN', iq=iqr, &
+!        & filnam=fnscreeninv)
+!         Open (un, File=trim(fnscreeninv), Form='formatted', Action='wr&
+!        &ite', Status='replace')
          Call chkpt (3, (/ task, 1, iqr /), 'task,sub,reduced q-point; &
         &generate effective screened Coulomb potential')
      ! locate reduced q-point in non-reduced set
          iqrnr = iqmap (ivqr(1, iqr), ivqr(2, iqr), ivqr(3, iqr))
          n = ngq (iqrnr)
-!
+
      ! calculate effective screened Coulomb interaction
          Call genscclieff (iqr, ngqmax, n, scieffg(1, 1, iqr))
+
+if (.false.) then
+         Call genfilname (basename='W_SCREEN', iq=iqr, &
+        & filnam=fnscreeninv)
+         Open (un, File=trim(fnscreeninv), Form='formatted', Action='wr&
+        &ite', Status='replace')
+
          Do igq1 = 1, n
             Do igq2 = 1, n
                Write (un, '(2i8,3g18.10)') igq1, igq2, scieffg (igq1, &
@@ -153,9 +161,10 @@ Subroutine scrcoulint
          End Do
          Call writevars (un, iqr, 0)
          Close (un)
-!
+endif
      ! generate radial integrals for matrix elements of plane wave
          Call putematrad (iqr, iqrnr)
+
       End Do
   ! communicate array-parts wrt. q-points
       call mpi_allgatherv_ifc(nqptr,ngqmax*ngqmax,zbuf=scieffg)
@@ -182,8 +191,10 @@ Subroutine scrcoulint
       bsedt (1, :) = 1.d8
       bsedt (2, :) = - 1.d8
       bsedt (3, :) = zzero
+
   ! loop over combinations of k-points
       Do ikkp = ppari, pparf
+call timesec(ta)
          Call chkpt (3, (/ task, 2, ikkp /), 'task,sub,(k,kp)-pair; dir&
         &ect term of BSE Hamiltonian')
          Call kkpmap (ikkp, nkptnr, iknr, jknr)
@@ -227,6 +238,7 @@ Subroutine scrcoulint
          Call ematbdcmbs (input%xs%emattype)
          Call ematqalloc
          Call ematqk1 (iq, iknr)
+
          input%xs%emattype = 2
          Call ematbdcmbs (input%xs%emattype)
          Call chkpt (3, (/ task, 2, ikkp /), 'task,sub,(k,kp)-pair; dir&
@@ -269,9 +281,45 @@ Subroutine scrcoulint
 !
      ! matrix elements of direct term (as in BSE-code of Peter and
      ! in the SELF-documentation of Andrea Marini)
+
+if (.false.) then
          scclit = matmul (conjg(emat12), matmul(tm, transpose(emat34))) &
         & / omega / nkptnr
-!
+else
+           prefactor=1d0/(omega*dble(nkptnr))
+           emat12(:,:)=conjg(emat12(:,:))
+           allocate(zm(nst12,n))
+           call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                      'N', &           ! TRANSB = 'N'  op( B ) = B.
+                       nst12, &          ! M ... rows of op( A ) = rows of C
+                       n, &           ! N ... cols of op( B ) = cols of C
+                       n, &          ! K ... cols of op( A ) = rows of op( B )
+                       zone, &          ! alpha
+                       emat12, &           ! B
+                       nst12, &          ! LDB ... leading dimension of B
+                       tm, &           ! A
+                       n,&           ! LDA ... leading dimension of A
+                       zzero, &          ! beta
+                       zm, &  ! C
+                       nst12 & ! LDC ... leading dimension of C
+                      )
+           call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                      'T', &           ! TRANSB = 'N'  op( B ) = B.
+                       nst12, &          ! M ... rows of op( A ) = rows of C
+                       nst34, &       ! N ... cols of op( B ) = cols of C
+                       n, &          ! K ... cols of op( A ) = rows of op( B )
+                       prefactor, &          ! alpha
+                       zm, &           ! B
+                       nst12, &          ! LDB ... leading dimension of B
+                       emat34, &           ! A
+                       nst34,&           ! LDA ... leading dimension of A
+                       zzero, &          ! beta
+                       scclit, &  ! C
+                       nst12 & ! LDC ... leading dimension of C
+                      )
+           deallocate(zm)        
+endif
+
      ! map back to individual band indices
          j2 = 0
          Do ist4 = 1, rnst4
@@ -286,6 +334,7 @@ Subroutine scrcoulint
                End Do
             End Do
          End Do
+if (.false.) then
          If ((rank .Eq. 0) .And. (ikkp .Le. 3)) Then
         ! write to ASCII file
             Do ist1 = 1, rnst1
@@ -303,6 +352,7 @@ Subroutine scrcoulint
                End Do
             End Do
          End If
+endif
      ! analyze BSE diagonal
          If (iknr .Eq. jknr) Then
             Do ist1 = 1, rnst1
@@ -316,10 +366,11 @@ Subroutine scrcoulint
                End Do
             End Do
          End If
-!
+
      ! parallel write
          Call putbsemat ('SCCLI.OUT', sccli, ikkp, iknr, jknr, iq, iqr, &
         & rnst1, rnst3, rnst2, rnst4)
+
 !
          Deallocate (igqmap, emat12, emat34)
          Deallocate (tm, tmi)

@@ -53,11 +53,11 @@ Real (8) Function stheta_mp (n, x)
          Write (*,*)
          Stop
       End If
-      If (x .Lt.-12.d0) Then
+      If (x .Lt.-200.d0) Then
          stheta_mp = 0.d0
          Return
       End If
-      If (x .Gt. 12.d0) Then
+      If (x .Gt. 200.d0) Then
          stheta_mp = 1.d0
          Return
       End If

@@ -52,8 +52,6 @@
       integer(4) :: m2        ! z-component angular momentum quantum 
 !                               number of the atomic function jrm
       integer(4) :: ylsize    ! Size of the array for spherical harmonics
-      integer(4) :: info
-      integer(4) :: lwork,rwsize
       
       real(8) :: gpr          ! Scalar product G.r
       real(8) :: prefac       ! multipicative prefactor
@@ -86,8 +84,11 @@
       complex(8), allocatable :: vtemp(:,:)
 
 !     for diagonalization subroutine
-      real(8),    allocatable :: rwork(:)
+      real(8) :: vl, vu, abstol
+      integer :: il, iu, neval, lwork, info, lrwork, liwork
       complex(8), allocatable :: work(:)
+      real(8),    allocatable :: rwork(:)
+      integer,    allocatable :: iwork(:), isuppz(:)
  
 ! !EXTERNAL ROUTINES: 
       
@@ -95,7 +96,8 @@
       external calcjlam
       external sigma
       external ylm
-      external zgemm       
+      external zgemm   
+      real(8), external :: dlamch     
 
 ! !INTRINSIC ROUTINES: 
 
@@ -148,14 +150,11 @@
 !
 !     Set kpmin: Starting value of the index for G vectors. =2 if iq=1 (if q=0, discard G=0)
 !
-    
       kpmin=1
       if (Gamma) then
         kpmin=2
         call barcq0
-      
       endif
-
 !
 !     Calculate all the products rtl*rtl
 !
@@ -257,6 +256,10 @@
 !             mixed function and an IPW
 !
              if (Gamma) vtemp(1,imix)=zzero
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ipw,gvecl,gpr,expg,qg1,qg1len,lm1)
+!$OMP DO
+#endif
              do ipw = kpmin, ngbarc(iq)
 
                gvecl(1:3)=dble(ivg(1:3,igqigb(ipw,iq)))
@@ -273,6 +276,10 @@
               &    sph(lm1,ipw)*((-zi)**l1)*expg
               
               enddo ! ipw
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
             enddo ! m1
           enddo ! irm
         enddo ! ieq
@@ -296,6 +303,11 @@
 !     Calculation of the matrix elements between two IPW's
 !
       mat1(:,1)=zzero
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ipw,qg1,qg1len,exev,iipw)
+!$OMP DO
+#endif
+      
       do ipw = kpmin, ngbarc(iq)
         qg1(1:3) = qvec(1:3) + vgc(1:3,igqigb(ipw,iq))
         qg1len = qg1(1)*qg1(1) + qg1(2)*qg1(2) + qg1(3)*qg1(3)
@@ -304,6 +316,10 @@
           mat1(iipw,ipw)=mpwipw(iipw,ipw)*exev
         enddo  
       enddo
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
       
       call zgemm('n','c',ngq(iq),ngq(iq),ngbarc(iq),zone,mat1,ngq(iq), &
      &    mpwipw,ngq(iq),zzero,mat2,ngq(iq)) 
@@ -319,34 +335,54 @@
 !----------------------------------
 !     Diagonalize the bare coulomb matrix
 !----------------------------------
+
       if(allocated(vmat))deallocate(vmat)
       allocate(vmat(matsiz,matsiz))
-      vmat(1:matsiz,1:matsiz)=barc(1:matsiz,1:matsiz)
       
       if(allocated(barcev))deallocate(barcev)
       allocate(barcev(matsiz))
-      barcev(:)=0.d0
-!       
-!     Set up the workspace for the diagonalization subroutine
-!
-      lwork=2*matsiz
-      rwsize=3*matsiz
-      allocate(work(lwork),rwork(rwsize))
-      
-      call zheev('v','u',matsiz,vmat,matsiz,barcev,work,lwork,rwork,info)
+
+if (.false.) then      
+      vmat(1:matsiz,1:matsiz) = barc(1:matsiz,1:matsiz)
+      deallocate(barc)  
+      lwork = 2*matsiz
+      allocate(work(lwork),rwork(3*matsiz))
+      call zheev( 'v','u',matsiz,vmat,matsiz, &
+      &           barcev,work,lwork,rwork,info)
       call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheev !!!")
-      
+      deallocate(work,rwork)
+else
+      lrwork = -1
+      liwork = -1
+      lwork = -1
+      iu = matsiz
+      abstol = 2.d0*dlamch('S')
+      allocate(work(1),rwork(1),iwork(1))
+      allocate(isuppz(2*matsiz))
+      call zheevr('V', 'A', 'U', matsiz, barc, matsiz, vl, vu, il, iu, &
+      &           abstol, neval, barcev, vmat, matsiz, isuppz, work, lwork, rwork, &
+      &           lrwork, iwork, liwork, info)
+      call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheevr !!!")
+      lrwork=int(rwork(1))
+      liwork=int(iwork(1))
+      lwork=int(work(1))
+      ! write(*,*) lrwork,liwork,lwork
+      deallocate(work,rwork,iwork)
+      allocate(work(lwork),rwork(lrwork),iwork(liwork))
+      call zheevr('V', 'A', 'U', matsiz, barc, matsiz, vl, vu, il, iu, &
+      &           abstol, neval, barcev, vmat, matsiz, isuppz, work, lwork, rwork, &
+      &           lrwork, iwork, liwork, info)
+      call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheevr !!!")
+      deallocate(work,rwork,iwork,isuppz)
+      deallocate(barc)
+end if
+     
       if(debug)then
         write(55,*) "### barc eigenvalues ###"
         do imix=1,matsiz
           write(55,'(i5,e16.6)') imix, barcev(imix) 
         enddo 
       endif !debug
-!
-!     deallocate local arrays
-!
-      deallocate(work)
-      deallocate(rwork)
 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'

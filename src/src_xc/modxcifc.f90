@@ -129,7 +129,7 @@ case(2)
   else
     goto 10
   end if
-case(3)
+case(3,407,408)
 ! Perdew-Wang parameterisation of the spin-polarised Ceperley-Alder electron gas
 ! J. Perdew and Y. Wang, Phys. Rev. B 45, 13244 (1992)
 ! D.M. Ceperly and B.J. Alder, Phys. Rev. Lett. 45, 566 (1980)
@@ -178,7 +178,7 @@ case(5)
   else
     goto 10
   end if
-case(20,21,22,406)
+case(20,21,22,300,406)
 ! original PBE kappa
   kappa=0.804d0
   if (xctype(1).eq.21) then
@@ -192,6 +192,10 @@ case(20,21,22,406)
 ! PBEsol parameters
     mu=10.d0/81.d0
     beta=0.046d0
+  end if
+  if (xctype(1).eq.300) then
+! beta for acPBE
+    mu=0.249d0 
   end if
 ! Perdew-Burke-Ernzerhof generalised gradient approximation
 ! Phys. Rev. Lett. 77, 3865 (1996); 78, 1396(E) (1997)
@@ -311,9 +315,6 @@ character(512), intent(out) :: xcdescr
 integer, intent(out) :: xcspin
 integer, intent(out) :: xcgrad
 real(8), intent(out) :: ex_coef
-! initial value of exchange mixing parameter
-! not modified in case of OEP/HF 
-!ex_coef=1.0d0
 select case(abs(xctype(1)))
 case(1)
   xcdescr='No density-derived exchange-correlation energy or potential'
@@ -358,15 +359,22 @@ case(30)
   xcdescr='Armiento-Mattsson functional, Phys. Rev. B 72, 85108 (2005)'
   xcspin=0
   xcgrad=1
+case(300)
+  xcdescr='acPBE (asymptotically corrected PBE), arXiv:1409.4834 (2014)'
+  xcspin=1
+  xcgrad=1
 case(406)
   xcdescr='PBE0, M. Ernzerhof, G. E. Scuseria, J. Chem. Phys. 110 , 5029 (1999)'
   xcspin=0
   xcgrad=1
-!  ex_coef=0.25
+case(407)
+  xcdescr='LDA0 (test only)'
+  xcspin=1
+  xcgrad=0
 case(100)
 ! libxc library functionals
   call xcdata_libxc(xctype,xcdescr,xcspin,xcgrad,ex_coef)
-!  input%groundstate%Hybrid%excoeff=ex_coef      
+  !input%groundstate%Hybrid%excoeff=ex_coef
 case default
   write(*,*)
   write(*,'("Error(getxcdata): xctype not defined : ",I8)') xctype(1)

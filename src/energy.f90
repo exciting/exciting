@@ -204,10 +204,12 @@ endif
 !     electron-nuclear interaction energy     !
 !---------------------------------------------!
       engyen = 2.d0 * (engymad-engynn)
+      
 !------------------------!
 !     Hartree energy     !
 !------------------------!
       engyhar = 0.5d0 * (engyvcl-engyen)
+      
 !------------------------!
 !     Coulomb energy     !
 !------------------------!
@@ -319,8 +321,9 @@ endif
 !----------------------!
 !     total energy     !
 !----------------------!
-      engytot = engykn + 0.5d0 * engyvcl + engymad + engyx + engyc + &
-     & engycbc
+      engytot = engykn + 0.5d0 * engyvcl + engymad + engyx + engyc + engycbc
+! dipole correction      
+      if ((iscl>0).and.(input%groundstate%dipolecorrection)) engytot = engytot+0.5*endipc      
 ! add the LDA+U correction if required
       If (ldapu .Ne. 0) engytot = engytot + engylu
       Return

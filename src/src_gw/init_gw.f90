@@ -24,7 +24,7 @@ subroutine init_gw
       integer(4) :: ia
       integer(4) :: ias
       integer(4) :: ic
-      integer(4) :: il
+      integer(4) :: l
       integer(4) :: is      
       integer(4) :: ist      
       integer(4) :: m, n
@@ -32,13 +32,14 @@ subroutine init_gw
       real(8)    :: tstart, tend
       integer(4) :: stype_
       character(256) :: filext_save
+      character(256) :: statefile  
       logical :: reducek_
  
 ! !EXTERNAL ROUTINES: 
 
       external init0
       external init1
-      external readstate
+      external readstategw
       external genvxcig
       external init_freq
       external readingw
@@ -94,7 +95,7 @@ subroutine init_gw
         call scf_cycle(-2)
         
         if (rank == 0) then
-          ! safely remove unnecessary files
+!          ! safely remove unnecessary files
           call filedel('LINENGY'//trim(filext))
         end if
         
@@ -114,7 +115,17 @@ subroutine init_gw
       input%groundstate%stypenumber=stype_
 
 ! initialise the charge density and potentials from file
-      Call readstate
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+! in case of HF hybrids use PBE potential
+               statefile='STATE_PBE.OUT'
+           Else
+               statefile='STATE.OUT'
+           End If
+        Else         
+           statefile='STATE.OUT'
+        End If 
+       Call readstategw(statefile)
 
 ! generate the core wavefunctions and densities
       Call gencore
@@ -127,37 +138,49 @@ subroutine init_gw
 
 ! generate the local-orbital radial functions
       Call genlofr
-      
+! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               statefile='STATE_PBE0.OUT'
+               Call readstategw(statefile)
+           End If
+        End If 
 !     Tranform xc potential to reciprocal space
       call genvxcig
 
-!     determine the number of core states for each species (auxiliary arrays)
-      if (allocated(ncore)) deallocate(ncore)
-      allocate(ncore(nspecies))
-      ncmax=0
-      nclm=0
-      ncg=0
-      lcoremax=0
-      do is=1,nspecies
-        ncore(is)=0
-        ic = 0
-        do ist=1,spnst(is)
-          if (spcore(ist,is)) then
-            ncore(is)=ncore(is)+1
-            il=spl(ist,is)
-            do m=-spk(ist,is),spk(ist,is)-1
-              ic=ic+1
-            end do
-          end if
+! core states treatment
+      if (dabs(chgcr)>1.d-4) then
+        ! determine the number of core states for each species 
+        ! (auxiliary arrays)
+        if (allocated(ncore)) deallocate(ncore)
+        allocate(ncore(nspecies))
+        ncmax=0
+        nclm=0
+        ncg=0
+        lcoremax=0
+        do is=1,nspecies
+          ncore(is)=0
+          ic = 0
+          do ist=1,spnst(is)
+            if (spcore(ist,is)) then
+              ncore(is)=ncore(is)+1
+              l=spl(ist,is)
+              lcoremax=max(lcoremax,l)
+              do m=-spk(ist,is),spk(ist,is)-1
+                ic=ic+1
+              end do
+            end if
+          end do
+          ncmax=max(ncmax,ncore(is))
+          nclm=max(nclm,ic)
+          ncg=ncg+ic*natoms(is)
         end do
-        ncmax=max(ncmax,ncore(is))
-        nclm=max(nclm,ic)
-        lcoremax=max(lcoremax,il)
-        ncg=ncg+ic*natoms(is)
-      end do
-
-!     setting a unique index for all the core states of all atoms
-      call setcorind
+        ! setting a unique index for all the core states of all atoms
+        call setcorind
+      else
+        ! no core states
+        iopcore = 3
+      end if
 
 !     reciprocal cell volume
       vi=1.0d0/omega

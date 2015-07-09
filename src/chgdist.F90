@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: chgdist
 ! !INTERFACE:
-Subroutine chgdist
+Subroutine chgdist(rhomtref,rhoirref)
 ! !USES:
 use modmain
 ! !DESCRIPTION:
@@ -21,15 +21,18 @@ use modmain
 !
 ! !REVISION HISTORY:
 !   Created 2010 (Sagmeister)
+!   Modified 2014 (DIN)
 !EOP
 !BOC
       implicit none
+      real(8), intent(in) :: rhomtref(lmmaxvr,nrmtmax,natmtot)
+      real(8), intent(in) :: rhoirref(ngrtot)
 ! local variables
       Integer :: is, ia, ias, ir
-      Real (8) :: sum,chgdstmt,chgdstir
+      real(8) :: sum, chgdstmt, chgdstir
 ! automatic arrays
-      Real (8) :: fr (nrmtmax), gr (nrmtmax), hr1(lmmaxvr), hr2(lmmaxvr)
-      real (8) :: cf (3, nrmtmax), sht00(lmmaxvr)
+      real(8) :: fr (nrmtmax), gr (nrmtmax), hr1(lmmaxvr), hr2(lmmaxvr)
+      real(8) :: cf (3, nrmtmax), sht00(lmmaxvr)
 ! external functions
       real(8), external :: ddot
 ! find the muffin-tin charges

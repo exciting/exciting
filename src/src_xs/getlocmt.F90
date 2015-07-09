@@ -63,6 +63,7 @@ Contains
     !------------------------!
          Inquire (IoLength=Recl) vql_, vkl_, nstfv_, nlomax_, lolmax_
          Call getunit (un)
+!write(*,*) 'LOCMT'//trim(filext)
          Open (un, File='LOCMT'//trim(filext), Action='read', Form='unf&
         &ormatted', Status='old', Access='direct', Recl=Recl)
          Read (un, Rec=1) vql_, vkl_, nstfv_, nlomax_, lolmax

@@ -15,11 +15,11 @@ Subroutine bsesoldiag (hamsiz, nev, ham, eval, evec)
       Complex (8), Intent (Out) :: evec (hamsiz, nev)
   ! local variables
       Real (8) :: vl, vu, abstol
-      Integer :: il, iu, neval, lwork, info
+      Integer :: il, iu, neval, lwork, info, lrwork,liwork
   ! allocatable arrays
       Complex (8), Allocatable :: work (:)
       Real (8), Allocatable :: rwork (:)
-      Integer, Allocatable :: iwork (:), ifail (:)
+      Integer, Allocatable :: iwork (:), ifail (:),isuppz(:)
   ! external functions
       Real (8), External :: dlamch
   ! smallest and largest eigenvalue indices
@@ -29,12 +29,47 @@ Subroutine bsesoldiag (hamsiz, nev, ham, eval, evec)
       abstol = 2.d0 * dlamch ('S')
   ! workspace size (*** improve later ***)
       lwork = (32+1) * hamsiz
-      Allocate (work(lwork), rwork(7*hamsiz), iwork(5*hamsiz), &
-     & ifail(hamsiz))
   ! LAPACK 3.0 call
+if (.false.) then
+      Allocate (work(1), rwork(7*hamsiz), iwork(5*hamsiz), &
+     & ifail(hamsiz))
+      lwork=-1
       Call zheevx ('V', 'I', 'U', hamsiz, ham, hamsiz, vl, vu, il, iu, &
      & abstol, neval, eval, evec, hamsiz, work, lwork, rwork, iwork, &
      & ifail, info)
+      lwork=int(work(1))
+      deallocate(work)
+      Allocate (work(lwork))
+
+      Call zheevx ('V', 'I', 'U', hamsiz, ham, hamsiz, vl, vu, il, iu, &
+     & abstol, neval, eval, evec, hamsiz, work, lwork, rwork, iwork, &
+     & ifail, info)
+     deallocate(ifail)
+else
+     lrwork=-1 !hamsiz
+     liwork=-1 !5*hamsiz
+     lwork=-1
+     iu=hamsiz
+     Allocate (work(1), rwork(1), iwork(1))
+     Call zheevr ('V', 'A', 'U', hamsiz, ham, hamsiz, vl, vu, il, iu, &
+     & abstol, neval, eval, evec, hamsiz, isuppz, work, lwork, rwork, lrwork, iwork, liwork, &
+     & info)
+!     deAllocate (work, rwork, iwork)
+     lrwork=int(rwork(1))
+     liwork=int(iwork(1))
+     lwork=int(work(1))
+     deAllocate (work, rwork, iwork)
+
+!     write(*,*) lrwork,liwork,lwork
+      Allocate (work(lwork), rwork(lrwork), iwork(liwork))
+      allocate(isuppz(hamsiz*2))
+
+      Call zheevr ('V', 'A', 'U', hamsiz, ham, hamsiz, vl, vu, il, iu, &
+     & abstol, neval, eval, evec, hamsiz, isuppz, work, lwork, rwork, lrwork, iwork, liwork, &
+     & info)
+      deallocate(isuppz)
+endif
+
       If (info .Ne. 0) Then
          Write (*,*)
          Write (*, '("Error(bsesoldiag): zheevx returned non-zero info:&
@@ -43,5 +78,7 @@ Subroutine bsesoldiag (hamsiz, nev, ham, eval, evec)
          Call terminate
       End If
   ! deallocate Hamiltonian array
-      Deallocate (work, rwork, iwork, ifail)
+      Deallocate (work, rwork, iwork)
+
 End Subroutine bsesoldiag
+

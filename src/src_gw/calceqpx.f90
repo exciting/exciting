@@ -65,6 +65,15 @@
 !
         sx=real(selfex(ie,ikp))
         sc=0.d0
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               vxc = real(vxcnn(ie,ikp))+ ex_coef *real(selfex(ie,ikp))
+           Else
+               vxc = real(vxcnn(ie,ikp))
+           End If
+        Else         
+           vxc = real(vxcnn(ie,ikp))
+        End If 
         vxc=real(vxcnn(ie,ikp))
         z=0.d0        
 

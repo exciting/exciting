@@ -6,6 +6,7 @@ subroutine readevaldft
     use modmain
     use modgw
     use modmpi
+!    use mod_potential_and_density, only: ex_coef    
 
 ! !DESCRIPTION:
 !   Inputs the second-variational eigenvalues and occupancion numbers for
@@ -27,7 +28,10 @@ subroutine readevaldft
     integer :: nstfv_, nspnfv_
     real(8) :: vkl_(3)
     logical :: exist
-    
+!   for adding delta_x to KS states
+    integer :: nkpt0,nstsv0
+    real(8),    Allocatable :: vkl0(:,:)
+    real(8), allocatable    :: deltax(:,:)    
     character(256) :: filename
     
     if (allocated(evaldft)) deallocate(evaldft)
@@ -71,6 +75,40 @@ subroutine readevaldft
       Read(70, Rec=ik0) vkl_, nstfv_, nspnfv_, evaldft(:,ik)
     end do ! ik
     Close (70)
+
+! READ delta_x values from DELTAX.OUT
+    if (input%gw%addDeltax) then
+        filename='DELTAX.OUT'
+        inquire(File=filename,Exist=exist)
+        if (.not.exist) then
+          write(*,*)'ERROR(readevaldft.f90): File DELTAX.OUT does not exist!'
+          stop
+        end if
+! Check if nkpt and nstsv/nstfv in EVALFV.OUT and DELTAX.OUT match
+        open(500,file='DELTAX.OUT',action='READ',form='FORMATTED')
+        read(500,*) nkpt0, nstsv0
+        if (nstfv_.ne.nstsv0) then
+           write(*,*) 'ERROR(readevaldft) Different number of KS states in EVALFV.OUT and DELTAX.OUT!'
+           write(*,*) '  nstsv0=', nstsv0,'  nstfv_=', nstfv_
+           stop
+        end if
+        if (nkpt0.ne.nkpt) then
+           write(*,*) 'ERROR(readevaldft) Different number of k points in EVALFV.OUT and DELTAX.OUT!'
+           write(*,*) '  nkpt0=', nkpt0,'  nkpt=', nkpt
+           stop
+        end if
+        allocate(vkl0(3,nkpt0))
+        allocate(deltax(nkpt0,nstsv0))
+! Add alpha * delta_x to KS eigenvalues
+        do ik=1,nkpt0
+              read(500,*) vkl0(1,ik),vkl0(2,ik),vkl0(3,ik)
+              read(500,*) deltax(ik,1:nstsv0)
+        end do
+        close(500)
+        do ik = 1, nkpt
+            evaldft(:,ik)=evaldft(:,ik)+ex_coef*deltax(ik,:)
+        end do
+     end if
 
 !----------------------------------------
 ! find Fermi energy

@@ -302,7 +302,9 @@ Subroutine writeinfo (fnum)
       Write (fnum, '(" Total number of valence states        ", T45, ": ", I7)') nstsv
       if (input%groundstate%outputlevelnumber>0) Then
          Write (fnum,*)
-         Write (fnum, '(" Total number of local-orbitals        ", T45, ": ", I7)') nlotot
+         Write (fnum, '(" Maximum Hamiltonian size      ", T45, ": ", I7)') nmatmax
+         Write (fnum, '(" Maximum number of plane-waves ", T45, ": ", I7)') ngkmax
+         Write (fnum, '(" Total number of local-orbitals", T45, ": ", I7)') nlotot
       end if
 
       Write (fnum,*)

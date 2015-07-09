@@ -58,7 +58,7 @@ PRIMVEC
     <xsl:for-each select="/input/structure/crystal/basevect">
     <xsl:variable name="basevn" select="position()"/>
       <xsl:for-each select="str:tokenize(.)">
-        <xsl:value-of select="$scale * ./.*$bohr2angstr * str:tokenize($stretch)[$basevn]" />
+        <xsl:value-of select="$scale*$bohr2angstr *./.* str:tokenize($stretch)[$basevn]" />
         <xsl:text>   </xsl:text>
       </xsl:for-each>
       <xsl:text>

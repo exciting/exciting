@@ -28,6 +28,10 @@ subroutine scf_cycle(verbosity)
     Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0
     character*(77) :: string, acoord
+    
+    ! Charge distance
+    Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
+    Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
 
     acoord = "lattice"
     if (input%structure%cartesian) acoord = "cartesian"
@@ -37,38 +41,25 @@ subroutine scf_cycle(verbosity)
         call printbox(60,"+",string)
     End If
 
-!_____________________________
-! initialize reference density
-
-    If (allocated(rhomtref)) deallocate(rhomtref)
-    Allocate(rhomtref(lmmaxvr,nrmtmax,natmtot))
-    If (allocated(rhoirref)) deallocate(rhoirref)
-    Allocate (rhoirref(ngrtot))
-
-!! TIME - Begin of initialisation segment 
-
-    Call timesec (ts0)
-
 !_______________________________________________________________
 ! initialise or read the charge density and potentials from file
 
+!! TIME - Begin of initialisation segment 
+    Call timesec (ts0)
     If ((task .Eq. 1) .Or. (task .Eq. 3)) Then
         Call readstate
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Potential read in from STATE.OUT")')
+    Else If (task==7) Then
+        ! restart from previous PBE0 iteration
+        continue    
     Else If (task .Eq. 200) Then
         Call phveff
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Supercell potential constructed from STATE.OUT")')
-    Else if (input%groundstate%findlinentype .ne. "skip") then
+    Else
         Call timesec(tin0)
         Call rhoinit
         Call timesec(tin1)
         time_density_init=tin1-tin0
-
-!___________________________
-! store density to reference
-
-        rhoirref(:)=rhoir(:)
-        rhomtref(:,:,:)=rhomt(:,:,:)
         Call timesec(tin0)
         Call poteff
         Call genveffig
@@ -81,42 +72,41 @@ subroutine scf_cycle(verbosity)
         write (60, *)
         Call flushifc (60)
     end if
+
+!_____________________________
+! reference density
+
+    If (allocated(rhomtref)) deallocate(rhomtref)
+    Allocate(rhomtref(lmmaxvr,nrmtmax,natmtot))
+    rhomtref(:,:,:) = rhomt(:,:,:)
+    If (allocated(rhoirref)) deallocate(rhoirref)
+    Allocate (rhoirref(ngrtot))
+    rhoirref(:) = rhoir(:)
+    
     Call timesec (ts1)
     timeinit = timeinit+ts1-ts0
-
 !! TIME - End of initialisation segment    
 
+!----------------------------------------------------
 !! TIME - Mixer segment
-
     Call timesec (ts0)
-
-!______________________
-! size of mixing vector
-
+    ! size of mixing vector
     n = lmmaxvr*nrmtmax*natmtot+ngrtot
     If (associated(input%groundstate%spin)) n = n*(1+ndmag)
     If (ldapu .Ne. 0) n = n + 2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
-
-!_______________________
-! allocate mixing arrays
-
+    ! allocate mixing arrays
     Allocate (v(n))
-
-!__________________________________________________
-! call mixing array allocation functions by setting
-
+    ! call mixing array allocation functions by setting
     nwork = -1
-
-!___________________
-! and call interface
+    ! and call interface
     iscl=0
     Call packeff (.True., n, v)
     If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
     Call packeff (.False., n, v)
     Call timesec (ts1)
     timemixer = ts1-ts0+timemixer
-
 !! TIME - End of mixer segment
+!----------------------------------------------------
 
 ! set last iteration flag
     tlast = .False.
@@ -152,7 +142,7 @@ subroutine scf_cycle(verbosity)
                     Call flushifc(60)
                 End If
                 tlast = .True.
-                go to 10
+                goto 10
             End If
             If ((verbosity>-1).and.(rank==0)) Then
                 write(string,'("SCF iteration number : ", I4)') iscl
@@ -172,17 +162,22 @@ subroutine scf_cycle(verbosity)
 
         Call timesec (ts0)
 
-        if (input%groundstate%findlinentype .ne. "skip") then
-            call gencore          ! generate the core wavefunctions and densities
-            call linengy          ! find the new linearization energies
-            if (rank==0) call writelinen
-            call genapwfr         ! generate the APW radial functions
-            call genlofr(tlast)   ! generate the local-orbital radial functions
-            call olprad           ! compute the overlap radial integrals
-            Call hmlint
-!            call hmlrad           ! compute the Hamiltonian radial integrals
+        if (task.ne.7) then
+          ! No updates of core and valence radial functions during PBE0 run
+          call gencore          ! generate the core wavefunctions and densities
+          call linengy          ! find the new linearization energies
+          if (rank==0) call writelinen
+          call genapwfr         ! generate the APW radial functions
+          call genlofr(tlast)   ! generate the local-orbital radial functions
+          call olprad           ! compute the overlap radial integrals
         end if
-           
+        
+        !------------------------------------------------------------
+        ! Effective Hamiltonian Setup: Radial and Angular integrals
+        !------------------------------------------------------------
+        call hmlint
+        !call hmlrad
+
 !________________
 ! partial charges
 
@@ -199,26 +194,19 @@ subroutine scf_cycle(verbosity)
 !! TIME - Second IO segment       
 
         Call timesec (ts0)
+
+!-----------------------------------------------
+! Solve Secular Equation for each k-point
+!-----------------------------------------------
+
+! start k-point loop
 #ifdef MPI
         Call MPI_barrier (MPI_COMM_WORLD, ierr)
         If (rank .Eq. 0) Call delevec ()
-#endif
-#ifdef MPISEC
         splittfile = .True.
         Do ik = firstk (rank), lastk (rank)
-#endif
-#ifdef NEVERDEFINED
-        End Do
-#endif
-#ifndef MPISEC
+#else
         splittfile = .False.
-
-! begin parallel loop over k-points ------------------------------------------80
-#ifdef KSMP
-!!OMP PARALLEL DEFAULT(SHARED) &
-!!OMP PRIVATE(evalfv,evecfv,evecsv)
-!!OMP DO
-#endif
         Do ik = 1, nkpt
 #endif
 
@@ -253,23 +241,19 @@ subroutine scf_cycle(verbosity)
 ! calculate partial charges
             if (input%groundstate%tpartcharges) call genpchgs(ik,evecfv,evecsv)
             Deallocate (evalfv, evecfv, evecsv)
-        End Do
-        if (allocated(meffig)) deallocate(meffig)
-        if (allocated(m2effig)) deallocate(m2effig)
+            
+        End Do ! ik
+        
+! end k-point loop -------------------------------------------------------------
 
-
-#ifdef KSMP
-!!OMP END DO
-!!OMP END PARALLEL
-#endif
-! end parallel loop over k-points --------------------------------------------80
-
-#ifdef MPISEC
+#ifdef MPI
         Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
         Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
 
+!-----------------------------------------------
 ! find the occupation numbers and Fermi energy
+!-----------------------------------------------
         Call occupy
         If (rank==0) Then
 ! write out the eigenvalues and occupation numbers
@@ -277,57 +261,55 @@ subroutine scf_cycle(verbosity)
 ! write the Fermi energy to file
             if (verbosity>-1) Call writefermi
         End If
-! set the charge density and magnetisation to zero
+!write the occupancies to file
+#ifdef MPI
+        Do ik = firstk (rank), lastk (rank)
+#else
+        Do ik = 1, nkpt
+#endif
+            Call putoccsv (ik, occsv(:, ik))
+        End Do
+
+!-----------------------------------------------
+! Calculate density and magnetization
+!-----------------------------------------------
         rhomt (:, :, :) = 0.d0
         rhoir (:) = 0.d0
         If (associated(input%groundstate%spin)) Then
             magmt (:, :, :, :) = 0.d0
             magir (:, :) = 0.d0
         End If
-
-
-#ifdef MPIRHO
-        Do ik = firstk (rank), lastk (rank)
-!write the occupancies to file
-            Call putoccsv (ik, occsv(:, ik))
-        End Do
-        Do ik = firstk (rank), lastk (rank)
+#ifdef MPI
+        Do ik = firstk(rank), lastk(rank)
 #else
-        If (rank .Eq. 0) Then
-            Do ik = 1, nkpt
-!write the occupancies to file
-                Call putoccsv (ik, occsv(:, ik))
-            End Do
-        End If
         Do ik = 1, nkpt
 #endif
-
             Allocate (evecfv(nmatmax, nstfv, nspnfv))
             Allocate (evecsv(nstsv, nstsv))
-! get the eigenvectors from file
+            ! get the eigenvectors from file
             Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
             Call getevecsv (vkl(:, ik), evecsv)
 !! TIME - rhovalk does not belong to IO
             Call timesec(ts1)
             timeio=ts1-ts0+timeio
-! add to the density and magnetisation
+            ! add to the density and magnetisation
             Call rhovalk (ik, evecfv, evecsv)
             Call genrhoir (ik, evecfv, evecsv)
             Deallocate (evecfv, evecsv)
             Call timesec(ts0)
         End Do
-
-#ifdef MPIRHO
+#ifdef MPI
         Call mpisumrhoandmag
 #endif
 
-
 #ifdef MPI
-        If ((input%groundstate%xctypenumber.Lt.0).Or.(xctype(2).Ge.400).Or.(xctype(1).Ge.400)) &
-       &    Call mpiresumeevecfiles()
+        If ((input%groundstate%xctypenumber.Lt.0).Or. &
+        &   (xctype(2).Ge.400).Or. &
+        &   (xctype(1).Ge.400)) &
+        &    Call mpiresumeevecfiles()
 #endif
         if ((input%groundstate%tpartcharges).and.(rank==0)) then
-! write out partial charges
+            ! write out partial charges
             call writepchgs(69,input%groundstate%lmaxvr)
             call flushifc(69)
         end if
@@ -335,7 +317,6 @@ subroutine scf_cycle(verbosity)
         timeio=ts1-ts0+timeio
 !! TIME - End of second IO segment
 
-!! TIME - potential
         Call timesec(ts0)
 ! symmetrise the density
         Call symrf(input%groundstate%lradstep, rhomt, rhoir)
@@ -365,17 +346,21 @@ subroutine scf_cycle(verbosity)
             if (rank .eq. 0) Call writeldapu
         End If
 ! generate charge distance
-        call chgdist
+        call chgdist(rhomtref,rhoirref)
 ! store density to reference
         rhoirref(:)=rhoir(:)
         rhomtref(:,:,:)=rhomt(:,:,:)
-! compute the effective potential
+        
+!-----------------------------------        
+! Compute the effective potential
+!-----------------------------------
         Call poteff
+        
+!---------------
+! Mixing
+!---------------
 ! pack interstitial and muffin-tin effective potential and field into one array
-!        write(*,*) n
         Call packeff (.True., n, v)
-!        write(*,*) n
-
 ! mix in the old potential and field with the new
         If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, nwork)
 #ifdef MPI
@@ -383,10 +368,14 @@ subroutine scf_cycle(verbosity)
 #endif
 ! unpack potential and field
         Call packeff (.False., n, v)
-! add the fixed spin moment effect field
-        If (getfixspinnumber() .Ne. 0) Call fsmfield
+!---------------
+
 ! Fourier transform effective potential to G-space
         Call genveffig
+        if (allocated(meffig)) deallocate(meffig)
+        if (allocated(m2effig)) deallocate(m2effig)
+ ! add the fixed spin moment effect field
+        If (getfixspinnumber() .Ne. 0) Call fsmfield
         Call genmeffig
 ! reduce the external magnetic fields if required
         If (associated(input%groundstate%spin)) Then
@@ -402,14 +391,17 @@ subroutine scf_cycle(verbosity)
             End If
         End If
 
+!--------------------------------
 ! compute the energy components
+!--------------------------------
         et = engytot
         Call energy
         Call timesec(ts1)
         timepot=ts1-ts0+timepot
-!! TIME - End of potential
 
+!----------------------------------------------
 ! compute the forces (without IBS corrections)
+!----------------------------------------------
         if (input%groundstate%tforce) then
             tibs=input%groundstate%tfibs
             input%groundstate%tfibs=.false.
@@ -417,7 +409,11 @@ subroutine scf_cycle(verbosity)
             input%groundstate%tfibs=tibs
         end if
 
-!! TIME - Third IO segment  
+!-----------------------------
+! Print results
+!-----------------------------
+
+!! TIME - Third IO segment
         Call timesec(ts0)      
         If ((verbosity>-1).and.(rank==0)) Then
 ! output energy components
@@ -468,7 +464,7 @@ subroutine scf_cycle(verbosity)
 !! TIME - End of third IO segment
 
 ! exit self-consistent loop if last iteration is complete
-        If (tlast) Go To 20
+        If (tlast) goto 20
 
 ! update convergence criteria
         deltae=abs(et-engytot)
@@ -494,15 +490,16 @@ subroutine scf_cycle(verbosity)
             Call flushifc (61)
         end if
 
-! convergence issues
-
+!----------------------
+! Convergence tests
+!----------------------
         If (iscl .Ge. 2) Then
 
 !...write convergence if only energy
             if ((verbosity>-1).and.(rank==0).and.(input%groundstate%scfconv.eq.'energy')) then
                 write(60,*)
                 write(60,'(" Absolute change in total energy   (target) : ",G13.6,"  (",G13.6,")")') &
-               &    deltae, input%groundstate%epsengy
+                &     deltae, input%groundstate%epsengy
             end if
 
 !...write convergence if only potential
@@ -513,7 +510,14 @@ subroutine scf_cycle(verbosity)
                 end if
                 write(60,*)
                 Write(60,'(" RMS change in effective potential (target) : ",G13.6,"  (",G13.6,")")') &
-               &    currentconvergence, input%groundstate%epspot
+                &     currentconvergence, input%groundstate%epspot
+            end if
+            
+!...write convergence if only energy
+            if ((verbosity>-1).and.(rank==0).and.(input%groundstate%scfconv.eq.'charge')) then
+                write(60,*)
+                write(60,'(" Charge distance                   (target) : ",G13.6,"  (",G13.6,")")') &
+                &     chgdst, input%groundstate%epschg
             end if
 
 !...write convergence if multiple convergence
@@ -533,7 +537,7 @@ subroutine scf_cycle(verbosity)
                &    dforcemax, input%groundstate%epsforcescf
             end if
 
-! write in RMSDVEFF.OUT and DFSCFMAX.OUT
+!...write in RMSDVEFF.OUT and DFSCFMAX.OUT
             if ((verbosity>-2).and.(rank==0)) then 
                 Write (65, '(G18.10)') currentconvergence
                 Call flushifc(65)
@@ -543,18 +547,22 @@ subroutine scf_cycle(verbosity)
                 end if
             end if
 
+!-----------------------
 ! check for convergence
-
+!-----------------------
             if (input%groundstate%scfconv .eq. 'energy') &
-           &    tlast = (deltae .lt. input%groundstate%epsengy)
+            &    tlast = (deltae .lt. input%groundstate%epsengy)
 
             if (input%groundstate%scfconv .eq. 'potential') &
-           &    tlast = (currentconvergence .lt. input%groundstate%epspot)
+            &    tlast = (currentconvergence .lt. input%groundstate%epspot)
+           
+            if (input%groundstate%scfconv .eq. 'charge') &
+            &   tlast = (chgdst .lt. input%groundstate%epschg)
 
             if (input%groundstate%scfconv .eq. 'multiple') then
                 tlast = (currentconvergence .lt. input%groundstate%epspot) .and. &
-               &        (deltae .lt. input%groundstate%epsengy) .and. &
-               &        (chgdst .lt. input%groundstate%epschg)
+                &       (deltae .lt. input%groundstate%epsengy) .and. &
+                &       (chgdst .lt. input%groundstate%epschg)
             end if
 
             if (input%groundstate%tforce) then
@@ -576,6 +584,7 @@ subroutine scf_cycle(verbosity)
             end if
 
         End If ! iscl>2
+        
 #ifdef MPI
         Call MPI_bcast (tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
         Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
@@ -584,9 +593,8 @@ subroutine scf_cycle(verbosity)
         timeio=ts1-ts0+timeio
 !! TIME - End of fourth IO segment
 
-    End Do
+    End Do ! iscl
 ! end the self-consistent loop
-
 20  Continue
 
     Call timesec(ts0)
@@ -601,17 +609,20 @@ subroutine scf_cycle(verbosity)
             Write (60, '(" STATE.OUT is written")')
         end if
     End If
-    Call timesec(ts1)
-    timeio=ts1-ts0+timeio   
 ! delete BROYDEN.OUT
-            If (rank==0) then   
-                Inquire (File='BROYDEN.OUT', Exist=Exist)
-                If (exist) Then
-                    Open (23, File='BROYDEN.OUT')
-                    Close (23, Status='DELETE')
-                End If
-            End If
-! compute forces
+    If (rank==0) then   
+        Inquire (File='BROYDEN.OUT', Exist=Exist)
+        If (exist) Then
+            Open (23, File='BROYDEN.OUT')
+            Close (23, Status='DELETE')
+        End If
+    End If
+    Call timesec(ts1)
+    timeio=ts1-ts0+timeio
+   
+!------------------    
+! Compute forces
+!------------------
     If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
         Call force
 #ifdef MPI
@@ -623,7 +634,6 @@ subroutine scf_cycle(verbosity)
         forcetot(1:3,1:natmtot)=forcesum(1:3,1:natmtot)/dble(procs)
         deallocate(forcesum)
 #endif
-
 ! output forces to INFO.OUT        
         if ((verbosity>-1).and.(rank==0)) then
            call printbox(60,"-","Writing atomic positions and forces")
@@ -646,9 +656,9 @@ subroutine scf_cycle(verbosity)
            end do
            call writeforce(60,2)
         end if
-    End If
+    End If ! compute forces
 
-! set nwork to -2 to tell interface to call the deallocation functions
+    ! set nwork to -2 to tell interface to call the deallocation functions
     If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, -2)
     Deallocate(v)
     Call mpiresumeevecfiles()

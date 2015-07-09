@@ -32,6 +32,10 @@ Subroutine init0
       Integer :: ist, l, m, lm, iv (3)
       Real (8) :: ts0, ts1, tv3 (3)
 
+! zero self-consistent loop number
+      iscl = 0
+      tlast = .False.
+      
 !-------------------------------!
 !     zero timing variables     !
 !-------------------------------!
@@ -172,8 +176,10 @@ Subroutine init0
       End If
       If  (associated(input%groundstate%Hybrid)) Then
           ex_coef=input%groundstate%Hybrid%excoeff
+          ec_coef=input%groundstate%Hybrid%eccoeff      
       Else
           ex_coef=1.0          
+          ec_coef=1.0
       End If
       Call getxcdata (xctype, xcdescr, xcspin, xcgrad, ex_coef)
 ! reset input%groundstate%Hybrid%excoeff to ex_coef
@@ -417,6 +423,10 @@ Subroutine init0
 ! exchange-correlation potential
       If (allocated(vxcmt)) deallocate (vxcmt)
       Allocate (vxcmt(lmmaxvr, nrmtmax, natmtot))
+      !if (allocated(vxmt)) deallocate(vxmt)
+      !allocate(vxmt(lmmaxvr,nrmtmax,natmtot))
+      !if (allocated(vcmt)) deallocate(vcmt)
+      !allocate(vcmt(lmmaxvr,nrmtmax,natmtot))
       If (allocated(vxcir)) deallocate (vxcir)
       Allocate (vxcir(ngrtot))
 ! exchange-correlation magnetic field
@@ -521,9 +531,6 @@ Subroutine init0
       Allocate (vplp1d(3, npp1d))
       If (allocated(dpp1d)) deallocate (dpp1d)
       Allocate (dpp1d(npp1d))
-! zero self-consistent loop number
-      iscl = 0
-      tlast = .False.
 !
       Call timesec (ts1)
 !!      timeinit = timeinit + ts1 - ts0

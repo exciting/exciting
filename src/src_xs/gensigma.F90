@@ -34,7 +34,7 @@ Contains
 !         sigma (:) = sigma (:) + zi * &
 !        & (-(dble(eps(:))-delt)*w(:)/(4.d0*pi))
 
-        sigma (:) = zi * (eps(:) - delt) * w (:) / (4.d0*pi)
+        sigma (:) = - zi * (eps(:) - delt) * w (:) / (4.d0*pi)
 
       End Subroutine gensigma
 !

@@ -14,7 +14,7 @@ Subroutine pmatradcor
       Use modmain
       Use modinput
       Use modxs
-      Use modgw, only: ncmax,nclm,ncore,ripacor,ripcora
+      Use modgw, only: ncmax,nclm,ncore,ucore,ripacor,ripcora
 
 ! !DESCRIPTION:
 !
@@ -81,7 +81,7 @@ Subroutine pmatradcor
                l1 = spl(icor,is)
                do m1 = -l1, l1
                   lm1 = idxlm(l1,m1)
-                  fcor(1:nr) = rwfcr(1:nr,1,icor,ias)
+                  fcor(1:nr) = ucore(1:nr,1,icor,ias)
                   call gradzfmtr(input%groundstate%lmaxapw, nr,  &
                  &  spr(1,is), l1, m1, lmmaxapw, nrmtmax, fcor,  &
                  &  dcorfr(1,1,1,icor,lm1))
@@ -121,7 +121,7 @@ Subroutine pmatradcor
                            lm3 = idxlm(l3,m3)
                            Do io = 1, apword(l3,is)
                               Do j = 1, 3
-                                 fr(1:nr) = r2(1:nr)*rwfcr(1:nr,1,icor,ias)* &
+                                 fr(1:nr) = r2(1:nr)*ucore(1:nr,1,icor,ias)* &
                                 &           dapwfr(lm1,1:nr,j,io,lm3)
                                  Call fderiv(-1, nr, spr(1,is), fr, gr, cf)
                                  ripcora(icor,lm1,io,lm3,ias,j) = gr(nr)

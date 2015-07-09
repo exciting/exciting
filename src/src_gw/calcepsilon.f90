@@ -39,9 +39,10 @@ subroutine calcepsilon(iqp,COMM_LEVEL2)
  
       
       real(8)    :: tstart,tend
-      real(8)    :: edif, pmn, pvec(3)
+      real(8)    :: edif
       real(8)    :: v1(3),v2(3),v3(3)
       
+      complex(8) :: pmn, pvec(3)
       complex(8) :: coefw
       complex(8), allocatable :: minm(:,:), micm(:,:)
       complex(8), allocatable :: temp(:,:), body(:,:)
@@ -228,8 +229,8 @@ level2procs=1
                 v1(:)=aimag(pmat(1:3,ie1,ie2))
                 call r3mv(symlatc(:,:,lspl),v1,v3)
                 pvec(:)=cmplx(v2(:),v3(:),8)
-                !pmn=sum(pvec(1:3)*q0_eps(1:3))
-                pmn=(pvec(1)+pvec(2)+pvec(3))/sqrt(3.0d0)
+                pmn=sum(pvec(1:3)*q0eps(1:3))
+                !pmn=(pvec(1)+pvec(2)+pvec(3))/sqrt(3.0d0)
                 edif=evaldft(ie1,ik0)-evaldft(ie2,ik0)
                 if(abs(edif).gt.1.0d-10)then
                   pm(ie12)=coefw*pmn/edif
@@ -355,8 +356,8 @@ level2procs=1
                   v1(:)=aimag(pmatc(1:3,icg,ie2))
                   call r3mv(symlatc(:,:,lspl),v1,v3)
                   pvec(:)=cmplx(v2(:),v3(:),8)
-                  !pmn=sum(pvec(1:3)*q0_eps(1:3))
-                  pmn=(pvec(1)+pvec(2)+pvec(3))/sqrt(3.0d0)
+                  pmn=sum(pvec(1:3)*q0eps(1:3))
+                  !pmn=(pvec(1)+pvec(2)+pvec(3))/sqrt(3.0d0)
                   edif=evalcr(ic,ias)-evaldft(ie2,ik0)
                   pm(ie12)=zzero
                   if(abs(edif).gt.1.0d-10)then
@@ -444,7 +445,6 @@ call MPI_ALLREDUCE(MPI_IN_PLACE, epsw2,mbsiz*nomeg, MPI_DOUBLE_COMPLEX,  MPI_SUM
         deallocate(wtmp)
       end if ! Gamma
 
- 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
       call write_cputime(fgw,tend-tstart,'CALCEPSILON')

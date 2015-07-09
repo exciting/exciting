@@ -20,18 +20,21 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
       
       integer, intent(in) :: nkp2
       real(8), intent(in) :: kvecs2(3,nkp2)
-      real(8), intent(out):: eqp2(nstsv,nkp2)
+      real(8), intent(inout):: eqp2(nstsv,nkp2)
 
 !     local variables
       logical :: exist
       integer(4) :: ik, ik1, ik2, isym, lspl, iv(3)
       integer(4) :: ib, nb, nk
       integer(4) :: recl
+      integer :: nkpt0, nstsv0 
       real(8) :: s(3,3), v1(3), v2(3), t1
       character (256) :: file
 
       integer, allocatable :: map(:)
       complex(8), allocatable :: de1(:,:), de2(:,:)
+  real(8),    Allocatable :: vkl0(:,:), ehf(:,:)
+  complex(8), allocatable :: e0(:,:),e1(:,:)
 
 !-----------------------------------------------------------------------------
 !     Just read the file
@@ -73,6 +76,47 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
                 
       end do ! ik
       close(70)
+
+! read DFT eigenvalues from EVALHF.OUT in case of HF-Hybrids
+if (associated(input%groundstate%Hybrid)) then
+    if (input%groundstate%Hybrid%exchangetypenumber== 1) then 
+    file='EVALHF.OUT'
+    inquire(File=file,Exist=exist)
+    if (.not.exist) then
+      write(*,*)'ERROR(getevalqp): File EVALHF.OUT does not exist!'
+      stop
+    end if
+    inquire(IoLength=Recl) nkpt0, nstsv0
+    open (70, File=file, Action='READ', Form='UNFORMATTED', &
+    &  Access='DIRECT', Recl=Recl)
+    read(70, Rec=1) nkpt0, nstsv0
+    close(70)
+    nstsv=min(nstsv,nstsv0)
+    allocate(vkl0(3,nkpt0))
+    allocate(ehf(nstsv0,nkpt0))
+    allocate(e0(nkpt0,nstsv))
+    allocate(e1(nkpt,nstsv))
+    inquire(IoLength=Recl) nkpt0, nstsv0, vkl0(:,1), ehf(:,1)
+    open (70, File=file, Action='READ', Form='UNFORMATTED', &
+    &  Access='DIRECT', Recl=Recl)
+    do ik = 1, nkpt0
+      read(70, Rec=ik) nkpt0, nstsv0, vkl0(:,ik), ehf(1:,ik)
+    end do ! ik
+    close(70)
+    ! Fourier Interpolation for DFT eigenvalues
+    do ik = 1, nkpt0
+      e0(ik,1:nstsv)=cmplx(ehf(1:nstsv,ik),0.d0,8)
+    enddo
+    e1(:,:)=zzero
+    call fourintp(e0,nkpt0,vkl0,e1,nkp2,vkl,nstsv)
+    do ik2 = 1, nkp2
+        do ib =  1,nstsv 
+          eqp2(ib,ik2) = e1(ik2,ib)
+      end do
+    end do
+    deallocate(vkl0,ehf,e0,e1)
+  end if
+end if
 
 !-------------------------------------------------------------------------------
 !     Data-set consistency check

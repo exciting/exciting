@@ -218,6 +218,7 @@ module modgw
 !     corind(:,4)=l
 !     corind(:,5)=m
       integer(4), allocatable :: corind(:,:)
+      real(8), allocatable :: ucore(:,:,:,:)
 
 !----------------------------!
 !     Local orbitals         !
@@ -301,6 +302,7 @@ module modgw
       integer(4) :: lmixmax 
 ! indexes of the local mixed basis functions
       integer(4), allocatable :: locmixind(:,:)
+      integer(4), allocatable :: mbindex(:,:)
 ! The matrix elements jlam      
       real(8), allocatable  :: jlam(:,:) 
 
@@ -390,7 +392,7 @@ module modgw
       complex(8), allocatable :: emac(:,:) ! emac(1,:) -- without local field effect     
                                            ! emac(2,:) -- with    local field effect
  
-      real(8) :: q0_eps(3)      
+      real(8) :: q0eps(3)
 
 !---------------------------------!
 !     momentum matrix elements    !
