@@ -248,6 +248,11 @@ Subroutine hybrids
               call write_cputime(60,ts1-ts0, 'CALC_VNLMAT')
               write(60,*)
           end if
+!-----------------------------------
+! update radial functions
+!-----------------------------------
+          if (input%groundstate%Hybrid%updateRadial) call updateradial
+
           time_hyb = time_hyb+ts1-ts0
           
         end if

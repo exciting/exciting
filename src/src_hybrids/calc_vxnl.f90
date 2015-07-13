@@ -98,7 +98,6 @@ subroutine calc_vxnl
 ! (Re)-Calculate the M^i_{nm}(k,q) matrix elements for given k and q
 !------------------------------------------------------------
             call expand_basis(ik,iq)
-            write(*,*) 'expand_basis: ik, iq=', ik, iq
 
 !------------------------------------------------------------     
 ! (Re)-Calculate non-local (Hartree-Fock) potential
