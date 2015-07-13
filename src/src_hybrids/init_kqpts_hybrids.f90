@@ -80,12 +80,15 @@ subroutine init_kqpts_hybrids
       nqptnr = nkptnr
       if (allocated(vql)) deallocate(vql)
       allocate(vql(3,nqptnr))
-      vql(:,:) = vklnr(:,:)
-      
+!     q-grid must not be shifted
+      do iq=1,nqptnr
+           vql(:,iq) = vklnr(:,iq) - vklnr(:,1)
+      end do
       if (allocated(vqc)) deallocate(vqc)
       allocate(vqc(3,nqptnr))
-      vqc(:,:) = vkcnr(:,:)
-
+      do iq=1,nqptnr
+            vqc(:,iq) = vkcnr(:,iq) - vkcnr(:,1)
+      end do
       if (allocated(kqid)) deallocate(kqid)
       allocate(kqid(nkptnr,nkptnr))
       kqid(:,:) = 0
