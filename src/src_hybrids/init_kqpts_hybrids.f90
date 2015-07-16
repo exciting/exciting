@@ -16,7 +16,7 @@ subroutine init_kqpts_hybrids
       real(8), external :: r3taxi
       
       if (allocated(indkp)) deallocate(indkp)
-      allocate(indkp(nkpt))
+      allocate(indkp(nkptnr))
       ik = 0
       do i3 = 0, input%groundstate%ngridk(3)-1
       do i2 = 0, input%groundstate%ngridk(2)-1
