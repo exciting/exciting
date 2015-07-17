@@ -23,6 +23,8 @@ Module mod_energy
       Real (8) :: engyen
 ! Hartree energy
       Real (8) :: engyhar
+! Dipole correction energy      
+      Real(8)  :: endipc
 ! Coulomb energy (E_nn + E_en + E_H)
       Real (8) :: engycl
 ! electronic Coulomb potential energy
