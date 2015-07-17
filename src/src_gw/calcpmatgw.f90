@@ -113,9 +113,11 @@ subroutine calcpmatgw
        ik0=idikp(ik)
 
 !      get the eigenvectors and values from file
-       call getevecfvgw(ik0,evecfvt)
-       call getevecsvgw(ik0,evecsvt)
+!       call getevecfvgw(ik0,evecfvt)
+!       call getevecsvgw(ik0,evecsvt)
 
+      call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfvt)
+      call getevecsv(vkl(:,ik),evecsvt)
 !      find the matching coefficients
        call match(ngk(1,ik),gkc(1,1,ik),tpgkc(1,1,1,ik), &
       &  sfacgk(1,1,1,ik),apwalmt)

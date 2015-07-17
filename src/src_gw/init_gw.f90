@@ -68,10 +68,9 @@ subroutine init_gw
 ! the specified GW parameters
 
       if (.not.input%gw%skipgnd) then
-      
         ! Regenerate eigenvectors for the complete (non-reduced) k-point set
-        reducek_ = input%groundstate%reducek
-        input%groundstate%reducek = .false.
+!        reducek_ = input%groundstate%reducek
+!        input%groundstate%reducek = .false.
         
         ! Resume scf KS calculations and diagonalize one more time the Hamiltonian
         ! for new set of k- and nempty parameters.
@@ -88,20 +87,20 @@ subroutine init_gw
         task = 1
         input%groundstate%maxscl = 1
         
-        filext_save = trim(filext)
-        filext = "_GW.OUT"
+        !filext_save = trim(filext)
+        !filext = "_GW.OUT"
+         filext = ".OUT"
         isreadstate0 = .true.
         
         call scf_cycle(-2)
-        
         if (rank == 0) then
 !          ! safely remove unnecessary files
           call filedel('LINENGY'//trim(filext))
         end if
         
         ! restore the initial value
-        input%groundstate%reducek = reducek_
-        filext = trim (filext_save)
+!        input%groundstate%reducek = reducek_
+        !filext = trim (filext_save)
 
       end if
       

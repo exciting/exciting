@@ -51,10 +51,11 @@
       jk=kqid(ik,iq) ! index of k-q vector
 
 !     get the eigenvectors from file
-      call getevecfvgw(jk,eveck)
+!      call getevecfvgw(jk,eveck)
+      call getevecfv(vklnr(:,jk),vgklnr(:,:,:,jk),eveck)
       eveckp=conjg(eveck)
-      call getevecfvgw(ik,eveck)
-
+!      call getevecfvgw(ik,eveck)
+      call getevecfv(vklnr(:,ik),vgklnr(:,:,:,ik),eveck)
       call expand_evec(ik,'t')
       call expand_evec(jk,'c')
 !
