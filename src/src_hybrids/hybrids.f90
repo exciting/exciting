@@ -251,7 +251,7 @@ Subroutine hybrids
 !-----------------------------------
 ! update radial functions
 !-----------------------------------
-          if (input%groundstate%Hybrid%updateRadial) call updateradial
+          if ((input%groundstate%Hybrid%updateRadial).and.(ihyb>0)) call updateradial
 
           time_hyb = time_hyb+ts1-ts0
           
