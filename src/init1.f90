@@ -276,9 +276,9 @@ Subroutine init1
              call kgen(bvec,1,symmat,input%groundstate%ngridk,ikloff,dkloff, &
              &         nkptnr,ivknr,dvk,indkp,iwkp,ntetnr,tnodesnr,wtetnr,tvol,mnd)
              ik=0
-             do i3=0,input%groundstate%ngridk(3)-1
+             do i1=0,input%groundstate%ngridk(3)-1
              do i2=0,input%groundstate%ngridk(2)-1
-             do i1=0,input%groundstate%ngridk(1)-1
+             do i3=0,input%groundstate%ngridk(1)-1
                 ik=ik+1
                 ikmapnr(i1,i2,i3)=indkp(ik)
              end do
@@ -300,9 +300,9 @@ Subroutine init1
              call kgen(bvec,nsym,symmat,input%groundstate%ngridk,ikloff,dkloff, &
              &         nkpt,ivk,dvk,indkp,iwkp,ntet,tnodes,wtet,tvol,mnd)
              ik=0
-             do i3=0,input%groundstate%ngridk(3)-1
+             do i1=0,input%groundstate%ngridk(3)-1
              do i2=0,input%groundstate%ngridk(2)-1
-             do i1=0,input%groundstate%ngridk(1)-1
+             do i3=0,input%groundstate%ngridk(1)-1
                 ik=ik+1
                 ikmap(i1,i2,i3)=indkp(ik)
              end do
