@@ -79,7 +79,8 @@ subroutine dielmat
 ! chosen according to PRB86, 125139 (2012)
     allocate(eta(wgrid))
     do iw = 1, wgrid
-        eta(iw) = cmplx(0.d0,swidth+0.1*swidth*w(iw))
+        eta(iw) = cmplx(0.d0,swidth)
+        !eta(iw) = cmplx(0.d0,swidth+0.1*swidth*w(iw))
     end do
 
 ! check for presence of the calculated momentum matrix elements
@@ -317,8 +318,9 @@ subroutine dielmat
             write(*, '("  Electron energy loss spectrum written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             zt1 = zi*fourpi
+            t2 = 0.0d0; if (a==b) t2 = 1.0d0
             do iw = 1, wgrid
-                zt2 = zt1*sigma(iw)/(w(iw)+eta(iw))
+                zt2 = t2+zt1*sigma(iw)/(w(iw)+eta(iw))
                 write(60, '(2G18.10)') t1*w(iw), -aimag(1.0d0/zt2)
             end do
             close(60)
