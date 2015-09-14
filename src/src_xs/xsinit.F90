@@ -38,6 +38,9 @@ Subroutine xsinit
   !---------------------!
   ! name of output file
       Call genfilname (nodotpar=.True., basename='INFOXS', procs=procs, rank=rank, filnam=xsfileout)
+      Call genfilname (basename='EMAT_TIMING', procs=procs, rank=rank, filnam=fnetim)
+      Call genfilname (basename='X0', procs=procs, rank=rank, filnam=fnchi0_t)
+      Call genfilname (basename='X0_TIMING', procs=procs, rank=rank, filnam=fnxtim)
   ! reset or append to output file
       Call getunit (unitout)
       If (input%xs%tappinfo .Or. (calledxs .Gt. 1)) Then

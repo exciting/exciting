@@ -26,6 +26,9 @@ Contains
            &tent file: ", a)') trim (fnam)
             Return
          End If
+         If ( .Not. existent ) Then 
+            Return
+         End If
     ! check if file is opened
          Inquire (File=trim(fnam), Opened=Opened, Number=un)
     ! close file if opened

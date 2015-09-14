@@ -59,10 +59,8 @@ Subroutine dfgather
               endif
             End Do
          End Do
-         Do iproc = 0, procs - 1
-            Call genfilname (basename='X0', iqmt=iq, procs=procs, &
-           & rank=iproc, filnam=fnchi0_t)
-         End Do
+         Call genfilname (basename='X0', iqmt=iq, procs=procs, &
+           & rank=rank, filnam=fnchi0_t)
          Deallocate (chi0, chi0wg, chi0hd)
          Write (unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sham&
         & response function gathered for q - point:', iq

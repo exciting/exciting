@@ -72,5 +72,9 @@ Subroutine xsfinit
 
   ! remove checkpoint file
       Call filedel (trim(fnresume))
-
+      If (rank .Ne. 0) Call filedel (trim(xsfileout))
+      If (rank .Ne. 0) Call filedel (trim(fnetim))
+      Call filedel (trim(fnchi0_t))
+      If (rank .Ne. 0) Call filedel (trim(fnxtim))
+      
 End Subroutine xsfinit
