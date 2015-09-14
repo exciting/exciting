@@ -26,8 +26,6 @@ subroutine dielmat
     real(8) :: wmax, scissor
 ! external functions
     real(8) sdelta
-
-    type(Node), pointer :: np
     
     if (rank==0) then
       write(*,*)
@@ -83,27 +81,21 @@ subroutine dielmat
         !eta(iw) = cmplx(0.d0,swidth+0.1*swidth*w(iw))
     end do
 
-! check for presence of the calculated momentum matrix elements
-    inquire(file='PMAT.OUT', exist=exist)
-    if (exist) then
-        if (rank==0) then
-            write(*,*)
-            write(*,'("  Momentum matrix elements read from PMAT.OUT")')
-        end if
-    else
-        if (rank==0) then
-            write(*,*)
-            write(*,'("  Calculate momentum matrix elements")')
-        end if
-        call writepmat
+! calculate momentum matrix elements
+    if (rank==0) then
+        write(*,*)
+        write(*,'("  Calculate the momentum matrix elements")')
     end if
+    call writepmat
 
 ! the momentum matrix elements
     allocate(pmat(3,nstsv,nstsv))
     inquire(iolength=recl) pmat
-    deallocate(pmat)
     open(50,File='PMAT.OUT',Action='READ',Form='UNFORMATTED', &
-    &  Access='DIRECT',Recl=recl,IOstat=iostat)
+    &    Access='DIRECT',Recl=recl,IOstat=iostat)
+
+! KS eigenvalues and occupancies    
+    allocate(evalsvt(nstsv),occsvt(nstsv))
 
 #ifdef MPI
     kfirst = firstofset(rank,nkptnr)
@@ -147,18 +139,16 @@ subroutine dielmat
 
 ! flag for calculating the intraband term
         intraband = input%properties%dielmat%intraband .and. (a==b)
-        
-        sigma(:) = zzero
-        wplas = 0.0d0
 
 ! sum over non-reduced k-points
+        sigma(:) = zzero
+        wplas = 0.0d0
         do ik = kfirst, klast
 
 ! equivalent reduced k-point
             call findkpt(vklnr(:,ik),isym,jk)
         
 ! read momentum matrix elements from direct-access file
-            allocate(pmat(3,nstsv,nstsv))
             read(50,Rec=jk) pmat
 
 ! rotate the matrix elements from the reduced to non-reduced k-point
@@ -174,7 +164,6 @@ subroutine dielmat
             end if
         
 ! read eigenvalues and occupancies from files
-            allocate(evalsvt(nstsv),occsvt(nstsv))
             call getevalsv(vkl(:,jk),evalsvt)
             call getoccsv(vkl(:,jk),occsvt)
 
@@ -225,13 +214,13 @@ subroutine dielmat
             end if
             end do ! ist
             
-            deallocate(pmat)
-            deallocate(evalsvt,occsvt)
-            
         end do ! ik
+        
+        zt1 = zi/(omega*dble(nkptnr))
+        sigma(:) = zt1*sigma(:)
 
 #ifdef MPI
-        call MPI_ALLREDUCE(MPI_IN_PLACE, &
+        call MPI_AllReduce(MPI_IN_PLACE, &
         &                  sigma, &
         &                  wgrid, &
         &                  MPI_DOUBLE_COMPLEX, &
@@ -239,7 +228,7 @@ subroutine dielmat
         &                  MPI_COMM_WORLD, &
         &                  ierr)
         if (intraband.and.(.not.drude)) then
-          call MPI_ALLREDUCE(MPI_IN_PLACE, &
+          call MPI_AllReduce(MPI_IN_PLACE, &
           &                  wplas, &
           &                  1, &
           &                  MPI_DOUBLE_COMPLEX, &
@@ -247,12 +236,10 @@ subroutine dielmat
           &                  MPI_COMM_WORLD, &
           &                  ierr)
         end if
-        call barrier
+        call MPI_Barrier(MPI_COMM_WORLD,ierr)
 #endif
 
-        zt1 = zi/(omega*dble(nkptnr))
-        sigma(:) = zt1*sigma(:)
-
+! add the intraband contribution
         if (intraband) then
             if (drude) then
 ! use specified parameters for Drude term
@@ -273,14 +260,16 @@ subroutine dielmat
                     write(60, '(G18.10, " : plasma frequency")') sqrt(wplas)
                     close(60)
                 end if
-! add the intraband term
                 zt1 = zi/fourpi
                 do iw = 1, wgrid
                     sigma(iw) = sigma(iw)+zt1*wplas/(w(iw)+eta(iw))
                 end do
             end if
-        end if
-     
+        end if        
+
+!-----------------------------------------------
+! Print the output spectra
+!-----------------------------------------------
         if (rank==0) then
 ! output energy units
             t1 = 1.0d0
@@ -324,13 +313,15 @@ subroutine dielmat
                 write(60, '(2G18.10)') t1*w(iw), -aimag(1.0d0/zt2)
             end do
             close(60)
-            if (input%properties%dielmat%tevout) &
-           &  write(*, '("  Output energy is in eV")')
+            if (input%properties%dielmat%tevout) write(*, '("  Output energy is in eV")')
             write(*,*)
         end if
+        call MPI_Barrier(MPI_COMM_WORLD,ierr)
     
-    end do ! optical components
-     
-    deallocate(w,sigma)
+    end do ! l, optical components
+    
+    deallocate(pmat)
+    deallocate(evalsvt,occsvt)
+    deallocate(w,sigma,eta)
     
 end subroutine
