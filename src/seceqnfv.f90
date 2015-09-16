@@ -79,7 +79,10 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !------------------------------------!
       Call solvewithlapack(system,nstfv,evecfv,evalfv)
 
-      call KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
+     if (associated(input%groundstate%Hybrid)) then
+        if ((input%groundstate%Hybrid%exchangetypenumber == 1).and.(ihyb>0)) &
+           &  call KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
+     end if
 
 if (input%groundstate%ValenceRelativity.eq.'iora*') then
 ! normalise large components
