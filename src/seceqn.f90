@@ -44,6 +44,7 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
   ! allocatable arrays
       Complex (8), Allocatable :: apwalm (:, :, :, :, :)
       Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
+      apwalm=zzero
   ! loop over first-variational spins (nspnfv=2 for spin-spirals only)
 
   !

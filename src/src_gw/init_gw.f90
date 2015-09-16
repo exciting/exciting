@@ -32,14 +32,13 @@ subroutine init_gw
       real(8)    :: tstart, tend
       integer(4) :: stype_
       character(256) :: filext_save
-      character(256) :: statefile  
+      character(256) :: string  
       logical :: reducek_
  
 ! !EXTERNAL ROUTINES: 
 
       external init0
       external init1
-      external readstategw
       external genvxcig
       external init_freq
       external readingw
@@ -68,7 +67,6 @@ subroutine init_gw
 ! the specified GW parameters
 
       if (.not.input%gw%skipgnd) then
-      
         ! Regenerate eigenvectors for the complete (non-reduced) k-point set
         reducek_ = input%groundstate%reducek
         input%groundstate%reducek = .false.
@@ -93,7 +91,6 @@ subroutine init_gw
         isreadstate0 = .true.
         
         call scf_cycle(-2)
-        
         if (rank == 0) then
 !          ! safely remove unnecessary files
           call filedel('LINENGY'//trim(filext))
@@ -118,14 +115,16 @@ subroutine init_gw
         If (associated(input%groundstate%Hybrid)) Then
            If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
 ! in case of HF hybrids use PBE potential
-               statefile='STATE_PBE.OUT'
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
            Else
-               statefile='STATE.OUT'
+               Call readstate
            End If
         Else         
-           statefile='STATE.OUT'
+           Call readstate
         End If 
-       Call readstategw(statefile)
 
 ! generate the core wavefunctions and densities
       Call gencore
@@ -141,8 +140,7 @@ subroutine init_gw
 ! update potential in case if HF Hybrids
         If (associated(input%groundstate%Hybrid)) Then
            If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
-               statefile='STATE_PBE0.OUT'
-               Call readstategw(statefile)
+               Call readstate
            End If
         End If 
 !     Tranform xc potential to reciprocal space

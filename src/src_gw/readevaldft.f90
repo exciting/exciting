@@ -42,11 +42,15 @@ subroutine readevaldft
 !   read the KS eigenenergies (only for the irreducible k-points)
 !-------------------------------------------------------------------
 
-    filename = "EVALFV_GW.OUT"
+      if (input%gw%skipgnd) then 
+         filename = "EVALFV.OUT"
+      else     
+         filename = "EVALFV_GW.OUT"
+      end if 
 
 !   find the record length
     Inquire (IoLength=Recl) vkl_, nstfv_, nspnfv_
-    Do i = 1, 100
+    Do i = 1, 10
       Inquire (File=trim(filename), Exist=Exist)
       If (exist) Then
         Open (70, File=trim(filename), Action='READ', &

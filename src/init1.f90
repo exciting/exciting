@@ -276,9 +276,9 @@ Subroutine init1
              call kgen(bvec,1,symmat,input%groundstate%ngridk,ikloff,dkloff, &
              &         nkptnr,ivknr,dvk,indkp,iwkp,ntetnr,tnodesnr,wtetnr,tvol,mnd)
              ik=0
-             do i3=0,input%groundstate%ngridk(3)-1
-             do i2=0,input%groundstate%ngridk(2)-1
              do i1=0,input%groundstate%ngridk(1)-1
+             do i2=0,input%groundstate%ngridk(2)-1
+             do i3=0,input%groundstate%ngridk(3)-1
                 ik=ik+1
                 ikmapnr(i1,i2,i3)=indkp(ik)
              end do
@@ -505,10 +505,13 @@ Subroutine init1
 #endif
 ! allocate second-variational arrays
       If (allocated(evalsv)) deallocate (evalsv)
-      Allocate (evalsv(nstsv, nkpt))
+      Allocate (evalsv(nstsv,nkpt))
       If (allocated(occsv)) deallocate (occsv)
-      Allocate (occsv(nstsv, nkpt))
+      Allocate (occsv(nstsv,nkpt))
       occsv (:, :) = 0.d0
+      if (allocated(engyknst)) deallocate(engyknst)
+      allocate(engyknst(nstfv,nkpt))
+      engyknst(:,:) = 0d0
 #ifdef XS
       If (allocated(occsv0)) deallocate (occsv0)
       Allocate (occsv0(nstsv, nkpt))

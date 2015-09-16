@@ -250,6 +250,8 @@ module modgw
       complex(8), allocatable :: micmmat(:,:,:)
 ! Matrix elements M^i_nc and \tilde{M}^i_nc
       complex(8), allocatable :: mincmat(:,:,:)
+! Matrix elements M^i_cc and \tilde{M}^i_cc
+      complex(8), allocatable :: miccmat(:,:,:)
 ! Matrix elements between mixed functions and constant function
       complex(8), allocatable :: wi0(:)
 ! Matrix elements between mixed functions and planewaves

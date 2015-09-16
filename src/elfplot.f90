@@ -57,6 +57,7 @@ Subroutine elfplot
       Complex (8), Allocatable :: zfft1 (:), zfft2 (:)
       Complex (8), Allocatable :: evecfv (:, :)
       Complex (8), Allocatable :: evecsv (:, :)
+      Character(256) :: string
 ! initialise universal variables
       Call init0
       Call init1
@@ -74,7 +75,19 @@ Subroutine elfplot
 ! allocate second-variational eigenvector array
       Allocate (evecsv(nstsv, nstsv))
 ! read density and potentials from file
-      Call readstate
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+! in case of HF hybrids use PBE potential
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
+           Else
+               Call readstate
+           End If
+        Else         
+           Call readstate
+        End If 
 ! read Fermi energy from file
       Call readfermi
 ! find the new linearisation energies
@@ -85,6 +98,12 @@ Subroutine elfplot
       Call genlofr
 ! generate the core wavefunctions and densities
       Call gencore
+! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               Call readstate
+           End If
+        End If 
 ! set the gradient squared to zero
       gwf2mt (:, :, :) = 0.d0
       gwf2ir (:) = 0.d0

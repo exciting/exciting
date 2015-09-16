@@ -42,7 +42,7 @@ Subroutine writepwmat
       Complex (8), Allocatable :: yiou (:, :, :), yiuo (:, :, :)
       Real (8), Parameter :: epsrot = 1.d-12
       Character (256) :: fname
-!
+      Character(256) :: string
   ! initialise universal variables
       Call init0
       Call init1
@@ -73,14 +73,24 @@ Subroutine writepwmat
          If (allocated(yiuo)) deallocate (yiuo)
          Allocate (yiuo(nstunocc0, nstocc0, ngq(iq)))
 !
-     ! read in the density and potentials from file
-         Call readstate
+! read density and potentials from file
+        If (hybridhf) Then
+! in case of HF hybrids use PBE potential
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
+        Else
+           Call readstate
+        End If
      ! find the new linearisation energies
          Call linengy
      ! generate the APW radial functions
          Call genapwfr
      ! generate the local-orbital radial functions
          Call genlofr
+! update potential in case if HF Hybrids
+        If (hybridhf) Call readstate
      ! find the record length
          Inquire (IoLength=Recl) pwmat
          Call genfilname (basename='PWMAT', iqmt=iq, asc=.True., &

@@ -16,26 +16,26 @@ subroutine calc_vnlmat
     complex(8), allocatable :: evec(:,:), overlap(:,:)
     complex(8), allocatable :: temp(:,:), temp1(:,:)
     complex(8), allocatable :: apwalm(:,:,:,:,:)
-    
     complex(8), allocatable :: evec_(:,:)
-      
     complex(8), external :: zdotc
+ 
+    integer :: ikfirst, iklast
+
+    ikfirst = firstk(rank)
+    iklast = lastk(rank)
 
     !------------------------------------------!
     ! Matrix elements of non-local potential   !
     !------------------------------------------!
     if (allocated(vnlmat)) deallocate(vnlmat)
-    allocate(vnlmat(nmatmax,nmatmax,nkpt))
+    allocate(vnlmat(nmatmax,nmatmax,ikfirst:iklast))
     vnlmat(:,:,:) = zzero
     
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
     allocate(evec(nmatmax,nstfv))
 
-#ifdef MPI
-    do ik = firstk(rank), lastk(rank)
-#else
-    do ik = 1, nkpt
-#endif
+    do ik = ikfirst, iklast
+
         apwalm = zzero
         call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik), &
         &          sfacgk(:,:,1,ik),apwalm(:,:,:,:,1))
@@ -109,13 +109,10 @@ subroutine calc_vnlmat
     deallocate(apwalm)
     deallocate(evec)
     
-#ifdef MPI
-    call mpi_allgatherv_ifc(nkpt,nmatmax*nmatmax,zbuf=vnlmat)
-    call barrier
-#endif
     if ((rank==0).and.input%groundstate%Hybrid%savepotential) then 
          Call putvnlmat 
     end if
-call barrier
+    call barrier
+    
     return
 end subroutine

@@ -226,7 +226,7 @@
             </xs:annotation>
           </xs:attribute>
           
-          <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean" default="true">
+          <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean" default="false">
             <xs:annotation>
               <xs:documentation>
 	          Use the crystal symmetry to calculate the dielectric function and perform q-point BZ integration.
