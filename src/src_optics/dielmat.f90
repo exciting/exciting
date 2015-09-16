@@ -316,7 +316,9 @@ subroutine dielmat
             if (input%properties%dielmat%tevout) write(*, '("  Output energy is in eV")')
             write(*,*)
         end if
+#ifdef MPI        
         call MPI_Barrier(MPI_COMM_WORLD,ierr)
+#endif
     
     end do ! l, optical components
     
