@@ -258,7 +258,7 @@ end if
         !------------------------------------------------------------
         ! Debugging Info
         !------------------------------------------------------------
-        if ((.true.).and.(rank==0)) then
+        if ((debug).and.(rank==0)) then
             call linmsg(fgw,'-','')
             call linmsg(fgw,'-',' Diagonal elements of Vx_NL_nn ')
             write(fgw,*) 'for k-point ', ikp

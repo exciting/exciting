@@ -33,6 +33,7 @@ subroutine readevaldft
     real(8),    Allocatable :: vkl0(:,:)
     real(8), allocatable    :: deltax(:,:)    
     character(256) :: filename
+    
     if (allocated(evaldft)) deallocate(evaldft)
     allocate(evaldft(nstfv,nkpt))
     evaldft(:,:)=0.d0
@@ -41,7 +42,12 @@ subroutine readevaldft
 !   read the KS eigenenergies (only for the irreducible k-points)
 !-------------------------------------------------------------------
 
-     filename = "EVALFV.OUT"
+      if (input%gw%skipgnd) then 
+         filename = "EVALFV.OUT"
+      else     
+         filename = "EVALFV_GW.OUT"
+      end if 
+
 !   find the record length
     Inquire (IoLength=Recl) vkl_, nstfv_, nspnfv_
     Do i = 1, 10
@@ -57,7 +63,6 @@ subroutine readevaldft
       End If
     End Do
     Read(70, Rec=1) vkl_, nstfv_, nspnfv_
-
     close(70)
     
     if (nstfv_.lt.nstfv) then
@@ -70,8 +75,8 @@ subroutine readevaldft
     Open (70, File=trim(filename), Action='READ', &
    &  Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
     do ik = 1, nkpt
-      Read(70, Rec=ik) vkl_, nstfv_, nspnfv_, evaldft(:,ik)
-
+      ik0=idikp(ik)
+      Read(70, Rec=ik0) vkl_, nstfv_, nspnfv_, evaldft(:,ik)
     end do ! ik
     Close (70)
 
