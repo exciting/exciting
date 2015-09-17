@@ -18,6 +18,12 @@ Subroutine delinveps
           Close (44, Status='DELETE')
       End if
    If (rank==0) Then   
+#else
+      Inquire (File='INVEPS0.OUT', Exist=Exist)
+      If (exist) Then
+          open(44,file='INVEPS0.OUT')
+          Close (44, Status='DELETE')
+      End if
 #endif
       Inquire (File='INVHEAD.OUT', Exist=Exist)
       If (exist) Then
