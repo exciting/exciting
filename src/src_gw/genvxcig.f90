@@ -17,6 +17,7 @@ subroutine genvxcig
 !
 ! !REVISION HISTORY:
 !   Created August 2006 (RGA)
+!   Modified September 2015 (Ronaldo) - to include DFT-1/2
 !EOP
 !BOC
     implicit none
@@ -28,7 +29,12 @@ subroutine genvxcig
     if (allocated(vxcig)) deallocate(vxcig)
     allocate(vxcig(ngvec))
 ! multiply effective potential with smooth characteristic function
-    zfft(:)=vxcir(:)*cfunir(:)
+! Check if a DFT-1/2 calculation is required
+    if (associated(input%groundstate%dfthalf)) then
+      zfft(:)=(vxcir(:)+vhalfir(:))*cfunir(:)
+    else
+      zfft(:)=vxcir(:)*cfunir(:)
+    end if
 ! Fourier transform to G-space
     call zfftifc(3,ngrid,-1,zfft)
     do ig=1,ngvec

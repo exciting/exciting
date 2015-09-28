@@ -45,6 +45,8 @@ Module mod_energy
       Real (8) :: engyc
 ! compensating background charge energy
       Real (8) :: engycbc
+! DFT-1/2 contribution to total energy
+      Real (8) :: engyhalf
 ! total energy
       Real (8) :: engytot
 ! kinetic energies of KS states

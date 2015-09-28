@@ -345,7 +345,12 @@ endif
         ! Default way
         engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
       end if
-      
+!------------------------------!
+!     DFT-1/2 contribution     !
+!------------------------------!
+      if (associated(input%groundstate%dfthalf)) then
+        engyhalf = rfinp (1, rhomt, vhalfmt, rhoir, vhalfir)
+      endif      
 !----------------------!
 !     total energy     !
 !----------------------!

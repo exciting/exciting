@@ -174,8 +174,24 @@
           </xs:annotation>                 
           <xs:complexType>
           </xs:complexType>
-        </xs:element>
-        
+          
+          </xs:element>
+                <xs:element ex:importance="expert" ex:unit="" name="dfthalf" minOccurs="0" maxOccurs="1">
+			<xs:annotation>
+				<xs:documentation>Triggers DFT-1/2 calculations</xs:documentation>				
+			</xs:annotation>
+			<xs:complexType>
+				<xs:attribute ex:importance="expert" ex:unit="" name="printVSfile" type="xs:boolean"
+							default="false">
+					<xs:annotation>
+						<xs:documentation> When set to true, only prints the VS files (for each atom) 
+						containing the self-energy potential (as defined in the DFT-1/2 method). After
+						printing this file, the program quits.	In this	case, a serial calculation is suggested.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:complexType>			
+          </xs:element>
         <xs:element ex:importance="experimental" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Options for hybrid functionals.</xs:documentation>
