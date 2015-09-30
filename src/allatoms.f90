@@ -29,7 +29,7 @@ Subroutine allatoms(verbosity)
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
 !   Modified for GGA, June 2007 (JKD)
-!	Modified for DFT-1/2, 2015 (Ronaldo)
+!   Modified for DFT-1/2, 2015 (Ronaldo)
 !EOP
 !BOC
       Implicit None
@@ -37,7 +37,7 @@ Subroutine allatoms(verbosity)
 ! always use LDA to setup atomic densities
       Integer, Parameter :: xctype_ = 3
       Integer, Parameter :: xcgrad_ = 0
-      Integer, Parameter :: fnum_ = 333 ! file where Vs (see DFT-1/2 details) is written
+      Integer :: fnum_ = 333 ! file where Vs (see DFT-1/2 details) is written
       Integer :: is, i, ir, n, nshell
       Integer, Allocatable :: shell(:)
       Logical :: dirac_eq
@@ -67,10 +67,10 @@ Subroutine allatoms(verbosity)
         if (allocated(vhalfsph)) deallocate (vhalfsph)
         allocate(vhalfsph(spnrmax,nspecies))        
       endif
-      
+
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(rwf)
+!$OMP PRIVATE(rwf,fnum_,fname,i,ir,n,ampl,cut,cutfunction,aux,nshell,shell,ionization,newspocc,rhoslave)
 !$OMP DO
 #endif
       Do is = 1, nspecies
@@ -108,10 +108,11 @@ Subroutine allatoms(verbosity)
              shell(1) = 0
              ionization(1) = 0.5
            endif
+           fnum_ = 333 + is
 !          Open the file where the information about Vs will be outputed
 !          E.g., the name is something like VS_S0001.OUT for the first species
-		   if (input%groundstate%dfthalf%printVSfile .eq. .true.) then
-		     Write (fname, '("VS_S", I2.2, ".OUT")') is
+           if ((input%groundstate%dfthalf%printVSfile .eq. .true.) .and.(rank .eq. 0) ) then
+             Write (fname, '("VS_S", I2.2, ".OUT")') is
              Open (fnum_, File=trim(fname), Action='WRITE', Form='FORMATTED')
              Write(fnum_,'("Species: ",I4.1,", CUT = ",F10.6,", Amplitude: ",F10.6,", Exponent: ",I2.2)') is, cut, ampl, n
              Write(fnum_,'(I4.1," shell(s) must be ionized. Its/Their ionization(s) are listed below")') nshell
@@ -156,9 +157,9 @@ Subroutine allatoms(verbosity)
              & xcgrad_, spnr(is), spr(:, is), &
              & speval(:, is), rhoslave, vhalfsph(:, is), rwf,nrmt(is),dirac_eq)
            vhalfsph(:,is) = vhalfsph(:,is)-spvr(:,is)
-!          Now we can introduce the cut-function
            Do ir = 1, spnr(is)
-!            This 'aux' variable just stores the value of VKS which came from the ionized atom
+!          Now we can introduce the cut-function
+!          This 'aux' variable just stores the value of VKS which came from the ionized atom
              aux = vhalfsph(ir,is) + spvr(ir,is)
              if (spr(ir, is).lt.cut) then
                cutfunction = ampl*( 1-((spr(ir, is)/cut)**n) )**3
@@ -167,33 +168,32 @@ Subroutine allatoms(verbosity)
                cutfunction = 0.0
                vhalfsph(ir,is) = 0.0
              endif
-             if (input%groundstate%dfthalf%printVSfile .eq. .true.) then
+             if ((input%groundstate%dfthalf%printVSfile .eq. .true.) .and.(rank .eq. 0)) then
                write (fnum_,"(ES20.6E2,ES20.6E2,ES20.6E2,F20.10,F20.10)") spr(ir,is), spvr(ir,is), aux, cutfunction, vhalfsph(ir,is)
              end if
            Enddo
-           Deallocate (newspocc)
-           Deallocate (rhoslave)
-           Deallocate (rwf)
-           Deallocate (shell)
-           Deallocate (ionization)
+           If (allocated(newspocc)) Deallocate (newspocc)
+           If (allocated(rhoslave)) Deallocate (rhoslave)
+           If (allocated(rwf)) Deallocate (rwf)
+           If (allocated(shell)) Deallocate (shell)
+           If (allocated(ionization)) Deallocate (ionization)
            if (input%groundstate%dfthalf%printVSfile .eq. .true.) then
-		     Close(fnum_)
+             Close(fnum_)
            end if
          Endif !if (associated(input%groundstate%dfthalf))
       End Do
-
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif
 
       if (associated(input%groundstate%dfthalf)) then 
-		if (input%groundstate%dfthalf%printVSfile .eq. .true.) then
+        if (input%groundstate%dfthalf%printVSfile .eq. .true.) then
 #ifdef MPI
-            call finitMPI()
+        call finitMPI()
 #endif
-			stop			
-		end if
+        stop
+        end if
       end if
 
 !     Now, let's expand our V_S potential in the MT and in the interstitial part
