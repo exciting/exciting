@@ -100,7 +100,7 @@ Subroutine bandstr
     call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
     do ist = 1, nstsv
       do ik = 1, nkpt
-        evalsv(ist,ik)=e1(ik,ist)
+        evalsv(ist,ik)= dble(e1(ik,ist))
       end do
     end do
     deallocate(vkl0,ehf,e0,e1)
