@@ -1,8 +1,3 @@
-! Copyright (C) 2007 J. K. Dewhurst and S. Sharma.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-!
-!
 Subroutine delinveps
       Use modmain
       use modmpi

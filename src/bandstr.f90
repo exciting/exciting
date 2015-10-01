@@ -82,6 +82,8 @@ Subroutine bandstr
     allocate(ehf(nstsv0,nkpt0))
     allocate(e0(nkpt0,nstsv))
     allocate(e1(nkpt,nstsv))
+     if (allocated(evalsv)) deallocate(evalsv)
+     allocate(evalsv(nkpt,nstsv))
     inquire(IoLength=Recl) nkpt0, nstsv0, vkl0(:,1), ehf(:,1)
     open (70, File=fname, Action='READ', Form='UNFORMATTED', &
     &  Access='DIRECT', Recl=Recl)
@@ -94,26 +96,23 @@ Subroutine bandstr
       e0(ik,1:nstsv)=cmplx(ehf(1:nstsv,ik),0.d0,8)
     enddo
     e1(:,:)=zzero
+    evalsv=zzero
     call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
-    open(88,file='BAND.OUT')
     do ist = 1, nstsv
       do ik = 1, nkpt
-        write(88,*) dpp1d(ik), dble(e1(ik,ist))
+        evalsv(ist,ik)=e1(ik,ist)
       end do
-      write(88,*)
     end do
-    close(88)
     deallocate(vkl0,ehf,e0,e1)
     end if
 #ifdef MPI
         Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
-    return
-  end if
   !--------------------
   ! end Interpolation 
   !--------------------
 
+else
   ! maximum angular momentum for band character
   lmax = Min (3, input%groundstate%lmaxapw)
   lmmax = (lmax+1) ** 2
@@ -215,7 +214,7 @@ Subroutine bandstr
       if (allocated(m2effig)) deallocate(m2effig)
      emax = emax + (emax-emin) * 0.5d0
      emin = emin - (emax-emin) * 0.5d0
-
+     end if
      if (rank==0) then
         ! output the band structure
         Call xml_OpenFile ("bandstructure.xml", xf, replace=.True., &
