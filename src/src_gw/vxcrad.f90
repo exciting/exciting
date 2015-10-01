@@ -55,7 +55,12 @@ subroutine vxcrad
                       lm2=idxlm(l2,m2)
                       do ir=1,nr
                         t1=apwfr(ir,1,io1,l1,ias)*apwfr(ir,1,io2,l3,ias)*r2(ir)
-                        fr(ir)=t1*vxcmt(lm2,ir,ias)
+                        ! Check if a DFT-1/2 calculation is required
+                        if (associated(input%groundstate%dfthalf)) then
+                          fr(ir)=t1*(vxcmt(lm2,ir,ias)+vhalfmt(lm2,ir,ias))
+                        else
+                          fr(ir)=t1*vxcmt(lm2,ir,ias)
+                        end if
                       end do
                       call fderiv(-1,nr,spr(:,is),fr,gr,cf)
                       vxcraa(io1,l1,io2,l3,lm2,ias)=gr(nr)
@@ -79,7 +84,12 @@ subroutine vxcrad
                   lm2=idxlm(l2,m2)
                   do ir=1,nr
                     t1=lofr(ir,1,ilo,ias)*apwfr(ir,1,io,l3,ias)*r2(ir)
-                    fr(ir)=t1*vxcmt(lm2,ir,ias)
+                    ! Check if a DFT-1/2 calculation is required
+                    if (associated(input%groundstate%dfthalf)) then
+                      fr(ir)=t1*(vxcmt(lm2,ir,ias)+vhalfmt(lm2,ir,ias))
+                    else
+                      fr(ir)=t1*vxcmt(lm2,ir,ias)
+                    end if
                   end do
                   call fderiv(-1,nr,spr(:,is),fr,gr,cf)
                   vxcrloa(ilo,io,l3,lm2,ias)=gr(nr)
@@ -100,7 +110,12 @@ subroutine vxcrad
                 lm2=idxlm(l2,m2)
                 do ir=1,nr
                   t1=lofr(ir,1,ilo1,ias)*lofr(ir,1,ilo2,ias)*r2(ir)
-                  fr(ir)=t1*vxcmt(lm2,ir,ias)
+                  ! Check if a DFT-1/2 calculation is required
+                  if (associated(input%groundstate%dfthalf)) then
+                    fr(ir)=t1*(vxcmt(lm2,ir,ias)+vhalfmt(lm2,ir,ias))
+                  else
+                    fr(ir)=t1*vxcmt(lm2,ir,ias)
+                  end if
                 end do
                 call fderiv(-1,nr,spr(:,is),fr,gr,cf)
                 vxcrlolo(ilo1,ilo2,lm2,ias)=gr(nr)
