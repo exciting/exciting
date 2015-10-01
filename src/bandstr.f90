@@ -98,12 +98,18 @@ Subroutine bandstr
     e1(:,:)=zzero
     evalsv=zzero
     call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
+    emin = 1.d5
+    emax = - 1.d5
     do ist = 1, nstsv
       do ik = 1, nkpt
         evalsv(ist,ik)= dble(e1(ik,ist))
+        emin = Min (emin, evalsv(ist, ik))
+        emax = Max (emax, evalsv(ist, ik))
       end do
     end do
     deallocate(vkl0,ehf,e0,e1)
+    emax = emax + (emax-emin) * 0.5d0
+    emin = emin - (emax-emin) * 0.5d0
     end if
 #ifdef MPI
         Call MPI_barrier(MPI_COMM_WORLD, ierr)
