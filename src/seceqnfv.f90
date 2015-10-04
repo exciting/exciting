@@ -51,8 +51,6 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Type (evsystem) :: system
       Logical :: packed
       Integer :: ist
-!      integer ik,jk,ig,iv(3),ist
-!      Complex (8), allocatable :: kinetic(:,:),vectors(:,:)
       Complex (8), allocatable :: zm(:,:),zm2(:,:)
 
   !----------------------------------------!
@@ -80,6 +78,11 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !     solve the secular equation     !
   !------------------------------------!
       Call solvewithlapack(system,nstfv,evecfv,evalfv)
+
+     if (associated(input%groundstate%Hybrid)) then
+        if ((input%groundstate%Hybrid%exchangetypenumber == 1).and.(ihyb>0)) &
+           &  call KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
+     end if
 
 if (input%groundstate%ValenceRelativity.eq.'iora*') then
 ! normalise large components

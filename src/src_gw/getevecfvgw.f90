@@ -15,8 +15,12 @@ Subroutine getevecfvgw(ik, evecfv)
       Real(8) :: vkl_(3)
       character(256) :: filename
       logical :: exist
-      
-      filename = "EVECFV_GW.OUT"
+
+      if (input%gw%skipgnd) then 
+         filename = "EVECFV.OUT"
+      else     
+         filename = "EVECFV_GW.OUT"
+      end if 
       
       Inquire (File=trim(filename), Exist=exist)
       If (exist) Then

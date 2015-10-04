@@ -20,6 +20,7 @@ Subroutine elnes
       Real (8), Allocatable :: f (:, :, :)
       Real (8), Allocatable :: eps2 (:)
       Complex (8), Allocatable :: emat (:, :)
+      Character(256) :: string
 ! initialise universal variables
       Call init0
       Call init1
@@ -30,7 +31,19 @@ Subroutine elnes
 ! allocate the matrix elements array for < i,k+G+q | exp(iq.r) | j,k >
       Allocate (emat(nstsv, nstsv))
 ! read in the density and potentials from file
-      Call readstate
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+! in case of HF hybrids use PBE potential
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
+           Else
+               Call readstate
+           End If
+        Else         
+           Call readstate
+        End If 
 ! read Fermi energy from file
       Call readfermi
 ! find the new linearisation energies
@@ -39,6 +52,12 @@ Subroutine elnes
       Call genapwfr
 ! generate the local-orbital radial functions
       Call genlofr
+! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               Call readstate
+           End If
+        End If 
 ! loop over k-points
       Do ik = 1, nkpt
 ! get the second-variational eigenvalues and occupancies from file

@@ -57,6 +57,16 @@ Module mod_potential_and_density
       Real (8), Allocatable :: veffmt (:, :, :)
 ! interstitial effective potential
       Real (8), Allocatable :: veffir (:)
+
+! muffin-tin 'vhalf' potential (needed for DFT-1/2 calculations)
+      Real (8), Allocatable :: vhalfmt (:, :, :)
+! interstitial 'vhalf' potential (needed for DFT-1/2 calculations)
+      Real (8), Allocatable :: vhalfir (:)
+! intermediate 'vhalf' potential (needed for DFT-1/2 calculations)
+      Real (8), Allocatable :: vhalfsph (:,:)
+! partial densities (used in DFT-1/2 calculations)
+	  Real (8), Allocatable :: nalphamt(:,:,:,:,:), nalphair(:,:,:)
+
 ! G-space interstitial effective potential
       Complex (8), Allocatable :: veffig (:),meffig (:), m2effig (:)
 ! muffin-tin exchange energy density

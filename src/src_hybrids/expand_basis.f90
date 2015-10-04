@@ -31,7 +31,11 @@ subroutine expand_basis(ik,iq)
     call calcminm(ik,iq)
 
 ! Calculate the matrix elements M^i_{nm} where n is a core state
-    if (iopcore == 0) call calcminc(ik,iq)
+    if (iopcore == 0) then 
+      call calcminc(ik,iq)
+      call calcmicm(ik,iq)
+      call calcmicc
+    end if
     
     deallocate(eveck)
     deallocate(eveckp)

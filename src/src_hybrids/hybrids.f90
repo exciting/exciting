@@ -32,6 +32,7 @@ Subroutine hybrids
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
     Logical :: restart
+    
 !! TIME - Initialisation segment
     Call timesec (tsg0)
     Call timesec (ts0)
@@ -45,11 +46,13 @@ Subroutine hybrids
     Call init1
     Call timesec (tin1)
     time_init1=tin1-tin0
-    
+         
 ! require forces for structural optimisation
     If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = .True.    
 ! chech if restart should be performed
     restart = input%groundstate%Hybrid%restart
+    hyblast=.false.
+    
 !-------------------
 ! print info
 !-------------------
@@ -143,7 +146,8 @@ Subroutine hybrids
     Allocate (rhoirref(ngrtot))
 
     do ihyb = 0, input%groundstate%Hybrid%maxscl
-! exit self-consistent loop if last iteration is complete
+    
+        ! exit self-consistent loop if last iteration is complete
         If (ihyb >= input%groundstate%Hybrid%maxscl) Then
             If (rank==0) Then
                 write(string,'("Reached hybrids self-consistent loops maximum : ", I4)') &
@@ -160,7 +164,6 @@ Subroutine hybrids
             Call flushifc(60)
         End If
 
-
         ! hybrids always start after normal DFT self-consistent run
         if (ihyb==0) then
           ex_coef = 0.d0
@@ -174,12 +177,13 @@ Subroutine hybrids
           rhomtref(:,:,:) = rhomt(:,:,:)
           rhoirref(:) = rhoir(:)
         end if
+        
 !---------------------------
 ! KS self-consistent run
 !---------------------------
         call scf_cycle(-1)
-
-! some output        
+       
+        ! some output        
         if (rank==0) then
             call writeengy(60)
             write(60,*)
@@ -210,12 +214,12 @@ Subroutine hybrids
             end if
         end if
         et = engytot
-       
+
 !-----------------------------------
 ! calculate the non-local potential
 !-----------------------------------
-        call timesec(ts0)
         if ((ihyb==0).and.restart) then
+          call timesec(ts0)
           Call getvnlmat 
           call timesec(ts1)
           if (rank==0) then
@@ -223,32 +227,40 @@ Subroutine hybrids
               write(60,*)
           end if    
           time_hyb = time_hyb+ts1-ts0
+          
         else if  (ihyb < input%groundstate%Hybrid%maxscl-1) Then
+          !------------------------------------------
+          call timesec(ts0)
           call calc_vxnl
-          !write(*,*) 'calc_vxnl=', sum(vxnl)
+          if (rank==0) write(*,*) 'vxnl=', sum(vxnl)
+          if (input%groundstate%tevecsv.and.(rank==0)) write(*,*) 'bxnl=', sum(bxnl)
           call timesec(ts1)
           if (rank==0) then
               write(60,*)
               call write_cputime(60,ts1-ts0, 'CALC_VXNL')
           end if
-          time_hyb = time_hyb+ts1-ts0
-        
-! calculate the non-local potential hamiltonian matrix
+          !------------------------------------------
           call timesec(ts0)
           call calc_vnlmat
-          !write(*,*) 'calc_vnlmat=', sum(vnlmat)
+          if (rank==0) write(*,*) 'calc_vnlmat=', sum(vnlmat)
           call timesec(ts1)
           if (rank==0) then
               call write_cputime(60,ts1-ts0, 'CALC_VNLMAT')
               write(60,*)
-          time_hyb = time_hyb+ts1-ts0
           end if
+!-----------------------------------
+! update radial functions
+!-----------------------------------
+          if ((input%groundstate%Hybrid%updateRadial).and.(ihyb>0)) call updateradial
+
+          time_hyb = time_hyb+ts1-ts0
+          
         end if
         
 ! output the current total time
         timetot = timeinit + timemat + timefv + timesv + timerho  &
-       &        + timepot + timefor + timeio + timemt + timemixer &
-       &        + time_hyb
+        &       + timepot + timefor + timeio + timemt + timemixer &
+        &       + time_hyb
             
         if (rank==0) then
             write(60, '(" Wall time (seconds) : ", F12.2)') timetot

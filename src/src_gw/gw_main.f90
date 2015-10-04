@@ -209,7 +209,8 @@ subroutine gw_main
 #ifdef MPI
       call  cat_logfiles('GWINFO')
 #endif 
-
+! delete INV* file
+      call delinveps
       return
 end subroutine gw_main
 !!EOC

@@ -174,8 +174,24 @@
           </xs:annotation>                 
           <xs:complexType>
           </xs:complexType>
-        </xs:element>
-        
+          
+          </xs:element>
+                <xs:element ex:importance="expert" ex:unit="" name="dfthalf" minOccurs="0" maxOccurs="1">
+			<xs:annotation>
+				<xs:documentation>Triggers DFT-1/2 calculations</xs:documentation>				
+			</xs:annotation>
+			<xs:complexType>
+				<xs:attribute ex:importance="expert" ex:unit="" name="printVSfile" type="xs:boolean"
+							default="false">
+					<xs:annotation>
+						<xs:documentation> When set to true, only prints the VS files (for each atom) 
+						containing the self-energy potential (as defined in the DFT-1/2 method). After
+						printing this file, the program quits.	In this	case, a serial calculation is suggested.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:complexType>			
+          </xs:element>
         <xs:element ex:importance="experimental" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Options for hybrid functionals.</xs:documentation>
@@ -240,6 +256,13 @@
                 <xs:documentation>
                   If set to true, the non-local potential will be stored in the file VNLMAT.OUT
                   ATTENTION: this file can become extremly large (size: Hamiltoniansize * Hamiltoniansize * k-point number * 16).
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="updateRadial" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  If set to true, the radial functions will be updated after each hybrid cycle.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -2744,6 +2767,14 @@
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="ExplicitKineticEnergy" type="xs:boolean" default="true">
+        <xs:annotation>
+          <xs:documentation> 
+            If true, the kinetic energy expectation values are calculated explicitly and, then, they are used for calculating the total energy.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
 
 
 
