@@ -213,6 +213,27 @@
                       </xs:appinfo>
                     </xs:annotation>
                   </xs:enumeration>
+                  <xs:enumeration value="BO">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>9</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="BO_SCALAR">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>10</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="RBO">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>11</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
