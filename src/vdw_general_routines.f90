@@ -126,7 +126,11 @@ Contains
                    r8=r**8
                    r0ab_=sr6*R0ab(iat, jat)
                    help1_exp=Exp(damping_const*(r/r0ab_-1.))
-                   help2=C6ab(iat, jat)*help1_exp*(damping_const*r-6*r0ab_*(1+help1_exp))/r8/r0ab_/(1+help1_exp)**2
+                   If(help1_exp .Eq. help1_exp+1) Then
+                      help2=C6ab(iat, jat)*(damping_const*r/help1_exp/r0ab_-6)/r8
+                   Else
+                      help2=C6ab(iat, jat)*help1_exp*(damping_const*r/(1+help1_exp)**2-6*r0ab_/(1+help1_exp))/r8/r0ab_
+                   End If
                    vdw_force_pairwiseC6(1,iat) =vdw_force_pairwiseC6(1,iat)+help2*dx
                    vdw_force_pairwiseC6(2,iat) =vdw_force_pairwiseC6(2,iat)+help2*dy
                    vdw_force_pairwiseC6(3,iat) =vdw_force_pairwiseC6(3,iat)+help2*dz
