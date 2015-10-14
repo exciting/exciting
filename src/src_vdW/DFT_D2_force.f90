@@ -1,5 +1,5 @@
 Subroutine DFT_D2_force
-  Use DFT_D2_mod, Only: loadoldpar!, s6, sr6, damping_const, cutoff
+  Use DFT_D2_module, Only: loadoldpar!, s6, sr6, damping_const, cutoff
   Use mod_atoms, Only: natmtot
   Use vdw_general_routines, Only: vdw_force_pairwiseC6
   Use mod_force, Only: force_disp

@@ -1,6 +1,6 @@
 Subroutine DFT_D2_energy
   Use mod_energy, Only: e_disp
-  Use DFT_D2_mod, Only : loadoldpar!, s6, sr6, damping_const, cutoff
+  Use DFT_D2_module, Only : loadoldpar!, s6, sr6, damping_const, cutoff
   Use vdw_general_routines, Only: vdw_energy_pairwiseC6
   Use mod_atoms, Only: natmtot
   Use modinput

@@ -1,4 +1,4 @@
-Module DFT_D2_mod
+Module DFT_D2_module
   Implicit None
   Real(8), Parameter :: au_to_ang = 0.52917726d0
   Real(8), Parameter :: J_to_au = 4.35974417d-18
@@ -243,4 +243,4 @@ Contains
     C6ab_idxas = C6ab_idxas * 1d6/J_to_au/(au_to_ang**6)/N_A
     R0ab_idxas = R0ab_idxas/au_to_ang
   End Subroutine loadoldpar
-End Module DFT_D2_mod
+End Module DFT_D2_module
