@@ -7,9 +7,7 @@ Subroutine writepmat
 !
 !!USES:
       Use modinput
-      Use modmain, Only: nkpt, ngkmax, apwordmax, lmmaxapw, natmtot, &
-      &  nmatmax, nstfv, nstsv, nlotot, nlomax, lolmax, task, vkl, vgkl, &
-      &  ngk, gkc, tpgkc, sfacgk, igkig, vgkc, filext
+      Use modmain
       Use modmpi
       Use modxs
 
@@ -33,8 +31,12 @@ Subroutine writepmat
       Complex(8), Allocatable :: pmat (:, :, :, :)
       logical :: fast
       
-      integer :: n, iproc, ikloc, nkloc
-      integer, allocatable :: ikmap(:,:)
+      integer :: i, j, n, iproc, ikloc, nkloc, isym, lspl, ilspl, iv(3)
+      integer, allocatable :: ikpmap(:,:)
+      real(8) :: t1, v(3), v1(3), v2(3), pm(9), sl(3,3), sc(3,3)
+      complex(8) :: p(3), o(6)
+! external function      
+      real(8) :: r3taxi
 
       if (.not.associated(input%properties%momentummatrix)) &
       &  input%properties%momentummatrix => getstructmomentummatrix(emptynode)
@@ -45,8 +47,8 @@ Subroutine writepmat
       Call init1
 
 ! generating mapping arrays
-      allocate(ikmap(nkpt,2))
-      ikmap(:,:) = 0
+      allocate(ikpmap(nkpt,2))
+      ikpmap(:,:) = 0
       do iproc = 0, procs-1
         ! k-point interval for all processes
         kpari = firstofset(iproc, nkpt)
@@ -54,8 +56,8 @@ Subroutine writepmat
         ikloc = 0
         do ik = kpari, kparf
           ikloc = ikloc+1
-          ikmap(ik,1) = ikloc
-          ikmap(ik,2) = iproc
+          ikpmap(ik,1) = ikloc
+          ikpmap(ik,2) = iproc
         end do ! ik
       end do ! iproc
 
@@ -112,15 +114,16 @@ Subroutine writepmat
       Do ik = kpari, kparf
          ikloc = ikloc+1
 ! get the eigenvectors and values from file
-         Call getevecfv (vkl(1, ik), vgkl(1, 1, 1, ik), evecfvt)
-         Call getevecsv (vkl(1, ik), evecsvt)
+         Call getevecfv(vkl(1,ik),vgkl(1,1,1,ik),evecfvt)
+         !call getsymevecfv(vkl(1,ik),vgkl(1,1,1,ik),evecfvt)
+         Call getevecsv(vkl(1,ik),evecsvt)
 ! find the matching coefficients
          Call match (ngk(1, ik), gkc(1, 1, ik), tpgkc(1, 1, 1, ik), &
-        &  sfacgk(1, 1, 1, ik), apwalmt)
+         &           sfacgk(1, 1, 1, ik), apwalmt)
          If (fast) Then
             ! generate APW expansion coefficients for muffin-tin
             Call genapwcmt(input%groundstate%lmaxapw, ngk(1, ik), 1, &
-           &  nstfv, apwalmt, evecfvt, apwcmt)
+            &              nstfv, apwalmt, evecfvt, apwcmt)
             ! generate local orbital expansion coefficients for muffin-tin
             If (nlotot.Gt.0) Call genlocmt(ngk(1,ik), 1, nstfv, evecfvt, locmt)
             ! calculate the momentum matrix elements
@@ -130,6 +133,43 @@ Subroutine writepmat
             Call genpmat(ngk(1,ik), igkig(1,1,ik), vgkc(1,1,1,ik), &
            &  apwalmt, evecfvt, evecsvt, pmat(:,:,:,ikloc))
          End If
+
+         ! symmetrize |pmat|^2
+         do i = 1, nstsv
+         do j = 1, nstsv
+           o(:) = zzero
+           do isym = 1, nsymcrys
+             lspl = lsplsymc(isym)
+             sc(:,:) = symlatc(:,:,lspl)
+             call r3mv(sc,dble(pmat(:,i,j,ikloc)),v1)
+             call r3mv(sc,aimag(pmat(:,i,j,ikloc)),v2)
+             p(:) = cmplx(v1(:),v2(:),8)
+             o(1) = o(1)+p(1)*conjg(p(1))
+             o(2) = o(2)+p(2)*conjg(p(2))
+             o(3) = o(3)+p(3)*conjg(p(3))
+             if (symlatd(lspl)<0) then
+               o(4) = o(4)+conjg(p(2))*p(1)
+               o(5) = o(5)+conjg(p(3))*p(1)
+               o(6) = o(6)+conjg(p(3))*p(2)
+             else
+               o(4) = o(4)+p(2)*conjg(p(1))
+               o(5) = o(5)+p(3)*conjg(p(1))
+               o(6) = o(6)+p(3)*conjg(p(2))
+             end if
+           end do ! isym
+           pm(1) = dble(o(1))/dble(nsymcrys)
+           pm(2) = dble(o(2))/dble(nsymcrys)
+           pm(3) = dble(o(3))/dble(nsymcrys)
+           pm(4) = dble(o(4))/dble(nsymcrys)
+           pm(5) = dble(o(5))/dble(nsymcrys)
+           pm(6) = dble(o(6))/dble(nsymcrys)
+           pm(7) = aimag(o(4))/dble(nsymcrys)
+           pm(8) = aimag(o(5))/dble(nsymcrys)
+           pm(9) = aimag(o(6))/dble(nsymcrys)
+           !if (rank==0) call write_pmatij(i,j,pm(1:3))
+         end do
+         end do
+         
       End Do ! ik
       call barrier
 
@@ -138,8 +178,8 @@ Subroutine writepmat
       open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
      &  status='REPLACE',recl=recl)
       do ik = 1, nkpt
-        ikloc = ikmap(ik,1)
-        iproc = ikmap(ik,2)
+        ikloc = ikpmap(ik,1)
+        iproc = ikpmap(ik,2)
         if (rank==iproc) then
           write(50,rec=ik) pmat(:,:,:,ikloc)
         end if
@@ -147,7 +187,7 @@ Subroutine writepmat
       end do
       close(50)
 !
-      deallocate(apwalmt, evecfvt, evecsvt, pmat, ikmap)
+      deallocate(apwalmt, evecfvt, evecsvt, pmat, ikpmap)
       if (fast) then
          deallocate(apwcmt)
          deallocate(ripaa)
@@ -164,5 +204,14 @@ Subroutine writepmat
           Write (*,*)
       end if
 
+contains
+
+    subroutine write_pmatij(i,j,p)
+      integer, intent(in) :: i, j
+      real(8), intent(in) :: p(3)
+      write(77,*) "band ", i, " - ", j
+      write(77,'(a,3f18.6)') "|p_aa|^2 =", p(1), p(2), p(3)
+    end subroutine      
+      
 End Subroutine writepmat
 !EOC

@@ -123,6 +123,33 @@ Subroutine idfq (iq)
               & filnam=filnam2)
                Open (unit1, File=trim(filnam2), Form='unformatted', &
               & Action='write', Access='direct', Recl=Recl)
+
+               Select Case (input%xs%tddft%fxctypenumber)
+               Case (9:11)
+
+                  Call getx0 (tq0, iq, 1, trim(filnam), '', chi0, &
+                  & chi0wg, chi0h)
+                  If (tq0) Then
+                     chi0 (1, 1) = chi0h (oct1, oct2)
+                     If (m .Gt. 1) Then
+                        chi0 (1, 2:) = chi0wg (2:, 1, oct1)
+                        chi0 (2:, 1) = chi0wg (2:, 2, oct2)
+                     End If
+                  End If
+
+                  Call fxcifc (input%xs%tddft%fxctypenumber, &
+                  & ng=m,&
+                  & chim=chi0,&
+                  & fxcg=fxc)
+!     add symmetrized Coulomb potential (is equal to unity matrix)
+                  if (m.eq.1) then
+                     fxc (igmt, igmt) = fxc (igmt, igmt) + 1.d0
+!     Write (*,*) fxc (igmt, igmt)
+                  else
+                     forall (j=1:m) fxc (j,j) = fxc(j,j) + 1.d0
+                  end if
+               End Select
+
                Do iw = wi, wf
                   Call chkpt (6, (/ task, iq, m, oct1, oct2, iw /), 'ta&
                  &sk, q - point index, loc. field., opt. comp. 1, opt. &
@@ -164,7 +191,7 @@ Subroutine idfq (iq)
                        forall (j=1:m) fxc (j,j) = fxc(j,j) + 1.d0
                      end if
                      Call dyson (n, chi0, fxc, idf)
-                  Case (5)
+                  Case (5,9:11)
                      Call dyson (n, chi0, fxc, idf)
                   Case (7, 8)
                  ! we do not expect the kernel to contain the symmetrized

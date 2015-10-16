@@ -32,6 +32,10 @@ Subroutine init0
       Integer :: ist, l, m, lm, iv (3)
       Real (8) :: ts0, ts1, tv3 (3)
 
+! zero self-consistent loop number
+      iscl = 0
+      tlast = .False.
+      
 !-------------------------------!
 !     zero timing variables     !
 !-------------------------------!
@@ -171,10 +175,10 @@ Subroutine init0
          Stop
       End If
       If  (associated(input%groundstate%Hybrid)) Then
-          ex_coef=input%groundstate%Hybrid%excoeff
-          ec_coef=input%groundstate%Hybrid%eccoeff      
+          ex_coef = input%groundstate%Hybrid%excoeff
+          ec_coef = input%groundstate%Hybrid%eccoeff      
       Else
-          ex_coef=1.0          
+          ex_coef=0.0          
           ec_coef=1.0
       End If
       Call getxcdata (xctype, xcdescr, xcspin, xcgrad, ex_coef)
@@ -527,9 +531,6 @@ Subroutine init0
       Allocate (vplp1d(3, npp1d))
       If (allocated(dpp1d)) deallocate (dpp1d)
       Allocate (dpp1d(npp1d))
-! zero self-consistent loop number
-      iscl = 0
-      tlast = .False.
 !
       Call timesec (ts1)
 !!      timeinit = timeinit + ts1 - ts0

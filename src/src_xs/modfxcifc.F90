@@ -12,11 +12,12 @@ Contains
 !
 !
       Subroutine fxcifc (fxctype, w, iw, iq, ng, oct, alrc, alrcd, &
-     & blrcd, fxcg)
+     & blrcd, chim, fxcg)
          Use m_fxc_lrc, Only: fxc_lrc
          Use m_fxc_lrcd, Only: fxc_lrcd
          Use m_fxc_alda, Only: fxc_alda
          Use m_fxc_bse_ma03, Only: fxc_bse_ma03
+         Use m_fxc_spk, Only: fxc_spk
 ! !INPUT/OUTPUT PARAMETERS:
 !   fxctype : type of exchange-correlation functional (in,integer)
 ! !DESCRIPTION:
@@ -41,6 +42,7 @@ Contains
          Real (8), Optional, Intent (In) :: alrc
          Real (8), Optional, Intent (In) :: alrcd
          Real (8), Optional, Intent (In) :: blrcd
+         Complex (8), Optional, Intent (In) :: chim (:, :)
          Complex (8), Optional, Intent (Out) :: fxcg (:, :)
     ! local variables
     ! automatic arrays
@@ -112,6 +114,16 @@ Contains
             If (present(fxcg) .And. present(ng) .And. present(oct) &
            & .And. present(iw)) Then
                Call fxc_bse_ma03 (ng, oct, .True., iw, fxcg)
+            Else
+               Go To 10
+            End If
+         Case (9:11)
+       ! bootstrap kernel including local field effects
+       ! S. Sharma, Phys. Rev. Lett. 107, 186401 (2011);
+       ! S. Rigamonti, Phys. Rev. Lett. 114, 146402 (2015)
+            If (present(fxcg) .And. present(ng)) &
+           & Then
+               Call fxc_spk (fxctype, ng, chim=chim, fxc=fxcg)
             Else
                Go To 10
             End If
@@ -205,6 +217,24 @@ Contains
          Case (8)
             fxcdescr = 'BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256&
            &402 (2003), including local field effects'
+       ! spin-polarisation not required
+            fxcspin = 0
+            Return
+         Case (9)
+            fxcdescr = 'Bootstrap kernel (analytic). S. Sharma, Phys. Rev. Lett. 107, 186401 (2011);&
+            & S. Rigamonti, Phys. Rev. Lett. 114, 146402 (2015), including local field effects'
+       ! spin-polarisation not required
+            fxcspin = 0
+            Return
+         Case (10)
+            fxcdescr = 'Scalar bootstrap kernel (analytic). S. Sharma, Phys. Rev. Lett. 107, 186401 (2011);&
+            & S. Rigamonti, Phys. Rev. Lett. 114, 146402 (2015), including local field effects'
+       ! spin-polarisation not required
+            fxcspin = 0
+            Return
+         Case (11)
+            fxcdescr = 'RBO kernel (analytic). &
+            & S. Rigamonti, Phys. Rev. Lett. 114, 146402 (2015), including local field effects'
        ! spin-polarisation not required
             fxcspin = 0
             Return

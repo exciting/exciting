@@ -29,8 +29,8 @@ Subroutine genkinmat
 ! allocate local arrays
       Allocate (rfmt(lmmaxvr, nrcmtmax, natmtot))
       Allocate (evalfv(nstfv, nspnfv))
-      If (associated(input%groundstate%spin)) allocate (rvfmt(lmmaxvr, &
-     & nrcmtmax, natmtot, ndmag))
+      If (associated(input%groundstate%spin)) &
+      &  allocate (rvfmt(lmmaxvr, nrcmtmax, natmtot, ndmag))
       Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
       Allocate (evecfv(nmatmax, nstfv))
       Allocate (evecsv(nstsv, nstsv))
@@ -60,25 +60,30 @@ Subroutine genkinmat
       End Do
 ! loop over k-points
       Do ik = 1, nkpt
-! solve the first- and second-variational secular equations
-         Call seceqn (ik, evalfv, evecfv, evecsv)
-! write the first variational eigenvalues/vectors to file (this ensures the
-! phase in eigenvectors is the same for subsequent matrix element evaluations)
-         Call putevalfv (ik, evalfv)
-         Call putevecfv (ik, evecfv)
+         if (task==7) then
+           call getevalfv(vkl(:,ik),evalfv)
+           call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+           call getevecsv(vkl(:,ik),evecsv)
+         else
+           ! solve the first- and second-variational secular equations
+           call seceqn (ik, evalfv, evecfv, evecsv)
+           ! write the first variational eigenvalues/vectors to file (this ensures the
+            ! phase in eigenvectors is the same for subsequent matrix element evaluations)
+           call putevalfv(ik,evalfv)
+           call putevecfv(ik,evecfv)
+         end if
 ! find the matching coefficients
-         Call match (ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), &
-        & sfacgk(:, :, 1, ik), apwalm)
+         call match (ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), &
+         &           sfacgk(:, :, 1, ik), apwalm)
 ! calculate the wavefunctions for all states of the input k-point
-         Call genwfsv (.False., ngk(1, ik), igkig(:, 1, ik), evalsv(:, &
-        & ik), apwalm, evecfv, evecsv, wfmt, wfir)
+         Call genwfsv (.False., ngk(1, ik), igkig(:, 1, ik), evalsv(:, ik), &
+         &             apwalm, evecfv, evecsv, wfmt, wfir)
 ! compute effective potential matrix elements
          Call genvmatk (rfmt, veffir, wfmt, wfir, kinmatc(:, :, ik))
-         kinmatc (:, :, ik) = - kinmatc (:, :, ik)
+         kinmatc (:, :, ik) = -kinmatc (:, :, ik)
 ! add second-variational eigenvalues along the diagonal
          Do ist = 1, nstsv
-            kinmatc (ist, ist, ik) = kinmatc (ist, ist, ik) + evalsv &
-           & (ist, ik)
+            kinmatc(ist,ist,ik) = kinmatc(ist,ist,ik) + evalsv(ist,ik)
          End Do
 ! compute the exchange-correlation magnetic field matrix elements
          If (associated(input%groundstate%spin)) Then
@@ -86,10 +91,10 @@ Subroutine genkinmat
             kinmatc (:, :, ik) = kinmatc (:, :, ik) - bmat (:, :)
          End If
 ! rotate kinetic matrix elements to Cartesian basis
-         Call zgemm ('N', 'C', nstsv, nstsv, nstsv, zone, kinmatc(:, :, &
-        & ik), nstsv, evecsv, nstsv, zzero, c, nstsv)
-         Call zgemm ('N', 'N', nstsv, nstsv, nstsv, zone, evecsv, &
-        & nstsv, c, nstsv, zzero, kinmatc(:, :, ik), nstsv)
+         Call zgemm ('N', 'C', nstsv, nstsv, nstsv, zone, &
+         &           kinmatc(:,:,ik), nstsv, evecsv, nstsv, zzero, c, nstsv)
+         Call zgemm ('N', 'N', nstsv, nstsv, nstsv, zone, evecsv, nstsv, c, &
+         &           nstsv, zzero, kinmatc(:,:,ik), nstsv)
       End Do
       If (associated(input%groundstate%spin)) deallocate (rvfmt)
       Deallocate (rfmt, evalfv, apwalm, evecfv, evecsv)

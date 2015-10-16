@@ -133,8 +133,8 @@ do is=1,nspecies
       if (ncmag) then
 ! non-collinear: locally spin rotate the exchange-correlation potential
         do i=1,n
-          t1=vxup(i)+vcup(i)
-          t2=vxdn(i)+vcdn(i)
+          t1=(1-ex_coef)*vxup(i)+ec_coef*vcup(i)
+          t2=(1-ex_coef)*vxdn(i)+ec_coef*vcdn(i)
           vxc(i)=0.5d0*(t1+t2)
 ! determine the exchange-correlation magnetic field
           t3=0.5d0*(t1-t2)
@@ -145,8 +145,8 @@ do is=1,nspecies
       else
 ! collinear
         do i=1,n
-          t1=vxup(i)+vcup(i)
-          t2=vxdn(i)+vcdn(i)
+          t1=(1-ex_coef)*vxup(i)+ec_coef*vcup(i)
+          t2=(1-ex_coef)*vxdn(i)+ec_coef*vcdn(i)
           vxc(i)=0.5d0*(t1+t2)
           bxc(i,1)=0.5d0*(t1-t2)
         end do
@@ -156,6 +156,7 @@ do is=1,nspecies
         call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,bxc(:,idm), &
          lmmaxvr,0.d0,bxcmt(:,:,ias,idm),lmmaxvr)
       end do
+      
     else
 !--------------------------!
 !     spin-unpolarised     !
@@ -172,13 +173,7 @@ do is=1,nspecies
                    dxdg2=dxdg2,dcdg2=dcdg2)
         call ggamt_2b(is,g2rho,gvrho,vx,vc,dxdg2,dcdg2)
       end if
-! exchange-correlation potential
-      if (xctype(1).Ge.400) then
-        ! Hybrid functionals: muliply exchange part by mixing parameter
-        vxc(1:n)=(1-ex_coef)*vx(1:n)+ec_coef*vc(1:n)
-      else
-        vxc(1:n)=vx(1:n)+vc(1:n)
-      end if
+      vxc(1:n)=(1-ex_coef)*vx(1:n)+ec_coef*vc(1:n)
     end if
     
 ! convert exchange and correlation energy densities to spherical harmonics
@@ -186,10 +181,9 @@ do is=1,nspecies
                0.d0,exmt(:,:,ias),lmmaxvr)
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,ec,lmmaxvr, &
                0.d0,ecmt(:,:,ias),lmmaxvr)
-    if (xctype(1).Ge.400) then
-      exmt(:,:,ias) = (1.d0-ex_coef)*exmt(:,:,ias)
-      ecmt(:,:,ias) = ec_coef*ecmt(:,:,ias)
-    end if
+               
+    exmt(:,:,ias) = (1.d0-ex_coef)*exmt(:,:,ias)
+    ecmt(:,:,ias) = ec_coef*ecmt(:,:,ias)
     
 ! convert exchange-correlation potential to spherical harmonics
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,vxc,lmmaxvr, &
@@ -211,10 +205,9 @@ if (associated(input%groundstate%spin)) then
     do ir=1,ngrtot
       t1=sqrt(magir(ir,1)**2+magir(ir,2)**2+magir(ir,3)**2)
       if (xcgrad.ne.0) then
-      t2=magir(ir,1)*input%groundstate%spin%bfieldc(1)+magir(ir,2)*&
-          &input%groundstate%spin%bfieldc(2)+magir(ir,3)*&
-          &input%groundstate%spin%bfieldc(3)
-
+        t2 = magir(ir,1)*input%groundstate%spin%bfieldc(1)+ &
+        &    magir(ir,2)*input%groundstate%spin%bfieldc(2)+ &
+        &    magir(ir,3)*input%groundstate%spin%bfieldc(3)
         if (t2.lt.0.d0) t1=-t1
       end if
       rhoup(ir)=0.5d0*(rhoir(ir)+t1)
@@ -227,72 +220,69 @@ if (associated(input%groundstate%spin)) then
       rhodn(ir)=0.5d0*(rhoir(ir)-magir(ir,1))
     end do
   end if
+  
   if (xcgrad.le.0) then
     call xcifc(xctype,n=ngrtot,rhoup=rhoup,rhodn=rhodn,ex=exir,ec=ecir, &
-               vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
+    &          vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
   else if (xcgrad.eq.1) then
     call ggair_sp_1(rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up,g3dn)
     call xcifc(xctype,n=ngrtot,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
-               gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=exir, &
-               ec=ecir,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
+    &          gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=exir, &
+    &          ec=ecir,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
   else if (xcgrad.eq.2) then
     call ggair_sp_2a(rhoup,rhodn,g2up,g2dn,gvup,gvdn,gup2,gdn2,gupdn)
     call xcifc(xctype,n=ngrtot,rhoup=rhoup,rhodn=rhodn,gup2=gup2,gdn2=gdn2, &
-     gupdn=gupdn,ex=exir,ec=ecir,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn, &
-     dxdgu2=dxdgu2,dxdgd2=dxdgd2,dxdgud=dxdgud,dcdgu2=dcdgu2,dcdgd2=dcdgd2, &
-     dcdgud=dcdgud)
+    &          gupdn=gupdn,ex=exir,ec=ecir,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn, &
+    &          dxdgu2=dxdgu2,dxdgd2=dxdgd2,dxdgud=dxdgud,dcdgu2=dcdgu2,dcdgd2=dcdgd2, &
+    &          dcdgud=dcdgud)
     call ggair_sp_2b(g2up,g2dn,gvup,gvdn,vxup,vxdn,vcup,vcdn,dxdgu2,dxdgd2, &
-                     dxdgud,dcdgu2,dcdgd2,dcdgud)
+    &                dxdgud,dcdgu2,dcdgd2,dcdgud)
   end if
+  
   if (ncmag) then
     ! non-collinear: spin rotate the local exchange potential
-    do ir=1,ngrtot
-      t1=vxup(ir)+vcup(ir)
-      t2=vxdn(ir)+vcdn(ir)
-      vxcir(ir)=0.5d0*(t1+t2)
+    do ir = 1, ngrtot
+      t1 = (1.d0-ex_coef)*vxup(ir)+ec_coef*vcup(ir)
+      t2 = (1.d0-ex_coef)*vxdn(ir)+ec_coef*vcdn(ir)
+      vxcir(ir) = 0.5d0*(t1+t2)
       ! determine the exchange-correlation magnetic field
-      t3=0.5d0*(t1-t2)
-      t4=rhoup(ir)-rhodn(ir)
-      if (abs(t4).gt.1.d-8) t4=t3/t4
-      bxcir(ir,:)=magir(ir,:)*t4
+      t3 = 0.5d0*(t1-t2)
+      t4 = rhoup(ir)-rhodn(ir)
+      if (abs(t4).gt.1.d-8) t4 = t3/t4
+      bxcir(ir,:) = magir(ir,:)*t4
     end do
   else
     ! collinear
-    do ir=1,ngrtot
-      t1=vxup(ir)+vcup(ir)
-      t2=vxdn(ir)+vcdn(ir)
-      vxcir(ir)=0.5d0*(t1+t2)
-      bxcir(ir,1)=0.5d0*(t1-t2)
+    do ir = 1, ngrtot
+      t1 = (1.d0-ex_coef)*vxup(ir)+ec_coef*vcup(ir)
+      t2 = (1.d0-ex_coef)*vxdn(ir)+ec_coef*vcdn(ir)
+      vxcir(ir) = 0.5d0*(t1+t2)
+      bxcir(ir,1) = 0.5d0*(t1-t2)
     end do
   end if
+  exir(:) = (1.d0-ex_coef)*exir(:)
+  ecir(:) = ec_coef*ecir(:)
   
 else
 
-!--------------------------!
-!     spin-unpolarised     !
-!--------------------------!
-
+  !--------------------------!
+  !     spin-unpolarised     !
+  !--------------------------!
   if (xcgrad.le.0) then
     call xcifc(xctype,n=ngrtot,rho=rhoir,ex=exir,ec=ecir,vx=vx,vc=vc)
   else if (xcgrad.eq.1) then
     call ggair_1(grho,g2rho,g3rho)
   call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
-     ex=exir,ec=ecir,vx=vx,vc=vc)
+  &          ex=exir,ec=ecir,vx=vx,vc=vc)
   else if (xcgrad.eq.2) then
     call ggair_2a(g2rho,gvrho,grho2)
     call xcifc(xctype,n=ngrtot,rho=rhoir,grho2=grho2,ex=exir,ec=ecir,vx=vx, &
-               vc=vc,dxdg2=dxdg2,dcdg2=dcdg2)
+    &          vc=vc,dxdg2=dxdg2,dcdg2=dcdg2)
     call ggair_2b(g2rho,gvrho,vx,vc,dxdg2,dcdg2)
   end if
-
-  if (xctype(1).Ge.400) then
-    ! For Exciting Hybrids muliply exchange part by mixing parameter
-    vxcir(1:ngrtot) = (1.d0-ex_coef)*vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
-    exir(:) = (1.d0-ex_coef)*exir(:)
-    ecir(:) = ec_coef*ecir(:)
-  else
-    vxcir(1:ngrtot) = vx(1:ngrtot)+vc(1:ngrtot)
-  end if
+  vxcir(1:ngrtot) = (1.d0-ex_coef)*vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
+  exir(:) = (1.d0-ex_coef)*exir(:)
+  ecir(:) = ec_coef*ecir(:)
 
 end if ! spin case
 

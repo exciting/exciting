@@ -56,6 +56,9 @@ Subroutine writeengy (fnum)
          write (fnum, '(" Nuclear-nuclear energy" , T45, ": ", F18.8)') engynn
          Write (fnum, '(" Madelung energy"             , T45, ": ", F18.8)') engymad
          Write (fnum, '(" Core-electron kinetic energy", T45, ": ", F18.8)') engykncr
+         if (associated(input%groundstate%dfthalf)) then
+           Write (fnum, '(" DFT-1/2 contribution to total energy", T45, ": ", F18.8)') engyhalf
+         endif
       End If
       If ( tlast .And. input%groundstate%vdWcorrection .Ne. "none" ) Then
          If ( input%groundstate%vdWcorrection .Eq. "DFTD2" ) Then

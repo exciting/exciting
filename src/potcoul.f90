@@ -34,9 +34,8 @@ Subroutine potcoul
       Complex (8), Allocatable :: zrhoir (:)
       Complex (8), Allocatable :: zvclmt (:, :, :)
       Complex (8), Allocatable :: zvclir (:)
-      Allocate &
-     & (jlgr(0:input%groundstate%lmaxvr+input%groundstate%npsden+1, &
-     & ngvec, nspecies))
+      Allocate (jlgr(0:input%groundstate%lmaxvr+input%groundstate%npsden+1, &
+      &              ngvec, nspecies))
       Allocate (zrhomt(lmmaxvr, nrmtmax, natmtot))
       Allocate (zrhoir(ngrtot))
       Allocate (zvclmt(lmmaxvr, nrmtmax, natmtot))
@@ -46,8 +45,8 @@ Subroutine potcoul
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
             Do ir = 1, nrmt (is)
-               Call rtozflm (input%groundstate%lmaxvr, rhomt(:, ir, &
-              & ias), zrhomt(:, ir, ias))
+               Call rtozflm (input%groundstate%lmaxvr, &
+               &             rhomt(:, ir, ias), zrhomt(:, ir, ias))
             End Do
          End Do
       End Do
@@ -58,14 +57,14 @@ Subroutine potcoul
       Call genjlgpr (lmax, gc, jlgr)
 ! solve the complex Poisson's equation
       Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
-     & sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+      &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
 ! convert complex muffin-tin potential to real spherical harmonic expansion
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
             Do ir = 1, nrmt (is)
-               Call ztorflm (input%groundstate%lmaxvr, zvclmt(:, ir, &
-              & ias), vclmt(:, ir, ias))
+               Call ztorflm (input%groundstate%lmaxvr, &
+               &             zvclmt(:, ir, ias), vclmt(:, ir, ias))
             End Do
          End Do
       End Do

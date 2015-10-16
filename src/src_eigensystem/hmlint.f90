@@ -80,6 +80,7 @@ Subroutine hmlint
       if (allocated(haloij)) deallocate(haloij)
       if (allocated(haloijSize)) deallocate(haloijSize)
       allocate(haloijSize(nspecies))
+      haloijSize=0
       maxnlo=0
       Do is = 1, nspecies
         ias=idxas (1, is)
@@ -184,7 +185,7 @@ Subroutine hmlint
                            t1=apwfr(ir, 1, io, l1, ias)*lofr(ir, 1, ilo, ias)
                            t2=apwfr(ir, 2, io, l1, ias)*lofr(ir, 2, ilo, ias)
                            fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
-                        End Do
+                       End Do
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                         halointegrals (1, io, l3, ilo) = gr (nr) / y00
                        else
@@ -266,7 +267,6 @@ Subroutine hmlint
 #endif
                End Do
             End Do
-
 
 
 ! Now the angular integrals

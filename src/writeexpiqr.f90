@@ -11,19 +11,38 @@ Subroutine writeexpiqr
       Real (8) :: vecqc (3), a, b
 ! allocatable arrays
       Complex (8), Allocatable :: emat (:, :)
+      Character(256) :: string
 ! initialise universal variables
       Call init0
       Call init1
 ! allocate the matrix elements array for < i,k+G+q | exp(iq.r) | j,k >
       Allocate (emat(nstsv, nstsv))
 ! read in the density and potentials from file
-      Call readstate
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+! in case of HF hybrids use PBE potential
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
+           Else
+               Call readstate
+           End If
+        Else         
+           Call readstate
+        End If 
 ! find the new linearisation energies
       Call linengy
 ! generate the APW radial functions
       Call genapwfr
 ! generate the local-orbital radial functions
       Call genlofr
+! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               Call readstate
+           End If
+        End If 
 ! number of k-points to write out
       nk = nkpt
       if (associated(input%properties%expiqr%kstlist)) &

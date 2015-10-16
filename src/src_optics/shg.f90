@@ -70,20 +70,12 @@ subroutine shg(a,b,c)
       w(iw) = t1*dble(iw-1)
     end do
 
-! check for presence of the calculated momentum matrix elements
-    inquire(file='PMAT.OUT', exist=exist)
-    if (exist) then
-        if (rank==0) then
-            write(*,*)
-            write(*,'("  Momentum matrix elements read from PMAT.OUT")')
-         end if
-    else
-        if (rank==0) then
-            write(*,*)
-            write(*,'("  Calculate momentum matrix elements")')
-        end if
-        call writepmat
+! calculate the momentum matrix elements
+    if (rank==0) then
+        write(*,*)
+        write(*,'("  Calculate the momentum matrix elements")')
     end if
+    call writepmat
 
 ! find the record length for momentum matrix element file
     allocate(pmat(3,nstsv,nstsv))

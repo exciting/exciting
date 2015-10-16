@@ -23,6 +23,8 @@ Module mod_energy
       Real (8) :: engyen
 ! Hartree energy
       Real (8) :: engyhar
+! Dipole correction energy      
+      Real(8)  :: endipc
 ! Coulomb energy (E_nn + E_en + E_H)
       Real (8) :: engycl
 ! electronic Coulomb potential energy
@@ -45,7 +47,11 @@ Module mod_energy
       Real (8) :: engycbc
 ! DFT-D2 dispersion correction
       Real (8) :: e_disp
+! DFT-1/2 contribution to total energy
+      Real (8) :: engyhalf
 ! total energy
       Real (8) :: engytot
+! kinetic energies of KS states
+      Real (8), allocatable :: engyknst(:,:)
 End Module
 !

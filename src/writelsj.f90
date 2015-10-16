@@ -21,6 +21,7 @@ Subroutine writelsj
       Complex (8), Allocatable :: dmat1 (:, :, :, :, :)
       Complex (8), Allocatable :: dmat2 (:, :, :, :, :)
       Complex (8), Allocatable :: zlflm (:, :)
+      Character(256) :: string
 ! initialise universal variables
       Call init0
       Call init1
@@ -31,13 +32,31 @@ Subroutine writelsj
       Allocate (dmat2(lmmaxapw, lmmaxapw, nspinor, nspinor, nstsv))
       Allocate (zlflm(lmmaxapw, 3))
 ! read density and potentials from file
-      Call readstate
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+! in case of HF hybrids use PBE potential
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
+           Else
+               Call readstate
+           End If
+        Else         
+           Call readstate
+        End If 
 ! find the new linearisation energies
       Call linengy
 ! generate the APW radial functions
       Call genapwfr
 ! generate the local-orbital radial functions
       Call genlofr
+! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               Call readstate
+           End If
+        End If 
       If (task .Eq. 15) Then
 ! compute total L, S and J
          dmat1 (:, :, :, :, :) = 0.d0

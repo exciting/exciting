@@ -16,7 +16,11 @@ Subroutine getevecsvgw(ik, evecsv)
       character(256) :: filename
       Logical :: exist
 
-      filename = "EVECSV_GW.OUT"
+      if (input%gw%skipgnd) then 
+         filename = "EVECSV.OUT"
+      else     
+         filename = "EVECSV_GW.OUT"
+      end if 
       
       Inquire (File=trim(filename), Exist=Exist)
       If (exist) Then
