@@ -298,12 +298,12 @@
 				</xs:attribute>
 			</xs:complexType>			
           </xs:element>
-        <xs:element ex:importance="experimental" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Options for hybrid functionals.</xs:documentation>
           </xs:annotation>                 
           <xs:complexType>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="exchangetype" default="OEP">
+            <xs:attribute ex:importance="essential" ex:unit="" name="exchangetype" default="HF">
               <xs:annotation>
                   <xs:documentation> Type of exchange (Hartree Fock or OEP) 
                   to be used for the exact exchange.
@@ -328,7 +328,7 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="excoeff" type="fortrandouble"
+            <xs:attribute ex:importance="essential" ex:unit="" name="excoeff" type="fortrandouble"
               default="0.25d0">
               <xs:annotation>
                 <xs:documentation> Define value of the mixing parameter for exact exchange.

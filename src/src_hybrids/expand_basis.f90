@@ -1,14 +1,24 @@
 
+!
+!BOP
+! !ROUTINE: expand_basis
+! !INTERFACE:
+!
 subroutine expand_basis(ik,iq)
-
+! !USES:
     use modmain
     use modgw
     use modmpi, only: rank
     
+! 
+! !DESCRIPTION:
+!
+!EOP
+!BOC
     implicit none
     integer(4), intent(in) :: ik, iq
 
-    integer(4) :: jk, i, isym
+    integer(4) :: jk
     real(8)    :: tstart, tend
 
     call cpu_time(tstart)

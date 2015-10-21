@@ -1,26 +1,34 @@
-
+!
+!BOP
+! !ROUTINE: calc_vxnl
+! !INTERFACE:
+!
 subroutine calc_vxnl
-    
+! !USES:    
     use modmain
     use modgw
     use modfvsystem
     use mod_hybrids
     use modmpi
-            
+! 
+! !DESCRIPTION:
+!   Calculates the non-local exchange potential $V_{x}^{NL}$
+!   and the non-local exchange energy $E_{x}^{NL}$ for HF based hybrid functionals.
+!
+!EOP
+!BOC
     implicit none
 
     integer(4) :: ikp, ik, jk, iq
-    integer(4) :: ie1, ie2, ie3, icg, icg1, ic
-    integer(4) :: ia, is, ias, ir, ist, l
+    integer(4) :: ie1, ie2, ie3, icg, icg1
+    integer(4) :: ist, l
     integer(4) :: i, j, k, jst, ispn
     integer(4) :: n, nmdim
-    real(8)    :: norm, egap
     real(8)    :: tstart, tend
-    complex(8) :: mvm, zt1, fnk
+    complex(8) :: mvm, zt1
     
     real(8) :: evalfv(nstfv)
     complex(8), allocatable :: minm(:,:,:)
-    complex(8), allocatable :: vnl(:,:)
     complex(8), allocatable :: evecsv(:,:)
     complex(8) :: vxfv(nstsv,nstsv), tmat(nstsv,nstsv)
     

@@ -3,7 +3,6 @@
 ! !ROUTINE: hybrids
 ! !INTERFACE:
 !
-!
 Subroutine hybrids
 ! !USES:
     Use modinput
@@ -13,6 +12,7 @@ Subroutine hybrids
     Use mod_hybrids
 !
 ! !DESCRIPTION:
+!   Main routine for HF based hybrid functionals.
 !
 ! !REVISION HISTORY:
 !   Created September 2013 (DIN)
@@ -51,7 +51,6 @@ Subroutine hybrids
     If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = .True.    
 ! chech if restart should be performed
     restart = input%groundstate%Hybrid%restart
-    hyblast=.false.
     
 !-------------------
 ! print info
