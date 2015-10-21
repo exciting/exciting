@@ -422,6 +422,7 @@ subroutine scf_cycle(verbosity)
 
 !! TIME - Third IO segment
         Call timesec(ts0)      
+        deltae=abs(et-engytot)
         If ((verbosity>-1).and.(rank==0)) Then
 ! output energy components
             call writeengy(60)
@@ -474,7 +475,6 @@ subroutine scf_cycle(verbosity)
         If (tlast) goto 20
 
 ! update convergence criteria
-        deltae=abs(et-engytot)
         et = engytot
         if (input%groundstate%tforce) then
             dforcemax=abs(fm-forcemax)

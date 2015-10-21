@@ -70,6 +70,7 @@ Contains
          tplane = .000001
          MSECINFO = 1
          dmix = .5
+         dmix_last=0.5d0
       End Subroutine
 
 
