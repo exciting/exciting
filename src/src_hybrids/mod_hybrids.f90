@@ -12,8 +12,7 @@ module mod_hybrids
     use modmpi, only: rank
 !
 ! !DESCRIPTION:
-!
-! !REVISION HISTORY:
+!  Main module defining the variables for Hartree-Fock hybrids.
 !
 !EOP
 !BOC

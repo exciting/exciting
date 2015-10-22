@@ -11,7 +11,7 @@ subroutine init_kqpts_hybrids
       use modmpi, only: rank
 !
 ! !DESCRIPTION:
-!
+!   Initialization for k- and q-point grids.
 !EOP
 !BOC
 

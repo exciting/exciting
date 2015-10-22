@@ -9,7 +9,8 @@ Subroutine putvnlmat
       use mod_hybrids
 !
 ! !DESCRIPTION:
-!   Writes the non-local potential "vnlmat" into the file VNLMAT.OUT
+!   Writes the APW matrix elements of the non-local potential
+!   into the file VNLMAT.OUT
 !
 ! !REVISION HISTORY:
 !   Created March 2015 (UW)

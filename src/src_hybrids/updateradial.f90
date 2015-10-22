@@ -3,12 +3,11 @@
 ! !ROUTINE: updateradial
 ! !INTERFACE:
 !
-!
 Subroutine updateradial
 ! !USES:
     Use modmain
-!
 ! !DESCRIPTION:
+!   Update of radial functions during the Hartree-Fock hybrids run.
 !
 ! !REVISION HISTORY:
 !   Created July 2015 (UW)

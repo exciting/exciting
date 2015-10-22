@@ -12,7 +12,7 @@ subroutine expand_basis(ik,iq)
     
 ! 
 ! !DESCRIPTION:
-!
+!  Creates the mixed-product basis representation for Hartree-Fock hybrids.
 !EOP
 !BOC
     implicit none

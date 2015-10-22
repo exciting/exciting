@@ -12,7 +12,7 @@ Subroutine hybrids
     Use mod_hybrids
 !
 ! !DESCRIPTION:
-!   Main routine for HF based hybrid functionals.
+!   Main routine for Hartree-Fock based hybrid functionals.
 !
 ! !REVISION HISTORY:
 !   Created September 2013 (DIN)

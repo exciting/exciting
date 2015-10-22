@@ -12,8 +12,8 @@ subroutine calc_vxnl
     use modmpi
 ! 
 ! !DESCRIPTION:
-!   Calculates the non-local exchange potential $V_{x}^{NL}$
-!   and the non-local exchange energy $E_{x}^{NL}$ for HF based hybrid functionals.
+!   Calculates the non-local exchange potential 
+!   and the non-local exchange energy for Hartree-Fock based hybrid functionals.
 !
 !EOP
 !BOC

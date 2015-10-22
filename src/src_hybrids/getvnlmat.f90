@@ -9,7 +9,7 @@ Subroutine getvnlmat
       Use modmain
       Use mod_hybrids 
 ! !DESCRIPTION:
-!   Reads the non-local potential "vnlmat" from the file VNLMAT.OUT
+!   Reads the APW matrix elements of the non-local potential from the file VNLMAT.OUT
 !
 ! !REVISION HISTORY:
 !   Created March 2015 (UW)
