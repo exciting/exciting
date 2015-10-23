@@ -74,7 +74,7 @@ Subroutine xsfinit
       Call filedel (trim(fnresume))
       If (rank .Ne. 0) Call filedel (trim(xsfileout))
       If (rank .Ne. 0) Call filedel (trim(fnetim))
-      Call filedel (trim(fnchi0_t))
+      If (trim(fnchi0_t) .Ne. trim(fnchi0)) Call filedel (trim(fnchi0_t))
       If (rank .Ne. 0) Call filedel (trim(fnxtim))
       
 End Subroutine xsfinit

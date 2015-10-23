@@ -83,7 +83,7 @@ Subroutine bandstr
     allocate(e0(nkpt0,nstsv))
     allocate(e1(nkpt,nstsv))
      if (allocated(evalsv)) deallocate(evalsv)
-     allocate(evalsv(nkpt,nstsv))
+     allocate(evalsv(nstsv,nkpt))
     inquire(IoLength=Recl) nkpt0, nstsv0, vkl0(:,1), ehf(:,1)
     open (70, File=fname, Action='READ', Form='UNFORMATTED', &
     &  Access='DIRECT', Recl=Recl)

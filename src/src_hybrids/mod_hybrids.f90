@@ -1,12 +1,23 @@
-
+!
+!BOP
+! !ROUTINE: mod_hybrids
+! !INTERFACE:
+!
+!
 module mod_hybrids
-
+! !USES:
     use modinput
     use modmain
     use modgw
     use modmpi, only: rank
-    implicit none
+!
+! !DESCRIPTION:
+!  Main module defining the variables for Hartree-Fock hybrids.
+!
+!EOP
+!BOC
 
+    implicit none
 ! number of HF cycles
     integer :: ihyb
 
@@ -21,17 +32,12 @@ module mod_hybrids
 ! APW matrix elements of the non-local potential
     complex(8), allocatable :: vnlmat(:,:,:)
 
-! set to true if hybrids cycles are converged
-    Logical :: hyblast
-
 !*******************************************************************************
 contains
 
     subroutine init_hybrids
         implicit none
         integer(4) :: i, ia, is, ias, ic, il, ist, m
-        integer(4) :: ir, l, ie1, ikp
-        real(8)    :: norm
 
 ! print debugging information    
         debug = .false.

@@ -40,7 +40,6 @@ real(8), allocatable :: vc(:),vcup(:),vcdn(:)
 real(8), allocatable :: dxdg2(:),dxdgu2(:),dxdgd2(:),dxdgud(:)
 real(8), allocatable :: dcdg2(:),dcdgu2(:),dcdgd2(:),dcdgud(:)
 real(8), allocatable :: mag(:,:),bxc(:,:)
-
 n=lmmaxvr*nrmtmax
 allocate(rho(n),ex(n),ec(n),vxc(n))
 if (associated(input%groundstate%spin)) then
@@ -133,8 +132,13 @@ do is=1,nspecies
       if (ncmag) then
 ! non-collinear: locally spin rotate the exchange-correlation potential
         do i=1,n
-          t1=(1-ex_coef)*vxup(i)+ec_coef*vcup(i)
-          t2=(1-ex_coef)*vxdn(i)+ec_coef*vcdn(i)
+          if (xctype(1).eq.100) then
+            t1=vxup(i)+ec_coef*vcup(i)
+            t2=vxdn(i)+ec_coef*vcdn(i)
+          else
+            t1=(1-ex_coef)*vxup(i)+ec_coef*vcup(i)
+            t2=(1-ex_coef)*vxdn(i)+ec_coef*vcdn(i)
+          end if
           vxc(i)=0.5d0*(t1+t2)
 ! determine the exchange-correlation magnetic field
           t3=0.5d0*(t1-t2)
@@ -145,8 +149,13 @@ do is=1,nspecies
       else
 ! collinear
         do i=1,n
-          t1=(1-ex_coef)*vxup(i)+ec_coef*vcup(i)
-          t2=(1-ex_coef)*vxdn(i)+ec_coef*vcdn(i)
+          if (xctype(1).eq.100) then
+            t1=vxup(i)+ec_coef*vcup(i)
+            t2=vxdn(i)+ec_coef*vcdn(i)
+          else
+            t1=(1-ex_coef)*vxup(i)+ec_coef*vcup(i)
+            t2=(1-ex_coef)*vxdn(i)+ec_coef*vcdn(i)
+          end if
           vxc(i)=0.5d0*(t1+t2)
           bxc(i,1)=0.5d0*(t1-t2)
         end do
@@ -173,7 +182,11 @@ do is=1,nspecies
                    dxdg2=dxdg2,dcdg2=dcdg2)
         call ggamt_2b(is,g2rho,gvrho,vx,vc,dxdg2,dcdg2)
       end if
-      vxc(1:n)=(1-ex_coef)*vx(1:n)+ec_coef*vc(1:n)
+      if (xctype(1)==100) then
+         vxc(1:n)=vx(1:n)+ec_coef*vc(1:n)
+      else
+         vxc(1:n)=(1-ex_coef)*vx(1:n)+ec_coef*vc(1:n)
+      end if
     end if
     
 ! convert exchange and correlation energy densities to spherical harmonics
@@ -182,7 +195,7 @@ do is=1,nspecies
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,ec,lmmaxvr, &
                0.d0,ecmt(:,:,ias),lmmaxvr)
                
-    exmt(:,:,ias) = (1.d0-ex_coef)*exmt(:,:,ias)
+    if (xctype(1).ne.100) exmt(:,:,ias) = (1.d0-ex_coef)*exmt(:,:,ias)
     ecmt(:,:,ias) = ec_coef*ecmt(:,:,ias)
     
 ! convert exchange-correlation potential to spherical harmonics
@@ -242,8 +255,13 @@ if (associated(input%groundstate%spin)) then
   if (ncmag) then
     ! non-collinear: spin rotate the local exchange potential
     do ir = 1, ngrtot
-      t1 = (1.d0-ex_coef)*vxup(ir)+ec_coef*vcup(ir)
-      t2 = (1.d0-ex_coef)*vxdn(ir)+ec_coef*vcdn(ir)
+      if (xctype(1).eq.100) then
+        t1 = vxup(ir)+ec_coef*vcup(ir)
+        t2 = vxdn(ir)+ec_coef*vcdn(ir)
+      else
+        t1 = (1.d0-ex_coef)*vxup(ir)+ec_coef*vcup(ir)
+        t2 = (1.d0-ex_coef)*vxdn(ir)+ec_coef*vcdn(ir)
+      end if
       vxcir(ir) = 0.5d0*(t1+t2)
       ! determine the exchange-correlation magnetic field
       t3 = 0.5d0*(t1-t2)
@@ -254,13 +272,18 @@ if (associated(input%groundstate%spin)) then
   else
     ! collinear
     do ir = 1, ngrtot
-      t1 = (1.d0-ex_coef)*vxup(ir)+ec_coef*vcup(ir)
-      t2 = (1.d0-ex_coef)*vxdn(ir)+ec_coef*vcdn(ir)
+      if (xctype(1).eq.100) then
+        t1 = vxup(ir)+ec_coef*vcup(ir)
+        t2 = vxdn(ir)+ec_coef*vcdn(ir)
+      else
+        t1 = (1.d0-ex_coef)*vxup(ir)+ec_coef*vcup(ir)
+        t2 = (1.d0-ex_coef)*vxdn(ir)+ec_coef*vcdn(ir)
+      end if
       vxcir(ir) = 0.5d0*(t1+t2)
       bxcir(ir,1) = 0.5d0*(t1-t2)
     end do
   end if
-  exir(:) = (1.d0-ex_coef)*exir(:)
+  if (xctype(1).ne.100) exir(:) = (1.d0-ex_coef)*exir(:)
   ecir(:) = ec_coef*ecir(:)
   
 else
@@ -280,8 +303,12 @@ else
     &          vc=vc,dxdg2=dxdg2,dcdg2=dcdg2)
     call ggair_2b(g2rho,gvrho,vx,vc,dxdg2,dcdg2)
   end if
-  vxcir(1:ngrtot) = (1.d0-ex_coef)*vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
-  exir(:) = (1.d0-ex_coef)*exir(:)
+  if (xctype(1).ne.100) then
+    vxcir(1:ngrtot) = (1.d0-ex_coef)*vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
+    exir(:) = (1.d0-ex_coef)*exir(:)
+  else
+    vxcir(1:ngrtot) = vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
+  end if
   ecir(:) = ec_coef*ecir(:)
 
 end if ! spin case
