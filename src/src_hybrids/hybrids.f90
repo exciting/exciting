@@ -32,7 +32,7 @@ Subroutine hybrids
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
     Logical :: restart
-    
+    integer::xctype_(3)    
 !! TIME - Initialisation segment
     Call timesec (tsg0)
     Call timesec (ts0)
@@ -167,14 +167,24 @@ Subroutine hybrids
         if (ihyb==0) then
           ex_coef = 0.d0
           ec_coef = 1.d0
+          ! for Libxc use PBE from Libxc
+          if (xctype(1)==100) then
+              xctype_=xctype
+              xctype=(/100,101,130/)
+          end if
         else
           task = 7
+          ! restore settings for hybrid functional
           ex_coef = input%groundstate%Hybrid%excoeff
           ec_coef = input%groundstate%Hybrid%eccoeff
+          if (xctype(1)==100) then
+              xctype=xctype_
+          ! settings for convergence and mixing
           input%groundstate%mixerswitch = 1
           input%groundstate%scfconv = 'charge'
           rhomtref(:,:,:) = rhomt(:,:,:)
           rhoirref(:) = rhoir(:)
+          end if
         end if
         
 !---------------------------
