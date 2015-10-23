@@ -1,4 +1,4 @@
-!
+:
 !BOP
 ! !ROUTINE: hybrids
 ! !INTERFACE:
@@ -179,12 +179,12 @@ Subroutine hybrids
           ec_coef = input%groundstate%Hybrid%eccoeff
           if (xctype(1)==100) then
               xctype=xctype_
+          end if
           ! settings for convergence and mixing
           input%groundstate%mixerswitch = 1
           input%groundstate%scfconv = 'charge'
           rhomtref(:,:,:) = rhomt(:,:,:)
           rhoirref(:) = rhoir(:)
-          end if
         end if
         
 !---------------------------
