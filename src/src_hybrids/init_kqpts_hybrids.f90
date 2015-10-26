@@ -1,12 +1,22 @@
-
+!
+!BOP
+! !ROUTINE: init_kqpts_hybrids
+! !INTERFACE:
+!
 subroutine init_kqpts_hybrids
+! !USES:
       use modinput
       use modmain
       use modgw
       use modmpi, only: rank
-      
+!
+! !DESCRIPTION:
+!   Initialization for k- and q-point grids.
+!EOP
+!BOC
+
       implicit none
-      integer(4) :: ik, iq, ikq, ig
+      integer(4) :: ik, iq, ig
       integer(4) :: igq, igb
       integer(4) :: i1, i2, i3
       real(8)    :: gpq(3), gqlen

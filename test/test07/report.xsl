@@ -46,9 +46,9 @@
             </xsl:otherwise>
           </xsl:choose>
         </status>
-        <name> BSE loss funktion works</name>
+        <name> TDDFT loss funktion works</name>
         <description>passes if loss function is written</description>
-        <directory>test07/runBSE</directory>
+        <directory>test07/runtddft</directory>
       </test>
           
       <test>
@@ -62,9 +62,9 @@
             </xsl:otherwise>
           </xsl:choose>
         </status>
-        <name> BSE dielectric funktion works</name>
+        <name> TDDFT dielectric funktion works</name>
         <description>passes if dielectric function is written</description>
-        <directory>test07/runBSE</directory>
+        <directory>test07/runtddft</directory>
       </test>
     </report>
   </xsl:template>

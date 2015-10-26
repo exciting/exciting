@@ -111,7 +111,7 @@ Subroutine allatoms(verbosity)
            fnum_ = 333 + is
 !          Open the file where the information about Vs will be outputed
 !          E.g., the name is something like VS_S0001.OUT for the first species
-           if ((input%groundstate%dfthalf%printVSfile .eq. .true.) .and.(rank .eq. 0) ) then
+           if ((input%groundstate%dfthalf%printVSfile) .and.(rank .eq. 0) ) then
              Write (fname, '("VS_S", I2.2, ".OUT")') is
              Open (fnum_, File=trim(fname), Action='WRITE', Form='FORMATTED')
              Write(fnum_,'("Species: ",I4.1,", CUT = ",F10.6,", Amplitude: ",F10.6,", Exponent: ",I2.2)') is, cut, ampl, n
@@ -168,7 +168,7 @@ Subroutine allatoms(verbosity)
                cutfunction = 0.0
                vhalfsph(ir,is) = 0.0
              endif
-             if ((input%groundstate%dfthalf%printVSfile .eq. .true.) .and.(rank .eq. 0)) then
+             if ((input%groundstate%dfthalf%printVSfile) .and.(rank .eq. 0)) then
                write (fnum_,"(ES20.6E2,ES20.6E2,ES20.6E2,F20.10,F20.10)") spr(ir,is), spvr(ir,is), aux, cutfunction, vhalfsph(ir,is)
              end if
            Enddo
@@ -177,7 +177,7 @@ Subroutine allatoms(verbosity)
            If (allocated(rwf)) Deallocate (rwf)
            If (allocated(shell)) Deallocate (shell)
            If (allocated(ionization)) Deallocate (ionization)
-           if (input%groundstate%dfthalf%printVSfile .eq. .true.) then
+           if (input%groundstate%dfthalf%printVSfile) then
              Close(fnum_)
            end if
          Endif !if (associated(input%groundstate%dfthalf))
@@ -188,7 +188,7 @@ Subroutine allatoms(verbosity)
 #endif
 
       if (associated(input%groundstate%dfthalf)) then 
-        if (input%groundstate%dfthalf%printVSfile .eq. .true.) then
+        if (input%groundstate%dfthalf%printVSfile) then
 #ifdef MPI
         call finitMPI()
 #endif

@@ -298,12 +298,12 @@
 				</xs:attribute>
 			</xs:complexType>			
           </xs:element>
-        <xs:element ex:importance="experimental" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Options for hybrid functionals.</xs:documentation>
           </xs:annotation>                 
           <xs:complexType>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="exchangetype" default="OEP">
+            <xs:attribute ex:importance="essential" ex:unit="" name="exchangetype" default="HF">
               <xs:annotation>
                   <xs:documentation> Type of exchange (Hartree Fock or OEP) 
                   to be used for the exact exchange.
@@ -328,7 +328,7 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="excoeff" type="fortrandouble"
+            <xs:attribute ex:importance="essential" ex:unit="" name="excoeff" type="fortrandouble"
               default="0.25d0">
               <xs:annotation>
                 <xs:documentation> Define value of the mixing parameter for exact exchange.
@@ -2651,17 +2651,19 @@
                 <bf>81</bf>, 385 (1951) </li>
               <li> LSDA, von Barth-Hedin, <it>J. Phys. C</it>
                 <bf>5</bf>, 1629 (1972) </li>
-              <li> GGA, Perdew-Burke-Ernzerhof, <it>Phys. Rev. Lett.</it>
+              <li> GGA, Perdew-Burke-Ernzerhof (PBE), <it>Phys. Rev. Lett.</it>
                 <bf>77</bf>, 3865 (1996) </li>
               <li> GGA, Revised PBE, Zhang-Yang, <it>Phys. Rev. Lett.</it>
                 <bf>80</bf>, 890 (1998) </li>
               <li> GGA, PBEsol, arXiv:0707.2088v1 (2007) </li>
+              <li> GGA, asymptotically corrected PBE  (acPBE), arXiv:1409.4834 (2014) </li> 
               <li> GGA, Wu-Cohen exchange (WC06) with PBE correlation, <it>Phys. Rev. B</it>
                 <bf>73</bf>, 235116 (2006) </li>
               <li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it>Phys. Rev. B</it>
                 <bf>72</bf>, 085108 (2005) </li>
               <li> EXX, Exact Exchange, <it>Phys. Rev. Lett.</it>
                 <bf>95</bf>, 136402 (2005) </li>
+              <li> Hybrid, PBE0, <it>J. Chem. Phys.</it> <bf>110</bf>, 5029 (1999)</li>
             </list>
           </xs:documentation>
         </xs:annotation>

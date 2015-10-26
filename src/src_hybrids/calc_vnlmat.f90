@@ -1,22 +1,29 @@
 
+!
+!BOP
+! !ROUTINE: calc_vnlmat
+! !INTERFACE:
+!
 subroutine calc_vnlmat
-    
+! !USES:    
     use modmain
     use modgw
     use modfvsystem
     use mod_hybrids
     use modmpi
-            
+! 
+! !DESCRIPTION:
+!   Calculates the APW matrix elements of the non-local potential
+!EOP
+!BOC
     implicit none
     type(evsystem) :: system
     integer :: ik
     integer :: ie1, ie2
     integer :: nmatp
-    complex(8), allocatable :: vnl(:,:)
-    complex(8), allocatable :: evec(:,:), overlap(:,:)
+    complex(8), allocatable :: evec(:,:)
     complex(8), allocatable :: temp(:,:), temp1(:,:)
     complex(8), allocatable :: apwalm(:,:,:,:,:)
-    complex(8), allocatable :: evec_(:,:)
     complex(8), external :: zdotc
  
     integer :: ikfirst, iklast

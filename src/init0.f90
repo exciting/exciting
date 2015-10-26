@@ -180,6 +180,7 @@ Subroutine init0
       Else
           ex_coef=0.0          
           ec_coef=1.0
+          If (input%groundstate%xctypenumber .Lt. 0) ex_coef=1.0
       End If
       Call getxcdata (xctype, xcdescr, xcspin, xcgrad, ex_coef)
 ! reset input%groundstate%Hybrid%excoeff to ex_coef

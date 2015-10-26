@@ -165,7 +165,7 @@ y0=[0.0,0.0]
 ax1.plot(x0,y0,'k:',lw=1.0)
 #ymax=40.0
 ax1.set_xlim(0,max(ksene[0][0]))
-ax1.set_ylim(-22,20)
+ax1.set_ylim(-25,15)
 pyl.grid(True)
 fig.savefig('PBE0_PBE.png',format='png',bbox_inches=0,dpi=45)
 fig.savefig('PBE0_PBE.eps',format='eps',bbox_inches=0)

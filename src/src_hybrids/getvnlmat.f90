@@ -1,16 +1,21 @@
 
 !
+!BOP
+! !ROUTINE: getvnlmat
+! !INTERFACE:
 !
-! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
+Subroutine getvnlmat 
+! !USES:
+      Use modmain
+      Use mod_hybrids 
+! !DESCRIPTION:
+!   Reads the APW matrix elements of the non-local potential from the file VNLMAT.OUT
 !
 ! !REVISION HISTORY:
 !   Created March 2015 (UW)
 !
-Subroutine getvnlmat 
-      Use modmain
-      Use mod_hybrids 
+!EOP
+!BOC
       Implicit None
   ! local variables
       Integer(8) :: recl,ik
