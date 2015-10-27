@@ -31,10 +31,18 @@ Subroutine genylmg
       If (allocated(ylmg)) deallocate (ylmg)
       Allocate (ylmg(lmmaxvr, ngvec))
       call timesec(ta)
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(NONE) SHARED(ngvec,vgc,input,ylmg) PRIVATE(ig,r,tp)
+!$OMP DO
+#endif
       Do ig = 1, ngvec
          Call sphcrd (vgc(:, ig), r, tp)
          Call genylm (input%groundstate%lmaxvr, tp, ylmg(:, ig))
       End Do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
       call timesec(tb)
       Return
 End Subroutine
