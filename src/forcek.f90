@@ -40,8 +40,8 @@ Subroutine forcek (ik, ffacg)
       integer if3,l3,m3,lm3,io1,io2,maxnlo,lm1,lm2,io,j1,j2,ilo
 ! allocatable arrays
       Type (evsystem) :: system
-      Integer, Allocatable :: ijg (:),ijgij(:,:)
-      Real (8), Allocatable :: dp (:),dpij(:,:)
+      Integer, Allocatable :: ijgij(:,:)
+      Real (8), Allocatable :: dpij(:,:)
       Real (8), Allocatable :: evalfv (:, :)
       Complex (8), Allocatable :: apwalm (:, :, :, :)
       Complex (8), Allocatable :: evecfv (:, :, :),evecfv2(:,:,:)
@@ -60,8 +60,6 @@ Subroutine forcek (ik, ffacg)
       np = npmat (1, ik)
       If (isspinspiral()) np = Max (np, npmat(2, ik))
 ! allocate local arrays
-      Allocate (ijg(np))
-      Allocate (dp(np))
       Allocate (evalfv(nstfv, nspnfv))
       Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
       Allocate (evecfv(nmatmax, nstfv, nspnfv))
@@ -89,20 +87,6 @@ Subroutine forcek (ik, ffacg)
 ! find the matching coefficients
          Call match (ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, ispn, &
         & ik), sfacgk(:, :, ispn, ik), apwalm)
-         Do j = 1, ngk (ispn, ik)
-            k = ((j-1)*j) / 2
-            Do i = 1, j
-               k = k + 1
-               iv (:) = ivg (:, igkig(i, ispn, ik)) - ivg (:, igkig(j, &
-              & ispn, ik))
-               iv (:) = modulo (iv(:)-intgv(:, 1), ngrid(:)) + intgv &
-              & (:, 1)
-               ijg (k) = ivgig (iv(1), iv(2), iv(3))
-               dp (k) = 0.5d0 * dot_product (vgkc(:, i, ispn, ik), &
-              & vgkc(:, j, ispn, ik))
-            End Do
-         End Do
-
 
        allocate(ijgij(ngk (ispn, ik),ngk (ispn, ik)))
        allocate(dpij(ngk (ispn, ik),ngk (ispn, ik)))
@@ -406,7 +390,7 @@ Subroutine forcek (ik, ffacg)
 ! end loop over first-variational spins
       End Do
 !       stop
-      Deallocate (ijg, dp, evalfv, apwalm, evecfv, evecsv, evecfv2)
+      Deallocate (evalfv, apwalm, evecfv, evecsv, evecfv2)
       Deallocate (ffv, y)
       call deleteystem(system)
       deallocate(apwi)
