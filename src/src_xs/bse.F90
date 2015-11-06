@@ -124,7 +124,7 @@ Subroutine bse
       integer :: Recl, nstsv_
       real(8) :: vkl_(3)
 
-
+      real(8) :: rh(3)
       Character (256) :: lambda
       Real (8) :: bevec_ksum, bevec1
       Integer :: un
@@ -594,60 +594,15 @@ Subroutine bse
         if ( (input%xs%excitonplot%ExcitonIndex .lt. 1) .or. &
           &  (input%xs%excitonplot%ExcitonIndex .gt. hamsiz) ) then
           write(*,*)
-          write(*,'("Error(bse): wrong exciton index: ", I5, "  (total number of excitons = ", I8, " )")') &
-                & input%xs%excitonplot%ExcitonIndex, hamsiz
+          write(*,'("Error(bse): wrong exciton index: ", I5,  &
+          &     "  (total number of excitons = ", I8, " )")') &
+          &     input%xs%excitonplot%ExcitonIndex, hamsiz
           write(*,*)
           stop
-        end if  
-                
-        inquire(file='EXCCOEFF.bin', exist=exist)
-        if ( (.not. exist) .and. (rank==0) ) then
-          write(*,*)
-          write(*,'("Error(bse): file EXCCOEFF.bin does not exist!")')
-          write(*,*)
-          stop
-        else
-          open(50,File='EXCCOEFF.bin', & 
-                  Action='READ',Form='UNFORMATTED', IOstat=iostat)
-          if ( (iostat.ne.0) .and. (rank==0) ) then
-            write(*,*) iostat
-            write(*,'("Error(bse): error reading EXCCOEFF.bin")')
-            write(*,*)
-            stop
-          end if
-          read(50) input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons, &
-              & nkptnr, nsta1, nrnst1, nrnst3, hamsiz
-          beval=0.0
-          bevec=0.0
-          do ievec = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
-             read(50) beval(ievec), bevec(1:hamsiz,ievec)
-          end do
-          close(50)
         end if
-               
-        locext = filext 
-        filext = 'EVECFV_QMT000.OUT'
-        
-        inquire(file=trim(filext), exist=exist)
-        if ( (.not. exist) .and. (rank==0) ) then
-          write(*,*)
-          write(*,'("Error(bse): file EVECFV_QMT000.OUT does not exist!")')
-          write(*,*)
-          stop
-        else
-          open(50,File=trim(filext), & 
-                  Action='READ',Form='UNFORMATTED', IOstat=iostat)
-          if ( (iostat.ne.0) .and. (rank==0) ) then
-            write(*,*) iostat
-            write(*,'("Error(bse): error reading EVECFV_QMT000.OUT")')
-            write(*,*)
-            stop
-          end if
-         
-          close(50)
-        end if
-        
-        filext = locext
+
+        rh(:) = (/0d0, 0.d0, 0.d0/)
+        call plot_exciton_wf(input%xs%excitonplot%ExcitonIndex,rh)
         
       end if 
       
@@ -655,8 +610,10 @@ Subroutine bse
 !###############################################################################################################
       deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
       if (associated(input%gw)) deallocate(eval0)
-10 continue
-      call barrier      
+
+      10 continue
+      call barrier
+
 Contains
 !
       Integer Function hamidx (i1, i2, ik, n1, n2)
@@ -664,10 +621,6 @@ Contains
          Integer, Intent (In) :: i1, i2, ik, n1, n2
          hamidx = i2 + n2 * (i1-1) + n1 * n2 * (ik-1)
       End Function hamidx
-      
-
-
-
 
 End Subroutine bse
 !EOC
