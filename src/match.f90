@@ -89,7 +89,7 @@ Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
 !$OMP DO
 #endif
       Do igp = 1, ngp
-         Call genylm (input%groundstate%lmaxmat, tpgpc(:, igp), &
+         Call genylm (input%groundstate%lmaxapw, tpgpc(:, igp), &
         & ylmgp(:, igp))
       End Do
 #ifdef USEOMP
@@ -111,7 +111,7 @@ Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
          Do igp = 1, ngp
             t1 = gpc (igp) * rmt (is)
             Do io1 = 1, omax
-               Call sbesseldm (io1-1, input%groundstate%lmaxmat, t1, &
+               Call sbesseldm (io1-1, input%groundstate%lmaxapw, t1, &
               & djl(:, io1, igp))
             End Do
             t1 = 1.d0
