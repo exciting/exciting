@@ -515,10 +515,12 @@ Subroutine bse
          Call writeloss (iq, w, loss(oct1, oct2, :), trim(fnloss))
          Call writesigma (iq, w, sigma, trim(fnsigma))
          Call writesumrls (iq, sumrls, trim(fnsumrules))
-        enddo
+        enddo       
+
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ! CC test exciton
       end do
+
       if (associated(input%xs%storeexcitons)) then
         ! upon request, store array with exciton coefficients
         
@@ -546,68 +548,14 @@ Subroutine bse
         
         ! write
         write(50) input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons, & 
-              & nkptnr, nsta1, nrnst1, nrnst3, hamsiz
+        &         nkptnr, istl3, nsta1, nsta2, nrnst1, nrnst3, hamsiz
         do ievec = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
            write(50) beval(ievec), bevec(1:hamsiz,ievec)
         end do
-
-        
         close(50)
-
-
-
-        ! read bin
-!        inquire(file='EXCCOEFF.bin', exist=exist)
-!        if (exist) then
-!          if (rank==0) then
-!            write(*,*)
-!            write(*,'("  EXCCOEFF.bin is read")')
-!          end if
-!        else
-!          write(*,*)
-!          write(*,'("Error(bse): error reading EXCCOEFF.bin")')
-!          write(*,*)
-!        end if
-
-!        bevec=0.0
-        
-!        open(50,File='EXCCOEFF.bin', & 
-!                Action='READ',Form='UNFORMATTED', IOstat=iostat)
-!        write(*,*) "iostat reading", iostat
-!        !read
-!        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
-!           read(50) bevec(1:5,is)
-!        end do
-        
-!        write(60,*) "hamsize", hamsiz
-         
-!        Write (*,*) "bevec read"
-!        do is = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
-!           write(60,'(" ",10F14.8)') bevec(1:5,is)
-!        end do
-        
-!        close(50)
       end if
-      
-      if (associated(input%xs%excitonplot)) then
-      
-        if ( (input%xs%excitonplot%ExcitonIndex .lt. 1) .or. &
-          &  (input%xs%excitonplot%ExcitonIndex .gt. hamsiz) ) then
-          write(*,*)
-          write(*,'("Error(bse): wrong exciton index: ", I5,  &
-          &     "  (total number of excitons = ", I8, " )")') &
-          &     input%xs%excitonplot%ExcitonIndex, hamsiz
-          write(*,*)
-          stop
-        end if
-
-        rh(:) = (/0d0, 0.d0, 0.d0/)
-        call plot_exciton_wf(input%xs%excitonplot%ExcitonIndex,rh)
-        
-      end if 
-      
-!      Deallocate (ham)
 !###############################################################################################################
+
       deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
       if (associated(input%gw)) deallocate(eval0)
 

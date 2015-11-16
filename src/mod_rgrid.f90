@@ -10,6 +10,7 @@ module mod_rgrid
 		real(8), allocatable :: vpd(:)
 		logical, allocatable :: mtpoint(:)
 		integer, allocatable :: atom(:,:)
+    integer, allocatable :: iv(:,:)
 	end type rgrid
 
 	private find_mt_points
@@ -26,7 +27,10 @@ contains
 		write(*,*) " size: ", self%npt
 		write(*,*) " ip  vpl  mtpoint  atom"
 		do ip = 1, self%npt
-			write(*,*) ip, self%vpl(:,ip), self%mtpoint(ip), self%atom(:,ip)
+			write(*,'(i,3f12.4,L)') ip, self%vpl(:,ip), self%mtpoint(ip)
+      if (self%mtpoint(ip)) then 
+        write(*,'(2i4,4x,3i4)') self%atom(:,ip), self%iv(:,ip)
+      end if
 		end do
 		return
 	end subroutine
@@ -43,36 +47,18 @@ contains
 	end subroutine
 
 	!----------------------------------------------------------------------------
-  subroutine gen_1d_rgrid(self)
+  function gen_1d_rgrid(nv,vvl,np) result(self)
   	implicit none
   	! input/output
-  	type(rgrid), intent(out) :: self
+  	type(rgrid)         :: self
+    integer, intent(in) :: nv         ! number of 1d path segments
+    real(8), intent(in) :: vvl(nv,3)  ! segment coordinates
+    integer, intent(in) :: np         ! number of grid points
   	! local
-  	integer :: nv, np, iv
+  	integer :: iv
   	integer :: ip, ip0, ip1, n
   	real(8) :: t1, f, dt, vl(3), vc(3)
-  	real(8), allocatable :: vvl(:,:), seg(:), dv(:)
-
-  	type(plot1d_type), pointer :: plotdef
-  	plotdef => input%properties%wfplot%plot1d
-
-		! number of 1d path segments
-		nv = size(plotdef%path%pointarray)
-		if (nv < 1) then
-      write (*,*)
-      write (*, '("Error(mod_rgrid::gen_1d_rgrid): nv < 1 : ", I8)') nv
-      write (*,*)
-      stop
-    end if
-
-    ! number of grid points
-    np = plotdef%path%steps
-    If (np < nv) then
-      write (*,*)
-      write (*, '("Error(connect): np < nv : ", 2I8)') np, nv
-      write (*,*)
-      stop
-    end if
+  	real(8), allocatable :: seg(:), dv(:)
 
     ! initialization
     self%npt = np
@@ -84,16 +70,11 @@ contains
 		allocate(self%vpd(self%npt))
 
 		! find the total distance and the length of each segment
-		allocate(vvl(3,nv))
-	  do iv = 1, nv
-      vvl(:,iv) = plotdef%path%pointarray(iv)%point%coord
-  	end do
-
-    allocate(dv(iv),seg(nv))
+    allocate(dv(nv),seg(nv))
     dt = 0.d0
     do iv = 1, nv-1
      	dv(iv) = dt
-     	vl(:) = vvl(:,iv+1)-vvl(:,iv)
+     	vl(:) = vvl(iv+1,:)-vvl(iv,:)
      	call r3mv(input%structure%crystal%basevect, vl, vc)
      	seg(iv) = dsqrt(vc(1)**2+vc(2)**2+vc(3)**2)
      	dt = dt+seg(iv)
@@ -102,7 +83,7 @@ contains
     dv(nv) = dt
     if (dt < 1.d-8) Then
       do ip = 1, np
-        self%vpl(:,ip) = vvl(:,1)
+        self%vpl(:,ip) = vvl(1,:)
         self%vpd(ip) = 0.d0
       end do
     else
@@ -118,11 +99,11 @@ contains
         do ip = ip0, ip1
           f = dble(ip-ip0)/dble(n)
           self%vpd(ip) = f*seg(iv)+dv(iv)
-          self%vpl(:,ip) = vvl(:,iv)*(1.d0-f)+vvl(:,iv+1)*f
+          self%vpl(:,ip) = vvl(iv,:)*(1.d0-f)+vvl(iv+1,:)*f
         end do
       end do
     end if
-    deallocate(vvl,seg,dv)
+    deallocate(seg,dv)
 
     ! convert to cartesian coordinates
     do ip = 1, np
@@ -134,23 +115,22 @@ contains
     call find_mt_points(self)
 
     return
-  end subroutine
+  end function
 
   !----------------------------------------------------------------------------
-  subroutine gen_2d_rgrid(self)
+  function gen_2d_rgrid(ngrid,boxl) result(self)
   	implicit none
   	! input/output
-  	type(rgrid), intent(out) :: self
+  	type(rgrid) :: self
+    integer, intent(in) :: ngrid(2)
+    real(8), intent(in) :: boxl(3,3)
   	! local
   	integer :: ip, ip1, ip2, iv(3)
   	integer :: n1, n2
-  	real(8) :: box(2,3), v1(3), v2(3), t1, t2
+  	real(8) :: v1(3), v2(3), t1, t2
 
-		type(plot2d_type), pointer :: plotdef
-  	plotdef => input%properties%wfplot%plot2d
-
-  	n1 = plotdef%parallelogram%grid(1)
-  	n2 = plotdef%parallelogram%grid(2)
+  	n1 = ngrid(1)
+  	n2 = ngrid(2)
 		self%npt = (n1+1)*(n2+1)
 
 		if (allocated(self%vpl)) deallocate(self%vpl)
@@ -158,22 +138,15 @@ contains
 		if (allocated(self%vpc)) deallocate(self%vpc)
 		allocate(self%vpc(3,self%npt))
 
-		box(1,:) = plotdef%parallelogram%pointarray(1)%point%coord - &
-    &          plotdef%parallelogram%origin%coord
-    box(2,:) = plotdef%parallelogram%pointarray(2)%point%coord - &
-    &          plotdef%parallelogram%origin%coord
-
-    ! test whether box is reasonable ?
-    
     ip = 0
     do ip2 = 0, n2
       t2 = dble(ip2)/dble(n2)
       do ip1 = 0, n1
         ip = ip + 1
         t1 = dble(ip1)/dble(n1)
-      	v1(:) = t1*box(1,:)+ &
-      	&       t2*box(2,:)+ &
-      	&		    plotdef%parallelogram%origin%coord
+      	v1(:) = t1*boxl(2,:)+ &
+      	&       t2*boxl(3,:)+ &
+      	&		    boxl(1,:)
       	self%vpl(:,ip) = v1(:)
       	call r3mv(input%structure%crystal%basevect, v1, v2)
       	self%vpc(:,ip) = v2(:)
@@ -184,34 +157,29 @@ contains
     call find_mt_points(self)
 
   	return  	
-  end subroutine
+  end function
 
 	!----------------------------------------------------------------------------
-  subroutine gen_3d_rgrid(self)
+  function gen_3d_rgrid(ngrid,boxl) result(self)
   	implicit none
   	! input/output
-  	type(rgrid), intent(out) :: self
+  	type(rgrid) :: self
+    integer, intent(in) :: ngrid(3)
+    real(8), intent(in) :: boxl(4,3)
   	! local
   	integer :: ip, ip1, ip2, ip3, iv(3)
   	integer :: n1, n2, n3
-  	real(8) :: box(3,3), v1(3), v2(3), t1, t2, t3
+  	real(8) :: v1(3), v2(3), t1, t2, t3
 
-  	type(plot3d_type), pointer :: plotdef
-  	plotdef => input%properties%wfplot%plot3d
-
-  	n1 = plotdef%box%grid(1)
-  	n2 = plotdef%box%grid(2)
-  	n3 = plotdef%box%grid(3)
+  	n1 = ngrid(1)
+  	n2 = ngrid(2)
+  	n3 = ngrid(3)
   	self%npt = (n1+1)*(n2+1)*(n3+1)
 
 		if (allocated(self%vpl)) deallocate(self%vpl)
   	allocate(self%vpl(3,self%npt))
 		if (allocated(self%vpc)) deallocate(self%vpc)
 		allocate(self%vpc(3,self%npt))
-
-		box(1,:) = plotdef%box%pointarray(1)%point%coord-plotdef%box%origin%coord
-    box(2,:) = plotdef%box%pointarray(2)%point%coord-plotdef%box%origin%coord
-    box(3,:) = plotdef%box%pointarray(3)%point%coord-plotdef%box%origin%coord
 
   	ip = 0
     do ip3 = 0, n3
@@ -221,10 +189,10 @@ contains
         do ip1 = 0, n1
           t1 = dble(ip1)/dble(n1)
           ip = ip+1
-          v1(:) = t1*box(1,:)+ &
-          &       t2*box(2,:)+ &
-          &       t3*box(3,:)+ &
-          &       plotdef%box%origin%coord(:)
+          v1(:) = t1*boxl(2,:)+ &
+          &       t2*boxl(3,:)+ &
+          &       t3*boxl(4,:)+ &
+          &       boxl(1,:)
           self%vpl(:,ip) = v1(:)
           ! convert point to Cartesian coordinates
      			call r3frac(input%structure%epslat, v1, iv)
@@ -238,7 +206,7 @@ contains
     call find_mt_points(self)
 
     return
-  end subroutine
+  end function
 
   !----------------------------------------------------------------------------
   subroutine find_mt_points(self)
@@ -248,7 +216,8 @@ contains
   	type(rgrid),       intent(inout) :: self
   	! local variables
 		integer :: ip, ia, is, i1, i2, i3, iv(3)
-		real(8) :: t1, v1(3), v2(3), v3(3), rmt2
+    integer :: n1, n2, n3
+		real(8) :: t1, v0(3), v1(3), v2(3), v3(3), rmt2
 
 		if (allocated(self%mtpoint)) deallocate(self%mtpoint)
 		allocate(self%mtpoint(self%npt))
@@ -258,8 +227,14 @@ contains
 		allocate(self%atom(2,self%npt))
 		self%atom(:,:) = 0
 
+    if (allocated(self%iv)) deallocate(self%iv)
+    allocate(self%iv(3,self%npt))
+    self%iv(:,:) = 0    
+
 		do ip = 1, self%npt
-      v1(:) = self%vpc(:,ip)
+      v0(:) = self%vpl(:,ip)
+      call r3frac(1.d-6, v0, iv)
+      call r3mv(input%structure%crystal%basevect, v0, v1)
 			! check if point is in a muffin-tin
       do is = 1, nspecies
         rmt2 = rmt(is)**2
@@ -280,6 +255,7 @@ contains
             	self%atom(1,ip) = is
             	self%atom(2,ip) = ia
             	self%vpc(:,ip) = v3(:)
+              self%iv(:,ip) = iv(:)-(/i1,i2,i3/)
             	go to 10
             end if            
           end do
@@ -294,27 +270,27 @@ contains
   end subroutine
 
 	!----------------------------------------------------------------------------
-	subroutine calc_zdata_rgrid(self,wfmt,wfir,zdata)
-		use modmain, only : lmmaxvr, idxas, nrmt, spr, ngvec, vgc, &
-		&                   natmtot, ngrtot, nrmtmax
+	subroutine calc_zdata_rgrid(self,ik,wfmt,wfir,zdata)
+		use modmain
 		implicit none
 
 	  type(rgrid), intent(in)  :: self
-		complex(8),  intent(in)  :: wfmt(lmmaxvr,nrmtmax,natmtot)
+    integer,     intent(in)  :: ik
+		complex(8),  intent(in)  :: wfmt(lmmaxapw,nrmtmax,natmtot)
     complex(8),  intent(in)  :: wfir(ngrtot)
     complex(8),  intent(out) :: zdata(*)
     ! local
-    integer :: ip, is, ia, ias, ir, i, j, lm, ig, igp
-    real(8) :: vl(3), vc(3), r
+    integer :: ip0, ip, is, ia, ias, ir, i, j, lm, ig, igp
+    real(8) :: vl(3), vc(3), v(3), r
     complex(8), allocatable :: zylm(:)
 	  ! interpolation variables
-	  integer :: np2, ir0
-	  real(8) :: t1, t2
-	  complex(8) :: zsum
+	  integer :: np2, ir0, iv(3), nx, ny, nz
+	  real(8) :: t1, t2, phs, phsav
+	  complex(8) :: zsum, z
 		real(8), allocatable :: xa(:), ya(:), c(:)
 		real(8), external :: polynom
 
-    allocate(zylm(lmmaxvr))
+    allocate(zylm(lmmaxapw))
     allocate(xa(input%groundstate%nprad))
     allocate(ya(input%groundstate%nprad))
     allocate(c(input%groundstate%nprad))
@@ -326,13 +302,14 @@ contains
     	ia = self%atom(2,ip)
     	ias = idxas(ia,is)
     	vl(:) = self%vpl(:,ip)
-    	vc(:) = self%vpc(:,ip)
+      vc(:) = self%vpc(:,ip)
 
     	if (self%mtpoint(ip)) then
     	  !----------------------------
     		! point belong to MT region
     		!----------------------------
-    		call ylm(vc,input%groundstate%lmaxvr,zylm)
+        ! cart. coordinates wrt atom (is,ia)
+    		call ylm(vc,input%groundstate%lmaxapw,zylm)
     		r = dsqrt(vc(1)**2+vc(2)**2+vc(3)**2)
 				do ir = 1, nrmt(is)
           if (spr(ir,is)>=r) then
@@ -345,7 +322,7 @@ contains
             end if
             r = max(r,spr(1,is))
             zsum = 0.d0
-            do lm = 1, lmmaxvr
+            do lm = 1, lmmaxapw
             	do j = 1, input%groundstate%nprad
                 i = ir0+j-1
                 xa(j) = dble(wfmt(lm,i,ias))
@@ -364,22 +341,47 @@ contains
 
         zdata(ip) = zsum
 
+        v(:) = dble(self%iv(:,ip))
+        t1 = twopi*(vkl(1,ik)*v(1)+ &
+        &           vkl(2,ik)*v(2)+ &
+        &           vkl(3,ik)*v(3))
+        zdata(ip) = zsum*cmplx(dcos(t1),dsin(t1),8)
+
       else
 				!----------------------------
     		! point belong to IS region
     		!----------------------------
-    		zsum = 0.d0
-        do ig = 1, ngvec
-          t1 = vgc(1,ig)*vc(1)+ &
-          &    vgc(2,ig)*vc(2)+ &
-          &    vgc(3,ig)*vc(3)
-          zsum = zsum + wfir(ig)*cmplx(dcos(t1),dsin(t1),8)
+        zsum = 0.d0
+        do igp = 1, ngk(1,ik)
+          t1 = twopi*(vgkl(1,igp,1,ik)*vl(1)+ &
+          &           vgkl(2,igp,1,ik)*vl(2)+ &
+          &           vgkl(3,igp,1,ik)*vl(3))
+          zsum = zsum + wfir(igp)*cmplx(dcos(t1),dsin(t1),8)
         end do
         zdata(ip) = zsum
 
       end if
 
     end do ! ip
+
+    ! dephasing (lapw7)
+    if (.false.) then
+      phsav = 0.0d0
+      do ip = 1, self%npt
+        z = zdata(ip)
+        if (abs(z)>1d-8) then
+          phsav = phsav + dmod(datan2(dimag(z),dble(z))+pi,pi)
+        end if
+      end do
+      phsav = phsav/dble(self%npt)
+      phs   = dcmplx(cos(phsav),-sin(phsav))
+      do ip = 1, self%npt
+        zdata(ip) = zdata(ip)*phs
+      end do
+    end if
+
+    ! t1 = dsqrt(0.5d0/omega)
+    ! zdata(1:self%npt) = t1*zdata(1:self%npt)
 
     return
   end subroutine

@@ -39,35 +39,31 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
-	<xs:element ex:importance="expert" ex:unit="" name="excitonplot" minOccurs="0" maxOccurs="1">
+
+	<xs:element ex:importance="expert" ex:unit="" name="excitonPlot" minOccurs="0" maxOccurs="1">
 	  <xs:annotation>
-            <xs:documentation></xs:documentation>
-          </xs:annotation>
-          <xs:complexType>
-	    <xs:attribute ex:importance="expert" ex:unit="" name="ExcitonIndex" type="xs:integer"
-		    default="1">
+      <xs:documentation></xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+	    <xs:attribute ex:importance="expert" ex:unit="" name="excitonIndex" type="xs:integer" default="1">
 	      <xs:annotation>
-	        <xs:documentation>It represents the index of the exciton to be plotted. The default value is set to 1. 
-		  If exciton 1 is not stored, the default value is set to the lowest index of the stored excitons. </xs:documentation>
+	        <xs:documentation>It represents the index of the exciton to be plotted. The default value is set to 1. If exciton 1 is not stored, the default value is set to the lowest index of the stored excitons. </xs:documentation>
 	      </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="FixHole" type="xs:boolean"
-		    default="true">
-	      <xs:annotation>
-	        <xs:documentation>When <pre>"true"</pre>, the position of the hole is fixed, according to the value of <attref>FixCoord</attref>.
-		If <pre>"false"</pre>, the position of the electron is fixed instead.</xs:documentation>
-	      </xs:annotation>
-            </xs:attribute>
-	    <xs:attribute ex:importance="expert" ex:unit="" name="FixCoord" type="vect3d"
-              default="0.0d0 0.0d0 0.0d0">
-              <xs:annotation>
-                <xs:documentation>Fixed coordinates of the hole or electron, see <attref>FixHole</attref>, in the exciton wave function.
-		It is given in units of the lattice vectors.
-		</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-          </xs:complexType>
-        </xs:element>
+      </xs:attribute>
+	    <xs:attribute ex:importance="expert" ex:unit="" name="holeCoord" type="vect3d" default="0.0d0 0.0d0 0.0d0">
+        <xs:annotation>
+          <xs:documentation>Fixed coordinates of the hole in the exciton wave function. It is given in units of the lattice vectors.
+		      </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:all>
+        <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0"/>
+        <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+        <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="tddft" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="ahc" type="xs:boolean"
@@ -1103,6 +1099,19 @@
                             <xs:documentation>Debug routine of main part of code.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
+                        <!-- NEW FEATURE-->
+                        <xs:enumeration value="plot_exc_wf">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>710</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>
+                              Visualize exciton wavefunction.
+                            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+
                         <!-- import/export tasks below -->
                         <xs:enumeration value="portstate(1)">
                           <xs:annotation>

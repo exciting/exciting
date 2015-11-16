@@ -9,9 +9,12 @@ subroutine wfplot_new(ik,ist)
     ! input/output
     integer, intent(in) :: ik, ist
     ! local variables
-    integer :: ip
+    integer :: ip, np, iv, nv
     character(80) :: fname
-    ! allocatable arrays      
+    integer :: igrid(3)
+    real(8) :: boxl(4,3)
+    ! allocatable arrays
+    real(8),    allocatable :: vvl(:,:)
     complex(8), allocatable :: apwalm(:,:,:,:)
     complex(8), allocatable :: evecfv(:,:)
     complex(8), allocatable :: evecsv(:,:)
@@ -63,29 +66,53 @@ subroutine wfplot_new(ik,ist)
     &          sfacgk(:,:,1,ik), apwalm)
 
     ! calculate the wavefunctions for all states
-    allocate(wfmt(lmmaxvr,nrmtmax,natmtot,nspinor,nstsv))
+    allocate(wfmt(lmmaxapw,nrmtmax,natmtot,nspinor,nstsv))
     allocate(wfir(ngrtot,nspinor,nstsv))
     !call genwfsv(.false., ngk(1, ik), igkig(:, 1, ik), evalsv, &
     !&            apwalm, evecfv, evecsv, wfmt, wfir)
     call genwfsv_new(ik, ist, ist, apwalm, evecfv, evecsv, wfmt, wfir)
 
-    write(*,*) 'MT', sum(wfmt)
-    write(*,*) 'IS', sum(wfir)
-
     !----------------
     ! 1D case
     !----------------
-    If (associated(input%properties%wfplot%plot1d)) Then
-      call gen_1d_rgrid(grid)
+    If (associated(input%properties%wfplot%plot1d)) then
+      nv = size(input%properties%wfplot%plot1d%path%pointarray)
+      !write(*,*) nv
+      if (nv < 1) then
+        write (*,*)
+        write (*,*) "Error(wfplot_new): Wrong plot specification!"
+        write (*,*)
+        stop
+      end if
+      np = input%properties%wfplot%plot1d%path%steps
+      !write(*,*) np
+      If (np < nv) then
+        write (*,*)
+        write (*,*) "Error(wfplot_new): Wrong plot specification!"
+        write (*,*)
+        stop
+      end if
+      allocate(vvl(nv,3))
+      do iv = 1, nv
+        vvl(iv,:) = input%properties%wfplot%plot1d%path%pointarray(iv)%point%coord
+        !write(*,*) vvl(iv,:)
+      end do
+
+      ! rgrid constructor
+      grid = gen_1d_rgrid(nv, vvl, np)
       !call print_rgrid(grid)
+      deallocate(vvl)
+
       ! Generate WF on the grid
       allocate(zdata(grid%npt))
-      call calc_zdata_rgrid(grid, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
+      call calc_zdata_rgrid(grid, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
       write(fname,'("data1d-",i,"-",i,".dat")') ik, ist
       call str_strip(fname)
       open(77,file=trim(fname),status='Unknown',action='Write')
       do ip = 1, grid%npt
-        write(77,'(3f16.6)') grid%vpd(ip), zdata(ip)
+        write(77,'(i,2f16.6)') ip, zdata(ip)
+        !write(77,'(3f16.6)') grid%vpd(ip), zdata(ip)
+        !write(77,'(2f16.6)') grid%vpd(ip), wkpt(ik)*nkptnr*abs(zdata(ip))**2
       end do
       close(77)
       call delete_rgrid(grid)
@@ -98,42 +125,63 @@ subroutine wfplot_new(ik,ist)
     ! 2D case
     !----------------
     if (associated(input%properties%wfplot%plot2d)) then
-      call gen_2d_rgrid(grid)
-      call print_rgrid(grid)
+
+      igrid(:)  = input%xs%excitonPlot%plot2d%parallelogram%grid(1:3)
+      boxl(1,:) = input%properties%wfplot%plot2d%parallelogram%origin%coord
+      boxl(2,:) = input%properties%wfplot%plot2d%parallelogram%pointarray(1)%point%coord
+      boxl(3,:) = input%properties%wfplot%plot2d%parallelogram%pointarray(2)%point%coord
+      ! test whether box is reasonable ?
+
+      ! rgrid constructor
+      grid = gen_2d_rgrid(igrid, boxl(1:3,:))
+      !call print_rgrid(grid)
+
       ! Generate WF on the grid
       allocate(zdata(grid%npt))
-      call calc_zdata_rgrid(grid, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
+      call calc_zdata_rgrid(grid, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
       call delete_rgrid(grid)
+
       write(fname,'("data2d-",i,"-",i,".xsf")') ik, ist
       call str_strip(fname)
-      call write_2d_xsf(fname,grid%npt,dble(zdata))
+      call write_2d_xsf(fname, boxl(1:3,:), igrid, grid%npt, dble(zdata))
       write (*,*)
       write (*, '("Info(wfplot):")')
       write (*, '(" 2D wavefunction  written to data2d.xsf")')
       write (*,*)
+
     end if
 
     !----------------
     ! 3D case
     !----------------
     if (associated(input%properties%wfplot%plot3d)) then
-      call gen_3d_rgrid(grid)
+
+      igrid(:)  = input%xs%excitonPlot%plot3d%box%grid
+      boxl(1,:) = input%properties%wfplot%plot3d%box%origin%coord
+      boxl(2,:) = input%properties%wfplot%plot3d%box%pointarray(1)%point%coord
+      boxl(3,:) = input%properties%wfplot%plot3d%box%pointarray(2)%point%coord
+      boxl(4,:) = input%properties%wfplot%plot3d%box%pointarray(3)%point%coord
+
+      ! rgrid constructor
+      grid = gen_3d_rgrid(igrid, boxl(1:4,:))
       !call print_rgrid(grid)
+
       ! Generate WF on the grid
       allocate(zdata(grid%npt))
-      call calc_zdata_rgrid(grid, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
+      call calc_zdata_rgrid(grid, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
       call delete_rgrid(grid)
+
       write(fname,'("data3d-",i,"-",i,".xsf")') ik, ist
       call str_strip(fname)
-      call write_3d_xsf(fname,grid%npt,dble(zdata))
-      Write(*,*)
-      Write(*, '("Info(wfplot):")')
-      Write(*, '(" 3D wavefunction written to data3d.xsf")')
-      Write (*,*)
+      call write_3d_xsf(fname, boxl(1:4,:), igrid, grid%npt, dble(zdata))
+      write(*,*)
+      write(*, '("Info(wfplot):")')
+      write(*, '(" 3D wavefunction written to data3d.xsf")')
+      write (*,*)
+
     end if
 
-    write(*, '(" for k-point ", I6, " and state ", I6)') &
-    &   ik, ist
+    write(*, '(" for k-point ", I6, " and state ", I6)') ik, ist
     write(*,*)
     
     deallocate(apwalm, evecfv, evecsv, wfmt, wfir)

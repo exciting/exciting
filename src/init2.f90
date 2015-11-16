@@ -184,7 +184,7 @@ Subroutine init2
       End If
       If ((task .Eq. 440) .Or. (task .Eq. 441) .Or. (task .Eq. 445) .Or. (task .Eq. 446) &
      & .Or. (task .Eq. 450) .Or. (task .Eq. 451) .Or. (task .Eq. 499) &
-     & .Or. (task .Eq. 700)) Then
+     & .Or. (task .Eq. 700) .Or. (task .Eq. 710)) Then
          If (allocated(ivqr)) deallocate (ivqr)
          Allocate (ivqr(3, ngridq(1)*ngridq(2)*ngridq(3)))
          If (allocated(vqlr)) deallocate (vqlr)

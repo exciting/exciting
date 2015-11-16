@@ -11,7 +11,7 @@ subroutine genwfsv_new(ik, ist1, ist2, apwalm, evecfv, evecsv, wfmt, wfir)
     complex(8), intent(in)  :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
     complex(8), intent(in)  :: evecfv(nmatmax,nstfv)
     complex(8), intent(in)  :: evecsv(nstsv,nstsv)
-    complex(8), intent(out) :: wfmt(lmmaxvr,nrmtmax,natmtot,nspinor,nstsv)
+    complex(8), intent(out) :: wfmt(lmmaxapw,nrmtmax,natmtot,nspinor,nstsv)
     complex(8), intent(out) :: wfir(ngrtot,nspinor,nstsv)
     ! local variables
     integer    :: ispn, is, ia, ias
@@ -26,14 +26,14 @@ subroutine genwfsv_new(ik, ist1, ist2, apwalm, evecfv, evecsv, wfmt, wfir)
     wfir(:,:,:) = 0.d0
 
     allocate(done(nstfv))
-    allocate (wfmt1(lmmaxvr,nrcmtmax))
+    allocate (wfmt1(lmmaxapw,nrcmtmax))
 
 !--------------------------------!
 !     muffin-tin wavefunction    !
 !--------------------------------!
     
     do is = 1, nspecies
-      n = lmmaxvr*nrmt(is)
+      n = lmmaxapw*nrmt(is)
       do ia = 1, natoms(is)
         ias = idxas(ia,is)
         done(:) = .false.
@@ -48,8 +48,8 @@ subroutine genwfsv_new(ik, ist1, ist2, apwalm, evecfv, evecsv, wfmt, wfir)
                 zt1 = evecsv(i,j)
                 if (abs(zt1)>1.d-8) then
                   if (.not.done(ist)) then
-                    call wavefmt(1, input%groundstate%lmaxvr, is, ia, &
-                    &            ngk(1,ik), apwalm, evecfv(:,ist), lmmaxvr, wfmt1)
+                    call wavefmt(1, input%groundstate%lmaxapw, is, ia, &
+                    &            ngk(1,ik), apwalm, evecfv(:,ist), lmmaxapw, wfmt1)
                     done(ist) = .true.
                   end if
                   ! add to spinor wavefunction
@@ -60,8 +60,8 @@ subroutine genwfsv_new(ik, ist1, ist2, apwalm, evecfv, evecsv, wfmt, wfir)
             end do ! ispn
           else
             ! spin-unpolarised wavefunction
-            call wavefmt(1, input%groundstate%lmaxvr, is, ia, &
-            &            ngk(1,ik), apwalm, evecfv(:,j), lmmaxvr, &
+            call wavefmt(1, input%groundstate%lmaxapw, is, ia, &
+            &            ngk(1,ik), apwalm, evecfv(:,j), lmmaxapw, &
             &            wfmt(:,:,ias,1,j))
           end if
         end do ! j
