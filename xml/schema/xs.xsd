@@ -1100,7 +1100,7 @@
                           </xs:annotation>
                         </xs:enumeration>
 
-                        <!-- NEW FEATURE-->
+                        <!-- Visualize BSE exciton wavefunction -->
                         <xs:enumeration value="plot_exc_wf">
                           <xs:annotation>
                             <xs:appinfo>

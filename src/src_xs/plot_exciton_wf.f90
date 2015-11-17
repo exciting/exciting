@@ -159,7 +159,10 @@ contains
     if (rank==0) then
       write(fname,'("wf-eh-pair-2d-",i,".xsf")') lambda
       call str_strip(fname)
-      call write_2d_xsf(fname, boxl, igrid, r_e%npt,abs(zwfeh))
+      call write_structure_xsf(fname)
+      !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
+      call write_2d_xsf(fname, 'module of electron-hole wavefunction', &
+      &                 boxl, igrid, r_e%npt, abs(zwfeh))
     end if
 
     deallocate(zwfeh)
@@ -207,7 +210,10 @@ contains
     if (rank==0) then
       write(fname,'("wf-eh-pair-3d-",i,".xsf")') lambda
       call str_strip(fname)
-      call write_3d_xsf(fname, boxl, igrid, r_e%npt, abs(zwfeh))
+      call write_structure_xsf(fname)
+      !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
+      call write_3d_xsf(fname, 'module of the electron-hole wavefunction', &
+      &                 boxl, igrid, r_e%npt, abs(zwfeh))
     end if
 
     deallocate(zwfeh)

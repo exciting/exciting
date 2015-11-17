@@ -110,7 +110,7 @@ subroutine wfplot_new(ik,ist)
       call str_strip(fname)
       open(77,file=trim(fname),status='Unknown',action='Write')
       do ip = 1, grid%npt
-        write(77,'(i,2f16.6)') ip, zdata(ip)
+        write(77,'(i,3f16.6)') ip, zdata(ip), abs(zdata(ip))**2
         !write(77,'(3f16.6)') grid%vpd(ip), zdata(ip)
         !write(77,'(2f16.6)') grid%vpd(ip), wkpt(ik)*nkptnr*abs(zdata(ip))**2
       end do
@@ -119,6 +119,7 @@ subroutine wfplot_new(ik,ist)
       write(*,*)
       write(*, '("Info(wfplot):")')
       write(*, '(" 1D Wavefunction written to data1d.dat")')
+      deallocate(zdata)
     end if
 
     !----------------
@@ -126,14 +127,14 @@ subroutine wfplot_new(ik,ist)
     !----------------
     if (associated(input%properties%wfplot%plot2d)) then
 
-      igrid(:)  = input%xs%excitonPlot%plot2d%parallelogram%grid(1:3)
-      boxl(1,:) = input%properties%wfplot%plot2d%parallelogram%origin%coord
-      boxl(2,:) = input%properties%wfplot%plot2d%parallelogram%pointarray(1)%point%coord
-      boxl(3,:) = input%properties%wfplot%plot2d%parallelogram%pointarray(2)%point%coord
+      igrid(1:2) = input%properties%wfplot%plot2d%parallelogram%grid(1:2)
+      boxl(1,:)  = input%properties%wfplot%plot2d%parallelogram%origin%coord(1:3)
+      boxl(2,:)  = input%properties%wfplot%plot2d%parallelogram%pointarray(1)%point%coord(1:3)
+      boxl(3,:)  = input%properties%wfplot%plot2d%parallelogram%pointarray(2)%point%coord(1:3)
       ! test whether box is reasonable ?
 
       ! rgrid constructor
-      grid = gen_2d_rgrid(igrid, boxl(1:3,:))
+      grid = gen_2d_rgrid(igrid(1:2), boxl(1:3,:))
       !call print_rgrid(grid)
 
       ! Generate WF on the grid
@@ -143,11 +144,15 @@ subroutine wfplot_new(ik,ist)
 
       write(fname,'("data2d-",i,"-",i,".xsf")') ik, ist
       call str_strip(fname)
-      call write_2d_xsf(fname, boxl(1:3,:), igrid, grid%npt, dble(zdata))
+      call write_structure_xsf(fname)
+      call write_2d_xsf(fname, 'real',             boxl(1:3,:), igrid, grid%npt, dble(zdata))
+      call write_2d_xsf(fname, 'imaginary',        boxl(1:3,:), igrid, grid%npt, aimag(zdata))
+      call write_2d_xsf(fname, 'module squared', boxl(1:3,:), igrid, grid%npt, abs(zdata)**2)
       write (*,*)
       write (*, '("Info(wfplot):")')
       write (*, '(" 2D wavefunction  written to data2d.xsf")')
       write (*,*)
+      deallocate(zdata)
 
     end if
 
@@ -156,7 +161,7 @@ subroutine wfplot_new(ik,ist)
     !----------------
     if (associated(input%properties%wfplot%plot3d)) then
 
-      igrid(:)  = input%xs%excitonPlot%plot3d%box%grid
+      igrid(:)  = input%properties%wfplot%plot3d%box%grid
       boxl(1,:) = input%properties%wfplot%plot3d%box%origin%coord
       boxl(2,:) = input%properties%wfplot%plot3d%box%pointarray(1)%point%coord
       boxl(3,:) = input%properties%wfplot%plot3d%box%pointarray(2)%point%coord
@@ -173,11 +178,17 @@ subroutine wfplot_new(ik,ist)
 
       write(fname,'("data3d-",i,"-",i,".xsf")') ik, ist
       call str_strip(fname)
-      call write_3d_xsf(fname, boxl(1:4,:), igrid, grid%npt, dble(zdata))
+      call write_structure_xsf(fname)
+      call write_3d_xsf(fname, 'real',             boxl(1:4,:), igrid, grid%npt, dble(zdata))
+      call write_3d_xsf(fname, 'imaginary',        boxl(1:4,:), igrid, grid%npt, aimag(zdata))
+      call write_3d_xsf(fname, 'module squared', boxl(1:4,:), igrid, grid%npt, abs(zdata)**2)
       write(*,*)
       write(*, '("Info(wfplot):")')
       write(*, '(" 3D wavefunction written to data3d.xsf")')
       write (*,*)
+      deallocate(zdata)
+
+      !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
 
     end if
 
@@ -185,7 +196,7 @@ subroutine wfplot_new(ik,ist)
     write(*,*)
     
     deallocate(apwalm, evecfv, evecsv, wfmt, wfir)
-    deallocate(zdata)
+   
 
     return
 end subroutine

@@ -517,13 +517,12 @@ Subroutine bse
          Call writesumrls (iq, sumrls, trim(fnsumrules))
         enddo       
 
-!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-! CC test exciton
       end do
 
       if (associated(input%xs%storeexcitons)) then
+        !-----------------------------------------------------
         ! upon request, store array with exciton coefficients
-        
+        !-----------------------------------------------------
         if ( (input%xs%storeexcitons%MinNumberExcitons .lt. 1) .or. &
           &  (input%xs%storeexcitons%MinNumberExcitons .gt. hamsiz) .or. &
           &  (input%xs%storeexcitons%MaxNumberExcitons .lt. 1) .or. &
@@ -535,17 +534,15 @@ Subroutine bse
           write(*,*)
           stop
         end if  
-        
         ! write bin
         open(50,File='EXCCOEFF.bin', & 
-                Action='WRITE',Form='UNFORMATTED', IOstat=iostat)
-        if ( (iostat.ne.0) .and. (rank==0) ) then
+             Action='WRITE',Form='UNFORMATTED', IOstat=iostat)
+        if ((iostat/=0) .and. (rank==0)) then
           write(*,*) iostat
           write(*,'("Error(bse): error creating EXCCOEFF.bin")')
           write(*,*)
           stop
         end if
-        
         ! write
         write(50) input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons, & 
         &         nkptnr, istl3, nsta1, nsta2, nrnst1, nrnst3, hamsiz
@@ -554,7 +551,6 @@ Subroutine bse
         end do
         close(50)
       end if
-!###############################################################################################################
 
       deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
       if (associated(input%gw)) deallocate(eval0)

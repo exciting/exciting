@@ -29,7 +29,7 @@ Subroutine writebevec
            write(*,*)
            stop
          end if
-         read(un) ex_min, ex_max, nkptnr, nsta1, nrnst1, nrnst3, hamsiz
+         read(un) ex_min, ex_max, nkptnr, istl3, nsta1, nrnst1, nrnst3, hamsiz
 
          Allocate (beval(hamsiz), bevec(hamsiz,ex_max-ex_min+1))
 
