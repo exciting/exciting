@@ -57,7 +57,7 @@ Subroutine allatoms(verbosity)
       Allocate (sprho(spnrmax, nspecies))
       If (allocated(spvr)) deallocate (spvr)
       Allocate (spvr(spnrmax, nspecies))
-
+!write(*,*) 'howdy'
 !     We need to allocate some arrays for the DFT-1/2 part
       if (associated(input%groundstate%dfthalf)) then
         if (allocated(vhalfir)) deallocate (vhalfir)
@@ -67,8 +67,9 @@ Subroutine allatoms(verbosity)
         if (allocated(vhalfsph)) deallocate (vhalfsph)
         allocate(vhalfsph(spnrmax,nspecies))        
       endif
+!write(*,*) 'approaching the loop'
 
-#ifdef USEOMP
+#ifdef USEOMPallatoms
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(rwf,fnum_,fname,i,ir,n,ampl,cut,cutfunction,aux,nshell,shell,ionization,newspocc,rhoslave)
 !$OMP DO
@@ -129,7 +130,7 @@ Subroutine allatoms(verbosity)
 !          (concerning the Ionization scheme provided by the user)
            If (allocated(newspocc)) deallocate (newspocc)
            Allocate ( newspocc(spnst(is)) )
-           newspocc(:) = spocc(:, is)
+           newspocc(1:spnst(is)) = spocc(1:spnst(is), is)
            Do i = 1, nshell
              if (shell(i).le.0) then
                shell(i) = spnst(is)+shell(i)
@@ -182,7 +183,7 @@ Subroutine allatoms(verbosity)
            end if
          Endif !if (associated(input%groundstate%dfthalf))
       End Do
-#ifdef USEOMP
+#ifdef USEOMPallatoms
 !$OMP END DO
 !$OMP END PARALLEL
 #endif
