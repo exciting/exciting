@@ -8,7 +8,7 @@ Subroutine writebevec
       Real (8), Allocatable :: beval (:)
       Complex (8), Allocatable :: bevec (:, :)
       Real (8) :: bevec_ksum, bevec1
-      Integer :: ex_min, ex_max, iv, ic, iknr, nsta1, nrnst1, nrnst3, &
+      Integer :: ex_min, ex_max, iv, ic, iknr, nsta1, nsta2, nrnst1, nrnst3, &
                  & s1, s2, hamsiz, un, iostat
       Logical :: exist
       Character (256) :: lambda
@@ -29,11 +29,11 @@ Subroutine writebevec
            write(*,*)
            stop
          end if
-         read(un) ex_min, ex_max, nkptnr, istl3, nsta1, nrnst1, nrnst3, hamsiz
+         read(un) ex_min, ex_max, nkptnr, istl3, nsta1, nsta2, nrnst1, nrnst3, hamsiz 
 
-         Allocate (beval(hamsiz), bevec(hamsiz,ex_max-ex_min+1))
+         Allocate (beval(hamsiz), bevec(hamsiz,ex_min:ex_max))
 
-         do s1 = 1, ex_max-ex_min+1 
+         do s1 = ex_min, ex_max 
             read(un) beval(s1), bevec(1:hamsiz,s1)
          end do
          Close(un)
@@ -51,9 +51,9 @@ Subroutine writebevec
 
 
       !write ASCII output of Abs(BSE eigenvector)^2 
-      Do s1 = 1, ex_max-ex_min+1
+      Do s1 = ex_min, ex_max
       Call getunit (un)
-      Write (lambda, '("_LAMBDA",i3.3)') s1+ex_min-1
+      Write (lambda, '("_LAMBDA",i3.3)') s1
       Open (Unit=un, File=trim('BEVEC'//trim(lambda)//'.OUT'), Form='formatted', Action='write')
             Do iknr = 1, nkptnr
                Do iv = 1, nrnst1
@@ -77,9 +77,9 @@ Subroutine writebevec
 
 
       !write ASCII output of sum of Abs(BSE eigenvector)^2 over all k-points     
-      Do s1 = 1, ex_max-ex_min+1
+      Do s1 = ex_min, ex_max
       Call getunit (un)
-      Write (lambda, '("_LAMBDA",i3.3)') s1+ex_min-1
+      Write (lambda, '("_LAMBDA",i3.3)') s1
       Open (Unit=un, File=trim('BEVEC_KSUM'//trim(lambda)//'.OUT'), Form='formatted', Action='write')
          Do iv = 1, nrnst1
              Do ic = 1, nrnst3
