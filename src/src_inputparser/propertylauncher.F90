@@ -14,55 +14,43 @@ Subroutine propertylauncher
 
 ! properties which depend on the ground state only
 
-      If (associated(input%properties%bandstructure)) Then
+      !--------------------------------------------------------
+      If (associated(input%properties%chargedensityplot)) Then
          call rereadinput
-         ! tasks are: 20, 21
-         task = 20
-         Call bandstr
+         call rhoplot
       End If
-      If (associated(input%properties%fermisurfaceplot) .And. rank .Eq. 0) Then
+
+      !--------------------------------------------------------
+      if (associated(input%properties%exccplot)) then
          call rereadinput
-         if (associated(input%properties%fermisurfaceplot%plot2d)) then
-            task = 101
-            Call fermisurf
-         Else
-            task = 100
-            Call fermisurf
-         End If
-      End If
-      If (associated(input%properties%dos) .And. rank .Eq. 0) Then
-         call rereadinput
-         task = 10
-         Call dos
-      End If
-      If (associated(input%properties%wfplot) .And. rank .Eq. 0) Then
+         call potplot
+      end if
+
+      !--------------------------------------------------------
+      If (associated(input%properties%wfplot)) Then
 #define NOTSTM .false.
-         Call wfplot (NOTSTM)
+         call rereadinput
+         call wfplot(NOTSTM)
       End If
-      If (associated(input%properties%stm) .And. rank .Eq. 0) Then
+
+      !--------------------------------------------------------
+      If (associated(input%properties%stm).and.(rank==0)) Then
 #define STM .true.
+         call rereadinput
          Call stm
       End If
-      If (associated(input%properties%LSJ) .And. rank .Eq. 0) Then
+
+      !--------------------------------------------------------
+      If (associated(input%properties%LSJ).and.(rank==0)) Then
          call rereadinput
-! read in input again to reset the magnetic moments for proper symmetry after
-! a possible run of the groundstate
+         ! read in input again to reset the magnetic moments for proper symmetry after
+         ! a possible run of the groundstate
          task=15
          if (associated(input%properties%LSJ%kstlist)) task=16
          Call writelsj
-      End If
-      If (associated(input%properties%masstensor) .And. rank .Eq. 0) Then
-         call rereadinput
-         task=25
-         Call effmass
-      End If
-
+      End If      
+      
       !--------------------------------------------------------
-      If (associated(input%properties%chargedensityplot)) Then
-         Call rhoplot
-      End If
-      !--------------------------------------------------------
-
       If (associated(input%properties%TSvdW)) Then
          Call TS_vdW_energy
       End If
@@ -71,57 +59,71 @@ Subroutine propertylauncher
          Call DFT_D2_energy
       End If
       
-      If (associated(input%properties%exccplot) .And. rank .Eq. 0) Then
-         Call potplot
-      End If
-      If (associated(input%properties%elfplot) .And. rank .Eq. 0) Then
+      !--------------------------------------------------------
+      If (associated(input%properties%elfplot)) Then
+         call rereadinput
          Call elfplot
       End If
-      If (associated(input%properties%xcmvecfield) .And. rank .Eq. 0) Then
-         If (associated(input%properties%xcmvecfield%plot2d) .And. rank .Eq. 0) Then
+
+      !--------------------------------------------------------
+      If (associated(input%properties%xcmvecfield)) Then
+         If (associated(input%properties%xcmvecfield%plot2d)) Then
+            call rereadinput
             task = 82
             Call vecplot
          End If
-         If (associated(input%properties%xcmvecfield%plot3d) .And. rank .Eq. 0) Then
+         If (associated(input%properties%xcmvecfield%plot3d)) Then
+            call rereadinput
             task = 83
             Call vecplot
          End If
       End If
+
       If (associated(input%properties%mvecfield)) Then
-         If (associated(input%properties%mvecfield%plot2d) .And. rank .Eq. 0) Then
+         If (associated(input%properties%mvecfield%plot2d)) Then
+            call rereadinput
             task = 72
             Call vecplot
          End If
-         If (associated(input%properties%mvecfield%plot3d) .And. rank .Eq. 0) Then
+         If (associated(input%properties%mvecfield%plot3d)) Then
+            call rereadinput
             task = 73
             Call vecplot
          End If
       End If
+
       If (associated(input%properties%electricfield)) Then
-         If (associated(input%properties%electricfield%plot2d) .And. rank .Eq. 0) Then
+         
+         If (associated(input%properties%electricfield%plot2d)) Then
+            call rereadinput
             task = 142
             Call vecplot
          End If
-         If (associated(input%properties%electricfield%plot3d) .And. rank .Eq. 0) Then
+         If (associated(input%properties%electricfield%plot3d)) Then
+            call rereadinput
             task = 143
             Call vecplot
          End If
       End If
-      If (associated(input%properties%gradmvecfield) .And. rank .Eq. 0) Then
+
+      If (associated(input%properties%gradmvecfield)) Then
+         call rereadinput
          Call dbxcplot
       End If
-      If (associated(input%properties%EFG) .And. rank .Eq. 0) Then
+
+      If (associated(input%properties%EFG).and.(rank==0)) Then
+         call rereadinput
          Call writeefg
       End If
-      If (associated(input%properties%mossbauer) .And. rank .Eq. 0) Then
+
+      If (associated(input%properties%mossbauer).and.(rank==0)) Then
+         call rereadinput
          Call mossbauer
       End If
-      If (associated(input%properties%expiqr) .And. rank .Eq. 0) Then
+
+      If (associated(input%properties%expiqr).and.(rank==0)) Then
          call rereadinput
          Call writeexpiqr
-      End If
-      If (associated(input%properties%elnes) .And. rank .Eq. 0) Then
-         Call elnes
       End If
 
 ! calculate and print the momentum matrix elements
@@ -153,7 +155,19 @@ Subroutine propertylauncher
          end do
       End If
 
-      If (associated(input%properties%eliashberg) .And. rank .Eq. 0) Then
+      If (associated(input%properties%elnes)) Then
+         call rereadinput
+         Call elnes
+      End If
+
+      If (associated(input%properties%eliashberg) .and. (rank==0)) Then
+         ! ---- dasabled by DIN ---
+         write(*,*)
+         write(*,*) " The option is currently disabled!"
+         write(*,*)
+         stop
+         !-------------------
+         call rereadinput
          ! this task depends on the results triggered by
          ! "input%properties%phonon"
          ! set the default values if dos element not present
@@ -176,5 +190,37 @@ Subroutine propertylauncher
       If (associated(input%properties%raman)) Then
          call raman
       End If
+
+      If (associated(input%properties%bandstructure)) Then
+         call rereadinput
+         ! tasks are: 20, 21
+         task = 20
+         Call bandstr
+      End If
+
+      If (associated(input%properties%dos)) Then
+         call rereadinput
+         task = 10
+         Call dos
+      End If
+
+      If (associated(input%properties%fermisurfaceplot)) Then
+         call rereadinput
+         if (associated(input%properties%fermisurfaceplot%plot2d)) then
+            task = 101
+            Call fermisurf
+         Else
+            task = 100
+            Call fermisurf
+         End If
+      End If
+
+      If (associated(input%properties%masstensor).and.(rank==0)) Then
+         call rereadinput
+         task=25
+         Call effmass
+      End If
+
+
 
 End Subroutine propertylauncher

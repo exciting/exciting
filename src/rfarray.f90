@@ -49,12 +49,14 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
       Do ip = firstofset(mod(rank,np),np), lastofset(mod(rank,np),np)
 #else
       Do ip = 1, np
-#endif      
+#endif
          v2 (:) = vpl (:, ip)
          Call r3frac (input%structure%epslat, v2, iv)
 ! convert point to Cartesian coordinates
          Call r3mv (input%structure%crystal%basevect, v2, v1)
+!----------------------------------------         
 ! check if point is in a muffin-tin
+!----------------------------------------
          Do is = 1, nspecies
             rmt2 = rmt(is)**2
             Do ia = 1, natoms(is)
@@ -107,7 +109,9 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
                End Do
             End Do
          End Do
+!----------------------------------------
 ! otherwise use interstitial function
+!----------------------------------------
          sum = 0.d0
 #ifdef USEOMP
 !$omp parallel &
@@ -132,7 +136,7 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
 #ifdef MPI
       Call mpi_allgatherv_ifc(np,1,rbuf=fp)
       Call barrier
-#endif
+#endif    
       Deallocate (rlm, zfft, ya, c)
       Return
 End Subroutine

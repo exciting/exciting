@@ -397,13 +397,27 @@
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="elnes" minOccurs="0">
           <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="" name="vecql" type="vect3d"
-              default="0.0d0 0.0d0 0.0d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="vecql" type="vect3d" default="0.0d0 0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation>Gives the q-vector in lattice coordinates for calculating
-                  ELNES.</xs:documentation>
+                <xs:documentation>Gives the q-vector in lattice coordinates for calculating ELNES.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="100">
+              <xs:annotation>
+                <xs:documentation>Number of grid points inside [wmin,wmax] interval.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" name="wmin" type="fortrandouble" default="0.0">
+              <xs:annotation>
+                <xs:documentation>Lower energy limit.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.5">
+              <xs:annotation>
+                <xs:documentation>Upper energy limit.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" name="ngrid" type="xs:integer" default="100"> </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="eliashberg" minOccurs="0">

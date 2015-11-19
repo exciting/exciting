@@ -12,6 +12,7 @@ Subroutine rhoplot
       Use modinput
       Use modmain
       use modplotlabels
+      use modmpi, only : rank
 
 ! !DESCRIPTION:
 !   Outputs the charge density and the charge density gradients (modulus)
@@ -68,9 +69,11 @@ if (.false.) then
           &           rhomtsp(:,:,:,1), rhoirsp(:,1), &
           &           input%properties%chargedensityplot%plot1d)
           call destroy_plotlablels(labels)
-          write(*,*)
-          write(*, '("Info(rhoplot):")')
-          write(*, '(" 1D spin-up density plot written to RHOUP1D.xml")')
+          if (rank==0) then
+            write(*,*)
+            write(*, '("Info(rhoplot):")')
+            write(*, '(" 1D spin-up density plot written to RHOUP1D.xml")')
+          end if
           labels=>create_plotlablels("RHODN1D","RHODN1D",1)
           call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
           call set_plotlabel_axis(labels,2,"Density","???","graceunit")
@@ -78,7 +81,9 @@ if (.false.) then
           &           rhomtsp(:,:,:,2), rhoirsp(:,2), &
           &           input%properties%chargedensityplot%plot1d)
           call destroy_plotlablels(labels)
-          write(*, '(" 1D spin-down density plot written to RHODN1D.xml")')
+          if (rank==0) then
+            write(*, '(" 1D spin-down density plot written to RHODN1D.xml")')
+          end if
 end if
           labels=>create_plotlablels("RHO1D","RHO1D",1)
           call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
@@ -87,8 +92,10 @@ end if
           &           rhomtsp, rhoirsp, &
           &           input%properties%chargedensityplot%plot1d)
           call destroy_plotlablels(labels)
-          write(*, '("Info(rhoplot):")')
-          write(*, '(" 1D spin-dependent density plot written to RHO1D.xml")')          
+          if (rank==0) then
+            write(*, '("Info(rhoplot):")')
+            write(*, '(" 1D spin-dependent density plot written to RHO1D.xml")')          
+          end if
         else
           labels=>create_plotlablels("RHO1D","RHO1D",1)
           call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
@@ -96,8 +103,10 @@ end if
           call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
           &            rhomt, rhoir, input%properties%chargedensityplot%plot1d)
           call destroy_plotlablels(labels)
-          write(*, '("Info(rhoplot):")')
-          write(*, '(" 1D density plot written to RHO1D.xml")')
+          if (rank==0) then
+            write(*, '("Info(rhoplot):")')
+            write(*, '(" 1D density plot written to RHO1D.xml")')
+          end if
         end if
       end if
       
@@ -105,46 +114,54 @@ end if
       If (associated(input%properties%chargedensityplot%plot2d)) Then
         if (associated(input%groundstate%spin)) then
 if (.false.) then        
-	  labels=>create_plotlablels("RHOUP2D","RHOUP2D",2)
-	  call set_plotlabel_axis(labels,1,"a","1","graceunit")
-	  call set_plotlabel_axis(labels,2,"b","1","graceunit")
-	  call set_plotlabel_axis(labels,3,"Density","???","graceunit")
-          Call plot2d(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
+          labels=>create_plotlablels("RHOUP2D","RHOUP2D",2)
+	        call set_plotlabel_axis(labels,1,"a","1","graceunit")
+	        call set_plotlabel_axis(labels,2,"b","1","graceunit")
+	        call set_plotlabel_axis(labels,3,"Density","???","graceunit")
+          call plot2d(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
           &           rhomtsp(:,:,:,1), rhoirsp(:,1), &
           &           input%properties%chargedensityplot%plot2d)
           call destroy_plotlablels(labels)
-          write(*, '("Info(rhoplot):")')
-          Write(*, '(" 2D spin-up density plot written to RHOUP2D.xml")')
-	  labels=>create_plotlablels("RHODN2D","RHODN2D",2)
-	  call set_plotlabel_axis(labels,1,"a","1","graceunit")
-	  call set_plotlabel_axis(labels,2,"b","1","graceunit")
-	  call set_plotlabel_axis(labels,3,"Density","???","graceunit")
-          Call plot2d(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
+          if (rank==0) then
+            write(*, '("Info(rhoplot):")')
+            Write(*, '(" 2D spin-up density plot written to RHOUP2D.xml")')
+          end if
+	        labels=>create_plotlablels("RHODN2D","RHODN2D",2)
+	        call set_plotlabel_axis(labels,1,"a","1","graceunit")
+	        call set_plotlabel_axis(labels,2,"b","1","graceunit")
+	        call set_plotlabel_axis(labels,3,"Density","???","graceunit")
+          call plot2d(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
           &           rhomtsp(:,:,:,2), rhoirsp(:,2), &
           &           input%properties%chargedensityplot%plot2d)
           call destroy_plotlablels(labels)
-          Write(*, '(" 2D spin-down density plot written to RHODN2D.xml")')
+          if (rank==0) then
+            Write(*, '(" 2D spin-down density plot written to RHODN2D.xml")')
+          end if
 end if
-	  labels=>create_plotlablels("RHO2D","RHO2D",2)
-	  call set_plotlabel_axis(labels,1,"a","1","graceunit")
-	  call set_plotlabel_axis(labels,2,"b","1","graceunit")
-	  call set_plotlabel_axis(labels,3,"Density","???","graceunit")
-          Call plot2d(labels, 2, input%groundstate%lmaxvr, lmmaxvr, &
+	        labels=>create_plotlablels("RHO2D","RHO2D",2)
+	        call set_plotlabel_axis(labels,1,"a","1","graceunit")
+	        call set_plotlabel_axis(labels,2,"b","1","graceunit")
+	        call set_plotlabel_axis(labels,3,"Density","???","graceunit")
+          call plot2d(labels, 2, input%groundstate%lmaxvr, lmmaxvr, &
           &           rhomtsp, rhoirsp, &
           &           input%properties%chargedensityplot%plot2d)
           call destroy_plotlablels(labels)
-          write(*, '("Info(rhoplot):")')
-          Write(*, '(" 2D spin-dependent density plot written to RHO2D.xml")')
+          if (rank==0) then
+            write(*, '("Info(rhoplot):")')
+            Write(*, '(" 2D spin-dependent density plot written to RHO2D.xml")')
+          end if
         else
           labels=>create_plotlablels("RHO2D","RHO2D",2)
-	  call set_plotlabel_axis(labels,1,"a","1","graceunit")
-	  call set_plotlabel_axis(labels,2,"b","1","graceunit")
-	  call set_plotlabel_axis(labels,3,"Density","???","graceunit")
-          Call plot2d(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
+	        call set_plotlabel_axis(labels,1,"a","1","graceunit")
+	        call set_plotlabel_axis(labels,2,"b","1","graceunit")
+	        call set_plotlabel_axis(labels,3,"Density","???","graceunit")
+          call plot2d(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
           &           rhomt, rhoir, input%properties%chargedensityplot%plot2d)
           call destroy_plotlablels(labels)
-          write(*, '("Info(rhoplot):")')
-          Write(*, '(" 2D density plot written to RHO2D.xml")')
+          if (rank==0) then
+            write(*, '("Info(rhoplot):")')
+            write(*, '(" 2D density plot written to RHO2D.xml")')
+          end if
         end if
       End If
       
@@ -161,8 +178,10 @@ if (.false.) then
           &           rhomtsp(:,:,:,1), rhoirsp(:,1), &
           &           input%properties%chargedensityplot%plot3d)
           call destroy_plotlablels(labels)
-          write(*, '("Info(rhoplot):")')
-          Write(*, '(" 3D spin-up density plot written to RHOUP3D.xml")')
+          if (rank==0) then
+            write(*, '("Info(rhoplot):")')
+            Write(*, '(" 3D spin-up density plot written to RHOUP3D.xml")')
+          end if
           labels=>create_plotlablels("RHODN3D","RHODN3D",3)
           call set_plotlabel_axis(labels,1,"a","1","graceunit")
           call set_plotlabel_axis(labels,2,"b","1","graceunit")
@@ -172,7 +191,9 @@ if (.false.) then
           &           rhomtsp(:,:,:,2), rhoirsp(:,2), &
           &           input%properties%chargedensityplot%plot3d)
           call destroy_plotlablels(labels)
-          Write(*, '(" 3D spin-down density plot written to RHODN3D.xml")')
+          if (rank==0) then
+            Write(*, '(" 3D spin-down density plot written to RHODN3D.xml")')
+          end if
 end if
           labels=>create_plotlablels("RHO3D","RHO3D",3)
           call set_plotlabel_axis(labels,1,"a","1","graceunit")
@@ -183,8 +204,10 @@ end if
           &           rhomtsp, rhoirsp, &
           &           input%properties%chargedensityplot%plot3d)
           call destroy_plotlablels(labels)
-          write(*, '("Info(rhoplot):")')
-          Write(*, '(" 3D spin-dependent density plot written to RHO3D.xml")')
+          if (rank==0) then
+            write(*, '("Info(rhoplot):")')
+            write(*, '(" 3D spin-dependent density plot written to RHO3D.xml")')
+          end if
         else
           labels=>create_plotlablels("RHO3D","RHO3D",3)
           call set_plotlabel_axis(labels,1,"a","1","graceunit")
@@ -196,11 +219,13 @@ end if
           !Call plot3d_ir(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
           !&              rhomt, rhoir, input%properties%chargedensityplot%plot3d)
           call destroy_plotlablels(labels)
-          write(*, '("Info(rhoplot):")')
-          Write(*, '(" 3D density plot written to RHO3D.xml")')
+          if (rank==0) then
+            write(*, '("Info(rhoplot):")')
+            write(*, '(" 3D density plot written to RHO3D.xml")')
+          end if
         end if
       End If
-      Write(*,*)
+      if (rank==0) write(*,*)
       Return
       
 contains

@@ -9,11 +9,12 @@
 Subroutine elnes
       Use modmain
       Use modinput
+      use modmpi, only : rank
       Implicit None
 ! local variables
       Integer :: ik, ist, jst
-      Integer :: n, nsk (3), iw
-      Real (8) :: wd, dw, w, t1
+      Integer :: n, nsk (3), nw, iw
+      Real (8) :: wd, dw, w, t1, wlim(2)
       Real (8) :: vecqc (3), qc
 ! allocatable arrays
       Real (8), Allocatable :: e (:, :, :)
@@ -24,10 +25,13 @@ Subroutine elnes
 ! initialise universal variables
       Call init0
       Call init1
+
+      nw = input%properties%elnes%wgrid
+
 ! allocate local arrays
       Allocate (e(nstsv, nstsv, nkpt))
       Allocate (f(nstsv, nstsv, nkpt))
-      Allocate (eps2(input%properties%dos%nwdos))
+      Allocate (eps2(nw))
 ! allocate the matrix elements array for < i,k+G+q | exp(iq.r) | j,k >
       Allocate (emat(nstsv, nstsv))
 ! read in the density and potentials from file
@@ -76,32 +80,33 @@ Subroutine elnes
          End Do
       End Do
 ! number of subdivisions used for interpolation
-      nsk (:) = Max &
-     & (input%properties%dos%ngrdos/input%groundstate%ngridk(:), 1)
+      nsk (:) = Max(input%properties%elnes%ngrid/input%groundstate%ngridk(:), 1)
       n = nstsv * nstsv
 ! integrate over the Brillouin zone
-      Call brzint (input%properties%dos%nsmdos, &
-     & input%groundstate%ngridk, nsk, ikmap, &
-     & input%properties%dos%nwdos, wdos, n, n, e, f, eps2)
+      wlim(1:2) = (/input%properties%elnes%wmin, input%properties%elnes%wmax/)
+      Call brzint (0, input%groundstate%ngridk, nsk, ikmap, &
+      &            nw, wlim, n, n, e, f, eps2)
 ! q-vector in Cartesian coordinates
       Call r3mv (bvec, input%properties%elnes%vecql, vecqc)
       qc = Sqrt (vecqc(1)**2+vecqc(2)**2+vecqc(3)**2)
       t1 = occmax / omega
       If (qc .Gt. input%structure%epslat) t1 = t1 / qc ** 2
       eps2 (:) = t1 * eps2 (:)
-      Open (50, File='ELNES.OUT', Action='WRITE', Form='FORMATTED')
-      wd = wdos (2) - wdos (1)
-      dw = wd / dble (input%properties%dos%nwdos)
-      Do iw = 1, input%properties%dos%nwdos
-         w = dw * dble (iw-1) + wdos (1)
-         Write (50, '(2G18.10)') w, eps2 (iw)
-      End Do
-      Close (50)
-      Write (*,*)
-      Write (*, '("Info(elnes):")')
-      Write (*, '(" ELNES intensity distribution written to ELNES.OUT")&
-     &')
-      Write (*,*)
+
+      if (rank==0) then
+        Open (50, File='ELNES.OUT', Action='WRITE', Form='FORMATTED')
+        wd = wlim(2) - wlim(1)
+        dw = wd / dble (nw)
+        Do iw = 1, nw
+          w = dw * dble (iw-1) + wlim(1)
+          Write (50, '(2G18.10)') w, eps2 (iw)
+        End Do
+        Close (50)
+        Write (*,*)
+        Write (*, '("Info(elnes):")')
+        Write (*, '(" ELNES intensity distribution written to ELNES.OUT")')
+        Write (*,*)
+      end if ! rank
       Deallocate (e, f, eps2, emat)
       Return
 End Subroutine

@@ -79,7 +79,9 @@ test09::
 	cd test09 && bash validate.sh
 	cd test09 && perl assert.pl  
 
-
+test10::exciting  
+	cd test10/run_properties && ../../../build/debug/exciting
+	cd test10 && perl assert.pl
 
 testmpi::
 	cd ../build/mpi/; $(MAKE) libs; $(MAKE) 
@@ -103,3 +105,4 @@ cleantests::
 	-rm -f  test*/err
 	-rm -f  test*/run*/result*
 	-rm -f  test*/result*
+	-rm -f  test*/run*/*3D.xml

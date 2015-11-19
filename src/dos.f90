@@ -10,7 +10,7 @@ Subroutine dos
       Use modinput
       Use modmain
       Use FoX_wxml
-      Use modmpi, Only: splittfile
+      Use modmpi, Only: rank, splittfile
 ! !DESCRIPTION:
 !   Produces a total and partial density of states (DOS) for plotting. The total
 !   DOS is written to the file {\tt TDOS.OUT} while the partial DOS is written
@@ -122,11 +122,12 @@ Subroutine dos
       v1 (:) = input%properties%dos%sqados
       t1 = Sqrt (v1(1)**2+v1(2)**2+v1(3)**2)
       If (t1 .Le. input%structure%epslat) Then
-         Write (*,*)
-         Write (*, '("Error(dos): spin-quantisation axis (sqados) has z&
-        &ero length")')
-         Write (*,*)
-         Stop
+        if (rank==0) then
+          Write (*,*)
+          Write (*, '("Error(dos): spin-quantisation axis (sqados) has zero length")')
+          Write (*,*)
+          Stop
+        end if
       End If
       v1 (:) = v1 (:) / t1
       If (v1(3) .Ge. 1.d0-input%structure%epslat) Then
@@ -218,6 +219,9 @@ Subroutine dos
 !-------------------------------------!
 !     calculate and output total DOS  !
 !-------------------------------------!
+
+if (rank==0) then
+
       Open (50, File='TDOS.OUT', Action='WRITE', Form='FORMATTED')
       Call xml_OpenFile ("dos.xml", xf, replace=.True., pretty_print=.True.)
       Call xml_NewElement (xf, "dos")
@@ -527,6 +531,9 @@ Subroutine dos
       Write(*,*)
       Write(*, '("   DOS units are states/Hartree/unit cell")')
       Write(*,*)
+
+end if ! rank
+
       Return
 End Subroutine
 !EOC
