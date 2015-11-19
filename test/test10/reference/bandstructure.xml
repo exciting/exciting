@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="http://xml.exciting-code.org/visualizationtemplates/bandstructure2html.xsl" type="text/xsl"?>
+<bandstructure>
+  <title>Silicon</title>
+  <band>
+    <point distance="0.000000000" eval="-0.4509049469"/>
+    <point distance="0.6804402542E-01" eval="-0.4489177998"/>
+    <point distance="0.1360880508" eval="-0.4429697095"/>
+    <point distance="0.2041320763" eval="-0.4331017194"/>
+    <point distance="0.2721761017" eval="-0.4193849076"/>
+    <point distance="0.3402201271" eval="-0.4019259771"/>
+    <point distance="0.4082641525" eval="-0.3808739462"/>
+    <point distance="0.4763081779" eval="-0.3564296145"/>
+    <point distance="0.5443522034" eval="-0.3288590886"/>
+    <point distance="0.6123962288" eval="-0.2985053198"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="-0.1068062562E-01"/>
+    <point distance="0.6804402542E-01" eval="-0.2352382423E-01"/>
+    <point distance="0.1360880508" eval="-0.5222121391E-01"/>
+    <point distance="0.2041320763" eval="-0.8640938536E-01"/>
+    <point distance="0.2721761017" eval="-0.1224194425"/>
+    <point distance="0.3402201271" eval="-0.1589879919"/>
+    <point distance="0.4082641525" eval="-0.1954636398"/>
+    <point distance="0.4763081779" eval="-0.2312633316"/>
+    <point distance="0.5443522034" eval="-0.2658025872"/>
+    <point distance="0.6123962288" eval="-0.2985053197"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="-0.1068062546E-01"/>
+    <point distance="0.6804402542E-01" eval="-0.1862722571E-01"/>
+    <point distance="0.1360880508" eval="-0.3587564145E-01"/>
+    <point distance="0.2041320763" eval="-0.5491099065E-01"/>
+    <point distance="0.2721761017" eval="-0.7262527212E-01"/>
+    <point distance="0.3402201271" eval="-0.8784092325E-01"/>
+    <point distance="0.4082641525" eval="-0.1000119866"/>
+    <point distance="0.4763081779" eval="-0.1088524307"/>
+    <point distance="0.5443522034" eval="-0.1142087452"/>
+    <point distance="0.6123962288" eval="-0.1160013528"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="-0.1068062546E-01"/>
+    <point distance="0.6804402542E-01" eval="-0.1862722560E-01"/>
+    <point distance="0.1360880508" eval="-0.3587564135E-01"/>
+    <point distance="0.2041320763" eval="-0.5491099056E-01"/>
+    <point distance="0.2721761017" eval="-0.7262527204E-01"/>
+    <point distance="0.3402201271" eval="-0.8784092316E-01"/>
+    <point distance="0.4082641525" eval="-0.1000119865"/>
+    <point distance="0.4763081779" eval="-0.1088524306"/>
+    <point distance="0.5443522034" eval="-0.1142087451"/>
+    <point distance="0.6123962288" eval="-0.1160013528"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.8155991437E-01"/>
+    <point distance="0.6804402542E-01" eval="0.7654085213E-01"/>
+    <point distance="0.1360880508" eval="0.6402682901E-01"/>
+    <point distance="0.2041320763" eval="0.4859294445E-01"/>
+    <point distance="0.2721761017" eval="0.3358667594E-01"/>
+    <point distance="0.3402201271" eval="0.2091894869E-01"/>
+    <point distance="0.4082641525" eval="0.1170761135E-01"/>
+    <point distance="0.4763081779" eval="0.6606428868E-02"/>
+    <point distance="0.5443522034" eval="0.6139877646E-02"/>
+    <point distance="0.6123962288" eval="0.1068062554E-01"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.8155991437E-01"/>
+    <point distance="0.6804402542E-01" eval="0.9191715774E-01"/>
+    <point distance="0.1360880508" eval="0.1163376761"/>
+    <point distance="0.2041320763" eval="0.1428153516"/>
+    <point distance="0.2721761017" eval="0.1158521159"/>
+    <point distance="0.3402201271" eval="0.8504447042E-01"/>
+    <point distance="0.4082641525" eval="0.5791742073E-01"/>
+    <point distance="0.4763081779" eval="0.3637482831E-01"/>
+    <point distance="0.5443522034" eval="0.2067098635E-01"/>
+    <point distance="0.6123962288" eval="0.1068062563E-01"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.8155991447E-01"/>
+    <point distance="0.6804402542E-01" eval="0.9191715781E-01"/>
+    <point distance="0.1360880508" eval="0.1163376762"/>
+    <point distance="0.2041320763" eval="0.1471564906"/>
+    <point distance="0.2721761017" eval="0.1810710676"/>
+    <point distance="0.3402201271" eval="0.2167616741"/>
+    <point distance="0.4082641525" eval="0.2536637366"/>
+    <point distance="0.4763081779" eval="0.2914053304"/>
+    <point distance="0.5443522034" eval="0.3292192414"/>
+    <point distance="0.6123962288" eval="0.3559535847"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.1063551248"/>
+    <point distance="0.6804402542E-01" eval="0.1187016695"/>
+    <point distance="0.1360880508" eval="0.1415887110"/>
+    <point distance="0.2041320763" eval="0.1471564907"/>
+    <point distance="0.2721761017" eval="0.1810710678"/>
+    <point distance="0.3402201271" eval="0.2167616742"/>
+    <point distance="0.4082641525" eval="0.2536637367"/>
+    <point distance="0.4763081779" eval="0.2914053306"/>
+    <point distance="0.5443522034" eval="0.3292192416"/>
+    <point distance="0.6123962288" eval="0.3559535847"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.2702225935"/>
+    <point distance="0.6804402542E-01" eval="0.2581560144"/>
+    <point distance="0.1360880508" eval="0.2307665199"/>
+    <point distance="0.2041320763" eval="0.2286231727"/>
+    <point distance="0.2721761017" eval="0.2601837898"/>
+    <point distance="0.3402201271" eval="0.3016501117"/>
+    <point distance="0.4082641525" eval="0.3449813763"/>
+    <point distance="0.4763081779" eval="0.3806036704"/>
+    <point distance="0.5443522034" eval="0.4131678161"/>
+    <point distance="0.6123962288" eval="0.3918121929"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.2735094514"/>
+    <point distance="0.6804402542E-01" eval="0.2757049494"/>
+    <point distance="0.1360880508" eval="0.2822892280"/>
+    <point distance="0.2041320763" eval="0.2932555266"/>
+    <point distance="0.2721761017" eval="0.3085921842"/>
+    <point distance="0.3402201271" eval="0.3282819943"/>
+    <point distance="0.4082641525" eval="0.3522918968"/>
+    <point distance="0.4763081779" eval="0.3873134976"/>
+    <point distance="0.5443522034" eval="0.4191066937"/>
+    <point distance="0.6123962288" eval="0.3918121930"/>
+  </band>
+  <vertex distance="0.000000000" upperboundary="0.8541125140" lowerboundary="-1.103413677" label="GAMMA" coord="0.000000000       0.000000000       0.000000000"/>
+  <vertex distance="0.6123962288" upperboundary="0.8541125140" lowerboundary="-1.103413677" label="X" coord="0.5000000000      0.5000000000       0.000000000"/>
+</bandstructure>

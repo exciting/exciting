@@ -43,7 +43,7 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
 
-%statusse=Test::assert_file_same_within( "./reference/LSJ.OUT",
+%statusse=Test::assert_file_same_within( "./reference/LSJ.REF",
   "run_properties/LSJ.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
@@ -70,7 +70,7 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
 
-%statusse=Test::assert_file_same_within( "./reference/EFG.OUT",
+%statusse=Test::assert_file_same_within( "./reference/EFG.REF",
   "run_properties/EFG.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
@@ -79,7 +79,7 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
 
-%statusse=Test::assert_file_same_within( "./reference/MOSSBAUER.OUT",
+%statusse=Test::assert_file_same_within( "./reference/MOSSBAUER.REF",
   "run_properties/MOSSBAUER.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
@@ -88,7 +88,7 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
 
-%statusse=Test::assert_file_same_within( "./reference/EXPIQR.OUT",
+%statusse=Test::assert_file_same_within( "./reference/EXPIQR.REF",
   "run_properties/EXPIQR.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
@@ -97,7 +97,7 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
 
-%statusse=Test::assert_file_same_within( "./reference/EPSILON_33.OUT",
+%statusse=Test::assert_file_same_within( "./reference/EPSILON_33.REF",
   "run_properties/EPSILON_33.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
@@ -106,7 +106,7 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
 
-%statusse=Test::assert_file_same_within( "./reference/KERR.OUT",
+%statusse=Test::assert_file_same_within( "./reference/KERR.REF",
   "run_properties/KERR.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
@@ -115,7 +115,7 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer);
 
-%statusse=Test::assert_file_same_within( "./reference/CHI_111.OUT",
+%statusse=Test::assert_file_same_within( "./reference/CHI_111.REF",
   "run_properties/CHI_111.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
@@ -124,7 +124,7 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
 
-%statusse=Test::assert_file_same_within( "./reference/EFFMASS.OUT",
+%statusse=Test::assert_file_same_within( "./reference/EFFMASS.REF",
   "run_properties/EFFMASS.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
@@ -133,7 +133,7 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer);
 
-%statusse=Test::assert_file_same_within( "./reference/ELNES.OUT",
+%statusse=Test::assert_file_same_within( "./reference/ELNES.REF",
   "run_properties/ELNES.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
@@ -142,8 +142,8 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer);
 
- %statusse=Test::assert_file_same_within( "./reference/BAND.OUT",
-  "run_properties/BAND.OUT",1.0);
+ %statusse=Test::assert_file_same_within( "./reference/bandstructure.xml",
+  "run_properties/bandstructure.xml",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
     "name"=>"Properties",
@@ -151,8 +151,8 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer);
 
- %statusse=Test::assert_file_same_within( "./reference/TDOS.OUT",
-  "run_properties/TDOS.OUT",1.0);
+ %statusse=Test::assert_file_same_within( "./reference/dos.xml",
+  "run_properties/dos.xml",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
     "name"=>"Properties",
