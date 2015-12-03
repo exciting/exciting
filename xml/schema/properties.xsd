@@ -263,7 +263,8 @@
         <xs:element ex:importance="essential" ex:unit="" name="TSvdW" maxOccurs="1"
           minOccurs="0">
           <xs:annotation>
-            <xs:documentation>Tkatchenko-Scheffler van der Waals correction to total energy can be found in TSvdW.OUT.</xs:documentation>
+            <xs:documentation>If this element is present, the TS-vdW (find reference here: <attref>vdWcorrection</attref>) correction to the total energy is calculated and written to a file called <bf>TSvdW.OUT</bf>. Since this method makes use of the electron density of the specific system under investigation, the TS-vdW correction can only be obtained in combination with a standard DFT ground-state calculation. In case you skip the ground-state calculation (<attref>do</attref>="skip"), you should make sure that a <bf>STATE.OUT</bf>-file from a previous calculation is contained in your working directory. The electron density will then be read in from this file. If you are interested in changing any of the TS-vdW parameters, you can use the element <elementref>TSvdWparameters</elementref> to do so.
+	    </xs:documentation>
           </xs:annotation>
           <xs:complexType>
           </xs:complexType>
@@ -272,7 +273,8 @@
         <xs:element ex:importance="essential" ex:unit="" name="DFTD2" maxOccurs="1"
           minOccurs="0">
           <xs:annotation>
-            <xs:documentation>DFT-D2 (Grimme 2006) van der Waals correction to total energy can be found in DFTD2.OUT.</xs:documentation>
+            <xs:documentation> If this element is present, the DFT-D2 (find reference here: <attref>vdWcorrection</attref>) van der Waals correction to the total energy is calculated and written to a file called <bf>DFTD2.OUT</bf>. It is not necessary to perform a ground-state calculation, so you could choose <attref>do</attref>="skip" and only calculate the van-der-Waals correction. Only the input file <bf>input.xml</bf> with the declaration of the structure of interest must be provided. If you are interested in changing any of the DFT-D2 parameters, you can use the element <elementref>DFTD2parameters</elementref> to do so.
+	    </xs:documentation>
           </xs:annotation>
           <xs:complexType>
           </xs:complexType>
