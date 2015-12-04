@@ -22,7 +22,7 @@
 	<xs:element ex:importance="expert" ex:unit="" name="DFTD2parameters" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation> 
-	      This element allows to customize parameters used by <bf>DFT-D2</bf> (see <attref>vdWcorrection</attref>).
+	      This element allows to customize parameters when either the option <pre>"DFTD2"</pre> of the attribute <attref>vdWcorrection</attref> is chosen, or the subelement <elementref>DFTD2</elementref> of the element <elementref>properties</elementref> is specified.
 	    </xs:documentation>
             <xs:appinfo></xs:appinfo>
           </xs:annotation>
@@ -31,7 +31,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="s6" type="fortrandouble" default="0.75d0">
               <xs:annotation>
                 <xs:documentation>
-			Global scaling factor for all $C_6$-dispersion coefficients. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+			Global scaling factor for all $C_6$-dispersion coefficients for the method <pre>"DFTD2"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -39,7 +39,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="sr6" type="fortrandouble" default="1.1d0">
               <xs:annotation>
                 <xs:documentation>
-			Scaling factor for van-der-Waals radii. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+			Scaling factor for van-der-Waals radii for the method <pre>"DFTD2"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -47,7 +47,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="d" type="fortrandouble" default="20.0d0">
               <xs:annotation>
                 <xs:documentation>
-			This damping constant determines the steepnes of the damping function.
+			This damping constant determines the steepnes of the damping function for the method <pre>"DFTD2"</pre>.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -55,7 +55,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="cutoff" type="fortrandouble" default="95.0d0">
               <xs:annotation>
                 <xs:documentation>
-		  Cutoff distance of interatomic interactions. In the sum over all pairwise interactions, only pairs of atoms are considered which are closer to each other than <bf>cutoff</bf>.
+		  Cutoff distance of interatomic interactions for the method <pre>"DFTD2"</pre>. In the sum over all pairwise interactions, only pairs of atoms are considered which are closer to each other than the value of the <pre>cutoff</pre> attribute.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -67,7 +67,7 @@
 	<xs:element ex:importance="expert" ex:unit="" name="TSvdWparameters" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation> 
-	      This element allows to customize parameters used by <bf>TS-vdW</bf> (see <attref>vdWcorrection</attref>).
+	      This element allows to customize parameters when either the option <pre>"TSvdW"</pre> of the attribute <attref>vdWcorrection</attref> is chosen, or the subelement <elementref>TSvdW</elementref> of the element <elementref>properties</elementref> is specified.
 	    </xs:documentation>
             <xs:appinfo></xs:appinfo>
           </xs:annotation>
@@ -76,7 +76,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="s6" type="fortrandouble" default="1.0d0">
               <xs:annotation>
                 <xs:documentation>
-			Global scaling factor for all $C_6$-dispersion coefficients.
+			Global scaling factor for all $C_6$-dispersion coefficients for the method <pre>"TSvdW"</pre>.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -84,7 +84,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="sr6" type="fortrandouble" default="0.94d0">
               <xs:annotation>
                 <xs:documentation>
-			Scaling factor for van-der-Waals radii. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+			Scaling factor for van-der-Waals radii for the method <pre>"TSvdW"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -92,7 +92,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="d" type="fortrandouble" default="20.0d0">
               <xs:annotation>
                 <xs:documentation>
-			This damping constant determines the steepnes of the damping function.
+			This damping constant determines the steepnes of the damping function for the method <pre>"TSvdW"</pre>.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -100,7 +100,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="cutoff" type="fortrandouble" default="95.0d0">
               <xs:annotation>
                 <xs:documentation>
-		  Cutoff distance of interatomic interactions. In the sum over all pairwise interactions, only pairs of atoms are considered which are closer to each other than <bf>cutoff</bf>.
+		  Cutoff distance of interatomic interactions for the method <pre>"TSvdW"</pre>. In the sum over all pairwise interactions, only pairs of atoms are considered which are closer to each other than the value of the <pre>cutoff</pre> attribute.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -116,7 +116,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="nsph" type="xs:integer" default="590">
               <xs:annotation>
                 <xs:documentation>
-		  Number of Lebedev grid points. The <bf>only</bf> possible numbers are: 1, 6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074, 3740, 3890, 4334, 4802, 5294, 5810.
+		  Number of Lebedev grid points. The <bf>only</bf> possible values are: <pre>"1"</pre>, <pre>"6"</pre>, <pre>"14"</pre>, <pre>"26"</pre>, <pre>"38"</pre>, <pre>"50"</pre>, <pre>"74"</pre>, <pre>"86"</pre>, <pre>"110"</pre>, <pre>"146"</pre>, <pre>"170"</pre>, <pre>"194"</pre>, <pre>"230"</pre>, <pre>"266"</pre>, <pre>"302"</pre>, <pre>"350"</pre>, <pre>"434"</pre>, <pre>"590"</pre>, <pre>"770"</pre>, <pre>"974"</pre>, <pre>"1202"</pre>, <pre>"1454"</pre>, <pre>"1730"</pre>, <pre>"2030"</pre>, <pre>"2354"</pre>, <pre>"2702"</pre>, <pre>"3074"</pre>, <pre>"3740"</pre>, <pre>"3890"</pre>, <pre>"4334"</pre>, <pre>"4802"</pre>, <pre>"5294"</pre>, <pre>"5810"</pre>.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -2150,13 +2150,13 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="vdWcorrection"  default="none">
 	<xs:annotation>		
 	  <xs:documentation>
-	    Adds dispersion correction to total energy in last SCF iteration. If forces are calculated, an appropriate dispersion correction will be considered. Available methods are
+	    Adds dispersion (van-der-Waals) correction to total energy after the last SCF iteration. If forces are calculated, an appropriate dispersion correction is applied. Available methods are
 	    <list>
-	    <li><bf>DFT-D2</bf>: Grimme, Stefan. "Semiempirical GGA-type density functional constructed with a long-range dispersion correction." Journal of Computational Chemistry <bf>27</bf> (2006): 1787-1799.</li>
-	    <li><bf>TS-vdW</bf>: Alexandre Tkatchenko and Matthias Scheffler. "Accurate molecular van-der-Waals interactions from ground-state electron density and free-atom reference data." Phys. Rev. Lett. <bf>102</bf>, 073005 (2009).</li>
+	    <li><pre>"DFTD2"</pre>: This is the <bf>DFT-D2</bf> method by Stefan Grimme which is introduced in <it>Semiempirical GGA-type density functional constructed with a long-range dispersion correction</it>, J. Comput. Chem. <bf>27</bf>, 1787-1799 (2006).</li>
+	    <li><pre>"TSvdW"</pre>: This is the <bf>TS-vdW</bf> method by Alexandre Tkatchenko and Matthias Scheffler introduced in <it>Accurate molecular van-der-Waals interactions from ground-state electron density and free-atom reference data</it>, Phys. Rev. Lett. <bf>102</bf>, 073005 (2009).</li>
 	  </list>
-	  Method-dependent parameters can be adjusted in the corresponding groundstate child elements <elementref>DFTD2parameters</elementref> and <elementref>TSvdWparameters</elementref>.
-	  It is also possible to decouple these vdW corrections from a complete ground-state calculation. For that you can use the elements <elementref>DFTD2</elementref> and <elementref>TSvdW</elementref>.
+	  Parameters corresponding to each method can be specified using the subelements <elementref>DFTD2parameters</elementref> and <elementref>TSvdWparameters</elementref> inside the element <elementref>groundstate</elementref>.
+	  It is also possible to decouple these van-der-Waals corrections from a complete ground-state calculation. In this case, you can use the subelements <elementref>DFTD2</elementref> and <elementref>TSvdW</elementref> inside the element <elementref>properties</elementref>.
 	  </xs:documentation>
 	</xs:annotation>
 	<xs:simpleType>
