@@ -286,15 +286,20 @@
           </xs:element>
                 <xs:element ex:importance="expert" ex:unit="" name="dfthalf" minOccurs="0" maxOccurs="1">
 			<xs:annotation>
-				<xs:documentation>Triggers DFT-1/2 calculations</xs:documentation>				
+			  <xs:documentation>The presence of this element triggers <bf>DFT-1/2</bf> calculations.</xs:documentation>				
 			</xs:annotation>
 			<xs:complexType>
 				<xs:attribute ex:importance="expert" ex:unit="" name="printVSfile" type="xs:boolean"
 							default="false">
 					<xs:annotation>
-						<xs:documentation> When set to true, only prints the VS files (for each atom) 
-						containing the self-energy potential (as defined in the DFT-1/2 method). After
-						printing this file, the program quits.	In this	case, a serial calculation is suggested.
+						<xs:documentation> When set to <pre>"true"</pre>, the self-energy 
+						correction potential <inlinemath>V_S({\bf r})</inlinemath>
+						(as defined in the <bf>DFT-1/2</bf> method) is calculated for each constituent 
+						atomic species and written into the files <pre>VS_S*.OUT</pre>, 
+						where <pre>*</pre> ranges from <bf>1</bf> to the number of atomic species. 
+						The exciting run quits after the printing. In this case, a serial calculation 
+						is suggested. It is useful to visualize the self-energy potential, or for 
+						debugging purposes.
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
@@ -2994,7 +2999,8 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="dipolecorrection" type="xs:boolean" default="false">
         <xs:annotation>
           <xs:documentation> 
-          If <pre>"true"</pre>, the dipole correction is applied for slabs oriented along z-direction.
+            If <pre>"true"</pre>, the dipole correction is applied for slabs oriented 
+	    along the <inlinemath>z</inlinemath>-direction.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -3002,8 +3008,13 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="dipoleposition" type="fortrandouble" default="1.0d0">
         <xs:annotation>
           <xs:documentation> 
-          Location of the dipole correction potential discontinuity in the lattice vector. 
-          The discontinuity should be placed within the vacuum region of the supercell.
+	    The value of this attribute indicates the position of the jump in electrostatic potential, 
+	    after the compensating potential (<it>i.e.</it>, the dipole correction) is applied. 
+	    The position is given as a fractional coordinate in the vertical direction. 
+	    Please note that this jump position should be located within the vacuum region enough 
+	    far away from the atomic layers, otherwise the compensating potential cannot be 
+	    correctly applied. It is recommended to put the jump position at the middle of 
+	    the vacuum layer.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
