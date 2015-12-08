@@ -10,11 +10,40 @@ subroutine updatespecies()
   implicit none
   type(xmlf_t), save :: xf
   character(100) :: buffer
-  integer :: is, io, ist, lx, ilo, nlx
+  integer :: is, io, ist, lx, ilo, nlx, i
   
+  !---------------------------------------------------------
+  ! check first if update of specie files is needed, i.e.,
+  ! if the search of linearization energies was used
+  !---------------------------------------------------------
   do is = 1, nspecies
+    ! apw
+    do io = 1, apword(0, is)
+      if (apwve(io,0,is)) goto 10
+      nlx = size(speziesdeflist(is)%sp%basis%customarray)
+      if (nlx>0) then
+        do lx = 0, nlx-1
+          if (apwve(io,lx,is)) goto 10
+        end do
+      end if
+    end do
+    ! lo
+    do ilo = 1, nlorb(is)
+      do io = 1, lorbord(ilo,is)
+        if (lorbve(io,ilo,is)) goto 10
+      end do
+    end do
+  end do
+  return
+  10 continue
   
-    call xml_OpenFile (trim(spsymb(is))//'-opt.xml', xf, replace=.true.,pretty_print=.true.)
+  !---------------------------------------------------------
+  ! Write down new (updated) xml species file
+  !---------------------------------------------------------
+  do is = 1, nspecies
+    write(*,*) 'INFO(updatespecies): Linearization energy search was applied.'
+    write(*,*) '    New (updated) species file is generated ', trim(spsymb(is))//'_scf.xml'
+    call xml_OpenFile (trim(spsymb(is))//'_scf.xml', xf, replace=.true.,pretty_print=.true.)
     call xml_NewElement (xf, "spdb")
     call xml_DeclareNamespace(xf, "http://www.w3.org/2001/XMLSchema-instance", "xsi")
     call xml_AddAttribute(xf, "xsi:noNamespaceSchemaLocation", "../../xml/species.xsd" )
@@ -68,7 +97,7 @@ subroutine updatespecies()
       call xml_AddAttribute(xf, "matchingOrder", trim(adjustl(buffer)))
       write(buffer,'(F8.4)') apwe0(io, 0, is)
       call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
-      if(apwve(io, 0, is)) then
+      if (apwve(io, 0, is)) then
         call xml_AddAttribute(xf, "searchE", "true")
       else
         call xml_AddAttribute(xf, "searchE", "false")

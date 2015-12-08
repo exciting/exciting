@@ -48,8 +48,20 @@ Subroutine readspeciesxml
 
     else
     
-      Write (spfile_string,*)trim (input%structure%speciespath) // "/" &
-     & // trim (input%structure%speciesarray(is)%species%speciesfile)
+      write(spfile_string,*) trim(input%structure%speciespath) // "/" &
+      & // trim(input%structure%speciesarray(is)%species%speciesfile)
+      
+      !-------------------------------------------------
+      ! Copy all species files to the working directory
+      !-------------------------------------------------
+      if (rank==0) then
+        if (trim(input%structure%speciespath)/='./') then
+          write(command,*) "cp" // trim(spfile_string) // " ."
+          !write(*,*) trim(command)
+          call system(trim(command))
+        end if
+      end if
+      call barrier
   
     endif
 
