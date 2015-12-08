@@ -150,20 +150,24 @@
                 </xs:complexType>
               </xs:element>
               <xs:element ex:importance="expert" ex:unit="" name="dfthalfparam" minOccurs="0" maxOccurs="1">
-				<xs:annotation>
-					<xs:documentation> This element specifies some of the fundamentals parameters (for each species) regarding a
-						DFT-1/2 calculation. Do not forget to furnish the element "dfthalf" inside "groundstate", or else, no 
-						DFT-1/2 correction will be done (even though you specify these parameters).
-                    </xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-				  <xs:sequence>
+			<xs:annotation>
+				<xs:documentation> This element specifies some of the fundamentals parameters 
+					(for each species) regarding a <bf>DFT-1/2</bf> calculation. 
+					Do not forget to specify the subelement <elementref>dfthalf</elementref> 
+					inside the element <elementref>groundstate</elementref>, otherwise 
+					no <bf>DFT-1/2</bf> correction will be done 
+					(even though you specify the parameters).
+				</xs:documentation>
+			</xs:annotation>
+			<xs:complexType>
+				<xs:sequence>
 					<xs:element ex:importance="essential" ex:unit="" name="shell" minOccurs="1" maxOccurs="unbounded">
-					  <xs:complexType>
 						<xs:annotation>
-							<xs:documentation> This element specifies the shell which the DFT-1/2 correction should be applied to.
+							<xs:documentation> 
+							  This element specifies the shell to which the <bf>DFT-1/2</bf> correction should be applied to.
 							</xs:documentation>
 						</xs:annotation>
+					  <xs:complexType>
 						<xs:attribute ex:importance="expert" ex:unit="" name="number" type="xs:integer"
 							default="0">
 							<xs:annotation>
@@ -176,7 +180,7 @@
 						<xs:attribute ex:importance="expert" ex:unit="Bohr" name="ionization" type="fortrandouble"
 							default="0.5d0">
 							<xs:annotation>
-								<xs:documentation> Specifies the degree of the ionization
+								<xs:documentation> Specifies the degree of ionization.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -186,21 +190,29 @@
 				 <xs:attribute ex:importance="expert" ex:unit="" name="ampl" type="fortrandouble"
 					default="1.00">
 					<xs:annotation>
-						<xs:documentation> Amplitude of DFT-1/2 correction.
+						<xs:documentation> Specifies the amplitude of the self-energy potential.
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute ex:importance="expert" ex:unit="" name="exponent" type="xs:integer"
 					default="8">
 					<xs:annotation>
-						<xs:documentation> Exponent (of the cut-function).
+						<xs:documentation> Specifies the exponent <inlinemath>n</inlinemath> of the cutoff-function
+							(for the self-energy potential)
+							<displaymath>
+							  \Theta (r) = A\left[1-\left(\frac{r}{r_{\rm cut}} \right)^{\!\!n} \right]^3
+							  \nonumber
+							</displaymath>
+							for <inlinemath>r \le r_{\rm cut}</inlinemath>.
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute ex:importance="expert" ex:unit="Bohr" name="cut" type="fortrandouble"
 					default="0.0d0">
 					<xs:annotation>
-						<xs:documentation> CUT parameter.
+						<xs:documentation> Specifies the value of <inlinemath>r_{\rm cut}</inlinemath> (in Bohrs) 
+							for the self-energy potential, which determines the range of the correction. 
+							Note that this can/should be specified for each species.
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>

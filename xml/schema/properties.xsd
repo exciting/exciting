@@ -263,7 +263,8 @@
         <xs:element ex:importance="essential" ex:unit="" name="TSvdW" maxOccurs="1"
           minOccurs="0">
           <xs:annotation>
-            <xs:documentation>Tkatchenko-Scheffler van der Waals correction to total energy can be found in TSvdW.OUT.</xs:documentation>
+            <xs:documentation> If the subelement <elementref>TSvdW</elementref> is specified inside the element <elementref>properties</elementref>, the <bf>TS-vdW</bf> method (find reference here: <attref>vdWcorrection</attref>) for van-der-Waals correction to the total energy is used. The energy correction is written to a file called <pre>TSvdW.OUT</pre>. Since this method makes use of the electron density of the specific system under investigation, the <bf>TS-vdW</bf> correction can only be obtained in combination with a standard DFT ground-state calculation. In case you skip the ground-state calculation (<attref>do</attref>=<pre>"skip"</pre>), you should make sure that a <pre>STATE.OUT</pre>-file from a previous calculation is contained in your working directory. The electron density will then be read in from this file. If you are interested in changing any of the <bf>TS-vdW</bf> parameters, you can use the element <elementref>TSvdWparameters</elementref> to do so.
+	    </xs:documentation>
           </xs:annotation>
           <xs:complexType>
           </xs:complexType>
@@ -272,7 +273,8 @@
         <xs:element ex:importance="essential" ex:unit="" name="DFTD2" maxOccurs="1"
           minOccurs="0">
           <xs:annotation>
-            <xs:documentation>DFT-D2 (Grimme 2006) van der Waals correction to total energy can be found in DFTD2.OUT.</xs:documentation>
+            <xs:documentation> If the subelement <elementref>DFTD2</elementref> is specified inside the element <elementref>properties</elementref>, the <bf>DFT-D2</bf> method (find reference here: <attref>vdWcorrection</attref>) for van-der-Waals correction to the total energy is used. The energy correction is written to a file called <pre>DFTD2.OUT</pre>. It is not necessary to perform a ground-state calculation, so you could choose <attref>do</attref>=<pre>"skip"</pre> and only calculate the van-der-Waals correction. Only the input file <pre>input.xml</pre> with the declaration of the structure of interest must be provided. If you are interested in changing any of the <bf>DFT-D2</bf> parameters, you can use the element <elementref>DFTD2parameters</elementref> to do so.
+	    </xs:documentation>
           </xs:annotation>
           <xs:complexType>
           </xs:complexType>
