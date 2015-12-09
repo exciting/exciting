@@ -241,7 +241,7 @@ Subroutine readspeciesxml
        do io = 1, apword(0, is)                                              
           apwe0(io, 0, is) = speziesdeflist(is)%sp%basis%default%trialEnergy 
           apwdm(io, 0, is) = io-1                                            
-          apwve(io, 0, is) = speziesdeflist(is)%sp%basis%default%searchE 
+          apwve(io, 0, is) = speziesdeflist(is)%sp%basis%default%searchE
        end do    
 
      end if
