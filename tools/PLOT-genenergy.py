@@ -18,63 +18,34 @@ import os
 
 #-------------------------------------------------------------------------------
 
-def sortstrain(s,e):
-    ss=[]
-    ee=[]
-    ww=[]
-    for i in range(len(s)): ww.append(s[i])
-    ww.sort()
-    for i in range(len(s)):
-        ss.append(s[s.index(ww[i])])
-        ee.append(e[s.index(ww[i])])
-    return ss, ee
-
-#-------------------------------------------------------------------------------
-
 def shell_value(variable,vlist,default):
     v = default
     e = False
     for i in range(len(vlist)):
         if ( vlist[i] == variable ): v = os.environ[variable] ; e = True ; break
     return v, e
-    
+
 #-------------------------------------------------------------------------------
 
-def leggi(filin,a):
-    os.system("grep \""+a+"\" "+str(filin)+" | tail -n1 > tempfile") 
-    ifile = open("tempfile","r")
-    y = ifile.readline().strip().split()[3]
-    ifile.close()
+def readtext(filin,text,itext):
+    os.system("grep \""+text+"\" "+filin+" | tail -n1 > tempfile")
+    f = open("tempfile","r")
+    e = f.readline().strip().split()[itext]
     os.system("rm -f tempfile")
-    return y
-    
-#-------------------------------------------------------------------------------
-
-def readstrain(dr):
-    ifx = open("energy-vs-volume","r")   
-    x = []
-    while True:
-        line = ifx.readline().strip()
-        if len(line) == 0: break
-        x.append(float(line.split()[0]))
-    ifx.close()
-    return x
-    
+    return e
+        
 #-------------------------------------------------------------------------------
 
 current = os.environ['PWD']
 ev_list = os.environ.keys()
 
 rundir = shell_value('EXCITINGRUNDIR',ev_list,current)[0]
-rlabel = shell_value('RLABEL',ev_list,"rundir-")[0]
 showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
 dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
    
 #-------------------------------------------------------------------------------
 
-narg  = len(sys.argv)-1
-
-print "\n**Usage**:    PLOT-totalmoment.py [DIRECTORYROOT]\n"
+#print "\n**Usage**:    PLOT-genenergy.py [DIRECTORYROOT]\n"
 
 #-------------------------------------------------------------------------------
 
@@ -84,35 +55,36 @@ list_dir = sorted(glob.glob(directoryroot+"*"))
 
 #-------------------------------------------------------------------------------
 
-x = [] ; y = []
+#if ( not(os.path.exists(current+'/'+list_dir[0]+'/input.xml')) ): 
+#    sys.exit("\n ERROR: Input file "+current+"/"+list_dir[0]+"/input.xml not found!\n")
+
+#-------------------------------------------------------------------------------
+
+xx = [] ; yy = []
+
+text  = "Total energy                               :"
+itext = 3
 
 for idir in range(len(list_dir)):
     fileinp = list_dir[idir]+'/INFO.OUT'
-    r = leggi(fileinp,"total moment    ")
-    y.append(float(r))
-    
-x = readstrain(directoryroot)
-        
-ylabel  = r'Total moment [$\mu_B$]'
-xlabel  = r'Volume'
+    if ( not(os.path.exists(fileinp)) ): break
+    yy.append(float(readtext(fileinp,text,itext)))
+    xx.append(float(idir+1))
+          
+ylabel = r'Energy'
+xlabel = r'run index'
 
 #-------------------------------------------------------------------------------
 # manipulate data for a better plot
 
-xmin = min(x)
-xmax = max(x)
-
-ymin = min(y)
-ymax = max(y)
+xmin = min(xx) ; xmax = max(xx)
+ymin = min(yy) ; ymax = max(yy)
 
 dxx  = abs(xmax-xmin)/18
 dyy  = abs(ymax-ymin)/15
 
-xmin = xmin-dxx
-xmax = xmax+dxx
-
-ymin = ymin-dyy
-ymax = ymax+dyy
+xmin = xmin-dxx ; xmax = xmax+dxx
+ymin = ymin-dyy ; ymax = ymax+dyy
 
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
@@ -154,7 +126,7 @@ plt.xticks(size=fonttick)
 plt.yticks(size=fonttick)
 pyl.grid(True)
 
-plt.plot(x,y,'ro-')
+plt.plot(xx,yy,'ro--')
 
 #-------------------------------------------------------------------------------
 
@@ -173,8 +145,8 @@ if (abs(ymax-ymin) < 0.000000001):
     ymax=ymax+0.1
     ymin=ymin-0.1
 
-if (len(sys.argv) > 4): ymin = float(sys.argv[4])
-if (len(sys.argv) > 5): ymax = float(sys.argv[5])
+#if (len(sys.argv) > 4): ymin = float(sys.argv[4])
+#if (len(sys.argv) > 5): ymax = float(sys.argv[5])
 
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
@@ -183,17 +155,8 @@ ax.xaxis.set_major_locator(MaxNLocator(7))
 
 ax.set_axisbelow(True) 
 
-plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
+#plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
 plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
-
-output_totmoment = open('total-moment',"w")
-
-pmt='%16.10f' 
-
-for i in range(len(x)): 
-    print >> output_totmoment, pmt%(x[i]), pmt%(y[i])
-
-output_totmoment.close()
 
 if (showpyplot): plt.show()
 #-------------------------------------------------------------------------------

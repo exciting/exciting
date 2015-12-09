@@ -62,6 +62,9 @@ if (len(sys.argv) > 2): ylimits.append(float(sys.argv[2]))
 
 #-------------------------------------------------------------------------------
 
+unit   = r'GPa]'
+xlabel = r'Maximum lagrangian strain'
+
 if (os.path.exists('energy-vs-strain')): 
     unit   = r'GPa]'
     xlabel = r'Maximum lagrangian strain'

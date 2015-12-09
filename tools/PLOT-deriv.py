@@ -128,8 +128,10 @@ plt.xticks(size=fonttick)
 plt.yticks(size=fonttick)
 pyl.grid(True)
 
+plt.plot(pvol,ppre,'r-')
 plt.plot(pvol,ppre,'go',label='finite differences')
-plt.legend(loc=9,borderaxespad=.8,numpoints=1)
+#plt.legend(loc=4,borderaxespad=.8,numpoints=1)
+plt.legend(bbox_to_anchor=(1.0, 1.03), loc=4, borderaxespad=0.)
 
 ymax  = max(ppre)
 ymin  = min(ppre)

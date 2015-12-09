@@ -39,8 +39,11 @@ def shell_value(variable,vlist,default):
 #-------------------------------------------------------------------------------
 
 def leggi(filin):
+    onlyone = False
     f = open(filin,"r")
     x = [] ; y = []
+    ilines = 0
+    ix = 0
     lines = f.readlines()
     while ( ilines < len(lines) ):
         line = lines[ilines].strip() 
@@ -54,8 +57,15 @@ def leggi(filin):
                 x.append(float(line.split()[0]))
                 y.append(float(line.split()[1])) 
             ix = ix+1
+            
+    #ymax=max(y)
+    #print ymax
+    #z = []
+    #for i in range(len(y)):
+    #    z.append(float(y[i]/ymax))
+            
     f.close()
-    return x,y
+    return x,y,onlyone
 
 #-------------------------------------------------------------------------------
 
@@ -83,7 +93,7 @@ params = {'ytick.minor.size': 6,
           'axes.formatter.limits': (-4, 6)}
 
 plt.rcParams.update(params)
-plt.subplots_adjust(left=0.21, right=0.93,
+plt.subplots_adjust(left=0.21, right=0.78,
                     bottom=0.18, top=0.88,
                     wspace=None, hspace=None)
                     
@@ -97,32 +107,17 @@ ax   = fig.add_subplot(111)
 
 narg  = len(sys.argv)-1
 
-if (narg < 4): 
-    print "\nIncorrect number of arguments\n"
+if (narg<1): 
+    print "\nIncorrect number of arguments. **Usage**:\n\n",
+    print "PLOT-multiple.py FILE1 FILE2 FILE3 ...\n"
     sys.exit()
 
-filin  = str(sys.argv[1])
-style  = str(sys.argv[2])
-xlabel = str(sys.argv[3])
-ylabel = str(sys.argv[4])
-
-#-------------------------------------------------------------------------------
-
-xmin = 1.e30 ; xmax = -1.e30
-ymin = 1.e30 ; ymax = -1.e30
-
-x = [] ; y = []
-x,y = leggi(filin)
-plt.plot(x,y,'r'+style,label="")
-xmin=min(min(x),xmin) ; xmax=max(max(x),xmax)
-ymin=min(min(y),ymin) ; ymax=max(max(y),ymax)
-    
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
  
 for line in ax.get_xticklines() + ax.get_yticklines():
     line.set_markersize(6)
-    line.set_markeredgewidth(2)  
+    line.set_markeredgewidth(2)      
 
 plt.xticks(size=fonttick)
 plt.yticks(size=fonttick)
@@ -130,7 +125,29 @@ pyl.grid(True)
 
 #-------------------------------------------------------------------------------
 
-#plt.legend(loc=int(rloc),borderaxespad=.8,numpoints=1)
+xmin = 1.e30 ; xmax = -1.e30
+ymin = 1.e30 ; ymax = -1.e30
+ 
+filin = [] ; superx = [] ; supery = []
+ 
+for ifile in range(narg): 
+    filin.append(str(sys.argv[ifile+1]))
+    x = [] ; y = []
+    x, y, onlyone = leggi(filin[ifile])  
+    asym = "-o"
+    if (len(x) > 50): asym = "-" 
+    #for i in range(1,len(y)): y[i] = y[i]-y[0]
+    #y[0] = 0.0
+    plt.plot(x,y,asym,label=filin[ifile][:8])#"file"+str(ifile+1))
+    xmin=min(min(x),xmin) ; xmax=max(max(x),xmax)
+    ymin=min(min(y),ymin) ; ymax=max(max(y),ymax)
+    
+#-------------------------------------------------------------------------------
+
+#xmax=0.2
+
+#plt.legend(loc=1,borderaxespad=.8,numpoints=1)
+plt.legend(bbox_to_anchor=(1.03, 1), loc=2, borderaxespad=0., numpoints=1)
 
 ax.yaxis.set_major_formatter(yfmt)
 
@@ -145,14 +162,10 @@ ax.xaxis.set_major_locator(MaxNLocator(7))
 
 ax.set_axisbelow(True) 
 
-ax.text(1,1.05,filin,size=fontlabel,
-        transform=ax.transAxes,ha='right',va='center',rotation=0)
-ax.text(0.5,-0.13,xlabel,size=fontlabel,
-        transform=ax.transAxes,ha='center',va='center',rotation=0)  
-
-plt.ylabel(ylabel,size=fontlabel)
-
-plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
+#ax.text(1,1.05,'file: '+filin,size=fontlabel,
+#        transform=ax.transAxes,ha='right',va='center',rotation=0)
+        
+#plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
 plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
 
 if (showpyplot): plt.show()
