@@ -103,7 +103,6 @@ clean:
 	cd build/smp; $(MAKE) clean cleanlibs
 	cd build/debug; $(MAKE) clean cleanlibs
 	cd build/mpiandsmp; $(MAKE) clean cleanlibs
-	cd test/build ;$(MAKE) clean
 	cd src/eos; $(MAKE) clean
 	cd src/spacegroup; $(MAKE) clean
 	cd src/species; $(MAKE) clean
@@ -120,9 +119,7 @@ libxcclean:
 	cd src/libXC && make clean 
 
 tgz::doc #libxcclean
-	tar  --exclude-from=".gitignore"  --transform 's,^,/exciting/,' -c -v  -f ./exciting.tar  *
-	tar    -r -v  -f ./exciting.tar  --transform 's,^,/exciting/,' .git/HEAD  .git/refs .git/packed-refs \
-	test/test02/reference/ test/test08/reference/
+	tar --exclude-from=".gitignore"  --transform 's,^,/exciting/,' -c -v -f ./exciting.tar *
 	gzip  -f --best ./exciting.tar 
 	du -h ./exciting.tar.gz 
 
