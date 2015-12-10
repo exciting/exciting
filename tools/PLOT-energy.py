@@ -66,6 +66,11 @@ if (os.path.exists('energy-vs-alat')):
      
 if (str(os.path.exists(inpf))=='False'): 
     sys.exit("\nERROR: file "+inpf+" not found!\n")
+    
+if (os.path.exists('xlabel')): 
+    label_file = open('xlabel',"r")
+    xlabel = str(label_file.readline())
+    label_file.close()
 
 #-------------------------------------------------------------------------------
 
@@ -93,24 +98,40 @@ while True:
 xx,yy=sortstrain(x,y)
 
 #-------------------------------------------------------------------------------
+
+if (os.path.exists('rundir-oo')):
+    infty_file = open("./rundir-oo/TOTENERGY.OUT","r")
+    energy_zero = float(infty_file.readlines()[-2].strip())
+    infty_file.close()
+    yy.pop(-1)
+    xx.pop(-1)
+    norm_file = open("normalized-energy","w")
+    for i in range(len(yy)): 
+        yy[i] = round(yy[i]-energy_zero,8)
+        print >>norm_file, xx[i], yy[i]      
+    norm_file.close()
+        
+#-------------------------------------------------------------------------------
 # manipulate data for a better plot
 
 rmin  = min(yy)
-srmin = u'\u2013 '+str(abs(rmin))
-if (rmin > 0): srmin = u'+ '+str(rmin)
+srmin = ""
 
-for i in range(len(yy)): yy[i]=(yy[i]-rmin)
+if (not(os.path.exists('rundir-oo'))):
+    srmin = u'\u2013 '+str(abs(rmin))
+    if (rmin > 0): srmin = u'+ '+str(rmin)
+    for i in range(len(yy)): yy[i]=(yy[i]-rmin)
 
 delta = (max(yy)-min(yy))
 dxx   = abs(max(xx)-min(xx))/18
-dyy   = abs(max(yy)-min(yy))/18
+dyy   = abs(max(yy)-min(yy))/17
 
 xmin = min(xx)-dxx ; xmax = max(xx)+dxx
 ymin = min(yy)-dyy ; ymax = max(yy)+dyy
 
 if (len(xx) == 1): 
     xmin = min(xx)-dxx-1 ; xmax = max(xx)+dxx+1
-    ymin = min(yy)-dyy-0.1 ; ymax = max(yy)+dyy+0.1
+    ymin = min(yy)-dyy ; ymax = max(yy)+dyy
 
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
@@ -139,13 +160,18 @@ fig  = matplotlib.pyplot.figure(1, figsize=(8,5.5))
 
 ax   = fig.add_subplot(111)
 
-ax.text(0.5,-0.13,xlabel,size=fontlabel,
+if (os.path.exists('rundir-oo')):       
+    ax.text(0.5,-0.15,xlabel,size=fontlabel,
         transform=ax.transAxes,ha='center',va='center',rotation=0)
+else:
+    ax.text(0.5,-0.14,xlabel,size=fontlabel,
+        transform=ax.transAxes,ha='center',va='center',rotation=0)
+    ax.text(0.11,1.03,srmin,size=fonttext,
+        transform=ax.transAxes,ha='left',va='center',rotation=0)
+
 ax.text(-0.165,0.5,ylabel,size=fontlabel,
         transform=ax.transAxes,ha='center',va='center',rotation=90)
-ax.text(0.11,1.03,srmin,size=fonttext,
-        transform=ax.transAxes,ha='left',va='center',rotation=0)
- 
+       
 for line in ax.get_xticklines() + ax.get_yticklines():
     line.set_markersize(6)
     line.set_markeredgewidth(2)      

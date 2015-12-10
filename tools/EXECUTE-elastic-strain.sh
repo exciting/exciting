@@ -39,7 +39,12 @@ cp $CURRENT/input.xml $CURRENT/$WORKDIR/source.xml
 #
 if [ -f $CURRENT/planar ] ; then cp $CURRENT/planar $CURRENT/$WORKDIR ; fi
 #
-OUT=$CURRENT/$WORKDIR/energy-vs-strain
+if [ -f $CURRENT/$WORKDIR/dft-0.5 ] ; then
+    OUT=$CURRENT/$WORKDIR/bandgap-vs-rcut
+else
+    OUT=$CURRENT/$WORKDIR/energy-vs-strain
+fi
+#
 if [ -f $OUT ] ; then mv $OUT $OUT.save ; fi
 #
 cd $WORKDIR 
@@ -65,15 +70,26 @@ for input in $input_list ; do
     eta=$(cat $CURRENT/$WORKDIR/strain-$suffix)
     tot=INFO.OUT
 #
-    awk -v eta="$eta" \
+    if [ -f $CURRENT/$WORKDIR/dft-0.5 ] ; then
+        awk -v eta="$eta" \
+        '/Estimated fundam/ {printf "%11.8f   %20.10f\n",eta,$5*27.211396132}' $tot | tail -n1>>$OUT
+    else
+        awk -v eta="$eta" \
         '/Total energy    / {printf "%11.8f   %20.10f\n",eta,$4}' $tot | tail -n1>>$OUT
+    fi
 #
     cd ../
 #
     rm -Rf $CURRENT/$WORKDIR/rundir-$suffix
     mv $XCRUNDIR $CURRENT/$WORKDIR/rundir-$suffix
     cd $CURRENT/$WORKDIR
-    if [ $aloop = 1 ]; then PLOT-energy.py ; fi
+#
+    if [ -f $CURRENT/$WORKDIR/dft-0.5 ] ; then
+        PLOT-plot.py bandgap-vs-rcut "o-" "rcut [Bohr]" "Bandgap [eV]" 
+    else    
+        if [ $aloop = 1 ]; then PLOT-energy.py ; fi
+    fi
+#
     cd $RUNDIR
     echo
     echo "Run completed for file" $input "-------------------------------------"

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
-from   lxml  import etree
 from   sys   import stdin
 from   math  import sqrt
 from   math  import factorial
@@ -12,7 +11,6 @@ import matplotlib.ticker     as ptk
 import matplotlib.pyplot     as plt
 import pylab                 as pyl
 import numpy
-import glob
 import sys
 import os
 
@@ -37,29 +35,32 @@ def shell_value(variable,vlist,default):
     for i in range(len(vlist)):
         if ( vlist[i] == variable ): v = os.environ[variable] ; e = True ; break
     return v, e
-    
+
 #-------------------------------------------------------------------------------
 
-def leggi(filin,a):
-    os.system("grep \""+a+"\" "+str(filin)+" | tail -n1 > tempfile") 
-    ifile = open("tempfile","r")
-    y = ifile.readline().strip().split()[3]
-    ifile.close()
-    os.system("rm -f tempfile")
-    return y
-    
-#-------------------------------------------------------------------------------
+def leggi(filin,c1,c2):
+    onlyone = False
+    f = open(filin,"r")
+    x = [] ; y = []
+    cmax=max(c1,c2)
+    ix = 0
+    lines = f.readlines()
+    for ilines in range(len(lines)):
+        line = lines[ilines].strip() 
+        if (len(line) != 0):
+            if (len(line) < cmax): 
+                sys.exit("\n ERROR: number of columns is smaller than "+str(cmax)+"!\n")
+            if (c1==c2): 
+                onlyone = True
+                x.append(int(ix))
+                y.append(float(line.split()[c2-1])) 
+            else:
+                x.append(float(line.split()[c1-1]))
+                y.append(float(line.split()[c2-1])) 
+            ix = ix+1
+    f.close()
+    return x,y,onlyone
 
-def readstrain(dr):
-    ifx = open("energy-vs-volume","r")   
-    x = []
-    while True:
-        line = ifx.readline().strip()
-        if len(line) == 0: break
-        x.append(float(line.split()[0]))
-    ifx.close()
-    return x
-    
 #-------------------------------------------------------------------------------
 
 current = os.environ['PWD']
@@ -69,53 +70,8 @@ rundir = shell_value('EXCITINGRUNDIR',ev_list,current)[0]
 rlabel = shell_value('RLABEL',ev_list,"rundir-")[0]
 showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
 dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
-   
-#-------------------------------------------------------------------------------
-
-narg  = len(sys.argv)-1
-
-print "\n**Usage**:    PLOT-totalmoment.py [DIRECTORYROOT]\n"
 
 #-------------------------------------------------------------------------------
-
-directoryroot = 'rundir-'
-if (len(sys.argv) > 1): directoryroot = str(sys.argv[1])
-list_dir = sorted(glob.glob(directoryroot+"*"))
-
-#-------------------------------------------------------------------------------
-
-x = [] ; y = []
-
-for idir in range(len(list_dir)):
-    fileinp = list_dir[idir]+'/INFO.OUT'
-    r = leggi(fileinp,"total moment    ")
-    y.append(float(r))
-    
-x = readstrain(directoryroot)
-        
-ylabel  = r'Total moment [$\mu_B$]'
-xlabel  = r'Volume'
-
-#-------------------------------------------------------------------------------
-# manipulate data for a better plot
-
-xmin = min(x)
-xmax = max(x)
-
-ymin = min(y)
-ymax = max(y)
-
-dxx  = abs(xmax-xmin)/18
-dyy  = abs(ymax-ymin)/15
-
-xmin = xmin-dxx
-xmax = xmax+dxx
-
-ymin = ymin-dyy
-ymax = ymax+dyy
-
-#-------------------------------------------------------------------------------
-# set defauls parameters for the plot
 
 fontlabel=20
 fonttick=16
@@ -131,7 +87,7 @@ params = {'ytick.minor.size': 6,
           'axes.formatter.limits': (-4, 6)}
 
 plt.rcParams.update(params)
-plt.subplots_adjust(left=0.22, right=0.78,
+plt.subplots_adjust(left=0.21, right=0.93,
                     bottom=0.18, top=0.88,
                     wspace=None, hspace=None)
                     
@@ -141,10 +97,48 @@ fig  = matplotlib.pyplot.figure(1, figsize=(8,5.5))
 
 ax   = fig.add_subplot(111)
 
-ax.text(0.5,-0.13,xlabel,size=fontlabel,
-        transform=ax.transAxes,ha='center',va='center',rotation=0)
-ax.text(-0.23,0.5,ylabel,size=fontlabel,
-        transform=ax.transAxes,ha='center',va='center',rotation=90)
+#-------------------------------------------------------------------------------
+
+narg  = len(sys.argv)-1
+
+if (narg<1): 
+    print "\nIncorrect number of arguments. **Usage**:\n\n",
+    print "PLOT-column.py datafile [COLUMN1 COLUMN2 POINTSTYLE YMIN  [YMAX]]\n"
+    sys.exit()
+
+filin = str(sys.argv[1])
+
+column1 = 1
+column2 = 2
+
+if (narg==2): 
+    column1 = int(sys.argv[2])
+    column2 = int(sys.argv[2])
+
+if (narg>2):
+    column1 = int(sys.argv[2])
+    column2 = int(sys.argv[3])
+
+pointstyle='o-'
+if (narg>3): pointstyle=str(sys.argv[4])
+
+ylimits = []
+for i in range(5,len(sys.argv)): ylimits.append(float(sys.argv[i]))
+
+#-------------------------------------------------------------------------------
+
+xmin = 1.e30 ; xmax = -1.e30
+ymin = 1.e30 ; ymax = -1.e30
+
+x = [] ; y = []
+x, y, onlyone = leggi(filin,column1,column2)
+
+plt.plot(x,y,'r'+pointstyle,label="file")
+xmin=min(min(x),xmin) ; xmax=max(max(x),xmax)
+ymin=min(min(y),ymin) ; ymax=max(max(y),ymax)
+    
+#-------------------------------------------------------------------------------
+# set defauls parameters for the plot
  
 for line in ax.get_xticklines() + ax.get_yticklines():
     line.set_markersize(6)
@@ -154,27 +148,21 @@ plt.xticks(size=fonttick)
 plt.yticks(size=fonttick)
 pyl.grid(True)
 
-plt.plot(x,y,'ro-')
-
 #-------------------------------------------------------------------------------
 
-#plt.legend(loc=9,borderaxespad=.8,numpoints=1)
-#plt.legend(bbox_to_anchor=(1.03, 1), loc=2, borderaxespad=0., numpoints=1)
+plt.legend(loc=1,borderaxespad=.8,numpoints=1)
 
 ax.yaxis.set_major_formatter(yfmt)
 
-#ylimits = []
-#for i in range(1,len(sys.argv)): ylimits.append(float(sys.argv[i]))
+dxx = (xmax-xmin)/18 ; dyy = (ymax-ymin)/15
+xmin = xmin-dxx ; xmax = xmax+dxx
+ymin = ymin-dyy ; ymax = ymax+dyy
 
-#if (len(ylimits) == 1): ymin = float(ylimits[0])
-#if (len(ylimits) > 1): ymin = float(ylimits[0]); ymax = float(ylimits[1]) 
+ylimits = []
+for i in range(5,len(sys.argv)): ylimits.append(float(sys.argv[i]))
 
-if (abs(ymax-ymin) < 0.000000001): 
-    ymax=ymax+0.1
-    ymin=ymin-0.1
-
-if (len(sys.argv) > 4): ymin = float(sys.argv[4])
-if (len(sys.argv) > 5): ymax = float(sys.argv[5])
+if (len(ylimits) == 1): ymin = float(ylimits[0])
+if (len(ylimits) > 1): ymin = float(ylimits[0]); ymax = float(ylimits[1]) 
 
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
@@ -183,17 +171,11 @@ ax.xaxis.set_major_locator(MaxNLocator(7))
 
 ax.set_axisbelow(True) 
 
+ax.text(1,1.05,'file: '+filin,size=fontlabel,
+        transform=ax.transAxes,ha='right',va='center',rotation=0)
+        
 plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
 plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
-
-output_totmoment = open('total-moment',"w")
-
-pmt='%16.10f' 
-
-for i in range(len(x)): 
-    print >> output_totmoment, pmt%(x[i]), pmt%(y[i])
-
-output_totmoment.close()
 
 if (showpyplot): plt.show()
 #-------------------------------------------------------------------------------

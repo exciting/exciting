@@ -48,7 +48,7 @@ def leggi(filin):
     while ( ilines < len(lines) ):
         line = lines[ilines].strip() 
         ilines = ilines+1
-        if (len(line) != 0): 
+        if (len(line) != 0 and line[0][:1] != "#"): 
             if (len(line.split()) == 1):
 	        onlyone = True
                 x.append(int(ix))

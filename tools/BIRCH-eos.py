@@ -82,15 +82,11 @@ lexsev   = os.path.exists('energy-vs-volume')
 
 if (lrydberg): factor=1.0
 
-if (lplanar):   
-    input_planar = open('planar',"r")
-    factor=factor*float(input_planar.readline().strip().split()[0])
-
 if (lstartor): 
     input_startorder = open('startorder',"r")
     startorder=int(input_startorder.readline().strip().split()[0])
 
-if (not(lexsev)):   sys.exit("ERROR: file energy-vs-alat not found!\n")
+if (not(lexsev)): sys.exit("ERROR: file energy-vs-volume not found!\n")
 
 #-------------------------------------------------------------------------------
 
