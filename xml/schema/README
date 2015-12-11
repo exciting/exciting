@@ -7,6 +7,6 @@ elements:
 #TSvdWparameters in ref:properties.xsd -> ref:groundstate#TSvdWparameters
 #DFTD2parameters in ref:properties.xsd -> ref:groundstate#DFTD2parameters
 
-atributes:
+attributes:
 {{[#attgroundstatevdWcorrection vdWcorrection]}} in ref:properties -> {{[[[ref:groundstate#attvdWcorrection|vdWcorrection]]]}}
 {{[#attepsengy epsengy]}} in ref:relax -> **{{[[[ref:groundstate#attepsengy|epsengy]]]}}**

@@ -172,18 +172,18 @@
   </xsl:template>
 
   <xsl:template match="green">
-    <xsl:text>##green|</xsl:text>
+    <xsl:text>{{**##green|</xsl:text>
     <xsl:call-template name="normalizespace">
       <xsl:with-param name="a" select="."/>
     </xsl:call-template>
-    <xsl:text>##</xsl:text>
+    <xsl:text>##**}}</xsl:text>
   </xsl:template>
   <xsl:template match="blue">
-    <xsl:text> ##blue|</xsl:text>
+    <xsl:text> {{**##blue|</xsl:text>
     <xsl:call-template name="normalizespace">
       <xsl:with-param name="a" select="."/>
     </xsl:call-template>
-    <xsl:text>## </xsl:text>
+    <xsl:text>##**}} </xsl:text>
   </xsl:template>
   <xsl:template match="text()">
     <xsl:call-template name="normalizespace">
@@ -260,11 +260,11 @@
     <xsl:apply-templates select="./*|text()"/>
   </xsl:template>
   <xsl:template match="a">
-    <xsl:text> [</xsl:text>
+    <xsl:text> {{**[</xsl:text>
     <xsl:value-of select="@href"/>
     <xsl:text>  </xsl:text>
     <xsl:value-of select="."/>
-    <xsl:text>]</xsl:text>
+    <xsl:text>]**}}</xsl:text>
     <xsl:if test="@space">
       <xsl:text> </xsl:text>
     </xsl:if>

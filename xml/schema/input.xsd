@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <xs:schema xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
+  
   <!-- root element starts here -->
-
 
   <xs:include id="common" schemaLocation="common.xsd"/>
   <xs:include id="structure" schemaLocation="structure.xsd"/>
@@ -13,59 +13,89 @@
   <xs:include id="gw" schemaLocation="gw.xsd"/>
 
   <xs:annotation>
-    <xs:documentation> In order to perform an <exciting/> calculation an XML input file called
-        <filename>input.xml</filename> must be provided. <p> This web page lists all
-          <blue>elements</blue> and <green>attributes</green> that can be used in the input file of
-        an <exciting>exciting</exciting> calculation: </p>
-      <list>
-        <li>
-          <blue>elements</blue> are defined according to the <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions </a>.
-            <it>Example:</it> The element <elementref>groundstate</elementref> is used to set up a
-          self-consistent calculation of the ground-state energy. </li>
-        <li>
-          <green>attributes</green> are defined according to the <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions </a>. An
-          attribute is always connected to an element. In <exciting>exciting</exciting> an attribute
-          generally specifies a parameter or a set of parameters which are connected to the
-          corresponding element. <it>Example:</it> The attribute <attref>xctype</attref> of the
-          element <elementref>groundstate</elementref> defines which exchange-correlation potential
-          is used in the self-consistent calculation. </li>
-      </list>
-      <p> The input file of an <exciting>exciting</exciting> calculation is named
-          <filename>input.xml</filename>. A simple example for an input file can be found <a href="http://exciting-code.org/input-file-format-overview">here</a>. The input file
-          <filename>input.xml</filename> must be a valid XML file and it must contain the root
-        element <elementref>input</elementref>. </p>
-      <p> Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units (
-          <inlinemath>\hbar = m_{e} = e = 1</inlinemath> ): </p>
-      <list>
-        <li> Energies are given in Hartree: <p>
-            <inlinemath> 1\ {\rm Ha} = 2\ {\rm Ry} = 27.21138386(68)\ {\rm eV} = 4.35926\cdot
-              10^{-18}\ {\rm J}</inlinemath>
-          </p>
+     <xs:documentation> 
+	In order to perform an <exciting/> calculation an <pre-bf>XML</pre-bf> input file called
+        <pre-bf>input.xml</pre-bf> must be provided. 
+	<p> 
+	   This web page lists all <blue>elements</blue> and 
+	   <green>attributes</green> that can be used in the input file of
+	   an <exciting/> calculation: 
+	</p>
+        <list>
+           <li>
+              <blue>elements</blue> are defined according to the 
+	      <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a>.
+              <filename>Example:</filename> The element <elementref>groundstate</elementref> is used to set up a
+              self-consistent calculation of the ground-state energy. 
+	   </li>
+           <li>
+	      <green>attributes</green> are also defined from the 
+	      <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a>.
+	      An attribute is always connected to an element. In <exciting/> an attribute
+              generally specifies a parameter or a set of parameters which are connected to the
+              corresponding element. <filename>Example:</filename> The attribute <attref>xctype</attref> of the
+              element <elementref>groundstate</elementref> defines which exchange-correlation potential
+              is used in the self-consistent calculation. 
+	   </li>
+        </list>
+        <p> 
+	   The input file of an <exciting>exciting</exciting> calculation has the default name
+           <pre-bf>input.xml</pre-bf>. Simple examples for input files can be found in the available
+	   <a href="http://exciting-code.org/tutorials-boron">Tutorials</a>. 
+	   The input file <pre-bf>input.xml</pre-bf> must be a valid <pre-bf>XML</pre-bf> file 
+	   and it must contain the root element <elementref>input</elementref>. 
+	</p>
+        <p> 
+	   Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units, setting 
+	   <inlinemath>\hbar = m_{e} = e = 1</inlinemath>. Relevant units are: 
+	</p>
+        <list>
+        <li> 
+	   Energies are given in Hartree: 
+	   <p>
+              <inlinemath> 
+		 \phantom{mmm} 1\ {\rm Ha} = 2\ {\rm Ry} = 27.21138386(68)\ {\rm eV} = 4.35926\cdot 10^{-18}\ 
+		 {\rm J}
+              </inlinemath>
+           </p>
         </li>
-        <li> Lengths are given in Bohr: <p>
-            <inlinemath> 1\ a_{\rm Bohr}\ = 0.52917720859(36)\ {\buildrel _{\circ} \over
-              {\mathrm{A}}} \ = 0.52917720859(36) \cdot 10^{-10} \ {\rm m}</inlinemath>
-          </p>
+        <li> 
+	   Lengths are given in Bohr: 
+	   <p>
+              <inlinemath> 
+         	 \phantom{mmm} 1\ a_{\rm Bohr}\ = 0.52917720859(36)\ {\buildrel _{\circ} \over
+                 {\mathrm{A}}} \ = 0.52917720859(36) \cdot 10^{-10} \ {\rm m}
+	      </inlinemath>
+           </p>
         </li>
-        <li> Magnetic fields are given in units of <p>
-            <inlinemath> 1\ {\rm a.u.} = \displaystyle\frac{e}{a_{\rm Bohr}^2}\ = 1717.2445320376\
-              {\rm Tesla}. </inlinemath>
-          </p>
+        <li> 
+	    Magnetic fields are given in units of 
+	    <p>
+               <inlinemath> 
+		  \phantom{mmm} 1\ {\rm a.u.} = \displaystyle\frac{e}{a_{\rm Bohr}^2}\ = 1717.2445320376\
+                  {\rm Tesla}. 
+	       </inlinemath>
+            </p>
         </li>
-      </list>
-      <p> Note: The electron charge is positive, so that the atomic numbers
-          <inlinemath>Z</inlinemath> are negative. </p>
-    </xs:documentation>
-    <xs:appinfo>
-      <title>
-        <exciting>exciting</exciting> input reference </title>
-      <root>input</root>
-    </xs:appinfo>
+        </list>
+        <p> 
+	   <pre-bf>Note:</pre-bf> The electron charge is positive, so that the atomic numbers
+           <inlinemath>Z</inlinemath> are negative. 
+	</p>
+     </xs:documentation>
+     <xs:appinfo>
+        <title>
+           <exciting>exciting</exciting> input reference 
+	</title>
+        <root>input</root>
+     </xs:appinfo>
   </xs:annotation>
+  
   <xs:element ex:importance="essential" ex:unit="" name="input">
     <xs:annotation>
       <xs:appinfo> </xs:appinfo>
-      <xs:documentation> The XML element <elementref>input</elementref> is the root element of the
+      <xs:documentation> The <pre-bf>XML</pre-bf> element <elementref>input</elementref> is 
+          the root element of the
           <exciting>exciting</exciting> input file. It must contain at least the elements
           <elementref>title</elementref>, <elementref>structure</elementref>, and
           <elementref>groundstate</elementref>, each of them must be present only one time.

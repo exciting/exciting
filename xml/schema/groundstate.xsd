@@ -31,7 +31,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="s6" type="fortrandouble" default="0.75d0">
               <xs:annotation>
                 <xs:documentation>
-			Global scaling factor for all $C_6$-dispersion coefficients for the method <pre>"DFTD2"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+			Global scaling factor for all <inlinemath>C_6</inlinemath>-dispersion coefficients for the method <pre>"DFTD2"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -76,7 +76,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="s6" type="fortrandouble" default="1.0d0">
               <xs:annotation>
                 <xs:documentation>
-			Global scaling factor for all $C_6$-dispersion coefficients for the method <pre>"TSvdW"</pre>.
+			Global scaling factor for all <inlinemath>C_6</inlinemath>-dispersion coefficients for the method <pre>"TSvdW"</pre>.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
