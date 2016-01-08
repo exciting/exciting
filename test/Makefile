@@ -8,7 +8,6 @@ TESTDIRS = test01 test02 test03 test05 test06 test07 test08 test09 test10
 EXE = ../bin/excitingser
 endif	
 
-
 test: 
 	$(MAKE) cleantests
 	$(MAKE) $(TESTDIRS)
@@ -27,7 +26,7 @@ onlysummary::
 
 exciting::
 	cd $(BINDIR) && $(MAKE) libs && $(MAKE)
-	
+
 test01::
 	cd ./test01/runHe; ../../$(EXE)
 	cd ./test01/runAr; ../../$(EXE) input.xml; cp info.xml info-default.xml; cp atoms.xml atoms-default.xml
@@ -62,18 +61,15 @@ test06::
 	cd test06/runPbTiO3; ../../$(EXE) input-sym.xml; cp info.xml info-sym.xml      
 	cd test06; bash assert.sh 
 
-test07a::
+test07::	 
 	cd test07/runBSE && ../../$(EXE)
-test07b::
-	cd test07/runtddft && ../../$(EXE)
-	
-test07:: test07a test07b	 
-	cd test07 && bash assert.sh
+	cd test07/runtddftBSE && ../../$(EXE)
+	cd test07 && python assert.py
 
 test08::
 	cd test08/rungw && ../../$(EXE)
 	cd test08 && perl assert.pl 
-	 
+
 test09::
 	cd test09 && bash validate.sh
 	cd test09 && perl assert.pl  
@@ -86,12 +82,13 @@ testmpi::
 	cd ../build/mpi/; $(MAKE)
 	cd test02/runlapackmpi; sh startmpirun test08
 	cd test02; perl assertmpi.pl
-	
+
 cleantests::
 	-rm -f  test*/*.xml
 	-rm -f  test*/run*/*OUT
 	-rm -f  test*/run*/*TXT
 	-rm -f  test*/run*/dos.xml
+	-rm -f  test*/run*/*_scf.xml
 	-rm -f  test*/run*/bandstructure.xml
 	-rm -f  test*/run*/fermisurface.xml
 	-rm -f  test*/run*/LOSS*
