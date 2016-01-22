@@ -116,3 +116,10 @@ for ist in xrange(nbnd):
       val = 0.0
     print path[ik], ene[ik,ist], val
   print ""
+
+#
+# Gnuplot command
+#
+# p "<output>" u 1:2 lt 3 w l, \
+#   "<output>" u 1:2:($3*8) with points lt 1 pt 6 ps variable lc rgb "red"
+#
