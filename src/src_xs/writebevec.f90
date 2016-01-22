@@ -8,10 +8,15 @@ Subroutine writebevec
       Real (8), Allocatable :: beval (:)
       Complex (8), Allocatable :: bevec (:, :)
       Real (8) :: bevec_ksum, bevec1
-      Integer :: ex_min, ex_max, iv, ic, iknr, nsta1, nsta2, nrnst1, nrnst3, &
-                 & s1, s2, hamsiz, un, iostat
+      Integer :: ex_min, ex_max, iv, ic, iknr
+      integer :: nsta1, nsta2, nrnst1, nrnst3 
+      integer :: s1, s2, hamsiz, un, iostat
+      integer :: ist, jst
       Logical :: exist
       Character (256) :: lambda
+
+      call init0
+      call init1
 
       !read EXCCOEFF.bin where BSE eigenvectors are stored
        inquire(file='EXCCOEFF.bin', exist=exist)
@@ -101,7 +106,30 @@ Subroutine writebevec
       Close (un)
       End Do
 
-
+!---------------------------------------------------------------------------
+! din: New output file for the bandstructure to be able to post-process it
+!---------------------------------------------------------------------------
+      do s1 = ex_min, ex_max
+        call getunit(un)
+        write(lambda, '("exciton_evec_",i3.3,".dat")') s1
+        open(Unit=un, File=trim(lambda), Form='Formatted', Action='Write')
+        ! nkpt total, Nv, iv0, Nc, ic0
+        write(un,*) "# ", nkptnr, &
+        &                 nrnst1, nsta1,  &
+        &                 nrnst3, istl3+nsta2-1
+        do iknr = 1, nkptnr
+          do iv = 1, nrnst1
+            ist = iv+nsta1-1
+            do ic = 1, nrnst3
+              jst = ic+istl3-1+nsta2-1
+              s2 = hamidx(iv, ic, iknr, nrnst1, nrnst3)
+              write(un, '(I8, 4X, 3F10.6, 2I8, 4X, G18.10)') iknr, vkl(:,iknr), &
+              &    ist, jst, dble(bevec(s2,s1)*conjg(bevec(s2,s1)))
+            end do
+          end do
+        end do
+        close(un)
+      end do ! s1
 
       Deallocate(beval,bevec)
 
