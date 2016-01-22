@@ -139,8 +139,8 @@ contains
 
     igrid(:)  = input%xs%excitonPlot%plot2d%parallelogram%grid(1:3)
     boxl(1,:) = input%xs%excitonPlot%plot2d%parallelogram%origin%coord(1:3)
-    boxl(2,:) = input%xs%excitonPlot%plot2d%parallelogram%pointarray(1)%point%coord(1:3)
-    boxl(3,:) = input%xs%excitonPlot%plot2d%parallelogram%pointarray(2)%point%coord(1:3)
+    boxl(2,:) = input%xs%excitonPlot%plot2d%parallelogram%pointarray(1)%point%coord(1:3)-boxl(1,:)
+    boxl(3,:) = input%xs%excitonPlot%plot2d%parallelogram%pointarray(2)%point%coord(1:3)-boxl(1,:)
 
     ! position of hole (fixed), r_h
     r_h = gen_1d_rgrid(1, rh, 1)
@@ -189,9 +189,9 @@ contains
 
     igrid(:)  = input%xs%excitonPlot%plot3d%box%grid(1:3)
     boxl(1,:) = input%xs%excitonPlot%plot3d%box%origin%coord(1:3)
-    boxl(2,:) = input%xs%excitonPlot%plot3d%box%pointarray(1)%point%coord(1:3)
-    boxl(3,:) = input%xs%excitonPlot%plot3d%box%pointarray(2)%point%coord(1:3)
-    boxl(4,:) = input%xs%excitonPlot%plot3d%box%pointarray(3)%point%coord(1:3)
+    boxl(2,:) = input%xs%excitonPlot%plot3d%box%pointarray(1)%point%coord(1:3)-boxl(1,:)
+    boxl(3,:) = input%xs%excitonPlot%plot3d%box%pointarray(2)%point%coord(1:3)-boxl(1,:)
+    boxl(4,:) = input%xs%excitonPlot%plot3d%box%pointarray(3)%point%coord(1:3)-boxl(1,:)
 
     ! position of hole (fixed), r_h
     r_h = gen_1d_rgrid(1, rh, 1)

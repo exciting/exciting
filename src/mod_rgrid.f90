@@ -144,12 +144,12 @@ contains
       do ip1 = 0, n1
         ip = ip + 1
         t1 = dble(ip1)/dble(n1)
-      	v1(:) = t1*boxl(2,:)+ &
-      	&       t2*boxl(3,:)+ &
-      	&		    boxl(1,:)
-      	self%vpl(:,ip) = v1(:)
-      	call r3mv(input%structure%crystal%basevect, v1, v2)
-      	self%vpc(:,ip) = v2(:)
+        v1(:) = t1*boxl(2,:) &
+        &     + t2*boxl(3,:) &
+        &     + boxl(1,:)
+        self%vpl(:,ip) = v1(:)
+        call r3mv(input%structure%crystal%basevect, v1, v2)
+        self%vpc(:,ip) = v2(:)
       end do
     end do
 
@@ -161,27 +161,27 @@ contains
 
 	!----------------------------------------------------------------------------
   function gen_3d_rgrid(ngrid,boxl) result(self)
-  	implicit none
-  	! input/output
-  	type(rgrid) :: self
+    implicit none
+    ! input/output
+    type(rgrid) :: self
     integer, intent(in) :: ngrid(3)
     real(8), intent(in) :: boxl(4,3)
-  	! local
-  	integer :: ip, ip1, ip2, ip3, iv(3)
-  	integer :: n1, n2, n3
-  	real(8) :: v1(3), v2(3), t1, t2, t3
+    ! local
+    integer :: ip, ip1, ip2, ip3, iv(3)
+    integer :: n1, n2, n3
+    real(8) :: v1(3), v2(3), t1, t2, t3
 
-  	n1 = ngrid(1)
-  	n2 = ngrid(2)
-  	n3 = ngrid(3)
-  	self%npt = (n1+1)*(n2+1)*(n3+1)
+    n1 = ngrid(1)
+    n2 = ngrid(2)
+    n3 = ngrid(3)
+    self%npt = (n1+1)*(n2+1)*(n3+1)
 
-		if (allocated(self%vpl)) deallocate(self%vpl)
-  	allocate(self%vpl(3,self%npt))
-		if (allocated(self%vpc)) deallocate(self%vpc)
-		allocate(self%vpc(3,self%npt))
+    if (allocated(self%vpl)) deallocate(self%vpl)
+    allocate(self%vpl(3,self%npt))
+    if (allocated(self%vpc)) deallocate(self%vpc)
+    allocate(self%vpc(3,self%npt))
 
-  	ip = 0
+    ip = 0
     do ip3 = 0, n3
       t3 = dble(ip3)/dble(n3)
       do ip2 = 0, n2
@@ -189,15 +189,15 @@ contains
         do ip1 = 0, n1
           t1 = dble(ip1)/dble(n1)
           ip = ip+1
-          v1(:) = t1*boxl(2,:)+ &
-          &       t2*boxl(3,:)+ &
-          &       t3*boxl(4,:)+ &
-          &       boxl(1,:)
+          v1(:) = t1*boxl(2,:) &
+          &     + t2*boxl(3,:) &
+          &     + t3*boxl(4,:) &
+          &     + boxl(1,:)
           self%vpl(:,ip) = v1(:)
           ! convert point to Cartesian coordinates
-     			call r3frac(input%structure%epslat, v1, iv)
-      		call r3mv(input%structure%crystal%basevect, v1, v2)
-      		self%vpc(:,ip) = v2(:)
+          call r3frac(input%structure%epslat, v1, iv)
+          call r3mv(input%structure%crystal%basevect, v1, v2)
+          self%vpc(:,ip) = v2(:)
         end do
       end do
     end do
