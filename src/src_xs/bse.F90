@@ -190,8 +190,8 @@ Subroutine bse
       Allocate (sccli(rnst1, rnst3, rnst2, rnst4))
       Allocate (excli(rnst1, rnst3, rnst2, rnst4))
   ! allocate array for occupation number difference (future use )
-      	Allocate (docc (rnst1, rnst3))
-      	Allocate (kdocc (hamsiz))
+      Allocate (docc (rnst1, rnst3))
+      Allocate (kdocc (hamsiz))
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
       Allocate (ham(hamsiz, hamsiz))
       ham (:, :) = zzero
@@ -209,20 +209,24 @@ Subroutine bse
         input%xs%scissor=0.0d0
         ! Read QP Fermi energies and eigenvalues from file
         call getevalqp(nkptnr,vkl,evalsv)
-        Write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
-        !do ist1 = 1, nstsv
-        !  write(*,*) ist1, evalsv(ist1,1)
-        !end do
+        ! evalsv = evalsv+efermi
+        write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
+        ! do iknr = 1, nkptnr
+        !   write(71,'(a,i4,3f16.4)') "# ik = ", iknr, vkl(:,iknr)
+        !   do ist1 = 1, nstsv
+        !     write(71,*) ist1, evalsv(ist1,iknr)
+        !   end do
+        !   write(71,*)
+        ! end do
       end if ! GW
 
   ! read mean value of diagonal of direct term
       bsed = 0.d0
       If ((trim(input%xs%bse%bsetype) .Eq. 'singlet') .Or. &
-     & (trim(input%xs%bse%bsetype) .Eq. 'triplet')) Then
+      &   (trim(input%xs%bse%bsetype) .Eq. 'triplet')) Then
          If (input%xs%bse%bsedirsing) Then
             Call getbsediag
-            Write (unitout, '("Info(bse): read diagonal of BSE kernel")&
-           &')
+            Write (unitout, '("Info(bse): read diagonal of BSE kernel")')
             Write (unitout, '(" mean value : ", 2g18.10)') bsed
          End If
       End If
@@ -231,8 +235,8 @@ Subroutine bse
       Do iknr = 1, nkptnr
          Do ist1 = nsta1, nsto1
             Do ist3 = nsta2, nsto2
-               egap = Min (egap, evalsv(ist3+istocc, iknr)-evalsv(ist1, &
-              & iknr)+input%xs%scissor)
+               egap = min(egap, evalsv(ist3+istocc, iknr)- &
+               &                evalsv(ist1,iknr)+input%xs%scissor)
             End Do
          End Do
       End Do
@@ -241,7 +245,7 @@ Subroutine bse
          Write (unitout,*)
          Write (unitout, '("Warning(bse): the system has no gap")')
          Write (unitout,*)
-      End If	  
+      End If  
   ! set up BSE-Hamiltonian
       ikkp = 0
       Do iknr = 1, nkptnr
@@ -249,57 +253,55 @@ Subroutine bse
             ikkp = ikkp + 1
             iv2 (:) = ivknr (:, jknr) - ivknr (:, iknr)
             iv2 (:) = modulo (iv2(:), input%groundstate%ngridk(:))
-        ! q-point (reduced)
+            ! q-point (reduced)
             iqr = iqmapr (iv2(1), iv2(2), iv2(3))
-        ! q-point (non-reduced)
+            ! q-point (non-reduced)
             iq = iqmap (iv2(1), iv2(2), iv2(3))
             Select Case (trim(input%xs%bse%bsetype))
             Case ('singlet', 'triplet')
-           ! read screened Coulomb interaction
-               Call getbsemat ('SCCLI.OUT', ikkp, rnst1, rnst3, sccli)
+              ! read screened Coulomb interaction
+              Call getbsemat ('SCCLI.OUT', ikkp, rnst1, rnst3, sccli)
             End Select
-        ! read exchange Coulomb interaction
+            ! read exchange Coulomb interaction
             Select Case (trim(input%xs%bse%bsetype))
             Case ('RPA', 'singlet')
                Call getbsemat ('EXCLI.OUT', ikkp, rnst1, rnst3, excli)
             End Select
-        ! get occupation numbers (future use for partial occupancy) 			
-      		Call getdocc (iq, iknr, jknr, nsta1, nsto1, istl3+nsta2-1,& 
-      	   & istl3+nsto2-1, docc)
-        ! set up matrix
+            ! get occupation numbers (future use for partial occupancy) 			
+            Call getdocc(iq, iknr, jknr, nsta1, nsto1, istl3+nsta2-1, & 
+            &            istl3+nsto2-1, docc)
+            ! set up matrix
             Do ist1 = nsta1, nsto1
                Do ist3 = nsta2, nsto2
                   Do ist2 = nsta1, nsto1
                      Do ist4 = nsta2, nsto2
-                        s1 = hamidx (ist1-nsta1+1, ist3-nsta2+1, iknr, nrnst1, &
-                       & nrnst3)
-                        s2 = hamidx (ist2-nsta1+1, ist4-nsta2+1, jknr, nrnst2, &
-                       & nrnst4)
-			kdocc (s1) = docc (ist1-nsta1+1, ist3-nsta2+1)
-                     ! add diagonal term
+                        s1 = hamidx (ist1-nsta1+1, ist3-nsta2+1, iknr, nrnst1, nrnst3)
+                        s2 = hamidx (ist2-nsta1+1, ist4-nsta2+1, jknr, nrnst2, nrnst4)
+                        kdocc (s1) = docc (ist1-nsta1+1, ist3-nsta2+1)
+                        ! add diagonal term
                         If (s1 .Eq. s2) Then
-                           de = evalsv (ist3+istl3-1, iknr) - evalsv &
-                          & (ist1, iknr) + input%xs%scissor                                                                                                       
-                            ham (s1, s2) = ham (s1, s2) + de - egap + &
-                          & bsed
+                           de = evalsv(ist3+istl3-1,iknr) - &
+                           &    evalsv(ist1,iknr) + input%xs%scissor                                                                                                       
+                           ham (s1, s2) = ham (s1, s2) + de - egap + bsed
                         End If
-                    ! write partially occupied states in the output    
-			If (kdocc (s1) .Gt. input%groundstate%epsocc .And. kdocc (s1) &
-			  .Lt. 2.d0-input%groundstate%epsocc) Then
-			   Write (*,*) 'kdocc s1', kdocc(s1), s1
-			End If
-                    ! add exchange term
+                        ! write partially occupied states in the output    
+                        If (kdocc(s1) .Gt. input%groundstate%epsocc .And. &
+                        &   kdocc(s1) .Lt. 2.d0-input%groundstate%epsocc) Then
+                          Write (*,*) 'kdocc s1', kdocc(s1), s1
+                        End If
+                        ! add exchange term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('RPA', 'singlet')
-                           ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
-                           & (ist1-nsta1+1, ist3-nsta2+1, ist2-nsta1+1, ist4-nsta2+1) * &
-                           & kdocc (s1) * 0.5
+                           ham(s1,s2) = ham(s1,s2) + &
+                           &  2.d0*excli(ist1-nsta1+1, ist3-nsta2+1, ist2-nsta1+1, ist4-nsta2+1) * &
+                           &  kdocc(s1) * 0.5
                         End Select
-                    ! add correlation term
+                        ! add correlation term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('singlet', 'triplet')
-                           ham (s1, s2) = ham (s1, s2) - sccli (ist1-nsta1+1, &
-                           & ist3-nsta2+1, ist2-nsta1+1, ist4-nsta2+1) * kdocc (s1) * 0.5
+                          ham(s1,s2) = ham(s1,s2) - &
+                          &  sccli(ist1-nsta1+1, ist3-nsta2+1, ist2-nsta1+1, ist4-nsta2+1) * &
+                          &  kdocc(s1) * 0.5
                         End Select
                      End Do
                   End Do
@@ -312,8 +314,7 @@ Subroutine bse
       Write (unitout,*)
       Write (unitout, '("Info(bse): invoking Lapack routine ZHEEVX")')
       Write (unitout, '(" size of BSE-Hamiltonian	   : ", i8)') hamsiz
-      Write (unitout, '(" number of requested solutions : ", i8)') &
-     & input%xs%bse%nexcitmax
+      Write (unitout, '(" number of requested solutions : ", i8)') input%xs%bse%nexcitmax
   ! allocate eigenvector and eigenvalue arrays
       Allocate (beval(hamsiz), bevec(hamsiz, hamsiz))
   ! set number of excitons

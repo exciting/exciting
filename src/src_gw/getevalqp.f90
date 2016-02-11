@@ -28,13 +28,13 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
       integer(4) :: ib, nb, nk
       integer(4) :: recl
       integer :: nkpt0, nstsv0 
-      real(8) :: s(3,3), v1(3), v2(3), t1
+      real(8) :: s(3,3), v1(3), v2(3), v3(3), t1
       character (256) :: file
 
       integer, allocatable :: map(:)
       complex(8), allocatable :: de1(:,:), de2(:,:)
-  real(8),    Allocatable :: vkl0(:,:), ehf(:,:)
-  complex(8), allocatable :: e0(:,:),e1(:,:)
+      real(8),    Allocatable :: vkl0(:,:), ehf(:,:)
+      complex(8), allocatable :: e0(:,:),e1(:,:)
 
 !-----------------------------------------------------------------------------
 !     Just read the file
@@ -146,43 +146,9 @@ end if
         end if
       end if 
 
-! Check if k-sets are (symmetry) identical
-      allocate(map(nkp2))
-      map(:) = 0
-      do ik2 = 1, nkp2
-        do isym = 1, nsymcrys
-          lspl = lsplsymc(isym)
-          s(:, :) = dble(symlat(:, :, lspl))
-          call r3mtv(s, kvecs2(:,ik2), v2)
-          call r3frac(input%structure%epslat, v1, iv)
-          do ik1 = 1, nkp1
-            v1(:) = kvecs1(:,ik1)
-            call r3frac (input%structure%epslat, v1, iv)
-            t1 = Abs(v2(1)-v1(1)) + Abs(v2(2)-v1(2)) + Abs(v2(3)-v1(3))
-            if (t1 > input%structure%epslat) then
-              ! not equivalent, proceed with interpolation
-              deallocate(map)
-              goto 20
-            else
-              map(ik2) = ik1 
-            end if
-          end do
-        end do ! isym
-      end do ! ik2
-
-! reached this points = sets are equivalent
-      do ik2 = 1, nkp2
-        do ib = ibgw, min(nbgw,nstsv)
-          eqp2(ib,ik2) = eqp1(ib,map(ik2))
-        end do
-      end do
-      deallocate(map)   
-      goto 10
-
 !-----------------------------------------------------------------------------
 !     Interpolate the energies
 !-----------------------------------------------------------------------------      
-20    continue
       
       allocate(de1(nkp1,ibgw:nbgw),de2(nkpt,ibgw:nbgw))
       do ik = 1, nkp1
@@ -201,7 +167,7 @@ end if
 
 10    continue
       deallocate(kvecs1,eqp1,eks1)
-      return
 
+      return
 end subroutine
 !EOC
