@@ -77,7 +77,7 @@
       
         ik=idikp(ikp)
         coef=zone*iwkp(ikp)*sfact*cpivi
-        
+
 !---------------------------------          
 !       Valence-valence
 !---------------------------------                    
@@ -173,7 +173,7 @@
         write(43,1)iom,freqs(iom),head(iom)
       enddo
       close(43)
-    1 format(i4,3f16.8)
+      1 format(i4,3f16.8)
 
       call cpu_time(tend)
       if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'

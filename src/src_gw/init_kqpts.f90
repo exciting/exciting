@@ -24,6 +24,7 @@ subroutine init_kqpts
       real(8)    :: gpq(3), gqlen
       real(8)    :: len
       integer(4) :: ispn
+      integer(4) :: i1, i2, i3
       real(8) :: v1(3), v2(3), t1
       Real (8), External :: r3taxi  
 !
@@ -32,22 +33,17 @@ subroutine init_kqpts
 !   Revisited: May (DIN)
 !EOP
 !BOC
-!
-!     k-grid shifts
-      len=input%groundstate%vkloff(1)**2+ &
-     &    input%groundstate%vkloff(2)**2+ &
-     &    input%groundstate%vkloff(3)**2
-     
+   
       call init1
 
 !---------------------------------------------------!
 !     Generate non-reduced k- and q-points meshes   !
 !---------------------------------------------------!
-      nkptnr=input%groundstate%ngridk(1) * &
-     &       input%groundstate%ngridk(2) * &
-     &       input%groundstate%ngridk(3)
-      ntetnr=6*nkptnr
-      nqptnr=nkptnr
+      nkptnr = input%groundstate%ngridk(1) * &
+      &        input%groundstate%ngridk(2) * &
+      &        input%groundstate%ngridk(3)
+      ntetnr = 6*nkptnr
+      nqptnr = nkptnr
 
       if (allocated(wtetnr)) deallocate(wtetnr)
       allocate(wtetnr(ntetnr))
@@ -66,8 +62,9 @@ subroutine init_kqpts
       allocate(kqid(nqptnr,nqptnr))
 
 !     Generate the k- and q-points meshes
-      call kqgen(bvec,input%groundstate%ngridk,ikloff,dkloff,nkptnr, &
-        ivk,ivq,dvk,dvq,kqid,ntetnr,tnodesnr,wtetnr,linkq,tvol)
+      call kqgen(bvec, input%groundstate%ngridk, ikloff, dkloff, &
+      &          nkptnr, ivk, ivq, dvk, dvq, kqid, ntetnr, tnodesnr, &
+      &          wtetnr, linkq, tvol)
 
 !-------------------------------------------------!
 !     K-point set and corresponding k+G vectors   !
@@ -122,7 +119,7 @@ subroutine init_kqpts
           idikp(indkp(ik))=ik
         end if
       end do ! ik
-      
+
 !-------------------------------------------------!
 !     Q-point set and corresponding q+G vectors   !
 !-------------------------------------------------!
