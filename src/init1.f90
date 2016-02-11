@@ -246,7 +246,7 @@ Subroutine init1
          call genppts(input%groundstate%reducek, .False., &
          &            input%groundstate%ngridk, boxl, nkpt, &
          &            ikmap, ivk, vkl, vkc, wkpt)
-         
+        
 #ifdef TETRA
   ! call to module routine
          If (associated(input%xs)) Then

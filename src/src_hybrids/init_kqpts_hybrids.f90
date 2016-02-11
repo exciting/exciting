@@ -28,26 +28,26 @@ subroutine init_kqpts_hybrids
       if (allocated(indkp)) deallocate(indkp)
       allocate(indkp(nkptnr))
       ik = 0
-      do i3 = 0, input%groundstate%ngridk(3)-1
+      do i1 = 0, input%groundstate%ngridk(3)-1
       do i2 = 0, input%groundstate%ngridk(2)-1
-      do i1 = 0, input%groundstate%ngridk(1)-1
+      do i3 = 0, input%groundstate%ngridk(1)-1
          ik = ik+1
          indkp(ik) = ikmap(i1,i2,i3) 
       end do
       end do
       end do
 
-      if(allocated(idikp))deallocate(idikp)
+      if(allocated(idikp)) deallocate(idikp)
       allocate(idikp(nkpt))
       do ik = 1, nkptnr
-        v1(:)=vklnr(:,ik)
-        v2(:)=vkl(:,indkp(ik))
+        v1(:) = vklnr(:,ik)
+        v2(:) = vkl(:,indkp(ik))
         t1 = r3taxi(v1,v2)
         if (t1.lt.input%structure%epslat) then
           idikp(indkp(ik))=ik
         end if
       end do ! ik
-      
+
 !     allocate corresponding G+k-vector arrays
       if (allocated(ngknr)) deallocate(ngknr)
       allocate (ngknr(nspnfv,nkptnr))
@@ -66,10 +66,12 @@ subroutine init_kqpts_hybrids
       do ik = 1, nkptnr
         do ispn = 1, nspnfv
           ! generate the G+k-vectors
-          call gengpvec(vklnr(:,ik),vkcnr(:,ik),ngknr(ispn,ik),igkignr(:,ispn,ik), &
-         &  vgklnr(:,:,ispn,ik),vgkcnr(:,:,ispn,ik),gkcnr(:,ispn,ik),tpgkcnr(:,:,ispn,ik))
+          call gengpvec(vklnr(:,ik), vkcnr(:,ik), ngknr(ispn,ik), &
+          &  igkignr(:,ispn,ik), vgklnr(:,:,ispn,ik), vgkcnr(:,:,ispn,ik), &
+          &  gkcnr(:,ispn,ik), tpgkcnr(:,:,ispn,ik))
           ! generate structure factors for G+k-vectors
-          call gensfacgp(ngknr(ispn,ik),vgkcnr(:,:,ispn,ik),ngkmax,sfacgknr(:,:,ispn,ik))
+          call gensfacgp(ngknr(ispn,ik), vgkcnr(:,:,ispn,ik), &
+          &  ngkmax, sfacgknr(:,:,ispn,ik))
         end do
       end do
       
