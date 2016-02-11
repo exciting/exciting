@@ -18,8 +18,8 @@ subroutine calcepsilon(iqp,COMM_LEVEL2)
 ! !INPUT PARAMETERS:
       
       implicit none
-	  integer(4), intent(in) :: iqp
-	  integer(4), intent(in) :: COMM_LEVEL2 !MPI Communicator allocated for this routine
+      integer(4), intent(in) :: iqp
+      integer(4), intent(in) :: COMM_LEVEL2 !MPI Communicator allocated for this routine
 ! !LOCAL VARIABLES:
 
 

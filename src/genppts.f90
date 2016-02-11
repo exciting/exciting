@@ -11,6 +11,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
 #ifdef TETRA
       Use modtetra
 #endif
+    use modgw
     implicit none
     ! input
     logical, intent(in)  :: reducep
@@ -32,8 +33,6 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
     ! tetrahedron library related variables
     integer(4) :: nsym
     integer(4), allocatable :: symmat(:,:,:)
-    integer(4), allocatable :: indkp(:)
-    integer(4), allocatable :: iwkp(:)
 
 #ifdef XS
     integer :: jsym, nsymcrys_, lsplsymc_(maxsymcrys), lsplsymct(maxsymcrys)
@@ -128,8 +127,6 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
         wppt(ip) = dble(iwkp(ip))/dble(ngridp(1)*ngridp(2)*ngridp(3))
       end do ! ik
         
-      deallocate(indkp)
-      deallocate(iwkp)
       deallocate(symmat)
 
     else
