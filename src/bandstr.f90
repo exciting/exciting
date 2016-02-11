@@ -91,9 +91,11 @@ Subroutine bandstr
       read(70, Rec=ik) nkpt0, nstsv0, vkl0(:,ik), ehf(1:,ik)
     end do ! ik
     close(70)
+    ! read fermi energy
+    call readfermi
     ! Perform Fourier Interpolation
     do ik = 1, nkpt0
-      e0(ik,1:nstsv)=cmplx(ehf(1:nstsv,ik),0.d0,8)
+      e0(ik,1:nstsv)=cmplx(ehf(1:nstsv,ik)-efermi,0.d0,8)
     enddo
     e1(:,:)=zzero
     evalsv=zzero
