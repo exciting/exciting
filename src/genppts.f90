@@ -140,7 +140,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
       b(:,3) = boxl(:,4)-boxl(:,1)
       t1 = 1.d0 / dble(ngridp(1)*ngridp(2)*ngridp(3))
 
-      ! WARNING: Changed the order of loops !
+      ! WARNING: Order of loops !
       ip = 0
       do i1 = 0, ngridp(1)-1
         v1(1) = dble(i1) / dble(ngridp(1))
