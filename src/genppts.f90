@@ -118,12 +118,12 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
       end do
       end do
       end do
-        
       do ip = 1, nppt
         vpl(:,ip) = dble(ivp(:,ip))/dble(dvk)
         call r3mv(bvec,vpl(:,ip),vpc(:,ip))
         ! to match the exciting definition (integer devision)
         ivp(:,ip) = ivp(:,ip)/dkloff
+        ivp(:,ip) = ivp(:,ip)*dble(ngridp(:))/dble(dvk)
         wppt(ip) = dble(iwkp(ip))/dble(ngridp(1)*ngridp(2)*ngridp(3))
       end do ! ik
         
