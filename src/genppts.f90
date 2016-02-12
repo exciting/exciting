@@ -118,7 +118,6 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
       end do
       end do
       end do
-        
       do ip = 1, nppt
         vpl(:,ip) = dble(ivp(:,ip))/dble(dvk)
         call r3mv(bvec,vpl(:,ip),vpc(:,ip))
@@ -181,14 +180,6 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
         end do
       end do
       nppt = ip
-
-      write(*,*) 'ikloff=', ikloff
-      write(*,*) 'dkloff=', dkloff
-      write(*,*) 'dvk=', dvk
-      write(*,*) 'ivp='
-      do ip = 1, nppt
-        write(*,*) ip, "--", ivp(:,ip)
-      end do
 
     end if ! tetra vs default
 

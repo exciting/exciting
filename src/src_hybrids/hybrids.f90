@@ -367,7 +367,7 @@ Subroutine hybrids
     Open (70, File='EVALHF.OUT', Action='WRITE', Form='UNFORMATTED', &
    &   Access='DIRECT', status='REPLACE', Recl=Recl)
     do ik = 1, nkptnr
-        write(70, Rec=ik) nkptnr, nstsv, vklnr(:,ik), evalsv(:,indkp(ik))-efermi
+        write(70, Rec=ik) nkptnr, nstsv, vklnr(:,ik), evalsv(:,indkp(ik))
     end do ! ik
     Close(70)
 
