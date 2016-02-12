@@ -1,6 +1,6 @@
-
-
-
+!
+! 11.02.16 (DIN) New version of the exciting subroutine to generate k-points
+!
 subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
 &                   ivp, vpl, vpc, wppt)
     use modinput
@@ -27,8 +27,8 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
     ! local variables
     integer :: i1, i2, i3, ip, jp
     integer :: isym, lspl, iv (3)
-    real (8) :: v1 (3), v2 (3), v3 (3)
-    real (8) :: b (3, 3), s (3, 3), t1, t2
+    real(8) :: v1 (3), v2 (3), v3 (3)
+    real(8) :: b (3, 3), s (3, 3), t1, t2
 
     ! tetrahedron library related variables
     integer(4) :: nsym
@@ -123,10 +123,10 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
         vpl(:,ip) = dble(ivp(:,ip))/dble(dvk)
         call r3mv(bvec,vpl(:,ip),vpc(:,ip))
         ! to match the exciting definition (integer devision)
-        ivp(:,ip) = ivp(:,ip)/dkloff
+        ivp(:,ip) = ivp(:,ip)*ngridp(:)/dvk
         wppt(ip) = dble(iwkp(ip))/dble(ngridp(1)*ngridp(2)*ngridp(3))
       end do ! ik
-        
+
       deallocate(symmat)
 
     else
@@ -143,7 +143,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
         v1(1) = dble(i1) / dble(ngridp(1))
         do i2 = 0, ngridp(2)-1
           v1(2) = dble(i2) / dble(ngridp(2))
-            do i3 = 0, ngridp(1)-1
+            do i3 = 0, ngridp(3)-1
             v1(3) = dble(i3) / dble(ngridp(3))
             call r3mv(b, v1, v2)
             v2(:) = v2(:)+boxl(:,1)
@@ -181,6 +181,14 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
         end do
       end do
       nppt = ip
+
+      write(*,*) 'ikloff=', ikloff
+      write(*,*) 'dkloff=', dkloff
+      write(*,*) 'dvk=', dvk
+      write(*,*) 'ivp='
+      do ip = 1, nppt
+        write(*,*) ip, "--", ivp(:,ip)
+      end do
 
     end if ! tetra vs default
 
