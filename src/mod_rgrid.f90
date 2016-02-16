@@ -1,83 +1,84 @@
 
 module mod_rgrid
-	use modinput
-	implicit none
+  
+  use modinput
+  implicit none
 
-	type rgrid
-		integer :: npt
-		real(8), allocatable :: vpl(:,:)
-		real(8), allocatable :: vpc(:,:)
-		real(8), allocatable :: vpd(:)
-		logical, allocatable :: mtpoint(:)
-		integer, allocatable :: atom(:,:)
+  type rgrid
+    integer :: npt
+    real(8), allocatable :: vpl(:,:)
+    real(8), allocatable :: vpc(:,:)
+    real(8), allocatable :: vpd(:)
+    logical, allocatable :: mtpoint(:)
+    integer, allocatable :: atom(:,:)
     integer, allocatable :: iv(:,:)
-	end type rgrid
+  end type rgrid
 
-	private find_mt_points
+  private find_mt_points
 
 contains
 
-	!----------------------------------------------------------------------------
-	subroutine print_rgrid(self)
-		implicit none
-		type(rgrid), intent(in) :: self
-		integer :: ip
-		write(*,*)
-		write(*,*) "Real space grid:"
-		write(*,*) " size: ", self%npt
-		write(*,*) " ip  vpl  mtpoint  atom"
-		do ip = 1, self%npt
-			write(*,'(i,3f12.4,L)') ip, self%vpl(:,ip), self%mtpoint(ip)
+  !----------------------------------------------------------------------------
+  subroutine print_rgrid(self)
+    implicit none
+    type(rgrid), intent(in) :: self
+    integer :: ip
+    write(*,*)
+    write(*,*) "Real space grid:"
+    write(*,*) " size: ", self%npt
+    write(*,*) " ip  vpl  mtpoint  atom"
+    do ip = 1, self%npt
+      write(*,'(i,3f12.4,L)') ip, self%vpl(:,ip), self%mtpoint(ip)
       if (self%mtpoint(ip)) then 
         write(*,'(2i4,4x,3i4)') self%atom(:,ip), self%iv(:,ip)
       end if
-		end do
-		return
-	end subroutine
+    end do
+    return
+  end subroutine
 
-	!----------------------------------------------------------------------------
-	subroutine delete_rgrid(self)
-		implicit none
-		type(rgrid), intent(inout) :: self
-		if (allocated(self%vpl))     deallocate(self%vpl)
-		if (allocated(self%vpc))     deallocate(self%vpc)
-		if (allocated(self%vpd))     deallocate(self%vpd)
-		if (allocated(self%mtpoint)) deallocate(self%mtpoint)
-		if (allocated(self%atom))    deallocate(self%atom)
-	end subroutine
+  !----------------------------------------------------------------------------
+  subroutine delete_rgrid(self)
+    implicit none
+    type(rgrid), intent(inout) :: self
+    if (allocated(self%vpl))     deallocate(self%vpl)
+    if (allocated(self%vpc))     deallocate(self%vpc)
+    if (allocated(self%vpd))     deallocate(self%vpd)
+    if (allocated(self%mtpoint)) deallocate(self%mtpoint)
+    if (allocated(self%atom))    deallocate(self%atom)
+  end subroutine
 
-	!----------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   function gen_1d_rgrid(nv,vvl,np) result(self)
-  	implicit none
-  	! input/output
-  	type(rgrid)         :: self
+    implicit none
+    ! input/output
+    type(rgrid)         :: self
     integer, intent(in) :: nv         ! number of 1d path segments
     real(8), intent(in) :: vvl(nv,3)  ! segment coordinates
     integer, intent(in) :: np         ! number of grid points
-  	! local
-  	integer :: iv
-  	integer :: ip, ip0, ip1, n
-  	real(8) :: t1, f, dt, vl(3), vc(3)
-  	real(8), allocatable :: seg(:), dv(:)
+    ! local
+    integer :: iv
+    integer :: ip, ip0, ip1, n
+    real(8) :: t1, f, dt, vl(3), vc(3)
+    real(8), allocatable :: seg(:), dv(:)
 
     ! initialization
     self%npt = np
     if (allocated(self%vpl)) deallocate(self%vpl)
-  	allocate(self%vpl(3,self%npt))
-		if (allocated(self%vpc)) deallocate(self%vpc)
-		allocate(self%vpc(3,self%npt))
-		if (allocated(self%vpd)) deallocate(self%vpd)
-		allocate(self%vpd(self%npt))
+    allocate(self%vpl(3,self%npt))
+    if (allocated(self%vpc)) deallocate(self%vpc)
+    allocate(self%vpc(3,self%npt))
+    if (allocated(self%vpd)) deallocate(self%vpd)
+    allocate(self%vpd(self%npt))
 
-		! find the total distance and the length of each segment
+    ! find the total distance and the length of each segment
     allocate(dv(nv),seg(nv))
     dt = 0.d0
     do iv = 1, nv-1
-     	dv(iv) = dt
-     	vl(:) = vvl(iv+1,:)-vvl(iv,:)
-     	call r3mv(input%structure%crystal%basevect, vl, vc)
-     	seg(iv) = dsqrt(vc(1)**2+vc(2)**2+vc(3)**2)
-     	dt = dt+seg(iv)
+      dv(iv) = dt
+      vl(:) = vvl(iv+1,:)-vvl(iv,:)
+      call r3mv(input%structure%crystal%basevect, vl, vc)
+      seg(iv) = dsqrt(vc(1)**2+vc(2)**2+vc(3)**2)
+      dt = dt+seg(iv)
     end do
 
     dv(nv) = dt
@@ -119,24 +120,24 @@ contains
 
   !----------------------------------------------------------------------------
   function gen_2d_rgrid(ngrid,boxl) result(self)
-  	implicit none
-  	! input/output
-  	type(rgrid) :: self
+    implicit none
+    ! input/output
+    type(rgrid) :: self
     integer, intent(in) :: ngrid(2)
     real(8), intent(in) :: boxl(3,3)
-  	! local
-  	integer :: ip, ip1, ip2, iv(3)
-  	integer :: n1, n2
-  	real(8) :: v1(3), v2(3), t1, t2
+    ! local
+    integer :: ip, ip1, ip2, iv(3)
+    integer :: n1, n2
+    real(8) :: v1(3), v2(3), t1, t2
 
-  	n1 = ngrid(1)
-  	n2 = ngrid(2)
-		self%npt = (n1+1)*(n2+1)
+    n1 = ngrid(1)
+    n2 = ngrid(2)
+    self%npt = (n1+1)*(n2+1)
 
-		if (allocated(self%vpl)) deallocate(self%vpl)
-  	allocate(self%vpl(3,self%npt))
-		if (allocated(self%vpc)) deallocate(self%vpc)
-		allocate(self%vpc(3,self%npt))
+    if (allocated(self%vpl)) deallocate(self%vpl)
+    allocate(self%vpl(3,self%npt))
+    if (allocated(self%vpc)) deallocate(self%vpc)
+    allocate(self%vpc(3,self%npt))
 
     ip = 0
     do ip2 = 0, n2
@@ -156,10 +157,10 @@ contains
     ! find out which points belong to MT region
     call find_mt_points(self)
 
-  	return  	
+    return
   end function
 
-	!----------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   function gen_3d_rgrid(ngrid,boxl) result(self)
     implicit none
     ! input/output
@@ -211,31 +212,31 @@ contains
   !----------------------------------------------------------------------------
   subroutine find_mt_points(self)
   	use modmain, only  : nspecies, natoms, atposc, rmt
-  	implicit none
-  	! input/output
-  	type(rgrid),       intent(inout) :: self
-  	! local variables
-		integer :: ip, ia, is, i1, i2, i3, iv(3)
+    implicit none
+    ! input/output
+    type(rgrid),       intent(inout) :: self
+    ! local variables
+    integer :: ip, ia, is, i1, i2, i3, iv(3)
     integer :: n1, n2, n3
-		real(8) :: t1, v0(3), v1(3), v2(3), v3(3), rmt2
+    real(8) :: t1, v0(3), v1(3), v2(3), v3(3), rmt2
 
-		if (allocated(self%mtpoint)) deallocate(self%mtpoint)
-		allocate(self%mtpoint(self%npt))
-		self%mtpoint(:) = .false.
+    if (allocated(self%mtpoint)) deallocate(self%mtpoint)
+    allocate(self%mtpoint(self%npt))
+    self%mtpoint(:) = .false.
 
-		if (allocated(self%atom)) deallocate(self%atom)
-		allocate(self%atom(2,self%npt))
-		self%atom(:,:) = 0
+    if (allocated(self%atom)) deallocate(self%atom)
+    allocate(self%atom(2,self%npt))
+    self%atom(:,:) = 0
 
     if (allocated(self%iv)) deallocate(self%iv)
     allocate(self%iv(3,self%npt))
     self%iv(:,:) = 0    
 
-		do ip = 1, self%npt
+    do ip = 1, self%npt
       v0(:) = self%vpl(:,ip)
       call r3frac(1.d-6, v0, iv)
       call r3mv(input%structure%crystal%basevect, v0, v1)
-			! check if point is in a muffin-tin
+      ! check if point is in a muffin-tin
       do is = 1, nspecies
         rmt2 = rmt(is)**2
         do ia = 1, natoms(is)
@@ -251,12 +252,12 @@ contains
             t1 = v3(1)**2+v3(2)**2+v3(3)**2
             if (t1<rmt2) then
               ! belong to MT
-            	self%mtpoint(ip) = .true.
-            	self%atom(1,ip) = is
-            	self%atom(2,ip) = ia
-            	self%vpc(:,ip) = v3(:)
+              self%mtpoint(ip) = .true.
+              self%atom(1,ip) = is
+              self%atom(2,ip) = ia
+              self%vpc(:,ip) = v3(:)
               self%iv(:,ip) = iv(:)-(/i1,i2,i3/)
-            	go to 10
+              go to 10
             end if            
           end do
           end do
@@ -269,49 +270,56 @@ contains
     return
   end subroutine
 
-	!----------------------------------------------------------------------------
-	subroutine calc_zdata_rgrid(self,ik,wfmt,wfir,zdata)
-		use modmain
-		implicit none
+  !----------------------------------------------------------------------------
+  subroutine calc_zdata_rgrid(self,ik,wfmt,wfir,zdata)
+    use modmain
+    implicit none
 
-	  type(rgrid), intent(in)  :: self
+    type(rgrid), intent(in)  :: self
     integer,     intent(in)  :: ik
-		complex(8),  intent(in)  :: wfmt(lmmaxapw,nrmtmax,natmtot)
+    complex(8),  intent(in)  :: wfmt(lmmaxapw,nrmtmax,natmtot)
     complex(8),  intent(in)  :: wfir(ngrtot)
     complex(8),  intent(out) :: zdata(*)
     ! local
     integer :: ip0, ip, is, ia, ias, ir, i, j, lm, ig, igp
     real(8) :: vl(3), vc(3), v(3), r
     complex(8), allocatable :: zylm(:)
-	  ! interpolation variables
-	  integer :: np2, ir0, iv(3), nx, ny, nz
-	  real(8) :: t1, t2, phs, phsav
-	  complex(8) :: zsum, z
-		real(8), allocatable :: xa(:), ya(:), c(:)
-		real(8), external :: polynom
+    ! interpolation variables
+    integer :: np2, ir0, iv(3), nx, ny, nz
+    real(8) :: t1, t2, phs, phsav
+    complex(8) :: zsum, z
+    real(8), allocatable :: xa(:), ya(:), c(:)
+    real(8), external :: polynom
 
+    np2 = input%groundstate%nprad/2
+
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) &
+!$OMP PRIVATE(ip,is,ia,ias,vl,vc,zylm,r,ir,ir0,zsum,lm,j,i,xa,ya,t1,t2,c,v,igp)
+#endif
     allocate(zylm(lmmaxapw))
     allocate(xa(input%groundstate%nprad))
     allocate(ya(input%groundstate%nprad))
     allocate(c(input%groundstate%nprad))
-    np2 = input%groundstate%nprad/2
-
+#ifdef USEOMP    
+!$OMP DO
+#endif
     do ip = 1, self%npt
 
-    	is = self%atom(1,ip)
-    	ia = self%atom(2,ip)
-    	ias = idxas(ia,is)
-    	vl(:) = self%vpl(:,ip)
+      is = self%atom(1,ip)
+      ia = self%atom(2,ip)
+      ias = idxas(ia,is)
+      vl(:) = self%vpl(:,ip)
       vc(:) = self%vpc(:,ip)
 
     	if (self%mtpoint(ip)) then
-    	  !----------------------------
-    		! point belong to MT region
-    		!----------------------------
+        !----------------------------
+        ! point belong to MT region
+        !----------------------------
         ! cart. coordinates wrt atom (is,ia)
-    		call ylm(vc,input%groundstate%lmaxapw,zylm)
-    		r = dsqrt(vc(1)**2+vc(2)**2+vc(3)**2)
-				do ir = 1, nrmt(is)
+        call ylm(vc,input%groundstate%lmaxapw,zylm)
+        r = dsqrt(vc(1)**2+vc(2)**2+vc(3)**2)
+        do ir = 1, nrmt(is)
           if (spr(ir,is)>=r) then
             if (ir<=np2) then
               ir0 = 1
@@ -327,13 +335,13 @@ contains
                 i = ir0+j-1
                 xa(j) = dble(wfmt(lm,i,ias))
                 ya(j) = aimag(wfmt(lm,i,ias))
-							end do
-							! interpolate radial part of wfmt
-							t1 = polynom(0, input%groundstate%nprad, &
-            	&            spr(ir0,is), xa, c, r)
-            	t2 = polynom(0, input%groundstate%nprad, &
-            	&            spr(ir0,is), ya, c, r)
-            	zsum = zsum+cmplx(t1,t2,8)*zylm(lm)
+              end do
+              ! interpolate radial part of wfmt
+              t1 = polynom(0, input%groundstate%nprad, &
+              &            spr(ir0,is), xa, c, r)
+              t2 = polynom(0, input%groundstate%nprad, &
+              &            spr(ir0,is), ya, c, r)
+              zsum = zsum+cmplx(t1,t2,8)*zylm(lm)
             end do ! lm
             exit ! the loop over ir
           end if
@@ -348,9 +356,9 @@ contains
         zdata(ip) = zsum*cmplx(dcos(t1),dsin(t1),8)
 
       else
-				!----------------------------
-    		! point belong to IS region
-    		!----------------------------
+        !----------------------------
+        ! point belong to IS region
+        !----------------------------
         zsum = 0.d0
         do igp = 1, ngk(1,ik)
           t1 = twopi*(vgkl(1,igp,1,ik)*vl(1)+ &
@@ -363,6 +371,16 @@ contains
       end if
 
     end do ! ip
+#ifdef USEOMP
+!$OMP END DO NOWAIT
+#endif
+    deallocate(zylm)
+    deallocate(xa)
+    deallocate(ya)
+    deallocate(c)
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif
 
     ! dephasing (lapw7)
     if (.false.) then

@@ -346,4 +346,35 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+  <!-- XS -->
+  <xs:element ex:importance="expert" ex:unit="" name="exciton" minOccurs="1">
+    <xs:annotation>
+    <xs:documentation>
+      Electron-hole pair descriptor.
+    </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute ex:importance="expert" ex:unit="" name="lambda" type="xs:integer" default="1">
+        <xs:annotation>
+        <xs:documentation>
+          The index of the stored exciton.
+        </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="origin" type="vect3d" default="0.0d0 0.0d0 0.0d0">
+        <xs:annotation>
+        <xs:documentation>
+          Fixed position of the hole (in lattice coordinates).
+        </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="fix" type="xs:string" default="hole">
+        <xs:annotation>
+        <xs:documentation>
+          Fix position (in lattice coordinates) either of the "hole" or "electron".
+        </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
 </xs:schema>

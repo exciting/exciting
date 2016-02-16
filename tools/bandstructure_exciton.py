@@ -115,7 +115,7 @@ for ist in xrange(nbnd):
     else:
       val = 0.0
     print path[ik], ene[ik,ist], val
-  print ""
+  print "\n"
 
 #
 # Gnuplot command

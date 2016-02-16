@@ -42,25 +42,27 @@
 
 	<xs:element ex:importance="expert" ex:unit="" name="excitonPlot" minOccurs="0" maxOccurs="1">
 	  <xs:annotation>
-      <xs:documentation></xs:documentation>
+      <xs:documentation>
+        Trigger the electron-hole visualization procedure.
+      </xs:documentation>
     </xs:annotation>
     <xs:complexType>
-	    <xs:attribute ex:importance="expert" ex:unit="" name="excitonIndex" type="xs:integer" default="1">
-	      <xs:annotation>
-	        <xs:documentation>It represents the index of the exciton to be plotted. The default value is set to 1. If exciton 1 is not stored, the default value is set to the lowest index of the stored excitons. </xs:documentation>
-	      </xs:annotation>
-      </xs:attribute>
-	    <xs:attribute ex:importance="expert" ex:unit="" name="holeCoord" type="vect3d" default="0.0d0 0.0d0 0.0d0">
+      <xs:attribute ex:importance="expert" ex:unit="" name="epstol" type="fortrandouble" default="1.d-8">
         <xs:annotation>
-          <xs:documentation>Fixed coordinates of the hole in the exciton wave function. It is given in units of the lattice vectors.
-		      </xs:documentation>
+        <xs:documentation>
+          Threshold value for selecting states which contribute to the exciton.
+        </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:all>
-        <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0"/>
-        <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
-        <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
-      </xs:all>
+      <!--xs:all-->
+      <xs:sequence>
+        <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0" maxOccurs="1"/>
+        <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" maxOccurs="1"/>
+        <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" maxOccurs="1"/>
+      
+        <xs:element ex:importance="expert" ex:unit="" ref="exciton" minOccurs="1" maxOccurs="unbounded"/>        
+      </xs:sequence>
+      <!--/xs:all-->
     </xs:complexType>
   </xs:element>
 
