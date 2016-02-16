@@ -28,9 +28,9 @@ subroutine init_kqpts_hybrids
       if (allocated(indkp)) deallocate(indkp)
       allocate(indkp(nkptnr))
       ik = 0
-      do i1 = 0, input%groundstate%ngridk(3)-1
+      do i1 = 0, input%groundstate%ngridk(1)-1
       do i2 = 0, input%groundstate%ngridk(2)-1
-      do i3 = 0, input%groundstate%ngridk(1)-1
+      do i3 = 0, input%groundstate%ngridk(3)-1
          ik = ik+1
          indkp(ik) = ikmap(i1,i2,i3) 
       end do
