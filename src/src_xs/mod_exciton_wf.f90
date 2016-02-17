@@ -1,82 +1,100 @@
 
-subroutine plot_exciton_wf
-
+module mod_exciton_wf
   use modinput
   use modmain
   use modxs
   use modmpi
   implicit none
 
-  ! local
-  integer :: lambda
-  real(8) :: r0(3)
-  
   integer :: nsta1, nsta2, nrnst1, nrnst3, hamsiz
-  integer :: ipair
-  character(22) :: fix
-    
   real(8),    allocatable :: beval(:)
   complex(8), allocatable :: bevec(:,:)
 
-  call init0
-  call init1
-  call init2
-  call xssave0
-  call readfermi
+  ! Note:
+  ! ipair is used further to generate a unique output file name
+  ! coding all e-h pair descriptors
+  integer, private :: ipair
 
-  if (.not.associated(input%xs%excitonPlot)) then
-    write(*,*)
-    write(*,*) 'Error(plot_exciton_wf): Element excitonplot is not specified!'
-    write(*,*)
-    stop
-  end if
+  public  :: read_exccoeff, plot_exciton_wf
 
-  do ipair = 1, size(input%xs%excitonplot%excitonarray)
-
-    lambda = input%xs%excitonplot%excitonarray(ipair)%exciton%lambda
-    write(*,'(" Exciton index: ",i4)') lambda
-
-    r0(:)  = input%xs%excitonplot%excitonarray(ipair)%exciton%origin(:)
-    write(*,'(" Origin coordinates: ",3f8.2)') r0
-
-    fix = trim(input%xs%excitonplot%excitonarray(ipair)%exciton%fix)
-    select case (trim(fix))
-      case('hole')
-        write(*,*) "Hole position is fixed"
-        
-      case('electron')
-        write(*,*) "Electron position is fixed"
-
-      case default
-        write(*,*) "Error(plot_exciton_wf): Wrong value is specified!"
-        write(*,*) "fix = ", trim(fix)
-        stop
-
-    end select
-
-    if (associated(input%xs%excitonPlot%plot1d)) then
-      write(*,*) '1d plot'
-      call calc_1d_exciton_wf(lambda,r0,fix)
-
-    else if (associated(input%xs%excitonPlot%plot2d)) then
-      write(*,*) '2d plot'
-      call calc_2d_exciton_wf(lambda,r0,fix)
-
-    else if (associated(input%xs%excitonPlot%plot3d)) then
-      write(*,*) '3d plot'
-      call calc_3d_exciton_wf(lambda,r0,fix)
-
-    else
-      write(*,*)
-      write(*,*) 'Error(plot_exciton_wf): Plot type is not specified!'
-      write(*,*)
-      stop
-    end if
-
-  end do ! over excitons
+  private :: calc_1d_exciton_wf, calc_2d_exciton_wf, calc_3d_exciton_wf, &
+  &          calc_eh_zwf, write_zwfeh
 
 contains
 
+  !--------------------------------------------------------------------------------
+  subroutine plot_exciton_wf
+    implicit none
+    ! local
+    integer :: lambda
+    real(8) :: r0(3)
+  
+    integer :: nsta1, nsta2, nrnst1, nrnst3, hamsiz
+    character(22) :: fix
+    
+    real(8),    allocatable :: beval(:)
+    complex(8), allocatable :: bevec(:,:)
+
+    call init0
+    call init1
+    call init2
+    call xssave0
+    call readfermi
+
+    if (.not.associated(input%xs%excitonPlot)) then
+      write(*,*)
+      write(*,*) 'Error(plot_exciton_wf): Element excitonplot is not specified!'
+      write(*,*)
+      stop
+    end if    
+
+    do ipair = 1, size(input%xs%excitonplot%excitonarray)
+
+      lambda = input%xs%excitonplot%excitonarray(ipair)%exciton%lambda
+      write(*,'(" Exciton index: ",i4)') lambda
+
+      r0(:)  = input%xs%excitonplot%excitonarray(ipair)%exciton%origin(:)
+      write(*,'(" Origin coordinates: ",3f8.2)') r0
+
+      fix = trim(input%xs%excitonplot%excitonarray(ipair)%exciton%fix)
+      select case (trim(fix))
+        case('hole')
+          write(*,*) "Hole position is fixed"
+          
+        case('electron')
+          write(*,*) "Electron position is fixed"
+
+        case default
+          write(*,*) "Error(plot_exciton_wf): Wrong value is specified!"
+          write(*,*) "fix = ", trim(fix)
+          stop
+
+      end select
+
+      if (associated(input%xs%excitonPlot%plot1d)) then
+        write(*,*) '1d plot'
+          call calc_1d_exciton_wf(lambda,r0,fix)
+    
+        else if (associated(input%xs%excitonPlot%plot2d)) then
+          write(*,*) '2d plot'
+          call calc_2d_exciton_wf(lambda,r0,fix)
+    
+        else if (associated(input%xs%excitonPlot%plot3d)) then
+          write(*,*) '3d plot'
+          call calc_3d_exciton_wf(lambda,r0,fix)
+    
+        else
+          write(*,*)
+          write(*,*) 'Error(plot_exciton_wf): Plot type is not specified!'
+          write(*,*)
+          stop
+        end if
+      
+      end do ! over excitons
+
+    return
+  end subroutine
+  
   !--------------------------------------------------------------------------------
   subroutine calc_1d_exciton_wf(lambda,r0,fix)
     use mod_rgrid
@@ -140,27 +158,13 @@ contains
 
     ! output
     if (rank==0) then
+      write(fname,'("wf-eh-pair-1d-",i,".dat")') ipair
+      call str_strip(fname)
       select case (trim(fix))
         case('hole')
-          write(fname,'("wf-eh-pair-1d-",i,"-fix-h.dat")') lambda
-          call str_strip(fname)
-          open(77,file=trim(fname),status='Unknown',action='Write')
-          do ip = 1, r_e%npt
-            !write(77,'(3f16.6)') r_e%vpd(ip), zwfeh(ip)
-            write(77,'(2f16.6)') r_e%vpd(ip), abs(zwfeh(ip))
-          end do
-          close(77)
-
+          call write_zwfeh(fname,r_e,zwfeh)
         case('electron')
-          write(fname,'("wf-eh-pair-1d-",i,"-fix-e.dat")') lambda
-          call str_strip(fname)
-          open(77,file=trim(fname),status='Unknown',action='Write')
-          do ip = 1, r_h%npt
-            !write(77,'(3f16.6)') r_h%vpd(ip), zwfeh(ip)
-            write(77,'(2f16.6)') r_h%vpd(ip), abs(zwfeh(ip))
-          end do
-          close(77)
-
+          call write_zwfeh(fname,r_h,zwfeh)
         end select
     end if
 
@@ -220,9 +224,10 @@ contains
 
     ! output
     if (rank==0) then
+
       select case (trim(fix))
         case('hole')
-          write(fname,'("wf-eh-pair-2d-",i,"-fix-h.xsf")') lambda
+          write(fname,'("wf-eh-pair-2d-",i,".xsf")') ipair
           call str_strip(fname)
           call write_structure_xsf(fname)
           !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
@@ -230,7 +235,7 @@ contains
           &                 boxl, igrid, r_e%npt, abs(zwfeh))
 
         case('electron')
-          write(fname,'("wf-eh-pair-2d-",i,"-fix-e.xsf")') lambda
+          write(fname,'("wf-eh-pair-2d-",i,".xsf")') ipair
           call str_strip(fname)
           call write_structure_xsf(fname)
           !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
@@ -298,7 +303,7 @@ contains
     if (rank==0) then
       select case (trim(fix))
         case('hole')
-          write(fname,'("wf-eh-pair-3d-",i,"-fix-h.xsf")') lambda
+          write(fname,'("wf-eh-pair-3d-",i,".xsf")') ipair
           call str_strip(fname)
           call write_structure_xsf(fname)
           !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
@@ -306,7 +311,7 @@ contains
           &                 boxl, igrid, r_e%npt, abs(zwfeh))
 
         case('electron')
-          write(fname,'("wf-eh-pair-3d-",i,"-fix-e.xsf")') lambda
+          write(fname,'("wf-eh-pair-3d-",i,".xsf")') ipair
           call str_strip(fname)
           call write_structure_xsf(fname)
           !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
@@ -552,4 +557,22 @@ contains
     return
   end subroutine
 
-end subroutine ! plot_exciton_wf
+  !--------------------------------------------------------------------------------
+  subroutine write_zwfeh(fname,r_grid,zdata)
+    use mod_rgrid
+    implicit none
+    character(*), intent(in) :: fname
+    type(rgrid),  intent(in) :: r_grid
+    complex(8),   intent(in) :: zdata(:)
+    ! local
+    integer :: ip
+    open(77,file=trim(fname),status='Unknown',action='Write')
+    do ip = 1, r_grid%npt
+      !write(77,'(3f16.6)') r_e%vpd(ip), zwfeh(ip)
+      write(77,'(2f16.6)') r_grid%vpd(ip), abs(zdata(ip))
+    end do
+    close(77)
+    return
+  end subroutine  
+
+end module

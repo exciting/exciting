@@ -33,6 +33,7 @@ Subroutine xsmain (plan)
       Use modmpi
       Use modtetra
       Use modxs
+      use mod_exciton_wf
       Implicit None
       Type (plan_type) :: plan
       Integer :: i
