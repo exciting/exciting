@@ -395,7 +395,9 @@ contains
     icMap(:,:,:) = 0
 
     do ik = 1, nkptnr
+      active = .false.
       do iv = 1, nrnst1
+        active = .false.
         do ic = 1, nrnst3
           ! combined ivck index (bse.f90 function hamidx)
           ivck = ic + nrnst3*(iv-1) + nrnst1*nrnst3*(ik-1)
@@ -403,15 +405,13 @@ contains
             active = .true.
             nca(iv,ik) = nca(iv,ik)+1
             icMap(nca(iv,ik),iv,ik) = ic
-          else
-            active = .false.
           end if
-        end do
+        end do ! ic
         if (active) then
           nva(ik) = nva(ik)+1
           ivMap(nva(ik),ik) = iv
         end if
-      end do
+      end do ! iv
       if (active) then
         nka = nka+1
         ikMap(nka) = ik
