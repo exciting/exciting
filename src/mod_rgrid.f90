@@ -305,10 +305,7 @@ contains
 !$OMP DO
 #endif
     do ip = 1, self%npt
-
-      is = self%atom(1,ip)
-      ia = self%atom(2,ip)
-      ias = idxas(ia,is)
+      
       vl(:) = self%vpl(:,ip)
       vc(:) = self%vpc(:,ip)
 
@@ -317,6 +314,10 @@ contains
         ! point belong to MT region
         !----------------------------
         ! cart. coordinates wrt atom (is,ia)
+        is = self%atom(1,ip)
+        ia = self%atom(2,ip)
+        ias = idxas(ia,is)
+        
         call ylm(vc,input%groundstate%lmaxapw,zylm)
         r = dsqrt(vc(1)**2+vc(2)**2+vc(3)**2)
         do ir = 1, nrmt(is)
