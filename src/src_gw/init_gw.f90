@@ -65,11 +65,10 @@ subroutine init_gw
     
 ! Extra call of the groundstate part to generate the data consisted with 
 ! the specified GW parameters
-
       if (.not.input%gw%skipgnd) then
         ! Regenerate eigenvectors for the complete (non-reduced) k-point set
-        reducek_ = input%groundstate%reducek
-        input%groundstate%reducek = .false.
+        ! reducek_ = input%groundstate%reducek
+        ! input%groundstate%reducek = .false.
         
         ! Resume scf KS calculations and diagonalize one more time the Hamiltonian
         ! for new set of k- and nempty parameters.
@@ -97,8 +96,8 @@ subroutine init_gw
         end if
         
         ! restore the initial value
-        input%groundstate%reducek = reducek_
-        filext = trim (filext_save)
+        ! input%groundstate%reducek = reducek_
+        ! filext = trim (filext_save)
 
       end if
       
@@ -112,19 +111,19 @@ subroutine init_gw
       input%groundstate%stypenumber=stype_
 
 ! initialise the charge density and potentials from file
-        If (associated(input%groundstate%Hybrid)) Then
-           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+      If (associated(input%groundstate%Hybrid)) Then
+        If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
 ! in case of HF hybrids use PBE potential
-            string=filext
-            filext='_PBE.OUT'
-            Call readstate
-            filext=string
-           Else
-               Call readstate
-           End If
-        Else         
-           Call readstate
-        End If 
+          string=filext
+          filext='_PBE.OUT'
+          Call readstate
+          filext=string
+        Else
+          Call readstate
+        End If
+      Else         
+        Call readstate
+      End If 
 
 ! generate the core wavefunctions and densities
       Call gencore

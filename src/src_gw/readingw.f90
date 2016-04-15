@@ -196,7 +196,7 @@
       select case (iopac)
         case(1) 
           write(fgw,*) "  -- RGN method(Rojas, Godby and Needs)"
-        case(2)
+        case(0)
           write(fgw,*) "  -- Pade's approximation"
         case default
           call errmsg(1,'readingw','Wrong value for iopac')

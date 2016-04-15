@@ -225,17 +225,17 @@ subroutine calcminm(ik,iq)
       end do ! igk2
     end do ! igk1
 
-!#ifdef USEOMP
-!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igq,igk1,igk2,tmat,tmat2,mnn,ie1,ie2)
-!#endif
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igq,igk1,igk2,tmat,tmat2,mnn,ie1,ie2)
+#endif
 
     allocate(tmat(ngk2,ngk1))
     allocate(tmat2(ngk2,nstfv))
     allocate(mnn(nstfv,nstfv))
 
-!#ifdef USEOMP
-!!$OMP DO
-!#endif    
+#ifdef USEOMP
+!$OMP DO
+#endif    
     do igq = 1, ngq(iq)
         
       do igk1 = 1, ngk1 ! loop over G+k
@@ -269,17 +269,17 @@ subroutine calcminm(ik,iq)
       end do ! ie1
       
     end do ! igq
-!#ifdef USEOMP    
-!!$OMP END DO
-!#endif
+#ifdef USEOMP    
+!$OMP END DO
+#endif
 
     deallocate(tmat)
     deallocate(tmat2)
     deallocate(mnn)
     
-!#ifdef USEOMP
-!!$OMP END PARALLEL
-!#endif    
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif    
 
     deallocate(igqk12)
     

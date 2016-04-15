@@ -46,8 +46,13 @@ subroutine readevaldft
          filename = "EVALFV.OUT"
       else     
          filename = "EVALFV_GW.OUT"
-      end if 
+      end if
 
+      do ik = 1, nkpt
+        call getevalfv(vkl(:,ik),evaldft(:,ik))
+      end do
+
+if (.false.) then
 !   find the record length
     Inquire (IoLength=Recl) vkl_, nstfv_, nspnfv_
     Do i = 1, 10
@@ -79,6 +84,7 @@ subroutine readevaldft
       Read(70, Rec=ik0) vkl_, nstfv_, nspnfv_, evaldft(:,ik)
     end do ! ik
     Close (70)
+end if    
 
 ! READ delta_x values from DELTAX.OUT
     if (input%gw%addDeltax) then

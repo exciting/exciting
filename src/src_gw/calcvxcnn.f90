@@ -77,7 +77,8 @@
         ngp=ngk(1,ik)
 
 !       get the eigenvectors from file
-        call getevecfvgw(idikp(ik),evecfv)
+        call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+        ! call getevecfvgw(idikp(ik),evecfv)
 
 !       find the matching coefficients
         call match(ngp,gkc(:,1,ik),tpgkc(:,:,1,ik),sfacgk(:,:,1,ik),apwalm)

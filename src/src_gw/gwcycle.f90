@@ -25,7 +25,7 @@
  
       integer(4) :: ik, ikp, ikpqp
       integer(4) :: nmdim
-      integer(4) :: Recl
+      integer(8) :: Recl
       character(128)::sbuffer
       real(8)    :: tq1, tq2, tq11, tq22
       complex(8), allocatable :: buffer(:)
@@ -83,7 +83,8 @@
         epsilon=zzero
         if(allocated(inveps))deallocate(inveps)
         allocate(inveps(matsizmax,matsizmax,nomeg))
-		inveps=zzero
+        inveps=zzero
+        
 !--------------------------------------------------------------------------
 !       The direct access file to store the values of the inverse dielectric matrix
 !--------------------------------------------------------------------------
