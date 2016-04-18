@@ -43,14 +43,14 @@
                 <xs:documentation>
                    Option for correlation self-energy: 
                       npol: Number of poles ( previous maxexp + 1, valid range: 2.. nomeg/2 );
-                      iopes: 0/1/2/3 - without or with iteration; 
+                      iopes: 0/1/2/3 - (experimental) Way of solving QP equation. Default 0: Perturbative (using Z) without energy shift (as in the original article by Hybertsen-Louie);
                       iopac: 0/1 - Pade's approximation / RGN method(Rojas, Godby and Needs)
                 </xs:documentation>
               </xs:annotation>
               <xs:complexType>
                 <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="npol" default="2"> </xs:attribute>
                 <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="iopes" default="0"> </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="iopac" default="2"> </xs:attribute>
+                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="iopac" default="1"> </xs:attribute>
               </xs:complexType>
             </xs:element>
                               

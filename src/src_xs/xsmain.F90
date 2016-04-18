@@ -33,6 +33,7 @@ Subroutine xsmain (plan)
       Use modmpi
       Use modtetra
       Use modxs
+      use mod_exciton_wf
       Implicit None
       Type (plan_type) :: plan
       Integer :: i
@@ -120,6 +121,9 @@ Subroutine xsmain (plan)
          Case (446)
      ! regenerate BSE spectrum from exciton output
             Call bsegenspec
+         Case (447)
+     ! ASCII output of BSE eigenvectors
+            Call writebevec
          Case (450)
      ! BSE-kernel
             Call kernxc_bse
@@ -131,6 +135,10 @@ Subroutine xsmain (plan)
             Call testxs
          case (999)
             call testmain
+         case (710)
+            call plot_exciton_wf
+         case (711)
+            call plot_exciton_density
          Case Default
             Write (*,*)
             Write (*,*) 'Error(xsmain): task not defined:', task

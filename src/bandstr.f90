@@ -356,7 +356,6 @@ else
      End if
      If (input%properties%bandstructure%character) deallocate(bc)
 
-
 hybcheck=.false.
 if (associated(input%groundstate%Hybrid)) then
     if (input%groundstate%Hybrid%exchangetypenumber== 2)   hybcheck=.true.
@@ -421,6 +420,23 @@ if (hybcheck) then
         deallocate(vkl0,deltax,e0,e1)           
         return
       end if 
-     Return
-   End Subroutine bandstr
-   !EOC
+
+    !---------------------------------------------------------------------------
+    ! din: New output file for the bandstructure to be able to post-process it
+    !---------------------------------------------------------------------------
+    if (rank==0) then
+      open(50, File="bandstructure.dat", Action='Write', Form='Formatted')
+      write(50,*) "# ", nstsv, nkpt
+      ! path, energy, ist, ik, vkl
+      do ist = 1, nstsv
+      do ik = 1, nkpt
+        write(50,'(2I6, 3F12.6, 2G18.10)') ist, ik, vkl(:,ik), dpp1d(ik), evalsv(ist,ik)
+      end do
+      write(50,*)
+      end do
+      close(50)
+    end if
+
+    Return
+End Subroutine bandstr
+!EOC

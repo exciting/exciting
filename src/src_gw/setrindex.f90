@@ -87,7 +87,7 @@ subroutine setrindex
 !BOC
 
     ! real-space cutoff parameter (maximal length)
-    rmax = 40.0d0
+    rmax = 200.d0
 
     do i = 1, 3
       rvec(i) = sqrt(rbas(1,i)**2+rbas(2,i)**2+rbas(3,i)**2)

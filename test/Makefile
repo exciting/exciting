@@ -103,3 +103,5 @@ cleantests::
 	-rm -f  test*/run*/result*
 	-rm -f  test*/result*
 	-rm -f  test*/run*/*3D.xml
+	-rm -f  test*/run*/*.dat
+	-rm -f  test*/run*/*.xsf

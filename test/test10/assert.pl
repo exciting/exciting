@@ -34,8 +34,8 @@ $writer= Test::initreport("report.xml");
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
 
-%statusse=Test::assert_file_same_within( "./reference/WF3D.xml",
-  "run_properties/WF3D.xml",1.0);
+%statusse=Test::assert_file_same_within( "./reference/wf3d-1-1.REF",
+  "run_properties/wf3d-1-1.xsf",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
     "name"=>"Properties",

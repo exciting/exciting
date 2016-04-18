@@ -194,19 +194,19 @@
       end select
       write(fgw,*) '- Type of analytic continuation (iopac): ', iopac
       select case (iopac)
-        case(1) 
-          write(fgw,*) "  -- RGN method(Rojas, Godby and Needs)"
         case(0)
           write(fgw,*) "  -- Pade's approximation"
+        case(1) 
+          write(fgw,*) "  -- RGN method(Rojas, Godby and Needs)"
         case default
           call errmsg(1,'readingw','Wrong value for iopac')
       end select
       if(npol.eq.0) then
         write(fgw,*) "The input npol == 0: use default npol setup"
-        if(iopac.eq.1) then
-          npol=2
+        if(iopac==1) then
+          npol = 2
         else
-          npol=nomeg/2
+          npol = nomeg/2
         endif
       endif
       write(fgw,*) '- Nr. of poles used in analytic continuation: ', npol

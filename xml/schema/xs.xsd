@@ -18,6 +18,79 @@
     </xs:annotation>
     <xs:complexType>
       <xs:all>
+	<xs:element ex:importance="expert" ex:unit="" name="storeexcitons" minOccurs="0" maxOccurs="1">
+	  <xs:annotation>
+            <xs:documentation>When present this element allows to store the exciton components (BSE eigenvectors).
+	    The number of stored excitons starting from the lowest energy one is given by the attribute
+	    <attref>MaxNumberExcitons</attref>.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+	    <xs:attribute ex:importance="expert" ex:unit="" name="MinNumberExcitons" type="xs:integer"
+		    default="1">
+	      <xs:annotation>
+	        <xs:documentation>It represents the lower limit of the number of stored excitons.</xs:documentation>
+	      </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="MaxNumberExcitons" type="xs:integer"
+		    default="10">
+	      <xs:annotation>
+	        <xs:documentation>It represents the upper limit of the number of stored excitons.</xs:documentation>
+	      </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ex:importance="expert" ex:unit="" name="excitonPlot" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>Trigger the electron-hole visualization.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+
+              <xs:element ex:importance="expert" ex:unit="" name="exciton" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                  <xs:documentation>Electron-hole pair descriptor.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:attribute ex:importance="essential" ex:unit="" name="lambda" type="xs:integer" default="1">
+                    <xs:annotation>
+                    <xs:documentation>
+                      The index of the stored exciton.
+                    </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute ex:importance="essential" ex:unit="" name="origin" type="vect3d" default="0.0d0 0.0d0 0.0d0">
+                    <xs:annotation>
+                    <xs:documentation>
+                      Fixed position of the hole (in lattice coordinates).
+                    </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute ex:importance="essential" ex:unit="" name="fix" type="xs:string" default="hole">
+                    <xs:annotation>
+                    <xs:documentation>
+                      Fix position (in lattice coordinates) either of the "hole" or "electron".
+                    </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+                          
+              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0" maxOccurs="1"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" maxOccurs="1"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" maxOccurs="1"/>
+            
+            </xs:sequence>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="epstol" type="fortrandouble" default="1.0d-8">
+              <xs:annotation>
+                <xs:documentation>Threshold value for selecting states which contribute to the exciton.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+          </xs:complexType>
+        </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="tddft" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="ahc" type="xs:boolean"
@@ -767,7 +840,7 @@
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" ref="energywindow" maxOccurs="1" minOccurs="1"> </xs:element>
-        <xs:element ex:importance="expert" ex:unit="" name="plan" minOccurs="0" maxOccurs="1">
+	<xs:element ex:importance="expert" ex:unit="" name="plan" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:sequence>
               <xs:element ex:importance="expert" ex:unit="" name="doonly" minOccurs="0"
@@ -915,6 +988,14 @@
                               <oldnr>446</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Read BSE eigenvalues and regenerate dielectric and loss functions.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="writebevec">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>447</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>ASCII output of BSE eigenvalus.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="kernxc_bse">
@@ -1066,6 +1147,19 @@
                             <xs:documentation>Debug routine of main part of code.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
+                        <!-- Visualize BSE exciton wavefunction -->
+                        <xs:enumeration value="plot_exc_wf">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>710</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>
+                              Visualize exciton wavefunction.
+                            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+
                         <!-- import/export tasks below -->
                         <xs:enumeration value="portstate(1)">
                           <xs:annotation>

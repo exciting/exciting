@@ -92,6 +92,12 @@ Subroutine bse
 !BOC
       Implicit None
   ! local variables
+      
+      ! CC
+      integer :: iostat, ievec
+      logical :: exist
+      Character (256) :: locext
+  
       Integer, Parameter :: iqmt = 0
       Integer, Parameter :: noptcmp = 3
       Real (8), Parameter :: epsortho = 1.d-12
@@ -117,6 +123,11 @@ Subroutine bse
 
       integer :: Recl, nstsv_
       real(8) :: vkl_(3)
+
+      real(8) :: rh(3)
+      Character (256) :: lambda
+      Real (8) :: bevec_ksum, bevec1
+      Integer :: un
       
       
   ! routine not yet parallelized
@@ -505,12 +516,49 @@ Subroutine bse
          Call writeloss (iq, w, loss(oct1, oct2, :), trim(fnloss))
          Call writesigma (iq, w, sigma, trim(fnsigma))
          Call writesumrls (iq, sumrls, trim(fnsumrules))
-        enddo
+        enddo       
+
       end do
+
+      if (associated(input%xs%storeexcitons)) then
+        !-----------------------------------------------------
+        ! upon request, store array with exciton coefficients
+        !-----------------------------------------------------
+        if ( (input%xs%storeexcitons%MinNumberExcitons .lt. 1) .or. &
+          &  (input%xs%storeexcitons%MinNumberExcitons .gt. hamsiz) .or. &
+          &  (input%xs%storeexcitons%MaxNumberExcitons .lt. 1) .or. &
+          &  (input%xs%storeexcitons%MaxNumberExcitons .gt. hamsiz) .or. &
+          &  (input%xs%storeexcitons%MinNumberExcitons .gt. input%xs%storeexcitons%MaxNumberExcitons) ) then
+          write(*,*)
+          write(*,'("Error(bse): wrong range of exciton indices: ", 2I5)') &
+                & input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+          write(*,*)
+          stop
+        end if  
+        ! write bin
+        open(50,File='EXCCOEFF.bin', & 
+             Action='WRITE',Form='UNFORMATTED', IOstat=iostat)
+        if ((iostat/=0) .and. (rank==0)) then
+          write(*,*) iostat
+          write(*,'("Error(bse): error creating EXCCOEFF.bin")')
+          write(*,*)
+          stop
+        end if
+        ! write
+        write(50) input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons, & 
+        &         nkptnr, istl3, nsta1, nsta2, nrnst1, nrnst3, hamsiz
+        do ievec = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+           write(50) beval(ievec), bevec(1:hamsiz,ievec)
+        end do
+        close(50)
+      end if
+
       deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
       if (associated(input%gw)) deallocate(eval0)
-10 continue
-      call barrier      
+
+      10 continue
+      call barrier
+
 Contains
 !
       Integer Function hamidx (i1, i2, ik, n1, n2)
@@ -518,7 +566,7 @@ Contains
          Integer, Intent (In) :: i1, i2, ik, n1, n2
          hamidx = i2 + n2 * (i1-1) + n1 * n2 * (ik-1)
       End Function hamidx
-!
+
 End Subroutine bse
 !EOC
 
