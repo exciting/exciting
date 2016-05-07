@@ -417,7 +417,7 @@ if (.false.) then
                If ( .Not. transijst(ik, i1, i2)) Cycle
                Call timesec (cpu0)
            ! user request termination
-               Call terminateqry ('dfq')
+!               Call terminateqry ('dfq')
                If (input%xs%tetra%tetradf) Then
               ! mirror index pair on diagonal if necessary
                   If (i1 .Gt. i2) Then
@@ -568,7 +568,7 @@ else
                If ( .Not. transijst(ik, i1, i2)) Cycle
                Call timesec (cpu0)
            ! user request termination
-               Call terminateqry ('dfq')
+!               Call terminateqry ('dfq')
                If (input%xs%tetra%tetradf) Then
               ! mirror index pair on diagonal if necessary
                   If (i1 .Gt. i2) Then
