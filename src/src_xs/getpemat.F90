@@ -15,7 +15,9 @@ Contains
          Use modmain
          Use modinput
          Use modxs
+#ifdef TETRA         
          Use modtetra
+#endif
          Use m_getpmat
          Use m_getemat
          Implicit None

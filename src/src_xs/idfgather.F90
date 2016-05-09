@@ -10,7 +10,9 @@ Subroutine idfgather
     Use modmain
     Use modinput
     Use modxs
+#ifdef TETRA    
     Use modtetra
+#endif    
     Use modmpi
     Use m_filedel
     Use m_getunit

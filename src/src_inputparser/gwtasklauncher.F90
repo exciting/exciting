@@ -9,7 +9,7 @@ Subroutine gwtasklauncher
       Use inputdom
 
       if (associated(input%gw)) then
-         task = 1
+         call rereadinput
          call gw_main
       else
          write (*,*) "error gwtasklauncher"

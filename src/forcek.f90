@@ -392,7 +392,7 @@ Subroutine forcek (ik, ffacg)
 !       stop
       Deallocate (evalfv, apwalm, evecfv, evecsv, evecfv2)
       Deallocate (ffv, y)
-      call deleteystem(system)
+      call deletesystem(system)
       deallocate(apwi)
       deallocate(ijgij,dpij,dlhij,dloij)
 

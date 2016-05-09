@@ -15,7 +15,9 @@ Subroutine kernxc_bse
 ! !USES:
       Use modinput
       Use modmain
+#ifdef TETRA      
       Use modtetra
+#endif
       Use modxs
       Use m_xsgauntgen
       Use m_findgntn0

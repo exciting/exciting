@@ -1,54 +1,60 @@
 !BOP
 !
-! !ROUTINE: readselfc
+!!ROUTINE: readselfc
 !
-! !INTERFACE: 
-      subroutine readselfc
-
-! !DESCRIPTION:
+!!INTERFACE:
 !
-! This subroutine writes the selfenergy to file
+subroutine readselfc
 !
-! !USES:
+!!DESCRIPTION:
+!
+! This subroutine reads the correlation self-energy from file
+!
+!!USES:
+    use modgw, only : kset, freq, ibgw, nbgw, selfec
+    use m_getunit
 
-      use modmain
-      use modgw
-
-! !LOCAL VARIABLES:
+!!LOCAL VARIABLES:
+    implicit none
+    integer(4) :: ib, nb, nk, no
+    integer(4) :: fid
       
-      implicit none
-      integer(4) :: ib, nb, nk, no
-      
-! !REVISION HISTORY:
+!!REVISION HISTORY:
 !
 ! Created June 2011 by DIN
 !
 !EOP
 !BOC
-!
-      open(93,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
-      read(93) ib, nb, nk, no, selfec
-      close(93)
+    call getunit(fid)
 
-      if (nk.ne.nkpt) then
-        write(6,*)'ERROR(readselfc): Wrong number of k-points'
-        write(6,*)'    nk=', nk, '    nkpt=', nkpt
-        stop
-      end if
+    open(fid,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
+    read(fid) ib, nb, no, nk
+    close(fid)
 
-      if ((ib.ne.ibgw).or.(nb.ne.nbgw)) then
-        write(6,*)'WARNING(readselfc): Different band bounds'
-        write(6,*)'    ib=',   ib, '    nb=', nb
-        write(6,*)'  ibgw=', ibgw, '  nbgw=', nbgw
-      end if
+    if (nk.ne.kset%nkpt) then
+      write(*,*)'ERROR(readselfc): Wrong number of k-points'
+      write(*,*)'    nk=', nk, '    nkpt=', kset%nkpt
+      stop
+    end if
 
-      if (no.ne.nomeg) then
-        write(6,*)'ERROR(readselfc): Wrong number of frequencies'
-        write(6,*)'    no=', no, '    nomeg=', nomeg
-        stop
-      end if
+    if ((ib.ne.ibgw).or.(nb.ne.nbgw)) then
+      write(*,*)'WARNING(readselfc): Different number of bands'
+      write(*,*)'    ib=',   ib, '    nb=', nb
+      write(*,*)'  ibgw=', ibgw, '  nbgw=', nbgw
+      stop
+    end if
+
+    if (no.ne.freq%nomeg) then
+      write(*,*)'ERROR(readselfc): Wrong number of frequencies'
+      write(*,*)'    no=', no, '    freq%nomeg=', freq%nomeg
+      stop
+    end if
+    
+    open(fid,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
+    read(fid) ib, nb, no, nk, selfec
+    close(fid)
      
-      return
-      end subroutine
+    return
+end subroutine
 !EOC          
             

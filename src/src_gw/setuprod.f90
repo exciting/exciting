@@ -1,266 +1,225 @@
 !BOP
 !
-! !ROUTINE: setuprod
+!!ROUTINE: setuprod
 !
-! !INTERFACE:
-       subroutine setuprod
-       
-! !DESCRIPTION:
+!!INTERFACE:
+!
+subroutine setuprod(ia,is)
+!       
+!!DESCRIPTION:
 !
 ! This subroutine calculates the radial product functions
 ! and their overlap matrix
 !
-!
-! !USES:
+!!USES:
+    use modinput
+    use modmain
+    use modgw
+    use reallocate
+    use mod_mpi_gw
+    
+!!INPUT VARIABLES:
+    implicit none
+    integer(4), intent(in) :: ia
+    integer(4), intent(in) :: is
 
-      use modinput
-      use modmain
-      use modgw
+!!LOCAL VARIABLES:
+    integer(4) :: ias
+    integer(4) :: io1, io2
+    integer(4) :: ilo1, ilo2
+    integer(4) :: ipr1, ipr2
+    integer(4) :: ir, l1, l2, ist
+    integer(4) :: nupcore
+    real(8) :: fr(nrmtmax)
+    real(8) :: gr(nrmtmax) 
+    real(8) :: cf(3,nrmtmax)
 
-! !LOCAL VARIABLES:
-
-      implicit none
-
-      integer(4) :: ia
-      integer(4) :: ias
-      integer(4) :: ilo1
-      integer(4) :: ilo2
-      integer(4) :: io1
-      integer(4) :: io2
-      integer(4) :: ipr1
-      integer(4) :: ipr2
-      integer(4) :: ir
-      integer(4) :: is
-      integer(4) :: ist
-      integer(4) :: l1
-      integer(4) :: l2
-      integer(4) :: nupcore
-
-      real(8) :: fr(nrmtmax)
-      real(8) :: gr(nrmtmax) 
-      real(8) :: cf(3,nrmtmax)
-
-! !EXTERNAL ROUTINES:
-
-      external fderiv
-
-! !REVISION HISTORY:
+!!REVISION HISTORY:
 !
 ! Created 17. May 2006 by RGA
-! Revisited 5.05.2011 by DIN 
-!
+! Revisited 5.05.2011 by DIN
+! Modified Dec 2013 by DIN
 !
 !EOP
 !BOC
-!----------------------------------------------------------------------!
-!           Product of core and valence states                         !
-!----------------------------------------------------------------------!
-!     Set the maximum possible number of product functions
-      maxnup=2*(ncmax+input%gw%MixBasis%lmaxmb+nlomax+1)*(input%gw%MixBasis%lmaxmb+nlomax+1)
+    ! global atomic index
+    ias = idxas(ia,is)
 
-      if(debug)then
-        write(701,*) 'ncmax,lmaxapw,nlomax:', ncmax,input%groundstate%lmaxapw,nlomax
-        write(701,*) 'ncore:', ncore(1)
-        write(701,*) 'nlorb:', nlorb(1)
-        write(701,*) 'lmaxmb:', input%gw%MixBasis%lmaxmb
-        write(701,*) 'maxnup:', maxnup
-      end if
+    if (input%gw%debug) then
+      write(fdebug,*) 'ncmax,lmaxapw,nlomax:', ncmax, input%groundstate%lmaxapw, nlomax
+      write(fdebug,*) 'ias, ncore:', ncore(is)
+      write(fdebug,*) 'ias, nlorb:', nlorb(is)
+      write(fdebug,*) 'lmaxmb:', input%gw%MixBasis%lmaxmb
+      write(fdebug,*) 'maxnup:', maxnup
+    end if
 
-!     Allocate the array for the product functions and initialize
-      if (allocated(uprod)) deallocate(uprod)
-      allocate(uprod(natmtot,maxnup,nrmtmax))
-      if (allocated(eles)) deallocate(eles)
-      allocate(eles(natmtot,maxnup,2))
-      if (allocated(nup)) deallocate(nup)
-      allocate(nup(natmtot))
-      uprod=0.0d0
+    ! radial product functions
+    if (allocated(uprod)) deallocate(uprod) 
+    allocate(uprod(nrmtmax,maxnup))
+    uprod(:,:) = 0.0d0
+    
+    ! l1 and l2 combination which form L
+    if (allocated(eles)) deallocate(eles)
+    allocate(eles(maxnup,2))
+    eles(:,:) = 0
+    
+    nup = 0
+    nupcore = 0
 
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
+    !==============
+    ! Core states
+    !==============
+    if (input%gw%coreflag.ne.'vab') then 
 
-          ipr1=0
-          nupcore=0
-!
-! in case of iopcore == 3, core states are excluded in the construction of 
-! mixed basis functions 
-!
-          if(iopcore.ne.3) then 
+      do ist = 1, ncore(is)
+        l1 = spl(ist,is)
+        if (l1 <= input%gw%MixBasis%lmaxmb) then
 
-            do ist=1,ncore(is)
-              l1=spl(ist,is)
-              if(l1.le.input%gw%MixBasis%lmaxmb)then
-
-!----------------------------------------------------------------------!
-!         Product of core and apw functions
-!----------------------------------------------------------------------!
-                do l2=0,input%gw%MixBasis%lmaxmb
-                  do io2=1,apword(l2,is)
-                    if (apwdm(io2,l2,is).eq.0) then
-                      ipr1=ipr1+1
-                      nupcore=nupcore+1
-                      eles(ias,ipr1,1)=l1
-                      eles(ias,ipr1,2)=l2
-                      do ir=1,nrmt(is)
-                        uprod(ias,ipr1,ir)=ucore(ir,1,ist,ias)* &
-                     &                     apwfr(ir,1,io2,l2,ias)*spr(ir,is)
-                      enddo ! ir
-                    end if ! apwdm=0
-                  end do ! io2
-                enddo ! l2
-              
-!----------------------------------------------------------------------!
-!         Product of core and local orbital functions
-!----------------------------------------------------------------------!
-                do ilo2=1,nlorb(is)
-                  l2=lorbl(ilo2,is)
-                  if (l2.le.input%gw%MixBasis%lmaxmb) then
-                    ipr1=ipr1+1
-                    nupcore=nupcore+1
-                    eles(ias,ipr1,1)=l1
-                    eles(ias,ipr1,2)=l2 
-                    do ir=1,nrmt(is)
-                      uprod(ias,ipr1,ir)=ucore(ir,1,ist,ias)* &
-                   &                     lofr(ir,1,ilo2,ias)*spr(ir,is)
-                    enddo ! ir
-                  end if ! l2
-                enddo! ilo2
-              
-              end if ! l1.le.lmaxmb
-            enddo ! ist
-          
-          end if ! iopcore.ne.3
-
-!----------------------------------------------------------------------!
-!         products between valence / conduction states                 !
-!----------------------------------------------------------------------!
-          do l1=0,input%gw%MixBasis%lmaxmb
-            do io1=1,apword(l1,is)
-              if (apwdm(io1,l1,is).eq.0) then
-
-                do l2=l1,input%gw%MixBasis%lmaxmb
-                  do io2=1,apword(l2,is)
-                    if (apwdm(io2,l2,is).eq.0) then
-                      ipr1=ipr1+1
-                      eles(ias,ipr1,1)=l1
-                      eles(ias,ipr1,2)=l2 
-                      do ir=1,nrmt(is)
-                        uprod(ias,ipr1,ir)=apwfr(ir,1,io1,l1,ias)*         &
-                     &                     apwfr(ir,1,io2,l2,ias)*spr(ir,is)
-                      enddo ! ir
-                    end if ! apwdm=0
-                  end do ! io2
-                enddo ! l2
-
-!----------------------------------------------------------------------!
-!         product between valence / local orbitals
-!----------------------------------------------------------------------!
-                do ilo2=1,nlorb(is)
-                  l2=lorbl(ilo2,is)
-                  if (l2.le.input%gw%MixBasis%lmaxmb) then
-                    ipr1=ipr1+1
-                    eles(ias,ipr1,1)=l1
-                    eles(ias,ipr1,2)=l2 
-                    do ir=1,nrmt(is)
-                      uprod(ias,ipr1,ir)=apwfr(ir,1,io1,l1,ias)* &
-                   &                     lofr(ir,1,ilo2,ias)*spr(ir,is)
-                    enddo ! ir
-                  end if ! l2
-                enddo ! ilo2
-
+          !------------------------------------
+          ! Product of core and apw functions
+          !------------------------------------
+          do l2 = 0, input%gw%MixBasis%lmaxmb
+            do io2 = 1, apword(l2,is)
+              if (apwdm(io2,l2,is) == 0) then
+                nup = nup+1
+                nupcore = nupcore+1
+                eles(nup,1) = l1
+                eles(nup,2) = l2
+                do ir = 1, nrmt(is)
+                  uprod(ir,nup) = ucore(ir,1,ist,ias)*    &
+                  &               apwfr(ir,1,io2,l2,ias)* &
+                  &               spr(ir,is)
+                end do ! ir
               end if ! apwdm=0
-            end do ! io1
-          enddo ! l1
+            end do ! io2
+          end do ! l2
+              
+          !----------------------------------------------
+          ! Product of core and local orbital functions
+          !----------------------------------------------
+          do ilo2 = 1, nlorb(is)
+            l2 = lorbl(ilo2,is)
+            if (l2 <= input%gw%MixBasis%lmaxmb) then
+              nup = nup+1
+              nupcore = nupcore+1
+              eles(nup,1) = l1
+              eles(nup,2) = l2 
+              do ir = 1, nrmt(is)
+                uprod(ir,nup) = ucore(ir,1,ist,ias)* &
+                &               lofr(ir,1,ilo2,ias)* &
+                &               spr(ir,is)
+              end do ! ir
+            end if ! l2
+          end do! ilo2
+              
+        end if ! l1
+      end do ! ist
+          
+    end if ! coreflag.ne.vab
+    
+    !================
+    ! Valence states
+    !================ 
+    do l1 = 0, input%gw%MixBasis%lmaxmb
+      do io1 = 1, apword(l1,is)
+        if (apwdm(io1,l1,is)==0) then
+            
+          !-----------------------------------------------
+          ! products between valence / conduction states
+          !-----------------------------------------------
+          do l2 = l1, input%gw%MixBasis%lmaxmb
+            do io2 = 1, apword(l2,is)
+              if (apwdm(io2,l2,is) == 0) then
+                nup = nup+1
+                eles(nup,1) = l1
+                eles(nup,2) = l2 
+                do ir = 1, nrmt(is)
+                  uprod(ir,nup) = apwfr(ir,1,io1,l1,ias)* &
+                  &               apwfr(ir,1,io2,l2,ias)* &
+                  &               spr(ir,is)
+                end do ! ir
+              end if ! apwdm=0
+            end do ! io2
+          end do ! l2
 
-!----------------------------------------------------------------------!         
-!        products between local and valence orbitals
-!----------------------------------------------------------------------!
-          do ilo1=1,nlorb(is)
-            l1=lorbl(ilo1,is)
-            if (l1.le.input%gw%MixBasis%lmaxmb) then
+          !-------------------------------------------
+          ! product between valence / local orbitals
+          !-------------------------------------------
+          do ilo2 = 1, nlorb(is)
+            l2 = lorbl(ilo2,is)
+            if (l2 <= input%gw%MixBasis%lmaxmb) then
+              nup = nup+1
+              eles(nup,1) = l1
+              eles(nup,2) = l2 
+              do ir = 1, nrmt(is)
+                uprod(ir,nup) = apwfr(ir,1,io1,l1,ias)* &
+                &               lofr(ir,1,ilo2,ias)*    &
+                &               spr(ir,is)
+              end do ! ir
+            end if ! l2
+          end do ! ilo2
 
-!             do l2=0,input%gw%MixBasis%lmaxmb
-!               do io2=1,apword(l2,is)
-!                 if (apwdm(io2,l2,is).eq.0) then
-!                   ipr1=ipr1+1
-!                   eles(ias,ipr1,1)=l1
-!                   eles(ias,ipr1,2)=l2 
-!                   do ir=1,nrmt(is)
-!                     uprod(ias,ipr1,ir)=lofr(ir,1,ilo1,ias)* &
-!                  &                     apwfr(ir,1,io2,l2,ias)*spr(ir,is)
-!                   enddo ! ir
-!                 end if ! apwdm
-!               end do ! io2
-!             enddo ! l2
+        end if ! apwdm=0
+      end do ! io1
+    end do ! l1
 
-!----------------------------------------------------------------------!         
-!        products between local and local orbitals
-!----------------------------------------------------------------------!
-              do ilo2=ilo1,nlorb(is)
-                l2=lorbl(ilo2,is)
-                if (l2.le.input%gw%MixBasis%lmaxmb) then
-                  ipr1=ipr1+1
-                  eles(ias,ipr1,1)=l1
-                  eles(ias,ipr1,2)=l2 
-                  do ir=1,nrmt(is)
-                    uprod(ias,ipr1,ir)=lofr(ir,1,ilo1,ias)* &
-                 &                     lofr(ir,1,ilo2,ias)*spr(ir,is)
-                  enddo ! ir
-                end if ! l2
-              enddo ! ilo2
+    do ilo1 = 1, nlorb(is)
+      l1 = lorbl(ilo1,is)
+      if (l1 <= input%gw%MixBasis%lmaxmb) then
 
-            endif ! l1
-          enddo ! ilo1
+        !--------------------------------------------         
+        ! products between local and local orbitals
+        !--------------------------------------------
+        do ilo2 = ilo1, nlorb(is)
+          l2 = lorbl(ilo2,is)
+          if (l2 <= input%gw%MixBasis%lmaxmb) then
+            nup = nup+1
+            eles(nup,1) = l1
+            eles(nup,2) = l2 
+            do ir = 1, nrmt(is)
+              uprod(ir,nup) = lofr(ir,1,ilo1,ias)* &
+              &               lofr(ir,1,ilo2,ias)* &
+              &               spr(ir,is)
+            end do ! ir
+          end if ! l2
+        end do ! ilo2
 
-!         reset nup to the exact number of product functions
-          nup(ias)=ipr1
-          if(debug)then
-            write(701,*) 'setuprod: # of uprod for atom',ias,nup(ias)
-            write(701,*) '          # from core states ',nupcore
-          end if 
+      end if ! l1
+    end do ! ilo1
 
-        enddo ! ia
-      enddo !is
-
-!----------------------------------------------------------------------!
-!     allocate the overlap matrix and initialize it
-!----------------------------------------------------------------------!
-      if (allocated(umat)) deallocate(umat)
-      allocate(umat(natmtot,maxnup,maxnup))
-      umat=0.0d0
-!     calculate the overlap matrix of product functions
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
-          do ipr1=1,nup(ias)
-            do ipr2=ipr1,nup(ias)
-              do ir=1,nrmt(is)
-                fr(ir)=uprod(ias,ipr1,ir)*uprod(ias,ipr2,ir)
-              end do
-              call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
-              umat(ias,ipr1,ipr2)=gr(nrmt(is))
-            enddo ! ipr2
-          enddo ! ipr1
-        enddo ! ia
-      enddo !is
-!      
-      if(debug)then
-        do is=1,nspecies
-          do ia=1,natoms(is)
-            ias=idxas(ia,is)
-            write(701,*) 
-            write(701,*) "###umat for Atom ", ias
-            do ipr1=1,nup(ias)
-              do ipr2=ipr1,nup(ias)
-                  write(701,'(2i4,f20.6)') ipr1,ipr2,umat(ias,ipr1,ipr2)
-
-              enddo ! ipr2
-            enddo ! ipr1
-            write(701,*)        
-          enddo ! ia            
-        enddo !is
-      end if
+    if (input%gw%debug) then
+      write(fdebug,*) 'setuprod: # of uprod for atom', ias, nup
+      write(fdebug,*) '          # from core states ', nupcore
+    end if 
+    
+    !=============================================
+    ! allocate and initialize the overlap matrix
+    !=============================================
+    if (allocated(umat)) deallocate(umat) 
+    allocate(umat(maxnup,maxnup))
+    umat = 0.0d0
+    
+    do ipr1 = 1, nup
+      do ipr2 = ipr1, nup
+        do ir = 1, nrmt(is)
+          fr(ir) = uprod(ir,ipr1)*uprod(ir,ipr2)
+        end do
+        call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
+        umat(ipr1,ipr2) = gr(nrmt(is))
+      end do ! ipr2
+    end do ! nup
+     
+    if (input%gw%debug) then
+      write(fdebug,*) 
+      write(fdebug,*) "###umat for atom ", ias
+      do ipr1 = 1, nup
+        do ipr2 = ipr1, nup
+          write(fdebug,'(2i4,f20.6)') ipr1, ipr2, umat(ipr1,ipr2)
+        end do ! ipr2
+      end do ! ipr1
+      write(fdebug,*)        
+    end if ! debug
       
-      return
-      end subroutine setuprod
+    return
+end subroutine
 !EOC

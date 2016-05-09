@@ -31,7 +31,9 @@ Subroutine xsmain (plan)
       Use modmain
       Use modinput
       Use modmpi
+#ifdef TETRA      
       Use modtetra
+#endif
       Use modxs
       use mod_exciton_wf
       Implicit None
@@ -58,8 +60,15 @@ Subroutine xsmain (plan)
      ! for q-point set
             Call xsgeneigvec
          Case (310)
+#ifdef TETRA          
      ! calculate weights for tetrahedron method
             Call tetcalccw
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif            
          Case (320)
      ! parallel version of momentum matrix elements
             Call writepmatxs
@@ -101,8 +110,15 @@ Subroutine xsmain (plan)
      ! for screening and BSE(-kernel)
             Call scrgeneigvec
          Case (410)
+#ifdef TETRA         
      ! calculate weights for tetrahedron method (screening)
             Call scrtetcalccw
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif            
          Case (420)
      ! momentum matrix elements for screening
             Call scrwritepmat

@@ -27,7 +27,7 @@ Subroutine hybrids
 ! time measurements
     Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0, time_hyb
     character*(77) :: string
-    
+ 
     ! Charge distance
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
@@ -36,6 +36,9 @@ Subroutine hybrids
 !! TIME - Initialisation segment
     Call timesec (tsg0)
     Call timesec (ts0)
+
+! Tetrahedron method
+    input%groundstate%stypenumber = -1
 
 ! initialise global variables
     Call timesec (tin0)
@@ -46,21 +49,19 @@ Subroutine hybrids
     Call init1
     Call timesec (tin1)
     time_init1=tin1-tin0
-         
+    
+    if (task==1) restart=.true.
+     
 ! require forces for structural optimisation
-    If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = .True.    
-! chech if restart should be performed
-    restart = input%groundstate%Hybrid%restart
+    If ((task==2).or.(task==3)) input%groundstate%tforce = .True.    
     
 !-------------------
 ! print info
 !-------------------
-    fgw = 600
+
     if (rank==0) then
 ! open INFO.OUT file
         open(60, File='INFO'//trim(filext), Action='WRITE', Form='FORMATTED')
-! Hartree-Fock related debugging info
-        open(fgw, File='HYBRIDS.OUT', Action='WRITE', Form='FORMATTED')
 ! write out general information to INFO.OUT
         call writeinfo(60)
 ! write the real and reciprocal lattice vectors to file
@@ -102,12 +103,6 @@ Subroutine hybrids
     timeinit = timeinit+ts1-ts0
 !! TIME - End of initialisation segment
 
-!------------------------------------!
-!   Hybrids cycle
-!------------------------------------!
-    time_hyb = 0.d0
-    call timesec(ts0)
-
     if (rank==0) then
         write(string,'("Hybrids module started")') 
         call printbox(60,"*",string)
@@ -117,18 +112,9 @@ Subroutine hybrids
 !---------------------------------------
 ! initialise HF related input parameters
 !---------------------------------------
+    time_hyb = 0.d0
+    call timesec(ts0)
     call init_hybrids
-
-!---------------------------------------
-!   Initialize k/q grids
-!---------------------------------------
-    Call init_kqpts_hybrids
-
-!--------------------------------------------------------------
-! Calculate the integrals to treat the singularities at G+q->0
-!--------------------------------------------------------------
-    call setsingc
-    
     call timesec(ts1)
     time_hyb = time_hyb+ts1-ts0
     
@@ -136,9 +122,7 @@ Subroutine hybrids
 ! begin the (external) self-consistent loop
 !------------------------------------------!
 
-!_____________________________
-! reference density
-
+    ! reference density
     If (allocated(rhomtref)) deallocate(rhomtref)
     Allocate(rhomtref(lmmaxvr,nrmtmax,natmtot))
     If (allocated(rhoirref)) deallocate(rhoirref)
@@ -146,18 +130,7 @@ Subroutine hybrids
 
     do ihyb = 0, input%groundstate%Hybrid%maxscl
     
-        ! exit self-consistent loop if last iteration is complete
-        If (ihyb >= input%groundstate%Hybrid%maxscl) Then
-            If (rank==0) Then
-                write(string,'("Reached hybrids self-consistent loops maximum : ", I4)') &
-               &  input%groundstate%Hybrid%maxscl
-                call printbox(60,"+",string)
-                call warning('Warning(hybrids): Reached self-consistent loops maximum')
-                Call flushifc(60)
-            End If
-            exit ! exit ihyb-loop
-        End If
-        If (rank==0) Then
+       If (rank==0) Then
             write(string,'("Hybrids iteration number : ", I4)') ihyb
             call printbox(60,"+",string)
             Call flushifc(60)
@@ -202,7 +175,7 @@ Subroutine hybrids
             call flushifc(60)
         end if
 
-! check for convergence
+        ! convergence check
         if (ihyb>0) then
             deltae = dabs(et-engytot)
             call chgdist(rhomtref,rhoirref)
@@ -228,38 +201,50 @@ Subroutine hybrids
 ! calculate the non-local potential
 !-----------------------------------
         if ((ihyb==0).and.restart) then
+          !__________________________________________
+          ! restart: read stored non-local potential
           call timesec(ts0)
-          Call getvnlmat 
+          call getvnlmat 
           call timesec(ts1)
           if (rank==0) then
-              call write_cputime(60,ts1-ts0, 'READ_VNLMAT')
-              write(60,*)
+            call write_cputime(60,ts1-ts0, 'read_vnlmat')
+            write(60,*)
           end if    
           time_hyb = time_hyb+ts1-ts0
           
-        else if  (ihyb < input%groundstate%Hybrid%maxscl-1) Then
+        else
+          !__________________________________________
+          ! Calculate non-local potential
+          if (ihyb==0) then
+            call timesec(ts0)
+            call init_product_basis
+            call timesec(ts1)
+            if (rank==0) then
+              write(60,*)
+              call write_cputime(60,ts1-ts0, 'init_product_basis')
+            end if
+          end if
           !------------------------------------------
           call timesec(ts0)
           call calc_vxnl
-          if (rank==0) write(*,*) 'vxnl=', sum(vxnl)
+          if (rank==0) write(fgw,*) 'vxnl=', sum(vxnl)
           if (input%groundstate%tevecsv.and.(rank==0)) write(*,*) 'bxnl=', sum(bxnl)
           call timesec(ts1)
           if (rank==0) then
-              write(60,*)
-              call write_cputime(60,ts1-ts0, 'CALC_VXNL')
+              call write_cputime(60,ts1-ts0, 'calc_vxnl')
           end if
           !------------------------------------------
           call timesec(ts0)
           call calc_vnlmat
-          if (rank==0) write(*,*) 'calc_vnlmat=', sum(vnlmat)
+          if (rank==0) write(fgw,*) 'vnlmat=', sum(vnlmat)
           call timesec(ts1)
           if (rank==0) then
-              call write_cputime(60,ts1-ts0, 'CALC_VNLMAT')
+              call write_cputime(60,ts1-ts0, 'calc_vnlmat')
               write(60,*)
           end if
-!-----------------------------------
-! update radial functions
-!-----------------------------------
+          !------------------------------------------
+          if (input%groundstate%Hybrid%savepotential) call putvnlmat
+          ! update radial functions
           if ((input%groundstate%Hybrid%updateRadial).and.(ihyb>0)) call updateradial
 
           time_hyb = time_hyb+ts1-ts0
@@ -274,7 +259,18 @@ Subroutine hybrids
         if (rank==0) then
             write(60, '(" Wall time (seconds) : ", F12.2)') timetot
         end if
-
+        
+! exit self-consistent loop if last iteration is complete
+        If (ihyb == input%groundstate%Hybrid%maxscl) Then
+            If (rank==0) Then
+                write(string,'("Reached hybrids self-consistent loops maximum : ", I4)') &
+               &  input%groundstate%Hybrid%maxscl
+                call printbox(60,"+",string)
+                call warning('Warning(hybrids): Reached self-consistent loops maximum')
+                Call flushifc(60)
+            End If
+        End If
+ 
     end do ! ihyb
 
     if (rank==0) then
@@ -363,18 +359,21 @@ Subroutine hybrids
 ! Save HF energies into binary file
 !----------------------------------------
 
-    Inquire (IoLength=Recl) nkptnr, nstsv, vklnr(:,1), evalsv(:,1)
-    Open (70, File='EVALHF.OUT', Action='WRITE', Form='UNFORMATTED', &
-   &   Access='DIRECT', status='REPLACE', Recl=Recl)
-    do ik = 1, nkptnr
-        write(70, Rec=ik) nkptnr, nstsv, vklnr(:,ik), evalsv(:,indkp(ik))
+    Inquire (IoLength=Recl) nkpt, nstsv, vkl(:,1), evalsv(:,1)
+    Open(70, File='EVALHF.OUT', Action='WRITE', Form='UNFORMATTED', &
+    &    Access='DIRECT', status='REPLACE', Recl=Recl)
+    do ik = 1, nkpt
+        write(70, Rec=ik) nkpt, nstsv, vkl(:,ik), evalsv(:,ik)
     end do ! ik
     Close(70)
 
 !----------------------------------------
 ! Clean data
 !----------------------------------------
+    call delete_core_states
+    call delete_product_basis
     call exit_hybrids
+    nullify(input%gw)
       
     Return
     

@@ -1,83 +1,71 @@
 !BOP
 !
-! !ROUTINE: calcwmix0
+!!ROUTINE: calcwmix0
 !
-! !INTERFACE:
-      subroutine calcwmix0
-
-! !DESCRIPTION:
+!!INTERFACE:
+!
+subroutine calcwmix0
+!
+!!DESCRIPTION:
 !
 !This subroutine calculate the matrix elements $\mathcal{W}^i_0$
 !      
+!!USES:
+    use modinput
+    use modmain,               only : pi, zzero, idxas
+    use modgw,                 only : Gqset, fdebug
+    use mod_product_basis,     only : locmatsiz, matsiz, mpwipw, mbindex, rtl
+    use mod_coulomb_potential, only : wi0
+    use mod_misc_gw,           only : vi
 
-! !USES:
-
-      use modmain
-      use modgw
-      use modmpi, only: rank
-
-! !LOCAL VARIABLES:
-
-      implicit none
+!!LOCAL VARIABLES:
+    implicit none
+    integer(4) :: imix, l1, irm
+    integer(4) :: ia, is, ias
+    integer(4) :: igq
+    real(8)    :: fact
       
-      integer(4) :: mixind  ! Counter, runs over mixed basis functions
-      integer(4) :: ia
-      integer(4) :: ias
-      integer(4) :: is
-      integer(4) :: imix    ! Counter, runs over radial mixed functions
-      integer(4) :: l1      ! Angular momentum quantum number of the
-!                             mixed function
-      integer(4) :: ippw    ! Counter, runs over interstitial mixed basis
-!                             functions
-      real(8)    :: fact
-      real(8)    :: tstart,tend
-      
-! !INTRINSIC ROUTINES: 
-
-      intrinsic sqrt
-
-! !REVISION HISTORY:
+!!REVISION HISTORY:
 !
 ! Created 11.02.05 by RGA
 ! Revisited June 2011 by DIN
 !
 !EOP
 !BOC
-      call cpu_time(tstart)
-      
-      fact=dsqrt(4.0d0*pi*vi)  ! To do not forget: Y_{00}=1/sqrt(4*pi)
-      
-      if(allocated(wi0))deallocate(wi0)
-      allocate(wi0(matsiz))
-      wi0(1:matsiz)=zzero
+    if (allocated(wi0)) deallocate(wi0)
+    allocate(wi0(matsiz))
+    wi0(1:matsiz) = zzero
 
-      mixind=0
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
-          do imix=1,nmix(ias)
-            l1=bigl(ias,imix)
-            if(l1.eq.0)then
-              mixind=mixind+1
-              wi0(mixind)=fact*rtl(ias,imix)
-            else
-              mixind=mixind+2*l1+1
-            endif
-          enddo ! im
-        enddo ! ieq
-      enddo ! iat
-      
-      do ippw=1,ngq(1)
-        mixind=locmatsiz+ippw
-        wi0(mixind)=mpwipw(ippw,1)
-      enddo  
+    !---------
+    ! MT part
+    !---------
+    ! Y_{00}=1/sqrt(4*pi)
+    fact = dsqrt(4.0d0*pi*vi)
+    do imix = 1, locmatsiz
+      l1  = mbindex(imix,4)
+      if (l1==0) then
+        is  = mbindex(imix,1)
+        ia  = mbindex(imix,2)
+        irm = mbindex(imix,3)
+        ias = idxas(ia,is)
+        wi0(imix) = fact*rtl(irm,ias)
+      end if
+    end do ! imix
 
-!      do mixind=1,matsiz
-!        write(82,*)mixind,wi0(mixind)
-!      enddo  
+    !---------
+    ! PW part 
+    !---------
+    do igq = 1, Gqset%ngk(1,1)
+      imix = locmatsiz+igq
+      wi0(imix) = mpwipw(igq,1)
+    end do
 
-      call cpu_time(tend)
-      if (rank == 0) call write_cputime(fgw,tend-tstart,'CALCWMIX0')
-      
-      end subroutine calcwmix0
+    if (input%gw%debug) then
+      write(fdebug,*) '---- calcwmix0 < mixind    wi0 >'
+      do imix = 1, matsiz, 10
+        write(fdebug,*) imix, wi0(imix)
+      end do
+    end if
+
+end subroutine
 !EOC                

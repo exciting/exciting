@@ -1,97 +1,77 @@
 !BOP
 !
-! !ROUTINE: expand_prods
+!!ROUTINE: expand_prods
 !
-! !INTERFACE:
-      subroutine expand_prods(ik,iq,iflag)
-
+!!INTERFACE:
+!
+subroutine expand_prods(ik,iq,iflag)
+!
 ! !DESCRIPTION:
 !
 ! This subroutine calculates $M^i_{cm}(k,q)$, $M^i_{nc}(k,q)$, 
-! and $M^i_{nm}(k,q)$ matrix elements.
+! and $M^i_{nm}(k,q)$ matrix elements. 
+! If flag>0, M^i_{nm} will be transformed to the v-diagonal basis set.
 !
-! !USES:
-      use modmain
-      use modgw
+!!USES:
+    use modmain
+    use modgw
       
-! !INPUT PARAMETERS:
-      implicit none
-      integer(4), intent(in) :: ik, iq
-      integer(4), intent(in) :: iflag   ! < 0 -- Mcm
-                                        ! = 0 -- Mnc + Mcm 
-                                        ! > 0 -- Mnc
-                                         
+!!INPUT PARAMETERS:
+    implicit none
+    integer, intent(in) :: ik, iq
+    integer(4), intent(in) :: iflag   ! < 0 -- Mcm
+                                      ! = 0 -- Mnc + Mcm 
+                                      ! > 0 -- Mnc
 
-! !LOCAL VARIABLES:
-      integer(4) :: jk
-      real(8)    :: tstart, tend
- 
-! !EXTERNAL ROUTINES: 
-      external calcminc
-      external calcmicm
-      external calcminm
-      external expand_evec
-      external getevecfv
+!!LOCAL VARIABLES:
+    integer :: jk
+    real(8) :: tstart, tend
 
-! !REVISION HISTORY:
-!
-! Created: 17th. June 2004 by RGA
-! Revisited: May 2011 by DIN
+!!REVISION HISTORY:
 !
 !EOP
 !BOC
-      call cpu_time(tstart)
-      if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
+    call timesec(tstart)
 
-      allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot,nspnfv))
-      allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot,nspnfv))
-      allocate(eveck(nmatmax,nstfv,nspnfv))
-      allocate(eveckp(nmatmax,nstfv,nspnfv))
+    allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveck(nmatmax,nstsv))
+    allocate(eveckp(nmatmax,nstsv))
 
-      jk=kqid(ik,iq) ! index of k-q vector
+    jk = kqset%kqid(ik,iq) ! index of k-q vector
 
-!     get the eigenvectors from file
-      call getevecfv(vklnr(:,jk),vgklnr(:,:,:,jk),eveck)
-      ! call getevecfvgw(jk,eveck)
-      eveckp=conjg(eveck)
-      call getevecfv(vklnr(:,ik),vgklnr(:,:,:,ik),eveck)
-      ! call getevecfvgw(ik,eveck)
+    ! read eigenvectors from file
+    call getevecfvgw(jk,eveck)
+    eveckp = conjg(eveck)
+    call getevecfvgw(ik,eveck)
 
-      call expand_evec(ik,'t')
-      call expand_evec(jk,'c')
-!
-!     Calculate the matrix elements $M^i_{nm}(\vec{k},\vec{q})$:
-!
-      call calcminm(ik,iq)
-!          
-!     Calculate the matrix elements M^i_{nm} where n is a core state
-!
-      if (iopcore<=1) then
-        
-        if (iflag<0) then
-          call calcmicm(ik,iq)
-          
-        else if (iflag==0) then 
-          call calcmicm(ik,iq)
-          call calcminc(ik,iq)
-          
-        else if (iflag>0) then 
-          call calcminc(ik,iq)
-          
-        end if
+    ! calculate products A_{lm}*C_n
+    call expand_evec(ik,'t')
+    call expand_evec(jk,'c')
+    
+    !=================================================
+    ! Loop over m-blocks in M^i_{nm}
+    !=================================================
 
-      endif ! iopcore
+    ! full matrix
+    allocate(minmmat(matsiz,ibgw:nbgw,1:nstsv))
+    call calcminm2(ik,iq,ibgw,nbgw,1,nstfv,minmmat)
+    
+    !if (input%gw%coreflag=='all') then
+    !  ! calculate M^i_{nc}
+    !  allocate(minc(locmatsiz,nstart:nend,ncg))
+    !  call calcminc(ik,iq,nstart,nend,minc)
+    !endif
 
-      deallocate(eveck)
-      deallocate(eveckp)
-      deallocate(eveckalm)
-      deallocate(eveckpalm)
+    deallocate(eveck)
+    deallocate(eveckp)
+    deallocate(eveckalm)
+    deallocate(eveckpalm)
+    
+    call timesec(tend)
+    time_eprod = time_eprod+tend-tstart
 
-      call cpu_time(tend)
-      if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
-      call write_cputime(fgw,tend-tstart, 'EXPAND_PRODS')
-
-      return
-      end subroutine expand_prods
+    return
+end subroutine
 !EOC
 

@@ -1,162 +1,173 @@
-
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-
 !BOP
-! !ROUTINE: calcpmatgw
-! !INTERFACE:
+!!ROUTINE: calcpmatgw
+!!INTERFACE:
+!
 subroutine calcpmatgw
-! !USES:
+!
+!!USES:
     use modinput
-    use modmain, only: nkpt, ngkmax, apwordmax, lmmaxapw, natmtot, &
-   &  nmatmax, nstfv, nstsv, nlotot, nlomax, lolmax, task, vkl, vgkl, &
-   &  ngk, gkc, tpgkc, sfacgk, igkig, vgkc, filext
-    use modxs
+    use modmain
     use modgw
-! !DESCRIPTION:
-!   Calculates the momentum matrix elements using routines {\tt genpmatxs} and
-!   {\tt genpmatcor}. The matrices are written then to direct access files 
-!   {\tt PMAT.OUT} and {\tt PMATCOR.OUT}.
+    use m_getunit
+    use modmpi
+    use mod_pmat
+    use mod_hdf5
+
+!!DESCRIPTION:
+!   Calculates the momentum matrix elements using routine {\tt genpmat} and
+!   writes them to direct access file {\tt PMATVV.OUT} or {\tt PMATCV.OUT}.
 !
-! !REVISION HISTORY:
-!
-!   Created based on writepmatxs.f90, July 2011 (DIN)
-!
-! !LOCAL VARIABLES:
-    implicit none
-
-    integer(4) :: ik,ik0
-    integer(4) :: recl,recl2
-    
-    real(8)    :: tstart, tend
-
-    complex(8), allocatable :: apwalmt(:,:,:,:)
-    complex(8), allocatable :: evecfvt(:,:)
-    complex(8), allocatable :: evecsvt(:,:)
-    complex(8), allocatable :: pmat(:,:,:)
-    complex(8), allocatable :: pmatc(:,:,:)
-
-! !EXTERNAL ROUTINES: 
-    external pmatrad
-    external pmatradcor
-    external getevecfv
-    external getevecsv
-    external match
-    external genapwcmt
-    external genlocmt
-    external genpmatxs
-    external genpmatxscor
-
+!!REVISION HISTORY:
+!   Created October 2013 (DIN)
 !EOP
 !BOC
+    implicit none
+! local variables
+    integer    :: ik, ikp, fid, ispn, i
+    integer(8) :: recl
+    real(8) :: tstart, tend, t0, t1
+    complex(8), allocatable :: apwalm(:,:,:,:)
+    complex(8), allocatable :: evecsv(:,:,:)
+    complex(8), allocatable :: pmv_k(:,:,:), pmc_k(:,:,:)
+    complex(8), allocatable :: pmv(:,:,:,:), pmc(:,:,:,:)
     
-    call cpu_time(tstart)
-    if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
+    integer :: ikstart, ikend
+    integer, allocatable :: ikp2rank(:)
+
+    call timesec(tstart)
     
-!   local arrays
-    allocate(apwalmt(ngkmax,apwordmax,lmmaxapw,natmtot))
-    allocate(evecfvt(nmatmax,nstfv))
-    allocate(evecsvt(nstsv,nstsv))
+#ifdef MPI    
+    ikstart = firstofset(rank,kset%nkpt)
+    ikend = lastofset(rank,kset%nkpt)
+#else
+    ikstart = 1
+    ikend = kset%nkpt
+#endif
 
-!   allocate the momentum matrix array
+    allocate(ikp2rank(kset%nkpt))
+    ikp2rank = -1
+    do ik = ikstart, ikend
+      ikp2rank(ik) = rank
+    end do ! ik
 
-    allocate(pmat(3,nstfv,nstfv))
-    inquire(IoLength=Recl) pmat
-    open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-     status='REPLACE',recl=Recl)
+    !===============================
+    ! Initialization
+    !===============================
+    call init_pmat(input%gw%coreflag=='all')
 
-    if (iopcore.eq.0) then 
-      allocate(pmatc(3,ncg,nstfv))
-      inquire(IoLength=Recl) pmatc
-      open(51,file='PMATCOR.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-       status='REPLACE',recl=Recl)
-    endif   
-
-!----------------------------------------------------------------------!
-!   calculate gradient of radial functions times spherical harmonics   !
-!----------------------------------------------------------------------!
-
-!   local arrays used for calculating gradient of radial functions
-    if (allocated(apwcmt)) deallocate(apwcmt)
-    allocate(apwcmt(nstsv,apwordmax,lmmaxapw,natmtot))
-    if (allocated(ripaa)) deallocate(ripaa)
-    allocate(ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
-    if (nlotot .gt. 0) then
-       if (allocated(locmt)) deallocate(locmt)
-       allocate(locmt(nstsv,nlomax,-lolmax:lolmax,natmtot))
-       if (allocated(ripalo)) deallocate(ripalo)
-       allocate(ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax,natmtot,3))
-       if (allocated(riploa)) deallocate(riploa)
-       allocate(riploa(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw,natmtot,3))
-       if (allocated(riplolo)) deallocate(riplolo)
-       allocate(riplolo(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax,natmtot,3))
+    allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
+    allocate(evecsv(nmatmax,nstsv,nspinor))
+    
+    !=========================
+    ! Loop over k-points
+    !=========================
+    allocate(pmv_k(1:nomax,numin:nstdf,3))
+    allocate(pmv(1:nomax,numin:nstdf,3,ikstart:ikend))
+    pmv(:,:,:,:) = zzero
+    if (input%gw%coreflag=='all') then
+      allocate(pmc_k(1:ncg,numin:nstdf,3))
+      allocate(pmc(1:ncg,numin:nstdf,3,ikstart:ikend))
+      pmc(:,:,:,:) = zzero
     end if
-
-!   valence-valence
-    Call pmatrad
-
-!   core-valence
-    if (iopcore.eq.0) then
-       if (allocated(ripacor)) deallocate(ripacor)
-       allocate(ripacor(apwordmax,lmmaxapw,ncmax,nclm,natmtot,3))
-       if (allocated(ripcora)) deallocate(ripcora)
-       allocate(ripcora(ncmax,nclm,apwordmax,lmmaxapw,natmtot,3))
-       call pmatradcor
-    end if
-
-!---------------------------------!
-!  calculate the matrix elements  !
-!---------------------------------!
-    do ik=1,nkpt
-
-       ik0=idikp(ik)
-
-!      get the eigenvectors and values from file
-       call getevecfvgw(ik0,evecfvt)
-       call getevecsvgw(ik0,evecsvt)
-
-!      find the matching coefficients
-       call match(ngk(1,ik),gkc(1,1,ik),tpgkc(1,1,1,ik), &
-      &  sfacgk(1,1,1,ik),apwalmt)
-
-!      generate APW expansion coefficients for muffin-tin
-       call genapwcmt(input%groundstate%lmaxapw,ngk(1,ik),1, &
-      &  nstfv,apwalmt,evecfvt,apwcmt)
-
-!      generate local orbital expansion coefficients for muffin-tin
-       if (nlotot.Gt.0) call genlocmt(ngk(1,ik),1,nstfv,evecfvt,locmt)
-
-!      calculate the valence-valence momentum matrix elements
-       call genpmatxs(ngk(1,ik),igkig(1,1,ik),vgkc(1,1,1,ik), &
-      &  evecfvt,evecsvt,pmat)
-       write(50,rec=ik) pmat
-
-!      calculate the core-valence momentum matrix elements
-       if(iopcore.eq.0)then
-         call genpmatxscor(ik,ngk(1,ik),apwalmt,evecfvt,evecsvt,pmatc)
-         write(51,rec=ik) pmatc
-       endif
+    
+    do ikp = ikstart, ikend
+      ik = kset%ikp2ik(ikp)
       
-    end do
+      !-------------------------------------------
+      ! find the matching coefficients
+      !-------------------------------------------
+      call match(Gkset%ngk(1,ik),Gkset%gkc(:,1,ik), &
+      &          Gkset%tpgkc(:,:,1,ik),Gkset%sfacgk(:,:,1,ik), &
+      &          apwalm)
+      
+      !-------------------------------------------
+      ! get the eigenvectors and values from file
+      !-------------------------------------------
+      call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+      
+      do ispn = 1, nspinor
+        call genevecalm(Gkset%ngk(1,ik),nstsv,evecsv(:,:,ispn),apwalm)
+        !------------------------------------      
+        ! valence-valence contribution
+        !------------------------------------
+        call genpmatvv_k(Gkset%ngk(1,ik), Gkset%igkig(:,1,ik), &
+        &                Gkset%vgkc(:,:,1,ik), nstsv, evecsv(:,:,ispn), &
+        &                1, nomax, numin, nstdf, pmv_k)
+        pmv(:,:,:,ikp) = pmv(:,:,:,ikp)+pmv_k(:,:,:)
+        !------------------------------------      
+        ! core-valence contribution
+        !------------------------------------
+        if (input%gw%coreflag=='all') then
+          call genpmatcv_k(kqset%vkl(:,ik), &
+          &                1, ncg, numin, nstdf, pmc_k)
+          pmc(:,:,:,ikp) = pmc(:,:,:,ikp)+pmc_k(:,:,:)
+        endif
+      end do ! ispn
 
-    if(iopcore.eq.0)close(51)   
-    close(50)
-
-    write(fgw,*)
-    write(fgw,'(" Info(calcpmatgw):")')
-    write(fgw,'(" Momentum matrix elements written to file PMAT.OUT and PMATCOR.OUT ")')
-    write(fgw,*)
+    end do ! ikp
     
-    call cpu_time(tend)
-    if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
-    call write_cputime(fgw,tend-tstart, 'CALCPMATGW')
+    deallocate(pmv_k)
+    if (input%gw%coreflag=='all') deallocate(pmc_k)
+    deallocate(apwalm)
+    deallocate(evecsv)
+    call clear_pmat
+    
+    !==========================
+    ! Write results to files
+    !==========================
+    
+    ! overwrite existing files
+    if (rank==0) then
+      call getunit(fid)
+      open(fid,File=fname_pmatvv,form='UNFORMATTED',status='REPLACE')
+      close(fid)
+      if (input%gw%coreflag=='all') then
+        call getunit(fid)
+        open(fid,File=fname_pmatcv,form='UNFORMATTED',status='REPLACE')
+        close(fid)
+      end if
+    endif
+    call barrier
+    
+    do ikp = 1, kset%nkpt
+      if (rank==ikp2rank(ikp)) then
+#ifdef _HDF5_
+        write(cik,'(I4.4)') ikp
+        path = "/kpoints/"//trim(adjustl(cik))
+        if (.not.hdf5_exist_group(fgwh5,"/kpoints",cik)) &
+        &  call hdf5_create_group(fgwh5,"/kpoints",cik)
+        call hdf5_write(fgwh5,path,"pmatvv", &
+        &               pmv(1,numin,1,ikp),(/nomax,nstdf-numin+1,3/))
+        if (input%gw%coreflag=='all') then
+          call hdf5_write(fgwh5,path,"pmatcv", &
+          &               pmc(1,numin,1,ikp),(/ncg,nstdf-numin+1,3/))
+        end if
+#endif
+        call getunit(fid)
+        inquire(iolength=recl) pmv(:,:,:,ikp)
+        open(fid,File=fname_pmatvv,Action='WRITE',Form='UNFORMATTED',&
+        &    Access='DIRECT',Status='OLD',Recl=recl)
+        write(fid,rec=ikp) pmv(:,:,:,ikp)
+        close(fid)
+        if (input%gw%coreflag=='all') then
+          call getunit(fid)
+          inquire(iolength=recl) pmc(:,:,:,ikp)
+          open(fid,File=fname_pmatcv,Action='WRITE',Form='UNFORMATTED',&
+          &    Access='DIRECT',Status='OLD',Recl=recl)
+          write(fid,rec=ikp) pmc(:,:,:,ikp)
+          close(fid)
+        end if
+      end if ! rank
+      call barrier
+    end do ! ikp
 
-    deallocate(apwalmt,evecfvt,evecsvt)
-    deallocate(pmat,pmatc)
-    deallocate(apwcmt,ripaa)
-    if(nlotot.gt.0)deallocate(locmt,ripalo,riploa,riplolo)
-    if(iopcore.eq.0)deallocate(ripacor,ripcora)
-
+    deallocate(pmv)
+    if (input%gw%coreflag=='all') deallocate(pmc)
+    
+    ! timing
+    call timesec(tend)
+    time_pmat = time_pmat+tend-tstart
+    
+    return
 end subroutine
 !EOC

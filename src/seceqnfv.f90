@@ -135,7 +135,7 @@ if (input%groundstate%ValenceRelativity.eq.'iora*') then
         evecfv(:,ist)=evecfv(:,ist)/sqrt(abs(zm2(ist,ist)))
       enddo
       deallocate(zm,zm2)
-      Call deleteystem (system)
+      Call deletesystem (system)
 endif
 
 End Subroutine seceqnfv

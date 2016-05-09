@@ -140,7 +140,7 @@ Subroutine seceqnsv2 (ik, apwalm, evalfv, evecfv, evecsv)
           Stop
         endif
 
-        call deleteystem(system)
+        call deletesystem(system)
 ! Spin down
         veffmt(:,:,:)=vmtbackup(:,:,:)-bxcmt(:,:,:,1)
         veffir(:)=virbackup(:)-bxcir(:,1)
@@ -201,7 +201,7 @@ Subroutine seceqnsv2 (ik, apwalm, evalfv, evecfv, evecsv)
           Stop
         endif
 
-        call deleteystem(system)
+        call deletesystem(system)
         evecsv(1:nstfv, nstfv+1:2*nstfv) = 0.d0
         evecsv(nstfv+1:2*nstfv, 1:nstfv) = 0.d0
 

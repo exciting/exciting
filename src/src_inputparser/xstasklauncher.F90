@@ -55,10 +55,17 @@ Subroutine xstasklauncher
          Call xsfinit
 !
          If ((input%xs%tetra%tetradf)) Then
+#ifdef TETRA         
             task = 310
             Call xsinit
             Call tetcalccw
             Call xsfinit
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif            
          End If
 !
          task = 320
@@ -86,10 +93,17 @@ Subroutine xstasklauncher
             Call xsfinit
 !
             If ((input%xs%tetra%tetradf)) Then
+#ifdef TETRA            
                task = 410
                Call xsinit
                Call scrtetcalccw
                Call xsfinit
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif
             End If
 !
             If (input%xs%screening%do .Eq. "fromscratch") Then
@@ -161,10 +175,17 @@ Subroutine xstasklauncher
          Call xsfinit
 !
          If ((input%xs%tetra%tetradf)) Then
+#ifdef TETRA            
             task = 410
             Call xsinit
             Call scrtetcalccw
             Call xsfinit
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif
          End If
 !
          task = 420

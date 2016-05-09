@@ -8,9 +8,6 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
 #ifdef XS
     use modxs
 #endif
-#ifdef TETRA
-      Use modtetra
-#endif
     use modgw
     implicit none
     ! input
@@ -88,14 +85,14 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
         end do
       end do
              
-      ! suppress debug output in tetrahedron integration library (0)
-      call tetrasetdbglv(0)
-
       ! k-offset treatment
       call factorize(3,boxl(:,1)*ngridp(:),ikloff,dkloff)
 
-      if (allocated(indkp)) deallocate(indkp)
-      allocate(indkp(nppt))
+      if (allocated(ik2ikp)) deallocate(ik2ikp)
+      allocate(ik2ikp(nppt))
+      if (allocated(ikp2ik)) deallocate(ikp2ik)
+      allocate(ikp2ik(nppt))
+
       if (allocated(iwkp)) deallocate(iwkp)
       allocate(iwkp(nppt))
         
@@ -105,19 +102,23 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
       if (allocated(tnodes)) deallocate(tnodes)
       allocate(tnodes(4,ntet))
 
+
       ! LibBZInt library call
-      call kgen(bvec, nsym, symmat, ngridp, ikloff, dkloff, &
-      &         nppt, ivp, dvk, indkp, iwkp, ntet, tnodes, wtet, tvol, mnd)
+      call kgen_exciting(bvec,nsym,symmat, &
+      &                  input%groundstate%ngridk,ikloff,dkloff, &
+      &                  nkpt,ivk,dvk,ik2ikp,ikp2ik,iwkp, &
+      &                  ntet,tnodes,wtet,tvol,mnd)
 
       ip = 0
       do i1 = 0, ngridp(1)-1
       do i2 = 0, ngridp(2)-1
       do i3 = 0, ngridp(3)-1
         ip = ip+1
-        ipmap(i1,i2,i3) = indkp(ip)
+        ipmap(i1,i2,i3) = ik2ikp(ip)
       end do
       end do
       end do
+
       do ip = 1, nppt
         vpl(:,ip) = dble(ivp(:,ip))/dble(dvk)
         call r3mv(bvec,vpl(:,ip),vpc(:,ip))

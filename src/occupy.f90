@@ -14,12 +14,7 @@ Subroutine occupy
 ! !USES:
       Use modinput
       Use modmain
-#ifdef TETRAOCC_DOESNTWORK
-      Use modtetra
-#endif
-#ifdef TETRA
-      Use modtetra
-#endif
+      use mod_opt_tetra
 
 ! !DESCRIPTION:
 !   Finds the Fermi energy and sets the occupation numbers for the
@@ -38,41 +33,18 @@ Subroutine occupy
 ! local variables
       Integer, Parameter :: maxit = 1000
       real(8), parameter :: de0=1.d0
-      real(8), parameter :: deltaE=1.d-12 ! Accuracy at which Fermi energy is calculated
       Integer :: ik, ist, it, nvm
       Real (8) :: e0, e1, chg, x, t1
 ! external functions
       Real (8) :: sdelta, stheta
       real(8) :: egap
-      real(8), external :: dostet
+      real(8) :: dfde(nstsv,nkpt)
+      
       character(1024) :: message
-      External sdelta, stheta
-
-! find minimum and maximum eigenvalues
-!     e0 = evalsv (1, 1)
-!     e1 = e0
-!     Do ik = 1, nkpt
-!        Do ist = 1, nstsv
-!           e0 = Min (e0, evalsv(ist, ik))
-!           e1 = Max (e1, evalsv(ist, ik))
-!        End Do
-!     End Do
-! (commented by DIN) this message is typically happens for 0 or 1 scf
-! cycle when the linearization jumps and can be very puzzling for normal users 
-! how to react to this warning
-!      If (e0-mine0 .lt. -de0) Then 
-!         call warning('Warning(occupy):')
-!         Write(message, '(" Smallest valence eigenvalue less than&
-!         &  minimum linearization energy : ",2g18.10)') e0, mine0
-!         call warning(message)
-!         write(message,'("for s.c. loop ", i5)') iscl
-!         call warning(message)
-!      End If
-
-!#ifdef TETRAOCC_DOESNTWORK
-!      If ( .Not. istetraocc()) Then
-!#endif
-
+      
+      external sdelta, stheta
+      real(8), external :: dostet_exciting
+      
       if ( input%groundstate%stypenumber .ge. 0 ) then
          t1 = 1.d0 / input%groundstate%swidth
 
@@ -130,12 +102,12 @@ Subroutine occupy
                   chg = chg + wkpt (ik) * occsv (ist, ik)
                End Do
             End Do
-            If (chg .lt. chgval) Then
+            If (chg .Lt. chgval) Then
                e0 = efermi
             Else
                e1 = efermi
             End If
-            If ((e1-e0) .Lt. deltaE) Go To 10
+            If ((e1-e0) .Lt. input%groundstate%epsocc) Go To 10
          End Do
          Write (*,*)
          Write (*, '("Error(occupy): could not find Fermi energy")')
@@ -159,43 +131,42 @@ Subroutine occupy
          End Do
          fermidos = fermidos * occmax
 
-      Else
+      else  if (input%groundstate%stypenumber==-1) then
+         !------------------------------------------------------------
+         ! Use the tetrahedron integration method (LIBBZINT library)
+         !------------------------------------------------------------
 
-!#ifdef TETRAOCC_DOESNTWORK
-!  ! calculate the Fermi energy and the density of states at the Fermi energy
-!         Call fermitetifc (nkpt, nstsv, evalsv, chgval, &
-!        & associated(input%groundstate%spin), efermi, fermidos)
-!         Call tetiwifc (nkpt, nstsv, evalsv, efermi, occsv)
-!         Do ik = 1, nkpt
-!    ! The "occsv" variable returned from "tetiw" already contains the
-!    ! weight "wkpt" and does not account for spin degeneracy - rescaling is
-!    ! necessary (S. Sagmeister).
-!            Do ist = 1, nstsv
-!               occsv (ist, ik) = (occmax/wkpt(ik)) * occsv (ist, ik)
-!            End Do
-!         End Do
-!#endif
-
-!        The fermi energy calculated using LIBBZINT
-         call fermi(nkpt,nstfv,evalsv,ntet,tnodes,wtet,tvol, &
-        &   chgval,associated(input%groundstate%spin),efermi,egap)
-
-!        DOS at the fermi level
-         fermidos=occmax*dostet(nkpt,nstfv,evalsv,ntet,tnodes,wtet,tvol,efermi)
-
-!        Calculate the occupation
-         call tetiw(nkpt,ntet,nstfv,evalsv,tnodes,wtet,tvol,efermi,occsv)
-         Do ik = 1, nkpt
-!           The "occsv" variable returned from "tetiw" already contains the
-!           weight "wkpt" and does not account for spin degeneracy - rescaling is
-!           necessary (S. Sagmeister).
-            Do ist = 1, nstsv
-               occsv(ist,ik) = (occmax/wkpt(ik))*occsv(ist,ik)
-            End Do
-         End Do
-
-      End If ! tetra
-
+         ! Calculate the Fermi energy
+         call fermi_exciting(input%groundstate%tevecsv, &
+         &                   chgval, &
+         &                   nstsv,nkpt,evalsv, &
+         &                   ntet,tnodes,wtet,tvol, &
+         &                   efermi,egap,fermidos)
+         
+         ! Calculate state occupation numbers
+         call tetiw(nkpt,ntet,nstsv,evalsv,tnodes,wtet,tvol,efermi,occsv)
+         do ik = 1, nkpt
+           do ist = 1, nstsv
+             occsv(ist,ik) = occmax/wkpt(ik)*occsv(ist,ik)
+           end do
+         end do
+         
+      else  if (input%groundstate%stypenumber==-2) then
+         !--------------------------------------
+         ! Use the improved tetrahedron method
+         !--------------------------------------
+         call opt_tetra_efermi(chgval/dble(occmax),nkpt,nstsv,evalsv,efermi,occsv)
+         do ik = 1, nkpt
+           occsv(:,ik) = dble(occmax)/wkpt(ik)*occsv(:,ik)
+         end do
+         !write(*,*) 'occsv=', occsv(:,1)
+      
+         call opt_tetra_dos(nkpt,nstsv,evalsv,efermi,dfde)
+         fermidos = sum(dfde)
+         !write(*,*) 'dos at Ef=', fermidos
+         
+      End If ! modified tetrahedron integration method
+      
       Return
 End Subroutine
 !EOC
