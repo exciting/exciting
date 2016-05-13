@@ -1,6 +1,6 @@
 F90 = ifort
 F90_OPTS = -O3 -ip -unroll  -scalar_rep -openmp -DUSEOMP 
-CPP_ON_OPT = -cpp -DXS -DISO -DTETRA -DLIBXC -DIFORT
+CPP_ON_OPT = -cpp -DXS -DISO -DLIBXC -DIFORT
 F77 = $(F90)
 F77_OPTS = -O3
 LIB_ARP =libarpack.a

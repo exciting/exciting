@@ -1,5 +1,5 @@
 
-subroutine init_kqpoint_set
+subroutine init_kqpoint_set()
 
     use modinput
     use modmain ,   only : gkmax, bvec, intgv, nspnfv
@@ -136,15 +136,14 @@ subroutine init_kqpoint_set
 contains
 
 !===============================================================================
-    subroutine delete_init1_variables
+    subroutine delete_init1_variables()
         use modmain
         
-#ifdef TETRA
-        if (allocated(indkp))   deallocate(indkp)
+        if (allocated(ik2ikp))  deallocate(ik2ikp)
+        if (allocated(ikp2ik))  deallocate(ikp2ik)
         if (allocated(iwkp))    deallocate(iwkp)
         if (allocated(wtet))    deallocate(wtet)
         if (allocated(tnodes))  deallocate(tnodes)
-#endif
         
         if (allocated(ivknr))   deallocate (ivknr)
         if (allocated(vklnr))   deallocate (vklnr)

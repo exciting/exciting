@@ -26,9 +26,9 @@
 
 ! !LOCAL VARIABLES:
 
-      integer(4) :: im,imr,l,m,imix
-      integer(4) :: ii1,ii2,jatom
-      integer(4) :: ia,is,ias
+      integer(4) :: im, irm, l, m, imix
+      integer(4) :: ii1, ii2, jatom
+      integer(4) :: ia, is, ias
       
       real(8) :: abserr,relerr
       
@@ -49,16 +49,16 @@
 !------------------
 !     MT region
 !------------------
-      intmix=zzero
-      intep=0.0d0
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
+      intmix = zzero
+      intep = 0.0d0
+      do is = 1, nspecies
+        do ia = 1, natoms(is)
+          ias = idxas(ia,is)
 !
 !         Integral over products of KS orbitals
 !
-          read(71,13)ii1,ii2,jatom,epint(jatom)
-          intep=intep+epint(jatom)
+          read(71,13) ii1, ii2, jatom, epint(jatom)
+          intep = intep+epint(jatom)
 !          
           if(ii1.ne.ib1)then
             write(*,*)'ii1 = ',ii1,'ib1 = ',ib1
@@ -81,21 +81,21 @@
 !
 !         Integral over mixed wavefunctions
 !
-          emint(ias)=zzero
-          im=0
-          do imr=1,nmix(ias)
-            l=bigl(ias,imr)  
-            do m=-l,l
-              im=im+1
-              imix=locmixind(ias,im)
-              emint(ias)=emint(ias)+minmmat(imix,ib1,ib2)* &
-     &                        conjg(minmmat(imix,ib1,ib2))
-            enddo
-          enddo 
-          intmix=intmix+emint(ias)
+          emint(ias) = zzero
+          imix = 0
+          do irm = 1, nmix(ias)
+            l = bigl(irm,ias)
+            do m = -l, l
+              imix = imix+1
+              im = locmixind(ias,imix)
+              emint(ias) = emint(ias)+ &
+              &            minmmat(im,ib1,ib2)*conjg(minmmat(im,ib1,ib2))
+            end do
+          end do 
+          intmix = intmix+emint(ias)
 !
-          abserr=abs(epint(jatom)-real(emint(ias)))
-          relerr=abserr/epint(ias)
+          abserr = abs(epint(jatom)-real(emint(ias)))
+          relerr = abserr/epint(ias)
           write(74,11)ib1,ib2,ias,epint(jatom),real(emint(ias)),abserr,relerr
         
         enddo ! ia

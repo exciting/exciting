@@ -3,7 +3,8 @@
 ! !ROUTINE: testmixcomp
 !
 ! !INTERFACE:
-      subroutine test_mixcomp
+
+subroutine test_mixcomp()
       
 ! !DESCRIPTION:
 !
@@ -29,10 +30,6 @@
       character(len=64) :: fnint
       character(len=64) :: fntot
 
-! !INTRINSIC ROUTINES:
-      
-      intrinsic cpu_time     
-
 ! !REVISION HISTORY:
 !     
 ! Created 16. Sept 2005 by RGA
@@ -43,11 +40,11 @@
 !------------------------------------------------------------------------
       call boxmsg(6,'-','TESTMIXCOMP')
 
-      ik=input%gw%iik
-      jk=input%gw%jjk
+      ik = input%gw%iik
+      jk = input%gw%jjk
       
-      ikp=ik2ikp(ik)
-      jkp=ik2ikp(jk)
+      ikp = kset%ik2ikp(ik)
+      jkp = kset%ik2ikp(jk)
       
       write(*,*) 'Parameters:'
       write(*,*) 'first k-point number (iik): ', ik
@@ -102,30 +99,17 @@
 !------------------------------------------------------------------------
 
 !     find the corresponding q-vector id
-      do iq=1,nqptnr
-        if (kqid(ik,iq).eq.jk) exit
-      enddo  
+      do iq = 1, kqset%nkpt
+        if (kqset%kqid(ik,iq)==jk) exit
+      end do
 
-      call cpu_time(tt(1))
-      call diagsgi(iq)
-      call cpu_time(tt(2))
-      call write_cputime(fgw,tt(2)-tt(1),'DIAGSGI')
-
-      call cpu_time(tt(1))
-      call calcmpwipw(iq)
-      call cpu_time(tt(2))
-      call write_cputime(fgw,tt(2)-tt(1),'CALCMPIPW')
-
-      call cpu_time(tt(1))
       call eptest(ik,jk,iq)
-      call cpu_time(tt(2))
-      call write_cputime(fgw,tt(2)-tt(1),'EPTEST') 
       
 ! ----------------------------------------------------------
       
       call cpu_time(tt(1))
-      do ib1=input%gw%ibmin,input%gw%ibmax
-        do ib2=input%gw%ibmin2,input%gw%ibmax2
+      do ib1 = input%gw%ibmin,input%gw%ibmax
+        do ib2 = input%gw%ibmin2,input%gw%ibmax2
           call intevecpp(ik,jk,ib1,ib2)
         enddo  
       enddo  
@@ -138,11 +122,11 @@
 
 ! ----------------------------------------------------------
       call cpu_time(tt(1))
-      do ib1=input%gw%ibmin,input%gw%ibmax
-        do ib2=input%gw%ibmin2,input%gw%ibmax2
+      do ib1 = input%gw%ibmin,input%gw%ibmax
+        do ib2 = input%gw%ibmin2,input%gw%ibmax2
           call intevecpm(ib1,ib2)
-        enddo  
-      enddo  
+        end do  
+      end do  
       call cpu_time(tt(2))
       call write_cputime(fgw,tt(2)-tt(1),'INTEVECPM')
 
@@ -154,5 +138,5 @@
       close(76)
 
       return
-      end subroutine
+end subroutine
 !EOC

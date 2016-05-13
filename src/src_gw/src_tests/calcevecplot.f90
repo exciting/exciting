@@ -70,7 +70,6 @@
     do ir = 1, nrmt(is1)
       evec(ir) = evecmt(ir)
     end do
-    write(*,*) 'MT1 OK'
       
     ! Calculate the phase of the plane waves due to the change of origin
     do igp = 1, Gkset%ngk(1,ik)
@@ -87,7 +86,6 @@
         &         evecsv(igp,ib,1)/sqrt(omega)*cmplx(dcos(phs),dsin(phs),8)
       end do
     end do
-    write(*,*) 'IR OK'
      
     ! calculate the radial wavefunctions of atom 2 (if needed)
     if ((is1==is2).and.(ia1==ia2)) then
@@ -108,7 +106,6 @@
         evec(kr) = evecmt(jr)
       end do
     end if
-    write(*,*) 'MT2 OK'
       
     deallocate(apwalm)
     deallocate(zylm)

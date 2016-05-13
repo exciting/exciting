@@ -171,7 +171,7 @@ subroutine task_epsilon
       call barrier
     end do ! iq      
     
-    deallocate(epsilon)    
+    deallocate(epsilon_)    
     if (allocated(evalsv)) deallocate(evalsv)
     call delete_freqgrid(freq)
     call delete_k_vectors(kset)

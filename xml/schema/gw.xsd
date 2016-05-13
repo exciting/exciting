@@ -91,7 +91,7 @@
                         Upper bound for the visualization frequency interval.
                         </xs:documentation></xs:annotation>
                       </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="Hartree" name="eta" default="1.d-4"> 
+                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="Hartree" name="eta" default="1.0d-4"> 
                         <xs:annotation><xs:documentation>
                         Smearing parameter (small number).
                         </xs:documentation></xs:annotation>
@@ -221,7 +221,7 @@
                   Flag for anisotropic averaging of the dielectric tensor 'body' part.
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
-                <xs:attribute ex:importance="expert" ex:unit="" name="q0eps" type="vect3d" default="1.d0 1.d0 1.d0">
+                <xs:attribute ex:importance="expert" ex:unit="" name="q0eps" type="vect3d" default="1.0d0 1.0d0 1.0d0">
                   <xs:annotation><xs:documentation>
                   q0eps - averaging direction q <inlinemath>\to</inlinemath> 0.
                   Default: (1,1,1)

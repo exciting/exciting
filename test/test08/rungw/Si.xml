@@ -11,10 +11,8 @@
     <atomicState n="3" l="1" kappa="2" occ="1.00000" core="false"/>
     <basis>
       <default type="lapw" trialEnergy="0.1500" searchE="false"/>
-      <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
-      <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="false"/>
+      <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="false"/>
     </basis>
-    <!-- Exciting code version: Lithium -->
-    <!-- Generation Scheme: simple -->
   </sp>
 </spdb>

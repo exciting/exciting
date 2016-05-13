@@ -31,11 +31,11 @@
 ! !LOCAL VARIABLES:
 
       integer(4) :: is,ia,ias
-      
       integer(4) :: ik1,ik2,ik3,ik4
       integer(4) :: iq, ir
       integer(4) :: ileb, ml, ngr
-      integer(4) :: igv(3),ig
+      integer(4) :: igv(3), ig
+      integer(4) :: ngik, ngjk
       real(8) :: epii,intep
       complex(8) :: pr
       real(8) :: eprod(nrmtmax)
@@ -45,9 +45,9 @@
       real(8) :: epint(natmtot)
       complex(8) :: fac1,fac2,cepii
       complex(8), allocatable :: zzk(:,:), zzq(:,:)
-      complex(8), allocatable :: apwalm(:,:,:,:,:)
+      complex(8), allocatable :: apwalm(:,:,:,:)
       complex(8), allocatable :: evecmtlm1(:,:),evecmtlm2(:,:)
-      complex(8), allocatable :: evecfv(:,:,:)
+      complex(8), allocatable :: evecfv(:,:)
       complex(8), allocatable :: ylm(:)
       complex (8), Allocatable :: wfmt1(:)
       complex (8), Allocatable :: wfmt2(:)
@@ -62,8 +62,8 @@
 !BOC
 
 !     Allocate the local arrays
-      allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
-      allocate(evecfv(nmatmax,nstfv,nspnfv))
+      allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
+      allocate(evecfv(nmatmax,nstfv))
       allocate(evecmtlm1(lmmaxapw,nrcmtmax))
       allocate(evecmtlm2(lmmaxapw,nrcmtmax))
       allocate(wfmt1(nrcmtmax))
@@ -71,6 +71,9 @@
       allocate(ylm(lmmaxapw))
       allocate(zzk(1:ngkmax,1:nstfv))
       allocate(zzq(1:ngkmax,1:nstfv))
+
+      ngik = Gkset%ngk(1,ik)
+      ngjk = Gkset%ngk(1,jk)
 
 !---------------------------------------------
 !     Initialize data for angular integration
@@ -84,40 +87,50 @@
 !     MT region
 !-----------------------------
       
-      do is=1,nspecies
+      do is = 1, nspecies
+      do ia = 1, natoms(is)
 
-        do ia=1,natoms(is)
           ias=idxas(ia,is)
 
 !----------------------------------------------------------------------------!
 !         calculate wavefunction ( ik, ib1 )
 !----------------------------------------------------------------------------!
-          call getevecfvgw(ik,evecfv)
-          zzk(1:ngknr(1,ik),1:nstfv)=evecfv(1:ngknr(1,ik),1:nstfv,1)
+          call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik), &
+          &                    nmatmax,nstsv,nspinor,evecfv)
 
-          call match(ngknr(1,ik),gkcnr(:,1,ik),tpgkcnr(:,:,1,ik), &
-         &  sfacgknr(:,:,1,ik),apwalm(:,:,:,:,1))
+          zzk(1:ngik,:) = evecfv(1:ngik,:)
+          
+          call match(ngik, &
+          &          Gkset%gkc(:,1,ik), &
+          &          Gkset%tpgkc(:,:,1,ik), &
+          &          Gkset%sfacgk(:,:,1,ik),&
+          &          apwalm)
 
-          call wavefmt(input%groundstate%lradstep,input%groundstate%lmaxapw, &
-         &  is,ia,ngknr(1,ik),apwalm,evecfv(:,ib1,1),lmmaxapw,evecmtlm1)
+          call wavefmt(1,input%groundstate%lmaxapw, &
+          &            is,ia,ngik,apwalm,evecfv(:,ib1),lmmaxapw,evecmtlm1)
 
 !----------------------------------------------------------------------------!
 !         calculate wavefunction( jkp, ib2 )
 !----------------------------------------------------------------------------!
-          call getevecfvgw(jk,evecfv)
-          zzq(1:ngknr(1,jk),1:nstfv)=evecfv(1:ngknr(1,jk),1:nstfv,1)
-          
-          call match(ngknr(1,jk),gkcnr(:,1,jk),tpgkcnr(:,:,1,jk), &
-         &  sfacgknr(:,:,1,jk),apwalm(:,:,:,:,1))
+          call getevecsvgw_new('GW_EVECSV.OUT',jk,kqset%vkl(:,jk), &
+          &                    nmatmax,nstsv,nspinor,evecfv)
 
-          call wavefmt(input%groundstate%lradstep,input%groundstate%lmaxapw, &
-         &  is,ia,ngknr(1,jk),apwalm,evecfv(:,ib2,1),lmmaxapw,evecmtlm2)
+          zzq(1:ngjk,:) = evecfv(1:ngjk,:)
+          
+          call match(ngjk, &
+          &          Gkset%gkc(:,1,jk), &
+          &          Gkset%tpgkc(:,:,1,jk), &
+          &          Gkset%sfacgk(:,:,1,jk),&
+          &          apwalm)
+
+          call wavefmt(1,input%groundstate%lmaxapw, &
+          &            is,ia,ngjk,apwalm,evecfv(:,ib2),lmmaxapw,evecmtlm2)
 
 !----------------------------------------------------------------------------!
 !         calculate the product |wfmt(ikp,ib1)*conjg(wfmt(jkp,ib2))|^2
 !----------------------------------------------------------------------------!
           do ir = 1, nrcmt(is)
-            rs(ir)=rcmt(ir,is)*rcmt(ir,is)
+            rs(ir) = rcmt(ir,is)*rcmt(ir,is)
           enddo
           
           eprod(:)=0.0d0
@@ -141,10 +154,10 @@
           call fderiv(-1,nrcmt(is),rcmt(:,is),eprod(1:nrcmt(is)),gr,cf)
           epint(ias) = gr(nrcmt(is))
 
-          intep=intep+epint(ias)
+          intep = intep+epint(ias)
 
 !         output         
-          write(71,11)ib1,ib2,ias,epint(ias)
+          write(71,11) ib1,ib2,ias,epint(ias)
 
         end do ! ia
       end do ! is
@@ -158,34 +171,34 @@
 !-----------------------------
 !     Interstitial region
 !-----------------------------
-      do iq=1,nqptnr
-        if (kqid(ik,iq).eq.jk) exit
-      enddo
+      do iq = 1, kqset%nkpt
+        if (kqset%kqid(ik,iq)==jk) exit
+      end do
 
-      cepii=zzero
-      do ik1=1,ngknr(1,ik)
-        do ik2=1,ngknr(1,jk)
-          fac1=zzk(ik1,ib1)*conjg(zzq(ik2,ib2))
-          do ik3=1,ngknr(1,ik)
-            fac2=fac1*conjg(zzk(ik3,ib1))
-            do ik4=1,ngknr(1,jk)
-              igv(1:3)=ivg(1:3,igkignr(ik1,1,ik))- &
-             &         ivg(1:3,igkignr(ik2,1,jk))- &
-             &         ivg(1:3,igkignr(ik3,1,ik))+ &
-             &         ivg(1:3,igkignr(ik4,1,jk))
-              if((igv(1).ge.intgv(1,1)).and.(igv(1).le.intgv(1,2)).and.       &
-             &   (igv(2).ge.intgv(2,1)).and.(igv(2).le.intgv(2,2)).and.       &
-             &   (igv(3).ge.intgv(3,1)).and.(igv(3).le.intgv(3,2)))        then
-                  ig=ivgig(igv(1),igv(2),igv(3))
-                  cepii=cepii+fac2*zzq(ik4,ib2)*conjg(cfunig(ig))
+      cepii = zzero
+      do ik1 = 1, ngik
+        do ik2 = 1, ngjk
+          fac1 = zzk(ik1,ib1)*conjg(zzq(ik2,ib2))
+          do ik3 = 1, ngik
+            fac2 = fac1*conjg(zzk(ik3,ib1))
+            do ik4 = 1, ngjk
+              igv(1:3) = ivg(1:3,Gkset%igkig(ik1,1,ik))- &
+              &          ivg(1:3,Gkset%igkig(ik2,1,jk))- &
+              &          ivg(1:3,Gkset%igkig(ik3,1,ik))+ &
+              &          ivg(1:3,Gkset%igkig(ik4,1,jk))
+              if ((igv(1).ge.intgv(1,1)).and.(igv(1).le.intgv(1,2)).and.       &
+              &   (igv(2).ge.intgv(2,1)).and.(igv(2).le.intgv(2,2)).and.       &
+              &   (igv(3).ge.intgv(3,1)).and.(igv(3).le.intgv(3,2)))        then
+                  ig = ivgig(igv(1),igv(2),igv(3))
+                  cepii = cepii+fac2*zzq(ik4,ib2)*conjg(cfunig(ig))
               end if
             enddo
           enddo        
         enddo
       enddo
-      epii=real(cepii)/omega
+      epii = real(cepii)/omega
 
-      intep=intep+epii
+      intep = intep+epii
 
       write(72,10)ib1,ib2,epii
       write(73,10)ib1,ib2,intep
@@ -193,11 +206,11 @@
       deallocate(zzk)
       deallocate(zzq)
 
-   10 format(2i4,1d15.7)
-   11 format(3i4,1d15.7)
+10    format(2i4,1d15.7)
+11    format(3i4,1d15.7)
+
       return
-    
-      end subroutine intevecpp  
+end subroutine intevecpp  
 !EOC
 
 

@@ -1,2 +1,0 @@
- mpirun -np 2 -machinefile machinefile  ../../../build/mpi/exciting
-

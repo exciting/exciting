@@ -2,7 +2,7 @@
 !!ROUTINE: gw_main
 !!INTERFACE:
 !
-subroutine gw_main
+subroutine gw_main()
 !
 !!DESCRIPTION:
 !
@@ -101,8 +101,10 @@ subroutine gw_main
         ! Calculate the macroscopic dielectric function
         case('emac')
             call task_emac
-        case('emac_q')
-            call task_emac_q
+        
+        ! test option: q-dependent \epsilon along a k-path
+        ! case('emac_q')
+        !     call task_emac_q
 
         ! Calculate diagonal matrix elements of the exchange-correlation potential
         case('vxc')
@@ -136,15 +138,15 @@ subroutine gw_main
             call task_eps_r
                         
         ! Calculate the eigenvalues the LDA dielectric function and its inverse
-        !case('epsev')
+        ! case('epsev')
         !    call task_epsev
 
         ! Calculate the eigenvalues the GW dielectric function and its inverse
-        !case('epsgw') 
+        ! case('epsgw') 
         !    call task_epsgw
 
         ! Calculate the eigenvalues of the screened coulomb potential
-        !case('wev') 
+        ! case('wev') 
         !    call task_wev
 
         ! (testing option) Check generation of k-, q-, k+G, q+G, etc. sets 
@@ -156,7 +158,8 @@ subroutine gw_main
             if (rank==0) call test_bzintw
 
         ! (testing option) Calculate LAPW basis functions for plotting
-        case('lapw') 
+        case('lapw')
+            call init_gw
             if (rank==0) call plot_lapw
 
         ! (testing option) Calculate LAPW eigenvectors for plotting (test option)
@@ -166,6 +169,7 @@ subroutine gw_main
 
         ! (testing option) Calculate LAPW eigenvectors products for plotting (test option)
         case('prod') 
+            call init_gw
             if (rank==0) call test_prodfun
 
         ! (testing option) Calculate eigenvectors products compared 
@@ -176,11 +180,12 @@ subroutine gw_main
             
         ! (testing option) Integrate eigenvector products directly and 
         ! as a sum of the Minm matrix elements
-        case('comp') 
-            if (rank==0) call test_mixcomp            
+        case('comp')
+            call init_gw
+            if (rank==0) call test_mixcomp
 
         ! (testing option) Test the bare coulomb matrix for various q-points
-        !case('coul')
+        ! case('coul')
         !    if (rank==0) call test_coulpot
 
         ! (testing option) Plot the self-energy
@@ -188,8 +193,8 @@ subroutine gw_main
             if (rank==0) call plot_selfenergy
 
         ! (testing option) Check the rotational matrix for MB functions
-        case('rotmat')
-            if (rank==0) call test_mbrotmat            
+        ! case('rotmat')
+            ! if (rank==0) call test_mbrotmat
 
     end select
     
