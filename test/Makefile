@@ -77,6 +77,11 @@ test10::
 	cd test10/run_properties && ../../$(EXE)
 	cd test10 && perl assert.pl
 
+test11::
+	cd test11/run-pbe0-hf  && ../../$(EXE)
+	cd test11/run-pbe0-oep && ../../$(EXE)
+	cd test11 && perl assert.pl 
+
 cleantests::
 	-rm -f  test*/*.xml
 	-rm -f  test*/run*/*OUT
