@@ -709,5 +709,9 @@ subroutine scf_cycle(verbosity)
       end if
     End If
 
+    if (associated(input%groundstate%xsLO).and.(rank==0)) then
+      call genxsLOs()
+    end if
+
     Return
 end subroutine

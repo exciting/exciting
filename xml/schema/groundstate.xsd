@@ -2150,6 +2150,31 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+
+        <xs:element ex:importance="experimental" ex:unit="" name="xsLO" minOccurs="0" maxOccurs="1">
+          <xs:annotation><xs:documentation>
+            Generate extra local orbitals for accurate description of the unoccupied states.
+          </xs:documentation></xs:annotation>                 
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="emax" type="fortrandouble" default="30">
+              <xs:annotation><xs:documentation>
+                Energy cutoff for generating excited-states local orbitals.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="lmax" type="xs:integer" default="4">
+              <xs:annotation><xs:documentation>
+                Angular momentum cutoff for generating excited-states local orbitals.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="maxnodes" type="xs:integer" default="10">
+              <xs:annotation><xs:documentation>
+                Maximum number of local orbitals per l-channel.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            
+          </xs:complexType>
+        </xs:element>
+
       </xs:all>
 
       <xs:attribute ex:importance="expert" ex:unit="" name="vdWcorrection"  default="none">
