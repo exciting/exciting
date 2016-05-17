@@ -169,16 +169,14 @@ subroutine calc_vxnl()
       !------------------------------------------------------------
       ! Debugging Info
       !------------------------------------------------------------
-      do ikp_ = 1, kset%nkpt
-        if (ikp_ == ikp) then
-          call linmsg(fgw,'-','')
-          call linmsg(fgw,'-',' Diagonal elements of Vx_NL_nn ')
-          write(fgw,*) 'for k-point ', ikp
-          do ie1 = 1, nstfv
-            write(fgw,'(i4,2f12.4)') ie1, vxnl(ie1,ie1,ikp)
-          end do
-        end if
-      end do
+      if (input%gw%debug) then
+        call linmsg(fgw,'-','')
+        call linmsg(fgw,'-',' Diagonal elements of Vx_NL_nn ')
+        write(fgw,*) 'for k-point ', ikp
+        do ie1 = 1, nstfv
+          write(fgw,'(i4,2f12.4)') ie1, vxnl(ie1,ie1,ikp)
+        end do
+      end if
     
     end do ! ikp
 

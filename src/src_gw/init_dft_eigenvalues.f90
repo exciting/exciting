@@ -43,9 +43,9 @@ subroutine init_dft_eigenvalues
     !&           chgval,nspinor,efermi,egap)
     call fermi_exciting(input%groundstate%tevecsv, &
     &                   chgval, &
-    &                   nstsv,kset%nkpt,evalsv, &
-    &                   kset%ntet,kset%tnodes,kset%wtet,kset%tvol, &
-    &                   efermi,egap)
+    &                   nstsv,nkpt,evalsv, &
+    &                   ntet,tnodes,wtet,tvol, &
+    &                   efermi,egap,fermidos)
     
     !evalsv(:,:) = evalsv(:,:)-efermi
     !evalcr(:,:) = evalcr(:,:)-efermi
