@@ -168,7 +168,7 @@ subroutine scf_cycle(verbosity)
 
         Call timesec (ts0)
 
-        if (task.ne.7) then
+        if (task /= 7) then
           ! No updates of core and valence radial functions during PBE0 run
           call gencore          ! generate the core wavefunctions and densities
           call linengy          ! find the new linearization energies
@@ -610,15 +610,16 @@ subroutine scf_cycle(verbosity)
         call printbox(60,"+",string)
     end if
 ! write density and potentials to file only if maxscl > 1
-     If ((input%groundstate%maxscl.Gt.1)) Then
+     If ((input%groundstate%maxscl > 1)) Then
         If (associated(input%groundstate%Hybrid)) Then
            If ((input%groundstate%Hybrid%exchangetypenumber == 1).and.(ihyb==0)) Then
-            string=filext
-            filext='_PBE.OUT'
-            Call writestate
-            filext=string
+             string=filext
+             filext='_PBE.OUT'
+             Call writestate
+             filext=string
+             write(*,*) "writing STATE_PBE.OUT"
            Else
-               Call writestate
+             Call writestate
            End If
         Else
            Call writestate

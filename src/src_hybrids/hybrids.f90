@@ -23,6 +23,7 @@ Subroutine hybrids
     Implicit None
 
     integer :: ik, Recl
+    integer :: ihyb0
     real(8) :: et
 ! time measurements
     Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0, time_hyb
@@ -31,16 +32,16 @@ Subroutine hybrids
     ! Charge distance
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
-    Logical :: restart
-    integer::xctype_(3)    
+    integer :: xctype_(3)    
+
 !! TIME - Initialisation segment
-    Call timesec (tsg0)
-    Call timesec (ts0)
+    call timesec(tsg0)
+    call timesec(ts0)
 
 ! Tetrahedron method
     input%groundstate%stypenumber = -1
 
-! initialise global variables
+! Initialise global variables
     Call timesec (tin0)
     Call init0
     Call timesec (tin1)
@@ -49,8 +50,6 @@ Subroutine hybrids
     Call init1
     Call timesec (tin1)
     time_init1=tin1-tin0
-    
-    if (task==1) restart=.true.
      
 ! require forces for structural optimisation
     If ((task==2).or.(task==3)) input%groundstate%tforce = .True.    
@@ -128,7 +127,46 @@ Subroutine hybrids
     If (allocated(rhoirref)) deallocate(rhoirref)
     Allocate (rhoirref(ngrtot))
 
-    do ihyb = 0, input%groundstate%Hybrid%maxscl
+    !----------
+    ! restart
+    !----------
+    ihyb0 = 0
+    if (task==1) then
+      ihyb0 = 1
+      call timesec(ts0)
+      !______________________________
+      ! step 1: read local potential
+      string = filext
+      filext = '_PBE.OUT'
+      call readstate
+      filext = string
+      ! generate radial functions
+      call gencore
+      call linengy
+      call genapwfr
+      call genlofr(.false.)
+      call olprad
+      !______________________________
+      ! step 2: read density and (local) potential from previous run
+      call readstate
+      !______________________________
+      ! step 3: read nonlocal potential matrix
+      call getvnlmat
+      do ik = 1, nkpt
+        write(*,*) "readvnlmat ik=", ik, sum(vnlmat(:,:,ik))
+      end do
+      call timesec(ts1)
+      if (rank==0) then
+        call write_cputime(60,ts1-ts0, 'Restart')
+        write(60,*)
+      end if    
+      time_hyb = time_hyb+ts1-ts0
+    end if
+
+!--------------------------------------------------
+! Main loop
+!--------------------------------------------------
+    do ihyb = ihyb0, input%groundstate%Hybrid%maxscl
     
        If (rank==0) Then
             write(string,'("Hybrids iteration number : ", I4)') ihyb
@@ -136,22 +174,22 @@ Subroutine hybrids
             Call flushifc(60)
         End If
 
-        ! hybrids always start after normal DFT self-consistent run
         if (ihyb==0) then
+          ! perform normal DFT self-consistent run
           ex_coef = 0.d0
           ec_coef = 1.d0
           ! for Libxc use PBE from Libxc
           if (xctype(1)==100) then
-              xctype_=xctype
-              xctype=(/100,101,130/)
+              xctype_ = xctype
+              xctype = (/100, 101, 130/)
           end if
         else
-          task = 7
+          task = 7 ! <-- hybrids switcher
           ! restore settings for hybrid functional
           ex_coef = input%groundstate%Hybrid%excoeff
           ec_coef = input%groundstate%Hybrid%eccoeff
-          if (xctype(1)==100) then
-              xctype=xctype_
+          if (xctype(1) == 100) then
+              xctype = xctype_
           end if
           ! settings for convergence and mixing
           input%groundstate%mixerswitch = 1
@@ -166,7 +204,7 @@ Subroutine hybrids
         call scf_cycle(-1)
        
         ! some output        
-        if (rank==0) then
+        if (rank == 0) then
             call writeengy(60)
             write(60,*)
             write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
@@ -175,14 +213,16 @@ Subroutine hybrids
             call flushifc(60)
         end if
 
-        ! convergence check
-        if (ihyb>0) then
-            deltae = dabs(et-engytot)
+!---------------------------
+! Convergence check
+!---------------------------
+        if (ihyb > 0) then
+            ! deltae = dabs(et-engytot)
             call chgdist(rhomtref,rhoirref)
             if (rank==0) Then
               write(60,*)
-              write(60,'(" Absolute change in total energy   (target) : ",G18.10," (",G18.10,")")') &
-              &     deltae, input%groundstate%epsengy
+              ! write(60,'(" Absolute change in total energy   (target) : ",G18.10," (",G18.10,")")') &
+              ! &     deltae, input%groundstate%epsengy
               write(60,'(" Charge distance                   (target) : ",G18.10," (",G18.10,")")') &
               &     chgdst, input%groundstate%epschg
             end if
@@ -198,24 +238,11 @@ Subroutine hybrids
         et = engytot
 
 !-----------------------------------
-! calculate the non-local potential
+! Calculate the non-local potential
 !-----------------------------------
-        if ((ihyb==0).and.restart) then
-          !__________________________________________
-          ! restart: read stored non-local potential
-          call timesec(ts0)
-          call getvnlmat 
-          call timesec(ts1)
-          if (rank==0) then
-            call write_cputime(60,ts1-ts0, 'read_vnlmat')
-            write(60,*)
-          end if    
-          time_hyb = time_hyb+ts1-ts0
-          
-        else
-          !__________________________________________
-          ! Calculate non-local potential
-          if (ihyb==0) then
+        if (input%groundstate%Hybrid%maxscl > 1) then
+          !------------------------------------------
+          if (ihyb == ihyb0) then
             call timesec(ts0)
             call init_product_basis
             call timesec(ts1)
@@ -228,7 +255,6 @@ Subroutine hybrids
           call timesec(ts0)
           call calc_vxnl
           if (rank==0) write(fgw,*) 'vxnl=', sum(vxnl)
-          if (input%groundstate%tevecsv.and.(rank==0)) write(*,*) 'bxnl=', sum(bxnl)
           call timesec(ts1)
           if (rank==0) then
               call write_cputime(60,ts1-ts0, 'calc_vxnl')
@@ -244,6 +270,9 @@ Subroutine hybrids
           end if
           !------------------------------------------
           if (input%groundstate%Hybrid%savepotential) call putvnlmat
+          do ik = 1, nkpt
+            write(*,*) "putvnlmat ik=", ik, sum(vnlmat(:,:,ik))
+          end do
           ! update radial functions
           if ((input%groundstate%Hybrid%updateRadial).and.(ihyb>0)) call updateradial
 

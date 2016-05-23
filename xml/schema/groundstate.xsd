@@ -356,19 +356,11 @@
                 <xs:documentation>Upper limit for the Hybrids self-consistency loop.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="restart" type="xs:boolean" default="false">
+            <xs:attribute ex:importance="experimental" ex:unit="" name="savepotential" type="xs:boolean" default="true">
               <xs:annotation>
                 <xs:documentation>
-                  If set to true, the hybrid calculation will be restarted from a previous run. Attention:
-                  the file VNLMAT.OUT is necessary.
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="savepotential" type="xs:boolean" default="false">
-              <xs:annotation>
-                <xs:documentation>
-                  If set to true, the non-local potential will be stored in the file VNLMAT.OUT
-                  ATTENTION: this file can become extremly large (size: Hamiltoniansize * Hamiltoniansize * k-point number * 16).
+                  If set to true, the non-local potential will be stored in the file VNLMAT.OUT 
+                  ATTENTION: this file can become extremely large (size: Hamiltoniansize * Hamiltoniansize * k-point number * 16).
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>

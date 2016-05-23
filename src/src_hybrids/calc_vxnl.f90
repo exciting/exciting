@@ -29,10 +29,8 @@ subroutine calc_vxnl()
     complex(8) :: mvm, zt1    
     integer    :: ikfirst, iklast
     
-    real(8) :: evalfv(nstfv)
     complex(8), allocatable :: minm(:,:,:)
     complex(8), allocatable :: evecsv(:,:)
-    complex(8) :: vxfv(nstsv,nstsv), tmat(nstsv,nstsv)
     
     complex(8), external :: zdotc
 

@@ -3,7 +3,7 @@
 ! !ROUTINE: putvnlmat
 ! !INTERFACE:
 !
-Subroutine putvnlmat 
+subroutine putvnlmat()
 ! !USES:
   use modmain
   use mod_hybrids
@@ -15,6 +15,7 @@ Subroutine putvnlmat
 !
 ! !REVISION HISTORY:
 !   Created March 2015 (UW)
+!   Changed May 2016 (DIN)
 !
 !EOP
 !BOC
@@ -28,6 +29,7 @@ Subroutine putvnlmat
   ikfirst = firstk(rank)
   iklast = lastk(rank)
 
+  ! Save < APW' | \Sigma_x | APW >
   inquire(IoLength=Recl) nkpt, nmatmax ,vnlmat(:,:,1)
   open(70, File='VNLMAT.OUT', Action='WRITE', Form='UNFORMATTED', &
   &    Access='DIRECT', status='REPLACE', Recl=Recl)
@@ -41,6 +43,5 @@ Subroutine putvnlmat
   close(70)
 
 !$OMP END CRITICAL
-
   return
-End Subroutine putvnlmat
+end subroutine

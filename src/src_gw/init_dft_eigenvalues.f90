@@ -1,5 +1,5 @@
 
-subroutine init_dft_eigenvalues
+subroutine init_dft_eigenvalues()
 
     use modinput
     use modmain, only : nstsv, nmatmax, evalsv, efermi, evalcr, &
