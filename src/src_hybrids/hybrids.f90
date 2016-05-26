@@ -152,9 +152,9 @@ Subroutine hybrids
       !______________________________
       ! step 3: read nonlocal potential matrix
       call getvnlmat
-      do ik = 1, nkpt
-        write(*,*) "readvnlmat ik=", ik, sum(vnlmat(:,:,ik))
-      end do
+      ! do ik = 1, nkpt
+      !   write(*,*) "readvnlmat ik=", ik, sum(vnlmat(:,:,ik))
+      ! end do
       call timesec(ts1)
       if (rank==0) then
         call write_cputime(60,ts1-ts0, 'Restart')
@@ -270,9 +270,9 @@ Subroutine hybrids
           end if
           !------------------------------------------
           if (input%groundstate%Hybrid%savepotential) call putvnlmat
-          do ik = 1, nkpt
-            write(*,*) "putvnlmat ik=", ik, sum(vnlmat(:,:,ik))
-          end do
+          ! do ik = 1, nkpt
+          !   write(*,*) "putvnlmat ik=", ik, sum(vnlmat(:,:,ik))
+          ! end do
           ! update radial functions
           if ((input%groundstate%Hybrid%updateRadial).and.(ihyb>0)) call updateradial
 

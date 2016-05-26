@@ -2,11 +2,13 @@
 subroutine getvnlmat()
 
     use modmain
-    use mod_hybrids 
+    use mod_hybrids
+    use modmpi
     implicit none
   
     ! local variables
     integer       :: ik, nkpt_, nmatmax_
+    integer       :: ikfirst, iklast
     integer(8)    :: recl
     character(40) :: fname
     logical       :: exist
@@ -40,15 +42,21 @@ subroutine getvnlmat()
       write(*,*) "nmatmax_ = ", nmatmax_
       stop
     end if
+
+    ikfirst = firstk(rank)
+    iklast = lastk(rank)
  
      if (allocated(vnlmat)) deallocate(vnlmat)
-    allocate(vnlmat(nmatmax,nmatmax,nkpt))
+    allocate(vnlmat(nmatmax,nmatmax,ikfirst:iklast))
 
-    inquire(IoLength=recl) nkpt_, nmatmax_, vnlmat(:,:,1)
+    inquire(IoLength=recl) nkpt_, nmatmax_, vnlmat(:,:,ikfirst)
     open(70, File=trim(fname), Action='READ', Form='UNFORMATTED', &
     &    Access='DIRECT', Recl=recl)
     do ik = 1, nkpt
-      read(70, Rec=ik) nkpt_, nmatmax_, vnlmat(:,:,ik)
+      if ((ik >= ikfirst).and.(ik <= iklast)) then
+        read(70, Rec=ik) nkpt_, nmatmax_, vnlmat(:,:,ik)
+      end if
+      call barrier
     end do ! ik
     close(70)
 

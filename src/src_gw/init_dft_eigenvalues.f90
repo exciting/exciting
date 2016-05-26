@@ -137,7 +137,7 @@ subroutine init_dft_eigenvalues()
       if (nstsv<=input%gw%nempty) then
         write(fgw,*)
         write(fgw,*)'WARNING(init_dft_eigenvalues) One uses the maximum number of available states!'
-        write(fgw,*)'                              It may cause numerical instabilities!'
+        write(fgw,*)
       end if
       call flushifc(fgw)
     end if

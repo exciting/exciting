@@ -30,7 +30,7 @@ subroutine putvnlmat()
   iklast = lastk(rank)
 
   ! Save < APW' | \Sigma_x | APW >
-  inquire(IoLength=Recl) nkpt, nmatmax ,vnlmat(:,:,1)
+  inquire(IoLength=Recl) nkpt, nmatmax ,vnlmat(:,:,ikfirst)
   open(70, File='VNLMAT.OUT', Action='WRITE', Form='UNFORMATTED', &
   &    Access='DIRECT', status='REPLACE', Recl=Recl)
   do ik = 1, nkpt
