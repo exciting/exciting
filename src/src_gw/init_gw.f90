@@ -14,6 +14,7 @@ subroutine init_gw
     use modinput
     use modmain
     use modgw
+    use mod_gaunt_coefficients
     use modmpi
     use modxs,      only: isreadstate0
     use m_filedel
@@ -47,14 +48,14 @@ subroutine init_gw
     stype_ = input%groundstate%stypenumber
     input%groundstate%stypenumber = -1
 
-    ! initialize global exciting variables with (new) GW definitions
-    call init0
-    call init1    
-
     ! Extra call of the groundstate part to generate the data consisted with 
     ! the specified GW parameters
     call timesec(t0)
     if (.not.input%gw%skipgnd) then
+        
+        ! One needs to regenerate eigenvectors for the complete (non-reduced) k-point set
+        reducek_ = input%groundstate%reducek
+        input%groundstate%reducek = .false.
         
         ! Resume scf KS calculations and diagonalize one more time the Hamiltonian
         ! for new set of k- and nempty parameters.
@@ -62,6 +63,10 @@ subroutine init_gw
         ! (critical for OEP/HYBRIDS related methods)
         input%groundstate%xctypenumber = 1
         xctype(1) = 1
+        
+        ! initialize global exciting variables with (new) GW definitions
+        call init0
+        call init1
         
         task = 1
         input%groundstate%maxscl = 1
@@ -89,17 +94,20 @@ subroutine init_gw
         end if
         call barrier
 
-        ! filext = trim(filext_save)
-
-    else
-
-        ! Get the self-consistent effective + exchange-correlation potential
-        call timesec(t0)
-        call readstate
-        call timesec(t1)
-        time_io = time_io+t1-t0
+        ! restore the initial value
+        input%groundstate%reducek = reducek_
+        filext = trim(filext_save)
         
     end if
+    
+    ! reinitialize global exciting variables
+    call init0
+    call init1
+    
+    ! if BSE is used just after GW, libbzint
+    ! may create the segmentation faults when trying to use a general
+    ! k-point shift vkloff
+    input%groundstate%stypenumber = stype_    
         
     call timesec(t1)
     time_initscf = time_initscf+t1-t0
@@ -108,7 +116,13 @@ subroutine init_gw
     call timesec(t0)
     call init_kqpoint_set
     call timesec(t1)
-    time_initkpt = time_initkpt+t1-t0    
+    time_initkpt = time_initkpt+t1-t0
+
+    ! Get the self-consistent effective + exchange-correlation potential
+    call timesec(t0)
+    call readstate
+    call timesec(t1)
+    time_io = time_io+t1-t0
       
     ! Intialize auxiliary arrays used further for convenience    
     call init_misc_gw
@@ -177,7 +191,7 @@ subroutine init_gw
     
 contains
 
-    subroutine print_memory_usage()
+    subroutine print_memory_usage
         implicit none
         real(8) :: msize_tot
         if (rank==0) then

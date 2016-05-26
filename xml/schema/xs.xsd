@@ -40,6 +40,30 @@
           </xs:complexType>
         </xs:element>
 
+        <xs:element ex:importance="expert" ex:unit="" name="writeexcitons" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>When present this element allows to write the stored exciton components (BSE eigenvectors) 
+            to ASCII files. The range of excitons must lie within the stored range given by the attributes in the 
+            element storeexcitons. 
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="" name="MinNumberExcitons" type="xs:integer" default="1">
+              <xs:annotation>
+                <xs:documentation>It represents the lower limit of the number of written excitons.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="MaxNumberExcitons" type="xs:integer" default="10">
+              <xs:annotation>
+                <xs:documentation>It represents the upper limit of the number of written excitons.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+
+
         <xs:element ex:importance="expert" ex:unit="" name="excitonPlot" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Trigger the electron-hole visualization.</xs:documentation>

@@ -61,7 +61,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   !------------------------------
   ! Data-set consistency check
   !------------------------------
-  if ((ibgw.ne.1).or.(nbgw.lt.nstsv)) then
+  if ((ibgw /= 1).or.(nbgw < nstsv)) then
     write(*,*)
     write(*,*)'WARNING(getevalqp):'
     write(*,*)'  Quasiparticle energies has been calculated for the interval of bands:'
@@ -93,16 +93,17 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   !-----------------------------------------------------------------------------      
   allocate(de1(nkp1,ibgw:nbgw))
   do ik = 1, nkp1
-     de1(ik,:)=cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
+    de1(ik,:) = cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
   enddo
 
   allocate(de2(nkpt,ibgw:nbgw))
   de2(:,:) = zzero
+
   call fourintp(de1, nkp1, kvecs1, de2, nkp2, vkl, nbgw-ibgw+1)
 
   do ib = ibgw, min(nbgw,nstsv)
      do ik = 1, nkpt
-        eqp2(ib,ik)=eqp2(ib,ik)+real(de2(ik,ib))
+        eqp2(ib,ik) = eqp2(ib,ik)+dble(de2(ik,ib))
      enddo 
   enddo
 

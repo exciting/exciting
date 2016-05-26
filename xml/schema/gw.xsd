@@ -232,7 +232,7 @@
             
           </xs:all>
 
-          <xs:attribute ex:importance="expert" ex:unit="" name="taskname" type="xs:string" use="optional" default="gw">
+          <xs:attribute ex:importance="expert" ex:unit="" name="taskname" type="xs:string" use="optional" default="g0w0">
             <xs:annotation>
               <xs:documentation>
                   Type of calculations.
@@ -310,21 +310,21 @@
 
           <xs:attribute ex:importance="expert" ex:unit="" name="nempty" type="xs:integer" use="optional" default="0">
             <xs:annotation>
-              <xs:documentation>Number of empty states (cutoff parameter) used in GW. If not specified, 
-              the same number as for the groundstate calculations is used.</xs:documentation>
+              <xs:documentation>Number of empty states (cutoff parameter) used in GW. If not specified, the same number as for the groundstate calculations is used.
+              </xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
-          <xs:attribute ex:importance="expert" ex:unit="" name="ibgw" type="xs:integer" use="optional" default="-1">
+          <xs:attribute ex:importance="expert" ex:unit="" name="ibgw" type="xs:integer" use="optional" default="1">
             <xs:annotation>
               <xs:documentation>Lower band index for GW output.</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
-          <xs:attribute ex:importance="expert" ex:unit="" name="nbgw" type="xs:integer" use="optional" default="-1">
+          <xs:attribute ex:importance="expert" ex:unit="" name="nbgw" type="xs:integer" use="optional" default="0">
             <xs:annotation>
-              <xs:documentation>Upper band index for GW output. If not specified, 
-              the maximum number of the available states is used.</xs:documentation>
+              <xs:documentation>Upper band index for GW output. If not specified, the maximum number of the available states is used.
+              </xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
@@ -340,13 +340,12 @@
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>
-          
-          
+                    
           <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean" default="false">
             <xs:annotation>
               <xs:documentation>
-	          Use the crystal symmetry to calculate the dielectric function and perform q-point BZ integration.
-	      </xs:documentation>
+	          Use the crystal symmetry to calculate the dielectric function and perform q-point BZ integration (currently is not implemented).
+	            </xs:documentation>
             </xs:annotation>
           </xs:attribute>
 
@@ -355,8 +354,8 @@
               <xs:documentation>
                  BZ convolution option:
                    tetra - Use the linearized tetrahedron method;
-                   sum   - Simple sum over k-points.
-	      </xs:documentation>
+                   sum   - Simple sum over k-points (test only).
+	            </xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
@@ -364,7 +363,7 @@
             <xs:annotation>
               <xs:documentation>
 	          Print debugging information.
-	      </xs:documentation>
+	            </xs:documentation>
             </xs:annotation>
           </xs:attribute>
 
@@ -372,7 +371,7 @@
             <xs:annotation>
               <xs:documentation>
                 k/q-point grid size to be used in GW calculations. 
-                If not specified,  <attref>ngridk</attref> value is used.
+                If not specified,  (2,2,2) k-grid is used.
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>
@@ -388,8 +387,7 @@
           <xs:attribute ex:importance="expert" ex:unit="" name="skipgnd" type="xs:boolean" default="false">
             <xs:annotation>
               <xs:documentation>
-	          Skip recalculation KS eigenvalues and eigenvectors
-                  for the complete k-point grid.
+	              Skip recalculation KS eigenvalues and eigenvectors for the complete k-point grid.
 	          </xs:documentation>
             </xs:annotation>
           </xs:attribute>
@@ -397,8 +395,7 @@
           <xs:attribute ex:importance="expert" ex:unit="" name="mblksiz" type="xs:integer" default="64">
             <xs:annotation>
               <xs:documentation>
-	          To reduce memory usage, big matrices are considered to be split 
-                into blocks, each with a size of mblksiz.   
+	              To reduce memory usage, big matrices are considered to be split into blocks, each with a size of mblksiz (not supported). 
 	          </xs:documentation>
             </xs:annotation>
           </xs:attribute>
@@ -406,13 +403,11 @@
           <xs:attribute ex:importance="expert" ex:unit="" name="rpmat" type="xs:boolean" default="false">
             <xs:annotation>
               <xs:documentation>
-	          Skip calculation of the momentum matrix elements but read them from 
-	          files PMATVV.OUT and PMATCV.OUT.
+	          Skip calculation of the momentum matrix elements but read them from files PMATVV.OUT and PMATCV.OUT.
 	          </xs:documentation>
             </xs:annotation>
           </xs:attribute>
-          
-          
+                    
         </xs:complexType>
     </xs:element>
 </xs:schema>

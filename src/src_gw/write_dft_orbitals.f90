@@ -47,7 +47,7 @@ subroutine write_dft_orbitals
     write(*,*) 'ncmag=', ncmag
 
     do ik = 1, nkpt
-    
+
       !-----------------
       ! eigenvalues 
       !-----------------

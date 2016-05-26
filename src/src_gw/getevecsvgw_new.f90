@@ -62,14 +62,14 @@ subroutine getevecsvgw_new(fname,ik,vpl,nmatmax,nstsv,nspinor,evecsv)
         write(*,*)
         write(*,'("ERROR(getevecsvgw_new): Differing vectors for k-point",i8)') ik
         write(*,'("  input vector : ", 3G18.10)') vpl
-        write(*,'(" EVECSV_GW.OUT : ", 3G18.10)') vpl_
+        write(*,'("  ", a, " : ", 3G18.10)') trim(fname), vpl_
         write(*,*)
         stop
       end if
       evecsv(:,:,:) = evecsv_(:,:,:)
     else
       write(*,*)
-      write(*,*) "ERROR(getevecsvgw_new): File EVECSV_GW.OUT does not exist!"
+      write(*,*) "ERROR(getevecsvgw_new): File ", trim(fname), " does not exist!"
       write(*,*)
       stop
     end if

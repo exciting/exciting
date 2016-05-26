@@ -8,7 +8,7 @@ Subroutine writebevec
       Real (8), Allocatable :: beval (:)
       Complex (8), Allocatable :: bevec (:, :)
       Real (8) :: bevec_ksum, bevec1
-      Integer :: ex_min, ex_max, iv, ic, iknr
+      Integer :: ex_min, ex_max, ex_min2, ex_max2, iv, ic, iknr
       integer :: nsta1, nsta2, nrnst1, nrnst3 
       integer :: s1, s2, hamsiz, un, iostat
       integer :: ist, jst
@@ -17,6 +17,12 @@ Subroutine writebevec
 
       call init0
       call init1
+
+      if (.not.associated(input%xs%writeexcitons)) &
+      &  input%xs%writeexcitons => getstructwriteexcitons (emptynode)
+
+       ex_min2 = input%xs%writeexcitons%MinNumberExcitons
+       ex_max2 = input%xs%writeexcitons%MaxNumberExcitons
 
       !read EXCCOEFF.bin where BSE eigenvectors are stored
        inquire(file='EXCCOEFF.bin', exist=exist)
@@ -45,6 +51,22 @@ Subroutine writebevec
        end if
 
 
+       if (  (ex_min2 .lt. ex_min) .or. &
+          &  (ex_min2 .gt. ex_max) .or. &
+          &  (ex_max2 .lt. ex_min) .or. &
+          &  (ex_max2 .gt. ex_max) .or. &
+          &  (ex_min2 .gt.  ex_max2) ) then
+          write(*,*)
+          write(*,'("Error(bse): wrong range of exciton indices: ", 2I5)') &
+                & ex_min2, ex_max2
+          write(*,'("Error(bse): range of exciton indices must be within the stored range of EXCCOEFF.bin: ", 2I5)') &
+                & ex_min, ex_max 
+          write(*,*)
+          stop
+        end if
+
+
+         !write bin
 
 !        Write(*,*) 'writebevec'
 ! 
@@ -56,9 +78,9 @@ Subroutine writebevec
 
 
       !write ASCII output of Abs(BSE eigenvector)^2 
-      Do s1 = ex_min, ex_max
+      Do s1 = ex_min2, ex_max2
       Call getunit (un)
-      Write (lambda, '("_LAMBDA",i3.3)') s1
+      Write (lambda, '("_LAMBDA",i4.4)') s1
       Open (Unit=un, File=trim('BEVEC'//trim(lambda)//'.OUT'), Form='formatted', Action='write')
             Do iknr = 1, nkptnr
                Do iv = 1, nrnst1
@@ -82,9 +104,9 @@ Subroutine writebevec
 
 
       !write ASCII output of sum of Abs(BSE eigenvector)^2 over all k-points     
-      Do s1 = ex_min, ex_max
+      Do s1 = ex_min2, ex_max2
       Call getunit (un)
-      Write (lambda, '("_LAMBDA",i3.3)') s1
+      Write (lambda, '("_LAMBDA",i4.4)') s1
       Open (Unit=un, File=trim('BEVEC_KSUM'//trim(lambda)//'.OUT'), Form='formatted', Action='write')
          Do iv = 1, nrnst1
              Do ic = 1, nrnst3
@@ -109,9 +131,9 @@ Subroutine writebevec
 !---------------------------------------------------------------------------
 ! din: New output file for the bandstructure to be able to post-process it
 !---------------------------------------------------------------------------
-      do s1 = ex_min, ex_max
+      do s1 = ex_min2, ex_max2
         call getunit(un)
-        write(lambda, '("exciton_evec_",i3.3,".dat")') s1
+        write(lambda, '("exciton_evec_",i4.4,".dat")') s1
         open(Unit=un, File=trim(lambda), Form='Formatted', Action='Write')
         ! nkpt total, Nv, iv0, Nc, ic0
         write(un,*) "# ", nkptnr, &

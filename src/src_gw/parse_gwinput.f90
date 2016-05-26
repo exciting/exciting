@@ -389,16 +389,16 @@ subroutine parse_gwinput
 
 ! upper QP band index
     nbgw = input%gw%nbgw
+    if (nbgw < 1) nbgw = input%groundstate%nempty
 
-    if ((ibgw > 0) .and. (nbgw > 0)) then
-        if ( ibgw >= nbgw ) then
-            if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal values for ibgw ot nbgw!'
-            if (rank==0) write(*,*) '    ibgw = ', ibgw, '   nbgw = ', nbgw
-            stop
-        end if
-        if (rank==0) write(fgw,'(a,2i7)') ' Quasiparticle band range: ', ibgw, nbgw
-        if (rank==0) write(fgw,*)
+    if ( ibgw >= nbgw ) then
+        if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal values for ibgw ot nbgw!'
+        if (rank==0) write(*,*) '    ibgw = ', ibgw, '   nbgw = ', nbgw
+        stop
     end if
+
+    if (rank==0) write(fgw,'(a,2i7)') ' Quasiparticle band range: ', ibgw, nbgw
+    if (rank==0) write(fgw,*)
      
 !-------------------------------------------------------------------------------
 ! k/q point grids
@@ -412,17 +412,17 @@ subroutine parse_gwinput
         if (rank==0) write(fgw,*) '  must be carefully chosen based on the convergence tests.'
         if (rank==0) write(fgw,*) '  Too large values make GW calculations very time consuming.'
         if (rank==0) write(fgw,*)
-        if (rank==0) write(fgw,*) '  Set the default (rather small) value for input%gw%ngridq' 
+        if (rank==0) write(fgw,*) '  Set the default value for input%gw%ngridq:' 
         input%gw%ngridq = (/2, 2, 2/)
     else
         if ((input%gw%ngridq(1)<=0).or. &
         &   (input%gw%ngridq(2)<=0).or. &
-        &   (input%gw%ngridq(3)<=0))    then
+        &   (input%gw%ngridq(3)<=0)) then
             if (rank==0) write(fgw,*) 'ERROR(parse_gwinput): Illegal value for k/q-points grid!'
             stop
         end if
     end if
-    if (rank==0) write(fgw,*) 'k/q-points grid: ', input%gw%ngridq
+    if (rank==0) write(fgw,*) '  k/q-points grid: ', input%gw%ngridq
     input%groundstate%ngridk = input%gw%ngridq
 
     rdum = input%gw%vqloff(1)**2+ &

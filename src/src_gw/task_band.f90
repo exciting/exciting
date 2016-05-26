@@ -8,10 +8,10 @@ subroutine task_band()
 
   implicit none
 
-  integer(4)    :: ik, ib
+  integer(4)    :: ik, ib, ib0
   real(8)       :: tstart, tend
   integer       :: i, j
-  character(80) :: s, fname
+  character(80) :: fname
   logical       :: exist
 
   !------------------------
@@ -32,8 +32,8 @@ subroutine task_band()
   end if
 
   open(70, File='bandstructure.dat', Action='Read', Status='Old')
-  read(70,*) s, nstsv, nkpt
-  write(*,*) trim(s), nstsv, nkpt
+  read(70,*) ib0, nstsv, nkpt
+  write(*,*) ib0, nstsv, nkpt
   if (allocated(vkl)) deallocate(vkl)
   allocate(vkl(3,nkpt))
   if (allocated(dpp1d)) deallocate(dpp1d)
@@ -66,23 +66,20 @@ subroutine task_band()
   end do !ib
   close(50)
 
-
-    !---------------------------------------------------------------------------
-    ! din: New output file for the bandstructure to be able to post-process it
-    !---------------------------------------------------------------------------
-    if (rank==0) then
-      open(50, File="bandstructure-qp.dat", Action='Write', Form='Formatted')
-      write(50,*) "# ", min(nbgw,nstsv)-ibgw+1, nkpt
-      ! path, energy, ist, ik, vkl
-      do ib = ibgw, min(nbgw,nstsv)
-      do ik = 1, nkpt
-        write(50,'(2I6, 3F12.6, 2G18.10)') ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)+efermi-eferqp
-      end do
-      write(50,*)
-      end do
-      close(50)
-    end if
-
+  !---------------------------------------------------------------------------
+  ! New output file for the bandstructure to be able to post-process it
+  !---------------------------------------------------------------------------
+  open(50, File="bandstructure-qp.dat", Action='Write', Form='Formatted')
+  write(50,*) ibgw, min(nbgw,nstsv), nkpt
+  ! path, energy, ist, ik, vkl
+  do ib = ibgw, min(nbgw,nstsv)
+  do ik = 1, nkpt
+    write(50,'(2I6, 3F12.6, 2G18.10)') &
+    &     ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)+efermi-eferqp
+  end do
+  write(50,*)
+  end do
+  close(50)
 
   return
 end subroutine
