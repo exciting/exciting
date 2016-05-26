@@ -434,8 +434,6 @@ use ioarray
            ! band analysis
                If ( .Not. transijst(ik, i1, i2)) Cycle
                Call timesec (cpu0)
-           ! user request termination
-               Call terminateqry ('dfq')
                If (input%xs%tetra%tetradf) Then
 #ifdef TETRA               
               ! mirror index pair on diagonal if necessary
