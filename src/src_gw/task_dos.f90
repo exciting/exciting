@@ -19,7 +19,7 @@ subroutine task_dos()
 
     integer :: is, ia, ias
     integer :: lmax, lmmax, l, m, lm
-    integer :: nb
+    integer :: nstqp
     character(80) :: fname
 
     !-----------------
@@ -39,26 +39,18 @@ subroutine task_dos()
     ! read KS energies
     do ik = 1, nkpt
       call getevalsv(vkl(:,ik), evalsv(:,ik))
-      ! call getevalsvgw_new('GW_EVALSV.OUT',ik,vkl(:,ik),nstsv,evalsv(1,ik))
     end do
 
-    ! calculate the projected band character
-    if (input%properties%dos%lmirep) then
-      lmax = 4
-      lmmax = (lmax+1)**2
-      allocate(bc(lmmax,nspinor,natmtot,nstsv,nkpt))
-      call calc_band_character(lmax,lmmax,bc)
-    end if
-   
+    ! shift KS energies
+    call readfermi
+
     ! read QP energies from file and perform Fourier interpolation (if required)
     call getevalqp(nkpt,vkl,evalsv)
     
-    call occupy
-    
     ! GW number of states
-    nstsv = nbgw-ibgw+1
-    allocate(e(nstsv,nkpt))
-    e(:,:) = evalsv(ibgw:nbgw,:)-efermi
+    nstqp = nbgw-ibgw+1
+    allocate(e(ibgw:nbgw,nkpt))
+    e(ibgw:nbgw,:) = evalsv(ibgw:nbgw,:)!-efermi
 
     !-----------------------------      
     ! DOS parameters
@@ -84,13 +76,13 @@ subroutine task_dos()
     nsk(:) = max(ngrdos/input%groundstate%ngridk(:),1)
     
     ! diagonal of spin density matrix for weight
-    allocate(f(nstsv,nkpt))
+    allocate(f(ibgw:nbgw,nkpt))
     f(:,:) = 1.d0
     
     ! BZ integration
     allocate(g(nwdos)) ! DOS
     call brzint(nsmdos, input%groundstate%ngridk, nsk, ikmap, &
-    &           nwdos, winddos, nstsv, nstsv, e, f, g)
+    &           nwdos, winddos, nstqp, nstqp, e, f, g)
     g(:) = occmax*g(:)
 
     ! output file
@@ -101,6 +93,10 @@ subroutine task_dos()
     close(50)
 
     if (input%properties%dos%lmirep) then
+      lmax = 4
+      lmmax = (lmax+1)**2
+      allocate(bc(lmmax,nspinor,natmtot,nstsv,nkpt))
+      call calc_band_character(lmax,lmmax,bc)
       do is = 1, nspecies
       do ia = 1, natoms(is)
         ias = idxas(ia,is)
@@ -110,12 +106,12 @@ subroutine task_dos()
         do m = - l, l
           lm = idxlm(l,m)
           do ik = 1, nkpt
-            do ist = 1, nstsv
+            do ist = ibgw, nbgw
               f(ist,ik) = bc(lm,1,ias,ist,ik)
             end do
           end do
           call brzint(nsmdos, input%groundstate%ngridk, nsk, ikmap, &
-          &           nwdos, winddos, nstsv, nstsv, e, f, g)
+          &           nwdos, winddos, nstqp, nstqp, e, f, g)
           do iw = 1, nwdos
             write(50, '(2G18.10)') w(iw), occmax*g(iw)
           end do
@@ -126,6 +122,7 @@ subroutine task_dos()
       end do
       end do
       deallocate(bc)
+
     end if
     
     deallocate(e,w,f,g)
