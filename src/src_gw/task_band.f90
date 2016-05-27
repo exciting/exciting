@@ -21,8 +21,6 @@ subroutine task_band()
   call init0()
   ! call init1
 
-  call readfermi()
-
   fname = 'bandstructure.dat'
   inquire(File=fname, Exist=exist)
   if (.not.exist) then
@@ -57,29 +55,24 @@ subroutine task_band()
   !----------------------------------
   ! write QP bandstructure to disk
   !----------------------------------
-  open(50,file='BAND-QP.OUT',action='WRITE',form='FORMATTED')
+  open(50, File='BAND-QP.OUT', Action='Write', Form='Formatted')
+  open(51, File="bandstructure-qp.dat", Action='Write', Form='Formatted')
   do ib = ibgw, min(nbgw,nstsv)
     do ik = 1, nkpt
-      write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)+efermi-eferqp
+      ! old format (gwmod-boron) 
+      write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)
+      write(51,'(2I6, 3F12.6)') &
+      &     ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)
+      ! new format (carbon)
+      ! write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)+efermi-eferqp
+      ! write(50,'(2I6, 3F12.6, 2G18.10)') &
+      ! &     ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)+efermi-eferqp
     end do !ik
     write(50,*)
+    write(51,*)
   end do !ib
   close(50)
-
-  !---------------------------------------------------------------------------
-  ! New output file for the bandstructure to be able to post-process it
-  !---------------------------------------------------------------------------
-  open(50, File="bandstructure-qp.dat", Action='Write', Form='Formatted')
-  write(50,*) ibgw, min(nbgw,nstsv), nkpt
-  ! path, energy, ist, ik, vkl
-  do ib = ibgw, min(nbgw,nstsv)
-  do ik = 1, nkpt
-    write(50,'(2I6, 3F12.6, 2G18.10)') &
-    &     ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)+efermi-eferqp
-  end do
-  write(50,*)
-  end do
-  close(50)
+  close(51)
 
   return
 end subroutine

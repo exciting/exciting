@@ -12,10 +12,12 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   real(8), intent(out):: eqp2(nstsv,nkp2)
 
   logical       :: exist
-  integer(4)    :: ik, ib, nb, nk
+  integer(4)    :: ik, ib, nb, nk, nqp
   integer(4)    :: recl
   real(8)       :: eferks
   character(30) :: fname
+  integer(4), allocatable :: idx(:)
+  real(8),    allocatable :: eqp(:)
   complex(8), allocatable :: de1(:,:), de2(:,:)
 
   !-----------------------------------------------------------------------------
@@ -51,8 +53,13 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   
   open(70, File=fname, Action='READ', Form='UNFORMATTED', &
   &    Access='DIRECT', Recl=recl)
-      
+  
+  nqp = nbgw-ibgw+1
+  allocate(idx(nqp))
+  allocate(eqp(nqp))
+
   do ik = 1, nkp1
+
     ! old format (gwmod-boron) 
     read(70, Rec=ik) nk, ib, nb, kvecs1(:,ik), &
     &    eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik)
@@ -62,6 +69,15 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     ! &    eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik), &
     ! &    eferqp, eferks
 
+    ! sort QP energy into ascending order
+    do ib = 1, nqp
+      eqp(ib) = eqp1(ib+ibgw-1,ik)
+    end do
+    call sortidx(nqp,eqp,idx)
+    do ib = 1, nqp
+      eqp1(ib+ibgw-1,ik) = eqp(idx(ib))
+    end do
+
     !write(fgw,*) '# ik    kvecs1    ibgw,    nbgw'
     !write(fgw,*) ik, kvecs1(:,ik), ib, nb
     !write(fgw,*) '# ib    eqp1    eks1'
@@ -70,6 +86,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     !end do          
   end do ! ik
   close(70)
+  deallocate(idx)
 
   !------------------------------
   ! Data-set consistency check
