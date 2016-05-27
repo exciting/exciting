@@ -69,15 +69,6 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     ! &    eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik), &
     ! &    eferqp, eferks
 
-    ! sort QP energy into ascending order
-    do ib = 1, nqp
-      eqp(ib) = eqp1(ib+ibgw-1,ik)
-    end do
-    call sortidx(nqp,eqp,idx)
-    do ib = 1, nqp
-      eqp1(ib+ibgw-1,ik) = eqp(idx(ib))
-    end do
-
     !write(fgw,*) '# ik    kvecs1    ibgw,    nbgw'
     !write(fgw,*) ik, kvecs1(:,ik), ib, nb
     !write(fgw,*) '# ib    eqp1    eks1'

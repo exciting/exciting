@@ -41,6 +41,14 @@ subroutine task_dos()
       call getevalsv(vkl(:,ik), evalsv(:,ik))
       ! call getevalsvgw_new('GW_EVALSV.OUT',ik,vkl(:,ik),nstsv,evalsv(1,ik))
     end do
+
+    ! calculate the projected band character
+    if (input%properties%dos%lmirep) then
+      lmax = 4
+      lmmax = (lmax+1)**2
+      allocate(bc(lmmax,nspinor,natmtot,nstsv,nkpt))
+      call calc_band_character(lmax,lmmax,bc)
+    end if
    
     ! read QP energies from file and perform Fourier interpolation (if required)
     call getevalqp(nkpt,vkl,evalsv)
@@ -93,12 +101,6 @@ subroutine task_dos()
     close(50)
 
     if (input%properties%dos%lmirep) then
-
-      lmax = 4
-      lmmax = (lmax+1)**2
-      allocate(bc(lmmax,nspinor,natmtot,nstsv,nkpt))
-      call calc_band_character(lmax,lmmax,bc)
-
       do is = 1, nspecies
       do ia = 1, natoms(is)
         ias = idxas(ia,is)
@@ -124,7 +126,6 @@ subroutine task_dos()
       end do
       end do
       deallocate(bc)
-
     end if
     
     deallocate(e,w,f,g)
