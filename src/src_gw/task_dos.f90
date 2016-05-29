@@ -36,7 +36,7 @@ subroutine task_dos()
     ! write(*,*) 'nkpt=', nkpt
     ! write(*,*) input%groundstate%ngridk
 
-    ! read KS energies
+    ! read KS data
     do ik = 1, nkpt
       call getevalsv(vkl(:,ik), evalsv(:,ik))
     end do
@@ -48,9 +48,14 @@ subroutine task_dos()
     call getevalqp(nkpt,vkl,evalsv)
     
     ! GW number of states
+    nbgw = min(nstsv,nbgw)
     nstqp = nbgw-ibgw+1
     allocate(e(ibgw:nbgw,nkpt))
-    e(ibgw:nbgw,:) = evalsv(ibgw:nbgw,:)!-efermi
+    e(ibgw:nbgw,:) = evalsv(ibgw:nbgw,:)
+
+    ! diagonal of spin density matrix for weight
+    allocate(f(ibgw:nbgw,nkpt))
+    f(:,:) = 1.d0
 
     !-----------------------------      
     ! DOS parameters
@@ -74,10 +79,6 @@ subroutine task_dos()
       
     ! number of subdivisions used for interpolation
     nsk(:) = max(ngrdos/input%groundstate%ngridk(:),1)
-    
-    ! diagonal of spin density matrix for weight
-    allocate(f(ibgw:nbgw,nkpt))
-    f(:,:) = 1.d0
     
     ! BZ integration
     allocate(g(nwdos)) ! DOS
