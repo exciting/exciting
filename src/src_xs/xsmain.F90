@@ -155,6 +155,8 @@ Subroutine xsmain (plan)
             call plot_exciton_wf
          case (711)
             call plot_exciton_density
+         case (712)
+            call plot_6d_exciton_wf
          Case Default
             Write (*,*)
             Write (*,*) 'Error(xsmain): task not defined:', task

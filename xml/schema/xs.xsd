@@ -111,6 +111,12 @@
                 <xs:documentation>Threshold value for selecting states which contribute to the exciton.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="ngridp" type="integertriple" default="1 1 1">
+              <xs:annotation>
+                <xs:documentation>(For visualizing 6D electron-hole wavefunction only) Lattice unitcell grid-point size. Each point of the grid is used as a fixed position of the hole in the electron-hole pair. Corresponding electron density distribution is generated and stored into file.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             
           </xs:complexType>
         </xs:element>
@@ -1172,7 +1178,7 @@
                           </xs:annotation>
                         </xs:enumeration>
 
-                        <!-- Visualize BSE exciton wavefunction -->
+                        <!-- Visualize 3-d BSE exciton wavefunction -->
                         <xs:enumeration value="plot_exc_wf">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1180,6 +1186,18 @@
                             </xs:appinfo>
                             <xs:documentation>
                               Visualize exciton wavefunction.
+                            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+
+                        <!-- Visualize 6-d BSE exciton wavefunction -->
+                        <xs:enumeration value="excitonWavefunction">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>712</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>
+                              Generate data (in Gaussian cube format) to visualize the 6-d electron-hole wavefunction.
                             </xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>

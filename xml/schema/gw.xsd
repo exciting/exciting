@@ -47,7 +47,7 @@
                   Number of frequency (grid) points.
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="freqmax" default="0.5d0">
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="freqmax" default="1.0d0">
                   <xs:annotation><xs:documentation>
                   Parameter of the double frequency grid technique.
                   </xs:documentation></xs:annotation>
@@ -116,7 +116,7 @@
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
                 
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="actype" default="mpf"> 
+                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="actype" default="pade"> 
                   <xs:annotation><xs:documentation>
                     Analytical continuation scheme:
                     'pade': Pade's approximant (by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977))
@@ -173,7 +173,7 @@
               <xs:complexType>
                 <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="pwm" default="2.0d0"> </xs:attribute>
                 <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="stctol" default="1.0d-15"> </xs:attribute>
-                <xs:attribute ex:importance="expert" ex:unit="" name="barcevtol" type="fortrandouble" default="-1.0d-10"> </xs:attribute>
+                <xs:attribute ex:importance="expert" ex:unit="" name="barcevtol" type="fortrandouble" default="0.1d0"> </xs:attribute>
                 <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="cutofftype" default="none"></xs:attribute>
                 <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="basis" default="mb"></xs:attribute>
               </xs:complexType>

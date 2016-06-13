@@ -5,6 +5,8 @@ subroutine wfplot_new(ik,ist)
     use modplotlabels
     use mod_rgrid
     use mod_xsf_format
+    use mod_cube_format
+    use modmpi, only : rank
     implicit none
     ! input/output
     integer, intent(in) :: ik, ist
@@ -40,16 +42,20 @@ subroutine wfplot_new(ik,ist)
     call genlofr
 
     if ((ik<1) .or. (ik>nkpt)) then
+      if (rank==0) then
         write (*,*)
         write (*, '("Error(wfplot): k-point out of range : ", I8)') ik
         write (*,*)
-        stop
+      end if
+      stop
     end if
     if ((ist<1) .or. (ist>nstsv)) then
+      if (rank==0) then
         write (*,*)
         write (*, '("Error(wfplot): state out of range : ", I8)') ist
         write (*,*)
-        stop
+      end if
+      stop
     end if
 
     ! allocate local arrays
@@ -79,17 +85,21 @@ subroutine wfplot_new(ik,ist)
       nv = size(input%properties%wfplot%plot1d%path%pointarray)
       !write(*,*) nv
       if (nv < 1) then
-        write (*,*)
-        write (*,*) "Error(wfplot_new): Wrong plot specification!"
-        write (*,*)
+        if (rank==0) then
+          write (*,*)
+          write (*,*) "Error(wfplot_new): Wrong plot specification!"
+          write (*,*)
+        end if
         stop
       end if
       np = input%properties%wfplot%plot1d%path%steps
       !write(*,*) np
       If (np < nv) then
-        write (*,*)
-        write (*,*) "Error(wfplot_new): Wrong plot specification!"
-        write (*,*)
+        if (rank==0) then
+          write (*,*)
+          write (*,*) "Error(wfplot_new): Wrong plot specification!"
+          write (*,*)
+        end if
         stop
       end if
       allocate(vvl(nv,3))
@@ -106,20 +116,29 @@ subroutine wfplot_new(ik,ist)
       ! Generate WF on the grid
       allocate(zdata(grid%npt))
       call calc_zdata_rgrid(grid, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
-      write(fname,'("wf1d-",i,"-",i,".dat")') ik, ist
-      call str_strip(fname)
-      open(77,file=trim(fname),status='Unknown',action='Write')
-      do ip = 1, grid%npt
-        write(77,'(i,3f16.6)') ip, zdata(ip), abs(zdata(ip))**2
-        !write(77,'(3f16.6)') grid%vpd(ip), zdata(ip)
-        !write(77,'(2f16.6)') grid%vpd(ip), wkpt(ik)*nkptnr*abs(zdata(ip))**2
-      end do
-      close(77)
       call delete_rgrid(grid)
-      write(*,*)
-      write(*, '("Info(wfplot):")')
-      write(*, '(" 1D Wavefunction written to wf1d-ik-ist.dat")')
+
+      ! Output
+      if (rank==0) then
+        write(fname,'("wf1d-",i,"-",i,".dat")') ik, ist
+        call str_strip(fname)
+        open(77,file=trim(fname),status='Unknown',action='Write')
+        do ip = 1, grid%npt
+          write(77,'(i,3f16.6)') ip, zdata(ip), abs(zdata(ip))**2
+          !write(77,'(3f16.6)') grid%vpd(ip), zdata(ip)
+          !write(77,'(2f16.6)') grid%vpd(ip), wkpt(ik)*nkptnr*abs(zdata(ip))**2
+        end do
+        close(77)
+        write(*,*)
+        write(*,'("Info(wfplot):")')
+        write(*,'(" 1D Wavefunction written to wf1d-ik-ist.dat")')
+        write(*,*)
+        write(*,'(" for k-point ", I6, " and state ", I6)') ik, ist
+        write(*,*)
+      end if
+
       deallocate(zdata)
+      
     end if
 
     !----------------
@@ -129,12 +148,12 @@ subroutine wfplot_new(ik,ist)
 
       igrid(1:2) = input%properties%wfplot%plot2d%parallelogram%grid(1:2)
       boxl(1,:)  = input%properties%wfplot%plot2d%parallelogram%origin%coord(1:3)
-      boxl(2,:)  = input%properties%wfplot%plot2d%parallelogram%pointarray(1)%point%coord(1:3)
-      boxl(3,:)  = input%properties%wfplot%plot2d%parallelogram%pointarray(2)%point%coord(1:3)
+      boxl(2,:)  = input%properties%wfplot%plot2d%parallelogram%pointarray(1)%point%coord(1:3)-boxl(1,:)
+      boxl(3,:)  = input%properties%wfplot%plot2d%parallelogram%pointarray(2)%point%coord(1:3)-boxl(1,:)
       ! test whether box is reasonable ?
 
       ! rgrid constructor
-      grid = gen_2d_rgrid(igrid(1:2), boxl(1:3,:))
+      grid = gen_2d_rgrid(igrid(1:2), boxl(1:3,:), 0)
       !call print_rgrid(grid)
 
       ! Generate WF on the grid
@@ -142,16 +161,21 @@ subroutine wfplot_new(ik,ist)
       call calc_zdata_rgrid(grid, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
       call delete_rgrid(grid)
 
-      write(fname,'("wf2d-",i,"-",i,".xsf")') ik, ist
-      call str_strip(fname)
-      call write_structure_xsf(fname)
-      call write_2d_xsf(fname, 'real',             boxl(1:3,:), igrid, grid%npt, dble(zdata))
-      call write_2d_xsf(fname, 'imaginary',        boxl(1:3,:), igrid, grid%npt, aimag(zdata))
-      call write_2d_xsf(fname, 'module squared', boxl(1:3,:), igrid, grid%npt, abs(zdata)**2)
-      write (*,*)
-      write (*, '("Info(wfplot):")')
-      write (*, '(" 2D wavefunction  written to wf2d-ik-ist.xsf")')
-      write (*,*)
+      if (rank==0) then
+        write(fname,'("wf2d-",i,"-",i,".xsf")') ik, ist
+        call str_strip(fname)
+        call write_structure_xsf(fname)
+        call write_2d_xsf(fname, 'module squared', boxl(1:3,:), igrid, grid%npt, abs(zdata)**2)
+        call write_2d_xsf(fname, 'real',             boxl(1:3,:), igrid, grid%npt, dble(zdata))
+        call write_2d_xsf(fname, 'imaginary',        boxl(1:3,:), igrid, grid%npt, aimag(zdata))
+        write(*,*)
+        write(*,'("Info(wfplot):")')
+        write(*,'(" 2D wavefunction  written to wf2d-ik-ist.xsf")')
+        write(*,*)
+        write(*,'(" for k-point ", I6, " and state ", I6)') ik, ist
+        write(*,*)
+      end if
+
       deallocate(zdata)
 
     end if
@@ -163,12 +187,12 @@ subroutine wfplot_new(ik,ist)
 
       igrid(:)  = input%properties%wfplot%plot3d%box%grid
       boxl(1,:) = input%properties%wfplot%plot3d%box%origin%coord
-      boxl(2,:) = input%properties%wfplot%plot3d%box%pointarray(1)%point%coord
-      boxl(3,:) = input%properties%wfplot%plot3d%box%pointarray(2)%point%coord
-      boxl(4,:) = input%properties%wfplot%plot3d%box%pointarray(3)%point%coord
+      boxl(2,:) = input%properties%wfplot%plot3d%box%pointarray(1)%point%coord-boxl(1,:)
+      boxl(3,:) = input%properties%wfplot%plot3d%box%pointarray(2)%point%coord-boxl(1,:)
+      boxl(4,:) = input%properties%wfplot%plot3d%box%pointarray(3)%point%coord-boxl(1,:)
 
       ! rgrid constructor
-      grid = gen_3d_rgrid(igrid, boxl(1:4,:))
+      grid = gen_3d_rgrid(igrid, boxl(1:4,:), 0)
       !call print_rgrid(grid)
 
       ! Generate WF on the grid
@@ -176,25 +200,31 @@ subroutine wfplot_new(ik,ist)
       call calc_zdata_rgrid(grid, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
       call delete_rgrid(grid)
 
-      write(fname,'("wf3d-",i,"-",i,".xsf")') ik, ist
-      call str_strip(fname)
-      call write_structure_xsf(fname)
-      call write_3d_xsf(fname, 'real',           boxl(1:4,:), igrid, grid%npt, dble(zdata))
-      call write_3d_xsf(fname, 'imaginary',      boxl(1:4,:), igrid, grid%npt, aimag(zdata))
-      call write_3d_xsf(fname, 'module squared', boxl(1:4,:), igrid, grid%npt, abs(zdata)**2)
-      write(*,*)
-      write(*, '("Info(wfplot):")')
-      write(*, '(" 3D wavefunction written to wf3d-ik-ist.xsf")')
-      write (*,*)
-      deallocate(zdata)
+      if (rank==0) then
+        write(fname,'("wf3d-",i,"-",i,".xsf")') ik, ist
+        call str_strip(fname)
+        call write_structure_xsf(fname)
+        call write_3d_xsf(fname, 'squared modulus', boxl(1:4,:), igrid, grid%npt, abs(zdata)**2)
+        call write_3d_xsf(fname, 'real',            boxl(1:4,:), igrid, grid%npt, dble(zdata))
+        call write_3d_xsf(fname, 'imaginary',       boxl(1:4,:), igrid, grid%npt, aimag(zdata))
+        write(*,*)
+        write(*,'("Info(wfplot):")')
+        write(*,'(" 3D wavefunction written to wf3d-ik-ist.xsf")')
+        write(*,*)
+        write(*,'(" for k-point ", I6, " and state ", I6)') ik, ist
+        write(*,*)
+        !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
 
-      !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
+        ! Gaussian cube-format
+        write(fname,'("wf3d-",i,"-",i,".cube")') ik, ist
+        call str_strip(fname)
+        call write_3d_cube(fname, 'squared modulus', boxl(1:4,:), igrid, grid%npt, abs(zdata)**2)
+      end if
+
+      deallocate(zdata)
 
     end if
 
-    write(*, '(" for k-point ", I6, " and state ", I6)') ik, ist
-    write(*,*)
-    
     deallocate(apwalm, evecfv, evecsv, wfmt, wfir)
    
     return

@@ -20,7 +20,7 @@
     >
   </groundstate>
   <gw
-    taskname="g0w0"
+    taskname="g0w0" coreflag="val"
     ibgw="1" nbgw="15"
     nempty="50"
     >

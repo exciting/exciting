@@ -119,20 +119,30 @@ contains
   end function
 
   !----------------------------------------------------------------------------
-  function gen_2d_rgrid(ngrid,boxl) result(self)
+  function gen_2d_rgrid(ngrid,boxl,iflag) result(self)
     implicit none
     ! input/output
     type(rgrid) :: self
     integer, intent(in) :: ngrid(2)
     real(8), intent(in) :: boxl(3,3)
+    integer, intent(in) :: iflag
     ! local
     integer :: ip, ip1, ip2, iv(3)
-    integer :: n1, n2
+    integer :: n1, n2, n0
     real(8) :: v1(3), v2(3), t1, t2
 
     n1 = ngrid(1)
     n2 = ngrid(2)
-    self%npt = (n1+1)*(n2+1)
+
+    if (iflag>0) then
+      ! periodic grid
+      n0 = 1
+      self%npt = n1*n2
+    else
+      ! general periodic grid (as employed by XCrySDen)
+      n0 = 0
+      self%npt = (n1+1)*(n2+1)
+    end if
 
     if (allocated(self%vpl)) deallocate(self%vpl)
     allocate(self%vpl(3,self%npt))
@@ -140,11 +150,11 @@ contains
     allocate(self%vpc(3,self%npt))
 
     ip = 0
-    do ip2 = 0, n2
-      t2 = dble(ip2)/dble(n2)
-      do ip1 = 0, n1
+    do ip2 = n0, n2
+      t2 = dble(ip2-n0)/dble(n2)
+      do ip1 = n0, n1
         ip = ip + 1
-        t1 = dble(ip1)/dble(n1)
+        t1 = dble(ip1-n0)/dble(n1)
         v1(:) = t1*boxl(2,:) &
         &     + t2*boxl(3,:) &
         &     + boxl(1,:)
@@ -161,21 +171,31 @@ contains
   end function
 
   !----------------------------------------------------------------------------
-  function gen_3d_rgrid(ngrid,boxl) result(self)
+  function gen_3d_rgrid(ngrid,boxl,iflag) result(self)
     implicit none
     ! input/output
     type(rgrid) :: self
     integer, intent(in) :: ngrid(3)
     real(8), intent(in) :: boxl(4,3)
+    integer, intent(in) :: iflag
     ! local
     integer :: ip, ip1, ip2, ip3, iv(3)
-    integer :: n1, n2, n3
+    integer :: n1, n2, n3, n0
     real(8) :: v1(3), v2(3), t1, t2, t3
 
     n1 = ngrid(1)
     n2 = ngrid(2)
     n3 = ngrid(3)
-    self%npt = (n1+1)*(n2+1)*(n3+1)
+
+    if (iflag>0) then
+      ! periodic grid
+      n0 = 1
+      self%npt = n1*n2*n3
+    else
+      ! general periodic grid (as employed by XCrySDen)
+      n0 = 0
+      self%npt = (n1+1)*(n2+1)*(n3+1)
+    end if
 
     if (allocated(self%vpl)) deallocate(self%vpl)
     allocate(self%vpl(3,self%npt))
@@ -183,12 +203,12 @@ contains
     allocate(self%vpc(3,self%npt))
 
     ip = 0
-    do ip3 = 0, n3
-      t3 = dble(ip3)/dble(n3)
-      do ip2 = 0, n2
-        t2 = dble(ip2)/dble(n2)
-        do ip1 = 0, n1
-          t1 = dble(ip1)/dble(n1)
+    do ip3 = n0, n3
+      t3 = dble(ip3-n0)/dble(n3)
+      do ip2 = n0, n2
+        t2 = dble(ip2-n0)/dble(n2)
+        do ip1 = n0, n1
+          t1 = dble(ip1-n0)/dble(n1)
           ip = ip+1
           v1(:) = t1*boxl(2,:) &
           &     + t2*boxl(3,:) &

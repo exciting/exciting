@@ -29,8 +29,6 @@ Subroutine propertylauncher
 
       !--------------------------------------------------------
       If (associated(input%properties%wfplot)) Then
-#define NOTSTM .false.
-         !Call wfplot (NOTSTM)
          ! kstlist should only contain one k-point and state for wave-function plot
          if (size(input%properties%wfplot%kstlist%pointstatepair,2)<1) then
             write(*,*)
@@ -41,8 +39,6 @@ Subroutine propertylauncher
             stop
          end if
          do i = 1, size(input%properties%wfplot%kstlist%pointstatepair,2)
-            !ik  = input%properties%wfplot%kstlist%pointstatepair(1, 1)
-            !ist = input%properties%wfplot%kstlist%pointstatepair(2, 1)
             call wfplot_new(input%properties%wfplot%kstlist%pointstatepair(1,i), &
             &               input%properties%wfplot%kstlist%pointstatepair(2,i))
          end do

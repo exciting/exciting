@@ -139,12 +139,12 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
 
       ! WARNING: Order of loops !
       ip = 0
-      do i1 = 0, ngridp(1)-1
-        v1(1) = dble(i1) / dble(ngridp(1))
+      do i3 = 0, ngridp(3)-1
+        v1(3) = dble(i3) / dble(ngridp(3))
         do i2 = 0, ngridp(2)-1
           v1(2) = dble(i2) / dble(ngridp(2))
-            do i3 = 0, ngridp(3)-1
-            v1(3) = dble(i3) / dble(ngridp(3))
+            do i1 = 0, ngridp(1)-1
+            v1(1) = dble(i1) / dble(ngridp(1))
             call r3mv(b, v1, v2)
             v2(:) = v2(:)+boxl(:,1)
             if (reducep) Then
