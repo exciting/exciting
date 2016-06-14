@@ -6,6 +6,9 @@ module mod_rgrid
 
   type rgrid
     integer :: npt
+    integer :: iflag                     ! grid type flag: <0 - general periodic (xcrysden format)
+    integer, allocatable :: ngrid(:)
+    real(8), allocatable :: boxl(:,:)
     real(8), allocatable :: vpl(:,:)
     real(8), allocatable :: vpc(:,:)
     real(8), allocatable :: vpd(:)
@@ -22,8 +25,15 @@ contains
   subroutine print_rgrid(self)
     implicit none
     type(rgrid), intent(in) :: self
-    integer :: ip
+    integer :: ip, i, n
     write(*,*)
+    write(*,*) "Box definition:"
+    n = size(self%boxl,1)
+    do i = 1, n
+      write(*,'(3f12.4)') self%boxl(i,:)
+    end do
+    write(*,*) "Grid mesh:"
+    write(*,*)  self%ngrid(:)
     write(*,*) "Real space grid:"
     write(*,*) " size: ", self%npt
     write(*,*) " ip  vpl  mtpoint  atom"
@@ -33,6 +43,7 @@ contains
         write(*,'(2i4,4x,3i4)') self%atom(:,ip), self%iv(:,ip)
       end if
     end do
+    write(*,*)
     return
   end subroutine
 
@@ -40,6 +51,8 @@ contains
   subroutine delete_rgrid(self)
     implicit none
     type(rgrid), intent(inout) :: self
+    if (allocated(self%ngrid))   deallocate(self%ngrid)
+    if (allocated(self%boxl))    deallocate(self%boxl)
     if (allocated(self%vpl))     deallocate(self%vpl)
     if (allocated(self%vpc))     deallocate(self%vpc)
     if (allocated(self%vpd))     deallocate(self%vpd)
@@ -48,7 +61,31 @@ contains
   end subroutine
 
   !----------------------------------------------------------------------------
-  function gen_1d_rgrid(nv,vvl,np) result(self)
+  function gen_1d_rgrid(plot1d) result(self)
+    implicit none
+    ! input/output
+    type(plot1d_type), intent(in) :: plot1d
+    type(rgrid)                   :: self
+    ! local
+    integer :: iv, nv
+    integer :: ip, np
+    real(8), allocatable :: vvl(:,:)
+
+    np = plot1d%path%steps
+    nv = size(plot1d%path%pointarray)
+    allocate(vvl(nv,3))
+    do iv = 1, nv
+      vvl(iv,:) = plot1d%path%pointarray(iv)%point%coord(:)
+    end do
+    ! path generator routine
+    self = gen_1d(nv, vvl, np)
+    deallocate(vvl)
+
+    return
+  end function
+
+  !----------------------------------------------------------------------------
+  function gen_1d(nv,vvl,np) result(self)
     implicit none
     ! input/output
     type(rgrid)         :: self
@@ -62,7 +99,15 @@ contains
     real(8), allocatable :: seg(:), dv(:)
 
     ! initialization
+    if (allocated(self%ngrid)) deallocate(self%ngrid)
+    allocate(self%ngrid(1))
+    self%ngrid(1) = np
     self%npt = np
+
+    if (allocated(self%boxl)) deallocate(self%boxl)
+    allocate(self%boxl(nv,3))
+    self%boxl(:,:) = vvl(:,:)
+
     if (allocated(self%vpl)) deallocate(self%vpl)
     allocate(self%vpl(3,self%npt))
     if (allocated(self%vpc)) deallocate(self%vpc)
@@ -119,10 +164,33 @@ contains
   end function
 
   !----------------------------------------------------------------------------
-  function gen_2d_rgrid(ngrid,boxl,iflag) result(self)
+  function gen_2d_rgrid(plot2d,iflag) result(self)
     implicit none
     ! input/output
-    type(rgrid) :: self
+    type(plot2d_type), intent(in) :: plot2d
+    integer,           intent(in) :: iflag
+    type(rgrid)                   :: self
+    ! local
+    integer :: ip, ip1, ip2, iv(3)
+    integer :: n1, n2, n0
+    real(8) :: v1(3), v2(3), t1, t2
+    integer :: ngrid(2)
+    real(8) :: boxl(3,3)
+
+    ngrid(:)  = plot2d%parallelogram%grid(:)
+    boxl(1,:) = plot2d%parallelogram%origin%coord(1:3)
+    boxl(2,:) = plot2d%parallelogram%pointarray(1)%point%coord(1:3)-self%boxl(1,:)
+    boxl(3,:) = plot2d%parallelogram%pointarray(2)%point%coord(1:3)-self%boxl(1,:)
+    self = gen_2d(ngrid, boxl, iflag)
+
+    return
+  end function
+
+  !----------------------------------------------------------------------------
+  function gen_2d(ngrid,boxl,iflag) result(self)
+    implicit none
+    ! input/output
+    type(rgrid)         :: self
     integer, intent(in) :: ngrid(2)
     real(8), intent(in) :: boxl(3,3)
     integer, intent(in) :: iflag
@@ -131,9 +199,16 @@ contains
     integer :: n1, n2, n0
     real(8) :: v1(3), v2(3), t1, t2
 
+    if (allocated(self%ngrid)) deallocate(self%ngrid)
+    allocate(self%ngrid(2))
+    self%ngrid(:) = ngrid(:)
+
+    if (allocated(self%boxl)) deallocate(self%boxl)
+    allocate(self%boxl(3,3))
+    self%boxl(:,:) = boxl(:,:)
+
     n1 = ngrid(1)
     n2 = ngrid(2)
-
     if (iflag>0) then
       ! periodic grid
       n0 = 1
@@ -171,7 +246,31 @@ contains
   end function
 
   !----------------------------------------------------------------------------
-  function gen_3d_rgrid(ngrid,boxl,iflag) result(self)
+  function gen_3d_rgrid(plot3d,iflag) result(self)
+    implicit none
+    ! input/output
+    type(rgrid)                   :: self
+    type(plot3d_type), intent(in) :: plot3d
+    integer,           intent(in) :: iflag
+    ! local
+    integer :: ip, ip1, ip2, ip3, iv(3)
+    integer :: n1, n2, n3, n0
+    real(8) :: v1(3), v2(3), t1, t2, t3
+    integer :: ngrid(3)
+    real(8) :: boxl(4,3)
+
+    ngrid(:)  = plot3d%box%grid(:)
+    boxl(1,:) = plot3d%box%origin%coord(1:3)
+    boxl(2,:) = plot3d%box%pointarray(1)%point%coord(1:3)-boxl(1,:)
+    boxl(3,:) = plot3d%box%pointarray(2)%point%coord(1:3)-boxl(1,:)
+    boxl(4,:) = plot3d%box%pointarray(3)%point%coord(1:3)-boxl(1,:)
+    self = gen_3d(ngrid, boxl, iflag)
+
+    return
+  end function
+
+  !----------------------------------------------------------------------------
+  function gen_3d(ngrid,boxl,iflag) result(self)
     implicit none
     ! input/output
     type(rgrid) :: self
@@ -183,10 +282,17 @@ contains
     integer :: n1, n2, n3, n0
     real(8) :: v1(3), v2(3), t1, t2, t3
 
+    if (allocated(self%ngrid)) deallocate(self%ngrid)
+    allocate(self%ngrid(3))
+    self%ngrid(:) = ngrid(:)
+
+    if (allocated(self%boxl)) deallocate(self%boxl)
+    allocate(self%boxl(4,3))
+    self%boxl(:,:) = boxl(:,:)
+
     n1 = ngrid(1)
     n2 = ngrid(2)
     n3 = ngrid(3)
-
     if (iflag>0) then
       ! periodic grid
       n0 = 1
@@ -228,6 +334,7 @@ contains
 
     return
   end function
+
 
   !----------------------------------------------------------------------------
   subroutine find_mt_points(self)

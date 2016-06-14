@@ -129,6 +129,8 @@ contains
     real(8) :: boxc(4,3)
     character(30) :: frmt
 
+    write(*,*) boxl
+
     do i = 1, 4
       call r3mv(input%structure%crystal%basevect, boxl(i,:), boxc(i,:))
     end do

@@ -21,451 +21,28 @@ module mod_exciton_wf
   ! coding all e-h pair descriptors
   integer, private :: ipair
 
-  public  :: read_exccoeff, plot_exciton_wf
+  public  :: read_exccoeff, plot_excitonWavefunction
 
-  private :: calc_1d_exciton_wf, calc_2d_exciton_wf, calc_3d_exciton_wf, &
-  &          calc_eh_zwf, write_zwfeh
+  private :: calc_eh_zwf, write_zwfeh
 
 contains
 
   !--------------------------------------------------------------------------------
-  subroutine plot_exciton_density()
-    implicit none
-    ! local
-    integer :: lambda
-    integer :: nsta1, nsta2, nrnst1, nrnst3, hamsiz
-
-    call init0
-    call init1
-    call init2
-    call xssave0
-    call readfermi
-
-    if (.not.associated(input%xs%excitonPlot)) then
-      write(*,*)
-      write(*,*) 'Error(plot_exciton_wf): Element excitonPlot is not specified!'
-      write(*,*)
-      stop
-    end if
-
-    call read_exccoeff("EXCCOEFF.bin")
-
-    do ipair = 1, size(input%xs%excitonplot%excitonarray)
-
-      lambda = input%xs%excitonplot%excitonarray(ipair)%exciton%lambda
-      write(*,'(" Exciton index: ",i4)') lambda
-
-      if (associated(input%xs%excitonPlot%plot1d)) then
-          write(*,*) '1d plot'
-          write(*,*) 'Not yet implemented!'
-          ! call calc_1d_exciton_rho(lambda)
-    
-        else if (associated(input%xs%excitonPlot%plot2d)) then
-          write(*,*) '2d plot'
-          write(*,*) 'Not yet implemented!'
-          ! call calc_2d_exciton_wf(lambda)
-    
-        else if (associated(input%xs%excitonPlot%plot3d)) then
-          write(*,*) '3d plot'
-          call calc_3d_exciton_rho(lambda)
-    
-        else
-          write(*,*)
-          write(*,*) 'Error(plot_exciton_wf): Plot type is not specified!'
-          write(*,*)
-          stop
-        end if
-      
-      end do ! over excitons
-
-      deallocate(beval, bevec)
-
-    return
-  end subroutine
-
-  !--------------------------------------------------------------------------------
-  subroutine calc_3d_exciton_rho(lambda)
+  subroutine plot_excitonWavefunction()
     use mod_rgrid
     use mod_xsf_format
+    use mod_cube_format
     implicit none    
-    integer, intent(in) :: lambda
     ! local
-    integer :: ip, np
+    integer :: i, ip, np, lambda
     integer :: igrid(3)
+    integer :: ndim_h, ndim_e
     real(8) :: boxl(4,3)
-    real(8), allocatable :: rho_h(:), rho_e(:)
-    character(80) :: fname
-    type(rgrid)   :: r
-
-    igrid(:)  = input%xs%excitonPlot%plot3d%box%grid(1:3)
-    boxl(1,:) = input%xs%excitonPlot%plot3d%box%origin%coord(1:3)
-    boxl(2,:) = input%xs%excitonPlot%plot3d%box%pointarray(1)%point%coord(1:3)-boxl(1,:)
-    boxl(3,:) = input%xs%excitonPlot%plot3d%box%pointarray(2)%point%coord(1:3)-boxl(1,:)
-    boxl(4,:) = input%xs%excitonPlot%plot3d%box%pointarray(3)%point%coord(1:3)-boxl(1,:)
-    
-    ! real space grid
-    r = gen_3d_rgrid(igrid, boxl, 0)
-    ! call print_rgrid(r)
-
-    ! hole and electron densities
-    allocate(rho_h(r%npt))
-    allocate(rho_e(r%npt))
-
-    call calc_eh_rho(lambda, r, rho_e, rho_h)
-    write(*,*) 'rhoe', sum(rho_e)
-    write(*,*) 'rhoh', sum(rho_h)
-
-    ! output
-    if (rank==0) then
-      ! electron density
-      write(fname,'("rho-e-3d-",i,".xsf")') ipair
-      call str_strip(fname)
-      call write_structure_xsf(fname)
-      call write_3d_xsf(fname, 'electron density', &
-      &                 boxl, igrid, r%npt, rho_e)
-      ! hole density
-      write(fname,'("rho-h-3d-",i,".xsf")') ipair
-      call str_strip(fname)
-      call write_structure_xsf(fname)
-      call write_3d_xsf(fname, 'hole density', &
-      &                 boxl, igrid, r%npt, rho_h)
-    end if
-
-    deallocate(rho_h,rho_e)
-    call delete_rgrid(r)
-
-    return
-  end subroutine  
-
-  !--------------------------------------------------------------------------------
-  subroutine plot_exciton_wf()
-    implicit none
-    ! local
-    integer :: lambda
-    real(8) :: r0(3)
-  
-    integer :: nsta1, nsta2, nrnst1, nrnst3, hamsiz
-    character(22) :: fix
-    
-    if (.not.associated(input%xs%excitonPlot)) then
-      write(*,*)
-      write(*,*) 'Error(plot_exciton_wf): Element excitonplot is not specified!'
-      write(*,*)
-      stop
-    end if 
-
-    call init0
-    call init1
-    call init2
-    call xssave0
-    call readfermi
-
-    ! read beval, bevec
-    call read_exccoeff("EXCCOEFF.bin")
-
-    do ipair = 1, size(input%xs%excitonplot%excitonarray)
-
-      lambda = input%xs%excitonplot%excitonarray(ipair)%exciton%lambda
-      write(*,'(" Exciton index: ",i4)') lambda
-
-      r0(:)  = input%xs%excitonplot%excitonarray(ipair)%exciton%origin(:)
-      write(*,'(" Origin coordinates: ",3f8.2)') r0
-
-      fix = trim(input%xs%excitonplot%excitonarray(ipair)%exciton%fix)
-      select case (trim(fix))
-        case('hole')
-          write(*,*) "Hole position is fixed"
-          
-        case('electron')
-          write(*,*) "Electron position is fixed"
-
-        case default
-          write(*,*) "Error(plot_exciton_wf): Wrong value is specified!"
-          write(*,*) "fix = ", trim(fix)
-          stop
-
-      end select
-
-      if (associated(input%xs%excitonPlot%plot1d)) then
-        write(*,*) '1d plot'
-          call calc_1d_exciton_wf(lambda,r0,fix)
-    
-        else if (associated(input%xs%excitonPlot%plot2d)) then
-          write(*,*) '2d plot'
-          call calc_2d_exciton_wf(lambda,r0,fix)
-    
-        else if (associated(input%xs%excitonPlot%plot3d)) then
-          write(*,*) '3d plot'
-          call calc_3d_exciton_wf(lambda,r0,fix)
-    
-        else
-          write(*,*)
-          write(*,*) 'Error(plot_exciton_wf): Plot type is not specified!'
-          write(*,*)
-          stop
-        end if
-      
-      end do ! over excitons
-
-      deallocate(beval,bevec)
-
-    return
-  end subroutine
-  
-  !--------------------------------------------------------------------------------
-  subroutine calc_1d_exciton_wf(lambda,r0,fix)
-    use mod_rgrid
-    implicit none    
-    integer      , intent(in) :: lambda
-    real(8)      , intent(in) :: r0(3)
-    character(*) , intent(in) :: fix
-    ! local
-    integer       :: iv, nv, ip, np
-    character(80) :: fname
-    type(rgrid)   :: r_h, r_e
     real(8),    allocatable :: vvl(:,:)
-    complex(8), allocatable :: zwfeh(:)
- 
-    nv = size(input%xs%excitonPlot%plot1d%path%pointarray)
-    write(*,*) nv
-    if (nv < 1) then
-      write (*,*)
-      write (*,*) "Error(plot_exciton_wf::calc_1d_exciton_wf): Wrong plot specification!"
-      write (*,*)
-      stop
-    end if
-    np = input%xs%excitonPlot%plot1d%path%steps
-    write(*,*) np
-    If (np < nv) then
-      write (*,*)
-      write (*,*) "Error(wfplot_new): Wrong plot specification!"
-      write (*,*)
-      stop
-    end if
-    allocate(vvl(nv,3))
-    do iv = 1, nv
-      vvl(iv,:) =input%xs%excitonPlot%plot1d%path%pointarray(iv)%point%coord(:)
-      write(*,*) vvl(iv,:)
-    end do
-
-    select case (trim(fix))
-      case('hole')
-        ! fixed position of hole, r_h
-        r_h = gen_1d_rgrid(1, r0, 1)
-        ! position of electrons, r_e
-        r_e = gen_1d_rgrid(nv, vvl, np)
-        ! e-h wavefunction
-        allocate(zwfeh(r_e%npt))
-        
-      case('electron')
-        ! position of hole, r_h
-        r_h = gen_1d_rgrid(nv, vvl, np)
-        ! fixed position of electron, r_e
-        r_e = gen_1d_rgrid(1, r0, 1)
-        ! e-h wavefunction
-        allocate(zwfeh(r_h%npt))
-
-    end select
-
-    !call print_rgrid(r_h)
-    !call print_rgrid(r_e)
-
-    call calc_eh_zwf(lambda,r_h,r_e,zwfeh)
-
-    ! output
-    if (rank==0) then
-      write(fname,'("wf-eh-pair-1d-",i,".dat")') ipair
-      call str_strip(fname)
-      select case (trim(fix))
-        case('hole')
-          call write_zwfeh(fname,r_e,zwfeh)
-        case('electron')
-          call write_zwfeh(fname,r_h,zwfeh)
-        end select
-    end if
-
-    deallocate(zwfeh)
-    call delete_rgrid(r_h)
-    call delete_rgrid(r_e)
-    deallocate(vvl)
-
-    return
-  end subroutine
-
-  !--------------------------------------------------------------------------------
-  subroutine calc_2d_exciton_wf(lambda,r0,fix)
-    use mod_rgrid
-    use mod_xsf_format
-    implicit none    
-    integer      , intent(in) :: lambda
-    real(8)      , intent(in) :: r0(3)
-    character(*) , intent(in) :: fix
-    ! local
-    integer :: ip, np
-    integer :: igrid(3)
-    real(8) :: boxl(3,3)
-    complex(8), allocatable :: zwfeh(:)
-    character(80) :: fname
-    type(rgrid)   :: r_h, r_e
-
-    igrid(:)  = input%xs%excitonPlot%plot2d%parallelogram%grid(1:3)
-    boxl(1,:) = input%xs%excitonPlot%plot2d%parallelogram%origin%coord(1:3)
-    boxl(2,:) = input%xs%excitonPlot%plot2d%parallelogram%pointarray(1)%point%coord(1:3)-boxl(1,:)
-    boxl(3,:) = input%xs%excitonPlot%plot2d%parallelogram%pointarray(2)%point%coord(1:3)-boxl(1,:)
-
-    select case (trim(fix))
-      case('hole')
-        ! fixed position of hole, r_h
-        r_h = gen_1d_rgrid(1, r0, 1)
-        ! position of electrons, r_e
-        r_e = gen_2d_rgrid(igrid, boxl, 0)
-        ! e-h wavefunction
-        allocate(zwfeh(r_e%npt))
-        
-      case('electron')
-        ! position of hole, r_h
-        r_h = gen_2d_rgrid(igrid, boxl, 0)
-        ! fixed position of electron, r_e
-        r_e = gen_1d_rgrid(1, r0, 1)
-        ! e-h wavefunction
-        allocate(zwfeh(r_h%npt))
-
-    end select
-
-    !call print_rgrid(r_h)
-    !call print_rgrid(r_e)
-
-    call calc_eh_zwf(lambda,r_h,r_e,zwfeh)
-
-    ! output
-    if (rank==0) then
-
-      select case (trim(fix))
-        case('hole')
-          write(fname,'("wf-eh-pair-2d-",i,".xsf")') ipair
-          call str_strip(fname)
-          call write_structure_xsf(fname)
-          !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
-          call write_2d_xsf(fname, 'squared modulus of electron-hole wavefunction', &
-          &                 boxl, igrid, r_e%npt, abs(zwfeh)**2)
-
-        case('electron')
-          write(fname,'("wf-eh-pair-2d-",i,".xsf")') ipair
-          call str_strip(fname)
-          call write_structure_xsf(fname)
-          !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
-          call write_2d_xsf(fname, 'squared modulus of electron-hole wavefunction', &
-          &                 boxl, igrid, r_h%npt, abs(zwfeh)**2)
-
-      end select
-    end if
-
-    deallocate(zwfeh)
-    call delete_rgrid(r_h)
-    call delete_rgrid(r_e)
-
-    return
-  end subroutine
-
-  !--------------------------------------------------------------------------------
-  subroutine calc_3d_exciton_wf(lambda,r0,fix)
-    use mod_rgrid
-    use mod_xsf_format
-    use mod_cube_format
-    implicit none    
-    integer      , intent(in) :: lambda
-    real(8)      , intent(in) :: r0(3)
-    character(*) , intent(in) :: fix
-    ! local
-    integer :: ip, np
-    integer :: igrid(3)
-    real(8) :: boxl(4,3)
-    complex(8), allocatable :: zwfeh(:)
-    character(256) :: fname, label
-    type(rgrid)   :: r_h, r_e
-
-    igrid(:)  = input%xs%excitonPlot%plot3d%box%grid(1:3)
-    boxl(1,:) = input%xs%excitonPlot%plot3d%box%origin%coord(1:3)
-    boxl(2,:) = input%xs%excitonPlot%plot3d%box%pointarray(1)%point%coord(1:3)-boxl(1,:)
-    boxl(3,:) = input%xs%excitonPlot%plot3d%box%pointarray(2)%point%coord(1:3)-boxl(1,:)
-    boxl(4,:) = input%xs%excitonPlot%plot3d%box%pointarray(3)%point%coord(1:3)-boxl(1,:)
-
-    select case (trim(fix))
-      case('hole')
-        ! fixed position of hole, r_h
-        r_h = gen_1d_rgrid(1, r0, 1)
-        ! position of electrons, r_e
-        r_e = gen_3d_rgrid(igrid, boxl, 0)
-        ! e-h wavefunction
-        allocate(zwfeh(r_e%npt))
-        
-      case('electron')
-        ! position of hole, r_h
-        r_h = gen_3d_rgrid(igrid, boxl, 0)
-        ! fixed position of electron, r_e
-        r_e = gen_1d_rgrid(1, r0, 1)
-        ! e-h wavefunction
-        allocate(zwfeh(r_h%npt))
-
-    end select
-
-    !call print_rgrid(r_h)
-    !call print_rgrid(r_e)
-    
-    call calc_eh_zwf(lambda, r_h, r_e, zwfeh)
-
-    ! output
-    if (rank==0) then
-      select case (trim(fix))
-        case('hole')
-          write(fname,'("wf-eh-pair-3d-",i,".xsf")') ipair
-          call str_strip(fname)
-          call write_structure_xsf(fname)
-          !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
-          call write_3d_xsf(fname, 'squared modulus of the electron-hole wavefunction', &
-          &                 boxl, igrid, r_e%npt, abs(zwfeh)**2)
-          ! Gaussian cube
-          write(fname,'("wf-eh-pair-3d-",i,".cube")') ipair
-          call str_strip(fname)
-          write(label,'("Hole position: ", 3F12.6)') r0
-          call write_3d_cube(fname, label, boxl(1:4,:), igrid, r_e%npt, abs(zwfeh)**2)
-
-        case('electron')
-          write(fname,'("wf-eh-pair-3d-",i,".xsf")') ipair
-          call str_strip(fname)
-          call write_structure_xsf(fname)
-          !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
-          call write_3d_xsf(fname, 'squared modulus of the electron-hole wavefunction', &
-          &                 boxl, igrid, r_h%npt, abs(zwfeh)**2)
-          ! Gaussian cube
-          write(fname,'("wf-eh-pair-3d-",i,".cube")') ipair
-          call str_strip(fname)
-          write(label,'("Electron position: ", 3F12.6)') r0
-          call write_3d_cube(fname, label, boxl(1:4,:), igrid, r_h%npt, abs(zwfeh)**2)
-
-      end select
-    end if
-
-    deallocate(zwfeh)
-    call delete_rgrid(r_h)
-    call delete_rgrid(r_e)
-
-    return
-  end subroutine
-
-  !--------------------------------------------------------------------------------
-  subroutine plot_6d_exciton_wf()
-    use mod_rgrid
-    use mod_xsf_format
-    use mod_cube_format
-    implicit none    
-    ! local
-    integer :: ip, np, lambda
-    integer :: igrid(3), igrid0(3)
-    real(8) :: boxl(4,3), boxl0(4,3)
     complex(8), allocatable :: zwfeh(:)
     character(256) :: fname, label
     type(rgrid)   :: r_h, r_e, r0
+    character(24) :: fix
 
     if (.not.associated(input%xs%excitonPlot)) then
       write(*,*)
@@ -474,70 +51,156 @@ contains
       stop
     end if
 
-    ! hole position is in unitcell only
-    ! igrid0(:)  = (/1, 1, 1/)
-    igrid0(:)  = input%xs%excitonPlot%ngridp
-    boxl0(1,:) = (/0.d0, 0.d0, 0.d0/)
-    boxl0(2,:) = (/1.d0, 0.d0, 0.d0/)
-    boxl0(3,:) = (/0.d0, 1.d0, 0.d0/)
-    boxl0(4,:) = (/0.d0, 0.d0, 1.d0/)
-    r0 = gen_3d_rgrid(igrid0, boxl0, 1)
-    call print_rgrid(r0)
+    if (.not.associated(input%xs%excitonPlot%hole)) then
+      write(*,*)
+      write(*,*) 'Error(mod_exciton_wf::plot_6d_excitonWavefunction): Real space grid for electrons is not specified!'
+      write(*,*)
+      stop
+    end if
 
+    if (.not.associated(input%xs%excitonPlot%electron)) then
+      write(*,*)
+      write(*,*) 'Error(mod_exciton_wf::plot_6d_excitonWavefunction): Real space grid for electrons is not specified!'
+      write(*,*)
+      stop
+    end if
+
+    !----------------------------
+    ! global initialization
+    !----------------------------
     call init0
     call init1
     call init2
     call xssave0
-    call readfermi    
+    call readfermi 
 
-    ! read beval, bevec
+    !----------------------------
+    ! HOLE
+    !----------------------------
+    if (associated(input%xs%excitonPlot%hole%plot1d)) then
+      ndim_h = 1
+      r_h = gen_1d_rgrid(input%xs%excitonPlot%hole%plot1d)
+    
+    else if (associated(input%xs%excitonPlot%hole%plot2d)) then
+      ndim_h = 2
+      r_h = gen_2d_rgrid(input%xs%excitonPlot%hole%plot2d, 0)
+    
+    else if (associated(input%xs%excitonPlot%hole%plot3d)) then
+      ndim_h = 3
+      r_h = gen_3d_rgrid(input%xs%excitonPlot%hole%plot3d, 0)
+         
+    else
+      write(*,*)
+      write(*,*) 'Error(mod_exciton_wf::plot_excitonWavefunction): Plot type is not specified!'
+      write(*,*)
+      stop
+    end if
+    ! call print_rgrid(r_h)
+
+    !----------------------------
+    ! ELECTRON
+    !----------------------------
+    if (associated(input%xs%excitonPlot%electron%plot1d)) then
+      ndim_e = 1
+      r_e = gen_1d_rgrid(input%xs%excitonPlot%electron%plot1d)
+    
+    else if (associated(input%xs%excitonPlot%electron%plot2d)) then
+      ndim_e = 2
+      r_e = gen_2d_rgrid(input%xs%excitonPlot%electron%plot2d, 0)
+    
+    else if (associated(input%xs%excitonPlot%electron%plot3d)) then
+      ndim_e = 3
+      r_e = gen_3d_rgrid(input%xs%excitonPlot%electron%plot3d, 0)
+         
+    else
+      write(*,*)
+      write(*,*) 'Error(mod_exciton_wf::plot_excitonWavefunction): Plot type is not specified!'
+      write(*,*)
+      stop
+    end if
+    ! call print_rgrid(r_e)
+
+    !----------------------------------------
+    ! read exciton wavefunction coefficients
+    !----------------------------------------
     call read_exccoeff("EXCCOEFF.bin")
-
-    ! position of electrons, r_e
-    igrid(:)  = input%xs%excitonPlot%plot3d%box%grid(1:3)
-    boxl(1,:) = input%xs%excitonPlot%plot3d%box%origin%coord(1:3)
-    boxl(2,:) = input%xs%excitonPlot%plot3d%box%pointarray(1)%point%coord(1:3)-boxl(1,:)
-    boxl(3,:) = input%xs%excitonPlot%plot3d%box%pointarray(2)%point%coord(1:3)-boxl(1,:)
-    boxl(4,:) = input%xs%excitonPlot%plot3d%box%pointarray(3)%point%coord(1:3)-boxl(1,:)
-    r_e = gen_3d_rgrid(igrid, boxl, 0)
-    !call print_rgrid(r_e)
-
-    ! e-h wavefunction
-    allocate(zwfeh(r_e%npt))
    
+    !----------------------------------------
+    ! Loop over excitons
+    !----------------------------------------
     do ipair = 1, size(input%xs%excitonplot%excitonarray)
 
       lambda = input%xs%excitonPlot%excitonarray(ipair)%exciton%lambda
-      write(*,'(" Exciton index: ",i4)') lambda 
+      write(*,'(" Exciton index: ",i4)') lambda
 
-      ! r0(:)  = input%xs%excitonplot%excitonarray(ipair)%exciton%origin(:)
-      ! fix = trim(input%xs%excitonplot%excitonarray(ipair)%exciton%fix)
+      fix = trim(input%xs%excitonplot%excitonarray(ipair)%exciton%fix)
+      select case (trim(fix))
 
-      do ip = 1, r0%npt
+        case('hole')
+          write(*,*) "hole positions are fixed"
+          do ip = 1, r_h%npt
+            ! fixed position of electron, r_h
+            r0 = gen_1d(1, r_h%vpl(:,ip), 1)
+            allocate(zwfeh(r_e%npt))
+            call calc_eh_zwf(lambda, r0, r_e, zwfeh)
+            ! output
+            if (rank==0) then
+              write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".xsf")') lambda, ip
+              write(label,'("hole position: ", 3F12.6)') r0%vpl(:,ip)
+              call write_structure_xsf(fname)
+              select case (ndim_e)
+                case(1)
+                  call write_zwfeh(fname, r_e, abs(zwfeh)**2)
+                case(2)
+                  call write_2d_xsf(fname, label, r_e%boxl, r_e%ngrid, r_e%npt, abs(zwfeh)**2)
+                case(3)
+                  call write_3d_xsf(fname, label, r_e%boxl, r_e%ngrid, r_e%npt, abs(zwfeh)**2)
+                  write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".cube")') lambda, ip
+                  call write_3d_cube(fname, label, r_e%boxl, r_e%ngrid, r_e%npt, abs(zwfeh)**2)
+              end select
+            end if
+            call delete_rgrid(r0)
+            deallocate(zwfeh)
+          end do ! ip
+          
+        case('electron')
+          write(*,*) "Electron positions are fixed"
+          do ip = 1, r_e%npt
+            ! fixed position of electron, r_h
+            r0 = gen_1d(1, r_h%vpl(:,ip), 1)
+            allocate(zwfeh(r_h%npt))
+            call calc_eh_zwf(lambda, r_h, r0, zwfeh)
+            ! output
+            if (rank==0) then
+              write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".xsf")') lambda, ip
+              write(label,'("hole position: ", 3F12.6)') r0%vpl(:,ip)
+              call write_structure_xsf(fname)
+              select case (ndim_h)
+                case(1)
+                  call write_zwfeh(fname, r_h, abs(zwfeh)**2)
+                case(2)
+                  call write_2d_xsf(fname, label, r_h%boxl, r_h%ngrid, r_h%npt, abs(zwfeh)**2)
+                case(3)
+                  call write_3d_xsf(fname, label, r_h%boxl, r_h%ngrid, r_h%npt, abs(zwfeh)**2)
+                  write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".cube")') lambda, ip
+                  call write_3d_cube(fname, label, r_h%boxl, r_h%ngrid, r_h%npt, abs(zwfeh)**2)
+              end select
+            end if
+            call delete_rgrid(r0)
+            deallocate(zwfeh)
+          end do ! ip
 
-        ! fixed position of hole, r_h
-        r_h = gen_1d_rgrid(1, r0%vpl(:,ip), 1)
-        call calc_eh_zwf(lambda, r_h, r_e, zwfeh)
-        call delete_rgrid(r_h)
-
-        ! output
-        if (rank==0) then
-          write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".xsf")') lambda, ip
-          write(label,'("Hole position: ", 3F12.6)') r0%vpl(:,ip)
-          call write_structure_xsf(fname)
-          call write_3d_xsf(fname, label, boxl, igrid, r_e%npt, abs(zwfeh)**2)
-          write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".cube")') lambda, ip
-          call write_3d_cube(fname, label, boxl, igrid, r_e%npt, abs(zwfeh)**2)
-        end if
-
-      end do ! ip
+        case default
+          write(*,*) "Error(mod_exciton_wf::plot_6d_excitonWavefunction): Wrong value is specified!"
+          write(*,*) "fix = ", trim(fix)
+          stop
+      end select
 
     end do ! ipair
 
     deallocate(beval,bevec)
-    deallocate(zwfeh)
+    call delete_rgrid(r_h)
     call delete_rgrid(r_e)
-    call delete_rgrid(r0)
 
     return
   end subroutine
@@ -614,37 +277,19 @@ contains
       do iva = 1, nva(ik)
         iv = vMap(iva,ik)
         ist = iv+nsta1-1
-        ! hole WF 
+        ! electron WF 
         call calc_zdata_rgrid(r_h, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zwfrh)
-        ! if (ik==1) then
-        !   write(fname,'("wf-hole-1d-",i,"-",i,".dat")') ik, ist
-        !   call str_strip(fname)
-        !   open(77,file=trim(fname),status='Unknown',action='Write')
-        !   do ip = 1, r_h%npt
-        !     write(77,'(3f16.6)') r_h%vpd(ip), zwfrh(ip)
-        !   end do
-        !   close(77)
-        ! end if
 
         do ica = 1, nca(iv,ik)
           ic = cMap(ica,iv,ik)
           jst = ic+istl3-1+nsta2-1
           ! electron WF 
           call calc_zdata_rgrid(r_e, ik, wfmt(:,:,:,1,jst), wfir(:,1,jst), zwfre)
-          ! if (ik==2) then
-          !   write(fname,'("wf-elec-1d-",i,"-",i,".dat")') ik, jst
-          !   call str_strip(fname)
-          !   open(77,file=trim(fname),status='Unknown',action='Write')
-          !   do ip = 1, r_e%npt
-          !     write(77,'(3f16.6)') r_e%vpd(ip), zwfre(ip)
-          !   end do
-          !   close(77)
-          ! end if
 
           ! combined ivck index (bse.f90 function hamidx)
           ivck = ic + nrnst3*(iv-1) + nrnst1*nrnst3*(ik-1)
           if (r_h%npt == 1) then
-            ! fixed hole
+            ! fixed electron
             do ip = 1, npt
               zwfeh(ip) = zwfeh(ip) + bevec(ivck,lambda)*conjg(zwfrh(1))*zwfre(ip)
             end do
@@ -715,9 +360,11 @@ contains
       close(50)
     end if
 
+    write(*,*) "Info(mod_exciton_wf::read_exccoeff):"
     write(*,*) MinNumberExcitons, MaxNumberExcitons
     write(*,*) nkptnr, istl3, nsta1, nsta2
     write(*,*) nrnst1, nrnst3, hamsiz
+    write(*,*)
 
     return
   end subroutine
@@ -728,129 +375,16 @@ contains
     implicit none
     character(*), intent(in) :: fname
     type(rgrid),  intent(in) :: r_grid
-    complex(8),   intent(in) :: zdata(:)
+    real(8),      intent(in) :: zdata(:)
     ! local
     integer :: ip
-    open(77,file=trim(fname),status='Unknown',action='Write')
-    do ip = 1, r_grid%npt
-      !write(77,'(3f16.6)') r_e%vpd(ip), zwfeh(ip)
-      write(77,'(2f16.6)') r_grid%vpd(ip), abs(zdata(ip))**2
-    end do
-    close(77)
-    return
-  end subroutine
-
-  !----------------------------------------------------------------------------
-  subroutine calc_eh_rho(lambda,r,rho_e,rho_h)
-    use mod_rgrid
-    implicit none
-    integer,     intent(in) :: lambda
-    type(rgrid), intent(in) :: r
-    real(8),     intent(out):: rho_e(:), rho_h(:)
-    ! local
-    integer :: ivck, ik, iv, ic, ist, jst, ip, npt
-    real(8) :: prob
-    character(80) :: fname
-    complex(8), allocatable :: apwalm(:,:,:,:)
-    complex(8), allocatable :: evecfvt(:,:)
-    complex(8), allocatable :: evecsvt(:,:)
-    complex(8), allocatable :: wfmt(:,:,:,:,:)
-    complex(8), allocatable :: wfir(:,:,:)
-    complex(8), allocatable :: zwfrh(:), zwfre(:)
-
-    integer :: ika, iva, ica
-    real(8) :: a2
-
-    !write(*,*) istl3, nsta1, nsta2, nrnst1, nrnst3
-
-    !--------------------------------------------------------------------------
-    ! \rho^l_h(r) = \sum_{vck} |A^{l}_{vck}|^2 |\psi_{vk}(r)|^2
-    ! \rho^l_e(r) = \sum_{vck} |A^{l}_{vck}|^2 |\psi_{ck}(r)|^2
-    !--------------------------------------------------------------------------
-  
-    filext = '_QMT001.OUT'
-
-    ! allocate local arrays
-    allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
-    allocate(evecfvt(nmatmax,nstfv))
-    allocate(evecsvt(nstsv,nstsv))
-
-    ! calculate the wavefunctions for all states
-    allocate(wfmt(lmmaxapw,nrmtmax,natmtot,nspinor,nstsv))
-    allocate(wfir(ngrtot,nspinor,nstsv))
-
-    allocate(zwfrh(r%npt))
-    allocate(zwfre(r%npt))
-
-    rho_h(:) = 0.d0
-    rho_e(:) = 0.d0
-
-    !----------------------------------------------------------
-    ! Determine which transitions do contribute to the exciton
-    !----------------------------------------------------------
-
-    call sort_transitions(lambda, input%xs%excitonplot%epstol)
-
-    !---------------------
-    ! Sum over ik, iv, ic
-    !---------------------
-
-#ifdef MPI
-    do ika = firstofset(rank,nka), lastofset(rank,nka)
-#else
-    do ika = 1, nka
-#endif
-      ik = kMap(ika)
-      !write(*,'(a,i,3f12.4)') 'vkl: ', ik, vkl(:,ik)
-
-      ! read eigenvectors
-      call getevecfv(vkl(:,ik), vgkl(:,:,:,ik), evecfvt)
-      call getevecsv(vkl(:,ik), evecsvt)
-      ! find the matching coefficients
-      call match(ngk(1,ik), gkc(:,1,ik), tpgkc(:,:,1,ik), &
-      &          sfacgk(:,:,1,ik), apwalm)
-      call genwfsv_new(ik, 1, nstsv, apwalm, evecfvt, evecsvt, wfmt, wfir)
-
-      do iva = 1, nva(ik)
-        iv = vMap(iva,ik)
-        ist = iv+nsta1-1
-        ! hole WF 
-        call calc_zdata_rgrid(r, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zwfrh)
-
-        do ica = 1, nca(iv,ik)
-          ic = cMap(ica,iv,ik)
-          jst = ic+istl3-1+nsta2-1
-          ! electron WF 
-          call calc_zdata_rgrid(r, ik, wfmt(:,:,:,1,jst), wfir(:,1,jst), zwfre)
-
-          ! combined index (bse.f90 function hamidx)
-          ivck = ic + nrnst3*(iv-1) + nrnst1*nrnst3*(ik-1)
-          
-          a2 = abs(bevec(ivck,lambda))**2
-          do ip = 1, r%npt
-            rho_h(ip) = rho_h(ip) + a2*abs(zwfrh(ip))**2
-            rho_e(ip) = rho_e(ip) + a2*abs(zwfre(ip))**2
-          end do
-
-        end do ! ic
-      end do ! iv
-    end do ! ik
-
-#ifdef MPI
-    call MPI_AllReduce(MPI_IN_PLACE, rho_h, r%npt, &
-    &                  MPI_DOUBLE,  MPI_SUM, &
-    &                  MPI_COMM_WORLD, ierr)
-    call MPI_AllReduce(MPI_IN_PLACE, rho_e, r%npt, &
-    &                  MPI_DOUBLE,  MPI_SUM, &
-    &                  MPI_COMM_WORLD, ierr)
-#endif    
-
-    deallocate(zwfrh,zwfre)
-    deallocate(apwalm,evecfvt,evecsvt)
-    deallocate(wfmt,wfir)
-
-    call clean_transitions
-
+    if (rank==0) then
+      open(80,file=trim(fname),status='Unknown',action='Write')
+      do ip = 1, r_grid%npt
+        write(80,'(2f16.6)') r_grid%vpd(ip), zdata(ip)
+      end do
+      close(80)
+    end if
     return
   end subroutine
 

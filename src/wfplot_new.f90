@@ -102,21 +102,14 @@ subroutine wfplot_new(ik,ist)
         end if
         stop
       end if
-      allocate(vvl(nv,3))
-      do iv = 1, nv
-        vvl(iv,:) = input%properties%wfplot%plot1d%path%pointarray(iv)%point%coord
-        !write(*,*) vvl(iv,:)
-      end do
 
       ! rgrid constructor
-      grid = gen_1d_rgrid(nv, vvl, np)
+      grid = gen_1d_rgrid(input%properties%wfplot%plot1d)
       !call print_rgrid(grid)
-      deallocate(vvl)
 
       ! Generate WF on the grid
       allocate(zdata(grid%npt))
       call calc_zdata_rgrid(grid, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
-      call delete_rgrid(grid)
 
       ! Output
       if (rank==0) then
@@ -137,6 +130,7 @@ subroutine wfplot_new(ik,ist)
         write(*,*)
       end if
 
+      call delete_rgrid(grid)
       deallocate(zdata)
       
     end if
@@ -146,28 +140,21 @@ subroutine wfplot_new(ik,ist)
     !----------------
     if (associated(input%properties%wfplot%plot2d)) then
 
-      igrid(1:2) = input%properties%wfplot%plot2d%parallelogram%grid(1:2)
-      boxl(1,:)  = input%properties%wfplot%plot2d%parallelogram%origin%coord(1:3)
-      boxl(2,:)  = input%properties%wfplot%plot2d%parallelogram%pointarray(1)%point%coord(1:3)-boxl(1,:)
-      boxl(3,:)  = input%properties%wfplot%plot2d%parallelogram%pointarray(2)%point%coord(1:3)-boxl(1,:)
-      ! test whether box is reasonable ?
-
       ! rgrid constructor
-      grid = gen_2d_rgrid(igrid(1:2), boxl(1:3,:), 0)
+      grid = gen_2d_rgrid(input%properties%wfplot%plot2d, 0)
       !call print_rgrid(grid)
 
       ! Generate WF on the grid
       allocate(zdata(grid%npt))
       call calc_zdata_rgrid(grid, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
-      call delete_rgrid(grid)
 
       if (rank==0) then
         write(fname,'("wf2d-",i,"-",i,".xsf")') ik, ist
         call str_strip(fname)
         call write_structure_xsf(fname)
-        call write_2d_xsf(fname, 'module squared', boxl(1:3,:), igrid, grid%npt, abs(zdata)**2)
-        call write_2d_xsf(fname, 'real',             boxl(1:3,:), igrid, grid%npt, dble(zdata))
-        call write_2d_xsf(fname, 'imaginary',        boxl(1:3,:), igrid, grid%npt, aimag(zdata))
+        call write_2d_xsf(fname, 'module squared',   grid%boxl(1:3,:), grid%ngrid, grid%npt, abs(zdata)**2)
+        call write_2d_xsf(fname, 'real',             grid%boxl(1:3,:), grid%ngrid, grid%npt, dble(zdata))
+        call write_2d_xsf(fname, 'imaginary',        grid%boxl(1:3,:), grid%ngrid, grid%npt, aimag(zdata))
         write(*,*)
         write(*,'("Info(wfplot):")')
         write(*,'(" 2D wavefunction  written to wf2d-ik-ist.xsf")')
@@ -176,6 +163,7 @@ subroutine wfplot_new(ik,ist)
         write(*,*)
       end if
 
+      call delete_rgrid(grid)
       deallocate(zdata)
 
     end if
@@ -185,28 +173,21 @@ subroutine wfplot_new(ik,ist)
     !----------------
     if (associated(input%properties%wfplot%plot3d)) then
 
-      igrid(:)  = input%properties%wfplot%plot3d%box%grid
-      boxl(1,:) = input%properties%wfplot%plot3d%box%origin%coord
-      boxl(2,:) = input%properties%wfplot%plot3d%box%pointarray(1)%point%coord-boxl(1,:)
-      boxl(3,:) = input%properties%wfplot%plot3d%box%pointarray(2)%point%coord-boxl(1,:)
-      boxl(4,:) = input%properties%wfplot%plot3d%box%pointarray(3)%point%coord-boxl(1,:)
-
       ! rgrid constructor
-      grid = gen_3d_rgrid(igrid, boxl(1:4,:), 0)
+      grid = gen_3d_rgrid(input%properties%wfplot%plot3d, 0)
       !call print_rgrid(grid)
 
       ! Generate WF on the grid
       allocate(zdata(grid%npt))
       call calc_zdata_rgrid(grid, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
-      call delete_rgrid(grid)
 
       if (rank==0) then
         write(fname,'("wf3d-",i,"-",i,".xsf")') ik, ist
         call str_strip(fname)
         call write_structure_xsf(fname)
-        call write_3d_xsf(fname, 'squared modulus', boxl(1:4,:), igrid, grid%npt, abs(zdata)**2)
-        call write_3d_xsf(fname, 'real',            boxl(1:4,:), igrid, grid%npt, dble(zdata))
-        call write_3d_xsf(fname, 'imaginary',       boxl(1:4,:), igrid, grid%npt, aimag(zdata))
+        call write_3d_xsf(fname, 'squared modulus', grid%boxl(1:4,:), grid%ngrid, grid%npt, abs(zdata)**2)
+        call write_3d_xsf(fname, 'real',            grid%boxl(1:4,:), grid%ngrid, grid%npt, dble(zdata))
+        call write_3d_xsf(fname, 'imaginary',       grid%boxl(1:4,:), grid%ngrid, grid%npt, aimag(zdata))
         write(*,*)
         write(*,'("Info(wfplot):")')
         write(*,'(" 3D wavefunction written to wf3d-ik-ist.xsf")')
@@ -218,9 +199,10 @@ subroutine wfplot_new(ik,ist)
         ! Gaussian cube-format
         write(fname,'("wf3d-",i,"-",i,".cube")') ik, ist
         call str_strip(fname)
-        call write_3d_cube(fname, 'squared modulus', boxl(1:4,:), igrid, grid%npt, abs(zdata)**2)
+        call write_3d_cube(fname, 'squared modulus', grid%boxl(1:4,:), grid%ngrid, grid%npt, abs(zdata)**2)
       end if
 
+      call delete_rgrid(grid)
       deallocate(zdata)
 
     end if
