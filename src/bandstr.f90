@@ -63,6 +63,13 @@ Subroutine bandstr
     if (input%groundstate%Hybrid%exchangetypenumber== 1)  then
       hybcheck=.true.
       input%groundstate%stypenumber = -1
+      if (input%properties%bandstructure%character) then
+        if (rank == 0) then 
+          write(*,'(a)') "Warning(bandstr): "
+          write(*,'(a)') "    Atom-resolved bandstructure for hybrids is not yet implemented!"
+          input%properties%bandstructure%character = .false.
+        end if
+      end if
     end if
   else if (associated(input%groundstate%HartreeFock)) then
     hybcheck=.true.
