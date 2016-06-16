@@ -29,9 +29,9 @@ f = open(sys.argv[1],'r')
 
 # dimensions
 line = f.readline().split()
-nbnd0 = int(line[0])
-nbnd1 = int(line[1])
-nkpt  = int(line[2])
+nbnd0 = int(line[1])-1 # indexing from 0
+nbnd1 = int(line[2])-1 # indexing from 0
+nkpt  = int(line[3])
 
 path = np.zeros(nkpt)
 vkl  = np.zeros((nkpt,3))
@@ -39,7 +39,7 @@ vkl  = np.zeros((nkpt,3))
 nbnd = nbnd1-nbnd0+1
 ene  = np.zeros((nkpt,nbnd))
 
-for ist in xrange(nbnd0,nbnd1):
+for ist in xrange(nbnd0,nbnd1+1):
   for ik in xrange(nkpt):
     line = f.readline().split()
     vkl[ik,0]   = float(line[2])
@@ -64,11 +64,9 @@ v0    = int(line[3])-1 # indexing from 0
 nc    = int(line[4])
 c0    = int(line[5])-1
 
-if v0 < nbnd0-1:
+if v0 < nbnd0:
   print "ERROR(", sys.argv[0],"): Lowest index mismatch v0 < nbnd0!"
   sys.exit(1)
-if c0+nc < nbnd1-1:
-  print "ERROR(", sys.argv[0],"): Highest index mismatch c0+nc < nbnd1!"
 
 grid_ = np.zeros((npnt_,3))
 data_ = np.zeros((npnt_,nv,nc))
@@ -115,7 +113,7 @@ for i in xrange(-1,2):
 #----------------------------------------------
 # Output
 #----------------------------------------------
-for ist in xrange(nbnd0,nbnd1):
+for ist in xrange(nbnd0,nbnd1+1):
   for ik in xrange(nkpt):
     if (ist>=v0) and (ist<=c0+nc-1):
       xyz = tuple(vkl[ik,:])

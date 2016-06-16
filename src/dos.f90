@@ -61,6 +61,13 @@ Subroutine dos
       Complex (8), Allocatable :: apwalm (:, :, :, :, :)
       Complex (8), Allocatable :: evecfv (:, :, :)
       Complex (8), Allocatable :: evecsv (:, :)
+      
+      if (associated(input%groundstate%Hybrid)) then
+        if (input%groundstate%Hybrid%exchangetypenumber == 1) then
+          input%groundstate%stypenumber = -1
+        end if
+      end if
+
 ! initialise universal variables
       splittfile=.false.
       Call init0

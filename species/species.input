@@ -25,7 +25,7 @@ apw
 ! This is the APW block for the exceptions
 apwx
    1					: apword
-   0		.true.			: dm, ve
+   0		.false.			: dm, ve
 
 ! .true. if local orbitals (small lo, i.e. non-semicore states) are to be
 ! included
@@ -39,12 +39,12 @@ locorbsc
 ! .true. if linearization energies for physical meaningful l-values are allowed
 ! to be searched during the SCF cycle for local orbitals (lo)
 searchlocorb
-  .true.
+  .false.
 
 ! .true. if also the first linearization energy (E_l) is to be searched for
 ! u and u_dot. in any case the linearization energy (E_lo) is searched
 fullsearchlocorbsc
-  .true.
+  .false.
 
 ! core-valence cut-off energy (Hartree); default is -3.5d0
 ecvcut
@@ -54,20 +54,3 @@ ecvcut
 esccut
   -0.5d0
 
-!------------------------------------------------------------------------------
-! This part is used to generated extra local orbitals for the excited states
-!
-!locorbxs
-!  .false.
-!
-!searchlocorbxs
-!  .false.
-!
-!lxsmax
-!  4
-!
-!exsmax
-!  10.0
-!
-!exscut
-!  1.0  

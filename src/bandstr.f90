@@ -60,7 +60,10 @@ Subroutine bandstr
   !------------------------------------------
   hybcheck=.false.
   if (associated(input%groundstate%Hybrid)) then
-    if (input%groundstate%Hybrid%exchangetypenumber== 1)  hybcheck=.true.
+    if (input%groundstate%Hybrid%exchangetypenumber== 1)  then
+      hybcheck=.true.
+      input%groundstate%stypenumber = -1
+    end if
   else if (associated(input%groundstate%HartreeFock)) then
     hybcheck=.true.
   end if
@@ -426,7 +429,7 @@ if (hybcheck) then
     !---------------------------------------------------------------------------
     if (rank==0) then
       open(50, File="bandstructure.dat", Action='Write', Form='Formatted')
-      write(50,*) 1, nstsv, nkpt
+      write(50,*) "# ", 1, nstsv, nkpt
       ! path, energy, ist, ik, vkl
       do ist = 1, nstsv
       do ik = 1, nkpt

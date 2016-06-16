@@ -261,10 +261,10 @@ program species
     allocate(vr(spnr))
     allocate(rwf(spnr,2,spnst))
 
-  ! solve the Kohn-Sham-Dirac equations for the atom
-    call atom(.true.,spzn,spnst,spn,spl,spk,spocc,xctype,xcgrad,spnr,r,eval, &
-     rho,vr,rwf,nrmt,.true.)
-     
+    ! solve the Kohn-Sham-Dirac equations for the atom
+    call atom(.true., spzn, spnst, spn, spl, spk, spocc, xctype, xcgrad, &
+    &         spnr, r, eval, rho, vr, rwf, nrmt, .true.)
+
     do ir=spnr,1,-1
       if (rho(ir).gt.1.d-10) then
         sprmax=1.5d0*r(ir)

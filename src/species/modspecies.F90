@@ -5,7 +5,6 @@
 
 module   modspecies
 
-character(*), parameter :: version='BORON-10'
 integer, parameter :: maxapword=4
 real(8), parameter :: pi=3.1415926535897932385d0
 
