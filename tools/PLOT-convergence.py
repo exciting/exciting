@@ -138,7 +138,7 @@ plt.subplots_adjust(left=0.21, right=0.93,
                     
 yfmt = ptk.ScalarFormatter(useOffset=True,useMathText=True)
 
-fig  = matplotlib.pyplot.figure(1, figsize=(8,5.5)) 
+fig = plt.figure(1, figsize=(8,5.5))
 
 ax   = fig.add_subplot(111)
 
@@ -155,7 +155,7 @@ for line in ax.get_xticklines() + ax.get_yticklines():
 
 plt.xticks(size=fonttick)
 plt.yticks(size=fonttick)
-pyl.grid(True)
+plt.grid(True)
 
 plt.plot(xx,yy,'r-')
 plt.plot(xx,yy,'go',label=label)
@@ -169,7 +169,7 @@ ax.yaxis.set_major_formatter(yfmt)
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
 
-ax.xaxis.set_major_locator(MaxNLocator(7,integer=True))
+ax.xaxis.set_major_locator(ptk.MaxNLocator(7,integer=True))
 
 ax.set_axisbelow(True) 
 
