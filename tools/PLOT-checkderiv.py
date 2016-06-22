@@ -26,7 +26,7 @@ def shell_value(variable,vlist,default):
 #-------------------------------------------------------------------------------
 
 def mantissa(x):
-    logx = log10(abs(x)) 
+    logx = numpy.log10(abs(x)) 
     espo = int(logx)
     newx = 10**(logx - espo)
     while newx < 1:
@@ -61,6 +61,9 @@ if (len(sys.argv) > 1): ylimits.append(float(sys.argv[1]))
 if (len(sys.argv) > 2): ylimits.append(float(sys.argv[2]))
 
 #-------------------------------------------------------------------------------
+
+unit   = r'GPa]'
+xlabel = r'Maximum lagrangian strain'
 
 if (os.path.exists('energy-vs-strain')): 
     unit   = r'GPa]'
@@ -181,7 +184,7 @@ plt.subplots_adjust(left=0.20, right=0.78,
                     
 yfmt = ptk.ScalarFormatter(useOffset=True,useMathText=True)
 
-fig  = matplotlib.pyplot.figure(1, figsize=(8,5.5)) 
+fig  = plt.figure(1, figsize=(8,5.5))
 
 ax   = fig.add_subplot(111)
 
@@ -199,7 +202,7 @@ for line in ax.get_xticklines() + ax.get_yticklines():
        
 plt.xticks(size=fonttick)
 plt.yticks(size=fonttick)
-pyl.grid(True)
+plt.grid(True)
 plt.ylabel(ylabel,size=fontlabel)
 
 if (len(y1) > 0): plt.plot(x1,y1,'ro-',label='n='+str(lg))
@@ -211,7 +214,7 @@ ax.yaxis.set_major_formatter(yfmt)
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
 
-ax.xaxis.set_major_locator(MaxNLocator(7))
+ax.xaxis.set_major_locator(ptk.MaxNLocator(7))
 
 ax.set_axisbelow(True) 
 

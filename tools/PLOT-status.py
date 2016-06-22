@@ -92,7 +92,7 @@ plt.subplots_adjust(left=0.20, right=0.93,
                     
 yfmt = ptk.ScalarFormatter(useOffset=True,useMathText=True)
 
-fig  = matplotlib.pyplot.figure(1, figsize=(8,5.5)) 
+fig  = plt.figure(1, figsize=(8,5.5)) 
 
 ax   = fig.add_subplot(111)
 
@@ -107,7 +107,7 @@ for line in ax.get_xticklines() + ax.get_yticklines():
        
 plt.xticks(size=fonttick)
 plt.yticks(size=fonttick)
-pyl.grid(True)
+plt.grid(True)
 
 #-------------------------------------------------------------------------------
 
