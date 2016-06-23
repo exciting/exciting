@@ -71,18 +71,18 @@ subroutine shg(a,b,c)
     end do
 
 ! calculate the momentum matrix elements
-    if (rank==0) then
-        write(*,*)
-        write(*,'("  Calculate the momentum matrix elements")')
-    end if
-    call writepmat
+    !if (rank==0) then
+    !    write(*,*)
+    !    write(*,'("  Calculate the momentum matrix elements")')
+    !end if
+    !call writepmat
 
 ! find the record length for momentum matrix element file
     allocate(pmat(3,nstsv,nstsv))
     inquire(iolength=recl) pmat
     deallocate(pmat)
     open(50,File='PMAT.OUT',Action='READ',Form='UNFORMATTED',Access='DIRECT', &
-      Recl=recl,IOstat=iostat)
+    &    Recl=recl,IOstat=iostat)
     if (iostat.ne.0) then
       write(*,*)
       write(*,'("Error(shg): error opening PMAT.OUT")')
@@ -272,6 +272,8 @@ subroutine shg(a,b,c)
 ! end loop over k-points
     end do
 
+    close(50)
+
 #ifdef MPI
     call MPI_ALLREDUCE(MPI_IN_PLACE, chiw, 3*wgrid, &
     &                  MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
@@ -293,45 +295,28 @@ subroutine shg(a,b,c)
         open(53,file=trim(fname),action='WRITE',form='FORMATTED')
         write(fname,'("CHI_INTRAw_",3I1,".OUT")') a,b,c
         open(54,file=trim(fname),action='WRITE',form='FORMATTED')
-        write(fname,'("CHI_",3I1,".OUT")') a,b,c
+        write(fname,'("CHI_MOD_",3I1,".OUT")') a,b,c
         open(55,file=trim(fname),action='WRITE',form='FORMATTED')
-        write(fname,'("CHI_MODULE_",3I1,".OUT")') a,b,c
+        write(fname,'("CHI_",3I1,".OUT")') a,b,c
         open(56,file=trim(fname),action='WRITE',form='FORMATTED')
         do iw = 1, wgrid
-            write(51,'(3G18.10)') t1*w(iw), dble(chi2w(iw,1))
-            write(52,'(3G18.10)') t1*w(iw), dble(chi2w(iw,2))
-            write(53,'(3G18.10)') t1*w(iw), dble(chiw(iw,1))
-            write(54,'(3G18.10)') t1*w(iw), dble(chiw(iw,2))
-            t2 = dble(chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3))
-            write(55,'(3G18.10)') t1*w(iw), t2
+            write(51,'(3G18.10)') t1*w(iw), chi2w(iw,1)
+            write(52,'(3G18.10)') t1*w(iw), chi2w(iw,2)
+            write(53,'(3G18.10)') t1*w(iw), chiw(iw,1)
+            write(54,'(3G18.10)') t1*w(iw), chiw(iw,2)
+            write(55,'(3G18.10)') t1*w(iw), chiw(iw,3)
+            zt1 = chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3)
+            write(56,'(4G18.10)') t1*w(iw), zt1, abs(zt1) 
         end do
-        write(51,'("     ")')
-        write(52,'("     ")')
-        write(53,'("     ")')
-        write(54,'("     ")')
-        write(55,'("     ")')
-        do iw = 1, wgrid
-            write(51,'(3G18.10)') t1*w(iw),aimag(chi2w(iw,1))
-            write(52,'(3G18.10)') t1*w(iw),aimag(chi2w(iw,2))
-            write(53,'(3G18.10)') t1*w(iw),aimag(chiw(iw,1))
-            write(54,'(3G18.10)') t1*w(iw),aimag(chiw(iw,2))
-            t2 = aimag(chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3))
-            write(55,'(3G18.10)') t1*w(iw), t2
-        end do
-        do iw = 1, wgrid
-            zt1=chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3)
-            write(56,'(3G18.10)') t1*w(iw), abs(zt1)
-        end do
-        close(50); close(51); close(52); close(53); close(54); close(55); close(56)
+        close(51); close(52); close(53); close(54); close(55); close(56)
         write(*,*)
-        write(*,'("  Susceptibility (complex) tensor written to CHI_abc.OUT")')
-        write(*,'("  Susceptibility (module) tensor written to CHI_MODULE_abc.OUT")')
+        write(*,'("  Susceptibility (complex+module) tensor written to CHI_abc.OUT")')
         write(*,'("  Interband contributions written to CHI_INTERx_abc.OUT")')
         write(*,'("  Intraband contributions written to CHI_INTRAx_abc.OUT")')
+        write(*,'("  Modulation contributions written to CHI_MOD_abc.OUT")')
         write(*,'("  for components")')
         write(*,'("  a = ",I1,", b = ",I1,", c = ",I1)') a, b, c
-        if (input%properties%shg%tevout) &
-        &  write(*,'("  Output energy is in eV")')
+        if (input%properties%shg%tevout) write(*,'("  Output energy is in eV")')
         write(*,*)
     end if
 
