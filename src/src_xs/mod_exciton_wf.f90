@@ -6,7 +6,7 @@ module mod_exciton_wf
   use modmpi
   implicit none
 
-  integer :: nsta1, nsta2, nrnst1, nrnst3, hamsiz
+  integer ::  nrnst1, nrnst3, hamsiz
   real(8),    allocatable :: beval(:)
   complex(8), allocatable :: bevec(:,:)
 
@@ -276,13 +276,13 @@ contains
 
       do iva = 1, nva(ik)
         iv = vMap(iva,ik)
-        ist = iv+nsta1-1
+        ist = iv+sta1-1
         ! electron WF 
         call calc_zdata_rgrid(r_h, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zwfrh)
 
         do ica = 1, nca(iv,ik)
           ic = cMap(ica,iv,ik)
-          jst = ic+istl3-1+nsta2-1
+          jst = ic+istl3-1
           ! electron WF 
           call calc_zdata_rgrid(r_e, ik, wfmt(:,:,:,1,jst), wfir(:,1,jst), zwfre)
 
@@ -347,7 +347,7 @@ contains
         stop
       end if
       read(50) MinNumberExcitons, MaxNumberExcitons, &
-      &        nkptnr, istl3, nsta1, nsta2, nrnst1, nrnst3, hamsiz
+      &        nkptnr, istl3, sta1, sta2, nrnst1, nrnst3, hamsiz
       if (allocated(beval)) deallocate(beval)
       allocate(beval(hamsiz))
       beval = 0.d0
@@ -362,7 +362,7 @@ contains
 
     write(*,*) "Info(mod_exciton_wf::read_exccoeff):"
     write(*,*) MinNumberExcitons, MaxNumberExcitons
-    write(*,*) nkptnr, istl3, nsta1, nsta2
+    write(*,*) nkptnr, istl3, sta1, sta2
     write(*,*) nrnst1, nrnst3, hamsiz
     write(*,*)
 

@@ -127,15 +127,42 @@ Subroutine xsmain (plan)
             Call screen
          Case (440)
      ! screened Coulomb interaction
-            Call scrcoulint
+			if( input%xs%BSE%xas .eq. .true.) then
+				Call xasinit
+				Call xas_scrcoulint
+				Call xasfinit
+			else
+				Call scrcoulint
+			end if
          Case (441)
      ! exchange Coulomb interaction
-            Call exccoulint
+			 if( input%xs%BSE%xas .eq. .true.) then
+				Call xasinit
+				Call xas_exccoulint
+				Call xasfinit
+			else
+				Call exccoulint
+			end if
          Case (445)
      ! Bethe-Salpeter equation
-            Call BSE
+             if( input%xs%BSE%xas .eq. .true.) then
+				Call xasinit
+				Call xas
+				Call xasfinit
+			else
+	            Call BSE
+	        end if
          Case (446)
      ! regenerate BSE spectrum from exciton output
+
+            if( input%xs%BSE%xas .eq. .true.) then
+				call xasinit
+				call bsegenspec
+				call xasfinit
+			else
+				Call bsegenspec
+			end if
+
             Call bsegenspec
          Case (447)
      ! ASCII output of BSE eigenvectors
@@ -152,7 +179,13 @@ Subroutine xsmain (plan)
          case (999)
             call testmain
          case (710)
-            call plot_excitonWavefunction
+			if (input%xs%BSE%xas .eq. .true.) then
+				call xasinit
+				call plot_excitonWavefunction
+				call xasfinit
+			else
+				call plot_excitonWavefunction
+			end if
          Case Default
             Write (*,*)
             Write (*,*) 'Error(xsmain): task not defined:', task

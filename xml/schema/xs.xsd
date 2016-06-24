@@ -472,6 +472,46 @@
                   used for BSE. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="xas" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> Set to <pre>"true"</pre> to perform BSE X-rasy absorption spectroscopy (XAS) calculation </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="xasspecies" type="xs:integer"
+              default="0">
+              <xs:annotation>
+                <xs:documentation>Species number for which the XAS is calculated.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="xasatom" type="xs:integer"
+              default="0">
+              <xs:annotation>
+                <xs:documentation>Atom number for which the XAS is calculated.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="xasedge" default="K">
+              <xs:annotation>
+                <xs:documentation>Defines the edge for a XAS calculation.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="K"/>
+                  <xs:enumeration value="L1"/>
+                  <xs:enumeration value="L2"/>
+                  <xs:enumeration value="L3"/>
+                  <xs:enumeration value="L23"/>
+                  <xs:enumeration value="M1"/>
+                  <xs:enumeration value="M2"/>
+                  <xs:enumeration value="M3"/>
+                  <xs:enumeration value="M23"/>
+                  <xs:enumeration value="M4"/>
+                  <xs:enumeration value="M5"/>
+                  <xs:enumeration value="M45"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="reducek" type="xs:boolean"
               default="false">
               <xs:annotation>
@@ -593,19 +633,6 @@
                   calculation.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="nstlbsemat"
-              type="integerquadrupel" default="0 0 0 0">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldname>nbfbse,nafbse</oldname>
-                </xs:appinfo>
-                <xs:documentation>Range of bands for calculating the screening and matrix elements
-                  needed for solving the BSE. The first pair of numbers corresponds to the band
-                  index for local orbitals and valence states (counted from the lowest eigenenergy),
-                  the second pair corresponds to the band index of the conduction states (counted
-                  from the Fermi level).</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse" type="integerquadrupel"
               default="0 0 0 0">
               <xs:annotation>
@@ -618,6 +645,17 @@
                   index of the conduction states (counted from the Fermi level).</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="nstlxas" type="integerpair"
+              default="0 0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldname>nbfbse,nafbse</oldname>
+                </xs:appinfo>
+                <xs:documentation>Range of bands included for the BSE calculation. The pair corresponds to the band
+                  index of the conduction states (counted from the Fermi level).</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="aresbse" type="xs:boolean"
               default="true">
               <xs:annotation>
