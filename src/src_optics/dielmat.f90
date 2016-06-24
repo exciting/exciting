@@ -279,7 +279,7 @@ subroutine dielmat
             write(*, '("  Optical conductivity tensor written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             do iw = 1, wgrid
-                write(60, '(2G18.10)') t1*w(iw), sigma(iw)
+                write(60, '(3G18.10)') t1*w(iw), sigma(iw)
             end do
            close(60)
 ! write the dielectric function to file
@@ -290,7 +290,7 @@ subroutine dielmat
             t2 = 0.0d0; if (a==b) t2 = 1.0d0
             do iw = 1, wgrid
                 zt2 = t2+zt1*sigma(iw)/(w(iw)+eta(iw))
-                write(60, '(2G18.10)') t1*w(iw), zt2
+                write(60, '(3G18.10)') t1*w(iw), zt2
             end do
             close(60)
 ! write the EELS spectra
