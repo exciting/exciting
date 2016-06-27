@@ -1,4 +1,4 @@
-export SUFFIX=mpi3
+export SUFFIX=mpi
 include ../make.inc
 
 all:

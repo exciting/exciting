@@ -31,10 +31,11 @@ subroutine init_hybrids()
 !---------------------------------------
 ! print out information on MB to INFO.OUT
 !--------------------------------------- 
+
+    ! Hartree-Fock related debugging info
     fgw = 600
+    open(fgw, File='HYBRIDS.OUT', Action='WRITE', Form='FORMATTED')
     if (rank == 0) then
-        ! Hartree-Fock related debugging info
-        open(fgw, File='HYBRIDS.OUT', Action='WRITE', Form='FORMATTED')
         write(fgw,*)
         write(fgw,*) 'Mixed basis parameters:'
         write(fgw,*) '- Interstitial:'

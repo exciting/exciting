@@ -33,6 +33,7 @@ Subroutine hybrids
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
     integer :: xctype_(3)    
+    logical :: exist
 
 !! TIME - Initialisation segment
     call timesec(tsg0)
@@ -127,40 +128,54 @@ Subroutine hybrids
     If (allocated(rhoirref)) deallocate(rhoirref)
     Allocate (rhoirref(ngrtot))
 
-    !----------
-    ! restart
-    !----------
-    ihyb0 = 0
+    !----------------------
+    ! restart is requested
+    !----------------------
     if (task==1) then
-      ihyb0 = 1
-      call timesec(ts0)
-      !______________________________
-      ! step 1: read local potential
-      string = filext
-      filext = '_PBE.OUT'
-      call readstate
-      filext = string
-      ! generate radial functions
-      call gencore
-      call linengy
-      call genapwfr
-      call genlofr(.false.)
-      call olprad
-      !______________________________
-      ! step 2: read density and (local) potential from previous run
-      call readstate
-      !______________________________
-      ! step 3: read nonlocal potential matrix
-      call getvnlmat
-      ! do ik = 1, nkpt
-      !   write(*,*) "readvnlmat ik=", ik, sum(vnlmat(:,:,ik))
-      ! end do
-      call timesec(ts1)
-      if (rank==0) then
-        call write_cputime(60,ts1-ts0, 'Restart')
-        write(60,*)
-      end if    
-      time_hyb = time_hyb+ts1-ts0
+
+      inquire(File='VNLMAT.OUT', Exist=exist)
+
+      if (exist) then
+      
+        ! restart previous (unfinished) PBE0 run
+
+        ihyb0 = 1
+        call timesec(ts0)
+        !______________________________
+        ! step 1: read local potential
+        string = filext
+        filext = '_PBE.OUT'
+        call readstate
+        filext = string
+        ! generate radial functions
+        call gencore
+        call linengy
+        call genapwfr
+        call genlofr(.false.)
+        call olprad
+        !______________________________
+        ! step 2: read density and (local) potential from previous run
+        call readstate
+        !______________________________
+        ! step 3: read nonlocal potential matrix
+        call getvnlmat
+        ! do ik = 1, nkpt
+        !   write(*,*) "readvnlmat ik=", ik, sum(vnlmat(:,:,ik))
+        ! end do
+        call timesec(ts1)
+        if (rank==0) then
+          call write_cputime(60,ts1-ts0, 'Restart')
+          write(60,*)
+        end if    
+        time_hyb = time_hyb+ts1-ts0
+
+      else
+
+        ! restart from the converged groundstate
+        ihyb0 = 0
+
+      end if
+
     end if
 
 !--------------------------------------------------
@@ -399,6 +414,7 @@ Subroutine hybrids
 !----------------------------------------
 ! Clean data
 !----------------------------------------
+    close(600) ! HYBRIDS.OUT
     call delete_core_states
     call delete_product_basis
     call exit_hybrids
