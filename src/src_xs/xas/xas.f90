@@ -4,16 +4,16 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: bse
+! !ROUTINE: xas
 ! !INTERFACE:
-Subroutine bse
+Subroutine xas
 ! !USES:
       Use modinput
       Use modmain
       use modmpi
       Use modxs
       Use m_genwgrid
-      Use m_getpmat
+      Use m_getpmatxas
       Use m_genfilname
       Use m_getunit
       Use m_genloss
@@ -23,13 +23,14 @@ Subroutine bse
       Use m_writeloss
       Use m_writesigma
       Use m_writesumrls
+	  Use modxas
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation (BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem (thanks to the spectral theorem that can
 !   be applied to the original BSE in the case of a statically screened Coulomb
 !   interaction). The effective BSE-Hamiltonian consists of three parts
 !   originating from different sources. It reads
-!   $$ H^{\rm eff} = H^{\rm diag} + 2H^{\rm x} + H^{\rm c}, $$
+!   $$ H^{\rm eff} = H^{\rm diag} + H^{\rm x} + H^{\rm c}, $$
 !   where $H^{\rm diag}$ is the diagonal part stemming from the independent
 !   particle transitions, $H^{\rm x}$ denotes the exchange-term caused by the
 !   unscreened (bare) Coulomb interaction, whereas $H^{\rm c}$ accounts for the
@@ -40,13 +41,7 @@ Subroutine bse
 !   $$ H^{\rm eff} = H^{\rm diag}. $$
 !   By neglecting the correlation part in the effective Hamiltonian we arrive
 !   at the {\it random phase approximation} (RPA)
-!   $$ H^{\rm eff} = H^{\rm diag} + 2H^{\rm x}. $$
-!   Investigations on the spin-structure of the BSE-Hamiltonian show that there
-!   are tow channels, namely the {\it singlet}-channel as solution to the
-!   Hamiltonian
-!   $$  H^{\rm eff} = H^{\rm diag} + 2H^{\rm x} + H^{\rm c} $$
-!   and a {\it triplet} channel with the exchange-part being absent.
-!   $$ H^{\rm eff} = H^{\rm diag} + H^{\rm c}. $$
+!   $$ H^{\rm eff} = H^{\rm diag} + H^{\rm x}. $$
 !   The equation of the eigenvalue problem is given by
 !   $$ \sum_{v'c'{\bf k'}} H^{\rm eff}_{vc{\bf k},v'c'{\bf k'}}
 !       A^{\lambda}_{v'c'{\bf k'}}
@@ -88,16 +83,16 @@ Subroutine bse
 !      level for the treatment of core excitations (using local orbitals).
 !      October 2010 (Weine Olovsson)
 !   Added possibility to compute off-diagonal optical components, Dec 2013 (Stefan Kontur, STK)
+!   Adaption to the calculation of core-level excitations, June 2015 (Christian Vorwerk)
 !EOP
 !BOC
       Implicit None
   ! local variables
-      
       ! CC
       integer :: iostat, ievec
       logical :: exist
       Character (256) :: locext
-  
+
       Integer, Parameter :: iqmt = 0
       Integer, Parameter :: noptcmp = 3
       Real (8), Parameter :: epsortho = 1.d-12
@@ -105,14 +100,14 @@ Subroutine bse
       Integer :: iknr, jknr, iqr, iq, iw, iv2 (3), s1, s2, hamsiz, &
      & nexc, ne
       Integer :: unexc, ist1, ist2, ist3, ist4, ikkp, iv, ic, &
-     & nvdif, ncdif, optcompt(3), ist, jst
+     & nvdif, ncdif, optcompt(3), ist, jst, xasspecies, xasatom, icg
       integer :: oct1, oct2, octu, octl
       Integer ::  nrnst1, nrnst2, nrnst3, nrnst4
       Real (8) :: de, egap, ts0, ts1, sumrls(3)
   ! allocatable arrays
       Integer, Allocatable :: sor (:)
       Real (8), Allocatable :: beval (:), w (:), oszsa (:), loss(:, :, :), &
-     & docc(:,:), kdocc (:), eval0(:,:)
+     &  eval0(:,:)
       Complex (8), Allocatable :: excli (:, :, :, :), sccli (:, :, :, &
      & :), ham (:, :)
       Complex (8), Allocatable :: bevec (:, :), pm (:, :, :), pmat (:, :), &
@@ -122,12 +117,7 @@ Subroutine bse
 
       integer :: Recl, nstsv_
       real(8) :: vkl_(3)
-
-      real(8) :: rh(3)
-      Character (256) :: lambda
-      Real (8) :: bevec_ksum, bevec1
-      Integer :: un
-      
+      integer :: ir
       
   ! routine not yet parallelized
   if (rank .ne. 0) goto 10
@@ -146,13 +136,16 @@ Subroutine bse
       Call xssave0
   ! read Fermi energy from file
       Call readfermi
+  ! Get the species for the XAS calculation
+	  xasspecies=input%xs%bse%xasspecies
+	  xasatom=input%xs%bse%xasatom
   ! initialize the selected ranges of valence/core and conduction states (Note
   ! that core states are always understood to be local orbitals set by the user
   ! and actually treated as valence states)
-      sta1 = input%xs%bse%nstlbse(1)
-      sto1 = input%xs%bse%nstlbse(2)
-      sta2 = input%xs%bse%nstlbse(3)
-      sto2 = input%xs%bse%nstlbse(4)
+      sta1 = xasstart                          ! band index for core states(counted from lowest energy eigenvalue) 
+      sto1 = xasstop
+      sta2 = input%xs%bse%nstlxas(1) !  ---""---  for conduction states (counted from Fermi energy)
+      sto2 = input%xs%bse%nstlxas(2)
       nrnst1 = sto1-sta1+1
       nrnst2 = sto1-sta1+1
       nrnst3 = sto2-sta2+1
@@ -164,7 +157,7 @@ Subroutine bse
       input%xs%emattype = 2
       Call ematbdcmbs (input%xs%emattype)
       Write (unitout,*)
-      Write (unitout, '("Info(bse): information on number of states:")')
+      Write (unitout, '("Info(xas): information on number of states:")')
       Write (unitout, '(" number of states below Fermi energy in Hamilt&
      &onian:", i6)') nrnst1
       Write (unitout, '(" number of states above Fermi energy in Hamilt&
@@ -179,23 +172,18 @@ Subroutine bse
       Write (unitout, '("  range of fourth index and number :", 2i6, 3x&
      &, i6)') istl4, istu4, nst4
   ! size of BSE-Hamiltonian
-      hamsiz = nrnst1 * nrnst3 * nkptnr
+      hamsiz = nrnst1 * nrnst3 * nkptnr   
   ! allocate arrays for Coulomb interactons
       Allocate (sccli(nrnst1, nrnst3, nrnst2, nrnst4))
       Allocate (excli(nrnst1, nrnst3, nrnst2, nrnst4))
-  ! allocate array for occupation number difference (future use )
-      Allocate (docc (nrnst1, nrnst3))
-      Allocate (kdocc (hamsiz))
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
       Allocate (ham(hamsiz, hamsiz))
       ham (:, :) = zzero
-
   ! read KS energies
       Do iknr = 1, nkptnr
         Call getevalsv (vkl(1, iknr), evalsv(1, iknr))
       End Do
-
-      if (associated(input%gw)) then
+       if (associated(input%gw)) then                                         ! GW Part
         ! to KS eigenvalues to use them later for renormalizing PMAT
         allocate(eval0(nstsv,nkptnr))
         eval0(:,:)=evalsv(:,:)
@@ -203,24 +191,17 @@ Subroutine bse
         input%xs%scissor=0.0d0
         ! Read QP Fermi energies and eigenvalues from file
         call getevalqp(nkptnr,vkl,evalsv)
-        ! evalsv = evalsv+efermi
-        write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
-        ! do iknr = 1, nkptnr
-        !   write(71,'(a,i4,3f16.4)') "# ik = ", iknr, vkl(:,iknr)
-        !   do ist1 = 1, nstsv
-        !     write(71,*) ist1, evalsv(ist1,iknr)
-        !   end do
-        !   write(71,*)
-        ! end do
-      end if ! GW
+        Write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
+      end if ! GW															 ! End of GW Part	
 
   ! read mean value of diagonal of direct term
       bsed = 0.d0
       If ((trim(input%xs%bse%bsetype) .Eq. 'singlet') .Or. &
-      &   (trim(input%xs%bse%bsetype) .Eq. 'triplet')) Then
+     & (trim(input%xs%bse%bsetype) .Eq. 'triplet')) Then
          If (input%xs%bse%bsedirsing) Then
             Call getbsediag
-            Write (unitout, '("Info(bse): read diagonal of BSE kernel")')
+            Write (unitout, '("Info(xas): read diagonal of BSE kernel")&
+           &')
             Write (unitout, '(" mean value : ", 2g18.10)') bsed
          End If
       End If
@@ -229,17 +210,16 @@ Subroutine bse
       Do iknr = 1, nkptnr
          Do ist1 = sta1, sto1
             Do ist3 = sta2, sto2
-               egap = min(egap, evalsv(ist3+istocc, iknr)- &
-               &                evalsv(ist1,iknr)+input%xs%scissor)
+               egap = Min (egap, evalsv(ist3+istocc, iknr)-ecore(ist1)+input%xs%scissor)
             End Do
          End Do
       End Do
-      Write (unitout, '("Info(bse): gap:", g18.10)') egap
+      Write (unitout, '("Info(xas): gap:", g18.10)') egap
       If (egap .Lt. input%groundstate%epspot) Then
          Write (unitout,*)
-         Write (unitout, '("Warning(bse): the system has no gap")')
+         Write (unitout, '("Warning(xas): the system has no gap")')
          Write (unitout,*)
-      End If  
+      End If	  
   ! set up BSE-Hamiltonian
       ikkp = 0
       Do iknr = 1, nkptnr
@@ -247,56 +227,49 @@ Subroutine bse
             ikkp = ikkp + 1
             iv2 (:) = ivknr (:, jknr) - ivknr (:, iknr)
             iv2 (:) = modulo (iv2(:), input%groundstate%ngridk(:))
-            ! q-point (reduced)
+        ! q-point (reduced)
             iqr = iqmapr (iv2(1), iv2(2), iv2(3))
-            ! q-point (non-reduced)
+        ! q-point (non-reduced)
             iq = iqmap (iv2(1), iv2(2), iv2(3))
             Select Case (trim(input%xs%bse%bsetype))
             Case ('singlet', 'triplet')
-              ! read screened Coulomb interaction
-              Call getbsemat ('SCCLI.OUT', ikkp, nrnst1, nrnst3, sccli)
+           ! read screened Coulomb interaction
+               Call getbsemat ('SCCLI.OUT', ikkp, nrnst1, nrnst3, sccli)
             End Select
-            ! read exchange Coulomb interaction
+        ! read exchange Coulomb interaction
             Select Case (trim(input%xs%bse%bsetype))
             Case ('RPA', 'singlet')
                Call getbsemat ('EXCLI.OUT', ikkp, nrnst1, nrnst3, excli)
             End Select
-        ! get occupation numbers (future use for partial occupancy) 			
-      		Call getdocc (iq, iknr, jknr, sta1, sto1, istl3,& 
-      	   & istl3+nrnst3-1, docc)
         ! set up matrix
             Do ist1 = sta1, sto1
                Do ist3 = sta2, sto2
                   Do ist2 = sta1, sto1
                      Do ist4 = sta2, sto2
-                        s1 = hamidx (ist1-sta1+1, ist3-sta2+1, iknr, nrnst1, nrnst3)
-                        s2 = hamidx (ist2-sta1+1, ist4-sta2+1, jknr, nrnst2, nrnst4)
-                        kdocc (s1) = docc (ist1-sta1+1, ist3-sta2+1)
-                        ! add diagonal term
-                        If (s1 .Eq. s2) Then
-                           de = evalsv (ist3+istl3-sta1-1, iknr) - evalsv &
-                          & (ist1, iknr) + input%xs%scissor                                                                                                       
+                        s1 = hamidx (ist1-sta1+1, ist3-sta2+1, iknr, nrnst1, &
+                       & nrnst3)
+                        s2 = hamidx (ist2-sta1+1, ist4-sta2+1, jknr, nrnst2, &
+                       & nrnst4)
+                     ! add diagonal term
+                        If (s1 .Eq. s2) Then                                    ! here the core energies have to be evaluated
+                           de = evalsv (ist3+istl3-sta1-1, iknr) - ecore &
+                          & (ist1) + input%xs%scissor 
+                                                                                                                    
                             ham (s1, s2) = ham (s1, s2) + de - egap + &
                           & bsed
+                     	
                         End If
-                        ! write partially occupied states in the output    
-                        If (kdocc(s1) .Gt. input%groundstate%epsocc .And. &
-                        &   kdocc(s1) .Lt. 2.d0-input%groundstate%epsocc) Then
-                          Write (*,*) 'kdocc s1', kdocc(s1), s1
-                        End If
-                        ! add exchange term
+                    ! add exchange term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('RPA', 'singlet')
-                           ham(s1,s2) = ham(s1,s2) + &
-                           &  2.d0*excli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1) * &
-                           &  kdocc(s1) * 0.5
+                           ham (s1, s2) = ham (s1, s2) + excli &
+                           & (ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)
                         End Select
-                        ! add correlation term
+                    ! add correlation term
                         Select Case (trim(input%xs%bse%bsetype))
-                        Case ('singlet', 'triplet')
-                          ham(s1,s2) = ham(s1,s2) - &
-                          &  sccli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1) * &
-                          &  kdocc(s1) * 0.5
+                        Case ('singlet', 'triplet')	
+                           ham (s1, s2) = ham (s1, s2) - sccli (ist1-sta1+1, &
+                           & ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)
                         End Select
                      End Do
                   End Do
@@ -305,11 +278,12 @@ Subroutine bse
         ! end loop over (k,kp)-pairs
          End Do
       End Do
-      Deallocate (excli, sccli, docc)
+      Deallocate (excli, sccli)
       Write (unitout,*)
-      Write (unitout, '("Info(bse): invoking Lapack routine ZHEEVX")')
+      Write (unitout, '("Info(xas): invoking Lapack routine ZHEEVX")')
       Write (unitout, '(" size of BSE-Hamiltonian	   : ", i8)') hamsiz
-      Write (unitout, '(" number of requested solutions : ", i8)') input%xs%bse%nexcitmax
+      Write (unitout, '(" number of requested solutions : ", i8)') &
+     & input%xs%bse%nexcitmax
   ! allocate eigenvector and eigenvalue arrays
       Allocate (beval(hamsiz), bevec(hamsiz, hamsiz))
   ! set number of excitons
@@ -333,12 +307,12 @@ Subroutine bse
 
       do oct1 = 1, noptcmp
      ! read momentum matrix elements
-         Allocate (pm(3, nstsv, nstsv))
+         Allocate (pm(3, ncg, nstsv))
          Do iknr = 1, nkptnr
-            Call getpmat (iknr, vkl, 1, nstsv, 1, nstsv, .True., &
+            Call getpmatxas (iknr, vkl, 1, ncg, 1, nstsv, .True., &
            & 'PMAT_XS.OUT', pm)
             Do ist1 = sta1, sto1
-               Do ist2 = istl3 , istl3 + nrnst3 -1
+               Do ist2 = istl3, istl3 + nrnst3 - 1
 ! DIN: Renormalize pm according to DelSole PRB48, 11789 (1993)
                   if (associated(input%gw)) then
                      pm(1:3,ist1,ist2)=pm(1:3,ist1,ist2)  * &
@@ -347,7 +321,7 @@ Subroutine bse
                   end if 
 ! DIN
                   s1 = hamidx (ist1-sta1+1, ist2-istl3+1,&
-                 & iknr, nrnst1, nrnst3)                
+                 & iknr, nrnst1, nrnst3)    
                   pmat (s1, oct1) = pm (oct1, ist1, ist2)
                End Do
             End Do
@@ -362,9 +336,8 @@ Subroutine bse
                   Do ic = 1, nrnst3
                      s2 = hamidx (iv, ic, iknr, nrnst1, nrnst3)
                      oszs (s1, oct1) = oszs (s1, oct1) + bevec (s2, s1) * pmat (s2, oct1) &
-                    & * kdocc (s2) * 0.5 & 
-                    & / (evalsv(ic+istl3-1, iknr)- &
-                    evalsv(iv+sta1-1, iknr))
+                    &  / (evalsv(ic+istl3-1, iknr)- &
+                    & ecore(iv+sta1-1))
                   End Do
                End Do
             End Do
@@ -500,10 +473,9 @@ Subroutine bse
          Call writeloss (iq, w, loss(oct1, oct2, :), trim(fnloss))
          Call writesigma (iq, w, sigma, trim(fnsigma))
          Call writesumrls (iq, sumrls, trim(fnsumrules))
-        enddo       
-
+        enddo
       end do
-
+      
       if (associated(input%xs%storeexcitons)) then
         !-----------------------------------------------------
         ! upon request, store array with exciton coefficients
@@ -537,12 +509,11 @@ Subroutine bse
         close(50)
       end if
 
+      
       deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
       if (associated(input%gw)) deallocate(eval0)
-
-      10 continue
-      call barrier
-
+10 continue
+      call barrier      
 Contains
 !
       Integer Function hamidx (i1, i2, ik, n1, n2)
@@ -550,7 +521,7 @@ Contains
          Integer, Intent (In) :: i1, i2, ik, n1, n2
          hamidx = i2 + n2 * (i1-1) + n1 * n2 * (ik-1)
       End Function hamidx
-
-End Subroutine bse
+!
+End Subroutine xas
 !EOC
 

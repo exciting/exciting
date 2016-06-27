@@ -9,7 +9,7 @@ Subroutine writebevec
       Complex (8), Allocatable :: bevec (:, :)
       Real (8) :: bevec_ksum, bevec1
       Integer :: ex_min, ex_max, ex_min2, ex_max2, iv, ic, iknr
-      integer :: nsta1, nsta2, nrnst1, nrnst3 
+      integer ::  nrnst1, nrnst3 
       integer :: s1, s2, hamsiz, un, iostat
       integer :: ist, jst
       Logical :: exist
@@ -40,7 +40,7 @@ Subroutine writebevec
            write(*,*)
            stop
          end if
-         read(un) ex_min, ex_max, nkptnr, istl3, nsta1, nsta2, nrnst1, nrnst3, hamsiz 
+         read(un) ex_min, ex_max, nkptnr, istl3, sta1, sta2, nrnst1, nrnst3, hamsiz 
 
          Allocate (beval(hamsiz), bevec(hamsiz,ex_min:ex_max))
 
@@ -87,7 +87,7 @@ Subroutine writebevec
                   Do ic = 1, nrnst3
                      s2 = hamidx (iv, ic, iknr, nrnst1, nrnst3)
                      bevec1 = bevec(s2,s1) * conjg(bevec(s2,s1))
-                     Write (un, '(I8, 3G18.10, 2I6, G18.10)') iknr, vkl(:, iknr), iv+nsta1-1, ic , bevec1
+                     Write (un, '(I8, 3G18.10, 2I6, G18.10)') iknr, vkl(:, iknr), iv+sta1-1, ic , bevec1
                   End Do
                End Do
             End Do
@@ -95,7 +95,7 @@ Subroutine writebevec
       Write (un, '("k-point, k-point coordinates, valence band, conduction band, Abs(BSE eigenvector)^2 ")')
       Write (un,*)
       Write (un, '(I6, " : Nr. k-points")') nkptnr
-      Write (un, '(I6, " : VBM")') nrnst1+nsta1-1
+      Write (un, '(I6, " : VBM")') nrnst1+sta1-1
       Write (un, '(I6, " : Nr. valence states")') nrnst1
       Write (un, '(I6, " : Nr. conduction states")') nrnst3
       Write (un,*)
@@ -115,13 +115,13 @@ Subroutine writebevec
                      s2 = hamidx (iv, ic, iknr, nrnst1, nrnst3)
                      bevec_ksum= bevec_ksum + bevec(s2,s1) * conjg(bevec(s2,s1))
                 End Do
-                Write (un, '(2I8, G18.10)') iv+nsta1-1, ic, bevec_ksum
+                Write (un, '(2I8, G18.10)') iv+sta1-1, ic, bevec_ksum
                End Do
             End Do
       Write (un,*)
       Write (un, '("valence band, conduction band, sum of Abs(BSE eigenvector)^2 over all k-points")')
       Write (un,*)
-      Write (un, '(I6, " : VBM")') nrnst1+nsta1-1
+      Write (un, '(I6, " : VBM")') nrnst1+sta1-1
       Write (un, '(I6, " : Nr. valence states")') nrnst1
       Write (un, '(I6, " : Nr. conduction states")') nrnst3
       Write (un,*)
@@ -137,13 +137,13 @@ Subroutine writebevec
         open(Unit=un, File=trim(lambda), Form='Formatted', Action='Write')
         ! nkpt total, Nv, iv0, Nc, ic0
         write(un,*) "# ", nkptnr, &
-        &                 nrnst1, nsta1,  &
-        &                 nrnst3, istl3+nsta2-1
+        &                 nrnst1, sta1,  &
+        &                 nrnst3, istl3
         do iknr = 1, nkptnr
           do iv = 1, nrnst1
-            ist = iv+nsta1-1
+            ist = iv+sta1-1
             do ic = 1, nrnst3
-              jst = ic+istl3-1+nsta2-1
+              jst = ic+istl3-1
               s2 = hamidx(iv, ic, iknr, nrnst1, nrnst3)
               write(un, '(I8, 4X, 3F10.6, 2I8, 4X, G18.10)') iknr, vkl(:,iknr), &
               &    ist, jst, dble(bevec(s2,s1)*conjg(bevec(s2,s1)))

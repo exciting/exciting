@@ -4,20 +4,22 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: exccoulint
+! !ROUTINE: xas_exccoulint
 ! !INTERFACE:
-Subroutine exccoulint
+Subroutine xas_exccoulint
 ! !USES:
       Use modmain
       Use modinput
       Use modmpi
       Use modxs
       Use ioarray
+      Use m_xasgauntgen
       Use m_xsgauntgen
       Use m_findgntn0
       Use m_writegqpts
       Use m_genfilname
       Use m_getunit
+      Use modxas
 ! !DESCRIPTION:
 !   Calculates the exchange term of the Bethe-Salpeter Hamiltonian.
 !
@@ -26,11 +28,13 @@ Subroutine exccoulint
 !   Addition of explicit energy ranges for states below and above the Fermi
 !      level for the treatment of core excitations (using local orbitals).
 !      October 2010 (Weine Olovsson)
+!	Application to exchange terms between core states and conduction states for the
+!	calculation of X-ray absorption spectroscopy. November 2015 (Christian Vorwerk)
 !EOP
 !BOC      
       Implicit None
   ! local variables
-      Character (*), Parameter :: thisnam = 'exccoulint'
+      Character (*), Parameter :: thisnam = 'xas_exccoulint'
       Character (256) :: fnexcli
       Integer, Parameter :: iqmt = 1
       Real (8), Parameter :: epsortho = 1.d-12
@@ -38,8 +42,9 @@ Subroutine exccoulint
       Integer :: iv (3), j1, j2
       Integer :: ist1, ist2, ist3, ist4, nst12, nst34, nst13, nst24, &
      & ikkp, nkkp
-      Integer :: rnst1, rnst2, rnst3, rnst4
+      Integer ::  rnst1, rnst2, rnst3, rnst4,i
       Real (8), Allocatable :: potcl (:)
+      Complex (8) :: inter
       Complex (8), Allocatable :: exclit (:, :), excli (:, :, :, :)
       Complex (8), Allocatable :: emat12 (:, :), emat34 (:, :)
       Complex (8), Allocatable :: emat12k (:, :, :, :)
@@ -51,10 +56,10 @@ Subroutine exccoulint
       Call init1
       Call init2
   ! set the range of valence/core and conduction states to use
-      sta1 = input%xs%bse%nstlbse(1)
-      sto1 = input%xs%bse%nstlbse(2)
-      sta2 = input%xs%bse%nstlbse(3)
-      sto2 = input%xs%bse%nstlbse(4)      
+      sta1 = 1
+      sto1 = nxas
+      sta2 = input%xs%bse%nstlxas(1)
+      sto2 = input%xs%bse%nstlxas(2)
       rnst1 = sto1-sta1+1
       rnst2 = sto2-sta2+1
       rnst3 = sto2-sta2+1
@@ -64,6 +69,7 @@ Subroutine exccoulint
   ! save variables for the Gamma q-point
       Call xssave0
   ! generate Gaunt coefficients
+	  Call xasgauntgen (input%xs%lmaxemat, input%groundstate%lmaxapw)
       Call xsgauntgen (Max(input%groundstate%lmaxapw, lolmax), &
      & input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax))
   ! find indices for non-zero Gaunt coefficients
@@ -125,9 +131,11 @@ Subroutine exccoulint
          Call chkpt (3, (/ task, 1, iknr /), 'task,sub,k-point; matrix &
         &elements of plane wave')
      ! matrix elements for k and q=0
-         Call ematqk1 (iqmt, iknr)
+     ! obtain planewavematrix elements for exchange term
+         Call ematex (iqmt, iknr)  
          emat12k (:, :, :, iknr) = xiou (:, :, :)
-         Deallocate (xiou, xiuo)
+         If (allocated(xiou)) deallocate (xiou)
+         If (allocated(xiuo)) deallocate (xiuo)
       End Do
   ! communicate array-parts wrt. k-points
       call mpi_allgatherv_ifc(nkptnr,nst1*nst2*n,zbuf=emat12k)
@@ -160,29 +168,28 @@ Subroutine exccoulint
          Do igq1 = 2, n
             Call genwiqggp (0, iqmt, igq1, igq1, potcl(igq1))
          End Do
-!
+     ! set up planewave matrix elements
          Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
          j1 = 0
          Do ist2 = sta2, sto2
             Do ist1 = sta1, sto1
                j1 = j1 + 1
-               emat12 (j1, :) = emat12k (ist1-sta1+1, ist2-sta2+1, :, iknr)
+               emat12 (j1, :) = emat12k (ist1, ist2-sta2+1, :, iknr)
             End Do
          End Do
          j2 = 0
          Do ist4 = sta2, sto2
             Do ist3 = sta1, sto1
                j2 = j2 + 1
-               emat34 (j2, :) = emat12k (ist3-sta1+1, ist4-sta2+1, :, jknr) * potcl &
+               emat34 (j2, :) = emat12k (ist3, ist4-sta2+1, :, jknr) * potcl &
               & (:)
             End Do
          End Do
-!
+        
      ! calculate exchange matrix elements: V_{1234} = M_{12}^* M_{34}^T
          emat12 = conjg (emat12)
-         Call zgemm ('n', 't', nst12, nst12, n, zone/omega/nkptnr, &
-        & emat12, nst12, emat34, nst12, zzero, exclit, nst12)
-!
+         Call zgemm ('n', 't', nst12, nst34, n, zone/omega/nkptnr, &
+        & emat12, nst12, emat34, nst34, zzero, exclit, nst12)
      ! map back to individual band indices
          j2 = 0
          Do ist4 = 1, rnst2
@@ -192,7 +199,7 @@ Subroutine exccoulint
                Do ist2 = 1, rnst2
                   Do ist1 = 1, rnst1
                      j1 = j1 + 1
-                     excli (ist1, ist2, ist3, ist4) = exclit (j1, j2)
+                     excli (ist1, ist2, ist3, ist4) = exclit (j1, j2)                     
                   End Do
                End Do
             End Do
@@ -235,6 +242,6 @@ endif
 !
       Write (unitout, '(a)') "Info(" // trim (thisnam) // "): Exchange &
      &Coulomb interaction finished"
-End Subroutine exccoulint
+End Subroutine xas_exccoulint
 !EOC
 

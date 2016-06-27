@@ -89,7 +89,6 @@ Contains
          Write (un, '(a, i8)') '# nlomax	      :', nlomax
          Write (un, '(a, i8)') '# nst1	      :', nst1
          Write (un, '(a, i8)') '# nst2	      :', nst2
-         Write (un, '(a, 4i8)') '# nstlbsemat      :', input%xs%BSE%nstlbsemat
          Write (un, '(a, 4i8)') '# nstlbse         :', input%xs%BSE%nstlbse
          Write (un, '(a, i8)') '# nstsv	      :', nstsv
          Write (un, '(a, 2f12.6)') '# evlmincut (H, eV)  :', evlmincut, &

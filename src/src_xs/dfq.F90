@@ -724,6 +724,5 @@ deallocate(wou,wuo,zm)
         & cwsurf1k)
 #endif        
       End If
-!      write(*,*)
 End Subroutine dfq
 !EOC

@@ -609,19 +609,6 @@ subroutine checkinput
   end if
   if (associated(input%xs)) then
     if (associated(input%xs%BSE)) then
-      if ((input%xs%BSE%nstlbsemat(1).lt.0).or.(input%xs%BSE%nstlbsemat(2).lt.0).or. &
-        (input%xs%BSE%nstlbsemat(3).lt.0).or.(input%xs%BSE%nstlbsemat(4).lt.0)) then
-        write(*,*)
-        write(*,'("Error(checkinput): /input/xs/BSE/@nstlbsemat(1), /input/xs/BSE/@nstlbsemat(2), ")')
-        write(*,'(" /input/xs/BSE/@nstlbsemat(3) or /input/xs/BSE/@nstlbsemat(4) <= 0 : ",4I8)') &
-          input%xs%BSE%nstlbsemat
-        write(*,*)
-        stop
-      end if
-    end if
-  end if
-  if (associated(input%xs)) then
-    if (associated(input%xs%BSE)) then
       if ((input%xs%BSE%nstlbse(1).lt.0).or.(input%xs%BSE%nstlbse(2).lt.0).or. &
         (input%xs%BSE%nstlbse(3).lt.0).or.(input%xs%BSE%nstlbse(4).lt.0)) then
         write(*,*)

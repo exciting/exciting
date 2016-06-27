@@ -2,7 +2,7 @@
 ! Copyright (C) 2004-2010 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+#include "maxdefinitions.inc"
 Module modxs
 ! !DESCRIPTION:
 !   Global variables for the {\tt XS} (eXcited States) implementation
@@ -229,6 +229,9 @@ Module modxs
       Integer :: lmmaxapwwf
   ! Gaunt coefficients array
       Real (8), Allocatable :: xsgnt (:, :, :)
+      Real (8), Allocatable :: xsgntou (:, :, :)
+      Real (8), Allocatable :: xsgntuo (:, :, :)
+      Real (8), Allocatable :: xsgntoo (:, :, :)
   ! radial integrals coefficients (APW-APW)
 !      Complex (8), Allocatable :: intrgaa2 (:, :, :)
 !      Complex (8), Allocatable :: intrgalo2 (:, :, :)
@@ -337,7 +340,8 @@ Module modxs
       Integer :: nafbse
   ! diagonal of BSE kernel (mean value, lower, upper limit and range)
       Complex (8) :: bsed, bsedl, bsedu, bsedd
-
+  ! BSE matrix sizes
+	  Integer :: sta1, sto1, sta2, sto2
   !-----------------------!
   !     I/O variables     !
   !-----------------------!
@@ -504,7 +508,6 @@ Module modxs
       Character (11) :: doscreen0
   ! backup for XS vkloff
       Real (8) :: vkloff_xs_b(3)
-      
 
 
 End Module modxs
