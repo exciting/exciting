@@ -61,13 +61,13 @@ subroutine task_band()
   do ib = ibgw, min(nbgw,nstsv)
     do ik = 1, nkpt
       ! old format (gwmod-boron) 
-      write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)
-      write(51,'(2I6, 3F12.6)') &
-      &     ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)
+      ! write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)
+      ! write(51,'(2I6, 5F12.6)') &
+      ! &     ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)
       ! new format (carbon)
-      ! write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)+efermi-eferqp
-      ! write(50,'(2I6, 3F12.6, 2G18.10)') &
-      ! &     ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)+efermi-eferqp
+      write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)-eferqp
+      write(51,'(2I6, 3F12.6, 2G18.10)') &
+      &     ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)-eferqp
     end do !ik
     write(50,*)
     write(51,*)

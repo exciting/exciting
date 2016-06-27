@@ -43,13 +43,13 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   allocate(eks1(ibgw:nbgw,nkp1))
   
   ! old format (gwmod-boron)    
-  inquire(IoLength=recl) nkp1, ibgw, nbgw, kvecs1(1:3,1), &
-  &       eqp1(ibgw:nbgw,1), eks1(ibgw:nbgw,1)      
+  ! inquire(IoLength=recl) nkp1, ibgw, nbgw, kvecs1(1:3,1), &
+  ! &       eqp1(ibgw:nbgw,1), eks1(ibgw:nbgw,1)      
 
   ! new format (carbon)
-  ! inquire(IoLength=recl) nkp1, ibgw, nbgw, kvecs1(1:3,1), &
-  ! &       eqp1(ibgw:nbgw,1), eks1(ibgw:nbgw,1), &
-  ! &       eferqp, eferks
+  inquire(IoLength=recl) nkp1, ibgw, nbgw, kvecs1(1:3,1), &
+  &       eqp1(ibgw:nbgw,1), eks1(ibgw:nbgw,1), &
+  &       eferqp, eferks
   
   open(70, File=fname, Action='READ', Form='UNFORMATTED', &
   &    Access='DIRECT', Recl=recl)
@@ -61,13 +61,13 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   do ik = 1, nkp1
 
     ! old format (gwmod-boron) 
-    read(70, Rec=ik) nk, ib, nb, kvecs1(:,ik), &
-    &    eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik)
+    ! read(70, Rec=ik) nk, ib, nb, kvecs1(:,ik), &
+    ! &    eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik)
 
     ! new format (carbon)
-    ! read(70, Rec=ik) nk, ib, nb, kvecs1(:,ik), &
-    ! &    eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik), &
-    ! &    eferqp, eferks
+    read(70, Rec=ik) nk, ib, nb, kvecs1(:,ik), &
+    &    eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik), &
+    &    eferqp, eferks
 
     !write(fgw,*) '# ik    kvecs1    ibgw,    nbgw'
     !write(fgw,*) ik, kvecs1(:,ik), ib, nb
