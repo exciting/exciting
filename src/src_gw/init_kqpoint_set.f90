@@ -6,7 +6,7 @@ subroutine init_kqpoint_set()
     use modgw,      only : kset, Gset, Gkset, kqset, Gqset, Gqbarc, fgw
     use mod_kpointset
     use mod_frequency
-    use mod_mpi_gw, only : myrank
+    use modmpi,     only : rank
     use m_getunit
     implicit none
     
@@ -25,9 +25,9 @@ subroutine init_kqpoint_set()
     &                       input%gw%ngridq, &
     &                       input%gw%vqloff, &
     &                       input%groundstate%reducek)
-    call print_k_vectors(kset,fgw)
+    if (rank==0) call print_k_vectors(kset,fgw)
     
-    if (input%gw%debug) then
+    if ((input%gw%debug).and.(rank==0)) then
       call getunit(fid)
       open(fid,file='GW_KPOINTS.OUT',action='Write',status='Unknown')
       call print_k_vectors(kset,fid)
@@ -49,7 +49,7 @@ subroutine init_kqpoint_set()
     &                       bvec, &
     &                       intgv, &
     &                       input%groundstate%gmaxvr)
-    !if (input%gw%debug) call print_G_vectors(Gset,fid)
+    if ((input%gw%debug).and.(rank==0)) call print_G_vectors(Gset,fid)
     
     !==========================
     ! G+k-points (non-reduced)
@@ -67,13 +67,13 @@ subroutine init_kqpoint_set()
     &                        input%gw%ngridq, &
     &                        input%gw%vqloff, &
     &                        input%gw%reduceq)
-    if (input%gw%debug) call print_kq_vectors(kqset,fid)
+    if ((input%gw%debug).and.(rank==0)) call print_kq_vectors(kqset,fid)
     
     !==========================
     ! G+q-points (non-reduced)
     !==========================
     gqmax = gkmax*input%gw%mixbasis%gmb
-    if (input%gw%debug) then
+    if ((input%gw%debug).and.(rank==0)) then
       write(fid,*)
       write(fid,*) 'Plane-wave cutoff for G+q <gqmax>: ', gqmax
       write(fid,*)
@@ -83,14 +83,14 @@ subroutine init_kqpoint_set()
     &                        ksetnr, &
     &                        Gset, &
     &                        gqmax)
-    !if (input%gw%debug) call print_Gk_vectors(Gqset,fid)
+    !if ((input%gw%debug).and.(rank==0)) call print_Gk_vectors(Gqset,fid)
     
     !=============================================================
     ! PW basis set used for calculating the bare Coulomb potential
     !=============================================================
     gqmaxbarc = min(input%gw%BareCoul%pwm*gqmax, &
     &              input%groundstate%gmaxvr)
-    if (input%gw%debug) then
+    if ((input%gw%debug).and.(rank==0)) then
       write(fid,*)
       write(fid,*) 'Plane-wave cutoff for the bare Coulomb potential &
       &<gqmaxbarc>: ', gqmaxbarc
@@ -132,7 +132,7 @@ subroutine init_kqpoint_set()
     ! delete the dummy k-set
     call delete_k_vectors(ksetnr)
     ! close the k-point info file
-    if (input%gw%debug) close(fid)
+    if ((input%gw%debug).and.(rank==0)) close(fid)
 
 contains
 

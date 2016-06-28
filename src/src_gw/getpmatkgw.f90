@@ -90,7 +90,7 @@ subroutine getpmatkgw(ik)
         end do ! ie2
       end if ! core
       
-    end if 
+    end if
 
     return
 end subroutine

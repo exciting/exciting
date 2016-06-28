@@ -407,6 +407,14 @@
 	          </xs:documentation>
             </xs:annotation>
           </xs:attribute>
+
+          <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="rmax" default="40.0">
+            <xs:annotation>
+              <xs:documentation>
+                Determine the basis size for the Fourier-series based interpolation subroutine used for the QP bandstructure plot.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
                     
         </xs:complexType>
     </xs:element>

@@ -82,7 +82,7 @@ subroutine setrindex
       rvec(i) = sqrt(avec(1,i)**2+avec(2,i)**2+avec(3,i)**2)
     enddo
 
-    rmax = 200.0d0
+    rmax = input%gw%rmax
       
     nr1 = 2*nint(rmax/rvec(1))
     nr2 = 2*nint(rmax/rvec(2))
