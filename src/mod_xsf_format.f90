@@ -13,7 +13,7 @@ contains
   subroutine write_structure_xsf(fname)
     implicit none
     ! input/output
-    character(*), intent(in) :: fname
+    character*(*), intent(in) :: fname
     ! local
     integer :: is, ia
     open(80,file=trim(fname),status='Unknown',action='Write')
@@ -40,7 +40,7 @@ contains
   subroutine write_supercell_xsf(fname,nx,ny,nz)
     implicit none
     ! input/output
-    character(*), intent(in) :: fname
+    character*(*), intent(in) :: fname
     integer, intent(in) :: nx(2)
     integer, intent(in) :: ny(2)
     integer, intent(in) :: nz(2)
@@ -81,8 +81,8 @@ contains
   subroutine write_2d_xsf(fname,label,boxl,igrid,npt,rdata)
     implicit none
     ! input/output
-    character(*) :: fname
-    character(*) :: label
+    character*(*) :: fname
+    character*(*) :: label
     real(8), intent(in) :: boxl(3,3)
     integer, intent(in) :: igrid(3)
     integer, intent(in) :: npt
@@ -118,8 +118,8 @@ contains
   subroutine write_3d_xsf(fname,label,boxl,igrid,npt,rdata)
     implicit none
     ! input/output
-    character(*) :: fname
-    character(*) :: label
+    character*(*) :: fname
+    character*(*) :: label
     real(8), intent(in) :: boxl(4,3)
     integer, intent(in) :: igrid(3)
     integer, intent(in) :: npt
@@ -128,8 +128,6 @@ contains
     integer :: ip, i, is, ia
     real(8) :: boxc(4,3)
     character(30) :: frmt
-
-    write(*,*) boxl
 
     do i = 1, 4
       call r3mv(input%structure%crystal%basevect, boxl(i,:), boxc(i,:))

@@ -479,6 +479,7 @@ contains
     do ia = 1, natoms(is)
       ias = idxas(ia,is)
       do lm = 1, lmmaxapw
+        l = lmapwidx(1,lm)
         do io = 1, apword(l,is)
           do ist = 1, nst
             apwcmt(ist,io,lm,ias) = &

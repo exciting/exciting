@@ -14,8 +14,8 @@ contains
   subroutine write_3d_cube(fname,label,boxl,igrid,npt,rdata)
     implicit none
     ! input/output
-    character(*) :: fname
-    character(*) :: label
+    character*(*) :: fname
+    character*(*) :: label
     real(8), intent(in) :: boxl(4,3)
     integer, intent(in) :: igrid(3)
     integer, intent(in) :: npt
@@ -62,7 +62,6 @@ contains
     
     do is = 1, nspecies
     do ia = 1, natoms(is)
-      write(*,*) "spzn=", spzn(is)
       write(80,'(I5,4F12.6)') &
       &  abs(int(spzn(is))),  & ! atom number
       &  0.d0,                & ! charge

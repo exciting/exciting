@@ -79,21 +79,16 @@ subroutine angular_averaging(iom,n,bi)
     
     case('isotropic')
     
-      q0eps(:) = input%gw%scrcoul%q0eps
+      q0eps(:) = input%gw%scrcoul%q0eps(:)
       modq0 = q0eps(1)**2+q0eps(2)**2+q0eps(3)**2
 
       epsh(iom,1,1) = modq0 / (L(1,1)*q0eps(1)+L(2,2)*q0eps(2)+L(3,3)*q0eps(3))
-      !epsh(iom,1,1) = 3.d0 / (L(1,1)+L(2,2)+L(3,3))
       
       epsw1(:,iom,1) = -epsh(iom,1,1)* &
       &                (s(:,1)*q0eps(1)+s(:,2)*q0eps(2)+s(:,3)*q0eps(3))/dsqrt(modq0)
-      ! epsw1(:,iom,1) = -epsh(iom,1,1)* &
-      ! &                (s(:,1)+s(:,2)+s(:,3))/dsqrt(3.d0)
 
       epsw2(:,iom,1) = -epsh(iom,1,1)* &
-      &                (t(:,1)*q0eps(1)+t(:,2)*q0eps(2)+t(:,3)*q0eps(3))/dsqrt(modq0)
-      ! epsw2(:,iom,1) = -epsh(iom,1,1)* &
-      ! &                (t(:,1)+t(:,2)+t(:,3))/dsqrt(3.d0)
+      &                (t(1,:)*q0eps(1)+t(2,:)*q0eps(2)+t(3,:)*q0eps(3))/dsqrt(modq0)
       
       do j2 = 1, n
         do j1 = 1, n

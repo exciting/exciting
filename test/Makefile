@@ -105,3 +105,4 @@ cleantests::
 	-rm -f  test*/run*/*.dat
 	-rm -f  test*/run*/*.DAT
 	-rm -f  test*/run*/*.xsf
+	-rm -f  test*/run*/*.cube
