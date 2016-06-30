@@ -59,11 +59,7 @@ subroutine moke
             stop
         end if
         do iw = 1, wgrid
-            read(50, *) w(iw), eps11(iw,1)
-        end do
-        read(50,*)
-        do iw = 1, wgrid
-            read (50, *) w(iw), eps11(iw,2)
+            read(50, *) w(iw), eps11(iw,1), eps11(iw,2)
         end do
         close(50)
 
@@ -76,11 +72,7 @@ subroutine moke
             stop
         end if
         do iw = 1, wgrid
-            read(50, *) w(iw), eps12(iw,1)
-        end do
-        read(50,*)
-        do iw = 1, wgrid
-            read(50, *) w(iw), eps12(iw,2)
+            read(50, *) w(iw), eps12(iw,1), eps12(iw,2)
         end do
         close(50)
 

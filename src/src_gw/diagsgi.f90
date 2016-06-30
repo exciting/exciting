@@ -106,7 +106,7 @@ else
     lwork = -1
     iu = ngq
     abstol = 2.d0*dlamch('S')
-    allocate(work(1),rwork(1),iwork(1))
+    allocate(work(1),rwork(1),iwork(1),isuppz(1))
     call zheevr('V', 'A', 'U', ngq, zmat, ngq, vl, vu, il, iu, &
     &           abstol, neval, epsipw, sgi, ngq, isuppz, work, lwork, rwork, &
     &           lrwork, iwork, liwork, info)
@@ -115,7 +115,7 @@ else
     liwork = int(iwork(1))
     lwork = int(work(1))
     ! write(*,*) lrwork,liwork,lwork
-    deallocate(work,rwork,iwork)
+    deallocate(work,rwork,iwork,isuppz)
     allocate(work(lwork),rwork(lrwork),iwork(liwork))
     allocate(isuppz(2*ngq))
     call zheevr('V', 'A', 'U', ngq, zmat, ngq, vl, vu, il, iu, &

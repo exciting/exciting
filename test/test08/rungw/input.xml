@@ -20,9 +20,9 @@
     >
   </groundstate>
   <gw
-    taskname="g0w0" coreflag="val"
+    taskname="g0w0" coreflag="all"
     ibgw="1" nbgw="15"
-    nempty="50"
+    nempty="22"
     >
   </gw>
 </input>

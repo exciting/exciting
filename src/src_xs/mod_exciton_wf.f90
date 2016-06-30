@@ -95,7 +95,7 @@ contains
       write(*,*)
       stop
     end if
-    ! call print_rgrid(r_h)
+    call print_rgrid(r_h)
 
     !----------------------------
     ! ELECTRON
@@ -146,7 +146,7 @@ contains
             ! output
             if (rank==0) then
               write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".xsf")') lambda, ip
-              write(label,'("hole position: ", 3F12.6)') r0%vpl(:,ip)
+              write(label,'("hole position: ", 3F12.6)') r0%vpl(:,1)
               call write_structure_xsf(fname)
               select case (ndim_e)
                 case(1)
@@ -173,7 +173,7 @@ contains
             ! output
             if (rank==0) then
               write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".xsf")') lambda, ip
-              write(label,'("hole position: ", 3F12.6)') r0%vpl(:,ip)
+              write(label,'("electron position: ", 3F12.6)') r0%vpl(:,1)
               call write_structure_xsf(fname)
               select case (ndim_h)
                 case(1)
@@ -215,7 +215,6 @@ contains
     ! local
     integer :: ivck, ik, iv, ic, ist, jst, ip, npt
     real(8) :: prob
-    character(80) :: fname
     complex(8), allocatable :: apwalm(:,:,:,:)
     complex(8), allocatable :: evecfvt(:,:)
     complex(8), allocatable :: evecsvt(:,:)
@@ -310,8 +309,8 @@ contains
 #endif    
 
     ! total probability
-    prob = omega*sum(abs(zwfeh)**2)/dble(npt)
-    write(*,'(a,e15.4/)') 'prob=', prob
+    ! prob = omega*sum(abs(zwfeh)**2)/dble(npt)
+    ! write(*,'(a,e15.4/)') 'prob=', prob
 
     deallocate(zwfrh,zwfre)
     deallocate(apwalm,evecfvt,evecsvt)
@@ -325,7 +324,7 @@ contains
   !--------------------------------------------------------------------------------
   subroutine read_exccoeff(fname)
     implicit none
-    character(*) :: fname
+    character*(*) :: fname
     logical :: exist
     integer :: iostat
     integer :: MinNumberExcitons, MaxNumberExcitons
@@ -373,9 +372,9 @@ contains
   subroutine write_zwfeh(fname,r_grid,zdata)
     use mod_rgrid
     implicit none
-    character(*), intent(in) :: fname
-    type(rgrid),  intent(in) :: r_grid
-    real(8),      intent(in) :: zdata(:)
+    character*(*), intent(in) :: fname
+    type(rgrid),   intent(in) :: r_grid
+    real(8),       intent(in) :: zdata(:)
     ! local
     integer :: ip
     if (rank==0) then
@@ -434,9 +433,9 @@ contains
       end if
     end do
 
-    write(*,*) 'nka=', nka, nkptnr
-    write(*,*) 'nva=', nva(1), nrnst1
-    write(*,*) 'nca=', nca(:,1), nrnst3
+    ! write(*,*) 'nka=', nka, nkptnr
+    ! write(*,*) 'nva=', nva(1), nrnst1
+    ! write(*,*) 'nca=', nca(:,1), nrnst3
     ! stop
 
     return
