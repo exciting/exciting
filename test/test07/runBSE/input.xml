@@ -37,7 +37,6 @@
   	  nempty="115" />
   	 
   	 <BSE bsetype="singlet"
-  	  nstlbsemat="1 5 1 2"
   	  nstlbse="1 5 1 2" 
   	  aresbse="false"/>
        	 
