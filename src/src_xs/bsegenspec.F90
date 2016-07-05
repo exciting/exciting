@@ -53,7 +53,7 @@ Subroutine bsegenspec ()
    call init1
    call init2
   ! size of BSE-Hamiltonian
-  if (input%xs%BSE%xas .eq. .true.) Then
+  if (input%xs%BSE%xas) Then
    hamsiz = (input%xs%bse%nstlxas(2) - input%xs%bse%nstlxas(1) + 1) * &
      &      nxas * nkptnr
     nexc= hamsiz

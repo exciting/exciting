@@ -288,9 +288,9 @@ subroutine plot_selfenergy
     kset%nkpt = 1
 
     n = nbgw-ibgw+1
-    write(frmt1,'("(",i,"f14.6)")') 1+2*n
+    write(frmt1,'("(",i8,"f14.6)")') 1+2*n
     write(*,*) trim(frmt1)
-    write(frmt2,'("(",i,"f14.6)")') 1+n
+    write(frmt2,'("(",i8,"f14.6)")') 1+n
     write(*,*) trim(frmt2)
     
     ! OUTPUT: integrated over BZ

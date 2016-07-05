@@ -274,7 +274,7 @@ Subroutine bse
                         kdocc (s1) = docc (ist1-sta1+1, ist3-sta2+1)
                         ! add diagonal term
                         If (s1 .Eq. s2) Then
-                           de = evalsv (ist3+istl3-sta1-1, iknr) - evalsv &
+                           de = evalsv (ist3+istl3-sta1, iknr) - evalsv &
                           & (ist1, iknr) + input%xs%scissor                                                                                                       
                             ham (s1, s2) = ham (s1, s2) + de - egap + &
                           & bsed

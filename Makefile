@@ -1,15 +1,9 @@
 
 .NOTPARALLEL:
 
-ifeq ($(BUILDMPI),false)
+default: build/make.inc all
 
-default: build/make.inc serial
-
-else
-
-default: build/make.inc mpi
-
-endif
+all: serial mpi
 
 build/make.inc:
 	perl ./setup.pl

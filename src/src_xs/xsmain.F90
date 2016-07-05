@@ -71,7 +71,7 @@ Subroutine xsmain (plan)
 #endif            
          Case (320)
      ! parallel version of momentum matrix elements
-			 if( input%xs%BSE%xas .eq. .true.) then
+			 if (input%xs%BSE%xas) then
 				Call xasinit
 				Call writepmatxs
 				Call writepmatxs
@@ -134,7 +134,7 @@ Subroutine xsmain (plan)
             Call screen
          Case (440)
      ! screened Coulomb interaction
-			if( input%xs%BSE%xas .eq. .true.) then
+			if (input%xs%BSE%xas) then
 				Call xasinit
 				Call xas_scrcoulint
 				Call xasfinit
@@ -143,7 +143,7 @@ Subroutine xsmain (plan)
 			end if
          Case (441)
      ! exchange Coulomb interaction
-			 if( input%xs%BSE%xas .eq. .true.) then
+			 if (input%xs%BSE%xas) then
 				Call xasinit
 				Call xas_exccoulint
 				Call xasfinit
@@ -152,7 +152,7 @@ Subroutine xsmain (plan)
 			end if
          Case (445)
      ! Bethe-Salpeter equation
-             if( input%xs%BSE%xas .eq. .true.) then
+             if (input%xs%BSE%xas) then
 				Call xasinit
 				Call xas
 				Call xasfinit
@@ -162,7 +162,7 @@ Subroutine xsmain (plan)
          Case (446)
      ! regenerate BSE spectrum from exciton output
 
-            if( input%xs%BSE%xas .eq. .true.) then
+            if (input%xs%BSE%xas) then
 				call xasinit
 				call bsegenspec
 				call xasfinit
@@ -186,7 +186,7 @@ Subroutine xsmain (plan)
          case (999)
             call testmain
          case (710)
-			if (input%xs%BSE%xas .eq. .true.) then
+			if (input%xs%BSE%xas) then
 				call xasinit
 				call plot_excitonWavefunction
 				call xasfinit

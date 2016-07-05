@@ -77,7 +77,7 @@ Subroutine writepmatxs
       Allocate (evecfvt(nmatmax, nstfv))
       Allocate (evecsvt(nstsv, nstsv))
   ! allocate the momentum matrix elements array
-      if ((input%xs%bse%xas .eq. .true.) .and. (task .Le. 400)) then              ! Allocation for XAS calculation
+      if ((input%xs%bse%xas) .and. (task .Le. 400)) then ! Allocation for XAS calculation
         Allocate (pmat(3, ncg, nstsv))
 	  else
 		Allocate (pmat(3, nstsv, nstsv))
@@ -149,7 +149,7 @@ Subroutine writepmatxs
             If (nlotot .Gt. 0) Call genlocmt (ngk(1, ik), 1, nstfv, &
            & evecfvt, locmt)
         ! calculate the momentum matrix elements
-			If ((input%xs%bse%xas .eq. .true.) .and. (task .Le. 400)) then
+			If ((input%xs%bse%xas) .and. (task .Le. 400)) then
 				Call genpmatcorxs (ik, ngk(1, ik),apwalmt, evecfvt, evecsvt, pmat)		
 			Else
 				Call genpmatxs (ngk(1, ik), igkig(1, 1, ik), vgkc(1, 1, 1, &
