@@ -72,7 +72,7 @@ contains
     call init1
     call init2
     call xssave0
-    call readfermi 
+    call readfermi
 
     !----------------------------
     ! HOLE
@@ -191,7 +191,7 @@ contains
           end do ! ip
 
         case default
-          write(*,*) "Error(mod_exciton_wf::plot_6d_excitonWavefunction): Wrong value is specified!"
+          write(*,*) "Error(mod_exciton_wf::plot_excitonWavefunction): Wrong value is specified!"
           write(*,*) "fix = ", trim(fix)
           stop
       end select
@@ -262,7 +262,7 @@ contains
     do ika = 1, nka
 #endif
       ik = kMap(ika)
-      !write(*,'(a,i,3f12.4)') 'vkl: ', ik, vkl(:,ik)
+      ! write(*,'(a,i,3f12.4)') 'vkl: ', ik, vkl(:,ik)
 
       ! read eigenvectors
       call getevecfv(vkl(:,ik), vgkl(:,:,:,ik), evecfvt)
@@ -416,7 +416,7 @@ contains
         do ic = 1, nrnst3
           ! combined ivck index (bse.f90 function hamidx)
           ivck = ic + nrnst3*(iv-1) + nrnst1*nrnst3*(ik-1)
-          if (abs(bevec(ivck,lambda)) > input%xs%excitonplot%epstol) then
+          if (abs(bevec(ivck,lambda)) > epstol) then
             active = .true.
             nca(iv,ik) = nca(iv,ik)+1
             cMap(nca(iv,ik),iv,ik) = ic
@@ -432,6 +432,14 @@ contains
         kMap(nka) = ik
       end if
     end do
+
+    if (nka==0) then
+      write(*,*)
+      write(*,*) 'Error(mod_exciton_wf::sort_transitions) None of the transitions'
+      write(*,*) '  satisfies to the specified tolerance factor!', input%xs%excitonplot%epstol
+      write(*,*) '  Decrease the value of input%xs%excitonplot%epstol'
+      write(*,*)
+    end if
 
     ! write(*,*) 'nka=', nka, nkptnr
     ! write(*,*) 'nva=', nva(1), nrnst1
