@@ -113,11 +113,10 @@ subroutine wfplot_new(ik,ist)
 
       ! Output
       if (rank==0) then
-        write(fname,'("wf1d-",i,"-",i,".dat")') ik, ist
-        call str_strip(fname)
+        write(fname,'("wf1d-",i4.4,"-",i4.4,".dat")') ik, ist
         open(77,file=trim(fname),status='Unknown',action='Write')
         do ip = 1, grid%npt
-          write(77,'(i,3f16.6)') ip, zdata(ip), abs(zdata(ip))**2
+          write(77,'(i4,3f16.6)') ip, zdata(ip), abs(zdata(ip))**2
           !write(77,'(3f16.6)') grid%vpd(ip), zdata(ip)
           !write(77,'(2f16.6)') grid%vpd(ip), wkpt(ik)*nkptnr*abs(zdata(ip))**2
         end do
@@ -149,7 +148,7 @@ subroutine wfplot_new(ik,ist)
       call calc_zdata_rgrid(grid, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
 
       if (rank==0) then
-        write(fname,'("wf2d-",i,"-",i,".xsf")') ik, ist
+        write(fname,'("wf2d-",i4.4,"-",i4.4,".xsf")') ik, ist
         call str_strip(fname)
         call write_structure_xsf(fname)
         call write_2d_xsf(fname, 'module squared',   grid%boxl(1:3,:), grid%ngrid, grid%npt, abs(zdata)**2)
@@ -182,7 +181,7 @@ subroutine wfplot_new(ik,ist)
       call calc_zdata_rgrid(grid, ik, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdata)
 
       if (rank==0) then
-        write(fname,'("wf3d-",i,"-",i,".xsf")') ik, ist
+        write(fname,'("wf3d-",i4.4,"-",i4.4,".xsf")') ik, ist
         call str_strip(fname)
         call write_structure_xsf(fname)
         call write_3d_xsf(fname, 'squared modulus', grid%boxl(1:4,:), grid%ngrid, grid%npt, abs(zdata)**2)
@@ -197,7 +196,7 @@ subroutine wfplot_new(ik,ist)
         !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
 
         ! Gaussian cube-format
-        write(fname,'("wf3d-",i,"-",i,".cube")') ik, ist
+        write(fname,'("wf3d-",i4.4,"-",i4.4,".cube")') ik, ist
         call str_strip(fname)
         call write_3d_cube(fname, 'squared modulus', grid%boxl(1:4,:), grid%ngrid, grid%npt, abs(zdata)**2)
       end if

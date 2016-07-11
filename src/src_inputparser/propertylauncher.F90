@@ -29,6 +29,7 @@ Subroutine propertylauncher
 
       !--------------------------------------------------------
       If (associated(input%properties%wfplot)) Then
+         call rereadinput
          ! kstlist should only contain one k-point and state for wave-function plot
          if (size(input%properties%wfplot%kstlist%pointstatepair,2)<1) then
             write(*,*)
@@ -69,17 +70,10 @@ Subroutine propertylauncher
       If (associated(input%properties%DFTD2)) Then
          Call DFT_D2_energy
       End If
-      
-      If (associated(input%properties%chargedensityplot) .And. rank .Eq. 0) Then
-         Call rhoplot
-      End If
 
-      If (associated(input%properties%exccplot) .And. rank .Eq. 0) Then
-         Call potplot
-      End If
-
-      If (associated(input%properties%elfplot) .And. rank .Eq. 0) Then
-         Call elfplot
+      If (associated(input%properties%elfplot)) Then
+         call rereadinput
+         call elfplot
       End If
 
       !--------------------------------------------------------

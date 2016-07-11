@@ -14,10 +14,10 @@ subroutine setsingc
     real(8) :: sumf2   ! BZ integrals at singular $\Gamma$ point
     integer :: iq
     
-    if (fdebug.and.(myrank==0)) then
-      write(*,*)
-      write(*,*) 'Use the auxiliary function by Massida et al. (1993)'
-      write(*,*)
+    if ((input%gw%debug).and.(myrank==0)) then
+      write(fdebug,*)
+      write(fdebug,*) 'Use the auxiliary function by Massida et al. (1993)'
+      write(fdebug,*)
     end if
       
     beta = (omega/(6.0d0*pi*pi))**(1.0d0/3.0d0)
@@ -37,12 +37,12 @@ subroutine setsingc
     singc1 = intf1-sumf1
     singc2 = intf2-sumf2
 
-    if (fdebug.and.(myrank==0)) then
-      write(*,*) 'Info(setsingc): Integrals of the auxiliary function'
-      write(*,1) beta
-      write(*,2) intf1, intf2
-      write(*,3) sumf1, sumf2
-      write(*,4) singc1, singc2
+    if ((input%gw%debug).and.(myrank==0)) then
+      write(fdebug,*) 'Info(setsingc): Integrals of the auxiliary function'
+      write(fdebug,1) beta
+      write(fdebug,2) intf1, intf2
+      write(fdebug,3) sumf1, sumf2
+      write(fdebug,4) singc1, singc2
       1 format('Parameter beta: ',f18.12,/,30x,'q^(-1)',12x,'q^(-2)')
       2 format('Analitic integration: ',2f18.12)
       3 format('Numerical integration: ',2f18.12)

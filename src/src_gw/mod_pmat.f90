@@ -478,6 +478,10 @@ contains
     do is = 1, nspecies
     do ia = 1, natoms(is)
       ias = idxas(ia,is)
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(lm,l,io,ist)
+!$OMP DO
+#endif
       do lm = 1, lmmaxapw
         l = lmapwidx(1,lm)
         do io = 1, apword(l,is)
@@ -487,6 +491,10 @@ contains
           end do
         end do
       end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif      
     end do
     end do
     !----------------------------------------------------
@@ -497,15 +505,23 @@ contains
       do is = 1, nspecies
       do ia = 1, natoms(is)
         ias = idxas(ia,is)
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(lm,ilo,l,m,i,ist)
+!$OMP DO
+#endif        
         do lm = 1, lmmaxlo(is)
           ilo = lmloidx(1,lm,is)
           l   = lmloidx(2,lm,is)
           m   = lmloidx(3,lm,is)
-          i   = idxlo(idxlm(l,m),ilo,ias)
+          i   = idxlo(lm,ilo,ias)
           do ist = 1, nst
             locmt(ist,ilo,m,ias) = evec(ngp+i,ist)
           end do
         end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif        
       end do
       end do
     end if

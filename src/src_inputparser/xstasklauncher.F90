@@ -136,7 +136,7 @@ Subroutine xstasklauncher
          Call idf
          Call xsfinit
 !
-      Else If (trim(input%xs%xstype) .Eq. "BSE" .AND. input%xs%BSE%xas .eq. .false.) Then
+      Else If ((trim(input%xs%xstype)=="BSE") .AND. (.not.input%xs%BSE%xas)) Then
 !
 ! STK
 ! apply double grid technique if requested
@@ -226,7 +226,7 @@ Subroutine xstasklauncher
           input%xs%screening%do = doscreen0
        endif
 !
-      Else If (trim(input%xs%xstype) .Eq. "BSE" .AND. input%xs%BSE%xas .eq. .true.) Then
+      Else If ((trim(input%xs%xstype)=="BSE") .AND. (input%xs%BSE%xas)) Then
 !
 ! STK
 ! apply double grid technique if requested
