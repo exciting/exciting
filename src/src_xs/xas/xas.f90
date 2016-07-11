@@ -88,6 +88,7 @@ Subroutine xas
 !BOC
       Implicit None
   ! local variables
+      
       ! CC
       integer :: iostat, ievec
       logical :: exist
@@ -172,7 +173,7 @@ Subroutine xas
       Write (unitout, '("  range of fourth index and number :", 2i6, 3x&
      &, i6)') istl4, istu4, nst4
   ! size of BSE-Hamiltonian
-      hamsiz = nrnst1 * nrnst3 * nkptnr   
+      hamsiz = nrnst1 * nrnst3 * nkptnr 
   ! allocate arrays for Coulomb interactons
       Allocate (sccli(nrnst1, nrnst3, nrnst2, nrnst4))
       Allocate (excli(nrnst1, nrnst3, nrnst2, nrnst4))
@@ -252,7 +253,7 @@ Subroutine xas
                        & nrnst4)
                      ! add diagonal term
                         If (s1 .Eq. s2) Then                                    ! here the core energies have to be evaluated
-                           de = evalsv (ist3+istl3-sta1-1, iknr) - ecore &
+                           de = evalsv (ist3+istl3-sta2, iknr) - ecore &
                           & (ist1) + input%xs%scissor 
                                                                                                                     
                             ham (s1, s2) = ham (s1, s2) + de - egap + &
@@ -264,12 +265,14 @@ Subroutine xas
                         Case ('RPA', 'singlet')
                            ham (s1, s2) = ham (s1, s2) + excli &
                            & (ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)
+                        print *, 'excli(', s1, ',', s2, ')=', excli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)
                         End Select
                     ! add correlation term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('singlet', 'triplet')	
                            ham (s1, s2) = ham (s1, s2) - sccli (ist1-sta1+1, &
                            & ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)
+                           print *, 'sccli(', s1, ',', s2, ')=', sccli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)
                         End Select
                      End Do
                   End Do
