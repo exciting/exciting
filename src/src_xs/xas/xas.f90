@@ -265,14 +265,12 @@ Subroutine xas
                         Case ('RPA', 'singlet')
                            ham (s1, s2) = ham (s1, s2) + excli &
                            & (ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)
-                        print *, 'excli(', s1, ',', s2, ')=', excli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)
                         End Select
                     ! add correlation term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('singlet', 'triplet')	
                            ham (s1, s2) = ham (s1, s2) - sccli (ist1-sta1+1, &
                            & ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)
-                           print *, 'sccli(', s1, ',', s2, ')=', sccli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)
                         End Select
                      End Do
                   End Do
