@@ -9,11 +9,10 @@ import string
 from scipy.interpolate import LinearNDInterpolator
 from scipy.interpolate import griddata
 
-if len(sys.argv) != 3:
+if len(sys.argv) < 3 or len(sys.argv) > 4 :
     print "\n** ERROR: Must specify name of file and direction on command line.\n"
-    print "** Usage: ", sys.argv[0], " <KS band structure> <exciton eigenvector>"
+    print "** Usage: ", sys.argv[0], " <KS band structure> <exciton eigenvector> <keyword>"
     sys.exit(0)
-
 if not os.path.isfile(sys.argv[1]):
     print "\n** ERROR: Input file %s was not found." % sys.argv[1]
     sys.exit(0)
@@ -21,7 +20,13 @@ if not os.path.isfile(sys.argv[1]):
 if not os.path.isfile(sys.argv[2]):
     print "\n** ERROR: Input file %s was not found." % sys.argv[2]
     sys.exit(0)
-
+if len(sys.argv) == 4 and str(sys.argv[3]) != 'xas' :
+    print "\n** ERROR: Unknown Keyword %s .\n" % sys.argv[3]
+    sys.exit(0)
+if len(sys.argv) == 4 and str(sys.argv[3]) == 'xas':
+	xas=True
+else:
+	xas=False
 #----------------------------------------------
 # read Band Structure
 #----------------------------------------------
@@ -82,12 +87,19 @@ for ip_ in range(npnt_):
 f.close()
 
 # single band contributions
-tmp = np.zeros((npnt_,nv+nc))
-for ip_ in range(npnt_):
-  for iv in xrange(nv):
-    tmp[ip_,iv] = np.sum(data_[ip_,iv,:])
-  for ic in xrange(nc):
-    tmp[ip_,nv+ic] = np.sum(data_[ip_,:,ic])
+if xas:
+	tmp = np.zeros((npnt_,nc))
+	for ip_ in range(npnt_):
+  		for ic in xrange(nc):
+			tmp[ip_,ic] = np.sum(data_[ip_,:,ic])
+
+else: 
+	tmp = np.zeros((npnt_,nv+nc))
+	for ip_ in range(npnt_):
+  		for iv in xrange(nv):
+			tmp[ip_,iv] = np.sum(data_[ip_,iv,:])
+  		for ic in xrange(nc):
+			tmp[ip_,nv+ic] = np.sum(data_[ip_,:,ic])
 
 del data_
 data_ = tmp
@@ -98,7 +110,10 @@ del tmp
 #--------------------------------------------------------
 npnt = 3*3*3*npnt_
 grid = np.zeros((npnt,3))
-data = np.zeros((npnt,nv+nc))
+if xas:
+	data = np.zeros((npnt,nc))
+else:
+	data = np.zeros((npnt,nv+nc))
 ip = 0
 for i in xrange(-1,2):
   for j in xrange(-1,2):
@@ -113,15 +128,26 @@ for i in xrange(-1,2):
 #----------------------------------------------
 # Output
 #----------------------------------------------
-for ist in xrange(nbnd0,nbnd1+1):
-  for ik in xrange(nkpt):
-    if (ist>=v0) and (ist<=c0+nc-1):
-      xyz = tuple(vkl[ik,:])
-      val = griddata(grid, data[:,ist-v0], xyz, method='linear')
-    else:
-      val = 0.0
-    print path[ik], ene[ik,ist-nbnd0], val
-  print "\n"
+if (xas):
+	for ist in xrange(nbnd0,nbnd1+1):
+		for ik in xrange(nkpt):
+			if (ist>=c0) and (ist<=c0+nc-1):
+				xyz = tuple(vkl[ik,:])
+				val = griddata(grid, data[:,ist-c0], xyz, method='linear')
+			else:
+				val = 0.0
+			print path[ik], ene[ik,ist-nbnd0], val
+		print "\n"
+else:	
+	for ist in xrange(nbnd0,nbnd1+1):
+		for ik in xrange(nkpt):
+			if (ist>=v0) and (ist<=c0+nc-1):
+				xyz = tuple(vkl[ik,:])
+				val = griddata(grid, data[:,ist-v0], xyz, method='linear')
+			else:
+				val = 0.0
+			print path[ik], ene[ik,ist-nbnd0], val
+		print "\n"
 
 #
 # Gnuplot command

@@ -274,7 +274,7 @@ Subroutine bse
                         kdocc (s1) = docc (ist1-sta1+1, ist3-sta2+1)
                         ! add diagonal term
                         If (s1 .Eq. s2) Then
-                           de = evalsv (ist3+istl3-sta1-1, iknr) - evalsv &
+                           de = evalsv (ist3+istl3-sta2, iknr) - evalsv &
                           & (ist1, iknr) + input%xs%scissor                                                                                                       
                             ham (s1, s2) = ham (s1, s2) + de - egap + &
                           & bsed
@@ -317,6 +317,9 @@ Subroutine bse
       Call timesec (ts0)
   ! diagonalize Hamiltonian
       Call bsesoldiag (hamsiz, ne, ham, beval, bevec)
+	do ist1=1, hamsiz
+		print *, 'beval(', ist1, ')=', beval(ist1)
+	end do
       Call timesec (ts1)
   ! deallocate BSE-Hamiltonian
       Deallocate (ham)
@@ -349,6 +352,7 @@ Subroutine bse
                   s1 = hamidx (ist1-sta1+1, ist2-istl3+1,&
                  & iknr, nrnst1, nrnst3)                
                   pmat (s1, oct1) = pm (oct1, ist1, ist2)
+				  !print *, 'pmat(', s1, ',', oct1, ')=', pmat(s1, oct1)
                End Do
             End Do
          End Do
@@ -368,6 +372,7 @@ Subroutine bse
                   End Do
                End Do
             End Do
+         print *, 'oszs(', s1, ',', oct1, ')=', oszs(s1,oct1)
          End Do
      ! STK: add case of double grid
          if (dgrid) then 
