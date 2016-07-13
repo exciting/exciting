@@ -122,12 +122,6 @@ Subroutine bse
 
       integer :: Recl, nstsv_
       real(8) :: vkl_(3)
-
-      real(8) :: rh(3)
-      Character (256) :: lambda
-      Real (8) :: bevec_ksum, bevec1
-      Integer :: un
-      
       
   ! routine not yet parallelized
   if (rank .ne. 0) goto 10
@@ -194,8 +188,7 @@ Subroutine bse
       Do iknr = 1, nkptnr
         Call getevalsv (vkl(1, iknr), evalsv(1, iknr))
       End Do
-
-      if (associated(input%gw)) then
+       if (associated(input%gw)) then                                         ! GW Part
         ! to KS eigenvalues to use them later for renormalizing PMAT
         allocate(eval0(nstsv,nkptnr))
         eval0(:,:)=evalsv(:,:)
@@ -247,16 +240,16 @@ Subroutine bse
             ikkp = ikkp + 1
             iv2 (:) = ivknr (:, jknr) - ivknr (:, iknr)
             iv2 (:) = modulo (iv2(:), input%groundstate%ngridk(:))
-            ! q-point (reduced)
+        ! q-point (reduced)
             iqr = iqmapr (iv2(1), iv2(2), iv2(3))
-            ! q-point (non-reduced)
+        ! q-point (non-reduced)
             iq = iqmap (iv2(1), iv2(2), iv2(3))
             Select Case (trim(input%xs%bse%bsetype))
             Case ('singlet', 'triplet')
-              ! read screened Coulomb interaction
+           ! read screened Coulomb interaction
               Call getbsemat ('SCCLI.OUT', ikkp, nrnst1, nrnst3, sccli)
             End Select
-            ! read exchange Coulomb interaction
+        ! read exchange Coulomb interaction
             Select Case (trim(input%xs%bse%bsetype))
             Case ('RPA', 'singlet')
                Call getbsemat ('EXCLI.OUT', ikkp, nrnst1, nrnst3, excli)
@@ -317,9 +310,6 @@ Subroutine bse
       Call timesec (ts0)
   ! diagonalize Hamiltonian
       Call bsesoldiag (hamsiz, ne, ham, beval, bevec)
-	do ist1=1, hamsiz
-		print *, 'beval(', ist1, ')=', beval(ist1)
-	end do
       Call timesec (ts1)
   ! deallocate BSE-Hamiltonian
       Deallocate (ham)
@@ -350,9 +340,8 @@ Subroutine bse
                   end if 
 ! DIN
                   s1 = hamidx (ist1-sta1+1, ist2-istl3+1,&
-                 & iknr, nrnst1, nrnst3)                
+                 & iknr, nrnst1, nrnst3)    
                   pmat (s1, oct1) = pm (oct1, ist1, ist2)
-				  !print *, 'pmat(', s1, ',', oct1, ')=', pmat(s1, oct1)
                End Do
             End Do
          End Do
@@ -372,7 +361,6 @@ Subroutine bse
                   End Do
                End Do
             End Do
-         print *, 'oszs(', s1, ',', oct1, ')=', oszs(s1,oct1)
          End Do
      ! STK: add case of double grid
          if (dgrid) then 
@@ -505,8 +493,7 @@ Subroutine bse
          Call writeloss (iq, w, loss(oct1, oct2, :), trim(fnloss))
          Call writesigma (iq, w, sigma, trim(fnsigma))
          Call writesumrls (iq, sumrls, trim(fnsumrules))
-        enddo       
-
+        enddo
       end do
 
       if (associated(input%xs%storeexcitons)) then
