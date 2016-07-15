@@ -124,7 +124,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
 
   do ib = ibgw, min(nbgw,nstsv)
      do ik = 1, nkpt
-        eqp2(ib,ik) = eqp2(ib,ik)+dble(de2(ik,ib))
+        eqp2(ib,ik) = eqp2(ib,ik)+dble(de2(ik,ib))-eferqp
      enddo 
   enddo
 
