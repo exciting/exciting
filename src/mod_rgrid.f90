@@ -531,5 +531,136 @@ contains
 
     return
   end subroutine
+  !----------------------------------------------------------------------------
+  subroutine calc_zdata_rgrid_core(self,mu,corewfmt,zdata)
+    use modmain
+    use modxas
+    implicit none
+
+    type(rgrid), intent(in)  :: self
+    integer,     intent(in)  :: mu
+	real(8), intent(in) ::      corewfmt(spnrmax)
+    complex(8),  intent(out) :: zdata(*)
+    ! local
+    integer :: ip0, ip, is, ia, ias, ir, i, j, lm, ig, igp ,lm1, lm2
+    real(8) :: vl(3), vc(3), v(3), r
+    complex(8), allocatable :: zylm(:)
+    ! interpolation variables
+    integer :: np2, ir0, iv(3), nx, ny, nz
+    real(8) :: t1, t2, phs, phsav
+    complex(8) :: zsum, z
+    real(8), allocatable :: xa(:), ya(:), c(:)
+    real(8), external :: polynom
+
+    np2 = input%groundstate%nprad/2
+
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) &
+!$OMP PRIVATE(ip,is,ia,ias,vl,vc,zylm,r,ir,ir0,zsum,lm,j,i,xa,ya,t1,t2,c,v,igp)
+#endif
+    allocate(zylm(lmmaxapw))
+    allocate(xa(input%groundstate%nprad))
+    allocate(ya(input%groundstate%nprad))
+    allocate(c(input%groundstate%nprad))
+#ifdef USEOMP    
+!$OMP DO
+#endif
+    do ip = 1, self%npt
+
+      is = self%atom(1,ip)
+      ia = self%atom(2,ip)
+      ias = idxas(ia,is)
+      vl(:) = self%vpl(:,ip)
+      vc(:) = self%vpc(:,ip)
+
+    	if (self%mtpoint(ip)) then
+        !----------------------------
+        ! point belong to MT region
+        !----------------------------
+        ! cart. coordinates wrt atom (is,ia)
+        call ylm(vc,input%groundstate%lmaxapw,zylm)
+        r = dsqrt(vc(1)**2+vc(2)**2+vc(3)**2)
+        do ir = 1, nrmt(is)
+          if (spr(ir,is)>=r) then
+            if (ir<=np2) then
+              ir0 = 1
+            else if (ir>nrmt(is)-np2) then
+              ir0 = nrmt(is)-input%groundstate%nprad+1
+            else
+              ir0 = ir-np2
+            end if
+            r = max(r,spr(1,is))
+            lm1=idxlm(lxas,mj2ml(mu,1))
+            lm2=idxlm(lxas,mj2ml(mu,2))
+            zsum = 0.d0
+            	do j = 1, input%groundstate%nprad
+                i = ir0+j-1
+                xa(j)=corewfmt(i)                
+              end do
+              ! interpolate radial part of wfmt
+              t1 = polynom(0, input%groundstate%nprad, &
+              &            spr(ir0,is), xa, c, r)
+              zsum = zsum+t1*(1/(sqrt(2.0d0)))*(zylm(lm1)+zylm(lm2))
+            exit ! the loop over ir
+          end if
+        end do ! ir
+        write(*,*) 'ip=', ip
+		
+        zdata(ip) = zsum
+
+        !v(:) = dble(self%iv(:,ip))
+        !t1 = twopi*(vkl(1,ik)*v(1)+ &
+        !&           vkl(2,ik)*v(2)+ &
+        !&           vkl(3,ik)*v(3))
+        !zdata(ip) = zsum*cmplx(dcos(t1),dsin(t1),8)
+
+      else
+        !----------------------------
+        ! point belong to IS region
+        !----------------------------
+        zsum = 0.d0
+        !do igp = 1, ngk(1,ik)
+        !  t1 = twopi*(vgkl(1,igp,1,ik)*vl(1)+ &
+        ! &           vgkl(2,igp,1,ik)*vl(2)+ &
+        ! &           vgkl(3,igp,1,ik)*vl(3))
+        ! zsum = zsum + wfir(igp)*cmplx(dcos(t1),dsin(t1),8)
+        !end do
+        zdata(ip) = zsum
+
+      end if
+
+    end do ! ip
+#ifdef USEOMP
+!$OMP END DO NOWAIT
+#endif
+    deallocate(zylm)
+    deallocate(xa)
+    deallocate(ya)
+    deallocate(c)
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif
+
+    ! dephasing (lapw7)
+    if (.false.) then
+      phsav = 0.0d0
+      do ip = 1, self%npt
+        z = zdata(ip)
+        if (abs(z)>1d-8) then
+          phsav = phsav + dmod(datan2(dimag(z),dble(z))+pi,pi)
+        end if
+      end do
+      phsav = phsav/dble(self%npt)
+      phs   = dcmplx(cos(phsav),-sin(phsav))
+      do ip = 1, self%npt
+        zdata(ip) = zdata(ip)*phs
+      end do
+    end if
+
+    ! t1 = dsqrt(0.5d0/omega)
+    ! zdata(1:self%npt) = t1*zdata(1:self%npt)
+
+    return
+  end subroutine
 
 end module

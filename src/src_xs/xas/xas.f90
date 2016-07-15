@@ -88,6 +88,7 @@ Subroutine xas
 !BOC
       Implicit None
   ! local variables
+      
       ! CC
       integer :: iostat, ievec
       logical :: exist
@@ -117,7 +118,6 @@ Subroutine xas
 
       integer :: Recl, nstsv_
       real(8) :: vkl_(3)
-      integer :: ir
       
   ! routine not yet parallelized
   if (rank .ne. 0) goto 10
@@ -172,13 +172,14 @@ Subroutine xas
       Write (unitout, '("  range of fourth index and number :", 2i6, 3x&
      &, i6)') istl4, istu4, nst4
   ! size of BSE-Hamiltonian
-      hamsiz = nrnst1 * nrnst3 * nkptnr   
+      hamsiz = nrnst1 * nrnst3 * nkptnr
   ! allocate arrays for Coulomb interactons
       Allocate (sccli(nrnst1, nrnst3, nrnst2, nrnst4))
       Allocate (excli(nrnst1, nrnst3, nrnst2, nrnst4))
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
       Allocate (ham(hamsiz, hamsiz))
       ham (:, :) = zzero
+
   ! read KS energies
       Do iknr = 1, nkptnr
         Call getevalsv (vkl(1, iknr), evalsv(1, iknr))
@@ -197,11 +198,10 @@ Subroutine xas
   ! read mean value of diagonal of direct term
       bsed = 0.d0
       If ((trim(input%xs%bse%bsetype) .Eq. 'singlet') .Or. &
-     & (trim(input%xs%bse%bsetype) .Eq. 'triplet')) Then
+      &   (trim(input%xs%bse%bsetype) .Eq. 'triplet')) Then
          If (input%xs%bse%bsedirsing) Then
             Call getbsediag
-            Write (unitout, '("Info(xas): read diagonal of BSE kernel")&
-           &')
+            Write (unitout, '("Info(xas): read diagonal of BSE kernel")')
             Write (unitout, '(" mean value : ", 2g18.10)') bsed
          End If
       End If
@@ -234,7 +234,7 @@ Subroutine xas
             Select Case (trim(input%xs%bse%bsetype))
             Case ('singlet', 'triplet')
            ! read screened Coulomb interaction
-               Call getbsemat ('SCCLI.OUT', ikkp, nrnst1, nrnst3, sccli)
+              Call getbsemat ('SCCLI.OUT', ikkp, nrnst1, nrnst3, sccli)
             End Select
         ! read exchange Coulomb interaction
             Select Case (trim(input%xs%bse%bsetype))
@@ -246,18 +246,14 @@ Subroutine xas
                Do ist3 = sta2, sto2
                   Do ist2 = sta1, sto1
                      Do ist4 = sta2, sto2
-                        s1 = hamidx (ist1-sta1+1, ist3-sta2+1, iknr, nrnst1, &
-                       & nrnst3)
-                        s2 = hamidx (ist2-sta1+1, ist4-sta2+1, jknr, nrnst2, &
-                       & nrnst4)
+                        s1 = hamidx (ist1-sta1+1, ist3-sta2+1, iknr, nrnst1, nrnst3)
+                        s2 = hamidx (ist2-sta1+1, ist4-sta2+1, jknr, nrnst2, nrnst4)
                      ! add diagonal term
-                        If (s1 .Eq. s2) Then                                    ! here the core energies have to be evaluated
-                           de = evalsv (ist3+istl3-sta1-1, iknr) - ecore &
-                          & (ist1) + input%xs%scissor 
-                                                                                                                    
+                        If (s1 .Eq. s2) Then
+                           de = evalsv (ist3+istl3-sta2, iknr) - ecore &
+                          & (ist1) + input%xs%scissor                                                                                                    
                             ham (s1, s2) = ham (s1, s2) + de - egap + &
                           & bsed
-                     	
                         End If
                     ! add exchange term
                         Select Case (trim(input%xs%bse%bsetype))
@@ -475,7 +471,7 @@ Subroutine xas
          Call writesumrls (iq, sumrls, trim(fnsumrules))
         enddo
       end do
-      
+
       if (associated(input%xs%storeexcitons)) then
         !-----------------------------------------------------
         ! upon request, store array with exciton coefficients
@@ -509,11 +505,12 @@ Subroutine xas
         close(50)
       end if
 
-      
       deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
       if (associated(input%gw)) deallocate(eval0)
-10 continue
-      call barrier      
+
+      10 continue
+      call barrier
+
 Contains
 !
       Integer Function hamidx (i1, i2, ik, n1, n2)
@@ -521,7 +518,7 @@ Contains
          Integer, Intent (In) :: i1, i2, ik, n1, n2
          hamidx = i2 + n2 * (i1-1) + n1 * n2 * (ik-1)
       End Function hamidx
-!
+
 End Subroutine xas
 !EOC
 
