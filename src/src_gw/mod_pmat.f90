@@ -513,7 +513,8 @@ contains
           ilo = lmloidx(1,lm,is)
           l   = lmloidx(2,lm,is)
           m   = lmloidx(3,lm,is)
-          i   = idxlo(lm,ilo,ias)
+          ! important: lm /= idxlm(l,m) (bad name for local orbital (lm) counter)
+          i   = idxlo(idxlm(l,m),ilo,ias)
           do ist = 1, nst
             locmt(ist,ilo,m,ias) = evec(ngp+i,ist)
           end do

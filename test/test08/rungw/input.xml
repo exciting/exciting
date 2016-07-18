@@ -12,7 +12,7 @@
     </species>
   </structure>
   <groundstate
-    do="fromscratch"
+    do="skip"
     rgkmax="7.0"
     gmaxvr="12"
     ngridk="2 2 2"
@@ -20,7 +20,7 @@
     >
   </groundstate>
   <gw
-    taskname="g0w0" coreflag="all"
+    taskname="g0w0" coreflag="all" skipgnd="true"
     ibgw="1" nbgw="15"
     nempty="22"
     >
