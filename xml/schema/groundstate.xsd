@@ -2474,7 +2474,17 @@
       <xs:attribute ex:importance="essential" ex:unit="" name="maxscl" type="xs:integer"
         default="200">
         <xs:annotation>
-          <xs:documentation>Upper limit for te self-consistency loop.</xs:documentation>
+          <xs:documentation>Upper limit for the self-consistency loop.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="essential" ex:unit="" name="niterconvcheck" type="xs:integer"
+        default="2">
+	<xs:annotation>
+	  <xs:documentation>Number of self-consistency iterations over which to test convergence. 
+	  For example, if <attref>niterconvcheck</attref>=2, then both the second and third to last
+	  iterations are compared to the last one to check convergence. The convergence criteria
+	  used are those set up by <attref>scfconv</attref>. 
+	  </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="chgexs" type="fortrandouble"
