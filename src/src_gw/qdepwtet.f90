@@ -53,7 +53,7 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
     fnm(:,:,:,:) = zzero
 
     ! real or imaginary frequencies
-    select case (input%gw%freqgrid%fconv)
+    select case (freq%fconv)
       case('nofreq')
         fflg = 1
       case('refreq')

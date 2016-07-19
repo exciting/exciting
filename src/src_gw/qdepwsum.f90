@@ -48,7 +48,7 @@
       allocate(kcw(nstfv,nstfv,1:freq%nomeg,nkptnr))
       kcw=0.0d0
       
-      select case (input%gw%freqgrid%fconv)
+      select case (freq%fconv)
         case('nofreq')
           fflg = 1
         case('refreq')
@@ -60,8 +60,8 @@
 ! 
 !     loop over inequivalent atoms    
 !
-      wk=2.0d0/dble(nqptnr)
-      do ik = 1, nqptnr
+      wk=2.0d0/dble(kqset%nkpt)
+      do ik = 1, kqset%nkpt
         jk=kqid(ik,iq)
         ikp=ik2ikp(ik)
         jkp=ik2ikp(jk)

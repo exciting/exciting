@@ -98,7 +98,7 @@ subroutine calchead(ik,iomstart,iomend,ndim)
             zsum = zsum+kwfer(ie1,ik)*pnm
           enddo ! ie1
           ! for imaginary frequency, a negative sign is needed 
-          if (input%gw%freqgrid%fconv=='imfreq') zsum = -zsum
+          if (freq%fconv=='imfreq') zsum = -zsum
           epsh(iom,iop,jop) = epsh(iom,iop,jop)- &
           &                   coefh*zsum/(freq%freqs(iom)**2)
         end if ! metallic

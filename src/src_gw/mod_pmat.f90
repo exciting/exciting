@@ -197,9 +197,9 @@ contains
 !$OMP DO
 #endif              
           do lm1 = 1, lmmaxlo(is)
-            ilo1 = lmloidx(1,lm1,is)
-            l1   = lmloidx(2,lm1,is)
-            m1   = lmloidx(3,lm1,is)
+            ilo1  = lmloidx(1,lm1,is)
+            l1    = lmloidx(2,lm1,is)
+            m1    = lmloidx(3,lm1,is)
             fr(:) = lofr(:,1,ilo1,ias)
             call gradzfmtr(input%groundstate%lmaxapw, nr, &
             &              spr(1,is), l1, m1, lmmaxapw, nrmtmax, &
@@ -221,7 +221,7 @@ contains
           l1  = lmapwidx(1,lm1)
           do io1 = 1, apword(l1,is)
             do lm2 = 1, lmmaxapw
-            l2  = lmapwidx(1,lm2)
+              l2  = lmapwidx(1,lm2)
               do io2 = 1, apword(l2,is)
                 do i = 1, 3
                   fr(1:nr) = apwfr(1:nr,1,io1,l1,ias)* &
@@ -276,7 +276,7 @@ contains
             l1   = lmloidx(2,lm1,is)
             m1   = lmloidx(3,lm1,is)
             do lm2 = 1, lmmaxapw
-            l2  = lmapwidx(1,lm2)
+              l2  = lmapwidx(1,lm2)
               do io2 = 1, apword(l2,is)
                 do i = 1, 3
                   fr(1:nr) = lofr(1:nr,1,ilo1,ias)* &
@@ -391,7 +391,7 @@ contains
         !     APW-core-orbital      !
         !---------------------------!
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(lm1,l1,io1,ic,l2,m2,lm2,i,fr,gr,cf)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(lm1,l1,io1,ic,l2,m2,i,fr,gr,cf)
 !$OMP DO
 #endif
         do lm1 = 1, lmmaxapw
@@ -400,7 +400,6 @@ contains
             do ic = 1, ncore(is)
               l2 = spl(ic,is)
               do m2 = -l2, l2
-                lm2 = idxlm(l2,m2)
                 do i = 1, 3
                   fr(1:nr) = apwfr(1:nr,1,io1,l1,ias)* &
                   &          duc(lm1,1:nr,i,ic,m2)* &
@@ -421,7 +420,7 @@ contains
         !     local-orbital-core-orbital    !
         !-----------------------------------!
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(lm1,ilo,l1,m1,ic,l2,m2,lm2,i,fr,gr,cf)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(lm1,ilo,l1,m1,ic,l2,m2,i,fr,gr,cf)
 !$OMP DO
 #endif                
           do lm1 = 1, lmmaxlo(is)
@@ -431,7 +430,6 @@ contains
             do ic = 1, ncore(is)
               l2 = spl(ic,is)
               do m2 = -l2, l2
-                lm2 = idxlm(l2,m2)
                 do i = 1, 3
                   fr(1:nr) = lofr(1:nr,1,ilo,ias)* &
                   &          duc(idxlm(l1,m1),1:nr,i,ic,m2)* &

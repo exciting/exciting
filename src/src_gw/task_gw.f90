@@ -193,7 +193,9 @@ subroutine task_gw
       ! Calculate the bare Coulomb potential
       !======================================
       call calcbarcmb(iq)
-      
+
+      ! Gamma = .false.
+
       !===============================
       ! Calculate \Sigma^{x}_{kn}(q)
       !===============================

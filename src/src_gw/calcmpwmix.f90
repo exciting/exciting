@@ -64,7 +64,7 @@ subroutine calcmpwmix(iq)
   !===========================
     
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ipw,gvec,gqvec,gqlen,sph,imix,is,nr,bessl,ir,x,fr,gr,cf,ia,ias,gpr,expg,irm,l1,janl,prefac,m1)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ipw,gvec,gqvec,gqlen,sph,imix,is,nr,bessl,ir,x,fr,gr,cf,ia,ias,gpr,expg,irm,l1,janl,prefac,m1,l1m1)
 !$OMP DO
 #endif
     do ipw = ipw0, npw
