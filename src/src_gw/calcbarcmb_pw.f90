@@ -1,25 +1,12 @@
-!BOP
-!
-!!ROUTINE: calcbarcmb_pw
-!
-!!INTERFACE:
+
 subroutine calcbarcmb_pw(iq)
       
-!!DESCRIPTION:
-!
-! This subroutine calculates the bare coulomb potential matrix by
-! expanding it in plane waves and then transforming to the mixed basis.
-! (For test purposes only)      
-!
-!!USES:
     use modmain
     use modgw
 
-!!INPUT PARAMETERS: 
     implicit none
     integer(4), intent(in) :: iq ! index of the q-point
 
-!!LOCAL VARIABLES:
     integer(4) :: i, ipw, ipw0, npw
     real(8) :: vc
     real(8) :: gpq(3), gpq2
@@ -27,8 +14,6 @@ subroutine calcbarcmb_pw(iq)
     
     real(8) :: kxy, kz, ab_plane, ab_norm(3), q0_vol
     
-!EOP
-!BOC      
     npw = Gqbarc%ngk(1,iq)
     allocate(tmat(matsiz,npw))
     tmat(:,:) = zzero
@@ -88,6 +73,3 @@ subroutine calcbarcmb_pw(iq)
       
     return  
 end subroutine
-!EOC            
-     
-               

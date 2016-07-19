@@ -1,11 +1,9 @@
 !BOP
 !
 !!MODULE: incgamma
-!
 module incgamma
 !      
 !!LOCAL VARIABLES:
-!   
       real(8), private :: etx ! exp(-x), declared here because it is used
                               ! by all the calls of the function, to avoid
                               ! recalculating it every time.
@@ -15,7 +13,6 @@ module incgamma
                               ! recalculating it every time.
 !
 !!INTERFACE:
-!
       interface gammaincc
         module procedure gammaincc_int
         module procedure gammaincc_hin
@@ -68,17 +65,17 @@ contains
 !
 !BOP
 !
-!!IROUTINE: gammaincc_int
+!!IROUTINE: \verb"gammaincc_int"
 ! 
 !!INTERFACE:
     recursive function gammaincc_int(n,x) result(gmi)
-      
+!      
 !!INPUT PARAMETERS:      
         implicit none
         real(8) :: x  ! value at which the gamma function is calculated
         integer :: n  ! order of the gamma function
 !
-! !OUTPUT PARAMETERS:        
+!!OUTPUT PARAMETERS:        
 !        
         real(8) :: gmi ! value of the gamma function
 !        
@@ -102,7 +99,7 @@ contains
 !
 !BOP
 !
-!!IROUTINE: gammaincc_hin
+!!IROUTINE: \verb"gammaincc_hin"
 ! 
 !!INTERFACE:
     recursive function gammaincc_hin(in,x,n) result(gmh)
@@ -143,17 +140,17 @@ contains
         implicit none
         real(8) :: x     ! Argument of the gamma function
         real(8) :: n     ! order of the gamma function
-! !OUTPUT PARAMETERS:
+
+!!OUTPUT PARAMETERS:
         real(8) :: incgam ! value of the gamma function (result)
 
-! !DESCRIPTION:
+!!DESCRIPTION:
 !
 ! The function works as an interface, it checks whether the index
 ! is integer or half integer and calls the corresponding procedure
 ! within the module
 !
-! !LOCAL VARIABLES:
-
+!!LOCAL VARIABLES:
         integer(4) :: in ! integer part of n
         
 ! !REVISION HISTORY:
@@ -207,13 +204,12 @@ function rcutoff(tol,eta,lambdamax) result(rcf)
 ! and taking the maximum value of $R_c$ obtained for $\lambda = 1...$
 !\verb"lambdamax".      
 !
-! !USES:
-      
+!!USES:
     use modmain,     only: pi
     use mod_misc_gw, only: avec
     use incgamma,    only: incgam
       
-! !INPUT PARAMETERS:
+!!INPUT PARAMETERS:
     implicit none
     real(8), intent(in) :: tol ! The tolerance for the convergence of the lattice sum
     real(8), intent(in) :: eta 
@@ -239,7 +235,7 @@ function rcutoff(tol,eta,lambdamax) result(rcf)
 !!EXTERNAL ROUTINES:     
     real(8), external :: higam
 !
-! !REVISION HISTORY:
+!!REVISION HISTORY:
 ! 
 ! Created: January 2004 by RGA
 ! Last Modified: 6. August 2004 by RGA
@@ -311,7 +307,6 @@ function gcutoff(tol,eta,lambdamax) result(rcf)
 !\verb"lambdamax".      
 !
 !!USES:
-      
     use modmain,  only: pi, omega, bvec
     use incgamma, only: incgam
 

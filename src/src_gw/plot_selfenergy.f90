@@ -1,12 +1,6 @@
-!BOP
-!
-!!ROUTINE: plot_selfenergy
-!
-!!INTERFACE:
-!
-subroutine plot_selfenergy
-!
-!!USES:
+
+subroutine plot_selfenergy()
+
     use modinput
     use modmain
     use modgw
@@ -41,15 +35,6 @@ subroutine plot_selfenergy
     integer :: n
     character(30) :: frmt1, frmt2, axis
        
-!!DESCRIPTION:
-!
-!      
-!!REVISION HISTORY:
-!
-! Created May 2015 by DIN
-!
-!EOP
-!BOC
     call init0
     input%groundstate%stypenumber = -1
     call init1
@@ -343,5 +328,4 @@ subroutine plot_selfenergy
       
     return
 end subroutine
-!EOC      
 

@@ -1,37 +1,18 @@
-!BOP
-!
-!!ROUTINE: write_qp_energies
-!
-!!INTERFACE:
-!
-    subroutine write_qp_energies(fname)
-!
-!!DESCRIPTION:
-! 
-! This subroutine writes the qp energies to file
-!
-!!USES:
+
+subroutine write_qp_energies(fname)
+
     use modinput
     use modgw
     use m_getunit
     implicit none 
     character(len=*), intent(in) :: fname
        
-!!LOCAL VARIABLES:
     integer(4) :: ie
     integer(4) :: ikp
     integer(4) :: fid
     real(8)    :: deltae, deltax
     real(8)    :: ehf, eks, egw
     real(8)    :: vxc, sx, sc, z
-
-!!REVISION HISTORY:
-!
-! Created 16.08.05 by RGA
-! Revisited: May 2011 by DIN
-!
-!EOP
-!BOC
 
     !---------------------------------------------------------------------------
     call getunit(fid)
@@ -86,4 +67,3 @@
 
     return 
 end subroutine
-!EOC      

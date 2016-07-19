@@ -1,13 +1,13 @@
 !BOP
 !
-!!ROUTINE: expand_evec
+!!ROUTINE: \verb"expand_evec"
 !
 !!INTERFACE:
 !
     subroutine expand_evec(ik,trans)
-
+!
 !!DESCRIPTION:
-
+!
 !Calculate the product of an eigenvector with the corresponding matching coefficients
 !
 !!USES:
@@ -19,7 +19,7 @@
 
 !!INPUT PARAMETERS:
     implicit none
-    integer(4), intent(in) :: ik    ! index of the k-point      
+    integer(4),   intent(in) :: ik    ! index of the k-point      
     character(1), intent(in) :: trans
       
 !!LOCAL VARIABLES:
@@ -36,7 +36,6 @@
 !!EXTERNAL ROUTINES: 
     complex(8), external :: zdotc
     complex(8), external :: zdotu
-    complex(8), external :: getdlmm
     
 !!REVISION HISTORY:
 ! 
@@ -46,7 +45,7 @@
 !
 !EOP  
 !BOC
-    ! find the matching coefficients
+    ! find matching coefficients
     allocate(alm(ngkmax,apwordmax,lmmaxapw,natmtot))
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
     

@@ -1,18 +1,6 @@
-!BOP
-!
-!!ROUTINE: init_product_basis
-!
-!!INTERFACE:
-!
+
 subroutine init_product_basis()
-!
-!!DESCRIPTION:
-!
-! This subroutine initializes the mixed product basis. It calculates the product
-! functions and their overlap matrix, and orthonormalizes them. Calculates
-! the matrices rtl, rrint, bradket-xx and jlam needed afterwards.
-! 
-!!USES:
+
     use modinput
     use modmain,               only: nlomax, natmtot, nrmtmax, nspecies, &
     &                                natoms, idxas, spnstmax, apwordmax, &
@@ -29,20 +17,11 @@ subroutine init_product_basis()
     use reallocate
     implicit none
 
-!!LOCAL VARIABLES:
     integer(4) :: is, ia, ias
     integer(4) :: irm, im, imix
     integer(4) :: l, m, lm
     integer(4) :: ndim, nrwf
     
-!!REVISION HISTORY:
-!
-! Last Modified 10.11.2005 by RGA
-! Revisited 28.04.2011 by DIN
-!      
-!EOP
-!BOC
-
 !_______________________________________________________________________________    
 ! Generate Kohn-Sham radial functions
 
@@ -237,4 +216,3 @@ subroutine init_product_basis()
     
     return
 end subroutine
-!EOC
