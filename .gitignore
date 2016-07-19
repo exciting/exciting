@@ -89,3 +89,6 @@ src/libXC/config.h.in
 src/libXC/configure
 src/libXC/src/Makefile.in
 src/libXC/testsuite/Makefile.in
+src/libXC/testsuite/xc-consistency
+src/libXC/testsuite/xc-get_data
+src/libXC/testsuite/xc-regression

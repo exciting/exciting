@@ -268,7 +268,65 @@
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="fxctype" default="RPA">
               <xs:annotation>
-                <xs:documentation>Defines which xc kernel is to be used.</xs:documentation>
+                <xs:documentation>Defines which xc kernel is to be used. Examples on the use of the
+		different kernels can be found online on the Tutorial "TDDFT Calculations with Different Kernels"
+		on www.exciting-code.org.
+		In the options indicated below, if the suffix <pre>"_NLF"</pre> is present, then 
+		local-field effects are neglected (scalar kernel). Otherwise the kernel 
+		is a matrix of the size of the number of <inlinemath>\mathbf{G}</inlinemath>-vectors, 
+		whose diagonal elements are all equal. The available kernels <inlinemath>f_{xc}</inlinemath> are:
+		<list>
+		  <li><pre>"RPA"</pre> -
+		  Random-phase approximation kernel. <inlinemath>f_{xc}=0</inlinemath>
+		  </li>
+		  <li><pre>"LRCstatic[_NLF]"</pre> -
+		  Long-range correction kernel. 
+		  <displaymath>
+		    f_{xc}=-\frac{\alpha}{\mathbf{q}^2}.
+		  </displaymath>
+		  See S. Botti et al., Phys. Rev. B 69, 155112 (2004)
+		  </li>
+		  <li><pre>"LRCdyn[_NLF]"</pre> -
+		  Dynamical long-range correction kernel. 
+		  <displaymath>
+		    f_{xc}=-\frac{\alpha+\beta \omega^2}{\mathbf{q}^2}
+		  </displaymath>
+		  with <inlinemath>\alpha</inlinemath> given by the value of <attref>alphalrcdyn</attref>
+		  and <inlinemath>\beta</inlinemath> given by the value of <attref>betalrcdyn</attref>.
+		  See S. Botti et al., Phys. Rev. B 72, 125203 (2005)
+		  </li>
+		  <li><pre>"ALDA"</pre> -
+		  Adiabatic LDA kernel. 
+		  <displaymath>
+		    f_{xc}(\mathbf{r},\mathbf{r}',t-t')=\frac{\delta V_{xc}(\mathbf{r})}{\delta n(\mathbf{r}')}\delta(t-t').
+		  </displaymath>
+		  In this implementation, <inlinemath>V_{xc}(\mathbf{r})</inlinemath> is the spin-unpolarised 
+		  exchange-correlation potential corresponding to the Perdew-Wang parameterisation 
+		  of Ceperley-Alder's Monte-Carlo data (see Phys. Rev. B 45, 13244 (1992) and Phys. Rev. Lett. 45, 566 (1980)).
+		  </li>
+		  <li><pre>"MB1[_NLF]"</pre> -
+		  BSE derived xc kernel. See L. Reining et al., Phys. Rev. Lett. 88, 066404 (2002) 
+		  and A. Marini et al., Phys. Rev. Lett. 91, 256402 (2003).
+		  </li>
+		  <li><pre>"BO"</pre> -
+		  Bootstrap kernel.   
+		  <displaymath>
+		    f_{xc}=\frac{\varepsilon^{-1}(\omega=0)}{\chi_{00}(\omega=0)}.
+		  </displaymath>
+		  See S. Sharma et al., Phys. Rev. Lett. 107, 186401 (2011).
+		  </li>
+		  <li><pre>"BO_SCALAR"</pre> -
+		  Scalar version of the bootstrap kernel. <inlinemath>
+		    f_{xc}=\left[\varepsilon_M(\omega=0)\chi_{00}(\omega=0)\right]^{-1}
+		  </inlinemath>. See S. Sharma et al., Phys. Rev. Lett. 107, 186401 (2011).
+		  </li>
+		  <li><pre>"RBO"</pre> -
+		  RPA bootstrap kernel. <inlinemath>
+		    f_{xc}=\left[\varepsilon^{RPA}_M(\omega=0)\overline{\chi}_{00}^{RPA}(\omega=0)\right]^{-1}
+		  </inlinemath>. See S. Rigamonti et al., Phys. Rev. Lett. 114, 146402 (2015).
+		  </li>
+		</list>
+		</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
