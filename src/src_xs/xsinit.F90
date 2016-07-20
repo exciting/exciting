@@ -92,6 +92,9 @@ Subroutine xsinit
   !--------------------------------------------!
   !     map xs parameters associated to GS     !
   !--------------------------------------------!
+
+      If (input%xs%rgkmax .Eq. 0.d0) input%xs%rgkmax = input%groundstate%rgkmax
+
       Call mapxsparameters
 !
 !
