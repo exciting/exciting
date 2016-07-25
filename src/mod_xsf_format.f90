@@ -1,7 +1,7 @@
 
 module mod_xsf_format
   use modinput
-  use modmain, only : natmtot, nspecies, natoms, atposc
+  use modmain, only : natmtot, nspecies, natoms, atposc, spzn
   implicit none
 
   real(8), parameter :: bohr2ang = 0.529177d0
@@ -24,10 +24,13 @@ contains
     write(80,*) input%structure%crystal%basevect(:,3)*bohr2ang
     write(80,*) 'PRIMCOORD'
     write(80,*) natmtot, ' 1'
-  	do is = 1, nspecies
-  	do ia = 1, natoms(is)
-      write(80,'(A2,3F14.8)') &
-      &  trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+    do is = 1, nspecies
+    do ia = 1, natoms(is)
+      ! write(80,'(A2,3F14.8)') &
+      ! &  trim(input%structure%speciesarray(is)%species%chemicalSymbol), &
+      ! &  atposc(:,ia,is)*bohr2ang
+      write(80,'(I5,3F14.8)') &
+      &  abs(int(spzn(is))),  &
       &  atposc(:,ia,is)*bohr2ang
     end do
     end do

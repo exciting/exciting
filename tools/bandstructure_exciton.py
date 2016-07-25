@@ -128,6 +128,7 @@ for i in xrange(-1,2):
 #----------------------------------------------
 # Output
 #----------------------------------------------
+ha2ev = 27.2114
 if (xas):
 	for ist in xrange(nbnd0,nbnd1+1):
 		for ik in xrange(nkpt):
@@ -136,7 +137,7 @@ if (xas):
 				val = griddata(grid, data[:,ist-c0], xyz, method='linear')
 			else:
 				val = 0.0
-			print path[ik], ene[ik,ist-nbnd0], val
+			print path[ik], ene[ik,ist-nbnd0]*ha2ev, val
 		print "\n"
 else:	
 	for ist in xrange(nbnd0,nbnd1+1):
@@ -146,7 +147,7 @@ else:
 				val = griddata(grid, data[:,ist-v0], xyz, method='linear')
 			else:
 				val = 0.0
-			print path[ik], ene[ik,ist-nbnd0], val
+			print path[ik], ene[ik,ist-nbnd0]*ha2ev, val
 		print "\n"
 
 #
