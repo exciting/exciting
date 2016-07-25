@@ -66,11 +66,11 @@ subroutine calcinveps(iomstart,iomend)
       !call zhetri('u',mbsiz,b,mbsiz,ipiv,work,info)
       !call errmsg0(info,'calcinveps',"calling zhetri")
       call zgetrf(mbsiz,mbsiz,b,mbsiz,ipiv,info)
-      call errmsg0(info,'calcinveps',"calling zgetrf")
+      call errmsg0(info,'calcinveps','calling zgetrf')
       call zgetri(mbsiz,b,mbsiz,ipiv,work,lwork,info)
-      call errmsg0(info,'calcinveps',"calling zgetri")
+      call errmsg0(info,'calcinveps','calling zgetri')
       
-      ! \Gamma point treatment: Spherical averaging
+      ! \Gamma point treatment
       if (Gamma) call angular_averaging(iom,mbsiz,b)
       
       !--------------------------------------------

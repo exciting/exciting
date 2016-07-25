@@ -16,13 +16,13 @@ MODULE mod_frequency
     external gauleg
     
 CONTAINS
-	
+
 !-------------------------------------------------------------------------------
     subroutine delete_freqgrid(self)
-	    type(frequency), intent(INOUT) :: self
-		if (allocated(self%freqs)) deallocate(self%freqs)
-		if (allocated(self%womeg)) deallocate(self%womeg)
-	end subroutine
+        type(frequency), intent(INOUT) :: self
+        if (allocated(self%freqs)) deallocate(self%freqs)
+        if (allocated(self%womeg)) deallocate(self%womeg)
+    end subroutine
 
 !-------------------------------------------------------------------------------
     subroutine generate_freqgrid(self,fgrid,fconv,nomeg,freqmax)

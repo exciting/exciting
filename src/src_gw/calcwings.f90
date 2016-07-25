@@ -94,7 +94,7 @@ subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
         !---------
         ! Wing 2
         !---------
-        if (input%gw%freqgrid%fconv=='refreq') then
+        if (freq%fconv=='refreq') then
           ie12 = 0
           do ie2 = mstart, mend
             do ie1 = 1, ndim

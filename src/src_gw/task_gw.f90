@@ -1,12 +1,12 @@
 !BOP
 !
-!!ROUTINE: task_gw
+!!ROUTINE: \verb"task_gw"
 !
 !!INTERFACE:
 !      
-subroutine task_gw
+subroutine task_gw()
 !      
-! !DESCRIPTION:
+!!DESCRIPTION:
 !
 ! This subroutine performs one GW cycle and calculates the corresponding
 ! quasiparticle energies.
@@ -193,7 +193,7 @@ subroutine task_gw
       ! Calculate the bare Coulomb potential
       !======================================
       call calcbarcmb(iq)
-      
+
       !===============================
       ! Calculate \Sigma^{x}_{kn}(q)
       !===============================

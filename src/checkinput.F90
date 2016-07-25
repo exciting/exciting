@@ -67,9 +67,9 @@ subroutine checkinput
     end if
   end if
   if (associated(input%xs))then
-    if (input%xs%rgkmax.le.0.d0) then
+    if (input%xs%rgkmax.lt.0.d0) then
       write(*,*)
-      write(*,'("Error(checkinput): /input/xs/@rgkmax <= 0 : ",G18.10)') input%xs%rgkmax
+      write(*,'("Error(checkinput): /input/xs/@rgkmax < 0 : ",G18.10)') input%xs%rgkmax
       write(*,*)
       stop
     end if

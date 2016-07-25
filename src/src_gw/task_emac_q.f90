@@ -1,23 +1,12 @@
-!BOP
-!
-!!ROUTINE: task_emac_q
-!
-!!INTERFACE:
-!
-subroutine task_emac_q
-!      
-! !DESCRIPTION:
-!
-! This subroutine calculates the q-dependent macroscopic dielectric function
 
-!!USES:
+subroutine task_emac_q()
+
     use modinput
     use modmain
     use modgw
     use mod_mpi_gw
     use m_getunit
       
-!!LOCAL VARIABLES:
     implicit none
     integer :: iq, iom, iop, fid, im
     real(8) :: r0, r1, v(3)
@@ -31,13 +20,6 @@ subroutine task_emac_q
     integer :: ntype, ncnt, nsize
 #endif
     
-!!REVISION HISTORY:
-!
-! Created 16.09.2005 by RGA
-! Revisited: June 2011 by DIN
-!
-!EOP
-!BOC
     if (rank==0) call boxmsg(fgw,'=','Calculate the q-dependent macroscopic dielectric function for omega=0')
 
     !==========================
@@ -231,4 +213,3 @@ subroutine task_emac_q
     
     return
 end subroutine
-!EOC

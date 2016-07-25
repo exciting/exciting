@@ -4,7 +4,7 @@
 !
 !!INTERFACE:
 !
-subroutine barcq0
+subroutine barcq0()
 !
 !!DESCRIPTION:
 !
@@ -189,7 +189,7 @@ subroutine barcq0
     ! Calculate the matrix elements of the Coulomb potential 
     !--------------------------------------------------------
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(imix,ia,is,ias,irm,l1,m1,jmix,ja,js,jas,jrm,l2,m2,sum,igl,ig,gl0)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(imix,is,ia,ias,irm,l1,m1,jmix,js,ja,jas,jrm,l2,m2,sum,igl,ig,gl0)
 !$OMP DO
 #endif     
     do imix = 1, locmatsiz

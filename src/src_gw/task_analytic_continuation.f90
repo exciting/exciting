@@ -1,12 +1,6 @@
-!BOP
-!
-!!ROUTINE: task_analytic_continuation
-!
-!!INTERFACE:
-!
-subroutine task_analytic_continuation
-!
-!!USES:
+
+subroutine task_analytic_continuation()
+
     use modinput
     use modmain
     use modgw
@@ -20,20 +14,6 @@ subroutine task_analytic_continuation
     real(8) :: egap
     character(20) :: s1, s2
        
-!!DESCRIPTION:
-!
-! This subroutine perform the analytic continuation of the selfenergy to
-! real frequencies and calculates the quasi-particle energies. The
-! selfenergy and exchange correlation potential are read from file, thus, 
-! a previous run of the GW cycle is needed.        
-!
-!      
-!!REVISION HISTORY:
-!
-! Created June 2011 by DIN
-!
-!EOP
-!BOC
     call init0
     call init1
     
@@ -122,5 +102,3 @@ subroutine task_analytic_continuation
       
     return
 end subroutine
-!EOC      
-

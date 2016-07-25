@@ -1,23 +1,12 @@
-!BOP
-!
-!!ROUTINE: task_emac
-!
-!!INTERFACE:
-!
-subroutine task_emac
-!      
-! !DESCRIPTION:
-!
-! This subroutine calculates the macroscopic dielectric function
 
-!!USES:
+subroutine task_emac()
+
     use modinput
     use modmain
     use modgw
     use mod_mpi_gw
     use m_getunit
       
-!!LOCAL VARIABLES:
     implicit none
     integer :: iq, iom, iop, fid, im
     real(8) :: r0, r1, v(3)
@@ -28,13 +17,6 @@ subroutine task_emac
     integer :: ntype, ncnt, nsize
 #endif
     
-!!REVISION HISTORY:
-!
-! Created 16.09.2005 by RGA
-! Revisited: June 2011 by DIN
-!
-!EOP
-!BOC
     if (rank==0) call boxmsg(fgw,'=','Calculate the macroscopic dielectric function')
 
     !==========================
@@ -241,4 +223,3 @@ subroutine task_emac
     
     return
 end subroutine
-!EOC

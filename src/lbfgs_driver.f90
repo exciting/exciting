@@ -381,7 +381,6 @@ subroutine lbfgs_driver
             write(60,'(A)') " BFGS scheme not converged -> Stopping BFGS"
             write(60,*)
             call flushifc(60)
-            lstep = .True.
             call warning(' ')
             call warning('Warning(lbfgs_driver):')
             call warning(' BFGS scheme not converged')
@@ -393,13 +392,14 @@ subroutine lbfgs_driver
 
         else
 
+          lstep = .True.
+
           if (rank .Eq. 0) then
             write(60,'(" Number of investigated configurations",T45,": ",I9)') nconf
             write(60,*)
             write(60,'(3A)') " BFGS scheme not converged -> Switching to ", trim(input%relax%endbfgs), " method"
             write(60,*)
             call flushifc(60)
-            lstep = .True.
             call warning(' ')
             call warning('Warning(lbfgs_driver):')
             call warning(' BFGS scheme not converged')

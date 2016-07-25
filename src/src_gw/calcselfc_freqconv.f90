@@ -4,8 +4,8 @@
 !==================================================================
 subroutine calcselfc_freqconv(ikp,iq,mdim)
     use modinput
-    use modmain, only : pi, zzero, nstsv, evalsv, idxas, evalcr, efermi
-    use modgw,   only : ibgw, nbgw, kset, kqset, freq, selfec, mwm, &
+    use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi
+    use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
     &                   ncg, corind, fdebug
     ! input variables
     implicit none
@@ -21,8 +21,6 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
     complex(8) :: xnm(1:freq%nomeg)
     complex(8) :: sc, zt1, zt2, zt3
     
-    complex(8), external :: freqconv 
-
     ! k point
     ik = kset%ikp2ik(ikp)
     ! k-q point
@@ -33,9 +31,9 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
     ! loop over frequencies
     !------------------------
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(iom,ie1,sc,ie2,enk,xnm,icg,is,ia,ic,ias)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(iom,ie1,ie2,enk,xnm,icg,is,ia,ic,ias,zt1,sc,jom,zt2,zt3)
 !$OMP DO
-#endif    
+#endif
     do iom = 1, freq%nomeg
       ! loop over states
       do ie1 = ibgw, nbgw
@@ -43,7 +41,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
         ! sum over states
         do ie2 = 1, mdim
         
-          if (ie2<=nstsv) then
+          if (ie2<=nstse) then
             !============================= 
             ! Valence electron contribution
             !============================= 
@@ -53,7 +51,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
             !============================= 
             ! Core electron contribution
             !=============================
-            icg = ie2-nstsv
+            icg = ie2-nstse
             is = corind(icg,1)
             ia = corind(icg,2)
             ic = corind(icg,3)
