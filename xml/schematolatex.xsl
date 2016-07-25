@@ -57,7 +57,7 @@
 \ \\
 \Huge \textbf{</xsl:text><xsl:apply-templates select="/xs:schema/xs:annotation/xs:appinfo/title"/><xsl:text>} \\
 \ \\
-\huge \textbf{\exciting \texttt{boron-10}} \\
+\huge \textbf{\exciting \texttt{carbon}} \\
 \Large
 \vfill
 \ \\

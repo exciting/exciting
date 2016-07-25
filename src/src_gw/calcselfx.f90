@@ -44,11 +44,11 @@ subroutine calcselfx(iq)
 !
 !EOP
 !BOC
-    if (myrank==0) then
-      write(*,*)
-      write(*,*) ' ---- calcselfx started ----'
-      write(*,*)
-    end if
+    ! if (myrank==0) then
+    !   write(*,*)
+    !   write(*,*) ' ---- calcselfx started ----'
+    !   write(*,*)
+    ! end if
     call timesec(tstart)
    
     if (vccut) then
@@ -92,7 +92,7 @@ subroutine calcselfx(iq)
     allocate(minmmat(mbsiz,ibgw:nbgw,1:mdim))
     minmmat(:,:,:) = zzero
     msize = sizeof(minmmat)*b2mb
-    write(*,'(" calcselfx: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
+    ! write(*,'(" calcselfx: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
     
     !================================
     ! loop over irreducible k-points
@@ -100,8 +100,8 @@ subroutine calcselfx(iq)
     do ispn = 1, nspinor
     do ikp = 1, kset%nkpt
     
-      write(*,*)
-      write(*,*) '(calcselfx): k-point loop ikp=', ikp
+      ! write(*,*)
+      ! write(*,*) '(calcselfx): k-point loop ikp=', ikp
     
       ! k vector
       ik = kset%ikp2ik(ikp)
@@ -194,11 +194,11 @@ subroutine calcselfx(iq)
     call timesec(tend)
     time_selfx = time_selfx+tend-tstart
     
-    if (myrank==0) then
-      write(*,*)
-      write(*,*) ' ---- calcselfx ended ----'
-      write(*,*)
-    end if
+    ! if (myrank==0) then
+    !   write(*,*)
+    !   write(*,*) ' ---- calcselfx ended ----'
+    !   write(*,*)
+    ! end if
     
     return
 end subroutine

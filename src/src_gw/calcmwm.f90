@@ -18,7 +18,7 @@ subroutine calcmwm(nstart,nend,mstart,mend)
     
     if (nproc_col==1) then
     
-      write(*,*) '(calcmwm): sequential loop over frequencies, rank=', myrank
+      ! write(*,*) '(calcmwm): sequential loop over frequencies, rank=', myrank
       do iom = 1, freq%nomeg
         call calcmwm_block(iom,nstart,nend,mstart,mend, &
         &                  mwm(:,mstart:mend,iom))
@@ -27,7 +27,7 @@ subroutine calcmwm(nstart,nend,mstart,mend)
 #ifdef MPI
     else
     
-      write(*,*) '(calcmwm): parallel loop over frequencies, rank=', myrank
+      ! write(*,*) '(calcmwm): parallel loop over frequencies, rank=', myrank
       allocate(mwm_p(nstart:nend,mstart:mend,iomstart:iomend))
       do iom = iomstart, iomend
         call calcmwm_block(iom,nstart,nend,mstart,mend, &

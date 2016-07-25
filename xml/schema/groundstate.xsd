@@ -2679,7 +2679,7 @@
           <xs:documentation>(Obsolete) Order of predictor-corrector polynomial.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGA_PBE_SOL">
+      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGA_PBE">
         <xs:annotation>
           <xs:documentation> Type of exchange-correlation functional to be used <list>
               <li> No exchange-correlation funtional ( <inlinemath>E_{\rm xc}\equiv 0</inlinemath> ) </li>

@@ -41,7 +41,7 @@
         <p> 
 	   The input file of an <exciting>exciting</exciting> calculation has the default name
            <pre-bf>input.xml</pre-bf>. Simple examples for input files can be found in the available
-	   <a href="http://exciting-code.org/tutorials-boron">Tutorials</a>. 
+	   <a href="http://exciting-code.org/tutorials-carbon">Tutorials</a>. 
 	   The input file <pre-bf>input.xml</pre-bf> must be a valid <pre-bf>XML</pre-bf> file 
 	   and it must contain the root element <elementref>input</elementref>. 
 	</p>

@@ -52,8 +52,9 @@ contains
         call MPI_Comm_rank(mycomm,myrank,ierr)
         
         call MPI_get_processor_name(processor_name,namelen,ierr)
+        write(*,*)
         write(*,*) "Process ", myrank, " of ", nproc_tot, &
-        &  " running on ", trim(processor_name)
+        &          " running on ", trim(processor_name)
 #else
         nproc_tot = 1
         nproc_col = 1
@@ -119,9 +120,9 @@ contains
         
         if (myrank==0) then 
         
-          write(*,*) "Get MPI_NPROC_COL"
           call getenv("MPI_NPROC_COL",str)
-          write(*,*) "=>", str
+          ! write(*,*) "Get MPI_NPROC_COL"
+          ! write(*,*) "=>", str
           if (str=='') then 
             nproc_col = 1
           else 
@@ -141,7 +142,7 @@ contains
               nproc_col = nproc_tot/nkp+1
             end if
           end if 
-          write(*,*) "Broadcast MPI_NPROC_COL"
+          ! write(*,*) "Broadcast MPI_NPROC_COL"
         end if 
 
         call MPI_Bcast(nproc_col,1,MPI_INTEGER,0,mycomm,ierr)
@@ -153,11 +154,11 @@ contains
           nproc_row = nproc_tot/nproc_col+1
         end if 
 
-        if (myrank==0) then 
-          write(*,*) " nproc_tot =", nproc_tot
-          write(*,*) " nproc_row =", nproc_row
-          write(*,*) " nproc_col =", nproc_col
-        end if
+        ! if (myrank==0) then 
+        !   write(*,*) " nproc_tot =", nproc_tot
+        !   write(*,*) " nproc_row =", nproc_row
+        !   write(*,*) " nproc_col =", nproc_col
+        ! end if
 
         myrow = mod(myrank,nproc_col)
         mycol = myrank/nproc_col

@@ -104,17 +104,17 @@ subroutine task_gw()
           q0_vol   = twopi/dsqrt(pi*ab_plane*kqset%nkpt)
           i_sz = q0_vol*rccut - ((q0_vol*rccut)**2.0d0)/4.0d0
           i_sz = 2.d0*ab_plane*kqset%nkpt*i_sz
-          if (myrank==0) then
-            write(*,*)
-            write(*,*) 'LIMIT q->0'
-            write(*,*) ' nqpt = ', kqset%nkpt
-            write(*,*) ' rccut = ', rccut
-            write(*,*) ' ab_norm = ', ab_norm
-            write(*,*) ' ab_plane = ', ab_plane
-            write(*,*) ' q0_vol = ', q0_vol
-            write(*,*) ' i_sz = ', i_sz
-            write(*,*)
-          end if
+          ! if (myrank) then
+          !   write(*,*)
+          !   write(*,*) 'LIMIT q->0'
+          !   write(*,*) ' nqpt = ', kqset%nkpt
+          !   write(*,*) ' rccut = ', rccut
+          !   write(*,*) ' ab_norm = ', ab_norm
+          !   write(*,*) ' ab_plane = ', ab_plane
+          !   write(*,*) ' q0_vol = ', q0_vol
+          !   write(*,*) ' i_sz = ', i_sz
+          !   write(*,*)
+          ! end if
       
         case default
           write(*,*) 'ERROR(task_gw): Specified cutoff type is not implemented!'
@@ -158,10 +158,10 @@ subroutine task_gw()
     &                  freq%nomeg, 1, &
     &                  iomstart, iomend, &
     &                  iomcnt, iomdsp)
-    write(*,*) "myrank_row, iqstart, iqend =", myrank_row, iqstart, iqend
-    write(*,*) "myrank_col, iomstart, iomend =", myrank_col, iomstart, iomend
-    write(*,*) 'iomcnt: ', iomcnt(0:nproc_col-1)
-    write(*,*) 'iomdsp: ', iomdsp(0:nproc_col-1)
+    ! write(*,*) "myrank_row, iqstart, iqend =", myrank_row, iqstart, iqend
+    ! write(*,*) "myrank_col, iomstart, iomend =", myrank_col, iomstart, iomend
+    ! write(*,*) 'iomcnt: ', iomcnt(0:nproc_col-1)
+    ! write(*,*) 'iomdsp: ', iomdsp(0:nproc_col-1)
 #else
     iqstart = 1
     iqend = kqset%nkpt

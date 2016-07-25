@@ -43,8 +43,8 @@ subroutine write_dft_orbitals
     open(fid2,File='GW_EVECSV.OUT',Form='UNFORMATTED',Access='DIRECT',Recl=recl)
 !#endif
 
-    write(*,*) 'nspinor=', nspinor
-    write(*,*) 'ncmag=', ncmag
+    ! write(*,*) 'nspinor=', nspinor
+    ! write(*,*) 'ncmag=', ncmag
 
     do ik = 1, nkpt
 

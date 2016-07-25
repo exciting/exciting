@@ -51,14 +51,14 @@ subroutine calcepsilon(iq,iomstart,iomend)
 !
 !EOP
 !BOC
-    write(*,*)
-    write(*,*) ' ---- calcepsilon started ----'
-    write(*,*)
+    ! write(*,*)
+    ! write(*,*) ' ---- calcepsilon started ----'
+    ! write(*,*)
     call timesec(tstart)
     
     ! memory usage info
     msize = sizeof(epsilon)*b2mb
-    write(*,'(" calcepsilon: rank, size(epsilon) (Mb):",i4,f8.2)') myrank, msize
+    ! write(*,'(" calcepsilon: rank, size(epsilon) (Mb):",i4,f8.2)') myrank, msize
 
     !=============================
     ! Initialization
@@ -84,7 +84,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     
     ! memory usage
     msize = (sizeof(eveckalm)+sizeof(eveckpalm)+sizeof(eveck)+sizeof(eveckp))*b2mb
-    write(*,'(" calcepsilon: rank, size(eigenvectors) (Mb):",i4,f12.2)') myrank, msize
+    ! write(*,'(" calcepsilon: rank, size(eigenvectors) (Mb):",i4,f12.2)') myrank, msize
     
     !==================================================
     ! Calculate the q-dependent BZ integration weights
@@ -117,23 +117,23 @@ subroutine calcepsilon(iq,iomstart,iomend)
         &    Action='READ',Form='UNFORMATTED', &
         &    Access='DIRECT',Status='OLD',Recl=recl)
       end if
-      write(*,'(" calcepsilon: rank, size(pmat) (Mb):",i4,f8.2)') myrank, msize
+      ! write(*,'(" calcepsilon: rank, size(pmat) (Mb):",i4,f8.2)') myrank, msize
     end if
     
     allocate(minm(1:mbsiz,1:ndim,numin:nstdf))
     allocate(minmmat(1:mbsiz,1:ndim,numin:nstdf))
     msize = 2*sizeof(minmmat)*b2mb
-    write(*,'(" calcepsilon: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
+    ! write(*,'(" calcepsilon: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
 
     !=================
     ! BZ integration
     !=================
-    write(*,*) 'calcepsilon: k-point summation'
+    ! write(*,*) 'calcepsilon: k-point summation'
     do ispn = 1, nspinor
     do ik = 1, kqset%nkpt
     
-      write(*,*)
-      write(*,*) 'calcepsilon: rank, (iq, ik):', myrank, iq, ik
+      ! write(*,*)
+      ! write(*,*) 'calcepsilon: rank, (iq, ik):', myrank, iq, ik
     
       ! k-q point
       jk = kqset%kqid(ik,iq)
@@ -256,9 +256,9 @@ subroutine calcepsilon(iq,iomstart,iomend)
     call timesec(tend)
     time_df = time_df+tend-tstart
     
-    write(*,*) 
-    write(*,*) ' ---- calcepsilon ended ----'
-    write(*,*)
+    ! write(*,*) 
+    ! write(*,*) ' ---- calcepsilon ended ----'
+    ! write(*,*)
       
     return
 end subroutine

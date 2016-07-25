@@ -36,11 +36,11 @@ subroutine calcselfc(iq)
 !
 !EOP
 !BOC
-    if (myrank==0) then
-      write(*,*)
-      write(*,*) ' ---- calcselfc started ----'
-      write(*,*)
-    end if
+    ! if (myrank==0) then
+    !   write(*,*)
+    !   write(*,*) ' ---- calcselfc started ----'
+    !   write(*,*)
+    ! end if
     call timesec(tstart)
     
     !------------------------
@@ -58,7 +58,7 @@ subroutine calcselfc(iq)
     if (myrank_col==0) then
       allocate(mwm(ibgw:nbgw,1:mdim,1:freq%nomeg))
       msize = sizeof(mwm)*b2mb
-      write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
+      ! write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
       !----------------------------
       ! q-dependent M*W*M products
       !----------------------------
@@ -75,7 +75,7 @@ subroutine calcselfc(iq)
     allocate(eveckp(nmatmax,nstsv))
     allocate(minmmat(1:mbsiz,ibgw:nbgw,1:mdim))
     msize = sizeof(minmmat)*b2mb
-    write(*,'(" calcepsilon: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
+    ! write(*,'(" calcepsilon: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
     
     !================================
     ! loop over irreducible k-points
@@ -83,8 +83,8 @@ subroutine calcselfc(iq)
     do ispn = 1, nspinor
     do ikp = 1, kset%nkpt
     
-      write(*,*)
-      write(*,*) 'calcselfc: k-point loop ikp=', ikp
+      ! write(*,*)
+      ! write(*,*) 'calcselfc: k-point loop ikp=', ikp
     
       ! k vector
       ik = kset%ikp2ik(ikp)
@@ -160,11 +160,11 @@ subroutine calcselfc(iq)
     call timesec(tend)
     time_selfc = time_selfc+tend-tstart
     
-    if (myrank==0) then
-      write(*,*)
-      write(*,*) ' ---- calcselfc ended ----'
-      write(*,*)
-    end if
+    ! if (myrank==0) then
+    !   write(*,*)
+    !   write(*,*) ' ---- calcselfc ended ----'
+    !   write(*,*)
+    ! end if
     
     return
 end subroutine
