@@ -550,7 +550,7 @@
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="xasedge" default="K">
               <xs:annotation>
-                <xs:documentation>Defines the edge for a XAS calculation.</xs:documentation>
+                <xs:documentation>Defines the initial states of the XAS calculation.</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -1573,15 +1573,14 @@
             symmetries). </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble"
-        default="7.0d0">
+      <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble" default="0.0d0">
         <xs:annotation>
           <xs:appinfo>
             <oldname>rgkmaxxs</oldname>
           </xs:appinfo>
-          <xs:documentation>Smallest muffin-tin radius times <pre>gkmax</pre>.</xs:documentation>
+ 	  <xs:documentation>Smallest muffin-tin radius times <pre>gkmax</pre>. If set to zero (the default), this value defaults to the rgkmax set in the groundstate element.</xs:documentation>
         </xs:annotation>
-      </xs:attribute>
+      </xs:attribute>      
       <xs:attribute ex:importance="expert" ex:unit="Hartree" name="swidth" type="fortrandouble"
         default="0.001d0">
         <xs:annotation>

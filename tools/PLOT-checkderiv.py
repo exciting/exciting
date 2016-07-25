@@ -49,6 +49,18 @@ def purifica(x,y,ymin,ymax):
 
 #-------------------------------------------------------------------------------
 
+def mymantissa(x):
+    a,b = mantissa(x) ; mant = 10.**b
+    fmt4  = '%6.4f' ; f4 = fmt4%(abs(x)/mant)
+    ss = '10^'+str(b)
+    if (b == 0): ss = ''
+    if (b == 1): ss = '$10\,$'
+    sx = u'\u2013'+f4+'*'+ss
+    if (x > 0): sx = u'+'+f4+'*'+ss
+    return sx   
+    
+#-------------------------------------------------------------------------------
+
 narg  = len(sys.argv)-1
 
 #if (narg<2): 
@@ -100,6 +112,7 @@ rlabel = shell_value('RLABEL',ev_list,"rundir-")[0]
 showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
 dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 pdefault = shell_value('PDEFAULT',ev_list,"")[1] 
+writeminmax = shell_value('WRITEMINMAX',ev_list,"")[0]
 
 #-------------------------------------------------------------------------------
    
@@ -166,6 +179,7 @@ dxx   = abs(xmax-xmin)/18 ; xmin  = xmin-dxx ; xmax = xmax+dxx
 fontlabel=20
 fonttick=16
 fonttext=18
+fontlimits=12
 
 params = {'ytick.minor.size': 6,
           'xtick.major.pad': 8,
@@ -194,6 +208,13 @@ ax.text(0.5,-0.13,xlabel,size=fontlabel,
 #        transform=ax.transAxes,ha='center',va='center',rotation=90)
 
 ax.text(0.0,1.05,srmin,size=fonttext,color='#00008B',
+        transform=ax.transAxes,ha='left',va='center',rotation=0)
+        
+if (writeminmax=="1"): 
+    ax.text(0.62,1.033,"m = "+mymantissa(ymin*mant+rmin),size=fontlimits,color='#00008B',
+        transform=ax.transAxes,ha='left',va='center',rotation=0)
+ 
+    ax.text(0.62,1.080,"M = "+mymantissa(ymax*mant+rmin),size=fontlimits,color='#00008B',
         transform=ax.transAxes,ha='left',va='center',rotation=0)
  
 for line in ax.get_xticklines() + ax.get_yticklines():

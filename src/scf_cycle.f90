@@ -653,7 +653,9 @@ subroutine scf_cycle(verbosity)
              filext='_PBE.OUT'
              Call writestate
              filext=string
-             write(*,*) "writing STATE_PBE.OUT"
+             If ((verbosity>-1).and.(rank==0)) Then
+                 write(60,*) "writing STATE_PBE.OUT"
+             end if
            Else
              Call writestate
            End If

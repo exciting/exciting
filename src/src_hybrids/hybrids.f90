@@ -236,9 +236,9 @@ Subroutine hybrids
             call chgdist(rhomtref,rhoirref)
             if (rank==0) Then
               write(60,*)
-              ! write(60,'(" Absolute change in total energy   (target) : ",G18.10," (",G18.10,")")') &
+              ! write(60,'(" Absolute change in total energy   (target) : ",G13.6," (",G13.6,")")') &
               ! &     deltae, input%groundstate%epsengy
-              write(60,'(" Charge distance                   (target) : ",G18.10," (",G18.10,")")') &
+              write(60,'(" Charge distance                   (target) : ",G13.6," (",G13.6,")")') &
               &     chgdst, input%groundstate%epschg
             end if
             if (chgdst .lt. input%groundstate%epschg) then
@@ -257,13 +257,18 @@ Subroutine hybrids
 !-----------------------------------
         if (input%groundstate%Hybrid%maxscl > 1) then
           !------------------------------------------
+
           if (ihyb == ihyb0) then
             call timesec(ts0)
             call init_product_basis
             call timesec(ts1)
             if (rank==0) then
               write(60,*)
-              call write_cputime(60,ts1-ts0, 'init_product_basis')
+              write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
+            end if
+          else
+            if (rank==0) then
+                write(60,*)
             end if
           end if
           !------------------------------------------
@@ -272,7 +277,7 @@ Subroutine hybrids
           if (rank==0) write(fgw,*) 'vxnl=', sum(vxnl)
           call timesec(ts1)
           if (rank==0) then
-              call write_cputime(60,ts1-ts0, 'calc_vxnl')
+              write(60, '(" CPU time for vxnl (seconds)",T45 ": ", F12.2)') ts1-ts0
           end if
           !------------------------------------------
           call timesec(ts0)
@@ -280,7 +285,7 @@ Subroutine hybrids
           if (rank==0) write(fgw,*) 'vnlmat=', sum(vnlmat)
           call timesec(ts1)
           if (rank==0) then
-              call write_cputime(60,ts1-ts0, 'calc_vnlmat')
+              write(60, '(" CPU time for vnlmat (seconds)",T45 ": ", F12.2)') ts1-ts0
               write(60,*)
           end if
           !------------------------------------------
@@ -301,7 +306,7 @@ Subroutine hybrids
         &       + time_hyb
             
         if (rank==0) then
-            write(60, '(" Wall time (seconds) : ", F12.2)') timetot
+            write(60, '(" Wall time (seconds)",T45 ": ", F12.2)') timetot
         end if
         
 ! exit self-consistent loop if last iteration is complete
