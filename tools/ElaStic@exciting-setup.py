@@ -242,6 +242,58 @@ print '\n     '+ SGN_explanation +'\
        \n     This structure has '+ str(ECs) +' independent '+ order +'-order elastic constants.'
 #--------------------------------------------------------------------------------------------------
 
+#%!%!%--- Reading the input file ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
+INOBJ= open(INF, 'r')
+doc  = ET.parse(INOBJ)
+root = doc.getroot()
+#--------------------------------------------------------------------------------------------------
+
+#%%-- Reading the scale, stretch, and base vectors from the input file and calculate the volume -%%
+scale = map(float,doc.xpath('/input/structure/crystal/@scale'))
+if (scale==[]):
+    ascale=1.
+else:
+    ascale=scale[0]
+
+stretchstr = doc.xpath('/input/structure/crystal/@stretch')
+if (stretchstr==[]):
+    stretch=[1.,1.,1.]
+else: stretch=np.array(map(float,stretchstr[0].split()))
+
+basevectsn = doc.xpath('//basevect/text()')
+bv = []
+for basevect in basevectsn:
+    bv.append(map(float,basevect.split()))
+
+M_old= np.array(bv)
+D    = np.linalg.det(M_old)
+V0   = abs(stretch[0]*stretch[1]*stretch[2]*ascale**3*D)
+
+#--------------------------------------------------------------------------------------------------
+# Check compatibility for monoclinic structures
+
+if (LC=='M'):
+  
+    #print M_old
+  
+    epsangle = 1.e-8
+    gammascalarproduct = 0.0
+
+    for icar in range(3):
+        #print M_old[0,icar], M_old[1,icar]
+        gammascalarproduct = gammascalarproduct + M_old[0,icar]*M_old[1,icar]*stretch[0]*stretch[1]
+
+    #print gammascalarproduct 
+
+    if (abs(gammascalarproduct) < epsangle):
+        sys.exit("\n     ... Oops ERROR: Your MONOCLINIC structure is not compatible"+\
+                 "\n                     with the ElaStic internal representation, where"+\
+                 "\n                     the angle GAMMA (between bvec_1 and bvec_2) is the"+\
+                 "\n                     ONLY non right angle between the crystal basis vectors!\n"+\
+                 "\n                     Please, CHECK your input file!\n")
+
+#--------------------------------------------------------------------------------------------------
+
 #%!%!%--- Reading the maximum Lagrangian strain ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 if (mthd == 'Energy'):
     mdr = input('\n>>>> Please enter the maximum Lagrangian strain '\
@@ -279,34 +331,6 @@ if (mdr/ptn <= interval):
     sys.exit('.... Oops ERROR: The interval of the strain values is < '+ str(interval) +\
            '\n                 Choose a larger maximum Lagrangian strain'\
            '\n                 or a less number of distorted structures.\n')
-#--------------------------------------------------------------------------------------------------
-
-#%!%!%--- Reading the input file ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
-INOBJ= open(INF, 'r')
-doc  = ET.parse(INOBJ)
-root = doc.getroot()
-#--------------------------------------------------------------------------------------------------
-
-#%%-- Reading the scale, stretch, and base vectors from the input file and calculate the volume -%%
-scale = map(float,doc.xpath('/input/structure/crystal/@scale'))
-if (scale==[]):
-    ascale=1.
-else:
-    ascale=scale[0]
-
-stretchstr = doc.xpath('/input/structure/crystal/@stretch')
-if (stretchstr==[]):
-    stretch=[1.,1.,1.]
-else: stretch=np.array(map(float,stretchstr[0].split()))
-
-basevectsn = doc.xpath('//basevect/text()')
-bv = []
-for basevect in basevectsn:
-    bv.append(map(float,basevect.split()))
-
-M_old= np.array(bv)
-D    = np.linalg.det(M_old)
-V0   = abs(stretch[0]*stretch[1]*stretch[2]*ascale**3*D)
 #--------------------------------------------------------------------------------------------------
 
 #%!%!%--- Writing the INFO_ElaStic file ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
