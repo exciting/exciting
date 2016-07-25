@@ -492,7 +492,7 @@
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="xasedge" default="K">
               <xs:annotation>
-                <xs:documentation>Defines the edge for a XAS calculation.</xs:documentation>
+                <xs:documentation>Defines the initial states of the XAS calculation.</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
