@@ -147,6 +147,7 @@ subroutine scf_cycle(verbosity)
 ! exit self-consistent loop if last iteration is complete
         if (tlast) then
             If ((verbosity>-1).and.(rank==0)) Then
+                call printline(60," ")
                 call printline(60,"+")
                 If (input%groundstate%niterconvcheck.ge.2) Then 
                    write(string,'("Convergency criteria checked for the last", I2," iterations ")') input%groundstate%niterconvcheck 
