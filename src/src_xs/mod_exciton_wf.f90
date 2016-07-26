@@ -47,38 +47,38 @@ contains
 
     if (.not.associated(input%xs%excitonPlot)) then
       write(*,*)
-      write(*,*) 'Error(mod_exciton_wf::plot_6d_excitonWavefunction): Element excitonPlot is not specified!'
+      write(*,*) 'Error(mod_exciton_wf::plot_excitonWavefunction): Element excitonPlot is not specified!'
       write(*,*)
       stop
     end if
 
     if (.not.associated(input%xs%excitonPlot%hole)) then
       write(*,*)
-      write(*,*) 'Error(mod_exciton_wf::plot_6d_excitonWavefunction): Real space grid for electrons is not specified!'
+      write(*,*) 'Error(mod_exciton_wf::plot_excitonWavefunction): Real space grid for electrons is not specified!'
       write(*,*)
       stop
     end if
 
     if (.not.associated(input%xs%excitonPlot%electron)) then
       write(*,*)
-      write(*,*) 'Error(mod_exciton_wf::plot_6d_excitonWavefunction): Real space grid for electrons is not specified!'
+      write(*,*) 'Error(mod_exciton_wf::plot_excitonWavefunction): Real space grid for electrons is not specified!'
       write(*,*)
       stop
     end if
     !----------------------------
     ! sanity checks for core excitations
     !----------------------------    
-    if (input%xs%BSE%xas) then			
-		do ipair = 1, size(input%xs%excitonplot%excitonarray)
-			fix = trim(input%xs%excitonplot%excitonarray(ipair)%exciton%fix)
-			if (fix .eq. 'electron') then
-				write(*,*)
-				write(*,*) 'Error(mod_exciton_wf::plot_6d_excitonWavefunction): Core hole visualization not implemented yet!'
-				write(*,*)
-				stop
-			end if
-		end do
-	end if
+    if (input%xs%BSE%xas) then
+      do ipair = 1, size(input%xs%excitonplot%excitonarray)
+        fix = trim(input%xs%excitonplot%excitonarray(ipair)%exciton%fix)
+        if (fix .eq. 'electron') then
+          write(*,*)
+          write(*,*) 'Error(mod_exciton_wf::plot_excitonWavefunction): Core hole visualization not implemented yet!'
+          write(*,*)
+          stop
+        end if
+      end do
+    end if
     !----------------------------
     ! global initialization
     !----------------------------
@@ -109,7 +109,7 @@ contains
       write(*,*)
       stop
     end if
-    call print_rgrid(r_h)
+    ! call print_rgrid(r_h)
 
     !----------------------------
     ! ELECTRON
@@ -157,10 +157,10 @@ contains
             r0 = gen_1d(1, r_h%vpl(:,ip), 1)
             allocate(zwfeh(r_e%npt))
             if (input%xs%BSE%xas) then
-				call calc_eh_zwfcore(lambda, r0, r_e, zwfeh)
-			else
-				call calc_eh_zwf(lambda, r0, r_e, zwfeh)
-			end if
+              call calc_eh_zwfcore(lambda, r0, r_e, zwfeh)
+            else
+              call calc_eh_zwf(lambda, r0, r_e, zwfeh)
+            end if
             ! output
             if (rank==0) then
               write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".xsf")') lambda, ip
@@ -185,7 +185,7 @@ contains
           write(*,*) "Electron positions are fixed"
           do ip = 1, r_e%npt
             ! fixed position of electron, r_h
-            r0 = gen_1d(1, r_h%vpl(:,ip), 1)
+            r0 = gen_1d(1, r_e%vpl(:,ip), 1)
             allocate(zwfeh(r_h%npt))
             call calc_eh_zwf(lambda, r_h, r0, zwfeh)
             ! output
@@ -242,8 +242,6 @@ contains
 
     integer :: ika, iva, ica
 
-    !write(*,*) istl3, nsta1, nsta2, nrnst1, nrnst3
-
     !--------------------------------------------------------------------------
     ! \Psi^{l}(r_h,r_e) = \sum_{vck} A^{l}_{vck} \psi^{*}_{vk}(r_h) \psi_{ck}(r_e)
     !--------------------------------------------------------------------------
@@ -288,7 +286,6 @@ contains
       ! find the matching coefficients
       call match(ngk(1,ik), gkc(:,1,ik), tpgkc(:,:,1,ik), &
       &          sfacgk(:,:,1,ik), apwalm)
-      ! call genwfsv_new(ik, nsta1, istl3+nsta2-1, apwalm, evecfvt, evecsvt, wfmt, wfir)
       call genwfsv_new(ik, 1, nstsv, apwalm, evecfvt, evecsvt, wfmt, wfir)
 
       do iva = 1, nva(ik)
@@ -359,9 +356,6 @@ contains
 
     integer :: ika, iva, ica
 
-    !write(*,*) istl3, nsta1, nsta2, nrnst1, nrnst3
-    
-	
     !--------------------------------------------------------------------------
     ! \Psi^{l}(r_h,r_e) = \sum_{vck} A^{l}_{vck} \psi^{*}_{vk}(r_h) \psi_{ck}(r_e)
     !--------------------------------------------------------------------------
@@ -406,7 +400,6 @@ contains
       ! find the matching coefficients
       call match(ngk(1,ik), gkc(:,1,ik), tpgkc(:,:,1,ik), &
       &          sfacgk(:,:,1,ik), apwalm)
-      ! call genwfsv_new(ik, nsta1, istl3+nsta2-1, apwalm, evecfvt, evecsvt, wfmt, wfir)
       call genwfsv_new(ik, 1, nstsv, apwalm, evecfvt, evecsvt, wfmt, wfir)
 
       do iva = 1, nva(ik)
@@ -487,11 +480,11 @@ contains
       close(50)
     end if
 
-    write(*,*) "Info(mod_exciton_wf::read_exccoeff):"
-    write(*,*) MinNumberExcitons, MaxNumberExcitons
-    write(*,*) nkptnr, istl3, sta1, sta2
-    write(*,*) nrnst1, nrnst3, hamsiz
-    write(*,*)
+    ! write(*,*) "Info(mod_exciton_wf::read_exccoeff):"
+    ! write(*,*) MinNumberExcitons, MaxNumberExcitons
+    ! write(*,*) nkptnr, istl3, sta1, sta2
+    ! write(*,*) nrnst1, nrnst3, hamsiz
+    ! write(*,*)
 
     return
   end subroutine
