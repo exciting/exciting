@@ -1,6 +1,13 @@
 #!/bin/bash    
 #_______________________________________________________________________________
 #
+if [ ! -f energy-vs-strain ]; then 
+    echo
+    echo "   Error: File energy-vs-strain not found!"
+    echo
+    exit
+fi
+#
 if [ ${#1} -ne 0 ] ; then
     col=$1
 else 
