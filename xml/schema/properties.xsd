@@ -125,6 +125,12 @@
             <xs:annotation>
               <xs:documentation>Plot the wave function at a set of kpoints</xs:documentation>
             </xs:annotation>
+            <xs:attribute ex:importance="expert" ex:unit="" name="version"
+              default="old" type="xs:string">
+              <xs:annotation>
+                <xs:documentation> (Temporal solution) 'old' and 'new' version of the visualization subroutine. All tutorials are currently supporting only 'old' version.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="kstlist" minOccurs="1">
                 <xs:annotation>

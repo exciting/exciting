@@ -39,10 +39,18 @@ Subroutine propertylauncher
             write(*,*)
             stop
          end if
-         do i = 1, size(input%properties%wfplot%kstlist%pointstatepair,2)
-            call wfplot_new(input%properties%wfplot%kstlist%pointstatepair(1,i), &
-            &               input%properties%wfplot%kstlist%pointstatepair(2,i))
-         end do
+         select case(input%properties%wfplot%version)
+            case('old')
+               call wfplot(.false.)
+            case('new')
+               do i = 1, size(input%properties%wfplot%kstlist%pointstatepair,2)
+                  call wfplot_new(input%properties%wfplot%kstlist%pointstatepair(1,i), &
+                  &               input%properties%wfplot%kstlist%pointstatepair(2,i))
+               end do
+            case default
+               write(*,*) "Error(propertylauncher): Wrong version! Supported only 'old' and 'new'."
+               stop
+         end select
       End If
 
       !--------------------------------------------------------

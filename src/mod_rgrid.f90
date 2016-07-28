@@ -170,17 +170,13 @@ contains
     type(plot2d_type), intent(in) :: plot2d
     integer,           intent(in) :: iflag
     type(rgrid)                   :: self
-    ! local
-    integer :: ip, ip1, ip2, iv(3)
-    integer :: n1, n2, n0
-    real(8) :: v1(3), v2(3), t1, t2
     integer :: ngrid(2)
     real(8) :: boxl(3,3)
 
-    ngrid(:)  = plot2d%parallelogram%grid(:)
+    ngrid(:)  = plot2d%parallelogram%grid(1:2)
     boxl(1,:) = plot2d%parallelogram%origin%coord(1:3)
-    boxl(2,:) = plot2d%parallelogram%pointarray(1)%point%coord(1:3)-self%boxl(1,:)
-    boxl(3,:) = plot2d%parallelogram%pointarray(2)%point%coord(1:3)-self%boxl(1,:)
+    boxl(2,:) = plot2d%parallelogram%pointarray(1)%point%coord(1:3)-boxl(1,:)
+    boxl(3,:) = plot2d%parallelogram%pointarray(2)%point%coord(1:3)-boxl(1,:)
     self = gen_2d(ngrid, boxl, iflag)
 
     return

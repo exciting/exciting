@@ -116,8 +116,8 @@ subroutine wfplot_new(ik,ist)
         write(fname,'("wf1d-",i4.4,"-",i4.4,".dat")') ik, ist
         open(77,file=trim(fname),status='Unknown',action='Write')
         do ip = 1, grid%npt
-          write(77,'(i4,3f16.6)') ip, zdata(ip), abs(zdata(ip))**2
-          !write(77,'(3f16.6)') grid%vpd(ip), zdata(ip)
+          ! path, |psi|^2, Re(psi), Im(psi) 
+          write(77,'(4f16.6)') grid%vpd(ip), abs(zdata(ip))**2, zdata(ip)
           !write(77,'(2f16.6)') grid%vpd(ip), wkpt(ik)*nkptnr*abs(zdata(ip))**2
         end do
         close(77)
