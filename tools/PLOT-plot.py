@@ -42,6 +42,7 @@ def leggi(filin):
     f = open(filin,"r")
     x = [] ; y = []
     lines = f.readlines()
+    ilines = 0 ; ix = 0
     while ( ilines < len(lines) ):
         line = lines[ilines].strip() 
         ilines = ilines+1
