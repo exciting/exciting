@@ -411,8 +411,11 @@ Subroutine hybrids
     Inquire (IoLength=Recl) nkpt, nstsv, vkl(:,1), evalsv(:,1)
     Open(70, File='EVALHF.OUT', Action='WRITE', Form='UNFORMATTED', &
     &    Access='DIRECT', status='REPLACE', Recl=Recl)
-    do ik = 1, nkpt
-        write(70, Rec=ik) nkpt, nstsv, vkl(:,ik), evalsv(:,ik)
+    ! do ik = 1, kset%nkpt
+    !   write(70, Rec=ik) kset%nkpt, nstsv, kset%vkl(:,ik), evalsv(:,ik)
+    ! end do ! ik
+    do ik = 1, kqset%nkpt
+      write(70, Rec=ik) kqset%nkpt, nstsv, kqset%vkl(:,ik), evalsv(:,kset%ik2ikp(ik))
     end do ! ik
     Close(70)
 
@@ -426,7 +429,6 @@ Subroutine hybrids
     nullify(input%gw)
       
     Return
-    
 End Subroutine
 !EOC
 

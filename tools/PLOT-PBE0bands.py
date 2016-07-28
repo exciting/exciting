@@ -114,7 +114,7 @@ ax1 = fig.add_axes([0.1,0.1,0.8,0.8])
 ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=2)
 ax1.xaxis.set_label_position('bottom')
 ax1.set_xticks(bandlines)
-labels = ax1.set_xticklabels(('L','$\Gamma$','X','K',r'$\Gamma$'))
+labels = ax1.set_xticklabels(('W','L','$\Gamma$','X','W','K'))
 ax1.set_ylabel('Energy [eV]')
 
 
@@ -150,11 +150,11 @@ else:
 
 
 for i in range(bandlen-1):
-    ax1.plot(ksene[i][0],ksene[i][1],'r',lw=3.0)
-    ax1.plot(gwene[i][0],gwene[i][1],'b',lw=3.0)
+    ax1.plot(ksene[i][0],ksene[i][1],'b',lw=3.0)
+    ax1.plot(gwene[i][0],gwene[i][1],'r',lw=3.0)
 i=bandlen-1
-ax1.plot(ksene[i][0],ksene[i][1],'r',lw=3.0,label='PBE0')
-ax1.plot(gwene[i][0],gwene[i][1],'b',lw=3.0,label='PBE')
+ax1.plot(ksene[i][0],ksene[i][1],'b',lw=3.0,label='PBE')
+ax1.plot(gwene[i][0],gwene[i][1],'r',lw=3.0,label='PBE0')
 
 leg=ax1.legend(bbox_to_anchor=(0.825,0.23),loc=2,borderaxespad=0.)
 leg.draw_frame(True)

@@ -78,12 +78,17 @@ subroutine setrindex
 !
 !EOP
 !BOC
+
+    if (.not.associated(input%gw)) then
+      rmax = 40.d0
+    else
+      rmax = input%gw%rmax
+    end if    
+
     do i = 1, 3
       rvec(i) = sqrt(avec(1,i)**2+avec(2,i)**2+avec(3,i)**2)
     enddo
 
-    rmax = input%gw%rmax
-      
     nr1 = 2*nint(rmax/rvec(1))
     nr2 = 2*nint(rmax/rvec(2))
     nr3 = 2*nint(rmax/rvec(3))

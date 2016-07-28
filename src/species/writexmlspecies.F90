@@ -116,22 +116,22 @@ subroutine writexmlspecies
         call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
         call xml_endElement (xf, "custom")
         ! Additional lo
-        call xml_NewElement (xf, "lo")
-        write(buffer,*) l
-        call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
-        call xml_NewElement (xf, "wf")
-        call xml_AddAttribute(xf, "matchingOrder", "0")
-        write(buffer,'(F8.4)') elval(l)
-        call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
-        call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
-        call xml_endElement (xf, "wf")
-        call xml_NewElement (xf, "wf")
-        call xml_AddAttribute(xf, "matchingOrder", "2")
-        write(buffer,'(F8.4)') elval(l)
-        call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
-        call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
-        call xml_endElement (xf, "wf")
-        call xml_endElement (xf, "lo")
+        ! call xml_NewElement (xf, "lo")
+        ! write(buffer,*) l
+        ! call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
+        ! call xml_NewElement (xf, "wf")
+        ! call xml_AddAttribute(xf, "matchingOrder", "0")
+        ! write(buffer,'(F8.4)') elval(l)
+        ! call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
+        ! call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
+        ! call xml_endElement (xf, "wf")
+        ! call xml_NewElement (xf, "wf")
+        ! call xml_AddAttribute(xf, "matchingOrder", "2")
+        ! write(buffer,'(F8.4)') elval(l)
+        ! call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
+        ! call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
+        ! call xml_endElement (xf, "wf")
+        ! call xml_endElement (xf, "lo")
       end do ! l      
     end if
   
@@ -208,7 +208,7 @@ subroutine writexmlspecies
 ! Semi-Core Local Orbitals
 !
   if ( locorbsc ) then
-    call xml_AddComment(xf," Semi-Core States ")
+    ! call xml_AddComment(xf," Semi-Core States ")
     if (searchlocorb) then 
       buffer2="true"
     else
@@ -223,6 +223,12 @@ subroutine writexmlspecies
             call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
             call xml_NewElement (xf, "wf")
             call xml_AddAttribute(xf, "matchingOrder", "0")
+            write(buffer,'(F8.4)') elval(l)
+            call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
+            call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
+            call xml_endElement (xf, "wf")
+            call xml_NewElement (xf, "wf")
+            call xml_AddAttribute(xf, "matchingOrder", "1")
             write(buffer,'(F8.4)') elval(l)
             call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
             call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))

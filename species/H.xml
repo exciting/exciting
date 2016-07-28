@@ -7,7 +7,5 @@
       <default type="lapw" trialEnergy="0.1500" searchE="false"/>
       <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
     </basis>
-    <!-- Exciting code version: Lithium -->
-    <!-- Generation Scheme: simple -->
   </sp>
 </spdb>
