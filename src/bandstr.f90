@@ -100,10 +100,6 @@ if (hybcheck) then
       &    Access='DIRECT', Recl=Recl)
       do ik = 1, nkpt0
         read(70, Rec=ik) nkpt0, nstsv0, vkl0(:,ik), ehf(:,ik)
-        write(77,*) 'ik=', ik, vkl0(:,ik)
-        do ist = 1, nstsv0
-           write(77,*) ist, ehf(ist,ik)
-        end do
       end do ! ik
       close(70)
       ! read fermi energy
