@@ -66,10 +66,11 @@
 
         <xs:element ex:importance="expert" ex:unit="" name="excitonPlot" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation>Trigger the electron-hole visualization.</xs:documentation>
+            <xs:documentation>Parameters for the electron-hole visualization.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:sequence>
+
               <xs:element ex:importance="expert" ex:unit="" name="exciton" minOccurs="0" maxOccurs="unbounded">
                 <xs:annotation>
                   <xs:documentation>Electron-hole pair descriptor.</xs:documentation>
@@ -92,7 +93,7 @@
                 </xs:complexType>
               </xs:element>
 
-              <xs:element ex:importance="expert" ex:unit="" name="hole" minOccurs="0" maxOccurs="1">
+              <xs:element ex:importance="expert" ex:unit="" name="hole" minOccurs="1" maxOccurs="1">
                 <xs:annotation>
                 <xs:documentation>
                   For the exciton wavefunction visualization: Real space grid for the hole distribution.
@@ -100,14 +101,14 @@
                 </xs:annotation>
                 <xs:complexType>
                 <xs:all>
-                  <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0"/>
-                  <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
-                  <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0" maxOccurs="1"/>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" maxOccurs="1"/>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" maxOccurs="1"/>
                 </xs:all>
                 </xs:complexType>
               </xs:element>
 
-              <xs:element ex:importance="expert" ex:unit="" name="electron" minOccurs="0" maxOccurs="1">
+              <xs:element ex:importance="expert" ex:unit="" name="electron" minOccurs="1" maxOccurs="1">
                 <xs:annotation>
                 <xs:documentation>
                   For the exciton wavefunction visualization: Real space grid for the electron distribution.
@@ -115,9 +116,9 @@
                 </xs:annotation>
                 <xs:complexType>
                 <xs:all>
-                  <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0"/>
-                  <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
-                  <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0" maxOccurs="1"/>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" maxOccurs="1"/>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" maxOccurs="1"/>
                 </xs:all>
                 </xs:complexType>
               </xs:element>
