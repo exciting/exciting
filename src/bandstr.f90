@@ -72,7 +72,7 @@ Subroutine bandstr
     hybcheck = .true.
   end if
 
-  if (hybcheck) then
+if (hybcheck) then
     !--------------------
     ! begin Interpolation 
     !--------------------
@@ -100,25 +100,28 @@ Subroutine bandstr
       &    Access='DIRECT', Recl=Recl)
       do ik = 1, nkpt0
         read(70, Rec=ik) nkpt0, nstsv0, vkl0(:,ik), ehf(:,ik)
+        write(77,*) 'ik=', ik, vkl0(:,ik)
+        do ist = 1, nstsv0
+           write(77,*) ist, ehf(ist,ik)
+        end do
       end do ! ik
       close(70)
       ! read fermi energy
       call readfermi
       ! Perform Fourier Interpolation
       do ik = 1, nkpt0
-        e0(ik,1:nstsv) = cmplx(ehf(1:nstsv,ik)-efermi,0.d0,8)
+        e0(ik,1:nstsv) = cmplx(ehf(1:nstsv,ik),0.d0,8)
       end do
       e1(:,:) = zzero
       ! Fourier interpolation
       call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
       emin =  1.d5
       emax = -1.d5
-      evalsv(:,:) = zzero
       do ist = 1, nstsv
         do ik = 1, nkpt
-          evalsv(ist,ik)= dble(e1(ik,ist))
-          emin = Min (emin, evalsv(ist, ik))
-          emax = Max (emax, evalsv(ist, ik))
+          evalsv(ist,ik) = dble(e1(ik,ist))
+          emin = min(emin, evalsv(ist, ik))
+          emax = max(emax, evalsv(ist, ik))
         end do
       end do
       deallocate(vkl0,ehf,e0,e1)
@@ -130,6 +133,7 @@ Subroutine bandstr
     !--------------------
 
 else
+
   ! maximum angular momentum for band character
   lmax = Min (3, input%groundstate%lmaxapw)
   lmmax = (lmax+1) ** 2
