@@ -32,62 +32,29 @@ dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 
 ha2ev = 27.2114
 
-# KS states from BAND.OUT
+# KS
 ksene=[]
 list1=[]
 list2=[]
-for line in open("BAND.OUT"):
+for line in open("TDOS.OUT"):
     i_line=line.split()
     if len(i_line):
-       list1.append(float(i_line[0]))
-       list2.append(float(i_line[1])*ha2ev) # convert to eV
-    else:
-       ksene.append([list1,list2])
-       list1=[]
-       list2=[]
+       list1.append(float(i_line[0])*ha2ev)
+       list2.append(float(i_line[1])/ha2ev) # convert to eV
+ksene.append([list1,list2])
+del list1, list2
 
-# G0W0 states from BAND-QP.OUT
+# G0W0
 gwene=[]
 list1=[]
 list2=[]
-for line in open("BAND-QP.OUT"):
+for line in open("TDOS-QP.OUT"):
     i_line=line.split()
     if len(i_line):
-       list1.append(float(i_line[0]))
-       list2.append(float(i_line[1])*ha2ev) # convert to eV
-    else:
-       gwene.append([list1,list2])
-       list1=[]
-       list2=[]
-
-
-# Read info about x-ticks position
-bandlines=[]
-fid=open("BANDLINES.OUT")
-while 1:
-    line=fid.readline()
-    if not line:
-        break
-    i_line=line.split()
-    bandlines.append(float(i_line[0]))
-    # skip next two lines
-    fid.readline()
-    fid.readline()
-
-# position of VBM (to be shifted to zero)
-# ivbm=4
-# ks0=max(ksene[ivbm-1][1])
-# gw0=max(gwene[ivbm-1][1])
-# efermi = float(open("EFERMI.OUT").readline())*ha2ev
-# print efermi
-# 
-# for i in range(len(ksene)):
-#     for j in range(len(ksene[i][1])):
-#         ksene[i][1][j]=ksene[i][1][j]-ks0
-
-# for i in range(len(gwene)):
-#     for j in range(len(gwene[i][1])):
-#         gwene[i][1][j]=gwene[i][1][j]-gw0
+       list1.append(float(i_line[0])*ha2ev)
+       list2.append(float(i_line[1])/ha2ev) # convert to eV
+gwene.append([list1,list2])
+del list1, list2
 
 ################################################################################
 ################################################################################
@@ -120,50 +87,32 @@ plt.rcParams['xtick.major.pad'] = '10'
 #############################
 
 ax1 = fig.add_axes([0.1,0.1,0.8,0.8])
-ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=2)
-# ax1.set_xlabel(r'Bulk silicon, G$_0$W$_0$@LDA bandstructure')
-ax1.xaxis.labelpad = 20
-ax1.xaxis.set_label_position('top')
-ax1.set_xticks(bandlines)
-labels = ax1.set_xticklabels(('W','L',r'$\Gamma$','X','W','K'))
-ax1.set_ylabel('Energy (eV)')
+# ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=2)
+ax1.set_xlabel('Energy (eV)')
+ax1.set_ylabel(r'DOS (states/eV/bohr$^3$)')
 
 for line in ax1.get_xticklines() + ax1.get_yticklines():
     line.set_markersize(10)
     line.set_markeredgewidth(2)
 
-ymin=1000.0
-ymax=-1000.0
-for i in range(len(gwene)):
-    y=min(gwene[i][1])
-    if (y<ymin):
-        ymin=y-1.0
-    y=max(gwene[i][1])
-    if (y>ymax):
-        ymax=y+1.0
-
 # Legend
 ax1.plot(ksene[0][0],ksene[0][1],'b-',lw=3.0,label='KS')
 ax1.plot(gwene[0][0],gwene[0][1],'r-',lw=3.0,label=r'G$_0$W$_0$')
-leg=ax1.legend(bbox_to_anchor=(0.48,0.30),loc=2,borderaxespad=0.)
+leg=ax1.legend(bbox_to_anchor=(0.08,0.9),loc=2,borderaxespad=0.)
 leg.draw_frame(False)
 
-for i in range(1,len(gwene)):
-    ax1.plot(ksene[i][0],ksene[i][1],'b-',lw=3.0)
-    ax1.plot(gwene[i][0],gwene[i][1],'r-',lw=3.0)
-
 # add zero level
-x0=[0.0,max(ksene[0][0])]
-y0=[0.0,0.0]
+ymax = float(map(max,ksene[:][0])[1])
+x0=[0.0,0.0]
+y0=[0.0,ymax]
 ax1.plot(x0,y0,'k:',lw=1.0)
 
-ax1.set_xlim(0,max(ksene[0][0]))
-ax1.set_ylim(ymin,ymax)
+# ax1.set_xlim(xmin,xmax)
+# ax1.set_ylim(ymin,ymax)
 
 # save the figure
+plt.savefig('PLOT-dos.ps',  orientation='portrait',format='eps')
+plt.savefig('PLOT-dos.png', orientation='portrait',format='png',dpi=dpipng)
+# plt.show()
 
-plt.savefig('PLOT-band.ps',  orientation='portrait',format='eps')
-plt.savefig('PLOT-band.png', orientation='portrait',format='png',dpi=dpipng)
-
-if (showpyplot): plt.show()
 sys.exit()    

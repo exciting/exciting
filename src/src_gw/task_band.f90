@@ -31,7 +31,6 @@ subroutine task_band()
 
   open(70, File='bandstructure.dat', Action='Read', Status='Old')
   read(70,*) s, ib0, nstsv, nkpt
-  write(*,*) trim(s), ib0, nstsv, nkpt
   if (allocated(vkl)) deallocate(vkl)
   allocate(vkl(3,nkpt))
   if (allocated(dpp1d)) deallocate(dpp1d)
@@ -65,9 +64,9 @@ subroutine task_band()
       ! write(51,'(2I6, 5F12.6)') &
       ! &     ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)
       ! new format (carbon)
-      write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)-eferqp
+      write(50,'(2G18.10)') dpp1d(ik), evalsv(ib,ik)+efermi
       write(51,'(2I6, 3F12.6, 2G18.10)') &
-      &     ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)-eferqp
+      &     ib, ik, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)+efermi
     end do !ik
     write(50,*)
     write(51,*)

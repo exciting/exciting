@@ -89,7 +89,7 @@ subroutine task_epsilon
     do iq = iqstart, iqend
     
       write(*,*)
-      write(*,*) '(task_gw): q-point cycle, iq = ', iq
+      write(*,*) '(task_epsilon): q-point cycle, iq = ', iq
     
       Gamma = gammapoint(kqset%vqc(:,iq))
           

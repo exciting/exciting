@@ -35,7 +35,6 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   open(70, File=fname, Action='READ', Form='UNFORMATTED', &
   &    Access='DIRECT', Recl=recl)
   read(70, Rec=1) nkp1, ibgw, nbgw
-  write(*,*) nkp1, ibgw, nbgw
   close(70)
       
   allocate(kvecs1(1:3,nkp1))

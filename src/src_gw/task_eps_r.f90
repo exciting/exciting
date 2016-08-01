@@ -116,7 +116,7 @@ subroutine task_eps_r
     do iq = iqstart, iqend
     
       write(*,*)
-      write(*,*) '(task_gw): q-point cycle, iq = ', iq
+      write(*,*) '(task_eps_r): q-point cycle, iq = ', iq
     
       Gamma = gammapoint(kqset%vqc(:,iq))
           

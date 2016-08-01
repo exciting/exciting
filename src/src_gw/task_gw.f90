@@ -25,7 +25,7 @@ subroutine task_gw()
     real(8)    :: t0, t1
     integer(4) :: recl
     real(8)    :: ab_plane, ab_norm(3), q0_vol
-    integer :: im
+    integer    :: im
     complex(8) :: vc
 
 !!REVISION HISTORY:
@@ -177,7 +177,6 @@ subroutine task_gw()
     ! each process does a subset
     do iq = iqstart, iqend
     
-      write(*,*)
       write(*,*) '(task_gw): q-point cycle, iq = ', iq
     
       Gamma = gammapoint(kqset%vqc(:,iq))
