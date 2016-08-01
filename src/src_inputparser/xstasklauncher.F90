@@ -162,6 +162,7 @@ subroutine xstasklauncher
       call genksubpts
     endif
 
+    ! Double grid related loop, if no dgrid then nksubpt=1
     do iksubpt = 1, nksubpt
 
       if(dgrid) call bsedgridinit
