@@ -264,7 +264,7 @@ subroutine parse_gwinput
         if (rank==0) write(fgw,*) 'Auxiliary function method by &
         &P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007)'
       case default
-        write(*,*) 'ERROR(task_gw): Unknown singularity treatment scheme!'
+        write(*,*) 'ERROR(parse_gwinput): Unknown singularity treatment scheme!'
         stop
     end select
     if (rank==0) call linmsg(fgw,'-','')
