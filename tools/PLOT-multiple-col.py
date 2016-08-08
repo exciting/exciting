@@ -38,8 +38,8 @@ def shell_value(variable,vlist,default):
 
 #-------------------------------------------------------------------------------
 
-def leggi(filin):
-    onlytwo = False
+def leggi(filin,ncol):
+    onlyone = False
     f = open(filin,"r")
     x = [] ; y = []
     ilines = 0
@@ -48,19 +48,24 @@ def leggi(filin):
     while ( ilines < len(lines) ):
         line = lines[ilines].strip() 
         ilines = ilines+1
-        if (len(line) != 0): 
-            if (len(line.split()) == 2):
-	        onlytwo = True
+        if (len(line) != 0 and line[0][:1] != "#"): 
+            if (len(line.split()) == 1):
+	        onlyone = True
                 x.append(int(ix))
                 y.append(float(line.split()[0])) 
-                z.append(float(line.split()[1])) 
             else:
                 x.append(float(line.split()[0]))
-                y.append(float(line.split()[1])) 
-                z.append(float(line.split()[2])) 
+                y.append(float(line.split()[ncol-1])) 
             ix = ix+1
+            
+    #ymax=max(y)
+    #print ymax
+    #z = []
+    #for i in range(len(y)):
+    #    z.append(float(y[i]/ymax))
+            
     f.close()
-    return x,y,z,onlytwo
+    return x,y,onlyone
 
 #-------------------------------------------------------------------------------
 
@@ -88,7 +93,7 @@ params = {'ytick.minor.size': 6,
           'axes.formatter.limits': (-4, 6)}
 
 plt.rcParams.update(params)
-plt.subplots_adjust(left=0.21, right=0.93,
+plt.subplots_adjust(left=0.21, right=0.78,
                     bottom=0.18, top=0.88,
                     wspace=None, hspace=None)
                     
@@ -102,31 +107,11 @@ ax   = fig.add_subplot(111)
 
 narg  = len(sys.argv)-1
 
-if (narg<1): 
+if (narg<2): 
     print "\nIncorrect number of arguments. **Usage**:\n\n",
-    print "PLOT-one.py datafile [POINTSTYLE YMIN  [YMAX]]\n"
+    print "PLOT-multiple-col.py COLOUMN FILE1 FILE2 FILE3 ...\n"
     sys.exit()
 
-filin = str(sys.argv[1])
-
-pointstyle='o-'
-if (narg>1): pointstyle=str(sys.argv[2])
-
-ylimits = []
-for i in range(3,len(sys.argv)): ylimits.append(float(sys.argv[i]))
-
-#-------------------------------------------------------------------------------
-
-xmin = 1.e30 ; xmax = -1.e30
-ymin = 1.e30 ; ymax = -1.e30
-
-x = [] ; y = [] ; z = []
-x, y, z, onlytwo = leggi(filin)
-plt.plot(x,y,'r'+pointstyle,label="file")
-plt.plot(x,z,'b'+pointstyle,label="file")
-xmin=min(min(x),xmin) ; xmax=max(max(x),xmax)
-ymin=min(min(y),ymin,min(z)) ; ymax=max(max(y),ymax,max(z))
-    
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
  
@@ -140,19 +125,38 @@ pyl.grid(True)
 
 #-------------------------------------------------------------------------------
 
+xmin = 1.e30 ; xmax = -1.e30
+ymin = 1.e30 ; ymax = -1.e30
+ 
+filin = [] ; superx = [] ; supery = []
+ 
+for ifile in range(narg-1): 
+    filin.append(str(sys.argv[ifile+2]))
+    x = [] ; y = []
+    x, y, onlyone = leggi(filin[ifile],int(sys.argv[1]))  
+    asym = "-o"
+    if (len(x) > 50): asym = "-" 
+    #for i in range(1,len(y)): y[i] = y[i]-y[0]
+    #y[0] = 0.0
+    plt.plot(x,y,asym,label=filin[ifile][:8])#"file"+str(ifile+1))
+    xmin=min(min(x),xmin) ; xmax=max(max(x),xmax)
+    ymin=min(min(y),ymin) ; ymax=max(max(y),ymax)
+    
+#-------------------------------------------------------------------------------
+
+#xmax=0.1
+#xmin=-0.01
+#ymin=-0.006
+#ymax=0.005
+
 #plt.legend(loc=1,borderaxespad=.8,numpoints=1)
+plt.legend(bbox_to_anchor=(1.03, 1), loc=2, borderaxespad=0., numpoints=1)
 
 ax.yaxis.set_major_formatter(yfmt)
 
 dxx = (xmax-xmin)/18 ; dyy = (ymax-ymin)/15
 xmin = xmin-dxx ; xmax = xmax+dxx
 ymin = ymin-dyy ; ymax = ymax+dyy
-
-ylimits = []
-for i in range(3,len(sys.argv)): ylimits.append(float(sys.argv[i]))
-
-if (len(ylimits) == 1): ymin = float(ylimits[0])
-if (len(ylimits) > 1): ymin = float(ylimits[0]); ymax = float(ylimits[1]) 
 
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
@@ -161,10 +165,10 @@ ax.xaxis.set_major_locator(MaxNLocator(7))
 
 ax.set_axisbelow(True) 
 
-ax.text(1,1.05,'file: '+filin,size=fontlabel,
-        transform=ax.transAxes,ha='right',va='center',rotation=0)
+#ax.text(1,1.05,'file: '+filin,size=fontlabel,
+#        transform=ax.transAxes,ha='right',va='center',rotation=0)
         
-plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
+#plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
 plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
 
 if (showpyplot): plt.show()
