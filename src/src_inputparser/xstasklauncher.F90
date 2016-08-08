@@ -360,16 +360,19 @@ subroutine xstasklauncher
 
       if(dgrid) call bsedgridinit
 
+      ! Task 301 corresponds to "xsgeneigvec" plan
       task = 301
       call xsinit
       call xsgeneigvec
       call xsfinit
 
+      ! Task 320 corresponds to "writepmatxs" plan
       task = 320
       call xsinit
       call writepmatxs
       call xsfinit
 
+      ! Task 401 corresponds to "scrgeneigvec" plan
       task = 401
       call xsinit
       call scrgeneigvec
@@ -389,28 +392,33 @@ subroutine xstasklauncher
 #endif
       end if
 
+      ! Task 420 corresponds to "scrwritepmat" plan
       task = 420
       call xsinit
       call scrwritepmat
       call xsfinit
 
       if(input%xs%screening%do .eq. "fromscratch") then
+        ! Task 430 corresponds to "screen" plan
         task = 430
         call xsinit
         call screen
         call xsfinit
 
+        ! Task 440 corresponds to "scrcoulint" plan
         task = 440
         call xsinit
         call scrcoulint
         call xsfinit
       end if
 
+      ! Task 441 corresponds to "exccoulint" plan
       task = 441
       call xsinit
       call exccoulint
       call xsfinit
 
+      ! Task 445 corresponds to "bse" plan
       task = 445
       call xsinit
       call bse

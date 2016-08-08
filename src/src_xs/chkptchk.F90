@@ -8,7 +8,7 @@
 !
 Subroutine chkptchk
 #ifdef RESUME
-      Use modxs
+      Use modxs,only: fnresume
       Implicit None
   ! local variables
       Logical :: exis

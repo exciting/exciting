@@ -4,13 +4,25 @@
 !
 !
 subroutine xsinit
-  use modinput
-  use modmain
-  use modmpi
-  use modxs
-  use modfxcifc
-  use m_getunit
-  use m_genfilname
+  use modinput,only: input, isspinspiral
+  !<-- included in modmain
+  use mod_names,only: revert_names
+  use mod_qpoint,only: ngridq
+  use mod_constants,only: h2ev
+  use mod_spin,only: ncmag
+  use mod_misc,only: versionname, task, githash, notelns, notes
+  !-->
+  use modmpi,only: procs,rank,splittfile
+  use modxs,only: calledxs, init0symonly, cputim0i, cntrate, &
+                & systim0i, systimcum, xsfileout, fnetim, &
+                & fnchi0_t, fnxtim, unitout, maxproc, &
+                & lmmaxemat, lmmaxapwwf, lmmaxdielt, tordf, &
+                & tscreen, nwdf, fxcdescr, fxcspin, &
+                & torfxc, escale, tleblaik, tgqmaxg, &
+                & tfxcbse, temat, fnresume
+  use modfxcifc,only: getfxcdata
+  use m_getunit,only: getunit
+  use m_genfilname,only: genfilname
   
   implicit none
 
@@ -93,7 +105,6 @@ subroutine xsinit
   if(input%xs%rgkmax .eq. 0.d0) input%xs%rgkmax = input%groundstate%rgkmax
 
   call mapxsparameters
-
 
   !-----------------------------------!
   !     parallelization variables     !
@@ -197,6 +208,8 @@ subroutine xsinit
     & input%xs%screening%nempty = input%groundstate%nempty
   ! set splittfile parameter for splitting of eigenvector files in
   ! parallelization of scf cycle
+  ! Task 301 corresponds to "xsgeneigvec" plan
+  ! Task 401 corresponds to "scrgeneigvec" plan
   if((task .ne. 301) .and. (task .ne. 401)) splittfile = .false.
 
   !----------------------------!
@@ -206,6 +219,7 @@ subroutine xsinit
   tordf = 1.d0
   if(input%xs%tddft%torddf) tordf = - 1.d0
   tscreen = .false.
+  ! Any task related to screening and bse is in the 400 range
   if((task .ge. 400) .and. (task .le. 499)) tscreen = .true.
   ! tetrahedron method not implemented for analytic continuation
   if(input%xs%tetra%tetradf .and. input%xs%tddft%acont) then
@@ -250,8 +264,8 @@ subroutine xsinit
   if(input%xs%tddft%fxctypenumber .eq. 5) then
      if(input%groundstate%gmaxvr .lt. 2.d0*input%xs%gqmax) then
         write(unitout,*)
-        write(unitout, '("error(xsinit): 2*gqmax > gmaxvr", 2g18.1&
-       &0)') 2.d0 * input%xs%gqmax, input%groundstate%gmaxvr
+        write(unitout, '("error(xsinit): 2*gqmax > gmaxvr", 2g18.10)') &
+         & 2.d0 * input%xs%gqmax, input%groundstate%gmaxvr
         write(unitout,*)
         call terminate
      end if
