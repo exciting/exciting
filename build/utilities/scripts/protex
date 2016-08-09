@@ -1033,7 +1033,7 @@ sub print_preamble {
     print "\\usepackage{amssymb}";
    # print "\\usepackage{underscore}";
     print "\\usepackage{epsfig}";
-    print "\\usepackage{hangcaption}";
+#    print "\\usepackage{hangcaption}";
     print "\\usepackage{tabularx}";
     print "\\textheight     9in";
     print "\\topmargin      0pt";

@@ -1528,7 +1528,7 @@
 10	src_gw/task_emac.f90	/^      10 format(7G12.4)$/;"	l	subroutine:task_emac	file:
 10	src_gw/task_emac_q.f90	/^      10 format(7F12.4)$/;"	l	subroutine:task_emac_q	file:
 10	src_gw/ylm.f90	/^   10    continue$/;"	l	subroutine:ylm	file:
-10	src_inputparser/xstasklauncher.F90	/^10       Continue$/;"	l	subroutine:xstasklauncher	file:
+10	src_inputparser/xstasklauncher.F90	/^10  continue$/;"	l	subroutine:xstasklauncher	file:
 10	src_lib/gcd.f90	/^10    Continue$/;"	l	function:gcd	file:
 10	src_lib/rfinterp.f90	/^10       Continue$/;"	l	subroutine:rfinterp	file:
 10	src_lib/rotaxang.f90	/^10    Continue$/;"	l	subroutine:rotaxang	file:
@@ -18646,6 +18646,7 @@ betainc	src_inputparser/inputmodules.f90	/^ real(8)::betainc$/;"	k	type:groundst
 betalrcdyn	src_inputparser/inputmodules.f90	/^ real(8)::betalrcdyn$/;"	k	type:tddft_type
 beval	src_xs/mod_exciton_wf.f90	/^  real(8),    allocatable :: beval(/;"	v	module:mod_exciton_wf
 bevec	src_xs/mod_exciton_wf.f90	/^  complex(8), allocatable :: bevec(/;"	v	module:mod_exciton_wf
+beyond	src_inputparser/inputmodules.f90	/^ logical::beyond$/;"	k	type:BSE_type
 bfcmt	spacegroup/modmain.f90	/^real(8) bfcmt(/;"	v	module:modmain
 bfcmt	spacegroup/modspacegroup.f90	/^real(8)::bfcmt(/;"	v	module:modspacegroup
 bfcmt	src_inputparser/inputmodules.f90	/^ real(8)::bfcmt(/;"	k	type:atom_type
@@ -19095,7 +19096,7 @@ chisqsum	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  real chisum, chisqsum, guess;$/
 chisum	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  real guess, chisum, chisqsum, chisq;$/;"	m	struct:__anon49
 chisum	src_vdwdf/Cuba-3.2/src/suave/Sample.c	/^  real guess, chisum, chisqsum;$/;"	m	struct:__anon58	file:
 chisum	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  real chisum, chisqsum, guess;$/;"	m	struct:__anon60
-chkpt	src_xs/chkpt.F90	/^Subroutine chkpt /;"	s
+chkpt	src_xs/chkpt.F90	/^Subroutine chkpt(/;"	s
 chkptchk	src_xs/chkptchk.F90	/^Subroutine chkptchk$/;"	s
 cik	src_gw/modgw.f90	/^    character(128) :: path, cik$/;"	v	module:modgw
 cint	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^typedef const int cint;$/;"	t
@@ -28855,18 +28856,18 @@ xsfgradients	src_vdwdf/modules.f90	/^   character*180       :: phifile, xsffile,
 xsfileout	src_xs/modxs.F90	/^      Character (256) :: xsfileout$/;"	v	module:modxs
 xsfinit	src_xs/xsfinit.F90	/^Subroutine xsfinit$/;"	s
 xsgauntgen	src_xs/xsgauntgen.F90	/^      Subroutine xsgauntgen /;"	s	module:m_xsgauntgen
-xsgeneigvec	src_xs/xsgeneigvec.F90	/^Subroutine xsgeneigvec$/;"	s
+xsgeneigvec	src_xs/xsgeneigvec.F90	/^subroutine xsgeneigvec$/;"	s
 xsgnt	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgnt /;"	v	module:modxs
 xsgntoo	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntoo /;"	v	module:modxs
 xsgntou	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntou /;"	v	module:modxs
 xsgntuo	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntuo /;"	v	module:modxs
-xsinit	src_xs/xsinit.F90	/^Subroutine xsinit$/;"	s
+xsinit	src_xs/xsinit.F90	/^subroutine xsinit$/;"	s
 xslinopt	src_xs/xslinopt.F90	/^Subroutine xslinopt /;"	s
 xsltpath	src_inputparser/inputmodules.f90	/^ character(1024)::xsltpath$/;"	k	type:input_type
 xsmain	src_xs/xsmain.F90	/^Subroutine xsmain /;"	s
 xssave0	src_xs/xssave0.F90	/^Subroutine xssave0$/;"	s
 xst	src_xml/scl_xml_out_module.F90	/^     & charges, atom, xst,/;"	v	module:scl_xml_out_Module
-xstasklauncher	src_inputparser/xstasklauncher.F90	/^Subroutine xstasklauncher$/;"	s
+xstasklauncher	src_inputparser/xstasklauncher.F90	/^subroutine xstasklauncher$/;"	s
 xstasks	src_xs/xsmain.F90	/^      Character (256) :: xstasks /;"	v	module:modxsmain
 xstiming	src_xs/timing.F90	/^Subroutine xstiming$/;"	s
 xstype	src_inputparser/inputmodules.f90	/^ character(512)::xstype$/;"	k	type:xs_type

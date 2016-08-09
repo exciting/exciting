@@ -1,64 +1,102 @@
-!
-!
-!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
 !
-Subroutine writeevec (vq, voff, filxt)
-      Use modmain
-      Use modinput
-      Use modmpi
-      Use modxs
-      Use m_gndstateq
-      Use m_filedel
-      Implicit None
-  ! arguments
-      Real (8), Intent (In) :: vq (3), voff (3)
-      Character (*), Intent (In) :: filxt
-  ! local variables
-      Integer :: ik, j
-       Complex (8), Allocatable :: apwalm (:, :, :, :)
-  ! read from STATE.OUT exclusively
-      isreadstate0 = .True.
+subroutine writeevec(vq, voff, filxt)
+  !use modmain
+  !<-- used to be included via modmain
+  use mod_constants, only: zzero
+  use mod_eigensystem, only: nmatmax
+  use mod_eigenvalue_occupancy, only: nstfv
+  use mod_spin, only: nspnfv 
+  use mod_Gkvector, only: ngkmax, vgkl, ngk, gkc, tpgkc, sfacgk
+  use mod_APW_LO, only: apwordmax, nlomax, lolmax
+  use mod_muffin_tin, only: lmmaxapw
+  use mod_atoms, only: natmtot
+  use mod_kpoint, only: nkpt, vkl
+  !-->
+  use modinput, only: input
+  use modmpi, only: rank, procs, barrier, endloopbarrier
+  use modxs, only: isreadstate0, evecfv, apwcmt, locmt,&
+                 & kpari, kparf 
+  use m_gndstateq, only: gndstateq
+  use m_filedel, only: filedel
+
+  implicit none
+
+  ! Arguments
+  real(8), intent(in) :: vq(3), voff(3)
+  character(*), intent(in) :: filxt
+  ! Local variables
+  integer :: ik, j
+  complex(8), allocatable :: apwalm(:, :, :, :)
+
+  ! Read from state.out exclusively
+  isreadstate0 = .true.
+
   ! SCF calculation with one cycle
-      Call gndstateq (voff, filxt)
-      If (allocated(evecfv)) deallocate (evecfv)
-      Allocate (evecfv(nmatmax, nstfv, nspnfv))
-      Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
-      if (allocated(apwcmt)) deallocate(apwcmt)
-      Allocate (apwcmt(nstfv, apwordmax, lmmaxapw, natmtot))
-      if (allocated(locmt)) deallocate(locmt)
-      Allocate (locmt(nstfv, nlomax,-lolmax:lolmax, natmtot))
-  ! delete existing coefficients files
-      If (rank .Eq. 0) Call filedel ('APWCMT'//trim(filxt))
-      If (rank .Eq. 0) Call filedel ('LOCMT'//trim(filxt))
-      Call genparidxran ('k', nkpt)
-      Do ik = kpari, kparf
-      !Do ik = 1, nkpt
-         apwcmt (:, :, :, :) = zzero
-         locmt (:, :, :, :) = zzero
-         Call getevecfv (vkl(1, ik), vgkl(1, 1, 1, ik), evecfv)
-         Call match (ngk(1, ik), gkc(1, 1, ik), tpgkc(1, 1, 1, ik), &
-        & sfacgk(1, 1, 1, ik), apwalm)
-         Call genapwcmt (input%groundstate%lmaxapw, ngk(1, ik), 1, &
-        & nstfv, apwalm, evecfv, apwcmt)
-         Call genlocmt (ngk(1, ik), 1, nstfv, evecfv, locmt)
-         Do j = 0, procs - 1
-            If (rank .Eq. j) Then
+  call gndstateq(voff, filxt)
+  
+  ! If first variational eigenvectors are already
+  ! present, delete them. Then allocate space for them.
+  if(allocated(evecfv)) deallocate(evecfv)
+  allocate(evecfv(nmatmax, nstfv, nspnfv))
 
-            !If (rank.eq.0 .or. (.not. input%sharedfs .and. firstinnode)) Then
-               Call putapwcmt ('APWCMT'//trim(filxt), ik, vkl(1, ik), &
-              & vq, apwcmt)
-               Call putlocmt ('LOCMT'//trim(filxt), ik, vkl(1, ik), vq, &
-              & locmt)
-            End If
-            Call barrier
-         End Do
-      End Do
-      Call endloopbarrier (nkpt, procs)
+  ! Allocate local array for ??
+  allocate(apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
 
-      isreadstate0 = .False.
-      Deallocate (evecfv, apwalm, apwcmt, locmt)
-End Subroutine writeevec
+  ! Allocate space for expansion coefficients of the APWs
+  if(allocated(apwcmt)) deallocate(apwcmt)
+  allocate(apwcmt(nstfv, apwordmax, lmmaxapw, natmtot))
+
+  ! Allocate space for expansion coefficients of the LOs
+  if(allocated(locmt)) deallocate(locmt)
+  allocate(locmt(nstfv, nlomax, -lolmax:lolmax, natmtot))
+
+  ! Delete existing coefficients files
+  if(rank .eq. 0) call filedel('APWCMT'//trim(filxt))
+  if(rank .eq. 0) call filedel('LOCMT'//trim(filxt))
+
+  ! Get the k-point indices for this rank
+  call genparidxran('k', nkpt)
+
+  do ik = kpari, kparf
+
+    apwcmt(:, :, :, :) = zzero
+    locmt(:, :, :, :) = zzero
+
+    ! Read the first variational eigenvectors for k-point ik
+    ! form file.
+    call getevecfv(vkl(1, ik), vgkl(1, 1, 1, ik), evecfv)
+
+    ! Compute the matching coefficients of the APWs
+    call match(ngk(1, ik), gkc(1, 1, ik), tpgkc(1, 1, 1, ik),&
+      & sfacgk(1, 1, 1, ik), apwalm)
+
+    ! Extract the expansion coefficients corresponding to the
+    ! APWs form evecfv.
+    call genapwcmt(input%groundstate%lmaxapw, ngk(1, ik), 1,&
+      & nstfv, apwalm, evecfv, apwcmt)
+
+    ! Extract the expansion coefficients corresponding to the
+    ! LOs form evecfv.
+    call genlocmt(ngk(1, ik), 1, nstfv, evecfv, locmt)
+
+    do j = 0, procs - 1
+      if(rank .eq. j) then
+         call putapwcmt('APWCMT'//trim(filxt), ik, vkl(1, ik), vq, apwcmt)
+         call putlocmt('LOCMT'//trim(filxt), ik, vkl(1, ik), vq, locmt)
+      end if
+      call barrier
+    end do
+
+  end do
+
+  call endloopbarrier(nkpt, procs)
+
+  isreadstate0 = .false.
+
+  deallocate(evecfv, apwalm, apwcmt, locmt)
+
+end subroutine writeevec
