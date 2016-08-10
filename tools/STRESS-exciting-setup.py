@@ -324,7 +324,7 @@ for i in def_list:
     cont2 = 0
     for s in range(-ptn, ptn+1):
         r = mdr*s/ptn
-        if (s==0): r = 0.00001
+        #if (s==0): r = 0.00001
         eps = r
 
         def_mtx_dic = {                                       \

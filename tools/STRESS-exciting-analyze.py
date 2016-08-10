@@ -147,7 +147,7 @@ for i in range(1, SCs+1):
 
         s = j-(NoP+1)/2
         r = 2*mdr*s/(NoP-1)
-        if (s==0): r=0.0001
+        #if (s==0): r=0.0001
 
         if (r>0):
             strain ='+%12.10f'%r
@@ -321,13 +321,13 @@ for i in range(1, SCs+1):
         print >>CVe, TMP[k],
     CVe.close()
 
-    os.system('xmgrace '+ Dstn +'_CVe.dat -param '+ Dstn +'_CVe.par -saveall '+ Dstn +'_CVe.agr &')
+    #os.system('xmgrace '+ Dstn +'_CVe.dat -param '+ Dstn +'_CVe.par -saveall '+ Dstn +'_CVe.agr &')
 
 os.chdir('../')
 
-#--- Writing the "Stress.in" file -----------------------------------------------------------------
+#--- Writing the "STRESS.IN" file -----------------------------------------------------------------
 
-fri = open('Stress.in', 'w')
+fri = open('STRESS.IN', 'w')
 for i in range(1, SCs+1):
     if (i<10):
         Dstn = 'Dst0'+str(i)
