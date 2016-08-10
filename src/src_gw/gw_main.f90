@@ -30,8 +30,8 @@ subroutine gw_main()
     !---------------------
     if (rank==0) then
         call getunit(fgw)
-        open(fgw,File='GW_INFO.OUT')
-        ! open(fgw,File='GW_INFO.OUT',Access='Append')
+        ! open(fgw,File='GW_INFO.OUT')
+        open(fgw,File='GW_INFO.OUT',Access='Append')
         if (input%gw%debug) then
             call getunit(fdebug)
             open(fdebug,File='debug.info',Action='Write')

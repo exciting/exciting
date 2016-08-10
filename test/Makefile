@@ -6,7 +6,7 @@ else
 EXE = ../bin/excitingser
 endif
 
-TESTDIRS = test01 test02 test03 test05 test06 test07 test08 test09 test10
+TESTDIRS = test01 test02 test03 test05 test06 test07 test08 test09 test10 test11
 
 test: 
 	$(MAKE) cleantests
@@ -88,6 +88,7 @@ cleantests::
 	-rm -f  test*/run*/*TXT
 	-rm -f  test*/run*/dos.xml
 	-rm -f  test*/run*/*_scf.xml
+	-rm -f  test*/run*/*_ini.xml
 	-rm -f  test*/run*/bandstructure.xml
 	-rm -f  test*/run*/fermisurface.xml
 	-rm -f  test*/run*/LOSS*
@@ -106,3 +107,4 @@ cleantests::
 	-rm -f  test*/run*/*.DAT
 	-rm -f  test*/run*/*.xsf
 	-rm -f  test*/run*/*.cube
+	-rm -f  directories.xml
