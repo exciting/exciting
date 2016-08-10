@@ -88,6 +88,7 @@ cleantests::
 	-rm -f  test*/run*/*TXT
 	-rm -f  test*/run*/dos.xml
 	-rm -f  test*/run*/*_scf.xml
+	-rm -f  test*/run*/*_ini.xml
 	-rm -f  test*/run*/bandstructure.xml
 	-rm -f  test*/run*/fermisurface.xml
 	-rm -f  test*/run*/LOSS*
