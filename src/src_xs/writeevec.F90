@@ -4,7 +4,6 @@
 !
 !
 subroutine writeevec(vq, voff, filxt)
-  !use modmain
   !<-- used to be included via modmain
   use mod_constants, only: zzero
   use mod_eigensystem, only: nmatmax

@@ -1,80 +1,96 @@
-!
-!
-!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
 !
-Subroutine xsfinit
-      Use modmain
-      Use modxs
-      Use modmpi
-      Use m_filedel
-      Implicit None
+subroutine xsfinit
+  !<-- modmain
+  use mod_misc, only: task, versionname
+  !-->
+  use modxs, only: cputim0f, systim0f, cputim0i, systim0i,&
+                  & cntrate, cputimcum, systimcum, unitout,&
+                  & fnresume, xsfileout, fnetim, fnchi0_t,&
+                  & fnchi0, fnxtim
+  use modmpi, only: rank, procs
+  use m_filedel, only: filedel
 
-  ! local variables
-      Character (*), Parameter :: thisnam = 'xsfinit'
-      Character (10) :: dat, tim
-      Real (8) :: cput, wallt, cputcum, walltcum
-      Real (8) :: hrs
-      Integer :: days, hours, minutes, seconds
-      Character (256) :: str1, str2
-      Character (256), External :: stringtim, r2str
-      character*(77) :: string
+  implicit none
 
-  ! finalize global counters
-      Call date_and_time (date=dat, time=tim)
-      Call cpu_time (cputim0f)
-      Call system_clock (COUNT=systim0f)
-      cput = cputim0f - cputim0i
-      wallt = dble (systim0f-systim0i) / dble (cntrate)
-      cputcum = cputim0f - cputimcum
-      walltcum = dble (systim0f-systimcum) / dble (cntrate)
+  ! Local variables
+  character(*), parameter :: thisnam = 'xsfinit'
+  character(10) :: dat, tim
+  real(8) :: cput, wallt, cputcum, walltcum
+  real(8) :: hrs
+  integer :: days, hours, minutes, seconds
+  character(256) :: str1, str2
+  character(77) :: string
 
-  ! write out information
-      Write (unitout, '(a,i8,a)') 'Info(' // thisnam // '): task Nr.', task, ' stopped gracefully'
-      write (unitout,*)
-      Write (unitout, '(a)') ' Timings: '
-      Write (unitout, '(a)') '     Date (DD-MM-YYYY)      : ' // dat (7:8) // '-' // dat (5:6) // '-' // dat (1:4)
-      Write (unitout, '(a)') '     Time (hh:mm:ss)        : ' // tim (1:2) // ':' // tim (3:4) // ':' // tim (5:6)
-      Call gentim (cput, hrs, days, hours, minutes, seconds)
-      str1 = stringtim (cput, hrs, days, hours, minutes, seconds)
-      Write (unitout, '(a, 4g18.6)')    '     CPU time               : ' // trim (str1)
-!      If (procs .Eq. 1) Then
-         Call gentim (dble(wallt), hrs, days, hours, minutes, seconds)
-         str1 = stringtim (dble(wallt), hrs, days, hours, minutes, seconds)
-         str2 = r2str (cput/wallt*100, '(f12.2)')
-         Write (unitout, '(a, 4g18.6)') '     wall time              : ' // trim (str1)
-         Write (unitout, '(a,  g18.6)') '     CPU load               : ' // trim (str2) // ' %'
-!      End If
-      Call gentim (cputcum, hrs, days, hours, minutes, seconds)
-      str1 = stringtim (cputcum, hrs, days, hours, minutes, seconds)
-      Write (unitout, '(a, 4g18.6)') '     CPU time  (cumulative) : ' // trim (str1)
-      If (procs .Eq. 1) Then
-         Call gentim (dble(walltcum), hrs, days, hours, minutes, seconds)
-         str1 = stringtim (dble(walltcum), hrs, days, hours, minutes, seconds)
-         str2 = r2str (cput/wallt*100, '(f12.2)')
-         Write (unitout, '(a, 4g18.6)') '     wall time (cumulative) : ' // trim (str1)
-         Write (unitout, '(a,  g18.6)') '     CPU load  (cumulative) : ' // trim (str2) // ' %'
-      End If
+  ! External functions
+  character(256), external :: stringtim, r2str
 
-      write(string,'("EXCITING ", a, " stopped for task ",i6)') trim(versionname), task
-      call printbox(unitout,"=",string)
-      write(unitout,*)
-      write(unitout,*)
-      close(unitout)
+  ! Finalize global counters
+  call date_and_time(date=dat, time=tim)
+  call cpu_time(cputim0f)
+  call system_clock(count=systim0f)
+  cput = cputim0f - cputim0i
+  wallt = dble(systim0f-systim0i) / dble(cntrate)
+  cputcum = cputim0f - cputimcum
+  walltcum = dble(systim0f-systimcum) / dble(cntrate)
 
-  ! restore global variables
-      Call restore0
-      Call restore1
-      Call restore2
+  ! Write out information
+  write(unitout, '(a,i8,a)') 'Info(' // thisnam // '): task Nr.', task, ' stopped gracefully'
+  write(unitout,*)
+  write(unitout, '(a)') ' Timings: '
+  write(unitout, '(a)') '     Date (DD-MM-YYYY)      : ' // dat(7:8) // '-' // dat(5:6) // '-' // dat(1:4)
+  write(unitout, '(a)') '     Time (hh:mm:ss)        : ' // tim(1:2) // ':' // tim(3:4) // ':' // tim(5:6)
 
-  ! remove checkpoint file
-      Call filedel (trim(fnresume))
-      If (rank .Ne. 0) Call filedel (trim(xsfileout))
-      If (rank .Ne. 0) Call filedel (trim(fnetim))
-      If (trim(fnchi0_t) .Ne. trim(fnchi0)) Call filedel (trim(fnchi0_t))
-      If (rank .Ne. 0) Call filedel (trim(fnxtim))
+  call gentim(cput, hrs, days, hours, minutes, seconds)
+
+  str1 = stringtim(cput, hrs, days, hours, minutes, seconds)
+
+  write(unitout, '(a, 4g18.6)')    '     CPU time               : ' // trim(str1)
+
+  call gentim(dble(wallt), hrs, days, hours, minutes, seconds)
+
+  str1 = stringtim(dble(wallt), hrs, days, hours, minutes, seconds)
+  str2 = r2str(cput/wallt*100, '(f12.2)')
+
+  write(unitout, '(a, 4g18.6)') '     wall time              : ' // trim(str1)
+  write(unitout, '(a,  g18.6)') '     CPU load               : ' // trim(str2) // ' %'
+
+  call gentim(cputcum, hrs, days, hours, minutes, seconds)
+
+  str1 = stringtim(cputcum, hrs, days, hours, minutes, seconds)
+
+  write(unitout, '(a, 4g18.6)') '     CPU time  (cumulative) : ' // trim(str1)
+
+  if(procs .eq. 1) then
+    call gentim(dble(walltcum), hrs, days, hours, minutes, seconds)
+    str1 = stringtim(dble(walltcum), hrs, days, hours, minutes, seconds)
+    str2 = r2str(cput/wallt*100, '(f12.2)')
+    write(unitout, '(a, 4g18.6)') '     wall time (cumulative) : ' // trim(str1)
+    write(unitout, '(a,  g18.6)') '     CPU load  (cumulative) : ' // trim(str2) // ' %'
+  end if
+
+  write(string,'("EXCITING ", a, " stopped for task ",i6)') trim(versionname), task
+
+  call printbox(unitout,"=",string)
+  
+  write(unitout,*)
+  write(unitout,*)
+  close(unitout)
+
+  ! Restore global variables
+  call restore0
+  call restore1
+  call restore2
+
+  ! Remove checkpoint file
+  call filedel(trim(fnresume))
+
+  if(rank .ne. 0) call filedel(trim(xsfileout))
+  if(rank .ne. 0) call filedel(trim(fnetim))
+  if(trim(fnchi0_t) .ne. trim(fnchi0)) call filedel(trim(fnchi0_t))
+  if(rank .ne. 0) call filedel(trim(fnxtim))
       
-End Subroutine xsfinit
+end subroutine xsfinit
