@@ -434,18 +434,6 @@ subroutine parse_gwinput
         input%groundstate%vkloff = input%gw%vqloff
     end if
     
-!-------------------------------------------------------------------------------
-! Matrix block size 
-!-------------------------------------------------------------------------------
-    mblksiz = input%gw%mblksiz
-    if (mblksiz<=0) then
-      if (rank==0) write(*,*) 'ERROR(parse_gwinput): Negative matrix block size specifies!'
-      if (rank==0) write(*,*) '  mblksiz =', mblksiz, ' < 0'
-      stop
-    end if
-    if (rank==0) write(fgw,*)
-    if (rank==0) write(fgw,*) ' Matrix block size: ', mblksiz
-    
     call flushifc(fgw)
       
     return
