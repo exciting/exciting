@@ -238,7 +238,7 @@
                   Type of calculations. Available tasks:
                   <list>
                     <li>g0w0   - G0W0 calculations</li>
-                    <li>g0w0_x - Exchange only (Hartree-Fock) G0W0 calculations</li>
+                    <li>g0w0<inlinemath>\_</inlinemath>x - Exchange only (Hartree-Fock) G0W0 calculations</li>
                     <li>gw0    - Partially self-consistent GW0 calculations</li>
                     <li>cohsex - Coulomb-hole and screened-exchange (COHSEX) approximation</li>
                     <li>band   - QP banstructure as obtained by Fourier interpolation</li>
