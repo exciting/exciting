@@ -5,7 +5,6 @@
 !
 subroutine screen
   use modxs, only: nwdf, unitout
-  use modinput
   use m_genfilname
 
   implicit none

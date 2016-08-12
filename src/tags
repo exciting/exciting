@@ -14908,6 +14908,7 @@ FoX_wcml	FoX/wcml/FoX_wcml.f90	/^module FoX_wcml$/;"	m
 FoX_wxml	FoX/wxml/FoX_wxml.f90	/^module FoX_wxml$/;"	m
 ForkCores	src_vdwdf/Cuba-3.2/src/common/Fork.c	/^static inline void ForkCores(This *t)$/;"	f	file:
 ForkCores	src_vdwdf/Cuba-3.2/src/common/MSample.c	86;"	d	file:
+Fortran Module Interface modmain Source File modspacegroup f90	spacegroup/doc.tex	/^\\subsection{Fortran:  Module Interface modmain (Source File: modspacegroup.f90)}$/;"	b
 Fprojmem	src_mixing/lib/Fproject.f90	/^      real(8) function Fprojmem(/;"	f
 FrameAlloc	src_vdwdf/Cuba-3.2/src/common/stddecl.h	177;"	d
 FrameFree	src_vdwdf/Cuba-3.2/src/common/stddecl.h	181;"	d
@@ -15080,6 +15081,9 @@ Integrate	src_vdwdf/Cuba-3.2/src/cuhre/Integrate.c	/^static int Integrate(This *
 Integrate	src_vdwdf/Cuba-3.2/src/divonne/Integrate.c	/^static int Integrate(This *t, real *integral, real *error, real *prob)$/;"	f	file:
 Integrate	src_vdwdf/Cuba-3.2/src/suave/Integrate.c	/^static int Integrate(This *t, real *integral, real *error, real *prob)$/;"	f	file:
 Integrate	src_vdwdf/Cuba-3.2/src/vegas/Integrate.c	/^static int Integrate(This *t, real *integral, real *error, real *prob)$/;"	f	file:
+Introduction	spacegroup/doc.tex	/^\\section{Introduction}$/;"	s
+Introduction	stateconvert/doc.tex	/^\\section{Introduction}$/;"	s
+Introduction	stateinfo/doc.tex	/^\\section{Introduction}$/;"	s
 InverseDiag	src_eigensystem/modfvsystem.f90	/^    integer, parameter :: InverseDiag /;"	v	module:modfvsystem
 InvertOnce	src_eigensystem/modfvsystem.f90	/^    integer, parameter :: InvertOnce /;"	v	module:modfvsystem
 IsRule	src_vdwdf/Cuba-3.2/src/divonne/Sample.c	136;"	d	file:
@@ -15548,6 +15552,7 @@ Result	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^} Result;$/;"	t	typeref:struct:__
 Result	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^} Result;$/;"	t	typeref:struct:__anon55
 ResultSize	src_vdwdf/Cuba-3.2/src/divonne/decl.h	79;"	d
 Reweight	src_vdwdf/Cuba-3.2/src/suave/Grid.c	/^static void Reweight(cThis *t, Bounds *b,$/;"	f	file:
+Routine Function Prologues	spacegroup/doc.tex	/^\\section{Routine\/Function Prologues} \\label{app:ProLogues}$/;"	s
 Rule	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^} Rule;$/;"	t	typeref:struct:__anon53
 Rule	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^} Rule;$/;"	t	typeref:struct:__anon42
 Rule11Alloc	src_vdwdf/Cuba-3.2/src/cuhre/Rule.c	/^static void Rule11Alloc(This *t)$/;"	f	file:
@@ -16321,6 +16326,7 @@ TSvdWparameters	src_inputparser/inputmodules.f90	/^  type(TSvdWparameters_/;"	k	
 TSvdWparameters_type	src_inputparser/inputmodules.f90	/^type TSvdWparameters_type$/;"	t	module:modinput
 TYPE_ERR	FoX/dom/m_dom_error.f90	/^  integer, parameter, public :: TYPE_ERR /;"	v	module:m_dom_error
 TYPE_MISMATCH_ERR	FoX/dom/m_dom_error.f90	/^  integer, parameter, public :: TYPE_MISMATCH_ERR /;"	v	module:m_dom_error
+Table of space group symbols	spacegroup/doc.tex	/^   \\section{Table of space group symbols}$/;"	s
 Tag	src_vdwdf/Cuba-3.2/src/divonne/decl.h	15;"	d
 This	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^} This;$/;"	t	typeref:struct:_this
 This	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^} This;$/;"	t	typeref:struct:_this
@@ -16344,6 +16350,9 @@ Untag	src_vdwdf/Cuba-3.2/src/divonne/decl.h	16;"	d
 UpdateCholesky	src_vdwdf/Cuba-3.2/src/divonne/FindMinimum.c	/^static void UpdateCholesky(cThis *t, ccount n, real *hessian,$/;"	f	file:
 Upper	src_vdwdf/Cuba-3.2/src/divonne/Split.c	19;"	d	file:
 Usage	libXC/testsuite/xc-reference.pl	/^Usage: $0 [options] -f functional$/;"	l
+Usage	spacegroup/doc.tex	/^   \\section{Usage}$/;"	s
+Usage	stateconvert/doc.tex	/^   \\section{Usage}$/;"	s
+Usage	stateinfo/doc.tex	/^   \\section{Usage}$/;"	s
 VALIDATION_ERR	FoX/dom/m_dom_error.f90	/^  integer, parameter, public :: VALIDATION_ERR /;"	v	module:m_dom_error
 VEGAS	src_vdwdf/Cuba-3.2/src/vegas/Vegas.c	9;"	d	file:
 VERBOSE	src_vdwdf/Cuba-3.2/src/common/stddecl.h	69;"	d
@@ -19615,7 +19624,7 @@ df	src_raman/mod_raman.f90	/^complex (8), allocatable :: df(/;"	v	module:raman_c
 df	src_vdwdf/Cuba-3.2/src/divonne/Split.c	/^  real f, df, fold;$/;"	m	struct:__anon45	file:
 df	src_vdwdf/Cuba-3.2/src/suave/Integrate.c	/^  count nregions, df;$/;"	m	struct:__anon54	file:
 df	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  count div, df;$/;"	m	struct:region
-df	src_xs/df.F90	/^Subroutine df$/;"	s
+df	src_xs/df.F90	/^subroutine df$/;"	s
 dfdx	libXC/src/gga_c_op.c	/^    (const XC(func_type) *p, int order, FLOAT x, FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2);$/;"	m	struct:__anon33	file:
 dfdx	libXC/src/gga_x_b88.c	/^		      FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)$/;"	v
 dfdx	libXC/src/gga_x_g96.c	/^     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)$/;"	v
@@ -19636,7 +19645,7 @@ dfdx	libXC/src/util.h	/^void XC(gga_x_wc_enhance)  (const XC(func_type) *p, int 
 dfgather	src_xs/dfgather.F90	/^Subroutine dfgather$/;"	s
 dfoffdiag	src_inputparser/inputmodules.f90	/^ logical::dfoffdiag$/;"	k	type:xs_type
 dforcemax	src_xml/scl_xml_out_module.F90	/^      real(8) :: deltae , dforcemax=/;"	v	module:scl_xml_out_Module
-dfq	src_xs/dfq.F90	/^Subroutine dfq /;"	s
+dfq	src_xs/dfq.F90	/^subroutine dfq(/;"	s
 dfthalf	src_inputparser/inputmodules.f90	/^  type(dfthalf_/;"	k	type:groundstate_type
 dfthalf_type	src_inputparser/inputmodules.f90	/^type dfthalf_type$/;"	t	module:modinput
 dfthalfparam	src_inputparser/inputmodules.f90	/^  type(dfthalfparam_/;"	k	type:species_type
@@ -20008,13 +20017,13 @@ elstack_item	FoX/common/m_common_elstack.F90	/^  type :: elstack_item$/;"	t	modu
 elstack_t	FoX/common/m_common_elstack.F90	/^  type :: elstack_t$/;"	t	module:m_common_elstack
 elval	species/modspecies.F90	/^real(8) :: elval(/;"	v	module:modspecies
 emass_si	eos/modmain.f90	/^real(8), parameter :: emass_si=/;"	v	module:modmain
-ematbdcmbs	src_xs/ematbdcmbs.F90	/^Subroutine ematbdcmbs /;"	s
+ematbdcmbs	src_xs/ematbdcmbs.F90	/^subroutine ematbdcmbs(/;"	s
 ematbdlims	src_xs/ematbdlims.F90	/^Subroutine ematbdlims /;"	s
 ematdirect	src_xs/xas/ematdirect.f90	/^Subroutine ematdirect /;"	s
 ematex	src_xs/xas/ematex.f90	/^Subroutine ematex(/;"	s
 ematgntsum	src_xs/ematgntsum.F90	/^Subroutine ematgntsum /;"	s
 ematq	src_xs/ematq.F90	/^Subroutine ematq /;"	s
-ematqalloc	src_xs/ematqalloc.F90	/^Subroutine ematqalloc$/;"	s
+ematqalloc	src_xs/ematqalloc.F90	/^subroutine ematqalloc$/;"	s
 ematqdealloc	src_xs/ematqdealloc.F90	/^Subroutine ematqdealloc$/;"	s
 ematqk	src_xs/ematqk.F90	/^Subroutine ematqk /;"	s
 ematqk1	src_xs/ematqk1.F90	/^Subroutine ematqk1 /;"	s
@@ -21021,7 +21030,7 @@ genloss	src_xs/genloss.F90	/^      Subroutine genloss /;"	s	module:m_genloss
 genmbrotmat	src_gw/genmbrotmat.f90	/^subroutine genmbrotmat(/;"	s
 genmeffig	genmeffig.f90	/^Subroutine genmeffig$/;"	s
 genocc	src_stm/genocc.F90	/^Subroutine genocc(/;"	s
-genparidxran	src_xs/genparidxran.F90	/^Subroutine genparidxran /;"	s
+genparidxran	src_xs/genparidxran.F90	/^subroutine genparidxran(/;"	s
 genpchgs	genpchgs.F90	/^subroutine genpchgs(/;"	s
 genphasedm	src_xs/genphasedm.F90	/^Subroutine genphasedm /;"	s
 genplot2d	src_stm/genplot2d.F90	/^Subroutine genplot2d(/;"	s
@@ -21043,7 +21052,7 @@ genrhoir	genrhoir.f90	/^Subroutine genrhoir /;"	s
 genrlm	src_lib/genrlm.f90	/^Subroutine genrlm /;"	s
 genrmesh	genrmesh.f90	/^Subroutine genrmesh$/;"	s
 genrstr	src_gw/sigma.f90	/^subroutine genrstr(/;"	s
-genscclieff	src_xs/genscclieff.F90	/^Subroutine genscclieff /;"	s
+genscclieff	src_xs/genscclieff.F90	/^subroutine genscclieff(/;"	s
 gensdmat	gensdmat.f90	/^Subroutine gensdmat /;"	s
 gensfacgp	gensfacgp.f90	/^Subroutine gensfacgp /;"	s
 genshtmat	genshtmat.f90	/^Subroutine genshtmat$/;"	s
@@ -23415,7 +23424,7 @@ m_wxml_escape	FoX/wxml/m_wxml_escape.F90	/^module m_wxml_escape$/;"	m
 m_wxml_overloads	FoX/wxml/m_wxml_overloads.F90	/^module m_wxml_overloads$/;"	m
 m_xasgauntgen	src_xs/xas/xasgauntgen.f90	/^Module m_xasgauntgen$/;"	m
 m_xlower	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  int m_xlower, m_xupper, m_ylower, m_yupper;$/;"	m	class:PartitionPlane	file:
-m_xsgauntgen	src_xs/xsgauntgen.F90	/^Module m_xsgauntgen$/;"	m
+m_xsgauntgen	src_xs/xsgauntgen.F90	/^module m_xsgauntgen$/;"	m
 m_xszoutpr	src_xs/xszoutpr.F90	/^Module m_xszoutpr$/;"	m
 m_xszoutpr2	src_xs/xszoutpr2.F90	/^Module m_xszoutpr2$/;"	m
 m_xszoutpr3	src_xs/xszoutpr3.F90	/^Module m_xszoutpr3$/;"	m
@@ -25776,6 +25785,7 @@ r3mv	spacegroup/r3mv.f90	/^subroutine r3mv(/;"	s
 r3mv	src_lib/r3mv.f90	/^Subroutine r3mv /;"	s
 r3taxi	spacegroup/r3taxi.f90	/^real(8) function r3taxi(/;"	f
 r3taxi	src_lib/r3taxi.f90	/^Real (8) Function r3taxi /;"	f
+r3taxi Source File r3taxi f90	spacegroup/doc.tex	/^\\subsubsection{r3taxi (Source File: r3taxi.f90)}$/;"	b
 r_path	src_gw/src_tests/mod_rpath.f90	/^    type r_path$/;"	t	module:mod_rpath
 radialgridtype	species/species.f90	/^  character(80) :: radialgridtype$/;"	v	program:species
 radialgridtype	src_inputparser/inputmodules.f90	/^ character(512)::radialgridtype$/;"	k	type:groundstate_type
@@ -25877,7 +25887,7 @@ read_xc_h	libXC/testsuite/xc-reference.pl	/^sub read_xc_h {$/;"	s
 readbroydsteps_and_init_SY	src_mixing/readbroydsteps.f90	/^Subroutine readbroydsteps_and_init_SY /;"	s
 readdveff	src_phonon/readdveff.f90	/^Subroutine readdveff /;"	s
 readdyn	src_phonon/readdyn.f90	/^Subroutine readdyn /;"	s
-readfermi	readfermi.f90	/^Subroutine readfermi$/;"	s
+readfermi	readfermi.f90	/^subroutine readfermi$/;"	s
 readgamma	src_phonon/readgamma.f90	/^Subroutine readgamma /;"	s
 reading_first_entity	FoX/sax/m_sax_reader.F90	/^ function reading_first_entity(/;"	f	module:m_sax_reader
 reading_main_file	FoX/sax/m_sax_reader.F90	/^  function reading_main_file(/;"	f	module:m_sax_reader
@@ -26449,18 +26459,18 @@ scnrm2	ARPACK/EXAMPLES/SIMPLE/cnsimp.f	/^      Real $/;"	v	program:cnsimp
 scqmap	src_xs/modxs.F90	/^      Integer, Allocatable :: scqmap /;"	v	module:modxs
 scrcoul	src_inputparser/inputmodules.f90	/^  type(scrcoul_/;"	k	type:gw_type
 scrcoul_type	src_inputparser/inputmodules.f90	/^type scrcoul_type$/;"	t	module:modinput
-scrcoulint	src_xs/scrcoulint.F90	/^Subroutine scrcoulint$/;"	s
-screen	src_xs/screen.F90	/^Subroutine screen$/;"	s
+scrcoulint	src_xs/scrcoulint.F90	/^subroutine scrcoulint$/;"	s
+screen	src_xs/screen.F90	/^subroutine screen$/;"	s
 screening	src_inputparser/inputmodules.f90	/^  type(screening_/;"	k	type:xs_type
 screening_type	src_inputparser/inputmodules.f90	/^type screening_type$/;"	t	module:modinput
 screentype	src_inputparser/inputmodules.f90	/^ character(512)::screentype$/;"	k	type:screening_type
 screentypenumber	src_inputparser/inputmodules.f90	/^ integer::screentypenumber$/;"	k	type:screening_type
-scrgeneigvec	src_xs/scrgeneigvec.F90	/^Subroutine scrgeneigvec$/;"	s
+scrgeneigvec	src_xs/scrgeneigvec.F90	/^subroutine scrgeneigvec$/;"	s
 scrherm	src_inputparser/inputmodules.f90	/^ integer::scrherm$/;"	k	type:BSE_type
 scrpath	mod_misc.F90	/^      Character (256) :: scrpath$/;"	v	module:mod_misc
-scrtetcalccw	src_xs/modtetra/scrtetcalccw.F90	/^Subroutine scrtetcalccw$/;"	s
+scrtetcalccw	src_xs/modtetra/scrtetcalccw.F90	/^subroutine scrtetcalccw$/;"	s
 scrtype	src_inputparser/inputmodules.f90	/^ character(512)::scrtype$/;"	k	type:scrcoul_type
-scrwritepmat	src_xs/scrwritepmat.F90	/^Subroutine scrwritepmat$/;"	s
+scrwritepmat	src_xs/scrwritepmat.F90	/^subroutine scrwritepmat$/;"	s
 sdelta	src_lib/sdelta.f90	/^Function sdelta /;"	f
 sdelta_fd	src_lib/sdelta_fd.f90	/^Real (8) Function sdelta_fd /;"	f
 sdelta_mp	src_lib/sdelta_mp.f90	/^Real (8) Function sdelta_mp /;"	f
@@ -28637,7 +28647,7 @@ writeematasc	src_xs/writeematasc.F90	/^Subroutine writeematasc$/;"	s
 writeengy	writeengy.f90	/^Subroutine writeengy /;"	s
 writeeps	src_xs/writeeps.F90	/^      Subroutine writeeps /;"	s	module:m_writeeps
 writeeval	writeeval.f90	/^Subroutine writeeval$/;"	s
-writeevec	src_xs/writeevec.F90	/^Subroutine writeevec /;"	s
+writeevec	src_xs/writeevec.F90	/^subroutine writeevec(/;"	s
 writeexcitons	src_inputparser/inputmodules.f90	/^  type(writeexcitons_/;"	k	type:xs_type
 writeexcitons_type	src_inputparser/inputmodules.f90	/^type writeexcitons_type$/;"	t	module:modinput
 writeexpiqr	src_optics/writeexpiqr.f90	/^Subroutine writeexpiqr$/;"	s
@@ -28655,7 +28665,7 @@ writeiktetmap	src_xs/modtetra/modtetra.F90	/^      Subroutine writeiktetmap /;"	
 writeinfo	writeinfo.f90	/^Subroutine writeinfo /;"	s
 writekerr	src_xs/writekerr.F90	/^      Subroutine writekerr /;"	s	module:m_writekerr
 writekmapkq	src_xs/writekmapkq.F90	/^Subroutine writekmapkq /;"	s
-writekpts	writekpts.f90	/^Subroutine writekpts$/;"	s
+writekpts	writekpts.f90	/^subroutine writekpts$/;"	s
 writelambda	src_phonon/writelambda.f90	/^Subroutine writelambda /;"	s
 writelat	writelat.f90	/^Subroutine writelat$/;"	s
 writeldapu	src_LDAU/writeldapu.f90	/^Subroutine writeldapu$/;"	s
@@ -28668,11 +28678,11 @@ writephn	src_phonon/writephn.f90	/^subroutine writephn$/;"	s
 writephnlist	src_phonon/writephnlist.F90	/^Subroutine writephnlist(/;"	s
 writepmat	src_optics/writepmat.f90	/^Subroutine writepmat$/;"	s
 writepmatasc	src_xs/writepmatasc.F90	/^Subroutine writepmatasc$/;"	s
-writepmatxs	src_xs/writepmatxs.F90	/^Subroutine writepmatxs$/;"	s
+writepmatxs	src_xs/writepmatxs.F90	/^subroutine writepmatxs$/;"	s
 writepositions	writepositions.f90	/^subroutine writepositions(/;"	s
 writeprecond	src_iterative_solver/src_diis/writeprecond.F90	/^Subroutine writeprecond /;"	s
 writepwmat	src_xs/writepwmat.F90	/^Subroutine writepwmat$/;"	s
-writeqpts	src_xs/writeqpts.F90	/^Subroutine writeqpts$/;"	s
+writeqpts	src_xs/writeqpts.F90	/^subroutine writeqpts$/;"	s
 writesccli	src_xs/writesccli.F90	/^Subroutine writesccli$/;"	s
 writesigma	src_xs/writesigma.F90	/^      Subroutine writesigma /;"	s	module:m_writesigma
 writesock	src_vdwdf/Cuba-3.2/src/common/Fork.c	/^static inline int writesock(int fd, const void *data, size_t n)$/;"	f	file:
@@ -28854,8 +28864,8 @@ xsestimate	src_xs/xsestimate.F90	/^Subroutine xsestimate$/;"	s
 xsffile	src_vdwdf/modules.f90	/^   character*180       :: phifile, xsffile,/;"	v	module:param
 xsfgradients	src_vdwdf/modules.f90	/^   character*180       :: phifile, xsffile, xsfgradients$/;"	v	module:param
 xsfileout	src_xs/modxs.F90	/^      Character (256) :: xsfileout$/;"	v	module:modxs
-xsfinit	src_xs/xsfinit.F90	/^Subroutine xsfinit$/;"	s
-xsgauntgen	src_xs/xsgauntgen.F90	/^      Subroutine xsgauntgen /;"	s	module:m_xsgauntgen
+xsfinit	src_xs/xsfinit.F90	/^subroutine xsfinit$/;"	s
+xsgauntgen	src_xs/xsgauntgen.F90	/^  subroutine xsgauntgen(/;"	s	module:m_xsgauntgen
 xsgeneigvec	src_xs/xsgeneigvec.F90	/^subroutine xsgeneigvec$/;"	s
 xsgnt	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgnt /;"	v	module:modxs
 xsgntoo	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntoo /;"	v	module:modxs
@@ -28865,7 +28875,7 @@ xsinit	src_xs/xsinit.F90	/^subroutine xsinit$/;"	s
 xslinopt	src_xs/xslinopt.F90	/^Subroutine xslinopt /;"	s
 xsltpath	src_inputparser/inputmodules.f90	/^ character(1024)::xsltpath$/;"	k	type:input_type
 xsmain	src_xs/xsmain.F90	/^Subroutine xsmain /;"	s
-xssave0	src_xs/xssave0.F90	/^Subroutine xssave0$/;"	s
+xssave0	src_xs/xssave0.F90	/^subroutine xssave0$/;"	s
 xst	src_xml/scl_xml_out_module.F90	/^     & charges, atom, xst,/;"	v	module:scl_xml_out_Module
 xstasklauncher	src_inputparser/xstasklauncher.F90	/^subroutine xstasklauncher$/;"	s
 xstasks	src_xs/xsmain.F90	/^      Character (256) :: xstasks /;"	v	module:modxsmain

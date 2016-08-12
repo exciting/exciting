@@ -13,12 +13,12 @@ subroutine dfq(iq)
   use mod_eigenvalue_occupancy
   use mod_misc
   use mod_gkvector
-  use mod_apw_lo
+  use mod_APW_LO
   use mod_gvector
   use mod_kpoint
   use mod_qpoint
   use mod_lattice
-  use mod_dos_optics_response
+  use mod_DOS_optics_response
   use modxs
 #ifdef TETRA      
   use modtetra
@@ -104,11 +104,10 @@ subroutine dfq(iq)
   complex(8), allocatable :: zvou(:), zvuo(:), chi0hs(:, :, :), bsedg(:, :), scis12c(:, :), scis21c(:, :),zm(:,:,:)
   real(8), parameter :: epstetra = 1.d-8
   real(8) :: ta,tb,tc,td
-  real(8), allocatable :: wreal(:), cw(:), cwa(:), cwsurf(:)
-  real(8), allocatable :: cwt(:, :), cw1k(:, :, :), cwa1k(:, :, :), cwsurf1k(:, :, :)
+  real(8), allocatable :: wreal(:) 
   real(8), allocatable :: scis12 (:, :), scis21 (:, :)
   real(8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot, wintv(2), wplas, wrel
-  integer :: n, j, i1, i2, j1, j2, ik, ikq, igq, iw, wi, wf, ist1, ist2, nwdfp
+  integer :: n, j, i1, i2, ik, ikq, igq, iw, wi, wf, ist1, ist2, nwdfp
   integer :: oct1, oct2, un
   logical :: tq0
 
@@ -567,8 +566,8 @@ subroutine dfq(iq)
         end do
       end do
 
-      call zgemm('n', 'n', n, n, nst1*nst2, zone, xiou(1,1,1),&
-        & nst1*nst2, zm(1,1,1), n, xiou(1,1,1), nst1*nst2, zone, chi0(1,1,iw-wi+1), n)
+      call zgemm('n', 'n', n, n, nst1*nst2, zone,&
+        & zm(1,1,1), n, xiou(1,1,1), nst1*nst2, zone, chi0(1,1,iw-wi+1), n)
     end do
 
     deallocate(zm)

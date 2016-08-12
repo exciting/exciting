@@ -1,6 +1,3 @@
-!
-!
-!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -9,10 +6,11 @@
 ! !ROUTINE: writekpts
 ! !INTERFACE:
 !
-!
-Subroutine writekpts
+subroutine writekpts
 ! !USES:
-      Use modmain
+  use mod_misc, only: filext
+  use mod_kpoint, only: nkpt, vkl, wkpt
+  use mod_eigensystem, only: nmat
 ! !DESCRIPTION:
 !   Writes the $k$-points in lattice coordinates, weights and number of
 !   ${\bf G+k}$-vectors to the file {\tt KPOINTS.OUT}.
@@ -21,18 +19,19 @@ Subroutine writekpts
 !   Created June 2003 (JKD)
 !EOP
 !BOC
-      Implicit None
-! local variables
-      Integer :: ik
-      Open (50, File='KPOINTS'//trim(filext), Action='WRITE', Form='FOR&
-     &MATTED')
-      Write (50, '(I6, " : nkpt; k-point, vkl, wkpt, nmat below")') &
-     & nkpt
-      Do ik = 1, nkpt
-         Write (50, '(I6, 4G18.10, 2I8)') ik, vkl (:, ik), wkpt (ik), &
-        & nmat (:, ik)
-      End Do
-      Close (50)
-      Return
-End Subroutine
+
+  implicit none
+
+  ! local variables
+  integer :: ik
+
+  open(50, file='KPOINTS'//trim(filext), action='WRITE', form='FORMATTED')
+  write(50, '(I6, " : nkpt; k-point, vkl, wkpt, nmat below")') nkpt
+  do ik = 1, nkpt
+     write(50, '(i6, 4g18.10, 2i8)') ik, vkl(:, ik), wkpt(ik), nmat(:, ik)
+  end do
+  close(50)
+  return
+
+end subroutine
 !EOC
