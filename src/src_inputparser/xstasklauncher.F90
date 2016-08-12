@@ -375,7 +375,7 @@ subroutine xstasklauncher
       ! Task 401 corresponds to "scrgeneigvec" plan
       task = 401
       call xsinit
-      call scrgeneigvec
+      call scrgeneigvec ! Calls xsgeneigvec
       call xsfinit
 
       if((input%xs%tetra%tetradf)) then
@@ -395,7 +395,7 @@ subroutine xstasklauncher
       ! Task 420 corresponds to "scrwritepmat" plan
       task = 420
       call xsinit
-      call scrwritepmat
+      call scrwritepmat ! Calls writepmatxs
       call xsfinit
 
       if(input%xs%screening%do .eq. "fromscratch") then

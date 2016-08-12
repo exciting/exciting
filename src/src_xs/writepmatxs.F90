@@ -8,6 +8,7 @@
 subroutine writepmatxs
 ! !USES:
   use modinput, only: input
+  use modmpi, only: procs, rank, firstofset, lastofset, barrier
   !<-- modmain
   use mod_misc, only: task, filext
   use mod_kpoint, only: nkpt, vkl
@@ -17,10 +18,8 @@ subroutine writepmatxs
   use mod_atoms, only: natmtot
   use mod_eigensystem, only: nmatmax 
   use mod_eigenvalue_occupancy, only: nstfv, nstsv
-  !use mod_pmat, only: apwcmt, locmt ! private versions of modxs public variables??
   !-->
   use modxas, only: ncg
-  use modmpi, only: procs, rank, firstofset, lastofset, barrier
   use modxs, only: tscreen, fnpmat, fnpmat_t, kpari,&
                   & kparf, hybridhf, ripaa, ripalo,&
                   & riploa, riplolo, apwcmt, locmt,&
@@ -59,7 +58,8 @@ subroutine writepmatxs
     if(associated(input%properties%momentummatrix)) then
       if(input%properties%momentummatrix%fastpmat) fast=.true.
     end if
-  end if	
+  end if
+
   ! Task 120 is 'writepmat'
   fast=(task.ne.120).or.((task.eq.120).and.fast)
 

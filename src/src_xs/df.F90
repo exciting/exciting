@@ -1,6 +1,3 @@
-!
-!
-!
 ! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -10,16 +7,20 @@
 ! !INTERFACE:
 !
 !
-Subroutine df
+subroutine df
 ! !USES:
-      Use modinput
-      Use modmain
-      Use modxs
-      Use modmpi
-      Use m_writegqpts
-      Use m_xsgauntgen
-      Use m_findgntn0
-      Use m_genfilname
+  use modinput, only: input
+  !<-- modmain
+  use mod_APW_LO, only: lolmax
+  use mod_qpoint, only: nqpt
+  !-->
+  use modxs, only: tscreen, xsgnt, nwdf, qpari,&
+                   & qparf, unitout
+  use modmpi, only: procs, barrier
+  use m_writegqpts
+  use m_xsgauntgen
+  use m_findgntn0
+  use m_genfilname
 ! !DESCRIPTION:
 !   Control routine for setting up the Kohn-Sham response function or the
 !   microscopic dielectric function/matrix for all specified ${\bf q}$-points.
@@ -29,63 +30,85 @@ Subroutine df
 !   Created March 2006 (Sagmeister)
 !EOP
 !BOC
-      Implicit None
-  ! local variables
-      Character (*), Parameter :: thisnam = 'df'
-      Character (256) :: filex
-      Integer :: iq
-      If ( .Not. tscreen) Call genfilname (setfilext=.True.)
-      Call init0
-  ! initialise universal variables
-      Call init1
-  ! save Gamma-point variables
-      Call xssave0
-  ! initialize q-point set
-      Call init2
-      If (tscreen) Then
-     ! generate Gaunt coefficients
-         Call xsgauntgen (Max(input%groundstate%lmaxapw, lolmax), &
-        & input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax))
-     ! find indices for non-zero Gaunt coefficients
-         Call findgntn0 (Max(input%xs%lmaxapwwf, lolmax), &
-        & Max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
-      End If
-  ! read Fermi energy
-      If (input%xs%dogroundstate .Ne. "fromscratch") Call readfermi
-  ! w-point parallelization for dielectric function
-      If (tscreen) Then
-         nwdf = 1
-         Call genparidxran ('q', nqpt)
-      Else
-         Call genparidxran ('w', nwdf)
-      End If
-  ! set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
-      input%xs%emattype = 1
-  ! write out q-points
-      Call writeqpts
-  ! loop over q-points
-      Do iq = qpari, qparf
 
-         If (input%xs%dogroundstate .Eq. "fromscratch") Then 
-            Call genfilname (iqmt=iq, fileext=filex, setfilext=.True.)
-            Call readfermi
-         Else
-            Call genfilname (iq=iq, fileext=filex)
-         End If
-     ! call for q-point
-         Call dfq (iq)
-         If (tscreen) Call writegqpts (iq, filex)
-         Write (unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sham&
+  implicit none
+  
+  ! Local variables
+  character(*), parameter :: thisnam = 'df'
+  character(256) :: filex
+  integer :: iq
+
+  if( .not. tscreen) call genfilname(setfilext=.true.)
+
+  call init0
+  ! Initialise universal variables
+  call init1
+  ! Save gamma-point variables
+  call xssave0
+  ! Initialize q-point set
+  call init2
+
+  if(tscreen) then
+
+    ! Generate gaunt coefficients
+    call xsgauntgen(max(input%groundstate%lmaxapw, lolmax),&
+      & input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
+
+    ! Find indices for non-zero gaunt coefficients
+    call findgntn0(max(input%xs%lmaxapwwf, lolmax),&
+      & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
+
+  end if
+
+  ! Read Fermi energy
+  if(input%xs%dogroundstate .ne. "fromscratch") call readfermi
+
+  ! W-point parallelization for dielectric function
+  if(tscreen) then
+    nwdf = 1
+    call genparidxran('q', nqpt)
+  else
+    call genparidxran('w', nwdf)
+  end if
+
+  ! Set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
+  input%xs%emattype = 1
+
+  ! Write out q-points
+  call writeqpts
+
+  ! Loop over q-points
+  qloop: do iq = qpari, qparf
+
+    if(input%xs%dogroundstate .eq. "fromscratch") then 
+      call genfilname(iqmt=iq, fileext=filex, setfilext=.true.)
+      call readfermi
+    else
+      call genfilname(iq=iq, fileext=filex)
+    end if
+
+    ! Call for q-point
+    call dfq(iq)
+
+    if(tscreen) call writegqpts(iq, filex)
+
+    write(unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sham&
         & response function finished for q - point:', iq
-      End Do
-  ! synchronize
-      Call barrier
-      If ((procs .Gt. 1)  .And. ( .Not. tscreen)) &
-     & Call dfgather
-      Call barrier
-      Write (unitout, '(a)') "Info(" // trim (thisnam) // "): Kohn-Sham&
-     & response function finished"
-      If ( .Not. tscreen) Call genfilname (setfilext=.True.)
-      If (tscreen) Call findgntn0_clear
-End Subroutine df
+
+  end do qloop
+
+  ! Synchronize
+  call barrier
+
+  if((procs .gt. 1) .and. ( .not. tscreen)) call dfgather
+
+  call barrier
+
+  write(unitout, '(a)') "Info(" // trim(thisnam) // "): Kohn-Sham&
+    & response function finished"
+
+  if( .not. tscreen) call genfilname(setfilext=.true.)
+
+  if(tscreen) call findgntn0_clear
+end subroutine df
 !EOC
