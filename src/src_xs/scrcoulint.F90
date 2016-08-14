@@ -26,7 +26,6 @@ subroutine scrcoulint
                  & vqlr, vgqc, dielten, xiou,&
                  & xiuo, bsedl, bsedu, bsedd,&
                  & bsed
-  !use summations
   use m_xsgauntgen
   use m_findgntn0
   use m_writevars
@@ -112,7 +111,7 @@ subroutine scrcoulint
   ! Only for systems with a gap in energy
   if( .not. ksgap) then
     write(*,*)
-    write(*,'("warning(",a,"): there is no ks-gap present")') trim(thisnam)
+    write(*,'("Warning(",a,"): There is no ks-gap present")') trim(thisnam)
     write(*,*)
   end if
 
@@ -180,14 +179,14 @@ subroutine scrcoulint
   nkkp = (nkptnr*(nkptnr+1)) / 2
   inquire(iolength=recl) ikkp, iknr, jknr, iq, iqr, nst1, nst2, nst3, nst4, sccli
   write(unitout,*)
-  write(unitout, '(a,f12.3)') 'File size for screened coulomb interaction (gb):',&
+  write(unitout, '(a,f12.3)') 'File size for screened coulomb interaction (Gb):',&
     & recl * nkkp / 1024.d0 ** 3
   write(unitout,*)
 
   !-------------------------------!
   !     Loop over(k,kp) pairs     !
   !-------------------------------!
-  call genfilname(basename='sccli', asc=.true., filnam=fnsccli)
+  call genfilname(basename='SCCLI', asc=.true., filnam=fnsccli)
   call getunit(un)
 
   if(rank .eq. 0) open(un, file=trim(fnsccli),&

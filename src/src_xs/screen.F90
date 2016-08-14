@@ -12,12 +12,13 @@ subroutine screen
   ! local variables
   integer :: nwdft
 
-  ! Back up number of energy intervals
+  ! Back up number of energy points
   nwdft = nwdf
 
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
 
   ! Call dielectric function with only one frequency point
+  ! df is a wrapper for dfq(iq) which for 'screen' sets nwdf=1, i.e. static screening
   call df
 
   ! Alternative for checking only:

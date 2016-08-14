@@ -356,7 +356,7 @@ subroutine xstasklauncher
       call genksubpts
     endif
 
-    do iksubpt = 1, nksubpt
+    subgridk: do iksubpt = 1, nksubpt
 
       if(dgrid) call bsedgridinit
 
@@ -426,14 +426,14 @@ subroutine xstasklauncher
 
       if(dgrid) input%xs%screening%do = "skip"
 
-    enddo
+    end do subgridk
 
     if (dgrid) then
        call bsedgrid
        ! restore input settings
        input%xs%vkloff(:) = vkloff_xs_b(:)
        input%xs%screening%do = doscreen0
-    endif
+    end if
 
   else
 

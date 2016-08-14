@@ -23,6 +23,7 @@ subroutine genscclieff(iqr, nmax, n, scieff)
   call getscreen(iqr, n, scrnh, scrnw, scrn)
   tq0 = tqgamma(iqr)
 
+  ! Calculate effective screened interaction
   if(tq0) then
     ! Averaging using Lebedev-Laikov spherical grids
     call angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)

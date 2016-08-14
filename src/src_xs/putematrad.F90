@@ -1,28 +1,27 @@
-!
-!
-!
-! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright(C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-!
-Subroutine putematrad (iqr, iq)
-      Use modmain
-      Use modxs
-      Use m_genfilname
-      Use m_getunit
-      Implicit None
-  ! arguments
-      Integer, Intent (In) :: iqr, iq
-  ! local variables
-      Character (256) :: fname
-      Integer :: un
-  ! calculate radial integrals
-      Call genfilname (basename='EMATRAD', iq=iqr, filnam=fname)
-      Call ematrad (iq)
-      Call getunit (un)
-      Open (un, File=trim(fname), Form='unformatted', Action='write', &
-     & Status='replace')
-      Write (un) riaa, riloa, rilolo
-      Close (un)
-End Subroutine putematrad
+subroutine putematrad(iqr, iq)
+  use modxs, only: riaa, riloa, rilolo
+  use m_genfilname
+  use m_getunit
+
+  implicit none
+
+  ! Arguments
+  integer, intent(in) :: iqr, iq
+
+  ! Local variables
+  character(256) :: fname
+  integer :: un
+
+  ! Calculate radial integrals
+  call genfilname(basename='EMATRAD', iq=iqr, filnam=fname)
+  call ematrad(iq)
+  call getunit(un)
+
+  open(un, file=trim(fname), form='unformatted', action='write', status='replace')
+  write(un) riaa, riloa, rilolo
+  close(un)
+end subroutine putematrad
