@@ -7,23 +7,30 @@
 ! !INTERFACE:
 subroutine dfq(iq)
 ! !USES:
-  use ioarray
-  use modinput
-  use mod_constants
-  use mod_eigenvalue_occupancy
-  use mod_misc
-  use mod_gkvector
-  use mod_APW_LO
-  use mod_gvector
-  use mod_kpoint
-  use mod_qpoint
-  use mod_lattice
-  use mod_DOS_optics_response
-  use modxs
+  use modinput, only: input
+  use modmpi, only: procs, rank, barrier
+  use mod_misc, only: task
+  use mod_constants, only: zzero, zone, zi, krondelta
+  use mod_kpoint, only: nkpt, wkpt
+  use mod_lattice, only: omega
+  use modxs, only: tfxcbse, tscreen, bzsampl, wpari,&
+                & wparf, ngq, fnwtet, fnpmat,&
+                & fnetim, fnxtim, fnemat, fnchi0,&
+                & fnchi0_t, qvkloff, istocc0, istocc,&
+                & istunocc0, istunocc, isto0, isto,&
+                & istu0, istu, unitout, nst1,&
+                & nst2, nst3, nst4, istl1,&
+                & istu1, istl2, istu2, istl3,&
+                & istu3, istl4, istu4, deou,&
+                & deuo, docc12, docc21, xiou,&
+                & xiuo, pmou, pmuo, nwdf,&
+                & bsed, ikmapikq, tordf, symt2
 #ifdef TETRA      
+  use mod_eigenvalue_occupancy, only: nstsv, evalsv, efermi 
+  use mod_qpoint, only: vql
   use modtetra
 #endif
-  use modmpi
+  ! One subroutine modules
   use m_genwgrid
   use m_getpemat
   use m_dftim
@@ -98,7 +105,7 @@ subroutine dfq(iq)
   complex(8) :: zt1, winv
   complex(8), allocatable :: w(:)
   complex(8), allocatable :: chi0 (:, :, :), hdg(:, :, :)
-  complex(8), allocatable :: chi0w(:, :, :, :), chi0h(:, :, :), eps0 (:, :, :)
+  complex(8), allocatable :: chi0w(:, :, :, :), chi0h(:, :, :), eps0(:, :, :)
   complex(8), allocatable :: chi0hahc(:, :)
   complex(8), allocatable :: wou(:,:,:), wuo(:,:,:), wouw(:), wuow(:), wouh(:), wuoh(:)
   complex(8), allocatable :: zvou(:), zvuo(:), chi0hs(:, :, :), bsedg(:, :), scis12c(:, :), scis21c(:, :),zm(:,:,:)
@@ -127,7 +134,7 @@ subroutine dfq(iq)
   tfxcbse = ((input%xs%tddft%fxctypenumber .eq. 7) .or. &
      & (input%xs%tddft%fxctypenumber .eq. 8)) .and. ( .not. tscreen)
 
-  ! Sampling of brillouin zone
+  ! Sampling of Brillouin zone
   bzsampl = 0
   if(input%xs%tetra%tetradf) bzsampl = 1
 
@@ -144,6 +151,7 @@ subroutine dfq(iq)
   if(input%xs%tddft%acont) brd = 0.d0
 
   ! Zero broadening for dielectric matrix (w=0) for band-gap systems
+  ! Task 430 is 'screen'
   if(task .eq. 430) brd = 0.d0
 
   ! File extension for q-point
@@ -228,6 +236,7 @@ subroutine dfq(iq)
   allocate(docc12(nst1, nst2))
   if(allocated(docc21)) deallocate(docc21)
   allocate(docc21(nst3, nst4))
+
   ! Allocate matrix elements arrays
   if(allocated(xiou)) deallocate(xiou)
   allocate(xiou(nst1, nst2, n))
@@ -237,6 +246,7 @@ subroutine dfq(iq)
   allocate(pmou(3, nst1, nst2))
   if(allocated(pmuo)) deallocate(pmuo)
   allocate(pmuo(3, nst3, nst4))
+
   ! Allocate arrays
   allocate(hdg(nst1, nst2, nkpt))
   allocate(scis12(nst1, nst2),scis12c(nst1, nst2))
@@ -251,8 +261,8 @@ subroutine dfq(iq)
   allocate(zvou(n), zvuo(n))
   allocate(bsedg(nst1, nst2))
   
-  scis12 (:, :) = 0.d0
-  scis21 (:, :) = 0.d0
+  scis12(:, :) = 0.d0
+  scis21(:, :) = 0.d0
   bsedg(:,:)=zzero
 
   if(input%xs%tetra%tetradf) then
@@ -282,10 +292,10 @@ subroutine dfq(iq)
   if(wreal(1) .lt. epstetra) wreal(1) = epstetra
 
   ! Initializations
-  chi0 (:, :, :) = zzero
+  chi0(:, :, :) = zzero
   chi0w(:, :, :, :) = zzero
   chi0h(:, :, :) = zzero
-  chi0hahc (:, :) = zzero
+  chi0hahc(:, :) = zzero
 
   if(tscreen) then
     ! Generate radial integrals wrt. sph. bessel functions
@@ -295,6 +305,7 @@ subroutine dfq(iq)
 
     ! Delete timing information of previous runs
     call filedel(trim(fnetim))
+
     ! Write information
     write(unitout, '(a, i6)') 'Info(' // thisnam // '):&
       & number of G + q vectors:', ngq(iq)
@@ -314,6 +325,7 @@ subroutine dfq(iq)
   kloop: do ik = 1, nkpt
 
     ! K-point analysis
+    ! Check whether the transitions at k-point ik should be included.
     if( .not. transik(ik)) cycle
     call chkpt(3, (/ task, iq, ik /), 'dfq: task, q-point index, k-point index')
 
@@ -321,13 +333,19 @@ subroutine dfq(iq)
     cpuupd = 0.d0
     call timesec(cpu0)
 
+    ! For the given k and q point find the 
+    ! index of the k+q=k' index.
     ikq = ikmapikq(ik, iq)
 
+    ! Get second variational KS transition energies, scissor shifts 
+    ! and occupancy differences for current k+q/k point combination 
+    ! and the specified band ranges.
     call getdevaldoccsv(iq, ik, ikq, istl1, istu1, istl2, istu2,&
       & deou, docc12, scis12)
     call getdevaldoccsv(iq, ik, ikq, istl2, istu2, istl1, istu1,&
       & deuo, docc21, scis21)
 
+    ! Create copies of scissor shifts
     scis12c(:,:)=scis12(:,:)
     scis21c(:,:)=scis21(:,:)
 
@@ -347,11 +365,11 @@ subroutine dfq(iq)
     scis12c(:, :) = scis12c(:, :) + bsedg(:, :)
     scis21c(:, :) = scis21c(:, :) + transpose(bsedg(:, :))
 
-    ! Get matrix elements(exp. expr. or momentum op.)
+    ! Get matrix elements (exp. expr. or momentum op.)
     call getpemat(iq, ik, trim(fnpmat), trim(fnemat),&
-     & m12=xiou, m34=xiuo, p12=pmou, p34=pmuo)
+      & m12=xiou, m34=xiuo, p12=pmou, p34=pmuo)
       
-    ! Set matrix elements to one for lindhard function
+    ! Set matrix elements to one for Lindhard function
     if(input%xs%tddft%lindhard) then
       ! Set g=0 components to one
       xiou(:, :, 1) = zone
@@ -388,8 +406,8 @@ subroutine dfq(iq)
     end if
 
     if(tscreen) then
-    ! We don't need anti-resonant parts here, assign them the same
-    ! Value as for resonant parts, resulting in a factor of two.
+      ! We don't need anti-resonant parts here, assign them the same
+      ! Value as for resonant parts, resulting in a factor of two.
       do igq = 1, n
         xiuo(:, :, igq) = transpose(xiou(:, :, igq))
       end do
@@ -400,8 +418,8 @@ subroutine dfq(iq)
       docc21 (:, :) = transpose(docc12(:, :))
       scis21c(:, :) = transpose(scis12c(:, :))
     end if
-    ! Turn off antiresonant terms (type 2-1 band combiantions) for kohn-sham
-    ! Response function
+    ! Turn off anti-resonant terms (type 2-1 band combinations) for Kohn-Sham
+    ! response function
     if(( .not. input%xs%tddft%aresdf) .and. ( .not. tscreen)) then
       xiuo(:, :, :) = zzero
       pmuo(:, :, :) = zzero
@@ -421,7 +439,7 @@ subroutine dfq(iq)
           pmou(:, j, ist2) = zzero
         end if
         ! Set upper triangle of second block to zero
-        ! Also set diagonal to zero to avoid double counting
+        ! also set diagonal to zero to avoid double counting
         if(ist1 .ge. ist2) then
           xiuo(ist2, j, :) = zzero
           pmuo(:, ist2, j) = zzero
@@ -444,8 +462,11 @@ subroutine dfq(iq)
         i1 = ist1
         i2 = istunocc0 + ist2 - 1
         ! Band analysis
+        ! Check if the considered transition is included.
         if( .not. transijst(ik, i1, i2)) cycle
+
         call timesec(cpu0)
+
         if(input%xs%tetra%tetradf) then
 #ifdef TETRA               
           ! Mirror index pair on diagonal if necessary
@@ -498,10 +519,10 @@ subroutine dfq(iq)
             ! (no broadening)
             zt1=w(iw)+deou(ist1, ist2)+scis12c(ist1,ist2)+zi*brd
             if(abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
-            wou(iw,ist1,ist2) = docc12 (ist1, ist2) * wkpt(ik) / omega / zt1
+            wou(iw,ist1,ist2) = docc12(ist1, ist2) * wkpt(ik) / omega / zt1
             zt1=w(iw)+deuo(ist2, ist1)+scis21c(ist2,ist1)+tordf*zi*brd
             if(abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
-            wuo(iw,ist1,ist2) = docc21 (ist2, ist1) * wkpt(ik) / omega / zt1
+            wuo(iw,ist1,ist2) = docc21(ist2, ist1) * wkpt(ik) / omega / zt1
           end do
 
           wouw(wi:wf) = wou(wi:wf,ist1,ist2)
@@ -514,52 +535,57 @@ subroutine dfq(iq)
         cpuosc=cpuosc+cpu1-cpu0
 
         !----------------------------------!
-        !     update response function     !
+        !     Update response function     !
         !----------------------------------!
-
         zvou(:) = xiou(ist1, ist2, :)
         zvuo(:) = xiuo(ist2, ist1, :)
 
         do iw = wi, wf
 
-          if(tq0) then
+          G0: if(tq0) then
+
             do oct1 = 1, 3
               ! Wings
-              chi0w(2:, 1, oct1, iw-wi+1) = chi0w(2:, 1, oct1, iw-wi+1) +&
-                & wouw(iw) * pmou(oct1, ist1, ist2) *&
-                & conjg(zvou(2:)) + wuow(iw) * pmuo(oct1, ist2, ist1) * conjg(zvuo(2:))
-              chi0w(2:, 2, oct1, iw-wi+1) = chi0w(2:, 2, oct1, iw-wi+1) +&
-                & wouw(iw) * zvou(2:) * conjg(pmou(oct1, ist1, ist2)) +&
-                & wuow(iw) * zvuo(2:) * conjg(pmuo(oct1, ist2, ist1))
+              chi0w(2:, 1, oct1, iw-wi+1) = chi0w(2:, 1, oct1, iw-wi+1)&
+                &+ wouw(iw) * pmou(oct1, ist1, ist2) * conjg(zvou(2:))&
+                &+ wuow(iw) * pmuo(oct1, ist2, ist1) * conjg(zvuo(2:))
+              chi0w(2:, 2, oct1, iw-wi+1) = chi0w(2:, 2, oct1, iw-wi+1)&
+                &+ wouw(iw) * zvou(2:) * conjg(pmou(oct1, ist1, ist2))&
+                &+ wuow(iw) * zvuo(2:) * conjg(pmuo(oct1, ist2, ist1))
 
               do oct2 = 1, 3
                 ! Head
                 if(.not.input%xs%tddft%ahc) then
-                  chi0h(oct1, oct2, iw-wi+1) = chi0h(oct1, oct2, iw-wi+1) + wouh(iw) * pmou(oct1, ist1, ist2) *&
-                    & conjg(pmou(oct2, ist1, ist2)) + wuoh(iw) * pmuo(oct1, ist2, ist1) * conjg(pmuo(oct2, ist2, ist1))
+                  chi0h(oct1, oct2, iw-wi+1) = chi0h(oct1, oct2, iw-wi+1)&
+                    &+ wouh(iw) * pmou(oct1, ist1, ist2) * conjg(pmou(oct2, ist1, ist2))&
+                    &+ wuoh(iw) * pmuo(oct1, ist2, ist1) * conjg(pmuo(oct2, ist2, ist1))
                 else
                   winv=1.0d0/(w(iw)+zi*brd)
                   if(abs(w(iw)).lt.1.d-8) winv=1.d0
-                  chi0h(oct1, oct2, iw-wi+1) = chi0h(oct1, oct2, iw-wi+1) +&
-                    & wouh(iw) * pmou(oct1, ist1, ist2) * conjg(pmou(oct2, ist1, ist2)) *&
-                    & deou(ist1, ist2) * winv + wuoh(iw) * pmuo(oct1, ist2, ist1) *&
-                    & conjg(pmuo(oct2, ist2, ist1)) * deuo(ist2, ist1) * winv 
+                  chi0h(oct1, oct2, iw-wi+1) = chi0h(oct1, oct2, iw-wi+1)&
+                    &+ wouh(iw) * pmou(oct1, ist1, ist2) * conjg(pmou(oct2, ist1, ist2))&
+                    &* deou(ist1, ist2) * winv + wuoh(iw) * pmuo(oct1, ist2, ist1)&
+                    &* conjg(pmuo(oct2, ist2, ist1)) * deuo(ist2, ist1) * winv 
                 end if
 
               end do
+
             end do
-          end if
+
+          end if G0
 
         end do
 
         call timesec(cpu0)
         cpuupd = cpuupd + cpu0 - cpu1
+
       ! End loop over states combinations
       end do ist2loop
     end do ist1loop
 
     allocate(zm(n,nst1,nst2))
     do iw=wi,wf
+    
       do ist2 = 1, nst2
         do ist1 = 1, nst1
           zm(:,ist1,ist2)=conjg(wou(iw,ist1,ist2)*xiou(ist1,ist2,:))
@@ -596,6 +622,7 @@ subroutine dfq(iq)
     cputot = cpuread + cpuosc + cpuupd
     ! Timing information
     call dftim(iq, ik, trim(fnxtim), cpuread, cpuosc, cpuupd, cputot)
+
     ! Synchronize
     if( .not. tscreen) call barrier
 
@@ -611,7 +638,8 @@ subroutine dfq(iq)
       winv=1.0d0/(w(iw)+zi*brd)
       if(abs(w(iw)).lt.1.d-8) winv=1.d0
       do oct1 = 1, 3
-        chi0h(oct1, oct1, iw-wi+1) = chi0h(oct1, oct1, iw-wi+1) + wplas**2/(w(iw)+zi*wrel)*winv
+        chi0h(oct1, oct1, iw-wi+1) = chi0h(oct1, oct1, iw-wi+1)&
+          &+ wplas**2/(w(iw)+zi*wrel)*winv
       end do
     end do
   end if
@@ -619,13 +647,14 @@ subroutine dfq(iq)
   if(tscreen) call ematqdealloc
 
   ! Symmetrize head
-  if(tq0) then
+  head: if(tq0) then
     allocate(chi0hs(3, 3, nwdfp), eps0(3, 3, nwdf))
 
-    ! Write dielectric tensor to file(unsymmetrized)
+    ! Write dielectric tensor to file (unsymmetrized)
     forall(iw=1:nwdf)
-      eps0 (:, :, iw) = dble(krondelta) - chi0h(:, :, iw)
+      eps0(:, :, iw) = dble(krondelta) - chi0h(:, :, iw)
     end forall
+
     if(rank .eq. 0)&
       & call writedielt('DIELTENS0_NOSYM', 1, 0.d0, eps0(:, :, 1), 0)
 
@@ -641,14 +670,14 @@ subroutine dfq(iq)
 
     ! Write dielectric tensor to file
     forall(iw=1:nwdf)
-      eps0 (:, :, iw) = dble(krondelta) - chi0hs(:, :, iw)
+      eps0(:, :, iw) = dble(krondelta) - chi0hs(:, :, iw)
     end forall
     if(rank .eq. 0)&
      & call writedielt('DIELTENS0', 1, 0.d0, eps0(:, :, 1), 0)
 
     deallocate(chi0hs, eps0)
 
-  end if
+  end if head 
 
   ! Write response function to file
   if(tscreen) then
@@ -662,7 +691,7 @@ subroutine dfq(iq)
     do j = 0, procs - 1
       if(rank .eq. j) then
         do iw = wi, wf
-          call putx0 (tq0, iq, iw-wi+1, trim(fnchi0_t), '',&
+          call putx0(tq0, iq, iw-wi+1, trim(fnchi0_t), '',&
             & chi0(:, :, iw-wi+1), chi0w(:, :, :, iw-wi+1), chi0h(:, :, iw-wi+1))
         end do
       end if

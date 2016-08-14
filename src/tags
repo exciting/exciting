@@ -21208,12 +21208,12 @@ get_value_by_key_ns	FoX/common/m_common_attrs.F90	/^  function get_value_by_key_
 get_value_by_key_ns_len	FoX/common/m_common_attrs.F90	/^  pure function get_value_by_key_ns_len(/;"	f	module:m_common_attrs
 get_vxc	libXC/testsuite/xc-consistency.c	/^void get_vxc(xc_func_type *func, double point[5], double *e, double der[5])$/;"	f
 getapwcmt	src_xs/getapwcmt.F90	/^      Subroutine getapwcmt /;"	s	module:m_getapwcmt
-getbsediag	src_xs/getbsediag.F90	/^Subroutine getbsediag$/;"	s
+getbsediag	src_xs/getbsediag.F90	/^subroutine getbsediag$/;"	s
 getbsemat	src_xs/getbsemat.F90	/^Subroutine getbsemat /;"	s
 getchildNodes	FoX/dom/m_dom_dom.F90	/^function getchildNodes(/;"	f	module:m_dom_dom
 getdata	FoX/dom/m_dom_dom.F90	/^function getdata(/;"	f	module:m_dom_dom
 getdata_len	FoX/dom/m_dom_dom.F90	/^  pure function getdata_len(/;"	f	module:m_dom_dom
-getdevaldoccsv	src_xs/getdevaldoccsv.F90	/^Subroutine getdevaldoccsv /;"	s
+getdevaldoccsv	src_xs/getdevaldoccsv.F90	/^subroutine getdevaldoccsv(/;"	s
 getdlmm	src_gw/getdlmm.f90	/^complex(8) function getdlmm(/;"	f
 getdocType	FoX/dom/m_dom_dom.F90	/^function getdocType(/;"	f	module:m_dom_dom
 getdocc	src_xs/getdocc.F90	/^Subroutine getdocc /;"	s
@@ -21268,7 +21268,7 @@ getoccsv0	src_xs/getoccsv0.F90	/^Subroutine getoccsv0 /;"	s
 getoccsvr	getoccsv.f90	/^      Subroutine getoccsvr /;"	s	module:m_getoccsvr
 getownerElement	FoX/dom/m_dom_dom.F90	/^function getownerElement(/;"	f	module:m_dom_dom
 getparentNode	FoX/dom/m_dom_dom.F90	/^function getparentNode(/;"	f	module:m_dom_dom
-getpemat	src_xs/getpemat.F90	/^      Subroutine getpemat /;"	s	module:m_getpemat
+getpemat	src_xs/getpemat.F90	/^  subroutine getpemat(/;"	s	module:m_getpemat
 getphonon	src_inputparser/inputmodules.f90	/^ character(512)::getphonon$/;"	k	type:raman_type
 getphononnumber	src_inputparser/inputmodules.f90	/^ integer::getphononnumber$/;"	k	type:raman_type
 getpmat	src_xs/getpmat.F90	/^      Subroutine getpmat /;"	s	module:m_getpmat
@@ -22049,7 +22049,7 @@ init0	init0.f90	/^Subroutine init0$/;"	s
 init0symonly	src_xs/modxs.F90	/^      Logical :: init0symonly$/;"	v	module:modxs
 init1	init1.f90	/^Subroutine init1$/;"	s
 init1norealloc	src_xs/modxs.F90	/^      Logical :: init1norealloc$/;"	v	module:modxs
-init1offs	src_xs/init1offs.F90	/^Subroutine init1offs /;"	s
+init1offs	src_xs/init1offs.F90	/^subroutine init1offs(/;"	s
 init2	init2.f90	/^Subroutine init2$/;"	s
 initMPI	src_mpi/modmpi.F90	/^      Subroutine initMPI$/;"	s	module:modmpi
 initNamespaceDictionary	FoX/common/m_common_namespaces.F90	/^  subroutine initNamespaceDictionary(/;"	s	module:m_common_namespaces
@@ -23376,7 +23376,7 @@ m_getevecfvr	getevecfv.f90	/^Module m_getevecfvr$/;"	m
 m_getevecsvr	getevecsv.f90	/^Module m_getevecsvr$/;"	m
 m_getlocmt	src_xs/getlocmt.F90	/^Module m_getlocmt$/;"	m
 m_getoccsvr	getoccsv.f90	/^Module m_getoccsvr$/;"	m
-m_getpemat	src_xs/getpemat.F90	/^Module m_getpemat$/;"	m
+m_getpemat	src_xs/getpemat.F90	/^module m_getpemat$/;"	m
 m_getpmat	src_xs/getpmat.F90	/^Module m_getpmat$/;"	m
 m_getpmatxas	src_xs/xas/getpmatxas.f90	/^Module m_getpmatxas$/;"	m
 m_gettetcw	src_xs/gettetcw.F90	/^Module m_gettetcw$/;"	m
@@ -27575,7 +27575,7 @@ timemt	mod_timing.F90	/^      Real (8) :: timemt$/;"	v	module:mod_timing
 timepot	mod_timing.F90	/^      Real (8) :: timepot$/;"	v	module:mod_timing
 timer	Lbfgsb.3.0/timer.f	/^      subroutine timer(/;"	s
 timerho	mod_timing.F90	/^      Real (8) :: timerho$/;"	v	module:mod_timing
-timesec	src_lib/timesec.f90	/^Subroutine timesec /;"	s
+timesec	src_lib/timesec.f90	/^subroutine timesec(/;"	s
 timesv	mod_timing.F90	/^      Real (8) :: timesv$/;"	v	module:mod_timing
 timing	src_xml/scl_xml_out_module.F90	/^     & charges, atom, xst, timing,/;"	v	module:scl_xml_out_Module
 title	mod_plotlabels.f90	/^        character, pointer, dimension(:) :: title=/;"	k	type:plotlabels
