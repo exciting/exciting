@@ -46,14 +46,14 @@ subroutine scrcoulint
 
   ! Local variables
   character(*), parameter :: thisnam = 'scrcoulint'
-  character(256) :: fnsccli, fnscreeninv
+  character(256) :: fnsccli
   complex(8) :: zt1,prefactor
   complex(8), allocatable :: scclit(:, :), sccli(:, :, :, :), scclid(:, :)
   complex(8), allocatable :: scieffg(:, :, :), tm(:, :), tmi(:, :), bsedt(:, :),zm(:,:)
   complex(8), allocatable :: phf(:, :), emat12(:, :), emat34(:, :)
   real(8), parameter :: epsortho = 1.d-12
-  real(8) :: vqr(3), vq(3), t1, ta, tb
-  integer :: ikkp, iknr, jknr, iqr, iq, iqrnr, jsym, jsymi, igq1, igq2, n, recl, un
+  real(8) :: vqr(3), vq(3), t1, ta
+  integer :: ikkp, iknr, jknr, iqr, iq, iqrnr, jsym, jsymi, igq1, n, recl, un
   integer :: nsc, iv(3), ivgsym(3), j1, j2, nkkp
   integer :: ist1, ist2, ist3, ist4, nst12, nst34, nst13, nst24
   integer :: rnst1, rnst2, rnst3, rnst4

@@ -18313,7 +18313,7 @@ am_xc_consistency_OBJECTS	libXC/testsuite/Makefile	/^am_xc_consistency_OBJECTS =
 am_xc_get_data_OBJECTS	libXC/testsuite/Makefile	/^am_xc_get_data_OBJECTS = xc_get_data-xc-get_data.$(OBJEXT)$/;"	m
 am_xc_regression_OBJECTS	libXC/testsuite/Makefile	/^am_xc_regression_OBJECTS = xc_regression-xc-regression.$(OBJEXT)$/;"	m
 ampl	src_inputparser/inputmodules.f90	/^ real(8)::ampl$/;"	k	type:dfthalfparam_type
-angavsc0	src_xs/angavsc0.F90	/^Subroutine angavsc0 /;"	s
+angavsc0	src_xs/angavsc0.F90	/^subroutine angavsc0(/;"	s
 angular_averaging	src_gw/angular_averaging.f90	/^subroutine angular_averaging(/;"	s
 answ	src_other/delaunay.f	/^      character*1 answ$/;"	v	program:main
 any	FoX/common/m_common_element.F90	/^    logical :: any /;"	k	type:element_t
@@ -18484,7 +18484,7 @@ avg	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  real avg, err, chisq;$/;"	m	struct:_
 avgsum	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  real weightsum, avgsum;$/;"	m	struct:__anon49
 avgsum	src_vdwdf/Cuba-3.2/src/suave/Sample.c	/^  real weight, weightsum, avg, avgsum;$/;"	m	struct:__anon58	file:
 avgsum	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  real weightsum, avgsum;$/;"	m	struct:__anon60
-avscq	src_xs/avscq.F90	/^Subroutine avscq /;"	s
+avscq	src_xs/avscq.F90	/^subroutine avscq(/;"	s
 ax	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^     &                 resid(maxn/;"	v	program:cnbdr1
 ax	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^     &                 resid(maxn/;"	v	program:cnbdr2
 ax	ARPACK/EXAMPLES/BAND/cnbdr3.f	/^     &                 resid(maxn/;"	v	program:cnbdr3
@@ -20024,12 +20024,12 @@ ematex	src_xs/xas/ematex.f90	/^Subroutine ematex(/;"	s
 ematgntsum	src_xs/ematgntsum.F90	/^Subroutine ematgntsum /;"	s
 ematq	src_xs/ematq.F90	/^Subroutine ematq /;"	s
 ematqalloc	src_xs/ematqalloc.F90	/^subroutine ematqalloc$/;"	s
-ematqdealloc	src_xs/ematqdealloc.F90	/^Subroutine ematqdealloc$/;"	s
-ematqk	src_xs/ematqk.F90	/^Subroutine ematqk /;"	s
-ematqk1	src_xs/ematqk1.F90	/^Subroutine ematqk1 /;"	s
+ematqdealloc	src_xs/ematqdealloc.F90	/^subroutine ematqdealloc$/;"	s
+ematqk	src_xs/ematqk.F90	/^subroutine ematqk(/;"	s
+ematqk1	src_xs/ematqk1.F90	/^subroutine ematqk1(/;"	s
 ematqkgir	src_xs/ematqkgir.F90	/^Subroutine ematqkgir /;"	s
 ematqkgmt	src_xs/ematqkgmt.F90	/^Subroutine ematqkgmt /;"	s
-ematrad	src_xs/ematrad.F90	/^Subroutine ematrad /;"	s
+ematrad	src_xs/ematrad.F90	/^subroutine ematrad(/;"	s
 ematradoo	src_xs/xas/ematradoo.f90	/^Subroutine ematradoo /;"	s
 ematradou	src_xs/xas/ematradou.f90	/^Subroutine ematradou /;"	s
 ematsumoo	src_xs/xas/ematsumoo.f90	/^Subroutine ematsumoo /;"	s
@@ -20208,7 +20208,7 @@ evlmincut	src_xs/modxs.F90	/^      Real (8) :: evlmin, evlmax, evlmincut,/;"	v	m
 evsystem	src_eigensystem/modfvsystem.f90	/^    Type evsystem$/;"	t	module:modfvsystem
 ex_coef	mod_potential_and_density.F90	/^      Real (8) :: ex_coef$/;"	v	module:mod_potential_and_density
 exactupdatevectors	src_iterative_solver/src_diis/exactupdatevectors.f90	/^Subroutine exactupdatevectors /;"	s
-exccoulint	src_xs/exccoulint.F90	/^Subroutine exccoulint$/;"	s
+exccoulint	src_xs/exccoulint.F90	/^subroutine exccoulint$/;"	s
 exccplot	src_inputparser/inputmodules.f90	/^  type(exccplot_/;"	k	type:properties_type
 exccplot_type	src_inputparser/inputmodules.f90	/^type exccplot_type$/;"	t	module:modinput
 exchange	src_inputparser/inputmodules.f90	/^ character(512)::exchange$/;"	k	type:libxc_type
@@ -21075,7 +21075,7 @@ genwfsv	genwfsv.f90	/^Subroutine genwfsv /;"	s
 genwfsv_new	genwfsv_new.f90	/^subroutine genwfsv_new(/;"	s
 genwgrid	src_xs/genwgrid.F90	/^      Subroutine genwgrid /;"	s	module:m_genwgrid
 genwiq2	src_advanced/genwiq2.f90	/^Subroutine genwiq2$/;"	s
-genwiqggp	src_xs/genwiqggp.F90	/^Subroutine genwiqggp /;"	s
+genwiqggp	src_xs/genwiqggp.F90	/^subroutine genwiqggp(/;"	s
 genxioo	src_xs/xas/genxioo.f90	/^Subroutine genxioo /;"	s
 genxiou	src_xs/xas/genxiou.f90	/^Subroutine genxiou /;"	s
 genxiuo	src_xs/xas/genxiuo.f90	/^Subroutine genxiuo /;"	s
@@ -21282,7 +21282,7 @@ getrank	src_eigensystem/modfvsystem.f90	/^    Function getrank /;"	f	module:modf
 getreadonly	FoX/dom/m_dom_dom.F90	/^function getreadonly(/;"	f	module:m_dom_dom
 getridx	src_xs/getridx.F90	/^Subroutine getridx /;"	s
 getsac	src_gw/src_acfreq/getsac.f90	/^      subroutine getsac(/;"	s
-getscreen	src_xs/getscreen.F90	/^Subroutine getscreen /;"	s
+getscreen	src_xs/getscreen.F90	/^subroutine getscreen(/;"	s
 getsdata	src_lib/sdelta.f90	/^Subroutine getsdata /;"	s
 getspecified	FoX/dom/m_dom_dom.F90	/^function getspecified(/;"	f	module:m_dom_dom
 getstrictErrorChecking	FoX/dom/m_dom_dom.F90	/^function getstrictErrorChecking(/;"	f	module:m_dom_dom
@@ -25679,7 +25679,7 @@ putapwcmt	src_xs/putapwcmt.F90	/^Subroutine putapwcmt /;"	s
 putbsediag	src_xs/putbsediag.F90	/^Subroutine putbsediag /;"	s
 putbsemat	src_xs/putbsemat.F90	/^Subroutine putbsemat /;"	s
 putemat	src_xs/putemat.F90	/^      Subroutine putemat /;"	s	module:m_putemat
-putematrad	src_xs/putematrad.F90	/^Subroutine putematrad /;"	s
+putematrad	src_xs/putematrad.F90	/^subroutine putematrad(/;"	s
 putevalfv	putevalfv.f90	/^Subroutine putevalfv /;"	s
 putevalqp	src_gw/putevalqp.f90	/^subroutine putevalqp(/;"	s
 putevalsv	putevalsv.f90	/^Subroutine putevalsv /;"	s
@@ -25688,7 +25688,7 @@ putevecsv	putevecsv.f90	/^Subroutine putevecsv /;"	s
 putlocmt	src_xs/putlocmt.F90	/^Subroutine putlocmt /;"	s
 putoccsv	putoccsv.f90	/^Subroutine putoccsv /;"	s
 putpmat	src_xs/putpmat.F90	/^      Subroutine putpmat /;"	s	module:m_putpmat
-putscreen	src_xs/putscreen.F90	/^Subroutine putscreen /;"	s
+putscreen	src_xs/putscreen.F90	/^subroutine putscreen(/;"	s
 puttetcw	src_xs/puttetcw.F90	/^      Subroutine puttetcw /;"	s	module:m_puttetcw
 putvnlmat	src_hybrids/putvnlmat.f90	/^subroutine putvnlmat(/;"	s
 putvxnl	src_hybrids/putvxnl.f90	/^subroutine putvxnl(/;"	s
@@ -28637,7 +28637,7 @@ writebandgap	src_xs/bandgap.F90	/^Subroutine writebandgap$/;"	s
 writebandgapgrid	src_xs/bandgap.F90	/^Subroutine writebandgapgrid$/;"	s
 writebevec	src_xs/writebevec.f90	/^Subroutine writebevec$/;"	s
 writechg	writechg.f90	/^Subroutine writechg /;"	s
-writedielt	src_xs/writedielt.F90	/^Subroutine writedielt /;"	s
+writedielt	src_xs/writedielt.F90	/^subroutine writedielt(/;"	s
 writedveff	src_phonon/writedveff.f90	/^Subroutine writedveff /;"	s
 writedynamicalmatrices	src_phonon/writedynamicalmatrices.F90	/^subroutine writedynamicalmatrices(/;"	s
 writeefg	writeefg.f90	/^Subroutine writeefg$/;"	s
