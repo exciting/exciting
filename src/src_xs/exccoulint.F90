@@ -248,7 +248,7 @@ subroutine exccoulint
 
   if(rank .eq. 0) then
     write(un, '("# ikkp, iknr,ist1,ist3, jknr,ist2,ist4,&
-      &    re(v),            im(v),             |v|^2")')
+      &    Re(V),            Im(V),             |V|^2")')
     close(un)
   end if
 

@@ -1,100 +1,73 @@
-!
-!
-!
-! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright(C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-!
-Subroutine ematqkgmt (iq, ik, igq,integrals)
-      Use modmain
-      Use modinput
-      Use modxs
-!      Use m_zaxpyc
-!      Use m_xszoutpr
-!      Use m_xszoutpr3
+subroutine ematqkgmt(iq, ik, igq, integrals)
+  use modinput, only: input
+  use mod_constants, only: zzero, zone, fourpi
+  use mod_atoms, only: natmtot, nspecies, natoms, idxas
+  use modxs, only: apwmaxsize, lomaxsize, istu2, istl2,&
+                 & xiou, sfacgq, nst2, nst1,&
+                 & apwsize, losize, cmtfun, cmtfun0,&
+                 & cpumtaa
 #ifdef USEOMP
-      use omp_lib
+  use omp_lib
 #endif
-      Implicit None
-  ! arguments
-      Integer, Intent (In) :: iq, ik, igq
-!      type (mtints_type) :: integrals
-      complex(8) :: integrals(apwmaxsize+lomaxsize,apwmaxsize+lomaxsize,natmtot)
-  ! local variables
-      Character (*), Parameter :: thisnam = 'ematqkgmt'
-      Integer :: is, ia, ias, l1, m1, lm1, l3, m3, lm3, io, io1, io2, &
-     & ilo, ilo1, ilo2
-      Integer :: lmax1, lmax3, ikt, i, j,zmsize, whichthread
-      Complex (8), Allocatable :: zm(:,:)
-      Complex (8) :: prefactor
-      Real (8) :: cmt0, cmt1, cmt2, cmt3, cmt4
+
+  implicit none
+
+  ! Arguments
+  integer, intent(in) :: iq, ik, igq
+  complex(8) :: integrals(apwmaxsize+lomaxsize,apwmaxsize+lomaxsize,natmtot)
+
+  ! Local variables
+  character(*), parameter :: thisnam = 'ematqkgmt'
+  integer :: is, ia, ias
+  integer :: lmax1, lmax3, ikt, zmsize, whichthread
+  complex(8), allocatable :: zm(:,:)
+  complex(8) :: prefactor
+  real(8) :: cmt0, cmt1
 
 #ifdef USEOMP
-      whichthread=omp_get_thread_num()
+  whichthread=omp_get_thread_num()
 #else
-      whichthread=0
+  whichthread=0
 #endif
 
+  ikt = ik
+  lmax1 = input%xs%lmaxapwwf
+  lmax3 = lmax1
+  zmsize=apwmaxsize+lomaxsize
 
-      ikt = ik
-      lmax1 = input%xs%lmaxapwwf
-      lmax3 = lmax1
-      zmsize=apwmaxsize+lomaxsize
-      allocate(zm(1:istu2-istl2+1,zmsize))
+  allocate(zm(1:istu2-istl2+1,zmsize))
 
-!      xih (:, :) = zzero
-!      xiuhloa (:, :) = zzero
-!      xiohalo (:, :) = zzero
-      xiou (:, :, igq) = zzero
+  xiou(:, :, igq) = zzero
 
-  ! loop over species and atoms
-      Do is = 1, nspecies
-         Do ia = 1, natoms (is)
-            ias = idxas (ia, is)
-            Call timesec (cmt0)
-        !---------------------------!
-        !     APW-APW contribution  !
-        !---------------------------!
-          prefactor=fourpi*conjg(sfacgq(igq, ias, iq))
-          call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                     'N', &           ! TRANSB = 'N'  op( B ) = B.
-                      nst2, &          ! M ... rows of op( A ) = rows of C
-                      apwsize(is)+losize(is), &           ! N ... cols of op( B ) = cols of C
-                      apwsize(is)+losize(is), &          ! K ... cols of op( A ) = rows of op( B )
-                      zone, &          ! alpha
-                      cmtfun(1,1,ias), &           ! B
-                      nst2, &          ! LDB ... leading dimension of B
-                      integrals(1,1,ias), &           ! A
-                      apwmaxsize+lomaxsize,&           ! LDA ... leading dimension of A
-                      zzero, &          ! beta
-                      zm, &  ! C
-                      nst2 & ! LDC ... leading dimension of C
-                     )
-          call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                     'T', &           ! TRANSB = 'N'  op( B ) = B.
-                      nst1, &    ! M ... rows of op( A ) = rows of C
-                      nst2, &           ! N ... cols of op( B ) = cols of C
-                      apwsize(is)+losize(is), &          ! K ... cols of op( A ) = rows of op( B )
-                      prefactor, &          ! alpha
-                      cmtfun0(1,1,ias), &           ! B
-                      nst1, &          ! LDB ... leading dimension of B
-                      zm, &           ! A
-                      nst2,&           ! LDA ... leading dimension of A
-                      zone, &          ! beta
-                      xiou(1,1,igq), &  ! C
-                      nst1 &      ! LDC ... leading dimension of C
-                     )
+  ! Loop over species and atoms
+  do is = 1, nspecies
+    do ia = 1, natoms(is)
 
-            Call timesec (cmt1)
-           if (whichthread.eq.0) then
-            cpumtaa = cpumtaa + cmt1 - cmt0
-!            cpumtloa = cpumtloa + cmt2 - cmt1
-!            cpumtalo = cpumtalo + cmt3 - cmt2
-!            cpumtlolo = cpumtlolo + cmt4 - cmt3
-           endif
-        ! end loop over species and atoms
-         End Do ! ia
-      End Do ! is
-   deallocate(zm)
-End Subroutine ematqkgmt
+      ias = idxas(ia, is)
+      call timesec(cmt0)
+      !---------------------------!
+      !     apw-apw contribution  !
+      !---------------------------!
+      prefactor=fourpi*conjg(sfacgq(igq, ias, iq))
+
+      call zgemm('n', 'n', nst2, apwsize(is)+losize(is), apwsize(is)+losize(is),&
+        & zone, cmtfun(1,1,ias), nst2, integrals(1,1,ias), apwmaxsize+lomaxsize,&
+        & zzero, zm, nst2)
+      call zgemm('n', 't', nst1, nst2, apwsize(is)+losize(is),&
+        & prefactor, cmtfun0(1,1,ias), nst1, zm, nst2, zone, xiou(1,1,igq), nst1)
+
+      call timesec(cmt1)
+      if(whichthread.eq.0) then
+        cpumtaa = cpumtaa + cmt1 - cmt0
+      endif
+
+    ! End loop over species and atoms
+    end do ! ia
+  end do ! is
+
+  deallocate(zm)
+end subroutine ematqkgmt

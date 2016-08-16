@@ -219,7 +219,7 @@ subroutine ematqk(iq, ik)
 #endif
   do igq = 1, ngq(iq)
     call timesec(cpu00)
-    ! Summation of gaunt coefficients wrt radial integrals
+    ! Summation of gaunt coefficients w.r.t. radial integrals
     call ematgntsum(iq, igq, integrals)
     call timesec(cpu01)
     if(whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
