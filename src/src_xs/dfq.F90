@@ -51,13 +51,13 @@ subroutine dfq(iq)
 !   $$
 !   It is related to the Kohn-Sham response function
 !    $\chi^0_{\bf{GG'}}({\bf q},\omega)$ by
-!   $$ \chi^0_{\bf{GG'}}({\bf q},\omega) = v^{-\frac{1}{2}}_{\bf G}({\bf q})
-!      \tilde{\chi}^0_{\bf{GG'}}({\bf q},\omega)
-!      v^{-\frac{1}{2}}_{\bf G'}({\bf q}) $$
+!   $$ \tilde{\chi}^0_{\bf{GG'}}({\bf q},\omega) = v^{\frac{1}{2}}_{\bf G}({\bf q})
+!      \chi^0_{\bf{GG'}}({\bf q},\omega)
+!      v^{\frac{1}{2}}_{\bf G'}({\bf q}) $$
 !   and is well defined in the limit as ${\bf q}$ goes to zero.
 !   The symmetrized matrix elements are defined as
 !   $$   \tilde{M}^{\bf G}_{ou{\bf k}}({\bf q}) =
-!         v^{-\frac{1}{2}}_{\bf G}({\bf q})
+!         v^{\frac{1}{2}}_{\bf G}({\bf q})
 !         M^{\bf G}_{ou{\bf k}}({\bf q}), $$
 !   where
 !   $$   M^{\bf G}_{ou{\bf k}}({\bf q}) =
@@ -123,6 +123,7 @@ subroutine dfq(iq)
 
   call timesec(ta)     
 
+  ! Analytic continuation not allowed with screen
   if(input%xs%tddft%acont .and. tscreen) then
     write(*,*)
     write(*, '("Error(", a, "): analytic continuation&
@@ -146,7 +147,7 @@ subroutine dfq(iq)
   ! Matrix size for response function
   n = ngq(iq)
 
-  ! Zero broadening for analytic contiunation
+  ! Zero broadening for analytic continuation
   brd = input%xs%broad
   if(input%xs%tddft%acont) brd = 0.d0
 
@@ -200,10 +201,12 @@ subroutine dfq(iq)
   end if
 
   ! Find highest (partially) occupied and lowest (partially) unoccupied states
+  ! for k and k+q points 
   call findocclims(iq, istocc0, istocc, istunocc0, istunocc,&
    & isto0, isto, istu0, istu)
 
   ! Find limits for band combinations
+  ! When coming from the df routine, i.e. screen emattype is set to 1, so o-u,u-o
   call ematbdcmbs(input%xs%emattype)
 
   ! Check if q-point is gamma point
@@ -333,8 +336,6 @@ subroutine dfq(iq)
     cpuupd = 0.d0
     call timesec(cpu0)
 
-    ! For the given k and q point find the 
-    ! index of the k+q=k' index.
     ikq = ikmapikq(ik, iq)
 
     ! Get second variational KS transition energies, scissor shifts 

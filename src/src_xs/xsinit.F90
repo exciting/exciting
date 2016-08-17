@@ -5,13 +5,11 @@
 !
 subroutine xsinit
   use modinput,only: input, isspinspiral
-  !<-- included in modmain
   use mod_names,only: revert_names
   use mod_qpoint,only: ngridq
   use mod_constants,only: h2ev
   use mod_spin,only: ncmag
   use mod_misc,only: versionname, task, githash, notelns, notes
-  !-->
   use modmpi,only: procs,rank,splittfile
   use modxs,only: calledxs, init0symonly, cputim0i, cntrate, &
                 & systim0i, systimcum, xsfileout, fnetim, &
@@ -31,7 +29,7 @@ subroutine xsinit
   integer :: i
   real(8) :: tv(3)
   real(8), parameter :: eps=1.d-7
-  character*(77) :: string
+  character(77) :: string
 
   !---------------------------!
   !     initialize timing     !

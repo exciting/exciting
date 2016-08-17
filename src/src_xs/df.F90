@@ -6,14 +6,11 @@
 ! !ROUTINE: df
 ! !INTERFACE:
 !
-!
 subroutine df
 ! !USES:
   use modinput, only: input
-  !<-- modmain
   use mod_APW_LO, only: lolmax
   use mod_qpoint, only: nqpt
-  !-->
   use modxs, only: tscreen, xsgnt, nwdf, qpari,&
                    & qparf, unitout
   use modmpi, only: procs, barrier
@@ -50,11 +47,12 @@ subroutine df
 
   if(tscreen) then
 
-    ! Generate gaunt coefficients
+    ! Generate gaunt coefficients, and store them in modxs:xsgnt
     call xsgauntgen(max(input%groundstate%lmaxapw, lolmax),&
       & input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
 
-    ! Find indices for non-zero gaunt coefficients
+    ! Find indices for non-zero gaunt coefficients, and store
+    ! relevant maps in the module m_findgntn0
     call findgntn0(max(input%xs%lmaxapwwf, lolmax),&
       & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
 
@@ -63,9 +61,11 @@ subroutine df
   ! Read Fermi energy
   if(input%xs%dogroundstate .ne. "fromscratch") call readfermi
 
-  ! W-point parallelization for dielectric function
+  ! w-point parallelization for dielectric function
   if(tscreen) then
+    ! Only one frequency if BSE is used
     nwdf = 1
+    ! Use q point parallelization instead (BSE not yet supported for q not 0 ?)
     call genparidxran('q', nqpt)
   else
     call genparidxran('w', nwdf)
@@ -77,7 +77,7 @@ subroutine df
   ! Write out q-points
   call writeqpts
 
-  ! Loop over q-points
+  ! Loop over q-points ! For the moment only q=0 functional, i.e. iq = 1
   qloop: do iq = qpari, qparf
 
     if(input%xs%dogroundstate .eq. "fromscratch") then 
