@@ -145,6 +145,7 @@ subroutine dfq(iq)
   nwdfp = wf - wi + 1
 
   ! Matrix size for response function
+  ! Get number of G+q vectors for current q
   n = ngq(iq)
 
   ! Zero broadening for analytic continuation
@@ -256,9 +257,13 @@ subroutine dfq(iq)
   allocate(scis21(nst2, nst1),scis21c(nst2, nst1))
   allocate(w(nwdf))
   allocate(wreal(nwdfp))
-  allocate(chi0h(3, 3, nwdfp))
+  ! Symmetrized KS response function arrays
+  !   Head for each combination of Cartesian directions 
+  allocate(chi0h(3, 3, nwdfp)) 
   allocate(chi0hahc(3, 3))
+  !   Wings one of the G is zero
   allocate(chi0w(n, 2, 3, nwdfp))
+  !   Full chi
   allocate(chi0(n, n, nwdfp))
   allocate(wouw(nwdf), wuow(nwdf), wouh(nwdf), wuoh(nwdf))
   allocate(zvou(n), zvuo(n))

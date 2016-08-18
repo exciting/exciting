@@ -1,9 +1,12 @@
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!
+
+!BOP
+! !ROUTINE: ematrad
+! !INTERFACE:
 subroutine ematrad(iq)
+! !USES:
   use mod_misc, only: filext
   use mod_APW_LO, only: lolmax, apwordmax, nlomax, apword,&
                       & apwfr, nlorb, lorbl, lofr
@@ -12,6 +15,15 @@ subroutine ematrad(iq)
   use modinput, only: input
   use modxs, only: riaa, riloa, rilolo, ngq, gqc
   use m_getunit
+! !DESCRIPTION:
+! This routine is used in the construction of the plane wave matrix elements.
+! It calculates the involved radial integrals for the APW-APW, APW-LO and LO-LO
+! combinations. (Compare the R quantities section 8.1 of Sagmeisters thesis.)
+!
+! !REVISION HISTORY:
+! Added to documentation scheme. (Aurich)
+!EOP
+!BOC
 
   implicit none
 
@@ -234,3 +246,4 @@ subroutine ematrad(iq)
     close(u33)
   end if
 end subroutine ematrad
+!EOC

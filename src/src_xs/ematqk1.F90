@@ -47,17 +47,25 @@ subroutine ematqk1(iq, ik)
       allocate(xiuo(nst1, nst2, ngq(iq)))
       xiuo(:, :, :) = xiou(:, :, :)
     end if
+
+    ! When coming from sreen->df->dfq emattype is set to 1 
+    ! and the following sets up o-u combinations:
+    !   occupied: nst1 = sto1-sta1+1, istl1 = sta1, istlu1 = sto1
+    !   unoccupied: nst2 = sto2-sta2+1, istl2 = istunocc0+sta2-1, istlu2 = istunocc+sto2-1
     call ematbdlims(2*input%xs%emattype-1, nst1, istl1, istu1, nst2, istl2, istu2)
+    ! Set index 3 to unoccupied
     istl3 = istl2
     istu3 = istu2
+    nst3 = nst2
+    ! Set index 4 to occupied
     istl4 = istl1
     istu4 = istu1
-    nst3 = nst2
     nst4 = nst1
 
     if(allocated(xiou)) deallocate(xiou)
     allocate(xiou(nst1, nst2, ngq(iq)))
 
+    ! Calculate xiou
     call ematqk(iq, ik)
 
     if( .not. tscreen) then

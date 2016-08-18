@@ -48,7 +48,7 @@ Subroutine ematdirect (iq, ik)
       End If
      ! o-u/u-o or o-o/u-u band combinations
          If ( .Not. (task .Eq. 430)) Then
-			If (allocated(xiuu)) deallocate (xiuu)
+           If (allocated(xiuu)) deallocate (xiuu)
             Allocate (xiuu(nst1, nst2, ngq(iq)))
             xiuu (:, :, :) = xiou (:, :, :)
          End If

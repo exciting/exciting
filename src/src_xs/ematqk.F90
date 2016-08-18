@@ -1,9 +1,12 @@
 ! Copyright(C) 2006-2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!
+
+!BOP
+! !ROUTINE: ematqk
+! !INTERFACE:
 subroutine ematqk(iq, ik)
+! !USES:
   use modinput, only: input
   use mod_misc, only: task
   use mod_constants, only: zzero, zone
@@ -24,7 +27,6 @@ subroutine ematqk(iq, ik)
                  & apwcmt, xiou, ngq, igqig,&
                  & fnetim, fftmap_type, igkig0,&
                  & cpumtaa, cpumtalo, cpumtloa, cpumtlolo
-  ! One routine modules:
   use summations, only: doublesummation_simple_cz
   use m_getapwcmt
   use m_getlocmt
@@ -35,6 +37,15 @@ subroutine ematqk(iq, ik)
 #ifdef USEOMP
   use omp_lib
 #endif
+! !DESCRIPTION:
+! Calculates plane wave elements between state rages defined
+! in (nst1,istl1,istu1) and (nst2,istl2,istu2) and saves them in 
+! the xiou arrary located in the modxs module.
+!
+! !REVISION HISTORY:
+!   Added to documentation scheme. (Aurich)
+!EOP
+!BOC
 
   implicit none
       
@@ -64,7 +75,7 @@ subroutine ematqk(iq, ik)
   type(fftmap_type) :: fftmap
   real(8) :: emat_gmax
  
-  ! Task 330 is 'writeemat'
+  ! If task 330 is 'writeemat'
   if(task .eq. 330) then
     call chkpt(3, (/ task, iq, ik /),&
       & 'ematqk: task, q - point index, k - point index; q - dependent matrix elements')
@@ -77,8 +88,9 @@ subroutine ematqk(iq, ik)
 
   ! Check for stop statement
   write(msg, *) 'for q-point', iq, ': k-point:', ik - 1, ' finished'
-  call xschkstop
+  !call xschkstop
 
+  ! Timing variables
   cpumtaa = 0.d0
   cpumtalo = 0.d0
   cpumtloa = 0.d0
@@ -92,6 +104,7 @@ subroutine ematqk(iq, ik)
   cpumirres = 0.d0
   cpudbg = 0.d0
 
+  ! Get number of G+k and G+k+q vectors
   n0 = ngk0(1, ik)
   n = ngk(1, ikq)
 
@@ -100,9 +113,11 @@ subroutine ematqk(iq, ik)
   allocate(xiohalo(nst1, nlotot))
   if(allocated(xiuhloa)) deallocate(xiuhloa)
   allocate(xiuhloa(nlotot, nst2))
+
   ! Allocate temporary arrays
   allocate(evecfvo0(nlotot, nst1))
   allocate(evecfvu(nlotot, nst2))
+
   ! Zero arrays
   xiohalo(:, :) = zzero
   xiuhloa(:, :) = zzero
@@ -110,22 +125,20 @@ subroutine ematqk(iq, ik)
   call timesec(cpu1)
   cpuini = cpu1 - cpu0
 
-  ! Read eigenvectors, eigenvalues and occupancies for G+k+q
+  ! Read eigenvectors, eigenvalues and occupancies for k+q
   call getevecfv(vkl(1, ikq), vgkl(1, 1, 1, ikq), evecfv)
   call getevalsv(vkl(1, ikq), evalsv(1, ikq))
-  
-  ! Read occupation numbers for G+k+q
   call getoccsv(vkl(1, ikq), occsv(1, ikq))
   evecfvu(:, :) = evecfv(ngk(1, ikq)+1:ngk(1, ikq)+nlotot, istl2:istu2, 1)
 
-  ! Read eigenvectors, eigenvalues and occupancies for G+k(q=0)
+  ! Read eigenvectors, eigenvalues and occupancies for k (q=0)
   call getevecfv0(vkl0(1, ik), vgkl0(1, 1, 1, ik), evecfv0)
   call getevalsv0(vkl0(1, ik), evalsv0(1, ik))
-  
-  ! Read occupation numbers for G+k
   call getoccsv0(vkl0(1, ik), occsv0(1, ik))
   evecfvo0(:, :) = evecfv0(ngk0(1, ik)+1:ngk0(1, ik)+nlotot, istl1:istu1, 1)
 
+  ! Determine number of radial functions used in APW 
+  ! basis functions per species
   apwmaxsize=0
   allocate(apwsize(nspecies))
   do is=1, nspecies
@@ -137,6 +150,8 @@ subroutine ematqk(iq, ik)
     apwmaxsize=max(apwmaxsize, naug)
   end do
 
+  ! Determine number of radial functions used in 
+  ! LO basis functions per species
   allocate(losize(nspecies))
   lomaxsize=0
   losize=0
@@ -154,6 +169,7 @@ subroutine ematqk(iq, ik)
   apwcmt0=zzero
   apwcmt=zzero
 
+  ! Get APW expansion coefficients for k
   call getapwcmt(0, ik, 1, nstfv, input%xs%lmaxapwwf, apwcmt0)
   ilo=0
   do is=1, nspecies
@@ -175,6 +191,7 @@ subroutine ematqk(iq, ik)
     end do
   end do
 
+  ! Get APW expansion coefficients for k+q
   call getapwcmt(iq, ikq, 1, nstfv, input%xs%lmaxapwwf, apwcmt)
   ilo=0
   do is=1, nspecies
@@ -212,6 +229,7 @@ subroutine ematqk(iq, ik)
 !$omp parallel default(shared) private(igq, integrals, cpu00, cpu01, whichthread)
 !print *, whichthread
 #endif
+  ! Allocate radial integrals
   allocate(integrals(apwmaxsize+lomaxsize, apwmaxsize+lomaxsize, natmtot))
 #ifdef USEOMP
   whichthread=omp_get_thread_num()
@@ -395,3 +413,4 @@ subroutine ematqk(iq, ik)
   end if
 
 end subroutine ematqk
+!EOC
