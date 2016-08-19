@@ -361,9 +361,14 @@ subroutine dfq(iq)
         scis12c(:, :) = zzero
         scis21c(:, :) = zzero
       end if
-      ! For screening calculate matrix elements of plane wave on the fly
+      ! For screening calculate matrix elements of plane wave on the fly.
+      ! The plane wave elements for occupied unoccupied transitions are 
+      ! calculated and stored in xiou
+!! xiuo is not calculated at the moment
       call ematqk1(iq, ik)
+      ! Allocate anti-resonant plane wave matrix elements
       if( .not. allocated(xiuo)) allocate(xiuo(nst3, nst4, n))
+      ! Allocate anti-resonant momentum matrix elements
       if( .not. allocated(pmuo)) allocate(pmuo(3, nst3, nst4))
     end if
 
@@ -372,6 +377,10 @@ subroutine dfq(iq)
     scis21c(:, :) = scis21c(:, :) + transpose(bsedg(:, :))
 
     ! Get matrix elements (exp. expr. or momentum op.)
+!! xiuo is used by getpemat
+    ! Get m12=v^{1/2}*M_ou, m34=v^{1/2}*M_uo 
+    !     p12=-Sqrt{4pi}P12/dE12, 
+    !     p34=-Sqrt{4pi}P34/dE34
     call getpemat(iq, ik, trim(fnpmat), trim(fnemat),&
       & m12=xiou, m34=xiuo, p12=pmou, p34=pmuo)
       

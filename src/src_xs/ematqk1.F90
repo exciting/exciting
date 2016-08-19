@@ -65,7 +65,7 @@ subroutine ematqk1(iq, ik)
     if(allocated(xiou)) deallocate(xiou)
     allocate(xiou(nst1, nst2, ngq(iq)))
 
-    ! Calculate xiou
+    ! Calculate plane wave elements xiou
     call ematqk(iq, ik)
 
     if( .not. tscreen) then
