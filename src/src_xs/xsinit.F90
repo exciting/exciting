@@ -332,9 +332,9 @@ subroutine xsinit
   !     checkpoints     !
   !---------------------!
   if(procs .gt. 1) then
-    call genfilname(basename='resume', rank=rank, procs=procs, dotext='', filnam=fnresume)
+    call genfilname(basename='RESUME', rank=rank, procs=procs, dotext='', filnam=fnresume)
   else
-    call genfilname(basename='resume', dotext='', filnam=fnresume)
+    call genfilname(basename='RESUME', dotext='', filnam=fnresume)
   end if
   ! check for stale checkpoint file
   call chkptchk

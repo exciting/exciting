@@ -9,7 +9,7 @@ subroutine xstasklauncher
   use inputdom
 
   ! SET DEFAULTS
-  ! Set the default values if "tddft" element is not present
+  ! Set the default values if "TDDFT" element is not present
   if( .not. associated(input%xs%tddft) ) then
     input%xs%tddft => getstructtddft(emptynode)
   end if
@@ -19,7 +19,7 @@ subroutine xstasklauncher
     input%xs%screening => getstructscreening(emptynode)
   end if
 
-  ! Set the default values if "bse" element is not present
+  ! Set the default values if "BSE" element is not present
   if( .not. associated(input%xs%bse) ) then
     input%xs%bse => getstructbse(emptynode)
   end if

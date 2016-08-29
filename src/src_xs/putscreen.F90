@@ -27,6 +27,8 @@ subroutine putscreen(un, tq0, n, chi0, chi0h, chi0w)
 
         ! Write head
         if((ig1 .eq. 1) .and. (ig2 .eq. 1)) then
+          ! Write Cartesian directions with negative sign.
+          ! Write real part, imaginary part and modulus of 1-chi
           write(un, '(2i8,3g18.10)') ((-i,-j,&
             & dble(krondelta(i, j))-chi0h(i, j),&
             & abs(dble(krondelta(i, j))-chi0h(i, j)), j=1, 3),&
@@ -35,25 +37,25 @@ subroutine putscreen(un, tq0, n, chi0, chi0h, chi0w)
 
         ! Write wings
         if((ig1 .eq. 1) .and. (ig2 .ne. 1)) then
-          write(un, '(2i8,3g18.10)') (-i, ig2,-chi0w(ig2, 1,&
-            & i), abs(-chi0w(ig2, 1, i)), i=1, 3)
+          write(un, '(2i8,3g18.10)') (-i, ig2,-chi0w(ig2, 1, i),&
+            & abs(-chi0w(ig2, 1, i)), i=1, 3)
         end if
         if((ig1 .ne. 1) .and. (ig2 .eq. 1)) then
-          write(un, '(2i8,3g18.10)') (ig1,-j,-chi0w(ig1, 2,&
-            & j), abs(-chi0w(ig1, 2, j)), j=1, 3)
+          write(un, '(2i8,3g18.10)') (ig1,-j,-chi0w(ig1, 2, j),&
+            & abs(-chi0w(ig1, 2, j)), j=1, 3)
         end if
 
         ! Write body
         if((ig1 .ne. 1) .and. (ig2 .ne. 1)) then
-          write(un, '(2i8,3g18.10)') ig1, ig2, r1 - chi0(ig1,&
-            & ig2), abs(r1-chi0(ig1, ig2))
+          write(un, '(2i8,3g18.10)') ig1, ig2, r1 - chi0(ig1, ig2),&
+            & abs(r1-chi0(ig1, ig2))
         end if
 
       else
 
         ! Write full
-        write(un, '(2i8,3g18.10)') ig1, ig2, r1 - chi0(ig1,&
-          & ig2), abs(r1-chi0(ig1, ig2))
+        write(un, '(2i8,3g18.10)') ig1, ig2, r1 - chi0(ig1, ig2),&
+          & abs(r1-chi0(ig1, ig2))
 
       end if
 

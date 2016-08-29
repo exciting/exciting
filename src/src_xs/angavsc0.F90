@@ -2,7 +2,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: angavsc0
+! !INTERFACE:
 subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
+! !USES:
   use mod_constants, only: zzero, pi, twopi, fourpi
   use mod_qpoint, only: ngridq
   use mod_lattice, only: omega, binv
@@ -10,6 +14,26 @@ subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
   use modxs, only: dielten0, dielten, symt2, tleblaik,&
                  & lmmaxdielt, sptclg
   use invert
+! !INPUT/OUTPUT PARAMETERS:
+!   IN:
+!   n, integer               : Number of G+q vectors for current q-point
+!   nmax, integer            : Maximum number of G+q vectors over all q-points
+!   scrnh(3,3), complex(8)   : Head of dielectric matrix
+!   scrnw(n,2,3), complex(8) : Wings of dielectric matrix
+!   scrn(n,n), complex(8)    : Body of dielectric matrix
+!   OUT:
+!   scieff(nmax,nmax), complex(8) : Screened coulomb potential 
+!   
+! !DESCRIPTION:
+! This routine deals with the divergences of 
+! $\frac{\tilde{\varepsilon}_{G,G'}(q,\omega=0)}{|G+q||G'+q|}$
+! for $G=G'=q=0$ by averaging around the Gamma point.
+!
+! !REVISION HISTORY:
+! Added to documentation scheme. (Aurich)
+!
+!EOP
+!BOC
 
   implicit none
 
@@ -104,21 +128,22 @@ subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
     end do
   end do
 
-  ! Calculate averaged screened coulomb interaction in fourier space at gamma point
+  ! Calculate averaged screened coulomb interaction in Fourier space at gamma point
   select case(trim(input%xs%bse%sciavtype))
     case('spherical')
       ! Scaling factor
       t00 = (omega/(twopi)**3) * product(ngridq)
-      ! Number of points on sphere
+      ! Number of points on sphere (tleblaik is true by default)
       if(tleblaik) then
         ntpsph = input%xs%bse%nleblaik
       else
         ntpsph = nsphcov
       end if
 
+      ! Sanity check
       if(lmmaxdielt .gt. ntpsph) then
         write(*,*)
-        write(*, '("error(angavdm0): lmmaxdielt.gt.ntpsph: ", 2i6)') lmmaxdielt, ntpsph
+        write(*, '("Error(angavdm0): lmmaxdielt.gt.ntpsph: ", 2i6)') lmmaxdielt, ntpsph
         write(*,*)
         stop
       end if
@@ -208,7 +233,7 @@ subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
           scieff(1, j1) = sqrt(fourpi)*sptclg(j1, iq0)*t00*dot_product(mx0lm, ei0xlm)
         end do
 
-        ! Avarage body of screend coulomb interaction 
+        ! Average body of screened coulomb interaction 
         avbody: if(input%xs%bse%sciavbd) then
 
           allocate(eitmp(ntpsph),eilmtmp(lmmaxdielt))
@@ -248,6 +273,7 @@ subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
         end if avbody
 
       else fullinv
+
 
         do j1 = 2, n
 
@@ -406,3 +432,4 @@ subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
   call writedielt('DIELTENS_NOSYM', 1, 0.d0, dtns, 1)
 
 end subroutine angavsc0
+!EOC

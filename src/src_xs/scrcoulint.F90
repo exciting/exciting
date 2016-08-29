@@ -53,7 +53,7 @@ subroutine scrcoulint
   complex(8), allocatable :: phf(:, :), emat12(:, :), emat34(:, :)
   real(8), parameter :: epsortho = 1.d-12
   real(8) :: vqr(3), vq(3), t1, ta
-  integer :: ikkp, iknr, jknr, iqr, iq, iqrnr, jsym, jsymi, igq1, n, recl, un
+  integer :: ikkp, iknr, jknr, iqr, iq, iqrnr, jsym, jsymi, igq1, n, reclen
   integer :: nsc, iv(3), ivgsym(3), j1, j2, nkkp
   integer :: ist1, ist2, ist3, ist4, nst12, nst34, nst13, nst24
   integer :: rnst1, rnst2, rnst3, rnst4
@@ -69,7 +69,9 @@ subroutine scrcoulint
   !   main part   !
   !---------------!
 
+  ! Emattype 2 selects o-o and u-u combinations
   input%xs%emattype = 2
+
   call init0
   call init1
   call init2
@@ -93,7 +95,6 @@ subroutine scrcoulint
   ! Generate gaunt coefficients
   call xsgauntgen(max(input%groundstate%lmaxapw, lolmax),&
     & input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
-
   ! Find indices for non-zero gaunt coefficients
   call findgntn0(max(input%xs%lmaxapwwf, lolmax),&
     & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
@@ -106,8 +107,9 @@ subroutine scrcoulint
 
   call flushifc(unitout)
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
-  call findocclims(0, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
 
+  ! Find occupation bounds for q=0
+  call findocclims(0, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
   ! Only for systems with a gap in energy
   if( .not. ksgap) then
     write(*,*)
@@ -120,12 +122,13 @@ subroutine scrcoulint
     write(*,*)
     write(*, '("Error(",a,"): Too few empty states in&
       & screening eigenvector file - the screening should&
-      & include many empty states (bse/screening)", 2i8)')&
+      & include many empty states (BSE/screening)", 2i8)')&
       & trim(thisnam), input%groundstate%nempty, input%xs%screening%nempty
     write(*,*)
     call terminate
   end if
 
+  ! Set nstX, istlX, istuX variables for X: 1=o, 2=o, 3=u, 4=u
   call ematbdcmbs(input%xs%emattype)
   nst12 = rnst1 * rnst2
   nst34 = rnst3 * rnst4
@@ -138,7 +141,7 @@ subroutine scrcoulint
     call writeqpts
   end if
 
-  ! Local arrays
+  ! Allocate local arrays for screened coulomb interaction
   allocate(phf(ngqmax, ngqmax))
   allocate(sccli(rnst1, rnst3, rnst2, rnst4), scclid(rnst1, rnst3))
   allocate(scieffg(ngqmax, ngqmax, nqptr))
@@ -149,9 +152,9 @@ subroutine scrcoulint
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
 
   !-----------------------------------!
-  !     loop over reduced q-points    !
+  !     Loop over reduced q-points    !
   !-----------------------------------!
-  call getunit(un)
+  ! Parallelize over reduced q-point set
   call genparidxran('q', nqptr)
 
   do iqr = qpari, qparf
@@ -161,9 +164,13 @@ subroutine scrcoulint
 
     ! Locate reduced q-point in non-reduced set
     iqrnr = iqmap(ivqr(1,iqr), ivqr(2,iqr), ivqr(3,iqr))
+
+    ! Get number of G+q vectors for current q
     n = ngq(iqrnr)
 
     ! Calculate effective screened coulomb interaction
+    ! by inverting the symmetrized RPA dielectric matrix and multiplying
+    ! it with v^{1/2} from both sides.
     call genscclieff(iqr, ngqmax, n, scieffg(1,1,iqr))
 
     ! Generate radial integrals for matrix elements of plane wave
@@ -177,20 +184,16 @@ subroutine scrcoulint
 
   ! Information on size of output file
   nkkp = (nkptnr*(nkptnr+1)) / 2
-  inquire(iolength=recl) ikkp, iknr, jknr, iq, iqr, nst1, nst2, nst3, nst4, sccli
+  inquire(iolength=reclen) ikkp, iknr, jknr, iq, iqr, nst1, nst2, nst3, nst4, sccli
   write(unitout,*)
   write(unitout, '(a,f12.3)') 'File size for screened coulomb interaction (Gb):',&
-    & recl * nkkp / 1024.d0 ** 3
+    & reclen * nkkp / 1024.d0 ** 3
   write(unitout,*)
 
   !-------------------------------!
   !     Loop over(k,kp) pairs     !
   !-------------------------------!
-  call genfilname(basename='SCCLI', asc=.true., filnam=fnsccli)
-  call getunit(un)
 
-  if(rank .eq. 0) open(un, file=trim(fnsccli),&
-    & form='formatted', action='write', status='replace')
 
   call genparidxran('p', nkkp)
 
@@ -199,23 +202,28 @@ subroutine scrcoulint
   bsedt(2, :) = -1.d8
   bsedt(3, :) = zzero
 
-  ! Loop over combinations of k-points
+  ! Loop over combinations of non-reduced k-point combinations
   kkploop: do ikkp = ppari, pparf
 
     call timesec(ta)
     call chkpt(3, (/ task, 2, ikkp /),&
-      & 'task, sub,(k,kp)-pair; direct term of bse hamiltonian')
+      & 'task, sub,(k,kp)-pair; direct term of BSE hamiltonian')
 
+    ! Get individual k-point indices from combined kk' index.
     call kkpmap(ikkp, nkptnr, iknr, jknr)
-    ! K-point difference
+    ! K-point difference k_j-k_i on integer grid.
     iv(:) = ivknr(:,jknr) - ivknr(:,iknr)
+    ! Map to reciprocal unit cell 
     iv(:) = modulo(iv(:), ngridq(:))
-    ! Q-point(reduced)
+    ! Find corresponding q-point index (reduced)
     iqr = iqmapr(iv(1), iv(2), iv(3))
+    ! Get corresponding vector in lattice coordinated
     vqr(:) = vqlr(:, iqr)
-    ! Q-point(non-reduced)
+    ! Q-point (non-reduced)
     iq = iqmap(iv(1), iv(2), iv(3))
+    ! Get lattice coordinates
     vq(:) = vql(:, iq)
+
     ! Local field effects size
     tq0 = tqgamma(iq)
     n = ngq(iq)
@@ -224,38 +232,44 @@ subroutine scrcoulint
     allocate(tm(n, n), tmi(n, n))
     allocate(scclit(nst12, nst34))
 
+
+    !! Find results (radial emat integrals and screened coulomb potential) 
+    !! for a non reduced q-point with the help of the result 
+    !! for the corresponding reduced q-point using symmetry operations.
+    !!<--
     ! Find symmetry operations that reduce the q-point to the irreducible
-    ! part of the brillouin zone
+    ! part of the Brillouin zone
     call findsymeqiv(input%xs%bse%fbzq, vq, vqr, nsc, sc, ivgsc)
-
-    ! Find the map that rotates the g-vectors
+    ! Find the map that rotates the G-vectors
     call findgqmap(iq, iqr, nsc, sc, ivgsc, n, jsym, jsymi, ivgsym, igqmap)
-
     ! Generate phase factor for dielectric matrix due to non-primitive
     ! translations
     call genphasedm(iq, jsym, ngqmax, n, phf, tphf)
-
     ! Get radial integrals
     call getematrad(iqr, iq)
-
     ! Rotate radial integrals
     call rotematrad(n, igqmap)
-  
     ! Rotate inverse of screening, coulomb potential and radial integrals
     tmi(:,:) = phf(:n, :n) * scieffg(igqmap, igqmap, iqr)
+    !!-->
 
     ! Calculate matrix elements of the plane wave
+    ! emattype = 2 corresponds to 12=oo and 34=uu
     input%xs%emattype = 2
     call ematbdcmbs(input%xs%emattype)
+    ! Allocate arrays used in ematqk
     call ematqalloc
+    ! Call wrapper function for ematqk
+    !   Calculates o-o/u-u plane wave elements and
+    !   stores them in xiou/xiuo 
     call ematqk1(iq, iknr)
-
+    ! Reset 12=oo and 34=uu (changed in ematqk1)
     input%xs%emattype = 2
     call ematbdcmbs(input%xs%emattype)
     call chkpt(3, (/ task, 2, ikkp /),&
-      & 'task,sub,(k,kp)-pair; direct term of bse hamiltonian')
+      & 'task,sub,(k,kp)-pair; direct term of BSE hamiltonian')
 
-    ! Select screening level
+    ! Select screening level (default: full)
     tm(:, :) = zzero
     select case(trim(input%xs%screening%screentype))
       case('longrange')
@@ -270,55 +284,81 @@ subroutine scrcoulint
           tm(igq1, igq1) = tmi(igq1, igq1)
         end forall
       case('full')
-        ! Full screening
+        ! Full screening tm is set to the phase factor corrected
+        ! W_{GG'}(q,\omega=0)
         tm(:, :) = tmi(:, :)
     end select
 
     ! Combine indices for matrix elements of plane wave
     j1 = 0
+    ! Occupied
     do ist2 = sta1, sto1
+      ! Occupied
       do ist1 = sta1, sto1
         j1 = j1 + 1
+        ! emat12_j = M_o1o1, M_o2o1, ..., M_oNo1, M_o1o2, ..., M_oNoN
         emat12(j1, :) = xiou(ist1-sta1+1, ist2-sta1+1, :)
       end do
     end do
     j2 = 0
+    ! Unoccupied
     do ist4 = sta2, sto2
+      ! Unoccupied
       do ist3 = sta2, sto2
         j2 = j2 + 1
+        ! emat34_j = M_u1u1, M_u2u1, ..., M_uNu1, M_u1u2, ..., M_uNuN
         emat34(j2, :) = xiuo(ist3-sta2+1, ist4-sta2+1, :)
       end do
     end do
 
-    ! Matrix elements of direct term (as in bse-code of peter and
-    ! In the self-documentation of andrea marini)
+    ! Matrix elements of direct term (as in BSE-code of Peter and
+    ! In the self-documentation of Andrea Marini)
 
     prefactor=1.0d0/(omega*dble(nkptnr))
+
+    ! M_oioj -> M^*_oioj
     emat12(:,:)=conjg(emat12(:,:))
+
+    ! Allocate helper array of dimension (#o*#o,#G) (same as emat12)
     allocate(zm(nst12,n))
+
+    ! Calculate matrix elements of screened coulomb interaction scclit_{o_j1 o'_j1, u_j2 u'_j2}(q)
+    ! zm = emat12 * tm
+    !   i.e. zm_{j,G} = \Sum_{G'} emat12_{j,G'} tm_{G',G}
+    !   i.e. zm_{o_j,o'_j}(G,q) = \Sum_{G'} M^*_{o_j,o'_j}(G',q) W(G',G, q)
     call zgemm('n', 'n', nst12, n, n, zone, emat12, nst12, tm, n, zzero, zm, nst12)
+    ! scclit = prefactor * zm * emat34^T
+    !   i.e. scclit(j1, j2) = \Sum_{G} zm_{j1,G} (emat34^T)_{G,j2}
+    !   i.e. scclit_{o_j1 o'_j2, u_j2 u'_j2} = \Sum{G,G'} M^*_{o_j1,o'_j1}(G,q) W(G,G', q) M_{u_j2 u'_j2}(G',q)
     call zgemm('n', 't', nst12, nst34, n, prefactor, zm,&
       & nst12, emat34, nst34, zzero, scclit, nst12)
     deallocate(zm)        
 
     ! Map back to individual band indices
     j2 = 0
+    ! Unoccupied
     do ist4 = 1, rnst4
+      ! Unoccupied
       do ist3 = 1, rnst3
         j2 = j2 + 1
         j1 = 0
+        ! Occupied
         do ist2 = 1, rnst2
+          ! Occupied
           do ist1 = 1, rnst1
             j1 = j1 + 1
+            ! scclit_{o_j1 o'_j1, u_j2 u'_j2} -> sccli_{o_j1 u_j2, o'_j1 u'_j2}(q)
             sccli(ist1, ist3, ist2, ist4) = scclit(j1, j2)
           end do
         end do
       end do
     end do
 
-    ! Analyze bse diagonal
+    ! Analyze BSE diagonal
     if(iknr .eq. jknr) then
+      ! Selected occupied
       do ist1 = 1, rnst1
+        ! Selected unoccupied
         do ist3 = 1, rnst3
           zt1 = sccli(ist1, ist3, ist1, ist3)
           scclid(ist1, ist3) = zt1
@@ -341,24 +381,19 @@ subroutine scrcoulint
   ! End loop over(k,kp)-pairs
   end do kkploop
 
-  if(rank .eq. 0) write(un, '("# ikkp, iknr,ist1,ist3, jknr,ist2,ist4,&
-    &    re(w),            im(w),             |w|^2,           ang/pi")')
-
-  if(rank .eq. 0) close(un)
-
   call barrier
 
   ! Communicate array-parts wrt. q-points
   call mpi_allgatherv_ifc(procs,3,zbuf=bsedt)
 
-  ! Bse kernel diagonal parameters
+  ! BSE kernel diagonal parameters
   bsedl = minval(dble(bsedt(1, :)))
   bsedu = maxval(dble(bsedt(2, :)))
   bsedd = bsedu - bsedl
   bsed = sum(bsedt(3, :)) / nkptnr
   deallocate(bsedt, scclid)
 
-  ! Write bse kernel diagonal parameters
+  ! Write BSE kernel diagonal parameters
   if(rank .eq. 0) call putbsediag('BSEDIAG.OUT')
 
   call findgntn0_clear
@@ -367,5 +402,5 @@ subroutine scrcoulint
     & finished")')
 
 end subroutine scrcoulint
-!eoc
+!EOC
 

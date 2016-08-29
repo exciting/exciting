@@ -2,11 +2,35 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: acscq
+! !INTERFACE:
 subroutine avscq(iqr, n, nmax, scrn, scieff)
+! !USES:
   use modinput, only: input
   use mod_qpoint, only: iqmap
   use modxs, only: ivqr
   use invert
+! !INPUT/OUTPUT PARAMETERS:
+!   IN:
+!   iqr, integer             : Index of the reduced q-point to be considered
+!   n, integer               : Number of G+q vectors for current q-point
+!   nmax, integer            : Maximum number of G+q vectors over all q-points
+!   scrn(n,n), complex(8)    : Body of dielectric matrix
+!   OUT:
+!   scieff(nmax,nmax), complex(8) : Screened coulomb potential 
+!   
+! !DESCRIPTION:
+!   By default this just calculates
+!   $\frac{\tilde{\varepsilon}_{G,G'}(q,\omega=0)}{|G+q||G'+q|}$.
+!   There are options controlling how the dielectric matrix should be 
+!   inverted. There are also possible averaging and extrapolation schemes. 
+!
+! !REVISION HISTORY:
+! Added to documentation scheme. (Aurich)
+!
+!EOP
+!BOC
 
   implicit none
 
@@ -39,6 +63,7 @@ subroutine avscq(iqr, n, nmax, scrn, scieff)
         flg = 0
       end if
       ! Generate the (averaged) symmetrized coulomb potential
+      ! flag = 0 : clwt = v^{1/2}(G,q) * v^{1/2}(G',q)
       call genwiqggp(flg, iqrnr, j1, j2, clwt)
       ! Multiply with averaged coulomb potential
       scieff(j1, j2) = scieff(j1, j2) * clwt
@@ -48,3 +73,4 @@ subroutine avscq(iqr, n, nmax, scrn, scieff)
   end do
 
 end subroutine avscq
+!EOC

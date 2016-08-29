@@ -19,7 +19,9 @@ subroutine genscclieff(iqr, nmax, n, scieff)
 
   allocate(scrn(n, n), scrnw(n, 2, 3), scrnh(3, 3))
 
-  ! Read screening from file
+  ! Read the Coulomb-symmetrized macroscopic dielectric function/tensor 
+  ! in RPA for requested q point and zero frequency. The Cartesian components
+  ! of the head (G=G'=q=0) are also symmetrized w.r.t. the lattice symmetry.
   call getscreen(iqr, n, scrnh, scrnw, scrn)
   tq0 = tqgamma(iqr)
 

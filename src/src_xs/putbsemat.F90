@@ -1,58 +1,71 @@
-!
-!
-!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
+
+!BOP
+! !ROUTINE: putbsemat
+! !INTERFACE:
+subroutine putbsemat(fname, zmat, ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4)
+! !USES:
+  use mod_kpoint, only: nkptnr
+  use modmpi
+  use m_getunit
+! !DESCRIPTION:
+!   The routine writes complex 4d-array to a direct access file and
+!   is intended for the use in be BSE part of the code. It is used
+!   to write the screened coulomb interaction {\tt SCCLI.OUT} and 
+!   the exchange interaction {\tt EXCLI.OUT} to file.
 !
-!
-Subroutine putbsemat (fname, zmat, ikkp, iknr, jknr, iq, iqr, n1, n2, &
-& n3, n4)
-      Use modmain
-      Use modmpi
-      Use m_getunit
-      Implicit None
-  ! arguments
-      Character (*), Intent (In) :: fname
-      Complex (8), Intent (In) :: zmat (n1, n2, n3, n4)
-      Integer, Intent (In) :: ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4
-  ! local variables
-      Integer :: recl, un, iknrr, jknrr, ikkpr, iq_r, iqr_r
+! !REVISION HISTORY:
+!   Added to documentation scheme. (Aurich)
+!EOP
+!BOC
+
+  implicit none
+
+  ! Arguments
+  character(*), intent(in) :: fname
+  complex(8), intent(in) :: zmat(n1, n2, n3, n4)
+  integer, intent(in) :: ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4
+
+  ! Local variables
+  integer :: reclen, un, iknrr, jknrr, ikkpr, iq_r, iqr_r
 #ifdef MPI
-      Integer :: nkkp, iproc, tag, status (MPI_STATUS_SIZE)
+  integer :: nkkp, iproc, tag, status(mpi_status_size)
 #endif
-      ikkpr = ikkp
-      iknrr = iknr
-      jknrr = jknr
-      iq_r = 0
-      iqr_r = 0
-      Call getunit (un)
-      Inquire (IoLength=Recl) ikkp, iknr, jknr, iq, iqr, n1, n2, n3, &
-     & n4, zmat
+
+  ikkpr = ikkp
+  iknrr = iknr
+  jknrr = jknr
+  iq_r = 0
+  iqr_r = 0
+
+  call getunit(un)
+  inquire(iolength=reclen) ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4, zmat
+
 #ifdef MPI
-      tag = 77
-      nkkp = (nkptnr*(nkptnr+1)) / 2
-      If (rank .Ne. 0) Call mpi_send (zmat, size(zmat), &
-     & MPI_DOUBLE_COMPLEX, 0, tag, MPI_COMM_WORLD, ierr)
-      If (rank .Eq. 0) Then
-         Do iproc = 0, lastproc (ikkp, nkkp)
-            ikkpr = firstofset (iproc, nkkp) - 1 + ikkp
-            Call kkpmap (ikkpr, nkptnr, iknrr, jknrr)
-!
-            If (iproc .Ne. 0) Then
-           ! receive data from slaves
-               Call mpi_recv (zmat, size(zmat), MPI_DOUBLE_COMPLEX, &
-              & iproc, tag, MPI_COMM_WORLD, status, ierr)
-            End If
+  tag = 77
+  nkkp = (nkptnr*(nkptnr+1)) / 2
+
+  if(rank .ne. 0) call mpi_send(zmat, size(zmat), mpi_double_complex, 0, tag, mpi_comm_world, ierr)
+
+  if(rank .eq. 0) then
+    do iproc = 0, lastproc(ikkp, nkkp)
+      ikkpr = firstofset(iproc, nkkp) - 1 + ikkp
+      call kkpmap(ikkpr, nkptnr, iknrr, jknrr)
+
+      if(iproc .ne. 0) then
+        ! Receive data from slaves
+        call mpi_recv(zmat, size(zmat), mpi_double_complex, iproc, tag, mpi_comm_world, status, ierr)
+      end if
 #endif
-        ! only the master is performing file I/O
-            Open (Unit=un, File=trim(fname), Form='unformatted', &
-           & Action='write', Access='direct', Recl=Recl)
-            Write (un, Rec=ikkpr) ikkpr, iknrr, jknrr, iq_r, iqr_r, n1, &
-           & n2, n3, n4, zmat
-            Close (un)
+      ! Only the master is performing file i/o
+      open(unit=un, file=trim(fname), form='unformatted', action='write', access='direct', recl=reclen)
+      write(un, rec=ikkpr) ikkpr, iknrr, jknrr, iq_r, iqr_r, n1, n2, n3, n4, zmat
+      close(un)
 #ifdef MPI
-         End Do
-      End If
+    end do
+  end if
 #endif
-End Subroutine putbsemat
+end subroutine putbsemat
+!EOC
