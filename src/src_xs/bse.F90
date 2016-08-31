@@ -145,22 +145,34 @@ subroutine bse
     call readfermi
 
     ! Initialize the selected ranges of valence/core and conduction states(note
-    ! That core states are always understood to be local orbitals set by the user
-    ! And actually treated as valence states)
+    ! that core states are always understood to be local orbitals set by the user
+    ! and actually treated as valence states)
+
+    ! Lowest occupied state (absolute index)
     sta1 = input%xs%bse%nstlbse(1)
+    ! Highest occupied state (absolute index)
     sto1 = input%xs%bse%nstlbse(2)
+    ! Lowest unoccupied state (counted from first unoccupied state)
     sta2 = input%xs%bse%nstlbse(3)
+    ! Highest unoccupied state (counted from first unoccupied state)
     sto2 = input%xs%bse%nstlbse(4)
+
+    ! Number of occupied states
     nrnst1 = sto1-sta1+1
     nrnst2 = sto1-sta1+1
+    ! Number of unoccupied states
     nrnst3 = sto2-sta2+1
     nrnst4 = sto2-sta2+1 
 
     ! Use eigenvector files from screening-calculation
     call genfilname(dotext='_SCR.OUT', setfilext=.true.)
+
+    ! Find occupation limits for k and k+q, where q=0 ist set fixed by iqmt
     call findocclims(iqmt, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
 
+    ! emattype 2 selects o-o and u-u combinations
     input%xs%emattype = 2
+    ! Set nstX, istlX, istuX variables for X: 1=o, 2=o, 3=u, 4=u
     call ematbdcmbs(input%xs%emattype)
     
     ! Write out state ranges
@@ -178,16 +190,20 @@ subroutine bse
     write(unitout, '("  range of fourth index and number :", 2i6, 3x, i6)')&
       & istl4, istu4, nst4
 
-    ! Size of BSE-Hamiltonian
+    ! Size of BSE-Hamiltonian = #o * #u * #k
     hamsiz = nrnst1 * nrnst3 * nkptnr
 
     ! Allocations
     ! Allocate arrays for coulomb interactions
-    allocate(sccli(nrnst1, nrnst3, nrnst2, nrnst4))
-    allocate(excli(nrnst1, nrnst3, nrnst2, nrnst4))
+    ! W_{ouk,o'u'k}(q=0) 
+    allocate(sccli(nrnst1, nrnst3, nrnst2, nrnst4)) ! #o,#u,#o,#u
+    ! v_{ouk,o'u'k'}(q=0)
+    allocate(excli(nrnst1, nrnst3, nrnst2, nrnst4)) ! #o,#u,#o,#u
+
     ! Allocate array for occupation number difference (future use)
-    allocate(docc(nrnst1, nrnst3))
+    allocate(docc(nrnst1, nrnst3)) ! #o,#u
     allocate(kdocc(hamsiz))
+
     ! Allocate BSE-Hamiltonian (large matrix, up to several Gb)
     allocate(ham(hamsiz, hamsiz))
     ham(:, :) = zzero
@@ -226,7 +242,9 @@ subroutine bse
     ! Determine the minimal optical gap
     egap = 1.d8
     do iknr = 1, nkptnr
+      ! Occupied
       do ist1 = sta1, sto1
+        ! Unoccupied
         do ist3 = sta2, sto2
           egap = min(egap, evalsv(ist3+istocc, iknr)-evalsv(ist1,iknr)+input%xs%scissor)
         end do
@@ -246,49 +264,75 @@ subroutine bse
     ikkp = 0
 
     k: do iknr = 1, nkptnr
-      kp: do jknr = iknr, nkptnr
+      kp: do jknr = iknr, nkptnr ! Uses hermiticity
+      !! Note: If the Hamilton matrix 
+      !! has the elements H_{i,j} and the indices enumerate the
+      !! states according to
+      !! i = o1u1k1, o1u1k2, ..., o1u1kN, o2u1k1, ..., o2u1kN, ...,
+      !!     oMu1kN, oMu2k1, ..., oMuMkN
+      !! then because of H_{j,i} = H^*_{i,j} only kj = ki,..,kN is 
+      !! needed.
 
         ikkp = ikkp + 1
+
+        ! Get kj-ki = q for extracting the correct W element
         iv2(:) = ivknr(:, jknr) - ivknr(:, iknr)
         iv2(:) = modulo(iv2(:), input%groundstate%ngridk(:))
-
         ! Q-point(reduced)
         iqr = iqmapr(iv2(1), iv2(2), iv2(3))
-
         ! Q-point(non-reduced)
         iq = iqmap(iv2(1), iv2(2), iv2(3))
 
+        ! Read W_{i,j}
         select case(trim(input%xs%bse%bsetype))
           case('singlet', 'triplet')
-            ! Read screened coulomb interaction
+            ! Read screened coulomb interaction W_{ouki,o'u'kj}
             call getbsemat('SCCLI.OUT', ikkp, nrnst1, nrnst3, sccli)
         end select
 
         ! Read exchange coulomb interaction
         select case(trim(input%xs%bse%bsetype))
           case('RPA', 'singlet')
+            ! Read exchange interaction v_{ouki,o'u'kj}
             call getbsemat('EXCLI.OUT', ikkp, nrnst1, nrnst3, excli)
         end select
 
         ! Get occupation numbers (future use for partial occupancy) 			
+        !   Calculates docc(l,m)= f_{o_l ki} - f_{u_m kj}
+        !   Remark: Currently the iq argument does nothing at all
         call getdocc(iq, iknr, jknr, sta1, sto1, istl3, istl3+nrnst3-1, docc)
         
         ! Set up k/kp-part of Hamilton matrix
+        ! Occupied
         do ist1 = sta1, sto1
+          ! Unoccupied
           do ist3 = sta2, sto2
+            ! Occupied
             do ist2 = sta1, sto1
+              ! Unoccupied
               do ist4 = sta2, sto2
 
+                ! The combined index labels the states as
+                ! s1 = {o1u1k1, o1u2k1, ..., o1uMk1,
+                !      o2uMk1, ..., oMuMk1, o1u1k2, ..., oMuMkN} <-> {1,...,M**2N}
+                ! s2 does the same.
                 s1 = hamidx(ist1-sta1+1, ist3-sta2+1, iknr, nrnst1, nrnst3)
                 s2 = hamidx(ist2-sta1+1, ist4-sta2+1, jknr, nrnst2, nrnst4)
 
+!!! Wrong occupation differences?
+                ! Get occupation difference for current s1 combination
+                ! but for different k's !!!!! those should be at the same k 
+                ! at least in this optical case.
+                ! kdocc(s1) = f_{o_{s1},k_i} - f_{u_{s1},k_j}
                 kdocc(s1) = docc(ist1-sta1+1, ist3-sta2+1)
 
                 ! Add diagonal term
                 if(s1 .eq. s2) then
+                  ! de = e_{u_{s1}, ki} - e_{o_{s1}, k_i} + scissor
                   de = evalsv(ist3+istl3-sta2, iknr) - evalsv(ist1, iknr)&
                     &+ input%xs%scissor
                   ! BSE-Diag method outputs BINDING energies.
+                  !   i.e. subtract gap energy
                   ham(s1, s2) = ham(s1, s2) + de - egap + bsed
                 end if
 
@@ -299,6 +343,9 @@ subroutine bse
                 end if
 
                 ! Add exchange term
+                ! + 2* v_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
+!!! Wrong occupation differences?
+                ! Also add occupation difference treatment
                 select case(trim(input%xs%bse%bsetype))
                   case('RPA', 'singlet')
                     ham(s1,s2) = ham(s1,s2)&
@@ -307,6 +354,9 @@ subroutine bse
                 end select
 
                 ! Add correlation term
+                ! - W_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
+!!! Wrong occupation differences?
+                ! Also add occupation difference treatment
                 select case(trim(input%xs%bse%bsetype))
                   case('singlet', 'triplet')
                     ham(s1,s2) = ham(s1,s2)&
@@ -334,7 +384,7 @@ subroutine bse
     ! Allocate eigenvector and eigenvalue arrays
     allocate(beval(hamsiz), bevec(hamsiz, hamsiz))
 
-    ! Set number of excitons
+    ! Set number of excitons (i.e. all of them)
     ne = hamsiz
 
     ! Diagonalize Hamiltonian
@@ -356,30 +406,44 @@ subroutine bse
     allocate(buf(3,3,input%xs%energywindow%points))
     allocate(loss(3, 3, input%xs%energywindow%points),sigma(input%xs%energywindow%points))
 
+    ! Generate an evenly spaced frequency grid 
     call genwgrid(input%xs%energywindow%points, input%xs%energywindow%intv,&
       & input%xs%tddft%acont, 0.d0, w_real=w)
 
     buf(:,:,:)=zzero
 
+    ! Loop over 3 directions
     optcmp: do oct1 = 1, noptcmp
 
-      ! Read momentum matrix elements
+      ! Allocate momentum matrix
       allocate(pm(3, nstsv, nstsv))
 
       do iknr = 1, nkptnr
+
+        ! Read momentum matrix for given k-point
         call getpmat(iknr, vkl, 1, nstsv, 1, nstsv, .true., 'PMAT_XS.OUT', pm)
 
+        ! Occupied
         do ist1 = sta1, sto1
+          ! Unoccupied
           do ist2 = istl3 , istl3 + nrnst3 -1
-            ! Din: Renormalise pm according to DelSole PRB48, 11789(1993)
+
+            ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
+            ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
+            !   Where E are quasi-particle energies and e are KS energies.
             if(associated(input%gw)) then
                pm(1:3,ist1,ist2) = pm(1:3,ist1,ist2)&
                  &* (evalsv(ist2,iknr)-evalsv(ist1,iknr))&
                  &/ (eval0(ist2,iknr)- eval0(ist1,iknr))
             end if 
+
             ! Din
-            s1 = hamidx(ist1-sta1+1, ist2-istl3+1,iknr, nrnst1, nrnst3)    
+            ! Map the momentum matrix elements to same index convention as
+            ! used in the BSE Hamiltonian.
+            s1 = hamidx(ist1-sta1+1, ist2-istl3+1,iknr, nrnst1, nrnst3) 
+            ! P^i_{o_{s1},u_{s1},k_{s1}}
             pmat(s1, oct1) = pm(oct1, ist1, ist2)
+
           end do
         end do
 
@@ -390,13 +454,22 @@ subroutine bse
       ! Calculate oscillators for spectrum
       oszs(:, oct1) = zzero
 
+      ! Exciton index
       do s1 = 1, nexc
+        ! Non-reduced k-points
         do iknr = 1, nkptnr
+          ! Occupied
           do iv = 1, nrnst1
+            ! Unoccupied
             do ic = 1, nrnst3
+
               s2 = hamidx(iv, ic, iknr, nrnst1, nrnst3)
+
+              ! t^i_s1 = t^i_s1 + A^s1  P^i_{o_{s2},u_{s2},k_{s2}}/(e_{o_{s2},k_{s2}} - e_{u_{s2},k_{s2}})
+!!! Wrong occupation differences?
               oszs(s1, oct1) = oszs(s1, oct1) + bevec(s2, s1) * pmat(s2, oct1)&
                 &* kdocc(s2)*0.5d0/(evalsv(ic+istl3-1, iknr) - evalsv(iv+sta1-1, iknr))
+
             end do
           end do
         end do
@@ -483,6 +556,7 @@ subroutine bse
 
           do iw = 1, input%xs%energywindow%points
             do s1 = 1, nexc
+
               ! Lorentzian lineshape
               spectr(iw) = spectr(iw) + oszs(s1, oct1) * conjg(oszs(s1, oct2))&
                 &* (1.d0/(w(iw)-(beval(s1)+egap-bsed)+zi*input%xs%broad))             
@@ -618,6 +692,10 @@ subroutine bse
 
 contains
 
+  ! hamidx calculates a combined index that labels the states as
+  ! hamidx = {o1u1k1, o1u2k1, ..., o1uMk1,
+  !      o2uMk1, ..., oMuMk1, o1u1k2, ..., oMuMkN} -> {1,...,M**2N}
+  ! if i1=o i2=u
   integer(4) function hamidx(i1, i2, ik, n1, n2)
     implicit none
     integer(4), intent(in) :: i1, i2, ik, n1, n2

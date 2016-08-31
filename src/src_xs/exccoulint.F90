@@ -42,10 +42,9 @@ subroutine exccoulint
 
   ! Local variables
   character(*), parameter :: thisnam = 'exccoulint'
-  character(256) :: fnexcli
   integer, parameter :: iqmt = 1
   real(8), parameter :: epsortho = 1.d-12
-  integer :: iknr, jknr, iqr, iq, igq1, n, un
+  integer :: iknr, jknr, iqr, iq, igq1, n
   integer :: iv(3), j1, j2
   integer :: ist1, ist2, ist3, ist4
   integer :: nst12, nst34, nst13, nst24, ikkp, nkkp
@@ -58,22 +57,31 @@ subroutine exccoulint
   !---------------!
   !   main part   !
   !---------------!
+  ! emattype=1 corresponds to 12=ou,34=uo combinations
   input%xs%emattype = 1
+
   call init0
   call init1
   call init2
 
   ! Set the range of valence/core and conduction states to use
-  sta1 = input%xs%bse%nstlbse(1)
+  ! Lowest occupied state (absolute index)
+  sta1 = input%xs%bse%nstlbse(1) 
+  ! Highest occupied state (absolute index)
   sto1 = input%xs%bse%nstlbse(2)
-  sta2 = input%xs%bse%nstlbse(3)
+  ! Lowest unoccupied state (counted from first unoccupied state)
+  sta2 = input%xs%bse%nstlbse(3) 
+  ! Highest unoccupied state (counted from first unoccupied state)
   sto2 = input%xs%bse%nstlbse(4)      
+
+  ! Number of occupied states
   rnst1 = sto1-sta1+1
+  rnst4 = sto1-sta1+1
+  ! Number of unoccupied states
   rnst2 = sto2-sta2+1
   rnst3 = sto2-sta2+1
-  rnst4 = sto1-sta1+1
 
-  ! Read fermi energy from file
+  ! Read Fermi energy from file
   call readfermi
 
   ! Save variables for the gamma q-point
@@ -82,7 +90,6 @@ subroutine exccoulint
   ! Generate gaunt coefficients
   call xsgauntgen(max(input%groundstate%lmaxapw, lolmax),&
     & input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
-
   ! Find indices for non-zero gaunt coefficients
   call findgntn0(max(input%xs%lmaxapwwf, lolmax),&
     & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
@@ -96,8 +103,9 @@ subroutine exccoulint
 
   call flushifc(unitout)
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
-  call findocclims(0, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
 
+  ! Find occupation limits for k and k+q, where q=0
+  call findocclims(0, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
   ! Only for systems with a gap in energy
   if( .not. ksgap) then
     write(*,*)
@@ -115,11 +123,16 @@ subroutine exccoulint
     call terminate
   end if
 
+  ! Set nstX, istlX, istuX variables for X: 1=o, 2=u, 3=o, 4=u
   call ematbdcmbs(input%xs%emattype)
 
+  ! Number of ou-combinations
   nst12 = rnst1 * rnst2
+  ! Number of uo-combinations
   nst34 = rnst3 * rnst4
+  ! Number of ou-combinations
   nst13 = rnst1 * rnst3
+  ! Number of uo-combinations
   nst24 = rnst2 * rnst4
 
   call genfilname(dotext='_SCI.OUT', setfilext=.true.)
@@ -129,8 +142,11 @@ subroutine exccoulint
     call writeqpts
   end if
 
+  ! Number of G+q points (q=0)
   n = ngq(iqmt)
 
+  ! Calculate radial integrals used in the construction 
+  ! of the plane wave matrix elements (for q=0)
   call ematrad(iqmt)
 
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
@@ -144,18 +160,26 @@ subroutine exccoulint
   potcl(:) = 0.d0
   excli(:, :, :, :) = zzero
 
+  !!<-- Generate M_ouk(G,0)
   !---------------------------!
-  !     loop over k-points    !
+  !     Loop over k-points    !
   !---------------------------!
+  ! Parallelize over non reduced k-points
   call genparidxran('k', nkptnr)
+
+  ! Call init1 with q as vkloff, so that
+  ! k mesh goes over into k+q mesh.
   call init1offs(qvkloff(1, iqmt))
+
+  ! Allocate eigenvalue/eigenvector related
+  ! quantities for use in ematqk
   call ematqalloc
 
   do iknr = kpari, kparf
     call chkpt(3, (/ task, 1, iknr /),&
       & 'task,sub,k-point; matrix elements of plane wave')
 
-    ! Matrix elements for k and q=0
+    ! Matrix elements for k and q=0 (xiou and xiou)
     call ematqk1(iqmt, iknr)
     emat12k(:, :, :, iknr) = xiou(:, :, :)
     deallocate(xiou, xiuo)
@@ -164,56 +188,77 @@ subroutine exccoulint
 
   ! Communicate array-parts wrt. k-points
   call mpi_allgatherv_ifc(nkptnr,nst1*nst2*n,zbuf=emat12k)
+  !!-->
 
+!! emattype and bdcmbs should not have changed?
+  ! Select 12=ou 34=uo
   input%xs%emattype = 1
   call ematbdcmbs(input%xs%emattype)
 
   !-------------------------------!
-  !     loop over(k,kp) pairs     !
+  !     Loop over(k,kp) pairs     !
   !-------------------------------!
   nkkp = (nkptnr*(nkptnr+1)) / 2
   call genparidxran('p', nkkp)
-  call genfilname(basename='EXCLI', asc=.true., filnam=fnexcli)
-  call getunit(un)
-
-  if(rank .eq. 0) open(un, file=trim(fnexcli),&
-    & form='formatted', action='write', status='replace')
 
   kkp: do ikkp = ppari, pparf
 
     call chkpt(3, (/ task, 2, ikkp /),&
       & 'task,sub,(k,kp)-pair; exchange term of bse hamiltonian')
 
+    ! Get individual k-point indices from combined kk' index.
+    !   iknr runs from 1 to nkptnr, jknr from iknr to nkptnr
     call kkpmap(ikkp, nkptnr, iknr, jknr)
-    iv(:) = ivknr(:, jknr) - ivknr(:, iknr)
-    iv(:) = modulo(iv(:), input%groundstate%ngridk(:))
+    !! Note: If the exchange matrix 
+    !! has the elements v_{i,j} and the indices enumerate the
+    !! states according to
+    !! i = o1u1k1, o1u1k2, ..., o1u1kN, o2u1k1, ..., o2u1kN, ...,
+    !!     oMu1kN, oMu2k1, ..., oMuMkN
+    !! then because of v_{j,i} = v^*_{i,j} only kj = ki,..,kN is 
+    !! needed.
 
+    !!<-- The difference vector, i.e. q not needed in
+    !! the calculations (yet?)
+    ! K-point difference k_j-k_i on integer grid.
+    iv(:) = ivknr(:, jknr) - ivknr(:, iknr)
+    ! Map to reciprocal unit cell 
+    iv(:) = modulo(iv(:), input%groundstate%ngridk(:))
     ! Q-point(reduced)
     iqr = iqmapr(iv(1), iv(2), iv(3))
     ! Q-point(non-reduced)
     iq = iqmap(iv(1), iv(2), iv(3))
+    !!-->
 
-    ! Set g=0 term of coulomb potential to zero [Ambegaokar-Kohn]
+    ! Set G=0 term of coulomb potential to zero [Ambegaokar-Kohn]
     potcl(1) = 0.d0
 
     ! Set up coulomb potential
+    ! For G/=0 construct it via v^{1/2}(G,q)*v^{1/2}(G,q), where
+    ! here iqmt=1 is fixed, which is q=0
     do igq1 = 2, n
       call genwiqggp(0, iqmt, igq1, igq1, potcl(igq1))
     end do
 
     call genfilname(dotext='_SCR.OUT', setfilext=.true.)
 
+!! one could use getpemat as in dfq.F90
     j1 = 0
+    ! Unoccupied
     do ist2 = sta2, sto2
+      ! Occupied
       do ist1 = sta1, sto1
         j1 = j1 + 1
+        ! emat12_j = M_o1u1ki, M_o2u1ki, ..., M_oNu1ki, M_o1u2ki, ..., M_oNuNki
         emat12(j1, :) = emat12k(ist1-sta1+1, ist2-sta2+1, :, iknr)
       end do
     end do
     j2 = 0
+    ! Unoccupied
     do ist4 = sta2, sto2
+      ! Occupied
       do ist3 = sta1, sto1
         j2 = j2 + 1
+        ! emat34_j = (M_o1u1kj, M_o2u1kj, ..., M_oNu1kj, M_o1u2kj, ..., M_oNuNkj)*v(G,0)
         emat34(j2, :) = emat12k(ist3-sta1+1, ist4-sta2+1, :, jknr) * potcl(:)
       end do
     end do
@@ -245,12 +290,6 @@ subroutine exccoulint
 
   ! End loop over(k,kp) pairs
   end do kkp
-
-  if(rank .eq. 0) then
-    write(un, '("# ikkp, iknr,ist1,ist3, jknr,ist2,ist4,&
-      &    Re(V),            Im(V),             |V|^2")')
-    close(un)
-  end if
 
   call barrier
   call findgntn0_clear

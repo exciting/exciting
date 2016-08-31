@@ -41,11 +41,13 @@ subroutine ematqk1(iq, ik)
   integer, intent(in) :: iq, ik
 
   ! Set band combinations
-  ! Task 430 is 'screen', task 440 is 'scrcoulint'
+  ! Task 430 is 'screen'
   ! When coming from scrcoulint (task 440) emattype is set to 2
+  ! When coming from exccoulint (task 441) emattype is set to 1
   if( .not. (task .eq. 430)) then
 
     ! For 'scrcoulint' this selects 12=uu combinations
+    ! For 'exccoulint' this selects 12=uo combinations
     call ematbdlims(2*input%xs%emattype, nst1, istl1, istu1, nst2, istl2, istu2)
     ! Clear plane wave arrays
     if(allocated(xiou)) deallocate(xiou)
@@ -72,6 +74,7 @@ subroutine ematqk1(iq, ik)
     if( .not. (task .eq. 430)) then
       ! In the case of 'scrcoulint' this copies the u-u elements calculated
       ! in the previous call to ematqk to the modxs array xiuo.
+      ! Similarly, for 'exccoulint' this copies the u-o elements to xiuo.
       allocate(xiuo(nst1, nst2, ngq(iq)))
       xiuo(:, :, :) = xiou(:, :, :)
     end if
@@ -82,28 +85,34 @@ subroutine ematqk1(iq, ik)
     !   unoccupied: nst2 = sto2-sta2+1, istl2 = istunocc0+sta2-1, istlu2 = istunocc+sto2-1
     ! In the case of 'scrcoulint' emattype is set to 2, so that the following
     ! sets the band combinations to 12=oo
+    ! In the case of 'exccoulint' emattype is set to 1, and the following
+    ! sets 12=ou.
     call ematbdlims(2*input%xs%emattype-1, nst1, istl1, istu1, nst2, istl2, istu2)
-    ! 'screen': Set index 3 to unoccupied
+    ! 'screen'/'exccoulint': Set index 3 to unoccupied
     ! 'scrcoulint': Set index 3 to occupied
     istl3 = istl2
     istu3 = istu2
     nst3 = nst2
-    ! 'screen': Set index 4 to occupied
+    ! 'screen'/'exccoulint': Set index 4 to occupied
     ! 'scrcoulint': Set index 4 to occupied
     istl4 = istl1
     istu4 = istu1
     nst4 = nst1
 
     ! 'scrcoulint': Set up xiou for oo band ranges
+    ! 'exccoulint': Set up xiou for ou band ranges
     if(allocated(xiou)) deallocate(xiou)
     allocate(xiou(nst1, nst2, ngq(iq)))
 
     ! Calculate plane wave elements xiou
     ! 'scrcoulint': Calculate the oo plane wave elements.
+    ! 'exccoulint': Calculate the ou plane wave elements.
     call ematqk(iq, ik)
     ! To summarize:
     !   'screen': only o-u elements are calculated and stored in xiou
     !   'scrcoulint': u-u and o-o elements are calculated and stored in 
+    !                 xiuo and xiou respectively
+    !   'exccoulint': u-o and o-u elements are calculated and stored in 
     !                 xiuo and xiou respectively
 
     if( .not. tscreen) then

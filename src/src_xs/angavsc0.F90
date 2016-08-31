@@ -88,7 +88,7 @@ subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
     v(:, :) = transpose(scrnw(2:, 1, :))
 
     select case(input%xs%bse%scrherm)
-      case(0)
+      case(0) ! Default
         ! Use full matrix (both wings and full body)
       case(1)
         ! Hermitian average matrix (average both wings and body)

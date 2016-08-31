@@ -1552,7 +1552,6 @@
 10	src_xc/modxcifc.f90	/^10 continue$/;"	l	subroutine:xcifc	file:
 10	src_xs/bandgap.F90	/^10       Continue$/;"	l	subroutine:bandgap	file:
 10	src_xs/bandgap.F90	/^10    Continue$/;"	l	subroutine:writebandgap	file:
-10	src_xs/bse.F90	/^      10 continue$/;"	l	subroutine:bse	file:
 10	src_xs/findgqmap.F90	/^10       Continue$/;"	l	subroutine:findgqmap	file:
 10	src_xs/findsymi.F90	/^10       Continue$/;"	l	file:
 10	src_xs/modfxcifc.F90	/^10       Continue$/;"	l	subroutine:fxcifc	file:
@@ -18784,7 +18783,7 @@ broad	src_inputparser/inputmodules.f90	/^ real(8)::broad$/;"	k	type:raman_type
 broad	src_inputparser/inputmodules.f90	/^ real(8)::broad$/;"	k	type:xs_type
 brokenNS	FoX/dom/m_dom_dom.F90	/^    logical :: brokenNS /;"	k	type:documentExtras
 brzint	src_lib/brzint.f90	/^Subroutine brzint /;"	s
-bse	src_xs/bse.F90	/^Subroutine bse$/;"	s
+bse	src_xs/bse.F90	/^subroutine bse$/;"	s
 bsed	src_xs/modxs.F90	/^      Complex (8) :: bsed,/;"	v	module:modxs
 bsedd	src_xs/modxs.F90	/^      Complex (8) :: bsed, bsedl, bsedu, bsedd$/;"	v	module:modxs
 bsedgrid	src_xs/bsedgrid.F90	/^Subroutine bsedgrid /;"	s
@@ -20018,17 +20017,17 @@ elstack_t	FoX/common/m_common_elstack.F90	/^  type :: elstack_t$/;"	t	module:m_c
 elval	species/modspecies.F90	/^real(8) :: elval(/;"	v	module:modspecies
 emass_si	eos/modmain.f90	/^real(8), parameter :: emass_si=/;"	v	module:modmain
 ematbdcmbs	src_xs/ematbdcmbs.F90	/^subroutine ematbdcmbs(/;"	s
-ematbdlims	src_xs/ematbdlims.F90	/^Subroutine ematbdlims /;"	s
+ematbdlims	src_xs/ematbdlims.F90	/^subroutine ematbdlims(/;"	s
 ematdirect	src_xs/xas/ematdirect.f90	/^Subroutine ematdirect /;"	s
 ematex	src_xs/xas/ematex.f90	/^Subroutine ematex(/;"	s
-ematgntsum	src_xs/ematgntsum.F90	/^Subroutine ematgntsum /;"	s
+ematgntsum	src_xs/ematgntsum.F90	/^subroutine ematgntsum(/;"	s
 ematq	src_xs/ematq.F90	/^Subroutine ematq /;"	s
 ematqalloc	src_xs/ematqalloc.F90	/^subroutine ematqalloc$/;"	s
 ematqdealloc	src_xs/ematqdealloc.F90	/^subroutine ematqdealloc$/;"	s
 ematqk	src_xs/ematqk.F90	/^subroutine ematqk(/;"	s
 ematqk1	src_xs/ematqk1.F90	/^subroutine ematqk1(/;"	s
-ematqkgir	src_xs/ematqkgir.F90	/^Subroutine ematqkgir /;"	s
-ematqkgmt	src_xs/ematqkgmt.F90	/^Subroutine ematqkgmt /;"	s
+ematqkgir	src_xs/ematqkgir.F90	/^subroutine ematqkgir(/;"	s
+ematqkgmt	src_xs/ematqkgmt.F90	/^subroutine ematqkgmt(/;"	s
 ematrad	src_xs/ematrad.F90	/^subroutine ematrad(/;"	s
 ematradoo	src_xs/xas/ematradoo.f90	/^Subroutine ematradoo /;"	s
 ematradou	src_xs/xas/ematradou.f90	/^Subroutine ematradou /;"	s
@@ -20460,7 +20459,7 @@ findkmapkq	src_xs/findkmapkq.F90	/^Subroutine findkmapkq /;"	s
 findkpt	findkpt.f90	/^Subroutine findkpt /;"	s
 findlinentype	src_inputparser/inputmodules.f90	/^ character(512)::findlinentype$/;"	k	type:groundstate_type
 findlinentypenumber	src_inputparser/inputmodules.f90	/^ integer::findlinentypenumber$/;"	k	type:groundstate_type
-findocclims	src_xs/findocclims.F90	/^Subroutine findocclims /;"	s
+findocclims	src_xs/findocclims.F90	/^subroutine findocclims(/;"	s
 findprim	findprim.f90	/^Subroutine findprim$/;"	s
 findprim	spacegroup/findprim.f90	/^subroutine findprim$/;"	s
 findsym	findsym.f90	/^Subroutine findsym /;"	s
@@ -21595,7 +21594,7 @@ hall	spacegroup/modmain.f90	/^character(20) hall$/;"	v	module:modmain
 hall	spacegroup/modspacegroup.f90	/^character(20)::hall$/;"	v	module:modspacegroup
 haloij	mod_eigensystem.F90	/^      Complex (8), Allocatable :: haloij(/;"	v	module:mod_eigensystem
 haloijSize	mod_eigensystem.F90	/^      integer, allocatable :: haloijSize(/;"	v	module:mod_eigensystem
-hamidx	src_xs/bse.F90	/^      Integer Function hamidx /;"	f	subroutine:bse
+hamidx	src_xs/bse.F90	/^  integer(4) function hamidx(/;"	f	subroutine:bse
 hamidx	src_xs/writebevec.f90	/^      Integer Function hamidx /;"	f	subroutine:writebevec
 hamidx	src_xs/xas/xas.f90	/^      Integer Function hamidx /;"	f	subroutine:xas
 hamilton	src_eigensystem/modfvsystem.f90	/^        Type (HermitianMatrix) :: hamilton,/;"	k	type:evsystem
@@ -22728,7 +22727,7 @@ kintw	src_gw/kintw.f90	/^subroutine kintw(/;"	s
 kir	src_gw/setrindex.f90	/^    integer(4), allocatable :: kir(/;"	v	module:fouri
 kiw	src_gw/mod_bzintw.f90	/^        real(8), allocatable :: kiw(/;"	k	type:k_bzintw
 kiw	src_gw/modgw.f90	/^    real(8), allocatable :: kiw(/;"	v	module:modgw
-kkpmap	src_xs/kkpmap.F90	/^Subroutine kkpmap /;"	s
+kkpmap	src_xs/kkpmap.F90	/^subroutine kkpmap(/;"	s
 kl	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^      integer          nev, ncv, kl,/;"	v	program:cnbdr1
 kl	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^      integer          nev, ncv, kl,/;"	v	program:cnbdr2
 kl	ARPACK/EXAMPLES/BAND/cnbdr3.f	/^      integer          nev, ncv, ku, kl,/;"	v	program:cnbdr3
@@ -25677,7 +25676,7 @@ push_file_chars	FoX/sax/m_sax_xml_source.F90	/^  subroutine push_file_chars(/;"	
 putNodesInDocument	FoX/dom/m_dom_dom.F90	/^  subroutine putNodesInDocument(/;"	s	module:m_dom_dom
 putapwcmt	src_xs/putapwcmt.F90	/^Subroutine putapwcmt /;"	s
 putbsediag	src_xs/putbsediag.F90	/^Subroutine putbsediag /;"	s
-putbsemat	src_xs/putbsemat.F90	/^Subroutine putbsemat /;"	s
+putbsemat	src_xs/putbsemat.F90	/^subroutine putbsemat(/;"	s
 putemat	src_xs/putemat.F90	/^      Subroutine putemat /;"	s	module:m_putemat
 putematrad	src_xs/putematrad.F90	/^subroutine putematrad(/;"	s
 putevalfv	putevalfv.f90	/^Subroutine putevalfv /;"	s

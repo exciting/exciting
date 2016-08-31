@@ -104,7 +104,7 @@ subroutine writepmatxs
     allocate(pmat(3, ncg, nstsv))
   else
     allocate(pmat(3, nstsv, nstsv))
-  end if	  
+  end if  
 
   if(task .eq. 120) then
     ! Read density and potentials from file

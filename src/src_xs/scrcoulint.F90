@@ -46,7 +46,6 @@ subroutine scrcoulint
 
   ! Local variables
   character(*), parameter :: thisnam = 'scrcoulint'
-  character(256) :: fnsccli
   complex(8) :: zt1,prefactor
   complex(8), allocatable :: scclit(:, :), sccli(:, :, :, :), scclid(:, :)
   complex(8), allocatable :: scieffg(:, :, :), tm(:, :), tmi(:, :), bsedt(:, :),zm(:,:)
@@ -69,7 +68,7 @@ subroutine scrcoulint
   !   main part   !
   !---------------!
 
-  ! Emattype 2 selects o-o and u-u combinations
+  ! emattype 2 selects o-o and u-u combinations
   input%xs%emattype = 2
 
   call init0
@@ -77,16 +76,23 @@ subroutine scrcoulint
   call init2
 
   ! Set the range of valence/core and conduction states to use
-  sta1 = input%xs%bse%nstlbse(1)
+  ! Lowest occupied state (absolute index)
+  sta1 = input%xs%bse%nstlbse(1) 
+  ! Highest occupied state (absolute index)
   sto1 = input%xs%bse%nstlbse(2)
-  sta2 = input%xs%bse%nstlbse(3)
-  sto2 = input%xs%bse%nstlbse(4)
+  ! Lowest unoccupied state (counted from first unoccupied state)
+  sta2 = input%xs%bse%nstlbse(3) 
+  ! Highest unoccupied state (counted from first unoccupied state)
+  sto2 = input%xs%bse%nstlbse(4)      
+
+  ! Number of occupied states
   rnst1 = sto1-sta1+1
   rnst2 = sto1-sta1+1
+  ! Number of unoccupied states
   rnst3 = sto2-sta2+1
   rnst4 = sto2-sta2+1
 
-  ! Read fermi energy from file
+  ! Read Fermi energy from file
   call readfermi
 
   ! Save variables for the gamma q-point
@@ -108,7 +114,7 @@ subroutine scrcoulint
   call flushifc(unitout)
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
 
-  ! Find occupation bounds for q=0
+  ! Find occupation bounds for k and k+q but q=0
   call findocclims(0, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
   ! Only for systems with a gap in energy
   if( .not. ksgap) then
@@ -130,9 +136,14 @@ subroutine scrcoulint
 
   ! Set nstX, istlX, istuX variables for X: 1=o, 2=o, 3=u, 4=u
   call ematbdcmbs(input%xs%emattype)
+
+  ! Number of oo-combinations
   nst12 = rnst1 * rnst2
+  ! Number of uu-combinations
   nst34 = rnst3 * rnst4
+  ! Number of ou-combinations
   nst13 = rnst1 * rnst3
+  ! Number of ou-combinations
   nst24 = rnst2 * rnst4
 
   call genfilname(dotext='_SCI.OUT', setfilext=.true.)
@@ -210,7 +221,16 @@ subroutine scrcoulint
       & 'task, sub,(k,kp)-pair; direct term of BSE hamiltonian')
 
     ! Get individual k-point indices from combined kk' index.
+    !   iknr runs from 1 to nkptnr, jknr from iknr to nkptnr
     call kkpmap(ikkp, nkptnr, iknr, jknr)
+    !! Note: If the screened coulomb interaction matrix 
+    !! has the elements W_{i,j} and the indices enumerate the
+    !! states according to
+    !! i = o1u1k1, o1u1k2, ..., o1u1kN, o2u1k1, ..., o2u1kN, ...,
+    !!     oMu1kN, oMu2k1, ..., oMuMkN
+    !! then because of W_{j,i} = W^*_{i,j} only kj = ki,..,kN is 
+    !! needed.
+
     ! K-point difference k_j-k_i on integer grid.
     iv(:) = ivknr(:,jknr) - ivknr(:,iknr)
     ! Map to reciprocal unit cell 
@@ -260,8 +280,8 @@ subroutine scrcoulint
     ! Allocate arrays used in ematqk
     call ematqalloc
     ! Call wrapper function for ematqk
-    !   Calculates o-o/u-u plane wave elements and
-    !   stores them in xiou/xiuo 
+    !   Calculates o-o/u-u plane wave elements 
+    !   for iknr at q=jk-ik and stores them in xiou/xiuo 
     call ematqk1(iq, iknr)
     ! Reset 12=oo and 34=uu (changed in ematqk1)
     input%xs%emattype = 2
@@ -347,7 +367,7 @@ subroutine scrcoulint
           ! Occupied
           do ist1 = 1, rnst1
             j1 = j1 + 1
-            ! scclit_{o_j1 o'_j1, u_j2 u'_j2} -> sccli_{o_j1 u_j2, o'_j1 u'_j2}(q)
+            ! scclit_{o_j1 o'_j1, u_j2 u'_j2} -> sccli_{o_j1 u_j2, o'_j1 u'_j2}
             sccli(ist1, ist3, ist2, ist4) = scclit(j1, j2)
           end do
         end do
