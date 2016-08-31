@@ -58,7 +58,7 @@ subroutine df
 
   end if
 
-  ! Read Fermi energy
+  ! Read Fermi energy (coming form 'screen' this reads from EFERMI_SCR.OUT)
   if(input%xs%dogroundstate .ne. "fromscratch") call readfermi
 
   ! w-point parallelization for dielectric function

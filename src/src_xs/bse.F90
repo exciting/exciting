@@ -134,7 +134,7 @@ subroutine bse
   integer(4), external :: l2int
 
   ! Routine not yet parallelized
-  mpirank: if(rank .ne. 0) then
+  mpirank: if(rank .eq. 0) then
 
     call init0
     call init1
