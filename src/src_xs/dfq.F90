@@ -24,13 +24,13 @@ subroutine dfq(iq)
                 & istu3, istl4, istu4, deou,&
                 & deuo, docc12, docc21, xiou,&
                 & xiuo, pmou, pmuo, nwdf,&
-                & bsed, ikmapikq, tordf, symt2
+                & bsed, ikmapikq, tordf, symt2,&
+                & bcbs
 #ifdef TETRA      
   use mod_eigenvalue_occupancy, only: nstsv, evalsv, efermi 
   use mod_qpoint, only: vql
   use modtetra
 #endif
-  ! One subroutine modules
   use m_genwgrid
   use m_getpemat
   use m_dftim
@@ -40,6 +40,7 @@ subroutine dfq(iq)
   use m_writevars
   use m_filedel
   use m_genfilname
+  use m_ematqk
 ! !DESCRIPTION:
 !   Calculates the symmetrized Kohn-Sham response function $\tilde{\chi}^0_{\bf{GG'}}
 !   ({\bf q},\omega)$ for one ${\bf q}$-point according to
@@ -118,6 +119,7 @@ subroutine dfq(iq)
   integer(4) :: numpo
   integer :: oct1, oct2, un
   logical :: tq0
+  type(bcbs) :: bc
 
   ! External functions
   logical, external :: tqgamma, transik, transijst
@@ -360,8 +362,10 @@ subroutine dfq(iq)
     ! Get second variational KS transition energies, scissor shifts 
     ! and occupancy differences for current k+q/k point combination 
     ! and the specified band ranges.
+    ! ou
     call getdevaldoccsv(iq, ik, ikq, istl1, istu1, istl2, istu2,&
       & deou, docc12, scis12)
+    ! uo
     call getdevaldoccsv(iq, ik, ikq, istl2, istu2, istl1, istu1,&
       & deuo, docc21, scis21)
 
@@ -376,14 +380,45 @@ subroutine dfq(iq)
         scis21c(:, :) = zzero
       end if
       ! For screening calculate matrix elements of plane wave on the fly.
-      ! The plane wave elements for occupied unoccupied transitions are 
-      ! calculated and stored in xiou
-!! xiuo is not calculated at the moment
-      call ematqk1(iq, ik)
-      ! Allocate anti-resonant plane wave matrix elements
-      if( .not. allocated(xiuo)) allocate(xiuo(nst3, nst4, n))
+      ! The plane wave elements for ou and uo transitions are 
+      ! calculated and stored in xiou and xiuo
+      ! Set 12=ou 34=uo
+      call ematbdcmbs(1)
+      if(allocated(xiou)) then
+        if(.not. all(shape(xiou) == [nst1, nst2, n])) then
+          deallocate(xiou)
+          allocate(xiou(nst1, nst2, n))
+        end if
+      else
+        allocate(xiou(nst1, nst2, n))
+      end if
+      bc%n1 = nst1
+      bc%n2 = nst2
+      bc%il1 = istl1
+      bc%il2 = istl2
+      bc%iu1 = istu1
+      bc%iu2 = istu2
+      call ematqk(iq, ik, xiou, bc)
+      if(allocated(xiuo)) then
+        if(.not. all(shape(xiuo) == [nst3, nst4, n])) then
+          deallocate(xiuo)
+          allocate(xiuo(nst3, nst4, n))
+        end if
+      else
+        allocate(xiou(nst3, nst4, n))
+      end if
+      bc%n1 = nst3
+      bc%n2 = nst4
+      bc%il1 = istl3
+      bc%il2 = istl4
+      bc%iu1 = istu3
+      bc%iu2 = istu4
+      call ematqk(iq, ik, xiuo, bc)
       ! Allocate anti-resonant momentum matrix elements
-      if( .not. allocated(pmuo)) allocate(pmuo(3, nst3, nst4))
+      ! Should definitely be already allocated?
+      if( .not. allocated(pmuo)) then
+        allocate(pmuo(3, nst3, nst4))
+      end if
     end if
 
     ! Add BSE diagonal shift use with bse-kernel
@@ -392,7 +427,6 @@ subroutine dfq(iq)
 
     ! Get plane wave and momentum matrix elements 
     ! multiplied by the square root of the Coulomb potential.
-!! xiuo is used by getpemat but not calculated in advance
     ! Get m12=v^{1/2}*M_12, m34=v^{1/2}*M_34 
     !     p12=-Sqrt{4pi}P12/dE12, 
     !     p34=-Sqrt{4pi}P34/dE34
@@ -436,23 +470,25 @@ subroutine dfq(iq)
 #endif            
     end if
 
-    screen: if(tscreen) then
-!! Needs to be adjusted for going beyond TD
-      ! We don't need anti-resonant parts here, assign them the same
-      ! Value as for resonant parts, resulting in a factor of two.
-      do igq = 1, n
-        xiuo(:, :, igq) = transpose(xiou(:, :, igq))
-      end do
-      do j = 1, 3
-        pmuo(j, :, :) = transpose(pmou(j, :, :))
-      end do
-      deuo(:, :) = transpose(deou(:, :))
-      docc21 (:, :) = transpose(docc12(:, :))
-      scis21c(:, :) = transpose(scis12c(:, :))
-    end if screen
+!! Discuss
+  !  screen: if(tscreen) then
+!! Needs to be adjusted for going beyond TD ? Or only for q /= 0?
+!! Why would we not need the anti-resonant parts ??
+  !    ! We don't need anti-resonant parts here, assign them the same
+  !    ! Value as for resonant parts, resulting in a factor of two.
+  !    do igq = 1, n
+  !      xiuo(:, :, igq) = transpose(xiou(:, :, igq))
+  !    end do
+  !    do j = 1, 3
+  !      pmuo(j, :, :) = transpose(pmou(j, :, :))
+  !    end do
+  !    deuo(:, :) = transpose(deou(:, :))
+  !    docc21 (:, :) = transpose(docc12(:, :))
+  !    scis21c(:, :) = transpose(scis12c(:, :))
+  !  end if screen
 
     ! Not screen: Turn off anti-resonant terms (type 2-1 band combinations) for Kohn-Sham
-    ! response function
+    ! response function (default skip if)
     if(( .not. input%xs%tddft%aresdf) .and. ( .not. tscreen)) then
       xiuo(:, :, :) = zzero
       pmuo(:, :, :) = zzero
@@ -480,19 +516,22 @@ subroutine dfq(iq)
         ! Get band index of occupied state (counted from lowest energy state)
         j = ist1 + istunocc0 - 1
         ! Set lower triangle of po/pu block to zero, i.e allow only
-        ! transitions from energetically lower to higher bands.
+        ! transitions from energetically higher to lower bands.
         if(ist1 .gt. ist2) then
           xiou(j, ist2, :) = zzero
           pmou(:, j, ist2) = zzero
         end if
+!! Discuss I would say for q /= 0 intraband should be kept for xiou/xiuo
+!! for pmou/pmuo q is always zero
         ! Set diagonal to zero (project out intraband contributions)
+        ! intraband input defaults to "false"
         if(( .not. input%xs%tddft%intraband) .and. (ist1 .eq. ist2)) then
           xiou(j, ist2, :) = zzero
           pmou(:, j, ist2) = zzero
         end if
         ! Set upper triangle of pu/po block to zero, i.e. allow only
-        ! transitions from energetically higher to lower bands.
-!! What double counting ?
+        ! transitions from energetically lower to higher bands.
+!! What double counting ? Only in the q=0 case ?
         ! Also set diagonal to zero to avoid double counting
         if(ist1 .ge. ist2) then
           xiuo(ist2, j, :) = zzero
@@ -507,6 +546,8 @@ subroutine dfq(iq)
     ! Allocate resonant and anti-resonant weights
     allocate(wou(nwdf,nst1,nst2))
     allocate(wuo(nwdf,nst1,nst2))
+!! Why not
+    !allocate(wuo(nwdf,nst2,nst1))
 
     ! Occupied 
     ist1loop: do ist1 = 1, nst1
@@ -604,8 +645,6 @@ subroutine dfq(iq)
         ! zv_ou = v^{1/2} M_ou 
         zvou(:) = xiou(ist1, ist2, :)
         ! zv_uo = v^{1/2} M_uo 
-!! xiuo(i,j,:) is 0 in case of no screen and equal to xiuo(j,i,:) in the case of 'screen'
-!! so that in the later case zvou=zvuo
         zvuo(:) = xiuo(ist2, ist1, :)
 
         ! Treatments of head and wings of of chi
@@ -681,8 +720,6 @@ subroutine dfq(iq)
     do iw=wi,wf
       do ist2 = 1, nst2
         do ist1 = 1, nst1
-!! In the non 'screen' task case xiuo is zero and in the 'screen' case 
-!! xiuo(i,j,:) is xiou(j,i,:)
           zm(:,ist2,ist1)=conjg(wuo(iw,ist1,ist2)*xiuo(ist2,ist1,:))
         end do
       end do

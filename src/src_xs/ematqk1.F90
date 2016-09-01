@@ -14,8 +14,9 @@ subroutine ematqk1(iq, ik)
                  & istl1, istu1, istl2, istu2,&
                  & istl3, istu3, istl4, istu4,&
                  & xiou, xiuo, ngq, fnemat,&
-                 & tscreen
+                 & tscreen, bcbs
   use m_putemat
+  use m_ematqk
 ! !INPUT/OUTPUT PARAMETERS:
 !   IN:
 !   iq, integer : Q-point index
@@ -40,6 +41,9 @@ subroutine ematqk1(iq, ik)
   ! Arguments
   integer, intent(in) :: iq, ik
 
+  ! Local variables
+  type(bcbs) :: bc
+
   ! Set band combinations
   ! Task 430 is 'screen'
   ! When coming from scrcoulint (task 440) emattype is set to 2
@@ -55,7 +59,14 @@ subroutine ematqk1(iq, ik)
     ! ematqk only operates on xiou, regardless of the chosen bands
     allocate(xiou(nst1, nst2, ngq(iq)))
 
-    call ematqk(iq, ik)
+    bc%n1 = nst1
+    bc%n2 = nst2
+    bc%il1 = istl1
+    bc%il2 = istl2
+    bc%iu1 = istu1
+    bc%iu2 = istu2
+
+    call ematqk(iq, ik, xiou, bc)
 
   end if
 
@@ -107,7 +118,15 @@ subroutine ematqk1(iq, ik)
     ! Calculate plane wave elements xiou
     ! 'scrcoulint': Calculate the oo plane wave elements.
     ! 'exccoulint': Calculate the ou plane wave elements.
-    call ematqk(iq, ik)
+    bc%n1 = nst1
+    bc%n2 = nst2
+    bc%il1 = istl1
+    bc%il2 = istl2
+    bc%iu1 = istu1
+    bc%iu2 = istu2
+
+    call ematqk(iq, ik, xiou, bc)
+
     ! To summarize:
     !   'screen': only o-u elements are calculated and stored in xiou
     !   'scrcoulint': u-u and o-o elements are calculated and stored in 

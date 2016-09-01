@@ -50,10 +50,10 @@ module modxas
       real(8) :: atposl(3,_MAXATOMS_,_MAXSPECIES_)
 ! muffin-tin volume, relative to cell volume
       real(8) :: vmt(_MAXSPECIES_)
-! plane wave matrix elements array (o-o part)
-      Complex (8), Allocatable :: xioo (:, :, :)
-! plane wave matrix elements array (u-u part)
-      Complex (8), Allocatable :: xiuu (:, :, :)
+!! plane wave matrix elements array (o-o part)
+!      Complex (8), Allocatable :: xioo (:, :, :)
+!! plane wave matrix elements array (u-u part)
+!      Complex (8), Allocatable :: xiuu (:, :, :)
 
 end module modxas
 !EOC

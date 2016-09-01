@@ -23,8 +23,14 @@ Module modxs
       Type fftmap_type
         integer, pointer :: igfft(:)
         integer :: ngrid(3),ngrtot
-        
       end type
+
+      ! Type for band combinations
+      type bcbs
+        integer(4) :: n1, n2
+        integer(4) :: il1, il2
+        integer(4) :: iu1, iu2
+      end type bcbs 
 
   !----------------------------!
   !     symmetry variables     !
@@ -258,6 +264,9 @@ Module modxs
       Complex (8), Allocatable :: xiou (:, :, :)
   ! matrix elements array (anti-resonant part)
       Complex (8), Allocatable :: xiuo (:, :, :)
+  ! matrix elements array (need for coupling in BSE) 
+      Complex (8), Allocatable :: xiuu (:, :, :)
+      Complex (8), Allocatable :: xioo (:, :, :)
 
   !---------------------------------!
   !     momentum matrix elements    !

@@ -18627,6 +18627,7 @@ bb	libXC/src/xc.h	/^void XC(lda_x_1d_set_params)     (XC(func_type) *p, int inte
 bc	spacegroup/modmain.f90	/^real(8) ab,ac,bc$/;"	v	module:modmain
 bc	spacegroup/modspacegroup.f90	/^real(8)::ab, ac, bc$/;"	v	module:modspacegroup
 bc	spacegroup/sginputmodule.f90	/^ real(8)::bc$/;"	k	type:lattice_type
+bcbs	src_xs/modxs.F90	/^      type bcbs$/;"	t	module:modxs
 besk0	src_gw/gencoulcut.f90	/^Real (8) Function besk0 /;"	f
 besk1	src_gw/gencoulcut.f90	/^Real (8) Function besk1 /;"	f
 bessel_I0	libXC/src/bessel.c	/^double bessel_I0(const double x)$/;"	f
@@ -20016,18 +20017,20 @@ elstack_item	FoX/common/m_common_elstack.F90	/^  type :: elstack_item$/;"	t	modu
 elstack_t	FoX/common/m_common_elstack.F90	/^  type :: elstack_t$/;"	t	module:m_common_elstack
 elval	species/modspecies.F90	/^real(8) :: elval(/;"	v	module:modspecies
 emass_si	eos/modmain.f90	/^real(8), parameter :: emass_si=/;"	v	module:modmain
+emat	src_xs/modemat.f90	/^module emat$/;"	m
 ematbdcmbs	src_xs/ematbdcmbs.F90	/^subroutine ematbdcmbs(/;"	s
 ematbdlims	src_xs/ematbdlims.F90	/^subroutine ematbdlims(/;"	s
 ematdirect	src_xs/xas/ematdirect.f90	/^Subroutine ematdirect /;"	s
 ematex	src_xs/xas/ematex.f90	/^Subroutine ematex(/;"	s
 ematgntsum	src_xs/ematgntsum.F90	/^subroutine ematgntsum(/;"	s
+ematgntsum	src_xs/m_ematqk.f90	/^    subroutine ematgntsum(/;"	s	module:m_ematqk
 ematq	src_xs/ematq.F90	/^Subroutine ematq /;"	s
 ematqalloc	src_xs/ematqalloc.F90	/^subroutine ematqalloc$/;"	s
 ematqdealloc	src_xs/ematqdealloc.F90	/^subroutine ematqdealloc$/;"	s
-ematqk	src_xs/ematqk.F90	/^subroutine ematqk(/;"	s
+ematqk	src_xs/m_ematqk.f90	/^    subroutine ematqk(/;"	s	module:m_ematqk
 ematqk1	src_xs/ematqk1.F90	/^subroutine ematqk1(/;"	s
-ematqkgir	src_xs/ematqkgir.F90	/^subroutine ematqkgir(/;"	s
-ematqkgmt	src_xs/ematqkgmt.F90	/^subroutine ematqkgmt(/;"	s
+ematqkgir	src_xs/m_ematqk.f90	/^    subroutine ematqkgir(/;"	s	module:m_ematqk
+ematqkgmt	src_xs/m_ematqk.f90	/^    subroutine ematqkgmt(/;"	s	module:m_ematqk
 ematrad	src_xs/ematrad.F90	/^subroutine ematrad(/;"	s
 ematradoo	src_xs/xas/ematradoo.f90	/^Subroutine ematradoo /;"	s
 ematradou	src_xs/xas/ematradou.f90	/^Subroutine ematradou /;"	s
@@ -21208,14 +21211,14 @@ get_value_by_key_ns_len	FoX/common/m_common_attrs.F90	/^  pure function get_valu
 get_vxc	libXC/testsuite/xc-consistency.c	/^void get_vxc(xc_func_type *func, double point[5], double *e, double der[5])$/;"	f
 getapwcmt	src_xs/getapwcmt.F90	/^      Subroutine getapwcmt /;"	s	module:m_getapwcmt
 getbsediag	src_xs/getbsediag.F90	/^subroutine getbsediag$/;"	s
-getbsemat	src_xs/getbsemat.F90	/^Subroutine getbsemat /;"	s
+getbsemat	src_xs/getbsemat.F90	/^subroutine getbsemat(/;"	s
 getchildNodes	FoX/dom/m_dom_dom.F90	/^function getchildNodes(/;"	f	module:m_dom_dom
 getdata	FoX/dom/m_dom_dom.F90	/^function getdata(/;"	f	module:m_dom_dom
 getdata_len	FoX/dom/m_dom_dom.F90	/^  pure function getdata_len(/;"	f	module:m_dom_dom
 getdevaldoccsv	src_xs/getdevaldoccsv.F90	/^subroutine getdevaldoccsv(/;"	s
 getdlmm	src_gw/getdlmm.f90	/^complex(8) function getdlmm(/;"	f
 getdocType	FoX/dom/m_dom_dom.F90	/^function getdocType(/;"	f	module:m_dom_dom
-getdocc	src_xs/getdocc.F90	/^Subroutine getdocc /;"	s
+getdocc	src_xs/getdocc.F90	/^subroutine getdocc(/;"	s
 getdocumentElement	FoX/dom/m_dom_dom.F90	/^function getdocumentElement(/;"	f	module:m_dom_dom
 getdocumentURI	FoX/dom/m_dom_dom.F90	/^function getdocumentURI(/;"	f	module:m_dom_dom
 getdocumentURI_len	FoX/dom/m_dom_dom.F90	/^  pure function getdocumentURI_len(/;"	f	module:m_dom_dom
@@ -21945,6 +21948,8 @@ iksymq	src_gw/mod_kpointset.f90	/^        integer, allocatable :: iksymq(/;"	k	t
 iksymq	src_gw/mod_kqpts.f90	/^    integer, allocatable :: iksymq(/;"	v	module:mod_kqpts
 ikvbm	src_gw/mod_bands.f90	/^    integer(4) :: ikvbm$/;"	v	module:mod_bands
 ikvcm	src_gw/mod_bands.f90	/^    integer(4) :: ikvcm$/;"	v	module:mod_bands
+il1	src_xs/modxs.F90	/^        integer(4) :: il1,/;"	k	type:bcbs
+il2	src_xs/modxs.F90	/^        integer(4) :: il1, il2$/;"	k	type:bcbs
 illFormed	FoX/dom/m_dom_dom.F90	/^    logical :: illFormed /;"	k	type:docTypeExtras
 implementation	FoX/dom/m_dom_dom.F90	/^    type(DOMImplementation), pointer :: implementation /;"	k	type:documentExtras
 importNode	FoX/dom/m_dom_dom.F90	/^  function importNode(/;"	f	module:m_dom_dom
@@ -22541,6 +22546,8 @@ item_nnm	FoX/dom/m_dom_dom.F90	/^  function item_nnm(/;"	f	module:m_dom_dom
 iter	src_vdwdf/Cuba-3.2/src/divonne/Integrate.c	/^  count phase, iter, pass, size;$/;"	m	struct:__anon36	file:
 iter_dmp_xml	FoX/dom/m_dom_utils.f90	/^  subroutine iter_dmp_xml(/;"	s	module:m_dom_utils
 iterativearpacksecequn	src_iterative_solver/iterativearpacksequn.F90	/^Subroutine iterativearpacksecequn /;"	s
+iu1	src_xs/modxs.F90	/^        integer(4) :: iu1,/;"	k	type:bcbs
+iu2	src_xs/modxs.F90	/^        integer(4) :: iu1, iu2$/;"	k	type:bcbs
 iv	mod_rgrid.f90	/^    integer, allocatable :: iv(/;"	k	type:rgrid
 ivg	mod_Gvector.F90	/^      Integer, Allocatable :: ivg /;"	v	module:mod_Gvector
 ivg	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ivg(/;"	k	type:G_set
@@ -23352,6 +23359,7 @@ m_dom_utils	FoX/dom/m_dom_utils.f90	/^module m_dom_utils$/;"	m
 m_dyson	src_xs/dyson.F90	/^Module m_dyson$/;"	m
 m_dysonsym	src_xs/dysonsym.F90	/^Module m_dysonsym$/;"	m
 m_eigvec	src_raman/eigvec.f90	/^module m_eigvec$/;"	m
+m_ematqk	src_xs/m_ematqk.f90	/^module m_ematqk$/;"	m
 m_emattim	src_xs/emattim.F90	/^Module m_emattim$/;"	m
 m_filedel	src_xs/filedel.F90	/^Module m_filedel$/;"	m
 m_findgntn0	src_xs/findgntn0.F90	/^Module m_findgntn0$/;"	m
@@ -24403,8 +24411,10 @@ n	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  number n, neff;$/;"	m	struct:samples
 n	src_vdwdf/Cuba-3.2/src/suave/Fluct.c	/^  number n;$/;"	m	struct:__anon57	file:
 n	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  number n;$/;"	m	struct:region
 n1	libXC/src/lda_c_1d_csc.c	/^  FLOAT A, B, C, D, E, n1, n2, alpha, beta, m;$/;"	m	struct:__anon16	file:
+n1	src_xs/modxs.F90	/^        integer(4) :: n1,/;"	k	type:bcbs
 n12dgn	src_gw/mod_bands.f90	/^    integer, allocatable :: n12dgn(/;"	v	module:mod_bands
 n2	libXC/src/lda_c_1d_csc.c	/^  FLOAT A, B, C, D, E, n1, n2, alpha, beta, m;$/;"	m	struct:__anon16	file:
+n2	src_xs/modxs.F90	/^        integer(4) :: n1, n2$/;"	k	type:bcbs
 n24	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^      count n24, i24, j24, nskip;$/;"	m	struct:__anon63::__anon64::__anon67
 nList	FoX/common/m_common_struct.F90	/^    type(notation_list) :: nList$/;"	k	type:xml_doc_state
 n_TH1	libXC/src/gga_xc_th.c	/^static int n_TH1 = 21;$/;"	v	file:
@@ -28806,11 +28816,11 @@ xextra	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  real *xextra, *fextra;$/;"	m	st
 xgiven	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  real *xgiven, *fgiven;$/;"	m	struct:_this
 xih	src_xs/modxs.F90	/^      Complex (8), Allocatable :: xih /;"	v	module:modxs
 xiohalo	src_xs/modxs.F90	/^      Complex (8), Allocatable :: xiohalo /;"	v	module:modxs
-xioo	src_xs/xas/modxas.f90	/^      Complex (8), Allocatable :: xioo /;"	v	module:modxas
+xioo	src_xs/modxs.F90	/^      Complex (8), Allocatable :: xioo /;"	v	module:modxs
 xiou	src_xs/modxs.F90	/^      Complex (8), Allocatable :: xiou /;"	v	module:modxs
 xiuhloa	src_xs/modxs.F90	/^      Complex (8), Allocatable :: xiuhloa /;"	v	module:modxs
 xiuo	src_xs/modxs.F90	/^      Complex (8), Allocatable :: xiuo /;"	v	module:modxs
-xiuu	src_xs/xas/modxas.f90	/^      Complex (8), Allocatable :: xiuu /;"	v	module:modxas
+xiuu	src_xs/modxs.F90	/^      Complex (8), Allocatable :: xiuu /;"	v	module:modxs
 xmajor	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  count isamples, cutcomp, xmajor;$/;"	m	struct:region
 xmax	src_inputparser/inputmodules.f90	/^ real(8)::xmax$/;"	k	type:raman_type
 xmax	src_vdwdf/Cuba-3.2/src/divonne/Explore.c	/^  creal *xmin, *xmax;$/;"	m	struct:__anon46	file:
