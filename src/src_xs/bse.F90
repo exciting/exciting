@@ -120,10 +120,11 @@ subroutine bse
   integer(4) :: oct1, oct2, octu, octl
   integer(4) :: nrnst1, nrnst2, nrnst3, nrnst4
   real(8) :: de, egap, ts0, ts1, sumrls(3)
+  real(8) :: occfac
   ! Allocatable arrays
   integer(4), allocatable, dimension(:) :: sor
-  real(8), allocatable, dimension(:) :: beval, w, oszsa, kdocc
-  real(8), allocatable, dimension(:,:) :: docc, eval0
+  real(8), allocatable, dimension(:) :: beval, w, oszsa, kdocci, kdoccj
+  real(8), allocatable, dimension(:,:) :: docci, doccj, eval0
   real(8), allocatable, dimension(:,:,:) :: loss
   complex(8), allocatable, dimension(:) :: spectr, sigma
   complex(8), allocatable, dimension(:,:) :: ham, bevec, pmat, oszs
@@ -201,8 +202,10 @@ subroutine bse
     allocate(excli(nrnst1, nrnst3, nrnst2, nrnst4)) ! #o,#u,#o,#u
 
     ! Allocate array for occupation number difference (future use)
-    allocate(docc(nrnst1, nrnst3)) ! #o,#u
-    allocate(kdocc(hamsiz))
+    allocate(docci(nrnst1, nrnst3)) ! #o,#u
+    allocate(doccj(nrnst1, nrnst3)) ! #o,#u
+    allocate(kdocci(hamsiz))
+    allocate(kdoccj(hamsiz))
 
     ! Allocate BSE-Hamiltonian (large matrix, up to several Gb)
     allocate(ham(hamsiz, hamsiz))
@@ -298,9 +301,10 @@ subroutine bse
         end select
 
         ! Get occupation numbers (future use for partial occupancy) 			
-        !   Calculates docc(l,m)= f_{o_l ki} - f_{u_m kj}
+        !   Calculates docci(l,m)= f_{o_l ki} - f_{u_m ki}
         !   Remark: Currently the iq argument does nothing at all
-        call getdocc(iq, iknr, jknr, sta1, sto1, istl3, istl3+nrnst3-1, docc)
+        call getdocc(iq, iknr, iknr, sta1, sto1, istl3, istl3+nrnst3-1, docci)
+        call getdocc(iq, jknr, jknr, sta1, sto1, istl3, istl3+nrnst3-1, doccj)
         
         ! Set up k/kp-part of Hamilton matrix
         ! Occupied
@@ -319,16 +323,28 @@ subroutine bse
                 s1 = hamidx(ist1-sta1+1, ist3-sta2+1, iknr, nrnst1, nrnst3)
                 s2 = hamidx(ist2-sta1+1, ist4-sta2+1, jknr, nrnst2, nrnst4)
 
-!!! Wrong occupation differences?
                 ! Get occupation difference for current s1 combination
-                ! but for different k's !!!!! those should be at the same k 
-                ! at least in this optical case.
-                ! kdocc(s1) = f_{o_{s1},k_i} - f_{u_{s1},k_j}
-                kdocc(s1) = docc(ist1-sta1+1, ist3-sta2+1)
+                ! kdocc(s1) = f_{o_{s1},k_{s1}} - f_{u_{s1},k_{s1}}
+                kdocci(s1) = docci(ist1-sta1+1, ist3-sta2+1)
+                ! kdocc(s2) = f_{o_{s2},k_{s2}} - f_{u_{s2},k_{s2}}
+                kdoccj(s2) = doccj(ist2-sta1+1, ist4-sta2+1)
+                ! Sanity check
+                if(kdocci(s1) .lt. input%groundstate%epsocc) then
+                  write(*,*) 'kdocci(s1) is near zero!', kdocci(s1), s1, ist1-sta1+1, ist3-sta2+1, iknr
+                end if
+                if(kdoccj(s2) .lt. input%groundstate%epsocc) then
+                  write(*,*) 'kdoccj(s2) is near zero!', kdoccj(s2), s2, ist2-sta1+1, ist4-sta2+1, jknr
+                end if
+                ! Write partially occupied states in the output    
+                if(kdocci(s1) .gt. input%groundstate%epsocc&
+                  & .and. kdocci(s1) .lt. 2.d0-input%groundstate%epsocc) then
+                  write(*,*) 'kdocci(s1)', kdocci(s1), s1, ist1-sta1+1, ist3-sta2+1, iknr
+                end if
+                occfac = sqrt(abs(kdocci(s1)))*sqrt(abs(kdoccj(s2)))
 
                 ! Add diagonal term
                 if(s1 .eq. s2) then
-                  ! de = e_{u_{s1}, ki} - e_{o_{s1}, k_i} + scissor
+                  ! de = e_{u_{s1}, k_{s1}} - e_{o_{s1}, k_{s1}} + scissor
                   de = evalsv(ist3+istl3-sta2, iknr) - evalsv(ist1, iknr)&
                     &+ input%xs%scissor
                   ! BSE-Diag method outputs BINDING energies.
@@ -336,21 +352,14 @@ subroutine bse
                   ham(s1, s2) = ham(s1, s2) + de - egap + bsed
                 end if
 
-                ! Write partially occupied states in the output    
-                if(kdocc(s1) .gt. input%groundstate%epsocc&
-                  & .and. kdocc(s1) .lt. 2.d0-input%groundstate%epsocc) then
-                  write(*,*) 'kdocc s1', kdocc(s1), s1
-                end if
 
                 ! Add exchange term
                 ! + 2* v_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
-!!! Wrong occupation differences?
                 ! Also add occupation difference treatment
                 select case(trim(input%xs%bse%bsetype))
                   case('RPA', 'singlet')
                     ham(s1,s2) = ham(s1,s2)&
-                      &+ 2.d0*excli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)&
-                      &* kdocc(s1) * 0.5d0
+                      &+ 2.d0*excli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1) * occfac
                 end select
 
                 ! Add correlation term
@@ -360,8 +369,7 @@ subroutine bse
                 select case(trim(input%xs%bse%bsetype))
                   case('singlet', 'triplet')
                     ham(s1,s2) = ham(s1,s2)&
-                      &- sccli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1)&
-                      &* kdocc(s1) * 0.5d0
+                      &- sccli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1) * occfac
                 end select
 
               end do
