@@ -14,7 +14,7 @@ subroutine bse
   use mod_qpoint, only: iqmap
   use mod_eigenvalue_occupancy, only: evalsv, nstsv
   use modmpi, only: rank, barrier
-  use modxs, only: sta1, sta2, sto1, sto2,&
+  use modxs, only: bcbs, sta1, sta2, sto1, sto2,&
                  & istocc0, istocc, istunocc0, istunocc,&
                  & isto0, isto, istu0, istu,&
                  & unitout,&
@@ -112,24 +112,27 @@ subroutine bse
   real(8), parameter :: epsortho = 1.d-12
   ! Variables
   character(256) :: fnexc, fnexcs, dotext
-  integer(4) :: stat, ievec
+  integer(4) :: stat, ievec, un
   integer(4) :: iknr, jknr, iqr, iq, iw, iv2(3)
-  integer(4) :: s1, s2, hamsiz, nexc, ne
+  integer(4) :: s1, s2, hamsize_max, hamsize, nexc, ne
   integer(4) :: unexc, ist1, ist2, ist3, ist4
   integer(4) :: ikkp, iv, ic, optcompt(3)
   integer(4) :: oct1, oct2, octu, octl
   integer(4) :: nrnst1, nrnst2, nrnst3, nrnst4
   real(8) :: de, egap, ts0, ts1, sumrls(3)
-  real(8) :: occfac
   ! Allocatable arrays
   integer(4), allocatable, dimension(:) :: sor
-  real(8), allocatable, dimension(:) :: beval, w, oszsa, kdocci, kdoccj
-  real(8), allocatable, dimension(:,:) :: docci, doccj, eval0
+  integer(4), allocatable, dimension(:,:) :: smap, koumap
+  real(8), allocatable, dimension(:) :: beval, w, oszsa
+  real(8), allocatable, dimension(:) :: ofac, ofac_t
+  real(8), allocatable, dimension(:,:) :: docc, eval0
   real(8), allocatable, dimension(:,:,:) :: loss
   complex(8), allocatable, dimension(:) :: spectr, sigma
   complex(8), allocatable, dimension(:,:) :: ham, bevec, pmat, oszs
   complex(8), allocatable, dimension(:,:,:) :: pm, buf
   complex(8), allocatable, dimension(:,:,:,:) :: excli, sccli
+  logical, allocatable, dimension(:) :: ochkz, ochkn
+  type(bcbs) :: bcou
 
   ! External functions
   integer(4), external :: l2int
@@ -192,7 +195,8 @@ subroutine bse
       & istl4, istu4, nst4
 
     ! Size of BSE-Hamiltonian = #o * #u * #k
-    hamsiz = nrnst1 * nrnst3 * nkptnr
+    hamsize_max = nrnst1 * nrnst3 * nkptnr
+    hamsize = hamsize_max
 
     ! Allocations
     ! Allocate arrays for coulomb interactions
@@ -201,15 +205,11 @@ subroutine bse
     ! v_{ouk,o'u'k'}(q=0)
     allocate(excli(nrnst1, nrnst3, nrnst2, nrnst4)) ! #o,#u,#o,#u
 
-    ! Allocate array for occupation number difference (future use)
-    allocate(docci(nrnst1, nrnst3)) ! #o,#u
-    allocate(doccj(nrnst1, nrnst3)) ! #o,#u
-    allocate(kdocci(hamsiz))
-    allocate(kdoccj(hamsiz))
-
-    ! Allocate BSE-Hamiltonian (large matrix, up to several Gb)
-    allocate(ham(hamsiz, hamsiz))
-    ham(:, :) = zzero
+    ! Allocate array for occupation number difference
+    allocate(docc(nrnst1, nrnst3)) ! #o,#u
+    allocate(ofac_t(hamsize_max))
+    allocate(ochkz(hamsize_max))
+    allocate(ochkn(hamsize_max))
 
     ! Read KS energies
     do iknr = 1, nkptnr
@@ -253,9 +253,7 @@ subroutine bse
         end do
       end do
     end do
-
     write(unitout, '("Info(bse): gap:", g18.10)') egap
-
     ! Warn if the system has no gap
     if(egap .lt. input%groundstate%epspot) then
       write(unitout,*)
@@ -263,28 +261,92 @@ subroutine bse
       write(unitout,*)
     end if  
 
+    ! Set absolute state indices and numbers
+    bcou%n1=nrnst1
+    bcou%n2=nrnst3
+    bcou%il1=sta1
+    bcou%iu1=sto1
+    bcou%il2=sta2+istl3-1
+    bcou%iu2=sto2+istl3-1
+
+    !!<-- Inspecting occupancies 
+    ! Do not use state combination with zero occupancy difference 
+    ! (Theory not complete here.). Also do not use state combinations
+    ! where the "unoccupied" state has larger occupancy, since hat will
+    ! make the BSE Hamiltonian non-hermitian, even in TDA and q=0.
+    call checkoccupancies(nkptnr, bcou, ochkz, ochkn, ofac_t)
+    call printoccupancies(ochkz, ochkn, ofac_t)
+    ! Write out skipped band combinations
+    call getunit(un)
+    open(un, file='BCBS_SKIPPED.OUT', action='write', status='replace')
+    write(un,*) "# Skipped band combinations"
+    write(un,*) "# s, io, iu, ik, ochkz, ockn"
+    hamsize = 0
+    do s1 = 1, hamsize_max
+      if(.not. ochkz(s1) .and. .not. ochkn(s1)) then
+        hamsize = hamzise + 1
+      else
+        call hamidx_back(s1, ist1, ist2, iknr, nrnst1, nrnst3)
+        write(un,'(I3,1x,I3,1x,I3,1x,I3,1x,L,1x,L)')&
+          & s1, ist1, ist2, iknr, ochkz(s1), ochkn(s2)
+      end if
+    end do
+    close(un)
+    if (hamsize /= hamsize_max) then
+      write(unitout,*) "(bse.f90) [WARNING] Zero occupancy differences and/or&
+        & negative fv-fc occured. Reduced size of BSE Hamiltonian from, ",&
+        & hamsize_max, "to ", hamsize, " ."
+    end if 
+    ! Make map of combined indices to use.
+    allocate(smap(hamsize, 3))
+    allocate(ofac(hamsize))
+    s2=0
+    do s1 = 1, hamsize_max
+      if(.not. ochkz(s1) .and. .not. ochkn(s1)) then
+        s2=s2+1
+        ofac(s2) = ofac_t(s1)
+        call hamidx_back(s1, ist1, ist2, iknr, nrnst1, nrnst3)
+        smap(s2,:) = [ist1, ist2, iknr]
+      end if
+    end do
+    deallocate(ofac_t, ochkz, ochkn)
+    ! Write out index mapping
+    call getunit(un)
+    open(un, file='SINDEX.OUT', action='write', status='replace')
+    write(un,*) "# s io iu ik"
+    do s1 = 1, hamsize
+      write(un,'(I3,1x,I3,1x,I3,1x,I3)')&
+        & s1, smap(s1,:)
+    end do
+    close(un)
+    !!-->
+
+    ! Allocate BSE-Hamiltonian (large matrix, up to several Gb)
+    allocate(ham(hamsize, hamsize))
+    ham(:, :) = zzero
+
     ! Set up BSE-Hamiltonian
-    ikkp = 0
+    s1: do s1 = 1, hamsize
+      s2: do s2 = s1, hamsize ! Uses hermiticity
 
-    k: do iknr = 1, nkptnr
-      kp: do jknr = iknr, nkptnr ! Uses hermiticity
-      !! Note: If the Hamilton matrix 
-      !! has the elements H_{i,j} and the indices enumerate the
-      !! states according to
-      !! i = o1u1k1, o1u1k2, ..., o1u1kN, o2u1k1, ..., o2u1kN, ...,
-      !!     oMu1kN, oMu2k1, ..., oMuMkN
-      !! then because of H_{j,i} = H^*_{i,j} only kj = ki,..,kN is 
-      !! needed.
-
-        ikkp = ikkp + 1
+        !! Note: If the Hamilton matrix 
+        !! has the elements H_{i,j} and the indices enumerate the
+        !! states according to
+        !! i = {o1u1k1, o1u2k1, ..., o1uMk1,
+        !!      o2uMk1, ..., oMuMk1, o1u1k2, ..., oMuMkN} -> {1,...,M**2N}
+        !! then because of H_{j,i} = H^*_{i,j} only kj = ki,..,kN is 
+        !! needed.
 
         ! Get kj-ki = q for extracting the correct W element
-        iv2(:) = ivknr(:, jknr) - ivknr(:, iknr)
+        iv2(:) = ivknr(:, smap(s2,3)) - ivknr(:, smap(s1,3))
         iv2(:) = modulo(iv2(:), input%groundstate%ngridk(:))
         ! Q-point(reduced)
         iqr = iqmapr(iv2(1), iv2(2), iv2(3))
         ! Q-point(non-reduced)
         iq = iqmap(iv2(1), iv2(2), iv2(3))
+
+        ! Get kk' combination index used in 'scrcoulint' and 'exccoulint'
+        call kkpmap_back(ikkp, nkptnr, smap(s1,3), smap(s2,3))
 
         ! Read W_{i,j}
         select case(trim(input%xs%bse%bsetype))
@@ -300,104 +362,60 @@ subroutine bse
             call getbsemat('EXCLI.OUT', ikkp, nrnst1, nrnst3, excli)
         end select
 
-        ! Get occupation numbers (future use for partial occupancy) 			
-        !   Calculates docci(l,m)= f_{o_l ki} - f_{u_m ki}
-        !   Remark: Currently the iq argument does nothing at all
-        call getdocc(iq, iknr, iknr, sta1, sto1, istl3, istl3+nrnst3-1, docci)
-        call getdocc(iq, jknr, jknr, sta1, sto1, istl3, istl3+nrnst3-1, doccj)
-        
         ! Set up k/kp-part of Hamilton matrix
-        ! Occupied
-        do ist1 = sta1, sto1
-          ! Unoccupied
-          do ist3 = sta2, sto2
-            ! Occupied
-            do ist2 = sta1, sto1
-              ! Unoccupied
-              do ist4 = sta2, sto2
 
-                ! The combined index labels the states as
-                ! s1 = {o1u1k1, o1u2k1, ..., o1uMk1,
-                !      o2uMk1, ..., oMuMk1, o1u1k2, ..., oMuMkN} <-> {1,...,M**2N}
-                ! s2 does the same.
-                s1 = hamidx(ist1-sta1+1, ist3-sta2+1, iknr, nrnst1, nrnst3)
-                s2 = hamidx(ist2-sta1+1, ist4-sta2+1, jknr, nrnst2, nrnst4)
+        ! Add diagonal term
+        if(s1 .eq. s2) then
+          ! de = e_{u_{s1}, k_{s1}} - e_{o_{s1}, k_{s1}} + scissor
+          de = evalsv(smap(s1,2)+istl3-1, smap(s1,3)) - evalsv(smap(s1,1), smap(s1,3))&
+            &+ input%xs%scissor
+          ! BSE-Diag method outputs BINDING energies.
+          !   i.e. subtract gap energy
+          ham(s1, s2) = ham(s1, s2) + de - egap + bsed
+        end if
+        
+        ! Add exchange term
+        ! + 2* v_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
+        ! * sqrt(abs(f_{o_{s1} k_{s1}} - f_{u_{s1} k_{s1}}))
+        ! * sqrt(abs(f_{o_{s2} k_{s2}} - f_{u_{s2} k_{s2}}))
+        select case(trim(input%xs%bse%bsetype))
+          case('RPA', 'singlet')
+            ham(s1,s2) = ham(s1,s2)&
+              &+ 2.d0*excli(smap(s1,1), smap(s1,2), smap(s2,1), smap(s2,2))&
+              &* ofac(s1) * ofac(s2)
+        end select
 
-                ! Get occupation difference for current s1 combination
-                ! kdocc(s1) = f_{o_{s1},k_{s1}} - f_{u_{s1},k_{s1}}
-                kdocci(s1) = docci(ist1-sta1+1, ist3-sta2+1)
-                ! kdocc(s2) = f_{o_{s2},k_{s2}} - f_{u_{s2},k_{s2}}
-                kdoccj(s2) = doccj(ist2-sta1+1, ist4-sta2+1)
-                ! Sanity check
-                if(kdocci(s1) .lt. input%groundstate%epsocc) then
-                  write(*,*) 'kdocci(s1) is near zero!', kdocci(s1), s1, ist1-sta1+1, ist3-sta2+1, iknr
-                end if
-                if(kdoccj(s2) .lt. input%groundstate%epsocc) then
-                  write(*,*) 'kdoccj(s2) is near zero!', kdoccj(s2), s2, ist2-sta1+1, ist4-sta2+1, jknr
-                end if
-                ! Write partially occupied states in the output    
-                if(kdocci(s1) .gt. input%groundstate%epsocc&
-                  & .and. kdocci(s1) .lt. 2.d0-input%groundstate%epsocc) then
-                  write(*,*) 'kdocci(s1)', kdocci(s1), s1, ist1-sta1+1, ist3-sta2+1, iknr
-                end if
-                occfac = sqrt(abs(kdocci(s1)))*sqrt(abs(kdoccj(s2)))
+        ! Add correlation term
+        ! - W_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
+        ! * sqrt(abs(f_{o_{s1} k_{s1}} - f_{u_{s1} k_{s1}}))
+        ! * sqrt(abs(f_{o_{s2} k_{s2}} - f_{u_{s2} k_{s2}}))
+        select case(trim(input%xs%bse%bsetype))
+          case('singlet', 'triplet')
+            ham(s1,s2) = ham(s1,s2)&
+              &- sccli(smap(s1,1), smap(s1,2), smap(s2,1), smap(s2,2))&
+              &* ofac(s1)*ofac(s2)
+        end select
 
-                ! Add diagonal term
-                if(s1 .eq. s2) then
-                  ! de = e_{u_{s1}, k_{s1}} - e_{o_{s1}, k_{s1}} + scissor
-                  de = evalsv(ist3+istl3-sta2, iknr) - evalsv(ist1, iknr)&
-                    &+ input%xs%scissor
-                  ! BSE-Diag method outputs BINDING energies.
-                  !   i.e. subtract gap energy
-                  ham(s1, s2) = ham(s1, s2) + de - egap + bsed
-                end if
-
-
-                ! Add exchange term
-                ! + 2* v_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
-                ! Also add occupation difference treatment
-                select case(trim(input%xs%bse%bsetype))
-                  case('RPA', 'singlet')
-                    ham(s1,s2) = ham(s1,s2)&
-                      &+ 2.d0*excli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1) * occfac
-                end select
-
-                ! Add correlation term
-                ! - W_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
-!!! Wrong occupation differences?
-                ! Also add occupation difference treatment
-                select case(trim(input%xs%bse%bsetype))
-                  case('singlet', 'triplet')
-                    ham(s1,s2) = ham(s1,s2)&
-                      &- sccli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1) * occfac
-                end select
-
-              end do
-            end do
-          end do
-        end do
-
-      ! End loop over(k,kp)-pairs
-      end do kp
-    end do k
+      end do s1
+    end do s2
 
     deallocate(excli, sccli, docc)
 
     ! Write Info
     write(unitout,*)
     write(unitout, '("Info(bse): invoking lapack routine ZHEEVX")')
-    write(unitout, '(" size of BSE-Hamiltonian	   : ", i8)') hamsiz
+    write(unitout, '(" size of BSE-Hamiltonian	   : ", i8)') hamsize
     write(unitout, '(" number of requested solutions : ", i8)') input%xs%bse%nexcitmax
 
     ! Allocate eigenvector and eigenvalue arrays
-    allocate(beval(hamsiz), bevec(hamsiz, hamsiz))
+    allocate(beval(hamsize), bevec(hamsize, hamsize))
 
     ! Set number of excitons (i.e. all of them)
-    ne = hamsiz
+    ne = hamsize
 
     ! Diagonalize Hamiltonian
     call timesec(ts0)
-    call bsesoldiag(hamsiz, ne, ham, beval, bevec)
+    call bsesoldiag(hamsize, ne, ham, beval, bevec)
     call timesec(ts1)
 
     ! Deallocate BSE-Hamiltonian
@@ -406,10 +424,10 @@ subroutine bse
     write(unitout, '(" timing(in seconds)	   :", f12.3)') ts1 - ts0
 
     ! Number of excitons to consider
-    nexc = hamsiz
+    nexc = hamsize
 
     ! Allocate arrays used in spectrum construction
-    allocate(oszs(nexc, 3), oszsa(nexc), sor(nexc), pmat(hamsiz, 3))
+    allocate(oszs(nexc, 3), oszsa(nexc), sor(nexc), pmat(hamsize, 3))
     allocate(w(input%xs%energywindow%points), spectr(input%xs%energywindow%points))
     allocate(buf(3,3,input%xs%energywindow%points))
     allocate(loss(3, 3, input%xs%energywindow%points),sigma(input%xs%energywindow%points))
@@ -426,60 +444,47 @@ subroutine bse
       ! Allocate momentum matrix
       allocate(pm(3, nstsv, nstsv))
 
-      do iknr = 1, nkptnr
+      do s1 = 1, hamsize
+        
+        iknr = smap(s1,3)
 
         ! Read momentum matrix for given k-point
         call getpmat(iknr, vkl, 1, nstsv, 1, nstsv, .true., 'PMAT_XS.OUT', pm)
 
-        ! Occupied
-        do ist1 = sta1, sto1
-          ! Unoccupied
-          do ist2 = istl3 , istl3 + nrnst3 -1
 
-            ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
-            ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
-            !   Where E are quasi-particle energies and e are KS energies.
-            if(associated(input%gw)) then
-               pm(1:3,ist1,ist2) = pm(1:3,ist1,ist2)&
-                 &* (evalsv(ist2,iknr)-evalsv(ist1,iknr))&
-                 &/ (eval0(ist2,iknr)- eval0(ist1,iknr))
-            end if 
+        ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
+        ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
+        !   Where E are quasi-particle energies and e are KS energies.
+        if(associated(input%gw)) then
+           pm(1:3,smap(s1,1),smap(s1,2)+istl3-1) = pm(1:3,smap(s1,1),smap(s1,2)+istl3-1)&
+             &* (evalsv(smap(s1,2)+istl3-1,smap(s1,3))-evalsv(smap(s1,1),smap(s1,3)))&
+             &/ (eval0(smap(s1,2)+istl3-1,smap(s1,3))- eval0(smap(s1,1),smap(s1,3)))
+        end if 
 
-            ! Din
-            ! Map the momentum matrix elements to same index convention as
-            ! used in the BSE Hamiltonian.
-            s1 = hamidx(ist1-sta1+1, ist2-istl3+1,iknr, nrnst1, nrnst3) 
-            ! P^i_{o_{s1},u_{s1},k_{s1}}
-            pmat(s1, oct1) = pm(oct1, ist1, ist2)
-
-          end do
-        end do
+        ! Din
+        ! Map the momentum matrix elements to same index convention as
+        ! used in the BSE Hamiltonian.
+        ! P^i_{o_{s1},u_{s1},k_{s1}}
+        pmat(s1, oct1) = pm(oct1, smap(s1,1), smap(s1,2)+istl3-1)
 
       end do
 
-      deallocate(pm)
+    end do
+
+    deallocate(pm)
 
       ! Calculate oscillators for spectrum
       oszs(:, oct1) = zzero
 
       ! Exciton index
       do s1 = 1, nexc
-        ! Non-reduced k-points
-        do iknr = 1, nkptnr
-          ! Occupied
-          do iv = 1, nrnst1
-            ! Unoccupied
-            do ic = 1, nrnst3
+        do s2 = 1, hamsize
 
-              s2 = hamidx(iv, ic, iknr, nrnst1, nrnst3)
+!! Check pmat conjugation
+          ! t^i_s1 = t^i_s1 + A^s1  P^i_{o_{s2},u_{s2},k_{s2}}/(e_{o_{s2},k_{s2}} - e_{u_{s2},k_{s2}})
+          oszs(s1, oct1) = oszs(s1, oct1) + bevec(s2, s1) * pmat(s2, oct1) * ofac(s2)&
+            &/ (evalsv(smap(s2,2)+istl3-1, iknr) - evalsv(smap(s2,1), iknr))
 
-              ! t^i_s1 = t^i_s1 + A^s1  P^i_{o_{s2},u_{s2},k_{s2}}/(e_{o_{s2},k_{s2}} - e_{u_{s2},k_{s2}})
-!!! Wrong occupation differences?
-              oszs(s1, oct1) = oszs(s1, oct1) + bevec(s2, s1) * pmat(s2, oct1)&
-                &* kdocc(s2)*0.5d0/(evalsv(ic+istl3-1, iknr) - evalsv(iv+sta1-1, iknr))
-
-            end do
-          end do
         end do
       end do
 
@@ -511,7 +516,7 @@ subroutine bse
       ! Write out exciton energies and oscillator strengths
       call getunit(unexc)
       open(unexc, file=fnexc, form='formatted', action='write', status='replace')
-      do s2 = 1, hamsiz
+      do s2 = 1, hamsize
         write(unexc, '(i8, 6g18.10)') s2, (beval(s2)+egap-dble(bsed)) * escale,&
           & (beval(s2)+dble(bsed)) * escale, abs(oszs(s2, oct1)), dble(oszs(s2, oct1)),&
           & aimag(oszs(s2, oct1))
@@ -525,13 +530,13 @@ subroutine bse
       ! Oscillator strengths sorted
       oszsa(:) = abs(oszs(:, oct1))
 
-      call sortidx(hamsiz, oszsa, sor)
+      call sortidx(hamsize, oszsa, sor)
 
-      sor = sor(hamsiz:1:-1)
+      sor = sor(hamsize:1:-1)
 
       ! Write sorted oscillator strengths
       open(unexc, file=fnexcs, form='formatted', action='write', status='replace')
-      do s1 = 1, hamsiz
+      do s1 = 1, hamsize
         s2 = sor(s1)
         write(unexc, '(i8, 4g18.10)') s1, (beval(s2)+egap-dble(bsed)) * escale,&
           & (beval(s2)+dble(bsed)) * escale, abs(oszs(s2, oct1))
@@ -637,6 +642,7 @@ subroutine bse
         end do
       end do
 
+!!<-- check with creator
       ! Store exciton coefficients
       if(associated(input%xs%storeexcitons)) then
 
@@ -644,9 +650,9 @@ subroutine bse
         ! Upon request, store array with exciton coefficients
         !-----------------------------------------------------
         if( (input%xs%storeexcitons%minnumberexcitons .lt. 1) .or. &
-          & (input%xs%storeexcitons%minnumberexcitons .gt. hamsiz) .or. &
+          & (input%xs%storeexcitons%minnumberexcitons .gt. hamsize) .or. &
           & (input%xs%storeexcitons%maxnumberexcitons .lt. 1) .or. &
-          & (input%xs%storeexcitons%maxnumberexcitons .gt. hamsiz) .or. &
+          & (input%xs%storeexcitons%maxnumberexcitons .gt. hamsize) .or. &
           & (input%xs%storeexcitons%minnumberexcitons .gt. &
           & input%xs%storeexcitons%maxnumberexcitons) ) then
 
@@ -673,12 +679,12 @@ subroutine bse
         ! Write
         write(unexc) input%xs%storeexcitons%minnumberexcitons,&
           & input%xs%storeexcitons%maxnumberexcitons,&
-          & nkptnr, istl3, sta1, sta2, nrnst1, nrnst3, hamsiz
+          & nkptnr, istl3, sta1, sta2, nrnst1, nrnst3, hamsize
 
         do ievec = input%xs%storeexcitons%minnumberexcitons,&
           & input%xs%storeexcitons%maxnumberexcitons
 
-          write(unexc) beval(ievec), bevec(1:hamsiz,ievec)
+          write(unexc) beval(ievec), bevec(1:hamsize,ievec)
         end do
 
         close(unexc)
@@ -687,6 +693,7 @@ subroutine bse
 
       deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
       if(associated(input%gw)) deallocate(eval0)
+!!-->
 
     end if notdgrid
     
@@ -700,6 +707,75 @@ subroutine bse
 
 contains
 
+  subroutine checkoccupancies(iq, nk, bc, zeroflag, negativeflag, occfactor)
+    implicit none 
+    integer(4), intent(in) :: iq, nk
+    type(bcbs), intent(in) :: bc
+    logical, intent(out) :: zeroflag(:), negativeflag(:)
+    real(8), intent(out) :: occfactor(:)
+
+    integer(4) :: ik, i, j, a
+    real(8) :: docc(bc%n1, bc%n2), kdocc
+
+    zeroflag = .false.
+    negativeflag = .false.
+
+    ! Check occupancies
+    do ik = 1, nk
+
+      ! Get occupation numbers 
+      !   Calculates docc(l,m)= f_{o_l ki+q} - f_{u_m ki}
+      !   Remark: Currently the iq argument does nothing at all
+      call getdocc(iq, ik, ik, bc%il1, bc%iu1, bc%il2, bc%iu2, docc)
+
+      ! Band indices
+      do i = bc%il1, bc%iu1
+        do j = bc%il2, bc%iu2
+
+          ! Map to combined index
+          a = hamidx(i-bc%il1+1, j-bc%il2+1, ik, bc%n1, bc%n2)
+
+          ! Get occupation difference for current a combination
+          ! kdocc = f_{o_{a},k_{a}} - f_{u_{a},k_{a}}
+          kdocc = docc(i-bc%il1+1, j-bc%il2+1)
+
+          ! Set zero occupation difference flag
+          if(abs(kdocc) .lt. input%groundstate%epsocc) then
+            zeroflag(a) = .true.
+          end if
+
+          ! Set occupation difference sign flag
+          if(kdocc .le. 0.0d0) then
+            negativeflag(a) = .true.
+          end if
+
+          ! Occupation factor
+          occfactor(a) = sqrt(abs(kdocc))
+
+        end do
+      end do
+
+    end do
+  end subroutine checkoccupancies
+
+  subroutine printoccupancies(zeroflag, negativeflag, occfactor)
+    implicit none 
+    logical, intent(in) :: zeroflag(:), negativeflag(:)
+    real(8), intent(in) :: occfactor(:)
+
+    integer(4) :: i, un
+
+    call getunit(un)
+    open(un, file='BSE_OCCUPANCIES.OUT', action='write', status='replace')
+    write(un,'(a)') "zeroflag negativeflag occfac occfac/sqrt(2)"
+    do i = 1, size(occfactor)
+      write(un, '(L,1x,L,1x,E23.17,1x,E23.17)')&
+        & zeroflag(i), negativeflag(i), occfactor(i), occfactor(i)/sqrt(2)
+    end do
+    close(un)
+
+  end subroutine printoccupancies
+
   ! hamidx calculates a combined index that labels the states as
   ! hamidx = {o1u1k1, o1u2k1, ..., o1uMk1,
   !      o2uMk1, ..., oMuMk1, o1u1k2, ..., oMuMkN} -> {1,...,M**2N}
@@ -709,6 +785,20 @@ contains
     integer(4), intent(in) :: i1, i2, ik, n1, n2
     hamidx = i2 + n2 * (i1-1) + n1 * n2 * (ik-1)
   end function hamidx
+  ! hamidx_back calculates the individual indices given an combined one.
+  subroutine hamidx_back(s, i1, i2, ik, n1, n2)
+    implicit none
+    integer(4), intent(in) :: s, n1, n2
+    integer(4), intent(out) :: i1, i2, ik
+    
+    integer(4) :: n12, tmp
+
+    n12 = n1*n2
+    ik = (s-1)/n12 + 1
+    tmp = s - (ik-1)*n12
+    i1 = (tmp-1)/n2 + 1
+    i2 = tmp - (i1-1)*n2
+  end subroutine hamidx_back
 
 end subroutine bse
 !EOC
