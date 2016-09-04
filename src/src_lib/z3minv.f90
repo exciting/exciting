@@ -13,7 +13,7 @@
 Subroutine z3minv (a, b)
 ! !INPUT/OUTPUT PARAMETERS:
 !   a : input matrix (in,complex(3,3))
-!   b : output matrix (in,complex(3,3))
+!   b : output matrix (out,complex(3,3))
 ! !DESCRIPTION:
 !   Computes the inverse of a complex $3\times 3$ matrix.
 !

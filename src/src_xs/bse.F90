@@ -22,19 +22,11 @@ subroutine bse
                  & istu1, istu2, istu3, istu4,&
                  & nst1, nst2, nst3, nst4,&
                  & bsed, iqmapr, dgrid, iksubpt,&
-                 & escale, fneps, fnloss, fnsigma,&
-                 & fnsumrules, symt2
+                 & escale, symt2
   use m_genwgrid
   use m_getpmat
   use m_genfilname
   use m_getunit
-  use m_genloss
-  use m_gensigma
-  use m_gensumrls
-  use m_writeeps
-  use m_writeloss
-  use m_writesigma
-  use m_writesumrls
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem(thanks to the spectral theorem that can
@@ -113,13 +105,13 @@ subroutine bse
   ! Variables
   character(256) :: fnexc, fnexcs, dotext
   integer(4) :: stat, ievec, un
-  integer(4) :: iknr, jknr, iqr, iq, iw, iv2(3)
-  integer(4) :: s1, s2, hamsize_max, hamsize, nexc, ne
+  integer(4) :: iknr, jknr, iqr, iq, iw, iv2(3), nw
+  integer(4) :: io, iu, ik, s1, s2, hamsize_max, hamsize, nexc, lamdba
   integer(4) :: unexc, ist1, ist2, ist3, ist4
   integer(4) :: ikkp, iv, ic, optcompt(3)
   integer(4) :: oct1, oct2, octu, octl
   integer(4) :: nrnst1, nrnst2, nrnst3, nrnst4
-  real(8) :: de, egap, ts0, ts1, sumrls(3)
+  real(8) :: de, egap, ts0, ts1
   ! Allocatable arrays
   integer(4), allocatable, dimension(:) :: sor
   integer(4), allocatable, dimension(:,:) :: smap, koumap
@@ -128,8 +120,8 @@ subroutine bse
   real(8), allocatable, dimension(:,:) :: docc, eval0
   real(8), allocatable, dimension(:,:,:) :: loss
   complex(8), allocatable, dimension(:) :: spectr, sigma
-  complex(8), allocatable, dimension(:,:) :: ham, bevec, pmat, oszs
-  complex(8), allocatable, dimension(:,:,:) :: pm, buf
+  complex(8), allocatable, dimension(:,:) :: ham, bevec, rmat, oszs
+  complex(8), allocatable, dimension(:,:,:) :: pmuo, symspectr
   complex(8), allocatable, dimension(:,:,:,:) :: excli, sccli
   logical, allocatable, dimension(:) :: ochkz, ochkn
   type(bcbs) :: bcou
@@ -234,6 +226,7 @@ subroutine bse
     if((trim(input%xs%bse%bsetype) .eq. 'singlet')&
       & .or. (trim(input%xs%bse%bsetype) .eq. 'triplet')) then
 
+      ! False by default
       if(input%xs%bse%bsedirsing) then
         call getbsediag
         write(unitout, '("Info(bse): read diagonal of BSE kernel")')
@@ -306,6 +299,7 @@ subroutine bse
         s2=s2+1
         ofac(s2) = ofac_t(s1)
         call hamidx_back(s1, ist1, ist2, iknr, nrnst1, nrnst3)
+        ! Corresponds to smap(i,:) = [io, iu, ik]
         smap(s2,:) = [ist1, ist2, iknr]
       end if
     end do
@@ -410,12 +404,9 @@ subroutine bse
     ! Allocate eigenvector and eigenvalue arrays
     allocate(beval(hamsize), bevec(hamsize, hamsize))
 
-    ! Set number of excitons (i.e. all of them)
-    ne = hamsize
-
     ! Diagonalize Hamiltonian
     call timesec(ts0)
-    call bsesoldiag(hamsize, ne, ham, beval, bevec)
+    call bsesoldiag(hamsize, ham, beval, bevec)
     call timesec(ts1)
 
     ! Deallocate BSE-Hamiltonian
@@ -426,221 +417,82 @@ subroutine bse
     ! Number of excitons to consider
     nexc = hamsize
 
-    ! Allocate arrays used in spectrum construction
-    allocate(oszs(nexc, 3), oszsa(nexc), sor(nexc), pmat(hamsize, 3))
-    allocate(w(input%xs%energywindow%points), spectr(input%xs%energywindow%points))
-    allocate(buf(3,3,input%xs%energywindow%points))
-    allocate(loss(3, 3, input%xs%energywindow%points),sigma(input%xs%energywindow%points))
 
-    ! Generate an evenly spaced frequency grid 
-    call genwgrid(input%xs%energywindow%points, input%xs%energywindow%intv,&
-      & input%xs%tddft%acont, 0.d0, w_real=w)
 
-    buf(:,:,:)=zzero
+    ! Allocate momentum matrix slice needed.
+    allocate(pmou(3, bcou%n1, bcou%n2))
+    allocate(rmat(hamsize, 3))
 
     ! Loop over 3 directions
     optcmp: do oct1 = 1, noptcmp
 
-      ! Allocate momentum matrix
-      allocate(pm(3, nstsv, nstsv))
-
       do s1 = 1, hamsize
         
+        io = smap(s1,1)
+        iu = smap(s1,2) + istl3 - 1 
         iknr = smap(s1,3)
 
-        ! Read momentum matrix for given k-point
-        call getpmat(iknr, vkl, 1, nstsv, 1, nstsv, .true., 'PMAT_XS.OUT', pm)
+        ! Read momentum matrix slice for given k-point
+        call getpmat(iknr, vkl, bcou%il1, bcou%iu1, bcou%il2, bcou%il2, .true., 'PMAT_XS.OUT', pmou)
 
-
+!! Discuss
         ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
         ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
         !   Where E are quasi-particle energies and e are KS energies.
         if(associated(input%gw)) then
-           pm(1:3,smap(s1,1),smap(s1,2)+istl3-1) = pm(1:3,smap(s1,1),smap(s1,2)+istl3-1)&
-             &* (evalsv(smap(s1,2)+istl3-1,smap(s1,3))-evalsv(smap(s1,1),smap(s1,3)))&
-             &/ (eval0(smap(s1,2)+istl3-1,smap(s1,3))- eval0(smap(s1,1),smap(s1,3)))
+           pmou(1:3,io,iu) = pmou(1:3,io,iu)&
+             &* (evalsv(iu,iknr)-evalsv(io,iknr))/(eval0(iu,iknr)- eval0(io,iknr))
         end if 
 
-        ! Din
-        ! Map the momentum matrix elements to same index convention as
-        ! used in the BSE Hamiltonian.
-        ! P^i_{o_{s1},u_{s1},k_{s1}}
-        pmat(s1, oct1) = pm(oct1, smap(s1,1), smap(s1,2)+istl3-1)
+        ! Build complex conjugate R-matrix from p-matrix
+        ! \tilde{R}^*_{u_{s1},o_{s1},k_{s1}},i = 
+        ! (f_{o_{s1},k_{s1}}-f_{u_{s1},k_{s1}}) P_{o_{s1},u_{s1},k_{s1}},i /(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}})
+        rmat(s1, oct1) = occfac(s1)&
+          &* pmou(oct1, io, iu)/(evalsv(iu, iknr) - evalsv(io, iknr))
 
       end do
-
-    end do
-
-    deallocate(pm)
-
-      ! Calculate oscillators for spectrum
-      oszs(:, oct1) = zzero
-
-      ! Exciton index
-      do s1 = 1, nexc
-        do s2 = 1, hamsize
-
-!! Check pmat conjugation
-          ! t^i_s1 = t^i_s1 + A^s1  P^i_{o_{s2},u_{s2},k_{s2}}/(e_{o_{s2},k_{s2}} - e_{u_{s2},k_{s2}})
-          oszs(s1, oct1) = oszs(s1, oct1) + bevec(s2, s1) * pmat(s2, oct1) * ofac(s2)&
-            &/ (evalsv(smap(s2,2)+istl3-1, iknr) - evalsv(smap(s2,1), iknr))
-
-        end do
-      end do
-
-      ! Stk: Add case of double grid
-      if(dgrid) then 
-
-        write(dotext, '("_SG", i3.3, ".OUT")') iksubpt
-
-        call genfilname(basename='EXCITON', tq0=.true., oc1=oct1, oc2=oct1,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-          & nar= .not. input%xs%bse%aresbse, dotext=dotext, filnam=fnexc)
-
-        call genfilname(basename='EXCITON_SORTED', tq0=.true., oc1=oct1, oc2=oct1,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-          & nar= .not. input%xs%bse%aresbse, dotext=dotext, filnam=fnexcs)
-
-      else
-
-        call genfilname(basename='EXCITON', tq0=.true., oc1=oct1, oc2=oct1,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-          & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
-
-        call genfilname(basename='EXCITON_SORTED', tq0=.true., oc1=oct1, oc2=oct1,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-          & nar= .not. input%xs%bse%aresbse, filnam=fnexcs)
-
-      endif
-
-      ! Write out exciton energies and oscillator strengths
-      call getunit(unexc)
-      open(unexc, file=fnexc, form='formatted', action='write', status='replace')
-      do s2 = 1, hamsize
-        write(unexc, '(i8, 6g18.10)') s2, (beval(s2)+egap-dble(bsed)) * escale,&
-          & (beval(s2)+dble(bsed)) * escale, abs(oszs(s2, oct1)), dble(oszs(s2, oct1)),&
-          & aimag(oszs(s2, oct1))
-      end do
-      write(unexc, '("# Nr.  E		      E - E_gap&
-        &      |Osc.Str.|      Re      Im")')
-      write(unexc, '("# E_gap : ", g18.10)') egap * escale
-      if(input%xs%tevout) write(unexc, '("# energies are in electron volts")')
-      close(unexc)
-
-      ! Oscillator strengths sorted
-      oszsa(:) = abs(oszs(:, oct1))
-
-      call sortidx(hamsize, oszsa, sor)
-
-      sor = sor(hamsize:1:-1)
-
-      ! Write sorted oscillator strengths
-      open(unexc, file=fnexcs, form='formatted', action='write', status='replace')
-      do s1 = 1, hamsize
-        s2 = sor(s1)
-        write(unexc, '(i8, 4g18.10)') s1, (beval(s2)+egap-dble(bsed)) * escale,&
-          & (beval(s2)+dble(bsed)) * escale, abs(oszs(s2, oct1))
-      end do
-      write(unexc, '("#	  Nr.	E		  E - E_gap	   |Osc.Str.|")')
-      write(unexc, '("# E_gap : ", g18.10)') egap * escale
-      if(input%xs%tevout) write(unexc, '("# energies are in electron volts")')
-      close(unexc)
 
     end do optcmp
 
+    ! Momentum matrix elements no longer needed
+    deallocate(pmou)
+
+    ! Calculate oscillators for spectrum
+    allocate(oszs(nexc, 3))
+    oszs = zzero
+    ! t^i_\lambda = < \tilde{R}^i | \lambda> =
+    ! \Sum_{s1} f_{s1} R^*_{{u_{s1} o_{s1} k_{s1}},i} A^\lambda_{o_{s1} u_{s1} k_{s1}} = 
+    ! \Sum_{s1} f_{s1} P^*_{{u_{s1} o_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) A^\lambda_{o_{s1} u_{s1} k_{s1}} = 
+    ! \Sum_{s1} f_{s1} P_{{o_{s1} u_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) A^\lambda_{o_{s1} u_{s1} k_{s1}}
+    call zgemm('t','n', nexc, 3, hamsize, zone, bevec(1:nexc,:), hamsize, rmat, hamsize, zzero, oszs, nexc)
+    deallocate(rmat)
+
+    ! Write excition energies and oscillator strengths to 
+    ! text file. 
+    call writeexcitons
+
+#ifdef DGRID
     ! Stk: If run is within a double grid loop stop here
     notdgrid: if( .not. dgrid) then
+#endif
 
-      do oct1 = 1, noptcmp
+      ! Calculate macroscopic dielectric tensor with finite broadening, i.e. "the spectrum"
+      nw = input%xs%energywindow%points
+      ! Allocate arrays used in spectrum construction
+      allocate(w(nw), spectr(nw))
+      allocate(symspectr(3,3,nw))
 
-        ! Stk: compute off-diagonal optical components if requested
-        if(input%xs%dfoffdiag) then
-          octl = 1
-          octu = noptcmp
-        else
-          octl = oct1
-          octu = oct1
-        end if
+      ! Generate an evenly spaced frequency grid 
+      call genwgrid(nw, input%xs%energywindow%intv,&
+        & input%xs%tddft%acont, 0.d0, w_real=w)
 
-        do oct2 = octl, octu
+      call makespectrum
 
-          optcompt = (/ oct1, oct2, 0 /)
-          spectr(:) = zzero
+      ! Generate and write derived optical quantities
+      call writederived(symspectr,nw,w)
 
-          do iw = 1, input%xs%energywindow%points
-            do s1 = 1, nexc
 
-              ! Lorentzian lineshape
-              spectr(iw) = spectr(iw) + oszs(s1, oct1) * conjg(oszs(s1, oct2))&
-                &* (1.d0/(w(iw)-(beval(s1)+egap-bsed)+zi*input%xs%broad))             
 
-              if(input%xs%bse%aresbse) spectr(iw) = spectr(iw)&
-                &+ oszs(s1, oct1) * conjg(oszs(s1, oct2))&
-                &* (1.d0/(-w(iw)-(beval(s1)+egap-bsed)-zi*input%xs%broad))
-
-            end do
-          end do
-
-          spectr(:) = l2int(oct1 .eq. oct2) * 1.d0 - spectr(:) * 8.d0*pi/omega/nkptnr
-
-          buf(oct1,oct2,:)=spectr(:)
-
-        ! End loops over optical components
-        end do
-      end do
-
-      ! B.A. Why is the loss function constructed with the non symmetrized spectra ?
-      call genloss(buf, loss, noptcmp)
-
-      do oct1 = 1, noptcmp
-
-        if(input%xs%dfoffdiag) then
-          octl = 1
-          octu = noptcmp
-        else
-          octl = oct1
-          octu = oct1
-        end if
-
-        do oct2 = octl, octu
-
-          optcompt = (/ oct1, oct2, 0 /)
-
-          ! Generate File names for resulting quantities
-          call genfilname(basename='EPSILON', tq0=.true., oc1=oct1, oc2=oct2,&
-            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-            & nar= .not. input%xs%bse%aresbse, filnam=fneps)
-
-          call genfilname(basename='LOSS', tq0=.true., oc1=oct1, oc2=oct2,&
-            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-            & nar= .not. input%xs%bse%aresbse, filnam=fnloss)
-
-          call genfilname(basename='SIGMA', tq0=.true., oc1=oct1, oc2=oct2,&
-            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-            & nar= .not. input%xs%bse%aresbse, filnam=fnsigma)
-
-          call genfilname(basename='SUMRULES', tq0=.true., oc1=oct1, oc2=oct2,&
-            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-            & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
-
-          ! Symmetrize the macroscopic dielectric function tensor
-          call symt2app(oct1, oct2, input%xs%energywindow%points, symt2, buf, spectr)
-
-          ! Generate optical functions
-    ! Genloss generates error in debug mode !!!
-    !      call genloss(spectr, loss)
-          call gensigma(w, spectr, optcompt, sigma)
-          call gensumrls(w, spectr, sumrls)
-
-          ! Write optical functions to file
-          call writeeps(iq, oct1, oct2, w, spectr, trim(fneps))
-          call writeloss(iq, w, loss(oct1, oct2, :), trim(fnloss))
-          call writesigma(iq, w, sigma, trim(fnsigma))
-          call writesumrls(iq, sumrls, trim(fnsumrules))
-
-        ! End loop over optical components
-        end do
-      end do
 
 !!<-- check with creator
       ! Store exciton coefficients
@@ -691,11 +543,13 @@ subroutine bse
 
       end if
 
-      deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
+      deallocate(beval,bevec,oszs,w,spectr,loss,sigma,symspectr)
       if(associated(input%gw)) deallocate(eval0)
 !!-->
 
+#ifdef DGRID
     end if notdgrid
+#endif
     
     call barrier
 
@@ -800,5 +654,195 @@ contains
     i2 = tmp - (i1-1)*n2
   end subroutine hamidx_back
 
+  subroutine writeexcitons
+    implicit none
+
+    integer(4) :: o1, s
+
+
+    ! Loop over optical components
+    do o1=1,3
+
+#ifdef DGRID
+      ! Stk: Add case of double grid
+      if(dgrid) then 
+
+        write(dotext, '("_SG", i3.3, ".OUT")') iksubpt
+
+        call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
+          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+          & nar= .not. input%xs%bse%aresbse, dotext=dotext, filnam=fnexc)
+
+      else
+
+        call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
+          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+          & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
+        
+      endif
+#else
+      call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
+        & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+        & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
+#endif
+
+      ! Write out exciton energies and oscillator strengths
+      call getunit(unexc)
+      open(unexc, file=fnexc, form='formatted', action='write', status='replace')
+      do s = 1, hamsize
+        write(unexc, '(i8, 6g18.10)') s, (beval(s)+egap-dble(bsed)) * escale,&
+          & (beval(s)+dble(bsed)) * escale, abs(oszs(s, o1)), dble(oszs(s, o1)),&
+          & aimag(oszs(s, o1))
+      end do
+      write(unexc, '("# Nr.  E		      E - E_gap&
+        &      |Osc.Str.|      Re      Im")')
+      write(unexc, '("# E_gap : ", g18.10)') egap * escale
+      if(input%xs%tevout) write(unexc, '("# energies are in electron volts")')
+      close(unexc)
+
+    end do
+
+  end subroutine writeexcitons
+
+  subroutine makespectrum
+    implicit none
+
+    integer(4) :: o1, o2, ol, ou
+    integer(4) :: lambda
+    real(8) :: eextot
+    complex(8) :: buf(3,3,nw)
+
+    ! Make non-lattice-symmetrized spectrum
+    do o1 = 1, 3
+
+      ! Stk: compute off-diagonal optical components if requested
+      if(input%xs%dfoffdiag) then
+        ol = 1
+        ou = 3
+      else
+        ol = o1
+        ou = o1
+      end if
+
+      do o2 = ol, ou
+
+        optcompt = (/ o1, o2, 0 /)
+        spectr(:) = zzero
+
+        do iw = 1, nw
+          do lambda = 1, nexc
+            
+            ! Get total energy of excition, i.e. add gap energy
+            eextot = beval(lambda) + egap
+            ! Add bsed part (defautl is is zero)
+            eextot = eextot + bsed
+
+            ! Lorentzian line shape
+            ! Resonant part
+            spectr(iw) = spectr(iw) + oszs(lambda, o1) * conjg(oszs(lambda, o2))&
+              &* (1.d0/(eextot-w(iw)-zi*input%xs%broad))             
+            ! Anti-resonant contribution (Default is true)
+            if(input%xs%bse%aresbse) spectr(iw) = spectr(iw)&
+              &+ conjg(oszs(lambda, o1)) * oszs(lambda, o2)&
+              &* (1.d0/(eextot+w(iw)+zi*input%xs%broad))
+
+          end do
+        end do
+
+        spectr(:) = l2int(o1 .eq. o2) * 1.d0 + spectr(:) * 8.d0*pi/omega/nkptnr
+
+        buf(o1,o2,:)=spectr(:)
+
+      end do
+    end do
+
+    ! Symmetrize spectrum 
+    symspectr = zero
+    do o1=1,3
+      do o2=1,3
+        
+
+        ! Symmetrize the macroscopic dielectric tensor
+        call symt2app(o1, o2, nw, symt2, buf, symspectr(o1,o2,:))
+
+      end do 
+    end do
+  end subroutine makespectrum
+
+  subroutine writederived(eps, nw, w)
+    use modxs, only: fneps, fnloss, fnsigma, fnsumrules
+    use modinput, only: input
+    use m_gensigma
+    use m_gensumrls
+    use m_genloss
+    use m_writeeps
+    use m_writeloss
+    use m_writesigma
+    use m_writesumrls
+
+    implicit none
+
+    ! Arguments
+    integer(4), intent(in) :: nw
+    real(8), intent(in) :: w(nw)
+    complex(8), intent(in) :: eps(3,3,nw)
+
+    ! Local variables
+    integer(4) :: o1, o2, ol, ou
+    integer(4) :: optvec(3)
+    complex(8) :: loss(3, 3, nw), sigma(nw)
+    real(8) :: sumrls(3)
+
+    ! Generate loss function as inverted dielectric tensor
+    call genloss(eps, loss, 3)
+
+    ! Calculate derived quantities and write them to disk
+    do o1 = 1, 3
+
+        if(input%xs%dfoffdiag) then
+          ol = 1
+          ou = 3
+        else
+          ol = o1
+          ou = o1
+        end if
+
+        do o2 = ol, ou
+
+          optvec = (/ o1, o2, 0 /)
+
+          ! Generate File names for resulting quantities
+          call genfilname(basename='EPSILON', tq0=.true., oc1=o1, oc2=o2,&
+            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+            & nar= .not. input%xs%bse%aresbse, filnam=fneps)
+
+          call genfilname(basename='LOSS', tq0=.true., oc1=o1, oc2=o2,&
+            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+            & nar= .not. input%xs%bse%aresbse, filnam=fnloss)
+
+          call genfilname(basename='SIGMA', tq0=.true., oc1=o1, oc2=o2,&
+            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+            & nar= .not. input%xs%bse%aresbse, filnam=fnsigma)
+
+          call genfilname(basename='SUMRULES', tq0=.true., oc1=o1, oc2=o2,&
+            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+            & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
+
+
+          ! Generate optical functions
+          call gensigma(w, eps(o1,o2,:), optvec, sigma)
+          call gensumrls(w, eps(o1,o2,:), sumrls)
+
+          ! Write optical functions to file
+          call writeeps(iq, o1, o2, w, eps(o1,o2,:), trim(fneps)) ! iq does nothing
+          call writeloss(iq, w, loss(o1, o2, :), trim(fnloss)) ! iq does something
+          call writesigma(iq, w, sigma, trim(fnsigma))  ! iq only used in writevars
+          call writesumrls(iq, sumrls, trim(fnsumrules)) ! iq only used in writevars
+
+        ! End loop over optical components
+        end do
+      end do
+    end subroutine writederived
+    
 end subroutine bse
 !EOC
