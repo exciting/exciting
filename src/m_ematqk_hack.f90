@@ -94,6 +94,8 @@ module m_ematqk_hack
     subroutine ematdummy(iq)
       integer(4), intent(in) :: iq
 
+      integer(4) :: riaashape(7), i,j,k,l
+
       write(*,*) "Before"
       write(*,*) shape(riaa)
       write(*,*) shape(riloa)
@@ -103,6 +105,8 @@ module m_ematqk_hack
       write(*,*) shape(riaa)
       write(*,*) shape(riloa)
       write(*,*) shape(rilolo)
+
+      write(*,'(E10.3)') riaa(:,1,1,1,1,1,1)
 
     end subroutine ematdummy
 
