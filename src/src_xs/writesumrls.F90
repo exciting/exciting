@@ -35,9 +35,6 @@ Contains
     ! one over frequency sumrule
          Write (unit1, '(a, g18.10, a, g18.10, a)') 'pi half sumrule   &
         &                     (target):', s (3), '(', pi / 2.d0, ')'
-    ! write parameters as header to file
-         Call writevars (unit1, iq, iq)
-    ! close file
          Close (unit1)
       End Subroutine writesumrls
 !

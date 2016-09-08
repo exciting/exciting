@@ -44,9 +44,11 @@ Contains
     ! Units of dynamical structure factor are Hartree^-1
     ! Rescaling of units if electron volts are selected
          igmt = ivgigq (ivgmt(1, iq), ivgmt(2, iq), ivgmt(3, iq), iq)
-         Write (unit1, '(3g18.10)') (w(iw)*escale, loss(iw), &
-        & loss(iw)/escale*(gqc(igmt, iq)**2/(4.d0*pi**2*chgval/omega)), iw=1, &
-        & n)
+         write(unit1, '("#",a22,1x,a23,1x,a29)')&
+           & "Frequency/(eV/hbar)", "L(w)", "L(w)*|G+q|^2*V/(4 pi^2 Q_val)"
+         Write (unit1, '(SP,E23.16,1x,E23.16,1x,E23.16)')&
+           & (w(iw)*escale, loss(iw), &
+           & loss(iw)/escale*(gqc(igmt, iq)**2/(4.d0*pi**2*chgval/omega)), iw=1,  n)
     ! write relevant parameters to file
          Call writevars (unit1, iq, iq)
          Close (unit1)

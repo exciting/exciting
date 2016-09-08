@@ -42,10 +42,9 @@ module m_ematqk
       use omp_lib
 #endif
     ! !DESCRIPTION:
-    ! Calculates plane wave elements between state rages defined
+    ! Calculates plane wave elements between state ranges defined
     ! in (bc%n1,bc%il1,bc%iu1) and (bc%n2,bc%il2,bc%iu2) and saves them in 
-    ! one of xiXY arrarys located in the modxs module, which is the target
-    ! of the emat pointer.
+    ! emat.
     !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich) \\

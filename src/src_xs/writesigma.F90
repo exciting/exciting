@@ -33,9 +33,10 @@ Contains
          Call getunit (unit1)
          Open (unit1, File=trim(fn), Action='write')
     ! write data to file
-         Write (unit1, '(3g18.10)') (w(iw)*escale, sigma(iw), iw=1, n)
-    ! write relevant parameters to file
-         Call writevars (unit1, iq, iq)
+         write(unit1, '("#",a22,1x,a23,1x,a23)')&
+           & "Frequency/(eV/hbar)", "Re(S(w))", "Im(S(w))"
+         Write (unit1, '(SP,E23.16,1x,E23.16,1x,E23.16)')&
+           & (w(iw)*escale, sigma(iw), iw=1, n)
          Close (unit1)
       End Subroutine writesigma
 !

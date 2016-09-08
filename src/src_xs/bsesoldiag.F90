@@ -5,72 +5,81 @@
 !BOP
 ! !ROUTINE: bsesoldiag
 ! !INTERFACE:
-subroutine bsesoldiag(hamsiz, ham, eval, evec)
+subroutine bsesoldiag(solsize, hamsize, ham, eval, evec)
 ! !INPUT/OUTPUT PARAMETERS:
 ! IN:
-!   integer :: hamsiz ! Dimension of the hermitian matrix
-!   complex(hamsiz,hamsiz) :: ! Upper triangular part of an hermitian matrix
+!   integer :: solsize ! Number of solutions from lowest EV 
+!   integer :: hamsize ! Dimension of the hermitian matrix
+!   complex(hamsize,hamsize) :: ! Upper triangular part of an hermitian matrix
 ! OUT:
-!   real(8) :: eval(hamsiz) ! Real valued eigenvalues in ascending order
-!   complex(8) :: evec(hamsiz, hamsiz) ! Corresponding eigenvectors
+!   real(8) :: eval(hamsize) ! Real valued eigenvalues in ascending order 
+!                            ! (the first solsize elements are set)
+!   complex(8) :: evec(hamsize, hamsize) ! Corresponding eigenvectors as columns
+!
 ! !DESCRIPTION:
 !   Takes a upper triangular part of an hermitian matrix and finds
-!   all eigenvalues and eigenvectors using the lapack routine {\tt zheevr}.
+!   eigenvalues and eigenvectors using the lapack routine {\tt zheevr}.
 
   implicit none
 
   ! Arguments
-  integer, intent(in) :: hamsiz
-  complex(8), intent(in) :: ham(hamsiz, hamsiz)
-  real(8), intent(out) :: eval(hamsiz)
-  complex(8), intent(out) :: evec(hamsiz, hamsiz)
+  integer, intent(in) :: solsize, hamsize
+  complex(8), intent(in) :: ham(hamsize, hamsize)
+  real(8), intent(out) :: eval(hamsize)
+  complex(8), intent(out) :: evec(hamsize, solsize)
 
   ! Local variables
   real(8) :: vl, vu, abstol
-  integer :: il, iu, neval, lwork, info, lrwork, liwork
+  integer :: il, iu, lwork, info, lrwork, liwork
 
   ! Allocatable arrays
   complex(8), allocatable :: work(:)
   real(8), allocatable :: rwork(:)
-  integer, allocatable :: iwork(:), ifail(:),isuppz(:)
+  integer, allocatable :: iwork(:), isuppz(:)
 
   ! External functions
   real(8), external :: dlamch
 
-  ! Smallest and largest eigenvalue indices
-  ! (not referenced since range is set to all in zheevr)
-  il = 1
-  iu = hamsiz
-
   ! Tolerance parameter
   abstol = 2.d0 * dlamch('s')
 
-  ! Workspace size (*** improve later ***)
-  lwork = (32+1) * hamsiz
+  if(solsize < 1 .or. solsize > hamsize) then
+    write(*,*) "bsesoldiag (ERROR): Number of requested solutions is &
+      & incompatible with size of Hamiltonian."
+    write(*,*) "solsize:", solsize
+    write(*,*) "hamsize:", hamsize
+    call terminate
+  end if
 
-  lrwork=-1 !hamsiz
-  liwork=-1 !5*hamsiz
-  lwork=-1
-  iu=hamsiz
-  allocate(work(1), rwork(1), iwork(1), isuppz(1))
+  allocate(isuppz(2*solsize))
 
-  call zheevr('v', 'a', 'u', hamsiz, ham, hamsiz, vl, vu, il, iu, &
-    & abstol, neval, eval, evec, hamsiz, isuppz, work, lwork, rwork,&
-    & lrwork, iwork, liwork, info)
+  if(solsize == hamsize) then
 
-  ! Adjust workspace
-  lrwork=int(rwork(1))
-  liwork=int(iwork(1))
-  lwork=int(work(1))
-  deallocate(work, rwork, iwork, isuppz)
-  allocate(work(lwork), rwork(lrwork), iwork(liwork))
-  allocate(isuppz(hamsiz*2))
+    ! Get optimal work array lengths
+    call workspacequery('a')
+    allocate(work(lwork), rwork(lrwork), iwork(liwork))
 
-  call zheevr('v', 'a', 'u', hamsiz, ham, hamsiz, vl, vu, il, iu, &
-    & abstol, neval, eval, evec, hamsiz, isuppz, work, lwork, rwork,&
-    & lrwork, iwork, liwork, info)
+    ! Diagonalize
+    call zheevr('v', 'a', 'u', hamsize, ham, hamsize, vl, vu, il, iu, &
+      & abstol, solsize, eval, evec, hamsize, isuppz, work, lwork, rwork,&
+      & lrwork, iwork, liwork, info)
 
-  deallocate(isuppz)
+  else
+
+    ! Smallest and largest eigenvalue indices
+    il = 1
+    iu = solsize
+
+    ! Get optimal work array lengths
+    call workspacequery('i')
+    allocate(work(lwork), rwork(lrwork), iwork(liwork))
+
+    ! Diagonalize
+    call zheevr('v', 'i', 'u', hamsize, ham, hamsize, vl, vu, il, iu, &
+      & abstol, solsize, eval, evec, hamsize, isuppz, work, lwork, rwork,&
+      & lrwork, iwork, liwork, info)
+
+  end if
 
   if(info .ne. 0) then
    write(*,*)
@@ -79,7 +88,33 @@ subroutine bsesoldiag(hamsiz, ham, eval, evec)
    call terminate
   end if
 
+  deallocate(isuppz)
   deallocate(work, rwork, iwork)
+
+  contains
+
+    subroutine workspacequery(rangetype)
+
+      character(1), intent(in) :: rangetype
+
+      lwork=-1
+      lrwork=-1
+      liwork=-1
+
+      allocate(work(1), rwork(1), iwork(1))
+
+      call zheevr('v', rangetype, 'u', hamsize, ham, hamsize, vl, vu, il, iu, &
+        & abstol, solsize, eval, evec, hamsize, isuppz, work, lwork, rwork,&
+        & lrwork, iwork, liwork, info)
+
+      ! Adjust workspace
+      lwork=int(work(1))
+      lrwork=int(rwork(1))
+      liwork=int(iwork(1))
+
+      deallocate(work, rwork, iwork)
+
+    end subroutine workspacequery
 
 end subroutine bsesoldiag
 

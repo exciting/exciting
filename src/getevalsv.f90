@@ -1,20 +1,16 @@
-!
-!
-!
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!
+
 !BOP
 ! !ROUTINE: getevalsv
 ! !INTERFACE:
 !
-Subroutine getevalsv (vpl, evalsvp)
+subroutine getevalsv(vpl, evalsvp)
 ! !USES:
-      Use modmain
-      Use modinput
-      Use modmpi
+  use modmain
+  use modinput
+  use modmpi
 ! !DESCRIPTION:
 !   The file where the (second-variational) eigenvalues are stored is
 !    {\tt EVALSV.OUT}.
@@ -45,160 +41,195 @@ Subroutine getevalsv (vpl, evalsvp)
 !   Documentation added, Dec 2009 (S. Sagmeister)
 !EOP
 !BOC
-      Implicit None
-  ! arguments
-      Real (8), Intent (In) :: vpl (3)
-      Real (8), Intent (Out) :: evalsvp (nstsv)
-  ! local variables
-      Logical :: exist
-      Integer :: isym, ik, koffset, i
-      Integer :: recl, nstsv_
-      Real (8) :: vkl_ (3), t1
-      Character (256) :: filetag
-      Character (256), External :: outfilenamestring
-!
+
+  implicit none
+
+  ! Arguments
+  real(8), intent(in) :: vpl(3)
+  real(8), intent(out) :: evalsvp(nstsv)
+
+  ! Local variables
+  logical :: lexist
+  integer :: isym, ik, koffset, i
+  integer :: reclen, nstsv_
+  real(8) :: vkl_(3), t1
+  character(256) :: filetag
+
+  ! External functions
+  character(256), external :: outfilenamestring
+
 #ifdef XS
-  ! added feature to access arrays for only a subset of bands
-      Real (8), Allocatable :: evalsv_ (:)
+  ! Added feature to access arrays for only a subset of bands
+  real(8), allocatable :: evalsv_(:)
 #endif
-  ! find the k-point number
-      Call findkpt (vpl, isym, ik)
-!
-  ! find the record length
+
+  ! Find the k-point number
+  call findkpt(vpl, isym, ik)
+
+  ! Find the record length
+
 #ifdef XS
-      Inquire (IoLength=Recl) vkl_, nstsv_
+  inquire(iolength=reclen) vkl_, nstsv_
 #endif
+
+!!<-- Basically dead code, since XS is virtually always specified
 #ifndef XS
-      Inquire (IoLength=Recl) vkl_, nstsv_, evalsvp
+  inquire(iolength=reclen) vkl_, nstsv_, evalsvp
 #endif
-      filetag = trim (filetag_evalsv)
-      Do i = 1, 100
-         Inquire (File=outfilenamestring(filetag, ik), Exist=Exist)
-         If (exist) Then
-            Open (70, File=outfilenamestring(filetag, ik), Action='READ&
-           &', Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
-            Exit
-         Else
-            Call system ('sync')
-            Write (*,*) "Waiting for other process to write" // ":getev&
-           &alsv:" // trim (outfilenamestring(filetag, ik))
-            Call sleep (5)
-         End If
-      End Do
-      If (splittfile) Then
-         koffset = ik - firstk (procofk(ik)) + 1
-      Else
-         koffset = ik
-      End If
+!!-->
+
+  ! mod_names:filetag_evalsv is 'EVALSV'
+  filetag = trim(filetag_evalsv)
+
+  ! Try to open 'EVALSC(<krange>)<modmisc:filext>' (krange applies only for specific task in mpi mode)
+  do i = 1, 100
+    inquire(file=outfilenamestring(filetag, ik), exist=lexist)
+    if(lexist) then
+      open(70, file=outfilenamestring(filetag, ik), action='read',&
+        & form='unformatted', access='direct', recl=reclen)
+      exit
+    else
+      call system('sync')
+      write(*,*) "Waiting for other process to write"&
+        & // ":getevalsv:" // trim(outfilenamestring(filetag, ik))
+      call sleep(5)
+    end if
+  end do
+
+  if(splittfile) then
+     koffset = ik - firstk(procofk(ik)) + 1
+  else
+     koffset = ik
+  end if
+
 #ifdef XS
-      Read (70, Rec=1) vkl_, nstsv_
-      Close (70)
-      If (nstsv .Gt. nstsv_) Then
-         Write (*,*)
-         Write (*, '("Error(getevalsv): invalid nstsv for k-point ",I8)&
-        &') ik
-         Write (*, '(" current    : ",I8)') nstsv
-         Write (*, '(" EVALSV.OUT : ",I8)') nstsv_
-         Write (*, '(" file       : ",a      )') trim &
-        & (outfilenamestring(filetag, ik))
-         Write (*,*)
-         Stop
-      End If
-      Allocate (evalsv_(nstsv_))
-      Inquire (IoLength=Recl) vkl_, nstsv_, evalsv_
-      Open (70, File=outfilenamestring(filetag, ik), Action='READ', &
-     & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
-      Read (70, Rec=koffset) vkl_, nstsv_, evalsv_
-  ! retreive subset
-      evalsvp (:) = evalsv_ (:nstsv)
-      Deallocate (evalsv_)
+  ! Get dimensions of stored file
+  read(70, rec=1) vkl_, nstsv_
+  close(70)
+
+  if(nstsv .gt. nstsv_) then
+     write(*,*)
+     write(*, '("Error(getevalsv): invalid nstsv for k-point ",i8)') ik
+     write(*, '(" current    : ",i8)') nstsv
+     write(*, '(" evalsv.out : ",i8)') nstsv_
+     write(*, '(" file       : ",a      )') trim(outfilenamestring(filetag, ik))
+     write(*,*)
+     stop
+  end if
+
+  allocate(evalsv_(nstsv_))
+
+  inquire(iolength=reclen) vkl_, nstsv_, evalsv_
+
+  open(70, file=outfilenamestring(filetag, ik), action='read',&
+    & form='unformatted', access='direct', recl=reclen)
+
+  read(70, rec=koffset) vkl_, nstsv_, evalsv_
+
+  ! Retrieve subset
+  evalsvp(:) = evalsv_ (:nstsv)
+  deallocate(evalsv_)
+
 #endif
+
+!!<-- Basically dead code, since XS is virtually always specified
 #ifndef XS
-      Read (70, Rec=koffset) vkl_, nstsv_, evalsvp
+  read(70, rec=koffset) vkl_, nstsv_, evalsvp
 #endif
-      Close (70)
-!
-      t1 = Abs (vkl(1, ik)-vkl_(1)) + Abs (vkl(2, ik)-vkl_(2)) + Abs &
-     & (vkl(3, ik)-vkl_(3))
-      If (t1 .Gt. input%structure%epslat) Then
-         Write (*,*)
-         Write (*, '("Error(getevalsv): differing vectors for k-point "&
-        &,I8)') ik
-         Write (*, '(" current    : ",3G18.10)') vkl (:, ik)
-         Write (*, '(" EVALSV.OUT : ",3G18.10)') vkl_
-         Write (*, '(" file       : ",a      )') trim &
-        & (outfilenamestring(filetag, ik))
-         Write (*,*)
-         Stop
-      End If
+!!-->
+
+  close(70)
+
+  t1 = abs(vkl(1, ik)-vkl_(1)) + abs(vkl(2, ik)-vkl_(2)) + abs(vkl(3, ik)-vkl_(3))
+
+  if(t1 .gt. input%structure%epslat) then
+    write(*,*)
+    write(*, '("Error(getevalsv): differing vectors for k-point ",i8)') ik
+    write(*, '(" current    : ",3g18.10)') vkl(:, ik)
+    write(*, '(" evalsv.out : ",3g18.10)') vkl_
+    write(*, '(" file       : ",a      )') trim(outfilenamestring(filetag, ik))
+    write(*,*)
+    stop
+  end if
+
+!!<-- Basically dead code, since XS is virtually always specified
 #ifndef XS
-      If (nstsv .Ne. nstsv_) Then
-         Write (*,*)
-         Write (*, '("Error(getevalsv): differing nstsv for k-point ",I&
-        &8)') ik
-         Write (*, '(" current    : ",I8)') nstsv
-         Write (*, '(" EVALSV.OUT : ",I8)') nstsv_
-         Write (*, '(" file       : ",a      )') trim &
-        & (outfilenamestring(filetag, ik))
-         Write (*,*)
-         Stop
-      End If
+  if(nstsv .ne. nstsv_) then
+    write(*,*)
+    write(*, '("error(getevalsv): differing nstsv for k-point ",i8)') ik
+    write(*, '(" current    : ",i8)') nstsv
+    write(*, '(" evalsv.out : ",i8)') nstsv_
+    write(*, '(" file       : ",a      )') trim(outfilenamestring(filetag, ik))
+    write(*,*)
+    stop
+  end if
 #endif
-      Return
-End Subroutine getevalsv
+!!-->
+
+  return
+end subroutine getevalsv
 !EOC
 
-Module m_getevalsvr
-      Implicit None
-Contains
-!
-!
-      Subroutine getevalsvr (fname, isti, istf, vpl, evalsvp)
-         Use modmain
-         Implicit None
-    ! arguments
-         Character (*), Intent (In) :: fname
-         Integer, Intent (In) :: isti, istf
-         Real (8), Intent (In) :: vpl (3)
-         Real (8), Intent (Out) :: evalsvp (:)
-    ! local variables
-         Integer :: err
-         Real (8), Allocatable :: evalsvt (:)
-         Character (256) :: tmpstr
-    ! check correct shapes
-         err = 0
-         If ((isti .Lt. 1) .Or. (istf .Gt. nstsv) .Or. (istf .Le. &
-        & isti)) Then
-            Write (*,*)
-            Write (*, '("Error(getevalsvr): inconsistent limits for ban&
-           &ds:")')
-            Write (*, '(" band limits  : ",2i6)') isti, istf
-            Write (*, '(" maximum value: ",i6)') nstsv
-            Write (*,*)
-            err = err + 1
-         End If
-         If (size(evalsvp, 1) .Ne. (istf-isti+1)) Then
-            Write (*,*)
-            Write (*, '("Error(getevalsvr): output array does not match&
-           & for bands:")')
-            Write (*, '(" band limits              : ",2i6)') isti, &
-           & istf
-            Write (*, '(" requested number of bands: ",i6)') istf - &
-           & isti + 1
-            Write (*, '(" array size               : ",i6)') size &
-           & (evalsvp, 1)
-            Write (*,*)
-            err = err + 1
-         End If
-         If (err .Ne. 0) Stop
-         Allocate (evalsvt(nstsv))
-         filetag_evalsv = trim (fname)
-         tmpstr = trim (filext)
-         filext = ''
-         Call getevalsv (vpl, evalsvt)
-         filetag_evalsv = 'EVALSV'
-         filext = trim (tmpstr)
-         evalsvp (:) = evalsvt (isti:istf)
-         Deallocate (evalsvt)
-      End Subroutine getevalsvr
-End Module m_getevalsvr
+module m_getevalsvr
+
+      implicit none
+
+  contains
+
+    subroutine getevalsvr(fname, isti, istf, vpl, evalsvp)
+       use modmain
+
+       implicit none
+
+       ! Arguments
+       character(*), intent(in) :: fname
+       integer, intent(in) :: isti, istf
+       real(8), intent(in) :: vpl(3)
+       real(8), intent(out) :: evalsvp(:)
+
+       ! Local variables
+       integer :: chkerr
+       real(8), allocatable :: evalsvt(:)
+       character(256) :: tmpstr
+
+       ! Check correct shapes
+       chkerr = 0
+
+       if((isti .lt. 1) .or. (istf .gt. nstsv) .or. (istf .le. isti)) then
+         write(*,*)
+         write(*, '("Error(getevalsvr): inconsistent limits for bands:")')
+         write(*, '(" band limits  : ",2i6)') isti, istf
+         write(*, '(" maximum value: ",i6)') nstsv
+         write(*,*)
+         chkerr = chkerr + 1
+       end if
+
+       if(size(evalsvp, 1) .ne. (istf-isti+1)) then
+         write(*,*)
+         write(*, '("Error(getevalsvr): output array does not match for bands:")')
+         write(*, '(" band limits              : ",2i6)') isti, istf
+         write(*, '(" requested number of bands: ",i6)') istf - isti + 1
+         write(*, '(" array size               : ",i6)') size(evalsvp, 1)
+         write(*,*)
+         chkerr = chkerr + 1
+       end if
+
+       if(chkerr .ne. 0) stop
+
+       allocate(evalsvt(nstsv))
+
+       filetag_evalsv = trim(fname)
+
+       tmpstr = trim(filext)
+       filext = ''
+
+       call getevalsv(vpl, evalsvt)
+
+       filetag_evalsv = 'EVALSV'
+       filext = trim(tmpstr)
+
+       evalsvp(:) = evalsvt(isti:istf)
+
+       deallocate(evalsvt)
+    end subroutine getevalsvr
+end module m_getevalsvr

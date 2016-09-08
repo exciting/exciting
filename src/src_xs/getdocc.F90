@@ -37,10 +37,11 @@ subroutine getdocc(iq, ik, ikq, l1, u1, l2, u2, docc)
   allocate(o0(nstsv), o(nstsv))
 
   ! Eigenvalues and occupancies for k-point
-  call getoccsv0(vkl0(1, ik), o0)
+  call getoccsv0(vkl0(1:3, ik), o0)
 
   ! Eigenvalues and occupancies for k+q-point
-  call getoccsv(vkl(1, ikq), o)
+  call getoccsv(vkl(1:3, ikq), o)
+
 
   ! Loop over band ranges    
   do ist = l1, u1

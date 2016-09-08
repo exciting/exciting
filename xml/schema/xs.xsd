@@ -691,11 +691,11 @@
                   (1999) 477.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="nexcitmax" type="xs:integer"
-              default="100">
+            <xs:attribute ex:importance="expert" ex:unit="" name="nexc" type="xs:integer"
+              default="-1">
               <xs:annotation>
-                <xs:documentation>Maximum number of excitons to be considered in a BSE
-                  calculation.</xs:documentation>
+                <xs:documentation>Number of excitons (eigensolutions) to be considered in a BSE
+                  calculation. The default corresponds to all.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse" type="integerquadrupel"

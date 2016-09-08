@@ -63,7 +63,7 @@ Subroutine xsestimate
      & d_emat (2) + d_x0 (2) + d_sci + d_eci + d_fxcbse
   ! memory consumption
       m_bseham = scmplx * bsehamsiz ** 2
-      m_bseeigvec = scmplx * bsehamsiz * input%xs%BSE%nexcitmax
+      m_bseeigvec = scmplx * bsehamsiz * input%xs%BSE%nexc
   !write information to file
       Call getunit (un)
       Open (un, File='SIZES.OUT', Form='formatted', Action='write', &

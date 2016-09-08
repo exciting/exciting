@@ -16,6 +16,20 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
                  & evllpu, ksgap, nstocc0,&
                  & vkl0, nstunocc0, unitout
   use m_genfilname
+! !INPUT/OUTPUT PARAMETERS:
+! IN:
+! integer :: iq ! q-point index 
+! OUT:
+! integer :: iocc0     ! Highest (partially) occupied state over all k-points
+! integer :: iunocc0   ! Lowest (partially) unoccupied state over all k-points
+! integer :: io0(nkpt) ! Highest (partially) occupied state for each k-point
+! integer :: iu0(nkpt) ! Lowest (partially) unoccupied state for each k-point
+! integer :: iocc, iunocc, io(nkpt), iu(nkpt) ! Same as above, but for k+q
+! !NOTE: iocc=iocc0=max(iocc0,iocc) and iunocc0=iunocc=min(iunocc0,inunocc) was set! 
+! INDIRECT OUT:
+! integer :: modxs:nstocc0 = iocc0
+! integer :: modxs:nstunocc0 = nstsv - iocc0
+!
 ! !DESCRIPTION:
 ! For a given q-point index the routine inspects the occupancies and 
 ! second variational eigenvalues of the corresponding k+q and k set to determin
@@ -25,6 +39,7 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
 ! 
 ! !REVISION HISTORY:
 !   Added description schema. And rudimentary description. (Aurich)
+!   Added some more description. (Aurich)
 !EOP
 !BOC
 
@@ -54,17 +69,19 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
     call getoccsv(vkl(1, ikq), occsv(1, ikq))
     call getevalsv(vkl(1, ikq), evalsv(1, ikq))
 
-    ! Count how, from low to high, many states at k+q are (partially) occupied,
-    ! in the sense that they contribute to the electron density.
-    ! epsocc defaults to 10^-8
+    ! Go from low to high through the sates at k+q, and
+    ! check whether they are (partially) occupied, in the sense that
+    ! they contribute to the electron density (epsocc defaults to 10^-8). 
+    ! Save for each k+q point the index of the highest (partially) occupied state.
     do i = 1, nstsv
       if(occsv(i, ikq) .lt. input%groundstate%epsocc) exit
     end do
     io(ik) = i - 1
 
-    ! Count how many states are (partially) unoccupied. Count
-    ! from highest state and stop when the states become fully
-    ! occupied.
+    ! Go from high to low through the sates at k+q, and
+    ! check whether they are (partially) unoccupied and stop if the 
+    ! state is fully occupied.
+    ! Save for each k+q point the index of the lowest (partially) unoccupied state.
     do i = nstsv, 1, - 1
       if(occsv(i, ikq) .gt. (occmax-input%groundstate%epsocc)) exit
     end do
@@ -93,30 +110,38 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   if(iq .ne. 0) then
 
     ! Lowest and highest valence energy 
+    ! Lowest energy over all k+q and k
     evlmin = min(minval(evalsv(1, :)), minval(evalsv0(1, :)))
+    ! Highest energy over all k+q and k
     evlmax = max(maxval(evalsv(nstsv, :)), maxval(evalsv0(nstsv, :)))
 
     ! Lower and higher cutoff valence energy
+    ! Highest lowest energy over all k+q and k
     evlmincut = max(maxval(evalsv(1, :)), maxval(evalsv0(1, :)))
+    ! Lowest highest energy over all k+q and k
     evlmaxcut = min(minval(evalsv(nstsv, :)), minval(evalsv0(nstsv, :)))
 
   else
 
     ! Lowest and highest valence energy
+    ! Lowest energy over all k
     evlmin = minval(evalsv(1, :))
+    ! Highest energy over all k
     evlmax = maxval(evalsv(nstsv, :))
 
     ! Lower and higher cutoff valence energy
+    ! Highest lowest energy over all k
     evlmincut = maxval(evalsv(1, :))
+    ! Lowest highest energy over all k
     evlmaxcut = minval(evalsv(nstsv, :))
 
   end if
 
-  ! Overall highest (partially) occupied state
+  ! Find the highest (partially) occupied state over all k (k+q) 
   iocc0 = maxval(io0)
   iocc = maxval(io)
 
-  ! Overall lowest (partially) unoccupied state
+  ! Find the lowest (partially) unoccupied state over all k (k+q)
   iunocc0 = minval(iu0)
   iunocc = minval(iu)
 
@@ -147,6 +172,7 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   ! Assign nstocc0 and nstunocc0
   nstocc0 = iocc0
   nstunocc0 = nstsv - nstocc0
+!!! iocc = iocc0 and iunocc = iunocc0 was set above !
   if((iocc0 .ge. iunocc) .or. (iocc .ge. iunocc0)) then
     write(unitout, '(a)') 'Info(findocclims): Partially occupied states present'
   end if

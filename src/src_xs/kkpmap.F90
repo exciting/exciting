@@ -79,5 +79,5 @@ subroutine kkpmap_back(ikkp, nkp, ik, ikp)
 
   ikkp = (ik-1)*nkp - (ik-2)*(ik-1)/2 + (ikp-ik) + 1
 
-end subroutine kkpmap
+end subroutine kkpmap_back
 !EOC

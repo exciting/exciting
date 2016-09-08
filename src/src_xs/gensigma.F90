@@ -16,7 +16,7 @@ module m_gensigma
       ! Arguments
       real(8), intent(in) :: w(:)
       complex(8), intent(in) :: eps(:)
-      integer, intent(in) :: oc(3)
+      integer, intent(in) :: oc(2)
       complex(8), intent(out) :: sigma(:)
 
       ! Local variables

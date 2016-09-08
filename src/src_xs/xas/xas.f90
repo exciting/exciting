@@ -279,7 +279,7 @@ Subroutine xas
       Write (unitout, '("Info(xas): invoking Lapack routine ZHEEVX")')
       Write (unitout, '(" size of BSE-Hamiltonian	   : ", i8)') hamsiz
       Write (unitout, '(" number of requested solutions : ", i8)') &
-     & input%xs%bse%nexcitmax
+     & input%xs%bse%nexc
   ! allocate eigenvector and eigenvalue arrays
       Allocate (beval(hamsiz), bevec(hamsiz, hamsiz))
   ! set number of excitons

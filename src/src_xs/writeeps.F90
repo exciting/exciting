@@ -27,7 +27,7 @@ module m_writeeps
       type(xmlf_t), save :: xf
       character(256) :: buffer
       character(*), parameter :: thisnam = 'writeeps'
-      integer :: n1(1), n, iw
+      integer :: n, iw
       real(8), allocatable :: imeps(:), kkeps(:)
 
       if(any(shape(w) .ne. shape(eps))) then
@@ -36,18 +36,21 @@ module m_writeeps
         call terminate
       end if
 
-      n1 = shape(w)
-      n = n1(1)
+      n = size(w)
 
       allocate(imeps(n), kkeps(n))
 
       ! Kramers-Kronig transform imaginary part
       imeps(:) = aimag(eps(:))
+
       Call kramkron(iop1, iop2, 1.d-8, n, w, imeps, kkeps)
-      
+
       Call getunit(unit1)
       Open(unit1, File=trim(fn), Action='write')
-      Write(unit1, '(4g18.10)') (w(iw)*escale, eps(iw), kkeps(iw), iw=1, n)
+      write(unit1, '("#",a22,1x,a23,1x,a23,1x,a23)')&
+        & "Frequency/(eV/hbar)", "Re(eps)", "Im(eps)", "Re(eps) form KKT"
+      Write(unit1, '(SP,E23.16,1x,E23.16,1x,E23.16,1x,E23.16)')&
+        & (w(iw)*escale, eps(iw), kkeps(iw), iw=1, n)
       Close(unit1)
 
       ! Write to XML file
