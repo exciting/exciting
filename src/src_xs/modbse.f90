@@ -84,7 +84,7 @@ module modbse
 
       ! Write out state ranges to INFOXS.OUT
       write(unitout,*)
-      write(unitout, '("Info(bse): Information on number of states:")')
+      write(unitout, '("Info(setbcbs): Information on number of states:")')
       write(unitout, '("  Ranges of states used in construction of BSE matrix:")')
       write(unitout, '("    Range of occupied states and number   :", 2i6, 3x, i6)')&
         & bcouabs%il1, bcouabs%iu1, bcouabs%n1

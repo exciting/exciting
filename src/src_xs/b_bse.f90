@@ -182,7 +182,6 @@ subroutine b_bse
       egap = 0.0d0
     end if  
 
-write(*,*) "About to check occupancies"
     !!<-- Inspecting occupancies 
     ! Do not use state combination with zero occupancy difference 
     ! (Theory not complete here?). Also do not use state combinations
@@ -214,7 +213,6 @@ write(*,*) "About to check occupancies"
     ! Assemble Hamiltonian matrix 
     call timesec(ts0)
     call setuphamiltonian(ham, .true.)
-  write(*,*) "After setup"
     call timesec(ts1)
     write(unitout, '(" Timing (in seconds)	   :", f12.3)') ts1 - ts0
 
@@ -233,17 +231,14 @@ write(*,*) "About to check occupancies"
     ! Allocate eigenvector and eigenvalue arrays
     allocate(beval(hamsize), bevec(hamsize, nexc))
 
-  write(*,*) "Before diag"
     ! Diagonalize Hamiltonian (destroys the content of ham)
     call timesec(ts0)
     call bsesoldiag(nexc, hamsize, ham, beval, bevec)
     call timesec(ts1)
-  write(*,*) "after diag"
 
     ! Deallocate BSE-Hamiltonian
     deallocate(ham)
 
-  write(*,*) "after ham deallocation"
     write(unitout, '(" Timing (in seconds)	   :", f12.3)') ts1 - ts0
     write(unitout,*)
 
