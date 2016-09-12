@@ -4,6 +4,8 @@
 ! See the file COPYING for license details.
 #include "maxdefinitions.inc"
 Module modxs
+! !USES:
+  use mod_kpointset
 ! !DESCRIPTION:
 !   Global variables for the {\tt XS} (eXcited States) implementation
 !   within the {\tt EXCITING}-code.
@@ -31,6 +33,12 @@ Module modxs
         integer(4) :: il1, il2
         integer(4) :: iu1, iu2
       end type bcbs 
+
+  Type(k_set) :: kset, qset
+  Type(kq_set) :: kqset
+  Type(G_set) :: gset
+  Type(Gk_set) :: gkset, gqset
+
 
   !----------------------------!
   !     symmetry variables     !
@@ -68,6 +76,7 @@ Module modxs
       Integer, Allocatable :: scqmap (:, :)
   ! wrapping vectors for elements of the small group of q
       Integer, Allocatable :: ivscwrapq (:, :, :)
+
 !
   !----------------------------------!
   !     G+q-vector set variables     !
@@ -105,6 +114,7 @@ Module modxs
   ! spherical harmonics of the G-vectors
       Complex (8), Allocatable :: ylmgq (:, :, :)
 
+
   !---------------------------------!
   !     k-point set  variables      !
   !---------------------------------!
@@ -124,6 +134,7 @@ Module modxs
       Integer, Allocatable :: strmap (:)
   ! map from non-reduced k-point set to associated symmetry in star
       Integer, Allocatable :: strmapsymc (:)
+
 
   !-------------------------!
   !     k+q-point set       !
@@ -152,6 +163,7 @@ Module modxs
       Real (8), Allocatable :: tpgkc0 (:, :, :, :)
   ! structure factor for the G+k-vectors
       Complex (8), Allocatable :: sfacgk0 (:, :, :, :)
+
 
   !-----------------------------------------!
   !     potential and density variables     !

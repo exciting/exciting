@@ -17,19 +17,25 @@ subroutine xsinit
                 & lmmaxemat, lmmaxapwwf, lmmaxdielt, tordf, &
                 & tscreen, nwdf, fxcdescr, fxcspin, &
                 & torfxc, escale, tleblaik, tgqmaxg, &
-                & tfxcbse, temat, fnresume
+                & tfxcbse, temat, fnresume,&
+                & kset,qset,kqset,gset,gkset,gqset
   use modfxcifc,only: getfxcdata
   use m_getunit,only: getunit
   use m_genfilname,only: genfilname
+
+  use mod_kpointset
+  use mod_Gkvector, only: gkmax ! init1
+  use mod_Gvector, only: intgv  ! init1
+  use mod_lattice, only: bvec   ! init0
   
   implicit none
 
   ! local variables
   character(10) :: dat, tim
-  integer :: i
+  integer :: i, un
   real(8) :: tv(3)
   real(8), parameter :: eps=1.d-7
-  character(77) :: string
+  character(77) :: string, istring, kfname
 
   !---------------------------!
   !     initialize timing     !
@@ -102,7 +108,105 @@ subroutine xsinit
 
   if(input%xs%rgkmax .eq. 0.d0) input%xs%rgkmax = input%groundstate%rgkmax
 
+  ! This sets input%groundstate%*=input%xs%*, where * are the following
+  ! nosym, ngridk, reducek, vkloff, maxscl
+  ! If phonons also: rgkmax, swidth, lmaxapw, lmaxmat, nempty
+  ! If spin: bfieldc
   call mapxsparameters
+
+  !---------------------!
+  !     k-point set     !
+  !---------------------!
+  if(any(input%xs%screening%ngridk .eq. 0)) &
+    & input%xs%screening%ngridk(:) = input%groundstate%ngridk(:)
+  if(any(input%xs%screening%vkloff .eq.-1.d0)) &
+    & input%xs%screening%vkloff(:) = input%groundstate%vkloff(:)
+  if(any(input%xs%bse%vkloff .eq.-1.d0)) &
+    & input%xs%bse%vkloff(:) = input%groundstate%vkloff(:)
+
+  !---------------------!
+  !     g+k vectors     !
+  !---------------------!
+  if(input%xs%screening%rgkmax .eq. 0.d0) &
+    & input%xs%screening%rgkmax = input%groundstate%rgkmax
+  if(input%xs%bse%rgkmax .eq. 0.d0) &
+    & input%xs%bse%rgkmax = input%groundstate%rgkmax
+
+  ! Make grids
+
+  call init0
+  call init1
+
+ ! write(*,*) "kset"
+ ! write(*,*) kset
+ ! write(*,*) "bvec"
+ ! write(*,*) bvec
+ ! write(*,*) "ngridk"
+ ! write(*,*) input%groundstate%ngridk
+ ! write(*,*) "vkloff"
+ ! write(*,*) input%groundstate%vkloff
+ ! write(*,*) "reducek"
+ ! write(*,*) input%groundstate%reducek
+
+  call generate_k_vectors(kset, bvec,&
+    & input%groundstate%ngridk,&
+    & input%groundstate%vkloff,&
+    & input%groundstate%reducek) ! reducek is false in xs
+  call getunit(un)
+  open(un, file='k_set.out', action='write', status='replace')
+  call print_k_vectors(kset, un)
+  close(un)
+
+  call generate_k_vectors(qset, bvec,&
+    & input%xs%ngridq,&
+    & [0.0d0, 0.0d0, 0.0d0],&    
+    & input%xs%reduceq) ! reduceq is true in xs
+  call getunit(un)
+  open(un, file='q_set.out', action='write', status='replace')
+  call print_k_vectors(qset, un)
+  close(un)
+
+  call generate_kq_vectors(kqset, bvec,&
+    & input%groundstate%ngridk,&
+    & input%groundstate%vkloff,&
+    & input%groundstate%reducek)
+  call getunit(un)
+  open(un, file='kq_set.out', action='write', status='replace')
+  call print_kq_vectors(kqset, un)
+  close(un)
+
+  call generate_G_vectors(gset, bvec,&
+    & intgv,&
+    & input%groundstate%gmaxvr)
+  call getunit(un)
+  open(un, file='g_set.out', action='write', status='replace')
+  call print_G_vectors(gset, un)
+  close(un)
+
+  call generate_Gk_vectors(gkset, kset, gset, gkmax) 
+  do i=1, kset%nkpt
+    istring=''
+    kfname=''
+    write(istring,'(I12)') i
+    write(kfname,'("gk_set_ik",a,".out")') trim(adjustl(istring))
+    call getunit(un)
+    open(un, file=kfname, action='write', status='replace')
+    call print_Gk_vectors(gkset, i, un)
+    close(un)
+  end do
+  close(un)
+
+  call generate_Gk_vectors(gqset, qset, gset, input%xs%gqmax) 
+  do i=1, qset%nkpt
+    istring=''
+    kfname=''
+    write(istring,'(I12)') i
+    write(kfname,'("gq_set_iq",a,".out")') trim(adjustl(istring))
+    call getunit(un)
+    open(un, file=kfname, action='write', status='replace')
+    call print_Gk_vectors(gqset, i, un)
+    close(un)
+  end do
 
   !-----------------------------------!
   !     parallelization variables     !
@@ -181,23 +285,6 @@ subroutine xsinit
      write(unitout,*)
   end if
 
-  !---------------------!
-  !     k-point set     !
-  !---------------------!
-  if(any(input%xs%screening%ngridk .eq. 0)) &
-    & input%xs%screening%ngridk(:) = input%groundstate%ngridk(:)
-  if(any(input%xs%screening%vkloff .eq.-1.d0)) &
-    & input%xs%screening%vkloff(:) = input%groundstate%vkloff(:)
-  if(any(input%xs%bse%vkloff .eq.-1.d0)) &
-    & input%xs%bse%vkloff(:) = input%groundstate%vkloff(:)
-
-  !---------------------!
-  !     g+k vectors     !
-  !---------------------!
-  if(input%xs%screening%rgkmax .eq. 0.d0) &
-    & input%xs%screening%rgkmax = input%groundstate%rgkmax
-  if(input%xs%bse%rgkmax .eq. 0.d0) &
-    & input%xs%bse%rgkmax = input%groundstate%rgkmax
 
   !------------------------------------!
   !     secular equation variables     !

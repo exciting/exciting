@@ -9,14 +9,10 @@ subroutine b_bse
 ! !USES:
   use modinput, only: input
   use mod_constants, only: zzero
-  use mod_kpoint, only: nkptnr, vkl, ivknr
-  use mod_qpoint, only: iqmap
+  use mod_kpoint, only: nkptnr, vkl
   use mod_eigenvalue_occupancy, only: evalsv, nstsv
   use modmpi, only: rank, barrier
-  use modxs, only: unitout, bcbs, bsed, iqmapr
-#ifdef DGRID
-  use modxs, only: dgrid
-#endif
+  use modxs, only: unitout, bcbs, bsed
   use modbse
   use m_genwgrid
   use m_genfilname
@@ -94,30 +90,25 @@ subroutine b_bse
   ! Parameters
   integer(4), parameter :: iqmt = 0
   ! Variables
+  integer(4) :: iknr, iq, nw
+  integer(4) :: hamsize, nexc
+  integer(4) :: no, nu, nou, nkkp
+  real(8) :: egap, ts0, ts1
 
-  integer(4) :: iknr, iqr, iq, iv2(3), nw
-  integer(4) :: s1, s2, hamsize, nexc
-  integer(4) :: io1, io2, iu1, iu2, ik1, ik2
-  integer(4) :: ikkp, ikkpprev
-  real(8) :: de, egap, ts0, ts1
-  complex(8) :: tmp
   ! Allocatable arrays
+  integer(4), allocatable, dimension(:) :: kousize
   integer(4), allocatable, dimension(:,:) :: smap
+  logical, allocatable, dimension(:,:) :: kouflag
   real(8), allocatable, dimension(:) :: ofac, beval, w
-  real(8), allocatable, dimension(:,:) :: eval0
   complex(8), allocatable, dimension(:,:) :: ham, bevec, oszs
-
-  ! Debug/Inpect arrays
-  logical :: writeparts
-  real(8), allocatable, dimension(:) :: epart
-  real(8), allocatable, dimension(:,:) :: vint_re, wint_re
-  real(8), allocatable, dimension(:,:) :: vint_im, wint_im
-
   complex(8), allocatable, dimension(:,:,:) :: symspectr
-  complex(8), allocatable, dimension(:,:,:,:) :: excli, sccli
+  ! GW 
+  real(8), allocatable, dimension(:,:) :: eval0
 
   ! Routine not yet parallelized
   mpirank: if(rank .eq. 0) then
+
+    write(*,*) "Hi, this is b_bse."
 
     ! General init
     call init0
@@ -145,17 +136,9 @@ subroutine b_bse
     ! Set band combinations (modbse:bcou & modbse:bcouabs)
     call setbcbs_bse
 
-    ! Write out E, W and V matrix to text file?
-    writeparts = .false.
-
-    ! Allocate arrays for coulomb interactions
-    ! W_{ouk,o'u'k'}(q=0)
-    allocate(sccli(bcou%n1, bcou%n2, bcou%n1, bcou%n2)) ! #o,#u,#o,#u
-    ! Allocate coulomb interaction for k
-    ! v_{ouk,o'u'k'}(q=0)
-    allocate(excli(bcou%n1, bcou%n2, bcou%n1, bcou%n2)) ! #o,#u,#o,#u
-
-    ! Read KS energies (form EVALSV_SCR.OUT)
+    ! Read KS energies (form EVALSV_SCR.OUT) and save them to modxs
+    if(allocated(evalsv)) deallocate(evalsv)
+    allocate(evalsv(nstsv,nkptnr))
     do iknr = 1, nkptnr
       call getevalsv(vkl(1:3, iknr), evalsv(1:nstsv, iknr))
     end do
@@ -189,12 +172,9 @@ subroutine b_bse
 
     ! Determine the minimal optical gap (q=0), w.r.t. the selected bands
     egap = minval(evalsv(bcouabs%il2,1:nkptnr) - evalsv(bcouabs%iu1,1:nkptnr) + input%xs%scissor)
-
+    write(unitout,*)
     write(unitout, '("Info(bse): gap:", E23.16)') egap
-
-    !! In setrages_modxs it was already determined whether the system 
-    !! has a KS gap.
-    ! Warn if the system has no gap
+    ! Warn if the system has no gap even with scissor (or no scissor and on top of GW)
     if(egap .lt. input%groundstate%epspot) then
       write(unitout,*)
       write(unitout, '("Warning(bse): the system has no gap, setting it to 0")')
@@ -202,141 +182,42 @@ subroutine b_bse
       egap = 0.0d0
     end if  
 
+write(*,*) "About to check occupancies"
     !!<-- Inspecting occupancies 
     ! Do not use state combination with zero occupancy difference 
-    ! (Theory not complete here.). Also do not use state combinations
+    ! (Theory not complete here?). Also do not use state combinations
     ! where the "unoccupied" state has larger occupancy, since hat will
     ! make the BSE Hamiltonian non-hermitian, even in TDA and q=0.
     !
     ! Set gamma point (currently iq does nothing in checkoccupancies)
     iq = 1
-    ! Get adjusted hamsize, index map and occupation factors.
+    ! Get adjusted hamsize, index maps and occupation factors.
     ! Also write information about skipped combinations to file.
-    call checkoccupancies(iq, nkptnr, bcouabs, hamsize, smap, ofac)
+    call checkoccupancies(iq, nkptnr, bcouabs, hamsize, smap, kouflag, kousize, ofac)
     !!-->
 
     ! Allocate BSE-Hamiltonian (large matrix, up to several Gb)
     allocate(ham(hamsize, hamsize))
     ham(:, :) = zzero
 
-    if(writeparts) then
-      allocate(vint_re(hamsize, hamsize))
-      allocate(wint_re(hamsize, hamsize))
-      allocate(vint_im(hamsize, hamsize))
-      allocate(wint_im(hamsize, hamsize))
-      allocate(epart(hamsize))
-      vint_re=0.0d0
-      vint_im=0.0d0
-      wint_re=0.0d0
-      wint_im=0.0d0
-      epart=0.0d0
-    end if
+    ! Number of kkp combinations with ikp >= ik
+    nkkp = nkptnr*(nkptnr+1)/2
+    ! Number of o u combinations
+    no  = bcou%n1
+    nu  = bcou%n2
+    nou = no * nu
 
-    ikkpprev = -1
-    ! Set up BSE-Hamiltonian
-    do s1 = 1, hamsize
-      do s2 = s1, hamsize ! Uses hermiticity
+    ! Write Info
+    write(unitout,*)
+    write(unitout, '("Info(bse): Assembling BSE matrix")')
+    write(unitout, '(" BSE-Hamiltonian: Shape=",i4, " Size=",i8)') hamsize, hamsize**2
+    ! Assemble Hamiltonian matrix 
+    call timesec(ts0)
+    call setuphamiltonian(ham, .true.)
+  write(*,*) "After setup"
+    call timesec(ts1)
+    write(unitout, '(" Timing (in seconds)	   :", f12.3)') ts1 - ts0
 
-!! Discuss: Changing indexing so that o1 is is highest occupied state
-        !! Note: If the Hamilton matrix 
-        !! has the elements H_{i,j} and the indices enumerate the
-        !! states according to
-        !! i = {o1u1k1, o1u2k1, ..., o1uMk1,
-        !!      o2uMk1, ..., oMuMk1, o1u1k2, ..., oMuMkN} -> {1,...,M**2N}
-        !! then because of H_{j,i} = H^*_{i,j} only kj = ki,..,kN is 
-        !! needed.
-
-        ! Get ("conventional") indices from map 
-        io1 = smap(s1,1)
-        iu1 = smap(s1,2)
-        ik1 = smap(s1,3)
-        io2 = smap(s2,1)
-        iu2 = smap(s2,2)
-        ik2 = smap(s2,3)
-
-        ! Get k2-k1 = q for extracting the correct W element
-        iv2(:) = ivknr(:, ik2) - ivknr(:, ik1)
-        ! Map iv2 to unit cell
-        ! Remark: xsinit is setting input%groundstate%ngridk = input%xs%ngridk
-        iv2(:) = modulo(iv2(:), input%groundstate%ngridk(:))
-        ! Q-point(reduced)
-        iqr = iqmapr(iv2(1), iv2(2), iv2(3))
-        ! Q-point(non-reduced)
-        iq = iqmap(iv2(1), iv2(2), iv2(3))
-
-        ! Get kk' combination index used in 'scrcoulint' and 'exccoulint'
-        call kkpmap_back(ikkp, nkptnr, ik1, ik2)
-
-!! This is not nice, we need to also introduce the combined index to W and V arrays
-        if(ikkp /= ikkpprev) then
-
-          ! Read W_{i,j}
-          select case(trim(input%xs%bse%bsetype))
-            case('singlet', 'triplet')
-              ! Read screened coulomb interaction W_{ouki,o'u'kj}
-              call getbsemat('SCCLI.OUT', ikkp, bcou%n1, bcou%n2, sccli)
-          end select
-
-          ! Read exchange coulomb interaction
-          select case(trim(input%xs%bse%bsetype))
-            case('RPA', 'singlet')
-              ! Read exchange interaction v_{ouki,o'u'kj}
-              call getbsemat('EXCLI.OUT', ikkp, bcou%n1, bcou%n2, excli)
-          end select
-
-        end if
-        ikkpprev = ikkp
-
-        ! Add diagonal term
-        if(s1 .eq. s2) then
-          ! de = e_{u_{s1}, k_{s1}} - e_{o_{s1}, k_{s1}} + scissor
-          de = evalsv(iu1+iuref-1, ik1) - evalsv(io1, ik1)&
-            &+ input%xs%scissor
-          ! BSE-Diag method outputs BINDING energies, i.e. subtract gap energy
-          ham(s1, s2) = ham(s1, s2) + de - egap + bsed
-          if(writeparts) then
-            epart(s1) = de - egap
-          end if
-        end if
-        
-        ! Add exchange term
-        ! + 2* v_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
-        ! * sqrt(abs(f_{o_{s1} k_{s1}} - f_{u_{s1} k_{s1}}))
-        ! * sqrt(abs(f_{o_{s2} k_{s2}} - f_{u_{s2} k_{s2}}))
-        select case(trim(input%xs%bse%bsetype))
-          case('RPA', 'singlet')
-            tmp = 2.d0*excli(io1, iu1, io2, iu2) * ofac(s1) * ofac(s2) 
-            ham(s1,s2) = ham(s1,s2) + tmp 
-            if(writeparts) then
-              vint_re(s1,s2) = dble(tmp)
-              vint_im(s1,s2) = aimag(tmp)
-            end if
-        end select
-
-        ! Add correlation term
-        ! - W_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
-        ! * sqrt(abs(f_{o_{s1} k_{s1}} - f_{u_{s1} k_{s1}}))
-        ! * sqrt(abs(f_{o_{s2} k_{s2}} - f_{u_{s2} k_{s2}}))
-        select case(trim(input%xs%bse%bsetype))
-          case('singlet', 'triplet')
-            tmp = -sccli(io1, iu1, io2, iu2) * ofac(s1)*ofac(s2)
-            ham(s1,s2) = ham(s1,s2) + tmp
-            if(writeparts) then
-              wint_re(s1,s2) = dble(tmp)
-              wint_im(s1,s2) = aimag(tmp)
-            end if
-        end select
-
-      ! End loops over the 2 combined indices
-      end do
-    end do
-
-    if(writeparts) then
-      call writeouthamiltonparts
-      deallocate(epart, vint_re, vint_im, wint_re, wint_im)
-    end if
-
-    deallocate(excli, sccli)
 
     ! Number of excitons to consider
     nexc = input%xs%bse%nexc
@@ -347,20 +228,24 @@ subroutine b_bse
     ! Write Info
     write(unitout,*)
     write(unitout, '("Info(bse): Invoking lapack routine ZHEEVR")')
-    write(unitout, '(" Size of BSE-Hamiltonian	     : ", i8)') hamsize
     write(unitout, '(" Number of requested solutions : ", i8)') nexc
 
     ! Allocate eigenvector and eigenvalue arrays
     allocate(beval(hamsize), bevec(hamsize, nexc))
 
+  write(*,*) "Before diag"
     ! Diagonalize Hamiltonian (destroys the content of ham)
     call timesec(ts0)
     call bsesoldiag(nexc, hamsize, ham, beval, bevec)
     call timesec(ts1)
+  write(*,*) "after diag"
 
     ! Deallocate BSE-Hamiltonian
     deallocate(ham)
+
+  write(*,*) "after ham deallocation"
     write(unitout, '(" Timing (in seconds)	   :", f12.3)') ts1 - ts0
+    write(unitout,*)
 
     ! Calculate oscillator strengths.
     allocate(oszs(nexc,3))
@@ -371,42 +256,33 @@ subroutine b_bse
     ! text file. 
     call writeoscillator(hamsize, nexc, egap, beval, oszs)
 
-#ifdef DGRID
-    ! Stk: If run is within a double grid loop stop here
-    notdgrid: if( .not. dgrid) then
-#endif
+    ! Calculate macroscopic dielectric tensor with finite broadening, i.e. "the spectrum"
+    nw = input%xs%energywindow%points
 
-      ! Calculate macroscopic dielectric tensor with finite broadening, i.e. "the spectrum"
-      nw = input%xs%energywindow%points
+    ! Allocate arrays used in spectrum construction
+    allocate(w(nw))
+    allocate(symspectr(3,3,nw))
 
-      ! Allocate arrays used in spectrum construction
-      allocate(w(nw))
-      allocate(symspectr(3,3,nw))
+    ! Generate an evenly spaced frequency grid 
+    call genwgrid(nw, input%xs%energywindow%intv,&
+      & input%xs%tddft%acont, 0.d0, w_real=w)
 
-      ! Generate an evenly spaced frequency grid 
-      call genwgrid(nw, input%xs%energywindow%intv,&
-        & input%xs%tddft%acont, 0.d0, w_real=w)
+    ! Calculate lattice symmetrized spectrum.
+    call makespectrum(nw, w, symspectr)
 
-      ! Calculate lattice symmetrized spectrum.
-      call makespectrum(nw, w, symspectr)
+    ! Generate and write derived optical quantities
+    iq = 1
+    call writederived(iq, symspectr, nw, w)
 
-      ! Generate and write derived optical quantities
-      iq = 1
-      call writederived(iq, symspectr, nw, w)
+    ! Store excitonic energies and wave functions to file
+    if(associated(input%xs%storeexcitons)) then
+      call storeexcitons(hamsize,nexc, nkptnr, iuref, bcou,smap,beval,bevec)
+    end if
 
-      ! Store excitonic energies and wave functions to file
-      if(associated(input%xs%storeexcitons)) then
-        call storeexcitons(hamsize,nexc, nkptnr, iuref, bcou,smap,beval,bevec)
-      end if
+    ! Clean up
+    deallocate(beval,bevec,oszs,w,symspectr, evalsv)
+    if(associated(input%gw)) deallocate(eval0)
 
-      ! Clean up
-      deallocate(beval,bevec,oszs,w,symspectr)
-      if(associated(input%gw)) deallocate(eval0)
-
-#ifdef DGRID
-    end if notdgrid
-#endif
-    
     call barrier
 
   else mpirank
@@ -417,65 +293,252 @@ subroutine b_bse
 
 contains
 
-  subroutine writeouthamiltonparts
-    use m_getunit
+  subroutine setuphamiltonian(ham, writeparts)
 
-    implicit none
+    complex(8),  intent(inout) :: ham(hamsize, hamsize)
+    logical, intent(in), optional :: writeparts
 
-    integer(4) :: un, a1, a2
+    complex(8), dimension(no,nu,no,nu) :: excli, sccli
+    integer(4) :: ikkp
+    integer(4) :: ik1, ik2
+    integer(4) :: s1l, s1u, s2l, s2u
+    logical :: wp
 
-    ! Write ks transition energies part
-    call getunit(un)
-    open(unit=un, file='EPART.OUT', action='write', status='replace')
-    do a1=1,hamsize
-      write(un,'(SP,E23.16)') epart(a1)
-    end do
-    close(un)
-    call getunit(un)
-    open(unit=un, file='VRE.OUT', action='write', status='replace')
-    do a1=1,hamsize
-      write(un,'(SP,E23.16)', advance='no') vint_re(a1,a2)
-      do a2=2,hamsize
-        write(un, '(SP,1x,E23.16)', advance='no') vint_re(a1,a2)
-      end do
-      write(un,*)
-    end do
-    close(un)
-    call getunit(un)
-    open(unit=un, file='VIM.OUT', action='write', status='replace')
-    do a1=1,hamsize
-      write(un,'(SP,E23.16)', advance='no') vint_im(a1,a2)
-      do a2=2,hamsize
-        write(un, '(SP,1x,E23.16)', advance='no') vint_im(a1,a2)
-      end do
-      write(un,*)
-    end do
-    close(un)
-    call getunit(un)
-    open(unit=un, file='WRE.OUT', action='write', status='replace')
-    do a1=1,hamsize
-      write(un,'(SP,E23.16)', advance='no') wint_re(a1,a2)
-      do a2=2,hamsize
-        write(un, '(SP,1x,E23.16)', advance='no') wint_re(a1,a2)
-      end do
-      write(un,*)
-    end do
-    close(un)
-    call getunit(un)
-    open(unit=un, file='WIM.OUT', action='write', status='replace')
-    do a1=1,hamsize
-      write(un,'(SP,E23.16)', advance='no') wint_im(a1,a2)
-      do a2=2,hamsize
-        write(un, '(SP,1x,E23.16)', advance='no') wint_im(a1,a2)
-      end do
-      write(un,*)
-    end do
-    close(un)
+    real(8), allocatable :: wre(:,:), wim(:,:), vre(:,:), vim(:,:), kstransen(:,:)
 
-  end subroutine writeouthamiltonparts
+    if(present(writeparts)) then
+      wp = writeparts
+    else
+      wp = .false.
+    end if
+    if(wp) then
+      allocate(wre(hamsize,hamsize),wim(hamsize,hamsize))
+      allocate(vre(hamsize,hamsize),vim(hamsize,hamsize))
+      allocate(kstransen(hamsize,hamsize))
+      wre=0.0d0
+      wim=0.0d0
+      vre=0.0d0
+      vim=0.0d0
+      kstransen=0.0d0
+    end if
+
+    ! Set up kkp blocks of Hamiltonian
+    !! Note: If the Hamilton matrix 
+    !! has the elements H_{i,j} and the indices enumerate the
+    !! states according to
+    !! i = {o1u1k1, o1u2k1, ..., o1uMk1,
+    !!      o2uMk1, ..., oMuMk1, o1u1k2, ..., oMuMkN} -> {1,...,M**2N}
+    !! then because of H_{j,i} = H^*_{i,j} only kj = ki,..,kN is 
+    !! needed.
+    do ikkp = 1, nkkp
+
+      ! Read corresponding blocks of W and V from file
+      select case(trim(input%xs%bse%bsetype))
+        case('singlet', 'triplet')
+          ! Read screened coulomb interaction W_{ouki,o'u'kj}
+          call getbsemat('SCCLI.OUT', ikkp, no, nu, sccli)
+      end select
+      select case(trim(input%xs%bse%bsetype))
+        case('RPA', 'singlet')
+          ! Read exchange interaction v_{ouki,o'u'kj}
+          call getbsemat('EXCLI.OUT', ikkp, no, nu, excli)
+      end select
+
+      ! Get ik1 and ik2 from ikkp
+      call kkpmap(ikkp, nkptnr, ik1, ik2)
+
+      ! Calculate where to write the BSE matrix
+      s1l = sum(kousize(1:ik1-1))+1
+      s1u = s1l + kousize(ik1) - 1 
+      s2l = sum(kousize(1:ik2-1))+1
+      s2u = s2l + kousize(ik2) - 1
+
+!write(*,*) "Building for kkp=", ikkp, ":", ik1, ik2
+!write(*,*) "Block", s1l, s1u, ":", s2l, s2u
+
+      ! For blocks on the diagonal, add the KS transition
+      ! energies to the diagonal of the block.
+      if(ik1 .eq. ik2) then
+        if(wp) then
+          call writekstrans(ik1, ham(s1l:s1u,s2l:s2u), remat=kstransen(s1l:s1u,s2l:s2u))
+        else
+          call writekstrans(ik1, ham(s1l:s1u,s2l:s2u))
+        end if
+      end if
+        
+      ! Add exchange term
+      ! + 2* v_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
+      ! * sqrt(abs(f_{o_{s1} k_{s1}} - f_{u_{s1} k_{s1}}))
+      ! * sqrt(abs(f_{o_{s2} k_{s2}} - f_{u_{s2} k_{s2}}))
+      select case(trim(input%xs%bse%bsetype))
+        case('RPA', 'singlet')
+          if(wp) then
+            call addexchange(ik1, ik2,&
+              & ham(s1l:s1u,s2l:s2u), excli,&
+              & ofac(s1l:s1u), ofac(s2l:s2u),&
+              & remat=vre(s1l:s1u,s2l:s2u), immat=vim(s1l:s1u,s2l:s2u))
+          else
+            call addexchange(ik1, ik2,&
+              & ham(s1l:s1u,s2l:s2u), excli, ofac(s1l:s1u), ofac(s2l:s2u))
+          end if
+      end select
+
+      ! Add correlation term
+      ! - W_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
+      ! * sqrt(abs(f_{o_{s1} k_{s1}} - f_{u_{s1} k_{s1}}))
+      ! * sqrt(abs(f_{o_{s2} k_{s2}} - f_{u_{s2} k_{s2}}))
+      select case(trim(input%xs%bse%bsetype))
+        case('singlet', 'triplet')
+          if(wp) then
+            call adddirect(ik1, ik2,&
+              & ham(s1l:s1u,s2l:s2u), sccli,&
+              & ofac(s1l:s1u), ofac(s2l:s2u),&
+              & remat=wre(s1l:s1u,s2l:s2u), immat=wim(s1l:s1u,s2l:s2u))
+          else
+            call adddirect(ik1, ik2,&
+              & ham(s1l:s1u,s2l:s2u), sccli, ofac(s1l:s1u), ofac(s2l:s2u))
+          end if
+      end select
+
+    end do
+
+    if(wp) then
+      call writecmplxparts('W',wre,immat=wim)
+      call writecmplxparts('V',vre,immat=vim)
+      call writecmplxparts('E',kstransen)
+    end if
+
+
+    if(wp) then
+      deallocate(wre,wim)
+      deallocate(vre,vim)
+      deallocate(kstransen)
+    end if
+
+  end subroutine setuphamiltonian
+
+  subroutine writekstrans(ik, hamblock, remat)
+
+    integer(4), intent(in) :: ik
+    complex(8), intent(out) :: hamblock(:,:)
+
+    real(8), intent(out), optional :: remat(:,:)
+
+    integer(4) :: io, iu, iou, is
+    real(8) :: devals(nou)
+
+    real(8) :: tmp
+
+    ! Calculate ks energy differences
+    iou = 0 
+    do io = bcouabs%il1, bcouabs%iu1
+      do iu = bcouabs%il2, bcouabs%iu2
+        iou = iou+1
+        ! de = e_{u, k} - e_{o, k} + scissor
+        devals(iou) = evalsv(iu,ik) - evalsv(io,ik)&
+          &+ input%xs%scissor
+      end do
+    end do
+
+    is=0
+    do iou = 1, nou
+      ! Only add if k o u combination was allowed
+      if(kouflag(iou, ik) == .true.) then
+        is = is +1 
+        ! Subtract gap if present, so that the exciton
+        ! energies will be binding energies.
+        tmp = devals(iou) - egap + bsed
+        if(present(remat)) then
+          remat(is,is) = tmp
+        end if
+        hamblock(is, is) = cmplx(tmp,0.0d0,8)
+      end if
+    end do
+
+  end subroutine writekstrans
+
+  subroutine addexchange(ik1, ik2, hamblock, excli, ofac1, ofac2, remat, immat)
+    integer(4), intent(in) :: ik1, ik2
+    real(8), intent(in) :: ofac1(:), ofac2(:)
+    complex(8), intent(in) :: excli(no,nu,no,nu)
+    complex(8), intent(inout) :: hamblock(:,:)
+    
+    real(8), intent(out), optional :: remat(:,:), immat(:,:)
+
+    integer(4) :: s1, s2
+    integer(4) :: io1, iu1, iou1
+    integer(4) :: io2, iu2, iou2
+    complex(8) :: tmp
+
+    !! If excli would be in shape excli(nou, nou) the 
+    !! following could be done more elegantly.
+    s1=0
+    do iou1 = 1, nou
+      if(kouflag(iou1, ik1) == .false.) cycle
+      s1 = s1 + 1
+      call subhamidx_back(iou1, io1, iu1, bcou%n2)
+      s2=0
+      do iou2 = 1, nou
+        if(kouflag(iou2, ik2) == .false.) cycle
+        s2 = s2 + 1
+        call subhamidx_back(iou2, io2, iu2, bcou%n2)
+        tmp = 2.d0*excli(io1, iu1, io2, iu2) * ofac1(s1) * ofac2(s2)
+        if(present(remat)) then
+          remat(s1,s2) = dble(tmp)
+        end if
+        if(present(immat)) then
+          immat(s1,s2) = aimag(tmp)
+        end if
+        hamblock(s1,s2) = hamblock(s1,s2) + tmp
+      end do
+    end do
+
+  end subroutine addexchange
+
+  subroutine adddirect(ik1, ik2, hamblock, sccli, ofac1, ofac2, remat, immat)
+    integer(4), intent(in) :: ik1, ik2
+    real(8), intent(in) :: ofac1(:), ofac2(:)
+    complex(8), intent(in) :: sccli(no,nu,no,nu)
+    complex(8), intent(inout) :: hamblock(:,:)
+
+    real(8), intent(out), optional :: remat(:,:), immat(:,:)
+    
+    integer(4) :: s1, s2
+    integer(4) :: io1, iu1, iou1
+    integer(4) :: io2, iu2, iou2
+    complex(8) :: tmp
+
+
+    !! If sccli would be in shape sccli(nou, nou) the 
+    !! following could be done more elegantly.
+    s1=0
+    do iou1 = 1, nou
+      if(kouflag(iou1, ik1) == .false.) cycle
+      s1 = s1 + 1
+      call subhamidx_back(iou1, io1, iu1, bcou%n2)
+      s2=0
+      do iou2 = 1, nou
+        if(kouflag(iou2, ik2) == .false.) cycle
+        s2 = s2 + 1
+        call subhamidx_back(iou2, io2, iu2, bcou%n2)
+        tmp = -sccli(io1, iu1, io2, iu2) * ofac1(s1) * ofac2(s2)
+
+        if(present(remat)) then
+          remat(s1,s2) = dble(tmp)
+        end if
+        if(present(immat)) then
+          immat(s1,s2) = aimag(tmp)
+        end if
+        hamblock(s1,s2) = hamblock(s1,s2) + tmp
+
+      end do
+    end do
+
+  end subroutine adddirect
+  
 
   subroutine makeoszillatorstrength(oszstr)
-    use mod_constants, only: zone, zzero
+    use mod_constants, only: zone
     use m_getpmat
     
     implicit none
@@ -489,7 +552,7 @@ contains
     integer(4) :: a1
     
     ! Allocate momentum matrix slice needed.
-    allocate(pmou(3, bcouabs%n1, bcouabs%n2))
+    allocate(pmou(3, no, nu))
     allocate(rmat(hamsize, 3))
 
     ! Loop over 3 directions
@@ -498,10 +561,10 @@ contains
     do a1 = 1, hamsize
       
       ! Get indices
-      io = smap(a1,1)
-      iu = smap(a1,2)        ! Relative 
+      ik = smap(a1,1)
+      io = smap(a1,2)
+      iu = smap(a1,3)        ! Relative 
       iuabs = iu + iuref - 1  ! Absolute
-      ik = smap(a1,3)
 
       ! Read momentum matrix slice for given k-point
       ! if not already present (k index varies the slowest in the smap)
@@ -546,7 +609,6 @@ contains
 
 
   subroutine makespectrum(nfreq, freq, spectrum)
-    use modinput, only: input
     use mod_lattice, only: omega
     use mod_constants, only: zi, pi
     use modxs, only: symt2
@@ -628,6 +690,65 @@ contains
       end do 
     end do
   end subroutine makespectrum
+
+  subroutine writecmplxparts(fbasename, remat, immat, ik1, ik2)
+    use m_getunit
+    character(*), intent(in) :: fbasename
+    real(8), intent(in) :: remat(:,:)
+    real(8), intent(in), optional :: immat(:,:)
+    integer(4), intent(in), optional :: ik1, ik2
+
+    integer(4) :: un, a1, a2, n, m
+    character(256) :: fname, tmp1, tmp2, tmp3
+
+    n = size(remat,1)
+    m = size(remat,2)
+
+    tmp1 = ''
+    if(present(ik1)) then
+      write(tmp1, '(I8)') ik1
+    end if
+    tmp2 = ''
+    if(present(ik2)) then
+      write(tmp2, '(I8)') ik2
+    end if
+    tmp3= trim(adjustl(tmp1))//trim(adjustl(tmp2))
+    if(present(ik1) .or. present(ik2)) then
+      tmp3 = "_"//trim(adjustl(tmp3))
+    end if
+
+    fname =''
+    write(fname,'("Re_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
+
+    call getunit(un)
+    open(unit=un, file=fname, action='write', status='replace')
+    do a1=1,n
+      write(un,'(SP,E23.16)', advance='no') remat(a1,1)
+      do a2=2,m
+        write(un, '(SP,1x,E23.16)', advance='no') remat(a1,a2)
+      end do
+      write(un,*)
+    end do
+    close(un)
+
+    if(present(immat)) then
+      fname =''
+      write(fname,'("Im_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
+
+      call getunit(un)
+      open(unit=un, file=fname, action='write', status='replace')
+      do a1=1,n
+        write(un,'(SP,E23.16)', advance='no') immat(a1,1)
+        do a2=2,m
+          write(un, '(SP,1x,E23.16)', advance='no') immat(a1,a2)
+        end do
+        write(un,*)
+      end do
+      close(un)
+
+    end if
+
+  end subroutine writecmplxparts
     
 end subroutine b_bse
 !EOC

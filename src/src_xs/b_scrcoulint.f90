@@ -31,7 +31,6 @@ subroutine b_scrcoulint
   use m_writevars
   use m_genfilname
   use m_getunit
-  use modbse
 ! !DESCRIPTION:
 !   Calculates the direct term of the Bethe-Salpeter Hamiltonian.
 !
@@ -69,10 +68,29 @@ subroutine b_scrcoulint
   !   main part   !
   !---------------!
 
+  ! emattype 2 selects o-o and u-u combinations
+  input%xs%emattype = 2
 
   call init0
   call init1
   call init2
+
+  ! Set the range of valence/core and conduction states to use
+  ! Lowest occupied state (absolute index)
+  sta1 = input%xs%bse%nstlbse(1) 
+  ! Highest occupied state (absolute index)
+  sto1 = input%xs%bse%nstlbse(2)
+  ! Lowest unoccupied state (counted from first unoccupied state)
+  sta2 = input%xs%bse%nstlbse(3) 
+  ! Highest unoccupied state (counted from first unoccupied state)
+  sto2 = input%xs%bse%nstlbse(4)      
+
+  ! Number of occupied states
+  rnst1 = sto1-sta1+1
+  rnst2 = sto1-sta1+1
+  ! Number of unoccupied states
+  rnst3 = sto2-sta2+1
+  rnst4 = sto2-sta2+1
 
   ! Read Fermi energy from file
   call readfermi
@@ -83,25 +101,27 @@ subroutine b_scrcoulint
   ! Generate gaunt coefficients
   call xsgauntgen(max(input%groundstate%lmaxapw, lolmax),&
     & input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
-
   ! Find indices for non-zero gaunt coefficients
   call findgntn0(max(input%xs%lmaxapwwf, lolmax),&
     & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
 
-  write(unitout, '(a,3i8)') 'Info(' // thisnam // '):&
+  write(unitout, '(a,3i8)') 'info(' // thisnam // '):&
     & Gaunt coefficients generated within lmax values:', input%groundstate%lmaxapw,&
     & input%xs%lmaxemat, input%groundstate%lmaxapw
 
-  write(unitout, '(a, i6)') 'Info(' // thisnam // '): number of q-points: ', nqpt
+  write(unitout, '(a, i6)') 'info(' // thisnam // '): number of q-points: ', nqpt
 
   call flushifc(unitout)
-
-!! Discuss in case of second variation
-  ! Use EVALSV_SCR.OUT in determining the occupation limits
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
-  ! Find occupation bounds for k and k+q but q=0 
-  ! Note: The passed 0 is not a iq index, but acts as a flag.
-  call setranges_modxs(0)
+
+  ! Find occupation bounds for k and k+q but q=0
+  call findocclims(0, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
+  ! Only for systems with a gap in energy
+  if( .not. ksgap) then
+    write(*,*)
+    write(*,'("Warning(",a,"): There is no ks-gap present")') trim(thisnam)
+    write(*,*)
+  end if
 
   ! Check number of empty states
   if(input%xs%screening%nempty .lt. input%groundstate%nempty) then
@@ -114,20 +134,18 @@ subroutine b_scrcoulint
     call terminate
   end if
 
-  ! Set occupied and unoccupied band ranges
-  ! in modbse:bcou and modbse:bcouabs
-  call setbcbs_bse
+  ! Set nstX, istlX, istuX variables for X: 1=o, 2=o, 3=u, 4=u
+  call ematbdcmbs(input%xs%emattype)
 
   ! Number of oo-combinations
-  nst12 = bcou%n1**2
+  nst12 = rnst1 * rnst2
   ! Number of uu-combinations
-  nst34 = bcou%n2**2
+  nst34 = rnst3 * rnst4
   ! Number of ou-combinations
-  nst13 = bcou%n1 * bcou%n2
+  nst13 = rnst1 * rnst3
   ! Number of ou-combinations
-  nst24 = nst13
+  nst24 = rnst2 * rnst4
 
-  ! Write out k,q points 
   call genfilname(dotext='_SCI.OUT', setfilext=.true.)
   if(rank .eq. 0) then
     call writekpts
@@ -141,7 +159,7 @@ subroutine b_scrcoulint
   sccli(:, :, :, :) = zzero
   scieffg(:, :, :) = zzero
 
-  ! Set file extension back to scr
+  ! Set file extension
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
 
   !-----------------------------------!

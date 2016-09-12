@@ -140,7 +140,9 @@ subroutine xstasklauncher
     call idf
     call xsfinit
 
-  else if(trim(input%xs%xstype)=="BSE" .and. (.not. input%xs%bse%xas)) then
+  else if(trim(input%xs%xstype)=="BSE" .and. .not. (input%xs%bse%xas .or. input%xs%bse%beyond)) then
+
+    write(*,*) "Hi, this is xstasklauncher for bse"
 
     ! STK
     ! Apply double grid technique if requested
@@ -235,6 +237,8 @@ subroutine xstasklauncher
     endif
 
   else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%xas) then
+
+  write(*,*) "Hi, this is xstasklauncher for xas"
 
     ! STK
     ! Apply double grid technique if requested
@@ -334,106 +338,74 @@ subroutine xstasklauncher
       input%xs%screening%do = doscreen0
     endif
 
-  else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%beyond) then
+  else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%beyond==.true.) then
 
-    ! STK
-    ! Apply double grid technique if requested
-    if(any(input%xs%bse%ngridksub .gt. 1)) then
-      dgrid = .true.
-    else
-      dgrid = .false.
-      nksubpt = 1
-    endif
+  write(*,*) "Hi, this is xstasklauncher for beyond tda-bse"
 
-    if(dgrid) then
-      ! append xs output
-      input%xs%tappinfo = .true.
-      ! backup input xs vkloff (it will be added to all generated grids)
-      vkloff_xs_b(:) = input%xs%vkloff(:)
-      ! save screening status for later use
-      doscreen0 = input%xs%screening%do
-      ! generate subgrid
-      call genksubpts
-    endif
+    !! Removed dubble grid code, since no-one knows how it works.
+    !! Removed tetra code, since no-one knows if it works.
 
-    subgridk: do iksubpt = 1, nksubpt
+    ! Task 301 corresponds to "xsgeneigvec" plan
+    ! One shot GS calculation with xs%ngridk, xs%nempty and potential xs%vkloff.
+    task = 301
+    write(*,*) "Hi, this is xstasklauncher: statting xsgeneigvec"
+    call xsinit
+    call xsgeneigvec
+    call xsfinit
 
-      if(dgrid) call bsedgridinit
+    ! Task 320 corresponds to "writepmatxs" plan
+    ! Calculates the momentum matrix elements for the xs GS calculation.
+    task = 320
+    write(*,*) "Hi, this is xstasklauncher: statting writepmatxs"
+    call xsinit
+    call writepmatxs
+    call xsfinit
 
-      ! Task 301 corresponds to "xsgeneigvec" plan
-      task = 301
+    ! Task 401 corresponds to "scrgeneigvec" plan
+    ! One shot GS calculation with more empty states xs%screening%nempty 
+    ! but otherwise identical parameters as "xsgeneigvec".
+    task = 401
+    write(*,*) "Hi, this is xstasklauncher: statting scrgeneigvec"
+    call xsinit
+    call scrgeneigvec ! Calls xsgeneigvec 
+    call xsfinit
+
+    ! Task 420 corresponds to "scrwritepmat" plan
+    task = 420
+    write(*,*) "Hi, this is xstasklauncher: statting scrwritepmat"
+    call xsinit
+    call scrwritepmat ! Calls writepmatxs to write PMAT_XS.OUT
+    call xsfinit
+
+    if(input%xs%screening%do .eq. "fromscratch") then
+      ! Task 430 corresponds to "screen" plan
+      task = 430
+      write(*,*) "Hi, this is xstasklauncher: statting screen"
       call xsinit
-      call xsgeneigvec
+      call screen
       call xsfinit
 
-      ! Task 320 corresponds to "writepmatxs" plan
-      task = 320
+      ! Task 440 corresponds to "scrcoulint" plan
+      task = 440
+      write(*,*) "Hi, this is xstasklauncher: statting b_scrcoulint"
       call xsinit
-      call writepmatxs
+      call b_scrcoulint
       call xsfinit
-
-      ! Task 401 corresponds to "scrgeneigvec" plan
-      task = 401
-      call xsinit
-      call scrgeneigvec ! Calls xsgeneigvec
-      call xsfinit
-
-      if((input%xs%tetra%tetradf)) then
-#ifdef TETRA            
-        task = 410
-        call xsinit
-        call scrtetcalccw
-        call xsfinit
-#else
-        ! added by din
-        write(*,*) 'tetrahedron method for xs is disabled!'
-        write(*,*) 'check -dtetra option in make.inc' 
-        stop
-#endif
-      end if
-
-      ! Task 420 corresponds to "scrwritepmat" plan
-      task = 420
-      call xsinit
-      call scrwritepmat ! Calls writepmatxs
-      call xsfinit
-
-      if(input%xs%screening%do .eq. "fromscratch") then
-        ! Task 430 corresponds to "screen" plan
-        task = 430
-        call xsinit
-        call screen
-        call xsfinit
-
-        ! Task 440 corresponds to "scrcoulint" plan
-        task = 440
-        call xsinit
-        call scrcoulint
-        call xsfinit
-      end if
-
-      ! Task 441 corresponds to "exccoulint" plan
-      task = 441
-      call xsinit
-      call exccoulint
-      call xsfinit
-
-      ! Task 445 corresponds to "bse" plan
-      task = 445
-      call xsinit
-      call bse
-      call xsfinit
-
-      if(dgrid) input%xs%screening%do = "skip"
-
-    end do subgridk
-
-    if (dgrid) then
-       call bsedgrid
-       ! restore input settings
-       input%xs%vkloff(:) = vkloff_xs_b(:)
-       input%xs%screening%do = doscreen0
     end if
+
+    ! Task 441 corresponds to "exccoulint" plan
+    task = 441
+    write(*,*) "Hi, this is xstasklauncher: statting b_exccoulint"
+    call xsinit
+    call b_exccoulint
+    call xsfinit
+
+    ! Task 445 corresponds to "bse" plan
+    task = 445
+    write(*,*) "Hi, this is xstasklauncher: statting b_bse"
+    call xsinit
+    call b_bse
+    call xsfinit
 
   else
 

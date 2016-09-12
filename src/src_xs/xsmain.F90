@@ -134,43 +134,47 @@ Subroutine xsmain (plan)
             Call screen
          Case (440)
      ! screened Coulomb interaction
-			if (input%xs%BSE%xas) then
-				Call xasinit
-				Call xas_scrcoulint
-				Call xasfinit
-			else
-				Call scrcoulint
-			end if
+            if (input%xs%BSE%xas) then
+              Call xasinit
+              Call xas_scrcoulint
+              Call xasfinit
+            else if (input%xs%bse%beyond) then
+              call b_scrcoulint
+            else
+              Call scrcoulint
+            end if
          Case (441)
      ! exchange Coulomb interaction
-			 if (input%xs%BSE%xas) then
-				Call xasinit
-				Call xas_exccoulint
-				Call xasfinit
-			else
-				Call exccoulint
-			end if
+          if (input%xs%BSE%xas) then
+            Call xasinit
+            Call xas_exccoulint
+            Call xasfinit
+          else if (input%xs%bse%beyond) then
+            call b_exccoulint
+          else
+            Call exccoulint
+          end if
          Case (445)
      ! Bethe-Salpeter equation
-             if (input%xs%BSE%xas) then
-				Call xasinit
-				Call xas
-				Call xasfinit
-			else
-	            Call BSE
-	        end if
+          if (input%xs%BSE%xas) then
+            Call xasinit
+            Call xas
+            Call xasfinit
+          else if (input%xs%bse%beyond) then
+            call b_bse
+          else
+            Call BSE
+          end if
          Case (446)
      ! regenerate BSE spectrum from exciton output
-
-            if (input%xs%BSE%xas) then
-				call xasinit
-				call bsegenspec
-				call xasfinit
-			else
-				Call bsegenspec
-			end if
-
+          if (input%xs%BSE%xas) then
+            call xasinit
+            call bsegenspec
+            call xasfinit
+          else
             Call bsegenspec
+          end if
+          Call bsegenspec
          Case (447)
      ! ASCII output of BSE eigenvectors
             Call writebevec

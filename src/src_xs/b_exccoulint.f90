@@ -57,6 +57,8 @@ subroutine b_exccoulint
   !---------------!
   !   main part   !
   !---------------!
+  write(*,*) "Hi, this is b_exccoulint"
+
   ! emattype=1 corresponds to 12=ou,34=uo combinations
   input%xs%emattype = 1
 

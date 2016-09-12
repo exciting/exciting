@@ -63,6 +63,7 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
 
     ! k+q-point set
     ikq = ik
+    ! NOTE: ikmapikq has no iq=0 index
     if(iq .ne. 0) ikq = ikmapikq(ik, iq)
 
     ! Get occupancies and eigenvalues

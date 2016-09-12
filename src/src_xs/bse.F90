@@ -103,6 +103,8 @@ subroutine bse
   complex(8) :: tmp
   ! Allocatable arrays
   integer(4), allocatable, dimension(:,:) :: smap
+  integer(4), allocatable, dimension(:) :: kkpblocksize
+  logical, allocatable, dimension(:,:) :: kouflag
   real(8), allocatable, dimension(:) :: ofac, beval, w
   real(8), allocatable, dimension(:,:) :: eval0
   complex(8), allocatable, dimension(:,:) :: ham, bevec, oszs
@@ -187,8 +189,9 @@ subroutine bse
 
     end if
 
-    ! Determine the minimal optical gap, w.r.t. the selected bands
+    ! Determine the minimal optical gap (q=0), w.r.t. the selected bands
     egap = minval(evalsv(bcouabs%il2,1:nkptnr) - evalsv(bcouabs%iu1,1:nkptnr) + input%xs%scissor)
+
     write(unitout, '("Info(bse): gap:", E23.16)') egap
 
     !! In setrages_modxs it was already determined whether the system 
@@ -196,8 +199,9 @@ subroutine bse
     ! Warn if the system has no gap
     if(egap .lt. input%groundstate%epspot) then
       write(unitout,*)
-      write(unitout, '("Warning(bse): the system has no gap")')
+      write(unitout, '("Warning(bse): the system has no gap, setting it to 0")')
       write(unitout,*)
+      egap = 0.0d0
     end if  
 
     !!<-- Inspecting occupancies 
@@ -210,7 +214,7 @@ subroutine bse
     iq = 1
     ! Get adjusted hamsize, index map and occupation factors.
     ! Also write information about skipped combinations to file.
-    call checkoccupancies(iq, nkptnr, bcouabs, hamsize, smap, ofac)
+    call checkoccupancies(iq, nkptnr, bcouabs, hamsize, smap, kouflag, kkpblocksize, ofac)
     !!-->
 
     ! Allocate BSE-Hamiltonian (large matrix, up to several Gb)
@@ -245,12 +249,12 @@ subroutine bse
         !! needed.
 
         ! Get ("conventional") indices from map 
-        io1 = smap(s1,1)
-        iu1 = smap(s1,2)
-        ik1 = smap(s1,3)
-        io2 = smap(s2,1)
-        iu2 = smap(s2,2)
-        ik2 = smap(s2,3)
+        ik1 = smap(s1,1)
+        io1 = smap(s1,2)
+        iu1 = smap(s1,3)
+        ik2 = smap(s2,1)
+        io2 = smap(s2,2)
+        iu2 = smap(s2,3)
 
         ! Get k2-k1 = q for extracting the correct W element
         iv2(:) = ivknr(:, ik2) - ivknr(:, ik1)
@@ -496,10 +500,10 @@ contains
     do a1 = 1, hamsize
       
       ! Get indices
-      io = smap(a1,1)
-      iu = smap(a1,2)        ! Relative 
+      ik = smap(a1,1)
+      io = smap(a1,2)
+      iu = smap(a1,3)        ! Relative 
       iuabs = iu + iuref - 1  ! Absolute
-      ik = smap(a1,3)
 
       ! Read momentum matrix slice for given k-point
       ! if not already present (k index varies the slowest in the smap)
@@ -629,219 +633,3 @@ contains
     
 end subroutine bse
 !EOC
-
-subroutine writederived(iq, eps, nw, w)
-  use modxs, only: fneps, fnloss, fnsigma, fnsumrules
-  use modinput, only: input
-  use m_genfilname
-  use m_genloss
-  use m_gensigma
-  use m_gensumrls
-  use m_writeeps
-  use m_writeloss
-  use m_writesigma
-  use m_writesumrls
-
-  implicit none
-
-  ! Arguments
-  integer(4), intent(in) :: nw, iq
-  real(8), intent(in) :: w(nw)
-  complex(8), intent(in) :: eps(3,3,nw)
-
-  ! Local variables
-  integer(4) :: o1, o2, ol, ou
-  integer(4) :: optvec(3)
-  real(8) :: loss(3, 3, nw)
-  complex(8) :: sigma(nw)
-  real(8) :: sumrls(3)
-
-  ! Generate loss function as inverted dielectric tensor
-  call genloss(eps, loss, 3)
-
-  ! Calculate derived quantities and write them to disk
-  do o1 = 1, 3
-
-    if(input%xs%dfoffdiag) then
-      ol = 1
-      ou = 3
-    else
-      ol = o1
-      ou = o1
-    end if
-
-    do o2 = ol, ou
-
-      optvec = (/ o1, o2, 0 /)
-
-      ! Generate File names for resulting quantities
-      call genfilname(basename='EPSILON', tq0=.true., oc1=o1, oc2=o2,&
-        & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-        & nar= .not. input%xs%bse%aresbse, filnam=fneps)
-
-      call genfilname(basename='LOSS', tq0=.true., oc1=o1, oc2=o2,&
-        & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-        & nar= .not. input%xs%bse%aresbse, filnam=fnloss)
-
-      call genfilname(basename='SIGMA', tq0=.true., oc1=o1, oc2=o2,&
-        & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-        & nar= .not. input%xs%bse%aresbse, filnam=fnsigma)
-
-      call genfilname(basename='SUMRULES', tq0=.true., oc1=o1, oc2=o2,&
-        & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-        & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
-
-
-      ! Generate optical functions
-      call gensigma(w, eps(o1,o2,:), optvec(1:2), sigma)
-      call gensumrls(w, eps(o1,o2,:), sumrls)
-
-      ! Write optical functions to file
-      call writeeps(iq, o1, o2, w, eps(o1,o2,:), trim(fneps)) ! iq not used
-      ! For writeloss iq must be a G+q index.
-      call writeloss(iq, w, loss(o1, o2, :), trim(fnloss))
-      call writesigma(iq, w, sigma, trim(fnsigma))  ! iq not used
-      call writesumrls(iq, sumrls, trim(fnsumrules)) ! iq not used
-
-    ! End loop over optical components
-    end do
-  end do
-end subroutine writederived
-
-subroutine writeoscillator(hamsize, nexc, egap, beval, oszs)
-  use modinput, only: input
-  use modxs, only: bsed, escale
-#ifdef DGRID
-  use modxs, only: dgrid, iksubpt
-#endif
-  use m_genfilname
-  use m_getunit
-  implicit none
-
-  ! I/O
-  integer(4), intent(in) :: hamsize, nexc
-  real(8), intent(in) :: egap, beval(hamsize)
-  complex(8), intent(in) :: oszs(nexc,3)
-
-  ! Local
-  integer(4) :: o1, lambda, unexc
-  character(256) :: fnexc, frmt
-#ifdef DGRID
-  character(256) :: dgrid_dotext
-#endif
-
-  ! Loop over optical components
-  do o1=1,3
-
-#ifdef DGRID
-    ! Stk: Add case of double grid
-    if(dgrid) then 
-
-      write(dgrid_dotext, '("_SG", i3.3, ".OUT")') iksubpt
-
-      call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
-        & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-        & nar= .not. input%xs%bse%aresbse, dotext=dgrid_dotext, filnam=fnexc)
-
-    else
-
-      call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
-        & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-        & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
-      
-    endif
-#else
-    call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
-      & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-      & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
-#endif
-
-    ! Write out exciton energies and oscillator strengths
-    call getunit(unexc)
-    open(unexc, file=fnexc, form='formatted', action='write', status='replace')
-    if(input%xs%tevout) write(unexc, '("# All energies are given in electron volts")')
-    write(unexc, '("# E_bsegap : ", SP, E23.16)') egap * escale
-    frmt='(a1,a7,1x,a23,1x,a23,1x,a23,1x,a23,1x,a23)'
-    write(unexc, frmt) "#", "Nr.",&
-      & "E",&
-      & "E-E_bsegap",&
-      & "|Osc. Str.|",&
-      & "Re(Osc. Str.)",&
-      & "Im(Osc. Str.)"
-    frmt='(I8,1x,E23.16,1x,E23.16,1x,E23.16,1x,E23.16,1x,E23.16)'
-    do lambda = 1, nexc
-      write(unexc, frmt) lambda,&
-        & (beval(lambda)+egap-dble(bsed))*escale,&
-        & (beval(lambda)+dble(bsed))*escale,&
-        & abs(oszs(lambda, o1)),&
-        & dble(oszs(lambda, o1)),&
-        & aimag(oszs(lambda, o1))
-    end do
-    close(unexc)
-
-  end do
-
-end subroutine writeoscillator
-
-subroutine storeexcitons(hamsize, nexc, nkptnr, iuref, bcou, smap, beval, bevec)
-  use modxs, only: bcbs
-  use modinput, only: input
-  use modmpi, only: rank
-  use m_getunit
-
-  implicit none
-
-  ! I/O
-  integer(4), intent(in) :: hamsize, nexc, nkptnr, iuref, smap(hamsize,3)
-  type(bcbs), intent(in) :: bcou
-  real(8), intent(in) :: beval(hamsize)
-  complex(8), intent(in) :: bevec(hamsize,nexc)
-
-  ! Local
-  integer(4) :: stat, ievec, unexc
-
-  !-----------------------------------------------------
-  ! Upon request, store array with exciton coefficients
-  !-----------------------------------------------------
-  if( (input%xs%storeexcitons%minnumberexcitons .lt. 1) .or. &
-    & (input%xs%storeexcitons%minnumberexcitons .gt. nexc) .or. &
-    & (input%xs%storeexcitons%maxnumberexcitons .lt. 1) .or. &
-    & (input%xs%storeexcitons%maxnumberexcitons .gt. nexc) .or. &
-    & (input%xs%storeexcitons%minnumberexcitons .gt. &
-    & input%xs%storeexcitons%maxnumberexcitons) ) then
-
-    write(*,*)
-    write(*,'("Error(bse): Wrong range of exciton indices: ", 2i5)') &
-      & input%xs%storeexcitons%minnumberexcitons,&
-      & input%xs%storeexcitons%maxnumberexcitons
-    write(*,*)
-
-    stop
-  end if  
-
-  ! Write bin
-  call getunit(unexc)
-  open(unexc, file='EXCCOEFF.bin', action='write',form='unformatted', iostat=stat)
-
-  if((stat/=0) .and. (rank==0)) then
-    write(*,*) stat
-    write(*,'("Error(bse): Error creating EXCCOEFF.bin")')
-    write(*,*)
-    stop
-  end if
-
-!! Discuss with author
-  ! Write
-  write(unexc) input%xs%storeexcitons%minnumberexcitons,&
-    & input%xs%storeexcitons%maxnumberexcitons,&
-    & nkptnr, iuref, bcou%il1, bcou%il2, bcou%n1, bcou%n2, hamsize, smap
-
-  do ievec = input%xs%storeexcitons%minnumberexcitons,&
-    & input%xs%storeexcitons%maxnumberexcitons
-
-    write(unexc) beval(ievec), bevec(1:hamsize,ievec)
-  end do
-
-  close(unexc)
-
-end subroutine storeexcitons
