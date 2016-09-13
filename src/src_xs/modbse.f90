@@ -9,6 +9,7 @@ module modbse
   Type(bcbs) :: bcou, bcouabs
   ! Reference states for occupied and unoccupied state indices
   integer(4) :: ioref, iuref 
+  integer(4) :: no, nu, noo, nuu, nou
 
   contains
 
@@ -75,6 +76,17 @@ module modbse
       bcouabs%n2 = bcou%n2
       !!-->
 
+      ! Number of occupied states
+      no = bcou%n1
+      ! Number of unoccupied states
+      nu = bcou%n2
+      ! Number of oo-combinations
+      noo = no * no
+      ! Number of uu-combinations
+      nuu = nu * nu
+      ! Number of ou-combinations
+      nou = no * nu
+
       if(input%xs%dbglev > 2) then
         write(*,*) "modbse:setbcbs_bse"
         write(*,*) "bcou", bcou%n1, bcou%il1, bcou%iu1, bcou%n2, bcou%il2, bcou%iu2
@@ -116,6 +128,8 @@ module modbse
       i2 = tmp - (i1-1)*n2
     end subroutine hamidx_back
     ! Combinded o-u index at one k
+    ! i1 is slow index i2 is fast index, i.e.
+    ! i1/i2 = 11, 12, 13,..., 21,22,23,..., n1n2
     integer(4) function subhamidx(i1, i2, n2)
       implicit none
       integer(4), intent(in) :: i1, i2, n2

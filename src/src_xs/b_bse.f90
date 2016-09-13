@@ -92,7 +92,7 @@ subroutine b_bse
   ! Variables
   integer(4) :: iknr, iq, nw
   integer(4) :: hamsize, nexc
-  integer(4) :: no, nu, nou, nkkp
+  integer(4) :: nkkp
   real(8) :: egap, ts0, ts1
 
   ! Allocatable arrays
@@ -107,8 +107,6 @@ subroutine b_bse
 
   ! Routine not yet parallelized
   mpirank: if(rank .eq. 0) then
-
-    write(*,*) "Hi, this is b_bse."
 
     ! General init
     call init0
@@ -201,10 +199,6 @@ subroutine b_bse
 
     ! Number of kkp combinations with ikp >= ik
     nkkp = nkptnr*(nkptnr+1)/2
-    ! Number of o u combinations
-    no  = bcou%n1
-    nu  = bcou%n2
-    nou = no * nu
 
     ! Write Info
     write(unitout,*)
@@ -348,9 +342,6 @@ contains
       s2l = sum(kousize(1:ik2-1))+1
       s2u = s2l + kousize(ik2) - 1
 
-!write(*,*) "Building for kkp=", ikkp, ":", ik1, ik2
-!write(*,*) "Block", s1l, s1u, ":", s2l, s2u
-
       ! For blocks on the diagonal, add the KS transition
       ! energies to the diagonal of the block.
       if(ik1 .eq. ik2) then
@@ -465,8 +456,6 @@ contains
     integer(4) :: io2, iu2, iou2
     complex(8) :: tmp
 
-    !! If excli would be in shape excli(nou, nou) the 
-    !! following could be done more elegantly.
     s1=0
     do iou1 = 1, nou
       if(kouflag(iou1, ik1) == .false.) cycle
@@ -504,8 +493,6 @@ contains
     complex(8) :: tmp
 
 
-    !! If sccli would be in shape sccli(nou, nou) the 
-    !! following could be done more elegantly.
     s1=0
     do iou1 = 1, nou
       if(kouflag(iou1, ik1) == .false.) cycle
