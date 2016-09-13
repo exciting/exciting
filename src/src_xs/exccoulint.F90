@@ -284,7 +284,7 @@ subroutine exccoulint
     end do
 
     ! Parallel write
-    call putbsemat('EXCLI.OUT', excli, ikkp, iknr, jknr,&
+    call putbsemat('EXCLI.OUT', 77, excli, ikkp, iknr, jknr,&
       & iq, iqr, rnst1, rnst2, rnst4, rnst3)
     call genfilname(dotext='_SCI.OUT', setfilext=.true.)
 

@@ -50,10 +50,10 @@ subroutine b_exccoulint
   integer(4) :: io1, io2, iu1, iu2
 
   real(8), allocatable :: potcl(:)
-  complex(8), allocatable :: excli(:, :, :, :)
   complex(8), allocatable :: emat12(:, :), emat34(:, :)
-  complex(8), allocatable :: ematouk(:, :, :, :)
-  complex(8), allocatable :: mou(:, :, :)
+  complex(8), allocatable :: excli(:, :, :, :), exclic(:, :, :, :)
+  complex(8), allocatable :: ematouk(:, :, :, :), ematuok(:, :, :, :)
+  complex(8), allocatable :: mou(:, :, :), muo(:,:,:)
 
   !---------------!
   !   main part   !
@@ -125,14 +125,26 @@ subroutine b_exccoulint
   call ematrad(iqmt)
 
   allocate(potcl(numgq))
-  allocate(excli(no, nu, no, nu))
-  allocate(ematouk(no, nu, numgq, nkptnr))
-  allocate(emat12(nou, numgq), emat34(nou, numgq))
+  potcl = 0.d0
 
-  potcl(:) = 0.d0
-  excli(:, :, :, :) = zzero
+  allocate(excli(no, nu, no, nu))
+  excli = zzero
+  allocate(ematouk(no, nu, numgq, nkptnr))
+  ematouk = zzero
+
+  if(input%xs%bse%beyond == .true.) then
+    allocate(exclic(no, nu, no, nu))
+    exclic=zzero
+    allocate(ematuok(nu, no, numgq, nkptnr))
+    ematuok=zzero
+  end if
+
+  allocate(emat12(nou, numgq), emat34(nou, numgq))
+  emat12=zzero
+  emat34=zzero
 
   !!<-- Generate M_ouk(G,0) for all k
+  !!<-- If not TDA, then also generate M_uok(G,0) for all k
   !---------------------------!
   !     Loop over k-points    !
   !---------------------------!
@@ -147,16 +159,26 @@ subroutine b_exccoulint
   ! quantities for use in ematqk
   call ematqalloc
 
+  ! MPI distributed loop
   do iknr = kpari, kparf
     ! Get plane wave elements for ou combinations 
     ! for non reduced k and q=0 
-    call getpwes(iqmt, iknr, mou)
+    call getmou(iqmt, iknr, mou)
     ! Save them for all ks
     ematouk(:, :, :, iknr) = mou
+
+    if(input%xs%bse%beyond == .true.) then
+      call getmuo(iqmt, iknr, muo)
+      ematuok(:,:,:,iknr) = muo
+    end if
+
   end do
 
   ! Communicate array-parts wrt. k-points
   call mpi_allgatherv_ifc(nkptnr,no*nu*numgq,zbuf=ematouk)
+  if(input%xs%bse%beyond == .true.) then
+    call mpi_allgatherv_ifc(nkptnr,no*nu*numgq,zbuf=ematuok)
+  end if
   !!-->
 
   !-------------------------------!
@@ -205,17 +227,31 @@ subroutine b_exccoulint
     call makeexcli()
 
     ! Parallel write
-    call putbsemat('EXCLI.OUT', excli, ikkp, iknr, jknr,&
+    call putbsemat('EXCLI.OUT', 77, excli, ikkp, iknr, jknr,&
       & iq, iqr, no, nu, no, nu)
+
+    if(input%xs%bse%beyond == .true.) then
+      call putbsemat('EXCLIC.OUT', 78, exclic, ikkp, iknr, jknr,&
+        & iq, iqr, no, nu, no, nu)
+    end if
 
   ! End loop over(k,kp) pairs
   end do kkp
-
+  
   call barrier
+
   call findgntn0_clear
 
-  deallocate(ematouk, emat12, emat34)
-  deallocate(potcl, excli)
+  deallocate(potcl) 
+  deallocate(emat12, emat34)
+  deallocate(ematouk)
+  deallocate(excli)
+  deallocate(mou)
+  if(input%xs%bse%beyond == .true.) then
+    deallocate(ematuok)
+    deallocate(exclic)
+    deallocate(muo)
+  end if
 
   if(rank .eq. 0) then
     write(unitout, '(a)') "Info(" // trim(thisnam) // "):&
@@ -224,7 +260,7 @@ subroutine b_exccoulint
 
   contains 
 
-    subroutine getpwes(iqnr, iknr, mou)
+    subroutine getmou(iqnr, iknr, mou)
       integer(4), intent(in) :: iqnr , iknr
       complex(8), allocatable, intent(out) :: mou(:,:,:)
 
@@ -239,6 +275,7 @@ subroutine b_exccoulint
       ematbc%il2=bcouabs%il2
       ematbc%iu2=bcouabs%iu2
 
+      !! As long as q=0 this should not be needed
       ! Allocate space for M_{o1o2,G} at fixed (k, q)
       if(allocated(mou)) deallocate(mou)
       allocate(mou(no,nu,numgq))
@@ -246,12 +283,38 @@ subroutine b_exccoulint
       ! Calculate M_{o1o2,G} at fixed (k, q)
       call ematqk(iqnr, iknr, mou, ematbc)
 
-    end subroutine getpwes
+    end subroutine getmou
+
+    subroutine getmuo(iqnr, iknr, muo)
+      integer(4), intent(in) :: iqnr , iknr
+      complex(8), allocatable, intent(out) :: muo(:,:,:)
+
+      type(bcbs) :: ematbc
+
+      !! Calculate the uo plane wave elements
+      ! Pack selected uo combinations in struct
+      ematbc%n1=nu
+      ematbc%il1=bcouabs%il2
+      ematbc%iu1=bcouabs%iu2
+      ematbc%n2=no
+      ematbc%il2=bcouabs%il1
+      ematbc%iu2=bcouabs%iu1
+
+      !! As long as q=0 this should not be needed
+      ! Allocate space for M_{o1o2,G} at fixed (k, q)
+      if(allocated(muo)) deallocate(muo)
+      allocate(muo(nu,no,numgq))
+
+      ! Calculate M_{o1o2,G} at fixed (k, q)
+      call ematqk(iqnr, iknr, muo, ematbc)
+
+    end subroutine getmuo
 
     subroutine makeexcli
 
       complex(8) :: exclit(nou,nou) 
 
+      !!<-- RR and RA part
       j1 = 0
       ! Unoccupied (k+q)
       do iu1 = 1, nu
@@ -262,40 +325,70 @@ subroutine b_exccoulint
           emat12(j1, :) = ematouk(io1, iu1, :, iknr)
         end do
       end do
+      emat12 = conjg(emat12)
+      !!-->
 
+      !!<-- RR part
       j2 = 0
       ! Unoccupied
       do iu2 =1, nu
         ! Occupied
         do io2 = 1, no
           j2 = j2 + 1
-          ! emat34_j = (M_o1u1kj, M_o2u1kj, ..., M_oNu1kj, M_o1u2kj, ..., M_oNuNkj)*v(G,0)
+          ! emat34_j = (M_o1u1kj, M_o2u1kj, ..., M_oNu1kj, M_o1u2kj, ..., M_oNuMkj)*v(G,0)
           emat34(j2, :) = ematouk(io2, iu2, :, jknr) * potcl(:)
         end do
       end do
-
       ! Calculate exchange matrix elements: v_{1234} = m_{12}^* m_{34}^t
-      emat12 = conjg(emat12)
       call zgemm('n', 't', nou, nou, numgq, zone/omega/nkptnr,&
         & emat12, nou, emat34, nou, zzero, exclit, nou)
-
       ! Map back to individual band indices
       j2 = 0
       do iu2 = 1, nu
         do io2 = 1, no
           j2 = j2 + 1
-
           j1 = 0
           do iu1 = 1, nu
             do io1 = 1, no
               j1 = j1 + 1
-
               excli(io1, iu1, io2, iu2) = exclit(j1, j2)
-
             end do
           end do
         end do
       end do
+      !!-->
+
+      if(input%xs%bse%beyond == .true.) then
+        !!<-- RA part
+        j2 = 0
+        ! Unoccupied (k)
+        do iu2 =1, nu
+          ! Occupied (k+q)
+          do io2 = 1, no
+            j2 = j2 + 1
+            ! emat34_j = (M_u1o1kj, M_u1o2kj, ..., M_u1oMkj, M_u2o1kj, ..., M_uNoMkj)*v(G,0)
+            emat34(j2, :) = ematuok(iu2, io2, :, jknr) * potcl(:)
+          end do
+        end do
+        ! Calculate coupling exchange matrix elements: v_{1234} = m_{12}^* m_{34}^t
+        call zgemm('n', 't', nou, nou, numgq, zone/omega/nkptnr,&
+          & emat12, nou, emat34, nou, zzero, exclit, nou)
+        ! Map back to individual band indices
+        j2 = 0
+        do iu2 = 1, nu
+          do io2 = 1, no
+            j2 = j2 + 1
+            j1 = 0
+            do iu1 = 1, nu
+              do io1 = 1, no
+                j1 = j1 + 1
+                exclic(io1, iu1, io2, iu2) = exclit(j1, j2)
+              end do
+            end do
+          end do
+        end do
+        !!-->
+      end if
     end subroutine makeexcli
 
 end subroutine b_exccoulint

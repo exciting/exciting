@@ -5,7 +5,7 @@
 !BOP
 ! !ROUTINE: putbsemat
 ! !INTERFACE:
-subroutine putbsemat(fname, zmat, ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4)
+subroutine putbsemat(fname, tag, zmat, ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4)
 ! !USES:
   use mod_kpoint, only: nkptnr
   use modmpi
@@ -27,11 +27,12 @@ subroutine putbsemat(fname, zmat, ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4)
   character(*), intent(in) :: fname
   complex(8), intent(in) :: zmat(n1, n2, n3, n4)
   integer, intent(in) :: ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4
+  integer, intent(in) :: tag
 
   ! Local variables
   integer :: reclen, un, iknrr, jknrr, ikkpr, iq_r, iqr_r
 #ifdef MPI
-  integer :: nkkp, iproc, tag, status(mpi_status_size)
+  integer :: nkkp, iproc, stat(mpi_status_size)
 #endif
 
   ikkpr = ikkp
@@ -44,7 +45,6 @@ subroutine putbsemat(fname, zmat, ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4)
   inquire(iolength=reclen) ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4, zmat
 
 #ifdef MPI
-  tag = 77
   nkkp = (nkptnr*(nkptnr+1)) / 2
 
   if(rank .ne. 0) call mpi_send(zmat, size(zmat), mpi_double_complex, 0, tag, mpi_comm_world, ierr)
@@ -56,7 +56,7 @@ subroutine putbsemat(fname, zmat, ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4)
 
       if(iproc .ne. 0) then
         ! Receive data from slaves
-        call mpi_recv(zmat, size(zmat), mpi_double_complex, iproc, tag, mpi_comm_world, status, ierr)
+        call mpi_recv(zmat, size(zmat), mpi_double_complex, iproc, tag, mpi_comm_world, stat, ierr)
       end if
 #endif
       ! Only the master is performing file i/o

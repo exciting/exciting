@@ -225,7 +225,7 @@ if (.false.) then
 endif
 !
      ! parallel write
-         Call putbsemat ('EXCLI.OUT', excli, ikkp, iknr, jknr, iq, iqr, &
+         Call putbsemat ('EXCLI.OUT', 77, excli, ikkp, iknr, jknr, iq, iqr, &
         & rnst1, rnst2, rnst4, rnst3)
          Call genfilname (dotext='_SCI.OUT', setfilext=.True.)
 !

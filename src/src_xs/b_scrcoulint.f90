@@ -342,7 +342,7 @@ subroutine b_scrcoulint
     end if
 
     ! Parallel write
-    call putbsemat('SCCLI.OUT', sccli, ikkp, iknr, jknr,&
+    call putbsemat('SCCLI.OUT', 77, sccli, ikkp, iknr, jknr,&
       & iq, iqr, no, nu, no, nu)
 
     deallocate(moo, muu, cmoo, cmuu)

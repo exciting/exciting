@@ -391,7 +391,7 @@ subroutine scrcoulint
     end if
 
     ! Parallel write
-    call putbsemat('SCCLI.OUT', sccli, ikkp, iknr, jknr,&
+    call putbsemat('SCCLI.OUT', 77, sccli, ikkp, iknr, jknr,&
       & iq, iqr, rnst1, rnst3, rnst2, rnst4)
 
     deallocate(igqmap, emat12, emat34)
