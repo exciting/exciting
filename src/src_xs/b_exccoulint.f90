@@ -43,6 +43,7 @@ subroutine b_exccoulint
   character(*), parameter :: thisnam = 'exccoulint'
   integer, parameter :: iqmt = 1
 
+  logical :: fcoup
   integer :: iknr, jknr, iqr, iq, igq1, numgq
   integer :: iv(3), j1, j2
   integer :: ikkp, nkkp
@@ -132,7 +133,9 @@ subroutine b_exccoulint
   allocate(ematouk(no, nu, numgq, nkptnr))
   ematouk = zzero
 
-  if(input%xs%bse%beyond == .true.) then
+  ! Include coupling terms
+  fcoup = input%xs%bse%coupling
+  if(fcoup == .true.) then
     allocate(exclic(no, nu, no, nu))
     exclic=zzero
     allocate(ematuok(nu, no, numgq, nkptnr))
@@ -167,7 +170,7 @@ subroutine b_exccoulint
     ! Save them for all ks
     ematouk(:, :, :, iknr) = mou
 
-    if(input%xs%bse%beyond == .true.) then
+    if(fcoup == .true.) then
       call getmuo(iqmt, iknr, muo)
       ematuok(:,:,:,iknr) = muo
     end if
@@ -176,7 +179,7 @@ subroutine b_exccoulint
 
   ! Communicate array-parts wrt. k-points
   call mpi_allgatherv_ifc(nkptnr,no*nu*numgq,zbuf=ematouk)
-  if(input%xs%bse%beyond == .true.) then
+  if(fcoup == .true.) then
     call mpi_allgatherv_ifc(nkptnr,no*nu*numgq,zbuf=ematuok)
   end if
   !!-->
@@ -230,7 +233,7 @@ subroutine b_exccoulint
     call putbsemat('EXCLI.OUT', 77, excli, ikkp, iknr, jknr,&
       & iq, iqr, no, nu, no, nu)
 
-    if(input%xs%bse%beyond == .true.) then
+    if(fcoup == .true.) then
       call putbsemat('EXCLIC.OUT', 78, exclic, ikkp, iknr, jknr,&
         & iq, iqr, no, nu, no, nu)
     end if
@@ -247,7 +250,7 @@ subroutine b_exccoulint
   deallocate(ematouk)
   deallocate(excli)
   deallocate(mou)
-  if(input%xs%bse%beyond == .true.) then
+  if(fcoup == .true.) then
     deallocate(ematuok)
     deallocate(exclic)
     deallocate(muo)
@@ -358,7 +361,7 @@ subroutine b_exccoulint
       end do
       !!-->
 
-      if(input%xs%bse%beyond == .true.) then
+      if(fcoup == .true.) then
         !!<-- RA part
         j2 = 0
         ! Unoccupied (k)

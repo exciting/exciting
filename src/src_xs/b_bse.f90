@@ -94,6 +94,7 @@ subroutine b_bse
   integer(4) :: hamsize, nexc
   integer(4) :: nkkp
   real(8) :: egap, ts0, ts1
+  logical :: fcoup, fwp
 
   ! Allocatable arrays
   integer(4), allocatable, dimension(:) :: kousize
@@ -193,23 +194,34 @@ subroutine b_bse
     call checkoccupancies(iq, nkptnr, bcouabs, hamsize, smap, kouflag, kousize, ofac)
     !!-->
 
-    ! Allocate BSE-Hamiltonian (large matrix, up to several Gb)
-    allocate(ham(hamsize, hamsize))
-    ham(:, :) = zzero
-
     ! Number of kkp combinations with ikp >= ik
     nkkp = nkptnr*(nkptnr+1)/2
 
+    ! Include coupling terms
+    fcoup = input%xs%bse%coupling
+    fwp = input%xs%bse%writeparts
+
     ! Write Info
-    write(unitout,*)
-    write(unitout, '("Info(bse): Assembling BSE matrix")')
-    write(unitout, '(" BSE-Hamiltonian: Shape=",i4, " Size=",i8)') hamsize, hamsize**2
+    if(rank == 0) then
+      write(unitout,*)
+      write(unitout, '("Info(bse): Assembling BSE matrix")')
+      write(unitout, '("RR/RA blocks of BSE-Hamiltonian: Shape=",i4, " Size=",i8)') hamsize, hamsize**2
+      if(fcoup) then
+        write(unitout, '(" Including coupling terms ")')
+        write(unitout, '(" Full BSE-Hamiltonian: Shape=",i4, " Size=",i8)') 2*hamsize, 4*hamsize**2
+      end if
+      if(fwp) then
+        write(unitout, '(" Writing real and imaginary parts of Hamiltonian to file ")')
+      end if
+    end if
     ! Assemble Hamiltonian matrix 
     call timesec(ts0)
-    call setuphamiltonian(ham, .true.)
+    call setuphamiltonian(ham, fwp)
     call timesec(ts1)
     write(unitout, '(" Timing (in seconds)	   :", f12.3)') ts1 - ts0
 
+!! Needs to be adjusted for use with coupling
+if(.not. fcoup) then
 
     ! Number of excitons to consider
     nexc = input%xs%bse%nexc
@@ -221,6 +233,7 @@ subroutine b_bse
     write(unitout,*)
     write(unitout, '("Info(bse): Invoking lapack routine ZHEEVR")')
     write(unitout, '(" Number of requested solutions : ", i8)') nexc
+
 
     ! Allocate eigenvector and eigenvalue arrays
     allocate(beval(hamsize), bevec(hamsize, nexc))
@@ -272,6 +285,8 @@ subroutine b_bse
     deallocate(beval,bevec,oszs,w,symspectr, evalsv)
     if(associated(input%gw)) deallocate(eval0)
 
+end if
+
     call barrier
 
   else mpirank
@@ -284,31 +299,66 @@ contains
 
   subroutine setuphamiltonian(ham, writeparts)
 
-    complex(8),  intent(inout) :: ham(hamsize, hamsize)
+    !! I/O
     logical, intent(in), optional :: writeparts
+    complex(8), allocatable, intent(out) :: ham(:, :)
 
-    complex(8), dimension(no,nu,no,nu) :: excli, sccli
+    !! Local variables
+    ! Flags
+    logical :: wp
+    ! Indices
     integer(4) :: ikkp
     integer(4) :: ik1, ik2
     integer(4) :: s1l, s1u, s2l, s2u
-    logical :: wp
-
+    ! Work arrays
+    complex(8), allocatable, dimension(:,:) :: rrham, raham
+    complex(8), allocatable, dimension(:,:,:,:) :: excli, sccli
+    complex(8), allocatable, dimension(:,:,:,:) :: exclic, scclic
+    ! Arrays for optional output, only allocated when writeparts=.true.
     real(8), allocatable :: wre(:,:), wim(:,:), vre(:,:), vim(:,:), kstransen(:,:)
+    real(8), allocatable :: wcre(:,:), wcim(:,:), vcre(:,:), vcim(:,:)
 
+    ! Check if matrices should be written out to human readable files.
     if(present(writeparts)) then
       wp = writeparts
     else
       wp = .false.
     end if
     if(wp) then
+      allocate(kstransen(hamsize,hamsize))
+      kstransen=0.0d0
+      ! Real and imaginary parts of resonant-resonant parts
       allocate(wre(hamsize,hamsize),wim(hamsize,hamsize))
       allocate(vre(hamsize,hamsize),vim(hamsize,hamsize))
-      allocate(kstransen(hamsize,hamsize))
       wre=0.0d0
       wim=0.0d0
       vre=0.0d0
       vim=0.0d0
-      kstransen=0.0d0
+      if(input%xs%bse%beyond == .true.) then
+        ! Real and imaginary parts of resonant-anti-resonant parts
+        allocate(wcre(hamsize,hamsize),wcim(hamsize,hamsize))
+        allocate(vcre(hamsize,hamsize),vcim(hamsize,hamsize))
+        wcre=0.0d0
+        wcim=0.0d0
+        vcre=0.0d0
+        vcim=0.0d0
+      end if
+    end if
+
+    ! Allocate and zero work arrays
+    allocate(rrham(hamsize, hamsize)) ! Resonant-reonant part of Hamiltonian
+    allocate(excli(no,nu,no,nu))      ! RR part of V, to be read from file
+    allocate(sccli(no,nu,no,nu))      ! RR part of W, to be read from file
+    rrham = zzero
+    excli = zzero
+    sccli = zzero
+    if(input%xs%bse%beyond == .true.) then
+      allocate(raham(hamsize, hamsize)) ! Resonant-anit-resonant part of Hamiltonian
+      allocate(exclic(no,nu,no,nu))     ! RA part of V, to be read from file
+      allocate(scclic(no,nu,no,nu))     ! RA part of W, to be read from file
+      raham = zzero
+      exclic = zzero
+      scclic = zzero
     end if
 
     ! Set up kkp blocks of Hamiltonian
@@ -321,37 +371,44 @@ contains
     !! needed.
     do ikkp = 1, nkkp
 
-      ! Read corresponding blocks of W and V from file
+      ! Read corresponding ikkp blocks of W and V from file
       select case(trim(input%xs%bse%bsetype))
         case('singlet', 'triplet')
-          ! Read screened coulomb interaction W_{ouki,o'u'kj}
+          ! Read RR part of screened coulomb interaction W_{ouki,o'u'kj}
           call getbsemat('SCCLI.OUT', ikkp, no, nu, sccli)
       end select
+
       select case(trim(input%xs%bse%bsetype))
         case('RPA', 'singlet')
-          ! Read exchange interaction v_{ouki,o'u'kj}
+          ! Read RR part of exchange interaction v_{ouki,o'u'kj}
           call getbsemat('EXCLI.OUT', ikkp, no, nu, excli)
+          if(input%xs%bse%beyond == .true.) then
+            ! Read RA part of exchange interaction vc_{ouki,o'u'kj}
+            call getbsemat('EXCLIC.OUT', ikkp, no, nu, exclic)
+          end if
       end select
 
       ! Get ik1 and ik2 from ikkp
       call kkpmap(ikkp, nkptnr, ik1, ik2)
 
-      ! Calculate where to write the BSE matrix
-      s1l = sum(kousize(1:ik1-1))+1
+      ! Calculate where to write the ikkp block in the BSE matrix
+      s1l = sum(kousize(1:ik1-1)) + 1
       s1u = s1l + kousize(ik1) - 1 
-      s2l = sum(kousize(1:ik2-1))+1
+      s2l = sum(kousize(1:ik2-1)) + 1
       s2u = s2l + kousize(ik2) - 1
 
+      !! RR part
       ! For blocks on the diagonal, add the KS transition
       ! energies to the diagonal of the block.
       if(ik1 .eq. ik2) then
         if(wp) then
-          call writekstrans(ik1, ham(s1l:s1u,s2l:s2u), remat=kstransen(s1l:s1u,s2l:s2u))
+          call writekstrans(ik1, rrham(s1l:s1u,s2l:s2u), remat=kstransen(s1l:s1u,s2l:s2u))
         else
-          call writekstrans(ik1, ham(s1l:s1u,s2l:s2u))
+          call writekstrans(ik1, rrham(s1l:s1u,s2l:s2u))
         end if
       end if
         
+      !! RR and RA part
       ! Add exchange term
       ! + 2* v_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
       ! * sqrt(abs(f_{o_{s1} k_{s1}} - f_{u_{s1} k_{s1}}))
@@ -360,15 +417,26 @@ contains
         case('RPA', 'singlet')
           if(wp) then
             call addexchange(ik1, ik2,&
-              & ham(s1l:s1u,s2l:s2u), excli,&
+              & rrham(s1l:s1u,s2l:s2u), excli,&
               & ofac(s1l:s1u), ofac(s2l:s2u),&
               & remat=vre(s1l:s1u,s2l:s2u), immat=vim(s1l:s1u,s2l:s2u))
+            if(input%xs%bse%beyond == .true.) then
+              call addexchange(ik1, ik2,&
+                & raham(s1l:s1u,s2l:s2u), exclic,&
+                & ofac(s1l:s1u), ofac(s2l:s2u),&
+                & remat=vcre(s1l:s1u,s2l:s2u), immat=vcim(s1l:s1u,s2l:s2u))
+            end if
           else
             call addexchange(ik1, ik2,&
-              & ham(s1l:s1u,s2l:s2u), excli, ofac(s1l:s1u), ofac(s2l:s2u))
+              & rrham(s1l:s1u,s2l:s2u), excli,&
+              & ofac(s1l:s1u), ofac(s2l:s2u))
+            if(input%xs%bse%beyond == .true.) then
+              call addexchange(ik1, ik2,&
+                & raham(s1l:s1u,s2l:s2u), exclic,&
+                & ofac(s1l:s1u), ofac(s2l:s2u))
+            end if
           end if
       end select
-
       ! Add correlation term
       ! - W_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
       ! * sqrt(abs(f_{o_{s1} k_{s1}} - f_{u_{s1} k_{s1}}))
@@ -377,31 +445,93 @@ contains
         case('singlet', 'triplet')
           if(wp) then
             call adddirect(ik1, ik2,&
-              & ham(s1l:s1u,s2l:s2u), sccli,&
+              & rrham(s1l:s1u,s2l:s2u), sccli,&
               & ofac(s1l:s1u), ofac(s2l:s2u),&
               & remat=wre(s1l:s1u,s2l:s2u), immat=wim(s1l:s1u,s2l:s2u))
           else
             call adddirect(ik1, ik2,&
-              & ham(s1l:s1u,s2l:s2u), sccli, ofac(s1l:s1u), ofac(s2l:s2u))
+              & rrham(s1l:s1u,s2l:s2u), sccli, ofac(s1l:s1u), ofac(s2l:s2u))
           end if
       end select
 
     end do
 
+    ! Optional write (use only with small problem sizes!)
     if(wp) then
       call writecmplxparts('W',wre,immat=wim)
       call writecmplxparts('V',vre,immat=vim)
       call writecmplxparts('E',kstransen)
-    end if
-
-
-    if(wp) then
+      if(input%xs%bse%beyond == .true.) then
+        call writecmplxparts('VC',vcre,immat=vcim)
+      end if
+      ! Make some room
       deallocate(wre,wim)
       deallocate(vre,vim)
       deallocate(kstransen)
+      if(input%xs%bse%beyond == .true.) then
+        deallocate(wcre,wcim)
+        deallocate(vcre,vcim)
+      end if
+    end if
+
+    !! Assemble full Hamiltonian from blocks
+    if(.not. fcoup) then
+      ! Just use the RR part, rrham is deallocated afterwards
+      call move_alloc(rrham, ham)
+    else
+      call makefullham(ham, rrham, raham)
+    end if
+
+    ! Work arrays
+    deallocate(excli)
+    deallocate(sccli)
+    if(input%xs%bse%beyond == .true.) then
+      deallocate(rrham)
+      deallocate(raham)
+      deallocate(exclic)
+      deallocate(scclic)
     end if
 
   end subroutine setuphamiltonian
+
+  subroutine makefullham(ham, rrham, raham)
+    complex(8), allocatable, intent(out) :: ham(:,:)
+    complex(8), intent(inout) :: rrham(hamsize,hamsize)
+    complex(8), intent(inout) :: raham(hamsize,hamsize)
+
+    integer(4) :: i, j
+
+    ! Make rrham explicitly hermitian, since
+    ! only the upper triangle was constructed.
+    do i=1, hamsize
+      ! Set imaginary part of diagonal exactly 0.
+      ! (It should be zero anyways, but this is a precaution)
+      rrham(i,i) = cmplx(dble(rrham(i,i)), 0.0d0, 8)
+      do j=i+1, hamsize
+        rrham(j,i) = conjg(rrham(i,j))
+      end do
+    end do
+
+    ! Make raham explicitly symmetric.
+    do i=1, hamsize
+      do j=i, hamsize
+        raham(j,i) = raham(i,j)
+      end do
+    end do
+
+    ! Build the 4 blocks of the Hamiltonian
+    allocate(ham(2*hamsize,2*hamsize))
+    ham = zzero
+    ! RR
+    ham(1:hamsize, 1:hamsize) = rrham
+    ! RA
+    ham(1:hamsize, hamsize+1:2*hamsize) = raham
+    ! AR
+    ham(hamsize+1:2*hamsize, 1:hamsize) = -conjg(raham)
+    ! AA
+    ham(hamsize+1:2*hamsize, hamsize+1:2*hamsize) = -conjg(rrham)
+
+  end subroutine makefullham
 
   subroutine writekstrans(ik, hamblock, remat)
 
