@@ -82,11 +82,11 @@ subroutine dielmat
     end do
 
 ! calculate momentum matrix elements
-    if (rank==0) then
-        write(*,*)
-        write(*,'("  Calculate the momentum matrix elements")')
-    end if
-    call writepmat
+    !if (rank==0) then
+    !    write(*,*)
+    !    write(*,'("  Calculate the momentum matrix elements")')
+    !end if
+    !call writepmat
 
 ! the momentum matrix elements
     allocate(pmat(3,nstsv,nstsv))
@@ -279,13 +279,9 @@ subroutine dielmat
             write(*, '("  Optical conductivity tensor written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             do iw = 1, wgrid
-                write(60, '(2G18.10)') t1*w(iw), dble(sigma(iw))
+                write(60, '(3G18.10)') t1*w(iw), sigma(iw)
             end do
-            write(60, '("     ")')
-            do iw = 1, wgrid
-                write(60, '(2G18.10)') t1*w(iw), aimag(sigma(iw))
-            end do
-            close(60)
+           close(60)
 ! write the dielectric function to file
             write(fname, '("EPSILON_", 2I1, ".OUT")') a, b
             write(*, '("  Dielectric tensor written to ", a)') trim(adjustl(fname))
@@ -294,12 +290,7 @@ subroutine dielmat
             t2 = 0.0d0; if (a==b) t2 = 1.0d0
             do iw = 1, wgrid
                 zt2 = t2+zt1*sigma(iw)/(w(iw)+eta(iw))
-                write(60, '(2G18.10)') t1*w(iw), dble(zt2)
-            end do
-            write(60, '("     ")')
-            do iw = 1, wgrid
-                zt2 = zt1*sigma(iw)/(w(iw)+eta(iw))
-                write(60, '(2G18.10)') t1*w(iw), aimag(zt2)
+                write(60, '(3G18.10)') t1*w(iw), zt2
             end do
             close(60)
 ! write the EELS spectra
@@ -321,7 +312,8 @@ subroutine dielmat
 #endif
     
     end do ! l, optical components
-    
+   
+    close(50) 
     deallocate(pmat)
     deallocate(evalsvt,occsvt)
     deallocate(w,sigma,eta)

@@ -1,73 +1,42 @@
-!BOP
-!
-! !ROUTINE: init_gw
-!
-! !INTERFACE:
-subroutine init_gw
 
-! !DESCRIPTION:
-!
-! This is the main initialization subroutine of the gw program.
-! 
-! !USES:
-      use modmain
-      use modgw
-      use modxs,  only : isreadstate0
-      use modmpi, only : rank
-      use m_filedel
+subroutine init_gw()
 
-! !LOCAL VARIABLES:
-      
-      implicit none
-      
-      integer(4) :: i
-      integer(4) :: ia
-      integer(4) :: ias
-      integer(4) :: ic
-      integer(4) :: l
-      integer(4) :: is      
-      integer(4) :: ist      
-      integer(4) :: m, n
-      logical    :: exist
-      real(8)    :: tstart, tend
-      integer(4) :: stype_
-      character(256) :: filext_save
-      character(256) :: string  
-      logical :: reducek_
- 
-! !EXTERNAL ROUTINES: 
+    use modinput
+    use modmain
+    use modgw
+    use mod_gaunt_coefficients
+    use modmpi
+    use modxs,      only: isreadstate0
+    use m_filedel
+    use mod_hdf5
 
-      external init0
-      external init1
-      external genvxcig
-      external init_freq
-      external readingw
-      external initkqpts
+    implicit none
+    character(256) :: filext_save
+    logical :: reducek_
+    integer :: lmax
+    real(8) :: t0, t1, tstart, tend
+    integer :: stype_
 
-! !REVISION HISTORY:
-!
-! Created 16. May. 2006 by RGA
-! Revisited, DIN: 26.04.2011
-!
-!EOP
-!BOC
-      spinpol=associated(input%groundstate%spin)
-      if (spinpol) then
-        write(*,*)'GW EMERGENCY STOP!!!'
-        stop 'Spin polarization is not implemented yet'
-      end if
-      
-! Importantly, current implementation uses exclusively 
-! "Extended linear tetrahedron method for the calculation of q-dependent
-! dynamical response functions", to be published in Comp. Phys. Commun. (2010)
-      stype_ = input%groundstate%stypenumber
-      input%groundstate%stypenumber = -1
+    call timesec(tstart)
     
-! Extra call of the groundstate part to generate the data consisted with 
-! the specified GW parameters
+    !spinpol = associated(input%groundstate%spin)
+    !if (spinpol) then
+    !    write(*,*) 'GW EMERGENCY STOP!'
+    !    stop 'Spin polarization is not yet implemented'
+    !end if
+    
+    ! Importantly, current implementation uses exclusively 
+    ! "Extended linear tetrahedron method for the calculation of q-dependent
+    !  dynamical response functions", to be published in Comp. Phys. Commun. (2010)
+    stype_ = input%groundstate%stypenumber
+    input%groundstate%stypenumber = -1
 
-      if (.not.input%gw%skipgnd) then
-        ! Regenerate eigenvectors for the complete (non-reduced) k-point set
+    ! Extra call of the groundstate part to generate the data consisted with 
+    ! the specified GW parameters
+    call timesec(t0)
+    if (.not.input%gw%skipgnd) then
+        
+        ! One needs to regenerate eigenvectors for the complete (non-reduced) k-point set
         reducek_ = input%groundstate%reducek
         input%groundstate%reducek = .false.
         
@@ -75,146 +44,258 @@ subroutine init_gw
         ! for new set of k- and nempty parameters.
         ! It is important at this stage to switch off the update of the effective potential
         ! (critical for OEP/HYBRIDS related methods)
-        If  (associated(input%groundstate%OEP)) then
-            nullify(input%groundstate%OEP)
-        End if
-
+        input%groundstate%xctypenumber = 1
+        xctype(1) = 1
+        
         ! initialize global exciting variables with (new) GW definitions
         call init0
         call init1
         
         task = 1
         input%groundstate%maxscl = 1
-        
         filext_save = trim(filext)
         filext = "_GW.OUT"
         isreadstate0 = .true.
-        
         call scf_cycle(-2)
-        if (rank == 0) then
-!          ! safely remove unnecessary files
-          call filedel('LINENGY'//trim(filext))
-        end if
         
+        !-----------------------------------------------------
+        ! rearrange the way to store eigenvalues and -vectors
+        !-----------------------------------------------------
+        if (rank==0) then
+          call write_dft_orbitals
+          ! safely remove unnecessary files
+          call filedel('LINENGY'//trim(filext))
+          call filedel('EVALFV'//trim(filext))
+          call filedel('EVALSV'//trim(filext))
+          call filedel('EVECFV'//trim(filext))
+          call filedel('EVECSV'//trim(filext))
+          call filedel('EVALCORE'//trim(filext))
+          call filedel('OCCSV'//trim(filext))
+          call filedel('BROYDEN.OUT')
+          !call writeeval
+          !call writefermi
+        end if
+        call barrier
+
         ! restore the initial value
         input%groundstate%reducek = reducek_
-        filext = trim (filext_save)
+        filext = trim(filext_save)
+        
+    end if
+    
+    ! reinitialize global exciting variables
+    call init0
+    call init1
+    
+    ! if BSE is used just after GW, libbzint
+    ! may create the segmentation faults when trying to use a general
+    ! k-point shift vkloff
+    input%groundstate%stypenumber = stype_    
+        
+    call timesec(t1)
+    time_initscf = time_initscf+t1-t0
+    
+    ! Generate the k/q-point meshes
+    call timesec(t0)
+    call init_kqpoint_set
+    call timesec(t1)
+    time_initkpt = time_initkpt+t1-t0
 
-      end if
+    ! Get the self-consistent effective + exchange-correlation potential
+    call timesec(t0)
+    call readstate
+    call timesec(t1)
+    time_io = time_io+t1-t0
       
-! Generate the k- and q-point meshes
-      call init_kqpts
+    ! Intialize auxiliary arrays used further for convenience    
+    call init_misc_gw
       
-!     if BSE is used just after GW, libbzint
-!     may create the segmentation faults when try to use a general
-!     k-point shift vkloff
-!
-      input%groundstate%stypenumber=stype_
-
-! initialise the charge density and potentials from file
-        If (associated(input%groundstate%Hybrid)) Then
-           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
-! in case of HF hybrids use PBE potential
-            string=filext
-            filext='_PBE.OUT'
-            Call readstate
-            filext=string
-           Else
-               Call readstate
-           End If
-        Else         
-           Call readstate
-        End If 
-
-! generate the core wavefunctions and densities
-      Call gencore
-
-! find the new linearisation energies
-      Call linengy
-
-! generate the APW radial functions
-      Call genapwfr
-
-! generate the local-orbital radial functions
-      Call genlofr
-! update potential in case if HF Hybrids
-        If (associated(input%groundstate%Hybrid)) Then
-           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
-               Call readstate
-           End If
-        End If 
-!     Tranform xc potential to reciprocal space
-      call genvxcig
-
-! core states treatment
-      if (dabs(chgcr)>1.d-4) then
-        ! determine the number of core states for each species 
-        ! (auxiliary arrays)
-        if (allocated(ncore)) deallocate(ncore)
-        allocate(ncore(nspecies))
-        ncmax=0
-        nclm=0
-        ncg=0
-        lcoremax=0
-        do is=1,nspecies
-          ncore(is)=0
-          ic = 0
-          do ist=1,spnst(is)
-            if (spcore(ist,is)) then
-              ncore(is)=ncore(is)+1
-              l=spl(ist,is)
-              lcoremax=max(lcoremax,l)
-              do m=-spk(ist,is),spk(ist,is)-1
-                ic=ic+1
-              end do
-            end if
-          end do
-          ncmax=max(ncmax,ncore(is))
-          nclm=max(nclm,ic)
-          ncg=ncg+ic*natoms(is)
-        end do
-        ! setting a unique index for all the core states of all atoms
-        call setcorind
-      else
-        ! no core states
-        iopcore = 3
+    ! Mixed basis initialization
+    call timesec(t0)
+    call init_product_basis
+    call timesec(t1)
+    time_initmb = time_initmb+t1-t0
+        
+    ! Get Kohn-Sham eigenvalues
+    call timesec(t0)
+    call init_dft_eigenvalues
+    call timesec(t1)
+    time_initeval = time_initeval+t1-t0
+    
+    ! Frequency grid initialization
+    call timesec(t0)
+    if (input%gw%taskname=='g0w0' .or. &
+    &   input%gw%taskname=='gw0'  .or. &
+    &   input%gw%taskname=='emac') then
+      call generate_freqgrid(freq, &
+      &                      input%gw%freqgrid%fgrid, &
+      &                      input%gw%freqgrid%fconv, &
+      &                      input%gw%freqgrid%nomeg, &
+      &                      input%gw%freqgrid%freqmax)
+      if (rank==0) call print_freqgrid(freq,fgw)
+#ifdef _HDF5_      
+      if (rank==0) then
+        call hdf5_write(fgwh5,"/parameters/freqgrid","freqs", &
+        &               freq%freqs(1),(/freq%nomeg/))
+        call hdf5_write(fgwh5,"/parameters/freqgrid","womeg", &
+        &               freq%womeg(1),(/freq%nomeg/))
       end if
+#endif
 
-!     reciprocal cell volume
-      vi=1.0d0/omega
+    else
+      ! frequency independent method
+      freq%nomeg = 1
+      freq%freqmax = 0.d0
+      freq%fconv = 'imfreq'
+      allocate(freq%freqs(freq%nomeg))
+      freq%freqs(1) = 1.d-3
+      allocate(freq%womeg(freq%nomeg))
+      freq%womeg(1) = 1.d0
+    end if
+      
+    call timesec(t1)
+    time_initfreq = time_initfreq+t1-t0
+    
+    ! Gaunt coefficients
+    lmax = max(input%groundstate%lmaxapw+1, &
+    &          2*(input%gw%mixbasis%lmaxmb+1))
+    call calcgauntcoef(lmax)
+    
+    !------------------------------
+    ! print the memory usage info
+    !------------------------------
+    call print_memory_usage
 
-!     shortcut for basis vectors 
-      avec(:,1)=input%structure%crystal%basevect(:,1)
-      avec(:,2)=input%structure%crystal%basevect(:,2)
-      avec(:,3)=input%structure%crystal%basevect(:,3)
+    ! timing
+    call timesec(tend)
+    time_initgw = time_initgw+tend-tstart
 
-!     reciprocal lattice basis lengths
-      do i=1,3
-         alat(i)=dsqrt(avec(1,i)*avec(1,i)+ &
-                       avec(2,i)*avec(2,i)+ &
-                       avec(3,i)*avec(3,i))
-         pia(i)=2.0d0*pi/alat(i)
-      end do
+    return
+    
+contains
 
-!     additional arrays used for convenience
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
-!         shortcut for atomic positions
-          atposl(:,ia,is)=input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-        end do
-!       calculate the muffin-tin volume
-        vmt(is)=4.0d0*pi*rmt(is)*rmt(is)*rmt(is)/(3.0d0*omega)
-      end do
-
-!     Calculate the overlap between two PW 
-!     In exciting there is the same quantity: conjg(cfunig(:)) = ipwint(:)
-!     (still need to be checked!!!)
-      call intipw
-
-!     Generate the frequency mesh and integration weights.
-      call init_freq
-
-      return
+    subroutine print_memory_usage
+        implicit none
+        real(8) :: msize_tot
+        if (rank==0) then
+          call boxmsg(fgw,'-','Peak memory estimate (Mb, per process):')
+          msize_tot = 0.d0
+          !---------------------------------------
+          ! kset
+          msize = sizeof(kset)*b2mb
+          !write(fgw,'(" kset:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! Gset
+          msize = sizeof(Gset)*b2mb
+          !write(fgw,'(" Gset:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! Gkset
+          msize = sizeof(Gkset)*b2mb
+          !write(fgw,'(" Gkset:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! kqset
+          msize = sizeof(kqset)*b2mb
+          !write(fgw,'(" kqset:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! Gqset
+          msize = sizeof(Gqset)*b2mb
+          !write(fgw,'(" Gqset:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          !---------------------------------------
+          msize = sizeof(freq)*b2mb
+          !write(fgw,'(" freq:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          !---------------------------------------
+          ! umix
+          msize = sizeof(umix)*b2mb
+          !write(fgw,'(" umix:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! rtl
+          msize = sizeof(rtl)*b2mb
+          !write(fgw,'(" rtl:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! rrint
+          msize = sizeof(rrint)*b2mb
+          !write(fgw,'(" rrint:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! bradketc
+          msize = sizeof(bradketc)*b2mb
+          !write(fgw,'(" bradketc:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! bradketa
+          msize = sizeof(bradketa)*b2mb
+          !write(fgw,'(" bradketa:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! bradketlo
+          msize = sizeof(bradketlo)*b2mb
+          !write(fgw,'(" bradketlo:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize 
+          !---------------------------------------
+          msize = sizeof(gauntcoef)*b2mb
+          !write(fgw,'(" gauntcoef:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          write(fgw,'(" Global data:",T40,f8.2)') msize
+          !---------------------------------------
+          ! vcxnn
+          msize = nstsv*kset%nkpt*b2mb*16
+          write(fgw,'(" <n|Vxc|n>:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! kintw = kiw+kwfer+ciw
+          msize = (nstsv*kqset%nkpt+nstsv*kqset%nkpt+ncmax*natmtot)*b2mb*8
+          write(fgw,'(" BZ integration weights:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! mpwipw
+          msize = maxval(Gqbarc%ngk(1,:))*maxval(Gqset%ngk(1,:))*b2mb*16
+          write(fgw,'(" PW-IPW overlap matrix:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! barc = barcev+vmat
+          msize = (matsizmax*matsizmax)*b2mb*16+matsizmax*b2mb*8
+          write(fgw,'(" Coulomb potential:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          msize_tot = msize_tot+msize
+          ! KS eigenvectors = A*C + C + c.c.
+          msize = 2*(nstsv*apwordmax*lmmaxapw*natmtot*nspnfv + &
+          &          nmatmax*nstsv*nspnfv)*b2mb*16
+          write(fgw,'(" KS eigenvectors:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! M^i_{nm}(k,q)
+          msize = matsizmax*(nbandsgw+ncg)*nstsv*b2mb*16
+          write(fgw,'(" Minm:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          ! G0W0 specific case
+          if (trim(input%gw%taskname).ne.'g0w0_x') then
+            ! pmatvv+pmatcv
+            msize = (3*nstsv*nstsv + 3*ncg*nstsv)*b2mb*16
+            write(fgw,'(" Momentum matrix elements:",T40,f8.2)') msize
+            msize_tot = msize_tot+msize
+            ! qdepwtet = kcw+unw
+            msize = (nstsv*nstsv*freq%nomeg*kqset%nkpt + &
+            &        natmtot*ncmax*nstsv*freq%nomeg*kqset%nkpt)*b2mb*16
+            write(fgw,'(" (q,omega)-BZ integration weights:",T40,f8.2)') msize
+            ! epsilon+wings
+            msize = (matsizmax*matsizmax*freq%nomeg + &
+            &        matsizmax*freq%nomeg*3)*b2mb*16
+            write(fgw,'(" Dielectric function:",T40,f8.2)') msize
+            msize_tot = msize_tot+msize
+            ! M*W*M
+            msize = nbandsgw*nstsv*freq%nomeg*b2mb*16
+            write(fgw,'(" M*W*M:",T40,f8.2)') msize
+            msize_tot = msize_tot+msize
+          end if
+          ! Self-energy = evalks + evalqp + \Sigma_x + \Sigma_c
+          msize = 3*nbandsgw*kqset%nkpt*b2mb*16
+          if (trim(input%gw%taskname).ne.'g0w0_x') then
+            msize = msize+nbandsgw*kqset%nkpt*freq%nomeg*b2mb*16
+          end if
+          write(fgw,'(" Self-energy:",T40,f8.2)') msize
+          msize_tot = msize_tot+msize
+          write(fgw,*) '_______________________________________________'
+          write(fgw,'(" Total G0W0:",T40,f8.2)') msize_tot
+          call linmsg(fgw,'-','')
+          call flushifc(fgw)
+        end if
+        
+        return
+    end subroutine
+    
 end subroutine init_gw
-!EOC

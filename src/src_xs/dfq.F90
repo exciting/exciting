@@ -21,7 +21,9 @@ use ioarray
       Use mod_lattice
       Use mod_DOS_optics_response
       Use modxs
+#ifdef TETRA      
       Use modtetra
+#endif
       Use modmpi
       Use m_genwgrid
       Use m_getpemat
@@ -175,8 +177,16 @@ use ioarray
   ! calculate k+q and G+k+q related variables
       Call init1offs (qvkloff(1, iq))
   ! generate link array for tetrahedra
-      If (input%xs%tetra%tetradf) Call gentetlinkp (vql(1, iq), &
-     & input%xs%tetra%qweights)
+      If (input%xs%tetra%tetradf) then
+#ifdef TETRA      
+        Call gentetlinkp (vql(1, iq),input%xs%tetra%qweights)
+#else
+        ! added by DIN
+        write(*,*) 'Tetrahedron method for XS is disabled!'
+        write(*,*) 'Check -DTETRA option in make.inc' 
+        stop
+#endif            
+      end if
   ! find highest (partially) occupied and lowest (partially) unoccupied states
       Call findocclims (iq, istocc0, istocc, istunocc0, istunocc, &
      & isto0, isto, istu0, istu)
@@ -239,10 +249,17 @@ use ioarray
       scis21 (:, :) = 0.d0
       bsedg(:,:)=zzero
       If (input%xs%tetra%tetradf) Then
+#ifdef TETRA      
          Allocate (cw(nwdf), cwa(nwdf), cwsurf(nwdf))
          If (input%xs%tetra%cw1k) allocate (cwt(nstsv, nstsv), &
         & cw1k(nst1, nst2, nwdfp), cwa1k(nst1, nst2, nwdfp), &
         & cwsurf1k(nst1, nst2, nwdfp))
+#else
+         ! added by DIN
+         write(*,*) 'Tetrahedron method for XS is disabled!'
+         write(*,*) 'Check -DTETRA option in make.inc' 
+         stop
+#endif            
       End If
   ! generate complex energy grid
       wintv(1)=input%xs%energywindow%intv(1)
@@ -338,6 +355,7 @@ use ioarray
             pmuo (:, :, :) = zone
          End If
          If (input%xs%tetra%cw1k) Then
+#ifdef TETRA          
             Do iw = 1, nwdfp
                Call tetcwifc_1k (ik, nkpt, nstsv, evalsv, efermi, &
               & wreal(iw), 2, cwt)
@@ -349,6 +367,12 @@ use ioarray
               & wreal(iw), 4, cwt)
                cwsurf1k (:, :, iw) = cwt (istl1:istu1, istl2:istu2)
             End Do
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif            
          End If
          If (tscreen) Then
         ! we don't need anti-resonant parts here, assign them the same
@@ -396,163 +420,6 @@ use ioarray
          cpuread = cpu1 - cpu0
 
 
-!**********************************************************************************
-
-if (.false.) then
-      Allocate (wou(nwdf,1,1))
-      Allocate (wuo(nwdf,1,1))
-!write(*,*) nst1,nst2
-         Do ist1 = 1, nst1
-!write(*,*) 'ist2 loop'
-!call timesec(ta)
-            Do ist2 = 1, nst2
-
-           !---------------------!
-           !     denominator     !
-           !---------------------!
-           ! absolute band indices
-               i1 = ist1
-               i2 = istunocc0 + ist2 - 1
-           ! band analysis
-               If ( .Not. transijst(ik, i1, i2)) Cycle
-               Call timesec (cpu0)
-           ! user request termination
-!               Call terminateqry ('dfq')
-               If (input%xs%tetra%tetradf) Then
-              ! mirror index pair on diagonal if necessary
-                  If (i1 .Gt. i2) Then
-                     j1 = ist2
-                     j2 = ist1 - istunocc0 + 1
-                  Else
-                     j1 = ist1
-                     j2 = ist2
-                  End If
-              ! read weights for tetrahedron method
-                  If (input%xs%tetra%cw1k) Then
-                     cw (wi:wf) = cw1k (ist1, ist2, :)
-                     cwa (wi:wf) = cwa1k (ist1, ist2, :)
-                     cwsurf (wi:wf) = cwsurf1k (ist1, ist2, :)
-                  Else
-                     Call gettetcw (iq, ik, j1, j2, nst1, nst2, nwdf, &
-                    & trim(fnwtet), cw, cwa, cwsurf)
-                  End If
-              ! include occupation number differences
-                  wou (wi:wf,1,1) = docc12 (ist1, ist2) * cmplx (cw(wi:wf), &
-                 & cwsurf(wi:wf), 8) / omega
-                  wuo (wi:wf,1,1) = - docc21 (ist2, ist1) * cmplx &
-                 & (cwa(wi:wf), 0.d0, 8) / omega
-                  If (tq0) Then
-                 ! rescale: use delta-function delta(e_nmk + scis_nmk - w)
-                 ! take real part of BSE diagonal (being contained in scis12c)
-                 ! since tetrahedron method formalism implemented does not allow
-                 ! otherwise
-                     wouw (wi:wf) = cmplx (dble(wou(wi:wf,1,1)), &
-                    & aimag(wou(wi:wf,1,1))*deou(ist1, &
-                    & ist2)/(-wreal(:)-dble(scis12c(ist1, ist2))))
-                     wuow (wi:wf) = cmplx (dble(wuo(wi:wf,1,1)), &
-                    & aimag(wuo(wi:wf,1,1))*deuo(ist2, &
-                    & ist1)/(-wreal(:)-dble(scis21c(ist2, ist1))))
-                     wouh (wi:wf) = cmplx (dble(wou(wi:wf,1,1)), &
-                    & aimag(wou(wi:wf,1,1))*deou(ist1, &
-                    & ist2)**2/(-wreal(:)-dble(scis12c(ist1, ist2)))**2)
-                     wuoh (wi:wf) = cmplx (dble(wuo(wi:wf,1,1)), &
-                    & aimag(wuo(wi:wf,1,1))*deuo(ist2, &
-                    & ist1)**2/(-wreal(:)-dble(scis21c(ist2, ist1)))**2)
-                  End If
-               Else
-              ! include occupation number differences
-                  do iw=wi,wf
-                     ! check for vanishing denominators in case of screening
-                     ! (no broadening)
-                     zt1=w(iw)+deou(ist1, ist2)+scis12c(ist1,ist2)+zi*brd
-                     if (abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
-                     wou (iw,1,1) = docc12 (ist1, ist2) * wkpt (ik) / omega / zt1
-                     zt1=w(iw)+deuo(ist2, ist1)+scis21c(ist2,ist1)+tordf*zi*brd
-                     if (abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
-                     wuo (iw,1,1) = docc21 (ist2, ist1) * wkpt (ik) / omega / zt1
-                  end do
-                  wouw (wi:wf) = wou (wi:wf,1,1)
-                  wuow (wi:wf) = wuo (wi:wf,1,1)
-                  wouh (wi:wf) = wou (wi:wf,1,1)
-                  wuoh (wi:wf) = wuo (wi:wf,1,1)
-               End If
-               call timesec(cpu1)
-               cpuosc=cpuosc+cpu1-cpu0
-           !----------------------------------!
-           !     update response function     !
-           !----------------------------------!
-!write(*,*) 'zgerc'
-!call timesec(ta)
-
-               zvou (:) = xiou (ist1, ist2, :)
-               zvuo (:) = xiuo (ist2, ist1, :)
-
-!write(*,*) 'zgerc'
-!call timesec(ta)
-
-               Do iw = wi, wf
-!write(*,*) 'zgerc'
-!call timesec(ta)
-                  ! body
-                 Call zgerc (n, n, wou(iw,1,1), zvou, 1, zvou, 1, chi0(:, &
-                       & :, iw-wi+1), n)
-                 Call zgerc (n, n, wuo(iw,1,1), zvuo, 1, zvuo, 1, chi0(:, &
-                      & :, iw-wi+1), n)
-!call timesec(tb)
-!write(*,*) tb-ta
-!write(*,*) 'zgerc done'
-!read(*,*)
-                  If (tq0) Then
-                     Do oct1 = 1, 3
-                        ! wings
-                        chi0w (2:, 1, oct1, iw-wi+1) = chi0w (2:, 1, &
-                             & oct1, iw-wi+1) + wouw (iw) * pmou (oct1, ist1, &
-                             & ist2) * conjg (zvou(2:)) + wuow (iw) * pmuo &
-                             & (oct1, ist2, ist1) * conjg (zvuo(2:))
-                        chi0w (2:, 2, oct1, iw-wi+1) = chi0w (2:, 2, &
-                             & oct1, iw-wi+1) + wouw (iw) * zvou (2:) * conjg &
-                             & (pmou(oct1, ist1, ist2)) + wuow (iw) * zvuo &
-                             & (2:) * conjg (pmuo(oct1, ist2, ist1))
-                        Do oct2 = 1, 3
-                           ! head
-                           If(.Not.input%xs%tddft%ahc) Then
-                              chi0h (oct1, oct2, iw-wi+1) = chi0h (oct1, &
-                                   & oct2, iw-wi+1) + wouh (iw) * pmou (oct1, &
-                                   & ist1, ist2) * conjg (pmou(oct2, ist1, &
-                                   & ist2)) + wuoh (iw) * pmuo (oct1, ist2, &
-                                   & ist1) * conjg (pmuo(oct2, ist2, ist1))
-                           Else
-                              winv=1.0d0/(w(iw)+zi*brd)
-                              If (Abs(w(iw)).Lt.1.d-8) winv=1.d0
-                              chi0h (oct1, oct2, iw-wi+1) = chi0h (oct1, oct2, iw-wi+1) + &
-                                   & wouh (iw) * pmou (oct1, ist1, ist2) * conjg (pmou(oct2, ist1, ist2))*&
-                                   & (deou(ist1, ist2)*winv) + &
-                                   & wuoh (iw) * pmuo (oct1, ist2, ist1) * conjg (pmuo(oct2, ist2, ist1))*&
-                                   & (deuo(ist2, ist1)*winv) 
-                              
-                           End If
-
-                        End Do
-                     End Do
-                  End If
-               End Do
-!call timesec(tb)
-!write(*,*) tb-ta
-!write(*,*) 'zgerc done'
-!read(*,*)
-               Call timesec (cpu0)
-               cpuupd = cpuupd + cpu0 - cpu1
-           ! end loop over states combinations
-            End Do
-!call timesec(tb)
-!write(*,*) tb-ta
-!write(*,*) 'loop done'
-!read(*,*)
-         End Do
-!write(*,*) sum(chi0(:,:,1))
-deallocate(wuo,wou)
-!*****************************************************************************************************
-else
       Allocate (wou(nwdf,nst1,nst2))
       Allocate (wuo(nwdf,nst1,nst2))
          Do ist1 = 1, nst1
@@ -567,9 +434,8 @@ else
            ! band analysis
                If ( .Not. transijst(ik, i1, i2)) Cycle
                Call timesec (cpu0)
-           ! user request termination
-!               Call terminateqry ('dfq')
                If (input%xs%tetra%tetradf) Then
+#ifdef TETRA               
               ! mirror index pair on diagonal if necessary
                   If (i1 .Gt. i2) Then
                      j1 = ist2
@@ -610,6 +476,12 @@ else
                     & aimag(wuo(wi:wf,ist1,ist2))*deuo(ist2, &
                     & ist1)**2/(-wreal(:)-dble(scis21c(ist2, ist1)))**2)
                   End If
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif            
                Else
               ! include occupation number differences
                   do iw=wi,wf
@@ -752,8 +624,6 @@ else
 
 deallocate(wou,wuo,zm)
 
-
-endif
 !do iw=1,n
 !  write(*,*) chi0(iw,2,1)
 !enddo
@@ -848,10 +718,11 @@ endif
       Deallocate (bsedg)
       Deallocate (w, wreal)
       If (input%xs%tetra%tetradf) Then
+#ifdef TETRA      
          Deallocate (cw, cwa, cwsurf)
          If (input%xs%tetra%cw1k) deallocate (cwt, cw1k, cwa1k, &
         & cwsurf1k)
+#endif        
       End If
-!      write(*,*)
 End Subroutine dfq
 !EOC

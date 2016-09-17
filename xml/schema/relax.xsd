@@ -139,7 +139,7 @@
             </xs:attribute>
 	    
             <xs:attribute ex:importance="expert" name="maxbfgs" type="xs:integer" use="optional" 
-	                  default="2">
+	                  default="5">
                 <xs:annotation>
                     <xs:documentation>
                     Maximum number of atomic configurations that can be investigated in a single 

@@ -86,7 +86,7 @@ dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 
 narg  = len(sys.argv)-1
 
-print "\n**Usage**:    PLOT-optimized-geometry.py [ATOM1 ATOM2 YMIN YMAX]\n"
+print "\n**Usage**:    PLOT-vol-optimized-geometry.py [ATOM1 ATOM2 YMIN YMAX]\n"
 
 #-------------------------------------------------------------------------------
 

@@ -52,6 +52,7 @@ use modinput
 ! fine-structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
       Real (8) :: rm,rm0,rmfactor
+      character(16) :: relativity
 ! allocatable arrays
       Real (8), Allocatable :: p0p (:),q0p(:),pe(:,:),qe(:,:)
       Real (8), Allocatable :: g0 (:), g1 (:)
@@ -73,18 +74,20 @@ use modinput
          Write (*,*)
          Stop
       End If
-      If (k .Eq. 0) Then
-         if ((input%groundstate%ValenceRelativity.eq."zora").or.(input%groundstate%ValenceRelativity.eq."none")) then
-! ZORA
+
 #ifdef SPECIES
-           rmfactor=1d0
+      relativity = "zora"
 #else
-           if (input%groundstate%ValenceRelativity.eq."zora") then
-           rmfactor=1d0
+      relativity = input%groundstate%ValenceRelativity
+#endif
+
+      If (k .Eq. 0) Then
+         if ((relativity.eq."zora").or.(relativity.eq."none")) then
+           if (relativity.eq."zora") then
+             rmfactor=1d0
            else
              rmfactor=0d0
            endif
-#endif
            Allocate (p0p(nr))
            If (m .Eq. 0) Then
              Call rschrodint (m, l, e, nr, r, vr, nn, rmfactor, p0p, p0, p1, q0, q1)
@@ -95,7 +98,7 @@ use modinput
              End Do
            End If
            Deallocate (p0p)
-         elseif ((input%groundstate%ValenceRelativity.eq."kh*").or.(input%groundstate%ValenceRelativity.eq."kh")) then
+         elseif ((relativity.eq."kh*").or.(relativity.eq."kh")) then
 ! Koelling-Harmon with or without small component
            Allocate (p0p(nr))
            Allocate (q0p(nr))
@@ -111,7 +114,7 @@ use modinput
              stop
            endif
            Deallocate (p0p,q0p)
-         elseif ((input%groundstate%ValenceRelativity.eq."iora").or.(input%groundstate%ValenceRelativity.eq."iora*")) then
+         elseif ((relativity.eq."iora").or.(relativity.eq."iora*")) then
 ! IORA with or without small component
            Allocate (p0p(nr),q0p(nr))
           
@@ -158,7 +161,7 @@ use modinput
            endif
            Deallocate (p0p,q0p)
          else  
-           write(*,*) 'Error(rschroddme):',input%groundstate%ValenceRelativity,' not implemented.'
+           write(*,*) 'Error(rschroddme):',trim(relativity),' not implemented.'
            write(*,*) 'case sensitivity issue?'
            stop
          endif

@@ -51,74 +51,85 @@ Subroutine bandstr
   complex(8), allocatable :: e0(:,:), e1(:,:)
   logical :: exist,hybcheck
 
-  ! initialise universal variables
+! initialise universal variables
   Call init0
   Call init1
-  
+
   !------------------------------------------      
   ! Calculate bandstructure by interpolation
   !------------------------------------------
-  hybcheck=.false.
+  hybcheck = .false.
   if (associated(input%groundstate%Hybrid)) then
-    if (input%groundstate%Hybrid%exchangetypenumber== 1)  hybcheck=.true.
+    hybcheck = .true.
+    if (input%properties%bandstructure%character) then
+      if (rank == 0) then 
+        write(*,'(a)') "Warning(bandstr): "
+        write(*,'(a)') "    Atom-resolved bandstructure for hybrids is not yet implemented!"
+        input%properties%bandstructure%character = .false.
+      end if
+    end if
   else if (associated(input%groundstate%HartreeFock)) then
-    hybcheck=.true.
+    hybcheck = .true.
   end if
-  if (hybcheck) then
-     if (rank==0) then
-    fname='EVALHF.OUT'
-    inquire(File=fname,Exist=exist)
-    if (.not.exist) then
-      write(*,*)'ERROR(bandstr.f90): File EVALHF.OUT does not exist!'
-      stop
-    end if
-    inquire(IoLength=Recl) nkpt0, nstsv0
-    open (70, File=fname, Action='READ', Form='UNFORMATTED', &
-    &  Access='DIRECT', Recl=Recl)
-    read(70, Rec=1) nkpt0, nstsv0
-    close(70)
-    nstsv=min(nstsv,nstsv0)
-    allocate(vkl0(3,nkpt0))
-    allocate(ehf(nstsv0,nkpt0))
-    allocate(e0(nkpt0,nstsv))
-    allocate(e1(nkpt,nstsv))
-     if (allocated(evalsv)) deallocate(evalsv)
-     allocate(evalsv(nstsv,nkpt))
-    inquire(IoLength=Recl) nkpt0, nstsv0, vkl0(:,1), ehf(:,1)
-    open (70, File=fname, Action='READ', Form='UNFORMATTED', &
-    &  Access='DIRECT', Recl=Recl)
-    do ik = 1, nkpt0
-      read(70, Rec=ik) nkpt0, nstsv0, vkl0(:,ik), ehf(1:,ik)
-    end do ! ik
-    close(70)
-    ! Perform Fourier Interpolation
-    do ik = 1, nkpt0
-      e0(ik,1:nstsv)=cmplx(ehf(1:nstsv,ik),0.d0,8)
-    enddo
-    e1(:,:)=zzero
-    evalsv=zzero
-    call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
-    emin = 1.d5
-    emax = - 1.d5
-    do ist = 1, nstsv
-      do ik = 1, nkpt
-        evalsv(ist,ik)= dble(e1(ik,ist))
-        emin = Min (emin, evalsv(ist, ik))
-        emax = Max (emax, evalsv(ist, ik))
+
+if (hybcheck) then
+    !--------------------
+    ! begin Interpolation 
+    !--------------------
+    if (rank==0) then
+      fname = 'EVALHF.OUT'
+      inquire(File=fname, Exist=exist)
+      if (.not.exist) then
+        write(*,*)'ERROR(bandstr.f90): File EVALHF.OUT does not exist!'
+        stop
+      end if
+      inquire(IoLength=Recl) nkpt0, nstsv0
+      open(70, File=fname, Action='READ', Form='UNFORMATTED', &
+      &    Access='DIRECT', Recl=Recl)
+      read(70, Rec=1) nkpt0, nstsv0
+      close(70)
+      nstsv = min(nstsv,nstsv0)
+      allocate(vkl0(3,nkpt0))
+      allocate(ehf(nstsv0,nkpt0))
+      allocate(e0(nkpt0,nstsv))
+      allocate(e1(nkpt,nstsv))
+      if (allocated(evalsv)) deallocate(evalsv)
+      allocate(evalsv(nstsv,nkpt))
+      inquire(IoLength=Recl) nkpt0, nstsv0, vkl0(:,1), ehf(:,1)
+      open(70, File=fname, Action='READ', Form='UNFORMATTED', &
+      &    Access='DIRECT', Recl=Recl)
+      do ik = 1, nkpt0
+        read(70, Rec=ik) nkpt0, nstsv0, vkl0(:,ik), ehf(:,ik)
+      end do ! ik
+      close(70)
+      ! read fermi energy
+      call readfermi
+      ! Perform Fourier Interpolation
+      do ik = 1, nkpt0
+        e0(ik,1:nstsv) = cmplx(ehf(1:nstsv,ik),0.d0,8)
       end do
-    end do
-    deallocate(vkl0,ehf,e0,e1)
-    emax = emax + (emax-emin) * 0.5d0
-    emin = emin - (emax-emin) * 0.5d0
+      e1(:,:) = zzero
+      ! Fourier interpolation
+      call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
+      emin =  1.d5
+      emax = -1.d5
+      do ist = 1, nstsv
+        do ik = 1, nkpt
+          evalsv(ist,ik) = dble(e1(ik,ist))
+          emin = min(emin, evalsv(ist, ik))
+          emax = max(emax, evalsv(ist, ik))
+        end do
+      end do
+      deallocate(vkl0,ehf,e0,e1)
+      emax = emax + (emax-emin) * 0.5d0
+      emin = emin - (emax-emin) * 0.5d0
     end if
-#ifdef MPI
-        Call MPI_barrier(MPI_COMM_WORLD, ierr)
-#endif
-  !--------------------
-  ! end Interpolation 
-  !--------------------
+    !--------------------
+    ! end Interpolation 
+    !--------------------
 
 else
+
   ! maximum angular momentum for band character
   lmax = Min (3, input%groundstate%lmaxapw)
   lmmax = (lmax+1) ** 2
@@ -354,7 +365,6 @@ else
      End if
      If (input%properties%bandstructure%character) deallocate(bc)
 
-
 hybcheck=.false.
 if (associated(input%groundstate%Hybrid)) then
     if (input%groundstate%Hybrid%exchangetypenumber== 2)   hybcheck=.true.
@@ -419,6 +429,23 @@ if (hybcheck) then
         deallocate(vkl0,deltax,e0,e1)           
         return
       end if 
-     Return
-   End Subroutine bandstr
-   !EOC
+
+    !---------------------------------------------------------------------------
+    ! din: New output file for the bandstructure to be able to post-process it
+    !---------------------------------------------------------------------------
+    if (rank==0) then
+      open(50, File="bandstructure.dat", Action='Write', Form='Formatted')
+      write(50,*) "# ", 1, nstsv, nkpt
+      ! path, energy, ist, ik, vkl
+      do ist = 1, nstsv
+      do ik = 1, nkpt
+        write(50,'(2I6, 3F12.6, 2G18.10)') ist, ik, vkl(:,ik), dpp1d(ik), evalsv(ist,ik)
+      end do
+      write(50,*)
+      end do
+      close(50)
+    end if
+
+    Return
+End Subroutine bandstr
+!EOC

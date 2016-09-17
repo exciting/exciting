@@ -356,19 +356,11 @@
                 <xs:documentation>Upper limit for the Hybrids self-consistency loop.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="restart" type="xs:boolean" default="false">
+            <xs:attribute ex:importance="experimental" ex:unit="" name="savepotential" type="xs:boolean" default="true">
               <xs:annotation>
                 <xs:documentation>
-                  If set to true, the hybrid calculation will be restarted from a previous run. Attention:
-                  the file VNLMAT.OUT is necessary.
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="savepotential" type="xs:boolean" default="false">
-              <xs:annotation>
-                <xs:documentation>
-                  If set to true, the non-local potential will be stored in the file VNLMAT.OUT
-                  ATTENTION: this file can become extremly large (size: Hamiltoniansize * Hamiltoniansize * k-point number * 16).
+                  If set to true, the non-local potential will be stored in the file VNLMAT.OUT 
+                  ATTENTION: this file can become extremely large (size: Hamiltoniansize * Hamiltoniansize * k-point number * 16).
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -2150,6 +2142,31 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+
+        <xs:element ex:importance="experimental" ex:unit="" name="xsLO" minOccurs="0" maxOccurs="1">
+          <xs:annotation><xs:documentation>
+            Generate extra local orbitals for accurate description of the unoccupied states.
+          </xs:documentation></xs:annotation>                 
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="emax" type="fortrandouble" default="30">
+              <xs:annotation><xs:documentation>
+                Energy cutoff for generating excited-states local orbitals.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="lmax" type="xs:integer" default="4">
+              <xs:annotation><xs:documentation>
+                Angular momentum cutoff for generating excited-states local orbitals.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="maxnodes" type="xs:integer" default="10">
+              <xs:annotation><xs:documentation>
+                Maximum number of local orbitals per l-channel.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            
+          </xs:complexType>
+        </xs:element>
+
       </xs:all>
 
       <xs:attribute ex:importance="expert" ex:unit="" name="vdWcorrection"  default="none">
@@ -2457,7 +2474,17 @@
       <xs:attribute ex:importance="essential" ex:unit="" name="maxscl" type="xs:integer"
         default="200">
         <xs:annotation>
-          <xs:documentation>Upper limit for te self-consistency loop.</xs:documentation>
+          <xs:documentation>Upper limit for the self-consistency loop.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="essential" ex:unit="" name="niterconvcheck" type="xs:integer"
+        default="2">
+	<xs:annotation>
+	  <xs:documentation>Number of self-consistency iterations over which to test convergence. 
+	  For example, if <attref>niterconvcheck</attref>=2, then both the second and third to last
+	  iterations are compared to the last one to check convergence. The convergence criteria
+	  used are those set up by <attref>scfconv</attref>. 
+	  </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="chgexs" type="fortrandouble"
@@ -2652,7 +2679,7 @@
           <xs:documentation>(Obsolete) Order of predictor-corrector polynomial.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGA_PBE_SOL">
+      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGA_PBE">
         <xs:annotation>
           <xs:documentation> Type of exchange-correlation functional to be used <list>
               <li> No exchange-correlation funtional ( <inlinemath>E_{\rm xc}\equiv 0</inlinemath> ) </li>

@@ -14,7 +14,8 @@
 
 ! !DESCRIPTION:
 !
-!Calculates $\tilde{g}_{lm,l'm'}$ according to:
+!Calculates $\tilde{g}_{lm,l'm'}$ according to equation \ref{tildea}, that
+!is:
 !
 !\begin{equation}\label{calctilg}
 !\tilde{g}_{lm,l'm'}=\sqrt{4\pi}(-1)^{l}\sqrt{\frac{(l+l'+m+m')!(l+l'-m-m')!}%
@@ -56,14 +57,13 @@
       if (allocated(tilg)) deallocate(tilg)
       allocate(tilg(tsize))
        
-      i=0 
-      do l1=0,lmax
-        do l2=0,l1
-          do m1=-l1,l1
-            do m2=0,l2
-              i=i+1
-              tilg(i)=tildeg(l1,l2,m1,m2)
-!              write(96,*)l1,l2,m1,m2,tilg(i)
+      i = 0 
+      do l1 = 0, lmax
+        do l2 = 0, l1
+          do m1 = -l1, l1
+            do m2 = 0, l2
+              i = i+1
+              tilg(i) = tildeg(l1,l2,m1,m2)
             enddo ! m2 
           enddo ! m1
         enddo ! l2

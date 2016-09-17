@@ -49,7 +49,7 @@ subroutine setrindex
 !
 !!USES:
     use modinput
-    use modmain,    only: pi,nsymcrys,symlat,lsplsymc
+    use modmain
     use fouri
 
 !!LOCAL VARIABLES:
@@ -87,7 +87,11 @@ subroutine setrindex
 !BOC
 
     ! real-space cutoff parameter (maximal length)
-    rmax = 40.0d0
+    if (.not.associated(input%gw)) then
+      rmax = 120.d0
+    else
+      rmax = input%gw%rmax
+    end if
 
     do i = 1, 3
       rvec(i) = sqrt(rbas(1,i)**2+rbas(2,i)**2+rbas(3,i)**2)
@@ -158,19 +162,8 @@ subroutine setrindex
         ist = ist+1
         rst(1,ippw) = ist
         do isym = 1, nsymcrys
-
-          ! -------- CHECK --------
           lspl = lsplsymc(isym)
-          do i = 1, 3
-            irvec(i) = 0
-            do j = 1, 3
-              irvec(i) = irvec(i)+symlat(i,j,lspl)*rindex(j,ippw)
-            enddo ! j
-          enddo ! i
-
-          !irvec(:) = matmul(symlat(:,:,lspl),rindex(:,ippw))
-          !------------------------
-
+          irvec(:) = matmul(symlat(:,:,lspl),rindex(:,ippw))
           jppw = invrindex(irvec(1),irvec(2),irvec(3))
           if (jppw<=0) then
             write(6,11) ippw, rindex(1:3,ippw), isym, irvec(1:3)

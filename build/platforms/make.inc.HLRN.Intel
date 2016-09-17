@@ -1,6 +1,6 @@
 F90 = ftn
 F90_OPTS = -O3 -ip -unroll -scalar_rep -dynamic -xCORE-AVX-I -openmp 
-CPP_ON_OPT = -cpp -DXS -DISO -DTETRA -DLIBXC -DUSEOMP
+CPP_ON_OPT = -cpp -DXS -DISO -DLIBXC -DUSEOMP
 F77 = $(F90)
 F77_OPTS = -O3
 LIB_ARP =libarpack.a

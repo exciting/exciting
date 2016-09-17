@@ -13,7 +13,7 @@ Module mod_misc
 !     miscellaneous variables     !
 !---------------------------------!
 ! code version
-      character(40) :: versionname = 'BORON-10'
+      character(40) :: versionname = 'CARBON'
       integer :: version(3)
 ! reference version for LDA+U
       integer, parameter :: refversion_ldapu(3) = (/ 0, 9, 131 /)

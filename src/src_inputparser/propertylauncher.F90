@@ -1,3 +1,4 @@
+
 ! Copyright (C) 2009-2010 C. Meisenbichler, S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -8,7 +9,7 @@ Subroutine propertylauncher
       Use modmain, Only: task
       Use modmpi, Only: rank
       Implicit None
-      integer :: l, a, b, c
+      integer :: l, a, b, c, i
       
       call delete_warnings
 
@@ -28,9 +29,28 @@ Subroutine propertylauncher
 
       !--------------------------------------------------------
       If (associated(input%properties%wfplot)) Then
-#define NOTSTM .false.
          call rereadinput
-         call wfplot(NOTSTM)
+         ! kstlist should only contain one k-point and state for wave-function plot
+         if (size(input%properties%wfplot%kstlist%pointstatepair,2)<1) then
+            write(*,*)
+            write(*,'("Error(wfplot): /input/properties/wfplot/kstlist must contain")')
+            write(*,'(" at least one pointstatepair, but ",i6," were defined")') &
+            &  size(input%properties%wfplot%kstlist%pointstatepair,2)
+            write(*,*)
+            stop
+         end if
+         select case(input%properties%wfplot%version)
+            case('old')
+               call wfplot(.false.)
+            case('new')
+               do i = 1, size(input%properties%wfplot%kstlist%pointstatepair,2)
+                  call wfplot_new(input%properties%wfplot%kstlist%pointstatepair(1,i), &
+                  &               input%properties%wfplot%kstlist%pointstatepair(2,i))
+               end do
+            case default
+               write(*,*) "Error(propertylauncher): Wrong version! Supported only 'old' and 'new'."
+               stop
+         end select
       End If
 
       !--------------------------------------------------------
@@ -58,11 +78,10 @@ Subroutine propertylauncher
       If (associated(input%properties%DFTD2)) Then
          Call DFT_D2_energy
       End If
-      
-      !--------------------------------------------------------
+
       If (associated(input%properties%elfplot)) Then
          call rereadinput
-         Call elfplot
+         call elfplot
       End If
 
       !--------------------------------------------------------
@@ -220,7 +239,5 @@ Subroutine propertylauncher
          task=25
          Call effmass
       End If
-
-
 
 End Subroutine propertylauncher

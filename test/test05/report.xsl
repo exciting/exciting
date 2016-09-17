@@ -17,7 +17,8 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     <description>passes if groundstate using libxc works</description>
     <directory>test05/ </directory>
   </test>
-    <test>
+  
+  <test>
     <status>
     <xsl:choose>
     <xsl:when test="math:abs(/info/groundstate/scl/iter[last()]/energies/@totalEnergy+ 242.346369077)&lt;0.0001"><xsl:text>passed</xsl:text></xsl:when>
@@ -30,7 +31,8 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     </description>
     <directory>test05/ </directory>
   </test>
-  <test>
+  
+  <!--test>
   <status>
     <xsl:choose>
     <xsl:when test="document('runelectrstr/dos.xml')/dos"><xsl:text>passed</xsl:text></xsl:when>
@@ -42,10 +44,10 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
  
     </description>
     <directory>test05/runelectrstr</directory>
+  </test-->
   
-  </test>
-    <test>
-  <status>
+  <!--test>
+    <status>
     <xsl:choose>
     <xsl:when test="document('runelectrstr/bandstructure.xml')/bandstructure"><xsl:text>passed</xsl:text></xsl:when>
     <xsl:otherwise><xsl:text>failed</xsl:text></xsl:otherwise>
@@ -56,9 +58,9 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
  
     </description>
     <directory>test05/runelectrstr</directory>
+  </test-->
   
-  </test>
-    <!--test>
+  <!--test>
   <status>
     <xsl:choose>
     <xsl:when test="document('runelectrstr/fermisurface.xml')/fermisurface"><xsl:text>passed</xsl:text></xsl:when>
@@ -70,8 +72,8 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
  
     </description>
     <directory>test05/runelectrstr</directory>
-  
   </test-->
+  
 </report>
 </xsl:template>
 </xsl:stylesheet> 

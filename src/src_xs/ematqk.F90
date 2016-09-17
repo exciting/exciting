@@ -274,7 +274,6 @@ if (input%xs%pwmat.eq.'mm') then
 !$OMP DO
 #endif
       Do igq = 1, ngq (iq)
-!         Call terminateqry ('ematqk')
          Call timesec (cpu00)
      ! interstitial contribution
          Call ematqkgir (iq, ik, igq,xihir,n0,n)

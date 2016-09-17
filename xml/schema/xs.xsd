@@ -18,6 +18,122 @@
     </xs:annotation>
     <xs:complexType>
       <xs:all>
+	<xs:element ex:importance="expert" ex:unit="" name="storeexcitons" minOccurs="0" maxOccurs="1">
+	  <xs:annotation>
+            <xs:documentation>When present this element allows to store the exciton components (BSE eigenvectors).
+	    The number of stored excitons starting from the lowest energy one is given by the attribute
+	    <attref>MaxNumberExcitons</attref>.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+	    <xs:attribute ex:importance="expert" ex:unit="" name="MinNumberExcitons" type="xs:integer"
+		    default="1">
+	      <xs:annotation>
+	        <xs:documentation>It represents the lower limit of the number of stored excitons.</xs:documentation>
+	      </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="MaxNumberExcitons" type="xs:integer"
+		    default="10">
+	      <xs:annotation>
+	        <xs:documentation>It represents the upper limit of the number of stored excitons.</xs:documentation>
+	      </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ex:importance="expert" ex:unit="" name="writeexcitons" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>When present this element allows to write the stored exciton components (BSE eigenvectors) 
+            to ASCII files. The range of excitons must lie within the stored range given by the attributes in the 
+            element storeexcitons. 
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="" name="MinNumberExcitons" type="xs:integer" default="1">
+              <xs:annotation>
+                <xs:documentation>It represents the lower limit of the number of written excitons.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="MaxNumberExcitons" type="xs:integer" default="10">
+              <xs:annotation>
+                <xs:documentation>It represents the upper limit of the number of written excitons.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+
+
+        <xs:element ex:importance="expert" ex:unit="" name="excitonPlot" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>Parameters for the electron-hole visualization.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+
+              <xs:element ex:importance="expert" ex:unit="" name="exciton" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                  <xs:documentation>Electron-hole pair descriptor.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:attribute ex:importance="essential" ex:unit="" name="lambda" type="xs:integer" default="1">
+                    <xs:annotation>
+                    <xs:documentation>
+                      The index of the stored exciton.
+                    </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute ex:importance="essential" ex:unit="" name="fix" type="xs:string" default="hole">
+                    <xs:annotation>
+                    <xs:documentation>
+                      Fix position (in lattice coordinates) either of the "hole" or "electron".
+                    </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element ex:importance="expert" ex:unit="" name="hole" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                <xs:documentation>
+                  For the exciton wavefunction visualization: Real space grid for the hole distribution.
+                </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                <xs:all>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0" maxOccurs="1"/>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" maxOccurs="1"/>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" maxOccurs="1"/>
+                </xs:all>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element ex:importance="expert" ex:unit="" name="electron" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                <xs:documentation>
+                  For the exciton wavefunction visualization: Real space grid for the electron distribution.
+                </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                <xs:all>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0" maxOccurs="1"/>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" maxOccurs="1"/>
+                  <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" maxOccurs="1"/>
+                </xs:all>
+                </xs:complexType>
+              </xs:element>
+
+            </xs:sequence>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="epstol" type="fortrandouble" default="1.0d-4">
+              <xs:annotation>
+                <xs:documentation>Threshold value for selecting states which contribute to the exciton.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+          </xs:complexType>
+        </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="tddft" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="ahc" type="xs:boolean"
@@ -153,7 +269,65 @@
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="fxctype" default="RPA">
               <xs:annotation>
-                <xs:documentation>Defines which xc kernel is to be used.</xs:documentation>
+                <xs:documentation>Defines which xc kernel is to be used. Examples on the use of the
+		different kernels can be found online on the Tutorial "TDDFT Calculations with Different Kernels"
+		on www.exciting-code.org.
+		In the options indicated below, if the suffix <pre>"_NLF"</pre> is present, then 
+		local-field effects are neglected (scalar kernel). Otherwise the kernel 
+		is a matrix of the size of the number of <inlinemath>\mathbf{G}</inlinemath>-vectors, 
+		whose diagonal elements are all equal. The available kernels <inlinemath>f_{xc}</inlinemath> are:
+		<list>
+		  <li><pre>"RPA"</pre> -
+		  Random-phase approximation kernel. <inlinemath>f_{xc}=0</inlinemath>
+		  </li>
+		  <li><pre>"LRCstatic[_NLF]"</pre> -
+		  Long-range correction kernel. 
+		  <displaymath>
+		    f_{xc}=-\frac{\alpha}{\mathbf{q}^2}.
+		  </displaymath>
+		  See S. Botti et al., Phys. Rev. B 69, 155112 (2004)
+		  </li>
+		  <li><pre>"LRCdyn[_NLF]"</pre> -
+		  Dynamical long-range correction kernel. 
+		  <displaymath>
+		    f_{xc}=-\frac{\alpha+\beta \omega^2}{\mathbf{q}^2}
+		  </displaymath>
+		  with <inlinemath>\alpha</inlinemath> given by the value of <attref>alphalrcdyn</attref>
+		  and <inlinemath>\beta</inlinemath> given by the value of <attref>betalrcdyn</attref>.
+		  See S. Botti et al., Phys. Rev. B 72, 125203 (2005)
+		  </li>
+		  <li><pre>"ALDA"</pre> -
+		  Adiabatic LDA kernel. 
+		  <displaymath>
+		    f_{xc}(\mathbf{r},\mathbf{r}',t-t')=\frac{\delta V_{xc}(\mathbf{r})}{\delta n(\mathbf{r}')}\delta(t-t').
+		  </displaymath>
+		  In this implementation, <inlinemath>V_{xc}(\mathbf{r})</inlinemath> is the spin-unpolarised 
+		  exchange-correlation potential corresponding to the Perdew-Wang parameterisation 
+		  of Ceperley-Alder's Monte-Carlo data (see Phys. Rev. B 45, 13244 (1992) and Phys. Rev. Lett. 45, 566 (1980)).
+		  </li>
+		  <li><pre>"MB1[_NLF]"</pre> -
+		  BSE derived xc kernel. See L. Reining et al., Phys. Rev. Lett. 88, 066404 (2002) 
+		  and A. Marini et al., Phys. Rev. Lett. 91, 256402 (2003).
+		  </li>
+		  <li><pre>"BO"</pre> -
+		  Bootstrap kernel.   
+		  <displaymath>
+		    f_{xc}=\frac{\varepsilon^{-1}(\omega=0)}{\chi_{00}(\omega=0)}.
+		  </displaymath>
+		  See S. Sharma et al., Phys. Rev. Lett. 107, 186401 (2011).
+		  </li>
+		  <li><pre>"BO_SCALAR"</pre> -
+		  Scalar version of the bootstrap kernel. <inlinemath>
+		    f_{xc}=\left[\varepsilon_M(\omega=0)\chi_{00}(\omega=0)\right]^{-1}
+		  </inlinemath>. See S. Sharma et al., Phys. Rev. Lett. 107, 186401 (2011).
+		  </li>
+		  <li><pre>"RBO"</pre> -
+		  RPA bootstrap kernel. <inlinemath>
+		    f_{xc}=\left[\varepsilon^{RPA}_M(\omega=0)\overline{\chi}_{00}^{RPA}(\omega=0)\right]^{-1}
+		  </inlinemath>. See S. Rigamonti et al., Phys. Rev. Lett. 114, 146402 (2015).
+		  </li>
+		</list>
+		</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -357,6 +531,46 @@
                   used for BSE. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="xas" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> Set to <pre>"true"</pre> to perform BSE X-rasy absorption spectroscopy (XAS) calculation </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="xasspecies" type="xs:integer"
+              default="0">
+              <xs:annotation>
+                <xs:documentation>Species number for which the XAS is calculated.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="xasatom" type="xs:integer"
+              default="0">
+              <xs:annotation>
+                <xs:documentation>Atom number for which the XAS is calculated.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="xasedge" default="K">
+              <xs:annotation>
+                <xs:documentation>Defines the initial states of the XAS calculation.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="K"/>
+                  <xs:enumeration value="L1"/>
+                  <xs:enumeration value="L2"/>
+                  <xs:enumeration value="L3"/>
+                  <xs:enumeration value="L23"/>
+                  <xs:enumeration value="M1"/>
+                  <xs:enumeration value="M2"/>
+                  <xs:enumeration value="M3"/>
+                  <xs:enumeration value="M23"/>
+                  <xs:enumeration value="M4"/>
+                  <xs:enumeration value="M5"/>
+                  <xs:enumeration value="M45"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="reducek" type="xs:boolean"
               default="false">
               <xs:annotation>
@@ -478,19 +692,6 @@
                   calculation.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="nstlbsemat"
-              type="integerquadrupel" default="0 0 0 0">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldname>nbfbse,nafbse</oldname>
-                </xs:appinfo>
-                <xs:documentation>Range of bands for calculating the screening and matrix elements
-                  needed for solving the BSE. The first pair of numbers corresponds to the band
-                  index for local orbitals and valence states (counted from the lowest eigenenergy),
-                  the second pair corresponds to the band index of the conduction states (counted
-                  from the Fermi level).</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse" type="integerquadrupel"
               default="0 0 0 0">
               <xs:annotation>
@@ -503,6 +704,17 @@
                   index of the conduction states (counted from the Fermi level).</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="nstlxas" type="integerpair"
+              default="0 0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldname>nbfbse,nafbse</oldname>
+                </xs:appinfo>
+                <xs:documentation>Range of bands included for the BSE calculation. The pair corresponds to the band
+                  index of the conduction states (counted from the Fermi level).</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="aresbse" type="xs:boolean"
               default="true">
               <xs:annotation>
@@ -767,7 +979,7 @@
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" ref="energywindow" maxOccurs="1" minOccurs="1"> </xs:element>
-        <xs:element ex:importance="expert" ex:unit="" name="plan" minOccurs="0" maxOccurs="1">
+	<xs:element ex:importance="expert" ex:unit="" name="plan" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:sequence>
               <xs:element ex:importance="expert" ex:unit="" name="doonly" minOccurs="0"
@@ -915,6 +1127,14 @@
                               <oldnr>446</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Read BSE eigenvalues and regenerate dielectric and loss functions.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="writebevec">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>447</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>ASCII output of BSE eigenvalus.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="kernxc_bse">
@@ -1066,6 +1286,19 @@
                             <xs:documentation>Debug routine of main part of code.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
+                        <!-- Visualize BSE exciton wavefunction -->
+                        <xs:enumeration value="excitonWavefunction">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>710</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>
+                              Generate data to visualize the 6-d electron-hole wavefunction.
+                            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+
                         <!-- import/export tasks below -->
                         <xs:enumeration value="portstate(1)">
                           <xs:annotation>
@@ -1341,15 +1574,14 @@
             symmetries). </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble"
-        default="7.0d0">
+      <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble" default="0.0d0">
         <xs:annotation>
           <xs:appinfo>
             <oldname>rgkmaxxs</oldname>
           </xs:appinfo>
-          <xs:documentation>Smallest muffin-tin radius times <pre>gkmax</pre>.</xs:documentation>
+ 	  <xs:documentation>Smallest muffin-tin radius times <pre>gkmax</pre>. If set to zero (the default), this value defaults to the rgkmax set in the groundstate element.</xs:documentation>
         </xs:annotation>
-      </xs:attribute>
+      </xs:attribute>      
       <xs:attribute ex:importance="expert" ex:unit="Hartree" name="swidth" type="fortrandouble"
         default="0.001d0">
         <xs:annotation>

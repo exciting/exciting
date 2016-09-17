@@ -20,7 +20,6 @@ Subroutine init1
 #ifdef XS
       Use modxs
 #endif
-      Use modgw
       use modfvsystem
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
@@ -41,8 +40,6 @@ Subroutine init1
       real (8) :: vl1(3),vl2(3),vc1(3),vc2(3)
       real (8) :: d1,d2,d12,t1,t2
       Real (8) :: blen(3), lambdab
-      integer(4) :: nsym, isym, lspl
-      integer(4), allocatable :: symmat(:,:,:)
       
 ! external functions
       Complex (8) gauntyry
@@ -191,21 +188,21 @@ Subroutine init1
             blen(:)=sqrt(bvec(1,:)**2+bvec(2,:)**2+bvec(3,:)**2)           
             lambdab=Dble((input%groundstate%nktot/(blen(1)*blen(2)*blen(3)))**(1.d0/3.d0))
             input%groundstate%ngridk (:) = Max0(1,Int &
-           & (lambdab*blen(:)+	input%structure%epslat))
+           & (lambdab*blen(:)+input%structure%epslat))
              Write (*,*)
              Write (*, '("Info(init1): ngridk determined from nktot: ", 3i8)') &
            & input%groundstate%ngridk(:)
              Write (*,*)
          End If
+
 ! setup the default k-point box
-         boxl (:, 1) = input%groundstate%vkloff(:) / dble &
-          & (input%groundstate%ngridk(:))
-         boxl (:, 2) = boxl (:, 1)
-         boxl (:, 3) = boxl (:, 1)
-         boxl (:, 4) = boxl (:, 1)
-         boxl (1, 2) = boxl (1, 2) + 1.d0
-         boxl (2, 3) = boxl (2, 3) + 1.d0
-         boxl (3, 4) = boxl (3, 4) + 1.d0
+         boxl(:, 1) = input%groundstate%vkloff(:) / dble(input%groundstate%ngridk(:))
+         boxl(:, 2) = boxl(:, 1)
+         boxl(:, 3) = boxl(:, 1)
+         boxl(:, 4) = boxl(:, 1)
+         boxl(1, 2) = boxl(1, 2) + 1.d0
+         boxl(2, 3) = boxl(2, 3) + 1.d0
+         boxl(3, 4) = boxl(3, 4) + 1.d0
          
 ! allocate the reduced k-point set arrays
          nkptnr = input%groundstate%ngridk(1) * &
@@ -241,103 +238,24 @@ Subroutine init1
 !------------------------------
 ! generate the k-point set
 !------------------------------
-         if (input%groundstate%stypenumber < 0) then
 
-             nsym = 1
-             If (input%groundstate%reducek) nsym = nsymcrys
-             if(allocated(symmat))deallocate(symmat)
-             allocate(symmat(3,3,nsym))
-             Do isym = 1, nsym
-                lspl = lsplsymc(isym)
-                ! transpose of rotation for use with the library
-                Do i1 = 1, 3
-                   Do i2 = 1, 3
-                      symmat(i1,i2,isym) = symlat(i2,i1,lspl)
-                   End Do
-                End Do
-             End Do
-             
-             ! suppress debug output in tetrahedron integration library (0)
-             call tetrasetdbglv (0)
+         call genppts(.False., .False., &
+         &            input%groundstate%ngridk, boxl, nkptnr, &
+         &            ikmapnr, ivknr, vklnr, vkcnr, wkptnr)
 
-             call factorize(3,input%groundstate%vkloff,ikloff,dkloff)
-             
-             if (allocated(indkp)) deallocate(indkp)
-             allocate(indkp(nkptnr))
-             if (allocated(iwkp)) deallocate(iwkp)
-             allocate(iwkp(nkptnr))
-             
-             ! generate the non-reduced k-point set
-             ntetnr = 6*nkptnr
-             if (allocated(wtetnr)) deallocate(wtetnr)
-             allocate(wtetnr(ntetnr))
-             if (allocated(tnodesnr)) deallocate(tnodesnr)
-             allocate(tnodesnr(4,ntetnr))
-             call kgen(bvec,1,symmat,input%groundstate%ngridk,ikloff,dkloff, &
-             &         nkptnr,ivknr,dvk,indkp,iwkp,ntetnr,tnodesnr,wtetnr,tvol,mnd)
-             ik=0
-             do i1=0,input%groundstate%ngridk(1)-1
-             do i2=0,input%groundstate%ngridk(2)-1
-             do i3=0,input%groundstate%ngridk(3)-1
-                ik=ik+1
-                ikmapnr(i1,i2,i3)=indkp(ik)
-             end do
-             end do
-             end do
-             do ik = 1, nkptnr
-                vklnr(:,ik) = dble(ivknr(:,ik))/dble(dvk)
-                call r3mv(bvec,vklnr(:,ik),vkcnr(:,ik))
-                wkptnr(ik)=dble(iwkp(ik))/dble(nkptnr)
-             enddo ! ik
-             
-             ! generate the reduced k-point set
-             nkpt = nkptnr
-             ntet = 6*nkpt
-             if (allocated(wtet)) deallocate(wtet)
-             allocate(wtet(ntet))
-             if (allocated(tnodes)) deallocate(tnodes)
-             allocate(tnodes(4,ntet))
-             call kgen(bvec,nsym,symmat,input%groundstate%ngridk,ikloff,dkloff, &
-             &         nkpt,ivk,dvk,indkp,iwkp,ntet,tnodes,wtet,tvol,mnd)
-             ik=0
-             do i3=0,input%groundstate%ngridk(3)-1
-             do i2=0,input%groundstate%ngridk(2)-1
-             do i1=0,input%groundstate%ngridk(1)-1
-                ik=ik+1
-                ikmap(i1,i2,i3)=indkp(ik)
-             end do
-             end do
-             end do
-             do ik=1,nkpt
-                vkl(:,ik)=dble(ivk(:,ik))/dble(dvk)
-                call r3mv(bvec,vkl(:,ik),vkc(:,ik))
-                wkpt(ik)=dble(iwkp(ik))/dble(nkptnr)
-             enddo ! ik
-             
-             deallocate(symmat)
-
-         else
-
-             Call genppts(input%groundstate%reducek, .False., &
-             &            input%groundstate%ngridk, boxl, nkpt, &
-             &            ikmap, ivk, vkl, vkc, wkpt)
-
-             ! generate the non-reduced k-point set
-             Call genppts(.False., .False., input%groundstate%ngridk, &
-             &            boxl, nkptnr, ikmapnr, ivknr, vklnr, vkcnr, wkptnr)
-
-         end if ! tetrahedron method
-         
+         call genppts(input%groundstate%reducek, .False., &
+         &            input%groundstate%ngridk, boxl, nkpt, &
+         &            ikmap, ivk, vkl, vkc, wkpt)
+        
 #ifdef TETRA
   ! call to module routine
          If (associated(input%xs)) Then
             If (associated(input%xs%tetra)) Then
-               If (input%xs%tetra%tetraocc .Or. tetraopt .Or. &
-              & input%xs%tetra%tetradf) Then
+               If (input%xs%tetra%tetraocc .Or. tetraopt .Or. input%xs%tetra%tetradf) Then
                   Call genkpts_tet (filext, input%structure%epslat, &
-                 & bvec, maxsymcrys, nsymcrys, lsplsymc, symlat, &
-                 & input%groundstate%reducek, input%groundstate%ngridk, &
-                 & input%groundstate%vkloff, nkpt, ikmap, vkl, wkpt)
+                  &  bvec, maxsymcrys, nsymcrys, lsplsymc, symlat, &
+                  &  input%groundstate%reducek, input%groundstate%ngridk, &
+                  &  input%groundstate%vkloff, nkpt, ikmap, vkl, wkpt)
                End If
             End If
          End If
@@ -345,8 +263,8 @@ Subroutine init1
 
 #ifdef XS
   ! determine inverse symmery elements
-         Call findsymi (input%structure%epslat, maxsymcrys, nsymcrys, &
-        & symlat, lsplsymc, vtlsymc, isymlat, scimap)
+         Call findsymi(input%structure%epslat, maxsymcrys, nsymcrys, &
+         &             symlat, lsplsymc, vtlsymc, isymlat, scimap)
 #endif
       End If
 !

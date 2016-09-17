@@ -14,6 +14,7 @@ Subroutine bsegenspec ()
 ! !USES:
    Use modmain
    Use modxs
+   Use modxas
    use modinput
    Use m_genfilname
    Use m_getunit
@@ -52,10 +53,15 @@ Subroutine bsegenspec ()
    call init1
    call init2
   ! size of BSE-Hamiltonian
+  if (input%xs%BSE%xas) Then
+   hamsiz = (input%xs%bse%nstlxas(2) - input%xs%bse%nstlxas(1) + 1) * &
+     &      nxas * nkptnr
+    nexc= hamsiz
+	else
    hamsiz = (input%xs%bse%nstlbse(2) - input%xs%bse%nstlbse(1) + 1) * &
      &      (input%xs%bse%nstlbse(4) - input%xs%bse%nstlbse(3) + 1) * nkptnr
    nexc =  hamsiz
-
+  endif
    Allocate (oszs(nexc, 3), bse_en(nexc))
    Allocate (w(input%xs%energywindow%points), spectr(input%xs%energywindow%points))
    Allocate (buf(3,3,input%xs%energywindow%points))

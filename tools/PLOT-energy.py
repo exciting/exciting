@@ -131,7 +131,7 @@ ymin = min(yy)-dyy ; ymax = max(yy)+dyy
 
 if (len(xx) == 1): 
     xmin = min(xx)-dxx-1 ; xmax = max(xx)+dxx+1
-    ymin = min(yy)-dyy ; ymax = max(yy)+dyy
+    ymin = min(yy)-dyy-1 ; ymax = max(yy)+dyy+1
 
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot

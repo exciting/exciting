@@ -16,6 +16,7 @@ Subroutine writepmatxs
       Use modxs
       Use m_putpmat
       Use m_genfilname
+      Use modxas
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
 !   writes them to direct access file {\tt PMAT.OUT}, {\tt PMAT\_XS.OUT} or
@@ -76,7 +77,11 @@ Subroutine writepmatxs
       Allocate (evecfvt(nmatmax, nstfv))
       Allocate (evecsvt(nstsv, nstsv))
   ! allocate the momentum matrix elements array
-      Allocate (pmat(3, nstsv, nstsv))
+      if ((input%xs%bse%xas) .and. (task .Le. 400)) then ! Allocation for XAS calculation
+        Allocate (pmat(3, ncg, nstsv))
+	  else
+		Allocate (pmat(3, nstsv, nstsv))
+	  end if	  
       if (task .eq. 120) then
 ! read density and potentials from file
         If (hybridhf) Then
@@ -144,8 +149,12 @@ Subroutine writepmatxs
             If (nlotot .Gt. 0) Call genlocmt (ngk(1, ik), 1, nstfv, &
            & evecfvt, locmt)
         ! calculate the momentum matrix elements
-            Call genpmatxs (ngk(1, ik), igkig(1, 1, ik), vgkc(1, 1, 1, &
-           & ik), evecfvt, evecsvt, pmat)
+			If ((input%xs%bse%xas) .and. (task .Le. 400)) then
+				Call genpmatcorxs (ik, ngk(1, ik),apwalmt, evecfvt, evecsvt, pmat)		
+			Else
+				Call genpmatxs (ngk(1, ik), igkig(1, 1, ik), vgkc(1, 1, 1, &
+				& ik), evecfvt, evecsvt, pmat)
+			End if
          Else
         ! calculate the momentum matrix elements
             Call genpmat (ngk(1, ik), igkig(1, 1, ik), vgkc(1, 1, 1, &
@@ -157,7 +166,6 @@ Subroutine writepmatxs
          else
      ! parallel write
            Call putpmat (ik, .True., trim(fnpmat), pmat)
-        !    write(*,*)"putpmat ik ",ik,"done"
          end if
       End Do
       Call barrier

@@ -1,186 +1,205 @@
 !BOP
+!!ROUTINE: calcselfx
 !
-! !ROUTINE: addtovx
+!!INTERFACE: 
 !
-! !INTERFACE: 
-      subroutine calcselfx(ikp,iqp)
+subroutine calcselfx(iq)
+!      
+!!DESCRIPTION:
+!
+! This subroutine calculates the q-dependent self energy contribution
+!
+!!USES:
+    use modinput
+    use modmain,    only : nstfv, apwordmax, lmmaxapw, natmtot, nspnfv, &
+    &                      pi, idxas, zzero, nmatmax, zone, occsv
+    use modgw
+    use mod_mpi_gw, only : myrank
+    use mod_hdf5
       
-! !DESCRIPTION:
+!!INPUT PARAMETERS:
+    implicit none
+    integer(4), intent(in) :: iq
+    
+!!LOCAL VARIABLES:            
+    integer(4) :: ik, ikp, jk
+    integer(4) :: mdim, nmdim
+    real(8)    :: tstart, tend, t0, t1
+    integer(4) :: ie1, ie2, im
+    integer(4) :: ia, is, ias, ic, icg
+    real(8)    :: wkq, sxs2
+    complex(8) :: sx, vc
+    complex(8) :: mvm     ! Sum_ij{M^i*V^c_{ij}*conjg(M^j)}
+    complex(8), allocatable :: evecsv(:,:,:)
+    
+    integer :: k, l, ispn, ist, jst
+    complex(8) :: zsum
+    
+    ! external routines 
+    complex(8), external :: zdotc    
+    
+!!REVISION HISTORY:
 !
-!This subroutine calculates the (k,q) exchange term of the 
-!self energy
-!
-! !USES:
-     
-      use modmain
-      use modgw
-
-! !INPUT PARAMETERS:
-
-      implicit none
-      
-      integer(4), intent(in) :: ikp
-      integer(4), intent(in) :: iqp
-      
-! !LOCAL VARIABLES:            
-
-      integer(4) :: icg, ic
-      integer(4) :: ie1,ie2
-      integer(4) :: m,m1,m2,nmdim
-      integer(4) :: ik, iq, jk
-      integer(4) :: is, ia, ias
-
-      real(8) :: tstart, tend
-      real(8) :: sxs2, wkq
-      
-      complex(8) :: mvm     ! Sum_ij{M^i*W_ij(w)*conjg(M^j)}
-      complex(8), allocatable :: minm(:,:,:) 
-      complex(8), allocatable :: sxqval(:), sxqcor(:)      
-      complex(8) :: sum
-
-! !INTRINSIC ROUTINES: 
-
-      intrinsic abs
-      intrinsic sign
-      intrinsic cmplx
-      intrinsic conjg
-      intrinsic cpu_time
-
-! !EXTERNAL ROUTINES: 
-
-      complex(8), external :: zdotc
-      external zgemv
- 
-! !REVISION HISTORY:
-!
-! Created 23.06.05 by RGA.
-! Revisited June 2011 by DIN
+! Created Nov 2013 by DIN
 !
 !EOP
-!BOC      
-      call cpu_time(tstart)
-      
-      ! (non-reduced) v-diagonal basis is necessary for dealing with
-      ! q->0 singularities
-      call setbarcev(0.d0)
+!BOC
+    ! if (myrank==0) then
+    !   write(*,*)
+    !   write(*,*) ' ---- calcselfx started ----'
+    !   write(*,*)
+    ! end if
+    call timesec(tstart)
+   
+    if (vccut) then
+      sxs2 = 0.d0
+      !----------------------------------------
+      ! Set v-diagonal mixed product basis set
+      !----------------------------------------
+      mbsiz = matsiz
+      if (allocated(barc)) deallocate(barc)
+      allocate(barc(matsiz,mbsiz))
+      barc(:,:) = zzero
+      do im = 1, matsiz
+        vc = cmplx(barcev(im),0.d0,8)
+        barc(:,im) = vmat(:,im)*sqrt(vc)
+      end do
+    else
+      ! singular term prefactor (q->0)
       sxs2 = -4.d0*pi*vi
+      !----------------------------------------
+      ! Set v-diagonal mixed product basis set
+      !----------------------------------------
+      call setbarcev(0.d0)
+    end if
+    
+    !--------------------------------------------------
+    ! total number of states (n->m + n->c transisions)
+    !--------------------------------------------------
+    if ((input%gw%coreflag=='all').or. &
+    &   (input%gw%coreflag=='xal')) then
+      mdim = nomax+ncg
+    else
+      mdim = nomax
+    end if
+    nmdim = (nbgw-ibgw+1)*mdim
+    
+    allocate(eveckalm(nstsv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveckpalm(nstsv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveck(nmatmax,nstsv))
+    allocate(eveckp(nmatmax,nstsv))
+    
+    allocate(minmmat(mbsiz,ibgw:nbgw,1:mdim))
+    minmmat(:,:,:) = zzero
+    msize = sizeof(minmmat)*b2mb
+    ! write(*,'(" calcselfx: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
+    
+    !================================
+    ! loop over irreducible k-points
+    !================================
+    do ispn = 1, nspinor
+    do ikp = 1, kset%nkpt
+    
+      ! write(*,*)
+      ! write(*,*) '(calcselfx): k-point loop ikp=', ikp
+    
+      ! k vector
+      ik = kset%ikp2ik(ikp)
+      ! k-q vector 
+      jk = kqset%kqid(ik,iq)
       
-      ! non-reduced k-grid index
-      ik = idikp(ikp)
-      iq = idikpq(iqp,ikp)
-      jk = kqid(ik,iq)
-
-!-------------------------------- 
-!       Valence contribution
-!-------------------------------- 
-
-      allocate(minm(mbsiz,nstfv,nstfv))
-      nmdim = nstfv*nstfv
-      call zgemm('c','n',mbsiz,nmdim,matsiz, &
-      &          zone,barcvm,matsiz,minmmat,matsiz, &
-      &          zzero,minm,mbsiz)
-
-      allocate(sxqval(ibgw:nbgw))
-      sxqval(ibgw:nbgw)=zzero
-     
-      ! Summation over occupied bands
-      do ie1 = ibgw, nbgw
-         m1 = max(n12dgn(1,ie1,ikp),ibgw) ! low index
-         m2 = min(n12dgn(2,ie1,ikp),nbgw) ! upper index
-         sum = zzero
-         do m = m1, m2
-           do ie2 = 1, nomax
-             mvm = zdotc(mbsiz,minm(1:mbsiz,m,ie2),1,minm(1:mbsiz,m,ie2),1)
-             ! BZ integration weight
-             wkq = nqptnr*wkpq(iqp,ikp)*kiw(ie2,jk)
-             sum = sum+wkq*mvm
-           enddo ! ie2
-         end do ! m
-         sxqval(ie1) = sxqval(ie1)-sum/dble(m2-m1+1)
-         if (Gamma.and.(ie1.le.nomax)) then
-            sxqval(ie1) = sxqval(ie1)+sxs2*singc2
-         end if
-      enddo ! ie1
+      ! get KS eigenvectors
+      call timesec(t0)
+      allocate(evecsv(nmatmax,nstsv,nspinor))
+      call getevecsvgw_new('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
+      !call getevecfv(kqset%vkl(:,jk),Gkset%vgkl(:,:,:,jk),evecsv)
+      eveckp = conjg(evecsv(:,:,ispn))
       
-      deallocate(minm)
-
-!-------------------------------- 
-!       Core electron contribution
-!-------------------------------- 
-
-      if (iopcore<=1) then
+      call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+      !call getevecfv(kqset%vkl(:,ik),Gkset%vgkl(:,:,:,ik),evecsv)
+      eveck = evecsv(:,:,ispn)
+      deallocate(evecsv)
+      call timesec(t1)
+      time_io = time_io+t1-t0
       
-        allocate(minm(mbsiz,nstfv,ncg))
-        nmdim = nstfv*ncg
-        call zgemm('c','n',mbsiz,nmdim,locmatsiz, &
-        &          zone,barcvm,matsiz,mincmat,locmatsiz, &
-        &          zzero,minm,mbsiz)
-
-        allocate(sxqcor(ibgw:nbgw))
-        sxqcor(ibgw:nbgw)=zzero
-
-        ! Summation over occupied bands
-        do ie1 = ibgw, nbgw
-           sum=zzero
-           m1=max(n12dgn(1,ie1,ikp),ibgw) ! low index
-           m2=min(n12dgn(2,ie1,ikp),nbgw) ! upper index
-           do m = m1, m2
-             do icg = 1, ncg
-               mvm=zdotc(mbsiz,minm(1:mbsiz,m,icg),1,minm(1:mbsiz,m,icg),1)
-               ! BZ integration weight
-               is = corind(icg,1)
-               ia = corind(icg,2)
-               ias= idxas(ia,is)
-               ic = corind(icg,3)
-               wkq = nqptnr*wkpq(iqp,ikp)*ciw(ias,ic)
-               sum = sum+wkq*mvm
-             enddo ! icg
-           end do ! m        
-           sxqcor(ie1)=sxqcor(ie1)-sum/dble(m2-m1+1)
-        enddo ! ie1
+      ! Calculate M^i_{nm}+M^i_{cm}
+      call expand_evec(ik,'t')
+      call expand_evec(jk,'c')
+      call expand_products(ik,iq,ibgw,nbgw,-1,1,mdim,nomax,minmmat)
         
-        deallocate(minm)
- 
-      endif ! core
+      !========================================================
+      ! Calculate the contribution to the exchange self-energy
+      !========================================================
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ie1,sx,ie2,mvm,icg,ia,is,ic,ias)
+!$OMP DO
+#endif    
+      do ie1 = ibgw, nbgw
       
-!----------------------------------------
-!     Sum up the contributions
-!----------------------------------------
+        ! sum over occupied states
+        sx = zzero
+        do ie2 = 1, mdim
+          !======================= 
+          ! Valence contribution
+          !======================= 
+          if (ie2 <= nomax) then
+            mvm = zdotc(mbsiz,minmmat(:,ie1,ie2),1,minmmat(:,ie1,ie2),1)
+            sx = sx-kiw(ie2,jk)*mvm
+          else
+            !============================= 
+            ! Core electron contribution
+            !============================= 
+            icg = ie2-nomax
+            is = corind(icg,1)
+            ia = corind(icg,2)
+            ias = idxas(ia,is)
+            ic = corind(icg,3)
+            mvm = zdotc(mbsiz,minmmat(:,ie1,ie2),1,minmmat(:,ie1,ie2),1)
+            sx = sx-ciw(ic,ias)*mvm
+          end if ! occupied states
+        end do ! ie2
+        
+        ! add singular term (q->0)
+        if (Gamma.and.(ie1<=nomax)) sx = sx+sxs2*singc2*kiw(ie1,ik)*kqset%nkpt
+        !if (Gamma.and.(dabs(kiw(ie1,ik))>1.d-6)) sx = sx+sxs2*singc2*kiw(ie1,ik)*kqset%nkpt
+        
+        selfex(ie1,ikp) = selfex(ie1,ikp)+sx
+        
+      end do ! ie1
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
 
-      write(96,*)'-------- CALCSELFX -------------, ikp = ', ikp, '    iqp = ', iqp
-      if (iopcore.le.1) then
-        write(96,*)'# band nr.       core           valence        selfex'
+      ! debugging info
+      if (input%gw%debug) then
+        write(fdebug,*) 'EXCHANGE SELF-ENERGY: iq=', iq, ' ikp=', ikp
+        write(fdebug,*) 'state   Sigma_x'
         do ie1 = ibgw, nbgw
-          selfex(ie1,ikp)=selfex(ie1,ikp)+sxqval(ie1)+sxqcor(ie1)
-          write(96,10)ie1,sxqcor(ie1),sxqval(ie1),selfex(ie1,ikp)
-        enddo ! ie1
-        write(96,*)
-        deallocate(sxqval)
-        deallocate(sxqcor)
-      else
-        write(96,*)'# band nr.       valence        selfex'  
-        do ie1 = ibgw, nbgw
-           selfex(ie1,ikp)=selfex(ie1,ikp)+sxqval(ie1)
-           write(96,11)ie1,sxqval(ie1),selfex(ie1,ikp)
-        enddo ! ie1
-        write(96,*)
-        deallocate(sxqval)
-      endif
-
-      call cpu_time(tend)
-      if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
-      if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
-      call write_cputime(fgw,tend-tstart, 'CALCSELFX')
-
-   10 format(i4,2f18.10,'  | ',2f18.10,' || ',2f18.10)
-   11 format(i4,2f18.10,' || ',2f18.10)
+          write(fdebug,*) ie1, selfex(ie1,ikp)
+        end do
+        write(fdebug,*)
+      end if
       
-      return 
-      end subroutine calcselfx
-!EOC        
-              
-                 
-                    
-                    
-                               
-                        
+    end do ! ikp
+    end do ! ispn
+
+    deallocate(minmmat)
+    deallocate(eveck)
+    deallocate(eveckp)
+    deallocate(eveckalm)
+    deallocate(eveckpalm)
+
+    ! timing
+    call timesec(tend)
+    time_selfx = time_selfx+tend-tstart
+    
+    ! if (myrank==0) then
+    !   write(*,*)
+    !   write(*,*) ' ---- calcselfx ended ----'
+    !   write(*,*)
+    ! end if
+    
+    return
+end subroutine
+!EOC

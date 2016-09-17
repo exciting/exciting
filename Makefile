@@ -1,11 +1,9 @@
 
-
-
 .NOTPARALLEL:
 
-default: build/make.inc all 
+default: build/make.inc all
 
-all:    serial mpi smp spacegroup stateinfo stateconvert species
+all: serial mpi
 
 build/make.inc:
 	perl ./setup.pl
@@ -16,20 +14,13 @@ serial:
 	cd build/serial; $(MAKE) 
 
 mpi:
-	cd build/mpi; $(MAKE) 
-
-smp:
-	cd build/smp; $(MAKE)
+	cd build/mpi; $(MAKE)
 
 debug:
 	cd build/debug; $(MAKE)
 
-mpiandsmp:
-	cd build/mpiandsmp; $(MAKE)
-
 test::
 	cd test/; $(MAKE) summary
-
 
 
 doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc Splitt_inputdoc speciesdoc 
@@ -114,6 +105,7 @@ clean:
 	rm -f interfaces/*
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
+	cd test; $(MAKE) cleantests
 
 libxcclean:
 	cd src/libXC && make clean 

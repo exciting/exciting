@@ -4,7 +4,7 @@
 ! See the file COPYING for license details.
 
 
-subroutine  writexmlspecies
+subroutine writexmlspecies
 
   use FoX_wxml
   use modspecies
@@ -91,7 +91,7 @@ subroutine  writexmlspecies
 !
 !   Custom augmentation type
 !
-    if (apwordx.gt.0) then
+    if (apwordx>0) then
       do l = 0, maxl
         call xml_NewElement (xf, "custom")
         write(buffer,*) l
@@ -109,12 +109,30 @@ subroutine  writexmlspecies
         write(buffer,'(F8.4)') elval(l)
         call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
         if (apwvex(1)) then
-          call xml_AddAttribute(xf, "searchE", "true")
+          buffer2 = "true"
         else
-          call xml_AddAttribute(xf, "searchE", "false")
+          buffer2 = "false"
         endif
+        call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
         call xml_endElement (xf, "custom")
-      end do ! l
+        ! Additional lo
+        ! call xml_NewElement (xf, "lo")
+        ! write(buffer,*) l
+        ! call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
+        ! call xml_NewElement (xf, "wf")
+        ! call xml_AddAttribute(xf, "matchingOrder", "0")
+        ! write(buffer,'(F8.4)') elval(l)
+        ! call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
+        ! call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
+        ! call xml_endElement (xf, "wf")
+        ! call xml_NewElement (xf, "wf")
+        ! call xml_AddAttribute(xf, "matchingOrder", "2")
+        ! write(buffer,'(F8.4)') elval(l)
+        ! call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
+        ! call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
+        ! call xml_endElement (xf, "wf")
+        ! call xml_endElement (xf, "lo")
+      end do ! l      
     end if
   
   else if (trim(apwdescr).eq.'advanced') then
@@ -190,8 +208,12 @@ subroutine  writexmlspecies
 ! Semi-Core Local Orbitals
 !
   if ( locorbsc ) then
-    buffer2="false"
-    if (searchlocorb) buffer2="true"
+    ! call xml_AddComment(xf," Semi-Core States ")
+    if (searchlocorb) then 
+      buffer2="true"
+    else
+      buffer2="false"
+    end if
     do l = 0, lmax
       do i = 1, nl(l)
         e = el(l,i)
@@ -215,7 +237,7 @@ subroutine  writexmlspecies
             call xml_AddAttribute(xf, "matchingOrder", "0")
             write(buffer,'(F8.4)') e
             call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
-            call xml_AddAttribute(xf, "searchE", "true")
+            call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
             call xml_endElement (xf, "wf")
             call xml_endElement (xf, "lo")
         end if
@@ -223,55 +245,8 @@ subroutine  writexmlspecies
     end do
   endif ! locorbsc
   
-!-------------------------------------------------
-! Exciting States Local Orbitals
-!-------------------------------------------------
-
-  if ( locorbxs ) then
-    buffer2="false"
-    if (searchlocorbxs) buffer2="true"
-    do l = 0, lxsmax
-      buffer1="false"
-      if ((l<=maxl).and.(apwvex(1))) buffer1="true"
-      ! ----
-      order=apword
-      if (l<=maxl) order=apwordx
-      ! ----
-      do i = 1, nl(l)
-        e = el(l,i)
-        if (e.gt.exscut) then
-          call xml_NewElement (xf, "lo")
-          write(buffer,*) l
-          call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
-          ! valence radial function
-          do io = 0, order-1
-            call xml_NewElement (xf, "wf")
-            write(buffer,*) io
-            call xml_AddAttribute(xf, "matchingOrder", trim(adjustl(buffer)))
-            write(buffer,'(F8.4)') elval(l)
-            call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
-            call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer1)))
-            call xml_endElement (xf, "wf")
-          end do
-          ! xs radial function
-          io = 0
-          call xml_NewElement (xf, "wf")
-          write(buffer,*) io
-          call xml_AddAttribute(xf, "matchingOrder", trim(adjustl(buffer)))
-          write(buffer,'(F8.4)') e
-          call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
-          call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
-          call xml_endElement (xf, "wf")
-          call xml_endElement (xf, "lo")
-        end if
-      end do ! i
-    end do ! l
-  endif ! locorbxs
-
   call xml_endElement (xf, "basis")
 
-  call xml_AddComment(xf," Exciting code version: "//version//" ")
-  call xml_AddComment(xf," Generation Scheme: "//trim(apwdescr)//" ")
   call xml_Close(xf)
 
 end subroutine writexmlspecies

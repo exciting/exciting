@@ -1,29 +1,26 @@
 !BOP
 !
-! !MODULE: incgamma
-      module incgamma
-      
-! !LOCAL VARIABLES:
-   
+!!MODULE: incgamma
+module incgamma
+!      
+!!LOCAL VARIABLES:
       real(8), private :: etx ! exp(-x), declared here because it is used
-!                               by all the calls of the function, to avoid
-!                               recalculating it every time.
+                              ! by all the calls of the function, to avoid
+                              ! recalculating it every time.
 
       real(8), private :: sqx ! sqrt(x), declared here because it is used
-!                               by all the calls of the function, to avoid
-!                               recalculating it every time.
-
-! !INTERFACE:
-
+                              ! by all the calls of the function, to avoid
+                              ! recalculating it every time.
+!
+!!INTERFACE:
       interface gammaincc
         module procedure gammaincc_int
         module procedure gammaincc_hin
       end interface gammaincc
-
 !
-! !DESCRIPTION:
+!!DESCRIPTION:
 !
-! This module calculates the Incomplete gamma function, defined by:
+! This module calculates the incomplete gamma function, defined by:
 !
 !\begin{equation}
 !\Gamma(a,x)=\int\limits_x^{\infty}e^{-t} t^{a-1}dt
@@ -49,7 +46,7 @@
 ! calculated. x must be positive
 !\end{itemize}
 !
-! !EXTERNAL ROUTINES: 
+!!EXTERNAL ROUTINES: 
 !
 !\begin{itemize}
 ! \item \verb"e1xb": calculates the exponential integral function
@@ -58,29 +55,28 @@
 ! has  it). If not, the file erf.f90 is included in the package.
 !\end{itemize}
 !
-! !PUBLIC MEMBER FUNCTIONS:
+!!PUBLIC MEMBER FUNCTIONS:
 !
 ! real(8) :: incgam(n,x)
 !
 !EOP
-      contains
+!
+contains
+!
 !BOP
 !
-! !IROUTINE: gammaincc_int
+!!IROUTINE: \verb"gammaincc_int"
 ! 
-! !INTERFACE:
-      recursive function gammaincc_int(n,x) result(gmi)
-      
-! !INPUT PARAMETERS:      
+!!INTERFACE:
+    recursive function gammaincc_int(n,x) result(gmi)
+!      
+!!INPUT PARAMETERS:      
         implicit none
-        
-        real(8) :: x ! value at which the gamma function is 
-!                      calculated
-        
-        integer(4) :: n ! order of the gamma function
-
-! !OUTPUT PARAMETERS:        
-        
+        real(8) :: x  ! value at which the gamma function is calculated
+        integer :: n  ! order of the gamma function
+!
+!!OUTPUT PARAMETERS:        
+!        
         real(8) :: gmi ! value of the gamma function
 !        
 ! !DESCRIPTION:
@@ -91,80 +87,70 @@
 !
 !BOC
         real(8), external :: e1xb
-        if(n.eq.0)then
-          gmi=e1xb(x)
-        elseif(n.eq.1)then
+        if (n==0) then
+          gmi = e1xb(x)
+        else if (n==1) then
           gmi = etx
         else
           gmi = (x**(n-1))*etx+dble(n-1)*gammaincc(n-1,x)
         endif
-      end function gammaincc_int
+    end function gammaincc_int
 !EOC
 !
 !BOP
 !
-! !IROUTINE: gammaincc_hin
+!!IROUTINE: \verb"gammaincc_hin"
 ! 
-! !INTERFACE:
-      recursive function gammaincc_hin(in,x,n) result(gmh)
-! !INPUT PARAMETERS:      
+!!INTERFACE:
+    recursive function gammaincc_hin(in,x,n) result(gmh)
+    
+!!INPUT PARAMETERS:      
         implicit none
-        
-        integer(4) :: in ! order of the gamma function - 1/2
-
-        real(8) :: x ! value at which the gamma function is calculated
-        
-        real(8) :: n ! order of the gamma function
-
-! !OUTPUT PARAMETERS:        
-        
+        integer :: in  ! order of the gamma function - 1/2
+        real(8) :: x   ! value at which the gamma function is calculated
+        real(8) :: n   ! order of the gamma function
+!!OUTPUT PARAMETERS:        
         real(8) :: gmh ! value of the gamma function
 !        
-! !DESCRIPTION:
+!!DESCRIPTION:
 !
 ! Calculates the incomplete gamma function of halfinteger order
 !
 !EOP
-!
 !BOC
         real(8), external :: derfc
         real(8) :: pi
-        if(in.eq.0)then
+        if (in==0) then
           pi = 4.0d0*datan(1.0d0)
-          gmh=dsqrt(pi)*derfc(sqx)
+          gmh = dsqrt(pi)*derfc(sqx)
         else
-          gmh = (x**(in-1))*sqx*etx+(n-1.0d0)*&
-     &         gammaincc(in-1,x,n-1.0d0)
+          gmh = (x**(in-1))*sqx*etx+(n-1.0d0)*gammaincc(in-1,x,n-1.0d0)
         endif
-      end function gammaincc_hin
+    end function gammaincc_hin
 !EOC
 !
 !BOP
 ! 
-! !IROUTINE: incgam
+!!IROUTINE: incgam
 !
-! !INTERFACE:
-      function incgam(n,x)
+!!INTERFACE:
+    function incgam(n,x)
       
-! !INPUT PARAMETERS:
+!!INPUT PARAMETERS:
         implicit none
-        
         real(8) :: x     ! Argument of the gamma function
-
         real(8) :: n     ! order of the gamma function
 
-! !OUTPUT PARAMETERS:
-
+!!OUTPUT PARAMETERS:
         real(8) :: incgam ! value of the gamma function (result)
 
-! !DESCRIPTION:
+!!DESCRIPTION:
 !
 ! The function works as an interface, it checks whether the index
 ! is integer or half integer and calls the corresponding procedure
 ! within the module
 !
-! !LOCAL VARIABLES:
-
+!!LOCAL VARIABLES:
         integer(4) :: in ! integer part of n
         
 ! !REVISION HISTORY:
@@ -172,30 +158,33 @@
 ! Created Jan. 2004        
 !        
 !EOP
-!
 !BOC
         etx = dexp(-1.0d+0*x)
-        in=idint(n)
-        if(n-dble(in).le.0.25)then
-          incgam=gammaincc(in,x)
+        in = idint(n)
+        if (n-dble(in)<=0.25) then
+          incgam = gammaincc(in,x)
         else
-          sqx=dsqrt(x)
-          incgam=gammaincc(in,x,n)
+          sqx = dsqrt(x)
+          incgam = gammaincc(in,x,n)
         endif
-      end function incgam
+    end function incgam
 !EOC
-      end module incgamma
+end module incgamma
+
+!===============================================================================
+!
+!===============================================================================
 
 !BOP
 !
-! !ROUTINE: rcutoff
+!!ROUTINE: rcutoff
 !
-! !INTERFACE:
-      function rcutoff(tol,eta,lambdamax) result(rcf)
+!!INTERFACE:
+function rcutoff(tol,eta,lambdamax) result(rcf)
 
-! !DESCRIPTION:
+!!DESCRIPTION:
 !      
-!  Estimates the cutoff radius of the sums in real space for the
+! Estimates the cutoff radius of the sums in real space for the
 ! calculation of the structure constants by the solving the equation:
 !
 !\begin{equation}
@@ -215,47 +204,38 @@
 ! and taking the maximum value of $R_c$ obtained for $\lambda = 1...$
 !\verb"lambdamax".      
 !
-! !USES:
+!!USES:
+    use modmain,     only: pi
+    use mod_misc_gw, only: avec
+    use incgamma,    only: incgam
       
-      use modmain,  only: pi
-      use modgw,    only: avec
-      use incgamma, only: incgam
-      
-! !INPUT PARAMETERS:
+!!INPUT PARAMETERS:
+    implicit none
+    real(8), intent(in) :: tol ! The tolerance for the convergence of the lattice sum
+    real(8), intent(in) :: eta 
+    integer, intent(in) :: lambdamax
 
-      implicit none
+!!OUTPUT PARAMETERS:      
+    real(8) :: rcf ! The maximum cutoff radius
 
-      real(8),    intent(in) :: tol ! The tolerance for the 
-!                                     convergence of the lattice sum
-
-      real(8),    intent(in) :: eta 
- 
-      integer(4), intent(in) :: lambdamax
-
-! !OUTPUT PARAMETERS:      
- 
-      real(8) :: rcf ! The maximum cutoff radius
-
-! !LOCAL VARIABLES:
-
-      integer(4) :: l1
-      integer(4) :: i
-
-      real(8) :: rl
-      real(8) :: x
-      real(8) :: gmm
-      real(8) :: aleng(3)
-      real(8), allocatable :: eps(:)
-      real(8) :: rnot
-      real(8) :: gaml12
-      real(8) :: gaml32
-      real(8) :: prefac
-      real(8), allocatable :: rct(:)
-
-      real(8), external :: higam
-
+!!LOCAL VARIABLES:
+    integer(4) :: l1
+    integer(4) :: i
+    real(8) :: rl
+    real(8) :: x
+    real(8) :: gmm
+    real(8) :: aleng(3)
+    real(8), allocatable :: eps(:)
+    real(8) :: rnot
+    real(8) :: gaml12
+    real(8) :: gaml32
+    real(8) :: prefac
+    real(8), allocatable :: rct(:)
+    
+!!EXTERNAL ROUTINES:     
+    real(8), external :: higam
 !
-! !REVISION HISTORY:
+!!REVISION HISTORY:
 ! 
 ! Created: January 2004 by RGA
 ! Last Modified: 6. August 2004 by RGA
@@ -263,63 +243,58 @@
 !
 !EOP
 !BOC
-      allocate(rct(lambdamax+1))
-      allocate(eps(lambdamax+1))
-      do i=1,3
-        aleng(i)=sqrt(avec(1,i)*avec(1,i)+ &
-       &              avec(2,i)*avec(2,i)+ &
-       &              avec(3,i)*avec(3,i))
-      enddo
-      rnot=maxval(aleng)
-      rct = 5.0d+1
-      do i=1,100
+    allocate(rct(lambdamax+1))
+    allocate(eps(lambdamax+1))
+    do i = 1, 3
+        aleng(i) = sqrt(avec(1,i)*avec(1,i)+ &
+       &                avec(2,i)*avec(2,i)+ &
+       &                avec(3,i)*avec(3,i))
+    enddo
+    rnot = maxval(aleng)
+    rct = 5.0d+1
+    do i = 1, 100
         x = 5.0d-1*dble(i)
-        do l1=0,lambdamax
-          if(l1.ne.2)then
+        do l1 = 0, lambdamax
+          if (l1.ne.2) then
             rl =5.0d-1*(dble(l1+1))
-            gaml32=incgam(rl,x*x)
+            gaml32 = incgam(rl,x*x)
             rl = dble(l1)+5.0d-1
-            gaml12=incgam(rl,x*x)
+            gaml12 = incgam(rl,x*x)
             gmm = higam(l1)
             prefac = 4.0d0*pi/(dble(l1-2)*gmm)
-            eps(l1+1)=dabs(prefac*(gaml32-gaml12/(x**(l1-2)))/        &
-     &                (eta**(l1-2)))
-            if((eps(l1+1).lt.tol).and.(x.lt.rct(l1+1)))rct(l1+1)=x
+            eps(l1+1) = dabs(prefac*(gaml32-gaml12/(x**(l1-2)))/(eta**(l1-2)))
+            if ((eps(l1+1)<tol) .and. (x<rct(l1+1))) rct(l1+1) = x
           else
-            gaml32=incgam(3.0d0,x*x)
-            gaml12=incgam(2.5d0,x*x)
+            gaml32 = incgam(3.0d0,x*x)
+            gaml12 = incgam(2.5d0,x*x)
             gmm = higam(2)
             prefac = 4.0d0*pi/gmm
-            eps(l1+1)= dabs(prefac*(gaml32/x-gaml12))
-            if((eps(l1+1).lt.tol).and.(x.lt.rct(l1+1)))rct(l1+1)=x
+            eps(l1+1) = dabs(prefac*(gaml32/x-gaml12))
+            if((eps(l1+1)<tol) .and. (x<rct(l1+1))) rct(l1+1) = x
           endif
         enddo ! l1
-!        write(52,10)x,(eps(l1),l1=1,lambdamax+1)
       enddo ! i
-!      do l1=1,lambdamax+1
-!        write(52,*)'RGA: rcutoff:',l1-1,rct(l1)
-!      enddo
-      rcf=maxval(rct)*eta
-!      write(52,*)'max. real cutoff =',rcf
-      
+      rcf = maxval(rct)*eta
       deallocate(rct)
       deallocate(eps)
-      
-   10 format(12(e14.7e3,1x))
-   
-      end function rcutoff
+      return
+end function rcutoff
 !EOC
+
+!===============================================================================
+!
+!===============================================================================
 
 !BOP
 !
-! !ROUTINE: gcutoff
+!!ROUTINE: gcutoff
 !
-! !INTERFACE:
-      function gcutoff(tol,eta,lambdamax) result(rcf)
+!!INTERFACE:
+function gcutoff(tol,eta,lambdamax) result(rcf)
       
-! !DESCRIPTION:
+!!DESCRIPTION:
 !      
-!  Estimates the cutoff radius of the sums in reciprocal space for the
+! Estimates the cutoff radius of the sums in reciprocal space for the
 ! calculation of the structure constants by the solving the equation:
 !
 !\begin{equation}
@@ -331,84 +306,66 @@
 ! and taking the maximum value of $G_c$ obtained for $\lambda = 1...$
 !\verb"lambdamax".      
 !
-! !USES:
-      
-      use modmain,   only: pi,omega,bvec
-      use incgamma,  only: incgam
+!!USES:
+    use modmain,  only: pi, omega, bvec
+    use incgamma, only: incgam
 
-! !INPUT PARAMETERS:
+!!INPUT PARAMETERS:
+    implicit none
+    real(8), intent(in) :: tol ! The tolerance for the convergence of the lattice sum
+    real(8), intent(in) :: eta 
+    integer, intent(in) :: lambdamax
 
-      implicit none
+!!OUTPUT PARAMETERS:      
+    real(8) :: rcf             ! The maximum cutoff radius
 
-      real(8),    intent(in) :: tol ! The tolerance for the 
-!                                     convergence of the lattice sum
-      real(8),    intent(in) :: eta 
-      integer(4), intent(in) :: lambdamax
-
-! !OUTPUT PARAMETERS:      
+!!LOCAL VARIABLES:
+    integer(4) :: l1
+    integer(4) :: i
+    real(8) :: gaml32
+    real(8) :: gmm
+    real(8) :: prefac
+    real(8) :: rl
+    real(8) :: rnot
+    real(8) :: x
+    real(8) :: bleng(3)
+    real(8), allocatable :: eps(:)
+    real(8), allocatable :: rct(:)
  
-      real(8) :: rcf ! The maximum cutoff radius
+!!EXTERNAL ROUTINES: 
+    real(8), external :: higam
 
-! !LOCAL VARIABLES:
-
-      integer(4) :: l1
-      integer(4) :: i
-
-      real(8) :: gaml32
-      real(8) :: gmm
-      real(8) :: prefac
-      real(8) :: rl
-      real(8) :: rnot
-      real(8) :: x
-      real(8) :: bleng(3)
-      real(8), allocatable :: eps(:)
-      real(8), allocatable :: rct(:)
-
- 
-! !EXTERNAL ROUTINES: 
-
-
-      real(8), external :: higam
-!
-! !REVISION HISTORY:
+!!REVISION HISTORY:
 ! 
 ! Created: January 2004 by RGA
 ! Last Modified: 6. August 2004 by RGA
+! Revisited: 23 May 2011 by DIN
 !
 !EOP
 !BOC
-
-      allocate(rct(lambdamax+1))
-      allocate(eps(lambdamax+1))
-      do i=1,3
-        bleng(i)=sqrt(bvec(1,i)*bvec(1,i)+ &
-       &              bvec(2,i)*bvec(2,i)+ &
-       &              bvec(3,i)*bvec(3,i))
+    allocate(rct(lambdamax+1))
+    allocate(eps(lambdamax+1))
+    do i = 1, 3
+        bleng(i) = sqrt(bvec(1,i)*bvec(1,i)+ &
+       &                bvec(2,i)*bvec(2,i)+ &
+       &                bvec(3,i)*bvec(3,i))
       enddo
-      rnot=maxval(bleng)
+      rnot = maxval(bleng)
       rct(:) = 5.0d+1
-      do i=1,100
+      do i = 1, 100
         x = 5.0d-1*dble(i)
-        do l1=0,lambdamax
-          rl =5.0d-1*(dble(l1+1))
-          gaml32=incgam(rl,x*x)
+        do l1 = 0, lambdamax
+          rl = 5.0d-1*(dble(l1+1))
+          gaml32 = incgam(rl,x*x)
           gmm = higam(l1)
           prefac = 8.0d0*pi*pi*dsqrt(pi)/(omega*gmm*eta**(l1+1))
-          eps(l1+1)=dabs(prefac*gaml32)
-          if((eps(l1+1).lt.tol).and.(x.lt.rct(l1+1)))rct(l1+1)=x
+          eps(l1+1) = dabs(prefac*gaml32)
+          if ((eps(l1+1)<tol) .and. (x<rct(l1+1))) rct(l1+1) = x
         enddo ! l1
-!        write(52,10)x,(eps(l1),l1=1,lambdamax+1)
       enddo ! i
-!      do l1=1,lambdamax+1
-!        write(52,*)'RGA: gcutoff:',l1-1,rct(l1)
-!      enddo
-      rcf=maxval(rct)*2.0d0/eta
-!      write(52,*)'max. reciprocal cutoff =',rcf
-      
-   10 format(12(e14.7e3,1x))
-   
+      rcf = maxval(rct)*2.0d0/eta
       deallocate(rct)
       deallocate(eps)
-
-      end function gcutoff
+      return
+end function gcutoff
 !EOC      

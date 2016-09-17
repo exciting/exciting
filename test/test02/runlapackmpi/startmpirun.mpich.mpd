@@ -1,5 +1,0 @@
-
-rm *.OUT
-mpd&
-mpiexec -n 2    ../../../build/mpi/exciting
-

@@ -12,7 +12,9 @@ Subroutine idfq (iq)
       Use modinput
       Use modxs
       Use modfxcifc
+#ifdef TETRA      
       Use modtetra
+#endif
       Use modmpi
       Use m_genwgrid
       Use m_dyson

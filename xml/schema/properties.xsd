@@ -11,8 +11,7 @@
   </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="properties">
     <xs:annotation>
-      <xs:documentation> Properties listed in this element can be calculated from the groundstate.
-        It works also from a saved state from a previous run. </xs:documentation>
+      <xs:documentation> Properties listed in this element can be calculated from the groundstate. It works also from a saved state from a previous run. </xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
@@ -23,8 +22,7 @@
           </xs:annotation>
           <xs:complexType>
             <xs:annotation>
-              <xs:documentation>Create a bandstructure. Must contain plot1d element for
-                bandstructure path.</xs:documentation>
+              <xs:documentation>Create a bandstructure. Must contain plot1d element for bandstructure path.</xs:documentation>
             </xs:annotation>
             <xs:all>
               <xs:element ex:importance="essential" ex:unit="" ref="plot1d"/>
@@ -136,6 +134,12 @@
               <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
               <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
             </xs:all>
+            <xs:attribute ex:importance="expert" ex:unit="" name="version"
+              default="old" type="xs:string">
+              <xs:annotation>
+                <xs:documentation> (Temporal solution) 'old' and 'new' version of the visualization subroutine. All tutorials are currently supporting only 'old' version.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="essential" ex:unit="" name="dos" maxOccurs="1" minOccurs="0">
@@ -719,7 +723,7 @@
         <xs:element ex:importance="expert" ex:unit="" name="moke" minOccurs="0" maxOccurs="1">
           <xs:complexType>
 
-            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="true">
+            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
               <xs:annotation>
                 <xs:documentation> Use the intraband term in calculations if the dielectric matrix.</xs:documentation>
               </xs:annotation>

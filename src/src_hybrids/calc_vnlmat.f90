@@ -28,8 +28,13 @@ subroutine calc_vnlmat
  
     integer :: ikfirst, iklast
 
-    ikfirst = firstk(rank)
-    iklast = lastk(rank)
+#ifdef MPI
+    ikfirst = firstofset(rank,kset%nkpt)
+    iklast  = lastofset(rank,kset%nkpt)
+#else
+    ikfirst = 1
+    iklast  = kset%nkpt
+#endif
 
     !------------------------------------------!
     ! Matrix elements of non-local potential   !
@@ -43,20 +48,20 @@ subroutine calc_vnlmat
 
     do ik = ikfirst, iklast
 
-        apwalm = zzero
+        ! matching coefficients
         call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik), &
         &          sfacgk(:,:,1,ik),apwalm(:,:,:,:,1))
         !write(*,*) 'apwalm=', ik, sum(apwalm)
             
-! Hamiltonian and overlap setup 
+        ! Hamiltonian and overlap setup 
         nmatp = nmat(1,ik)
         call newsystem(system,input%groundstate%solver%packedmatrixstorage,nmatp)
         call hamiltonandoverlapsetup(system,ngk(1,ik),apwalm, &
         &                            igkig(:,1,ik),vgkc(:,:,1,ik))
         !write(*,*) 'overlap=', ik, sum(system%overlap%za)
 
-! S
-        if ((debug).and.(rank==0)) then
+        ! S
+        if (input%gw%debug.and.(rank==0)) then
             call linmsg(fgw,'-',' Overlap ')
             do ie1 = 1, nmatp, 100
                 write(fgw,*) (system%overlap%za(:,:), ie2=1,nmatp,100)
@@ -64,19 +69,18 @@ subroutine calc_vnlmat
             call linmsg(fgw,'-','')
         end if
         
-! c
-        !evec(:,:) = zzero
+        ! c
         call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evec)
         !write(*,*) 'evec=', ik, sum(evec(1:nmatp,:))
         
-        if ((debug).and.(rank==0)) then
+        if (input%gw%debug.and.(rank==0)) then
             call linmsg(fgw,'-',' EvecFV ')
             do ie1 = 1, nmatp, 100
                 write(fgw,*) (evec(ie1,ie2), ie2=1,nstfv,10)
             end do
         end if
 
-! conjg(c)*S
+        ! conjg(c)*S
         allocate(temp(nstfv,nmatp))
         call zgemm('c','n',nstfv,nmatp,nmatp, &
         &          zone,evec(1:nmatp,:),nmatp, &
@@ -84,7 +88,7 @@ subroutine calc_vnlmat
         &          zzero,temp,nstfv)
         !write(*,*) 'temp=', ik, sum(temp)
 
-! Vnl*conjg(c)*S    
+        ! Vnl*conjg(c)*S    
         allocate(temp1(nstfv,nmatp))
         call zgemm('n','n',nstfv,nmatp,nstfv, &
         &          zone,vxnl(:,:,ik),nstfv, &
@@ -92,14 +96,14 @@ subroutine calc_vnlmat
         &          temp1,nstfv)
         !write(*,*) 'temp1=', ik, sum(temp1)
 
-! V^{NL}_{GG'} = conjg[conjg(c)*S]*Vx*conjg(c)*S
+        ! V^{NL}_{GG'} = conjg[conjg(c)*S]*Vx*conjg(c)*S
         call zgemm('c','n',nmatp,nmatp,nstfv, &
         &          zone,temp,nstfv, &
         &          temp1,nstfv,zzero, &
         &          vnlmat(1:nmatp,1:nmatp,ik),nmatp)
         !write(*,*) 'vnlmat=', ik, sum(vnlmat(:,:,ik))
             
-        if ((debug).and.(rank==0)) then
+        if (input%gw%debug.and.(rank==0)) then
             call linmsg(fgw,'-',' Vx_NL_GG ')
             do ie1 = 1, nmatp, 100
                 write(fgw,*) (vnlmat(ie1,ie2,ik), ie2=1,nmatp,100)
@@ -107,7 +111,7 @@ subroutine calc_vnlmat
             call linmsg(fgw,'-','')
         end if
         
-        call deleteystem(system)
+        call deletesystem(system)
         deallocate(temp)
         deallocate(temp1)
             
@@ -115,11 +119,6 @@ subroutine calc_vnlmat
     
     deallocate(apwalm)
     deallocate(evec)
-    
-    if ((rank==0).and.input%groundstate%Hybrid%savepotential) then 
-         Call putvnlmat 
-    end if
-    call barrier
     
     return
 end subroutine

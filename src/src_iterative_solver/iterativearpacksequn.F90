@@ -798,7 +798,7 @@ if (SeparateDegenerates) then
       deallocate(h)
 
 endif
-      Call deleteystem (system)
+      Call deletesystem (system)
 ! We may have ruined the ascending order in the list of eigenvals and eigenvecs
 ! Restoring it if necessary
 if (SeparateDegenerates) then
@@ -869,7 +869,7 @@ if (input%groundstate%ValenceRelativity.eq.'lkh') then
         evecfv(:,i,ispn)=evecfv(:,i,ispn)/sqrt(abs(zm2(i,i)))
       enddo
       deallocate(h,zm2)
-      Call deleteystem (system)
+      Call deletesystem (system)
 endif
 !      do i=1,nstfv
 !        arpackseed(1:n,ik)=arpackseed(1:n,ik)+evecfv(1:n,i,ispn)

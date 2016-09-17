@@ -2,7 +2,7 @@ F90 = pgf90
 F77 = $(F90)
 F90_OPTS = -fast -O3 -Mfprelaxed -DUSEOMP -mp=allcores
 F77_OPTS = -fast -O3 -Mfprelaxed -DUSEOMP -mp=allcores
-CPP_ON_OPT = -Mpreprocess -DXS -DISO -DTETRA -DLIBXC
+CPP_ON_OPT = -Mpreprocess -DXS -DISO -DLIBXC
 LIB_ARP = libarpack.a
 # uncomment this line in case you want to use external LAPACK/BLAS library
 #export USE_SYS_LAPACK=true

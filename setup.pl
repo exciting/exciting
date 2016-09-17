@@ -61,46 +61,4 @@ while($selected==0){
 	}
 }
 
-$selected=0;
-while($selected==0){
-print "\nIf you have multithreaded BLAS/LAPACK installed you can build exciting with SMP support.\n\n";
-print "Build SMP lib binary (yes/No)  ";
-$SMP=<>;
-if($SMP=~m/yes/i){
-	system("echo \"BUILDSMP=true\">>build/make.inc");
-		$selected=1;
-}elsif ($SMP=~m/no/i)
-{
-	system("echo \"BUILDSMP=false\" >>build/make.inc");
-		$selected=1;
-}else{
-	print "please choose yes or no";
-		
-}
-}
-}
-
-if ($num_args == 2) {
-    if($ARGV[0] == "tidy") {
-$selected=0;
-while($selected==0){
-    print "\nWARNING:";
-    print "\n \"make tidy\" is an experimental feature. Running it fixes indentation \n";
-    print "of all src files in the program, among other things. Use with caution. \n";
-    print "Backup all files before use.\n\n";
-    print "Do you really want to run \"make tidy\"? (yes/No) ";
-    $TIDY=<STDIN>;
-    if($TIDY=~m/yes/i){
-	system("cd build/serial && ${ARGV[1]} -f ../Make.common tidy");
-	$selected=1;
-    }elsif ($TIDY=~m/no/i)
-    {
-	$selected=1;
-    }else{
-	print "please choose yes or no";
-		
-    }
-}
-
-}
 }

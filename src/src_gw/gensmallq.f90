@@ -8,7 +8,6 @@ SUBROUTINE gensmallq
     use modinput
     use modmain
     use modgw
-    use modmpi, only: rank
 !
 ! !DESCRIPTION:
 !
@@ -49,24 +48,16 @@ SUBROUTINE gensmallq
       nsym=1
     end if  
 
-    if (allocated(nsymq)) deallocate(nsymq)
     allocate(nsymq(nqpt))
-    if (allocated(nkptq)) deallocate(nkptq)
     allocate(nkptq(nqpt))
     allocate(vklq(3,nkptnr))
-    if (allocated(wkpq)) deallocate(wkpq)
     allocate(wkpq(nkptnr,nqpt))
-    if (allocated(indkpq)) deallocate(indkpq)
     allocate(indkpq(nkptnr,nqpt))
-    if (allocated(iksymq)) deallocate(iksymq)
     allocate(iksymq(nkptnr,nqpt))
-    if (allocated(idikpq)) deallocate(idikpq)
     allocate(idikpq(nkptnr,nqpt))
     iksymq(:,:)=0
 
-    if (allocated(nsymkstar)) deallocate(nsymkstar)
     allocate(nsymkstar(nkptnr,nqpt))
-    if (allocated(isymkstar)) deallocate(isymkstar)
     allocate(isymkstar(nsym,nkptnr,nqpt))
     nsymkstar(:,:)=0
     isymkstar(:,:,:)=0
@@ -87,7 +78,7 @@ SUBROUTINE gensmallq
         v1(:)=vql(:,idikp(iqp))
       else
         v1(:)=vql(:,iqp)
-      end if  
+      end if
       
       call findgroupq(.false.,v1,input%structure%epslat, &
      &   bvec,symlat,nsym,lsplsymc,nsymq(iqp),scmapq,ivwrapq)
@@ -155,7 +146,7 @@ SUBROUTINE gensmallq
 !      
 !     Debug information
 !
-      if ((rank==0).and.debug.and.input%gw%reduceq) then
+      if (input%gw%reduceq .and. input%gw%debug) then
  
         call boxmsg(99,'-','Generate a small group of q-vectors')
         write(99,*)

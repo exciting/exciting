@@ -55,10 +55,17 @@ Subroutine xstasklauncher
          Call xsfinit
 !
          If ((input%xs%tetra%tetradf)) Then
+#ifdef TETRA         
             task = 310
             Call xsinit
             Call tetcalccw
             Call xsfinit
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif            
          End If
 !
          task = 320
@@ -86,10 +93,17 @@ Subroutine xstasklauncher
             Call xsfinit
 !
             If ((input%xs%tetra%tetradf)) Then
+#ifdef TETRA            
                task = 410
                Call xsinit
                Call scrtetcalccw
                Call xsfinit
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif
             End If
 !
             If (input%xs%screening%do .Eq. "fromscratch") Then
@@ -122,7 +136,7 @@ Subroutine xstasklauncher
          Call idf
          Call xsfinit
 !
-      Else If (trim(input%xs%xstype) .Eq. "BSE") Then
+      Else If ((trim(input%xs%xstype)=="BSE") .AND. (.not.input%xs%BSE%xas)) Then
 !
 ! STK
 ! apply double grid technique if requested
@@ -161,10 +175,17 @@ Subroutine xstasklauncher
          Call xsfinit
 !
          If ((input%xs%tetra%tetradf)) Then
+#ifdef TETRA            
             task = 410
             Call xsinit
             Call scrtetcalccw
             Call xsfinit
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif
          End If
 !
          task = 420
@@ -192,6 +213,104 @@ Subroutine xstasklauncher
          task = 445
          Call xsinit
          Call BSE
+         Call xsfinit
+!
+         if (dgrid) input%xs%screening%do = "skip"
+!
+       enddo
+!
+       if (dgrid) then
+          call bsedgrid
+          ! restore input settings
+          input%xs%vkloff(:) = vkloff_xs_b(:)
+          input%xs%screening%do = doscreen0
+       endif
+!
+      Else If ((trim(input%xs%xstype)=="BSE") .AND. (input%xs%BSE%xas)) Then
+!
+! STK
+! apply double grid technique if requested
+       if (any(input%xs%BSE%ngridksub .gt. 1)) then
+          dgrid = .true.
+       else
+          dgrid = .false.
+          nksubpt = 1
+       endif
+       if (dgrid) then
+          ! append XS output
+          input%xs%tappinfo = .true.
+          ! backup input XS vkloff (it will be added to all generated grids)
+          vkloff_xs_b(:) = input%xs%vkloff(:)
+          ! save screening status for later use
+          doscreen0 = input%xs%screening%do
+          ! generate subgrid
+          call genksubpts
+       endif
+       do iksubpt = 1, nksubpt
+         if (dgrid) call bsedgridinit
+!
+         task = 301
+         Call xsinit
+         Call xsgeneigvec
+         Call xsfinit
+!
+         task = 320
+         Call xsinit
+         Call xasinit
+         Call writepmatxs
+         Call xasfinit
+         Call xsfinit
+!
+         task = 401
+         Call xsinit
+         Call scrgeneigvec
+         Call xsfinit
+!
+         If ((input%xs%tetra%tetradf)) Then
+#ifdef TETRA            
+            task = 410
+            Call xsinit
+            Call scrtetcalccw
+            Call xsfinit
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif
+       End If
+!
+         task = 420
+         Call xsinit
+         Call scrwritepmat
+         Call xsfinit
+!
+         If (input%xs%screening%do .Eq. "fromscratch") Then
+            task = 430
+            Call xsinit
+            Call screen
+            Call xsfinit
+!
+            task = 440
+            Call xsinit
+            Call xasinit
+            Call xas_scrcoulint
+            Call xasfinit
+            Call xsfinit
+         End If
+!
+         task = 441
+         Call xsinit
+         Call xasinit
+         Call xas_exccoulint
+         Call xasfinit
+         Call xsfinit
+!
+         task = 445
+         Call xsinit
+         Call xasinit
+         Call xas
+         Call xasfinit
          Call xsfinit
 !
          if (dgrid) input%xs%screening%do = "skip"

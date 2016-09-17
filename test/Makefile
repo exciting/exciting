@@ -1,12 +1,12 @@
 include ../build/make.inc
 
-ifeq ($(TestMPI),true)
-TESTDIRS = test01 test02 test03 test05 test06 test07 test08 test09 test10 testmpi
+ifeq ($(BUILDMPI),true)
 EXE = ../bin/excitingmpi
 else
-TESTDIRS = test01 test02 test03 test05 test06 test07 test08 test09 test10
 EXE = ../bin/excitingser
-endif	
+endif
+
+TESTDIRS = test01 test02 test03 test05 test06 test07 test08 test09 test10 test11
 
 test: 
 	$(MAKE) cleantests
@@ -53,7 +53,6 @@ test04::
 
 test05::  
 	cd test05/runlibxc && ../../$(EXE)
-	cd test05/runelectrstr && ../../$(EXE)
 	cd test05 && bash assert.sh
 
 test06::
@@ -78,10 +77,10 @@ test10::
 	cd test10/run_properties && ../../$(EXE)
 	cd test10 && perl assert.pl
 
-testmpi::
-	cd ../build/mpi/; $(MAKE)
-	cd test02/runlapackmpi; sh startmpirun test08
-	cd test02; perl assertmpi.pl
+test11::
+	cd test11/run-pbe0-hf  && ../../$(EXE)
+	cd test11/run-pbe0-oep && ../../$(EXE)
+	cd test11 && perl assert.pl 
 
 cleantests::
 	-rm -f  test*/*.xml
@@ -89,6 +88,7 @@ cleantests::
 	-rm -f  test*/run*/*TXT
 	-rm -f  test*/run*/dos.xml
 	-rm -f  test*/run*/*_scf.xml
+	-rm -f  test*/run*/*_ini.xml
 	-rm -f  test*/run*/bandstructure.xml
 	-rm -f  test*/run*/fermisurface.xml
 	-rm -f  test*/run*/LOSS*
@@ -103,3 +103,8 @@ cleantests::
 	-rm -f  test*/run*/result*
 	-rm -f  test*/result*
 	-rm -f  test*/run*/*3D.xml
+	-rm -f  test*/run*/*.dat
+	-rm -f  test*/run*/*.DAT
+	-rm -f  test*/run*/*.xsf
+	-rm -f  test*/run*/*.cube
+	-rm -f  directories.xml

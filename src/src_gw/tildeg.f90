@@ -8,8 +8,9 @@
 !
 ! !DESCRIPTION: 
 !
-!This subroutine calculates the coefficients  $\tilde{g}_{lm,l'm'}$.
-!The factor $(4\pi)^{\frac{3}{2}}$ is included into $\tilde{g}_{lm,l'm'}$.
+!This subroutine calculates the coefficients 
+! $\tilde{g}_{lm,l'm'}$ according to equation \ref{tildea}. The factor
+!$(4\pi)^{\frac{3}{2}}$ is included into $\tilde{g}_{lm,l'm'}$.
 !
 ! !INPUT PARAMETERS:
 !

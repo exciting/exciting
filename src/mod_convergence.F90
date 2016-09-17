@@ -27,5 +27,8 @@ Module mod_convergence
 !replaced by inputstructurereal(8)::epsforce
 !curent convergence
       Real (8) :: currentconvergence
+      Real (8), Allocatable :: vcurrentconvergence(:)
+      Real (8), Allocatable :: vdeltae(:)
+      Real (8), Allocatable :: vchgdst(:)
 End Module
 !

@@ -54,20 +54,3 @@ ecvcut
 esccut
   -0.5d0
 
-!------------------------------------------------------------------------------
-! This part is used to generated extra local orbitals for the excited states
-!
-!locorbxs
-!  .false.
-!
-!searchlocorbxs
-!  .false.
-!
-!lxsmax
-!  4
-!
-!exsmax
-!  10.0
-!
-!exscut
-!  1.0  

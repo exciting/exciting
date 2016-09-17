@@ -2,7 +2,7 @@
 
 open HEADREF, "../../.git/HEAD ";
 while (<HEADREF>) {
-	if (m/ref:\s*([\w\/]*)/) {
+	if (m/ref:\s*([\w\/-]*)/) {
 		$ref = $1;
 	}
 }
@@ -14,6 +14,9 @@ if ( -e  "../../.git/" . $ref ) {
 
 	$hash1 = substr( $hasht, 0,  20 );
 	$hash2 = substr( $hasht, 20, 39 );
+        
+        print $hash1
+        print $hash2
 
 	close HEAD;
 }

@@ -30,7 +30,7 @@ dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 nfiles=len(sys.argv)-1
 if nfiles<1:
     print "\nERROR: Nothing to plot!\n"
-    print "**Usage**:    PLOT-absorption.py EPSILON_FXC*.xml [ EPSILON_FXC*.xml [ EPSILON_FXC*.xml [...]]]\n"
+    print "**Usage**:    PLOT-spectra.py EPSILON_FXC*.xml [ EPSILON_FXC*.xml [ EPSILON_FXC*.xml [...]]]\n"
     sys.exit()
 
 fnames=[]

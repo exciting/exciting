@@ -31,8 +31,11 @@ Subroutine xsmain (plan)
       Use modmain
       Use modinput
       Use modmpi
+#ifdef TETRA      
       Use modtetra
+#endif
       Use modxs
+      use mod_exciton_wf
       Implicit None
       Type (plan_type) :: plan
       Integer :: i
@@ -57,11 +60,25 @@ Subroutine xsmain (plan)
      ! for q-point set
             Call xsgeneigvec
          Case (310)
+#ifdef TETRA          
      ! calculate weights for tetrahedron method
             Call tetcalccw
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif            
          Case (320)
      ! parallel version of momentum matrix elements
-            Call writepmatxs
+			 if (input%xs%BSE%xas) then
+				Call xasinit
+				Call writepmatxs
+				Call writepmatxs
+				Call xasfinit
+			else
+				Call writepmatxs
+			end if
          Case (321)
      ! ASCII output of momentum matrix elements
             Call writepmatasc
@@ -100,8 +117,15 @@ Subroutine xsmain (plan)
      ! for screening and BSE(-kernel)
             Call scrgeneigvec
          Case (410)
+#ifdef TETRA         
      ! calculate weights for tetrahedron method (screening)
             Call scrtetcalccw
+#else
+            ! added by DIN
+            write(*,*) 'Tetrahedron method for XS is disabled!'
+            write(*,*) 'Check -DTETRA option in make.inc' 
+            stop
+#endif            
          Case (420)
      ! momentum matrix elements for screening
             Call scrwritepmat
@@ -110,16 +134,46 @@ Subroutine xsmain (plan)
             Call screen
          Case (440)
      ! screened Coulomb interaction
-            Call scrcoulint
+			if (input%xs%BSE%xas) then
+				Call xasinit
+				Call xas_scrcoulint
+				Call xasfinit
+			else
+				Call scrcoulint
+			end if
          Case (441)
      ! exchange Coulomb interaction
-            Call exccoulint
+			 if (input%xs%BSE%xas) then
+				Call xasinit
+				Call xas_exccoulint
+				Call xasfinit
+			else
+				Call exccoulint
+			end if
          Case (445)
      ! Bethe-Salpeter equation
-            Call BSE
+             if (input%xs%BSE%xas) then
+				Call xasinit
+				Call xas
+				Call xasfinit
+			else
+	            Call BSE
+	        end if
          Case (446)
      ! regenerate BSE spectrum from exciton output
+
+            if (input%xs%BSE%xas) then
+				call xasinit
+				call bsegenspec
+				call xasfinit
+			else
+				Call bsegenspec
+			end if
+
             Call bsegenspec
+         Case (447)
+     ! ASCII output of BSE eigenvectors
+            Call writebevec
          Case (450)
      ! BSE-kernel
             Call kernxc_bse
@@ -131,6 +185,14 @@ Subroutine xsmain (plan)
             Call testxs
          case (999)
             call testmain
+         case (710)
+			if (input%xs%BSE%xas) then
+				call xasinit
+				call plot_excitonWavefunction
+				call xasfinit
+			else
+				call plot_excitonWavefunction
+			end if
          Case Default
             Write (*,*)
             Write (*,*) 'Error(xsmain): task not defined:', task

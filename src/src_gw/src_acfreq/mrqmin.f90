@@ -3,8 +3,7 @@
 ! !ROUTINE: mrqmin
 !
 ! !INTERFACE:
-      subroutine mrqmin(x,y,ndata,a,ma,covar,alpha,nca,          &
-     &                  chisq,alamda)
+      subroutine mrqmin(x,y,ndata,a,ma,covar,alpha,nca,chisq,alamda)
      
 ! !DESCRIPTION:
 !     

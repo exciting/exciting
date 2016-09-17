@@ -11,7 +11,7 @@ Subroutine init2
 #endif
       Implicit None
 ! local variables
-	  logical :: redq
+      logical :: redq
       Integer :: is, ia, ist, ic, m
       Real (8) :: ts0, ts1
       Real (8) :: boxl (3, 4)
@@ -26,13 +26,13 @@ Subroutine init2
 !---------------------!
 !     q-point set     !
 !---------------------!
-      redq=.true.
+      redq = .true.
       ! phonons
       if ((task .eq. 200).or.(task .eq. 201).or. &
-        (task .eq. 210).or.(task .eq. 220).or.(task .eq. 230).or. &
-        (task .eq. 240).or.(task .eq. 245).or.(task .eq. 250)) then
-        ngridq(:)=input%phonons%ngridq(:)
-      	redq=input%phonons%reduceq
+          (task .eq. 210).or.(task .eq. 220).or.(task .eq. 230).or. &
+          (task .eq. 240).or.(task .eq. 245).or.(task .eq. 250)) then
+          ngridq(:)=input%phonons%ngridq(:)
+          redq=input%phonons%reduceq
       end if
       ! phonons for q-points from list
       if (task .eq. 230) then
@@ -43,13 +43,15 @@ Subroutine init2
             vqlwrt(:,iq) = input%phonons%qpointset%qpoint(:, iq)
           end do
       end if
-
-! OEP, Hartree-Fock or RDMFT
-      If (associated(input%groundstate%OEP) .Or. associated(input%groundstate%Hybrid) .Or. (task .Eq. 300) &
-      & .Or. (associated(input%groundstate%HartreeFock))) Then 
-         ngridq (:) = input%groundstate%ngridk(:)
-         redq = .False.
+      ! OEP, Hartree-Fock or RDMFT
+      If (associated(input%groundstate%OEP) .or. &
+      &   associated(input%groundstate%Hybrid) .or. &
+      &  (task .Eq. 300) .or. &
+      &  (associated(input%groundstate%HartreeFock))) Then 
+        ngridq (:) = input%groundstate%ngridk(:)
+        redq = .False.
       End If
+
 #ifdef XS
       If (task .Le. 300) Then
 #endif
@@ -71,23 +73,25 @@ Subroutine init2
          boxl (3, 4) = 1.d0
 ! generate the q-point set, note that the vectors vql and vqc are mapped to the
 ! first Brillouin zone
-         Call genppts (redq, .True., ngridq, boxl, &
-        & nqpt, iqmap, ivq, vql, vqc, wqpt)
+         Call genppts(redq, .True., ngridq, boxl, &
+         &            nqpt, iqmap, ivq, vql, vqc, wqpt)
 #ifdef XS
       End If
 #endif
 #ifdef XS
+
 ! Q-/q-point set should have no offset
 ! setup the q-point box (offset should always be zero)
-      boxl (:, :) = 0.d0
-      boxl (1, 2) = 1.d0
-      boxl (2, 3) = 1.d0
-      boxl (3, 4) = 1.d0
-      boxl (:, 2) = boxl (:, 2) + boxl (:, 1)
-      boxl (:, 3) = boxl (:, 3) + boxl (:, 1)
-      boxl (:, 4) = boxl (:, 4) + boxl (:, 1)
+      boxl(:,:) = 0.d0
+      boxl(1,2) = 1.d0
+      boxl(2,3) = 1.d0
+      boxl(3,4) = 1.d0
+      ! boxl(:,2) = boxl(:,2) + boxl(:,1)
+      ! boxl(:,3) = boxl(:,3) + boxl(:,1)
+      ! boxl(:,4) = boxl(:,4) + boxl(:,1)
+
 ! assign momentum transfer Q-points set to q-point set
-      If (((task .Ge. 301) .And. (task .Le. 399))) Then
+      If ((task .Ge. 301) .And. (task .Le. 399)) Then
          nqpt = size (input%xs%qpointset%qpoint, 2)
          If (allocated(vqlmt)) deallocate (vqlmt)
          Allocate (vqlmt(3, nqpt))
@@ -98,74 +102,74 @@ Subroutine init2
          If (allocated(vqc)) deallocate (vqc)
          Allocate (vqc(3, nqpt))
          Do iq = 1, nqpt
-            v (:) = input%xs%qpointset%qpoint(:, iq)
-            iv (:) = 0
-      ! map Q-point to reciprocal unit cell
-            If (input%xs%tddft%mdfqtype .Eq. 1) Call r3frac &
-           & (input%structure%epslat, v, iv)
-            vqlmt (:, iq) = v (:)
-            ivgmt (:, iq) = iv (:)
-            vql (:, iq) = vqlmt (:, iq)
-            vqc (:, iq) = vql (1, iq) * bvec (:, 1) + vql (2, iq) * &
-           & bvec (:, 2) + vql (3, iq) * bvec (:, 3)
-      ! check consistency of Q-point with gqmax
-              v(:)=input%xs%qpointset%qpoint(1,iq)*bvec(:,1)+ &
-                input%xs%qpointset%qpoint(2,iq)*bvec(:,2)+ &
-                input%xs%qpointset%qpoint(3,iq)*bvec(:,3)
-              t1=sqrt(v(1)**2+v(2)**2+v(3)**2)
-             if ((input%xs%gqmax.ne.0.d0).and.(t1.gt.input%xs%gqmax)) then
-               write(*,*)
-               write(*,'("Info(init2): Q-point exceeds gqmax")')
-               write(*,'(" Q-point number         : ",i6)') iq
-               write(*,'(" Q-point (latt. coords.): ",3g18.10)') vql(:,iq)
-               write(*,'(" Q-point length         : ",3g18.10)') t1
-               write(*,'(" gqmax                  : ",g18.10)') input%xs%gqmax
-               write(*,*)
-               if (input%xs%gqmaxtype .eq. "|G+q|") then
-                 write(*,'("Error(init2): gqmaxtype = ""|G+q|"" and Q-point exceeds gqmax")')
-                 write(*,'(" set gqmaxtype to ""|G|""")')
-                 write(*,*)
-                 stop
-               end if
-             end if
-             if (input%xs%tddft%mdfqtype .eq. 1) then
-               write(*,'("Error(init2): mdfqtype = 1 and Q-point exceeds gqmax")')
-               write(*,'(" set mdfqtype to 0")')
-               write(*,*)
-               stop
-             end if
-             ! check if required tasks can be managed for non-zero Q-point
-             if (t1.ne.0.d0) then
-               if (input%xs%xstype.eq."TDDFT") then
-                 if ((input%xs%xstype.eq."MB1").or.(input%xs%xstype.eq."MB1_NLF")) then
-                   write(*,*)
-                   write(*,'("Error(init2): BSE derived xc kernel only works for optics (Q=0) - code limitation")')
-                   write(*,*)
-                   stop
-                 end if
-               end if
-               if (input%xs%xstype.eq."BSE") then
-                 write(*,*)
-                 write(*,'("Error(init2): BSE only works for optics (Q=0) - code limitation")')
-                 write(*,*)
-                 stop
-               end if
-             end if
+            v(:) = input%xs%qpointset%qpoint(:, iq)
+            iv(:) = 0
+            ! map Q-point to reciprocal unit cell
+            If (input%xs%tddft%mdfqtype .Eq. 1) Call r3frac(input%structure%epslat, v, iv)
+            vqlmt(:,iq) = v(:)
+            ivgmt(:,iq) = iv(:)
+            vql(:,iq) = vqlmt(:,iq)
+            vqc(:,iq) = vql(1,iq)*bvec(:,1) + &
+            &           vql(2,iq)*bvec(:,2) + &
+            &           vql(3,iq)*bvec(:,3)
+            ! check consistency of Q-point with gqmax
+            v(:) = input%xs%qpointset%qpoint(1,iq)*bvec(:,1)+ &
+            &      input%xs%qpointset%qpoint(2,iq)*bvec(:,2)+ &
+            &      input%xs%qpointset%qpoint(3,iq)*bvec(:,3)
+            t1 = sqrt(v(1)**2+v(2)**2+v(3)**2)
+            if ((input%xs%gqmax.ne.0.d0).and.(t1.gt.input%xs%gqmax)) then
+              write(*,*)
+              write(*,'("Info(init2): Q-point exceeds gqmax")')
+              write(*,'(" Q-point number         : ",i6)') iq
+              write(*,'(" Q-point (latt. coords.): ",3g18.10)') vql(:,iq)
+              write(*,'(" Q-point length         : ",3g18.10)') t1
+              write(*,'(" gqmax                  : ",g18.10)') input%xs%gqmax
+              write(*,*)
+              if (input%xs%gqmaxtype .eq. "|G+q|") then
+                write(*,'("Error(init2): gqmaxtype = ""|G+q|"" and Q-point exceeds gqmax")')
+                write(*,'(" set gqmaxtype to ""|G|""")')
+                write(*,*)
+                stop
+              end if
+            end if
+            if (input%xs%tddft%mdfqtype .eq. 1) then
+              write(*,'("Error(init2): mdfqtype = 1 and Q-point exceeds gqmax")')
+              write(*,'(" set mdfqtype to 0")')
+              write(*,*)
+              stop
+            end if
+            ! check if required tasks can be managed for non-zero Q-point
+            if (t1.ne.0.d0) then
+              if (input%xs%xstype.eq."TDDFT") then
+                if ((input%xs%xstype.eq."MB1").or.(input%xs%xstype.eq."MB1_NLF")) then
+                  write(*,*)
+                  write(*,'("Error(init2): BSE derived xc kernel only works for optics (Q=0) - code limitation")')
+                  write(*,*)
+                  stop
+                end if
+              end if
+              if (input%xs%xstype.eq."BSE") then
+                write(*,*)
+                write(*,'("Error(init2): BSE only works for optics (Q=0) - code limitation")')
+                write(*,*)
+                stop
+              end if
+            end if
          End Do
       Else if (task .ge. 400) then
-   ! determine only integer-part of Q-points
+         ! determine only integer-part of Q-points
          If (allocated(ivgmt)) deallocate (ivgmt)
          Allocate (ivgmt(3, size(input%xs%qpointset%qpoint, 2)))
-         Do iq = 1, size (input%xs%qpointset%qpoint, 2)
-            v (:) = input%xs%qpointset%qpoint(:, iq)
-            iv (:) = 0
-      ! map Q-point to reciprocal unit cell
-            If (input%xs%tddft%mdfqtype .Eq. 1) Call r3frac &
-           & (input%structure%epslat, v, iv)
-            ivgmt (:, iq) = iv (:)
+         Do iq = 1, size(input%xs%qpointset%qpoint, 2)
+            v(:) = input%xs%qpointset%qpoint(:,iq)
+            iv(:) = 0
+            ! map Q-point to reciprocal unit cell
+            If (input%xs%tddft%mdfqtype .Eq. 1) Call r3frac(input%structure%epslat, v, iv)
+            ivgmt(:,iq) = iv(:)
          End Do
       End If
-! generate q-point set from grid
+
+      ! generate q-point set from grid
       If ((task .Ge. 400) .And. (task .Le. 439)) Then
          If (allocated(ivq)) deallocate (ivq)
          Allocate (ivq(3, ngridq(1)*ngridq(2)*ngridq(3)))
@@ -177,14 +181,16 @@ Subroutine init2
          Allocate (wqpt(ngridq(1)*ngridq(2)*ngridq(3)))
          If (allocated(iqmap)) deallocate (iqmap)
          Allocate (iqmap(0:ngridq(1)-1, 0:ngridq(2)-1, 0:ngridq(3)-1))
-   ! generate reduced q-point set
-         Call genppts (input%xs%reduceq, input%xs%BSE%fbzq, ngridq, &
-        & boxl, nqpt, iqmap, ivq, vql, vqc, wqpt)
+         ! generate reduced q-point set
+         Call genppts(input%xs%reduceq, input%xs%BSE%fbzq, ngridq, &
+         &            boxl, nqpt, iqmap, ivq, vql, vqc, wqpt)
          nqptr = nqpt
       End If
-      If ((task .Eq. 440) .Or. (task .Eq. 441) .Or. (task .Eq. 445) .Or. (task .Eq. 446) &
-     & .Or. (task .Eq. 450) .Or. (task .Eq. 451) .Or. (task .Eq. 499) &
-     & .Or. (task .Eq. 700)) Then
+      If ((task .Eq. 440) .Or. (task .Eq. 441) .Or. &
+      &   (task .Eq. 445) .Or. (task .Eq. 446) .Or. &
+      &   (task .Eq. 450) .Or. (task .Eq. 451) .Or. &
+      &   (task .Eq. 499) .Or. (task .Eq. 700) .Or. &
+      &   (task .Eq. 710)) Then
          If (allocated(ivqr)) deallocate (ivqr)
          Allocate (ivqr(3, ngridq(1)*ngridq(2)*ngridq(3)))
          If (allocated(vqlr)) deallocate (vqlr)
@@ -195,9 +201,9 @@ Subroutine init2
          Allocate (wqptr(ngridq(1)*ngridq(2)*ngridq(3)))
          If (allocated(iqmapr)) deallocate (iqmapr)
          Allocate (iqmapr(0:ngridq(1)-1, 0:ngridq(2)-1, 0:ngridq(3)-1))
-   ! generate reduced q-point set
-         Call genppts (input%xs%reduceq, input%xs%BSE%fbzq, ngridq, &
-        & boxl, nqptr, iqmapr, ivqr, vqlr, vqcr, wqptr)
+         ! generate reduced q-point set
+         Call genppts(input%xs%reduceq, input%xs%BSE%fbzq, ngridq, &
+         &            boxl, nqptr, iqmapr, ivqr, vqlr, vqcr, wqptr)
          If (allocated(ivq)) deallocate (ivq)
          Allocate (ivq(3, ngridq(1)*ngridq(2)*ngridq(3)))
          If (allocated(vql)) deallocate (vql)
@@ -208,9 +214,9 @@ Subroutine init2
          Allocate (wqpt(ngridq(1)*ngridq(2)*ngridq(3)))
          If (allocated(iqmap)) deallocate (iqmap)
          Allocate (iqmap(0:ngridq(1)-1, 0:ngridq(2)-1, 0:ngridq(3)-1))
-   ! generate non-reduced q-point set
-         Call genppts (.False., input%xs%BSE%fbzq, ngridq, boxl, nqpt, &
-        & iqmap, ivq, vql, vqc, wqpt)
+        ! generate non-reduced q-point set
+         Call genppts(.False., input%xs%BSE%fbzq, ngridq, boxl, nqpt, &
+         &            iqmap, ivq, vql, vqc, wqpt)
       End If
 ! find (little/small) group of q
       If (allocated(nsymcrysq)) deallocate (nsymcrysq)
@@ -234,10 +240,10 @@ Subroutine init2
       Allocate (ikmapikq(nkpt, nqpt))
       qvkloff (:, 0) = input%groundstate%vkloff(:)
       Do iq = 1, nqpt
-   ! offset for k+q-point set derived from q-point
-         Call genqvkloff (vql(1, iq), qvkloff(1, iq))
-   ! map from k-point index to k+q point index for same k
-         Call findkmapkq (vql(1, iq), qvkloff(1, iq), ikmapikq(1, iq))
+        ! offset for k+q-point set derived from q-point
+        Call genqvkloff(vql(1,iq), qvkloff(1,iq))
+        ! map from k-point index to k+q point index for same k
+        Call findkmapkq(vql(1,iq), qvkloff(1,iq), ikmapikq(1,iq))
       End Do
 !
 !---------------------!
@@ -245,8 +251,8 @@ Subroutine init2
 !---------------------!
 ! warning for small gqmax
       If (input%xs%gqmax .Ge. gkmax) Then
-         Write (*, '(a, 2g18.10)') 'Warning(init2/xs): input%xs%gqmax >&
-        &= gkmax: ', input%xs%gqmax, gkmax
+        write(*,'(a, 2g18.10)') 'Warning(init2/xs): input%xs%gqmax >= gkmax: ', &
+        &  input%xs%gqmax, gkmax
       End If
 ! check consistency with FFT G-vector array
       if (input%groundstate%gmaxvr .lt. 2*gkmax + input%xs%gqmax) then
@@ -282,18 +288,18 @@ Subroutine init2
       If (allocated(ylmgq)) deallocate (ylmgq)
       Allocate (ylmgq(lmmaxapw, ngqmax, nqpt))
       If (allocated(ivgigq)) deallocate (ivgigq)
-      Allocate (ivgigq(intgqv(1, 1) :intgqv(1, 2), intgqv(2, 1) &
-     & :intgqv(2, 2), intgqv(3, 1) :intgqv(3, 2), nqpt))
+      Allocate (ivgigq(intgqv(1,1):intgqv(1,2), &
+      &                intgqv(2,1):intgqv(2,2), &
+      &                intgqv(3,1):intgqv(3,2), nqpt))
       Do iq = 1, nqpt
    ! generate G+q vectors
-         Call gengqvec (iq, vql(1, iq), vqc(1, iq), ngq(iq), igqig(1, &
-        & iq), vgql(1, 1, iq), vgqc(1, 1, iq), gqc(1, iq), tpgqc(1, 1, &
-        & iq))
+         Call gengqvec(iq, vql(1,iq), vqc(1,iq), ngq(iq), &
+         &             igqig(1,iq), vgql(1,1,iq), vgqc(1,1,iq), &
+         &             gqc(1,iq), tpgqc(1,1,iq))
    ! generate structure factors for G-vectors
-         Call gensfacgp (ngq(iq), vgqc(1, 1, iq), ngqmax, sfacgq(1, 1, &
-        & iq))
+         Call gensfacgp(ngq(iq), vgqc(1,1,iq), ngqmax, sfacgq(1,1,iq))
    ! spherical harmonics for G+q-vectors
-         Call genylmgq (iq, input%groundstate%lmaxvr)
+         Call genylmgq(iq, input%groundstate%lmaxvr)
       End Do
 !
 !---------------------------!

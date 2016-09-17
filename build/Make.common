@@ -2,7 +2,9 @@
 .NOTPARALLEL:
 	
 SOURCEDIRS=	\
-	../../src/src_xs/ \
+	../../src/ \
+	../../src/src_xs/xas/ \
+	../../src/src_xs/ ../../src/src_xs/modtetra \
 	../../src/src_fermisurfdx/ \
 	../../src/src_iterative_solver/ \
 	../../src/src_iterative_solver/src_diis/ \
@@ -19,13 +21,14 @@ SOURCEDIRS=	\
 	../../src/src_xml/ \
 	../../src/src_inputparser/ \
 	../../src/src_sym/ \
-	../../src/src_gw/ \
-	../../src/src_gw/src_acfreq/ \
 	../../src/src_hybrids/ \
         ../../src/src_raman/ \
 	../../src/src_stm/ \
 	../../src/src_vdW/ \
-	../../src/ \
+	../../src/src_gw/ \
+	../../src/src_gw/src_acfreq/ \
+	../../src/src_gw/src_vxc \
+	../../src/src_gw/src_tests
 	
 GeneratedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	
 LIBXCMOD= ../../src/libXC/src/libxc.f90  ../../src/libXC/src/libxc_funcs.f90
@@ -75,7 +78,7 @@ fftlib.a::
 
 libbzint.a:: 
 	../../build/utilities/mkmf -t ./template -f -m Makefile.libbzint -p libbzint.a \
-	../../src/libbzint\
+	../../src/src_libbzint \
 	&& $(MAKE) -f Makefile.libbzint libbzint.a 
 
 libmsec.a:: 

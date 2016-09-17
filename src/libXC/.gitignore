@@ -34,3 +34,10 @@ src/funcs_mgga.c
 src/libxc.f90
 src/libxc_funcs.f90
 src/xc_funcs.h
+Makefile.in           
+aclocal.m4           
+build/Makefile.in    
+config.h.in          
+configure            
+src/Makefile.in      
+testsuite/Makefile.in

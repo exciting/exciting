@@ -42,6 +42,7 @@ def leggi(filin):
     f = open(filin,"r")
     x = [] ; y = []
     lines = f.readlines()
+    ilines = 0 ; ix = 0
     while ( ilines < len(lines) ):
         line = lines[ilines].strip() 
         ilines = ilines+1
@@ -137,6 +138,10 @@ ax.yaxis.set_major_formatter(yfmt)
 dxx = (xmax-xmin)/18 ; dyy = (ymax-ymin)/15
 xmin = xmin-dxx ; xmax = xmax+dxx
 ymin = ymin-dyy ; ymax = ymax+dyy
+
+if (len(x) == 1): 
+    xmin = xmin-1 ; xmax = xmax+1
+    ymin = ymin-1 ; ymax = ymax+1
 
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)

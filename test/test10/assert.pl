@@ -11,7 +11,7 @@ $writer= Test::initreport("report.xml");
 	"run_properties/RHO3D.xml",1.0);
  Test::writetestreport({
  		"directory"=>"test10/ ",
- 		"name"=>"Properties",
+ 		"name"=>"Properties: chargedensityplot",
  		"description"=>"The test is passed if the output file differs
  		 less than $tol from the reference one". %statusse->{maxerror},
  		"status"=> %statusse->{status}}, $writer);
@@ -20,7 +20,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/VCL3D.xml",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: exccplot, VCL3D",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer);
@@ -29,7 +29,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/VXC3D.xml",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: exccplot, VXC3D",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
@@ -38,7 +38,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/WF3D.xml",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: wfplot",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
@@ -47,7 +47,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/LSJ.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: LSJ",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
@@ -56,7 +56,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/ELF3D.xml",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: elfplot",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
@@ -65,7 +65,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/EF3D.xml",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: electricfield",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
@@ -74,7 +74,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/EFG.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: EFG",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
@@ -83,7 +83,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/MOSSBAUER.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: mossbauer",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
@@ -92,7 +92,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/EXPIQR.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: expiqr",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
@@ -101,7 +101,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/EPSILON_33.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: dielmat",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
@@ -110,7 +110,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/KERR.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: moke",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer);
@@ -119,7 +119,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/CHI_111.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: shg",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer); 
@@ -128,7 +128,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/EFFMASS.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: masstensor",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer);
@@ -137,7 +137,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/ELNES.OUT",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: elnes",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer);
@@ -146,7 +146,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/bandstructure.xml",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: bandstructure",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer);
@@ -155,7 +155,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/dos.xml",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: dos",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer);
@@ -164,7 +164,7 @@ $writer= Test::initreport("report.xml");
   "run_properties/FERMISURF.bxsf",1.0);
  Test::writetestreport({
     "directory"=>"test10/ ",
-    "name"=>"Properties",
+    "name"=>"Properties: fermisurfaceplot",
     "description"=>"The test is passed if the output file differs
      less than $tol from the reference one". %statusse->{maxerror},
     "status"=> %statusse->{status}}, $writer);
