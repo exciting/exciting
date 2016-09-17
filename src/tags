@@ -18165,6 +18165,8 @@ addcoords_xyz3_dp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyz3_dp(
 addcoords_xyz3_sp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyz3_sp(/;"	s	module:m_wcml_molecule
 addcoords_xyzfrac_dp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyzfrac_dp(/;"	s	module:m_wcml_molecule
 addcoords_xyzfrac_sp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyzfrac_sp(/;"	s	module:m_wcml_molecule
+adddirect	src_xs/b_bse.f90	/^  subroutine adddirect(/;"	s	subroutine:b_bse
+addexchange	src_xs/b_bse.f90	/^  subroutine addexchange(/;"	s	subroutine:b_bse
 addrhocr	addrhocr.f90	/^Subroutine addrhocr$/;"	s
 addtohistory	src_inputparser/inputmodules.f90	/^ logical::addtohistory$/;"	k	type:relax_type
 adl	ARPACK/EXAMPLES/SYM/dsdrv2.f	/^     &                 ad(maxn), adl(/;"	v	program:dsdrv2
@@ -19322,6 +19324,7 @@ count	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  int count() const { return m_tab
 countChildEmentsWithName	spacegroup/sginputmodule.f90	/^function countChildEmentsWithName(/;"	f	module:modsymmetries
 countChildEmentsWithName	src_inputparser/inputmodules.f90	/^function countChildEmentsWithName(/;"	f	module:modinput
 countChildEmentsWithName	src_inputparser/speciesmodules.f90	/^function countChildEmentsWithName(/;"	f	module:modspdb
+coupling	src_inputparser/inputmodules.f90	/^ logical::coupling$/;"	k	type:BSE_type
 cp	FoX/common/m_common_element.F90	/^    type (content_particle_t), pointer :: cp /;"	k	type:element_t
 cp	FoX/common/m_common_elstack.F90	/^    type(content_particle_t), pointer         :: cp /;"	k	type:elstack_item
 cpFileToNodes	src_mpi/cpFileToNodes.F90	/^subroutine cpFileToNodes(/;"	s
@@ -19659,6 +19662,7 @@ dfthalfparam_type	src_inputparser/inputmodules.f90	/^type dfthalfparam_type$/;"	
 dftim	src_xs/dftim.F90	/^      Subroutine dftim /;"	s	module:m_dftim
 dgetv0	ARPACK/SRC/dgetv0.f	/^      subroutine dgetv0 /;"	s
 dgrid	src_xs/modxs.F90	/^      Logical :: dgrid$/;"	v	module:modxs
+diagfull	src_xs/m_diagfull.f90	/^    subroutine diagfull(/;"	s	module:m_diagfull
 diagsgi	src_gw/diagsgi.f90	/^subroutine diagsgi(/;"	s
 dict	FoX/wxml/m_wxml_core.F90	/^    type(dicti/;"	k	type:xmlf_t
 dict_item	FoX/common/m_common_attrs.F90	/^  type dict_item$/;"	t	module:m_common_attrs
@@ -21259,6 +21263,8 @@ getlastChild	FoX/dom/m_dom_dom.F90	/^function getlastChild(/;"	f	module:m_dom_do
 getlatticerepetition	src_vdW/vdw_general_routines.f90	/^  Subroutine getlatticerepetition(/;"	s	module:vdw_general_routines
 getliveNodeLists	FoX/dom/m_dom_dom.F90	/^function getliveNodeLists(/;"	f	module:m_dom_dom
 getlocmt	src_xs/getlocmt.F90	/^      Subroutine getlocmt /;"	s	module:m_getlocmt
+getmou	src_xs/b_exccoulint.f90	/^    subroutine getmou(/;"	s	subroutine:b_exccoulint
+getmuo	src_xs/b_exccoulint.f90	/^    subroutine getmuo(/;"	s	subroutine:b_exccoulint
 getname	FoX/dom/m_dom_dom.F90	/^function getname(/;"	f	module:m_dom_dom
 getname_len	FoX/dom/m_dom_dom.F90	/^  pure function getname_len(/;"	f	module:m_dom_dom
 getnamespaceNodes	FoX/dom/m_dom_dom.F90	/^  function getnamespaceNodes(/;"	f	module:m_dom_dom
@@ -21284,6 +21290,8 @@ getpmatxas	src_xs/xas/getpmatxas.f90	/^      Subroutine getpmatxas /;"	s	module:
 getpreviousSibling	FoX/dom/m_dom_dom.F90	/^function getpreviousSibling(/;"	f	module:m_dom_dom
 getpublicId	FoX/dom/m_dom_dom.F90	/^function getpublicId(/;"	f	module:m_dom_dom
 getpublicId_len	FoX/dom/m_dom_dom.F90	/^  pure function getpublicId_len(/;"	f	module:m_dom_dom
+getpwesra	src_xs/b_scrcoulint.f90	/^    subroutine getpwesra(/;"	s	subroutine:b_scrcoulint
+getpwesrr	src_xs/b_scrcoulint.f90	/^    subroutine getpwesrr(/;"	s	subroutine:b_scrcoulint
 getrandom	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  void (*getrandom)(struct _this *t, real *x);$/;"	m	struct:__anon63
 getrank	src_eigensystem/modfvsystem.f90	/^    Function getrank /;"	f	module:modfvsystem
 getreadonly	FoX/dom/m_dom_dom.F90	/^function getreadonly(/;"	f	module:m_dom_dom
@@ -23363,6 +23371,7 @@ m_common_notations	FoX/common/m_common_notations.F90	/^module m_common_notations
 m_common_struct	FoX/common/m_common_struct.F90	/^module m_common_struct$/;"	m
 m_ctdfrac	src_xs/ctdfrac.F90	/^Module m_ctdfrac$/;"	m
 m_dftim	src_xs/dftim.F90	/^Module m_dftim$/;"	m
+m_diagfull	src_xs/m_diagfull.f90	/^module m_diagfull$/;"	m
 m_dimx	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  int m_dimx, m_dimy, m_got;$/;"	m	class:PartitionPlane	file:
 m_dimy	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  int m_dimx, m_dimy, m_got;$/;"	m	class:PartitionPlane	file:
 m_dom_dom	FoX/dom/m_dom_dom.F90	/^module m_dom_dom$/;"	m
@@ -23437,6 +23446,7 @@ m_writeeps	src_xs/writeeps.F90	/^module m_writeeps$/;"	m
 m_writegqpts	src_xs/writegqpts.F90	/^Module m_writegqpts$/;"	m
 m_writekerr	src_xs/writekerr.F90	/^Module m_writekerr$/;"	m
 m_writeloss	src_xs/writeloss.F90	/^Module m_writeloss$/;"	m
+m_writeoscillator	src_xs/writeoscillator.f90	/^module m_writeoscillator$/;"	m
 m_writesigma	src_xs/writesigma.F90	/^Module m_writesigma$/;"	m
 m_writesumrls	src_xs/writesumrls.F90	/^Module m_writesumrls$/;"	m
 m_writevars	src_xs/writevars.F90	/^Module m_writevars$/;"	m
@@ -23480,6 +23490,8 @@ mainDoc	FoX/dom/m_dom_parse.f90	/^  type(Node), pointer, save  :: mainDoc /;"	v	
 mainlb	Lbfgsb.3.0/lbfgsb.f	/^      subroutine mainlb(/;"	s
 make_token_group	FoX/common/m_common_element.F90	/^  function make_token_group(/;"	f	module:m_common_element
 make_token_group_len	FoX/common/m_common_element.F90	/^  pure function make_token_group_len(/;"	f	module:m_common_element
+makeexcli	src_xs/b_exccoulint.f90	/^    subroutine makeexcli$/;"	s	subroutine:b_exccoulint
+makefullham	src_xs/b_bse.f90	/^  subroutine makefullham(/;"	s	subroutine:b_bse
 makeoszillatorstrength	src_xs/b_bse.f90	/^  subroutine makeoszillatorstrength(/;"	s	subroutine:b_bse
 makeoszillatorstrength	src_xs/bse.F90	/^  subroutine makeoszillatorstrength(/;"	s	subroutine:bse
 makespectrum	src_xs/b_bse.f90	/^  subroutine makespectrum(/;"	s	subroutine:b_bse
@@ -24905,6 +24917,7 @@ nnew	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	integer nnew$/;"	v	program:CubaTe
 nnew	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  number nnew;$/;"	m	struct:_this
 nnod	src_libbzint/polyhedron.f90	/^      integer(4) :: nnod /;"	v	module:polyhedron
 nnodes	src_mpi/modmpi.F90	/^      Integer :: ierr,procnamelen,nnodes$/;"	v	module:modmpi
+no	src_xs/modbse.f90	/^  integer(4) :: no,/;"	v	module:modbse
 no_perm	src_raman/construct_symvec.f90	/^integer :: no_perm$/;"	v	module:m_symvec
 no_vec_nonorth	src_raman/mod_raman.f90	/^integer :: no_vec_nonorth$/;"	v	module:raman_symmetry
 nocore	src_inputparser/inputmodules.f90	/^ logical::nocore$/;"	k	type:chargedensityplot_type
@@ -24928,6 +24941,7 @@ noldstepsmax	src_mixing/modmixermsec.f90	/^     & MUSE, IDSCALE, noldstepsmax$/;
 nomax	src_gw/mod_bands.f90	/^    integer(4) :: nomax$/;"	v	module:mod_bands
 nomeg	src_gw/mod_frequency.f90	/^        integer :: nomeg /;"	k	type:frequency
 nomeg	src_inputparser/inputmodules.f90	/^ integer::nomeg$/;"	k	type:freqgrid_type
+noo	src_xs/modbse.f90	/^  integer(4) :: no, nu, noo,/;"	v	module:modbse
 noptcomp	mod_DOS_optics_response.F90	/^      Integer :: noptcomp$/;"	v	module:mod_DOS_optics_response
 nopx	ARPACK/SRC/stat.h	/^      integer    nopx, nbx, nrorth, nitref, nrstrt$/;"	v
 nopx	ARPACK/SRC/stat.h	/^     &           nopx, nbx, nrorth, nitref, nrstrt,$/;"	v
@@ -24956,6 +24970,7 @@ notation_list	FoX/common/m_common_notations.F90	/^  type notation_list$/;"	t	mod
 notations	FoX/dom/m_dom_dom.F90	/^    type(namedNodeMap) :: notations /;"	k	type:docTypeExtras
 notelns	mod_misc.F90	/^      Integer :: notelns$/;"	v	module:mod_misc
 notes	mod_misc.F90	/^      Character (80) :: notes /;"	v	module:mod_misc
+nou	src_xs/modbse.f90	/^  integer(4) :: no, nu, noo, nuu, nou$/;"	v	module:modbse
 np	libXC/src/gga.c	/^XC(gga_exc)(const XC(func_type) *p, int np, const FLOAT *rho, const FLOAT *sigma, $/;"	v
 np	libXC/src/gga.c	/^XC(gga_exc_vxc)(const XC(func_type) *p, int np, const FLOAT *rho, const FLOAT *sigma,$/;"	v
 np	libXC/src/gga.c	/^XC(gga_fxc)(const XC(func_type) *p, int np, const FLOAT *rho, const FLOAT *sigma,$/;"	v
@@ -25112,6 +25127,7 @@ ntet	src_libbzint/tetra_internal.f90	/^      integer :: ntet /;"	v	module:tetra_
 ntetnr	src_gw/mod_kqpts.f90	/^    integer(4) :: ntetnr /;"	v	module:mod_kqpts
 ntetra	mod_opt_tetra.f90	/^  integer :: ntetra /;"	v	module:mod_opt_tetra
 ntype	src_libbzint/polyhedron.f90	/^      integer(1), dimension(20) :: ntype /;"	v	module:polyhedron
+nu	src_xs/modbse.f90	/^  integer(4) :: no, nu,/;"	v	module:modbse
 nullnode	src_inputparser/modinputdom.f90	/^      Type (Node), Pointer :: doc, inputnp, nullnode,/;"	v	module:inputdom
 num	spacegroup/modmain.f90	/^character(20) num$/;"	v	module:modmain
 num	spacegroup/modspacegroup.f90	/^character(20)::num$/;"	v	module:modspacegroup
@@ -25133,6 +25149,7 @@ numr	ARPACK/EXAMPLES/NONSYM/sndrv5.f	/^     &                  tol, numr,/;"	v	p
 numr	ARPACK/EXAMPLES/NONSYM/sndrv6.f	/^     &                  tol, numr,/;"	v	program:sndrv6
 numsop	src_raman/mod_raman.f90	/^integer :: numsop$/;"	v	module:raman_symmetry
 nup	src_gw/mod_product_basis.f90	/^    integer(4) :: nup$/;"	v	module:mod_product_basis
+nuu	src_xs/modbse.f90	/^  integer(4) :: no, nu, noo, nuu,/;"	v	module:modbse
 nv	src_other/delaunay.f	/^      integer nv,/;"	v	program:main
 nva	src_xs/mod_exciton_wf.f90	/^  integer, allocatable :: nva(/;"	v	module:mod_exciton_wf
 nvelgw	src_gw/modgw.f90	/^    real(8)    :: nvelgw /;"	v	module:modgw
@@ -26682,6 +26699,7 @@ setulb	Lbfgsb.3.0/lbfgsb.f	/^      subroutine setulb(/;"	s
 setumix	src_gw/setumix.f90	/^subroutine setumix(/;"	s
 setup_YY	src_mixing/setup_YY.f90	/^Subroutine setup_YY /;"	s
 setup_io	FoX/common/m_common_io.F90	/^  subroutine setup_io(/;"	s	module:m_common_io
+setuphamiltonian	src_xs/b_bse.f90	/^  subroutine setuphamiltonian(/;"	s	subroutine:b_bse
 setuphsvect	src_iterative_solver/src_diis/setuphsvect.F90	/^Subroutine setuphsvect /;"	s
 setupprojectedhamilton	src_iterative_solver/src_diis/setupprojectedhamilton.F90	/^Subroutine setupprojectedhamilton /;"	s
 setuprod	src_gw/setuprod.f90	/^subroutine setuprod(/;"	s
@@ -28674,6 +28692,8 @@ writebandgap	src_xs/bandgap.F90	/^Subroutine writebandgap$/;"	s
 writebandgapgrid	src_xs/bandgap.F90	/^Subroutine writebandgapgrid$/;"	s
 writebevec	src_xs/writebevec.f90	/^Subroutine writebevec$/;"	s
 writechg	writechg.f90	/^Subroutine writechg /;"	s
+writecmplxparts	src_xs/b_bse.f90	/^  subroutine writecmplxparts(/;"	s	subroutine:b_bse
+writecondition	src_xs/m_diagfull.f90	/^    subroutine writecondition(/;"	s	module:m_diagfull
 writederived	src_xs/writederived.f90	/^subroutine writederived(/;"	s
 writedielt	src_xs/writedielt.F90	/^subroutine writedielt(/;"	s
 writedveff	src_phonon/writedveff.f90	/^Subroutine writedveff /;"	s
@@ -28704,6 +28724,7 @@ writeinfo	writeinfo.f90	/^Subroutine writeinfo /;"	s
 writekerr	src_xs/writekerr.F90	/^      Subroutine writekerr /;"	s	module:m_writekerr
 writekmapkq	src_xs/writekmapkq.F90	/^Subroutine writekmapkq /;"	s
 writekpts	writekpts.f90	/^subroutine writekpts$/;"	s
+writekstrans	src_xs/b_bse.f90	/^  subroutine writekstrans(/;"	s	subroutine:b_bse
 writelambda	src_phonon/writelambda.f90	/^Subroutine writelambda /;"	s
 writelat	writelat.f90	/^Subroutine writelat$/;"	s
 writeldapu	src_LDAU/writeldapu.f90	/^Subroutine writeldapu$/;"	s
@@ -28711,9 +28732,9 @@ writelinen	writelinen.f90	/^Subroutine writelinen$/;"	s
 writeloss	src_xs/writeloss.F90	/^      Subroutine writeloss /;"	s	module:m_writeloss
 writelsj	writelsj.f90	/^Subroutine writelsj$/;"	s
 writeoptminitdata	relax.f90	/^subroutine writeoptminitdata(/;"	s
-writeoscillator	src_xs/writeoscillator.f90	/^subroutine writeoscillator(/;"	s
-writeouthamiltonparts	src_xs/b_bse.f90	/^  subroutine writeouthamiltonparts$/;"	s	subroutine:b_bse
+writeoscillator	src_xs/writeoscillator.f90	/^    subroutine writeoscillator(/;"	s	module:m_writeoscillator
 writeouthamiltonparts	src_xs/bse.F90	/^  subroutine writeouthamiltonparts$/;"	s	subroutine:bse
+writeparts	src_inputparser/inputmodules.f90	/^ logical::writeparts$/;"	k	type:BSE_type
 writepchgs	writepchgs.F90	/^subroutine writepchgs(/;"	s
 writephn	src_phonon/writephn.f90	/^subroutine writephn$/;"	s
 writephnlist	src_phonon/writephnlist.F90	/^Subroutine writephnlist(/;"	s

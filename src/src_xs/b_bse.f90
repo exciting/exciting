@@ -16,6 +16,8 @@ subroutine b_bse
   use modbse
   use m_genwgrid
   use m_genfilname
+  use m_diagfull
+  use m_writeoscillator
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem(thanks to the spectral theorem that can
@@ -100,8 +102,8 @@ subroutine b_bse
   integer(4), allocatable, dimension(:) :: kousize
   integer(4), allocatable, dimension(:,:) :: smap
   logical, allocatable, dimension(:,:) :: kouflag
-  real(8), allocatable, dimension(:) :: ofac, beval, w
-  complex(8), allocatable, dimension(:,:) :: ham, bevec, oszs
+  real(8), allocatable, dimension(:) :: ofac, bevalim, bevalre, w
+  complex(8), allocatable, dimension(:,:) :: ham, bevecr, oszsr, oszsa
   complex(8), allocatable, dimension(:,:,:) :: symspectr
   ! GW 
   real(8), allocatable, dimension(:,:) :: eval0
@@ -220,28 +222,52 @@ subroutine b_bse
     call timesec(ts1)
     write(unitout, '(" Timing (in seconds)	   :", f12.3)') ts1 - ts0
 
-!! Needs to be adjusted for use with coupling
-if(.not. fcoup) then
-
     ! Number of excitons to consider
     nexc = input%xs%bse%nexc
     if(nexc > hamsize .or. nexc < 1) then
       nexc = hamsize
     end if
+    if(fcoup) then
+      ! Use all solutions, since zgeevx produces all anyways.
+      nexc = 2*hamsize
+    end if
 
     ! Write Info
-    write(unitout,*)
-    write(unitout, '("Info(bse): Invoking lapack routine ZHEEVR")')
-    write(unitout, '(" Number of requested solutions : ", i8)') nexc
-
+    if(rank == 0) then
+      write(unitout,*)
+      if(fcoup) then
+        write(unitout, '("Info(bse): Diagonalizing full non symmetric Hamiltonian")')
+        write(unitout, '("Info(bse): Invoking lapack routine ZGEEVX")')
+      else
+        write(unitout, '("Info(bse): Diagonalizing RR Hamiltonian (TDA)")')
+        write(unitout, '("Info(bse): Invoking lapack routine ZHEEVR")')
+        write(unitout, '(" Number of requested solutions : ", i8)') nexc
+      end if
+    end if
 
     ! Allocate eigenvector and eigenvalue arrays
-    allocate(beval(hamsize), bevec(hamsize, nexc))
+    if(fcoup) then 
+      allocate(bevalre(2*hamsize), bevecr(2*hamsize, 2*hamsize))
+      allocate(bevalim(2*hamsize))
+    else
+      allocate(bevalre(hamsize), bevecr(hamsize, nexc))
+    end if
+
 
     ! Diagonalize Hamiltonian (destroys the content of ham)
     call timesec(ts0)
-    call bsesoldiag(nexc, hamsize, ham, beval, bevec)
+    if(fcoup) then
+      call diagfull(2*hamsize, ham, bevalre,&
+        & evalim=bevalim, evecr=bevecr, fbalance=.false., frcond=.false.)
+    else
+      call bsesoldiag(nexc, hamsize, ham, bevalre, bevecr)
+    end if
     call timesec(ts1)
+
+    ! Test write out right-eigenvectors
+    if(fwp) then
+      call writecmplxparts('bevecr', dble(bevecr), immat=aimag(bevecr))
+    end if
 
     ! Deallocate BSE-Hamiltonian
     deallocate(ham)
@@ -250,13 +276,25 @@ if(.not. fcoup) then
     write(unitout,*)
 
     ! Calculate oscillator strengths.
-    allocate(oszs(nexc,3))
+    allocate(oszsr(nexc,3))
+    if(fcoup) then
+      allocate(oszsa(nexc,3))
+    end if
 
-    call makeoszillatorstrength(oszs)
+    if(fcoup) then 
+      call makeoszillatorstrength(oszsr, oszstra=oszsa)
+    else
+      call makeoszillatorstrength(oszsr)
+    end if
 
     ! Write excition energies and oscillator strengths to 
     ! text file. 
-    call writeoscillator(hamsize, nexc, egap, beval, oszs)
+    if(fcoup) then
+      call writeoscillator(2*hamsize, nexc, egap, bevalre, oszsr,&
+        & evalim=bevalim, oszstra=oszsa)
+    else
+      call writeoscillator(hamsize, nexc, egap, bevalre, oszsr)
+    end if
 
     ! Calculate macroscopic dielectric tensor with finite broadening, i.e. "the spectrum"
     nw = input%xs%energywindow%points
@@ -270,7 +308,11 @@ if(.not. fcoup) then
       & input%xs%tddft%acont, 0.d0, w_real=w)
 
     ! Calculate lattice symmetrized spectrum.
-    call makespectrum(nw, w, symspectr)
+    if(fcoup) then 
+      call makespectrum(nw, w, symspectr)
+    else
+      call makespectrum_tda(nw, w, symspectr)
+    end if
 
     ! Generate and write derived optical quantities
     iq = 1
@@ -278,14 +320,20 @@ if(.not. fcoup) then
 
     ! Store excitonic energies and wave functions to file
     if(associated(input%xs%storeexcitons)) then
-      call storeexcitons(hamsize,nexc, nkptnr, iuref, bcou,smap,beval,bevec)
+      if(fcoup) then
+        call storeexcitons(2*hamsize,nexc,nkptnr,iuref,bcou,smap,bevalre,bevecr)
+      else
+        call storeexcitons(hamsize,nexc,nkptnr,iuref,bcou,smap,bevalre,bevecr)
+      end if
     end if
 
     ! Clean up
-    deallocate(beval,bevec,oszs,w,symspectr, evalsv)
+    deallocate(bevalre, bevecr, oszsr, w, symspectr, evalsv)
+    if(fcoup) then 
+      deallocate(bevalim, oszsa)
+    end if
     if(associated(input%gw)) deallocate(eval0)
 
-end if
 
     call barrier
 
@@ -334,7 +382,7 @@ contains
       wim=0.0d0
       vre=0.0d0
       vim=0.0d0
-      if(input%xs%bse%beyond == .true.) then
+      if(fcoup == .true.) then
         ! Real and imaginary parts of resonant-anti-resonant parts
         allocate(wcre(hamsize,hamsize),wcim(hamsize,hamsize))
         allocate(vcre(hamsize,hamsize),vcim(hamsize,hamsize))
@@ -346,13 +394,13 @@ contains
     end if
 
     ! Allocate and zero work arrays
-    allocate(rrham(hamsize, hamsize)) ! Resonant-reonant part of Hamiltonian
+    allocate(rrham(hamsize, hamsize)) ! Resonant-resonant part of Hamiltonian
     allocate(excli(no,nu,no,nu))      ! RR part of V, to be read from file
     allocate(sccli(no,nu,no,nu))      ! RR part of W, to be read from file
     rrham = zzero
     excli = zzero
     sccli = zzero
-    if(input%xs%bse%beyond == .true.) then
+    if(fcoup == .true.) then
       allocate(raham(hamsize, hamsize)) ! Resonant-anit-resonant part of Hamiltonian
       allocate(exclic(no,nu,no,nu))     ! RA part of V, to be read from file
       allocate(scclic(no,nu,no,nu))     ! RA part of W, to be read from file
@@ -376,13 +424,17 @@ contains
         case('singlet', 'triplet')
           ! Read RR part of screened coulomb interaction W_{ouki,o'u'kj}
           call getbsemat('SCCLI.OUT', ikkp, no, nu, sccli)
+          if(fcoup == .true.) then
+            ! Read RA part of screened coulomb interaction Wc_{ouki,o'u'kj}
+            call getbsemat('SCCLIC.OUT', ikkp, no, nu, scclic)
+          end if
       end select
 
       select case(trim(input%xs%bse%bsetype))
         case('RPA', 'singlet')
           ! Read RR part of exchange interaction v_{ouki,o'u'kj}
           call getbsemat('EXCLI.OUT', ikkp, no, nu, excli)
-          if(input%xs%bse%beyond == .true.) then
+          if(fcoup == .true.) then
             ! Read RA part of exchange interaction vc_{ouki,o'u'kj}
             call getbsemat('EXCLIC.OUT', ikkp, no, nu, exclic)
           end if
@@ -420,7 +472,7 @@ contains
               & rrham(s1l:s1u,s2l:s2u), excli,&
               & ofac(s1l:s1u), ofac(s2l:s2u),&
               & remat=vre(s1l:s1u,s2l:s2u), immat=vim(s1l:s1u,s2l:s2u))
-            if(input%xs%bse%beyond == .true.) then
+            if(fcoup == .true.) then
               call addexchange(ik1, ik2,&
                 & raham(s1l:s1u,s2l:s2u), exclic,&
                 & ofac(s1l:s1u), ofac(s2l:s2u),&
@@ -430,7 +482,7 @@ contains
             call addexchange(ik1, ik2,&
               & rrham(s1l:s1u,s2l:s2u), excli,&
               & ofac(s1l:s1u), ofac(s2l:s2u))
-            if(input%xs%bse%beyond == .true.) then
+            if(fcoup == .true.) then
               call addexchange(ik1, ik2,&
                 & raham(s1l:s1u,s2l:s2u), exclic,&
                 & ofac(s1l:s1u), ofac(s2l:s2u))
@@ -448,9 +500,20 @@ contains
               & rrham(s1l:s1u,s2l:s2u), sccli,&
               & ofac(s1l:s1u), ofac(s2l:s2u),&
               & remat=wre(s1l:s1u,s2l:s2u), immat=wim(s1l:s1u,s2l:s2u))
+            if(fcoup == .true.) then
+              call adddirect(ik1, ik2,&
+                & raham(s1l:s1u,s2l:s2u), scclic,&
+                & ofac(s1l:s1u), ofac(s2l:s2u),&
+                & remat=wcre(s1l:s1u,s2l:s2u), immat=wcim(s1l:s1u,s2l:s2u))
+            end if
           else
             call adddirect(ik1, ik2,&
               & rrham(s1l:s1u,s2l:s2u), sccli, ofac(s1l:s1u), ofac(s2l:s2u))
+            if(fcoup == .true.) then
+              call adddirect(ik1, ik2,&
+                & raham(s1l:s1u,s2l:s2u), scclic,&
+                & ofac(s1l:s1u), ofac(s2l:s2u))
+            end if
           end if
       end select
 
@@ -458,19 +521,20 @@ contains
 
     ! Optional write (use only with small problem sizes!)
     if(wp) then
-      call writecmplxparts('W',wre,immat=wim)
-      call writecmplxparts('V',vre,immat=vim)
       call writecmplxparts('E',kstransen)
-      if(input%xs%bse%beyond == .true.) then
+      call writecmplxparts('V',vre,immat=vim)
+      call writecmplxparts('W',wre,immat=wim)
+      if(fcoup == .true.) then
         call writecmplxparts('VC',vcre,immat=vcim)
+        call writecmplxparts('WC',wcre,immat=wcim)
       end if
       ! Make some room
-      deallocate(wre,wim)
-      deallocate(vre,vim)
       deallocate(kstransen)
-      if(input%xs%bse%beyond == .true.) then
-        deallocate(wcre,wcim)
+      deallocate(vre,vim)
+      deallocate(wre,wim)
+      if(fcoup == .true.) then
         deallocate(vcre,vcim)
+        deallocate(wcre,wcim)
       end if
     end if
 
@@ -482,10 +546,11 @@ contains
       call makefullham(ham, rrham, raham)
     end if
 
+
     ! Work arrays
     deallocate(excli)
     deallocate(sccli)
-    if(input%xs%bse%beyond == .true.) then
+    if(fcoup == .true.) then
       deallocate(rrham)
       deallocate(raham)
       deallocate(exclic)
@@ -561,9 +626,16 @@ contains
       ! Only add if k o u combination was allowed
       if(kouflag(iou, ik) == .true.) then
         is = is +1 
-        ! Subtract gap if present, so that the exciton
-        ! energies will be binding energies.
-        tmp = devals(iou) - egap + bsed
+        if(fcoup) then
+          ! TEST-ish
+          ! Currently not in binding energies, since then the 
+          ! spectrum construction would be more tricky. 
+          tmp = devals(iou) 
+        else
+          ! Subtract gap if present, so that the exciton
+          ! energies will be binding energies.
+          tmp = devals(iou) - egap + bsed
+        end if
         if(present(remat)) then
           remat(is,is) = tmp
         end if
@@ -649,14 +721,15 @@ contains
   end subroutine adddirect
   
 
-  subroutine makeoszillatorstrength(oszstr)
+  subroutine makeoszillatorstrength(oszstrr, oszstra)
     use mod_constants, only: zone
     use m_getpmat
     
     implicit none
 
     ! I/O
-    complex(8), intent(out) :: oszstr(nexc,3)
+    complex(8), intent(out) :: oszstrr(nexc,3)
+    complex(8), intent(out), optional :: oszstra(nexc, 3)
 
     ! Local
     complex(8), allocatable :: pmou(:,:,:), rmat(:,:)
@@ -701,26 +774,134 @@ contains
       ! Build complex conjugate R-matrix from p-matrix
       ! \tilde{R}^*_{u_{s1},o_{s1},k_{s1}},i = 
       ! (f_{o_{s1},k_{s1}}-f_{u_{s1},k_{s1}}) P_{o_{s1},u_{s1},k_{s1}},i /(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}})
-      rmat(a1, :) = ofac(a1) * pmou(:, io, iu)/(evalsv(iuabs, ik) - evalsv(io, ik))
+      rmat(a1, :) = ofac(a1) * pmou(:, io, iu)/(evalsv(io, ik) - evalsv(iuabs, ik))
 
     end do
 
     ! Momentum matrix elements no longer needed
     deallocate(pmou)
 
-    oszstr = zzero
+    oszstrr = zzero
 
-    ! t_\lambda,i = < \tilde{R}^i | \lambda> =
-    ! \Sum_{s1} f_{s1} R^*_{{u_{s1} o_{s1} k_{s1}},i} A_{o_{s1} u_{s1} k_{s1}},\lambda= 
-    ! \Sum_{s1} f_{s1} P^*_{{u_{s1} o_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) A_{o_{s1} u_{s1} k_{s1}},\lambda= 
-    ! \Sum_{s1} f_{s1} P_{{o_{s1} u_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) A_{o_{s1} u_{s1} k_{s1}},\lambda
-    call zgemm('t','n', nexc, 3, hamsize, zone, bevec, hamsize, rmat, hamsize, zzero, oszstr, nexc)
+    !! Resonant oscillator strengths
+    ! t^R_\lambda,i = < \tilde{R}^i | X_\lambda> =
+    ! \Sum_{s1} f_{s1} R^*_{{u_{s1} o_{s1} k_{s1}},i} X_{o_{s1} u_{s1} k_{s1}},\lambda= 
+    ! \Sum_{s1} f_{s1} P^*_{{u_{s1} o_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda= 
+    ! \Sum_{s1} f_{s1} P_{{o_{s1} u_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda
+    call zgemm('t','n', nexc, 3, hamsize, zone, bevecr(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
+
+    if(fcoup .and. present(oszstra)) then
+      oszstra = zzero
+      !! Anti-resonant oscillator strengths
+      ! t^A_\lambda,i = < \tilde{R}^{i*} | Y_\lambda> =
+      ! \Sum_{s1} f_{s1} R_{{u_{s1} o_{s1} k_{s1}},i} Y_{o_{s1} u_{s1} k_{s1}},\lambda= 
+      ! \Sum_{s1} f_{s1} P_{{u_{s1} o_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda= 
+      ! \Sum_{s1} f_{s1} P^*_{{o_{s1} u_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda
+      call zgemm('t','n', nexc, 3, hamsize, zone, bevecr(hamsize+1:2*hamsize,1:nexc), hamsize, conjg(rmat), hamsize, zzero, oszstra, nexc)
+    end if
+
     deallocate(rmat)
 
   end subroutine makeoszillatorstrength
 
-
   subroutine makespectrum(nfreq, freq, spectrum)
+    use mod_lattice, only: omega
+    use mod_constants, only: zone, zi, pi
+    use modxs, only: symt2
+    use invert
+    implicit none
+
+    ! I/O
+    integer(4), intent(in) :: nfreq
+    real(8), intent(in) :: freq(nfreq)
+    complex(8), intent(out) :: spectrum(3,3,nfreq)
+
+    ! Local
+    integer(4) :: o1, o2, ol, ou, iw
+    integer(4) :: lambda, lambdap
+    integer(4) :: optcompt(3)
+    real(8) :: eextot
+    complex(8) :: buf(3,3,nw)
+    complex(8) :: spectr(nw)
+    complex(8) :: overlap(nexc,nexc), invoverlap(nexc,nexc)
+
+    ! External functions
+    integer(4), external :: l2int
+
+    ! Calculate overlap matrix between right eigenvectors
+    call zgemm('C','N', nexc, nexc, 2*hamsize, zone,&
+      & bevecr, 2*hamsize, bevecr, 2*hamsize, zzero, overlap, nexc)
+
+    ! Invert overlap matrix
+    call zinvert_lapack(overlap, invoverlap)
+
+    ! Test output of overlap matrices
+    if(fwp) then
+      call writecmplxparts('Q',dble(overlap),immat=aimag(overlap))
+      call writecmplxparts('invQ',dble(invoverlap),immat=aimag(invoverlap))
+    end if
+
+    ! Make non-lattice-symmetrized spectrum
+    buf = zzero 
+
+    do o1 = 1, 3
+
+      ! Stk: compute off-diagonal optical components if requested
+      if(input%xs%dfoffdiag) then
+        ol = 1
+        ou = 3
+      else
+        ol = o1
+        ou = o1
+      end if
+
+      do o2 = ol, ou
+
+        optcompt = (/ o1, o2, 0 /)
+        spectr(:) = zzero
+
+
+        do iw = 1, nfreq
+          do lambda = 1, nexc
+
+            ! Get real part of excition eigenvalue and add gap energy
+            eextot = bevalre(lambda)
+
+            do lambdap= 1, nexc
+            
+              ! Lorentzian line shape
+              spectr(iw) = spectr(iw)&
+                &+ invoverlap(lambda, lambdap)&
+                &* 1.d0/(eextot-freq(iw)-zi*input%xs%broad)&          
+                &* ( oszsr(lambda, o1) + oszsa(lambda, o1) )&
+                &* conjg( oszsr(lambdap, o2) - oszsa(lambdap, o2) )
+            end do
+
+          end do
+        end do
+
+        spectr(:) = l2int(o1 .eq. o2) * 1.d0 + spectr(:) * 8.d0*pi/omega/nkptnr
+
+        buf(o1,o2,:)=spectr(:)
+
+      end do
+    end do
+
+    spectrum = buf
+
+    ! Symmetrize spectrum 
+    spectrum = zzero
+    do o1=1,3
+      do o2=1,3
+
+        ! Symmetrize the macroscopic dielectric tensor
+        call symt2app(o1, o2, nfreq, symt2, buf, spectrum(o1,o2,:))
+
+      end do 
+    end do
+  end subroutine makespectrum
+
+  subroutine makespectrum_tda(nfreq, freq, spectrum)
     use mod_lattice, only: omega
     use mod_constants, only: zi, pi
     use modxs, only: symt2
@@ -765,19 +946,19 @@ contains
           do lambda = 1, nexc
             
             ! Get total energy of excition, i.e. add gap energy
-            eextot = beval(lambda) + egap
+            eextot = bevalre(lambda) + egap
 !! Discuss what is bsed and does anyone use it
             ! Substract bsed part (defautl is is zero)
             eextot = eextot - bsed
 
             ! Lorentzian line shape
             ! Resonant part
-            spectr(iw) = spectr(iw) + oszs(lambda, o1) * conjg(oszs(lambda, o2))&
+            spectr(iw) = spectr(iw) + oszsr(lambda, o1) * conjg(oszsr(lambda, o2))&
               &* (1.d0/(eextot-freq(iw)-zi*input%xs%broad))             
             ! Anti-resonant contribution (Default is true)
 !! Discuss the conjugation was the other way around originally
             if(input%xs%bse%aresbse) spectr(iw) = spectr(iw)&
-              &+ conjg(oszs(lambda, o1)) * oszs(lambda, o2)&
+              &+ conjg(oszsr(lambda, o1)) * oszsr(lambda, o2)&
               &* (1.d0/(eextot+freq(iw)+zi*input%xs%broad))
 
           end do
@@ -801,7 +982,7 @@ contains
 
       end do 
     end do
-  end subroutine makespectrum
+  end subroutine makespectrum_tda
 
   subroutine writecmplxparts(fbasename, remat, immat, ik1, ik2)
     use m_getunit

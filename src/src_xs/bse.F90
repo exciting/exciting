@@ -20,6 +20,7 @@ subroutine bse
   use modbse
   use m_genwgrid
   use m_genfilname
+  use m_writeoscillator
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem(thanks to the spectral theorem that can

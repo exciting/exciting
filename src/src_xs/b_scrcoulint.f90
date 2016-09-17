@@ -51,7 +51,7 @@ subroutine b_scrcoulint
   complex(8), allocatable :: scieffg(:, :, :), wfc(:, :), bsedt(:, :),zm(:,:)
   complex(8), allocatable :: phf(:, :)
   real(8) :: vqr(3), vq(3)
-  integer :: ikkp, iknr, jknr, iqr, iq, iqrnr, jsym, jsymi, numgq, reclen
+  integer :: ikkp, iknr, jknr, iqr, iq, iqrnr, jsym, jsymi, numgq
   integer :: nsc, iv(3), ivgsym(3), j1, j2, nkkp
   integer(4) :: io1, io2, iu1, iu2
   integer :: sc(maxsymcrys), ivgsc(3, maxsymcrys)
@@ -62,8 +62,8 @@ subroutine b_scrcoulint
   ! Plane wave arrays
   complex(8), allocatable :: muu(:, :, :), cmuu(:, :)
   complex(8), allocatable :: moo(:, :, :), cmoo(:, :)
-  complex(8), allocatable :: mou(:, :, :), cmuo(:, :)
-  complex(8), allocatable :: mou(:, :, :), cmuo(:, :)
+  complex(8), allocatable :: mou(:, :, :), cmou(:, :)
+  complex(8), allocatable :: muo(:, :, :), cmuo(:, :)
 
   ! External functions
   integer, external :: idxkkp
@@ -200,7 +200,7 @@ subroutine b_scrcoulint
   allocate(sccli(no, nu, no, nu), scclid(no, nu))
   sccli = zzero
   if(fcoup) then 
-    allocate(scclic(no, nu, no, nu)
+    allocate(scclic(no, nu, no, nu))
     scclic=zzero
   end if
 
@@ -240,7 +240,7 @@ subroutine b_scrcoulint
     tq0 = tqgamma(iq)
     numgq = ngq(iq)
 
-    allocate(igqmap(numgq)
+    allocate(igqmap(numgq))
     allocate(wfc(numgq, numgq))
 
     !! Find results (radial emat integrals and screened coulomb potential Fourier coefficients) 
@@ -269,26 +269,21 @@ subroutine b_scrcoulint
     ! Resonant-Resonant Part        !
     !-------------------------------!
     allocate(cmoo(noo, numgq), cmuu(nuu, numgq))
-    ! Calculate Moo and Muu for current non reduced q and k 
+
+    ! Calculate M_{oo'} and M_{uu'} for current current q=k'-k and k
     call getpwesrr(iq, iknr, moo, muu)
 
     ! Combine indices for matrix elements of plane wave.
-    ! Corresponds to j1 = subhamidx(io1,io2,no)
-    j1 = 0
-    ! Occupied k1 = k2+q = k+q
+    j1 = 0 ! oo' index
     do io2 = 1, no
-      ! Occupied k2 = k
       do io1 = 1, no
         j1 = j1 + 1
         ! cmoo_j = M_o1o1, M_o2o1, ..., M_oNo1, M_o1o2, ..., M_oNoN
         cmoo(j1, :) = moo(io1, io2, :)
       end do
     end do
-    j2 = 0
-    ! Corresponds to j2 = subhamidx(iu1,iu2,no)
-    ! Unoccupied (k+q)
+    j2 = 0 ! uu' index
     do iu2 = 1, nu
-      ! Unoccupied (k)
       do iu1 = 1, nu
         j2 = j2 + 1
         ! cmuu_j = M_u1u1, M_u2u1, ..., M_uNu1, M_u1u2, ..., M_uNuN
@@ -296,34 +291,31 @@ subroutine b_scrcoulint
       end do
     end do
 
-    ! M_oioj -> M^*_oioj
-    cmoo(:,:)=conjg(cmoo(:,:))
+    ! M_{oo'} -> M^*_{oo'}
+    cmoo = conjg(cmoo)
 
-    ! Allocate helper array of dimension (#o*#o,#G) (same as cmoo)
+    ! Allocate helper array
     allocate(zm(noo,numgq))
-    ! Calculate matrix elements of screened coulomb interaction scclit_{o_j1 o'_j1, u_j2 u'_j2}(q)
+
+    ! Calculate matrix elements of screened coulomb interaction scclit_{j1, j2}(q)
     ! zm = cmoo * wfc
-    !   i.e. zm_{j,G} = \Sum_{G'} cmoo_{j,G'} tm_{G',G}
-    !   i.e. zm_{o_j,o'_j}(G,q) = \Sum_{G'} M^*_{o_j,o'_j}(G',q) W(G',G, q)
+    !   i.e. zm_{j1,G'} = \Sum_{G} cmoo_{j1,G} tm_{G,G'}
+    !   i.e. zm_{o_j1,o'_j1}(G,q) = \Sum_{G'} M^*_{o_j1,o'_j1}(G,q) W(G,G', q)
     call zgemm('n', 'n', noo, numgq, numgq, zone, cmoo, noo, wfc, numgq, zzero, zm, noo)
     ! scclit = pref * zm * cmuu^T
     !   i.e. scclit(j1, j2) = \Sum_{G} zm_{j1,G} (cmuu^T)_{G,j2}
-    !   i.e. scclit_{o_j1 o'_j2, u_j2 u'_j2} = \Sum{G,G'} M^*_{o_j1,o'_j1}(G,q) W(G,G', q) M_{u_j2 u'_j2}(G',q)
+    !   i.e. scclit_{o_j1 o'_j1, u_j2 u'_j2} = \Sum{G,G'} M^*_{o_j1,o'_j1}(G,q) W(G,G',q) M_{u_j2 u'_j2}(G',q)
     call zgemm('n', 't', noo, nuu, numgq, pref, zm,&
       & noo, cmuu, nuu, zzero, scclit, noo)
     deallocate(zm)        
 
     ! Map back to individual band indices
     j2 = 0
-    ! Unoccupied (k+q)
     do iu2 = 1, nu
-      ! Unoccupied (k)
       do iu1 = 1, nu
         j2 = j2 + 1
         j1 = 0
-        ! Occupied (k+q)
         do io2 = 1, no
-          ! Occupied (k)
           do io1 = 1, no
             j1 = j1 + 1
             ! scclit_{o_j1 o'_j1, u_j2 u'_j2} -> sccli_{o_j1 u_j2, o'_j1 u'_j2}
@@ -359,73 +351,72 @@ subroutine b_scrcoulint
     !-------------------------------!
     if(fcoup) then
 
-      allocate(cmou(nou, numgq), cmuo(nuo, numgq))
-      ! Calculate Mou and Muo for current non reduced q and k 
+      allocate(cmou(nou, numgq), cmuo(nou, numgq))
+
+      ! Calculate M_{ou'} and M_{uo'} for current q=k'-k and k 
       call getpwesra(iq, iknr, mou, muo)
 
       ! Combine indices for matrix elements of plane wave.
-      j1 = 0
-      ! Unoccupied 
-      do iu1 = 1, nu ! k+q
-        ! Occupied 
+      j1 = 0 ! ou' index
+      do iu2 = 1, nu ! k+q
         do io1 = 1, no ! k
           j1 = j1 + 1
           ! cmou_j = M_o1u1, M_o2u1, ..., M_oNu1, M_o1u2, ..., M_oNuM
-          cmou(j1, :) = mou(io1, iu1, :)
+          cmou(j1, :) = mou(io1, iu2, :)
         end do
       end do
-      j2 = 0
-      ! Unoccupied 
-      do iu2 = 1, nu
-        ! Occupied 
+      j2 = 0 ! uo' index
+      do iu1 = 1, nu
         do io2 = 1, no
           j2 = j2 + 1
           ! cmuo_j = M_u1o1, M_u1o2, ..., M_u1oN, M_u2o1, ..., M_uMoN
-          cmuo(j2, :) = muo(iu2, io2, :)
+          cmuo(j2, :) = muo(iu1, io2, :)
         end do
       end do
 
-!!!!!!! CONTINUE HERE !!!!!!!
+      ! M_{ou'} -> M^*_{ou'}
+      cmou = conjg(cmou)
 
-      ! M_oioj -> M^*_oioj
-      cmoo(:,:)=conjg(cmoo(:,:))
+      ! Allocate helper array
+      allocate(zm(nou,numgq))
 
-      ! Allocate helper array of dimension (#o*#o,#G) (same as cmoo)
-      allocate(zm(noo,numgq))
-      ! Calculate matrix elements of screened coulomb interaction scclit_{o_j1 o'_j1, u_j2 u'_j2}(q)
-      ! zm = cmoo * wfc
-      !   i.e. zm_{j,G} = \Sum_{G'} cmoo_{j,G'} tm_{G',G}
-      !   i.e. zm_{o_j,o'_j}(G,q) = \Sum_{G'} M^*_{o_j,o'_j}(G',q) W(G',G, q)
-      call zgemm('n', 'n', noo, numgq, numgq, zone, cmoo, noo, wfc, numgq, zzero, zm, noo)
-      ! scclit = pref * zm * cmuu^T
-      !   i.e. scclit(j1, j2) = \Sum_{G} zm_{j1,G} (cmuu^T)_{G,j2}
-      !   i.e. scclit_{o_j1 o'_j2, u_j2 u'_j2} = \Sum{G,G'} M^*_{o_j1,o'_j1}(G,q) W(G,G', q) M_{u_j2 u'_j2}(G',q)
-      call zgemm('n', 't', noo, nuu, numgq, pref, zm,&
-        & noo, cmuu, nuu, zzero, scclit, noo)
+      ! Calculate matrix elements of screened coulomb interaction scclitc_{j1, j2}(q)
+      ! zm = cmou * wfc
+      !   i.e. zm_{j1,G'} = \Sum_{G} cmou_{j1,G} tm_{G,G'}
+      !   i.e. zm_{o_j1,u'_j1}(G',q) = \Sum_{G} M^*_{o_j1,u'_j1}(G,q) W(G, G', q)
+      call zgemm('n', 'n', nou, numgq, numgq, zone, cmou, nou, wfc, numgq, zzero, zm, nou)
+      ! scclit = pref * zm * cmuo^T
+      !   i.e. scclit(j1, j2) = \Sum_{G'} zm_{j1,G'} (cmuu^T)_{G',j2}
+      !   i.e. scclit_{o_j1 u'_j1, u_j2 o'_j2} = \Sum{G,G'} M^*_{o_j1,u'_j1}(G,q) W(G, G',q) M_{u_j2,o'_j2}(G',q)
+      call zgemm('n', 't', nou, nou, numgq, pref, zm,&
+        & nou, cmuo, nou, zzero, scclitc, nou)
       deallocate(zm)        
 
       ! Map back to individual band indices
-      j2 = 0
-      ! Unoccupied (k+q)
-      do iu2 = 1, nu
-        ! Unoccupied (k)
-        do iu1 = 1, nu
-          j2 = j2 + 1
-          j1 = 0
-          ! Occupied (k+q)
-          do io2 = 1, no
-            ! Occupied (k)
-            do io1 = 1, no
-              j1 = j1 + 1
-              ! scclit_{o_j1 o'_j1, u_j2 u'_j2} -> sccli_{o_j1 u_j2, o'_j1 u'_j2}
-              sccli(io1, iu1, io2, iu2) = scclit(j1, j2)
+      j1 = 0
+      do iu2 = 1, nu 
+        do io1 = 1, no 
+          j1 = j1 + 1
+          j2 = 0
+          do iu1 = 1, nu
+            do io2 = 1, no
+              j2 = j2 + 1
+              ! scclit_{o_j1 u'_j1, u_j2 o'_j2} -> scclilc(o_j1, u_j2, o'_j2, u'_j1)
+              scclic(io1, iu1, io2, iu2) = scclitc(j1, j2)
             end do
           end do
         end do
-      end do
-    end if
+      end do 
 
+      deallocate(mou, muo, cmou, cmuo)
+
+      ! Parallel write
+      call putbsemat('SCCLIC.OUT', 78, scclic, ikkp, iknr, jknr,&
+        & iq, iqr, no, nu, no, nu)
+
+    end if
     
+    ! Deallocate G dependent work arrays
     deallocate(igqmap)
     deallocate(wfc)
 
@@ -434,6 +425,9 @@ subroutine b_scrcoulint
 
   ! Deallocate helper array (independent of number of G)
   deallocate(scclit)
+  if(fcoup) then
+    deallocate(scclitc)
+  end if
 
   call barrier
 
