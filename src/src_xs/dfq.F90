@@ -135,7 +135,6 @@ subroutine dfq(iq)
     call terminate
   end if
 
-!! fxctypenumber not in any xml schema??
   tfxcbse = ((input%xs%tddft%fxctypenumber .eq. 7) .or. &
      & (input%xs%tddft%fxctypenumber .eq. 8)) .and. ( .not. tscreen)
 
@@ -470,23 +469,6 @@ subroutine dfq(iq)
 #endif            
     end if
 
-!! Discuss
-  !  screen: if(tscreen) then
-!! Needs to be adjusted for going beyond TD ? Or only for q /= 0?
-!! Why would we not need the anti-resonant parts ??
-  !    ! We don't need anti-resonant parts here, assign them the same
-  !    ! Value as for resonant parts, resulting in a factor of two.
-  !    do igq = 1, n
-  !      xiuo(:, :, igq) = transpose(xiou(:, :, igq))
-  !    end do
-  !    do j = 1, 3
-  !      pmuo(j, :, :) = transpose(pmou(j, :, :))
-  !    end do
-  !    deuo(:, :) = transpose(deou(:, :))
-  !    docc21 (:, :) = transpose(docc12(:, :))
-  !    scis21c(:, :) = transpose(scis12c(:, :))
-  !  end if screen
-
     ! Not screen: Turn off anti-resonant terms (type 2-1 band combinations) for Kohn-Sham
     ! response function (default skip if)
     if(( .not. input%xs%tddft%aresdf) .and. ( .not. tscreen)) then
@@ -511,28 +493,34 @@ subroutine dfq(iq)
     !         |______________|          |______________|
     ! 
     !  The following loops are concerned with the po/pu (pu/po) part.
+    !  Since we split M_{nm}M^*_{nm} into M_{ou}M^*_{ou}+M_{uo}M^*_{uo}
+    !  we have to take care about double counting transitions if m AND n
+    !  are referring to partially filled bands.
+    !  
     do ist1 = 1, numpo
       do ist2 = 1, numpo
         ! Get band index of occupied state (counted from lowest energy state)
         j = ist1 + istunocc0 - 1
-        ! Set lower triangle of po/pu block to zero, i.e allow only
+        ! Set lower triangle of po/pu block to zero, i.e. allow only
         ! transitions from energetically higher to lower bands.
-        if(ist1 .gt. ist2) then
-          xiou(j, ist2, :) = zzero
+        ! Exclude diagonal for momentum matrix, since weights should be 
+        ! zero due to f_nk-f_nk (q is always 0 for momentum matrix).
+        if(ist1 .ge. ist2) then
           pmou(:, j, ist2) = zzero
         end if
-!! Discuss I would say for q /= 0 intraband should be kept for xiou/xiuo
-!! for pmou/pmuo q is always zero
-        ! Set diagonal to zero (project out intraband contributions)
-        ! intraband input defaults to "false"
+        if(ist1 .gt. ist2) then
+          xiou(j, ist2, :) = zzero
+        end if
+        ! Set diagonal to zero (project out intra-band contributions)
+        ! intra-band input defaults to "false"
+!! Intra-band contribution should be "true" by default for any one zero q.
         if(( .not. input%xs%tddft%intraband) .and. (ist1 .eq. ist2)) then
           xiou(j, ist2, :) = zzero
-          pmou(:, j, ist2) = zzero
         end if
         ! Set upper triangle of pu/po block to zero, i.e. allow only
         ! transitions from energetically lower to higher bands.
-!! What double counting ? Only in the q=0 case ?
-        ! Also set diagonal to zero to avoid double counting
+        ! The diagonal needs to be excluded since those transitions
+        ! are already included in M_ou.
         if(ist1 .ge. ist2) then
           xiuo(ist2, j, :) = zzero
           pmuo(:, ist2, j) = zzero
@@ -546,8 +534,6 @@ subroutine dfq(iq)
     ! Allocate resonant and anti-resonant weights
     allocate(wou(nwdf,nst1,nst2))
     allocate(wuo(nwdf,nst1,nst2))
-!! Why not
-    !allocate(wuo(nwdf,nst2,nst1))
 
     ! Occupied 
     ist1loop: do ist1 = 1, nst1
