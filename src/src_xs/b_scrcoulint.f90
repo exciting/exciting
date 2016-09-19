@@ -73,6 +73,8 @@ subroutine b_scrcoulint
   !   main part   !
   !---------------!
 
+write(*,*) "Hello, this is b_scrcoulint at rank:", rank
+
   ! General setup
   call init0
   ! K-point setup

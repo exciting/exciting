@@ -108,8 +108,12 @@ subroutine b_bse
   ! GW 
   real(8), allocatable, dimension(:,:) :: eval0
 
+write(*,*) "Hello, this is b_bse.f90 at rank:", rank
+
   ! Routine not yet parallelized
   mpirank: if(rank .eq. 0) then
+
+write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
 
     ! General init
     call init0

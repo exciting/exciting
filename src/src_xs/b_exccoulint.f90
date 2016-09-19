@@ -60,6 +60,8 @@ subroutine b_exccoulint
   !   main part   !
   !---------------!
 
+write(*,*) "Hello, this is b_exccoulint at rank:", rank
+
   ! General setup
   call init0
   ! K-point setup
