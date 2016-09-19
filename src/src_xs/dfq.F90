@@ -109,7 +109,8 @@ subroutine dfq(iq)
   complex(8), allocatable :: chi0w(:, :, :, :), chi0h(:, :, :), eps0(:, :, :)
   complex(8), allocatable :: chi0hahc(:, :)
   complex(8), allocatable :: wou(:,:,:), wuo(:,:,:), wouw(:), wuow(:), wouh(:), wuoh(:)
-  complex(8), allocatable :: zvou(:), zvuo(:), chi0hs(:, :, :), bsedg(:, :), scis12c(:, :), scis21c(:, :),zm(:,:,:)
+  complex(8), allocatable :: zvou(:), zvuo(:), chi0hs(:, :, :), bsedg(:, :)
+  complex(8), allocatable :: scis12c(:, :), scis21c(:, :), zm(:,:,:)
   real(8), parameter :: epstetra = 1.d-8
   real(8) :: ta,tb,tc,td
   real(8), allocatable :: wreal(:) 
@@ -135,6 +136,9 @@ subroutine dfq(iq)
     call terminate
   end if
 
+
+  ! True if exchange-correlation kernel "MB1" or "BO" is use and
+  ! it is not a BSE screening task.
   tfxcbse = ((input%xs%tddft%fxctypenumber .eq. 7) .or. &
      & (input%xs%tddft%fxctypenumber .eq. 8)) .and. ( .not. tscreen)
 
@@ -309,7 +313,8 @@ subroutine dfq(iq)
   wreal(:) = dble(w(wi:wf))
 
   ! Set first real frequency to 10^{-8}
-!! For task 'screen' this sets the zero frequency to 10^{-8}
+  !! For task 'screen' this sets the zero frequency to 10^{-8},
+  !! why is that needed?
   if(wreal(1) .lt. epstetra) wreal(1) = epstetra
 
   ! Zeroing chi arrays
@@ -583,13 +588,17 @@ subroutine dfq(iq)
             ! Since tetrahedron method formalism implemented does not allow
             ! Otherwise
             wouw(wi:wf) = cmplx(dble(wou(wi:wf,ist1,ist2)),&
-              & aimag(wou(wi:wf,ist1,ist2))*deou(ist1, ist2)/(-wreal(:)-dble(scis12c(ist1, ist2))))
+              & aimag(wou(wi:wf,ist1,ist2))*deou(ist1, ist2)&
+              &/(-wreal(:)-dble(scis12c(ist1, ist2))))
             wuow(wi:wf) = cmplx(dble(wuo(wi:wf,ist1,ist2)),&
-              & aimag(wuo(wi:wf,ist1,ist2))*deuo(ist2, ist1)/(-wreal(:)-dble(scis21c(ist2, ist1))))
+              & aimag(wuo(wi:wf,ist1,ist2))*deuo(ist2, ist1)&
+              &/(-wreal(:)-dble(scis21c(ist2, ist1))))
             wouh(wi:wf) = cmplx(dble(wou(wi:wf,ist1,ist2)),&
-              & aimag(wou(wi:wf,ist1,ist2))*deou(ist1, ist2)**2/(-wreal(:)-dble(scis12c(ist1, ist2)))**2)
+              & aimag(wou(wi:wf,ist1,ist2))*deou(ist1, ist2)**2&
+              &/(-wreal(:)-dble(scis12c(ist1, ist2)))**2)
             wuoh(wi:wf) = cmplx(dble(wuo(wi:wf,ist1,ist2)),&
-              & aimag(wuo(wi:wf,ist1,ist2))*deuo(ist2, ist1)**2/(-wreal(:)-dble(scis21c(ist2, ist1)))**2)
+              & aimag(wuo(wi:wf,ist1,ist2))*deuo(ist2, ist1)**2&
+              &/(-wreal(:)-dble(scis21c(ist2, ist1)))**2)
           end if
 #else
           ! Added by DIN
@@ -615,7 +624,6 @@ subroutine dfq(iq)
 
           ! Save weights for current ist1/ist2 combination
           ! to use in the treatment of head and wing components
-!! w and h weights are identical, and why write a new variable?
           wouw(wi:wf) = wou(wi:wf,ist1,ist2)
           wuow(wi:wf) = wuo(wi:wf,ist1,ist2)
           wouh(wi:wf) = wou(wi:wf,ist1,ist2)
