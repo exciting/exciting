@@ -440,7 +440,7 @@ Module modxs
   ! initial and final timings for wall clock
       Integer :: systim0i, systim0f, cntrate, systimcum
   ! initial and final timings for CPU timing
-      Real (8) :: cputim0i, cputim0f, cputimcum
+      Real (8) :: cputim0i, cputim0f
   ! muffin-tin timings
 !      Real (8) :: cmt0, cmt1, cmt2, cmt3, cmt4
       Real (8) :: cpumtaa, cpumtalo, cpumtloa, cpumtlolo

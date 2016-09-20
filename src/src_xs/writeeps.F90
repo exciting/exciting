@@ -85,7 +85,7 @@ Contains
             Call xml_AddAttribute (xf, "function3", trim(adjustl(buffer)))
             Call xml_endElement (xf, "map")
          End Do
-         Write (buffer, '(I1.1, ".", I1.1, ".", I3.3)') version
+         Write (buffer, '(I2.1, ".", I1.1, ".", I3.3)') version
          Call xml_AddComment (xf, " Exciting code version : "//&
         & trim(adjustl(buffer)))
          Call xml_endElement (xf, "dielectric")
