@@ -13,10 +13,10 @@ LIBS = $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
 
 F90_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
    -fp-stack-check -heap-arrays -ftrapuv -check pointers \
-   -check bounds -check all
+   -check bounds -check all -check noarg_temp_created -traceback
 F77_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
    -fp-stack-check -heap-arrays -ftrapuv -check pointers \
-   -check bounds -check all
+   -check bounds -check all -check noarg_temp_created -traceback
 
 #Ignore if you don't have MPI or smplibs
 
