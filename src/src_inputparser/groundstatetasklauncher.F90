@@ -79,8 +79,4 @@ Subroutine groundstatetasklauncher
         splittfile= .False.
     end if
 
-    if(input%groundstate%wtest) then
-      call supertest
-    end if
-    
 end subroutine
