@@ -71,7 +71,7 @@ Subroutine init1
         input%groundstate%ngridk(:)=np3d(:)
       End If
 
-      If ((task .Eq. 20) .Or. (task .Eq. 21)) Then
+      If (((task .Eq. 20) .Or. (task .Eq. 21)).and..not.(input%properties%bandstructure%wannier)) Then
 ! for band structure plots generate k-points along a line
          nvp1d = size &
         & (input%properties%bandstructure%plot1d%path%pointarray)

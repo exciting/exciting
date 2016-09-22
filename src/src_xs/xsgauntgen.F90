@@ -30,9 +30,11 @@ Contains
          Do l1 = 0, lmax1
             Do m1 = - l1, l1
                lm1 = idxlm (l1, m1)
+               
                Do l2 = 0, lmax2
                   Do m2 = - l2, l2
                      lm2 = idxlm (l2, m2)
+                     
                      Do l3 = 0, lmax3
                         Do m3 = - l3, l3
                            lm3 = idxlm (l3, m3)
@@ -40,8 +42,10 @@ Contains
                           & m1, m2, m3)
                         End Do
                      End Do
+
                   End Do
                End Do
+
             End Do
          End Do
       End Subroutine xsgauntgen
