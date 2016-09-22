@@ -184,7 +184,14 @@
       </xs:documentation>
       </xs:annotation>
     </xs:attribute>
-              
+    <xs:attribute name="wfproj" type="xs:boolean" use="optional" minOccurs="0" maxOccurs="1" default="false">
+      <xs:annotation>
+      <xs:documentation>
+        Use this local orbital for projection while constructing Wannier functions. 
+      </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+             
     <xs:sequence>
       <xs:element ref="wf" minOccurs="1" maxOccurs="unbounded"></xs:element>
     </xs:sequence>

@@ -39,6 +39,11 @@
                   every atom.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" name="wannier" default="false" type="xs:boolean">
+              <xs:annotation>
+                <xs:documentation>Use Wannier interpolation.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="stm" minOccurs="0" maxOccurs="1">

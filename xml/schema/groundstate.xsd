@@ -2207,12 +2207,6 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-<xs:attribute ex:importance="expert" ex:unit="" name="wtest" type="xs:boolean"
-  use="optional" default="false" >
-  <xs:annotation>
-      <xs:documentation>LOL.</xs:documentation>
-  </xs:annotation>
-</xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="ngridk" type="integertriple"
         use="optional" default="1 1 1" >
         <xs:annotation>
