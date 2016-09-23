@@ -1,0 +1,4027 @@
+2012-11-26 14:06  micael
+
+	* [r9694] * The ac_prog_sed.m4 macro was not included in libxc.
+
+2012-11-26 13:27  micael
+
+	* [r9692] * Update libxc ChangeLog.
+
+2012-11-26 13:04  micael
+
+	* [r9691] * Created libxc-2.0.x branch.
+
+2012-11-26 13:02  micael
+
+	* [r9690] * Added function to return the version information.
+	  * Version information is now also available in a header file.
+	  * Set version number to 2.x
+	  * Added proper libtool versioning. Note that this one works in a
+	  different way than the libxc version number.
+
+2012-11-23 12:37  marques
+
+	* [r9686] Small change in the references
+
+2012-11-23 12:29  marques
+
+	* [r9685] These two functionals had changed name
+
+2012-11-23 12:28  marques
+
+	* [r9684] There were some bits missing for the hyb_mgga family
+
+2012-11-23 12:28  marques
+
+	* [r9683] Reset the regression tests, and added the new functionals
+
+2012-11-23 12:18  marques
+
+	* [r9682] Sorry, some names were wrong.
+
+2012-11-23 10:43  marques
+
+	* [r9681] Seems that I forgot this file
+
+2012-11-23 10:37  marques
+
+	* [r9680] Added a series of hybrid meta-ggas, namely
+	  XC_HYB_MGGA_XC_M05, XC_HYB_MGGA_XC_M05_2X,
+	  XC_HYB_MGGA_XC_BX88B95, XC_HYB_MGGA_XC_BX86B95,
+	  XC_HYB_MGGA_XC_PWX86B95, XC_HYB_MGGA_XC_BB1K,
+	  XC_HYB_MGGA_XC_MPW1B95, XC_HYB_MGGA_XC_MPWB1K,
+	  XC_HYB_MGGA_XC_X1B95, XC_HYB_MGGA_XC_XB1K.
+
+2012-11-23 08:18  marques
+
+	* [r9679] Added the possibility of having MGGAs that are mixtures
+	  of other functionals
+
+2012-11-22 15:23  marques
+
+	* [r9678] Bug correction: v2rhotau and friends should ahve 4
+	  entries, not 3, and it is the last one that is the down-down.
+
+2012-11-22 14:55  marques
+
+	* [r9677] Added B95 correlation
+
+2012-11-22 13:22  marques
+
+	* [r9676] Rewrote the TPSS correlation.
+
+2012-11-21 14:21  marques
+
+	* [r9666] Added the correlation part of PKZB
+
+2012-11-21 08:41  marques
+
+	* [r9664] Added the correlation part of M05 and M05-2X.
+
+2012-11-20 21:42  dstrubbe
+
+	* [r9661] Removing superfluous and redundant declarations, flagged
+	  by ifort.
+
+2012-11-20 13:44  marques
+
+	* [r9651] Added the correlation part of M06, M06-L, M06-HF, and
+	  M06-2x
+
+2012-11-19 14:31  marques
+
+	* [r9650] Rewrote vsxc (correlation part)
+
+2012-11-19 09:57  marques
+
+	* [r9649] Rewrote becke 97 in order to remove the ugly
+	  work_gga_becke that was only used by one family of functionals.
+
+2012-11-16 14:10  marques
+
+	* [r9645] Silly mistake.
+
+2012-11-16 08:39  marques
+
+	* [r9644] Added two M08 variants, _HX and _SO
+
+2012-11-15 15:07  marques
+
+	* [r9638] Reorganize the M05/06 echange functionals and added the
+	  exchange part of m06, m06-hf, and m06-2x
+
+2012-11-15 13:38  marques
+
+	* [r9637] Updated constants in vsxc by comparison with nwchem
+
+2012-11-15 13:25  marques
+
+	* [r9636] Added the exchange part of M05 and M05-2X.
+
+2012-11-15 09:41  marques
+
+	* [r9635] Sorry the previous constant seemed to be wrong
+
+2012-11-15 09:38  marques
+
+	* [r9634] Semms that g95 does not understand what a constant
+	  expression is.
+
+2012-11-15 08:43  marques
+
+	* [r9633] Missing declaration. Thanks David.
+
+2012-11-15 08:41  marques
+
+	* [r9632] Added the exchange part of the PKZB meta-GGA. As a
+	  curious notice, I do remember trying to implement this in 2000,
+	  and giving up after 200 or 300 lines of code because it was too
+	  complicated (and did not give any significant difference in the
+	  potential). Today's routine is 50 lines long and took a couple fo
+	  hours to implement.
+
+2012-11-14 20:16  dstrubbe
+
+	* [r9627] Unused variables.
+
+2012-11-14 14:28  marques
+
+	* [r9624] Added a new family of functionals (one parameter GGAs)
+
+2012-11-13 07:54  marques
+
+	* [r9607] We treat LB as an exchange functional, even if
+	  technically this is not exactly the case.
+
+2012-11-12 21:10  marques
+
+	* [r9598] Small inconsistencies found by Tiago Cerqueira.
+
+2012-11-12 20:23  marques
+
+	* [r9597] Two bugs (one large one small) found by David. Can you
+	  please check that your icc does not complain now? Thanks.
+
+2012-11-12 14:59  marques
+
+	* [r9596] Added the Fitalov & Thiel correlation (GGA).
+
+2012-11-12 11:09  marques
+
+	* [r9595] Renamed TD_CAM_B3LYP to the correct TUNED_CAM_B3LYP.
+	  Thanks Fabien (again).
+
+2012-10-26 19:31  marques
+
+	* [r9532] Very silly mistake. Thanks David.
+
+2012-10-26 14:26  marques
+
+	* [r9531] According to nwchem that seems to have contacted directly
+	  Carlo Adamo, there is a small misprint in the mpw91 constants in
+	  the original paper. I am now using the corrected constants.
+
+2012-10-22 15:54  marques
+
+	* [r9516] I forgot a couple of factors of 2 in tb09. Thanks to
+	  Marjus Meitern for pointing it out.
+
+2012-09-26 14:25  marques
+
+	* [r9471] Added functional XC_GGA_C_SPBE
+
+2012-09-26 13:34  marques
+
+	* [r9470] Corrected bug in gga_xc_kt2
+	  Added functionals XC_GGA_X_SSB_SW, XC_GGA_X_SSB, and
+	  XC_GGA_X_SSB_D
+
+2012-09-25 07:57  marques
+
+	* [r9466] As I changed the default interpolation for the VWN_RPA
+	  one does not need to set it explicitly in the hybrids
+
+2012-09-25 07:56  marques
+
+	* [r9465] Added tests for the new functional from yesterday and
+	  today, and updated the VWN tests that had changed slightly the
+	  title
+
+2012-09-25 07:52  marques
+
+	* [r9464] Implemented all other versions of VWN (VWN1, VWN2, VWN3,
+	  VWN4), besides the 5 and the RPA that were already there.
+
+2012-09-24 12:01  marques
+
+	* [r9462] Cleaned a bit the B97 functionals and added the
+	  functionals HCTH_A, B97_GGA1, HCTH_P14, HCTH_P76, and HCTH_407P
+
+2012-09-21 09:45  marques
+
+	* [r9459] I reset the regression tests. They are not very well
+	  chosen for the meta-GGAs, I have to say...
+
+2012-09-21 09:42  marques
+
+	* [r9458] Changed the definition of tau. Now tau_new = tau_old/2
+
+2012-09-21 09:03  marques
+
+	* [r9457] Added a new functional, bpccac
+
+2012-09-17 09:18  marques
+
+	* [r9434] Added two new GGA correlation functionals, LTA and revLTA
+
+2012-09-14 11:30  marques
+
+	* [r9411] Added a b3lyp-like hybrid based on rc04
+
+2012-09-14 09:43  marques
+
+	* [r9410] Added a new lda correlation functional, Ragot-Cortona
+
+2012-09-08 15:37  marques
+
+	* [r9376] This should fix the warning David was getting.
+
+2012-09-07 13:40  marques
+
+	* [r9365] Started changing the definition of tau in libxc. The new
+	  tau is the old tau/2, i.e. now our tau is the correct kinetic
+	  energy density.
+
+2012-09-07 13:28  marques
+
+	* [r9364] Reset the regression tests. Most of the failing cases
+	  were trivial (the funny characters in the reference), but I do
+	  not trust much the _th family for now.
+
+2012-09-05 18:51  dstrubbe
+
+	* [r9336] m4/fc_integer.m4 in libxc is an exact copy of the one in
+	  Octopus. Therefore, I am backporting my changes in r9308 and
+	  r9309 to libxc, for improved robustness and ability to
+	  cross-compile.
+
+2012-09-04 23:00  dstrubbe
+
+	* [r9319] Libxc:
+	  * Fixing an apparent bug from r9215 -- one occurrence of 'order'
+	  was not changed to 'r.order' and as a result was a variable being
+	  used without initialization (which could cause the function to
+	  return without computing).
+	  * Misspelling.
+	  * Fixing apparent mistake in return type, as signalled by the
+	  compiler warning 'missing return statement at end of non-void
+	  function' for xc_hyb_cam_coef.
+
+2012-09-04 22:29  dstrubbe
+
+	* [r9316] Fixing some peculiar characters in place of dashes in
+	  libxc, which cause this warning from ifort: invalid multibyte
+	  character sequence
+
+2012-09-04 22:13  xavier
+
+	* [r9314] Moved the definition of cheb_eval to util.h, so xlc is
+	  happy.
+
+2012-08-01 13:53  marques
+
+	* [r9221] According to some people, one has to write the
+	  attenuation function
+	  differently in order to limit the numerical errors...
+
+2012-08-01 08:10  marques
+
+	* [r9220] Corrected what seemed to me as a bug...
+
+2012-08-01 07:51  marques
+
+	* [r9219] Added a new LDA functional for 1D systems
+
+2012-07-27 07:57  micael
+
+	* [r9216] * Fixed several bugs in the TPSS functional.
+
+2012-07-27 07:54  marques
+
+	* [r9215] Simplyfied the interfaces to the GGA correlation
+	  functionals. There were
+	  too many arguments, and if one day I do implement kxc, then the
+	  interface would probably be more than 10 lines long!
+
+2012-07-26 08:18  marques
+
+	* [r9214] Added the opc_c GGA functional.
+
+2012-07-19 11:53  marques
+
+	* [r9205] Another bug found by Fabien
+
+2012-07-18 14:02  marques
+
+	* [r9203] Bugs found by Fabien.
+
+2012-07-18 10:55  marques
+
+	* [r9202] Added Becke Half-and-Half and a variation of it. These
+	  functionals are in Gaussian.
+
+2012-07-18 08:38  marques
+
+	* [r9201] With the debugging of Fabien maybe CM-B3LYP will work
+	  now.
+
+2012-07-14 21:29  marques
+
+	* [r9199] functional_get_number needs only a const char * not a
+	  char *. Thanks to Jussi Lehtola for this.
+
+2012-06-14 13:11  mjv500
+
+	* [r9123] back to function for hyb_exx_coeff
+
+2012-06-14 06:14  mjv500
+
+	* [r9122] intermediate patch for libxc interface of hyb_exx_coef -
+	  still not fixed. Miguel, please have a look
+
+2012-06-06 12:33  marques
+
+	* [r9107] Now feenableexcept is checked for, to make all your apple
+	  lovers happy.
+
+2012-06-04 10:22  marques
+
+	* [r9105] Added CAM-B3LYP. Please handle with care, as I am not
+	  sure at all of the actual definition of the functional.
+
+2012-06-04 07:32  marques
+
+	* [r9103] Small fixes
+
+2012-06-01 21:30  marques
+
+	* [r9094] Added a generic way to make short-range exchange GGAs.
+
+2012-06-01 14:25  marques
+
+	* [r9091] Hope this fixes compilation.
+	  Better interface to CAM functionals
+
+2012-06-01 13:49  marques
+
+	* [r9090] Spring cleaning in libxc. Got rid of several code and
+	  simplified the structure of the library.
+	  Changed the default screening of the HJS.
+
+2012-05-31 14:35  marques
+
+	* [r9089] Added another rescaling function (not used by now)
+
+2012-05-31 13:08  marques
+
+	* [r9088] I reset the regression tests that changed after Micael
+	  changed the thresholds for the functionals. Please next do not
+	  forget to reset the regression tests.
+
+2012-05-31 12:48  marques
+
+	* [r9087] Added the hybrid forms of hjs
+
+2012-05-31 12:25  marques
+
+	* [r9086] Added the range-separated exchange LDA
+
+2012-05-30 09:29  marques
+
+	* [r9085] Added fortran interface to HJS
+
+2012-05-23 13:03  marques
+
+	* [r9074] Sorry had left a debug line
+
+2012-05-23 12:45  marques
+
+	* [r9073] A few bugs corrected in HSE
+
+2012-05-16 14:27  marques
+
+	* [r9071] Added other versions of this functional.
+
+2012-05-16 14:14  marques
+
+	* [r9070] Added another short-range form of the PBE
+
+2012-05-11 15:10  marques
+
+	* [r9069] Rewrote the bessel functions in order to have proper
+	  double precision
+
+2012-05-11 09:08  marques
+
+	* [r9068] Implemented a more precise version of the exponential
+	  integral
+
+2012-05-10 11:39  marques
+
+	* [r9065] Added Fortran interface to hse set par routines
+
+2012-05-10 11:33  marques
+
+	* [r9064] Forgot to rename a couple of routines
+
+2012-05-10 11:31  marques
+
+	* [r9063] Renamed pbe_sr to wpbeh as it is commonly called.
+	  Now HSE if based on PBEh and not on PBE
+
+2012-05-07 22:18  marques
+
+	* [r9061] Sorry, one c too much
+
+2012-05-07 21:58  marques
+
+	* [r9060] HSE is an xc functional, not an x functional
+
+2012-05-07 09:50  marques
+
+	* [r9059] Bug found by F. Bruneval fixed
+
+2012-05-04 10:00  marques
+
+	* [r9057] A couple of bugs found by Micael
+
+2012-05-04 09:43  marques
+
+	* [r9056] Small bug fixes
+
+2012-05-03 14:36  marques
+
+	* [r9055] Clarified a comment
+
+2012-05-03 14:07  marques
+
+	* [r9054] Now xc-consistency tells me that the derivatives are OK.
+	  There was a small bug that I fixed.
+
+2012-05-03 13:13  marques
+
+	* [r9053] Copied the first derivatives from espresso and rearranged
+	  the code. I still do not trust the first derivatives, so beware!
+
+2012-05-02 15:23  marques
+
+	* [r9052] This should make some C compilers happy
+
+2012-05-02 14:31  marques
+
+	* [r9051] I better add some work I had some in the range seperated
+	  LDAs, or libxc will not compile. WARNING, there is a change in
+	  the API in order to add the range separation */
+
+2012-05-02 14:29  marques
+
+	* [r9050] Added the exc for the local part of HSE. I shamelessly
+	  adapted the code from espresso.
+
+2012-04-26 12:36  micael
+
+	* [r9041] * More information and some cosmetic changes to the libxc
+	  README file.
+
+2012-04-25 09:51  marques
+
+	* [r9040] Some comments on how the files are organized in libxc
+
+2012-04-17 14:48  micael
+
+	* [r9025] * Reverted r9022, as that change is only valid for
+	  exchange functionals.
+
+2012-04-17 09:56  micael
+
+	* [r9024] * Updated xc-get_data utility to work with MGGA's.
+
+2012-04-17 08:46  micael
+
+	* [r9023] Updated GGA and hybrids thresholds.
+
+2012-04-17 08:45  micael
+
+	* [r9022] * Now vxc[is] is zero if rho[is] is below threshold.
+
+2012-04-17 08:43  micael
+
+	* [r9021] * The value of the density is not checked anymore when
+	  calculating zeta, as this should be done outside this routine.
+
+2012-04-17 08:40  micael
+
+	* [r9020] * Updated thresholds for the LDA functionals.
+
+2012-04-17 08:39  micael
+
+	* [r9019] * Bug fix: TPSS correlation was returning NAN's when the
+	  density was zero.
+
+2012-03-28 13:22  marques
+
+	* [r8942] Still one bug (not the last one, for sure)
+
+2012-03-28 13:07  marques
+
+	* [r8941] Solved a couple of bugs that were leading to NaNs in the
+	  values of
+	  functionals
+
+2012-03-27 20:37  dstrubbe
+
+	* [r8933] Using the more portable /usr/bin/env for first line of
+	  scripts. Most are doing this already.
+
+2012-03-22 15:52  micael
+
+	* [r8926] * Removed DONE file from Makefile.
+
+2012-03-22 15:31  micael
+
+	* [r8925] * Updated PACKAGING and README files
+
+2012-03-22 15:30  micael
+
+	* [r8924] * Updated NEWS and AUTHORS files and removed the very
+	  outdated DONE file.
+
+2012-03-22 14:05  marques
+
+	* [r8923] New changelog
+
+2012-03-09 09:32  micael
+
+	* [r8910] * Reverted unintended changed.
+
+2012-03-09 09:30  micael
+
+	* [r8909] * Updated the thresholds for the BJ06 and RPP10
+	  functionals.
+
+2012-02-04 20:50  dstrubbe
+
+	* [r8839] Two trivial changes.
+
+2012-02-03 18:04  micael
+
+	* [r8838] * The thresholds of the density, density gradient, and
+	  kinetic energy density are now part of the definition of a
+	  functional.
+	  The idea is that each functional can have different thresholds,
+	  although at the moment they are the same for all of them.
+
+2012-01-24 18:15  dstrubbe
+
+	* [r8799] Set svn:ignore for new file funcs_hyb_mgga.c in libxc.
+
+2012-01-24 10:35  marques
+
+	* [r8795] Got rid of unelegant vrho0 in the meta-GGAs
+
+2012-01-24 10:29  marques
+
+	* [r8794] Some reorganization of the meta-gga code
+
+2012-01-23 14:34  marques
+
+	* [r8790] Added the correlation part of the sogga11-x functional. I
+	  just realized that I have 100 GGA functionals implemented. I am
+	  starting to have problems with the numering ;)
+
+2012-01-23 14:19  marques
+
+	* [r8789] *) Added the sogga11-x hybrid (exchange part)
+	  *) cleaned the regression tests. All the failures were related to
+	  change in references or similar stuff
+
+2012-01-09 15:20  marques
+
+	* [r8748] Added the new GGA functional of Cooper
+
+2011-12-07 02:33  dstrubbe
+
+	* [r8666] ifort 12.0 refuses to compile the inline functions:
+	  
+	  /bin/sh ../libtool --tag=CC --mode=link mpicc -O3 -o xc-get_data
+	  xc_get_data-xc-get_data.o -L../src/ -lxc -lm
+	  libtool: link: mpicc -O3 -o xc-get_data xc_get_data-xc-get_data.o
+	  -L/global/home/users/dstrubbe/octopus/libxc/src
+	  /global/home/users/dstrubbe/octopus/libxc/src/.libs/libxc.a -lm
+	  /global/software/centos-5.x86_64/modules/intel/composerxe-2011.1.107/lib/intel64/libimf.so:
+	  warning: warning: feupdateenv is not implemented and will always
+	  fail
+	  /global/home/users/dstrubbe/octopus/libxc/src/.libs/libxc.a(gga_c_pbe.o):
+	  In function `work_gga_c':
+	  gga_c_pbe.c:(.text+0x3b0): undefined reference to
+	  `xc_lda_c_pw_func'
+	  /global/home/users/dstrubbe/octopus/libxc/src/.libs/libxc.a(gga_c_p86.o):
+	  In function `work_gga_c':
+	  gga_c_p86.c:(.text+0x389): undefined reference to
+	  `xc_lda_c_pz_func'
+	  /global/home/users/dstrubbe/octopus/libxc/src/.libs/libxc.a(gga_c_pw91.o):
+	  In function `work_gga_c':
+	  gga_c_pw91.c:(.text+0x40b): undefined reference to
+	  `xc_lda_c_pw_func'
+	  /global/home/users/dstrubbe/octopus/libxc/src/.libs/libxc.a(gga_c_am05.o):
+	  In function `work_gga_c':
+	  gga_c_am05.c:(.text+0x37a): undefined reference to
+	  `xc_lda_c_pw_func'
+	  /global/home/users/dstrubbe/octopus/libxc/src/.libs/libxc.a(gga_c_lm.o):
+	  In function `work_gga_c':
+	  gga_c_lm.c:(.text+0x3cf): undefined reference to
+	  `xc_lda_c_hl_func'
+	  /global/home/users/dstrubbe/octopus/libxc/src/.libs/libxc.a(gga_c_sogga11.o):
+	  In function `work_gga_c':
+	  gga_c_sogga11.c:(.text+0x445): undefined reference to
+	  `xc_lda_c_pw_func'
+	  make[1]: *** [xc-get_data] Error 1
+	  make[1]: Leaving directory
+	  `/global/home/users/dstrubbe/octopus/libxc/testsuite'
+	  make: *** [install-recursive] Error 1
+
+2011-12-06 15:31  marques
+
+	* [r8662] Added fxc to the CSC functional
+
+2011-11-30 09:43  fulvio
+
+	* [r8642] Reverted accidental changes in INSTALL files
+
+2011-11-29 17:22  fulvio
+
+	* [r8641] Included Lorenzo's implementation of jelli slab + a small
+	  bugfix (thanks to Lorenzo)
+
+2011-11-28 21:15  dstrubbe
+
+	* [r8640] Missing dependencies in libxc.
+
+2011-11-19 06:08  xavier
+
+	* [r8589] Removed a C++ style comment.
+
+2011-10-10 13:17  marques
+
+	* [r8374] Small bug found by Martin Persson
+
+2011-09-07 05:40  dstrubbe
+
+	* [r8264] On MacOS, directories can be produced by when the try
+	  build fails, and we need to do rm -rf to remove them.
+
+2011-09-05 07:40  dstrubbe
+
+	* [r8259] Restored proper German title, and added Wien to
+	  publication location for Gombas's book.
+
+2011-09-05 06:18  dstrubbe
+
+	* [r8258] Typo in reference.
+
+2011-09-05 04:47  dstrubbe
+
+	* [r8257] More explicit casts and a missing macro call.
+
+2011-09-04 23:32  dstrubbe
+
+	* [r8256] Errors in pointer casting that g++ 4.5 will not accept.
+
+2011-08-23 18:55  dstrubbe
+
+	* [r8219] Tobias Burnus' patch to libxc references.
+
+2011-08-22 14:34  micael
+
+	* [r8212] * Bug fix: some GGA correlations were tagged as exchange
+	  functionals.
+
+2011-07-29 09:46  marques
+
+	* [r8123] Added the TH family of xc functionals.
+	  Updated the regression tests.
+
+2011-07-28 19:19  xavier
+
+	* [r8119] Fixed a comment.
+
+2011-07-28 12:38  marques
+
+	* [r8118] Added the spin-polarized version of the LM functional
+
+2011-07-26 10:00  marques
+
+	* [r8110] Added another version of the WI functional
+
+2011-07-25 12:37  marques
+
+	* [r8107] Some changes for libxc to compile in single precision.
+	  Thanks Alberto.
+
+2011-07-23 16:49  marques
+
+	* [r8105] Sorry, bad fix last time
+
+2011-07-23 16:41  marques
+
+	* [r8104] Bug fix: becke gga c functionals were wrong when called
+	  with a list of values. Thanks to Damien Caliste.
+
+2011-07-21 12:25  marques
+
+	* [r8103] Added the correlation part of the SOGGA11 functional
+
+2011-07-20 10:23  xavier
+
+	* [r8099] Now the libxc testsuite works with VPATHs. (But I get
+	  FAILs in most
+	  tests).
+
+2011-07-20 10:03  xavier
+
+	* [r8098] This should fix the libxc compilation issue.
+
+2011-07-20 08:56  marques
+
+	* [r8097] Added a new functional, SOGGA11 (in press). I check this
+	  functional against the reference implementation of Truhlar (that
+	  was very badly programmed, and impossible to compile)
+
+2011-07-19 23:13  dstrubbe
+
+	* [r8094] Set svn:ignore for new generated files in libxc.
+
+2011-07-19 11:41  marques
+
+	* [r8091] Added the SOGGA functional
+	  Changed the precision of RPBE. Now it uses the same constants as
+	  PBE
+	  Fixed a serious bug in optpbe_vdw
+
+2011-07-17 18:48  marques
+
+	* [r8083] Added two new functionals, MOHLYP and MOHLYP2
+
+2011-07-16 18:51  xavier
+
+	* [r8078] This fixes libxc compilation with VPATH.
+
+2011-07-15 12:39  marques
+
+	* [r8077] Now make check actually does something interesting and
+	  meaninful
+
+2011-07-15 12:18  marques
+
+	* [r8076] Deleted the LCA that was broken and unused for years
+	  Created files intended for regression test (coming soon)
+
+2011-07-15 08:48  marques
+
+	* [r8075] Moved data from the df repository to its own directory
+
+2011-07-15 08:46  marques
+
+	* [r8074] Removed an unused limit
+
+2011-07-13 14:04  marques
+
+	* [r8072] Big bug in B88 solved
+
+2011-07-13 13:35  marques
+
+	* [r8071] Deleted wrong calls to vwn_set_param
+
+2011-07-13 13:25  marques
+
+	* [r8070] Removed the framework of perdew functionals. This is now
+	  handled by more generic routines
+
+2011-07-13 13:23  marques
+
+	* [r8069] Converted PW91 to the new framework and implemented fxc
+
+2011-07-04 13:34  marques
+
+	* [r8056] Moved the gga_c_pbe to the new framework.
+	  Cleaned several unused variables
+
+2011-06-29 14:06  marques
+
+	* [r8053] A couple of bugs corrected. Now it gives the same as the
+	  reference.
+
+2011-06-29 09:04  marques
+
+	* [r8052] Converted P86 to new framework and implemented second
+	  derivatives. It is funny to see the discontinuity of PZ
+	  propagated to poles in fxc ;((
+
+2011-06-24 13:42  marques
+
+	* [r8050] Fixed bug in AM05. It took me 4 hours to find this stupif
+	  thing!
+
+2011-06-24 10:20  marques
+
+	* [r8049] This should solve the segfault in PW
+
+2011-06-22 13:19  marques
+
+	* [r8048] Added two new helper functions, functional_get_number and
+	  functional_get_name that return the number or the name of the
+	  functional given the other.
+
+2011-06-22 10:31  marques
+
+	* [r8047] Fixed NaN for zero gradients. Thanks to Xavier Gonze.
+
+2011-06-22 09:03  marques
+
+	* [r8046] Added new functional, the PW parametrization of the RPA
+	  energy
+
+2011-06-22 08:31  marques
+
+	* [r8045] New exchange functional, the Local Airy Gas
+
+2011-06-22 08:20  marques
+
+	* [r8044] Added new exchange functional based on the Airy gas
+
+2011-06-21 13:45  marques
+
+	* [r8041] Changed the precision in one constant in the PBE
+	  functional. Thank you to Gian-Marco for finding this one
+
+2011-06-10 09:16  marques
+
+	* [r8009] Bug corrected (thanks David). The results seemed to be
+	  correct any way, but my mere chance.
+
+2011-06-09 11:35  marques
+
+	* [r7996] Sorry, forgot to submit this file
+
+2011-06-09 10:13  marques
+
+	* [r7995] Added new GGA x functional HTBS
+
+2011-06-08 15:09  marques
+
+	* [r7994] I believe that there was a ff factor missing. Can you
+	  check it Micael?
+
+2011-06-07 12:47  xavier
+
+	* [r7985] Another fix for libxc and xlc. Now it should compile.
+
+2011-06-07 12:30  xavier
+
+	* [r7984] It seems that xlc doesn't like to call an static function
+	  from an
+	  inline one.
+
+2011-06-01 13:46  marques
+
+	* [r7963] Several functionals that denpended on LYP have now also
+	  fxc
+
+2011-06-01 13:42  marques
+
+	* [r7962] LYP now has fxc.
+
+2011-05-30 14:04  marques
+
+	* [r7952] Langreth and Mehl converted to new framework
+
+2011-05-30 13:06  marques
+
+	* [r7951] Several bugs corrected and code simplified. Now it really
+	  seems to work (fingers crossed)
+
+2011-05-27 15:28  marques
+
+	* [r7948] Sopke too soon ;) v2sigma2 is fine, but v2rhosigma still
+	  has a bug for some spins...
+
+2011-05-27 13:56  marques
+
+	* [r7947] Sorry, left some debug stuff around
+
+2011-05-27 13:55  marques
+
+	* [r7946] Second derivatives are now working for AM05 and WL. I
+	  will still spend some time trying to simplify the code.
+
+2011-05-18 08:10  micael
+
+	* [r7906] * Bug fix: corrected the parameters of two KED
+	  functionals.
+
+2011-05-13 02:30  xavier
+
+	* [r7896] Updated the versions for trunk, octopus nocturnus, and,
+	  libxc diurnus.
+
+2011-05-12 15:57  xavier
+
+	* [r7881] Libxc now defines XC_GGA_XC_LB to point to XC_GGA_X_LB.
+	  This keeps
+	  compatibility.
+
+2011-05-11 12:46  marques
+
+	* [r7863] Added the Thakkar approximation to the kinetic energy
+	  density. I believe that this concludes the GGAs for tau (at least
+	  I do not have any further on my list)
+
+2011-05-11 10:19  marques
+
+	* [r7862] The 4 versions of the PBE for kinetics by Tran and
+	  Wesolowski
+
+2011-05-11 10:01  marques
+
+	* [r7861] Small bug corrected
+
+2011-05-11 09:57  marques
+
+	* [r7860] The correlation version of the previous functional
+
+2011-05-11 09:17  marques
+
+	* [r7859] Added the APBE functional (both X and K, I will implement
+	  C now)
+
+2011-05-01 01:17  xavier
+
+	* [r7827] Missing deallocations in libxc.
+
+2011-05-01 00:07  xavier
+
+	* [r7826] The destructor of the gga_c_pbe functional was missing.
+
+2011-04-21 13:26  marques
+
+	* [r7739] An unused variable was left behind. Thanks David.
+
+2011-04-20 20:04  marques
+
+	* [r7733] Sorry for the mess. Let's see if it compiles now.
+
+2011-04-20 14:04  marques
+
+	* [r7731] Sorry forgot two "M"
+
+2011-04-20 14:02  marques
+
+	* [r7730] New functional, a modified Becke 88 for proton transfer
+	  reactions.
+
+2011-04-18 14:18  micael
+
+	* [r7720] * Two functionals had the same identifier.
+
+2011-04-16 19:12  micael
+
+	* [r7711] * Fixed AM05 correlation for very small densities.
+
+2011-04-15 10:06  marques
+
+	* [r7707] Also v2rho2 is well calculated in spin polarized mode.
+	  Now it is only missing v2sigma2 and v2rhosigma
+
+2011-04-01 09:42  marques
+
+	* [r7659] Now the VW term is defined withour the TF part as
+	  requested by Micael
+
+2011-04-01 08:59  marques
+
+	* [r7658] Sorry I had left some bugs around
+
+2011-04-01 08:57  marques
+
+	* [r7657] Added the kinetic counterpart of PW91
+
+2011-03-31 15:22  marques
+
+	* [r7653] Another bunch of functionals for the kinetic energy.
+	  These ones are all absed on a Pade approximant.
+
+2011-03-30 13:02  marques
+
+	* [r7647] Added the dePristo and Kress GGA for the kinetic energy
+	  density
+
+2011-03-30 12:17  marques
+
+	* [r7646] Bug fix in K_OL2. The formula was not correct.
+	  Added the functional X_OL2, but I have very strong reasons to
+	  believe that the formula in the paper is wrong.
+
+2011-03-28 16:15  micael
+
+	* [r7635] * The lambda parameter in the TflW functionals was not
+	  set correctly.
+
+2011-03-28 15:30  micael
+
+	* [r7633] * Another KED functional that was labeled as exchange.
+
+2011-03-28 15:06  micael
+
+	* [r7629] * A couple of KED functionals were labeled as exchange
+	  functionals.
+
+2011-03-28 15:02  marques
+
+	* [r7628] Rename the LB functional as "exchange", otherwise octopus
+	  can not sum the PW92 correlation to it.
+	  Added a modified LB potential by the Amsterdam group
+
+2011-03-27 05:10  dstrubbe
+
+	* [r7626] Fixed typos and funny characters in libxc.
+
+2011-03-25 13:23  marques
+
+	* [r7615] An assert was wrong
+
+2011-03-25 13:23  marques
+
+	* [r7614] Added a kinetic version of the PW86 exchange functional
+
+2011-03-25 13:05  marques
+
+	* [r7613] Sorry, a factor was wrong
+
+2011-03-25 13:04  marques
+
+	* [r7612] Another version of becke 88 for the kinetic energy
+	  density
+
+2011-03-25 11:30  marques
+
+	* [r7611] Bug fix: in the case of the kinetic energy density, I was
+	  using the wrong power in the definition of x. It should always be
+	  4/3 and not 5/3
+
+2011-03-24 14:14  marques
+
+	* [r7604] Added a new LDA functional for the kinetic energy
+
+2011-03-24 13:24  marques
+
+	* [r7603] Again problems with the pre-factors. Hopefully this way
+	  of doing things is a bit more robust.
+
+2011-03-24 11:01  marques
+
+	* [r7602] Two more kinetic functionals OL1 and OL2
+	  Fixed one reference (thanks Tobias)
+
+2011-03-24 08:46  marques
+
+	* [r7601] Yes, you were right Tobias. Thanks.
+
+2011-03-23 14:33  marques
+
+	* [r7598] Now the LLP kinetic functional shares the same routine as
+	  B88
+
+2011-03-23 14:11  marques
+
+	* [r7597] Added a bunch of functionals of the form gamma T_TF +
+	  lambda T_vW
+
+2011-03-22 16:09  marques
+
+	* [r7590] Sorry, forgot an } and had an error in a comment
+
+2011-03-22 16:00  marques
+
+	* [r7589] Corrected the value of K_FACTOR_C to the correct
+	  spin-polarized and including the factor of 2 from our definition
+	  of tau.
+	  Added the von Weiszaecker functional
+
+2011-03-21 15:45  marques
+
+	* [r7588] New kinetic energy GGA (actually the first of all), the
+	  Lee, Lee and Parr functional
+
+2011-03-18 15:15  micael
+
+	* [r7573] * Now I think the constant in the Thomas-Fermi functional
+	  is finally correct.
+
+2011-03-18 10:24  micael
+
+	* [r7572] * A constant was wrong in the Thomas-Fermi kinetic energy
+	  functional.
+	  * Definition of XC_KINETIC was missing from libxc_master.F90.
+
+2011-03-03 13:23  marques
+
+	* [r7533] Added a very simple exchange functional, the Herman
+	  X\alpha\beta functional. This is perhaps the first GGA for the
+	  exhange
+
+2011-03-02 12:42  marques
+
+	* [r7521] I rewrote lyp to the new framework. Now the file is half
+	  the size as before, and it will be easy to get the second
+	  derivatives.
+
+2011-03-02 12:42  marques
+
+	* [r7520] There was a problem in the b86 functional. First, what I
+	  called b86_r was in fact b86. Then my b86 had a wrong
+	  coefficient. So I deleted b86_r and rewrote in a clearer way b86.
+
+2011-03-02 12:41  marques
+
+	* [r7519] Some programs pass negative densities to libxc. This
+	  commit should fix many of the functionals in this case.
+
+2011-02-28 11:11  marques
+
+	* [r7507] Added a new GGA correlation functional: Wilson and
+	  Ivanov. Note that this functional only has a spin-unpolarized
+	  version
+
+2011-02-24 15:26  marques
+
+	* [r7493] *) Added the Gombas interpolation of the correlation
+	  energy
+	  *) Corrected a numerical coefficient in the RPA functional
+	  *) A factor of 1/2 was missing in the ML functional
+
+2011-02-23 10:29  marques
+
+	* [r7490] Sorry, just realized that I used // comments...
+
+2011-02-23 10:28  marques
+
+	* [r7489] Added a new GGA functional (WL) and more importantly,
+	  added a new framework for GGA correlations. Most GGA correlations
+	  will be adapted to this new framework in the future. Note: the
+	  second derivatives in the spin polarized case are still missing.
+
+2011-02-18 11:33  xavier
+
+	* [r7479] An attempt to fix the libxc problem in nowii.
+
+2011-02-17 13:10  marques
+
+	* [r7471] Patch by Janne.Blomqvist@tkk.fi:
+	  
+	  The attached patch does some minor optimizations and cleanups,
+	  mostly
+	  replacing usage of pow() with cbrt() as pow() can be somewhat
+	  expensive.
+	  
+	  - Add tests for sqrtf, cbrtf, cbrt in configure.ac
+	  - Add SQRT and CBRT macros to xc_config.h
+	  - pow => POW if argument is FLOAT
+	  - sqrt => SQRT if argument is FLOAT
+	  - cbrt => CBRT
+	  - POW(x, 1.0/3.0) => CBRT(x)
+	  - POW(x, -1.0/3.0) => 1.0/CBRT(x)
+	  - POW(x, 1.0/2.0) => SQRT(x)
+	  - POX(x, -1.0/2.0) => 1.0/SQRT(x)
+	  - POW(x, 1.0/4.0) => SQRT(SQRT(x))
+	  - sqrt(2.0) => M_SQRT2
+	  
+	  Some of the pow(x,y) optimizations above can be done
+	  automatically by
+	  the compiler if one enables -ffast-math (or equivalent) but due
+	  to
+	  different corner-case behavior the compiler cannot enable them
+	  otherwise (e.g. sqrt(-0.0) == -0.0 != pow(-0.0, 1.0/2.0) ==
+	  +0.0). See
+	  e.g.
+	  
+	  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=25620
+	  
+	  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43419
+	  
+	  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=42694
+	  
+	  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=28252
+	  
+	  
+	  I ran the testsuite, and while I did get some failures I also got
+	  exactly the same failures with the trunk, so as far as the
+	  testsuite
+	  is concerned the patch does not affect the numerics in any way.
+
+2011-02-14 13:12  marques
+
+	* [r7456] Flag XC_FLAGS_3D was missing from the hybrid functionals
+
+2011-02-02 13:14  marques
+
+	* [r7394] Some debug lines were forgotten...
+
+2011-02-02 00:37  dstrubbe
+
+	* [r7388] Corrected typos.
+
+2011-01-25 12:59  marques
+
+	* [r7329] There was still one inline left. This seems to be the
+	  source of the confusion of the xlc compiler...
+
+2011-01-25 12:49  marques
+
+	* [r7328] Tried to remove inline to see if nowii compiles libxc
+
+2011-01-25 12:45  marques
+
+	* [r7327] *) changed the order of files in makefile.am to see if it
+	  helps with nowii
+	  *) Added fxc for the BR functional
+
+2011-01-19 23:21  xavier
+
+	* [r7287] Changed the macro used to initialize libxc so it works
+	  with old
+	  libtool versions.
+
+2011-01-18 20:46  dstrubbe
+
+	* [r7285] Fixed PGI compilation error via missing prototype.
+	  PGC-S-0043-Redefinition of symbol, xc_gga_k_tflw_set_params_
+	  (gga_k_tflw.c: 55)
+
+2011-01-18 19:39  dstrubbe
+
+	* [r7284] * Added hyphen, changed m-dash to hyphen (for page
+	  numbers) which could render strangely.
+	  * The new file was missing .c in the Makefile.
+
+2011-01-18 15:34  marques
+
+	* [r7283] Another kinetic energy functional
+
+2011-01-18 15:13  marques
+
+	* [r7282] Added a new kinetic energy functional
+
+2011-01-16 05:52  xavier
+
+	* [r7277] Some optimization for lda_xc_teter93.
+
+2011-01-16 04:18  xavier
+
+	* [r7276] Some optimizations for libxc:
+	  
+	  * Defined a faster function calculate to f(z). It calculates all
+	  the
+	  required derivatives at once, and avoids the calculation if the
+	  system
+	  is unpolarized.
+	  
+	  * The new function is used by the lda_xc_teter93 functional.
+
+2011-01-02 04:53  xavier
+
+	* [r7217] By default libxc is now compiled statically. This will
+	  probably save a
+	  lot of problems for users (and for us).
+
+2010-12-16 14:01  marques
+
+	* [r7190] Had a misplaced ';'
+
+2010-12-16 13:47  marques
+
+	* [r7189] Finished the interface for the fxcs in the meta-ggas.
+	  Moreover, I think now that the TPSS exchange fxc is correct.
+
+2010-12-15 16:19  marques
+
+	* [r7179] The rest of the derivatives are there. I will test it
+	  more thoroughly tomorrow, and finish to change the interface to
+	  include also the derivatives of the laplacian of rho.
+
+2010-12-15 15:39  marques
+
+	* [r7177] First steps at the second derivatives of the meta-GGAs.
+	  Several things are already OK for the tpss (exchange) but there
+	  are still some terms missing.
+
+2010-12-14 09:54  marques
+
+	* [r7172] BUG fixes:
+	  *) Fxc was missing from AM05 flags (thanks to Gian-Marco
+	  Rignanese)
+	  *) Vxc was wrong for x TPSS. Now I get exactly the same results
+	  as GPAW
+
+2010-12-08 13:40  marques
+
+	* [r7147] Bug fix. Thanks to Gian-Marco Rignanese for this!
+
+2010-11-02 19:24  olivares
+
+	* [r7067] Had to correct the safe_allocate_A calls that sometimes
+	  certain compilers go crazy about when commented
+
+2010-10-29 20:55  marques
+
+	* [r7056] test
+
+2010-10-29 08:55  marques
+
+	* [r7055] test
+
+2010-10-29 08:25  
+
+	* [r7054] test
+
+2010-10-25 18:29  dstrubbe
+
+	* [r7049] A correction to my r7041: now the right modules are
+	  associated in the single/double precision cases. This solves the
+	  warnings about redefining a rule for these targets.
+
+2010-10-25 16:52  micael
+
+	* [r7048] TPSS correlation is not an exchange functional ;)
+
+2010-10-25 13:15  marques
+
+	* [r7046] Should not divide by zero in P86
+
+2010-10-25 12:04  marques
+
+	* [r7045] Becke functionals should not divide by zero when the
+	  density is zero ;)
+
+2010-10-25 11:37  marques
+
+	* [r7044] Bug fix: KT1 and KT2 were completely wrong.
+
+2010-10-25 11:13  marques
+
+	* [r7043] Bug fix: rge2 was not working.
+
+2010-10-20 20:19  dstrubbe
+
+	* [r7041] Added some missing rules and dependencies in libxc.
+	  Running a parallel make failed miserably before this, although
+	  evidently it just happened to work anyway in serial. Something is
+	  still not perfect since I get these warnings after "make -j
+	  install":
+	  Makefile:817: warning: overriding commands for target
+	  `xc_f90_lib_m.mod'
+	  Makefile:811: warning: ignoring old commands for target
+	  `xc_f90_lib_m.mod'
+	  Makefile:817: warning: overriding commands for target
+	  `xc_f90_types_m.mod'
+	  Makefile:811: warning: ignoring old commands for target
+	  `xc_f90_types_m.mod'
+
+2010-10-18 14:40  marques
+
+	* [r7034] Now the 1D CSC for beta=1 has a spin dependence
+
+2010-10-14 15:10  marques
+
+	* [r7032] Added the second-order gradient expansion of the kinetic
+	  energy functional.
+
+2010-10-14 14:19  marques
+
+	* [r7031] Updated the citations. Thanks Tobias!
+
+2010-10-14 14:14  marques
+
+	* [r7030] Added the Thomas-Fermi functional for the kinetic energy
+	  density.
+
+2010-10-14 12:27  marques
+
+	* [r7029] Added two new functionals, Keal and Tozer version 1 and
+	  2.
+
+2010-10-05 12:42  marques
+
+	* [r7023] Added a new functional: a reparemetrization of PW86 to be
+	  used in vdW calculations.
+
+2010-09-28 16:34  micael
+
+	* [r7022] The exchange potential of the Becke-Johnson MGGA type
+	  should be zero if the density is zero in order to avoid getting
+	  some NaN.
+
+2010-08-17 17:57  dstrubbe
+
+	* [r6939] *) Made two tests run for MPI as well as serial. There
+	  doesn't seem to be any reason they shouldn't be run in parallel.
+	  *) Updated Coordinates block to only have the appropriate number
+	  of dimensions in these tests.
+	  *) Typo.
+
+2010-08-17 07:14  juho
+
+	* [r6938] Wrong sign (the equation is solvable down to -1), wrong
+	  return value. Returning zero gives us an effective lda
+	  approximation. See PRB 76, 235314, page 4.
+
+2010-08-16 11:54  juho
+
+	* [r6934] Corrected the sign of the PRP10 correction
+
+2010-08-16 11:01  juho
+
+	* [r6933] PRHG10 2D exchange functional along with optional PRP10
+	  exchange correction. See:
+	  http://prb.aps.org/abstract/PRB/v76/i23/e235314 and
+	  http://prb.aps.org/abstract/PRB/v81/i11/e115108
+
+2010-08-02 23:26  xavier
+
+	* [r6898] * Removed some debugging output.
+	  
+
+2010-08-02 20:04  xavier
+
+	* [r6897] * The XC potential for BR89 class of functionals is not
+	  set to zero
+	  for low density and tau. This fixes the problem with the cusp.
+	  The
+	  problem for low densities remains.
+	  
+	  * The solution of the non-linear equation in the BR89 functionals
+	  works properly for small positive values.
+
+2010-07-29 14:10  marques
+
+	* [r6880] Added reference to Slater's Xalpha method.
+
+2010-07-26 08:30  marques
+
+	* [r6859] Bug fix in the Fortran interface of f90_hyb_gga_exx_coef.
+	  Thanks to Tyrel M. McQueen and John Kay Dewhurst for this one ;)
+
+2010-07-14 19:04  dstrubbe
+
+	* [r6819] autoconf on libxc is failing on some systems and
+	  demanding this line.
+
+2010-07-09 12:49  marques
+
+	* [r6804] As octopus is vulgaris, then libxc can be ordinarius
+
+2010-07-09 12:43  marques
+
+	* [r6801] Changed the version number to 1.0
+
+2010-07-06 12:02  marques
+
+	* [r6781] Added another functional to the PBE family of
+	  functionals. Another one from Scuseria, the RGE2, both the
+	  exchange and the correlation part.
+
+2010-06-13 12:44  acastro
+
+	* [r6722] Roll back to previous version (6720), since the idea of
+	  moving the
+	  obsolete variables to one place was not so good...
+
+2010-05-27 21:58  xavier
+
+	* [r6665] Improved the numerical accuracy of the non-linear solver
+	  in the BR89
+	  class of MGGAs. This means that the equation converges for all
+	  values
+	  of the rhs and the bisection is no longer needed.
+
+2010-05-26 08:02  marques
+
+	* [r6659] Forgot an else
+
+2010-05-26 07:58  marques
+
+	* [r6658] Added the parametrization of the CSC functional for the
+	  soft Coulomb interaction and a=0.5
+
+2010-05-05 19:09  olivares
+
+	* [r6604] Returned INSTALL to its original configuration
+
+2010-05-05 15:25  olivares
+
+	* [r6601] updates on the electrostatic boundary conditions
+
+2010-03-25 10:48  xavier
+
+	* [r6390] Moved the definition of XC_FAMILY_KS_INVERSION to
+	  octopus. Since libxc
+	  is an independent library we should keep it separated from
+	  octopus
+	  specific variables. Anyway we should find a better way to deal
+	  with
+	  this situation.
+
+2010-03-25 08:15  appel
+
+	* [r6389] Adding KS inversion as a new family of functionals
+	  in a spirit similar to OEP. There is now a new module
+	  xc_ks_inversion_m that contains most of the inversion
+	  code. I have adapted the 'old' runmode invert_ks to
+	  use this new infrastructure.
+	  
+	  To deal with dependencies I had to move the eigensolver
+	  module from scf to system (as suggested by Miguel). This
+	  is analogous to the linear solver in the case of OEP.
+	  
+	  Not all things are in place yet to use the functional
+	  family in the general case, however the old runmode
+	  should work as before.
+
+2010-03-24 08:27  marques
+
+	* [r6383] I believe this is the correct way of handling the
+	  dependencies. Sorry, I
+	  had this lingering around already for a couple of weeks, but I
+	  forgot to
+	  commit it.
+
+2010-03-23 18:34  xavier
+
+	* [r6380] Another attempt to get dependencies right.
+
+2010-03-23 18:14  xavier
+
+	* [r6379] My "fix" for libxc makes things worse. Someone knows how
+	  to fix this?
+
+2010-03-23 17:36  xavier
+
+	* [r6378] A hack to fix the dependencies in libxc.
+
+2010-03-22 16:46  xavier
+
+	* [r6372] Fixed some autotools warnings in libxc.
+
+2010-03-21 11:06  xavier
+
+	* [r6362] Now libxc can deal with compilers that use uppercase
+	  filenames for
+	  modules.
+
+2010-03-20 19:12  xavier
+
+	* [r6359] * Now libxc installs the Fortran modules.
+	  * Added a macro to detect the module extension.
+
+2010-03-08 22:28  dstrubbe
+
+	* [r6347] *) Improved formatting
+	  *) Added push_sub's
+	  *) Changed single-letter variable
+	  *) Set svn:ignore on another automatically generated file in
+	  libxc
+
+2010-03-06 03:38  dstrubbe
+
+	* [r6344] *) Improved formatting and comments
+	  *) Added push_sub's, and removed one that appeared an excessive
+	  number of times in the debugging stack trace
+	  *) Set svn:ignore properties for libxc files generated by libtool
+	  2
+
+2010-03-02 15:55  marques
+
+	* [r6334] This is an overkill hack in order for libxc to compile
+	  with different versions of libtool. Let's see what I broke now...
+
+2010-03-02 00:21  dstrubbe
+
+	* [r6329] Set svn:ignore for new files being created in libxc.
+
+2010-02-26 16:22  marques
+
+	* [r6325] Stupid hack to go around buggy libtool/automake. This
+	  works in tddft.org, let's see the others now.
+
+2010-02-26 15:42  marques
+
+	* [r6324] Let's see if this fixes the compilations issues. Needless
+	  to say that it
+	  compiles without problem in my machine... I hate the autotools!
+
+2010-02-26 14:01  marques
+
+	* [r6323] Added the option to compile libxc dynamically, and a
+	  target to create
+	  libxc.rpm
+	  
+	  I had to use libtool, which led to some problem. Let's see if all
+	  the
+	  architectures are happy with them...
+
+2010-02-09 09:40  marques
+
+	* [r6309] Renamed the PS94 functional to the name given in the
+	  original article,
+	  and added a second version of the functional
+
+2010-02-09 09:27  marques
+
+	* [r6308] Now also vxc is working for this functional. I will leave
+	  fxc and kxc
+	  for the future ;)
+
+2010-02-08 15:12  marques
+
+	* [r6307] Sorry, there was a semi-colon missing
+
+2010-02-08 14:11  marques
+
+	* [r6306] Initial implementation of the Proynov and Salahub 94 LDA.
+	  The energy is
+	  working and giving the right results. Now it is time to optimize
+	  and to
+	  compute the derivatives.
+	  
+	  Yes, I was also surprised that there are even more LDA
+	  functionals. This
+	  one is anyway different, as it is not a parametrization of the CA
+	  Monte-Carlo data, but uses a quite different approach.
+
+2010-02-04 10:11  marques
+
+	* [r6302] Small correction pointed out by Damien Caliste.
+
+2010-02-03 15:58  marques
+
+	* [r6301] I finished cleaning the interface of libxc. The release
+	  of 1.0beta will
+	  follow in the next days.
+
+2010-02-01 09:27  micael
+
+	* [r6295] *) The calculation of the laplacian of the density was
+	  wrong in the spin-polarized case.
+	  *) A variable was not initialized in libxc for the MGGAs when the
+	  density was bellow the threshold.
+	  *) Some small fixes to the etsf_io output.
+
+2010-01-19 11:29  marques
+
+	* [r6265] Several fixes for the bugs found by Xavier while setting
+	  up the xc test.
+	  Fairly trivial things, but anyway quite annoying...
+
+2009-12-15 14:37  marques
+
+	* [r6226] Bug fix: there was a "-1" missing in an index which
+	  caused some
+	  compilers to return garbage (which was the correct answer). This
+	  should
+	  fix the 1D test that is currently failing. Please 1D people check
+	  your
+	  calculations!!!!
+
+2009-12-15 12:12  marques
+
+	* [r6225] Bug fix in Pulay mixing: a range was wrong in an
+	  allocation
+	  Bug fix in 1D CSC functional: variables were not deallocated
+
+2009-12-08 13:17  marques
+
+	* [r6198] *) Bug fix when calculating v2rho2 in mixed GGAs
+	  *) The optPBE_vdW functional was wrong
+	  *) Now xc-reference.pl knows about build directories
+
+2009-12-08 09:02  dstrubbe
+
+	* [r6197] *) The kdotp run mode now prints out band velocities,
+	  which in fact needs only the perturbation Hamiltonian and not the
+	  perturbed wavefunctions.
+	  *) Broke up kdotp_output into kdotp_write_degeneracies and
+	  kdotp_write_eff_mass
+	  *) A couple typographical things in LDA C PZ.
+
+2009-12-03 20:17  marques
+
+	* [r6190] Bug fixed: this was triggered by the changing of the
+	  thresholds, but it
+	  was there for a long time. Now the tests should pass.
+
+2009-12-02 17:16  micael
+
+	* [r6185] More fixes regarding very small densities.
+
+2009-12-02 10:59  marques
+
+	* [r6184] Some cleaning regarding very small densities
+
+2009-12-01 09:22  marques
+
+	* [r6175] Sorry, this file should not have been committed:
+	  reverting it.
+
+2009-12-01 09:10  marques
+
+	* [r6174] 3 new functionals optimized to be used with the Dion et
+	  al vdW
+	  functional. See http://arxiv.org/abs/0910.0438
+
+2009-11-24 13:16  xavier
+
+	* [r6128] The macro required by C99 is not available in autoconf
+	  2.59, that is
+	  the one in tddft. So we will have to stay with c89 for the
+	  moment.
+
+2009-11-24 12:51  xavier
+
+	* [r6127] Now Octopus and libxc set the C compiler in C99 mode.
+
+2009-11-19 20:49  dstrubbe
+
+	* [r6083] A few spelling issues.
+
+2009-11-18 09:53  marques
+
+	* [r6077] Added a bunch of 2D GGA functionals. They are still under
+	  testing, so
+	  don't rush to do calculations with them...
+
+2009-11-09 09:03  marques
+
+	* [r6046] *) Now the relativistic corrections are also present in
+	  higher
+	  derivatives
+	  *) Corrected warning in the interface of the meta-GGAs
+
+2009-11-09 05:21  dstrubbe
+
+	* [r6045] *) Capitalization of SPARSKIT
+	  *) A u-umlaut got turned into garbage in a comment, so I replaced
+	  it with "ue"
+
+2009-11-07 12:20  micael
+
+	* [r6040] *) Put the relativistic correction to the exchange part
+	  of the LDA back into libxc.
+	  *) Replaced the Xe UPF pseudopotential with a correct one and
+	  removed all the other UPF pseudos.
+	  *) The SO coupling test is again active.
+
+2009-11-06 09:47  marques
+
+	* [r6033] Bug fix: some functionals were not working in 2D.
+
+2009-11-06 07:52  marques
+
+	* [r6032] Fixed a couple of bugs:
+	  *) LB94 was not working due to two problems with the interface
+	  *) oct-center-geom was segfaulting due to incorrect
+	  initialization of
+	  geometry
+
+2009-11-03 16:51  micael
+
+	* [r6014] The gradient and the laplacian of the density used to
+	  compute the xc potential are now computed directly from the
+	  wavefunctions.
+
+2009-10-30 16:01  micael
+
+	* [r6007] *) Bug fixed: the LB94 functional was not working for the
+	  spin-polarized case because of a couple of misplaced brackets.
+
+2009-10-16 08:08  marques
+
+	* [r5940] Cleaned up the hybrids. There is no more the specific
+	  interface
+	  hyb_gga_xxx, as the generic gga_xxx handles the requests.
+
+2009-10-13 11:53  marques
+
+	* [r5939] Added teh asymptotic expansion fo LB94
+
+2009-10-09 08:36  micael
+
+	* [r5933] *) Fixed a couple of bugs in libxc.
+	  *) Changed the initial point for the Newton-Raphton routine in
+	  the Becke & Johnson functional.
+
+2009-10-01 08:30  marques
+
+	* [r5923] This corrects the assertion failure of Fulvio
+
+2009-09-25 18:46  dstrubbe
+
+	* [r5916] *) In the file xc_oep.F90, an error message is written if
+	  in parallel saying "Full OEP is not allowed with the code
+	  parallel in states." However, the actual condition implemented in
+	  the code is whether it is parallel at all. I'm not sure if the
+	  condition, or the message, is wrong and should be changed.
+	  *) Improvements to documentation, comments, and output.
+	  *) Added and corrected push_sub's.
+	  *) Lengthened some single-letter variables.
+	  *) Alphabetized module lists.
+	  *) Made tests be called curvilinear instead of 'curvlinear'
+
+2009-09-24 12:47  marques
+
+	* [r5909] *) I started changing the interface of libxc following a
+	  suggestion of
+	  the devlopers of ELK. Hybrids should nto work, and some
+	  functionals may
+	  give segmentation faults. In any case, all tests are passed in my
+	  machine
+	  *) Added the functional of Esa and Stefano
+	  *) Corrected the builddir in mk_functionals_list.pl
+	  *) Added dummy integers to mpi_debug.F90 mpi_lib.F90 so that
+	  compilers
+	  stop complaining
+	  *) Decreased the precision of the SIC test
+
+2009-09-09 08:32  marques
+
+	* [r5886] *) Now octopus is also aware of the 1D exchange
+	  functional
+	  *) Replaced the _init_exchanged and _init_correlation by a
+	  simpler
+	  _init_functl
+	  *) Some more tests are passed in 4D. The exceptions are now the
+	  open
+	  systems tests and the periodic_systems/06-h2o_pol_lr.test
+	  *) kpoints are now properly deallocated and the volume of the
+	  unit
+	  cell is also properly calculated in 1D and 2D
+
+2009-09-07 11:31  marques
+
+	* [r5885] Now the 1D exchange functional seems to be working. It
+	  includes both
+	  spins,a nd the two forms of the interaction. I also implemented
+	  Fxc.
+
+2009-08-28 23:24  dstrubbe
+
+	* [r5870] Some changes to documentation, comments, and output.
+
+2009-08-28 10:23  marques
+
+	* [r5869] *) Added the LDA exchange in 1D. This functional is still
+	  not functional
+	  *) Added the LDA correlation in 1D of Casula for a soft-Coulomb
+	  interaction
+	  *) Corrected the segmentation fault found by Fulvio
+
+2009-08-24 18:50  dstrubbe
+
+	* [r5853] *) Removed troublesome ' in comment in libxc, in the file
+	  produced by the new script, as well as what I believe is the
+	  source from which it arises
+	  *) Made mk_functionals_list.pl refer to its actual name
+	  *) Corrected spelling and punctuation in variable documentation
+
+2009-08-21 09:21  marques
+
+	* [r5840] Added the soft-Coulomb version of the 1d_csc lda
+
+2009-07-21 08:56  marques
+
+	* [r5740] This should solve the problem of David.
+
+2009-07-15 09:46  marques
+
+	* [r5718] Some more changes related to the interface. I am sure
+	  that many of the non-standard functionals have problems, so be
+	  careful.
+
+2009-07-15 09:23  marques
+
+	* [r5717] Now the GGas are also done in blocks. The current
+	  interface is just a hack to make things work. I hope to be able
+	  to fix it soon.
+
+2009-06-30 11:03  marques
+
+	* [r5661] *) now the LDA works on vectors to a very low level
+	  *) Rearranged th exchange and xalpha interfaces to make them more
+	  standard
+	  
+	  Note that libxc at the moment has a inconsistent interface. I
+	  will try to fix it soon.
+
+2009-06-30 09:47  marques
+
+	* [r5660] *) First step in the dircetion of vector calling libxc in
+	  order to optimize performance.
+
+2009-06-29 09:55  marques
+
+	* [r5654] Some more corrections to the TP09 functional. I believe
+	  that it might be working now.
+
+2009-06-25 15:43  marques
+
+	* [r5636] One can not run the PB09 thing, but, as expected, the
+	  calculation for a finite system is kind of unstable... maybe it
+	  is better for a solid ;)
+
+2009-06-25 14:34  marques
+
+	* [r5634] Now the mggas are again implemented in the code.
+
+2009-06-25 10:47  xavier
+
+	* [r5633] Now octopus can be cross compiled. To do it,
+	  he user has to pass two variables
+	  to the configure script:
+	  
+	  FC_INTEGER_SIZE=4
+	  CC_FORTRAN_INT=int
+	  
+	  With this change octopus compiles in a Blue Gene/P.
+
+2009-06-24 15:19  marques
+
+	* [r5631] Forgot a factor.
+
+2009-06-24 15:18  marques
+
+	* [r5630] Added the famous new functional of Tran & Blaha. This was
+	  not tested, and there is a factor of 2 that is bugging me...
+
+2009-06-24 14:26  marques
+
+	* [r5629] *) I made a mistake in the year of becke-roussel
+	  *) hopefully it now compiles
+
+2009-06-24 14:15  marques
+
+	* [r5628] *) Hartree-Fock now works with spinors (I hope)
+	  *) Added Becke-Roussel Meta-GGA. This one should be working asa
+	  it was tested against a piny_md.
+	  *) Because of that i had to change slightly the interface to
+	  libxc
+
+2009-06-03 23:47  dstrubbe
+
+	* [r5555] *) Changed svn:ignore properties to get rid of a bunch of
+	  ? from svn status.
+	  *) Added FromScratch = yes to some tests to remove warnings about
+	  being unable to read from restart directory.
+	  *) Added a Cl pseudopotential since I am using this frequently.
+
+2009-05-27 11:05  marques
+
+	* [r5508] Small changes required to compile octopus with ifort
+
+2009-05-26 09:23  marques
+
+	* [r5495] *) Added a MemoryLimit variable. Octopus will stop if
+	  this variable is set and if the total memory depasses its value
+	  *) Octopus was not compiling in 4D due to array mismatches
+
+2009-05-18 08:25  marques
+
+	* [r5417] Changes necessary to compile octopus in single precision
+	  more. Alberto,
+	  I guess I made a disaster in your opt-control code (that now will
+	  not
+	  wortk in single precision). The problem are the minimizing
+	  routines that
+	  do not have interfaces in single precision more. One should add
+	  it...
+
+2009-05-13 10:54  marques
+
+	* [r5380] Added a couple of reparametrizations of the PBE by the
+	  group of Klaus Capelle. Note that all the other combinations
+	  present in the paper can be obatined by combining the already
+	  existing exchanges and correlations of PBE and PBE_SOL. For
+	  example: GCGX = x_PBE_SOL + c_PBE
+
+2009-04-21 07:52  marques
+
+	* [r5297] I implemented the inversion of the Kohn-Sham equations
+	  (static). It seems to work in simple cases, but the iterative
+	  procedure does lack stability, and fails to converge for more
+	  complicated densities...
+
+2009-04-17 12:56  marques
+
+	* [r5257] Changed the license with the script that Tobias sent.
+	  Thanks Tobias.
+
+2009-04-13 22:25  xavier
+
+	* [r5202] This fixes the problem with make distcheck.
+
+2009-03-31 09:29  marques
+
+	* [r5133] A couple more fixes to the make environment
+
+2009-03-31 09:09  marques
+
+	* [r5131] Little corrections to some stupid files
+
+2009-03-26 10:27  marques
+
+	* [r5116] Several details necessary to package libxc.
+	  *) There is now a PACKAGING file
+	  *) FCCPP explanation now appears in ./configure --help
+	  *) Automatic generation of ChangeLog file -- maybe it would be
+	  better to
+	  separate it per years, but I don't know how to do it well...
+
+2009-03-20 14:40  marques
+
+	* [r5092] Forgot this file... sorry.
+
+2009-03-20 12:00  marques
+
+	* [r5091] Some more fixes, and now HL also has Kxc.
+
+2009-03-20 09:48  marques
+
+	* [r5090] Reorganization of the LDAs of reduced dimension. Now
+	  there is a common
+	  driver routine in work_lda that handles 1, 2, and 3 dimensions. I
+	  also
+	  took the opportunity to add fxc and kxc to the 2d ldas (both
+	  exchange
+	  and amgb). I do not know if his is useful (someone interested in
+	  hyperpolarizabilities of 2D systems?), but I added it for
+	  completeness.
+
+2009-03-17 10:03  mjv500
+
+	* [r5086] MIGUEL CHECK THIS stray float
+
+2009-03-16 08:33  marques
+
+	* [r5085] Som cleaning in the ggas
+
+2009-03-11 09:00  marques
+
+	* [r5078] It is easier to maintain a copy of this file here, so
+	  that this library
+	  is indeed independent.
+
+2009-03-11 08:58  marques
+
+	* [r5077] Now also VWN has analytical Kxc
+
+2009-03-09 16:52  mjv500
+
+	* [r5069] had to fix dependencies after removal of libstring_f -
+	  someone competent check this
+
+2009-03-09 14:08  marques
+
+	* [r5067] Now pw also has analytical Kxc
+
+2009-03-09 12:30  marques
+
+	* [r5065] I got rid of libstring_f. It was replaced simply by a
+	  header file
+	  (string_f.h) that is included twice in octopus (liboct_parser and
+	  libxc/src). The main difference is that TO_C_STR passed to a
+	  subroutien
+	  instead of a function.
+	  
+	  I used the opportunity to fix the strcasestr definition that was
+	  quite
+	  broken.
+
+2009-03-09 10:16  marques
+
+	* [r5064] Now Perdew-Zunger has analitic 3rd derivatives. Due to
+	  that, the values
+	  of the hyperpolarizability test changed slightly (4th digit)
+
+2009-03-09 09:11  marques
+
+	* [r5063] *) Added support for the calculation of kxc (the 3rd
+	  derivative of Exc)
+	  in libxc. I also changed the interface to something more
+	  reasonable. Now
+	  we have, when spin is polarized, kxc(4) = (uuu, uud, udd, ddd)
+	  
+	  *) Now octopus does stop if one tries to run with fxc or kxc !=
+	  LDA. Up
+	  to now it was simply ignoring fxc (i.e., it was performing an RPA
+	  calculation). David and Xavier, please check this one out.
+
+2009-03-05 13:04  marques
+
+	* [r5036] *) Simplified a bit more the interface to the routines.
+	  *) Added support for spin-unpolarized Kxc, and added the third
+	  derivatives of wigner and rpa corelation functionals.
+
+2009-03-05 09:13  marques
+
+	* [r5035] Cleaned a bit the LDAs.
+
+2009-02-25 17:40  xavier
+
+	* [r5001] Due to the 31 character limitation I had to rename the
+	  lda_c_2d_prm08 functional
+	  to lda_c_2d_prm. Miguel, can you check that I did it correctly?
+
+2009-02-25 10:25  marques
+
+	* [r4998] I implemented the 1D correlation LDA of Barone's group.
+	  Note that this
+	  has not been tested, and that there is the exchange missing...
+
+2009-02-06 00:23  dstrubbe
+
+	* [r4925] The macro that checks for "very long lines" used a test
+	  program with a line that was very long, but still not nearly so
+	  long as some lines generated by the ALLOCATE preprocessor macro
+	  in the code. The PGI 8.0-1 Fortran compiler passed that test in
+	  the configure script since it could handle 140 characters in a
+	  line, but could not handle 270 characters. I approximately
+	  tripled the length of that line in the test program to 433
+	  characters, so that now PGI is considered not to accept long
+	  lines.
+
+2009-01-05 10:41  marques
+
+	* [r4848] Added a new form for the exachange enhancement factor
+	  that comes from a bayesian best fit procedure
+
+2008-12-02 08:38  marques
+
+	* [r4809] Added a new hybrid, XC_HYB_GGA_XC_mPW1K (modified
+	  Perdew-Wang for
+	  kinetics)
+
+2008-12-01 09:58  marques
+
+	* [r4808] Added the Schmider-Becke 98 Hybrid GGA. This is again a
+	  reparametrization of the Becke-97 form. There are 6 versions of
+	  it in
+	  that paper, and I included them all. Although the functional is a
+	  hybrid, I had to include also the "pure" GGA versions. The
+	  keywords are:
+	  
+	  for the "pure" GGAs
+	  XC_GGA_XC_SB98_1a, XC_GGA_XC_SB98_1b, XC_GGA_XC_SB98_1c,
+	  XC_GGA_XC_SB98_2a, XC_GGA_XC_SB98_2b, XC_GGA_XC_SB98_2c
+	  
+	  to be used as a hybrid
+	  XC_HYB_GGA_XC_SB98_1a, XC_HYB_GGA_XC_SB98_1b,
+	  XC_HYB_GGA_XC_SB98_1c
+	  XC_HYB_GGA_XC_SB98_2a, XC_HYB_GGA_XC_SB98_2b,
+	  XC_HYB_GGA_XC_SB98_2c
+
+2008-11-28 15:40  marques
+
+	* [r4803] Cleaned up a bit the hybrid GGAs, and added some more
+	  hybrids on the
+	  process. Let me see if I don't forget any: XC_HYB_GGA_XC_mPW3PW,
+	  XC_HYB_GGA_XC_B1LYP, XC_HYB_GGA_XC_B1PW91, XC_HYB_GGA_XC_mPW1PW,
+	  XC_HYB_GGA_XC_mPW3LYP
+
+2008-11-28 10:07  marques
+
+	* [r4801] *) Fixed the parameters of mPW91. I believe that this
+	  functional is
+	  correct now
+	  *) Added the correct parameters for the 2D B86 MGC functional
+
+2008-11-27 10:39  marques
+
+	* [r4795] There was a small but in b3lyp that was solved. Now libxc
+	  gives exactly
+	  the same thing as the repository, so I submit the repository data
+
+2008-11-27 10:36  marques
+
+	* [r4794] *) Rewrote the way that functionals that are linear
+	  combinations of
+	  others are handled.
+	  *) Added three new GGAs of this type that were constructed for
+	  water:
+	  XC_GGA_XC_PBE1W, XC_GGA_XC_MPWLYP1W, and XC_GGA_XC_PBELYP1W
+
+2008-11-26 10:24  marques
+
+	* [r4793] Sorry, there was a misspel that broke the compilation
+
+2008-11-26 09:43  marques
+
+	* [r4792] Added the hybrid functionals corresponding to the becke
+	  97 GGAs. They
+	  are: XC_HYB_GGA_XC_B97, XC_HYB_GGA_XC_B97_1, XC_HYB_GGA_XC_B97_2,
+	  XC_HYB_GGA_XC_B97_K, and XC_HYB_GGA_XC_B97_3
+
+2008-11-25 10:35  marques
+
+	* [r4788] Forgot this file...
+
+2008-11-25 10:31  marques
+
+	* [r4787] Rewrote the B97 class of functionals. Now it also
+	  includes fxc and some
+	  mroe elements of this family. BTW, Xavier, included is the
+	  functional of
+	  Grimme that you sent me long ago... of course that to use it, one
+	  should
+	  also add the vdW term (trivial, actually)
+
+2008-11-20 15:18  marques
+
+	* [r4778] Added two other variants of Becke 97
+
+2008-11-20 14:50  marques
+
+	* [r4777] Added Becke 97 functional
+
+2008-11-14 13:49  marques
+
+	* [r4768] Small things I found while trying to compile in the new
+	  IBM Power 6 of CNRS
+
+2008-10-22 09:52  marques
+
+	* [r4697] Some bugs in the LTA corrected. I think one-shot
+	  calculations with LTA are fine, but
+	  self-consistent calculations give nonsense...
+
+2008-10-22 07:06  marques
+
+	* [r4695] *) Make check should work now. Can you please check,
+	  David?
+	  *) Some bug fixes in the mggas, but there are still issues
+
+2008-10-20 14:21  xavier
+
+	* [r4686] The name of a libxc function was too long for fortran.
+
+2008-10-20 13:21  marques
+
+	* [r4685] I implemented the self-consistent MGGA functionals.
+	  However, calculatiosn with them do not
+	  converge! I am not sure if it is a bug somewhere, or numerical
+	  instabilities. I am inclined to the
+	  first option, of course, but I am not really sure.
+
+2008-10-20 09:39  marques
+
+	* [r4683] Sorry for the mess: it should compile now!
+
+2008-10-20 09:32  marques
+
+	* [r4682] Cleanup the mess of 2d and 2D. Now, everything is
+	  lowercase.
+
+2008-10-20 09:23  marques
+
+	* [r4681] Added 2d to the functionals in 2d
+
+2008-10-20 09:12  marques
+
+	* [r4679] I added support for mgga calculations in the one_shot
+	  CalculationMode. Note that we can _not_ dor
+	  self-consistent mgga calculations at the moment.
+	  I also added a new 2D functional that is going to be submitted
+	  soon.
+
+2008-10-17 16:54  marques
+
+	* [r4671] Sorry, 2D GGAs will only go in the near future ;)) Now it
+	  should
+	  compile.
+
+2008-10-17 14:55  marques
+
+	* [r4670] *) Added support for the vsxc correlation functional.
+	  Again, I have to
+	  repeat that meta-GGAs have not been properly tested!
+
+2008-10-08 13:00  marques
+
+	* [r4615] Some small fixes
+
+2008-10-07 07:45  marques
+
+	* [r4598] Added the exchange part of the tau-HCTH functional
+
+2008-10-06 14:22  marques
+
+	* [r4591] Added the exchange part of VSXC (called GVT4 for whatever
+	  reason).
+
+2008-10-06 12:46  marques
+
+	* [r4590] *) Changed the copyright notice to something more
+	  "correct"
+
+2008-10-06 12:43  marques
+
+	* [r4589] *) Exchange in MGGA now is written in terms of x and t
+	  *) Added the exchange part of the M06l functional
+
+2008-10-01 15:02  marques
+
+	* [r4581] I have implemented the correlation functional of TPSS. I
+	  made the usual
+	  tests for the derivatives and they seem to work. However, I would
+	  consider this functional highly experimental ;)
+
+2008-09-17 10:02  marques
+
+	* [r4528] I believe that now the exchange in TPSS is working. It
+	  has been
+	  transformed to the new interface. It still has to be tested in
+	  real
+	  circunstances, of course.
+
+2008-09-16 14:51  marques
+
+	* [r4523] I now believe that the LTA is working.
+
+2008-08-25 13:22  marques
+
+	* [r4512] Sorry, forgot this detail
+
+2008-08-25 13:08  marques
+
+	* [r4511] Initial support for meta-GGAs. For now, I only added the
+	  local tau approximation, but without real testing. I will proceed
+	  to add also the TPSS. Note that for now, octopus is not able to
+	  use these functionals.
+
+2008-08-25 09:19  marques
+
+	* [r4510] *) added von Barth and Hedin LDA
+	  *) Now langreth & Mehl depends on the vBH LDA as it should
+
+2008-08-21 14:12  marques
+
+	* [r4504] Added Langreth & Mehl GGA correlation
+
+2008-06-13 11:09  marques
+
+	* [r4277] *) Added a 2D correlation functional by Esa, Stefano and
+	  me to the
+	  library.
+
+2008-05-30 07:45  marques
+
+	* [r4208] Some people were having problems with the definition of
+	  M_E. Apparently,
+	  it is not standard (ansi) C, so we redefine it in case we are
+	  asked
+	  strict ansi
+
+2008-05-07 08:56  marques
+
+	* [r4170] Small problem with the PBE solved.
+
+2008-05-07 08:46  marques
+
+	* [r4169] Implemented the second derivatives of the PBE xc
+	  functional. There seems
+	  to be still a small error when for v2rho2 for spin unpolarized.
+
+2008-05-07 07:31  marques
+
+	* [r4168] Added new hybrid functional (B1WC)
+
+2008-04-30 13:18  marques
+
+	* [r4128] Now also FT97 gets second derivatives. This took me
+	  almost a day to do :((
+
+2008-04-29 13:41  marques
+
+	* [r4124] AM05 (exchange part) gets second derivatives also
+
+2008-04-29 11:41  marques
+
+	* [r4123] Secon derivatives of the WC functional
+
+2008-04-29 10:05  marques
+
+	* [r4122] Added two new functionals: mPBE and xPBE (both exchange
+	  and correlation)
+
+2008-04-29 08:23  marques
+
+	* [r4121] Now also Teter has second derivatives
+
+2008-04-29 07:56  marques
+
+	* [r4120] Now also PW92 is OK (including the second derivatives)
+
+2008-04-28 14:29  marques
+
+	* [r4117] Added the second derivatives to Perdew-Zunger.
+
+2008-04-28 14:04  marques
+
+	* [r4116] *) Now B3LYP has the correct definition of the VWN spin
+	  interpolation (correct from
+	  the point of view of Gaussian implementation)
+
+2008-04-28 13:15  marques
+
+	* [r4115] *) Added second derivatives of vwn functional
+
+2008-04-28 11:45  marques
+
+	* [r4114] *) Code should now compile in single precision mode
+	  *) I am rewritting the LDA part. I created a system similar to
+	  the exchange in GGA,
+	  where one only has to write a formula in terms of rs and zeta.
+	  *) Added the second derivatives os a number of LDA functionals.
+
+2008-04-28 08:12  marques
+
+	* [r4112] Commented all references to the PRM functional that is
+	  currently ni the
+	  drawing board. Hopefully, the problems will be solved, and I will
+	  commit
+	  it soon ;)
+
+2008-04-28 07:53  marques
+
+	* [r4111] *) Added a run mode that allows for one-shot
+	  calculations. This means
+	  that we can do the self-consistent cycle with one xc functional,
+	  and
+	  then use that density and wave-functions to calculate the energy
+	  using
+	  another functional. Note that this does not work in HF or with
+	  Hybrid
+	  functionals! This also requires some cleaning in libxc, so do not
+	  be
+	  surprised if it segfaults (see libxc/DONE file for a resume of
+	  what is
+	  working in a clean way)
+	  
+	  *) Added a lot of fxc for exchange GGA functionals. Now the next
+	  task
+	  will be the fxc for the LDA correlation functionals.
+
+2008-04-18 09:06  xavier
+
+	* [r4080] Incorporated spglib as a external library
+	  (http://spglib.wiki.sourceforge.net/), a C code to search
+	  symmetries
+	  of crystals. All source files are a clean copy of version 91 from
+	  the
+	  svn repository.
+
+2008-04-02 16:54  marques
+
+	* [r4029] Macro call missing.
+
+2008-04-02 14:21  marques
+
+	* [r4024] Added new functional Madsen 07. This was sent to me by
+	  the author.
+
+2008-04-02 14:14  marques
+
+	* [r4023] I believe that now the implementation is correct. It does
+	  give the same energy as the reference implementation I have
+	  from the authors, and xc-consistency gives me a small error,
+	  which probably means that the derivatives are correct.
+
+2008-03-31 20:19  marques
+
+	* [r3992] Added a first implementation of AM05 correlation. This is
+	  still not
+	  working. I again have some doubts concerning the spin-polarized
+	  implementation, and I am waiting for the authors to answer mye
+	  mail
+	  before finishing my implementation.
+
+2008-03-31 19:59  marques
+
+	* [r3991] I also forgot this file. Let us see if it now compiles.
+
+2008-03-31 14:41  marques
+
+	* [r3987] I believe that I forgot these files.
+
+2008-03-31 14:38  marques
+
+	* [r3986] This should solve the problem of Xavier with the g95
+	  build. It is not
+	  pretty though, and I would be happy if one of you automake
+	  experts could
+	  clean it...
+
+2008-03-28 14:16  marques
+
+	* [r3961] Forgot this file
+
+2008-03-28 14:02  marques
+
+	* [r3960] *) Removed dependency on the GSL. By other words, I
+	  reimplemented the
+	  Lambert function I needed.
+	  *) I believe that the exchange part of AM05 is now working
+	  *) Some more work on fxc in the GGAs. Now xc-consistency also
+	  calculates
+	  the finite difference fxc to test against analitical values.
+	  There are
+	  still some issues with spin in this routine
+
+2008-03-26 15:34  xavier
+
+	* [r3950] Because of the linking order, sometimes gsl couldn't be
+	  found.
+
+2008-03-22 16:48  xavier
+
+	* [r3926] gsl.m4 is also required by libxc.
+
+2008-03-18 13:55  xavier
+
+	* [r3907] * Added a check for the inline keyword in libxc.
+
+2008-03-18 12:57  marques
+
+	* [r3905] Added _experimental_ and _incomplete_ support for the
+	  AM05 functional.
+	  For now, there is only exchange (correlation is actually simple),
+	  and
+	  I have no idea on how to write it for spin-polarized systems. I
+	  have
+	  contacted the authors of the functional to sort out the issues.
+	  
+	  As AM05 needs a lambert function, I had to add a dependence on
+	  the GSL.
+	  I plan to remove it further on (I will have to copy the
+	  function...)
+
+2008-03-17 11:16  marques
+
+	* [r3900] First attempt at fxcs using GGAs. For now, two
+	  functionals are
+	  implemented: B88 and LB93. There are still some issues for spin
+	  _unpolarized_, as I am not sure of some factors of 2.
+
+2008-03-10 08:11  xavier
+
+	* [r3854] This should fix the compilation problems in libxc.
+
+2008-03-10 00:43  xavier
+
+	* [r3852] Having both libxc.F90 and libxc.f90 confused automake, so
+	  I renamed libxc.F90 to libxc_master.F90 (for lack of a better
+	  name).
+
+2008-03-09 23:24  xavier
+
+	* [r3851] File libxc.F90 was also missing from Makefile.am.
+
+2008-03-09 09:49  xavier
+
+	* [r3845] One libxc file was missing from the distribution.
+
+2008-03-07 08:24  marques
+
+	* [r3835] Let's see if aramis is able to compile in single
+	  precision mode like
+	  this
+
+2008-03-06 11:59  xavier
+
+	* [r3831] Libxc still had problem with vpaths, this fixes it (I
+	  don't know if it
+	  is the correct way to do it, though).
+
+2008-03-06 08:55  marques
+
+	* [r3829] I hope this solves the compilation issue in pepita. I
+	  hate this vpath
+	  thing!!!
+
+2008-03-05 14:42  marques
+
+	* [r3822] I hope this fixes the automatic compilation
+
+2008-03-05 08:38  marques
+
+	* [r3818] Dependency missing in the makefile. Hope this solves your
+	  problem,
+	  Alberto...
+
+2008-03-04 09:26  marques
+
+	* [r3809] Now we can compile libxc in both float and double. This
+	  is accomplish by
+	  adding _s_ to the name of the single precision routines. I did
+	  not find
+	  a way of overloading the routines in Fortran in order to provide
+	  for a
+	  single interface to both single and double.
+	  
+	  P.S. Some tests are failing in my machine in single precision
+	  (apparently unrelated to libxc), and the wavepacket test is
+	  failing (in
+	  double precision)
+
+2008-03-03 09:04  marques
+
+	* [r3802] Now we can compile libxc either in single or in double
+	  precision. I did
+	  not like the previous way it was done, i.e, but having _dp and
+	  _sp in
+	  the routines and doing all the necessary conversions. I think
+	  that this
+	  is cleaner.
+
+2008-02-20 09:31  marques
+
+	* [r3728] Added the mPW functional. I still have some doubts
+	  concerning the
+	  constants in the functional (they were taken from
+	  http://scsg20.unige.ch/~dulak/files/functionals.pdf), so they
+	  will
+	  eventually have to be checked.
+
+2008-02-16 14:30  xavier
+
+	* [r3697] The declaration of "inline void" functions causes
+	  problems with the
+	  Sun C compiler.
+	  
+	  Patch submited by Marcin Dulak.
+
+2008-02-15 13:37  marques
+
+	* [r3694] *) Added support for Ilya Tokatly's pressure as a measure
+	  of
+	  localization. For this I reorganized the output layer of octopus.
+	  I hope
+	  it wortks ;)
+	  
+	  *) Added the teter 93 functionals to libxc
+
+2008-02-12 11:24  marques
+
+	* [r3680] My previous commit was not correct: xc_funcs.h should be
+	  installed, but
+	  not included in the distribution.
+
+2008-02-12 11:18  marques
+
+	* [r3679] xc_funcs.h was not being installed.
+
+2008-01-30 10:10  marques
+
+	* [r3667] Bug correction from Jussi Enkovaara:
+	  
+	  I found a small bug in the PBE of libxc. In the function
+	  "perdew_params"
+	  in the file "gga_perdew.c" the total gradient "pt->gdmt"
+	  
+	  /* get gdmt = |nabla n| */
+	  pt->gdmt = sigma[0];
+	  if(pt->nspin == XC_POLARIZED) pt->gdmt += 2.0*sigma[1] +
+	  sigma[2];
+	  
+	  can become a small negative number (in my antiferromagnetic
+	  system ~ -1e-20), and
+	  the following square root produces then NaN. I fixed that with a
+	  simple if
+	  statement i.e.
+	  
+	  /* get gdmt = |nabla n| */
+	  pt->gdmt = sigma[0];
+	  if(pt->nspin == XC_POLARIZED) pt->gdmt += 2.0*sigma[1] +
+	  sigma[2];
+	  if(pt->gdmt < 0.0) pt->gdmt = MIN_GRAD*MIN_GRAD;
+	  pt->gdmt = sqrt(pt->gdmt);
+
+2008-01-23 13:53  marques
+
+	* [r3660] Another memory leak fixed, this time in xc_f90_lda_end
+
+2008-01-22 16:45  marques
+
+	* [r3653] Another bug found by valgrind. Xavier, can you check this
+	  one?
+
+2008-01-09 13:12  marques
+
+	* [r3638] *) Checking of hybrids is now performed
+	  *) The guys at the functional repository now get the same PW91
+	  functional as me, so I can commit their test file
+
+2007-11-26 16:05  acastro
+
+	* [r3607] The xlc IBM compiler complained about using global
+	  variables within
+	  "inline" functions. I just made a copy of the affected constant
+	  definitions within the function bodies.
+
+2007-11-23 20:39  xavier
+
+	* [r3597] * Now instead of using an integer of the size of a C
+	  pointer, there
+	  exists an opaque c_pointer_t type that has two methods
+	  associated,
+	  set_null and is_null. This is the same we have already for libxc.
+	  
+	  * For the parser blocks there is a different type, block_t.
+	  
+	  * The only exception is xc_functl_write_info where a pointer is
+	  used
+	  both as a pointer and an integer. The variable is defined as
+	  integer(SIZEOF_VOIDP), but we should fix it.
+	  
+	  * Removed the check for the non standard type 'long long' as a
+	  candidate for equivalence fortran integer, in theory this could
+	  be a
+	  problem, but is very likely that if a fortran integer is 8 bytes
+	  also
+	  a 'long' is 8 bytes. A better solution would be to check first if
+	  long
+	  long or int64_t are available, and then use them.
+	  
+	  * Removed the check for the size of a pointer in C, instead the
+	  size
+	  of void * is measured using the standard macro.
+	  
+	  With this changes octopus compiles with gcc -pedantic-errors.
+
+2007-11-23 12:49  acastro
+
+	* [r3593] I was trying to compile in an opteron using the Portland
+	  C compiler,
+	  and I got problems with the SSE2 extensions ("Illegal
+	  instructsion"?). I changed a bit the beak.h preprocessor test to
+	  avoid
+	  its usage. But Xavier, you may want to take a look at that
+	  change.
+	  
+	  The rest of the files are just "//" style comments, which the
+	  Portland
+	  C compiler does not accept. --This line, and those below, will be
+	  ignored--
+	  
+	  M src/beak/beak.h
+	  M external_libs/libnbc/nbc_ialltoall.c
+	  M external_libs/libnbc/nbc.c
+	  M external_libs/libnbc/nbc_ibcast.c
+	  M external_libs/libnbc/nbc_iallreduce.c
+	  M libxc/src/test.c
+
+2007-11-23 11:19  xavier
+
+	* [r3588] * The variable ResponseMethod now validates its value.
+	  
+	  * The C minimizer code was doing some very illegal things with
+	  pointers, now it is legal C89 code (at least for gcc -pedantic).
+	  
+	  * Removed some compiler warnings.
+
+2007-11-22 12:47  marques
+
+	* [r3586] Updated TODO list of libxc
+
+2007-11-22 12:43  marques
+
+	* [r3585] Two more hybrid functionals: PBE0 and X3LYP. I have still
+	  a list of
+	  another 7 hybrids to include.
+
+2007-11-19 16:43  marques
+
+	* [r3553] Made the references more uniform.
+
+2007-11-19 14:33  marques
+
+	* [r3551] Forgot this file.
+
+2007-11-19 14:32  marques
+
+	* [r3550] Now octopus can use hybrid functionals. The exact
+	  exchange part is
+	  handled within the OEP, while the rest is taken care by libxc. I
+	  found
+	  very hard to test these functionals. Quantum chemical
+	  calculations use
+	  basis sets and full potential. The ideal would be a 3D jellium
+	  sphere,
+	  or something like that. If you know of one such calculation...
+	  
+	  I will now try to implement it using Hatree-Fock for the exact
+	  exchange
+	  part.
+
+2007-11-16 16:43  marques
+
+	* [r3528] Initial support for hybrids. I also implemented B3PW91,
+	  which
+	  historically was the first hybrid (I think). This is not at all
+	  tested,
+	  of course.
+
+2007-11-15 15:58  marques
+
+	* [r3521] The LB94 functionals is now working. There are two
+	  versions, one
+	  modified and another unmodified. The unmodified gives the same
+	  results
+	  as my 2001 calculations. I did not test the modified version,
+	  though.
+	  
+	  I made some more cosmetic arrangements, like adding the "_m" and
+	  "_t"
+	  suffixes to libxc.F90
+
+2007-11-14 16:14  lorenzen
+
+	* [r3512] Bugfix: I had to insert the $LDFLAGS at two more spots in
+	  the libxc AC macros.
+
+2007-11-14 15:14  lorenzen
+
+	* [r3510] Bugfix: the check for Fortran integer size in libxc
+	  configure forgot about
+	  $LDFLAGS during linkage.
+
+2007-11-12 11:30  marques
+
+	* [r3493] Dependecy missing: when compiling without fortran,
+	  xc_funcs.h was not
+	  generated.
+
+2007-11-12 10:57  marques
+
+	* [r3491] I built a common framework for John Perdew's functionals.
+	  This
+	  simplified a lot both PBE and PW91.
+	  
+	  Incidentally, I found why my implementation of PW91 (correlation)
+	  was
+	  giving slightly different results than the reference
+	  implementation in
+	  the Density functional repository of Daresbury. It is related to
+	  the
+	  number of digits in one constant. I believe the error is in the
+	  repository, but I mailed them to sort out this issue.
+
+2007-10-26 16:08  lorenzen
+
+	* [r3431] Bugfix: this change repairs the make distcheck target, so
+	  the distcheck Bot
+	  should not fail anymore.
+	  
+	  Some dependencies had to be made explicit because Automake's
+	  dependency tracking only has limited support for built headers.
+
+2007-10-25 13:51  marques
+
+	* [r3417] Added a TODO file
+
+2007-10-25 13:32  marques
+
+	* [r3416] Two new functionals GGA functionals:
+	  Wu & Cohen
+	  XLYP
+
+2007-10-24 10:14  xavier
+
+	* [r3394] Small fixes:
+	  
+	  * Inline functions can't use static global variables.
+	  * Removed unused multigrid code and added some debug info.
+	  * Assembler is now preprocessed using FCCPP, this is because Sun
+	  C
+	  compiler (cc -E) gets hanged with .S files.
+	  * Workaround for a bug in gfortran openmp support.
+	  * Fixed a misspelled openmp clause.
+
+2007-10-21 17:57  acastro
+
+	* [r3387] Added some new generated files to the svn:ignore lists.
+
+2007-10-18 09:47  marques
+
+	* [r3375] Added EDF1 functional. This is again a fit, this time by
+	  Adamson, Gill,
+	  and Pople.
+
+2007-10-17 12:03  marques
+
+	* [r3371] I changed the license to the LGPL 3.0. I will also do
+	  that to libparser.
+	  I think that the LGPL is a bit better for these licenses if one
+	  wants
+	  them to be included in other (non-GPL) programs.
+	  
+	  Note: I added only me to the copyright line, as most of the work
+	  in this
+	  library has been done by me. If, however, if you changed any of
+	  the
+	  files and want your name to appear, please add it.
+
+2007-10-17 10:59  marques
+
+	* [r3369] Added the HCTH class of functionals. These are fits to
+	  several
+	  (sometimes 407) molecules. They seem to be the most precise GGAs
+	  for a large class of molecules.
+
+2007-10-16 14:54  xavier
+
+	* [r3366] Now the libxc_funcs module is used through libxc. As
+	  libxc is a
+	  standalone we should have a simple (and constant) interface.
+
+2007-10-16 13:53  marques
+
+	* [r3364] Added pw91 correlation functional. Sometimes, I get
+	  differences in the
+	  9th digit when compared to reference values. I am not sure if it
+	  is a
+	  real bug or not.
+
+2007-10-16 07:08  acastro
+
+	* [r3363] The package created by "make dist" did not contain the
+	  get_funcs.pl
+	  script.
+
+2007-10-16 03:02  acastro
+
+	* [r3362] Depending on which machine I built the code (from
+	  scratch, doing
+	  autoreconf + configure + make) I got an error... I think the
+	  problem is in the use of "+=" to define variables in automake,
+	  and in the resulting ordering of the compilation (the file
+	  xc_funcs.h is not created before it is needed).
+	  
+	  I think it is more robust in this way.
+
+2007-10-15 17:41  lorenzen
+
+	* [r3359] The mgga and lca files were not processed. I don't know
+	  if this
+	  was intentionally but at least Octopus wants them.
+
+2007-10-15 16:19  lorenzen
+
+	* [r3358] This fixes the build problems with the automatically
+	  generated interface files for libxc. The problem was that
+	  the interface files were built in the source tree and not
+	  in the build tree. Now, $(srcdir) and $(top_builddir) are
+	  passed to the get_funcs.pl script.
+	  
+	  Passing these two variables is nearly always necessary when
+	  writing scripts like these.
+
+2007-10-15 15:20  marques
+
+	* [r3357] I hope to have fixed the compilation issue now.
+
+2007-10-15 14:54  marques
+
+	* [r3356] I wonder if this solves the problem with the compilation
+	  now
+
+2007-10-15 14:20  xavier
+
+	* [r3355] This fixes compilation of libxc when building outside the
+	  sources
+	  directory. I don't know if it is the correct way to solve it,
+	  though.
+
+2007-10-15 13:37  marques
+
+	* [r3353] Forgot this file...
+
+2007-10-15 13:36  marques
+
+	* [r3352] Now there is a file per functional. I also added a perl
+	  script that allows to generate
+	  automatically the interfaces. Like this, in order to add a
+	  functional we do not have to touch
+	  any other part of the code. One just has to add a single file!
+
+2007-10-15 09:48  marques
+
+	* [r3351] Added two more functionals: PBE_SOL (x and c), and RPBE
+	  (x)
+
+2007-10-08 18:25  xavier
+
+	* [r3321] Bugfix: CFLAGS were not properly passed in some macros.
+	  This can cause
+	  problems if one of your flags is -m32.
+
+2007-09-01 19:36  xavier
+
+	* [r3155] More fixes to the single precision version. Now it is
+	  possible to run
+	  gs calculations without segfaults.
+
+2007-09-01 13:16  xavier
+
+	* [r3153] Added a single precision interface for the rest of libxc
+	  calls.
+
+2007-09-01 11:17  xavier
+
+	* [r3152] Fixed a bug in my previous commit.
+
+2007-09-01 10:29  xavier
+
+	* [r3151] * Added single precision interface lda functions in
+	  libxc, for the C
+	  interface functions with an extra _sp are single precision, for
+	  Fortran polymorphism is used.
+	  
+	  * Declared input arguments as const for lda functions in libxc.
+
+2007-07-25 08:10  xavier
+
+	* [r3101] Bugfix: M_SQRT2 was not available for libxc when the C
+	  compiler is in
+	  ANSI mode. Reported by GPAW developers.
+
+2007-07-04 09:26  lorenzen
+
+	* [r3064] * Added an environment variable SKIP_CHECK that can be
+	  set
+	  during a make distcheck to omit the testsuites:
+	  
+	  $ DISTCHECK_CONFIGURE_FLAGS="..." SKIP_CHECK=yes make distcheck
+	  
+	  This change is to provide the possibility to let the BuildBot
+	  run make distcheck regularly without the testsuites (just to
+	  find forgotten files in the Makefile.ams).
+	  
+	  this environment variable is honoured in testsuite/Makefile.am
+	  and libxc/testsuite/xc-run_testsuite.
+	  
+	  * Fixed a bug in the clean-local rule in share/PP.
+	  
+	  * Added *.mod and others to CLEANFILES in libxc/srx/Makefile.am
+
+2007-06-19 08:50  acastro
+
+	* [r3007] Finally, also (most of) the files generated by a typical
+	  "make" will
+	  also be ignored by the svn commands by including them in the
+	  svn:ignore lists.
+
+2007-06-19 08:06  acastro
+
+	* [r3006] Now (almost all) the files generated by configure are
+	  also included in
+	  the svn:ignore properties.
+
+2007-06-19 07:58  acastro
+
+	* [r3005] Added to the svn:ignore property of several directories
+	  the files
+	  generated by autoreconf.
+
+2007-06-19 07:52  acastro
+
+	* [r3004] Removed the .cvsignore files, useless since a lot of time
+	  ago, I guess.
+
+2007-06-14 16:26  xavier
+
+	* [r2998] Bugfix in libxc: The interface of xc_f90_lda was
+	  incorrect and the interface of
+	  xc_f90_lda_vxc was missing.
+
+2007-06-14 11:11  xavier
+
+	* [r2997] * Added some modifications to libxc configuration files
+	  suggested by
+	  Yann Poullion to ease the integration with Abinit.
+
+2007-06-13 17:49  xavier
+
+	* [r2995] Moved the fortran interface of libxc to the libxc/src/
+	  directory. This
+	  
+	  Instead of the C_POINTER, I defined some derived types (with a
+	  pointer
+	  inside), so in theory they should have enough space to hold a
+	  pointer
+	  but I have to test it. This approach is also more elegant as the
+	  types
+	  can't be passed incorrectly and their contents are private, so
+	  the
+	  user can't modify them without libxc.
+
+2007-06-12 11:24  xavier
+
+	* [r2991] Bugfix: libxc was trying to compile the fortran interface
+	  even when
+	  --disable-fortran was specified.
+
+2007-05-24 12:47  acastro
+
+	* [r2926] Removed C++ ("//") comments in favor of old-style C
+	  comments ("/*
+	  */"), since some compilers refuse them.
+
+2007-03-20 18:29  lorenzen
+
+	* [r2771] This is a boring maintenance commit concerning the
+	  automake build and
+	  distribution system. It is likely that some of the nightly builds
+	  will
+	  fail or that someone encounters building problems. In that case,
+	  just
+	  bug me, I feel in charge to fix that.
+	  
+	  I wanted to get VPATH builds working, i. e. compiling in a
+	  directory that
+	  does not contain the source code. This makes it easily possible
+	  to
+	  configure and build a single source tree with lots of different
+	  options
+	  (avoiding tedious copying). VPATH is basically a GNU make feature
+	  but
+	  the Makfefile.ams have to follow certain restrictions to get it
+	  working:
+	  
+	  1. Relative file names should be constructed with the $(srcdir),
+	  $(top_srcdir), $(builddir), $(top_builddir) variables.
+	  
+	  2. Wildcards should not be used in automake variables. This means
+	  that all source files have to be mentioned in the Makefile.am.
+	  This
+	  is a bit tiresome (especially in the PP directory) but it is
+	  recommended in the GNU Coding Standard and considered good
+	  practice.
+	  So, please add any .inp and .test files you include in the
+	  testsuite
+	  to the corresponding Makefile.ams. This also holds for the .psf
+	  files
+	  (and the .hgh) if a new element should be discovered...
+	  
+	  3. I had to change the way the variable documentation is
+	  generated a bit.
+	  The main thing was to add command-line flags to specify input and
+	  output
+	  directories to the var2html.pl and mk_varinfo.pl scripts.
+	  
+	  4. Filename flags for the compilers (like -I) should not be added
+	  to the
+	  corresponding variable in the configure.ac but to the AM_ version
+	  in
+	  the approripate Makefile.am (or to its per target variant). This
+	  makes use of $(srcdir), etc. possible. In some Makefile.ams the
+	  compilation rule is redefined, in these cases, it has to be
+	  checked if
+	  the AM_ variant is included (e. g. src/Makefile.am).
+	  
+	  There were some more things I ran across:
+	  
+	  1. The testsuite can only be run after a make install because
+	  the share data is not available otherwise. For that reason, I
+	  replaced
+	  the check target by an installcheck-local rule.
+	  
+	  2. The oct-run_testsuite script used hardcoded paths, they are
+	  now
+	  patched by the configure script. So, the oct-run_testuite is
+	  replaced
+	  by oct-run_testsuite.in and the original script will disappear in
+	  my
+	  next commit.
+	  
+	  3. The libxc testuite also needed some fixing to consider
+	  different
+	  source and build trees.
+	  
+	  4. I completely removed the AC_CONFIG_SUBDIRS for the python
+	  tree.
+	  The conditional configuration of a subtree is a very subtle issue
+	  as
+	  automake does not support not configured subtrees. The
+	  configure.ac and
+	  Makefile.am of the python part seem to be in a very fragile
+	  state, and as
+	  it is not used anyway at the moment, I did not spend time to fix
+	  them.
+	  By the way, how is the state of the GUI? There is just few lines
+	  of code
+	  in the repository.
+	  When it will be included again, I recommend just another
+	  Makefile.am
+	  and no subpackage configure. Necessary checks should be added to
+	  our
+	  main configure.ac (and can be skipped, if no GUI is requested).
+	  
+	  The code now passes the distcheck target which is desireable.
+
+2007-01-19 17:57  xavier
+
+	* [r2656] * Added reference to mgga_c_tpss
+	  * Changed indentifier from i to u for the output of a size_t
+	  value in write_iter.c.
+	  * This fixes #8 , the rest of the bugs were already fixed.
+
+2006-11-18 17:39  xavier
+
+	* [r2590] Optimization:
+	  
+	  * Wrote a C version of dnl_operator_operate. The inner loop is
+	  unrolled by hand to depth 3 and prefetching directives are used
+	  to
+	  keep the array of weights in the cache.
+	  
+	  For a test case (benzene gs with non interacting electrons, h=2.0
+	  r=6.0), total performance was increased by a factor of 1.47 for
+	  ifort
+	  9.1 and by a factor of 2.2 for gfortran (p4 3.0GHz). In both
+	  cases
+	  gcc-4.1 was used.
+	  
+	  The new function is not enabled by default yet, but it is
+	  selected by
+	  the input variable OperateFunction, values can be either
+	  'fortran' or
+	  'c'.
+	  
+	  * Configure detects the presence of builtin functions
+	  __builtin_expect
+	  and __builtin_prefetch in the C compiler. If they are not found,
+	  alternative dummy macros are provided.
+	  
+	  Fixed a couple of bugs revealed by gcc-2.95:
+	  
+	  * Assert is not always available in C. Put a check in
+	  configure.ac.
+	  * Move a declaration to the beginning of the function.
+
+2006-11-12 12:36  xavier
+
+	* [r2569] Libxc header is now usable from C++.
+
+2006-10-26 10:49  marques
+
+	* [r2518] Added a workaround so that the functionals do not return
+	  NaN when
+	  sigma=0.
+
+2006-10-25 08:48  marques
+
+	* [r2517] Slater's Xalpha functional was not working, so the test
+	  was failing.
+	  
+	  The test testsuite/finite_systems_3d/11-sic.test seems a bit
+	  weird to
+	  me. The functional used is Slater's Xalpha with alpha=2/3, which
+	  means
+	  that it only uses exchange (it would be easier to put
+	  Cfunctional=none
+	  ;) Is this really the functional used in the reference (that I
+	  corrected, BTW)?
+
+2006-10-23 15:56  marques
+
+	* [r2511] I am resyncing my tree that started diverging ;)
+	  
+	  *) Further cleanup of libxc. Now it was fxc that now has only 3
+	  components (uu, ud, dd) for spin-polarized calculations. This
+	  amounted
+	  to changes in libxc and in octopus. Note that kxc is still not
+	  changed.
+	  It should include only the independent elements! Maybe Xavier
+	  would like
+	  to do it ;))
+	  
+	  *) Added a Perdew Wang modified lda functional. This is the
+	  functional
+	  used by Kieron in his implementation of the PBE (that i assume is
+	  the
+	  reference), and that is different from the published functional
+	  (different number of digits in some costants, and he even has
+	  incompatible definitions for the same constants). In this way,
+	  the PBE
+	  now gives the same as the reference numbers, so I rehabilitated
+	  the
+	  test. The differences to the previous implementation are very
+	  small (4th
+	  or 5th digit, but anyway...)
+	  
+	  *) Now we can have all-electron species also in 1 and 2
+	  dimensions.
+
+2006-10-16 11:11  marques
+
+	* [r2500] Todays functional is the exchange part of the Filatov &
+	  Thiel
+	  functional (both A and B versions). At least the B version gives
+	  the
+	  same results are a reference implementation.
+
+2006-10-15 08:57  marques
+
+	* [r2495] Hopefully, this fixes the compilation errors of the last
+	  couple of
+	  nightly builds. Trivial changes.
+
+2006-10-13 14:13  marques
+
+	* [r2491] I believe that these file names are more convinient.
+
+2006-10-13 09:32  marques
+
+	* [r2490] Today's functional is Perdew 86. For this one I have
+	  reference data, so
+	  I can be pretty sure it is well implemented...
+
+2006-10-12 09:19  marques
+
+	* [r2488] Another little exchange functional: Lacks & Gordon 1993.
+	  The list of GGA exchange
+	  functionals to go is decreasing, but I still have the GGA
+	  correlation (another 10
+	  functionals), and the metaGGAs (probably another 15
+	  functionals)... life is hard ;)
+
+2006-10-11 11:00  marques
+
+	* [r2485] Today's new functional is dePristo & Kress 87 in two
+	  different versions.
+
+2006-10-10 08:15  marques
+
+	* [r2479] Added the OPTX exchange functional (Handy & Cohen 2001)
+	  asked by
+	  Angelica.
+
+2006-10-09 07:43  marques
+
+	* [r2477] *) The nightly build using ifc was not working due to the
+	  infamous
+	  "static" flag, and subsequent problems with the pthread library.
+	  I could
+	  not solve cleanly the problem, so I made a workaround: the
+	  configure
+	  script doe not die, and assumes 4 byte ints.
+	  
+	  *) A couple of references added/corrected in libxc
+
+2006-10-06 16:53  marques
+
+	* [r2471] I believe that Axel copied an old version of acx.m4. This
+	  is the correct
+	  version...
+
+2006-10-06 16:34  marques
+
+	* [r2470] Sorry, there are several things in this commit:
+	  
+	  *) I finally understood the problem that Alberto was having. The
+	  variable i in xc_functl_write_info was used for two things. In
+	  the first
+	  it should be a normal integer, and in the second it should be a
+	  pointer.
+	  That is why the code was crashing. I simply solved the problem by
+	  using
+	  two variables with different names.
+	  
+	  *) Added a macro called C_POINTER that has the obvious meaning of
+	  integer(POINTER_SIZE). I also changed all occurences in the code
+	  of
+	  integer(POINTER_SIZE) to C_POINTER. I believe it is much more
+	  readable
+	  like that.
+	  
+	  *) Added two new functionals, Perdew Wang 86 and the exchange
+	  part of
+	  Perdew Wang 91. I think the introduction of new functionals will
+	  slow
+	  down now ;)
+
+2006-10-06 16:12  athimm
+
+	* [r2469] Convert symlinks to regular files to please bitten.
+	  
+	  There is a bug in trac's API concerning extracting properties of
+	  nodes
+	  containing the metadata.
+
+2006-10-06 10:56  marques
+
+	* [r2468] *) Added automatic detection of the C type that
+	  corresponds to the
+	  Fortran type "integer". xc_f.c was the changed to use this macro.
+	  This
+	  should, hopefully, solve our previous problems. Now libxc has all
+	  arguments "pure" Fortran integers.
+	  
+	  I tested this changes in i386 (ifc7.1), x64 (pathscale, nag, and
+	  gfortran), and it passed all tests (with the exception of the
+	  hyperpolarizability test that failed in ifc7.1 and *pathscale*,
+	  but
+	  Xavier alerady knows about it).
+	  
+	  *) Bug fix in xc-get_data.c. A missing "#include <stdlib.h>" was
+	  making
+	  the xc tests fail sometimes.
+
+2006-10-05 11:14  marques
+
+	* [r2462] *) changed the names of all exported routines of libxc to
+	  xc_XXX, and
+	  the F90 variants as xc-f90_XXX. Now it looks more like a library
+	  ;)
+	  This, of course, amountd to a lot of small changes in the code...
+	  
+	  *) pursuing a problem with the exchange part of the PBE (a
+	  division by
+	  zero), I decided to dump the old routine and to implement it in
+	  the more
+	  general framework of "Becke 86-like functionals". It is now 5
+	  lines of
+	  code!
+
+2006-10-04 14:09  marques
+
+	* [r2456] *) Added a consistency cjeck on the functionals. Basic it
+	  is a script
+	  that calculates vxc using finite differences, calls libxc for the
+	  analitic functional and compares the difference. By now, three
+	  functionals give problems PBE (exchange) has some NAN lingering
+	  around;
+	  PBE (correlation) and G96 have large deviations from the fd
+	  results.
+	  
+	  *) Added a "provides" line to func_type. This is, e.g.,
+	  "XC_PROVIDES_EXC
+	  | XC_PROVIDES_VXC". In this way, the upper level can know if it
+	  has to
+	  calculate something using finite differences.
+
+2006-10-03 14:49  marques
+
+	* [r2452] Fixed the problems with the LYP functional when
+	  rho[is]=0.
+
+2006-10-03 14:48  marques
+
+	* [r2451] * Disabled the test of the correlation part of the PBE. I
+	  get
+	  differences in teh 4th or 5th digit that I do not understand...
+	  * Changed the way the tests were done, so that they are now
+	  really
+	  passed.
+
+2006-10-02 22:28  marques
+
+	* [r2448] Forgot this file...
+
+2006-10-02 22:26  marques
+
+	* [r2447] Next iteration of libxc
+	  
+	  *) Merged several functionals (B86, B88, G96 and variants) in one
+	  routine as they are all of the same form
+	  *) Added a routine family_from_id that simplifies initialization
+	  of the
+	  functionals
+	  *) Added the functionals Gill 96 (anyone heard about this one?)
+	  and LYP.
+	  The LYP functional still has problems when the density is zero in
+	  one of
+	  the spin channels. So, please don't use if until I fix it.
+	  *) Made the corresponding changes on the fortran side. Octopus
+	  cannow
+	  use all the functionals in libxc.
+
+2006-09-29 13:44  marques
+
+	* [r2440] Next iteration in libxc. In this new version I have:
+	  
+	  *) Moved source files to the directory src/. It is neater that
+	  way
+	  *) Delete the LDA speedup thing that Alberto had implemented, but
+	  which
+	  he agreed to delete
+	  *) Added two more functionals: Becke 86 and Becke 86 reoptimized
+	  *) GGAs are now handled in the same way as LDAs
+
+2006-09-28 13:58  marques
+
+	* [r2434] Started a big cleaning in order to make libxc a bit more
+	  elegant.Basically, there is now a mechanism to initialize, run
+	  the
+	  functional, and terminate it. In this way, there are no more the
+	  horrendous switch statements in lda.c. The job is not finished
+	  yet.
+
+2006-09-28 11:06  marques
+
+	* [r2433] *) Added Becke 88 to libxc. However, this functional is
+	  still not called
+	  from octopus. That will come later.
+	  
+	  *) The GGAs are now also tested. The exchange PBE and B88 pass
+	  all test
+	  without problems. The correlation part of the PBE does not,
+	  however. The
+	  differences are small (5th digit or so), so you may relax ;) In
+	  any
+	  case, I believe that the problem is, in fact, the "reference"
+	  implementation that has an inconsistency in the constants it
+	  uses...
+
+2006-09-26 14:26  marques
+
+	* [r2430] The most important part of this commit is the inclusion
+	  of tests for
+	  some LDA functionals. The calculated value of these functionals
+	  is
+	  compared to reference data that can be found in
+	  http://www.cse.clrc.ac.uk/qcg/dft/.
+	  
+	  Note that the tests do give some errors. This is related to fully
+	  polarized cases, i.e., when rho_down=0. The reference data
+	  hard-wires,
+	  in this case, the value of vpot_down=0, which, in my opinion, is
+	  not
+	  correct. In any case, if the gas is fully polarized, the value of
+	  vpot_down is irrelevant in this case ;)
+	  
+	  There were some very small precision issues in a couple of
+	  functionals
+	  that I adjusted in order to match the reference data.
+	  
+	  In the process I added two new LDA "functionals":
+	  *) lda_c_pz_mod. This is the version of the Perdew Zunger
+	  functional
+	  modified by Alberto to match better the low and high rs regions
+	  of the
+	  parametrization. This is the old pz that we had in the code. The
+	  original PZ functional is called lda_c_pz. Note that the default
+	  is the
+	  corrected functional.
+	  *) lda_c_vwn_rpa. This is a parametrization of the RPA
+	  correlation
+	  energy using the VWN form, and that is also present in the
+	  original
+	  paper.
+	  
+	  Soon I will start playing with the GGAs ;)
+
+2006-09-25 08:18  marques
+
+	* [r2424] First step in Making libxc independent. Now it contains
+	  its own
+	  configuration script. There are, however, several things still to
+	  clean.
+
+2006-06-18 11:32  athimm
+
+	* [r2221] Exclude build-aux from entering svn.
+
+2006-06-01 09:06  xavier
+
+	* [r2174] Portability fix, variable declaration was not in the
+	  beginning of file.
+
+2006-05-24 10:16  athimm
+
+	* [r2149] a) python and xml
+	  - Make python conditional, on by default.
+	  
+	  Use --disable-python to turn off python (see ./configure --help)
+	  
+	  - Remove variables.xml generation from main code, make it
+	  python-private. variables.xml are only used by the GUI. Let it
+	  live
+	  under share for now, we'll see were we'll put it in the future,
+	  perhaps it will be removed altogether.
+	  
+	  b) Add some vpath fixes
+
+2006-05-19 15:17  athimm
+
+	* [r2117] Update svn:ignore recursively.
+
+2006-05-14 10:52  athimm
+
+	* [r2073] Ignore config.h stamp file.
+
+2006-05-12 18:41  athimm
+
+	* [r2063] Sanitize .cvsignore and recursively feed svn:ignore with
+	  them.
+	  
+	  The entries mirror the school of not committing generated files
+	  into
+	  the repository. Whether this is good or bad needs to be decided,
+	  and
+	  I'm probably in favour of adding them (as well as maintainer-mode
+	  protection), but until this is agreed upon the current curse is
+	  `minimal'.
+
+2006-04-08 19:42  acastro
+
+	* [r1992] Some more profiling tags, and some unimportant changes.
+	  For example, now
+	  the wavefunctions are not randomly generated if then a LCAO
+	  calculation
+	  is going to be performed.
+
+2006-04-05 13:52  acastro
+
+	* [r1982] The option to interpolated the LDA functionals instead of
+	  recalculating
+	  them every time is now compiled always, although it is only used
+	  if the InterpolateLDA is set to yes.
+	  I will experiment with it for a few months to see if it is
+	  worthed to
+	  keep it as an option.
+
+2006-04-04 19:59  acastro
+
+	* [r1980] Still one bug.
+
+2006-04-04 19:42  acastro
+
+	* [r1979] The XAlpha correlation functional was badly calculated
+	  when code was
+	  compiled with the "LDA_SPEEDUP" preprocessor flag. This option is
+	  still
+	  way too experimental to be compiled by default. If you want to
+	  try it,
+	  you have to define LDA_SPEEDUP (for example, setting
+	  CPPFLAGS="-DLDA_SPEEDUP" when configuring).
+
+2006-03-21 11:51  micael
+
+	* [r1939] *) Syncing the libxc in APE with the one in Octopus.
+	  This new version includes the relativistic correction to the LDA
+	  exchange functional.
+	  This is not really important for Octopus (at least for the time
+	  being) but it is
+	  necessary for APE.
+
+2006-03-07 18:41  acastro
+
+	* [r1881] Bug fixed.
+	  The Vosko/Wilk/Nusair xc potential had a bug related to units.
+	  
+	  Every time the initialization function was called, some
+	  "constant" was
+	  divided by two, in order to go from rydbergs to atomic units. But
+	  the
+	  inialization function is called twice by octopus, so the result
+	  was
+	  a factor of four.
+
+2006-01-31 11:11  acastro
+
+	* [r1797] Bug fixed.
+	  Removed the 05-Na2_LB94_Casida bug.
+	  The LB94 is still rather under suspiscion, in any case.
+	  
+	  I don't know why the bug was there, in fact, it looked that the
+	  code
+	  that I removed was there for a reason, but I could not trace it
+	  down
+	  because it was there since the first revision...
+
+2005-11-28 11:03  marques
+
+	* [r1726] *) very tiny bug corrected in VWN (one of the constants
+	  was wrong in the 5th digit)
+	  *) fxc is now calculated numerically a bit better in case of the
+	  ferromagnetic gas. Actually I don't really know how to handle
+	  this case properly, as fxc should diverge (at least fx).
+
+2005-11-12 19:47  acastro
+
+	* [r1650] Bug fixed.
+	  One wrong character kept me busy the whole afternoon.
+
+2005-11-09 09:13  marques
+
+	* [r1642] *) Alberto, I think that the "break" in the fxc
+	  calculation should be a
+	  "continue" (i.e., he should skip the rest of the current cycle,
+	  but
+	  should get out of the cycle). Can you please check?
+	  *) Xavier, I guess that the calculation of Kxc should have a
+	  similar to
+	  the one Alberto put in for fxc. Can you please check?
+	  *) I cleaned a little bit the includes, whitespaces, and changed
+	  "(*p)." to
+	  "p->" as it is more C-like.
+
+2005-11-08 22:01  acastro
+
+	* [r1641] Bug fixed.
+	  
+	  The numerical functional derivation was not working properly in
+	  some
+	  spin-polarized cases (Perdew-Zunger parameterization, Na4(+1), it
+	  was
+	  just giving lots of NaN). Now, at least for those cases, it seems
+	  to
+	  work. I still have to do some more testing on the Casida module,
+	  though.
+	  
+	  In any case, the PZ kernel should be obtained analytically. Maybe
+	  in the
+	  future.
+
+2005-10-18 12:51  xavier
+
+	* [r1570] Added Kxc, the third derivatives of Exc, to libxc. It's
+	  calculated using a
+	  second order numerical derivative of Vxc.
+
+2005-10-12 13:43  marques
+
+	* [r1554] There was a sign wrong in the definition of pw92.
+	  
+	  Micael, can you please test this functional?
+
+2005-10-12 09:10  marques
+
+	* [r1552] Some cleaning:
+	  *) test.x is no longer generated in libxc/
+	  *) changed the names of several single character variables.
+	  Please *do not*
+	  call a variable a, b, n, c or whatever!!!!
+	  *) I noticed that some of you had tabs of 3 and 4 spaces. Do not
+	  forget that
+	  the default we agreed upon some years ago was *2*. Please change
+	  you emacs
+	  settings!
+
+2005-09-05 16:36  acastro
+
+	* [r1365] It seems that the test_x_LINK variable needs to be
+	  defined in this way
+	  so that the executable is actually built.
+
+2005-08-30 14:24  acastro
+
+	* [r1346] Since the test.x program is all C, it is better to link
+	  with the C compiler.
+	  Otherwise some Fortran compilers (i.e. the Intel 9.0 version)
+	  seem to have
+	  problems with a duplicated "main" function.
+
+2005-07-11 13:23  acastro
+
+	* [r1255] The xyzanim utility was broken, at least in the IBM
+	  machines. I put
+	  an emergency fix. If I get time I will take a look at the
+	  utilities, see how
+	  the system labels affect them, and make up some tests for them.
+	  
+	  Also, the IBM preprocessor had problems with the // comments in C
+	  files..
+
+2005-06-30 09:54  marques
+
+	* [r1220] There were a couple of misspells in function names
+
+2005-06-07 11:58  acastro
+
+	* [r1201] I forgot to change also this when I changed the config.h
+	  stuff.
+
+2005-05-17 09:55  appel
+
+	* [r1121] Add $Id:$ tags to most of the files (right below the GPL
+	  header). At every
+	  commit cvs is replacing these tags with lines of the following
+	  form
+	  
+	  $Id: run_regression.pl,v 1.3 2005/05/12 10:23:59 marques Exp $
+	  
+	  In this way it is easy to see who was the last person changing
+	  the file, which
+	  cvs revision the file has and at what date the last change was
+	  made.
+	  
+	  Miguel: Is there a reason why the *.c files in libxc/ don't have
+	  a GPL header?
+
+2005-04-06 16:33  marques
+
+	* [r1081] LOL! Calculating derivatives is always a hassle, even if
+	  only of simple functions ;))) Please recheck them.
+
+2005-04-06 14:45  micael
+
+	* [r1079] *) Added the Vignale-Rasolt functional for CDFT to libxc.
+	  Two parametrizations
+	  are available. This has *not* been tested carefully yet.
+
+2005-04-04 12:57  acastro
+
+	* [r1074] [*] A small change in the "nl_operator_operate"
+	  subroutines, which,
+	  specially in the complex case, seems to speed up things
+	  significantly.
+	  But most likely it does so only in some architecutures/compilers.
+	  In the
+	  case of the Portland compiler for opterons, the speedup is rather
+	  spectacular, probably because before the type conversion was very
+	  slow (the opteron was running slower that my laptop!)
+	  [*] In mgga_c_tpss, some Portland C compilers complained about
+	  those
+	  array definitions, I think it is more correct now.
+
+2005-03-28 10:47  acastro
+
+	* [r1061] A pretty sick performance hack.
+	  
+	  The idea is the following: instead of calculating the LDA
+	  functionals
+	  everytime, one can "spline" them at the beginning, and then
+	  interpolate
+	  every time, since they are very smooth functions. Some comments:
+	  
+	  (*) The calculation of the LDA exchange and correlation
+	  functionals do
+	  not take a significant calculation time, *except* if one wants to
+	  use the
+	  SIC+LDA within the OEP/KLI approximation for a big molecule.
+	  (*) This commit is still experimental, and in fact the code is
+	  still
+	  exactly the same as it was, if you do not compile adding the
+	  LDA_SPEEDUP
+	  preprocessor variable (by doing CFLAGS="-O3 -DLDA_SPEEDUP", for
+	  example).
+	  So you do not have to worry at all about this for the moment...
+	  I will make sure that it works well and that it makes sense
+	  before making
+	  it definive.
+
+2005-03-17 20:32  marques
+
+	* [r1048] This file was missing from the previous commit.
+
+2005-03-17 17:33  marques
+
+	* [r1044] Just a small rearrangement.
+
+2005-03-17 17:23  marques
+
+	* [r1043] *) Removed "relativistic exchange", as, I am not
+	  mistaken, the potential was wrong.
+	  *) Added support for LDA fxc. For now, fxc for exchange and
+	  Perdew Wang
+	  correlation are analytical, while the rest is calculated through
+	  finite
+	  differences. Honestly, from the tests I've made, I am inclined to
+	  believe
+	  that it is actually better to get the numerical derivative.
+	  (However, I
+	  would not throw away the work of a full day, would I ;)
+
+2005-02-22 12:03  acastro
+
+	* [r1014] Bug fixed.
+	  A small bug in the definition of the Slater Xalpha potential.
+	  (Before it just added again the excahnge fucntional)
+	  
+	  Also, I have changed the definition of the alpha constant, to
+	  meet the
+	  usual definition in the literature:
+	  
+	  E_{xc}^{Xalpha} = (3/2)*alpha*E_x^{LDA}
+	  
+	  which means that the Xalpha correlation potential should be
+	  defined as:
+	  
+	  E_{c}^{Xalpha} = ( (3/2)*alpha - 1)*E_x^{LDA}
+	  
+	  I have set the default to alpha = 1. In any case, the logical
+	  thing would
+	  be to define this functional as a exchange functional, rather
+	  than as a
+	  correlation part to be added to the exchange. But it is not
+	  worthed to
+	  loose too much time with this functional anyway...
+
+2005-02-15 13:51  acastro
+
+	* [r1007] I have put the embryo of what could be the octopus
+	  developer's guide.
+	  It just contains the description of one module, which is lib_xc,
+	  the
+	  interface to Miguel's C library that contains the LDA, GGA and
+	  mGGA
+	  functionals. And in fact it is not even complete.
+	  
+	  In the way, I have decided to simplify a little bit the interface
+	  to the library, so that it is a little bit more user friendly.
+
+2005-02-02 03:07  appel
+
+	* [r996] now we are complete.
+
+2004-12-15 15:01  marques
+
+	* [r964] A couple of bugs solved, but I still get non-sense. This
+	  functiona is too
+	  sensitive to numerical erors in the calculation of derivatives, I
+	  think...
+
+2004-12-07 20:40  marques
+
+	* [r957] MGGA "runs" but gives non-sense!
+
+2004-12-07 15:46  marques
+
+	* [r956] Bug fixed in correlation PBE (yes, there was a serious bug
+	  there)
+	  TPSS correlation is apparently working for spin-unpolarized
+	  systems. I still
+	  did not check the spin-polarized functionals (neither x nor c).
+
+2004-12-01 00:05  marques
+
+	* [r946] code now compiles and runs with -ansi flag. Hope this
+	  solves your problems, Alberto.
+
+2004-11-23 15:53  marques
+
+	* [r938] I am implementing the TPSS meta-GGA. The exchange part is
+	  probably working,
+	  the correlation is still a first draft.
+
+2004-10-28 20:34  marques
+
+	* [r915] several bug fixes.
+
+2004-10-27 18:34  marques
+
+	* [r912] added lb94 functional. As we all know this functional ahs
+	  problems, and I am really not sure if these problems are handled
+	  correctly.
+
+2004-10-27 15:03  marques
+
+	* [r910] There is now a mechanism to provide informations about the
+	  functionals being used.
+
+2004-10-26 20:12  marques
+
+	* [r907] First support for GGAs.
+	  Added PBE.
+
+2004-10-21 15:01  marques
+
+	* [r904] removed an erraneous #include
+
+2004-10-20 16:41  marques
+
+	* [r900] *) Changed (again) the restart files because:
+	  1) There was a bug reading the occupations and the eigenvalues
+	  2) It did not work for spin-polarized calculations
+	  
+	  *) Added support for the libxc LDA functionals. Due to this
+	  reason, GGAs
+	  and the other functionals are desactivated. Now octopus can use
+	  the
+	  13 LDAs provided by libxc.
+
+2004-10-20 13:39  marques
+
+	* [r898] The begining of our library of xc functionals. There are
+	  13 LDA functionals implemented until now. The unpolarized
+	  versions work I think. The polarized I have some doubts, and we
+	  should do some further checking.
+

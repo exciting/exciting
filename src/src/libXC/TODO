@@ -1,0 +1,51 @@
+Add functionals:
+
+LDA:
+  *) McWeeny c (cited in JCP 69, 1177)
+     R. McWeeny, in The New World of Quantum Chemistry, edited by B. Pullman and R. Parr (Reidel, Boston, 1976), p. 3.
+  *) Handler x (JCP 61, 4824) 
+  *) Rae self-energy correction to x (CPL 18, 574 (1973))
+
+GGAs:
+
+mGGAs:
+  *) Colle and Salvetti http://www.molpro.net/info/current/doc/manual/node750.html
+  *) MK00 http://www.molpro.net/info/current/doc/manual/node760.html
+  *) MK00B http://www.molpro.net/info/current/doc/manual/node761.html
+  *) Cancio & Chou Phys. Rev. B 74, 081202(R) (2006)
+  *) tau-HTCH
+
+hybrids:
+  *) 409: B97-1 revised ?
+  *) 413: B88+B95?
+  *) http://arxiv.org/abs/1205.4999 (versions of HSE)
+  *) http://link.aip.org/link/doi/10.1063/1.3524336 (HSE_sol)
+  *) doi:10.1021/ct800530u (LR-omegaPBE08)
+  *) http://arxiv.org/abs/1211.0387
+
+hybrid meta:
+  *) pw6b95, pwb6k: JPCA 2005, 109, 5656 (the x part is simply pw91 gga with different constants)
+  *) mpwb1k (51, 60, 66)
+  *) mpw1b95 (51, 60, 66)
+  *) pbe1kcis (37, 67-69)
+  *) b1b95 (54, 60)
+  *) tpsslyp1w (1w class of functionals)
+
+check also "local" hybrids?
+V. V. Karasiev, J. Mol. Struct. (THEOCHEM), 493, 21 (1999).
+V. V. Karasiev and E. V. Lude˜na, Phys. Rev. A 65, 062510 (2002).
+V. V. Karasiev and E. V. Lude˜na, Phys. Rev. A 65, 032515 (2002).
+
+51: Adamo, C.; Barone, V. J. Chem. Phys. 1998, 108, 664.
+66: Zhao, Y.; Truhlar, D. G. J. Phys. Chem. A 2004, 108, 6908.
+38: Zhao, Y.; Truhlar, D. G. J. Phys. Chem. A, in press.
+60: Becke, A. D. J. Chem. Phys. 1996, 104, 1040.
+66: Zhao, Y.; Truhlar, D. G. J. Phys. Chem. A 2004, 108, 6908.
+37: Zhao, Y.; Truhlar, D. G. J. Chem. Theory Comput., in press.
+67: Rey, J.; Savin, A. Int. J. Quantum Chem. 1998, 69, 581.
+68: Kreiger, J. B.; Chen, J.; Iafrate, G. J.; Savin, A. In Electronic
+  Correlations and Materials Properties; Gonis, A., Kioussis, N., Eds;
+  Plenum: New York, 1999; p 463.
+69: Toulouse, J.; Savin, A.; Adamo, C. J. Chem. Phys. 2002, 117, 1441.
+54: Becke, A. D. Phys. ReV. A 1988, 38, 3098.
+ 

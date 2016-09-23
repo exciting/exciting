@@ -26,7 +26,8 @@ Subroutine emat_wannier( ik, vecql, ist1, nst1, ist2, nst2, emat)
       Complex (8) zflm( lmmaxvr)
 ! allocatable arrays
       Integer, Allocatable :: igkqig(:)
-      Real (8), Allocatable :: gnt(:,:,:)
+      Integer, Allocatable :: idxlmlm(:,:)
+      Save :: idxlmlm
       Real (8), Allocatable :: jlqr(:,:)
       Real (8), Allocatable :: vgkql(:,:)
       Real (8), Allocatable :: vgkqc(:,:)
@@ -46,6 +47,11 @@ Subroutine emat_wannier( ik, vecql, ist1, nst1, ist2, nst2, emat)
       Complex (8), Allocatable :: zfir1(:)
       Complex (8), Allocatable :: zfir2(:)
       Complex (8), Allocatable :: em(:,:)
+      Complex (8), Allocatable :: gnt_combined(:,:)
+      Save :: gnt_combined
+      Complex (8), Allocatable :: wfmt1_combined(:,:)
+      Logical :: first_call = .true.
+      Save :: first_call
 ! external functions
       Real (8) :: gaunt
       Complex (8) zfmtinp, zdotc
@@ -74,7 +80,6 @@ Subroutine emat_wannier( ik, vecql, ist1, nst1, ist2, nst2, emat)
       End If
 ! allocate local arrays
       Allocate( igkqig( ngkmax))
-      Allocate( gnt( lmmaxvr, lmmaxvr, lmmaxvr))
       Allocate( jlqr( 0:input%groundstate%lmaxvr, nrcmtmax))
       Allocate( vgkql( 3, ngkmax))
       Allocate( vgkqc( 3, ngkmax))
@@ -95,23 +100,32 @@ Subroutine emat_wannier( ik, vecql, ist1, nst1, ist2, nst2, emat)
       Allocate( wfir( ngkmax))
       Allocate( zfir1( ngrtot), zfir2( ngrtot))
       Allocate( em( nstfv, nstfv))
-! compute the Gaunt coefficients
-      Do l1 = 0, input%groundstate%lmaxvr
-         Do m1 = -l1, l1
-            lm1 = idxlm( l1, m1)
-            Do l2 = 0, input%groundstate%lmaxvr
-               Do m2 = -l2, l2
-                  lm2 = idxlm( l2, m2)
-                  Do l3 = 0, input%groundstate%lmaxvr
-                     Do m3 = -l3, l3
-                        lm3 = idxlm( l3, m3)
-                        gnt( lm1, lm2, lm3) = gaunt( l1, l2, l3, m1, m2, m3)
-                     End Do
-                  End Do
-               End Do
-            End Do
-         End Do
-      End Do
+      Allocate( wfmt1_combined( lmmaxvr**2, nrcmtmax))
+! compute the Gaunt coefficients and combined indices
+      if( first_call) then
+        Allocate( idxlmlm( lmmaxvr, lmmaxvr))
+        Allocate( gnt_combined( lmmaxvr, lmmaxvr**2))
+        first_call = .false.
+        idxlmlm(:,:) = 0
+        gnt_combined(:,:) = zzero 
+        Do l1 = 0, input%groundstate%lmaxvr
+           Do m1 = -l1, l1
+              lm1 = idxlm( l1, m1)
+              Do l2 = 0, input%groundstate%lmaxvr
+                 Do m2 = -l2, l2
+                    lm2 = idxlm( l2, m2)
+                    idxlmlm( lm2, lm1) = lm2 + (lm1-1)*lmmaxvr
+                    Do l3 = 0, input%groundstate%lmaxvr
+                       Do m3 = -l3, l3
+                          lm3 = idxlm( l3, m3)
+                          gnt_combined( lm3, idxlmlm( lm2, lm1)) = cmplx( gaunt( l3, l2, l1, m3, m2, m1), 0.0d0, 8)
+                       End Do
+                    End Do
+                 End Do
+              End Do
+           End Do
+        End Do
+      end if
 ! q-vector in Cartesian coordinates
       Call r3mv( bvec, vecql, vecqc)
 ! length and spherical coordinates of q-vector
@@ -152,7 +166,7 @@ Subroutine emat_wannier( ik, vecql, ist1, nst1, ist2, nst2, emat)
             t1 = dot_product( vecqc(:), atposc( :, ia, is))
             zt1 = fourpi*cmplx( cos( t1), sin( t1), 8)
             Do l1 = 0, input%groundstate%lmaxvr
-               zl( l1) = conjg( zt1*zil( l1))
+               zl( l1) = zt1*zil( l1)
             End Do
             Do ist = ist2, ist2 + nst2 - 1
 ! calculate the wavefunction for k-point k+q
@@ -166,23 +180,16 @@ Subroutine emat_wannier( ik, vecql, ist1, nst1, ist2, nst2, emat)
               & input%groundstate%lmaxvr, is, ia, ngk( 1, ik), apwalm1, &
               & evecfv1(:, jst), lmmaxvr, wfmt1)
 ! multiply wavefunction with exp(iq.r)
-               Do irc = 1, nrcmt( is)
-                  zflm(:) = 0.d0
-                  Do l2 = 0, input%groundstate%lmaxvr
-                     zt1 = zl( l2)*jlqr( l2, irc)
-                     Do m2 = -l2, l2
-                        lm2 = idxlm( l2, m2)
-                        zt2 = zt1*ylm( lm2)
-                        Do lm3 = 1, lmmaxvr
-                           zt3 = zt2*wfmt1( lm3, irc)
-                           Do lm1 = 1, lmmaxvr
-                              zflm( lm1) = zflm( lm1) + gnt( lm1, lm2, lm3)*zt3
-                           End Do
-                        End Do
-                     End Do
-                  End Do
-                  wfmt3( :, irc) = zflm(:)
-               End Do
+               wfmt1_combined(:,:) = zzero
+               do lm1 = 1, lmmaxvr
+                 do l2 = 0, input%groundstate%lmaxvr
+                   do m2 = -l2, l2
+                     lm2 = idxlm( l2, m2)
+                     wfmt1_combined( idxlmlm( lm2, lm1), :) = zl( l2)*ylm( lm2)*wfmt1( lm1, :)*jlqr( l2, :)
+                   end do
+                 end do
+               end do
+               Call ZGEMM( 'N', 'N', lmmaxvr, nrcmtmax, lmmaxvr**2, zone, gnt_combined, lmmaxvr, wfmt1_combined, lmmaxvr**2, zzero, wfmt3, lmmaxvr)
                Do ist = ist2, ist2 + nst2 - 1
                   em( jst-ist1+1, ist-ist2+1) = em( jst-ist1+1, ist-ist2+1) + zfmtinp( .True., &
                  & input%groundstate%lmaxvr, nrcmt( is), rcmt( :, is), &
@@ -208,7 +215,7 @@ Subroutine emat_wannier( ik, vecql, ist1, nst1, ist2, nst2, emat)
                ir = ir + 1
                Call r3mv( input%structure%crystal%basevect, v2, v3)
                t1 = dot_product( v1(:), v3(:))
-               zfir1( ir) = conjg( cfunir( ir)*cmplx( Cos(t1), Sin(t1), 8))
+               zfir1( ir) = cfunir( ir)*cmplx( Cos(t1), Sin(t1), 8)
             End Do
          End Do
       End Do
@@ -262,7 +269,7 @@ Subroutine emat_wannier( ik, vecql, ist1, nst1, ist2, nst2, emat)
 !      Else
          emat(:,:) = em(:,:)
 !      End If
-      Deallocate( igkqig, gnt, jlqr, vgkql, vgkqc, gkqc, tpgkqc)
+      Deallocate( igkqig, jlqr, vgkql, vgkqc, gkqc, tpgkqc)
       Deallocate( sfacgkq, apwalm1, apwalm2, evecfv1, evecfv2)
       If( input%groundstate%tevecsv) deallocate( evecsv1, evecsv2)
       Deallocate( wfmt1, wfmt2, wfmt3, wfir, zfir1, zfir2, em)

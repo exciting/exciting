@@ -1,0 +1,30 @@
+                         +---------------------------+
+                         |     EOS Version 1.4.0     |
+                         +---------------------------+
+
+Equation of state (EOS) program for fitting energy-volume data. The following
+variables are set in the file eos.in:
+
+ cname               : name of crystal up to 256 characters
+ natoms              : number of atoms in unit cell
+ etype               : equation of state type (see below)
+ vplt1, vplt2, nvplt : volume interval over which to plot energy, pressure etc.
+                       as well as the number of points in the plot
+ nevpt               : number of energy-volume points to be inputted
+ vpt(i) ept(i)       : energy-volume points (atomic units)
+
+Note that the input units are atomic - Bohr and Hartree (NOT Rydbergs).
+
+The equations of state currently implemented are:
+ 1. Universal EOS (Vinet P et al., J. Phys.: Condens. Matter 1, p1941 (1989))
+ 2. Murnaghan EOS (Murnaghan F D, Am. J. Math. 49, p235 (1937))
+ 3. Birch-Murnaghan 3rd-order EOS (Birch F, Phys. Rev. 71, p809 (1947))
+ 4. Birch-Murnaghan 4th-order EOS
+ 5. Natural strain 3rd-order EOS (Poirier J-P and Tarantola A, Phys. Earth
+    Planet Int. 109, p1 (1998))
+ 6. Natural strain 4th-order EOS
+ 7. Cubic polynomial in (V-V0)
+
+--------------------------------------------------------------------------------
+J. K. Dewhurst
+August 2005

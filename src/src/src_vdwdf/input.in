@@ -1,0 +1,13 @@
+# Integration parameters
+  ./                     ! path to vdW-DF kernel 
+  vdW-DF                 ! vdW-DF type (vdW-DF, vdW-DF2, VV09)
+  0 0 0                  ! number of unit cells in x/y/z-direction
+  1.d-16                 ! relative integration accuracy
+  1.d-04                 ! absolute integration accuracy in Hartree
+  10000                  ! number of Monte-Carlo sampling points
+  1000000000             ! maximum number of function evaluations
+
+# Density data file      
+  bohr                   ! bohr/angs: charge density units [e/(bohr^3) or e/(angs^3)]
+  test_density.xsf       ! density
+  test_gradients.xsf     ! density gradients (optional)

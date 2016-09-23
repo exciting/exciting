@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<symmetries HermannMauguinSymbol="Bmab">
+<title>LaCuO </title>			
+<lattice a="10.0605232" b="10.0605232" c="24.972729" ab="90"
+			ac="90" bc="90" ncell="1 1 1"/>
+			<WyckoffPositions>
+				<wspecies speciesfile="La.xml">
+					<wpos coord="0.0000    0.0000    0.3608 " />
+				</wspecies>
+				<wspecies speciesfile="Cu.xml">
+					<wpos coord=" 0.0000    0.0000    0.0000" />
+				</wspecies>
+				<wspecies speciesfile="O.xml">
+					<wpos coord="0.2500    0.2500    0.0000" />
+					<wpos coord=" 0.0000    0.0000    0.1820" />
+				</wspecies>
+			</WyckoffPositions>
+		</symmetries>
+ 
