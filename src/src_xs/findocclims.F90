@@ -7,6 +7,7 @@
 ! !INTERFACE:
 subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
 ! !USES:
+  use mod_constants, only: h2ev
   use mod_kpoint, only: nkpt, vkl
   use mod_eigenvalue_occupancy, only: nstsv, occsv, evalsv, occmax,&
                                     & efermi
@@ -53,6 +54,7 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   integer, intent(out) :: io0(nkpt), io(nkpt), iu0(nkpt), iu(nkpt)
 
   ! Local variables
+  real(8) :: thegap
   integer :: ik, ikq, i0, i
   logical :: t
 
@@ -170,6 +172,11 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   ! Determine if system has a gap in energy
   ksgap = evlhpo .lt. efermi
 
+  ! Gap estimate 
+  if(ksgap) then
+    thegap = evllpu - evlhpo
+  end if
+
   ! Assign nstocc0 and nstunocc0
   nstocc0 = iocc0
   nstunocc0 = nstsv - nstocc0
@@ -179,6 +186,8 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   end if
   if(ksgap) then
     write(unitout, '(a)') 'Info(findocclims): System has kohn-sham gap'
+    write(unitout, '(a,E23.16)') 'Info(findocclims): Gap/H: ', thegap
+    write(unitout, '(a,E23.16)') 'Info(findocclims): Gap/eV: ', thegap*h2ev
   else
     write(unitout, '(a)') 'Info(findocclims): No kohn-sham gap found'
   end if
