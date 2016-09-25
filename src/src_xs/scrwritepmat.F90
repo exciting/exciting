@@ -13,5 +13,5 @@ subroutine scrwritepmat
   call writepmatxs
 
   write(unitout, '("Info(scrwritepmat):&
-   & momentum matrix elements for screening finished")')
+    & momentum matrix elements for screening finished")')
 end subroutine scrwritepmat

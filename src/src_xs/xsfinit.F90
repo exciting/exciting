@@ -4,9 +4,7 @@
 !
 !
 subroutine xsfinit
-  !<-- modmain
   use mod_misc, only: task, versionname
-  !-->
   use modxs, only: cputim0f, systim0f, cputim0i, systim0i,&
                   & cntrate, systimcum, unitout,&
                   & fnresume, xsfileout, fnetim, fnchi0_t,&
@@ -38,11 +36,14 @@ subroutine xsfinit
   walltcum = dble(systim0f-systimcum) / dble(cntrate)
 
   ! Write out information
-  write(unitout, '(a,i8,a)') 'Info(' // thisnam // '): task Nr.', task, ' stopped gracefully'
+  write(unitout, '(a,i8,a)') 'Info(' // thisnam // '): task Nr.', task,&
+    & ' stopped gracefully'
   write(unitout,*)
   write(unitout, '(a)') ' Timings: '
-  write(unitout, '(a)') '     Date (DD-MM-YYYY)      : ' // dat(7:8) // '-' // dat(5:6) // '-' // dat(1:4)
-  write(unitout, '(a)') '     Time (hh:mm:ss)        : ' // tim(1:2) // ':' // tim(3:4) // ':' // tim(5:6)
+  write(unitout, '(a)') '     Date (DD-MM-YYYY)      : '&
+    & // dat(7:8) // '-' // dat(5:6) // '-' // dat(1:4)
+  write(unitout, '(a)') '     Time (hh:mm:ss)        : '&
+    & // tim(1:2) // ':' // tim(3:4) // ':' // tim(5:6)
 
   call gentim(cput, hrs, days, hours, minutes, seconds)
 

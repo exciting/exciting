@@ -85,7 +85,7 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
     ! check whether they are (partially) unoccupied and stop if the 
     ! state is fully occupied.
     ! Save for each k+q point the index of the lowest (partially) unoccupied state.
-    do i = nstsv, 1, - 1
+    do i = nstsv, 1, -1
       if(occsv(i, ikq) .gt. (occmax-input%groundstate%epsocc)) exit
     end do
     iu(ik) = i + 1
@@ -194,7 +194,7 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
 
   ! Debug output
   if(input%xs%dbglev .gt. 0) then
-    write(*, '(a)') 'debug(findocclims):'
+    write(*, '(a)') 'Debug(findocclims):'
     write(*, '(a)') ' iocc0, iocc, iunocc0, iunocc below:'
     write(*, '(4i8)') iocc0, iocc, iunocc0, iunocc
     write(*, '(a)') ' ik, io0, iu, diff, io, iu0, diff below:'
@@ -206,5 +206,6 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   end if
 
   if( .not. t) deallocate(evalsv0)
+
 end subroutine findocclims
 !EOC

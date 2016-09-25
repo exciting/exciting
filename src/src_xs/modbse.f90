@@ -102,6 +102,11 @@ module modbse
         & bcouabs%il1, bcouabs%iu1, bcouabs%n1
       write(unitout, '("    Range of unoccupied states and number :", 2i6, 3x, i6)')&
         & bcouabs%il2, bcouabs%iu2, bcouabs%n2
+      write(unitout, '("  Ranges of states used in construction of BSE matrix (relative):")')
+      write(unitout, '("    Range of occupied states and number   :", 2i6, 3x, i6)')&
+        & bcou%il1, bcou%iu1, bcou%n1
+      write(unitout, '("    Range of unoccupied states and number :", 2i6, 3x, i6)')&
+        & bcou%il2, bcou%iu2, bcou%n2
 
     end subroutine setbcbs_bse
 

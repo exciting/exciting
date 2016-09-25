@@ -35,7 +35,7 @@ subroutine df
   character(256) :: filex
   integer :: iq
 
-  if( .not. tscreen) call genfilname(setfilext=.true.)
+  if(.not. tscreen) call genfilname(setfilext=.true.)
 
   call init0
   ! Initialise universal variables
@@ -65,7 +65,7 @@ subroutine df
   if(tscreen) then
     ! Only one frequency if BSE is used
     nwdf = 1
-    ! Use q point parallelization instead (BSE not yet supported for q not 0 ?)
+    ! Use q point parallelization instead 
     call genparidxran('q', nqpt)
   else
     call genparidxran('w', nwdf)
@@ -80,6 +80,7 @@ subroutine df
   ! Loop over q-points ! For the moment only q=0 functional, i.e. iq = 1
   qloop: do iq = qpari, qparf
 
+    ! Default is "formfile"
     if(input%xs%dogroundstate .eq. "fromscratch") then 
       call genfilname(iqmt=iq, fileext=filex, setfilext=.true.)
       call readfermi
@@ -93,7 +94,7 @@ subroutine df
     if(tscreen) call writegqpts(iq, filex)
 
     write(unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sham&
-        & response function finished for q - point:', iq
+      & response function finished for q - point:', iq
 
   end do qloop
 
@@ -110,5 +111,6 @@ subroutine df
   if( .not. tscreen) call genfilname(setfilext=.true.)
 
   if(tscreen) call findgntn0_clear
+
 end subroutine df
 !EOC

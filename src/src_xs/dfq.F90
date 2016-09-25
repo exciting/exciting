@@ -105,7 +105,7 @@ subroutine dfq(iq)
   character(256) :: fnscreen
   complex(8) :: zt1, winv
   complex(8), allocatable :: w(:)
-  complex(8), allocatable :: chi0 (:, :, :), hdg(:, :, :)
+  complex(8), allocatable :: chi0 (:, :, :)
   complex(8), allocatable :: chi0w(:, :, :, :), chi0h(:, :, :), eps0(:, :, :)
   complex(8), allocatable :: chi0hahc(:, :)
   complex(8), allocatable :: wou(:,:,:), wuo(:,:,:), wouw(:), wuow(:), wouh(:), wuoh(:)
@@ -136,11 +136,10 @@ subroutine dfq(iq)
     call terminate
   end if
 
-
   ! True if exchange-correlation kernel "MB1" or "BO" is use and
   ! it is not a BSE screening task.
-  tfxcbse = ((input%xs%tddft%fxctypenumber .eq. 7) .or. &
-     & (input%xs%tddft%fxctypenumber .eq. 8)) .and. ( .not. tscreen)
+  tfxcbse = ((input%xs%tddft%fxctypenumber .eq. 7) .or.&
+    & (input%xs%tddft%fxctypenumber .eq. 8)) .and. ( .not. tscreen)
 
   ! Sampling of Brillouin zone (Tetra)
   bzsampl = 0
@@ -161,6 +160,7 @@ subroutine dfq(iq)
   brd = input%xs%broad
   if(input%xs%tddft%acont) brd = 0.d0
 
+!! DISCUSS
   ! Zero broadening for dielectric matrix (w=0) for band-gap systems
   ! Task 430 is 'screen'
   if(task .eq. 430) brd = 0.d0
@@ -261,7 +261,6 @@ subroutine dfq(iq)
   allocate(pmuo(3, nst3, nst4))
 
   ! Allocate arrays
-  allocate(hdg(nst1, nst2, nkpt)) ! Is not used ?
   allocate(scis12(nst1, nst2),scis12c(nst1, nst2))
   allocate(scis21(nst2, nst1),scis21c(nst2, nst1))
   allocate(w(nwdf))
@@ -271,13 +270,16 @@ subroutine dfq(iq)
   !   Head for each combination of Cartesian directions 
   allocate(chi0h(3, 3, nwdfp)) 
   allocate(chi0hahc(3, 3))
-  !   Wings for 3 Cartesian directions
+  !   The 2 wings for 3 Cartesian directions
   allocate(chi0w(n, 2, 3, nwdfp))
   !   Full chi
   allocate(chi0(n, n, nwdfp))
   !   Weights
   allocate(wouw(nwdf), wuow(nwdf), wouh(nwdf), wuoh(nwdf))
+
+  ! v^1/2*M_ou and v^1/2*M_uo
   allocate(zvou(n), zvuo(n))
+
   allocate(bsedg(nst1, nst2))
   
   ! Zeroing 
@@ -290,9 +292,9 @@ subroutine dfq(iq)
 #ifdef TETRA      
     allocate(cw(nwdf), cwa(nwdf), cwsurf(nwdf))
 
-    if(input%xs%tetra%cw1k) allocate(cwt(nstsv, nstsv), &
-        & cw1k(nst1, nst2, nwdfp), cwa1k(nst1, nst2, nwdfp), &
-        & cwsurf1k(nst1, nst2, nwdfp))
+    if(input%xs%tetra%cw1k) allocate(cwt(nstsv, nstsv),&
+      & cw1k(nst1, nst2, nwdfp), cwa1k(nst1, nst2, nwdfp),&
+      & cwsurf1k(nst1, nst2, nwdfp))
 #else
     ! Added by DIN
     write(*,*) 'Tetrahedron method for XS is disabled!'
@@ -301,12 +303,13 @@ subroutine dfq(iq)
 #endif            
   end if
 
-  ! Generate complex energy grid
+  !! Generate complex energy grid
+  ! Intervall limits
   wintv(1)=input%xs%energywindow%intv(1)
   wintv(2)=input%xs%energywindow%intv(2)
-
   ! For calculation of static screening the first frequency point should be zero
   if(task.eq.430) wintv(1)=0.d0
+  ! Make evenly spaced i*omega grid.
   call genwgrid(nwdf, wintv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
 
   ! Real frequency grid
@@ -383,46 +386,46 @@ subroutine dfq(iq)
         scis12c(:, :) = zzero
         scis21c(:, :) = zzero
       end if
+
       ! For screening calculate matrix elements of plane wave on the fly.
-      ! The plane wave elements for ou and uo transitions are 
-      ! calculated and stored in xiou and xiuo
-      ! Set 12=ou 34=uo
-      call ematbdcmbs(1)
-      if(allocated(xiou)) then
-        if(.not. all(shape(xiou) == [nst1, nst2, n])) then
-          deallocate(xiou)
-          allocate(xiou(nst1, nst2, n))
-        end if
+      if(.not. input%xs%bse%beyond) then
+
+        ! Get ou
+        Call ematqk1 (iq, ik)
+        If ( .Not. allocated(xiuo)) allocate (xiuo(nst3, nst4, n))
+        If ( .Not. allocated(pmuo)) allocate (pmuo(3, nst3, nst4))
+
       else
+
+        ! The plane wave elements for ou and uo transitions are 
+        ! calculated and stored in xiou and xiuo
+        ! Set 12=ou 34=uo
+        call ematbdcmbs(1)
+        ! Get ou
+        if(allocated(xiou)) deallocate(xiou)
         allocate(xiou(nst1, nst2, n))
-      end if
-      bc%n1 = nst1
-      bc%n2 = nst2
-      bc%il1 = istl1
-      bc%il2 = istl2
-      bc%iu1 = istu1
-      bc%iu2 = istu2
-      call ematqk(iq, ik, xiou, bc)
-      if(allocated(xiuo)) then
-        if(.not. all(shape(xiuo) == [nst3, nst4, n])) then
-          deallocate(xiuo)
-          allocate(xiuo(nst3, nst4, n))
+        bc%n1 = nst1
+        bc%n2 = nst2
+        bc%il1 = istl1
+        bc%il2 = istl2
+        bc%iu1 = istu1
+        bc%iu2 = istu2
+        call b_ematqk(iq, ik, xiou, bc)
+        ! Get uo
+        if(allocated(xiuo)) deallocate(xiuo)
+        allocate(xiuo(nst3, nst4, n))
+        if(input%xs%bse%xiuodirect) then
+          bc%n1 = nst3
+          bc%n2 = nst4
+          bc%il1 = istl3
+          bc%il2 = istl4
+          bc%iu1 = istu3
+          bc%iu2 = istu4
+          call b_ematqk(iq, ik, xiuo, bc)
         end if
-      else
-        allocate(xiou(nst3, nst4, n))
+
       end if
-      bc%n1 = nst3
-      bc%n2 = nst4
-      bc%il1 = istl3
-      bc%il2 = istl4
-      bc%iu1 = istu3
-      bc%iu2 = istu4
-      call ematqk(iq, ik, xiuo, bc)
-      ! Allocate anti-resonant momentum matrix elements
-      ! Should definitely be already allocated?
-      if( .not. allocated(pmuo)) then
-        allocate(pmuo(3, nst3, nst4))
-      end if
+
     end if
 
     ! Add BSE diagonal shift use with bse-kernel
@@ -436,7 +439,18 @@ subroutine dfq(iq)
     !     p34=-Sqrt{4pi}P34/dE34
     call getpemat(iq, ik, trim(fnpmat), trim(fnemat),&
       & m12=xiou, m34=xiuo, p12=pmou, p34=pmuo)
-      
+
+    if(tscreen .and. .not. input%xs%bse%xiuodirect) then
+      ! Old behaviour
+      do igq = 1, n
+         ! M_uo(G,q) = M_ou(G,q) ! Just wrong?
+         xiuo(:, :, igq) = transpose(xiou(:, :, igq))
+      end do
+      deuo(:, :) = transpose(deou(:, :))
+      docc21(:, :) = transpose(docc12(:, :))
+      scis21c(:, :) = transpose(scis12c(:, :))
+    end if
+
     ! Set matrix elements to one for Lindhard function (default is false)
     if(input%xs%tddft%lindhard) then
       ! Set g=0 components to one

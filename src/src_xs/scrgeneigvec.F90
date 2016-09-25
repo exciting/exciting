@@ -9,12 +9,11 @@ subroutine scrgeneigvec
 
   implicit none
 
-  call genfilname(dotext='_SCR.OUT', setfilext=.True.)
+  call genfilname(dotext='_SCR.OUT', setfilext=.true.)
 
   ! Generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
   call xsgeneigvec
 
-  write(unitout, '("Info(scrgeneigvec): eigenvectors for screening&
-  & finished")')
+  write(unitout, '("Info(scrgeneigvec): eigenvectors for screening finished")')
 
 end subroutine scrgeneigvec

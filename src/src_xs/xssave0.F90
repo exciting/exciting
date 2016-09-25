@@ -32,7 +32,7 @@ subroutine xssave0
   if(allocated(vkl0)) deallocate(vkl0)
   allocate(vkl0(3, nkptnr))
 
-  ! Allocate the g+k-point arrays
+  ! Allocate the G+k-point arrays
   if(allocated(ngk0)) deallocate(ngk0)
   if(allocated(igkig0)) deallocate(igkig0)
   if(allocated(vgkl0)) deallocate(vgkl0)
@@ -48,7 +48,7 @@ subroutine xssave0
   allocate(tpgkc0(2, ngkmax, nspnfv, nkpt))
   allocate(sfacgk0(ngkmax, natmtot, nspnfv, nkpt))
 
-  ! Overlap and hamiltonian matrix sizes
+  ! Overlap and Hamiltonian matrix sizes
   if(allocated(nmat0)) deallocate(nmat0)
   allocate(nmat0(nspnfv, nkpt))
 
@@ -66,7 +66,7 @@ subroutine xssave0
   tpgkc0(:, :, :, :) = tpgkc(:, :, :, :)
   sfacgk0(:, :, :, :) = sfacgk(:, :, :, :)
 
-  ! Save variables for overlap and hamiltonian matrix sizes
+  ! Save variables for overlap and Hamiltonian matrix sizes
   nmatmax0 = nmatmax
   nmat0(:, :) = nmat(:, :)
 

@@ -4,10 +4,8 @@
 !
 !
 subroutine xsgeneigvec
-  !<-- Used to be accessed through modmain
   use mod_qpoint, only: nqpt, vql
   use mod_misc, only: filext
-  !-->
   use modinput, only: input
   use modmpi, only: rank, firstinnode, barrier
   use modxs, only: tscreen, skipgnd, qvkloff, unitout
@@ -65,11 +63,13 @@ subroutine xsgeneigvec
 
     if(.not. tscreen) then
       write(unitout, &
-        & '("info(", a, "): eigenvectors generated for q-point(iq, vql below)")') thisnam
+        & '("Info(", a, "): eigenvectors generated for Q-point (iq, vql below)")')&
+        & thisnam
       write(unitout, '(i6, 3g18.10)') iq, vqlt(:)
     else
-      write(unitout, '(a)') 'info(' // thisnam // '):&
-        & eigenvectors generated for associated(input%xs%screening)/screened interaction:'
+      write(unitout, '(a)') 'Info(' // thisnam // '):&
+        & eigenvectors generated for&
+        & associated(input%xs%screening)/screened interaction:'
     end if
 
     if(rank .Eq. 0) Then
@@ -103,7 +103,7 @@ subroutine xsgeneigvec
   if((rank .eq. 0 .or. (.not. input%sharedfs .and. firstinnode))&
    & .and. tqgamma(1) .and. ( .not. tscreen)) then
 
-    write(unitout, '("Info(", a, "): first q-point is gamma-point&
+    write(unitout, '("Info(", a, "): first Q-point is Gamma-point&
      & - copying relevant files")') thisnam
 
     ! Write files again one by one

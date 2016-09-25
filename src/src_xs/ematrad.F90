@@ -139,10 +139,10 @@ subroutine ematrad(iq)
                 end do
                 call fderiv(-1, nr, spr(1, is), fr, gr, cf)
                 riaa(l3, io2, l1, io1, l2, ias, igq) = gr(nr)
-              end do ! L2
-            end do ! Io2
-          end do ! L3
-        end do ! L1
+              end do ! l2
+            end do ! io2
+          end do ! l3
+        end do ! l1
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
@@ -161,10 +161,10 @@ subroutine ematrad(iq)
                 end do
                 call fderiv(-1, nr, spr(1, is), fr, gr, cf)
                 riloa(ilo, l3, io, l2, ias, igq) = gr(nr)
-              end do ! L2
-            end do ! Io
-          end do ! L3
-        end do ! Ilo
+              end do ! l2
+            end do ! io
+          end do ! l3
+        end do ! ilo
         !------------------------------------!
         !     local-orbital-local-orbital    !
         !------------------------------------!
@@ -179,9 +179,10 @@ subroutine ematrad(iq)
               end do
               call fderiv(-1, nr, spr(1, is), fr, gr, cf)
               rilolo(ilo1, ilo2, l2, ias, igq) = gr(nr)
-            end do ! L2
-          end do ! Ilo2
-        end do ! Ilo1
+            end do ! l2
+          end do ! ilo2
+        end do ! ilo1
+        
         !****************************************
         ! Debugging segment with output to files
         !****************************************
@@ -194,12 +195,13 @@ subroutine ematrad(iq)
               do l3 = 0, lmax3
                 do io2 = 1, apword(l3, is)
                   do l2 = 0, lmax2
-                    write(u11, '(7i5, g18.10)') igq, ias, l1, io1, l3, io2, l2, riaa(l1, io1, l3, io2, l2, ias, igq)
+                    write(u11, '(7i5, g18.10)') igq, ias, l1, io1, l3, io2, l2,&
+                      & riaa(l1, io1, l3, io2, l2, ias, igq)
                   end do
-                end do ! Io2
-              end do ! L3
-            end do ! Io1
-          end do ! L1
+                end do ! io2
+              end do ! l3
+            end do ! io1
+          end do ! l1
           !----------------------------!
           !     local-orbital-apw      !
           !----------------------------!
@@ -208,11 +210,12 @@ subroutine ematrad(iq)
             do l3 = 0, lmax3
               do io = 1, apword(l3, is)
                 do l2 = 0, lmax2
-                  write(u22, '(7i5, g18.10)') igq, ias, ilo, l1, l3, io, l2, riloa(ilo, l3, io, l2, ias, igq) 
-                end do ! L2
-              end do ! Io
-            end do ! L3
-          end do ! Ilo
+                  write(u22, '(7i5, g18.10)') igq, ias, ilo, l1, l3, io, l2,&
+                    & riloa(ilo, l3, io, l2, ias, igq) 
+                end do ! l2
+              end do ! io
+            end do ! l3
+          end do ! ilo
           !------------------------------------!
           !     local-orbital-local-orbital    !
           !------------------------------------!
@@ -221,10 +224,11 @@ subroutine ematrad(iq)
             do ilo2 = 1, nlorb(is)
               l3 = lorbl(ilo2, is)
               do l2 = 0, lmax2
-                write(u33, '(7i5, g18.10)') igq, ias, ilo1, l1, ilo2, l3, l2, rilolo(ilo1, ilo2, l2, ias, igq)
-              end do ! L2
-            end do ! Ilo2
-          end do ! Ilo1
+                write(u33, '(7i5, g18.10)') igq, ias, ilo1, l1, ilo2, l3, l2,&
+                  & rilolo(ilo1, ilo2, l2, ias, igq)
+              end do ! l2
+            end do ! ilo2
+          end do ! ilo1
         !**************************
         ! End of debugging segment
         !**************************

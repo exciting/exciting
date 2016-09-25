@@ -4,7 +4,6 @@
 !
 !
 subroutine writeevec(vq, voff, filxt)
-  !<-- used to be included via modmain
   use mod_constants, only: zzero
   use mod_eigensystem, only: nmatmax
   use mod_eigenvalue_occupancy, only: nstfv
@@ -14,7 +13,6 @@ subroutine writeevec(vq, voff, filxt)
   use mod_muffin_tin, only: lmmaxapw
   use mod_atoms, only: natmtot
   use mod_kpoint, only: nkpt, vkl
-  !-->
   use modinput, only: input
   use modmpi, only: rank, procs, barrier, endloopbarrier
   use modxs, only: isreadstate0, evecfv, apwcmt, locmt,&
@@ -31,25 +29,24 @@ subroutine writeevec(vq, voff, filxt)
   integer :: ik, j
   complex(8), allocatable :: apwalm(:, :, :, :)
 
-  ! Read from state.out exclusively
+  ! Read from STATE.OUT exclusively
   isreadstate0 = .true.
 
   ! SCF calculation with one cycle
   call gndstateq(voff, filxt)
   
-  ! If first variational eigenvectors are already
-  ! present, delete them. Then allocate space for them.
+  ! Allocate first variational eigenvectors 
   if(allocated(evecfv)) deallocate(evecfv)
   allocate(evecfv(nmatmax, nstfv, nspnfv))
 
-  ! Allocate local array for ??
+  ! Local array
   allocate(apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
 
   ! Allocate space for expansion coefficients of the APWs
   if(allocated(apwcmt)) deallocate(apwcmt)
   allocate(apwcmt(nstfv, apwordmax, lmmaxapw, natmtot))
 
-  ! Allocate space for expansion coefficients of the LOs
+  ! Allocate expansion coefficients of the LOs
   if(allocated(locmt)) deallocate(locmt)
   allocate(locmt(nstfv, nlomax, -lolmax:lolmax, natmtot))
 

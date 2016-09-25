@@ -340,7 +340,7 @@ subroutine xstasklauncher
 
   else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%beyond==.true.) then
 
-  write(*,*) "Hi, this is xstasklauncher for beyond tda-bse"
+  write(*,*) "Hi, this is xstasklauncher for beyond-tda-bse"
 
     !! Removed dubble grid code, since no-one knows how it works.
     !! Removed tetra code, since no-one knows if it works.

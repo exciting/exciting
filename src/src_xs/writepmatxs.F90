@@ -9,7 +9,6 @@ subroutine writepmatxs
 ! !USES:
   use modinput, only: input
   use modmpi, only: procs, rank, firstofset, lastofset, barrier
-  !<-- modmain
   use mod_misc, only: task, filext
   use mod_kpoint, only: nkpt, vkl
   use mod_Gkvector, only: ngkmax, vgkl, ngk, gkc, tpgkc, sfacgk, igkig, vgkc
@@ -18,7 +17,6 @@ subroutine writepmatxs
   use mod_atoms, only: natmtot
   use mod_eigensystem, only: nmatmax 
   use mod_eigenvalue_occupancy, only: nstfv, nstsv
-  !-->
   use modxas, only: ncg
   use modxs, only: tscreen, fnpmat, fnpmat_t, kpari,&
                   & kparf, hybridhf, ripaa, ripalo,&
@@ -40,7 +38,7 @@ subroutine writepmatxs
   implicit none
 
   ! Local variables
-  integer :: ik,recl
+  integer :: ik, reclen
   character(32) :: fnam
   complex(8), allocatable :: apwalmt(:, :, :, :)
   complex(8), allocatable :: evecfvt(:, :)
@@ -63,7 +61,7 @@ subroutine writepmatxs
   ! Task 120 is 'writepmat'
   fast=(task.ne.120).or.((task.eq.120).and.fast)
 
-  ! Check if q-point is gamma point
+  ! Check if Q-point is gamma point
   if(task .ne. 120) then
     if(.not.tqgamma(1)) return
   end if
@@ -126,9 +124,9 @@ subroutine writepmatxs
     ! Update potential in case if hf hybrids
     if(hybridhf) call readstate
     ! Find the record length
-    inquire(iolength=recl) pmat
+    inquire(iolength=reclen) pmat
     open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT',&
-      & status='REPLACE',recl=recl)
+      & status='REPLACE',recl=reclen)
   end if
 
   ! Get eigenvectors for q=0
@@ -186,7 +184,7 @@ subroutine writepmatxs
 
       ! Calculate the momentum matrix elements
       if((input%xs%bse%xas) .and. (task .le. 400)) then
-        call genpmatcorxs(ik, ngk(1, ik), apwalmt, evecfvt, evecsvt, pmat)		
+        call genpmatcorxs(ik, ngk(1, ik), apwalmt, evecfvt, evecsvt, pmat)
       else
         call genpmatxs(ngk(1, ik), igkig(1, 1, ik),&
          & vgkc(1, 1, 1, ik), evecfvt, evecsvt, pmat)
@@ -212,7 +210,7 @@ subroutine writepmatxs
 
   call barrier
 
-  inquire(iolength=recl) vkl(:, ik), nstsv, pmat
+  inquire(iolength=reclen) vkl(:, ik), nstsv, pmat
   deallocate(apwalmt, evecfvt, evecsvt, pmat)
 
   if(fast) then

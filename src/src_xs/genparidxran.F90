@@ -22,7 +22,7 @@ subroutine genparidxran(typ, n)
   ! Check if number of processors is greater than set
   if(procs .gt. n) then
     write(*,*)
-    write(*, '("error(genparidxran): number of processors exceeds size of set")')
+    write(*, '("Error(genparidxran): number of processors exceeds size of set")')
     write(*, '(" parallelization type : ", a)') typ
     write(*, '(" size of set	       : ", i6)') n
     write(*, '(" number of processors : ", i6)') procs
@@ -58,7 +58,7 @@ subroutine genparidxran(typ, n)
       pparf = lastofset(rank, n)
     case default
       write(*,*)
-      write(*, '("error(genparidxran):&
+      write(*, '("Error(genparidxran):&
         & unknown parallelization type: ", a)') typ
       write(*,*)
       call terminate

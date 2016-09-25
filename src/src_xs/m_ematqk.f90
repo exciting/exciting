@@ -1,16 +1,16 @@
 ! Copyright(C) 2006-2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-module m_ematqk
+module m_b_ematqk
 
   implicit none
 
   contains
 
     !BOP
-    ! !ROUTINE: ematqk
+    ! !ROUTINE: b_ematqk
     ! !INTERFACE:
-    subroutine ematqk(iq, ik, emat, bc)
+    subroutine b_ematqk(iq, ik, emat, bc)
     ! !USES:
       use modinput, only: input
       use mod_misc, only: task
@@ -61,7 +61,7 @@ module m_ematqk
       complex(8), intent(inout) :: emat(:,:,:)
 
       ! Local variables
-      character(*), parameter :: thisnam = 'ematqk'
+      character(*), parameter :: thisnam = 'b_ematqk'
       ! Allocatable arrays
       complex(8), allocatable :: evecfvo0(:, :)
       complex(8), allocatable :: evecfvu(:, :)
@@ -86,7 +86,7 @@ module m_ematqk
       ! If task 330 is 'writeemat'
       if(task .eq. 330) then
         call chkpt(3, (/ task, iq, ik /),&
-          & 'ematqk: task, q - point index, k - point index; q - dependent matrix elements')
+          & 'b_ematqk: task, q - point index, k - point index; q - dependent matrix elements')
       end if
 
       call timesec(cpu0)
@@ -245,11 +245,11 @@ module m_ematqk
       do igq = 1, ngq(iq)
         call timesec(cpu00)
         ! Summation of gaunt coefficients w.r.t. radial integrals
-        call ematgntsum(iq, igq, integrals)
+        call b_ematgntsum(iq, igq, integrals)
         call timesec(cpu01)
         if(whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
         ! Muffin-tin contribution
-        call ematqkgmt(iq, ik, igq, integrals, emat(:,:,igq), bc)
+        call b_ematqkgmt(iq, ik, igq, integrals, emat(:,:,igq), bc)
         call timesec(cpu00)
         if(whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
       end do ! igq
@@ -283,7 +283,7 @@ module m_ematqk
         do igq = 1, ngq(iq)
           call timesec(cpu00)
           ! Interstitial contribution
-          call ematqkgir(iq, ik, igq, xihir, n0, n)
+          call b_ematqkgir(iq, ik, igq, xihir, n0, n)
           call timesec(cpu01)
           if(whichthread.eq.0) cpuir = cpuir + cpu01 - cpu00
 
@@ -419,10 +419,10 @@ module m_ematqk
           & cpumtalo, cpumtloa, cpumtlolo, cpufft)
       end if
 
-    end subroutine ematqk
+    end subroutine b_ematqk
     !EOC
 
-    subroutine ematqkgmt(iq, ik, igq, integrals, emat, bc)
+    subroutine b_ematqkgmt(iq, ik, igq, integrals, emat, bc)
       use modinput, only: input
       use mod_constants, only: zzero, zone, fourpi
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
@@ -444,7 +444,7 @@ module m_ematqk
       complex(8) :: integrals(apwmaxsize+lomaxsize,apwmaxsize+lomaxsize,natmtot)
 
       ! Local variables
-      character(*), parameter :: thisnam = 'ematqkgmt'
+      character(*), parameter :: thisnam = 'b_ematqkgmt'
       integer :: is, ia, ias
       integer :: lmax1, lmax3, ikt, zmsize, whichthread
       complex(8), allocatable :: zm(:,:)
@@ -493,9 +493,9 @@ module m_ematqk
       end do ! is
 
       deallocate(zm)
-    end subroutine ematqkgmt
+    end subroutine b_ematqkgmt
 
-    subroutine ematgntsum(iq, igq, integrals)
+    subroutine b_ematgntsum(iq, igq, integrals)
       use modinput, only: input
       use mod_misc, only: filext
       use mod_constants, only: zzero, zil
@@ -819,9 +819,9 @@ module m_ematqk
         close(u4)
       end if
           
-    end subroutine ematgntsum
+    end subroutine b_ematgntsum
 
-    subroutine ematqkgir(iq, ik, igq, xihir, n0, n)
+    subroutine b_ematqkgir(iq, ik, igq, xihir, n0, n)
       use mod_Gvector, only: ivg, ivgig, cfunig
       use mod_Gkvector, only: ngkmax, igkig, ngk
       use mod_qpoint, only: vql
@@ -836,7 +836,7 @@ module m_ematqk
       complex(8), intent(out) :: xihir(n0,n) 
 
       ! Local variables
-      character(*), parameter :: thisnam = 'ematqkgir'
+      character(*), parameter :: thisnam = 'b_ematqkgir'
       integer :: ikq, ig, ig1, ig2, ig3, igk0, igk, iv(3), iv1(3), iv3(3), ivu(3)
       integer, allocatable :: aigk0(:), aigk(:)
 
@@ -866,6 +866,6 @@ module m_ematqk
       end do
 
       deallocate(aigk0, aigk)
-    end subroutine ematqkgir
+    end subroutine b_ematqkgir
 
 end module m_ematqk
