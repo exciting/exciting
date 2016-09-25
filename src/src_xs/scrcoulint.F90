@@ -105,11 +105,11 @@ subroutine scrcoulint
   call findgntn0(max(input%xs%lmaxapwwf, lolmax),&
     & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
 
-  write(unitout, '(a,3i8)') 'info(' // thisnam // '):&
+  write(unitout, '(a,3i8)') 'Info(' // thisnam // '):&
     & Gaunt coefficients generated within lmax values:', input%groundstate%lmaxapw,&
     & input%xs%lmaxemat, input%groundstate%lmaxapw
 
-  write(unitout, '(a, i6)') 'info(' // thisnam // '): number of q-points: ', nqpt
+  write(unitout, '(a, i6)') 'Info(' // thisnam // '): number of q-points: ', nqpt
 
   call flushifc(unitout)
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
@@ -171,7 +171,7 @@ subroutine scrcoulint
   do iqr = qpari, qparf
 
     call chkpt(3, (/ task, 1, iqr /),&
-      & 'task,sub,reduced q-point; generate effective screened coulomb potential')
+      & 'task,sub,reduced q-point; generate effective screened Coulomb potential')
 
     ! Locate reduced q-point in non-reduced set
     iqrnr = iqmap(ivqr(1,iqr), ivqr(2,iqr), ivqr(3,iqr))
@@ -205,7 +205,6 @@ subroutine scrcoulint
   !     Loop over(k,kp) pairs     !
   !-------------------------------!
 
-
   call genparidxran('p', nkkp)
 
   allocate(bsedt(3, 0:procs-1))
@@ -218,7 +217,7 @@ subroutine scrcoulint
 
     call timesec(ta)
     call chkpt(3, (/ task, 2, ikkp /),&
-      & 'task, sub,(k,kp)-pair; direct term of BSE hamiltonian')
+      & 'task, sub,(k,kp)-pair; direct term of BSE Hamiltonian')
 
     ! Get individual k-point indices from combined kk' index.
     !   iknr runs from 1 to nkptnr, jknr from iknr to nkptnr
@@ -287,7 +286,7 @@ subroutine scrcoulint
     input%xs%emattype = 2
     call ematbdcmbs(input%xs%emattype)
     call chkpt(3, (/ task, 2, ikkp /),&
-      & 'task,sub,(k,kp)-pair; direct term of BSE hamiltonian')
+      & 'task,sub,(k,kp)-pair; direct term of BSE Hamiltonian')
 
     ! Select screening level (default: full)
     tm(:, :) = zzero

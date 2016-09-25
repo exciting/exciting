@@ -264,7 +264,7 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
       call diagfull(2*hamsize, ham, bevalre,&
         & evalim=bevalim, evecr=bevecr, fbalance=.false., frcond=.false.)
     else
-      call bsesoldiag(nexc, hamsize, ham, bevalre, bevecr)
+      call b_bsesoldiag(nexc, hamsize, ham, bevalre, bevecr)
     end if
     call timesec(ts1)
 

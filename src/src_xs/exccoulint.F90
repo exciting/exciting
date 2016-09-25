@@ -204,7 +204,7 @@ subroutine exccoulint
   kkp: do ikkp = ppari, pparf
 
     call chkpt(3, (/ task, 2, ikkp /),&
-      & 'task,sub,(k,kp)-pair; exchange term of bse hamiltonian')
+      & 'task,sub,(k,kp)-pair; exchange term of BSE Hamiltonian')
 
     ! Get individual k-point indices from combined kk' index.
     !   iknr runs from 1 to nkptnr, jknr from iknr to nkptnr
@@ -284,7 +284,7 @@ subroutine exccoulint
     end do
 
     ! Parallel write
-    call putbsemat('EXCLI.OUT', 77, excli, ikkp, iknr, jknr,&
+    call putbsemat('EXCLI.OUT', 79, excli, ikkp, iknr, jknr,&
       & iq, iqr, rnst1, rnst2, rnst4, rnst3)
     call genfilname(dotext='_SCI.OUT', setfilext=.true.)
 

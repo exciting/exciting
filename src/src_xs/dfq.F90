@@ -422,7 +422,18 @@ subroutine dfq(iq)
           bc%iu1 = istu3
           bc%iu2 = istu4
           call b_ematqk(iq, ik, xiuo, bc)
+        else
+          ! Old behaviour - no idea why that should be right
+          do igq = 1, n
+             ! M_uo(G,q) = M_ou(G,q) ! Just wrong?
+             xiuo(:, :, igq) = transpose(xiou(:, :, igq))
+          end do
+          deuo(:, :) = transpose(deou(:, :))
+          docc21(:, :) = transpose(docc12(:, :))
+          scis21c(:, :) = transpose(scis12c(:, :))
         end if
+    end if
+
 
       end if
 
@@ -439,17 +450,6 @@ subroutine dfq(iq)
     !     p34=-Sqrt{4pi}P34/dE34
     call getpemat(iq, ik, trim(fnpmat), trim(fnemat),&
       & m12=xiou, m34=xiuo, p12=pmou, p34=pmuo)
-
-    if(tscreen .and. .not. input%xs%bse%xiuodirect) then
-      ! Old behaviour
-      do igq = 1, n
-         ! M_uo(G,q) = M_ou(G,q) ! Just wrong?
-         xiuo(:, :, igq) = transpose(xiou(:, :, igq))
-      end do
-      deuo(:, :) = transpose(deou(:, :))
-      docc21(:, :) = transpose(docc12(:, :))
-      scis21c(:, :) = transpose(scis12c(:, :))
-    end if
 
     ! Set matrix elements to one for Lindhard function (default is false)
     if(input%xs%tddft%lindhard) then
@@ -488,6 +488,24 @@ subroutine dfq(iq)
 #endif            
     end if
 
+    if(tscreen .and. .not. input%xs%bse%beyond) then
+      ! Old behaviour - no idea why that should be right
+      ! we don't need anti-resonant parts here, assign them the same
+      ! value as for resonant parts, resulting in a factor of two.
+      do igq = 1, n
+        ! v^1/2(G,q)*M_uo(G,q) = v^1/2(G,q)*M_ou(G,q) ( ???? )
+        xiuo (:, :, igq) = transpose (xiou(:, :, igq))
+      end do
+      do j = 1, 3
+        ! v^1/2(G)*p_uo(G) = v^1/2(G)*p_ou(G) ( ???? )
+        pmuo (j, :, :) = transpose (pmou(j, :, :))
+      end do
+      ! (????)
+      deuo (:, :) = transpose (deou(:, :))
+      docc21 (:, :) = transpose (docc12(:, :))
+      scis21c (:, :) = transpose (scis12c(:, :))
+    end if
+
     ! Not screen: Turn off anti-resonant terms (type 2-1 band combinations) for Kohn-Sham
     ! response function (default skip if)
     if(( .not. input%xs%tddft%aresdf) .and. ( .not. tscreen)) then
@@ -524,8 +542,14 @@ subroutine dfq(iq)
         ! transitions from energetically higher to lower bands.
         ! Exclude diagonal for momentum matrix, since weights should be 
         ! zero due to f_nk-f_nk (q is always 0 for momentum matrix).
-        if(ist1 .ge. ist2) then
-          pmou(:, j, ist2) = zzero
+        if(input%xs%bse%beyond) then
+          if(ist1 .ge. ist2) then
+            pmou(:, j, ist2) = zzero
+          end if
+        else ! Old behaviour
+          if(ist1 .gt. ist2) then
+            pmou(:, j, ist2) = zzero
+          end if
         end if
         if(ist1 .gt. ist2) then
           xiou(j, ist2, :) = zzero
@@ -535,6 +559,9 @@ subroutine dfq(iq)
 !! Intra-band contribution should be "true" by default for any one zero q.
         if(( .not. input%xs%tddft%intraband) .and. (ist1 .eq. ist2)) then
           xiou(j, ist2, :) = zzero
+          if(.not. input%xs%bse%beyond) then ! Old behaviour
+            pmou(:, j, ist2) = zzero
+          end if
         end if
         ! Set upper triangle of pu/po block to zero, i.e. allow only
         ! transitions from energetically lower to higher bands.
@@ -544,6 +571,7 @@ subroutine dfq(iq)
           xiuo(ist2, j, :) = zzero
           pmuo(:, ist2, j) = zzero
         end if
+      ! End loop over partial occupied bands
       end do
     end do
 
@@ -631,6 +659,7 @@ subroutine dfq(iq)
             if(abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
             wou(iw,ist1,ist2) = docc12(ist1, ist2) * wkpt(ik) / omega / zt1
             ! Get anti-resonant weight
+write(*,*) "tordf",tordf
             zt1=w(iw)+deuo(ist2, ist1)+scis21c(ist2,ist1)+tordf*zi*brd
             if(abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
             wuo(iw,ist1,ist2) = docc21(ist2, ist1) * wkpt(ik) / omega / zt1
@@ -789,7 +818,7 @@ subroutine dfq(iq)
     if(rank .eq. 0)&
       & call writedielt('DIELTENS0_NOSYM', 1, 0.d0, eps0(:, :, 1), 0)
 
-    ! Symmetrize the macroscopic dielectric function tensor, w.r.t. the lattice
+    ! Symmetrize the macroscopic dielectric tensor, w.r.t. the lattice
     do oct1 = 1, 3
       do oct2 = 1, 3
         call symt2app(oct1, oct2, nwdfp, symt2, chi0h, chi0hs(oct1, oct2, :))

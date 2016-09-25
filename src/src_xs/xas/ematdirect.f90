@@ -27,7 +27,6 @@ Subroutine ematdirect (iq, ik)
       Use modmpi
       Use m_putemat
       Use modxas
-      use m_ematqk
       Implicit None
 ! !REVISION HISTORY:
 !
@@ -47,13 +46,7 @@ Subroutine ematdirect (iq, ik)
          If (allocated(xiuo)) deallocate (xiuo)
          Allocate (xiou(nst1, nst2, ngq(iq)))
          ! Calculation of Matrix elements between two conduction states
-         bc%n1 = nst1
-         bc%n2 = nst2
-         bc%il1 = istl1
-         bc%il2 = istl2
-         bc%iu1 = istu1
-         bc%iu2 = istu2
-         Call ematqk (iq, ik, xiou, bc)
+         Call ematqk (iq, ik)
       End If
      ! o-u/u-o or o-o/u-u band combinations
          If ( .Not. (task .Eq. 430)) Then
