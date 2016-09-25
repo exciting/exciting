@@ -868,4 +868,4 @@ module m_b_ematqk
       deallocate(aigk0, aigk)
     end subroutine b_ematqkgir
 
-end module m_ematqk
+end module m_b_ematqk

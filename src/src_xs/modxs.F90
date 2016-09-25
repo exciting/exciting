@@ -362,7 +362,7 @@ Module modxs
   ! diagonal of BSE kernel (mean value, lower, upper limit and range)
       Complex (8) :: bsed, bsedl, bsedu, bsedd
   ! BSE matrix sizes
-	  Integer :: sta1, sto1, sta2, sto2
+      Integer :: sta1, sto1, sta2, sto2
   !-----------------------!
   !     I/O variables     !
   !-----------------------!

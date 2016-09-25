@@ -27,7 +27,7 @@ subroutine b_scrcoulint
   use m_writevars
   use m_genfilname
   use m_getunit
-  use m_ematqk
+  use m_b_ematqk
   use modbse
 ! !DESCRIPTION:
 !   Calculates the direct term of the Bethe-Salpeter Hamiltonian.
@@ -472,7 +472,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       if(allocated(moo)) deallocate(moo)
       allocate(moo(no,no,numgq))
       ! Calculate M_{o1o2,G} at fixed (k, q)
-      call ematqk(iqnr, iknr, moo, ematbc)
+      call b_ematqk(iqnr, iknr, moo, ematbc)
 
       !! Calculate the uu plane wave elements
       ematbc%n1=nu
@@ -485,7 +485,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       if(allocated(muu)) deallocate(muu)
       allocate(muu(nu,nu,numgq))
       ! Calculate M_{o1o2,G} at fixed (k, q)
-      call ematqk(iqnr, iknr, muu, ematbc)
+      call b_ematqk(iqnr, iknr, muu, ematbc)
 
     end subroutine getpwesrr
 
@@ -506,7 +506,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       if(allocated(mou)) deallocate(mou)
       allocate(mou(no,nu,numgq))
       ! Calculate M_{ou,G} at fixed (k, q)
-      call ematqk(iqnr, iknr, mou, ematbc)
+      call b_ematqk(iqnr, iknr, mou, ematbc)
 
       !! Calculate the u-o plane wave elements
       ematbc%n1=nu
@@ -519,7 +519,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       if(allocated(muo)) deallocate(muo)
       allocate(muo(nu,no,numgq))
       ! Calculate M_{uo,G} at fixed (k, q)
-      call ematqk(iqnr, iknr, muo, ematbc)
+      call b_ematqk(iqnr, iknr, muo, ematbc)
 
     end subroutine getpwesra
 

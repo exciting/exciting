@@ -25,7 +25,7 @@ subroutine b_exccoulint
   use m_genfilname
   use m_getunit
   use modbse
-  use m_ematqk
+  use m_b_ematqk
 ! !DESCRIPTION:
 !   Calculates the exchange term of the Bethe-Salpeter Hamiltonian.
 !
@@ -286,7 +286,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
       allocate(mou(no,nu,numgq))
 
       ! Calculate M_{o1o2,G} at fixed (k, q)
-      call ematqk(iqnr, iknr, mou, ematbc)
+      call b_ematqk(iqnr, iknr, mou, ematbc)
 
     end subroutine getmou
 
@@ -311,7 +311,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
       allocate(muo(nu,no,numgq))
 
       ! Calculate M_{o1o2,G} at fixed (k, q)
-      call ematqk(iqnr, iknr, muo, ematbc)
+      call b_ematqk(iqnr, iknr, muo, ematbc)
 
     end subroutine getmuo
 
