@@ -531,6 +531,14 @@
                   used for BSE. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="xiuodirect" type="xs:boolean"
+              default="true">
+              <xs:annotation>
+                <xs:documentation> Set to <pre>"false"</pre> to set the uo plane wave matrix elements
+                  to those of ou combinations transposed in the construction of the RPA dielectric matrix.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="beyond" type="xs:boolean"
               default="false">
               <xs:annotation>

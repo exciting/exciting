@@ -391,7 +391,7 @@ subroutine dfq(iq)
       if(.not. input%xs%bse%beyond) then
 
         ! Get ou
-        Call ematqk1 (iq, ik)
+        Call ematqk1(iq, ik)
         If ( .Not. allocated(xiuo)) allocate (xiuo(nst3, nst4, n))
         If ( .Not. allocated(pmuo)) allocate (pmuo(3, nst3, nst4))
 
