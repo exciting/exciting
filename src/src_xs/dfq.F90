@@ -40,7 +40,7 @@ subroutine dfq(iq)
   use m_writevars
   use m_filedel
   use m_genfilname
-  use m_ematqk
+  use m_b_ematqk
 ! !DESCRIPTION:
 !   Calculates the symmetrized Kohn-Sham response function $\tilde{\chi}^0_{\bf{GG'}}
 !   ({\bf q},\omega)$ for one ${\bf q}$-point according to
@@ -387,6 +387,7 @@ subroutine dfq(iq)
         scis21c(:, :) = zzero
       end if
 
+!*********** Plane wave calculation *****************************!
       ! For screening calculate matrix elements of plane wave on the fly.
       if(.not. input%xs%bse%beyond) then
 
@@ -432,12 +433,11 @@ subroutine dfq(iq)
           docc21(:, :) = transpose(docc12(:, :))
           scis21c(:, :) = transpose(scis12c(:, :))
         end if
-    end if
-
 
       end if
 
     end if
+!********************************************************!
 
     ! Add BSE diagonal shift use with bse-kernel
     scis12c(:, :) = scis12c(:, :) + bsedg(:, :)
@@ -488,6 +488,7 @@ subroutine dfq(iq)
 #endif            
     end if
 
+!****************** Plane wave elements magic ******************!
     if(tscreen .and. .not. input%xs%bse%beyond) then
       ! Old behaviour - no idea why that should be right
       ! we don't need anti-resonant parts here, assign them the same
@@ -505,6 +506,7 @@ subroutine dfq(iq)
       docc21 (:, :) = transpose (docc12(:, :))
       scis21c (:, :) = transpose (scis12c(:, :))
     end if
+!***************************************************************!
 
     ! Not screen: Turn off anti-resonant terms (type 2-1 band combinations) for Kohn-Sham
     ! response function (default skip if)
@@ -659,7 +661,6 @@ subroutine dfq(iq)
             if(abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
             wou(iw,ist1,ist2) = docc12(ist1, ist2) * wkpt(ik) / omega / zt1
             ! Get anti-resonant weight
-write(*,*) "tordf",tordf
             zt1=w(iw)+deuo(ist2, ist1)+scis21c(ist2,ist1)+tordf*zi*brd
             if(abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
             wuo(iw,ist1,ist2) = docc21(ist2, ist1) * wkpt(ik) / omega / zt1

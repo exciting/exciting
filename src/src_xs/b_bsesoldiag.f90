@@ -5,7 +5,7 @@
 !BOP
 ! !ROUTINE: bsesoldiag
 ! !INTERFACE:
-subroutine bsesoldiag(solsize, hamsize, ham, eval, evec)
+subroutine b_bsesoldiag(solsize, hamsize, ham, eval, evec)
 ! !INPUT/OUTPUT PARAMETERS:
 ! IN:
 !   integer :: solsize ! Number of solutions from lowest EV 
@@ -116,5 +116,5 @@ subroutine bsesoldiag(solsize, hamsize, ham, eval, evec)
 
     end subroutine workspacequery
 
-end subroutine bsesoldiag
+end subroutine b_bsesoldiag
 
