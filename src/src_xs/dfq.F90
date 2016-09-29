@@ -41,6 +41,11 @@ subroutine dfq(iq)
   use m_filedel
   use m_genfilname
   use m_b_ematqk
+  use m_writecmplxparts
+! !INPUT/OUTPUT PARAMETERS:
+! In:
+! integer :: iq  ! q-point index
+!
 ! !DESCRIPTION:
 !   Calculates the symmetrized Kohn-Sham response function $\tilde{\chi}^0_{\bf{GG'}}
 !   ({\bf q},\omega)$ for one ${\bf q}$-point according to
@@ -415,24 +420,13 @@ subroutine dfq(iq)
         ! Get uo
         if(allocated(xiuo)) deallocate(xiuo)
         allocate(xiuo(nst3, nst4, n))
-        if(input%xs%bse%xiuodirect) then
-          bc%n1 = nst3
-          bc%n2 = nst4
-          bc%il1 = istl3
-          bc%il2 = istl4
-          bc%iu1 = istu3
-          bc%iu2 = istu4
-          call b_ematqk(iq, ik, xiuo, bc)
-        else
-          ! Old behaviour - no idea why that should be right
-          do igq = 1, n
-             ! M_uo(G,q) = M_ou(G,q) ! Just wrong?
-             xiuo(:, :, igq) = transpose(xiou(:, :, igq))
-          end do
-          deuo(:, :) = transpose(deou(:, :))
-          docc21(:, :) = transpose(docc12(:, :))
-          scis21c(:, :) = transpose(scis12c(:, :))
-        end if
+        bc%n1 = nst3
+        bc%n2 = nst4
+        bc%il1 = istl3
+        bc%il2 = istl4
+        bc%iu1 = istu3
+        bc%iu2 = istu4
+        call b_ematqk(iq, ik, xiuo, bc)
 
       end if
 
@@ -448,6 +442,9 @@ subroutine dfq(iq)
     ! Get m12=v^{1/2}*M_12, m34=v^{1/2}*M_34 
     !     p12=-Sqrt{4pi}P12/dE12, 
     !     p34=-Sqrt{4pi}P34/dE34
+    ! Momentum matrix elements are always read from file.
+    ! If tscreen, then xiou and xiou need to be already present 
+    ! in modxs.
     call getpemat(iq, ik, trim(fnpmat), trim(fnemat),&
       & m12=xiou, m34=xiuo, p12=pmou, p34=pmuo)
 
@@ -488,25 +485,44 @@ subroutine dfq(iq)
 #endif            
     end if
 
-!****************** Plane wave elements magic ******************!
+!****************** Plane wave elements magic  WRONG******************!
     if(tscreen .and. .not. input%xs%bse%beyond) then
       ! Old behaviour - no idea why that should be right
       ! we don't need anti-resonant parts here, assign them the same
       ! value as for resonant parts, resulting in a factor of two.
       do igq = 1, n
         ! v^1/2(G,q)*M_uo(G,q) = v^1/2(G,q)*M_ou(G,q) ( ???? )
-        xiuo (:, :, igq) = transpose (xiou(:, :, igq))
+        xiuo(:, :, igq) = transpose(xiou(:, :, igq))
       end do
       do j = 1, 3
         ! v^1/2(G)*p_uo(G) = v^1/2(G)*p_ou(G) ( ???? )
-        pmuo (j, :, :) = transpose (pmou(j, :, :))
+        pmuo (j, :, :) = transpose(pmou(j, :, :))
       end do
       ! (????)
-      deuo (:, :) = transpose (deou(:, :))
-      docc21 (:, :) = transpose (docc12(:, :))
-      scis21c (:, :) = transpose (scis12c(:, :))
+      deuo(:, :) = transpose(deou(:, :))
+      docc21(:, :) = transpose(docc12(:, :))
+      scis21c(:, :) = transpose(scis12c(:, :))
+
     end if
 !***************************************************************!
+
+    if(.false.) then 
+      ! Test output
+      if(rank == 0) then
+        if(iq == 1) then 
+          call writecmplxparts('vemat_ou',dble(xiou(:,:,1)),immat=aimag(xiou(:,:,1)),ik1=iq)
+          call writecmplxparts('vemat_uo',dble(xiuo(:,:,1)),immat=aimag(xiuo(:,:,1)),ik1=iq)
+          call writecmplxparts('vp1mat_ou',dble(pmou(1,:,:)),immat=aimag(pmou(1,:,:)),ik1=iq)
+          call writecmplxparts('vp1mat_uo',dble(pmuo(1,:,:)),immat=aimag(pmuo(1,:,:)),ik1=iq)
+        end if
+        if(iq == 2) then 
+          call writecmplxparts('vemat_ou',dble(xiou(:,:,1)),immat=aimag(xiou(:,:,1)),ik1=iq)
+          call writecmplxparts('vemat_uo',dble(xiuo(:,:,1)),immat=aimag(xiuo(:,:,1)),ik1=iq)
+          call writecmplxparts('vp1mat_ou',dble(pmou(1,:,:)),immat=aimag(pmou(1,:,:)),ik1=iq)
+          call writecmplxparts('vp1mat_uo',dble(pmuo(1,:,:)),immat=aimag(pmuo(1,:,:)),ik1=iq)
+        end if
+      end if
+    end if
 
     ! Not screen: Turn off anti-resonant terms (type 2-1 band combinations) for Kohn-Sham
     ! response function (default skip if)
@@ -559,8 +575,12 @@ subroutine dfq(iq)
         ! Set diagonal to zero (project out intra-band contributions)
         ! intra-band input defaults to "false"
 !! Intra-band contribution should be "true" by default for any one zero q.
-        if(( .not. input%xs%tddft%intraband) .and. (ist1 .eq. ist2)) then
-          xiou(j, ist2, :) = zzero
+        if( ist1 .eq. ist2) then 
+          if(.not. input%xs%tddft%intraband .and. .not. input%xs%bse%beyond) then
+            xiou(j, ist2, :) = zzero
+          else if (input%xs%bse%beyond .and. .not. input%xs%bse%intraband) then
+            xiou(j, ist2, :) = zzero
+          end if
           if(.not. input%xs%bse%beyond) then ! Old behaviour
             pmou(:, j, ist2) = zzero
           end if
@@ -621,9 +641,9 @@ subroutine dfq(iq)
               & trim(fnwtet), cw, cwa, cwsurf)
           end if
           ! Include occupation number differences
-          wou(wi:wf,ist1,ist2) = docc12 (ist1, ist2) * cmplx(cw(wi:wf),&
+          wou(wi:wf,ist1,ist2) = docc12(ist1, ist2) * cmplx(cw(wi:wf),&
             & cwsurf(wi:wf), 8) / omega
-          wuo(wi:wf,ist1,ist2) = - docc21 (ist2, ist1) *&
+          wuo(wi:wf,ist1,ist2) = - docc21(ist2, ist1) *&
             & cmplx(cwa(wi:wf), 0.d0, 8) / omega
 
           if(tq0) then
@@ -846,7 +866,6 @@ subroutine dfq(iq)
     call getunit(un)
     open(un, file=trim(fnscreen), form='formatted', action='write', status='replace')
     call putscreen(un, tq0, n, chi0(:, :, 1), chi0h(:, :, 1), chi0w(:, :, :, 1))
-    call writevars(un, iq, 0)
     close(un)
   else
     ! Parallel output of frequency dependend \chi to direct access file

@@ -26,7 +26,7 @@ subroutine writedielt(filtag, nw, w, dt, switch)
   if(switch .eq. 0) then
     write(un, '(" (dielectric tensor, independent particle approximation)")')
   else
-     write(un, '(" (dielectric tensor, random phase approximation)")')
+    write(un, '(" (dielectric tensor, random phase approximation)")')
   end if
   write(un,*)
 

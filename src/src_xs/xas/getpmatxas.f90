@@ -48,7 +48,7 @@ Contains
          End If
     ! record position for k-point
          ikr = ik
-         If ( .Not. tarec) Call getridx (procs, nkpt, ik, ikr)
+         If ( .Not. tarec) Call getridx(nkpt, ik, ikr)
          err = 0
     ! check band range
          If ((i1 .Lt. 1) .Or. (i1 .Gt. ncg) .Or. (f1 .Lt. 1) .Or. (f1 &

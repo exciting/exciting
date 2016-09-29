@@ -18,6 +18,7 @@ subroutine b_bse
   use m_genfilname
   use m_diagfull
   use m_writeoscillator
+  use m_writecmplxparts
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem(thanks to the spectral theorem that can
@@ -176,7 +177,8 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
     end if
 
     ! Determine the minimal optical gap (q=0), w.r.t. the selected bands
-    egap = minval(evalsv(bcouabs%il2,1:nkptnr) - evalsv(bcouabs%iu1,1:nkptnr) + input%xs%scissor)
+    egap = minval(evalsv(bcouabs%il2,1:nkptnr) - evalsv(bcouabs%iu1,1:nkptnr)&
+      &+ input%xs%scissor)
     write(unitout,*)
     write(unitout, '("Info(bse): gap:", E23.16)') egap
     ! Warn if the system has no gap even with scissor (or no scissor and on top of GW)
@@ -211,10 +213,12 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
     if(rank == 0) then
       write(unitout,*)
       write(unitout, '("Info(bse): Assembling BSE matrix")')
-      write(unitout, '("RR/RA blocks of BSE-Hamiltonian: Shape=",i4, " Size=",i8)') hamsize, hamsize**2
+      write(unitout, '("RR/RA blocks of BSE-Hamiltonian: Shape=",i4, " Size=",i8)')&
+        & hamsize, hamsize**2
       if(fcoup) then
         write(unitout, '(" Including coupling terms ")')
-        write(unitout, '(" Full BSE-Hamiltonian: Shape=",i4, " Size=",i8)') 2*hamsize, 4*hamsize**2
+        write(unitout, '(" Full BSE-Hamiltonian: Shape=",i4, " Size=",i8)')&
+          & 2*hamsize, 4*hamsize**2
       end if
       if(fwp) then
         write(unitout, '(" Writing real and imaginary parts of Hamiltonian to file ")')
@@ -777,7 +781,8 @@ contains
 
       ! Build complex conjugate R-matrix from p-matrix
       ! \tilde{R}^*_{u_{s1},o_{s1},k_{s1}},i = 
-      ! (f_{o_{s1},k_{s1}}-f_{u_{s1},k_{s1}}) P_{o_{s1},u_{s1},k_{s1}},i /(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}})
+      ! (f_{o_{s1},k_{s1}}-f_{u_{s1},k_{s1}}) *
+      !   P_{o_{s1},u_{s1},k_{s1}},i /(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}})
       rmat(a1, :) = ofac(a1) * pmou(:, io, iu)/(evalsv(io, ik) - evalsv(iuabs, ik))
 
     end do
@@ -790,18 +795,25 @@ contains
     !! Resonant oscillator strengths
     ! t^R_\lambda,i = < \tilde{R}^i | X_\lambda> =
     ! \Sum_{s1} f_{s1} R^*_{{u_{s1} o_{s1} k_{s1}},i} X_{o_{s1} u_{s1} k_{s1}},\lambda= 
-    ! \Sum_{s1} f_{s1} P^*_{{u_{s1} o_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda= 
-    ! \Sum_{s1} f_{s1} P_{{o_{s1} u_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda
-    call zgemm('t','n', nexc, 3, hamsize, zone, bevecr(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
+    ! \Sum_{s1} f_{s1} P^*_{{u_{s1} o_{s1} k_{s1}},i} / 
+    !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda= 
+    ! \Sum_{s1} f_{s1} P_{{o_{s1} u_{s1} k_{s1}},i} / 
+    !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda
+    call zgemm('t','n', nexc, 3, hamsize,&
+      & zone, bevecr(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
 
     if(fcoup .and. present(oszstra)) then
       oszstra = zzero
       !! Anti-resonant oscillator strengths
       ! t^A_\lambda,i = < \tilde{R}^{i*} | Y_\lambda> =
       ! \Sum_{s1} f_{s1} R_{{u_{s1} o_{s1} k_{s1}},i} Y_{o_{s1} u_{s1} k_{s1}},\lambda= 
-      ! \Sum_{s1} f_{s1} P_{{u_{s1} o_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda= 
-      ! \Sum_{s1} f_{s1} P^*_{{o_{s1} u_{s1} k_{s1}},i}/(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda
-      call zgemm('t','n', nexc, 3, hamsize, zone, bevecr(hamsize+1:2*hamsize,1:nexc), hamsize, conjg(rmat), hamsize, zzero, oszstra, nexc)
+      ! \Sum_{s1} f_{s1} P_{{u_{s1} o_{s1} k_{s1}},i} / 
+      !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda= 
+      ! \Sum_{s1} f_{s1} P^*_{{o_{s1} u_{s1} k_{s1}},i} / i
+      !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda
+      call zgemm('t','n', nexc, 3, hamsize,&
+        & zone, bevecr(hamsize+1:2*hamsize,1:nexc), hamsize,&
+        & conjg(rmat), hamsize, zzero, oszstra, nexc)
     end if
 
     deallocate(rmat)
@@ -988,64 +1000,6 @@ contains
     end do
   end subroutine makespectrum_tda
 
-  subroutine writecmplxparts(fbasename, remat, immat, ik1, ik2)
-    use m_getunit
-    character(*), intent(in) :: fbasename
-    real(8), intent(in) :: remat(:,:)
-    real(8), intent(in), optional :: immat(:,:)
-    integer(4), intent(in), optional :: ik1, ik2
-
-    integer(4) :: un, a1, a2, n, m
-    character(256) :: fname, tmp1, tmp2, tmp3
-
-    n = size(remat,1)
-    m = size(remat,2)
-
-    tmp1 = ''
-    if(present(ik1)) then
-      write(tmp1, '(I8)') ik1
-    end if
-    tmp2 = ''
-    if(present(ik2)) then
-      write(tmp2, '(I8)') ik2
-    end if
-    tmp3= trim(adjustl(tmp1))//trim(adjustl(tmp2))
-    if(present(ik1) .or. present(ik2)) then
-      tmp3 = "_"//trim(adjustl(tmp3))
-    end if
-
-    fname =''
-    write(fname,'("Re_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
-
-    call getunit(un)
-    open(unit=un, file=fname, action='write', status='replace')
-    do a1=1,n
-      write(un,'(SP,E23.16)', advance='no') remat(a1,1)
-      do a2=2,m
-        write(un, '(SP,1x,E23.16)', advance='no') remat(a1,a2)
-      end do
-      write(un,*)
-    end do
-    close(un)
-
-    if(present(immat)) then
-      fname =''
-      write(fname,'("Im_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
-
-      call getunit(un)
-      open(unit=un, file=fname, action='write', status='replace')
-      do a1=1,n
-        write(un,'(SP,E23.16)', advance='no') immat(a1,1)
-        do a2=2,m
-          write(un, '(SP,1x,E23.16)', advance='no') immat(a1,a2)
-        end do
-        write(un,*)
-      end do
-      close(un)
-
-    end if
-
-  end subroutine writecmplxparts
     
 end subroutine b_bse
 !EOC

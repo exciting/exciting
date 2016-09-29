@@ -16,6 +16,18 @@ subroutine putscreen(un, tq0, n, chi0, chi0h, chi0w)
   integer :: ig1, ig2, i, j
   real(8) :: r1
 
+  write(un,'("#",1x,a)') "RPA static screening (microscopic dielectric tensor/function)"
+  write(un,'("#",1x,a)') "frequency w = 0"
+  if(tq0) then
+    write(un,'("#",1x,a)') "q=0 : Head and wings of epsilon_GG'(q=0,w=0) present."
+  end if
+  write(un,'("#",1x,a)') "Positive integer index G+q vectors."
+  write(un,'("#",1x,a)') "Negative integer index cartesian directrions for head and wings."
+  write(un,'("#",1x,a)') "(Head has 2 catesian indices and no G+q index,"
+  write(un,'("#",1x,a)') "while the wings have one cartesian and one G+q index)."
+  write(un,'("#",1x,a6,1x,a8,1x,a23,1x,a23,1x,a23)')&
+    & "i1", "i2", "Re(esp_i1i2)", "Im(eps_i1i2)", "Abs(eps_i1i2)"
+
   ! Loop over G+q and G'+q indices
   do ig1 = 1, n
     do ig2 = 1, n
@@ -29,33 +41,32 @@ subroutine putscreen(un, tq0, n, chi0, chi0h, chi0w)
         if((ig1 .eq. 1) .and. (ig2 .eq. 1)) then
           ! Write Cartesian directions with negative sign.
           ! Write real part, imaginary part and modulus of 1-chi
-          write(un, '(2i8,3g18.10)') ((-i,-j,&
-            & dble(krondelta(i, j))-chi0h(i, j),&
-            & abs(dble(krondelta(i, j))-chi0h(i, j)), j=1, 3),&
-            & i=1, 3)
+          write(un, '(i8,1x,i8,1x,E23.16,1x,E23.16,1x,E23.16)')&
+            & ( (-i, -j, dble(krondelta(i, j))-chi0h(i, j),&
+            & abs(dble(krondelta(i, j))-chi0h(i, j)), j=1, 3), i=1, 3)
         end if
 
         ! Write wings
         if((ig1 .eq. 1) .and. (ig2 .ne. 1)) then
-          write(un, '(2i8,3g18.10)') (-i, ig2,-chi0w(ig2, 1, i),&
-            & abs(-chi0w(ig2, 1, i)), i=1, 3)
+          write(un, '(i8,1x,i8,1x,E23.16,1x,E23.16,1x,E23.16)')&
+            & ( -i, ig2, -chi0w(ig2, 1, i), abs(-chi0w(ig2, 1, i)), i=1, 3)
         end if
         if((ig1 .ne. 1) .and. (ig2 .eq. 1)) then
-          write(un, '(2i8,3g18.10)') (ig1,-j,-chi0w(ig1, 2, j),&
-            & abs(-chi0w(ig1, 2, j)), j=1, 3)
+          write(un, '(i8,1x,i8,1x,E23.16,1x,E23.16,1x,E23.16)')&
+            & (ig1, -j, -chi0w(ig1, 2, j), abs(-chi0w(ig1, 2, j)), j=1, 3)
         end if
 
         ! Write body
         if((ig1 .ne. 1) .and. (ig2 .ne. 1)) then
-          write(un, '(2i8,3g18.10)') ig1, ig2, r1 - chi0(ig1, ig2),&
-            & abs(r1-chi0(ig1, ig2))
+          write(un, '(i8,1x,i8,1x,E23.16,1x,E23.16,1x,E23.16)')&
+            & ig1, ig2, r1 - chi0(ig1, ig2), abs(r1-chi0(ig1, ig2))
         end if
 
       else
 
         ! Write full
-        write(un, '(2i8,3g18.10)') ig1, ig2, r1 - chi0(ig1, ig2),&
-          & abs(r1-chi0(ig1, ig2))
+        write(un, '(i8,1x,i8,1x,E23.16,1x,E23.16,1x,E23.16)')&
+          & ig1, ig2, r1 - chi0(ig1, ig2), abs(r1-chi0(ig1, ig2))
 
       end if
 

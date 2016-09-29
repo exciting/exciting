@@ -1,59 +1,77 @@
-!
-!
-!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-Module m_putpmat
-      Implicit None
-Contains
-!
-!
-      Subroutine putpmat (ik, tarec, filnam, pm)
-         Use modmain
-         Use modmpi
-         Use m_getunit
-         Implicit None
-    ! arguments
-         Integer, Intent (In) :: ik
-    ! true if absolut record position is ik
-         Logical, Intent (In) :: tarec
-         Character (*), Intent (In) :: filnam
-         Complex (8), Intent (InOut) :: pm (:, :, :)
-    ! local variables
-         Integer :: un, recl, ikr
-         Logical :: tarect
-#ifdef MPI
-         Integer :: iproc, tag, status (MPI_STATUS_SIZE)
-#endif
-         tarect = tarec
-         ikr = ik
-         Inquire (IoLength=Recl) vkl (:, ik), nstsv, pm
-         Call getunit (un)
-#ifdef MPI
+module m_putpmat
 
-         tag = 77
-         If (rank .Ne. 0) Call mpi_send (pm, size(pm), &
-        & MPI_DOUBLE_COMPLEX, 0, tag, MPI_COMM_WORLD, ierr)
-         If (rank .Eq. 0) Then
-            Do iproc = 0, lastproc (ik, nkpt)
-               ikr = firstofset (iproc, nkpt) - 1 + ik
-               If (iproc .Ne. 0) Then
-             ! receive data from slaves
-                  Call mpi_recv (pm, size(pm), MPI_DOUBLE_COMPLEX, &
-                 & iproc, tag, MPI_COMM_WORLD, status, ierr)
-               End If
-#endif
-          ! only master is performing I/O
-               Open (Unit=un, File=trim(filnam), Form='unformatted', &
-              & Action='write', Access='direct', Recl=Recl)
-               Write (un, Rec=ikr) vkl (:, ikr), nstsv, pm
-               Close (un)
+  implicit none
+
+  contains
+
+    subroutine putpmat(ik, tarec, filnam, pm, tag)
+      use modmain
+      use modmpi
+      use m_getunit
+
+      implicit none
+
+      ! arguments
+      integer, intent(in) :: ik
+      integer, intent(in), optional :: tag
+
+      ! true if absolut record position is ik
+      logical, intent(in) :: tarec
+      character(*), intent(in) :: filnam
+      complex(8), intent(inout) :: pm(:, :, :)
+
+      ! local variables
+      integer :: un, reclen, ikr
+      logical :: tarect
+
 #ifdef MPI
-            End Do
-         End If
+      integer :: iproc, mpitag, stat(mpi_status_size)
 #endif
-      End Subroutine putpmat
-!
-End Module m_putpmat
+
+      tarect = tarec
+      ikr = ik
+      inquire(iolength=reclen) vkl(:, ik), nstsv, pm
+      call getunit(un)
+
+#ifdef MPI
+      if(present(tag)) then
+        mpitag = tag
+      else
+        mpitag = 77
+      end if
+
+      if(rank .ne. 0) then 
+        call mpi_send(pm, size(pm), mpi_double_complex, 0, mpitag, mpi_comm_world, ierr)
+      end if
+
+      if(rank .eq. 0) then
+
+        do iproc = 0, lastproc(ik, nkpt)
+
+          ikr = firstofset(iproc, nkpt) - 1 + ik
+
+          if(iproc .ne. 0) then
+            ! receive data from slaves
+            call mpi_recv(pm, size(pm), mpi_double_complex,&
+              & iproc, mpitag, mpi_comm_world, stat, ierr)
+          end if
+#endif
+          ! only master is performing i/o
+          open(unit=un, file=trim(filnam), form='unformatted',&
+            & action='write', access='direct', recl=reclen)
+          write(un, rec=ikr) vkl(:, ikr), nstsv, pm
+          close(un) 
+
+#ifdef MPI
+        end do
+
+      end if
+#endif
+
+    end subroutine putpmat
+
+end module m_putpmat

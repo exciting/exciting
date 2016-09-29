@@ -98,9 +98,10 @@ contains
         do i1 = 1, nst1
           do i2 = 1, nst2
 
+            ! epsdfde defaults to 1.0d-8
             if(abs(deou(i1, i2)) .ge. input%xs%epsdfde) then
 
-              ! The square root of 4pi stems from the square root of the coulomb 
+              ! The square root of 4*pi stems from the square root of the coulomb 
               ! potential
               p12(j, i1, i2) = -p12(j, i1, i2) / deou(i1, i2) * fourpisqt
 
@@ -108,7 +109,8 @@ contains
 
               p12(j, i1, i2) = zzero
 
-              ! Debug output 
+              ! Debug output: Warn if there is a non vanishing occupation difference 
+              ! but a vanishing enegy difference in the denominator.
               if((abs(docc12(i1, i2)) .gt. input%groundstate%epsocc)&
                 & .and.(input%xs%dbglev .gt. 0)) then
 
@@ -138,7 +140,6 @@ contains
 
                 p34(j, i3, i4) = zzero
 
-                ! Debug output
                 if((abs(docc21(i3, i4)) .gt. input%groundstate%epsocc)&
                   & .and.(input%xs%dbglev .gt. 0)) then
 
@@ -160,7 +161,7 @@ contains
     end if gamma
 
     ! If not G=q=0
-    Gqnot0: if((.not. tq0) .or. (n .gt. 1)) then
+    Gqnot0: if(.not. tq0 .or. n .gt. 1) then
 
       ! For BSE(-kernel) matrix elements are calculated on the fly
       if(tscreen) then
@@ -187,12 +188,14 @@ contains
       ! G not zero
       if(.not. tq0) then
 
+        ! M_ou(G=0,q/=0) = M_ou(G=0,q/=0) * v^1/2(G=0,q/=0)
         m12(:, :, 1) = m12(:, :, 1) *sptclg(1,iq)
+        ! M_uo(G=0,q/=0) = M_uo(G=0,q/=0) * v^1/2(G=0,q/=0)
         if(present(m34)) m34(:, :, 1) = m34(:, :, 1) *sptclg(1,iq)
 
       end if
 
-      ! q not zero
+      ! G+q /= 0
       if(n .gt. 1) then
 
         forall(igq=2:n)
