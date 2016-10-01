@@ -84,3 +84,9 @@ src/src_inputparser/inputmodules.f90
 src/src_inputparser/speciesmodules.f90
 *.save
 *.swp
+src/libXC/testsuite/xc-consistency
+src/libXC/testsuite/xc-get_data
+src/libXC/testsuite/xc-regression
+src/libXC/config.h.in
+src/libXC/configure
+src/libXC/config.h.in~
