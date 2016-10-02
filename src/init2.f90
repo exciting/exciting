@@ -17,7 +17,7 @@ Subroutine init2
       Real (8) :: boxl (3, 4)
 #ifdef XS
       Real (8) :: v (3), t1
-      Integer :: iq, iv (3)
+      Integer :: iq, iqr, iv (3)
       Character (256) :: filex
 #endif
 
@@ -37,7 +37,7 @@ Subroutine init2
       ! phonons for q-points from list
       if (task .eq. 230) then
           nphwrt = size (input%phonons%qpointset%qpoint, 2)
-      	  if (allocated(vqlwrt)) deallocate(vqlwrt)
+          if (allocated(vqlwrt)) deallocate(vqlwrt)
           allocate(vqlwrt(3,nphwrt))
           Do iq = 1, nphwrt
             vqlwrt(:,iq) = input%phonons%qpointset%qpoint(:, iq)
@@ -301,6 +301,23 @@ Subroutine init2
    ! spherical harmonics for G+q-vectors
          Call genylmgq(iq, input%groundstate%lmaxvr)
       End Do
+
+      ! Make ngq list for reduced set
+      If ((task .Eq. 440) .Or. (task .Eq. 441) .Or. &
+      &   (task .Eq. 445) .Or. (task .Eq. 446) .Or. &
+      &   (task .Eq. 450) .Or. (task .Eq. 451) .Or. &
+      &   (task .Eq. 499) .Or. (task .Eq. 700) .Or. &
+      &   (task .Eq. 710)) Then
+        
+        if(allocated(ngqr)) deallocate(ngqr)
+        allocate(ngqr(nqptr))
+        ngqr=0
+        do iq= 1, nqpt
+          iqr = iqmapr(ivq(1,iq), ivq(2,iq), ivq(3,iq))
+          ngqr(iqr) = ngq(iq)
+        end do
+        
+      end if
 !
 !---------------------------!
 !     Coulomb potential     !

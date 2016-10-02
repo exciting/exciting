@@ -9,6 +9,7 @@ subroutine screen
 ! !USES:
   use modxs, only: nwdf, unitout
   use m_genfilname
+  use m_filedel
 ! !DESCRIPTION:
 ! This is a wrapper subroutine that backs up the number of 
 ! $ \omega $ points and calls the {\tt df} subroutine. Afterwards

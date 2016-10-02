@@ -52,13 +52,13 @@ Module modxs
   !     q-point set variables    !
   !------------------------------!
   ! total number of q-points (reduced set)
-      Integer :: nqptr
+      Integer(4), target :: nqptr
   ! locations of q-points on integer grid (reduced set)
-      Integer, Allocatable :: ivqr (:, :)
+      Integer, Allocatable, target :: ivqr (:, :)
   ! map from non-reduced grid to reduced set (reduced set)
       Integer, Allocatable :: iqmapr (:, :, :)
   ! q-points in lattice coordinates (reduced set)
-      Real (8), Allocatable :: vqlr (:, :)
+      Real (8), Allocatable, target :: vqlr (:, :)
   ! q-points in Cartesian coordinates (reduced set)
       Real (8), Allocatable :: vqcr (:, :)
   ! q-point weights (reduced set)
@@ -88,7 +88,7 @@ Module modxs
   ! integer grid intervals for each direction for G-vectors
       Integer :: intgqv (3, 2)
   ! number of G+q-vectors
-      Integer, Allocatable :: ngq (:)
+      Integer, Allocatable, target:: ngq(:), ngqr(:)
   ! maximum number of G+q-vectors over all q-points
       Integer :: ngqmax
   ! maximum number of augmentation functions

@@ -12,6 +12,7 @@ subroutine dfq(iq)
   use mod_misc, only: task
   use mod_constants, only: zzero, zone, zi, krondelta
   use mod_kpoint, only: nkpt, wkpt
+  use mod_qpoint, only: nqpt, vql
   use mod_lattice, only: omega
   use modxs, only: tfxcbse, tscreen, bzsampl, wpari,&
                 & wparf, ngq, fnwtet, fnpmat,&
@@ -28,7 +29,6 @@ subroutine dfq(iq)
                 & bcbs
 #ifdef TETRA      
   use mod_eigenvalue_occupancy, only: nstsv, evalsv, efermi 
-  use mod_qpoint, only: vql
   use modtetra
 #endif
   use m_genwgrid
@@ -42,9 +42,10 @@ subroutine dfq(iq)
   use m_genfilname
   use m_b_ematqk
   use m_writecmplxparts
+  use m_putgeteps0
 ! !INPUT/OUTPUT PARAMETERS:
 ! In:
-! integer :: iq  ! q-point index
+! integer(4) :: iq  ! q-point index
 !
 ! !DESCRIPTION:
 !   Calculates the symmetrized Kohn-Sham response function $\tilde{\chi}^0_{\bf{GG'}}
@@ -103,14 +104,14 @@ subroutine dfq(iq)
   implicit none
 
   ! Arguments
-  integer, intent(in) :: iq
+  integer(4), intent(in) :: iq
 
   ! Local variables
   character(*), parameter :: thisnam = 'dfq'
-  character(256) :: fnscreen
+  character(256) :: fnscreen, fneps0
   complex(8) :: zt1, winv
   complex(8), allocatable :: w(:)
-  complex(8), allocatable :: chi0 (:, :, :)
+  complex(8), allocatable :: chi0(:, :, :)
   complex(8), allocatable :: chi0w(:, :, :, :), chi0h(:, :, :), eps0(:, :, :)
   complex(8), allocatable :: chi0hahc(:, :)
   complex(8), allocatable :: wou(:,:,:), wuo(:,:,:), wouw(:), wuow(:), wouh(:), wuoh(:)
@@ -119,11 +120,11 @@ subroutine dfq(iq)
   real(8), parameter :: epstetra = 1.d-8
   real(8) :: ta,tb,tc,td
   real(8), allocatable :: wreal(:) 
-  real(8), allocatable :: scis12 (:, :), scis21 (:, :)
+  real(8), allocatable :: scis12(:, :), scis21(:, :)
   real(8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot, wintv(2), wplas, wrel
-  integer :: n, j, i1, i2, ik, ikq, igq, iw, wi, wf, ist1, ist2, nwdfp
+  integer(4) :: n, j, i1, i2, ik, ikq, igq, iw, wi, wf, ist1, ist2, nwdfp
   integer(4) :: numpo
-  integer :: oct1, oct2, un
+  integer(4) :: oct1, oct2, un
   logical :: tq0
   type(bcbs) :: bc
 
@@ -178,6 +179,7 @@ subroutine dfq(iq)
     call genfilname(basename='TETW', iq=iq, appfilext=.true., filnam=fnwtet)
     call genfilname(basename='PMAT', appfilext=.true., filnam=fnpmat)
     call genfilname(basename='SCREEN', bzsampl=bzsampl, iq=iq, filnam=fnscreen)
+    call genfilname(basename='EPS0', iq=iq, filnam=fneps0)
     call genfilname(nodotpar=.true., basename='EMAT_TIMING', iq=iq,&
      & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
     call genfilname(nodotpar=.true., basename='X0_TIMING', iq=iq,&
@@ -314,7 +316,8 @@ subroutine dfq(iq)
   wintv(2)=input%xs%energywindow%intv(2)
   ! For calculation of static screening the first frequency point should be zero
   if(task.eq.430) wintv(1)=0.d0
-  ! Make evenly spaced i*omega grid.
+  ! Make evenly spaced complex valued omega grid.
+  !   acont defaults to false, broadening set to zero --> complex w grid = real w grid
   call genwgrid(nwdf, wintv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
 
   ! Real frequency grid
@@ -398,8 +401,8 @@ subroutine dfq(iq)
 
         ! Get ou
         Call ematqk1(iq, ik)
-        If ( .Not. allocated(xiuo)) allocate (xiuo(nst3, nst4, n))
-        If ( .Not. allocated(pmuo)) allocate (pmuo(3, nst3, nst4))
+        If( .Not. allocated(xiuo)) allocate(xiuo(nst3, nst4, n))
+        If( .Not. allocated(pmuo)) allocate(pmuo(3, nst3, nst4))
 
       else
 
@@ -496,7 +499,7 @@ subroutine dfq(iq)
       end do
       do j = 1, 3
         ! v^1/2(G)*p_uo(G) = v^1/2(G)*p_ou(G) ( ???? )
-        pmuo (j, :, :) = transpose(pmou(j, :, :))
+        pmuo(j, :, :) = transpose(pmou(j, :, :))
       end do
       ! (????)
       deuo(:, :) = transpose(deou(:, :))
@@ -578,7 +581,7 @@ subroutine dfq(iq)
         if( ist1 .eq. ist2) then 
           if(.not. input%xs%tddft%intraband .and. .not. input%xs%bse%beyond) then
             xiou(j, ist2, :) = zzero
-          else if (input%xs%bse%beyond .and. .not. input%xs%bse%intraband) then
+          else if(input%xs%bse%beyond .and. .not. input%xs%bse%intraband) then
             xiou(j, ist2, :) = zzero
           end if
           if(.not. input%xs%bse%beyond) then ! Old behaviour
@@ -839,7 +842,7 @@ subroutine dfq(iq)
     if(rank .eq. 0)&
       & call writedielt('DIELTENS0_NOSYM', 1, 0.d0, eps0(:, :, 1), 0)
 
-    ! Symmetrize the macroscopic dielectric tensor, w.r.t. the lattice
+    ! Symmetrize the head of \chi, w.r.t. the lattice
     do oct1 = 1, 3
       do oct2 = 1, 3
         call symt2app(oct1, oct2, nwdfp, symt2, chi0h, chi0hs(oct1, oct2, :))
@@ -861,19 +864,48 @@ subroutine dfq(iq)
 
   ! Write response function to file
   if(tscreen) then
-    ! Write out symmetrized dielectric function/tensor to text file
-    ! Write out static (\omega = 0) screening for current q
+    ! Write out symmetrized dielectric function/tensor 
+
+    ! Write out static (\omega = 0) screening for current q to text file
     call getunit(un)
     open(un, file=trim(fnscreen), form='formatted', action='write', status='replace')
     call putscreen(un, tq0, n, chi0(:, :, 1), chi0h(:, :, 1), chi0w(:, :, :, 1))
     close(un)
+
+    if(input%xs%bse%beyond) then 
+      ! Parallel output of q- and w-dependent \epsilon=1-\chi to direct access file
+      ! Make microscopic epsilon matrix
+      ! Head 
+      forall(iw=1:nwdf)
+        chi0h(:, :, iw) = dble(krondelta) - chi0h(:, :, iw)
+      end forall
+      ! Wings
+      chi0w = -chi0w
+      ! Body
+      chi0 = -chi0
+      forall(igq=1:n)
+        chi0(igq,igq,:) = zone + chi0(igq,igq,:)
+      end forall
+      ! Write to direct access file
+      do iw = wi, wf
+        ! It uses the reduced set, but the grid parameters are saved in 
+        ! mod_qpoint, where in the case of task >430 the non-reduces parameters 
+        ! are saved...
+        call puteps0(reduced=.false.,&
+          & iq=iq, iw=iw, w=wreal(iw-wi+1),&
+          & eps0=chi0(:,:,iw-wi+1), eps0wg=chi0w(:,:,:,iw-wi+1),&
+          & eps0hd=chi0h(:,:,iw-wi+1))
+      end do
+    end if
+    call barrier
   else
-    ! Parallel output of frequency dependend \chi to direct access file
+    ! Parallel output of frequency dependent \chi to direct access file
     do j = 0, procs - 1
       if(rank .eq. j) then
         do iw = wi, wf
           call putx0(tq0, iq, iw-wi+1, trim(fnchi0_t), '',&
-            & chi0(:, :, iw-wi+1), chi0w(:, :, :, iw-wi+1), chi0h(:, :, iw-wi+1))
+            & ch0=chi0(:, :, iw-wi+1), ch0wg=chi0w(:, :, :, iw-wi+1),&
+            & ch0hd=chi0h(:, :, iw-wi+1))
         end do
       end if
       call barrier

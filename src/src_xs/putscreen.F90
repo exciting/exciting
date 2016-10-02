@@ -2,8 +2,32 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
+!BOP
+! !ROUTINE: putscreen
+! !INTERFACE:
 subroutine putscreen(un, tq0, n, chi0, chi0h, chi0w)
+! !USES:
   use mod_constants, only: krondelta
+! !INPUT/OUTPUT PARAMETERS:
+! In:
+! integer :: un  ! Unit to wirte to 
+! logical :: tp0 ! Flag if iq is the q=0 q-point
+! integer :: n   ! Number of G+q vectros
+! complex(8) :: ch0(n,n)    ! Body of RPA density-density response matrix 
+! complex(8) :: ch0h(3,3)   ! Body of RPA density-density response matrix
+! complex(8) :: ch0w(n,2,3) ! Wings of RPA density-density response matrix 
+!
+! !DESCRIPTION:
+!   Writes the microscopic V-symmetrized Kohn-Sham dielectric function/tensor
+!   $\tilde{\epsilon}^0_{\bf{GG'}}({\bf q},\omega) = \delta_{\bf{GG'}}
+!   - \tilde{\chi}^0_{\bf{GG'}}({\bf q},\omega)$ for fixed frequency and q point
+!   to a human readable text file.
+!   Is used only for $\omega = 0$.
+!
+! !REVISION HISTORY:
+!   Added to documentation scheme. (Aurich)
+!EOP
+!BOC
 
   implicit none
 
@@ -15,18 +39,6 @@ subroutine putscreen(un, tq0, n, chi0, chi0h, chi0w)
   ! Local variables
   integer :: ig1, ig2, i, j
   real(8) :: r1
-
-  write(un,'("#",1x,a)') "RPA static screening (microscopic dielectric tensor/function)"
-  write(un,'("#",1x,a)') "frequency w = 0"
-  if(tq0) then
-    write(un,'("#",1x,a)') "q=0 : Head and wings of epsilon_GG'(q=0,w=0) present."
-  end if
-  write(un,'("#",1x,a)') "Positive integer index G+q vectors."
-  write(un,'("#",1x,a)') "Negative integer index cartesian directrions for head and wings."
-  write(un,'("#",1x,a)') "(Head has 2 catesian indices and no G+q index,"
-  write(un,'("#",1x,a)') "while the wings have one cartesian and one G+q index)."
-  write(un,'("#",1x,a6,1x,a8,1x,a23,1x,a23,1x,a23)')&
-    & "i1", "i2", "Re(esp_i1i2)", "Im(eps_i1i2)", "Abs(eps_i1i2)"
 
   ! Loop over G+q and G'+q indices
   do ig1 = 1, n
@@ -73,4 +85,18 @@ subroutine putscreen(un, tq0, n, chi0, chi0h, chi0w)
     end do
   end do
 
+  write(un,'("#",1x,a6,1x,a8,1x,a23,1x,a23,1x,a23)')&
+    & "i1", "i2", "Re(esp_i1i2)", "Im(eps_i1i2)", "Abs(eps_i1i2)"
+  write(un,'("#",1x,a)') "RPA static screening (microscopic dielectric tensor/function)"
+  write(un,'("#",1x,a)') "frequency w = 0"
+  if(tq0) then
+    write(un,'("#",1x,a)') "q=0 : Head and wings of epsilon_GG'(q=0,w=0) present."
+  end if
+  write(un,'("#",1x,a)') "Positive integer index G+q vectors."
+  write(un,'("#",1x,a)') "Negative integer index cartesian directrions for head and wings."
+  write(un,'("#",1x,a)') "(Head has 2 catesian indices and no G+q index,"
+  write(un,'("#",1x,a)') "while the wings have one cartesian and one G+q index)."
+
+
 end subroutine
+!EOC

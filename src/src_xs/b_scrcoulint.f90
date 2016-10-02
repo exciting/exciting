@@ -3,7 +3,7 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: scrcoulint
+! !ROUTINE: b_scrcoulint
 ! !INTERFACE:
 subroutine b_scrcoulint
 ! !USES:
@@ -37,6 +37,7 @@ subroutine b_scrcoulint
 !   Addition of explicit energy ranges for states below and above the Fermi
 !      level for the treatment of core excitations (using local orbitals).
 !      October 2010 (Weine Olovsson)
+!   Forked from scrcoulint.F90 and adapted for non TDA BSE. (Aurich)
 !EOP
 !BOC      
 

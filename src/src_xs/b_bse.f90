@@ -3,7 +3,7 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: bse
+! !ROUTINE: b_bse
 ! !INTERFACE:
 subroutine b_bse
 ! !USES:
@@ -84,6 +84,7 @@ subroutine b_bse
 !      level for the treatment of core excitations(using local orbitals).
 !      October 2010(Weine Olovsson)
 !   Added possibility to compute off-diagonal optical components, Dec 2013(Stefan Kontur, STK)
+!   Forked from bse.F90 and adapted for non TDA BSE. (Aurich)
 !EOP
 !BOC
 
@@ -293,6 +294,7 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
       call makeoszillatorstrength(oszsr, oszstra=oszsa)
     else
       call makeoszillatorstrength(oszsr)
+      !call makeoszillatorstrength_orig(oszsr)
     end if
 
     ! Write excition energies and oscillator strengths to 
@@ -729,6 +731,55 @@ contains
   end subroutine adddirect
   
 
+  subroutine makeoszillatorstrength_orig(oszstrr)
+    use m_getpmat
+    
+    implicit none
+
+    ! I/O
+    complex(8), intent(out) :: oszstrr(nexc,3)
+
+    ! Local
+    complex(8), allocatable :: pmou(:,:,:), rmat(:,:)
+    integer(4) :: io, iu
+    integer(4) :: a1, a2, oct1, iknr
+    
+    ! Allocate momentum matrix slice needed.
+    allocate(pmou(3, no, nu))
+    allocate(rmat(hamsize, 3))
+
+    do oct1 = 1, 3
+
+      do a1 = 1, hamsize
+        iknr = smap(a1,1)
+        ! Get momentum matrix
+        call getpmat(iknr, vkl,& 
+          & bcouabs%il1, bcouabs%iu1,&
+          & bcouabs%il2, bcouabs%iu2,&
+          & .true., 'PMAT_XS.OUT', pmou)
+        io=smap(a1,2)
+        iu=smap(a1,3)
+        rmat(a1, oct1) = pmou(oct1, io, iu)
+      end do
+
+      oszstrr(:, oct1)=zzero
+      do a1 = 1, hamsize
+        do a2 = 1, hamsize
+          iknr=smap(a2,1)
+          io=smap(a2,2)
+          iu=smap(a2,3)
+          oszstrr(a1, oct1) = oszstrr(a1, oct1)+bevecr(a2,a1)*rmat(a2,oct1)&
+            &/(evalsv(iu+bcouabs%il2-1,iknr)-evalsv(io+bcouabs%il1-1,iknr))
+        end do
+      end do
+
+    end do
+
+    deallocate(pmou)
+    deallocate(rmat)
+
+  end subroutine makeoszillatorstrength_orig
+
   subroutine makeoszillatorstrength(oszstrr, oszstra)
     use mod_constants, only: zone
     use m_getpmat
@@ -741,7 +792,7 @@ contains
 
     ! Local
     complex(8), allocatable :: pmou(:,:,:), rmat(:,:)
-    integer(4) :: io, iu, iuabs, ik, ikprev
+    integer(4) :: io, iu, ioabs, iuabs, ik, ikprev
     integer(4) :: a1
     
     ! Allocate momentum matrix slice needed.
@@ -756,8 +807,9 @@ contains
       ! Get indices
       ik = smap(a1,1)
       io = smap(a1,2)
-      iu = smap(a1,3)        ! Relative 
-      iuabs = iu + iuref - 1  ! Absolute
+      iu = smap(a1,3)               ! Relative 
+      ioabs = io + bcouabs%il1 - 1  ! Absolute
+      iuabs = iu + bcouabs%il2 - 1  ! Absolute
 
       ! Read momentum matrix slice for given k-point
       ! if not already present (k index varies the slowest in the smap)
@@ -769,21 +821,19 @@ contains
       end if
       ikprev = ik
 
-!! Discuss
       ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
       ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
       !   Where E are quasi-particle energies and e are KS energies.
       if(associated(input%gw)) then
          pmou(1:3,io,iu) = pmou(1:3,io,iu)&
-           &* (evalsv(iuabs,ik)-evalsv(io,ik))/(eval0(iuabs,ik)- eval0(io,ik))
+           &* (evalsv(iuabs,ik)-evalsv(ioabs,ik))/(eval0(iuabs,ik)- eval0(ioabs,ik))
       end if 
-
 
       ! Build complex conjugate R-matrix from p-matrix
       ! \tilde{R}^*_{u_{s1},o_{s1},k_{s1}},i = 
       ! (f_{o_{s1},k_{s1}}-f_{u_{s1},k_{s1}}) *
       !   P_{o_{s1},u_{s1},k_{s1}},i /(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}})
-      rmat(a1, :) = ofac(a1) * pmou(:, io, iu)/(evalsv(io, ik) - evalsv(iuabs, ik))
+      rmat(a1, :) = ofac(a1) * pmou(:, io, iu)/(evalsv(ioabs, ik) - evalsv(iuabs, ik))
 
     end do
 

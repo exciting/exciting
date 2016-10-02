@@ -43,6 +43,8 @@ subroutine df
   ! Save gamma-point variables
   call xssave0
   ! Initialize q-point set
+  ! For 'screen' task 430 this sets up the reduced q-point set
+  ! in mod_qpoint.
   call init2
 
   if(tscreen) then
@@ -65,7 +67,7 @@ subroutine df
   if(tscreen) then
     ! Only one frequency if BSE is used
     nwdf = 1
-    ! Use q point parallelization instead 
+    ! Use q point parallelization instead (reduced set)
     call genparidxran('q', nqpt)
   else
     call genparidxran('w', nwdf)
@@ -77,7 +79,7 @@ subroutine df
   ! Write out q-points
   call writeqpts
 
-  ! Loop over q-points ! For the moment only q=0 functional, i.e. iq = 1
+  ! Loop over q-points 
   qloop: do iq = qpari, qparf
 
     ! Default is "formfile"

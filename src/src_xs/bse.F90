@@ -101,7 +101,7 @@ Subroutine bse
       Integer, Parameter :: iqmt = 0
       Integer, Parameter :: noptcmp = 3
       Real (8), Parameter :: epsortho = 1.d-12
-      Character (256) :: fnexc, fnexcs, dotext
+      Character (256) :: fnexc, fnexcs, dotext, frmt
       Integer :: iknr, jknr, iqr, iq, iw, iv2 (3), s1, s2, hamsiz, &
      & nexc, ne
       Integer :: unexc, ist1, ist2, ist3, ist4, ikkp, iv, ic, &
@@ -355,7 +355,7 @@ Subroutine bse
                   Do ic = 1, nrnst3
                      s2 = hamidx (iv, ic, iknr, nrnst1, nrnst3)
                      oszs (s1, oct1) = oszs (s1, oct1) + bevec (s2, s1) * pmat (s2, oct1) &
-                    & * kdocc (s2) * 0.5 & 
+                    & * kdocc (s2) * 0.5d0 & 
                     & / (evalsv(ic+istl3-1, iknr)- &
                     evalsv(iv+sta1-1, iknr))
                   End Do
@@ -383,20 +383,29 @@ Subroutine bse
         &    scrtype=input%xs%screening%screentype, nar= .Not. &
         &    input%xs%bse%aresbse, filnam=fnexcs)
          endif
+
      ! oscillator strengths
          Call getunit (unexc)
          Open (unexc, File=fnexc, Form='formatted', Action='write', &
         & Status='replace')
-         Do s2 = 1, hamsiz
-            Write (unexc, '(i8, 6g18.10)') s2, &
-           & (beval(s2)+egap-dble(bsed)) * escale, &
-           & (beval(s2)+dble(bsed)) * escale, abs(oszs(s2, oct1)), dble(oszs(s2, oct1)), aimag(oszs(s2, oct1))
-         End Do
-         Write (unexc, '("# Nr.  E		      E - E_gap        |Osc.Str.|      Re      Im")&
-        &')
-         Write (unexc, '("# E_gap : ", g18.10)') egap * escale
-         If (input%xs%tevout) write (unexc, '("# energies are in electron volts")')
+         frmt='(a1,a7,1x,a23,1x,a23,1x,a23,1x,a23,1x,a23)'
+         write(unexc, frmt) "#", "Nr.",&
+           & "E",&
+           & "E-E_bsegap",&
+           & "|Osc. Str. Res.|",&
+           & "Re(Osc. Str. Res.)",&
+           & "Im(Osc. Str. Res.)"
+         frmt='(I8,1x,E23.16,1x,E23.16,1x,E23.16,1x,E23.16,1x,E23.16)'
+         do s2 = 1, hamsiz
+           write(unexc, frmt) s2,&
+             & (beval(s2)+egap-dble(bsed))*escale,&
+             & (beval(s2)+dble(bsed))*escale,&
+             & abs(oszs(s2, oct1)),&
+             & dble(oszs(s2, oct1)),&
+             & aimag(oszs(s2, oct1))
+         end do
          Close (unexc)
+
      ! oscillator strengths sorted
          oszsa(:) = Abs (oszs(:, oct1))
          Call sortidx (hamsiz, oszsa, sor)

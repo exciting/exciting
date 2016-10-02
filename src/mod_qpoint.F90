@@ -12,17 +12,17 @@ Module mod_qpoint
 !     q-point set variables     !
 !-------------------------------!
 ! q-point grid sizes
-      Integer :: ngridq (3)
+      Integer(4) :: ngridq (3)
 ! total number of q-points
-      Integer :: nqpt
+      Integer(4), target :: nqpt
 ! reduceq is .true. if q-points are to be reduced (with crystal symmetries)
 !replaced by inputstructurelogical::reduceq
 ! locations of q-points on integer grid
-      Integer, Allocatable :: ivq (:, :)
+      Integer(4), Allocatable, target :: ivq (:, :)
 ! map from non-reduced grid to reduced set
-      Integer, Allocatable :: iqmap (:, :, :)
+      Integer(4), Allocatable :: iqmap (:, :, :)
 ! q-points in lattice coordinates
-      Real (8), Allocatable :: vql (:, :)
+      Real (8), Allocatable, target :: vql (:, :)
 ! q-points in Cartesian coordinates
       Real (8), Allocatable :: vqc (:, :)
 ! q-point weights

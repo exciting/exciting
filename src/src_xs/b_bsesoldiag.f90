@@ -3,7 +3,7 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: bsesoldiag
+! !ROUTINE: b_bsesoldiag
 ! !INTERFACE:
 subroutine b_bsesoldiag(solsize, hamsize, ham, eval, evec)
 ! !INPUT/OUTPUT PARAMETERS:
@@ -19,6 +19,11 @@ subroutine b_bsesoldiag(solsize, hamsize, ham, eval, evec)
 ! !DESCRIPTION:
 !   Takes a upper triangular part of an hermitian matrix and finds
 !   eigenvalues and eigenvectors using the lapack routine {\tt zheevr}.
+! 
+! !REVISION HISTORY:
+!   Added to documentation scheme. (Aurich)
+!EOP
+!BOC
 
   implicit none
 
@@ -117,4 +122,4 @@ subroutine b_bsesoldiag(solsize, hamsize, ham, eval, evec)
     end subroutine workspacequery
 
 end subroutine b_bsesoldiag
-
+!EOC

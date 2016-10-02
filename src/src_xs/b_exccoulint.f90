@@ -3,7 +3,7 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: exccoulint
+! !ROUTINE: b_exccoulint
 ! !INTERFACE:
 subroutine b_exccoulint
 ! !USES:
@@ -34,6 +34,7 @@ subroutine b_exccoulint
 !   Addition of explicit energy ranges for states below and above the Fermi
 !   level for the treatment of core excitations(using local orbitals).
 !   October 2010 (Weine Olovsson)
+!   Forked from exccoulint.F90 and adapted for non TDA BSE. (Aurich)
 !EOP
 !BOC      
 
