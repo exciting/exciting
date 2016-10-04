@@ -142,8 +142,6 @@ subroutine xstasklauncher
 
   else if(trim(input%xs%xstype)=="BSE" .and. .not. (input%xs%bse%xas .or. input%xs%bse%beyond)) then
 
-    write(*,*) "Hi, this is xstasklauncher for bse"
-
     ! STK
     ! Apply double grid technique if requested
     if(any(input%xs%bse%ngridksub .gt. 1)) then
@@ -237,8 +235,6 @@ subroutine xstasklauncher
     endif
 
   else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%xas) then
-
-  write(*,*) "Hi, this is xstasklauncher for xas"
 
     ! STK
     ! Apply double grid technique if requested
@@ -340,15 +336,12 @@ subroutine xstasklauncher
 
   else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%beyond==.true.) then
 
-  write(*,*) "Hi, this is xstasklauncher for beyond-tda-bse"
-
     !! Removed dubble grid code, since no-one knows how it works.
     !! Removed tetra code, since no-one knows if it works.
 
     ! Task 301 corresponds to "xsgeneigvec" plan
     ! One shot GS calculation with xs%ngridk, xs%nempty and potential xs%vkloff.
     task = 301
-    write(*,*) "Hi, this is xstasklauncher: statting xsgeneigvec"
     call xsinit
     call xsgeneigvec
     call xsfinit
@@ -356,7 +349,6 @@ subroutine xstasklauncher
     ! Task 320 corresponds to "writepmatxs" plan
     ! Calculates the momentum matrix elements for the xs GS calculation.
     task = 320
-    write(*,*) "Hi, this is xstasklauncher: statting writepmatxs"
     call xsinit
     call writepmatxs
     call xsfinit
@@ -365,14 +357,12 @@ subroutine xstasklauncher
     ! One shot GS calculation with more empty states xs%screening%nempty 
     ! but otherwise identical parameters as "xsgeneigvec".
     task = 401
-    write(*,*) "Hi, this is xstasklauncher: statting scrgeneigvec"
     call xsinit
     call scrgeneigvec ! Calls xsgeneigvec 
     call xsfinit
 
     ! Task 420 corresponds to "scrwritepmat" plan
     task = 420
-    write(*,*) "Hi, this is xstasklauncher: statting scrwritepmat"
     call xsinit
     call scrwritepmat ! Calls writepmatxs to write PMAT_XS.OUT
     call xsfinit
@@ -380,14 +370,12 @@ subroutine xstasklauncher
     if(input%xs%screening%do .eq. "fromscratch") then
       ! Task 430 corresponds to "screen" plan
       task = 430
-      write(*,*) "Hi, this is xstasklauncher: statting screen"
       call xsinit
       call screen
       call xsfinit
 
       ! Task 440 corresponds to "scrcoulint" plan
       task = 440
-      write(*,*) "Hi, this is xstasklauncher: statting b_scrcoulint"
       call xsinit
       call b_scrcoulint
       call xsfinit
@@ -395,14 +383,12 @@ subroutine xstasklauncher
 
     ! Task 441 corresponds to "exccoulint" plan
     task = 441
-    write(*,*) "Hi, this is xstasklauncher: statting b_exccoulint"
     call xsinit
     call b_exccoulint
     call xsfinit
 
     ! Task 445 corresponds to "bse" plan
     task = 445
-    write(*,*) "Hi, this is xstasklauncher: statting b_bse"
     call xsinit
     call b_bse
     call xsfinit
