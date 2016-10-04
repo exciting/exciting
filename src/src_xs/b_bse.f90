@@ -251,7 +251,7 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
       else
         write(unitout, '("Info(bse): Diagonalizing RR Hamiltonian (TDA)")')
         write(unitout, '("Info(bse): Invoking lapack routine ZHEEVR")')
-        write(unitout, '(" Number of requested solutions : ", i8)') nexc
+        write(unitout, '("  Number of requested solutions : ", i8)') nexc
       end if
     end if
 
@@ -282,8 +282,8 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
     ! Deallocate BSE-Hamiltonian
     deallocate(ham)
 
-    write(unitout, '(" Eigen solutions found.")')
-    write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
+    write(unitout, '("  Eigen solutions found.")')
+    write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
     write(unitout,*)
 
     ! Calculate oscillator strengths.
@@ -293,12 +293,14 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
     end if
 
     write(unitout, '("Making oszillator strengths.")')
+    call timesec(ts0)
     if(fcoup) then 
       call makeoszillatorstrength(oszsr, oszstra=oszsa)
     else
       call makeoszillatorstrength(oszsr)
-      !call makeoszillatorstrength_orig(oszsr)
     end if
+    call timesec(ts1)
+    write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
 
     ! Write excition energies and oscillator strengths to 
     ! text file. 
@@ -322,6 +324,7 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
       & input%xs%tddft%acont, 0.d0, w_real=w)
 
     write(unitout, '("Making spectrum.")')
+    call timesec(ts0)
     ! Calculate lattice symmetrized spectrum.
     if(fcoup) then 
       write(unitout, '("  Using general formula.")')
@@ -330,13 +333,14 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
       write(unitout, '("  Using TDA formula.")')
       call makespectrum_tda(nw, w, symspectr)
     end if
-    write(unitout, '("Spectrum made.")')
+    call timesec(ts1)
+    write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
 
     write(unitout, '("Writing derived quantities.")')
     ! Generate and write derived optical quantities
     iq = 1
     call writederived(iq, symspectr, nw, w)
-    write(unitout, '("Derived quantities written.")')
+    write(unitout, '("  Derived quantities written.")')
 
     ! Store excitonic energies and wave functions to file
     if(associated(input%xs%storeexcitons)) then
@@ -354,9 +358,7 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
     end if
     if(associated(input%gw)) deallocate(eval0)
 
-    write(unitout, '("(b_bse): Barrier at rank ",i2)'), rank
     call barrier
-    write(unitout, '("(b_bse): Done at rank ",i2)'), rank
 
   else mpirank
 
@@ -741,8 +743,446 @@ contains
 
   end subroutine adddirect
   
+  subroutine makeoszillatorstrength(oszstrr, oszstra)
+    use mod_constants, only: zone
+    use m_getpmat
+    
+    implicit none
 
-  subroutine makeoszillatorstrength_orig(oszstrr)
+    ! I/O
+    complex(8), intent(out) :: oszstrr(nexc,3)
+    complex(8), intent(out), optional :: oszstra(nexc, 3)
+
+    ! Local
+    real(8) :: t1, t0
+    complex(8), allocatable :: pmou(:,:,:), rmat(:,:)
+    integer(4) :: io, iu, ioabs, iuabs, ik, ikprev
+    integer(4) :: a1
+    
+    ! Allocate momentum matrix slice needed.
+    allocate(pmou(3, no, nu))
+    allocate(rmat(hamsize, 3))
+
+    ! Loop over 3 directions
+    ikprev = -1
+
+    write(unitout, '("  Building Rmat.")')
+    call timesec(t0)
+    do a1 = 1, hamsize
+      
+      ! Get indices
+      ik = smap(a1,1)
+      io = smap(a1,2)
+      iu = smap(a1,3)               ! Relative 
+      ioabs = io + bcouabs%il1 - 1  ! Absolute
+      iuabs = iu + bcouabs%il2 - 1  ! Absolute
+
+      ! Read momentum matrix slice for given k-point
+      ! if not already present (k index varies the slowest in the smap)
+      if(ik /= ikprev) then 
+        call getpmat(ik, vkl,& 
+          & bcouabs%il1, bcouabs%iu1,&
+          & bcouabs%il2, bcouabs%iu2,&
+          & .true., 'PMAT_XS.OUT', pmou)
+      end if
+      ikprev = ik
+
+      ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
+      ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
+      !   Where E are quasi-particle energies and e are KS energies.
+      if(associated(input%gw)) then
+         pmou(1:3,io,iu) = pmou(1:3,io,iu)&
+           &* (evalsv(iuabs,ik)-evalsv(ioabs,ik))/(eval0(iuabs,ik)- eval0(ioabs,ik))
+      end if 
+
+      ! Build complex conjugate R-matrix from p-matrix
+      ! \tilde{R}^*_{u_{s1},o_{s1},k_{s1}},i = 
+      ! (f_{o_{s1},k_{s1}}-f_{u_{s1},k_{s1}}) *
+      !   P_{o_{s1},u_{s1},k_{s1}},i /(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}})
+      rmat(a1, :) = ofac(a1) * pmou(:, io, iu)/(evalsv(ioabs, ik) - evalsv(iuabs, ik))
+
+    end do
+    ! Momentum matrix elements no longer needed
+    deallocate(pmou)
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+    write(unitout, '("  Building resonant oscillator strengths.")')
+    call timesec(t0)
+    oszstrr = zzero
+    !! Resonant oscillator strengths
+    ! t^R_\lambda,i = < \tilde{R}^i | X_\lambda> =
+    ! \Sum_{s1} f_{s1} R^*_{{u_{s1} o_{s1} k_{s1}},i} X_{o_{s1} u_{s1} k_{s1}},\lambda= 
+    ! \Sum_{s1} f_{s1} P^*_{{u_{s1} o_{s1} k_{s1}},i} / 
+    !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda= 
+    ! \Sum_{s1} f_{s1} P_{{o_{s1} u_{s1} k_{s1}},i} / 
+    !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda
+    call zgemm('t','n', nexc, 3, hamsize,&
+      & zone, bevecr(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+    if(fcoup .and. present(oszstra)) then
+      write(unitout, '("  Building anti-resonant oscillator strengths.")')
+      call timesec(t0)
+      oszstra = zzero
+      !! Anti-resonant oscillator strengths
+      ! t^A_\lambda,i = < \tilde{R}^{i*} | Y_\lambda> =
+      ! \Sum_{s1} f_{s1} R_{{u_{s1} o_{s1} k_{s1}},i} Y_{o_{s1} u_{s1} k_{s1}},\lambda= 
+      ! \Sum_{s1} f_{s1} P_{{u_{s1} o_{s1} k_{s1}},i} / 
+      !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda= 
+      ! \Sum_{s1} f_{s1} P^*_{{o_{s1} u_{s1} k_{s1}},i} / i
+      !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda
+      call zgemm('t','n', nexc, 3, hamsize,&
+        & zone, bevecr(hamsize+1:2*hamsize,1:nexc), hamsize,&
+        & conjg(rmat), hamsize, zzero, oszstra, nexc)
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    end if
+
+    deallocate(rmat)
+
+  end subroutine makeoszillatorstrength
+
+  subroutine makespectrum(nfreq, freq, spectrum)
+    use mod_lattice, only: omega
+    use mod_constants, only: zone, zi, pi
+    use modxs, only: symt2
+    use invert
+    implicit none
+
+    ! I/O
+    integer(4), intent(in) :: nfreq
+    real(8), intent(in) :: freq(nfreq)
+    complex(8), intent(out) :: spectrum(3,3,nfreq)
+
+    ! Local
+    integer(4) :: i, j, o1, o2
+    real(8) :: t1,t0
+    complex(8) :: buf(3,3,nfreq)
+    complex(8), allocatable :: ns_spectr(:,:)
+    complex(8), allocatable :: overlap(:,:), invoverlap(:,:)
+    complex(8), allocatable :: amat(:,:), bmat(:,:), enw(:,:), o(:,:), op(:,:)
+
+    ! Calculate overlap matrix between right eigenvectors
+    write(unitout, '("  Making overlap matrix between right EVs.")')
+    call timesec(t0)
+    allocate(overlap(nexc,nexc))
+    call zgemm('C','N', nexc, nexc, 2*hamsize, zone,&
+      & bevecr, 2*hamsize, bevecr, 2*hamsize, zzero, overlap, nexc)
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+    ! Invert overlap matrix
+    write(unitout, '("  Inverting said overlap matrix.")')
+    call timesec(t0)
+    allocate(invoverlap(nexc,nexc))
+    call zinvert_lapack(overlap, invoverlap)
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    ! Test output of overlap matrices
+    if(fwp) then
+      call writecmplxparts('Q',dble(overlap),immat=aimag(overlap))
+      call writecmplxparts('invQ',dble(invoverlap),immat=aimag(invoverlap))
+    end if
+    ! Acctual overlap no longer needed
+    deallocate(overlap)
+    
+    ! Make combined resonan-anti-resonant oscillator strengths
+    allocate(o(nexc,3), op(nexc,3))
+    o = oszsr+oszsa
+    op = conjg(oszsr-oszsa)
+
+    write(unitout, '("  Making energy denominators ENW.")')
+    call timesec(t0)
+    ! Make energy denominator for each frequency 
+    allocate(enw(nfreq, nexc))
+    do i = 1, nexc
+      do j = 1, nfreq
+        enw(j,i) = zone/(bevalre(i)-freq(j)-zi*input%xs%broad)
+      end do
+    end do
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    
+    write(unitout, '("  Making helper matrix amat.")')
+    ! Make helper matrices 
+    ! A_\lambda,i = \Sum_\lambda' Q^-1_\lambda,\lambda' \tilde{O}^*_\lambda',i
+    call timesec(t0)
+    allocate(amat(nexc,3))
+    call zgemm('N','N', nexc, 3, nexc, zone, invoverlap, nexc,&
+      & op, nexc, zzero, amat, nexc)
+    ! Inverse of overlap no longer need
+    deallocate(invoverlap)
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+    write(unitout, '("  Making helper matrix bmat.")')
+    ! B_\lambda,ij = A_\lambda,i*O_\lambda,j
+    call timesec(t0)
+    if(input%xs%dfoffdiag) then
+      allocate(bmat(nexc,9))
+      do o1 = 1, 3
+        do o2 = 1, 3
+          j = o2 + (o1-1)*3
+          bmat(:,j) = amat(:,o1)*o(:,o2)
+        end do
+      end do
+    else
+      allocate(bmat(nexc,3))
+      do o1 = 1, 3
+        bmat(:,o1) = amat(:,o1)*o(:,o1)
+      end do
+    end if
+    ! amat not needed anymore
+    deallocate(amat)
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+         
+    write(unitout, '("  Calculating spectrum.")')
+    ! Make non-lattice-symmetrized spectrum
+    call timesec(t0)
+    if(input%xs%dfoffdiag) then
+      allocate(ns_spectr(nfreq,9))
+      call zgemm('N','N', nfreq, 9, nexc, zone, enw, nfreq,&
+        & bmat, nexc, zzero, ns_spectr, nfreq)
+      ns_spectr = ns_spectr*8.d0*pi/omega/nkptnr
+      ns_spectr(:,1) = zone + ns_spectr(:,1)
+      ns_spectr(:,4) = zone + ns_spectr(:,4)
+      ns_spectr(:,7) = zone + ns_spectr(:,7)
+      ! Write to buffer for symmetry routine
+      buf=zzero
+      do o1=1,3
+        do o2=1,3
+          j = o2 + (o1-1)*3
+          buf(o1,o2,:) = ns_spectr(:,j)
+        end do
+      end do
+    else
+      allocate(ns_spectr(nfreq,3))
+      call zgemm('N','N', nfreq, 3, nexc, zone, enw, nfreq,&
+        & bmat, nexc, zzero, ns_spectr, nfreq)
+      ns_spectr = zone + ns_spectr*8.d0*pi/omega/nkptnr
+      ! Write to buffer for symmetry routine
+      buf=zzero
+      do o1=1,3
+        buf(o1,o1,:) = ns_spectr(:,o1)
+      end do
+    end if
+    ! Helper no longer needed
+    deallocate(bmat,enw,ns_spectr)
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+    write(unitout, '("  Symmetrizing spectrum.")')
+    ! Symmetrize spectrum 
+    call timesec(t0)
+    spectrum = zzero
+    do o1=1,3
+      do o2=1,3
+        ! Symmetrize the macroscopic dielectric tensor
+        call symt2app(o1, o2, nfreq, symt2, buf, spectrum(o1,o2,:))
+      end do 
+    end do
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+  end subroutine makespectrum
+
+  subroutine makespectrum_tda(nfreq, freq, spectrum)
+    use mod_lattice, only: omega
+    use mod_constants, only: zone, zi, pi
+    use modxs, only: symt2
+    use invert
+    implicit none
+
+    ! I/O
+    integer(4), intent(in) :: nfreq
+    real(8), intent(in) :: freq(nfreq)
+    complex(8), intent(out) :: spectrum(3,3,nfreq)
+
+    ! Local
+    integer(4) :: i, j, o1, o2
+    real(8) :: t1, t0
+    complex(8) :: buf(3,3,nfreq)
+    complex(8), allocatable :: ns_spectr(:,:)
+    complex(8), allocatable :: enwr(:,:), enwa(:,:), bmatr(:,:)
+
+    write(unitout, '("  Making energy denominators ENW.")')
+    call timesec(t0)
+    ! Shift energies back to absolute values.
+    bevalre = bevalre + egap - bsed
+    ! Make energy denominator for each frequency (resonant & anti-resonant) 
+    allocate(enwr(nfreq, nexc))
+    do i = 1, nexc
+      do j = 1, nfreq
+        enwr(j,i) = zone/(bevalre(i)-freq(j)-zi*input%xs%broad)
+      end do
+    end do
+    allocate(enwa(nfreq, nexc))
+    do i = 1, nexc
+      do j = 1, nfreq
+        enwa(j,i) = zone/(bevalre(i)+freq(j)+zi*input%xs%broad)
+      end do
+    end do
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    
+    write(unitout, '("  Making helper matrix bmat.")')
+    call timesec(t0)
+    if(input%xs%dfoffdiag) then
+      allocate(bmatr(nexc,9))
+      do o1 = 1, 3
+        do o2 = 1, 3
+          j = o2 + (o1-1)*3
+          bmatr(:,j) = oszsr(:,o1)*conjg(oszsr(:,o2))
+        end do
+      end do
+    else
+      allocate(bmatr(nexc,3))
+      do o1 = 1, 3
+        bmatr(:,o1) = oszsr(:,o1)*conjg(oszsr(:,o1))
+      end do
+    end if
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+         
+    write(unitout, '("  Calculating spectrum.")')
+    ! Make non-lattice-symmetrized spectrum
+    call timesec(t0)
+    if(input%xs%dfoffdiag) then
+      allocate(ns_spectr(nfreq,9))
+      call zgemm('N','N', nfreq, 9, nexc, zone, enwr, nfreq,&
+        & bmatr, nexc, zzero, ns_spectr, nfreq)
+      call zgemm('N','N', nfreq, 9, nexc, zone, enwa, nfreq,&
+        & conjg(bmatr), nexc, zone, ns_spectr, nfreq)
+      ns_spectr = ns_spectr*8.d0*pi/omega/nkptnr
+      ns_spectr(:,1) = zone + ns_spectr(:,1)
+      ns_spectr(:,4) = zone + ns_spectr(:,4)
+      ns_spectr(:,7) = zone + ns_spectr(:,7)
+      ! Write to buffer for symmetry routine
+      buf=zzero
+      do o1=1,3
+        do o2=1,3
+          j = o2 + (o1-1)*3
+          buf(o1,o2,:) = ns_spectr(:,j)
+        end do
+      end do
+    else
+      allocate(ns_spectr(nfreq,3))
+      call zgemm('N','N', nfreq, 3, nexc, zone, enwr, nfreq,&
+        & bmatr, nexc, zzero, ns_spectr, nfreq)
+      call zgemm('N','N', nfreq, 3, nexc, zone, enwa, nfreq,&
+        & conjg(bmatr), nexc, zone, ns_spectr, nfreq)
+      ns_spectr = zone + ns_spectr*8.d0*pi/omega/nkptnr
+      ! Write to buffer for symmetry routine
+      buf=zzero
+      do o1=1,3
+        buf(o1,o1,:) = ns_spectr(:,o1)
+      end do
+    end if
+    ! Helper no longer needed
+    deallocate(bmatr, enwr, enwa, ns_spectr)
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+    write(unitout, '("  Symmetrizing spectrum.")')
+    ! Symmetrize spectrum 
+    call timesec(t0)
+    spectrum = zzero
+    do o1=1,3
+      do o2=1,3
+        ! Symmetrize the macroscopic dielectric tensor
+        call symt2app(o1, o2, nfreq, symt2, buf, spectrum(o1,o2,:))
+      end do 
+    end do
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+  end subroutine makespectrum_tda
+
+
+!!============ old versions
+  subroutine makespectrum_tda_old(nfreq, freq, spectrum)
+    use mod_lattice, only: omega
+    use mod_constants, only: zi, pi
+    use modxs, only: symt2
+    implicit none
+
+    ! I/O
+    integer(4), intent(in) :: nfreq
+    real(8), intent(in) :: freq(nfreq)
+    complex(8), intent(out) :: spectrum(3,3,nfreq)
+
+    ! Local
+    integer(4) :: o1, o2, ol, ou, iw
+    integer(4) :: lambda
+    real(8) :: eextot
+    complex(8) :: buf(3,3,nw)
+    complex(8) :: spectr(nw)
+
+    ! External functions
+    integer(4), external :: l2int
+
+    ! Make non-lattice-symmetrized spectrum
+    buf = zzero 
+
+    do o1 = 1, 3
+
+      ! Stk: compute off-diagonal optical components if requested
+      if(input%xs%dfoffdiag) then
+        ol = 1
+        ou = 3
+      else
+        ol = o1
+        ou = o1
+      end if
+
+      do o2 = ol, ou
+
+        spectr(:) = zzero
+
+        do iw = 1, nfreq
+          do lambda = 1, nexc
+            
+            ! Get total energy of excition, i.e. add gap energy
+            eextot = bevalre(lambda) + egap
+!! Discuss what is bsed and does anyone use it
+            ! Substract bsed part (defautl is is zero)
+            eextot = eextot - bsed
+
+            ! Lorentzian line shape
+            ! Resonant part
+            spectr(iw) = spectr(iw) + oszsr(lambda, o1) * conjg(oszsr(lambda, o2))&
+              &* (1.d0/(eextot-freq(iw)-zi*input%xs%broad))             
+            ! Anti-resonant contribution (Default is true)
+!! Discuss the conjugation was the other way around originally
+            if(input%xs%bse%aresbse) spectr(iw) = spectr(iw)&
+              &+ conjg(oszsr(lambda, o1)) * oszsr(lambda, o2)&
+              &* (1.d0/(eextot+freq(iw)+zi*input%xs%broad))
+
+          end do
+        end do
+
+        spectr(:) = l2int(o1 .eq. o2) * 1.d0 + spectr(:) * 8.d0*pi/omega/nkptnr
+
+        buf(o1,o2,:)=spectr(:)
+
+      end do
+    end do
+
+
+    ! Symmetrize spectrum 
+    spectrum = zzero
+    do o1=1,3
+      do o2=1,3
+
+        ! Symmetrize the macroscopic dielectric tensor
+        call symt2app(o1, o2, nfreq, symt2, buf, spectrum(o1,o2,:))
+
+      end do 
+    end do
+  end subroutine makespectrum_tda_old
+
+  subroutine makeoszillatorstrength_old(oszstrr)
     use m_getpmat
     
     implicit none
@@ -789,213 +1229,9 @@ contains
     deallocate(pmou)
     deallocate(rmat)
 
-  end subroutine makeoszillatorstrength_orig
+  end subroutine makeoszillatorstrength_old
 
-  subroutine makeoszillatorstrength(oszstrr, oszstra)
-    use mod_constants, only: zone
-    use m_getpmat
-    
-    implicit none
-
-    ! I/O
-    complex(8), intent(out) :: oszstrr(nexc,3)
-    complex(8), intent(out), optional :: oszstra(nexc, 3)
-
-    ! Local
-    complex(8), allocatable :: pmou(:,:,:), rmat(:,:)
-    integer(4) :: io, iu, ioabs, iuabs, ik, ikprev
-    integer(4) :: a1
-    
-    ! Allocate momentum matrix slice needed.
-    allocate(pmou(3, no, nu))
-    allocate(rmat(hamsize, 3))
-
-    ! Loop over 3 directions
-    ikprev = -1
-
-    do a1 = 1, hamsize
-      
-      ! Get indices
-      ik = smap(a1,1)
-      io = smap(a1,2)
-      iu = smap(a1,3)               ! Relative 
-      ioabs = io + bcouabs%il1 - 1  ! Absolute
-      iuabs = iu + bcouabs%il2 - 1  ! Absolute
-
-      ! Read momentum matrix slice for given k-point
-      ! if not already present (k index varies the slowest in the smap)
-      if(ik /= ikprev) then 
-        call getpmat(ik, vkl,& 
-          & bcouabs%il1, bcouabs%iu1,&
-          & bcouabs%il2, bcouabs%iu2,&
-          & .true., 'PMAT_XS.OUT', pmou)
-      end if
-      ikprev = ik
-
-      ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
-      ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
-      !   Where E are quasi-particle energies and e are KS energies.
-      if(associated(input%gw)) then
-         pmou(1:3,io,iu) = pmou(1:3,io,iu)&
-           &* (evalsv(iuabs,ik)-evalsv(ioabs,ik))/(eval0(iuabs,ik)- eval0(ioabs,ik))
-      end if 
-
-      ! Build complex conjugate R-matrix from p-matrix
-      ! \tilde{R}^*_{u_{s1},o_{s1},k_{s1}},i = 
-      ! (f_{o_{s1},k_{s1}}-f_{u_{s1},k_{s1}}) *
-      !   P_{o_{s1},u_{s1},k_{s1}},i /(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}})
-      rmat(a1, :) = ofac(a1) * pmou(:, io, iu)/(evalsv(ioabs, ik) - evalsv(iuabs, ik))
-
-    end do
-
-    ! Momentum matrix elements no longer needed
-    deallocate(pmou)
-
-    oszstrr = zzero
-
-    !! Resonant oscillator strengths
-    ! t^R_\lambda,i = < \tilde{R}^i | X_\lambda> =
-    ! \Sum_{s1} f_{s1} R^*_{{u_{s1} o_{s1} k_{s1}},i} X_{o_{s1} u_{s1} k_{s1}},\lambda= 
-    ! \Sum_{s1} f_{s1} P^*_{{u_{s1} o_{s1} k_{s1}},i} / 
-    !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda= 
-    ! \Sum_{s1} f_{s1} P_{{o_{s1} u_{s1} k_{s1}},i} / 
-    !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda
-    call zgemm('t','n', nexc, 3, hamsize,&
-      & zone, bevecr(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
-
-    if(fcoup .and. present(oszstra)) then
-      oszstra = zzero
-      !! Anti-resonant oscillator strengths
-      ! t^A_\lambda,i = < \tilde{R}^{i*} | Y_\lambda> =
-      ! \Sum_{s1} f_{s1} R_{{u_{s1} o_{s1} k_{s1}},i} Y_{o_{s1} u_{s1} k_{s1}},\lambda= 
-      ! \Sum_{s1} f_{s1} P_{{u_{s1} o_{s1} k_{s1}},i} / 
-      !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda= 
-      ! \Sum_{s1} f_{s1} P^*_{{o_{s1} u_{s1} k_{s1}},i} / i
-      !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda
-      call zgemm('t','n', nexc, 3, hamsize,&
-        & zone, bevecr(hamsize+1:2*hamsize,1:nexc), hamsize,&
-        & conjg(rmat), hamsize, zzero, oszstra, nexc)
-    end if
-
-    deallocate(rmat)
-
-  end subroutine makeoszillatorstrength
-
-  subroutine makespectrum_fast(nfreq, freq, spectrum)
-    use mod_lattice, only: omega
-    use mod_constants, only: zone, zi, pi
-    use modxs, only: symt2
-    use invert
-    implicit none
-
-    ! I/O
-    integer(4), intent(in) :: nfreq
-    real(8), intent(in) :: freq(nfreq)
-    complex(8), intent(out) :: spectrum(3,3,nfreq)
-
-    ! Local
-    integer(4) :: i, j, o1, o2
-    complex(8) :: buf(3,3,nfreq)
-    complex(8), allocatable :: ns_spectr(:,:)
-    complex(8), allocatable :: overlap(:,:), invoverlap(:,:)
-    complex(8), allocatable :: A(:,:), B(:,:), enw(:,:), o(:,:), op(:,:)
-
-    ! Calculate overlap matrix between right eigenvectors
-    write(*, '("  Making overlap matrix between right EVs.")')
-    allocate(overlap(nexc,nexc))
-    call zgemm('C','N', nexc, nexc, 2*hamsize, zone,&
-      & bevecr, 2*hamsize, bevecr, 2*hamsize, zzero, overlap, nexc)
-
-    ! Invert overlap matrix
-    write(*, '("  Inverting said overlap matrix.")')
-    allocate(invoverlap(nexc,nexc))
-    call zinvert_lapack(overlap, invoverlap)
-    ! Test output of overlap matrices
-    if(fwp) then
-      call writecmplxparts('Q',dble(overlap),immat=aimag(overlap))
-      call writecmplxparts('invQ',dble(invoverlap),immat=aimag(invoverlap))
-    end if
-    ! Acctual overlap no longer needed
-    deallocate(overlap)
-    
-    ! Make combined resonan-anti-resonant oscillator strengths
-    allocate(o(nexc,3), op(nexc,3))
-    o = oszsr+oszsa
-    op = conjg(oszsr-oszsa)
-
-    write(*, '("  Making energy denominators ENW.")')
-    ! Make energy denominator for each frequency 
-    allocate(enw(nfreq, nexc))
-    do i = 1, nexc
-      enw(:,i) = zone/(bevalre(i)-freq(:)-zi*input%xs%broad)
-    end do
-    
-    write(*, '("  Making helper matrix A.")')
-    ! Make helper matrices 
-    ! A_\lambda,i = \Sum_\lambda' Q^-1_\lambda,\lambda' \tilde{O}^*_\lambda',i
-    allocate(A(nexc,3))
-    call zgemm('N','N', nexc, 3, nexc, zone, invoverlap, nexc,&
-      & op, nexc, zzero, A, nexc)
-    ! Inverse of overlap no longer need
-    deallocate(invoverlap)
-
-    write(*, '("  Making helper matrix B.")')
-    ! B_\lambda,ij = A_\lambda,i*O_\lambda,j
-    if(input%xs%dfoffdiag) then
-      allocate(B(nexc,9))
-      do o1 = 1, 3
-        do o2 = 1, 3
-          j = o2 + (o1-1)*3
-          B(:,j) = A(:,o1)*o(:,o2)
-        end do
-      end do
-    else
-      allocate(B(nexc,3))
-      do o1 = 1, 3
-        B(:,o1) = A(:,o1)*o(:,o1)
-      end do
-    end if
-    ! A not needed anymore
-    deallocate(A)
-         
-    write(*, '("  Calculating spectrum.")')
-    ! Make non-lattice-symmetrized spectrum
-    if(input%xs%dfoffdiag) then
-      allocate(ns_spectr(nfreq,9))
-      call zgemm('N','N', nfreq, 9, nexc, zone, enw, nfreq,&
-        & B, nexc, zzero, ns_spectr, nfreq)
-      ns_spectr = ns_spectr*8.d0*pi/omega/nkptnr
-      ns_spectr(:,1) = 1.0d0 + ns_spectr(:,1)
-      ns_spectr(:,4) = 1.0d0 + ns_spectr(:,4)
-      ns_spectr(:,7) = 1.0d0 + ns_spectr(:,7)
-    else
-      allocate(ns_spectr(nfreq,3))
-      call zgemm('N','N', nfreq, 3, nexc, zone, enw, nfreq,&
-        & B, nexc, zzero, ns_spectr, nfreq)
-      ns_spectr = 1.0d0 + ns_spectr*8.d0*pi/omega/nkptnr
-    end if
-    ! Helper no longer needed
-    deallocate(B,enw)
-
-    write(*, '("  Symmetrizing spectrum.")')
-    ! Symmetrize spectrum 
-    spectrum = zzero
-    buf=zzero
-    do o1=1,3
-      do o2=1,3
-        j = o2 + (o1-1)*3
-        buf(o1,o2,:) = ns_spectr(:,j)
-      end do
-    end do
-    do o1=1,3
-      do o2=1,3
-        ! Symmetrize the macroscopic dielectric tensor
-        call symt2app(o1, o2, nfreq, symt2, buf, spectrum(o1,o2,:))
-      end do 
-    end do
-  end subroutine makespectrum_fast
-
-  subroutine makespectrum(nfreq, freq, spectrum)
+  subroutine makespectrum_old(nfreq, freq, spectrum)
     use mod_lattice, only: omega
     use mod_constants, only: zone, zi, pi
     use modxs, only: symt2
@@ -1010,7 +1246,6 @@ contains
     ! Local
     integer(4) :: o1, o2, ol, ou, iw
     integer(4) :: lambda, lambdap
-    integer(4) :: optcompt(3)
     real(8) :: eextot
     complex(8) :: buf(3,3,nw)
     complex(8) :: spectr(nw)
@@ -1048,9 +1283,7 @@ contains
 
       do o2 = ol, ou
 
-        optcompt = (/ o1, o2, 0 /)
         spectr(:) = zzero
-
 
         do iw = 1, nfreq
           do lambda = 1, nexc
@@ -1090,91 +1323,7 @@ contains
 
       end do 
     end do
-  end subroutine makespectrum
-
-  subroutine makespectrum_tda(nfreq, freq, spectrum)
-    use mod_lattice, only: omega
-    use mod_constants, only: zi, pi
-    use modxs, only: symt2
-    implicit none
-
-    ! I/O
-    integer(4), intent(in) :: nfreq
-    real(8), intent(in) :: freq(nfreq)
-    complex(8), intent(out) :: spectrum(3,3,nfreq)
-
-    ! Local
-    integer(4) :: o1, o2, ol, ou, iw
-    integer(4) :: lambda
-    integer(4) :: optcompt(3)
-    real(8) :: eextot
-    complex(8) :: buf(3,3,nw)
-    complex(8) :: spectr(nw)
-
-    ! External functions
-    integer(4), external :: l2int
-
-    ! Make non-lattice-symmetrized spectrum
-    buf = zzero 
-
-    do o1 = 1, 3
-
-      ! Stk: compute off-diagonal optical components if requested
-      if(input%xs%dfoffdiag) then
-        ol = 1
-        ou = 3
-      else
-        ol = o1
-        ou = o1
-      end if
-
-      do o2 = ol, ou
-
-        optcompt = (/ o1, o2, 0 /)
-        spectr(:) = zzero
-
-        do iw = 1, nfreq
-          do lambda = 1, nexc
-            
-            ! Get total energy of excition, i.e. add gap energy
-            eextot = bevalre(lambda) + egap
-!! Discuss what is bsed and does anyone use it
-            ! Substract bsed part (defautl is is zero)
-            eextot = eextot - bsed
-
-            ! Lorentzian line shape
-            ! Resonant part
-            spectr(iw) = spectr(iw) + oszsr(lambda, o1) * conjg(oszsr(lambda, o2))&
-              &* (1.d0/(eextot-freq(iw)-zi*input%xs%broad))             
-            ! Anti-resonant contribution (Default is true)
-!! Discuss the conjugation was the other way around originally
-            if(input%xs%bse%aresbse) spectr(iw) = spectr(iw)&
-              &+ conjg(oszsr(lambda, o1)) * oszsr(lambda, o2)&
-              &* (1.d0/(eextot+freq(iw)+zi*input%xs%broad))
-
-          end do
-        end do
-
-        spectr(:) = l2int(o1 .eq. o2) * 1.d0 + spectr(:) * 8.d0*pi/omega/nkptnr
-
-        buf(o1,o2,:)=spectr(:)
-
-      end do
-    end do
-
-
-    ! Symmetrize spectrum 
-    spectrum = zzero
-    do o1=1,3
-      do o2=1,3
-
-        ! Symmetrize the macroscopic dielectric tensor
-        call symt2app(o1, o2, nfreq, symt2, buf, spectrum(o1,o2,:))
-
-      end do 
-    end do
-  end subroutine makespectrum_tda
-
+  end subroutine makespectrum_old
     
 end subroutine b_bse
 !EOC
