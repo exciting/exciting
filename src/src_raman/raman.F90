@@ -22,7 +22,6 @@ use mod_energy, only: engytot
 use mod_force, only: forcetot
 use modinput
 use modxs
-use mod_phonon, only: atposc0, ainv0, avec0, natoms0, natmtot0
 use raman_coeff
 use raman_ew
 use raman_inter
@@ -40,15 +39,15 @@ use m_genfilname
 !
 implicit none
 ! Raman data
-integer :: maxp,it,ntp
+integer :: maxp
 integer :: i, j, ia, is, iat, ic, imode, istep, nmode, iw
 integer :: istep_lo, istep_hi, i_shift
-integer :: oct, oct1, oct2, ias
+integer :: oct1, oct2, ias
 integer :: read_i
 real(8) :: rlas,sn,zmin,zs, norm
 real(8) :: dph, force_sum, vgamc(3)
-real(8) :: read_dph, read_engy, read_force
-real(8) :: wlas, ws, dwlas, S_total, Sab, t1
+real(8) :: read_dph, read_engy
+real(8) :: wlas, ws, dwlas, Sab, t1
 ! timing
 real(8) :: start_time_cpu, finish_time_cpu, time_cpu_tot, t_cpu_proc
 real(8) :: start_time_wall, finish_time_wall, time_wall_tot

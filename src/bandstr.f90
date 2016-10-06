@@ -12,6 +12,7 @@ Subroutine bandstr
   Use modinput
   Use modmain
   Use modmpi
+  use mod_wannier
   Use FoX_wxml
 
   ! !DESCRIPTION:
@@ -44,7 +45,7 @@ Subroutine bandstr
   Complex (8), Allocatable :: apwalm (:, :, :, :, :)
   Complex (8), Allocatable :: evecfv (:, :, :)
   Complex (8), Allocatable :: evecsv (:, :)
-  Character (128) :: buffer, buffer1
+  Character (128) :: buffer
   Type (xmlf_t), Save :: xf
   !
   integer :: nkpt0, nstsv0, Recl
@@ -52,29 +53,11 @@ Subroutine bandstr
   complex(8), allocatable :: e0(:,:), e1(:,:)
   logical :: exist,hybcheck
 !WANNIER
-  integer :: ir, iq, ig, io, ilo, iproj, iband
-  integer :: nr, nproj, nrpt, niband, npband, pbandstart, pbandstop
-  integer :: isproj, iaproj, iasproj, iloproj
-  real(8) :: r2, u, f
-  real(8), allocatable :: uf(:), gr(:), cf(:,:)
-  real(8), allocatable :: rolpi(:,:), oaa(:,:,:,:), rpt(:,:)
-  integer, allocatable :: projst(:,:), idxnn(:,:)
-  complex(8), allocatable :: projme(:,:), olpme(:,:), transme(:,:,:), wanme(:,:,:), auxmat(:,:), auxmat2(:,:)
-  complex(8) :: auxc
-  real(8), allocatable :: evaltmp(:), vklcpy(:,:), vkccpy(:,:)
-  complex(8), allocatable :: mattmp(:,:), evectmp(:,:), evalcplx(:)
-
-  complex(8), allocatable :: lapack_work(:), lapack_rwork(:)
-  integer :: lapack_lwork, lapack_info
-  integer, allocatable :: lapack_iwork(:)
-
-  integer :: ngridk(3)
-  real(8) :: nnvc( 3, 6), nnvl( 3, 6), bwgt( 6), bwgtsm, mixing
-
-  complex(8), allocatable :: mlwf_emat(:,:), mlwf_m0(:,:,:,:), mlwf_m(:,:,:,:), mlwf_transform(:,:,:), mlwf_r(:,:), mlwf_t(:,:), mlwf_dw(:,:)
-  real(8) :: maxeval
-  real(8), allocatable :: ravg(:,:)
-
+  integer :: ir, ix, iy, iz
+  integer :: nrpt
+  real(8), allocatable :: rpt(:,:), evaltmp(:)
+  complex(8), allocatable :: wanme(:,:,:), auxmat(:,:), auxmat2(:,:,:)
+  complex(8), allocatable :: evectmp(:,:), evalcplx(:)
 !END WANNIER
 ! initialise universal variables
   Call init0
@@ -92,411 +75,96 @@ if (input%properties%bandstructure%wannier) then
   if (input%properties%bandstructure%character) then
      allocate( bc( 0:lmax, natmtot, nstsv, nkpt))
   end If
-  ! read density and potentials from file
-  Call readstate
+
   ! read Fermi energy from file
   Call readfermi                !saves fermi energy in variable 'efermi'
-  ! find the new linearisation energies
-  Call linengy
-  ! generate the APW radial functions
-  Call genapwfr                 !generates APW radial functions and save them in 'apwfr[5]'
-  ! generate the local-orbital radial functions
-  Call genlofr                  !generates LO radial functions and save them in 'lofr[4]'
-  Call olprad
 
-  allocate( apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
-  allocate( evalfv(nstfv, nspnfv), evecfv(nmatmax, nstfv, nspnfv))
-  allocate( uf(nrmtmax), gr(nrmtmax), cf(3, nrmtmax), idxnn( nkpt, 6))
-  
-  !============================================
-  ! read projection local-orbitals
-  allocate( projst(nlotot, 5))      ! (index of projector ; 1=index of species, 2=index of atom, 3=index of LO within species, 4=angular momentum, 5=magnetic quantum number)
-  projst(:,:) = 0
-  nproj = 0
-  DO is = 1, nspecies
-    DO ia = 1, natoms( is)
-      DO ilo = 1, nlorb( is)
-        IF( lorbwfproj( ilo, is)) THEN
-          l = lorbl( ilo, is)
-          DO m = -l, l
-            nproj = nproj + 1
-            projst( nproj, 1) = is
-            projst( nproj, 2) = ia
-            projst( nproj, 3) = ilo
-            projst( nproj, 4) = l
-            projst( nproj, 5) = m 
-          END DO
-        END IF
-      END DO
-    END DO
-  END DO
+  ! generating transformation matrices for Wannier functions
+  call genmlwf( 1, 4, (/1, 2, 3, 4/))
 
-  ! write next neighbours to array
-  ngridk = input%groundstate%ngridk
-  nnvl(:,:) = 0d0
-  nnvl( 1, 1) = 1d0/ngridk(1)
-  nnvl( 2, 2) = 1d0/ngridk(2)
-  nnvl( 3, 3) = 1d0/ngridk(3)
-  nnvl( 1, 4) = -1d0/ngridk(1)
-  nnvl( 2, 5) = -1d0/ngridk(2)
-  nnvl( 3, 6) = -1d0/ngridk(3)
-  do iq = 1, 6
-    call r3mv( bvec, nnvl( :, iq), nnvc( :, iq))
-  end do
-  DO ir = 0, ngridk( 3)-1
-    DO ia = 0, ngridk( 2)-1
-      DO io = 0, ngridk( 1)-1
-        ik = modulo( ir, ngridk( 3))*ngridk( 2)*ngridk( 1) + &
-            modulo( ia, ngridk( 2))*ngridk( 1) + modulo( io, ngridk(1))+1
-        idxnn( ik, 1) = modulo( ir, ngridk( 3))*ngridk( 2)*ngridk( 1) + &
-            modulo( ia, ngridk( 2))*ngridk( 1) + modulo( io+1, ngridk(1))+1
-        idxnn( ik, 2) = modulo( ir, ngridk( 3))*ngridk( 2)*ngridk( 1) + &
-            modulo( ia+1, ngridk( 2))*ngridk( 1) + modulo( io, ngridk(1))+1
-        idxnn( ik, 3) = modulo( ir+1, ngridk( 3))*ngridk( 2)*ngridk( 1) + &
-            modulo( ia, ngridk( 2))*ngridk( 1) + modulo( io, ngridk(1))+1
-        idxnn( ik, 4) = modulo( ir, ngridk( 3))*ngridk( 2)*ngridk( 1) + &
-            modulo( ia, ngridk( 2))*ngridk( 1) + modulo( io-1, ngridk(1))+1
-        idxnn( ik, 5) = modulo( ir, ngridk( 3))*ngridk( 2)*ngridk( 1) + &
-            modulo( ia-1, ngridk( 2))*ngridk( 1) + modulo( io, ngridk(1))+1
-        idxnn( ik, 6) = modulo( ir-1, ngridk( 3))*ngridk( 2)*ngridk( 1) + &
-            modulo( ia, ngridk( 2))*ngridk( 1) + modulo( io, ngridk(1))+1
-      END DO
-    END DO
-  END DO
-                                              !
-  !--------------------------------------------
-
-  !============================================
-  ! allocating some variables
-  niband = 4 
-  pbandstart = 1 
-  pbandstop = 4
-  npband = pbandstop - pbandstart + 1
-  niband = MIN( niband, nproj)
-  nproj = MIN( niband, nproj)
-  allocate( rolpi( apwordmax, nproj))                   ! radial overlap integrals
-  allocate( projme( npband, nproj))                     ! projection matrix elements	-- A(i,j)
-  allocate( olpme( nproj, nproj))                       ! overlap matrix 		-- S(i,j) 	/ S = adj(A)*A
-  allocate( transme( nkpt, npband, nproj))              ! transformation matrix		-- V(k,i,j)	/ V = A*S^(-1/2)
-  allocate( wanme( nrpt, nproj, nproj))                 ! Wannier matrix elements       -- <0i|H|Rj>
-  allocate( evaltmp( nproj), evectmp( nproj, nproj))    ! temporary eigenvalues and eigenvectors for matrix diagonalization
-  allocate( auxmat( nproj, nproj))                      ! maxtrix container for auxiliary matrices for calculational purposes
+  allocate( wanme( nrpt, wf_nprojused, wf_nprojused))   ! Wannier matrix elements       -- <0i|H|Rj>
   allocate( rpt( 3, nrpt))                              ! set of R-points
-                                              !
-  !--------------------------------------------
-  write(*,'(A)', advance='no') "bands "
-  write(*,'(I2)', advance='no') pbandstart
-  write(*,'(A)', advance='no')  " to " 
-  write(*,'(I2)', advance='no') pbandstop
-  write(*,'(A)', advance='no') " are used for projection ("
-  write(*,'(I2)', advance='no') npband
-  write(*,*) " bands)"
-  write(*,*) nproj, " projection functions"
-  write(*,*) niband, " bands are going to be interpolated"
- 
-  !============================================ 
-  ! radial overlap integrals
-  rolpi(:,:) = zzero
-  DO iproj = 1, nproj
-    uf(:) = 0d0
-    is = projst( iproj, 1)
-    nr = nrmt( is)
-    ias = idxas( projst( iproj, 2), is)
-    lm = idxlm( projst( iproj, 4), projst( iproj, 5))
-    DO io = 1, apword( projst( iproj, 4), is)
-      DO ir = 1, nr
-        r2 = spr( ir, is)**2
-        u = apwfr( ir, 1, io, projst( iproj, 4), ias)
-        f = lofr( ir, 1, projst( iproj, 3), ias)
-        uf( ir) = u*f*r2
-      END DO
-      Call fderiv(-1, nr, spr(:, is), uf, gr, cf)
-      rolpi( io, iproj) = gr( nr)
-    END DO
-  END DO
-                                              !
-  !--------------------------------------------
+  allocate( evalfv(nstfv, nspnfv), evecfv(nmatmax, nstfv, nspnfv))
 
-  DO ik = 1, nkpt
-    !============================================
-    ! get eigenenergies, basis function coefficients and matching coefficients
-    Call getevecfv( vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-    Call getevalfv( vkl(:, ik), evalfv)
-    Call match( ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, &
-         & 1, ik), sfacgk(:, :, 1, ik), apwalm(:, :, :, :, &
-         & 1))
-                                                !
-    !--------------------------------------------
-
-    !============================================  
-    ! projection matrix elements and overlap matrix elements
-    DO iproj = 1, nproj
-      is = projst( iproj, 1)
-      nr = nrmt( is)
-      ias = idxas( projst( iproj, 2), is)
-      lm = idxlm( projst( iproj, 4), projst( iproj, 5))
-      DO iband = 1, npband
-        projme( iband, iproj) = zzero
-        DO ig = 1, ngk( 1, ik)
-          auxc = zzero
-          DO io = 1, apword( projst( iproj, 4), is)
-            auxc = auxc + DCONJG( apwalm( ig, io, lm, ias, 1))*rolpi( io, iproj)
-          END DO
-          projme( iband, iproj) = projme( iband, iproj) + DCONJG( evecfv( ig, pbandstart+iband-1, 1))*auxc
-        END DO
-        DO io = 1, nlorb( is)
-          l = lorbl( io, is)
-          IF( l .EQ. projst( iproj, 4)) THEN
-            projme( iband, iproj) = projme( iband, iproj) + DCONJG( evecfv( ngk( 1, ik)+idxlo( lm, io, ias), pbandstart+iband-1, 1))*ololo( io, projst( iproj, 3), ias)
-          END IF
-        END DO
-      END DO
-    END DO
-
-    olpme(:,:) = zzero
-    Call ZGEMM( 'C', 'N', nproj, nproj, npband, zone, projme, npband, projme, npband, zzero, olpme, nproj)
-                                                !
-    !--------------------------------------------
-
-    !============================================    
-    ! transformation matrix
-    Call diaghermat( nproj, olpme, evaltmp, evectmp)
-    auxmat(:,:) = zzero
-    DO io = 1, nproj
-      IF( evaltmp( io).EQ.0d0) THEN
-        write(*,*) "0 eigenvalue ", ik, io
-      ELSE
-        auxmat( io, io) = zone/sqrt( zone*evaltmp( io)) 
-      END IF
-    END DO
-
-    Call ZGEMM( 'N', 'N', nproj, nproj, nproj, zone, evectmp, nproj, auxmat, nproj, zzero, olpme, nproj)
-    Call ZGEMM( 'N', 'C', nproj, nproj, nproj, zone, olpme, nproj, evectmp, nproj, zzero, auxmat, nproj)
-    Call ZGEMM( 'N', 'N', npband, nproj, nproj, zone, projme, npband, auxmat, nproj, zzero, transme( ik, :, :), npband)
-                                                !
-    !--------------------------------------------
-  END DO
-  Deallocate( projme, olpme, auxmat, evaltmp, evectmp)
-  
-!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  ! calculating plane wave elements <u(m,k)|u(n,k+b)>
-  !open( 50, file='EMAT_WANNIER.OUT', action='WRITE', Form='FORMATTED')
-  open( 50, file='EMAT_WANNIER.OUT', action='READ', Form='FORMATTED')
-  allocate( mlwf_m0( npband, npband, 6, nkpt), mlwf_emat( npband, npband))
-  if( allocated( auxmat)) deallocate( auxmat)
-  allocate( auxmat( npband, npband))
-  do ik = 1, nkpt
-    do iq = 1, 6
-      !call emat_wannier( ik, nnvl( :, iq), pbandstart, npband, &
-      !& pbandstart, npband, mlwf_emat) 
-      !call ZGEMM( 'N', 'N', npband, npband, npband, zone, mlwf_emat, npband, transme( idxnn( ik, iq), :, :), npband, zzero, auxmat, npband)
-      !call ZGEMM( 'C', 'N', npband, npband, npband, zone, transme( ik, :, :), npband, auxmat, npband, zzero, mlwf_m0( :, :, iq, ik), npband)
-      !write( 50, *) ik, iq
-      read( 50, *)
-      do ir = 1, npband
-        do is = 1, npband
-          !write( 50, '(E23.16,1x,E23.16)') mlwf_m0( is, ir, iq, ik)
-          read( 50, '(E23.16,1x,E23.16)') mlwf_m0( is, ir, iq, ik)
-        end do
-      end do
-    end do
-  end do
-  close( 50)
-  write(*,*) "Mzero computed."
-
-  ! calculating weights of b-vectors
-  bwgtsm = 0d0
-  do iq = 1, 6
-    bwgt( iq) = 3d0/(6*norm2( nnvc( :, iq))**2)
-    bwgtsm = bwgtsm + bwgt( iq)
-  end do
-
-  mixing = dble( 0.5)
-  
-  ! initialize transformation
-  allocate( mlwf_transform( npband, npband, nkpt))
-  mlwf_transform = zzero
-  do iband = 1, npband
-    mlwf_transform( iband, iband, :) = 1d0
-  end do
-
-  ! start minimization cycle
-  if( allocated( evectmp)) deallocate( evectmp)
-  if( allocated( evalcplx)) deallocate( evalcplx)
-  if( allocated( auxmat)) deallocate( auxmat)
-  allocate( evectmp( npband, npband), evalcplx( npband), auxmat( npband, npband))
-  allocate( mlwf_r( npband, npband), mlwf_t( npband, npband), mlwf_dw( npband, npband))
-  allocate( mlwf_m( npband, npband, 6, nkpt))
-  allocate( ravg( 3, npband))
-  mlwf_m = mlwf_m0
-  do io = 1, 6000
-    maxeval = 0d0
-    write(*,*) "CYCLE ", io
-    ravg = 0d0
-    do iband = 1, npband
-      do ik = 1, nkpt
-        do iq = 1, 6
-          ravg( :, iband) = ravg( :, iband) - bwgt( iq)/nkpt*real( aimag( log( mlwf_m( iband, iband, iq, ik))))*nnvc( :, iq)
-        end do
-      end do
-      !write(*,*) ravg( :, iband)
-    end do
-
-    do ik = 1, nkpt
-      mlwf_dw(:,:) = zzero
-      do iq = 1, 6
-        ! calculating R and T
-        do iband = 1, npband
-          mlwf_r( :, iband) = mlwf_m( :, iband, iq, ik)*conjg( mlwf_m( iband, iband, iq, ik))
-          mlwf_t( :, iband) = mlwf_m( :, iband, iq, ik)/mlwf_m( iband, iband, iq, ik)*(real( aimag( log( mlwf_m( iband, iband, iq, ik)))) + dot_product( nnvc( :, iq), ravg( :, iband)))
-        end do
-        
-        ! calculating dW
-        mlwf_r = mlwf_r - conjg( transpose( mlwf_r))
-        mlwf_t = mlwf_t + conjg( transpose( mlwf_t))
-        mlwf_dw(:,:) = mlwf_dw(:,:) + bwgt( iq)*( 0.5*mlwf_r(:,:) + 0.5*zi*mlwf_t(:,:))
-      end do
-      mlwf_dw(:,:) = mlwf_dw(:,:)*mixing/bwgtsm
-
-      ! updating transformation
-      call diaggenmat( npband, mlwf_dw, evalcplx, evectmp)
-      auxmat(:,:) = zzero
-      do iband = 1, npband
-        auxmat( iband, iband) = exp( evalcplx( iband)) 
-      end do
-      maxeval = max( maxeval, maxval( abs( evalcplx)))
-      call ZGEMM( 'N', 'N', npband, npband, npband, zone, evectmp, npband, auxmat, npband, zzero, mlwf_dw, npband)
-      call ZGEMM( 'N', 'C', npband, npband, npband, zone, mlwf_dw, npband, evectmp, npband, zzero, auxmat, npband)
-      call ZGEMM( 'N', 'N', npband, npband, npband, zone, mlwf_transform( :, :, ik), npband, auxmat, npband, zzero, mlwf_dw, npband)
-      mlwf_transform( :, :, ik) = mlwf_dw(:,:)
-    end do
-    
-    ! updating M
-    do ik = 1, nkpt
-      do iq = 1, 6
-        call ZGEMM( 'N', 'N', npband, npband, npband, zone, mlwf_m0( :, :, iq, ik), npband, mlwf_transform( :, :, idxnn( ik, iq)), npband, zzero, auxmat, npband)
-        call ZGEMM( 'C', 'N', npband, npband, npband, zone, mlwf_transform( :, :, ik), npband, auxmat, npband, zzero, mlwf_m( :, :, iq, ik), npband)
-      end do
-    end do
-    write(*,*) maxeval
-  end do
-  
-  ! updating interpolation transformation
-  do ik = 1, nkpt
-    call ZGEMM( 'N', 'N', npband, npband, npband, zone, transme( ik, :, :), npband, mlwf_transform( :, :, ik), npband, zzero, auxmat, npband)
-    transme( ik, :, :) = auxmat(:,:)
-    if( ik.eq.42) then
-      call ZGEMM( 'C', 'N', npband, npband, npband, zone, mlwf_transform( :, :, ik), npband, mlwf_transform( :, :, ik), npband, zzero, auxmat, npband)
-      do ir = 1, npband
-        do is = 1, npband
-          write(*,'(E12.4,1x,E12.4,2x)', advance='no') auxmat( ir, is)
-        end do
-        write(*,*)
-      end do
-    endif
-  end do
-  
-  deallocate( auxmat, evalcplx, evectmp, mlwf_m0, mlwf_m, mlwf_r, mlwf_t, mlwf_dw, mlwf_transform)
-
-!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    !============================================
-    ! Wannier matrix
-
-  ! read lattice site grid
+  ! generate set of lattice vectors 
   ia = 0
-  DO ir = -input%groundstate%ngridk(3)/2, -input%groundstate%ngridk(3)/2+input%groundstate%ngridk(3)-1
-    DO io = -input%groundstate%ngridk(2)/2, -input%groundstate%ngridk(2)/2+input%groundstate%ngridk(2)-1
-      DO is = -input%groundstate%ngridk(1)/2, -input%groundstate%ngridk(1)/2+input%groundstate%ngridk(1)-1
+  do iz = -input%groundstate%ngridk(3)/2, -input%groundstate%ngridk(3)/2+input%groundstate%ngridk(3)-1
+    do iy = -input%groundstate%ngridk(2)/2, -input%groundstate%ngridk(2)/2+input%groundstate%ngridk(2)-1
+      do ix = -input%groundstate%ngridk(1)/2, -input%groundstate%ngridk(1)/2+input%groundstate%ngridk(1)-1
         ia = ia + 1
-        rpt( :, ia) = ir*input%structure%crystal%basevect( :, 3) + io*input%structure%crystal%basevect( :, 2) + is*input%structure%crystal%basevect( :, 1) 
-      END DO
-    END DO
-  END DO
+        rpt( :, ia) = iz*input%structure%crystal%basevect( :, 3) + iy*input%structure%crystal%basevect( :, 2) + ix*input%structure%crystal%basevect( :, 1) 
+      end do
+    end do
+  end do
 
   ! calculate Hamlitonian matrix elements in Wannier representation 
-  allocate( auxmat( nproj, nproj))
-  DO ir = 1, nrpt 
-    wanme( ir, :, :) = zzero
-    DO ia = 1, nproj
-      DO is = 1, nproj
-        DO ik = 1, nkpt
-          auxc = zzero
-          Call getevalfv( vkl( :, ik), evalfv)
-          DO iband = 1, npband 
-            auxc = auxc + evalfv( pbandstart+iband-1, 1)*transme( ik, iband, is)*conjg( transme( ik, iband, ia))
-          END DO
-          wanme( ir, ia, is) = wanme( ir, ia, is) + exp( -zi*dot_product( rpt( :, ir), vkc( :, ik)))*auxc
-        END DO
-      END DO
-    END DO
-    wanme( ir, :, :) = wanme( ir, :, :)/nkpt
-  END DO
-  Deallocate( transme, auxmat)
-  
-                                                ! 
-    !--------------------------------------------
-    
-    !============================================
-    ! interpolation
-  write(*,*) "start interpolation"
+  allocate( auxmat( nrpt, nkpt), auxmat2( nkpt, wf_nprojused, wf_nprojused))
+  do ik = 1, nkpt
+    call getevalfv( vkl( :, ik), evalfv)
+    do iy = 1, wf_nprojused
+      do ix = 1, wf_nprojused
+        auxmat2( ik, ix, iy) = zzero
+        do iz = 1, wf_nprojused  
+          auxmat2( ik, ix, iy) = auxmat2( ik, ix, iy) + evalfv( wf_bandstart+iz-1, 1)*wf_transform( iz, ix, ik)*conjg( wf_transform( iz, iy, ik))
+        end do
+      end do
+    end do
+    do ir = 1, nrpt 
+      auxmat( ir, ik) = exp( -zi*dot_product( rpt( :, ir), vkc( :, ik)))
+    end do
+  end do
+  do iy = 1, wf_nprojused
+    call ZGEMM( 'N', 'N', nrpt, wf_nprojused, nkpt, zone/nkpt, auxmat, nrpt, auxmat2( :, :, iy), nkpt, zzero, wanme( :, :, iy), nrpt)
+  end do
+  deallocate( auxmat)
+ 
+  ! interpolation
   input%properties%bandstructure%wannier = .FALSE. 
-  Call init1        ! initialize k-points along path
-  Allocate( auxmat( nproj, nproj), evectmp( nproj, nproj))
-  if( allocated( evalsv)) Deallocate( evalsv)
-  Allocate( evalsv( nproj, nkpt), evaltmp( nproj), evalcplx( nproj))
+  call init1        ! initialize k-points along path
+  allocate( auxmat( wf_nprojused, wf_nprojused), evectmp( wf_nprojused, wf_nprojused))
+  if( allocated( evalsv)) deallocate( evalsv)
+  allocate( evalsv( wf_nprojused, nkpt), evaltmp( wf_nprojused), evalcplx( wf_nprojused))
 
-  DO ik = 1, nkpt 
+  do ik = 1, nkpt 
     auxmat(:,:) = zzero
-    DO ir = 1, nrpt
-      auxmat(:,:) = auxmat(:,:) + wanme( ir, :, :)*exp( zi*DOT_PRODUCT( rpt( :, ir), vkc( :, ik)))
-    END DO
-    Call diaghermat( nproj, auxmat, evaltmp, evectmp)
+    do ir = 1, nrpt
+    auxmat(:,:) = auxmat(:,:) + wanme( ir, :, :)*exp( zi*dot_product( rpt( :, ir), vkc( :, ik)))
+    end do
+    call diaghermat( wf_nprojused, auxmat, evaltmp, evectmp)
     evalsv( :, ik) = evaltmp(:)-efermi
-  END DO
-  write(*,*) "end interpolation"
-                                                !
-    !--------------------------------------------
+  end do
+  
+  ! output
+  call xml_OpenFile ("bandstructure.xml", xf, replace=.True., &
+       & pretty_print=.True.)
+  call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
+       &'/visualizationtemplates/bandstructure2html.xsl" type="text/xsl"')
     
-    !============================================
-    ! output
-        Call xml_OpenFile ("bandstructure.xml", xf, replace=.True., &
-             & pretty_print=.True.)
-        !
-        Call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
-             &'/visualizationtemplates/bandstructure2html.xsl" type="text/xsl"')
-        IF ( .Not. input%properties%bandstructure%character) Then
-           Open (50, File='BAND_WANNIER_MLWF.OUT', Action='WRITE', Form='FORMATTED')
-
-           Call xml_NewElement (xf, "bandstructure")
-           Call xml_NewElement (xf, "title")
-           Call xml_AddCharacters (xf, trim(input%title))
-           Call xml_endElement (xf, "title")
-           Do ist = 1, nproj
-              Call xml_NewElement (xf, "band")
-              Do ik = 1, nkpt
-                 io = 0
-                 Write (50, '(2G18.10)') dpp1d (ik), evalsv (ist, ik)
-                 Call xml_NewElement (xf, "point")
-                 Write (buffer, '(5G18.10)') dpp1d (ik)
-                 Call xml_AddAttribute (xf, "distance", &
-                      & trim(adjustl(buffer)))
-                 Write (buffer, '(5G18.10)') evalsv (ist, ik)
-                 Call xml_AddAttribute (xf, "eval", &
-                      & trim(adjustl(buffer)))
-                 Call xml_endElement (xf, "point")
-              End Do
-              Call xml_endElement (xf, "band")
-              Write (50, '("     ")')
-           End Do
-           Close (50)
-           Write (*,*)
-           Write (*, '("Info(bandstr):")')
-           Write (*, '(" band structure plot written to BAND_WANNIER_MLWF.OUT")')
-        END IF
-                                                !
-    !--------------------------------------------
+  if( .not. input%properties%bandstructure%character) then
+    open( 50, file='BAND_WANNIER_MLWF.OUT', action='WRITE', form='FORMATTED')
+    call xml_NewElement( xf, "bandstructure")
+    call xml_NewElement( xf, "title")
+    call xml_AddCharacters( xf, trim( input%title))
+    call xml_endElement( xf, "title")
+    do ist = 1, wf_nprojused
+      call xml_NewElement( xf, "band")
+      do ik = 1, nkpt
+        write( 50, '(2G18.10)') dpp1d (ik), evalsv (ist, ik)
+        call xml_NewElement( xf, "point")
+        write( buffer, '(5G18.10)') dpp1d (ik)
+        call xml_AddAttribute( xf, "distance", trim( adjustl( buffer)))
+        write( buffer, '(5G18.10)') evalsv( ist, ik)
+        call xml_AddAttribute (xf, "eval", trim( adjustl( buffer)))
+        call xml_endElement( xf, "point")
+      end do
+      call xml_endElement( xf, "band")
+      write( 50, '("     ")')
+    end do
+    close(50)
+    write(*,*)
+    write( *, '("Info(bandstr):")')
+    write( *, '(" band structure plot written to BAND_WANNIER_MLWF.OUT")')
+  end if
    
   !------------------------------!
   ! End of Wannier interpolation !
