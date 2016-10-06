@@ -7,6 +7,9 @@
 !
 !
 Subroutine ematrad (iq)
+  use mod_qpoint, only: vql
+  use m_writecmplxparts
+  use m_getunit
       Use modmain
       Use modinput
       Use modxs
@@ -15,6 +18,9 @@ Subroutine ematrad (iq)
   ! arguments
       Integer, Intent (In) :: iq
   ! local variables
+  integer :: un, un2, j
+  character(256) :: fname, tmp1, tmpq1, tmpq2, tmpq3
+
       Integer :: is, ia, ias, nr, ir, igq
       Integer :: l1, l2, l3,lio,liomax
       Integer :: ilo, ilo1, ilo2, io, io1, io2
@@ -132,9 +138,11 @@ if (.true.) then
                      End Do ! l3
 !                  End Do ! io1
                End Do ! l1
+
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
+
 #endif
 !               End Do ! l2
            !----------------------------!
@@ -155,6 +163,7 @@ if (.true.) then
                      End Do ! io
                   End Do ! l3
                End Do ! ilo
+
            !------------------------------------!
            !     local-orbital-local-orbital    !
            !------------------------------------!
@@ -172,6 +181,55 @@ if (.true.) then
                      End Do ! l2
                   End Do ! ilo2
                End Do ! ilo1
+
+      fname =''
+      tmp1 = ''
+      tmpq1 = ''
+      tmpq2 = ''
+      tmpq3 = ''
+      write(tmpq1, '(I4)') int(vql(1,iq)*1000)
+      write(tmpq2, '(I4)') int(vql(2,iq)*1000)
+      write(tmpq3, '(I4)') int(vql(3,iq)*1000)
+      write(tmp1,'(a,"_",a,"_",a)') trim(adjustl(tmpq1)),trim(adjustl(tmpq2)),trim(adjustl(tmpq3))
+      write(fname,'("ematri/",a,a,".OUT")') trim(adjustl('RILL')),trim(adjustl(tmp1))
+
+      call getunit(un)
+      open(unit=un, file=fname, action='write', status='replace')
+      call getunit(un2)
+      open(unit=un2, file=trim("sup"//fname), action='write', status='replace')
+  write(un2,*) "q vector"
+  write(un2, '(SP,E23.16)') vql(1,iq)
+  write(un2, '(SP,E23.16)') vql(2,iq)
+  write(un2, '(SP,E23.16)') vql(3,iq)
+  write(un2,*)
+  write(un2,*) "lmax2"
+  write(un2, '(I8)') lmax2
+  write(un2,*)
+  write(un2,'(a8,3(1x,a8))'), "ilo1","ilo2","l2"
+
+               Do ilo1 = 1, nlorb (is)
+                  Do ilo2 = 1, nlorb (is)
+                     Do l2 = 0, lmax2
+              write(un2, '(I8,3(1x,I8))') ilo1, ilo2, l2
+                     End Do ! l2
+                  End Do ! ilo2
+               End Do ! ilo1
+
+              j=0
+               Do ilo1 = 1, nlorb (is)
+                  Do ilo2 = 1, nlorb (is)
+                     Do l2 = 0, lmax2
+              j=j+1
+              write(un, '(SP,E23.16)') rilolo(ilo1, ilo2, l2, ias, igq)
+                     End Do ! l2
+                  End Do ! ilo2
+               End Do ! ilo1
+
+  write(un2,*)
+  write(un2,'("Number of entries: ",i10)'), j 
+
+  close(un2)
+      close(un)
 
 !****************************************
 ! Debugging segment with output to files

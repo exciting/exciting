@@ -323,12 +323,12 @@ module mod_wannier
         allocate( mlwf_m0( wf_nprojused, wf_nprojused, nn, nkpt))
         write(*,*) 'Computing inner products...'
         ! call before parallel loop in order to initialize save variables in emat_wannier
-        call emat_wannier( 1, idxn( 1, 1), 1, 1, 1, 1, mlwf_emat) 
+        call emat_wannier( 1, idxn( 1, 1), nvl(:,1), 1, 1, 1, 1, mlwf_emat) 
         ix = 0
 !!$OMP PARALLEL DO private( mlwf_emat, auxmat)
         do ik = 1, nkpt
           do ib = 1, nn
-            call emat_wannier( ik, idxn( ib, ik), wf_bandstart, wf_nprojused, wf_bandstart, wf_nprojused, mlwf_emat) 
+            call emat_wannier( ik, idxn( ib, ik), nvl( :, ib), wf_bandstart, wf_nprojused, wf_bandstart, wf_nprojused, mlwf_emat) 
             call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, mlwf_emat, wf_nprojused, wf_transform( :, :, idxn( ib, ik)), wf_nprojused, zzero, auxmat, wf_nprojused)
             call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, wf_transform( :, :, ik), wf_nprojused, auxmat, wf_nprojused, zzero, mlwf_m0( :, :, ib, ik), wf_nprojused)
             ix = ix + 1

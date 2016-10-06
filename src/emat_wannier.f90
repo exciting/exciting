@@ -3,13 +3,19 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-Subroutine emat_wannier( ik, ikq, ist1, nst1, ist2, nst2, emat)
+Subroutine emat_wannier( ik, ikq, vecql, ist1, nst1, ist2, nst2, emat)
+  use m_getunit
       Use modmain
       Use modinput
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik, ikq, ist1, nst1, ist2, nst2
+      real(8), intent( in) :: vecql(3)
       Complex (8), Intent (Out) :: emat( nst1, nst2)
+
+  integer :: un, un2, j
+  character(256) :: fname, tmp1, tmpq1, tmpq2, tmpq3
+
 ! local variables
       Integer :: l1, l2, l3, m1, m2, m3, o1, o2, ilo1, ilo2, idxlo1, idxlo2
       Integer :: lm1, lm2, lm3, ist, jst, lmo, idxlmo1, idxlmo2
@@ -20,7 +26,7 @@ Subroutine emat_wannier( ik, ikq, ist1, nst1, ist2, nst2, emat)
       integer :: idxlostart
       Real (8) :: vecqc(3), qc, tp(2)
       Real (8) :: vkqc(3), x, t1, gnt
-      Real (8) :: v1(3), v2(3), v3(3), vecql(3)
+      Real (8) :: v1(3), v2(3), v3(3)
       complex(8) :: expqr
 ! automatic arrays
       Complex (8) ylm( lmmaxvr)
@@ -52,7 +58,7 @@ Subroutine emat_wannier( ik, ikq, ist1, nst1, ist2, nst2, emat)
       Complex (8) zdotc
       External gaunt, zdotc
 ! check if q-vector is zero
-      vecql(:) = vkl( :, ikq) - vkl( :, ik)
+      !vecql(:) = vkl( :, ikq) - vkl( :, ik)
       t1 = vecql(1)**2 + vecql(2)**2 + vecql(3)**2
       If( t1 .Lt. input%structure%epslat) Then
          emat(:,:) = 0.d0
@@ -63,7 +69,7 @@ Subroutine emat_wannier( ik, ikq, ist1, nst1, ist2, nst2, emat)
       End If
 ! check q-vector is commensurate with k-point grid
       v1 (:) = dble( input%groundstate%ngridk(:))*vecql(:)
-      v2 (:) = abs( v1(:)-Nint(v1(:)))
+      v2 (:) = abs( v1(:)-dble(Nint(v1(:))))
       If( (v2(1) .Gt. input%structure%epslat) .Or. &
         & (v2(2) .Gt. input%structure%epslat) .Or. &
         & (v2(3) .Gt. input%structure%epslat)) Then
@@ -201,6 +207,7 @@ Subroutine emat_wannier( ik, ikq, ist1, nst1, ist2, nst2, emat)
           ias = idxas( ia, is)
 ! calculate radial integrals
 ! APW-APW
+
           do l2 = 0, input%groundstate%lmaxapw
             do o2 = 1, apword( l2, is)
               do l1 = 0, input%groundstate%lmaxapw
@@ -216,6 +223,7 @@ Subroutine emat_wannier( ik, ikq, ist1, nst1, ist2, nst2, emat)
               end do
             end do
           end do
+
 ! APW-LO
           do ilo1 = 1, nlorb( is) 
             do l1 = 0, input%groundstate%lmaxapw
@@ -242,6 +250,7 @@ Subroutine emat_wannier( ik, ikq, ist1, nst1, ist2, nst2, emat)
               end do
             end do
           end do
+
 ! write combined matching coefficients
           match_combined1(:,:) = zzero
           match_combined2(:,:) = zzero
@@ -265,6 +274,44 @@ Subroutine emat_wannier( ik, ikq, ist1, nst1, ist2, nst2, emat)
           irgntla(:,:) = zzero
           irgntll(:,:) = zzero
 ! APW-APW
+  call getunit(un)
+  fname =''
+  tmp1 = ''
+  tmpq1 = ''
+  tmpq2 = ''
+  tmpq3 = ''
+  write(tmpq1, '(I4)') int(vecql(1)*1000)
+  write(tmpq2, '(I4)') int(vecql(2)*1000)
+  write(tmpq3, '(I4)') int(vecql(3)*1000)
+  write(tmp1,'(a,"_",a,"_",a)') trim(adjustl(tmpq1)),trim(adjustl(tmpq2)),trim(adjustl(tmpq3))
+  write(fname,'("rgnt/",a,a,".OUT")') trim(adjustl('AA')),trim(adjustl(tmp1))
+  open(unit=un, file=fname, action='write', status='replace')
+  call getunit(un2)
+  open(unit=un2, file=trim("sup"//fname), action='write', status='replace')
+ ! write(un2,*) "q vector"
+ ! write(un2, '(SP,E23.16)') vecql(1)
+ ! write(un2, '(SP,E23.16)') vecql(2)
+ ! write(un2, '(SP,E23.16)') vecql(3)
+ ! write(un2,*)
+ ! write(un2,*) "lm1, o1, lm2, o2"
+
+          do idxlmo1 = 1, lmo
+            l1 = lmo2l( idxlmo1)
+            m1 = lmo2m( idxlmo1)
+            o1 = lmo2o( idxlmo1)
+            lm1 = idxlm( l1, m1)
+            do idxlmo2 = 1, lmo
+              l2 = lmo2l( idxlmo2)
+              m2 = lmo2m( idxlmo2)
+              o2 = lmo2o( idxlmo2)
+              lm2 = idxlm( l2, m2)
+
+              write(un2, '(I8,3(1x,I8))') lm1, o1, lm2, o2
+
+            end do
+          end do
+
+  j=0
           do idxlmo1 = 1, lmo
             l1 = lmo2l( idxlmo1)
             m1 = lmo2m( idxlmo1)
@@ -281,8 +328,15 @@ Subroutine emat_wannier( ik, ikq, ist1, nst1, ist2, nst2, emat)
                 irgntaa( idxlmo1, idxlmo2) = irgntaa( idxlmo1, idxlmo2) + conjg( pref( lm3)*expqr)*conjg( listgnt( i, lm2, lm1))*iraa( lm2l( lm3), l1, o1, l2, o2)
                 i = i + 1
               end do
+              j=j+1
+            write(un, '(SP,E23.16,E23.16,"i")') irgntaa( idxlmo1, idxlmo2)/conjg(expqr)/fourpi
             end do
           end do
+
+ ! write(un2,*)
+ ! write(un2,'("Number of entries: ",i10)'), j 
+  close(un2)
+  close(un)
 ! APW-LO and LO-APW
           do idxlmo1 = 1, lmo
             l1 = lmo2l( idxlmo1)
@@ -356,19 +410,19 @@ Subroutine emat_wannier( ik, ikq, ist1, nst1, ist2, nst2, emat)
       blockmt( 1:ngk( 1, ik), (ngk( 1, ikq)+1):(ngk( 1, ikq)+nlotot)) = matal(:,:)
       blockmt( (ngk( 1, ik)+1):(ngk( 1, ik)+nlotot), 1:ngk( 1, ikq)) = matla(:,:)
       blockmt( (ngk( 1, ik)+1):(ngk( 1, ik)+nlotot), (ngk( 1, ikq)+1):(ngk( 1, ikq)+nlotot)) = matll(:,:)
-      if( (ik .eq. 1) .and. (ikq .eq. 2)) then
-        write(*,*) '---------------------------------------------------------'
-        write(*,*) shape( blockmt)
-        do l1 = 1, ngk( 1, ik)+nlotot
-          do l2 = 1, ngk( 1, ikq)+nlotot-1
-            !write( *, '(E23.12,"+1i*(",E23.12,"), ")', advance='no') matll( l1, l2)
-            write( *, '(E23.12,", ")', advance='no') abs( blockmt( l1, l2))
-          end do
-          !write( *, '(E23.12,"+1i*(",E23.12,"); ")', advance='no') matll( l1, l2)
-          write( *, '(E23.12,"; ")') abs( blockmt( l1, l2))
-        end do
-        write(*,*)
-      end if
+     ! if( (ik .eq. 1) .and. (ikq .eq. 2)) then
+     !   write(*,*) '---------------------------------------------------------'
+     !   write(*,*) shape( blockmt)
+     !   do l1 = 1, ngk( 1, ik)+nlotot
+     !     do l2 = 1, ngk( 1, ikq)+nlotot-1
+     !       !write( *, '(E23.12,"+1i*(",E23.12,"), ")', advance='no') matll( l1, l2)
+     !       write( *, '(E23.12,", ")', advance='no') abs( blockmt( l1, l2))
+     !     end do
+     !     !write( *, '(E23.12,"+1i*(",E23.12,"); ")', advance='no') matll( l1, l2)
+     !     write( *, '(E23.12,"; ")') abs( blockmt( l1, l2))
+     !   end do
+     !   write(*,*)
+     ! end if
       do jst = ist2, ist2 + nst2 - 1
         do ist = ist1, ist1 + nst1 - 1
           call ZGEMV( 'N', ngk( 1, ik)+nlotot, ngk( 1, ikq)+nlotot, zone, blockmt, ngk( 1, ik)+nlotot, evecfv2( 1:(ngk( 1, ikq)+nlotot), jst), 1, zzero, auxvec, 1)

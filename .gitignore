@@ -82,3 +82,4 @@ xml/sgroupinput.xsd
 xml/excitinginput.xsd
 src/src_inputparser/inputmodules.f90
 src/src_inputparser/speciesmodules.f90
+*.swp

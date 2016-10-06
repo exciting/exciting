@@ -7,6 +7,7 @@
 !
 !
 Subroutine ematgntsum (iq, igq, integrals)
+  use mod_qpoint
       Use modmain
       Use modinput
       Use modxs
@@ -16,6 +17,10 @@ Subroutine ematgntsum (iq, igq, integrals)
   ! arguments
       Integer, Intent (In) :: iq, igq
       complex(8) :: integrals(apwmaxsize+lomaxsize,apwmaxsize+lomaxsize,natmtot)
+
+  integer :: un, un2, j
+  character(256) :: fname, tmp1, tmpq1, tmpq2, tmpq3
+
   ! local variables
       Integer :: is, ia, ias,iaug1,iaug2
       Integer :: l1, l2, l3, m2, lm2
@@ -138,20 +143,41 @@ Subroutine ematgntsum (iq, igq, integrals)
                End Do
             End Do
 
-          iaug2=0
-          do l3=0,input%xs%lmaxapwwf
-            do m3=-l3,l3
-              do io2=1,apword(l3,is)
-                iaug2=iaug2+1
-                lm3=idxlm(l3,m3)
+  call getunit(un)
+  fname =''
+  tmp1 = ''
+  tmpq1 = ''
+  tmpq2 = ''
+  tmpq3 = ''
+  write(tmpq1, '(I4)') int(vql(1,iq)*1000)
+  write(tmpq2, '(I4)') int(vql(2,iq)*1000)
+  write(tmpq3, '(I4)') int(vql(3,iq)*1000)
+  write(tmp1,'(a,"_",a,"_",a)') trim(adjustl(tmpq1)),trim(adjustl(tmpq2)),trim(adjustl(tmpq3))
+  write(fname,'("rgnt/",a,a,".OUT")') trim(adjustl('AA')),trim(adjustl(tmp1))
+  open(unit=un, file=fname, action='write', status='replace')
+  call getunit(un2)
+  open(unit=un2, file=trim("sup"//fname), action='write', status='replace')
+ ! write(un2,*) "q vector"
+ ! write(un2, '(SP,E23.16)') vql(1,iq)
+ ! write(un2, '(SP,E23.16)') vql(2,iq)
+ ! write(un2, '(SP,E23.16)') vql(3,iq)
+ ! write(un2,*)
+ ! write(un2,*) "lm1, o1, lm2, o2"
 
                 iaug1=0
                 do l1=0,input%xs%lmaxapwwf
-                  do m1=-l1,l1
                       do io1=1,apword(l1,is)
+                  do m1=-l1,l1
                         iaug1=iaug1+1
                         lm1=idxlm(l1,m1)
-                        integrals(iaug2,iaug1,ias)=intrgaa (lm1, io1, lm3, io2)
+          iaug2=0
+          do l3=0,input%xs%lmaxapwwf
+              do io2=1,apword(l3,is)
+            do m3=-l3,l3
+                iaug2=iaug2+1
+                lm3=idxlm(l3,m3)
+
+              write(un2, '(I8,3(1x,I8))') lm1, io1, lm3, io2
                       enddo
                     enddo
                   enddo
@@ -160,6 +186,35 @@ Subroutine ematgntsum (iq, igq, integrals)
               enddo
             enddo
           enddo
+
+
+          iaug1=0
+          do l1=0,input%xs%lmaxapwwf
+                do io1=1,apword(l1,is)
+            do m1=-l1,l1
+                  iaug1=iaug1+1
+                  lm1=idxlm(l1,m1)
+                iaug2=0
+                do l3=0,input%xs%lmaxapwwf
+                    do io2=1,apword(l3,is)
+                  do m3=-l3,l3
+                      iaug2=iaug2+1
+                      lm3=idxlm(l3,m3)
+
+                        integrals(iaug2,iaug1,ias)=intrgaa (lm1, io1, lm3, io2)
+            write(un, '(SP,E23.16,E23.16,"i")') intrgaa (lm1, io1, lm3, io2)
+                      enddo
+                    enddo
+                  enddo
+
+
+              enddo
+            enddo
+          enddo
+ ! write(un2,*)
+ ! write(un2,'("Number of entries: ",i10)'), j 
+  close(un2)
+  close(un)
 
         !-------------------------------------!
         !     APW-local-orbital integrals     !
