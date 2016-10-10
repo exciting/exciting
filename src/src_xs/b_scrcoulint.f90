@@ -53,7 +53,7 @@ subroutine b_scrcoulint
   complex(8), allocatable :: phf(:, :)
   real(8) :: vqr(3), vq(3)
   integer :: ikkp, iknr, jknr, iqr, iq, iqrnr, jsym, jsymi, numgq
-  integer :: nsc, iv(3), ivgsym(3), j1, j2, nkkp
+  integer :: nsc, iv(3), ivgsym(3), j1, j2
   integer(4) :: io1, io2, iu1, iu2
   integer :: sc(maxsymcrys), ivgsc(3, maxsymcrys)
   integer, allocatable :: igqmap(:)

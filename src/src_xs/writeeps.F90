@@ -49,7 +49,7 @@ module m_writeeps
       Open(unit1, File=trim(fn), Action='write')
       write(unit1, '("#",a22,1x,a23,1x,a23,1x,a23)')&
         & "Frequency/(eV/hbar)", "Re(eps)", "Im(eps)", "Re(eps) form KKT"
-      Write(unit1, '(SP,E23.16,1x,E23.16,1x,E23.16,1x,E23.16)')&
+      write(unit1, '(SP,E23.16,1x,E23.16,1x,E23.16,1x,E23.16)')&
         & (w(iw)*escale, eps(iw), kkeps(iw), iw=1, n)
       Close(unit1)
 
@@ -90,7 +90,7 @@ module m_writeeps
         Call xml_AddAttribute(xf, "function3", trim(adjustl(buffer)))
         Call xml_endElement(xf, "map")
       End Do
-      Write(buffer, '(I2.1, ".", I1.1, ".", I3.3)') version
+      Write(buffer, '(I2.1, ".", I2.2, ".", I3.3)') version
       Call xml_AddComment(xf, " Exciting code version : "//&
         & trim(adjustl(buffer)))
       Call xml_endElement(xf, "dielectric")

@@ -47,7 +47,7 @@ subroutine b_exccoulint
   logical :: fcoup
   integer :: iknr, jknr, iqr, iq, igq1, numgq
   integer :: iv(3), j1, j2
-  integer :: ikkp, nkkp
+  integer :: ikkp
 
   integer(4) :: io1, io2, iu1, iu2
 

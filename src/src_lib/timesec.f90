@@ -3,7 +3,7 @@
 ! License. See the file COPYING for license details.
 !
 subroutine timesec(ts)
-#ifdef mpi
+#ifdef MPI
   use modmpi
 #endif
   implicit none
@@ -14,7 +14,7 @@ subroutine timesec(ts)
   ! local variables
   integer(8) :: count, count_rate
     
-#ifdef mpi
+#ifdef MPI
   ts = mpi_wtime()
 #else
   call system_clock(count=count, count_rate=count_rate)

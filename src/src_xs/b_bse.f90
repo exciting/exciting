@@ -8,7 +8,7 @@
 subroutine b_bse
 ! !USES:
   use modinput, only: input
-  use mod_constants, only: zzero
+  use mod_constants, only: zzero, h2ev
   use mod_kpoint, only: nkptnr, vkl
   use mod_eigenvalue_occupancy, only: evalsv, nstsv
   use modmpi, only: rank, barrier
@@ -19,6 +19,8 @@ subroutine b_bse
   use m_diagfull
   use m_writeoscillator
   use m_writecmplxparts
+  use m_dhesolver
+  use modsclbse
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem(thanks to the spectral theorem that can
@@ -96,26 +98,36 @@ subroutine b_bse
   ! Variables
   integer(4) :: iknr, iq, nw
   integer(4) :: hamsize, nexc
-  integer(4) :: nkkp
-  real(8) :: egap, ts0, ts1
-  logical :: fcoup, fwp
+  real(8) :: ts0, ts1
+  logical :: fcoup, fwp, fscal
 
   ! Allocatable arrays
-  integer(4), allocatable, dimension(:) :: kousize
-  integer(4), allocatable, dimension(:,:) :: smap
-  logical, allocatable, dimension(:,:) :: kouflag
-  real(8), allocatable, dimension(:) :: ofac, bevalim, bevalre, w
+  real(8), allocatable, dimension(:) :: bevalim, bevalre, w
   complex(8), allocatable, dimension(:,:) :: ham, bevecr, oszsr, oszsa
   complex(8), allocatable, dimension(:,:,:) :: symspectr
+  ! Distributed arrays
+  integer(4) :: ip
+  complex(8), allocatable :: buff(:,:)
+  type(dzmat) :: dham, dbevecr, doszsr
+
   ! GW 
   real(8), allocatable, dimension(:,:) :: eval0
 
-write(*,*) "Hello, this is b_bse.f90 at rank:", rank
+  ! Include coupling terms
+  fcoup = input%xs%bse%coupling
 
-  ! Routine not yet parallelized
-  mpirank: if(rank .eq. 0) then
+  ! Use scalapack
+  fscal = input%xs%bse%distribute
 
-write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
+  if(fscal .and. fcoup) then 
+    write(*,*) "Coupling and scalapack not possible"
+    call terminate
+  end if
+
+  if(.not. fscal .and. rank == 0) then 
+    write(*,*) "Hello, this is b_bse.f90 non distributed mode"
+    write(*,*) "Hello, this is b_bse.f90 at rank:", rank
+    write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
 
     ! General init
     call init0
@@ -142,6 +154,9 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
 
     ! Set band combinations (modbse:bcou & modbse:bcouabs)
     call setbcbs_bse
+    ! Number of kkp combinations with ikp >= ik (modbse:nk & modbse:nkkp)
+    nk   = nkptnr
+    nkkp = nkptnr*(nkptnr+1)/2
 
     ! Read KS energies (form EVALSV_SCR.OUT) and save them to modxs
     if(allocated(evalsv)) deallocate(evalsv)
@@ -200,14 +215,10 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
     iq = 1
     ! Get adjusted hamsize, index maps and occupation factors.
     ! Also write information about skipped combinations to file.
-    call checkoccupancies(iq, nkptnr, bcouabs, hamsize, smap, kouflag, kousize, ofac)
+    call checkoccupancies(iq, hamsize)
     !!-->
 
-    ! Number of kkp combinations with ikp >= ik
-    nkkp = nkptnr*(nkptnr+1)/2
 
-    ! Include coupling terms
-    fcoup = input%xs%bse%coupling
     fwp = input%xs%bse%writeparts
 
     ! Write Info
@@ -263,6 +274,10 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
       allocate(bevalre(hamsize), bevecr(hamsize, nexc))
     end if
 
+    ! Test write out Hamiltonian
+    if(fwp) then
+      call writecmplxparts('Ham', dble(ham), immat=aimag(ham))
+    end if
 
     ! Diagonalize Hamiltonian (destroys the content of ham)
     call timesec(ts0)
@@ -270,7 +285,7 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
       call diagfull(2*hamsize, ham, bevalre,&
         & evalim=bevalim, evecr=bevecr, fbalance=.false., frcond=.false.)
     else
-      call b_bsesoldiag(nexc, hamsize, ham, bevalre, bevecr)
+      call hermitian_solver(nexc, hamsize, ham, bevalre, bevecr)
     end if
     call timesec(ts1)
 
@@ -360,11 +375,301 @@ write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
 
     call barrier
 
-  else mpirank
+  else if (fscal) then
+
+    write(*,*) "Hello, this is b_bse.f90 in distributed mode"
+    write(*,*) "Hello, this is b_bse.f90 at rank:", rank
+
+    ! Set up process girds for BLACS 
+    call setupblacs
+
+    if( .not. myprow < 0 .and.  .not. mypcol < 0) then 
+
+      ! General init
+      call init0
+      ! K-grid init
+      call init1
+      ! Q-grid init
+      call init2
+      ! Saves all k grid related variables in modxs, so 
+      ! that another k grid can be used for k+q.
+      call xssave0
+
+      ! Read Fermi energy from file
+      call readfermi
+
+      !! Initialize the selected ranges of valence/core and conduction states(note
+      !! that core states are always understood to be local orbitals set by the user
+      !! and actually treated as valence states)
+      ! Use eigenvector files from screening-calculation 
+      ! and set GS occupation limits in modxs (read from *_SCR.OUT)
+      call genfilname(dotext='_SCR.OUT', setfilext=.true.)
+
+      ! Set ist* variables in modxs using findocclims
+      call setranges_modxs(iqmt)
+
+      ! Set band combinations (modbse:bcou & modbse:bcouabs)
+      call setbcbs_bse
+      ! Number of kkp combinations with ikp >= ik (modbse:nk & modbse:nkkp)
+      nk = nkptnr
+      nkkp = nkptnr*(nkptnr+1)/2
+
+      ! Read KS energies (form EVALSV_SCR.OUT) and save them to modxs
+      if(allocated(evalsv)) deallocate(evalsv)
+      allocate(evalsv(nstsv,nkptnr))
+      do iknr = 1, nkptnr
+        call getevalsv(vkl(1:3, iknr), evalsv(1:nstsv, iknr))
+      end do
+
+      ! If on top of GW
+      if(associated(input%gw)) then
+        ! Save KS eigenvalues to use them later for renormalizing PMAT
+        allocate(eval0(nstsv,nkptnr))
+        eval0(:,:)=evalsv(:,:)
+        ! If scissor correction is presented, one should nullify it
+        input%xs%scissor=0.0d0
+        ! Read QP Fermi energies and eigenvalues from file
+        call getevalqp(nkptnr,vkl,evalsv)
+        ! evalsv = evalsv+efermi
+        write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
+      end if
+
+      ! Read mean value of diagonal of direct term
+      bsed = 0.d0
+      if((trim(input%xs%bse%bsetype) .eq. 'singlet')&
+        & .or. (trim(input%xs%bse%bsetype) .eq. 'triplet')) then
+
+        ! False by default
+        if(input%xs%bse%bsedirsing) then
+          call getbsediag
+          write(unitout, '("Info(bse): read diagonal of BSE kernel")')
+          write(unitout, '(" mean value : ", 2g18.10)') bsed
+        end if
+
+      end if
+
+      ! Determine the minimal optical gap (q=0), w.r.t. the selected bands
+      egap = minval(evalsv(bcouabs%il2,1:nkptnr) - evalsv(bcouabs%iu1,1:nkptnr)&
+        &+ input%xs%scissor)
+      write(unitout,*)
+      write(unitout, '("Info(bse): gap:", E23.16)') egap
+      ! Warn if the system has no gap even with scissor (or no scissor and on top of GW)
+      if(egap .lt. input%groundstate%epspot) then
+        write(unitout,*)
+        write(unitout, '("Warning(bse): the system has no gap, setting it to 0")')
+        write(unitout,*)
+        egap = 0.0d0
+      end if  
+
+      !!<-- Inspecting occupancies 
+      ! Do not use state combination with zero occupancy difference 
+      ! (Theory not complete here?). Also do not use state combinations
+      ! where the "unoccupied" state has larger occupancy, since hat will
+      ! make the BSE Hamiltonian non-hermitian, even in TDA and q=0.
+      !
+      ! Set gamma point (currently iq does nothing in checkoccupancies)
+      iq = 1
+      ! Get adjusted hamsize, index maps and occupation factors.
+      ! Also write information about skipped combinations to file.
+      call checkoccupancies(iq, hamsize)
+      !!-->
+
+      fwp = input%xs%bse%writeparts
+
+      ! Define global distributed matrices
+      call new_dzmat(dham, hamsize, hamsize)
+
+      ! Write Info
+      if(rank == 0) then
+        write(unitout,*)
+        write(unitout, '("Info(bse): Assembling distributed BSE matrix")')
+        write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
+        write(unitout, '("  Shape=",i8)') hamsize
+        write(unitout, '("  nk=", i8)') nk
+        write(unitout, '("  Distributing matrix to ",i3," processes")') nproc
+        write(unitout, '("  Local matrix schape ",i6," x",i6)')&
+          & dham%nrows_loc, dham%ncols_loc
+      end if
+
+      ! Assemble Hamiltonian matrix 
+      call barrier
+      if(rank == 0) call timesec(ts0)
+      call setup_distributed_bse(dham)
+      call barrier
+      if(rank == 0) then
+        call timesec(ts1)
+        write(unitout, '("All processes build their local matrix")')
+        write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
+      end if
+
+      if(fwp) then
+        !! Test gather dham to global and write out
+        if(myprow == 0 .and. mypcol == 0) then 
+          write(*,*) "Gathering global matrix"
+          ! Allocate the actual global array
+          allocate(ham(hamsize, hamsize)) 
+          ham = zzero
+          write(*,*) "Unpacking to global data form:", myprow, mypcol
+          call unpacktoglobal(ham, dham%za, myprow, mypcol, nprow, npcol)
+                
+          do ip = 1, nproc-1
+            ! Get info about sender and sender's local matrix
+            call blacs_pcoord(ictxt2d, ip, sender_prow, sender_pcol)
+            sender_nrl = numroc(dham%nrows, mblck, sender_prow, 0, nprow) 
+            sender_ncl = numroc(dham%ncols, nblck, sender_pcol, 0, npcol) 
+            write(*,*) "Getting data form:", sender_prow, sender_pcol,&
+              & " shape:", sender_nrl, sender_ncl
+            ! Make receive buffer
+            if(allocated(buff)) deallocate(buff)
+            allocate(buff(sender_nrl, sender_ncl))
+            ! Receive the senders local matrix
+            call zgerv2d(ictxt2d, sender_nrl, sender_ncl,&
+              & buff, sender_nrl, sender_prow, sender_pcol) 
+            ! Write content to global matrix
+            write(*,*) "Unpacking data form:", sender_prow, sender_pcol
+            call unpacktoglobal(ham, buff, sender_prow, sender_pcol, nprow, npcol)
+            write(*,*) "unpacked."
+          end do
+
+          write(*,*) "Writing out global matrix"
+          call writecmplxparts("GlobalHam",dble(ham),immat=aimag(ham))
+          write(*,*) "Done."
+          deallocate(ham)
+        else
+          write(*,*) "Sending data form:", myprow, mypcol,&
+            & " shape:", dham%nrows_loc, dham%ncols_loc
+          call zgesd2d(ictxt2d, dham%nrows_loc, dham%ncols_loc,&
+            & dham%za, dham%nrows_loc, 0, 0)
+          write(*,*) "Sent."
+        end if
+
+      end if
+
+      call barrier
+
+      ! Number of excitons to consider
+      nexc = input%xs%bse%nexc ! (default -1)
+      if(nexc > hamsize .or. nexc < 1) then
+        nexc = hamsize
+      end if
+
+      ! Write Info
+      if(rank == 0) then
+        write(unitout,*)
+        write(unitout, '("Info(bse): Diagonalizing RR Hamiltonian (TDA)")')
+        write(unitout, '("Info(bse): Invoking scalapack routine PZHEEVX")')
+        write(unitout, '("  Number of requested solutions : ", i8)') nexc
+      end if
+
+      ! Eigenvectors are distributed
+      call new_dzmat(dbevecr, hamsize, nexc)
+      ! Eigenvalues global
+      allocate(bevalre(hamsize))
+
+      ! Diagonalize Hamiltonian (destroys the content of ham)
+      call barrier
+      if(rank == 0) call timesec(ts0)
+        call dhesolver(nexc, dham, dbevecr, bevalre, eecs=5)
+      call barrier
+      if(rank == 0) call timesec(ts1)
+
+      ! Deallocate BSE-Hamiltonian
+      call del_dzmat(dham)
+
+      if(rank == 0) then
+        write(unitout, '("  Eigen solutions found.")')
+        write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
+        write(unitout,*)
+      end if
+
+      !! Check
+      if(rank == 0) then 
+        write(*,'(E23.16)') bevalre * h2ev
+      end if
+      call barrier
+      call terminate
+
+    !!! Continue here
+      ! Calculate oscillator strengths.
+      call new_dzmat(doszsr, nexc, 3)
+      call barrier
+      if(rank == 0) then
+        write(unitout, '("Making oszillator strengths (distributed).")')
+        call timesec(ts0)
+      end if
+      !call distributed_makeoszillatorstrength(oszsr)
+      call barrier
+      if(rank == 0) then 
+        call timesec(ts1)
+        write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
+      end if
+
+     ! ! Write excition energies and oscillator strengths to 
+     ! ! text file. 
+     ! write(unitout, '("Writing excition energies and oszillator strengths.")')
+     ! if(fcoup) then
+     !   call writeoscillator(2*hamsize, nexc, egap, bevalre, oszsr,&
+     !     & evalim=bevalim, oszstra=oszsa)
+     ! else
+     !   call writeoscillator(hamsize, nexc, egap, bevalre, oszsr)
+     ! end if
+
+      ! Calculate macroscopic dielectric tensor with finite broadening, i.e. "the spectrum"
+      nw = input%xs%energywindow%points
+
+      ! Allocate arrays used in spectrum construction
+      allocate(w(nw))
+      allocate(symspectr(3,3,nw))
+
+      ! Generate an evenly spaced frequency grid 
+      call genwgrid(nw, input%xs%energywindow%intv,&
+        & input%xs%tddft%acont, 0.d0, w_real=w)
+
+      write(unitout, '("Making spectrum.")')
+      call timesec(ts0)
+      ! Calculate lattice symmetrized spectrum.
+      write(unitout, '("  Using TDA formula.")')
+      call makespectrum_tda(nw, w, symspectr)
+      call timesec(ts1)
+      write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
+
+      write(unitout, '("Writing derived quantities.")')
+      ! Generate and write derived optical quantities
+      iq = 1
+      call writederived(iq, symspectr, nw, w)
+      write(unitout, '("  Derived quantities written.")')
+
+      ! Store excitonic energies and wave functions to file
+      if(associated(input%xs%storeexcitons)) then
+        if(fcoup) then
+          call storeexcitons(2*hamsize,nexc,nkptnr,iuref,bcou,smap,bevalre,bevecr)
+        else
+          call storeexcitons(hamsize,nexc,nkptnr,iuref,bcou,smap,bevalre,bevecr)
+        end if
+      end if
+
+      ! Clean up
+      deallocate(bevalre, bevecr, oszsr, w, symspectr, evalsv)
+      if(fcoup) then 
+        deallocate(bevalim, oszsa)
+      end if
+      if(associated(input%gw)) deallocate(eval0)
+
+      call barrier
+
+    else
+
+      write(*,*) "rank does nothing:", rank
+
+      call barrier
+
+    end if
+
+  else ! not fscal and not rank 0
 
     call barrier
 
-  end if mpirank
+  end if
 
 contains
 
@@ -1099,231 +1404,5 @@ contains
     write(unitout, '("    Time needed",f12.3,"s")') t1-t0
   end subroutine makespectrum_tda
 
-
-!!============ old versions
-  subroutine makespectrum_tda_old(nfreq, freq, spectrum)
-    use mod_lattice, only: omega
-    use mod_constants, only: zi, pi
-    use modxs, only: symt2
-    implicit none
-
-    ! I/O
-    integer(4), intent(in) :: nfreq
-    real(8), intent(in) :: freq(nfreq)
-    complex(8), intent(out) :: spectrum(3,3,nfreq)
-
-    ! Local
-    integer(4) :: o1, o2, ol, ou, iw
-    integer(4) :: lambda
-    real(8) :: eextot
-    complex(8) :: buf(3,3,nw)
-    complex(8) :: spectr(nw)
-
-    ! External functions
-    integer(4), external :: l2int
-
-    ! Make non-lattice-symmetrized spectrum
-    buf = zzero 
-
-    do o1 = 1, 3
-
-      ! Stk: compute off-diagonal optical components if requested
-      if(input%xs%dfoffdiag) then
-        ol = 1
-        ou = 3
-      else
-        ol = o1
-        ou = o1
-      end if
-
-      do o2 = ol, ou
-
-        spectr(:) = zzero
-
-        do iw = 1, nfreq
-          do lambda = 1, nexc
-            
-            ! Get total energy of excition, i.e. add gap energy
-            eextot = bevalre(lambda) + egap
-!! Discuss what is bsed and does anyone use it
-            ! Substract bsed part (defautl is is zero)
-            eextot = eextot - bsed
-
-            ! Lorentzian line shape
-            ! Resonant part
-            spectr(iw) = spectr(iw) + oszsr(lambda, o1) * conjg(oszsr(lambda, o2))&
-              &* (1.d0/(eextot-freq(iw)-zi*input%xs%broad))             
-            ! Anti-resonant contribution (Default is true)
-!! Discuss the conjugation was the other way around originally
-            if(input%xs%bse%aresbse) spectr(iw) = spectr(iw)&
-              &+ conjg(oszsr(lambda, o1)) * oszsr(lambda, o2)&
-              &* (1.d0/(eextot+freq(iw)+zi*input%xs%broad))
-
-          end do
-        end do
-
-        spectr(:) = l2int(o1 .eq. o2) * 1.d0 + spectr(:) * 8.d0*pi/omega/nkptnr
-
-        buf(o1,o2,:)=spectr(:)
-
-      end do
-    end do
-
-
-    ! Symmetrize spectrum 
-    spectrum = zzero
-    do o1=1,3
-      do o2=1,3
-
-        ! Symmetrize the macroscopic dielectric tensor
-        call symt2app(o1, o2, nfreq, symt2, buf, spectrum(o1,o2,:))
-
-      end do 
-    end do
-  end subroutine makespectrum_tda_old
-
-  subroutine makeoszillatorstrength_old(oszstrr)
-    use m_getpmat
-    
-    implicit none
-
-    ! I/O
-    complex(8), intent(out) :: oszstrr(nexc,3)
-
-    ! Local
-    complex(8), allocatable :: pmou(:,:,:), rmat(:,:)
-    integer(4) :: io, iu
-    integer(4) :: a1, a2, oct1, iknr
-    
-    ! Allocate momentum matrix slice needed.
-    allocate(pmou(3, no, nu))
-    allocate(rmat(hamsize, 3))
-
-    do oct1 = 1, 3
-
-      do a1 = 1, hamsize
-        iknr = smap(a1,1)
-        ! Get momentum matrix
-        call getpmat(iknr, vkl,& 
-          & bcouabs%il1, bcouabs%iu1,&
-          & bcouabs%il2, bcouabs%iu2,&
-          & .true., 'PMAT_XS.OUT', pmou)
-        io=smap(a1,2)
-        iu=smap(a1,3)
-        rmat(a1, oct1) = pmou(oct1, io, iu)
-      end do
-
-      oszstrr(:, oct1)=zzero
-      do a1 = 1, hamsize
-        do a2 = 1, hamsize
-          iknr=smap(a2,1)
-          io=smap(a2,2)
-          iu=smap(a2,3)
-          oszstrr(a1, oct1) = oszstrr(a1, oct1)+bevecr(a2,a1)*rmat(a2,oct1)&
-            &/(evalsv(iu+bcouabs%il2-1,iknr)-evalsv(io+bcouabs%il1-1,iknr))
-        end do
-      end do
-
-    end do
-
-    deallocate(pmou)
-    deallocate(rmat)
-
-  end subroutine makeoszillatorstrength_old
-
-  subroutine makespectrum_old(nfreq, freq, spectrum)
-    use mod_lattice, only: omega
-    use mod_constants, only: zone, zi, pi
-    use modxs, only: symt2
-    use invert
-    implicit none
-
-    ! I/O
-    integer(4), intent(in) :: nfreq
-    real(8), intent(in) :: freq(nfreq)
-    complex(8), intent(out) :: spectrum(3,3,nfreq)
-
-    ! Local
-    integer(4) :: o1, o2, ol, ou, iw
-    integer(4) :: lambda, lambdap
-    real(8) :: eextot
-    complex(8) :: buf(3,3,nw)
-    complex(8) :: spectr(nw)
-    complex(8) :: overlap(nexc,nexc), invoverlap(nexc,nexc)
-
-    ! External functions
-    integer(4), external :: l2int
-
-    ! Calculate overlap matrix between right eigenvectors
-    call zgemm('C','N', nexc, nexc, 2*hamsize, zone,&
-      & bevecr, 2*hamsize, bevecr, 2*hamsize, zzero, overlap, nexc)
-
-    ! Invert overlap matrix
-    call zinvert_lapack(overlap, invoverlap)
-
-    ! Test output of overlap matrices
-    if(fwp) then
-      call writecmplxparts('Q',dble(overlap),immat=aimag(overlap))
-      call writecmplxparts('invQ',dble(invoverlap),immat=aimag(invoverlap))
-    end if
-
-    ! Make non-lattice-symmetrized spectrum
-    buf = zzero 
-
-    do o1 = 1, 3
-
-      ! Stk: compute off-diagonal optical components if requested
-      if(input%xs%dfoffdiag) then
-        ol = 1
-        ou = 3
-      else
-        ol = o1
-        ou = o1
-      end if
-
-      do o2 = ol, ou
-
-        spectr(:) = zzero
-
-        do iw = 1, nfreq
-          do lambda = 1, nexc
-
-            ! Get real part of excition eigenvalue and add gap energy
-            eextot = bevalre(lambda)
-
-            do lambdap= 1, nexc
-            
-              ! Lorentzian line shape
-              spectr(iw) = spectr(iw)&
-                &+ invoverlap(lambda, lambdap)&
-                &* 1.d0/(eextot-freq(iw)-zi*input%xs%broad)&          
-                &* ( oszsr(lambda, o1) + oszsa(lambda, o1) )&
-                &* conjg( oszsr(lambdap, o2) - oszsa(lambdap, o2) )
-            end do
-
-          end do
-        end do
-
-        spectr(:) = l2int(o1 .eq. o2) * 1.d0 + spectr(:) * 8.d0*pi/omega/nkptnr
-
-        buf(o1,o2,:)=spectr(:)
-
-      end do
-    end do
-
-    spectrum = buf
-
-    ! Symmetrize spectrum 
-    spectrum = zzero
-    do o1=1,3
-      do o2=1,3
-
-        ! Symmetrize the macroscopic dielectric tensor
-        call symt2app(o1, o2, nfreq, symt2, buf, spectrum(o1,o2,:))
-
-      end do 
-    end do
-  end subroutine makespectrum_old
-    
 end subroutine b_bse
 !EOC

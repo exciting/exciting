@@ -3,9 +3,9 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: b_bsesoldiag
+! !ROUTINE: hermitian_solver
 ! !INTERFACE:
-subroutine b_bsesoldiag(solsize, hamsize, ham, eval, evec)
+subroutine hermitian_solver(solsize, hamsize, ham, eval, evec)
 ! !INPUT/OUTPUT PARAMETERS:
 ! IN:
 !   integer :: solsize ! Number of solutions from lowest EV 
@@ -121,5 +121,5 @@ subroutine b_bsesoldiag(solsize, hamsize, ham, eval, evec)
 
     end subroutine workspacequery
 
-end subroutine b_bsesoldiag
+end subroutine hermitian_solver
 !EOC

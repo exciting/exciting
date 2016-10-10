@@ -31,6 +31,7 @@ module m_getpmat
     !                                   ! matrix elements
     ! !DESCRIPTION:
     !   Reads selectable portions of the momentum matrix form file.
+    !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
     !EOP

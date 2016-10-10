@@ -47,7 +47,7 @@ module m_b_ematqk
     ! emat.
     !
     ! !REVISION HISTORY:
-    !   Added to documentation scheme. (Aurich) \\
+    !   Added to documentation scheme. (Aurich)
     !   Substituted the modxs:xiou reference with the pointer modxs:emat that
     !   can point to any of the modxs:xiXY.
     !EOP
