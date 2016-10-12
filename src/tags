@@ -18695,6 +18695,7 @@ bisectdim	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  count bisectdim;$/;"	m	struct:
 bisphr	src_other/delaunay.f	/^      subroutine bisphr(/;"	s
 bk0_data	libXC/src/bessel.c	/^static double bk0_data[11] = {$/;"	v	file:
 bk1_data	libXC/src/bessel.c	/^static double bk1_data[11] = {$/;"	v	file:
+blacs_pnum	src_xs/modsclbse.f90	/^  integer(4), external :: blacs_pnum$/;"	v	module:modsclbse
 blaswrappers	src_xs/summations.F90	/^Module blaswrappers$/;"	m
 blend103	src_vdwdf/blend103.f90	/^subroutine blend103(/;"	s
 bloechlcor	src_libbzint/bloechlcor.f90	/^       subroutine bloechlcor(/;"	s
@@ -19285,6 +19286,7 @@ construct_symvec	src_raman/construct_symvec.f90	/^subroutine construct_symvec(/;
 content	FoX/sax/m_sax_types.F90	/^    character, dimension(:), pointer :: content /;"	k	type:sax_parser_t
 content_particle_t	FoX/common/m_common_content_model.F90	/^  type content_particle_t$/;"	t	module:m_common_content_model
 context	FoX/sax/m_sax_types.F90	/^    integer :: context /;"	k	type:sax_parser_t
+context	src_xs/modsclbse.f90	/^    integer(4) :: context$/;"	k	type:dzmat
 control	src_xs/modtetra/mod_control.f90	/^module control$/;"	m
 convcorew	src_libbzint/convcorew.f90	/^      subroutine convcorew(/;"	s
 convct	ARPACK/EXAMPLES/COMPLEX/cndrv2.f	413;"	c	subroutine:av
@@ -19956,7 +19958,11 @@ dynsymapp	src_phonon/dynsymapp.f90	/^Subroutine dynsymapp /;"	s
 dyntask	src_phonon/dyntask.f90	/^Subroutine dyntask /;"	s
 dyson	src_xs/dyson.F90	/^      Subroutine dyson /;"	s	module:m_dyson
 dysonsym	src_xs/dysonsym.F90	/^      Subroutine dysonsym /;"	s	module:m_dysonsym
+dzgemm	src_xs/m_dzgemm.f90	/^    subroutine dzgemm(/;"	s	module:m_dzgemm
+dzinvert	src_xs/m_dzinvert.f90	/^    subroutine dzinvert(/;"	s	module:m_dzinvert
 dzmat	src_xs/modsclbse.f90	/^  type dzmat$/;"	t	module:modsclbse
+dzmat_send2global_all	src_xs/modsclbse.f90	/^    subroutine dzmat_send2global_all(/;"	s	module:modsclbse
+dzmat_send2global_root	src_xs/modsclbse.f90	/^    subroutine dzmat_send2global_root(/;"	s	module:modsclbse
 dznrm2	ARPACK/EXAMPLES/BAND/znbdr1.f	/^      Double precision $/;"	v	program:znbdr1
 dznrm2	ARPACK/EXAMPLES/BAND/znbdr2.f	/^      Double precision $/;"	v	program:znbdr2
 dznrm2	ARPACK/EXAMPLES/BAND/znbdr3.f	/^      Double precision $/;"	v	program:znbdr3
@@ -20189,6 +20195,8 @@ error_code	FoX/common/m_common_error.F90	/^    integer :: error_code /;"	k	type:
 error_stack	FoX/common/m_common_error.F90	/^  type error_stack$/;"	t	module:m_common_error
 error_stack	FoX/sax/m_sax_types.F90	/^    type(error_stack)/;"	k	type:sax_parser_t
 error_t	FoX/common/m_common_error.F90	/^  type error_t$/;"	t	module:m_common_error
+errorinspect	src_xs/hermitian_solver.f90	/^    subroutine errorinspect(/;"	s	subroutine:hermitian_solver
+errorinspect	src_xs/m_dhesolver.f90	/^        subroutine errorinspect(/;"	s	subroutine:dhesolver
 escale	src_xs/modxs.F90	/^      Real (8) :: escale$/;"	v	module:modxs
 escape_string	FoX/wxml/m_wxml_escape.F90	/^  function escape_string(/;"	f	module:m_wxml_escape
 escape_string_len	FoX/wxml/m_wxml_escape.F90	/^  pure function escape_string_len(/;"	f	module:m_wxml_escape
@@ -20202,6 +20210,7 @@ etx	src_gw/cutoffs.f90	/^      real(8), private :: etx /;"	v	module:incgamma
 etype	eos/modmain.f90	/^integer etype$/;"	v	module:modmain
 euler	src_lib/euler.f90	/^Subroutine euler /;"	s
 eval	species/modspecies.F90	/^real(8) spocc(maxspst),eval(/;"	v	module:modspecies
+eval0	src_xs/modbse.f90	/^  real(8), allocatable, dimension(:,:) :: eval0$/;"	v	module:modbse
 evalGradients	src_vdwdf/read_gradients.f90	/^subroutine evalGradients(/;"	s
 evalcr	mod_corestate.F90	/^      Real (8), Allocatable :: evalcr /;"	v	module:mod_corestate
 evalfv	src_xs/modxs.F90	/^      Real (8), Allocatable :: evalfv /;"	v	module:modxs
@@ -21757,6 +21766,7 @@ i	species/modspecies.F90	/^in/;"	v	module:modspecies
 i	src_other/delaunay.f	/^      in/;"	v	program:main
 i	src_vdwdf/Cuba-3.2/src/common/Fork.c	/^  number n, m, i;$/;"	m	struct:__anon68	file:
 i	src_vdwdf/Cuba-3.2/src/divonne/Split.c	/^  count i;$/;"	m	struct:__anon45	file:
+i	src_xs/mod_rrsring.f90	/^  in/;"	v	module:mod_rrsring
 i24	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^      count n24, i24, j24, nskip;$/;"	m	struct:__anon63::__anon64::__anon67
 i2str	portstate.F90	/^      Character (256) Function i2str /;"	f	subroutine:portstate
 i2str	src_xs/i2str.F90	/^Function i2str /;"	f
@@ -21778,11 +21788,13 @@ icnteq	ARPACK/UTIL/icnteq.f	/^      integer function icnteq /;"	f
 icon	src_other/delaunay.f	/^      integer icon(/;"	v	program:main
 icond	src_mixing/modmixermsec.f90	/^      Integer, Parameter :: icond /;"	v	module:modmixermsec
 icopy	ARPACK/UTIL/icopy.f	/^      subroutine icopy(/;"	s
-ictxt1d	src_xs/modsclbse.f90	/^  integer(4) :: ictxt2d, ictxt1d$/;"	v	module:modsclbse
+ictxt1d_c	src_xs/modsclbse.f90	/^  integer(4) :: ictxt2d, ictxt1d_r, ictxt1d_c$/;"	v	module:modsclbse
+ictxt1d_r	src_xs/modsclbse.f90	/^  integer(4) :: ictxt2d, ictxt1d_r,/;"	v	module:modsclbse
 ictxt2d	src_xs/modsclbse.f90	/^  integer(4) :: ictxt2d,/;"	v	module:modsclbse
 id	FoX/dom/m_dom_dom.F90	/^    character(len=7) :: id /;"	k	type:DOMImplementation
 id	src_inputparser/inputmodules.f90	/^ character(512)::id$/;"	k	type:dopart_type
 id	src_other/delaunay.f	/^      integer id(/;"	v	program:main
+id	src_xs/mod_rrsring.f90	/^  integer(4) :: i, id,/;"	v	module:mod_rrsring
 id_declared	FoX/common/m_common_element.F90	/^    logical :: id_declared /;"	k	type:element_t
 idamax	src_iterative_solver/SclControlModule.F90	/^      Integer :: idamax$/;"	v	module:sclcontroll
 ideli	src_other/delaunay.f	/^      integer ideli,/;"	v	program:main
@@ -22005,7 +22017,8 @@ indexi	src_raman/mod_raman.f90	/^integer, allocatable :: indexi(/;"	v	module:ram
 individual	src_inputparser/inputmodules.f90	/^  type(individual_/;"	k	type:transitions_type
 individual_type	src_inputparser/inputmodules.f90	/^type individual_type$/;"	t	module:modinput
 indkpq	src_gw/mod_kqpts.f90	/^    integer, allocatable :: indkpq(/;"	v	module:mod_kqpts
-indxl2g	src_xs/modsclbse.f90	/^  integer(4), external :: numroc, indxl2g$/;"	v	module:modsclbse
+indxg2l	src_xs/modsclbse.f90	/^  integer(4), external :: numroc, indxl2g, indxg2l$/;"	v	module:modsclbse
+indxl2g	src_xs/modsclbse.f90	/^  integer(4), external :: numroc, indxl2g,/;"	v	module:modsclbse
 info	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^      integer          nev, ncv, kl, ku, info,/;"	v	program:cnbdr1
 info	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^      integer          nev, ncv, kl, ku, info,/;"	v	program:cnbdr2
 info	ARPACK/EXAMPLES/BAND/cnbdr3.f	/^      integer          nev, ncv, ku, kl, info,/;"	v	program:cnbdr3
@@ -22438,6 +22451,7 @@ is_unparsed_entity_from_list	FoX/common/m_common_entities.F90	/^  function is_un
 isamples	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  count isamples, cutcomp, xmajor;$/;"	m	struct:region
 iscl	mod_convergence.F90	/^      Integer :: iscl$/;"	v	module:mod_convergence
 iscollinear	src_xs/iscollinear.F90	/^Logical Function iscollinear /;"	f
+isdistributed	src_xs/modsclbse.f90	/^    logical :: isdistributed$/;"	k	type:dzmat
 iseed	src_iterative_solver/SclControlModule.F90	/^      Integer :: iseed /;"	v	module:sclcontroll
 iset	ARPACK/UTIL/iset.f	/^      subroutine iset /;"	s
 isgkmax	src_inputparser/inputmodules.f90	/^ integer::isgkmax$/;"	k	type:groundstate_type
@@ -22481,6 +22495,7 @@ ishfts	ARPACK/EXAMPLES/SYM/ssdrv3.f	/^     &                 nconv, maxitr, ishf
 ishfts	ARPACK/EXAMPLES/SYM/ssdrv4.f	/^     &                 nconv, maxitr, ishfts,/;"	v	program:ssdrv4
 ishfts	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^     &                 nconv, maxitr, ishfts,/;"	v	program:ssdrv5
 ishfts	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 nconv, maxitr, ishfts,/;"	v	program:ssdrv6
+ishift	src_xs/mod_rrsring.f90	/^  integer(4) :: i, id, ishift,/;"	v	module:mod_rrsring
 ispacked	src_eigensystem/modfvsystem.f90	/^    Function ispacked /;"	f	module:modfvsystem
 isreadstate0	src_xs/modxs.F90	/^      Logical :: isreadstate0$/;"	v	module:modxs
 isspinorb	src_inputparser/inputmodules.f90	/^function isspinorb(/;"	f	module:modinput
@@ -23404,6 +23419,8 @@ m_dom_parse	FoX/dom/m_dom_parse.f90	/^module m_dom_parse$/;"	m
 m_dom_utils	FoX/dom/m_dom_utils.f90	/^module m_dom_utils$/;"	m
 m_dyson	src_xs/dyson.F90	/^Module m_dyson$/;"	m
 m_dysonsym	src_xs/dysonsym.F90	/^Module m_dysonsym$/;"	m
+m_dzgemm	src_xs/m_dzgemm.f90	/^module m_dzgemm$/;"	m
+m_dzinvert	src_xs/m_dzinvert.f90	/^module m_dzinvert$/;"	m
 m_eigvec	src_raman/eigvec.f90	/^module m_eigvec$/;"	m
 m_emattim	src_xs/emattim.F90	/^Module m_emattim$/;"	m
 m_filedel	src_xs/filedel.F90	/^Module m_filedel$/;"	m
@@ -23512,6 +23529,8 @@ main	stateconvert/main.F90	/^program main$/;"	p
 main	stateinfo/main.F90	/^program main$/;"	p
 mainDoc	FoX/dom/m_dom_parse.f90	/^  type(Node), pointer, save  :: mainDoc /;"	v	module:m_dom_parse
 mainlb	Lbfgsb.3.0/lbfgsb.f	/^      subroutine mainlb(/;"	s
+make_dist_spectrum_tda	src_xs/b_bse.f90	/^  subroutine make_dist_spectrum_tda(/;"	s	subroutine:b_bse
+make_doszstren	src_xs/b_bse.f90	/^  subroutine make_doszstren$/;"	s	subroutine:b_bse
 make_token_group	FoX/common/m_common_element.F90	/^  function make_token_group(/;"	f	module:m_common_element
 make_token_group_len	FoX/common/m_common_element.F90	/^  pure function make_token_group_len(/;"	f	module:m_common_element
 makeexcli	src_xs/b_exccoulint.f90	/^    subroutine makeexcli$/;"	s	subroutine:b_exccoulint
@@ -23921,7 +23940,10 @@ maxwpos	spacegroup/modmain.f90	/^integer, parameter :: maxwpos=/;"	v	module:modm
 maxwpos	spacegroup/modspacegroup.f90	/^integer, parameter :: maxwpos=/;"	v	module:modspacegroup
 mbindex	src_gw/mod_product_basis.f90	/^    integer(4), allocatable :: mbindex(/;"	v	module:mod_product_basis
 mbl	src_gw/mod_product_basis.f90	/^    integer(4), allocatable :: mbl(/;"	v	module:mod_product_basis
+mblck	src_xs/modsclbse.f90	/^    integer(4) :: mblck,/;"	k	type:dzmat
 mblck	src_xs/modsclbse.f90	/^  integer(4), parameter :: mblck /;"	v	module:modsclbse
+mblck1d_c	src_xs/modsclbse.f90	/^  integer(4), parameter :: mblck1d_c /;"	v	module:modsclbse
+mblck1d_r	src_xs/modsclbse.f90	/^  integer(4), parameter :: mblck1d_r /;"	v	module:modsclbse
 mblksiz	src_gw/modgw.f90	/^    integer(4) :: mblksiz$/;"	v	module:modgw
 mblksiz	src_inputparser/inputmodules.f90	/^ integer::mblksiz$/;"	k	type:gw_type
 mbsiz	src_gw/mod_product_basis.f90	/^    integer(4) :: matsiz, matsizmax, mbsiz$/;"	v	module:mod_product_basis
@@ -24117,6 +24139,7 @@ mod_product_basis	src_gw/mod_product_basis.f90	/^module mod_product_basis$/;"	m
 mod_qpoint	mod_qpoint.F90	/^Module mod_qpoint$/;"	m
 mod_rgrid	mod_rgrid.f90	/^module mod_rgrid$/;"	m
 mod_rpath	src_gw/src_tests/mod_rpath.f90	/^module mod_rpath$/;"	m
+mod_rrsring	src_xs/mod_rrsring.f90	/^module mod_rrsring$/;"	m
 mod_selfenergy	src_gw/mod_selfenergy.f90	/^module mod_selfenergy$/;"	m
 mod_spin	mod_spin.F90	/^Module mod_spin$/;"	m
 mod_symmetry	mod_symmetry.F90	/^Module mod_symmetry$/;"	m
@@ -24378,13 +24401,20 @@ mycomm	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm$/;"	v	module:mod_mpi_gw
 mycomm_col	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm_col /;"	v	module:mod_mpi_gw
 mycomm_row	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm_row /;"	v	module:mod_mpi_gw
 mylog2	libXC/testsuite/xc-regression.c	/^static unsigned int mylog2 (unsigned int val) {$/;"	f	file:
-mypcol	src_xs/modsclbse.f90	/^  integer(4) :: myprow, mypcol,/;"	v	module:modsclbse
-mypcol1d	src_xs/modsclbse.f90	/^  integer(4) :: myprow, mypcol, myprow1d, mypcol1d$/;"	v	module:modsclbse
+mypcol	src_xs/modsclbse.f90	/^  integer(4) :: mypcol,/;"	v	module:modsclbse
+mypcol1d_c	src_xs/modsclbse.f90	/^  integer(4) :: mypcol, mypcol1d_r, mypcol1d_c$/;"	v	module:modsclbse
+mypcol1d_r	src_xs/modsclbse.f90	/^  integer(4) :: mypcol, mypcol1d_r,/;"	v	module:modsclbse
 myprow	src_xs/modsclbse.f90	/^  integer(4) :: myprow,/;"	v	module:modsclbse
-myprow1d	src_xs/modsclbse.f90	/^  integer(4) :: myprow, mypcol, myprow1d,/;"	v	module:modsclbse
+myprow1d_c	src_xs/modsclbse.f90	/^  integer(4) :: myprow, myprow1d_r, myprow1d_c$/;"	v	module:modsclbse
+myprow1d_r	src_xs/modsclbse.f90	/^  integer(4) :: myprow, myprow1d_r,/;"	v	module:modsclbse
 myrank	src_gw/mod_mpi_gw.f90	/^    integer :: myrank /;"	v	module:mod_mpi_gw
 myrank_col	src_gw/mod_mpi_gw.f90	/^    integer :: myrank_col /;"	v	module:mod_mpi_gw
 myrank_row	src_gw/mod_mpi_gw.f90	/^    integer :: myrank_row /;"	v	module:mod_mpi_gw
+myreadlist	src_xs/mod_rrsring.f90	/^  integer(4), allocatable :: myreadlist(/;"	v	module:mod_rrsring
+myreceivelist	src_xs/mod_rrsring.f90	/^  integer(4), allocatable :: myreadlist(:), myreceivelist(/;"	v	module:mod_rrsring
+mysendlist	src_xs/mod_rrsring.f90	/^  integer(4), allocatable :: myreadlist(:), myreceivelist(:,:), mysendlist(/;"	v	module:mod_rrsring
+mysource	src_xs/mod_rrsring.f90	/^  integer(4) :: mytarget, mysource$/;"	v	module:mod_rrsring
+mytarget	src_xs/mod_rrsring.f90	/^  integer(4) :: mytarget,/;"	v	module:mod_rrsring
 mzran	src_other/delaunay.f	/^      subroutine mzran(/;"	s
 mzrans	src_other/delaunay.f	/^      subroutine mzrans(/;"	s
 n	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^      int/;"	v	program:cnbdr1
@@ -24496,6 +24526,7 @@ n_tau	libXC/testsuite/xc-regression.c	/^static int n_rho=2, n_sigma=2, n_lapl=2,
 naddl	src_other/delaunay.f	/^      integer nv, nw, nt, nd, naddl,/;"	v	program:main
 nafbse	src_xs/modxs.F90	/^      Integer :: nafbse$/;"	v	module:modxs
 nafce	src_xs/modxs.F90	/^      Integer :: nafce$/;"	v	module:modxs
+nall	src_xs/mod_rrsring.f90	/^  integer(4) :: i, id, ishift, ndj, nall,/;"	v	module:mod_rrsring
 nalphair	mod_potential_and_density.F90	/^	  Real (8), Allocatable :: nalphamt(:,:,:,:,:), nalphair(/;"	v	module:mod_potential_and_density
 nalphamt	mod_potential_and_density.F90	/^	  Real (8), Allocatable :: nalphamt(/;"	v	module:mod_potential_and_density
 name	FoX/common/m_common_content_model.F90	/^    character, pointer :: name(/;"	k	type:content_particle_t
@@ -24532,7 +24563,10 @@ nbfbse	src_xs/modxs.F90	/^      Integer :: nbfbse$/;"	v	module:modxs
 nbfce	src_xs/modxs.F90	/^      Integer :: nbfce$/;"	v	module:modxs
 nbgw	src_gw/modgw.f90	/^    integer(4) :: nbgw$/;"	v	module:modgw
 nbgw	src_inputparser/inputmodules.f90	/^ integer::nbgw$/;"	k	type:gw_type
+nblck	src_xs/modsclbse.f90	/^    integer(4) :: mblck, nblck$/;"	k	type:dzmat
 nblck	src_xs/modsclbse.f90	/^  integer(4), parameter :: nblck /;"	v	module:modsclbse
+nblck1d_c	src_xs/modsclbse.f90	/^  integer(4), parameter :: nblck1d_c /;"	v	module:modsclbse
+nblck1d_r	src_xs/modsclbse.f90	/^  integer(4), parameter :: nblck1d_r /;"	v	module:modsclbse
 nbx	ARPACK/SRC/stat.h	/^      integer    nopx, nbx, nrorth, nitref, nrstrt$/;"	v
 nbx	ARPACK/SRC/stat.h	/^     &           nopx, nbx, nrorth, nitref, nrstrt,$/;"	v
 nca	src_xs/mod_exciton_wf.f90	/^  integer, allocatable :: nca(/;"	v	module:mod_exciton_wf
@@ -24725,6 +24759,7 @@ ndim	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  count ndim, ncomp;$/;"	m	struct:_
 ndim	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  count ndim, ncomp;$/;"	m	struct:_this
 ndim	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  count ndim, ncomp;$/;"	m	struct:_this
 ndim	src_vdwdf/main.f90	/^  integer, parameter  :: ndim=/;"	v	program:main
+ndj	src_xs/mod_rrsring.f90	/^  integer(4) :: i, id, ishift, ndj,/;"	v	module:mod_rrsring
 ndmag	mod_spin.F90	/^      Integer :: ndmag$/;"	v	module:mod_spin
 ndspem	src_inputparser/inputmodules.f90	/^ integer::ndspem$/;"	k	type:masstensor_type
 neff	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  number n, neff;$/;"	m	struct:samples
@@ -25054,20 +25089,22 @@ np2d	mod_plotting.F90	/^      Integer :: np2d /;"	v	module:mod_plotting
 np3d	mod_plotting.F90	/^      Integer :: np3d /;"	v	module:mod_plotting
 nparam	eos/modmain.f90	/^integer nparam$/;"	v	module:modmain
 npatt	src_xml/scl_xml_out_module.F90	/^      Type (Node), Pointer :: sclDoc, root, np, npatt,/;"	v	module:scl_xml_out_Module
-npcol	src_xs/modsclbse.f90	/^  integer(4) :: nprow, npcol,/;"	v	module:modsclbse
-npcol1d	src_xs/modsclbse.f90	/^  integer(4) :: nprow, npcol, nproc, nprow1d, npcol1d$/;"	v	module:modsclbse
+npcol	src_xs/modsclbse.f90	/^  integer(4) :: npcol,/;"	v	module:modsclbse
+npcol1d_c	src_xs/modsclbse.f90	/^  integer(4) :: npcol, npcol1d_r, npcol1d_c$/;"	v	module:modsclbse
+npcol1d_r	src_xs/modsclbse.f90	/^  integer(4) :: npcol, npcol1d_r,/;"	v	module:modsclbse
 nphcell	mod_phonon.F90	/^      Integer :: nphcell$/;"	v	module:mod_phonon
 nphwrt	mod_phonon.F90	/^      Integer :: nphwrt$/;"	v	module:mod_phonon
 npmat	mod_eigensystem.F90	/^      Integer, Allocatable :: npmat /;"	v	module:mod_eigensystem
 npol	src_inputparser/inputmodules.f90	/^ integer::npol$/;"	k	type:selfenergy_type
 npp1d	mod_plotting.F90	/^      Integer :: npp1d$/;"	v	module:mod_plotting
 nprad	src_inputparser/inputmodules.f90	/^ integer::nprad$/;"	k	type:groundstate_type
-nproc	src_xs/modsclbse.f90	/^  integer(4) :: nprow, npcol, nproc,/;"	v	module:modsclbse
+nproc	src_xs/modsclbse.f90	/^  integer(4) :: nproc$/;"	v	module:modsclbse
 nproc_col	src_gw/mod_mpi_gw.f90	/^    integer :: nproc_col /;"	v	module:mod_mpi_gw
 nproc_row	src_gw/mod_mpi_gw.f90	/^    integer :: nproc_row /;"	v	module:mod_mpi_gw
 nproc_tot	src_gw/mod_mpi_gw.f90	/^    integer :: nproc_tot /;"	v	module:mod_mpi_gw
 nprow	src_xs/modsclbse.f90	/^  integer(4) :: nprow,/;"	v	module:modsclbse
-nprow1d	src_xs/modsclbse.f90	/^  integer(4) :: nprow, npcol, nproc, nprow1d,/;"	v	module:modsclbse
+nprow1d_c	src_xs/modsclbse.f90	/^  integer(4) :: nprow, nprow1d_r, nprow1d_c$/;"	v	module:modsclbse
+nprow1d_r	src_xs/modsclbse.f90	/^  integer(4) :: nprow, nprow1d_r,/;"	v	module:modsclbse
 npsden	src_inputparser/inputmodules.f90	/^ integer::npsden$/;"	k	type:groundstate_type
 npt	mod_rgrid.f90	/^    integer :: npt$/;"	k	type:rgrid
 nptir	src_gw/src_tests/mod_rpath.f90	/^        integer :: nptir /;"	k	type:r_path
@@ -26075,10 +26112,16 @@ removerhocr	removerhocr.f90	/^Subroutine removerhocr$/;"	s
 renameNode	FoX/dom/m_dom_dom.F90	/^  function renameNode(/;"	f	module:m_dom_dom
 reorderdynmat	src_phonon/reorderdynmat.F90	/^subroutine reorderdynmat(/;"	s
 reordr	src_other/delaunay.f	/^      subroutine reordr(/;"	s
+repcol	src_xs/modsclbse.f90	/^  integer(4) :: repcol,/;"	v	module:modsclbse
+repcol1d_c	src_xs/modsclbse.f90	/^  integer(4) :: repcol, repcol1d_r, repcol1d_c$/;"	v	module:modsclbse
+repcol1d_r	src_xs/modsclbse.f90	/^  integer(4) :: repcol, repcol1d_r,/;"	v	module:modsclbse
 repeater	FoX/common/m_common_content_model.F90	/^    integer :: repeater /;"	k	type:content_particle_t
 replaceChild	FoX/dom/m_dom_dom.F90	/^  function replaceChild(/;"	f	module:m_dom_dom
 replaceData	FoX/dom/m_dom_dom.F90	/^  subroutine replaceData(/;"	s	module:m_dom_dom
 report_declarations	FoX/common/m_common_element.F90	/^  subroutine report_declarations(/;"	s	module:m_common_element
+reprow	src_xs/modsclbse.f90	/^  integer(4) :: reprow,/;"	v	module:modsclbse
+reprow1d_c	src_xs/modsclbse.f90	/^  integer(4) :: reprow, reprow1d_r, reprow1d_c$/;"	v	module:modsclbse
+reprow1d_r	src_xs/modsclbse.f90	/^  integer(4) :: reprow, reprow1d_r,/;"	v	module:modsclbse
 rereadinput	src_inputparser/rereadinput.F90	/^subroutine rereadinput$/;"	s
 rescaleYS	src_mixing/rescaleYS.f90	/^Subroutine rescaleYS /;"	s
 reserved	FoX/utils/fox_m_utils_uri.F90	/^  character(len=*), parameter :: reserved /;"	v	module:fox_m_utils_uri
@@ -26163,6 +26206,7 @@ residual	src_mixing/modmixermsec.f90	/^      Real (8), Allocatable :: residual /
 residualvectors	src_iterative_solver/src_diis/residualvector.F90	/^Subroutine residualvectors /;"	s
 resize_elstack	FoX/common/m_common_elstack.F90	/^  subroutine resize_elstack(/;"	s	module:m_common_elstack
 resoep	mod_OEP_HF.F90	/^      Real (8) :: resoep$/;"	v	module:mod_OEP_HF
+rest	src_xs/mod_rrsring.f90	/^  integer(4) :: i, id, ishift, ndj, nall, rest$/;"	v	module:mod_rrsring
 restore0	src_xs/restore0.F90	/^Subroutine restore0$/;"	s
 restore1	src_xs/restore1.F90	/^Subroutine restore1$/;"	s
 restore2	src_xs/restore2.F90	/^Subroutine restore2$/;"	s
@@ -26687,10 +26731,6 @@ selfenergy_type	src_inputparser/inputmodules.f90	/^type selfenergy_type$/;"	t	mo
 selfex	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfex(/;"	v	module:mod_selfenergy
 sender_ncl	src_xs/modsclbse.f90	/^  integer(4) :: sender_nrl, sender_ncl$/;"	v	module:modsclbse
 sender_nrl	src_xs/modsclbse.f90	/^  integer(4) :: sender_nrl,/;"	v	module:modsclbse
-sender_pcol	src_xs/modsclbse.f90	/^  integer(4) :: sender_prow, sender_pcol,/;"	v	module:modsclbse
-sender_pcol1d	src_xs/modsclbse.f90	/^  integer(4) :: sender_prow, sender_pcol, sender_prow1d, sender_pcol1d$/;"	v	module:modsclbse
-sender_prow	src_xs/modsclbse.f90	/^  integer(4) :: sender_prow,/;"	v	module:modsclbse
-sender_prow1d	src_xs/modsclbse.f90	/^  integer(4) :: sender_prow, sender_pcol, sender_prow1d,/;"	v	module:modsclbse
 seq	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^      number seq;$/;"	m	struct:__anon63::__anon64::__anon65
 serialize	FoX/dom/m_dom_utils.f90	/^  subroutine serialize(/;"	s	module:m_dom_utils
 setAttribute	FoX/dom/m_dom_dom.F90	/^  subroutine setAttribute(/;"	s	module:m_dom_dom
@@ -26755,7 +26795,9 @@ setulb	Lbfgsb.3.0/lbfgsb.f	/^      subroutine setulb(/;"	s
 setumix	src_gw/setumix.f90	/^subroutine setumix(/;"	s
 setup_YY	src_mixing/setup_YY.f90	/^Subroutine setup_YY /;"	s
 setup_distributed_bse	src_xs/setup_distributed_bse.f90	/^subroutine setup_distributed_bse(/;"	s
+setup_distributed_rmat	src_xs/setup_distributed_rmat.f90	/^subroutine setup_distributed_rmat(/;"	s
 setup_io	FoX/common/m_common_io.F90	/^  subroutine setup_io(/;"	s	module:m_common_io
+setup_rrslists	src_xs/mod_rrsring.f90	/^    subroutine setup_rrslists(/;"	s	module:mod_rrsring
 setupblacs	src_xs/modsclbse.f90	/^    subroutine setupblacs$/;"	s	module:modsclbse
 setuphamiltonian	src_xs/b_bse.f90	/^  subroutine setuphamiltonian(/;"	s	subroutine:b_bse
 setuphsvect	src_iterative_solver/src_diis/setuphsvect.F90	/^Subroutine setuphsvect /;"	s
@@ -29027,7 +29069,7 @@ z2mm	src_lib/z2mm.f90	/^Subroutine z2mm /;"	s
 z2mmct	src_lib/z2mmct.f90	/^Subroutine z2mmct /;"	s
 z3minv	src_lib/z3minv.f90	/^Subroutine z3minv /;"	s
 za	src_eigensystem/modfvsystem.f90	/^        Complex(8), Pointer :: za /;"	k	type:HermitianMatrix
-za	src_xs/modsclbse.f90	/^    complex(8), pointer :: za(/;"	k	type:dzmat
+za	src_xs/modsclbse.f90	/^    complex(8), allocatable :: za(/;"	k	type:dzmat
 zap	src_eigensystem/modfvsystem.f90	/^        Complex(8), Pointer :: za (:, :), zap /;"	k	type:HermitianMatrix
 zaxpyc	src_xs/zaxpyc.F90	/^      Subroutine zaxpyc /;"	s	module:m_zaxpyc
 zbshtapw	mod_SHT.F90	/^      Complex (8), Allocatable :: zbshtapw /;"	v	module:mod_SHT

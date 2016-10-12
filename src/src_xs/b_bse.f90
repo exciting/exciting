@@ -20,6 +20,7 @@ subroutine b_bse
   use m_writeoscillator
   use m_writecmplxparts
   use m_dhesolver
+  use m_dzgemm
   use modsclbse
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
@@ -110,8 +111,6 @@ subroutine b_bse
   complex(8), allocatable :: buff(:,:)
   type(dzmat) :: dham, dbevecr, doszsr
 
-  ! GW 
-  real(8), allocatable, dimension(:,:) :: eval0
 
   ! Include coupling terms
   fcoup = input%xs%bse%coupling
@@ -217,7 +216,6 @@ subroutine b_bse
     ! Also write information about skipped combinations to file.
     call checkoccupancies(iq, hamsize)
     !!-->
-
 
     fwp = input%xs%bse%writeparts
 
@@ -477,7 +475,7 @@ subroutine b_bse
       fwp = input%xs%bse%writeparts
 
       ! Define global distributed matrices
-      call new_dzmat(dham, hamsize, hamsize)
+      call new_dzmat(dham, hamsize, hamsize, context=ictxt2d)
 
       ! Write Info
       if(rank == 0) then
@@ -502,48 +500,15 @@ subroutine b_bse
         write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
       end if
 
+#ifdef SCAL
       if(fwp) then
-        !! Test gather dham to global and write out
-        if(myprow == 0 .and. mypcol == 0) then 
-          write(*,*) "Gathering global matrix"
-          ! Allocate the actual global array
-          allocate(ham(hamsize, hamsize)) 
-          ham = zzero
-          write(*,*) "Unpacking to global data form:", myprow, mypcol
-          call unpacktoglobal(ham, dham%za, myprow, mypcol, nprow, npcol)
-                
-          do ip = 1, nproc-1
-            ! Get info about sender and sender's local matrix
-            call blacs_pcoord(ictxt2d, ip, sender_prow, sender_pcol)
-            sender_nrl = numroc(dham%nrows, mblck, sender_prow, 0, nprow) 
-            sender_ncl = numroc(dham%ncols, nblck, sender_pcol, 0, npcol) 
-            write(*,*) "Getting data form:", sender_prow, sender_pcol,&
-              & " shape:", sender_nrl, sender_ncl
-            ! Make receive buffer
-            if(allocated(buff)) deallocate(buff)
-            allocate(buff(sender_nrl, sender_ncl))
-            ! Receive the senders local matrix
-            call zgerv2d(ictxt2d, sender_nrl, sender_ncl,&
-              & buff, sender_nrl, sender_prow, sender_pcol) 
-            ! Write content to global matrix
-            write(*,*) "Unpacking data form:", sender_prow, sender_pcol
-            call unpacktoglobal(ham, buff, sender_prow, sender_pcol, nprow, npcol)
-            write(*,*) "unpacked."
-          end do
-
-          write(*,*) "Writing out global matrix"
-          call writecmplxparts("GlobalHam",dble(ham),immat=aimag(ham))
-          write(*,*) "Done."
+        call dzmat_send2global_root(ham, dham)
+        if(rank == 0) then
+          call writecmplxparts("GlobalHam", dble(ham), immat=aimag(ham))
           deallocate(ham)
-        else
-          write(*,*) "Sending data form:", myprow, mypcol,&
-            & " shape:", dham%nrows_loc, dham%ncols_loc
-          call zgesd2d(ictxt2d, dham%nrows_loc, dham%ncols_loc,&
-            & dham%za, dham%nrows_loc, 0, 0)
-          write(*,*) "Sent."
         end if
-
       end if
+#endif
 
       call barrier
 
@@ -562,7 +527,7 @@ subroutine b_bse
       end if
 
       ! Eigenvectors are distributed
-      call new_dzmat(dbevecr, hamsize, nexc)
+      call new_dzmat(dbevecr, hamsize, nexc, context=ictxt2d)
       ! Eigenvalues global
       allocate(bevalre(hamsize))
 
@@ -582,78 +547,73 @@ subroutine b_bse
         write(unitout,*)
       end if
 
-      !! Check
-      if(rank == 0) then 
-        write(*,'(E23.16)') bevalre * h2ev
-      end if
-      call barrier
-      call terminate
-
-    !!! Continue here
       ! Calculate oscillator strengths.
-      call new_dzmat(doszsr, nexc, 3)
+      call new_dzmat(doszsr, nexc, 3, context=ictxt2d, rblck=mblck1d_c, cblck=nblck1d_c)
       call barrier
       if(rank == 0) then
         write(unitout, '("Making oszillator strengths (distributed).")')
         call timesec(ts0)
       end if
-      !call distributed_makeoszillatorstrength(oszsr)
+
+      call make_doszstren
+
       call barrier
       if(rank == 0) then 
         call timesec(ts1)
         write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
       end if
 
-     ! ! Write excition energies and oscillator strengths to 
-     ! ! text file. 
-     ! write(unitout, '("Writing excition energies and oszillator strengths.")')
-     ! if(fcoup) then
-     !   call writeoscillator(2*hamsize, nexc, egap, bevalre, oszsr,&
-     !     & evalim=bevalim, oszstra=oszsa)
-     ! else
-     !   call writeoscillator(hamsize, nexc, egap, bevalre, oszsr)
-     ! end if
+      ! Every process gets a copy of the oscillator stenghts 
+      call dzmat_send2global_all(oszsr, doszsr)
+      if(fwp .and. rank == 0) then
+        call writecmplxparts("oszstren",dble(oszsr),immat=aimag(oszsr))
+      end if
 
-      ! Calculate macroscopic dielectric tensor with finite broadening, i.e. "the spectrum"
-      nw = input%xs%energywindow%points
+      call barrier
+
+      if(rank == 0) then
+        ! Write excition energies and oscillator strengths to 
+        ! text file. 
+        write(unitout, '("Writing excition energies and oszillator strengths.")')
+        call writeoscillator(hamsize, nexc, egap, bevalre, oszsr)
+      end if
+
+      call barrier
 
       ! Allocate arrays used in spectrum construction
+      nw = input%xs%energywindow%points
       allocate(w(nw))
-      allocate(symspectr(3,3,nw))
-
       ! Generate an evenly spaced frequency grid 
       call genwgrid(nw, input%xs%energywindow%intv,&
         & input%xs%tddft%acont, 0.d0, w_real=w)
 
-      write(unitout, '("Making spectrum.")')
-      call timesec(ts0)
-      ! Calculate lattice symmetrized spectrum.
-      write(unitout, '("  Using TDA formula.")')
-      call makespectrum_tda(nw, w, symspectr)
-      call timesec(ts1)
-      write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
+      if(rank == 0) then
+        allocate(symspectr(3,3,nw))
+        write(unitout, '("Making spectrum.")')
+        call timesec(ts0)
+        ! Calculate lattice symmetrized spectrum.
+        write(unitout, '("  Using TDA formula.")')
+      end if
 
-      write(unitout, '("Writing derived quantities.")')
-      ! Generate and write derived optical quantities
-      iq = 1
-      call writederived(iq, symspectr, nw, w)
-      write(unitout, '("  Derived quantities written.")')
+      call make_dist_spectrum_tda(nw, w)
 
-      ! Store excitonic energies and wave functions to file
-      if(associated(input%xs%storeexcitons)) then
-        if(fcoup) then
-          call storeexcitons(2*hamsize,nexc,nkptnr,iuref,bcou,smap,bevalre,bevecr)
-        else
-          call storeexcitons(hamsize,nexc,nkptnr,iuref,bcou,smap,bevalre,bevecr)
-        end if
+      if(rank == 0) then
+        call timesec(ts1)
+        write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
+
+        write(unitout, '("Writing derived quantities.")')
+        ! Generate and write derived optical quantities
+        iq = 1
+        call writederived(iq, symspectr, nw, w)
+        write(unitout, '("  Derived quantities written.")')
       end if
 
       ! Clean up
-      deallocate(bevalre, bevecr, oszsr, w, symspectr, evalsv)
-      if(fcoup) then 
-        deallocate(bevalim, oszsa)
-      end if
+      deallocate(bevalre, oszsr, w, evalsv)
       if(associated(input%gw)) deallocate(eval0)
+      if(rank == 0) then 
+        deallocate(symspectr)
+      end if
 
       call barrier
 
@@ -1047,6 +1007,97 @@ contains
     end do
 
   end subroutine adddirect
+
+  subroutine make_doszstren
+    use mod_constants, only: zone
+    use m_getpmat
+    
+    implicit none
+
+    ! Local
+    real(8) :: t1, t0
+    type(dzmat) :: drmat
+    complex(8) :: rmat(hamsize, 3)
+
+    ! Distributed position operator matrix
+    call new_dzmat(drmat, hamsize, 3, context=ictxt2d, rblck=mblck1d_c, cblck=nblck1d_c)
+
+    ! Build position operator matrix elements
+    if(rank == 0) then 
+      write(unitout, '("  Building Rmat.")')
+      call timesec(t0)
+    end if
+    call setup_distributed_rmat(drmat)
+    if(rank == 0) then
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+      write(unitout, '("  Building resonant oscillator strengths.")')
+      call timesec(t0)
+    end if
+
+    ! TEST OUTPUT
+    call barrier
+#ifdef SCAL
+    if(fwp) then
+      !! Test gather dham to global and write out
+      if(myprow == 0 .and. mypcol == 0) then 
+        write(*,*) "Gathering global matrix (rmat)"
+        ! Allocate the actual global array
+        rmat = zzero
+        write(*,*) "Unpacking to global data form:", myprow, mypcol
+        call unpacktoglobal(rmat, drmat%za, drmat%mblck, drmat%nblck,&
+          & myprow, mypcol, nprow, npcol)
+              
+        do ip = 1, nproc-1
+          ! Get info about sender and sender's local matrix
+          call blacs_pcoord(ictxt2d, ip, reprow, repcol)
+          sender_nrl = numroc(drmat%nrows, drmat%mblck, reprow, 0, nprow) 
+          sender_ncl = numroc(drmat%ncols, drmat%nblck, repcol, 0, npcol) 
+          write(*,*) "Getting data form:", reprow, repcol,&
+            & " shape:", sender_nrl, sender_ncl
+          ! Make receive buffer
+          if(allocated(buff)) deallocate(buff)
+          allocate(buff(sender_nrl, sender_ncl))
+          ! Receive the senders local matrix
+          call zgerv2d(ictxt2d, sender_nrl, sender_ncl,&
+            & buff, sender_nrl, reprow, repcol) 
+          ! Write content to global matrix
+          write(*,*) "Unpacking data form:", reprow, repcol
+          call unpacktoglobal(rmat, buff, drmat%mblck, drmat%nblck,&
+            & reprow, repcol, nprow, npcol)
+          write(*,*) "unpacked."
+        end do
+
+        write(*,*) "Writing out global matrix"
+        call writecmplxparts("rmat",dble(rmat),immat=aimag(rmat))
+        write(*,*) "Done."
+      else
+        write(*,*) "Sending data form:", myprow, mypcol,&
+          & " shape:", drmat%nrows_loc, drmat%ncols_loc
+        call zgesd2d(ictxt2d, drmat%nrows_loc, drmat%ncols_loc,&
+          & drmat%za, drmat%nrows_loc, 0, 0)
+        write(*,*) "Sent."
+      end if
+
+    end if
+#endif
+
+    !! Resonant oscillator strengths
+    ! t^R_\lambda,i = < \tilde{R}^i | X_\lambda> =
+    ! \Sum_{s1} f_{s1} R^*_{{u_{s1} o_{s1} k_{s1}},i} X_{o_{s1} u_{s1} k_{s1}},\lambda= 
+    ! \Sum_{s1} f_{s1} P^*_{{u_{s1} o_{s1} k_{s1}},i} / 
+    !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda= 
+    ! \Sum_{s1} f_{s1} P_{{o_{s1} u_{s1} k_{s1}},i} / 
+    !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda
+    call barrier
+    call dzgemm(dbevecr, drmat, doszsr, transa='T')
+    if(rank == 0) then
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    end if
+
+    call del_dzmat(drmat)
+  end subroutine make_doszstren
   
   subroutine makeoszillatorstrength(oszstrr, oszstra)
     use mod_constants, only: zone
@@ -1292,6 +1343,198 @@ contains
     call timesec(t1)
     write(unitout, '("    Time needed",f12.3,"s")') t1-t0
   end subroutine makespectrum
+
+  subroutine make_dist_spectrum_tda(nfreq, freq)
+    use mod_lattice, only: omega
+    use mod_constants, only: zone, zi, pi
+    use modxs, only: symt2
+    use invert
+    implicit none
+
+    ! I/O
+    integer(4), intent(in) :: nfreq
+    real(8), intent(in) :: freq(nfreq)
+
+    ! Local
+    integer(4) :: i, j, o1, o2, ig, jg
+    real(8) :: t1, t0
+    complex(8), allocatable :: buf(:,:,:)
+    complex(8), allocatable :: ns_spectr(:,:)
+
+    type(dzmat) :: denwr, denwa, dbmatr, dns_spectr
+
+    if(rank == 0) then
+      write(unitout, '("  Making energy denominators ENW.")')
+      call timesec(t0)
+    end if
+    ! Shift energies back to absolute values.
+    bevalre = bevalre + egap - bsed
+    ! Make energy denominator for each frequency (resonant & anti-resonant) 
+    call new_dzmat(denwr, nfreq, nexc)
+    do i = 1, denwr%ncols_loc
+      do j = 1, denwr%nrows_loc
+        ! Get corresponding global indices
+        ig = indxl2g(i, denwr%mblck, myprow, 0, nprow)
+        jg = indxl2g(j, denwr%nblck, mypcol, 0, npcol)
+        denwr%za(j,i) = zone/(bevalre(ig)-freq(jg)-zi*input%xs%broad)
+      end do
+    end do
+    write(*,*) " asdfas"
+    call new_dzmat(denwa, nfreq, nexc)
+    do i = 1, denwa%ncols_loc
+      do j = 1, denwa%nrows_loc
+        ! Get corresponding global indices
+        ig = indxl2g(i, denwa%mblck, myprow, 0, nprow)
+        jg = indxl2g(j, denwa%nblck, mypcol, 0, npcol)
+        denwa%za(j,i) = zone/(bevalre(ig)+freq(jg)+zi*input%xs%broad)
+      end do
+    end do
+    call barrier
+    if(rank == 0) then
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+      write(unitout, '("  Making helper matrix bmat.")')
+      call timesec(t0)
+    end if
+    
+    if(input%xs%dfoffdiag) then
+      call new_dzmat(dbmatr, nexc, 9, rblck=mblck1d_c, cblck=nblck1d_c)
+      ! Global column index loop
+      do o1 = 1, 3
+        do o2 = 1, 3
+          jg = o2 + (o1-1)*3
+          ! Local column index
+          j = indxg2l(jg, dbmatr%nblck, mypcol, 0, npcol)
+          ! Local row index loop
+          do i = 1, dbmatr%nrows_loc
+            ! Global row index
+            ig = indxl2g(i, dbmatr%mblck, myprow, 0, nprow)
+            dbmatr%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o2))
+          end do
+        end do
+      end do
+    else
+      call new_dzmat(dbmatr, nexc, 3, rblck=mblck1d_c, cblck=nblck1d_c)
+      do o1 = 1, 3
+        ! Local column index
+        j = indxg2l(o1, dbmatr%nblck, mypcol, 0, npcol)
+        ! Local row index loop
+        do i = 1, dbmatr%nrows_loc
+          ! Global row index
+          ig = indxl2g(i, dbmatr%mblck, myprow, 0, nprow)
+          dbmatr%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o1))
+        end do
+      end do
+    end if
+    if(rank == 0) then
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+      write(unitout, '("  Calculating spectrum.")')
+      call timesec(t0)
+    end if
+         
+    ! Make non-lattice-symmetrized spectrum
+    if(input%xs%dfoffdiag) then
+      call new_dzmat(dns_spectr, nexc, 9, rblck=mblck1d_c, cblck=nblck1d_c)
+      call barrier
+      call dzgemm(denwr, dbmatr, dns_spectr)
+      call barrier
+      dbmatr%za = conjg(dbmatr%za)
+      call barrier
+      call dzgemm(denwa, dbmatr, dns_spectr, beta=zone)
+
+      dns_spectr%za = dns_spectr%za*8.d0*pi/omega/nkptnr
+
+      do i = 1, dns_spectr%nrows_loc
+        do j = 1, dns_spectr%ncols_loc
+          ig = indxl2g(i, dns_spectr%mblck, myprow, 0, nprow)
+          jg = indxl2g(j, dns_spectr%nblck, mypcol, 0, npcol)
+          if(jg == 1 .or. jg == 4 .or. jg == 7) then
+            dns_spectr%za(i,j) = zone + dns_spectr%za(i,j)
+          end if
+        end do
+      end do
+      
+      call del_dzmat(denwr)
+      call del_dzmat(denwa)
+      call del_dzmat(dbmatr)
+
+      call dzmat_send2global_root(ns_spectr, dns_spectr)
+      call barrier
+      call del_dzmat(dns_spectr)
+
+      if(rank == 0) then 
+
+        ! Write to buffer for symmetry routine
+        if(allocated(buf)) deallocate(buf)
+        allocate(buf(3,3,nexc))
+        buf=zzero
+
+        do o1=1,3
+          do o2=1,3
+            j = o2 + (o1-1)*3
+            buf(o1,o2,:) = ns_spectr(:,j)
+          end do
+        end do
+        deallocate(ns_spectr)
+
+      end if
+
+    else
+
+      call new_dzmat(dns_spectr, nexc, 3, rblck=mblck1d_c, cblck=nblck1d_c)
+      call barrier
+      call dzgemm(denwr, dbmatr, dns_spectr)
+      call barrier
+      dbmatr%za = conjg(dbmatr%za)
+      call barrier
+      call dzgemm(denwa, dbmatr, dns_spectr, beta=zone)
+
+      dns_spectr%za = zone + dns_spectr%za*8.d0*pi/omega/nkptnr
+
+      call del_dzmat(denwr)
+      call del_dzmat(denwa)
+      call del_dzmat(dbmatr)
+
+      call dzmat_send2global_root(ns_spectr, dns_spectr)
+      call barrier
+      call del_dzmat(dns_spectr)
+
+      if(rank == 0) then 
+
+        ! Write to buffer for symmetry routine
+        if(allocated(buf)) deallocate(buf)
+        allocate(buf(3,3,nexc))
+        buf=zzero
+
+        do o1=1,3
+          buf(o1,o1,:) = ns_spectr(:,o1)
+        end do
+        deallocate(ns_spectr)
+
+      end if
+
+    end if
+
+    if(rank == 0) then 
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+      write(unitout, '("  Symmetrizing spectrum.")')
+      call timesec(t0)
+
+      symspectr = zzero
+      do o1=1,3
+        do o2=1,3
+          ! Symmetrize the macroscopic dielectric tensor
+          call symt2app(o1, o2, nfreq, symt2, buf, symspectr(o1,o2,:))
+        end do 
+      end do
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+    end if
+  end subroutine make_dist_spectrum_tda
 
   subroutine makespectrum_tda(nfreq, freq, spectrum)
     use mod_lattice, only: omega

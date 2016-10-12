@@ -6,6 +6,8 @@
 ! !ROUTINE: hermitian_solver
 ! !INTERFACE:
 subroutine hermitian_solver(solsize, hamsize, ham, eval, evec)
+! !USES:
+  use modmpi
 ! !INPUT/OUTPUT PARAMETERS:
 ! IN:
 !   integer :: solsize ! Number of solutions from lowest EV 
@@ -48,6 +50,7 @@ subroutine hermitian_solver(solsize, hamsize, ham, eval, evec)
   ! Tolerance parameter
   abstol = 2.d0 * dlamch('s')
 
+  ! Sanity check
   if(solsize < 1 .or. solsize > hamsize) then
     write(*,*) "bsesoldiag (ERROR): Number of requested solutions is &
       & incompatible with size of Hamiltonian."
@@ -89,6 +92,7 @@ subroutine hermitian_solver(solsize, hamsize, ham, eval, evec)
   if(info .ne. 0) then
    write(*,*)
    write(*, '("Error(bsesoldiag): zheevx returned non-zero info:", i6)') info
+   call errorinspect(info)
    write(*,*)
    call terminate
   end if
@@ -120,6 +124,16 @@ subroutine hermitian_solver(solsize, hamsize, ham, eval, evec)
       deallocate(work, rwork, iwork)
 
     end subroutine workspacequery
+
+    subroutine errorinspect(ierror)
+      integer(4) :: ierror
+
+      if( ierror < 0) then
+        write(*,'("dhesolver@rank",i3," Error cause: Invalid input")') rank
+      else 
+        write(*,'("dhesolver@rank",i3," Error cause: Internal error")') rank
+      end if
+    end subroutine errorinspect
 
 end subroutine hermitian_solver
 !EOC

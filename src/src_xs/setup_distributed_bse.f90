@@ -6,6 +6,7 @@ subroutine setup_distributed_bse(ham)
   use modmpi
   use modbse
   use modsclbse
+  use mod_rrsring
   use modinput
   use m_getunit
 ! !INPUT/OUTPUT PARAMETERS:
@@ -21,124 +22,41 @@ subroutine setup_distributed_bse(ham)
 !EOP
 !BOC
 
+  implicit none
+
   !! I/O
   type(dzmat), intent(inout) :: ham
 
   !! Local variables
   integer(4) :: ikkp, ikkp_loc
   integer(4) :: ik1, ik2, ik1_loc, ik2_loc
-  integer(4) :: mytarget, mysource
   integer(4) :: id, iprc, ishift, a1, a2, i, j
-  integer(4) :: ndj, nall, rest
-  integer(4), allocatable :: myreadlist(:), myreceivelist(:,:), mysendlist(:,:)
   complex(8), allocatable, dimension(:,:,:,:) :: excli, sccli
-
-  ! External function
-!#ifdef SCAL
-!  integer(4), external :: indxl2g
-!#endif
 
   integer(4) :: un
   logical :: verbose
   character(256) :: fnam
 
-  verbose = .true.
+  verbose = .false.
 
   ! Allocate work arrays
   allocate(excli(no,nu,no,nu)) ! RR part of V
   allocate(sccli(no,nu,no,nu)) ! RR part of W
 
-  ! Read cycles
-  !   The nkkp registers of W and V are read by npoc processes
-  !   in N or N+1 read cycles. Where nkkp/nproc = N rest R, so
-  !   that in N cycles every process reads a register, while in
-  !   the N+1'th and last cycle only the first R processes read 
-  !   from file.
-  !   After the read is done, the data gets shifted nporc-1 times
-  !   from neighbour to next neighbour in one direction (along 
-  !   a process ring, in mathematically negative direction),
-  !   since each process needs data form every 
-  !   file register to build the local Hamiltonian matrix.
-  ndj  = ceiling(dble(nkkp)/dble(nproc)) 
-  nall = nkkp/nproc
-  rest = mod(nkkp, nproc)
+  call setup_rrslists(nkkp)
 
-  ! Determine from which rank to receive data (always the process previous in ring)
-  mysource = mypcol1d - 1 
-  if(mysource < 0) mysource = nproc -1 
-
-  ! Determine to which rank to send data (always next process in ring)
-  mytarget = mypcol1d + 1
-  if(mytarget > nproc-1) mytarget = 0 
-
+  !! Test output
   if(verbose) then
     if(rank == 0) then
-      write(*,'(" Number of data injections: ", i3, 1x, i3, 1x, i3)'), ndj, nall, rest
+      write(*,'(" Number of data injections: ", i3, 1x, i3, 1x, i3)')&
+        & ndj, nall, rest
     end if
-    write(*,'(" Rank", i3," Rank1d", i3 " Form rank:", i3, " To rank:", i3)') rank, mypcol1d, mysource, mytarget
-  end if
+    write(*,'(" Rank", i3," Rank1d", i3 " Form rank:", i3, " To rank:", i3)')&
+      & rank, mypcol1d_r, mysource, mytarget
 
-  ! The registers to read by each process are distributed
-  ! around the process ring one by one.
-  allocate(myreadlist(ndj))
-  do id = 1, ndj
-    myreadlist(id) = mypcol1d + (id-1)*nproc + 1
-    ! An entry of 0 means no read from file
-    ! in cycle N+1.
-    if(myreadlist(id) > nkkp) then
-      myreadlist(id) = 0
-    end if
-  end do
-
-  !!*************************************************!!
-  !! Make lists of which ikkps to receive each cycle !!
-  !! and which to send.                              !!
-  !!*************************************************!!
-  allocate(myreceivelist(ndj, nproc))
-  allocate(mysendlist(ndj, nproc))
-  ! If there are more ikkp then processes:
-  ! All processes read new data and send it around
-  do id = 1, nall
-
-    myreceivelist(id, 1) = 0
-    mysendlist(id, 1) = myreadlist(id)
-
-    do ishift = 2, nproc
-      myreceivelist(id, ishift) = mysendlist(id,ishift-1) - 1
-      if(mod(myreceivelist(id, ishift), nproc) == 0) then
-        myreceivelist(id, ishift) = myreceivelist(id, ishift) + nproc
-      end if
-      mysendlist(id, ishift) = myreceivelist(id, ishift)
-    end do
-    mysendlist(id, nproc) = -1
-
-  end do
-  ! If there are less ikkp then processes or the processes
-  ! do not divide nkkp without rest.
-  ! Adjust for potential last (or only) partial data injection.
-  if(rest > 0) then
-    myreceivelist(ndj,:) = -1
-    do i = 1, rest
-      myreceivelist(ndj, i) = nall*nproc + (rest-i+1)
-    end do
-    myreceivelist(ndj, :) = cshift(myreceivelist(ndj,:), mypcol1d+1-rest)
-    mysendlist(ndj,:) = myreceivelist(ndj, :)
-    if(myreadlist(ndj) > 0) then
-      myreceivelist(ndj, 1) = 0
-    end if
-    if(mypcol1d+1 < rest) then
-      mysendlist(ndj, nproc) = -1
-    end if
-    if(mypcol1d == nproc-1) then 
-      mysendlist(ndj, nproc-1) = -1
-    end if
-  end if
-
-  if(verbose) then 
-    !! Test output
     call getunit(un)
     fnam = ''
-    write(fnam,*) mypcol1d
+    write(fnam,*) mypcol1d_r
     fnam = "rese_"//trim(adjustl(fnam))
     open(unit=un, file=trim(fnam), action='write', status='replace')
     write(un,*) "Receive:"
@@ -156,7 +74,6 @@ subroutine setup_distributed_bse(ham)
       write(un, *)
     end do
     close(un)
-
     write(*,*) "Rank",rank,"build lists."
   end if
 
@@ -170,7 +87,6 @@ subroutine setup_distributed_bse(ham)
       ! Get data this time?
       igetdata: if(myreceivelist(id, ishift) /= -1) then
 
-
         !!*************!!
         !! GET DATA    !!
         !!*************!!
@@ -179,7 +95,8 @@ subroutine setup_distributed_bse(ham)
         if(myreceivelist(id, ishift) == 0) then
 
           if(verbose) then
-            write(*,'(" Rank:", i3, " id:", i4, " ishift:", i3, " RECEIVES DATA FROM FILE")') rank, id, ishift
+            write(*,'(" Rank:", i3, " id:", i4, " ishift:", i3,&
+              & " RECEIVES DATA FROM FILE")') rank, id, ishift
           end if
 
           !!***********!!
@@ -202,15 +119,16 @@ subroutine setup_distributed_bse(ham)
         else
 
           if(verbose) then
-            write(*,'(" Rank:",i3, " id:", i4, " ishift:", i3, " RECEIVES DATA FROM RANK", i4)') rank, id, ishift, mysource
+            write(*,'(" Rank:",i3, " id:", i4, " ishift:", i3,&
+              & " RECEIVES DATA FROM RANK", i4)') rank, id, ishift, mysource
           end if
 
 #ifdef SCAL
           !!**************!!
           !! RECEIVE DATA !!
           !!**************!!
-          call zgerv2d(ictxt1d, nou, nou, excli(1,1,1,1), nou, 0, mysource)
-          call zgerv2d(ictxt1d, nou, nou, sccli(1,1,1,1), nou, 0, mysource)
+          call zgerv2d(ictxt1d_r, nou, nou, excli(1,1,1,1), nou, 0, mysource)
+          call zgerv2d(ictxt1d_r, nou, nou, sccli(1,1,1,1), nou, 0, mysource)
           ! Set ikkp do sources list element
           ikkp = myreceivelist(id, ishift)
 #endif
@@ -222,7 +140,8 @@ subroutine setup_distributed_bse(ham)
         !!**************!!
 
         if(verbose) then
-          write(*,'(" Rank:",i3, " id:", i4, " ishift:", i3, " PROCESSES DATA FOR IKKP", i4)') rank, id, ishift, ikkp
+          write(*,'(" Rank:",i3, " id:", i4, " ishift:", i3,&
+            & " PROCESSES DATA FOR IKKP", i4)') rank, id, ishift, ikkp
         end if
         ! Loop over local indices
         do i=1, ham%nrows_loc
@@ -285,13 +204,14 @@ subroutine setup_distributed_bse(ham)
       ! Need to send data further ?
       if(mysendlist(id, ishift) /= -1 .and. nproc /= 1) then
         if(verbose) then
-          write(*,'(" Rank:",i3, " id:", i4, " ishift:", i3, " SENDS DATA TO RANK", i4)') rank, id, ishift, mytarget
+          write(*,'(" Rank:",i3, " id:", i4, " ishift:", i3,&
+            & " SENDS DATA TO RANK", i4)') rank, id, ishift, mytarget
         end if
         !!***********!!
         !! SEND DATA !!
         !!***********!!
-        call zgesd2d(ictxt1d, nou, nou, excli(1,1,1,1), nou, 0, mytarget)
-        call zgesd2d(ictxt1d, nou, nou, sccli(1,1,1,1), nou, 0, mytarget)
+        call zgesd2d(ictxt1d_r, nou, nou, excli(1,1,1,1), nou, 0, mytarget)
+        call zgesd2d(ictxt1d_r, nou, nou, sccli(1,1,1,1), nou, 0, mytarget)
       end if
 #endif
       
@@ -299,7 +219,6 @@ subroutine setup_distributed_bse(ham)
   end do dataget
 
   ! Work arrays
-  deallocate(myreadlist)
   deallocate(myreceivelist)
   deallocate(mysendlist)
   deallocate(excli)

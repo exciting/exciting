@@ -24,6 +24,8 @@ module modbse
   integer(4) :: nkkp, nk
   ! BSE gap
   real(8) :: egap
+  ! GW eigenvalue backup 
+  real(8), allocatable, dimension(:,:) :: eval0
   ! Occupation factors for Hamiltonian construction
   real(8), allocatable :: ofac(:)
   ! Maps, maps for everyone !
