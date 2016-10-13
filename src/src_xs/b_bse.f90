@@ -608,6 +608,8 @@ subroutine b_bse
         write(unitout, '("  Derived quantities written.")')
       end if
 
+      call barrier
+
       ! Clean up
       deallocate(bevalre, oszsr, w, evalsv)
       if(associated(input%gw)) deallocate(eval0)
@@ -1360,7 +1362,7 @@ contains
     real(8) :: t1, t0
     complex(8), allocatable :: buf(:,:,:)
     complex(8), allocatable :: ns_spectr(:,:)
-
+    complex(8), allocatable, dimension(:,:) :: enwr, enwa, bmatr
     type(dzmat) :: denwr, denwa, dbmatr, dns_spectr
 
     if(rank == 0) then
@@ -1370,25 +1372,40 @@ contains
     ! Shift energies back to absolute values.
     bevalre = bevalre + egap - bsed
     ! Make energy denominator for each frequency (resonant & anti-resonant) 
-    call new_dzmat(denwr, nfreq, nexc)
-    do i = 1, denwr%ncols_loc
-      do j = 1, denwr%nrows_loc
+    call new_dzmat(denwr, nfreq, nexc, context=ictxt2d)
+    do i = 1, denwr%nrows_loc
+      do j = 1, denwr%ncols_loc
         ! Get corresponding global indices
         ig = indxl2g(i, denwr%mblck, myprow, 0, nprow)
         jg = indxl2g(j, denwr%nblck, mypcol, 0, npcol)
-        denwr%za(j,i) = zone/(bevalre(ig)-freq(jg)-zi*input%xs%broad)
+        denwr%za(i,j) = zone/(bevalre(jg)-freq(ig)-zi*input%xs%broad)
       end do
     end do
-    write(*,*) " asdfas"
-    call new_dzmat(denwa, nfreq, nexc)
-    do i = 1, denwa%ncols_loc
-      do j = 1, denwa%nrows_loc
+
+    call barrier
+    call dzmat_send2global_root(enwr, denwr)
+    if(rank == 0) then 
+      call writecmplxparts("enwr",dble(enwr),immat=aimag(enwr))
+    end if
+    call barrier
+
+    call new_dzmat(denwa, nfreq, nexc, context=ictxt2d)
+    do i = 1, denwa%nrows_loc
+      do j = 1, denwa%ncols_loc
         ! Get corresponding global indices
         ig = indxl2g(i, denwa%mblck, myprow, 0, nprow)
         jg = indxl2g(j, denwa%nblck, mypcol, 0, npcol)
-        denwa%za(j,i) = zone/(bevalre(ig)+freq(jg)+zi*input%xs%broad)
+        denwa%za(i,j) = zone/(bevalre(jg)+freq(ig)+zi*input%xs%broad)
       end do
     end do
+
+    call barrier
+    call dzmat_send2global_root(enwa, denwa)
+    if(rank == 0) then 
+      call writecmplxparts("enwa",dble(enwa),immat=aimag(enwa))
+    end if
+    call barrier
+
     call barrier
     if(rank == 0) then
       call timesec(t1)
@@ -1398,34 +1415,43 @@ contains
     end if
     
     if(input%xs%dfoffdiag) then
-      call new_dzmat(dbmatr, nexc, 9, rblck=mblck1d_c, cblck=nblck1d_c)
+
+      call new_dzmat(dbmatr, nexc, 9, context=ictxt2d, rblck=mblck1d_c, cblck=nblck1d_c)
       ! Global column index loop
-      do o1 = 1, 3
-        do o2 = 1, 3
-          jg = o2 + (o1-1)*3
-          ! Local column index
-          j = indxg2l(jg, dbmatr%nblck, mypcol, 0, npcol)
-          ! Local row index loop
-          do i = 1, dbmatr%nrows_loc
-            ! Global row index
-            ig = indxl2g(i, dbmatr%mblck, myprow, 0, nprow)
-            dbmatr%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o2))
-          end do
+      do i = 1, dbmatr%nrows_loc
+        do j = 1, dbmatr%ncols_loc
+          ! Get corresponding global indices
+          ig = indxl2g(i, dbmatr%mblck, myprow, 0, nprow)
+          jg = indxl2g(j, dbmatr%nblck, mypcol, 0, npcol)
+          ! Get individual opical indices
+          o1 = (jg-1)/3
+          o2 = jg-(o1-1)*3
+          dbmatr%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o2))
         end do
       end do
+
     else
-      call new_dzmat(dbmatr, nexc, 3, rblck=mblck1d_c, cblck=nblck1d_c)
-      do o1 = 1, 3
-        ! Local column index
-        j = indxg2l(o1, dbmatr%nblck, mypcol, 0, npcol)
-        ! Local row index loop
-        do i = 1, dbmatr%nrows_loc
-          ! Global row index
+
+      call new_dzmat(dbmatr, nexc, 3, context=ictxt2d, rblck=mblck1d_c, cblck=nblck1d_c)
+      ! Global column index loop
+      do i = 1, dbmatr%nrows_loc
+        do j = 1, dbmatr%ncols_loc
+          ! Get corresponding global indices
           ig = indxl2g(i, dbmatr%mblck, myprow, 0, nprow)
+          o1 = indxl2g(j, dbmatr%nblck, mypcol, 0, npcol)
           dbmatr%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o1))
         end do
       end do
+
+      call barrier
+      call dzmat_send2global_root(bmatr, dbmatr)
+      if(rank == 0) then 
+        call writecmplxparts("bmatr",dble(bmatr),immat=aimag(bmatr))
+      end if
+      call barrier
+
     end if
+
     if(rank == 0) then
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
@@ -1435,7 +1461,8 @@ contains
          
     ! Make non-lattice-symmetrized spectrum
     if(input%xs%dfoffdiag) then
-      call new_dzmat(dns_spectr, nexc, 9, rblck=mblck1d_c, cblck=nblck1d_c)
+
+      call new_dzmat(dns_spectr, nfreq, 9, context=ictxt2d, rblck=mblck1d_c, cblck=nblck1d_c)
       call barrier
       call dzgemm(denwr, dbmatr, dns_spectr)
       call barrier
@@ -1467,7 +1494,7 @@ contains
 
         ! Write to buffer for symmetry routine
         if(allocated(buf)) deallocate(buf)
-        allocate(buf(3,3,nexc))
+        allocate(buf(3,3,nfreq))
         buf=zzero
 
         do o1=1,3
@@ -1482,7 +1509,7 @@ contains
 
     else
 
-      call new_dzmat(dns_spectr, nexc, 3, rblck=mblck1d_c, cblck=nblck1d_c)
+      call new_dzmat(dns_spectr, nfreq, 3, context=ictxt2d, rblck=mblck1d_c, cblck=nblck1d_c)
       call barrier
       call dzgemm(denwr, dbmatr, dns_spectr)
       call barrier
@@ -1497,6 +1524,9 @@ contains
       call del_dzmat(dbmatr)
 
       call dzmat_send2global_root(ns_spectr, dns_spectr)
+      if(rank == 0) then 
+        call writecmplxparts("nsspec",dble(ns_spectr),immat=aimag(ns_spectr))
+      end if
       call barrier
       call del_dzmat(dns_spectr)
 
@@ -1504,7 +1534,7 @@ contains
 
         ! Write to buffer for symmetry routine
         if(allocated(buf)) deallocate(buf)
-        allocate(buf(3,3,nexc))
+        allocate(buf(3,3,nfreq))
         buf=zzero
 
         do o1=1,3

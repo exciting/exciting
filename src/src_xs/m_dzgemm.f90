@@ -48,7 +48,7 @@ module m_dzgemm
 
       complex(8) :: a, b
       character(1) :: ta, tb
-      integer(4) :: ropa, copb, copa
+      integer(4) :: ropa, copa, ropb, copb, rmatc, cmatc
 #ifdef SCAL
       integer(4) :: ra,ca,rb,cb,rc,cc
 #endif
@@ -156,6 +156,38 @@ module m_dzgemm
             write(*,*) "dzgemm (ERROR): TRANSB invalid"
         end select
       end if
+
+      ! Checks of dimensions
+      select case(tb)
+        case('N','n')
+          ropb = zmb%nrows
+        case('T','t','C','c')
+          ropb = zmb%ncols
+      end select
+      rmatc = zmc%nrows
+      cmatc = zmc%ncols
+      if(copa > ropb) then 
+        write(*,'("dzgemm@rank",i2,":(ERROR) copa > robp",2i4)') copa, ropb 
+        call terminate
+      else if(copa /= ropb) then
+        write(*,'("dzgemm@rank",i2,":(Warning) copa /= robp",2i4)') copa, ropb 
+      end if
+      if(ropa > rmatc) then 
+        write(*,'("dzgemm@rank",i2,":(ERROR) ropa > rmatc",2i4)') ropa, rmatc 
+        call terminate
+      else if(ropa /= rmatc) then 
+        write(*,'("dzgemm@rank",i2,":(Warning) ropa /= rmatc",2i4)') ropa, rmatc 
+      end if
+      if(copb > rmatc) then 
+        write(*,'("dzgemm@rank",i2,":(ERROR) copb > cmatc",2i4)') copb, cmatc 
+        call terminate
+      else if(copb > rmatc) then 
+        write(*,'("dzgemm@rank",i2,":(Warning) copb /= cmatc",2i4)') copb, cmatc 
+      end if
+
+call barrier
+
+
 
 #ifdef SCAL
 write(*,'("Rank: ",i2," ta=",a1," tb=",a1," ropa=",i3," copb=",i3," copa=",i3)') rank,ta,tb,ropa,copb,copa
