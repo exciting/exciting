@@ -125,9 +125,6 @@ subroutine b_bse
 
   ! Non-parallelized code.
   if(.not. fscal .and. rank == 0) then 
-    write(*,*) "Hello, this is b_bse.f90 non distributed mode"
-    write(*,*) "Hello, this is b_bse.f90 at rank:", rank
-    write(*,*) "Hello, this is b_bse.f90 doing something at rank:", rank
 
     ! General init
     call init0
@@ -380,8 +377,6 @@ subroutine b_bse
     ! Set up process girds for BLACS 
     call setupblacs
 
-    write(*,'("b_bse@rank",i3," pcoord",i3," x",i3)') rank, myprow, mypcol
-
     ! Only MPI ranks that have an associated 
     ! BLACS grid process do anything.
     if( .not. myprow1d_c < 0 ) then 
@@ -480,7 +475,7 @@ subroutine b_bse
 
       fwp = input%xs%bse%writeparts
 
-      ! Define global distributed matrices
+      ! Define global distributed Hamiltonian matrix.
       call new_dzmat(dham, hamsize, hamsize, context=ictxt2d)
 
       ! Write Info
@@ -497,17 +492,14 @@ subroutine b_bse
       end if
 
       ! Assemble Hamiltonian matrix 
-      call blacs_barrier(ictxt2d, 'A')
       if(rank == 0) call timesec(ts0)
       call setup_distributed_bse(dham)
-      call blacs_barrier(ictxt2d, 'A')
       if(rank == 0) then
         call timesec(ts1)
         write(unitout, '("All processes build their local matrix")')
         write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
       end if
 
-#ifdef SCAL
       if(fwp) then
         call dzmat_send2global_root(ham, dham)
         if(rank == 0) then
@@ -515,9 +507,6 @@ subroutine b_bse
           deallocate(ham)
         end if
       end if
-#endif
-
-      call blacs_barrier(ictxt2d, 'A')
 
       ! Number of excitons to consider
       nexc = input%xs%bse%nexc ! (default -1)
@@ -539,10 +528,8 @@ subroutine b_bse
       allocate(bevalre(hamsize))
 
       ! Diagonalize Hamiltonian (destroys the content of ham)
-      call blacs_barrier(ictxt2d, 'A')
       if(rank == 0) call timesec(ts0)
         call dhesolver(nexc, dham, dbevecr, bevalre, eecs=5)
-      call blacs_barrier(ictxt2d, 'A')
       if(rank == 0) call timesec(ts1)
 
       ! Deallocate BSE-Hamiltonian
@@ -555,28 +542,24 @@ subroutine b_bse
       end if
 
       ! Calculate oscillator strengths.
-      call new_dzmat(doszsr, nexc, 3, context=ictxt2d, rblck=mblck1d_c, cblck=nblck1d_c)
+      call new_dzmat(doszsr, nexc, 3, context=ictxt2d,&
+        & rblck=mblck1d_c, cblck=nblck1d_c)
       if(rank == 0) then
         write(unitout, '("Making oszillator strengths (distributed).")')
         call timesec(ts0)
       end if
 
-      call blacs_barrier(ictxt2d, 'A')
       call make_doszstren
-      call blacs_barrier(ictxt2d, 'A')
 
       if(rank == 0) then 
         call timesec(ts1)
         write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
       end if
 
-      ! Every process gets a copy of the oscillator stenghts 
+      ! Every process gets a copy of the oscillator strength
+      ! (actually only rank 0 writes them to file, but is is not much 
+      !  memory and it make the setup for the spectrum calculation easier) 
       call dzmat_send2global_all(oszsr, doszsr)
-      if(fwp .and. rank == 0) then
-        call writecmplxparts("oszstren",dble(oszsr),immat=aimag(oszsr))
-      end if
-
-      call blacs_barrier(ictxt2d, 'A')
 
       if(rank == 0) then
         ! Write excition energies and oscillator strengths to 
@@ -584,8 +567,6 @@ subroutine b_bse
         write(unitout, '("Writing excition energies and oszillator strengths.")')
         call writeoscillator(hamsize, nexc, egap, bevalre, oszsr)
       end if
-
-      call blacs_barrier(ictxt2d, 'A')
 
       ! Allocate arrays used in spectrum construction
       nw = input%xs%energywindow%points
@@ -617,8 +598,6 @@ subroutine b_bse
         call writederived(iq, symspectr, nw, w)
         write(unitout, '("  Derived quantities written.")')
       end if
-
-      call blacs_barrier(ictxt2d, 'A')
 
       ! Clean up
       deallocate(bevalre, oszsr, w, evalsv)
@@ -1029,7 +1008,6 @@ contains
     ! Local
     real(8) :: t1, t0
     type(dzmat) :: drmat
-    complex(8) :: rmat(hamsize, 3)
 
     ! Distributed position operator matrix
     call new_dzmat(drmat, hamsize, 3, context=ictxt2d,&
@@ -1040,62 +1018,13 @@ contains
       write(unitout, '("  Building Rmat.")')
       call timesec(t0)
     end if
-    call blacs_barrier(ictxt2d, 'A')
     call setup_distributed_rmat(drmat)
-    call blacs_barrier(ictxt2d, 'A')
     if(rank == 0) then
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
       write(unitout, '("  Building resonant oscillator strengths.")')
       call timesec(t0)
     end if
-
-    ! TEST OUTPUT
-    call blacs_barrier(ictxt2d, 'A')
-#ifdef SCAL
-    if(fwp) then
-      !! Test gather dham to global and write out
-      if(myprow == 0 .and. mypcol == 0) then 
-        write(*,*) "Gathering global matrix (rmat)"
-        ! Allocate the actual global array
-        rmat = zzero
-        write(*,*) "Unpacking to global data form:", myprow, mypcol
-        call unpacktoglobal(rmat, drmat%za, drmat%mblck, drmat%nblck,&
-          & myprow, mypcol, nprow, npcol)
-              
-        do ip = 1, nproc-1
-          ! Get info about sender and sender's local matrix
-          call blacs_pcoord(ictxt2d, ip, reprow, repcol)
-          sender_nrl = numroc(drmat%nrows, drmat%mblck, reprow, 0, nprow) 
-          sender_ncl = numroc(drmat%ncols, drmat%nblck, repcol, 0, npcol) 
-          write(*,*) "Getting data form:", reprow, repcol,&
-            & " shape:", sender_nrl, sender_ncl
-          ! Make receive buffer
-          if(allocated(buff)) deallocate(buff)
-          allocate(buff(sender_nrl, sender_ncl))
-          ! Receive the senders local matrix
-          call zgerv2d(ictxt2d, sender_nrl, sender_ncl,&
-            & buff, sender_nrl, reprow, repcol) 
-          ! Write content to global matrix
-          write(*,*) "Unpacking data form:", reprow, repcol
-          call unpacktoglobal(rmat, buff, drmat%mblck, drmat%nblck,&
-            & reprow, repcol, nprow, npcol)
-          write(*,*) "unpacked."
-        end do
-
-        write(*,*) "Writing out global matrix"
-        call writecmplxparts("rmat",dble(rmat),immat=aimag(rmat))
-        write(*,*) "Done."
-      else
-        write(*,*) "Sending data form:", myprow, mypcol,&
-          & " shape:", drmat%nrows_loc, drmat%ncols_loc
-        call zgesd2d(ictxt2d, drmat%nrows_loc, drmat%ncols_loc,&
-          & drmat%za, drmat%nrows_loc, 0, 0)
-        write(*,*) "Sent."
-      end if
-
-    end if
-#endif
 
     !! Resonant oscillator strengths
     ! t^R_\lambda,i = < \tilde{R}^i | X_\lambda> =
@@ -1104,7 +1033,6 @@ contains
     !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda= 
     ! \Sum_{s1} f_{s1} P_{{o_{s1} u_{s1} k_{s1}},i} / 
     !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda
-    call blacs_barrier(ictxt2d, 'A')
     call dzgemm(dbevecr, drmat, doszsr, transa='T')
     if(rank == 0) then
       call timesec(t1)
@@ -1113,6 +1041,7 @@ contains
 
     call del_dzmat(drmat)
   end subroutine make_doszstren
+
   
   subroutine makeoszillatorstrength(oszstrr, oszstra)
     use mod_constants, only: zone
@@ -1371,53 +1300,47 @@ contains
     real(8), intent(in) :: freq(nfreq)
 
     ! Local
-    integer(4) :: i, j, o1, o2, ig, jg
+    integer(4) :: i, j, o1, o2, ig, jg, nopt
     real(8) :: t1, t0
     complex(8), allocatable :: buf(:,:,:)
     complex(8), allocatable :: ns_spectr(:,:)
-    complex(8), allocatable, dimension(:,:) :: enwr, enwa, bmatr
     type(dzmat) :: denwr, denwa, dbmatr, dns_spectr
 
     if(rank == 0) then
       write(unitout, '("  Making energy denominators ENW.")')
       call timesec(t0)
     end if
+
     ! Shift energies back to absolute values.
     bevalre = bevalre + egap - bsed
+
     ! Make energy denominator for each frequency (resonant & anti-resonant) 
     call new_dzmat(denwr, nfreq, nexc, context=ictxt2d)
     do i = 1, denwr%nrows_loc
       do j = 1, denwr%ncols_loc
+#ifdef SCAL
         ! Get corresponding global indices
         ig = indxl2g(i, denwr%mblck, myprow, 0, nprow)
         jg = indxl2g(j, denwr%nblck, mypcol, 0, npcol)
         denwr%za(i,j) = zone/(bevalre(jg)-freq(ig)-zi*input%xs%broad)
+#else
+        denwr%za(i,j) = zone/(bevalre(j)-freq(i)-zi*input%xs%broad)
+#endif
       end do
     end do
-
-    call blacs_barrier(ictxt2d, 'A')
-    call dzmat_send2global_root(enwr, denwr)
-    if(rank == 0) then 
-      call writecmplxparts("enwr",dble(enwr),immat=aimag(enwr))
-    end if
-    call blacs_barrier(ictxt2d, 'A')
-
     call new_dzmat(denwa, nfreq, nexc, context=ictxt2d)
     do i = 1, denwa%nrows_loc
       do j = 1, denwa%ncols_loc
+#ifdef SCAL
         ! Get corresponding global indices
         ig = indxl2g(i, denwa%mblck, myprow, 0, nprow)
         jg = indxl2g(j, denwa%nblck, mypcol, 0, npcol)
         denwa%za(i,j) = zone/(bevalre(jg)+freq(ig)+zi*input%xs%broad)
+#else
+        denwa%za(i,j) = zone/(bevalre(j)+freq(i)+zi*input%xs%broad)
+#endif
       end do
     end do
-
-    call blacs_barrier(ictxt2d, 'A')
-    call dzmat_send2global_root(enwa, denwa)
-    if(rank == 0) then 
-      call writecmplxparts("enwa",dble(enwa),immat=aimag(enwa))
-    end if
-    call blacs_barrier(ictxt2d, 'A')
 
     if(rank == 0) then
       call timesec(t1)
@@ -1427,49 +1350,34 @@ contains
     end if
     
     if(input%xs%dfoffdiag) then
+      nopt = 9
+    else
+      nopt = 3
+    end if
 
-      call new_dzmat(dbmatr, nexc, 9, context=ictxt2d,&
-        & rblck=mblck1d_c, cblck=nblck1d_c)
-      do i = 1, dbmatr%nrows_loc
-        do j = 1, dbmatr%ncols_loc
-          ! Get corresponding global indices
-          ig = indxl2g(i, dbmatr%mblck, myprow, 0, nprow)
-          jg = indxl2g(j, dbmatr%nblck, mypcol, 0, npcol)
-          ! Get individual opical indices
+    call new_dzmat(dbmatr, nexc, nopt, context=ictxt2d,&
+      & rblck=mblck1d_c, cblck=nblck1d_c)
+    do i = 1, dbmatr%nrows_loc
+      do j = 1, dbmatr%ncols_loc
+#ifdef SCAL
+        ! Get corresponding global indices
+        ig = indxl2g(i, dbmatr%mblck, myprow, 0, nprow)
+        jg = indxl2g(j, dbmatr%nblck, mypcol, 0, npcol)
+#else
+        ig = i
+        jg = j
+#endif
+        ! Get individual opical indices
+        if(input%xs%dfoffdiag) then
           o1 = (jg-1)/3 + 1
           o2 = jg-(o1-1)*3
-          dbmatr%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o2))
-        end do
+        else
+          o1 = jg
+          o2 = jg
+        end if
+        dbmatr%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o2))
       end do
-
-      call blacs_barrier(ictxt2d, 'A')
-      call dzmat_send2global_root(bmatr, dbmatr)
-      if(rank == 0) then 
-        call writecmplxparts("bmatr",dble(bmatr),immat=aimag(bmatr))
-      end if
-      call blacs_barrier(ictxt2d, 'A')
-
-    else
-
-      call new_dzmat(dbmatr, nexc, 3, context=ictxt2d,&
-        & rblck=mblck1d_c, cblck=nblck1d_c)
-      do i = 1, dbmatr%nrows_loc
-        do j = 1, dbmatr%ncols_loc
-          ! Get corresponding global indices
-          ig = indxl2g(i, dbmatr%mblck, myprow, 0, nprow)
-          o1 = indxl2g(j, dbmatr%nblck, mypcol, 0, npcol)
-          dbmatr%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o1))
-        end do
-      end do
-
-      call blacs_barrier(ictxt2d, 'A')
-      call dzmat_send2global_root(bmatr, dbmatr)
-      if(rank == 0) then 
-        call writecmplxparts("bmatr",dble(bmatr),immat=aimag(bmatr))
-      end if
-      call blacs_barrier(ictxt2d, 'A')
-
-    end if
+    end do
 
     if(rank == 0) then
       call timesec(t1)
@@ -1479,95 +1387,59 @@ contains
     end if
          
     ! Make non-lattice-symmetrized spectrum
+    call new_dzmat(dns_spectr, nfreq, nopt, context=ictxt2d,&
+      & rblck=mblck1d_c, cblck=nblck1d_c)
+
+    call dzgemm(denwr, dbmatr, dns_spectr)
+
+    dbmatr%za = conjg(dbmatr%za)
+
+    call dzgemm(denwa, dbmatr, dns_spectr, beta=zone)
+
+    ! Add 1 to diagonal elements o1=o2
     if(input%xs%dfoffdiag) then
-
-      call new_dzmat(dns_spectr, nfreq, 9, context=ictxt2d,&
-        & rblck=mblck1d_c, cblck=nblck1d_c)
-      call blacs_barrier(ictxt2d, 'A')
-      call dzgemm(denwr, dbmatr, dns_spectr)
-      call blacs_barrier(ictxt2d, 'A')
-      dbmatr%za = conjg(dbmatr%za)
-      call blacs_barrier(ictxt2d, 'A')
-      call dzgemm(denwa, dbmatr, dns_spectr, beta=zone)
-
       dns_spectr%za = dns_spectr%za*8.d0*pi/omega/nkptnr
-
       do i = 1, dns_spectr%nrows_loc
         do j = 1, dns_spectr%ncols_loc
+#ifdef SCAL
           ig = indxl2g(i, dns_spectr%mblck, myprow, 0, nprow)
           jg = indxl2g(j, dns_spectr%nblck, mypcol, 0, npcol)
+#else
+          ig = i
+          jg = j
+#endif
           if(jg == 1 .or. jg == 4 .or. jg == 7) then
             dns_spectr%za(i,j) = zone + dns_spectr%za(i,j)
           end if
         end do
       end do
-      
-      call del_dzmat(denwr)
-      call del_dzmat(denwa)
-      call del_dzmat(dbmatr)
-
-      call dzmat_send2global_root(ns_spectr, dns_spectr)
-      call blacs_barrier(ictxt2d, 'A')
-      call del_dzmat(dns_spectr)
-
-      if(rank == 0) then 
-
-        ! Write to buffer for symmetry routine
-        if(allocated(buf)) deallocate(buf)
-        allocate(buf(3,3,nfreq))
-        buf=zzero
-
-        do o1=1,3
-          do o2=1,3
-            j = o2 + (o1-1)*3
-            buf(o1,o2,:) = ns_spectr(:,j)
-          end do
-        end do
-        deallocate(ns_spectr)
-
-      end if
-
     else
-
-      call new_dzmat(dns_spectr, nfreq, 3, context=ictxt2d,&
-        & rblck=mblck1d_c, cblck=nblck1d_c)
-      call blacs_barrier(ictxt2d, 'A')
-      call dzgemm(denwr, dbmatr, dns_spectr)
-      call blacs_barrier(ictxt2d, 'A')
-      dbmatr%za = conjg(dbmatr%za)
-      call blacs_barrier(ictxt2d, 'A')
-      call dzgemm(denwa, dbmatr, dns_spectr, beta=zone)
-
       dns_spectr%za = zone + dns_spectr%za*8.d0*pi/omega/nkptnr
-
-      call del_dzmat(denwr)
-      call del_dzmat(denwa)
-      call del_dzmat(dbmatr)
-
-      call dzmat_send2global_root(ns_spectr, dns_spectr)
-      if(rank == 0) then 
-        call writecmplxparts("nsspec",dble(ns_spectr),immat=aimag(ns_spectr))
-      end if
-      call blacs_barrier(ictxt2d, 'A')
-      call del_dzmat(dns_spectr)
-
-      if(rank == 0) then 
-
-        ! Write to buffer for symmetry routine
-        if(allocated(buf)) deallocate(buf)
-        allocate(buf(3,3,nfreq))
-        buf=zzero
-
-        do o1=1,3
-          buf(o1,o1,:) = ns_spectr(:,o1)
-        end do
-        deallocate(ns_spectr)
-
-      end if
-
     end if
+      
+    call del_dzmat(denwr)
+    call del_dzmat(denwa)
+    call del_dzmat(dbmatr)
 
+    ! Send spectrum to a global matrix at rank 0 to 
+    ! interface with non parallel post-processing routines.
+    call dzmat_send2global_root(ns_spectr, dns_spectr)
+    call del_dzmat(dns_spectr)
     if(rank == 0) then 
+
+      ! Write to buffer for symmetry routine
+      if(allocated(buf)) deallocate(buf)
+      allocate(buf(3,3,nfreq))
+      buf=zzero
+
+      do o1=1,3
+        do o2=1,3
+          j = o2 + (o1-1)*3
+          buf(o1,o2,:) = ns_spectr(:,j)
+        end do
+      end do
+      deallocate(ns_spectr)
+
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
 
@@ -1585,6 +1457,7 @@ contains
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
 
     end if
+
   end subroutine make_dist_spectrum_tda
 
   subroutine makespectrum_tda(nfreq, freq, spectrum)

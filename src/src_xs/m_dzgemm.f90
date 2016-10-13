@@ -54,7 +54,7 @@ module m_dzgemm
 #endif
       logical :: verbose
 
-      verbose = .true.
+      verbose = .false.
 
       ! Setting defaults
 
@@ -190,18 +190,13 @@ module m_dzgemm
 
 
 #ifdef SCAL
-if(verbose) then
-  call blacs_barrier(zma%context, 'A')
-  write(*,'("Rank: ",i2," ta=",a1," tb=",a1," ropa=",i3," copb=",i3," copa=",i3)') rank,ta,tb,ropa,copb,copa
-  write(*,'("Rank: ",i2," shapeA=",2i4," descA=",9i4)') rank, shape(zma%za), zma%desc
-  write(*,'("Rank: ",i2," shapeB=",2i4," descB=",9i4)') rank, shape(zmb%za), zmb%desc
-  write(*,'("Rank: ",i2," shapeC=",2i4," descC=",9i4)') rank, shape(zmc%za), zmc%desc
-  call blacs_barrier(zma%context, 'A')
-end if
-
-
-      call pzgemm(ta, tb, ropa, copb, copa, a, zma%za, ra, ca, zma%desc,&
-        & zmb%za, rb, cb, zmb%desc, b, zmc%za, rc, cc, zmc%desc)
+      if(.not. zma%isdistributed) then
+        call zgemm(ta, tb, ropa, copb, copa, a, zma%za, zma%nrows,&
+          & zmb%za, zmb%nrows, b, zmc%za, zmc%nrows)
+      else
+        call pzgemm(ta, tb, ropa, copb, copa, a, zma%za, ra, ca, zma%desc,&
+          & zmb%za, rb, cb, zmb%desc, b, zmc%za, rc, cc, zmc%desc)
+      end if
 #else
       call zgemm(ta, tb, ropa, copb, copa, a, zma%za, zma%nrows,&
         & zmb%za, zmb%nrows, b, zmc%za, zmc%nrows)

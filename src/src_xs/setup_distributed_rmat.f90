@@ -37,7 +37,7 @@ subroutine setup_distributed_rmat(rmat)
   integer(4) :: un
   logical :: verbose
   character(256) :: fnam
-  verbose = .true.
+  verbose = .false.
 
   ! Allocate work arrays
   allocate(pmou(3, no, nu))
@@ -77,15 +77,11 @@ subroutine setup_distributed_rmat(rmat)
     write(*,*) "Rank",rank,"build lists."
   end if
 
-  call blacs_barrier(ictxt1d_c, 'A')
-
   !!*************************!!
   !! DATA READ/TRANSFER AND  !!
   !! CONSTRUCTION OF LOCAL H !!
   !!*************************!!
   dataget: do id = 1, ndj
-
-    call blacs_barrier(ictxt1d_c, 'A')
 
     datashift: do ishift = 1, nproc
 
@@ -97,7 +93,6 @@ subroutine setup_distributed_rmat(rmat)
         !!*************!!
         ! Receive from file
         if(myreceivelist(id, ishift) == 0) then
-
 
           !!***********!!
           !! READ DATA !!
@@ -141,7 +136,6 @@ subroutine setup_distributed_rmat(rmat)
 
         end if
 
-        call blacs_barrier(ictxt1d_c, 'A')
 
         !!**************!!
         !! PROCESS DATA !!
@@ -202,9 +196,6 @@ subroutine setup_distributed_rmat(rmat)
 
       end if igetdata
 
-      call blacs_barrier(ictxt1d_c, 'A')
-      call blacs_barrier(ictxt1d_c, 'A')
-
 #ifdef SCAL
       ! Need to send data further ?
       if(mysendlist(id, ishift) /= -1 .and. nproc /= 1) then
@@ -226,8 +217,6 @@ subroutine setup_distributed_rmat(rmat)
       end if
 #endif
     
-      call blacs_barrier(ictxt1d_c, 'A')
-      
     end do datashift
   end do dataget
 

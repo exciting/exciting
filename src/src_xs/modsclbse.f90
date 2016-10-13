@@ -5,7 +5,6 @@ module modsclbse
 
   implicit none
 
-#ifdef SCAL
   ! BLACS contexts
   integer(4) :: ictxt2d, ictxt1d_r, ictxt1d_c
 
@@ -37,7 +36,6 @@ module modsclbse
   integer(4) :: sender_nrl, sender_ncl
   ! Auxilliary: error flag
   integer(4) :: sclierr
-#endif
 
   ! Distributed complex matrix type
   type dzmat
@@ -70,7 +68,6 @@ module modsclbse
       integer(4) :: iam, sysproc
       integer(4) :: prow, pcol
 
-#ifdef SCAL
       ! Setup 2D process grid
       ! Make rectangular process grid.
       ! Warn if there are dangling processes.
@@ -84,7 +81,11 @@ module modsclbse
       nprow1d_c = nproc
       npcol1d_c = 1
 
+      ictxt2d = -1
+      ictxt1d_r = -1
+      ictxt1d_c = -1
 
+#ifdef SCAL
       ! Get info about mpi environment
       call blacs_pinfo(iam, sysproc)
       if(iam /= rank .or. procs /= sysproc) then
@@ -172,6 +173,7 @@ module modsclbse
         if(allocated(mat)) deallocate(mat)
         allocate(mat(dmat%nrows,dmat%ncols))
 
+#ifdef SCAL
         if(context == ictxt2d) then
           prow = myprow
           pcol = mypcol
@@ -211,11 +213,16 @@ module modsclbse
             & reprow, repcol, npr, npc)
 
         end do
+#else
+        mat = dmat%za
+#endif
 
       else
 
+#ifdef SCAL
         call zgesd2d(context, dmat%nrows_loc, dmat%ncols_loc,&
           & dmat%za, dmat%nrows_loc, 0, 0)
+#endif
 
       end if
 
@@ -233,7 +240,7 @@ module modsclbse
       if(allocated(mat)) deallocate(mat)
       allocate(mat(dmat%nrows,dmat%ncols))
 
-
+#ifdef SCAL
       context = dmat%context
 
       if(context == ictxt2d) then
@@ -276,6 +283,9 @@ module modsclbse
           & reprow, repcol, npr, npc)
 
       end do
+#else
+      mat = dmat%za
+#endif
 
     end subroutine dzmat_send2global_all
 
@@ -292,16 +302,25 @@ module modsclbse
       self%nrows_loc = nrows
       self%ncols_loc = ncols
       self%isdistributed = .false.
+      self%context = -1
+      self%mblck = 1
+      self%nblck = 1
 
 #ifdef SCAL
       if(allocated(self%desc)) deallocate(self%desc)
 
       if(present(context)) then
-        con = context
-        self%context = con
-        self%isdistributed = .true.
-        allocate(self%desc(9))
-      else
+        if(context == -1) then
+          con = -1
+          self%context = con
+          self%isdistributed = .false.
+        else
+          con = context
+          self%context = con
+          self%isdistributed = .true.
+          allocate(self%desc(9))
+        end if
+      else 
         con = -1
         self%context = con
         self%isdistributed = .false.
@@ -356,9 +375,7 @@ module modsclbse
     subroutine del_dzmat(self)
       type(dzmat), intent(inout) :: self
       if(allocated(self%za)) deallocate(self%za)
-#ifdef SCAL
       if(allocated(self%desc)) deallocate(self%desc)
-#endif
     end subroutine del_dzmat
 
 end module modsclbse
