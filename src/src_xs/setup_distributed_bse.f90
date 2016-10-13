@@ -149,8 +149,8 @@ subroutine setup_distributed_bse(ham)
             
 #ifdef SCAL
             ! Get corresponding global indices
-            a1 = indxl2g(i, mblck, myprow, 0, nprow)
-            a2 = indxl2g(j, nblck, mypcol, 0, npcol)
+            a1 = indxl2g(i, ham%mblck, myprow, 0, nprow)
+            a2 = indxl2g(j, ham%nblck, mypcol, 0, npcol)
 #else
             a1 = i
             a2 = j

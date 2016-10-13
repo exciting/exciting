@@ -44,7 +44,6 @@ subroutine setup_distributed_rmat(rmat)
 
   ! Setup lists of k points to be 
   ! read, recived and sent by each process.
-  write(*,*) "nk=", nk
   call setup_rrslists(nk)
 
   !! Test output
@@ -53,11 +52,11 @@ subroutine setup_distributed_rmat(rmat)
       write(*,'(" Number of data injections: ", i3, 1x, i3, 1x, i3)'), ndj, nall, rest
     end if
     write(*,'(" Rank", i3," Rank1d", i3 " Form rank:", i3, " To rank:", i3)') rank,&
-      & mypcol1d_r, mysource, mytarget
+      & myprow1d_c, mysource, mytarget
 
     call getunit(un)
     fnam = ''
-    write(fnam,*) mypcol1d_r
+    write(fnam,*) myprow1d_c
     fnam = "rese_rmat_"//trim(adjustl(fnam))
     open(unit=un, file=trim(fnam), action='write', status='replace')
     write(un,*) "Receive:"
@@ -78,11 +77,16 @@ subroutine setup_distributed_rmat(rmat)
     write(*,*) "Rank",rank,"build lists."
   end if
 
+  call blacs_barrier(ictxt1d_c, 'A')
+
   !!*************************!!
   !! DATA READ/TRANSFER AND  !!
   !! CONSTRUCTION OF LOCAL H !!
   !!*************************!!
   dataget: do id = 1, ndj
+
+    call blacs_barrier(ictxt1d_c, 'A')
+
     datashift: do ishift = 1, nproc
 
       ! Get data this time?
@@ -94,47 +98,58 @@ subroutine setup_distributed_rmat(rmat)
         ! Receive from file
         if(myreceivelist(id, ishift) == 0) then
 
-          if(verbose) then
-            write(*,'(" Rank:", i3, " id:", i4, " ishift:", i3,&
-              & " RECEIVES DATA FROM FILE")') rank, id, ishift
-          end if
 
           !!***********!!
           !! READ DATA !!
           !!***********!!
           ! Set ik do own list element
           ik = mysendlist(id, ishift)
+          if(verbose) then
+            write(*,'(" Prow1d:", i3, " id:", i4, " ishift:", i3,&
+              & " RECEIVES DATA FROM FILE, ik:",i4)') myprow1d_c, id, ishift, ik
+          end if
           call getpmat(ik, vkl,& 
             & bcouabs%il1, bcouabs%iu1,&
             & bcouabs%il2, bcouabs%iu2,&
             & .true., 'PMAT_XS.OUT', pmou)
+          if(verbose) then
+            write(*,'(" Prow1d:", i3, " id:", i4, " ishift:", i3,&
+              & " RECIVED DATA, ik:",i4)') myprow1d_c, id, ishift, ik
+          end if
 
         ! Receive from previous process in ring
         else
 
+          ! Set ik do sources list element
+          ik = myreceivelist(id, ishift)
           if(verbose) then
-            write(*,'(" Rank:",i3, " id:", i4, " ishift:", i3,&
-              &" RECEIVES DATA FROM RANK", i4)') rank, id, ishift, mysource
+            write(*,'(" Prow1d",i3, " id:", i4, " ishift:", i3,&
+              &" RECEIVES DATA FROM Prow1d", i4, ", ik:", i4)')&
+              & myprow1d_c, id, ishift, mysource, ik
           end if
-
 #ifdef SCAL
           !!**************!!
           !! RECEIVE DATA !!
           !!**************!!
-          call zgerv2d(ictxt1d_r, 3*no, nu, pmou(1,1,1), 3*no, 0, mysource)
-          ! Set ik do sources list element
-          ik = myreceivelist(id, ishift)
+          call zgerv2d(ictxt1d_c, 3*no, nu, pmou(1,1,1), 3*no, 0, mysource)
 #endif
+          if(verbose) then
+            write(*,'(" Prow1d",i3, " id:", i4, " ishift:", i3,&
+              &" RECIVED DATA FROM Prow1d", i4, ", ik:", i4)')&
+              & myprow1d_c, id, ishift, mysource, ik
+          end if
 
         end if
+
+        call blacs_barrier(ictxt1d_c, 'A')
 
         !!**************!!
         !! PROCESS DATA !!
         !!**************!!
 
         if(verbose) then
-          write(*,'(" Rank:",i3, " id:", i4, " ishift:", i3,&
-            & " PROCESSES DATA FOR IK", i4)') rank, id, ishift, ik
+          write(*,'(" Prow1d:",i3, " id:", i4, " ishift:", i3,&
+            & " PROCESSES DATA, ik:", i4)') myprow1d_c, id, ishift, ik
         end if
         ! Loop over local indices
         do i=1, rmat%nrows_loc
@@ -142,8 +157,8 @@ subroutine setup_distributed_rmat(rmat)
             
 #ifdef SCAL
             ! Get corresponding global indices
-            a1  = indxl2g(i, rmat%mblck, myprow1d_c, 0, nprow1d_c)
-            opt = indxl2g(j, rmat%mblck, mypcol1d_c, 0, npcol1d_c)
+            a1  = indxl2g(i, rmat%mblck, myprow, 0, nprow)
+            opt = indxl2g(j, rmat%nblck, mypcol, 0, npcol)
 #else
             a1 = i
             opt = j
@@ -180,21 +195,38 @@ subroutine setup_distributed_rmat(rmat)
 
           end do
         end do
+        if(verbose) then
+          write(*,'(" Prow1d:",i3, " id:", i4, " ishift:", i3,&
+            & " PROCESSED DATA, ik:", i4)') myprow1d_c, id, ishift, ik
+        end if
 
       end if igetdata
+
+      call blacs_barrier(ictxt1d_c, 'A')
+      call blacs_barrier(ictxt1d_c, 'A')
 
 #ifdef SCAL
       ! Need to send data further ?
       if(mysendlist(id, ishift) /= -1 .and. nproc /= 1) then
+
         if(verbose) then
-          write(*,'(" Rank:",i3, " id:", i4, " ishift:", i3, " SENDS DATA TO RANK", i4)') rank, id, ishift, mytarget
+          write(*,'(" Prow1d:",i3, " id:", i4, " ishift:", i3,&
+            & " SENDS DATA TO Prow1d", i4, ", ik:", i4)')&
+            & myprow1d_c, id, ishift, mytarget, ik
         end if
         !!***********!!
         !! SEND DATA !!
         !!***********!!
-        call zgesd2d(ictxt1d_r, 3*no, nu, pmou(1,1,1), 3*no, 0, mytarget)
+        call zgesd2d(ictxt1d_c, 3*no, nu, pmou(1,1,1), 3*no, 0, mytarget)
+        if(verbose) then
+          write(*,'(" Prow1d:",i3, " id:", i4, " ishift:", i3,&
+            & " SENT DATA TO Prow1d", i4, ", ik:", i4)')&
+            & myprow1d_c, id, ishift, mytarget, ik
+        end if
       end if
 #endif
+    
+      call blacs_barrier(ictxt1d_c, 'A')
       
     end do datashift
   end do dataget

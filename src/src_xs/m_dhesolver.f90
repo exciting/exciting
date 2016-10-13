@@ -139,10 +139,11 @@ module m_dhesolver
 
         ! Error inspection
         if(info .ne. 0) then
-          write(*, '("distributed_hermitian_solver (ERROR):&
-            & pzheevx returned non-zero info:", i6)') info
-          write(*,*)
-          call errorinspect(info)
+          if(rank == 0) then
+            write(*, '("distributed_hermitian_solver (ERROR):&
+              & pzheevx returned non-zero info:", i6)') info
+            call errorinspect(info)
+          end if
         end if
 
         ! Clean up

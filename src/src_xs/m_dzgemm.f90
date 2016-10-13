@@ -52,6 +52,9 @@ module m_dzgemm
 #ifdef SCAL
       integer(4) :: ra,ca,rb,cb,rc,cc
 #endif
+      logical :: verbose
+
+      verbose = .true.
 
       ! Setting defaults
 
@@ -185,17 +188,18 @@ module m_dzgemm
         write(*,'("dzgemm@rank",i2,":(Warning) copb /= cmatc",2i4)') copb, cmatc 
       end if
 
-call barrier
-
-
 
 #ifdef SCAL
-write(*,'("Rank: ",i2," ta=",a1," tb=",a1," ropa=",i3," copb=",i3," copa=",i3)') rank,ta,tb,ropa,copb,copa
-write(*,'("Rank: ",i2," shapeA=",2i4," descA=",9i4)') rank, shape(zma%za), zma%desc
-write(*,'("Rank: ",i2," shapeB=",2i4," descB=",9i4)') rank, shape(zmb%za), zmb%desc
-write(*,'("Rank: ",i2," shapeC=",2i4," descC=",9i4)') rank, shape(zmc%za), zmc%desc
+if(verbose) then
+  call blacs_barrier(zma%context, 'A')
+  write(*,'("Rank: ",i2," ta=",a1," tb=",a1," ropa=",i3," copb=",i3," copa=",i3)') rank,ta,tb,ropa,copb,copa
+  write(*,'("Rank: ",i2," shapeA=",2i4," descA=",9i4)') rank, shape(zma%za), zma%desc
+  write(*,'("Rank: ",i2," shapeB=",2i4," descB=",9i4)') rank, shape(zmb%za), zmb%desc
+  write(*,'("Rank: ",i2," shapeC=",2i4," descC=",9i4)') rank, shape(zmc%za), zmc%desc
+  call blacs_barrier(zma%context, 'A')
+end if
 
-call barrier
+
       call pzgemm(ta, tb, ropa, copb, copa, a, zma%za, ra, ca, zma%desc,&
         & zmb%za, rb, cb, zmb%desc, b, zmc%za, rc, cc, zmc%desc)
 #else

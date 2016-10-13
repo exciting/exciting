@@ -108,18 +108,18 @@ module modsclbse
       call blacs_gridinfo(ictxt1d_c, nprow1d_c, npcol1d_c, myprow1d_c, mypcol1d_c)
 
       if(rank == 0) then
-        write(unitout,'("setup2dblacs: Using ",i4," x",i4,&
+        write(unitout,'("Info(setup2dblacs): Using ",i4," x",i4,&
           &" process grid. Ctxt(",i1,")")')&
           & nprow, npcol, ictxt2d
         if(nproc /= procs) then
-          write(unitout,'("setup2dblacs: Warning - Processes do not fit 2d grid")')
-          write(unitout,'("setup2dblacs: Warning - ",i2," processes not used")')&
+          write(unitout,'("Info(setup2dblacs): Warning - Processes do not fit 2d grid")')
+          write(unitout,'("Info(setup2dblacs): Warning - ",i2," processes not used")')&
             & procs-nproc
         end if
-        write(unitout,'("setup2dblacs: Aux. ",i4," x",i4,&
+        write(unitout,'("Info(setup2dblacs): Aux. ",i4," x",i4,&
           &" process grid. Ctxt(",i1,")")')&
           & nprow1d_r, npcol1d_r, ictxt1d_r
-        write(unitout,'("setup2dblacs: Aux. ",i4," x",i4,&
+        write(unitout,'("Info(setup2dblacs): Aux. ",i4," x",i4,&
           &" process grid. Ctxt(",i1,")")')&
           & nprow1d_c, npcol1d_c, ictxt1d_c
       end if
@@ -129,7 +129,7 @@ module modsclbse
 
     subroutine exit2dblacs
 #ifdef SCAL
-      call barrier
+      call blacs_barrier(ictxt2d, 'A')
       call blacs_gridexit(ictxt2d)
       call blacs_gridexit(ictxt1d_r)
       call blacs_gridexit(ictxt1d_c)

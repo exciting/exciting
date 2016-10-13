@@ -77,7 +77,9 @@ module mod_rrsring
           end if
           mysendlist(id, ishift) = myreceivelist(id, ishift)
         end do
-        mysendlist(id, nproc) = -1
+        if(nproc /= 1) then 
+          mysendlist(id, nproc) = -1
+        end if
       end do
       ! If there are less elements then processes or the processes
       ! do not divide the elements without rest.
@@ -87,7 +89,7 @@ module mod_rrsring
         do i = 1, rest
           myreceivelist(ndj, i) = nall*nproc + (rest-i+1)
         end do
-        myreceivelist(ndj, :) = cshift(myreceivelist(ndj,:), mypcol1d_r+1-rest)
+        myreceivelist(ndj, :) = cshift(myreceivelist(ndj,:), rest-mypcol1d_r-1)
         mysendlist(ndj,:) = myreceivelist(ndj, :)
         if(myreadlist(ndj) > 0) then
           myreceivelist(ndj, 1) = 0
@@ -96,7 +98,7 @@ module mod_rrsring
           mysendlist(ndj, nproc) = -1
         end if
         if(mypcol1d_r == nproc-1) then 
-          mysendlist(ndj, nproc-1) = -1
+          mysendlist(ndj, nproc) = -1
         end if
       end if
 
