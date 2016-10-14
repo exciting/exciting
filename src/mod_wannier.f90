@@ -9,6 +9,9 @@ module mod_wannier
   use mod_spin
   use mod_eigenvalue_occupancy
   use mod_lattice
+  use m_ematqk
+
+  use mod_Gvector
 
   implicit none
 
@@ -237,12 +240,13 @@ module mod_wannier
       integer :: ngridk(3), nvec(3), nn, ix, iy, iz, i, ib, ik
       character :: read_file
       logical :: file_exists, reading_succes
-      real(8) :: bwgtsm, mixing, maxdiff
+      real(8) :: bwgtsm, mixing, maxdiff, vec1(3), vec2(3)
 
       ! allocatable arrays
-      integer, allocatable :: idxn(:,:)
-      real(8), allocatable :: nvl(:,:), nvc(:,:), bwgt(:), ravg(:,:)
+      integer, allocatable :: idxn(:,:), diffk(:)
+      real(8), allocatable :: nvl(:,:), nvc(:,:), bwgt(:), ravg(:,:), diffval(:,:)
       complex(8), allocatable :: mlwf_emat(:,:), auxmat(:,:), mlwf_m0(:,:,:,:), mlwf_m(:,:,:,:), eval(:), evec(:,:), mlwf_r(:,:), mlwf_t(:,:), mlwf_dw(:,:), mlwf_transform(:,:,:)
+      complex(8), allocatable :: evecfv1(:,:,:), evecfv2(:,:,:)
 
       ! write next neighbours of each k-point to array
       ngridk = input%groundstate%ngridk
@@ -319,16 +323,36 @@ module mod_wannier
         call genwf( bandstart, nband, loproj)
         ! calculating inner products <u(m,k)|u(n,k+b)>
         allocate( mlwf_emat( wf_nprojused, wf_nprojused))
+        !allocate( mlwf_emat( nstfv, nstfv))
         allocate( auxmat( wf_nprojused, wf_nprojused))
         allocate( mlwf_m0( wf_nprojused, wf_nprojused, nn, nkpt))
         write(*,*) 'Computing inner products...'
         ! call before parallel loop in order to initialize save variables in emat_wannier
-        call emat_wannier( 1, idxn( 1, 1), nvl(:,1), 1, 1, 1, 1, mlwf_emat) 
+
+        allocate( evecfv1( nmatmax, nstfv, nspnfv), evecfv2( nmatmax, nstfv, nspnfv))
+
         ix = 0
-!!$OMP PARALLEL DO private( mlwf_emat, auxmat)
-        do ik = 1, nkpt
-          do ib = 1, nn
-            call emat_wannier( ik, idxn( ib, ik), nvl( :, ib), wf_bandstart, wf_nprojused, wf_bandstart, wf_nprojused, mlwf_emat) 
+        do ib = 1, nn !!ATTENTION!!nn
+          call emat_init( nvl( :, ib), (/0d0, 0d0, 0d0/), input%groundstate%lmaxapw, 8)
+          do ik = 1, nkpt
+            
+            call getevecfv( vkl( :, ik), vgkl( :, :, :, ik), evecfv1(:,:,1))
+            call getevecfv( vkl( :, idxn( ib, ik)), vgkl( :, :, :, idxn( ib, ik)), evecfv2(:,:,1))
+            !call emat_genemat( ik, idxn( ib, ik), 1, 4, 5, 6, evecfv1(:,:,1), evecfv2(:,:,1), mlwf_emat)
+            call emat_genemat( ik, idxn( ib, ik), wf_bandstart, wf_nprojused, wf_bandstart, wf_nprojused, evecfv1(:,:,1), evecfv2(:,:,1), mlwf_emat)
+
+            !call emat_wannier( ik, nvl( :, ib), wf_bandstart, wf_nprojused, wf_bandstart, wf_nprojused, mlwf_emat)
+            !mlwf_emat = conjg( mlwf_emat)
+
+            !write(*,*) '------------------------'
+            !write(*,*) ib, ik
+            !do iy = 1, wf_nprojused
+            !  do iz = 1, wf_nprojused
+            !    write(*,'(2(I3,3x),SP,E23.16,E23.16,"i")') iy, iz, mlwf_emat( iy, iz)
+            !  end do
+            !end do
+            !call emat_wannier( ik, nvl( :, ib), 1, nstfv, 1, nstfv, mlwf_emat)
+            
             call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, mlwf_emat, wf_nprojused, wf_transform( :, :, idxn( ib, ik)), wf_nprojused, zzero, auxmat, wf_nprojused)
             call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, wf_transform( :, :, ik), wf_nprojused, auxmat, wf_nprojused, zzero, mlwf_m0( :, :, ib, ik), wf_nprojused)
             ix = ix + 1
@@ -336,9 +360,11 @@ module mod_wannier
             write( 6, '(a,10x,i3,a)', advance='no') achar( 13), nint( 100.0d0*ix/nkpt/nn), '%'
             flush( 6)
           end do
+          !write(*,*) ib
         end do
-!!$OMP END PARALLEL DO
-        write(*,*)
+        write(6,*)
+
+        !stop
 
         ! calculating weights of b-vectors
         allocate( bwgt( nn))
@@ -349,7 +375,7 @@ module mod_wannier
         end do
         
         ! mixing parameter for self consistent minimization
-        mixing = dble( 0.8)
+        mixing = dble( 0.5)
     
         ! initialize transformation matrices
         allocate( mlwf_transform( wf_nprojused, wf_nprojused, nkpt))
@@ -363,15 +389,16 @@ module mod_wannier
         allocate( mlwf_r( wf_nprojused, wf_nprojused), mlwf_t( wf_nprojused, wf_nprojused), mlwf_dw( wf_nprojused, wf_nprojused))
         allocate( mlwf_m( wf_nprojused, wf_nprojused, nn, nkpt))
         allocate( ravg( 3, wf_nprojused))
+        allocate( diffval( 0:5000, nkpt), diffk( 0:5000))
         mlwf_m = mlwf_m0
         ! maximum norm of difference between old and new transformation matrices
-        maxdiff = 1.0d0
+        diffval = 1.0d0
         iz = 0
         write(*,*) 'Waiting for MLWF to converge...'
-        do while( (iz .lt. 10000) .and. (maxdiff .ge. dble( 1.0E-8)))
+        do while( (iz .lt. 5000) .and. (maxval( diffval( iz, :)) .ge. dble( 1.0E-8)))
           iz = iz + 1
-          maxdiff = 0d0
-          ravg = 0d0
+          diffval( iz, :) = 0.d0
+          ravg = 0.d0
           do ix = 1, wf_nprojused
             do ik = 1, nkpt
               do ib = 1, nn
@@ -405,7 +432,10 @@ module mod_wannier
             call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, evec, wf_nprojused, auxmat, wf_nprojused, zzero, mlwf_dw, wf_nprojused)
             call ZGEMM( 'N', 'C', wf_nprojused, wf_nprojused, wf_nprojused, zone, mlwf_dw, wf_nprojused, evec, wf_nprojused, zzero, auxmat, wf_nprojused)
             call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, mlwf_transform( :, :, ik), wf_nprojused, auxmat, wf_nprojused, zzero, mlwf_dw, wf_nprojused)
-            maxdiff = max( maxdiff, norm2( abs( reshape( mlwf_transform( :, :, ik) - mlwf_dw, (/wf_nprojused**2/))))/norm2( abs( reshape( mlwf_transform( :, :, ik), (/wf_nprojused**2/)))))
+            maxdiff = norm2( abs( reshape( mlwf_transform( :, :, ik) - mlwf_dw, (/wf_nprojused**2/))))!/norm2( abs( reshape( mlwf_transform( :, :, ik), (/wf_nprojused**2/))))
+            if( maxdiff .ge. maxval( diffval( iz, :))) diffk( iz) = ik
+            diffval( iz, ik) = maxdiff
+
             mlwf_transform( :, :, ik) = mlwf_dw(:,:)
           end do
     
@@ -427,6 +457,14 @@ module mod_wannier
         else
           write(*,'(a35,i4,a8)') ' SUCCES: Convergence reached after ', iz, ' cycles.' 
         end if
+        
+        !do iz = 1, 10000
+        !  write(*,'(I6)', advance='no') iz
+        !  do ik = 1, nkpt
+        !    write(*,'(3x,F16.12)', advance='no') diffval( iz, ik)
+        !  end do
+        !  write(*,*)
+        !end do
 
         ! generating final transformation matrices for Hamiltonian eigenstates
         do ik = 1, nkpt

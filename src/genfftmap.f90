@@ -8,7 +8,7 @@ Subroutine genfftmap(fftmap,gmaxcustom)
 ! !USES:
       Use modinput
       Use modmain
-      use modxs
+      use modxs, only : fftmap_type
 ! !DESCRIPTION:
 ! Prepares a new FFT grid with given $G_\mathrm{max}$.
 !  

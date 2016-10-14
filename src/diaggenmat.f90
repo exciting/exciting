@@ -41,7 +41,7 @@ Subroutine diaggenmat ( matsize, mat, eval, evec)
 
       If (info .Ne. 0) Then
          Write (*,*)
-         Write (*, '("Error(bsesoldiag): zgeevx returned non-zero info:&
+         Write (*, '("Error( diaggenmat): zgeev returned non-zero info:&
         &", i6)') info
          Write (*,*)
          Call terminate

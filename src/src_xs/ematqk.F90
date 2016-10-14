@@ -254,6 +254,18 @@ if (.true.) then
       Deallocate (evecfvu, evecfvo0)
 
 
+         
+      !if( iq .eq. 2) then
+      !write(*,*)
+      !write(*,*) ik
+      !write(*,*) vql( :, iq)
+      !do is = 1, 4
+      !  do ia = 1, 6
+      !    write( *, '(2I3,3x,SP,E23.16,E23.16,"i")') is, ia, xiou( is, ia, 1)
+      !  end do
+      !end do
+      !end if
+
 
 
       Allocate (evecfvo20(n0, nst1))
@@ -303,6 +315,7 @@ else
       call timesec(cpu00)
  
       ikq = ikmapikq (ik, iq)
+      vql( :, iq) = -vql( :, iq)
       vkql(:)=vkl(:,ik)+vql(:,iq)
       
 ! umklapp treatment
@@ -347,12 +360,12 @@ else
 #endif
    
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ist2,ig,zfft,iv,igs,zfftres,igq)
+!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ist2,ig,zfft,iv,igs,zfftres,igq)
 #endif
        allocate(zfftres(fftmap%ngrtot+1))
        allocate(zfft(fftmap%ngrtot+1))
 #ifdef USEOMP
-!$OMP DO
+!!$OMP DO
 #endif
       do ist2=1,nst2
         zfft=zzero
@@ -367,6 +380,12 @@ else
             zfft(fftmap%igfft(igkig(ig,1,ikq)))=evecfvu2(ig,ist2)
           enddo
         endif
+        !if( (iq .eq. 2) .and. (ik .le. 8)) then
+        !    write(*,*) ik
+        !    write(*,*) ist2
+        !    write(*,'(SP,E23.16,E23.16,"i")') zfft( 1:10)
+        !end if
+
         Call zfftifc (3, fftmap%ngrid,1, zfft)
 
         do ist1=1,nst1
@@ -381,11 +400,11 @@ else
         enddo
       enddo
 #ifdef USEOMP
-!$OMP END DO
+!!$OMP END DO
 #endif
       deallocate(zfftres,zfft)
 #ifdef USEOMP
-!$OMP END PARALLEL
+!!$OMP END PARALLEL
 #endif
 
       deallocate(fftmap%igfft)
@@ -413,6 +432,19 @@ endif
         & cpumloares, cpumlolores, cpumirres, cpudbg, cpumtaa, &
         & cpumtalo, cpumtloa, cpumtlolo,cpufft)
       End If
+      
+      if( (abs( vql( 1, iq) - 0.00d0) .le. 1.d-6) .and. &
+          (abs( vql( 2, iq) - 0.25d0) .le. 1.d-6) .and. &
+          (abs( vql( 3, iq) - 0.00d0) .le. 1.d-6)) then
+        write(*,*)
+        write(*,*) ik
+        write(*,*) vql( :, iq)
+        do is = 1, 4
+          do ia = 1, 6
+            write( *, '(2I3,3x,SP,E23.16,E23.16,"i")') is, ia, xiou( is, ia, 1)
+          end do
+        end do
+      end if
 
 !
 End Subroutine ematqk

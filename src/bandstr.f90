@@ -14,6 +14,7 @@ Subroutine bandstr
   Use modmpi
   use mod_wannier
   Use FoX_wxml
+  use m_wsweight
 
   ! !DESCRIPTION:
   !   Produces a band structure along the path in reciprocal-space which connects
@@ -55,8 +56,8 @@ Subroutine bandstr
 !WANNIER
   integer :: ir, ix, iy, iz
   integer :: nrpt
-  real(8), allocatable :: rpt(:,:), evaltmp(:)
-  complex(8), allocatable :: wanme(:,:,:), auxmat(:,:), auxmat2(:,:,:)
+  real(8), allocatable :: rptc(:,:), rptl(:,:), evaltmp(:)
+  complex(8), allocatable :: wanme(:,:,:), auxmat(:,:), auxmat2(:,:,:), ftweight(:,:)
   complex(8), allocatable :: evectmp(:,:), evalcplx(:)
 !END WANNIER
 ! initialise universal variables
@@ -67,6 +68,7 @@ if (input%properties%bandstructure%wannier) then
   !--------------------------------------------------!      
   ! Calculate bandstructure by Wannier interpolation !
   !--------------------------------------------------!
+
   nrpt = nkpt
 
   ! maximum angular momentum for band character
@@ -80,11 +82,12 @@ if (input%properties%bandstructure%wannier) then
   Call readfermi                !saves fermi energy in variable 'efermi'
 
   ! generating transformation matrices for Wannier functions
-  call genmlwf( 1, 4, (/1, 2, 3, 4/))
+  call genwf( 5, 4, (/1, 2, 3, 4/))
 
   allocate( wanme( nrpt, wf_nprojused, wf_nprojused))   ! Wannier matrix elements       -- <0i|H|Rj>
-  allocate( rpt( 3, nrpt))                              ! set of R-points
+  allocate( rptc( 3, nrpt), rptl( 3, nrpt))             ! set of R-points
   allocate( evalfv(nstfv, nspnfv), evecfv(nmatmax, nstfv, nspnfv))
+  allocate( ftweight( nkpt, nrpt))
 
   ! generate set of lattice vectors 
   ia = 0
@@ -92,7 +95,8 @@ if (input%properties%bandstructure%wannier) then
     do iy = -input%groundstate%ngridk(2)/2, -input%groundstate%ngridk(2)/2+input%groundstate%ngridk(2)-1
       do ix = -input%groundstate%ngridk(1)/2, -input%groundstate%ngridk(1)/2+input%groundstate%ngridk(1)-1
         ia = ia + 1
-        rpt( :, ia) = iz*input%structure%crystal%basevect( :, 3) + iy*input%structure%crystal%basevect( :, 2) + ix*input%structure%crystal%basevect( :, 1) 
+        rptl( :, ia) = (/ dble( ix), dble( iy), dble( iz)/)
+        call r3mv( input%structure%crystal%basevect, rptl( :, ia), rptc( :, ia))
       end do
     end do
   end do
@@ -110,7 +114,7 @@ if (input%properties%bandstructure%wannier) then
       end do
     end do
     do ir = 1, nrpt 
-      auxmat( ir, ik) = exp( -zi*dot_product( rpt( :, ir), vkc( :, ik)))
+      auxmat( ir, ik) = exp( -zi*dot_product( rptc( :, ir), vkc( :, ik)))
     end do
   end do
   do iy = 1, wf_nprojused
@@ -128,7 +132,8 @@ if (input%properties%bandstructure%wannier) then
   do ik = 1, nkpt 
     auxmat(:,:) = zzero
     do ir = 1, nrpt
-    auxmat(:,:) = auxmat(:,:) + wanme( ir, :, :)*exp( zi*dot_product( rpt( :, ir), vkc( :, ik)))
+      call ws_weight( rptl( :, ir), rptl( :, ir), vkl( :, ik), ftweight( ik, ir), .true.)
+      auxmat(:,:) = auxmat(:,:) + wanme( ir, :, :)*conjg( ftweight( ik, ir))
     end do
     call diaghermat( wf_nprojused, auxmat, evaltmp, evectmp)
     evalsv( :, ik) = evaltmp(:)-efermi
