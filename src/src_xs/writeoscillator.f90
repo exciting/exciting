@@ -61,7 +61,7 @@ module m_writeoscillator
 
         if(present(oszstra) .and. present(evalim)) then
 
-          frmt='(a1,a7,1x,a23,1x,a23,1x,a23,1x,a23,1x,a23,1x,a23,1x,a23,1x,a23)'
+          frmt='(a1,a7,8(1x,a23))'
           write(unexc, frmt) "#", "Nr.",&
             & "Re(E)",&
             & "Im(E)",&
@@ -71,8 +71,7 @@ module m_writeoscillator
             & "|Osc. Str. Ares.|",&
             & "Re(Osc. Str. Ares.)",&
             & "Im(Osc. Str. Ares.)"
-          frmt='(I8,1x,E23.16,1x,E23.16,1x,E23.16,1x,E23.16,&
-            &1x,E23.16,1x,E23.16,1x,E23.16,1x,E23.16)'
+          frmt='(I8,8(1x,E23.16))'
           do lambda = 1, nexc
             write(unexc, frmt) lambda,&
               & (evalre(lambda))*escale,&

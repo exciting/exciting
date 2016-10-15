@@ -157,11 +157,12 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
   ! Parallelize over non reduced k-points
   call genparidxran('k', nkptnr)
 
-  ! Call init1 with q as vkloff, so that
-  ! Backup groundstate vkloff, and initialize k grid
-  ! with a vkloff=qvkloff(iqmt) instead.
-  ! iqmt is the index of the vectors specified in the input
-  ! q-point list, currently BSE only works for vqmt=0.
+  ! Call init1 with a vkloff that is derived
+  ! from the momentum transfer q vectors.
+  ! Currently BSE only works for vqmt=0, so that
+  ! at the moment this basically dones nothing, it
+  ! just calls ini1 again with the same offset as 
+  ! the groundstate vkloff.
   call init1offs(qvkloff(1, iqmt))
 
   ! Allocate eigenvalue/eigenvector related
@@ -205,8 +206,8 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
     !! Note: If the exchange matrix 
     !! has the elements v_{i,j} and the indices enumerate the
     !! states according to
-    !! i = {o1u1k1, o1u2k1, ..., o1uMk1,
-    !!      o2uMk1, ..., oMuMk1, o1u1k2, ..., oMuMkN} -> {1,...,M**2N}
+    !! i = {u1o1k1, u2o1k1, ..., uMo1k1,
+    !!      uMo2k1, ..., uMoNk1, o1u1k2, ..., oMuNkO} -> {1,...,M*N*O}
     !! then because of v_{j,i} = v^*_{i,j} only kj = ki,..,kN is 
     !! needed.
 
@@ -214,7 +215,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
     !! the calculations (yet?)
     ! K-point difference k_j-k_i on integer grid.
     iv(:) = ivknr(:, jknr) - ivknr(:, iknr)
-    ! Map to reciprocal unit cell 
+    ! Map to reciprocal unit cell 01
     iv(:) = modulo(iv(:), input%groundstate%ngridk(:))
     ! Q-point(reduced)
     iqr = iqmapr(iv(1), iv(2), iv(3))
@@ -324,42 +325,47 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
       complex(8) :: exclit(nou,nou) 
 
       !!<-- RR and RA part
-      j1 = 0
-      ! Unoccupied (k+q)
-      do iu1 = 1, nu
-        ! Occupied (k)
-        do io1 = 1, no
+      j1 = 0           ! ou
+      do iu1 = 1, nu   ! u (k+q)
+        do io1 = 1, no ! o (k)
           j1 = j1 + 1
           ! emat12_j = M_o1u1ki, M_o2u1ki, ..., M_oNu1ki, M_o1u2ki, ..., M_oNuMki
           emat12(j1, :) = ematouk(io1, iu1, :, iknr)
         end do
       end do
+! Try:
+! emat12 = reshape(ematouk(:,:,:,ikr),[nou, numgq])
+      ! M_ou -> M^*_ou
       emat12 = conjg(emat12)
       !!-->
 
       !!<-- RR part
-      j2 = 0
-      ! Unoccupied
-      do iu2 =1, nu
-        ! Occupied
-        do io2 = 1, no
+      j2 = 0           ! o'u'
+      do iu2 =1, nu    ! u' (k'+q)
+        do io2 = 1, no ! o' (k')
           j2 = j2 + 1
-          ! emat34_j = (M_o1u1kj, M_o2u1kj, ..., M_oNu1kj, M_o1u2kj, ..., M_oNuMkj)*v(G,0)
+          ! emat34_j = (M_o1u1kj,M_o2u1kj,...,M_oNu1kj,M_o1u2kj,...,M_oNuMkj)*v(G,0)
           emat34(j2, :) = ematouk(io2, iu2, :, jknr) * potcl(:)
         end do
       end do
       ! Calculate exchange matrix elements: v_{1234} = m_{12}^* m_{34}^t
+      ! exclit_{j1, j2} = \Sum_{G} emat12_{j1,G} (emat34^T)_{G,j2}
+      !   i.e. exclit_{o u ki, o' u' kj} =
+      !          \Sum_{G} M^*_{o u ki}(G,0) M_{o' u' kj}(G,0) v(G,0)
       call zgemm('n', 't', nou, nou, numgq, zone/omega/nkptnr,&
         & emat12, nou, emat34, nou, zzero, exclit, nou)
+
       ! Map back to individual band indices
-      j2 = 0
-      do iu2 = 1, nu
-        do io2 = 1, no
+      j2 = 0           ! o'u'
+      do iu2 = 1, nu   ! u'
+        do io2 = 1, no ! o'
           j2 = j2 + 1
-          j1 = 0
-          do iu1 = 1, nu
-            do io1 = 1, no
+          j1 = 0           ! ou
+          do iu1 = 1, nu   ! u
+            do io1 = 1, no ! o
               j1 = j1 + 1
+              ! exclit_{o_j1 u_j1, o'_j2 u'_j2} -> excli_{u_j2 o_j2, u'_j1 o'_j1}
+              !   i.e. excli_{u_j2 o_j2 k, u'_j1 o'_j1 k'}
               excli(iu1, io1, iu2, io2) = exclit(j1, j2)
             end do
           end do
@@ -369,28 +375,31 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
 
       if(fcoup == .true.) then
         !!<-- RA part
-        j2 = 0
-        ! Unoccupied (k)
-        do iu2 =1, nu
-          ! Occupied (k+q)
-          do io2 = 1, no
+        j2 = 0           ! u'o'
+        do io2 = 1, no   ! o' (k'+q)
+          do iu2 =1, nu  ! u' (k')
             j2 = j2 + 1
-            ! emat34_j = (M_u1o1kj, M_u1o2kj, ..., M_u1oMkj, M_u2o1kj, ..., M_uNoMkj)*v(G,0)
+            ! emat34_j = (M_u1o1kj,M_u2o1kj,...,M_uMo1kj,M_u1o2kj,...,M_uMoNkj)*v(G,0)
             emat34(j2, :) = ematuok(iu2, io2, :, jknr) * potcl(:)
           end do
         end do
         ! Calculate coupling exchange matrix elements: v_{1234} = m_{12}^* m_{34}^t
+        ! exclitc_{j1, j2} = \Sum_{G} emat12_{j1,G} (emat34^T)_{G,j2}
+        !   i.e. exclitc_{o u ki, u' o' kj} =
+        !          \Sum_{G} M^*_{o u ki}(G,0) M_{u' o' kj}(G,0) v(G,0)
         call zgemm('n', 't', nou, nou, numgq, zone/omega/nkptnr,&
           & emat12, nou, emat34, nou, zzero, exclit, nou)
         ! Map back to individual band indices
-        j2 = 0
-        do iu2 = 1, nu
-          do io2 = 1, no
+        j2 = 0           ! u'o'
+        do io2 = 1, no   ! o'
+          do iu2 = 1, nu ! u'
             j2 = j2 + 1
-            j1 = 0
-            do iu1 = 1, nu
-              do io1 = 1, no
+            j1 = 0           ! ou
+            do iu1 = 1, nu   ! u
+              do io1 = 1, no ! o
                 j1 = j1 + 1
+                ! exclit_{o_j1 u_j1, u'_j2 o'_j2} -> exclic_{u_j2 o_j2, u'_j1 o'_j1}
+                !   i.e. exclic_{u_j2 o_j2 k, u'_j1 o'_j1 k'}
                 exclic(iu1, io1, iu2, io2) = exclit(j1, j2)
               end do
             end do

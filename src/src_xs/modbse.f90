@@ -9,6 +9,7 @@
 !BOC
 module modbse
   
+  use m_filedel
   use modmpi
   use modinput, only: input
   use modxs, only: bcbs
@@ -275,7 +276,7 @@ module modbse
     !                                  ! the construction of the BSE matrix
     ! integer(4) :: smap(hamsize, 5)   ! Map between BSE matrix index and k,o,u indices
     ! integer(4) :: kousize(nkkp)      ! How many o u combinations allowed for each k
-    ! logical    :: kouflag(no*nu, nk) ! False for o u k combinations that are filtered out
+    ! logical    :: kouflag(no*nu, nk) ! False for ouk combinations that are filtered out
     !
     ! !DESCRIPTION:
     !   This routine checks the requested ik,io,iu combinations whether they
@@ -284,7 +285,8 @@ module modbse
     !   between states of the same partial occupancy. Also cases of occupancy inversion
     !   where the occupancy difference is negative are filtered out, since those break
     !   any kind of hermiticity of the BSE Hamiltonian.\\
-    !   The routine also crates the compined index map $\alpha \leftrightarrow \{u, o, \vec{k}\}$.
+    !   The routine also crates the compined index map
+    !   $\alpha \leftrightarrow \{u, o, \vec{k}\}$.
     !   Where u is the fastest index followed by o and k.
     !
     ! !REVISION HISTORY:
@@ -375,7 +377,7 @@ module modbse
       end do
       
       if(rank == 0) then
-        if(input%xs%dbglev > 2 .and. rank == 0) then 
+        if(input%xs%bse%writeparts) then 
           ! Print kouflag and kousize
           call printkouflag(nou, nk, kouflag, kousize)
           ! Print all occupancy factors with flags
@@ -414,6 +416,8 @@ module modbse
           write(unitout,*) "(bse.f90) [WARNING] Zero occupancy differences and/or&
             & negative fo-fu occured. Reduced size of BSE Hamiltonian from, ",&
             & hamsize_max, "to ", hamsize, " ."
+        else 
+          call filedel('BSE_SKIPPED_BCBS.OUT')
         end if 
       end if
 
@@ -444,10 +448,10 @@ module modbse
       if(rank == 0) then 
         call getunit(un)
         open(un, file='BSE_SINDEX.OUT', action='write', status='replace')
-        write(un,'("#",1x,a3,1x,a5,1x,a5,1x,a5)') "s", "ik", "io" ,"iu"
+        write(un,'("#",1x,a3,5(1x,a5))') "s", "ik", "io" ,"iu", "iorel", "iurel"
         do a1 = 1, hamsize
-          write(un,'(I5,1x,I5,1x,I5,1x,I5)')&
-            & a1, smap(a1,3), smap(a1,2), smap(a1,1)
+          write(un,'(I5,5(1x,I5))')&
+            & a1, smap(a1,3), smap(a1,2), smap(a1,1), smap(a1, 5), smap(a1, 4)
         end do
         close(un)
       end if

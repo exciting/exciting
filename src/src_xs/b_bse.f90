@@ -126,6 +126,8 @@ subroutine b_bse
   ! Non-parallelized code.
   if(.not. fscal .and. rank == 0) then 
 
+    write(*,*) "b_bse: Running non parallel version."
+
     ! General init
     call init0
     ! K-grid init
@@ -151,6 +153,7 @@ subroutine b_bse
 
     ! Set band combinations (modbse:bcou & modbse:bcouabs)
     call setbcbs_bse
+
     ! Number of kkp combinations with ikp >= ik (modbse:nk & modbse:nkkp)
     nk   = nkptnr
     nkkp = nkptnr*(nkptnr+1)/2
@@ -193,7 +196,8 @@ subroutine b_bse
     egap = minval(evalsv(bcouabs%il2,1:nkptnr) - evalsv(bcouabs%iu1,1:nkptnr)&
       &+ input%xs%scissor)
     write(unitout,*)
-    write(unitout, '("Info(bse): gap:", E23.16)') egap
+    write(unitout, '("Info(bse): gap, gap+scissor:", E23.16,1x,E23.16)')&
+      & egap-input%xs%scissor, egap
     ! Warn if the system has no gap even with scissor (or no scissor and on top of GW)
     if(egap .lt. input%groundstate%epspot) then
       write(unitout,*)
@@ -221,12 +225,14 @@ subroutine b_bse
     if(rank == 0) then
       write(unitout,*)
       write(unitout, '("Info(bse): Assembling BSE matrix")')
-      write(unitout, '("RR/RA blocks of BSE-Hamiltonian: Shape=",i4, " Size=",i8)')&
-        & hamsize, hamsize**2
+      write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
+      write(unitout, '("  Shape=",i8)') hamsize
+      write(unitout, '("  nk=", i8)') nk
+      write(unitout, '("  nkkp=", i8)') nkkp
       if(fcoup) then
         write(unitout, '(" Including coupling terms ")')
-        write(unitout, '(" Full BSE-Hamiltonian: Shape=",i4, " Size=",i8)')&
-          & 2*hamsize, 4*hamsize**2
+        write(unitout, '(" Full BSE-Hamiltonian:")')
+        write(unitout, '("  Shape=",i8)') 2*hamsize
       end if
       if(fwp) then
         write(unitout, '(" Writing real and imaginary parts of Hamiltonian to file ")')
@@ -701,20 +707,20 @@ contains
       ! Read corresponding ikkp blocks of W and V from file
       select case(trim(input%xs%bse%bsetype))
         case('singlet', 'triplet')
-          ! Read RR part of screened coulomb interaction W_{ouki,o'u'kj}
+          ! Read RR part of screened coulomb interaction W_{uoki,u'o'kj}
           call getbsemat('SCCLI.OUT', ikkp, nu, no, sccli)
           if(fcoup == .true.) then
-            ! Read RA part of screened coulomb interaction Wc_{ouki,o'u'kj}
+            ! Read RA part of screened coulomb interaction Wc_{uoki,u'o'kj}
             call getbsemat('SCCLIC.OUT', ikkp, nu, no, scclic)
           end if
       end select
 
       select case(trim(input%xs%bse%bsetype))
         case('RPA', 'singlet')
-          ! Read RR part of exchange interaction v_{ouki,o'u'kj}
+          ! Read RR part of exchange interaction v_{uoki,u'o'kj}
           call getbsemat('EXCLI.OUT', ikkp, nu, no, excli)
           if(fcoup == .true.) then
-            ! Read RA part of exchange interaction vc_{ouki,o'u'kj}
+            ! Read RA part of exchange interaction vc_{uoki,u'o'kj}
             call getbsemat('EXCLIC.OUT', ikkp, nu, no, exclic)
           end if
       end select
@@ -896,8 +902,7 @@ contains
       do iu = bcouabs%il2, bcouabs%iu2
         iou = iou+1
         ! de = e_{u, k} - e_{o, k} + scissor
-        devals(iou) = evalsv(iu,ik) - evalsv(io,ik)&
-          &+ input%xs%scissor
+        devals(iou) = evalsv(iu,ik) - evalsv(io,ik) + input%xs%scissor
       end do
     end do
 

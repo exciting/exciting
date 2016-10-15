@@ -7,6 +7,7 @@
 ! !INTERFACE:
 subroutine getbsemat(fname, ikkp, n1, n2, zmat)
 ! !USES:
+  use modinput
   use m_getunit
 ! !DESCRIPTION:
 !   This routine is used for reading the screened coulomb interaction
@@ -75,9 +76,21 @@ subroutine getbsemat(fname, ikkp, n1, n2, zmat)
   end if
 
   ! Cut matrix
-  !   n1 selects occupied states from highest to lowest 
-  !   n2 selects unoccupied states from lowest to highest 
-  zmat(:, :, :, :) = zm(n1_-n1+1:, :n2, n1_-n1+1:, :n2)
+  ! In case the saved matrix zm(n1_,n2_,n1_,n2_) is larger
+  ! then the requested slice of z(n1, n2, n1, n2) then
+  if(input%xs%bse%beyond) then
+    ! n1 <-> nu, n2 <-> no
+    !  for n1 take elements form lowest index to highes
+    !  for n2 take elements form highest index to lowest
+    zmat(:, :, :, :) = zm(:n1, n2_-n2+1:, :n1,  n2_-n2+1:)
+  else
+    ! n1 <-> no, n2 <-> nu
+    !  for n1 take elements form highest index to lowest
+    !  for n2 take elements form lowest index to highes
+    zmat(:, :, :, :) = zm(n1_-n1+1:, :n2, n1_-n1+1:, :n2)
+  end if
+  ! The behaviour stems from the fact that one refers to occupied states
+  ! and the other to unoccupied ones.
   deallocate(zm)
 end subroutine getbsemat
 !EOC
