@@ -131,6 +131,7 @@ module modbse
           & bcou%il1, bcou%iu1, bcou%n1
         write(unitout, '("    Range of unoccupied states and number :", 2i6, 3x, i6)')&
           & bcou%il2, bcou%iu2, bcou%n2
+        write(unitout,*)
       end if
     end subroutine setbcbs_bse
     !EOC
@@ -151,18 +152,19 @@ module modbse
     !   and a $\vec{k}$ index. It is use in the construction of
     !   the BSE Hamiltonian.\\
     !   Map:\\
-    !   $\text{hamdix} = i_2 + (i_1 - 1) n_2 + n_2 n_1 (i_k-1)$\\
+    !   $\text{hamdix} = i_1 + (i_2 - 1) n_1 + n_1 n_2 (i_k-1)$\\
     !   Notes:\\
-    !     $i_2$ is the fastest varying index, followed in order by $i_1$ and $i_k$.\\
+    !     $i_1$ is the fastest varying index, followed in order by $i_2$ and $i_k$.\\
     !     All indices are assumed to be counted from 1 onwards continuously.
     ! 
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
+    !   Changed fastes index to i1. (Aurich)
     !EOP
     !BOC
       implicit none
       integer(4), intent(in) :: i1, i2, ik, n1, n2
-      hamidx = i2 + n2 * (i1-1) + n1 * n2 * (ik-1)
+      hamidx = i1 + n1 * (i2-1) + n1 * n2 * (ik-1)
     end function hamidx
     !EOC
 
@@ -191,19 +193,19 @@ module modbse
       n12 = n1*n2
       ik = (s-1)/n12 + 1
       tmp = s - (ik-1)*n12
-      i1 = (tmp-1)/n2 + 1
-      i2 = tmp - (i1-1)*n2
+      i2 = (tmp-1)/n1 + 1
+      i1 = tmp - (i2-1)*n1
     end subroutine hamidx_back
     !EOC
 
     !BOP
     ! !ROUTINE: subhamidx
     ! !INTERFACE:
-    integer(4) function subhamidx(i1, i2, n2)
+    integer(4) function subhamidx(i1, i2, n1)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! integer(4) :: i1, i2     ! Indices counting from 1 continuously 
-    ! integer(4) :: n2         ! Maximum value of i2 
+    ! integer(4) :: n1         ! Maximum value of i1 
     ! Out:
     ! integer(4) :: subhamidx  ! Combined index
     !
@@ -211,29 +213,30 @@ module modbse
     !   The function return a combined index given two indices.
     !   It is use in the construction of the BSE Hamiltonian.\\
     !   Map:\\
-    !   $\text{hamdix} = i_2 + (i_1 - 1) n_2$\\
+    !   $\text{hamdix} = i_1 + (i_2 - 1) n_1$\\
     !   Notes:\\
-    !     $i_2$ is the fastest varying index, followed in by $i_1$.\\
+    !     $i_1$ is the fastest varying index, followed by $i_2$.\\
     !     All indices are assumed to be counted from 1 onwards continuously.
     ! 
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)
+    !   Changed fastest index to i1. (Aurich)
     !EOP
     !BOC
       implicit none
-      integer(4), intent(in) :: i1, i2, n2
-      subhamidx = i2 + n2 * (i1-1)
+      integer(4), intent(in) :: i1, i2, n1
+      subhamidx = i1 + n1 * (i2-1)
     end function subhamidx
     !EOC
 
     !BOP
     ! !ROUTINE: subhamidx_back
     ! !INTERFACE:
-    subroutine subhamidx_back(s, i1, i2, n2)
+    subroutine subhamidx_back(s, i1, i2, n1)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! integer(4) :: s    ! Combined index
-    ! integer(4) :: n2   ! Maximum value of i2 
+    ! integer(4) :: n1   ! Maximum value of i1 
     ! Out:
     ! integer(4) :: i1, i2   ! Individual indices
     !
@@ -243,13 +246,14 @@ module modbse
     ! 
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)
+    !   Changed fastest index to i1. (Aurich)
     !EOP
     !BOC
       implicit none
-      integer(4), intent(in) :: s, n2
+      integer(4), intent(in) :: s, n1
       integer(4), intent(out) :: i1, i2
-      i1 = (s-1)/n2 + 1
-      i2 = s - (i1-1)*n2
+      i1 = (s-1)/n1 + 1
+      i2 = s - (i1-1)*n1
     end subroutine subhamidx_back
     !EOC
 
@@ -279,7 +283,9 @@ module modbse
     !   The simple treatment of fractional occupancy does not allow for transitions
     !   between states of the same partial occupancy. Also cases of occupancy inversion
     !   where the occupancy difference is negative are filtered out, since those break
-    !   any kind of hermiticity of the BSE Hamiltonian.
+    !   any kind of hermiticity of the BSE Hamiltonian.\\
+    !   The routine also crates the compined index map $\alpha \leftrightarrow \{u, o, \vec{k}\}$.
+    !   Where u is the fastest index followed by o and k.
     !
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)
@@ -325,7 +331,6 @@ module modbse
       allocate(kouflag(nou, nk))
       kouflag = .true.
 
-
       ! Check occupancies
       do ik = 1, nk
       
@@ -339,7 +344,7 @@ module modbse
           do j = iul, iuu ! Unoccupied (absolute)
 
             ! Map to combined index
-            a1 = hamidx(i-iol+1, j-iul+1, ik, no, nu)
+            a1 = hamidx(j-iul+1, i-iol+1, ik, nu, no)
 
             ! Get occupation difference for current combination
             ! kdocc = f_{o_{a},k_{a}} - f_{u_{a},k_{a}}
@@ -348,12 +353,12 @@ module modbse
             ! Set zero occupation difference flag
             if(abs(kdocc) .lt. cutoff) then
               zeroflag(a1) = .true.
-              kouflag(subhamidx(i-iol+1,j-iul+1, nu), ik) = .false.
+              kouflag(subhamidx(j-iul+1, i-iol+1, nu), ik) = .false.
             end if
             ! Set occupation difference sign flag
             if(kdocc .le. 0.0d0) then
               negativeflag(a1) = .true.
-              kouflag(subhamidx(i-iol+1,j-iul+1, nu), ik) = .false.
+              kouflag(subhamidx(j-iul+1, i-iol+1, nu), ik) = .false.
             end if
             ! Occupation factor
             occfactor_t(a1) = sqrt(abs(kdocc))
@@ -368,11 +373,14 @@ module modbse
         ! Number of io iu combinations valid for ik
         kousize(ik) = count(kouflag(:,ik))
       end do
-      if(input%xs%dbglev > 2 .and. rank == 0) then 
-        ! Print kouflag and kousize
-        call printkouflag(nou, nk, kouflag, kousize)
-        ! Print all occupancy factors with flags
-        call printoccupancies(zeroflag, negativeflag, occfactor_t)
+      
+      if(rank == 0) then
+        if(input%xs%dbglev > 2 .and. rank == 0) then 
+          ! Print kouflag and kousize
+          call printkouflag(nou, nk, kouflag, kousize)
+          ! Print all occupancy factors with flags
+          call printoccupancies(zeroflag, negativeflag, occfactor_t)
+        end if
       end if
 
       ! Adjust selection for only non zero occupancy differences
@@ -393,9 +401,9 @@ module modbse
           hamsize = hamsize + 1
         else
           if(rank == 0) then
-          call hamidx_back(a1, i, j, ik, bcouabs%n1, bcouabs%n2)
+          call hamidx_back(a1, i, j, ik, nu, no)
             write(un,'(I8,1x,I4,1x,I4,1x,I4,1x,I4,1x,I4,1x,L,1x,L)')&
-              & a1, ik, i, j, i+iol-1, j+iul-1, zeroflag(a1), negativeflag(a1)
+              & a1, ik, j, i, j+iol-1, i+iul-1, zeroflag(a1), negativeflag(a1)
           end if
         end if
       end do
@@ -416,8 +424,8 @@ module modbse
         if(.not. zeroflag(a1) .and. .not. negativeflag(a1)) then
           a2=a2+1
           ofac(a2) = occfactor_t(a1)
-          call hamidx_back(a1, i, j, ik, bcouabs%n1, bcouabs%n2)
-          smap(a2,:) = [ik, i, j, i+iol-1, j+iul-1]
+          call hamidx_back(a1, i, j, ik, nu, no)
+          smap(a2,:) = [i+iul-1, j+iol-1, ik, i, j]
         end if
       end do
 
@@ -439,7 +447,7 @@ module modbse
         write(un,'("#",1x,a3,1x,a5,1x,a5,1x,a5)') "s", "ik", "io" ,"iu"
         do a1 = 1, hamsize
           write(un,'(I5,1x,I5,1x,I5,1x,I5)')&
-            & a1, smap(a1,1), smap(a1,4), smap(a1,5)
+            & a1, smap(a1,3), smap(a1,2), smap(a1,1)
         end do
         close(un)
       end if
@@ -450,6 +458,7 @@ module modbse
 
     ! Auxiliary routines
     subroutine printkouflag(nou, nk, kouflag, kousize)
+
       use m_getunit
       implicit none 
       integer, intent(in) :: nou, nk, kousize(:)

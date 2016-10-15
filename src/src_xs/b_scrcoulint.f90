@@ -200,10 +200,10 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   end if
 
   ! W matrix element arrays for one k2-k1=q
-  allocate(sccli(no, nu, no, nu), scclid(no, nu))
+  allocate(sccli(nu, no, nu, no), scclid(no, nu))
   sccli = zzero
   if(fcoup) then 
-    allocate(scclic(no, nu, no, nu))
+    allocate(scclic(nu, no, nu, no))
     scclic=zzero
   end if
 
@@ -219,8 +219,8 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     !! Note: If the screened coulomb interaction matrix 
     !! has the elements W_{i,j} and the indices enumerate the
     !! states according to
-    !! i = {o1u1k1, o1u2k1, ..., o1uMk1,
-    !!      o2uMk1, ..., oMuMk1, o1u1k2, ..., oMuMkN} -> {1,...,M**2N}
+    !! i = {u1o1k1, u2o1k1, ..., uMo1k1,
+    !!      u1o2k1, ..., uMoNk1, u1o1k2, ..., uMoNkO} -> {1,...,M*N*O}
     !! then because of W_{j,i} = W^*_{i,j} only kj = ki,..,kN is 
     !! needed (the diagonal blocks where k'=k will be fully computed 
     !! but only the upper triangle will be needed in the end).
@@ -228,7 +228,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     !! Get corresponding q-point for ki,kj combination.
     ! K-point difference k_j-k_i on integer grid.
     iv(:) = ivknr(:,jknr) - ivknr(:,iknr)
-    ! Map to reciprocal unit cell 
+    ! Map to reciprocal unit cell 01 
     iv(:) = modulo(iv(:), ngridq(:))
     ! Find corresponding q-point index (reduced)
     iqr = iqmapr(iv(1), iv(2), iv(3))
@@ -239,16 +239,19 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     ! Get lattice coordinates
     vq(:) = vql(:, iq)
 
-    ! Local field effects size
+    ! Check if iq is Gamma point (mod_qpoint::vqc(:,iq) has length < 1d-12)
     tq0 = tqgamma(iq)
+
+    ! Local field effects size (Number of G+q vectors)
     numgq = ngq(iq)
 
     allocate(igqmap(numgq))
     allocate(wfc(numgq, numgq))
 
-    !! Find results (radial emat integrals and screened coulomb potential Fourier coefficients) 
+    !! Find results  
     !! for a non reduced q-point with the help of the result 
     !! for the corresponding reduced q-point using symmetry operations.
+    !! (Radial emat integrals and screened coulomb potential Fourier coefficients)
     !!<--
     ! Find symmetry operations that reduce the q-point to the irreducible
     ! part of the Brillouin zone
@@ -277,22 +280,27 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     call getpwesrr(iq, iknr, moo, muu)
 
     ! Combine indices for matrix elements of plane wave.
-    j1 = 0 ! oo' index
-    do io2 = 1, no
-      do io1 = 1, no
+    j1 = 0           ! oo' index
+    do io2 = 1, no   ! o'
+      do io1 = 1, no ! o
         j1 = j1 + 1
         ! cmoo_j = M_o1o1, M_o2o1, ..., M_oNo1, M_o1o2, ..., M_oNoN
         cmoo(j1, :) = moo(io1, io2, :)
       end do
     end do
-    j2 = 0 ! uu' index
-    do iu2 = 1, nu
-      do iu1 = 1, nu
+! Try:
+!cmoo = reshape(moo, [noo, numgq])
+
+    j2 = 0           ! uu' index
+    do iu2 = 1, nu   ! u'
+      do iu1 = 1, nu ! u
         j2 = j2 + 1
         ! cmuu_j = M_u1u1, M_u2u1, ..., M_uNu1, M_u1u2, ..., M_uNuN
         cmuu(j2, :) = muu(iu1, iu2, :)
       end do
     end do
+! Try:
+!cmuu = reshape(muu, [nuu, numgq])
 
     ! M_{oo'} -> M^*_{oo'}
     cmoo = conjg(cmoo)
@@ -302,27 +310,28 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
     ! Calculate matrix elements of screened coulomb interaction scclit_{j1, j2}(q)
     ! zm = cmoo * wfc
-    !   i.e. zm_{j1,G'} = \Sum_{G} cmoo_{j1,G} tm_{G,G'}
-    !   i.e. zm_{o_j1,o'_j1}(G,q) = \Sum_{G'} M^*_{o_j1,o'_j1}(G,q) W(G,G', q)
+    !   i.e. zm_{j1,G'} = \Sum_{G} cmoo_{j1,G} wfc_{G,G'}
+    !   i.e. zm_{o_j1,o'_j1}(G',q) = \Sum_{G} M^*_{o_j1,o'_j1}(G,q) W(G,G', q)
     call zgemm('n', 'n', noo, numgq, numgq, zone, cmoo, noo, wfc, numgq, zzero, zm, noo)
     ! scclit = pref * zm * cmuu^T
-    !   i.e. scclit(j1, j2) = \Sum_{G} zm_{j1,G} (cmuu^T)_{G,j2}
-    !   i.e. scclit_{o_j1 o'_j1, u_j2 u'_j2} = \Sum{G,G'} M^*_{o_j1,o'_j1}(G,q) W(G,G',q) M_{u_j2 u'_j2}(G',q)
+    !   i.e. scclit(j1, j2) = \Sum_{G'} zm_{j1,G'} (cmuu^T)_{G',j2}
+    !   i.e. scclit_{o_j1 o'_j1, u_j2 u'_j2} = 
+    !          \Sum{G,G'} M^*_{o_j1,o'_j1}(G,q) W(G,G',q) M_{u_j2 u'_j2}(G',q)
     call zgemm('n', 't', noo, nuu, numgq, pref, zm,&
       & noo, cmuu, nuu, zzero, scclit, noo)
     deallocate(zm)        
 
     ! Map back to individual band indices
     j2 = 0
-    do iu2 = 1, nu
-      do iu1 = 1, nu
+    do iu2 = 1, nu    ! u'
+      do iu1 = 1, nu  ! u
         j2 = j2 + 1
         j1 = 0
-        do io2 = 1, no
-          do io1 = 1, no
+        do io2 = 1, no   ! o'
+          do io1 = 1, no ! o
             j1 = j1 + 1
-            ! scclit_{o_j1 o'_j1, u_j2 u'_j2} -> sccli_{o_j1 u_j2, o'_j1 u'_j2}
-            sccli(io1, iu1, io2, iu2) = scclit(j1, j2)
+            ! scclit_{o_j1 o'_j1, u_j2 u'_j2} -> sccli_{u_j2 o_j1, u'_j2 o'_j1}
+            sccli(iu1, io1, iu2, io2) = scclit(j1, j2)
           end do
         end do
       end do
@@ -334,7 +343,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       do io1 = 1, no
         ! Selected unoccupied
         do iu1 = 1, nu
-          zt1 = sccli(io1, iu1, io1, iu1)
+          zt1 = sccli(iu1, io1, iu1, io1)
           scclid(io1, iu1) = zt1
           bsedt(1, rank) = min(dble(bsedt(1, rank)), dble(zt1))
           bsedt(2, rank) = max(dble(bsedt(2, rank)), dble(zt1))
@@ -345,7 +354,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
     ! Parallel write
     call putbsemat('SCCLI.OUT', 77, sccli, ikkp, iknr, jknr,&
-      & iq, iqr, no, nu, no, nu)
+      & iq, iqr, nu, no, nu, no)
 
     deallocate(moo, muu, cmoo, cmuu)
     
@@ -360,22 +369,27 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       call getpwesra(iq, iknr, mou, muo)
 
       ! Combine indices for matrix elements of plane wave.
-      j1 = 0 ! ou' index
-      do iu2 = 1, nu ! k+q
-        do io1 = 1, no ! k
+      j1 = 0           ! ou' index
+      do iu2 = 1, nu   ! u'
+        do io1 = 1, no ! o
           j1 = j1 + 1
           ! cmou_j = M_o1u1, M_o2u1, ..., M_oNu1, M_o1u2, ..., M_oNuM
           cmou(j1, :) = mou(io1, iu2, :)
         end do
       end do
-      j2 = 0 ! uo' index
-      do iu1 = 1, nu
-        do io2 = 1, no
+! Try:
+! cmou = reshape(mou,[nou, numgq])
+
+      j2 = 0           ! uo' index
+      do io2 = 1, no   ! o'
+        do iu1 = 1, nu ! u
           j2 = j2 + 1
-          ! cmuo_j = M_u1o1, M_u1o2, ..., M_u1oN, M_u2o1, ..., M_uMoN
+          ! cmuo_j = M_u1o1, M_u2o1, ..., M_uMo1, M_u1o2, ..., M_uMoN
           cmuo(j2, :) = muo(iu1, io2, :)
         end do
       end do
+! Try:
+! cmuo = reshape(muo,[nou, numgq])
 
       ! M_{ou'} -> M^*_{ou'}
       cmou = conjg(cmou)
@@ -385,27 +399,28 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
       ! Calculate matrix elements of screened coulomb interaction scclitc_{j1, j2}(q)
       ! zm = cmou * wfc
-      !   i.e. zm_{j1,G'} = \Sum_{G} cmou_{j1,G} tm_{G,G'}
+      !   i.e. zm_{j1,G'} = \Sum_{G} cmou_{j1,G} wfc_{G,G'}
       !   i.e. zm_{o_j1,u'_j1}(G',q) = \Sum_{G} M^*_{o_j1,u'_j1}(G,q) W(G, G', q)
       call zgemm('n', 'n', nou, numgq, numgq, zone, cmou, nou, wfc, numgq, zzero, zm, nou)
       ! scclit = pref * zm * cmuo^T
-      !   i.e. scclit(j1, j2) = \Sum_{G'} zm_{j1,G'} (cmuu^T)_{G',j2}
-      !   i.e. scclit_{o_j1 u'_j1, u_j2 o'_j2} = \Sum{G,G'} M^*_{o_j1,u'_j1}(G,q) W(G, G',q) M_{u_j2,o'_j2}(G',q)
+      !   i.e. scclitc(j1, j2) = \Sum_{G'} zm_{j1,G'} (cmuo^T)_{G',j2}
+      !   i.e. scclitc_{o_j1 u'_j1, u_j2 o'_j2} =
+      !          \Sum{G,G'} M^*_{o_j1,u'_j1}(G,q) W(G, G',q) M_{u_j2,o'_j2}(G',q)
       call zgemm('n', 't', nou, nou, numgq, pref, zm,&
         & nou, cmuo, nou, zzero, scclitc, nou)
       deallocate(zm)        
 
       ! Map back to individual band indices
-      j1 = 0
-      do iu2 = 1, nu 
-        do io1 = 1, no 
+      j1 = 0           ! ou'
+      do iu2 = 1, nu   ! u'
+        do io1 = 1, no ! o
           j1 = j1 + 1
-          j2 = 0
-          do iu1 = 1, nu
-            do io2 = 1, no
+          j2 = 0           ! uo'
+          do io2 = 1, no   ! o'
+            do iu1 = 1, nu ! u
               j2 = j2 + 1
-              ! scclit_{o_j1 u'_j1, u_j2 o'_j2} -> scclilc(o_j1, u_j2, o'_j2, u'_j1)
-              scclic(io1, iu1, io2, iu2) = scclitc(j1, j2)
+              ! scclitc_{o_j1 u'_j1, u_j2 o'_j2} -> scclic(u_j2, o_j1, u'_j1, o'_j2)
+              scclic(iu1, io1, iu2, io2) = scclitc(j1, j2)
             end do
           end do
         end do
@@ -415,7 +430,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
       ! Parallel write
       call putbsemat('SCCLIC.OUT', 78, scclic, ikkp, iknr, jknr,&
-        & iq, iqr, no, nu, no, nu)
+        & iq, iqr, nu, no, nu, no)
 
     end if
     

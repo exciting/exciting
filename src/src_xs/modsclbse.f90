@@ -57,7 +57,7 @@ module modsclbse
 
 #ifdef SCAL
   ! BLACS/ScaLAPACK routines
-  integer(4), external :: numroc, indxl2g, indxg2l
+  integer(4), external :: numroc, indxl2g, indxg2l, indxg2p
   integer(4), external :: blacs_pnum
 #endif
 

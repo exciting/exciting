@@ -131,7 +131,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
   allocate(potcl(numgq))
   potcl = 0.d0
 
-  allocate(excli(no, nu, no, nu))
+  allocate(excli(nu, no, nu, no))
   excli = zzero
   allocate(ematouk(no, nu, numgq, nkptnr))
   ematouk = zzero
@@ -139,7 +139,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
   ! Include coupling terms
   fcoup = input%xs%bse%coupling
   if(fcoup == .true.) then
-    allocate(exclic(no, nu, no, nu))
+    allocate(exclic(nu, no, nu, no))
     exclic=zzero
     allocate(ematuok(nu, no, numgq, nkptnr))
     ematuok=zzero
@@ -158,7 +158,10 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
   call genparidxran('k', nkptnr)
 
   ! Call init1 with q as vkloff, so that
-  ! k mesh goes over into k+q mesh ???
+  ! Backup groundstate vkloff, and initialize k grid
+  ! with a vkloff=qvkloff(iqmt) instead.
+  ! iqmt is the index of the vectors specified in the input
+  ! q-point list, currently BSE only works for vqmt=0.
   call init1offs(qvkloff(1, iqmt))
 
   ! Allocate eigenvalue/eigenvector related
@@ -234,11 +237,11 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
 
     ! Parallel write
     call putbsemat('EXCLI.OUT', 77, excli, ikkp, iknr, jknr,&
-      & iq, iqr, no, nu, no, nu)
+      & iq, iqr, nu, no, nu, no)
 
     if(fcoup == .true.) then
       call putbsemat('EXCLIC.OUT', 78, exclic, ikkp, iknr, jknr,&
-        & iq, iqr, no, nu, no, nu)
+        & iq, iqr, nu, no, nu, no)
     end if
 
   ! End loop over(k,kp) pairs
@@ -357,7 +360,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
           do iu1 = 1, nu
             do io1 = 1, no
               j1 = j1 + 1
-              excli(io1, iu1, io2, iu2) = exclit(j1, j2)
+              excli(iu1, io1, iu2, io2) = exclit(j1, j2)
             end do
           end do
         end do
@@ -388,7 +391,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
             do iu1 = 1, nu
               do io1 = 1, no
                 j1 = j1 + 1
-                exclic(io1, iu1, io2, iu2) = exclit(j1, j2)
+                exclic(iu1, io1, iu2, io2) = exclit(j1, j2)
               end do
             end do
           end do

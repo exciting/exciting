@@ -47,7 +47,9 @@ subroutine putbsemat(fname, tag, zmat, ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4
 #ifdef MPI
   nkkp = (nkptnr*(nkptnr+1)) / 2
 
-  if(rank .ne. 0) call mpi_send(zmat, size(zmat), mpi_double_complex, 0, tag, mpi_comm_world, ierr)
+  if(rank .ne. 0) then
+    call mpi_send(zmat, size(zmat), mpi_double_complex, 0, tag, mpi_comm_world, ierr)
+  end if
 
   if(rank .eq. 0) then
     do iproc = 0, lastproc(ikkp, nkkp)
@@ -56,11 +58,13 @@ subroutine putbsemat(fname, tag, zmat, ikkp, iknr, jknr, iq, iqr, n1, n2, n3, n4
 
       if(iproc .ne. 0) then
         ! Receive data from slaves
-        call mpi_recv(zmat, size(zmat), mpi_double_complex, iproc, tag, mpi_comm_world, stat, ierr)
+        call mpi_recv(zmat, size(zmat), mpi_double_complex, iproc, tag,&
+          & mpi_comm_world, stat, ierr)
       end if
 #endif
       ! Only the master is performing file i/o
-      open(unit=un, file=trim(fname), form='unformatted', action='write', access='direct', recl=reclen)
+      open(unit=un, file=trim(fname), form='unformatted', action='write',&
+        & access='direct', recl=reclen)
       write(un, rec=ikkpr) ikkpr, iknrr, jknrr, iq_r, iqr_r, n1, n2, n3, n4, zmat
       close(un)
 #ifdef MPI

@@ -674,15 +674,15 @@ contains
 
     ! Allocate and zero work arrays
     allocate(rrham(hamsize, hamsize)) ! Resonant-resonant part of Hamiltonian
-    allocate(excli(no,nu,no,nu))      ! RR part of V, to be read from file
-    allocate(sccli(no,nu,no,nu))      ! RR part of W, to be read from file
+    allocate(excli(nu,no,nu,no))      ! RR part of V, to be read from file
+    allocate(sccli(nu,no,nu,no))      ! RR part of W, to be read from file
     rrham = zzero
     excli = zzero
     sccli = zzero
     if(fcoup == .true.) then
       allocate(raham(hamsize, hamsize)) ! Resonant-anit-resonant part of Hamiltonian
-      allocate(exclic(no,nu,no,nu))     ! RA part of V, to be read from file
-      allocate(scclic(no,nu,no,nu))     ! RA part of W, to be read from file
+      allocate(exclic(nu,no,nu,no))     ! RA part of V, to be read from file
+      allocate(scclic(nu,no,nu,no))     ! RA part of W, to be read from file
       raham = zzero
       exclic = zzero
       scclic = zzero
@@ -692,9 +692,9 @@ contains
     !! Note: If the Hamilton matrix 
     !! has the elements H_{i,j} and the indices enumerate the
     !! states according to
-    !! i = {o1u1k1, o1u2k1, ..., o1uMk1,
-    !!      o2uMk1, ..., oMuMk1, o1u1k2, ..., oMuMkN} -> {1,...,M**2N}
-    !! then because of H_{j,i} = H^*_{i,j} only kj = ki,..,kN is 
+    !! i = {u1o1k1, u2o1k1, ..., uMo1k1,
+    !!      uMo2k1, ..., uMoNk1, u1o1k2, ..., uMoNkO} -> {1,...,M*N*O}
+    !! then because of H_{j,i} = H^*_{i,j} only kj = ki,..,kO is 
     !! needed.
     do ikkp = 1, nkkp
 
@@ -702,20 +702,20 @@ contains
       select case(trim(input%xs%bse%bsetype))
         case('singlet', 'triplet')
           ! Read RR part of screened coulomb interaction W_{ouki,o'u'kj}
-          call getbsemat('SCCLI.OUT', ikkp, no, nu, sccli)
+          call getbsemat('SCCLI.OUT', ikkp, nu, no, sccli)
           if(fcoup == .true.) then
             ! Read RA part of screened coulomb interaction Wc_{ouki,o'u'kj}
-            call getbsemat('SCCLIC.OUT', ikkp, no, nu, scclic)
+            call getbsemat('SCCLIC.OUT', ikkp, nu, no, scclic)
           end if
       end select
 
       select case(trim(input%xs%bse%bsetype))
         case('RPA', 'singlet')
           ! Read RR part of exchange interaction v_{ouki,o'u'kj}
-          call getbsemat('EXCLI.OUT', ikkp, no, nu, excli)
+          call getbsemat('EXCLI.OUT', ikkp, nu, no, excli)
           if(fcoup == .true.) then
             ! Read RA part of exchange interaction vc_{ouki,o'u'kj}
-            call getbsemat('EXCLIC.OUT', ikkp, no, nu, exclic)
+            call getbsemat('EXCLIC.OUT', ikkp, nu, no, exclic)
           end if
       end select
 
@@ -733,7 +733,8 @@ contains
       ! energies to the diagonal of the block.
       if(ik1 .eq. ik2) then
         if(wp) then
-          call writekstrans(ik1, rrham(s1l:s1u,s2l:s2u), remat=kstransen(s1l:s1u,s2l:s2u))
+          call writekstrans(ik1, rrham(s1l:s1u,s2l:s2u),&
+            & remat=kstransen(s1l:s1u,s2l:s2u))
         else
           call writekstrans(ik1, rrham(s1l:s1u,s2l:s2u))
         end if
@@ -927,7 +928,7 @@ contains
   subroutine addexchange(ik1, ik2, hamblock, excli, ofac1, ofac2, remat, immat)
     integer(4), intent(in) :: ik1, ik2
     real(8), intent(in) :: ofac1(:), ofac2(:)
-    complex(8), intent(in) :: excli(no,nu,no,nu)
+    complex(8), intent(in) :: excli(nu,no,nu,no)
     complex(8), intent(inout) :: hamblock(:,:)
     
     real(8), intent(out), optional :: remat(:,:), immat(:,:)
@@ -941,13 +942,13 @@ contains
     do iou1 = 1, nou
       if(kouflag(iou1, ik1) == .false.) cycle
       s1 = s1 + 1
-      call subhamidx_back(iou1, io1, iu1, bcou%n2)
+      call subhamidx_back(iou1, iu1, io1, nu)
       s2=0
       do iou2 = 1, nou
         if(kouflag(iou2, ik2) == .false.) cycle
         s2 = s2 + 1
-        call subhamidx_back(iou2, io2, iu2, bcou%n2)
-        tmp = 2.d0*excli(io1, iu1, io2, iu2) * ofac1(s1) * ofac2(s2)
+        call subhamidx_back(iou2, iu2, io2, nu)
+        tmp = 2.d0*excli(iu1, io1, iu2, io2) * ofac1(s1) * ofac2(s2)
         if(present(remat)) then
           remat(s1,s2) = dble(tmp)
         end if
@@ -963,7 +964,7 @@ contains
   subroutine adddirect(ik1, ik2, hamblock, sccli, ofac1, ofac2, remat, immat)
     integer(4), intent(in) :: ik1, ik2
     real(8), intent(in) :: ofac1(:), ofac2(:)
-    complex(8), intent(in) :: sccli(no,nu,no,nu)
+    complex(8), intent(in) :: sccli(nu,no,nu,no)
     complex(8), intent(inout) :: hamblock(:,:)
 
     real(8), intent(out), optional :: remat(:,:), immat(:,:)
@@ -978,13 +979,13 @@ contains
     do iou1 = 1, nou
       if(kouflag(iou1, ik1) == .false.) cycle
       s1 = s1 + 1
-      call subhamidx_back(iou1, io1, iu1, bcou%n2)
+      call subhamidx_back(iou1, iu1, io1, nu)
       s2=0
       do iou2 = 1, nou
         if(kouflag(iou2, ik2) == .false.) cycle
         s2 = s2 + 1
-        call subhamidx_back(iou2, io2, iu2, bcou%n2)
-        tmp = -sccli(io1, iu1, io2, iu2) * ofac1(s1) * ofac2(s2)
+        call subhamidx_back(iou2, iu2, io2, nu)
+        tmp = -sccli(iu1, io1, iu2, io2) * ofac1(s1) * ofac2(s2)
 
         if(present(remat)) then
           remat(s1,s2) = dble(tmp)
@@ -1071,11 +1072,11 @@ contains
     do a1 = 1, hamsize
       
       ! Get indices
-      ik = smap(a1,1)
-      io = smap(a1,2)
-      iu = smap(a1,3)               ! Relative 
-      ioabs = io + bcouabs%il1 - 1  ! Absolute
-      iuabs = iu + bcouabs%il2 - 1  ! Absolute
+      iuabs = smap(a1,1)  ! Absolute
+      ioabs = smap(a1,2)  ! Absolute
+      ik = smap(a1,3)
+      iu = smap(a1,4)     ! Relative 
+      io = smap(a1,5)
 
       ! Read momentum matrix slice for given k-point
       ! if not already present (k index varies the slowest in the smap)
