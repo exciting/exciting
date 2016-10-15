@@ -253,8 +253,8 @@ module modbse
       implicit none
       integer(4), intent(in) :: s, n1
       integer(4), intent(out) :: i1, i2
-      i1 = (s-1)/n1 + 1
-      i2 = s - (i1-1)*n1
+      i2 = (s-1)/n1 + 1
+      i1 = s - (i2-1)*n1
     end subroutine subhamidx_back
     !EOC
 
