@@ -1025,6 +1025,8 @@ contains
       call timesec(t0)
     end if
     call setup_distributed_rmat(drmat)
+    ! Work with complex conjugate of rmat
+    drmat%za=conjg(drmat%za)
     if(rank == 0) then
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
@@ -1034,10 +1036,8 @@ contains
 
     !! Resonant oscillator strengths
     ! t^R_\lambda,i = < \tilde{R}^i | X_\lambda> =
-    ! \Sum_{s1} f_{s1} R^*_{{u_{s1} o_{s1} k_{s1}},i} X_{o_{s1} u_{s1} k_{s1}},\lambda= 
+    ! \Sum_{s1} f_{s1} R^*_{{u_{s1} o_{s1} k_{s1}},i} X_{u_{s1} o_{s1} k_{s1}},\lambda= 
     ! \Sum_{s1} f_{s1} P^*_{{u_{s1} o_{s1} k_{s1}},i} / 
-    !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda= 
-    ! \Sum_{s1} f_{s1} P_{{o_{s1} u_{s1} k_{s1}},i} / 
     !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda
     call dzgemm(dbevecr, drmat, doszsr, transa='T')
     if(rank == 0) then
@@ -1321,26 +1321,32 @@ contains
     bevalre = bevalre + egap - bsed
 
     ! Make energy denominator for each frequency (resonant & anti-resonant) 
+    ! enwr_{w, \lambda} = 1/(E_\lambda - w - i\delta)
     call new_dzmat(denwr, nfreq, nexc, context=ictxt2d)
-    do i = 1, denwr%nrows_loc
-      do j = 1, denwr%ncols_loc
+    do j = 1, denwr%ncols_loc
+#ifdef SCAL
+      jg = denwr%c2g(j)
+#endif
+      do i = 1, denwr%nrows_loc
 #ifdef SCAL
         ! Get corresponding global indices
-        ig = indxl2g(i, denwr%mblck, myprow, 0, nprow)
-        jg = indxl2g(j, denwr%nblck, mypcol, 0, npcol)
+        ig = denwr%r2g(i)
         denwr%za(i,j) = zone/(bevalre(jg)-freq(ig)-zi*input%xs%broad)
 #else
         denwr%za(i,j) = zone/(bevalre(j)-freq(i)-zi*input%xs%broad)
 #endif
       end do
     end do
+    ! enwa_{w, \lambda} = 1/(E_\lambda + w + i\delta)
     call new_dzmat(denwa, nfreq, nexc, context=ictxt2d)
-    do i = 1, denwa%nrows_loc
-      do j = 1, denwa%ncols_loc
+    do j = 1, denwa%ncols_loc
+#ifdef SCAL
+      jg = denwa%c2g(j)
+#endif
+      do i = 1, denwa%nrows_loc
 #ifdef SCAL
         ! Get corresponding global indices
-        ig = indxl2g(i, denwa%mblck, myprow, 0, nprow)
-        jg = indxl2g(j, denwa%nblck, mypcol, 0, npcol)
+        ig = denwa%r2g(i)
         denwa%za(i,j) = zone/(bevalre(jg)+freq(ig)+zi*input%xs%broad)
 #else
         denwa%za(i,j) = zone/(bevalre(j)+freq(i)+zi*input%xs%broad)
@@ -1361,25 +1367,29 @@ contains
       nopt = 3
     end if
 
+    ! bmatr_{\lambda, j} = t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
+    ! where j combines the 2 cartesian directions
     call new_dzmat(dbmatr, nexc, nopt, context=ictxt2d,&
       & rblck=mblck1d_c, cblck=nblck1d_c)
-    do i = 1, dbmatr%nrows_loc
-      do j = 1, dbmatr%ncols_loc
+    do j = 1, dbmatr%ncols_loc
+#ifdef SCAL
+        jg = dbmatr%c2g(j)
+#endif
+      do i = 1, dbmatr%nrows_loc
 #ifdef SCAL
         ! Get corresponding global indices
-        ig = indxl2g(i, dbmatr%mblck, myprow, 0, nprow)
-        jg = indxl2g(j, dbmatr%nblck, mypcol, 0, npcol)
+        ig = dbmatr%r2g(i)
 #else
         ig = i
         jg = j
 #endif
         ! Get individual opical indices
         if(input%xs%dfoffdiag) then
-          o1 = (jg-1)/3 + 1
-          o2 = jg-(o1-1)*3
+          o2 = (jg-1)/3 + 1
+          o1 = jg-(o2-1)*3
         else
-          o1 = jg
           o2 = jg
+          o1 = jg
         end if
         dbmatr%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o2))
       end do
@@ -1396,25 +1406,33 @@ contains
     call new_dzmat(dns_spectr, nfreq, nopt, context=ictxt2d,&
       & rblck=mblck1d_c, cblck=nblck1d_c)
 
+    ! nsspectr_{w,j} = \Sum_{\lambda} enwr_{w,\lambda} bmatr_{\lambda, j}
+    !   i.e. nsspectr_{w,j} = 
+    !     \Sum_{\lambda} 1/(E_\lambda - w - i\delta)
+    !       t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
     call dzgemm(denwr, dbmatr, dns_spectr)
-
+    ! nsspectr_{w,j} += \Sum_{\lambda} enwa_{w,\lambda} bmatr^*_{\lambda, j}
+    !   i.e. nsspectr_{w,j} = nsspectr_{w,j}
+    !     \Sum_{\lambda} 1/(E_\lambda + w + i\delta)
+    !       t^{R*}_{\lambda, o1_j} t^R_{\lambda, o2_j} 
     dbmatr%za = conjg(dbmatr%za)
-
     call dzgemm(denwa, dbmatr, dns_spectr, beta=zone)
 
     ! Add 1 to diagonal elements o1=o2
     if(input%xs%dfoffdiag) then
       dns_spectr%za = dns_spectr%za*8.d0*pi/omega/nkptnr
-      do i = 1, dns_spectr%nrows_loc
-        do j = 1, dns_spectr%ncols_loc
+      do j = 1, dns_spectr%ncols_loc
 #ifdef SCAL
-          ig = indxl2g(i, dns_spectr%mblck, myprow, 0, nprow)
-          jg = indxl2g(j, dns_spectr%nblck, mypcol, 0, npcol)
+        jg = dns_spectr%c2g(j)
+#endif
+        do i = 1, dns_spectr%nrows_loc
+#ifdef SCAL
+          ig = dns_spectr%r2g(i)
 #else
           ig = i
           jg = j
 #endif
-          if(jg == 1 .or. jg == 4 .or. jg == 7) then
+          if(jg == 1 .or. jg == 5 .or. jg == 9) then
             dns_spectr%za(i,j) = zone + dns_spectr%za(i,j)
           end if
         end do
@@ -1438,9 +1456,9 @@ contains
       allocate(buf(3,3,nfreq))
       buf=zzero
 
-      do o1=1,3
-        do o2=1,3
-          j = o2 + (o1-1)*3
+      do o2=1,3
+        do o1=1,3
+          j = o1 + (o2-1)*3
           buf(o1,o2,:) = ns_spectr(:,j)
         end do
       end do
@@ -1453,8 +1471,8 @@ contains
       call timesec(t0)
 
       symspectr = zzero
-      do o1=1,3
-        do o2=1,3
+      do o2=1,3
+        do o1=1,3
           ! Symmetrize the macroscopic dielectric tensor
           call symt2app(o1, o2, nfreq, symt2, buf, symspectr(o1,o2,:))
         end do 
@@ -1489,17 +1507,20 @@ contains
     call timesec(t0)
     ! Shift energies back to absolute values.
     bevalre = bevalre + egap - bsed
+
     ! Make energy denominator for each frequency (resonant & anti-resonant) 
+    ! enwr_{w, \lambda} = 1/(E_\lambda - w - i\delta)
     allocate(enwr(nfreq, nexc))
-    do i = 1, nexc
-      do j = 1, nfreq
-        enwr(j,i) = zone/(bevalre(i)-freq(j)-zi*input%xs%broad)
+    do j = 1, nexc
+      do i = 1, nfreq
+        enwr(i,j) = zone/(bevalre(j)-freq(i)-zi*input%xs%broad)
       end do
     end do
+    ! enwa_{w, \lambda} = 1/(E_\lambda + w + i\delta)
     allocate(enwa(nfreq, nexc))
-    do i = 1, nexc
-      do j = 1, nfreq
-        enwa(j,i) = zone/(bevalre(i)+freq(j)+zi*input%xs%broad)
+    do j = 1, nexc
+      do i = 1, nfreq
+        enwa(i,j) = zone/(bevalre(j)+freq(i)+zi*input%xs%broad)
       end do
     end do
     call timesec(t1)
@@ -1508,14 +1529,17 @@ contains
     write(unitout, '("  Making helper matrix bmat.")')
     call timesec(t0)
     if(input%xs%dfoffdiag) then
+      ! bmatr_{\lambda, j} = t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
+      ! where j combines the 2 cartesian directions
       allocate(bmatr(nexc,9))
-      do o1 = 1, 3
-        do o2 = 1, 3
-          j = o2 + (o1-1)*3
+      do o2 = 1, 3
+        do o1 = 1, 3
+          j = o1 + (o2-1)*3
           bmatr(:,j) = oszsr(:,o1)*conjg(oszsr(:,o2))
         end do
       end do
     else
+      ! bmatr_{\lambda, o1} = t^R_{\lambda, o1} t^{R*}_{\lambda, o1} 
       allocate(bmatr(nexc,3))
       do o1 = 1, 3
         bmatr(:,o1) = oszsr(:,o1)*conjg(oszsr(:,o1))
@@ -1528,24 +1552,34 @@ contains
     ! Make non-lattice-symmetrized spectrum
     call timesec(t0)
     if(input%xs%dfoffdiag) then
+      ! nsspectr_{w,j} = \Sum_{\lambda} enwr_{w,\lambda} bmatr_{\lambda, j}
+      !   i.e. nsspectr_{w,j} = 
+      !     \Sum_{\lambda} 1/(E_\lambda - w - i\delta)
+      !       t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
       allocate(ns_spectr(nfreq,9))
       call zgemm('N','N', nfreq, 9, nexc, zone, enwr, nfreq,&
         & bmatr, nexc, zzero, ns_spectr, nfreq)
+      ! nsspectr_{w,j} += \Sum_{\lambda} enwa_{w,\lambda} bmatr^*_{\lambda, j}
+      !   i.e. nsspectr_{w,j} = nsspectr_{w,j}
+      !     \Sum_{\lambda} 1/(E_\lambda + w + i\delta)
+      !       t^{R*}_{\lambda, o1_j} t^R_{\lambda, o2_j} 
       call zgemm('N','N', nfreq, 9, nexc, zone, enwa, nfreq,&
         & conjg(bmatr), nexc, zone, ns_spectr, nfreq)
+      ! Adjusting prfactor and add 1 to diagonal elements
       ns_spectr = ns_spectr*8.d0*pi/omega/nkptnr
       ns_spectr(:,1) = zone + ns_spectr(:,1)
-      ns_spectr(:,4) = zone + ns_spectr(:,4)
-      ns_spectr(:,7) = zone + ns_spectr(:,7)
+      ns_spectr(:,5) = zone + ns_spectr(:,5)
+      ns_spectr(:,9) = zone + ns_spectr(:,9)
       ! Write to buffer for symmetry routine
       buf=zzero
-      do o1=1,3
-        do o2=1,3
-          j = o2 + (o1-1)*3
+      do o2=1,3
+        do o1=1,3
+          j = o1 + (o2-1)*3
           buf(o1,o2,:) = ns_spectr(:,j)
         end do
       end do
     else
+      ! Same as in other case, but j=o1=o2
       allocate(ns_spectr(nfreq,3))
       call zgemm('N','N', nfreq, 3, nexc, zone, enwr, nfreq,&
         & bmatr, nexc, zzero, ns_spectr, nfreq)
@@ -1567,8 +1601,8 @@ contains
     ! Symmetrize spectrum 
     call timesec(t0)
     spectrum = zzero
-    do o1=1,3
-      do o2=1,3
+    do o2=1,3
+      do o1=1,3
         ! Symmetrize the macroscopic dielectric tensor
         call symt2app(o1, o2, nfreq, symt2, buf, spectrum(o1,o2,:))
       end do 

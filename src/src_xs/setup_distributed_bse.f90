@@ -44,8 +44,6 @@ subroutine setup_distributed_bse(ham)
   integer(4) :: i, j, m, n, ib, jb
   integer(4) :: il, jl
 
-  integer(4) :: io1, io2, iu1, iu2, iou1, iou2, a1, a2
-
   !write(*,*) "setupbse@", myprow, mypcol
 
   !!*****************************!!
@@ -55,8 +53,8 @@ subroutine setup_distributed_bse(ham)
   !!*****************************!!
   ! Allocate read in work arrays
   if(myprow == 0 .and. mypcol == 0) then 
-    allocate(excli(no,nu,no,nu)) ! RR part of V
-    allocate(sccli(no,nu,no,nu)) ! RR part of W
+    allocate(excli(nu,no,nu,no)) ! RR part of V
+    allocate(sccli(nu,no,nu,no)) ! RR part of W
     allocate(excli_t(nou,nou))
     allocate(sccli_t(nou,nou))
     allocate(lmap(nou,nou))
@@ -111,14 +109,14 @@ subroutine setup_distributed_bse(ham)
       ! Read in screened coulomb interaction for ikkp
       select case(trim(input%xs%bse%bsetype))
         case('singlet', 'triplet')
-          ! Read RR part of screened coulomb interaction W_{ouki,o'u'kj}
+          ! Read RR part of screened coulomb interaction W_{uoki,u'o'kj}
           call getbsemat('SCCLI.OUT', ikkp, nu, no, sccli)
       end select
 
       ! Read in exchange interaction for ikkp
       select case(trim(input%xs%bse%bsetype))
         case('RPA', 'singlet')
-          ! Read RR part of exchange interaction v_{ouki,o'u'kj}
+          ! Read RR part of exchange interaction v_{uoki,u'o'kj}
           call getbsemat('EXCLI.OUT', ikkp, nu, no, excli)
       end select
 
@@ -128,7 +126,7 @@ subroutine setup_distributed_bse(ham)
       !! the construction (may me a reduced set due to 
       !! partial occupations)
       lmap = matmul(reshape(kouflag(:,ik1),[nou, 1]), reshape(kouflag(:,ik2),[1, nou]))
-      ! Shape interaction arrays more appropriately and select used kou combinations
+      ! Shape interaction arrays more appropriately and select used kou combinations via map
       excli_t = zzero
       sccli_t = zzero
       excli_t(1:m,1:n) = &
@@ -359,9 +357,9 @@ subroutine setup_distributed_bse(ham)
 
       ! Get absolute state band indices form 
       ! combinded index
-      ik = smap(a1, 1)
-      ioabs = smap(a1, 4)
-      iuabs = smap(a1, 5)
+      iuabs = smap(a1, 1)
+      ioabs = smap(a1, 2)
+      ik = smap(a1, 3)
       ! Calculate ks energy difference for q=0
       deval = evalsv(iuabs,ik)-evalsv(ioabs,ik)+input%xs%scissor-egap-bsed
       kstrans = cmplx(deval, 0.0d0, 8)

@@ -34,8 +34,8 @@ subroutine setup_distributed_rmat(rmat)
   integer(4) :: ik
   integer(4) :: io, iu, iorel, iurel
 
-  complex(8), allocatable, dimension(:,:,:) :: pmou
-  complex(8), allocatable, dimension(:,:) :: pmou_t
+  complex(8), allocatable, dimension(:,:,:) :: pmuo
+  complex(8), allocatable, dimension(:,:) :: pmuo_t
   logical, allocatable, dimension(:,:) :: lmap
 
   complex(8), allocatable, dimension(:,:) :: pbuff
@@ -47,8 +47,8 @@ subroutine setup_distributed_rmat(rmat)
 
   ! Allocate work arrays
   if(myprow == 0 .and. mypcol == 0) then
-    allocate(pmou(3, no, nu))
-    allocate(pmou_t(nou, 3))
+    allocate(pmuo(3, nu, no))
+    allocate(pmuo_t(nou, 3))
     allocate(lmap(nou, 3))
   end if
 
@@ -79,11 +79,11 @@ subroutine setup_distributed_rmat(rmat)
     !!***********!!
     if(myprow == 0 .and. mypcol == 0) then
 
-      ! Get momentum matrix for ik
+      ! Get momentum P_uo matrix for ik
       call getpmat(ik, vkl,& 
-        & bcouabs%il1, bcouabs%iu1,&
         & bcouabs%il2, bcouabs%iu2,&
-        & .true., 'PMAT_XS.OUT', pmou)
+        & bcouabs%il1, bcouabs%iu1,&
+        & .true., 'PMAT_XS.OUT', pmuo)
 
       ! Make map
       lmap(:,1) = kouflag(:,ik)
@@ -91,8 +91,8 @@ subroutine setup_distributed_rmat(rmat)
       lmap(:,3) = kouflag(:,ik)
 
       ! Shape momentum matrix arrays more appropriately and select used kou combinations
-      pmou_t(1:m,1:n) = &
-        & reshape(pack(transpose(reshape(pmou,[3, nou])), lmap), [m, n]) 
+      pmuo_t(1:m,1:n) = &
+        & reshape(pack(transpose(reshape(pmuo,[3, nou])), lmap), [m, n]) 
 
     end if
 
@@ -114,7 +114,7 @@ subroutine setup_distributed_rmat(rmat)
         jb = min(jb, n-j+1)
       else
         ! Adjust for possible truncation of last column block size 
-        jb = min(jb, n-j+1)
+        jb = min(jblck, n-j+1)
       end if
 
       ! Row index of global sub-matrix
@@ -131,7 +131,7 @@ subroutine setup_distributed_rmat(rmat)
           ib = min(ib, m-i+1)
         else
           ! Adjust for possible truncation of last row block size 
-          ib = min(ib, m-i+1)
+          ib = min(iblck, m-i+1)
         end if
 
         !! We have a sub block of the 
@@ -152,14 +152,14 @@ subroutine setup_distributed_rmat(rmat)
           !!********************!!
           ! Assemble sub-block in local R matrix
           rmat%za(il:il+ib-1, jl:jl+jb-1) =&
-            & buildrmat(ig, jg, ib, jb, ofac(ig:ig+ib-1), pmou_t(i:i+ib-1, j:j+jb-1))
+            & buildrmat(ig, jg, ib, jb, ofac(ig:ig+ib-1), pmuo_t(i:i+ib-1, j:j+jb-1))
 
         else
 
           if ( myprow == 0 .and. mypcol == 0) then 
 
             ! Prepare send packages
-            pbuff(1:ib,1:jb) = pmou_t(i:i+ib-1, j:j+jb-1)
+            pbuff(1:ib,1:jb) = pmuo_t(i:i+ib-1, j:j+jb-1)
 
             ! Send to target process
             call zgesd2d(context, ib, jb, pbuff, iblck, pr, pc)
@@ -205,23 +205,23 @@ subroutine setup_distributed_rmat(rmat)
       use mod_eigenvalue_occupancy, only: evalsv
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
-    ! integer(4) :: ig, jg            ! Position of sub block in global matrix
-    ! integer(4) :: ib, jb            ! Sub block size
-    ! real(8)    :: occ(ib)          ! Occupation factors
-    ! complex(8) :: pmat(ib, jb)      ! Exchange interaction 
+    ! integer(4) :: ig, jg        ! Position of sub block in global matrix
+    ! integer(4) :: ib, jb        ! Sub block size
+    ! real(8)    :: occ(ib)       ! Occupation factors
+    ! complex(8) :: pmat(ib, jb)  ! P_uo(k) slice
     ! Out:
     ! complex(8) :: buildrmat(ib,jb)  ! Sub block of R-mat
     !
     ! !DESCRIPTION:
     !   The function returns a sub block of the distributed position operator matrix:\\
     !   $R(i_g:ig+ib-1, j_g:j_g+jb-1)$ where each entry is computed according to \\
-    !   $R(i, o) = F(i) * P(i, o) / E(i)$  \\
+    !   $R(i, opt) = F(i) * P(i, opt) / E(i)$  \\
     !   $E$ are the Kohn-Sham transition energies, $F$ the occupation factors and $P$ the momentum matrix elements.
-    !   The index $i$ correspond to the combined indext $\alpha$ and the index $o$ refers to a Cartesian direction.\\
-    !   So with $\alpha = \{ \vec{k}_\alpha, o_\alpha, u_\alpha \}$ : \\
+    !   The index $i$ correspond to the combined indext $\alpha$ and the index $opt$ refers to a Cartesian direction.\\
+    !   So with $\alpha = \{ u_\alpha, o_\alpha \vec{k}_\alpha \}$ : \\
     !   $F_{\alpha} = \sqrt{\left| f_{\vec{k}_{\alpha} o_{\alpha}} - f_{\vec{k}_{\alpha} u_{\alpha}} \right|}$ \\
     !   $E_{\alpha} = \epsilon_{\vec{k}_{\alpha} u_{\alpha}} - \epsilon_{\vec{k}_{\alpha} o_{\alpha}} \\
-    !   $P_{\alpha, o} = P^o_{\vec{k}_{\alpha} o_{\alpha} u_{\alpha}}
+    !   $P_{\alpha, opt} = P^opt_{u_{\alpha} o_{\alpha} \vec{k}_{\alpha} } = P^{*opt}_{o_{\alpha} u_{\alpha} \vec{k}_{\alpha} }$
     !
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)
@@ -232,33 +232,40 @@ subroutine setup_distributed_rmat(rmat)
       complex(8), intent(inout), optional :: pmat(ib,jb)
       complex(8) :: buildrmat(ib,jb)
       
-      integer(4) :: ik, io1, io2, iu1, iu2
+      real(8) :: evalfactors(ib)
+      integer(4) :: ik, io, iu
       integer(4) :: r, c
 
-      ik = smap(ig, 1)
-      io1 = smap(ig, 4)
-      iu1 = smap(ig, 5)
-      io2 = io1+ib-1
-      iu2 = iu1+ib-1
+      ik = smap(ig, 3)
 
-      ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
-      ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
-      !   Where E are quasi-particle energies and e are KS energies.
-      if(associated(input%gw)) then
-        do c = 1, jb
-          pmat(:,c) = pmat(:, c)&
-            &* (evalsv(iu1:iu2, ik) - evalsv(io1:io2, ik))&
-            &/ (eval0(iu1:iu2, ik) - eval0(io1:io2, ik))
-        end do
-      end if 
+      do r = 1, ib
+        
+        ! State indices could be non
+        ! continuous, due to filtering out of
+        ! some transition
+        iu = smap(ig+r-1, 1)
+        io = smap(ig+r-1, 2)
+
+        ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
+        ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
+        !   Where E are quasi-particle energies and e are KS energies.
+        if(associated(input%gw)) then
+          evalfactors(r) = (evalsv(io, ik) - evalsv(iu, ik))&
+            &/ (eval0(io, ik) - eval0(iu, ik))
+        else
+          evalfactors(r) = evalsv(io, ik) - evalsv(iu, ik)
+        end if
+
+      end do
       
       !! Construct local 2d block cyclic rmat elements
-      ! Build complex conjugate R-matrix from p-matrix
-      ! \tilde{R}^*_{u_{s1},o_{s1},k_{s1}},i = 
-      ! (f_{o_{s1},k_{s1}}-f_{u_{s1},k_{s1}}) *
-      !   P_{o_{s1},u_{s1},k_{s1}},i /(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}})
+      ! Build R-matrix from P-matrix (or R^* form P^*)
+      ! \tilde{R}_{u_{alpha},o_{alpha},k_{alpha}},i = 
+      ! (f_{o_{alpha},k_{alpha}}-f_{u_{alpha},k_{alpha}}) *
+      !   P_{u_{alpha},o_{alpha},k_{alpha}},i /
+      !     (e_{o_{alpha} k_{alpha}} - e_{u_{alpha} k_{alpha}})
       do c = 1, jb
-        buildrmat(:, c) = occ(:)*pmat(:, c)/(evalsv(io1:io2, ik) - evalsv(iu1:iu2, ik))
+        buildrmat(:, c) = occ(:)*pmat(:, c)/evalfactors(:)
       end do
 
     end function buildrmat

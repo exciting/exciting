@@ -325,16 +325,15 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
       complex(8) :: exclit(nou,nou) 
 
       !!<-- RR and RA part
-      j1 = 0           ! ou
-      do iu1 = 1, nu   ! u (k+q)
-        do io1 = 1, no ! o (k)
-          j1 = j1 + 1
-          ! emat12_j = M_o1u1ki, M_o2u1ki, ..., M_oNu1ki, M_o1u2ki, ..., M_oNuMki
-          emat12(j1, :) = ematouk(io1, iu1, :, iknr)
-        end do
-      end do
-! Try:
-! emat12 = reshape(ematouk(:,:,:,ikr),[nou, numgq])
+     ! j1 = 0           ! ou
+     ! do iu1 = 1, nu   ! u (k+q)
+     !   do io1 = 1, no ! o (k)
+     !     j1 = j1 + 1
+     !     ! emat12_j = M_o1u1ki, M_o2u1ki, ..., M_oNu1ki, M_o1u2ki, ..., M_oNuMki
+     !     emat12(j1, :) = ematouk(io1, iu1, :, iknr)
+     !   end do
+     ! end do
+      emat12 = reshape(ematouk(:,:,:,iknr),[nou, numgq])
       ! M_ou -> M^*_ou
       emat12 = conjg(emat12)
       !!-->

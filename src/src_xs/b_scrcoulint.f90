@@ -280,27 +280,26 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     call getpwesrr(iq, iknr, moo, muu)
 
     ! Combine indices for matrix elements of plane wave.
-    j1 = 0           ! oo' index
-    do io2 = 1, no   ! o'
-      do io1 = 1, no ! o
-        j1 = j1 + 1
-        ! cmoo_j = M_o1o1, M_o2o1, ..., M_oNo1, M_o1o2, ..., M_oNoN
-        cmoo(j1, :) = moo(io1, io2, :)
-      end do
-    end do
-! Try:
-!cmoo = reshape(moo, [noo, numgq])
+   ! j1 = 0           ! oo' index
+   ! do io2 = 1, no   ! o'
+   !   do io1 = 1, no ! o
+   !     j1 = j1 + 1
+   !     ! cmoo_j = M_o1o1, M_o2o1, ..., M_oNo1, M_o1o2, ..., M_oNoN
+   !     cmoo(j1, :) = moo(io1, io2, :)
+   !   end do
+   ! end do
+    ! Does the same as the above
+    cmoo = reshape(moo, [noo, numgq])
 
-    j2 = 0           ! uu' index
-    do iu2 = 1, nu   ! u'
-      do iu1 = 1, nu ! u
-        j2 = j2 + 1
-        ! cmuu_j = M_u1u1, M_u2u1, ..., M_uNu1, M_u1u2, ..., M_uNuN
-        cmuu(j2, :) = muu(iu1, iu2, :)
-      end do
-    end do
-! Try:
-!cmuu = reshape(muu, [nuu, numgq])
+   ! j2 = 0           ! uu' index
+   ! do iu2 = 1, nu   ! u'
+   !   do iu1 = 1, nu ! u
+   !     j2 = j2 + 1
+   !     ! cmuu_j = M_u1u1, M_u2u1, ..., M_uNu1, M_u1u2, ..., M_uNuN
+   !     cmuu(j2, :) = muu(iu1, iu2, :)
+   !   end do
+   ! end do
+    cmuu = reshape(muu, [nuu, numgq])
 
     ! M_{oo'} -> M^*_{oo'}
     cmoo = conjg(cmoo)
@@ -369,27 +368,25 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       call getpwesra(iq, iknr, mou, muo)
 
       ! Combine indices for matrix elements of plane wave.
-      j1 = 0           ! ou' index
-      do iu2 = 1, nu   ! u'
-        do io1 = 1, no ! o
-          j1 = j1 + 1
-          ! cmou_j = M_o1u1, M_o2u1, ..., M_oNu1, M_o1u2, ..., M_oNuM
-          cmou(j1, :) = mou(io1, iu2, :)
-        end do
-      end do
-! Try:
-! cmou = reshape(mou,[nou, numgq])
+     ! j1 = 0           ! ou' index
+     ! do iu2 = 1, nu   ! u'
+     !   do io1 = 1, no ! o
+     !     j1 = j1 + 1
+     !     ! cmou_j = M_o1u1, M_o2u1, ..., M_oNu1, M_o1u2, ..., M_oNuM
+     !     cmou(j1, :) = mou(io1, iu2, :)
+     !   end do
+     ! end do
+      cmou = reshape(mou,[nou, numgq])
 
-      j2 = 0           ! uo' index
-      do io2 = 1, no   ! o'
-        do iu1 = 1, nu ! u
-          j2 = j2 + 1
-          ! cmuo_j = M_u1o1, M_u2o1, ..., M_uMo1, M_u1o2, ..., M_uMoN
-          cmuo(j2, :) = muo(iu1, io2, :)
-        end do
-      end do
-! Try:
-! cmuo = reshape(muo,[nou, numgq])
+     ! j2 = 0           ! uo' index
+     ! do io2 = 1, no   ! o'
+     !   do iu1 = 1, nu ! u
+     !     j2 = j2 + 1
+     !     ! cmuo_j = M_u1o1, M_u2o1, ..., M_uMo1, M_u1o2, ..., M_uMoN
+     !     cmuo(j2, :) = muo(iu1, io2, :)
+     !   end do
+     ! end do
+      cmuo = reshape(muo,[nou, numgq])
 
       ! M_{ou'} -> M^*_{ou'}
       cmou = conjg(cmou)

@@ -53,6 +53,9 @@ module modsclbse
     ! BLACS context and blocking sizes
     integer(4) :: context
     integer(4) :: mblck, nblck
+    ! Convinience l2g index maps
+    integer(4), allocatable :: r2g(:)
+    integer(4), allocatable :: c2g(:)
   end type dzmat
 
 #ifdef SCAL
@@ -144,11 +147,13 @@ module modsclbse
 
       integer(4) :: ig, jg, il, jl
 
-      do il = 1, size(buff, 1)
-        do jl = 1, size(buff, 2)
+      do jl = 1, size(buff, 2)
+#ifdef SCAL
+          jg = indxl2g(jl, jblck, pcol, 0, npc)
+#endif
+        do il = 1, size(buff, 1)
 #ifdef SCAL
           ig = indxl2g(il, iblck, prow, 0, npr)
-          jg = indxl2g(jl, jblck, pcol, 0, npc)
 #else
           ig = il
           jg = jl
@@ -165,6 +170,8 @@ module modsclbse
 
       integer(4) :: context, ip, prow, pcol, npr, npc
       complex(8), allocatable :: buff(:,:)
+      integer(4) :: i,j,ig,jg
+      integer(4), allocatable :: irbuff(:), icbuff(:)
 
       context = dmat%context
 
@@ -191,9 +198,16 @@ module modsclbse
           npc = npcol1d_c
         end if
         
-        call unpacktoglobal(mat, dmat%za, dmat%mblck, dmat%nblck,&
-          & prow, pcol, npr, npc)
+        ! Rank 0's part
+        do j = 1, dmat%ncols_loc
+          jg = dmat%c2g(j)
+          do i = 1, dmat%nrows_loc
+            ig = dmat%r2g(i)
+            mat(ig,jg) = dmat%za(i,j)
+          end do
+        end do
 
+        ! Get data from other processes
         do ip = 1, nproc-1
 
           ! Get info about sender and sender's local matrix
@@ -204,13 +218,29 @@ module modsclbse
           ! Make receive buffer
           if(allocated(buff)) deallocate(buff)
           allocate(buff(sender_nrl, sender_ncl))
+          if(allocated(irbuff)) deallocate(irbuff)
+          allocate(irbuff(sender_nrl))
+          if(allocated(icbuff)) deallocate(icbuff)
+          allocate(irbuff(sender_ncl))
 
           ! Receive the senders local matrix
           call zgerv2d(context, sender_nrl, sender_ncl,&
             & buff, sender_nrl, reprow, repcol) 
-          ! Write content to global matrix
-          call unpacktoglobal(mat, buff, dmat%mblck, dmat%nblck,&
-            & reprow, repcol, npr, npc)
+          ! Receive indices
+          call igerv2d(context, sender_nrl, 1,&
+            & irbuff, sender_nrl, reprow, repcol) 
+          call igerv2d(context, 1, sender_ncl,&
+            & buff, sender_ncl, reprow, repcol) 
+         ! ! Write content to global matrix
+         ! call unpacktoglobal(mat, buff, dmat%mblck, dmat%nblck,&
+         !   & reprow, repcol, npr, npc)
+          do j = 1, sender_ncl
+            jg = icbuff(j)
+            do i = 1, sender_nrl
+              ig = irbuff(i)
+              mat(ig,jg) = buff(i,j)
+            end do
+          end do
 
         end do
 #else
@@ -222,6 +252,10 @@ module modsclbse
 #ifdef SCAL
         call zgesd2d(context, dmat%nrows_loc, dmat%ncols_loc,&
           & dmat%za, dmat%nrows_loc, 0, 0)
+        call igesd2d(context, dmat%nrows_loc, 1,&
+          & dmat%r2g, dmat%nrows_loc, 0, 0)
+        call igesd2d(context, 1, dmat%ncols_loc,&
+          & dmat%c2g, dmat%ncols_loc, 0, 0)
 #endif
 
       end if
@@ -235,6 +269,8 @@ module modsclbse
 
       integer(4) :: context, ip, prow, pcol, npr, npc
       complex(8), allocatable :: buff(:,:)
+      integer(4) :: i,j,ig,jg
+      integer(4), allocatable :: irbuff(:), icbuff(:)
 
 
       if(allocated(mat)) deallocate(mat)
@@ -268,19 +304,47 @@ module modsclbse
         sender_ncl = numroc(dmat%ncols, dmat%nblck, repcol, 0, npc) 
         if(allocated(buff)) deallocate(buff)
         allocate(buff(sender_nrl, sender_ncl))
-        buff = zzero
+        if(allocated(irbuff)) deallocate(irbuff)
+        allocate(irbuff(sender_nrl))
+        if(allocated(icbuff)) deallocate(icbuff)
+        allocate(icbuff(sender_ncl))
         
         if(prow == reprow .and. pcol == repcol) then
           call zgebs2d(context, 'ALL', ' ', dmat%nrows_loc, dmat%ncols_loc,&
             & dmat%za, dmat%nrows_loc)
-          buff = dmat%za
+          call igebs2d(context, 'ALL', ' ', dmat%nrows_loc, 1,&
+            & dmat%r2g, dmat%nrows_loc)
+          call igebs2d(context, 'ALL', ' ', 1, dmat%ncols_loc,&
+            & dmat%c2g, dmat%ncols_loc)
+
+          do j = 1, dmat%ncols_loc
+            jg = dmat%c2g(j)
+            do i = 1, dmat%nrows_loc
+              ig = dmat%r2g(i)
+              mat(ig,jg) = dmat%za(i,j)
+            end do
+          end do
+
         else
           call zgebr2d(context, 'ALL', ' ', sender_nrl, sender_ncl, buff,&
             & sender_nrl, reprow, repcol)
+          call zgebr2d(context, 'ALL', ' ', sender_nrl, 1, irbuff,&
+            & sender_nrl, reprow, repcol)
+          call zgebr2d(context, 'ALL', ' ', 1, sender_ncl, icbuff,&
+            & sender_ncl, reprow, repcol)
+
+          do j = 1, sender_ncl
+            jg = icbuff(j)
+            do i = 1, sender_nrl
+              ig = irbuff(i)
+              mat(ig,jg) = buff(i,j)
+            end do
+          end do
+
         end if
 
-        call unpacktoglobal(mat, buff, dmat%mblck, dmat%nblck,&
-          & reprow, repcol, npr, npc)
+       ! call unpacktoglobal(mat, buff, dmat%mblck, dmat%nblck,&
+       !   & reprow, repcol, npr, npc)
 
       end do
 #else
@@ -295,7 +359,7 @@ module modsclbse
       integer(4), intent(in) :: nrows, ncols
       integer(4), intent(in), optional :: context, rblck, cblck
 
-      integer(4) :: con
+      integer(4) :: con, i, j
 
       self%nrows = nrows
       self%ncols = ncols
@@ -307,7 +371,6 @@ module modsclbse
       self%nblck = 1
 
 #ifdef SCAL
-      if(allocated(self%desc)) deallocate(self%desc)
 
       if(present(context)) then
         if(context == -1) then
@@ -318,7 +381,6 @@ module modsclbse
           con = context
           self%context = con
           self%isdistributed = .true.
-          allocate(self%desc(9))
         end if
       else 
         con = -1
@@ -326,33 +388,69 @@ module modsclbse
         self%isdistributed = .false.
       end if
 
-      if(con == ictxt2d) then
-        self%mblck = mblck
-        self%nblck = nblck
-        if(present(rblck)) self%mblck = rblck
-        if(present(cblck)) self%nblck = cblck
-        self%nrows_loc = numroc(nrows, self%mblck, myprow, 0, nprow)
-        self%ncols_loc = numroc(ncols, self%nblck, mypcol, 0, npcol)
-      else if(con == ictxt1d_r) then
-        self%mblck = mblck1d_r
-        self%nblck = nblck1d_r
-        if(present(rblck)) self%mblck = rblck
-        if(present(cblck)) self%nblck = cblck
-        self%nrows_loc = numroc(nrows, self%mblck, myprow1d_r, 0, nprow1d_r)
-        self%ncols_loc = numroc(ncols, self%nblck, mypcol1d_r, 0, npcol1d_r)
-      else if(con == ictxt1d_c) then
-        self%mblck = mblck1d_c
-        self%nblck = nblck1d_c
-        if(present(rblck)) self%mblck = rblck
-        if(present(cblck)) self%nblck = cblck
-        self%nrows_loc = numroc(nrows, self%mblck, myprow1d_c, 0, nprow1d_c)
-        self%ncols_loc = numroc(ncols, self%nblck, mypcol1d_c, 0, npcol1d_c)
-      else if(con /= -1) then
-        write(*,'("new_dzmat@rank",i3," (Error): invalid context ",i3)') rank, con
-        call terminate
-      end if
+      if(self%isdistributed) then
+        if(con == ictxt2d) then
+          self%mblck = mblck
+          self%nblck = nblck
+          if(present(rblck)) self%mblck = rblck
+          if(present(cblck)) self%nblck = cblck
+          self%nrows_loc = numroc(nrows, self%mblck, myprow, 0, nprow)
+          self%ncols_loc = numroc(ncols, self%nblck, mypcol, 0, npcol)
+          ! Write maps
+          if(allocated(self%r2g)) deallocate(self%r2g)
+          if(allocated(self%c2g)) deallocate(self%c2g)
+          allocate(self%r2g(self%nrows_loc))
+          allocate(self%c2g(self%ncols_loc))
+          do i = 1, self%nrows_loc
+            self%r2g(i) = indxl2g(i, self%mblck, myprow, 0, nprow)
+          end do
+          do j = 1, self%ncols_loc
+            self%c2g(j) = indxl2g(j, self%nblck, mypcol, 0, npcol)
+          end do
+        else if(con == ictxt1d_r) then
+          self%mblck = mblck1d_r
+          self%nblck = nblck1d_r
+          if(present(rblck)) self%mblck = rblck
+          if(present(cblck)) self%nblck = cblck
+          self%nrows_loc = numroc(nrows, self%mblck, myprow1d_r, 0, nprow1d_r)
+          self%ncols_loc = numroc(ncols, self%nblck, mypcol1d_r, 0, npcol1d_r)
+          ! Write maps
+          if(allocated(self%r2g)) deallocate(self%r2g)
+          if(allocated(self%c2g)) deallocate(self%c2g)
+          allocate(self%r2g(self%nrows_loc))
+          allocate(self%c2g(self%ncols_loc))
+          do i = 1, self%nrows_loc
+            self%r2g(i) = indxl2g(i, self%mblck, myprow1d_r, 0, nprow1d_r)
+          end do
+          do j = 1, self%ncols_loc
+            self%c2g(j) = indxl2g(j, self%nblck, mypcol1d_r, 0, npcol1d_r)
+          end do
+        else if(con == ictxt1d_c) then
+          self%mblck = mblck1d_c
+          self%nblck = nblck1d_c
+          if(present(rblck)) self%mblck = rblck
+          if(present(cblck)) self%nblck = cblck
+          self%nrows_loc = numroc(nrows, self%mblck, myprow1d_c, 0, nprow1d_c)
+          self%ncols_loc = numroc(ncols, self%nblck, mypcol1d_c, 0, npcol1d_c)
+          ! Write maps
+          if(allocated(self%r2g)) deallocate(self%r2g)
+          if(allocated(self%c2g)) deallocate(self%c2g)
+          allocate(self%r2g(self%nrows_loc))
+          allocate(self%c2g(self%ncols_loc))
+          do i = 1, self%nrows_loc
+            self%r2g(i) = indxl2g(i, self%mblck, myprow1d_c, 0, nprow1d_c)
+          end do
+          do j = 1, self%ncols_loc
+            self%c2g(j) = indxl2g(j, self%nblck, mypcol1d_c, 0, npcol1d_c)
+          end do
+        else
+          write(*,'("new_dzmat@rank",i3," (Error): invalid context ",i3)') rank, con
+          call terminate
+        end if
 
-      if(self%isdistributed) then 
+        ! Make descriptor
+        if(allocated(self%desc)) deallocate(self%desc)
+        allocate(self%desc(9))
         call descinit(self%desc, self%nrows, self%ncols, &
           & self%mblck, self%nblck, 0, 0, self%context, self%nrows_loc, sclierr)
         if(sclierr /= 0) then
@@ -360,6 +458,7 @@ module modsclbse
             & descinit returned non zero error code")') rank, sclierr
           call terminate
         end if
+
       end if
 #endif
 
@@ -376,6 +475,8 @@ module modsclbse
       type(dzmat), intent(inout) :: self
       if(allocated(self%za)) deallocate(self%za)
       if(allocated(self%desc)) deallocate(self%desc)
+      if(allocated(self%r2g)) deallocate(self%r2g)
+      if(allocated(self%c2g)) deallocate(self%c2g)
     end subroutine del_dzmat
 
 end module modsclbse

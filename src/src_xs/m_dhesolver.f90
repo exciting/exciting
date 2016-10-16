@@ -76,9 +76,11 @@ module m_dhesolver
 
         ! Tolerance parameter
         ! Ortho-normality criterion (1d-3 is default)
-        orfac = 1d0-6
+        orfac = 1d0-9
         ! Numeric tolerance optimized for eigenvalues
-        abstol = 2.0d0 * pdlamch(ictxt2d, 'U') 
+        abstol = 2.0d0 * pdlamch(ictxt2d, 'S') 
+        ! Numeric tolerance optimized for orthogonality
+        !abstol = pdlamch(ictxt2d, 'U') 
 
         ! Allocate supports
         allocate(ifail(ham%nrows))
