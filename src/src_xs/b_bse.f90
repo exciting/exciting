@@ -7,13 +7,19 @@
 ! !INTERFACE:
 subroutine b_bse
 ! !USES:
+  ! Basics
   use modinput, only: input
   use mod_constants, only: zzero, h2ev
   use mod_kpoint, only: nkptnr, vkl
   use mod_eigenvalue_occupancy, only: evalsv, nstsv
+  ! MPI and BLACS/ScaLAPACK
   use modmpi, only: rank, barrier
+  use modscl
+  ! XS
   use modxs, only: unitout, bcbs, bsed
+  ! BSE related variables
   use modbse
+  ! Interface modules
   use m_genwgrid
   use m_genfilname
   use m_diagfull
@@ -21,7 +27,7 @@ subroutine b_bse
   use m_writecmplxparts
   use m_dhesolver
   use m_dzgemm
-  use modsclbse
+  use m_setup_bse
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem(thanks to the spectral theorem that can
@@ -99,7 +105,7 @@ subroutine b_bse
   ! Variables
   integer(4) :: iknr, iq, nw
   integer(4) :: hamsize, nexc
-  real(8) :: ts0, ts1
+  real(8) :: ts0, ts1, egap
   logical :: fcoup, fwp, fscal
 
   ! Allocatable arrays
@@ -195,9 +201,15 @@ subroutine b_bse
     ! Determine the minimal optical gap (q=0), w.r.t. the selected bands
     egap = minval(evalsv(bcouabs%il2,1:nkptnr) - evalsv(bcouabs%iu1,1:nkptnr)&
       &+ input%xs%scissor)
+
+    ! Energy to shift the BSE eigenvalues by:
+    evalshift = -egap+bsed+input%xs%scissor
+
     write(unitout,*)
     write(unitout, '("Info(bse): gap, gap+scissor:", E23.16,1x,E23.16)')&
       & egap-input%xs%scissor, egap
+    write(unitout, '("Info(bse): Shifting evals by:", E23.16)')&
+      evalshift
     ! Warn if the system has no gap even with scissor (or no scissor and on top of GW)
     if(egap .lt. input%groundstate%epspot) then
       write(unitout,*)
@@ -240,7 +252,9 @@ subroutine b_bse
     end if
     ! Assemble Hamiltonian matrix 
     call timesec(ts0)
-    call setuphamiltonian(ham, fwp)
+    !call setuphamiltonian(ham, fwp)
+    allocate(ham(hamsize, hamsize))
+    call setup_bse(ham, fcoup)
     call timesec(ts1)
     write(unitout, '(" Matrix build.")')
     write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
@@ -454,9 +468,15 @@ subroutine b_bse
       ! Determine the minimal optical gap (q=0), w.r.t. the selected bands
       egap = minval(evalsv(bcouabs%il2,1:nkptnr) - evalsv(bcouabs%iu1,1:nkptnr)&
         &+ input%xs%scissor)
+
+      ! Energy to shift the BSE eigenvalues by:
+      evalshift = -egap+bsed+input%xs%scissor
+
       write(unitout,*)
       write(unitout, '("Info(bse): gap, gap+scissor:", E23.16,1x,E23.16)')&
         & egap-input%xs%scissor, egap
+      write(unitout, '("Info(bse): Shifting evals by:", E23.16)')&
+        evalshift
       ! Warn if the system has no gap even with scissor 
       ! (or no scissor and on top of GW)
       if(egap .lt. input%groundstate%epspot) then
@@ -497,15 +517,15 @@ subroutine b_bse
           & dham%nrows_loc, dham%ncols_loc
       end if
 
-      ! Assemble Hamiltonian matrix 
+      ! Assemble RR/RA block of Hamiltonian matrix
       if(rank == 0) call timesec(ts0)
-      call setup_distributed_bse(dham)
+      call setup_distributed_bse(dham, fcoup)
       if(rank == 0) then
         call timesec(ts1)
         write(unitout, '("All processes build their local matrix")')
         write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
       end if
-
+      
       if(fwp) then
         call dzmat_send2global_root(ham, dham)
         if(rank == 0) then
@@ -1456,12 +1476,18 @@ contains
       allocate(buf(3,3,nfreq))
       buf=zzero
 
-      do o2=1,3
-        do o1=1,3
-          j = o1 + (o2-1)*3
-          buf(o1,o2,:) = ns_spectr(:,j)
+      if(input%xs%dfoffdiag) then
+        do o2=1,3
+          do o1=1,3
+            j = o1 + (o2-1)*3
+            buf(o1,o2,:) = ns_spectr(:,j)
+          end do
         end do
-      end do
+      else
+        do o1=1,3
+          buf(o1,o1,:) = ns_spectr(:,o1)
+        end do
+      end if
       deallocate(ns_spectr)
 
       call timesec(t1)

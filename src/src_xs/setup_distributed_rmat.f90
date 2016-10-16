@@ -5,7 +5,7 @@ subroutine setup_distributed_rmat(rmat)
 ! !USES:
   use modmpi
   use modbse
-  use modsclbse
+  use modscl
   use modinput
   use m_getunit
   use m_getpmat
@@ -117,6 +117,19 @@ subroutine setup_distributed_rmat(rmat)
         jb = min(jblck, n-j+1)
       end if
 
+#ifdef SCAL
+      !! We have a sub block of the 
+      !! global sub-matrix at coordinates i,j of size ib*jb
+      !! that needs to be sent do one process only.
+      ! Get process grid coordinates of responsible process.
+      pc = indxg2p( jg, jblck, mypcol, 0, npcol)
+      ! Get position of ib*jb block in local matrix
+      jl = indxg2l( jg, jblck, pc, 0, npcol)
+#else
+      pc = 0
+      jl = jg
+#endif
+
       ! Row index of global sub-matrix
       i = 1
       do while(i <= m)
@@ -134,49 +147,58 @@ subroutine setup_distributed_rmat(rmat)
           ib = min(iblck, m-i+1)
         end if
 
+#ifdef SCAL
         !! We have a sub block of the 
         !! global sub-matrix at coordinates i,j of size ib*jb
         !! that needs to be sent do one process only.
         ! Get process grid coordinates of responsible process.
         pr = indxg2p( ig, iblck, myprow, 0, nprow)
-        pc = indxg2p( jg, jblck, mypcol, 0, npcol)
         ! Get position of ib*jb block in local matrix
         il = indxg2l( ig, iblck, pr, 0, nprow)
-        jl = indxg2l( jg, jblck, pc, 0, npcol)
+#else
+        pr=0
+        il=ig
+#endif
 
-        ! No send needed, root is responsible for that block
-        if( pr == 0 .and. pc == 0) then
+        ! Root does data sending
+        if ( myprow == 0 .and. mypcol == 0) then 
 
-          !!********************!!
-          !! PROCESS DATA BLOCK !!
-          !!********************!!
-          ! Assemble sub-block in local R matrix
-          rmat%za(il:il+ib-1, jl:jl+jb-1) =&
-            & buildrmat(ig, jg, ib, jb, ofac(ig:ig+ib-1), pmuo_t(i:i+ib-1, j:j+jb-1))
-
-        else
-
-          if ( myprow == 0 .and. mypcol == 0) then 
-
-            ! Prepare send packages
-            pbuff(1:ib,1:jb) = pmuo_t(i:i+ib-1, j:j+jb-1)
-
-            ! Send to target process
-            call zgesd2d(context, ib, jb, pbuff, iblck, pr, pc)
-
-          else if(myprow == pr .and. mypcol == pc) then
-
-            ! Receive block
-            call zgerv2d(context, ib, jb, pbuff, iblck, 0, 0)
+          ! No send needed, root is responsible for that block
+          if( pr == 0 .and. pc == 0) then
 
             !!********************!!
             !! PROCESS DATA BLOCK !!
             !!********************!!
             ! Assemble sub-block in local R matrix
             rmat%za(il:il+ib-1, jl:jl+jb-1) =&
-              & buildrmat(ig, jg, ib, jb, ofac(ig:ig+ib-1), pbuff)
+              & buildrmat(ig, jg, ib, jb, ofac(ig:ig+ib-1), pmuo_t(i:i+ib-1, j:j+jb-1))
+
+          ! Send data
+          else
+
+            ! Prepare send packages
+            pbuff(1:ib,1:jb) = pmuo_t(i:i+ib-1, j:j+jb-1)
+#ifdef SCAL
+            ! Send to target process
+            call zgesd2d(context, ib, jb, pbuff, iblck, pr, pc)
+#endif
 
           end if
+
+        ! All others only receive
+        else if(myprow == pr .and. mypcol == pc) then
+
+#ifdef SCAL
+          ! Receive block
+          call zgerv2d(context, ib, jb, pbuff, iblck, 0, 0)
+#endif
+
+          !!********************!!
+          !! PROCESS DATA BLOCK !!
+          !!********************!!
+          ! Assemble sub-block in local R matrix
+          rmat%za(il:il+ib-1, jl:jl+jb-1) =&
+            & buildrmat(ig, jg, ib, jb, ofac(ig:ig+ib-1), pbuff(1:ib,1:jb))
 
         end if
 

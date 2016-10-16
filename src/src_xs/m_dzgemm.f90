@@ -12,7 +12,7 @@ module m_dzgemm
        & alpha, beta, transa, transb)
     ! !USES:
       use modmpi 
-      use modsclbse
+      use modscl
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     !   type(zmat) :: zma    ! A 

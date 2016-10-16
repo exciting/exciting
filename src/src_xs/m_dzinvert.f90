@@ -10,7 +10,7 @@ module m_dzinvert
     subroutine dzinvert(zmat)
     ! !USES:
       use modmpi 
-      use modsclbse
+      use modscl
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN/OUT:
     !   type(zmat) :: zmat ! On entry: Matrix to invert

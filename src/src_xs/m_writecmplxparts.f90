@@ -12,7 +12,10 @@ module m_writecmplxparts
       integer(4), intent(in), optional :: ik1, ik2
 
       integer(4) :: un, a1, a2, n, m
-      character(256) :: fname, tmp1, tmp2, tmp3
+      character(256) :: fname, tmp1, tmp2, tmp3, frmt, frmtnoa
+
+      frmt = '(SP,E9.2)'
+      frmtnoa = '(SP,1x,E9.2)'
 
       n = size(remat,1)
       m = size(remat,2)
@@ -36,9 +39,9 @@ module m_writecmplxparts
       call getunit(un)
       open(unit=un, file=fname, action='write', status='replace')
       do a1=1,n
-        write(un,'(SP,E23.16)', advance='no') remat(a1,1)
+        write(un, fmt=frmt, advance='no') remat(a1,1)
         do a2=2,m
-          write(un, '(SP,1x,E23.16)', advance='no') remat(a1,a2)
+          write(un, fmt=frmtnoa, advance='no') remat(a1,a2)
         end do
         write(un,*)
       end do
@@ -51,9 +54,9 @@ module m_writecmplxparts
         call getunit(un)
         open(unit=un, file=fname, action='write', status='replace')
         do a1=1,n
-          write(un,'(SP,E23.16)', advance='no') immat(a1,1)
+          write(un,fmt=frmt, advance='no') immat(a1,1)
           do a2=2,m
-            write(un, '(SP,1x,E23.16)', advance='no') immat(a1,a2)
+            write(un, fmt=frmtnoa, advance='no') immat(a1,a2)
           end do
           write(un,*)
         end do

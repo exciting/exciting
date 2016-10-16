@@ -24,7 +24,7 @@ module modbse
   ! Number of k-k' combinations with ik'>=ik
   integer(4) :: nkkp, nk
   ! BSE gap
-  real(8) :: egap
+  real(8) :: evalshift
   ! GW eigenvalue backup 
   real(8), allocatable, dimension(:,:) :: eval0
   ! Occupation factors for Hamiltonian construction
@@ -33,6 +33,11 @@ module modbse
   integer(4), allocatable, dimension(:,:) :: smap
   integer(4), allocatable, dimension(:) :: kousize
   logical, allocatable, dimension(:,:) :: kouflag
+  ! Filenames
+  character(256) :: scclifname = "SCCLI.OUT"
+  character(256) :: exclifname = "EXCLI.OUT"
+  character(256) :: scclicfname = "SCCLIC.OUT"
+  character(256) :: exclicfname = "EXCLIC.OUT"
 
   contains
 

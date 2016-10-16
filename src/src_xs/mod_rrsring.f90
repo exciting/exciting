@@ -1,6 +1,6 @@
 module mod_rrsring
   use modmpi
-  use modsclbse
+  use modscl
 
   implicit none
 

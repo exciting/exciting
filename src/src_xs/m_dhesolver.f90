@@ -10,7 +10,7 @@ module m_dhesolver
     subroutine dhesolver(solsize, ham, evec, eval, eecs)
     ! !USES:
       use modmpi 
-      use modsclbse
+      use modscl
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     !   integer(4) :: solsize        ! Number of solutions from lowest EV 
