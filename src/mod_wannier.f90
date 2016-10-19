@@ -105,7 +105,7 @@ module mod_wannier
       ! local variables
       integer :: iband, iproj, is, ias, nr, l, lm, io, ir, ig, ik
       complex(8) :: auxc
-      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), olpm(:,:), projm(:,:), auxmat(:,:), evec(:,:)
+      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), olpm(:,:), projm(:,:), projmhyb(:,:), auxmat(:,:), evec(:,:)
       real(8), allocatable :: rolpi(:,:), uf(:), gf(:), cf(:,:), eval(:)
 
       if( .not. allocated( wf_projst)) call wfinit
@@ -154,7 +154,9 @@ module mod_wannier
 
       allocate( evecfv( nmatmax, nstfv, nspnfv))
       allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
-      allocate( projm( wf_nprojused, wf_nprojused), olpm( wf_nprojused, wf_nprojused))
+      allocate( projm( wf_nprojused, wf_nprojused), &
+                olpm( wf_nprojused, wf_nprojused), &
+                projmhyb( wf_nprojused, wf_nprojused))
       allocate( eval( wf_nprojused), evec( wf_nprojused, wf_nprojused), auxmat( wf_nprojused, wf_nprojused))
       if( allocated( wf_transform)) deallocate( wf_transform)
       allocate( wf_transform( wf_nprojused, wf_nprojused, nkpt))
@@ -187,7 +189,15 @@ module mod_wannier
               end if
             end do
           end do
-        end do 
+        end do
+
+        ! hybredization
+        !projmhyb( :, 1) = 1*projm( :, 1) + 1*projm( :, 2) + 1*projm( :, 3) + 1*projm( :, 4)
+        !projmhyb( :, 2) = 1*projm( :, 1) + 1*projm( :, 2) - 1*projm( :, 3) - 1*projm( :, 4)
+        !projmhyb( :, 3) = 1*projm( :, 1) - 1*projm( :, 2) - 1*projm( :, 3) + 1*projm( :, 4)
+        !projmhyb( :, 4) = 1*projm( :, 1) - 1*projm( :, 2) + 1*projm( :, 3) - 1*projm( :, 4)
+
+        !projm = projmhyb
 
         olpm(:,:) = zzero
         call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, projm, wf_nprojused, projm, wf_nprojused, zzero, olpm, wf_nprojused)
@@ -334,14 +344,18 @@ module mod_wannier
         ix = 0
         do ib = 1, nn !!ATTENTION!!nn
           call emat_init( nvl( :, ib), (/0d0, 0d0, 0d0/), input%groundstate%lmaxapw, 8)
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, evecfv1, evecfv2, auxmat, mlwf_emat)
+!$OMP DO
+#endif
           do ik = 1, nkpt
             
             call getevecfv( vkl( :, ik), vgkl( :, :, :, ik), evecfv1(:,:,1))
             call getevecfv( vkl( :, idxn( ib, ik)), vgkl( :, :, :, idxn( ib, ik)), evecfv2(:,:,1))
             !call emat_genemat( ik, idxn( ib, ik), 1, 4, 5, 6, evecfv1(:,:,1), evecfv2(:,:,1), mlwf_emat)
-            call emat_genemat( ik, idxn( ib, ik), wf_bandstart, wf_nprojused, wf_bandstart, wf_nprojused, evecfv1(:,:,1), evecfv2(:,:,1), mlwf_emat)
+            !call emat_genemat( ik, idxn( ib, ik), wf_bandstart, wf_nprojused, wf_bandstart, wf_nprojused, evecfv1(:,:,1), evecfv2(:,:,1), mlwf_emat)
 
-            !call emat_wannier( ik, nvl( :, ib), wf_bandstart, wf_nprojused, wf_bandstart, wf_nprojused, mlwf_emat)
+            call emat_wannier( ik, nvl( :, ib), wf_bandstart, wf_nprojused, wf_bandstart, wf_nprojused, mlwf_emat)
             !mlwf_emat = conjg( mlwf_emat)
 
             !write(*,*) '------------------------'
@@ -357,12 +371,15 @@ module mod_wannier
             call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, wf_transform( :, :, ik), wf_nprojused, auxmat, wf_nprojused, zzero, mlwf_m0( :, :, ib, ik), wf_nprojused)
             ix = ix + 1
             ! print out progress
-            write( 6, '(a,10x,i3,a)', advance='no') achar( 13), nint( 100.0d0*ix/nkpt/nn), '%'
-            flush( 6)
+            !write( 6, '(a,10x,i3,a)', advance='no') achar( 13), nint( 100.0d0*ix/nkpt/nn), '%'
+            !flush( 6)
           end do
-          !write(*,*) ib
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
         end do
-        write(6,*)
+        !write(6,*)
 
         !stop
 
@@ -407,6 +424,10 @@ module mod_wannier
             end do
           end do
       
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, ib, mlwf_r, mlwf_t, mlwf_dw, eval, evec, ix, auxmat, maxdiff)
+!$OMP DO
+#endif
           do ik = 1, nkpt
             mlwf_dw(:,:) = zzero
             do ib = 1, nn
@@ -438,14 +459,26 @@ module mod_wannier
 
             mlwf_transform( :, :, ik) = mlwf_dw(:,:)
           end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
     
           ! updating M
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, ib, auxmat)
+!$OMP DO
+#endif
           do ik = 1, nkpt
             do ib = 1, nn
               call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, mlwf_m0( :, :, ib, ik), wf_nprojused, mlwf_transform( :, :, idxn( ib, ik)), wf_nprojused, zzero, auxmat, wf_nprojused)
               call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, mlwf_transform( :, :, ik), wf_nprojused, auxmat, wf_nprojused, zzero, mlwf_m( :, :, ib, ik), wf_nprojused)
             end do
           end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
 
           ! print out progress
           write( 6, '(a,10x,a,i4,a,E9.2)', advance='no') achar( 13), '[', iz, ']dU =', maxdiff

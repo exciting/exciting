@@ -256,16 +256,14 @@ if (.true.) then
 
          
       !if( iq .eq. 2) then
-      !write(*,*)
-      !write(*,*) ik
-      !write(*,*) vql( :, iq)
-      !do is = 1, 4
-      !  do ia = 1, 6
-      !    write( *, '(2I3,3x,SP,E23.16,E23.16,"i")') is, ia, xiou( is, ia, 1)
+      !  write(*,*) ik
+      !  write(*,*) vql( :, iq)
+      !  do is = 1, 4
+      !    do ia = 1, 6
+      !      write( *, '(2I3,3x,SP,E23.16,E23.16,"i")') is, ia, xiou( is, ia, 1)
+      !    end do
       !  end do
-      !end do
       !end if
-
 
 
       Allocate (evecfvo20(n0, nst1))
@@ -315,7 +313,6 @@ else
       call timesec(cpu00)
  
       ikq = ikmapikq (ik, iq)
-      vql( :, iq) = -vql( :, iq)
       vkql(:)=vkl(:,ik)+vql(:,iq)
       
 ! umklapp treatment
@@ -433,10 +430,10 @@ endif
         & cpumtalo, cpumtloa, cpumtlolo,cpufft)
       End If
       
-      if( (abs( vql( 1, iq) - 0.00d0) .le. 1.d-6) .and. &
-          (abs( vql( 2, iq) - 0.25d0) .le. 1.d-6) .and. &
-          (abs( vql( 3, iq) - 0.00d0) .le. 1.d-6)) then
-        write(*,*)
+      !if( (abs( vql( 1, iq) - 0.25d0) .le. 1.d-6) .and. &
+      !    (abs( vql( 2, iq) - 0.00d0) .le. 1.d-6) .and. &
+      !    (abs( vql( 3, iq) - 0.00d0) .le. 1.d-6)) then
+      if( iq .eq. 2) then
         write(*,*) ik
         write(*,*) vql( :, iq)
         do is = 1, 4

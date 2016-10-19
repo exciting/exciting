@@ -311,7 +311,7 @@ module m_ematqk
             end do
           end do
 
-          deallocate( jlqgr)
+          deallocate( jlqgr, fr, gf, cf)
           return
       end subroutine emat_genri
       
@@ -335,7 +335,6 @@ module m_ematqk
           complex(8), allocatable :: sfacgkq(:,:), apwalm1(:,:,:,:), apwalm2(:,:,:,:), apwalm3(:,:,:,:)
           complex(8), allocatable :: blockmt(:,:), auxmat(:,:), match_combined1(:,:), match_combined2(:,:)
           complex(8), allocatable :: aamat(:,:), almat(:,:), lamat(:,:)
-          complex(8), allocatable :: irc(:,:)
           
           emat = zzero
 

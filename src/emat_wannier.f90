@@ -178,7 +178,7 @@ Subroutine emat_wannier (ik, vecql, fst1, nst1, fst2, nst2, emat)
                Do irc = 1, nrcmt (is)
                   zflm (:) = 0.d0
                   Do l2 = 0, input%groundstate%lmaxvr
-                     zt1 = zl (l2) * jlqr (l2, irc)
+                     zt1 = conjg( zl (l2)) * jlqr (l2, irc)
                      Do m2 = - l2, l2
                         lm2 = idxlm (l2, m2)
                         zt2 = zt1 * ylm (lm2)

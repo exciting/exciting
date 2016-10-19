@@ -82,7 +82,7 @@ if (input%properties%bandstructure%wannier) then
   Call readfermi                !saves fermi energy in variable 'efermi'
 
   ! generating transformation matrices for Wannier functions
-  call genwf( 5, 4, (/1, 2, 3, 4/))
+  call genwf( 15, 4, (/1, 2, 3, 4/))
 
   allocate( wanme( nrpt, wf_nprojused, wf_nprojused))   ! Wannier matrix elements       -- <0i|H|Rj>
   allocate( rptc( 3, nrpt), rptl( 3, nrpt))             ! set of R-points
