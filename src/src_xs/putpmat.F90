@@ -8,31 +8,47 @@ module m_putpmat
 
   contains
 
-    subroutine putpmat(ik, tarec, filnam, pm, tag)
+    !BOP
+    ! !ROUTINE: putpmat
+    ! !INTERFACE:
+    subroutine putpmat(ik, filnam, pm, tag)
+    ! !USES:
       use modmain
       use modmpi
       use m_getunit
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! IN:
+    ! integer(4) :: ik
+    ! character(*) :: filnam
+    ! integer(4) :: tag
+    ! IN/OUT:
+    ! complex(8) :: pm(:,:,:) 
+    !
+    ! !DESCRIPTION:
+    !   The routine collects the momentum matrix elements
+    !   for each k-point form the {\tt MPI} processes and
+    !   writes them to a direct access file.
+    !
+    ! !REVISION HISTORY:
+    !   Added to documentation scheme. 2016 (Aurich)
+    !   Removed parts which literately did nothing. (Aurich)
+    !EOP
+    !BOC
 
       implicit none
 
       ! arguments
       integer, intent(in) :: ik
-      integer, intent(in), optional :: tag
-
-      ! true if absolut record position is ik
-      logical, intent(in) :: tarec
       character(*), intent(in) :: filnam
+      integer, intent(in), optional :: tag
       complex(8), intent(inout) :: pm(:, :, :)
 
-      ! local variables
       integer :: un, reclen, ikr
-      logical :: tarect
 
 #ifdef MPI
       integer :: iproc, mpitag, stat(mpi_status_size)
 #endif
 
-      tarect = tarec
       ikr = ik
       inquire(iolength=reclen) vkl(:, ik), nstsv, pm
       call getunit(un)
@@ -50,8 +66,11 @@ module m_putpmat
 
       if(rank .eq. 0) then
 
+        ! For each call form rank 0 there are lastproc(ik, nkpt) 
+        ! sends from the other ranks to rank 0.
         do iproc = 0, lastproc(ik, nkpt)
 
+          ! Calculate ik form sender
           ikr = firstofset(iproc, nkpt) - 1 + ik
 
           if(iproc .ne. 0) then
@@ -73,5 +92,6 @@ module m_putpmat
 #endif
 
     end subroutine putpmat
+    !EOC
 
 end module m_putpmat

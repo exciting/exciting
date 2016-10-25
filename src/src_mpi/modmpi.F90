@@ -14,6 +14,7 @@
 !   Added wrapper routines, 2007-2008 (S. Sagmeister)
 !   Added allgatherv interface, August 2010 (S. Sagmeister)
 !   Added subroutines/functions to documentation scheme, 2016 (Aurich)
+!   Adapted partitioning functions to handle cases with more processes than elements, 2016 (Aurich)
 !
 module modmpi
 #ifdef MPI
@@ -21,6 +22,28 @@ module modmpi
 #endif
 
   implicit none
+
+!<--- extracted from mpi_mortadella
+  type mpiinfo
+    integer(4) :: rank, myprocrow, myproccol
+    integer(4) :: procs, nprocrows, nproccols
+    integer(4) :: blocksize = 4
+    integer(4) :: ierr
+    integer(4) :: comm, context
+    integer(4) :: procnamelen, nnodes
+    integer(4) :: world_group, firstinnode_group, firstinnode_comm
+    integer(4), allocatable :: nodechefs(:)
+    logical :: splittfile,firstinnode
+  end type mpiinfo
+
+  type(mpiinfo) :: mpiglobal
+  type(mpiinfo) :: mpikpt
+  type(mpiinfo) :: mpikpt_intercomm
+
+  integer(4) :: num_kptgroups
+  integer(4) :: numprocs_per_kptgroup
+  integer(4) :: my_kptgroup
+!--->
  
   integer(4) :: rank
   integer(4) :: procs
@@ -33,10 +56,16 @@ module modmpi
 
   private :: tag
 
+
   contains
 
+
+    !+++++++++++++++++++++++++++++++++++++++++!
+    ! Initialization and finalization  of MPI !
+    !+++++++++++++++++++++++++++++++++++++++++!
+
     !BOP
-    ! !ROUTINE:
+    ! !ROUTINE: initmpi
     ! !INTERFACE:
     subroutine initmpi
     ! !DESCRIPTION:
@@ -56,6 +85,12 @@ module modmpi
       call mpi_comm_size(mpi_comm_world, procs, ierr)
       call mpi_comm_rank(mpi_comm_world, rank, ierr)
 
+      ! Set global mpiinfo type
+      mpiglobal%procs = procs
+      mpiglobal%comm = mpi_comm_world
+      mpiglobal%rank = rank
+      mpiglobal%ierr = ierr
+
       nnodes = 1
       splittfile = .true.
       firstinnode = .true.
@@ -66,10 +101,36 @@ module modmpi
 #ifndef MPI
       procs = 1
       rank = 0
+
+      mpiglobal%procs = procs
+      mpiglobal%comm = 0
+      mpiglobal%rank = 0
+
       splittfile = .false.
 #endif
     end subroutine initmpi
     !EOC
+
+    !BOP
+    ! !ROUTINE: finitmpi
+    ! !INTERFACE: 
+    subroutine finitmpi
+    ! !DESCRIPTION:
+    !   If -DMPI calls {\tt mpi\_finalize}, otherwise does nothing.
+    !
+    ! !REVISION HISTORY:
+    !   Added to documentation scheme. (Aurich)
+    !EOP
+    !BOC
+#ifdef MPI
+      call mpi_finalize(ierr)
+#endif
+    end subroutine finitmpi
+    !EOC
+
+    !+++++++++++++++++++++++++++++++++++++++++!
+    ! Primitive node information gathering    !
+    !+++++++++++++++++++++++++++++++++++++++++!
 
     !BOP
     ! !ROUTINE: get_isfirstinnode
@@ -146,25 +207,12 @@ module modmpi
     end subroutine
     !EOC
 
-    !BOP
-    ! !ROUTINE: finitmpi
-    ! !INTERFACE: 
-    subroutine finitmpi
-    ! !DESCRIPTION:
-    !   If -DMPI calls {\tt mpi\_finalize}, otherwise does nothing.
-    !
-    ! !REVISION HISTORY:
-    !   Added to documentation scheme. (Aurich)
-    !EOP
-    !BOC
-#ifdef MPI
-      call mpi_finalize(ierr)
-#endif
-    end subroutine finitmpi
-    !EOC
+    !+++++++++++++++++++++++++++++++++++++++++++!
+    ! Partitioning of N elements to P processes !
+    ! in continuous blocks. Each element is     !
+    ! associated to one and only one process.   !
+    !+++++++++++++++++++++++++++++++++++++++++++!
 
-
-!-------------generalized partition!
     !BOP
     ! !ROUTINE: nofset
     ! !INTERFACE:
@@ -173,11 +221,19 @@ module modmpi
     ! IN:
     ! integer(4) :: process ! MPI rank
     ! integer(4) :: set     ! Total number of elements to distribute
+    ! Module IN:
+    ! integer(4) :: procs   ! Number of MPI threads.
     ! OUT:
     ! integer(4) :: nofset  ! Number of elements for that rank
     !
     ! !DESCRIPTION:
-    !   Calculates number of items for proc.
+    !   This functions helps with distributing a set of $N_\text{el}$ elements 
+    !   to $N_\text{p}$ {\tt MPI} processes in continuous blocks. The function calculates
+    !   the number of elements $N_\text{el}(p)$ a given process is responsible for. \\
+    !   Example:\\
+    !   $N_\text{el}=10, N_\text{p}=3 \rightarrow N_\text{el}(0)=4, N_\text{el}(1)=3, N_\text{el}(2)=3$\\
+    !   Example:\\
+    !   $N_\text{el}=2, N_\text{p}=3 \rightarrow N_\text{el}(0)=1, N_\text{el}(1)=1, N_\text{el}(2)=0$
     !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
@@ -208,11 +264,19 @@ module modmpi
     !                          ! of the current subset
     !
     ! !DESCRIPTION:
-    !   Computes the total element index for first element of the subset of
-    !   the current rank.
+    !   This functions helps with distributing a set of $N_\text{el}$ elements 
+    !   to $N_\text{p}$ {\tt MPI} processes in continuous blocks. The function calculates
+    !   the index of the fist element $i_\text{el}(p)$ a given process is responsible for.
+    !   If there are more processes than elements a process responsible for no element
+    !   gets the assignment $i_\text{el}(p > N_\text{el}-1) = 0$.\\
+    !   Example:\\
+    !   $N_\text{el}=10, N_\text{p}=3 \rightarrow i_\text{el}(0)=1, i_\text{el}(1)=5, i_\text{el}(2)=8$\\
+    !   Example:\\
+    !   $N_\text{el}=2, N_\text{p}=4 \rightarrow i_\text{el}(0)=1, i_\text{el}(1)=2, i_\text{el}(2)=0, i_\text{el}(3)=0$
     !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
+    !   Changed behaviour if there are more processes than elements. (Aurich)
     !EOP
     !BOC
       integer(4) :: firstofset
@@ -223,7 +287,7 @@ module modmpi
       do i = 0, min( process-1, set-1)
          firstofset = firstofset + nofset(i, set)
       end do
-      if(set .le. process) firstofset = set
+      if(set .le. process) firstofset = 0
     end function firstofset
     !EOC
 
@@ -240,11 +304,19 @@ module modmpi
     !                          ! of the current subset
     !
     ! !DESCRIPTION:
-    !   Computes the total element index for last element of the subset of
-    !   the current rank.
+    !   This functions helps with distributing a set of $N_\text{el}$ elements 
+    !   to $N_\text{p}$ {\tt MPI} processes in continuous blocks. The function calculates
+    !   the index of the last element $j_\text{el}(p)$ a given process is responsible for.
+    !   If there are more processes than elements a process responsible for no element
+    !   gets the assignment $j_\text{el}(p > N_\text{el}-1) = -1$.\\
+    !   Example:\\
+    !   $N_\text{el}=10, N_\text{p}=3 \rightarrow j_\text{el}(0)=4, j_\text{el}(1)=7, j_\text{el}(2)=10$\\
+    !   Example:\\
+    !   $N_\text{el}=2, N_\text{p}=4 \rightarrow j_\text{el}(0)=1, j_\text{el}(1)=2, j_\text{el}(2)=-1, j_\text{el}(3)=-1$
     !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
+    !   Changed behaviour if there are more processes than elements. (Aurich)
     !EOP
     !BOC
       integer(4) :: lastofset
@@ -254,6 +326,7 @@ module modmpi
       do i = 0, process
          lastofset = lastofset + nofset(i, set)
       end do
+      if(set .le. process) lastofset = -1
     end function lastofset
     !EOC
 
@@ -270,11 +343,17 @@ module modmpi
     !                            ! global index k is included.
     !
     ! !DESCRIPTION:
-    !   Computed the rank than holds the subset of elements in which 
-    !   the element k of the total set is included.
+    !   This functions helps with distributing a set of $N_\text{el}$ elements 
+    !   to $N_\text{p}$ {\tt MPI} processes in continuous blocks. The function calculates
+    !   the index of the process $i_\text{p}(k)$ that is responsible for the element with index $k$.
+    !   If $k$ is larger than $N_\text{el}$ or smaller than $1$ the routine returns $-1$.
+    !   Example:\\
+    !   $N_\text{el}=10, N_\text{p}=3 \rightarrow i_\text{p}(1)=1, i_\text{p}(4)=1, i_\text{p}(5)=2, \dots $
     !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
+    !   Adapted to changes in lastofset. (Aurich)
+    !   Changed behaviour if k is smaller of larger than the set. (Aurich)
     !EOP
     !BOC
       integer(4) :: procofindex
@@ -282,44 +361,131 @@ module modmpi
       integer(4) :: iproc
       procofindex = 0
       do iproc = 0, procs - 1
-         if(k .gt. lastofset(iproc, set)) procofindex = procofindex + 1
+         if(k .gt. lastofset(iproc, set) .and. lastofset(iproc, set) > 0) procofindex = procofindex + 1
       end do
+      if(k .gt. set .or. k < 1) procofindex = -1
     end function procofindex
     !EOC
 
     !BOP
     ! !ROUTINE: lastproc
     ! !INTERFACE:
-    function lastproc(row, set)
+    function lastproc(col, set)
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
-    ! integer(4) :: row    
-    ! integer(4) :: set    ! Total number of elements to distribute
+    ! integer(4) :: col ! ``Column" of process grid (i.e. an element index of rank 0)
+    ! integer(4) :: set ! Total number of distributed elements. 
     ! OUT:
-    ! integer(4) :: lastproc 
-    !                        
+    ! integer(4) :: lastproc ! Number of processes active in process column
     !
     ! !DESCRIPTION:
-    !   (??)
+    !   This functions helps with collecting a set of $N_\text{el}$ elements which were
+    !   distributed to $N_\text{p}$ {\tt MPI} processes in continuous blocks and is used
+    !   the writing of {\tt PMATXS.OUT} and {\tt EMAT.OUT}.
+    !   For further describing the functionality of this routine, let us consider an example
+    !   distribution: \\
+    !   Let $N_\text{el} = 13$ and $N_\text{p} = 5$ : \\
+    !   \begin{tabular}{c|ccc|c}
+    !     rank & firstofset & \dots & lastofset & nofset \\
+    !     \hline
+    !     0 & 1 & 2 & 3 & 3 \\
+    !     1 & 4 & 5 & 6 & 3 \\
+    !     2 & 7 & 6 & 9 & 3 \\
+    !     3 & 10 & 11 & - & 2 \\
+    !     4 & 12 & 13 & - & 2 \\ 
+    !   \end{tabular}
+    !
+    ! For inputs of $\text{col}=\{1,2,3\}, \text{set}=13$ the routine returns $\{4,4,2\}$, i.e. the process index
+    ! of the last active process in the respective column. For all other input for col -1 is retuned.
+    ! In the pathological case, where we have more processes than elements the
+    ! following example depicts the routines behaviour:\\
+    !   Let $N_\text{el} = 3$ and $N_\text{p} = 5$ : \\
+    !   \begin{tabular}{c|ccc|c}
+    !     rank & firstofset & \dots & lastofset & nofset \\
+    !     \hline
+    !     0 & 1 & 1 & - & 1 \\
+    !     1 & 2 & 2 & - & 1 \\
+    !     2 & 3 & 3 & - & 1 \\
+    !     3 & 0 & -1 & - & 0 \\
+    !     4 & 0 & -1 & - & 0 \\ 
+    !   \end{tabular}
+    !
+    ! For inputs of $\text{col}=1, \text{set}=3$ the routine returns $2$. For all other input for col -1 is retuned.
     !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
+    !   Added sanity check for col. (Aurich)
+    !   
     !EOP
     !BOC
       implicit none
       integer(4) :: lastproc
-      integer(4), intent(in) :: row, set
-      if(row .ne. nofset(0, set)) then
-         lastproc = procs
+      integer(4), intent(in) :: col, set
+      ! Only in the last (or only) column less then all 
+      ! processes can be active.
+      ! nofset(0,set) gives the number of columns.
+      if(col .ne. nofset(0, set)) then
+        lastproc = procs - 1
       else
-         lastproc = modulo(set, procs)
-         if(lastproc .eq. 0) lastproc = procs
+        ! Case of only one column
+        ! or rest elements not filling last column
+        lastproc = modulo(set, procs) - 1
       end if
-      lastproc = lastproc - 1
+      if(col > nofset(0,set) .or. col < 1) then
+        lastproc = -1
+      end if
     end function lastproc
     !EOC
 
-!------------------interface to mpi_barrier for xs-part
+    !+++++++++++++++++++++++++++++++++++++++++++!
+    ! Older k-point partitioning routines.      !
+    ! (I didn't look at those (Aurich) )        !
+    !+++++++++++++++++++++++++++++++++++++++++++!
+
+! Service functions to partition k points
+! still kept around but should be replaced by generig functions
+! firstofset nofset lastofset ....
+    function nofk(process)
+      use modmain, only: nkpt
+      integer(4) :: nofk
+      integer(4), intent(in) :: process
+      nofk = nkpt / procs
+      if((mod(nkpt, procs) .gt. process)) nofk = nofk + 1
+    end function nofk
+
+    function firstk(process)
+       integer(4) :: firstk
+       integer(4), intent(in) :: process
+       integer(4)::i
+       firstk = 1
+       do i = 0, process - 1
+          firstk = firstk + nofk(i)
+       end do
+    end function firstk
+
+    function lastk(process)
+       integer(4) :: lastk, i
+       integer(4), intent(in) :: process
+       lastk = 0
+       do i = 0, process
+          lastk = lastk + nofk(i)
+       end do
+    end function lastk
+
+    function procofk(k)
+       integer(4) :: procofk
+       integer(4), intent(in) :: k
+       integer(4) :: iproc
+       procofk = 0
+       do iproc = 0, procs - 1
+          if(k .gt. lastk(iproc)) procofk = procofk + 1
+       end do
+    end function procofk
+
+    !+++++++++++++++++++++++++++++++++++++++++++!
+    ! MPI wrapper for "convinience"             !
+    !+++++++++++++++++++++++++++++++++++++++++++!
+
     !BOP
     ! !ROUTINE: barrier
     ! !INTERFACE:
@@ -367,8 +533,6 @@ module modmpi
       end do
     end subroutine endloopbarrier
     !EOC
-
-!------------------wrappers for mpi communication
 
     !BOP
     ! !ROUTINE: endloopbarrier
@@ -530,45 +694,82 @@ module modmpi
     end subroutine
     !EOC
 
-! Service functions to partition k points
-! still kept around but should be replaced by generig functions
-! firstofset nofset lastofset ....
-    function nofk(process)
-      use modmain, only: nkpt
-      integer(4) :: nofk
-      integer(4), intent(in) :: process
-      nofk = nkpt / procs
-      if((mod(nkpt, procs) .gt. process)) nofk = nofk + 1
-    end function nofk
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    ! Setup routine for distributing N elements  !
+    ! to P processes where each element may have !
+    ! more than one process associated to it.    !
+    !++++++++++++++++++++++++++++++++++++++++++++!
 
-    function firstk(process)
-       integer(4) :: firstk
-       integer(4), intent(in) :: process
-       integer(4)::i
-       firstk = 1
-       do i = 0, process - 1
-          firstk = firstk + nofk(i)
-       end do
-    end function firstk
+    subroutine setup_element_groups(nelements)
 
-    function lastk(process)
-       integer(4) :: lastk, i
-       integer(4), intent(in) :: process
-       lastk = 0
-       do i = 0, process
-          lastk = lastk + nofk(i)
-       end do
-    end function lastk
+     implicit none
 
-    function procofk(k)
-       integer(4) :: procofk
-       integer(4), intent(in) :: k
-       integer(4) :: iproc
-       procofk = 0
-       do iproc = 0, procs - 1
-          if(k .gt. lastk(iproc)) procofk = procofk + 1
-       end do
-    end function procofk
+     integer(4), intent(in):: nelements
 
+     integer(4) :: color, key, i
+     integer(4) :: world_group, interprocs_group
+     integer(4), dimension, allocatable :: usermap(:,:), proclist(:)
+     integer(4) :: sub_nrow, sub_ncol
+
+     ! save to module 
+     num_kptgroups = nelements
+
+#ifdef MPI
+
+       ! number of processes for each k point
+       numprocs_per_kptgroup = mpiglobal%procs/nelements
+
+       ! Group number
+       my_kptgroup = mpiglobal%rank/numprocs_per_kptgroup
+
+       ! split global comm into groups for k-points
+       color = my_kptgroup
+       key = mpiglobal%rank
+       call mpi_comm_split(mpiglobal%comm, color, key, mpikpt%comm, mpikpt%ierr)
+       if(mpikpt%ierr .ne. 0) write (*,*)'p', mpiglobal%rank, 'size err', mpikpt%ierr
+       call mpi_comm_size(mpikpt%comm, mpikpt%procs, mpikpt%ierr)
+       if(mpikpt%ierr .ne. 0) write (*,*)'p', mpiglobal%rank, 'rank err', mpikpt%ierr 
+       call mpi_comm_rank(mpikpt%comm, mpikpt%rank,  mpikpt%ierr)
+
+       ! mapping of processors into the blacs grid
+       call set_processorydefault(mpikpt%procs, mpikpt%nprocrows)
+       mpikpt%nproccols = mpikpt%procs/mpikpt%nprocrows
+       call setupblacsgrid(mpikpt)
+
+       mpikpt_1drows%nprocrows = mpikpt_1drows%procs
+       mpikpt_1drows%nproccols = 1
+       call setupblacsgrid(mpikpt_1drows)
+
+       mpikpt_1dcols%nprocrows = 1
+       mpikpt_1dcols%nproccols = mpikpt_1dcols%procs
+       call setupblacsgrid(mpikpt_1dcols)
+
+
+    !intercommunicator for summing over k-points:
+       allocate(proclist(nelements))
+       proclist = (/(i*numprocs_per_kptgroup,i=0,nelements-1)/)
+       call mpi_comm_group(mpiglobal%comm, world_group, mpiglobal%ierr)
+       call mpi_group_incl(world_group, nelements, proclist, interprocs_group, mpiglobal%ierr)
+       call mpi_comm_create(mpiglobal%comm, interprocs_group, mpikpt_intercomm%comm, mpiglobal%ierr)
+       if (mod(mpiglobal%rank,numprocs_per_kptgroup) .eq. 0) then
+          call mpi_comm_size(mpikpt_intercomm%comm, mpikpt_intercomm%procs, mpikpt_intercomm%ierr)
+             if (mpikpt_intercomm%ierr .ne. 0) write (*,*)'p', mpiglobal%rank, 'size err', mpikpt_intercomm%ierr
+          call mpi_comm_rank(mpikpt_intercomm%comm, mpikpt_intercomm%rank,  mpikpt_intercomm%ierr)
+             if (mpikpt_intercomm%ierr .ne. 0) write (*,*)'p', mpiglobal%rank, 'rank err', mpikpt_intercomm%ierr 
+       end if
+       ! blacs needed?? if not initialize with undefineds
+    !      call blacs_get(0, 0, mpikpt_intercomm%context)
+    !      call blacs_gridmap.....
+       mpikpt_intercomm%context = -1
+       mpikpt_intercomm%nprocrows  = -1
+       mpikpt_intercomm%nproccols  = -1
+       mpikpt_intercomm%myprocrow  = -1
+       mpikpt_intercomm%myproccol  = -1
+       deallocate(proclist)
+       call mpi_group_free(world_group, mpiglobal%ierr) ! this just frees the handle, which is not needed any further
+
+    #endif
+
+    end subroutine setup_element_groups
 
 end module modmpi
