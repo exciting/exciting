@@ -5,33 +5,42 @@ module modscl
 
   implicit none
 
-  ! BLACS contexts
-  integer(4) :: ictxt2d, ictxt1d_r, ictxt1d_c
+  type blacsinfo
+    integer(4) :: context
+    integer(4) :: nprocs
+    integer(4) :: nprows, npcols
+    integer(4) :: myprow, mypcol
+    integer(4) :: mblck, nblck
+  end type
 
-  ! Number of used processes in all contexts
-  integer(4) :: nproc
-  ! Process grid shapes
-  integer(4) :: nprow, nprow1d_r, nprow1d_c
-  integer(4) :: npcol, npcol1d_r, npcol1d_c
-  ! Coordinates of current process
-  integer(4) :: myprow, myprow1d_r, myprow1d_c
-  integer(4) :: mypcol, mypcol1d_r, mypcol1d_c
-  ! Coordinated of remote process
-  integer(4) :: reprow, reprow1d_r, reprow1d_c
-  integer(4) :: repcol, repcol1d_r, repcol1d_c
+  type(blacsinfo) :: bi2d, bi1dc, bi1dw
+
+ ! ! BLACS contexts
+ ! integer(4) :: ictxt2d, ictxt1d_r, ictxt1d_c
+ ! ! Number of used processes in all contexts
+ ! integer(4) :: nproc
+ ! ! Process grid shapes
+ ! integer(4) :: nprow, nprow1d_r, nprow1d_c
+ ! integer(4) :: npcol, npcol1d_r, npcol1d_c
+ ! ! Coordinates of current process
+ ! integer(4) :: myprow, myprow1d_r, myprow1d_c
+ ! integer(4) :: mypcol, mypcol1d_r, mypcol1d_c
+ ! ! Coordinated of remote process
+ ! integer(4) :: reprow, reprow1d_r, reprow1d_c
+ ! integer(4) :: repcol, repcol1d_r, repcol1d_c
 
 #define BLOCKSIZE 8
-  ! 2D blocking
-  ! The hermitian EVP solver of ScaLAPACK needs 
-  ! mblck = nblck.
-  integer(4), parameter :: mblck = BLOCKSIZE
-  integer(4), parameter :: nblck = BLOCKSIZE
-  ! 1D blocking rows
-  integer(4), parameter :: mblck1d_c = BLOCKSIZE
-  integer(4), parameter :: nblck1d_c = 1
-  ! 1D blocking cols
-  integer(4), parameter :: mblck1d_r = 1
-  integer(4), parameter :: nblck1d_r = BLOCKSIZE
+ ! ! 2D blocking
+ ! ! The hermitian EVP solver of ScaLAPACK needs 
+ ! ! mblck = nblck.
+ ! integer(4), parameter :: mblck = BLOCKSIZE
+ ! integer(4), parameter :: nblck = BLOCKSIZE
+ ! ! 1D blocking rows
+ ! integer(4), parameter :: mblck1d_c = BLOCKSIZE
+ ! integer(4), parameter :: nblck1d_c = 1
+ ! ! 1D blocking cols
+ ! integer(4), parameter :: mblck1d_r = 1
+ ! integer(4), parameter :: nblck1d_r = BLOCKSIZE
 
   ! Auxilliary: Senders local array dimensions
   integer(4) :: sender_nrl, sender_ncl
@@ -67,7 +76,9 @@ module modscl
 
   contains
 
-    subroutine setupblacs
+    subroutine setupblacs(nprocs)
+
+      integer(4), intent(in) :: nprocs
 
       integer(4) :: iam, sysproc
       integer(4) :: prow, pcol
@@ -75,19 +86,22 @@ module modscl
       ! Setup 2D process grid
       ! Make rectangular process grid.
       ! Warn if there are dangling processes.
-      npcol = int(sqrt(dble(procs)))
-      nprow = procs/npcol
-      nproc = npcol*nprow
-      ! 1D grid cols
-      nprow1d_r = 1
-      npcol1d_r = nproc
-      ! 1D grid rows
-      nprow1d_c = nproc
-      npcol1d_c = 1
+      bi2d%context = -1
+      bi2d%npcols = int(sqrt(dble(nprocs)))
+      bi2d%nprows = nprocs/bi2d%npcols
+      bi2d%nprocs = bi2d%npcols*bi2d%nprows
 
-      ictxt2d = -1
-      ictxt1d_r = -1
-      ictxt1d_c = -1
+      ! 1D grid cols
+      bi1dc%context = -1
+      bi1dc%nprocs = nprocs
+      bi1dc%nprows = 1
+      bi1dc%npcols = bi1dc%nprocs
+
+      ! 1D grid rows
+      bi1dr%context = -1
+      bi1dr%nprocs = nprocs
+      bi1dr%nprows = bi1dr%nprocs
+      bi1dr%npcols = 1
 
 #ifdef SCAL
       ! Get info about mpi environment

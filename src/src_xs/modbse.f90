@@ -23,6 +23,9 @@ module modbse
   integer(4) :: no, nu, noo, nuu, nou
   ! Number of k-k' combinations with ik'>=ik
   integer(4) :: nkkp, nk
+  ! Energy range of spectrum
+  real(8) :: wl, wu
+  integer(8) :: nw
   ! BSE gap
   real(8) :: evalshift
   ! GW eigenvalue backup 
@@ -264,9 +267,9 @@ module modbse
     !EOC
 
     !BOP
-    ! !ROUTINE: checkoccupancies
+    ! !ROUTINE: select_transitions
     ! !INTERFACE:
-    subroutine checkoccupancies(iq, hamsize)
+    subroutine select_transitions(iq, hamsize)
     ! !USES:
       use modinput, only: input
       use modxs, only: unitout, bcbs
@@ -280,19 +283,21 @@ module modbse
     ! real(8)    :: ofac(hamsize)      ! Occupation factors need for 
     !                                  ! the construction of the BSE matrix
     ! integer(4) :: smap(hamsize, 5)   ! Map between BSE matrix index and k,o,u indices
-    ! integer(4) :: kousize(nkkp)      ! How many o u combinations allowed for each k
-    ! logical    :: kouflag(no*nu, nk) ! False for ouk combinations that are filtered out
+    ! integer(4) :: kousize(nk)        ! How many o u combinations allowed for each k
     !
     ! !DESCRIPTION:
-    !   This routine checks the requested ik,io,iu combinations whether they
-    !   contain problematic occupancy differences and sorts them out if need be.
+    !   Given an selected energy range for the spectrum, this routine will 
+    !   select relevant transitions for each k point. Appart from the KS transition
+    !   energies the routine checks whether the transition contain problematic 
+    !   occupancy differences and sorts them out if need be.
     !   The simple treatment of fractional occupancy does not allow for transitions
     !   between states of the same partial occupancy. Also cases of occupancy inversion
     !   where the occupancy difference is negative are filtered out, since those break
     !   any kind of hermiticity of the BSE Hamiltonian.\\
-    !   The routine also crates the compined index map
-    !   $\alpha \leftrightarrow \{u, o, \vec{k}\}$.
-    !   Where u is the fastest index followed by o and k.
+    !   The routine crates the compined index map
+    !   $\alpha \leftrightarrow \{u, o, \vec{k}\}$, determins the size of 
+    !   the resulting hamiltonian and auxilliary maps.
+    !   In all cases u is the fastest index followed by o and k.
     !
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)
@@ -304,219 +309,211 @@ module modbse
       integer(4), intent(in) :: iq
       integer(4), intent(out) :: hamsize
 
-      integer(4) :: un
-      integer(4) :: ik, i, j, a1, a2, hamsize_max, check
-      integer(4) :: iul, iuu, iol, iou
-      real(8) :: kdocc, cutoff
-      real(8), allocatable :: occfactor_t(:), docc(:,:)
-      logical, allocatable :: zeroflag(:), negativeflag(:)
-      character(256) :: frmt
+      integer(4) :: ik, s
+      integer(4) :: io, iu
+      real(8) :: cutoff, econv
+      real(8), parameter :: maxocc = 2.0d0
+      real(8), allocatable :: docc(:,:)
 
-      ! Band ranges
-      iol = bcouabs%il1
-      iou = bcouabs%iu1
-      iul = bcouabs%il2
-      iuu = bcouabs%iu2
+      integer(4) :: nk_loc, hamsize_loc
+      integer(4) :: no_max, nu_max, nou_max
+      integer(4), allocatable :: smap_loc(:,:), kousize(:)
+      real(8), allocatable :: ofac_loc(:)
+      logical, allocatable :: sflag(:)
+      integer(4) :: buflen, buflen_r
+      integer(4) :: il, iu, il_r, iu_r
 
-      ! Maximal size of Hamiltonian
-      ! Size of BSE-Hamiltonian = #o * #u * #k
-      hamsize_max = nou * nk
+      ! Considered energy window plus extra convergence energy
+      econv = abs(input%xs%bse%econv)/h2ev
 
       ! What is considered to be occupied
       cutoff = input%groundstate%epsocc
-      
-      ! Initialize flags for zero occupation difference
-      ! and negative occupation difference.
-      allocate(zeroflag(hamsize_max))
-      allocate(negativeflag(hamsize_max))
-      zeroflag = .false.
-      negativeflag = .false.
-      ! Allocate temporary occupation factor array
-      allocate(occfactor_t(hamsize_max))
-      ! Allocate helper array
-      allocate(docc(no,nu))
-      allocate(kouflag(nou, nk))
-      kouflag = .true.
 
-      ! Check occupancies
-      do ik = 1, nk
-      
+      ! Sizes local/maximal
+      nk_loc = ceiling(real(nk,8)/real(mpiglobal%procs,8))
+      no_max = istocc0
+      nu_max = nstsv-istunocc0+1
+      nou_max = no_max*nu_max 
+      hamsize_loc = nk_loc*nou_max
+
+      ! The index mapping we want to build 
+      ! s(1) = iuabs, s(2) = ioabs, s(3) = iknr
+      allocate(smap_loc(hamsize_loc, 3))
+
+      ! Flag map whether to use k-o-u combination or not
+      allocate(sflag(hamsize_loc))
+      sflag = .false.
+
+      ! Occupation factor
+      allocate(ofac_loc(hamsize_loc))
+
+      ! How many o-u combinations at ik 
+      allocate(kousize(nk))
+      kousize = 0
+           
+      ! Occupation differences 
+      ! Maximum occupancy is set by maxocc parameter 
+      allocate(docc(istocc0,nstsv-istunocc0+1))
+
+      ! Loop over kpoints (non-reduced)
+      !   MPI distributed loop over k points (continuous k on one thread)
+      call genparidxran('k', nk_max)
+
+      buflen = 0
+      ik: do ik = kpari, kparf
+
         ! Get occupation numbers 
-        !   Calculates docc(l,m)= f_{o_l ki+q} - f_{u_m ki}
+        !   Calculates docc(l,m)= f_{o_l ki} - f_{u_m ki+q}
         !   Remark: Currently the iq argument does nothing at all
-        call getdocc(iq, ik, ik, iol, iou, iul, iuu, docc)
-        
-        ! Band indices
-        do i = iol, iou ! Occupied (absolute)
-          do j = iul, iuu ! Unoccupied (absolute)
+        call getdocc(iq, ik, ik, 1, istocc0, istunocc0, nstsv, docc)
 
-            ! Map to combined index
-            a1 = hamidx(j-iul+1, i-iol+1, ik, nu, no)
+        kous = 0
 
-            ! Get occupation difference for current combination
-            ! kdocc = f_{o_{a},k_{a}} - f_{u_{a},k_{a}}
-!! This assumes KS calculations with max. occupancies of 2
-            kdocc = docc(i-iol+1, j-iul+1)/2.0d0
-            ! Set zero occupation difference flag
-            if(abs(kdocc) .lt. cutoff) then
-              zeroflag(a1) = .true.
-              kouflag(subhamidx(j-iul+1, i-iol+1, nu), ik) = .false.
+        ! Loop over KS transition energies (q = 0) 
+        !$OMP PARALLEL DO 
+        !$OMP& COLLAPSE(2)
+        !$OMP& DEFAULT(SHARED) PRIVATE(io,iu,s)
+        !$OMP& REDUCTION(+:kous)
+        do io = istocc0, 1, -1 
+          do iu = istunocc0, nstsv 
+            
+            ! Only consider transitions which are in the energy window
+            if( evalsv(iu, ik) - evalsv(io, ik) <= wu+econv&
+              & .and. evalsv(iu, ik) - evalsv(io, ik) >= max(wl-econv,0.0d0) ) then
+
+              ! Only consider transitions which have a positve non-zero 
+              ! occupancy difference
+              if( docc(io, iu-istunocc0+1) > cutoff) then 
+
+                ! Shift global index to local index
+                s = hamidx(iu-istunocc0+1, io, ik, nu_max, no_max) - (kpari-1)*nou_max
+
+                sflag(s) = .true.
+
+                smap_max(s,1) = iu
+                smap_max(s,2) = io
+                smap_max(s,3) = ik
+
+                ofac_max(s) = sqrt(docc(io, iu-istunocc0+1)/maxocc)
+
+                kous = kous + 1
+
+              end if
+              
             end if
-            ! Set occupation difference sign flag
-            if(kdocc .le. 0.0d0) then
-              negativeflag(a1) = .true.
-              kouflag(subhamidx(j-iul+1, i-iol+1, nu), ik) = .false.
-            end if
-            ! Occupation factor
-            occfactor_t(a1) = sqrt(abs(kdocc))
+
           end do
         end do
+        !$OMP END PARALLEL DO
 
-      end do
+        kousize(ik) = kous
+        
+        buflen = buflen + kous
+
+      end do ik
+
       deallocate(docc)
 
-      allocate(kousize(nk))
-      do ik = 1, nk
-        ! Number of io iu combinations valid for ik
-        kousize(ik) = count(kouflag(:,ik))
-      end do
-      
-      if(rank == 0) then
-        if(input%xs%bse%writeparts) then 
-          ! Print kouflag and kousize
-          call printkouflag(nou, nk, kouflag, kousize)
-          ! Print all occupancy factors with flags
-          call printoccupancies(zeroflag, negativeflag, occfactor_t)
-        end if
-      end if
-
-      ! Adjust selection for only non zero occupancy differences
-      ! and only positive occupancy differences.
-      ! Write out skipped band combinations
-      ! and make map of combined indices to use.
-      if(rank == 0) then
-        call getunit(un)
-        open(un, file='BSE_SKIPPED_BCBS.OUT', action='write', status='replace')
-        write(un,'("#",1x,a)') "Skipped band combinations"
-        frmt='("#",a7,1x,a4,1x,a4,1x,a4,1x,a4,1x,a4,1x,a1,1x,a1)'
-        write(un,frmt) "s", "ik", "io", "iu", "ioa", "iua", "z", "n"
-      end if
-
-      hamsize = 0
-      do a1 = 1, hamsize_max
-        if(.not. zeroflag(a1) .and. .not. negativeflag(a1)) then
-          hamsize = hamsize + 1
+#ifdef MPI
+      ! Broadcast kousize entrys to every one
+      do iproc=0, mpiglobal%procs-1
+        if(mpiglobal%rank == iproc) then
+          if(kparf > 0) then 
+            call mpi_bcast(kousize(kpari:kparf), kparf-kpari+1, mpi_integer, iproc,&
+              & mpiglobal%comm, mpiglobal%ierr)
+          end if
         else
-          if(rank == 0) then
-          call hamidx_back(a1, i, j, ik, nu, no)
-            write(un,'(I8,1x,I4,1x,I4,1x,I4,1x,I4,1x,I4,1x,L,1x,L)')&
-              & a1, ik, j, i, j+iol-1, i+iul-1, zeroflag(a1), negativeflag(a1)
+          kpari_r = firstofset(iproc, nk_max)
+          kparf_r = lastofset(iproc, nk_max)
+          if(kparf_r > 0) then 
+            call mpi_bcast(kousize(kpari_r:kparf_r), kparf_r-kpari_r+1,&
+              & mpi_integer, iproc, mpiglobal%comm, mpiglobal%ierr)
           end if
         end if
       end do
+#endif
+      
+      ! Collect results
+      hamsize = sum(kousize)
+      allocate(smap(hamsize, 3))
+      allocate(ofac(hamsize))
 
-      if(rank == 0) then
-        close(un)
-        if (hamsize /= hamsize_max) then
-          write(unitout,*) "(bse.f90) [WARNING] Zero occupancy differences and/or&
-            & negative fo-fu occured. Reduced size of BSE Hamiltonian from, ",&
-            & hamsize_max, "to ", hamsize, " ."
-        else 
-          call filedel('BSE_SKIPPED_BCBS.OUT')
-        end if 
+      if(kparf > 0) then 
+        ! Apply selection flags / prepare send buffers
+        il = sum(kousize(1:kpari-1))+1
+        iu = sum(kousize(kpari:kparf))+il-1
+        smap(il:iu,1) = pack(smap_loc(:,1),sflag)
+        smap(il:iu,2) = pack(smap_loc(:,2),sflag)
+        smap(il:iu,3) = pack(smap_loc(:,3),sflag)
+        ofac(il:iu) = pack(ofac_loc,sflag)
       end if
 
-      allocate(smap(hamsize, 5))
-      allocate(ofac(hamsize))
-      a2=0
-      do a1 = 1, hamsize_max
-        if(.not. zeroflag(a1) .and. .not. negativeflag(a1)) then
-          a2=a2+1
-          ofac(a2) = occfactor_t(a1)
-          call hamidx_back(a1, i, j, ik, nu, no)
-          smap(a2,:) = [i+iul-1, j+iol-1, ik, i, j]
+      deallocate(smap_loc)
+      deallocate(ofac_loc)
+      deallocate(sflag)
+
+#ifdef MPI
+      ! Broadcast results
+      do iproc=0, mpiglobal%procs-1
+        ! Send local data
+        if(mpiglobal%rank == iproc) then
+          ! Only if local procuded something
+          if(kparf > 0) then 
+            call mpi_bcast(smap(il,1), buflen, mpi_integer, iproc,&
+              & mpiglobal%comm, mpiglobal%ierr)
+            call mpi_bcast(smap(il,2), buflen, mpi_integer, iproc,&
+              & mpiglobal%comm, mpiglobal%ierr)
+            call mpi_bcast(smap(il,3), buflen, mpi_integer, iproc,&
+              & mpiglobal%comm, mpiglobal%ierr)
+            call mpi_bcast(ofac(il), buflen, mpi_double_precision, iproc,&
+              & mpiglobal%comm, mpiglobal%ierr)
+          end if
+        ! Receive remote data
+        else
+          kpari_r = firstofset(iproc, nk_max)
+          kparf_r = lastofset(iproc, nk_max)
+          ! Only if remote procued something
+          if(kparf_r > 0) then 
+            il_r = sum(kousize(1:kpari_r-1))+1
+            iu_r = sum(kousize(kpari_r:kparf_r))+il_r-1
+            buflen_r = iu_r-il_r+1
+            call mpi_bcast(smap(il_r,1), buflen_r, mpi_integer, iproc,&
+              & mpiglobal%comm, mpiglobal%ierr)
+            call mpi_bcast(smap(il_r,2), buflen_r, mpi_integer, iproc,&
+              & mpiglobal%comm, mpiglobal%ierr)
+            call mpi_bcast(smap(il_r,3), buflen_r, mpi_integer, iproc,&
+              & mpiglobal%comm, mpiglobal%ierr)
+            call mpi_bcast(ofac(il_r), buflen_r, mpi_double_precision, iproc,&
+              & mpiglobal%comm, mpiglobal%ierr)
+          end if
         end if
       end do
+#endif
 
-      ! Check consistency 
       if(rank == 0) then 
-        check = sum(kousize)
-        if (check /= hamsize) then
-          write(*,*) "INCONSITENCY! check=", check, "hamsize=", hamsize
-          call terminate
-        end if
+        call printso
       end if
 
-      deallocate(occfactor_t, zeroflag, negativeflag)
-
-      ! Write out index mapping
-      if(rank == 0) then 
-        call getunit(un)
-        open(un, file='BSE_SINDEX.OUT', action='write', status='replace')
-        write(un,'("#",1x,a3,5(1x,a5))') "s", "ik", "io" ,"iu", "iorel", "iurel"
-        do a1 = 1, hamsize
-          write(un,'(I5,5(1x,I5))')&
-            & a1, smap(a1,3), smap(a1,2), smap(a1,1), smap(a1, 5), smap(a1, 4)
-        end do
-        close(un)
-      end if
-
-    end subroutine checkoccupancies
+    end subroutine select_transitions
     !EOC
 
-
-    ! Auxiliary routines
-    subroutine printkouflag(nou, nk, kouflag, kousize)
-
+    subroutine printso
       use m_getunit
       implicit none 
-      integer, intent(in) :: nou, nk, kousize(:)
-      logical, intent(in) :: kouflag(:,:)
-
-      integer(4) :: i,j, ikk, ik, jk, un
-
-      call getunit(un)
-      open(un, file='BSE_KOUFLAG.OUT', action='write', status='replace')
-      write(un,'("#",1x,a)') "iou/ik"
-      do i = 1, nou
-        write(un, '(L)', advance="no") kouflag(i,1)
-        do j = 2, nk
-          write(un, '(1x,L)', advance="no") kouflag(i,j)
-        end do
-        write(un,*)
-      end do
-      close(un)
-
-      call getunit(un)
-      open(un, file='BSE_KKPBLOCKSIZE.OUT', action='write', status='replace')
-      write(un,'("#",1x,a3,1x,a5,1x,a5,1x,a5,1x,a5)')&
-        & "ik", "jk", "ikkp", "rows", "cols"
-      do ikk = 1, nk*(nk+1)/2
-        call kkpmap(ikk, nk, ik, jk)
-        write(un,'(I5,1x,I5,1x,I5,1x,I5,1x,I5)')&
-          & ik, jk, ikk, kousize(ik), kousize(jk)
-      end do
-      close(un)
-    end subroutine printkouflag
-
-    subroutine printoccupancies(zeroflag, negativeflag, occfactor)
-      use m_getunit
-      implicit none 
-      logical, intent(in) :: zeroflag(:), negativeflag(:)
-      real(8), intent(in) :: occfactor(:)
 
       integer(4) :: i, un
 
       call getunit(un)
-      open(un, file='BSE_OCCUPANCIES_ALL.OUT', action='write', status='replace')
-      write(un,'(a)') "zeroflag negativeflag occfac"
-      do i = 1, size(occfactor)
-        write(un, '(L,1x,L,1x,E23.16)')&
-          & zeroflag(i), negativeflag(i), occfactor(i)
+      open(un, file='BSE_SINDEX.OUT', action='write', status='replace')
+      write(un,'("# Combined BSE index @ q =", 3(E10.3,1x))')  0.0d0, 0.0d0, 0.0d0
+      write(un,'("# s ik io iu occ")')
+      do i = 1, size(ofac)
+        write(un, '(4(I8,1x),1x,E23.16)')&
+          & i, smap(i,3), smap(i,2), smap(i,1), ofac(i)
       end do
       close(un)
 
-    end subroutine printoccupancies
+    end subroutine printso
 
 end module modbse
 !EOC

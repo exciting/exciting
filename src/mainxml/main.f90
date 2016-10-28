@@ -11,7 +11,7 @@ use mod_misc
 implicit none
 ! set the version string
 call versionfromdate()
-call initMPI()
+call initmpi()
 call loadinputDOM("input.xml")
 !initialize default values that are not definet in the input schema
 call setdefault()

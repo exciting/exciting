@@ -7,7 +7,7 @@ module m_dhesolver
     !BOP
     ! !ROUTINE: dhesolver
     ! !INTERFACE:
-    subroutine dhesolver(solsize, ham, evec, eval, eecs)
+    subroutine dhesolver(ham, evec, eval, i1, i2, v1, v2, eecs)
     ! !USES:
       use modmpi 
       use modscl
@@ -34,17 +34,17 @@ module m_dhesolver
       implicit none
 
       ! Arguments
-      integer, intent(in) :: solsize
-      integer, intent(in), optional :: eecs
       type(dzmat), intent(inout) :: ham
       type(dzmat), intent(inout) :: evec
       real(8), intent(inout) :: eval(:)
-
+      integer(4), intent(in), optional :: eecs
+      integer(4), intent(in), optional :: i1, i2
+      real(8), intent(in), optional :: v1, v2
       ! Local variables
 #ifdef SCAL
       integer(4) :: info
       integer(4) :: lwork, lrwork, liwork
-      integer(4) :: il, iu
+      integer(4) :: il, iu, solsize
       real(8) :: abstol, vl, vu
       complex(8), allocatable :: work(:)
       real(8), allocatable :: rwork(:)
@@ -62,13 +62,29 @@ module m_dhesolver
       ! Distributed EVP
       if(ham%isdistributed .and. evec%isdistributed) then
 
+        il = 1
+        iu = ham%nrows
+        vl = 0.0d0
+        vu = 0.0d0
+
+        if(present(i1)) il = i1
+        if(present(i2)) iu = i2
+        if(present(v1)) vl = v1
+        if(present(v2)) vu = v2
+
+        if((present(i1) .or. present(i2)) .and. (present(v1) .or. present(v2))) then
+          write(*,*) "dhesolver (ERROR): I and V specivied."
+          call terminate
+        end if
+
+
         ! Sanity check
-        if(solsize < 1 .or. solsize > ham%nrows) then
+        if(il < 1 .or. iu > ham%nrows) then
           if(rank == 0) then
-            write(*,*) "distributed_hermitian_solver (ERROR):&
+            write(*,*) "dhesolver (ERROR):&
               & Number of requested solutions is &
               & incompatible with size of Hamiltonian."
-            write(*,*) "solsize:", solsize
+            write(*,*) "range:", il, iu
             write(*,*) "hamsize:", ham%nrows
           end if
           call terminate
@@ -142,7 +158,7 @@ module m_dhesolver
         ! Error inspection
         if(info .ne. 0) then
           if(rank == 0) then
-            write(*, '("distributed_hermitian_solver (ERROR):&
+            write(*, '("dhesolver (ERROR):&
               & pzheevx returned non-zero info:", i6)') info
             call errorinspect(info)
           end if
@@ -162,7 +178,7 @@ module m_dhesolver
       ! Mix -> Error
       else 
 
-        write(*, '("distributed_hermitian_solver (ERROR):&
+        write(*, '("dhesolver (ERROR):&
           & Distributed matrix mixed with non distributed:", l, l)')&
           & ham%isdistributed, evec%isdistributed
         call terminate

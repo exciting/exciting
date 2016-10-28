@@ -47,7 +47,8 @@ subroutine genparidxran(typ, n)
   ! Warn if number of processors is greater than set
   if(procs .gt. n) then
     if(rank == 0) then 
-      write(unitout, '("Warning(genparidxran): number of processors exceeds size of set")')
+      write(unitout, '("Warning(genparidxran):&
+        & number of processors exceeds size of set")')
       write(unitout, '("  parallelization type : ", a)') typ
       write(unitout, '("  size of set	       : ", i6)') n
       write(unitout, '("  number of processors : ", i6)') procs

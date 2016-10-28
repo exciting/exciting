@@ -230,20 +230,20 @@ subroutine setup_distributed_rmat(rmat)
     ! integer(4) :: ig, jg        ! Position of sub block in global matrix
     ! integer(4) :: ib, jb        ! Sub block size
     ! real(8)    :: occ(ib)       ! Occupation factors
-    ! complex(8) :: pmat(ib, jb)  ! P_uo(k) slice
+    ! complex(8) :: pmat(ib, jb)  ! $P_{uo}(k)$ slice
     ! Out:
     ! complex(8) :: buildrmat(ib,jb)  ! Sub block of R-mat
     !
     ! !DESCRIPTION:
     !   The function returns a sub block of the distributed position operator matrix:\\
-    !   $R(i_g:ig+ib-1, j_g:j_g+jb-1)$ where each entry is computed according to \\
-    !   $R(i, opt) = F(i) * P(i, opt) / E(i)$  \\
+    !   $R(i_g:i_g+i_b-1, j_g:j_g+j_b-1)$ where each entry is computed according to \\
+    !   $R(i, \text{opt}) = F(i) P(i, \text{opt}) / E(i)$  \\
     !   $E$ are the Kohn-Sham transition energies, $F$ the occupation factors and $P$ the momentum matrix elements.
-    !   The index $i$ correspond to the combined indext $\alpha$ and the index $opt$ refers to a Cartesian direction.\\
-    !   So with $\alpha = \{ u_\alpha, o_\alpha \vec{k}_\alpha \}$ : \\
-    !   $F_{\alpha} = \sqrt{\left| f_{\vec{k}_{\alpha} o_{\alpha}} - f_{\vec{k}_{\alpha} u_{\alpha}} \right|}$ \\
-    !   $E_{\alpha} = \epsilon_{\vec{k}_{\alpha} u_{\alpha}} - \epsilon_{\vec{k}_{\alpha} o_{\alpha}} \\
-    !   $P_{\alpha, opt} = P^opt_{u_{\alpha} o_{\alpha} \vec{k}_{\alpha} } = P^{*opt}_{o_{\alpha} u_{\alpha} \vec{k}_{\alpha} }$
+    !   The index $i$ correspond to the combined indext $\alpha$ and the index $\text{opt}$ refers to a Cartesian direction.\\
+    !   So with $\alpha = \{ u_\alpha, o_\alpha, \vec{k}_\alpha \}$ : \\
+    !   $F_{\alpha} = \sqrt{\left| f_{\vec{k}_{\alpha} o_{\alpha}} - f_{\vec{k}_{\alpha} u_{\alpha}} \right|}$, 
+    !   $E_{\alpha} = \epsilon_{\vec{k}_{\alpha} u_{\alpha}} - \epsilon_{\vec{k}_{\alpha} o_{\alpha}}$, 
+    !   $P_{\alpha, \text{opt}} = P^\text{opt}_{u_{\alpha} o_{\alpha} \vec{k}_{\alpha} } = P^{\text{opt}*}_{o_{\alpha} u_{\alpha} \vec{k}_{\alpha} }$
     !
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)

@@ -103,7 +103,7 @@ subroutine b_bse
   ! Parameters
   integer(4), parameter :: iqmt = 0
   ! Variables
-  integer(4) :: iknr, iq, nw
+  integer(4) :: iknr, iq
   integer(4) :: hamsize, nexc
   real(8) :: ts0, ts1, egap
   logical :: fcoup, fwp, fscal
@@ -157,9 +157,6 @@ subroutine b_bse
     ! Set ist* variables in modxs using findocclims
     call setranges_modxs(iqmt)
 
-    ! Set band combinations (modbse:bcou & modbse:bcouabs)
-    call setbcbs_bse
-
     ! Number of kkp combinations with ikp >= ik (modbse:nk & modbse:nkkp)
     nk   = nkptnr
     nkkp = nkptnr*(nkptnr+1)/2
@@ -184,6 +181,17 @@ subroutine b_bse
       write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
     end if
 
+    ! Calculate macroscopic dielectric tensor with finite broadening, i.e. "the spectrum"
+    ! (modbse:nw)
+    nw = input%xs%energywindow%points
+    ! Allocate arrays used in spectrum construction
+    allocate(w(nw))
+    ! Generate an evenly spaced frequency grid 
+    call genwgrid(nw, input%xs%energywindow%intv,&
+      & input%xs%tddft%acont, 0.d0, w_real=w)
+    wl = w(1)
+    wu = w(nw)
+
     ! Read mean value of diagonal of direct term
     bsed = 0.d0
     if((trim(input%xs%bse%bsetype) .eq. 'singlet')&
@@ -197,6 +205,22 @@ subroutine b_bse
       end if
 
     end if
+
+    !!<-- Inspecting occupancies/ Building ranges 
+    ! Do not use state combination with zero occupancy difference 
+    ! (Theory not complete here?). Also do not use state combinations
+    ! where the "unoccupied" state has larger occupancy, since hat will
+    ! make the BSE Hamiltonian non-hermitian, even in TDA and q=0.
+    !
+    ! Set gamma point (currently iq does nothing in checkoccupancies)
+    iq = 1
+    ! Get adjusted hamsize, index maps and occupation factors.
+    ! Also write information about skipped combinations to file.
+    call checkoccupancies(iq, hamsize)
+    !!-->
+
+    ! Set band combinations (modbse:bcou & modbse:bcouabs)
+    call setbcbs_bse
 
     ! Determine the minimal optical gap (q=0), w.r.t. the selected bands
     egap = minval(evalsv(bcouabs%il2,1:nkptnr) - evalsv(bcouabs%iu1,1:nkptnr)&
@@ -218,18 +242,6 @@ subroutine b_bse
       egap = 0.0d0
     end if  
 
-    !!<-- Inspecting occupancies 
-    ! Do not use state combination with zero occupancy difference 
-    ! (Theory not complete here?). Also do not use state combinations
-    ! where the "unoccupied" state has larger occupancy, since hat will
-    ! make the BSE Hamiltonian non-hermitian, even in TDA and q=0.
-    !
-    ! Set gamma point (currently iq does nothing in checkoccupancies)
-    iq = 1
-    ! Get adjusted hamsize, index maps and occupation factors.
-    ! Also write information about skipped combinations to file.
-    call checkoccupancies(iq, hamsize)
-    !!-->
 
     fwp = input%xs%bse%writeparts
 
@@ -343,16 +355,9 @@ subroutine b_bse
       call writeoscillator(hamsize, nexc, egap, bevalre, oszsr)
     end if
 
-    ! Calculate macroscopic dielectric tensor with finite broadening, i.e. "the spectrum"
-    nw = input%xs%energywindow%points
-
     ! Allocate arrays used in spectrum construction
-    allocate(w(nw))
     allocate(symspectr(3,3,nw))
 
-    ! Generate an evenly spaced frequency grid 
-    call genwgrid(nw, input%xs%energywindow%intv,&
-      & input%xs%tddft%acont, 0.d0, w_real=w)
 
     write(unitout, '("Making spectrum.")')
     call timesec(ts0)
@@ -549,13 +554,14 @@ subroutine b_bse
       end if
 
       ! Eigenvectors are distributed
-      call new_dzmat(dbevecr, hamsize, nexc, context=ictxt2d)
+      ! must be NxN because Scalapack solver expects it
+      call new_dzmat(dbevecr, hamsize, hamsize, context=ictxt2d) 
       ! Eigenvalues global
       allocate(bevalre(hamsize))
 
       ! Diagonalize Hamiltonian (destroys the content of ham)
       if(rank == 0) call timesec(ts0)
-        call dhesolver(nexc, dham, dbevecr, bevalre, eecs=5)
+        call dhesolver(nexc, dham, dbevecr, bevalre, eecs=input%xs%bse%clustersize)
       if(rank == 0) call timesec(ts1)
 
       ! Deallocate BSE-Hamiltonian
@@ -581,6 +587,9 @@ subroutine b_bse
         call timesec(ts1)
         write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
       end if
+
+      ! Eigen vectors no longer needed.
+      call del_dzmat(dbevecr)
 
       ! Every process gets a copy of the oscillator strength
       ! (actually only rank 0 writes them to file, but is is not much 
@@ -1059,7 +1068,7 @@ contains
     ! \Sum_{s1} f_{s1} R^*_{{u_{s1} o_{s1} k_{s1}},i} X_{u_{s1} o_{s1} k_{s1}},\lambda= 
     ! \Sum_{s1} f_{s1} P^*_{{u_{s1} o_{s1} k_{s1}},i} / 
     !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda
-    call dzgemm(dbevecr, drmat, doszsr, transa='T')
+    call dzgemm(dbevecr, drmat, doszsr, transa='T', m=nexc)
     if(rank == 0) then
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
@@ -1121,11 +1130,11 @@ contains
            &* (evalsv(iuabs,ik)-evalsv(ioabs,ik))/(eval0(iuabs,ik)- eval0(ioabs,ik))
       end if 
 
-      ! Build complex conjugate R-matrix from p-matrix
-      ! \tilde{R}^*_{u_{s1},o_{s1},k_{s1}},i = 
-      ! (f_{o_{s1},k_{s1}}-f_{u_{s1},k_{s1}}) *
-      !   P_{o_{s1},u_{s1},k_{s1}},i /(e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}})
-      rmat(a1, :) = ofac(a1) * pmou(:, io, iu)/(evalsv(ioabs, ik) - evalsv(iuabs, ik))
+      ! Build R-matrix from p-matrix
+      ! \tilde{R}_{u_{s1},o_{s1},k_{s1}},i = 
+      ! |f_{o_{s1},k_{s1}}-f_{u_{s1},k_{s1}}|^(1/2) *
+      !   P_{o_{s1},u_{s1},k_{s1}},i /(e_{u_{s1} k_{s1}} - e_{o_{s1} k_{s1}})
+      rmat(a1, :) = ofac(a1) * pmou(:, io, iu)/(evalsv(iuabs, ik) - evalsv(ioabs, ik))
 
     end do
     ! Momentum matrix elements no longer needed
@@ -1137,12 +1146,8 @@ contains
     call timesec(t0)
     oszstrr = zzero
     !! Resonant oscillator strengths
-    ! t^R_\lambda,i = < \tilde{R}^i | X_\lambda> =
-    ! \Sum_{s1} f_{s1} R^*_{{u_{s1} o_{s1} k_{s1}},i} X_{o_{s1} u_{s1} k_{s1}},\lambda= 
-    ! \Sum_{s1} f_{s1} P^*_{{u_{s1} o_{s1} k_{s1}},i} / 
-    !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda= 
-    ! \Sum_{s1} f_{s1} P_{{o_{s1} u_{s1} k_{s1}},i} / 
-    !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) X_{o_{s1} u_{s1} k_{s1}},\lambda
+    ! t^R_\lambda,i = < \tilde{R}^{i*} | X_\lambda> =
+    ! \Sum_{s1} \tilde{R}^i_{u_{s1} o_{s1} k_{s1}} X_{u_{s1} o_{s1} k_{s1}},\lambda
     call zgemm('t','n', nexc, 3, hamsize,&
       & zone, bevecr(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
     call timesec(t1)
@@ -1153,12 +1158,8 @@ contains
       call timesec(t0)
       oszstra = zzero
       !! Anti-resonant oscillator strengths
-      ! t^A_\lambda,i = < \tilde{R}^{i*} | Y_\lambda> =
-      ! \Sum_{s1} f_{s1} R_{{u_{s1} o_{s1} k_{s1}},i} Y_{o_{s1} u_{s1} k_{s1}},\lambda= 
-      ! \Sum_{s1} f_{s1} P_{{u_{s1} o_{s1} k_{s1}},i} / 
-      !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda= 
-      ! \Sum_{s1} f_{s1} P^*_{{o_{s1} u_{s1} k_{s1}},i} / i
-      !   (e_{o_{s1} k_{s1}} - e_{u_{s1} k_{s1}}) Y_{o_{s1} u_{s1} k_{s1}},\lambda
+      ! t^A_\lambda,i = < \tilde{R}^{i} | Y_\lambda> =
+      ! \Sum_{s1} \tilde{R}^{i*}_{u_{s1} o_{s1} k_{s1}} Y_{u_{s1} o_{s1} k_{s1}},\lambda
       call zgemm('t','n', nexc, 3, hamsize,&
         & zone, bevecr(hamsize+1:2*hamsize,1:nexc), hamsize,&
         & conjg(rmat), hamsize, zzero, oszstra, nexc)
@@ -1216,8 +1217,8 @@ contains
     
     ! Make combined resonan-anti-resonant oscillator strengths
     allocate(o(nexc,3), op(nexc,3))
-    o = oszsr+oszsa
-    op = conjg(oszsr-oszsa)
+    o = -oszsr+oszsa
+    op = conjg(oszsr+oszsa)
 
     write(unitout, '("  Making energy denominators ENW.")')
     call timesec(t0)
@@ -1233,7 +1234,7 @@ contains
     
     write(unitout, '("  Making helper matrix amat.")')
     ! Make helper matrices 
-    ! A_\lambda,i = \Sum_\lambda' Q^-1_\lambda,\lambda' \tilde{O}^*_\lambda',i
+    ! A_\lambda,j = \Sum_\lambda' Q^-1_\lambda,\lambda' \tilde{O}_\lambda',j
     call timesec(t0)
     allocate(amat(nexc,3))
     call zgemm('N','N', nexc, 3, nexc, zone, invoverlap, nexc,&
@@ -1244,20 +1245,20 @@ contains
     write(unitout, '("    Time needed",f12.3,"s")') t1-t0
 
     write(unitout, '("  Making helper matrix bmat.")')
-    ! B_\lambda,ij = A_\lambda,i*O_\lambda,j
+    ! B_\lambda,ij = O^*_\lambda,i A_\lambda,j
     call timesec(t0)
     if(input%xs%dfoffdiag) then
       allocate(bmat(nexc,9))
       do o1 = 1, 3
         do o2 = 1, 3
           j = o2 + (o1-1)*3
-          bmat(:,j) = amat(:,o1)*o(:,o2)
+          bmat(:,j) = o(:,o1)*amat(:,o2)
         end do
       end do
     else
       allocate(bmat(nexc,3))
       do o1 = 1, 3
-        bmat(:,o1) = amat(:,o1)*o(:,o1)
+        bmat(:,o1) = o(:,o1)*amat(:,o1)
       end do
     end if
     ! amat not needed anymore
@@ -1270,6 +1271,7 @@ contains
     call timesec(t0)
     if(input%xs%dfoffdiag) then
       allocate(ns_spectr(nfreq,9))
+      ! \epsilon_m \prop \Sum_\lambda E^-1_{w,\lambda} B_{\lambda,ij}
       call zgemm('N','N', nfreq, 9, nexc, zone, enw, nfreq,&
         & bmat, nexc, zzero, ns_spectr, nfreq)
       ns_spectr = ns_spectr*8.d0*pi/omega/nkptnr
