@@ -86,7 +86,7 @@ module m_writeoscillator
 
         else if(present(oszstra)) then
 
-          frmt='(a1,a7,1x,a23,1x,a23,1x,a23,1x,a23,1x,a23,1x,a23,1x,a23)'
+          frmt='(a1,a7,7(1x,a23))'
           write(unexc, frmt) "#", "Nr.",&
             & "Re(E)",&
             & "|Osc. Str. Res.|",&
@@ -95,8 +95,7 @@ module m_writeoscillator
             & "|Osc. Str. Ares.|",&
             & "Re(Osc. Str. Ares.)",&
             & "Im(Osc. Str. Ares.)"
-          frmt='(I8,1x,E23.16,1x,E23.16,1x,E23.16,&
-            &1x,E23.16,1x,E23.16,1x,E23.16,1x,E23.16)'
+          frmt='(I8,7(1x,E23.16))'
           do lambda = 1, nexc
             write(unexc, frmt) lambda,&
               & (evalre(lambda))*escale,&
@@ -110,14 +109,14 @@ module m_writeoscillator
 
         else
 
-          frmt='(a1,a7,1x,a23,1x,a23,1x,a23,1x,a23,1x,a23)'
+          frmt='(a1,a7,5(1x,a23))'
           write(unexc, frmt) "#", "Nr.",&
             & "E",&
             & "E-E_bsegap",&
             & "|Osc. Str. Res.|",&
             & "Re(Osc. Str. Res.)",&
             & "Im(Osc. Str. Res.)"
-          frmt='(I8,1x,E23.16,1x,E23.16,1x,E23.16,1x,E23.16,1x,E23.16)'
+          frmt='(I8,5(1x,E23.16))'
           do lambda = 1, nexc
             write(unexc, frmt) lambda,&
               & (evalre(lambda)+egap-dble(bsed))*escale,&

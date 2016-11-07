@@ -173,7 +173,7 @@ endif
 
       End Do
   ! communicate array-parts wrt. q-points
-      call mpi_allgatherv_ifc(nqptr,ngqmax*ngqmax,zbuf=scieffg)
+      call mpi_allgatherv_ifc(nqptr,rlen=ngqmax*ngqmax,zbuf=scieffg)
       Call barrier
 !
   ! information on size of output file
@@ -397,7 +397,7 @@ endif
       If (rank .Eq. 0) close (un)
       Call barrier
   ! communicate array-parts wrt. q-points
-      call mpi_allgatherv_ifc(procs,3,zbuf=bsedt)
+      call mpi_allgatherv_ifc(procs, rlen=3,zbuf=bsedt)
   ! BSE kernel diagonal parameters
       bsedl = minval (dble(bsedt(1, :)))
       bsedu = maxval (dble(bsedt(2, :)))

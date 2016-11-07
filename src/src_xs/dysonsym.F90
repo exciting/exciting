@@ -16,6 +16,7 @@ Contains
 !
       Subroutine dysonsym (n, s0, k, s)
 ! !USES:
+         use modmpi
          Use invert
          Use modxs
 ! !INPUT/OUTPUT PARAMETERS:

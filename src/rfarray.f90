@@ -134,7 +134,7 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
          fp (ip) = sum
       End Do
 #ifdef MPI
-      Call mpi_allgatherv_ifc(np,1,rbuf=fp)
+      Call mpi_allgatherv_ifc(np,rlen=1,rbuf=fp)
       Call barrier
 #endif    
       Deallocate (rlm, zfft, ya, c)

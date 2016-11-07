@@ -7,6 +7,7 @@
 ! !INTERFACE:
 subroutine getbsemat(fname, ikkp, n1, n2, zmat)
 ! !USES:
+  use modmpi
   use modinput
   use m_getunit
 ! !DESCRIPTION:

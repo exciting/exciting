@@ -14,6 +14,7 @@ Subroutine getngqmax
 ! !USES:
       Use modinput
       Use modmain
+      use modmpi
       Use modxs
 ! !DESCRIPTION:
 !   Determines the largest number of ${\bf G+q}$-vectors with length less than

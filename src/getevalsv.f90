@@ -39,6 +39,7 @@ subroutine getevalsv(vpl, evalsvp)
 !
 ! !REVISION HISTORY:
 !   Documentation added, Dec 2009 (S. Sagmeister)
+!   Consmetic changes, added more comments. 2016 (Aurich)
 !EOP
 !BOC
 
@@ -81,7 +82,8 @@ subroutine getevalsv(vpl, evalsvp)
   ! mod_names:filetag_evalsv is 'EVALSV'
   filetag = trim(filetag_evalsv)
 
-  ! Try to open 'EVALSC(<krange>)<modmisc:filext>' (krange applies only for specific task in mpi mode)
+  ! Try to open 'EVALSV(<krange>)<modmisc:filext>' 
+  ! (krange applies only for specific task in mpi mode)
   do i = 1, 100
     inquire(file=outfilenamestring(filetag, ik), exist=lexist)
     if(lexist) then

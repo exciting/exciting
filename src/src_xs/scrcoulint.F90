@@ -8,7 +8,7 @@
 subroutine scrcoulint
 ! !USES:
   use modinput, only: input
-  use modmpi, only: procs, rank, mpi_allgatherv_ifc, barrier
+  use modmpi
   use mod_misc, only: task
   use mod_constants, only: zzero, zone, fourpi
   use mod_APW_LO, only: lolmax
@@ -190,7 +190,7 @@ subroutine scrcoulint
   end do
 
   ! Communicate array-parts wrt. q-points
-  call mpi_allgatherv_ifc(nqptr,ngqmax*ngqmax,zbuf=scieffg)
+  call mpi_allgatherv_ifc(nqptr,rlen=ngqmax*ngqmax,zbuf=scieffg)
   call barrier
 
   ! Information on size of output file
@@ -403,7 +403,7 @@ subroutine scrcoulint
   call barrier
 
   ! Communicate array-parts wrt. q-points
-  call mpi_allgatherv_ifc(procs,3,zbuf=bsedt)
+  call mpi_allgatherv_ifc(procs,rlen=3,zbuf=bsedt)
 
   ! BSE kernel diagonal parameters
   bsedl = minval(dble(bsedt(1, :)))

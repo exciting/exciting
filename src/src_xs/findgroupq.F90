@@ -12,6 +12,7 @@
 !
 Subroutine findgroupq (tfbz, vql, epslat, bvec, symlat, nsymcrys, &
 & lsplsymc, nsymcrysq, scqmap, ivscwrapq)
+  use modmpi
 ! !DESCRIPTION:
 !   Find the (little) group of {\bf q} (which includes finding the small group
 !   of {\bf q}).

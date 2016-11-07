@@ -4,12 +4,10 @@ module m_setup_bse
   use modinput, only: input
   use mod_constants, only: zzero, zone
   use mod_eigenvalue_occupancy, only: evalsv
-  use modbse, only: smap, kousize, kouflag, ofac,&
-                  & scclifname, exclifname,&
-                  & scclicfname, exclicfname,&
-                  & nk, nkkp, nou, no, nu,&
-                  & evalshift
+  use modbse
   use m_getunit
+  use m_genfilname
+  use m_putgetbsemat
       
   implicit none
 
@@ -19,42 +17,53 @@ module m_setup_bse
 
   contains
 
-    subroutine setup_bse(ham, fcoup)
+    !BOP
+    ! !ROUTINE: setup_bse
+    ! !INTERFACE:
+    subroutine setup_bse(ham, iqmt, fcoup)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! In:
+    !   integer(4) :: iqmt  ! Index of momentum transfer Q
+    !   logical    :: fcoup ! If true, builds RA instead of RR block of BSE matrix 
+    ! In/Out:
+    !   complex(8) :: ham(:,:) ! RR or RA block of BSE-Hamiltonian matrix
+    ! 
+    ! !DESCRIPTION:
+    !   The routine sets up the resonant-resonant or resonant-antiresonant block of
+    !   the BSE-Hamiltonian matrix. The routine reads {\tt EXCLI.OUT} and
+    !   {\tt SCCLI.OUT} ({\tt EXCLIC.OUT} and {\tt SCCLIC.OUT}).
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
 
       !! I/O
-      complex(8), allocatable, intent(inout) :: ham(:, :)
+      complex(8), intent(inout) :: ham(:, :)
+      integer(4), intent(in) :: iqmt
       logical, intent(in) :: fcoup
 
       !! Local variables
       ! Indices
-      integer(4) :: ikkp
-      integer(4) :: ik1, ik2
-      integer(4) :: ii, jj, m, n
+      integer(4) :: ikkp, ik, jk, iknr, jknr
+      integer(4) :: ino, inu, jno, jnu, inou, jnou
+      integer(4) :: ii, jj
       ! Work arrays
-      complex(8), allocatable, dimension(:,:,:,:) :: excli, sccli
-      complex(8), allocatable, dimension(:,:) :: excli_t, sccli_t
-      logical, allocatable, dimension(:,:) :: lmap
+      complex(8), dimension(nou_bse_max, nou_bse_max) :: excli_t, sccli_t
 
       character(256) :: sfname
       character(256) :: efname
 
-      ! Allocate and zero work arrays
-      allocate(excli(nu,no,nu,no))      ! RR part of V, to be read from file
-      allocate(sccli(nu,no,nu,no))      ! RR part of W, to be read from file
-      allocate(excli_t(nou,nou))
-      allocate(sccli_t(nou,nou))
-      allocate(lmap(nou,nou))
-      lmap = .True.
-
       ! Zero ham
       ham = zzero
 
+      ! Select form which files W and V are to be read
       if(.not. fcoup) then
-        sfname = scclifname
-        efname = exclifname
+        call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=sfname)
+        call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
       else
-        sfname = scclicfname
-        efname = exclicfname
+        call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=sfname)
+        call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=efname)
       end if
 
       if(rank == 0) then 
@@ -62,149 +71,156 @@ module m_setup_bse
           & trim(sfname), trim(efname)
       end if
 
-      ! Set up kkp blocks of Hamiltonian
+      ! Set up kkp blocks of RR or RA Hamiltonian
       !! Note: If the Hamilton matrix 
-      !! has the elements H_{i,j} and the indices enumerate the
+      !! has the elements H^RR_{i,j}(qmt) and the indices enumerate the
       !! states according to
-      !! i = {u1o1k1, u2o1k1, ..., uMo1k1,
-      !!      uMo2k1, ..., uMoNk1, u1o1k2, ..., uMoNkO} -> {1,...,M*N*O}
-      !! then because of H_{j,i} = H^*_{i,j} only kj = ki,..,kO is 
-      !! needed.
-      do ikkp = 1, nkkp
+      !! i = {u1o1k1, u2o1k1, ..., uM(k1)o1k1,
+      !!      uM(k1)o2k1, ..., uM(k1)oN(k1)k1, u1o1k2,
+      !!      ..., uM(kO)oN(kO)kO} -> {1,...,\Prod_{i=1}^O M(ki)*N(ki)}
+      !! then because of H^RR_{j,i} = H^RR*_{i,j} (or H^RA_{j,i} = H^RA_{i,j})
+      !! only jk = ik,..,kO is needed.
+      do ikkp = 1, nkkp_bse
 
+        ! Get index ik jk form combination index ikkp
+        call kkpmap(ikkp, nk_bse, ik, jk)
+
+        ! Get global index iknr
+        iknr = kmap_bse_rg(ik)
+        ! Get ranges
+        inu = koulims(2,iknr)-koulims(1,iknr)+1
+        ino = koulims(4,iknr)-koulims(3,iknr)+1
+        inou = inu*ino
+
+        ! Get global index jknr
+        jknr = kmap_bse_rg(jk)
+        ! Get ranges
+        jnu = koulims(2,jknr)-koulims(1,jknr)+1
+        jno = koulims(4,jknr)-koulims(3,jknr)+1
+        jnou = jnu*jno
+        
         ! Read corresponding ikkp blocks of W and V from file
         select case(trim(input%xs%bse%bsetype))
           case('singlet', 'triplet')
-            ! Read RR/RA part of screened coulomb interaction W_{uoki,u'o'kj}
-            call getbsemat(trim(sfname), ikkp, nu, no, sccli)
+            ! Read RR/RA part of screened coulomb interaction W_{iuioik,jujojk}(qmt)
+            call b_getbsemat(trim(sfname), iqmt, ikkp, sccli_t(1:inou,1:jnou),&
+              & input%xs%bse%blindread)
         end select
 
         select case(trim(input%xs%bse%bsetype))
           case('RPA', 'singlet')
             ! Read RR/RA part of exchange interaction v_{uoki,u'o'kj}
-            call getbsemat(trim(efname), ikkp, nu, no, excli)
+            call b_getbsemat(trim(efname), iqmt, ikkp, excli_t(1:inou,1:jnou),&
+              & input%xs%bse%blindread)
         end select
 
-        ! Get ik1 and ik2 from ikkp
-        call kkpmap(ikkp, nk, ik1, ik2)
-
         ! Position of ikkp block in global matrix
-        ii = sum(kousize(1:ik1-1)) + 1
-        jj = sum(kousize(1:ik2-1)) + 1
-
-        ! Size of sub-matrix
-        m = kousize(ik1)
-        n = kousize(ik2)
-
-        !! Make map for which kou and k'o'u' to use in 
-        !! the construction (may me a reduced set due to 
-        !! partial occupations)
-        lmap = matmul(reshape(kouflag(:,ik1),[nou, 1]), reshape(kouflag(:,ik2),[1, nou]))
-        ! Shape interaction arrays more appropriately
-        ! and select used kou combinations via map
-        excli_t = zzero
-        sccli_t = zzero
-        excli_t(1:m,1:n) = &
-          & reshape(pack(reshape(excli,[nou, nou]), lmap), [m, n]) 
-        sccli_t(1:m,1:n) = &
-          & reshape(pack(reshape(sccli,[nou, nou]), lmap), [m, n])
+        ii = sum(kousize(1:iknr-1)) + 1
+        jj = sum(kousize(1:jknr-1)) + 1
 
         !! RR only
         ! For blocks on the diagonal, add the KS transition
         ! energies to the diagonal of the block.
         if(.not. fcoup) then 
-          if(ik1 .eq. ik2) then
-            call kstransdiag(ii, ik1, m, ham(ii:ii+m-1,jj:jj+n-1))
+          if(iknr .eq. jknr) then
+            call kstransdiag(ii, iknr, inou, ham(ii:ii+inou-1,jj:jj+jnou-1))
           end if
         end if
           
         !! RR and RA part
         ! Add correlation term and optionally exchange term
-        ! (2* v_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j}
-        ! - W_{o_{s1} u_{s1} k_i, o_{s2} u_{s2} k_j})
-        ! * sqrt(abs(f_{o_{s2} k_{s2}} - f_{u_{s2} k_{s2}}))
-        ! * sqrt(abs(f_{o_{s1} k_{s1}} - f_{u_{s1} k_{s1}}))
+        ! (2* v_{iu io ik, jo ju jk}(qmt)
+        ! - W_{iu io ik, jo ju jk})(qmt)
+        ! * sqrt(abs(f_{io ik} - f_{ju jk+qmt}))
+        ! * sqrt(abs(f_{jo jk} - f_{ju jk-qmt}))
         select case(trim(input%xs%bse%bsetype))
           case('RPA', 'singlet')
-            call addint(m, n, ham(ii:ii+m-1,jj:jj+n-1),&
-              & ofac(ii:ii+m-1), ofac(jj:jj+n-1), sccli_t(1:m,1:n), exc=excli_t(1:m,1:n))
+            call addint(inou, jnou, ham(ii:ii+inou-1,jj:jj+jnou-1),&
+              & ofac(ii:ii+inou-1), ofac(jj:jj+jnou-1),&
+              & sccli_t(1:inou,1:jnou), exc=excli_t(1:inou,1:jnou))
           case('triplet')
-            call addint(m, n, ham(ii:ii+m-1,jj:jj+n-1),&
-              & ofac(ii:ii+m-1), ofac(jj:jj+n-1), sccli_t(1:m,1:n))
+            call addint(inou, jnou, ham(ii:ii+inou-1,jj:jj+jnou-1),&
+              & ofac(ii:ii+inou-1), ofac(jj:jj+jnou-1),&
+              & sccli_t(1:inou,1:jnou))
         end select
 
       end do
 
-      ! Work arrays
-      deallocate(excli, excli_t)
-      deallocate(sccli, sccli_t)
+      contains
+
+        subroutine kstransdiag(ig, ik, m, hamblock)
+          integer(4), intent(in) :: ig, ik, m
+          complex(8), intent(out) :: hamblock(m,m)
+
+          integer(4) :: io, iu, iou
+
+          ! Calculate ks energy differences
+          hamblock = zzero
+          do iou = 1, m
+            iu = smap(ig+iou-1, 1)
+            io = smap(ig+iou-1, 2)
+            ! de = e_{u, k+qmt} - e_{o, k} + scissor (RR)
+            ! de = e_{u, k-qmt} - e_{o, k} + scissor (AA)
+            ! Note: only qmt=0 supported
+            hamblock(iou,iou) = cmplx(evalsv(iu,ik) - evalsv(io,ik) + evalshift,8)
+          end do
+        end subroutine kstransdiag
+
+        subroutine addint(m, n, hamblock, oc1, oc2, scc, exc)
+          integer(4), intent(in) :: m, n
+          complex(8), intent(inout) :: hamblock(m,n)
+          real(8), intent(in) :: oc1(m), oc2(n)
+          complex(8), intent(in) :: scc(m,n)
+          complex(8), intent(in), optional :: exc(m,n)
+          
+          integer(4) :: i, j
+          integer(4) :: io1, iu1, iou1
+          integer(4) :: io2, iu2, iou2
+          complex(8) :: tmp
+
+          if(present(exc)) then 
+            do j= 1, n
+              do i= 1, m
+                hamblock(i,j) = hamblock(i,j)&
+                  &+ oc1(i)*oc2(j) * (2.0d0 * exc(i,j) - scc(i,j))
+              end do
+            end do
+          else
+            do j= 1, n
+              do i= 1, m
+                hamblock(i,j) = hamblock(i,j) - oc1(i)*oc2(j) * scc(i,j)
+              end do
+            end do
+          end if
+        end subroutine addint
 
     end subroutine setup_bse
-
-    subroutine kstransdiag(ig, ik, m, hamblock)
-      integer(4), intent(in) :: ig, ik, m
-      complex(8), intent(out) :: hamblock(m,m)
-
-      integer(4) :: io, iu, iou
-
-      ! Calculate ks energy differences
-      hamblock = zzero
-      do iou = 1, m
-        iu = smap(ig+iou-1, 1)
-        io = smap(ig+iou-1, 2)
-        ! de = e_{u, k} - e_{o, k} + scissor
-        hamblock(iou,iou) = cmplx(evalsv(iu,ik) - evalsv(io,ik) + evalshift,8)
-      end do
-    end subroutine kstransdiag
-
-    subroutine addint(m, n, hamblock, oc1, oc2, scc, exc)
-      integer(4), intent(in) :: m, n
-      complex(8), intent(inout) :: hamblock(m,n)
-      real(8), intent(in) :: oc1(m), oc2(n)
-      complex(8), intent(in) :: scc(m,n)
-      complex(8), intent(in), optional :: exc(m,n)
-      
-      integer(4) :: i, j
-      integer(4) :: io1, iu1, iou1
-      integer(4) :: io2, iu2, iou2
-      complex(8) :: tmp
-
-      if(present(exc)) then 
-        do j= 1, n
-          do i= 1, m
-            hamblock(i,j) = hamblock(i,j)&
-              &+ oc1(i)*oc2(j) * (2.0d0 * exc(i,j) - scc(i,j))
-          end do
-        end do
-      else
-        do j= 1, n
-          do i= 1, m
-            hamblock(i,j) = hamblock(i,j) - oc1(i)*oc2(j) * scc(i,j)
-          end do
-        end do
-      end if
-    end subroutine addint
+    !EOC
 
     !BOP
     ! !ROUTINE: setup_distributed_bse
     ! !INTERFACE:
-    subroutine setup_distributed_bse(ham, fcoup)
+    subroutine setup_distributed_bse(ham, iqmt, fcoup, binfo)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
-    ! logical :: fcoup   ! if true builds RA instead of RR block of BSE matrix 
+    !   integer(4) :: iqmt ! Index of momentum transfer Q
+    !   logical :: fcoup   ! If true, builds RA instead of RR block of BSE matrix 
+    !   type(blacsinfo) :: binfo ! Info type of the BLACS grid
     ! In/Out:
-    ! type(dzmat) :: ham ! 2D block cyclic distributed RR or RA block of BSE-Hamiltonian matrix
+    !   type(dzmat) :: ham ! 2D block cyclic distributed RR or RA
+    !                      ! block of BSE-Hamiltonian matrix
     ! 
     ! !DESCRIPTION:
     !   The routine sets up the content of the local array of the 
     !   2d block cyclic distributed resonant-resonant or resonant-antiresonant block of
-    !   the BSE-Hamiltonian matrix. Process 0 
-    !   reads {\tt EXCLI.OUT} and {\tt SCCLI.OUT} ({\tt EXCLIC.OUT} and {\tt SCCLIC.OUT}) for each {\tt ikkp}
+    !   the BSE-Hamiltonian matrix. Process 0 reads {\tt EXCLI.OUT} and {\tt SCCLI.OUT}
+    !   ({\tt EXCLIC.OUT} and {\tt SCCLIC.OUT}) for each {\tt ikkp}
     !   record and send the data block-wise to the responsible processes.
-    !   If the matrix is not to be distributed the routine calls {\tt setup\_bse} instead.
+    !   If the matrix is not to be distributed the routine calls 
+    !   {\tt setup\_bse} instead.
     !
     ! !REVISION HISTORY:
-    !   Created. (Aurich)
+    !   Created. 2016 (Aurich)
     !EOP
     !BOC
 
@@ -212,15 +228,15 @@ module m_setup_bse
 
       !! I/O
       type(dzmat), intent(inout) :: ham
+      integer(4), intent(in) :: iqmt
       logical, intent(in) :: fcoup
+      type(blacsinfo), intent(in) :: binfo
 
       !! Local variables
-      integer(4) :: ikkp
-      integer(4) :: ik1, ik2
+      integer(4) :: ikkp, ik, jk, iknr, jknr
+      integer(4) :: ino, inu, jno, jnu, inou, jnou
 
-      complex(8), allocatable, dimension(:,:,:,:) :: excli, sccli
       complex(8), allocatable, dimension(:,:) :: excli_t, sccli_t
-      logical, allocatable, dimension(:,:) :: lmap
 
       complex(8), allocatable, dimension(:,:) :: ebuff, sbuff
 
@@ -232,16 +248,18 @@ module m_setup_bse
 
       if(ham%isdistributed) then 
 
+        ! Select form which files W and V are to be read
         if(.not. fcoup) then
-          sfname = scclifname
-          efname = exclifname
+          call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=sfname)
+          call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
         else
-          sfname = scclicfname
-          efname = exclicfname
+          call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=sfname)
+          call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=efname)
         end if
 
-        if(rank == 0) then 
-          write(unitout, '("setup_distributed_bse: Reading form ", a, " and ", a)') trim(sfname), trim(efname)
+        if(mpiglobal%rank == 0) then 
+          write(unitout, '("setup_distributed_bse: Reading form ", a, " and ", a)')&
+            & trim(sfname), trim(efname)
         end if
 
 #ifdef SCAL
@@ -251,12 +269,9 @@ module m_setup_bse
         !! DATA CHUNKS TO THE OTHERS.  !!
         !!*****************************!!
         ! Allocate read in work arrays
-        if(myprow == 0 .and. mypcol == 0) then 
-          allocate(excli(nu,no,nu,no)) ! RR/RA part of V
-          allocate(sccli(nu,no,nu,no)) ! RR/RA part of W
-          allocate(excli_t(nou,nou))
-          allocate(sccli_t(nou,nou))
-          allocate(lmap(nou,nou))
+        if(binfo%myprow == 0 .and. binfo%mypcol == 0) then 
+          allocate(excli_t(nou_bse_max, nou_bse_max))
+          allocate(sccli_t(nou_bse_max, nou_bse_max))
         end if
 
         ! Block sizes
@@ -265,6 +280,11 @@ module m_setup_bse
 
         ! Context
         context = ham%context
+        if(context /= binfo%context) then 
+          write(*, '("Error (setup_distributed_bse): Context mismatch:", 2i4)')&
+            & context, binfo%context
+          call terminate
+        end if
 
         ! Send/receive buffer
         allocate(ebuff(iblck, jblck))
@@ -272,49 +292,51 @@ module m_setup_bse
 
         ! Loop over ikkp blocks of the global 
         ! BSE Hamilton matrix.
-        do ikkp = 1, nkkp
+        do ikkp = 1, nkkp_bse
 
-          ! Get k and kp for current kkp
-          call kkpmap(ikkp, nk, ik1, ik2)
+          ! Get index ik jk form combination index ikkp
+          call kkpmap(ikkp, nk_bse, ik, jk)
+
+          ! Get global index iknr
+          iknr = kmap_bse_rg(ik)
+          ! Get ranges
+          inu = koulims(2,iknr)-koulims(1,iknr)+1
+          ino = koulims(4,iknr)-koulims(3,iknr)+1
+
+          ! Get global index jknr
+          jknr = kmap_bse_rg(jk)
+          ! Get ranges
+          jnu = koulims(2,jknr)-koulims(1,jknr)+1
+          jno = koulims(4,jknr)-koulims(3,jknr)+1
 
           ! Position of ikkp block in global matrix
-          ii = sum(kousize(1:ik1-1)) + 1
-          jj = sum(kousize(1:ik2-1)) + 1
+          ii = sum(kousize(1:iknr-1)) + 1
+          jj = sum(kousize(1:jknr-1)) + 1
 
           ! Size of sub-matrix
-          m = kousize(ik1)
-          n = kousize(ik2)
+          inou = inu*ino
+          jnou = jnu*jno
 
           !!***********!!
           !! READ DATA !!
           !!***********!!
-          if(myprow == 0 .and. mypcol == 0) then
+          if(binfo%myprow == 0 .and. binfo%mypcol == 0) then
 
             ! Read in screened coulomb interaction for ikkp
             select case(trim(input%xs%bse%bsetype))
               case('singlet', 'triplet')
-                ! Read RR/RA part of screened coulomb interaction W_{uoki,u'o'kj}
-                call getbsemat(trim(sfname), ikkp, nu, no, sccli)
+                ! Read RR/RA part of screened coulomb interaction W_{iuioik,jujojk}(qmt)
+                call b_getbsemat(trim(sfname), iqmt, ikkp, sccli_t(1:inou,1:jnou),&
+                  & input%xs%bse%blindread)
             end select
 
             ! Read in exchange interaction for ikkp
             select case(trim(input%xs%bse%bsetype))
               case('RPA', 'singlet')
-                ! Read RR/RA part of exchange interaction v_{uoki,u'o'kj}
-                call getbsemat(trim(efname), ikkp, nu, no, excli)
+                ! Read RR/RA part of exchange interaction v_{iuioik,jujojk}(qmt)
+                call b_getbsemat(trim(efname), iqmt, ikkp, excli_t(1:inou,1:jnou),&
+                  & input%xs%bse%blindread)
             end select
-
-            !! Make map for which kou and k'o'u' to use in 
-            !! the construction (may me a reduced set due to 
-            !! partial occupations)
-            lmap = matmul(reshape(kouflag(:,ik1),[nou, 1]), reshape(kouflag(:,ik2),[1, nou]))
-            ! Shape interaction arrays more appropriately and select used kou combinations via map
-            excli_t = zzero
-            sccli_t = zzero
-            excli_t(1:m,1:n) = &
-              & reshape(pack(reshape(excli,[nou, nou]), lmap), [m, n]) 
-            sccli_t(1:m,1:n) = &
-              & reshape(pack(reshape(sccli,[nou, nou]), lmap), [m, n])
 
           end if
 
@@ -323,7 +345,7 @@ module m_setup_bse
           !!******************!!
           ! Column index of global ikkp sub-matrix
           j = 1
-          do while(j <= n)
+          do while(j <= jnou)
 
             ! Column index of global matrix
             jg = jj + j - 1
@@ -333,23 +355,23 @@ module m_setup_bse
               ! First column block size of global sub-matrix
               ! Adjust for possible truncation of first column block size 
               jb = jblck - mod(jj-1, jblck)
-              jb = min(jb, n-j+1)
+              jb = min(jb, jnou-j+1)
             else
               ! Adjust for possible truncation of last column block size 
-              jb = min(jblck, n-j+1)
+              jb = min(jblck, jnou-j+1)
             end if
 
             !! We have a sub block of the 
             !! global sub-matrix at col j of colsize jb
             !! that needs to be sent do one process only.
             ! Get first process grid coordinate of responsible process.
-            pc = indxg2p( jg, jblck, mypcol, 0, npcol)
+            pc = indxg2p( jg, jblck, binfo%mypcol, 0, binfo%npcols)
             ! Get column position of ib*jb block in local matrix
-            jl = indxg2l( jg, jblck, pc, 0, npcol)
+            jl = indxg2l( jg, jblck, pc, 0, binfo%npcols)
 
             ! Row index of global sub-matrix
             i  = 1
-            do while(i <= m)
+            do while(i <= inou)
 
               ! Row index of global matrix
               ig = ii + i - 1
@@ -358,22 +380,22 @@ module m_setup_bse
                 ! First row block size of global sub-matrix
                 ! Adjust for possible truncation of first row block size 
                 ib = iblck - mod(ii-1, iblck)
-                ib = min(ib, m-i+1)
+                ib = min(ib, inou-i+1)
               else
                 ! Adjust for possible truncation of last row block size 
-                ib = min(iblck, m-i+1)
+                ib = min(iblck, inou-i+1)
               end if
 
               !! We have a sub block of the 
               !! global sub-matrix at coordinates i,j of size ib*jb
               !! that needs to be sent do one process only.
               ! Get second process grid coordinate of responsible process.
-              pr = indxg2p( ig, iblck, myprow, 0, nprow)
+              pr = indxg2p( ig, iblck, binfo%myprow, 0, binfo%nprows)
               ! Get row position of ib*jb block in local matrix
-              il = indxg2l( ig, iblck, pr, 0, nprow)
+              il = indxg2l( ig, iblck, pr, 0, binfo%nprows)
 
               ! Root does data sending
-              if( myprow == 0 .and. mypcol == 0) then 
+              if( binfo%myprow == 0 .and. binfo%mypcol == 0) then 
 
                 ! No send needed, root is responsible for that block
                 if( pr == 0 .and. pc == 0) then
@@ -399,7 +421,7 @@ module m_setup_bse
                 end if
 
               ! All others only receive
-              else if(myprow == pr .and. mypcol == pc) then
+              else if(binfo%myprow == pr .and. binfo%mypcol == pc) then
 
                 ! Receive block
                 call zgerv2d(context, ib, jb, ebuff, iblck, 0, 0)
@@ -437,7 +459,7 @@ module m_setup_bse
 
       else
 
-        call setup_bse(ham%za, fcoup)
+        call setup_bse(ham%za, iqmt, fcoup)
 
       end if
 
@@ -463,15 +485,21 @@ module m_setup_bse
     !   The routine returns a sub block of the distributed BSE-Hamiltonian matrix:\\
     !   $H(i_g:ig+ib-1, j_g:j_g+jb-1)$ where each entry is computed according to \\
     !   $H(i, j) = E(i, j) + F(i) \left( - W(i, j) + 2*V(i, j) \right) F(j)$\\
-    !   Only if the sub block contains diagonal elements of the matrix the kohn sham transition
-    !   energies $E$ will be added (RR case only). From the transition energies the gap energy is subtracted and
+    !   Only if the sub block contains diagonal elements of the matrix the kohn sham
+    !   transition energies $E$ will be added (RR case only).
+    !   From the transition energies the gap energy is subtracted and
     !   the scissor is added. The exchange term $V$ is added optionally. \\
     !
     !   The matrix indices correspond to combined indices $\alpha$: \\
     !   Where $\alpha = \{ \vec{k}_\alpha, o_\alpha, u_\alpha \}$, so that: \\
-    !   $F_{\alpha} = \sqrt{\left| f_{\vec{k}_{\alpha_1} o_{\alpha_1}} - f_{\vec{k}_{\alpha_1} u_{\alpha_1}} \right|}$ \\
-    !   $V_{\alpha_1,\alpha_2} = V_{\vec{k}_{\alpha_1} o_{\alpha_1} u_{\alpha_1}, \vec{k}_{\alpha_2} o_{\alpha_2} u_{\alpha_2}}$ \\
-    !   $W_{\alpha_1,\alpha_2} = W_{\vec{k}_{\alpha_1} o_{\alpha_1} u_{\alpha_1}, \vec{k}_{\alpha_2} o_{\alpha_2} u_{\alpha_2}}$ 
+    !   $F_{\alpha} = \sqrt{ \left| f_{\vec{k}_{\alpha_1} o_{\alpha_1}} 
+    !                        - f_{\vec{k}_{\alpha_1} u_{\alpha_1}} \right|}$ \\
+    !   $V_{\alpha_1,\alpha_2} = 
+    !    V_{\vec{k}_{\alpha_1} o_{\alpha_1} u_{\alpha_1},
+    !        \vec{k}_{\alpha_2} o_{\alpha_2} u_{\alpha_2}}$ \\
+    !   $W_{\alpha_1,\alpha_2} = 
+    !    W_{\vec{k}_{\alpha_1} o_{\alpha_1} u_{\alpha_1},
+    !        \vec{k}_{\alpha_2} o_{\alpha_2} u_{\alpha_2}}$ 
     !
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)
@@ -551,6 +579,9 @@ module m_setup_bse
       ioabs = smap(a1, 2)
       ik = smap(a1, 3)
       ! Calculate ks energy difference for q=0
+      ! de = e_{u, k+qmt} - e_{o, k} + scissor (RR)
+      ! de = e_{u, k-qmt} - e_{o, k} + scissor (AA)
+      ! Note: only qmt=0 supported
       deval = evalsv(iuabs,ik)-evalsv(ioabs,ik)+evalshift
       kstrans = cmplx(deval, 0.0d0, 8)
     end function kstrans

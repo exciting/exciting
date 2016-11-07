@@ -8,7 +8,7 @@
 ! !INTERFACE:
 subroutine genparidxran(typ, n)
 ! !USES:
-  use modmpi, only: procs, rank, firstofset, lastofset
+  use modmpi
   use mod_qpoint, only: nqpt
   use mod_kpoint, only: nkpt
   use modxs, only: wpari, wparf, qpari, qparf,&

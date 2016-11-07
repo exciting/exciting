@@ -203,7 +203,7 @@ subroutine writepmatxs
       write(50,rec=ik) pmat
     else
       ! Parallel write
-      call putpmat(ik, .true., trim(fnpmat), pmat)
+      call putpmat(ik, trim(fnpmat), pmat)
     end if
 
   end do kloop

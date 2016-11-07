@@ -237,6 +237,7 @@ Module modxs
       Real (8) :: evlmin, evlmax, evlmincut, evlmaxcut
   ! true if system has a Kohn-Sham gap
       Logical :: ksgap
+      real(8) :: ksgapval
 
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !

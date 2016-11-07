@@ -1,4 +1,6 @@
 module m_dzinvert
+  use modmpi 
+  use modscl
 
   implicit none
 
@@ -8,16 +10,13 @@ module m_dzinvert
     ! !ROUTINE: dhesolver
     ! !INTERFACE:
     subroutine dzinvert(zmat)
-    ! !USES:
-      use modmpi 
-      use modscl
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN/OUT:
-    !   type(zmat) :: zmat ! On entry: Matrix to invert
-    !                      ! On exit : Inverted matrix.
+    !   type(dzmat) :: zmat ! On entry: Distributed matrix to invert.
+    !                       ! On exit : Inverted matrix.
     !
     ! !DESCRIPTION:
-    !   Takes a general complex matrix and inverts it.
+    !   Takes a distributed general complex matrix and inverts it.
     ! 
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)
@@ -38,7 +37,7 @@ module m_dzinvert
 #endif
 
 #ifdef SCAL
-      allocate(ipiv(zmat%nrows_loc+mblck))
+      allocate(ipiv(zmat%nrows_loc+zmat%mblck))
 #else
       allocate(ipiv(zmat%nrows))
 #endif

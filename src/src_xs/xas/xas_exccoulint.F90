@@ -138,7 +138,7 @@ Subroutine xas_exccoulint
          If (allocated(xiuo)) deallocate (xiuo)
       End Do
   ! communicate array-parts wrt. k-points
-      call mpi_allgatherv_ifc(nkptnr,nst1*nst2*n,zbuf=emat12k)
+      call mpi_allgatherv_ifc(nkptnr,rlen=nst1*nst2*n,zbuf=emat12k)
       input%xs%emattype = 1
       Call ematbdcmbs (input%xs%emattype)
   !-------------------------------!

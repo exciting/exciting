@@ -37,11 +37,14 @@ subroutine getdocc(iq, ik, ikq, l1, u1, l2, u2, docc)
   allocate(o0(nstsv), o(nstsv))
 
   ! Eigenvalues and occupancies for k-point
+  ! Reads from OCCSV_QMT000.OUT
   call getoccsv0(vkl0(1:3, ik), o0)
 
   ! Eigenvalues and occupancies for k+q-point
+  ! Reads form the OCCSV* file with the current file extension.
+  ! So for no momentum transfer it should also be set to 
+  ! OCCSV_QMT000.OUT.
   call getoccsv(vkl(1:3, ikq), o)
-
 
   ! Loop over band ranges    
   do ist = l1, u1

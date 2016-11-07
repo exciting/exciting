@@ -6,6 +6,7 @@
 ! See the file COPYING for license details.
 !
 Module m_fxc_lrc
+      use modmpi
       Implicit None
 !
 Contains

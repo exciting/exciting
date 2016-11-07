@@ -6,6 +6,7 @@
 ! See the file COPYING for license details.
 !
 Module invert
+  use modmpi
       Implicit None
 Contains
 !

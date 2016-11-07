@@ -13,6 +13,7 @@ module m_putx0
     ! !INTERFACE:
     subroutine putx0(tp0, iq, iw, filnam, filxt, ch0, ch0wg, ch0hd)
     ! !USES:
+      use modmpi
       use modmain
       use modxs
       use m_getunit

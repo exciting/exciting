@@ -12,6 +12,7 @@ Contains
 !
       Subroutine getx0 (tp0, iq, iw, filnam, filxt, ch0, ch0wg, ch0hd)
          Use modmain
+         use modmpi
          Use modxs
          Use m_getunit
          Implicit None

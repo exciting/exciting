@@ -5,47 +5,26 @@ module modscl
 
   implicit none
 
+#define BLOCKSIZE 8
+
   type blacsinfo
+    ! Underlying MPI communicator
+    type(mpiinfo) :: mpi
+    ! BLACS context
     integer(4) :: context
+    ! Number of processes in grid
     integer(4) :: nprocs
+    ! Number of processes in each row/column
     integer(4) :: nprows, npcols
+    ! Current process grid coordinates
     integer(4) :: myprow, mypcol
+    ! Default block sizes
     integer(4) :: mblck, nblck
+    ! Error flag
+    integer(4) :: ierr
   end type
 
   type(blacsinfo) :: bi2d, bi1dc, bi1dw
-
- ! ! BLACS contexts
- ! integer(4) :: ictxt2d, ictxt1d_r, ictxt1d_c
- ! ! Number of used processes in all contexts
- ! integer(4) :: nproc
- ! ! Process grid shapes
- ! integer(4) :: nprow, nprow1d_r, nprow1d_c
- ! integer(4) :: npcol, npcol1d_r, npcol1d_c
- ! ! Coordinates of current process
- ! integer(4) :: myprow, myprow1d_r, myprow1d_c
- ! integer(4) :: mypcol, mypcol1d_r, mypcol1d_c
- ! ! Coordinated of remote process
- ! integer(4) :: reprow, reprow1d_r, reprow1d_c
- ! integer(4) :: repcol, repcol1d_r, repcol1d_c
-
-#define BLOCKSIZE 8
- ! ! 2D blocking
- ! ! The hermitian EVP solver of ScaLAPACK needs 
- ! ! mblck = nblck.
- ! integer(4), parameter :: mblck = BLOCKSIZE
- ! integer(4), parameter :: nblck = BLOCKSIZE
- ! ! 1D blocking rows
- ! integer(4), parameter :: mblck1d_c = BLOCKSIZE
- ! integer(4), parameter :: nblck1d_c = 1
- ! ! 1D blocking cols
- ! integer(4), parameter :: mblck1d_r = 1
- ! integer(4), parameter :: nblck1d_r = BLOCKSIZE
-
-  ! Auxilliary: Senders local array dimensions
-  integer(4) :: sender_nrl, sender_ncl
-  ! Auxilliary: error flag
-  integer(4) :: sclierr
 
   ! Distributed complex matrix type
   type dzmat
@@ -63,9 +42,9 @@ module modscl
     ! BLACS context and blocking sizes
     integer(4) :: context
     integer(4) :: mblck, nblck
-    ! Convinience l2g index maps
-    integer(4), allocatable :: r2g(:)
-    integer(4), allocatable :: c2g(:)
+    ! Convinience local to global index maps
+    integer(4), allocatable :: r2g(:) ! rows
+    integer(4), allocatable :: c2g(:) ! columns
   end type dzmat
 
 #ifdef SCAL
@@ -76,151 +55,362 @@ module modscl
 
   contains
 
-    subroutine setupblacs(nprocs)
+    !BOP
+    ! !ROUTINE: setupblacs
+    ! !INTERFACE:
+    subroutine setupblacs(mpicom, typechars, blacscom, np)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! IN:
+    !   type(mpiinfo) :: mpicom    ! Info type for the MPI communicator to be 
+    !                              ! used as the basis for BLACS
+    !   character(*)  :: typechars ! String to indicate 2d or 1d BLACS grid
+    !   integer(4), optional :: np   ! Number of ranks to be used
+    ! OUT:
+    !   type(blacsinfo) :: blacscom  ! Info type for the resulting BLACS grid
+    !
+    ! !DESCRIPTION:
+    !   This routine creates an BLACS process grid on top of an existing 
+    !   {\tt MPI} communicator. Grid shape options are ``2d", ``1dr" and ``1dc". 
+    !   The {\tt MPI} ranks are distributed in a row-major fashion.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !
+    !EOP
+    !BOC
 
-      integer(4), intent(in) :: nprocs
+      type(mpiinfo), intent(in) :: mpicom
+      character(*), intent(in) :: typechars
+      integer(4), intent(in), optional :: np
+      type(blacsinfo), intent(out) :: blacscom
 
-      integer(4) :: iam, sysproc
-      integer(4) :: prow, pcol
+      ! Number of used processes to be used for blacs
+      integer(4) :: nprocs, nprocs2d
+      ! BLACS context
+      integer(4) :: ictxt
+      ! Process grid shape
+      integer(4) :: nprows
+      integer(4) :: npcols
+      ! Coordinates of current process
+      integer(4) :: myprow
+      integer(4) :: mypcol
+      ! Default block sizes
+      integer(4) :: mblck, nblck
 
-      ! Setup 2D process grid
-      ! Make rectangular process grid.
-      ! Warn if there are dangling processes.
-      bi2d%context = -1
-      bi2d%npcols = int(sqrt(dble(nprocs)))
-      bi2d%nprows = nprocs/bi2d%npcols
-      bi2d%nprocs = bi2d%npcols*bi2d%nprows
-
-      ! 1D grid cols
-      bi1dc%context = -1
-      bi1dc%nprocs = nprocs
-      bi1dc%nprows = 1
-      bi1dc%npcols = bi1dc%nprocs
-
-      ! 1D grid rows
-      bi1dr%context = -1
-      bi1dr%nprocs = nprocs
-      bi1dr%nprows = bi1dr%nprocs
-      bi1dr%npcols = 1
-
-#ifdef SCAL
-      ! Get info about mpi environment
-      call blacs_pinfo(iam, sysproc)
-      if(iam /= rank .or. procs /= sysproc) then
-        write(*,*) "setupblacs (ERROR): Something is fishy:", iam, rank, sysproc, procs
+      ! Check input
+      if(present(np)) then
+        nprocs = np
+      else
+        nprocs = mpicom%procs
+      end if
+      if(nprocs < 1) then 
+        write(*,'("Error (setupblacs): np < 1: ",i3)') nprocs
+        call terminate
+      else if(nprocs > mpicom%procs) then
+        write(*,'("Error (setupblacs): np > mpiprocs: ",2i4)') nprocs, mpicom%procs
         call terminate
       end if
 
-      call blacs_get(-1, 0, ictxt2d)
-      ! Make 2D process grid with row major ordering of the ranks
-      call blacs_gridinit(ictxt2d, 'R', nprow, npcol)
-      call blacs_gridinfo(ictxt2d, nprow, npcol, myprow, mypcol)
-       
-      call blacs_get(-1, 0, ictxt1d_r)
-      ! Make 1D process grid (one row) with row major ordering of the ranks
-      call blacs_gridinit(ictxt1d_r, 'R', nprow1d_r, npcol1d_r)
-      call blacs_gridinfo(ictxt1d_r, nprow1d_r, npcol1d_r, myprow1d_r, mypcol1d_r)
+#ifdef SCAL
+      
+      select case(trim(adjustl(typechars)))
 
-      call blacs_get(-1,0,ictxt1d_c)
-      ! Make 1D process grid (one col) with column major ordering of the ranks
-      call blacs_gridinit(ictxt1d_c, 'C', nprow1d_c, npcol1d_c)
-      call blacs_gridinfo(ictxt1d_c, nprow1d_c, npcol1d_c, myprow1d_c, mypcol1d_c)
+        ! Make 2D process grid with row major ordering of the ranks
+        case('2D','2d','grid','Grid','GRID')
+          ! Make square'ish porcess grid out of nporcs processes
+          npcols = int(sqrt(dble(nprocs)))
+          nprows = nprocs/npcols
+          nprocs2d = npcols*nprows
+          ! Use MPI communicator as basis
+          ictxt = mpicom%comm
+          if(mpicom%rank == 0) then
+            write(unitout,'("Info (setupblacs): Using ", i4, " x", i4,&
+              & " process grid. Ctxt(", i1, ") MPIcom(", i1, ")")')&
+              & nprows, npcols, ictxt, mpicom%comm
+            if(nprocs2d /= nprocs) then
+              write(unitout,'("Info (setupblacs):&
+                & Warning - Processes do not fit 2d grid")')
+              write(unitout,'("Info (setup2dblacs):&
+                & Warning - ",i2," processes not used")') nprocs-nprocs2d
+            end if
+          end if
+          nprocs = nprocs2d
+          ! Make the blacs grid
+          call blacs_gridinit(ictxt, 'R', nprows, npcols)
+          call blacs_gridinfo(ictxt, nprows, npcols, myprow, mypcol)
+          ! Set default block sizes
+          mblck = BLOCKSIZE
+          nblck = BLOCKSIZE
 
-      if(rank == 0) then
-        write(unitout,'("Info(setup2dblacs): Using ",i4," x",i4,&
-          &" process grid. Ctxt(",i1,")")')&
-          & nprow, npcol, ictxt2d
-        if(nproc /= procs) then
-          write(unitout,'("Info(setup2dblacs): Warning - Processes do not fit 2d grid")')
-          write(unitout,'("Info(setup2dblacs): Warning - ",i2," processes not used")')&
-            & procs-nproc
-        end if
-        write(unitout,'("Info(setup2dblacs): Aux. ",i4," x",i4,&
-          &" process grid. Ctxt(",i1,")")')&
-          & nprow1d_r, npcol1d_r, ictxt1d_r
-        write(unitout,'("Info(setup2dblacs): Aux. ",i4," x",i4,&
-          &" process grid. Ctxt(",i1,")")')&
-          & nprow1d_c, npcol1d_c, ictxt1d_c
-      end if
+        ! Make 1D process grid (one col) with column major ordering of the ranks
+        case('1Dc','1DC','1dc','1dC','column','Column','COLUMN')
+          npcols = nprocs
+          nprows = 1
+          nprocs = nprocs
+          ! Use MPI communicator as basis
+          ictxt = mpicom%comm
+          if(mpicom%rank == 0) then
+            write(unitout,'("Info (setupblacs): Aux. ",i4," x",i4,&
+              &" process grid. Ctxt(",i1,") MPIcom(",i1,")")')&
+              & nprows, npcols, ictxt, mpicom%comm
+          end if
+          ! Make the blacs grid
+          call blacs_gridinit(ictxt, 'C', nprows, npcols)
+          call blacs_gridinfo(ictxt, nprows, npcols, myprow, mypcol)
+          ! Set default block sizes
+          mblck = BLOCKSIZE*BLOCKSIZE
+          nblck = 1
+
+        ! Make 1D process grid (one row) with row major ordering of the ranks
+        case('1Dr','1DR','1dr','1dR','row','Row','ROW')
+          npcols = 1
+          nprows = nprocs
+          nprocs = nprocs
+          ! Use MPI communicator as basis
+          ictxt = mpicom%comm
+          if(mpicom%rank == 0) then
+            write(unitout,'("Info (setupblacs): Aux. ",i4," x",i4,&
+              &" process grid. Ctxt(",i1,") MPIcom(",i1,")")')&
+              & nprows, npcols, ictxt, mpicom%comm
+          end if
+          ! Make the blacs grid
+          call blacs_gridinit(ictxt, 'R', nprows, npcols)
+          call blacs_gridinfo(ictxt, nprows, npcols, myprow, mypcol)
+          ! Set default block sizes
+          mblck = 1
+          nblck = BLOCKSIZE*BLOCKSIZE
+
+        case default
+          write(*,'("Error (setupblacs): Using unknown type: ",a)') typechars
+          call terminate
+
+      end select
+
 #else
-      myprow=0
-      mypcol=0
-      myprow1d_r=0
-      mypcol1d_r=0
-      myprow1d_c=0
-      mypcol1d_c=0
+      ictxt = -1
+      nprocs = 0
+      nprows = -1
+      npcols = -1 
+      myprow = -1 
+      mypcol = -1
+      mblck = 1
+      nblck = 1
 #endif
+
+      ! Make ouput type
+      blacscom%mpi = mpicom
+      blacscom%context = ictxt
+      blacscom%nprocs = nprocs
+      blacscom%nprows = nprows
+      blacscom%npcols = npcols
+      blacscom%myprow = myprow
+      blacscom%mypcol = mypcol
+      blacscom%mblck = mblck
+      blacscom%nblck = nblck
 
     end subroutine setupblacs
+    !EOC
 
-    subroutine exit2dblacs
+    !BOP
+    ! !ROUTINE: exitblacs
+    subroutine exitblacs(blacscom)
+    ! !INPUT/OUTPUT PARAMTERS:
+    ! IN:
+    !   type(blacsinfo) :: blacscom
+    !
+    ! !DESCRIPTION:
+    !   This routine waits untill all porcesses of
+    !   the passed {\tt BLACS} grid have reached it and
+    !   then terminated the grid.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
+      type(blacsinfo), intent(in) :: blacscom
 #ifdef SCAL
-      call blacs_barrier(ictxt2d, 'A')
-      call blacs_gridexit(ictxt2d)
-      call blacs_gridexit(ictxt1d_r)
-      call blacs_gridexit(ictxt1d_c)
+      call blacs_barrier(blacscom%context, 'A')
+      call blacs_gridexit(blacscom%context)
 #endif
-    end subroutine exit2dblacs
+    end subroutine exitblacs
+    !EOC
 
-    subroutine unpacktoglobal(zmat, buff, iblck, jblck, prow, pcol, npr, npc)
-      complex(8), intent(inout) :: zmat(:,:)
-      complex(8), intent(in) :: buff(:,:)
-      integer(4), intent(in) :: iblck, jblck, prow, pcol, npr, npc
+    !BOP
+    ! !ROUTINE: new_dzmat
+    ! !INTERFACE:
+    subroutine new_dzmat(self, nrows, ncols, binfo, rblck, cblck)
+    ! !INPUTP/OUTPUT PARAMETERS:
+    ! IN:
+    !   integer(4) :: nrows      ! Global number of rows of self
+    !   integer(4) :: ncols      ! Global number of columns of self
+    !   type(blacsinfo) :: binfo ! Info type for BLACS grid the matrix 
+    !                            ! is to be distrubuted over
+    !   integer(4), optional :: rblck, cblck ! Blocking size of rows and columns
+    ! IN/OUT:
+    !   type(dzmat) :: self ! The distributed complex(8) matrix
+    !
+    ! !DESCRIPTION:
+    !   This routine initialized a block cyclic distributed global 
+    !   matrix for a given {\tt BLACS} process grid. It sets up
+    !   descriptor arrays, builds index maps and allocates the local matrix.
+    !   In the case of compilation without {\tt ScaLAPACK} the global matrix
+    !   is identical to the local matrix.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
 
-      integer(4) :: ig, jg, il, jl
+      type(dzmat), intent(inout) :: self
+      integer(4), intent(in) :: nrows, ncols
+      type(blacsinfo), intent(in) :: binfo
+      integer(4), intent(in), optional :: rblck, cblck
 
-      do jl = 1, size(buff, 2)
+      integer(4) :: con, i, j
+
+      ! Defaults
+      self%isdistributed = .false.
+      self%nrows = nrows
+      self%ncols = ncols
+      self%nrows_loc = nrows
+      self%ncols_loc = ncols
+      self%context = binfo%context
+      self%mblck = 1
+      self%nblck = 1
+
 #ifdef SCAL
-          jg = indxl2g(jl, jblck, pcol, 0, npc)
-#endif
-        do il = 1, size(buff, 1)
-#ifdef SCAL
-          ig = indxl2g(il, iblck, prow, 0, npr)
-#else
-          ig = il
-          jg = jl
-#endif
-          zmat(ig, jg) = buff(il,jl)
+
+      if(self%context == -1) then
+        self%isdistributed = .false.
+      else
+        self%isdistributed = .true.
+      end if
+
+      if(self%isdistributed) then
+
+        ! Set block sizes
+        self%mblck = min(binfo%mblck, self%nrows)
+        self%nblck = min(binfo%nblck, self%ncols)
+        if(present(rblck)) self%mblck = min(rblck, self%nrows)
+        if(present(cblck)) self%nblck = min(cblck, self%ncols)
+
+        ! Get number of locas rows and columns
+        self%nrows_loc = numroc(self%nrows, self%mblck, binfo%myprow, 0, binfo%nprows)
+        self%ncols_loc = numroc(self%ncols, self%nblck, binfo%mypcol, 0, binfo%npcols)
+
+        ! Write index maps
+        if(allocated(self%r2g)) deallocate(self%r2g)
+        if(allocated(self%c2g)) deallocate(self%c2g)
+        allocate(self%r2g(self%nrows_loc))
+        allocate(self%c2g(self%ncols_loc))
+        do i = 1, self%nrows_loc
+          self%r2g(i) = indxl2g(i, self%mblck, binfo%myprow, 0, binfo%nprows)
         end do
-      end do
-    end subroutine unpacktoglobal
+        do j = 1, self%ncols_loc
+          self%c2g(j) = indxl2g(j, self%nblck, binfo%mypcol, 0, binfo%npcols)
+        end do
 
-    subroutine dzmat_send2global_root(mat, dmat)
+        ! Make descriptor
+        if(allocated(self%desc)) deallocate(self%desc)
+        allocate(self%desc(9))
+        call descinit(self%desc, self%nrows, self%ncols, &
+          & self%mblck, self%nblck, 0, 0, self%context, max(1,self%nrows_loc), binfo%ierr)
+        if(binfo%ierr /= 0) then
+          write(*,'("new_dzmat@rank(",i3,1x,i3,") (Error):&
+            & descinit returned non zero error code")')&
+            & binfo%mpi%rank, mpiglobal%rank, binfo%ierr
+          call terminate
+        end if
+
+      end if
+#endif
+
+      ! Allocate local array for global matrix
+      if(allocated(self%za)) deallocate(self%za)
+      allocate(self%za(self%nrows_loc, self%ncols_loc))
+
+      ! Zero it for good measure.
+      if(self%nrows_loc > 0) self%za = cmplx(0,0,8)
+
+    end subroutine new_dzmat
+    !EOC
+
+    !BOP
+    ! !ROUTINE: del_zmat
+    ! !INTERFACE:
+    subroutine del_dzmat(self)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! IN:
+    !   type(dzmat) :: self
+    !
+    ! !DESCRIPTION:
+    !   This routine deallocated a distributed complex(8) matrix.
+    ! 
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
+      type(dzmat), intent(inout) :: self
+      if(allocated(self%za)) deallocate(self%za)
+      if(allocated(self%desc)) deallocate(self%desc)
+      if(allocated(self%r2g)) deallocate(self%r2g)
+      if(allocated(self%c2g)) deallocate(self%c2g)
+    end subroutine del_dzmat
+    !EOC
+
+    !BOP
+    ! !ROUTINE: dzmat_send2global_root
+    ! !INTERFACE:
+    subroutine dzmat_send2global_root(mat, dmat, binfo)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! IN:
+    !   type(dzmat) :: dmat      ! Distributed complex(8) matrix
+    !   type(blacsinfo) :: binfo ! Info type for BLACS grid
+    ! OUT:
+    !   complex(8), allocatable :: mat(:,:) ! Global matrix
+    !
+    ! !DESCRIPTION:
+    !   This routine collects a distributed complex matrix 
+    !   in a global array on porcess $(0,0)$.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
 
       complex(8), allocatable, intent(out) :: mat(:,:)
       type(dzmat), intent(in) :: dmat
+      type(blacsinfo), intent(in) :: binfo
 
-      integer(4) :: context, ip, prow, pcol, npr, npc
-      complex(8), allocatable :: buff(:,:)
+      logical :: iamroot
       integer(4) :: i,j,ig,jg
+      integer(4) :: context, ip, prow, pcol, npr, npc
+      integer(4) :: reprow, repcol
+      integer(4) :: sender_nrl, sender_ncl
       integer(4), allocatable :: irbuff(:), icbuff(:)
+      complex(8), allocatable :: buff(:,:)
 
       context = dmat%context
+      if(context /= binfo%context) then
+        write(*,'("Error (dzmat_send2global_root):&
+          & Matrix definded on different context:",2i4)') context, binfo%context
+        call terminate
+      end if
 
-      if(rank == 0) then
+      iamroot = (binfo%myprow == 0 .and. binfo%mypcol == 0)
+
+      if(iamroot) then
 
         if(allocated(mat)) deallocate(mat)
         allocate(mat(dmat%nrows,dmat%ncols))
 
 #ifdef SCAL
-        if(context == ictxt2d) then
-          prow = myprow
-          pcol = mypcol
-          npr = nprow
-          npc = npcol
-        else if(context == ictxt1d_r) then
-          prow = myprow1d_r
-          pcol = mypcol1d_r
-          npr = nprow1d_r
-          npc = npcol1d_r
-        else if(context == ictxt1d_c) then
-          prow = myprow1d_c
-          pcol = mypcol1d_c
-          npr = nprow1d_c
-          npc = npcol1d_c
-        end if
+        prow = binfo%myprow
+        pcol = binfo%mypcol
+        npr = binfo%nprows
+        npc = binfo%npcols
         
-        ! Rank 0's part
+        ! Root's part
         do j = 1, dmat%ncols_loc
           jg = dmat%c2g(j)
           do i = 1, dmat%nrows_loc
@@ -230,7 +420,7 @@ module modscl
         end do
 
         ! Get data from other processes
-        do ip = 1, nproc-1
+        do ip = 1, binfo%nprocs-1
 
           ! Get info about sender and sender's local matrix
           call blacs_pcoord(context, ip, reprow, repcol)
@@ -282,42 +472,57 @@ module modscl
       end if
 
     end subroutine dzmat_send2global_root
+    !EOC
 
-    subroutine dzmat_send2global_all(mat, dmat)
+    !BOP
+    ! !ROUTINE: dzmat_send2global_all
+    ! !INTERFACE:
+    subroutine dzmat_send2global_all(mat, dmat, binfo)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! IN:
+    !   type(dzmat) :: dmat      ! Distributed complex(8) matrix
+    !   type(blacsinfo) :: binfo ! Info type for BLACS grid
+    ! OUT:
+    !   complex(8), allocatable :: mat(:,:) ! Global matrix
+    !
+    ! !DESCRIPTION:
+    !   This routine collects a distributed complex matrix 
+    !   in a global array on all porcesses of the grid.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
 
-      complex(8), allocatable, intent(inout) :: mat(:,:)
+      complex(8), allocatable, intent(out) :: mat(:,:)
       type(dzmat), intent(in) :: dmat
+      type(blacsinfo), intent(in) :: binfo
 
-      integer(4) :: context, ip, prow, pcol, npr, npc
-      complex(8), allocatable :: buff(:,:)
       integer(4) :: i,j,ig,jg
+      integer(4) :: context, ip, prow, pcol, npr, npc
+      integer(4) :: reprow, repcol
+      integer(4) :: sender_nrl, sender_ncl
       integer(4), allocatable :: irbuff(:), icbuff(:)
+      complex(8), allocatable :: buff(:,:)
 
+      context = dmat%context
+      if(context /= binfo%context) then
+        write(*,'("Error (dzmat_send2global_root):&
+          & Matrix definded on different context:",2i4)') context, binfo%context
+        call terminate
+      end if
 
       if(allocated(mat)) deallocate(mat)
       allocate(mat(dmat%nrows,dmat%ncols))
 
 #ifdef SCAL
-      context = dmat%context
 
-      if(context == ictxt2d) then
-        prow = myprow
-        pcol = mypcol
-        npr = nprow
-        npc = npcol
-      else if(context == ictxt1d_r) then
-        prow = myprow1d_r
-        pcol = mypcol1d_r
-        npr = nprow1d_r
-        npc = npcol1d_r
-      else if(context == ictxt1d_c) then
-        prow = myprow1d_c
-        pcol = mypcol1d_c
-        npr = nprow1d_c
-        npc = npcol1d_c
-      end if
+      prow = binfo%myprow
+      pcol = binfo%mypcol
+      npr = binfo%nprows
+      npc = binfo%npcols
 
-      do ip = 0, nproc-1
+      do ip = 0, binfo%nprocs-1
 
         ! Get info about sender and sender's local matrix
         call blacs_pcoord(context, ip, reprow, repcol)
@@ -334,7 +539,6 @@ module modscl
         
         ! Broadcast send
         if(prow == reprow .and. pcol == repcol) then
-
 
           ! Matrix content
           call zgebs2d(context, 'ALL', ' ', dmat%nrows_loc, dmat%ncols_loc,&
@@ -386,131 +590,31 @@ module modscl
 #endif
 
     end subroutine dzmat_send2global_all
+    !EOC
 
-    subroutine new_dzmat(self, nrows, ncols, context, rblck, cblck)
+!    subroutine unpacktoglobal(zmat, buff, iblck, jblck, prow, pcol, npr, npc)
+!      complex(8), intent(inout) :: zmat(:,:)
+!      complex(8), intent(in) :: buff(:,:)
+!      integer(4), intent(in) :: iblck, jblck, prow, pcol, npr, npc
+!
+!      integer(4) :: ig, jg, il, jl
+!
+!      do jl = 1, size(buff, 2)
+!#ifdef SCAL
+!          jg = indxl2g(jl, jblck, pcol, 0, npc)
+!#endif
+!        do il = 1, size(buff, 1)
+!#ifdef SCAL
+!          ig = indxl2g(il, iblck, prow, 0, npr)
+!#else
+!          ig = il
+!          jg = jl
+!#endif
+!          zmat(ig, jg) = buff(il,jl)
+!        end do
+!      end do
+!    end subroutine unpacktoglobal
 
-      type(dzmat), intent(inout) :: self
-      integer(4), intent(in) :: nrows, ncols
-      integer(4), intent(in), optional :: context, rblck, cblck
 
-      integer(4) :: con, i, j
-
-      self%nrows = nrows
-      self%ncols = ncols
-      self%nrows_loc = nrows
-      self%ncols_loc = ncols
-      self%isdistributed = .false.
-      self%context = -1
-      self%mblck = 1
-      self%nblck = 1
-
-#ifdef SCAL
-
-      if(present(context)) then
-        if(context == -1) then
-          con = -1
-          self%context = con
-          self%isdistributed = .false.
-        else
-          con = context
-          self%context = con
-          self%isdistributed = .true.
-        end if
-      else 
-        con = -1
-        self%context = con
-        self%isdistributed = .false.
-      end if
-
-      if(self%isdistributed) then
-        if(con == ictxt2d) then
-          self%mblck = min(mblck, self%nrows)
-          self%nblck = min(nblck, self%ncols)
-          if(present(rblck)) self%mblck = min(rblck, self%nrows)
-          if(present(cblck)) self%nblck = min(cblck, self%ncols)
-          self%nrows_loc = numroc(self%nrows, self%mblck, myprow, 0, nprow)
-          self%ncols_loc = numroc(self%ncols, self%nblck, mypcol, 0, npcol)
-          ! Write maps
-          if(allocated(self%r2g)) deallocate(self%r2g)
-          if(allocated(self%c2g)) deallocate(self%c2g)
-          allocate(self%r2g(self%nrows_loc))
-          allocate(self%c2g(self%ncols_loc))
-          do i = 1, self%nrows_loc
-            self%r2g(i) = indxl2g(i, self%mblck, myprow, 0, nprow)
-          end do
-          do j = 1, self%ncols_loc
-            self%c2g(j) = indxl2g(j, self%nblck, mypcol, 0, npcol)
-          end do
-        else if(con == ictxt1d_r) then
-          self%mblck = min(mblck1d_r, self%nrows)
-          self%nblck = min(nblck1d_r, self%ncols)
-          if(present(rblck)) self%mblck = min(rblck, self%nrows)
-          if(present(cblck)) self%nblck = min(cblck, self%ncols)
-          self%nrows_loc = numroc(self%nrows, self%mblck, myprow1d_r, 0, nprow1d_r)
-          self%ncols_loc = numroc(self%ncols, self%nblck, mypcol1d_r, 0, npcol1d_r)
-          ! Write maps
-          if(allocated(self%r2g)) deallocate(self%r2g)
-          if(allocated(self%c2g)) deallocate(self%c2g)
-          allocate(self%r2g(self%nrows_loc))
-          allocate(self%c2g(self%ncols_loc))
-          do i = 1, self%nrows_loc
-            self%r2g(i) = indxl2g(i, self%mblck, myprow1d_r, 0, nprow1d_r)
-          end do
-          do j = 1, self%ncols_loc
-            self%c2g(j) = indxl2g(j, self%nblck, mypcol1d_r, 0, npcol1d_r)
-          end do
-        else if(con == ictxt1d_c) then
-          self%mblck = min(mblck1d_c, self%nrows)
-          self%nblck = min(nblck1d_c, self%ncols)
-          if(present(rblck)) self%mblck = min(rblck, self%nrows)
-          if(present(cblck)) self%nblck = min(cblck, self%ncols)
-          self%nrows_loc = numroc(nrows, self%mblck, myprow1d_c, 0, nprow1d_c)
-          self%ncols_loc = numroc(ncols, self%nblck, mypcol1d_c, 0, npcol1d_c)
-          ! Write maps
-          if(allocated(self%r2g)) deallocate(self%r2g)
-          if(allocated(self%c2g)) deallocate(self%c2g)
-          allocate(self%r2g(self%nrows_loc))
-          allocate(self%c2g(self%ncols_loc))
-          do i = 1, self%nrows_loc
-            self%r2g(i) = indxl2g(i, self%mblck, myprow1d_c, 0, nprow1d_c)
-          end do
-          do j = 1, self%ncols_loc
-            self%c2g(j) = indxl2g(j, self%nblck, mypcol1d_c, 0, npcol1d_c)
-          end do
-        else
-          write(*,'("new_dzmat@rank",i3," (Error): invalid context ",i3)') rank, con
-          call terminate
-        end if
-
-        ! Make descriptor
-        if(allocated(self%desc)) deallocate(self%desc)
-        allocate(self%desc(9))
-        call descinit(self%desc, self%nrows, self%ncols, &
-          & self%mblck, self%nblck, 0, 0, self%context, max(1,self%nrows_loc), sclierr)
-        if(sclierr /= 0) then
-          write(*,'("new_dzmat@rank",i3," (Error):&
-            & descinit returned non zero error code")') rank, sclierr
-          call terminate
-        end if
-
-      end if
-#endif
-
-      ! Allocate local array for global matrix
-      if(allocated(self%za)) deallocate(self%za)
-      allocate(self%za(self%nrows_loc, self%ncols_loc))
-
-      ! Zero it for good measure.
-      if(self%nrows_loc > 0) self%za = cmplx(0,0,8)
-
-    end subroutine new_dzmat
-
-    subroutine del_dzmat(self)
-      type(dzmat), intent(inout) :: self
-      if(allocated(self%za)) deallocate(self%za)
-      if(allocated(self%desc)) deallocate(self%desc)
-      if(allocated(self%r2g)) deallocate(self%r2g)
-      if(allocated(self%c2g)) deallocate(self%c2g)
-    end subroutine del_dzmat
 
 end module modscl

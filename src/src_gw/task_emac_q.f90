@@ -176,7 +176,7 @@ subroutine task_emac_q()
     end do ! i
     
 #ifdef MPI
-    call mpi_allgatherv_ifc(nq,freq%nomeg,zbuf=emac_q)
+    call mpi_allgatherv_ifc(nq,rlen=freq%nomeg,zbuf=emac_q)
     call barrier
 #endif
     

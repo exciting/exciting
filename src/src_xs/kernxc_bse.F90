@@ -13,6 +13,7 @@
 !
 Subroutine kernxc_bse
 ! !USES:
+      Use modmpi
       Use modinput
       Use modmain
 #ifdef TETRA      

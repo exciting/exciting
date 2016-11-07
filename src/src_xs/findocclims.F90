@@ -14,7 +14,7 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   use modinput, only: input
   use modxs, only: evalsv0, ikmapikq, occsv0, evlmin,&
                  & evlmax, evlmincut, evlmaxcut, evlhpo,&
-                 & evllpu, ksgap, nstocc0,&
+                 & evllpu, ksgap, ksgapval, nstocc0,&
                  & vkl0, nstunocc0, unitout
   use m_genfilname
 ! !INPUT/OUTPUT PARAMETERS:
@@ -33,10 +33,15 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
 !
 ! !DESCRIPTION:
 ! For a given q-point index the routine inspects the occupancies and 
-! second variational eigenvalues of the corresponding k+q and k set to determin
+! second variational eigenvalues of the corresponding $k+q$ and $k$ set to determin
 ! the highest/lowest (at least partially) occupied/unoccupied 
-! state index for all k+q and k points and the highest/lowest occupied/unoccupied
-! state index over all k+q and k points.
+! state index for all $k+q$ and $k$ points and the highest/lowest occupied/unoccupied
+! state index over all $k+q$ and $k$ points.
+! For the k set the files {\tt EVECSV\_QMT000.OUT} and {\tt OCCSV\_QMT000.OUT} is
+! used, while for the $k+q$ set the files {\tt EVECSV\_QMTXXX.OUT} and 
+! {\tt OCCSV\_QMTXXX.OUT} is used, where {\tt XXX} is the XXX'th element of the
+! q-point list specified in the input file. For the input of $\text{iq}=0$ 
+! the $k$ and $k+q$ sets are identical and the {\tt \_QMT000} files are used.
 ! 
 ! !REVISION HISTORY:
 !   Added description schema. And rudimentary description. (Aurich)
@@ -54,13 +59,17 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   integer, intent(out) :: io0(nkpt), io(nkpt), iu0(nkpt), iu(nkpt)
 
   ! Local variables
-  real(8) :: thegap
   integer :: ik, ikq, i0, i
   logical :: t
 
   t = allocated(evalsv0)
   if( .not. t) allocate(evalsv0(nstsv, nkpt))
+  ! Note: occsv0 is allocated during init1
 
+  ! This routine is exclusively called withing the xs part at the moment.
+  ! nkpt may reference the reduced or the non-reduced k set depending
+  ! on input%xs%reducek. It defaults to false, so nkpt = nkptnr.
+  ! Symmetry is not consistently used in XS.
   k: do ik = 1, nkpt
 
     ! k+q-point set
@@ -68,7 +77,9 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
     ! NOTE: ikmapikq has no iq=0 index, input of iq=0 means just ikq=ik
     if(iq .ne. 0) ikq = ikmapikq(ik, iq)
 
-    ! Get occupancies and eigenvalues
+    ! Get occupancies and eigenvalues form EVECSV and EVALSV 
+    ! files that have file extensions that was set before calling
+    ! findocclims.
     call getoccsv(vkl(1, ikq), occsv(1, ikq))
     call getevalsv(vkl(1, ikq), evalsv(1, ikq))
 
@@ -109,6 +120,14 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
     end if
 
   end do k
+
+  ! In case of no momentum transfer k and k+q quantities are the same.
+  ! We do the copying here so we do not need to have different code for
+  ! q=0 and q/=0 elsewhere.
+  if(iq == 0) then 
+    occsv0 = occsv
+    evalsv0 = evalsv
+  end if
 
   if(iq .ne. 0) then
 
@@ -174,7 +193,9 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
 
   ! Gap estimate 
   if(ksgap) then
-    thegap = evllpu - evlhpo
+    ksgapval = evllpu - evlhpo
+  else
+    ksgapval = 0.0d0
   end if
 
   ! Assign nstocc0 and nstunocc0
@@ -186,8 +207,8 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   end if
   if(ksgap) then
     write(unitout, '(a)') 'Info(findocclims): System has kohn-sham gap'
-    write(unitout, '(a,E23.16)') 'Info(findocclims): Gap/H: ', thegap
-    write(unitout, '(a,E23.16)') 'Info(findocclims): Gap/eV: ', thegap*h2ev
+    write(unitout, '(a,E23.16)') 'Info(findocclims): Gap/H: ', ksgapval
+    write(unitout, '(a,E23.16)') 'Info(findocclims): Gap/eV: ', ksgapval*h2ev
   else
     write(unitout, '(a)') 'Info(findocclims): No kohn-sham gap found'
   end if

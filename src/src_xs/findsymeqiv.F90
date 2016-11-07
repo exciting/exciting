@@ -8,6 +8,7 @@
 !
 Subroutine findsymeqiv (tfbz, vpl, vplr, nsc, sc, ivgsc)
       Use modmain
+      use modmpi
       Use modinput
       Implicit None
   ! arguments

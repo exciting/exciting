@@ -6,6 +6,7 @@
 Subroutine init2
       Use modmain
       Use modinput
+      use modmpi
 #ifdef XS
       Use modxs
 #endif

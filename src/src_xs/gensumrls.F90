@@ -17,6 +17,7 @@ Contains
       Subroutine gensumrls (w, eps, sumrls)
 ! !USES:
          Use modxs
+         Use modmpi
 ! !INPUT/OUTPUT PARAMETERS:
 !   w      : frequency grid (in,real(:))
 !   eps    : dielectric function tensor component (in,complex(:))

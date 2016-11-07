@@ -7,6 +7,7 @@
 ! !INTERFACE:
 subroutine b_exccoulint
 ! !USES:
+  use mod_misc, only: filext
   use mod_constants, only: zone, zzero
   use mod_APW_LO, only: lolmax
   use mod_qpoint, only: nqpt, iqmap
@@ -18,7 +19,7 @@ subroutine b_exccoulint
                  & ngq,&
                  & kpari, kparf,&
                  & ppari, pparf, iqmapr,&
-                 & qvkloff
+                 & qvkloff, bcbs
   use m_xsgauntgen
   use m_findgntn0
   use m_writegqpts
@@ -26,6 +27,7 @@ subroutine b_exccoulint
   use m_getunit
   use modbse
   use m_b_ematqk
+  use m_putgetbsemat
 ! !DESCRIPTION:
 !   Calculates the exchange term of the Bethe-Salpeter Hamiltonian.
 !
@@ -42,17 +44,17 @@ subroutine b_exccoulint
 
   ! Local variables
   character(*), parameter :: thisnam = 'exccoulint'
-  integer, parameter :: iqmt = 1
+  integer(4) :: iqmt
 
   logical :: fcoup
-  integer :: iknr, jknr, iqr, iq, igq1, numgq
-  integer :: iv(3), j1, j2
-  integer :: ikkp
+  integer(4) :: iknr, jknr, iqr, iq, igq1, numgq
+  integer(4) :: iv(3), j1, j2
+  integer(4) :: ikkp
 
-  integer(4) :: io1, io2, iu1, iu2
+  integer(4) :: ik, jk, inou, jnou, ino, inu, jno, jnu
+  integer(4) :: io, jo, iu, ju
 
   real(8), allocatable :: potcl(:)
-  complex(8), allocatable :: emat12(:, :), emat34(:, :)
   complex(8), allocatable :: excli(:, :, :, :), exclic(:, :, :, :)
   complex(8), allocatable :: ematouk(:, :, :, :), ematuok(:, :, :, :)
   complex(8), allocatable :: mou(:, :, :), muo(:,:,:)
@@ -65,9 +67,9 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
 
   ! General setup
   call init0
-  ! K-point setup
+  ! k-point setup
   call init1
-  ! Q-point setup
+  ! q-point and qmt-point setup
   call init2
 
   ! Check number of empty states
@@ -81,6 +83,11 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
   end if
 
   ! Read Fermi energy from file
+  ! Which one .OUT _QMTXXX.OUT or _SCR.OUT ??
+  ! When called during whole BSE chain, this is set to _SCR.OUT ?
+  ! When calling it using doonly is set to .OUT ?
+  write(*,'("b_exccoulint@rank",i3," : Reading fermi energy form file: ",a)')&
+    & mpiglobal%rank, 'EFERMI'//trim(filext)
   call readfermi
 
   ! Save variables for the gamma q-point
@@ -103,106 +110,129 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
     call flushifc(unitout)
   end if
 
-  ! Set EVALSV_SCR.OUT as basis for the occupation limits search
-  call genfilname(dotext='_SCR.OUT', setfilext=.true.)
+  ! Set EVALSV_QMTXXX.OUT as basis for the occupation limits search
+  !   Note: EVALSV_QMT000.OUT is always produced,
+  !         EVALSV_QMT001.OUT has the same content, when
+  !         the first entry in the q-point list is set 0 0 0
+  ! To be exact the following genfilname set filext to _QMTXXX.OUT
+  iqmt = 0
+  call genfilname(iqmt=max(0, iqmt), setfilext=.true.)
 
-  ! Set ist* variables in modxs using findocclims
-  call setranges_modxs(0)
+  ! Set ist* variables and ksgap in modxs using findocclims
+  ! This also reads in 
+  ! (QMTXXX)
+  ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
+  ! (QMT000)
+  ! modxs:evalsv0, modxs:occsv0
+  if(read_eval_occ_qmt) then
+    call setranges_modxs(iqmt)
+  end if
 
-  ! Set band combinations (modbse:bcou & modbse:bcouabs)
-  call setbcbs_bse
+  ! Select relevant transitions for the construction
+  ! of the BSE hamiltonian
+  ! Also sets nkkp_bse, nk_bse 
+  if(seltrans) then
+    call select_transitions(iqmt)
+  end if
 
+  ! Include coupling terms
+  fcoup = input%xs%bse%coupling
+
+  ! Set output file names
+  call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname)
+  if(fcoup) then
+    call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=exclicfname)
+  end if
+
+  ! Change file extension and write out k an q points
   call genfilname(dotext='_SCI.OUT', setfilext=.true.)
   if(rank .eq. 0) then
     call writekpts
     call writeqpts
   end if
-
-  ! The extension is not used anymore...?
-  call genfilname(dotext='_SCR.OUT', setfilext=.true.)
+  ! Revert to previous file extension
+  call genfilname(iqmt=max(0, iqmt), setfilext=.true.)
 
   ! Number of G+q points (q=0)
-  numgq = ngq(iqmt)
+  numgq = ngq(iqmt+1) ! ngq(1) is the q=0 case
 
   ! Calculate radial integrals used in the construction 
   ! of the plane wave matrix elements (for q=0)
-  call ematrad(iqmt)
+  call ematrad(iqmt+1)
 
   allocate(potcl(numgq))
   potcl = 0.d0
 
-  allocate(excli(nu, no, nu, no))
-  excli = zzero
-  allocate(ematouk(no, nu, numgq, nkptnr))
-  ematouk = zzero
-
-  ! Include coupling terms
-  fcoup = input%xs%bse%coupling
-  if(fcoup == .true.) then
-    allocate(exclic(nu, no, nu, no))
-    exclic=zzero
-    allocate(ematuok(nu, no, numgq, nkptnr))
-    ematuok=zzero
-  end if
-
-  allocate(emat12(nou, numgq), emat34(nou, numgq))
-  emat12=zzero
-  emat34=zzero
-
-  !!<-- Generate M_ouk(G,0) for all k
-  !!<-- If not TDA, then also generate M_uok(G,0) for all k
-  !---------------------------!
-  !     Loop over k-points    !
-  !---------------------------!
-  ! Parallelize over non reduced k-points
-  call genparidxran('k', nkptnr)
-
   ! Call init1 with a vkloff that is derived
   ! from the momentum transfer q vectors.
   ! Currently BSE only works for vqmt=0, so that
-  ! at the moment this basically dones nothing, it
+  ! at the moment this basically does nothing, it
   ! just calls ini1 again with the same offset as 
   ! the groundstate vkloff.
-  call init1offs(qvkloff(1, iqmt))
+  call init1offs(qvkloff(1, iqmt+1))
 
   ! Allocate eigenvalue/eigenvector related
   ! quantities for use in ematqk
   call ematqalloc
 
+  ! Work array to store result of plane wave matrix elements
+  ! for each considered k point 
+  allocate(ematouk(no_bse_max, nu_bse_max, numgq, nk_bse))
+  if(fcoup == .true.) then
+    allocate(ematuok(nu_bse_max, no_bse_max, numgq, nk_bse))
+  end if
+
+  !!<-- Generate M_ouk(G,qmt) for all k.
+  !! If not TDA, then also generate M_uok-qmt(G,qmt) needs to be created.
+  !! Currently only works for qmt=0.
+  !---------------------------!
+  !     Loop over k-points    !
+  !---------------------------!
+  ! Parallelize over non reduced k-points
+  ! participating in the BSE
+  call genparidxran('k', nk_bse)
+
   ! MPI distributed loop
-  do iknr = kpari, kparf
-    ! Get plane wave elements for ou combinations 
+  do ik = kpari, kparf
+
+    iknr = kmap_bse_rg(ik)
+
+    inu = koulims(2,iknr) - koulims(1,iknr) + 1
+    ino = koulims(4,iknr) - koulims(3,iknr) + 1
+
+    ! Get plane wave elements for io iu combinations 
     ! for non reduced k and q=0 
-    call getmou(iqmt, iknr, mou)
+    call getmou(iqmt+1, iknr, mou)
+
     ! Save them for all ks
-    ematouk(:, :, :, iknr) = mou
+    ematouk(1:ino,1:inu, :, ik) = mou
 
     if(fcoup == .true.) then
-      call getmuo(iqmt, iknr, muo)
-      ematuok(:,:,:,iknr) = muo
+      call getmuo(iqmt+1, iknr, muo)
+      ematuok(1:inu,1:ino,:,iknr) = muo
     end if
 
   end do
 
   ! Communicate array-parts wrt. k-points
-  call mpi_allgatherv_ifc(nkptnr,no*nu*numgq,zbuf=ematouk)
+  call mpi_allgatherv_ifc(set=nk_bse, rlen=nou_bse_max*numgq, zbuf=ematouk,&
+    & inplace=.true., comm=mpiglobal)
   if(fcoup == .true.) then
-    call mpi_allgatherv_ifc(nkptnr,no*nu*numgq,zbuf=ematuok)
+    call mpi_allgatherv_ifc(set=nk_bse, rlen=nou_bse_max*numgq, zbuf=ematuok,&
+      & inplace=.true., comm=mpiglobal)
   end if
   !!-->
 
   !-------------------------------!
   !     Loop over(k,kp) pairs     !
   !-------------------------------!
-  nkkp = (nkptnr*(nkptnr+1)) / 2
-  call genparidxran('p', nkkp)
+  call genparidxran('p', nkkp_bse)
 
   kkp: do ikkp = ppari, pparf
 
     ! Get individual k-point indices from combined kk' index.
-    !   iknr runs from 1 to nkptnr, jknr from iknr to nkptnr
-    call kkpmap(ikkp, nkptnr, iknr, jknr)
-
+    !   ik runs from 1 to nk_bse, jk from ik to nk_bse
+    call kkpmap(ikkp, nk_bse, ik, jk)
     !! Note: If the exchange matrix 
     !! has the elements v_{i,j} and the indices enumerate the
     !! states according to
@@ -210,6 +240,18 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
     !!      uMo2k1, ..., uMoNk1, o1u1k2, ..., oMuNkO} -> {1,...,M*N*O}
     !! then because of v_{j,i} = v^*_{i,j} only kj = ki,..,kN is 
     !! needed.
+
+    ! Get total k point indices
+    iknr = kmap_bse_rg(ik)
+    jknr = kmap_bse_rg(jk) 
+
+    ! Get ranges
+    inu = koulims(2,iknr) - koulims(1,iknr) + 1
+    ino = koulims(4,iknr) - koulims(3,iknr) + 1
+    inou = inu*ino
+    jnu = koulims(2,jknr) - koulims(1,jknr) + 1
+    jno = koulims(4,jknr) - koulims(3,jknr) + 1
+    jnou = jnu*jno
 
     !!<-- The difference vector, i.e. q not needed in
     !! the calculations (yet?)
@@ -231,18 +273,15 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
     ! which corresponds to the first passed flag=0.
     ! Here iqmt=1 is fixed, which is q=0.
     do igq1 = 2, numgq
-      call genwiqggp(0, iqmt, igq1, igq1, potcl(igq1))
+      call genwiqggp(0, iqmt+1, igq1, igq1, potcl(igq1))
     end do
 
     call makeexcli()
 
     ! Parallel write
-    call putbsemat('EXCLI.OUT', 77, excli, ikkp, iknr, jknr,&
-      & iq, iqr, nu, no, nu, no)
-
+    call b_putbsemat(exclifname, 77, ikkp, iqmt, excli, nou_bse_max**2)
     if(fcoup == .true.) then
-      call putbsemat('EXCLIC.OUT', 78, exclic, ikkp, iknr, jknr,&
-        & iq, iqr, nu, no, nu, no)
+      call b_putbsemat(exclicfname, 78, ikkp, iqmt, exclic, nou_bse_max**2)
     end if
 
   ! End loop over(k,kp) pairs
@@ -253,7 +292,6 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
   call findgntn0_clear
 
   deallocate(potcl) 
-  deallocate(emat12, emat34)
   deallocate(ematouk)
   deallocate(excli)
   deallocate(mou)
@@ -276,21 +314,20 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
 
       type(bcbs) :: ematbc
 
-      !! Calculate the ou plane wave elements
+      !! Calculate the io iu plane wave elements
       ! Pack selected o-u combinations in struct
-      ematbc%n1=no
-      ematbc%il1=bcouabs%il1
-      ematbc%iu1=bcouabs%iu1
-      ematbc%n2=nu
-      ematbc%il2=bcouabs%il2
-      ematbc%iu2=bcouabs%iu2
+      ematbc%n1=ino
+      ematbc%il1=koulims(3,iknr)
+      ematbc%iu1=koulims(4,iknr)
+      ematbc%n2=inu
+      ematbc%il2=koulims(1,iknr)
+      ematbc%iu2=koulims(2,iknr)
 
-      !! As long as q=0 this should not be needed
-      ! Allocate space for M_{o1o2,G} at fixed (k, q)
+      ! Allocate space for M_{io iu,G} at fixed (k, q)
       if(allocated(mou)) deallocate(mou)
-      allocate(mou(no,nu,numgq))
+      allocate(mou(ino,inu,numgq))
 
-      ! Calculate M_{o1o2,G} at fixed (k, q)
+      ! Calculate M_{io iu,G} at fixed (k, q)
       call b_ematqk(iqnr, iknr, mou, ematbc)
 
     end subroutine getmou
@@ -301,19 +338,19 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
 
       type(bcbs) :: ematbc
 
-      !! Calculate the uo plane wave elements
+      !! Calculate the iu io plane wave elements
       ! Pack selected uo combinations in struct
-      ematbc%n1=nu
-      ematbc%il1=bcouabs%il2
-      ematbc%iu1=bcouabs%iu2
-      ematbc%n2=no
-      ematbc%il2=bcouabs%il1
-      ematbc%iu2=bcouabs%iu1
+      ematbc%n1=inu
+      ematbc%il1=koulims(1,iknr)
+      ematbc%iu1=koulims(2,iknr)
+      ematbc%n2=ino
+      ematbc%il2=koulims(3,iknr)
+      ematbc%iu2=koulims(4,iknr)
 
-      !! As long as q=0 this should not be needed
-      ! Allocate space for M_{o1o2,G} at fixed (k, q)
+      !! As long as q=0 this reallocating should not be needed
+      ! Allocate space for M_{iu io,G} at fixed (k, q)
       if(allocated(muo)) deallocate(muo)
-      allocate(muo(nu,no,numgq))
+      allocate(muo(inu,ino,numgq))
 
       ! Calculate M_{o1o2,G} at fixed (k, q)
       call b_ematqk(iqnr, iknr, muo, ematbc)
@@ -322,50 +359,56 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
 
     subroutine makeexcli
 
-      complex(8) :: exclit(nou,nou) 
+      ! Work arrays
+      complex(8) :: exclit(inou, jnou) 
+      complex(8) :: emat12(inou, numgq), emat34(jnou, numgq)
+
+      ! Result arryas
+      if(allocated(excli)) deallocate(excli)
+      allocate(excli(inu, ino, jnu, jno))
+      if(fcoup == .true.) then
+        if(allocated(exclic)) deallocate(exclic)
+        allocate(exclic(inu, ino, jnu, jno))
+      end if
 
       !!<-- RR and RA part
-     ! j1 = 0           ! ou
-     ! do iu1 = 1, nu   ! u (k+q)
-     !   do io1 = 1, no ! o (k)
-     !     j1 = j1 + 1
+     ! do iu = 1, inu   ! iu (ik+qmt)
+     !   do io = 1, ino ! io (ik)
+     !     j1 = io + (iu-1)*inu ! ioiu
      !     ! emat12_j = M_o1u1ki, M_o2u1ki, ..., M_oNu1ki, M_o1u2ki, ..., M_oNuMki
-     !     emat12(j1, :) = ematouk(io1, iu1, :, iknr)
+     !     emat12(j1, :) = ematouk(io1, iu1, :, ik)
      !   end do
      ! end do
-      emat12 = reshape(ematouk(:,:,:,iknr),[nou, numgq])
+      ! Does the same commented code above 
+      emat12 = reshape(ematouk(1:ino,1:inu,:,ik),[inou, numgq])
       ! M_ou -> M^*_ou
       emat12 = conjg(emat12)
       !!-->
 
       !!<-- RR part
-      j2 = 0           ! o'u'
-      do iu2 =1, nu    ! u' (k'+q)
-        do io2 = 1, no ! o' (k')
-          j2 = j2 + 1
+      do ju =1, jnu    ! ju (jk+qmt)
+        do jo = 1, jno ! jo (jk)
+          j2 = jo + (ju - 1) * jnu ! joju
           ! emat34_j = (M_o1u1kj,M_o2u1kj,...,M_oNu1kj,M_o1u2kj,...,M_oNuMkj)*v(G,0)
-          emat34(j2, :) = ematouk(io2, iu2, :, jknr) * potcl(:)
+          emat34(j2, :) = ematouk(jo, ju, :, jk) * potcl(:)
         end do
       end do
       ! Calculate exchange matrix elements: v_{1234} = m_{12}^* m_{34}^t
       ! exclit_{j1, j2} = \Sum_{G} emat12_{j1,G} (emat34^T)_{G,j2}
-      !   i.e. exclit_{o u ki, o' u' kj} =
-      !          \Sum_{G} M^*_{o u ki}(G,0) M_{o' u' kj}(G,0) v(G,0)
-      call zgemm('n', 't', nou, nou, numgq, zone/omega/nkptnr,&
-        & emat12, nou, emat34, nou, zzero, exclit, nou)
+      !   i.e. exclit_{io iu ik, jo ju jk}(qmt) =
+      !          \Sum_{G} M^*_{io iu ik}(G,qmt) M_{jo ju jk}(G,qmt) v(G,qmt)
+      call zgemm('n', 't', inou, jnou, numgq, zone/omega/nk_bse,&
+        & emat12, inou, emat34, jnou, zzero, exclit, inou)
 
       ! Map back to individual band indices
-      j2 = 0           ! o'u'
-      do iu2 = 1, nu   ! u'
-        do io2 = 1, no ! o'
-          j2 = j2 + 1
-          j1 = 0           ! ou
-          do iu1 = 1, nu   ! u
-            do io1 = 1, no ! o
-              j1 = j1 + 1
-              ! exclit_{o_j1 u_j1, o'_j2 u'_j2} -> excli_{u_j2 o_j2, u'_j1 o'_j1}
-              !   i.e. excli_{u_j2 o_j2 k, u'_j1 o'_j1 k'}
-              excli(iu1, io1, iu2, io2) = exclit(j1, j2)
+      do ju = 1, jnu   ! ju
+        do jo = 1, jno ! jo
+          j2 = jo + (ju-1)*jnu ! joju
+          do iu = 1, inu   ! iu
+            do io = 1, ino ! io
+              j1 = io + (iu-1)*inu ! ioiu
+              ! exclit_{io_j1 iu_j1, jo_j2 ju_j2} -> excli_{iu_j1 io_j1, ju_j2 jo_j2}
+              excli(iu, io, ju, jo) = exclit(j1, j2)
             end do
           end do
         end do
@@ -374,38 +417,36 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
 
       if(fcoup == .true.) then
         !!<-- RA part
-        j2 = 0           ! u'o'
-        do io2 = 1, no   ! o' (k'+q)
-          do iu2 =1, nu  ! u' (k')
-            j2 = j2 + 1
-            ! emat34_j = (M_u1o1kj,M_u2o1kj,...,M_uMo1kj,M_u1o2kj,...,M_uMoNkj)*v(G,0)
-            emat34(j2, :) = ematuok(iu2, io2, :, jknr) * potcl(:)
+        do jo = 1, jno   ! jo (jk)
+          do ju =1, jnu  ! ju (jk-qmt)
+            j2 = ju + (jo-1)*jno
+            ! emat34_j = (M_u1o1kj-qmt,M_u2o1kj-qmt,...,
+            !               M_uMo1kj-qmt,M_u1o2kj-qmt,...,M_uMoNkj-qmt)*v(G,0)
+            emat34(j2, :) = ematuok(ju, jo, :, jk) * potcl(:)
           end do
         end do
         ! Calculate coupling exchange matrix elements: v_{1234} = m_{12}^* m_{34}^t
         ! exclitc_{j1, j2} = \Sum_{G} emat12_{j1,G} (emat34^T)_{G,j2}
-        !   i.e. exclitc_{o u ki, u' o' kj} =
-        !          \Sum_{G} M^*_{o u ki}(G,0) M_{u' o' kj}(G,0) v(G,0)
-        call zgemm('n', 't', nou, nou, numgq, zone/omega/nkptnr,&
-          & emat12, nou, emat34, nou, zzero, exclit, nou)
+        !   i.e. exclitc_{io iu ik, ju jo jk}(qmt) =
+        !          \Sum_{G} M^*_{io iu ik}(G, qmt) M_{ju jo jk-qmt}(G, qmt) v(G, qmt)
+        call zgemm('n', 't', inou, jnou, numgq, zone/omega/nk_bse,&
+          & emat12, inou, emat34, jnou, zzero, exclit, inou)
         ! Map back to individual band indices
-        j2 = 0           ! u'o'
-        do io2 = 1, no   ! o'
-          do iu2 = 1, nu ! u'
-            j2 = j2 + 1
-            j1 = 0           ! ou
-            do iu1 = 1, nu   ! u
-              do io1 = 1, no ! o
-                j1 = j1 + 1
-                ! exclit_{o_j1 u_j1, u'_j2 o'_j2} -> exclic_{u_j2 o_j2, u'_j1 o'_j1}
-                !   i.e. exclic_{u_j2 o_j2 k, u'_j1 o'_j1 k'}
-                exclic(iu1, io1, iu2, io2) = exclit(j1, j2)
+        do jo = 1, jno   ! jo
+          do ju = 1, jnu ! ju
+            j2 = ju + (jo-1)*jno !jujo
+            do iu = 1, inu   ! iu
+              do io = 1, ino ! io
+                j1 = io + (iu-1)*inu !ioiu
+                ! exclit_{io_j1 iu_j1, ju_j2 jo_j2} -> exclic_{iu_j1 io_j1, ju_j2 jo_j2}
+                exclic(iu, io, ju, jo) = exclit(j1, j2)
               end do
             end do
           end do
         end do
         !!-->
       end if
+
     end subroutine makeexcli
 
 end subroutine b_exccoulint

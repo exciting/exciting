@@ -27,6 +27,7 @@ End Subroutine genptclg
 !
 Real (8) Function ptclg (cuttype, vgpc, gpc)
       Use modmain, Only: fourpi
+      use modmpi
       Implicit None
   ! arguments
       Character (*), Intent (In) :: cuttype

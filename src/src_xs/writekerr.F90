@@ -11,6 +11,7 @@ Contains
 !
 !
       Subroutine writekerr (iq, w, kerr, fn)
+         use modmpi
          Use modxs
          Use m_getunit
          Use m_writevars

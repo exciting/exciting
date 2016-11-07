@@ -11,6 +11,7 @@ Contains
 !
 !
       Subroutine writeloss (iq, w, loss, fn)
+         use modmpi
          Use FoX_wxml
          Use modmain, Only: version
          Use mod_lattice

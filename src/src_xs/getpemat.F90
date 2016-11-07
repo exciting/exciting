@@ -3,6 +3,7 @@
 ! See the file COPYING for license details.
 !
 module m_getpemat
+  use modmpi
 
   implicit none
 

@@ -6,6 +6,7 @@
 ! See the file COPYING for license details.
 !
 Module m_getlocmt
+      use modmpi
       Implicit None
 Contains
 !

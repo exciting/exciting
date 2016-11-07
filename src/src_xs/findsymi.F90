@@ -12,6 +12,8 @@
 !
 Subroutine findsymi (epslat, maxsymcrys, nsymcrys, symlat, lsplsymc, &
 & vtlsymc, isymlat, scimap)
+! !USES:
+  use modmpi
 ! !DESCRIPTION:
 !   Throughout the code the symmetries are understood to be applied in a way
 !   $$ (\alpha_S|\alpha_R|{\bf t}) {\bf x} = \alpha_S\alpha_R

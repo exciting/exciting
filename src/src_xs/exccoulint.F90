@@ -14,7 +14,7 @@ subroutine exccoulint
   use mod_kpoint, only: nkptnr, ivknr
   use mod_lattice, only: omega
   use modinput, only: input
-  use modmpi, only: rank, barrier, mpi_allgatherv_ifc
+  use modmpi
   use modxs, only: sta1, sto1, sta2, sto2,&
                  & xsgnt, unitout, istocc0, istocc,&
                  & istunocc0, istunocc, isto0, isto,&
@@ -187,7 +187,7 @@ subroutine exccoulint
   end do
 
   ! Communicate array-parts wrt. k-points
-  call mpi_allgatherv_ifc(nkptnr,nst1*nst2*n,zbuf=emat12k)
+  call mpi_allgatherv_ifc(nkptnr,rlen=nst1*nst2*n,zbuf=emat12k)
   !!-->
 
 !! emattype and bdcmbs should not have changed?

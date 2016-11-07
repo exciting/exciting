@@ -8,6 +8,7 @@
 !
 Subroutine emattest
       Use modmain
+      use modmpi
       Use modxs
       Use m_getunit
       Use m_getpmat

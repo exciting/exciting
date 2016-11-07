@@ -3,14 +3,15 @@
 ! See the file COPYING for license details.
 
 module m_genloss
+  use modmpi
+  use modxs
+  use modinput
 
   implicit none
 
   contains
 
     subroutine genloss(eps, loss, nc)
-      use modxs
-      use modinput
       implicit none
 
       ! Arguments

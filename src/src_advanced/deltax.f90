@@ -50,7 +50,7 @@ allocate(vnlvv_full(nstsv,nkpt))
          End Do
 #ifdef MPI
          msize = nstsv
-       call mpi_allgatherv_ifc(nkpt,msize,zbuf=vnlvv_full)
+       call mpi_allgatherv_ifc(nkpt,rlen=msize,zbuf=vnlvv_full)
 #endif
 
 !********************************************
@@ -127,7 +127,7 @@ Do ik = 1, nkpt
    End Do  ! kpoints
    
 #ifdef MPI
-       call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=delta)
+       call mpi_allgatherv_ifc(nkpt,rlen=nstsv,rbuf=delta)
 #endif
 ! Write delta into file
 If (rank .Eq. 0) then 

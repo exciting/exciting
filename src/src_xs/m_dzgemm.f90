@@ -86,7 +86,7 @@ module m_dzgemm
       ! Check contexts
       if(zma%context /= zmb%context .or. zma%context /= zmc%context &
         & .or. zmb%context /= zmc%context) then
-        write(*,*) "Error PBALS does not perfore inter-context operations"
+        write(*,*) "Error PBALS does not perform inter-context operations"
         call terminate
       end if
       ! Subselections of global arrays

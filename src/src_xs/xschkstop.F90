@@ -8,6 +8,7 @@
 !
 Subroutine xschkstop
       Use modxs
+      use modmpi
       Use m_filedel
       Implicit None
   ! local variables

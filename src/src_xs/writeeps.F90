@@ -3,17 +3,18 @@
 ! See the file COPYING for license details.
 
 module m_writeeps
+  !use modmain
+  use mod_misc, only: version
+  use modmpi
+  use modxs
+  use fox_wxml
+  use m_getunit
 
   implicit none
 
   contains
 
     subroutine writeeps(iq, iop1, iop2, w, eps, fn)
-
-      use modmain
-      use modxs
-      use fox_wxml
-      use m_getunit
 
       implicit none
 

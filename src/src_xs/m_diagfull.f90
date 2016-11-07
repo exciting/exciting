@@ -1,4 +1,5 @@
 module m_diagfull
+  use modmpi
 
   implicit none
 
@@ -14,10 +15,10 @@ module m_diagfull
     subroutine diagfull(n, ham, evalre, evalim, evecr, evecl, fbalance, frcond)
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
-    !   integer(4) :: n                 ! Dimension of the complex matrix
-    !   complex(8) :: ham(n,n)          ! Complex matrix
-    !   logical, optional :: frcond     ! Calculate reciprocal conditioning numbers
+    !   integer(4) :: n
+    !   complex(8) :: ham(n,n)          ! Complex square matrix 
     !   logical, optional :: fbalance   ! Balance matrix
+    !   logical, optional :: frcond     ! Calculate reciprocal conditioning numbers
     ! OUT:
     !   real(8) :: evalre(n)                        ! Real part of eigenvalues
     !   real(8), optional :: evalim(n)              ! Imaginary part of eigenvalues
@@ -25,20 +26,25 @@ module m_diagfull
     !   complex(8), target, optional :: evecl(n, n) ! Left eigenvectors as columns
     !
     ! !DESCRIPTION:
-    !   This is a wrapper routine around the lapack routine zgeevx for the digitalization
-    !   of an general complex double precision matrix.
-    !   It returns real, and optionally imaginary, part of the eigenvalues and optionally
-    !   right and/or left eigenvectors. There are flags for balancing the matrix and
-    !   calculating the reciprocal conditioning numbers of eigenvalues and eigenvectors.
+    !   This is a wrapper routine around the lapack routine {\tt ZGEEVX} for the
+    !   digitalization of a general complex double precision matrix.
+    !   It returns real, and optionally imaginary, part of the eigenvalues and 
+    !   optionally right and/or left eigenvectors. 
+    !   There are flags for balancing the matrix and calculating the 
+    !   reciprocal conditioning numbers of eigenvalues and eigenvectors.
     !   Note: If frcond = .ture. the left and right eigenvectors are 
     !         still computed internally.
+    !
     ! !REVISION HISTORY:
-    ! Created 2016 (Aurich)
+    !   Created 2016 (Aurich)
+    !
+    !EOP
+    !BOC
 
       implicit none
 
       ! I/O
-      integer, intent(in) :: n
+      integer(4), intent(in) :: n
       complex(8), intent(in) :: ham(n, n)
       logical, intent(in), optional :: frcond, fbalance
 
@@ -66,7 +72,6 @@ module m_diagfull
 
       complex(8), pointer :: pevecr(:, :) => null()
       complex(8), pointer :: pevecl(:, :) => null()
-
 
       ! Check flags
       if(present(fbalance)) then
@@ -185,6 +190,7 @@ module m_diagfull
       end if
       
     end subroutine diagfull
+    !EOC
 
     subroutine writecondition(n, abnrm, rconde, eigvalre, rcondv)
       use m_getunit
@@ -211,12 +217,15 @@ module m_diagfull
 
       open(un, file='COND.OUT', status='replace', action='write', form='formatted')
       write(un, '("One-norm of the matrix: ",E23.16)') abnrm
-      write(un, '("Errorbound of eignevalues (modulus of difference between real an numeric)")') 
+      write(un, '("Errorbound of eignevalues&
+        & (modulus of difference between real an numeric)")') 
       write(un, '("eval, err, err/eval")') 
       do i=1,n
-        write(un, '(E23.16,1x,E23.16,1x,E23.16)') eigvalre(i), eerrbd(i), eerrbd(i)/eigvalre(i)
+        write(un, '(E23.16,1x,E23.16,1x,E23.16)') eigvalre(i), eerrbd(i),&
+          & eerrbd(i)/eigvalre(i)
       end do
-      write(un, '("Errorbound of eigenvectors (angle between real and numeric solution")') 
+      write(un, '("Errorbound of eigenvectors&
+        & (angle between real and numeric solution")') 
       write(un, '("errorangle")') 
       do i=1,n
         write(un, '(E23.16)') verrbd(i)

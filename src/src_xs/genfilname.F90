@@ -19,6 +19,7 @@ Contains
      & tq0, oc1, oc2, iq, iqmt, procs, rank, dotext, setfilext, &
      & revertfilext, appfilext, filnam, fileext)
 ! !USES:
+         use modmpi, only: terminate
          Use modmain, Only: filext
          Use modxs, Only: filextrevert,skipgnd
 ! !DESCRIPTION:

@@ -6,6 +6,7 @@
 ! License. See the file COPYING for license details.
 !
 Integer Function idxkkp (ik, ikp, n)
+  use modmpi
       Implicit None
   ! arguments
       Integer, Intent (In) :: ik, ikp, n

@@ -7,6 +7,7 @@
 ! !INTERFACE:
 subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
 ! !USES:
+  use modmpi
   use mod_constants, only: zzero, pi, twopi, fourpi
   use mod_qpoint, only: ngridq
   use mod_lattice, only: omega, binv

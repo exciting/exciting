@@ -4,6 +4,7 @@
 ! See the file COPYING for license details.
 
 Module m_pade
+  use modmpi
       Implicit None
 Contains
 

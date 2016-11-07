@@ -7,6 +7,7 @@
 !
 !
 Subroutine symsci0 (flag, scrnh0, scrnih0, scrnisym)
+      use modmpi
       Implicit None
   ! arguments
       Integer, Intent (In) :: flag

@@ -7,8 +7,9 @@
 ! !INTERFACE:
 subroutine b_scrcoulint
 ! !USES:
+  use mod_misc, only: filext
   use modinput, only: input
-  use modmpi, only: procs, rank, mpi_allgatherv_ifc, barrier
+  use modmpi
   use mod_constants, only: zzero, zone, fourpi
   use mod_APW_LO, only: lolmax
   use mod_qpoint, only: nqpt, iqmap, ngridq, vql
@@ -28,6 +29,7 @@ subroutine b_scrcoulint
   use m_genfilname
   use m_getunit
   use m_b_ematqk
+  use m_putgetbsemat
   use modbse
 ! !DESCRIPTION:
 !   Calculates the direct term of the Bethe-Salpeter Hamiltonian.
@@ -52,9 +54,11 @@ subroutine b_scrcoulint
   complex(8), allocatable :: scieffg(:, :, :), wfc(:, :), bsedt(:, :),zm(:,:)
   complex(8), allocatable :: phf(:, :)
   real(8) :: vqr(3), vq(3)
+  integer(4) :: ik, jk, noo, nuu, nou, nuo, ino, inu, jno, jnu
+  integer(4) :: io, jo, iu, ju
   integer :: ikkp, iknr, jknr, iqr, iq, iqrnr, jsym, jsymi, numgq
+  integer(4) :: iqmt
   integer :: nsc, iv(3), ivgsym(3), j1, j2
-  integer(4) :: io1, io2, iu1, iu2
   integer :: sc(maxsymcrys), ivgsc(3, maxsymcrys)
   integer, allocatable :: igqmap(:)
   logical :: tq0, tphf
@@ -78,9 +82,9 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
   ! General setup
   call init0
-  ! K-point setup
+  ! k-point setup
   call init1
-  ! Q-point setup
+  ! q-point and qmt-point setup
   call init2
 
   ! Check number of empty states
@@ -94,10 +98,16 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     call terminate
   end if
 
-  ! Read Fermi energy from file
+  ! Read Fermi energy from file EFERMI
+  ! Which one .OUT _QMTXXX.OUT or _SCR.OUT ??
+  ! When called durig whole BSE chain, this is set to _SCR.OUT ?
+  ! When calling it using doonly is set to .OUT ?
+  write(*,'("b_scrcoulint@rank",i3," : Reading fermi energy form file: ",a)')&
+    & mpiglobal%rank, 'EFERMI'//trim(filext)
   call readfermi
 
-  ! Save variables for the gamma q-point
+  ! Save variables for the gamma q-point, i.e. the unshifted (apart from gs:vkloff)
+  ! k set.
   call xssave0
 
   ! Generate gaunt coefficients used in the construction of 
@@ -116,31 +126,52 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     call flushifc(unitout)
   end if
 
-  ! Set EVALSV_SCR.OUT as basis for the occupation limits search
-  call genfilname(dotext='_SCR.OUT', setfilext=.true.)
+  ! Set EVALSV_QMTXXX.OUT as basis for the occupation limits search
+  !   Note: EVALSV_QMT000.OUT is always produced,
+  !         EVALSV_QMT001.OUT has the same content, when
+  !         the first entry in the q-point list is set 0 0 0
+  ! To be exact the following genfilname set filext to _QMTXXX.OUT
+  iqmt = 0
+  call genfilname(iqmt=max(0, iqmt), setfilext=.true.)
 
-  ! Set ist* variables in modxs using findocclims
-  call setranges_modxs(0)
+  ! Set ist* variables and ksgap in modxs using findocclims
+  ! This also reads in 
+  ! (QMTXXX)
+  ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
+  ! (QMT000)
+  ! modxs:evalsv0, modxs:occsv0
+  if(read_eval_occ_qmt) then
+    call setranges_modxs(iqmt)
+  end if
 
-  ! Set band combinations (modbse:bcou & modbse:bcouabs)
-  call setbcbs_bse
+  ! Select relevant transitions for the construction
+  ! of the BSE hamiltonian
+  ! Also sets nkkp_bse, nk_bse 
+  if(seltrans) then
+    call select_transitions(iqmt)
+  end if
 
+  ! Set output file names
+  call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=scclifname)
+  if(fcoup) then
+    call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=scclicfname)
+  end if
+
+  ! Change file extension and write out k an q points
   call genfilname(dotext='_SCI.OUT', setfilext=.true.)
   if(rank .eq. 0) then
     call writekpts
     call writeqpts
   end if
-
+  ! Revert to previous file extension
+  call genfilname(iqmt=max(0, iqmt), setfilext=.true.)
 
   ! Allocate local arrays for screened coulomb interaction
-  ! Phased for transformations form reduced q points to non reduced ones.
+  ! Phases for transformations form reduced q points to non reduced ones.
   allocate(phf(ngqmax, ngqmax))
   ! W(G,G',q)
   allocate(scieffg(ngqmax, ngqmax, nqptr))
   scieffg(:, :, :) = zzero
-
-  ! Set file extension (for what ? It isn't used...)
-  call genfilname(dotext='_SCR.OUT', setfilext=.true.)
 
   !------------------------------------!
   ! GENERATE FOURIER COEFFICIENTS OF W !     
@@ -168,8 +199,11 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     call putematrad(iqr, iqrnr)
 
   end do
+
   ! Communicate array-parts wrt. q-points
-  call mpi_allgatherv_ifc(nqptr,ngqmax*ngqmax,zbuf=scieffg)
+  call mpi_allgatherv_ifc(set=nqptr, rlen=ngqmax*ngqmax,&
+    & zbuf=scieffg, inplace=.true., comm=mpiglobal)
+
   call barrier
   !!-->
 
@@ -177,7 +211,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   ! CONSTRUCT W MATRIX ELEMENTS   !
   !-------------------------------!
 
-  pref=1.0d0/(omega*dble(nkptnr))
+  pref=1.0d0/(omega*dble(nk_bse))
 
   allocate(bsedt(3, 0:procs-1))
   bsedt(1, :) = 1.d8
@@ -190,32 +224,15 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   ! Include coupling terms
   fcoup = input%xs%bse%coupling
 
-  ! Allocate arrays which do not change size in the following loop
-  ! i.e. arrays that do not depend on numgq
-  allocate(scclit(noo, nuu))
-  scclit = zzero
-  if(fcoup) then
-    allocate(scclitc(nou, nou))
-    scclitc = zzero
-  end if
-
-  ! W matrix element arrays for one k2-k1=q
-  allocate(sccli(nu, no, nu, no), scclid(no, nu))
-  sccli = zzero
-  if(fcoup) then 
-    allocate(scclic(nu, no, nu, no))
-    scclic=zzero
-  end if
-
   ! Distributed loop over combinations of non-reduced k-point combinations
-  ! Combinations of k and k', where ik'>=ik
-  nkkp = (nkptnr*(nkptnr+1)) / 2
-  call genparidxran('p', nkkp)
+  ! that contribute to the desired energy range.
+  call genparidxran('p', nkkp_bse)
+
   kkploop: do ikkp = ppari, pparf
 
     ! Get individual k-point indices from combined kk' index.
-    !   iknr runs from 1 to nkptnr, jknr from iknr to nkptnr
-    call kkpmap(ikkp, nkptnr, iknr, jknr)
+    !   ik runs from 1 to nk_bse, jk from ik to nk_bse
+    call kkpmap(ikkp, nk_bse, ik, jk)
     !! Note: If the screened coulomb interaction matrix 
     !! has the elements W_{i,j} and the indices enumerate the
     !! states according to
@@ -225,16 +242,20 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     !! needed (the diagonal blocks where k'=k will be fully computed 
     !! but only the upper triangle will be needed in the end).
 
+    ! Get total k point indices
+    iknr = kmap_bse_rg(ik)
+    jknr = kmap_bse_rg(jk) 
+
     !! Get corresponding q-point for ki,kj combination.
     ! K-point difference k_j-k_i on integer grid.
     iv(:) = ivknr(:,jknr) - ivknr(:,iknr)
-    ! Map to reciprocal unit cell 01 
+    ! Map to reciprocal unit cell [01) 
     iv(:) = modulo(iv(:), ngridq(:))
     ! Find corresponding q-point index (reduced)
     iqr = iqmapr(iv(1), iv(2), iv(3))
     ! Get corresponding vector in lattice coordinated
     vqr(:) = vqlr(:, iqr)
-    ! Q-point (non-reduced)
+    ! q-point (non-reduced)
     iq = iqmap(iv(1), iv(2), iv(3))
     ! Get lattice coordinates
     vq(:) = vql(:, iq)
@@ -271,37 +292,67 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     wfc(:,:) = phf(:numgq, :numgq) * scieffg(igqmap, igqmap, iqr)
     !!-->
 
+    ! Get ik & jk dependent band ranges
+    inu = koulims(2,iknr) - koulims(1,iknr) + 1
+    ino = koulims(4,iknr) - koulims(3,iknr) + 1
+    jnu = koulims(2,jknr) - koulims(1,jknr) + 1
+    jno = koulims(4,jknr) - koulims(3,jknr) + 1
+    noo = ino*jno
+    nuu = inu*jnu
+    nou = ino*jnu
+    nuo = inu*jno
+
+    ! W matrix element arrays for one k2-k1=q
+    if(allocated(scclit)) deallocate(scclit)
+    allocate(scclit(noo, nuu))
+
+    if(fcoup) then
+      if(allocated(scclitc)) deallocate(scclitc)
+      allocate(scclitc(nou, nuo))
+    end if
+
+    if(allocated(sccli)) deallocate(sccli)
+    allocate(sccli(inu, ino, jnu, jno))
+
+    if(fcoup) then 
+      if(allocated(scclic)) deallocate(scclic)
+      allocate(scclic(inu, ino, jnu, jno))
+    end if
+
+    if(allocated(scclid)) deallocate(scclid)
+    allocate(scclid(ino, inu))
+
     !-------------------------------!
     ! Resonant-Resonant Part        !
     !-------------------------------!
     allocate(cmoo(noo, numgq), cmuu(nuu, numgq))
 
-    ! Calculate M_{oo'} and M_{uu'} for current current q=k'-k and k
+    ! Calculate M_{io jo ik}(G, q) and M_{iu ju ik+qmt}(G, q)
+    ! for current current q=jk-ik and ik
+    ! NOTE: only qmt=0 supported currently
     call getpwesrr(iq, iknr, moo, muu)
 
     ! Combine indices for matrix elements of plane wave.
-   ! j1 = 0           ! oo' index
-   ! do io2 = 1, no   ! o'
-   !   do io1 = 1, no ! o
-   !     j1 = j1 + 1
-   !     ! cmoo_j = M_o1o1, M_o2o1, ..., M_oNo1, M_o1o2, ..., M_oNoN
-   !     cmoo(j1, :) = moo(io1, io2, :)
+   ! do jo = 1, jno   ! jo
+   !   do io = 1, ino ! io
+   !     j1 = io + (jo -1)*jno ! iojo
+   !     ! cmoo_j = M_o1o1, M_o2o1, ..., M_oNo1, M_o1o2, ..., M_oNoM
+   !     cmoo(j1, :) = moo(io, jo, :)
    !   end do
    ! end do
     ! Does the same as the above
     cmoo = reshape(moo, [noo, numgq])
 
-   ! j2 = 0           ! uu' index
-   ! do iu2 = 1, nu   ! u'
-   !   do iu1 = 1, nu ! u
-   !     j2 = j2 + 1
-   !     ! cmuu_j = M_u1u1, M_u2u1, ..., M_uNu1, M_u1u2, ..., M_uNuN
-   !     cmuu(j2, :) = muu(iu1, iu2, :)
+   ! do ju = 1, jnu   ! ju
+   !   do iu = 1, inu ! iu
+   !     j2 = iu + (ju-1)*jnu ! iuju
+   !     ! cmuu_j = M_u1u1, M_u2u1, ..., M_uNu1, M_u1u2, ..., M_uNuM
+   !     cmuu(j2, :) = muu(iu, ju, :)
    !   end do
    ! end do
     cmuu = reshape(muu, [nuu, numgq])
 
-    ! M_{oo'} -> M^*_{oo'}
+    ! M_{iojo} -> M^*_{iojo}
     cmoo = conjg(cmoo)
 
     ! Allocate helper array
@@ -310,85 +361,85 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     ! Calculate matrix elements of screened coulomb interaction scclit_{j1, j2}(q)
     ! zm = cmoo * wfc
     !   i.e. zm_{j1,G'} = \Sum_{G} cmoo_{j1,G} wfc_{G,G'}
-    !   i.e. zm_{o_j1,o'_j1}(G',q) = \Sum_{G} M^*_{o_j1,o'_j1}(G,q) W(G,G', q)
+    !   i.e. zm_{io_j1,jo_j1}(G',q) = \Sum_{G} M^*_{io_j1,jo_j1}(G,q) W(G,G', q)
     call zgemm('n', 'n', noo, numgq, numgq, zone, cmoo, noo, wfc, numgq, zzero, zm, noo)
     ! scclit = pref * zm * cmuu^T
     !   i.e. scclit(j1, j2) = \Sum_{G'} zm_{j1,G'} (cmuu^T)_{G',j2}
-    !   i.e. scclit_{o_j1 o'_j1, u_j2 u'_j2} = 
-    !          \Sum{G,G'} M^*_{o_j1,o'_j1}(G,q) W(G,G',q) M_{u_j2 u'_j2}(G',q)
+    !   i.e. scclit_{io_j1 jo_j1, iu_j2 ju_j2} = 
+    !          \Sum{G,G'} M^*_{io_j1,jo_j1}(G,q) W(G,G',q) M_{iu_j2 ju_j2}(G',q)
     call zgemm('n', 't', noo, nuu, numgq, pref, zm,&
       & noo, cmuu, nuu, zzero, scclit, noo)
     deallocate(zm)        
 
     ! Map back to individual band indices
-    j2 = 0
-    do iu2 = 1, nu    ! u'
-      do iu1 = 1, nu  ! u
-        j2 = j2 + 1
-        j1 = 0
-        do io2 = 1, no   ! o'
-          do io1 = 1, no ! o
-            j1 = j1 + 1
-            ! scclit_{o_j1 o'_j1, u_j2 u'_j2} -> sccli_{u_j2 o_j1, u'_j2 o'_j1}
-            sccli(iu1, io1, iu2, io2) = scclit(j1, j2)
+    do ju = 1, jnu    ! ju
+      do iu = 1, inu  ! iu
+        j2 = iu + (ju-1)*jnu
+        do jo = 1, jno   ! jo
+          do io = 1, ino ! io
+            j1 = io + (jo-1)*jno
+            ! scclit_{io_j1 jo_j1, iu_j2 ju_j2} -> sccli_{iu_j2 io_j1, ju_j2 jo_j1}
+            sccli(iu, io, ju, jo) = scclit(j1, j2)
           end do
         end do
       end do
     end do
 
+! potentially unsave with number of ranks
     ! Analyze BSE diagonal
     if(iknr .eq. jknr) then
       ! Selected occupied
-      do io1 = 1, no
+      do io = 1, ino
         ! Selected unoccupied
-        do iu1 = 1, nu
-          zt1 = sccli(iu1, io1, iu1, io1)
-          scclid(io1, iu1) = zt1
+        do iu = 1, inu
+          zt1 = sccli(iu, io, iu, io)
+          scclid(io, iu) = zt1
           bsedt(1, rank) = min(dble(bsedt(1, rank)), dble(zt1))
           bsedt(2, rank) = max(dble(bsedt(2, rank)), dble(zt1))
-          bsedt(3, rank) = bsedt(3, rank) + zt1 / (no*nu)
+          bsedt(3, rank) = bsedt(3, rank) + zt1 / (ino*inu)
         end do
       end do
     end if
 
     ! Parallel write
-    call putbsemat('SCCLI.OUT', 77, sccli, ikkp, iknr, jknr,&
-      & iq, iqr, nu, no, nu, no)
+    call b_putbsemat(scclifname, 77, ikkp, iqmt, sccli, nou_bse_max**2)
 
     deallocate(moo, muu, cmoo, cmuu)
     
     !-------------------------------!
-    ! Resonant-Anit-Resonant Part   !
+    ! Resonant-Anti-Resonant Part   !
     !-------------------------------!
     if(fcoup) then
 
-      allocate(cmou(nou, numgq), cmuo(nou, numgq))
+      allocate(cmou(nou, numgq), cmuo(nuo, numgq))
 
-      ! Calculate M_{ou'} and M_{uo'} for current q=k'-k and k 
+      ! Calculate M_{io ju ik}(G, q-qmt) and M_{iu jo ik+qmt}(G', q-qmt)
+      ! for current current q=jk-ik and ik 
+      ! NOTE: only qmt=0 supported currently
       call getpwesra(iq, iknr, mou, muo)
 
       ! Combine indices for matrix elements of plane wave.
-     ! j1 = 0           ! ou' index
-     ! do iu2 = 1, nu   ! u'
-     !   do io1 = 1, no ! o
+     ! j1 = 0           ! ioju index
+     ! do ju = 1, jnu   ! ju
+     !   do io = 1, ino ! io
      !     j1 = j1 + 1
      !     ! cmou_j = M_o1u1, M_o2u1, ..., M_oNu1, M_o1u2, ..., M_oNuM
-     !     cmou(j1, :) = mou(io1, iu2, :)
+     !     cmou(j1, :) = mou(io, ju, :)
      !   end do
      ! end do
       cmou = reshape(mou,[nou, numgq])
 
-     ! j2 = 0           ! uo' index
-     ! do io2 = 1, no   ! o'
-     !   do iu1 = 1, nu ! u
+     ! j2 = 0           ! iujo index
+     ! do jo = 1, jno   ! jo
+     !   do iu = 1, inu ! iu
      !     j2 = j2 + 1
      !     ! cmuo_j = M_u1o1, M_u2o1, ..., M_uMo1, M_u1o2, ..., M_uMoN
-     !     cmuo(j2, :) = muo(iu1, io2, :)
+     !     cmuo(j2, :) = muo(iu, jo, :)
      !   end do
      ! end do
-      cmuo = reshape(muo,[nou, numgq])
+      cmuo = reshape(muo,[nuo, numgq])
 
-      ! M_{ou'} -> M^*_{ou'}
+      ! M_{ioju} -> M^*_{ioju}
       cmou = conjg(cmou)
 
       ! Allocate helper array
@@ -397,27 +448,29 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       ! Calculate matrix elements of screened coulomb interaction scclitc_{j1, j2}(q)
       ! zm = cmou * wfc
       !   i.e. zm_{j1,G'} = \Sum_{G} cmou_{j1,G} wfc_{G,G'}
-      !   i.e. zm_{o_j1,u'_j1}(G',q) = \Sum_{G} M^*_{o_j1,u'_j1}(G,q) W(G, G', q)
+      !   i.e. zm_{io_j1,ju_j1}(G',q) = \Sum_{G} M^*_{io_j1,ju_j1,ik}(G,q) W(G,G',q-qmt)
+      ! NOTE: only qmt=0 supported currently
       call zgemm('n', 'n', nou, numgq, numgq, zone, cmou, nou, wfc, numgq, zzero, zm, nou)
       ! scclit = pref * zm * cmuo^T
       !   i.e. scclitc(j1, j2) = \Sum_{G'} zm_{j1,G'} (cmuo^T)_{G',j2}
-      !   i.e. scclitc_{o_j1 u'_j1, u_j2 o'_j2} =
-      !          \Sum{G,G'} M^*_{o_j1,u'_j1}(G,q) W(G, G',q) M_{u_j2,o'_j2}(G',q)
-      call zgemm('n', 't', nou, nou, numgq, pref, zm,&
-        & nou, cmuo, nou, zzero, scclitc, nou)
+      !   i.e. scclitc_{io_j1 ju_j1, iu_j2 jo_j2} =
+      !   \Sum{G,G'} 
+      !   M^*_{io_j1,ju_j1,ik}(G,q-qmt) W(G, G',q-qmt) M_{iu_j2,jo_j2,ik+qmt}(G',q-qmt)
+      ! NOTE: only qmt=0 supported currently
+      call zgemm('n', 't', nou, nuo, numgq, pref, zm,&
+        & nou, cmuo, nuo, zzero, scclitc, nou)
       deallocate(zm)        
 
       ! Map back to individual band indices
-      j1 = 0           ! ou'
-      do iu2 = 1, nu   ! u'
-        do io1 = 1, no ! o
-          j1 = j1 + 1
-          j2 = 0           ! uo'
-          do io2 = 1, no   ! o'
-            do iu1 = 1, nu ! u
-              j2 = j2 + 1
-              ! scclitc_{o_j1 u'_j1, u_j2 o'_j2} -> scclic(u_j2, o_j1, u'_j1, o'_j2)
-              scclic(iu1, io1, iu2, io2) = scclitc(j1, j2)
+      do ju = 1, jnu   ! ju
+        do io = 1, ino ! io
+          j1 = io + (ju - 1)*jnu !ioju
+          do jo = 1, jno   ! jo
+            do iu = 1, inu ! iu
+              j2 = iu + (jo-1)*jno ! iujo
+              ! scclitc_{io_j1 ju_j1, iu_j2 jo_j2}(ik,jk)(qmt)
+              ! -> scclic(iu_j2, io_j1, ju_j1, jo_j2)(ik,jk)(qmt)
+              scclic(iu, io, ju, jo) = scclitc(j1, j2)
             end do
           end do
         end do
@@ -426,8 +479,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       deallocate(mou, muo, cmou, cmuo)
 
       ! Parallel write
-      call putbsemat('SCCLIC.OUT', 78, scclic, ikkp, iknr, jknr,&
-        & iq, iqr, nu, no, nu, no)
+      call b_putbsemat(scclicfname, 78, ikkp, iqmt, scclic, nou_bse_max**2)
 
     end if
     
@@ -438,7 +490,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   ! End loop over(k,kp)-pairs
   end do kkploop
 
-  ! Deallocate helper array (independent of number of G)
+  ! Deallocate helper array 
   deallocate(scclit)
   if(fcoup) then
     deallocate(scclitc)
@@ -447,7 +499,8 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   call barrier
 
   ! Communicate array-parts wrt. q-points
-  call mpi_allgatherv_ifc(procs,3,zbuf=bsedt)
+  call mpi_allgatherv_ifc(set=mpiglobal%procs,rlen=3,&
+    & zbuf=bsedt,inplace=.true.,comm=mpiglobal)
 
   ! BSE kernel diagonal parameters
   bsedl = minval(dble(bsedt(1, :)))
@@ -475,28 +528,28 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       type(bcbs) :: ematbc
 
       !! Calculate the oo plane wave elements
-      ematbc%n1=no
-      ematbc%il1=bcouabs%il1
-      ematbc%iu1=bcouabs%iu1
-      ematbc%n2=no
-      ematbc%il2=bcouabs%il1
-      ematbc%iu2=bcouabs%iu1
+      ematbc%n1=ino
+      ematbc%il1=koulims(3,iknr)
+      ematbc%iu1=koulims(4,iknr)
+      ematbc%n2=jno
+      ematbc%il2=koulims(3,jknr)
+      ematbc%iu2=koulims(4,jknr)
       ! Allocate space for M_{o1o2,G} at fixed (k, q)
       if(allocated(moo)) deallocate(moo)
-      allocate(moo(no,no,numgq))
+      allocate(moo(ino,jno,numgq))
       ! Calculate M_{o1o2,G} at fixed (k, q)
       call b_ematqk(iqnr, iknr, moo, ematbc)
 
       !! Calculate the uu plane wave elements
-      ematbc%n1=nu
-      ematbc%il1=bcouabs%il2
-      ematbc%iu1=bcouabs%iu2
-      ematbc%n2=nu
-      ematbc%il2=bcouabs%il2
-      ematbc%iu2=bcouabs%iu2
+      ematbc%n1=inu
+      ematbc%il1=koulims(1,iknr)
+      ematbc%iu1=koulims(2,iknr)
+      ematbc%n2=jnu
+      ematbc%il2=koulims(1,jknr)
+      ematbc%iu2=koulims(2,jknr)
       ! Allocate space for M_{u1u2,G} at fixed (k, q)
       if(allocated(muu)) deallocate(muu)
-      allocate(muu(nu,nu,numgq))
+      allocate(muu(inu,jnu,numgq))
       ! Calculate M_{o1o2,G} at fixed (k, q)
       call b_ematqk(iqnr, iknr, muu, ematbc)
 
@@ -509,28 +562,28 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       type(bcbs) :: ematbc
 
       !! Calculate the o-u plane wave elements
-      ematbc%n1=no
-      ematbc%il1=bcouabs%il1
-      ematbc%iu1=bcouabs%iu1
-      ematbc%n2=nu
-      ematbc%il2=bcouabs%il2
-      ematbc%iu2=bcouabs%iu2
+      ematbc%n1=ino
+      ematbc%il1=koulims(3,iknr)
+      ematbc%iu1=koulims(4,iknr)
+      ematbc%n2=jnu
+      ematbc%il2=koulims(1,jknr)
+      ematbc%iu2=koulims(2,jknr)
       ! Allocate space for M_{ou,G} at fixed (k, q)
       if(allocated(mou)) deallocate(mou)
-      allocate(mou(no,nu,numgq))
+      allocate(mou(ino,jnu,numgq))
       ! Calculate M_{ou,G} at fixed (k, q)
       call b_ematqk(iqnr, iknr, mou, ematbc)
 
       !! Calculate the u-o plane wave elements
-      ematbc%n1=nu
-      ematbc%il1=bcouabs%il2
-      ematbc%iu1=bcouabs%iu2
-      ematbc%n2=no
-      ematbc%il2=bcouabs%il1
-      ematbc%iu2=bcouabs%iu1
+      ematbc%n1=inu
+      ematbc%il1=koulims(1,iknr)
+      ematbc%iu1=koulims(2,iknr)
+      ematbc%n2=jno
+      ematbc%il2=koulims(3,jknr)
+      ematbc%iu2=koulims(4,jknr)
       ! Allocate space for M_{uo,G} at fixed (k, q)
       if(allocated(muo)) deallocate(muo)
-      allocate(muo(nu,no,numgq))
+      allocate(muo(inu,jno,numgq))
       ! Calculate M_{uo,G} at fixed (k, q)
       call b_ematqk(iqnr, iknr, muo, ematbc)
 

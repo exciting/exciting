@@ -221,9 +221,9 @@ else
 
 #ifdef MPI
      If (input%properties%bandstructure%character) Then
-       Call mpi_allgatherv_ifc(nkpt,(lmax+1)*natmtot*nstsv,rlpbuf=bc)
+       Call mpi_allgatherv_ifc(nkpt,rlen=(lmax+1)*natmtot*nstsv,rlpbuf=bc)
      End If
-     Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
+     Call mpi_allgatherv_ifc(nkpt,rlen=nstsv,rbuf=evalsv)
      Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
 

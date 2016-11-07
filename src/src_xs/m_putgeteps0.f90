@@ -1,4 +1,5 @@
 module m_putgeteps0
+  use modmpi
   use modinput, only: input
   ! Where to find the q point information
   use mod_qpoint, only: nqpt, vql, ivq
@@ -248,7 +249,7 @@ module m_putgeteps0
       ! Check if q=0
       tq0 = zerolength(vql_p(:,iq))
 
-      ! Check q=0 but head or wings missing
+      ! Check if q=0 but head or wings missing
       if(tq0 .and. (.not. present(eps0wg) .or. .not. present(eps0wg)) ) then
         write(*,*) 'Error(' // trim(thisnam) // '): q=0 but head or wings missing'
         call terminate

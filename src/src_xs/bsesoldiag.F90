@@ -6,6 +6,8 @@
 ! !ROUTINE: bsesoldiag
 ! !INTERFACE:
 subroutine bsesoldiag(solsize, hamsize, ham, eval, evec)
+! !USES:
+  use modmpi
 ! !INPUT/OUTPUT PARAMETERS:
 ! IN:
 !   integer :: solsize ! Number of solutions from lowest EV 

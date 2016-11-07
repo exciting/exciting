@@ -10,7 +10,7 @@ subroutine xsinit
   use mod_constants,only: h2ev
   use mod_spin,only: ncmag
   use mod_misc,only: versionname, task, githash, notelns, notes
-  use modmpi,only: procs,rank,splittfile
+  use modmpi
   use modxs,only: calledxs, init0symonly, cputim0i, cntrate, &
                 & systim0i, systimcum, xsfileout, fnetim, &
                 & fnchi0_t, fnxtim, unitout, maxproc, &

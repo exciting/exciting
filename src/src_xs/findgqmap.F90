@@ -9,6 +9,7 @@
 Subroutine findgqmap (iq, iqr, nsc, sc, ivgsc, n, isc, isci, ivgu, &
 & igqmap)
       Use modmain
+      use modmpi
       Use modinput
       Use modxs
       Implicit None

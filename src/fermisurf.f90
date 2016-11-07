@@ -49,7 +49,7 @@ subroutine fermisurf
     deallocate(evalfv,evecfv,evecsv)
   end do ! ik
 #ifdef MPI  
-  call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
+  call mpi_allgatherv_ifc(nkpt,rlen=nstsv,rbuf=evalsv)
 #endif
   if (allocated(meffig)) deallocate(meffig)
   if (allocated(m2effig)) deallocate(m2effig)

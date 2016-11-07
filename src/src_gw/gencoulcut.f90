@@ -44,6 +44,7 @@
 !
       Real (8) Function ccut (cctype, rccut, vgpc, gmax, gpc)
       Use modmain, Only: pi, twopi, fourpi
+      Use modmpi
       Use modinput
       Implicit None
 ! arguments

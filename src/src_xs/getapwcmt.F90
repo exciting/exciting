@@ -13,6 +13,7 @@ Contains
 !
 !
       Subroutine getapwcmt (iq, ik, isti, istf, lmax, apwlm)
+         use modmpi
          Use modmain
          Use modinput
          Use modxs
