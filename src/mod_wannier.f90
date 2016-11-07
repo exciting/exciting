@@ -9,14 +9,16 @@ module mod_wannier
   use mod_spin
   use mod_eigenvalue_occupancy
   use mod_lattice
+  use mod_symmetry
   use m_ematqk
+  use m_plotmat
 
   use mod_Gvector
 
   implicit none
 
 ! variable
-  integer :: wf_nprojtot, wf_nprojused, wf_bandstart
+  integer :: wf_nprojtot, wf_nprojused, wf_bandstart, wf_nband
   
   integer, allocatable :: wf_projst(:,:), wf_projused(:)
   complex(8), allocatable :: wf_transform(:,:,:)
@@ -35,7 +37,7 @@ module mod_wannier
       !   module {\tt mod\_wannier}.
       !
       ! !REVISION HISTORY:
-      !   Created September 2016 (ST)
+      !   Created September 2016 (Sebastian)
       !EOP
       !BOC
 
@@ -74,14 +76,15 @@ module mod_wannier
     ! !ROUTINE: genwf
     ! !INTERFACE:
     !
-    subroutine genwf( bandstart, nband, loproj)
+    subroutine genwf( bandstart, nband, nproj, loproj)
       ! !USES:
       ! !INPUT/OUTPUT PARAMETERS:
       !   bandstart : n1, lowest band index of the band range used for generation of
       !               Wannier functions (in,integer)
       !   nband     : N, number of bands used for generation (in,integer)
+      !   nproj     : N, number of projection orbitals used for generation (in,integer)
       !   loproj    : indices of local-orbitals used as projection functions
-      !               (in, integer(nband))
+      !               (in, integer(nproj))
       ! !DESCRIPTION:
       !   Generates unitary transformation matrices $U_{\vec{k}}$ via the
       !   projection method from which a set of smooth Bloch-like states 
@@ -93,36 +96,40 @@ module mod_wannier
       !   $$ \left| \vec{R}n\right\rangle = \frac{1}{N_k} \sum\limits_{\vec{k}}
       !   e^{-i\vec{k}\cdot\vec{R}} \left| \Psi_{n,\vec{k}}^W\right\rangle $$
       !   The matrices are stored in the module variable {\tt wf\_transform
-      !   (complex(nband,nband,nkpt))}.
+      !   (complex(nband,nproj,nkptnr))}.
       !
       ! !REVISION HISTORY:
-      !   Created September 2016 (ST)
+      !   Created September 2016 (Sebastian)
       !EOP
       !BOC
 
-      integer, intent( in) :: bandstart, nband, loproj( nband) 
+      integer, intent( in) :: bandstart, nband, nproj, loproj( nproj) 
 
       ! local variables
-      integer :: iband, iproj, is, ias, nr, l, lm, io, ir, ig, ik
-      complex(8) :: auxc
-      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), olpm(:,:), projm(:,:), projmhyb(:,:), auxmat(:,:), evec(:,:)
+      integer :: iproj, is, js, ja, ias, nr, l, lm, io, ilo, ir, ig, ik, i, m
+      integer :: isym, iknr, ngknr 
+      integer, allocatable :: igkignr(:)
+      real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:)
+      complex(8), allocatable :: sfacgknr(:,:)
+      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), olpm(:,:), projm(:,:), projmhyb(:,:), auxmat(:,:), auxmat2(:,:), evec(:,:)
       real(8), allocatable :: rolpi(:,:), uf(:), gf(:), cf(:,:), eval(:)
 
       if( .not. allocated( wf_projst)) call wfinit
 
       if( allocated( wf_projused)) deallocate( wf_projused)
-      allocate( wf_projused( nband))
+      allocate( wf_projused( nproj))
       wf_bandstart = bandstart
+      wf_nband = nband
       wf_projused = 0
       wf_nprojused = 0
-      do iband = 1, nband
-        if( (loproj( iband) .lt. 1) .or. (loproj( iband) .gt. wf_nprojtot)) then
-          write(*,'(a,i2,a)') ' ERROR (genwf): ', loproj( iband), ' is not a valid index for projection local-orbitals.'
+      do iproj = 1, nproj
+        if( (loproj( iproj) .lt. 1) .or. (loproj( iproj) .gt. wf_nprojtot)) then
+          write(*,'(a,i2,a)') ' ERROR (genwf): ', loproj( iproj), ' is not a valid index for projection local-orbitals.'
           write(*,*) 'Here is a list of local-orbitals that can be used for projection:'
           call wfshowproj
           return
         else
-          wf_projused( iband) = loproj( iband)
+          wf_projused( iproj) = loproj( iproj)
           wf_nprojused = wf_nprojused + 1
         end if
       end do
@@ -130,11 +137,10 @@ module mod_wannier
       ! radial overlap integrals
       call readstate
       call linengy
-      call genapwfr
-      call genlofr
-      call olprad
+      call genapwfr     ! APW radial functions
+      call genlofr      ! LO radial functions
 
-      allocate( rolpi( wf_nprojused, apwordmax))
+      allocate( rolpi( wf_nprojused, apwordmax+maxlorb))
       allocate( uf( nrmtmax), gf( nrmtmax), cf( 3, nrmtmax))
       rolpi(:,:) = zzero
       do iproj = 1, wf_nprojused
@@ -147,51 +153,89 @@ module mod_wannier
           do ir = 1, nr
             uf( ir) = apwfr( ir, 1, io, wf_projst( wf_projused( iproj), 4), ias)*lofr( ir, 1, wf_projst( wf_projused( iproj), 3), ias)*spr( ir, is)**2
           end do
-          call fderiv(-1, nr, spr(:, is), uf, gf, cf)
+          call fderiv( -1, nr, spr(:, is), uf, gf, cf)
           rolpi( iproj, io) = gf( nr)
+        end do
+        do ilo = 1, nlorb( is)
+          l = lorbl( ilo, is)
+          if( l .eq. wf_projst( wf_projused( iproj), 4)) then
+            do ir = 1, nr
+              uf( ir) = lofr( ir, 1, ilo, ias)*lofr( ir, 1, wf_projst( wf_projused( iproj), 3), ias)*spr( ir, is)**2
+            end do
+            call fderiv( -1, nr, spr( :, is), uf, gf, cf)
+            rolpi( iproj, apwordmax+ilo) = gf( nr)
+          end if
         end do
       end do
 
       allocate( evecfv( nmatmax, nstfv, nspnfv))
       allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
-      allocate( projm( wf_nprojused, wf_nprojused), &
+      allocate( projm( wf_nband, wf_nprojused), &
                 olpm( wf_nprojused, wf_nprojused), &
-                projmhyb( wf_nprojused, wf_nprojused))
-      allocate( eval( wf_nprojused), evec( wf_nprojused, wf_nprojused), auxmat( wf_nprojused, wf_nprojused))
+                projmhyb( wf_nband, wf_nprojused))
+      allocate( eval( wf_nprojused), evec( wf_nprojused, wf_nprojused), auxmat( ngkmax+nlotot, wf_nprojused), auxmat2( wf_nprojused, wf_nprojused))
       if( allocated( wf_transform)) deallocate( wf_transform)
-      allocate( wf_transform( wf_nprojused, wf_nprojused, nkpt))
-      do ik = 1, nkpt
+      allocate( wf_transform( wf_nband, wf_nprojused, nkptnr))
+      allocate( igkignr( ngkmax))
+      allocate( vgklnr( 3, ngkmax, nspnfv), vgkcnr( 3, ngkmax, nspnfv), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
+      allocate( sfacgknr( ngkmax, natmtot))
+#ifdef USEOMP
+!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, evecfv, vgklnr, isym, ik, ngknr, igkignr, vgkcnr, gkcnr, tpgkcnr, sfacgknr, apwalm, iproj, is, ias, lm, ig, auxmat, io, js, ja, ilo, l, m, projm, olpm, auxmat2, eval, evec)
+!!$OMP DO
+#endif
+      write(*,*) wf_nband, nkptnr, wf_nprojused
+      do iknr = 1, nkptnr
+        evecfv = zzero
+        vgklnr = zzero
+        call findkpt( vklnr( :, iknr), isym, ik)
+        ! find G+k-vectors for non-reduced k-point
+        Call gengpvec( vklnr( :, iknr), vkcnr( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+        ! find structure factors
+        Call gensfacgp( ngknr, vgkcnr, ngkmax, sfacgknr)
         ! get basis function coefficients and matching coefficients
-        call getevecfv( vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-        call match( ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, &
-             & 1, ik), sfacgk(:, :, 1, ik), apwalm(:, :, :, :, &
-             & 1))
-
+        call getevecfv( vklnr(:, iknr), vgklnr, evecfv)
+        call match( ngknr, gkcnr, tpgkcnr, sfacgknr, apwalm(:, :, :, :, 1))
+        
         ! projection matrix elements and overlap matrix elements
         do iproj = 1, wf_nprojused
           is = wf_projst( wf_projused( iproj), 1)
-          nr = nrmt( is)
           ias = idxas( wf_projst( wf_projused( iproj), 2), is)
           lm = idxlm( wf_projst( wf_projused( iproj), 4), wf_projst( wf_projused( iproj), 5))
-          do iband = 1, wf_nprojused
-            projm( iband, iproj) = zzero
-            do ig = 1, ngk( 1, ik)
-              auxc = zzero
-              do io = 1, apword( wf_projst( wf_projused( iproj), 4), is)
-                auxc = auxc + conjg( apwalm( ig, io, lm, ias, 1))*rolpi( iproj, io)
-              end do
-              projm( iband, iproj) = projm( iband, iproj) + conjg( evecfv( ig, bandstart+iband-1, 1))*auxc
+          do ig = 1, ngknr
+            auxmat( ig, iproj) = zzero
+            do io = 1, apword( wf_projst( wf_projused( iproj), 4), is)
+              auxmat( ig, iproj) = auxmat( ig, iproj) + conjg( apwalm( ig, io, lm, ias, 1))*rolpi( iproj, io)
             end do
-            do io = 1, nlorb( is)
-              l = lorbl( io, is)
-              if( l .eq. wf_projst( wf_projused( iproj), 4)) then
-                projm( iband, iproj) = projm( iband, iproj) + conjg( evecfv( ngk( 1, ik)+idxlo( lm, io, ias), bandstart+iband-1, 1))*ololo( io, wf_projst( wf_projused( iproj), 3), ias)
-              end if
+          end do
+          do js = 1, nspecies
+            do ja = 1, natoms( js)
+              do ilo = 1, nlorb( js)
+                l = lorbl( ilo, js)
+                do m = -l, l
+                  ig = ngknr + idxlo( idxlm( l, m), ilo, idxas( ja, js))
+                  auxmat( ig, iproj) = zzero
+                  if( (idxas( ja, js) .eq. ias) .and. (idxlm( l, m) .eq. lm)) then
+                    auxmat( ig, iproj) = cmplx( rolpi( iproj, apwordmax+ilo), 0, 8)
+                  end if
+                end do
+              end do
             end do
           end do
         end do
+        call ZGEMM( 'C', 'N', wf_nband, wf_nprojused, ngknr+nlotot, zone, &
+             evecfv( 1:(ngknr+nlotot), wf_bandstart:(wf_bandstart+wf_nband-1), 1), ngknr+nlotot, &
+             auxmat( 1:(ngknr+nlotot), :), ngknr+nlotot, zzero, &
+             projm, wf_nband)
 
-        ! hybredization
+        ! XYZ.amn
+        !do ig = 1, wf_nprojused
+        !  do i = 1, wf_nband
+        !    write( *, '(I,I,I,F23.16,F23.16)') i, ig, iknr, projm( i, ig)
+        !  end do
+        !end do
+        !call plotmat( projm)
+
+        ! hybridization
         !projmhyb( :, 1) = 1*projm( :, 1) + 1*projm( :, 2) + 1*projm( :, 3) + 1*projm( :, 4)
         !projmhyb( :, 2) = 1*projm( :, 1) + 1*projm( :, 2) - 1*projm( :, 3) - 1*projm( :, 4)
         !projmhyb( :, 3) = 1*projm( :, 1) - 1*projm( :, 2) - 1*projm( :, 3) + 1*projm( :, 4)
@@ -200,24 +244,43 @@ module mod_wannier
         !projm = projmhyb
 
         olpm(:,:) = zzero
-        call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, projm, wf_nprojused, projm, wf_nprojused, zzero, olpm, wf_nprojused)
+        call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nband, zone, &
+             projm, wf_nband, &
+             projm, wf_nband, zzero, &
+             olpm, wf_nprojused)
 
         ! transformation matrices
         call diaghermat( wf_nprojused, olpm, eval, evec)
-        auxmat(:,:) = zzero
+        auxmat2(:,:) = zzero
+        i = 1
         do io = 1, wf_nprojused
-          if( eval( io) .eq. 0d0) then
-            write(*,*) "ERROR (genwf): 0 eigenvalue ", ik, io
+          !write(*,*) io, eval( io)
+          if( abs( eval( io)) .le. 1.d-10) then
+            i = i + 1
+            !write(*,*) "ERROR (genwf): 0 eigenvalue ", iknr, io
           else
-            auxmat( io, io) = zone/sqrt( cmplx( eval( io), 0, 8)) 
+            auxmat2( io, io) = zone/sqrt( cmplx( eval( io), 0, 8)) 
           end if
         end do
 
-        call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, evec, wf_nprojused, auxmat, wf_nprojused, zzero, olpm, wf_nprojused)
-        call ZGEMM( 'N', 'C', wf_nprojused, wf_nprojused, wf_nprojused, zone, olpm, wf_nprojused, evec, wf_nprojused, zzero, auxmat, wf_nprojused)
-        call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, projm, wf_nprojused, auxmat, wf_nprojused, zzero, wf_transform( :, :, ik), wf_nprojused)
+        call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused-i+1, wf_nprojused-i+1, zone, &
+             evec( :, i:wf_nprojused), wf_nprojused, &
+             auxmat2( i:wf_nprojused, i:wf_nprojused), wf_nprojused-i+1, zzero, &
+             olpm( :, i:wf_nprojused), wf_nprojused)
+        call ZGEMM( 'N', 'C', wf_nprojused, wf_nprojused, wf_nprojused-i+1, zone, &
+             olpm( :, i:wf_nprojused), wf_nprojused, &
+             evec( :, i:wf_nprojused), wf_nprojused, zzero, &
+             auxmat2, wf_nprojused)
+        call ZGEMM( 'N', 'N', wf_nband, wf_nprojused, wf_nprojused, zone, &
+             projm, wf_nband, &
+             auxmat2, wf_nprojused, zzero, &
+             wf_transform( :, :, iknr), wf_nband)
       end do 
-      deallocate( rolpi, projm, olpm, auxmat, eval, evec, apwalm, evecfv, uf, gf, cf)
+#ifdef USEOMP
+!!$OMP END DO
+!!$OMP END PARALLEL
+#endif
+      deallocate( rolpi, projm, olpm, auxmat, auxmat2, eval, evec, apwalm, evecfv, uf, gf, cf)
       return
     end subroutine genwf
     !EOC
@@ -226,7 +289,7 @@ module mod_wannier
     ! !ROUTINE: genmlwf
     ! !INTERFACE:
     !
-    subroutine genmlwf( bandstart, nband, loproj)
+    subroutine genmlwf( bandstart, nband, nproj, loproj)
       ! !USES:
       ! !INPUT/OUTPUT PARAMETERS:
       !   bandstart : n1, lowest band index of the band range used for generation of
@@ -240,80 +303,51 @@ module mod_wannier
       !   functions. The matrices are computed in a self consistent loop. 
       !
       ! !REVISION HISTORY:
-      !   Created September 2016 (ST)
+      !   Created September 2016 (Sebastian)
       !EOP
       !BOC
 
-      integer, intent( in) :: bandstart, nband, loproj( nband) 
+      integer, intent( in) :: bandstart, nband, nproj, loproj( nproj) 
       
       ! local variables
-      integer :: ngridk(3), nvec(3), nn, ix, iy, iz, i, ib, ik
+      integer :: ngridk(3), nvec(3), ix, iy, iz, i, ib, ik, iknr, ngknr
       character :: read_file
       logical :: file_exists, reading_succes
       real(8) :: bwgtsm, mixing, maxdiff, vec1(3), vec2(3)
 
       ! allocatable arrays
-      integer, allocatable :: idxn(:,:), diffk(:)
-      real(8), allocatable :: nvl(:,:), nvc(:,:), bwgt(:), ravg(:,:), diffval(:,:)
+      integer, allocatable :: idxn(:,:), nn(:), diffk(:)
+      integer, allocatable :: igkignr(:)
+      real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:)
+      real(8), allocatable :: ndist(:), nvl(:,:,:), nvc(:,:,:), bwgt(:), ravg(:,:), diffval(:,:)
       complex(8), allocatable :: mlwf_emat(:,:), auxmat(:,:), mlwf_m0(:,:,:,:), mlwf_m(:,:,:,:), eval(:), evec(:,:), mlwf_r(:,:), mlwf_t(:,:), mlwf_dw(:,:), mlwf_transform(:,:,:)
       complex(8), allocatable :: evecfv1(:,:,:), evecfv2(:,:,:)
 
       ! write next neighbours of each k-point to array
+      allocate( ndist( nkptnr), nn( nkptnr), &
+                nvl( 3, nkptnr, nkptnr), &
+                nvc( 3, nkptnr, nkptnr)) 
+      call wfneighbors( ndist, nn, nvl, nvc) 
+      allocate( idxn( nn(1), nkptnr))
       ngridk = input%groundstate%ngridk
-      nn = 0
-      do ix = 1, 3
-        nn = nn + 2 - 2/ngridk( ix)
-      end do
-      allocate( nvl( 3, nn), nvc( 3, nn), idxn( nn, nkpt))
-      nvl(:,:) = 0d0
-      i = 1
-      do ix = 1, 3
-        if( ngridk( ix) .eq. 2) then
-          nvl( ix, i) = 0.5d0
-          i = i + 1
-        else if( ngridk( ix) .gt. 2) then
-          nvl( ix, i) = 1d0/ngridk( ix)
-          nvl( ix, i+1) = -1d0/ngridk( ix)
-          i = i + 2
-        end if
-      end do
       do iz = 0, ngridk( 3)-1
         do iy = 0, ngridk( 2)-1
           do ix = 0, ngridk( 1)-1
-            nvec(:) = (/ix, iy, iz/)
-            ik = modulo( iz, ngridk( 3))*ngridk( 2)*ngridk( 1) + &
-              modulo( iy, ngridk( 2))*ngridk( 1) + modulo( ix, ngridk(1))+1
-            ib = 1
-            do i = 1, 3
-              if( ngridk( i) .eq. 2) then
-                nvec( i) = nvec( i) + 1
-                idxn( ib, ik) = modulo( nvec(3), ngridk( 3))*ngridk( 2)*ngridk( 1) + &
-                  modulo( nvec(2), ngridk( 2))*ngridk( 1) + modulo( nvec(1), ngridk(1))+1
-                nvec( i) = nvec( i) - 1
-                ib = ib + 1
-              else if( ngridk( i) .gt. 2) then
-                nvec( i) = nvec( i) + 1
-                idxn( ib, ik) = modulo( nvec(3), ngridk( 3))*ngridk( 2)*ngridk( 1) + &
-                  modulo( nvec(2), ngridk( 2))*ngridk( 1) + modulo( nvec(1), ngridk(1))+1
-                ib = ib + 1
-                nvec( i) = nvec( i) - 2
-                idxn( ib, ik) = modulo( nvec(3), ngridk( 3))*ngridk( 2)*ngridk( 1) + &
-                  modulo( nvec(2), ngridk( 2))*ngridk( 1) + modulo( nvec(1), ngridk(1))+1
-                nvec( i) = nvec( i) + 1
-                ib = ib + 1
-              end if
+            iknr = modulo( iz, ngridk( 3))*ngridk( 2)*ngridk( 1) + &
+                   modulo( iy, ngridk( 2))*ngridk( 1) + modulo( ix, ngridk(1))+1
+            do i = 1, nn(1)
+              idxn( i, iknr) = modulo( iz + nint( nvl( 3, 1, i)*ngridk(3)), ngridk( 3))*ngridk( 2)*ngridk( 1) + &
+                               modulo( iy + nint( nvl( 2, 1, i)*ngridk(2)), ngridk( 2))*ngridk( 1) + &
+                               modulo( ix + nint( nvl( 1, 1, i)*ngridk(1)), ngridk(1)) + 1
             end do
           end do
         end do
-      end do
-      do ib = 1, nn
-        call r3mv( bvec, nvl( :, ib), nvc( :, ib))
       end do
       
       read_file = 'n'
       ! check wether WANNIER_MLWF.OUT exists and ask for use
       inquire( file='WANNIER_MLWF.OUT', exist=file_exists)
-      if( .not. file_exists) then
+      if( file_exists) then
           write(*,*) 'There is already a file called WANNIER_MLWF.OUT.'
           write(*,*) 'Should transformation matrices for MLWF be read from this? (y/n)'
           read( *, '(1a)') read_file
@@ -330,64 +364,69 @@ module mod_wannier
       end if
       if( read_file .eq. 'n') then
         ! generate transformation matrices from projection as initial input
-        call genwf( bandstart, nband, loproj)
+        call genwf( bandstart, nband, nproj, loproj)
         ! calculating inner products <u(m,k)|u(n,k+b)>
-        allocate( mlwf_emat( wf_nprojused, wf_nprojused))
+        allocate( mlwf_emat( wf_nband, wf_nband))
         !allocate( mlwf_emat( nstfv, nstfv))
-        allocate( auxmat( wf_nprojused, wf_nprojused))
-        allocate( mlwf_m0( wf_nprojused, wf_nprojused, nn, nkpt))
+        allocate( auxmat( wf_nband, wf_nprojused))
+        allocate( mlwf_m0( wf_nprojused, wf_nprojused, nn(1), nkptnr))
         write(*,*) 'Computing inner products...'
         ! call before parallel loop in order to initialize save variables in emat_wannier
 
         allocate( evecfv1( nmatmax, nstfv, nspnfv), evecfv2( nmatmax, nstfv, nspnfv))
+        allocate( igkignr( ngkmax))
+        allocate( vgklnr( 3, ngkmax, nspnfv), vgkcnr( 3, ngkmax, nspnfv), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
 
-        ix = 0
-        do ib = 1, nn !!ATTENTION!!nn
-          call emat_init( nvl( :, ib), (/0d0, 0d0, 0d0/), input%groundstate%lmaxapw, 8)
+        do ib = 1, nn(1) !!ATTENTION!!nn
+          call emat_init( nvl( :, 1, ib), (/0d0, 0d0, 0d0/), input%groundstate%lmaxapw, 8)
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, evecfv1, evecfv2, auxmat, mlwf_emat)
-!$OMP DO
+!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, vkcnr, ngknr, igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr, evecfv1, evecfv2, auxmat, mlwf_emat)
+!!$OMP DO
 #endif
-          do ik = 1, nkpt
+          do iknr = 1, nkptnr
             
-            call getevecfv( vkl( :, ik), vgkl( :, :, :, ik), evecfv1(:,:,1))
-            call getevecfv( vkl( :, idxn( ib, ik)), vgkl( :, :, :, idxn( ib, ik)), evecfv2(:,:,1))
-            !call emat_genemat( ik, idxn( ib, ik), 1, 4, 5, 6, evecfv1(:,:,1), evecfv2(:,:,1), mlwf_emat)
-            !call emat_genemat( ik, idxn( ib, ik), wf_bandstart, wf_nprojused, wf_bandstart, wf_nprojused, evecfv1(:,:,1), evecfv2(:,:,1), mlwf_emat)
+            ! find G+k-vectors and eigenvectors for non-reduced k-point k
+            Call gengpvec( vklnr( :, iknr), vkcnr( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+            call getevecfv( vklnr( :, iknr), vgklnr, evecfv1(:,:,1))
+            ! find G+k-vectors and eigenvectors for non-reduced k-point k+b
+            Call gengpvec( vklnr( :, idxn( ib, iknr)), vkcnr( :, idxn( ib, iknr)), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+            call getevecfv( vklnr( :, idxn( ib, iknr)), vgklnr, evecfv2(:,:,1))
 
-            call emat_wannier( ik, nvl( :, ib), wf_bandstart, wf_nprojused, wf_bandstart, wf_nprojused, mlwf_emat)
-            !mlwf_emat = conjg( mlwf_emat)
+            call emat_genemat( iknr, idxn( ib, iknr), wf_bandstart, wf_nband, wf_bandstart, wf_nband, evecfv1(:,:,1), evecfv2(:,:,1), mlwf_emat)
 
-            !write(*,*) '------------------------'
-            !write(*,*) ib, ik
-            !do iy = 1, wf_nprojused
-            !  do iz = 1, wf_nprojused
-            !    write(*,'(2(I3,3x),SP,E23.16,E23.16,"i")') iy, iz, mlwf_emat( iy, iz)
-            !  end do
-            !end do
-            !call emat_wannier( ik, nvl( :, ib), 1, nstfv, 1, nstfv, mlwf_emat)
-            
-            call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, mlwf_emat, wf_nprojused, wf_transform( :, :, idxn( ib, ik)), wf_nprojused, zzero, auxmat, wf_nprojused)
-            call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, wf_transform( :, :, ik), wf_nprojused, auxmat, wf_nprojused, zzero, mlwf_m0( :, :, ib, ik), wf_nprojused)
+            call ZGEMM( 'N', 'N', wf_nband, wf_nprojused, wf_nband, zone, &
+                 mlwf_emat, wf_nband, &
+                 wf_transform( :, :, idxn( ib, iknr)), wf_nband, zzero, &
+                 auxmat, wf_nband)
+            call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nband, zone, &
+                 wf_transform( :, :, iknr), wf_nband, &
+                 auxmat, wf_nband, zzero, &
+                 mlwf_m0( :, :, ib, iknr), wf_nprojused)
             ix = ix + 1
             ! print out progress
-            !write( 6, '(a,10x,i3,a)', advance='no') achar( 13), nint( 100.0d0*ix/nkpt/nn), '%'
-            !flush( 6)
+            write( 6, '(a,10x,i3,a)', advance='no') achar( 13), nint( 100.0d0*ix/nkptnr/nn(1)), '%'
+            flush( 6)
+            !write( *, '(5I6)') iknr, idxn( ib, iknr), nint( vklnr( :, iknr) + nvl( :, 1, ib) - vklnr( :, idxn( ib, iknr)))
+            !do iy = 1, wf_nband
+            !  do iz = 1, wf_nband
+            !    write( *, '(F23.16,F23.16)') mlwf_emat( iz, iy)
+            !  end do
+            !end do
           end do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+!!$OMP END DO
+!!$OMP END PARALLEL
 #endif
         end do
-        !write(6,*)
+        write(6,*)
 
         !stop
 
         ! calculating weights of b-vectors
-        allocate( bwgt( nn))
+        allocate( bwgt( nn(1)))
         bwgtsm = 0d0
-        do ib = 1, nn
-          bwgt( ib) = 3d0/(nn*norm2( nvc( :, ib))**2)
+        do ib = 1, nn(1)
+          bwgt( ib) = 3d0/(nn(1)*norm2( nvc( :, 1, ib))**2)
           bwgtsm = bwgtsm + bwgt( ib)
         end do
         
@@ -395,7 +434,7 @@ module mod_wannier
         mixing = dble( 0.5)
     
         ! initialize transformation matrices
-        allocate( mlwf_transform( wf_nprojused, wf_nprojused, nkpt))
+        allocate( mlwf_transform( wf_nprojused, wf_nprojused, nkptnr))
         mlwf_transform = zzero
         do ix = 1, wf_nprojused
           mlwf_transform( ix, ix, :) = zone
@@ -404,9 +443,9 @@ module mod_wannier
         ! start minimization loop
         allocate( evec( wf_nprojused, wf_nprojused), eval( wf_nprojused))
         allocate( mlwf_r( wf_nprojused, wf_nprojused), mlwf_t( wf_nprojused, wf_nprojused), mlwf_dw( wf_nprojused, wf_nprojused))
-        allocate( mlwf_m( wf_nprojused, wf_nprojused, nn, nkpt))
+        allocate( mlwf_m( wf_nprojused, wf_nprojused, nn(1), nkptnr))
         allocate( ravg( 3, wf_nprojused))
-        allocate( diffval( 0:5000, nkpt), diffk( 0:5000))
+        allocate( diffval( 0:5000, nkptnr), diffk( 0:5000))
         mlwf_m = mlwf_m0
         ! maximum norm of difference between old and new transformation matrices
         diffval = 1.0d0
@@ -417,24 +456,24 @@ module mod_wannier
           diffval( iz, :) = 0.d0
           ravg = 0.d0
           do ix = 1, wf_nprojused
-            do ik = 1, nkpt
-              do ib = 1, nn
-                ravg( :, ix) = ravg( :, ix) - bwgt( ib)/nkpt*real( aimag( log( mlwf_m( ix, ix, ib, ik))))*nvc( :, ib)
+            do iknr = 1, nkptnr
+              do ib = 1, nn(1)
+                ravg( :, ix) = ravg( :, ix) - bwgt( ib)/nkptnr*real( aimag( log( mlwf_m( ix, ix, ib, iknr))))*nvc( :, 1, ib)
               end do
             end do
           end do
       
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, ib, mlwf_r, mlwf_t, mlwf_dw, eval, evec, ix, auxmat, maxdiff)
-!$OMP DO
+!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ib, mlwf_r, mlwf_t, mlwf_dw, eval, evec, ix, auxmat, maxdiff)
+!!$OMP DO
 #endif
-          do ik = 1, nkpt
+          do iknr = 1, nkptnr
             mlwf_dw(:,:) = zzero
-            do ib = 1, nn
+            do ib = 1, nn(1)
               ! calculating R and T
               do ix = 1, wf_nprojused
-                mlwf_r( :, ix) = mlwf_m( :, ix, ib, ik)*conjg( mlwf_m( ix, ix, ib, ik))
-                mlwf_t( :, ix) = mlwf_m( :, ix, ib, ik)/mlwf_m( ix, ix, ib, ik)*(real( aimag( log( mlwf_m( ix, ix, ib, ik)))) + dot_product( nvc( :, ib), ravg( :, ix)))
+                mlwf_r( :, ix) = mlwf_m( :, ix, ib, iknr)*conjg( mlwf_m( ix, ix, ib, iknr))
+                mlwf_t( :, ix) = mlwf_m( :, ix, ib, iknr)/mlwf_m( ix, ix, ib, iknr)*(real( aimag( log( mlwf_m( ix, ix, ib, iknr)))) + dot_product( nvc( :, 1, ib), ravg( :, ix)))
               end do
         
               ! calculating dW
@@ -450,29 +489,44 @@ module mod_wannier
             do ix = 1, wf_nprojused
               auxmat( ix, ix) = exp( eval( ix)) 
             end do
-            call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, evec, wf_nprojused, auxmat, wf_nprojused, zzero, mlwf_dw, wf_nprojused)
-            call ZGEMM( 'N', 'C', wf_nprojused, wf_nprojused, wf_nprojused, zone, mlwf_dw, wf_nprojused, evec, wf_nprojused, zzero, auxmat, wf_nprojused)
-            call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, mlwf_transform( :, :, ik), wf_nprojused, auxmat, wf_nprojused, zzero, mlwf_dw, wf_nprojused)
-            maxdiff = norm2( abs( reshape( mlwf_transform( :, :, ik) - mlwf_dw, (/wf_nprojused**2/))))!/norm2( abs( reshape( mlwf_transform( :, :, ik), (/wf_nprojused**2/))))
-            if( maxdiff .ge. maxval( diffval( iz, :))) diffk( iz) = ik
-            diffval( iz, ik) = maxdiff
+            call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
+                 evec, wf_nprojused, &
+                 auxmat, wf_nprojused, zzero, &
+                 mlwf_dw, wf_nprojused)
+            call ZGEMM( 'N', 'C', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
+                 mlwf_dw, wf_nprojused, &
+                 evec, wf_nprojused, zzero, &
+                 auxmat, wf_nprojused)
+            call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
+                 mlwf_transform( :, :, iknr), wf_nprojused, &
+                 auxmat, wf_nprojused, zzero, &
+                 mlwf_dw, wf_nprojused)
+            maxdiff = norm2( abs( reshape( mlwf_transform( :, :, iknr) - mlwf_dw, (/wf_nprojused**2/))))!/norm2( abs( reshape( mlwf_transform( :, :, ik), (/wf_nprojused**2/))))
+            if( maxdiff .ge. maxval( diffval( iz, :))) diffk( iz) = iknr
+            diffval( iz, iknr) = maxdiff
 
-            mlwf_transform( :, :, ik) = mlwf_dw(:,:)
+            mlwf_transform( :, :, iknr) = mlwf_dw(:,:)
           end do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+!!$OMP END DO
+!!$OMP END PARALLEL
 #endif
     
           ! updating M
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, ib, auxmat)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ib, auxmat)
 !$OMP DO
 #endif
-          do ik = 1, nkpt
-            do ib = 1, nn
-              call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, mlwf_m0( :, :, ib, ik), wf_nprojused, mlwf_transform( :, :, idxn( ib, ik)), wf_nprojused, zzero, auxmat, wf_nprojused)
-              call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, mlwf_transform( :, :, ik), wf_nprojused, auxmat, wf_nprojused, zzero, mlwf_m( :, :, ib, ik), wf_nprojused)
+          do iknr = 1, nkptnr
+            do ib = 1, nn(1)
+              call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
+                   mlwf_m0( :, :, ib, iknr), wf_nprojused, &
+                   mlwf_transform( :, :, idxn( ib, iknr)), wf_nprojused, zzero, &
+                   auxmat, wf_nprojused)
+              call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
+                   mlwf_transform( :, :, iknr), wf_nprojused, &
+                   auxmat, wf_nprojused, zzero, &
+                   mlwf_m( :, :, ib, iknr), wf_nprojused)
             end do
           end do
 #ifdef USEOMP
@@ -500,9 +554,12 @@ module mod_wannier
         !end do
 
         ! generating final transformation matrices for Hamiltonian eigenstates
-        do ik = 1, nkpt
-          call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, wf_transform( :, :, ik), wf_nprojused, mlwf_transform( :, :, ik), wf_nprojused, zzero, auxmat, wf_nprojused)
-          wf_transform( :, :, ik) = auxmat(:,:)
+        do iknr = 1, nkptnr
+          call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
+               wf_transform( :, :, iknr), wf_nprojused, &
+               mlwf_transform( :, :, iknr), wf_nprojused, zzero, &
+               auxmat, wf_nprojused)
+          wf_transform( :, :, iknr) = auxmat(:,:)
         end do
 
         ! write resulting transformation matrices to file
@@ -604,4 +661,129 @@ module mod_wannier
       write( *, '(a,a)') ' Transformation matrices written to file ', trim( filename)
       return
     end subroutine wfwritefile  
+
+    subroutine angchar( iknr, lmax, nmin, nmax)
+      integer, intent( in) :: iknr, lmax, nmin, nmax
+
+      integer :: n, l, m, lm, io, ilo, ia, is, ias, ngknr
+      integer, allocatable :: igkignr(:)
+      real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:)
+      complex(8), allocatable :: sfacgknr(:,:), evecfv1(:,:,:)
+      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:)
+      complex(8), allocatable :: output(:,:,:)
+
+      allocate( evecfv( nmatmax, nstfv, nspnfv))
+      allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
+      allocate( igkignr( ngkmax))
+      allocate( vgklnr( 3, ngkmax, nspnfv), vgkcnr( 3, ngkmax, nspnfv), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
+      allocate( sfacgknr( ngkmax, natmtot))
+      allocate( output( natmtot, nstfv, lmmaxapw))
+
+      ! find G+k-vectors for non-reduced k-point
+      Call gengpvec( vklnr( :, iknr), vkcnr( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+      ! find structure factors
+      Call gensfacgp( ngknr, vgkcnr, ngkmax, sfacgknr)
+      ! get basis function coefficients and matching coefficients
+      call getevecfv( vklnr(:, iknr), vgklnr, evecfv)
+      call match( ngknr, gkcnr, tpgkcnr, sfacgknr, apwalm(:, :, :, :, 1))
+      output(:,:,:) = zzero
+      do is = 1, nspecies
+        do ia = 1, natoms( is)
+          ias = idxas( ia, is)
+          do io = 1, apword( l, is)
+            call ZGEMM( 'T', 'N', nstfv, lmmaxapw, ngknr, zone, &
+                 evecfv( 1:ngknr, :, 1), ngknr, &
+                 apwalm( 1:ngknr, io, 1:lmmaxapw, ias, 1), ngknr, zone, &
+                 output( ias, :, :), nstfv)
+          end do
+          !do ilo = 1, nlorb( is)
+          !  l = lorbl( ilo, is)
+          !  do m = -l, l
+          !    lm = idxlm( l, m)
+          !    output( ias, :, lm) = output( ias, :, lm) + evecfv( ngknr+idxlo( lm, ilo, ias), 1:nmax, 1) 
+          !  end do
+          !end do
+        end do
+      end do
+
+      write( *, '("k-point: ",I2,3F13.6)') iknr, vklnr( :, iknr)
+      write( *, '("band    l     m       atoms")')
+      do n = nmin, nmax
+        do l = 0, lmax
+          do m = -l, l
+            lm = idxlm( l, m)
+            write( *, '(3(I3,3x))', advance='no') n, l, m
+            do is = 1, nspecies
+              do ia = 1, natoms( is)
+                ias = idxas( ia, is)
+                write( *, '(F8.1,SP,F8.1,3x)', advance='no') 100*abs( output( ias, n, lm))/dot_product( sqrt( abs( output( ias, n, :))), sqrt( abs( output( ias, n, :)))), atan2( real( aimag( output( ias, n, lm))), real( real( output( ias, n, lm))))/twopi*360
+              end do
+            end do
+            write(*,*)
+          end do
+        end do
+        write(*,*) 
+      end do
+      return
+    end subroutine angchar
+
+    subroutine wfneighbors( d, m, nvl, nvc)
+      integer, intent( out) :: m( nkptnr)
+      real(8), intent( out) :: d( nkptnr), nvl( 3, nkptnr, nkptnr), nvc( 3, nkptnr, nkptnr)
+      integer :: ix, iy, iz, ngridk(3), i, j, n 
+      integer :: mt( nkptnr)
+      real(8) :: vl(3), vc(3), dist
+      real(8) :: nvlt( 3, nkptnr, nkptnr), nvct( 3, nkptnr, nkptnr), dt( nkptnr)
+      
+      dt = 0.d0
+      mt = 0
+      nvlt = 0.d0
+      nvct = 0.d0
+      ngridk = input%groundstate%ngridk
+      i = 0
+      do iz = 0, ngridk(3)-1
+        do iy = 0, ngridk(2)-1
+          do ix = 0, ngridk(1)-1
+            vl = (/dble( ix)/ngridk(1), dble( iy)/ngridk(2), dble( iz)/ngridk(3)/)
+            call r3mv( bvec, vl, vc)
+            dist = norm2( vc)
+            if( minval( abs( dt(:) - dist)) .gt. input%structure%epslat) then
+              i = i + 1
+              dt( i) = dist
+            end if
+          end do
+        end do
+      end do
+      n = i
+      do iz = ngridk(3)-1, -ngridk(3)+1, -1
+        do iy = ngridk(2)-1, -ngridk(2)+1, -1
+          do ix = ngridk(1)-1, -ngridk(1)+1, -1
+            vl = (/dble( ix)/ngridk(1), dble( iy)/ngridk(2), dble( iz)/ngridk(3)/)
+            call r3mv( bvec, vl, vc)
+            dist = norm2( vc)
+            j = minloc( abs( dt(:) - dist), 1)
+            if( abs( dt( j) - dist) .lt. input%structure%epslat) then
+              mt( j) = mt( j) + 1
+              nvlt( :, j, mt( j)) = vl
+              nvct( :, j, mt( j)) = vc
+            end if
+          end do
+        end do
+      end do
+      m = 0
+      d = 0.d0
+      nvl = 0.d0
+      nvc = 0.d0
+      dist = minval( dt)
+      do i = 1, n
+        j = minloc( abs( dt( 1:n) - dist), 1)
+        d( i) = dt( j)
+        m( i) = mt( j)
+        nvl( :, i, :) = nvlt( :, j, :)
+        nvc( :, i, :) = nvct( :, j, :)
+        dt( j) = 1.d6 
+        dist = minval( dt)
+      end do
+      return
+    end subroutine wfneighbors
 end module mod_wannier

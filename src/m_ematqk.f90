@@ -5,6 +5,7 @@ module m_ematqk
   use mod_muffin_tin
   use mod_constants
   use mod_lattice
+  use mod_spin
   use mod_kpoint
   use mod_Gvector
   use mod_Gkvector
@@ -321,7 +322,7 @@ module m_ematqk
           complex(8), intent( in) :: evec1( ngkmax+nlotot, nstfv), evec2( ngkmax+nlotot, nstfv)
           complex(8), intent( out) :: emat( nst1, nst2)
 
-          integer :: iv(3), ngkq, i, is, ia, ias, l, m, o, lmo, lm
+          integer :: iv(3), ngknr, ngkq, i, is, ia, ias, l, m, o, lmo, lm
           integer :: ig1, ig2
           real(8) :: t1, veckql(3), veckqc(3), g1(3), g2(3), gs(3), glen
           
@@ -330,9 +331,9 @@ module m_ematqk
           type( fftmap_type) :: fftmap
           complex(8), allocatable :: zfft0(:,:), zfftcf(:), zfftres(:), zfft(:)
 
-          integer, allocatable :: igkqig(:) 
-          real(8), allocatable :: vecgkql(:,:), vecgkqc(:,:), gkqc(:), tpgkqc(:,:)
-          complex(8), allocatable :: sfacgkq(:,:), apwalm1(:,:,:,:), apwalm2(:,:,:,:), apwalm3(:,:,:,:)
+          integer, allocatable :: igkignr(:), igkqig(:) 
+          real(8), allocatable :: vecgkql(:,:,:), vecgkqc(:,:,:), gkqc(:), tpgkqc(:,:)
+          complex(8), allocatable :: sfacgkq(:,:), apwalm1(:,:,:,:), apwalm2(:,:,:,:)
           complex(8), allocatable :: blockmt(:,:), auxmat(:,:), match_combined1(:,:), match_combined2(:,:)
           complex(8), allocatable :: aamat(:,:), almat(:,:), lamat(:,:)
           
@@ -347,38 +348,42 @@ module m_ematqk
             return
           end if
 
-          ! find matching coefficients for k-point k
+          allocate( igkignr( ngkmax), igkqig( ngkmax), vecgkql( 3, ngkmax, nspnfv), vecgkqc( 3, ngkmax, nspnfv), gkqc( ngkmax), tpgkqc( 2, ngkmax))
+          allocate( sfacgkq( ngkmax, natmtot))
           allocate( apwalm1( ngkmax, apwordmax, lmmaxapw, natmtot))
-          apwalm1 = zzero
-          call match( ngk( 1, ik), gkc( :, 1, ik), tpgkc( :, :, 1, ik), sfacgk( :, :, 1, ik), apwalm1)
+          allocate( apwalm2( ngkmax, apwordmax, lmmaxapw, natmtot))
+
           ! k+q-vector in lattice coordinates
-          veckql(:) = vkl( :, ik) + vecql(:)
+          veckql(:) = vklnr( :, ik) + vecql(:)
           ! map vector components to [0,1) interval
           call r3frac( input%structure%epslat, veckql, iv)
           ! k+q-vector in Cartesian coordinates
           call r3mv( bvec, veckql, veckqc)
           ! generate the G+k+q-vectors
-          allocate( igkqig( ngkmax), vecgkql( 3, ngkmax), vecgkqc( 3, ngkmax), gkqc( ngkmax), tpgkqc( 2, ngkmax))
           call gengpvec( veckql, veckqc, ngkq, igkqig, vecgkql, vecgkqc, gkqc, tpgkqc)
           ! generate the structure factors
-          allocate( sfacgkq( ngkmax, natmtot))
           call gensfacgp( ngkq, vecgkqc, ngkmax, sfacgkq)
-          ! find the matching coefficients for k-point k+q
-          allocate( apwalm2( ngkmax, apwordmax, lmmaxapw, natmtot))
-          allocate( apwalm3( ngkmax, apwordmax, lmmaxapw, natmtot))
+          ! find matching coefficients for k-point k+q
           apwalm2 = zzero
           call match( ngkq, gkqc, tpgkqc, sfacgkq, apwalm2)
-          !call match( ngk( 1, ikq), gkc( :, 1, ikq), tpgkc( :, :, 1, ikq), sfacgk( :, :, 1, ikq), apwalm2)
+
+          ! generate the G+k-vectors
+          call gengpvec( vklnr( :, ik), vkcnr( :, ik), ngknr, igkignr, vecgkql(:,:,1), vecgkqc(:,:,1), gkqc, tpgkqc)
+          ! generate the structure factors
+          call gensfacgp( ngknr, vecgkqc, ngkmax, sfacgkq)
+          ! find matching coefficients for k-point k
+          apwalm1 = zzero
+          call match( ngknr, gkqc, tpgkqc, sfacgkq, apwalm1)
           
           ! build block matrix
           ! [_AA_|_AL_]
           ! [ LA | LL ]
-          allocate( blockmt( ngk( 1, ik)+nlotot, ngkq+nlotot))
+          allocate( blockmt( ngknr+nlotot, ngkq+nlotot))
           allocate( auxmat( nlmomax, ngkq))
-          allocate( match_combined1( nlmomax, ngk( 1, ik)), &
+          allocate( match_combined1( nlmomax, ngknr), &
                     match_combined2( nlmomax, ngkq))
-          allocate( aamat( ngk( 1, ik), ngkq), &
-                    almat( ngk( 1, ik), nlotot), &
+          allocate( aamat( ngknr, ngkq), &
+                    almat( ngknr, nlotot), &
                     lamat( nlotot, ngkq))
         
           blockmt(:,:) = zzero
@@ -394,50 +399,50 @@ module m_ematqk
                 m = lmo2m( lmo, is)
                 o = lmo2o( lmo, is)
                 lm = idxlm( l, m)
-                match_combined1( lmo, :) = apwalm1( 1:ngk( 1, ik), o, lm, ias)
+                match_combined1( lmo, :) = apwalm1( 1:ngknr, o, lm, ias)
                 match_combined2( lmo, :) = apwalm2( 1:ngkq, o, lm, ias)
               end do
               ! sum up block matrix
               ! APW-APW
               auxmat(:,:) = zzero
               call ZGEMM( 'N', 'N', nlmo( is), ngkq, nlmo( is), zone, &
-                  rigntaa( 1:nlmo( is), 1:nlmo( is), ias), nlmo( is), &
-                  match_combined2( 1:nlmo( is), :), nlmo( is), zzero, &
-                  auxmat( 1:nlmo( is), :), nlmo( is))
-              call ZGEMM( 'C', 'N', ngk( 1, ik), ngkq, nlmo( is), zone, &
-                  match_combined1( 1:nlmo( is), :), nlmo( is), &
-                  auxmat( 1:nlmo( is), :), nlmo( is), zzero, &
-                  aamat, ngk( 1, ik))
-              blockmt( 1:ngk( 1, ik), 1:ngkq) = blockmt( 1:ngk( 1, ik), 1:ngkq) + aamat(:,:)
+                   rigntaa( 1:nlmo( is), 1:nlmo( is), ias), nlmo( is), &
+                   match_combined2( 1:nlmo( is), :), nlmo( is), zzero, &
+                   auxmat( 1:nlmo( is), :), nlmo( is))
+              call ZGEMM( 'C', 'N', ngknr, ngkq, nlmo( is), zone, &
+                   match_combined1( 1:nlmo( is), :), nlmo( is), &
+                   auxmat( 1:nlmo( is), :), nlmo( is), zzero, &
+                   aamat, ngknr)
+              blockmt( 1:ngknr, 1:ngkq) = blockmt( 1:ngknr, 1:ngkq) + aamat(:,:)
               ! APW-LO
-              call ZGEMM( 'C', 'N', ngk( 1, ik), nlotot, nlmo( is), zone, &
-                  match_combined1( 1:nlmo( is), :), nlmo( is), &
-                  rigntal( 1:nlmo( is), :, ias), nlmo( is), zzero, &
-                  almat, ngk( 1, ik))
-              blockmt( 1:ngk( 1, ik), (ngkq+1):(ngkq+nlotot)) = blockmt( 1:ngk( 1, ik), (ngkq+1):(ngkq+nlotot)) + almat(:,:)
+              call ZGEMM( 'C', 'N', ngknr, nlotot, nlmo( is), zone, &
+                   match_combined1( 1:nlmo( is), :), nlmo( is), &
+                   rigntal( 1:nlmo( is), :, ias), nlmo( is), zzero, &
+                   almat, ngknr)
+              blockmt( 1:ngknr, (ngkq+1):(ngkq+nlotot)) = blockmt( 1:ngknr, (ngkq+1):(ngkq+nlotot)) + almat(:,:)
               ! LO-APW
               call ZGEMM( 'N','N', nlotot, ngkq, nlmo( is), zone, &
-                  rigntla( :, 1:nlmo( is), ias), nlotot, &
-                  match_combined2( 1:nlmo( is), :), nlmo( is), zzero, &
-                  lamat, nlotot)
-              blockmt( (ngk( 1, ik)+1):(ngk( 1, ik)+nlotot), 1:ngkq) = blockmt( (ngk( 1, ik)+1):(ngk( 1, ik)+nlotot), 1:ngkq) + lamat(:,:)
+                   rigntla( :, 1:nlmo( is), ias), nlotot, &
+                   match_combined2( 1:nlmo( is), :), nlmo( is), zzero, &
+                   lamat, nlotot)
+              blockmt( (ngknr+1):(ngknr+nlotot), 1:ngkq) = blockmt( (ngknr+1):(ngknr+nlotot), 1:ngkq) + lamat(:,:)
               ! LO-LO
-              blockmt( (ngk( 1, ik)+1):(ngk( 1, ik)+nlotot), (ngkq+1):(ngkq+nlotot)) = blockmt( (ngk( 1, ik)+1):(ngk( 1, ik)+nlotot), (ngkq+1):(ngkq+nlotot)) + rigntll( :, :, ias)
+              blockmt( (ngknr+1):(ngknr+nlotot), (ngkq+1):(ngkq+nlotot)) = blockmt( (ngknr+1):(ngknr+nlotot), (ngkq+1):(ngkq+nlotot)) + rigntll( :, :, ias)
 
             end do
           end do
 
           ! compute final total muffin tin contribution
           deallocate( auxmat)
-          allocate( auxmat( ngk( 1, ik)+nlotot, nst2))
-          call ZGEMM( 'N', 'N', ngk( 1, ik)+nlotot, nst2, ngkq+nlotot, zone, &
-              blockmt(:,:), ngk( 1, ik)+nlotot, &
-              evec2( 1:(ngkq+nlotot), fst2:(fst2+nst2-1)), ngkq+nlotot, zzero, &
-              auxmat(:,:), ngk( 1, ik)+nlotot)
-          call ZGEMM( 'C', 'N', nst1, nst2, ngk( 1, ik)+nlotot, cmplx( fourpi, 0.d0, 8), &
-              evec1( 1:(ngk( 1, ik)+nlotot), fst1:(fst1+nst1-1)), ngk( 1, ik)+nlotot, &
-              auxmat(:,:), ngk( 1, ik)+nlotot, zzero, &
-              emat(:,:), nst1)
+          allocate( auxmat( ngknr+nlotot, nst2))
+          call ZGEMM( 'N', 'N', ngknr+nlotot, nst2, ngkq+nlotot, zone, &
+               blockmt(:,:), ngknr+nlotot, &
+               evec2( 1:(ngkq+nlotot), fst2:(fst2+nst2-1)), ngkq+nlotot, zzero, &
+               auxmat(:,:), ngknr+nlotot)
+          call ZGEMM( 'C', 'N', nst1, nst2, ngknr+nlotot, cmplx( fourpi, 0.d0, 8), &
+               evec1( 1:(ngknr+nlotot), fst1:(fst1+nst1-1)), ngknr+nlotot, &
+               auxmat(:,:), ngknr+nlotot, zzero, &
+               emat(:,:), nst1)
           
           !write(*,*) ik
           !write(*,*) vecql
@@ -452,7 +457,7 @@ module m_ematqk
           !--------------------------------------!
  
                 !ikq = ikmapikq (ik, iq)
-          veckql(:) = vkl( :, ik) + vecql(:)        !vkql = veckql
+          veckql(:) = vklnr( :, ik) + vecql(:)        !vkql = veckql
                 
           ! umklapp treatment
           do ix = 1, 3
@@ -483,8 +488,8 @@ module m_ematqk
 !$OMP DO
 #endif
           do ist1 = 1, nst1
-            do ig = 1, ngk( 1, ik) !ngk0 ?
-              zfft0( fftmap%igfft( igkig( ig, 1, ik)), ist1) = evec1( ig, fst1+ist1-1)
+            do ig = 1, ngknr !ngk0 ?
+              zfft0( fftmap%igfft( igkignr( ig)), ist1) = evec1( ig, fst1+ist1-1)
             enddo
             call zfftifc( 3, fftmap%ngrid, 1, zfft0( :, ist1))
             zfft0( :, ist1) = conjg( zfft0( :, ist1))*zfftcf(:) 
