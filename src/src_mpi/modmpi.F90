@@ -102,25 +102,25 @@ module modmpi
 
       ! Make communicators for 
       ! intra- and inter-processor (node) communication.
-      ! Set legacy module variables
       call setup_node_groups
+
+      write(*, '("initmpi@gc",i2," : Exited setup_node_groups")') mpiglobal%rank
 
       ! Each rank writes its own file (use in pars of GS and XS)
       splittfile = .true.
        
-      !call get_isfirstinnode(200*procs)
-      write(*, '("initmpi@gc",i2," : NP:", i3," GC:", i3)') mpiglobal%rank,&
+      write(*, '("initmpi@gc",i2," : NP:", i3," GC:", i16)') mpiglobal%rank,&
         & mpiglobal%procs, mpiglobal%comm
-      write(*, '("initmpi@gc",i2," : NN:", i3," NID")') mpiglobal%rank,&
+      write(*, '("initmpi@gc",i2," : NN:", i3," NID", i3)') mpiglobal%rank,&
         & mpinodes%ngroups, mpinodes%id
-      write(*, '("initmpi@gc",i2," : NC1:", i3," NR1:", i3," NS1:", i3)')&
+      write(*, '("initmpi@gc",i2," : NC1:", i16," NR1:", i3," NS1:", i3)')&
         & mpiglobal%rank,&
         & mpinodes%mpi%comm, mpinodes%mpi%rank, mpinodes%mpi%procs
-      write(*, '("initmpi@gc",i2," : NC2:", i3," NR2:", i3," NS2:", i3)')&
+      write(*, '("initmpi@gc",i2," : NC2:", i16," NR2:", i3," NS2:", i3)')&
         & mpiglobal%rank, mpinodes%mpiintercom%comm,&
         & mpinodes%mpiintercom%rank, mpinodes%mpiintercom%procs
 
-! TEST
+      call barrier
       call terminate
 #endif
 #ifndef MPI
@@ -641,9 +641,9 @@ module modmpi
     ! !DESCRIPTION:
     !   Wrapper routine for {\tt MPI\_ALLGATHERV} for different 
     !   data types which is adapted for the k-point set 
-    !   distribution scheme. That is this works, if \it{set} number
+    !   distribution scheme. That is this works, if {\it set} number
     !   of elements (e.g. k-points) is distributed over all 
-    !   processes in the {\tt MPI} communicator \it{comm} using
+    !   processes in the {\tt MPI} communicator {\it comm} using
     !   a continuous distribution as created by the functions
     !   {\tt nofset, firstofset, lastofset}.
     !   The routine can handle a constant number of data elements per 
@@ -905,7 +905,7 @@ module modmpi
     ! !ROUTINE: setup_proc_groups
     ! !INTERFACE: 
     subroutine setup_proc_groups(ngroups, mygroup)
-    ! !INPUT/OUTPUT:
+    ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     ! input(4) :: ngroups ! number of groups to be formed
     !                     ! form the available MPI threads
@@ -1075,7 +1075,7 @@ module modmpi
     ! !ROUTINE: setup_node_groups
     ! !INTERFACE: 
     subroutine setup_node_groups
-    ! !INPUT/OUTPUT:
+    ! !INPUT/OUTPUT PARAMETERS:
     ! Module OUT:
     ! type(procgroup) :: mpinodes ! Partitioning according to processor name
     !
@@ -1087,13 +1087,15 @@ module modmpi
     !   The size of each process group depends on the respective node size
     !   and node utilization.
     !   Also a communicator between the first processes in each node is created.
-    !   A node in the context of this routine is a processor (return value of mpi_get_processor_name).
+    !   A node in the context of this routine is a processor 
+    !   (return value of {\tt mpi\_get\_processor\_name}).
     !
     ! !REVISION HISTORY:
     !   Based of setup_ProcGroups form mpi_mortadella branch
     !   and get_isfirstinnode form master. (Aurich)
     !
     !EOP
+    !BOC
 
       implicit none
 
@@ -1107,7 +1109,7 @@ module modmpi
       integer(4) :: pos1, pos2, n
       integer(4) :: recvstatus(mpi_status_size)
       character(200) :: procname, myprocname
-      character(len=:), allocatable :: neighbors, neighborssend
+      character(len=200*mpiglobal%procs) :: neighbors, neighborssend
       logical :: lbuffer
       integer(4) :: mynodesize, mynode, nnodes
       integer(4), allocatable :: mynoderanks(:)
@@ -1124,8 +1126,8 @@ module modmpi
 
       ! Assume maximal processor name length to be 200
       strsize = 200*mpiglobal%procs
-      allocate(character(len=strsize) :: neighbors)
-      allocate(character(len=strsize) :: neighborssend)
+
+write(*,*) "len of NS", len(neighbors)
       myprocname = ''
       neighbors = ''
       neighborssend = ''
@@ -1138,8 +1140,12 @@ module modmpi
           & mpiglobal%rank, mpiglobal%ierr, "get processor name failed."
         call terminate
       end if
-      write(*, '("setup_node_gorups@gc",i2," : PROCNAME:",a)') mpiglobal%rank,&
-        & trim(adjustl(myprocname))
+write(*, '("setup_node_gorups@gc",i2," : PROCNAME:",a)') mpiglobal%rank,&
+  & trim(adjustl(myprocname))
+write(*, '("setup_node_gorups@gc",i2," : NS:",a)') mpiglobal%rank,&
+  & trim(adjustl(neighbors))
+write(*, '("setup_node_gorups@gc",i2," : NSS:",a)') mpiglobal%rank,&
+  & trim(adjustl(neighborssend))
 
       ! The following code is illustrated by the example 
       ! with 4 threads and 2 physical processors A and B.
@@ -1149,31 +1155,38 @@ module modmpi
       !   rank 2 now has ns=",A,A" and pn="B", it sends ",A,A,B" to rank 3
       !   rank 3 now has ns=",A,A,B" and pn="B", it has no one to send to.
       !   Each rank checks if pn is in ns, if not it is the nodechef.
-      if(mpiglobal%rank .gt. 0) then
+      if(mpiglobal%rank > 0) then
         call mpi_recv(neighbors, strsize, mpi_character,&
           & mpiglobal%rank-1, tag, mpiglobal%comm, recvstatus, mpiglobal%ierr)
+write(*, '("setup_node_gorups@gc",i2," : received NS:",a)') mpiglobal%rank,&
+  & trim(adjustl(neighbors))
       end if
-      if(mpiglobal%rank .lt. procs-1) then
+      if(mpiglobal%rank < mpiglobal%procs-1) then
         write(neighborssend,*) trim(adjustl(neighbors))//","//trim(adjustl(myprocname))
         call mpi_send(neighborssend, strsize, mpi_character,&
           & mpiglobal%rank+1, tag, mpiglobal%comm, mpiglobal%ierr)
+write(*, '("setup_node_gorups@gc",i2," : sent NSS:",a)') mpiglobal%rank,&
+  & trim(adjustl(neighborssend))
       endif
-      if(index(neighbors, trim(adjustl(procname)) ).gt.0) then
+      if(index(trim(adjustl(neighbors)), trim(adjustl(myprocname)) ) > 0) then
         firstinnode = .false.
       else
         firstinnode = .true.
       endif
+write(*, '("setup_node_gorups@gc",i2," : first in node?:",l)') mpiglobal%rank,&
+  & firstinnode
 
       ! Send the full list of processors to all
       if(mpiglobal%rank == mpiglobal%procs-1) then 
         write(neighborssend,*) trim(adjustl(neighbors))//","//trim(adjustl(myprocname))
         ! Cut leading comma
-        neighborssend = trim(adjustl(neighborssend(2:)))
+        neighborssend = trim(adjustl(neighborssend))
+        neighborssend = neighborssend(2:)
       end if
       call mpi_bcast(neighborssend, strsize, mpi_character,&
         mpiglobal%procs-1, mpiglobal%comm, mpiglobal%ierr)
 
-      write(*, '("setup_node_gorups@gc",i2," : Neigh",a)') mpiglobal%rank,&
+      write(*, '("setup_node_gorups@gc",i2," : Total NS: ",a)') mpiglobal%rank,&
         & trim(adjustl(neighborssend))
 
       ! Figure out how many MPI threads are on current processor
@@ -1188,7 +1201,7 @@ module modmpi
       procname=''
       pos1=1
       n=0
-      do i = 0, procs-1
+      do i = 0, mpiglobal%procs-1
         pos2 = index(neighborssend(pos1:),",")
         if(pos2 == 0) then
           n = n+1
@@ -1205,15 +1218,18 @@ module modmpi
         end if
         pos1=pos1+pos2
       end do
-      write(*, '("setup_node_gorups@gc",i2," : mynoderanks ", i2)') mpiglobal%rank,&
-        & mynoderanks
+      do i = 1, mynodesize
+        write(*, '("setup_node_gorups@gc",i2," : mynoderanks(",i2,")=", i2)')&
+          & mpiglobal%rank, i,&
+          & mynoderanks(i)
+      end do
 
       ! The following collects all the rank numbers that are nodechefs 
       ! in the first 1:nnodes elements of nodechefs and creates
       ! a mpi group and communicator for inter-node communication.
-      allocate(nodechefs(procs))
+      allocate(nodechefs(mpiglobal%procs))
       nnodes = 0
-      do i = 0, procs-1
+      do i = 0, mpiglobal%procs-1
         lbuffer = firstinnode
         call mpi_bcast(lbuffer, 1, mpi_logical, i, mpiglobal%comm, mpiglobal%ierr)
         if(lbuffer)then
@@ -1221,16 +1237,20 @@ module modmpi
            nodechefs(nnodes)= i
         endif
       end do
-      write(*, '("setup_node_gorups@gc",i2," : noderchefs ", i2)') mpiglobal%rank,&
-        & nodechefs
+      do i = 1, nnodes
+        write(*, '("setup_node_gorups@gc",i2," : noderchefs(",i2,")=", i2)')&
+          & mpiglobal%rank, i,&
+          & nodechefs(i)
+      end do
 
       ! Figure out on which node the current process is
       mynode = -1
       do i = 1, nnodes
         if(mynoderanks(1) == nodechefs(i)) then
-            mynode = i-1
+          exit
         end if
       end do
+      mynode = i-1
       write(*, '("setup_node_gorups@gc",i2," : mynode ", i2)') mpiglobal%rank,&
         & mynode
 
@@ -1251,22 +1271,36 @@ module modmpi
       ! Split global comm intra-group comms
       call mpi_comm_split(mpiglobal%comm, color, key,&
         & mpinodes%mpi%comm, mpinodes%mpi%ierr)
+
+write (*, '("setup_node_groups@rank",i3," mpinodes%mpi%comm=",i16)')&
+& mpiglobal%rank, mpinodes%mpi%comm
+
       !   Error checking
       if(mpinodes%mpi%ierr .ne. 0) then
         write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
           & mpiglobal%rank, mpinodes%mpi%ierr, "com split failed."
         call terminate
       end if
+
       ! Get number of procs in group comm 
       call mpi_comm_size(mpinodes%mpi%comm, mpinodes%mpi%procs, mpinodes%mpi%ierr)
+
+write (*, '("setup_node_groups@rank",i3," mpinodes%mpi%procs=",i3)')&
+& mpiglobal%rank, mpinodes%mpi%procs
+
       !   Error checking
       if(mpinodes%mpi%ierr .ne. 0) then
         write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
           & mpiglobal%rank, mpinodes%mpi%ierr, "comm size failed."
         call terminate
       end if
+
       ! Get rank
       call mpi_comm_rank(mpinodes%mpi%comm, mpinodes%mpi%rank,  mpinodes%mpi%ierr)
+
+write (*, '("setup_node_groups@rank",i3," mpinodes%mpi%rank=",i3)')&
+& mpiglobal%rank, mpinodes%mpi%rank
+
       !   Error checking
       if(mpinodes%mpi%ierr .ne. 0) then
         write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
@@ -1275,50 +1309,85 @@ module modmpi
       end if
 
       ! Inter-groups communicator
+      mpinodes%mpiintercom%comm = mpi_comm_null
+      mpinodes%mpiintercom%rank = -1
+      mpinodes%mpiintercom%procs = nnodes
 
       ! Make MPI group from global MPI communicator, i.e. a group of all processes
       call mpi_comm_group(mpiglobal%comm, global_group, mpiglobal%ierr)
+
+write (*, '("setup_node_groups@rank",i3," global_group=",i16)')&
+& mpiglobal%rank, global_group
+
       !   Error checking
       if(mpiglobal%ierr .ne. 0) then
         write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
           & mpiglobal%rank, mpiglobal%ierr, "comm group failed."
         call terminate
       end if
+
       ! From that global group make a new sub group only containing 
       ! the ranks in nodechefs
       call mpi_group_incl(global_group, nnodes, nodechefs(1:nnodes),&
         & interprocs_group, mpiglobal%ierr)
+      
+write (*, '("setup_node_groups@rank",i3," interprocs_group=",i16)')&
+& mpiglobal%rank, interprocs_group
+
       !   Error checking
       if(mpiglobal%ierr .ne. 0) then
         write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
           & mpiglobal%rank, mpiglobal%ierr, "group incl failed."
         call terminate
       end if
+
       ! Take that sub group and create a new commuicator for only that sub group
       call mpi_comm_create(mpiglobal%comm, interprocs_group,&
         & mpinodes%mpiintercom%comm, mpiglobal%ierr)
+
+
       !   Error checking
       if(mpiglobal%ierr .ne. 0) then
         write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
           & mpiglobal%rank, mpiglobal%ierr, "comm create failed."
         call terminate
       end if
+
       ! Collect information for intercommunication communicator
-      call mpi_comm_size(mpinodes%mpiintercom%comm, mpinodes%mpiintercom%procs,&
-        & mpinodes%mpiintercom%ierr)
-      !   Error checking
-      if(mpiglobal%ierr .ne. 0) then
-        write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
-          & mpiglobal%rank, mpiglobal%ierr, "comm create failed."
-        call terminate
-      end if
-      call mpi_comm_rank(mpinodes%mpiintercom%comm, mpinodes%mpiintercom%rank,&
-        & mpinodes%mpiintercom%ierr)
-      !   Error checking
-      if(mpiglobal%ierr .ne. 0) then
-        write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
-          & mpiglobal%rank, mpiglobal%ierr, "comm create failed."
-        call terminate
+      !   Note: Not only the ranks 0 in the nodes have a valid (non null) 
+      !         intercommunicator
+      if(mpinodes%mpiintercom%comm /= mpi_comm_null) then
+
+write (*, '("setup_node_groups@rank",i3,&
+  &" mpinodes%mpiintercom%com=",i16)')&
+& mpiglobal%rank, mpinodes%mpiintercom%comm
+
+        call mpi_comm_size(mpinodes%mpiintercom%comm, mpinodes%mpiintercom%procs,&
+          & mpinodes%mpiintercom%ierr)
+
+write (*, '("setup_node_groups@rank",i3," mpinodes%mpiintercom%procs=",i4)')&
+& mpiglobal%rank, mpinodes%mpiintercom%procs
+
+        !   Error checking
+        if(mpiglobal%ierr .ne. 0) then
+          write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
+            & mpiglobal%rank, mpiglobal%ierr, "comm create failed."
+          call terminate
+        end if
+
+        call mpi_comm_rank(mpinodes%mpiintercom%comm, mpinodes%mpiintercom%rank,&
+          & mpinodes%mpiintercom%ierr)
+
+write (*, '("setup_node_groups@rank",i3," mpinodes%mpiintercom%rank=",i4)')&
+& mpiglobal%rank, mpinodes%mpiintercom%rank
+
+        !   Error checking
+        if(mpiglobal%ierr .ne. 0) then
+          write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
+            & mpiglobal%rank, mpiglobal%ierr, "comm create failed."
+          call terminate
+        end if
+
       end if
 
       ! Free group handles, the communicators are all we need form here on 

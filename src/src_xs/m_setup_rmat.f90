@@ -244,85 +244,83 @@ module m_setup_rmat
       ! ik loop
       end do
 
-      contains
-
-        !BOP
-        ! !ROUTINE: buildrmat
-        ! !INTERFACE:
-        function buildrmat(ig, jg, ib, jb, occ, pmat)
-        ! !INPUT/OUTPUT PARAMETERS:
-        ! In:
-        ! integer(4) :: ig, jg        ! Position of sub block in global matrix
-        ! integer(4) :: ib, jb        ! Sub block size
-        ! real(8)    :: occ(ib)       ! Occupation factors
-        ! complex(8) :: pmat(ib, jb)  ! $P_{ou}(k)$ slice
-        ! Out:
-        ! complex(8) :: buildrmat(ib,jb)  ! Sub block of R-mat
-        !
-        ! !DESCRIPTION:
-        !   The function returns a sub block of the distributed position operator matrix:\\
-        !   $R(i_g:i_g+i_b-1, j_g:j_g+j_b-1)$ where each entry is computed according to \\
-        !   $R(i, \text{opt}) = F(i) P(i, \text{opt}) / E(i)$  \\
-        !   $E$ are the Kohn-Sham transition energies, $F$ the occupation factors and $P$ 
-        !   the momentum matrix elements.
-        !   The index $i$ correspond to the combined index $\alpha$ and the index 
-        !   $\text{opt}$ refers to a Cartesian direction.\\
-        !   So with $\alpha = \{ u_\alpha, o_\alpha, \vec{k}_\alpha \}$ : \\
-        !   $F_{\alpha} = \sqrt{\left| f_{\vec{k}_{\alpha} o_{\alpha}}
-        !                   - f_{\vec{k}_{\alpha} u_{\alpha}} \right|}$, 
-        !   $E_{\alpha} = \epsilon_{\vec{k}_{\alpha} u_{\alpha}}
-        !                   - \epsilon_{\vec{k}_{\alpha} o_{\alpha}}$, 
-        !   $P_{\alpha, \text{opt}} = P^\text{opt}_{o_{\alpha} u_{\alpha} \vec{k}_{\alpha}}
-        !
-        ! !REVISION HISTORY:
-        !   Created 2016 (Aurich)
-        !EOP
-        !BOC
-          integer(4), intent(in) :: ig, jg, ib, jb
-          real(8), intent(in) :: occ(ib)
-          complex(8), intent(inout), optional :: pmat(ib,jb)
-          complex(8) :: buildrmat(ib,jb)
-          
-          real(8) :: evalfactors(ib)
-          integer(4) :: iknr, ioabs, iuabs
-          integer(4) :: ik, io, iu
-          integer(4) :: r, c
-
-          iknr = smap(ig, 3)
-
-          do r = 1, ib
-            
-            ! State indices could be non
-            ! continuous, due to filtering out of
-            ! some transition
-            iuabs = smap(ig+r-1, 1)
-            ioabs = smap(ig+r-1, 2)
-
-            ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
-            ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
-            !   Where E are quasi-particle energies and e are KS energies.
-            if(associated(input%gw)) then
-              evalfactors(r) = eval0(iuabs, iknr) - eval0(ioabs, iknr)
-            else
-              evalfactors(r) = evalsv(iuabs, iknr) - evalsv(ioabs, iknr)
-            end if
-
-          end do
-          
-          !! Construct local 2d block cyclic rmat elements
-          ! Build R-matrix from P-matrix 
-          ! \tilde{R}_{o_{alpha},u_{alpha},k_{alpha}},i = 
-          !   \sqrt{f_{o_{alpha},k_{alpha}}-f_{u_{alpha},k_{alpha}}} *
-          !   P_{o_{alpha},u_{alpha},k_{alpha}},i /
-          !     (e_{u_{alpha} k_{alpha}} - e_{o_{alpha} k_{alpha}})
-          do c = 1, jb
-            buildrmat(:, c) = occ(:)*pmat(:, c)/evalfactors(:)
-          end do
-
-        end function buildrmat
-        !EOC
-
     end subroutine setup_distributed_rmat
+    !EOC
+
+    !BOP
+    ! !ROUTINE: buildrmat
+    ! !INTERFACE:
+    function buildrmat(ig, jg, ib, jb, occ, pmat)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! In:
+    ! integer(4) :: ig, jg        ! Position of sub block in global matrix
+    ! integer(4) :: ib, jb        ! Sub block size
+    ! real(8)    :: occ(ib)       ! Occupation factors
+    ! complex(8) :: pmat(ib, jb)  ! Pou(k) slice
+    ! Out:
+    ! complex(8) :: buildrmat(ib,jb)  ! Sub block of R-mat
+    !
+    ! !DESCRIPTION:
+    !   The function returns a sub block of the distributed position operator matrix:\\
+    !   $R(i_g:i_g+i_b-1, j_g:j_g+j_b-1)$ where each entry is computed according to \\
+    !   $R(i, \text{opt}) = F(i) P(i, \text{opt}) / E(i)$  \\
+    !   $E$ are the Kohn-Sham transition energies, $F$ the occupation factors and $P$ 
+    !   the momentum matrix elements.
+    !   The index $i$ correspond to the combined index $\alpha$ and the index 
+    !   $\text{opt}$ refers to a Cartesian direction.\\
+    !   So with $\alpha = \{ u_\alpha, o_\alpha, \vec{k}_\alpha \}$ : \\
+    !   $F_{\alpha} = \sqrt{\left| f_{\vec{k}_{\alpha} o_{\alpha}}
+    !                   - f_{\vec{k}_{\alpha} u_{\alpha}} \right|}$, 
+    !   $E_{\alpha} = \epsilon_{\vec{k}_{\alpha} u_{\alpha}}
+    !                   - \epsilon_{\vec{k}_{\alpha} o_{\alpha}}$, 
+    !   $P_{\alpha, \text{opt}} = P^\text{opt}_{o_{\alpha} u_{\alpha} \vec{k}_{\alpha}}$
+    !
+    ! !REVISION HISTORY:
+    !   Created 2016 (Aurich)
+    !EOP
+    !BOC
+      integer(4), intent(in) :: ig, jg, ib, jb
+      real(8), intent(in) :: occ(ib)
+      complex(8), intent(inout), optional :: pmat(ib,jb)
+      complex(8) :: buildrmat(ib,jb)
+      
+      real(8) :: evalfactors(ib)
+      integer(4) :: iknr, ioabs, iuabs
+      integer(4) :: ik, io, iu
+      integer(4) :: r, c
+
+      iknr = smap(ig, 3)
+
+      do r = 1, ib
+        
+        ! State indices could be non
+        ! continuous, due to filtering out of
+        ! some transition
+        iuabs = smap(ig+r-1, 1)
+        ioabs = smap(ig+r-1, 2)
+
+        ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
+        ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
+        !   Where E are quasi-particle energies and e are KS energies.
+        if(associated(input%gw)) then
+          evalfactors(r) = eval0(iuabs, iknr) - eval0(ioabs, iknr)
+        else
+          evalfactors(r) = evalsv(iuabs, iknr) - evalsv(ioabs, iknr)
+        end if
+
+      end do
+      
+      !! Construct local 2d block cyclic rmat elements
+      ! Build R-matrix from P-matrix 
+      ! \tilde{R}_{o_{alpha},u_{alpha},k_{alpha}},i = 
+      !   \sqrt{f_{o_{alpha},k_{alpha}}-f_{u_{alpha},k_{alpha}}} *
+      !   P_{o_{alpha},u_{alpha},k_{alpha}},i /
+      !     (e_{u_{alpha} k_{alpha}} - e_{o_{alpha} k_{alpha}})
+      do c = 1, jb
+        buildrmat(:, c) = occ(:)*pmat(:, c)/evalfactors(:)
+      end do
+
+    end function buildrmat
     !EOC
 
 end module m_setup_rmat

@@ -18166,9 +18166,7 @@ addcoords_xyz3_dp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyz3_dp(
 addcoords_xyz3_sp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyz3_sp(/;"	s	module:m_wcml_molecule
 addcoords_xyzfrac_dp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyzfrac_dp(/;"	s	module:m_wcml_molecule
 addcoords_xyzfrac_sp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyzfrac_sp(/;"	s	module:m_wcml_molecule
-adddirect	src_xs/b_bse.f90	/^  subroutine adddirect(/;"	s	subroutine:b_bse
-addexchange	src_xs/b_bse.f90	/^  subroutine addexchange(/;"	s	subroutine:b_bse
-addint	src_xs/m_setup_bse.f90	/^    subroutine addint(/;"	s	module:m_setup_bse
+addint	src_xs/m_setup_bse.f90	/^        subroutine addint(/;"	s	subroutine:setup_bse
 addrhocr	addrhocr.f90	/^Subroutine addrhocr$/;"	s
 addtohistory	src_inputparser/inputmodules.f90	/^ logical::addtohistory$/;"	k	type:relax_type
 adl	ARPACK/EXAMPLES/SYM/dsdrv2.f	/^     &                 ad(maxn), adl(/;"	v	program:dsdrv2
@@ -18601,10 +18599,12 @@ b_ematqk	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqk(/;"	s	module:m_b_ematqk
 b_ematqkgir	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqkgir(/;"	s	module:m_b_ematqk
 b_ematqkgmt	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqkgmt(/;"	s	module:m_b_ematqk
 b_exccoulint	src_xs/b_exccoulint.f90	/^subroutine b_exccoulint$/;"	s
+b_getbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbsemat(/;"	s	module:m_putgetbsemat
 b_m08_hx	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m08_hx[12] = {$/;"	v	file:
 b_m08_so	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m08_so[12] = {$/;"	v	file:
 b_m11	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m11[12] = {$/;"	v	file:
 b_m11_l	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m11_l[12] = {$/;"	v	file:
+b_putbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbsemat(/;"	s	module:m_putgetbsemat
 b_scrcoulint	src_xs/b_scrcoulint.f90	/^subroutine b_scrcoulint$/;"	s
 backup0	src_xs/backup0.F90	/^Subroutine backup0$/;"	s
 backup1	src_xs/backup1.F90	/^Subroutine backup1$/;"	s
@@ -18639,8 +18639,6 @@ bc	spacegroup/modmain.f90	/^real(8) ab,ac,bc$/;"	v	module:modmain
 bc	spacegroup/modspacegroup.f90	/^real(8)::ab, ac, bc$/;"	v	module:modspacegroup
 bc	spacegroup/sginputmodule.f90	/^ real(8)::bc$/;"	k	type:lattice_type
 bcbs	src_xs/modxs.F90	/^      type bcbs$/;"	t	module:modxs
-bcou	src_xs/modbse.f90	/^  Type(bcbs) :: bcou,/;"	v	module:modbse
-bcouabs	src_xs/modbse.f90	/^  Type(bcbs) :: bcou, bcouabs$/;"	v	module:modbse
 besk0	src_gw/gencoulcut.f90	/^Real (8) Function besk0 /;"	f
 besk1	src_gw/gencoulcut.f90	/^Real (8) Function besk1 /;"	f
 bessel_I0	libXC/src/bessel.c	/^double bessel_I0(const double x)$/;"	f
@@ -18681,6 +18679,9 @@ bfsmc	mod_spin.F90	/^      Real (8) :: bfsmc /;"	v	module:mod_spin
 bfsmcmt	mod_spin.F90	/^      Real (8) :: bfsmcmt /;"	v	module:mod_spin
 bi0_data	libXC/src/bessel.c	/^static double bi0_data[12] = {$/;"	v	file:
 bi1_data	libXC/src/bessel.c	/^static double bi1_data[11] = {$/;"	v	file:
+bi1dc	src_xs/modscl.f90	/^  type(blacsinfo) :: bi2d, bi1dc,/;"	v	module:modscl
+bi1dw	src_xs/modscl.f90	/^  type(blacsinfo) :: bi2d, bi1dc, bi1dw$/;"	v	module:modscl
+bi2d	src_xs/modscl.f90	/^  type(blacsinfo) :: bi2d,/;"	v	module:modscl
 bias	src_inputparser/inputmodules.f90	/^ real(8)::bias$/;"	k	type:stm_type
 big	libXC/src/gga_c_ft97.c	/^static const FLOAT big = 1e4;$/;"	v	file:
 bigbox	src_other/delaunay.f	/^      logical prompt, bigbox$/;"	v	program:main
@@ -18697,8 +18698,10 @@ bisphr	src_other/delaunay.f	/^      subroutine bisphr(/;"	s
 bk0_data	libXC/src/bessel.c	/^static double bk0_data[11] = {$/;"	v	file:
 bk1_data	libXC/src/bessel.c	/^static double bk1_data[11] = {$/;"	v	file:
 blacs_pnum	src_xs/modscl.f90	/^  integer(4), external :: blacs_pnum$/;"	v	module:modscl
+blacsinfo	src_xs/modscl.f90	/^  type blacsinfo$/;"	t	module:modscl
 blaswrappers	src_xs/summations.F90	/^Module blaswrappers$/;"	m
 blend103	src_vdwdf/blend103.f90	/^subroutine blend103(/;"	s
+blindread	src_inputparser/inputmodules.f90	/^ logical::blindread$/;"	k	type:BSE_type
 bloechlcor	src_libbzint/bloechlcor.f90	/^       subroutine bloechlcor(/;"	s
 bmat	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^      character        which*2, bmat$/;"	v	program:cnbdr1
 bmat	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^      character        which*2, bmat$/;"	v	program:cnbdr2
@@ -18846,9 +18849,9 @@ builddir	libXC/Makefile	/^builddir = .$/;"	m
 builddir	libXC/build/Makefile	/^builddir = .$/;"	m
 builddir	libXC/src/Makefile	/^builddir = .$/;"	m
 builddir	libXC/testsuite/Makefile	/^builddir = .$/;"	m
-buildham	src_xs/m_setup_bse.f90	/^    function buildham(/;"	f	module:m_setup_bse
+buildham	src_xs/m_setup_bse.f90	/^    subroutine buildham(/;"	s	module:m_setup_bse
 building	FoX/common/m_common_struct.F90	/^    logical :: building /;"	k	type:xml_doc_state
-buildrmat	src_xs/setup_distributed_rmat.f90	/^    function buildrmat(/;"	f	subroutine:setup_distributed_rmat
+buildrmat	src_xs/m_setup_rmat.f90	/^        function buildrmat(/;"	f	subroutine:setup_distributed_rmat
 bvec	mod_lattice.F90	/^      Real (8) :: bvec /;"	v	module:mod_lattice
 bxcir	mod_potential_and_density.F90	/^      Real (8), Allocatable :: bxcir /;"	v	module:mod_potential_and_density
 bxcmt	mod_potential_and_density.F90	/^      Real (8), Allocatable :: bxcmt /;"	v	module:mod_potential_and_density
@@ -19090,7 +19093,6 @@ checkinput	checkinput.F90	/^subroutine checkinput$/;"	s
 checkinput_stm	src_stm/checkinput_stm.F90	/^Subroutine checkinput_stm(/;"	s
 checkmbrot	src_gw/src_tests/checkmbrot.f90	/^subroutine checkmbrot(/;"	s
 checkmt	checkmt.f90	/^Subroutine checkmt$/;"	s
-checkoccupancies	src_xs/modbse.f90	/^    subroutine checkoccupancies(/;"	s	module:modbse
 chemicalSymbol	src_inputparser/inputmodules.f90	/^ character(512)::chemicalSymbol$/;"	k	type:species_type
 chemicalSymbol	src_inputparser/speciesmodules.f90	/^ character(1024)::chemicalSymbol$/;"	k	type:sp_type
 chgcalc	mod_charge_and_moment.F90	/^      Real (8) :: chgcalc$/;"	v	module:mod_charge_and_moment
@@ -19262,6 +19264,7 @@ coeff	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  count coeff;$/;"	m	struct:sample
 col	FoX/sax/m_sax_xml_source.F90	/^    integer            :: col /;"	k	type:xml_source_t
 column	FoX/sax/m_sax_reader.F90	/^  function column(/;"	f	module:m_sax_reader
 combin	src_gw/combin.f90	/^      real(8) function combin(/;"	f
+comm	src_mpi/modmpi.F90	/^    integer(4) :: comm$/;"	k	type:mpiinfo
 comment_handler	FoX/dom/m_dom_parse.f90	/^  subroutine comment_handler(/;"	s
 comp	src_inputparser/inputmodules.f90	/^ real(8)::comp(/;"	k	type:eigvec_type
 comp	src_raman/mod_raman.f90	/^character(2), dimension(3, 3) :: comp /;"	v	module:raman_coeff
@@ -19290,6 +19293,7 @@ construct_symvec	src_raman/construct_symvec.f90	/^subroutine construct_symvec(/;
 content	FoX/sax/m_sax_types.F90	/^    character, dimension(:), pointer :: content /;"	k	type:sax_parser_t
 content_particle_t	FoX/common/m_common_content_model.F90	/^  type content_particle_t$/;"	t	module:m_common_content_model
 context	FoX/sax/m_sax_types.F90	/^    integer :: context /;"	k	type:sax_parser_t
+context	src_xs/modscl.f90	/^    integer(4) :: context$/;"	k	type:blacsinfo
 context	src_xs/modscl.f90	/^    integer(4) :: context$/;"	k	type:dzmat
 control	src_xs/modtetra/mod_control.f90	/^module control$/;"	m
 convcorew	src_libbzint/convcorew.f90	/^      subroutine convcorew(/;"	s
@@ -19335,6 +19339,7 @@ count	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  int count() const { return m_tab
 countChildEmentsWithName	spacegroup/sginputmodule.f90	/^function countChildEmentsWithName(/;"	f	module:modsymmetries
 countChildEmentsWithName	src_inputparser/inputmodules.f90	/^function countChildEmentsWithName(/;"	f	module:modinput
 countChildEmentsWithName	src_inputparser/speciesmodules.f90	/^function countChildEmentsWithName(/;"	f	module:modspdb
+countsubstring	src_mpi/modmpi.F90	/^        function countsubstring(/;"	f	subroutine:setup_node_groups
 coupling	src_inputparser/inputmodules.f90	/^ logical::coupling$/;"	k	type:BSE_type
 cp	FoX/common/m_common_element.F90	/^    type (content_particle_t), pointer :: cp /;"	k	type:element_t
 cp	FoX/common/m_common_elstack.F90	/^    type(content_particle_t), pointer         :: cp /;"	k	type:elstack_item
@@ -19402,6 +19407,7 @@ cutcomp	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  count isamples, cutcomp, xmajo
 cutoff	species/species.f90	/^  real(8) :: e, t0, t, t1, t2, cutoff$/;"	v	program:species
 cutoff	src_inputparser/inputmodules.f90	/^ real(8)::cutoff$/;"	k	type:DFTD2parameters_type
 cutoff	src_inputparser/inputmodules.f90	/^ real(8)::cutoff$/;"	k	type:TSvdWparameters_type
+cutoffocc	src_xs/modbse.f90	/^  real(8) :: cutoffocc$/;"	v	module:modbse
 cutofftype	src_inputparser/inputmodules.f90	/^ character(512)::cutofftype$/;"	k	type:barecoul_type
 cw1k	src_inputparser/inputmodules.f90	/^ logical::cw1k$/;"	k	type:tetra_type
 cygmcc	src_vdwdf/Cuba-3.2/tools/mcc	/^cygmcc()$/;"	f
@@ -19994,15 +20000,18 @@ ec_pot_low	libXC/src/lda_c_pz.c	/^ec_pot_low(pz_consts_type *X, int order, int i
 eccoeff	src_inputparser/inputmodules.f90	/^ real(8)::eccoeff$/;"	k	type:Hybrid_type
 ecir	mod_potential_and_density.F90	/^      Real (8), Allocatable :: ecir /;"	v	module:mod_potential_and_density
 ecmt	mod_potential_and_density.F90	/^      Real (8), Allocatable :: ecmt /;"	v	module:mod_potential_and_density
+econv	src_inputparser/inputmodules.f90	/^ real(8)::econv$/;"	k	type:BSE_type
+econv	src_xs/modbse.f90	/^  real(8) :: econv,/;"	v	module:modbse
 ecore	src_libbzint/tetra_internal.f90	/^      real(8),pointer :: ecore(/;"	v	module:tetra_internal
 ecore	src_xs/xas/modxas.f90	/^	  real(8), allocatable :: ecore(/;"	v	module:modxas
 ecvcut	species/modspecies.F90	/^real(8) :: ecvcut$/;"	v	module:modspecies
 edgins	src_other/delaunay.f	/^      subroutine edgins(/;"	s
+eecs	src_inputparser/inputmodules.f90	/^ integer::eecs$/;"	k	type:BSE_type
 ef	src_libbzint/polyhedron.f90	/^      real(8) :: ef /;"	v	module:polyhedron
 efermi	mod_eigenvalue_occupancy.F90	/^      Real (8) :: efermi$/;"	v	module:mod_eigenvalue_occupancy
 eferqp	src_gw/mod_selfenergy.f90	/^    real(8) :: eferqp$/;"	v	module:mod_selfenergy
 effmass	effmass.f90	/^Subroutine effmass$/;"	s
-egap	src_xs/modbse.f90	/^  real(8) :: egap$/;"	v	module:modbse
+egap	src_xs/modbse.f90	/^  real(8) :: egap,/;"	v	module:modbse
 eigen	src_raman/mod_raman.f90	/^real(8), allocatable :: eigen(/;"	v	module:raman_ew
 eigenvalues	src_eigensystem/modfvsystem.f90	/^        complex(8), pointer :: eigenvalues(/;"	k	type:HermitianMatrix
 eigenvaluessp	src_eigensystem/modfvsystem.f90	/^        complex(4), pointer :: eigenvaluessp(/;"	k	type:HermitianMatrix
@@ -20199,8 +20208,8 @@ error_code	FoX/common/m_common_error.F90	/^    integer :: error_code /;"	k	type:
 error_stack	FoX/common/m_common_error.F90	/^  type error_stack$/;"	t	module:m_common_error
 error_stack	FoX/sax/m_sax_types.F90	/^    type(error_stack)/;"	k	type:sax_parser_t
 error_t	FoX/common/m_common_error.F90	/^  type error_t$/;"	t	module:m_common_error
-errorinspect	src_xs/hermitian_solver.f90	/^    subroutine errorinspect(/;"	s	subroutine:hermitian_solver
 errorinspect	src_xs/m_dhesolver.f90	/^        subroutine errorinspect(/;"	s	subroutine:dhesolver
+errorinspect	src_xs/m_hesolver.f90	/^        subroutine errorinspect(/;"	s	subroutine:hesolver
 escale	src_xs/modxs.F90	/^      Real (8) :: escale$/;"	v	module:modxs
 escape_string	FoX/wxml/m_wxml_escape.F90	/^  function escape_string(/;"	f	module:m_wxml_escape
 escape_string_len	FoX/wxml/m_wxml_escape.F90	/^  pure function escape_string_len(/;"	f	module:m_wxml_escape
@@ -20220,6 +20229,7 @@ evalcr	mod_corestate.F90	/^      Real (8), Allocatable :: evalcr /;"	v	module:mo
 evalfv	src_xs/modxs.F90	/^      Real (8), Allocatable :: evalfv /;"	v	module:modxs
 evalks	src_gw/mod_selfenergy.f90	/^    real(8), allocatable :: evalks(/;"	v	module:mod_selfenergy
 evalqp	src_gw/mod_selfenergy.f90	/^    real(8), allocatable :: evalqp(/;"	v	module:mod_selfenergy
+evalshift	src_xs/modbse.f90	/^  real(8) :: egap, evalshift$/;"	v	module:modbse
 evalsum	mod_energy.F90	/^      Real (8) :: evalsum$/;"	v	module:mod_energy
 evalsv	mod_eigenvalue_occupancy.F90	/^      Real (8), Allocatable :: evalsv /;"	v	module:mod_eigenvalue_occupancy
 evalsv0	src_xs/modxs.F90	/^      Real (8), Allocatable :: evalsv0 /;"	v	module:modxs
@@ -20239,6 +20249,7 @@ evlmaxcut	src_xs/modxs.F90	/^      Real (8) :: evlmin, evlmax, evlmincut, evlmax
 evlmin	src_xs/modxs.F90	/^      Real (8) :: evlmin,/;"	v	module:modxs
 evlmincut	src_xs/modxs.F90	/^      Real (8) :: evlmin, evlmax, evlmincut,/;"	v	module:modxs
 evsystem	src_eigensystem/modfvsystem.f90	/^    Type evsystem$/;"	t	module:modfvsystem
+ewidth	src_xs/modbse.f90	/^  real(8) :: econv, ewidth$/;"	v	module:modbse
 ex_coef	mod_potential_and_density.F90	/^      Real (8) :: ex_coef$/;"	v	module:mod_potential_and_density
 exactupdatevectors	src_iterative_solver/src_diis/exactupdatevectors.f90	/^Subroutine exactupdatevectors /;"	s
 exccoulint	src_xs/exccoulint.F90	/^subroutine exccoulint$/;"	s
@@ -20256,8 +20267,10 @@ excitonPlot_type	src_inputparser/inputmodules.f90	/^type excitonPlot_type$/;"	t	
 exciton_type	src_inputparser/inputmodules.f90	/^type exciton_type$/;"	t	module:modinput
 exciton_type_array	src_inputparser/inputmodules.f90	/^type exciton_type_array$/;"	t	module:modinput
 excitonarray	src_inputparser/inputmodules.f90	/^  type(exciton_type_array),pointer::excitonarray(/;"	k	type:excitonPlot_type
-exclicfname	src_xs/modbse.f90	/^  character(256) :: exclicfname /;"	v	module:modbse
-exclifname	src_xs/modbse.f90	/^  character(256) :: exclifname /;"	v	module:modbse
+exclicfbasename	src_xs/modbse.f90	/^  character(256) :: exclicfbasename /;"	v	module:modbse
+exclicfname	src_xs/modbse.f90	/^  character(256) :: exclifname, exclicfname$/;"	v	module:modbse
+exclifbasename	src_xs/modbse.f90	/^  character(256) :: exclifbasename /;"	v	module:modbse
+exclifname	src_xs/modbse.f90	/^  character(256) :: exclifname,/;"	v	module:modbse
 excoeff	src_inputparser/inputmodules.f90	/^ real(8)::excoeff$/;"	k	type:Hybrid_type
 exec_prefix	libXC/Makefile	/^exec_prefix = ${prefix}$/;"	m
 exec_prefix	libXC/build/Makefile	/^exec_prefix = ${prefix}$/;"	m
@@ -20276,9 +20289,9 @@ exists	src_inputparser/inputmodules.f90	/^logical::exists$/;"	k	type:TSvdW_type
 exists	src_inputparser/inputmodules.f90	/^logical::exists$/;"	k	type:mossbauer_type
 exists	src_inputparser/inputmodules.f90	/^logical::exists$/;"	k	type:reformatdynmat_type
 exists	src_inputparser/inputmodules.f90	/^logical::exists$/;"	k	type:symmetries_type
-exit2dblacs	src_xs/modscl.f90	/^    subroutine exit2dblacs$/;"	s	module:modscl
 exit_hybrids	src_hybrids/mod_hybrids.f90	/^    subroutine exit_hybrids(/;"	s	module:mod_hybrids
 exitarg	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  void *exitarg;$/;"	m	struct:__anon62
+exitblacs	src_xs/modscl.f90	/^    subroutine exitblacs(/;"	s	module:modscl
 exitfun	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  subroutine exitfun;$/;"	m	struct:__anon62
 exmt	mod_potential_and_density.F90	/^      Real (8), Allocatable :: exmt /;"	v	module:mod_potential_and_density
 exnl	src_hybrids/mod_hybrids.f90	/^    real(8) :: exnl$/;"	v	module:mod_hybrids
@@ -20541,8 +20554,7 @@ firstChild	FoX/common/m_common_content_model.F90	/^    type(content_particle_t),
 firstChild	FoX/dom/m_dom_dom.F90	/^    type(Node), pointer :: firstChild /;"	k	type:Node
 first_derivative	libXC/testsuite/xc-consistency.c	/^void first_derivative(xc_func_type *func, double point[5], double der[5], int which)$/;"	f
 firstinnode	src_mpi/modmpi.F90	/^  logical :: splittfile, firstinnode$/;"	v	module:modmpi
-firstinnode_comm	src_mpi/modmpi.F90	/^  integer(4) :: world_group, firstinnode_group, firstinnode_comm$/;"	v	module:modmpi
-firstinnode_group	src_mpi/modmpi.F90	/^  integer(4) :: world_group, firstinnode_group,/;"	v	module:modmpi
+firstinnode_comm	src_mpi/modmpi.F90	/^  integer(4) :: firstinnode_comm$/;"	v	module:modmpi
 firstk	src_mpi/modmpi.F90	/^    function firstk(/;"	f	module:modmpi
 firstofset	src_mpi/modmpi.F90	/^    function firstofset(/;"	f	module:modmpi
 fitdata	eos/fitdata.f90	/^subroutine fitdata$/;"	s
@@ -21044,7 +21056,7 @@ genevecalm	src_gw/mod_pmat.f90	/^  subroutine genevecalm(/;"	s	module:mod_pmat
 genexpiqr	genexpiqr.f90	/^Subroutine genexpiqr /;"	s
 genffacg	genffacg.f90	/^Subroutine genffacg /;"	s
 genfftmap	genfftmap.f90	/^Subroutine genfftmap(/;"	s
-genfilextread	src_xs/genfilextread.F90	/^Subroutine genfilextread /;"	s
+genfilextread	src_xs/genfilextread.F90	/^subroutine genfilextread(/;"	s
 genfilname	src_xs/genfilname.F90	/^      Subroutine genfilname /;"	s	module:m_genfilname
 gengpvec	gengpvec.f90	/^Subroutine gengpvec /;"	s
 gengqvec	src_xs/gengqvec.F90	/^Subroutine gengqvec /;"	s
@@ -21211,7 +21223,6 @@ get_element	FoX/common/m_common_element.F90	/^  function get_element(/;"	f	modul
 get_free_atom_vdw_param	src_vdW/TS_vdW_module.f90	/^  subroutine get_free_atom_vdw_param(/;"	s	module:TS_vdW_module
 get_fxc	libXC/testsuite/xc-consistency.c	/^void get_fxc(xc_func_type *func, double point[5], double der[5][5])$/;"	f
 get_graceunit	mod_plotlabels.f90	/^    function get_graceunit(/;"	f	module:modplotlabels
-get_isfirstinnode	src_mpi/modmpi.F90	/^    subroutine get_isfirstinnode(/;"	s	module:modmpi
 get_key	FoX/common/m_common_attrs.F90	/^  function get_key(/;"	f	module:m_common_attrs
 get_key_index	FoX/common/m_common_attrs.F90	/^  pure function get_key_index(/;"	f	module:m_common_attrs
 get_key_index_ns	FoX/common/m_common_attrs.F90	/^  pure function get_key_index_ns(/;"	f	module:m_common_attrs
@@ -21265,7 +21276,7 @@ getevalfv	getevalfv.f90	/^Subroutine getevalfv /;"	s
 getevalfvr	getevalfv.f90	/^      Subroutine getevalfvr /;"	s	module:m_getevalfvr
 getevalqp	src_gw/getevalqp.f90	/^subroutine getevalqp(/;"	s
 getevalsv	getevalsv.f90	/^subroutine getevalsv(/;"	s
-getevalsv0	src_xs/getevalsv0.F90	/^Subroutine getevalsv0 /;"	s
+getevalsv0	src_xs/getevalsv0.F90	/^subroutine getevalsv0(/;"	s
 getevalsvgw	src_gw/getevalsvgw.f90	/^subroutine getevalsvgw(/;"	s
 getevalsvgw_new	src_gw/getevalsvgw_new.f90	/^subroutine getevalsvgw_new(/;"	s
 getevalsvr	getevalsv.f90	/^    subroutine getevalsvr(/;"	s	module:m_getevalsvr
@@ -21303,7 +21314,7 @@ getnodeType	FoX/dom/m_dom_dom.F90	/^function getnodeType(/;"	f	module:m_dom_dom
 getnotationName	FoX/dom/m_dom_dom.F90	/^function getnotationName(/;"	f	module:m_dom_dom
 getnotationName_len	FoX/dom/m_dom_dom.F90	/^  pure function getnotationName_len(/;"	f	module:m_dom_dom
 getoccsv	getoccsv.f90	/^Subroutine getoccsv /;"	s
-getoccsv0	src_xs/getoccsv0.F90	/^Subroutine getoccsv0 /;"	s
+getoccsv0	src_xs/getoccsv0.F90	/^subroutine getoccsv0(/;"	s
 getoccsvr	getoccsv.f90	/^      Subroutine getoccsvr /;"	s	module:m_getoccsvr
 getownerElement	FoX/dom/m_dom_dom.F90	/^function getownerElement(/;"	f	module:m_dom_dom
 getparentNode	FoX/dom/m_dom_dom.F90	/^function getparentNode(/;"	f	module:m_dom_dom
@@ -21648,6 +21659,7 @@ hamilton	src_eigensystem/modfvsystem.f90	/^        Type (HermitianMatrix) :: ham
 hamiltonandoverlapsetup	src_eigensystem/hamiltonandoverlapsetup.f90	/^Subroutine hamiltonandoverlapsetup /;"	s
 hamiltonoverlapocopy_UL	src_eigensystem/hamiltonoverlapocopy_UL.f90	/^Subroutine hamiltonoverlapocopy_UL /;"	s
 hamsiz	src_xs/mod_exciton_wf.f90	/^  integer ::  nrnst1, nrnst3, hamsiz$/;"	v	module:mod_exciton_wf
+hamsize	src_xs/modbse.f90	/^  integer(4) :: hamsize$/;"	v	module:modbse
 handleunknownnodes	src_inputparser/modinputdom.f90	/^      Subroutine handleunknownnodes /;"	s	module:inputdom
 hangingNodes	FoX/dom/m_dom_dom.F90	/^    type(NodeList) :: hangingNodes /;"	k	type:documentExtras
 harmonic	harmonic.f90	/^    subroutine harmonic(/;"	s
@@ -21687,7 +21699,7 @@ hdf5_write_i4	src_gw/mod_hdf5.f90	/^    subroutine hdf5_write_i4(/;"	s	module:mo
 hdf5_write_z	src_gw/mod_hdf5.f90	/^    subroutine hdf5_write_z(/;"	s	module:mod_hdf5
 height	src_inputparser/inputmodules.f90	/^ real(8)::height$/;"	k	type:region_type
 hermite	src_lib/hermite.f90	/^Real (8) Function hermite /;"	f
-hermitian_solver	src_xs/hermitian_solver.f90	/^subroutine hermitian_solver(/;"	s
+hesolver	src_xs/m_hesolver.f90	/^    subroutine hesolver(/;"	s	module:m_hesolver
 hev	src_gw/mod_misc_gw.f90	/^    real(8), parameter :: hev=/;"	v	module:mod_misc_gw
 hexdigit	FoX/fsys/fox_m_fsys_format.F90	/^  character(len=*), parameter :: hexdigit /;"	v	module:fox_m_fsys_format
 hexdigit	FoX/utils/fox_m_utils_uri.F90	/^  character(len=*), parameter :: hexdigit /;"	v	module:fox_m_utils_uri
@@ -21771,7 +21783,6 @@ i	species/modspecies.F90	/^in/;"	v	module:modspecies
 i	src_other/delaunay.f	/^      in/;"	v	program:main
 i	src_vdwdf/Cuba-3.2/src/common/Fork.c	/^  number n, m, i;$/;"	m	struct:__anon68	file:
 i	src_vdwdf/Cuba-3.2/src/divonne/Split.c	/^  count i;$/;"	m	struct:__anon45	file:
-i	src_xs/mod_rrsring.f90	/^  in/;"	v	module:mod_rrsring
 i24	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^      count n24, i24, j24, nskip;$/;"	m	struct:__anon63::__anon64::__anon67
 i2str	portstate.F90	/^      Character (256) Function i2str /;"	f	subroutine:portstate
 i2str	src_xs/i2str.F90	/^Function i2str /;"	f
@@ -21793,13 +21804,10 @@ icnteq	ARPACK/UTIL/icnteq.f	/^      integer function icnteq /;"	f
 icon	src_other/delaunay.f	/^      integer icon(/;"	v	program:main
 icond	src_mixing/modmixermsec.f90	/^      Integer, Parameter :: icond /;"	v	module:modmixermsec
 icopy	ARPACK/UTIL/icopy.f	/^      subroutine icopy(/;"	s
-ictxt1d_c	src_xs/modscl.f90	/^  integer(4) :: ictxt2d, ictxt1d_r, ictxt1d_c$/;"	v	module:modscl
-ictxt1d_r	src_xs/modscl.f90	/^  integer(4) :: ictxt2d, ictxt1d_r,/;"	v	module:modscl
-ictxt2d	src_xs/modscl.f90	/^  integer(4) :: ictxt2d,/;"	v	module:modscl
 id	FoX/dom/m_dom_dom.F90	/^    character(len=7) :: id /;"	k	type:DOMImplementation
 id	src_inputparser/inputmodules.f90	/^ character(512)::id$/;"	k	type:dopart_type
+id	src_mpi/modmpi.F90	/^    integer(4) :: id$/;"	k	type:procgroup
 id	src_other/delaunay.f	/^      integer id(/;"	v	program:main
-id	src_xs/mod_rrsring.f90	/^  integer(4) :: i, id,/;"	v	module:mod_rrsring
 id_declared	FoX/common/m_common_element.F90	/^    logical :: id_declared /;"	k	type:element_t
 idamax	src_iterative_solver/SclControlModule.F90	/^      Integer :: idamax$/;"	v	module:sclcontroll
 ideli	src_other/delaunay.f	/^      integer ideli,/;"	v	program:main
@@ -21952,7 +21960,9 @@ ierr	ARPACK/EXAMPLES/SYM/ssdrv3.f	/^      integer          ido, n, nev, ncv, lwo
 ierr	ARPACK/EXAMPLES/SYM/ssdrv4.f	/^      integer          ido, n, nev, ncv, lworkl, info, j, ierr,/;"	v	program:ssdrv4
 ierr	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^      integer          ido, n, nev, ncv, lworkl, info, j, ierr,/;"	v	program:ssdrv5
 ierr	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^      integer          ido, n, nev, ncv, lworkl, info, j, ierr,/;"	v	program:ssdrv6
-ierr	src_mpi/modmpi.F90	/^  integer(4) :: ierr,/;"	v	module:modmpi
+ierr	src_mpi/modmpi.F90	/^    integer(4) :: ierr$/;"	k	type:mpiinfo
+ierr	src_mpi/modmpi.F90	/^  integer(4) :: ierr$/;"	v	module:modmpi
+ierr	src_xs/modscl.f90	/^    integer(4) :: ierr$/;"	k	type:blacsinfo
 ifl	src_other/delaunay.f	/^      integer icon(8,nvmax), is(nmax), ifl(/;"	v	program:main
 iflag	mod_rgrid.f90	/^    integer :: iflag /;"	k	type:rgrid
 iflpi	src_other/delaunay.f	/^      integer ideli, ipnti, iflpi,/;"	v	program:main
@@ -22501,7 +22511,6 @@ ishfts	ARPACK/EXAMPLES/SYM/ssdrv3.f	/^     &                 nconv, maxitr, ishf
 ishfts	ARPACK/EXAMPLES/SYM/ssdrv4.f	/^     &                 nconv, maxitr, ishfts,/;"	v	program:ssdrv4
 ishfts	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^     &                 nconv, maxitr, ishfts,/;"	v	program:ssdrv5
 ishfts	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 nconv, maxitr, ishfts,/;"	v	program:ssdrv6
-ishift	src_xs/mod_rrsring.f90	/^  integer(4) :: i, id, ishift,/;"	v	module:mod_rrsring
 ispacked	src_eigensystem/modfvsystem.f90	/^    Function ispacked /;"	f	module:modfvsystem
 isreadstate0	src_xs/modxs.F90	/^      Logical :: isreadstate0$/;"	v	module:modxs
 isspinorb	src_inputparser/inputmodules.f90	/^function isspinorb(/;"	f	module:modinput
@@ -22827,12 +22836,14 @@ kl	ARPACK/EXAMPLES/BAND/znbdr2.f	/^      integer          nev, ncv, kl,/;"	v	pro
 kl	ARPACK/EXAMPLES/BAND/znbdr3.f	/^      integer          nev, ncv, ku, kl,/;"	v	program:znbdr3
 kl	ARPACK/EXAMPLES/BAND/znbdr4.f	/^      integer          nev, ncv, ku, kl,/;"	v	program:zndrv4
 klinkq	src_libbzint/tetra_internal.f90	/^      integer,pointer:: klinkq(/;"	v	module:tetra_internal
+kmap_bse_gr	src_xs/modbse.f90	/^  integer(4), allocatable :: kmap_bse_gr(/;"	v	module:modbse
+kmap_bse_rg	src_xs/modbse.f90	/^  integer(4), allocatable :: kmap_bse_rg(/;"	v	module:modbse
 kndc	ioarray.F90	/^      Integer, Parameter :: kndc /;"	v	module:ioarray
 kndi	ioarray.F90	/^      Integer, Parameter :: kndi /;"	v	module:ioarray
 kndr	ioarray.F90	/^      Integer, Parameter :: kndr /;"	v	module:ioarray
 kordexc	src_inputparser/inputmodules.f90	/^ logical::kordexc$/;"	k	type:tetra_type
-kouflag	src_xs/modbse.f90	/^  logical, allocatable, dimension(:,:) :: kouflag$/;"	v	module:modbse
-kousize	src_xs/modbse.f90	/^  integer(4), allocatable, dimension(:) :: kousize$/;"	v	module:modbse
+koulims	src_xs/modbse.f90	/^  integer(4), allocatable :: koulims(/;"	v	module:modbse
+kousize	src_xs/modbse.f90	/^  integer(4), allocatable :: kousize(/;"	v	module:modbse
 kparf	src_xs/modxs.F90	/^      Integer :: kparf$/;"	v	module:modxs
 kpari	src_xs/modxs.F90	/^      Integer :: kpari$/;"	v	module:modxs
 kplusq	src_xs/modtetra/mod_control.f90	/^  logical, save :: kplusq$/;"	v	module:control
@@ -22852,12 +22863,13 @@ krondelta	mod_constants.F90	/^      Integer, Parameter :: krondelta /;"	v	module
 kset	src_gw/modgw.f90	/^    type(k_set)  :: kset$/;"	v	module:modgw
 kset	src_xs/modxs.F90	/^  Type(k_set) :: kset,/;"	v	module:modxs
 ksgap	src_xs/modxs.F90	/^      Logical :: ksgap$/;"	v	module:modxs
+ksgapval	src_xs/modxs.F90	/^      real(8) :: ksgapval$/;"	v	module:modxs
 kstlist	src_inputparser/inputmodules.f90	/^  type(kstlist_/;"	k	type:LSJ_type
 kstlist	src_inputparser/inputmodules.f90	/^  type(kstlist_/;"	k	type:expiqr_type
 kstlist	src_inputparser/inputmodules.f90	/^  type(kstlist_/;"	k	type:wfplot_type
 kstlist_type	src_inputparser/inputmodules.f90	/^type kstlist_type$/;"	t	module:modinput
 kstrans	src_xs/m_setup_bse.f90	/^    complex(8) function kstrans(/;"	f	module:m_setup_bse
-kstransdiag	src_xs/m_setup_bse.f90	/^    subroutine kstransdiag(/;"	s	module:m_setup_bse
+kstransdiag	src_xs/m_setup_bse.f90	/^        subroutine kstransdiag(/;"	s	subroutine:setup_bse
 ksu	src_other/delaunay.f	/^      integer nv, nw, nt, nd, naddl, isu, jsu, ksu,/;"	v	program:main
 ksurf	src_libbzint/ksurf.f90	/^      subroutine ksurf(/;"	s
 ku	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^      integer          nev, ncv, kl, ku,/;"	v	program:cnbdr1
@@ -23460,10 +23472,12 @@ m_getunit	src_xs/getunit.F90	/^Module m_getunit$/;"	m
 m_getx0	src_xs/getx0.F90	/^Module m_getx0$/;"	m
 m_gndstateq	src_xs/gndstateq.F90	/^Module m_gndstateq$/;"	m
 m_got	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  int m_dimx, m_dimy, m_got;$/;"	m	class:PartitionPlane	file:
+m_hesolver	src_xs/m_hesolver.f90	/^module m_hesolver$/;"	m
 m_ieee	FoX/fsys/m_ieee.f90	/^module m_ieee$/;"	m
 m_pade	src_xs/pade.F90	/^Module m_pade$/;"	m
 m_printer	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  QPrinter *m_printer;$/;"	m	class:PartitionViewer	file:
 m_putemat	src_xs/putemat.F90	/^Module m_putemat$/;"	m
+m_putgetbsemat	src_xs/m_putgetbsemat.f90	/^module m_putgetbsemat$/;"	m
 m_putgeteps0	src_xs/m_putgeteps0.f90	/^module m_putgeteps0$/;"	m
 m_putpmat	src_xs/putpmat.F90	/^module m_putpmat$/;"	m
 m_puttetcw	src_xs/puttetcw.F90	/^Module m_puttetcw$/;"	m
@@ -23477,7 +23491,9 @@ m_sax_tokenizer	FoX/sax/m_sax_tokenizer.F90	/^module m_sax_tokenizer$/;"	m
 m_sax_types	FoX/sax/m_sax_types.F90	/^module m_sax_types$/;"	m
 m_sax_xml_source	FoX/sax/m_sax_xml_source.F90	/^module m_sax_xml_source$/;"	m
 m_setup_bse	src_xs/m_setup_bse.f90	/^module m_setup_bse$/;"	m
+m_setup_rmat	src_xs/m_setup_rmat.f90	/^module m_setup_rmat$/;"	m
 m_sorteval	src_xs/sorteval.F90	/^Module m_sorteval$/;"	m
+m_storeexcitons	src_xs/storeexcitions.f90	/^module m_storeexcitons$/;"	m
 m_symvec	src_raman/construct_symvec.f90	/^module m_symvec /;"	m
 m_tabs	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  QTabWidget *m_tabs;$/;"	m	class:PartitionViewer	file:
 m_wcml_coma	FoX/wcml/m_wcml_coma.F90	/^module m_wcml_coma$/;"	m
@@ -23542,7 +23558,6 @@ make_doszstren	src_xs/b_bse.f90	/^  subroutine make_doszstren$/;"	s	subroutine:b
 make_token_group	FoX/common/m_common_element.F90	/^  function make_token_group(/;"	f	module:m_common_element
 make_token_group_len	FoX/common/m_common_element.F90	/^  pure function make_token_group_len(/;"	f	module:m_common_element
 makeexcli	src_xs/b_exccoulint.f90	/^    subroutine makeexcli$/;"	s	subroutine:b_exccoulint
-makefullham	src_xs/b_bse.f90	/^  subroutine makefullham(/;"	s	subroutine:b_bse
 makeoszillatorstrength	src_xs/b_bse.f90	/^  subroutine makeoszillatorstrength(/;"	s	subroutine:b_bse
 makespectrum	src_xs/b_bse.f90	/^  subroutine makespectrum(/;"	s	subroutine:b_bse
 makespectrum_tda	src_xs/b_bse.f90	/^  subroutine makespectrum_tda(/;"	s	subroutine:b_bse
@@ -23948,10 +23963,8 @@ maxwpos	spacegroup/modmain.f90	/^integer, parameter :: maxwpos=/;"	v	module:modm
 maxwpos	spacegroup/modspacegroup.f90	/^integer, parameter :: maxwpos=/;"	v	module:modspacegroup
 mbindex	src_gw/mod_product_basis.f90	/^    integer(4), allocatable :: mbindex(/;"	v	module:mod_product_basis
 mbl	src_gw/mod_product_basis.f90	/^    integer(4), allocatable :: mbl(/;"	v	module:mod_product_basis
+mblck	src_xs/modscl.f90	/^    integer(4) :: mblck,/;"	k	type:blacsinfo
 mblck	src_xs/modscl.f90	/^    integer(4) :: mblck,/;"	k	type:dzmat
-mblck	src_xs/modscl.f90	/^  integer(4), parameter :: mblck /;"	v	module:modscl
-mblck1d_c	src_xs/modscl.f90	/^  integer(4), parameter :: mblck1d_c /;"	v	module:modscl
-mblck1d_r	src_xs/modscl.f90	/^  integer(4), parameter :: mblck1d_r /;"	v	module:modscl
 mblksiz	src_gw/modgw.f90	/^    integer(4) :: mblksiz$/;"	v	module:modgw
 mblksiz	src_inputparser/inputmodules.f90	/^ integer::mblksiz$/;"	k	type:gw_type
 mbsiz	src_gw/mod_product_basis.f90	/^    integer(4) :: matsiz, matsizmax, mbsiz$/;"	v	module:mod_product_basis
@@ -24147,7 +24160,6 @@ mod_product_basis	src_gw/mod_product_basis.f90	/^module mod_product_basis$/;"	m
 mod_qpoint	mod_qpoint.F90	/^Module mod_qpoint$/;"	m
 mod_rgrid	mod_rgrid.f90	/^module mod_rgrid$/;"	m
 mod_rpath	src_gw/src_tests/mod_rpath.f90	/^module mod_rpath$/;"	m
-mod_rrsring	src_xs/mod_rrsring.f90	/^module mod_rrsring$/;"	m
 mod_selfenergy	src_gw/mod_selfenergy.f90	/^module mod_selfenergy$/;"	m
 mod_spin	mod_spin.F90	/^Module mod_spin$/;"	m
 mod_symmetry	mod_symmetry.F90	/^Module mod_symmetry$/;"	m
@@ -24271,6 +24283,8 @@ momtot	mod_charge_and_moment.F90	/^      Real (8) :: momtot /;"	v	module:mod_cha
 mossbauer	mossbauer.f90	/^Subroutine mossbauer$/;"	s
 mossbauer	src_inputparser/inputmodules.f90	/^  type(mossbauer_/;"	k	type:properties_type
 mossbauer_type	src_inputparser/inputmodules.f90	/^type mossbauer_type$/;"	t	module:modinput
+mpi	src_mpi/modmpi.F90	/^    type(mpii/;"	k	type:procgroup
+mpi	src_xs/modscl.f90	/^    type(mpii/;"	k	type:blacsinfo
 mpi_allgatherv_ifc	src_mpi/modmpi.F90	/^    subroutine mpi_allgatherv_ifc(/;"	s	module:modmpi
 mpi_free_group	src_gw/mod_mpi_gw.f90	/^    subroutine mpi_free_group$/;"	s	module:mod_mpi_gw
 mpi_set_range	src_gw/mod_mpi_gw.f90	/^    subroutine mpi_set_range(/;"	s	module:mod_mpi_gw
@@ -24278,6 +24292,10 @@ mpi_sum1c	src_gw/mod_mpi_gw.f90	/^    subroutine mpi_sum1c(/;"	s	module:mod_mpi_
 mpi_sum2c	src_gw/mod_mpi_gw.f90	/^    subroutine mpi_sum2c(/;"	s	module:mod_mpi_gw
 mpi_sum3c	src_gw/mod_mpi_gw.f90	/^    subroutine mpi_sum3c(/;"	s	module:mod_mpi_gw
 mpi_sum4c	src_gw/mod_mpi_gw.f90	/^    subroutine mpi_sum4c(/;"	s	module:mod_mpi_gw
+mpiglobal	src_mpi/modmpi.F90	/^  type(mpiinfo) :: mpiglobal$/;"	v	module:modmpi
+mpiinfo	src_mpi/modmpi.F90	/^  type mpiinfo$/;"	t	module:modmpi
+mpiintercom	src_mpi/modmpi.F90	/^    type(mpiinfo) :: mpiintercom$/;"	k	type:procgroup
+mpinodes	src_mpi/modmpi.F90	/^  type(procgroup) :: mpinodes$/;"	v	module:modmpi
 mpiresumeevecfiles	src_mpi/mpiresumeevecfiles.F90	/^Subroutine mpiresumeevecfiles$/;"	s
 mpisumrhoandmag	src_mpi/mpisumrhoandmag.F90	/^Subroutine mpisumrhoandmag$/;"	s
 mpwipw	src_gw/mod_product_basis.f90	/^    complex(8), allocatable :: mpwipw(/;"	v	module:mod_product_basis
@@ -24409,20 +24427,11 @@ mycomm	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm$/;"	v	module:mod_mpi_gw
 mycomm_col	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm_col /;"	v	module:mod_mpi_gw
 mycomm_row	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm_row /;"	v	module:mod_mpi_gw
 mylog2	libXC/testsuite/xc-regression.c	/^static unsigned int mylog2 (unsigned int val) {$/;"	f	file:
-mypcol	src_xs/modscl.f90	/^  integer(4) :: mypcol,/;"	v	module:modscl
-mypcol1d_c	src_xs/modscl.f90	/^  integer(4) :: mypcol, mypcol1d_r, mypcol1d_c$/;"	v	module:modscl
-mypcol1d_r	src_xs/modscl.f90	/^  integer(4) :: mypcol, mypcol1d_r,/;"	v	module:modscl
-myprow	src_xs/modscl.f90	/^  integer(4) :: myprow,/;"	v	module:modscl
-myprow1d_c	src_xs/modscl.f90	/^  integer(4) :: myprow, myprow1d_r, myprow1d_c$/;"	v	module:modscl
-myprow1d_r	src_xs/modscl.f90	/^  integer(4) :: myprow, myprow1d_r,/;"	v	module:modscl
+mypcol	src_xs/modscl.f90	/^    integer(4) :: myprow, mypcol$/;"	k	type:blacsinfo
+myprow	src_xs/modscl.f90	/^    integer(4) :: myprow,/;"	k	type:blacsinfo
 myrank	src_gw/mod_mpi_gw.f90	/^    integer :: myrank /;"	v	module:mod_mpi_gw
 myrank_col	src_gw/mod_mpi_gw.f90	/^    integer :: myrank_col /;"	v	module:mod_mpi_gw
 myrank_row	src_gw/mod_mpi_gw.f90	/^    integer :: myrank_row /;"	v	module:mod_mpi_gw
-myreadlist	src_xs/mod_rrsring.f90	/^  integer(4), allocatable :: myreadlist(/;"	v	module:mod_rrsring
-myreceivelist	src_xs/mod_rrsring.f90	/^  integer(4), allocatable :: myreadlist(:), myreceivelist(/;"	v	module:mod_rrsring
-mysendlist	src_xs/mod_rrsring.f90	/^  integer(4), allocatable :: myreadlist(:), myreceivelist(:,:), mysendlist(/;"	v	module:mod_rrsring
-mysource	src_xs/mod_rrsring.f90	/^  integer(4) :: mytarget, mysource$/;"	v	module:mod_rrsring
-mytarget	src_xs/mod_rrsring.f90	/^  integer(4) :: mytarget,/;"	v	module:mod_rrsring
 mzran	src_other/delaunay.f	/^      subroutine mzran(/;"	s
 mzrans	src_other/delaunay.f	/^      subroutine mzrans(/;"	s
 n	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^      int/;"	v	program:cnbdr1
@@ -24534,7 +24543,6 @@ n_tau	libXC/testsuite/xc-regression.c	/^static int n_rho=2, n_sigma=2, n_lapl=2,
 naddl	src_other/delaunay.f	/^      integer nv, nw, nt, nd, naddl,/;"	v	program:main
 nafbse	src_xs/modxs.F90	/^      Integer :: nafbse$/;"	v	module:modxs
 nafce	src_xs/modxs.F90	/^      Integer :: nafce$/;"	v	module:modxs
-nall	src_xs/mod_rrsring.f90	/^  integer(4) :: i, id, ishift, ndj, nall,/;"	v	module:mod_rrsring
 nalphair	mod_potential_and_density.F90	/^	  Real (8), Allocatable :: nalphamt(:,:,:,:,:), nalphair(/;"	v	module:mod_potential_and_density
 nalphamt	mod_potential_and_density.F90	/^	  Real (8), Allocatable :: nalphamt(/;"	v	module:mod_potential_and_density
 name	FoX/common/m_common_content_model.F90	/^    character, pointer :: name(/;"	k	type:content_particle_t
@@ -24571,10 +24579,8 @@ nbfbse	src_xs/modxs.F90	/^      Integer :: nbfbse$/;"	v	module:modxs
 nbfce	src_xs/modxs.F90	/^      Integer :: nbfce$/;"	v	module:modxs
 nbgw	src_gw/modgw.f90	/^    integer(4) :: nbgw$/;"	v	module:modgw
 nbgw	src_inputparser/inputmodules.f90	/^ integer::nbgw$/;"	k	type:gw_type
+nblck	src_xs/modscl.f90	/^    integer(4) :: mblck, nblck$/;"	k	type:blacsinfo
 nblck	src_xs/modscl.f90	/^    integer(4) :: mblck, nblck$/;"	k	type:dzmat
-nblck	src_xs/modscl.f90	/^  integer(4), parameter :: nblck /;"	v	module:modscl
-nblck1d_c	src_xs/modscl.f90	/^  integer(4), parameter :: nblck1d_c /;"	v	module:modscl
-nblck1d_r	src_xs/modscl.f90	/^  integer(4), parameter :: nblck1d_r /;"	v	module:modscl
 nbx	ARPACK/SRC/stat.h	/^      integer    nopx, nbx, nrorth, nitref, nrstrt$/;"	v
 nbx	ARPACK/SRC/stat.h	/^     &           nopx, nbx, nrorth, nitref, nrstrt,$/;"	v
 nca	src_xs/mod_exciton_wf.f90	/^  integer, allocatable :: nca(/;"	v	module:mod_exciton_wf
@@ -24767,7 +24773,6 @@ ndim	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  count ndim, ncomp;$/;"	m	struct:_
 ndim	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  count ndim, ncomp;$/;"	m	struct:_this
 ndim	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  count ndim, ncomp;$/;"	m	struct:_this
 ndim	src_vdwdf/main.f90	/^  integer, parameter  :: ndim=/;"	v	program:main
-ndj	src_xs/mod_rrsring.f90	/^  integer(4) :: i, id, ishift, ndj,/;"	v	module:mod_rrsring
 ndmag	mod_spin.F90	/^      Integer :: ndmag$/;"	v	module:mod_spin
 ndspem	src_inputparser/inputmodules.f90	/^ integer::ndspem$/;"	k	type:masstensor_type
 neff	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  number n, neff;$/;"	m	struct:samples
@@ -24937,6 +24942,7 @@ ngridq	src_inputparser/inputmodules.f90	/^ integer::ngridq(/;"	k	type:phonons_ty
 ngridq	src_inputparser/inputmodules.f90	/^ integer::ngridq(/;"	k	type:xs_type
 ngridq_b	src_xs/modxs.F90	/^      Integer :: ngridq_b /;"	v	module:modxs
 ngroundstate	src_xml/scl_xml_out_module.F90	/^     & charges, atom, xst, timing, nscl, ngroundstate$/;"	v	module:scl_xml_out_Module
+ngroups	src_mpi/modmpi.F90	/^    integer(4) :: ngroups /;"	k	type:procgroup
 ngrtot	mod_Gvector.F90	/^      Integer :: ngrtot$/;"	v	module:mod_Gvector
 ngrtot	src_gw/mod_kpointset.f90	/^        integer :: ngrtot /;"	k	type:G_set
 ngrtot	src_xs/modxs.F90	/^        integer :: ngrid(3),ngrtot$/;"	k	type:fftmap_type
@@ -24955,9 +24961,10 @@ niter	src_xml/scl_xml_out_module.F90	/^      Type (Node), Pointer :: sclDoc, roo
 niterconvcheck	src_inputparser/inputmodules.f90	/^ integer::niterconvcheck$/;"	k	type:groundstate_type
 nitref	ARPACK/SRC/stat.h	/^      integer    nopx, nbx, nrorth, nitref, nrstrt$/;"	v
 nitref	ARPACK/SRC/stat.h	/^     &           nopx, nbx, nrorth, nitref, nrstrt,$/;"	v
-nk	src_xs/modbse.f90	/^  integer(4) :: nkk/;"	v	module:modbse
+nk_bse	src_xs/modbse.f90	/^  integer(4) :: nk_max, nk_bse,/;"	v	module:modbse
+nk_max	src_xs/modbse.f90	/^  integer(4) :: nk_max,/;"	v	module:modbse
 nka	src_xs/mod_exciton_wf.f90	/^  integer :: nka$/;"	v	module:mod_exciton_wf
-nkkp	src_xs/modbse.f90	/^  integer(4) :: nkkp,/;"	v	module:modbse
+nkkp_bse	src_xs/modbse.f90	/^  integer(4) :: nk_max, nk_bse, nkkp_bse$/;"	v	module:modbse
 nkp1	src_gw/mod_bands.f90	/^    integer(4) :: nkp1$/;"	v	module:mod_bands
 nkp2	src_gw/mod_bands.f90	/^    integer(4) :: nkp2$/;"	v	module:mod_bands
 nkpt	mod_kpoint.F90	/^      Integer :: nkpt$/;"	v	module:mod_kpoint
@@ -24995,8 +25002,8 @@ nneed	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  real nneed, maxerrsq, mindevsq;$
 nnew	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	integer nnew$/;"	v	program:CubaTest
 nnew	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  number nnew;$/;"	m	struct:_this
 nnod	src_libbzint/polyhedron.f90	/^      integer(4) :: nnod /;"	v	module:polyhedron
-nnodes	src_mpi/modmpi.F90	/^  integer(4) :: ierr, procnamelen, nnodes$/;"	v	module:modmpi
-no	src_xs/modbse.f90	/^  integer(4) :: no,/;"	v	module:modbse
+no_bse_max	src_xs/modbse.f90	/^  integer(4) :: no_bse_max,/;"	v	module:modbse
+no_max	src_xs/modbse.f90	/^  integer(4) :: no_max,/;"	v	module:modbse
 no_perm	src_raman/construct_symvec.f90	/^integer :: no_perm$/;"	v	module:m_symvec
 no_vec_nonorth	src_raman/mod_raman.f90	/^integer :: no_vec_nonorth$/;"	v	module:raman_symmetry
 nocore	src_inputparser/inputmodules.f90	/^ logical::nocore$/;"	k	type:chargedensityplot_type
@@ -25004,7 +25011,6 @@ nodeName	FoX/dom/m_dom_dom.F90	/^    character, pointer :: nodeName(/;"	k	type:N
 nodeName	FoX/dom/m_dom_dom.F90	/^    character, pointer, dimension(:)         :: nodeName /;"	k	type:Node
 nodeType	FoX/dom/m_dom_dom.F90	/^    integer             :: nodeType /;"	k	type:Node
 nodeValue	FoX/dom/m_dom_dom.F90	/^    character, pointer, dimension(:)         :: nodeValue /;"	k	type:Node
-nodechefs	src_mpi/modmpi.F90	/^  integer(4), allocatable :: nodechefs(/;"	v	module:modmpi
 nodelists	FoX/dom/m_dom_dom.F90	/^    type(NodeListPtr), pointer :: nodelists(/;"	k	type:documentExtras
 nodes	FoX/dom/m_dom_dom.F90	/^    type(ListNode), pointer :: nodes(/;"	k	type:NamedNodeMap
 nodes	FoX/dom/m_dom_dom.F90	/^    type(ListNode), pointer :: nodes(/;"	k	type:NodeList
@@ -25020,7 +25026,6 @@ noldstepsmax	src_mixing/modmixermsec.f90	/^     & MUSE, IDSCALE, noldstepsmax$/;
 nomax	src_gw/mod_bands.f90	/^    integer(4) :: nomax$/;"	v	module:mod_bands
 nomeg	src_gw/mod_frequency.f90	/^        integer :: nomeg /;"	k	type:frequency
 nomeg	src_inputparser/inputmodules.f90	/^ integer::nomeg$/;"	k	type:freqgrid_type
-noo	src_xs/modbse.f90	/^  integer(4) :: no, nu, noo,/;"	v	module:modbse
 noptcomp	mod_DOS_optics_response.F90	/^      Integer :: noptcomp$/;"	v	module:mod_DOS_optics_response
 nopx	ARPACK/SRC/stat.h	/^      integer    nopx, nbx, nrorth, nitref, nrstrt$/;"	v
 nopx	ARPACK/SRC/stat.h	/^     &           nopx, nbx, nrorth, nitref, nrstrt,$/;"	v
@@ -25049,7 +25054,8 @@ notation_list	FoX/common/m_common_notations.F90	/^  type notation_list$/;"	t	mod
 notations	FoX/dom/m_dom_dom.F90	/^    type(namedNodeMap) :: notations /;"	k	type:docTypeExtras
 notelns	mod_misc.F90	/^      Integer :: notelns$/;"	v	module:mod_misc
 notes	mod_misc.F90	/^      Character (80) :: notes /;"	v	module:mod_misc
-nou	src_xs/modbse.f90	/^  integer(4) :: no, nu, noo, nuu, nou$/;"	v	module:modbse
+nou_bse_max	src_xs/modbse.f90	/^  integer(4) :: no_bse_max, nu_bse_max, nou_bse_max$/;"	v	module:modbse
+nou_max	src_xs/modbse.f90	/^  integer(4) :: no_max, nu_max, nou_max$/;"	v	module:modbse
 np	libXC/src/gga.c	/^XC(gga_exc)(const XC(func_type) *p, int np, const FLOAT *rho, const FLOAT *sigma, $/;"	v
 np	libXC/src/gga.c	/^XC(gga_exc_vxc)(const XC(func_type) *p, int np, const FLOAT *rho, const FLOAT *sigma,$/;"	v
 np	libXC/src/gga.c	/^XC(gga_fxc)(const XC(func_type) *p, int np, const FLOAT *rho, const FLOAT *sigma,$/;"	v
@@ -25097,22 +25103,18 @@ np2d	mod_plotting.F90	/^      Integer :: np2d /;"	v	module:mod_plotting
 np3d	mod_plotting.F90	/^      Integer :: np3d /;"	v	module:mod_plotting
 nparam	eos/modmain.f90	/^integer nparam$/;"	v	module:modmain
 npatt	src_xml/scl_xml_out_module.F90	/^      Type (Node), Pointer :: sclDoc, root, np, npatt,/;"	v	module:scl_xml_out_Module
-npcol	src_xs/modscl.f90	/^  integer(4) :: npcol,/;"	v	module:modscl
-npcol1d_c	src_xs/modscl.f90	/^  integer(4) :: npcol, npcol1d_r, npcol1d_c$/;"	v	module:modscl
-npcol1d_r	src_xs/modscl.f90	/^  integer(4) :: npcol, npcol1d_r,/;"	v	module:modscl
+npcols	src_xs/modscl.f90	/^    integer(4) :: nprows, npcols$/;"	k	type:blacsinfo
 nphcell	mod_phonon.F90	/^      Integer :: nphcell$/;"	v	module:mod_phonon
 nphwrt	mod_phonon.F90	/^      Integer :: nphwrt$/;"	v	module:mod_phonon
 npmat	mod_eigensystem.F90	/^      Integer, Allocatable :: npmat /;"	v	module:mod_eigensystem
 npol	src_inputparser/inputmodules.f90	/^ integer::npol$/;"	k	type:selfenergy_type
 npp1d	mod_plotting.F90	/^      Integer :: npp1d$/;"	v	module:mod_plotting
 nprad	src_inputparser/inputmodules.f90	/^ integer::nprad$/;"	k	type:groundstate_type
-nproc	src_xs/modscl.f90	/^  integer(4) :: nproc$/;"	v	module:modscl
 nproc_col	src_gw/mod_mpi_gw.f90	/^    integer :: nproc_col /;"	v	module:mod_mpi_gw
 nproc_row	src_gw/mod_mpi_gw.f90	/^    integer :: nproc_row /;"	v	module:mod_mpi_gw
 nproc_tot	src_gw/mod_mpi_gw.f90	/^    integer :: nproc_tot /;"	v	module:mod_mpi_gw
-nprow	src_xs/modscl.f90	/^  integer(4) :: nprow,/;"	v	module:modscl
-nprow1d_c	src_xs/modscl.f90	/^  integer(4) :: nprow, nprow1d_r, nprow1d_c$/;"	v	module:modscl
-nprow1d_r	src_xs/modscl.f90	/^  integer(4) :: nprow, nprow1d_r,/;"	v	module:modscl
+nprocs	src_xs/modscl.f90	/^    integer(4) :: nprocs$/;"	k	type:blacsinfo
+nprows	src_xs/modscl.f90	/^    integer(4) :: nprows,/;"	k	type:blacsinfo
 npsden	src_inputparser/inputmodules.f90	/^ integer::npsden$/;"	k	type:groundstate_type
 npt	mod_rgrid.f90	/^    integer :: npt$/;"	k	type:rgrid
 nptir	src_gw/src_tests/mod_rpath.f90	/^        integer :: nptir /;"	k	type:r_path
@@ -25215,7 +25217,8 @@ ntet	src_libbzint/tetra_internal.f90	/^      integer :: ntet /;"	v	module:tetra_
 ntetnr	src_gw/mod_kqpts.f90	/^    integer(4) :: ntetnr /;"	v	module:mod_kqpts
 ntetra	mod_opt_tetra.f90	/^  integer :: ntetra /;"	v	module:mod_opt_tetra
 ntype	src_libbzint/polyhedron.f90	/^      integer(1), dimension(20) :: ntype /;"	v	module:polyhedron
-nu	src_xs/modbse.f90	/^  integer(4) :: no, nu,/;"	v	module:modbse
+nu_bse_max	src_xs/modbse.f90	/^  integer(4) :: no_bse_max, nu_bse_max,/;"	v	module:modbse
+nu_max	src_xs/modbse.f90	/^  integer(4) :: no_max, nu_max,/;"	v	module:modbse
 nullnode	src_inputparser/modinputdom.f90	/^      Type (Node), Pointer :: doc, inputnp, nullnode,/;"	v	module:inputdom
 num	spacegroup/modmain.f90	/^character(20) num$/;"	v	module:modmain
 num	spacegroup/modspacegroup.f90	/^character(20)::num$/;"	v	module:modspacegroup
@@ -25238,7 +25241,6 @@ numr	ARPACK/EXAMPLES/NONSYM/sndrv6.f	/^     &                  tol, numr,/;"	v	p
 numroc	src_xs/modscl.f90	/^  integer(4), external :: numroc,/;"	v	module:modscl
 numsop	src_raman/mod_raman.f90	/^integer :: numsop$/;"	v	module:raman_symmetry
 nup	src_gw/mod_product_basis.f90	/^    integer(4) :: nup$/;"	v	module:mod_product_basis
-nuu	src_xs/modbse.f90	/^  integer(4) :: no, nu, noo, nuu,/;"	v	module:modbse
 nv	src_other/delaunay.f	/^      integer nv,/;"	v	program:main
 nva	src_xs/mod_exciton_wf.f90	/^  integer, allocatable :: nva(/;"	v	module:mod_exciton_wf
 nvelgw	src_gw/modgw.f90	/^    real(8)    :: nvelgw /;"	v	module:modgw
@@ -25246,6 +25248,7 @@ nvmax	src_other/delaunay.f	/^      integer nmax, nvmax,/;"	v	program:main
 nvp1d	mod_plotting.F90	/^      Integer :: nvp1d$/;"	v	module:mod_plotting
 nvplt	eos/modmain.f90	/^integer nvplt$/;"	v	module:modmain
 nw	src_other/delaunay.f	/^      integer nv, nw,/;"	v	program:main
+nw	src_xs/modbse.f90	/^  integer(4) :: nw$/;"	v	module:modbse
 nwacont	src_inputparser/inputmodules.f90	/^ integer::nwacont$/;"	k	type:tddft_type
 nwdf	src_xs/modxs.F90	/^      Integer :: nwdf$/;"	v	module:modxs
 nwdos	src_inputparser/inputmodules.f90	/^ integer::nwdos$/;"	k	type:dos_type
@@ -25731,9 +25734,8 @@ print_values	libXC/testsuite/xc-get_data.c	/^void print_values(xc_values_type *x
 print_values	libXC/testsuite/xc-regression.c	/^void print_values(char *desc, int nspin, int n_val, double *val)$/;"	f
 printbandgap	printbandgap.f90	/^subroutine printbandgap(/;"	s
 printbox	src_gw/ioutils.f90	/^      subroutine printbox(/;"	s
-printkouflag	src_xs/modbse.f90	/^    subroutine printkouflag(/;"	s	module:modbse
 printline	src_gw/ioutils.f90	/^      subroutine printline(/;"	s
-printoccupancies	src_xs/modbse.f90	/^    subroutine printoccupancies(/;"	s	module:modbse
+printso	src_xs/modbse.f90	/^    subroutine printso$/;"	s	module:modbse
 printtext	src_gw/ioutils.f90	/^      subroutine printtext(/;"	s
 printtorque	src_inputparser/inputmodules.f90	/^ logical::printtorque$/;"	k	type:relax_type
 prm_q	libXC/src/lda_c_2d_prm.c	/^static FLOAT prm_q = 3.9274; \/* 2.258 *\/$/;"	v	file:
@@ -25744,9 +25746,10 @@ prob	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	double precision integral(ncomp),
 prob	src_vdwdf/main.f90	/^  real*8              :: integral(ncomp), error(ncomp), prob(/;"	v	program:main
 probegb	src_mixing/lib/Fproject.f90	/^        real*8 function probegb(/;"	f
 processingInstruction_handler	FoX/dom/m_dom_parse.f90	/^  subroutine processingInstruction_handler(/;"	s
-procnamelen	src_mpi/modmpi.F90	/^  integer(4) :: ierr, procnamelen,/;"	v	module:modmpi
+procgroup	src_mpi/modmpi.F90	/^  type procgroup$/;"	t	module:modmpi
 procofindex	src_mpi/modmpi.F90	/^    function procofindex(/;"	f	module:modmpi
 procofk	src_mpi/modmpi.F90	/^    function procofk(/;"	f	module:modmpi
+procs	src_mpi/modmpi.F90	/^    integer(4) :: procs$/;"	k	type:mpiinfo
 procs	src_mpi/modmpi.F90	/^  integer(4) :: procs$/;"	v	module:modmpi
 produceResult	FoX/utils/fox_m_utils_uri.F90	/^      subroutine produceResult$/;"	s	function:parseURI
 program_transform_name	libXC/Makefile	/^program_transform_name = s,x,x,$/;"	m
@@ -25958,6 +25961,7 @@ rangearray	src_inputparser/inputmodules.f90	/^  type(range_type_array),pointer::
 ranges	src_inputparser/inputmodules.f90	/^  type(ranges_/;"	k	type:transitions_type
 ranges_type	src_inputparser/inputmodules.f90	/^type ranges_type$/;"	t	module:modinput
 rank	src_eigensystem/modfvsystem.f90	/^        Integer :: rank$/;"	k	type:HermitianMatrix
+rank	src_mpi/modmpi.F90	/^    integer(4) :: rank$/;"	k	type:mpiinfo
 rank	src_mpi/modmpi.F90	/^  integer(4) :: rank$/;"	v	module:modmpi
 ranlux	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^    } ranlux;$/;"	m	union:__anon63::__anon64	typeref:struct:__anon63::__anon64::__anon67
 ratfun	src_gw/src_acfreq/ratfun.f90	/^      subroutine ratfun(/;"	s
@@ -26019,6 +26023,7 @@ rdqelg	libXC/src/integrate.c	/^static void rdqelg(int *n, FLOAT *epstab, FLOAT *
 rdqk21	libXC/src/integrate.c	/^static void  rdqk21(integr_fn f, void *ex, FLOAT *a, FLOAT *b, FLOAT *result,$/;"	f	file:
 rdqpsrt	libXC/src/integrate.c	/^static void rdqpsrt(int *limit, int *last, int *maxerr,$/;"	f	file:
 read_densities	src_vdwdf/read_densities.f90	/^subroutine read_densities(/;"	s
+read_eval_occ_qmt	src_xs/modbse.f90	/^  logical :: read_eval_occ_qmt /;"	v	module:modbse
 read_exccoeff	src_xs/mod_exciton_wf.f90	/^  subroutine read_exccoeff(/;"	s	module:mod_exciton_wf
 read_file	libXC/src/get_funcs.pl	/^sub read_file() {$/;"	s
 read_gradients	src_vdwdf/read_gradients.f90	/^subroutine read_gradients(/;"	s
@@ -26121,16 +26126,10 @@ removerhocr	removerhocr.f90	/^Subroutine removerhocr$/;"	s
 renameNode	FoX/dom/m_dom_dom.F90	/^  function renameNode(/;"	f	module:m_dom_dom
 reorderdynmat	src_phonon/reorderdynmat.F90	/^subroutine reorderdynmat(/;"	s
 reordr	src_other/delaunay.f	/^      subroutine reordr(/;"	s
-repcol	src_xs/modscl.f90	/^  integer(4) :: repcol,/;"	v	module:modscl
-repcol1d_c	src_xs/modscl.f90	/^  integer(4) :: repcol, repcol1d_r, repcol1d_c$/;"	v	module:modscl
-repcol1d_r	src_xs/modscl.f90	/^  integer(4) :: repcol, repcol1d_r,/;"	v	module:modscl
 repeater	FoX/common/m_common_content_model.F90	/^    integer :: repeater /;"	k	type:content_particle_t
 replaceChild	FoX/dom/m_dom_dom.F90	/^  function replaceChild(/;"	f	module:m_dom_dom
 replaceData	FoX/dom/m_dom_dom.F90	/^  subroutine replaceData(/;"	s	module:m_dom_dom
 report_declarations	FoX/common/m_common_element.F90	/^  subroutine report_declarations(/;"	s	module:m_common_element
-reprow	src_xs/modscl.f90	/^  integer(4) :: reprow,/;"	v	module:modscl
-reprow1d_c	src_xs/modscl.f90	/^  integer(4) :: reprow, reprow1d_r, reprow1d_c$/;"	v	module:modscl
-reprow1d_r	src_xs/modscl.f90	/^  integer(4) :: reprow, reprow1d_r,/;"	v	module:modscl
 rereadinput	src_inputparser/rereadinput.F90	/^subroutine rereadinput$/;"	s
 rescaleYS	src_mixing/rescaleYS.f90	/^Subroutine rescaleYS /;"	s
 reserved	FoX/utils/fox_m_utils_uri.F90	/^  character(len=*), parameter :: reserved /;"	v	module:fox_m_utils_uri
@@ -26215,7 +26214,6 @@ residual	src_mixing/modmixermsec.f90	/^      Real (8), Allocatable :: residual /
 residualvectors	src_iterative_solver/src_diis/residualvector.F90	/^Subroutine residualvectors /;"	s
 resize_elstack	FoX/common/m_common_elstack.F90	/^  subroutine resize_elstack(/;"	s	module:m_common_elstack
 resoep	mod_OEP_HF.F90	/^      Real (8) :: resoep$/;"	v	module:mod_OEP_HF
-rest	src_xs/mod_rrsring.f90	/^  integer(4) :: i, id, ishift, ndj, nall, rest$/;"	v	module:mod_rrsring
 restore0	src_xs/restore0.F90	/^Subroutine restore0$/;"	s
 restore1	src_xs/restore1.F90	/^Subroutine restore1$/;"	s
 restore2	src_xs/restore2.F90	/^Subroutine restore2$/;"	s
@@ -26563,8 +26561,10 @@ scale	spacegroup/sginputmodule.f90	/^ real(8)::scale$/;"	k	type:lattice_type
 scale	src_inputparser/inputmodules.f90	/^ real(8)::scale$/;"	k	type:crystal_type
 scale	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  real weight[nrules], scale[nrules], norm[nrules];$/;"	m	struct:__anon52
 scale	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  real weight[nrules], scale[nrules], norm[nrules];$/;"	m	struct:__anon41
-scclicfname	src_xs/modbse.f90	/^  character(256) :: scclicfname /;"	v	module:modbse
-scclifname	src_xs/modbse.f90	/^  character(256) :: scclifname /;"	v	module:modbse
+scclicfbasename	src_xs/modbse.f90	/^  character(256) :: scclicfbasename /;"	v	module:modbse
+scclicfname	src_xs/modbse.f90	/^  character(256) :: scclifname, scclicfname$/;"	v	module:modbse
+scclifbasename	src_xs/modbse.f90	/^  character(256) :: scclifbasename /;"	v	module:modbse
+scclifname	src_xs/modbse.f90	/^  character(256) :: scclifname,/;"	v	module:modbse
 scf_cycle	scf_cycle.f90	/^subroutine scf_cycle(/;"	s
 scfconv	src_inputparser/inputmodules.f90	/^ character(512)::scfconv$/;"	k	type:groundstate_type
 scheme	FoX/utils/fox_m_utils_uri.F90	/^    character, pointer :: scheme(/;"	k	type:URI
@@ -26596,7 +26596,6 @@ scl_xml_out_write	src_xml/scl_xml_out_module.F90	/^      Subroutine scl_xml_out_
 scl_xml_setGndstateStatus	src_xml/scl_xml_out_module.F90	/^      Subroutine scl_xml_setGndstateStatus /;"	s	module:scl_xml_out_Module
 scl_xml_write_moments	src_xml/scl_xml_out_module.F90	/^      Subroutine scl_xml_write_moments /;"	s	module:scl_xml_out_Module
 sclcontroll	src_iterative_solver/SclControlModule.F90	/^Module sclcontroll$/;"	m
-sclierr	src_xs/modscl.f90	/^  integer(4) :: sclierr$/;"	v	module:modscl
 scltime0	src_xml/scl_xml_out_module.F90	/^      Real (8) :: scltime0 /;"	v	module:scl_xml_out_Module
 scmapstr	src_xs/modxs.F90	/^      Integer, Allocatable :: scmapstr /;"	v	module:modxs
 scnrm2	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^      Real $/;"	v	program:cnbdr1
@@ -26731,6 +26730,7 @@ select	ARPACK/EXAMPLES/SYM/ssdrv3.f	/^      logical          select(/;"	v	progra
 select	ARPACK/EXAMPLES/SYM/ssdrv4.f	/^      logical          select(/;"	v	program:ssdrv4
 select	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^      logical          select(/;"	v	program:ssdrv5
 select	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^      logical          select(/;"	v	program:ssdrv6
+select_transitions	src_xs/modbse.f90	/^    subroutine select_transitions(/;"	s	module:modbse
 selectedcomp	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  count selectedcomp, size;$/;"	m	struct:_this
 selfcGW_vs_selfcW2	src_gw/selfcGW_vs_selfcW2.f90	/^subroutine selfcGW_vs_selfcW2$/;"	s
 selfec	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfec(/;"	v	module:mod_selfenergy
@@ -26739,8 +26739,7 @@ selfecw2	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfecw2(/;"
 selfenergy	src_inputparser/inputmodules.f90	/^  type(selfenergy_/;"	k	type:gw_type
 selfenergy_type	src_inputparser/inputmodules.f90	/^type selfenergy_type$/;"	t	module:modinput
 selfex	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfex(/;"	v	module:mod_selfenergy
-sender_ncl	src_xs/modscl.f90	/^  integer(4) :: sender_nrl, sender_ncl$/;"	v	module:modscl
-sender_nrl	src_xs/modscl.f90	/^  integer(4) :: sender_nrl,/;"	v	module:modscl
+seltrans	src_xs/modbse.f90	/^  logical :: seltrans /;"	v	module:modbse
 seq	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^      number seq;$/;"	m	struct:__anon63::__anon64::__anon65
 serialize	FoX/dom/m_dom_utils.f90	/^  subroutine serialize(/;"	s	module:m_dom_utils
 setAttribute	FoX/dom/m_dom_dom.F90	/^  subroutine setAttribute(/;"	s	module:m_dom_dom
@@ -26779,7 +26778,6 @@ set_plotlabel_axis	mod_plotlabels.f90	/^    subroutine set_plotlabel_axis(/;"	s	
 set_prefix_by_index	FoX/common/m_common_attrs.F90	/^  subroutine set_prefix_by_index(/;"	s	module:m_common_attrs
 set_vdif	src_libbzint/stweight_real.f90	/^        subroutine set_vdif$/;"	s	subroutine:stweight_real
 setbarcev	src_gw/setbarcev.f90	/^subroutine setbarcev(/;"	s
-setbcbs_bse	src_xs/modbse.f90	/^    subroutine setbcbs_bse$/;"	s	module:modbse
 setcoord	src_xml/scl_xml_out_module.F90	/^      Subroutine setcoord /;"	s	module:scl_xml_out_Module
 setcoorddim	src_xml/scl_xml_out_module.F90	/^      Subroutine setcoorddim /;"	s	module:scl_xml_out_Module
 setdefault	setdefault.f90	/^Subroutine setdefault$/;"	s
@@ -26806,11 +26804,12 @@ setumix	src_gw/setumix.f90	/^subroutine setumix(/;"	s
 setup_YY	src_mixing/setup_YY.f90	/^Subroutine setup_YY /;"	s
 setup_bse	src_xs/m_setup_bse.f90	/^    subroutine setup_bse(/;"	s	module:m_setup_bse
 setup_distributed_bse	src_xs/m_setup_bse.f90	/^    subroutine setup_distributed_bse(/;"	s	module:m_setup_bse
-setup_distributed_rmat	src_xs/setup_distributed_rmat.f90	/^subroutine setup_distributed_rmat(/;"	s
+setup_distributed_rmat	src_xs/m_setup_rmat.f90	/^    subroutine setup_distributed_rmat(/;"	s	module:m_setup_rmat
+setup_full_hamiltonian	src_xs/b_bse.f90	/^  subroutine setup_full_hamiltonian(/;"	s	subroutine:b_bse
 setup_io	FoX/common/m_common_io.F90	/^  subroutine setup_io(/;"	s	module:m_common_io
-setup_rrslists	src_xs/mod_rrsring.f90	/^    subroutine setup_rrslists(/;"	s	module:mod_rrsring
-setupblacs	src_xs/modscl.f90	/^    subroutine setupblacs$/;"	s	module:modscl
-setuphamiltonian	src_xs/b_bse.f90	/^  subroutine setuphamiltonian(/;"	s	subroutine:b_bse
+setup_node_groups	src_mpi/modmpi.F90	/^    subroutine setup_node_groups$/;"	s	module:modmpi
+setup_proc_groups	src_mpi/modmpi.F90	/^    subroutine setup_proc_groups(/;"	s	module:modmpi
+setupblacs	src_xs/modscl.f90	/^    subroutine setupblacs(/;"	s	module:modscl
 setuphsvect	src_iterative_solver/src_diis/setuphsvect.F90	/^Subroutine setuphsvect /;"	s
 setupprojectedhamilton	src_iterative_solver/src_diis/setupprojectedhamilton.F90	/^Subroutine setupprojectedhamilton /;"	s
 setuprod	src_gw/setuprod.f90	/^subroutine setuprod(/;"	s
@@ -27053,7 +27052,8 @@ slapy2	ARPACK/EXAMPLES/SIMPLE/snsimp.f	/^     &                  slapy2,/;"	v	pr
 slaqrb	ARPACK/SRC/slaqrb.f	/^      subroutine slaqrb /;"	s
 sleepifc	src_xs/sleepifc.F90	/^Subroutine sleepifc /;"	s
 sleepm	src_xs/sleepifc.F90	/^      Subroutine sleepm /;"	s	subroutine:sleepifc
-smap	src_xs/modbse.f90	/^  integer(4), allocatable, dimension(:,:) :: smap$/;"	v	module:modbse
+smap	src_xs/modbse.f90	/^  integer(4), allocatable :: smap(/;"	v	module:modbse
+smap_rel	src_xs/modbse.f90	/^  integer(4), allocatable :: smap_rel(/;"	v	module:modbse
 snaitr	ARPACK/SRC/snaitr.f	/^      subroutine snaitr$/;"	s
 snapps	ARPACK/SRC/snapps.f	/^      subroutine snapps$/;"	s
 snaup2	ARPACK/SRC/snaup2.f	/^      subroutine snaup2$/;"	s
@@ -27326,7 +27326,7 @@ sto2	src_xs/modxs.F90	/^      Integer :: sta1, sto1, sta2, sto2$/;"	v	module:mod
 stop	src_inputparser/inputmodules.f90	/^ integer::stop$/;"	k	type:range_type
 stop_parser	FoX/sax/m_sax_operate.F90	/^  subroutine stop_parser(/;"	s	module:m_sax_operate
 storeexcitons	src_inputparser/inputmodules.f90	/^  type(storeexcitons_/;"	k	type:xs_type
-storeexcitons	src_xs/storeexcitions.f90	/^subroutine storeexcitons(/;"	s
+storeexcitons	src_xs/storeexcitions.f90	/^    subroutine storeexcitons(/;"	s	module:m_storeexcitons
 storeexcitons_type	src_inputparser/inputmodules.f90	/^type storeexcitons_type$/;"	t	module:modinput
 str	FoX/common/m_common_buffer.F90	/^    character(len=MAX_BUFF_SIZE)  :: str$/;"	k	type:buffer_t
 str	species/modspecies.F90	/^character(256) :: bname,str,/;"	v	module:modspecies
@@ -27556,7 +27556,6 @@ t4	ARPACK/SRC/stat.h	/^      real       t0, t1, t2, t3, t4, t5$/;"	v
 t4	ARPACK/SRC/stat.h	/^      save       t0, t1, t2, t3, t4, t5$/;"	v
 tables	fftlib/cfftnd.f90	/^subroutine tables /;"	s
 tabupdate	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  void tabupdate() { $/;"	f	class:PartitionViewer
-tag	src_mpi/modmpi.F90	/^  integer(4), parameter :: tag /;"	v	module:modmpi
 tappinfo	src_inputparser/inputmodules.f90	/^ logical::tappinfo$/;"	k	type:xs_type
 tardir	libXC/Makefile	/^	tardir=$(distdir) && $(am__tar) | GZIP=$(GZIP_ENV) gzip -c >$(distdir).tar.gz$/;"	m
 tardir	libXC/Makefile	/^	tardir=$(distdir) && $(am__tar) | bzip2 -9 -c >$(distdir).tar.bz2$/;"	m
@@ -27619,8 +27618,7 @@ temp	ARPACK/EXAMPLES/SVD/ssvd.f	/^     &                 tol, sigma, temp$/;"	v	
 temp	ARPACK/EXAMPLES/SYM/dsdrv6.f	/^     &                 ad(maxn), adl(maxn), adu(maxn), adu2(maxn),$/;"	v	program:dsdrv6
 temp	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 ad(maxn), adl(maxn), adu(maxn), adu2(maxn),$/;"	v	program:ssdrv6
 temp	src_inputparser/inputmodules.f90	/^ real(8)::temp$/;"	k	type:raman_type
-terminate	src_xs/terminate.F90	/^Subroutine terminate$/;"	s
-terminateqry	src_xs/terminateqry.F90	/^Subroutine terminateqry /;"	s
+terminate	src_mpi/modmpi.F90	/^    subroutine terminate$/;"	s	module:modmpi
 test_bug	FoX/configure	/^      function test_bug(a) result(b)$/;"	f
 test_bzintw	src_gw/src_tests/test_bzintw.f90	/^subroutine test_bzintw$/;"	s
 test_functional	libXC/testsuite/xc-consistency.c	/^void test_functional(int functional)$/;"	f
@@ -28034,7 +28032,6 @@ unit7	src_xs/modxs.F90	/^      Integer :: unit1, unit2, unit3, unit4, unit5, uni
 unit8	src_xs/modxs.F90	/^      Integer :: unit1, unit2, unit3, unit4, unit5, unit6, unit7, &$/;"	v	module:modxs
 unit9	src_xs/modxs.F90	/^     & unit8, unit9$/;"	v	module:modxs
 unitout	src_xs/modxs.F90	/^      Integer :: unitout$/;"	v	module:modxs
-unpacktoglobal	src_xs/modscl.f90	/^    subroutine unpacktoglobal(/;"	s	module:modscl
 unparsedEntityDecl_handler	FoX/dom/m_dom_parse.f90	/^  subroutine unparsedEntityDecl_handler(/;"	s
 unrepnodes	src_libbzint/unrepnodes.f90	/^      subroutine unrepnodes(/;"	s
 unreserved	FoX/utils/fox_m_utils_uri.F90	/^  character(len=*), parameter :: unreserved /;"	v	module:fox_m_utils_uri
@@ -28557,6 +28554,7 @@ wkpt	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: wkpt(/;"	k	type:
 wkptnr	mod_kpoint.F90	/^      Real (8), Allocatable :: wkptnr /;"	v	module:mod_kpoint
 wkptq	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: wkptq(/;"	k	type:kq_set
 wksubpt	src_xs/modxs.F90	/^      Real (8), Allocatable :: wksubpt /;"	v	module:modxs
+wl	src_xs/modbse.f90	/^  real(8) :: wl,/;"	v	module:modbse
 wleb	src_gw/src_tests/mod_ang_int.f90	/^    real(8), allocatable :: wleb(/;"	v	module:mod_ang_int
 wlenw	src_other/delaunay.f	/^      double precision wlenx, wleny, wlenz, wlenw,/;"	v	program:main
 wlenx	src_other/delaunay.f	/^      double precision wlenx,/;"	v	program:main
@@ -28776,9 +28774,8 @@ workl	ARPACK/EXAMPLES/SYM/ssdrv4.f	/^     &                 v(ldv,maxncv), workl
 workl	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^     &                 v(ldv,maxncv), workl(/;"	v	program:ssdrv5
 workl	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 v(ldv,maxncv), workl(/;"	v	program:ssdrv6
 workspacequery	src_xs/bsesoldiag.F90	/^    subroutine workspacequery(/;"	s	subroutine:bsesoldiag
-workspacequery	src_xs/hermitian_solver.f90	/^    subroutine workspacequery(/;"	s	subroutine:hermitian_solver
 workspacequery	src_xs/m_dhesolver.f90	/^        subroutine workspacequery(/;"	s	subroutine:dhesolver
-world_group	src_mpi/modmpi.F90	/^  integer(4) :: world_group,/;"	v	module:modmpi
+workspacequery	src_xs/m_hesolver.f90	/^        subroutine workspacequery(/;"	s	subroutine:hesolver
 wparf	src_xs/modxs.F90	/^      Integer :: wparf$/;"	v	module:modxs
 wpari	src_xs/modxs.F90	/^      Integer :: wpari$/;"	v	module:modxs
 wpos	spacegroup/modmain.f90	/^real(8) wpos(/;"	v	module:modmain
@@ -28840,7 +28837,6 @@ writeinfo	writeinfo.f90	/^Subroutine writeinfo /;"	s
 writekerr	src_xs/writekerr.F90	/^      Subroutine writekerr /;"	s	module:m_writekerr
 writekmapkq	src_xs/writekmapkq.F90	/^Subroutine writekmapkq /;"	s
 writekpts	writekpts.f90	/^subroutine writekpts$/;"	s
-writekstrans	src_xs/b_bse.f90	/^  subroutine writekstrans(/;"	s	subroutine:b_bse
 writelambda	src_phonon/writelambda.f90	/^Subroutine writelambda /;"	s
 writelat	writelat.f90	/^Subroutine writelat$/;"	s
 writeldapu	src_LDAU/writeldapu.f90	/^Subroutine writeldapu$/;"	s
@@ -28884,6 +28880,7 @@ wtet	mod_kpoint.F90	/^      Integer (4), Allocatable :: wtet /;"	v	module:mod_kp
 wtet	src_gw/mod_kpointset.f90	/^        integer, allocatable :: wtet(/;"	k	type:k_set
 wtet	src_gw/mod_kpointset.f90	/^        integer, allocatable :: wtet(/;"	k	type:kq_set
 wtetnr	src_gw/mod_kqpts.f90	/^    integer(4), allocatable :: wtetnr(/;"	v	module:mod_kqpts
+wu	src_xs/modbse.f90	/^  real(8) :: wl, wu$/;"	v	module:modbse
 wxml_error_xf	FoX/wxml/m_wxml_core.F90	/^  subroutine wxml_error_xf(/;"	s	module:m_wxml_core
 wxml_fatal_xf	FoX/wxml/m_wxml_core.F90	/^  subroutine wxml_fatal_xf(/;"	s	module:m_wxml_core
 wxml_warning_xf	FoX/wxml/m_wxml_core.F90	/^  subroutine wxml_warning_xf(/;"	s	module:m_wxml_core

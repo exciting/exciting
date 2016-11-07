@@ -12,7 +12,7 @@ subroutine bsesoldiag(solsize, hamsize, ham, eval, evec)
 ! IN:
 !   integer :: solsize ! Number of solutions from lowest EV 
 !   integer :: hamsize ! Dimension of the hermitian matrix
-!   complex(hamsize,hamsize) :: ! Upper triangular part of an hermitian matrix
+!   complex(8) :: ham(hamsize,hamsize) ! Upper triangular part of an hermitian matrix
 ! OUT:
 !   real(8) :: eval(hamsize) ! Real valued eigenvalues in ascending order 
 !                            ! (the first solsize elements are set)
