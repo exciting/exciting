@@ -12,6 +12,9 @@ implicit none
 ! set the version string
 call versionfromdate()
 call initmpi()
+!!!
+!call testingfun
+!!!
 call loadinputDOM("input.xml")
 !initialize default values that are not definet in the input schema
 call setdefault()

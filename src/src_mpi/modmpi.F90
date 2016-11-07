@@ -104,24 +104,9 @@ module modmpi
       ! intra- and inter-processor (node) communication.
       call setup_node_groups
 
-      write(*, '("initmpi@gc",i2," : Exited setup_node_groups")') mpiglobal%rank
-
       ! Each rank writes its own file (use in pars of GS and XS)
       splittfile = .true.
        
-      write(*, '("initmpi@gc",i2," : NP:", i3," GC:", i16)') mpiglobal%rank,&
-        & mpiglobal%procs, mpiglobal%comm
-      write(*, '("initmpi@gc",i2," : NN:", i3," NID", i3)') mpiglobal%rank,&
-        & mpinodes%ngroups, mpinodes%id
-      write(*, '("initmpi@gc",i2," : NC1:", i16," NR1:", i3," NS1:", i3)')&
-        & mpiglobal%rank,&
-        & mpinodes%mpi%comm, mpinodes%mpi%rank, mpinodes%mpi%procs
-      write(*, '("initmpi@gc",i2," : NC2:", i16," NR2:", i3," NS2:", i3)')&
-        & mpiglobal%rank, mpinodes%mpiintercom%comm,&
-        & mpinodes%mpiintercom%rank, mpinodes%mpiintercom%procs
-
-      call barrier
-      call terminate
 #endif
 #ifndef MPI
       procs = 1
@@ -978,6 +963,10 @@ module modmpi
       ! Split global comm intra-group comms
       call mpi_comm_split(mpiglobal%comm, color, key,&
         & mygroup%mpi%comm, mygroup%mpi%ierr)
+
+write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)')&
+  & mpiglobal%rank, color, mygroup%mpi%comm
+
       !   Error checking
       if(mygroup%mpi%ierr .ne. 0) then
         write (*, '("setup_proc_groups@rank",i3," (ERROR ",i3,"):",a)')&
@@ -1027,6 +1016,12 @@ module modmpi
           & mpiglobal%rank, mpiglobal%ierr, "group incl failed."
         call terminate
       end if
+
+      ! Inter-groups communicator
+      mygroup%mpiintercom%comm = mpi_comm_null
+      mygroup%mpiintercom%rank = -1
+      mygroup%mpiintercom%procs = ngroups
+
       ! Take that sub group and create a new communicator for only that sub group
       call mpi_comm_create(mpiglobal%comm, interprocs_group, mygroup%mpiintercom%comm,&
         & mpiglobal%ierr)
@@ -1036,22 +1031,24 @@ module modmpi
           & mpiglobal%rank, mpiglobal%ierr, "comm create failed."
         call terminate
       end if
-      ! Collect information for intercommunication communicator
-      call mpi_comm_size(mygroup%mpiintercom%comm, mygroup%mpiintercom%procs,&
-        & mygroup%mpiintercom%ierr)
-      !   Error checking
-      if(mpiglobal%ierr .ne. 0) then
-        write (*, '("setup_proc_groups@rank",i3," (ERROR ",i3,"):",a)')&
-          & mpiglobal%rank, mpiglobal%ierr, "comm create failed."
-        call terminate
-      end if
-      call mpi_comm_rank(mygroup%mpiintercom%comm, mygroup%mpiintercom%rank,&
-        & mygroup%mpiintercom%ierr)
-      !   Error checking
-      if(mpiglobal%ierr .ne. 0) then
-        write (*, '("setup_proc_groups@rank",i3," (ERROR ",i3,"):",a)')&
-          & mpiglobal%rank, mpiglobal%ierr, "comm create failed."
-        call terminate
+      if(mygroup%mpiintercom%comm /= mpi_comm_null) then
+        ! Collect information for intercommunication communicator
+        call mpi_comm_size(mygroup%mpiintercom%comm, mygroup%mpiintercom%procs,&
+          & mygroup%mpiintercom%ierr)
+        !   Error checking
+        if(mpiglobal%ierr .ne. 0) then
+          write (*, '("setup_proc_groups@rank",i3," (ERROR ",i3,"):",a)')&
+            & mpiglobal%rank, mpiglobal%ierr, "comm create failed."
+          call terminate
+        end if
+        call mpi_comm_rank(mygroup%mpiintercom%comm, mygroup%mpiintercom%rank,&
+          & mygroup%mpiintercom%ierr)
+        !   Error checking
+        if(mpiglobal%ierr .ne. 0) then
+          write (*, '("setup_proc_groups@rank",i3," (ERROR ",i3,"):",a)')&
+            & mpiglobal%rank, mpiglobal%ierr, "comm create failed."
+          call terminate
+        end if
       end if
 
       ! Cleanup
@@ -1117,7 +1114,6 @@ module modmpi
       integer(4), parameter :: tag = 25 
 
 #ifdef MPI
-      write(*, '("setup_node_gorups@gc",i2," : ",a)') mpiglobal%rank, "Hi"
 
       !++++++++++++++++++++++++++++++++++++++++++!
       ! Stupidly simplistic hardware inspection. !
@@ -1127,7 +1123,6 @@ module modmpi
       ! Assume maximal processor name length to be 200
       strsize = 200*mpiglobal%procs
 
-write(*,*) "len of NS", len(neighbors)
       myprocname = ''
       neighbors = ''
       neighborssend = ''
@@ -1140,12 +1135,6 @@ write(*,*) "len of NS", len(neighbors)
           & mpiglobal%rank, mpiglobal%ierr, "get processor name failed."
         call terminate
       end if
-write(*, '("setup_node_gorups@gc",i2," : PROCNAME:",a)') mpiglobal%rank,&
-  & trim(adjustl(myprocname))
-write(*, '("setup_node_gorups@gc",i2," : NS:",a)') mpiglobal%rank,&
-  & trim(adjustl(neighbors))
-write(*, '("setup_node_gorups@gc",i2," : NSS:",a)') mpiglobal%rank,&
-  & trim(adjustl(neighborssend))
 
       ! The following code is illustrated by the example 
       ! with 4 threads and 2 physical processors A and B.
@@ -1158,23 +1147,17 @@ write(*, '("setup_node_gorups@gc",i2," : NSS:",a)') mpiglobal%rank,&
       if(mpiglobal%rank > 0) then
         call mpi_recv(neighbors, strsize, mpi_character,&
           & mpiglobal%rank-1, tag, mpiglobal%comm, recvstatus, mpiglobal%ierr)
-write(*, '("setup_node_gorups@gc",i2," : received NS:",a)') mpiglobal%rank,&
-  & trim(adjustl(neighbors))
       end if
       if(mpiglobal%rank < mpiglobal%procs-1) then
         write(neighborssend,*) trim(adjustl(neighbors))//","//trim(adjustl(myprocname))
         call mpi_send(neighborssend, strsize, mpi_character,&
           & mpiglobal%rank+1, tag, mpiglobal%comm, mpiglobal%ierr)
-write(*, '("setup_node_gorups@gc",i2," : sent NSS:",a)') mpiglobal%rank,&
-  & trim(adjustl(neighborssend))
       endif
       if(index(trim(adjustl(neighbors)), trim(adjustl(myprocname)) ) > 0) then
         firstinnode = .false.
       else
         firstinnode = .true.
       endif
-write(*, '("setup_node_gorups@gc",i2," : first in node?:",l)') mpiglobal%rank,&
-  & firstinnode
 
       ! Send the full list of processors to all
       if(mpiglobal%rank == mpiglobal%procs-1) then 
@@ -1186,15 +1169,9 @@ write(*, '("setup_node_gorups@gc",i2," : first in node?:",l)') mpiglobal%rank,&
       call mpi_bcast(neighborssend, strsize, mpi_character,&
         mpiglobal%procs-1, mpiglobal%comm, mpiglobal%ierr)
 
-      write(*, '("setup_node_gorups@gc",i2," : Total NS: ",a)') mpiglobal%rank,&
-        & trim(adjustl(neighborssend))
-
       ! Figure out how many MPI threads are on current processor
       mynodesize = countsubstring(trim(adjustl(neighborssend)),&
         & trim(adjustl(myprocname)))
-
-      write(*, '("setup_node_gorups@gc",i2," : mynodesize",i3)') mpiglobal%rank,&
-        & mynodesize
 
       ! Make list of ranks on current processor
       allocate(mynoderanks(mynodesize))
@@ -1204,24 +1181,19 @@ write(*, '("setup_node_gorups@gc",i2," : first in node?:",l)') mpiglobal%rank,&
       do i = 0, mpiglobal%procs-1
         pos2 = index(neighborssend(pos1:),",")
         if(pos2 == 0) then
-          n = n+1
           procname = neighborssend(pos1:)
           if( trim(adjustl(myprocname)) == trim(adjustl(procname)) ) then
+            n = n+1
             mynoderanks(n) = i
           end if
           exit
         end if
-        n = n+1
         procname = neighborssend(pos1:pos1+pos2-2)
         if( trim(adjustl(myprocname)) == trim(adjustl(procname)) ) then
+          n = n+1
           mynoderanks(n) = i
         end if
         pos1=pos1+pos2
-      end do
-      do i = 1, mynodesize
-        write(*, '("setup_node_gorups@gc",i2," : mynoderanks(",i2,")=", i2)')&
-          & mpiglobal%rank, i,&
-          & mynoderanks(i)
       end do
 
       ! The following collects all the rank numbers that are nodechefs 
@@ -1237,11 +1209,6 @@ write(*, '("setup_node_gorups@gc",i2," : first in node?:",l)') mpiglobal%rank,&
            nodechefs(nnodes)= i
         endif
       end do
-      do i = 1, nnodes
-        write(*, '("setup_node_gorups@gc",i2," : noderchefs(",i2,")=", i2)')&
-          & mpiglobal%rank, i,&
-          & nodechefs(i)
-      end do
 
       ! Figure out on which node the current process is
       mynode = -1
@@ -1251,8 +1218,6 @@ write(*, '("setup_node_gorups@gc",i2," : first in node?:",l)') mpiglobal%rank,&
         end if
       end do
       mynode = i-1
-      write(*, '("setup_node_gorups@gc",i2," : mynode ", i2)') mpiglobal%rank,&
-        & mynode
 
       !++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
       ! We somehow determined how many nodes we are using,     !
@@ -1272,8 +1237,8 @@ write(*, '("setup_node_gorups@gc",i2," : first in node?:",l)') mpiglobal%rank,&
       call mpi_comm_split(mpiglobal%comm, color, key,&
         & mpinodes%mpi%comm, mpinodes%mpi%ierr)
 
-write (*, '("setup_node_groups@rank",i3," mpinodes%mpi%comm=",i16)')&
-& mpiglobal%rank, mpinodes%mpi%comm
+write (*, '("setup_node_groups@rank",i3," mycolor=", i3," mpinodes%mpi%comm=",i16)')&
+  & mpiglobal%rank, color, mpinodes%mpi%comm
 
       !   Error checking
       if(mpinodes%mpi%ierr .ne. 0) then
@@ -1285,8 +1250,6 @@ write (*, '("setup_node_groups@rank",i3," mpinodes%mpi%comm=",i16)')&
       ! Get number of procs in group comm 
       call mpi_comm_size(mpinodes%mpi%comm, mpinodes%mpi%procs, mpinodes%mpi%ierr)
 
-write (*, '("setup_node_groups@rank",i3," mpinodes%mpi%procs=",i3)')&
-& mpiglobal%rank, mpinodes%mpi%procs
 
       !   Error checking
       if(mpinodes%mpi%ierr .ne. 0) then
@@ -1297,9 +1260,6 @@ write (*, '("setup_node_groups@rank",i3," mpinodes%mpi%procs=",i3)')&
 
       ! Get rank
       call mpi_comm_rank(mpinodes%mpi%comm, mpinodes%mpi%rank,  mpinodes%mpi%ierr)
-
-write (*, '("setup_node_groups@rank",i3," mpinodes%mpi%rank=",i3)')&
-& mpiglobal%rank, mpinodes%mpi%rank
 
       !   Error checking
       if(mpinodes%mpi%ierr .ne. 0) then
@@ -1316,9 +1276,6 @@ write (*, '("setup_node_groups@rank",i3," mpinodes%mpi%rank=",i3)')&
       ! Make MPI group from global MPI communicator, i.e. a group of all processes
       call mpi_comm_group(mpiglobal%comm, global_group, mpiglobal%ierr)
 
-write (*, '("setup_node_groups@rank",i3," global_group=",i16)')&
-& mpiglobal%rank, global_group
-
       !   Error checking
       if(mpiglobal%ierr .ne. 0) then
         write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
@@ -1331,9 +1288,6 @@ write (*, '("setup_node_groups@rank",i3," global_group=",i16)')&
       call mpi_group_incl(global_group, nnodes, nodechefs(1:nnodes),&
         & interprocs_group, mpiglobal%ierr)
       
-write (*, '("setup_node_groups@rank",i3," interprocs_group=",i16)')&
-& mpiglobal%rank, interprocs_group
-
       !   Error checking
       if(mpiglobal%ierr .ne. 0) then
         write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
@@ -1358,15 +1312,8 @@ write (*, '("setup_node_groups@rank",i3," interprocs_group=",i16)')&
       !         intercommunicator
       if(mpinodes%mpiintercom%comm /= mpi_comm_null) then
 
-write (*, '("setup_node_groups@rank",i3,&
-  &" mpinodes%mpiintercom%com=",i16)')&
-& mpiglobal%rank, mpinodes%mpiintercom%comm
-
         call mpi_comm_size(mpinodes%mpiintercom%comm, mpinodes%mpiintercom%procs,&
           & mpinodes%mpiintercom%ierr)
-
-write (*, '("setup_node_groups@rank",i3," mpinodes%mpiintercom%procs=",i4)')&
-& mpiglobal%rank, mpinodes%mpiintercom%procs
 
         !   Error checking
         if(mpiglobal%ierr .ne. 0) then
@@ -1377,9 +1324,6 @@ write (*, '("setup_node_groups@rank",i3," mpinodes%mpiintercom%procs=",i4)')&
 
         call mpi_comm_rank(mpinodes%mpiintercom%comm, mpinodes%mpiintercom%rank,&
           & mpinodes%mpiintercom%ierr)
-
-write (*, '("setup_node_groups@rank",i3," mpinodes%mpiintercom%rank=",i4)')&
-& mpiglobal%rank, mpinodes%mpiintercom%rank
 
         !   Error checking
         if(mpiglobal%ierr .ne. 0) then

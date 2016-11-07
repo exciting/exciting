@@ -125,7 +125,7 @@ module modscl
           ictxt = mpicom%comm
           if(mpicom%rank == 0) then
             write(unitout,'("Info (setupblacs): Using ", i4, " x", i4,&
-              & " process grid. Ctxt(", i1, ") MPIcom(", i1, ")")')&
+              & " process grid. Ctxt(", i12, ") MPIcom(", i12, ")")')&
               & nprows, npcols, ictxt, mpicom%comm
             if(nprocs2d /= nprocs) then
               write(unitout,'("Info (setupblacs):&
@@ -151,7 +151,7 @@ module modscl
           ictxt = mpicom%comm
           if(mpicom%rank == 0) then
             write(unitout,'("Info (setupblacs): Aux. ",i4," x",i4,&
-              &" process grid. Ctxt(",i1,") MPIcom(",i1,")")')&
+              &" process grid. Ctxt(",i12,") MPIcom(",i12,")")')&
               & nprows, npcols, ictxt, mpicom%comm
           end if
           ! Make the blacs grid
@@ -170,7 +170,7 @@ module modscl
           ictxt = mpicom%comm
           if(mpicom%rank == 0) then
             write(unitout,'("Info (setupblacs): Aux. ",i4," x",i4,&
-              &" process grid. Ctxt(",i1,") MPIcom(",i1,")")')&
+              &" process grid. Ctxt(",i12,") MPIcom(",i12,")")')&
               & nprows, npcols, ictxt, mpicom%comm
           end if
           ! Make the blacs grid
