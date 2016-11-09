@@ -190,7 +190,7 @@ contains
             call calc_eh_zwf(lambda, r_h, r0, zwfeh)
             ! output
             if (rank==0) then
-              write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".xsf")') lambda, ip
+              write(fname,'("excitonWavefunction-", I6.6, "-", I6.6, ".xsf")') lambda, ip
               write(label,'("electron position: ", 3F12.6)') r0%vpl(:,1)
               call write_structure_xsf(fname)
               select case (ndim_h)
