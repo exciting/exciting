@@ -90,8 +90,8 @@ subroutine writepmatxs
   ! Generate index ranges for parallel execution
   call genparidxran('k', nkpt)
   ! K-point interval for process
-  !kpari = firstofset(rank, nkpt)
-  !kparf = lastofset(rank, nkpt)
+  kpari = firstofset(rank, nkpt)
+  kparf = lastofset(rank, nkpt)
 
   allocate(apwalmt(ngkmax, apwordmax, lmmaxapw, natmtot))
   allocate(evecfvt(nmatmax, nstfv))

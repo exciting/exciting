@@ -13,7 +13,7 @@ subroutine df
   use mod_qpoint, only: nqpt
   use modxs, only: tscreen, xsgnt, nwdf, qpari,&
                    & qparf, unitout
-  use modmpi, only: procs, barrier
+  use modmpi
   use m_writegqpts
   use m_xsgauntgen
   use m_findgntn0

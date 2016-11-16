@@ -5,7 +5,6 @@
 !BOP
 ! !ROUTINE: xssave0
 ! !INTERFACE:
-!
 subroutine xssave0
 ! !USES:
   use mod_kpoint, only: nkptnr, nkpt, vkl

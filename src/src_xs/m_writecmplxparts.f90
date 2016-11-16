@@ -14,8 +14,8 @@ module m_writecmplxparts
       integer(4) :: un, a1, a2, n, m
       character(256) :: fname, tmp1, tmp2, tmp3, frmt, frmtnoa
 
-      frmt = '(SP,E9.2)'
-      frmtnoa = '(SP,1x,E9.2)'
+      frmt = '(SP,E11.4)'
+      frmtnoa = '(SP,1x,E11.4)'
 
       n = size(remat,1)
       m = size(remat,2)

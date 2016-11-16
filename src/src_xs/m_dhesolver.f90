@@ -96,6 +96,7 @@ module m_dhesolver
             call terminate
           end if
         end if
+        ! Type 'I'
         if(present(i1) .or. present(i2)) then
           il = 1
           iu = ham%nrows
@@ -124,6 +125,7 @@ module m_dhesolver
             end if
           end if
         end if
+        ! Type 'V'
         if(present(v1) .and. present(v2)) then
           rangechar = 'V'
           vl = v1
@@ -136,7 +138,8 @@ module m_dhesolver
             end if
           end if
         end if
-        if(.not. (present(i1) .or. present(i2)) .or. .not. present(v1)) then
+        ! Type 'A'
+        if(.not. (present(i1) .or. present(i2)) .and. .not. present(v1)) then
           rangechar = 'A'
         end if
 

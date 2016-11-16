@@ -11,7 +11,7 @@ subroutine dfq(iq)
   use modmpi, only: procs, rank, barrier
   use mod_misc, only: task
   use mod_constants, only: zzero, zone, zi, krondelta
-  use mod_kpoint, only: nkpt, wkpt
+  use mod_kpoint, only: nkpt, wkpt, vkl
   use mod_qpoint, only: nqpt, vql
   use mod_lattice, only: omega
   use modxs, only: tfxcbse, tscreen, bzsampl, wpari,&
@@ -448,6 +448,7 @@ subroutine dfq(iq)
     ! Momentum matrix elements are always read from file.
     ! If tscreen, then xiou and xiou need to be already present 
     ! in modxs.
+
     call getpemat(iq, ik, trim(fnpmat), trim(fnemat),&
       & m12=xiou, m34=xiuo, p12=pmou, p34=pmuo)
 

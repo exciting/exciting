@@ -18599,12 +18599,15 @@ b_ematqk	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqk(/;"	s	module:m_b_ematqk
 b_ematqkgir	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqkgir(/;"	s	module:m_b_ematqk
 b_ematqkgmt	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqkgmt(/;"	s	module:m_b_ematqk
 b_exccoulint	src_xs/b_exccoulint.f90	/^subroutine b_exccoulint$/;"	s
+b_getbseinfo	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbseinfo(/;"	s	module:m_putgetbsemat
 b_getbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbsemat(/;"	s	module:m_putgetbsemat
 b_m08_hx	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m08_hx[12] = {$/;"	v	file:
 b_m08_so	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m08_so[12] = {$/;"	v	file:
 b_m11	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m11[12] = {$/;"	v	file:
 b_m11_l	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m11_l[12] = {$/;"	v	file:
+b_putbseinfo	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbseinfo(/;"	s	module:m_putgetbsemat
 b_putbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbsemat(/;"	s	module:m_putgetbsemat
+b_putbsereset	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbsereset$/;"	s	module:m_putgetbsemat
 b_scrcoulint	src_xs/b_scrcoulint.f90	/^subroutine b_scrcoulint$/;"	s
 backup0	src_xs/backup0.F90	/^Subroutine backup0$/;"	s
 backup1	src_xs/backup1.F90	/^Subroutine backup1$/;"	s
@@ -18851,7 +18854,7 @@ builddir	libXC/src/Makefile	/^builddir = .$/;"	m
 builddir	libXC/testsuite/Makefile	/^builddir = .$/;"	m
 buildham	src_xs/m_setup_bse.f90	/^    subroutine buildham(/;"	s	module:m_setup_bse
 building	FoX/common/m_common_struct.F90	/^    logical :: building /;"	k	type:xml_doc_state
-buildrmat	src_xs/m_setup_rmat.f90	/^        function buildrmat(/;"	f	subroutine:setup_distributed_rmat
+buildrmat	src_xs/m_setup_rmat.f90	/^    function buildrmat(/;"	f	module:m_setup_rmat
 bvec	mod_lattice.F90	/^      Real (8) :: bvec /;"	v	module:mod_lattice
 bxcir	mod_potential_and_density.F90	/^      Real (8), Allocatable :: bxcir /;"	v	module:mod_potential_and_density
 bxcmt	mod_potential_and_density.F90	/^      Real (8), Allocatable :: bxcmt /;"	v	module:mod_potential_and_density
@@ -20001,7 +20004,7 @@ eccoeff	src_inputparser/inputmodules.f90	/^ real(8)::eccoeff$/;"	k	type:Hybrid_t
 ecir	mod_potential_and_density.F90	/^      Real (8), Allocatable :: ecir /;"	v	module:mod_potential_and_density
 ecmt	mod_potential_and_density.F90	/^      Real (8), Allocatable :: ecmt /;"	v	module:mod_potential_and_density
 econv	src_inputparser/inputmodules.f90	/^ real(8)::econv$/;"	k	type:BSE_type
-econv	src_xs/modbse.f90	/^  real(8) :: econv,/;"	v	module:modbse
+econv	src_xs/modbse.f90	/^  real(8) :: econv$/;"	v	module:modbse
 ecore	src_libbzint/tetra_internal.f90	/^      real(8),pointer :: ecore(/;"	v	module:tetra_internal
 ecore	src_xs/xas/modxas.f90	/^	  real(8), allocatable :: ecore(/;"	v	module:modxas
 ecvcut	species/modspecies.F90	/^real(8) :: ecvcut$/;"	v	module:modspecies
@@ -20011,7 +20014,7 @@ ef	src_libbzint/polyhedron.f90	/^      real(8) :: ef /;"	v	module:polyhedron
 efermi	mod_eigenvalue_occupancy.F90	/^      Real (8) :: efermi$/;"	v	module:mod_eigenvalue_occupancy
 eferqp	src_gw/mod_selfenergy.f90	/^    real(8) :: eferqp$/;"	v	module:mod_selfenergy
 effmass	effmass.f90	/^Subroutine effmass$/;"	s
-egap	src_xs/modbse.f90	/^  real(8) :: egap,/;"	v	module:modbse
+efind	src_inputparser/inputmodules.f90	/^ logical::efind$/;"	k	type:BSE_type
 eigen	src_raman/mod_raman.f90	/^real(8), allocatable :: eigen(/;"	v	module:raman_ew
 eigenvalues	src_eigensystem/modfvsystem.f90	/^        complex(8), pointer :: eigenvalues(/;"	k	type:HermitianMatrix
 eigenvaluessp	src_eigensystem/modfvsystem.f90	/^        complex(4), pointer :: eigenvaluessp(/;"	k	type:HermitianMatrix
@@ -20103,6 +20106,7 @@ energy	energy.f90	/^Subroutine energy$/;"	s
 energykncr	energykncr.f90	/^Subroutine energykncr$/;"	s
 energynn	energynn.f90	/^Subroutine energynn$/;"	s
 energyref	src_inputparser/inputmodules.f90	/^ real(8)::energyref$/;"	k	type:groundstate_type
+energyselect	src_xs/modbse.f90	/^  logical :: energyselect$/;"	v	module:modbse
 energywindow	src_inputparser/inputmodules.f90	/^  type(energywindow_/;"	k	type:raman_type
 energywindow	src_inputparser/inputmodules.f90	/^  type(energywindow_/;"	k	type:xs_type
 energywindow_type	src_inputparser/inputmodules.f90	/^type energywindow_type$/;"	t	module:modinput
@@ -20229,7 +20233,7 @@ evalcr	mod_corestate.F90	/^      Real (8), Allocatable :: evalcr /;"	v	module:mo
 evalfv	src_xs/modxs.F90	/^      Real (8), Allocatable :: evalfv /;"	v	module:modxs
 evalks	src_gw/mod_selfenergy.f90	/^    real(8), allocatable :: evalks(/;"	v	module:mod_selfenergy
 evalqp	src_gw/mod_selfenergy.f90	/^    real(8), allocatable :: evalqp(/;"	v	module:mod_selfenergy
-evalshift	src_xs/modbse.f90	/^  real(8) :: egap, evalshift$/;"	v	module:modbse
+evalshift	src_xs/modbse.f90	/^  real(8) :: sci, evalshift$/;"	v	module:modbse
 evalsum	mod_energy.F90	/^      Real (8) :: evalsum$/;"	v	module:mod_energy
 evalsv	mod_eigenvalue_occupancy.F90	/^      Real (8), Allocatable :: evalsv /;"	v	module:mod_eigenvalue_occupancy
 evalsv0	src_xs/modxs.F90	/^      Real (8), Allocatable :: evalsv0 /;"	v	module:modxs
@@ -20249,7 +20253,7 @@ evlmaxcut	src_xs/modxs.F90	/^      Real (8) :: evlmin, evlmax, evlmincut, evlmax
 evlmin	src_xs/modxs.F90	/^      Real (8) :: evlmin,/;"	v	module:modxs
 evlmincut	src_xs/modxs.F90	/^      Real (8) :: evlmin, evlmax, evlmincut,/;"	v	module:modxs
 evsystem	src_eigensystem/modfvsystem.f90	/^    Type evsystem$/;"	t	module:modfvsystem
-ewidth	src_xs/modbse.f90	/^  real(8) :: econv, ewidth$/;"	v	module:modbse
+ewidth	src_xs/modbse.f90	/^  real(8) :: ewidth$/;"	v	module:modbse
 ex_coef	mod_potential_and_density.F90	/^      Real (8) :: ex_coef$/;"	v	module:mod_potential_and_density
 exactupdatevectors	src_iterative_solver/src_diis/exactupdatevectors.f90	/^Subroutine exactupdatevectors /;"	s
 exccoulint	src_xs/exccoulint.F90	/^subroutine exccoulint$/;"	s
@@ -22111,6 +22115,8 @@ infodir	libXC/Makefile	/^infodir = ${datarootdir}\/info$/;"	m
 infodir	libXC/build/Makefile	/^infodir = ${datarootdir}\/info$/;"	m
 infodir	libXC/src/Makefile	/^infodir = ${datarootdir}\/info$/;"	m
 infodir	libXC/testsuite/Makefile	/^infodir = ${datarootdir}\/info$/;"	m
+infofbasename	src_xs/modbse.f90	/^  character(256) :: infofbasename /;"	v	module:modbse
+infofname	src_xs/modbse.f90	/^  character(256) :: infofname$/;"	v	module:modbse
 init	libXC/src/xc.h	/^  void (*init)(struct XC(func_type) *p);$/;"	m	struct:__anon2
 init0	init0.f90	/^Subroutine init0$/;"	s
 init0symonly	src_xs/modxs.F90	/^      Logical :: init0symonly$/;"	v	module:modxs
@@ -22837,6 +22843,7 @@ kl	ARPACK/EXAMPLES/BAND/znbdr3.f	/^      integer          nev, ncv, ku, kl,/;"	v
 kl	ARPACK/EXAMPLES/BAND/znbdr4.f	/^      integer          nev, ncv, ku, kl,/;"	v	program:zndrv4
 klinkq	src_libbzint/tetra_internal.f90	/^      integer,pointer:: klinkq(/;"	v	module:tetra_internal
 kmap_bse_gr	src_xs/modbse.f90	/^  integer(4), allocatable :: kmap_bse_gr(/;"	v	module:modbse
+kmap_bse_gr_	src_xs/m_putgetbsemat.f90	/^  integer(4), allocatable :: kousize_(:), smap_(:,:), kmap_bse_gr_(/;"	v	module:m_putgetbsemat
 kmap_bse_rg	src_xs/modbse.f90	/^  integer(4), allocatable :: kmap_bse_rg(/;"	v	module:modbse
 kndc	ioarray.F90	/^      Integer, Parameter :: kndc /;"	v	module:ioarray
 kndi	ioarray.F90	/^      Integer, Parameter :: kndi /;"	v	module:ioarray
@@ -22844,6 +22851,7 @@ kndr	ioarray.F90	/^      Integer, Parameter :: kndr /;"	v	module:ioarray
 kordexc	src_inputparser/inputmodules.f90	/^ logical::kordexc$/;"	k	type:tetra_type
 koulims	src_xs/modbse.f90	/^  integer(4), allocatable :: koulims(/;"	v	module:modbse
 kousize	src_xs/modbse.f90	/^  integer(4), allocatable :: kousize(/;"	v	module:modbse
+kousize_	src_xs/m_putgetbsemat.f90	/^  integer(4), allocatable :: kousize_(/;"	v	module:m_putgetbsemat
 kparf	src_xs/modxs.F90	/^      Integer :: kparf$/;"	v	module:modxs
 kpari	src_xs/modxs.F90	/^      Integer :: kpari$/;"	v	module:modxs
 kplusq	src_xs/modtetra/mod_control.f90	/^  logical, save :: kplusq$/;"	v	module:control
@@ -23557,7 +23565,7 @@ make_dist_spectrum_tda	src_xs/b_bse.f90	/^  subroutine make_dist_spectrum_tda(/;
 make_doszstren	src_xs/b_bse.f90	/^  subroutine make_doszstren$/;"	s	subroutine:b_bse
 make_token_group	FoX/common/m_common_element.F90	/^  function make_token_group(/;"	f	module:m_common_element
 make_token_group_len	FoX/common/m_common_element.F90	/^  pure function make_token_group_len(/;"	f	module:m_common_element
-makeexcli	src_xs/b_exccoulint.f90	/^    subroutine makeexcli$/;"	s	subroutine:b_exccoulint
+makeexcli	src_xs/b_exccoulint.f90	/^    subroutine makeexcli(/;"	s	subroutine:b_exccoulint
 makeoszillatorstrength	src_xs/b_bse.f90	/^  subroutine makeoszillatorstrength(/;"	s	subroutine:b_bse
 makespectrum	src_xs/b_bse.f90	/^  subroutine makespectrum(/;"	s	subroutine:b_bse
 makespectrum_tda	src_xs/b_bse.f90	/^  subroutine makespectrum_tda(/;"	s	subroutine:b_bse
@@ -24962,6 +24970,7 @@ niterconvcheck	src_inputparser/inputmodules.f90	/^ integer::niterconvcheck$/;"	k
 nitref	ARPACK/SRC/stat.h	/^      integer    nopx, nbx, nrorth, nitref, nrstrt$/;"	v
 nitref	ARPACK/SRC/stat.h	/^     &           nopx, nbx, nrorth, nitref, nrstrt,$/;"	v
 nk_bse	src_xs/modbse.f90	/^  integer(4) :: nk_max, nk_bse,/;"	v	module:modbse
+nk_bse_	src_xs/m_putgetbsemat.f90	/^  integer(4) :: nk_bse_,/;"	v	module:m_putgetbsemat
 nk_max	src_xs/modbse.f90	/^  integer(4) :: nk_max,/;"	v	module:modbse
 nka	src_xs/mod_exciton_wf.f90	/^  integer :: nka$/;"	v	module:mod_exciton_wf
 nkkp_bse	src_xs/modbse.f90	/^  integer(4) :: nk_max, nk_bse, nkkp_bse$/;"	v	module:modbse
@@ -25055,6 +25064,7 @@ notations	FoX/dom/m_dom_dom.F90	/^    type(namedNodeMap) :: notations /;"	k	type
 notelns	mod_misc.F90	/^      Integer :: notelns$/;"	v	module:mod_misc
 notes	mod_misc.F90	/^      Character (80) :: notes /;"	v	module:mod_misc
 nou_bse_max	src_xs/modbse.f90	/^  integer(4) :: no_bse_max, nu_bse_max, nou_bse_max$/;"	v	module:modbse
+nou_bse_max_	src_xs/m_putgetbsemat.f90	/^  integer(4) :: nk_bse_, nou_bse_max_$/;"	v	module:m_putgetbsemat
 nou_max	src_xs/modbse.f90	/^  integer(4) :: no_max, nu_max, nou_max$/;"	v	module:modbse
 np	libXC/src/gga.c	/^XC(gga_exc)(const XC(func_type) *p, int np, const FLOAT *rho, const FLOAT *sigma, $/;"	v
 np	libXC/src/gga.c	/^XC(gga_exc_vxc)(const XC(func_type) *p, int np, const FLOAT *rho, const FLOAT *sigma,$/;"	v
@@ -25454,6 +25464,12 @@ p	libXC/src/gga_c_op.c	/^    (const XC(func_type) *p, int order, FLOAT x, FLOAT 
 p	libXC/src/gga_x_ityh.c	/^    (const XC(func_type) *p, int order, FLOAT x, FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2);$/;"	m	struct:__anon14	file:
 p0	species/species.f90	/^  real(8), allocatable :: p0(/;"	v	program:species
 p1	species/species.f90	/^  real(8), allocatable :: p0(:), p1(/;"	v	program:species
+p_eval	src_xs/modbse.f90	/^  real(8), pointer :: p_eval_/;"	v	module:modbse
+p_eval_minus	src_xs/modbse.f90	/^  real(8), pointer :: p_eval_plus(:), p_eval(:), p_eval_minus(/;"	v	module:modbse
+p_eval_plus	src_xs/modbse.f90	/^  real(8), pointer :: p_eval_plus(/;"	v	module:modbse
+p_evec	src_xs/modbse.f90	/^  complex(8), pointer :: p_evec_/;"	v	module:modbse
+p_evec_minus	src_xs/modbse.f90	/^  complex(8), pointer :: p_evec_plus(:,:), p_evec(:,:), p_evec_minus(/;"	v	module:modbse
+p_evec_plus	src_xs/modbse.f90	/^  complex(8), pointer :: p_evec_plus(/;"	v	module:modbse
 packed	src_eigensystem/modfvsystem.f90	/^        Logical :: packed,/;"	k	type:HermitianMatrix
 packedmatrixstorage	src_inputparser/inputmodules.f90	/^ logical::packedmatrixstorage$/;"	k	type:solver_type
 packedmatrixstorage	src_iterative_solver/SclControlModule.F90	/^      Logical :: packedmatrixstorage$/;"	v	module:sclcontroll
@@ -25735,7 +25751,7 @@ print_values	libXC/testsuite/xc-regression.c	/^void print_values(char *desc, int
 printbandgap	printbandgap.f90	/^subroutine printbandgap(/;"	s
 printbox	src_gw/ioutils.f90	/^      subroutine printbox(/;"	s
 printline	src_gw/ioutils.f90	/^      subroutine printline(/;"	s
-printso	src_xs/modbse.f90	/^    subroutine printso$/;"	s	module:modbse
+printso	src_xs/modbse.f90	/^    subroutine printso(/;"	s	module:modbse
 printtext	src_gw/ioutils.f90	/^      subroutine printtext(/;"	s
 printtorque	src_inputparser/inputmodules.f90	/^ logical::printtorque$/;"	k	type:relax_type
 prm_q	libXC/src/lda_c_2d_prm.c	/^static FLOAT prm_q = 3.9274; \/* 2.258 *\/$/;"	v	file:
@@ -25853,6 +25869,7 @@ q1	species/species.f90	/^  real(8), allocatable :: p0(:), p1(:), q0(:), q1(/;"	v
 qOPab	libXC/src/gga_c_op.c	/^  FLOAT qOPab;$/;"	m	struct:__anon33	file:
 qdepwsum	src_gw/qdepwsum.f90	/^      subroutine qdepwsum(/;"	s
 qdepwtet	src_gw/qdepwtet.f90	/^subroutine qdepwtet(/;"	s
+qgap	src_xs/modxs.F90	/^      real(8) :: qgap$/;"	v	module:modxs
 qmx	src_mixing/modmixermsec.f90	/^      Real (8) :: scl_plane, qmx,/;"	v	module:modmixermsec
 qmx_input	src_mixing/modmixermsec.f90	/^      Real (8) :: scl_plane, qmx, RedOld, RedPred, qmx_input,/;"	v	module:modmixermsec
 qparf	src_xs/modxs.F90	/^      Integer :: qparf$/;"	v	module:modxs
@@ -26023,7 +26040,6 @@ rdqelg	libXC/src/integrate.c	/^static void rdqelg(int *n, FLOAT *epstab, FLOAT *
 rdqk21	libXC/src/integrate.c	/^static void  rdqk21(integr_fn f, void *ex, FLOAT *a, FLOAT *b, FLOAT *result,$/;"	f	file:
 rdqpsrt	libXC/src/integrate.c	/^static void rdqpsrt(int *limit, int *last, int *maxerr,$/;"	f	file:
 read_densities	src_vdwdf/read_densities.f90	/^subroutine read_densities(/;"	s
-read_eval_occ_qmt	src_xs/modbse.f90	/^  logical :: read_eval_occ_qmt /;"	v	module:modbse
 read_exccoeff	src_xs/mod_exciton_wf.f90	/^  subroutine read_exccoeff(/;"	s	module:mod_exciton_wf
 read_file	libXC/src/get_funcs.pl	/^sub read_file() {$/;"	s
 read_gradients	src_vdwdf/read_gradients.f90	/^subroutine read_gradients(/;"	s
@@ -26039,6 +26055,7 @@ readgamma	src_phonon/readgamma.f90	/^Subroutine readgamma /;"	s
 reading_first_entity	FoX/sax/m_sax_reader.F90	/^ function reading_first_entity(/;"	f	module:m_sax_reader
 reading_main_file	FoX/sax/m_sax_reader.F90	/^  function reading_main_file(/;"	f	module:m_sax_reader
 readinput	eos/readinput.f90	/^subroutine readinput$/;"	s
+readmeta	src_xs/m_putgetbsemat.f90	/^  logical :: writemeta=.true., readmeta=/;"	v	module:m_putgetbsemat
 readonly	FoX/dom/m_dom_dom.F90	/^    logical :: readonly /;"	k	type:NamedNodeMap
 readonly	FoX/dom/m_dom_dom.F90	/^    logical :: readonly /;"	k	type:Node
 readprecond	src_iterative_solver/src_diis/readprecond.F90	/^Subroutine readprecond /;"	s
@@ -26571,6 +26588,7 @@ scheme	FoX/utils/fox_m_utils_uri.F90	/^    character, pointer :: scheme(/;"	k	ty
 schmidt	src_raman/construct_symvec.f90	/^subroutine schmidt(/;"	s	module:m_symvec
 schn	spacegroup/modmain.f90	/^character(20) schn$/;"	v	module:modmain
 schn	spacegroup/modspacegroup.f90	/^character(20)::schn$/;"	v	module:modspacegroup
+sci	src_xs/modbse.f90	/^  real(8) :: sci,/;"	v	module:modbse
 sciavbd	src_inputparser/inputmodules.f90	/^ logical::sciavbd$/;"	k	type:BSE_type
 sciavbd	src_inputparser/inputmodules.f90	/^ logical::sciavbd$/;"	k	type:scrcoul_type
 sciavqbd	src_inputparser/inputmodules.f90	/^ logical::sciavqbd$/;"	k	type:BSE_type
@@ -26739,7 +26757,6 @@ selfecw2	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfecw2(/;"
 selfenergy	src_inputparser/inputmodules.f90	/^  type(selfenergy_/;"	k	type:gw_type
 selfenergy_type	src_inputparser/inputmodules.f90	/^type selfenergy_type$/;"	t	module:modinput
 selfex	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfex(/;"	v	module:mod_selfenergy
-seltrans	src_xs/modbse.f90	/^  logical :: seltrans /;"	v	module:modbse
 seq	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^      number seq;$/;"	m	struct:__anon63::__anon64::__anon65
 serialize	FoX/dom/m_dom_utils.f90	/^  subroutine serialize(/;"	s	module:m_dom_utils
 setAttribute	FoX/dom/m_dom_dom.F90	/^  subroutine setAttribute(/;"	s	module:m_dom_dom
@@ -27053,6 +27070,7 @@ slaqrb	ARPACK/SRC/slaqrb.f	/^      subroutine slaqrb /;"	s
 sleepifc	src_xs/sleepifc.F90	/^Subroutine sleepifc /;"	s
 sleepm	src_xs/sleepifc.F90	/^      Subroutine sleepm /;"	s	subroutine:sleepifc
 smap	src_xs/modbse.f90	/^  integer(4), allocatable :: smap(/;"	v	module:modbse
+smap_	src_xs/m_putgetbsemat.f90	/^  integer(4), allocatable :: kousize_(:), smap_(/;"	v	module:m_putgetbsemat
 smap_rel	src_xs/modbse.f90	/^  integer(4), allocatable :: smap_rel(/;"	v	module:modbse
 snaitr	ARPACK/SRC/snaitr.f	/^      subroutine snaitr$/;"	s
 snapps	ARPACK/SRC/snapps.f	/^      subroutine snapps$/;"	s
@@ -27630,6 +27648,7 @@ test_mixcomp	src_gw/src_tests/test_mixcomp.f90	/^subroutine test_mixcomp(/;"	s
 test_mixfun	src_gw/src_tests/test_mixfun.f90	/^subroutine test_mixfun$/;"	s
 test_prodfun	src_gw/src_tests/test_prodfun.f90	/^subroutine test_prodfun(/;"	s
 testdlmm	src_gw/getdlmm.f90	/^subroutine testdlmm(/;"	s
+testingfun	testingfun.f90	/^subroutine testingfun$/;"	s
 testmain	src_xs/testmain.F90	/^Subroutine testmain$/;"	s
 testxs	src_xs/testxs.F90	/^Subroutine testxs$/;"	s
 tetcalccw	src_xs/modtetra/tetcalccw.F90	/^Subroutine tetcalccw$/;"	s
@@ -28060,6 +28079,7 @@ urilist	FoX/common/m_common_namespaces.F90	/^    type(URIMapping), dimension(:),
 usage	FoX/FoX-config	/^usage()$/;"	f
 usage	FoX/FoX-config.in	/^usage()$/;"	f
 usage	libXC/testsuite/xc-reference.pl	/^sub usage {$/;"	s
+useabsolute	src_inputparser/inputmodules.f90	/^ logical::useabsolute$/;"	k	type:BSE_type
 useforces	src_inputparser/inputmodules.f90	/^ logical::useforces$/;"	k	type:raman_type
 userdata	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	double precision epsrel, epsabs, userdata$/;"	v	program:CubaTest
 userdata	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  void *userdata;$/;"	m	struct:_this
@@ -28843,6 +28863,7 @@ writeldapu	src_LDAU/writeldapu.f90	/^Subroutine writeldapu$/;"	s
 writelinen	writelinen.f90	/^Subroutine writelinen$/;"	s
 writeloss	src_xs/writeloss.F90	/^      Subroutine writeloss /;"	s	module:m_writeloss
 writelsj	writelsj.f90	/^Subroutine writelsj$/;"	s
+writemeta	src_xs/m_putgetbsemat.f90	/^  logical :: writemeta=/;"	v	module:m_putgetbsemat
 writeoptminitdata	relax.f90	/^subroutine writeoptminitdata(/;"	s
 writeoscillator	src_xs/writeoscillator.f90	/^    subroutine writeoscillator(/;"	s	module:m_writeoscillator
 writeparts	src_inputparser/inputmodules.f90	/^ logical::writeparts$/;"	k	type:BSE_type

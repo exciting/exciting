@@ -500,8 +500,17 @@ module modmpi
     !     3 & 0 & -1 & - & 0 \\
     !     4 & 0 & -1 & - & 0 \\ 
     !   \end{tabular}
+    ! For inputs of $\text{col}=1, \text{set}=3$ the routine returns $2$.
+    ! For all other input for col execution is halted.
+    ! In the other case pathological case, where we have only one processes the
+    ! following example depicts the routines behaviour:\\
+    !   Let $N_\text{el} = 3$ and $N_\text{p} = 1$ : \\
+    !   \begin{tabular}{c|ccc|c}
+    !     rank & firstofset & \dots & lastofset & nofset \\
+    !     \hline
+    !     0 & 1 & 2 & 3 & 3 \\
+    !   \end{tabular}
     !
-    ! For inputs of $\text{col}=1, \text{set}=3$ the routine returns $2$. For all other input for col execution is halted.
     !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
@@ -547,6 +556,10 @@ module modmpi
         ! Case of only one column
         ! or rest elements not filling last column
         lastproc = modulo(set, np) - 1
+        ! Case of only one row
+        if(np == 1) then
+          lastproc = 0
+        end if
       end if
       
     end function lastproc
@@ -1236,9 +1249,6 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
       ! Split global comm intra-group comms
       call mpi_comm_split(mpiglobal%comm, color, key,&
         & mpinodes%mpi%comm, mpinodes%mpi%ierr)
-
-write (*, '("setup_node_groups@rank",i3," mycolor=", i3," mpinodes%mpi%comm=",i16)')&
-  & mpiglobal%rank, color, mpinodes%mpi%comm
 
       !   Error checking
       if(mpinodes%mpi%ierr .ne. 0) then

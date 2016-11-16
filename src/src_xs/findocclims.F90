@@ -14,7 +14,7 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   use modinput, only: input
   use modxs, only: evalsv0, ikmapikq, occsv0, evlmin,&
                  & evlmax, evlmincut, evlmaxcut, evlhpo,&
-                 & evllpu, ksgap, ksgapval, nstocc0,&
+                 & evllpu, ksgap, ksgapval, qgap, nstocc0,&
                  & vkl0, nstunocc0, unitout
   use m_genfilname
 ! !INPUT/OUTPUT PARAMETERS:
@@ -46,6 +46,8 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
 ! !REVISION HISTORY:
 !   Added description schema. And rudimentary description. (Aurich)
 !   Added some more description. (Aurich)
+!   Added calculation of minimal (indirect) gap. (Aurich)
+!   Added calculation of minimal gap for iq. (Aurich)
 !EOP
 !BOC
 
@@ -167,6 +169,9 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   iunocc0 = minval(iu0)
   iunocc = minval(iu)
 
+  ! Calculate minimal q-gap (only reasonalble if system has a gap)
+  qgap = minval(evalsv(iunocc, :) - evalsv0(iocc0, :))
+
   ! The maximum/minimum value is used since a shifted (k+q)-mesh which is not
   ! commensurate can cause partially occupied states that are absent for the
   ! k-mesh
@@ -206,9 +211,13 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
     write(unitout, '(a)') 'Info(findocclims): Partially occupied states present'
   end if
   if(ksgap) then
-    write(unitout, '(a)') 'Info(findocclims): System has kohn-sham gap'
-    write(unitout, '(a,E23.16)') 'Info(findocclims): Gap/H: ', ksgapval
-    write(unitout, '(a,E23.16)') 'Info(findocclims): Gap/eV: ', ksgapval*h2ev
+    write(unitout, '(a)') 'Info(findocclims): System has Kohn-Sham gap'
+    write(unitout, '(a,E23.16)') '  Gap/H: ', ksgapval
+    write(unitout, '(a,E23.16)') '  Gap/eV: ', ksgapval*h2ev
+    write(unitout, '(a)') 'Info(findocclims): Minimal gap for momentum tranfer:'
+    write(unitout, '(a,I8)') '  iq: ', iq
+    write(unitout, '(a,E23.16)') '  Gap(q)/H: ', qgap
+    write(unitout, '(a,E23.16)') '  Gap(q)/eV: ', qgap*h2ev
   else
     write(unitout, '(a)') 'Info(findocclims): No kohn-sham gap found'
   end if

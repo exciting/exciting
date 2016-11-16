@@ -137,11 +137,15 @@ module m_b_ematqk
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
       call getevecfv(vkl(1, ikq), vgkl(1, 1, 1, ikq), evecfv)
+      !call getevalsv(vkl(1, ikq), evalsv(1, ikq))
+      !call getoccsv(vkl(1, ikq), occsv(1, ikq))
       evecfvu(:, :) = evecfv(ngk(1, ikq)+1:ngk(1, ikq)+nlotot, bc%il2:bc%iu2, 1)
 
       ! Read eigenvectors, eigenvalues and occupancies for k (q=0)
       !   Read first variational eigenvectors from EVECFV_QMT000.OUT 
       call getevecfv0(vkl0(1, ik), vgkl0(1, 1, 1, ik), evecfv0)
+      !call getevalsv0(vkl0(1, ik), evalsv0(1, ik))
+      !call getoccsv0(vkl0(1, ik), occsv0(1, ik))
       evecfvo0(:, :) = evecfv0(ngk0(1, ik)+1:ngk0(1, ik)+nlotot, bc%il1:bc%iu1, 1)
 
       ! Determine number of radial functions used in APW 

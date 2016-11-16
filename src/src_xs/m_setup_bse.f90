@@ -4,10 +4,12 @@ module m_setup_bse
   use modinput, only: input
   use mod_constants, only: zzero, zone
   use mod_eigenvalue_occupancy, only: evalsv
+  use modxs, only: evalsv0
   use modbse
   use m_getunit
   use m_genfilname
   use m_putgetbsemat
+  use m_writecmplxparts
       
   implicit none
 
@@ -46,13 +48,30 @@ module m_setup_bse
       !! Local variables
       ! Indices
       integer(4) :: ikkp, ik, jk, iknr, jknr
-      integer(4) :: ino, inu, jno, jnu, inou, jnou
-      integer(4) :: ii, jj
+      integer(4) :: inou, jnou
+      integer(4) :: i1, i2, j1, j2
       ! Work arrays
       complex(8), dimension(nou_bse_max, nou_bse_max) :: excli_t, sccli_t
 
-      character(256) :: sfname
-      character(256) :: efname
+      ! Test write out vars 
+      real(8), allocatable :: diag(:,:)
+      complex(8), allocatable :: wint(:,:), vint(:,:), tmp(:,:)
+      logical :: fwp
+
+      ! Read in vars
+      character(256) :: sfname, sinfofname
+      character(256) :: efname, einfofname
+      logical :: efcmpt, efid
+      logical :: sfcmpt, sfid
+
+      ! Write out W and V (testing feature)
+      fwp = input%xs%bse%writeparts
+      if(fwp) then
+        allocate(diag(hamsize, 1))
+        allocate(wint(hamsize, hamsize))
+        allocate(vint(hamsize, hamsize))
+        allocate(tmp(hamsize, hamsize))
+      end if
 
       ! Zero ham
       ham = zzero
@@ -66,9 +85,30 @@ module m_setup_bse
         call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=efname)
       end if
 
-      if(rank == 0) then 
-        write(unitout, '("setup_bse: Reading form ", a, " and ", a)')&
-          & trim(sfname), trim(efname)
+      sinfofname = trim(infofbasename)//'_'//trim(sfname)
+      einfofname = trim(infofbasename)//'_'//trim(efname)
+
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse): Reading form info from ", a)')&
+          & trim(sinfofname)
+        write(unitout, '("Info(setup_bse): Reading form info from ", a)')&
+          & trim(einfofname)
+      end if
+
+      ! Check saved Quantities for compatiblity
+      call b_getbseinfo(trim(sinfofname), iqmt,&
+        & fcmpt=sfcmpt, fid=sfid)
+      call b_getbseinfo(trim(einfofname), iqmt,&
+        & fcmpt=efcmpt, fid=efid)
+      if(efcmpt /= sfcmpt .or. efid /= sfid) then 
+        write(*, '("Error(setup_bse): Info files differ")')
+        write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
+        call terminate
+      end if
+
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse): Reading form W from ", a)') trim(sfname)
+        write(unitout, '("Info(setup_bse): Reading form V from ", a)') trim(efname)
       end if
 
       ! Set up kkp blocks of RR or RA Hamiltonian
@@ -87,112 +127,201 @@ module m_setup_bse
 
         ! Get global index iknr
         iknr = kmap_bse_rg(ik)
-        ! Get ranges
-        inu = koulims(2,iknr)-koulims(1,iknr)+1
-        ino = koulims(4,iknr)-koulims(3,iknr)+1
-        inou = inu*ino
+        inou = kousize(iknr)
 
         ! Get global index jknr
         jknr = kmap_bse_rg(jk)
-        ! Get ranges
-        jnu = koulims(2,jknr)-koulims(1,jknr)+1
-        jno = koulims(4,jknr)-koulims(3,jknr)+1
-        jnou = jnu*jno
-        
+        jnou = kousize(jknr)
+
         ! Read corresponding ikkp blocks of W and V from file
         select case(trim(input%xs%bse%bsetype))
           case('singlet', 'triplet')
             ! Read RR/RA part of screened coulomb interaction W_{iuioik,jujojk}(qmt)
-            call b_getbsemat(trim(sfname), iqmt, ikkp, sccli_t(1:inou,1:jnou),&
-              & input%xs%bse%blindread)
+            call b_getbsemat(trim(sfname), iqmt, ikkp,&
+              & sccli_t(1:inou,1:jnou), check=.false., fcmpt=sfcmpt, fid=sfid)
         end select
-
         select case(trim(input%xs%bse%bsetype))
           case('RPA', 'singlet')
-            ! Read RR/RA part of exchange interaction v_{uoki,u'o'kj}
-            call b_getbsemat(trim(efname), iqmt, ikkp, excli_t(1:inou,1:jnou),&
-              & input%xs%bse%blindread)
+            ! Read RR/RA part of exchange interaction v_{iuioik,jujojk}(qmt)
+            call b_getbsemat(trim(efname), iqmt, ikkp,&
+              & excli_t(1:inou,1:jnou), check=.false., fcmpt=efcmpt, fid=efid)
         end select
 
         ! Position of ikkp block in global matrix
-        ii = sum(kousize(1:iknr-1)) + 1
-        jj = sum(kousize(1:jknr-1)) + 1
+        i1 = sum(kousize(1:iknr-1)) + 1
+        j1 = sum(kousize(1:jknr-1)) + 1
+        i2 = i1+inou-1
+        j2 = j1+jnou-1
+
+        !! RR and RA part
+        ! Add correlation term and optionally exchange term
+        ! (2* v_{iu io ik, ju jo jk}(qmt)
+        ! - W_{iu io ik, ju jo jk})(qmt)
+        ! * sqrt(abs(f_{io ik} - f_{ju jk+qmt}))
+        ! * sqrt(abs(f_{jo jk}-f_{ju jk+qmt})) or sqrt(abs(f_{jo jk}-f_{ju jk-qmt}))
+        select case(trim(input%xs%bse%bsetype))
+          case('RPA', 'singlet')
+            if(fwp) then 
+              call setint(ham(i1:i2,j1:j2),&
+                & ofac(i1:i2), ofac(j1:j2),&
+                & sccli_t(1:inou,1:jnou), exc=excli_t(1:inou,1:jnou),&
+                & w=wint(i1:i2,j1:j2), v=vint(i1:i2,j1:j2))
+            else
+              call setint(ham(i1:i2,j1:j2),&
+                & ofac(i1:i2), ofac(j1:j2),&
+                & sccli_t(1:inou,1:jnou), exc=excli_t(1:inou,1:jnou))
+            end if
+          case('triplet')
+            if(fwp) then 
+              call setint(ham(i1:i2,j1:j2),&
+                & ofac(i1:i2), ofac(j1:j2),&
+                & sccli_t(1:inou,1:jnou),&
+                & w=wint(i1:i2,j1:j2))
+            else
+              call setint(ham(i1:i2,j1:j2),&
+                & ofac(i1:i2), ofac(j1:j2),&
+                & sccli_t(1:inou,1:jnou))
+            end if
+        end select
 
         !! RR only
         ! For blocks on the diagonal, add the KS transition
         ! energies to the diagonal of the block.
         if(.not. fcoup) then 
           if(iknr .eq. jknr) then
-            call kstransdiag(ii, iknr, inou, ham(ii:ii+inou-1,jj:jj+jnou-1))
+            if(fwp) then 
+              call addkstransdiag(i1, ham(i1:i2,j1:j2), diag(i1:i1,1))
+            else
+              call addkstransdiag(i1, ham(i1:i2,j1:j2))
+            end if
           end if
         end if
-          
-        !! RR and RA part
-        ! Add correlation term and optionally exchange term
-        ! (2* v_{iu io ik, jo ju jk}(qmt)
-        ! - W_{iu io ik, jo ju jk})(qmt)
-        ! * sqrt(abs(f_{io ik} - f_{ju jk+qmt}))
-        ! * sqrt(abs(f_{jo jk} - f_{ju jk-qmt}))
-        select case(trim(input%xs%bse%bsetype))
-          case('RPA', 'singlet')
-            call addint(inou, jnou, ham(ii:ii+inou-1,jj:jj+jnou-1),&
-              & ofac(ii:ii+inou-1), ofac(jj:jj+jnou-1),&
-              & sccli_t(1:inou,1:jnou), exc=excli_t(1:inou,1:jnou))
-          case('triplet')
-            call addint(inou, jnou, ham(ii:ii+inou-1,jj:jj+jnou-1),&
-              & ofac(ii:ii+inou-1), ofac(jj:jj+jnou-1),&
-              & sccli_t(1:inou,1:jnou))
-        end select
 
       end do
 
+      ! Test output
+      if(fwp) then 
+        ! Make Ham hermitian (RR) or symmetric (RA)
+        do i1 = 1, hamsize
+          do i2 = i1, hamsize
+            if(fcoup) then 
+              ham(i2,i1) = ham(i1,i2)
+              wint(i2,i1) = wint(i1,i2)
+              vint(i2,i1) = vint(i1,i2)
+            else
+              ham(i2,i1) = conjg(ham(i1,i2))
+              wint(i2,i1) = conjg(wint(i1,i2))
+              vint(i2,i1) = conjg(vint(i1,i2))
+            end if
+          end do
+        end do
+        if(fcoup) then 
+          call writecmplxparts('HamC', dble(ham), immat=aimag(ham))
+          call writecmplxparts('WC', dble(wint), immat=aimag(wint))
+          call writecmplxparts('VC', dble(vint), immat=aimag(vint))
+        else
+          call writecmplxparts('KS', diag)
+          call writecmplxparts('Ham', dble(ham), immat=aimag(ham))
+          call writecmplxparts('W', dble(wint), immat=aimag(wint))
+          call writecmplxparts('V', dble(vint), immat=aimag(vint))
+        end if
+
+        ! Order for energy
+        do i1 = 1, hamsize
+          do i2 = 1, hamsize
+            tmp(i1, i2) = ham(ensortidx(i1), ensortidx(i2))
+          end do
+        end do
+        if(fcoup) then 
+          call writecmplxparts('HamC_sorted', dble(tmp), immat=aimag(tmp))
+        else
+          call writecmplxparts('Ham_sorted', dble(tmp), immat=aimag(tmp))
+        end if
+        do i1 = 1, hamsize
+          tmp(i1, 1) = diag(ensortidx(i1), 1)
+        end do
+        diag(:,1) = tmp(:,1)
+        if(.not. fcoup) then 
+          call writecmplxparts('KS_sorted', diag)
+        end if
+        do i1 = 1, hamsize
+          do i2 = 1, hamsize
+            tmp(i1, i2) = wint(ensortidx(i1), ensortidx(i2))
+          end do
+        end do
+        if(fcoup) then 
+          call writecmplxparts('WC_sorted', dble(tmp), immat=aimag(tmp))
+        else
+          call writecmplxparts('W_sorted', dble(tmp), immat=aimag(tmp))
+        end if
+        do i1 = 1, hamsize
+          do i2 = 1, hamsize
+            tmp(i1, i2) = vint(ensortidx(i1), ensortidx(i2))
+          end do
+        end do
+        if(fcoup) then 
+          call writecmplxparts('VC_sorted', dble(tmp), immat=aimag(tmp))
+        else
+          call writecmplxparts('V_sorted', dble(tmp), immat=aimag(tmp))
+        end if
+        deallocate(tmp)
+        deallocate(wint)
+        deallocate(vint)
+        deallocate(diag)
+      end if
+
       contains
 
-        subroutine kstransdiag(ig, ik, m, hamblock)
-          integer(4), intent(in) :: ig, ik, m
-          complex(8), intent(out) :: hamblock(m,m)
-
-          integer(4) :: io, iu, iou
-
-          ! Calculate ks energy differences
-          hamblock = zzero
-          do iou = 1, m
-            iu = smap(ig+iou-1, 1)
-            io = smap(ig+iou-1, 2)
-            ! de = e_{u, k+qmt} - e_{o, k} + scissor (RR)
-            ! de = e_{u, k-qmt} - e_{o, k} + scissor (AA)
-            ! Note: only qmt=0 supported
-            hamblock(iou,iou) = cmplx(evalsv(iu,ik) - evalsv(io,ik) + evalshift,8)
-          end do
-        end subroutine kstransdiag
-
-        subroutine addint(m, n, hamblock, oc1, oc2, scc, exc)
-          integer(4), intent(in) :: m, n
-          complex(8), intent(inout) :: hamblock(m,n)
-          real(8), intent(in) :: oc1(m), oc2(n)
-          complex(8), intent(in) :: scc(m,n)
-          complex(8), intent(in), optional :: exc(m,n)
+        subroutine setint(hamblock, oc1, oc2, scc, exc, w, v)
+          complex(8), intent(out) :: hamblock(:,:)
+          real(8), intent(in) :: oc1(:), oc2(:)
+          complex(8), intent(in) :: scc(:,:)
+          complex(8), intent(in), optional :: exc(:,:)
+          complex(8), intent(out), optional :: w(:,:), v(:,:)
           
           integer(4) :: i, j
-          integer(4) :: io1, iu1, iou1
-          integer(4) :: io2, iu2, iou2
-          complex(8) :: tmp
 
           if(present(exc)) then 
-            do j= 1, n
-              do i= 1, m
-                hamblock(i,j) = hamblock(i,j)&
-                  &+ oc1(i)*oc2(j) * (2.0d0 * exc(i,j) - scc(i,j))
+            do j= 1, size(hamblock,2)
+              do i= 1, size(hamblock,1)
+                hamblock(i,j) = oc1(i)*oc2(j) * (2.0d0 * exc(i,j) - scc(i,j))
               end do
             end do
           else
-            do j= 1, n
-              do i= 1, m
-                hamblock(i,j) = hamblock(i,j) - oc1(i)*oc2(j) * scc(i,j)
+            do j= 1, size(hamblock,2)
+              do i= 1, size(hamblock,1)
+                hamblock(i,j) = -oc1(i)*oc2(j) * scc(i,j)
               end do
             end do
           end if
-        end subroutine addint
+
+          if(present(w)) then 
+            w(:,:) = scc(:,:)
+          end if
+          if(present(v)) then 
+            v(:,:) = exc(:,:)
+          end if
+        end subroutine setint
+
+        subroutine addkstransdiag(ig, hamblock, d)
+          integer(4), intent(in) :: ig
+          complex(8), intent(inout) :: hamblock(:,:)
+          real(8), intent(out), optional :: d(:)
+
+          integer(4) :: i
+
+          ! Calculate ks energy differences
+          do i = 1, size(hamblock,1)
+            ! de = e_{u, k+qmt} - e_{o, k} + scissor + energyshift (RR)
+            ! de = e_{u, k-qmt} - e_{o, k} + scissor + energyshift (AA)
+            ! Note: only qmt=0 supported
+            hamblock(i,i) = hamblock(i,i)&
+              & + cmplx(de(ig+i-1) + evalshift, 0.0d0, 8)
+            if(present(d)) then 
+              d(i) = cmplx(de(ig+i-1) + evalshift, 0.0d0, 8)
+            end if
+          end do
+        end subroutine addkstransdiag
 
     end subroutine setup_bse
     !EOC
@@ -234,7 +363,7 @@ module m_setup_bse
 
       !! Local variables
       integer(4) :: ikkp, ik, jk, iknr, jknr
-      integer(4) :: ino, inu, jno, jnu, inou, jnou
+      integer(4) :: inou, jnou
 
       complex(8), allocatable, dimension(:,:) :: excli_t, sccli_t
 
@@ -299,23 +428,17 @@ module m_setup_bse
 
           ! Get global index iknr
           iknr = kmap_bse_rg(ik)
-          ! Get ranges
-          inu = koulims(2,iknr)-koulims(1,iknr)+1
-          ino = koulims(4,iknr)-koulims(3,iknr)+1
 
           ! Get global index jknr
           jknr = kmap_bse_rg(jk)
-          ! Get ranges
-          jnu = koulims(2,jknr)-koulims(1,jknr)+1
-          jno = koulims(4,jknr)-koulims(3,jknr)+1
 
           ! Position of ikkp block in global matrix
           ii = sum(kousize(1:iknr-1)) + 1
           jj = sum(kousize(1:jknr-1)) + 1
 
           ! Size of sub-matrix
-          inou = inu*ino
-          jnou = jnu*jno
+          inou = kousize(iknr)
+          jnou = kousize(jknr)
 
           !!***********!!
           !! READ DATA !!
@@ -326,16 +449,14 @@ module m_setup_bse
             select case(trim(input%xs%bse%bsetype))
               case('singlet', 'triplet')
                 ! Read RR/RA part of screened coulomb interaction W_{iuioik,jujojk}(qmt)
-                call b_getbsemat(trim(sfname), iqmt, ikkp, sccli_t(1:inou,1:jnou),&
-                  & input%xs%bse%blindread)
+                call b_getbsemat(trim(sfname), iqmt, ikkp, sccli_t(1:inou,1:jnou))
             end select
 
             ! Read in exchange interaction for ikkp
             select case(trim(input%xs%bse%bsetype))
               case('RPA', 'singlet')
                 ! Read RR/RA part of exchange interaction v_{iuioik,jujojk}(qmt)
-                call b_getbsemat(trim(efname), iqmt, ikkp, excli_t(1:inou,1:jnou),&
-                  & input%xs%bse%blindread)
+                call b_getbsemat(trim(efname), iqmt, ikkp, excli_t(1:inou,1:jnou))
             end select
 
           end if
@@ -548,9 +669,8 @@ module m_setup_bse
     ! In:
     ! integer(4) :: a1   ! Combindex index of Hamiltonian ia={ik,iu,io}
     ! Module in:
-    ! integer(4) :: smap(hamsize, 5)  ! Mapping between combined and individual indices
+    ! integer(4) :: smap(3, hamsize)  ! Mapping between combined and individual indices
     ! real(8) :: evalsv(nstsv, nkpnr) ! The eigenvalues
-    ! real(8) :: egap                 ! The relevant gap of the system 
     ! Out:
     ! complex(8) :: kstrans ! Transition energy
     !
@@ -575,14 +695,14 @@ module m_setup_bse
 
       ! Get absolute state band indices form 
       ! combinded index
-      iuabs = smap(a1, 1)
-      ioabs = smap(a1, 2)
-      ik = smap(a1, 3)
+      iuabs = smap(1, a1)
+      ioabs = smap(2, a1)
+      ik = smap(3, a1)
       ! Calculate ks energy difference for q=0
       ! de = e_{u, k+qmt} - e_{o, k} + scissor (RR)
       ! de = e_{u, k-qmt} - e_{o, k} + scissor (AA)
       ! Note: only qmt=0 supported
-      deval = evalsv(iuabs,ik)-evalsv(ioabs,ik)+evalshift
+      deval = evalsv(iuabs,ik)-evalsv(ioabs,ik)+sci+evalshift
       kstrans = cmplx(deval, 0.0d0, 8)
     end function kstrans
     !EOC

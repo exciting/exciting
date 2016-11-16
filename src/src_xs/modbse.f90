@@ -8,13 +8,18 @@
 !EOP   
 !BOC
 module modbse
-  use modxs, only: evalsv0, occsv0, ikmapikq
+  use mod_constants, only: h2ev
+  use modxs, only: evalsv0, occsv0, ikmapikq, unitout
   use mod_eigenvalue_occupancy, only: evalsv, occsv
   use modmpi
   use modinput, only: input
 
   implicit none
 
+  ! Eigenvaulues and eigenvectors for
+  ! k-qmt, k, k+qmt
+  real(8), pointer :: p_eval_plus(:), p_eval(:), p_eval_minus(:)
+  complex(8), pointer :: p_evec_plus(:,:), p_evec(:,:), p_evec_minus(:,:)
   ! Reference states for occupied and unoccupied state indices
   integer(4) :: ioref, iuref 
   ! Size of the resonant-resonant block of the Hamiltonian
@@ -31,15 +36,23 @@ module modbse
   integer(4) :: nw
   ! Cutoff for occupation
   real(8) :: cutoffocc
+  ! Auto-select KS transitions
+  logical :: energyselect
   ! Convergence energy
-  real(8) :: econv, ewidth
+  real(8) :: econv
+  ! Lorentian width cutoff
+  real(8) :: ewidth
   ! BSE gap
-  real(8) :: egap, evalshift
+  real(8) :: sci, evalshift
   ! Occupation factors for Hamiltonian construction
   real(8), allocatable :: ofac(:)
+  ! KS energy differences
+  real(8), allocatable :: de(:)
   ! Combined BSE index map
   integer(4), allocatable :: smap(:,:)
   integer(4), allocatable :: smap_rel(:,:)
+  ! Energy sorting of smap
+  integer(4), allocatable :: ensortidx(:)
   ! Contributing k points
   ! relative index ik -> global index iknr
   integer(4), allocatable :: kmap_bse_rg(:)
@@ -51,14 +64,17 @@ module modbse
   integer(4), allocatable :: koulims(:,:)
 
   ! Whether or not to read eigenvalues etc. form file
-  logical :: read_eval_occ_qmt = .true.
-  logical :: seltrans = .true.
+  !logical :: read_eval_occ_qmt = .true.
+  !logical :: seltrans = .true.
+  !logical :: putinfo = .true.
 
   ! Filebasenames
+  character(256) :: infofbasename = "BSEINFO"
   character(256) :: scclifbasename = "SCCLI"
   character(256) :: exclifbasename = "EXCLI"
   character(256) :: scclicfbasename = "SCCLIC"
   character(256) :: exclicfbasename = "EXCLIC"
+  character(256) :: infofname, infocfname
   character(256) :: scclifname, scclicfname
   character(256) :: exclifname, exclicfname
 
@@ -79,8 +95,8 @@ module modbse
     subroutine setranges_modxs(iq)
     ! !USES:
       use modxs, only: istocc0, istocc, istunocc0, istunocc,&
-                     & isto0, isto, istu0, istu, ksgapval
-      use mod_kpoint, only: nkptnr
+                     & isto0, isto, istu0, istu, ksgapval, evalsv0, qgap
+      use mod_kpoint, only: nkptnr, nkpt
       use mod_eigenvalue_occupancy, only: nstsv
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
@@ -98,6 +114,8 @@ module modbse
 
       implicit none
       integer(4), intent(in) :: iq
+
+write(*,*) "Hello, this is setranges_modxs at rank:", mpiglobal%rank
       
       ! Find occupation limits for k and k+q and set variables in modxs
       ! This also reads in 
@@ -106,11 +124,10 @@ module modbse
       ! (QMT000)
       ! modxs:evalsv0, modxs:occsv0
       ! and determines the ks gap modxs:ksgap.
+      if(.not. allocated(evalsv0)) allocate(evalsv0(nstsv, nkpt))
+
       call findocclims(iq, istocc0, istocc, istunocc0,&
         & istunocc, isto0, isto, istu0, istu)
-
-      ! Set read flag
-      read_eval_occ_qmt = .false.
 
       ! Set additional modbse variables
       iuref = istunocc0 
@@ -119,8 +136,16 @@ module modbse
       no_max = istocc0
       nu_max = nstsv-istunocc0+1
       nou_max = no_max*nu_max
-      egap = ksgapval
-
+      ! Scissor
+      sci = input%xs%scissor
+      if(ksgapval == 0.0d0) then
+        write(unitout, '("Warning (setranges_modxs): The system has no gap")')
+        if(sci /= 0.0d0) then 
+          write(unitout, '("Warning (setranges_modxs):&
+            &   Scissor > 0 but no gap. Setting scissor to 0.")')
+          sci = 0.0d0
+        end if
+      end if  
     end subroutine setranges_modxs
     !EOC
 
@@ -133,6 +158,7 @@ module modbse
       use modxs, only: unitout, istocc0, istunocc0
       use mod_eigenvalue_occupancy, only: nstsv
       use m_getunit
+      use m_putgetbsemat
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! integer(4) :: iqmt  ! q-point index (on unshifted k-mesh)
@@ -168,17 +194,29 @@ module modbse
 
       integer(4) :: ik, ikq, s, iknr
       integer(4) :: io, iu, kous
+      integer(4) :: io1, io2, iu1, iu2
       integer(4) :: iomax, iumax
       integer(4) :: iomin, iumin
       real(8), parameter :: maxocc = 2.0d0
 
       integer(4) :: nk_loc, hamsize_loc
       integer(4), allocatable :: smap_loc(:,:)
+      real(8) :: detmp
       real(8), allocatable :: ofac_loc(:)
+      real(8), allocatable :: de_loc(:)
       logical, allocatable :: sflag(:)
       integer(4) :: buflen, buflen_r
       integer(4) :: k1, k2, k1_r, k2_r
       integer(4) :: iproc, i1, i2, il_r, iu_r
+
+write(*,*) "Hello, this is select_transitions at rank:", mpiglobal%rank
+      ! Search for needed KS transitions automatically
+      ! depending on the chosen energy window?
+      if(any(input%xs%bse%nstlbse == 0)) then
+        energyselect = .true.
+      else
+        energyselect = .false.
+      end if
 
       ! What energy range is of interest?
       nw = input%xs%energywindow%points
@@ -186,19 +224,56 @@ module modbse
       wu = input%xs%energywindow%intv(2)
 
       ! Exciton energies determine spectrum.
-      ! Respect broadening of peaks and include additional 
-      ! excition solutions within of a lorentian boradening decay of 1/100 
-      ewidth = input%xs%broad*sqrt(99.0d0)
+      ! Respect broadening of peaks and include additional peaks outside of 
+      ! energy window.
+      ! A 0 centered lorentzian decays to 1/x*max for a displacement w=sqrt(x-1)*delta.
+      ewidth = input%xs%broad*sqrt(10d0-1d0)
 
       ! Excitons are build from KS states and the KS transition energies 
       ! dominatly determine exciton energies. 
       ! Select KS transitions withing the energy energy window for the 
-      ! spectrum plus extra convergence energy.
-      econv = abs(input%xs%bse%econv)
+      ! spectrum plus extra convergence energy. (referenced only if energyselect)
+      econv = input%xs%bse%econv
       econv = econv + ewidth
 
       ! What is considered to be occupied
       cutoffocc = input%groundstate%epsocc
+      
+      ! Bands to inspect
+      if(energyselect) then
+        io1 = 1
+        io2 = istocc0
+        iu1 = istunocc0
+        iu2 = nstsv
+      else
+        io1 = input%xs%bse%nstlbse(1)
+        io2 = input%xs%bse%nstlbse(2)
+        iu1 = input%xs%bse%nstlbse(3)+istunocc0-1
+        iu2 = input%xs%bse%nstlbse(4)+istunocc0-1
+      end if
+
+      if(mpiglobal%rank == 0) then 
+        write(unitout, *)
+        if(energyselect) then
+          write(unitout, '("Info(select_transitions): Searching for KS transitions in&
+            & the energy interval:")')
+          write(unitout, '("  [",E10.3,",",E10.3,"]/H")') max(wl-econv,0.0d0), wu+econv
+          write(unitout, '("  [",E10.3,",",E10.3,"]/eV")')&
+            & max(wl-econv,0.0d0)*h2ev, (wu+econv)*h2ev
+          write(unitout, '("  Using convergence energy of:")')
+          write(unitout, '("    ",E10.3,"/H",E10.3,"/eV")')&
+            & econv-ewidth, (econv-ewidth)*h2ev
+        else
+          write(unitout, '("Info(select_transitions): Searching for KS transitions in&
+            & the band interval:")')
+          write(unitout, '("  io1:", i4, " io2:", i4, " iu1:", i4, " iu2:", i4)')&
+            & io1, io2, iu1, iu2
+        end if
+        write(unitout, '("  Using ewidth of:")')
+        write(unitout, '("    ",E10.3,"/H",E10.3,"/eV")') ewidth, ewidth*h2ev
+        write(unitout, '("  Opening gap with a scissor of:",&
+          & E10.3,"/H", E10.3,"/eV")'), sci, sci*h2ev
+      end if
 
       ! Sizes local/maximal
       nk_loc = ceiling(real(nk_max,8)/real(mpiglobal%procs,8))
@@ -208,6 +283,9 @@ module modbse
       ! s(1) = iuabs, s(2) = ioabs, s(3) = iknr
       allocate(smap_loc(3, hamsize_loc))
 
+      ! Energy differences (local)
+      allocate(de_loc(hamsize_loc))
+
       ! Flag map whether to use k-o-u combination or not
       allocate(sflag(hamsize_loc))
       sflag = .false.
@@ -216,8 +294,10 @@ module modbse
       allocate(ofac_loc(hamsize_loc))
 
       ! How many o-u combinations at ik 
+      if(allocated(kousize)) deallocate(kousize)
       allocate(kousize(nk_max))
       ! and limits of band ranges
+      if(allocated(koulims)) deallocate(koulims)
       allocate(koulims(4,nk_max))
            
       ! Loop over kpoints (non-reduced)
@@ -242,19 +322,62 @@ module modbse
         ! Loop over KS transition energies 
         !$OMP PARALLEL DO &
         !$OMP& COLLAPSE(2),&
-        !$OMP& DEFAULT(SHARED), PRIVATE(io,iu,s),&
+        !$OMP& DEFAULT(SHARED), PRIVATE(io,iu,s,detmp),&
         !$OMP& REDUCTION(+:kous),&
         !$OMP& REDUCTION(max:iomax),&
         !$OMP& REDUCTION(min:iomin),&
         !$OMP& REDUCTION(max:iumax),&
         !$OMP& REDUCTION(min:iumin)
-        do io = 1, istocc0
-          do iu = istunocc0, nstsv 
-            
-            ! Only consider transitions which are in the energy window
-            ! \Delta E = \epsilon_{u ki+q} - \epsilon_{o ki}
-            if( evalsv(iu, ikq) - evalsv0(io, ik) <= wu+econv&
-              & .and. evalsv(iu, ikq) - evalsv0(io, ik) >= max(wl-econv,0.0d0) ) then
+        do io = io1, io2
+          do iu = iu1, iu2 
+
+            if(energyselect) then
+
+              detmp = evalsv(iu, ikq) - evalsv0(io, ik) + sci 
+
+              ! Only consider transitions which are in the energy window
+              ! \Delta E = \epsilon_{u ki+q} - \epsilon_{o ki}
+              if(detmp <= wu+econv .and. detmp >= max(wl-econv,0.0d0)) then
+
+                ! Only consider transitions which have a positve non-zero 
+                ! occupancy difference f_{o ki} - f_{u ki+q}
+                if( occsv0(io, ik) - occsv(iu, ikq) > cutoffocc) then 
+
+                  ! Combine u, o and k index
+                  ! u is counted from lumo=1 upwards
+                  ! o is counted from lowest state upwards
+                  ! ik index is shifted, due to MPI parallelization
+                  s = hamidx(iu-istunocc0+1, io, ik-k1+1, nu_max, no_max)
+
+                  ! Use that u-o-k combination
+                  sflag(s) = .true.
+                  
+                  ! Write to combinded index map
+                  smap_loc(:,s) = [iu, io, ik]
+
+                  ! Save energy difference
+                  de_loc(s) = detmp 
+
+                  ! Save occupation factor
+                  ofac_loc(s) = sqrt((occsv0(io, ik) - occsv(iu, ikq))/maxocc)
+
+                  ! Keep track of how many valid transitions
+                  ! are considered at current k point.
+                  kous = kous + 1
+
+                  ! Keep track of the minimal/maximal io/iu
+                  iomax = max(iomax, io)
+                  iomin = min(iomin, io)
+                  iumax = max(iumax, iu)
+                  iumin = min(iumin, iu)
+
+                end if
+
+              end if
+
+            ! Use user selected bands, but filter out transitions
+            ! with non-positive occupation difference.
+            else
 
               ! Only consider transitions which have a positve non-zero 
               ! occupancy difference f_{o ki} - f_{u ki+q}
@@ -262,15 +385,18 @@ module modbse
 
                 ! Combine u, o and k index
                 ! u is counted from lumo=1 upwards
-                ! o is counted from homo=1 downwards
+                ! o is counted from lowest state upwards
                 ! ik index is shifted, due to MPI parallelization
-                s = hamidx(iu-istunocc0+1, istocc0-io+1, ik-k1+1, nu_max, no_max)
+                s = hamidx(iu-istunocc0+1, io, ik-k1+1, nu_max, no_max)
 
                 ! Use that u-o-k combination
                 sflag(s) = .true.
                 
                 ! Write to combinded index map
                 smap_loc(:,s) = [iu, io, ik]
+
+                ! Save energy difference
+                de_loc(s) = evalsv(iu,ikq)-evalsv0(io,ik)+sci
 
                 ! Save occupation factor
                 ofac_loc(s) = sqrt((occsv0(io, ik) - occsv(iu, ikq))/maxocc)
@@ -286,7 +412,7 @@ module modbse
                 iumin = min(iumin, iu)
 
               end if
-              
+
             end if
 
           end do
@@ -303,6 +429,7 @@ module modbse
       ! Collect kousize on all processes 
       call mpi_allgatherv_ifc(set=nk_max, rlen=1, ibuf=kousize,&
         & inplace=.true., comm=mpiglobal)
+
       ! Collect koulims on all processes 
       call mpi_allgatherv_ifc(set=nk_max, rlen=4, ibuf=koulims,&
         & inplace=.true., comm=mpiglobal)
@@ -314,14 +441,16 @@ module modbse
         no_bse_max = max(koulims(4, ik)-koulims(3, ik)+1, no_bse_max)
         nu_bse_max = max(koulims(2, ik)-koulims(1, ik)+1, nu_bse_max)
       end do
-      nou_bse_max=no_bse_max*nu_bse_max
-      
+      nou_bse_max=maxval(kousize)
       ! Global results
       ! Number of contributing k points
       nk_bse = count(kousize /= 0)
       nkkp_bse = nk_bse*(nk_bse+1)/2
+
       ! List of participating k-points
+      if(allocated(kmap_bse_rg)) deallocate(kmap_bse_rg)
       allocate(kmap_bse_rg(nk_bse))
+      if(allocated(kmap_bse_gr)) deallocate(kmap_bse_gr)
       allocate(kmap_bse_gr(nk_max))
       ik = 0
       do iknr = 1, nk_max
@@ -337,9 +466,14 @@ module modbse
       ! Size of the resulting resonant BSE Hamiltonian
       hamsize = sum(kousize)
       ! Combined index map
+      if(allocated(smap)) deallocate(smap)
       allocate(smap(3,hamsize))
       ! Occupation factors
+      if(allocated(ofac)) deallocate(ofac)
       allocate(ofac(hamsize))
+      ! Energy differences
+      if(allocated(de)) deallocate(de)
+      allocate(de(hamsize))
 
       ! If rank was participating in k-loop.
       if(k2 > 0) then 
@@ -351,23 +485,33 @@ module modbse
         smap(2,i1:i2) = pack(smap_loc(2,:),sflag)
         smap(3,i1:i2) = pack(smap_loc(3,:),sflag)
         ofac(i1:i2) = pack(ofac_loc,sflag)
+        de(i1:i2) = pack(de_loc,sflag)
       end if
 
       ! Local auxiliary local arrays not needed anymore
       deallocate(smap_loc)
       deallocate(ofac_loc)
+      deallocate(de_loc)
       deallocate(sflag)
 
 #ifdef MPI
       ! Collect ofac on all processes 
       call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize, rbuf=ofac,&
         & inplace=.true., comm=mpiglobal)
+      ! Collect de on all processes 
+      call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize, rbuf=de,&
+        & inplace=.true., comm=mpiglobal)
       ! Collect smap on all processes 
       call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize*3, ibuf=smap,&
         & inplace=.true., comm=mpiglobal)
 #endif
+      ! Energy sorting 
+      if(allocated(ensortidx)) deallocate(ensortidx)
+      allocate(ensortidx(hamsize))
+      call sortidx(hamsize, de, ensortidx)
       
       ! Make relative combinded index map
+      if(allocated(smap_rel)) deallocate(smap_rel)
       allocate(smap_rel(3,hamsize))
       do i1 = 1, hamsize
         iknr = smap(3, i1)
@@ -376,40 +520,66 @@ module modbse
         smap_rel(3,i1) = kmap_bse_gr(iknr)
       end do
 
-      if(rank == 0) then 
-        call printso
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(select_transitions):&
+          & Number of participating transitions:", I8)') sum(kousize) 
       end if
 
-      ! Set flag 
-      seltrans = .false.
+      if(mpiglobal%rank == 0) then 
+        call printso(iqmt)
+      end if
+
+      call barrier
 
     end subroutine select_transitions
     !EOC
 
-    subroutine printso
+    subroutine printso(iqmt)
       use m_getunit
       implicit none 
 
-      integer(4) :: i, un
+      integer(4) :: i, un, iqmt
 
       call getunit(un)
       open(un, file='BSE_SINDEX.OUT', action='write', status='replace')
       write(un,'("# Combined BSE index @ q =", 3(E10.3,1x))')  0.0d0, 0.0d0, 0.0d0
-      write(un,'("# s ik io iu ik_rel io_rel iu_rel occ")')
+      write(un,'("# s iu io ik iu_rel io_rel ik_rel occ")')
       do i = 1, size(ofac)
         write(un, '(7(I8,1x),1x,E23.16)')&
-          & i, smap(i,:), smap_rel(i,:), ofac(i)
+          & i, smap(:,i), smap_rel(:,i), ofac(i)
       end do
       close(un)
 
       call getunit(un)
       open(un, file='KOU.OUT', action='write', status='replace')
-      write(un,'("# k-o-u ranges used in combined BSE index @ q =", 3(E10.3,1x))')&
-        &  0.0d0, 0.0d0, 0.0d0
+      write(un,'("# k-o-u ranges used in combined BSE index @ iqmt =", i3)')&
+        & iqmt
       write(un,'("# ik iu1 iu2 io1 io2 nou")')
       do i = 1, nk_max
         write(un, '(6(I8,1x))')&
-          & i, koulims(i,1), koulims(i,2), koulims(i,3), koulims(i,4), kousize(i)
+          & i, koulims(1,i), koulims(2,i), koulims(3,i), koulims(4,i), kousize(i)
+      end do
+      close(un)
+
+      call getunit(un)
+      open(un, file='EKSTRANS.OUT', action='write', status='replace')
+      write(un,'("# KS transition energies associated with each combined index&
+        & @ iqmt =", i3)') iqmt
+      write(un,'("# s de de+sci")')
+      do i = 1, hamsize
+        write(un, '(I8,1x,E23.16,1x,E23.16)')&
+          & i, de(i)-sci, de(i)
+      end do
+      close(un)
+
+      call getunit(un)
+      open(un, file='EKSTRANS_sorted.OUT', action='write', status='replace')
+      write(un,'("# KS transition energies associated with each combined index&
+        & @ iqmt =", i3)') iqmt
+      write(un,'("# s de de+sci")')
+      do i = 1, hamsize
+        write(un, '(I8,1x,E23.16,1x,E23.16)')&
+          & ensortidx(i), de(ensortidx(i))-sci, de(ensortidx(i))
       end do
       close(un)
 

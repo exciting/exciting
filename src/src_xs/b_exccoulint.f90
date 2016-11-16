@@ -43,7 +43,7 @@ subroutine b_exccoulint
   implicit none
 
   ! Local variables
-  character(*), parameter :: thisnam = 'exccoulint'
+  character(*), parameter :: thisnam = 'b_exccoulint'
   integer(4) :: iqmt
 
   logical :: fcoup
@@ -55,7 +55,7 @@ subroutine b_exccoulint
   integer(4) :: io, jo, iu, ju
 
   real(8), allocatable :: potcl(:)
-  complex(8), allocatable :: excli(:, :, :, :), exclic(:, :, :, :)
+  complex(8), allocatable :: excli(:, :), exclic(:, :)
   complex(8), allocatable :: ematouk(:, :, :, :), ematuok(:, :, :, :)
   complex(8), allocatable :: mou(:, :, :), muo(:,:,:)
 
@@ -63,7 +63,7 @@ subroutine b_exccoulint
   !   main part   !
   !---------------!
 
-write(*,*) "Hello, this is b_exccoulint at rank:", rank
+write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   ! General setup
   call init0
@@ -81,14 +81,6 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
     write(*,*)
     call terminate
   end if
-
-  ! Read Fermi energy from file
-  ! Which one .OUT _QMTXXX.OUT or _SCR.OUT ??
-  ! When called during whole BSE chain, this is set to _SCR.OUT ?
-  ! When calling it using doonly is set to .OUT ?
-  write(*,'("b_exccoulint@rank",i3," : Reading fermi energy form file: ",a)')&
-    & mpiglobal%rank, 'EFERMI'//trim(filext)
-  call readfermi
 
   ! Save variables for the gamma q-point
   call xssave0
@@ -110,6 +102,11 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
     call flushifc(unitout)
   end if
 
+  ! Read Fermi energy from file
+  ! Use EFERMI_QMT000.OUT
+  call genfilname(iqmt=0, setfilext=.true.)
+  call readfermi
+
   ! Set EVALSV_QMTXXX.OUT as basis for the occupation limits search
   !   Note: EVALSV_QMT000.OUT is always produced,
   !         EVALSV_QMT001.OUT has the same content, when
@@ -124,19 +121,25 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
   ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
   ! (QMT000)
   ! modxs:evalsv0, modxs:occsv0
-  if(read_eval_occ_qmt) then
-    call setranges_modxs(iqmt)
-  end if
+  call setranges_modxs(iqmt)
 
   ! Select relevant transitions for the construction
   ! of the BSE hamiltonian
   ! Also sets nkkp_bse, nk_bse 
-  if(seltrans) then
-    call select_transitions(iqmt)
-  end if
+  call select_transitions(iqmt)
 
   ! Include coupling terms
   fcoup = input%xs%bse%coupling
+
+  ! Write support information to file
+  call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
+    & iqmt=iqmt, filnam=infofname)
+  call b_putbseinfo(infofname, iqmt)
+  if(fcoup) then
+    call genfilname(basename=trim(infofbasename)//'_'//trim(exclicfbasename),&
+      & iqmt=iqmt, filnam=infocfname)
+    call b_putbseinfo(infocfname, iqmt)
+  end if
 
   ! Set output file names
   call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname)
@@ -228,6 +231,12 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
   !-------------------------------!
   call genparidxran('p', nkkp_bse)
 
+  allocate(excli(nou_bse_max, nou_bse_max))
+
+  if(fcoup) then
+    allocate(exclic(nou_bse_max, nou_bse_max))
+  end if
+
   kkp: do ikkp = ppari, pparf
 
     ! Get individual k-point indices from combined kk' index.
@@ -245,13 +254,14 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
     iknr = kmap_bse_rg(ik)
     jknr = kmap_bse_rg(jk) 
 
-    ! Get ranges
-    inu = koulims(2,iknr) - koulims(1,iknr) + 1
-    ino = koulims(4,iknr) - koulims(3,iknr) + 1
-    inou = inu*ino
-    jnu = koulims(2,jknr) - koulims(1,jknr) + 1
-    jno = koulims(4,jknr) - koulims(3,jknr) + 1
-    jnou = jnu*jno
+    ! Get number of transitions at ik,jk
+    inou = kousize(iknr)
+    jnou = kousize(jknr)
+
+!write(*,*) "ikkp", ikkp
+!write(*,*) "ik, jk", ik, jk
+!write(*,*) "iknr, jknr", iknr, jknr
+!write(*,*) "inou, jnou", inou, jnou
 
     !!<-- The difference vector, i.e. q not needed in
     !! the calculations (yet?)
@@ -276,12 +286,16 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
       call genwiqggp(0, iqmt+1, igq1, igq1, potcl(igq1))
     end do
 
-    call makeexcli()
+    if(fcoup) then 
+      call makeexcli(excli(1:inou,1:jnou), exclic(1:inou,1:jnou))
+    else
+      call makeexcli(excli(1:inou,1:jnou))
+    end if
 
     ! Parallel write
-    call b_putbsemat(exclifname, 77, ikkp, iqmt, excli, nou_bse_max**2)
+    call b_putbsemat(exclifname, 77, ikkp, iqmt, excli(1:inou,1:jnou))
     if(fcoup == .true.) then
-      call b_putbsemat(exclicfname, 78, ikkp, iqmt, exclic, nou_bse_max**2)
+      call b_putbsemat(exclicfname, 78, ikkp, iqmt, exclic(1:inou,1:jnou))
     end if
 
   ! End loop over(k,kp) pairs
@@ -357,93 +371,73 @@ write(*,*) "Hello, this is b_exccoulint at rank:", rank
 
     end subroutine getmuo
 
-    subroutine makeexcli
+    subroutine makeexcli(excli, exclic)
+
+      complex(8), intent(out) :: excli(inou, jnou) 
+      complex(8), intent(out), optional :: exclic(inou, jnou) 
 
       ! Work arrays
-      complex(8) :: exclit(inou, jnou) 
       complex(8) :: emat12(inou, numgq), emat34(jnou, numgq)
+      integer(4) :: iaoff, jaoff, ia, ja
 
-      ! Result arryas
-      if(allocated(excli)) deallocate(excli)
-      allocate(excli(inu, ino, jnu, jno))
-      if(fcoup == .true.) then
-        if(allocated(exclic)) deallocate(exclic)
-        allocate(exclic(inu, ino, jnu, jno))
-      end if
+      ! Offset in combined index for ik and jk
+      iaoff = sum(kousize(1:iknr-1))
+      jaoff = sum(kousize(1:jknr-1))
+!write(*,*) "iaoff", iaoff
+!write(*,*) "jaoff", jaoff
 
+!write(*,*) "Building emat12"
       !!<-- RR and RA part
-     ! do iu = 1, inu   ! iu (ik+qmt)
-     !   do io = 1, ino ! io (ik)
-     !     j1 = io + (iu-1)*inu ! ioiu
-     !     ! emat12_j = M_o1u1ki, M_o2u1ki, ..., M_oNu1ki, M_o1u2ki, ..., M_oNuMki
-     !     emat12(j1, :) = ematouk(io1, iu1, :, ik)
-     !   end do
-     ! end do
-      ! Does the same commented code above 
-      emat12 = reshape(ematouk(1:ino,1:inu,:,ik),[inou, numgq])
+      do ia = 1, inou
+        ! Get iu index relative to iu range of ik
+        iu = smap_rel(1, ia+iaoff) ! iu (ik+qmt)
+        ! Get io index relative to io range of ik
+        io = smap_rel(2, ia+iaoff) ! io (ik)
+!write(*,*) "ia, iu, io", ia, iu, io
+        ! emat12_ia = M_o1u1ki, M_o2u1ki, ..., M_oNu1ki, M_o1u2ki, ..., M_oNuMki
+        emat12(ia, :) = ematouk(io, iu, :, ik)
+      end do
       ! M_ou -> M^*_ou
       emat12 = conjg(emat12)
       !!-->
 
+!write(*,*) "Building emat34"
       !!<-- RR part
-      do ju =1, jnu    ! ju (jk+qmt)
-        do jo = 1, jno ! jo (jk)
-          j2 = jo + (ju - 1) * jnu ! joju
-          ! emat34_j = (M_o1u1kj,M_o2u1kj,...,M_oNu1kj,M_o1u2kj,...,M_oNuMkj)*v(G,0)
-          emat34(j2, :) = ematouk(jo, ju, :, jk) * potcl(:)
-        end do
+      do ja = 1, jnou
+        ! Get ju index relative to iu range of jk
+        ju = smap_rel(1, ja+jaoff) ! ju (jk+qmt)
+        ! Get jo index relative to io range of jk
+        jo = smap_rel(2, ja+jaoff) ! jo (jk)
+!write(*,*) "ja, ju, jo", ja, ju, jo
+        ! emat34_ja = (M_o1u1kj,M_o2u1kj,...,M_oNu1kj,M_o1u2kj,...,M_oNuMkj)*v(G,0)
+        emat34(ja, :) = ematouk(jo, ju, :, jk) * potcl(:)
       end do
+
       ! Calculate exchange matrix elements: v_{1234} = m_{12}^* m_{34}^t
-      ! exclit_{j1, j2} = \Sum_{G} emat12_{j1,G} (emat34^T)_{G,j2}
-      !   i.e. exclit_{io iu ik, jo ju jk}(qmt) =
+      ! excli_{ia, ja} = \Sum_{G} emat12_{ia,G} (emat34^T)_{G,ja}
+      !   i.e. excli_{iu io ik, ju jo jk}(qmt) =
       !          \Sum_{G} M^*_{io iu ik}(G,qmt) M_{jo ju jk}(G,qmt) v(G,qmt)
       call zgemm('n', 't', inou, jnou, numgq, zone/omega/nk_bse,&
-        & emat12, inou, emat34, jnou, zzero, exclit, inou)
+        & emat12, inou, emat34, jnou, zzero, excli, inou)
 
-      ! Map back to individual band indices
-      do ju = 1, jnu   ! ju
-        do jo = 1, jno ! jo
-          j2 = jo + (ju-1)*jnu ! joju
-          do iu = 1, inu   ! iu
-            do io = 1, ino ! io
-              j1 = io + (iu-1)*inu ! ioiu
-              ! exclit_{io_j1 iu_j1, jo_j2 ju_j2} -> excli_{iu_j1 io_j1, ju_j2 jo_j2}
-              excli(iu, io, ju, jo) = exclit(j1, j2)
-            end do
-          end do
-        end do
-      end do
-      !!-->
+      if(present(exclic)) then
 
-      if(fcoup == .true.) then
-        !!<-- RA part
-        do jo = 1, jno   ! jo (jk)
-          do ju =1, jnu  ! ju (jk-qmt)
-            j2 = ju + (jo-1)*jno
-            ! emat34_j = (M_u1o1kj-qmt,M_u2o1kj-qmt,...,
-            !               M_uMo1kj-qmt,M_u1o2kj-qmt,...,M_uMoNkj-qmt)*v(G,0)
-            emat34(j2, :) = ematuok(ju, jo, :, jk) * potcl(:)
-          end do
+        do ja = 1, jnou
+          ! Get ju index relative to iu range of jk
+          ju = smap_rel(1, ja+jaoff) ! ju (jk-qmt)
+          ! Get jo index relative to io range of jk
+          jo = smap_rel(2, ja+jaoff) ! jo (jk)
+          ! emat34_ja = (M_u1o1kj-qmt,M_u2o1kj-qmt,...,
+          !               M_uMo1kj-qmt,M_u1o2kj-qmt,...,M_uMoNkj-qmt)*v(G,0)
+          emat34(ja, :) = ematuok(ju, jo, :, jk) * potcl(:)
         end do
+
         ! Calculate coupling exchange matrix elements: v_{1234} = m_{12}^* m_{34}^t
-        ! exclitc_{j1, j2} = \Sum_{G} emat12_{j1,G} (emat34^T)_{G,j2}
-        !   i.e. exclitc_{io iu ik, ju jo jk}(qmt) =
+        ! exclic_{j1, j2} = \Sum_{G} emat12_{j1,G} (emat34^T)_{G,j2}
+        !   i.e. exclic_{iu io ik, ju jo jk}(qmt) =
         !          \Sum_{G} M^*_{io iu ik}(G, qmt) M_{ju jo jk-qmt}(G, qmt) v(G, qmt)
         call zgemm('n', 't', inou, jnou, numgq, zone/omega/nk_bse,&
-          & emat12, inou, emat34, jnou, zzero, exclit, inou)
-        ! Map back to individual band indices
-        do jo = 1, jno   ! jo
-          do ju = 1, jnu ! ju
-            j2 = ju + (jo-1)*jno !jujo
-            do iu = 1, inu   ! iu
-              do io = 1, ino ! io
-                j1 = io + (iu-1)*inu !ioiu
-                ! exclit_{io_j1 iu_j1, ju_j2 jo_j2} -> exclic_{iu_j1 io_j1, ju_j2 jo_j2}
-                exclic(iu, io, ju, jo) = exclit(j1, j2)
-              end do
-            end do
-          end do
-        end do
+          & emat12, inou, emat34, jnou, zzero, exclic, inou)
         !!-->
       end if
 

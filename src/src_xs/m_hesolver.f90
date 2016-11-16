@@ -8,10 +8,10 @@ module m_hesolver
     !BOP
     ! !ROUTINE: hesolver
     ! !INTERFACE:
-    subroutine hesolver(ham, evec, eval, i1, i2, v1, v2, found)
+    subroutine hesolver(hemat, evec, eval, i1, i2, v1, v2, found)
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
-    !   complex(8) :: ham(:,:)         ! Upper triangular part of a hermitian matrix
+    !   complex(8) :: hemat(:,:)       ! Upper triangular part of a hermitian matrix
     !   integer(4), optional :: i1, i2 ! Index range of eigen solutions 
     !   real(8), optional :: v1, v2    ! Range of eigenvalues to search for
     ! OUT:
@@ -31,7 +31,7 @@ module m_hesolver
       implicit none
 
       ! Arguments
-      complex(8), intent(in) :: ham(:,:)
+      complex(8), intent(in) :: hemat(:,:)
       integer(4), intent(in), optional :: i1, i2
       real(8), intent(in), optional :: v1, v2
       complex(8), intent(out) :: evec(:,:)
@@ -40,7 +40,7 @@ module m_hesolver
 
       ! Local variables
       character(1) :: rangechar
-      integer(4) :: solsize, hamsize
+      integer(4) :: solsize, hematsize
       real(8) :: vl, vu, abstol
       integer(4) :: il, iu, lwork, info, lrwork, liwork
 
@@ -55,18 +55,18 @@ module m_hesolver
       ! Tolerance parameter
       abstol = 2.d0 * dlamch('s')
 
-      hamsize = size(ham,1)
+      hematsize = size(hemat,1)
 
       ! Input checking
-      if(hamsize /= size(ham,2)) then 
+      if(hematsize /= size(hemat,2)) then 
         write(*,*) "Error (hermitian_solver): Matrix needs to be square."
         call terminate
       end if
-      if(size(evec,1) /= hamsize) then 
+      if(size(evec,1) /= hematsize) then 
         write(*,*) "Error (hermitian_solver): Dimension mismatch between evec and mat."
         call terminate
       end if
-      if(size(eval) /= hamsize) then 
+      if(size(eval) /= hematsize) then 
         write(*,*) "Error (hermitian_solver): Dimension mismatch between eval and mat."
         call terminate
       end if
@@ -78,9 +78,10 @@ module m_hesolver
         write(*,*) "Error (hermitian_solver): Specify whole interval."
         call terminate
       end if
+      ! Type 'I'
       if(present(i1) .or. present(i2)) then
         il = 1
-        iu = hamsize
+        iu = hematsize
         rangechar = 'I'
         if(present(i1)) il = i1
         if(present(i2)) iu = i2
@@ -93,13 +94,15 @@ module m_hesolver
           write(*,*) "Error (hermitian_solver): il > iu."
           call terminate
         end if
-        if(iu > hamsize) then 
+        if(iu > hematsize) then 
           write(*,*) "Error (hermitian_solver): iu-il+1 > nrows."
           write(*,*) "range:", il, iu
-          write(*,*) "hamsize:", hamsize
+          write(*,*) "hematsize:", hematsize
           call terminate
         end if
+        allocate(isuppz(2*max(1,iu-il+1)))
       end if
+      ! Type 'V'
       if(present(v1) .and. present(v2)) then
         rangechar = 'V'
         vl = v1
@@ -109,9 +112,12 @@ module m_hesolver
           write(*,*) "range:", vl, vu
           call terminate
         end if
+        allocate(isuppz(2*max(1,hematsize)))
       end if
-      if(.not. (present(i1) .or. present(i2)) .or. .not. present(v1)) then
+      ! Type 'A'
+      if(.not. (present(i1) .or. present(i2)) .and. .not. present(v1)) then
         rangechar = 'A'
+        allocate(isuppz(2*max(1,hematsize)))
       end if
 
       ! Get optimal work array lengths
@@ -119,8 +125,8 @@ module m_hesolver
       allocate(work(lwork), rwork(lrwork), iwork(liwork))
 
       ! Diagonalize
-      call zheevr('v', rangechar, 'u', hamsize, ham, hamsize, vl, vu, il, iu, &
-        & abstol, solsize, eval, evec, hamsize, isuppz, work, lwork, rwork,&
+      call zheevr('v', rangechar, 'u', hematsize, hemat, hematsize, vl, vu, il, iu, &
+        & abstol, solsize, eval, evec, hematsize, isuppz, work, lwork, rwork,&
         & lrwork, iwork, liwork, info)
 
       if(info .ne. 0) then
@@ -150,8 +156,8 @@ module m_hesolver
 
           allocate(work(1), rwork(1), iwork(1))
 
-          call zheevr('v', rangetype, 'u', hamsize, ham, hamsize, vl, vu, il, iu, &
-            & abstol, solsize, eval, evec, hamsize, isuppz, work, lwork, rwork,&
+          call zheevr('v', rangetype, 'u', hematsize, hemat, hematsize, vl, vu, il, iu, &
+            & abstol, solsize, eval, evec, hematsize, isuppz, work, lwork, rwork,&
             & lrwork, iwork, liwork, info)
 
           ! Adjust workspace
