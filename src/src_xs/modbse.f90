@@ -152,7 +152,7 @@ write(*,*) "Hello, this is setranges_modxs at rank:", mpiglobal%rank
     !BOP
     ! !ROUTINE: select_transitions
     ! !INTERFACE:
-    subroutine select_transitions(iqmt)
+    subroutine select_transitions(iqmt, serial)
     ! !USES:
       use modinput, only: input
       use modxs, only: unitout, istocc0, istunocc0
@@ -191,7 +191,9 @@ write(*,*) "Hello, this is setranges_modxs at rank:", mpiglobal%rank
       implicit none 
 
       integer(4), intent(in) :: iqmt
+      logical, intent(in), optional :: serial
 
+      logical :: fserial
       integer(4) :: ik, ikq, s, iknr
       integer(4) :: io, iu, kous
       integer(4) :: io1, io2, iu1, iu2
@@ -209,7 +211,13 @@ write(*,*) "Hello, this is setranges_modxs at rank:", mpiglobal%rank
       integer(4) :: k1, k2, k1_r, k2_r
       integer(4) :: iproc, i1, i2, il_r, iu_r
 
-write(*,*) "Hello, this is select_transitions at rank:", mpiglobal%rank
+      if(present(serial)) then 
+        fserial = serial
+      else
+        fserial = .false.
+      end if
+      write(unitout, '("Info(select_transition): Serial selection :", l)') fserial
+
       ! Search for needed KS transitions automatically
       ! depending on the chosen energy window?
       if(any(input%xs%bse%nstlbse == 0)) then
@@ -276,8 +284,13 @@ write(*,*) "Hello, this is select_transitions at rank:", mpiglobal%rank
       end if
 
       ! Sizes local/maximal
-      nk_loc = ceiling(real(nk_max,8)/real(mpiglobal%procs,8))
-      hamsize_loc = nk_loc*nou_max
+      if(fserial) then 
+        nk_loc = nk_max
+        hamsize_loc = nk_loc*nou_max
+      else
+        nk_loc = ceiling(real(nk_max,8)/real(mpiglobal%procs,8))
+        hamsize_loc = nk_loc*nou_max
+      end if
 
       ! The index mapping we want to build 
       ! s(1) = iuabs, s(2) = ioabs, s(3) = iknr
@@ -304,8 +317,13 @@ write(*,*) "Hello, this is select_transitions at rank:", mpiglobal%rank
       !   Distribute k-loop over global MPI communicator.
       !   Each participating rank gets a continuous ik interval.
       !   Not participating ranks have k1=0 and k2=-1.
-      k1 = firstofset(mpiglobal%rank, nk_max, mpiglobal%procs)
-      k2 = lastofset(mpiglobal%rank, nk_max, mpiglobal%procs)
+      if(fserial) then 
+        k1 = 1
+        k2 = nk_max
+      else
+        k1 = firstofset(mpiglobal%rank, nk_max, mpiglobal%procs)
+        k2 = lastofset(mpiglobal%rank, nk_max, mpiglobal%procs)
+      end if
 
       ikloop: do ik = k1, k2
 
@@ -426,13 +444,15 @@ write(*,*) "Hello, this is select_transitions at rank:", mpiglobal%rank
       end do ikloop
 
 #ifdef MPI
-      ! Collect kousize on all processes 
-      call mpi_allgatherv_ifc(set=nk_max, rlen=1, ibuf=kousize,&
-        & inplace=.true., comm=mpiglobal)
+      if( .not. fserial) then
+        ! Collect kousize on all processes 
+        call mpi_allgatherv_ifc(set=nk_max, rlen=1, ibuf=kousize,&
+          & inplace=.true., comm=mpiglobal)
 
-      ! Collect koulims on all processes 
-      call mpi_allgatherv_ifc(set=nk_max, rlen=4, ibuf=koulims,&
-        & inplace=.true., comm=mpiglobal)
+        ! Collect koulims on all processes 
+        call mpi_allgatherv_ifc(set=nk_max, rlen=4, ibuf=koulims,&
+          & inplace=.true., comm=mpiglobal)
+      end if
 #endif
       ! Calculate maximal no(k) and nu(k)
       no_bse_max=0
@@ -495,15 +515,17 @@ write(*,*) "Hello, this is select_transitions at rank:", mpiglobal%rank
       deallocate(sflag)
 
 #ifdef MPI
-      ! Collect ofac on all processes 
-      call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize, rbuf=ofac,&
-        & inplace=.true., comm=mpiglobal)
-      ! Collect de on all processes 
-      call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize, rbuf=de,&
-        & inplace=.true., comm=mpiglobal)
-      ! Collect smap on all processes 
-      call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize*3, ibuf=smap,&
-        & inplace=.true., comm=mpiglobal)
+      if( .not. fserial) then 
+        ! Collect ofac on all processes 
+        call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize, rbuf=ofac,&
+          & inplace=.true., comm=mpiglobal)
+        ! Collect de on all processes 
+        call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize, rbuf=de,&
+          & inplace=.true., comm=mpiglobal)
+        ! Collect smap on all processes 
+        call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize*3, ibuf=smap,&
+          & inplace=.true., comm=mpiglobal)
+      end if
 #endif
       ! Energy sorting 
       if(allocated(ensortidx)) deallocate(ensortidx)
@@ -528,8 +550,6 @@ write(*,*) "Hello, this is select_transitions at rank:", mpiglobal%rank
       if(mpiglobal%rank == 0) then 
         call printso(iqmt)
       end if
-
-      call barrier
 
     end subroutine select_transitions
     !EOC

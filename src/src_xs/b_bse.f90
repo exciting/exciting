@@ -188,7 +188,7 @@ complex(8), allocatable, dimension(:,:) :: ham_test
     ! Select relevant transitions for the construction
     ! of the BSE hamiltonian
     ! Also sets nkkp_bse, nk_bse 
-    call select_transitions(iqmt)
+    call select_transitions(iqmt, serial=.true.)
 
     ! If on top of GW
     if(associated(input%gw)) then
@@ -257,25 +257,22 @@ complex(8), allocatable, dimension(:,:) :: ham_test
     fwp = input%xs%bse%writeparts
 
     ! Write Info
-    if(mpiglobal%rank == 0) then
-      write(unitout,*)
-      write(unitout, '("Info(b_bse): Assembling BSE matrix")')
-      write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
-      write(unitout, '("  Shape=",i8)') hamsize
-      write(unitout, '("  nk_bse=", i8)') nk_bse
-      if(fcoup) then
-        write(unitout, '(" Including coupling terms ")')
-        write(unitout, '(" Full BSE-Hamiltonian:")')
-        write(unitout, '("  Shape=",i8)') 2*hamsize
-      end if
-      if(fwp) then
-        write(unitout, '("Info(b_bse):&
-          & Writing real and imaginary parts of Hamiltonian to file ")')
-      end if
+    write(unitout,*)
+    write(unitout, '("Info(b_bse): Assembling BSE matrix")')
+    write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
+    write(unitout, '("  Shape=",i8)') hamsize
+    write(unitout, '("  nk_bse=", i8)') nk_bse
+    if(fcoup) then
+      write(unitout, '(" Including coupling terms ")')
+      write(unitout, '(" Full BSE-Hamiltonian:")')
+      write(unitout, '("  Shape=",i8)') 2*hamsize
+    end if
+    if(fwp) then
+      write(unitout, '("Info(b_bse):&
+        & Writing real and imaginary parts of Hamiltonian to file ")')
     end if
 
     ! Assemble Hamiltonian matrix 
-    call timesec(ts0)
     if(fcoup) then 
       allocate(ham(2*hamsize,2*hamsize))
       call setup_full_hamiltonian(ham, iqmt)
@@ -283,20 +280,15 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       allocate(ham(hamsize,hamsize))
       call setup_bse(ham, iqmt, .false.)
     end if
-    call timesec(ts1)
-    write(unitout, '(" Matrix build.")')
-    write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
 
     ! Write Info
-    if(mpiglobal%rank == 0) then
-      write(unitout,*)
-      if(fcoup) then
-        write(unitout, '("Info(b_bse): Diagonalizing full non symmetric Hamiltonian")')
-        write(unitout, '("Info(b_bse): Invoking lapack routine ZGEEVX")')
-      else
-        write(unitout, '("Info(b_bse): Diagonalizing RR Hamiltonian (TDA)")')
-        write(unitout, '("Info(b_bse): Invoking lapack routine ZHEEVR")')
-      end if
+    write(unitout,*)
+    if(fcoup) then
+      write(unitout, '("Info(b_bse): Diagonalizing full non symmetric Hamiltonian")')
+      write(unitout, '("Info(b_bse): Invoking lapack routine ZGEEVX")')
+    else
+      write(unitout, '("Info(b_bse): Diagonalizing RR Hamiltonian (TDA)")')
+      write(unitout, '("Info(b_bse): Invoking lapack routine ZHEEVR")')
     end if
 
     ! Allocate eigenvector and eigenvalue arrays
@@ -417,6 +409,11 @@ complex(8), allocatable, dimension(:,:) :: ham_test
     end if
     if(associated(input%gw)) deallocate(eval0)
 
+    write(unitout, '("BSE calculation finished")')
+
+    ! Rank 0 says I am finished to all others
+    call barrier
+
   ! Parallel version 
   else if (fscal) then
 
@@ -463,7 +460,7 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       ! Select relevant transitions for the construction
       ! of the BSE hamiltonian
       ! Also sets nkkp_bse, nk_bse 
-        call select_transitions(iqmt)
+        call select_transitions(iqmt, serial=.true.)
 
       ! If on top of GW
       if(associated(input%gw)) then
@@ -637,23 +634,24 @@ complex(8), allocatable, dimension(:,:) :: ham_test
         deallocate(symspectr)
       end if
 
+      ! Ranks that are on the BLACS grid signal that they are done
       call barrier
 
     else
 
-      write(*,*) "(b_bse): MPI rank", mpiglobal%rank, "is idle."
+      write(*, '("Warning(b_bse): Rank", i4, " is idle.")') mpiglobal%rank
 
+      ! Ranks that are not on the BLACS grid wait 
       call barrier
 
     end if
 
   else ! not fscal and not rank 0
 
-    call barrier
+    write(*, '("Warning(b_bse): Rank", i4, " is idle.")') mpiglobal%rank
 
-    if(mpiglobal%rank == 0) then 
-      write(unitout, '("BSE calculation finished")')
-    end if
+    ! Rank /= 0 wait for rank 0
+    call barrier
 
   end if
 
@@ -668,7 +666,15 @@ contains
     complex(8), intent(inout) :: ham(:, :)
     integer(4), intent(in) :: iqmt
 
+    ! Timings
+    real(8) :: ts0, ts1
+
     integer(4) :: i, j
+
+    call timesec(ts0)
+    if(mpiglobal%rank == 0) then 
+      write(unitout, '("Info(setup_full_hamiltonian): Setting up full hamiltonian")')
+    end if
 
     ! RR
     call setup_bse(ham(1:hamsize,1:hamsize), iqmt, .false.)
@@ -698,6 +704,10 @@ contains
     ! AA
     ! Note: AA part is the negative complex conjugate of RR ONLY if qmt /= 0
     ham(hamsize+1:2*hamsize, hamsize+1:2*hamsize) = -conjg(ham(1:hamsize,1:hamsize))
+
+    call timesec(ts1)
+    write(unitout, '(" Matrix build.")')
+    write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
 
   end subroutine setup_full_hamiltonian
 

@@ -64,6 +64,18 @@ module m_setup_bse
       logical :: efcmpt, efid
       logical :: sfcmpt, sfid
 
+      ! Timings
+      real(8) :: ts0, ts1
+
+      call timesec(ts0)
+      if(mpiglobal%rank == 0) then 
+        if(.not. fcoup) then 
+          write(unitout, '("Info(setup_bse): Setting up RR part of hamiltonian")')
+        else
+          write(unitout, '("Info(setup_bse): Setting up RA part of hamiltonian")')
+        end if
+      end if
+
       ! Write out W and V (testing feature)
       fwp = input%xs%bse%writeparts
       if(fwp) then
@@ -89,9 +101,9 @@ module m_setup_bse
       einfofname = trim(infofbasename)//'_'//trim(efname)
 
       if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(setup_bse): Reading form info from ", a)')&
+        write(unitout, '("  Reading form info from ", a)')&
           & trim(sinfofname)
-        write(unitout, '("Info(setup_bse): Reading form info from ", a)')&
+        write(unitout, '("  Reading form info from ", a)')&
           & trim(einfofname)
       end if
 
@@ -107,8 +119,8 @@ module m_setup_bse
       end if
 
       if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(setup_bse): Reading form W from ", a)') trim(sfname)
-        write(unitout, '("Info(setup_bse): Reading form V from ", a)') trim(efname)
+        write(unitout, '("  Reading form W from ", a)') trim(sfname)
+        write(unitout, '("  Reading form V from ", a)') trim(efname)
       end if
 
       ! Set up kkp blocks of RR or RA Hamiltonian
@@ -199,8 +211,20 @@ module m_setup_bse
 
       end do
 
+      call timesec(ts1)
+      write(unitout, '(" Matrix build.")')
+      write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
+
       ! Test output
       if(fwp) then 
+        call timesec(ts0)
+        if(mpiglobal%rank == 0) then 
+          if(.not. fcoup) then 
+            write(unitout, '("Info(setup_bse): Writing (RR) H, W, V and E to file")')
+          else
+            write(unitout, '("Info(setup_bse): Writing (RA) H, W, V and E to file")')
+          end if
+        end if
         ! Make Ham hermitian (RR) or symmetric (RA)
         do i1 = 1, hamsize
           do i2 = i1, hamsize
@@ -268,6 +292,9 @@ module m_setup_bse
         deallocate(wint)
         deallocate(vint)
         deallocate(diag)
+        call timesec(ts1)
+        write(unitout, '(" Parts writtten.")')
+        write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
       end if
 
       contains
