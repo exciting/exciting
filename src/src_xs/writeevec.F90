@@ -29,8 +29,9 @@ subroutine writeevec(vq, voff, filxt)
   integer :: ik, ikr, j
   complex(8), allocatable :: apwalm(:, :, :, :)
 
+  integer(4) :: iproc
 #ifdef MPI
-  integer :: iproc, mpitag, stat(mpi_status_size)
+  integer :: mpitag, stat(mpi_status_size)
   mpitag = 79
 #endif
 

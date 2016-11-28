@@ -8,11 +8,16 @@
 !EOP   
 !BOC
 module modbse
-  use mod_constants, only: h2ev
-  use modxs, only: evalsv0, occsv0, ikmapikq, unitout
-  use mod_eigenvalue_occupancy, only: evalsv, occsv
   use modmpi
   use modinput, only: input
+  use mod_constants, only: h2ev
+  use modxs, only: unitout
+  use modxs, only: evalsv0, occsv0, ikmapikq
+  use modxs, only: istocc0, istocc, istunocc0, istunocc,&
+                 & isto0, isto, istu0, istu, ksgapval, qgap
+  use mod_eigenvalue_occupancy, only: evalsv, occsv, nstsv
+  use mod_kpoint, only: nkptnr, nkpt
+  use m_getunit
 
   implicit none
 
@@ -39,7 +44,7 @@ module modbse
   ! Auto-select KS transitions
   logical :: energyselect
   ! Convergence energy
-  real(8) :: econv
+  real(8) :: econv(2)
   ! Lorentian width cutoff
   real(8) :: ewidth
   ! BSE gap
@@ -62,11 +67,6 @@ module modbse
   integer(4), allocatable :: kousize(:)
   ! Lower and upper bound for occupied and unoccupied band indices for each k
   integer(4), allocatable :: koulims(:,:)
-
-  ! Whether or not to read eigenvalues etc. form file
-  !logical :: read_eval_occ_qmt = .true.
-  !logical :: seltrans = .true.
-  !logical :: putinfo = .true.
 
   ! Filebasenames
   character(256) :: infofbasename = "BSEINFO"
@@ -93,11 +93,6 @@ module modbse
     ! !ROUTINE: setranges_modxs
     ! !INTERFACE:
     subroutine setranges_modxs(iq)
-    ! !USES:
-      use modxs, only: istocc0, istocc, istunocc0, istunocc,&
-                     & isto0, isto, istu0, istu, ksgapval, evalsv0, qgap
-      use mod_kpoint, only: nkptnr, nkpt
-      use mod_eigenvalue_occupancy, only: nstsv
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! integer(4) :: iq ! Considered q-point index (must be on the not shifted k-grid)
@@ -151,12 +146,6 @@ module modbse
     ! !ROUTINE: select_transitions
     ! !INTERFACE:
     subroutine select_transitions(iqmt, serial)
-    ! !USES:
-      use modinput, only: input
-      use modxs, only: unitout, istocc0, istunocc0
-      use mod_eigenvalue_occupancy, only: nstsv
-      use m_getunit
-      use m_putgetbsemat
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! integer(4) :: iqmt  ! q-point index (on unshifted k-mesh)
@@ -230,6 +219,11 @@ module modbse
       nw = input%xs%energywindow%points
       wl = input%xs%energywindow%intv(1)
       wu = input%xs%energywindow%intv(2)
+      if(wl < 0.0d0 .or. wu < 0.0d0 .or. wu-wl < 0.0d0) then
+        write(*,*) "Error(select_transitions): Inproper energy interval", wl, wu
+        call terminate
+      end if
+
 
       ! Exciton energies determine spectrum.
       ! Respect broadening of peaks and include additional peaks outside of 
@@ -242,7 +236,13 @@ module modbse
       ! Select KS transitions withing the energy energy window for the 
       ! spectrum plus extra convergence energy. (referenced only if energyselect)
       econv = input%xs%bse%econv
-      econv = econv + ewidth
+      econv(1) = econv(1) - ewidth
+      econv(2) = econv(2) + ewidth
+
+      if((wu+econv(2)-max(wl+econv(1),0.0d0)) < 0.0d0) then 
+        write(*,*) "Error(select_transitions): Conflicting econv", econv(1), econv(2)
+        call terminate
+      end if
 
       ! What is considered to be occupied
       cutoffocc = input%groundstate%epsocc
@@ -264,12 +264,14 @@ module modbse
         if(energyselect) then
           write(unitout, '("Info(select_transitions): Searching for KS transitions in&
             & the energy interval:")')
-          write(unitout, '("  [",E10.3,",",E10.3,"]/H")') max(wl-econv,0.0d0), wu+econv
+          write(unitout, '("  [",E10.3,",",E10.3,"]/H")') max(wl+econv(1),0.0d0), wu+econv(2)
           write(unitout, '("  [",E10.3,",",E10.3,"]/eV")')&
-            & max(wl-econv,0.0d0)*h2ev, (wu+econv)*h2ev
+            & max(wl+econv(1),0.0d0)*h2ev, (wu+econv(2))*h2ev
           write(unitout, '("  Using convergence energy of:")')
-          write(unitout, '("    ",E10.3,"/H",E10.3,"/eV")')&
-            & econv-ewidth, (econv-ewidth)*h2ev
+          write(unitout, '("    ",2E10.3," /H")')&
+            & max(econv(1)+ewidth, -wl), econv(2)-ewidth,&
+          write(unitout, '("    ",2E10.3," /eV")')&
+            & max(econv(1)+ewidth, -wl)*h2ev, (econv(2)-ewidth)*h2ev
         else
           write(unitout, '("Info(select_transitions): Searching for KS transitions in&
             & the band interval:")')
@@ -354,7 +356,7 @@ module modbse
 
               ! Only consider transitions which are in the energy window
               ! \Delta E = \epsilon_{u ki+q} - \epsilon_{o ki}
-              if(detmp <= wu+econv .and. detmp >= max(wl-econv,0.0d0)) then
+              if(detmp <= wu+econv(2) .and. detmp >= max(wl+econv(1),0.0d0)) then
 
                 ! Only consider transitions which have a positve non-zero 
                 ! occupancy difference f_{o ki} - f_{u ki+q}
@@ -554,7 +556,6 @@ module modbse
     !EOC
 
     subroutine printso(iqmt)
-      use m_getunit
       implicit none 
 
       integer(4) :: i, un, iqmt

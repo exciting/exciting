@@ -1127,7 +1127,9 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
       integer(4) :: strsize
       integer(4) :: procnamelen
       integer(4) :: pos1, pos2, n
+#ifdef MPI
       integer(4) :: recvstatus(mpi_status_size)
+#endif
       character(200) :: procname, myprocname
       character(len=200*mpiglobal%procs) :: neighbors, neighborssend
       logical :: lbuffer

@@ -572,11 +572,11 @@
                 <xs:documentation>Estimated BSE eigenvalue cluster size.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="econv" type="fortrandouble"
-              default="0.037d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="econv" type="vect2d" default="0.0d0 0.0d0">
               <xs:annotation>
                 <xs:documentation> Additional energy for KS transitions to be included in the construction of the BSE hamiltoninan. Spectrum
-                  for a desired energy window needs to be converged with respect to this parameter.
+                  for a desired energy window needs to be converged with respect to this parameter. First/second entry is convergence energy for the
+                  lower/upper end of the spectrum. 
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>

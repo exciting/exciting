@@ -1,10 +1,10 @@
 module m_putgetbsemat
   use modinput
   use modmpi
-  use m_getunit
-  use m_genfilname
   use modbse
   use mod_qpoint, only: vql
+  use m_getunit
+  use m_genfilname
 
   implicit none
 
@@ -129,7 +129,7 @@ module m_putgetbsemat
 
       logical :: iscompatible, isidentical
       logical :: energyselect_
-      real(8) :: wl_, wu_, econv_, vql_(3)
+      real(8) :: wl_, wu_, econv_(2), vql_(3)
       integer(4) :: iqmt_, nk_max_, hamsize_
       integer(4), allocatable :: kmap_bse_rg_(:)
       integer(4), allocatable :: koulims_(:,:)
@@ -181,7 +181,7 @@ module m_putgetbsemat
 
       ! Check if identical
       if( reducek_ == reducek .and. energyselect_ == energyselect&
-        & .and. wl_ == wl .and. wu_ == wu .and. econv_ == econv&
+        & .and. wl_ == wl .and. wu_ == wu .and. econv_(1) == econv(1) .and. econv_(2) == econv(2)&
         & .and. iqmt_ == iqmt .and. nk_max_ == nk_max .and. nk_bse_ == nk_bse&
         & .and. hamsize_ == hamsize) then
         if( .not. (any(ngridk_ /= ngridk) .or. any(ngridq_ /= ngridq)&
@@ -226,12 +226,12 @@ module m_putgetbsemat
         write(*, '(" stored energyselect: ", l)') energyselect_
       end if
       if(energyselect) then
-        if(wl-econv < wl_-econv_ .or. wu+econv > wu_+econv_) then 
+        if(wl+econv(1) < wl_+econv_(1) .or. wu+econv(2) > wu_+econv_(2)) then 
           iscompatible = .false.
           isidentical = .false.
           write(*, '("Error (b_getbseinfo): Requested energy range incompatible")')
-          write(*, '(" requested (wl, wu, econv): ", 3E12.3)') wl, wu, econv
-          write(*, '(" stored (wl_, wu_, econv_): ", 3E12.3)') wl_, wu_, econv_
+          write(*, '(" requested (wl, wu, econv): ", 4E12.3)') wl, wu, econv
+          write(*, '(" stored (wl_, wu_, econv_): ", 4E12.3)') wl_, wu_, econv_
         end if
       end if
       if(nk_bse > nk_bse_) then 
