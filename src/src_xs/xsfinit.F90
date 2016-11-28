@@ -9,7 +9,7 @@ subroutine xsfinit
                   & cntrate, systimcum, unitout,&
                   & fnresume, xsfileout, fnetim, fnchi0_t,&
                   & fnchi0, fnxtim
-  use modmpi, only: rank, procs
+  use modmpi
   use m_filedel, only: filedel
 
   implicit none

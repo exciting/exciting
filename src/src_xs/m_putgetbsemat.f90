@@ -337,13 +337,12 @@ module m_putgetbsemat
       character(*), intent(in) :: fname
       integer(4), intent(in) :: tag
       integer(4), intent(in) :: ikkp, iqmt
-      complex(8), intent(in) :: zmat(:,:)
+      complex(8), intent(in) :: zmat(nou_bse_max,nou_bse_max)
 
       ! Local variables
-      integer(4) :: reclen, zreclen, un
+      integer(4) :: reclen, un
       integer(4) :: ik, jk, iknr, jknr
       integer(4) :: inou, jnou
-      complex(8) :: dummy
       integer(4) :: buffer(5)
 
 
@@ -361,13 +360,6 @@ module m_putgetbsemat
       ! Get number of transitions considered at ik and jk
       inou = kousize(iknr)
       jnou = kousize(jknr)
-      ! Check if input is consitent
-      if(inou /= size(zmat,1) .or. jnou /= size(zmat,2)) then
-        write(*,*) "Error (b_putbsemat): size inconsistency"
-        write(*,*) "inou jnou", inou, jnou
-        write(*,*) "kousize(iknr) kousize(jknr)", kousize(iknr), kousize(jknr)
-        call terminate
-      end if
 
       ! Send/Receive buffer
       buffer = [ikkp, iknr, jknr, inou, jnou]
@@ -375,9 +367,7 @@ module m_putgetbsemat
       call getunit(un)
 
       ! Get large enough record length (size of zmat can depend on ikkp)
-      inquire(iolength=zreclen) dummy
-      inquire(iolength=reclen) iqmt, buffer
-      reclen = reclen + nou_bse_max**2*zreclen
+      inquire(iolength=reclen) iqmt, buffer, zmat
 
 #ifdef MPI
 
@@ -407,7 +397,7 @@ module m_putgetbsemat
           open(unit=un, file=trim(fname), form='unformatted', action='write',&
             & access='direct', recl=reclen)
           ! Use ikkp as record index
-          write(un, rec=buffer(1)) iqmt, buffer, zmat
+          write(un, rec=buffer(1)) iqmt, buffer, zmat(1:buffer(4),1:buffer(5))
           close(un)
 #ifdef MPI
         end do

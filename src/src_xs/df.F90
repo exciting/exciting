@@ -77,7 +77,9 @@ subroutine df
   input%xs%emattype = 1
 
   ! Write out q-points
-  call writeqpts
+  if(rank == 0) then
+    call writeqpts
+  end if
 
   ! Loop over q-points 
   qloop: do iq = qpari, qparf
@@ -103,12 +105,17 @@ subroutine df
   ! Synchronize
   call barrier
 
-  if((procs .gt. 1) .and. ( .not. tscreen)) call dfgather
+  if((procs .gt. 1) .and. ( .not. tscreen)) then
+    write(*,*) " in dfgather"
+    call dfgather
+  end if
 
   call barrier
 
-  write(unitout, '(a)') "Info(" // trim(thisnam) // "): Kohn-Sham&
-    & response function finished"
+  if(rank == 0) then
+    write(unitout, '(a)') "Info(" // trim(thisnam) // "): Kohn-Sham&
+      & response function finished"
+  end if
 
   if( .not. tscreen) call genfilname(setfilext=.true.)
 

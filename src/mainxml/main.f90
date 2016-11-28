@@ -9,9 +9,9 @@ use scl_xml_out_Module
 use modmpi
 use mod_misc
 implicit none
+call initmpi()
 ! set the version string
 call versionfromdate()
-call initmpi()
 !!!
 !call testingfun
 !!!
@@ -34,5 +34,5 @@ call readspeciesxml()
 call scl_xml_out_create()
 call tasklauncher()
 call scl_xml_out_close()
-call finitMPI()
+call finitmpi()
 end program

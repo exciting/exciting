@@ -69,7 +69,6 @@ module m_dhesolver
       ! External functions
       real(8), external :: pdlamch
 
-
       ! Distributed EVP
       if(ham%isdistributed .and. evec%isdistributed) then
 
@@ -292,7 +291,7 @@ module m_dhesolver
             write(*,'("Warning (dhesolver) cause: Reorthogonalization failed,&
               & insufficent workspace. There are", i4," clusters of eignevalues&
               & and the lagest one has size ", i4,". &
-              & Increase eecs to ", i4," to garantee orthogonal eigenvectors")')&
+              & Increase eecs to ", i4," to guarantee orthogonal eigenvectors")')&
               & i, maxcs, maxcs
             write(*,'("dhesolver iclustr:")')
             write(*,'(I8)') iclustr

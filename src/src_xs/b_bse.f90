@@ -129,6 +129,9 @@ complex(8), allocatable, dimension(:,:) :: ham_test
   complex(8), allocatable :: buff(:,:)
   type(dzmat) :: dham, dbevecr, doszsr
 
+  ! Write Hamilton matrix parts to readable file
+  fwp = input%xs%bse%writeparts
+
   ! Include coupling terms
   fcoup = input%xs%bse%coupling
 
@@ -190,6 +193,8 @@ complex(8), allocatable, dimension(:,:) :: ham_test
     ! Also sets nkkp_bse, nk_bse 
     call select_transitions(iqmt, serial=.true.)
 
+    ! WARNING: ONTOP OF GW STILL IS INCONSISTENT, SINCE OCCUPATION SEARCH IS
+    ! NOT DONE ON EVALQP.OUT !?!
     ! If on top of GW
     if(associated(input%gw)) then
       ! Save KS eigenvalues to use them later for renormalizing PMAT
@@ -202,13 +207,8 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
     end if
 
-    ! Allocate frequency array used in spectrum construction
-    allocate(w(nw))
-    ! Generate an evenly spaced frequency grid 
-    call genwgrid(nw, input%xs%energywindow%intv,&
-      & input%xs%tddft%acont, 0.d0, w_real=w)
-
     ! Read mean value of diagonal of direct term
+    !   Note: needs to be adapted for beyondtd
     bsed = 0.d0
    ! if((trim(input%xs%bse%bsetype) .eq. 'singlet')&
    !   & .or. (trim(input%xs%bse%bsetype) .eq. 'triplet')) then
@@ -247,14 +247,13 @@ complex(8), allocatable, dimension(:,:) :: ham_test
     end if
 
     write(unitout,*)
-    write(unitout, '("Info(b_bse): bsegap, bsegap+scissor (eV):", E23.16,1x,E23.16)')&
+    write(unitout, '("Info(b_bse):&
+      & bsegap, bsegap+scissor (eV):", E23.16,1x,E23.16)')&
       & bsegap*h2ev, (bsegap+sci)*h2ev
     if(.not. fabsolute) then
       write(unitout, '("Info(b_bse): Shifting evals by (eV): ", E23.16)')&
         evalshift*h2ev
     end if
-
-    fwp = input%xs%bse%writeparts
 
     ! Write Info
     write(unitout,*)
@@ -382,6 +381,12 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       call writeoscillator(hamsize, nexc, evalshift, bevalre-evalshift, oszsr)
     end if
 
+    ! Allocate frequency array used in spectrum construction
+    allocate(w(nw))
+    ! Generate an evenly spaced frequency grid 
+    call genwgrid(nw, input%xs%energywindow%intv,&
+      & input%xs%tddft%acont, 0.d0, w_real=w)
+
     ! Allocate arrays used in spectrum construction
     allocate(symspectr(3,3,nw))
 
@@ -416,57 +421,62 @@ complex(8), allocatable, dimension(:,:) :: ham_test
 
   ! Parallel version 
   else if (fscal) then
+    
+    write(*,*) "b_bse: Running parallel version at rank:", mpiglobal%rank
 
     ! Set up process grids for BLACS 
     !   Make square'ish process grid
-    call setupblacs(mpiglobal, '2d', bi2d)
+    call setupblacs(mpiglobal, 'grid', bi2d)
     !   Also make 1d grids with the same number of processes
-    call setupblacs(mpiglobal, '1dc', bi1dc, np=bi2d%nprocs)
-    !call setupblacs(mpiglobal, '1dr', bi1dr, np=bi2d%nprocs)
+    call setupblacs(mpiglobal, 'row', bi1d, np=bi2d%nprocs)
+
+    ! General init
+    call init0
+    ! k-grid init
+    call init1
+    ! q-grid init
+    call init2
+    ! Saves all k grid related variables in modxs, so 
+    ! that another k grid can be used for k+q.
+    call xssave0
+
+    ! Read Fermi energy from file
+    ! Read Fermi energy from file
+    ! Use EFERMI_QMT000.OUT
+    call genfilname(iqmt=0, setfilext=.true.)
+    call readfermi
+
+    ! Set EVALSV_QMTXXX.OUT as basis for the occupation limits search
+    !   Note: EVALSV_QMT000.OUT is always produced,
+    !         EVALSV_QMT001.OUT has the same content, when
+    !         the first entry in the q-point list is set 0 0 0
+    ! To be exact the following genfilname set filext to _QMTXXX.OUT
+    iqmt = 0
+    call genfilname(iqmt=max(0, iqmt), setfilext=.true.)
+
+    ! Set ist* variables and ksgap in modxs using findocclims
+    ! This also reads in 
+    ! (QMTXXX)
+    ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
+    ! (QMT000)
+    ! modxs:evalsv0, modxs:occsv0
+    call setranges_modxs(iqmt)
+
+    ! Select relevant transitions for the construction
+    ! of the BSE hamiltonian
+    ! Also sets nkkp_bse, nk_bse 
+    !   Note: Operates on mpiglobal
+    call select_transitions(iqmt, serial=.false.)
 
     ! Only MPI ranks that have an associated 
-    ! BLACS grid process do anything.
-    if( .not. bi1dc%myprow < 0 ) then 
-
-      ! General init
-      call init0
-      ! k-grid init
-      call init1
-      ! q-grid init
-      call init2
-      ! Saves all k grid related variables in modxs, so 
-      ! that another k grid can be used for k+q.
-      call xssave0
-
-      ! Read Fermi energy from file
-      call readfermi
-
-      ! Set EVALSV_QMTXXX.OUT as basis for the occupation limits search
-      !   Note: EVALSV_QMT000.OUT is always produced,
-      !         EVALSV_QMT001.OUT has the same content, when
-      !         the first entry in the q-point list is set 0 0 0
-      ! To be exact the following genfilname set filext to _QMTXXX.OUT
-      iqmt = 0
-      call genfilname(iqmt=max(0, iqmt), setfilext=.true.)
-
-      ! Set ist* variables and ksgap in modxs using findocclims
-      ! This also reads in 
-      ! (QMTXXX)
-      ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
-      ! (QMT000)
-      ! modxs:evalsv0, modxs:occsv0
-        call setranges_modxs(iqmt)
-
-      ! Select relevant transitions for the construction
-      ! of the BSE hamiltonian
-      ! Also sets nkkp_bse, nk_bse 
-        call select_transitions(iqmt, serial=.true.)
+    ! BLACS grid process proceed.
+    if(bi2d%isactive) then 
 
       ! If on top of GW
       if(associated(input%gw)) then
         ! Save KS eigenvalues to use them later for renormalizing PMAT
         allocate(eval0(nstsv,nkptnr))
-        eval0(:,:)=evalsv(:,:)
+        eval0=evalsv
         ! If scissor correction is presented, one should nullify it
         input%xs%scissor=0.0d0
         ! Read QP Fermi energies and eigenvalues from file
@@ -474,57 +484,75 @@ complex(8), allocatable, dimension(:,:) :: ham_test
         write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
       end if
 
-      ! Energy to shift the BSE eigenvalues by:
-      evalshift = -bsegap+bsed+input%xs%scissor
-
       ! Read mean value of diagonal of direct term
+      !   Note: needs to be adapted for beyondtd
       bsed = 0.d0
-      if((trim(input%xs%bse%bsetype) .eq. 'singlet')&
-        & .or. (trim(input%xs%bse%bsetype) .eq. 'triplet')) then
-        ! False by default
-        if(input%xs%bse%bsedirsing) then
-          call getbsediag
-          write(unitout, '("Info(b_bse): read diagonal of BSE kernel")')
-          write(unitout, '(" mean value : ", 2g18.10)') bsed
-        end if
+     ! if((trim(input%xs%bse%bsetype) .eq. 'singlet')&
+     !   & .or. (trim(input%xs%bse%bsetype) .eq. 'triplet')) then
+     !   ! False by default
+     !   if(input%xs%bse%bsedirsing) then
+     !     call getbsediag
+     !     write(unitout, '("Info(b_bse): read diagonal of BSE kernel")')
+     !     write(unitout, '(" mean value : ", 2g18.10)') bsed
+     !   end if
+     ! end if
+     
+      ! Determine "BSE"-gap, i.e. the lowest energy 
+      ! KS transition which is considered.
+      bsegap = (evalsv(nstsv, 1)-evalsv0(1,1))*100.0d0
+      !$OMP PARALLEL DO &
+      !$OMP& DEFAULT(SHARED), PRIVATE(a1,iu,io,ik,ikq),&
+      !$OMP& REDUCTION(min:bsegap)
+      do a1 = 1, hamsize
+        iu = smap(1,a1)
+        io = smap(2,a1)
+        ik = smap(3,a1)
+        ikq = ik
+        if(iqmt .ne. 0) ikq = ikmapikq(ik, iqmt)
+        bsegap = min(bsegap, evalsv(iu,ik)-evalsv0(io,ikq))
+      end do
+      !$OMP END PARALLEL DO
+
+      ! Energy to shift the BSE eigenvalues by.
+      fabsolute = input%xs%bse%useabsolute
+      if(fabsolute) then  
+        ! Use absolute Excition energies
+        evalshift = 0.0d0
+      else
+        ! Shift, so that bound exitions have negative energies.
+        evalshift = -(bsegap+sci)
       end if
 
-      write(unitout,*)
-      write(unitout, '("Info(b_bse): gap, gap+scissor:", E23.16,1x,E23.16)')&
-        & bsegap-input%xs%scissor, bsegap
-      write(unitout, '("Info(b_bse): Shifting evals by:", E23.16)')&
-        evalshift
-      ! Warn if the system has no gap even with scissor 
-      ! (or no scissor and on top of GW)
-      if(bsegap .lt. input%groundstate%epspot) then
+      if(bi2d%isroot) then
         write(unitout,*)
-        write(unitout, '("Warning(b_bse): the system has no gap, setting it to 0")')
-        write(unitout,*)
-        bsegap = 0.0d0
-      end if  
-
-      fwp = input%xs%bse%writeparts
+        write(unitout, '("Info(b_bse):&
+          & bsegap, bsegap+scissor (eV):", E23.16,1x,E23.16)')&
+          & bsegap*h2ev, (bsegap+sci)*h2ev
+        if(.not. fabsolute) then
+          write(unitout, '("Info(b_bse): Shifting evals by (eV): ", E23.16)')&
+            evalshift*h2ev
+        end if
+      end if
 
       ! Define global distributed Hamiltonian matrix.
       call new_dzmat(dham, hamsize, hamsize, bi2d)
 
       ! Write Info
-      if(mpiglobal%rank == 0) then
+      if(bi2d%isroot) then
         write(unitout,*)
-        write(unitout, '("Info (b_bse): Assembling distributed BSE matrix")')
+        write(unitout, '("Info(b_bse): Assembling distributed BSE matrix")')
         write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
         write(unitout, '("  Shape=",i8)') hamsize
         write(unitout, '("  nk=", i8)') nk_bse
-        write(unitout, '("  nkkp=", i8)') nkkp_bse
         write(unitout, '("  Distributing matrix to ",i3," processes")') bi2d%nprocs
-        write(unitout, '("  Local matrix schape ",i6," x",i6)')&
+        write(unitout, '("  Local matrix shape ",i6," x",i6)')&
           & dham%nrows_loc, dham%ncols_loc
       end if
 
-      ! Assemble RR/RA block of Hamiltonian matrix
-      if(mpiglobal%rank == 0) call timesec(ts0)
+      ! Assemble Hamiltonian matrix
+      if(bi2d%isroot) call timesec(ts0)
       call setup_distributed_bse(dham, iqmt, fcoup, bi2d)
-      if(mpiglobal%rank == 0) then
+      if(bi2d%isroot) then
         call timesec(ts1)
         write(unitout, '("All processes build their local matrix")')
         write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
@@ -532,14 +560,19 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       
       if(fwp) then
         call dzmat_send2global_root(ham, dham, bi2d)
-        if(mpiglobal%rank == 0) then
+        if(bi2d%mypcol == 0 .and. bi2d%myprow == 0) then
+          do i1 = 1, hamsize
+            do i2 = i1, hamsize
+              ham(i2,i1) = conjg(ham(i1,i2))
+            end do
+          end do
           call writecmplxparts("GlobalHam", dble(ham), immat=aimag(ham))
           deallocate(ham)
         end if
       end if
 
       ! Write Info
-      if(mpiglobal%rank == 0) then
+      if(bi2d%isroot) then
         write(unitout,*)
         write(unitout, '("Info(b_bse): Diagonalizing RR Hamiltonian (TDA)")')
         write(unitout, '("Info(b_bse): Invoking scalapack routine PZHEEVX")')
@@ -551,33 +584,66 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       ! Eigenvalues global
       allocate(bevalre(hamsize))
 
+      ! Find only eigenvalues relevant for requested 
+      ! spectrum?
+      efind = input%xs%bse%efind
+
       ! Diagonalize Hamiltonian (destroys the content of ham)
-      if(mpiglobal%rank == 0) call timesec(ts0)
+      if(bi2d%isroot) call timesec(ts0)
+
+      if(efind) then
+        if(fabsolute) then 
+          v1=max(wl-ewidth, 0.0d0)
+          v2=wu+ewidth
+        else
+          v1=max(wl-ewidth-bsegap-sci, -bsegap-sci)
+          v2=wu+ewidth-bsegap-sci
+        end if
         call dhesolver(dham, dbevecr, bevalre, bi2d,&
-         & v1=wl-ewidth-bsegap, v2=wu+ewidth-bsegap, found=nexc,&
+         & v1=v1, v2=v2, found=nexc,&
          & eecs=input%xs%bse%eecs)
-      if(mpiglobal%rank == 0) call timesec(ts1)
+      else
+        if(input%xs%bse%nexc == -1) then 
+          i2 = hamsize
+        else
+          i2 = input%xs%bse%nexc
+        end if
+        i1 = 1
+        call dhesolver(dham, dbevecr, bevalre, bi2d,&
+         & i1=i1, i2=i2, found=nexc,&
+         & eecs=input%xs%bse%eecs)
+      end if
+
+      if(bi2d%isroot) call timesec(ts1)
 
       ! Deallocate BSE-Hamiltonian
       call del_dzmat(dham)
 
-      if(mpiglobal%rank == 0) then
-        write(unitout, '("  Eigen solutions found:", i8)') nexc
+      if(bi2d%isroot) then
+        if(efind) then
+          write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
+          write(unitout, '("  [",E10.3,",",E10.3,"]/H")') v1, v2
+          write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') v1*h2ev, v2*h2ev
+          if(.not. fabsolute) then
+            write(unitout, '("  bsegap was subtracted")') 
+          end if
+        else
+          write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
+          write(unitout, '("  i1=",i8," i2=",i8)') i1, i2
+        end if
         write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
         write(unitout,*)
       end if
 
       ! Calculate oscillator strengths.
-      call new_dzmat(doszsr, nexc, 3, bi2d,&
-        & rblck=1, cblck=bi2d%nblck)
-      if(mpiglobal%rank == 0) then
+      call new_dzmat(doszsr, nexc, 3, bi2d, rblck=1, cblck=bi2d%nblck)
+      if(bi2d%isroot) then
         write(unitout, '("Making oszillator strengths (distributed).")')
         call timesec(ts0)
       end if
-
       call make_doszstren
 
-      if(mpiglobal%rank == 0) then 
+      if(bi2d%isroot) then 
         call timesec(ts1)
         write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
       end if
@@ -590,37 +656,29 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       !  memory and it make the setup for the spectrum calculation easier) 
       call dzmat_send2global_all(oszsr, doszsr, bi2d)
 
-      if(mpiglobal%rank == 0) then
+      if(bi2d%isroot) then
         ! Write excition energies and oscillator strengths to 
         ! text file. 
-        write(unitout, '("Info(b_bse): Writing excition energies and oszillator strengths.")')
-        call writeoscillator(hamsize, nexc, bsegap, bevalre, oszsr)
+        write(unitout, '("Info(b_bse):&
+          & Writing excition energies and oszillator strengths to text file.")')
+        call writeoscillator(hamsize, nexc, evalshift, bevalre-evalshift, oszsr)
       end if
 
       ! Allocate arrays used in spectrum construction
-      nw = input%xs%energywindow%points
       allocate(w(nw))
       ! Generate an evenly spaced frequency grid 
       call genwgrid(nw, input%xs%energywindow%intv,&
         & input%xs%tddft%acont, 0.d0, w_real=w)
 
-      if(mpiglobal%rank == 0) then
+      ! Allocate arrays used in spectrum construction
+      if(bi2d%isroot) then
         allocate(symspectr(3,3,nw))
-        write(unitout, '("Making spectrum.")')
-        if(input%xs%dfoffdiag) then
-          write(unitout, '("  Including off-diagonal terms")')
-        end if
-        call timesec(ts0)
-        ! Calculate lattice symmetrized spectrum.
-        write(unitout, '("  Using TDA formula.")')
       end if
 
-      call make_dist_spectrum_tda(nw, w)
+      ! Only process 0 gets an acctual output for symspectr
+      call make_dist_spectrum_tda(nw, w, symspectr)
 
-      if(mpiglobal%rank == 0) then
-        call timesec(ts1)
-        write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
-
+      if(bi2d%isroot) then
         write(unitout, '("Writing derived quantities.")')
         ! Generate and write derived optical quantities
         call writederived(iqmt+1, symspectr, nw, w)
@@ -630,7 +688,7 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       ! Clean up
       deallocate(bevalre, oszsr, w, evalsv)
       if(associated(input%gw)) deallocate(eval0)
-      if(mpiglobal%rank == 0) then 
+      if(bi2d%isroot) then 
         deallocate(symspectr)
       end if
 
@@ -751,16 +809,23 @@ contains
         & ioabs1, ioabs2, iuabs1, iuabs2,&
         & .true., 'PMAT_XS.OUT', pmouk(:,1:ino,1:inu,ik))
       ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
-      ! P^\text{QP}_{okuk} = \frac{E_uk - E_ok}{e_uk - e_ok} P^\text{LDA}_{okuk}
-      !   Where E are quasi-particle energies and e are KS energies.
+      ! \frac{v^\text{QP}_{okuk}}{E_uk - E_ok} \approx \frac{p^\text{LDA}_{okuk}}{e_uk - e_ok}
+      !   In the case that we use the quasi-particle energies E but the LDA eigenfunctions:
+      !   1) evalsv contains the E, while eval0 contains the e.
+      !   2) The BSE diagonal contains \Delta E
+      !   3) But the q->0 limit of <o|exp^{-iqr}|u> is still expressed in terms of
+      !      \frac{p^\text{LDA}_{okuk}}{e_uk - e_ok}, instead of v and E.
+      !   The following scales the LDA momentum matrix elements so that 3) is 
+      !   true for calculations on top of LDA or GW (Eigenvalues only).
       if(associated(input%gw)) then
         !$OMP PARALLEL DO &
-        !$OMP& DEFAULT(SHARED), PRIVATE(io,iu,inu,ino)
+        !$OMP& COLLAPSE(2) &
+        !$OMP& DEFAULT(SHARED), PRIVATE(io,iu)
         do io = 1, ino
           do iu = 1, inu
             pmouk(:,io,iu,ik) = pmouk(:,io,iu,ik)&
-              &* (evalsv(iuabs,iknr)-evalsv(ioabs,iknr))&
-              &/(eval0(iuabs,iknr)- eval0(ioabs,iknr))
+              &* (evalsv(iuabs1+iu-1,iknr)-evalsv(ioabs1+io-1,iknr))&
+              &/ (eval0(iuabs1+iu-1,iknr)- eval0(ioabs1+io-1,iknr))
           end do
         end do
         !$OMP END PARALLEL DO
@@ -788,9 +853,10 @@ contains
       ! Build R-matrix from P-matrix
       ! \tilde{R}_{a,i} = 
       !   \sqrt{|f_{o_a,k_a}-f_{u_a,k_a}|} *
-      !     P^i_{o_a,u_a,k_a} /(e_{u_a, k_a} - e_{o_a, k_a})
+      !     P^i_{o_a,u_a,k_a} /(e_{u_a, k_a} - e_{o_a, k_a}) 
+      ! Note: The scissor does not enter here, so subtract it again.
       rmat(a1, :) = ofac(a1)&
-        &*pmouk(:, io, iu, ik)/(evalsv(iuabs, iknr) - evalsv(ioabs, iknr))
+        &*pmouk(:, io, iu, ik)/(de(a1)-sci)
 
     end do
     !$OMP END PARALLEL DO
@@ -845,18 +911,24 @@ contains
     complex(8), allocatable :: ns_spectr(:,:)
     complex(8), allocatable :: enwr(:,:), enwa(:,:), tmatr(:,:)
 
-    write(unitout, '("Info(b_bse:makesp_tda): Making spectrum using TDA formula.")')
+    write(unitout, '("Info(b_bse:makesp_tda):&
+     & Making spectrum using TDA formula.")')
     if(input%xs%dfoffdiag) then
       write(unitout, '("  Including off diagonals.")')
     end if
     ! Total time for spectrum construction
     call timesec(ts0)
 
-    ! Make energy denominator for each frequency (resonant & anti-resonant) 
-    write(unitout, '("  Making energy denominators ENW.")')
-    call timesec(t0)
     ! Shift energies back to absolute values.
     bevalre = bevalre - evalshift
+
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    ! Make energy denominator for each frequency !
+    ! (resonant & anti-resonant)                 !
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    write(unitout, '("  Making energy denominators ENW.")')
+    call timesec(t0)
+
     ! enwr_{w, \lambda} = 1/(E_\lambda - w - i\delta)
     allocate(enwr(nfreq, nexc))
     !$OMP PARALLEL DO &
@@ -868,6 +940,7 @@ contains
       end do
     end do
     !$OMP END PARALLEL DO
+
     ! enwa_{w, \lambda} = 1/(E_\lambda + w + i\delta)
     allocate(enwa(nfreq, nexc))
     !$OMP PARALLEL DO &
@@ -879,17 +952,26 @@ contains
       end do
     end do
     !$OMP END PARALLEL DO
+
     call timesec(t1)
     write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    !++++++++++++++++++++++++++++++++++++++++++++!
     
-    ! Helper matrix build form resonant oszillator strenghs
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    ! Helper matrix build form resonant          !
+    ! oszillator strenghs                        !
+    !++++++++++++++++++++++++++++++++++++++++++++!
     write(unitout, '("  Making helper matrix tmatr.")')
     call timesec(t0)
+
     if(input%xs%dfoffdiag) then
       nopt = 9
     else
       nopt = 3
     end if
+
+    ! tmatr_{\lambda, j} = t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
+    ! where j combines the 2 cartesian directions
     allocate(tmatr(nexc,nopt))
     do j = 1, nopt
       if(input%xs%dfoffdiag) then
@@ -899,8 +981,6 @@ contains
         o2 = j
         o1 = j
       end if
-      ! tmatr_{\lambda, j} = t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
-      ! where j combines the 2 cartesian directions
       !$OMP PARALLEL DO &
       !$OMP& DEFAULT(SHARED), PRIVATE(i)
       do i = 1, nexc
@@ -910,23 +990,31 @@ contains
     end do
     call timesec(t1)
     write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    !++++++++++++++++++++++++++++++++++++++++++++!
          
-    ! Make non-lattice-symmetrized spectrum
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    ! Make non-lattice-symmetrized spectrum      !
+    !++++++++++++++++++++++++++++++++++++++++++++!
     write(unitout, '("  Calculating spectrum.")')
     call timesec(t0)
+
     allocate(ns_spectr(nfreq,nopt))
+
     ! nsspectr_{w,j} = \Sum_{\lambda} enwr_{w,\lambda} tmatr_{\lambda, j}
     !   i.e. nsspectr_{w,j} = 
     !     \Sum_{\lambda} 1/(E_\lambda - w - i\delta)
     !       t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
     call zgemm('N','N', nfreq, nopt, nexc, zone, enwr, nfreq,&
       & tmatr, nexc, zzero, ns_spectr, nfreq)
+
     ! nsspectr_{w,j} += \Sum_{\lambda} enwa_{w,\lambda} tmatr^*_{\lambda, j}
     !   i.e. nsspectr_{w,j} = nsspectr_{w,j} +
     !     \Sum_{\lambda} 1/(E_\lambda + w + i\delta)
     !       t^{R*}_{\lambda, o1_j} t^R_{\lambda, o2_j} 
     call zgemm('N','N', nfreq, nopt, nexc, zone, enwa, nfreq,&
       & conjg(tmatr), nexc, zone, ns_spectr, nfreq)
+    !++++++++++++++++++++++++++++++++++++++++++++!
+
     ! Helper no longer needed
     deallocate(tmatr, enwr, enwa)
 
@@ -1180,7 +1268,7 @@ contains
 
     ! Distributed position operator matrix
     call new_dzmat(drmat, hamsize, 3, bi2d,&
-      & rblck=1, cblck=bi2d%nblck)
+      & rblck=bi2d%mblck, cblck=1)
 
     ! Build position operator matrix elements
     if(mpiglobal%rank == 0) then 
@@ -1212,7 +1300,7 @@ contains
     call del_dzmat(drmat)
   end subroutine make_doszstren
   
-  subroutine make_dist_spectrum_tda(nfreq, freq)
+  subroutine make_dist_spectrum_tda(nfreq, freq, symsp)
     use mod_lattice, only: omega
     use mod_constants, only: zone, zi, pi
     use modxs, only: symt2
@@ -1222,63 +1310,101 @@ contains
     ! I/O
     integer(4), intent(in) :: nfreq
     real(8), intent(in) :: freq(nfreq)
+    complex(8), intent(inout) :: symsp(:,:,:)
 
     ! Local
     integer(4) :: i, j, o1, o2, ig, jg, nopt
-    real(8) :: t1, t0
+    real(8) :: t1, t0, ts0, ts1
     complex(8), allocatable :: buf(:,:,:)
     complex(8), allocatable :: ns_spectr(:,:)
     type(dzmat) :: denwr, denwa, dtmatr, dns_spectr
 
-    if(mpiglobal%rank == 0) then
+    if(bi2d%isroot) then
+      write(unitout, '("Info(b_bse:make_dist_sp):&
+        & Making spectrum using TDA formula.")')
+      if(input%xs%dfoffdiag) then
+        write(unitout, '("  Including off diagonals.")')
+      end if
+      call timesec(ts0)
+    end if
+
+    ! Shift energies back to absolute values.
+    bevalre = bevalre - evalshift
+
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    ! Make energy denominator for each frequency !
+    ! (resonant & anti-resonant)                 !
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    if(bi2d%isroot) then
       write(unitout, '("  Making energy denominators ENW.")')
       call timesec(t0)
     end if
 
-    ! Shift energies back to absolute values.
-    bevalre = bevalre + bsegap - bsed
+    ! Resonant:
 
-    ! Make energy denominator for each frequency (resonant & anti-resonant) 
     ! enwr_{w, \lambda} = 1/(E_\lambda - w - i\delta)
     call new_dzmat(denwr, nfreq, nexc, bi2d)
-    do j = 1, denwr%ncols_loc
+    !$OMP PARALLEL DO &
+    !$OMP& COLLAPSE(2),&
 #ifdef SCAL
-      jg = denwr%c2g(j)
+    !$OMP& DEFAULT(SHARED), PRIVATE(i,j,ig,jg)
+#else
+    !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
 #endif
+    do j = 1, denwr%ncols_loc
       do i = 1, denwr%nrows_loc
 #ifdef SCAL
         ! Get corresponding global indices
         ig = denwr%r2g(i)
+        jg = denwr%c2g(j)
         denwr%za(i,j) = zone/(bevalre(jg)-freq(ig)-zi*input%xs%broad)
 #else
         denwr%za(i,j) = zone/(bevalre(j)-freq(i)-zi*input%xs%broad)
 #endif
       end do
     end do
+    !$OMP END PARALLEL DO
+
+    ! Anti-resonant:
+    
     ! enwa_{w, \lambda} = 1/(E_\lambda + w + i\delta)
     call new_dzmat(denwa, nfreq, nexc, bi2d)
-    do j = 1, denwa%ncols_loc
+    !$OMP PARALLEL DO &
+    !$OMP& COLLAPSE(2),&
 #ifdef SCAL
-      jg = denwa%c2g(j)
+    !$OMP& DEFAULT(SHARED), PRIVATE(i,j,ig,jg)
+#else
+    !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
 #endif
+    do j = 1, denwa%ncols_loc
       do i = 1, denwa%nrows_loc
 #ifdef SCAL
         ! Get corresponding global indices
         ig = denwa%r2g(i)
+        jg = denwa%c2g(j)
         denwa%za(i,j) = zone/(bevalre(jg)+freq(ig)+zi*input%xs%broad)
 #else
         denwa%za(i,j) = zone/(bevalre(j)+freq(i)+zi*input%xs%broad)
 #endif
       end do
     end do
+    !$OMP END PARALLEL DO
 
-    if(mpiglobal%rank == 0) then
+    if(bi2d%isroot) then
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-      write(unitout, '("  Making helper tmatr bmat.")')
+    end if
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    ! Helper matrix build form resonant          !
+    ! oszillator strenghs                        !
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    if(bi2d%isroot) then
+      write(unitout, '("  Making helper matrix tmatr.")')
       call timesec(t0)
     end if
-    
+
     if(input%xs%dfoffdiag) then
       nopt = 9
     else
@@ -1288,120 +1414,88 @@ contains
     ! tmatr_{\lambda, j} = t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
     ! where j combines the 2 cartesian directions
     call new_dzmat(dtmatr, nexc, nopt, bi2d,&
-      & rblck=1, cblck=bi2d%nblck)
-    do j = 1, dtmatr%ncols_loc
+      & rblck=bi2d%mblck, cblck=1)
+
+    do j = 1, dtmatr%ncols_loc 
 #ifdef SCAL
-        jg = dtmatr%c2g(j)
+      ! Get corresponding global indices
+      jg = dtmatr%c2g(j)
+#else
+      jg = j
 #endif
+      ! Get individual opical indices
+      if(input%xs%dfoffdiag) then
+        o2 = (jg-1)/3 + 1
+        o1 = jg-(o2-1)*3
+      else
+        o2 = jg
+        o1 = jg
+      end if
+      !$OMP PARALLEL DO &
+      !$OMP& DEFAULT(SHARED), PRIVATE(i,ig)
       do i = 1, dtmatr%nrows_loc
 #ifdef SCAL
         ! Get corresponding global indices
         ig = dtmatr%r2g(i)
 #else
         ig = i
-        jg = j
 #endif
-        ! Get individual opical indices
-        if(input%xs%dfoffdiag) then
-          o2 = (jg-1)/3 + 1
-          o1 = jg-(o2-1)*3
-        else
-          o2 = jg
-          o1 = jg
-        end if
         dtmatr%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o2))
       end do
+      !$OMP END PARALLEL DO
     end do
 
-    if(mpiglobal%rank == 0) then
+    if(bi2d%isroot) then
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    end if
+    !++++++++++++++++++++++++++++++++++++++++++++!
+         
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    ! Make non-lattice-symmetrized spectrum      !
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    if(bi2d%isroot) then
       write(unitout, '("  Calculating spectrum.")')
       call timesec(t0)
     end if
-         
-    ! Make non-lattice-symmetrized spectrum
+
     call new_dzmat(dns_spectr, nfreq, nopt, bi2d,&
-      & rblck=1, cblck=bi2d%nblck)
+      & rblck=bi2d%mblck, cblck=1)
 
     ! nsspectr_{w,j} = \Sum_{\lambda} enwr_{w,\lambda} tmatr_{\lambda, j}
     !   i.e. nsspectr_{w,j} = 
     !     \Sum_{\lambda} 1/(E_\lambda - w - i\delta)
     !       t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
     call dzgemm(denwr, dtmatr, dns_spectr)
+
     ! nsspectr_{w,j} += \Sum_{\lambda} enwa_{w,\lambda} tmatr^*_{\lambda, j}
     !   i.e. nsspectr_{w,j} = nsspectr_{w,j}
     !     \Sum_{\lambda} 1/(E_\lambda + w + i\delta)
     !       t^{R*}_{\lambda, o1_j} t^R_{\lambda, o2_j} 
     dtmatr%za = conjg(dtmatr%za)
     call dzgemm(denwa, dtmatr, dns_spectr, beta=zone)
+    !++++++++++++++++++++++++++++++++++++++++++++!
 
-    ! Add 1 to diagonal elements o1=o2
-    if(input%xs%dfoffdiag) then
-      dns_spectr%za = dns_spectr%za*8.d0*pi/omega/nk_bse
-      do j = 1, dns_spectr%ncols_loc
-#ifdef SCAL
-        jg = dns_spectr%c2g(j)
-#endif
-        do i = 1, dns_spectr%nrows_loc
-#ifdef SCAL
-          ig = dns_spectr%r2g(i)
-#else
-          ig = i
-          jg = j
-#endif
-          if(jg == 1 .or. jg == 5 .or. jg == 9) then
-            dns_spectr%za(i,j) = zone + dns_spectr%za(i,j)
-          end if
-        end do
-      end do
-    else
-      dns_spectr%za = zone + dns_spectr%za*8.d0*pi/omega/nk_bse
-    end if
-      
+    ! Helper no longer needed
+    call del_dzmat(dtmatr)
     call del_dzmat(denwr)
     call del_dzmat(denwa)
-    call del_dzmat(dtmatr)
 
     ! Send spectrum to a global matrix at rank 0 to 
     ! interface with non parallel post-processing routines.
     call dzmat_send2global_root(ns_spectr, dns_spectr, bi2d)
     call del_dzmat(dns_spectr)
-    if(mpiglobal%rank == 0) then 
-      call timesec(t1)
-      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-      write(unitout, '("  Symmetrizing spectrum.")')
-      call timesec(t0)
 
-      ! Write to buffer for symmetry routine
-      if(allocated(buf)) deallocate(buf)
-      allocate(buf(3,3,nfreq))
-      buf=zzero
-
-      if(input%xs%dfoffdiag) then
-        do o2=1,3
-          do o1=1,3
-            j = o1 + (o2-1)*3
-            buf(o1,o2,:) = ns_spectr(:,j)
-          end do
-        end do
-      else
-        do o1=1,3
-          buf(o1,o1,:) = ns_spectr(:,o1)
-        end do
-      end if
+    ! Postprocess non-lattice-symmetrized spectrum
+    if(bi2d%isroot) then
+      call finalizespectrum(ns_spectr, symsp)
       deallocate(ns_spectr)
+    end if
 
-      symspectr = zzero
-      do o2=1,3
-        do o1=1,3
-          ! Symmetrize the macroscopic dielectric tensor
-          call symt2app(o1, o2, nfreq, symt2, buf, symspectr(o1,o2,:))
-        end do 
-      end do
-      call timesec(t1)
-      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-
+    if(bi2d%isroot) then 
+      ! Total time for spectrum construction
+      call timesec(ts1)
+      write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
     end if
 
   end subroutine make_dist_spectrum_tda

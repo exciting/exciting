@@ -7,6 +7,7 @@
 ! !INTERFACE:
 subroutine screen
 ! !USES:
+  use modmpi
   use modxs, only: nwdf, unitout
   use m_genfilname
   use m_filedel
@@ -40,6 +41,8 @@ subroutine screen
   ! Alternative for checking only:
   nwdf = nwdft
 
-  write(unitout, '(a)') "Info(screen): Screening finished"
+  if(rank == 0) then
+    write(unitout, '(a)') "Info(screen): Screening finished"
+  end if
 end subroutine screen
 !EOC

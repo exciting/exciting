@@ -98,6 +98,9 @@ subroutine dfq(iq)
 ! !REVISION HISTORY:
 !   Created March 2005 (Sagmeister)
 !   Added band and k-point analysis, 2007-2008 (Sagmeister)
+!   Changed parts that are unique to execution of dfq with tscreen = true (Aurich)
+!     Changed Plane wave matrix elements construction 
+!     Changed write out of EPS
 !EOP
 !BOC
 
@@ -802,6 +805,7 @@ subroutine dfq(iq)
     cputot = cpuread + cpuosc + cpuupd
     call dftim(iq, ik, trim(fnxtim), cpuread, cpuosc, cpuupd, cputot)
 
+    ! Why is taht nescessary?
     ! Synchronize
     if( .not. tscreen) call barrier
 
@@ -898,7 +902,7 @@ subroutine dfq(iq)
           & eps0hd=chi0h(:,:,iw-wi+1))
       end do
     end if
-    call barrier
+  ! Not tscreen
   else
     ! Parallel output of frequency dependent \chi to direct access file
     do j = 0, procs - 1
@@ -909,6 +913,7 @@ subroutine dfq(iq)
             & ch0hd=chi0h(:, :, iw-wi+1))
         end do
       end if
+      ! Why is that nescessary
       call barrier
     end do
   end if

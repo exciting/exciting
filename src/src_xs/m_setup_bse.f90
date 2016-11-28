@@ -400,23 +400,14 @@ module m_setup_bse
       integer(4) :: ig, jg, ii, jj, iblck, jblck
       integer(4) :: i, j, m, n, ib, jb
       integer(4) :: il, jl
-      character(256) :: sfname, efname
+
+      ! Read in vars
+      character(256) :: sfname, sinfofname
+      character(256) :: efname, einfofname
+      logical :: efcmpt, efid
+      logical :: sfcmpt, sfid
 
       if(ham%isdistributed) then 
-
-        ! Select form which files W and V are to be read
-        if(.not. fcoup) then
-          call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=sfname)
-          call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
-        else
-          call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=sfname)
-          call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=efname)
-        end if
-
-        if(mpiglobal%rank == 0) then 
-          write(unitout, '("setup_distributed_bse: Reading form ", a, " and ", a)')&
-            & trim(sfname), trim(efname)
-        end if
 
 #ifdef SCAL
         !!*****************************!!
@@ -424,10 +415,52 @@ module m_setup_bse
         !! AND SENDS THE CORRESPONDING !!
         !! DATA CHUNKS TO THE OTHERS.  !!
         !!*****************************!!
-        ! Allocate read in work arrays
+        ! Check whether the saved data is usable and 
+        ! allocate read in work arrays
         if(binfo%myprow == 0 .and. binfo%mypcol == 0) then 
+
+          if(.not. fcoup) then 
+            write(unitout, '("Info(setup_distributed_bse):&
+              & Setting up RR part of hamiltonian")')
+          else
+            write(unitout, '("Info(setup_distributed_bse):&
+              & Setting up RA part of hamiltonian")')
+          end if
+
+          ! Select form which files W and V are to be read
+          if(.not. fcoup) then
+            call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=sfname)
+            call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
+          else
+            call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=sfname)
+            call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=efname)
+          end if
+
+          sinfofname = trim(infofbasename)//'_'//trim(sfname)
+          einfofname = trim(infofbasename)//'_'//trim(efname)
+
+          write(unitout, '("  Reading form info from ", a)')&
+            & trim(sinfofname)
+          write(unitout, '("  Reading form info from ", a)')&
+            & trim(einfofname)
+
+          ! Check saved Quantities for compatiblity
+          call b_getbseinfo(trim(sinfofname), iqmt,&
+            & fcmpt=sfcmpt, fid=sfid)
+          call b_getbseinfo(trim(einfofname), iqmt,&
+            & fcmpt=efcmpt, fid=efid)
+          if(efcmpt /= sfcmpt .or. efid /= sfid) then 
+            write(*, '("Error(setup_distributed_bse): Info files differ")')
+            write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
+            call terminate
+          end if
+
+          write(unitout, '("  Reading form W from ", a)') trim(sfname)
+          write(unitout, '("  Reading form V from ", a)') trim(efname)
+
           allocate(excli_t(nou_bse_max, nou_bse_max))
           allocate(sccli_t(nou_bse_max, nou_bse_max))
+
         end if
 
         ! Block sizes
@@ -437,7 +470,7 @@ module m_setup_bse
         ! Context
         context = ham%context
         if(context /= binfo%context) then 
-          write(*, '("Error (setup_distributed_bse): Context mismatch:", 2i4)')&
+          write(*, '("Error(setup_distributed_bse): Context mismatch:", 2i4)')&
             & context, binfo%context
           call terminate
         end if
@@ -476,14 +509,16 @@ module m_setup_bse
             select case(trim(input%xs%bse%bsetype))
               case('singlet', 'triplet')
                 ! Read RR/RA part of screened coulomb interaction W_{iuioik,jujojk}(qmt)
-                call b_getbsemat(trim(sfname), iqmt, ikkp, sccli_t(1:inou,1:jnou))
+                call b_getbsemat(trim(sfname), iqmt, ikkp,&
+                  & sccli_t(1:inou,1:jnou), check=.false., fcmpt=sfcmpt, fid=sfid)
             end select
 
             ! Read in exchange interaction for ikkp
             select case(trim(input%xs%bse%bsetype))
               case('RPA', 'singlet')
                 ! Read RR/RA part of exchange interaction v_{iuioik,jujojk}(qmt)
-                call b_getbsemat(trim(efname), iqmt, ikkp, excli_t(1:inou,1:jnou))
+                call b_getbsemat(trim(efname), iqmt, ikkp,&
+                  & excli_t(1:inou,1:jnou), check=.false., fcmpt=efcmpt, fid=efid)
             end select
 
           end if
@@ -601,7 +636,7 @@ module m_setup_bse
         ! ikkp loop
         end do
 #else
-        write(*,*) "setup_distributed_bse: Scalapack needed."
+        write(*,*) "Error(setup_distributed_bse): Scalapack needed."
         call terminate
 #endif
 
@@ -675,63 +710,13 @@ module m_setup_bse
           ! Add KS transition energies
           if(.not. fc) then 
             if(ig+r-1 == jg+c-1) then 
-              hamblck(r, c) = hamblck(r, c) + kstrans(ig+r-1)
+              hamblck(r, c) = hamblck(r, c) + cmplx(de(ig+r-1)+evalshift, 0.0d0, 8)
             end if
           end if
         end do
       end do
 
     end subroutine buildham
-    !EOC
-
-    !BOP
-    ! !ROUTINE: kstrans
-    ! !INTERFACE:
-    complex(8) function kstrans(a1)
-    ! !USES:
-      use modxs, only: bsed
-      use modinput, only: input
-      use mod_eigenvalue_occupancy, only: evalsv
-    ! !INPUT/OUTPUT PARAMETERS:
-    ! In:
-    ! integer(4) :: a1   ! Combindex index of Hamiltonian ia={ik,iu,io}
-    ! Module in:
-    ! integer(4) :: smap(3, hamsize)  ! Mapping between combined and individual indices
-    ! real(8) :: evalsv(nstsv, nkpnr) ! The eigenvalues
-    ! Out:
-    ! complex(8) :: kstrans ! Transition energy
-    !
-    ! !DESCRIPTION:
-    !   Given an combined index $\alpha = \{ \vec{k}_\alpha, o_\alpha, u_\alpha \}$
-    !   this routine returns the associated independent particle transition energy
-    !   $\Delta\epsilon_\alpha = \epsilon_{\vec{k}_\alpha, u_\alpha} -
-    !   \epsilon_{\vec{k}_\alpha, o_\alpha}$. Subtracts the gap energy and 
-    !   add a scissor shift.\\
-    !   Needs the eigenvalues present in {\tt mod\_eigenvalue\_occupancy}.
-    !
-    ! !REVISION HISTORY:
-    !   Created 2016 (Aurich)
-    !EOP
-    !BOC
-      implicit none
-
-      integer(4), intent(in) :: a1
-
-      integer(4) :: ik, ioabs, iuabs
-      real(8) :: deval
-
-      ! Get absolute state band indices form 
-      ! combinded index
-      iuabs = smap(1, a1)
-      ioabs = smap(2, a1)
-      ik = smap(3, a1)
-      ! Calculate ks energy difference for q=0
-      ! de = e_{u, k+qmt} - e_{o, k} + scissor (RR)
-      ! de = e_{u, k-qmt} - e_{o, k} + scissor (AA)
-      ! Note: only qmt=0 supported
-      deval = evalsv(iuabs,ik)-evalsv(ioabs,ik)+sci+evalshift
-      kstrans = cmplx(deval, 0.0d0, 8)
-    end function kstrans
     !EOC
 
 end module m_setup_bse

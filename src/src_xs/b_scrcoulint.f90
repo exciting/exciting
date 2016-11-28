@@ -49,9 +49,10 @@ subroutine b_scrcoulint
   character(*), parameter :: thisnam = 'b_scrcoulint'
 
   complex(8) :: zt1, pref
-  complex(8), allocatable :: sccliab(:,:), scclit(:, :), sccli(:, :, :, :), scclid(:, :)
-  complex(8), allocatable :: sccliabc(:,:), scclitc(:, :), scclic(:, :, :, :)
-  complex(8), allocatable :: scieffg(:, :, :), wfc(:, :), bsedt(:, :),zm(:,:)
+  !complex(8), allocatable :: scclid(:, :)
+  complex(8), allocatable :: sccliab(:,:), scclit(:, :), sccli(:, :, :, :)
+  complex(8), allocatable :: scclicab(:,:), scclict(:, :), scclic(:, :, :, :)
+  complex(8), allocatable :: scieffg(:, :, :), wfc(:, :), bsedt(:, :), zm(:,:)
   complex(8), allocatable :: phf(:, :)
   real(8) :: vqr(3), vq(3)
   integer(4) :: ik, jk, noo, nuu, nou, nuo, ino, inu, jno, jnu, inou, jnou
@@ -64,6 +65,7 @@ subroutine b_scrcoulint
   integer, allocatable :: igqmap(:)
   logical :: tq0, tphf
   logical :: fcoup
+  real(8) :: tscc1, tscc0
 
   ! Plane wave arrays
   complex(8), allocatable :: muu(:, :, :), cmuu(:, :)
@@ -112,10 +114,10 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
 
   if(rank .eq. 0) then
-    write(unitout, '(a,3i8)') 'info(' // thisnam // '):&
+    write(unitout, '(a,3i8)') 'Info(' // thisnam // '):&
       & Gaunt coefficients generated within lmax values:', input%groundstate%lmaxapw,&
       & input%xs%lmaxemat, input%groundstate%lmaxapw
-    write(unitout, '(a, i6)') 'info(' // thisnam // '): number of q-points: ', nqpt
+    write(unitout, '(a, i6)') 'Info(' // thisnam // '): number of q-points: ', nqpt
     call flushifc(unitout)
   end if
 
@@ -143,19 +145,21 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   ! Select relevant transitions for the construction
   ! of the BSE hamiltonian
   ! Also sets nkkp_bse, nk_bse 
-  call select_transitions(iqmt)
+  call select_transitions(iqmt, serial=.false.)
 
   ! Include coupling terms
   fcoup = input%xs%bse%coupling
 
   ! Write support information to file
-  call genfilname(basename=trim(infofbasename)//'_'//trim(scclifbasename),&
-    & iqmt=iqmt, filnam=infofname)
-  call b_putbseinfo(infofname, iqmt)
-  if(fcoup) then
-    call genfilname(basename=trim(infofbasename)//'_'//trim(scclicfbasename),&
-      & iqmt=iqmt, filnam=infocfname)
-    call b_putbseinfo(infocfname, iqmt)
+  if(mpiglobal%rank == 0) then
+    call genfilname(basename=trim(infofbasename)//'_'//trim(scclifbasename),&
+      & iqmt=iqmt, filnam=infofname)
+    call b_putbseinfo(infofname, iqmt)
+    if(fcoup) then
+      call genfilname(basename=trim(infofbasename)//'_'//trim(scclicfbasename),&
+        & iqmt=iqmt, filnam=infocfname)
+      call b_putbseinfo(infocfname, iqmt)
+    end if
   end if
 
   ! Set output file names
@@ -166,7 +170,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
   ! Change file extension and write out k an q points
   call genfilname(dotext='_SCI.OUT', setfilext=.true.)
-  if(rank .eq. 0) then
+  if(mpiglobal%rank == 0) then
     call writekpts
     call writeqpts
   end if
@@ -187,6 +191,11 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   !!<--
   ! Parallelize over reduced q-point set
   call genparidxran('q', nqptr)
+
+  if(mpiglobal%rank == 0) then
+    write(unitout, '("Info(b_scrcoulint): Calculating W fourier coefficients")')
+    call timesec(tscc0)
+  end if
 
   do iqr = qpari, qparf ! Reduced q
 
@@ -210,9 +219,11 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   ! Communicate array-parts wrt. q-points
   call mpi_allgatherv_ifc(set=nqptr, rlen=ngqmax*ngqmax,&
     & zbuf=scieffg, inplace=.true., comm=mpiglobal)
-
-  call barrier
   !!-->
+  if(mpiglobal%rank == 0) then
+    call timesec(tscc1)
+    write(unitout, '("  Timing (in seconds):", f12.3)') tscc1 - tscc0
+  end if
 
   !-------------------------------!
   ! CONSTRUCT W MATRIX ELEMENTS   !
@@ -233,9 +244,22 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   ! that contribute to the desired energy range.
   call genparidxran('p', nkkp_bse)
 
-  kkploop: do ikkp = ppari, pparf
+  ! Work arrays (allocate for maximal size over all participating k points)
+  allocate(sccli(nu_bse_max, no_bse_max, nu_bse_max, no_bse_max))
+  allocate(scclit(no_bse_max**2, nu_bse_max**2))
+  allocate(sccliab(nou_bse_max, nou_bse_max))
+  if(fcoup) then
+    allocate(scclict(nou_bse_max, nou_bse_max))
+    allocate(scclic(nu_bse_max, no_bse_max, nu_bse_max, no_bse_max))
+    allocate(scclicab(nou_bse_max, nou_bse_max))
+  end if
 
-!write(*,*) "ikkp:", ikkp, " of", pparf-ppari+1
+  if(mpiglobal%rank == 0) then
+    write(unitout, '("Info(b_scrcoulint): W matrix elements")')
+    call timesec(tscc0)
+  end if
+
+  kkploop: do ikkp = ppari, pparf
 
     ! Get individual k-point indices from combined kk' index.
     !   ik runs from 1 to nk_bse, jk from ik to nk_bse
@@ -252,9 +276,6 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     ! Get total k point indices
     iknr = kmap_bse_rg(ik)
     jknr = kmap_bse_rg(jk) 
-
-!write(*,*) "ik:", ik, " jk", jk
-!write(*,*) "iknr:", iknr, " jknr", jknr
 
     !! Get corresponding q-point for ki,kj combination.
     ! K-point difference k_j-k_i on integer grid.
@@ -315,23 +336,6 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     ! Number of transitions at ik & jk
     inou = kousize(iknr)
     jnou = kousize(jknr)
-
-!write(*,*) "inu,ino,inou", inu, ino, inou
-!write(*,*) "jnu,jno,jnou", jnu, jno, jnou
-
-    ! Work arrays
-    if(allocated(scclit)) deallocate(scclit)
-    allocate(scclit(noo, nuu))
-    if(allocated(sccli)) deallocate(sccli)
-    allocate(sccli(inu, ino, jnu, jno))
-
-    if(fcoup) then
-      ! Work array
-      if(allocated(scclitc)) deallocate(scclitc)
-      allocate(scclitc(nou, nuo))
-      if(allocated(scclic)) deallocate(scclic)
-      allocate(scclic(inu, ino, jnu, jno))
-    end if
 
 ! Needs do be adapetd for beyondtd
 !    if(allocated(scclid)) deallocate(scclid)
@@ -394,7 +398,8 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     !   i.e. scclit_{io_j1 jo_j1, iu_j2 ju_j2} = 
     !          \Sum{G,G'} M^*_{io_j1,jo_j1}(G,q) W(G,G',q) M_{iu_j2 ju_j2}(G',q)
     call zgemm('n', 't', noo, nuu, numgq, pref, zm,&
-      & noo, cmuu, nuu, zzero, scclit, noo)
+      & noo, cmuu, nuu, zzero, scclit(1:noo,1:nuu), noo)
+
     deallocate(zm)        
     deallocate(cmoo, cmuu)
 
@@ -415,11 +420,8 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       end do
     end do
     !$OMP END PARALLEL DO
-    deallocate(scclit)
 
     ! W matrix element arrays for one jk-ik=q
-    if(allocated(sccliab)) deallocate(sccliab)
-    allocate(sccliab(inou, jnou))
 
     ! Save only the selected transitions
     jaoff = sum(kousize(1:jknr-1))
@@ -455,10 +457,10 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
    !     end do
    !   end do
    ! end if
-
+   
     ! Parallel write
     call b_putbsemat(scclifname, 77, ikkp, iqmt, sccliab)
-    
+
     !-------------------------------!
     ! Resonant-Anti-Resonant Part   !
     !-------------------------------!
@@ -506,20 +508,20 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       ! Allocate helper array
       allocate(zm(nou,numgq))
 
-      ! Calculate matrix elements of screened coulomb interaction scclitc_{j1, j2}(q)
+      ! Calculate matrix elements of screened coulomb interaction scclict_{j1, j2}(q)
       ! zm = cmou * wfc
       !   i.e. zm_{j1,G'} = \Sum_{G} cmou_{j1,G} wfc_{G,G'}
       !   i.e. zm_{io_j1,ju_j1}(G',q) = \Sum_{G} M^*_{io_j1,ju_j1,ik}(G,q) W(G,G',q-qmt)
       ! NOTE: only qmt=0 supported currently
       call zgemm('n', 'n', nou, numgq, numgq, zone, cmou, nou, wfc, numgq, zzero, zm, nou)
       ! scclit = pref * zm * cmuo^T
-      !   i.e. scclitc(j1, j2) = \Sum_{G'} zm_{j1,G'} (cmuo^T)_{G',j2}
-      !   i.e. scclitc_{io_j1 ju_j1, iu_j2 jo_j2} =
+      !   i.e. scclict(j1, j2) = \Sum_{G'} zm_{j1,G'} (cmuo^T)_{G',j2}
+      !   i.e. scclict_{io_j1 ju_j1, iu_j2 jo_j2} =
       !   \Sum{G,G'} 
       !   M^*_{io_j1,ju_j1,ik}(G,q-qmt) W(G, G',q-qmt) M_{iu_j2,jo_j2,ik+qmt}(G',q-qmt)
       ! NOTE: only qmt=0 supported currently
       call zgemm('n', 't', nou, nuo, numgq, pref, zm,&
-        & nou, cmuo, nuo, zzero, scclitc, nou)
+        & nou, cmuo, nuo, zzero, scclict(1:nou,1:nuo), nou)
       deallocate(zm)        
       deallocate(cmou, cmuo)
 
@@ -533,19 +535,16 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
             do iu = 1, inu ! iu
               j1 = io+(ju-1)*ino !ioju
               j2 = iu+(jo-1)*inu ! iujo
-              ! scclitc_{io_j1 ju_j1, iu_j2 jo_j2}(ik,jk)(qmt)
+              ! scclict_{io_j1 ju_j1, iu_j2 jo_j2}(ik,jk)(qmt)
               ! -> scclic(iu_j2, io_j1, ju_j1, jo_j2)(ik,jk)(qmt)
-              scclic(iu, io, ju, jo) = scclitc(j1, j2)
+              scclic(iu, io, ju, jo) = scclict(j1, j2)
             end do
           end do
         end do
       end do 
       !$OMP END PARALLEL DO
-      deallocate(scclitc)
 
       ! W matrix elements
-      if(allocated(sccliabc)) deallocate(sccliabc)
-      allocate(sccliabc(inou, jnou))
 
       ! Save only the selected transitions
       jaoff = sum(kousize(1:jknr-1))
@@ -560,29 +559,46 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
           iu = smap_rel(1,ia+iaoff)
           io = smap_rel(2,ia+iaoff)
           ! scclit_{io_j1 jo_j1, iu_j2 ju_j2} -> sccliab_{iu_a io_a, ju_b jo_b}
-          sccliabc(ia, ja) = scclic(iu, io, ju, jo)
+          scclicab(ia, ja) = scclic(iu, io, ju, jo)
         end do
       end do
       !$OMP END PARALLEL DO
 
       ! Parallel write
-      call b_putbsemat(scclicfname, 78, ikkp, iqmt, sccliabc)
+      call b_putbsemat(scclicfname, 78, ikkp, iqmt, scclicab)
 
     end if
+
     
     ! Deallocate G dependent work arrays
     deallocate(igqmap)
     deallocate(wfc)
 
+    if(rank == 0) then
+      write(6, '(a,"Scrcoulint progess:", f10.3)', advance="no")&
+        & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
+      flush(6)
+    end if
+
   ! End loop over(k,kp)-pairs
   end do kkploop
+  if(rank == 0) then
+    write(*,*)
+  end if
+
+  if(mpiglobal%rank == 0) then
+    call timesec(tscc1)
+    write(unitout, '("  Timing (in seconds):", f12.3)') tscc1 - tscc0
+  end if
 
   ! Deallocate helper array 
   deallocate(sccli)
+  deallocate(scclit)
   deallocate(sccliab)
   if(fcoup) then
     deallocate(scclic)
-    deallocate(sccliabc)
+    deallocate(scclict)
+    deallocate(scclicab)
   end if
 
   call barrier

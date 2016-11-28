@@ -115,8 +115,6 @@ module modbse
       implicit none
       integer(4), intent(in) :: iq
 
-write(*,*) "Hello, this is setranges_modxs at rank:", mpiglobal%rank
-      
       ! Find occupation limits for k and k+q and set variables in modxs
       ! This also reads in 
       ! (QMTXXX)
@@ -216,7 +214,9 @@ write(*,*) "Hello, this is setranges_modxs at rank:", mpiglobal%rank
       else
         fserial = .false.
       end if
-      write(unitout, '("Info(select_transition): Serial selection :", l)') fserial
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(select_transition): Serial selection :", l)') fserial
+      end if
 
       ! Search for needed KS transitions automatically
       ! depending on the chosen energy window?
@@ -261,7 +261,6 @@ write(*,*) "Hello, this is setranges_modxs at rank:", mpiglobal%rank
       end if
 
       if(mpiglobal%rank == 0) then 
-        write(unitout, *)
         if(energyselect) then
           write(unitout, '("Info(select_transitions): Searching for KS transitions in&
             & the energy interval:")')

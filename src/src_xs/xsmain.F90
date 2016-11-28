@@ -190,13 +190,13 @@ Subroutine xsmain (plan)
          case (999)
             call testmain
          case (710)
-			if (input%xs%BSE%xas) then
-				call xasinit
-				call plot_excitonWavefunction
-				call xasfinit
-			else
-				call plot_excitonWavefunction
-			end if
+            if (input%xs%BSE%xas) then
+              call xasinit
+              call plot_excitonWavefunction
+              call xasfinit
+            else
+              call plot_excitonWavefunction
+            end if
          Case Default
             Write (*,*)
             Write (*,*) 'Error(xsmain): task not defined:', task

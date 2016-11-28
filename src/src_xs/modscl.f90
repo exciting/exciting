@@ -16,6 +16,10 @@ module modscl
     integer(4) :: nprocs
     ! Number of processes in each row/column
     integer(4) :: nprows, npcols
+    ! Is process (0,0)
+    logical :: isroot
+    ! Is active, i.e. positive process coordinates
+    logical :: isactive
     ! Current process grid coordinates
     integer(4) :: myprow, mypcol
     ! Default block sizes
@@ -24,7 +28,7 @@ module modscl
     integer(4) :: ierr
   end type
 
-  type(blacsinfo) :: bi2d, bi1dc, bi1dw
+  type(blacsinfo) :: bi2d, bi1d
 
   ! Distributed complex matrix type
   type dzmat
@@ -64,7 +68,7 @@ module modscl
     !   type(mpiinfo) :: mpicom    ! Info type for the MPI communicator to be 
     !                              ! used as the basis for BLACS
     !   character(*)  :: typechars ! String to indicate 2d or 1d BLACS grid
-    !   integer(4), optional :: np   ! Number of ranks to be used
+    !   integer(4), optional :: np ! Number of ranks to be used
     ! OUT:
     !   type(blacsinfo) :: blacscom  ! Info type for the resulting BLACS grid
     !
@@ -104,10 +108,10 @@ module modscl
         nprocs = mpicom%procs
       end if
       if(nprocs < 1) then 
-        write(*,'("Error (setupblacs): np < 1: ",i3)') nprocs
+        write(*,'("Error(setupblacs): np < 1: ",i3)') nprocs
         call terminate
       else if(nprocs > mpicom%procs) then
-        write(*,'("Error (setupblacs): np > mpiprocs: ",2i4)') nprocs, mpicom%procs
+        write(*,'("Error(setupblacs): np > mpiprocs: ",2i4)') nprocs, mpicom%procs
         call terminate
       end if
 
@@ -123,62 +127,65 @@ module modscl
           nprocs2d = npcols*nprows
           ! Use MPI communicator as basis
           ictxt = mpicom%comm
-          if(mpicom%rank == 0) then
-            write(unitout,'("Info (setupblacs): Using ", i4, " x", i4,&
-              & " process grid. Ctxt(", i12, ") MPIcom(", i12, ")")')&
-              & nprows, npcols, ictxt, mpicom%comm
-            if(nprocs2d /= nprocs) then
-              write(unitout,'("Info (setupblacs):&
-                & Warning - Processes do not fit 2d grid")')
-              write(unitout,'("Info (setup2dblacs):&
-                & Warning - ",i2," processes not used")') nprocs-nprocs2d
-            end if
-          end if
-          nprocs = nprocs2d
           ! Make the blacs grid
           call blacs_gridinit(ictxt, 'R', nprows, npcols)
           call blacs_gridinfo(ictxt, nprows, npcols, myprow, mypcol)
           ! Set default block sizes
           mblck = BLOCKSIZE
           nblck = BLOCKSIZE
+          ! Write info about BLACS grid
+          if(mpicom%rank == 0) then
+            write(unitout,'("Info(setupblacs): Using ", i4, " x", i4,&
+              & " process grid. Ctxt(", i3, ") MPIcom(", i12, ")")')&
+              & nprows, npcols, ictxt, mpicom%comm
+            if(nprocs2d /= nprocs) then
+              write(unitout,'("Info(setupblacs):&
+                & Warning - Processes do not fit 2d grid")')
+              write(unitout,'("Info (setup2dblacs):&
+                & Warning - ",i2," processes not used")') nprocs-nprocs2d
+            end if
+          end if
+          nprocs = nprocs2d
 
-        ! Make 1D process grid (one col) with column major ordering of the ranks
-        case('1Dc','1DC','1dc','1dC','column','Column','COLUMN')
+        ! Make 1D process grid (one row) 
+        case('1Dr','1DR','1dr','1dR','row','Row','ROW')
           npcols = nprocs
           nprows = 1
           nprocs = nprocs
           ! Use MPI communicator as basis
           ictxt = mpicom%comm
-          if(mpicom%rank == 0) then
-            write(unitout,'("Info (setupblacs): Aux. ",i4," x",i4,&
-              &" process grid. Ctxt(",i12,") MPIcom(",i12,")")')&
-              & nprows, npcols, ictxt, mpicom%comm
-          end if
           ! Make the blacs grid
           call blacs_gridinit(ictxt, 'C', nprows, npcols)
           call blacs_gridinfo(ictxt, nprows, npcols, myprow, mypcol)
           ! Set default block sizes
           mblck = BLOCKSIZE*BLOCKSIZE
           nblck = 1
+          ! Write info about BLACS grid
+          if(mpicom%rank == 0) then
+            write(unitout,'("Info(setupblacs): Aux. ",i4," x",i4,&
+              &" process grid. Ctxt(",i3,") MPIcom(",i12,")")')&
+              & nprows, npcols, ictxt, mpicom%comm
+          end if
 
-        ! Make 1D process grid (one row) with row major ordering of the ranks
-        case('1Dr','1DR','1dr','1dR','row','Row','ROW')
+        ! Make 1D process grid (one column) 
+        case('1Dc','1DC','1dc','1dC','column','Column','COLUMN')
           npcols = 1
           nprows = nprocs
           nprocs = nprocs
           ! Use MPI communicator as basis
           ictxt = mpicom%comm
-          if(mpicom%rank == 0) then
-            write(unitout,'("Info (setupblacs): Aux. ",i4," x",i4,&
-              &" process grid. Ctxt(",i12,") MPIcom(",i12,")")')&
-              & nprows, npcols, ictxt, mpicom%comm
-          end if
           ! Make the blacs grid
           call blacs_gridinit(ictxt, 'R', nprows, npcols)
           call blacs_gridinfo(ictxt, nprows, npcols, myprow, mypcol)
           ! Set default block sizes
           mblck = 1
           nblck = BLOCKSIZE*BLOCKSIZE
+          ! Write info about BLACS grid
+          if(mpicom%rank == 0) then
+            write(unitout,'("Info (setupblacs): Aux. ",i4," x",i4,&
+              &" process grid. Ctxt(",i12,") MPIcom(",i12,")")')&
+              & nprows, npcols, ictxt, mpicom%comm
+          end if
 
         case default
           write(*,'("Error (setupblacs): Using unknown type: ",a)') typechars
@@ -197,7 +204,7 @@ module modscl
       nblck = 1
 #endif
 
-      ! Make ouput type
+      ! Make output type
       blacscom%mpi = mpicom
       blacscom%context = ictxt
       blacscom%nprocs = nprocs
@@ -207,6 +214,17 @@ module modscl
       blacscom%mypcol = mypcol
       blacscom%mblck = mblck
       blacscom%nblck = nblck
+      if(myprow == 0 .and. mypcol == 0) then
+        blacscom%isroot = .true.
+      else
+        blacscom%isroot = .false.
+      end if
+      if(myprow >= 0 .and. mypcol >= 0) then
+        blacscom%isactive = .true.
+      else
+        blacscom%isactive = .false.
+      end if
+
 
     end subroutine setupblacs
     !EOC
@@ -397,7 +415,7 @@ module modscl
         call terminate
       end if
 
-      iamroot = (binfo%myprow == 0 .and. binfo%mypcol == 0)
+      iamroot = binfo%isroot
 
       if(iamroot) then
 

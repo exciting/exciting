@@ -2,7 +2,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details
 !
-! !MODULE:  modmpi
+! !MODULE: modmpi
 ! !DESCRIPTION:
 !   MPI variables and interface functions
 !   In case of compiled without MPI support it defines the
@@ -127,15 +127,34 @@ module modmpi
     ! !INTERFACE: 
     subroutine finitmpi
     ! !DESCRIPTION:
-    !   If -DMPI calls {\tt mpi\_finalize}, otherwise does nothing.
+    !   If -DMPI calls {\tt mpi\_finalize}, after wainting
+    !   for the processes of mpiglobal, mpinodes%mpi and mpinodes%mpiintercom
+    !   to finish communicating.
+    !
+    !   Note: For other communicators you need to make shure that they finished
+    !         communication.
     !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
+    !   Modified to use new mpi types. (Aurich)
     !EOP
     !BOC
       integer(4) :: ierr
+      logical :: flag
+
+      ! Wait for everyone to reach this point
+      call barrier(mpiglobal)
+#ifdef MPI
+      call barrier(mpinodes%mpi)
+      if(mpinodes%mpiintercom%rank >= 0) then
+        call barrier(mpinodes%mpiintercom)
+      end if
+#endif
 #ifdef MPI
       call mpi_finalize(ierr)
+      if(ierr /= 0) then 
+        write(*,*) "Error (finitmpi): ierr =",ierr
+      end if
 #endif
     end subroutine finitmpi
     !EOC
@@ -552,14 +571,13 @@ module modmpi
       ! nofset(0,set,np) gives the number of columns.
       if(col /= nofset(0, set, nprocs=np)) then
         lastproc = np - 1
+      ! Processes fit evenly (includes only one row
+      else if(modulo(set,np) == 0) then
+        lastproc = np - 1
+      ! Dangling processes
       else
-        ! Case of only one column
-        ! or rest elements not filling last column
+        ! Rest elements not filling last column
         lastproc = modulo(set, np) - 1
-        ! Case of only one row
-        if(np == 1) then
-          lastproc = 0
-        end if
       end if
       
     end function lastproc
@@ -572,7 +590,7 @@ module modmpi
     !BOP
     ! !ROUTINE: barrier
     ! !INTERFACE:
-    subroutine barrier
+    subroutine barrier(mpicom)
     ! !DESCRIPTION:
     !   If -DMPI calls {\tt mpi\_barrier}, else nothing.
     !
@@ -581,41 +599,33 @@ module modmpi
     !EOP
     !BOC
       implicit none
-      integer(4) :: ierr
+      type(mpiinfo), intent(in), optional :: mpicom
+
+      type(mpiinfo) :: mpinf
+
+      if(present(mpicom)) then 
+        mpinf = mpicom
+      else
+        mpinf = mpiglobal
+      end if
+
+      if(.false.) then 
+        write(*,*) "rank", mpinf%rank,&
+          & "in barrier for mpicom", mpinf%comm 
+      end if
+
       ! do nothing if only one process
 #ifndef MPI
-      if(procs .eq. 1) return
+      if(mpinf%procs .eq. 1) return
 #endif
       ! call the mpi barrier
 #ifdef MPI
-      call mpi_barrier(mpiglobal%comm, mpiglobal%ierr)
+      call mpi_barrier(mpinf%comm, mpinf%ierr)
+      if(mpinf%ierr /= 0) then 
+        write(*,*) "Error (barrier): ierr =", mpinf%ierr
+      end if
 #endif
     end subroutine barrier
-    !EOC
-
-    !BOP
-    ! !ROUTINE: endloopbarrier
-    ! !INTERFACE:
-    subroutine endloopbarrier(set, mult)
-    ! !INPUT/OUTPUT PARAMETERS:
-    ! In:
-    ! integer(4) :: set
-    ! integer(4) :: mult
-    !
-    ! !DESCRIPTION:
-    !   (??)
-    !
-    ! !REVISION HISTORY:
-    !   Added to documentation scheme. (Aurich)
-    !EOP
-    !BOC
-      implicit none
-      integer(4), intent(in) :: set, mult
-      integer(4) :: i
-      do i = 1, (nofset(0, set)-nofset(rank, set)) * mult
-         call barrier
-      end do
-    end subroutine endloopbarrier
     !EOC
 
     !BOP

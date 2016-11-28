@@ -61,7 +61,8 @@ module m_putpmat
       end if
 
       if(rank .ne. 0) then 
-        call mpi_send(pm, size(pm), mpi_double_complex, 0, mpitag, mpi_comm_world, ierr)
+        call mpi_send(pm, size(pm),&
+          & mpi_double_complex, 0, mpitag, mpi_comm_world, ierr)
       end if
 
       if(rank .eq. 0) then

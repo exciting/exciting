@@ -14,7 +14,7 @@ subroutine writeevec(vq, voff, filxt)
   use mod_atoms, only: natmtot
   use mod_kpoint, only: nkpt, vkl
   use modinput, only: input
-  use modmpi, only: rank, procs, barrier, endloopbarrier
+  use modmpi
   use modxs, only: isreadstate0, evecfv, apwcmt, locmt,&
                  & kpari, kparf 
   use m_gndstateq, only: gndstateq
@@ -26,8 +26,13 @@ subroutine writeevec(vq, voff, filxt)
   real(8), intent(in) :: vq(3), voff(3)
   character(*), intent(in) :: filxt
   ! Local variables
-  integer :: ik, j
+  integer :: ik, ikr, j
   complex(8), allocatable :: apwalm(:, :, :, :)
+
+#ifdef MPI
+  integer :: iproc, mpitag, stat(mpi_status_size)
+  mpitag = 79
+#endif
 
   ! Read from STATE.OUT exclusively
   isreadstate0 = .true.
@@ -79,17 +84,38 @@ subroutine writeevec(vq, voff, filxt)
     ! LOs form evecfv.
     call genlocmt(ngk(1, ik), 1, nstfv, evecfv, locmt)
 
-    do j = 0, procs - 1
-      if(rank .eq. j) then
-         call putapwcmt('APWCMT'//trim(filxt), ik, vkl(1, ik), vq, apwcmt)
-         call putlocmt('LOCMT'//trim(filxt), ik, vkl(1, ik), vq, locmt)
-      end if
-      call barrier
-    end do
+    ! Only rank 0 writes to file
+    if(rank /= 0) then 
+#ifdef MPI
+      call mpi_send(apwcmt, size(apwcmt),&
+        & mpi_double_complex, 0, mpitag, mpiglobal%comm, mpiglobal%ierr)
+      call mpi_send(locmt, size(locmt),&
+        & mpi_double_complex, 0, mpitag+1, mpiglobal%comm, mpiglobal%ierr)
+#endif
+    else
+      ! For each call form rank 0 there are lastproc(ik, nkpt) 
+      ! sends from the other ranks to rank 0.
+      do iproc = 0, lastproc(ik, nkpt)
+        ! Calculate ik form sender
+        ikr = firstofset(iproc, nkpt) - 1 + ik
+        if(iproc /= 0) then
+#ifdef MPI
+          ! receive data from slaves
+          call mpi_recv(apwcmt, size(apwcmt), mpi_double_complex,&
+            & iproc, mpitag, mpiglobal%comm, stat, mpiglobal%ierr)
+          call mpi_recv(locmt, size(locmt), mpi_double_complex,&
+            & iproc, mpitag+1, mpiglobal%comm, stat, mpiglobal%ierr)
+#endif
+        end if
+        ! Only master is performing i/o
+        call putapwcmt('APWCMT'//trim(filxt), ikr, vkl(1, ikr), vq, apwcmt)
+        call putlocmt('LOCMT'//trim(filxt), ikr, vkl(1, ikr), vq, locmt)
+      end do
+    end if
 
   end do
 
-  call endloopbarrier(nkpt, procs)
+  call barrier(mpiglobal)
 
   isreadstate0 = .false.
 

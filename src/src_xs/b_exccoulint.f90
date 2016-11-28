@@ -50,6 +50,7 @@ subroutine b_exccoulint
   integer(4) :: iknr, jknr, iqr, iq, igq1, numgq
   integer(4) :: iv(3), j1, j2
   integer(4) :: ikkp
+  real(8) :: tpw1, tpw0
 
   integer(4) :: ik, jk, inou, jnou, ino, inu, jno, jnu
   integer(4) :: io, jo, iu, ju
@@ -126,20 +127,22 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
   ! Select relevant transitions for the construction
   ! of the BSE hamiltonian
   ! Also sets nkkp_bse, nk_bse 
-  call select_transitions(iqmt)
+  call select_transitions(iqmt, serial=.false.)
 
   ! Include coupling terms
   fcoup = input%xs%bse%coupling
 
   ! Write support information to file
-  call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
-    & iqmt=iqmt, filnam=infofname)
-  call b_putbseinfo(infofname, iqmt)
-  if(fcoup) then
-    call genfilname(basename=trim(infofbasename)//'_'//trim(exclicfbasename),&
-      & iqmt=iqmt, filnam=infocfname)
-    call b_putbseinfo(infocfname, iqmt)
-  end if
+  if(mpiglobal%rank == 0) then
+    call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
+      & iqmt=iqmt, filnam=infofname)
+    call b_putbseinfo(infofname, iqmt)
+    if(fcoup) then
+      call genfilname(basename=trim(infofbasename)//'_'//trim(exclicfbasename),&
+        & iqmt=iqmt, filnam=infocfname)
+      call b_putbseinfo(infocfname, iqmt)
+    end if
+  end if 
 
   ! Set output file names
   call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname)
@@ -149,7 +152,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   ! Change file extension and write out k an q points
   call genfilname(dotext='_SCI.OUT', setfilext=.true.)
-  if(rank .eq. 0) then
+  if(mpiglobal%rank == 0) then
     call writekpts
     call writeqpts
   end if
@@ -180,9 +183,15 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   ! Work array to store result of plane wave matrix elements
   ! for each considered k point 
+! Note: Potentially too large to keep in memory 
   allocate(ematouk(no_bse_max, nu_bse_max, numgq, nk_bse))
   if(fcoup == .true.) then
     allocate(ematuok(nu_bse_max, no_bse_max, numgq, nk_bse))
+  end if
+
+  if(rank == 0) then
+    write(unitout, '("Info(b_exccoulint): Generating plane wave matrix elements")')
+    call timesec(tpw0)
   end if
 
   !!<-- Generate M_ouk(G,qmt) for all k.
@@ -208,23 +217,42 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
     call getmou(iqmt+1, iknr, mou)
 
     ! Save them for all ks
-    ematouk(1:ino,1:inu, :, ik) = mou
+    ematouk(1:ino, 1:inu, 1:numgq, ik) = mou
 
     if(fcoup == .true.) then
       call getmuo(iqmt+1, iknr, muo)
-      ematuok(1:inu,1:ino,:,iknr) = muo
+      ematuok(1:inu, 1:ino, 1:numgq, ik) = muo
+    end if
+
+    if(rank == 0) then
+      write(6, '(a,"Exccoulint - mou/muo progess:", f10.3)', advance="no")&
+        & achar( 13), 100.0d0*dble(ik-kpari+1)/dble(kparf-kpari+1)
+      flush(6)
     end if
 
   end do
 
+  if(allocated(mou)) deallocate(mou)
+  if(fcoup == .true.) then
+    if(allocated(muo)) deallocate(muo)
+  end if
+
   ! Communicate array-parts wrt. k-points
-  call mpi_allgatherv_ifc(set=nk_bse, rlen=nou_bse_max*numgq, zbuf=ematouk,&
+  call mpi_allgatherv_ifc(set=nk_bse, rlen=no_bse_max*nu_bse_max*numgq, zbuf=ematouk,&
     & inplace=.true., comm=mpiglobal)
   if(fcoup == .true.) then
-    call mpi_allgatherv_ifc(set=nk_bse, rlen=nou_bse_max*numgq, zbuf=ematuok,&
+    call mpi_allgatherv_ifc(set=nk_bse, rlen=nu_bse_max*no_bse_max*numgq, zbuf=ematuok,&
       & inplace=.true., comm=mpiglobal)
   end if
   !!-->
+  if(rank == 0) then
+    write(*,*)
+  end if
+  if(rank == 0) then
+    call timesec(tpw1)
+    write(unitout, '("  Timing (in seconds)	   :", f12.3)') tpw1 - tpw0
+  end if
+
 
   !-------------------------------!
   !     Loop over(k,kp) pairs     !
@@ -235,6 +263,11 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   if(fcoup) then
     allocate(exclic(nou_bse_max, nou_bse_max))
+  end if
+
+  if(rank == 0) then
+    write(unitout, '("Info(b_exccoulint): Generating V matrix elements")')
+    call timesec(tpw0)
   end if
 
   kkp: do ikkp = ppari, pparf
@@ -257,11 +290,6 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
     ! Get number of transitions at ik,jk
     inou = kousize(iknr)
     jnou = kousize(jknr)
-
-!write(*,*) "ikkp", ikkp
-!write(*,*) "ik, jk", ik, jk
-!write(*,*) "iknr, jknr", iknr, jknr
-!write(*,*) "inou, jnou", inou, jnou
 
     !!<-- The difference vector, i.e. q not needed in
     !! the calculations (yet?)
@@ -293,26 +321,38 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
     end if
 
     ! Parallel write
-    call b_putbsemat(exclifname, 77, ikkp, iqmt, excli(1:inou,1:jnou))
+    call b_putbsemat(exclifname, 77, ikkp, iqmt, excli)
     if(fcoup == .true.) then
-      call b_putbsemat(exclicfname, 78, ikkp, iqmt, exclic(1:inou,1:jnou))
+      call b_putbsemat(exclicfname, 78, ikkp, iqmt, exclic)
+    end if
+
+    if(rank == 0) then
+      write(6, '(a,"Exccoulint progess:", f10.3)', advance="no")&
+        & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
+      flush(6)
     end if
 
   ! End loop over(k,kp) pairs
   end do kkp
+  if(rank == 0) then
+    write(*,*)
+  end if
   
   call barrier
+
+  if(rank == 0) then
+    call timesec(tpw1)
+    write(unitout, '("  Timing (in seconds)	   :", f12.3)') tpw1 - tpw0
+  end if
 
   call findgntn0_clear
 
   deallocate(potcl) 
   deallocate(ematouk)
   deallocate(excli)
-  deallocate(mou)
   if(fcoup == .true.) then
     deallocate(ematuok)
     deallocate(exclic)
-    deallocate(muo)
   end if
 
   if(rank .eq. 0) then
@@ -383,17 +423,13 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       ! Offset in combined index for ik and jk
       iaoff = sum(kousize(1:iknr-1))
       jaoff = sum(kousize(1:jknr-1))
-!write(*,*) "iaoff", iaoff
-!write(*,*) "jaoff", jaoff
 
-!write(*,*) "Building emat12"
       !!<-- RR and RA part
       do ia = 1, inou
         ! Get iu index relative to iu range of ik
         iu = smap_rel(1, ia+iaoff) ! iu (ik+qmt)
         ! Get io index relative to io range of ik
         io = smap_rel(2, ia+iaoff) ! io (ik)
-!write(*,*) "ia, iu, io", ia, iu, io
         ! emat12_ia = M_o1u1ki, M_o2u1ki, ..., M_oNu1ki, M_o1u2ki, ..., M_oNuMki
         emat12(ia, :) = ematouk(io, iu, :, ik)
       end do
@@ -401,14 +437,12 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       emat12 = conjg(emat12)
       !!-->
 
-!write(*,*) "Building emat34"
       !!<-- RR part
       do ja = 1, jnou
         ! Get ju index relative to iu range of jk
         ju = smap_rel(1, ja+jaoff) ! ju (jk+qmt)
         ! Get jo index relative to io range of jk
         jo = smap_rel(2, ja+jaoff) ! jo (jk)
-!write(*,*) "ja, ju, jo", ja, ju, jo
         ! emat34_ja = (M_o1u1kj,M_o2u1kj,...,M_oNu1kj,M_o1u2kj,...,M_oNuMkj)*v(G,0)
         emat34(ja, :) = ematouk(jo, ju, :, jk) * potcl(:)
       end do
