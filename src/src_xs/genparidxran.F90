@@ -48,7 +48,7 @@ Subroutine genparidxran (typ, n)
       Case ('k')
          kpari = firstofset (rank, n)
          kparf = lastofset (rank, n)
-      Case ('p')
+        Case ('p')
          ppari = firstofset (rank, n)
          pparf = lastofset (rank, n)
       Case Default

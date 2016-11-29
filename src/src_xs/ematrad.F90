@@ -145,6 +145,21 @@ if (.true.) then
 
 #endif
 !               End Do ! l2
+
+!if( norm2( vql( :, iq) - (/0.25, 0.00, 0.00/)) .lt. input%structure%epslat) then
+!  do l2 = 0, lmax3
+!    do io2 = 1, apword( l2, is)
+!      do l1 = 0, lmax1
+!        do io1 = 1, apword( l1, is)
+!          do l3 = 0, lmax2
+!             write( *, '(2I3,3x,I3,3x,2I3,3x,2I3,3x,SP,F23.16)') is, ia, l3, l1, io1, l2, io2, riaa( l2, io2, l1, io1, l3, ias, igq)
+!          end do
+!        end do
+!      end do
+!    end do
+!  end do
+!end if
+          
            !----------------------------!
            !     local-orbital-APW      !
            !----------------------------!

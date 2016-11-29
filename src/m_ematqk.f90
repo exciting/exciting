@@ -10,6 +10,7 @@ module m_ematqk
   use mod_Gvector
   use mod_Gkvector
   use mod_eigenvalue_occupancy
+  use m_plotmat
 
   implicit none
   private
@@ -22,19 +23,20 @@ module m_ematqk
   integer, allocatable :: nlmo(:), lmo2l(:,:), lmo2m(:,:), lmo2o(:,:), lm2l(:)
   complex(8), allocatable :: rigntaa(:,:,:), rigntal(:,:,:), rigntla(:,:,:), rigntll(:,:,:)
 
-  public :: emat_init, emat_genemat
+  public :: emat_init, emat_genemat, emat_destroy
 
 ! variable
 
 ! methods
   contains
-      subroutine emat_init( vecql_, vecgc_, lmaxapw_, lmaxexp_)
+      subroutine emat_init( vecql_, vecgl_, lmaxapw_, lmaxexp_)
           integer, intent( in) :: lmaxapw_, lmaxexp_
-          real(8), intent( in) :: vecql_(3), vecgc_(3)
+          real(8), intent( in) :: vecql_(3)
+          integer, intent( in) :: vecgl_(3)
 
           integer :: l1, l2, l3, m1, m2, m3, o1, o2, lm1, lm2, lm3, is, ia, ias, i
           integer :: lmo1, lmo2, ilo1, ilo2, idxlo1, idxlo2, idxlostart
-          real(8) :: gnt, gaunt, qgc, tp(2), vec1(3), vec2(3)
+          real(8) :: gnt, gaunt, qgc, tp(2)
           complex(8) :: strf, ylm( (lmaxexp_ + 1)**2)
 
           integer, allocatable :: idxgnt(:,:,:)
@@ -51,16 +53,9 @@ module m_ematqk
           lmaxapw = min( lmaxapw_, input%groundstate%lmaxapw)
           lmaxexp = lmaxexp_
           vecql(:) = vecql_(:)
-          vecgc(:) = vecgc_(:)
+          vecgl(:) = vecgl_(:)
           call r3mv( bvec, vecql, vecqc)
-          call r3mv( binv, vecgc, vec1)
-          vec2 = vec1 - nint( vec1)
-          if( norm2( vec2) .lt. input%structure%epslat) then
-            vecgl = nint( vec1)
-          else
-            write( *, '("ERROR (emat_init): vecgc is not a valid reciprocal lattice vector")')
-            stop
-          end if
+          call r3mv( bvec, dble( vecgl), vecgc)
           
           ! count combined (l,m,o) indices and build index maps
           allocate( nlmo( nspecies))
@@ -169,6 +164,9 @@ module m_ematqk
                         strf*conjg( zil( l3))*conjg( ylm( lm3))*listgnt( i, lm1, lm2)*riaa( l3, l1, o1, l2, o2)
                     i = i + 1
                   end do
+                  !if( norm2( vecql(:) - (/0.25, 0.25, 0.25/)) .lt. input%structure%epslat) then
+                  !  write( *, '(2I3,3x,3I3,3x,3I3,SP,F23.16,F23.16)') is, ia, l1, m1, o1, l2, m2, o2, rigntaa( lmo1, lmo2, ias)/strf
+                  !end if
                 end do
               end do
 
@@ -268,6 +266,10 @@ module m_ematqk
 
           allocate( fr( nr), gf( nr), cf( 3, nr))
           ! APW-APW
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( l1, l2, l3, o1, o2, ir, fr, gf, cf)
+!$OMP DO  
+#endif
           do l2 = 0, lmaxapw
             do o2 = 1, apword( l2, is)
               do l1 = 0, lmaxapw
@@ -283,8 +285,16 @@ module m_ematqk
               end do
             end do
           end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
 
           ! APW-LO
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ilo1, l1, l3, o1, ir, fr, gf, cf)
+!$OMP DO  
+#endif
           do ilo1 = 1, nlorb( is)
             do l1 = 0, lmaxapw
               do o1 = 1, apword( l1, is)
@@ -298,8 +308,16 @@ module m_ematqk
               end do
             end do
           end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
 
           ! LO-LO
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ilo1, ilo2, l3, ir, fr, gf, cf)
+!$OMP DO  
+#endif
           do ilo2 = 1, nlorb( is)
             do ilo1 = 1, nlorb( is)
               do l3 = 0, lmaxexp
@@ -311,14 +329,18 @@ module m_ematqk
               end do
             end do
           end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
 
           deallocate( jlqgr, fr, gf, cf)
           return
       end subroutine emat_genri
       
-      subroutine emat_genemat( ik, ikq, fst1, nst1, fst2, nst2, evec1, evec2, emat)
+      subroutine emat_genemat( ik, fst1, nst1, fst2, nst2, evec1, evec2, emat)
           use modxs, only : fftmap_type
-          integer, intent( in) :: ik, ikq, fst1, nst1, fst2, nst2
+          integer, intent( in) :: ik, fst1, nst1, fst2, nst2
           complex(8), intent( in) :: evec1( ngkmax+nlotot, nstfv), evec2( ngkmax+nlotot, nstfv)
           complex(8), intent( out) :: emat( nst1, nst2)
 
@@ -332,7 +354,7 @@ module m_ematqk
           complex(8), allocatable :: zfft0(:,:), zfftcf(:), zfftres(:), zfft(:)
 
           integer, allocatable :: igkignr(:), igkqig(:) 
-          real(8), allocatable :: vecgkql(:,:,:), vecgkqc(:,:,:), gkqc(:), tpgkqc(:,:)
+          real(8), allocatable :: vecgkql(:,:), vecgkqc(:,:), gkqc(:), tpgkqc(:,:)
           complex(8), allocatable :: sfacgkq(:,:), apwalm1(:,:,:,:), apwalm2(:,:,:,:)
           complex(8), allocatable :: blockmt(:,:), auxmat(:,:), match_combined1(:,:), match_combined2(:,:)
           complex(8), allocatable :: aamat(:,:), almat(:,:), lamat(:,:)
@@ -348,7 +370,7 @@ module m_ematqk
             return
           end if
 
-          allocate( igkignr( ngkmax), igkqig( ngkmax), vecgkql( 3, ngkmax, nspnfv), vecgkqc( 3, ngkmax, nspnfv), gkqc( ngkmax), tpgkqc( 2, ngkmax))
+          allocate( igkignr( ngkmax), igkqig( ngkmax), vecgkql( 3, ngkmax), vecgkqc( 3, ngkmax), gkqc( ngkmax), tpgkqc( 2, ngkmax))
           allocate( sfacgkq( ngkmax, natmtot))
           allocate( apwalm1( ngkmax, apwordmax, lmmaxapw, natmtot))
           allocate( apwalm2( ngkmax, apwordmax, lmmaxapw, natmtot))
@@ -364,15 +386,13 @@ module m_ematqk
           ! generate the structure factors
           call gensfacgp( ngkq, vecgkqc, ngkmax, sfacgkq)
           ! find matching coefficients for k-point k+q
-          apwalm2 = zzero
           call match( ngkq, gkqc, tpgkqc, sfacgkq, apwalm2)
 
           ! generate the G+k-vectors
-          call gengpvec( vklnr( :, ik), vkcnr( :, ik), ngknr, igkignr, vecgkql(:,:,1), vecgkqc(:,:,1), gkqc, tpgkqc)
+          call gengpvec( vklnr( :, ik), vkcnr( :, ik), ngknr, igkignr, vecgkql, vecgkqc, gkqc, tpgkqc)
           ! generate the structure factors
           call gensfacgp( ngknr, vecgkqc, ngkmax, sfacgkq)
           ! find matching coefficients for k-point k
-          apwalm1 = zzero
           call match( ngknr, gkqc, tpgkqc, sfacgkq, apwalm1)
           
           ! build block matrix
@@ -388,6 +408,10 @@ module m_ematqk
         
           blockmt(:,:) = zzero
 
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( is, ia, ias, match_combined1, match_combined2, lmo, l, m, o, lm, auxmat, aamat, almat, lamat) reduction(+:blockmt)
+!$OMP DO
+#endif
           do is = 1, nspecies
             do ia = 1, natoms( is)
               ias = idxas( ia, is)
@@ -428,9 +452,12 @@ module m_ematqk
               blockmt( (ngknr+1):(ngknr+nlotot), 1:ngkq) = blockmt( (ngknr+1):(ngknr+nlotot), 1:ngkq) + lamat(:,:)
               ! LO-LO
               blockmt( (ngknr+1):(ngknr+nlotot), (ngkq+1):(ngkq+nlotot)) = blockmt( (ngknr+1):(ngknr+nlotot), (ngkq+1):(ngkq+nlotot)) + rigntll( :, :, ias)
-
             end do
           end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
 
           ! compute final total muffin tin contribution
           deallocate( auxmat)
@@ -444,25 +471,32 @@ module m_ematqk
                auxmat(:,:), ngknr+nlotot, zzero, &
                emat(:,:), nst1)
           
-          !write(*,*) ik
-          !write(*,*) vecql
-          !do is = 1, nst1
-          !  do ia = 1, nst2
-          !    write( *, '(2I3,3x,SP,E23.16,E23.16,"i")') is, ia, emat( is, ia)
-          !  end do
-          !end do
+          !if( norm2( vecql(:) - (/0.25, 0.00, 0.00/)) .lt. input%structure%epslat) then
+          !  write(*,*) ik
+          !  write(*,'("q ",3F13.6)') vecql
+          !  write(*,'("G ",3F13.6)') dble( vecgl)
+          !  write(*,'("k ",3F13.6)') vklnr( :, ik)
+          !  call plotmat( emat, .true.)
+          !  !do is = 1, 4
+          !  !  do ia = 5, 10
+          !  !    write( *, '(2I3,3x,SP,F23.16,F23.16,"i")') is, ia, emat( is, ia)
+          !  !  end do
+          !  !end do
+          !end if
           
           !--------------------------------------!
           !     interstitial matrix elements     !
           !--------------------------------------!
  
-                !ikq = ikmapikq (ik, iq)
+          !ikq = ikmapikq (ik, iq)
           veckql(:) = vklnr( :, ik) + vecql(:)        !vkql = veckql
                 
           ! umklapp treatment
           do ix = 1, 3
             if( veckql( ix) .ge. 1d0-1d-13) then
               shift( ix) = -1
+            else if( veckql( ix) .lt. -1d-13) then
+              shift( ix) = 1
             else
               shift( ix) = 0
             endif
@@ -484,7 +518,7 @@ module m_ematqk
           call zfftifc( 3, fftmap%ngrid, 1, zfftcf)
           
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ig)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ist1,ig)
 !$OMP DO
 #endif
           do ist1 = 1, nst1
@@ -501,16 +535,16 @@ module m_ematqk
              
 #ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ist2,ig,zfft,iv,igs,zfftres,igq)
-!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ist2,ig,zfft,iv,igs,zfftres)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ist2,ig,zfft,iv,igs,zfftres)
 #endif
           allocate( zfftres( fftmap%ngrtot+1))
           allocate( zfft( fftmap%ngrtot+1))
 #ifdef USEOMP
-!!$OMP DO
+!$OMP DO
 #endif
           do ist2 = 1, nst2
             zfft = zzero
-            if( sum( shift) .ne. 0) then
+            if( sum( abs( shift)) .ne. 0) then
               do ig = 1, ngkq !ngkq
                 iv = ivg( :, igkqig( ig)) + shift
                 igs = ivgig( iv(1), iv(2), iv(3))
@@ -538,24 +572,28 @@ module m_ematqk
             enddo
           enddo
 #ifdef USEOMP
-!!$OMP END DO
+!$OMP END DO
 #endif
           deallocate( zfftres, zfft)
 #ifdef USEOMP
-!!$OMP END PARALLEL
+!$OMP END PARALLEL
 #endif
           
           deallocate( fftmap%igfft)
           deallocate( zfft0, zfftcf)
 
-          
-          !write(*,*) ik
-          !write(*,*) vecql
-          !do is = 1, nst1
-          !  do ia = 1, nst2
-          !    write( *, '(2I3,3x,SP,E23.16,E23.16,"i")') is, ia, emat( is, ia)
-          !  end do
-          !end do
+          !if( norm2( vecql(:) - (/0.25, 0.00, 0.00/)) .lt. input%structure%epslat) then
+          !  write(*,*) ik
+          !  write(*,'("q ",3F13.6)') vecql
+          !  write(*,'("G ",3F13.6)') dble( vecgl)
+          !  write(*,'("k ",3F13.6)') vklnr( :, ik)
+          !  call plotmat( emat)
+          !  !do is = 1, 4
+          !  !  do ia = 7, 12
+          !  !    write( *, '(2I3,3x,SP,F23.16,F23.16,"i")') is, ia, emat( is, ia)
+          !  !  end do
+          !  !end do
+          !end if
           
           deallocate( igkqig, vecgkql, vecgkqc, gkqc, tpgkqc, sfacgkq, apwalm1, apwalm2, blockmt, auxmat, match_combined1, match_combined2)
           return

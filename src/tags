@@ -18314,6 +18314,7 @@ am_xc_get_data_OBJECTS	libXC/testsuite/Makefile	/^am_xc_get_data_OBJECTS = xc_ge
 am_xc_regression_OBJECTS	libXC/testsuite/Makefile	/^am_xc_regression_OBJECTS = xc_regression-xc-regression.$(OBJEXT)$/;"	m
 ampl	src_inputparser/inputmodules.f90	/^ real(8)::ampl$/;"	k	type:dfthalfparam_type
 angavsc0	src_xs/angavsc0.F90	/^Subroutine angavsc0 /;"	s
+angchar	mod_wannier.f90	/^    subroutine angchar(/;"	s	module:mod_wannier
 angular_averaging	src_gw/angular_averaging.f90	/^subroutine angular_averaging(/;"	s
 answ	src_other/delaunay.f	/^      character*1 answ$/;"	v	program:main
 any	FoX/common/m_common_element.F90	/^    logical :: any /;"	k	type:element_t
@@ -20017,7 +20018,11 @@ elstack_item	FoX/common/m_common_elstack.F90	/^  type :: elstack_item$/;"	t	modu
 elstack_t	FoX/common/m_common_elstack.F90	/^  type :: elstack_t$/;"	t	module:m_common_elstack
 elval	species/modspecies.F90	/^real(8) :: elval(/;"	v	module:modspecies
 emass_si	eos/modmain.f90	/^real(8), parameter :: emass_si=/;"	v	module:modmain
-emat_wannier	emat_wannier.f90	/^Subroutine emat_wannier(/;"	s
+emat_destroy	m_ematqk.f90	/^      subroutine emat_destroy$/;"	s	module:m_ematqk
+emat_genemat	m_ematqk.f90	/^      subroutine emat_genemat(/;"	s	module:m_ematqk
+emat_genri	m_ematqk.f90	/^      subroutine emat_genri(/;"	s	module:m_ematqk
+emat_init	m_ematqk.f90	/^      subroutine emat_init(/;"	s	module:m_ematqk
+emat_wannier	emat_wannier.f90	/^Subroutine emat_wannier /;"	s
 ematbdcmbs	src_xs/ematbdcmbs.F90	/^Subroutine ematbdcmbs /;"	s
 ematbdlims	src_xs/ematbdlims.F90	/^Subroutine ematbdlims /;"	s
 ematdirect	src_xs/xas/ematdirect.f90	/^Subroutine ematdirect /;"	s
@@ -22092,6 +22097,7 @@ initatomcounters	src_inputparser/initatomcounter.F90	/^Subroutine initatomcounte
 initfun	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  subroutine initfun;$/;"	m	struct:__anon62
 initial	src_inputparser/inputmodules.f90	/^ integer::initial$/;"	k	type:trans_type
 initialized	FoX/utils/fox_m_utils_uuid.F90	/^  logical, save :: initialized /;"	v	module:fox_m_utils_uuid
+initialized	m_ematqk.f90	/^  logical :: initialized /;"	v	module:m_ematqk
 initlattice	src_inputparser/initlattice.f90	/^Subroutine initlattice$/;"	s
 initldapu	src_inputparser/initldapu.F90	/^subroutine initldapu$/;"	s
 initlibxc	src_inputparser/initlibxc.F90	/^subroutine initlibxc$/;"	s
@@ -23077,10 +23083,12 @@ liveNodeLists	FoX/common/m_common_struct.F90	/^    logical :: liveNodeLists /;"	
 liveNodeLists	FoX/dom/m_dom_dom.F90	/^    logical :: liveNodeLists /;"	k	type:documentExtras
 lkdown	src_other/delaunay.f	/^      subroutine lkdown(/;"	s
 llu	mod_LDA_LU.F90	/^      Integer :: llu /;"	v	module:mod_LDA_LU
+lm2l	m_ematqk.f90	/^  integer, allocatable :: nlmo(:), lmo2l(:,:), lmo2m(:,:), lmo2o(:,:), lm2l(/;"	v	module:m_ematqk
 lmapwidx	src_gw/mod_pmat.f90	/^  integer, allocatable :: lmapwidx(/;"	v	module:mod_pmat
 lmax	species/modspecies.F90	/^integer, parameter :: lmax=/;"	v	module:modspecies
 lmax	src_inputparser/inputmodules.f90	/^ integer::lmax$/;"	k	type:xsLO_type
 lmaxalda	src_inputparser/inputmodules.f90	/^ integer::lmaxalda$/;"	k	type:tddft_type
+lmaxapw	m_ematqk.f90	/^  integer :: nlmomax, lmaxapw,/;"	v	module:m_ematqk
 lmaxapw	src_inputparser/inputmodules.f90	/^ integer::lmaxapw$/;"	k	type:groundstate_type
 lmaxapw	src_inputparser/inputmodules.f90	/^ integer::lmaxapw$/;"	k	type:xs_type
 lmaxapw_b	src_xs/modxs.F90	/^      Integer :: lmaxapw_b$/;"	v	module:modxs
@@ -23088,6 +23096,7 @@ lmaxapwwf	src_inputparser/inputmodules.f90	/^ integer::lmaxapwwf$/;"	k	type:xs_t
 lmaxdielt	src_inputparser/inputmodules.f90	/^ integer::lmaxdielt$/;"	k	type:BSE_type
 lmaxdielt	src_inputparser/inputmodules.f90	/^ integer::lmaxdielt$/;"	k	type:scrcoul_type
 lmaxemat	src_inputparser/inputmodules.f90	/^ integer::lmaxemat$/;"	k	type:xs_type
+lmaxexp	m_ematqk.f90	/^  integer :: nlmomax, lmaxapw, lmaxexp$/;"	v	module:m_ematqk
 lmaxinr	src_inputparser/inputmodules.f90	/^ integer::lmaxinr$/;"	k	type:groundstate_type
 lmaxlu	mod_LDA_LU.F90	/^      Integer, Parameter :: lmaxlu /;"	v	module:mod_LDA_LU
 lmaxmat	src_inputparser/inputmodules.f90	/^ integer::lmaxmat$/;"	k	type:groundstate_type
@@ -23107,6 +23116,9 @@ lmmaxlo	src_gw/mod_pmat.f90	/^  integer, allocatable :: lmmaxlo(/;"	v	module:mod
 lmmaxlu	mod_LDA_LU.F90	/^      Integer, Parameter :: lmmaxlu /;"	v	module:mod_LDA_LU
 lmmaxmat	mod_muffin_tin.F90	/^      Integer :: lmmaxmat$/;"	v	module:mod_muffin_tin
 lmmaxvr	mod_muffin_tin.F90	/^      Integer :: lmmaxvr$/;"	v	module:mod_muffin_tin
+lmo2l	m_ematqk.f90	/^  integer, allocatable :: nlmo(:), lmo2l(/;"	v	module:m_ematqk
+lmo2m	m_ematqk.f90	/^  integer, allocatable :: nlmo(:), lmo2l(:,:), lmo2m(/;"	v	module:m_ematqk
+lmo2o	m_ematqk.f90	/^  integer, allocatable :: nlmo(:), lmo2l(:,:), lmo2m(:,:), lmo2o(/;"	v	module:m_ematqk
 lnsrlb	Lbfgsb.3.0/lbfgsb.f	/^      subroutine lnsrlb(/;"	s
 lo	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^     &                 n, nx, lo,/;"	v	program:cnbdr1
 lo	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^     &                 n, nxi, lo,/;"	v	program:cnbdr2
@@ -23357,6 +23369,7 @@ m_dom_utils	FoX/dom/m_dom_utils.f90	/^module m_dom_utils$/;"	m
 m_dyson	src_xs/dyson.F90	/^Module m_dyson$/;"	m
 m_dysonsym	src_xs/dysonsym.F90	/^Module m_dysonsym$/;"	m
 m_eigvec	src_raman/eigvec.f90	/^module m_eigvec$/;"	m
+m_ematqk	m_ematqk.f90	/^module m_ematqk$/;"	m
 m_emattim	src_xs/emattim.F90	/^Module m_emattim$/;"	m
 m_filedel	src_xs/filedel.F90	/^Module m_filedel$/;"	m
 m_findgntn0	src_xs/findgntn0.F90	/^Module m_findgntn0$/;"	m
@@ -23390,6 +23403,7 @@ m_gndstateq	src_xs/gndstateq.F90	/^Module m_gndstateq$/;"	m
 m_got	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  int m_dimx, m_dimy, m_got;$/;"	m	class:PartitionPlane	file:
 m_ieee	FoX/fsys/m_ieee.f90	/^module m_ieee$/;"	m
 m_pade	src_xs/pade.F90	/^Module m_pade$/;"	m
+m_plotmat	plotmat.f90	/^module m_plotmat$/;"	m
 m_printer	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  QPrinter *m_printer;$/;"	m	class:PartitionViewer	file:
 m_putemat	src_xs/putemat.F90	/^Module m_putemat$/;"	m
 m_putpmat	src_xs/putpmat.F90	/^Module m_putpmat$/;"	m
@@ -23424,6 +23438,7 @@ m_writeloss	src_xs/writeloss.F90	/^Module m_writeloss$/;"	m
 m_writesigma	src_xs/writesigma.F90	/^Module m_writesigma$/;"	m
 m_writesumrls	src_xs/writesumrls.F90	/^Module m_writesumrls$/;"	m
 m_writevars	src_xs/writevars.F90	/^Module m_writevars$/;"	m
+m_wsweight	m_wsweight.f90	/^module m_wsweight$/;"	m
 m_wxml_core	FoX/wxml/m_wxml_core.F90	/^module m_wxml_core$/;"	m
 m_wxml_escape	FoX/wxml/m_wxml_escape.F90	/^module m_wxml_escape$/;"	m
 m_wxml_overloads	FoX/wxml/m_wxml_overloads.F90	/^module m_wxml_overloads$/;"	m
@@ -24862,6 +24877,8 @@ nleblaik	src_inputparser/inputmodules.f90	/^ integer::nleblaik$/;"	k	type:BSE_ty
 nleblaik	src_inputparser/inputmodules.f90	/^ integer::nleblaik$/;"	k	type:scrcoul_type
 nlist	FoX/sax/m_sax_types.F90	/^    type(notation_list) :: nlist$/;"	k	type:sax_parser_t
 nllsq	src_gw/src_acfreq/nllsq.f90	/^      subroutine nllsq(/;"	s
+nlmo	m_ematqk.f90	/^  integer, allocatable :: nlmo(/;"	v	module:m_ematqk
+nlmomax	m_ematqk.f90	/^  integer :: nlmomax,/;"	v	module:m_ematqk
 nlomax	mod_APW_LO.F90	/^      Integer :: nlomax$/;"	v	module:mod_APW_LO
 nlorb	mod_APW_LO.F90	/^      Integer :: nlorb /;"	v	module:mod_APW_LO
 nlorb	species/modspecies.F90	/^integer :: nlx,nlorb,/;"	v	module:modspecies
@@ -25510,6 +25527,7 @@ plot_selfenergy	src_gw/src_tests/plot_selfenergy.f90	/^      subroutine plot_sel
 plotevecmix	src_gw/src_tests/plotevecmix.f90	/^subroutine plotevecmix(/;"	s
 plotevecprod	src_gw/src_tests/plotevecprod.f90	/^    subroutine plotevecprod(/;"	s
 plotlabels	mod_plotlabels.f90	/^    type plotlabels$/;"	t	module:modplotlabels
+plotmat	plotmat.f90	/^    subroutine plotmat(/;"	s	module:m_plotmat
 pmatcv	src_gw/mod_dielectric_function.f90	/^    complex(8), allocatable :: pmatcv(/;"	v	module:mod_dielectric_function
 pmatrad	src_xs/pmatrad.F90	/^Subroutine pmatrad$/;"	s
 pmatvv	src_gw/mod_dielectric_function.f90	/^    complex(8), allocatable :: pmatvv(/;"	v	module:mod_dielectric_function
@@ -26198,6 +26216,10 @@ rhonorm	rhonorm.f90	/^Subroutine rhonorm$/;"	s
 rhoplot	rhoplot.f90	/^Subroutine rhoplot$/;"	s
 rhovalk	rhovalk.f90	/^Subroutine rhovalk /;"	s
 riaa	src_xs/modxs.F90	/^      Real (8), Allocatable :: riaa /;"	v	module:modxs
+rigntaa	m_ematqk.f90	/^  complex(8), allocatable :: rigntaa(/;"	v	module:m_ematqk
+rigntal	m_ematqk.f90	/^  complex(8), allocatable :: rigntaa(:,:,:), rigntal(/;"	v	module:m_ematqk
+rigntla	m_ematqk.f90	/^  complex(8), allocatable :: rigntaa(:,:,:), rigntal(:,:,:), rigntla(/;"	v	module:m_ematqk
+rigntll	m_ematqk.f90	/^  complex(8), allocatable :: rigntaa(:,:,:), rigntal(:,:,:), rigntla(:,:,:), rigntll(/;"	v	module:m_ematqk
 riloa	src_xs/modxs.F90	/^      Real (8), Allocatable :: riloa /;"	v	module:modxs
 rilolo	src_xs/modxs.F90	/^      Real (8), Allocatable :: rilolo /;"	v	module:modxs
 rindex	src_gw/setrindex.f90	/^    integer(4), allocatable :: rindex(/;"	v	module:fouri
@@ -28098,7 +28120,11 @@ vdw_energy_pairwiseC6	src_vdW/vdw_general_routines.f90	/^  Real(8) Function vdw_
 vdw_force_pairwiseC6	src_vdW/vdw_general_routines.f90	/^  Function vdw_force_pairwiseC6(/;"	f	module:vdw_general_routines
 vdw_general_routines	src_vdW/vdw_general_routines.f90	/^Module vdw_general_routines$/;"	m
 vecfbz	src_lib/vecfbz.f90	/^Subroutine vecfbz /;"	s
+vecgc	m_ematqk.f90	/^  real(8) :: vecql(3), vecqc(3), vecgc(/;"	v	module:m_ematqk
+vecgl	m_ematqk.f90	/^  integer :: vecgl(/;"	v	module:m_ematqk
 vecplot	vecplot.f90	/^Subroutine vecplot$/;"	s
+vecqc	m_ematqk.f90	/^  real(8) :: vecql(3), vecqc(/;"	v	module:m_ematqk
+vecql	m_ematqk.f90	/^  real(8) :: vecql(/;"	v	module:m_ematqk
 vecql	src_inputparser/inputmodules.f90	/^ real(8)::vecql(/;"	k	type:elnes_type
 vectors	src_vdwdf/modules.f90	/^   real*8              :: vectors(/;"	v	module:param
 veffig	mod_potential_and_density.F90	/^      Complex (8), Allocatable :: veffig /;"	v	module:mod_potential_and_density
@@ -28296,7 +28322,8 @@ weighttol	src_libbzint/tetra_internal.f90	/^      real(8),parameter:: weighttol 
 weightwarn	src_libbzint/tetra_internal.f90	/^      real(8),parameter:: weightwarn /;"	v	module:tetra_internal
 well_formed	FoX/sax/m_sax_types.F90	/^    logical :: well_formed /;"	k	type:sax_parser_t
 wf	src_inputparser/speciesmodules.f90	/^type(wf_/;"	k	type:wf_type_array
-wf_bandstart	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_nprojused, wf_bandstart$/;"	v	module:mod_wannier
+wf_bandstart	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_nprojused, wf_bandstart,/;"	v	module:mod_wannier
+wf_nband	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_nprojused, wf_bandstart, wf_nband$/;"	v	module:mod_wannier
 wf_nprojtot	mod_wannier.f90	/^  integer :: wf_nprojtot,/;"	v	module:mod_wannier
 wf_nprojused	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_nprojused,/;"	v	module:mod_wannier
 wf_projst	mod_wannier.f90	/^  integer, allocatable :: wf_projst(/;"	v	module:mod_wannier
@@ -28309,6 +28336,7 @@ wfarray	src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfar
 wfarray	src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfarray(/;"	k	type:lo_type
 wfc	FoX/common/m_common_entities.F90	/^    logical :: wfc /;"	k	type:entity_t
 wfinit	mod_wannier.f90	/^    subroutine wfinit$/;"	s	module:mod_wannier
+wfneighbors	mod_wannier.f90	/^    subroutine wfneighbors(/;"	s	module:mod_wannier
 wfplot	src_inputparser/inputmodules.f90	/^  type(wfplot_/;"	k	type:properties_type
 wfplot	wfplot.f90	/^Subroutine wfplot(/;"	s
 wfplot_new	wfplot_new.f90	/^subroutine wfplot_new(/;"	s
@@ -28716,7 +28744,7 @@ writevars	src_xs/writevars.F90	/^      Subroutine writevars /;"	s	module:m_write
 writewiq2	writewiq2.f90	/^Subroutine writewiq2$/;"	s
 writexmlspecies	species/writexmlspecies.F90	/^subroutine writexmlspecies$/;"	s
 wrnmsg	src_gw/ioutils.f90	/^      subroutine wrnmsg(/;"	s
-ws_weight	src_phonon/ws_weight.f90	/^Subroutine ws_weight /;"	s
+ws_weight	m_wsweight.f90	/^Subroutine ws_weight /;"	s	module:m_wsweight
 wspecies	spacegroup/sginputmodule.f90	/^type(wspecies_/;"	k	type:wspecies_type_array
 wspecies_type	spacegroup/sginputmodule.f90	/^type wspecies_type$/;"	t	module:modsymmetries
 wspecies_type_array	spacegroup/sginputmodule.f90	/^type wspecies_type_array$/;"	t	module:modsymmetries

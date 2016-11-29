@@ -84,11 +84,9 @@ if (input%properties%bandstructure%wannier) then
   Call readfermi                !saves fermi energy in variable 'efermi'
 
   ! generating transformation matrices for Wannier functions
-  call genmlwf( 1, 4, 4, (/1, 2, 3, 4, 5, 6, 7, 8/))
-  !do iknr = 1, nkptnr
-  !  call angchar( iknr, 3, 11, 18)
-  !end do
-  !stop
+  call genmlwf( 1, 10, 10, (/1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31/))
+  !call wfshowproj
+  write(*,*) 'Interpolate band-structure...'
 
   allocate( wanme( nrpt, wf_nprojused, wf_nprojused))   ! Wannier matrix elements       -- <0i|H|Rj>
   allocate( rptc( 3, nrpt), rptl( 3, nrpt))             ! set of R-points
@@ -105,6 +103,7 @@ if (input%properties%bandstructure%wannier) then
       end do
     end do
   end do
+  !call wfplotwannier( 1)
 
   ! calculate Hamlitonian matrix elements in Wannier representation 
   allocate( auxmat( nrpt, nkptnr), auxmat2( nkptnr, wf_nprojused, wf_nprojused))
@@ -113,7 +112,7 @@ if (input%properties%bandstructure%wannier) then
     call getevalfv( vkl( :, ik), evalfv)
     ! XYZ.eig
     !do ix = wf_bandstart, wf_bandstart+wf_nband-1
-    !  write(*,*) ix, iknr, evalfv( ix, 1)*27.211385
+    !  write(*,'(2I,F23.16)') ix-wf_bandstart+1, iknr, evalfv( ix, 1)*27.211385
     !end do
     do iy = 1, wf_nprojused
       do ix = 1, wf_nprojused
@@ -128,7 +127,10 @@ if (input%properties%bandstructure%wannier) then
     end do
   end do
   do iy = 1, wf_nprojused
-    call ZGEMM( 'N', 'N', nrpt, wf_nprojused, nkptnr, zone/nkptnr, auxmat, nrpt, auxmat2( :, :, iy), nkptnr, zzero, wanme( :, :, iy), nrpt)
+    call ZGEMM( 'N', 'N', nrpt, wf_nprojused, nkptnr, zone/nkptnr, &
+         auxmat, nrpt, &
+         auxmat2( :, :, iy), nkptnr, zzero, &
+         wanme( :, :, iy), nrpt)
   end do
   deallocate( auxmat)
  
@@ -150,13 +152,16 @@ if (input%properties%bandstructure%wannier) then
       call ws_weight( rptl( :, ir), rptl( :, ir), vkl( :, ik), ftweight( ik, ir), .true.)
       auxmat(:,:) = auxmat(:,:) + wanme( ir, :, :)*conjg( ftweight( ik, ir))
     end do
+    !write(*,*) ik
+    !call plotmat( auxmat)
+    !write(*,*)
     call diaghermat( wf_nprojused, auxmat, evaltmp, evectmp)
     iy = wf_nprojused - wf_nband
     do ix = 1, wf_nprojused
       !write(*,*) ik, ix, evaltmp( ix)
       !if( (abs( evaltmp( ix)) .gt. 1.d-3) .and. (iy .lt. wf_nband)) then
       !  iy = iy + 1
-        evalsv( ix, ik) = evaltmp( ix)-efermi
+      evalsv( ix, ik) = evaltmp( ix)-efermi
       !end if
     end do
     !write(*,*)
@@ -195,7 +200,7 @@ if (input%properties%bandstructure%wannier) then
     end do
     close(50)
     write(*,*)
-    write( *, '("Info(bandstr):")')
+    write( *, '("Info (bandstr):")')
     write( *, '(" band structure plot written to BAND_WANNIER.OUT")')
   end if
    

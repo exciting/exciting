@@ -140,6 +140,27 @@ Subroutine ematgntsum (iq, igq, integrals)
                   End Do
                End Do
             End Do
+          !if( norm2( vql( :, iq) - (/0.25, 0.25, 0.25/)) .lt. input%structure%epslat) then
+          !  do l2 = 0, lmax3
+          !    do io2 = 1, apword( l2, is)
+          !      do m2 = -l2, l2
+          !        lm2 = idxlm( l2, m2)
+
+          !        do l1 = 0, lmax1
+          !          do io1 = 1, apword( l1, is)
+          !            do m1 = -l1, l1
+          !              lm1 = idxlm( l1, m1)
+
+          !              write( *, '(2I3,3x,3I3,3x,3I3,SP,F23.16,F23.16)') is, ia, l1, m1, io1, l2, m2, io2, intrgaa( lm1, io1, lm2, io2)                         
+
+          !            end do
+          !          end do
+          !        end do
+
+          !      end do
+          !    end do
+          !  end do
+          !end if
             
 
           iaug1=0

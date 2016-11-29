@@ -25,6 +25,7 @@ Subroutine ematqk (iq, ik)
       Use m_getunit
       Use m_genfilname
       use modmain
+      use m_plotmat
 #ifdef USEOMP
       use omp_lib
 #endif
@@ -138,6 +139,12 @@ Subroutine ematqk (iq, ik)
 !      evecfvo20 (:, :) = evecfv0 (1:ngk0(1, ik), istl1:istu1, 1)
   ! change back file extension
 !
+
+      !if( norm2( vql( :, iq) - (/0.25, 0.00, 0.00/)) .lt. input%structure%epslat) then
+      !  write(*,*) ik
+      !  write(*,*) vkl( :, ikq)
+      !  call plotmat( evecfv(:,:,1))
+      !end if
 
       apwmaxsize=0
       allocate(apwsize(nspecies))
@@ -254,13 +261,13 @@ if (.true.) then
       Deallocate (evecfvu, evecfvo0)
 
 
-         
-      !if( iq .eq. 2) then
+      !if( norm2( vql( :, iq) - (/0.25, 0.25, 0.25/)) .lt. input%structure%epslat) then
       !  write(*,*) ik
       !  write(*,*) vql( :, iq)
+      !  write(*,*) vklnr( :, ik)
       !  do is = 1, 4
       !    do ia = 1, 6
-      !      write( *, '(2I3,3x,SP,E23.16,E23.16,"i")') is, ia, xiou( is, ia, 1)
+      !      write( *, '(2I3,3x,SP,F23.16,F23.16,"i")') istl1+is-1, istl2+ia-1, xiou( is, ia, 1)
       !    end do
       !  end do
       !end if
@@ -430,16 +437,19 @@ endif
         & cpumtalo, cpumtloa, cpumtlolo,cpufft)
       End If
       
-      !if( (abs( vql( 1, iq) - 0.25d0) .le. 1.d-6) .and. &
-      !    (abs( vql( 2, iq) - 0.00d0) .le. 1.d-6) .and. &
-      !    (abs( vql( 3, iq) - 0.00d0) .le. 1.d-6)) then
-      if( iq .eq. 2) then
-        write(*,*) ik
-        write(*,*) vql( :, iq)
-        do is = 1, 4
-          do ia = 1, 6
-            write( *, '(2I3,3x,SP,E23.16,E23.16,"i")') is, ia, xiou( is, ia, 1)
-          end do
+      if( norm2( vql( :, iq) - (/0.75, 0.00, 0.25/)) .lt. input%structure%epslat) then
+        do igq = 1, ngq( iq)
+          if( norm2( vgql( :, igq, iq) - vql( :, iq) - (/-1.00, 0.00, 0.00/)) .lt. input%structure%epslat) then
+            write(*,*) ik, ikq
+            write(*,'("q ",3F13.6)') vql( :, iq)
+            write(*,'("G ",3F13.6)') vgql( :, igq, iq) - vql( :, iq)
+            write(*,'("k ",3F13.6)') vklnr( :, ik)
+            do is = 1, 4
+              do ia = 7, 12
+                write( *, '(2I3,3x,SP,F23.16,F23.16,"i")') is, ia, xiou( is-istl1+1, ia-istl2+1, igq)
+              end do
+            end do
+          end if
         end do
       end if
 
