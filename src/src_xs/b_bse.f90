@@ -1037,7 +1037,7 @@ contains
 
     ! Local
     integer(4) :: i, j, o1, o2, nopt
-    real(8) :: t1, t0, ts0, ts1, pref
+    real(8) :: t1, t0, ts0, ts1
     complex(8), allocatable :: ns_spectr(:,:)
     complex(8), allocatable :: overlap(:,:), invoverlap(:,:)
     complex(8), allocatable :: tplus(:,:), tmat(:,:), enw(:,:), tminus(:,:), op(:,:)
