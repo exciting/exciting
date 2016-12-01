@@ -139,7 +139,7 @@ Subroutine xsmain (plan)
               Call xas_scrcoulint
               Call xasfinit
             else if (input%xs%bse%beyond) then
-              call b_scrcoulint
+              call b_scrcoulintlauncher
             else
               Call scrcoulint
             end if
@@ -150,7 +150,7 @@ Subroutine xsmain (plan)
             Call xas_exccoulint
             Call xasfinit
           else if (input%xs%bse%beyond) then
-            call b_exccoulint
+            call b_exccoulintlauncher
           else
             Call exccoulint
           end if

@@ -5,7 +5,7 @@
 !BOP
 ! !ROUTINE: b_exccoulint
 ! !INTERFACE:
-subroutine b_exccoulint
+subroutine b_exccoulint(iqmt, fra, fti)
 ! !USES:
   use mod_misc, only: filext
   use mod_constants, only: zone, zzero
@@ -42,29 +42,52 @@ subroutine b_exccoulint
 
   implicit none
 
+  ! I/O
+
+  integer, intent(in) :: iqmt ! Index of momentum transfer Q
+  logical, intent(in) :: fra  ! Construct RA coupling block
+  logical, intent(in) :: fti  ! Use time inverted anti-resonant basis
+
   ! Local variables
+
   character(*), parameter :: thisnam = 'b_exccoulint'
-  integer(4) :: iqmt
-
-  logical :: fcoup
-  integer(4) :: iknr, jknr, iqr, iq, igq1, numgq
-  integer(4) :: iv(3), j1, j2
-  integer(4) :: ikkp
-  real(8) :: tpw1, tpw0
-
-  integer(4) :: ik, jk, inou, jnou, ino, inu, jno, jnu
-  integer(4) :: io, jo, iu, ju
-
-  real(8), allocatable :: potcl(:)
-  complex(8), allocatable :: excli(:, :), exclic(:, :)
+  ! ik,jk block of V matrix (final product)
+  complex(8), allocatable :: excli(:, :)
+  ! Auxilliary arrays for the construction of excli
   complex(8), allocatable :: ematouk(:, :, :, :), ematuok(:, :, :, :)
   complex(8), allocatable :: mou(:, :, :), muo(:,:,:)
+  ! Truncated coulomb potential
+  real(8), allocatable :: potcl(:)
+  ! ik jk q points 
+  integer(4) :: ikkp
+  integer(4) :: ik, jk, iknr, jknr, iqr, iq
+  ! Number of occupied/unoccupied states at ik and jk
+  integer(4) :: ino, inu, jno, jnu
+  ! Number of transitions at ik and jk
+  integer(4) :: inou, jnou
+  ! State loop indices
+  integer(4) :: io, jo, iu, ju
+  ! Aux.
+  integer(4) :: igq1, numgq
+  integer(4) :: iv(3), j1, j2
+  ! Timinig vars
+  real(8) :: tpw1, tpw0
 
   !---------------!
   !   main part   !
   !---------------!
 
 write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
+
+  ! Sanity check 
+  if(fra) then
+    if(fti) then 
+      if(mpiglobal%rank == 0) then
+        write(unitout,*) "Info(b_exccoulint): V^{RA,ti} = V^{RR}, returning."
+      end if
+      return
+    end if
+  end if
 
   ! General setup
   call init0
@@ -113,7 +136,6 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
   !         EVALSV_QMT001.OUT has the same content, when
   !         the first entry in the q-point list is set 0 0 0
   ! To be exact the following genfilname set filext to _QMTXXX.OUT
-  iqmt = 0
   call genfilname(iqmt=max(0, iqmt), setfilext=.true.)
 
   ! Set ist* variables and ksgap in modxs using findocclims
@@ -129,25 +151,24 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
   ! Also sets nkkp_bse, nk_bse 
   call select_transitions(iqmt, serial=.false.)
 
-  ! Include coupling terms
-  fcoup = input%xs%bse%coupling
-
   ! Write support information to file
   if(mpiglobal%rank == 0) then
-    call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
-      & iqmt=iqmt, filnam=infofname)
-    call b_putbseinfo(infofname, iqmt)
-    if(fcoup) then
+    if(fra) then
       call genfilname(basename=trim(infofbasename)//'_'//trim(exclicfbasename),&
-        & iqmt=iqmt, filnam=infocfname)
-      call b_putbseinfo(infocfname, iqmt)
+        & iqmt=iqmt, filnam=infofname)
+      call b_putbseinfo(infofname, iqmt)
+    else
+      call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
+        & iqmt=iqmt, filnam=infofname)
+      call b_putbseinfo(infofname, iqmt)
     end if
-  end if 
+  end if
 
   ! Set output file names
-  call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname)
-  if(fcoup) then
-    call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=exclicfname)
+  if(fra) then
+    call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=exclifname)
+  else
+    call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname)
   end if
 
   ! Change file extension and write out k an q points
@@ -159,18 +180,19 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
   ! Revert to previous file extension
   call genfilname(iqmt=max(0, iqmt), setfilext=.true.)
 
-  ! Number of G+q points (q=0)
-  numgq = ngq(iqmt+1) ! ngq(1) is the q=0 case
+  ! Number of G+qmt points 
+  numgq = ngq(iqmt+1) ! ngq(1) is the qmt=0 case
 
   ! Calculate radial integrals used in the construction 
-  ! of the plane wave matrix elements (for q=0)
+  ! of the plane wave matrix elements
   call ematrad(iqmt+1)
 
+  ! Allocate \bar{v}_{G}(qmt)
   allocate(potcl(numgq))
   potcl = 0.d0
 
   ! Call init1 with a vkloff that is derived
-  ! from the momentum transfer q vectors.
+  ! from the momentum transfer q vectors (qmt).
   ! Currently BSE only works for vqmt=0, so that
   ! at the moment this basically does nothing, it
   ! just calls ini1 again with the same offset as 
@@ -184,18 +206,21 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
   ! Work array to store result of plane wave matrix elements
   ! for each considered k point 
 ! Note: Potentially too large to keep in memory 
-  allocate(ematouk(no_bse_max, nu_bse_max, numgq, nk_bse))
-  if(fcoup == .true.) then
+  if(fra) then
     allocate(ematuok(nu_bse_max, no_bse_max, numgq, nk_bse))
+    allocate(ematouk(no_bse_max, nu_bse_max, numgq, nk_bse))
+  else
+    allocate(ematouk(no_bse_max, nu_bse_max, numgq, nk_bse))
   end if
 
-  if(rank == 0) then
+  if(mpiglobal%rank == 0) then
     write(unitout, '("Info(b_exccoulint): Generating plane wave matrix elements")')
     call timesec(tpw0)
   end if
 
-  !!<-- Generate M_ouk(G,qmt) for all k.
-  !! If not TDA, then also generate M_uok-qmt(G,qmt) needs to be created.
+  !! Plane wave matrix elements calculation.
+  !! RR:  M_ouk(G,qmt) for all k.
+  !! RA:  M_uok-qmt(G,qmt) for all k.
   !! Currently only works for qmt=0.
   !---------------------------!
   !     Loop over k-points    !
@@ -207,24 +232,29 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
   ! MPI distributed loop
   do ik = kpari, kparf
 
+    ! Get golbal non reduced k point index
+    ! from the BSE k-point index set.
     iknr = kmap_bse_rg(ik)
 
+    ! Get the number of participating occupied/unoccupied
+    ! states at current k point
     inu = koulims(2,iknr) - koulims(1,iknr) + 1
     ino = koulims(4,iknr) - koulims(3,iknr) + 1
 
     ! Get plane wave elements for io iu combinations 
-    ! for non reduced k and q=0 
-    call getmou(iqmt+1, iknr, mou)
-
-    ! Save them for all ks
-    ematouk(1:ino, 1:inu, 1:numgq, ik) = mou
-
-    if(fcoup == .true.) then
+    ! for non reduced k and qmt=0 
+    ! and save them for all k points for later use.
+    if(fra) then 
       call getmuo(iqmt+1, iknr, muo)
       ematuok(1:inu, 1:ino, 1:numgq, ik) = muo
+      call getmou(iqmt+1, iknr, mou)
+      ematouk(1:ino, 1:inu, 1:numgq, ik) = mou
+    else
+      call getmou(iqmt+1, iknr, mou)
+      ematouk(1:ino, 1:inu, 1:numgq, ik) = mou
     end if
 
-    if(rank == 0) then
+    if(mpiglobal%rank == 0) then
       write(6, '(a,"Exccoulint - mou/muo progess:", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(ik-kpari+1)/dble(kparf-kpari+1)
       flush(6)
@@ -232,28 +262,31 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   end do
 
+  ! Helper no longer needed
   if(allocated(mou)) deallocate(mou)
-  if(fcoup == .true.) then
-    if(allocated(muo)) deallocate(muo)
-  end if
+  if(allocated(muo)) deallocate(muo)
 
   ! Communicate array-parts wrt. k-points
-  call mpi_allgatherv_ifc(set=nk_bse, rlen=no_bse_max*nu_bse_max*numgq, zbuf=ematouk,&
-    & inplace=.true., comm=mpiglobal)
-  if(fcoup == .true.) then
+  if(fra) then
     call mpi_allgatherv_ifc(set=nk_bse, rlen=nu_bse_max*no_bse_max*numgq, zbuf=ematuok,&
       & inplace=.true., comm=mpiglobal)
+    call mpi_allgatherv_ifc(set=nk_bse, rlen=no_bse_max*nu_bse_max*numgq, zbuf=ematouk,&
+      & inplace=.true., comm=mpiglobal)
+  else
+    call mpi_allgatherv_ifc(set=nk_bse, rlen=no_bse_max*nu_bse_max*numgq, zbuf=ematouk,&
+      & inplace=.true., comm=mpiglobal)
   end if
-  !!-->
-  if(rank == 0) then
+
+  if(mpiglobal%rank == 0) then
     write(*,*)
   end if
-  if(rank == 0) then
+  if(mpiglobal%rank == 0) then
     call timesec(tpw1)
     write(unitout, '("  Timing (in seconds)	   :", f12.3)') tpw1 - tpw0
   end if
 
-
+  !! Generation of V matrix.
+  !! Currently only works for qmt=0.
   !-------------------------------!
   !     Loop over(k,kp) pairs     !
   !-------------------------------!
@@ -261,11 +294,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   allocate(excli(nou_bse_max, nou_bse_max))
 
-  if(fcoup) then
-    allocate(exclic(nou_bse_max, nou_bse_max))
-  end if
-
-  if(rank == 0) then
+  if(mpiglobal%rank == 0) then
     write(unitout, '("Info(b_exccoulint): Generating V matrix elements")')
     call timesec(tpw0)
   end if
@@ -309,24 +338,21 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
     ! Set up coulomb potential
     ! For G/=0 construct it via v^{1/2}(G,q)*v^{1/2}(G,q),
     ! which corresponds to the first passed flag=0.
-    ! Here iqmt=1 is fixed, which is q=0.
+    ! Here iqmt=1 is fixed, which correspons to qmt=0.
     do igq1 = 2, numgq
       call genwiqggp(0, iqmt+1, igq1, igq1, potcl(igq1))
     end do
 
-    if(fcoup) then 
-      call makeexcli(excli(1:inou,1:jnou), exclic(1:inou,1:jnou))
-    else
-      call makeexcli(excli(1:inou,1:jnou))
-    end if
+    call makeexcli(excli(1:inou,1:jnou))
 
     ! Parallel write
-    call b_putbsemat(exclifname, 77, ikkp, iqmt, excli)
-    if(fcoup == .true.) then
-      call b_putbsemat(exclicfname, 78, ikkp, iqmt, exclic)
+    if(fra) then
+      call b_putbsemat(exclifname, 78, ikkp, iqmt, excli)
+    else
+      call b_putbsemat(exclifname, 77, ikkp, iqmt, excli)
     end if
 
-    if(rank == 0) then
+    if(mpiglobal%rank == 0) then
       write(6, '(a,"Exccoulint progess:", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
       flush(6)
@@ -334,13 +360,14 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   ! End loop over(k,kp) pairs
   end do kkp
-  if(rank == 0) then
+
+  if(mpiglobal%rank == 0) then
     write(*,*)
   end if
   
   call barrier
 
-  if(rank == 0) then
+  if(mpiglobal%rank == 0) then
     call timesec(tpw1)
     write(unitout, '("  Timing (in seconds)	   :", f12.3)') tpw1 - tpw0
   end if
@@ -348,16 +375,13 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
   call findgntn0_clear
 
   deallocate(potcl) 
-  deallocate(ematouk)
+  if(allocated(ematouk)) deallocate(ematouk)
+  if(allocated(ematuok)) deallocate(ematuok)
   deallocate(excli)
-  if(fcoup == .true.) then
-    deallocate(ematuok)
-    deallocate(exclic)
-  end if
 
-  if(rank .eq. 0) then
-    write(unitout, '(a)') "Info(" // trim(thisnam) // "):&
-      & exchange coulomb interaction finished"
+  if(mpiglobal%rank .eq. 0) then
+    write(unitout, '("Info(b_exccoulint): Exchange coulomb interaction&
+      & finished for iqmt=",i8)') iqmt
   end if
 
   contains 
@@ -411,10 +435,9 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
     end subroutine getmuo
 
-    subroutine makeexcli(excli, exclic)
+    subroutine makeexcli(excli)
 
       complex(8), intent(out) :: excli(inou, jnou) 
-      complex(8), intent(out), optional :: exclic(inou, jnou) 
 
       ! Work arrays
       complex(8) :: emat12(inou, numgq), emat34(jnou, numgq)
@@ -424,7 +447,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       iaoff = sum(kousize(1:iknr-1))
       jaoff = sum(kousize(1:jknr-1))
 
-      !!<-- RR and RA part
+      !! RR and RA part
       do ia = 1, inou
         ! Get iu index relative to iu range of ik
         iu = smap_rel(1, ia+iaoff) ! iu (ik+qmt)
@@ -435,27 +458,28 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       end do
       ! M_ou -> M^*_ou
       emat12 = conjg(emat12)
-      !!-->
 
-      !!<-- RR part
-      do ja = 1, jnou
-        ! Get ju index relative to iu range of jk
-        ju = smap_rel(1, ja+jaoff) ! ju (jk+qmt)
-        ! Get jo index relative to io range of jk
-        jo = smap_rel(2, ja+jaoff) ! jo (jk)
-        ! emat34_ja = (M_o1u1kj,M_o2u1kj,...,M_oNu1kj,M_o1u2kj,...,M_oNuMkj)*v(G,0)
-        emat34(ja, :) = ematouk(jo, ju, :, jk) * potcl(:)
-      end do
+      if(.not. fra) then
 
-      ! Calculate exchange matrix elements: v_{1234} = m_{12}^* m_{34}^t
-      ! excli_{ia, ja} = \Sum_{G} emat12_{ia,G} (emat34^T)_{G,ja}
-      !   i.e. excli_{iu io ik, ju jo jk}(qmt) =
-      !          \Sum_{G} M^*_{io iu ik}(G,qmt) M_{jo ju jk}(G,qmt) v(G,qmt)
-      call zgemm('n', 't', inou, jnou, numgq, zone/omega/nk_bse,&
-        & emat12, inou, emat34, jnou, zzero, excli, inou)
+        !! RR part
+        do ja = 1, jnou
+          ! Get ju index relative to iu range of jk
+          ju = smap_rel(1, ja+jaoff) ! ju (jk+qmt)
+          ! Get jo index relative to io range of jk
+          jo = smap_rel(2, ja+jaoff) ! jo (jk)
+          ! emat34_ja = (M_o1u1kj,M_o2u1kj,...,M_oNu1kj,M_o1u2kj,...,M_oNuMkj)*\bar{v}
+          emat34(ja, :) = ematouk(jo, ju, :, jk) * potcl(:)
+        end do
+        ! Calculate exchange matrix elements: 
+        ! excli_{ia, ja} = \Sum_{G} emat12_{ia,G} (emat34^T)_{G,ja}
+        !   i.e. excli_{iu io ik, ju jo jk}(qmt) =
+        !          \Sum_{G} M^*_{io iu ik}(G,qmt) M_{jo ju jk}(G,qmt) v(G,qmt)
+        call zgemm('n', 't', inou, jnou, numgq, zone/omega/nk_bse,&
+          & emat12, inou, emat34, jnou, zzero, excli, inou)
 
-      if(present(exclic)) then
+      else
 
+        !! RA part
         do ja = 1, jnou
           ! Get ju index relative to iu range of jk
           ju = smap_rel(1, ja+jaoff) ! ju (jk-qmt)
@@ -467,12 +491,12 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
         end do
 
         ! Calculate coupling exchange matrix elements: v_{1234} = m_{12}^* m_{34}^t
-        ! exclic_{j1, j2} = \Sum_{G} emat12_{j1,G} (emat34^T)_{G,j2}
-        !   i.e. exclic_{iu io ik, ju jo jk}(qmt) =
+        ! excli_{j1, j2} = \Sum_{G} emat12_{j1,G} (emat34^T)_{G,j2}
+        !   i.e. excli_{iu io ik, ju jo jk}(qmt) =
         !          \Sum_{G} M^*_{io iu ik}(G, qmt) M_{ju jo jk-qmt}(G, qmt) v(G, qmt)
         call zgemm('n', 't', inou, jnou, numgq, zone/omega/nk_bse,&
-          & emat12, inou, emat34, jnou, zzero, exclic, inou)
-        !!-->
+          & emat12, inou, emat34, jnou, zzero, excli, inou)
+
       end if
 
     end subroutine makeexcli

@@ -17,7 +17,7 @@ subroutine b_bse
   use modmpi
   use modscl
   ! XS
-  use modxs, only: evalsv0, unitout, bcbs, bsed, ksgapval, qgap, ikmapikq
+  use modxs, only: evalsv0, unitout, bcbs, ksgapval, qgap, ikmapikq
   ! BSE
   use modbse
   ! Spectrum
@@ -113,11 +113,12 @@ subroutine b_bse
   integer(4) :: iknr, iq, iqmt, ik, ikq, io, iu, a1
   integer(4) :: nexc
   real(8) :: ts0, ts1
-  logical :: fcoup, fwp, fscal, fabsolute
+  logical :: fcoup, fwp, fscal, fabsolute, fti
 
   ! Allocatable arrays
   real(8), allocatable, dimension(:) :: bevalim, bevalre, w
-  complex(8), allocatable, dimension(:,:) :: ham, bevecr, oszsr, oszsa
+  complex(8), allocatable, dimension(:,:) :: ham, bevecr, beveca, bevecaux, oszsr, oszsa
+  complex(8), allocatable, dimension(:,:) :: cmat, cpmat
 complex(8), allocatable, dimension(:,:) :: ham_test
   complex(8), allocatable, dimension(:,:,:) :: symspectr
   real(8) :: bsegap
@@ -135,11 +136,17 @@ complex(8), allocatable, dimension(:,:) :: ham_test
   ! Include coupling terms
   fcoup = input%xs%bse%coupling
 
+  ! Use time inverted anti-resonant basis
+  fti = input%xs%bse%ti
+
   ! Use ScaLAPACK
   fscal = input%xs%bse%distribute
 
-  if(fscal .and. fcoup) then 
-    write(*,*) "Coupling and scalapack not possible"
+  ! Shift Eigenvalues
+  fabsolute = input%xs%bse%useabsolute
+
+  if(fscal .and. fcoup .and. .not. fti ) then 
+    write(*,*) "Coupling and scalapack not possible in standard basis"
     call terminate
   end if
 
@@ -148,7 +155,7 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       write(unitout, '("Warning(b_bse): Full BSE needs unshifted eigenvalues.")')
       write(unitout, '("  Setting useabsolute to true.")')
     end if
-    input%xs%bse%useabsolute = .true.
+    fabsolute = .true.
   end if
 
   ! Non-parallelized code.
@@ -207,19 +214,6 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
     end if
 
-    ! Read mean value of diagonal of direct term
-    !   Note: needs to be adapted for beyondtd
-    bsed = 0.d0
-   ! if((trim(input%xs%bse%bsetype) .eq. 'singlet')&
-   !   & .or. (trim(input%xs%bse%bsetype) .eq. 'triplet')) then
-   !   ! False by default
-   !   if(input%xs%bse%bsedirsing) then
-   !     call getbsediag
-   !     write(unitout, '("Info(b_bse): read diagonal of BSE kernel")')
-   !     write(unitout, '(" mean value : ", 2g18.10)') bsed
-   !   end if
-   ! end if
-
     ! Determine "BSE"-gap, i.e. the lowest energy 
     ! KS transition which is considered.
     bsegap = (evalsv(nstsv, 1)-evalsv0(1,1))*100.0d0
@@ -237,7 +231,6 @@ complex(8), allocatable, dimension(:,:) :: ham_test
     !$OMP END PARALLEL DO
 
     ! Energy to shift the BSE eigenvalues by.
-    fabsolute = input%xs%bse%useabsolute
     if(fabsolute) then  
       ! Use absolute Excition energies
       evalshift = 0.0d0
@@ -263,8 +256,13 @@ complex(8), allocatable, dimension(:,:) :: ham_test
     write(unitout, '("  nk_bse=", i8)') nk_bse
     if(fcoup) then
       write(unitout, '(" Including coupling terms ")')
-      write(unitout, '(" Full BSE-Hamiltonian:")')
-      write(unitout, '("  Shape=",i8)') 2*hamsize
+      if(fti) then 
+        write(unitout, '(" Using time inverted anti-resonant basis")')
+        write(unitout, '(" Using squared EVP")')
+      else
+        write(unitout, '(" Full BSE-Hamiltonian:")')
+        write(unitout, '("  Shape=",i8)') 2*hamsize
+      end if
     end if
     if(fwp) then
       write(unitout, '("Info(b_bse):&
@@ -273,18 +271,32 @@ complex(8), allocatable, dimension(:,:) :: ham_test
 
     ! Assemble Hamiltonian matrix 
     if(fcoup) then 
-      allocate(ham(2*hamsize,2*hamsize))
-      call setup_full_hamiltonian(ham, iqmt)
+      if(fti) then 
+        call setup_ti_bse(ham, cmat, cpmat,  iqmt)
+        if(fwp) then 
+          call writecmplxparts('HamS', dble(ham), immat=aimag(ham))
+          call writecmplxparts('cmat', dble(cmat), immat=aimag(cmat))
+          call writecmplxparts('cpmat', dble(cpmat), immat=aimag(cpmat))
+        end if
+      else
+        allocate(ham(2*hamsize,2*hamsize))
+        call setup_full_bse(ham, iqmt)
+      end if
     else
       allocate(ham(hamsize,hamsize))
-      call setup_bse(ham, iqmt, .false.)
+      call setup_bse(ham, iqmt, .false., .false.)
     end if
 
     ! Write Info
     write(unitout,*)
     if(fcoup) then
-      write(unitout, '("Info(b_bse): Diagonalizing full non symmetric Hamiltonian")')
-      write(unitout, '("Info(b_bse): Invoking lapack routine ZGEEVX")')
+      if(fti) then 
+        write(unitout, '("Info(b_bse): Solving hermitian squared EVP")')
+        write(unitout, '("Info(b_bse): Invoking lapack routine ZHEEVR")')
+      else
+        write(unitout, '("Info(b_bse): Diagonalizing full non symmetric Hamiltonian")')
+        write(unitout, '("Info(b_bse): Invoking lapack routine ZGEEVX")')
+      end if
     else
       write(unitout, '("Info(b_bse): Diagonalizing RR Hamiltonian (TDA)")')
       write(unitout, '("Info(b_bse): Invoking lapack routine ZHEEVR")')
@@ -292,8 +304,13 @@ complex(8), allocatable, dimension(:,:) :: ham_test
 
     ! Allocate eigenvector and eigenvalue arrays
     if(fcoup) then 
-      allocate(bevalre(2*hamsize), bevecr(2*hamsize, 2*hamsize))
-      allocate(bevalim(2*hamsize))
+      if(fti) then 
+        allocate(bevalre(hamsize))
+        allocate(bevecaux(hamsize, hamsize))
+      else
+        allocate(bevalre(2*hamsize), bevecr(2*hamsize, 2*hamsize))
+        allocate(bevalim(2*hamsize))
+      end if
     else
       allocate(bevalre(hamsize), bevecr(hamsize, hamsize))
     end if
@@ -305,9 +322,27 @@ complex(8), allocatable, dimension(:,:) :: ham_test
     ! Diagonalize Hamiltonian (destroys the content of ham)
     call timesec(ts0)
     if(fcoup) then
-      call diagfull(2*hamsize, ham, bevalre,&
-        & evalim=bevalim, evecr=bevecr, fbalance=.false., frcond=.false.)
-      nexc = 2*hamsize
+      if(.not. fti) then 
+        call diagfull(2*hamsize, ham, bevalre,&
+          & evalim=bevalim, evecr=bevecr, fbalance=.false., frcond=.false.)
+        nexc = 2*hamsize
+      else
+        if(efind) then
+          v1=(max(wl-ewidth, 0.0d0))**2
+          v2=(wu+ewidth)**2
+          call hesolver(hemat=ham, evec=bevecaux, eval=bevalre,&
+           & v1=v1, v2=v2, found=nexc)
+        else
+          if(input%xs%bse%nexc == -1) then 
+            i2 = hamsize
+          else
+            i2 = input%xs%bse%nexc
+          end if
+          i1 = 1
+          call hesolver(hemat=ham, evec=bevecaux, eval=bevalre,&
+           & i1=i1, i2=i2, found=nexc)
+        end if
+      end if
     else
       if(efind) then
         if(fabsolute) then 
@@ -334,14 +369,43 @@ complex(8), allocatable, dimension(:,:) :: ham_test
 
     ! Test write out right-eigenvectors
     if(fwp) then
-      call writecmplxparts('bevecr', dble(bevecr), immat=aimag(bevecr))
+      if(fti) then 
+        call writecmplxparts('bevecaux', dble(bevecaux), immat=aimag(bevecaux))
+      else
+        call writecmplxparts('bevecr', dble(bevecr), immat=aimag(bevecr))
+      end if
     end if
 
     ! Deallocate BSE-Hamiltonian
     deallocate(ham)
 
+    if(fti) then 
+
+      ! Take square root of auxiliary eigenvalues
+      ! to retrieve actual eigenvalues
+      if(any(bevalre < 0.0d0)) then 
+        write(*,*) "Error(b_bse): Negative squared EVP evals occured"
+        write(*,'(E23.16)') bevalre
+        call terminate
+      end if
+      bevalre = sqrt(bevalre)
+      
+    end if
+
+
     if(fcoup) then 
-      write(unitout, '("  All eigen solutions found.")')
+      if(fti) then 
+        if(efind) then
+          write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
+          write(unitout, '("  [",E10.3,",",E10.3,"]/H^2")') v1, v2
+          write(unitout, '("  [",E10.3,",",E10.3,"]/eV^2")') v1*h2ev**2, v2*h2ev**2
+        else
+          write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
+          write(unitout, '("  i1=",i8," i2=",i8)') i1, i2
+        end if
+      else
+        write(unitout, '("  All eigen solutions found.")')
+      end if
     else
       if(efind) then
         write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
@@ -360,11 +424,11 @@ complex(8), allocatable, dimension(:,:) :: ham_test
 
     ! Calculate oscillator strengths.
     allocate(oszsr(nexc,3))
-    if(fcoup) then
+    if(fcoup .and. .not. fti) then
       allocate(oszsa(nexc,3))
     end if
 
-    if(fcoup) then 
+    if(fcoup .and. .not. fti) then 
       call makeoszillatorstrength(oszsr, oszstra=oszsa)
     else
       call makeoszillatorstrength(oszsr)
@@ -375,8 +439,12 @@ complex(8), allocatable, dimension(:,:) :: ham_test
     write(unitout, '("Info(b_bse):&
       & Writing excition energies and oszillator strengths to text file.")')
     if(fcoup) then
-      call writeoscillator(2*hamsize, nexc, bsegap+sci, bevalre, oszsr,&
-        & evalim=bevalim, oszstra=oszsa, sort=.true.)
+      if(fti) then 
+        call writeoscillator(hamsize, nexc, -(bsegap+sci), bevalre, oszsr)
+      else
+        call writeoscillator(2*hamsize, nexc, bsegap+sci, bevalre, oszsr,&
+          & evalim=bevalim, oszstra=oszsa, sort=.true.)
+      end if
     else
       call writeoscillator(hamsize, nexc, evalshift, bevalre-evalshift, oszsr)
     end if
@@ -392,7 +460,11 @@ complex(8), allocatable, dimension(:,:) :: ham_test
 
     ! Calculate lattice symmetrized spectrum.
     if(fcoup) then 
-      call makespectrum(nw, w, symspectr)
+      if(fti) then
+        call makespectrum_ti(nw, w, symspectr)
+      else
+        call makespectrum_full(nw, w, symspectr)
+      end if
     else
       call makespectrum_tda(nw, w, symspectr)
     end if
@@ -402,15 +474,20 @@ complex(8), allocatable, dimension(:,:) :: ham_test
     call writederived(iqmt+1, symspectr, nw, w)
     write(unitout, '("  Derived quantities written.")')
 
-    ! Store excitonic energies and wave functions to file
-    if(associated(input%xs%storeexcitons)) then
-      call storeexcitons(nexc,bevalre,bevecr,fcoup)
-    end if
+   ! ! Store excitonic energies and wave functions to file
+   ! if(associated(input%xs%storeexcitons)) then
+   !   call storeexcitons(nexc,bevalre,bevecr,fcoup)
+   ! end if
 
     ! Clean up
-    deallocate(bevalre, bevecr, oszsr, w, symspectr, evalsv)
+    deallocate(bevalre, oszsr, w, symspectr, evalsv)
+    if(allocated(bevecr)) deallocate(bevecr)
     if(fcoup) then 
-      deallocate(bevalim, oszsa)
+      if(fti) then 
+        deallocate(bevecaux, cmat, cpmat)
+      else
+        deallocate(bevalim, oszsa)
+      end if
     end if
     if(associated(input%gw)) deallocate(eval0)
 
@@ -484,19 +561,6 @@ complex(8), allocatable, dimension(:,:) :: ham_test
         write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
       end if
 
-      ! Read mean value of diagonal of direct term
-      !   Note: needs to be adapted for beyondtd
-      bsed = 0.d0
-     ! if((trim(input%xs%bse%bsetype) .eq. 'singlet')&
-     !   & .or. (trim(input%xs%bse%bsetype) .eq. 'triplet')) then
-     !   ! False by default
-     !   if(input%xs%bse%bsedirsing) then
-     !     call getbsediag
-     !     write(unitout, '("Info(b_bse): read diagonal of BSE kernel")')
-     !     write(unitout, '(" mean value : ", 2g18.10)') bsed
-     !   end if
-     ! end if
-     
       ! Determine "BSE"-gap, i.e. the lowest energy 
       ! KS transition which is considered.
       bsegap = (evalsv(nstsv, 1)-evalsv0(1,1))*100.0d0
@@ -551,7 +615,7 @@ complex(8), allocatable, dimension(:,:) :: ham_test
 
       ! Assemble Hamiltonian matrix
       if(bi2d%isroot) call timesec(ts0)
-      call setup_distributed_bse(dham, iqmt, fcoup, bi2d)
+      call setup_distributed_bse(dham, iqmt, fcoup, fti, bi2d)
       if(bi2d%isroot) then
         call timesec(ts1)
         write(unitout, '("All processes build their local matrix")')
@@ -716,9 +780,197 @@ complex(8), allocatable, dimension(:,:) :: ham_test
 contains
 
   !! SERIAL VERSIONS
+  subroutine setup_ti_bse(smat, cmat, cpmat, iqmt)
+
+    use m_sqrtmat
+
+    ! I/O
+    integer(4), intent(in) :: iqmt
+    complex(8), allocatable, intent(inout) :: smat(:,:)
+    complex(8), allocatable, intent(inout) :: cmat(:,:)
+    complex(8), allocatable, intent(inout) :: cpmat(:,:)
+
+    ! Local 
+    complex(8), allocatable :: rrmat(:, :)
+    complex(8), allocatable :: ramat(:, :)
+    complex(8), allocatable :: auxmat(:, :)
+
+    integer(4) :: info, lwork
+    integer(4), allocatable :: ipiv(:)
+    complex(8), allocatable :: work(:)
+
+    real(8) :: ts0, ts1, t1, t0
+    integer(4) :: i, j
+
+    if(mpiglobal%rank == 0) then 
+      write(unitout, '("Info(setup_ti_bse): Setting up matrices for squared EVP")')
+      call timesec(ts0)
+    end if
+
+    ! Get RR part of BSE Hamiltonian
+
+    if(mpiglobal%rank == 0) then 
+      write(unitout, '("Info(setup_ti_bse): Setting up RR Block of orignial BSE")')
+      call timesec(t0)
+    end if
+    allocate(rrmat(hamsize,hamsize))
+    call setup_bse(rrmat, iqmt, .false., .false.)
+    ! Make RR part explicitly hermitian, since
+    ! only the upper triangle was constructed.
+    do i=1, hamsize
+      ! Set imaginary part of diagonal exactly 0.
+      ! (It should be zero anyways, but this is a precaution)
+      rrmat(i,i) = cmplx(dble(rrmat(i,i)), 0.0d0, 8)
+      do j=i+1, hamsize
+        rrmat(j,i) = conjg(rrmat(i,j))
+      end do
+    end do
+    if(mpiglobal%rank == 0) then 
+      call timesec(t1)
+      write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+    end if
+
+    ! Get RA^{ti} part of BSE Hamiltonian
+    if(mpiglobal%rank == 0) then 
+      write(unitout, '("Info(setup_ti_bse): Setting up RA^{ti} Block of orignial BSE")')
+      call timesec(t0)
+    end if
+    allocate(ramat(hamsize,hamsize))
+    call setup_bse(ramat, iqmt, .true., .true.)
+    ! Make RA^{ti} part of ham explicitly hermitian.
+    do i=1, hamsize
+      ramat(i,i) = cmplx(dble(ramat(i,i)), 0.0d0, 8)
+      do j=i+1, hamsize
+        ramat(j,i) = conjg(ramat(i,j))
+      end do
+    end do
+    if(mpiglobal%rank == 0) then 
+      call timesec(t1)
+      write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+    end if
+
+    ! Make combination matrices
+
+    if(mpiglobal%rank == 0) then 
+      write(unitout, '("Info(setup_ti_bse): Setting up RR+RA and RR-RA matrices")')
+      call timesec(t0)
+    end if
+    ! RR - RA^{it}
+    allocate(cpmat(hamsize,hamsize))
+    do j = 1, hamsize
+      do i = 1, hamsize
+        cpmat(i,j) = rrmat(i,j) - ramat(i,j)
+      end do
+    end do
+    ! RR + RA^{it}
+    deallocate(rrmat)
+    allocate(cmat(hamsize, hamsize))
+    do j = 1, hamsize
+      do i = 1, hamsize
+        cmat(i,j) = cpmat(i,j) + 2*ramat(i,j)
+      end do
+    end do
+    deallocate(ramat)
+    if(mpiglobal%rank == 0) then 
+      call timesec(t1)
+      write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+    end if
+
+    ! Take the square root of cpmat
+    ! Note: It is assumed to be positive definit.
+
+    if(mpiglobal%rank == 0) then 
+      write(unitout, '("Info(setup_ti_bse): Taking square root of RR-RA matrix")')
+      call timesec(t0)
+    end if
+    call sqrtmat_hepd(cpmat)
+    if(mpiglobal%rank == 0) then 
+      call timesec(t1)
+      write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+    end if
+
+    ! Construct S Matrix
+
+    if(mpiglobal%rank == 0) then 
+      write(unitout, '("Info(setup_ti_bse): Constructing S matrix")')
+      call timesec(t0)
+    end if
+    allocate(auxmat(hamsize,hamsize))
+    call zgemm('N','N', hamsize, hamsize, hamsize, zone, cpmat, hamsize,&
+      & cmat, hamsize, zzero, auxmat, hamsize)
+    allocate(smat(hamsize, hamsize))
+    call zgemm('N','N', hamsize, hamsize, hamsize, zone, auxmat, hamsize,&
+      & cpmat, hamsize, zzero, smat, hamsize)
+    deallocate(auxmat)
+    if(mpiglobal%rank == 0) then 
+      call timesec(t1)
+      write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+    end if
+
+    ! Cmat = (A-B)^1/2
+
+    if(mpiglobal%rank == 0) then 
+      write(unitout, '("Info(setup_ti_bse): Copying (RR-RA)^1/2 matrix")')
+      call timesec(t0)
+    end if
+    do j = 1, hamsize
+      do i = 1, hamsize
+        cmat(i,j) = cpmat(i,j)
+      end do
+    end do
+    if(mpiglobal%rank == 0) then 
+      call timesec(t1)
+      write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+    end if
+
+    ! Cpmat = (A-B)^-1/2
+
+    if(mpiglobal%rank == 0) then 
+      write(unitout, '("Info(setup_ti_bse): Inverting (RR-RA)^1/2 matrix")')
+      call timesec(t0)
+    end if
+    allocate(ipiv(hamsize))
+    call zgetrf(hamsize, hamsize, cpmat, hamsize, ipiv, info)
+    if(info /= 0) then
+      write(*,'("Info(setup_ti_bse): ZGETRF has returned non-zero info.")')
+      if(info < 0) then
+        write(*,'("  ZGETRF: Incorrect input.")')
+      else
+        write(*,'("  ZGETRF: U is exactly singular.")')
+      end if
+      call terminate
+    end if
+    lwork = -1
+    allocate(work(3))
+    call zgetri(hamsize, cpmat, hamsize, ipiv, work, lwork, info)
+    lwork = int(work(1))
+    deallocate(work)
+    allocate(work(lwork))
+    call zgetri(hamsize, cpmat, hamsize, ipiv, work, lwork, info)
+    if(info /= 0) then
+      write(*,'("dzinvert (ERROR): ZGETRI has returned non-zero info.")')
+      if(info < 0) then
+        write(*,'("  ZGETRF: Incorrect input.")')
+      else
+        write(*,'("  ZGETRF: Matrix singular.")')
+      end if
+      call terminate
+    end if
+    deallocate(work)
+    deallocate(ipiv)
+    if(mpiglobal%rank == 0) then 
+      call timesec(t1)
+      write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+    end if
+
+    if(mpiglobal%rank == 0) then 
+      call timesec(ts1)
+      write(unitout, '("Info(setup_ti_bse): Total time needed",f12.3,"s")') ts1-ts0
+    end if
+  end subroutine setup_ti_bse
 
   ! NOTE: only for qmt = 0
-  subroutine setup_full_hamiltonian(ham, iqmt)
+  subroutine setup_full_bse(ham, iqmt)
 
     ! I/O
     complex(8), intent(inout) :: ham(:, :)
@@ -731,11 +983,11 @@ contains
 
     call timesec(ts0)
     if(mpiglobal%rank == 0) then 
-      write(unitout, '("Info(setup_full_hamiltonian): Setting up full hamiltonian")')
+      write(unitout, '("Info(setup_full_bse): Setting up full hamiltonian")')
     end if
 
     ! RR
-    call setup_bse(ham(1:hamsize,1:hamsize), iqmt, .false.)
+    call setup_bse(ham(1:hamsize,1:hamsize), iqmt, .false., .false.)
     ! Make RR part of ham explicitly hermitian, since
     ! only the upper triangle was constructed.
     do i=1, hamsize
@@ -747,7 +999,7 @@ contains
       end do
     end do
     ! RA
-    call setup_bse(ham(1:hamsize,hamsize+1:hamsize*2), iqmt, .true.)
+    call setup_bse(ham(1:hamsize,hamsize+1:hamsize*2), iqmt, .true., .false.)
     ! Make RA part of ham explicitly symmetric.
     do i=1, hamsize
       do j=hamsize+i, 2*hamsize
@@ -767,7 +1019,7 @@ contains
     write(unitout, '(" Matrix build.")')
     write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
 
-  end subroutine setup_full_hamiltonian
+  end subroutine setup_full_bse
 
   subroutine makeoszillatorstrength(oszstrr, oszstra)
     use m_getpmat
@@ -780,10 +1032,10 @@ contains
 
     ! Local
     real(8) :: t1, t0, ts0, ts1
-    complex(8), allocatable :: pmouk(:,:,:,:), rmat(:,:)
+    complex(8), allocatable :: pmouk(:,:,:,:), rmat(:,:), xpy(:,:)
     integer(4) :: io, iu, ioabs, iuabs, ik, iknr
     integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
-    integer(4) :: a1
+    integer(4) :: a1, lambda
     
     write(unitout, '("Info(b_bse:makeos): Making oszillator strengths.")')
     call timesec(ts0)
@@ -866,18 +1118,56 @@ contains
     call timesec(t1)
     write(unitout, '("    Time needed",f12.3,"s")') t1-t0
 
-    write(unitout, '("  Building resonant oscillator strengths.")')
-    call timesec(t0)
-    !! Resonant oscillator strengths
-    ! t^R_{\lambda,i} = < \tilde{R}^{i*} | X_\lambda> =
-    !   ( \Sum_{a} \tilde{R}^T_{i, a} X_{a, \lambda} )^T =
-    !     \Sum_{a} X^T_{\lambda, a} \tilde{R}_{a,i}
-    call zgemm('t','n', nexc, 3, hamsize,&
-      & zone, bevecr(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
-    call timesec(t1)
-    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    if(fcoup .and. fti) then 
+      write(unitout, '("  Building (X+Y) from squared EVP EVs.")')
+      call timesec(t0)
 
-    if(fcoup .and. present(oszstra)) then
+      ! Interested in X^+ + Y^+, so we rescale the 
+      ! auxiliary eigenvectors Z by the square root of the eigenvalues
+      ! so that 
+      ! (X+Y)_{a,lambda} = \Sum_{a'} (A-B)^{1/2}_{a,a'} * E^{1/2}_lambda * Z_{a',lambda}
+      do lambda = 1, nexc
+        do a1 = 1, hamsize
+          bevecaux(a1, lambda) = bevecaux(a1, lambda) * sqrt(bevalre(lambda))
+        end do
+      end do
+      allocate(xpy(hamsize, nexc))
+      call zgemm('N','N',hamsize, nexc, hamsize, zone, cmat, hamsize,&
+        & bevecaux(:,1:nexc), hamsize, zzero, xpy, hamsize)
+
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    end if
+
+   
+    if(.not. fcoup .or. fcoup .and. .not. fti) then 
+      write(unitout, '("  Building resonant oscillator strengths.")')
+      call timesec(t0)
+      !! Resonant oscillator strengths
+      ! t^R_{\lambda,i} = < \tilde{R}^{i*} | X_\lambda> =
+      !   ( \Sum_{a} \tilde{R}^T_{i, a} X_{a, \lambda} )^T =
+      !     \Sum_{a} X^T_{\lambda, a} \tilde{R}_{a,i}
+      call zgemm('t','n', nexc, 3, hamsize,&
+        & zone, bevecr(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    end if
+
+    if(fcoup .and. fti) then
+      write(unitout, '("  Building oscillator strengths for time inverted ar basis.")')
+      call timesec(t0)
+      !! Oscillator strengths
+      ! t_{\lambda,i} = < \tilde{R}^{i*} |(| X_\lambda>+| Y_\lambda>) =
+      !   ( \Sum_{a} \tilde{R}^T_{i, a} (X_{a, \lambda}+Y_{a, \lambda}) )^T =
+      !     \Sum_{a} (X+Y)^T_{\lambda, a} \tilde{R}_{a,i}
+      call zgemm('t','n', nexc, 3, hamsize,&
+        & zone, xpy(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+    end if
+
+    if(fcoup .and. .not. fti) then
       write(unitout, '("  Building anti-resonant oscillator strengths.")')
       call timesec(t0)
       !! Anti-resonant oscillator strengths
@@ -896,6 +1186,128 @@ contains
     call timesec(ts1)
     write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
   end subroutine makeoszillatorstrength
+
+  subroutine makespectrum_ti(nfreq, freq, spectrum)
+    implicit none
+
+    ! I/O
+    integer(4), intent(in) :: nfreq
+    real(8), intent(in) :: freq(nfreq)
+    complex(8), intent(out) :: spectrum(3,3,nfreq)
+
+    ! Local
+    integer(4) :: i, j, o1, o2, nopt
+    real(8) :: t1, t0, ts0, ts1
+    complex(8), allocatable :: ns_spectr(:,:)
+    complex(8), allocatable :: enw(:,:), tmat(:,:)
+
+    write(unitout, '("Info(b_bse:makesp_ti):&
+     & Making spectrum using formula for coupling with time inverted ar basis.")')
+    if(input%xs%dfoffdiag) then
+      write(unitout, '("  Including off diagonals.")')
+    end if
+    ! Total time for spectrum construction
+    call timesec(ts0)
+
+    ! Shift energies back to absolute values.
+    bevalre = bevalre - evalshift
+
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    ! Make energy denominator for each frequency !
+    ! (resonant & anti-resonant)                 !
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    write(unitout, '("  Making energy denominators ENW.")')
+    call timesec(t0)
+
+    ! enw_{w, \lambda} = 1/(E_\lambda - w - i\delta)
+    allocate(enw(nfreq, nexc))
+    !$OMP PARALLEL DO &
+    !$OMP& COLLAPSE(2),&
+    !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
+    do j = 1, nexc
+      do i = 1, nfreq
+        enw(i,j) = zone/(bevalre(j)-freq(i)-zi*input%xs%broad)
+      end do
+    end do
+    !$OMP END PARALLEL DO
+
+    ! enw_{w, \lambda} += 1/(E_\lambda + w + i\delta)
+    !$OMP PARALLEL DO &
+    !$OMP& COLLAPSE(2),&
+    !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
+    do j = 1, nexc
+      do i = 1, nfreq
+        enw(i,j) = enw(i,j) + zone/(bevalre(j)+freq(i)+zi*input%xs%broad)
+      end do
+    end do
+    !$OMP END PARALLEL DO
+
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    ! Helper matrix build form oscillator        !
+    ! strengths                                  !
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    write(unitout, '("  Making helper matrix tmat.")')
+    call timesec(t0)
+
+    if(input%xs%dfoffdiag) then
+      nopt = 9
+    else
+      nopt = 3
+    end if
+
+    ! tmat_{\lambda, j} = t_{\lambda, o1_j} t^*_{\lambda, o2_j} 
+    ! where j combines the Cartesian directions
+    allocate(tmat(nexc,nopt))
+    do j = 1, nopt
+      if(input%xs%dfoffdiag) then
+        o2 = (j-1)/3 + 1
+        o1 = j-(o2-1)*3
+      else
+        o2 = j
+        o1 = j
+      end if
+      !$OMP PARALLEL DO &
+      !$OMP& DEFAULT(SHARED), PRIVATE(i)
+      do i = 1, nexc
+        tmat(i,j) = oszsr(i,o1)*conjg(oszsr(i,o2))
+      end do
+      !$OMP END PARALLEL DO
+    end do
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    !++++++++++++++++++++++++++++++++++++++++++++!
+         
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    ! Make non-lattice-symmetrized spectrum      !
+    !++++++++++++++++++++++++++++++++++++++++++++!
+    write(unitout, '("  Calculating spectrum.")')
+    call timesec(t0)
+
+    allocate(ns_spectr(nfreq,nopt))
+
+    ! nsspectr_{w,j} = \Sum_{\lambda} enw_{w,\lambda} tmat_{\lambda, j}
+    !   i.e. nsspectr_{w,j} = 
+    !     \Sum_{\lambda} (1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta))
+    !       t_{\lambda, o1_j} t^*_{\lambda, o2_j} 
+    call zgemm('N','N', nfreq, nopt, nexc, zone, enw, nfreq,&
+      & tmat, nexc, zzero, ns_spectr, nfreq)
+    !++++++++++++++++++++++++++++++++++++++++++++!
+
+    ! Helper no longer needed
+    deallocate(tmat, enw)
+
+    ! Post process non-lattice-symmetrized spectrum
+    call finalizespectrum(ns_spectr, spectrum)
+    deallocate(ns_spectr)
+
+    ! Total time for spectrum construction
+    call timesec(ts1)
+    write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
+  end subroutine makespectrum_ti
 
   subroutine makespectrum_tda(nfreq, freq, spectrum)
     implicit none
@@ -1027,7 +1439,7 @@ contains
     write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
   end subroutine makespectrum_tda
 
-  subroutine makespectrum(nfreq, freq, spectrum)
+  subroutine makespectrum_full(nfreq, freq, spectrum)
     implicit none
 
     ! I/O
@@ -1172,7 +1584,7 @@ contains
     call timesec(ts1)
     write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
 
-  end subroutine makespectrum
+  end subroutine makespectrum_full
 
   subroutine finalizespectrum(nsp, sp)
 

@@ -42,7 +42,7 @@ module modbse
   ! Cutoff for occupation
   real(8) :: cutoffocc
   ! Auto-select KS transitions
-  logical :: energyselect
+  logical :: fensel
   ! Convergence energy
   real(8) :: econv(2)
   ! Lorentian width cutoff
@@ -71,12 +71,13 @@ module modbse
   ! Filebasenames
   character(256) :: infofbasename = "BSEINFO"
   character(256) :: scclifbasename = "SCCLI"
-  character(256) :: exclifbasename = "EXCLI"
   character(256) :: scclicfbasename = "SCCLIC"
+  character(256) :: scclictifbasename = "SCCLICTI"
+  character(256) :: exclifbasename = "EXCLI"
   character(256) :: exclicfbasename = "EXCLIC"
-  character(256) :: infofname, infocfname
-  character(256) :: scclifname, scclicfname
-  character(256) :: exclifname, exclicfname
+  character(256) :: infofname
+  character(256) :: scclifname
+  character(256) :: exclifname
 
   ! Legacy
   ! GW eigenvalue backup 
@@ -129,6 +130,7 @@ module modbse
       no_max = istocc0
       nu_max = nstsv-istunocc0+1
       nou_max = no_max*nu_max
+
       ! Scissor
       sci = input%xs%scissor
       if(ksgapval == 0.0d0) then
@@ -204,15 +206,15 @@ module modbse
         fserial = .false.
       end if
       if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(select_transition): Serial selection :", l)') fserial
+        write(unitout, '("Info(select_transitions): Serial selection :", l)') fserial
       end if
 
       ! Search for needed KS transitions automatically
       ! depending on the chosen energy window?
       if(any(input%xs%bse%nstlbse == 0)) then
-        energyselect = .true.
+        fensel = .true.
       else
-        energyselect = .false.
+        fensel = .false.
       end if
 
       ! What energy range is of interest?
@@ -234,7 +236,7 @@ module modbse
       ! Excitons are build from KS states and the KS transition energies 
       ! dominatly determine exciton energies. 
       ! Select KS transitions withing the energy energy window for the 
-      ! spectrum plus extra convergence energy. (referenced only if energyselect)
+      ! spectrum plus extra convergence energy. (referenced only if fensel)
       econv = input%xs%bse%econv
       econv(1) = econv(1) - ewidth
       econv(2) = econv(2) + ewidth
@@ -248,7 +250,7 @@ module modbse
       cutoffocc = input%groundstate%epsocc
       
       ! Bands to inspect
-      if(energyselect) then
+      if(fensel) then
         io1 = 1
         io2 = istocc0
         iu1 = istunocc0
@@ -261,7 +263,7 @@ module modbse
       end if
 
       if(mpiglobal%rank == 0) then 
-        if(energyselect) then
+        if(fensel) then
           write(unitout, '("Info(select_transitions): Searching for KS transitions in&
             & the energy interval:")')
           write(unitout, '("  [",E10.3,",",E10.3,"]/H")') max(wl+econv(1),0.0d0), wu+econv(2)
@@ -269,7 +271,7 @@ module modbse
             & max(wl+econv(1),0.0d0)*h2ev, (wu+econv(2))*h2ev
           write(unitout, '("  Using convergence energy of:")')
           write(unitout, '("    ",2E10.3," /H")')&
-            & max(econv(1)+ewidth, -wl), econv(2)-ewidth,&
+            & max(econv(1)+ewidth, -wl), econv(2)-ewidth
           write(unitout, '("    ",2E10.3," /eV")')&
             & max(econv(1)+ewidth, -wl)*h2ev, (econv(2)-ewidth)*h2ev
         else
@@ -350,7 +352,7 @@ module modbse
         do io = io1, io2
           do iu = iu1, iu2 
 
-            if(energyselect) then
+            if(fensel) then
 
               detmp = evalsv(iu, ikq) - evalsv0(io, ik) + sci 
 

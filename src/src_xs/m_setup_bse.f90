@@ -22,11 +22,12 @@ module m_setup_bse
     !BOP
     ! !ROUTINE: setup_bse
     ! !INTERFACE:
-    subroutine setup_bse(ham, iqmt, fcoup)
+    subroutine setup_bse(ham, iqmt, fcoup, fti)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     !   integer(4) :: iqmt  ! Index of momentum transfer Q
     !   logical    :: fcoup ! If true, builds RA instead of RR block of BSE matrix 
+    !   logical    :: fti   ! If true, uses time inverted anti-resonant basis
     ! In/Out:
     !   complex(8) :: ham(:,:) ! RR or RA block of BSE-Hamiltonian matrix
     ! 
@@ -43,7 +44,7 @@ module m_setup_bse
       !! I/O
       complex(8), intent(inout) :: ham(:, :)
       integer(4), intent(in) :: iqmt
-      logical, intent(in) :: fcoup
+      logical, intent(in) :: fcoup, fti
 
       !! Local variables
       ! Indices
@@ -73,6 +74,10 @@ module m_setup_bse
           write(unitout, '("Info(setup_bse): Setting up RR part of hamiltonian")')
         else
           write(unitout, '("Info(setup_bse): Setting up RA part of hamiltonian")')
+          if(fti) then 
+            write(unitout, '("Info(setup_bse):&
+              & Using time inverted anti-resonant basis")')
+          end if
         end if
       end if
 
@@ -93,8 +98,13 @@ module m_setup_bse
         call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=sfname)
         call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
       else
-        call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=sfname)
-        call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=efname)
+        if(fti) then
+          call genfilname(basename=scclictifbasename, iqmt=iqmt, filnam=sfname)
+          call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
+        else
+          call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=sfname)
+          call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=efname)
+        end if
       end if
 
       sinfofname = trim(infofbasename)//'_'//trim(sfname)
@@ -220,18 +230,28 @@ module m_setup_bse
         call timesec(ts0)
         if(mpiglobal%rank == 0) then 
           if(.not. fcoup) then 
-            write(unitout, '("Info(setup_bse): Writing (RR) H, W, V and E to file")')
+            write(unitout, '("Info(setup_bse): Writing RR: H, W, V and E to file")')
           else
-            write(unitout, '("Info(setup_bse): Writing (RA) H, W, V and E to file")')
+            if(fti) then 
+              write(unitout, '("Info(setup_bse): Writing RA^ti: H, W, V to file")')
+            else
+              write(unitout, '("Info(setup_bse): Writing RA: H, W, V to file")')
+            end if
           end if
         end if
-        ! Make Ham hermitian (RR) or symmetric (RA)
+        ! Make Ham hermitian (RR or RA^ti) or symmetric (RA)
         do i1 = 1, hamsize
           do i2 = i1, hamsize
             if(fcoup) then 
-              ham(i2,i1) = ham(i1,i2)
-              wint(i2,i1) = wint(i1,i2)
-              vint(i2,i1) = vint(i1,i2)
+              if(fti) then 
+                ham(i2,i1) = conjg(ham(i1,i2))
+                wint(i2,i1) = conjg(wint(i1,i2))
+                vint(i2,i1) = conjg(vint(i1,i2))
+              else
+                ham(i2,i1) = ham(i1,i2)
+                wint(i2,i1) = wint(i1,i2)
+                vint(i2,i1) = vint(i1,i2)
+              end if
             else
               ham(i2,i1) = conjg(ham(i1,i2))
               wint(i2,i1) = conjg(wint(i1,i2))
@@ -240,9 +260,15 @@ module m_setup_bse
           end do
         end do
         if(fcoup) then 
-          call writecmplxparts('HamC', dble(ham), immat=aimag(ham))
-          call writecmplxparts('WC', dble(wint), immat=aimag(wint))
-          call writecmplxparts('VC', dble(vint), immat=aimag(vint))
+          if(fti) then 
+            call writecmplxparts('HamC', dble(ham), immat=aimag(ham))
+            call writecmplxparts('WC', dble(wint), immat=aimag(wint))
+            call writecmplxparts('VC', dble(vint), immat=aimag(vint))
+          else
+            call writecmplxparts('HamCti', dble(ham), immat=aimag(ham))
+            call writecmplxparts('WCti', dble(wint), immat=aimag(wint))
+            call writecmplxparts('VCti', dble(vint), immat=aimag(vint))
+          end if
         else
           call writecmplxparts('KS', diag)
           call writecmplxparts('Ham', dble(ham), immat=aimag(ham))
@@ -257,7 +283,11 @@ module m_setup_bse
           end do
         end do
         if(fcoup) then 
-          call writecmplxparts('HamC_sorted', dble(tmp), immat=aimag(tmp))
+          if(fti) then 
+            call writecmplxparts('HamCti_sorted', dble(tmp), immat=aimag(tmp))
+          else
+            call writecmplxparts('HamC_sorted', dble(tmp), immat=aimag(tmp))
+          end if
         else
           call writecmplxparts('Ham_sorted', dble(tmp), immat=aimag(tmp))
         end if
@@ -274,7 +304,11 @@ module m_setup_bse
           end do
         end do
         if(fcoup) then 
-          call writecmplxparts('WC_sorted', dble(tmp), immat=aimag(tmp))
+          if(fti) then 
+            call writecmplxparts('WCti_sorted', dble(tmp), immat=aimag(tmp))
+          else
+            call writecmplxparts('WC_sorted', dble(tmp), immat=aimag(tmp))
+          end if
         else
           call writecmplxparts('W_sorted', dble(tmp), immat=aimag(tmp))
         end if
@@ -284,7 +318,11 @@ module m_setup_bse
           end do
         end do
         if(fcoup) then 
-          call writecmplxparts('VC_sorted', dble(tmp), immat=aimag(tmp))
+          if(fti) then 
+            call writecmplxparts('V_sorted', dble(tmp), immat=aimag(tmp))
+          else
+            call writecmplxparts('VC_sorted', dble(tmp), immat=aimag(tmp))
+          end if
         else
           call writecmplxparts('V_sorted', dble(tmp), immat=aimag(tmp))
         end if
@@ -356,11 +394,12 @@ module m_setup_bse
     !BOP
     ! !ROUTINE: setup_distributed_bse
     ! !INTERFACE:
-    subroutine setup_distributed_bse(ham, iqmt, fcoup, binfo)
+    subroutine setup_distributed_bse(ham, iqmt, fcoup, fti,  binfo)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     !   integer(4) :: iqmt ! Index of momentum transfer Q
     !   logical :: fcoup   ! If true, builds RA instead of RR block of BSE matrix 
+    !   logical :: fti     ! If true, use time inverted antiresonant basis
     !   type(blacsinfo) :: binfo ! Info type of the BLACS grid
     ! In/Out:
     !   type(dzmat) :: ham ! 2D block cyclic distributed RR or RA
@@ -385,7 +424,7 @@ module m_setup_bse
       !! I/O
       type(dzmat), intent(inout) :: ham
       integer(4), intent(in) :: iqmt
-      logical, intent(in) :: fcoup
+      logical, intent(in) :: fcoup, fti
       type(blacsinfo), intent(in) :: binfo
 
       !! Local variables
@@ -642,7 +681,7 @@ module m_setup_bse
 
       else
 
-        call setup_bse(ham%za, iqmt, fcoup)
+        call setup_bse(ham%za, iqmt, fcoup, fti)
 
       end if
 

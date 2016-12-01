@@ -118,6 +118,7 @@ module m_dzinvert
       end if
       deallocate(work)
 #endif
+      deallocate(ipiv)
     end subroutine dzinvert
     !EOC
     

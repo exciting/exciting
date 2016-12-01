@@ -176,6 +176,9 @@ module modmpi
       integer(4) :: ierr
       ! Abort mpi if necessary
 #ifdef MPI
+      if(mpiglobal%rank == 0) then 
+        write(*,*) "Goodbye, cruel world. (terminate)"
+      end if
       call mpi_abort(mpi_comm_world, 1, ierr)
       if(ierr .eq. 0) then
          write (*, '(a)') 'MPI abort'

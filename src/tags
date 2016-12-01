@@ -18166,7 +18166,7 @@ addcoords_xyz3_dp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyz3_dp(
 addcoords_xyz3_sp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyz3_sp(/;"	s	module:m_wcml_molecule
 addcoords_xyzfrac_dp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyzfrac_dp(/;"	s	module:m_wcml_molecule
 addcoords_xyzfrac_sp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyzfrac_sp(/;"	s	module:m_wcml_molecule
-addint	src_xs/m_setup_bse.f90	/^        subroutine addint(/;"	s	subroutine:setup_bse
+addkstransdiag	src_xs/m_setup_bse.f90	/^        subroutine addkstransdiag(/;"	s	subroutine:setup_bse
 addrhocr	addrhocr.f90	/^Subroutine addrhocr$/;"	s
 addtohistory	src_inputparser/inputmodules.f90	/^ logical::addtohistory$/;"	k	type:relax_type
 adl	ARPACK/EXAMPLES/SYM/dsdrv2.f	/^     &                 ad(maxn), adl(/;"	v	program:dsdrv2
@@ -18598,7 +18598,8 @@ b_ematgntsum	src_xs/m_b_ematqk.f90	/^    subroutine b_ematgntsum(/;"	s	module:m_
 b_ematqk	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqk(/;"	s	module:m_b_ematqk
 b_ematqkgir	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqkgir(/;"	s	module:m_b_ematqk
 b_ematqkgmt	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqkgmt(/;"	s	module:m_b_ematqk
-b_exccoulint	src_xs/b_exccoulint.f90	/^subroutine b_exccoulint$/;"	s
+b_exccoulint	src_xs/b_exccoulint.f90	/^subroutine b_exccoulint(/;"	s
+b_exccoulintlauncher	src_xs/b_exccoulintlauncher.f90	/^subroutine b_exccoulintlauncher$/;"	s
 b_getbseinfo	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbseinfo(/;"	s	module:m_putgetbsemat
 b_getbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbsemat(/;"	s	module:m_putgetbsemat
 b_m08_hx	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m08_hx[12] = {$/;"	v	file:
@@ -18608,7 +18609,8 @@ b_m11_l	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m11_l[12] = {$/;"	v	file:
 b_putbseinfo	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbseinfo(/;"	s	module:m_putgetbsemat
 b_putbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbsemat(/;"	s	module:m_putgetbsemat
 b_putbsereset	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbsereset$/;"	s	module:m_putgetbsemat
-b_scrcoulint	src_xs/b_scrcoulint.f90	/^subroutine b_scrcoulint$/;"	s
+b_scrcoulint	src_xs/b_scrcoulint.f90	/^subroutine b_scrcoulint(/;"	s
+b_scrcoulintlauncher	src_xs/b_scrcoulintlauncher.f90	/^subroutine b_scrcoulintlauncher$/;"	s
 backup0	src_xs/backup0.F90	/^Subroutine backup0$/;"	s
 backup1	src_xs/backup1.F90	/^Subroutine backup1$/;"	s
 backup2	src_xs/backup2.F90	/^Subroutine backup2$/;"	s
@@ -18624,7 +18626,7 @@ barcq0	src_gw/barcq0.f90	/^subroutine barcq0(/;"	s
 barcvm	src_gw/mod_kqpts.f90	/^    complex(8), allocatable :: barcvm(/;"	v	module:mod_kqpts
 barecoul	src_inputparser/inputmodules.f90	/^  type(barecoul_/;"	k	type:gw_type
 barecoul_type	src_inputparser/inputmodules.f90	/^type barecoul_type$/;"	t	module:modinput
-barrier	src_mpi/modmpi.F90	/^    subroutine barrier$/;"	s	module:modmpi
+barrier	src_mpi/modmpi.F90	/^    subroutine barrier(/;"	s	module:modmpi
 base	FoX/common/m_common_attrs.F90	/^    character, dimension(:), pointer           :: base /;"	k	type:dictionary_t
 baseURI	FoX/common/m_common_entities.F90	/^    type(URI), pointer :: baseURI /;"	k	type:entity_t
 baseURI	FoX/sax/m_sax_xml_source.F90	/^    type(URI), pointer :: baseURI /;"	k	type:xml_source_t
@@ -18682,8 +18684,7 @@ bfsmc	mod_spin.F90	/^      Real (8) :: bfsmc /;"	v	module:mod_spin
 bfsmcmt	mod_spin.F90	/^      Real (8) :: bfsmcmt /;"	v	module:mod_spin
 bi0_data	libXC/src/bessel.c	/^static double bi0_data[12] = {$/;"	v	file:
 bi1_data	libXC/src/bessel.c	/^static double bi1_data[11] = {$/;"	v	file:
-bi1dc	src_xs/modscl.f90	/^  type(blacsinfo) :: bi2d, bi1dc,/;"	v	module:modscl
-bi1dw	src_xs/modscl.f90	/^  type(blacsinfo) :: bi2d, bi1dc, bi1dw$/;"	v	module:modscl
+bi1d	src_xs/modscl.f90	/^  type(blacsinfo) :: bi2d, bi1d$/;"	v	module:modscl
 bi2d	src_xs/modscl.f90	/^  type(blacsinfo) :: bi2d,/;"	v	module:modscl
 bias	src_inputparser/inputmodules.f90	/^ real(8)::bias$/;"	k	type:stm_type
 big	libXC/src/gga_c_ft97.c	/^static const FLOAT big = 1e4;$/;"	v	file:
@@ -19548,6 +19549,7 @@ ddot	ARPACK/EXAMPLES/NONSYM/dndrv5.f	/^      Double precision   $/;"	v	program:d
 ddot	ARPACK/EXAMPLES/NONSYM/dndrv6.f	/^      Double precision   $/;"	v	program:dndrv6
 ddot	Lbfgsb.3.0/blas.f	/^      double precision function ddot(/;"	f
 de	src_raman/mod_raman.f90	/^real(8), allocatable :: e1(:),e2(:),e3(:),de(/;"	v	module:raman_ew
+de	src_xs/modbse.f90	/^  real(8), allocatable :: de(/;"	v	module:modbse
 deband	src_inputparser/inputmodules.f90	/^ real(8)::deband$/;"	k	type:groundstate_type
 debug	src_inputparser/inputmodules.f90	/^ logical::debug$/;"	k	type:gw_type
 declared	FoX/common/m_common_attrs.F90	/^    logical :: declared /;"	k	type:dict_item
@@ -20003,8 +20005,8 @@ ec_pot_low	libXC/src/lda_c_pz.c	/^ec_pot_low(pz_consts_type *X, int order, int i
 eccoeff	src_inputparser/inputmodules.f90	/^ real(8)::eccoeff$/;"	k	type:Hybrid_type
 ecir	mod_potential_and_density.F90	/^      Real (8), Allocatable :: ecir /;"	v	module:mod_potential_and_density
 ecmt	mod_potential_and_density.F90	/^      Real (8), Allocatable :: ecmt /;"	v	module:mod_potential_and_density
-econv	src_inputparser/inputmodules.f90	/^ real(8)::econv$/;"	k	type:BSE_type
-econv	src_xs/modbse.f90	/^  real(8) :: econv$/;"	v	module:modbse
+econv	src_inputparser/inputmodules.f90	/^ real(8)::econv(/;"	k	type:BSE_type
+econv	src_xs/modbse.f90	/^  real(8) :: econv(/;"	v	module:modbse
 ecore	src_libbzint/tetra_internal.f90	/^      real(8),pointer :: ecore(/;"	v	module:tetra_internal
 ecore	src_xs/xas/modxas.f90	/^	  real(8), allocatable :: ecore(/;"	v	module:modxas
 ecvcut	species/modspecies.F90	/^real(8) :: ecvcut$/;"	v	module:modspecies
@@ -20100,13 +20102,11 @@ endEntity_handler	FoX/dom/m_dom_parse.f90	/^  subroutine endEntity_handler(/;"	s
 end_angint	src_gw/src_tests/mod_ang_int.f90	/^    subroutine end_angint$/;"	s	module:mod_ang_int
 endbfgs	src_inputparser/inputmodules.f90	/^ character(512)::endbfgs$/;"	k	type:relax_type
 endipc	mod_energy.F90	/^      Real(8)  :: endipc$/;"	v	module:mod_energy
-endloopbarrier	src_mpi/modmpi.F90	/^    subroutine endloopbarrier(/;"	s	module:modmpi
 energies	src_xml/scl_xml_out_module.F90	/^      Type (Node), Pointer :: sclDoc, root, np, npatt, energies,/;"	v	module:scl_xml_out_Module
 energy	energy.f90	/^Subroutine energy$/;"	s
 energykncr	energykncr.f90	/^Subroutine energykncr$/;"	s
 energynn	energynn.f90	/^Subroutine energynn$/;"	s
 energyref	src_inputparser/inputmodules.f90	/^ real(8)::energyref$/;"	k	type:groundstate_type
-energyselect	src_xs/modbse.f90	/^  logical :: energyselect$/;"	v	module:modbse
 energywindow	src_inputparser/inputmodules.f90	/^  type(energywindow_/;"	k	type:raman_type
 energywindow	src_inputparser/inputmodules.f90	/^  type(energywindow_/;"	k	type:xs_type
 energywindow_type	src_inputparser/inputmodules.f90	/^type energywindow_type$/;"	t	module:modinput
@@ -20130,6 +20130,7 @@ engytot	mod_energy.F90	/^      Real (8) :: engytot$/;"	v	module:mod_energy
 engyvcl	mod_energy.F90	/^      Real (8) :: engyvcl$/;"	v	module:mod_energy
 engyvxc	mod_energy.F90	/^      Real (8) :: engyvxc$/;"	v	module:mod_energy
 engyx	mod_energy.F90	/^      Real (8) :: engyx$/;"	v	module:mod_energy
+ensortidx	src_xs/modbse.f90	/^  integer(4), allocatable :: ensortidx(/;"	v	module:modbse
 entities	FoX/dom/m_dom_dom.F90	/^    type(namedNodeMap) :: entities /;"	k	type:docTypeExtras
 entityErrorHandler	FoX/dom/m_dom_parse.f90	/^  subroutine entityErrorHandler(/;"	s
 entityList	FoX/common/m_common_struct.F90	/^    type(entity_list) :: entityList$/;"	k	type:xml_doc_state
@@ -20272,9 +20273,8 @@ exciton_type	src_inputparser/inputmodules.f90	/^type exciton_type$/;"	t	module:m
 exciton_type_array	src_inputparser/inputmodules.f90	/^type exciton_type_array$/;"	t	module:modinput
 excitonarray	src_inputparser/inputmodules.f90	/^  type(exciton_type_array),pointer::excitonarray(/;"	k	type:excitonPlot_type
 exclicfbasename	src_xs/modbse.f90	/^  character(256) :: exclicfbasename /;"	v	module:modbse
-exclicfname	src_xs/modbse.f90	/^  character(256) :: exclifname, exclicfname$/;"	v	module:modbse
 exclifbasename	src_xs/modbse.f90	/^  character(256) :: exclifbasename /;"	v	module:modbse
-exclifname	src_xs/modbse.f90	/^  character(256) :: exclifname,/;"	v	module:modbse
+exclifname	src_xs/modbse.f90	/^  character(256) :: exclifname$/;"	v	module:modbse
 excoeff	src_inputparser/inputmodules.f90	/^ real(8)::excoeff$/;"	k	type:Hybrid_type
 exec_prefix	libXC/Makefile	/^exec_prefix = ${prefix}$/;"	m
 exec_prefix	libXC/build/Makefile	/^exec_prefix = ${prefix}$/;"	m
@@ -20455,6 +20455,7 @@ fctest	src_other/delaunay.f	/^      subroutine fctest(/;"	s
 fdebug	src_gw/modgw.f90	/^    integer(4) :: fdebug$/;"	v	module:modgw
 fderiv	src_lib/fderiv.f90	/^Subroutine fderiv /;"	s
 fener	src_raman/mod_raman.f90	/^real(8) :: fener,/;"	v	module:raman_params
+fensel	src_xs/modbse.f90	/^  logical :: fensel$/;"	v	module:modbse
 fermi	src_libbzint/fermi.f90	/^      subroutine fermi(/;"	s
 fermi_exciting	src_libbzint/fermi_exciting.f90	/^subroutine fermi_exciting(/;"	s
 fermidos	mod_eigenvalue_occupancy.F90	/^      Real (8) :: fermidos$/;"	v	module:mod_eigenvalue_occupancy
@@ -20498,6 +20499,7 @@ filextdyn	mod_phonon.F90	/^      Character(256) :: filextdyn$/;"	v	module:mod_ph
 filextrevert	src_xs/modxs.F90	/^      Character (256) :: filextrevert$/;"	v	module:modxs
 fin	src_vdwdf/Cuba-3.2/src/divonne/Sample.c	258;"	d	file:
 final	src_inputparser/inputmodules.f90	/^ integer::final$/;"	k	type:trans_type
+finalizespectrum	src_xs/b_bse.f90	/^  subroutine finalizespectrum(/;"	s	subroutine:b_bse
 find_eor_eof	FoX/common/m_common_io.F90	/^  subroutine find_eor_eof(/;"	s	module:m_common_io
 find_mt_points	mod_rgrid.f90	/^  subroutine find_mt_points(/;"	s	module:mod_rgrid
 find_stack_direction	libXC/configure	/^find_stack_direction ()$/;"	f
@@ -22470,6 +22472,7 @@ is_lda	libXC/src/mix_func.c	27;"	d	file:
 is_mgga	libXC/src/mix_func.c	25;"	d	file:
 is_unparsed_entity_	FoX/common/m_common_entities.F90	/^  function is_unparsed_entity_(/;"	f	module:m_common_entities
 is_unparsed_entity_from_list	FoX/common/m_common_entities.F90	/^  function is_unparsed_entity_from_list(/;"	f	module:m_common_entities
+isactive	src_xs/modscl.f90	/^    logical :: isactive$/;"	k	type:blacsinfo
 isamples	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  count isamples, cutcomp, xmajor;$/;"	m	struct:region
 iscl	mod_convergence.F90	/^      Integer :: iscl$/;"	v	module:mod_convergence
 iscollinear	src_xs/iscollinear.F90	/^Logical Function iscollinear /;"	f
@@ -22519,6 +22522,7 @@ ishfts	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^     &                 nconv, maxitr, ishf
 ishfts	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 nconv, maxitr, ishfts,/;"	v	program:ssdrv6
 ispacked	src_eigensystem/modfvsystem.f90	/^    Function ispacked /;"	f	module:modfvsystem
 isreadstate0	src_xs/modxs.F90	/^      Logical :: isreadstate0$/;"	v	module:modxs
+isroot	src_xs/modscl.f90	/^    logical :: isroot$/;"	k	type:blacsinfo
 isspinorb	src_inputparser/inputmodules.f90	/^function isspinorb(/;"	f	module:modinput
 isspinspiral	src_inputparser/inputmodules.f90	/^function isspinspiral(/;"	f	module:modinput
 ist	species/modspecies.F90	/^integer :: ist,/;"	v	module:modspecies
@@ -22876,8 +22880,6 @@ kstlist	src_inputparser/inputmodules.f90	/^  type(kstlist_/;"	k	type:LSJ_type
 kstlist	src_inputparser/inputmodules.f90	/^  type(kstlist_/;"	k	type:expiqr_type
 kstlist	src_inputparser/inputmodules.f90	/^  type(kstlist_/;"	k	type:wfplot_type
 kstlist_type	src_inputparser/inputmodules.f90	/^type kstlist_type$/;"	t	module:modinput
-kstrans	src_xs/m_setup_bse.f90	/^    complex(8) function kstrans(/;"	f	module:m_setup_bse
-kstransdiag	src_xs/m_setup_bse.f90	/^        subroutine kstransdiag(/;"	s	subroutine:setup_bse
 ksu	src_other/delaunay.f	/^      integer nv, nw, nt, nd, naddl, isu, jsu, ksu,/;"	v	program:main
 ksurf	src_libbzint/ksurf.f90	/^      subroutine ksurf(/;"	s
 ku	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^      integer          nev, ncv, kl, ku,/;"	v	program:cnbdr1
@@ -26579,9 +26581,9 @@ scale	src_inputparser/inputmodules.f90	/^ real(8)::scale$/;"	k	type:crystal_type
 scale	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  real weight[nrules], scale[nrules], norm[nrules];$/;"	m	struct:__anon52
 scale	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  real weight[nrules], scale[nrules], norm[nrules];$/;"	m	struct:__anon41
 scclicfbasename	src_xs/modbse.f90	/^  character(256) :: scclicfbasename /;"	v	module:modbse
-scclicfname	src_xs/modbse.f90	/^  character(256) :: scclifname, scclicfname$/;"	v	module:modbse
+scclictifbasename	src_xs/modbse.f90	/^  character(256) :: scclictifbasename /;"	v	module:modbse
 scclifbasename	src_xs/modbse.f90	/^  character(256) :: scclifbasename /;"	v	module:modbse
-scclifname	src_xs/modbse.f90	/^  character(256) :: scclifname,/;"	v	module:modbse
+scclifname	src_xs/modbse.f90	/^  character(256) :: scclifname$/;"	v	module:modbse
 scf_cycle	scf_cycle.f90	/^subroutine scf_cycle(/;"	s
 scfconv	src_inputparser/inputmodules.f90	/^ character(512)::scfconv$/;"	k	type:groundstate_type
 scheme	FoX/utils/fox_m_utils_uri.F90	/^    character, pointer :: scheme(/;"	k	type:URI
@@ -26801,6 +26803,7 @@ setdefault	setdefault.f90	/^Subroutine setdefault$/;"	s
 setdocumentURI	FoX/dom/m_dom_dom.F90	/^subroutine setdocumentURI(/;"	s	module:m_dom_dom
 setdomConfig	FoX/dom/m_dom_dom.F90	/^subroutine setdomConfig(/;"	s	module:m_dom_dom
 setillFormed	FoX/dom/m_dom_dom.F90	/^  subroutine setillFormed(/;"	s	module:m_dom_dom
+setint	src_xs/m_setup_bse.f90	/^        subroutine setint(/;"	s	subroutine:setup_bse
 setisId_DOM	FoX/dom/m_dom_dom.F90	/^subroutine setisId_DOM(/;"	s	module:m_dom_dom
 setliveNodeLists	FoX/dom/m_dom_dom.F90	/^subroutine setliveNodeLists(/;"	s	module:m_dom_dom
 setnamespaceURI	FoX/dom/m_dom_dom.F90	/^subroutine setnamespaceURI(/;"	s	module:m_dom_dom
@@ -27702,6 +27705,7 @@ threshold	libXC/src/gga_x_lb.c	/^  FLOAT threshold; \/* when to start using the 
 threshold	libXC/src/gga_x_lb.c	/^XC(gga_lb_set_params)(XC(func_type) *p, int modified, FLOAT threshold, FLOAT ip, FLOAT qtot)$/;"	v
 threshold	libXC/src/xc.h	/^void XC(gga_lb_set_params)        (XC(func_type) *p, int modified, FLOAT threshold, FLOAT ip, FLOAT qtot);$/;"	v
 throw_exception	FoX/dom/m_dom_error.f90	/^  subroutine throw_exception(/;"	s	module:m_dom_error
+ti	src_inputparser/inputmodules.f90	/^ logical::ti$/;"	k	type:BSE_type
 tildeg	src_gw/tildeg.f90	/^      real(8) function tildeg(/;"	f
 tilg	src_gw/calctildeg.f90	/^      real(8), allocatable :: tilg(/;"	v	module:gtil
 time0	src_vdwdf/main.f90	/^  integer             :: time0,/;"	v	program:main

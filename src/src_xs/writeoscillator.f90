@@ -143,14 +143,14 @@ module m_writeoscillator
               & aimag(oszstra(idxsort(lambda), o1))
           end do
 
-        ! TDA case
+        ! TDA case or coupling with time inverted ar basis
         else
 
           frmt='(a1,a7,5(1x,a23))'
           write(unexc, frmt) "#", "Nr.",&
             & "E",&
             & "E+E_shift",&
-            & "|Osc. Str. Res.|",&
+            & "|Osc. Str.|",&
             & "Re(Osc. Str. Res.)",&
             & "Im(Osc. Str. Res.)"
           frmt='(I8,5(1x,E23.16))'

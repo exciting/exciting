@@ -377,14 +377,14 @@ subroutine xstasklauncher
       ! Task 440 corresponds to "scrcoulint" plan
       task = 440
       call xsinit
-      call b_scrcoulint
+      call b_scrcoulintlauncher
       call xsfinit
     end if
 
     ! Task 441 corresponds to "exccoulint" plan
     task = 441
     call xsinit
-    call b_exccoulint
+    call b_exccoulintlauncher
     call xsfinit
 
     ! Task 445 corresponds to "bse" plan

@@ -60,7 +60,7 @@ module m_putgetbsemat
       ! Get large enough record length 
       inquire(iolength=reclen)&
         & reducek, ngridk, ngridq, vkloff,&
-        & energyselect, wl, wu, econv,&
+        & fensel, wl, wu, econv,&
         & iqmt, vql(:,1),&
         & nk_max, nk_bse, nou_bse_max, hamsize,&
         & kmap_bse_rg, kmap_bse_gr,&
@@ -72,23 +72,13 @@ module m_putgetbsemat
 
       write(un, rec=1)& 
         & reducek, ngridk, ngridq, vkloff,&
-        & energyselect, wl, wu, econv,&
+        & fensel, wl, wu, econv,&
         & iqmt, vql(:,1),&
         & nk_max, nk_bse, nou_bse_max, hamsize,&
         & kmap_bse_rg, kmap_bse_gr,&
         & koulims, kousize, smap
 
       close(un)
-!write(*,*) "(b_putbseinfo) write:"
-!write(*,*) "(b_putbseinfo) reducek", reducek
-!write(*,*) "(b_putbseinfo) ngridk", ngridk
-!write(*,*) "(b_putbseinfo) ngridq", ngridq
-!write(*,*) "(b_putbseinfo) vkloff", vkloff
-!write(*,*) "(b_putbseinfo) energyselect", energyselect
-!write(*,*) "(b_putbseinfo) wl, wu, econv", wl, wu, econv
-!write(*,*) "(b_putbseinfo) iqmt, vql", iqmt, vql(:,1)
-!write(*,*) "(b_putbseinfo) nk_max, nk_bse, nou_bse_max", nk_max, nk_bse, nou_bse_max
-!write(*,*) "(b_putbseinfo) hamsize", hamsize
     end subroutine b_putbseinfo
     !EOC
 
@@ -128,7 +118,7 @@ module m_putgetbsemat
       real(8) :: vkloff(3), vkloff_(3)
 
       logical :: iscompatible, isidentical
-      logical :: energyselect_
+      logical :: fensel_
       real(8) :: wl_, wu_, econv_(2), vql_(3)
       integer(4) :: iqmt_, nk_max_, hamsize_
       integer(4), allocatable :: kmap_bse_rg_(:)
@@ -148,40 +138,29 @@ module m_putgetbsemat
       end if
 
       call getunit(un)
-!write(*,*) "(b_getbseinfo) reading form ", trim(infofname)
       ! Get large enough record length 
       inquire(iolength=reclen)&
         & reducek_, ngridk_, ngridq_, vkloff_,&
-        & energyselect_, wl_, wu_, econv_,&
+        & fensel_, wl_, wu_, econv_,&
         & iqmt_, vql_,&
         & nk_max_, nk_bse_, nou_bse_max_, hamsize_
       open(unit=un, file=trim(fname), form='unformatted', action='read',&
         & access='direct', recl=reclen)
       read(un, rec=1)& 
         & reducek_, ngridk_, ngridq_, vkloff_,&
-        & energyselect_, wl_, wu_, econv_,&
+        & fensel_, wl_, wu_, econv_,&
         & iqmt_, vql_,&
         & nk_max_, nk_bse_, nou_bse_max_, hamsize_
       close(un)
-
-!write(*,*) "(b_getbseinfo) read:"
-!write(*,*) "(b_getbseinfo) reducek_", reducek_
-!write(*,*) "(b_getbseinfo) ngridk_", ngridk_
-!write(*,*) "(b_getbseinfo) ngridq_", ngridq_
-!write(*,*) "(b_getbseinfo) vkloff_", vkloff_
-!write(*,*) "(b_getbseinfo) energyselect_", energyselect_
-!write(*,*) "(b_getbseinfo) wl_, wu_, econv_", wl_, wu_, econv_
-!write(*,*) "(b_getbseinfo) iqmt_, vql_", iqmt_, vql_
-!write(*,*) "(b_getbseinfo) nk_max_, nk_bse_, nou_bse_max_", nk_max_, nk_bse_, nou_bse_max_
-!write(*,*) "(b_getbseinfo) hamsize_", hamsize_
 
       ! Defaults
       isidentical = .false.
       iscompatible = .true.
 
       ! Check if identical
-      if( reducek_ == reducek .and. energyselect_ == energyselect&
-        & .and. wl_ == wl .and. wu_ == wu .and. econv_(1) == econv(1) .and. econv_(2) == econv(2)&
+      if( reducek_ == reducek .and. fensel_ == fensel&
+        & .and. wl_ == wl .and. wu_ == wu&
+        & .and. econv_(1) == econv(1) .and. econv_(2) == econv(2)&
         & .and. iqmt_ == iqmt .and. nk_max_ == nk_max .and. nk_bse_ == nk_bse&
         & .and. hamsize_ == hamsize) then
         if( .not. (any(ngridk_ /= ngridk) .or. any(ngridq_ /= ngridq)&
@@ -217,15 +196,15 @@ module m_putgetbsemat
         write(*, '(" requested iqmt: ", i4)') iqmt 
         write(*, '(" stored iqmt_: ", i4)') iqmt_
       end if
-      if(energyselect_ /= energyselect) then
+      if(fensel_ /= fensel) then
         iscompatible = .false.
         isidentical = .false.
         write(*, '("Error (b_getbseinfo):&
           & Saved data has different selection mode")')
-        write(*, '(" requested enegyselect: ", l)') energyselect 
-        write(*, '(" stored energyselect: ", l)') energyselect_
+        write(*, '(" requested enegyselect: ", l)') fensel 
+        write(*, '(" stored fensel: ", l)') fensel_
       end if
-      if(energyselect) then
+      if(fensel) then
         if(wl+econv(1) < wl_+econv_(1) .or. wu+econv(2) > wu_+econv_(2)) then 
           iscompatible = .false.
           isidentical = .false.
@@ -257,7 +236,7 @@ module m_putgetbsemat
         call getunit(un)
         inquire(iolength=reclen)&
           & reducek_, ngridk_, ngridq_, vkloff_,&
-          & energyselect_, wl_, wu_, econv_,&
+          & fensel_, wl_, wu_, econv_,&
           & iqmt_, vql_,&
           & nk_max_, nk_bse_, hamsize_,&
           & kmap_bse_rg_, kmap_bse_gr_,&
@@ -266,7 +245,7 @@ module m_putgetbsemat
           & access='direct', recl=reclen)
         read(un, rec=1)& 
           & reducek_, ngridk_, ngridq_, vkloff_,&
-          & energyselect_, wl_, wu_, econv_,&
+          & fensel_, wl_, wu_, econv_,&
           & iqmt_, vql_,&
           & nk_max_, nk_bse_, hamsize_,&
           & kmap_bse_rg_, kmap_bse_gr_,&
