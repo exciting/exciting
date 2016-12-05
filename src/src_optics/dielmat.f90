@@ -231,7 +231,7 @@ subroutine dielmat
           call MPI_AllReduce(MPI_IN_PLACE, &
           &                  wplas, &
           &                  1, &
-          &                  MPI_DOUBLE_COMPLEX, &
+          &                  MPI_DOUBLE_PRECISION, &
           &                  MPI_SUM, &
           &                  MPI_COMM_WORLD, &
           &                  ierr)

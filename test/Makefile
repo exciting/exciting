@@ -1,7 +1,7 @@
 include ../build/make.inc
 
 ifeq ($(BUILDMPI),true)
-EXE = ../bin/excitingmpi
+EXE = ../bin/excitingdebug
 else
 EXE = ../bin/excitingser
 endif
