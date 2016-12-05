@@ -239,6 +239,23 @@ module m_setup_bse
             end if
           end if
         end if
+        ! Write unsymmetrised
+        if(fcoup) then 
+          if(fti) then 
+            call writecmplxparts('HamCti_unsym', dble(ham), immat=aimag(ham))
+            call writecmplxparts('WCti_unsym', dble(wint), immat=aimag(wint))
+            call writecmplxparts('VCti_unsym', dble(vint), immat=aimag(vint))
+          else
+            call writecmplxparts('HamC_unsym', dble(ham), immat=aimag(ham))
+            call writecmplxparts('WC_unsym', dble(wint), immat=aimag(wint))
+            call writecmplxparts('VC_unsym', dble(vint), immat=aimag(vint))
+          end if
+        else
+          call writecmplxparts('KS', diag)
+          call writecmplxparts('Ham_unsym', dble(ham), immat=aimag(ham))
+          call writecmplxparts('W_unsym', dble(wint), immat=aimag(wint))
+          call writecmplxparts('V_unsym', dble(vint), immat=aimag(vint))
+        end if
         ! Make Ham hermitian (RR or RA^ti) or symmetric (RA)
         do i1 = 1, hamsize
           do i2 = i1, hamsize
@@ -261,16 +278,15 @@ module m_setup_bse
         end do
         if(fcoup) then 
           if(fti) then 
-            call writecmplxparts('HamC', dble(ham), immat=aimag(ham))
-            call writecmplxparts('WC', dble(wint), immat=aimag(wint))
-            call writecmplxparts('VC', dble(vint), immat=aimag(vint))
-          else
             call writecmplxparts('HamCti', dble(ham), immat=aimag(ham))
             call writecmplxparts('WCti', dble(wint), immat=aimag(wint))
             call writecmplxparts('VCti', dble(vint), immat=aimag(vint))
+          else
+            call writecmplxparts('HamC', dble(ham), immat=aimag(ham))
+            call writecmplxparts('WC', dble(wint), immat=aimag(wint))
+            call writecmplxparts('VC', dble(vint), immat=aimag(vint))
           end if
         else
-          call writecmplxparts('KS', diag)
           call writecmplxparts('Ham', dble(ham), immat=aimag(ham))
           call writecmplxparts('W', dble(wint), immat=aimag(wint))
           call writecmplxparts('V', dble(vint), immat=aimag(vint))

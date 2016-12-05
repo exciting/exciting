@@ -53,7 +53,8 @@ module m_hesolver
       real(8), external :: dlamch
 
       ! Tolerance parameter
-      abstol = 2.d0 * dlamch('s')
+      !abstol = 2.d0 * dlamch('s')
+      abstol = dlamch('Safe minimum')
 
       hematsize = size(hemat,1)
 

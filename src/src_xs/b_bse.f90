@@ -123,7 +123,7 @@ complex(8), allocatable, dimension(:,:) :: ham_test
   complex(8), allocatable, dimension(:,:,:) :: symspectr
   real(8) :: bsegap
   real(8) :: v1, v2
-  integer(4) :: i1, i2
+  integer(4) :: i1, i2, i,j
   logical :: efind
   ! Distributed arrays
   integer(4) :: ip
@@ -815,16 +815,18 @@ contains
     end if
     allocate(rrmat(hamsize,hamsize))
     call setup_bse(rrmat, iqmt, .false., .false.)
-    ! Make RR part explicitly hermitian, since
-    ! only the upper triangle was constructed.
-    do i=1, hamsize
-      ! Set imaginary part of diagonal exactly 0.
-      ! (It should be zero anyways, but this is a precaution)
-      rrmat(i,i) = cmplx(dble(rrmat(i,i)), 0.0d0, 8)
-      do j=i+1, hamsize
-        rrmat(j,i) = conjg(rrmat(i,j))
+    if(.not. fwp) then 
+      ! Make RR part explicitly hermitian, since
+      ! only the upper triangle was constructed.
+      do i=1, hamsize
+        ! Set imaginary part of diagonal exactly 0.
+        ! (It should be zero anyways, but this is a precaution)
+        rrmat(i,i) = cmplx(dble(rrmat(i,i)), 0.0d0, 8)
+        do j=i+1, hamsize
+          rrmat(j,i) = conjg(rrmat(i,j))
+        end do
       end do
-    end do
+    end if
     if(mpiglobal%rank == 0) then 
       call timesec(t1)
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
@@ -832,18 +834,21 @@ contains
 
     ! Get RA^{ti} part of BSE Hamiltonian
     if(mpiglobal%rank == 0) then 
-      write(unitout, '("Info(setup_ti_bse): Setting up RA^{ti} Block of orignial BSE")')
+      write(unitout, '("Info(setup_ti_bse):&
+        & Setting up RA^{ti} Block of orignial BSE")')
       call timesec(t0)
     end if
     allocate(ramat(hamsize,hamsize))
     call setup_bse(ramat, iqmt, .true., .true.)
-    ! Make RA^{ti} part of ham explicitly hermitian.
-    do i=1, hamsize
-      ramat(i,i) = cmplx(dble(ramat(i,i)), 0.0d0, 8)
-      do j=i+1, hamsize
-        ramat(j,i) = conjg(ramat(i,j))
+    if(.not. fwp) then
+      ! Make RA^{ti} part of ham explicitly hermitian.
+      do i=1, hamsize
+        ramat(i,i) = cmplx(dble(ramat(i,i)), 0.0d0, 8)
+        do j=i+1, hamsize
+          ramat(j,i) = conjg(ramat(i,j))
+        end do
       end do
-    end do
+    end if
     if(mpiglobal%rank == 0) then 
       call timesec(t1)
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
@@ -867,16 +872,17 @@ contains
     allocate(cmat(hamsize, hamsize))
     do j = 1, hamsize
       do i = 1, hamsize
-        cmat(i,j) = cpmat(i,j) + 2*ramat(i,j)
+        cmat(i,j) = cpmat(i,j) + 2.0d0*ramat(i,j)
       end do
     end do
     deallocate(ramat)
+
     if(mpiglobal%rank == 0) then 
       call timesec(t1)
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
     end if
 
-    ! Take the square root of cpmat
+    ! Take the square root of (A-B) (currently in cpmat)
     ! Note: It is assumed to be positive definit.
 
     if(mpiglobal%rank == 0) then 
@@ -890,18 +896,23 @@ contains
     end if
 
     ! Construct S Matrix
+    ! S = (A-B)^{1/2} (A+B) (A-B)^{1/2}
 
     if(mpiglobal%rank == 0) then 
       write(unitout, '("Info(setup_ti_bse): Constructing S matrix")')
       call timesec(t0)
     end if
+
     allocate(auxmat(hamsize,hamsize))
     call zgemm('N','N', hamsize, hamsize, hamsize, zone, cpmat, hamsize,&
       & cmat, hamsize, zzero, auxmat, hamsize)
+
     allocate(smat(hamsize, hamsize))
     call zgemm('N','N', hamsize, hamsize, hamsize, zone, auxmat, hamsize,&
       & cpmat, hamsize, zzero, smat, hamsize)
+
     deallocate(auxmat)
+
     if(mpiglobal%rank == 0) then 
       call timesec(t1)
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
@@ -958,6 +969,7 @@ contains
     end if
     deallocate(work)
     deallocate(ipiv)
+
     if(mpiglobal%rank == 0) then 
       call timesec(t1)
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
@@ -967,6 +979,7 @@ contains
       call timesec(ts1)
       write(unitout, '("Info(setup_ti_bse): Total time needed",f12.3,"s")') ts1-ts0
     end if
+
   end subroutine setup_ti_bse
 
   ! NOTE: only for qmt = 0
@@ -1125,10 +1138,10 @@ contains
       ! Interested in X^+ + Y^+, so we rescale the 
       ! auxiliary eigenvectors Z by the square root of the eigenvalues
       ! so that 
-      ! (X+Y)_{a,lambda} = \Sum_{a'} (A-B)^{1/2}_{a,a'} * E^{1/2}_lambda * Z_{a',lambda}
+      ! (X+Y)_{a,lambda} = \Sum_{a'} (A-B)^{1/2}_{a,a'} * E^{-1/2}_lambda * Z_{a',lambda}
       do lambda = 1, nexc
         do a1 = 1, hamsize
-          bevecaux(a1, lambda) = bevecaux(a1, lambda) * sqrt(bevalre(lambda))
+          bevecaux(a1, lambda) = bevecaux(a1, lambda) / sqrt(bevalre(lambda))
         end do
       end do
       allocate(xpy(hamsize, nexc))
@@ -1138,7 +1151,6 @@ contains
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
     end if
-
    
     if(.not. fcoup .or. fcoup .and. .not. fti) then 
       write(unitout, '("  Building resonant oscillator strengths.")')
@@ -1164,6 +1176,7 @@ contains
         & zone, xpy(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+      deallocate(xpy)
 
     end if
 
@@ -1219,25 +1232,15 @@ contains
     write(unitout, '("  Making energy denominators ENW.")')
     call timesec(t0)
 
-    ! enw_{w, \lambda} = 1/(E_\lambda - w - i\delta)
+    ! enw_{w, \lambda} = 1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta)
     allocate(enw(nfreq, nexc))
     !$OMP PARALLEL DO &
     !$OMP& COLLAPSE(2),&
     !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
     do j = 1, nexc
       do i = 1, nfreq
-        enw(i,j) = zone/(bevalre(j)-freq(i)-zi*input%xs%broad)
-      end do
-    end do
-    !$OMP END PARALLEL DO
-
-    ! enw_{w, \lambda} += 1/(E_\lambda + w + i\delta)
-    !$OMP PARALLEL DO &
-    !$OMP& COLLAPSE(2),&
-    !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
-    do j = 1, nexc
-      do i = 1, nfreq
-        enw(i,j) = enw(i,j) + zone/(bevalre(j)+freq(i)+zi*input%xs%broad)
+        enw(i,j) = zone/(bevalre(j)-freq(i)-zi*input%xs%broad)&
+                &+ zone/(bevalre(j)+freq(i)+zi*input%xs%broad)
       end do
     end do
     !$OMP END PARALLEL DO

@@ -303,7 +303,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     jknr = kmap_bse_rg(jk) 
 
     !! Get corresponding q-point for ki,kj combination.
-    if(fti) then 
+    if(fti .and. fra) then 
       ! RA^{ti}
       ! k-point difference -(k_j+k_i) on integer grid.
       iv(:) = -(ivknr(:,jknr) + ivknr(:,iknr))

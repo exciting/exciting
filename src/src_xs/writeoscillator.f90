@@ -24,8 +24,9 @@ module m_writeoscillator
 
       ! Local
       logical :: fsort
-      integer(4) :: o1, lambda, unexc
-      integer(4), allocatable :: idxsort(:)
+      integer(4) :: o1, lambda, unexc, i, j
+      integer(4), allocatable :: idxsort(:), idxsort2(:)
+      real(8), allocatable :: evalre_sorted(:)
       real(8) :: pm
       character(256) :: fnexc, frmt
 #ifdef DGRID
@@ -38,10 +39,20 @@ module m_writeoscillator
         fsort = .false.
       end if
 
-      allocate(idxsort(nexc))
+      allocate(idxsort(hamsize))
       if(fsort) then 
-        call sortidx(nexc, evalre, idxsort)
-        idxsort = cshift(idxsort, nexc/2)
+        allocate(idxsort2(hamsize/2))
+        allocate(evalre_sorted(hamsize))
+        call sortidx(hamsize, evalre, idxsort)
+        evalre_sorted = evalre(idxsort)
+        idxsort = cshift(idxsort, hamsize/2)
+        evalre_sorted = evalre(idxsort)
+        do i = 1, hamsize/2
+          idxsort2(i) = idxsort(hamsize-i+1)
+        end do
+        idxsort(hamsize/2+1:hamsize) = idxsort2
+        evalre_sorted = evalre(idxsort)
+        deallocate(idxsort2, evalre_sorted)
       else
         do lambda = 1, nexc
           idxsort(lambda) = lambda
