@@ -221,6 +221,17 @@ module m_setup_bse
 
       end do
 
+      ! Write lower triangular part in case it is explicitly needed
+      do i1 = 1, hamsize
+        do i2 = i1+1, hamsize
+          if(fcoup .and. .not. fti) then 
+            ham(i2,i1) = ham(i1,i2)
+          else
+            ham(i2,i1) = conjg(ham(i1,i2))
+          end if
+        end do
+      end do
+
       call timesec(ts1)
       write(unitout, '(" Matrix build.")')
       write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
@@ -242,35 +253,29 @@ module m_setup_bse
         ! Write unsymmetrised
         if(fcoup) then 
           if(fti) then 
-            call writecmplxparts('HamCti_unsym', dble(ham), immat=aimag(ham))
             call writecmplxparts('WCti_unsym', dble(wint), immat=aimag(wint))
             call writecmplxparts('VCti_unsym', dble(vint), immat=aimag(vint))
           else
-            call writecmplxparts('HamC_unsym', dble(ham), immat=aimag(ham))
             call writecmplxparts('WC_unsym', dble(wint), immat=aimag(wint))
             call writecmplxparts('VC_unsym', dble(vint), immat=aimag(vint))
           end if
         else
           call writecmplxparts('KS', diag)
-          call writecmplxparts('Ham_unsym', dble(ham), immat=aimag(ham))
           call writecmplxparts('W_unsym', dble(wint), immat=aimag(wint))
           call writecmplxparts('V_unsym', dble(vint), immat=aimag(vint))
         end if
-        ! Make Ham hermitian (RR or RA^ti) or symmetric (RA)
+        ! Make W,V hermitian (RR or RA^ti) or symmetric (RA)
         do i1 = 1, hamsize
           do i2 = i1, hamsize
             if(fcoup) then 
               if(fti) then 
-                ham(i2,i1) = conjg(ham(i1,i2))
                 wint(i2,i1) = conjg(wint(i1,i2))
                 vint(i2,i1) = conjg(vint(i1,i2))
               else
-                ham(i2,i1) = ham(i1,i2)
                 wint(i2,i1) = wint(i1,i2)
                 vint(i2,i1) = vint(i1,i2)
               end if
             else
-              ham(i2,i1) = conjg(ham(i1,i2))
               wint(i2,i1) = conjg(wint(i1,i2))
               vint(i2,i1) = conjg(vint(i1,i2))
             end if
@@ -410,7 +415,7 @@ module m_setup_bse
     !BOP
     ! !ROUTINE: setup_distributed_bse
     ! !INTERFACE:
-    subroutine setup_distributed_bse(ham, iqmt, fcoup, fti,  binfo)
+    subroutine setup_distributed_bse(ham, iqmt, fcoup, fti, binfo)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     !   integer(4) :: iqmt ! Index of momentum transfer Q
@@ -425,7 +430,7 @@ module m_setup_bse
     !   The routine sets up the content of the local array of the 
     !   2d block cyclic distributed resonant-resonant or resonant-antiresonant block of
     !   the BSE-Hamiltonian matrix. Process 0 reads {\tt EXCLI.OUT} and {\tt SCCLI.OUT}
-    !   ({\tt EXCLIC.OUT} and {\tt SCCLIC.OUT}) for each {\tt ikkp}
+    !   ({\tt EXCLIC.OUT} and {\tt SCCLIC.OUT} or {\tt SCCLICTI.OUT}) for each {\tt ikkp}
     !   record and send the data block-wise to the responsible processes.
     !   If the matrix is not to be distributed the routine calls 
     !   {\tt setup\_bse} instead.
@@ -447,14 +452,32 @@ module m_setup_bse
       integer(4) :: ikkp, ik, jk, iknr, jknr
       integer(4) :: inou, jnou
 
+      ! Arrays to read V and W from file
       complex(8), allocatable, dimension(:,:) :: excli_t, sccli_t
 
+      ! Send buffers for distributing V and W 
       complex(8), allocatable, dimension(:,:) :: ebuff, sbuff
+      complex(8), allocatable, dimension(:,:) :: ebuff2, sbuff2
 
-      integer(4) :: context, pr, pc
-      integer(4) :: ig, jg, ii, jj, iblck, jblck
-      integer(4) :: i, j, m, n, ib, jb
+      ! BLACS context
+      integer(4) :: context
+      ! Process row and column coordinates
+      integer(4) :: pr, pc
+      integer(4) :: pr2, pc2
+
+      ! Row and column index of ham (Global view)
+      integer(4) :: ig, jg
+      ! Row and column block length of ham
+      integer(4) :: iblck, jblck
+      ! Position of ikjk sub matrix within ham (Global view)
+      integer(4) :: ii, jj
+      ! Block lengths of sub matrix
+      integer(4) :: ib, jb
+      ! Row and column index of the sub matrix (Global view)
+      integer(4) :: i, j
+      ! Row and column index (Local view)
       integer(4) :: il, jl
+      integer(4) :: il2, jl2
 
       ! Read in vars
       character(256) :: sfname, sinfofname
@@ -472,7 +495,7 @@ module m_setup_bse
         !!*****************************!!
         ! Check whether the saved data is usable and 
         ! allocate read in work arrays
-        if(binfo%myprow == 0 .and. binfo%mypcol == 0) then 
+        if(binfo%isroot) then 
 
           if(.not. fcoup) then 
             write(unitout, '("Info(setup_distributed_bse):&
@@ -480,6 +503,10 @@ module m_setup_bse
           else
             write(unitout, '("Info(setup_distributed_bse):&
               & Setting up RA part of hamiltonian")')
+            if(fti) then 
+              write(unitout, '("Info(setup_distributed_bse):&
+                & Using time inverted anti-resonant basis")')
+            end if
           end if
 
           ! Select form which files W and V are to be read
@@ -487,8 +514,13 @@ module m_setup_bse
             call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=sfname)
             call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
           else
-            call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=sfname)
-            call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=efname)
+            if(fti) then
+              call genfilname(basename=scclictifbasename, iqmt=iqmt, filnam=sfname)
+              call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
+            else
+              call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=sfname)
+              call genfilname(basename=exclicfbasename, iqmt=iqmt, filnam=efname)
+            end if
           end if
 
           sinfofname = trim(infofbasename)//'_'//trim(sfname)
@@ -499,7 +531,7 @@ module m_setup_bse
           write(unitout, '("  Reading form info from ", a)')&
             & trim(einfofname)
 
-          ! Check saved Quantities for compatiblity
+          ! Check saved quantities for compatibility
           call b_getbseinfo(trim(sinfofname), iqmt,&
             & fcmpt=sfcmpt, fid=sfid)
           call b_getbseinfo(trim(einfofname), iqmt,&
@@ -518,9 +550,13 @@ module m_setup_bse
 
         end if
 
-        ! Block sizes
+        ! Block sizes of global matrix
         iblck = ham%mblck
         jblck = ham%nblck 
+
+!if(binfo%isroot) then 
+!  write(*,*) "iblck, jblck", iblck, jblck
+!end if
 
         ! Context
         context = ham%context
@@ -531,20 +567,30 @@ module m_setup_bse
         end if
 
         ! Send/receive buffer
+        !   Upper triangular part
         allocate(ebuff(iblck, jblck))
         allocate(sbuff(iblck, jblck))
+        !   Lower triangular part 
+        !   (ham is either hermitian or symmetric)
+        allocate(ebuff2(jblck, iblck))
+        allocate(sbuff2(jblck, iblck))
 
         ! Loop over ikkp blocks of the global 
         ! BSE Hamilton matrix.
+        ! Note: Since W and V are hermitian or symmetric 
+        !       only ikjk blocks are saved with jk >= ik
+        !       so ikkp labels ikjk blocks of the upper triangular part of the matrix
         do ikkp = 1, nkkp_bse
 
+!if(binfo%isroot) then 
+!  write(*,*) "ikkp", ikkp
+!end if
           ! Get index ik jk form combination index ikkp
           call kkpmap(ikkp, nk_bse, ik, jk)
 
-          ! Get global index iknr
+          ! Get total non reduced k point index iknr (jknr) form 
+          ! BSE k point selection index ik (jk)
           iknr = kmap_bse_rg(ik)
-
-          ! Get global index jknr
           jknr = kmap_bse_rg(jk)
 
           ! Position of ikkp block in global matrix
@@ -555,10 +601,18 @@ module m_setup_bse
           inou = kousize(iknr)
           jnou = kousize(jknr)
 
+!if(binfo%isroot) then 
+!  write(*,*) "inou x jnou", inou, jnou
+!end if
+!if(binfo%isroot) then 
+!  write(*,*) "ii, jj", ii, jj
+!end if
+
           !!***********!!
           !! READ DATA !!
           !!***********!!
-          if(binfo%myprow == 0 .and. binfo%mypcol == 0) then
+          ! Root reads a ikjk block of W and V from file
+          if(binfo%isroot) then
 
             ! Read in screened coulomb interaction for ikkp
             select case(trim(input%xs%bse%bsetype))
@@ -581,6 +635,13 @@ module m_setup_bse
           !!******************!!
           !! SEND DATA CHUNKS !!
           !!******************!!
+          ! Root distributes blocks of the ikjk matrix to all processes
+          ! according to the block cyclic distribution scheme of ScaLAPACK.
+          ! Note:
+          ! Also the jkik block is distributed explicitly to avoid later 
+          ! complications, in case that the lower triangular part
+          ! of the matrix is also needed.
+
           ! Column index of global ikkp sub-matrix
           j = 1
           do while(j <= jnou)
@@ -589,7 +650,7 @@ module m_setup_bse
             jg = jj + j - 1
 
             ! Calculate column block size
-            if (j == 1) then 
+            if(j == 1) then 
               ! First column block size of global sub-matrix
               ! Adjust for possible truncation of first column block size 
               jb = jblck - mod(jj-1, jblck)
@@ -599,16 +660,40 @@ module m_setup_bse
               jb = min(jblck, jnou-j+1)
             end if
 
+
             !! We have a sub block of the 
             !! global sub-matrix at col j of colsize jb
             !! that needs to be sent do one process only.
-            ! Get first process grid coordinate of responsible process.
+            ! Get process grid column coordinate of responsible process.
             pc = indxg2p( jg, jblck, binfo%mypcol, 0, binfo%npcols)
             ! Get column position of ib*jb block in local matrix
             jl = indxg2l( jg, jblck, pc, 0, binfo%npcols)
 
+!if(binfo%isroot) then 
+!  write(*,*) "j, jg", j, jg
+!  write(*,*) "jb", jb
+!end if
+!if(binfo%isroot) then 
+!  write(*,*) "pc", pc
+!  write(*,*) "jl", jl
+!end if
+
+            ! Get corresponding quantities in the lower 
+            ! triangular part of the matrix.
+            if(iknr /= jknr) then 
+              ! Get process grid row coordinate
+              pr2 = indxg2p( jg, iblck, binfo%myprow, 0, binfo%nprows)
+              ! Get row position of jb*ib block in local matrix
+              il2 = indxg2l( jg, iblck, pr2, 0, binfo%nprows)
+
+!if(binfo%isroot) then 
+!  write(*,*) "pr2", pr2
+!  write(*,*) "il2", il2
+!end if
+            end if
+
             ! Row index of global sub-matrix
-            i  = 1
+            i = 1
             do while(i <= inou)
 
               ! Row index of global matrix
@@ -627,57 +712,150 @@ module m_setup_bse
               !! We have a sub block of the 
               !! global sub-matrix at coordinates i,j of size ib*jb
               !! that needs to be sent do one process only.
-              ! Get second process grid coordinate of responsible process.
+              ! Get process grid row coordinate of responsible process.
               pr = indxg2p( ig, iblck, binfo%myprow, 0, binfo%nprows)
               ! Get row position of ib*jb block in local matrix
               il = indxg2l( ig, iblck, pr, 0, binfo%nprows)
 
+!if(binfo%isroot) then 
+!  write(*,*) "i, ig", i, ig
+!  write(*,*) "ib", ib
+!end if
+!if(binfo%isroot) then 
+!  write(*,*) "pr", pr
+!  write(*,*) "il", il
+!end if
+
+              ! Get corresponding quantities in the lower 
+              ! triangular part of the matrix.
+              if(iknr /= jknr) then 
+                ! Get process grid column coordinate
+                pc2 = indxg2p( ig, jblck, binfo%mypcol, 0, binfo%npcols)
+                ! Get column position of jb*ib block in local matrix
+                jl2 = indxg2l( ig, jblck, pc2, 0, binfo%npcols)
+
+!if(binfo%isroot) then 
+!  write(*,*) "pc2", pc2
+!  write(*,*) "jl2", jl2
+!end if
+              end if
+
+
               ! Root does data sending
-              if( binfo%myprow == 0 .and. binfo%mypcol == 0) then 
+              if(binfo%isroot) then 
+
+                ! Prepare send packages
+                ebuff(1:ib,1:jb) = excli_t(i:i+ib-1, j:j+jb-1)
+                sbuff(1:ib,1:jb) = sccli_t(i:i+ib-1, j:j+jb-1)
+
+                if(iknr /= jknr) then 
+                  ! Also build lower part of hermitian/symmetric matrix
+                  if(fcoup .and. .not. fti) then 
+                    ebuff2(1:jb,1:ib) = transpose(excli_t(i:i+ib-1, j:j+jb-1))
+                    sbuff2(1:jb,1:ib) = transpose(sccli_t(i:i+ib-1, j:j+jb-1))
+                  else
+                    ebuff2(1:jb,1:ib) = conjg(transpose(excli_t(i:i+ib-1, j:j+jb-1)))
+                    sbuff2(1:jb,1:ib) = conjg(transpose(sccli_t(i:i+ib-1, j:j+jb-1)))
+                  end if
+                end if
 
                 ! No send needed, root is responsible for that block
+
+                ! Upper triangular part
                 if( pr == 0 .and. pc == 0) then
 
-                  !!********************!!
-                  !! PROCESS DATA BLOCK !!
-                  !!********************!!
-                  ! Assemble sub-block in local Hamilton matrix
+!write(*,'("(",i2,",",i2,"): Building upper")') binfo%myprow, binfo%mypcol
+
                   call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
                     & ig, jg, ib, jb,&
                     & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
-                    & scc=sccli_t(i:i+ib-1, j:j+jb-1), exc=excli_t(i:i+ib-1, j:j+jb-1))
-
+                    & scc=sbuff(1:ib,1:jb), exc=ebuff(1:ib,1:jb))
                 ! Send data 
                 else
 
-                  ! Prepare send packages
-                  ebuff(1:ib,1:jb) = excli_t(i:i+ib-1, j:j+jb-1)
-                  sbuff(1:ib,1:jb) = sccli_t(i:i+ib-1, j:j+jb-1)
+!write(*,'("(",i2,",",i2,"): Sending upper to: ("i2,",",i2,")")')&
+! binfo%myprow, binfo%mypcol, pr, pc
+
                   call zgesd2d(context, ib, jb, ebuff, iblck, pr, pc)
                   call zgesd2d(context, ib, jb, sbuff, iblck, pr, pc)
+                end if
+
+                ! Lower triangular part
+                if(iknr /= jknr) then 
+
+                  if( pr2 == 0 .and. pc2 == 0) then 
+
+!write(*,'("(",i2,",",i2,"): Building lower")') binfo%myprow, binfo%mypcol
+
+                    call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
+                      & jg, ig, jb, ib,&
+                      & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
+                      & scc=sbuff2(1:jb,1:ib), exc=ebuff2(1:jb,1:ib))
+                  ! Send data 
+                  else
+
+!write(*,'("(",i2,",",i2,"): Sending lower to: ("i2,",",i2,")")')&
+! binfo%myprow, binfo%mypcol, pr, pc
+
+                    call zgesd2d(context, jb, ib, ebuff2, jblck, pr2, pc2)
+                    call zgesd2d(context, jb, ib, sbuff2, jblck, pr2, pc2)
+                  end if
 
                 end if
 
               ! All others only receive
-              else if(binfo%myprow == pr .and. binfo%mypcol == pc) then
+              else
+               
+                ! Upper triangular part
+                if(pr == binfo%myprow  .and. pc == binfo%mypcol) then
 
-                ! Receive block
-                call zgerv2d(context, ib, jb, ebuff, iblck, 0, 0)
-                call zgerv2d(context, ib, jb, sbuff, iblck, 0, 0)
+!write(*,'("(",i2,",",i2,"): Receiving upper form: ("i2,",",i2,")")')&
+! binfo%myprow, binfo%mypcol, 0 , 0
 
-                !!********************!!
-                !! PROCESS DATA BLOCK !!
-                !!********************!!
-                ! Assemble sub-block in local Hamilton matrix
-                call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
-                  & ig, jg, ib, jb,&
-                  & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
-                  & scc=sbuff(1:ib,1:jb), exc=ebuff(1:ib,1:jb))
+                  ! Receive block
+                  call zgerv2d(context, ib, jb, ebuff, iblck, 0, 0)
+                  call zgerv2d(context, ib, jb, sbuff, iblck, 0, 0)
+
+!write(*,'("(",i2,",",i2,"): Building upper")') binfo%myprow, binfo%mypcol
+
+                  ! Assemble sub-block in local Hamilton matrix
+                  call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
+                    & ig, jg, ib, jb,&
+                    & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
+                    & scc=sbuff(1:ib,1:jb), exc=ebuff(1:ib,1:jb))
+
+                end if
+
+                ! Lower triangular part
+                if(iknr /= jknr) then
+
+                  if(pr2 == binfo%myprow  .and. pc2 == binfo%mypcol) then
+
+!write(*,'("(",i2,",",i2,"): Receiving lower form: ("i2,",",i2,")")')&
+! binfo%myprow, binfo%mypcol, 0 , 0
+
+                    ! Receive block
+                    call zgerv2d(context, jb, ib, ebuff2, jblck, 0, 0)
+                    call zgerv2d(context, jb, ib, sbuff2, jblck, 0, 0)
+
+!write(*,'("(",i2,",",i2,"): Building lower")') binfo%myprow, binfo%mypcol
+
+                    ! Lower triangular part
+                    call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
+                      & jg, ig, jb, ib,&
+                      & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
+                      & scc=sbuff2(1:jb,1:ib), exc=ebuff2(1:jb,1:ib))
+
+                  end if
+
+                end if
 
               end if
 
               ! Next row block
               i = i + ib
+
+              call blacs_barrier(binfo%context, 'A')
 
             ! i while loop
             end do
@@ -685,8 +863,12 @@ module m_setup_bse
             ! Next column block
             j = j + jb
 
+            call blacs_barrier(binfo%context, 'A')
+
           ! j while loop
           end do
+
+          call blacs_barrier(binfo%context, 'A')
 
         ! ikkp loop
         end do

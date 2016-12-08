@@ -205,9 +205,6 @@ module modbse
       else
         fserial = .false.
       end if
-      if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(select_transitions): Serial selection :", l)') fserial
-      end if
 
       ! Search for needed KS transitions automatically
       ! depending on the chosen energy window?

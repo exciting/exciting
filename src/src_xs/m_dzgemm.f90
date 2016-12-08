@@ -15,14 +15,16 @@ module m_dzgemm
       use modscl
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
-    !   type(zmat) :: zma    ! A 
-    !   type(zmat) :: zmb    ! B
-    !   integer(4), optional :: ix, jx  ! Coordinates of subselection for global arrays
+    !   type(dzmat) :: zma    ! A distributed complex matrix
+    !   type(dzmat) :: zmb    ! B distributed complex matrix
     !   integer(4), optional :: m, n, k ! Dimensions for matrix matrix multiplication
-    !   complex(8), optional :: alpha, beta 
-    !   character(1), optional :: transa, transb
+    !   integer(4), optional :: ix, jx  ! Matrix subselection for global arrays (x=a,b,c)
+    !                                   ! Indicates upper left corner of sub-matrix in 
+    !                                   ! gobal matrix indices.
+    !   complex(8), optional :: alpha, beta      ! Scaling factors for alpha*A*B+beta*C=C
+    !   character(1), optional :: transa, transb ! Op(A), Op(B), Op='N','T','C'
     ! IN/OUT:
-    !   type(zmat) :: zmc  ! C
+    !   type(dzmat) :: zmc  ! C distributed complex matrix
     !
     ! !DESCRIPTION:
     !   Wrapper for BLAS's complex matrix-matrix multiply routine {\tt ZGEEM}

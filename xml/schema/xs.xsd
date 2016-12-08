@@ -1532,7 +1532,7 @@
         </xs:annotation>
       </xs:attribute>
 
-      <xs:attribute ex:importance="expert" ex:unit="" name="pwmat" default="mm" >
+      <xs:attribute ex:importance="expert" ex:unit="" name="pwmat" default="fft" >
         <xs:annotation>
           <xs:documentation> Algorithm for calculating matrix elements of plane waves.
              Matrix multiplications (mm) are better suited for small systems, while
@@ -1541,8 +1541,8 @@
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="mm"/>
             <xs:enumeration value="fft"/>
+            <xs:enumeration value="mm"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>

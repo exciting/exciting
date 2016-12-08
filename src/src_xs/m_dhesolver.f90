@@ -77,7 +77,7 @@ module m_dhesolver
           &.or. ham%context /= binfo%context&
           &.or. evec%context /= binfo%context) then
           if(binfo%mpi%rank == 0) then
-            write(*,*) "dhesolver (ERROR):&
+            write(*,*) "Error(dhesolver):&
               & ham,evec and binfo have differing contexts.",&
               & ham%context, evec%context, binfo%context
             call terminate
@@ -85,13 +85,13 @@ module m_dhesolver
         end if
         if((present(i1) .or. present(i2)) .and. (present(v1) .or. present(v2))) then
           if(binfo%mpi%rank == 0) then
-            write(*,*) "dhesolver (ERROR): I and V specivied."
+            write(*,*) "Error(dhesolver): I and V specivied."
             call terminate
           end if
         end if
         if(present(v1) .and. .not. present(v2)) then 
           if(binfo%mpi%rank == 0) then
-            write(*,*) "dhesolver (ERROR): Specify whole interval."
+            write(*,*) "Error(dhesolver): Specify whole interval."
             call terminate
           end if
         end if
@@ -105,19 +105,19 @@ module m_dhesolver
           ! Sanity check
           if(il < 1 .or. iu < 1) then 
             if(binfo%mpi%rank == 0) then
-              write(*,*) "dhesolver (ERROR): iu and il need to be positive."
+              write(*,*) "Error(dhesolver): iu and il need to be positive."
               call terminate
             end if
           end if
           if(il > iu) then 
             if(binfo%mpi%rank == 0) then
-              write(*,*) "dhesolver (ERROR): il > iu."
+              write(*,*) "Error(dhesolver): il > iu."
               call terminate
             end if
           end if
           if(iu > ham%nrows) then 
             if(binfo%mpi%rank == 0) then
-              write(*,*) "dhesolver (ERROR): iu > nrows."
+              write(*,*) "Error(dhesolver): iu > nrows."
               write(*,*) "range:", il, iu
               write(*,*) "hamsize:", ham%nrows
               call terminate
@@ -131,7 +131,7 @@ module m_dhesolver
           vu = v2
           if(vl > vu) then
             if(binfo%mpi%rank == 0) then
-              write(*,*) "dhesolver (ERROR): vl > vu"
+              write(*,*) "Error(dhesolver): vl > vu"
               write(*,*) "range:", vl, vu
               call terminate
             end if
@@ -193,7 +193,7 @@ module m_dhesolver
         ! Error inspection
         if(info .ne. 0) then
           if(binfo%mpi%rank == 0) then
-            write(*, '("ERROR (dhesolver):&
+            write(*, '("Error(dhesolver):&
               & pzheevx returned non-zero info:", i6)') info
             call errorinspect(info)
           end if
@@ -213,7 +213,7 @@ module m_dhesolver
       ! Mix -> Error
       else 
 
-        write(*, '("dhesolver (ERROR):&
+        write(*, '("Error(dhesolver):&
           & Distributed matrix mixed with non distributed:", l, l)')&
           & ham%isdistributed, evec%isdistributed
         call terminate
@@ -270,10 +270,10 @@ module m_dhesolver
           integer(4) :: i, maxcs, tmp
 
           if( ierror < 0) then
-            write(*,'("Error (dhesolver) cause: Invalid input")')
+            write(*,'("Error(dhesolver) cause: Invalid input")')
 
           else if(mod(ierror,2) /= 0) then
-            write(*,'("Error (dhesolver) cause: Eigenvectors not converged")')
+            write(*,'("Error(dhesolver) cause: Eigenvectors not converged")')
             write(*,'("dhesolver ifail")')
             write(*,'(I8)') ifail
 
@@ -288,7 +288,7 @@ module m_dhesolver
               end if
             end do
             i = i-1
-            write(*,'("Warning (dhesolver) cause: Reorthogonalization failed,&
+            write(*,'("Warning(dhesolver) cause: Reorthogonalization failed,&
               & insufficent workspace. There are", i4," clusters of eignevalues&
               & and the lagest one has size ", i4,". &
               & Increase eecs to ", i4," to guarantee orthogonal eigenvectors")')&
@@ -297,12 +297,12 @@ module m_dhesolver
             write(*,'(I8)') iclustr
 
           else if(mod(ierror/4,2) /= 0) then
-            write(*,'("Error (dhesolver) cause:&
+            write(*,'("Error(dhesolver) cause:&
               & Not all eigenvectors computed, insufficent workspace.")')
 
           else if(mod(ierror/8,2) /= 0) then
-            write(*,'("Error (dhsolver) cause:&
-              & Eigenvalue comptaion failed")')
+            write(*,'("Error(dhsolver) cause:&
+              & Eigenvalue computaion failed")')
           end if
         end subroutine errorinspect
 #endif

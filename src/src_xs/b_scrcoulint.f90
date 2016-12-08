@@ -12,7 +12,7 @@ subroutine b_scrcoulint(iqmt, fra, fti)
   use modmpi
   use mod_constants, only: zzero, zone, fourpi
   use mod_APW_LO, only: lolmax
-  use mod_qpoint, only: nqpt, iqmap, ngridq, vql
+  use mod_qpoint, only: iqmap, ngridq, vql
   use mod_kpoint, only: nkptnr, ivknr
   use mod_lattice, only: omega
   use mod_symmetry, only: maxsymcrys
@@ -142,7 +142,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     write(unitout, '(a,3i8)') 'Info(' // thisnam // '):&
       & Gaunt coefficients generated within lmax values:', input%groundstate%lmaxapw,&
       & input%xs%lmaxemat, input%groundstate%lmaxapw
-    write(unitout, '(a, i6)') 'Info(' // thisnam // '): number of q-points: ', nqpt
+    write(unitout, '(a, i6)') 'Info(' // thisnam // '): Number of reduced q-points: ', nqptr
     call flushifc(unitout)
   end if
 

@@ -1,5 +1,4 @@
 module modscl
-  use mod_constants, only: zzero
   use modmpi
   use modxs, only: unitout
 

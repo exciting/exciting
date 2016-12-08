@@ -10,13 +10,13 @@ subroutine b_exccoulint(iqmt, fra, fti)
   use mod_misc, only: filext
   use mod_constants, only: zone, zzero
   use mod_APW_LO, only: lolmax
-  use mod_qpoint, only: nqpt, iqmap
+  use mod_qpoint, only: iqmap
   use mod_kpoint, only: nkptnr, ivknr
   use mod_lattice, only: omega
   use modinput, only: input
   use modmpi, only: rank, barrier, mpi_allgatherv_ifc
   use modxs, only: xsgnt, unitout,&
-                 & ngq,&
+                 & ngq, nqptr,&
                  & kpari, kparf,&
                  & ppari, pparf, iqmapr,&
                  & qvkloff, bcbs
@@ -122,7 +122,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       & Gaunt coefficients generated within lmax values:',&
       & input%groundstate%lmaxapw, input%xs%lmaxemat, input%groundstate%lmaxapw
     write(unitout, '(a, i6)') 'Info(' // thisnam // '):&
-      & Number of q-points: ', nqpt
+      & Number of reduced q-points: ', nqptr
     call flushifc(unitout)
   end if
 
