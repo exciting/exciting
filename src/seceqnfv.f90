@@ -16,6 +16,7 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Use modmain
       Use modfvsystem
       Use mod_hybrids, only: ihyb, vnlmat
+      use m_plotmat 
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
@@ -52,6 +53,7 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Logical :: packed
       Integer :: ist
       Complex (8), allocatable :: zm(:,:),zm2(:,:)
+      character( len=64) :: fname
 
   !----------------------------------------!
   !     Hamiltonian and overlap set up     !
@@ -62,7 +64,10 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Call newsystem (system, packed, nmatp)
       h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
       Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
-
+      allocate(zm(nmatp,nmatp))
+      allocate(zm2(nmatp,nstfv))
+     
+      zm=system%overlap%za
   !------------------------------------------------------------------------!
   !     If Hybrid potential is used apply the non-local exchange potential !
   !------------------------------------------------------------------------!
@@ -78,7 +83,27 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !     solve the secular equation     !
   !------------------------------------!
       Call solvewithlapack(system,nstfv,evecfv,evalfv)
+      call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
+                 'N', &           ! TRANSB = 'N'  op( B ) = B.
+                  nmatp, &          ! M ... rows of op( A ) = rows of C
+                  nstfv, &           ! N ... cols of op( B ) = cols of C
+                  nmatp, &          ! K ... cols of op( A ) = rows of op( B )
+                  zone, &          ! alpha
+                  zm, &           ! A
+                  nmatp,&           ! LDA ... leading dimension of A
+                  evecfv, &           ! B
+                  nmatmax, &          ! LDB ... leading dimension of B
+                  zzero, &          ! beta
+                  zm2, &  ! C
+                  nmatp &      ! LDC ... leading dimension of C
+                  )
+     !write(*,'(I3,3F13.6,I3)') ik, vkl( :, ik), nmatp
+     !write( fname, '(A7,I2)') "OLPEVEC", ik
+     !call writemat( zm2, nmatp, nstfv, fname)
+     !write(*,*)
+     deallocate(zm,zm2)
 
+      
      if (associated(input%groundstate%Hybrid)) then
         if ((input%groundstate%Hybrid%exchangetypenumber == 1).and.(ihyb>0)) &
         &  call KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)

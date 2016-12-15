@@ -345,8 +345,7 @@ module m_ematqk
           complex(8), intent( out) :: emat( nst1, nst2)
 
           integer :: iv(3), ngknr, ngkq, i, is, ia, ias, l, m, o, lmo, lm
-          integer :: ig1, ig2
-          real(8) :: t1, veckql(3), veckqc(3), g1(3), g2(3), gs(3), glen
+          real(8) :: t1, veckql(3), veckqc(3)
           
           integer :: ix, shift(3), ig, ist1, ist2, igs
           real(8) :: emat_gmax
@@ -357,7 +356,7 @@ module m_ematqk
           real(8), allocatable :: vecgkql(:,:), vecgkqc(:,:), gkqc(:), tpgkqc(:,:)
           complex(8), allocatable :: sfacgkq(:,:), apwalm1(:,:,:,:), apwalm2(:,:,:,:)
           complex(8), allocatable :: blockmt(:,:), auxmat(:,:), match_combined1(:,:), match_combined2(:,:)
-          complex(8), allocatable :: aamat(:,:), almat(:,:), lamat(:,:)
+          complex(8), allocatable :: aamat(:,:), almat(:,:), lamat(:,:), blockmt2(:,:)
           
           emat = zzero
 
@@ -399,6 +398,7 @@ module m_ematqk
           ! [_AA_|_AL_]
           ! [ LA | LL ]
           allocate( blockmt( ngknr+nlotot, ngkq+nlotot))
+          allocate( blockmt2( ngknr+nlotot, ngkq+nlotot))
           allocate( auxmat( nlmomax, ngkq))
           allocate( match_combined1( nlmomax, ngknr), &
                     match_combined2( nlmomax, ngkq))

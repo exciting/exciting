@@ -25915,6 +25915,7 @@ readgamma	src_phonon/readgamma.f90	/^Subroutine readgamma /;"	s
 reading_first_entity	FoX/sax/m_sax_reader.F90	/^ function reading_first_entity(/;"	f	module:m_sax_reader
 reading_main_file	FoX/sax/m_sax_reader.F90	/^  function reading_main_file(/;"	f	module:m_sax_reader
 readinput	eos/readinput.f90	/^subroutine readinput$/;"	s
+readmat	plotmat.f90	/^    subroutine readmat(/;"	s	module:m_plotmat
 readonly	FoX/dom/m_dom_dom.F90	/^    logical :: readonly /;"	k	type:NamedNodeMap
 readonly	FoX/dom/m_dom_dom.F90	/^    logical :: readonly /;"	k	type:Node
 readprecond	src_iterative_solver/src_diis/readprecond.F90	/^Subroutine readprecond /;"	s
@@ -28718,6 +28719,7 @@ writeldapu	src_LDAU/writeldapu.f90	/^Subroutine writeldapu$/;"	s
 writelinen	writelinen.f90	/^Subroutine writelinen$/;"	s
 writeloss	src_xs/writeloss.F90	/^      Subroutine writeloss /;"	s	module:m_writeloss
 writelsj	writelsj.f90	/^Subroutine writelsj$/;"	s
+writemat	plotmat.f90	/^    subroutine writemat(/;"	s	module:m_plotmat
 writeoptminitdata	relax.f90	/^subroutine writeoptminitdata(/;"	s
 writepchgs	writepchgs.F90	/^subroutine writepchgs(/;"	s
 writephn	src_phonon/writephn.f90	/^subroutine writephn$/;"	s
@@ -29037,6 +29039,7 @@ zfshtapw	mod_SHT.F90	/^      Complex (8), Allocatable :: zfshtapw /;"	v	module:m
 zfshtvr	mod_SHT.F90	/^      Complex (8), Allocatable :: zfshtvr /;"	v	module:mod_SHT
 zfunir	src_gw/mod_misc_gw.f90	/^    complex(8), allocatable :: zfunir(/;"	v	module:mod_misc_gw
 zgemm_wrap	src_xs/summations.F90	/^      Subroutine zgemm_wrap /;"	s	module:blaswrappers
+zgesdd_wrapper	zgesdd_wrapper.f90	/^Subroutine zgesdd_wrapper(/;"	s
 zgetv0	ARPACK/SRC/zgetv0.f	/^      subroutine zgetv0 /;"	s
 zhalf	mod_constants.F90	/^      Complex (8), Parameter :: zhalf /;"	v	module:mod_constants
 zi	mod_constants.F90	/^      Complex (8), Parameter :: zi /;"	v	module:mod_constants

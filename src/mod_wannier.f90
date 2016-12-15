@@ -4,18 +4,17 @@ module mod_wannier
   use mod_kpoint
   use mod_constants
   use mod_muffin_tin
+  use mod_Gvector
   use mod_Gkvector
-  use mod_eigensystem
-  use mod_spin
-  use mod_eigenvalue_occupancy
-  use mod_lattice
-  use mod_symmetry
+  use mod_eigensystem, only: nmatmax, idxlo
+  use mod_spin, only: nspnfv
+  use mod_lattice, only: bvec
+  use mod_eigenvalue_occupancy, only: nstfv
+  !use mod_symmetry
   use m_ematqk
   use m_plotmat
   use modmpi
   use mod_misc
-
-  use mod_Gvector
 
   implicit none
 
@@ -39,7 +38,7 @@ module mod_wannier
       !   module {\tt mod\_wannier}.
       !
       ! !REVISION HISTORY:
-      !   Created September 2016 (Sebastian)
+      !   Created September 2016 (Tillack)
       !EOP
       !BOC
 
@@ -101,20 +100,21 @@ module mod_wannier
       !   (complex(nband,nproj,nkptnr))}.
       !
       ! !REVISION HISTORY:
-      !   Created September 2016 (Sebastian)
+      !   Created September 2016 (Tillack)
       !EOP
       !BOC
 
       integer, intent( in) :: bandstart, nband, nproj, loproj( nproj) 
 
       ! local variables
-      integer :: iproj, is, js, ja, ias, nr, l, lm, io, ilo, ir, ig, ik, i, m
-      integer :: isym, iknr, ngknr, nprojcpy
+      integer :: iproj, is, js, ja, ias, nr, l, lm, io, ilo, ir, ig, i, m
+      integer :: iknr, ngknr, nprojcpy, ik, isym
       integer, allocatable :: igkignr(:), loprojcpy(:)
       real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:), sval(:)
       complex(8), allocatable :: sfacgknr(:,:)
-      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), projm(:,:), auxmat(:,:), auxmat2(:,:), lsvec(:,:), rsvec(:,:)
+      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), projm(:,:), auxmat(:,:), auxmat2(:,:), lsvec(:,:), rsvec(:,:), auxmatread(:,:), olpm(:,:)
       real(8), allocatable :: rolpi(:,:), uf(:), gf(:), cf(:,:)
+      character( len=64) :: fname
 
       if( .not. allocated( wf_projst)) call wfinit
 
@@ -185,29 +185,35 @@ module mod_wannier
       allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
       allocate( projm( wf_nband, wf_nprojused))
       allocate( auxmat( ngkmax+nlotot, wf_nprojused), auxmat2( wf_nprojused, wf_nprojused))
+      allocate( auxmatread( ngkmax+nlotot, wf_nprojused))
       allocate( sval( min( wf_nband, wf_nprojused)), &
-                lsvec( wf_nband, wf_nband), &
+                lsvec( wf_nband, wf_nprojused), &
                 rsvec( wf_nprojused, wf_nprojused))
       if( allocated( wf_transform)) deallocate( wf_transform)
       allocate( wf_transform( wf_nband, wf_nprojused, nkptnr))
       allocate( igkignr( ngkmax))
       allocate( vgklnr( 3, ngkmax, nspnfv), vgkcnr( 3, ngkmax, nspnfv), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
       allocate( sfacgknr( ngkmax, natmtot))
+      allocate( olpm( wf_nprojused, wf_nprojused))
 #ifdef USEOMP
-!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, evecfv, vgklnr, isym, ik, ngknr, igkignr, vgkcnr, gkcnr, tpgkcnr, sfacgknr, apwalm, iproj, is, ias, lm, ig, auxmat, io, js, ja, ilo, l, m, projm, olpm, auxmat2, eval, evec)
+!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, evecfv, vgklnr, isym, ik, ngknr, igkignr, vgkcnr, gkcnr, tpgkcnr, sfacgknr, apwalm, iproj, is, ias, lm, ig, auxmat, io, js, ja, ilo, l, m, projm, auxmat2, lsvec, rsvec, sval)
 !!$OMP DO
 #endif
       do iknr = 1, nkptnr
         evecfv = zzero
         vgklnr = zzero
+        auxmat = zzero
+        auxmatread = zzero
         ! find G+k-vectors for non-reduced k-point
-        Call gengpvec( vklnr( :, iknr), vkcnr( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+        call gengpvec( vklnr( :, iknr), vkcnr( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
         ! find structure factors
-        Call gensfacgp( ngknr, vgkcnr, ngkmax, sfacgknr)
+        call gensfacgp( ngknr, vgkcnr, ngkmax, sfacgknr)
         ! get basis function coefficients and matching coefficients
         call getevecfv( vklnr(:, iknr), vgklnr, evecfv)
         call match( ngknr, gkcnr, tpgkcnr, sfacgknr, apwalm(:, :, :, :, 1))
-        
+
+        !write(*,*) ngknr+nlotot
+
         ! projection matrix elements and overlap matrix elements
         do iproj = 1, wf_nprojused
           is = wf_projst( wf_projused( iproj), 1)
@@ -234,35 +240,70 @@ module mod_wannier
             end do
           end do
         end do
+
+!REMOVE
+        !write( fname, '("../2/auxmat/AUX",I2)') iknr
+        !!call writemat( auxmat, ngkmax+nlotot, wf_nprojused, fname)
+        !call readmat( auxmatread, ngkmax+nlotot, wf_nprojused, fname)
+        !auxmatread = auxmatread - auxmat
+        !write(*,*) iknr
+        !write(*,*) sum( abs( auxmatread))/((ngknr+nlotot)*wf_nprojused)
+        !write(*,*) maxval( abs( auxmatread))
+
+
         call ZGEMM( 'C', 'N', wf_nband, wf_nprojused, ngknr+nlotot, zone, &
              evecfv( 1:(ngknr+nlotot), wf_bandstart:(wf_bandstart+wf_nband-1), 1), ngknr+nlotot, &
              auxmat( 1:(ngknr+nlotot), :), ngknr+nlotot, zzero, &
              projm, wf_nband)
-
-        ! XYZ.amn
-        !do ig = 1, wf_nprojused
-        !  do i = 1, wf_nband
-        !    write( *, '(I,I,I,F23.16,F23.16)') i, ig, iknr, projm( i, ig)
-        !  end do
-        !end do
         !call plotmat( projm)
 
-        wf_transform( :, :, iknr) = zzero
-        do io = 1, min( wf_nband, wf_nprojused)
-          wf_transform( io, io, iknr) = zone
-        end do
-        call zgesdd_wrapper( projm, wf_nband, wf_nprojused, sval, lsvec, rsvec)
-        call zgemm( 'N', 'N', wf_nband, wf_nprojused, wf_nband, zone, &
+        call zgesdd_wrapper( projm, wf_nband, wf_nprojused, sval, lsvec( :, 1:wf_nband), rsvec)
+        !write( *, '(I2,10F13.6)') iknr, sval
+        !if( minval( sval) .lt. input%structure%epslat) then
+        !  write(*,*) "ERROR (genwf): Projection functions are linearly dependent!"
+        !end if
+        call ZGEMM( 'N', 'N', wf_nband, wf_nprojused, wf_nprojused, zone, &
              lsvec, wf_nband, &
-             wf_transform( :, :, iknr), wf_nband, zzero, &
-             auxmat2, wf_nband)
-        call zgemm( 'N', 'N', wf_nband, wf_nprojused, wf_nprojused, zone, &
-             auxmat2, wf_nband, &
              rsvec, wf_nprojused, zzero, &
              wf_transform( :, :, iknr), wf_nband)
+        !write(*,*) iknr
+        !call plotmat( wf_transform( :, :, iknr), .true.)
+
+!REMOVE
+        !write( fname, '("transform/transform",I2)') iknr
+        !call writemat( wf_transform( :, :, iknr), wf_nband, wf_nprojused, fname)
+        !call readmat( auxmatread, ngkmax+nlotot, wf_nprojused, fname)
+        !auxmatread = auxmatread - auxmat
+        !write(*,*) iknr
+        !write(*,*) sum( abs( auxmatread))/((ngknr+nlotot)*wf_nprojused)
+        !write(*,*) maxval( abs( auxmatread))
+
+
+        !call ZGEMM( 'C', 'N', wf_nprojused, wf_nprojused, wf_nband, zone, &
+        !     projm, wf_nband, &
+        !     projm, wf_nband, zzero, &
+        !     olpm, wf_nprojused)
+
+        !call diaghermat( wf_nprojused, olpm, sval, rsvec)
+        !write( *, '(I2,10F13.6)') iknr, sval
+        !if( minval( sval) .lt. input%structure%epslat) then
+        !  write(*,*) "ERROR (genwf): Projection functions are linearly dependent!"
+        !end if
+        !do m = 1, wf_nprojused
+        !  wf_transform( :, m, iknr) = rsvec( :, m)/sqrt( sval( m))
+        !end do
+
+        !call ZGEMM( 'N', 'C', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
+        !     wf_transform( :, :, iknr), wf_nprojused, &
+        !     rsvec, wf_nprojused, zzero, &
+        !     olpm, wf_nprojused)
+        !call ZGEMM( 'N', 'N', wf_nband, wf_nprojused, wf_nprojused, zone, &
+        !     projm, wf_nband, &
+        !     olpm, wf_nprojused, zzero, &
+        !     wf_transform( :, :, iknr), wf_nband)
 
         !write(*,*) iknr
-        !call plotmat( wf_transform( :, :, iknr))
+        !call plotmat( wf_transform( :, :, iknr), .true.)
       end do 
 #ifdef USEOMP
 !!$OMP END DO
@@ -291,30 +332,32 @@ module mod_wannier
       !   functions. The matrices are computed in a self consistent loop. 
       !
       ! !REVISION HISTORY:
-      !   Created September 2016 (Sebastian)
+      !   Created September 2016 (Tillack)
       !EOP
       !BOC
 
       integer, intent( in) :: bandstart, nband, nproj, loproj( nproj) 
       
       ! local variables
-      integer :: ngridk(3), nvec(3), ix, iy, iz, i, ib, ik, iknr, ngknr, k1, k2
-      integer :: n1, n2, n3
+      integer :: ngridk(3), ix, iy, iz, i, ib, iknr, ngknr, k1, k2
       character :: read_file
       logical :: file_exists, reading_succes
-      real(8) :: bwgtsm, mixing, vec1(3), vec2(3), maxvalue
-      real(8) :: omegastart, omega, omegai, omegaod, omegad, omegamean, certainty
+      real(8) :: bwgtsm, mixing
+      real(8) :: omegastart, omega, omegamean, uncertainty
+      real(8), allocatable :: omegai(:), omegad(:), omegaod(:), omega2(:)
       integer :: minit
 
       ! allocatable arrays
       integer, allocatable :: idxn(:,:), nn(:)
       integer, allocatable :: igkignr(:)
-      real(8), allocatable :: vgklnr(:,:), vgkcnr(:,:), gkcnr(:), tpgkcnr(:,:)
+      real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:)
       real(8), allocatable :: ndist(:), nvl(:,:,:), nvc(:,:,:), bwgt(:), ravg(:,:)
       real(8), allocatable :: omegahist(:), omegameanhist(:), eval(:)
       complex(8), allocatable :: mlwf_emat(:,:), auxmat(:,:), mlwf_m0(:,:,:,:), mlwf_m(:,:,:,:), evec(:,:), mlwf_r(:,:), mlwf_t(:,:), mlwf_dw(:,:), mlwf_transform(:,:,:)
       complex(8), allocatable :: auxmatcpy(:,:), mlwf_dwcpy(:,:)
       complex(8), allocatable :: evecfv1(:,:,:), evecfv2(:,:,:)
+      character(64) :: fname
+      complex(8), allocatable :: auxmatread(:,:)
 
       ! write next neighbours of each k-point to array
       allocate( ndist( nkptnr), nn( nkptnr), &
@@ -371,12 +414,14 @@ module mod_wannier
         ! allocate( mlwf_emat( nstfv, nstfv))
         allocate( auxmat( wf_nband, wf_nprojused))
         allocate( mlwf_m0( wf_nprojused, wf_nprojused, nkptnr, nn(1)))
+        allocate( auxmatread( wf_nprojused, wf_nprojused))
+        allocate( omegai( wf_nprojused))
         write(*,*) 'Computing inner products...'
         ! call before parallel loop in order to initialize save variables in emat_wannier
 
         allocate( evecfv1( nmatmax, nstfv, nspnfv), evecfv2( nmatmax, nstfv, nspnfv))
         allocate( igkignr( ngkmax))
-        allocate( vgklnr( 3, ngkmax), vgkcnr( 3, ngkmax), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
+        allocate( vgklnr( 3, ngkmax, nspnfv), vgkcnr( 3, ngkmax, nspnfv), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
 
         ! calculating weights of b-vectors
         allocate( bwgt( nn(1)))
@@ -396,24 +441,25 @@ module mod_wannier
           k2 = lastofset( rank, nkptnr)
 #endif
 #ifdef USEOMP                
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ngknr, igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr, evecfv1, evecfv2, auxmat, mlwf_emat) reduction(+:omegai)
-!$OMP DO  
+!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ix, ngknr, igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr, evecfv1, evecfv2, auxmat, mlwf_emat) reduction(+:omegai)
+!!$OMP DO  
 #endif
           do iknr = k1, k2   
                              
             ! find G+k-vecto rs and eigenvectors for non-reduced k-point k
-            call gengpvec( vklnr( :, iknr), vkcnr( :, iknr), ngknr, igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
+            call gengpvec( vklnr( :, iknr), vkcnr( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
             call getevecfv(  vklnr( :, iknr), vgklnr, evecfv1)
             !write(*,*) iknr, ib
             !call plotmat( evecfv1( :, :, 1), .true.)
             !call getevecfv(e vklnr( :, iknr), vgkl( :, :, 1, iknr), evecfv1)
             ! find G+k+b-vectors and eigenvectors for non-reduced k-point k+b
-            call gengpvec( vklnr( :, idxn( ib, iknr)), vkcnr( :, idxn( ib, iknr)), ngknr, igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
+            call gengpvec( vklnr( :, idxn( ib, iknr)), vkcnr( :, idxn( ib, iknr)), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
             call getevecfv( vklnr( :, idxn( ib, iknr)), vgklnr, evecfv2)
             !call getevecfv( vklnr( :, idxn( ib, iknr)), vgkl( :, :, 1, idxn( ib, iknr)), evecfv2)
 
-            call emat_genemat( iknr, wf_bandstart, wf_nband, wf_bandstart, wf_nband, evecfv1(:,:,1), evecfv2(:,:,1), mlwf_emat)
+            !write(*,*) iknr, ib
 
+            call emat_genemat( iknr, wf_bandstart, wf_nband, wf_bandstart, wf_nband, evecfv1(:,:,1), evecfv2(:,:,1), mlwf_emat)
             call ZGEMM( 'N', 'N', wf_nband, wf_nprojused, wf_nband, zone, &
                  mlwf_emat, wf_nband, &
                  wf_transform( :, :, idxn( ib, iknr)), wf_nband, zzero, &
@@ -423,8 +469,24 @@ module mod_wannier
                  auxmat, wf_nband, zzero, &
                  mlwf_m0( :, :, iknr, ib), wf_nprojused)
 
+
+!REMOVE
+        !write( fname, '("m0/m0",2I2)') iknr, ib
+        !call writemat( mlwf_m0( :, :, iknr, ib), wf_nprojused, wf_nprojused, fname)
+        !call readmat( auxmatread, wf_nprojused, wf_nprojused, fname)
+        !call readmat( mlwf_m0( :, :, iknr, ib), wf_nprojused, wf_nprojused, fname)
+        !auxmatread = auxmatread - mlwf_m0( :, :, iknr, ib)
+        !write(*,*) iknr, ib
+        !write(*,*) sum( abs( auxmatread))/wf_nprojused**2
+        !write(*,'(F23.16)') maxval( abs( auxmatread))
+        !call plotmat( mlwf_m0( :, :, iknr, ib))
+
+
             ! independent part of localization functional
-            omegai = omegai + bwgt( ib)*(wf_nband - sum( abs( mlwf_m0( :, :, iknr, ib))**2))
+            do ix = 1, wf_nprojused
+              omegai( ix) = omegai( ix) + bwgt( ib)*(1d0 - sum( abs( mlwf_m0( :, ix, iknr, ib))**2))
+            end do
+            !write(*,*) omegai
 
             ! XYZ.mmn
             !write( *, '(5I6)') iknr, idxn( ib, iknr), nint( vklnr( :, iknr) + nvl( :, 1, ib) - vklnr( :, idxn( ib, iknr)))
@@ -435,8 +497,8 @@ module mod_wannier
             !end do
           end do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+!!$OMP END DO
+!!$OMP END PARALLEL
 #endif
 #ifdef MPI
         call mpi_allgatherv_ifc( nkptnr, wf_nprojused**2, zbuf=mlwf_m0(:,:,:,ib))
@@ -444,17 +506,18 @@ module mod_wannier
 #endif
         end do
         call emat_destroy
+        close( 50)
         
         omegai = omegai/nkptnr
 #ifdef MPI
         omegai = omegaod/nkptnr
 #endif
-        !write(*,'("Omega I: ",F23.16)') omegai
+        write(*,'("Omega I: ",F23.16)') sum( omegai)
         
         ! mixing parameter for self consistent minimization
-        mixing = dble( 0.8)
+        mixing = dble( 0.5)
         ! minimum number of iterations
-        minit = 50
+        minit = 100
 #ifdef MPI
         if( rank .eq. 0) then
 #endif
@@ -464,6 +527,7 @@ module mod_wannier
           do ix = 1, wf_nprojused
             mlwf_transform( ix, ix, :) = zone
           end do
+          !mlwf_transform = wf_transform
 
           ! start minimization loop
           allocate( evec( wf_nprojused, wf_nprojused), eval( wf_nprojused))
@@ -474,27 +538,34 @@ module mod_wannier
                     auxmatcpy( wf_nprojused, wf_nprojused))
           allocate( mlwf_m( wf_nprojused, wf_nprojused, nkptnr, nn(1)))
           allocate( ravg( 3, wf_nprojused))
-          allocate( omegahist( minit), omegameanhist( minit))
+          allocate( omegahist( minit), omegameanhist( minit), omegaod( wf_nprojused), omegad( wf_nprojused), omega2( wf_nprojused))
           mlwf_m = mlwf_m0
           iz = 0
           omegahist = 0.d0
           omegameanhist = 0.d0
+
+!REMOVE
+        !do iknr = 1, nkptnr
+        !  write( fname, '("../2/transform/transform",I2)') iknr
+        !  call readmat( wf_transform( :, :, iknr), wf_nband, wf_nprojused, fname)
+        !end do
+
+
           write(*,*) 'Minimize localization functional...'
-          do while( (iz .lt. minit) .or. ((iz .lt. 5000) .and. (certainty .gt. 0.001) .and. (omegastart .gt. omega)))
-            n1 = 0
-            n2 = 0
-            n3 = 0
+          do while( (iz .lt. minit) .or. ((iz .lt. 5000) .and. (uncertainty .gt. 0.001) .and. (omegastart .gt. omega)))
             iz = iz + 1
+            !write(*,*) iz
             ! centers of Wannier functions
             ravg = 0.d0
             do ix = 1, wf_nprojused
               do ib = 1, nn(1)
                 ravg( :, ix) = ravg( :, ix) - bwgt( ib)/nkptnr*sum( atan2( aimag( mlwf_m( ix, ix, :, ib)), real( mlwf_m( ix, ix, :, ib))))*nvc( :, 1, ib)
               end do
+              !write(*,'(3F13.6)') ravg( :, ix)
             end do
       
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ib, mlwf_r, mlwf_t, mlwf_dw, eval, evec, ix, auxmat, mlwf_dwcpy, auxmatcpy, maxvalue)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ib, mlwf_r, mlwf_t, mlwf_dw, eval, evec, ix, auxmat, mlwf_dwcpy, auxmatcpy)
 !$OMP DO
 #endif
             do iknr = 1, nkptnr
@@ -514,50 +585,19 @@ module mod_wannier
               mlwf_dw(:,:) = mlwf_dw(:,:)*mixing/bwgtsm
 
               ! updating transformation matrices
-              maxvalue = maxval( abs( mlwf_dw))
-              ! full diagonalization
-              if( (maxvalue .gt. -0.2) .or. (certainty .gt. 0.2)) then !(certainty .gt. 0.001)) then 
-                n1 = n1 + 1
-                call diaghermat( wf_nprojused, zi*mlwf_dw, eval, evec)
-                auxmat(:,:) = zzero
-                do ix = 1, wf_nprojused
-                  auxmat( ix, ix) = exp( -zi*eval( ix)) 
-                end do
-                call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
-                     evec, wf_nprojused, &
-                     auxmat, wf_nprojused, zzero, &
-                     mlwf_dw, wf_nprojused)
-                call ZGEMM( 'N', 'C', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
-                     mlwf_dw, wf_nprojused, &
-                     evec, wf_nprojused, zzero, &
-                     auxmat, wf_nprojused)
-                call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
-                     mlwf_transform( :, :, iknr), wf_nprojused, &
-                     auxmat, wf_nprojused, zzero, &
-                     mlwf_dw, wf_nprojused)
-                mlwf_transform( :, :, iknr) = mlwf_dw(:,:)
-              ! second order expansion
-              else if( maxvalue .gt. -0.02) then
-                n2 = n2 + 1
-                call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, 0.5d0*zone, &
-                     mlwf_dw, wf_nprojused, &
-                     mlwf_dw, wf_nprojused, zzero, &
-                     auxmat, wf_nprojused)
-                mlwf_dw = mlwf_dw + auxmat
-                call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
-                     mlwf_transform( :, :, iknr), wf_nprojused, &
-                     mlwf_dw, wf_nprojused, zzero, &
-                     auxmat, wf_nprojused)
-                mlwf_transform( :, :, iknr) = mlwf_transform( :, :, iknr) + auxmat(:,:)
-              ! first oder expansion
-              else
-                n3 = n3 + 1
-                call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
-                     mlwf_transform( :, :, iknr), wf_nprojused, &
-                     mlwf_dw, wf_nprojused, zzero, &
-                     auxmat, wf_nprojused)
-                mlwf_transform( :, :, iknr) = mlwf_transform( :, :, iknr) + auxmat(:,:)
-              end if
+              call diaghermat( wf_nprojused, zi*mlwf_dw, eval, evec)
+              do ix = 1, wf_nprojused
+                mlwf_dw( :, ix) = exp( -zi*eval( ix))*evec( :, ix) 
+              end do
+              call ZGEMM( 'N', 'C', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
+                   mlwf_dw, wf_nprojused, &
+                   evec, wf_nprojused, zzero, &
+                   auxmat, wf_nprojused)
+              call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
+                   mlwf_transform( :, :, iknr), wf_nprojused, &
+                   auxmat, wf_nprojused, zzero, &
+                   mlwf_dw, wf_nprojused)
+              mlwf_transform( :, :, iknr) = mlwf_dw(:,:)
             end do
 #ifdef USEOMP
 !$OMP END DO
@@ -567,10 +607,11 @@ module mod_wannier
             ! gauge-dependent part of localization functional
             omegaod = 0.d0
             omegad = 0.d0
+            omega2 = 0.d0
 
             ! updating M
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ib, ix, auxmat) reduction(+:omegaod, omegad)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ib, ix, auxmat) reduction(+:omegaod, omegad, omega2)
 !$OMP DO  
 #endif
             do iknr = 1, nkptnr
@@ -583,11 +624,18 @@ module mod_wannier
                      mlwf_transform( :, :, iknr), wf_nprojused, &
                      auxmat, wf_nprojused, zzero, &
                      mlwf_m( :, :, iknr, ib), wf_nprojused)
-                omegaod = omegaod + bwgt( ib)*sum( abs( mlwf_m( :, :, iknr, ib))**2)
+                !omegaod = omegaod + bwgt( ib)*sum( abs( mlwf_m( :, :, iknr, ib))**2)
                 do ix = 1, wf_nprojused
-                  omegad = omegad + bwgt( ib)*(-atan2( aimag( mlwf_m( ix, ix, iknr, ib)), real( mlwf_m( ix, ix, iknr, ib))) &
-                                  - dot_product( nvc( :, 1, ib), ravg( :, ix)))**2
-                  omegaod = omegaod - bwgt( ib)*abs( mlwf_m( ix, ix, iknr, ib))**2
+                  omegad( ix) = omegad( ix) + bwgt( ib)*(atan2( aimag( mlwf_m( ix, ix, iknr, ib)), real( mlwf_m( ix, ix, iknr, ib))) &
+                                  + dot_product( nvc( :, 1, ib), ravg( :, ix)))**2
+                  do iy = 1, wf_nprojused
+                    if( iy .ne. ix) then
+                      omegaod( ix) = omegaod( ix) + bwgt( ib)*abs( mlwf_m( iy, ix, iknr, ib))**2
+                    end if
+                  end do
+                  omega2( ix) = omega2( ix) + bwgt( ib)*(1.d0 - abs( mlwf_m( ix, ix, iknr, ib))**2 + &
+                      & ( atan2( aimag( mlwf_m( ix, ix, iknr, ib)), real( mlwf_m( ix, ix, iknr, ib)))&
+                      &   + dot_product( nvc( :, 1, ib), ravg( :, ix)))**2 )
                 end do
               end do
             end do
@@ -598,8 +646,9 @@ module mod_wannier
             ! convergence analysis
             omegaod = omegaod/nkptnr
             omegad = omegad/nkptnr
+            omega2 = omega2/nkptnr
 
-            omega = omegai + omegad + omegaod
+            omega = sum( omegai) + sum( omegad) + sum( omegaod)
 
             if( iz .eq. 1) then
               omegahist(:) = omega
@@ -611,17 +660,17 @@ module mod_wannier
             omegahist(1) = omega
             omegamean = sum( omegahist(:))/minit
             omegameanhist(1) = omegamean
-            certainty = sqrt( sum( (omegahist(:)-omegameanhist(:))**2)/(minit-1))/omega
+            uncertainty = sqrt( sum( (omegahist(:)-omegameanhist(:))**2)/(minit-1))/omega
 
             ! print out progress
-            write( 6, '(a,10x,"[",I4,"] omega = ",F13.6,5x,"certainty: ",F13.6)', advance='no') achar( 13), iz, omega, certainty 
-            flush( 6)
-            !write(*,'(I,6F23.16)') iz, omega, omegamean, certainty, 1d0*n1/nkptnr, 1d0*n2/nkptnr, 1d0*n3/nkptnr 
+            !write( 6, '(a,10x,"[",I4,"] omega = ",F13.6,5x,"uncertainty: ",F13.6)', advance='no') achar( 13), iz, omega, uncertainty 
+            !flush( 6)
+            write(*,'(I,11F23.16)') iz, omega, sum( omega2), uncertainty, omega2 !omegai+omegad+omegaod
           end do
 
           write(*,*)
           if( omega .gt. omegastart) then
-            write(*, '("ERROR (genmlwf): Localization function diverged. Procedure aborted after ",I4," loops.")') iz
+            write(*, '("ERROR (genmlwf): Localization functional diverged. Procedure aborted after ",I4," loops.")') iz
           else if( iz .ge. 5000) then
             write(*,*) 'ERROR (genmlwf): Not converged after 5000 cycles.'
           else
@@ -638,6 +687,10 @@ module mod_wannier
           !end do
 
           ! generating final transformation matrices for Hamiltonian eigenstates
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, auxmat)
+!$OMP DO  
+#endif
           do iknr = 1, nkptnr
             call ZGEMM( 'N', 'N', wf_nprojused, wf_nprojused, wf_nprojused, zone, &
                  wf_transform( :, :, iknr), wf_nprojused, &
@@ -645,6 +698,10 @@ module mod_wannier
                  auxmat, wf_nprojused)
             wf_transform( :, :, iknr) = auxmat(:,:)
           end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
 
           ! write resulting transformation matrices to file
           call wfwritefile( 'WANNIER_MLWF')
@@ -758,10 +815,10 @@ module mod_wannier
     subroutine angchar( iknr, lmax, nmin, nmax)
       integer, intent( in) :: iknr, lmax, nmin, nmax
 
-      integer :: n, l, m, lm, io, ilo, ia, is, ias, ngknr
+      integer :: n, l, m, lm, io, ia, is, ias, ngknr
       integer, allocatable :: igkignr(:)
       real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:)
-      complex(8), allocatable :: sfacgknr(:,:), evecfv1(:,:,:)
+      complex(8), allocatable :: sfacgknr(:,:)
       complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:)
       complex(8), allocatable :: output(:,:,:)
 

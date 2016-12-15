@@ -61,6 +61,9 @@ Subroutine bandstr
   real(8), allocatable :: rptc(:,:), rptl(:,:), evaltmp(:)
   complex(8), allocatable :: wanme(:,:,:), auxmat(:,:), auxmat2(:,:,:), ftweight(:,:)
   complex(8), allocatable :: evectmp(:,:), evalcplx(:)
+  complex(8), allocatable :: zm(:,:), zm2(:,:), lsvec(:,:), rsvec(:,:), auxmatread(:,:)
+  real(8), allocatable :: sval(:)
+  integer :: symm, symn
 !END WANNIER
 ! initialise universal variables
   Call init0
@@ -70,6 +73,17 @@ if (input%properties%bandstructure%wannier) then
   !--------------------------------------------------!      
   ! Calculate bandstructure by Wannier interpolation !
   !--------------------------------------------------!
+
+  !symm = 166
+  !symn = 2
+  !allocate( zm( symm, nstfv), zm2( symm, symn+1))
+  !allocate( sval( symn+1), lsvec( symm, symm), rsvec( symn+1, symn+1))
+  !call readmat( zm, symm, nstfv, "OLPEVEC 2")
+  !zm2( :, 1:2) = zm( :, 3:4)
+  !call readmat( zm, symm, nstfv, "OLPEVEC 2b")
+  !zm2( :, 3) = zm( :, 4)
+  !call zgesdd_wrapper( zm2, symm, symn+1, sval, lsvec, rsvec)
+  !write(*,'(3F13.6)') sval
 
   nrpt = nkptnr
 
@@ -84,8 +98,8 @@ if (input%properties%bandstructure%wannier) then
   Call readfermi                !saves fermi energy in variable 'efermi'
 
   ! generating transformation matrices for Wannier functions
-  call genmlwf( 1, 10, 10, (/1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31/))
-  !call wfshowproj
+  call genmlwf( 1, 8, 8, (/1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18/))
+  call wfshowproj
   write(*,*) 'Interpolate band-structure...'
 
   allocate( wanme( nrpt, wf_nprojused, wf_nprojused))   ! Wannier matrix elements       -- <0i|H|Rj>
@@ -107,13 +121,10 @@ if (input%properties%bandstructure%wannier) then
 
   ! calculate Hamlitonian matrix elements in Wannier representation 
   allocate( auxmat( nrpt, nkptnr), auxmat2( nkptnr, wf_nprojused, wf_nprojused))
+  allocate( auxmatread( wf_nprojused, wf_nprojused))
   do iknr = 1, nkptnr
     call findkpt( vklnr( :, iknr), isym, ik)
     call getevalfv( vkl( :, ik), evalfv)
-    ! XYZ.eig
-    !do ix = wf_bandstart, wf_bandstart+wf_nband-1
-    !  write(*,'(2I,F23.16)') ix-wf_bandstart+1, iknr, evalfv( ix, 1)*27.211385
-    !end do
     do iy = 1, wf_nprojused
       do ix = 1, wf_nprojused
         auxmat2( iknr, ix, iy) = zzero
@@ -122,6 +133,18 @@ if (input%properties%bandstructure%wannier) then
         end do
       end do
     end do
+
+!REMOVE
+        !call findkpt( vklnr( :, iknr), symm, symn)
+        !write( fname, '("../2/vev/VEV",I2)') iknr
+        !!call writemat( auxmat2( iknr, :, :), wf_nprojused, wf_nprojused, fname)
+        !call readmat( auxmatread, wf_nprojused, wf_nprojused, fname)
+        !auxmatread = auxmatread - auxmat2( iknr, :, :)
+        !write(*,*) iknr, symn
+        !!write(*,*) sum( abs( auxmatread))/wf_nprojused**2
+        !write(*,'(F23.16)') maxval( abs( auxmatread))
+
+
     do ir = 1, nrpt 
       auxmat( ir, iknr) = exp( -zi*dot_product( rptc( :, ir), vkcnr( :, iknr)))
     end do
