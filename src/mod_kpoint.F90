@@ -103,7 +103,7 @@ Contains
     ! local variables
          Integer :: maxint
          Real (8) :: dx
-         maxint = Nint (1.d0/eps) / 10
+         maxint = Nint (1.d0/eps)
          Do div = 1, maxint
             k (:) = Nint (dble(div)*x(:))
             dx = maxval (Abs(dble(k)/dble(div)-x))
@@ -118,13 +118,6 @@ Contains
             Write (*, '(" deviation       :",g18.10)') dx
             Write (*,*)
             Stop
-         End If
-         If (dx .Gt. 1.d-12) Then
-            Write (*,*)
-            Write (*, '("Warning(modtetra:rtorat): small deviation in f&
-           &actorization")')
-            Write (*, '(" maximum deviation :",g18.10)') dx
-            Write (*,*)
          End If
       End Subroutine rtorat
 !EOC

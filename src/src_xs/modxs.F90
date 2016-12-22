@@ -34,12 +34,6 @@ Module modxs
         integer(4) :: iu1, iu2
       end type bcbs 
 
-  Type(k_set) :: kset, qset
-  Type(kq_set) :: kqset
-  Type(G_set) :: gset
-  Type(Gk_set) :: gkset, gqset
-
-
   !----------------------------!
   !     symmetry variables     !
   !----------------------------!

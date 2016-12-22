@@ -12,9 +12,6 @@ implicit none
 call initmpi()
 ! set the version string
 call versionfromdate()
-!!!
-!call testingfun
-!!!
 call loadinputDOM("input.xml")
 !initialize default values that are not definet in the input schema
 call setdefault()
@@ -32,6 +29,9 @@ call initldapu
 call initsolver()
 call readspeciesxml()
 call scl_xml_out_create()
+!!!
+!call testingfun
+!!!
 call tasklauncher()
 call scl_xml_out_close()
 call finitmpi()

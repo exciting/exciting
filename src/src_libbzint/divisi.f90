@@ -60,26 +60,32 @@
 !
 !BOC
       do ip=1,nprim
-        hec=idiv.ge.iprim(ip)
-        do while (hec)
-          hec = mod(idiv,iprim(ip)).eq.0
-          ik=0
-          do while((ik.lt.nkp).and.hec)
+
+        hec = idiv .ge. iprim(ip)
+
+        do while(hec)
+
+          hec = mod(idiv,iprim(ip)) .eq. 0
+
+          ik = 0
+          do while( (ik .lt. nkp) .and. hec)
             ik=ik+1
             do ir=1,3
-              hec = hec.and.(mod(klist(ir,ik),iprim(ip)).eq.0)
-            enddo
-          enddo
+              hec = hec .and. (mod(klist(ir,ik),iprim(ip)) .eq. 0)
+            end do
+          end do
+
           if(hec) then
             idiv=idiv/iprim(ip)
             do ik=1,nkp
               do ir=1,3
                 klist(ir,ik)=klist(ir,ik)/iprim(ip)
-              enddo
-            enddo
-          endif
-        enddo
-      enddo
+              end do
+            end do
+          end if
+
+        end do
+      end do
       if(idiv.eq.0) idiv=1
       end subroutine divisi
 !EOC

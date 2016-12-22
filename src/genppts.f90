@@ -139,22 +139,31 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
 
       ! WARNING: Order of loops !
       ip = 0
+
       do i3 = 0, ngridp(3)-1
         v1(3) = dble(i3) / dble(ngridp(3))
+
         do i2 = 0, ngridp(2)-1
           v1(2) = dble(i2) / dble(ngridp(2))
-            do i1 = 0, ngridp(1)-1
+
+          do i1 = 0, ngridp(1)-1
             v1(1) = dble(i1) / dble(ngridp(1))
+
             call r3mv(b, v1, v2)
             v2(:) = v2(:)+boxl(:,1)
+
             if (reducep) Then
               call r3frac(input%structure%epslat, v2, iv)
               ! determine if this point is equivalent to one already in the set
               do isym = 1, nsymcrys
+
+                ! Apply symmetry operation to v2
                 lspl = lsplsymc(isym)
                 s(:, :) = dble(symlat(:,:,lspl))
                 call r3mtv(s, v2, v3)
                 call r3frac(input%structure%epslat, v3, iv)
+
+                ! Check if Sym(v2) was already computed
                 do jp = 1, ip
                   t2 = abs(vpl(1,jp)-v3(1)) + &
                   &    abs(vpl(2,jp)-v3(2)) + &
@@ -166,8 +175,10 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
                     goto 10
                   end if
                 end do
+
               end do
             end if ! reducep
+
             ! add new point to set
             ip = ip + 1
             ipmap(i1,i2,i3) = ip
@@ -177,6 +188,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
             vpl(:,ip) = v2(:)
             wppt(ip)  = t1
 10          continue
+
           end do
         end do
       end do

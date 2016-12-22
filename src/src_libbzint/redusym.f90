@@ -48,29 +48,63 @@
 !BOC
       tmpsym=0
       isymr=0
-      do isym=1,nsym
-        do i=1,3
-          t1(i)=symmat(i,1,isym)*shift(1)+symmat(i,2,isym)*shift(2)+   &
-     &          symmat(i,3,isym)*shift(3)
-          t2(i)=mod(t1(i),dvof*div(i))
-          toff(i)=t2(i)+(1-isign(1,t2(i)))*dvof*div(i)/2
-        enddo
-        do i=1,3
-          tsdif(i)=mod(abs(toff(i)-shift(i)),dvof)
-        enddo
-        sgroupsh=((toff(1).eq.shift(1)).and.(toff(2).eq.shift(2)).and.  &
-     &       (toff(3).eq.shift(3)))
-        tsdink=((tsdif(1).eq.0).and.(tsdif(2).eq.0).and.(tsdif(3).eq.0))
-        if(tsdink.or.sgroupsh)then
+
+      do isym = 1, nsym
+
+        ! Apply symmetry operation number isym
+        ! to offset vector in a scaled k-grid.
+        ! Note:
+        ! vkloff = shift/dvof
+        ! div = ngridk
+        ! So vkloff lies on a grid point 
+        ! of the scaled ngridk with scaling factor dvof
+        do i = 1, 3
+
+          ! Apply symmetry operation on the offset in the scaled k grid
+          ! S*shift = t1
+          t1(i) = symmat(i,1,isym)*shift(1)&
+               &+ symmat(i,2,isym)*shift(2)&
+               &+ symmat(i,3,isym)*shift(3)
+
+          ! Map resulting vector back into scaled k grid (why not modulo??)
+          t2(i) = mod(t1(i),dvof*div(i))
+          ! Add lattive vector in k-ponint coordinates to the elements of t2
+          ! which are negative 
+          toff(i) = t2(i) + (1-isign(1,t2(i)))/2*dvof*div(i)
+
+        end do
+
+        ! Get part of the difference between original offset in
+        ! scaled coordinates and symmetry equivalent offset that
+        ! lies on k points not present in the unscaled k-grid
+        do i = 1, 3
+          tsdif(i) = mod(abs(toff(i)-shift(i)), dvof)
+        end do
+
+        ! Check if symmetry operation leaves offset unchanged.
+        sgroupsh = all(toff == shift)
+
+        ! Check if symmetry operation maps the offset to a point
+        ! present in the original coarse grid.
+        tsdink = all(tsdif == 0)
+
+        ! Save the preserved symmetry operation
+        if(tsdink .or. sgroupsh) then
           isymr=isymr+1
           tmpsym(1:3,1:3,isymr)=symmat(1:3,1:3,isym)
-        endif
-      enddo
-      nsymr=isymr
-      if(nsymr.lt.nsym) write(6,*)'WARNING in libbzint%redusym :', &
-     & '  The k-point offset selected reduces the symmetry group of',&
-     & '  the mesh, resulting in a larger number of irred. k-points'
+        end if
 
+      end do
+
+      nsymr = isymr
+
+      if(nsymr .lt. nsym) then
+        write(6,*)'WARNING in libbzint%redusym :', &
+        & '  The k-point offset selected reduces the symmetry group of',&
+        & '  the mesh, resulting in a larger number of irred. k-points'
+      end if
+
+      ! Save valid symmetry operations to module variable.
       allocate(iio(3,3,nsymr))
       iio(1:3,1:3,1:nsymr)=tmpsym(1:3,1:3,1:nsymr)
 

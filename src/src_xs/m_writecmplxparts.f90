@@ -4,12 +4,12 @@ module m_writecmplxparts
 
   contains
 
-    subroutine writecmplxparts(fbasename, remat, immat, ik1, ik2)
+    subroutine writecmplxparts(fbasename, remat, immat, ik1, ik2, revec, imvec, veclen)
       use m_getunit
       character(*), intent(in) :: fbasename
-      real(8), intent(in) :: remat(:,:)
-      real(8), intent(in), optional :: immat(:,:)
-      integer(4), intent(in), optional :: ik1, ik2
+      real(8), intent(in), optional :: remat(:,:), immat(:,:)
+      real(8), intent(in), optional :: revec(*), imvec(*)
+      integer(4), intent(in), optional :: ik1, ik2, veclen
 
       integer(4) :: un, a1, a2, n, m
       character(256) :: fname, tmp1, tmp2, tmp3, frmt, frmtnoa
@@ -17,8 +17,10 @@ module m_writecmplxparts
       frmt = '(SP,E23.16)'
       frmtnoa = '(SP,1x,E23.16)'
 
-      n = size(remat,1)
-      m = size(remat,2)
+      if(present(remat)) then 
+        n = size(remat,1)
+        m = size(remat,2)
+      end if
 
       tmp1 = ''
       if(present(ik1)) then
@@ -36,22 +38,30 @@ module m_writecmplxparts
       fname =''
       write(fname,'("Re_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
 
-      call getunit(un)
-      open(unit=un, file=fname, action='write', status='replace')
-      do a1=1,n
-        write(un, fmt=frmt, advance='no') remat(a1,1)
-        do a2=2,m
-          write(un, fmt=frmtnoa, advance='no') remat(a1,a2)
+      if(present(remat)) then 
+        call getunit(un)
+        open(unit=un, file=fname, action='write', status='replace')
+        do a1=1,n
+          write(un, fmt=frmt, advance='no') remat(a1,1)
+          do a2=2,m
+            write(un, fmt=frmtnoa, advance='no') remat(a1,a2)
+          end do
+          write(un,*)
         end do
-        write(un,*)
-      end do
-      close(un)
+        close(un)
+      else if(present(revec) .and. present(veclen)) then
+        call getunit(un)
+        open(unit=un, file=fname, action='write', status='replace')
+        do a1=1,veclen
+          write(un, fmt=frmt) revec(a1)
+        end do
+        close(un)
+      end if
 
       if(present(immat)) then
+        call getunit(un)
         fname =''
         write(fname,'("Im_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
-
-        call getunit(un)
         open(unit=un, file=fname, action='write', status='replace')
         do a1=1,n
           write(un,fmt=frmt, advance='no') immat(a1,1)
@@ -61,7 +71,15 @@ module m_writecmplxparts
           write(un,*)
         end do
         close(un)
-
+      else if(present(imvec) .and. present(veclen)) then
+        call getunit(un)
+        fname =''
+        write(fname,'("Im_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
+        open(unit=un, file=fname, action='write', status='replace')
+        do a1=1,veclen
+          write(un,fmt=frmt) imvec(a1)
+        end do
+        close(un)
       end if
 
     end subroutine writecmplxparts

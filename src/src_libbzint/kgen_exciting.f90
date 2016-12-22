@@ -3,9 +3,9 @@
 ! !ROUTINE: kgen
 !
 ! !INTERFACE:
-      subroutine kgen_exciting(bvec,nsym,symop,ndiv,nshift,divsh, &
-      &                        nik,klist,idiv,ik2ikp,ikp2ik,wk,   &
-      &                        ntet,tetk,wtet,vtet,mnd)
+      subroutine kgen_exciting(bvec, nsym, symop, ndiv, nshift, divsh, &
+      &                        nik, klist, idiv, ik2ikp, ikp2ik, wk,   &
+      &                        ntet, tetk, wtet, vtet, mnd)
 !
 ! !DESCRIPTION:
 !
@@ -27,7 +27,7 @@
 
 ! !USES:
       
-      use tetra_internal, only: redtet,mndg,fout
+      use tetra_internal, only: redtet, mndg, fout
       use kgen_internals
 
       implicit none
@@ -35,10 +35,10 @@
 ! !INPUT PARAMETERS:
       integer, intent(in) :: nsym                  ! Number of symmetry operations
       integer, dimension(3), intent(in) :: ndiv    ! Number of k-points in each direction
-      integer, intent(in) :: symop(1:3,1:3,nsym)   ! Symmetry operations in internal coordinates 
+      integer, intent(in) :: symop(1:3, 1:3, nsym)   ! Symmetry operations in internal coordinates 
       integer, dimension(3), intent(in) :: nshift  ! Shift vector for the k-points mesh
       integer, intent(in) :: divsh                 ! common divisor of the shift vector
-      real(8), intent(in) :: bvec(3,3)             ! recipirical lattice vectors 
+      real(8), intent(in) :: bvec(3, 3)             ! recipirical lattice vectors 
       
 ! !OUTPUT PARAMETERS:
 
@@ -56,7 +56,7 @@
 
 ! !LOCAL VARIABLES:
       integer:: ierr
-      integer :: i,j,nsr                   ! Just some counters
+      integer :: i, j, nsr                   ! Just some counters
       integer :: nkpt                      ! Total number of k-points
       integer, dimension(3) :: onek        ! Temporary storage of one k-point coordinates
       integer, allocatable  :: ikp(:,:)    ! Coordinates of the irreducible k-points
@@ -67,73 +67,81 @@
       
 !EOP
 !BOC
-      div=ndiv
-      shift=nshift
-      gbas=bvec
+      div = ndiv
+      shift = nshift
+      gbas = bvec
 !
 !     Set the total number of k-points
 !
-      nkpt=ndiv(1)*ndiv(2)*ndiv(3)
+      nkpt = ndiv(1)*ndiv(2)*ndiv(3)
 !
 !     Allocate arrays depending on nkpt
 !
-      allocate(ikpid(nkpt),redkp(nkpt),wt(nkpt),stat=ierr)
+      allocate(ikpid(nkpt), redkp(nkpt), wt(nkpt), stat = ierr)
       if(ierr.ne.0) then 
-        write(6,*) "ERROR in kgen: fail to allocate ikpid,redkp,wt"
+        write(6,*) "ERROR in kgen: fail to allocate ikpid, redkp, wt"
         stop "ERROR in kgen"
-      endif 
+      end if 
  
-      call redusym(nsym,symop,divsh,nsr)
-      call reduk(nsr,divsh,wt)
+      call redusym(nsym, symop, divsh, nsr)
+      call reduk(nsr, divsh, wt)
 !
 !     Allocate arrays depending on nirkp
 !
-      allocate(ikp(3,nirkp),ikpint(3,nirkp),stat=ierr)
+      allocate(ikp(3, nirkp), ikpint(3, nirkp), stat = ierr)
       if(ierr.ne.0) then
-        write(6,*) "ERROR in kgen: fail to allocate ikp,ikpint"
+        write(6,*) "ERROR in kgen: fail to allocate ikp, ikpint"
         stop "ERROR in kgen"
-      endif
+      end if
 
-      wk(1:nirkp)=wt(1:nirkp)
-      wk(nirkp+1:nkpt)=0.0d0
+      wk(1:nirkp) = wt(1:nirkp)
+      wk(nirkp+1:nkpt) = 0.0d0
 !
 !     Calculate the sublattice coordinates of the irreducible k-points
 !
-      do i=1,nkpt
-        ik2ikp(i)=ikpid(redkp(i))
-      enddo
+      ! Get 1d index map from non-recuded to reduced
+      do i = 1, nkpt
+        ik2ikp(i) = ikpid(redkp(i))
+      end do
 
 !     Positions of irreducible k-points in the full mesh
+      ! Get 1d index map from recuded to non-reduced
       ikp2ik(1:nkpt) = 0
       do i = 1, nkpt
         j = ikpid(i)
         if (j > 0) ikp2ik(j) = i
       end do
 
-      do i=1,nkpt
-        if(ikpid(i).ne.0)then
-          call coorskp(i,onek)
-          ikp(1:3,ikpid(i))=onek(1:3)
-        endif
-      enddo
+      do i = 1, nkpt
+        ! If non-reduced k-point is in set of reduced k-points
+        if(ikpid(i) .ne. 0) then
+          ! Get 3d index from 1d index of non-reduced k-point
+          call coorskp(i, onek)
+          ! Save map: 1d reduced -> 3d non-reduced
+          ikp(1:3, ikpid(i)) = onek(1:3)
+        end if
+      end do
 !
 !     Transform the irreducible k-points to internal coordinates
 !
-      call intern(nirkp,ikp,ndiv,nshift,divsh,ikpint,idiv)
-      klist(1:3,1:nirkp)=ikpint(1:3,1:nirkp)
+      call intern(nirkp, ikp, ndiv, nshift, divsh, ikpint, idiv)
+      klist(1:3, 1:nirkp) = ikpint(1:3, 1:nirkp)
 !
 !     Generate the tetrahedra
 !
       allocate(tetw(6*nkpt))
-      allocate(ktet(4,6*nkpt))
-      call tgen(ntet,ktet,tetw)
-      wtet(1:ntet)=tetw(1:ntet)
-      tetk(1:4,1:ntet)=ktet(1:4,1:ntet)
-      nik=nirkp
-      vtet=vt
-      mnd=mndg
+      allocate(ktet(4, 6*nkpt))
+
+      call tgen(ntet, ktet, tetw)
+
+      wtet(1:ntet) = tetw(1:ntet)
+      tetk(1:4, 1:ntet) = ktet(1:4, 1:ntet)
+
+      nik = nirkp
+      vtet = vt
+      mnd = mndg
      
-      deallocate(ikpid,ikpint,redkp,ikp,wt,tetw,ktet,redtet)
+      deallocate(ikpid, ikpint, redkp, ikp, wt, tetw, ktet, redtet)
 
       return
 

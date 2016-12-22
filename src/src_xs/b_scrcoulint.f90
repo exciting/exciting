@@ -329,14 +329,6 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     ! Local field effects size (Number of G+q vectors)
     numgq = ngq(iq)
 
-!if(rank == 0) then 
-!  write(*,*) "ik, jk", ik,jk, "iknr,jknr", iknr, jknr
-!  write(*,*) "iqr", iqr, "iq", iq
-!  write(*,*) "vqr", vqr, "vq", vq
-!  write(*,*) "tq0", tq0
-!  write(*,*) "numgq", numgq
-!end if
-
     allocate(igqmap(numgq))
     allocate(wfc(numgq, numgq))
 
@@ -346,21 +338,20 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     !! (Radial emat integrals and screened coulomb potential Fourier coefficients)
     !!<--
     !! RR & RA
-    ! Find symmetry operations that reduce the q-point to the irreducible
-    ! part of the Brillouin zone
+    ! Find symmetry operations that map the reduced q-point to the non reduced one
     call findsymeqiv(input%xs%bse%fbzq, vq, vqr, nsc, sc, ivgsc)
     ! Find the map that rotates the G-vectors
     call findgqmap(iq, iqr, nsc, sc, ivgsc, numgq, jsym, jsymi, ivgsym, igqmap)
+
     ! Get radial integrals (previously calculated for reduced q set)
     call getematrad(iqr, iq)
-    ! Rotate radial integrals
-    ! (i.e. apply symmetry transformation to the result for non reduced q point)
+    ! Rotate radial integrals calculated for the reduced q to get those for non-reduced q
     call rotematrad(numgq, igqmap)
+
     ! Generate phase factor for dielectric matrix due to non-primitive
     ! translations
     call genphasedm(iq, jsym, ngqmax, numgq, phf, tphf)
-    ! Rotate inverse of screening, coulomb potential and radial integrals
-    ! (i.e. apply symmetry transformation to the result for non reduced q point)
+    ! W(G,G',q) <-- W(\tilde{G},\tilde{G}',qr)
     wfc(:,:) = phf(:numgq, :numgq) * scieffg(igqmap, igqmap, iqr)
     !!-->
 

@@ -492,7 +492,7 @@ subroutine dfq(iq)
 #endif            
     end if
 
-!****************** Plane wave elements magic  WRONG******************!
+!****************** Plane wave elements magic  WRONG ??******************!
     if(tscreen .and. .not. input%xs%bse%beyond) then
       ! Old behaviour - no idea why that should be right
       ! we don't need anti-resonant parts here, assign them the same

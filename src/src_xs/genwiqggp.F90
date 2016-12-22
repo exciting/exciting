@@ -8,6 +8,7 @@
 !
 subroutine genwiqggp(flag, iq, igq1, igq2, clwt)
 ! !USES:
+  use modmpi, only: terminate
   use mod_constants, only: pi, twopi, fourpi
   use mod_lattice, only: omega, bvec, binv
   use mod_qpoint, only: nqpt, ngridq

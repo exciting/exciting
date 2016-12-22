@@ -35,12 +35,12 @@
 !
 !BOC
     
-      i=(ind-1)/32+1
-      off=mod(ind-1,32)
-      if(val.eq.0)then
-        a(i)=ibclr(a(i),off)
+      i = (ind-1)/32+1
+      off = mod(ind-1,32)
+      if(val .eq. 0)then
+        a(i) = ibclr(a(i),off)
       else
-        a(i)=ibset(a(i),off)
+        a(i) = ibset(a(i),off)
       endif
       return
       end subroutine jset
