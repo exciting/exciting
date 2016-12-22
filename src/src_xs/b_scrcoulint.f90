@@ -210,12 +210,12 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   ! Revert to previous file extension
   call genfilname(iqmt=max(0, iqmt), setfilext=.true.)
 
-  ! Allocate local arrays for screened coulomb interaction
-  ! Phases for transformations form reduced q points to non reduced ones.
-  allocate(phf(ngqmax, ngqmax))
+  ! Allocate local arrays for screened coulomb interaction and
   ! W(G,G',qr)
   allocate(scieffg(ngqmax, ngqmax, nqptr))
   scieffg(:, :, :) = zzero
+  ! Phases for transformations form reduced q points to non reduced ones.
+  allocate(phf(ngqmax, ngqmax))
 
   !------------------------------------!
   ! GENERATE FOURIER COEFFICIENTS OF W !     
@@ -245,6 +245,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     call genscclieff(iqr, ngqmax, numgq, scieffg(:,:,iqr))
 
     ! Generate radial integrals for matrix elements of plane wave
+    ! and save them to disk.
     call putematrad(iqr, iqrnr)
 
   end do
@@ -303,6 +304,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     jknr = kmap_bse_rg(jk) 
 
     !! Get corresponding q-point for ki,kj combination.
+    ! Note: Why do we discard the Potential lattice component of jk-ik = iq + G ?
     if(fti .and. fra) then 
       ! RA^{ti}
       ! k-point difference -(k_j+k_i) on integer grid.
@@ -340,10 +342,11 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     !! RR & RA
     ! Find symmetry operations that map the reduced q-point to the non reduced one
     call findsymeqiv(input%xs%bse%fbzq, vq, vqr, nsc, sc, ivgsc)
-    ! Find the map that rotates the G-vectors
+    ! Find a crystal symmetry operation that rotates the G+q-vectors onto G'+q_r-vectors
+    ! and generate a Map G' --> G
     call findgqmap(iq, iqr, nsc, sc, ivgsc, numgq, jsym, jsymi, ivgsym, igqmap)
 
-    ! Get radial integrals (previously calculated for reduced q set)
+    ! Get radial integrals for q_r (previously calculated for reduced q set)
     call getematrad(iqr, iq)
     ! Rotate radial integrals calculated for the reduced q to get those for non-reduced q
     call rotematrad(numgq, igqmap)

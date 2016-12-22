@@ -8,7 +8,7 @@
 subroutine screen
 ! !USES:
   use modmpi
-!  use modxs, only: nwdf, unitout
+  use modxs, only: nwdf, unitout
   use m_genfilname
   use m_filedel
 ! !DESCRIPTION:

@@ -38,7 +38,7 @@ subroutine b_scrcoulintlauncher
     fti = .false.
   end if
 
-  ! Note: Only iqmt=0 is supported 
+  ! Note: Only iqmt=0 is supported currently
   iqmt = 0
 
   ! RR block
@@ -46,6 +46,7 @@ subroutine b_scrcoulintlauncher
     write(unitout, '("Info(b_scrcoulintlauncer):&
       & Calculating RR block of W for qmt=0")')
   end if
+  ! b_scrcoulint(iqmt, fra=.false., fti=.false.)
   call b_scrcoulint(iqmt, .false., .false.)
   call barrier(mpiglobal)
 
