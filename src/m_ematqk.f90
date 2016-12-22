@@ -17,6 +17,8 @@ use m_writecmplxparts
   logical :: initialized = .false.
   logical :: fftsaved = .false.
 
+  integer(4) :: iqprev
+
   integer(4) :: nlmomax, lmaxapw, lmaxexp
   integer(4) :: gs_lmaxapw_save
 
@@ -113,6 +115,9 @@ use m_writecmplxparts
       ! Set module flag. 
       initialized = .true.
 
+      ! Set iqprev to unset
+      iqprev = -1
+
     end subroutine emat_initialize
 
     subroutine emat_finalize()
@@ -132,6 +137,9 @@ use m_writecmplxparts
       initialized = .false.
 
       fftsaved = .false.
+
+      ! Set iqprev to unset
+      iqprev = -1
 
     end subroutine emat_finalize
 
@@ -341,6 +349,7 @@ use m_writecmplxparts
     subroutine emat_radial_init(iq)
       integer(4), intent(in) :: iq
 
+
       integer(4) :: igq, ngq
       integer(4) :: l1, l2, l3, m1, m2, o1, o2, lm1, lm2, lm3, is, ia, ias, i
       integer(4) :: lmo1, lmo2, ilo1, ilo2, idxlo1, idxlo2
@@ -350,6 +359,9 @@ use m_writecmplxparts
       real(8), parameter :: epsdiff = 1.0d-13
       complex(8) :: strf
       complex(8), allocatable :: ylm(:)
+
+      ! Compute if not already in module variable
+      if(iq == iqprev) return
 
       ! Only one spin component supported so far
       ispin = 1
@@ -738,6 +750,8 @@ use m_writecmplxparts
       call emat_radial_init(iq)
       ! Build block matrix (for each G+q)
       call emat_mt_part(emat)
+
+      iqprev = iq
        
       !--------------------------------------!
       !     Interstitial matrix elements     !

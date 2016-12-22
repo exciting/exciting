@@ -155,28 +155,28 @@ use mod_APW_LO, only: lolmax
       !call getoccsv0(vkl0(1, ik), occsv0(1, ik))
       evecfvo0(:, :) = evecfv0(ngk0(1, ik)+1:ngk0(1, ik)+nlotot, bc%il1:bc%iu1, 1)
 
-!write(*,*) "Sagmeister grid vars"
-!write(*,*) "  gkmax = ", gkmax
-!write(*,*) "  gqmax = ", input%xs%gqmax
-!write(*,*) "  gmaxvr = ", input%groundstate%gmaxvr
-!write(*,*) "  ngkmax = ", ngkmax
-!write(*,*) "  ngqmax = ", ngqmax
-!write(*,*) "  (used) input%xs%lmaxapwwf = ", input%xs%lmaxapwwf
-!write(*,*) "  input%xs%lmaxapw = ", input%xs%lmaxapw
-!write(*,*) "  input%xs%lmaxmat = ", input%xs%lmaxmat
-!write(*,*) "  input%groundstate%lmaxmat = ", input%groundstate%lmaxmat
-!write(*,*) "  (used if larger that lmaxapwwf) lolmax = ", lolmax
-!write(*,*) "  (used) input%xs%lmaxemat = ", input%xs%lmaxemat
-!write(*,*) "Writing eigenvectors sagmeister"
-!write(*,*) "ik=", ik
-!write(*,*) "vkl=", vkl0(1:3, ik)
-!write(*,*) "iq=", iq
-!write(*,*) "vql=", vql(1:3, iq)
-!write(*,*) "ikq=", ikq
-!write(*,*) "vkql=", vkl(1:3, ikq)
-!write(*,*) "ngk=", ngk0(1,ik) 
-!write(*,*) "ngkq=", ngk(1,ikq)
-!write(*,*) "ngq=", ngq(iq)
+write(*,*) "Sagmeister grid vars"
+write(*,*) "  gkmax = ", gkmax
+write(*,*) "  gqmax = ", input%xs%gqmax
+write(*,*) "  gmaxvr = ", input%groundstate%gmaxvr
+write(*,*) "  ngkmax = ", ngkmax
+write(*,*) "  ngqmax = ", ngqmax
+write(*,*) "  (used) input%xs%lmaxapwwf = ", input%xs%lmaxapwwf
+write(*,*) "  input%xs%lmaxapw = ", input%xs%lmaxapw
+write(*,*) "  input%xs%lmaxmat = ", input%xs%lmaxmat
+write(*,*) "  input%groundstate%lmaxmat = ", input%groundstate%lmaxmat
+write(*,*) "  (used if larger that lmaxapwwf) lolmax = ", lolmax
+write(*,*) "  (used) input%xs%lmaxemat = ", input%xs%lmaxemat
+write(*,*) "Writing eigenvectors sagmeister"
+write(*,*) "ik=", ik
+write(*,*) "vkl=", vkl0(1:3, ik)
+write(*,*) "iq=", iq
+write(*,*) "vql=", vql(1:3, iq)
+write(*,*) "ikq=", ikq
+write(*,*) "vkql=", vkl(1:3, ikq)
+write(*,*) "ngk=", ngk0(1,ik) 
+write(*,*) "ngkq=", ngk(1,ikq)
+write(*,*) "ngq=", ngq(iq)
 
       ! Determine number of radial functions used in APW 
       ! basis functions per species
