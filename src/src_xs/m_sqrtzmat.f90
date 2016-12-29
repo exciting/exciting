@@ -36,7 +36,7 @@ module m_sqrtzmat
       allocate(evals(m))
 
       ! Diagonalize hermitian matrix
-      call hesolver(hepdmat, evecs, evals)
+      call hesolver(hepdmat, evals, evec=evecs)
 
       ! Take square root of eigenvalues
       if(any(evals < 0.0d0)) then 
@@ -64,14 +64,21 @@ module m_sqrtzmat
 
     end subroutine sqrtzmat_hepd
 
-    subroutine sqrtdzmat_hepd(hepdmat, binfo)
+    subroutine sqrtdzmat_hepd(hepdmat, binfo, eecs)
 
       type(dzmat), intent(inout) :: hepdmat
       type(blacsinfo), intent(in) :: binfo
+      integer(4), intent(in), optional :: eecs
 
-      integer(4) :: m, n, i, j, jg
+      integer(4) :: m, n, i, j, jg, clustersize
       type(dzmat) :: evecs
       real(8), allocatable :: evals(:)
+      
+      if(present(eecs)) then
+        clustersize = eecs
+      else
+        clustersize = 3
+      end if
 
       if(hepdmat%isdistributed == .false.) then
         call sqrtzmat_hepd(hepdmat%za)
@@ -98,7 +105,7 @@ module m_sqrtzmat
       call new_dzmat(evecs, m, n, binfo, hepdmat%mblck, hepdmat%nblck)
 
       ! Diagonalize hermitian matrix
-      call dhesolver(hepdmat, evecs, evals, binfo)
+      call dhesolver(hepdmat, evecs, evals, binfo, eecs=clustersize)
 
       ! Take square root of eigenvalues
       if(any(evals < 0.0d0)) then 

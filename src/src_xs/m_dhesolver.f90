@@ -208,7 +208,7 @@ module m_dhesolver
       ! Non distributed EVP
       else if(.not. ham%isdistributed .and. .not. evec%isdistributed) then
 
-        call hesolver(ham%za, evec%za, eval, i1, i2, v1, v2, found)
+        call hesolver(ham%za, eval, evec%za, i1, i2, v1, v2, found)
 
       ! Mix -> Error
       else 

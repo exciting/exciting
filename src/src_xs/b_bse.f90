@@ -831,6 +831,8 @@ contains
     real(8) :: ts0, ts1, t1, t0
     integer(4) :: i, j
 
+real(8) :: evals(hamsize)
+
     if(mpiglobal%rank == 0) then 
       write(unitout, '("Info(setup_ti_bse): Setting up matrices for squared EVP")')
       call timesec(ts0)
@@ -883,12 +885,26 @@ contains
         cmat(i,j) = cpmat(i,j) + 2.0d0*ramat(i,j)
       end do
     end do
-    deallocate(ramat)
+    !deallocate(ramat)
 
+    ! Check positive definitness of (A+B)
+    if(mpiglobal%rank == 0) then 
+      write(unitout, '("Info(setup_ti_bse): Checking positve definitness of RR+RA")')
+      call timesec(t0)
+    end if
+    ramat = cmat
+    call hesolver(ramat, evals)
+    if(any(evals < 0.0d0)) then 
+      write(*,*) "Error(setup_ti_bse): A+B matrix is not positive definit"
+      write(*,'(E10.3)') evals
+      call terminate
+    end if
     if(mpiglobal%rank == 0) then 
       call timesec(t1)
+      write(unitout, '("  RR+RA is positive definite")')
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
     end if
+    deallocate(ramat)
 
     ! Take the square root of (A-B) (currently in cpmat)
     ! Note: It is assumed to be positive definit.
@@ -900,6 +916,7 @@ contains
     call sqrtzmat_hepd(cpmat)
     if(mpiglobal%rank == 0) then 
       call timesec(t1)
+      write(unitout, '("  RR-RA is positive definite")')
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
     end if
 
@@ -927,20 +944,11 @@ contains
     end if
 
     ! Cmat = (A-B)^1/2
-
-    if(mpiglobal%rank == 0) then 
-      write(unitout, '("Info(setup_ti_bse): Copying (RR-RA)^1/2 matrix")')
-      call timesec(t0)
-    end if
     do j = 1, hamsize
       do i = 1, hamsize
         cmat(i,j) = cpmat(i,j)
       end do
     end do
-    if(mpiglobal%rank == 0) then 
-      call timesec(t1)
-      write(unitout, '("  Time needed",f12.3,"s")') t1-t0
-    end if
 
     ! Cpmat = (A-B)^-1/2
 
@@ -1768,7 +1776,7 @@ contains
       write(unitout, '("Info(setup_dis_ti_bse): Taking square root of RR-RA matrix")')
       call timesec(t0)
     end if
-    call sqrtdzmat_hepd(cpmat, bi2d)
+    call sqrtdzmat_hepd(cpmat, bi2d, eecs=input%xs%bse%eecs)
     if(mpiglobal%rank == 0) then 
       call timesec(t1)
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
