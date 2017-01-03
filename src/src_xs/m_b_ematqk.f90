@@ -122,7 +122,6 @@ use mod_APW_LO, only: lolmax
       n0 = ngk0(1, ik)
       n = ngk(1, ikq)
 
-
       ! Allocate matrix elements array
       if(allocated(xiohalo)) deallocate(xiohalo)
       allocate(xiohalo(bc%n1, nlotot))
@@ -144,39 +143,39 @@ use mod_APW_LO, only: lolmax
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
       call getevecfv(vkl(1, ikq), vgkl(1, 1, 1, ikq), evecfv)
-      !call getevalsv(vkl(1, ikq), evalsv(1, ikq))
-      !call getoccsv(vkl(1, ikq), occsv(1, ikq))
+
+      ! Save local orbital coefficients
       evecfvu(:, :) = evecfv(ngk(1, ikq)+1:ngk(1, ikq)+nlotot, bc%il2:bc%iu2, 1)
 
       ! Read eigenvectors, eigenvalues and occupancies for k (q=0)
       !   Read first variational eigenvectors from EVECFV_QMT000.OUT 
       call getevecfv0(vkl0(1, ik), vgkl0(1, 1, 1, ik), evecfv0)
-      !call getevalsv0(vkl0(1, ik), evalsv0(1, ik))
-      !call getoccsv0(vkl0(1, ik), occsv0(1, ik))
+
+      ! Save local orbital coefficients
       evecfvo0(:, :) = evecfv0(ngk0(1, ik)+1:ngk0(1, ik)+nlotot, bc%il1:bc%iu1, 1)
 
-write(*,*) "Sagmeister grid vars"
-write(*,*) "  gkmax = ", gkmax
-write(*,*) "  gqmax = ", input%xs%gqmax
-write(*,*) "  gmaxvr = ", input%groundstate%gmaxvr
-write(*,*) "  ngkmax = ", ngkmax
-write(*,*) "  ngqmax = ", ngqmax
-write(*,*) "  (used) input%xs%lmaxapwwf = ", input%xs%lmaxapwwf
-write(*,*) "  input%xs%lmaxapw = ", input%xs%lmaxapw
-write(*,*) "  input%xs%lmaxmat = ", input%xs%lmaxmat
-write(*,*) "  input%groundstate%lmaxmat = ", input%groundstate%lmaxmat
-write(*,*) "  (used if larger that lmaxapwwf) lolmax = ", lolmax
-write(*,*) "  (used) input%xs%lmaxemat = ", input%xs%lmaxemat
-write(*,*) "Writing eigenvectors sagmeister"
-write(*,*) "ik=", ik
-write(*,*) "vkl=", vkl0(1:3, ik)
-write(*,*) "iq=", iq
-write(*,*) "vql=", vql(1:3, iq)
-write(*,*) "ikq=", ikq
-write(*,*) "vkql=", vkl(1:3, ikq)
-write(*,*) "ngk=", ngk0(1,ik) 
-write(*,*) "ngkq=", ngk(1,ikq)
-write(*,*) "ngq=", ngq(iq)
+!write(*,*) "Sagmeister grid vars"
+!write(*,*) "  gkmax = ", gkmax
+!write(*,*) "  gqmax = ", input%xs%gqmax
+!write(*,*) "  gmaxvr = ", input%groundstate%gmaxvr
+!write(*,*) "  ngkmax = ", ngkmax
+!write(*,*) "  ngqmax = ", ngqmax
+!write(*,*) "  (used) input%xs%lmaxapwwf = ", input%xs%lmaxapwwf
+!write(*,*) "  input%xs%lmaxapw = ", input%xs%lmaxapw
+!write(*,*) "  input%xs%lmaxmat = ", input%xs%lmaxmat
+!write(*,*) "  input%groundstate%lmaxmat = ", input%groundstate%lmaxmat
+!write(*,*) "  (used if larger that lmaxapwwf) lolmax = ", lolmax
+!write(*,*) "  (used) input%xs%lmaxemat = ", input%xs%lmaxemat
+!write(*,*) "Writing eigenvectors sagmeister"
+!write(*,*) "ik=", ik
+!write(*,*) "vkl=", vkl0(1:3, ik)
+!write(*,*) "iq=", iq
+!write(*,*) "vql=", vql(1:3, iq)
+!write(*,*) "ikq=", ikq
+!write(*,*) "vkql=", vkl(1:3, ikq)
+!write(*,*) "ngk=", ngk0(1,ik) 
+!write(*,*) "ngkq=", ngk(1,ikq)
+!write(*,*) "ngq=", ngq(iq)
 
       ! Determine number of radial functions used in APW 
       ! basis functions per species
@@ -290,7 +289,7 @@ write(*,*) "ngq=", ngq(iq)
     !$omp end do
 #endif
       deallocate(integrals)        
-         
+
 #ifdef USEOMP
     !$omp end parallel
 #endif

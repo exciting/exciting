@@ -19,7 +19,7 @@ use m_writecmplxparts
 
   integer(4) :: iqprev
 
-  integer(4) :: nlmomax, lmaxapw, lmaxexp
+  integer(4) :: nlmomax, nidxlomax, lmaxapw, lmaxexp
   integer(4) :: gs_lmaxapw_save
 
   ! Index maps
@@ -37,14 +37,19 @@ use m_writecmplxparts
 
   ! Radial integrals
   complex(8), allocatable, dimension(:,:,:,:) :: rigntaa, rigntal, rigntla, rigntll
+  real(8), allocatable :: riaa(:,:,:,:,:,:,:), rial(:,:,:,:,:,:), rill(:,:,:,:,:)
+
+  ! Module flags
+  logical :: precompute_radial, precompute_ffts, precompute_ac
 
   public :: emat_write_plain
   public :: emat_initialize, emat_gen, emat_finalize
 
   contains
 
-    subroutine emat_initialize(lmaxapw_, lmaxexp_)
+    subroutine emat_initialize(lmaxapw_, lmaxexp_, pre_rad_)
       integer(4), intent(in), optional :: lmaxapw_, lmaxexp_
+      logical, intent(in), optional :: pre_rad_
 
       ! Check if k-space grids are initialized
       if( .not. ematgrids_initialized()) then
@@ -81,6 +86,7 @@ use m_writecmplxparts
         end if
       end if
 
+
       ! Write info
       write(*,*) "Info(emat_initialize):"
       write(*,*) "  lmaxapw_orig =", gs_lmaxapw_save
@@ -108,15 +114,26 @@ use m_writecmplxparts
       ! representation of G-space characteristic function
       call emat_fft_init()
 
-      ! Allocate radial integrals for
-      ! one G+q 
+      ! Allocate radial integrals
       call emat_alloc_radial()
+
+      ! Precalculate radial integrals for reduced q-grid
+      if(present(pre_rad_)) then 
+        precompute_radial = pre_rad_
+      else
+        precompute_radial = .false.
+      end if
+
+      ! Set iqprev to unset
+      iqprev = -1
+
+      if(precompute_radial) then 
+        call emat_precal_rad()
+      end if
 
       ! Set module flag. 
       initialized = .true.
 
-      ! Set iqprev to unset
-      iqprev = -1
 
     end subroutine emat_initialize
 
@@ -136,7 +153,7 @@ use m_writecmplxparts
       ! Set module flag 
       initialized = .false.
 
-      fftsaved = .false.
+      precompute_radial = .false.
 
       ! Set iqprev to unset
       iqprev = -1
@@ -161,9 +178,9 @@ use m_writecmplxparts
       if(allocated(nnz)) deallocate(nnz)
 
       ! Deallocate radial arrays
-      !if(allocated(riaa)) deallocate(riaa)
-      !if(allocated(rial)) deallocate(rial)
-      !if(allocated(rill)) deallocate(rill)
+      if(allocated(riaa)) deallocate(riaa)
+      if(allocated(rial)) deallocate(rial)
+      if(allocated(rill)) deallocate(rill)
       if(allocated(rigntaa)) deallocate(rigntaa)
       if(allocated(rigntal)) deallocate(rigntal)
       if(allocated(rigntla)) deallocate(rigntla)
@@ -215,6 +232,7 @@ use m_writecmplxparts
 
       ! Make LO-index map
       !   Number of LO's per species
+      nidxlomax = 0 
       allocate(nidxlo(nspecies))
       do is = 1, nspecies
         nidxlo(is) = 0
@@ -222,8 +240,8 @@ use m_writecmplxparts
           l1 = lorbl(ilo1, is)
           nidxlo(is) = nidxlo(is) + 2*l1+1
         end do
+        nidxlomax = max(nidxlomax, nidxlo(is))
       end do
-
 
       !   Start index of the LO's of atom ia of species is
       !   in the total indexlist of LO's
@@ -333,18 +351,150 @@ use m_writecmplxparts
     end subroutine emat_fft_init
 
     subroutine emat_alloc_radial()
-      
-      ! Allocate radial integral arrays
-      allocate(rigntaa(nlmomax, nlmomax, natmtot, gqset%ngkmax), &
-                rigntal(nlmomax, nlotot, natmtot, gqset%ngkmax), &
-                rigntla(nlotot, nlmomax, natmtot, gqset%ngkmax), &
-                rigntll(nlotot, nlotot, natmtot, gqset%ngkmax))
 
-      !allocate(riaa(0:lmaxexp, 0:lmaxapw, apwordmax, 0:lmaxapw, apwordmax), &
-      !          rial(0:lmaxexp, 0:lmaxapw, apwordmax, nlomax), &
-      !          rill(0:lmaxexp, nlomax, nlomax))
+      integer(4) :: ngksize
+
+      ngksize = gqset%ngknrmax
+
+      ! Allocate radial integral arrays
+      allocate(riaa(0:lmaxexp, 0:lmaxapw, apwordmax, 0:lmaxapw, apwordmax, natmtot, ngksize), &
+                rial(0:lmaxexp, 0:lmaxapw, apwordmax, nlomax, natmtot, ngksize), &
+                rill(0:lmaxexp, nlomax, nlomax, natmtot, ngksize))
+      
+      ! Allocate radial integral times gaunt coefficients and bessel arrays
+      allocate(rigntaa(nlmomax, nlmomax, natmtot, ngksize), &
+                rigntal(nlmomax, nidxlomax, natmtot, ngksize), &
+                rigntla(nidxlomax, nlmomax, natmtot, ngksize), &
+                rigntll(nidxlomax, nidxlomax, natmtot, ngksize))
 
     end subroutine emat_alloc_radial
+
+    subroutine emat_precal_rad()
+      use m_genfilname
+      use m_getunit
+
+      character(256) :: fname
+      integer(4) :: un
+      integer(4) :: iq, iqnr, igq, is, ia, ias, ispin, ngq
+
+      ispin = 1
+
+      call system('[[ ! -e EMAT ]] && mkdir EMAT')
+
+write(*,*) "Precomputing radial integrals"
+
+      ! Loop over reduced q-points (if q-set was reduced)
+      do iq = 1, qset%qset%nkpt
+
+        ! Get eqvialent index of non-reduced set
+        iqnr = qset%qset%ikp2ik(iq)
+
+write(*,*) "iq =", iq, " iqnr=", iqnr
+        call genfilname(basename='EMAT/EMAT_RADGNT', iq=iq, filnam=fname)
+write(*,*) "Filename=", trim(fname)
+
+        ! Get number of G+q vectors
+        ngq = gqset%ngknr(ispin, iq)
+
+#ifdef USEOMP
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(igq, is, ia, ias)
+#endif
+        do igq = 1, ngq
+
+          do is = 1, nspecies
+            do ia = 1, natoms(is)
+              ias = idxas(ia, is)
+
+              call emat_genri(gqset%gknrc(igq, ispin, iq), is, ia,&
+                & riaa(:,:,:,:,:,ias,igq), rial(:,:,:,:,ias,igq), rill(:,:,:,ias,igq))
+
+            end do
+          end do
+
+        end do
+#ifdef USEOMP
+!$OMP END PARALLEL DO
+#endif
+
+        ! Save to file
+        call getunit(un)
+        open(un, file=trim(fname), form='unformatted', action='write', status='replace')
+        write(un) riaa, rial, rill
+        close(un)
+
+      end do
+
+    end subroutine emat_precal_rad
+
+    subroutine emat_fetch_rad(iqnr)
+      use m_genfilname
+      use m_getunit
+      use mod_symmetry, only: maxsymcrys
+
+      integer(4), intent(in) :: iqnr
+
+      character(256) :: fname
+      integer(4) :: un
+      integer(4) :: iq, numgq, ispin
+
+      real(8) :: vqnr(3), vq(3)
+      integer(4) :: jsym, jsymi
+      integer(4) :: nsc, ivgsym(3)
+      integer(4) :: sc(maxsymcrys), ivgsc(3, maxsymcrys)
+      integer(4), allocatable :: igqmap(:)
+
+      ! Fetch only if not already in module variable
+      if(iqnr == iqprev) return
+
+      ! Only one spin component supported so far
+      ispin = 1
+
+      ! Get equivalent reduced q-point
+      iq = qset%qset%ik2ikp(iqnr)
+      numgq = gqset%ngknr(ispin, iqnr)
+
+write(*,*) "Fetching radial integral from disk for: iqnr=", iqnr, " iq=", iq, "numgq=", numgq
+
+      ! Read radial integals for reduced q-point from file
+      call genfilname(basename='EMAT/EMAT_RADGNT', iq=iq, filnam=fname)
+      call getunit(un)
+      open(un, file=trim(fname), form='unformatted', action='read', status='old')
+      read(un) riaa, rial, rill
+      close(un)
+
+      ! Get lattice coordiates of q vectors
+      vq = qset%qset%vkl(1:3,iq)
+      vqnr = qset%qset%vklnr(1:3,iqnr)
+write(*,*) "vq=", vq
+write(*,*) "vqnr=", vqnr
+
+      ! Retreive radial integrals for non reduced q-point form reduced q-point integrals
+      ! by remapping the G+q vector indices
+      if(qset%qset%isreduced .and. any(vq /= vqnr)) then 
+
+
+        ! Find symmetry operations that map the reduced q-point to the non reduced one
+        call findsymeqiv(input%xs%bse%fbzq, vqnr, vq, nsc, sc, ivgsc)
+write(*,*) "Number of symmetry operations for vq --> vqnr =", nsc
+
+        ! Find the map that rotates the G+q-vectors
+        allocate(igqmap(numgq))
+        call b_findgqmap(iqnr, iq, nsc, sc, ivgsc, numgq, jsym, jsymi, ivgsym, igqmap)
+write(*,*) "map found."
+
+        ! Rotate radial integrals using the remapped G+q indices
+        riaa(:,:,:,:,:,:,1:numgq) = riaa(:,:,:,:,:,:,igqmap)
+        rial(:,:,:,:,:,1:numgq) = rial(:,:,:,:,:,igqmap)
+        rill(:,:,:,:,1:numgq) = rill(:,:,:,:,igqmap)
+write(*,*) "integrals rotated"
+
+        deallocate(igqmap)
+
+      end if
+
+      iqprev = iqnr
+
+    end subroutine emat_fetch_rad
 
     subroutine emat_radial_init(iq)
       integer(4), intent(in) :: iq
@@ -353,7 +503,6 @@ use m_writecmplxparts
       integer(4) :: igq, ngq
       integer(4) :: l1, l2, l3, m1, m2, o1, o2, lm1, lm2, lm3, is, ia, ias, i
       integer(4) :: lmo1, lmo2, ilo1, ilo2, idxlo1, idxlo2
-      real(8), allocatable :: riaa(:,:,:,:,:), rial(:,:,:,:), rill(:,:,:)
 
       integer(4) :: ispin
       real(8), parameter :: epsdiff = 1.0d-13
@@ -367,19 +516,20 @@ use m_writecmplxparts
       ispin = 1
 
       ! Get number of G+q vectors
-      ngq = gqset%ngk(ispin, iq)
+      ngq = gqset%ngknr(ispin, iq)
 
+      ! Read radial integrals from file (riaa,rial,rill)
+      if( precompute_radial ) then 
+        call emat_fetch_rad(iq)
+      end if
 
       ! Do for all G+q
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(strf, ylm, riaa, rial, rill), &
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(strf, ylm), &
 !$OMP& PRIVATE(i, igq, is, ia, ias, idxlo1, idxlo2), &
 !$OMP& PRIVATE( lm3, l3, lmo2, l2, m2, o2, lm2, ilo2, ilo1, lmo1, l1, m1, o1, lm1)
 #endif
       allocate(ylm((lmaxexp + 1)**2))
-      allocate(riaa(0:lmaxexp, 0:lmaxapw, apwordmax, 0:lmaxapw, apwordmax), &
-                rial(0:lmaxexp, 0:lmaxapw, apwordmax, nlomax), &
-                rill(0:lmaxexp, nlomax, nlomax))
 #ifdef USEOMP
 !$OMP DO
 #endif
@@ -387,7 +537,7 @@ use m_writecmplxparts
         
         ! Get sph. harmonics up to l_max used in 
         ! expansion of exponential
-        call genylm(lmaxexp, gqset%tpgkc(1:2,igq,ispin,iq), ylm)
+        call genylm(lmaxexp, gqset%tpgknrc(1:2,igq,ispin,iq), ylm)
 
         ! Radial integrals times Gaunt and expansion prefactor
         rigntaa(:,:,:,igq) = zzero
@@ -403,10 +553,13 @@ use m_writecmplxparts
             ias = idxas(ia, is)
 
             ! e^{-i (q+G) \cdot R_\alpha}
-            strf = conjg(gqset%sfacgk(igq, ias, ispin, iq))
+            strf = conjg(gqset%sfacgknr(igq, ias, ispin, iq))
 
             ! Generate radial integral
-            call emat_genri(gqset%gkc(igq, ispin, iq), is, ia, riaa, rial, rill)
+            if( .not. precompute_radial) then 
+              call emat_genri(gqset%gknrc(igq, ispin, iq), is, ia,&
+                & riaa(:,:,:,:,:,ias,igq), rial(:,:,:,:,ias,igq), rill(:,:,:,ias,igq))
+            end if
 
             ! APW-APW
             do lmo2 = 1, nlmo(is)
@@ -427,22 +580,23 @@ use m_writecmplxparts
 
                   rigntaa(lmo1, lmo2, ias, igq) = rigntaa(lmo1, lmo2, ias, igq)&
                     &+ strf*conjg(zil(l3))*conjg(ylm(lm3))&
-                    &* listgnt(i, lm1, lm2)*riaa(l3, l1, o1, l2, o2)
+                    &* listgnt(i, lm1, lm2)*riaa(l3, l1, o1, l2, o2, ias, igq)
                 end do
 
               end do
             end do
 
             ! APW-LO and LO-APW
+
             do lmo1 = 1, nlmo(is)
               l1 = lmo2l(lmo1, is)
               m1 = lmo2m(lmo1, is)
               o1 = lmo2o(lmo1, is)
               lm1 = idxlm(l1, m1)
 
-              do idxlo1 = idxlostart(ias), idxlostart(ias)+nidxlo(is)-1
-                ilo1 = idxlomap(idxlo1, 2)
-                lm2  = idxlomap(idxlo1, 1)
+              do idxlo1 = 1, nidxlo(is)
+                ilo1 = idxlomap(idxlo1+idxlostart(ias)-1, 2)
+                lm2  = idxlomap(idxlo1+idxlostart(ias)-1, 1)
 
                 ! APW-LO
                 do i = 1, nnz(lm1, lm2)
@@ -452,7 +606,7 @@ use m_writecmplxparts
                   rigntal(lmo1, idxlo1, ias, igq) =&
                     & rigntal(lmo1, idxlo1, ias, igq)&
                     &+ strf*conjg(zil(l3))*conjg(ylm(lm3))&
-                    &* listgnt(i, lm1, lm2)*rial(l3, l1, o1, ilo1)
+                    &* listgnt(i, lm1, lm2)*rial(l3, l1, o1, ilo1, ias, igq)
                 end do
 
                 ! LO-APW
@@ -463,20 +617,20 @@ use m_writecmplxparts
                   rigntla(idxlo1, lmo1, ias, igq) =&
                     & rigntla(idxlo1, lmo1, ias, igq)&
                     &+ strf*conjg(zil(l3))*conjg(ylm(lm3))&
-                    &* listgnt(i, lm2, lm1)*rial(l3, l1, o1, ilo1)
+                    &* listgnt(i, lm2, lm1)*rial(l3, l1, o1, ilo1, ias, igq)
                 end do
 
               end do
             end do
 
             ! LO-LO
-            do idxlo2 = idxlostart(ias), idxlostart(ias)+nidxlo(is)-1
-              ilo2 = idxlomap(idxlo2, 2)
-              lm2  = idxlomap(idxlo2, 1)
+            do idxlo2 = 1, nidxlo(is)
+              ilo2 = idxlomap(idxlo2+idxlostart(ias)-1, 2)
+              lm2  = idxlomap(idxlo2+idxlostart(ias)-1, 1)
 
-              do idxlo1 = idxlostart(ias), idxlostart(ias)+nidxlo(is)-1
-                ilo1 = idxlomap(idxlo1, 2)
-                lm1  = idxlomap(idxlo1, 1)
+              do idxlo1 = 1, nidxlo(is)
+                ilo1 = idxlomap(idxlo1+idxlostart(ias)-1, 2)
+                lm1  = idxlomap(idxlo1+idxlostart(ias)-1, 1)
 
                 do i = 1, nnz(lm1, lm2) 
                   lm3 = idxgnt(i, lm1, lm2)
@@ -485,7 +639,7 @@ use m_writecmplxparts
                   rigntll(idxlo1, idxlo2, ias, igq) =&
                     & rigntll(idxlo1, idxlo2, ias, igq)&
                     &+ strf*conjg(zil(l3))*conjg(ylm(lm3))&
-                    &* listgnt(i, lm1, lm2)*rill(l3, ilo1, ilo2)
+                    &* listgnt(i, lm1, lm2)*rill(l3, ilo1, ilo2, ias, igq)
                 end do
 
               end do
@@ -498,130 +652,126 @@ use m_writecmplxparts
 #ifdef USEOMP
 !$OMP END DO  
 #endif
-      deallocate(riaa, rial, rill)
       deallocate(ylm)
 #ifdef USEOMP
 !$OMP END PARALLEL
 #endif
+      
+    end subroutine emat_radial_init
 
+    subroutine emat_genri(gqc, is, ia, riaa, rial, rill)
+      integer(4), intent(in) :: is, ia
+      real(8), intent(in) :: gqc
+      real(8), intent(out) :: riaa(0:lmaxexp, 0:lmaxapw, apwordmax,&
+                                   & 0:lmaxapw, apwordmax)
+      real(8), intent(out) :: rial(0:lmaxexp, 0:lmaxapw, apwordmax, nlomax)
+      real(8), intent(out) :: rill(0:lmaxexp, nlomax, nlomax)
 
-      contains
+      integer(4) :: ias, ir, nr, l1, l2, l3, o1, o2, ilo1, ilo2
+      real(8) :: x
 
-        subroutine emat_genri(gqc, is, ia, riaa, rial, rill)
-          integer(4), intent(in) :: is, ia
-          real(8), intent(in) :: gqc
-          real(8), intent(out) :: riaa(0:lmaxexp, 0:lmaxapw, apwordmax,&
-                                       & 0:lmaxapw, apwordmax)
-          real(8), intent(out) :: rial(0:lmaxexp, 0:lmaxapw, apwordmax, nlomax)
-          real(8), intent(out) :: rill(0:lmaxexp, nlomax, nlomax)
+      real(8), allocatable :: jlqgr(:,:), fr(:), gf(:), cf(:,:)
+      
+      ! Get combined atom-species index
+      ias = idxas(ia, is)
 
-          integer(4) :: ias, ir, nr, l1, l2, l3, o1, o2, ilo1, ilo2
-          real(8) :: x
+      ! Number of radial points per species
+      nr = nrmt(is)
 
-          real(8), allocatable :: jlqgr(:,:), fr(:), gf(:), cf(:,:)
-          
-          ! Get combined atom-species index
-          ias = idxas(ia, is)
+      ! Generate spherical Bessel functions
+      allocate(jlqgr(0:lmaxexp, nr))
+      do ir = 1, nr
+        x = gqc*spr(ir, is)
+        call sbessel(lmaxexp, x, jlqgr(:, ir))
+      end do
 
-          ! Number of radial points per species
-          nr = nrmt(is)
+      allocate(fr(nr), gf(nr), cf(3, nr))
 
-          ! Generate spherical Bessel functions
-          allocate(jlqgr(0:lmaxexp, nr))
-          do ir = 1, nr
-            x = gqc*spr(ir, is)
-            call sbessel(lmaxexp, x, jlqgr(:, ir))
-          end do
-
-          allocate(fr(nr), gf(nr), cf(3, nr))
-
-          ! APW-APW
+      ! APW-APW
 !#ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(l1, l2, l3, o1, o2, ir, fr, gf, cf)
 !!$OMP DO  
 !#endif
-          do l2 = 0, lmaxapw
-            do o2 = 1, apword(l2, is)
+      do l2 = 0, lmaxapw
+        do o2 = 1, apword(l2, is)
 
-              do l1 = 0, lmaxapw
-                do o1 = 1, apword(l1, is)
+          do l1 = 0, lmaxapw
+            do o1 = 1, apword(l1, is)
 
-                  do l3 = 0, lmaxexp
+              do l3 = 0, lmaxexp
 
-                    do ir = 1, nr
-                      fr(ir) = apwfr(ir, 1, o1, l1, ias)*jlqgr(l3, ir)&
-                             &* apwfr(ir, 1, o2, l2, ias)*spr(ir, is)**2
-                    end do
-                    call fderiv(-1, nr, spr(:, is), fr, gf, cf)
-                    riaa(l3, l1, o1, l2, o2) = gf(nr)
-
-                  end do
-
+                do ir = 1, nr
+                  fr(ir) = apwfr(ir, 1, o1, l1, ias)*jlqgr(l3, ir)&
+                         &* apwfr(ir, 1, o2, l2, ias)*spr(ir, is)**2
                 end do
+                call fderiv(-1, nr, spr(:, is), fr, gf, cf)
+                riaa(l3, l1, o1, l2, o2) = gf(nr)
+
               end do
 
             end do
           end do
+
+        end do
+      end do
 !#ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
 !#endif
 
-          ! APW-LO
+      ! APW-LO
 !#ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ilo1, l1, l3, o1, ir, fr, gf, cf)
 !!$OMP DO  
 !#endif
-          do ilo1 = 1, nlorb(is)
-            do l1 = 0, lmaxapw
-              do o1 = 1, apword(l1, is)
+      do ilo1 = 1, nlorb(is)
+        do l1 = 0, lmaxapw
+          do o1 = 1, apword(l1, is)
 
-                do l3 = 0, lmaxexp
+            do l3 = 0, lmaxexp
 
-                  do ir = 1, nr
-                    fr(ir) = apwfr(ir, 1, o1, l1, ias)*jlqgr(l3, ir)&
-                           &* lofr(ir, 1, ilo1, ias)*spr(ir, is)**2
-                  end do
-                  call fderiv(-1, nr, spr(:, is), fr, gf, cf)
-                  rial(l3, l1, o1, ilo1) = gf(nr)
-
-                end do
-
+              do ir = 1, nr
+                fr(ir) = apwfr(ir, 1, o1, l1, ias)*jlqgr(l3, ir)&
+                       &* lofr(ir, 1, ilo1, ias)*spr(ir, is)**2
               end do
+              call fderiv(-1, nr, spr(:, is), fr, gf, cf)
+              rial(l3, l1, o1, ilo1) = gf(nr)
+
             end do
+
           end do
+        end do
+      end do
 !#ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
 !#endif
 
-          ! LO-LO
+      ! LO-LO
 !#ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ilo1, ilo2, l3, ir, fr, gf, cf)
 !!$OMP DO  
 !#endif
-          do ilo2 = 1, nlorb(is)
-            do ilo1 = 1, nlorb(is)
-              do l3 = 0, lmaxexp
-                do ir = 1, nr
-                  fr(ir) = lofr(ir, 1, ilo1, ias)*jlqgr(l3, ir)&
-                         &* lofr(ir, 1, ilo2, ias)*spr(ir, is)**2
-                end do
-                call fderiv(-1, nr, spr(:, is), fr, gf, cf)
-                rill(l3, ilo1, ilo2) = gf(nr)
-              end do
+      do ilo2 = 1, nlorb(is)
+        do ilo1 = 1, nlorb(is)
+          do l3 = 0, lmaxexp
+            do ir = 1, nr
+              fr(ir) = lofr(ir, 1, ilo1, ias)*jlqgr(l3, ir)&
+                     &* lofr(ir, 1, ilo2, ias)*spr(ir, is)**2
             end do
+            call fderiv(-1, nr, spr(:, is), fr, gf, cf)
+            rill(l3, ilo1, ilo2) = gf(nr)
           end do
+        end do
+      end do
 !#ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
 !#endif
 
-          deallocate(jlqgr, fr, gf, cf)
-          return
-        end subroutine emat_genri
-      
-    end subroutine emat_radial_init
+      deallocate(jlqgr, fr, gf, cf)
+      return
+    end subroutine emat_genri
 
     subroutine emat_buffer_ffts(evecks)
       complex(8), intent(in) :: evecks(:,:,:)
@@ -678,7 +828,7 @@ use m_writecmplxparts
 
       ! Local
       integer(4) :: ikq, ivgs(3), igs
-      integer(4) :: nstk, nstkq, ngq, ngkmax_save
+      integer(4) :: nstk, nstkq, ngq, ngkmax_save, nbasis
       integer(4) :: ngk, ngkq
       integer(4) :: ispin
       complex(8), allocatable :: apwalmk(:,:,:,:), apwalmkq(:,:,:,:)
@@ -697,6 +847,7 @@ use m_writecmplxparts
           & Differing basis size (size(eveck,1) /= size(eveckq,1))"
         call terminate
       end if
+      nbasis = size(eveck,1)
       nstk = size(eveck,2)
       nstkq = size(eveckq,2)
       if(size(emat,1) /= nstk .or. size(emat,2) /= nstkq) then
@@ -707,7 +858,7 @@ use m_writecmplxparts
         call terminate
       end if
 
-      ngq = gqset%ngk(ispin, iq)
+      ngq = gqset%ngknr(ispin, iq)
 
       if(size(emat,3) /= ngq) then
         write(*,*) "Error(m_ematqk::emat_gen):&
@@ -720,7 +871,7 @@ use m_writecmplxparts
 
       ngk = gkset%ngk(ispin, ik)
       ngkq = gkqmtset%ngk(ispin, ikq)
-      
+
       ! Find matching coefficients for k-point ik
       !   Note: Uses groundstate lmaxapw
       !   Note: Uses mod_Gkvector::ngkmax
@@ -748,8 +899,11 @@ use m_writecmplxparts
       ! Generate radial integrals for G+q, where q is in [0,1) cell
       ! And store them in the module variables
       call emat_radial_init(iq)
+      
       ! Build block matrix (for each G+q)
-      call emat_mt_part(emat)
+
+      !call emat_mt_part(emat)
+      call emat_mt_part_new(emat)
 
       iqprev = iq
        
@@ -757,12 +911,12 @@ use m_writecmplxparts
       !     Interstitial matrix elements     !
       !--------------------------------------!
       ! Dependes on k, q, k+q, G_shift
-      !call emat_inter_part(emat)
       call emat_inter_part(emat)
 
       deallocate(apwalmk, apwalmkq)
 
       contains 
+
 
         subroutine emat_mt_part(emat)
 
@@ -771,6 +925,7 @@ use m_writecmplxparts
           integer(4) :: is, ia, ias
           integer(4) :: l, m, o, lmo, lm
           integer(4) :: igq, i
+          integer(4) :: ilok1, ilok2, ilokq1, ilokq2
 
           ! Block matrix
           ! [_AA_|_AL_]
@@ -788,6 +943,7 @@ use m_writecmplxparts
 !$OMP& PRIVATE( match_combined1, match_combined2), &
 !$OMP& PRIVATE( auxmat, auxmat2), &
 !$OMP& PRIVATE( is, ia, ias, igq), &
+!$OMP& PRIVATE( ilok1, ilok2, ilokq1, ilokq2), &
 !$OMP& PRIVATE( lmo, l, m, o, lm)
 #endif
           allocate(blockmt(ngk+nlotot,ngkq+nlotot))
@@ -795,7 +951,7 @@ use m_writecmplxparts
           allocate(auxmat2(ngk+nlotot, nstkq))
           allocate(match_combined1(nlmomax, ngk))
           allocate(match_combined2(nlmomax, ngkq))
-          allocate(aamat(ngk, ngkq), almat(ngk, nlotot), lamat(nlotot, ngkq))
+          allocate(aamat(ngk, ngkq), almat(ngk, nidxlomax), lamat(nidxlomax, ngkq))
 
 #ifdef USEOMP
 !$OMP DO 
@@ -805,21 +961,6 @@ use m_writecmplxparts
 
             ! Build block matrix for current G+q
             blockmt(:,:) = zzero
-
-! If nias >> nigq
-!#ifdef USEOMP
-!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( is, ia, ias), &
-!!$OMP& PRIVATE( match_combined1, match_combined2), &
-!!$OMP& PRIVATE( lmo, l, m, o, lm, auxmat, aamat, almat, lamat)
-!#endif
-!            allocate(auxmat(nlmomax, ngkq))
-!            allocate(match_combined1(nlmomax, ngk))
-!            allocate(match_combined2(nlmomax, ngkq))
-!            allocate(aamat(ngk, ngkq), almat(ngk, nlotot), lamat(nlotot, ngkq))
-!
-!#ifdef USEOMP
-!!$OMP DO COLLAPSE(2) REDUCTION(+:blockmt)
-!#endif
 
             do is = 1, nspecies
               do ia = 1, natoms(is)
@@ -855,43 +996,36 @@ use m_writecmplxparts
 
                 blockmt(1:ngk, 1:ngkq) = blockmt(1:ngk, 1:ngkq) + aamat(:,:)
 
-                ! APW-LO
-                call ZGEMM('C', 'N', ngk, nlotot, nlmo(is), zone, &
-                    match_combined1(1:nlmo(is), :), nlmo(is), &
-                    rigntal(1:nlmo(is), :, ias, igq), nlmo(is), zzero, &
-                    almat, ngk)
+                ! Index range of local orbitals of atom ias in eigenvectors
+                ilok1 = ngk+idxlostart(ias)
+                ilok2 = ngk+idxlostart(ias)+nidxlo(is)-1
+                ilokq1 = ngkq+idxlostart(ias)
+                ilokq2 = ngkq+idxlostart(ias)+nidxlo(is)-1
 
-                blockmt(1:ngk, (ngkq+1):(ngkq+nlotot)) =&
-                  & blockmt(1:ngk, (ngkq+1):(ngkq+nlotot)) + almat(:,:)
+                ! APW-LO
+                call ZGEMM('C', 'N', ngk, nidxlo(is), nlmo(is), zone, &
+                    match_combined1(1:nlmo(is), :), nlmo(is), &
+                    rigntal(1:nlmo(is), 1:nidxlo(is), ias, igq), nlmo(is), zzero, &
+                    almat(1:ngk,1:nidxlo(is)), ngk)
+
+                blockmt(1:ngk,ilokq1:ilokq2) = blockmt(1:ngk,ilokq1:ilokq2)+almat(1:ngk,1:nidxlo(is))
 
                 ! LO-APW
-                call ZGEMM('N','N', nlotot, ngkq, nlmo(is), zone, &
-                    rigntla(:, 1:nlmo(is), ias, igq), nlotot, &
+                call ZGEMM('N','N', nidxlo(is), ngkq, nlmo(is), zone, &
+                    rigntla(1:nidxlo(is), 1:nlmo(is), ias, igq), nidxlo(is), &
                     match_combined2(1:nlmo(is), :), nlmo(is), zzero, &
-                    lamat, nlotot)
+                    lamat(1:nidxlo(is),1:ngkq), nidxlo(is))
 
-                blockmt((ngk+1):(ngk+nlotot), 1:ngkq) =&
-                  & blockmt((ngk+1):(ngk+nlotot), 1:ngkq) + lamat(:,:)
+                blockmt(ilok1:ilok2, 1:ngkq) =&
+                  & blockmt(ilok1:ilok2, 1:ngkq) + lamat(1:nidxlo(is),1:ngkq)
 
                 ! LO-LO
-                blockmt((ngk+1):(ngk+nlotot), (ngkq+1):(ngkq+nlotot)) =&
-                  & blockmt((ngk+1):(ngk+nlotot), (ngkq+1):(ngkq+nlotot))&
-                  &+ rigntll(:, :, ias, igq)
+                blockmt(ilok1:ilok2, ilokq1:ilokq2) =&
+                  & blockmt(ilok1:ilok2, ilokq1:ilokq2)&
+                  &+ rigntll(1:nidxlo(is), 1:nidxlo(is), ias, igq)
 
               end do
             end do
-! IF nias >> nigq
-!#ifdef USEOMP
-!!$OMP END DO
-!#endif
-!            deallocate(auxmat)
-!            deallocate(match_combined1)
-!            deallocate(match_combined2)
-!            deallocate(aamat, almat, lamat)
-
-!#ifdef USEOMP
-!!$OMP END PARALLEL
-!#endif
 
             ! Compute final total muffin tin contribution
             call ZGEMM('N', 'N', ngk+nlotot, nstkq, ngkq+nlotot, zone, &
@@ -1000,7 +1134,7 @@ use m_writecmplxparts
               ! Add result to emat
               do igp = 1, ngq
                 emat(ist1, ist2, igp) = emat(ist1, ist2, igp)&
-                  &+ zfftres(fftmap%igfft(gqset%igkig(igp, ispin, iq)))
+                  &+ zfftres(fftmap%igfft(gqset%igknrig(igp, ispin, iq)))
               end do
 
             end do
@@ -1015,6 +1149,147 @@ use m_writecmplxparts
 #endif
           deallocate(zfftk)
         end subroutine emat_inter_part
+
+        subroutine emat_mt_part_new(emat)
+
+          complex(8), intent(inout) :: emat(:,:,:)
+
+          integer(4) :: is, ia, ias
+          integer(4) :: l, m, o, lmo, lm
+          integer(4) :: igq, i, nlmolo
+
+          ! Block matrix
+          ! [_AA_|_AL_]
+          ! [ LA | LL ]
+          complex(8), allocatable, dimension(:,:) :: blockmt
+          ! Helper matrices
+          complex(8), allocatable, dimension(:,:) :: auxmat
+          complex(8), allocatable, dimension(:,:) :: matchk, matchkq
+          complex(8), allocatable, dimension(:,:,:) :: acveck, acveckq
+
+          ! Shared arrays
+          allocate(acveck(nlmomax+nidxlomax, nstk, natmtot))
+          allocate(acveckq(nlmomax+nidxlomax, nstkq, natmtot))
+
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED), &
+!$OMP& PRIVATE( matchk, matchkq), &
+!$OMP& PRIVATE( is, ia, ias), &
+!$OMP& PRIVATE( lmo, l, m, o, lm)
+#endif
+          allocate(matchk(nlmomax, ngk))
+          allocate(matchkq(nlmomax, ngkq))
+#ifdef USEOMP
+!$OMP DO COLLAPSE(2)
+#endif
+          ! Make product of Matching coefficients A and 
+          ! eigenvector coefficients C, as computation helper
+          ! AC_{lmo,ist;ias} = \Sum_G+k A_{lmo,G+k;ias}*C_{G+k,ist}
+          ! Also append the coefficients of the corresponding local orbitals.
+          do is = 1, nspecies
+            do ia = 1, natoms(is)
+              ias = idxas(ia, is)
+
+              do lmo = 1, nlmo(is)
+                l = lmo2l(lmo, is)
+                m = lmo2m(lmo, is)
+                o = lmo2o(lmo, is)
+                lm = idxlm(l, m)
+                matchk(lmo, :) = apwalmk(1:ngk, o, lm, ias)
+                matchkq(lmo, :) = apwalmkq(1:ngkq, o, lm, ias)
+              end do 
+
+              ! AC_{lmo,ist;ias} = \Sum_G+k A_{lmo,G+k;ias}*C_{G+k,ist}
+              call ZGEMM('N', 'N', nlmo(is), nstk, ngk, zone, &
+                  matchk(1:nlmo(is), 1:ngk), nlmo(is), &
+                  eveck(1:ngk, 1:nstk), ngk, zzero, &
+                  acveck(1:nlmo(is), 1:nstk, ias), nlmo(is))
+              ! Append eigenvector coefficients corresponding to the local 
+              ! orbitals of the atom ias
+              acveck((nlmo(is)+1):(nlmo(is)+nidxlo(is)), 1:nstk, ias) = &
+                & eveck((ngk+idxlostart(ias)):(ngk+idxlostart(ias)+nidxlo(is)-1), 1:nstk)
+
+              ! Same for the k+q eigenvectors
+              call ZGEMM('N', 'N', nlmo(is), nstkq, ngkq, zone, &
+                  matchkq(1:nlmo(is), 1:ngkq), nlmo(is), &
+                  eveckq(1:ngkq, 1:nstkq), ngkq, zzero, &
+                  acveckq(1:nlmo(is), 1:nstkq, ias), nlmo(is))
+              acveckq((nlmo(is)+1):(nlmo(is)+nidxlo(is)), 1:nstkq, ias) = &
+                & eveckq((ngkq+idxlostart(ias)):(ngkq+idxlostart(ias)+nidxlo(is)-1), 1:nstkq)
+
+            end do
+          end do
+#ifdef USEOMP
+!$OMP END DO
+#endif
+          deallocate(matchk, matchkq)
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif
+
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED), &
+!$OMP& PRIVATE( blockmt), &
+!$OMP& PRIVATE( auxmat), &
+!$OMP& PRIVATE( is, ia, ias, igq, nlmolo)
+#endif
+          allocate(blockmt(nlmomax+nidxlomax,nlmomax+nidxlomax))
+          allocate(auxmat(nlmomax+nidxlomax, nstkq))
+#ifdef USEOMP
+!$OMP DO 
+#endif
+          ! Do for all G+q vectors for current q
+          Gqloop: do igq = 1, ngq
+
+            do is = 1, nspecies
+              do ia = 1, natoms(is)
+                ias = idxas(ia, is)
+
+                ! Size of block matrix
+                nlmolo = nlmo(is)+nidxlo(is)
+
+                ! Setup block matrix
+                ! APW-APW
+                blockmt(1:nlmo(is), 1:nlmo(is)) = &
+                  & rigntaa(1:nlmo(is), 1:nlmo(is), ias, igq)
+                ! APW-LO
+                blockmt(1:nlmo(is), (nlmo(is)+1):nlmolo) = &
+                  & rigntal(1:nlmo(is), 1:nidxlo(is), ias, igq)
+                ! LO-APW
+                blockmt((nlmo(is)+1):nlmolo, 1:nlmo(is)) =&
+                  & rigntla(1:nidxlo(is), 1:nlmo(is), ias, igq)
+                ! LO-LO
+                blockmt((nlmo(is)+1):nlmolo, (nlmo(is)+1):nlmolo) =&
+                  & rigntll(1:nidxlo(is), 1:nidxlo(is), ias, igq)
+
+                ! Compute muffin tin contribution from atom ias and add it to emat
+                call ZGEMM('N', 'N', nlmolo, nstkq, nlmolo,&
+                    zone, &
+                    blockmt(1:nlmolo, 1:nlmolo), nlmolo, &
+                    acveckq(1:nlmolo, 1:nstkq, ias), nlmolo, zzero, &
+                    auxmat(1:nlmolo, 1:nstkq), nlmolo)
+
+                call ZGEMM('C', 'N', nstk, nstkq, nlmolo, cmplx(fourpi, 0.d0, 8), &
+                    acveck(1:nlmolo, 1:nstk, ias), nlmolo, &
+                    auxmat(1:nlmolo,1:nstkq), nlmolo, zone, &
+                    emat(1:nstk,1:nstkq, igq), nstk)
+
+              end do
+            end do
+
+          end do Gqloop
+#ifdef USEOMP
+!$OMP END DO
+#endif
+          deallocate(auxmat)
+          deallocate(blockmt)
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif
+          deallocate(acveck)
+          deallocate(acveckq)
+      
+        end subroutine emat_mt_part_new
 
     end subroutine emat_gen
 

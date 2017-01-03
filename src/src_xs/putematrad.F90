@@ -21,6 +21,7 @@ subroutine putematrad(iqr, iq)
   call ematrad(iq)
   call getunit(un)
 
+write(*,*) "Writing file:",trim(fname)
   open(un, file=trim(fname), form='unformatted', action='write', status='replace')
   write(un) riaa, riloa, rilolo
   close(un)

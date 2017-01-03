@@ -58,13 +58,10 @@ use m_writecmplxparts
   if(allocated(riaa)) deallocate(riaa)
   if(allocated(riloa)) deallocate(riloa)
   if(allocated(rilolo)) deallocate(rilolo)
+write(*,*) "ematrad: ngq(iq)=", ngq(iq)
   allocate(riaa(0:lmax1, apwordmax, 0:lmax3, apwordmax, 0:lmax2, natmtot, ngq(iq)))
   allocate(riloa(nlomax, 0:lmax3, apwordmax, 0:lmax2, natmtot, ngq(iq)))
   allocate(rilolo(nlomax, nlomax, 0:lmax2, natmtot, ngq(iq)))
-
-
-
-
 
   ! Allocate temporary arrays
   allocate(jl(nrmtmax,0:lmax2))

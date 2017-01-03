@@ -641,10 +641,10 @@ CONTAINS
         real(8),      intent(IN)  :: gkmax
 
         ! local variables
-        integer :: ispn, ik, ig, igp
+        integer :: ispn, ik, ig, igp, igmax
         logical :: fg0
         real(8) :: v(3), t1
-        integer, allocatable :: igk2ig(:,:,:)
+        integer, allocatable :: igk2ig(:,:,:), ig2igk(:,:,:)
 
         ! Reset self
         call delete_Gk_vectors(self)
@@ -659,11 +659,11 @@ CONTAINS
 
         !!  Reduced (potentially) k-set
 
-        ! Map (ig,ik,ispin) --> igk
-        allocate(igk2ig(Gset%ngrtot,kset%nkpt,nspnfv))
+        ! Map (igk,ik,ispin) --> ig
+        allocate(igk2ig(gset%ngrtot,kset%nkpt,nspnfv))
         igk2ig(:,:,:) = 0
         
-        ! determine the number of G+k combinations which satisfy |G+k|<gkmax
+        ! Determine the number of G+k combinations which satisfy |G+k|<gkmax
         if (allocated(self%ngk)) deallocate(self%ngk)
         allocate(self%ngk(nspnfv,kset%nkpt))
         do ispn = 1, nspnfv
@@ -734,6 +734,7 @@ CONTAINS
               ! generate structure factors for G+k-vectors
               call gensfacgp(self%ngk(ispn,ik),self%vgkc(:,:,ispn,ik), &
               &              self%ngkmax,self%sfacgk(:,:,ispn,ik))
+
             end do
 #ifdef USEOMP
 !$OMP END DO
@@ -743,16 +744,20 @@ CONTAINS
         end do
         deallocate(igk2ig)
 
-        !! Non-reduced quantities
+        !! Also make non-reduced quantities
         if(kset%usedlibzint == .false.) then
 
-          ! Map (ig,ik,ispin) --> igk
+          ! Map (igknr,iknr,ispin) --> ig
           allocate(igk2ig(gset%ngrtot,kset%nkptnr,nspnfv))
           igk2ig(:,:,:) = 0
-          
+          allocate(ig2igk(gset%ngrtot,kset%nkptnr,nspnfv))
+          ig2igk(:,:,:) = 0
+
+
           ! Determine the number of G+k combinations which satisfy |G+k|<gkmax
           if (allocated(self%ngknr)) deallocate(self%ngknr)
           allocate(self%ngknr(nspnfv,kset%nkptnr))
+          igmax = 0
           do ispn = 1, nspnfv
             do ik = 1, kset%nkptnr
               igp = 0
@@ -762,6 +767,8 @@ CONTAINS
                 if (t1 < gkmax .or. fg0 .and. ig == 1) then
                   igp = igp+1
                   igk2ig(igp,ik,ispn) = ig
+                  ig2igk(ig,ik,ispn) = igp
+                  igmax = max(igmax,ig)
                 end if
               end do ! ig
               self%ngknr(ispn,ik) = igp
@@ -776,6 +783,12 @@ CONTAINS
           end if
           
           ! generate G+k data set
+
+          ! Map (ig, ispin, iknr) --> igknr
+          if (allocated(self%igigknr)) deallocate(self%igigknr)
+          allocate(self%igigknr(igmax,kset%nkptnr,nspnfv))
+          self%igigknr(:,:,:) = ig2igk(1:igmax,:,:)
+          deallocate(ig2igk)
 
           ! Map (igknr, ispin, iknr) --> ig
           if (allocated(self%igknrig)) deallocate(self%igknrig)
@@ -850,6 +863,7 @@ CONTAINS
 
         if (allocated(self%ngknr)) deallocate(self%ngknr)
         if (allocated(self%igknrig)) deallocate(self%igknrig)
+        if (allocated(self%igigknr)) deallocate(self%igigknr)
         if (allocated(self%vgknrl)) deallocate(self%vgknrl)
         if (allocated(self%vgknrc)) deallocate(self%vgknrc)
         if (allocated(self%gknrc)) deallocate(self%gknrc)
@@ -884,7 +898,7 @@ CONTAINS
         type(Gk_set), intent(IN) :: self
         integer,      intent(IN) :: iknr
         integer,      intent(IN) :: funit
-        integer :: igp
+        integer :: igp, ig
         call boxmsg(funit,'-','G+k-vectors (non-reduced k)')
         write(funit,*) 'Maximal number of G+k-vectors over all k: < ngknrmax >', self%ngknrmax
         write(funit,*) 'List of G+k-vectors for k-point:', iknr
@@ -897,6 +911,12 @@ CONTAINS
            &                self%sfacgknr(igp,1,1,iknr)
         end do
         103 format(i6,2x,i6,4x,3f8.4,4x,3f8.4,4x,f8.4,4x,2f8.4,4x,2f8.4)
+        call boxmsg(funit,'-','G to G+k map')
+        write(funit,*) ' * < ig  igpnr >'
+        do ig = 1, size(self%igigknr,1)
+          write(funit, 104) ig, self%igigknr(ig, iknr, 1)
+        end do
+        104 format(i6,2x,i6)
         return
     end subroutine print_Gknr_vectors
 

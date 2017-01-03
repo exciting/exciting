@@ -128,6 +128,8 @@ module mod_ematgrids
 
       integer(4) :: un, i
 
+      call system('[[ ! -e EMATGRIDS ]] && mkdir EMATGRIDS')
+
       if( .not. initialized) then
         write(*,*) "Error(mod_ematgrids::ematgrids_write_grids):&
           & Module was not initialize."
@@ -135,38 +137,45 @@ module mod_ematgrids
       end if
 
       call getunit(un)
-      open(unit=un, file='emg_kkqmt.out', action='write', status='replace')
+      open(unit=un, file='EMATGRIDS/emg_kkqmt.out', action='write', status='replace')
       call print_kkqmt_vectors(kkqmtset, un) 
       close(un)
 
       call getunit(un)
-      open(unit=un, file='emg_gset.out', action='write', status='replace')
+      open(unit=un, file='EMATGRIDS/emg_gset.out', action='write', status='replace')
       call print_G_vectors(gset, un)
       close(un)
 
       call getunit(un)
-      open(unit=un, file='emg_q.out', action='write', status='replace')
+      open(unit=un, file='EMATGRIDS/emg_q.out', action='write', status='replace')
       call print_q_vectors(qset, kkqmtset%kset, kkqmtset%kqmtset, gset, un) 
       close(un)
 
       call getunit(un)
-      open(unit=un, file='emg_gkset.out', action='write', status='replace')
+      open(unit=un, file='EMATGRIDS/emg_gkset.out', action='write', status='replace')
       do i=1, kkqmtset%kset%nkpt
         call print_Gk_vectors(gkset, i, un)
       end do
       close(un)
 
       call getunit(un)
-      open(unit=un, file='emg_gkqmtset.out', action='write', status='replace')
+      open(unit=un, file='EMATGRIDS/emg_gkqmtset.out', action='write', status='replace')
       do i=1, kkqmtset%kqmtset%nkpt
         call print_Gk_vectors(gkqmtset, i, un)
       end do
       close(un)
 
       call getunit(un)
-      open(unit=un, file='emg_gqset.out', action='write', status='replace')
-      do i=1, kkqmtset%kqmtset%nkpt
+      open(unit=un, file='EMATGRIDS/emg_gqset.out', action='write', status='replace')
+      do i=1, qset%qset%nkpt 
         call print_Gk_vectors(gqset, i, un)
+      end do
+      close(un)
+
+      call getunit(un)
+      open(unit=un, file='EMATGRIDS/emg_gqset_nr.out', action='write', status='replace')
+      do i=1, qset%qset%nkptnr
+        call print_Gknr_vectors(gqset, i, un)
       end do
       close(un)
 
