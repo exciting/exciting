@@ -16,7 +16,6 @@ subroutine ematrad(iq)
   use modxs, only: riaa, riloa, rilolo, ngq, gqc
   use m_getunit
 
-use m_writecmplxparts
 ! !DESCRIPTION:
 ! This routine is used in the construction of the plane wave matrix elements.
 ! It calculates the involved radial integrals for the APW-APW, APW-LO and LO-LO
@@ -45,9 +44,6 @@ use m_writecmplxparts
   real(8), allocatable :: jl(:, :), jhelp(:)
   integer, allocatable :: lio2l(:), lio2io(:)
 
-!real(8), allocatable :: riaatest(:,:,:,:,:)
-
-
   lmax1 = max(input%xs%lmaxapwwf, lolmax)
   lmax2 = input%xs%lmaxemat
 
@@ -61,10 +57,6 @@ use m_writecmplxparts
   allocate(riaa(0:lmax1, apwordmax, 0:lmax3, apwordmax, 0:lmax2, natmtot, ngq(iq)))
   allocate(riloa(nlomax, 0:lmax3, apwordmax, 0:lmax2, natmtot, ngq(iq)))
   allocate(rilolo(nlomax, nlomax, 0:lmax2, natmtot, ngq(iq)))
-
-
-
-
 
   ! Allocate temporary arrays
   allocate(jl(nrmtmax,0:lmax2))
@@ -103,9 +95,6 @@ use m_writecmplxparts
 
   end if
 
-!call writecmplxparts('test_sag_apwfr', revec=dble(apwfr),&
-!  & veclen=size(apwfr))
-
   ! Begin loop over G+q vectors
   do igq = 1, ngq(iq)
 
@@ -120,9 +109,6 @@ use m_writecmplxparts
         call sbessel(lmax2, gqc(igq, iq)*spr(ir, is), jhelp)
         jl(ir,:) = jhelp(:)
       end do
-
-!call writecmplxparts('test_sag_jlqgr', revec=dble(jl),&
-!  & veclen=size(jl), ik1=is)
 
       lio=0
       do l1 = 0, lmax1
@@ -164,22 +150,6 @@ use m_writecmplxparts
 !$OMP END DO
 !$OMP END PARALLEL
 #endif
-
- ! if(allocated(riaatest)) deallocate(riaatest)
- ! allocate(riaatest(0:lmax2, 0:lmax3, apwordmax, 0:lmax3, apwordmax))
- ! do l1 = 0, lmax1
- !   do l2 = 0, lmax1
- !     do l3 = 0, lmax2
- !       do io1 = 1, apwordmax
- !         do io2 = 1, apwordmax
- !           riaatest(l3, l1, io1, l2, io2) = riaa(l1, io1, l2, io2, l3, ias, igq)
- !         end do
- !       end do
- !     end do
- !   end do
- ! end do
-!call writecmplxparts('test_sag_riaa', revec=riaa(:,:,:,:,:,ias,igq),&
-!  & veclen=size(riaa(:,:,:,:,:,ias,igq)), ik1=igq, ik2=ias)
 
         !----------------------------!
         !     local-orbital-apw      !
