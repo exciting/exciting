@@ -40,16 +40,16 @@ use m_writecmplxparts
   real(8), allocatable :: riaa(:,:,:,:,:,:,:), rial(:,:,:,:,:,:), rill(:,:,:,:,:)
 
   ! Module flags
-  logical :: precompute_radial, precompute_ffts, precompute_ac
+  logical :: precompute_radial, precompute_ffts, samestates
 
   public :: emat_write_plain
-  public :: emat_initialize, emat_gen, emat_finalize
+  public :: emat_initialize, emat_gen, emat_finalize, emat_precal_fft
 
   contains
 
-    subroutine emat_initialize(lmaxapw_, lmaxexp_, pre_rad_)
+    subroutine emat_initialize(lmaxapw_, lmaxexp_, pre_rad_, pre_fft_)
       integer(4), intent(in), optional :: lmaxapw_, lmaxexp_
-      logical, intent(in), optional :: pre_rad_
+      logical, intent(in), optional :: pre_rad_, pre_fft_
 
       ! Check if k-space grids are initialized
       if( .not. ematgrids_initialized()) then
@@ -129,6 +129,13 @@ use m_writecmplxparts
 
       if(precompute_radial) then 
         call emat_precal_rad()
+      end if
+
+      ! Precalculate fft's of eigenvectors
+      if(present(pre_fft_)) then
+        precompute_ffts = pre_fft_
+      else
+        precompute_ffts = .false.
       end if
 
       ! Set module flag. 
@@ -390,7 +397,7 @@ write(*,*) "Precomputing radial integrals"
         iqnr = qset%qset%ikp2ik(iq)
 
 write(*,*) "iq =", iq, " iqnr=", iqnr
-        call genfilname(basename='EMAT/EMAT_RADGNT', iq=iq, filnam=fname)
+        call genfilname(basename='EMAT/EMAT_RAD', iq=iq, filnam=fname)
 write(*,*) "Filename=", trim(fname)
 
         ! Get number of G+q vectors
@@ -456,7 +463,7 @@ write(*,*) "Filename=", trim(fname)
 write(*,*) "Fetching radial integral from disk for: iqnr=", iqnr, " iq=", iq, "numgq=", numgq
 
       ! Read radial integals for reduced q-point from file
-      call genfilname(basename='EMAT/EMAT_RADGNT', iq=iq, filnam=fname)
+      call genfilname(basename='EMAT/EMAT_RAD', iq=iq, filnam=fname)
       call getunit(un)
       open(un, file=trim(fname), form='unformatted', action='read', status='old')
       read(un) riaa, rial, rill
@@ -495,6 +502,131 @@ write(*,*) "integrals rotated"
       iqprev = iqnr
 
     end subroutine emat_fetch_rad
+
+    subroutine emat_precal_fft(ik, eveck, eveckq_)
+      use m_genfilname
+      use m_getunit
+
+      integer(4), intent(in) :: ik
+      complex(8), intent(in) :: eveck(:,:)
+      complex(8), intent(in), optional :: eveckq_(:,:)
+
+      character(256) :: fname
+      integer(4) :: un, nstk, nstkq, ist1, igp, ngk, ngkq, ispin
+      complex(8), allocatable :: zfftk(:,:)
+
+      ispin = 1
+
+      call system('[[ ! -e EMAT ]] && mkdir EMAT')
+
+      call genfilname(basename='EMAT/EMAT_FFT_EVECK', iq=ik, filnam=fname)
+write(*,*) "Filename=", trim(fname)
+
+      nstk = size(eveck,2)
+      ngk = gkset%ngk(ispin, ik)
+
+      allocate(zfftk(fftmap%ngrtot+1, nstk))
+      zfftk = zzero
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,igp)
+!$OMP DO
+#endif
+      do ist1 = 1, nstk
+        ! Map evec to FFT grid
+        do igp = 1, ngk 
+          zfftk(fftmap%igfft(gkset%igkig(igp, ispin, ik)), ist1) = eveck(igp, ist1)
+        end do
+        ! Do the inverse FFT
+        call zfftifc(3, fftmap%ngrid, 1, zfftk(:, ist1))
+      end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+      ! Save to file
+      call getunit(un)
+      open(un, file=trim(fname), form='unformatted', action='write', status='replace')
+      write(un) zfftk
+      close(un)
+      deallocate(zfftk)
+
+      if(present(eveckq_)) then 
+        nstkq = size(eveckq_,2)
+        ngkq = gkqmtset%ngk(ispin, ik)
+
+        call genfilname(basename='EMAT/EMAT_FFT_EVECKQ', iq=ik, filnam=fname)
+        write(*,*) "Filename=", trim(fname)
+
+        allocate(zfftk(fftmap%ngrtot+1, nstkq))
+        zfftk = zzero
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,igp)
+!$OMP DO
+#endif
+        do ist1 = 1, nstkq
+          ! Map evec to FFT grid
+          do igp = 1, ngkq 
+            zfftk(fftmap%igfft(gkqmtset%igkig(igp, ispin, ik)), ist1) = eveckq_(igp, ist1)
+          end do
+          ! Do the inverse FFT
+          call zfftifc(3, fftmap%ngrid, 1, zfftk(:, ist1))
+        end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+        ! Save to file
+        call getunit(un)
+        open(un, file=trim(fname), form='unformatted', action='write', status='replace')
+        write(un) zfftk
+        close(un)
+        deallocate(zfftk)
+
+      else
+
+        samestates = .true.
+
+      end if
+
+    end subroutine emat_precal_fft
+
+    subroutine emat_fetch_fft(zfft, ik_, ikq_)
+      use m_genfilname
+      use m_getunit
+
+      complex(8), intent(out) :: zfft(:,:)
+      integer(4), intent(in), optional :: ik_, ikq_
+
+      character(256) :: fname
+      integer(4) :: un
+
+      if( .not. present(ik_) .and. .not. present(ikq_)) then
+        write(*,*) "Specifiy ik or ikq"
+        call terminate
+      end if
+      if( present(ik_) .and. present(ikq_)) then
+        write(*,*) "Specifiy ik or ikq"
+        call terminate
+      end if
+      
+      if(present(ik_)) then 
+        call genfilname(basename='EMAT/EMAT_FFT_EVECK', iq=ik_, filnam=fname)
+        !write(*,*) "Getting FFT of eveck @ ik=", ik_, " Filename=", trim(fname)
+      else
+        if(samestates) then 
+          call genfilname(basename='EMAT/EMAT_FFT_EVECK', iq=ikq_, filnam=fname)
+        else
+          call genfilname(basename='EMAT/EMAT_FFT_EVECKQ', iq=ikq_, filnam=fname)
+        end if
+        !write(*,*) "Getting FFT of eveckq @ ikq=", ikq_, " Filename=", trim(fname)
+      end if
+
+      call getunit(un)
+      open(un, file=trim(fname), form='unformatted', action='read', status='old')
+      read(un) zfft
+      close(un)
+
+    end subroutine emat_fetch_fft
 
     subroutine emat_radial_init(iq)
       integer(4), intent(in) :: iq
@@ -1058,15 +1190,19 @@ write(*,*) "integrals rotated"
           integer(4) :: igp
           integer(4) :: igs, ivg(3)
           integer(4) :: ist1, ist2
-          complex(8), allocatable :: zfftk(:,:), zfftkq(:), zfftres(:)
+          complex(8), allocatable :: zfftk(:,:), zfftkq(:,:), zfftkqshift(:), zfftres(:)
+          complex(8), allocatable :: zfftktheta(:,:)
 
-          if( .not. fftsaved) then
+          allocate(zfftk(fftmap%ngrtot+1, nstk))
+          allocate(zfftktheta(fftmap%ngrtot+1, nstk))
+          zfftk = zzero
+          zfftktheta = zzero
+
+          if( .not. precompute_ffts) then
             ! 3d inverse FFT of evec(G+k,nstk) for all passed bands
             ! evec(G+k,i) --> evec(r,i)
             ! and then multiply by characteristic lattice function
             ! \Theta(r) and take the complex conjugate
-            allocate(zfftk(fftmap%ngrtot+1, nstk))
-            zfftk = zzero
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,igp)
 !$OMP DO
@@ -1078,23 +1214,33 @@ write(*,*) "integrals rotated"
               end do
               ! Do the inverse FFT
               call zfftifc(3, fftmap%ngrid, 1, zfftk(:, ist1))
-              ! (evec(r,i)*\Theta(r))^*
-              zfftk(:, ist1) = conjg(zfftk(:, ist1))*zfftcf(:) 
             end do
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif
+          else
+            call emat_fetch_fft(zfftk, ik_=ik)
+          end if
+
+          do ist1 = 1, nstk
+            ! (evec(r,i)*\Theta(r))^*
+            zfftktheta(:, ist1) = conjg(zfftk(:, ist1))*zfftcf(:) 
+          end do
+
+          allocate(zfftkq(fftmap%ngrtot+1, nstkq))
+          if(precompute_ffts) then 
+            call emat_fetch_fft(zfftkq,ikq_=ikq)
           end if
                
           ! Generate the 3d fourier transform of the real space integrand 
           ! zfftres = eveck^*_ist1(r)*\Theta(r)*eveckq_ist2(r)
           ! for all ist1/2 combinations and add this to emat.
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ist2,igp,igs,ivg,zfftkq,zfftres)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ist2,igp,igs,ivg,zfftres,zfftkqshift)
 #endif
           allocate(zfftres(fftmap%ngrtot+1))
-          allocate(zfftkq(fftmap%ngrtot+1))
+          allocate(zfftkqshift(fftmap%ngrtot+1))
 #ifdef USEOMP
 !$OMP DO
 #endif
@@ -1102,32 +1248,38 @@ write(*,*) "integrals rotated"
 
             ! 3d inverse FFT of evec(G+k+q,i) for current band index
             ! evec(G+k+q,i) --> evec(r,i)
-            zfftkq = zzero
             ! Map to FFT grid, respect G shift if k+q has lattice component
             if( any(ivgs /= 0) ) then
+              zfftkqshift(:) = 0
               do igp = 1, ngkq 
                 ivg = gset%ivg(1:3, gkqmtset%igkig(igp,ispin,ikq)) - ivgs
                 igs = gset%ivgig( ivg(1), ivg(2), ivg(3))
-                zfftkq(fftmap%igfft(igs)) = eveckq(igp, ist2)
+                zfftkqshift(fftmap%igfft(igs)) = eveckq(igp, ist2)
               end do
+              call zfftifc(3, fftmap%ngrid, 1, zfftkqshift(:))
             else
-              do igp = 1, ngkq 
-                zfftkq(fftmap%igfft(gkqmtset%igkig(igp,ispin,ikq))) = eveckq(igp, ist2)
-              end do
+              if(.not. precompute_ffts) then
+                zfftkq(:,ist2) = zzero
+                do igp = 1, ngkq 
+                  zfftkq(fftmap%igfft(gkqmtset%igkig(igp,ispin,ikq)),ist2) = eveckq(igp, ist2)
+                end do
+                call zfftifc(3, fftmap%ngrid, 1, zfftkq(:,ist2))
+              end if
             end if
-            call zfftifc(3, fftmap%ngrid, 1, zfftkq)
 
             do ist1 = 1, nstk
               ! Generate real space integrand
               ! eveck^*_ist1(r)*\Theta(r)*eveckq_ist2(r)
               ! and do a 3d fft to G space
-              do igp = 1, fftmap%ngrtot
-                if(.not. fftsaved) then 
-                  zfftres(igp) = zfftkq(igp)*zfftk(igp, ist1) 
-                else
-                  zfftres(igp) = zfftkq(igp)*fftevecsk(igp, ist1, ik) 
-                end if
-              end do
+              if(any(ivgs /= 0)) then 
+                do igp = 1, fftmap%ngrtot
+                  zfftres(igp) = zfftkqshift(igp)*zfftktheta(igp, ist1) 
+                end do
+              else
+                do igp = 1, fftmap%ngrtot
+                  zfftres(igp) = zfftkq(igp,ist2)*zfftktheta(igp, ist1) 
+                end do
+              end if
               zfftres(fftmap%ngrtot+1) = zzero
               call zfftifc(3, fftmap%ngrid, -1, zfftres)
 
@@ -1143,11 +1295,11 @@ write(*,*) "integrals rotated"
 #ifdef USEOMP
 !$OMP END DO
 #endif
-          deallocate(zfftres, zfftkq)
+          deallocate(zfftres, zfftkqshift)
 #ifdef USEOMP
 !$OMP END PARALLEL
 #endif
-          deallocate(zfftk)
+          deallocate(zfftk, zfftktheta, zfftkq)
         end subroutine emat_inter_part
 
         subroutine emat_mt_part_new(emat)

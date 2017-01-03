@@ -66,7 +66,7 @@ use m_ematqk_orig
   call init2
 
   sep = .true.
-  sag = .true.
+  sag = .false.
 
   write(*,*) "Making grids"
   vqmtl = 0.0d0
@@ -95,14 +95,16 @@ use m_ematqk_orig
 
     call timesec(t0)
     write(*,*) "emat init"
-    call emat_initialize(lmaxapw_ = input%groundstate%lmaxmat, pre_rad_=.true.) 
+    call emat_initialize(lmaxapw_ = input%groundstate%lmaxmat, pre_rad_=.true., pre_fft_=.false.) 
     write(*,*) "emat init done"
 
-   ! write(*,*) "Precalculating ffts"
-   ! do ik = 1, kkqmtset%kset%nkpt
-   !   write(*,*) "FFT for ik=", ik
-   !   call emat_precal_fft(ik, evecsk(:,:,1,ik))
-   ! end do
+    if(.false.) then
+      write(*,*) "Precalculating ffts"
+      do ik = 1, kkqmtset%kset%nkpt
+        write(*,*) "FFT for ik=", ik
+        call emat_precal_fft(ik, evecsk(:,:,1,ik))
+      end do
+    end if
 
     do i = 1, nkkp
 
