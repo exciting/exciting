@@ -169,6 +169,23 @@ module m_setup_bse
               & excli_t(1:inou,1:jnou), check=.false., fcmpt=efcmpt, fid=efid)
         end select
 
+        if(fwp) then 
+          if(ikkp == 1 .and. fcoup == .false.) then 
+            call writecmplxparts('ikkp1_read_Wrr',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+            call writecmplxparts('ikkp1_read_Vrr',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+          end if
+
+          if(ikkp == 1 .and. fcoup == .true. .and. fti == .false.) then 
+            call writecmplxparts('ikkp1_read_Wra',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+            call writecmplxparts('ikkp1_read_Vra',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+          end if
+
+          if(ikkp == 1 .and. fcoup == .true. .and. fti == .true.) then 
+            call writecmplxparts('ikkp1_read_Wra_ti',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+            call writecmplxparts('ikkp1_read_Vra_ti',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+          end if
+        end if
+
         ! Position of ikkp block in global matrix
         i1 = sum(kousize(1:iknr-1)) + 1
         j1 = sum(kousize(1:jknr-1)) + 1
@@ -485,6 +502,10 @@ module m_setup_bse
       logical :: efcmpt, efid
       logical :: sfcmpt, sfid
 
+      logical :: fwp
+
+      fwp = input%xs%bse%writeparts
+
       if(ham%isdistributed) then 
 
 #ifdef SCAL
@@ -629,6 +650,23 @@ module m_setup_bse
                 call b_getbsemat(trim(efname), iqmt, ikkp,&
                   & excli_t(1:inou,1:jnou), check=.false., fcmpt=efcmpt, fid=efid)
             end select
+
+            if(fwp) then
+              if(ikkp == 1 .and. fcoup == .false.) then 
+                call writecmplxparts('ikkp1_read_Wrr',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+                call writecmplxparts('ikkp1_read_Vrr',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+              end if
+
+              if(ikkp == 1 .and. fcoup == .true. .and. fti == .false.) then 
+                call writecmplxparts('ikkp1_read_Wra',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+                call writecmplxparts('ikkp1_read_Vra',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+              end if
+
+              if(ikkp == 1 .and. fcoup == .true. .and. fti == .true.) then 
+                call writecmplxparts('ikkp1_read_Wra_ti',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+                call writecmplxparts('ikkp1_read_Vra_ti',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+              end if
+            end if
 
             ! Make ik=jk blocks explicitly symmetric/hermitian
             if(iknr == jknr) then 

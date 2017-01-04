@@ -28,6 +28,8 @@ subroutine b_exccoulint(iqmt, fra, fti)
   use modbse
   use m_b_ematqk
   use m_putgetbsemat
+
+use m_writecmplxparts
 ! !DESCRIPTION:
 !   Calculates the exchange term of the Bethe-Salpeter Hamiltonian.
 !
@@ -72,6 +74,10 @@ subroutine b_exccoulint(iqmt, fra, fti)
   integer(4) :: iv(3), j1, j2
   ! Timinig vars
   real(8) :: tpw1, tpw0
+
+  logical :: fwp
+
+  fwp = input%xs%bse%writeparts
 
   !---------------!
   !   main part   !
@@ -348,22 +354,32 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
     ! Parallel write
     if(fra) then
       call b_putbsemat(exclifname, 78, ikkp, iqmt, excli)
+      if(fwp) then
+        if(ikkp == 1) then 
+          call writecmplxparts('ikkp1_Vra',dble(excli(1:inou,1:jnou)), aimag(excli(1:inou,1:jnou)))
+        end if
+      end if
     else
+      if(fwp) then
+        if(ikkp == 1) then 
+          call writecmplxparts('ikkp1_Vrr',dble(excli(1:inou,1:jnou)), aimag(excli(1:inou,1:jnou)))
+        end if
+      end if
       call b_putbsemat(exclifname, 77, ikkp, iqmt, excli)
     end if
 
-    if(mpiglobal%rank == 0) then
-      write(6, '(a,"Exccoulint progess:", f10.3)', advance="no")&
-        & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
-      flush(6)
-    end if
+    !if(mpiglobal%rank == 0) then
+    !  write(6, '(a,"Exccoulint progess:", f10.3)', advance="no")&
+    !    & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
+    !  flush(6)
+    !end if
 
   ! End loop over(k,kp) pairs
   end do kkp
 
-  if(mpiglobal%rank == 0) then
-    write(*,*)
-  end if
+  !if(mpiglobal%rank == 0) then
+  !  write(*,*)
+  !end if
   
   call barrier
 

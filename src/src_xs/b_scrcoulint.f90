@@ -31,6 +31,8 @@ subroutine b_scrcoulint(iqmt, fra, fti)
   use m_b_ematqk
   use m_putgetbsemat
   use modbse
+
+use m_writecmplxparts
 ! !DESCRIPTION:
 !   Calculates the direct term of the Bethe-Salpeter Hamiltonian.
 !
@@ -101,6 +103,10 @@ subroutine b_scrcoulint(iqmt, fra, fti)
   ! External functions
   integer, external :: idxkkp
   logical, external :: tqgamma
+
+  logical :: fwp
+
+  fwp = input%xs%bse%writeparts
 
   !---------------!
   !   main part   !
@@ -473,6 +479,12 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       end do
       !$OMP END PARALLEL DO
 
+      if(fwp) then 
+        if(ikkp == 1) then 
+          call writecmplxparts('ikkp1_Wrr',dble(sccli(1:inou,1:jnou)), aimag(sccli(1:inou,1:jnou)))
+        end if
+      end if
+
       ! Parallel write
       call b_putbsemat(scclifname, 77, ikkp, iqmt, sccli)
 
@@ -580,6 +592,14 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       end do
       !$OMP END PARALLEL DO
 
+      if(fwp) then 
+        if(ikkp == 1 .and. fti ) then 
+          call writecmplxparts('ikkp1_Wra_ti',dble(sccli(1:inou,1:jnou)), aimag(sccli(1:inou,1:jnou)))
+        else if(ikkp == 1) then 
+          call writecmplxparts('ikkp1_Wra',dble(sccli(1:inou,1:jnou)), aimag(sccli(1:inou,1:jnou)))
+        end if
+      end if
+
       ! Parallel write
       call b_putbsemat(scclifname, 78, ikkp, iqmt, sccli)
 
@@ -589,18 +609,18 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     deallocate(igqmap)
     deallocate(wfc)
 
-    if(rank == 0) then
-      write(6, '(a,"Scrcoulint progess:", f10.3)', advance="no")&
-        & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
-      flush(6)
-    end if
+    !if(rank == 0) then
+    !  write(6, '(a,"Scrcoulint progess:", f10.3)', advance="no")&
+    !    & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
+    !  flush(6)
+    !end if
 
   ! End loop over(k,kp)-pairs
   end do kkploop
 
-  if(rank == 0) then
-    write(*,*)
-  end if
+  !if(rank == 0) then
+  !  write(*,*)
+  !end if
 
   if(mpiglobal%rank == 0) then
     call timesec(tscc1)

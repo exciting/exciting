@@ -121,7 +121,6 @@ use m_writecmplxparts
   real(8), allocatable, dimension(:) :: bevalim, bevalre, w
   complex(8), allocatable, dimension(:,:) :: ham, bevecr, beveca, bevecaux, oszsr, oszsa
   complex(8), allocatable, dimension(:,:) :: cmat, cpmat
-complex(8), allocatable, dimension(:,:) :: ham_test
   complex(8), allocatable, dimension(:,:,:) :: symspectr
   real(8) :: bsegap
   real(8) :: v1, v2
@@ -839,6 +838,9 @@ contains
     integer(4) :: i, j
 
     real(8) :: evals(hamsize)
+    logical :: fwp
+
+    fwp = input%xs%bse%writeparts
 
     evals = 0.0d0
 
@@ -902,11 +904,15 @@ contains
       call timesec(t0)
     end if
     ramat = cmat
-    !call writecmplxparts("nd_apb_mat", remat=dble(ramat), immat=aimag(ramat))
+    if(fwp) then
+      call writecmplxparts("nd_apb_mat", remat=dble(ramat), immat=aimag(ramat))
+    end if
     call hesolver(ramat, evals)
 
     !write(*,*) "writing apm evals"
-    !call writecmplxparts("nd_apb_evals", revec=evals, veclen=size(evals))
+    if(fwp) then
+      call writecmplxparts("nd_apb_evals", revec=evals, veclen=size(evals))
+    end if
 
     if(any(evals < 0.0d0)) then 
       write(*,*) "Error(setup_ti_bse): A+B matrix is not positive definit"
@@ -922,7 +928,9 @@ contains
 
     ! Take the square root of (A-B) (currently in cpmat)
     ! Note: It is assumed to be positive definit.
-    !call writecmplxparts("nd_amb_mat", remat=dble(cpmat), immat=aimag(cpmat))
+    if(fwp) then 
+      call writecmplxparts("nd_amb_mat", remat=dble(cpmat), immat=aimag(cpmat))
+    end if
 
     if(mpiglobal%rank == 0) then 
       write(unitout, '("Info(setup_ti_bse): Taking square root of RR-RA matrix")')
@@ -934,7 +942,10 @@ contains
       write(unitout, '("  RR-RA is positive definite")')
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
     end if
-    !call writecmplxparts("nd_sqrtamb_mat", remat=dble(cpmat), immat=aimag(cpmat))
+
+    if(fwp) then
+      call writecmplxparts("nd_sqrtamb_mat", remat=dble(cpmat), immat=aimag(cpmat))
+    end if
 
     ! Construct S Matrix
     ! S = (A-B)^{1/2} (A+B) (A-B)^{1/2}
@@ -953,7 +964,9 @@ contains
       & cpmat, hamsize, zzero, smat, hamsize)
 
     !write(*,*) "printing s mat"
-    !call writecmplxparts('nd_s_mat', remat=dble(smat), immat=aimag(smat))
+    if(fwp) then 
+      call writecmplxparts('nd_s_mat', remat=dble(smat), immat=aimag(smat))
+    end if
 
     deallocate(auxmat)
 
@@ -1731,7 +1744,12 @@ contains
     integer(4) :: i, j, ig, jg
 
     real(8) :: evals(hamsize)
-    !complex(8), allocatable :: localsmat(:,:)
+
+    ! Test writeout
+    complex(8), allocatable :: localmat(:,:)
+    logical fwp 
+
+    fwp = input%xs%bse%writeparts
 
     evals = 0.0d0
 
@@ -1769,7 +1787,7 @@ contains
 
     ! Make combination matrices
     if(mpiglobal%rank == 0) then 
-      write(unitout, '("Info(setup_ti_bse): Setting up RR+RA and RR-RA matrices")')
+      write(unitout, '("Info(setup_dis_ti_bse): Setting up RR+RA and RR-RA matrices")')
     !  call timesec(t0)
     end if
 
@@ -1792,21 +1810,25 @@ contains
 
     ! Check positive definitness of (A+B)
 
-    !call dzmat_send2global_root(localsmat, cmat, bi2d)
-    !if(mpiglobal%rank == 0) then
-    !  call writecmplxparts('apb_mat', remat=dble(localsmat), immat=aimag(localsmat))
-    !end if
+    if(fwp) then 
+      call dzmat_send2global_root(localmat, cmat, bi2d)
+      if(mpiglobal%rank == 0) then
+        call writecmplxparts('apb_mat', remat=dble(localmat), immat=aimag(localmat))
+      end if
+    end if
 
     if(mpiglobal%rank == 0) then 
-      write(unitout, '("Info(setup_ti_bse): Checking positve definitness of RR+RA")')
+      write(unitout, '("Info(setup_dis_ti_bse): Checking positve definitness of RR+RA")')
       call timesec(t0)
     end if
     ramat%za = cmat%za
     call dhesolver(ramat, evals, bi2d)
-    !if(mpiglobal%rank == 0) then 
-    !  write(*,*) "Writing evals for A+B"
-    !  call writecmplxparts('apb_evals', revec=evals, veclen=size(evals))
-    !end if
+    if(fwp) then
+      if(mpiglobal%rank == 0) then 
+        write(*,*) "Writing evals for A+B"
+        call writecmplxparts('apb_evals', revec=evals, veclen=size(evals))
+      end if
+    end if
     if(any(evals < 0.0d0)) then 
       write(*,*) "Error(setup_dis_ti_bse): RR+RA matrix is not positive definit"
       write(*,'(E10.3)') evals
@@ -1821,10 +1843,13 @@ contains
     end if
 
     ! Take the square root of (A-B) (currently in cpmat)
-    !call dzmat_send2global_root(localsmat, cpmat, bi2d)
-    !if(mpiglobal%rank == 0) then
-    !  call writecmplxparts('amb_mat', remat=dble(localsmat), immat=aimag(localsmat))
-    !end if
+    if(fwp) then 
+      call dzmat_send2global_root(localmat, cpmat, bi2d)
+      if(mpiglobal%rank == 0) then
+        call writecmplxparts('amb_mat', remat=dble(localmat), immat=aimag(localmat))
+      end if
+    end if
+
     ! Note: It is assumed to be positive definit.
     if(mpiglobal%rank == 0) then 
       write(unitout, '("Info(setup_dis_ti_bse): Taking square root of RR-RA matrix")')
@@ -1837,15 +1862,17 @@ contains
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
     end if
 
-    !call dzmat_send2global_root(localsmat, cpmat, bi2d)
-    !if(mpiglobal%rank == 0) then
-    !  call writecmplxparts('sqrtamb_mat', remat=dble(localsmat), immat=aimag(localsmat))
-    !end if
+    if(fwp) then 
+      call dzmat_send2global_root(localmat, cpmat, bi2d)
+      if(mpiglobal%rank == 0) then
+        call writecmplxparts('sqrtamb_mat', remat=dble(localmat), immat=aimag(localmat))
+      end if
+    end if
 
     ! Construct S Matrix
     ! S = (A-B)^{1/2} (A+B) (A-B)^{1/2}
     if(mpiglobal%rank == 0) then 
-      write(unitout, '("Info(setup_ti_bse): Constructing S matrix")')
+      write(unitout, '("Info(setup_dis_ti_bse): Constructing S matrix")')
       call timesec(t0)
     end if
     call new_dzmat(auxmat, hamsize, hamsize, bi2d)
@@ -1858,10 +1885,12 @@ contains
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
     end if
 
-    !call dzmat_send2global_root(localsmat, smat, bi2d)
-    !if(mpiglobal%rank == 0) then
-    !  call writecmplxparts('s_mat', remat=dble(localsmat), immat=aimag(localsmat))
-    !end if
+    if(fwp) then 
+      call dzmat_send2global_root(localmat, smat, bi2d)
+      if(mpiglobal%rank == 0) then
+        call writecmplxparts('s_mat', remat=dble(localmat), immat=aimag(localmat))
+      end if
+    end if
 
     ! Cmat = (A-B)^1/2
     do j = 1, cmat%ncols_loc
@@ -1872,7 +1901,7 @@ contains
 
     ! Cpmat = (A-B)^-1/2
     if(mpiglobal%rank == 0) then 
-      write(unitout, '("Info(setup_ti_bse): Inverting (RR-RA)^1/2 matrix")')
+      write(unitout, '("Info(setup_dis_ti_bse): Inverting (RR-RA)^1/2 matrix")')
       call timesec(t0)
     end if
     call dzinvert(cpmat)
@@ -1883,7 +1912,7 @@ contains
 
     if(mpiglobal%rank == 0) then 
       call timesec(ts1)
-      write(unitout, '("Info(setup_ti_bse): Total time needed",f12.3,"s")') ts1-ts0
+      write(unitout, '("Info(setup_dis_ti_bse): Total time needed",f12.3,"s")') ts1-ts0
     end if
 
   end subroutine setup_dis_ti_bse
