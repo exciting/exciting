@@ -5,6 +5,8 @@ module m_sqrtzmat
   use m_dhesolver
   use m_dzgemm
 
+use m_writecmplxparts
+
   implicit none
 
   private
@@ -34,9 +36,13 @@ module m_sqrtzmat
 
       allocate(evecs(m,m))
       allocate(evals(m))
+      evals = 0.0d0
 
       ! Diagonalize hermitian matrix
       call hesolver(hepdmat, evals, evec=evecs)
+
+      !write(*,*) "Writing amp evals"
+      !call writecmplxparts("nd_amb_evals", revec=evals, veclen=size(evals))
 
       ! Take square root of eigenvalues
       if(any(evals < 0.0d0)) then 
@@ -101,11 +107,16 @@ module m_sqrtzmat
       end if
 
       allocate(evals(m))
+      evals = 0.0d0
 
       call new_dzmat(evecs, m, n, binfo, hepdmat%mblck, hepdmat%nblck)
 
       ! Diagonalize hermitian matrix
-      call dhesolver(hepdmat, evecs, evals, binfo, eecs=clustersize)
+      call dhesolver(hepdmat, evals, binfo, evecs, eecs=clustersize)
+
+      if(mpiglobal%rank == 0) then 
+        call writecmplxparts('amb_evals', revec=evals, veclen=size(evals))
+      end if
 
       ! Take square root of eigenvalues
       if(any(evals < 0.0d0)) then 

@@ -37,6 +37,8 @@ subroutine b_bse
   use m_setup_bse
   use m_setup_rmat
   use m_storeexcitons
+
+use m_writecmplxparts
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem(thanks to the spectral theorem that can
@@ -315,6 +317,7 @@ complex(8), allocatable, dimension(:,:) :: ham_test
     else
       allocate(bevalre(hamsize), bevecr(hamsize, hamsize))
     end if
+    bevalre = 0.0d0
 
     ! Find only eigenvalues relevant for requested 
     ! spectrum?
@@ -367,6 +370,9 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       end if
     end if
     call timesec(ts1)
+
+    !write(*,*) "writing s evals"
+    !call writecmplxparts('nd_s_evals', revec=bevalre, veclen=size(bevalre))
 
     ! Test write out right-eigenvectors
     if(fwp) then
@@ -661,6 +667,7 @@ complex(8), allocatable, dimension(:,:) :: ham_test
       call new_dzmat(dbevecr, hamsize, hamsize, bi2d) 
       ! Eigenvalues are global
       allocate(bevalre(hamsize))
+      bevalre = 0.0d0
 
       ! Find only eigenvalues relevant for requested 
       ! spectrum?
@@ -679,7 +686,7 @@ complex(8), allocatable, dimension(:,:) :: ham_test
           v2=wu+ewidth
         end if
 
-        call dhesolver(dham, dbevecr, bevalre, bi2d,&
+        call dhesolver(dham, bevalre, bi2d, dbevecr,&
          & v1=v1, v2=v2, found=nexc,&
          & eecs=input%xs%bse%eecs)
 
@@ -692,7 +699,7 @@ complex(8), allocatable, dimension(:,:) :: ham_test
         end if
         i1 = 1
 
-        call dhesolver(dham, dbevecr, bevalre, bi2d,&
+        call dhesolver(dham, bevalre, bi2d, dbevecr,&
          & i1=i1, i2=i2, found=nexc,&
          & eecs=input%xs%bse%eecs)
 
@@ -831,7 +838,9 @@ contains
     real(8) :: ts0, ts1, t1, t0
     integer(4) :: i, j
 
-real(8) :: evals(hamsize)
+    real(8) :: evals(hamsize)
+
+    evals = 0.0d0
 
     if(mpiglobal%rank == 0) then 
       write(unitout, '("Info(setup_ti_bse): Setting up matrices for squared EVP")')
@@ -893,7 +902,12 @@ real(8) :: evals(hamsize)
       call timesec(t0)
     end if
     ramat = cmat
+    !call writecmplxparts("nd_apb_mat", remat=dble(ramat), immat=aimag(ramat))
     call hesolver(ramat, evals)
+
+    !write(*,*) "writing apm evals"
+    !call writecmplxparts("nd_apb_evals", revec=evals, veclen=size(evals))
+
     if(any(evals < 0.0d0)) then 
       write(*,*) "Error(setup_ti_bse): A+B matrix is not positive definit"
       write(*,'(E10.3)') evals
@@ -908,6 +922,7 @@ real(8) :: evals(hamsize)
 
     ! Take the square root of (A-B) (currently in cpmat)
     ! Note: It is assumed to be positive definit.
+    !call writecmplxparts("nd_amb_mat", remat=dble(cpmat), immat=aimag(cpmat))
 
     if(mpiglobal%rank == 0) then 
       write(unitout, '("Info(setup_ti_bse): Taking square root of RR-RA matrix")')
@@ -919,6 +934,7 @@ real(8) :: evals(hamsize)
       write(unitout, '("  RR-RA is positive definite")')
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
     end if
+    !call writecmplxparts("nd_sqrtamb_mat", remat=dble(cpmat), immat=aimag(cpmat))
 
     ! Construct S Matrix
     ! S = (A-B)^{1/2} (A+B) (A-B)^{1/2}
@@ -935,6 +951,9 @@ real(8) :: evals(hamsize)
     allocate(smat(hamsize, hamsize))
     call zgemm('N','N', hamsize, hamsize, hamsize, zone, auxmat, hamsize,&
       & cpmat, hamsize, zzero, smat, hamsize)
+
+    !write(*,*) "printing s mat"
+    !call writecmplxparts('nd_s_mat', remat=dble(smat), immat=aimag(smat))
 
     deallocate(auxmat)
 
@@ -1711,6 +1730,11 @@ real(8) :: evals(hamsize)
     real(8) :: ts0, ts1, t1, t0
     integer(4) :: i, j, ig, jg
 
+    real(8) :: evals(hamsize)
+    !complex(8), allocatable :: localsmat(:,:)
+
+    evals = 0.0d0
+
     if(mpiglobal%rank == 0) then 
       write(unitout, '("Info(setup_dis_ti_bse):&
         & Setting up distributed matrices for squared EVP")')
@@ -1737,6 +1761,7 @@ real(8) :: evals(hamsize)
     end if
     call new_dzmat(ramat, hamsize, hamsize, bi2d)
     call setup_distributed_bse(ramat, iqmt, .true., .true., bi2d)
+
     if(mpiglobal%rank == 0) then 
       call timesec(t1)
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
@@ -1745,7 +1770,7 @@ real(8) :: evals(hamsize)
     ! Make combination matrices
     if(mpiglobal%rank == 0) then 
       write(unitout, '("Info(setup_ti_bse): Setting up RR+RA and RR-RA matrices")')
-      call timesec(t0)
+    !  call timesec(t0)
     end if
 
     ! RR - RA^{it}
@@ -1763,14 +1788,43 @@ real(8) :: evals(hamsize)
         cmat%za(i,j) = cpmat%za(i,j) + 2.0d0*ramat%za(i,j)
       end do
     end do
+    !call del_dzmat(ramat)
+
+    ! Check positive definitness of (A+B)
+
+    !call dzmat_send2global_root(localsmat, cmat, bi2d)
+    !if(mpiglobal%rank == 0) then
+    !  call writecmplxparts('apb_mat', remat=dble(localsmat), immat=aimag(localsmat))
+    !end if
+
+    if(mpiglobal%rank == 0) then 
+      write(unitout, '("Info(setup_ti_bse): Checking positve definitness of RR+RA")')
+      call timesec(t0)
+    end if
+    ramat%za = cmat%za
+    call dhesolver(ramat, evals, bi2d)
+    !if(mpiglobal%rank == 0) then 
+    !  write(*,*) "Writing evals for A+B"
+    !  call writecmplxparts('apb_evals', revec=evals, veclen=size(evals))
+    !end if
+    if(any(evals < 0.0d0)) then 
+      write(*,*) "Error(setup_dis_ti_bse): RR+RA matrix is not positive definit"
+      write(*,'(E10.3)') evals
+      call terminate
+    end if
     call del_dzmat(ramat)
 
     if(mpiglobal%rank == 0) then 
       call timesec(t1)
+      write(unitout, '("  RR+RA is positive definite")')
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
     end if
 
     ! Take the square root of (A-B) (currently in cpmat)
+    !call dzmat_send2global_root(localsmat, cpmat, bi2d)
+    !if(mpiglobal%rank == 0) then
+    !  call writecmplxparts('amb_mat', remat=dble(localsmat), immat=aimag(localsmat))
+    !end if
     ! Note: It is assumed to be positive definit.
     if(mpiglobal%rank == 0) then 
       write(unitout, '("Info(setup_dis_ti_bse): Taking square root of RR-RA matrix")')
@@ -1779,8 +1833,14 @@ real(8) :: evals(hamsize)
     call sqrtdzmat_hepd(cpmat, bi2d, eecs=input%xs%bse%eecs)
     if(mpiglobal%rank == 0) then 
       call timesec(t1)
+      write(unitout, '("  RR-RA is positive definite")')
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
     end if
+
+    !call dzmat_send2global_root(localsmat, cpmat, bi2d)
+    !if(mpiglobal%rank == 0) then
+    !  call writecmplxparts('sqrtamb_mat', remat=dble(localsmat), immat=aimag(localsmat))
+    !end if
 
     ! Construct S Matrix
     ! S = (A-B)^{1/2} (A+B) (A-B)^{1/2}
@@ -1798,20 +1858,17 @@ real(8) :: evals(hamsize)
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
     end if
 
+    !call dzmat_send2global_root(localsmat, smat, bi2d)
+    !if(mpiglobal%rank == 0) then
+    !  call writecmplxparts('s_mat', remat=dble(localsmat), immat=aimag(localsmat))
+    !end if
+
     ! Cmat = (A-B)^1/2
-    if(mpiglobal%rank == 0) then 
-      write(unitout, '("Info(setup_ti_bse): Copying (RR-RA)^1/2 matrix")')
-      call timesec(t0)
-    end if
     do j = 1, cmat%ncols_loc
       do i = 1, cmat%nrows_loc
         cmat%za(i,j) = cpmat%za(i,j)
       end do
     end do
-    if(mpiglobal%rank == 0) then 
-      call timesec(t1)
-      write(unitout, '("  Time needed",f12.3,"s")') t1-t0
-    end if
 
     ! Cpmat = (A-B)^-1/2
     if(mpiglobal%rank == 0) then 

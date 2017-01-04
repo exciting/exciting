@@ -630,6 +630,25 @@ module m_setup_bse
                   & excli_t(1:inou,1:jnou), check=.false., fcmpt=efcmpt, fid=efid)
             end select
 
+            ! Make ik=jk blocks explicitly symmetric/hermitian
+            if(iknr == jknr) then 
+              if(fcoup .and. .not. fti) then 
+                do j = 1, jnou
+                  do i = 1, j
+                    sccli_t(j,i) = sccli_t(i,j)
+                    excli_t(j,i) = excli_t(i,j)
+                  end do
+                end do
+              else
+                do j = 1, jnou
+                  do i = 1, j
+                    sccli_t(j,i) = conjg(sccli_t(i,j))
+                    excli_t(j,i) = conjg(excli_t(i,j))
+                  end do
+                end do
+              end if
+            end if
+
           end if
 
           !!******************!!

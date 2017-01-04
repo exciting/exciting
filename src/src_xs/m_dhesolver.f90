@@ -10,7 +10,7 @@ module m_dhesolver
     !BOP
     ! !ROUTINE: dhesolver
     ! !INTERFACE:
-    subroutine dhesolver(ham, evec, eval, binfo, i1, i2, v1, v2, found, eecs)
+    subroutine dhesolver(ham, eval, binfo, evec, i1, i2, v1, v2, found, eecs)
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     !   type(blacsinfo) :: binfo       ! Info type describing the BLACS grid
@@ -21,9 +21,9 @@ module m_dhesolver
     !                                  ! orthogonalization of eigenvectors (default = 3)
     ! IN/OUT:
     !   type(dzmat) :: ham         ! 2D block cyclic distributed hermitian matrix 
-    !   type(dzmat) :: evec        ! 2D block cyclic distributed eigenvector matrix
     !   real(8) :: eval(ham%nrows) ! Real valued eigenvalues in ascending order 
     !                              ! (the first solsize elements are set)
+    !   type(dzmat), optional :: evec   ! 2D block cyclic distributed eigenvector matrix
     ! OUT:
     !   integer(4), optional :: found ! How many solutions were found
     !
@@ -41,17 +41,21 @@ module m_dhesolver
 
       ! Arguments
       type(dzmat), intent(inout) :: ham
-      type(dzmat), intent(inout) :: evec
       real(8), intent(inout) :: eval(:)
       type(blacsinfo), intent(in) :: binfo
+      ! Optional argumets
+      type(dzmat), intent(inout), optional :: evec
       integer(4), intent(in), optional :: eecs
       integer(4), intent(in), optional :: i1, i2
       real(8), intent(in), optional :: v1, v2
       integer(4), intent(out), optional :: found
 
+      logical :: evalsonly, distributed, sane
+      type(dzmat) :: evecdummy
+
       ! Local variables
 #ifdef SCAL
-      character(1) :: rangechar
+      character(1) :: rangechar, jobzchar
       integer(4) :: info
       integer(4) :: lwork, lrwork, liwork
       integer(4) :: il, iu, solsize
@@ -68,19 +72,34 @@ module m_dhesolver
 
       ! External functions
       real(8), external :: pdlamch
+#endif
+
+      if(present(evec)) then
+        evalsonly = .false.
+        distributed = ham%isdistributed .and. evec%isdistributed
+        sane = ham%isdistributed == evec%isdistributed
+      else
+        evalsonly = .true.
+        distributed = ham%isdistributed
+        sane = .true.
+      end if
+
+#ifdef SCAL
 
       ! Distributed EVP
-      if(ham%isdistributed .and. evec%isdistributed) then
+      if(distributed .and. sane) then
 
         ! Sanity checking input
-        if(ham%context /= evec%context&
-          &.or. ham%context /= binfo%context&
-          &.or. evec%context /= binfo%context) then
-          if(binfo%mpi%rank == 0) then
-            write(*,*) "Error(dhesolver):&
-              & ham,evec and binfo have differing contexts.",&
-              & ham%context, evec%context, binfo%context
-            call terminate
+        if( .not. evalsonly) then 
+          if(ham%context /= evec%context&
+            &.or. ham%context /= binfo%context&
+            &.or. evec%context /= binfo%context) then
+            if(binfo%mpi%rank == 0) then
+              write(*,*) "Error(dhesolver):&
+                & ham,evec and binfo have differing contexts.",&
+                & ham%context, evec%context, binfo%context
+              call terminate
+            end if
           end if
         end if
         if((present(i1) .or. present(i2)) .and. (present(v1) .or. present(v2))) then
@@ -142,6 +161,13 @@ module m_dhesolver
           rangechar = 'A'
         end if
 
+        ! JOBZ
+        if(evalsonly) then 
+          jobzchar = 'N'
+        else
+          jobzchar = 'V'
+        end if
+
         ! Tolerance parameter
         ! Ortho-normality criterion (1d-3 is default)
         orfac = 1d0-9
@@ -177,14 +203,21 @@ module m_dhesolver
       
 
         ! Get optimal work array lengths
-        call workspacequery(rangechar)
+        call workspacequery(jobzchar, rangechar)
         allocate(work(lwork), rwork(lrwork), iwork(liwork))
 
         ! Compute
-        call pzheevx('V', rangechar, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
-          & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
-          & evec%za, iz, jz, evec%desc, work, lwork, rwork, lrwork, iwork, liwork,&
-          & ifail, iclustr, gap, info)
+        if(evalsonly) then 
+          call pzheevx(jobzchar, rangechar, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
+            & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
+            & evecdummy%za, iz, jz, evecdummy%desc, work, lwork, rwork, lrwork, iwork, liwork,&
+            & ifail, iclustr, gap, info)
+        else
+          call pzheevx(jobzchar, rangechar, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
+            & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
+            & evec%za, iz, jz, evec%desc, work, lwork, rwork, lrwork, iwork, liwork,&
+            & ifail, iclustr, gap, info)
+        end if
 
         if(present(found)) then
           found = nevalfound
@@ -206,9 +239,50 @@ module m_dhesolver
         deallocate(work, rwork, iwork)
 
       ! Non distributed EVP
-      else if(.not. ham%isdistributed .and. .not. evec%isdistributed) then
+      else if(.not. distributed .and. sane) then
 
-        call hesolver(ham%za, eval, evec%za, i1, i2, v1, v2, found)
+        ! Use hesolver, if matrix is not distributed 
+        if(evalsonly) then 
+          if(present(i1) .and. present(i2)) then 
+            if(present(found)) then 
+              call hesolver(ham%za, eval, i1=i1, i2=i2, found=found)
+            else
+              call hesolver(ham%za, eval, i1=i1, i2=i2)
+            end if
+          else if( present(v1) .and. present(v2)) then 
+            if(present(found)) then 
+              call hesolver(ham%za, eval, v1=v1, v2=v2, found=found)
+            else
+              call hesolver(ham%za, eval, v1=v1, v2=v2)
+            end if
+          else
+            if(present(found)) then 
+              call hesolver(ham%za, eval, found=found)
+            else
+              call hesolver(ham%za, eval)
+            end if
+          end if
+        else
+          if(present(i1) .and. present(i2)) then 
+            if(present(found)) then 
+              call hesolver(ham%za, eval, evec%za, i1=i1, i2=i2, found=found)
+            else
+              call hesolver(ham%za, eval, evec%za, i1=i1, i2=i2)
+            end if
+          else if( present(v1) .and. present(v2)) then 
+            if(present(found)) then 
+              call hesolver(ham%za, eval, evec%za, v1=v1, v2=v2, found=found)
+            else
+              call hesolver(ham%za, eval, evec%za, v1=v1, v2=v2)
+            end if
+          else
+            if(present(found)) then 
+              call hesolver(ham%za, eval, evec%za, found=found)
+            else
+              call hesolver(ham%za, eval, evec%za)
+            end if
+          end if
+        end if
 
       ! Mix -> Error
       else 
@@ -220,15 +294,56 @@ module m_dhesolver
 
       end if
 #else
-      call hesolver(ham%za, evec%za, eval, i1, i2, v1, v2, found)
+      ! Use hesolver, if no ScaLapack 
+      if(evalsonly) then 
+        if(present(i1) .and. present(i2)) then 
+          if(present(found)) then 
+            call hesolver(ham%za, eval, i1=i1, i2=i2, found=found)
+          else
+            call hesolver(ham%za, eval, i1=i1, i2=i2)
+          end if
+        else if( present(v1) .and. present(v2)) then 
+          if(present(found)) then 
+            call hesolver(ham%za, eval, v1=v1, v2=v2, found=found)
+          else
+            call hesolver(ham%za, eval, v1=v1, v2=v2)
+          end if
+        else
+          if(present(found)) then 
+            call hesolver(ham%za, eval, found=found)
+          else
+            call hesolver(ham%za, eval)
+          end if
+        end if
+      else
+        if(present(i1) .and. present(i2)) then 
+          if(present(found)) then 
+            call hesolver(ham%za, eval, evec%za, i1=i1, i2=i2, found=found)
+          else
+            call hesolver(ham%za, eval, evec%za, i1=i1, i2=i2)
+          end if
+        else if( present(v1) .and. present(v2)) then 
+          if(present(found)) then 
+            call hesolver(ham%za, eval, evec%za, v1=v1, v2=v2, found=found)
+          else
+            call hesolver(ham%za, eval, evec%za, v1=v1, v2=v2)
+          end if
+        else
+          if(present(found)) then 
+            call hesolver(ham%za, eval, evec%za, found=found)
+          else
+            call hesolver(ham%za, eval, evec%za)
+          end if
+        end if
+      end if
 #endif
 
       contains
 
 #ifdef SCAL
-        subroutine workspacequery(rangetype)
+        subroutine workspacequery(jobtype, rangetype)
 
-          character(1), intent(in) :: rangetype
+          character(1), intent(in) :: jobtype, rangetype
 
           integer(4) :: nhetrd_lwork, anb, nps, n
           integer(4), external :: pjlaenv, iceil
@@ -251,14 +366,25 @@ module m_dhesolver
 
           allocate(work(3), rwork(3), iwork(3))
 
-          call pzheevx('V', rangetype, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
-            & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
-            & evec%za, iz, jz, evec%desc, work, lwork, rwork, lrwork, iwork, liwork,&
-            & ifail, iclustr, gap, info)
+          if(jobtype == 'N') then 
+            call pzheevx(jobtype, rangetype, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
+              & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
+              & evecdummy%za, iz, jz, evecdummy%desc, work, lwork, rwork, lrwork, iwork, liwork,&
+              & ifail, iclustr, gap, info)
+          else
+            call pzheevx(jobtype, rangetype, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
+              & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
+              & evec%za, iz, jz, evec%desc, work, lwork, rwork, lrwork, iwork, liwork,&
+              & ifail, iclustr, gap, info)
+          end if
 
           ! Adjust workspace
           lwork=max(int(work(1)), nhetrd_lwork)
-          lrwork=int(rwork(1)) + (clusterguess-1)*n
+          if(jobtype == 'N') then 
+            lrwork=int(rwork(1))
+          else
+            lrwork=int(rwork(1)) + (clusterguess-1)*n
+          end if
           liwork=int(iwork(1))
 
           deallocate(work, rwork, iwork)

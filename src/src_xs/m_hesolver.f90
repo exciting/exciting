@@ -33,10 +33,11 @@ module m_hesolver
 
       ! Arguments
       complex(8), intent(in) :: hemat(:,:)
+      real(8), intent(out) :: eval(:)
+      ! Optional arguments
+      complex(8), intent(out), optional :: evec(:,:)
       integer(4), intent(in), optional :: i1, i2
       real(8), intent(in), optional :: v1, v2
-      real(8), intent(out) :: eval(:)
-      complex(8), intent(out), optional :: evec(:,:)
       integer(4), intent(out), optional :: found
 
       ! Local variables
