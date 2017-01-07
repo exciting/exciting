@@ -260,11 +260,11 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       ematouk(1:ino, 1:inu, 1:numgq, ik) = mou
     end if
 
-    if(mpiglobal%rank == 0) then
-      write(6, '(a,"Exccoulint - mou/muo progess:", f10.3)', advance="no")&
-        & achar( 13), 100.0d0*dble(ik-kpari+1)/dble(kparf-kpari+1)
-      flush(6)
-    end if
+    !if(mpiglobal%rank == 0) then
+    !  write(6, '(a,"Exccoulint - mou/muo progess:", f10.3)', advance="no")&
+    !    & achar( 13), 100.0d0*dble(ik-kpari+1)/dble(kparf-kpari+1)
+    !  flush(6)
+    !end if
 
   end do
 
