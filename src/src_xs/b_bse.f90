@@ -148,7 +148,7 @@ use m_writecmplxparts
   fabsolute = input%xs%bse%useabsolute
 
   if(fscal .and. fcoup .and. .not. fti ) then 
-    write(*,*) "Coupling and scalapack not possible in standard basis"
+    write(*,*) "Coupling and scalapack not supported in standard basis"
     call terminate
   end if
 
@@ -331,8 +331,10 @@ use m_writecmplxparts
         nexc = 2*hamsize
       else
         if(efind) then
-          v1=(max(wl-ewidth, 0.0d0))**2
-          v2=(wu+ewidth)**2
+          !v1=(max(wl-ewidth, 0.0d0))**2
+          !v2=(wu+ewidth)**2
+          v1=(max(wl, 0.0d0))**2
+          v2=(wu)**2
           call hesolver(hemat=ham, evec=bevecaux, eval=bevalre,&
            & v1=v1, v2=v2, found=nexc)
         else
@@ -349,11 +351,15 @@ use m_writecmplxparts
     else
       if(efind) then
         if(fabsolute) then 
-          v1=max(wl-ewidth, 0.0d0)
-          v2=wu+ewidth
+          !v1=max(wl-ewidth, 0.0d0)
+          !v2=wu+ewidth
+          v1=max(wl, 0.0d0)
+          v2=wu
         else
-          v1=max(wl-ewidth-bsegap-sci, -bsegap-sci)
-          v2=wu+ewidth-bsegap-sci
+          !v1=max(wl-ewidth-bsegap-sci, -bsegap-sci)
+          !v2=wu+ewidth-bsegap-sci
+          v1=max(wl-bsegap-sci, -bsegap-sci)
+          v2=wu-bsegap-sci
         end if
         call hesolver(hemat=ham, evec=bevecr, eval=bevalre,&
          & v1=v1, v2=v2, found=nexc)
@@ -584,7 +590,6 @@ use m_writecmplxparts
       !$OMP END PARALLEL DO
 
       ! Energy to shift the BSE eigenvalues by.
-      fabsolute = input%xs%bse%useabsolute
       if(fabsolute) then  
         ! Use absolute Excition energies
         evalshift = 0.0d0
@@ -678,11 +683,15 @@ use m_writecmplxparts
       if(efind) then
 
         if(fcoup .and. fti) then 
-          v1=(max(wl-ewidth, 0.0d0))**2
-          v2=(wu+ewidth)**2
+          !v1=(max(wl-ewidth, 0.0d0))**2
+          !v2=(wu+ewidth)**2
+          v1=(max(wl, 0.0d0))**2
+          v2=(wu)**2
         else
-          v1=max(wl-ewidth, 0.0d0)
-          v2=wu+ewidth
+          !v1=max(wl-ewidth, 0.0d0)
+          !v2=wu+ewidth
+          v1=max(wl, 0.0d0)
+          v2=wu
         end if
 
         call dhesolver(dham, bevalre, bi2d, dbevecr,&
