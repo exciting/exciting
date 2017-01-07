@@ -115,7 +115,7 @@ use m_writecmplxparts
   integer(4) :: iknr, iq, iqmt, ik, ikq, io, iu, a1
   integer(4) :: nexc
   real(8) :: ts0, ts1
-  logical :: fcoup, fwp, fscal, fabsolute, fti
+  logical :: fcoup, fwp, fscal, fti
 
   ! Allocatable arrays
   real(8), allocatable, dimension(:) :: bevalim, bevalre, w
@@ -144,20 +144,9 @@ use m_writecmplxparts
   ! Use ScaLAPACK
   fscal = input%xs%bse%distribute
 
-  ! Shift Eigenvalues
-  fabsolute = input%xs%bse%useabsolute
-
   if(fscal .and. fcoup .and. .not. fti ) then 
     write(*,*) "Coupling and scalapack not supported in standard basis"
     call terminate
-  end if
-
-  if(fcoup .and. .not. input%xs%bse%useabsolute) then 
-    if(mpiglobal%rank == 0) then 
-      write(unitout, '("Warning(b_bse): Full BSE needs unshifted eigenvalues.")')
-      write(unitout, '("  Setting useabsolute to true.")')
-    end if
-    fabsolute = .true.
   end if
 
   ! Non-parallelized code.
@@ -232,23 +221,10 @@ use m_writecmplxparts
     end do
     !$OMP END PARALLEL DO
 
-    ! Energy to shift the BSE eigenvalues by.
-    if(fabsolute) then  
-      ! Use absolute Excition energies
-      evalshift = 0.0d0
-    else
-      ! Shift, so that bound exitions have negative energies.
-      evalshift = -(bsegap+sci)
-    end if
-
     write(unitout,*)
     write(unitout, '("Info(b_bse):&
       & bsegap, bsegap+scissor (eV):", E23.16,1x,E23.16)')&
       & bsegap*h2ev, (bsegap+sci)*h2ev
-    if(.not. fabsolute) then
-      write(unitout, '("Info(b_bse): Shifting evals by (eV): ", E23.16)')&
-        evalshift*h2ev
-    end if
 
     ! Write Info
     write(unitout,*)
@@ -331,8 +307,6 @@ use m_writecmplxparts
         nexc = 2*hamsize
       else
         if(efind) then
-          !v1=(max(wl-ewidth, 0.0d0))**2
-          !v2=(wu+ewidth)**2
           v1=(max(wl, 0.0d0))**2
           v2=(wu)**2
           call hesolver(hemat=ham, evec=bevecaux, eval=bevalre,&
@@ -350,17 +324,8 @@ use m_writecmplxparts
       end if
     else
       if(efind) then
-        if(fabsolute) then 
-          !v1=max(wl-ewidth, 0.0d0)
-          !v2=wu+ewidth
           v1=max(wl, 0.0d0)
           v2=wu
-        else
-          !v1=max(wl-ewidth-bsegap-sci, -bsegap-sci)
-          !v2=wu+ewidth-bsegap-sci
-          v1=max(wl-bsegap-sci, -bsegap-sci)
-          v2=wu-bsegap-sci
-        end if
         call hesolver(hemat=ham, evec=bevecr, eval=bevalre,&
          & v1=v1, v2=v2, found=nexc)
       else
@@ -423,9 +388,6 @@ use m_writecmplxparts
         write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
         write(unitout, '("  [",E10.3,",",E10.3,"]/H")') v1, v2
         write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') v1*h2ev, v2*h2ev
-        if(.not. fabsolute) then
-          write(unitout, '("  bsegap was subtracted")') 
-        end if
       else
         write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
         write(unitout, '("  i1=",i8," i2=",i8)') i1, i2
@@ -458,7 +420,7 @@ use m_writecmplxparts
           & evalim=bevalim, oszstra=oszsa, sort=.true.)
       end if
     else
-      call writeoscillator(hamsize, nexc, evalshift, bevalre-evalshift, oszsr)
+      call writeoscillator(hamsize, nexc, -(bsegap+sci), bevalre, oszsr)
     end if
 
     ! Allocate frequency array used in spectrum construction
@@ -589,24 +551,11 @@ use m_writecmplxparts
       end do
       !$OMP END PARALLEL DO
 
-      ! Energy to shift the BSE eigenvalues by.
-      if(fabsolute) then  
-        ! Use absolute Excition energies
-        evalshift = 0.0d0
-      else
-        ! Shift, so that bound exitions have negative energies.
-        evalshift = -(bsegap+sci)
-      end if
-
       if(bi2d%isroot) then
         write(unitout,*)
         write(unitout, '("Info(b_bse):&
           & bsegap, bsegap+scissor (eV):", E23.16,1x,E23.16)')&
           & bsegap*h2ev, (bsegap+sci)*h2ev
-        if(.not. fabsolute) then
-          write(unitout, '("Info(b_bse): Shifting evals by (eV): ", E23.16)')&
-            evalshift*h2ev
-        end if
       end if
 
       ! Define global distributed Hamiltonian matrix.
@@ -683,13 +632,9 @@ use m_writecmplxparts
       if(efind) then
 
         if(fcoup .and. fti) then 
-          !v1=(max(wl-ewidth, 0.0d0))**2
-          !v2=(wu+ewidth)**2
           v1=(max(wl, 0.0d0))**2
           v2=(wu)**2
         else
-          !v1=max(wl-ewidth, 0.0d0)
-          !v2=wu+ewidth
           v1=max(wl, 0.0d0)
           v2=wu
         end if
@@ -740,9 +685,6 @@ use m_writecmplxparts
             write(unitout, '("  [",E10.3,",",E10.3,"]/H")') v1, v2
             write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') v1*h2ev, v2*h2ev
           end if
-          if(.not. fabsolute) then
-            write(unitout, '("  bsegap was subtracted")') 
-          end if
         else
           write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
           write(unitout, '("  i1=",i8," i2=",i8)') i1, i2
@@ -765,7 +707,7 @@ use m_writecmplxparts
         ! text file. 
         write(unitout, '("Info(b_bse):&
           & Writing excition energies and oszillator strengths to text file.")')
-        call writeoscillator(hamsize, nexc, evalshift, bevalre-evalshift, oszsr)
+        call writeoscillator(hamsize, nexc, -(bsegap+sci), bevalre, oszsr)
       end if
 
       ! Allocate arrays used in spectrum construction
@@ -1280,9 +1222,6 @@ contains
     ! Total time for spectrum construction
     call timesec(ts0)
 
-    ! Shift energies back to absolute values.
-    bevalre = bevalre - evalshift
-
     !++++++++++++++++++++++++++++++++++++++++++++!
     ! Make energy denominator for each frequency !
     ! (resonant & anti-resonant)                 !
@@ -1395,9 +1334,6 @@ contains
     end if
     ! Total time for spectrum construction
     call timesec(ts0)
-
-    ! Shift energies back to absolute values.
-    bevalre = bevalre - evalshift
 
     !++++++++++++++++++++++++++++++++++++++++++++!
     ! Make energy denominator for each frequency !
@@ -2067,9 +2003,6 @@ contains
       call timesec(ts0)
     end if
 
-    ! Shift energies back to absolute values.
-    bevalre = bevalre - evalshift
-
     !++++++++++++++++++++++++++++++++++++++++++++!
     ! Make energy denominator for each frequency !
     ! (resonant & anti-resonant)                 !
@@ -2237,9 +2170,6 @@ contains
       end if
       call timesec(ts0)
     end if
-
-    ! Shift energies back to absolute values.
-    bevalre = bevalre - evalshift
 
     !++++++++++++++++++++++++++++++++++++++++++++!
     ! Make energy denominator for each frequency !

@@ -46,9 +46,8 @@ module modbse
   ! Convergence energy
   real(8) :: econv(2)
   ! Lorentian width cutoff
-  !real(8) :: ewidth
   ! BSE gap
-  real(8) :: sci, evalshift
+  real(8) :: sci
   ! Occupation factors for Hamiltonian construction
   real(8), allocatable :: ofac(:)
   ! KS energy differences
@@ -223,20 +222,18 @@ module modbse
         call terminate
       end if
 
-
       !! Exciton energies determine spectrum.
       !! Respect broadening of peaks and include additional peaks outside of 
       !! energy window.
       !! A 0 centered lorentzian decays to 1/x*max for a displacement w=sqrt(x-1)*delta.
       !ewidth = input%xs%broad*sqrt(10d0-1d0)
+      ! (removed)
 
       ! Excitons are build from KS states and the KS transition energies 
       ! dominatly determine exciton energies. 
       ! Select KS transitions withing the energy energy window for the 
       ! spectrum plus extra convergence energy. (referenced only if fensel)
       econv = input%xs%bse%econv
-      !econv(1) = econv(1) - ewidth
-      !econv(2) = econv(2) + ewidth
 
       if((wu+econv(2)-max(wl+econv(1),0.0d0)) < 0.0d0) then 
         write(*,*) "Error(select_transitions): Conflicting econv", econv(1), econv(2)
@@ -268,10 +265,8 @@ module modbse
             & max(wl+econv(1),0.0d0)*h2ev, (wu+econv(2))*h2ev
           write(unitout, '("  Using convergence energy of:")')
           write(unitout, '("    ",2E10.3," /H")')&
-            !& max(econv(1)+ewidth, -wl), econv(2)-ewidth
             & max(econv(1), -wl), econv(2)
           write(unitout, '("    ",2E10.3," /eV")')&
-            !& max(econv(1)+ewidth, -wl)*h2ev, (econv(2)-ewidth)*h2ev
             & max(econv(1), -wl)*h2ev, econv(2)*h2ev
         else
           write(unitout, '("Info(select_transitions): Searching for KS transitions in&
@@ -279,8 +274,6 @@ module modbse
           write(unitout, '("  io1:", i4, " io2:", i4, " iu1:", i4, " iu2:", i4)')&
             & io1, io2, iu1, iu2
         end if
-        !write(unitout, '("  Using ewidth of:")')
-        !write(unitout, '("    ",E10.3,"/H",E10.3,"/eV")') ewidth, ewidth*h2ev
         write(unitout, '("  Opening gap with a scissor of:",&
           & E10.3,"/H", E10.3,"/eV")'), sci, sci*h2ev
       end if

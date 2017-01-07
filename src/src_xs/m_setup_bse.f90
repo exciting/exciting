@@ -419,9 +419,9 @@ module m_setup_bse
             ! de = e_{u, k-qmt} - e_{o, k} + scissor + energyshift (AA)
             ! Note: only qmt=0 supported
             hamblock(i,i) = hamblock(i,i)&
-              & + cmplx(de(ig+i-1) + evalshift, 0.0d0, 8)
+              & + cmplx(de(ig+i-1), 0.0d0, 8)
             if(present(d)) then 
-              d(i) = cmplx(de(ig+i-1) + evalshift, 0.0d0, 8)
+              d(i) = cmplx(de(ig+i-1), 0.0d0, 8)
             end if
           end do
         end subroutine addkstransdiag
@@ -1004,7 +1004,7 @@ module m_setup_bse
           ! Add KS transition energies
           if(.not. fc) then 
             if(ig+r-1 == jg+c-1) then 
-              hamblck(r, c) = hamblck(r, c) + cmplx(de(ig+r-1)+evalshift, 0.0d0, 8)
+              hamblck(r, c) = hamblck(r, c) + cmplx(de(ig+r-1), 0.0d0, 8)
             end if
           end if
         end do
