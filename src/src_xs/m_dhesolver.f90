@@ -415,9 +415,9 @@ module m_dhesolver
             end do
             i = i-1
             write(*,'("Warning(dhesolver) cause: Reorthogonalization failed,&
-              & insufficent workspace. There are", i4," clusters of eignevalues&
-              & and the lagest one has size ", i4,". &
-              & Increase eecs to ", i4," to guarantee orthogonal eigenvectors")')&
+              & insufficent workspace. There are", i8," clusters of eignevalues&
+              & and the lagest one has size ", i8,". &
+              & Increase eecs to ", i8," to guarantee orthogonal eigenvectors")')&
               & i, maxcs, maxcs
             write(*,'("dhesolver iclustr:")')
             write(*,'(I8)') iclustr
