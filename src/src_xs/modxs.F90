@@ -45,6 +45,8 @@ Module modxs
   !------------------------------!
   !     q-point set variables    !
   !------------------------------!
+
+  !! q-points as differences of k points
   ! total number of q-points (reduced set)
       Integer(4), target :: nqptr
   ! locations of q-points on integer grid (reduced set)
@@ -57,10 +59,15 @@ Module modxs
       Real (8), Allocatable :: vqcr (:, :)
   ! q-point weights (reduced set)
       Real (8), Allocatable :: wqptr (:)
-  ! finite momentum transfer q-vector
-      Real (8), Allocatable :: vqlmt (:, :)
-  ! finite momentum transfer G-vector
-      Integer, Allocatable :: ivgmt (:, :)
+
+  !! Finite mometum transfer variables Q_mt = q_mt + G_mt
+  ! total number of Q-points in Q-point list
+      Integer(4) :: nqmt
+  ! finite momentum transfer qmt-vector
+      Real (8), Allocatable :: vqlmt(:, :)
+  ! finite momentum transfer Gmt-vector
+      Integer, Allocatable :: ivgmt(:, :)
+
   ! index of current q-point
       Integer :: iqcu
       Data iqcu / 0 /

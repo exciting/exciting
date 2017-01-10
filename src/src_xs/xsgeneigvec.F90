@@ -7,11 +7,18 @@ subroutine xsgeneigvec
   use mod_qpoint, only: nqpt, vql
   use mod_misc, only: filext
   use modinput, only: input
-  use modmpi, only: rank, firstinnode, barrier
+  use modmpi
   use modxs, only: tscreen, skipgnd, qvkloff, unitout
   use m_writegqpts, only: writegqpts
   use m_filedel, only: filedel
   use m_genfilname, only: genfilname
+  !!!--------------------!!!
+  !< Commence testing hack !
+  !!!--------------------!!!
+  use modxs, only: nqmt, vqlmt, ivgmt
+  !!!--------------------!!!
+  !> End testing hack      !
+  !!!--------------------!!!
 
   implicit none
 
@@ -19,6 +26,13 @@ subroutine xsgeneigvec
   character(*), parameter :: thisnam = 'xsgeneigvec'
   real(8) :: vqlt(3)
   integer(4) :: iq, qi, qf
+  !!!--------------------!!!
+  !< Commence testing hack !
+  !!!--------------------!!!
+  integer(4) :: i
+  !!!--------------------!!!
+  !> End testing hack      !
+  !!!--------------------!!!
 
   ! External functions
   logical, external :: tqgamma
@@ -27,6 +41,28 @@ subroutine xsgeneigvec
   call init0
   call init1
   call init2
+
+  !!!--------------------!!!
+  !< Commence testing hack !
+  !!!--------------------!!!
+
+  if(input%xs%bse%beyond) then 
+    write(*,*) "Hi, xsgeneigvec here at rank ", mpiglobal%rank
+
+    write(*,*) "Here is a list of q_mt vectors:"
+    do i = 1, nqmt
+      write(*,*) "iqmt=", i
+      write(*,'(a,3E9.2)') "vqlmt(1:3, iqmt)=", vqlmt(1:3, i)
+      write(*,'(a,3I4)') "ivgmt(1:3, iqmt)=", ivgmt(1:3, i)
+      write(*,*)
+    end do
+
+  end if
+
+  !!!--------------------!!!
+  !> End testing hack      !
+  !!!--------------------!!!
+
 
   ! SCF already parallelized for k-point set
   ! Add gamma q-point

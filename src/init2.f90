@@ -1,4 +1,3 @@
-
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -92,7 +91,8 @@ Subroutine init2
       ! boxl(:,4) = boxl(:,4) + boxl(:,1)
 
 ! assign momentum transfer Q-points set to q-point set
-      If ((task .Ge. 301) .And. (task .Le. 399)) Then
+      If ((task .Ge. 301) .And. (task .Le. 399) .or. (task >= 400 .and. input%xs%bse%beyond) ) Then
+         nqmt = size(input%xs%qpointset%qpoint, 2)
          nqpt = size (input%xs%qpointset%qpoint, 2)
          If (allocated(vqlmt)) deallocate (vqlmt)
          Allocate (vqlmt(3, nqpt))
@@ -106,7 +106,9 @@ Subroutine init2
             v(:) = input%xs%qpointset%qpoint(:, iq)
             iv(:) = 0
             ! map Q-point to reciprocal unit cell
-            If (input%xs%tddft%mdfqtype .Eq. 1) Call r3frac(input%structure%epslat, v, iv)
+            If (input%xs%tddft%mdfqtype .Eq. 1 .or. input%xs%bse%beyond) then
+              Call r3frac(input%structure%epslat, v, iv)
+            end if
             vqlmt(:,iq) = v(:)
             ivgmt(:,iq) = iv(:)
             vql(:,iq) = vqlmt(:,iq)
@@ -149,7 +151,7 @@ Subroutine init2
                   stop
                 end if
               end if
-              if (input%xs%xstype.eq."BSE") then
+              if (input%xs%xstype .eq. "BSE" .and. .not. input%xs%bse%beyond) then
                 write(*,*)
                 write(*,'("Error(init2): BSE only works for optics (Q=0) - code limitation")')
                 write(*,*)
@@ -157,7 +159,7 @@ Subroutine init2
               end if
             end if
          End Do
-      Else if (task .ge. 400) then
+      Else if (task .ge. 400 .and. .not. input%xs%bse%beyond) then
          ! determine only integer-part of Q-points
          If (allocated(ivgmt)) deallocate (ivgmt)
          Allocate (ivgmt(3, size(input%xs%qpointset%qpoint, 2)))
