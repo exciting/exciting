@@ -16,6 +16,7 @@ Subroutine diaghermat ( matsize, mat, eval, evec)
   ! local variables
       Real (8) :: vl, vu, abstol
       Integer :: il, iu, neval, lwork, info, lrwork, liwork
+      complex(8) :: matcpy( matsize, matsize)
   ! allocatable arrays
       Complex (8), Allocatable :: work (:)
       Real (8), Allocatable :: rwork (:)
@@ -31,6 +32,7 @@ Subroutine diaghermat ( matsize, mat, eval, evec)
       write(*,*) "The Matrix mat is not a square matrix. Please insert a sqare matrix."
       stop
     END IF
+    matcpy = mat
   ! smallest and largest eigenvalue indices
       il = 1
       iu = matsize
@@ -44,7 +46,7 @@ Subroutine diaghermat ( matsize, mat, eval, evec)
      lwork=-1
      iu=matsize
      Allocate (work(1), rwork(1), iwork(1), isuppz(1))
-     Call zheevr ('V', 'A', 'U', matsize, mat, matsize, vl, vu, il, iu, &
+     Call zheevr ('V', 'A', 'U', matsize, matcpy, matsize, vl, vu, il, iu, &
      & abstol, neval, eval, evec, matsize, isuppz, work, lwork, rwork, lrwork, iwork, liwork, &
      & info)
      lrwork=int(rwork(1))
@@ -56,7 +58,7 @@ Subroutine diaghermat ( matsize, mat, eval, evec)
       Allocate (work(lwork), rwork(lrwork), iwork(liwork))
       allocate(isuppz(matsize*2))
 
-      Call zheevr ('V', 'A', 'U', matsize, mat, matsize, vl, vu, il, iu, &
+      Call zheevr ('V', 'A', 'U', matsize, matcpy, matsize, vl, vu, il, iu, &
      & abstol, neval, eval, evec, matsize, isuppz, work, lwork, rwork, lrwork, iwork, liwork, &
      & info)
       deallocate(isuppz)

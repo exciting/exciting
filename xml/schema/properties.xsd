@@ -828,6 +828,90 @@
           </xs:complexType>
         </xs:element>
 
+        <xs:element ex:importance="essential" ex:unit="" name="wannier" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation> 
+            If the <elementref>wannier</elementref> element is present, in addition Wannier functions ares calculated.
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="method" default="opfmax">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="pro">
+                  </xs:enumeration>
+                  <xs:enumeration value="opf">
+                  </xs:enumeration>
+                  <xs:enumeration value="promax">
+                  </xs:enumeration>
+                  <xs:enumeration value="opfmax">
+                  </xs:enumeration>
+                  <xs:enumeration value="maxfromfile">
+                  </xs:enumeration>
+                  <xs:enumeration value="fromfile">
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="state" type="xs:integer" default="1">
+              <xs:annotation>
+                <xs:documentation>Lowest state from which Wannier functions are constructed.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="nst" type="xs:integer" default="0">
+              <xs:annotation>
+                  <xs:documentation>Number of states from <attref>state</attref> upwards.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="uncertainty" type="fortrandouble" default="1.d-6">
+              <xs:annotation>
+                  <xs:documentation>Cut-off for convergence</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="projectors" type="integertriple" use="optional">
+              <xs:annotation>
+                <xs:documentation>List of space seperated integers representing the local-orbitals used as projection functions.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+          </xs:complexType>
+        </xs:element>      
+
+        <xs:element ex:importance="expert" ex:unit="" name="wannierplot" maxOccurs="1" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Wannier function plot.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:annotation>
+              <xs:documentation>Plot the Wannier function for given state.</xs:documentation>
+            </xs:annotation>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="state" type="xs:integer" default="0">
+              <xs:annotation>
+                  <xs:documentation>State.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="cell" type="integertriple" default="0 0 0">
+              <xs:annotation>
+                  <xs:documentation>unit cell.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:all>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
+            </xs:all>
+
+          </xs:complexType>
+        </xs:element>
+
       </xs:all>
     </xs:complexType>
   </xs:element>

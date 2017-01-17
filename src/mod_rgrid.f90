@@ -318,7 +318,7 @@ contains
           &     + boxl(1,:)
           self%vpl(:,ip) = v1(:)
           ! convert point to Cartesian coordinates
-          call r3frac(input%structure%epslat, v1, iv)
+          !call r3frac(input%structure%epslat, v1, iv)
           call r3mv(input%structure%crystal%basevect, v1, v2)
           self%vpc(:,ip) = v2(:)
         end do
@@ -382,7 +382,7 @@ contains
               self%iv(:,ip) = iv(:)-(/i1,i2,i3/)
               go to 10
             end if            
-          end do
+            end do
           end do
           end do
         end do ! ia

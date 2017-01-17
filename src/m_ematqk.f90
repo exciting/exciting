@@ -356,7 +356,7 @@ module m_ematqk
           real(8), allocatable :: vecgkql(:,:), vecgkqc(:,:), gkqc(:), tpgkqc(:,:)
           complex(8), allocatable :: sfacgkq(:,:), apwalm1(:,:,:,:), apwalm2(:,:,:,:)
           complex(8), allocatable :: blockmt(:,:), auxmat(:,:), match_combined1(:,:), match_combined2(:,:)
-          complex(8), allocatable :: aamat(:,:), almat(:,:), lamat(:,:), blockmt2(:,:)
+          complex(8), allocatable :: aamat(:,:), almat(:,:), lamat(:,:)
           
           emat = zzero
 
@@ -397,20 +397,20 @@ module m_ematqk
           ! build block matrix
           ! [_AA_|_AL_]
           ! [ LA | LL ]
+
           allocate( blockmt( ngknr+nlotot, ngkq+nlotot))
-          allocate( blockmt2( ngknr+nlotot, ngkq+nlotot))
+          blockmt(:,:) = zzero
+#ifdef USEOMP
+!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( is, ia, ias, match_combined1, match_combined2, lmo, l, m, o, lm, auxmat, aamat, almat, lamat)
+#endif
           allocate( auxmat( nlmomax, ngkq))
           allocate( match_combined1( nlmomax, ngknr), &
                     match_combined2( nlmomax, ngkq))
           allocate( aamat( ngknr, ngkq), &
                     almat( ngknr, nlotot), &
                     lamat( nlotot, ngkq))
-        
-          blockmt(:,:) = zzero
-
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( is, ia, ias, match_combined1, match_combined2, lmo, l, m, o, lm, auxmat, aamat, almat, lamat) reduction(+:blockmt)
-!$OMP DO
+!!$OMP DO reduction(+:blockmt)
 #endif
           do is = 1, nspecies
             do ia = 1, natoms( is)
@@ -455,12 +455,14 @@ module m_ematqk
             end do
           end do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+!!$OMP END DO
+#endif
+          deallocate( match_combined1, match_combined2, aamat, almat, lamat, auxmat)
+#ifdef USEOMP
+!!$OMP END PARALLEL
 #endif
 
           ! compute final total muffin tin contribution
-          deallocate( auxmat)
           allocate( auxmat( ngknr+nlotot, nst2))
           call ZGEMM( 'N', 'N', ngknr+nlotot, nst2, ngkq+nlotot, zone, &
                blockmt(:,:), ngknr+nlotot, &
@@ -595,7 +597,7 @@ module m_ematqk
           !  !end do
           !end if
           
-          deallocate( igkqig, vecgkql, vecgkqc, gkqc, tpgkqc, sfacgkq, apwalm1, apwalm2, blockmt, auxmat, match_combined1, match_combined2)
+          deallocate( igkqig, vecgkql, vecgkqc, gkqc, tpgkqc, sfacgkq, apwalm1, apwalm2, blockmt, auxmat)
           return
       end subroutine emat_genemat
 

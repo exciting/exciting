@@ -73,17 +73,10 @@ if (input%properties%bandstructure%wannier) then
   !--------------------------------------------------!      
   ! Calculate bandstructure by Wannier interpolation !
   !--------------------------------------------------!
-
-  !symm = 166
-  !symn = 2
-  !allocate( zm( symm, nstfv), zm2( symm, symn+1))
-  !allocate( sval( symn+1), lsvec( symm, symm), rsvec( symn+1, symn+1))
-  !call readmat( zm, symm, nstfv, "OLPEVEC 2")
-  !zm2( :, 1:2) = zm( :, 3:4)
-  !call readmat( zm, symm, nstfv, "OLPEVEC 2b")
-  !zm2( :, 3) = zm( :, 4)
-  !call zgesdd_wrapper( zm2, symm, symn+1, sval, lsvec, rsvec)
-  !write(*,'(3F13.6)') sval
+  if( .not. associated( input%properties%wannier)) then
+    write(*,*) " Error (bandstr): Wannier functions have not been calculated."
+    call terminate
+  end if
 
   nrpt = nkptnr
 
@@ -97,12 +90,9 @@ if (input%properties%bandstructure%wannier) then
   ! read Fermi energy from file
   Call readfermi                !saves fermi energy in variable 'efermi'
 
-  ! generating transformation matrices for Wannier functions
-  call genmlwf( 1, 8, 8, (/1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18/))
-  call wfshowproj
   write(*,*) 'Interpolate band-structure...'
 
-  allocate( wanme( nrpt, wf_nprojused, wf_nprojused))   ! Wannier matrix elements       -- <0i|H|Rj>
+  allocate( wanme( nrpt, wf_nband, wf_nband))   ! Wannier matrix elements       -- <0i|H|Rj>
   allocate( rptc( 3, nrpt), rptl( 3, nrpt))             ! set of R-points
   allocate( evalfv( nstfv, nspnfv), evecfv( nmatmax, nstfv, nspnfv))
 
@@ -117,16 +107,15 @@ if (input%properties%bandstructure%wannier) then
       end do
     end do
   end do
-  !call wfplotwannier( 1)
 
   ! calculate Hamlitonian matrix elements in Wannier representation 
-  allocate( auxmat( nrpt, nkptnr), auxmat2( nkptnr, wf_nprojused, wf_nprojused))
-  allocate( auxmatread( wf_nprojused, wf_nprojused))
+  allocate( auxmat( nrpt, nkptnr), auxmat2( nkptnr, wf_nband, wf_nband))
+  allocate( auxmatread( wf_nband, wf_nband))
   do iknr = 1, nkptnr
     call findkpt( vklnr( :, iknr), isym, ik)
     call getevalfv( vkl( :, ik), evalfv)
-    do iy = 1, wf_nprojused
-      do ix = 1, wf_nprojused
+    do iy = 1, wf_nband
+      do ix = 1, wf_nband
         auxmat2( iknr, ix, iy) = zzero
         do iz = 1, wf_nband  
           auxmat2( iknr, ix, iy) = auxmat2( iknr, ix, iy) + evalfv( wf_bandstart+iz-1, 1)*wf_transform( iz, ix, iknr)*conjg( wf_transform( iz, iy, iknr))
@@ -137,11 +126,11 @@ if (input%properties%bandstructure%wannier) then
 !REMOVE
         !call findkpt( vklnr( :, iknr), symm, symn)
         !write( fname, '("../2/vev/VEV",I2)') iknr
-        !!call writemat( auxmat2( iknr, :, :), wf_nprojused, wf_nprojused, fname)
-        !call readmat( auxmatread, wf_nprojused, wf_nprojused, fname)
+        !!call writemat( auxmat2( iknr, :, :), wf_nband, wf_nband, fname)
+        !call readmat( auxmatread, wf_nband, wf_nband, fname)
         !auxmatread = auxmatread - auxmat2( iknr, :, :)
         !write(*,*) iknr, symn
-        !!write(*,*) sum( abs( auxmatread))/wf_nprojused**2
+        !!write(*,*) sum( abs( auxmatread))/wf_nband**2
         !write(*,'(F23.16)') maxval( abs( auxmatread))
 
 
@@ -149,8 +138,8 @@ if (input%properties%bandstructure%wannier) then
       auxmat( ir, iknr) = exp( -zi*dot_product( rptc( :, ir), vkcnr( :, iknr)))
     end do
   end do
-  do iy = 1, wf_nprojused
-    call ZGEMM( 'N', 'N', nrpt, wf_nprojused, nkptnr, zone/nkptnr, &
+  do iy = 1, wf_nband
+    call ZGEMM( 'N', 'N', nrpt, wf_nband, nkptnr, zone/nkptnr, &
          auxmat, nrpt, &
          auxmat2( :, :, iy), nkptnr, zzero, &
          wanme( :, :, iy), nrpt)
@@ -160,9 +149,9 @@ if (input%properties%bandstructure%wannier) then
   ! interpolation
   input%properties%bandstructure%wannier = .FALSE. 
   call init1        ! initialize k-points along path
-  allocate( auxmat( wf_nprojused, wf_nprojused), evectmp( wf_nprojused, wf_nprojused))
+  allocate( auxmat( wf_nband, wf_nband), evectmp( wf_nband, wf_nband))
   if( allocated( evalsv)) deallocate( evalsv)
-  allocate( evalsv( wf_nprojused, nkpt), evaltmp( wf_nprojused), evalcplx( wf_nprojused))
+  allocate( evalsv( wf_nband, nkpt), evaltmp( wf_nband), evalcplx( wf_nband))
   allocate( ftweight( nkpt, nrpt))
 
 #ifdef USEOMP
@@ -175,25 +164,15 @@ if (input%properties%bandstructure%wannier) then
       call ws_weight( rptl( :, ir), rptl( :, ir), vkl( :, ik), ftweight( ik, ir), .true.)
       auxmat(:,:) = auxmat(:,:) + wanme( ir, :, :)*conjg( ftweight( ik, ir))
     end do
-    !write(*,*) ik
-    !call plotmat( auxmat)
-    !write(*,*)
-    call diaghermat( wf_nprojused, auxmat, evaltmp, evectmp)
-    iy = wf_nprojused - wf_nband
-    do ix = 1, wf_nprojused
-      !write(*,*) ik, ix, evaltmp( ix)
-      !if( (abs( evaltmp( ix)) .gt. 1.d-3) .and. (iy .lt. wf_nband)) then
-      !  iy = iy + 1
+    call diaghermat( wf_nband, auxmat, evaltmp, evectmp)
+    do ix = 1, wf_nband
       evalsv( ix, ik) = evaltmp( ix)-efermi
-      !end if
     end do
-    !write(*,*)
   end do
 #ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
 #endif
-  !call wfshowproj
   
   ! output
   call xml_OpenFile ("bandstructure.xml", xf, replace=.True., &
@@ -207,7 +186,7 @@ if (input%properties%bandstructure%wannier) then
     call xml_NewElement( xf, "title")
     call xml_AddCharacters( xf, trim( input%title))
     call xml_endElement( xf, "title")
-    do ist = 1, wf_nprojused
+    do ist = 1, wf_nband
       call xml_NewElement( xf, "band")
       do ik = 1, nkpt
         write( 50, '(2G18.10)') dpp1d (ik), evalsv (ist, ik)
