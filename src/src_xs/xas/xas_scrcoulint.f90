@@ -93,8 +93,10 @@ Subroutine xas_scrcoulint
      &points: ', nqpt
       Call flushifc (unitout)
       Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
-      Call findocclims (0, istocc0, istocc, istunocc0, istunocc, isto0, &
+      Call findocclims (0, ikmapikq(:,1), istocc0, istunocc0, isto0, &
      & isto, istu0, istu)
+      istunocc = istunocc0
+      istocc = istocc0
   ! only for systems with a gap in energy
       If ( .Not. ksgap) Then
          Write (*,*)
@@ -151,7 +153,7 @@ Subroutine xas_scrcoulint
          n = ngq (iqrnr)
 
      ! calculate effective screened Coulomb interaction
-         Call genscclieff (iqr, ngqmax, n, scieffg(1, 1, iqr))
+         Call genscclieff (iqr, iqrnr, ngqmax, n, scieffg(1, 1, iqr))
 
 if (.false.) then
          Call genfilname (basename='W_SCREEN', iq=iqr, &

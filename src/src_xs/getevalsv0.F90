@@ -10,7 +10,7 @@ subroutine getevalsv0(vpl, evalsvp)
   use mod_eigenvalue_occupancy, only: nstsv
   use mod_kpoint, only: nkptnr, vkl
   use mod_misc, only: task, filext
-  use modxs, only: vkl0
+  use modxs, only: vkl0, filext0, usefilext0
 ! !INPUT/OUTPUT PARAMETERS:
 ! IN:
 ! real(8) :: vpl(3) ! k-point vector in lattice coordinates
@@ -35,17 +35,21 @@ subroutine getevalsv0(vpl, evalsvp)
   real(8), allocatable :: vklt(:, :)
   character(256) :: filextt
 
-  ! Copy varialbes of k+(q=0) to default variables
-  ! and save the k+q quantities in temporary arrays.
+  ! Copy varialbes of k-grid to default variables
+  ! and save the k' quantities in temporary arrays.
   allocate(vklt(3, nkptnr))
   vklt(:, :) = vkl(:, :)
   vkl(:, :) = vkl0(:, :)
 
-  ! Save file extension for the k+q quantities
+  ! Save file extension for the k' quantities
   filextt = filext
 
-  ! Change file extension to q=0 file
-  call genfilextread(task)
+  ! Change file extension to k file
+  if(usefilext0) then 
+    filext = filext0
+  else
+    call genfilextread(task)
+  end if
 
   ! Call to getevalsv with changed (G+)k-point sets / matrix size
   call getevalsv(vpl, evalsvp)

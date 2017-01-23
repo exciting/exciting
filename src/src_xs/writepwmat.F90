@@ -48,8 +48,9 @@ Subroutine writepwmat
       Call init1
       Call readfermi
       Call init2
-      Call findocclims (0, istocc0, istocc, istunocc0, istunocc, isto0, &
-     & isto, istu0, istu)
+      call findocclims(0, ikmapikq(:,1), istocc0, istunocc0, isto0, isto, istu0, istu)
+      istunocc = istunocc0
+      istocc = istocc0
 !
       Do iq = 1, nqpt
          Allocate (apwalmk(ngkmax, apwordmax, lmmaxapw, natmtot))

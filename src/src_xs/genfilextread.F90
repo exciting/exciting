@@ -7,6 +7,7 @@
 ! !INTERFACE:
 subroutine genfilextread(task)
 ! !USES:
+  use modinput
   use m_genfilname
 ! !INPUT/OUTPUT PARAMETERS:
 ! !IN:
@@ -20,7 +21,7 @@ subroutine genfilextread(task)
 !
 ! !REVISION HISTORY:
 !   Added to documentaion scheme. 2016 (Aurich)
-!   Changed so taht only task 'screen' uses '_SCR.OUT' (Aurich)
+!   Changed so that only task 'screen' uses '_SCR.OUT' (Aurich)
 !
 !EOP
 !BOC
@@ -28,15 +29,25 @@ subroutine genfilextread(task)
 
   integer(4), intent(in) :: task
 
-  select case(task)
-    ! Task in TDDFT and BSE
-    ! Task 121 is taks 'dielectric' (does that still exist?)
-    case(121, 330, 331, 340, 350, 440, 441, 445, 450, 451)
-      call genfilname(iqmt=0, setfilext=.true.)
-    ! Task='screen'
-    case(430)
-      call genfilname(dotext='_SCR.OUT', setfilext=.true.)
-  end select
+  if(.not. input%xs%bse%beyond) then 
+    select case(task)
+      ! Task in TDDFT and BSE
+      ! Task 121 is taks 'dielectric' (does that still exist?)
+      case(121, 330, 331, 340, 350, 440, 441, 445, 450, 451)
+        call genfilname(iqmt=0, setfilext=.true.)
+      ! Task='screen'
+      case(430)
+        call genfilname(dotext='_SCR.OUT', setfilext=.true.)
+    end select
+  else
+    select case(task)
+      ! Task='screen'
+      case(430)
+        call genfilname(iqmt=1, scrtype='', setfilext=.true.)
+      case(440, 441, 445)
+        call genfilname(iqmt=1, setfilext=.true.)
+    end select
+  end if
 
 end subroutine genfilextread
 !EOC

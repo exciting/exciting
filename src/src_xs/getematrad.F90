@@ -8,7 +8,7 @@
 Subroutine getematrad(iqr, iq)
 ! !USES:
   use modinput, only: input
-  use modxs, only: riaa, riloa, rilolo, ngq
+  use modxs, only: riaa, riloa, rilolo, ngq, ematraddir
   use mod_APW_LO, only: lolmax, apwordmax, nlomax
   use mod_atoms, only: natmtot
   use m_genfilname
@@ -53,7 +53,12 @@ Subroutine getematrad(iqr, iq)
   if(allocated(rilolo)) deallocate(rilolo)
   allocate(rilolo(nlomax, nlomax, 0:lmax2, natmtot, ngq(iq)))
 
-  call genfilname(basename='EMATRAD', iq=iqr, filnam=fname)
+  if(input%xs%bse%beyond) then 
+    call genfilname(basename=trim(adjustl(ematraddir))//'/'//'EMATRAD',&
+      & iq=iqr, appfilext=.true., filnam=fname)
+  else
+    call genfilname(basename='EMATRAD', iq=iqr, filnam=fname)
+  end if
   call getunit(un)
   open(un, file=trim(fname), form='unformatted', action='read', status='old')
   read(un) riaa, riloa, rilolo

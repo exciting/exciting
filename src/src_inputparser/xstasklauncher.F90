@@ -343,7 +343,7 @@ subroutine xstasklauncher
     ! One shot GS calculation with xs%ngridk, xs%nempty and potential xs%vkloff.
     task = 301
     call xsinit
-    call xsgeneigvec
+    call b_xsgeneigveclauncher
     call xsfinit
 
     ! Task 320 corresponds to "writepmatxs" plan
@@ -358,7 +358,7 @@ subroutine xstasklauncher
     ! but otherwise identical parameters as "xsgeneigvec".
     task = 401
     call xsinit
-    call scrgeneigvec ! Calls xsgeneigvec 
+    call b_xsgeneigveclauncher ! Does one shot GS runs with screening GS parameters
     call xsfinit
 
     ! Task 420 corresponds to "scrwritepmat" plan
@@ -371,7 +371,7 @@ subroutine xstasklauncher
       ! Task 430 corresponds to "screen" plan
       task = 430
       call xsinit
-      call screen
+      call b_screenlauncher
       call xsfinit
 
       ! Task 440 corresponds to "scrcoulint" plan

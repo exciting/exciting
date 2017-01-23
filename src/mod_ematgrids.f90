@@ -71,13 +71,12 @@ module mod_ematgrids
         end if
       end if
 
-
-      !! Setup k-space grids (not using libzint)
-      ! Generate k and k'=k+qmt grids and maps between them
-      call generate_kkqmt_vectors(kkqmtset, bvec, ngridk, vkloff, reducek,&
-        & vqmtl, uselibzint=.false.)
       ! Generate G set
       call generate_G_vectors(gset, bvec, intgv, gmaxvr)
+      !! Setup k-space grids (not using libzint)
+      ! Generate k and k'=k+qmt grids and maps between them
+      call generate_kkqmt_vectors(kkqmtset, gset, bvec, ngridk, vkloff, reducek,&
+        & vqmtl, uselibzint=.false.)
       ! Generate q-grid as differences of jk'-ik
       call generate_q_vectors(qset, kkqmtset%kset, kkqmtset%kqmtset, gset, reduceq)
       ! Generate G+k set
@@ -138,7 +137,7 @@ module mod_ematgrids
 
       call getunit(un)
       open(unit=un, file='EMATGRIDS/emg_kkqmt.out', action='write', status='replace')
-      call print_kkqmt_vectors(kkqmtset, un) 
+      call print_kkqmt_vectors(kkqmtset, gset, un) 
       close(un)
 
       call getunit(un)

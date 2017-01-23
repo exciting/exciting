@@ -34,6 +34,14 @@ Module modxs
         integer(4) :: iu1, iu2
       end type bcbs 
 
+      ! Some directory names
+      character(256) :: gqdirname, eps0dirname, scrdirname, timingdirname
+      character(256) :: ematraddir
+
+  ! What is the q point list index for the gamma point
+  integer(4), parameter :: iqmtgamma = 1
+  integer(4) :: iqmt0, iqmt1
+
   !----------------------------!
   !     symmetry variables     !
   !----------------------------!
@@ -242,6 +250,7 @@ Module modxs
       real(8) :: ksgapval
       ! Minimal gap for current q
       real(8) :: qgap
+      real(8) :: qmtpgap, qmtmgap
 
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !
@@ -375,6 +384,8 @@ Module modxs
       Character (256) :: fnresume
   ! last value of filext
       Character (256) :: filextrevert
+      Character (256) :: filext0
+      logical :: usefilext0 = .false.
   ! file unit for output
       Integer :: unitout
   ! file units to be connected at the same time

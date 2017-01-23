@@ -21,7 +21,7 @@ subroutine exccoulint
                  & istu0, istu, ksgap, ngq,&
                  & kpari, kparf, xiou, xiuo,&
                  & ppari, pparf, iqmapr, nst1,&
-                 & nst2, qvkloff
+                 & nst2, qvkloff, ikmapikq
   use m_xsgauntgen
   use m_findgntn0
   use m_writegqpts
@@ -105,7 +105,9 @@ subroutine exccoulint
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
 
   ! Find occupation limits for k and k+q, where q=0
-  call findocclims(0, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
+  call findocclims(0, ikmapikq(:,1), istocc0, istunocc0, isto0, isto, istu0, istu)
+  istunocc = istunocc0
+  istocc = istocc0
   ! Only for systems with a gap in energy
   if( .not. ksgap) then
     write(*,*)

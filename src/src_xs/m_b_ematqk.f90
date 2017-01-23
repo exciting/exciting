@@ -13,7 +13,7 @@ module m_b_ematqk
     subroutine b_ematqk(iq, ik, emat, bc)
     ! !USES:
       use modinput, only: input
-      use mod_misc, only: task
+      use mod_misc, only: task, filext
       use mod_constants, only: zzero, zone
       use mod_eigenvalue_occupancy, only: evalsv, occsv, nstfv
       use mod_muffin_tin, only: idxlm
@@ -30,7 +30,8 @@ module m_b_ematqk
                      & lomaxsize, cmtfun0, cmtfun, apwcmt0,&
                      & apwcmt, ngq, igqig,&
                      & fnetim, fftmap_type, igkig0,&
-                     & cpumtaa, cpumtalo, cpumtloa, cpumtlolo
+                     & cpumtaa, cpumtalo, cpumtloa, cpumtlolo,&
+                     & filext0, iqmt0, iqmt1
       use summations, only: doublesummation_simple_cz
       use m_getapwcmt
       use m_getlocmt
@@ -82,6 +83,7 @@ module m_b_ematqk
       integer :: shift(3), iv(3)
       type(fftmap_type) :: fftmap
       real(8) :: emat_gmax
+      character(256) :: filename
 
       ! If task 330 is 'writeemat'
       if(task .eq. 330) then
@@ -93,6 +95,7 @@ module m_b_ematqk
 
       ! Find k+q-point
       ikq = ikmapikq(ik, iq)
+      write(*,*) "ematqk: ik=",ik," iq=",iq,"ikq=",ikq
 
       ! Check for stop statement
       write(msg, *) 'for q-point', iq, ': k-point:', ik - 1, ' finished'
@@ -133,6 +136,7 @@ module m_b_ematqk
       call timesec(cpu1)
       cpuini = cpu1 - cpu0
 
+  !write(*,*) "here before getevecfv"
       ! Read eigenvectors, eigenvalues and occupancies for k+q
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
@@ -141,9 +145,11 @@ module m_b_ematqk
       ! Save local orbital coefficients
       evecfvu(:, :) = evecfv(ngk(1, ikq)+1:ngk(1, ikq)+nlotot, bc%il2:bc%iu2, 1)
 
+  !write(*,*) "here before getevecfv0"
       ! Read eigenvectors, eigenvalues and occupancies for k (q=0)
       !   Read first variational eigenvectors from EVECFV_QMT000.OUT 
       call getevecfv0(vkl0(1, ik), vgkl0(1, 1, 1, ik), evecfv0)
+  !write(*,*) "here after getevecfv0"
 
       ! Save local orbital coefficients
       evecfvo0(:, :) = evecfv0(ngk0(1, ik)+1:ngk0(1, ik)+nlotot, bc%il1:bc%iu1, 1)
@@ -180,8 +186,12 @@ module m_b_ematqk
       apwcmt0=zzero
       apwcmt=zzero
 
+  !write(*,*) "here before getapwcmt bra"
       ! Get APW expansion coefficients for k
-      call getapwcmt(0, ik, 1, nstfv, input%xs%lmaxapwwf, apwcmt0)
+      filename = 'APWCMT'//trim(adjustl(filext0))
+      call getapwcmt(iqmt0, ik, 1, nstfv, input%xs%lmaxapwwf, apwcmt0,&
+        & tbra=.true., fname=trim(adjustl(filename)))
+
       ilo=0
       do is=1, nspecies
         do ia=1, natoms(is)
@@ -202,8 +212,12 @@ module m_b_ematqk
         end do
       end do
 
+  !write(*,*) "here before getapwcmt ket"
       ! Get APW expansion coefficients for k+q
-      call getapwcmt(iq, ikq, 1, nstfv, input%xs%lmaxapwwf, apwcmt)
+      filename = 'APWCMT'//trim(adjustl(filext))
+      call getapwcmt(iqmt1, ikq, 1, nstfv, input%xs%lmaxapwwf, apwcmt,&
+        & tbra=.false., fname=trim(adjustl(filename)))
+
       ilo=0
       do is=1, nspecies
         do ia=1, natoms(is)

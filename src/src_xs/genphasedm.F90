@@ -7,7 +7,6 @@
 ! !INTERFACE:
 Subroutine genphasedm(iq, jsym, nmax, n, phfdm, tphf)
 ! !USES:
-  use modmain
   use modinput
   use modxs, only: igqig
   use mod_Gvector, only: ivg

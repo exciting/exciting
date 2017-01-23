@@ -14,10 +14,11 @@ Contains
 ! !INTERFACE:
 !
 !
-      Subroutine writegqpts (iq, filex)
+      Subroutine writegqpts (iq, filex, dirname)
 ! !USES:
          Use modmain
-         Use modxs
+         Use modxs, only: unit1, ngq, vgqc, vgql, gqc
+         Use mod_qpoint, only: vqc
          Use m_getunit
 ! !DESCRIPTION:
 !   Writes the ${\bf G+q}$-points in lattice coordinates, Cartesian
@@ -29,23 +30,32 @@ Contains
 !EOP
 !BOC
          Implicit None
+
     ! arguments
          Integer, Intent (In) :: iq
          Character (*), Intent (In) :: filex
+         character(*), intent(in), optional :: dirname
+
     ! local variables
          Integer :: igq
          real(8) :: v(3)
-         Call getunit (unit1)
-         Open (unit1, File='GQPOINTS'//trim(filex), Action='WRITE', &
-        & Form='FORMATTED')
-         Write (unit1, '(I6, " : ngq; G+q-point, vgql, vgqc, gqc, |G| be&
-        &low")') ngq (iq)
-         Do igq = 1, ngq (iq)
-            v(:)=vgqc(:,igq,iq)-vqc(:,iq)
+
+         Call getunit(unit1)
+         
+         if(present(dirname)) then 
+           Open(unit1, File=trim(adjustl(dirname))//'/'//'GQPOINTS'//trim(filex), Action='WRITE', Form='FORMATTED')
+         else
+           Open(unit1, File='GQPOINTS'//trim(filex), Action='WRITE', Form='FORMATTED')
+         end if
+         Write(unit1, '(I6, " : ngq; G+q-point, vgql, vgqc, gqc, |G| below")') ngq(iq)
+
+         Do igq = 1, ngq(iq)
+            v(:) = vgqc(:,igq,iq)-vqc(:,iq)
             Write (unit1, '(I6, 3G18.10,2x,3G18.10,2x,2G18.10)') igq, &
             vgql (:, igq, iq), vgqc(:, igq, iq), gqc (igq, iq), &
             sqrt(v(1)**2+v(2)**2+v(3)**2)
          End Do
+
          Close (unit1)
       End Subroutine writegqpts
 !EOC

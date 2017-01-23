@@ -109,8 +109,9 @@ Subroutine kernxc_bse
      &points: ', nqpt
       Call flushifc (unitout)
       Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
-      Call findocclims (0, istocc0, istocc, istunocc0, istunocc, isto0, &
-     & isto, istu0, istu)
+      call findocclims(0, ikmapikq(:,1), istocc0, istunocc0, isto0, isto, istu0, istu)
+      istunocc = istunocc0
+      istocc = istocc0
   ! only for systems with a gap in energy
       If ( .Not. ksgap) Then
          Write (*,*)

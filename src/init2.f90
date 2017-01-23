@@ -172,8 +172,15 @@ Subroutine init2
          End Do
       End If
 
+      ! Screening 
       ! generate q-point set from grid
-      If ((task .Ge. 400) .And. (task .Le. 439)) Then
+      ! To be exact generate the reduced, unshifted k-mesh which 
+      ! corresponds to the grid that results form all k-point differences of
+      ! two k grids that have the same offset (Mapped to [0,1) (default) or 1st Bz).
+      ! input%xs%reduceq is true by default.
+      If ((task .Ge. 400) .And. (task .Le. 439) &
+       & .and. .not. (task == 401 .and. input%xs%bse%beyond)&
+       & .and. .not. (task == 420 .and. input%xs%bse%beyond)) Then
          If (allocated(ivq)) deallocate (ivq)
          Allocate (ivq(3, ngridq(1)*ngridq(2)*ngridq(3)))
          If (allocated(vql)) deallocate (vql)
@@ -189,11 +196,15 @@ Subroutine init2
          &            boxl, nqpt, iqmap, ivq, vql, vqc, wqpt)
          nqptr = nqpt
       End If
-      If ((task .Eq. 440) .Or. (task .Eq. 441) .Or. &
-      &   (task .Eq. 445) .Or. (task .Eq. 446) .Or. &
+
+      ! BSE specific tasks require reduced and non-reduced 
+      ! q-points (in the above sense).
+      If ((task .Eq. 440) .Or. (task .Eq. 441 .and. .not. input%xs%bse%beyond) .Or. &
+      &   (task .Eq. 445 .and. .not. input%xs%bse%beyond) .Or. (task .Eq. 446) .Or. &
       &   (task .Eq. 450) .Or. (task .Eq. 451) .Or. &
       &   (task .Eq. 499) .Or. (task .Eq. 700) .Or. &
       &   (task .Eq. 710)) Then
+
          If (allocated(ivqr)) deallocate (ivqr)
          Allocate (ivqr(3, ngridq(1)*ngridq(2)*ngridq(3)))
          If (allocated(vqlr)) deallocate (vqlr)
@@ -220,6 +231,7 @@ Subroutine init2
         ! generate non-reduced q-point set
          Call genppts(.False., input%xs%BSE%fbzq, ngridq, boxl, nqpt, &
          &            iqmap, ivq, vql, vqc, wqpt)
+
       End If
 ! find (little/small) group of q
       If (allocated(nsymcrysq)) deallocate (nsymcrysq)
@@ -306,8 +318,8 @@ Subroutine init2
       End Do
 
       ! Make ngq list for reduced set
-      If ((task .Eq. 440) .Or. (task .Eq. 441) .Or. &
-      &   (task .Eq. 445) .Or. (task .Eq. 446) .Or. &
+      If ((task .Eq. 440) .Or. (task .Eq. 441 .and. .not. input%xs%bse%beyond) .Or. &
+      &   (task .Eq. 445 .and. .not. input%xs%bse%beyond) .Or. (task .Eq. 446) .Or. &
       &   (task .Eq. 450) .Or. (task .Eq. 451) .Or. &
       &   (task .Eq. 499) .Or. (task .Eq. 700) .Or. &
       &   (task .Eq. 710)) Then

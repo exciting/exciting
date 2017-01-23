@@ -21,14 +21,15 @@ subroutine b_exccoulintlauncher
 
   implicit none
 
-  logical :: fra, fti
-  integer(4) :: iqmt
+  logical :: fcoup, fti
+  integer(4) :: iqmt, iqmti, iqmtf
+  real(8) :: vqmt(3)
 
   ! Also calculate coupling blocks
   if(input%xs%bse%coupling == .true.) then 
-    fra = .true.
+    fcoup = .true.
   else
-    fra = .false.
+    fcoup = .false.
   end if
 
   ! Use time inverted anti-resonant basis
@@ -38,31 +39,61 @@ subroutine b_exccoulintlauncher
     fti = .false.
   end if
 
-  ! Note: Only iqmt=0 is supported 
-  iqmt = 0
+  ! Testing 
+  iqmti = 1
+  iqmtf = size(input%xs%qpointset%qpoint, 2)
 
-  ! RR block
-  if(mpiglobal%rank == 0) then
-    write(unitout, '("Info(b_exccoulintlauncher):&
-      & Calculating RR block of V for qmt=0")')
-  end if
-  call b_exccoulint(iqmt, .false., .false.)
-  call barrier(mpiglobal)
+  do iqmt = iqmti, iqmtf
 
-  ! RA block
-  if(fra) then 
+    vqmt(:) = input%xs%qpointset%qpoint(:, iqmt)
+
+    if(mpiglobal%rank == 0) then
+      write(unitout, *)
+      call printline(unitout, "+")
+      write(unitout, '("Info(b_exccoulintlauncher):", a)')&
+        & "Calculating exchange interaction matrix V"
+      write(unitout, '("Info(b_exccoulintlauncher):", a, i3)')&
+        & " Momentum tranfer list index: iqmt=", iqmt
+      write(unitout, '("Info(b_exccoulintlauncher):", a, 3f8.3)')&
+        & " Momentum tranfer: vqmtl=", vqmt(1:3)
+      call printline(unitout, "+")
+      write(unitout,*)
+    end if
+
+    ! RR block
     if(mpiglobal%rank == 0) then
       write(unitout, '("Info(b_exccoulintlauncher):&
-        & Calculating RA block of V for qmt=0")')
+        & Calculating RR block of V")')
+      write(unitout,*)
     end if
-    if(fti) then
-      write(unitout, '("Info(b_exccoulintlauncher):&
-        & RR = RA^{ti} no further calculation needed.")')
-    else
-      call b_exccoulint(iqmt, .true., fti)
-    end if
+    call b_exccoulint(iqmt, .false., .false.)
     call barrier(mpiglobal)
-  end if
+
+    ! RA block
+    if(fcoup) then 
+      if(mpiglobal%rank == 0) then
+        call printline(unitout, "-")
+        write(unitout, '("Info(b_exccoulintlauncher):&
+          & Calculating RA block of V")')
+      end if
+      if(fti) then
+        call printline(unitout, "-")
+        write(unitout, '("Info(b_exccoulintlauncher):&
+          & RR = RA^{ti} no further calculation needed.")')
+      else
+        call b_exccoulint(iqmt, .true., fti)
+      end if
+      call barrier(mpiglobal)
+    end if
+
+    if(mpiglobal%rank == 0) then
+      call printline(unitout, "+")
+      write(unitout, '("Info(b_exccoulintlauncher): Exchange interaction&
+        & finished for iqmt=",i4)') iqmt
+      call printline(unitout, "+")
+    end if
+
+  end do
 
 end subroutine b_exccoulintlauncher
 !EOC

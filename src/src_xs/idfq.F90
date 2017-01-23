@@ -62,8 +62,9 @@ Subroutine idfq (iq)
       Call genfilname (iqmt=iq, setfilext=.True.)
       Call init1offs (qvkloff(1, iq))
   ! find highest (partially) occupied and lowest (partially) unoccupied states
-      Call findocclims (iq, istocc0, istocc, istunocc0, istunocc, &
-     & isto0, isto, istu0, istu)
+      call findocclims(iq, ikmapikq(:,iq), istocc0, istunocc0, isto0, isto, istu0, istu)
+      istunocc = istunocc0
+      istocc = istocc0
   ! find limits for band combinations
       Call ematbdcmbs (input%xs%emattype)
   ! generate energy grid

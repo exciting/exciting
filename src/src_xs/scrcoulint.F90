@@ -25,7 +25,7 @@ subroutine scrcoulint
                  & ngq, ppari, pparf, iqmapr,&
                  & vqlr, vgqc, dielten, xiou,&
                  & xiuo, bsedl, bsedu, bsedd,&
-                 & bsed
+                 & bsed, ikmapikq
   use m_xsgauntgen
   use m_findgntn0
   use m_writevars
@@ -115,7 +115,9 @@ subroutine scrcoulint
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
 
   ! Find occupation bounds for k and k+q but q=0
-  call findocclims(0, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
+  call findocclims(0, ikmapikq(:,1), istocc0, istunocc0, isto0, isto, istu0, istu)
+  istunocc = istunocc0
+  istocc = istocc0
   ! Only for systems with a gap in energy
   if( .not. ksgap) then
     write(*,*)
@@ -182,7 +184,7 @@ subroutine scrcoulint
     ! Calculate effective screened coulomb interaction
     ! by inverting the symmetrized RPA dielectric matrix and multiplying
     ! it with v^{1/2} from both sides.
-    call genscclieff(iqr, ngqmax, n, scieffg(1,1,iqr))
+    call genscclieff(iqr, iqrnr, ngqmax, n, scieffg(1,1,iqr))
 
     ! Generate radial integrals for matrix elements of plane wave
     call putematrad(iqr, iqrnr)

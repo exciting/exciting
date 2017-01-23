@@ -77,7 +77,8 @@ subroutine writeevec(vq, voff, filxt)
       & sfacgk(1, 1, 1, ik), apwalm)
 
     ! Extract the expansion coefficients corresponding to the
-    ! APWs form evecfv.
+    ! APWs form evecfv and multiply them with the corresponding 
+    ! matching coefficients.
     call genapwcmt(input%groundstate%lmaxapw, ngk(1, ik), 1,&
       & nstfv, apwalm, evecfv, apwcmt)
 

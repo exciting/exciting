@@ -25,7 +25,7 @@ subroutine rotematrad(ngp, igpmap)
 
   implicit none
 
-  integer, intent (in) :: ngp, igpmap (ngp)
+  integer, intent (in) :: ngp, igpmap(ngp)
 
   ! Rotate radial integrals
   riaa(:, :, :, :, :, :, :) = riaa(:, :, :, :, :, :, igpmap)

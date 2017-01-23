@@ -44,6 +44,7 @@ Subroutine xsmain (plan)
   ! task selection
       Do i = 1, size (plan%doonlyarray)
          task = plan%doonlyarray(i)%doonly%tasknumber
+         write(*,*) "xsmain starting task nr:",task
          Call xsinit
          Select Case (task)
          Case (23)
@@ -58,7 +59,11 @@ Subroutine xsmain (plan)
          Case (301)
      ! generate eigenvectors, eigenvalues, occupancies and MT-coefficients
      ! for q-point set
-            Call xsgeneigvec
+            if(input%xs%bse%beyond) then
+              call b_xsgeneigveclauncher
+            else
+              Call xsgeneigvec
+            end if
          Case (310)
 #ifdef TETRA          
      ! calculate weights for tetrahedron method
@@ -115,7 +120,11 @@ Subroutine xsmain (plan)
          Case (401)
      ! generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
      ! for screening and BSE(-kernel)
-            Call scrgeneigvec
+           if(input%xs%bse%beyond) then 
+             call b_xsgeneigveclauncher
+           else
+             Call scrgeneigvec
+           end if
          Case (410)
 #ifdef TETRA         
      ! calculate weights for tetrahedron method (screening)
@@ -131,7 +140,11 @@ Subroutine xsmain (plan)
             Call scrwritepmat
          Case (430)
      ! RPA screening
-            Call screen
+            if(input%xs%bse%beyond) then 
+              call b_screenlauncher
+            else
+              Call screen
+            end if
          Case (440)
      ! screened Coulomb interaction
             if (input%xs%BSE%xas) then

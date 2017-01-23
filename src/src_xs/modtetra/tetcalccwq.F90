@@ -60,8 +60,9 @@ Subroutine tetcalccwq (iq)
         & procs=procs, filnam=filnamt)
       End If
   ! find highest (partially) occupied and lowest (partially) unoccupied states
-      Call findocclims (iq, istocc0, istocc, istunocc0, istunocc, &
-     & isto0, isto, istu0, istu)
+      call findocclims(iq, ikmapikq(:,iq), istocc0, istunocc0, isto0, isto, istu0, istu)
+      istunocc = istunocc0
+      istocc = istocc0
   ! find band combinations
       Call ematbdcmbs (input%xs%emattype)
   ! allocate arrays

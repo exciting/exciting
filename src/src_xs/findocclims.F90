@@ -5,14 +5,14 @@
 !BOP
 ! !ROUTINE: findocclims
 ! !INTERFACE:
-subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
+subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, iu)
 ! !USES:
   use mod_constants, only: h2ev
   use mod_kpoint, only: nkpt, vkl
   use mod_eigenvalue_occupancy, only: nstsv, occsv, evalsv, occmax,&
                                     & efermi
   use modinput, only: input
-  use modxs, only: evalsv0, ikmapikq, occsv0, evlmin,&
+  use modxs, only: evalsv0, occsv0, evlmin,&
                  & evlmax, evlmincut, evlmaxcut, evlhpo,&
                  & evllpu, ksgap, ksgapval, qgap, nstocc0,&
                  & vkl0, nstunocc0, unitout
@@ -20,13 +20,13 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
 ! !INPUT/OUTPUT PARAMETERS:
 ! IN:
 ! integer :: iq ! q-point index 
+! integer :: ikiq2ikp(nkpt) ! Index mapping from (ik,iq)-->ikp 
 ! OUT:
-! integer :: iocc0     ! Highest (partially) occupied state over all k-points
-! integer :: iunocc0   ! Lowest (partially) unoccupied state over all k-points
+! integer :: iocc_common   ! Highest (partially) occupied state over all k-points and k+q-points
+! integer :: iunocc_common ! Lowest (partially) unoccupied state over all k-points and k+q-ponts
 ! integer :: io0(nkpt) ! Highest (partially) occupied state for each k-point
 ! integer :: iu0(nkpt) ! Lowest (partially) unoccupied state for each k-point
-! integer :: iocc, iunocc, io(nkpt), iu(nkpt) ! Same as above, but for k+q
-! !NOTE: iocc=iocc0=max(iocc0,iocc) and iunocc0=iunocc=min(iunocc0,inunocc) was set! 
+! integer :: io(nkpt), iu(nkpt) ! Same as above, but for k+q
 ! INDIRECT OUT:
 ! integer :: modxs:nstocc0 = iocc0
 ! integer :: modxs:nstunocc0 = nstsv - iocc0
@@ -48,21 +48,25 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
 !   Added some more description. (Aurich)
 !   Added calculation of minimal (indirect) gap. (Aurich)
 !   Added calculation of minimal gap for iq. (Aurich)
+!   Change input output. (Aurich)
 !EOP
 !BOC
-
-!NOTE: iunocc is always set to iunocc0 (lowest unoccupied state over all k points)
 
   implicit none
 
   ! Arguments
   integer, intent(in) :: iq
-  integer, intent(out) :: iocc0, iocc, iunocc0, iunocc
+  integer, intent(in) :: ikiq2ikp(nkpt)
+  integer, intent(out) :: iocc_common, iunocc_common
   integer, intent(out) :: io0(nkpt), io(nkpt), iu0(nkpt), iu(nkpt)
 
   ! Local variables
+  integer :: iocc0, iocc, iunocc0, iunocc
   integer :: ik, ikq, i0, i
   logical :: t
+
+  write(*,*)
+  write(*,*) "findocclims here"
 
   t = allocated(evalsv0)
   if( .not. t) allocate(evalsv0(nstsv, nkpt))
@@ -76,8 +80,9 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
 
     ! k+q-point set
     ikq = ik
-    ! NOTE: ikmapikq has no iq=0 index, input of iq=0 means just ikq=ik
-    if(iq .ne. 0) ikq = ikmapikq(ik, iq)
+    if(iq .ne. 0) ikq = ikiq2ikp(ik)
+
+    write(*,*) "ik, ik'", ik, ikq
 
     ! Get occupancies and eigenvalues form EVECSV and EVALSV 
     ! files that have file extensions that was set before calling
@@ -170,27 +175,29 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   iunocc = minval(iu)
 
   ! Calculate minimal q-gap (only reasonalble if system has a gap)
-  qgap = minval(evalsv(iunocc, :) - evalsv0(iocc0, :))
+  if(iq /= 0) then 
+    qgap = minval(evalsv(iunocc, ikiq2ikp(:)) - evalsv0(iocc0, :))
+  else
+    qgap = minval(evalsv(iunocc, :) - evalsv0(iocc0, :))
+  end if
 
   ! The maximum/minimum value is used since a shifted (k+q)-mesh which is not
   ! commensurate can cause partially occupied states that are absent for the
   ! k-mesh
-  iocc0 = max(iocc0, iocc)
-  iocc = iocc0
-  iunocc0 = min(iunocc0, iunocc)
-  iunocc = iunocc0
+  iocc_common = max(iocc0, iocc)
+  iunocc_common = min(iunocc0, iunocc)
 
   ! Determine if system has a gap in energy
   if(iq .ne. 0) then
     ! Highest (partially) occupied state energy
-    evlhpo = max(maxval(evalsv(iocc0, :)), maxval(evalsv0(iocc0, :)))
+    evlhpo = max(maxval(evalsv(iocc_common, :)), maxval(evalsv0(iocc_common, :)))
     ! Lowest (partially) unoccupied state energy
-    evllpu = min(minval(evalsv(iunocc0, :)), minval(evalsv0(iunocc0, :)))
+    evllpu = min(minval(evalsv(iunocc_common, :)), minval(evalsv0(iunocc_common, :)))
   else
     ! Highest (partially) occupied state energy
-    evlhpo = maxval(evalsv(iocc0, :))
+    evlhpo = maxval(evalsv(iocc_common, :))
     ! Lowest (partially) unoccupied state energy
-    evllpu = minval(evalsv(iunocc0, :))
+    evllpu = minval(evalsv(iunocc_common, :))
   end if
 
   ! Determine if system has a gap in energy
@@ -204,10 +211,10 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   end if
 
   ! Assign nstocc0 and nstunocc0
-  nstocc0 = iocc0
+  nstocc0 = iocc_common
   nstunocc0 = nstsv - nstocc0
-!!! iocc = iocc0 and iunocc = iunocc0 was set above !
-  if((iocc0 .ge. iunocc) .or. (iocc .ge. iunocc0)) then
+
+  if(iocc_common .ge. iunocc_common) then
     write(unitout, '(a)') 'Info(findocclims): Partially occupied states present'
   end if
   if(ksgap) then
@@ -225,8 +232,8 @@ subroutine findocclims(iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, iu)
   ! Debug output
   if(input%xs%dbglev .gt. 0) then
     write(*, '(a)') 'Debug(findocclims):'
-    write(*, '(a)') ' iocc0, iocc, iunocc0, iunocc below:'
-    write(*, '(4i8)') iocc0, iocc, iunocc0, iunocc
+    write(*, '(a)') ' iocc0, iocc, iunocc0, iunocc, iocc_common, iunocc_common below:'
+    write(*, '(4i8)') iocc0, iocc, iunocc0, iunocc, iocc_common, iunocc_common
     write(*, '(a)') ' ik, io0, iu, diff, io, iu0, diff below:'
     do ik = 1, nkpt
        write(*, '(7i8)') ik, io0(ik), iu(ik), iu(ik) - io0(ik),&

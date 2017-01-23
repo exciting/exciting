@@ -72,8 +72,9 @@ Subroutine kernxc_bse3
       Call findgntn0 (Max(input%xs%lmaxapwwf, lolmax), &
      & Max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
       Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
-      Call findocclims (0, istocc0, istocc, istunocc0, istunocc, isto0, &
-     & isto, istu0, istu)
+      call findocclims(0, ikmapikq(:,1), istocc0, istunocc0, isto0, isto, istu0, istu)
+      istunocc = istunocc0
+      istocc = istocc0
       Call ematbdcmbs (input%xs%emattype)
       Allocate (w(nwdf))
       Call genwgrid (nwdf, input%xs%energywindow%intv, &

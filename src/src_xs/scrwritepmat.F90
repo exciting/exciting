@@ -7,11 +7,13 @@ subroutine scrwritepmat
   use modxs, only: unitout
   use m_genfilname
 
-  call genfilname(dotext='_SCR.OUT', setfilext=.true.)
+  integer(4), parameter :: iqmtgamma = 1
+
+  call genfilname(iqmt=iqmtgamma, scrtype='', setfilext=.true.)
 
   ! Calculate momentum matrix elements
   call writepmatxs
 
   write(unitout, '("Info(scrwritepmat):&
-    & momentum matrix elements for screening finished")')
+    & Momentum matrix elements for screening finished")')
 end subroutine scrwritepmat

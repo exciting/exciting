@@ -74,6 +74,8 @@ Subroutine getoccsv (vpl, occsvp)
       Inquire (IoLength=Recl) vkl_, nstsv_, occsvp
 #endif
       filetag = trim (filetag_occsv)
+!write(*,*) "getoccsv: Reading from ", outfilenamestring(filetag, ik) 
+
       Do i = 1, 100
          Inquire (File=outfilenamestring(filetag, ik), Exist=Exist)
          If (exist) Then

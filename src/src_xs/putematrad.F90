@@ -3,9 +3,10 @@
 ! See the file COPYING for license details.
 !
 subroutine putematrad(iqr, iq)
-  use modxs, only: riaa, riloa, rilolo
+  use modxs, only: riaa, riloa, rilolo, ematraddir
   use m_genfilname
   use m_getunit
+  use modinput
 
   implicit none
 
@@ -17,7 +18,12 @@ subroutine putematrad(iqr, iq)
   integer :: un
 
   ! Calculate radial integrals
-  call genfilname(basename='EMATRAD', iq=iqr, filnam=fname)
+  if(input%xs%bse%beyond) then 
+    call genfilname(basename=trim(adjustl(ematraddir))//'/'//'EMATRAD',&
+      & iq=iqr, appfilext=.true., filnam=fname)
+  else
+    call genfilname(basename='EMATRAD', iq=iqr, filnam=fname)
+  end if
   call ematrad(iq)
   call getunit(un)
 

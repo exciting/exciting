@@ -14,6 +14,6 @@ subroutine scrgeneigvec
   ! Generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
   call xsgeneigvec
 
-  write(unitout, '("Info(scrgeneigvec): eigenvectors for screening finished")')
+  write(unitout, '("Info(scrgeneigvec): Eigenvectors for screening finished")')
 
 end subroutine scrgeneigvec

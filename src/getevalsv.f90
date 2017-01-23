@@ -81,6 +81,7 @@ subroutine getevalsv(vpl, evalsvp)
 
   ! mod_names:filetag_evalsv is 'EVALSV'
   filetag = trim(filetag_evalsv)
+!write(*,*) "getevalsv: Reading from ", outfilenamestring(filetag, ik) 
 
   ! Try to open 'EVALSV(<krange>)<modmisc:filext>' 
   ! (krange applies only for specific task in mpi mode)

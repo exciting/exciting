@@ -17,7 +17,7 @@ Contains
       Subroutine genfilname (nodotpar, basename, etype, asc, bzsampl, &
      & acont, nar, tord, nlf, fxctype, fxctypestr, scrtype, bsetype, markfxcbse, &
      & tq0, oc1, oc2, iq, iqmt, procs, rank, dotext, setfilext, &
-     & revertfilext, appfilext, filnam, fileext)
+     & revertfilext, appfilext, filnam, fileext, auxtype)
 ! !USES:
          use modmpi, only: terminate
          Use modmain, Only: filext
@@ -42,7 +42,7 @@ Contains
          Logical, Optional, Intent (In) :: revertfilext, setfilext, &
         & appfilext
          Character (*), Optional, Intent (In) :: basename, dotext, fxctypestr, &
-        & scrtype, bsetype
+        & scrtype, bsetype, auxtype
          Character (256), Optional, Intent (Out) :: filnam, fileext
     ! local variables
          Logical :: nodot0, revert, setfxt, appfxt, dotxt, oct, lnar
@@ -178,6 +178,11 @@ Contains
     ! q-point
          If (present(iq)) Then
             Write (s1, '("_Q",i5.5)') iq
+            s = trim (s) // trim (s1)
+         End If
+    ! auxilliary name 
+         If (present(auxtype)) Then  
+            Write (s1, '("_",a)') trim (adjustl(auxtype))
             s = trim (s) // trim (s1)
          End If
     ! parallelization

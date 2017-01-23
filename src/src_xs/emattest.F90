@@ -41,8 +41,9 @@ Subroutine emattest
       Call genfilname (iqmt=iq, setfilext=.True.)
   ! calculate k+q and G+k+q related variables
       Call init1offs (vql(1, iq))
-      Call findocclims (iq, istocc0, istocc, istunocc0, istunocc, &
-     & isto0, isto, istu0, istu)
+      call findocclims(iq, ikmapikq(:,iq), istocc0, istunocc0, isto0, isto, istu0, istu)
+      istunocc = istunocc0
+      istocc = istocc0
   ! allocate arrays
       If (allocated(deou)) deallocate (deou)
       If (allocated(deuo)) deallocate (deuo)

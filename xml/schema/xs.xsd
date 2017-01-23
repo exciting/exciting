@@ -754,6 +754,13 @@
                   (1999) 477.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="iqmt" type="xs:integer"
+              default="1">
+              <xs:annotation>
+                <xs:documentation>For which point in the q-point list should the BSE
+                  Matrix be constructed.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nexc" type="xs:integer"
               default="-1">
               <xs:annotation>

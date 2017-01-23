@@ -21,14 +21,15 @@ subroutine b_scrcoulintlauncher
 
   implicit none
 
-  logical :: fra, fti
-  integer(4) :: iqmt
+  logical :: fcoup, fti
+  integer(4) :: iqmt, iqmti, iqmtf
+  real(8) :: vqmt(3)
 
   ! Also calculate coupling blocks
   if(input%xs%bse%coupling == .true.) then 
-    fra = .true.
+    fcoup = .true.
   else
-    fra = .false.
+    fcoup = .false.
   end if
 
   ! Use time inverted anti-resonant basis
@@ -38,31 +39,61 @@ subroutine b_scrcoulintlauncher
     fti = .false.
   end if
 
-  ! Note: Only iqmt=0 is supported currently
-  iqmt = 0
+  ! Testing 
+  iqmti = 1
+  iqmtf = size(input%xs%qpointset%qpoint, 2)
 
-  ! RR block
-  if(mpiglobal%rank == 0) then
-    write(unitout, '("Info(b_scrcoulintlauncer):&
-      & Calculating RR block of W for qmt=0")')
-  end if
-  ! b_scrcoulint(iqmt, fra=.false., fti=.false.)
-  call b_scrcoulint(iqmt, .false., .false.)
-  call barrier(mpiglobal)
+  do iqmt = iqmti, iqmtf
 
-  ! RA block
-  if(fra) then 
+    vqmt(:) = input%xs%qpointset%qpoint(:, iqmt)
+
     if(mpiglobal%rank == 0) then
-      write(unitout, '("Info(b_scrcoulintlauncer):&
-        & Calculating RA block of W for qmt=0")')
-      if(fti) then
-        write(unitout, '("Info(b_scrcoulintlauncer):&
-          & Using time inverted anti-resonant basis")')
-      end if
+      write(unitout, *)
+      call printline(unitout, "+")
+      write(unitout, '("Info(b_scrcoulintlauncher):", a)')&
+        & " Calculating screened Coulomb interaction matrix W"
+      write(unitout, '("Info(b_scrcoulintlauncher):", a, i3)')&
+        & " Momentum tranfer list index: iqmt=", iqmt
+      write(unitout, '("Info(b_scrcoulintlauncher):", a, 3f8.3)')&
+        & " Momentum tranfer: vqmtl=", vqmt(1:3)
+      call printline(unitout, "+")
+      write(unitout,*)
     end if
-    call b_scrcoulint(iqmt, .true., fti)
+
+    ! RR block
+    if(mpiglobal%rank == 0) then
+      write(unitout, '("Info(b_scrcoulintlauncher):&
+        & Calculating RR block of W")')
+      write(unitout,*)
+    end if
+    ! b_scrcoulint(iqmt, fra=.false., fti=.false.)
+    call b_scrcoulint(iqmt, .false., .false.)
     call barrier(mpiglobal)
-  end if
+
+    ! RA block
+    if(fcoup) then 
+      if(mpiglobal%rank == 0) then
+        call printline(unitout, "-")
+        write(unitout, '("Info(b_scrcoulintlauncher):&
+          & Calculating RA block of W")')
+        if(fti) then
+          write(unitout, '("Info(b_scrcoulintlauncher):&
+            & Using time inverted anti-resonant basis")')
+        end if
+        write(unitout,*)
+      end if
+      call b_scrcoulint(iqmt, .true., fti)
+      call barrier(mpiglobal)
+    end if
+
+    if(mpiglobal%rank == 0) then
+      call printline(unitout, "+")
+      write(unitout, '("Info(b_scrcoulintlauncher): Screened coulomb interaction&
+        & finished for iqmt=",i4)') iqmt
+      call printline(unitout, "+")
+    end if
+
+  end do
 
 end subroutine b_scrcoulintlauncher
 !EOC

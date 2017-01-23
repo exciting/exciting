@@ -3,7 +3,7 @@ module m_putgeteps0
   use modinput, only: input
   ! Where to find the q point information
   use mod_qpoint, only: nqpt, vql, ivq
-  use modxs, only: ngq, nqptr, vqlr, ivqr, ngqr, nwdf
+  use modxs, only: ngq, nqptr, vqlr, ivqr, ngqr, nwdf, eps0dirname
   ! I/O modules
   use m_getunit
   use m_genfilname
@@ -17,7 +17,7 @@ module m_putgeteps0
     !BOP
     ! !ROUTINE: puteps0
     ! !INTERFACE:
-    subroutine puteps0(reduced, iq, iw, w, eps0, eps0wg, eps0hd)
+    subroutine puteps0(reduced, iq, iw, w, eps0, eps0wg, eps0hd, fname)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! logical :: reduced          ! q-point from reduced set
@@ -51,6 +51,7 @@ module m_putgeteps0
       real(8), intent(in) :: w
       complex(8), intent(in) :: eps0(:, :)
       complex(8), intent(in), optional :: eps0wg(:,:,:), eps0hd(:,:)
+      character(*), intent(in), optional :: fname
 
       ! Local variables
       character(*), parameter :: thisnam = 'puteps0'
@@ -83,7 +84,11 @@ module m_putgeteps0
       end if
 
       ! Generate q dependend file name
-      call genfilname(basename='EPS0', iq=iq, filnam=filename)
+      if(present(fname)) then 
+        filename=trim(adjustl(fname))
+      else
+        call genfilname(basename='EPS0', iq=iq, filnam=filename)
+      end if
       call getunit(un)
 
       if(tq0) then
@@ -174,7 +179,7 @@ module m_putgeteps0
     !BOP
     ! !ROUTINE: geteps0
     ! !INTERFACE:
-    subroutine geteps0(reduced, iq, iw, w, eps0, eps0wg, eps0hd)
+    subroutine geteps0(reduced, iq, iw, w, eps0, eps0wg, eps0hd, fname)
     ! !USES:
       use m_getunit
     ! !INPUT/OUTPUT PARAMETERS:
@@ -210,6 +215,7 @@ module m_putgeteps0
       real(8), intent(in) :: w
       complex(8), intent(out) :: eps0(:,:)
       complex(8), intent(out), optional :: eps0wg(:,:,:), eps0hd(:,:)
+      character(*), intent(in), optional :: fname
 
       ! Local variables
       character(*), parameter :: thisnam = 'geteps0'
@@ -222,7 +228,11 @@ module m_putgeteps0
       real(8), pointer :: vql_p(:,:)
 
       ! Generate q dependend file name
-      call genfilname(basename='EPS0', iq=iq, filnam=filename)
+      if(present(fname)) then 
+        filename=trim(adjustl(fname))
+      else
+        call genfilname(basename='EPS0', iq=iq, filnam=filename)
+      end if
       call getunit(un)
 
       ! Check if file exists

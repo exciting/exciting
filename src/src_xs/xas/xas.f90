@@ -152,8 +152,10 @@ Subroutine xas
       nrnst4 = sto2-sta2+1 
   ! use eigenvector files from screening-calculation
       Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
-      Call findocclims (iqmt, istocc0, istocc, istunocc0, istunocc, &
-     & isto0, isto, istu0, istu)
+      Call findocclims (iqmt, ikmapikq(:,1), istocc0, istunocc0, isto0, &
+     & isto, istu0, istu)
+      istunocc = istunocc0
+      istocc = istocc0
       input%xs%emattype = 2
       Call ematbdcmbs (input%xs%emattype)
       Write (unitout,*)

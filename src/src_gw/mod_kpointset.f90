@@ -128,13 +128,46 @@ MODULE mod_kpointset
         type(k_set) :: kset
         ! k+qmt-points
         type(k_set) :: kqmtset
-        ! Index mapping between k-grid and k+qmt-grid
+
+        !! Index mapping between k-grid and k+qmt-grid
+        ! ik --> ik'+ig, where ik' is ik+qmt mapped back to unit cell
+        ! and ig the index of the corresponding G vector
+
+        ! Reduced
+        !   ik --> ik'
         integer(4), allocatable :: ik2ikqmt(:)
+        !   ik --> ig
+        integer(4), allocatable :: ik2ig(:)
+        !   ik' --> ik
         integer(4), allocatable :: ikqmt2ik(:)
+
+        ! Non-reduced
+        !   ik --> ik'
         integer(4), allocatable :: ik2ikqmt_nr(:)
+        !   ik --> ig
+        integer(4), allocatable :: ik2ig_nr(:)
+        !   ik' --> ik
         integer(4), allocatable :: ikqmt2ik_nr(:)
+
     end type kkqmt_set
 
+!-------------------------------------------------------------------------------    
+    type km_set
+
+      ! The k-grid build by inverting the input k-grid
+      ! and mapping the result back to the unit cell.
+      ! It differs form the input grid, if vkloff is non-zero
+      type(k_set) :: kset
+
+      ! Index mapping between k-grid and -k-grid
+      integer(4), allocatable :: ik2ikm(:)
+      integer(4), allocatable :: ikm2ik(:)
+      integer(4), allocatable :: ik2ikm_nr(:)
+      integer(4), allocatable :: ikm2ik_nr(:)
+
+    end type km_set
+
+!-------------------------------------------------------------------------------    
     type q_set
         ! q-grid, i.e. the differece vectors k'-k
         type(k_set) :: qset
@@ -157,6 +190,23 @@ MODULE mod_kpointset
         integer(4), allocatable :: ikkp_qordered(:)
 
     end type q_set
+
+    type p_set
+        ! q-grid, i.e. the negative sum vectors -(k'+k) mapped back to 
+        ! the unit cell
+        type(k_set) :: pset
+
+        ! Non-reduced maps from -(k'+k) combinations to p grid
+        ! -(k'+k) = p + G, where k',k and p are in [0,1) unit cell
+        ! iknr',iknr --> ipnr + ig
+        integer(4), allocatable :: ikikp2ip_nr(:,:)
+        integer(4), allocatable :: ikikp2ig_nr(:,:)
+
+        ! 1d index mapping  ikkpnr --> ipnr + ig for iknr' >= iknr
+        integer(4), allocatable :: ikkp2ip_nr(:)
+        integer(4), allocatable :: ikkp2ig_nr(:)
+
+    end type p_set
 
     ! internal routine, should not be visible outside
     private  rtorat
@@ -662,10 +712,13 @@ CONTAINS
         ! Map (igk,ik,ispin) --> ig
         allocate(igk2ig(gset%ngrtot,kset%nkpt,nspnfv))
         igk2ig(:,:,:) = 0
+        allocate(ig2igk(gset%ngrtot,kset%nkpt,nspnfv))
+        ig2igk(:,:,:) = 0
         
         ! Determine the number of G+k combinations which satisfy |G+k|<gkmax
         if (allocated(self%ngk)) deallocate(self%ngk)
         allocate(self%ngk(nspnfv,kset%nkpt))
+        igmax = 0
         do ispn = 1, nspnfv
           do ik = 1, kset%nkpt
             igp = 0
@@ -675,6 +728,8 @@ CONTAINS
               if (t1 < gkmax .or. fg0 .and. ig == 1) then
                 igp = igp+1
                 igk2ig(igp,ik,ispn) = ig
+                ig2igk(ig,ik,ispn) = igp
+                igmax = max(igmax,ig)
               end if
             end do ! ig
             self%ngk(ispn,ik) = igp
@@ -689,6 +744,12 @@ CONTAINS
         end if
         
         ! generate G+k data set
+
+        ! Map (ig, ispin, ik) --> igk
+        if (allocated(self%igigk)) deallocate(self%igigk)
+        allocate(self%igigknr(igmax,kset%nkpt,nspnfv))
+        self%igigk(:,:,:) = ig2igk(1:igmax,:,:)
+        deallocate(ig2igk)
 
         ! Map (igk, ispin, ik) --> ig
         if (allocated(self%igkig)) deallocate(self%igkig)
@@ -855,6 +916,7 @@ CONTAINS
 
         if (allocated(self%ngk)) deallocate(self%ngk)
         if (allocated(self%igkig)) deallocate(self%igkig)
+        if (allocated(self%igigk)) deallocate(self%igigk)
         if (allocated(self%vgkl)) deallocate(self%vgkl)
         if (allocated(self%vgkc)) deallocate(self%vgkc)
         if (allocated(self%gkc)) deallocate(self%gkc)
@@ -879,6 +941,7 @@ CONTAINS
         integer,      intent(IN) :: funit
         integer :: igp
         call boxmsg(funit,'-','G+k-vectors (reduced k)')
+        write(funit,*) 'G+k cutoff gkmax : < gkmax >', self%gkmax
         write(funit,*) 'Maximal number of G+k-vectors over all k: < ngkmax >', self%ngkmax
         write(funit,*) 'List of G+k-vectors for k-point:', ik
         write(funit,*) ' * Number of G+k combinations: < ngk >', self%ngk(1,ik)
@@ -900,6 +963,7 @@ CONTAINS
         integer,      intent(IN) :: funit
         integer :: igp, ig
         call boxmsg(funit,'-','G+k-vectors (non-reduced k)')
+        write(funit,*) 'G+k cutoff gkmax : < gkmax >', self%gkmax
         write(funit,*) 'Maximal number of G+k-vectors over all k: < ngknrmax >', self%ngknrmax
         write(funit,*) 'List of G+k-vectors for k-point:', iknr
         write(funit,*) ' * Number of G+k combinations: < ngknr >', self%ngknr(1,iknr)
@@ -1239,8 +1303,9 @@ CONTAINS
     end subroutine print_kq_vectors
 
 !-------------------------------------------------------------------------------
-    subroutine generate_kkqmt_vectors(self,bvec,ngridk,vkloff,reduce,veclqmt,uselibzint)
+    subroutine generate_kkqmt_vectors(self,gset,bvec,ngridk,vkloff,reduce,veclqmt,uselibzint)
         type(kkqmt_set), intent(OUT) :: self
+        type(g_set), intent(in) :: gset
         real(8), intent(IN) :: bvec(3,3)
         integer, intent(IN) :: ngridk(3)
         real(8), intent(IN) :: vkloff(3)
@@ -1263,18 +1328,15 @@ CONTAINS
           uselz = .false.
         end if
 
+        ! Clear self
+        call delete_kkqmt_vectors(self)
+
         ! Save Q to type
-        if(allocated(self%vqmtl)) deallocate(self%vqmtl)
         allocate(self%vqmtl(3))
-        if(allocated(self%vqmtc)) deallocate(self%vqmtc)
         allocate(self%vqmtc(3))
-        if(allocated(self%vqmtl_q)) deallocate(self%vqmtl_q)
         allocate(self%vqmtl_q(3))
-        if(allocated(self%vqmtc_q)) deallocate(self%vqmtc_q)
         allocate(self%vqmtc_q(3))
-        if(allocated(self%vqmtl_g)) deallocate(self%vqmtl_g)
         allocate(self%vqmtl_g(3))
-        if(allocated(self%vqmtc_g)) deallocate(self%vqmtc_g)
         allocate(self%vqmtc_g(3))
 
         self%vqmtl = veclqmt
@@ -1304,7 +1366,7 @@ CONTAINS
           call r3frac(epslat, v1, iv)
           ! v1 in k-grid coordinates
           vkloff_kqmt = v1*ngridk
-          ! Get correspondig vector in first k-parallelepiped
+          ! Get corresponding vector in first k-parallelepiped
           ! (The components of vkloff should be in [0,1) )
           if(any(vkloff_kqmt .ge. 1.d0)) then
             call r3frac(epslat, vkloff_kqmt, iv)
@@ -1325,36 +1387,37 @@ CONTAINS
         ! Generate map between non reduced k and  non reduced k+qmt set
 
         ! Build map iknr --> ikqnr
-        if(allocated(self%ik2ikqmt_nr)) deallocate(self%ik2ikqmt_nr)
         allocate(self%ik2ikqmt_nr(self%kset%nkptnr))
+        allocate(self%ik2ig_nr(self%kset%nkptnr))
         do ik = 1, self%kset%nkptnr
-           ! Build k+qmt vector from k grid
-           v1 = self%kset%vklnr(:, ik) + self%vqmtl_q
-           ! Map back to [0,1) if needed
-           call r3frac(epslat, v1, iv)
-           ! Get corresponding non-reduced 3d index of k+qmt grid
-           iv = nint(v1*self%kqmtset%ngridk-self%kqmtset%vkloff)
-           ! Get non-reduced 1d index form 3d index
-           idxnr = self%kqmtset%ikmapnr(iv(1), iv(2), iv(3))
-           ! Write map 
-           self%ik2ikqmt_nr(ik) = idxnr
+          ! Build k+qmt vector from k grid
+          v1 = self%kset%vklnr(:, ik) + self%vqmtl_q
+          ! Map back to [0,1) if needed
+          call r3frac(epslat, v1, iv)
+          ! Save index of G shift 
+          self%ik2ig_nr(ik) = gset%ivgig(iv(1),iv(2),iv(3))
+          ! Get corresponding non-reduced 3d index of k+qmt grid
+          iv = nint(v1*self%kqmtset%ngridk-self%kqmtset%vkloff)
+          ! Get non-reduced 1d index form 3d index
+          idxnr = self%kqmtset%ikmapnr(iv(1), iv(2), iv(3))
+          ! Write map 
+          self%ik2ikqmt_nr(ik) = idxnr
         end do
 
         ! Build map ikqnr --> iknr
-        if(allocated(self%ikqmt2ik_nr)) deallocate(self%ikqmt2ik_nr)
         allocate(self%ikqmt2ik_nr(self%kqmtset%nkptnr))
         call sortidx(self%kqmtset%nkptnr, dble(self%ik2ikqmt_nr),self%ikqmt2ik_nr)
 
         ! Build map ik --> ikq
-        if(allocated(self%ik2ikqmt)) deallocate(self%ik2ikqmt)
         allocate(self%ik2ikqmt(self%kset%nkpt))
+        allocate(self%ik2ig(self%kset%nkpt))
         do ik = 1, self%kset%nkpt
           self%ik2ikqmt(ik) = &
             & self%kqmtset%ik2ikp( self%ik2ikqmt_nr( self%kset%ikp2ik(ik) ) )
+          self%ik2ig(ik) = self%ik2ig_nr( self%kset%ikp2ik(ik) ) 
         end do
 
         ! Build map ikq --> ik 
-        if(allocated(self%ikqmt2ik)) deallocate(self%ikqmt2ik)
         allocate(self%ikqmt2ik(self%kqmtset%nkpt))
         do ik = 1, self%kqmtset%nkpt
           self%ikqmt2ik(ik) = &
@@ -1375,22 +1438,25 @@ CONTAINS
         if(allocated(self%vqmtl_g)) deallocate(self%vqmtl_g)
         if(allocated(self%vqmtc_g)) deallocate(self%vqmtc_g)
         if(allocated(self%ik2ikqmt)) deallocate(self%ik2ikqmt)
+        if(allocated(self%ik2ig)) deallocate(self%ik2ig)
         if(allocated(self%ikqmt2ik)) deallocate(self%ikqmt2ik)
         if(allocated(self%ik2ikqmt_nr)) deallocate(self%ik2ikqmt_nr)
+        if(allocated(self%ik2ig_nr)) deallocate(self%ik2ig_nr)
         if(allocated(self%ikqmt2ik_nr)) deallocate(self%ikqmt2ik_nr)
     end subroutine delete_kkqmt_vectors
 !-------------------------------------------------------------------------------
 
-    subroutine print_kkqmt_vectors(self,funit)
+    subroutine print_kkqmt_vectors(self,gset,funit)
         implicit none
         type(kkqmt_set), intent(IN) :: self
+        type(g_set), intent(IN) :: gset
         integer, intent(IN) :: funit
         integer :: ik, i, j
 
         call boxmsg(funit,'-','k set')
         call print_k_vectors(self%kset,funit)
 
-        call boxmsg(funit,'-','Momentum tranfer vector')
+        call boxmsg(funit,'-','Momentum transfer vector')
         write(funit,*) 'Momentum tranfer vector in lattice coordinates < vqmtl >'
         write(funit,100) (self%vqmtl(i), i=1,3)
         write(funit,*) 'Lattice vector component of momentum tranfer vector < vqmtl_g >'
@@ -1403,19 +1469,27 @@ CONTAINS
         call boxmsg(funit,'-','k+qmt set')
         call print_k_vectors(self%kqmtset, funit)
 
-        call boxmsg(funit,'-','Mapps non-reduced')
-        write(funit,*) 'Mapping from k to k+qmt grid: < ik2ikqmt_nr >'
-        write(funit,*) 'Mapping from k+qmt to k grid: < ikqmt2ik_nr >'
-        write(funit,*) '< iknr    ik2ikqmt_nr    ikqmt2ik_nr >'
+        call boxmsg(funit,'-','Maps non-reduced')
+        write(funit,*) 'Mapping from k to k+qmt grid k index: < ik2ikqmt_nr >'
+        write(funit,*) 'Mapping from k to k+qmt grid g index: < ik2ig_nr >'
+        write(funit,*) 'Mapping from k to k+qmt grid g vector: < ivg >'
+        write(funit,*) '< iknr    ik2ikqmt_nr    ik2ig_nr    ivg(ig)>'
         do ik = 1, self%kset%nkptnr
-          write(funit,101) ik, self%ik2ikqmt_nr(ik), self%ikqmt2ik_nr(ik)
+          write(funit,'(6i11)') ik, self%ik2ikqmt_nr(ik),&
+            self%ik2ig_nr(ik), gset%ivg(:,self%ik2ig_nr(ik))
+        end do
+        write(funit,*) 'Mapping from k+qmt to k grid: < ikqmt2ik_nr >'
+        write(funit,*) '< ikqmt    ikqmt2ik_nr >'
+        do ik = 1, self%kqmtset%nkptnr
+          write(funit,'(2i11)') ik, self%ikqmt2ik_nr(ik)
         end do
 
-        call boxmsg(funit,'-','Mapps reduced')
-        write(funit,*) 'Mapping from k to k+qmt grid: < ik2ikqmt >'
-        write(funit,*) '< ik    ik2ikqmt >'
+        call boxmsg(funit,'-','Maps reduced')
+        write(funit,*) 'Mapping from k to k+qmt grid k index: < ik2ikqmt >'
+        write(funit,*) 'Mapping from k to k+qmt grid g index: < ik2ig >'
+        write(funit,*) '< ik    ik2ikqmt    ik2ig>'
         do ik = 1, self%kset%nkpt
-          write(funit,'(2i11)') ik, self%ik2ikqmt(ik)
+          write(funit,'(3i11)') ik, self%ik2ikqmt(ik), self%ik2ig(ik)
         end do
         write(funit,*) 'Mapping from k+qmt to k grid: < ikqmt2ik >'
         write(funit,*) '< ikqmt    ikqmt2ik >'
@@ -1428,6 +1502,141 @@ CONTAINS
     end subroutine print_kkqmt_vectors
 
 !-------------------------------------------------------------------------------
+
+    subroutine generate_km_vectors(self,kset)
+        type(km_set), intent(OUT) :: self
+        type(k_set), intent(IN) :: kset
+
+        real(8), parameter :: epslat=1.d-6
+        real(8) :: v1(3), vkloff_km(3)
+        integer :: iv(3), idxnr, idxr, ik
+
+        ! Clear self
+        call delete_km_vectors(self)
+
+        ! Derive -k-grid offset form k-grid offset
+        ! vkloff: Offset vector in coordinates "k-grid coordinates {b_i/N_i}"
+        !   --> vkloff/ngridk: Offset vector in b_i coordinates
+        ! ngridk: The N_i's 
+
+        ! Map -vkloff in lattice coordinates back to [0,1]
+        v1 = -kset%vkloff/kset%ngridk 
+        call r3frac(epslat, v1, iv)
+
+        ! Check origin of shifted k-grid
+        !   Shifted k-grid origin vector is outside [0,1) unit cell
+        if(any(v1 .ge. 1.d0)) then
+          ! Replace v1 with corresponding vector in unit cell
+          ! and discard shifting G vector
+          call r3frac(epslat, v1, iv)
+          ! v1 in k-grid coordinates
+          vkloff_km = v1*kset%ngridk
+          ! Get corresponding vector in first k-parallelepiped
+          ! (The components of vkloff should be in [0,1) )
+          if(any(vkloff_km .ge. 1.d0)) then
+            call r3frac(epslat, vkloff_km, iv)
+          end if
+        !   Shifted k-grid origin vector is inside [0,1) unit cell
+        !   but not within first k-parallelepiped
+        else if(any(v1*kset%ngridk .ge. 1.d0)) then
+          vkloff_km = v1*kset%ngridk
+          call r3frac(epslat, vkloff_km, iv)
+        !   Shifted k-grid origin vector is inside first k-parallelepiped 
+        else
+          vkloff_km = v1*kset%ngridk
+        end if
+
+        ! Generate -k-set
+        call generate_k_vectors(self%kset, kset%bvec, kset%ngridk,&
+          & vkloff_km, kset%isreduced, uselibzint=kset%usedlibzint)
+
+        ! Generate map between non reduced k and  non reduced -k set
+
+        ! Build map iknr --> ikmnr
+        allocate(self%ik2ikm_nr(kset%nkptnr))
+        do ik = 1, kset%nkptnr
+           ! Build -k vector from k grid
+           v1 = -kset%vklnr(:, ik)
+           ! Map back to [0,1)
+           call r3frac(epslat, v1, iv)
+           ! Get corresponding non-reduced 3d index of -k grid
+           iv = nint(v1*self%kset%ngridk-self%kset%vkloff)
+           ! Get non-reduced 1d index form 3d index
+           idxnr = self%kset%ikmapnr(iv(1), iv(2), iv(3))
+           ! Write map 
+           self%ik2ikm_nr(ik) = idxnr
+        end do
+
+        ! Build map ikmnr --> iknr
+        allocate(self%ikm2ik_nr(self%kset%nkptnr))
+        call sortidx(self%kset%nkptnr, dble(self%ik2ikm_nr),self%ikm2ik_nr)
+
+        ! Build map ik --> ikm
+        allocate(self%ik2ikm(kset%nkpt))
+        do ik = 1, kset%nkpt
+          self%ik2ikm(ik) = &
+            & self%kset%ik2ikp( self%ik2ikm_nr( kset%ikp2ik(ik) ) )
+        end do
+
+        ! Build map ikq --> ik 
+        allocate(self%ikm2ik(self%kset%nkpt))
+        do ik = 1, self%kset%nkpt
+          self%ikm2ik(ik) = &
+            & kset%ik2ikp( self%ikm2ik_nr( self%kset%ikp2ik(ik) ) )
+        end do
+
+    end subroutine generate_km_vectors
+
+!-------------------------------------------------------------------------------
+    subroutine delete_km_vectors(self)
+        type(km_set), intent(INOUT) :: self
+        call delete_k_vectors(self%kset)
+        if(allocated(self%ik2ikm)) deallocate(self%ik2ikm)
+        if(allocated(self%ikm2ik)) deallocate(self%ikm2ik)
+        if(allocated(self%ik2ikm_nr)) deallocate(self%ik2ikm_nr)
+        if(allocated(self%ikm2ik_nr)) deallocate(self%ikm2ik_nr)
+    end subroutine delete_km_vectors
+!-------------------------------------------------------------------------------
+
+    subroutine print_km_vectors(self, kset, funit)
+        implicit none
+        type(km_set), intent(IN) :: self
+        type(k_set), intent(IN) :: kset
+        integer, intent(IN) :: funit
+        integer :: ik, i, j
+
+        call boxmsg(funit,'-','k set')
+        call print_k_vectors(kset,funit)
+
+        call boxmsg(funit,'-','-k set')
+        call print_k_vectors(self%kset,funit)
+
+        call boxmsg(funit,'-','Maps non-reduced')
+        write(funit,*) 'Mapping from k to -k grid: < ik2ikm_nr >'
+        write(funit,*) 'Mapping from -k to k grid: < ikm2ik_nr >'
+        write(funit,*) '< iknr    ik2ikm_nr    ikm2ik_nr >'
+        do ik = 1, kset%nkptnr
+          write(funit,101) ik, self%ik2ikm_nr(ik), self%ikm2ik_nr(ik)
+        end do
+        101 format(3i11)
+
+        call boxmsg(funit,'-','Maps reduced')
+        write(funit,*) 'Mapping from k to -k grid: < ik2ikm >'
+        write(funit,*) '< ik    ik2ikm >'
+        do ik = 1, kset%nkpt
+          write(funit,'(2i11)') ik, self%ik2ikm(ik)
+        end do
+        write(funit,*) 'Mapping from -k to k grid: < ikm2ik >'
+        write(funit,*) '< ikm    ikm2ik >'
+        do ik = 1, self%kset%nkpt
+          write(funit,'(2i11)') ik, self%ikm2ik(ik)
+        end do
+
+        return
+
+    end subroutine print_km_vectors
+
+!-------------------------------------------------------------------------------
     subroutine generate_q_vectors(self, kset, kpset, gset, reduceq)
         type(q_set), intent(OUT) :: self
         type(k_set), intent(IN) :: kset
@@ -1435,7 +1644,7 @@ CONTAINS
         type(g_set), intent(IN) :: gset
         logical, intent(IN) :: reduceq
 
-        real(8) :: delta_vkloff(3), vql(3)
+        real(8) :: delta_vkloff(3), vql(3), vkpl(3)
         real(8), parameter :: epslat=1.d-6
         integer(4) :: ivg(3),iv(3), ik, ikp, iq, nkkp, ikkp
 
@@ -1472,10 +1681,6 @@ CONTAINS
         allocate(self%ikikp2iq_nr(kset%nkptnr, kpset%nkptnr))
         allocate(self%ikikp2ig_nr(kset%nkptnr, kpset%nkptnr))
         
-        ! Make index map ik, iq --> ik' + ig for non-reduced points
-        allocate(self%ikiq2ikp_nr(kset%nkptnr, self%qset%nkptnr))
-        allocate(self%ikiq2ig_nr(kset%nkptnr, self%qset%nkptnr))
-
         do ik = 1, kset%nkptnr
           do ikp = 1, kpset%nkptnr
 
@@ -1493,11 +1698,37 @@ CONTAINS
             ! Get non-reduced 1d index form 3d index
             iq = self%qset%ikmapnr(iv(1),iv(2),iv(3))
 
-            ! Save index of -G shift
-            self%ikiq2ig_nr(ik,iq) = gset%ivgig(-ivg(1),-ivg(2),-ivg(3))
-
             ! Write map ik ikp --> iq
             self%ikikp2iq_nr(ik,ikp) = iq
+
+          end do
+        end do
+
+        ! Make index map ik, iq --> ik' + ig for non-reduced points
+        allocate(self%ikiq2ikp_nr(kset%nkptnr, self%qset%nkptnr))
+        allocate(self%ikiq2ig_nr(kset%nkptnr, self%qset%nkptnr))
+
+        do ik = 1, kset%nkptnr
+          do iq = 1, self%qset%nkptnr
+!write(*,*) "q_vec: ik, iq", ik, iq
+!write(*,*) "q_vec: vklnr", kset%vklnr(:,ik)
+!write(*,*) "q_vec: vq", self%qset%vklnr(:,iq)
+            ! Get difference vector q form k' and k
+            vkpl = kset%vklnr(:,ik) + self%qset%vklnr(:,iq)
+            ! Reduce it to [0,1) and shift vector
+            call r3frac(epslat, vkpl, ivg)
+!write(*,*) "q_vec: vkpl", vkpl
+
+            ! Save index of G shift 
+            self%ikiq2ig_nr(ik,iq) = gset%ivgig(ivg(1),ivg(2),ivg(3))
+
+            ! Get corresponding non-reduced 3d index of kp-grid
+            iv = nint(vkpl*kpset%ngridk-kpset%vkloff)
+!write(*,*) "q_vec: iv", iv
+
+            ! Get non-reduced 1d index form 3d index
+            ikp = kpset%ikmapnr(iv(1),iv(2),iv(3))
+!write(*,*) "q_vec: ikp", ikp
 
             ! Write map ik iq --> ikp
             self%ikiq2ikp_nr(ik,iq) = ikp
@@ -1593,16 +1824,16 @@ CONTAINS
               & gset%ivg(:,self%ikikp2ig_nr(ik,ikp))
           end do
         end do
-        write(funit,*)
-        write(funit,*) 'Same mapping but computed with fuction instead of map'
-        write(funit,*) '< iknr   ikpnr    iqnr    ig    ivg(ig) >'
-        do ik = 1, kset%nkptnr
-          do ikp = 1, kpset%nkptnr
-            call ikpik2iqivgnr(.false., ikp, ik,&
-              & kpset%vkloff, kset%vkloff, kset%ngridk, iq, ivg)
-            write(funit,'(7i11)') ik, ikp, iq, gset%ivgig(ivg(1),ivg(2),ivg(3)), ivg
-          end do
-        end do
+        !write(funit,*)
+        !write(funit,*) 'Same mapping but computed with fuction instead of map'
+        !write(funit,*) '< iknr   ikpnr    iqnr    ig    ivg(ig) >'
+        !do ik = 1, kset%nkptnr
+        !  do ikp = 1, kpset%nkptnr
+        !    call ikpik2iqivgnr(.false., ikp, ik,&
+        !      & kpset%vkloff, kset%vkloff, kset%ngridk, iq, ivg)
+        !    write(funit,'(7i11)') ik, ikp, iq, gset%ivgig(ivg(1),ivg(2),ivg(3)), ivg
+        !  end do
+        !end do
 
         call boxmsg(funit,'-','Mapping form k, q grid to kp grid')
         write(funit,*) 'The kp points are k + q mapped back to the unit cell'
@@ -1614,16 +1845,16 @@ CONTAINS
           end do
         end do
 
-        write(funit,*)
-        write(funit,*) 'Same mapping but computed with fuction instead of map'
-        write(funit,*) '< iknr    iqnr    ikqnr    ig    ivg(ig) >'
-        do ik = 1, kset%nkptnr
-          do iq = 1, kpset%nkptnr
-            call ikpik2iqivgnr(.true., ik, iq,&
-              & kset%vkloff, self%qset%vkloff, kset%ngridk, ikp, ivg)
-            write(funit,'(7i11)') ik, iq, ikp, gset%ivgig(ivg(1),ivg(2),ivg(3)), ivg
-          end do
-        end do
+        !write(funit,*)
+        !write(funit,*) 'Same mapping but computed with fuction instead of map'
+        !write(funit,*) '< iknr    iqnr    ikqnr    ig    ivg(ig) >'
+        !do ik = 1, kset%nkptnr
+        !  do iq = 1, kpset%nkptnr
+        !    call ikpik2iqivgnr(.true., ik, iq,&
+        !      & kset%vkloff, self%qset%vkloff, kset%ngridk, ikp, ivg)
+        !    write(funit,'(7i11)') ik, iq, ikp, gset%ivgig(ivg(1),ivg(2),ivg(3)), ivg
+        !  end do
+        !end do
 
         call boxmsg(funit,'-','Mapping form kp-k combination index to q grid')
         nkkp = kset%nkptnr*(kset%nkptnr+1)/2
@@ -1649,6 +1880,172 @@ CONTAINS
         return
 
     end subroutine print_q_vectors
+
+!-------------------------------------------------------------------------------
+    subroutine generate_p_vectors(self, kset, kpset, gset, reducep)
+        type(p_set), intent(OUT) :: self
+        type(k_set), intent(IN) :: kset
+        type(k_set), intent(IN) :: kpset
+        type(g_set), intent(IN) :: gset
+        logical, intent(IN) :: reducep
+
+        real(8) :: delta_vkloff(3), vql(3)
+        real(8), parameter :: epslat=1.d-6
+        integer(4) :: ivg(3), iv(3), ik, ikp, ip, nkkp, ikkp
+
+        ! Libzint not supported right now
+        if(kpset%usedlibzint == .true. .or. kset%usedlibzint == .true.) then
+          write(*,*) 'ERROR(mod_kpoints::generate_kkq_vectors):&
+            & libzint not supported'
+          stop
+        end if
+        
+        ! Check if k'-grid and k-grid are compatible
+        if(any(kpset%bvec /= kset%bvec)) then
+          write(*,*) 'ERROR(mod_kpoints::generate_kkq_vectors):&
+            & k grids have differing basis vectors'
+          stop
+        end if
+        if(any(kpset%ngridk /= kset%ngridk)) then
+          write(*,*) 'ERROR(mod_kpoints::generate_kkq_vectors):&
+            & k grids have differing grid spacings'
+          stop
+        end if
+
+        ! Reset self
+        call delete_p_vectors(self)
+
+        ! Get vkloff of p grid
+        delta_vkloff = -(kpset%vkloff+kset%vkloff)
+        call r3frac(epslat, delta_vkloff, iv)
+
+        ! Make p-grid
+        call generate_k_vectors(self%pset, kset%bvec, kset%ngridk,&
+          & delta_vkloff, reducep, uselibzint=kset%usedlibzint)
+
+        ! Make index map ik',ik --> ip + ig for non-reduced points
+        allocate(self%ikikp2ip_nr(kset%nkptnr, kpset%nkptnr))
+        allocate(self%ikikp2ig_nr(kset%nkptnr, kpset%nkptnr))
+        
+        do ik = 1, kset%nkptnr
+          do ikp = 1, kpset%nkptnr
+
+            ! Get sum vector p form k' and k
+            vql = -(kpset%vklnr(:,ikp) + kset%vklnr(:,ik))
+            ! Reduce it to [0,1) and shift vector
+            call r3frac(epslat, vql, ivg)
+
+            ! Save index of G shift 
+            self%ikikp2ig_nr(ik,ikp) = gset%ivgig(ivg(1),ivg(2),ivg(3))
+
+            ! Get corresponding non-reduced 3d index of p-grid
+            iv = nint(vql*self%pset%ngridk-self%pset%vkloff)
+
+            ! Get non-reduced 1d index form 3d index
+            ip = self%pset%ikmapnr(iv(1),iv(2),iv(3))
+
+            ! Write map ik ikp --> iq
+            self%ikikp2ip_nr(ik,ikp) = ip
+
+          end do
+        end do
+
+        ! Make index map for combination index ikk' --> ip, where
+        ! the combination index only includes ik' >= ik
+        nkkp = kset%nkptnr*(kset%nkptnr+1)/2
+        allocate(self%ikkp2ip_nr(nkkp))
+        allocate(self%ikkp2ig_nr(nkkp))
+        do ikkp = 1, nkkp
+          call kkpmap(ikkp, kset%nkptnr, ik, ikp)
+          self%ikkp2ip_nr(ikkp) = self%ikikp2ip_nr(ik, ikp)
+          self%ikkp2ig_nr(ikkp) = self%ikikp2ig_nr(ik, ikp)
+        end do
+
+    end subroutine generate_p_vectors
+
+!-------------------------------------------------------------------------------
+    subroutine delete_p_vectors(self)
+        type(p_set), intent(INOUT) :: self
+
+        call delete_k_vectors(self%pset)
+
+        ! ik,ik' --> ip + ig
+        if(allocated(self%ikikp2ip_nr)) deallocate(self%ikikp2ip_nr)
+        if(allocated(self%ikikp2ig_nr)) deallocate(self%ikikp2ig_nr)
+
+        ! ikkp --> ip + ig
+        if(allocated(self%ikkp2ip_nr)) deallocate(self%ikkp2ip_nr)
+        if(allocated(self%ikkp2ig_nr)) deallocate(self%ikkp2ig_nr)
+
+    end subroutine delete_p_vectors
+
+!-------------------------------------------------------------------------------
+    subroutine print_p_vectors(self, kset, kpset, gset, funit)
+        implicit none
+        type(p_set), intent(in) :: self
+        type(k_set), intent(in) :: kset, kpset
+        type(g_set), intent(in) :: gset
+        integer(4), intent(in) :: funit
+
+        integer(4) :: ik, ikp, ip, ikkp, nkkp, i, ig, ivg(3)
+
+        ! Sanity checks
+        if(self%pset%nkptnr /= kset%nkptnr .or. self%pset%nkptnr /= kpset%nkptnr) then
+          write(*,*) "Error(mod_kpointset::print_p_vectors): k,kp,p sets have&
+           & differing sizes, returning"
+          return
+        end if
+        if( any(self%pset%bvec /= kset%bvec)&
+          & .or. any(self%pset%bvec /= kpset%bvec)) then
+          write(*,*) "Error(mod_kpointset::print_p_vectors): k,kp,p sets have&
+           & differing lattice basis vectors."
+          return
+        end if
+        if( any(self%pset%ngridk /= kset%ngridk)&
+          & .or. any(self%pset%ngridk /= kpset%ngridk)) then
+          write(*,*) "Error(mod_kpointset::print_p_vectors): k,kp,p sets have&
+           & differing ngridk."
+          return
+        end if
+          
+        call boxmsg(funit,'-','k point set')
+        call print_k_vectors(kset, funit)
+
+        call boxmsg(funit,'-','kp point set')
+        call print_k_vectors(kpset, funit)
+
+        call boxmsg(funit,'-','p set')
+        call print_k_vectors(self%pset,funit)
+
+        call boxmsg(funit,'-','Mapping form k, kp grid to p grid')
+        write(funit,*) 'The p points are -(kp + k) mapped back to the unit cell'
+        write(funit,*) '< iknr   ikpnr    ikikp2ip_nr    ikikp2ig_nr    ivg(ig) >'
+        do ik = 1, kset%nkptnr
+          do ikp = 1, kpset%nkptnr
+            write(funit,'(7i11)') ik, ikp, self%ikikp2ip_nr(ik,ikp),&
+              & self%ikikp2ig_nr(ik,ikp),& 
+              & gset%ivg(:,self%ikikp2ig_nr(ik,ikp))
+          end do
+        end do
+
+        call boxmsg(funit,'-','Mapping form kp-k combination index to p grid')
+        nkkp = kset%nkptnr*(kset%nkptnr+1)/2
+        write(funit,*) 'The combination index labels the nkptnr*(nkptnr+1)/2&
+          & combinations of ikp and ik with ikp >= ik'
+
+        write(funit,*) '< ikkp    ik    ikp   ikkp2ip_nr    ikkp2ig_nr    ivg(ig) >'
+        do ikkp = 1, nkkp
+          call kkpmap(ikkp, kset%nkptnr, ik, ikp)
+          write(funit,'(8i11)') ikkp, ik, ikp, self%ikkp2ip_nr(ikkp),&
+              & self%ikkp2ig_nr(ikkp),& 
+              & gset%ivg(:,self%ikkp2ig_nr(ikkp))
+        end do
+
+        return
+
+    end subroutine print_p_vectors
+
+!-------------------------------------------------------------------------------
 
 !-------------------------------------------------------------------------------
     subroutine ikpik2iqivgnr(fplus, ikpnr, iknr, vkploff, vkloff, ngridk, iqnr, ivg)

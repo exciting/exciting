@@ -39,6 +39,7 @@ subroutine writepmatxs
 
   ! Local variables
   integer :: ik, reclen
+  integer, parameter :: igammaqmt = 1
   character(32) :: fnam
   complex(8), allocatable :: apwalmt(:, :, :, :)
   complex(8), allocatable :: evecfvt(:, :)
@@ -49,6 +50,13 @@ subroutine writepmatxs
 
   ! External functions
   logical, external :: tqgamma
+
+  write(*,*) "writepmatxs here at rank", rank
+
+  ! Initialise universal variables
+  call init0
+  call init1
+  if(task .ne. 120) call init2
 
   ! Check if fast (default) version of matrix elements is used
   fast=.false.
@@ -61,15 +69,21 @@ subroutine writepmatxs
   ! Task 120 is 'writepmat'
   fast=(task.ne.120).or.((task.eq.120).and.fast)
 
-  ! Check if Q-point is gamma point
+  ! Check if first Q-point in list is the gamma point,
+  ! if not return.
   if(task .ne. 120) then
-    if(.not.tqgamma(1)) return
+    if(.not. tqgamma(1)) then
+      if(rank == 0) then 
+        write(unitout,*) "Warning(writepmatxs): First Q pont not gamma, returning"
+      end if
+      return
+    end if
   end if
 
   ! Check if this routine is called for the screening
   tscreen=(task .ge. 400) .and. (task .le. 499)
 
-  if((task .eq. 120).or. tscreen) then
+  if((task .eq. 120) .or. tscreen) then
     fnam = 'PMAT'
     call genfilname(basename=trim(fnam), appfilext=.true.,&
       & filnam=fnpmat)
@@ -81,11 +95,6 @@ subroutine writepmatxs
     call genfilname(basename=trim(fnam), procs=procs, rank=rank,&
       & filnam=fnpmat_t)
   end if
-
-  ! Initialise universal variables
-  call init0
-  call init1
-  if(task .ne. 120) call init2
 
   ! Generate index ranges for parallel execution
   call genparidxran('k', nkpt)
@@ -126,13 +135,22 @@ subroutine writepmatxs
       & status='REPLACE',recl=reclen)
   end if
 
-  ! Get eigenvectors for q=0
-  if((.not. tscreen) .and. (task .ne. 120)) call genfilname(iqmt=0, setfilext=.true.)
+  ! Get eigenvectors for qmt=0, i.e. set file extension to _QMT001
+  if((.not. tscreen) .and. (task .ne. 120)) then
+    call genfilname(iqmt=igammaqmt, setfilext=.true.)
+  end if
+
+  ! Get screening eigenvectors for qmt=0, i.e. set file extension to SCR_QMT001
+  if( tscreen .and. input%xs%bse%beyond) then 
+    call genfilname(iqmt=igammaqmt, scrtype='', setfilext=.true.)
+  end if
 
   ! Generate band combinations
   if(task .eq. 120) then
+    ! 12 = xy, 34 = 00
     call ematbdcmbs(0)
   else
+    ! 12 = ou, 34 = uo
     call ematbdcmbs(1)
   end if
 
@@ -228,11 +246,11 @@ subroutine writepmatxs
     if(rank==0) then
       write(*,*)
       write(*, '("Info(writepmatxs):")')
-      write(*, '(" momentum matrix elements written to file PMAT.OUT")')
+      write(*, '(" Momentum matrix elements written to file PMAT.OUT")')
       write(*,*)
     end if
   else
-    write(unitout, '(a)') "Info(writepmatxs): momentum matrix elements finished"
+    write(unitout, '(a)') "Info(writepmatxs): Momentum matrix elements finished"
   end if
 
   ! Reset global file extension to default

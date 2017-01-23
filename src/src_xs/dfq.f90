@@ -7,6 +7,7 @@
 ! !INTERFACE:
 subroutine dfq(iq)
 ! !USES:
+  use mod_misc, only: filext
   use modinput, only: input
   use modmpi, only: procs, rank, barrier
   use mod_misc, only: task
@@ -26,7 +27,8 @@ subroutine dfq(iq)
                 & deuo, docc12, docc21, xiou,&
                 & xiuo, pmou, pmuo, nwdf,&
                 & bsed, ikmapikq, tordf, symt2,&
-                & bcbs
+                & bcbs, filext0,&
+                & gqdirname, eps0dirname, scrdirname, timingdirname
 #ifdef TETRA      
   use mod_eigenvalue_occupancy, only: nstsv, evalsv, efermi 
   use modtetra
@@ -179,16 +181,32 @@ subroutine dfq(iq)
 
   ! Filenames for output
   if(tscreen) then
+#ifdef TETRA               
     call genfilname(basename='TETW', iq=iq, appfilext=.true., filnam=fnwtet)
+#endif               
     call genfilname(basename='PMAT', appfilext=.true., filnam=fnpmat)
-    call genfilname(basename='SCREEN', bzsampl=bzsampl, iq=iq, filnam=fnscreen)
-    call genfilname(basename='EPS0', iq=iq, filnam=fneps0)
-    call genfilname(nodotpar=.true., basename='EMAT_TIMING', iq=iq,&
-     & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
-    call genfilname(nodotpar=.true., basename='X0_TIMING', iq=iq,&
-     & procs=procs, rank=rank, appfilext=.true., filnam=fnxtim)
+    if(input%xs%bse%beyond) then 
+      call genfilname(basename=trim(adjustl(scrdirname))//'/'//'SCREEN', appfilext=.true., iq=iq, filnam=fnscreen)
+      call genfilname(basename=trim(adjustl(eps0dirname))//'/'//'EPS0', appfilext=.true., iq=iq, filnam=fneps0)
+    else
+      call genfilname(basename='SCREEN', bzsampl=bzsampl, iq=iq, filnam=fnscreen)
+      call genfilname(basename='EPS0', iq=iq, filnam=fneps0)
+    end if
+    if(input%xs%bse%beyond) then 
+      call genfilname(nodotpar=.true., basename=trim(adjustl(timingdirname))//'/'//'EMAT_TIMING', iq=iq,&
+       & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
+      call genfilname(nodotpar=.true., basename=trim(adjustl(timingdirname))//'/'//'X0_TIMING', iq=iq,&
+       & procs=procs, rank=rank, appfilext=.true., filnam=fnxtim)
+    else
+      call genfilname(nodotpar=.true., basename='EMAT_TIMING', iq=iq,&
+       & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
+      call genfilname(nodotpar=.true., basename='X0_TIMING', iq=iq,&
+       & procs=procs, rank=rank, appfilext=.true., filnam=fnxtim)
+    end if
   else
+#ifdef TETRA               
     call genfilname(basename='TETW', iqmt=iq, filnam=fnwtet)
+#endif               
     call genfilname(basename='PMAT_XS', filnam=fnpmat)
     call genfilname(basename='EMAT', iqmt=iq, filnam=fnemat)
     call genfilname(nodotpar=.true., basename='X0_TIMING', bzsampl=bzsampl,&
@@ -206,7 +224,11 @@ subroutine dfq(iq)
   call filedel(trim(fnxtim))
 
   ! Calculate k+q and G+k+q related variables
-  call init1offs(qvkloff(1, iq))
+  ! by setting the offset generated from vkloff and the q point
+  ! and then calling init1
+  call init1offs(qvkloff(1:3, iq))
+
+  write(*,*) "df: qvkloff=", qvkloff(1:3,iq)
 
   ! TETRA: Generate link array for tetrahedra
   if(input%xs%tetra%tetradf) then
@@ -220,22 +242,27 @@ subroutine dfq(iq)
 #endif            
   end if
 
+  write(*,*) "dfq: iq=", iq, " filext=", trim(filext)
+
   ! Find highest (partially) occupied and lowest (partially) unoccupied states
   ! for k and k+q points 
-  call findocclims(iq, istocc0, istocc, istunocc0, istunocc,&
-   & isto0, isto, istu0, istu)
+  call findocclims(iq, ikmapikq(:,iq), istocc0, istunocc0, isto0, isto, istu0, istu)
+  istunocc = istunocc0
+  istocc = istocc0
 
   ! Find limits for band combinations
   !   When coming from the df routine, i.e. screen emattype is set to 1, so o-u,u-o
   call ematbdcmbs(input%xs%emattype)
 
-  ! Check if q-point is gamma point
+  ! Check if q-point is gamma point (uses mod_qpoint::vqc)
+  write(unitout, *)
+  write(unitout, '(a,i4)') 'Info(' // trim(thisnam) // '):&
+   & Calculating screening for q-point: ', iq 
   tq0 = tqgamma(iq)
   if(tq0) then
     write(unitout, '(a)') 'Info(' // trim(thisnam) // '):&
-     & Gamma q - point: using momentum matrix elements for dielectric function'
+     & Gamma q-point: using momentum matrix elements for dielectric function'
   end if
-
   ! Write out matrix size of response function and contributing bands
   write(unitout, '(a, i6)') 'Info(' // thisnam // '):&
     & number of G + q vectors (local field effects):', ngq(iq)
@@ -318,7 +345,7 @@ subroutine dfq(iq)
   wintv(1)=input%xs%energywindow%intv(1)
   wintv(2)=input%xs%energywindow%intv(2)
   ! For calculation of static screening the first frequency point should be zero
-  if(task.eq.430) wintv(1)=0.d0
+  if(task .eq. 430) wintv(1)=0.d0
   ! Make evenly spaced complex valued omega grid.
   !   acont defaults to false, broadening set to zero --> complex w grid = real w grid
   call genwgrid(nwdf, wintv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
@@ -338,6 +365,7 @@ subroutine dfq(iq)
   chi0hahc(:, :) = zzero
 
   if(tscreen) then
+
     ! Generate radial integrals wrt. sph. bessel functions
     call timesec(tc)
     call ematrad(iq)
@@ -408,6 +436,9 @@ subroutine dfq(iq)
         If( .Not. allocated(pmuo)) allocate(pmuo(3, nst3, nst4))
 
       else
+
+        write(*,*) "dfq: filext=",trim(filext)
+        write(*,*) "dfq: filext0=",trim(filext0)
 
         ! The plane wave elements for ou and uo transitions are 
         ! calculated and stored in xiou and xiuo
@@ -899,7 +930,7 @@ subroutine dfq(iq)
         call puteps0(reduced=.false.,&
           & iq=iq, iw=iw, w=wreal(iw-wi+1),&
           & eps0=chi0(:,:,iw-wi+1), eps0wg=chi0w(:,:,:,iw-wi+1),&
-          & eps0hd=chi0h(:,:,iw-wi+1))
+          & eps0hd=chi0h(:,:,iw-wi+1), fname=fneps0)
       end do
     end if
   ! Not tscreen

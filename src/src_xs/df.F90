@@ -106,7 +106,6 @@ subroutine df
   call barrier
 
   if((procs .gt. 1) .and. ( .not. tscreen)) then
-    write(*,*) " in dfgather"
     call dfgather
   end if
 

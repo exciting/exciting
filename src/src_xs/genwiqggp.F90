@@ -144,10 +144,10 @@ subroutine genwiqggp(flag, iq, igq1, igq2, clwt)
       end do
       do i = 1, nrbox
         call random_number(ran)
-	! Map random number to box
+        ! Map random number to box
         ran(:) = ran(:) * blen
         ran(:) = ran(:) + blim(1)
-	! Check if random vector is in sbz
+        ! Check if random vector is in sbz
         ranl = matmul(binv, ran)
         if(all(ranl .gt.-vllim) .and. (all(ranl .lt. vllim))&
           & .and. (sum(abs(ran)) .gt. 1.d-14)) then
