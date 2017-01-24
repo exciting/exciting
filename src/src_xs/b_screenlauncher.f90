@@ -42,7 +42,7 @@ subroutine b_screenlauncher
   character(256) :: filex, syscommand
   character(*), parameter :: thisnam = 'b_screenlauncher'
 
-  write(*,*) "b_screenlauncher here at rank ", rank
+  !write(*,*) "b_screenlauncher here at rank ", rank
 
   ! Initialise universal variables
   call init0
@@ -146,12 +146,12 @@ subroutine b_screenlauncher
   iqmt0 = iqmtgamma
   call genfilname(iqmt=iqmt0, scrtype='', setfilext=.true.)
   filext0 = filext
-  write(*,*) "filext0 =", trim(filext0)
+  !write(*,*) "filext0 =", trim(filext0)
 
   ! Set *_SCR_QMT001.OUT as ket state file
   iqmt1 = iqmtgamma
   call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
-  write(*,*) "filext=", trim(filext)
+  !write(*,*) "filext=", trim(filext)
 
   ! Set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
   input%xs%emattype = 1
@@ -164,7 +164,7 @@ subroutine b_screenlauncher
 
     ! Write q-point number to fileext, filext = "_SCR_QMT001_QXYZ.OUT"
     call genfilname(scrtype='', iqmt=iqmtgamma, iq=iq, fileext=filex)
-    write(*,*) "filex=", trim(filex)
+    !write(*,*) "filex=", trim(filex)
     ! Write out G+q vectors to file "GQPOINTS_SCR_QMT001_QXYZ.OUT"
     call writegqpts(iq, filex, dirname=gqdirname)
 
@@ -204,7 +204,7 @@ subroutine b_screenlauncher
     if(rank == 0) then
       call printline(unitout, "+")
       write(unitout, '(a)') 'Info(' // thisnam // '):&
-       & Calculating screening on a shifted q-grid for BSE coupling terms.'
+        & Calculating screening on a shifted q-grid.'
       call printline(unitout, "+")
       write(unitout, *)
     end if
@@ -212,16 +212,24 @@ subroutine b_screenlauncher
     ! Consider qmt vectors in qmt-list appart from gamma (already computed)
     do iqmt = 1, nqmt
 
+      if(.not. fti .and. iqmt == 1) then 
+        if(rank == 0) then 
+          write(unitout, '(a, i3)') 'Info(' // thisnam // '):&
+           & For vqmtl=0 no unshifted q grid is needed.'
+          call printline(unitout, "-")
+        end if
+        cycle
+      end if
+
+      ! Generate q-qmt / -(q+qmt) grid offset
+      call xsgrids_init(vqlmt(1:3, iqmt), gkmax)
+
       ! Reset k-grid variables to the unshifted (apart from xs%vkloff) k grid
       ! (because they get changed in dfq)
-      call init1
+      call init1offs(k_kqmtp%kset%vkloff)
       ! Save k and G+k grid variables to 
       ! modxs (vkl0, ngk0, ...)
       call xssave0
-
-      if(.not. fti .and. iqmt == 1) then 
-        cycle
-      end if
 
       !------------------------------------------------------------!
       ! Generate q points and G+q quantities for a shifted q-grid. !
@@ -240,9 +248,6 @@ subroutine b_screenlauncher
         end if
         call printline(unitout, "-")
       end if
-
-      ! Generate q-qmt / -(q+qmt) grid offset
-      call xsgrids_init(vqlmt(1:3, iqmt), gkmax)
 
       if(.not. fti) then 
         ! q-qmt grid
@@ -281,24 +286,24 @@ subroutine b_screenlauncher
         iqmt0 = iqmtgamma
         call genfilname(iqmt=iqmt0, scrtype='', setfilext=.true.)
         filext0 = filext
-        write(*,*) "filext0 =", trim(filext0)
+        !write(*,*) "filext0 =", trim(filext0)
 
         ! Set *_SCR_QMTXYZ_mqmt.OUT as ket state file
         iqmt1 = iqmt 
         call genfilname(iqmt=iqmt1, scrtype='', auxtype='mqmt', setfilext=.true.)
-        write(*,*) "filext=", trim(filext)
+        !write(*,*) "filext=", trim(filext)
       else
         ! Set *_SCR_QMT001.OUT as bra state file
         usefilext0 = .true.
         iqmt0 = iqmtgamma
         call genfilname(iqmt=iqmt0, scrtype='', setfilext=.true.)
         filext0 = filext
-        write(*,*) "filext0 =", trim(filext0)
+        !write(*,*) "filext0 =", trim(filext0)
 
         ! Set *_SCR_QMTXYZ_m.OUT as ket state file
         iqmt1 = iqmt 
         call genfilname(iqmt=iqmt1, scrtype='', auxtype='m', setfilext=.true.)
-        write(*,*) "filext=", trim(filext)
+        !write(*,*) "filext=", trim(filext)
       end if
 
       ! Set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
@@ -316,14 +321,14 @@ subroutine b_screenlauncher
         else
           call genfilname(scrtype='', iqmt=iqmt, auxtype='m', iq=iq, fileext=filex)
         end if
-        write(*,*) "filex=", trim(filex)
+        !write(*,*) "filex=", trim(filex)
         ! Write out G+q vectors to file GQPOINTS_SCR_QMTXYZ_QXYZ_mqmt.OUT / GQPOINTS_SCR_QMTXYZ_QXYZ_m.OUT
         call writegqpts(iq, filex, dirname=gqdirname)
 
         ! Generate screening for the given q-point
         call dfq(iq)
 
-        write(unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sham&
+        write(unitout, '(a, i4)') 'Info(' // thisnam // '): Kohn Sham&
           & response function finished for q - point:', iq
         call printline(unitout, "-")
         write(unitout, *)
@@ -337,7 +342,7 @@ subroutine b_screenlauncher
 
     if(rank == 0) then 
       call printline(unitout, "+")
-      write(unitout, '(a, i8)') 'Info(' // thisnam // '):&
+      write(unitout, '(a)') 'Info(' // thisnam // '):&
         & Screening for shifted q-grid finished'
       call printline(unitout, "+")
       write(unitout, *)

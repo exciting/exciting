@@ -193,10 +193,12 @@ subroutine dfq(iq)
       call genfilname(basename='EPS0', iq=iq, filnam=fneps0)
     end if
     if(input%xs%bse%beyond) then 
-      call genfilname(nodotpar=.true., basename=trim(adjustl(timingdirname))//'/'//'EMAT_TIMING', iq=iq,&
+      call genfilname(nodotpar=.true., basename='EMAT_TIMING', iq=iq,&
        & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
-      call genfilname(nodotpar=.true., basename=trim(adjustl(timingdirname))//'/'//'X0_TIMING', iq=iq,&
+      fnetim=trim(adjustl(timingdirname))//'/'//trim(adjustl(fnetim))
+      call genfilname(nodotpar=.true., basename='X0_TIMING', iq=iq,&
        & procs=procs, rank=rank, appfilext=.true., filnam=fnxtim)
+      fnxtim=trim(adjustl(timingdirname))//'/'//trim(adjustl(fnxtim))
     else
       call genfilname(nodotpar=.true., basename='EMAT_TIMING', iq=iq,&
        & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
@@ -228,7 +230,7 @@ subroutine dfq(iq)
   ! and then calling init1
   call init1offs(qvkloff(1:3, iq))
 
-  write(*,*) "df: qvkloff=", qvkloff(1:3,iq)
+  !write(*,*) "df: qvkloff=", qvkloff(1:3,iq)
 
   ! TETRA: Generate link array for tetrahedra
   if(input%xs%tetra%tetradf) then
@@ -242,7 +244,7 @@ subroutine dfq(iq)
 #endif            
   end if
 
-  write(*,*) "dfq: iq=", iq, " filext=", trim(filext)
+  !write(*,*) "dfq: iq=", iq, " filext=", trim(filext)
 
   ! Find highest (partially) occupied and lowest (partially) unoccupied states
   ! for k and k+q points 
@@ -437,8 +439,8 @@ subroutine dfq(iq)
 
       else
 
-        write(*,*) "dfq: filext=",trim(filext)
-        write(*,*) "dfq: filext0=",trim(filext0)
+        !write(*,*) "dfq: filext=",trim(filext)
+        !write(*,*) "dfq: filext0=",trim(filext0)
 
         ! The plane wave elements for ou and uo transitions are 
         ! calculated and stored in xiou and xiuo

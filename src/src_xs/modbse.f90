@@ -207,7 +207,7 @@ module modbse
       !---------------------------------------------------!
       ! Reset mod_kpoint / mod_Gkvector variables to the unshifted k-grid
       ! (apart from xs%vkloff)
-      call init1
+      call init1offs(vkloff)
 
       !write(*,*)
       !write(*,*) "ik vkl"
@@ -298,7 +298,7 @@ module modbse
           !---------------------------------------------------!
           ! Reset mod_kpoint / mod_Gkvector variables to the unshifted k-grid
           ! (apart from xs%vkloff)
-          call init1
+          call init1offs(vkloff)
 
           !write(*,*)
           !write(*,*) "ik vkl"
@@ -649,7 +649,7 @@ module modbse
 
       ! Reset mod_kpoint / mod_Gkvector variables to the unshifted k-grid
       ! (apart from xs%vkloff)
-      call init1
+      call init1offs(vkloff)
       ! Save the k-grid to modxs vkl0 etc 
       call xssave0
       ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector 

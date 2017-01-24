@@ -91,7 +91,7 @@ use m_writecmplxparts
   !   main part   !
   !---------------!
 
-write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
+!write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   ! Sanity check 
   if(fra) then
@@ -106,6 +106,7 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
   ! General setup
   call init0
   ! k-point setup
+  ! Also allocated the radial functions (mod_APW_LO)
   call init1
   ! Save variables of the unshifted (apart from xs:vkloff) k grid 
   ! to modxs (vkl0, ngk0, ...)
@@ -248,7 +249,11 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
   else
     allocate(ematouk(no_bse_max, nu_bse_max, numgq, nk_bse))
   end if
+
   allocate(mou(no_bse_max, nu_bse_max, numgq))
+  mou = zzero
+  !write(*,*) "no_bse_max, nu_bse_max, numgq", no_bse_max, nu_bse_max, numgq
+
   if(fra) then 
     allocate(muo(nu_bse_max, no_bse_max, numgq))
   end if
@@ -277,14 +282,22 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
     ! Get index of ik+qmt
     ikpnr = k_kqmtp%ik2ikqmt(iknr)
 
+    !write(*,*) "iknr =", iknr
+    !write(*,*) "ikpnr =", ikpnr
+
     ! Get the number of participating occupied/unoccupied
     ! states at current k point
     inu = koulims(2,iknr) - koulims(1,iknr) + 1
     ino = koulims(4,iknr) - koulims(3,iknr) + 1
 
+    !write(*,*) "inu =", inu
+    !write(*,*) "ino =", ino
+
     ! Get M_ouk(G,qmt) = <io ik|e^{-i(qmt+G)r}|iu ikp>
     ! with ikp = ik+qmt
     call getmou(mou(1:ino, 1:inu, 1:numgq))
+
+
     ! and save it for all ik
     ematouk(1:ino, 1:inu, 1:numgq, ik) = mou(1:ino, 1:inu, 1:numgq)
 
@@ -361,6 +374,13 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
     call mpi_allgatherv_ifc(set=nk_bse, rlen=no_bse_max*nu_bse_max*numgq, zbuf=ematouk,&
       & inplace=.true., comm=mpiglobal)
   end if
+
+!if(rank == 0) then 
+!write(*,*) "ematouk"
+!do ik = 1, nk_bse
+!  write(*,'(2E13.5)') ematouk(:,:,:,ik)
+!end do
+!end if
 
   if(mpiglobal%rank == 0) then
     !write(*,*)
@@ -488,6 +508,8 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       !write(*,*) "getmou:"
       !write(*,*) "  Mou"
 
+      !write(*,*) "shape(mou)", shape(mou)
+
       fileext0_save = filext0
       fileext_save = filext
 
@@ -522,6 +544,9 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       filext0 = fileext0_save
       filext = fileext_save
 
+      !write(*,*)
+      !write(*,*)
+
     end subroutine getmou
 
     subroutine getmuo(muo)
@@ -530,9 +555,9 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       type(bcbs) :: ematbc
       character(256) :: fileext0_save, fileext_save
 
-      !write(*,*)
-      !write(*,*) "getmuo:"
-      !write(*,*) "  Muo"
+      !!write(*,*)
+      !!write(*,*) "getmuo:"
+      !!write(*,*) "  Muo"
 
       fileext0_save = filext0
       fileext_save = filext

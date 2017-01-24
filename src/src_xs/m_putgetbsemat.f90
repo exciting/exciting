@@ -2,7 +2,7 @@ module m_putgetbsemat
   use modinput
   use modmpi
   use modbse
-  use mod_qpoint, only: vql
+  use modxs, only: vqlmt
   use m_getunit
   use m_genfilname
 
@@ -61,7 +61,7 @@ module m_putgetbsemat
       inquire(iolength=reclen)&
         & reducek, ngridk, ngridq, vkloff,&
         & fensel, wl, wu, econv,&
-        & iqmt, vql(:,1),&
+        & iqmt, vqlmt(1:3,iqmt),&
         & nk_max, nk_bse, nou_bse_max, hamsize,&
         & kmap_bse_rg, kmap_bse_gr,&
         & koulims, kousize, smap
@@ -73,7 +73,7 @@ module m_putgetbsemat
       write(un, rec=1)& 
         & reducek, ngridk, ngridq, vkloff,&
         & fensel, wl, wu, econv,&
-        & iqmt, vql(:,1),&
+        & iqmt, vqlmt(1:3,iqmt),&
         & nk_max, nk_bse, nou_bse_max, hamsize,&
         & kmap_bse_rg, kmap_bse_gr,&
         & koulims, kousize, smap
@@ -161,7 +161,7 @@ module m_putgetbsemat
       if( reducek_ == reducek .and. fensel_ == fensel&
         & .and. wl_ == wl .and. wu_ == wu&
         & .and. econv_(1) == econv(1) .and. econv_(2) == econv(2)&
-        & .and. iqmt_ == iqmt .and. nk_max_ == nk_max .and. nk_bse_ == nk_bse&
+        & .and. iqmt_ == iqmt .and. all(vql_(1:3)==vqlmt(1:3,iqmt)) .and. nk_max_ == nk_max .and. nk_bse_ == nk_bse&
         & .and. hamsize_ == hamsize) then
         if( .not. (any(ngridk_ /= ngridk) .or. any(ngridq_ /= ngridq)&
           &.or. any(vkloff_ /= vkloff)) ) then
@@ -195,6 +195,14 @@ module m_putgetbsemat
           & Requested momentum transfer index differs")')
         write(*, '(" requested iqmt: ", i4)') iqmt 
         write(*, '(" stored iqmt_: ", i4)') iqmt_
+      end if
+      if(any(vql_ /= vqlmt(1:3,iqmt))) then 
+        iscompatible = .false.
+        isidentical = .false.
+        write(*, '("Error (b_getbseinfo):&
+          & Requested momentum transfer vector differs")')
+        write(*, '(" requested vqlmt: ", 3E10.3)') vqlmt(1:3,iqmt)  
+        write(*, '(" stored vql_: ", 3E10.3)') vql_(1:3)
       end if
       if(fensel_ /= fensel) then
         iscompatible = .false.

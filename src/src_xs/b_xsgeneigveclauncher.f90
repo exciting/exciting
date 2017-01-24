@@ -29,7 +29,19 @@ subroutine b_xsgeneigveclauncher
 
   ! Initialize universal variables
   call init0
+  ! k-point setup
+  ! Also allocated the radial functions (mod_APW_LO)
   call init1
+  ! q-point and qmt-point setup
+  !   Init 2 sets up (task 301/401):
+  !   * A list of momentum transfer vectors form the q-point list 
+  !     (modxs::vqmtl and mod_qpoint::vql)
+  !   * Offset of the k+qmt grid derived from k offset an qmt point (modxs::qvkloff)
+  !   * non-reduced mapping between ik,qmt and ik' grids (modxs::ikmapikq)
+  !   * G+qmt quantities (modxs)
+  !   * The square root of the Coulomb potential for the G+qmt points
+  !   * Reads STATE.OUT
+  !   * Generates radial functions (mod_APW_LO)
   call init2
 
   if(NORM2(vqlmt(1:3,1)) > epslat) then 

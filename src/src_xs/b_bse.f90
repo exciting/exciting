@@ -449,7 +449,7 @@ use m_writecmplxparts
 
     write(unitout, '("Info(b_bse): Writing derived quantities.")')
     ! Generate and write derived optical quantities
-    call writederived(iqmt+1, symspectr, nw, w)
+    call writederived(iqmt, symspectr, nw, w)
     write(unitout, '("  Derived quantities written.")')
 
    ! ! Store excitonic energies and wave functions to file
@@ -489,31 +489,29 @@ use m_writecmplxparts
     call init0
     ! k-grid init
     call init1
-    ! q-grid init
-    call init2
-    ! Saves all k grid related variables in modxs, so 
-    ! that another k grid can be used for k+q.
+    ! Save variables of the unshifted (apart from xs:vkloff) k grid 
+    ! to modxs (vkl0, ngk0, ...)
     call xssave0
+    ! q-point and qmt-point setup
+    !   Init 2 sets up (task 445):
+    !   * A list of momentum transfer vectors form the q-point list 
+    !     (modxs::vqmtl and mod_qpoint::vql)
+    !   * Offset of the k+qmt grid derived from k offset an qmt point (modxs::qvkloff)
+    !   * non-reduced mapping between ik,qmt and ik' grids (modxs::ikmapikq)
+    !   * G+qmt quantities (modxs)
+    !   * The square root of the Coulomb potential for the G+qmt points
+    !   * Reads STATE.OUT
+    !   * Generates radial functions (mod_APW_LO)
+    call init2
 
     ! Read Fermi energy from file
-    ! Read Fermi energy from file
-    ! Use EFERMI_QMT000.OUT
-    call genfilname(iqmt=0, setfilext=.true.)
+    ! Use EFERMI_QMT001.OUT
+    call genfilname(iqmt=iqmtgamma, setfilext=.true.)
     call readfermi
-
-    ! Set EVALSV_QMTXXX.OUT as basis for the occupation limits search
-    !   Note: EVALSV_QMT000.OUT is always produced,
-    !         EVALSV_QMT001.OUT has the same content, when
-    !         the first entry in the q-point list is set 0 0 0
-    ! To be exact the following genfilname set filext to _QMTXXX.OUT
-    iqmt = 0
-    call genfilname(iqmt=max(0, iqmt), setfilext=.true.)
 
     ! Set ist* variables and ksgap in modxs using findocclims
     ! This also reads in 
-    ! (QMTXXX)
     ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
-    ! (QMT000)
     ! modxs:evalsv0, modxs:occsv0
     call setranges_modxs(iqmt, fcoup, fti)
 
@@ -549,8 +547,7 @@ use m_writecmplxparts
         iu = smap(1,a1)
         io = smap(2,a1)
         ik = smap(3,a1)
-        ikq = ik
-        if(iqmt .ne. 0) ikq = ikmapikq(ik, iqmt)
+        ikq = ikmapikq(ik, iqmt)
         bsegap = min(bsegap, evalsv(iu,ik)-evalsv0(io,ikq))
       end do
       !$OMP END PARALLEL DO
@@ -735,7 +732,7 @@ use m_writecmplxparts
       if(bi2d%isroot) then
         write(unitout, '("Writing derived quantities.")')
         ! Generate and write derived optical quantities
-        call writederived(iqmt+1, symspectr, nw, w)
+        call writederived(iqmt, symspectr, nw, w)
         write(unitout, '("  Derived quantities written.")')
       end if
 

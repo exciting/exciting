@@ -95,7 +95,7 @@ module m_b_ematqk
 
       ! Find k+q-point
       ikq = ikmapikq(ik, iq)
-      write(*,*) "ematqk: ik=",ik," iq=",iq,"ikq=",ikq
+      !write(*,*) "ematqk: ik=",ik," iq=",iq,"ikq=",ikq
 
       ! Check for stop statement
       write(msg, *) 'for q-point', iq, ': k-point:', ik - 1, ' finished'
@@ -118,6 +118,7 @@ module m_b_ematqk
       ! Get number of G+k and G+k+q vectors
       n0 = ngk0(1, ik)
       n = ngk(1, ikq)
+      !write(*,*) "ematqk: n0, n", n0, n
 
       ! Allocate matrix elements array
       if(allocated(xiohalo)) deallocate(xiohalo)
@@ -136,7 +137,6 @@ module m_b_ematqk
       call timesec(cpu1)
       cpuini = cpu1 - cpu0
 
-  !write(*,*) "here before getevecfv"
       ! Read eigenvectors, eigenvalues and occupancies for k+q
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
@@ -145,11 +145,9 @@ module m_b_ematqk
       ! Save local orbital coefficients
       evecfvu(:, :) = evecfv(ngk(1, ikq)+1:ngk(1, ikq)+nlotot, bc%il2:bc%iu2, 1)
 
-  !write(*,*) "here before getevecfv0"
       ! Read eigenvectors, eigenvalues and occupancies for k (q=0)
       !   Read first variational eigenvectors from EVECFV_QMT000.OUT 
       call getevecfv0(vkl0(1, ik), vgkl0(1, 1, 1, ik), evecfv0)
-  !write(*,*) "here after getevecfv0"
 
       ! Save local orbital coefficients
       evecfvo0(:, :) = evecfv0(ngk0(1, ik)+1:ngk0(1, ik)+nlotot, bc%il1:bc%iu1, 1)
@@ -186,7 +184,6 @@ module m_b_ematqk
       apwcmt0=zzero
       apwcmt=zzero
 
-  !write(*,*) "here before getapwcmt bra"
       ! Get APW expansion coefficients for k
       filename = 'APWCMT'//trim(adjustl(filext0))
       call getapwcmt(iqmt0, ik, 1, nstfv, input%xs%lmaxapwwf, apwcmt0,&
@@ -212,7 +209,6 @@ module m_b_ematqk
         end do
       end do
 
-  !write(*,*) "here before getapwcmt ket"
       ! Get APW expansion coefficients for k+q
       filename = 'APWCMT'//trim(adjustl(filext))
       call getapwcmt(iqmt1, ikq, 1, nstfv, input%xs%lmaxapwwf, apwcmt,&
@@ -263,11 +259,14 @@ module m_b_ematqk
         call timesec(cpu00)
         ! Summation of gaunt coefficients w.r.t. radial integrals
         call b_ematgntsum(iq, igq, integrals)
+
         call timesec(cpu01)
         if(whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
+
         ! Muffin-tin contribution
         call b_ematqkgmt(iq, ik, igq, integrals, emat(:,:,igq), bc)
         call timesec(cpu00)
+
         if(whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
       end do ! igq
 #ifdef USEOMP
@@ -419,6 +418,9 @@ module m_b_ematqk
 
       end if mm
 
+      !write(*,*) "ematqk: emat2 = "
+      !write(*,'(2E12.5)') emat
+
       call timesec(cpu1)
       cpumain = cpu1 - cpu0
 
@@ -552,6 +554,9 @@ module m_b_ematqk
       lmmax2 = (lmax2+1) ** 2
       lmmax3 = (lmax3+1) ** 2
 
+      !write(*,*) "lmax1, lmax2, lmax3", lmax1, lmax2, lmax3
+      !write(*,*) "lmmax1, lmmax2, lmmax3", lmmax1, lmmax2, lmmax3
+
       ! Allocate arrays for radial integrals and Bessel functions
       allocate(intrgaa(lmmax1, apwordmax, lmmax3, apwordmax))
       allocate(intrgloa(-lolmax:lolmax, nlomax, lmmax3, apwordmax))
@@ -603,18 +608,23 @@ module m_b_ematqk
             do cm1 = 1, m1shape(l1)
               m1 = m1map(l1, cm1)
               lm1 = idxlm(l1, m1)
+
               do io1 = 1, apword(l1, is)
+
                 do cl2 = 1, l2shape(l1, m1)
                   l3 = l2map(l1, m1, cl2)
                   do cm2 = 1, m2shape(l1, m1, l3)
                     m3 = m2map(l1, m1, l3, cm2)
                     lm3 = idxlm(l3, m3)
+
                     do io2 = 1, apword(l3, is)
+
                       do cl3 = 1, l3shape(l1, m1, l3, m3)
                         l2 = l3map(l1, m1, l3, m3, cl3)
                         do cm3 = 1, m3shape(l1, m1, l3, m3, l2)
                           m2 = m3map(l1, m1, l3, m3, l2, cm3)
                           lm2 = idxlm(l2, m2)
+
                           intrgaa(lm1, io1, lm3, io2) =&
                             & intrgaa(lm1, io1, lm3, io2)&
                             &+ conjg(zil(l2)) * riaa(l1, io1, l3, io2, l2, ias, igq)&

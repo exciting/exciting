@@ -21,7 +21,7 @@ subroutine writepmatxs
   use modxs, only: tscreen, fnpmat, fnpmat_t, kpari,&
                   & kparf, hybridhf, ripaa, ripalo,&
                   & riploa, riplolo, apwcmt, locmt,&
-                  & unitout
+                  & unitout, iqmtgamma
   use m_putpmat
   use m_genfilname
 ! !DESCRIPTION:
@@ -39,7 +39,6 @@ subroutine writepmatxs
 
   ! Local variables
   integer :: ik, reclen
-  integer, parameter :: igammaqmt = 1
   character(32) :: fnam
   complex(8), allocatable :: apwalmt(:, :, :, :)
   complex(8), allocatable :: evecfvt(:, :)
@@ -55,8 +54,22 @@ subroutine writepmatxs
 
   ! Initialise universal variables
   call init0
+  ! k-point setup
+  ! Also allocated the radial functions (mod_APW_LO)
   call init1
-  if(task .ne. 120) call init2
+  if(task .ne. 120) then 
+    ! q-point and qmt-point setup
+    !   Init 2 sets up (task 320/420):
+    !   * A list of momentum transfer vectors form the q-point list 
+    !     (modxs::vqmtl and mod_qpoint::vql)
+    !   * Offset of the k+qmt grid derived from k offset an qmt point (modxs::qvkloff)
+    !   * non-reduced mapping between ik,qmt and ik' grids (modxs::ikmapikq)
+    !   * G+qmt quantities (modxs)
+    !   * The square root of the Coulomb potential for the G+qmt points
+    !   * Reads STATE.OUT
+    !   * Generates radial functions (mod_APW_LO)
+    call init2
+  end if
 
   ! Check if fast (default) version of matrix elements is used
   fast=.false.
@@ -137,12 +150,12 @@ subroutine writepmatxs
 
   ! Get eigenvectors for qmt=0, i.e. set file extension to _QMT001
   if((.not. tscreen) .and. (task .ne. 120)) then
-    call genfilname(iqmt=igammaqmt, setfilext=.true.)
+    call genfilname(iqmt=iqmtgamma, setfilext=.true.)
   end if
 
   ! Get screening eigenvectors for qmt=0, i.e. set file extension to SCR_QMT001
   if( tscreen .and. input%xs%bse%beyond) then 
-    call genfilname(iqmt=igammaqmt, scrtype='', setfilext=.true.)
+    call genfilname(iqmt=iqmtgamma, scrtype='', setfilext=.true.)
   end if
 
   ! Generate band combinations

@@ -65,8 +65,8 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
   integer :: ik, ikq, i0, i
   logical :: t
 
-  write(*,*)
-  write(*,*) "findocclims here"
+  !write(*,*)
+  !write(*,*) "findocclims here"
 
   t = allocated(evalsv0)
   if( .not. t) allocate(evalsv0(nstsv, nkpt))
@@ -82,7 +82,7 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
     ikq = ik
     if(iq .ne. 0) ikq = ikiq2ikp(ik)
 
-    write(*,*) "ik, ik'", ik, ikq
+    !write(*,*) "ik, ik'", ik, ikq
 
     ! Get occupancies and eigenvalues form EVECSV and EVALSV 
     ! files that have file extensions that was set before calling

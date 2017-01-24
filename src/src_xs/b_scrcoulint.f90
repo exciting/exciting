@@ -123,7 +123,7 @@ use m_writecmplxparts
   !   main part   !
   !---------------!
 
-write(*,*) "Hello, this is b_scrcoulint at rank:", rank
+!write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
   ! Check number of empty states
   if(input%xs%screening%nempty .lt. input%groundstate%nempty) then
@@ -236,24 +236,24 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
   ! Setup reduced q-points in modxs
 
-  write(*,*)
+  !write(*,*)
   call xsgrids_init(vqlmt(1:3,iqmt), gkmax)
   if(fra) then 
-    write(*,*) "Generating reduced q-grid for W Fourier coefficients for RA coupling block."
+    !write(*,*) "Generating reduced q-grid for W Fourier coefficients for RA coupling block."
     if(fti) then 
-      write(*,*) "  Using time inverted anti-resonant basis."
+      !write(*,*) "  Using time inverted anti-resonant basis."
       vqoff = q_mqmtp%qset%vkloff
     else
-      write(*,*) "  Using standard anti-resonant basis."
+      !write(*,*) "  Using standard anti-resonant basis."
       vqoff = q_qmtm%qset%vkloff
     end if
   else
-    write(*,*) "Generating reduced q-grid for W Fourier coefficients for RR block."
+    !write(*,*) "Generating reduced q-grid for W Fourier coefficients for RR block."
     vqoff =  q_q%qset%vkloff
   end if
 
-  write(*,*)
-  write(*,'(a,3E10.3)') "vqoff = ", vqoff
+  !write(*,*)
+  !write(*,'(a,3E10.3)') "vqoff = ", vqoff
 
   ! Make reduced q-grid with possible offset
   ! This sets up also G+q quantities and the square root of the Coulomb potential
@@ -273,20 +273,20 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     call flushifc(unitout)
   end if
 
-  write(*,*)
-  write(*,*) "iqr vqlr"
+  !write(*,*)
+  !write(*,*) "iqr vqlr"
   do iq = 1, nqptr
-    write(*,'(i3, 3E10.3)') iq, vqlr(1:3,iq)
+    !write(*,'(i3, 3E10.3)') iq, vqlr(1:3,iq)
   end do
     
   ! Make non-reduced q-grid with possible offset
   ! This sets up also G+q quantities and the square root of the Coulomb potential
   call init2offs(vqoff, .false.)
 
-  write(*,*)
-  write(*,*) "iq vql"
+  !write(*,*)
+  !write(*,*) "iq vql"
   do iq = 1, nqpt
-    write(*,'(i3, 3E10.3)') iq, vql(1:3,iq)
+    !write(*,'(i3, 3E10.3)') iq, vql(1:3,iq)
   end do
 
   ! Make also ngqr
@@ -300,9 +300,9 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
   ! Change file extension and write out k an q points
   call genfilname(dotext='_SCI.OUT', setfilext=.true.)
-  write(*,*)
-  write(*,*) "writing k-points to file"
-  write(*,*) "filext=",trim(filext)
+  !write(*,*)
+  !write(*,*) "writing k-points to file"
+  !write(*,*) "filext=",trim(filext)
   if(mpiglobal%rank == 0) then
     call writekpts
   end if
@@ -315,9 +315,9 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   else
     call genfilname(iqmt=iqmt, dotext='_SCI.OUT', setfilext=.true.)
   end if
-  write(*,*)
-  write(*,*) "writing q-points to file"
-  write(*,*) "filext=",trim(filext)
+  !write(*,*)
+  !write(*,*) "writing q-points to file"
+  !write(*,*) "filext=",trim(filext)
   if(mpiglobal%rank == 0) then
     call writeqpts
   end if
@@ -358,13 +358,13 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     call timesec(tscc0)
   end if
 
-  write(*,*) "W Fourier coefficients"
+  !write(*,*) "W Fourier coefficients"
   do iqr = qpari, qparf ! Reduced q
 
-    write(*,*) "iqr=", iqr
+    !write(*,*) "iqr=", iqr
     ! Locate reduced q-point in non-reduced set
     iqrnr = iqmap(ivqr(1,iqr), ivqr(2,iqr), ivqr(3,iqr))
-    write(*,*) "iqrnr=", iqrnr
+    !write(*,*) "iqrnr=", iqrnr
 
     ! Get number of G+q vectors for current q
     numgq = ngq(iqrnr)
@@ -374,13 +374,13 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     ! 0 frequency and then multiplying
     ! it with v^{1/2} from both sides.
     filext = fileext_scr_read
-    write(*,*) "reading screening form =", trim(filext)
+    !write(*,*) "reading screening form =", trim(filext)
     call genscclieff(iqr, iqrnr, ngqmax, numgq, scieffg(:,:,iqr))
 
     ! Generate radial integrals for matrix elements of plane wave
     ! and save them to disk.
     filext = fileext_ematrad_write
-    write(*,*) "writing emat to =", trim(filext)
+    !write(*,*) "writing emat to =", trim(filext)
     call putematrad(iqr, iqrnr)
 
   end do
@@ -444,20 +444,20 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     !!  hermitian, but one still just needs the upper triangle)
 
     ! Get total k point indices
-    write(*,*)
-    write(*,'(a, i4)') "ikkp =", ikkp
+    !write(*,*)
+    !write(*,'(a, i4)') "ikkp =", ikkp
 
     ! Get k point indices  (R case k=k, A case k=k, A^ti case k=-k)
     iknr = kmap_bse_rg(ik)
     jknr = kmap_bse_rg(jk) 
 
-    write(*,'(a, i4)') "iknr =", iknr
-    write(*,'(a, i4)') "jknr =", jknr
+    !write(*,'(a, i4)') "iknr =", iknr
+    !write(*,'(a, i4)') "jknr =", jknr
 
     if(fra .and. fti) then 
       ! Get index of -k_j
       jmknr = mk%ik2ikm(jknr)
-      write(*,'(a, i4)') "jmknr =", jmknr
+      !write(*,'(a, i4)') "jmknr =", jmknr
     end if
     
     ! Get corresponding k' (R case k'=k+qmt, A case k'=k-qmt, A^ti case k'=-(k+qmt))
@@ -470,27 +470,27 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         ! Get index of -(jk+qmt)
         jmkpnr = mkqmtp%ik2ikm(jkpnr)
         jmkpnr2 = mk_mkqmtp%ik2ikqmt(jmknr)
-        write(*,'(a, i4)') "ik+qmt: ikpnr =", ikpnr
-        write(*,'(a, i4)') "jk+qmt: jkpnr =", jkpnr
-        write(*,'(a, i4)') "-(jk+qmt): jmkpnr =", jmkpnr
-        write(*,'(a, i4)') "-jk-qmt: jmkpnr2 =", jmkpnr2
+        !write(*,'(a, i4)') "ik+qmt: ikpnr =", ikpnr
+        !write(*,'(a, i4)') "jk+qmt: jkpnr =", jkpnr
+        !write(*,'(a, i4)') "-(jk+qmt): jmkpnr =", jmkpnr
+        !write(*,'(a, i4)') "-jk-qmt: jmkpnr2 =", jmkpnr2
       else
         ! Get index of ik+qmt
         ikpnr = k_kqmtp%ik2ikqmt(iknr)
         ! Get index of jk-qmt
         jkpnr = k_kqmtm%ik2ikqmt(jknr)
-        write(*,'(a, i4)') "ik+qmt: ikpnr =", ikpnr
-        write(*,'(a, i4)') "jk-qmt: jkpnt =", jkpnr
+        !write(*,'(a, i4)') "ik+qmt: ikpnr =", ikpnr
+        !write(*,'(a, i4)') "jk-qmt: jkpnt =", jkpnr
       end if
     else
       ! Get index of ik+qmt
       ikpnr = k_kqmtp%ik2ikqmt(iknr)
       ! Get index of jk+qmt
       jkpnr = k_kqmtp%ik2ikqmt(jknr)
-      write(*,'(a, i4)') "ik+qmt: ikpnr =", ikpnr
-      write(*,'(a, i4)') "jk+qmt: jkpnt =", jkpnr
+      !write(*,'(a, i4)') "ik+qmt: ikpnr =", ikpnr
+      !write(*,'(a, i4)') "jk+qmt: jkpnt =", jkpnr
     end if
-    write(*,*)
+    !write(*,*)
 
     ! Get corresponding q-point
     ! (RR case: q = jk-ik, RA case: q = jk-ik-qmt, RA^ti case: q = -jk-ik-qmt)
@@ -501,33 +501,33 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         ! Get corresponding vector in lattice coordinated
         vqr(:) = q_mqmtp%qset%vkl(:, iqr)
         vq(:) = q_mqmtp%qset%vklnr(:, iq)
-        write(*,'(a, i4, 3E10.3)') "-jk-ik-qmt: iq,vq =", iq, vq
-        write(*,'(a, i4, 3E10.3)') "-jk-ik-qmt: iqr,vqr =", iqr, vqr
+        !write(*,'(a, i4, 3E10.3)') "-jk-ik-qmt: iq,vq =", iq, vq
+        !write(*,'(a, i4, 3E10.3)') "-jk-ik-qmt: iqr,vqr =", iqr, vqr
       else
         iq = q_qmtm%ikikp2iq_nr(iknr, jkpnr)
         iqr = q_qmtm%qset%ik2ikp(iq)
         vqr(:) = q_qmtm%qset%vkl(:, iqr)
         vq(:) = q_qmtm%qset%vklnr(:, iq)
-        write(*,'(a, i4, 3E10.3)') "jk-ik-qmt: iq,vq =", iq, vq
-        write(*,'(a, i4, 3E10.3)') "jk-ik-qmt: iqr,vqr =", iqr, vqr
+        !write(*,'(a, i4, 3E10.3)') "jk-ik-qmt: iq,vq =", iq, vq
+        !write(*,'(a, i4, 3E10.3)') "jk-ik-qmt: iqr,vqr =", iqr, vqr
       end if
     else
       iq = q_q%ikikp2iq_nr(iknr, jknr)
       iqr = q_q%qset%ik2ikp(iq)
       vqr(:) = q_q%qset%vkl(:, iqr)
       vq(:) = q_q%qset%vklnr(:, iq)
-      write(*,'(a, i4, 3E10.3)') "jk-ik: iq,vq =", iq, vq
-      write(*,'(a, i4, 3E10.3)') "jk-ik: iqr,vqr =", iqr, vqr
+      !write(*,'(a, i4, 3E10.3)') "jk-ik: iq,vq =", iq, vq
+      !write(*,'(a, i4, 3E10.3)') "jk-ik: iqr,vqr =", iqr, vqr
     end if
-    write(*,*)
+    !write(*,*)
 
-    write(*,*) "check: vq =", vq
-    write(*,*) "check: vql =", vql(1:3,iq)
+    !write(*,*) "check: vq =", vq
+    !write(*,*) "check: vql =", vql(1:3,iq)
 
     ! Check if iq is Gamma point (mod_qpoint::vqc(:,iq) has length < 1d-12)
     tq0 = tqgamma(iq)
-    write(*,*) "q is gamma?=", tq0, (norm2(vq)<1.0d-6)
-    write(*,*)
+    !write(*,*) "q is gamma?=", tq0, (norm2(vq)<1.0d-6)
+    !write(*,*)
 
     ! Local field effects size (Number of G+q vectors)
     numgq = ngq(iq)
@@ -854,9 +854,9 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       type(bcbs) :: ematbc
       character(256) :: fileext0_save, fileext_save
 
-      write(*,*)
-      write(*,*) "getpwesrr:"
-      write(*,*) "  Moo"
+      !write(*,*)
+      !write(*,*) "getpwesrr:"
+      !write(*,*) "  Moo"
 
       fileext0_save = filext0
       fileext_save = filext
@@ -877,12 +877,12 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       iqmt0 = iqmtgamma
       call genfilname(iqmt=iqmt0, setfilext=.true.)
       filext0 = filext
-      write(*,*) "filext0 =", trim(filext0)
+      !write(*,*) "filext0 =", trim(filext0)
 
       ! Set EVECFV_QMT001.OUT as ket state file
       iqmt1 = iqmtgamma
       call genfilname(iqmt=iqmt1, setfilext=.true.)
-      write(*,*) "filext =", trim(filext)
+      !write(*,*) "filext =", trim(filext)
 
       ! Set vkl and vkl0 to k-grid
       call init1offs(k_kqmtp%kset%vkloff)
@@ -895,7 +895,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       call b_ematqk(iq, iknr, moo, ematbc)
       !-----------------------------------------------------------!
 
-      write(*,*) "  Muu"
+      !write(*,*) "  Muu"
       !------------------------------------------------------------------!
       ! Calculate M_{iu ju ik+qmt}(G, q) = <iu ikp|e^{-i(q+G)r}|ju jkp>  !
       !------------------------------------------------------------------!
@@ -912,12 +912,12 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       iqmt0 = iqmt
       call genfilname(iqmt=iqmt0, setfilext=.true.)
       filext0 = filext
-      write(*,*) "filext0 =", trim(filext0)
+      !write(*,*) "filext0 =", trim(filext0)
 
       ! Set EVECFV_QMTXYZ.OUT as ket state file
       iqmt1 = iqmt
       call genfilname(iqmt=iqmt1, setfilext=.true.)
-      write(*,*) "filext =", trim(filext)
+      !write(*,*) "filext =", trim(filext)
 
       ! Set vkl and vkl0 to k+qmt-grid
       call init1offs(k_kqmtp%kqmtset%vkloff)
@@ -929,7 +929,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       ! Calculate M_{o1o2,G} at fixed (k, q)
       call b_ematqk(iq, ikpnr, muu, ematbc)
 
-      write(*,*) "After ematqk"
+      !write(*,*) "After ematqk"
       !------------------------------------------------------------------!
 
       filext0 = fileext0_save
@@ -943,8 +943,8 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       character(256) :: fileext0_save, fileext_save
       type(bcbs) :: ematbc
 
-      write(*,*)
-      write(*,*) "getpwesra:"
+      !write(*,*)
+      !write(*,*) "getpwesra:"
 
       fileext0_save = filext0
       fileext_save = filext
@@ -952,8 +952,8 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       ! Standard anti-resonant basis
       if(.not. fti) then 
 
-        write(*,*) " Std"
-        write(*,*) "  Mou"
+        !write(*,*) " Std"
+        !write(*,*) "  Mou"
         !------------------------------------------------------------!
         ! Calculate M_{io ju ik}(G, q) = <io ik|e^{-i(q+G)r}|ju jkp> !
         ! where jkp=jk-qmt, q=jk-ik-qmt                              !
@@ -972,18 +972,18 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         iqmt0 = iqmtgamma
         call genfilname(iqmt=iqmt0, setfilext=.true.)
         filext0 = filext
-        write(*,*) "filext0 =", trim(filext0)
+        !write(*,*) "filext0 =", trim(filext0)
 
         if(iqmt /= 1) then 
           ! Set EVECFV_QMTXYZ_mqmt.OUT as ket state file
           iqmt1 = iqmt
           call genfilname(iqmt=iqmt1, auxtype="mqmt", setfilext=.true.)
-          write(*,*) "filext =", trim(filext)
+          !write(*,*) "filext =", trim(filext)
         else
           ! Set EVECFV_QMT001.OUT as ket state file
           iqmt1 = iqmtgamma
           call genfilname(iqmt=iqmt1, setfilext=.true.)
-          write(*,*) "filext =", trim(filext)
+          !write(*,*) "filext =", trim(filext)
         end if
 
         ! Set vkl0 to k-grid
@@ -999,7 +999,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         call b_ematqk(iq, iknr, mou, ematbc)
         !------------------------------------------------------------!
 
-        write(*,*) "  Mou"
+        !write(*,*) "  Mou"
         !-------------------------------------------------------------!
         ! Calculate M_{iu jo ikp}(G, q) = <iu ikp|e^{-i(q+G)r}|jo jk> !
         ! where ikp=ik+qmt, q=jk-ik-qmt
@@ -1018,12 +1018,12 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         iqmt0 = iqmt
         call genfilname(iqmt=iqmt0, setfilext=.true.)
         filext0 = filext
-        write(*,*) "filext0 =", trim(filext0)
+        !write(*,*) "filext0 =", trim(filext0)
 
         ! Set EVECFV_QMT001.OUT as ket state file
         iqmt1 = iqmtgamma
         call genfilname(iqmt=iqmt1, setfilext=.true.)
-        write(*,*) "filext =", trim(filext)
+        !write(*,*) "filext =", trim(filext)
 
         ! Set vkl0 to k+qmt-grid
         call init1offs(k_kqmtp%kqmtset%vkloff)
@@ -1040,8 +1040,8 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
       else
 
-        write(*,*) " TI"
-        write(*,*) "  Mou"
+        !write(*,*) " TI"
+        !write(*,*) "  Mou"
         !-------------------------------------------------------------!
         ! Calculate M_{io ju ik}(G, q) = <io ik|e^{-i(q+G)r}|ju jmkp> !
         ! where jmkp=-(jk+qmt), q=-jk-ik-qmt                          !
@@ -1060,12 +1060,12 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         iqmt0 = iqmtgamma
         call genfilname(iqmt=iqmt0, setfilext=.true.)
         filext0 = filext
-        write(*,*) "filext0 =", trim(filext0)
+        !write(*,*) "filext0 =", trim(filext0)
 
         ! Set EVECFV_QMTYZ_m.OUT as ket state file
         iqmt1 = iqmt
         call genfilname(iqmt=iqmt1, auxtype="m", setfilext=.true.)
-        write(*,*) "filext =", trim(filext)
+        !write(*,*) "filext =", trim(filext)
 
         ! Set vkl0 to k-grid
         call init1offs(k_kqmtp%kset%vkloff)
@@ -1080,7 +1080,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         call b_ematqk(iq, iknr, mou, ematbc)
         !------------------------------------------------------------!
 
-        write(*,*) "  Mou"
+        !write(*,*) "  Mou"
         !--------------------------------------------------------------!
         ! Calculate M_{iu jo ikp}(G, q) = <iu ikp|e^{-i(q+G)r}|jo jmk> !
         ! where ikp=ik+qmt, jmk=-jk, q=-jk-ik-qmt                      !
@@ -1099,12 +1099,12 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         iqmt0 = iqmt
         call genfilname(iqmt=iqmt0, setfilext=.true.)
         filext0 = filext
-        write(*,*) "filext0 =", trim(filext0)
+        !write(*,*) "filext0 =", trim(filext0)
 
         ! Set EVECFV_QMT001_m.OUT as ket state file
         iqmt1=iqmtgamma
         call genfilname(iqmt=iqmt1, auxtype="m", setfilext=.true.)
-        write(*,*) "filext =", trim(filext)
+        !write(*,*) "filext =", trim(filext)
 
         ! Set vkl0 to k+qmt-grid
         call init1offs(k_kqmtp%kqmtset%vkloff)
