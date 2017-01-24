@@ -384,6 +384,7 @@ use m_writecmplxparts
     call putematrad(iqr, iqrnr)
 
   end do
+  filext = fileext_ematrad_write
 
   ! Communicate array-parts wrt. q-points
   call mpi_allgatherv_ifc(set=nqptr, rlen=ngqmax*ngqmax,&
