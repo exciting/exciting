@@ -937,6 +937,11 @@ module m_setup_bse
                       & ig, jg, ib, jb,&
                       & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
                       & exc=ebuff(1:ib,1:jb))
+                  ! IP
+                  else
+                    call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
+                      & ig, jg, ib, jb,&
+                      & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1))
                   end if
 
                 ! Send data 
@@ -972,6 +977,10 @@ module m_setup_bse
                         & jg, ig, jb, ib,&
                         & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
                         & exc=ebuff2(1:jb,1:ib))
+                    else
+                      call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
+                        & jg, ig, jb, ib,&
+                        & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1))
                     end if
 
                   ! Send data 
@@ -1018,6 +1027,10 @@ module m_setup_bse
                       & ig, jg, ib, jb,&
                       & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
                       & exc=ebuff(1:ib,1:jb))
+                  else
+                    call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
+                      & ig, jg, ib, jb,&
+                      & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1))
                   end if
 
                 end if
@@ -1052,6 +1065,10 @@ module m_setup_bse
                         & jg, ig, jb, ib,&
                         & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
                         & exc=ebuff2(1:jb,1:ib))
+                    else
+                      call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
+                        & jg, ig, jb, ib,&
+                        & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1))
                     end if
 
                   end if
@@ -1154,6 +1171,9 @@ module m_setup_bse
           else if(present(exc)) then
             ! RPA
             hamblck(r, c) = occ1(r) * ztwo * exc(r, c) * occ2(c)
+          else
+            ! IP
+            hamblck(r, c) = (0.0d0,0.0d0)
           end if
           ! Add KS transition energies
           if(.not. fc) then 
