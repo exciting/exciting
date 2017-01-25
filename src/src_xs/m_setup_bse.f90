@@ -64,9 +64,11 @@ module m_setup_bse
       character(256) :: efname, einfofname
       logical :: efcmpt, efid
       logical :: sfcmpt, sfid
+      logical :: useexc, usescc
 
       ! Timings
       real(8) :: ts0, ts1
+      
 
       call timesec(ts0)
       if(mpiglobal%rank == 0) then 
@@ -80,6 +82,29 @@ module m_setup_bse
           end if
         end if
       end if
+
+      usescc = .false.
+      useexc = .false.
+      select case(trim(input%xs%bse%bsetype))
+        case('singlet')
+          usescc = .true.
+          useexc = .true.
+          if(mpiglobal%rank==0) then
+            write(unitout, '("Info(setup_bse): Using singlet")')
+          end if
+        case('triplet')
+          usescc = .true.
+          useexc = .false.
+          if(mpiglobal%rank==0) then
+            write(unitout, '("Info(setup_bse): Using triplet")')
+          end if
+        case('RPA')
+          usescc = .false.
+          useexc = .true.
+          if(mpiglobal%rank==0) then
+            write(unitout, '("Info(setup_bse): Using RPA")')
+          end if
+      end select
 
       ! Write out W and V (testing feature)
       fwp = input%xs%bse%writeparts
@@ -111,26 +136,32 @@ module m_setup_bse
       einfofname = trim(infofbasename)//'_'//trim(efname)
 
       if(mpiglobal%rank == 0) then 
-        write(unitout, '("  Reading form info from ", a)')&
+        if(usescc) write(unitout, '("  Reading form info from ", a)')&
           & trim(sinfofname)
-        write(unitout, '("  Reading form info from ", a)')&
+        if(useexc) write(unitout, '("  Reading form info from ", a)')&
           & trim(einfofname)
       end if
 
       ! Check saved Quantities for compatiblity
-      call b_getbseinfo(trim(sinfofname), iqmt,&
+      sfcmpt=.false.
+      sfid=.false.
+      if(usescc) call b_getbseinfo(trim(sinfofname), iqmt,&
         & fcmpt=sfcmpt, fid=sfid)
-      call b_getbseinfo(trim(einfofname), iqmt,&
+      efcmpt=.false.
+      efid=.false.
+      if(useexc) call b_getbseinfo(trim(einfofname), iqmt,&
         & fcmpt=efcmpt, fid=efid)
-      if(efcmpt /= sfcmpt .or. efid /= sfid) then 
-        write(*, '("Error(setup_bse): Info files differ")')
-        write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
-        call terminate
+      if(usescc .and. useexc) then 
+        if(efcmpt /= sfcmpt .or. efid /= sfid) then 
+          write(*, '("Error(setup_bse): Info files differ")')
+          write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
+          call terminate
+        end if
       end if
 
       if(mpiglobal%rank == 0) then 
-        write(unitout, '("  Reading form W from ", a)') trim(sfname)
-        write(unitout, '("  Reading form V from ", a)') trim(efname)
+        if(usescc) write(unitout, '("  Reading form W from ", a)') trim(sfname)
+        if(useexc) write(unitout, '("  Reading form V from ", a)') trim(efname)
       end if
 
       ! Set up kkp blocks of RR or RA Hamiltonian
@@ -156,33 +187,31 @@ module m_setup_bse
         jnou = kousize(jknr)
 
         ! Read corresponding ikkp blocks of W and V from file
-        select case(trim(input%xs%bse%bsetype))
-          case('singlet', 'triplet')
-            ! Read RR/RA part of screened coulomb interaction W_{iuioik,jujojk}(qmt)
-            call b_getbsemat(trim(sfname), iqmt, ikkp,&
-              & sccli_t(1:inou,1:jnou), check=.false., fcmpt=sfcmpt, fid=sfid)
-        end select
-        select case(trim(input%xs%bse%bsetype))
-          case('RPA', 'singlet')
-            ! Read RR/RA part of exchange interaction v_{iuioik,jujojk}(qmt)
-            call b_getbsemat(trim(efname), iqmt, ikkp,&
-              & excli_t(1:inou,1:jnou), check=.false., fcmpt=efcmpt, fid=efid)
-        end select
+        if(usescc) then 
+          call b_getbsemat(trim(sfname), iqmt, ikkp,&
+            & sccli_t(1:inou,1:jnou), check=.false., fcmpt=sfcmpt, fid=sfid)
+        end if
+
+        if(useexc) then 
+          ! Read RR/RA part of exchange interaction v_{iuioik,jujojk}(qmt)
+          call b_getbsemat(trim(efname), iqmt, ikkp,&
+            & excli_t(1:inou,1:jnou), check=.false., fcmpt=efcmpt, fid=efid)
+        end if
 
         if(fwp) then 
           if(ikkp == 1 .and. fcoup == .false.) then 
-            call writecmplxparts('ikkp1_read_Wrr',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
-            call writecmplxparts('ikkp1_read_Vrr',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+            if(usescc) call writecmplxparts('ikkp1_read_Wrr',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+            if(useexc) call writecmplxparts('ikkp1_read_Vrr',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
           end if
 
           if(ikkp == 1 .and. fcoup == .true. .and. fti == .false.) then 
-            call writecmplxparts('ikkp1_read_Wra',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
-            call writecmplxparts('ikkp1_read_Vra',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+            if(usescc) call writecmplxparts('ikkp1_read_Wra',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+            if(useexc) call writecmplxparts('ikkp1_read_Vra',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
           end if
 
           if(ikkp == 1 .and. fcoup == .true. .and. fti == .true.) then 
-            call writecmplxparts('ikkp1_read_Wra_ti',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
-            call writecmplxparts('ikkp1_read_Vra_ti',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+            if(usescc) call writecmplxparts('ikkp1_read_Wra_ti',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+            if(useexc) call writecmplxparts('ikkp1_read_Vra_ti',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
           end if
         end if
 
@@ -198,30 +227,40 @@ module m_setup_bse
         ! - W_{iu io ik, ju jo jk})(qmt)
         ! * sqrt(abs(f_{io ik} - f_{ju jk+qmt}))
         ! * sqrt(abs(f_{jo jk}-f_{ju jk+qmt})) or sqrt(abs(f_{jo jk}-f_{ju jk-qmt}))
-        select case(trim(input%xs%bse%bsetype))
-          case('RPA', 'singlet')
-            if(fwp) then 
-              call setint(ham(i1:i2,j1:j2),&
-                & ofac(i1:i2), ofac(j1:j2),&
-                & sccli_t(1:inou,1:jnou), exc=excli_t(1:inou,1:jnou),&
-                & w=wint(i1:i2,j1:j2), v=vint(i1:i2,j1:j2))
-            else
-              call setint(ham(i1:i2,j1:j2),&
-                & ofac(i1:i2), ofac(j1:j2),&
-                & sccli_t(1:inou,1:jnou), exc=excli_t(1:inou,1:jnou))
-            end if
-          case('triplet')
-            if(fwp) then 
-              call setint(ham(i1:i2,j1:j2),&
-                & ofac(i1:i2), ofac(j1:j2),&
-                & sccli_t(1:inou,1:jnou),&
-                & w=wint(i1:i2,j1:j2))
-            else
-              call setint(ham(i1:i2,j1:j2),&
-                & ofac(i1:i2), ofac(j1:j2),&
-                & sccli_t(1:inou,1:jnou))
-            end if
-        end select
+        if(usescc .and. useexc) then 
+          if(fwp) then 
+            call setint(ham(i1:i2,j1:j2),&
+              & ofac(i1:i2), ofac(j1:j2),&
+              & scc=sccli_t(1:inou,1:jnou), exc=excli_t(1:inou,1:jnou),&
+              & w=wint(i1:i2,j1:j2), v=vint(i1:i2,j1:j2))
+          else
+            call setint(ham(i1:i2,j1:j2),&
+              & ofac(i1:i2), ofac(j1:j2),&
+              & scc=sccli_t(1:inou,1:jnou), exc=excli_t(1:inou,1:jnou))
+          end if
+        else if(usescc) then
+          if(fwp) then 
+            call setint(ham(i1:i2,j1:j2),&
+              & ofac(i1:i2), ofac(j1:j2),&
+              & scc=sccli_t(1:inou,1:jnou),&
+              & w=wint(i1:i2,j1:j2))
+          else
+            call setint(ham(i1:i2,j1:j2),&
+              & ofac(i1:i2), ofac(j1:j2),&
+              & scc=sccli_t(1:inou,1:jnou))
+          end if
+        else if(useexc) then 
+          if(fwp) then 
+            call setint(ham(i1:i2,j1:j2),&
+              & ofac(i1:i2), ofac(j1:j2),&
+              & exc=excli_t(1:inou,1:jnou),&
+              & v=vint(i1:i2,j1:j2))
+          else
+            call setint(ham(i1:i2,j1:j2),&
+              & ofac(i1:i2), ofac(j1:j2),&
+              & exc=excli_t(1:inou,1:jnou))
+          end if
+        end if
 
         !! RR only
         ! For blocks on the diagonal, add the KS transition
@@ -270,48 +309,48 @@ module m_setup_bse
         ! Write unsymmetrised
         if(fcoup) then 
           if(fti) then 
-            call writecmplxparts('WCti_unsym', dble(wint), immat=aimag(wint))
-            call writecmplxparts('VCti_unsym', dble(vint), immat=aimag(vint))
+            if(usescc) call writecmplxparts('WCti_unsym', dble(wint), immat=aimag(wint))
+            if(useexc) call writecmplxparts('VCti_unsym', dble(vint), immat=aimag(vint))
           else
-            call writecmplxparts('WC_unsym', dble(wint), immat=aimag(wint))
-            call writecmplxparts('VC_unsym', dble(vint), immat=aimag(vint))
+            if(usescc) call writecmplxparts('WC_unsym', dble(wint), immat=aimag(wint))
+            if(useexc) call writecmplxparts('VC_unsym', dble(vint), immat=aimag(vint))
           end if
         else
           call writecmplxparts('KS', diag)
-          call writecmplxparts('W_unsym', dble(wint), immat=aimag(wint))
-          call writecmplxparts('V_unsym', dble(vint), immat=aimag(vint))
+          if(usescc) call writecmplxparts('W_unsym', dble(wint), immat=aimag(wint))
+          if(useexc) call writecmplxparts('V_unsym', dble(vint), immat=aimag(vint))
         end if
         ! Make W,V hermitian (RR or RA^ti) or symmetric (RA)
         do i1 = 1, hamsize
           do i2 = i1, hamsize
             if(fcoup) then 
               if(fti) then 
-                wint(i2,i1) = conjg(wint(i1,i2))
-                vint(i2,i1) = conjg(vint(i1,i2))
+                if(usescc) wint(i2,i1) = conjg(wint(i1,i2))
+                if(useexc) vint(i2,i1) = conjg(vint(i1,i2))
               else
-                wint(i2,i1) = wint(i1,i2)
-                vint(i2,i1) = vint(i1,i2)
+                if(usescc) wint(i2,i1) = wint(i1,i2)
+                if(useexc) vint(i2,i1) = vint(i1,i2)
               end if
             else
-              wint(i2,i1) = conjg(wint(i1,i2))
-              vint(i2,i1) = conjg(vint(i1,i2))
+              if(usescc) wint(i2,i1) = conjg(wint(i1,i2))
+              if(useexc) vint(i2,i1) = conjg(vint(i1,i2))
             end if
           end do
         end do
         if(fcoup) then 
           if(fti) then 
             call writecmplxparts('HamCti', dble(ham), immat=aimag(ham))
-            call writecmplxparts('WCti', dble(wint), immat=aimag(wint))
-            call writecmplxparts('VCti', dble(vint), immat=aimag(vint))
+            if(usescc) call writecmplxparts('WCti', dble(wint), immat=aimag(wint))
+            if(useexc) call writecmplxparts('VCti', dble(vint), immat=aimag(vint))
           else
             call writecmplxparts('HamC', dble(ham), immat=aimag(ham))
-            call writecmplxparts('WC', dble(wint), immat=aimag(wint))
-            call writecmplxparts('VC', dble(vint), immat=aimag(vint))
+            if(usescc) call writecmplxparts('WC', dble(wint), immat=aimag(wint))
+            if(useexc) call writecmplxparts('VC', dble(vint), immat=aimag(vint))
           end if
         else
           call writecmplxparts('Ham', dble(ham), immat=aimag(ham))
-          call writecmplxparts('W', dble(wint), immat=aimag(wint))
-          call writecmplxparts('V', dble(vint), immat=aimag(vint))
+          if(usescc) call writecmplxparts('W', dble(wint), immat=aimag(wint))
+          if(useexc) call writecmplxparts('V', dble(vint), immat=aimag(vint))
         end if
 
         ! Order for energy
@@ -343,12 +382,12 @@ module m_setup_bse
         end do
         if(fcoup) then 
           if(fti) then 
-            call writecmplxparts('WCti_sorted', dble(tmp), immat=aimag(tmp))
+            if(usescc) call writecmplxparts('WCti_sorted', dble(tmp), immat=aimag(tmp))
           else
-            call writecmplxparts('WC_sorted', dble(tmp), immat=aimag(tmp))
+            if(usescc) call writecmplxparts('WC_sorted', dble(tmp), immat=aimag(tmp))
           end if
         else
-          call writecmplxparts('W_sorted', dble(tmp), immat=aimag(tmp))
+          if(usescc) call writecmplxparts('W_sorted', dble(tmp), immat=aimag(tmp))
         end if
         do i1 = 1, hamsize
           do i2 = 1, hamsize
@@ -357,12 +396,12 @@ module m_setup_bse
         end do
         if(fcoup) then 
           if(fti) then 
-            call writecmplxparts('V_sorted', dble(tmp), immat=aimag(tmp))
+            if(useexc) call writecmplxparts('V_sorted', dble(tmp), immat=aimag(tmp))
           else
-            call writecmplxparts('VC_sorted', dble(tmp), immat=aimag(tmp))
+            if(useexc) call writecmplxparts('VC_sorted', dble(tmp), immat=aimag(tmp))
           end if
         else
-          call writecmplxparts('V_sorted', dble(tmp), immat=aimag(tmp))
+          if(useexc) call writecmplxparts('V_sorted', dble(tmp), immat=aimag(tmp))
         end if
         deallocate(tmp)
         deallocate(wint)
@@ -378,22 +417,28 @@ module m_setup_bse
         subroutine setint(hamblock, oc1, oc2, scc, exc, w, v)
           complex(8), intent(out) :: hamblock(:,:)
           real(8), intent(in) :: oc1(:), oc2(:)
-          complex(8), intent(in) :: scc(:,:)
+          complex(8), intent(in), optional :: scc(:,:)
           complex(8), intent(in), optional :: exc(:,:)
           complex(8), intent(out), optional :: w(:,:), v(:,:)
           
           integer(4) :: i, j
 
-          if(present(exc)) then 
+          if(present(exc) .and. present(scc)) then 
             do j= 1, size(hamblock,2)
               do i= 1, size(hamblock,1)
                 hamblock(i,j) = oc1(i)*oc2(j) * (2.0d0 * exc(i,j) - scc(i,j))
               end do
             end do
-          else
+          else if(present(scc)) then 
             do j= 1, size(hamblock,2)
               do i= 1, size(hamblock,1)
                 hamblock(i,j) = -oc1(i)*oc2(j) * scc(i,j)
+              end do
+            end do
+          else if(present(exc)) then 
+            do j= 1, size(hamblock,2)
+              do i= 1, size(hamblock,1)
+                hamblock(i,j) = oc1(i)*oc2(j) * 2.0d0 * exc(i,j)
               end do
             end do
           end if
@@ -502,6 +547,8 @@ module m_setup_bse
       logical :: efcmpt, efid
       logical :: sfcmpt, sfid
 
+      logical :: useexc, usescc
+
       logical :: fwp
 
       fwp = input%xs%bse%writeparts
@@ -514,6 +561,30 @@ module m_setup_bse
         !! AND SENDS THE CORRESPONDING !!
         !! DATA CHUNKS TO THE OTHERS.  !!
         !!*****************************!!
+
+        usescc = .false.
+        useexc = .false.
+        select case(trim(input%xs%bse%bsetype))
+          case('singlet')
+            usescc = .true.
+            useexc = .true.
+            if(mpiglobal%rank==0) then
+              write(unitout, '("Info(setup_distributed_bse): Using singlet")')
+            end if
+          case('triplet')
+            usescc = .true.
+            useexc = .false.
+            if(mpiglobal%rank==0) then
+              write(unitout, '("Info(setup_distributed_bse): Using triplet")')
+            end if
+          case('RPA')
+            usescc = .false.
+            useexc = .true.
+            if(mpiglobal%rank==0) then
+              write(unitout, '("Info(setup_distributed_bse): Using RPA")')
+            end if
+        end select
+
         ! Check whether the saved data is usable and 
         ! allocate read in work arrays
         if(binfo%isroot) then 
@@ -547,24 +618,31 @@ module m_setup_bse
           sinfofname = trim(infofbasename)//'_'//trim(sfname)
           einfofname = trim(infofbasename)//'_'//trim(efname)
 
-          write(unitout, '("  Reading form info from ", a)')&
+          if(usescc) write(unitout, '("  Reading form info from ", a)')&
             & trim(sinfofname)
-          write(unitout, '("  Reading form info from ", a)')&
+          if(useexc) write(unitout, '("  Reading form info from ", a)')&
             & trim(einfofname)
 
           ! Check saved quantities for compatibility
-          call b_getbseinfo(trim(sinfofname), iqmt,&
+          sfcmpt=.false.
+          sfid=.false.
+          if(usescc) call b_getbseinfo(trim(sinfofname), iqmt,&
             & fcmpt=sfcmpt, fid=sfid)
-          call b_getbseinfo(trim(einfofname), iqmt,&
+          efcmpt=.false.
+          efid=.false.
+          if(useexc) call b_getbseinfo(trim(einfofname), iqmt,&
             & fcmpt=efcmpt, fid=efid)
-          if(efcmpt /= sfcmpt .or. efid /= sfid) then 
-            write(*, '("Error(setup_distributed_bse): Info files differ")')
-            write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
-            call terminate
+
+          if(usescc .and. useexc) then 
+            if(efcmpt /= sfcmpt .or. efid /= sfid) then 
+              write(*, '("Error(setup_distributed_bse): Info files differ")')
+              write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
+              call terminate
+            end if
           end if
 
-          write(unitout, '("  Reading form W from ", a)') trim(sfname)
-          write(unitout, '("  Reading form V from ", a)') trim(efname)
+          if(usescc) write(unitout, '("  Reading form W from ", a)') trim(sfname)
+          if(useexc) write(unitout, '("  Reading form V from ", a)') trim(efname)
 
           allocate(excli_t(nou_bse_max, nou_bse_max))
           allocate(sccli_t(nou_bse_max, nou_bse_max))
@@ -636,35 +714,45 @@ module m_setup_bse
           if(binfo%isroot) then
 
             ! Read in screened coulomb interaction for ikkp
-            select case(trim(input%xs%bse%bsetype))
-              case('singlet', 'triplet')
-                ! Read RR/RA part of screened coulomb interaction W_{iuioik,jujojk}(qmt)
-                call b_getbsemat(trim(sfname), iqmt, ikkp,&
-                  & sccli_t(1:inou,1:jnou), check=.false., fcmpt=sfcmpt, fid=sfid)
-            end select
+            if(usescc) then 
+              ! Read RR/RA part of screened coulomb interaction W_{iuioik,jujojk}(qmt)
+              call b_getbsemat(trim(sfname), iqmt, ikkp,&
+                & sccli_t(1:inou,1:jnou), check=.false., fcmpt=sfcmpt, fid=sfid)
+            end if
 
             ! Read in exchange interaction for ikkp
-            select case(trim(input%xs%bse%bsetype))
-              case('RPA', 'singlet')
-                ! Read RR/RA part of exchange interaction v_{iuioik,jujojk}(qmt)
-                call b_getbsemat(trim(efname), iqmt, ikkp,&
-                  & excli_t(1:inou,1:jnou), check=.false., fcmpt=efcmpt, fid=efid)
-            end select
+            if(useexc) then 
+              ! Read RR/RA part of exchange interaction v_{iuioik,jujojk}(qmt)
+              call b_getbsemat(trim(efname), iqmt, ikkp,&
+                & excli_t(1:inou,1:jnou), check=.false., fcmpt=efcmpt, fid=efid)
+            end if
 
             if(fwp) then
               if(ikkp == 1 .and. fcoup == .false.) then 
-                call writecmplxparts('ikkp1_read_Wrr',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
-                call writecmplxparts('ikkp1_read_Vrr',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+                if(usescc) then 
+                  call writecmplxparts('ikkp1_read_Wrr',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+                end if
+                if(useexc) then 
+                  call writecmplxparts('ikkp1_read_Vrr',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+                end if
               end if
 
               if(ikkp == 1 .and. fcoup == .true. .and. fti == .false.) then 
-                call writecmplxparts('ikkp1_read_Wra',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
-                call writecmplxparts('ikkp1_read_Vra',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+                if(usescc) then 
+                  call writecmplxparts('ikkp1_read_Wra',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+                end if
+                if(useexc) then 
+                  call writecmplxparts('ikkp1_read_Vra',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+                end if
               end if
 
               if(ikkp == 1 .and. fcoup == .true. .and. fti == .true.) then 
-                call writecmplxparts('ikkp1_read_Wra_ti',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
-                call writecmplxparts('ikkp1_read_Vra_ti',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+                if(usescc) then 
+                  call writecmplxparts('ikkp1_read_Wra_ti',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
+                end if
+                if(useexc) then 
+                  call writecmplxparts('ikkp1_read_Vra_ti',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
+                end if
               end if
             end if
 
@@ -673,15 +761,23 @@ module m_setup_bse
               if(fcoup .and. .not. fti) then 
                 do j = 1, jnou
                   do i = 1, j
-                    sccli_t(j,i) = sccli_t(i,j)
-                    excli_t(j,i) = excli_t(i,j)
+                    if(usescc) then 
+                      sccli_t(j,i) = sccli_t(i,j)
+                    end if
+                    if(useexc) then
+                      excli_t(j,i) = excli_t(i,j)
+                    end if
                   end do
                 end do
               else
                 do j = 1, jnou
                   do i = 1, j
-                    sccli_t(j,i) = conjg(sccli_t(i,j))
-                    excli_t(j,i) = conjg(excli_t(i,j))
+                    if(usescc) then
+                      sccli_t(j,i) = conjg(sccli_t(i,j))
+                    end if
+                    if(useexc) then 
+                      excli_t(j,i) = conjg(excli_t(i,j))
+                    end if
                   end do
                 end do
               end if
@@ -802,17 +898,17 @@ module m_setup_bse
               if(binfo%isroot) then 
 
                 ! Prepare send packages
-                ebuff(1:ib,1:jb) = excli_t(i:i+ib-1, j:j+jb-1)
-                sbuff(1:ib,1:jb) = sccli_t(i:i+ib-1, j:j+jb-1)
+                if(usescc) sbuff(1:ib,1:jb) = sccli_t(i:i+ib-1, j:j+jb-1)
+                if(useexc) ebuff(1:ib,1:jb) = excli_t(i:i+ib-1, j:j+jb-1)
 
                 if(iknr /= jknr) then 
                   ! Also build lower part of hermitian/symmetric matrix
                   if(fcoup .and. .not. fti) then 
-                    ebuff2(1:jb,1:ib) = transpose(excli_t(i:i+ib-1, j:j+jb-1))
-                    sbuff2(1:jb,1:ib) = transpose(sccli_t(i:i+ib-1, j:j+jb-1))
+                    if(usescc) sbuff2(1:jb,1:ib) = transpose(sccli_t(i:i+ib-1, j:j+jb-1))
+                    if(useexc) ebuff2(1:jb,1:ib) = transpose(excli_t(i:i+ib-1, j:j+jb-1))
                   else
-                    ebuff2(1:jb,1:ib) = conjg(transpose(excli_t(i:i+ib-1, j:j+jb-1)))
-                    sbuff2(1:jb,1:ib) = conjg(transpose(sccli_t(i:i+ib-1, j:j+jb-1)))
+                    if(usescc) sbuff2(1:jb,1:ib) = conjg(transpose(sccli_t(i:i+ib-1, j:j+jb-1)))
+                    if(useexc) ebuff2(1:jb,1:ib) = conjg(transpose(excli_t(i:i+ib-1, j:j+jb-1)))
                   end if
                 end if
 
@@ -823,18 +919,35 @@ module m_setup_bse
 
 !write(*,'("(",i2,",",i2,"): Building upper")') binfo%myprow, binfo%mypcol
 
-                  call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
-                    & ig, jg, ib, jb,&
-                    & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
-                    & scc=sbuff(1:ib,1:jb), exc=ebuff(1:ib,1:jb))
+                  ! Singlet
+                  if(useexc .and. usescc) then 
+                    call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
+                      & ig, jg, ib, jb,&
+                      & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
+                      & scc=sbuff(1:ib,1:jb), exc=ebuff(1:ib,1:jb))
+                  ! Triplet
+                  else if(usescc) then 
+                    call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
+                      & ig, jg, ib, jb,&
+                      & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
+                      & scc=sbuff(1:ib,1:jb))
+                  ! RPA
+                  else if(useexc) then
+                    call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
+                      & ig, jg, ib, jb,&
+                      & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
+                      & exc=ebuff(1:ib,1:jb))
+                  end if
+
                 ! Send data 
                 else
 
 !write(*,'("(",i2,",",i2,"): Sending upper to: ("i2,",",i2,")")')&
 ! binfo%myprow, binfo%mypcol, pr, pc
 
-                  call zgesd2d(context, ib, jb, ebuff, iblck, pr, pc)
-                  call zgesd2d(context, ib, jb, sbuff, iblck, pr, pc)
+                  if(usescc) call zgesd2d(context, ib, jb, sbuff, iblck, pr, pc)
+                  if(useexc) call zgesd2d(context, ib, jb, ebuff, iblck, pr, pc)
+
                 end if
 
                 ! Lower triangular part
@@ -844,18 +957,32 @@ module m_setup_bse
 
 !write(*,'("(",i2,",",i2,"): Building lower")') binfo%myprow, binfo%mypcol
 
-                    call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
-                      & jg, ig, jb, ib,&
-                      & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
-                      & scc=sbuff2(1:jb,1:ib), exc=ebuff2(1:jb,1:ib))
+                    if(useexc .and. usescc) then 
+                      call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
+                        & jg, ig, jb, ib,&
+                        & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
+                        & scc=sbuff2(1:jb,1:ib), exc=ebuff2(1:jb,1:ib))
+                    else if(usescc) then
+                      call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
+                        & jg, ig, jb, ib,&
+                        & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
+                        & scc=sbuff2(1:jb,1:ib))
+                    else if(useexc) then
+                      call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
+                        & jg, ig, jb, ib,&
+                        & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
+                        & exc=ebuff2(1:jb,1:ib))
+                    end if
+
                   ! Send data 
                   else
 
 !write(*,'("(",i2,",",i2,"): Sending lower to: ("i2,",",i2,")")')&
 ! binfo%myprow, binfo%mypcol, pr, pc
 
-                    call zgesd2d(context, jb, ib, ebuff2, jblck, pr2, pc2)
-                    call zgesd2d(context, jb, ib, sbuff2, jblck, pr2, pc2)
+                    if(usescc) call zgesd2d(context, jb, ib, sbuff2, jblck, pr2, pc2)
+                    if(useexc) call zgesd2d(context, jb, ib, ebuff2, jblck, pr2, pc2)
+
                   end if
 
                 end if
@@ -870,16 +997,28 @@ module m_setup_bse
 ! binfo%myprow, binfo%mypcol, 0 , 0
 
                   ! Receive block
-                  call zgerv2d(context, ib, jb, ebuff, iblck, 0, 0)
-                  call zgerv2d(context, ib, jb, sbuff, iblck, 0, 0)
+                  if(usescc) call zgerv2d(context, ib, jb, sbuff, iblck, 0, 0)
+                  if(useexc) call zgerv2d(context, ib, jb, ebuff, iblck, 0, 0)
 
 !write(*,'("(",i2,",",i2,"): Building upper")') binfo%myprow, binfo%mypcol
 
                   ! Assemble sub-block in local Hamilton matrix
-                  call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
-                    & ig, jg, ib, jb,&
-                    & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
-                    & scc=sbuff(1:ib,1:jb), exc=ebuff(1:ib,1:jb))
+                  if(useexc .and. usescc) then 
+                    call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
+                      & ig, jg, ib, jb,&
+                      & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
+                      & scc=sbuff(1:ib,1:jb), exc=ebuff(1:ib,1:jb))
+                  else if(usescc) then
+                    call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
+                      & ig, jg, ib, jb,&
+                      & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
+                      & scc=sbuff(1:ib,1:jb))
+                  else if(useexc) then
+                    call buildham(fcoup, ham%za(il:il+ib-1, jl:jl+jb-1),&
+                      & ig, jg, ib, jb,&
+                      & occ1=ofac(ig:ig+ib-1), occ2=ofac(jg:jg+jb-1),&
+                      & exc=ebuff(1:ib,1:jb))
+                  end if
 
                 end if
 
@@ -892,16 +1031,28 @@ module m_setup_bse
 ! binfo%myprow, binfo%mypcol, 0 , 0
 
                     ! Receive block
-                    call zgerv2d(context, jb, ib, ebuff2, jblck, 0, 0)
-                    call zgerv2d(context, jb, ib, sbuff2, jblck, 0, 0)
+                    if(usescc) call zgerv2d(context, jb, ib, sbuff2, jblck, 0, 0)
+                    if(useexc) call zgerv2d(context, jb, ib, ebuff2, jblck, 0, 0)
 
 !write(*,'("(",i2,",",i2,"): Building lower")') binfo%myprow, binfo%mypcol
 
                     ! Lower triangular part
-                    call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
-                      & jg, ig, jb, ib,&
-                      & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
-                      & scc=sbuff2(1:jb,1:ib), exc=ebuff2(1:jb,1:ib))
+                    if(useexc .and. usescc) then 
+                      call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
+                        & jg, ig, jb, ib,&
+                        & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
+                        & scc=sbuff2(1:jb,1:ib), exc=ebuff2(1:jb,1:ib))
+                    else if(usescc) then
+                      call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
+                        & jg, ig, jb, ib,&
+                        & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
+                        & scc=sbuff2(1:jb,1:ib))
+                    else if(useexc) then
+                      call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
+                        & jg, ig, jb, ib,&
+                        & occ1=ofac(jg:jg+jb-1), occ2=ofac(ig:ig+ib-1),&
+                        & exc=ebuff2(1:jb,1:ib))
+                    end if
 
                   end if
 
@@ -1000,6 +1151,9 @@ module m_setup_bse
           else if(present(scc)) then
             ! Triplet case without exchange interaction
             hamblck(r, c) = -occ1(r) * scc(r, c) * occ2(c)
+          else if(present(exc)) then
+            ! RPA
+            hamblck(r, c) = occ1(r) * ztwo * exc(r, c) * occ2(c)
           end if
           ! Add KS transition energies
           if(.not. fc) then 
