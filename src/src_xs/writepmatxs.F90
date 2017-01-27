@@ -50,7 +50,7 @@ subroutine writepmatxs
   ! External functions
   logical, external :: tqgamma
 
-  write(*,*) "writepmatxs here at rank", rank
+  !write(*,*) "writepmatxs here at rank", rank
 
   ! Initialise universal variables
   call init0

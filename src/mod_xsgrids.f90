@@ -95,6 +95,8 @@ module mod_xsgrids
       real(8) :: gmaxvr, vkloff(3), gqmax
       logical :: reducek, reduceq
 
+      integer(4), allocatable :: igk2igkp(:)
+
       !! Setting k-space grid parameters
       ngridk = input%xs%ngridk
       reducek = input%xs%reducek

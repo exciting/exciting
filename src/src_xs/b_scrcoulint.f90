@@ -336,16 +336,21 @@ use m_writecmplxparts
   eps0dirname = 'EPS0'
   if(fra) then 
     if(.not. fti) then 
-      if(iqmt /= 1) then 
-        call genfilname(iqmt=iqmt, auxtype='mqmt', scrtype='', fileext=fileext_scr_read)
-        call genfilname(iqmt=iqmt, auxtype='mqmt', fileext=fileext_ematrad_write)
-      else
+      if(iqmt == 1) then 
         call genfilname(iqmt=iqmtgamma, scrtype='', fileext=fileext_scr_read)
         call genfilname(iqmt=iqmt, fileext=fileext_ematrad_write)
+      else
+        call genfilname(iqmt=iqmt, auxtype='mqmt', scrtype='', fileext=fileext_scr_read)
+        call genfilname(iqmt=iqmt, auxtype='mqmt', fileext=fileext_ematrad_write)
       end if
     else
-      call genfilname(iqmt=iqmt, auxtype='m', scrtype='', fileext=fileext_scr_read)
-      call genfilname(iqmt=iqmt, auxtype='m', fileext=fileext_ematrad_write)
+      if(all(vqoff == 0.0d0)) then 
+        call genfilname(iqmt=iqmtgamma, scrtype='', fileext=fileext_scr_read)
+        call genfilname(iqmt=iqmt, fileext=fileext_ematrad_write)
+      else
+        call genfilname(iqmt=iqmt, auxtype='m', scrtype='', fileext=fileext_scr_read)
+        call genfilname(iqmt=iqmt, auxtype='m', fileext=fileext_ematrad_write)
+      end if
     end if
   else
     call genfilname(iqmt=iqmtgamma, scrtype='', fileext=fileext_scr_read)
@@ -384,6 +389,9 @@ use m_writecmplxparts
     call putematrad(iqr, iqrnr)
 
   end do
+
+  ! Set file extesion for later read EMATRAD in getematrad
+  ! (some ranks may not participate in the qr loop above)
   filext = fileext_ematrad_write
 
   ! Communicate array-parts wrt. q-points
@@ -527,40 +535,43 @@ use m_writecmplxparts
 
     ! Check if iq is Gamma point (mod_qpoint::vqc(:,iq) has length < 1d-12)
     tq0 = tqgamma(iq)
-    !write(*,*) "q is gamma?=", tq0, (norm2(vq)<1.0d-6)
-    !write(*,*)
+    !!write(*,*) "q is gamma?=", tq0, (norm2(vq)<1.0d-6)
+    !!write(*,*)
 
     ! Local field effects size (Number of G+q vectors)
     numgq = ngq(iq)
+    !write(*,*) "numgq=", numgq
 
     if(allocated(igqmap)) deallocate(igqmap)
     allocate(igqmap(numgq))
     if(allocated(wfc)) deallocate(wfc)
     allocate(wfc(numgq, numgq))
 
-    !! Find results  
-    !! for a non reduced q-point with the help of the result 
-    !! for the corresponding reduced q-point using symmetry operations.
-    !! (Radial emat integrals and screened coulomb potential Fourier coefficients)
-    !!<--
-    !! RR & RA
-    ! Find symmetry operations that map the reduced q-point to the non reduced one
-    call findsymeqiv(input%xs%bse%fbzq, vq, vqr, nsc, sc, ivgsc)
-    ! Find a crystal symmetry operation that rotates the G+q-vectors onto G'+q_r-vectors
-    ! and generate a Map G' --> G
-    call findgqmap(iq, iqr, nsc, sc, ivgsc, numgq, jsym, jsymi, ivgsym, igqmap)
-
     ! Get radial integrals for q_r (previously calculated for reduced q set)
     call getematrad(iqr, iq)
-    ! Rotate radial integrals calculated for the reduced q to get those for non-reduced q
-    call rotematrad(numgq, igqmap)
 
-    ! Generate phase factor for dielectric matrix due to non-primitive
-    ! translations
-    call genphasedm(iq, jsym, ngqmax, numgq, phf, tphf)
-    ! W(G,G',q) <-- W(\tilde{G},\tilde{G}',qr)
-    wfc(:,:) = phf(:numgq, :numgq) * scieffg(igqmap, igqmap, iqr)
-    !!-->
+    if(input%xs%reduceq) then 
+      !! Find results  
+      !! for a non reduced q-point with the help of the result 
+      !! for the corresponding reduced q-point using symmetry operations.
+      !! (Radial emat integrals and screened coulomb potential Fourier coefficients)
+      !!<--
+      !! RR & RA
+      ! Find symmetry operations that map the reduced q-point to the non reduced one
+      call findsymeqiv(input%xs%bse%fbzq, vq, vqr, nsc, sc, ivgsc)
+      ! Find a crystal symmetry operation that rotates the G+q-vectors onto G'+q_r-vectors
+      ! and generate a Map G' --> G
+      call findgqmap(iq, iqr, nsc, sc, ivgsc, numgq, jsym, jsymi, ivgsym, igqmap)
+      ! Rotate radial integrals calculated for the reduced q to get those for non-reduced q
+      call rotematrad(numgq, igqmap)
+      ! Generate phase factor for dielectric matrix due to non-primitive
+      ! translations
+      call genphasedm(iq, jsym, ngqmax, numgq, phf, tphf)
+      ! W(G,G',q) <-- W(\tilde{G},\tilde{G}',qr)
+      wfc(:,:) = phf(:numgq, :numgq) * scieffg(igqmap, igqmap, iqr)
+    else
+      wfc(:,:) = scieffg(1:numgq, 1:numgq, iqr)
+    end if
 
     ! Get ik & jk dependent band ranges for 
     ! plane wave matrix calculation (is nstlbse was used in input all k points
@@ -741,7 +752,6 @@ use m_writecmplxparts
       !   i.e. zm_{j1,G'} = \Sum_{G} cmou_{j1,G} wfc_{G,G'}
       !   i.e. zm_{io_j1,ju_j1}(G',q) =
       !          \Sum_{G} M^*_{io_j1,ju_j1,ik}(G,q-qmt) W(G,G',q-qmt)
-      ! NOTE: only qmt=0 supported currently
       call zgemm('n', 'n', nou, numgq, numgq, zone, cmou, nou,&
         & wfc, numgq, zzero, zm, nou)
       ! scclit = pref * zm * cmuo^T
@@ -749,7 +759,6 @@ use m_writecmplxparts
       !   i.e. scclict_{io_j1 ju_j1, iu_j2 jo_j2} =
       !   \Sum{G,G'} 
       !   M^*_{io_j1,ju_j1,ik}(G,q-qmt) W(G, G',q-qmt) M_{iu_j2,jo_j2,ik+qmt}(G',q-qmt)
-      ! NOTE: only qmt=0 supported currently
       call zgemm('n', 't', nou, nuo, numgq, pref, zm,&
         & nou, cmuo, nuo, zzero, sccli_t1(1:nou,1:nuo), nou)
       deallocate(zm)        
@@ -1063,9 +1072,15 @@ use m_writecmplxparts
         filext0 = filext
         !write(*,*) "filext0 =", trim(filext0)
 
-        ! Set EVECFV_QMTYZ_m.OUT as ket state file
         iqmt1 = iqmt
-        call genfilname(iqmt=iqmt1, auxtype="m", setfilext=.true.)
+        if(all(mkqmtp%kset%vkloff == k_kqmtp%kqmtset%vkloff)) then 
+          !write(*,*) "Using equivalent positive grid file"
+          ! Set EVECFV_QMTYZ.OUT as ket state file
+          call genfilname(iqmt=iqmt1, setfilext=.true.)
+        else
+          ! Set EVECFV_QMTYZ_m.OUT as ket state file
+          call genfilname(iqmt=iqmt1, auxtype="m", setfilext=.true.)
+        end if
         !write(*,*) "filext =", trim(filext)
 
         ! Set vkl0 to k-grid
@@ -1081,7 +1096,7 @@ use m_writecmplxparts
         call b_ematqk(iq, iknr, mou, ematbc)
         !------------------------------------------------------------!
 
-        !write(*,*) "  Mou"
+        !write(*,*) "  Muo"
         !--------------------------------------------------------------!
         ! Calculate M_{iu jo ikp}(G, q) = <iu ikp|e^{-i(q+G)r}|jo jmk> !
         ! where ikp=ik+qmt, jmk=-jk, q=-jk-ik-qmt                      !
@@ -1102,9 +1117,15 @@ use m_writecmplxparts
         filext0 = filext
         !write(*,*) "filext0 =", trim(filext0)
 
-        ! Set EVECFV_QMT001_m.OUT as ket state file
         iqmt1=iqmtgamma
-        call genfilname(iqmt=iqmt1, auxtype="m", setfilext=.true.)
+        if(all(mkqmtp%kset%vkloff == k_kqmtp%kqmtset%vkloff)) then 
+          ! Set EVECFV_QMT001.OUT as ket state file
+          !write(*,*) "Using equivalent positive grid file"
+          call genfilname(iqmt=iqmt1, setfilext=.true.)
+        else
+          ! Set EVECFV_QMT001_m.OUT as ket state file
+          call genfilname(iqmt=iqmt1, auxtype="m", setfilext=.true.)
+        end if
         !write(*,*) "filext =", trim(filext)
 
         ! Set vkl0 to k+qmt-grid

@@ -15,7 +15,7 @@ module m_b_ematqk
       use modinput, only: input
       use mod_misc, only: task, filext
       use mod_constants, only: zzero, zone
-      use mod_eigenvalue_occupancy, only: evalsv, occsv, nstfv
+      use mod_eigenvalue_occupancy, only: nstfv
       use mod_muffin_tin, only: idxlm
       use mod_Gkvector, only: ngk, vgkl, igkig, gkmax
       use mod_APW_LO, only: nlotot, apword, nlorb, lorbl
@@ -73,7 +73,7 @@ module m_b_ematqk
       ! Expansion coefficients of apw and lo functions
       complex(8), allocatable :: integrals(:, :, :)
       integer :: ikq, igq, n, n0, is, l, m, io, naug, ia, ias, lm, ilo
-      integer :: whichthread, ig, ix, igs, ist2, ist1
+      integer :: whichthread, ig, igk, ix, igs, ist2, ist1
       real(8) :: cpuini, cpuread, cpumain, cpuwrite, cpuall
       real(8) :: cpugnt, cpumt, cpuir, cpufft
       real(8) :: cpumalores, cpumloares
@@ -282,7 +282,9 @@ module m_b_ematqk
      
       allocate(evecfvo20(n0, bc%n1))
       allocate(evecfvu2(n, bc%n2))
+      ! Save plane wave coefficients of ket state
       evecfvu2(:, :) = evecfv(1:ngk(1, ikq), bc%il2:bc%iu2, 1)
+      ! Save plane wave coefficients of bra state
       evecfvo20(:, :) = evecfv0(1:ngk0(1, ik), bc%il1:bc%iu1, 1)
      
       ! Interstitial contribution
@@ -298,6 +300,7 @@ module m_b_ematqk
 #endif
         do igq = 1, ngq(iq)
           call timesec(cpu00)
+
           ! Interstitial contribution
           call b_ematqkgir(iq, ik, igq, xihir, n0, n)
           call timesec(cpu01)
@@ -306,9 +309,9 @@ module m_b_ematqk
           ! Interstitial contribution
           call doublesummation_simple_cz(emat(:, :, igq), evecfvo20,&
             & xihir, evecfvu2, zone, zone, .true.)
+
           call timesec(cpu00)
           if(whichthread.eq.0) cpumirres = cpumirres + cpu00 - cpu01
-
           call timesec(cpu01)
           if(whichthread.eq.0) cpudbg = cpudbg + cpu01 - cpu00
         end do ! Igq
@@ -324,10 +327,21 @@ module m_b_ematqk
         ! Fourier transforms
         call timesec(cpu00)
      
+        ! Index link between k and k'=k+q grids
         ikq = ikmapikq(ik, iq)
-        vkql(:)=vkl(:, ik)+vql(:, iq)
+
+        ! old:
+        !vkql(:)=vkl(:, ik)+vql(:, iq)
+
+        ! < k |...| k+q >
+        ! Where k is stored in modxs::vkl0
+        ! and k+q in mod_kpoint::vkl, they differ if
+        ! the q vectors are not the differences of the k grid,
+        ! but are shifted.
+        vkql(:)=vkl0(:, ik)+vql(:, iq)
           
         ! Umklapp treatment
+        ! Determine G vector that mapps k+q back to [0,1)
         do ix=1, 3
           if(vkql(ix).ge.1d0-1d-13) then
             shift(ix)=-1
@@ -345,6 +359,8 @@ module m_b_ematqk
         allocate(zfftcf(fftmap%ngrtot+1))
         zfftcf=zzero
 
+        ! Inverse FT of characteristic lattice function (0 inside MT, 1 outside)
+        ! form reciprocal to real space
         do ig=1, ngvec
           if(gc(ig).lt.emat_gmax) then
             zfftcf(fftmap%igfft(ig))=cfunig(ig)
@@ -353,15 +369,22 @@ module m_b_ematqk
         call zfftifc(3, fftmap%ngrid, 1, zfftcf)
 
 #ifdef USEOMP
-    !$omp parallel default(shared) private(ist1, ig)
+    !$omp parallel default(shared) private(ist1, igk)
     !$omp do
 #endif
+        ! Inverse FT of interstitial part of bra state
+        ! form reciprocal to real space for each band
         do ist1=1, bc%n1
-          do ig=1, ngk0(1, ik)
-            zfft0(fftmap%igfft(igkig0(ig, 1, ik)), ist1)=evecfvo20(ig, ist1)
+
+          ! Map plane wave coefficients from G+k onto G fftmap 
+          do igk=1, ngk0(1, ik)
+            zfft0(fftmap%igfft(igkig0(igk, 1, ik)), ist1)=evecfvo20(igk, ist1)
           end do
+          ! Do the iFT
           call zfftifc(3, fftmap%ngrid, 1, zfft0(:, ist1))
+          ! Conjugate and multiply by characteristic lattice function
           zfft0(:, ist1)=conjg(zfft0(:, ist1))*zfftcf(:) 
+
         end do
 #ifdef USEOMP
     !$omp end do
@@ -369,34 +392,51 @@ module m_b_ematqk
 #endif
        
 #ifdef USEOMP
-    !$omp parallel default(shared) private(ist1, ist2, ig, zfft, iv, igs, zfftres, igq)
+    !$omp parallel default(shared) private(ist1, ist2, igk, zfft, iv, igs, zfftres, igq)
 #endif
         allocate(zfftres(fftmap%ngrtot+1))
         allocate(zfft(fftmap%ngrtot+1))
 #ifdef USEOMP
     !$omp do
 #endif
+        ! For each band used for the ket state do 
         do ist2=1, bc%n2
+
           zfft=zzero
-          if(sum(shift).ne.0) then
-            do ig=1, ngk(1, ikq)
-              iv=ivg(:, igkig(ig, 1, ikq))+shift
+
+          ! Map plane wave coefficients form G+k' onto G fftmap
+          ! shifting if k' contains G component
+          if(any(shift /= 0)) then
+            do igk=1, ngk(1, ikq)
+              ! Get shifted G vector in lattice coordinates
+              iv=ivg(:, igkig(igk, 1, ikq))+shift
+              ! Get corresponding index
               igs=ivgig(iv(1), iv(2), iv(3))
-              zfft(fftmap%igfft(igs))=evecfvu2(ig, ist2)
+              ! Map to fftmap G+k' --> Gs
+              zfft(fftmap%igfft(igs))=evecfvu2(igk, ist2)
             end do
           else
-            do ig=1, ngk(1, ikq)
-              zfft(fftmap%igfft(igkig(ig, 1, ikq)))=evecfvu2(ig, ist2)
+            do igk=1, ngk(1, ikq)
+              ! Map to fftmap G+k' --> G
+              zfft(fftmap%igfft(igkig(igk, 1, ikq)))=evecfvu2(igk, ist2)
             end do
           end if
+          ! Do the iFT of the ket state
           call zfftifc(3, fftmap%ngrid, 1, zfft)
 
+          ! For all bra state bands do
           do ist1=1, bc%n1
+
+            ! Take the real space product:
+            ! eveck^*_ist1(r)*\Theta(r)*eveckq_ist2(r)
             do ig=1, fftmap%ngrtot
               zfftres(ig)=zfft(ig)*zfft0(ig, ist1) 
             end do
 
+            ! Back transform the result to G space
             call zfftifc(3, fftmap%ngrid, -1, zfftres)
+
+            ! Add the interstitial result to emat for all G+q within the cutoff
             do igq=1, ngq(iq)
               emat(ist1, ist2, igq)=emat(ist1, ist2, igq)&
                 &+ zfftres(fftmap%igfft(igqig(igq, iq)))

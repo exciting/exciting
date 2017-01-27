@@ -44,7 +44,7 @@ Subroutine xsmain (plan)
   ! task selection
       Do i = 1, size (plan%doonlyarray)
          task = plan%doonlyarray(i)%doonly%tasknumber
-         write(*,*) "xsmain starting task nr:",task
+         !write(*,*) "xsmain starting task nr:",task
          Call xsinit
          Select Case (task)
          Case (23)

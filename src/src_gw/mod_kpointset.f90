@@ -716,7 +716,6 @@ CONTAINS
         ig2igk(:,:,:) = 0
         
         ! Determine the number of G+k combinations which satisfy |G+k|<gkmax
-        if (allocated(self%ngk)) deallocate(self%ngk)
         allocate(self%ngk(nspnfv,kset%nkpt))
         igmax = 0
         do ispn = 1, nspnfv
@@ -746,33 +745,26 @@ CONTAINS
         ! generate G+k data set
 
         ! Map (ig, ispin, ik) --> igk
-        if (allocated(self%igigk)) deallocate(self%igigk)
-        allocate(self%igigknr(igmax,kset%nkpt,nspnfv))
+        allocate(self%igigk(igmax,kset%nkpt,nspnfv))
         self%igigk(:,:,:) = ig2igk(1:igmax,:,:)
         deallocate(ig2igk)
 
         ! Map (igk, ispin, ik) --> ig
-        if (allocated(self%igkig)) deallocate(self%igkig)
         allocate(self%igkig(self%ngkmax,nspnfv,kset%nkpt))
 
         ! Lattice coordinates of G+k(ig(ik), ispin, ik)
-        if (allocated(self%vgkl)) deallocate(self%vgkl)
         allocate(self%vgkl(3,self%ngkmax,nspnfv,kset%nkpt))
 
         ! Cartesian coordinates of G+k(ig(ik), ispin, ik)
-        if (allocated(self%vgkc)) deallocate(self%vgkc)
         allocate(self%vgkc(3,self%ngkmax,nspnfv,kset%nkpt))
 
         ! Length of G+k vector
-        if (allocated(self%gkc)) deallocate(self%gkc)
         allocate(self%gkc(self%ngkmax,nspnfv,kset%nkpt))
 
         ! Theta, Phi coordinates
-        if (allocated(self%tpgkc)) deallocate(self%tpgkc)
         allocate(self%tpgkc(2,self%ngkmax,nspnfv,kset%nkpt))
 
         ! Structure factor
-        if (allocated(self%sfacgk)) deallocate(self%sfacgk)
         allocate(self%sfacgk(self%ngkmax,natmtot,nspnfv,kset%nkpt))
 
         do ispn = 1, nspnfv
@@ -816,7 +808,6 @@ CONTAINS
 
 
           ! Determine the number of G+k combinations which satisfy |G+k|<gkmax
-          if (allocated(self%ngknr)) deallocate(self%ngknr)
           allocate(self%ngknr(nspnfv,kset%nkptnr))
           igmax = 0
           do ispn = 1, nspnfv
@@ -846,33 +837,26 @@ CONTAINS
           ! generate G+k data set
 
           ! Map (ig, ispin, iknr) --> igknr
-          if (allocated(self%igigknr)) deallocate(self%igigknr)
           allocate(self%igigknr(igmax,kset%nkptnr,nspnfv))
           self%igigknr(:,:,:) = ig2igk(1:igmax,:,:)
           deallocate(ig2igk)
 
           ! Map (igknr, ispin, iknr) --> ig
-          if (allocated(self%igknrig)) deallocate(self%igknrig)
           allocate(self%igknrig(self%ngknrmax,nspnfv,kset%nkptnr))
 
           ! Lattice coordinates of G+k(ig(iknr), ispin, iknr)
-          if (allocated(self%vgknrl)) deallocate(self%vgknrl)
           allocate(self%vgknrl(3,self%ngknrmax,nspnfv,kset%nkptnr))
 
           ! Cartesian coordinates of G+knr(ig(iknr), ispin, iknr)
-          if (allocated(self%vgknrc)) deallocate(self%vgknrc)
           allocate(self%vgknrc(3,self%ngknrmax,nspnfv,kset%nkptnr))
 
           ! Length of G+k vector
-          if (allocated(self%gknrc)) deallocate(self%gknrc)
           allocate(self%gknrc(self%ngknrmax,nspnfv,kset%nkptnr))
 
           ! Theta, Phi coordinates
-          if (allocated(self%tpgknrc)) deallocate(self%tpgknrc)
           allocate(self%tpgknrc(2,self%ngknrmax,nspnfv,kset%nkptnr))
 
           ! Structure factor
-          if (allocated(self%sfacgknr)) deallocate(self%sfacgknr)
           allocate(self%sfacgknr(self%ngknrmax,natmtot,nspnfv,kset%nkptnr))
 
           do ispn = 1, nspnfv
@@ -2046,6 +2030,84 @@ CONTAINS
     end subroutine print_p_vectors
 
 !-------------------------------------------------------------------------------
+    subroutine igkshift(gkset, gset, ik, igshift, igk2igkp)
+      type(Gk_set), intent(in) :: gkset
+      type(G_set), intent(in) :: gset
+      integer(4), intent(in) :: ik, igshift
+      integer(4), intent(out) :: igk2igkp(:)
+
+      integer(4) :: ivgshift(3), igk, igkp, ig, igp, ivg(3), ivgp(3)
+      integer(4) :: igmax, nkmax, igigkmax
+      integer(4), parameter :: ispin = 1
+      
+      igmax = size(gset%ivg,2)
+      igigkmax = size(gkset%igigk,1)
+      nkmax = size(gkset%igigk,2)
+
+      if(ik > nkmax) then
+        write(*,*) "igkshift: ik too large for passed gk set"
+        write(*,*) "ik=", ik, " ikmax=", nkmax
+        stop
+      end if
+      if(igshift > igmax) then 
+        write(*,*) "igkshift: igshift too large for passed g set"
+        write(*,*) "igshift=", igshift, " igmax=", igmax
+        stop
+      end if
+
+      write(*,*) "igshift=", igshift
+
+      ivgshift = gset%ivg(1:3, igshift)
+
+      write(*,*) "ivgshift=", ivgshift
+
+      do igk = 1, gkset%ngk(ispin, ik)
+
+        ! Get G vector from G+k index
+        ig = gkset%igkig(igk, ispin, ik)
+
+        if(ig <= igmax) then 
+          ivg = gset%ivg(1:3,ig)
+        else
+          write(*,*) "igkshift: ig > igmax"
+          write(*,*) "ig=", ig, "igmax=", igmax
+          stop
+        end if
+
+        ! Add shift G vector
+        ivgp = ivg + ivgshift
+
+        if(ivgp(1) > gset%intgv(1,2) .or. ivgp(1) < gset%intgv(1,1) &
+          & .or. ivgp(2) > gset%intgv(2,2) .or. ivgp(2) < gset%intgv(2,1) & 
+          & .or. ivgp(3) > gset%intgv(3,2) .or. ivgp(3) < gset%intgv(3,1)) then
+          write(*,*) "shifted G vector to large for passed g set"
+          write(*,*) "ivg=",ivgp
+          write(*,*) "intgv=", gset%intgv
+          stop
+        end if
+
+        ! Get index of shifted G vector
+        igp = gset%ivgig(ivgp(1),ivgp(2),ivgp(3))
+
+        ! Get G+k index of shifted G vector
+        if(igp > igigkmax) then 
+          write(*,*) "Shifted G vector not in original G+k set"
+          write(*,*) "igk=",igk
+          write(*,*) "ig=", ig
+          write(*,*) "ivg=", ivg
+          write(*,*) "igp=",igp
+          write(*,*) "ivgp=",ivgp
+          igkp = -1
+        else
+          igkp = gkset%igigk(igp, ik, ispin)
+        end if
+
+        ! Write map
+        igk2igkp(igk) = igkp
+
+      end do
+
+    end subroutine igkshift
 
 !-------------------------------------------------------------------------------
     subroutine ikpik2iqivgnr(fplus, ikpnr, iknr, vkploff, vkloff, ngridk, iqnr, ivg)

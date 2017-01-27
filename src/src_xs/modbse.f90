@@ -268,7 +268,7 @@ module modbse
       !   Size of qmt dependent gap (with qmt=0 this is the direct gap)
       qmtpgap = qgap
 
-      !write(*,*) "fgap =", fgap
+      !!write(*,*) "fgap =", fgap
       !write(*,*) "ksgap =", gap
       !write(*,*) "qmtpgap =", qgap
 
@@ -359,7 +359,7 @@ module modbse
           !   Gap with -qmt direction
           qmtmgap = qgap
 
-          !write(*,*) "fgap =", fgap
+          !!write(*,*) "fgap =", fgap
           !write(*,*) "ksgap =", gap
           !write(*,*) "qmtmgap =", qgap
 
@@ -413,14 +413,24 @@ module modbse
 
           ! Explicitly specify k file extension
           usefilext0 = .true.
-          ! Set EVALSV_QMT001_m.OUT as first reference for the occupation search
-          call genfilname(iqmt=iqmtgamma, auxtype='m', setfilext=.true.)
+          if(all(vmkloff==0.0d0)) then 
+            ! Set EVALSV_QMT001.OUT as first reference for the occupation search
+            call genfilname(iqmt=iqmtgamma, setfilext=.true.)
+          else
+            ! Set EVALSV_QMT001_m.OUT as first reference for the occupation search
+            call genfilname(iqmt=iqmtgamma, auxtype='m', setfilext=.true.)
+          end if
           filext0 = filext
 
           !write(*,*) "filext0 =", trim(filext0)
 
           ! Set EVALSV_QMTXYZ_m.OUT as second reference for the occupation search
-          call genfilname(iqmt=iqmt, auxtype="m", setfilext=.true.)
+          if(all(vmkloff == 0.0d0) .and. iqmt==1) then
+            ! Set EVALSV_QMT001.OUT as first reference for the occupation search
+            call genfilname(iqmt=iqmtgamma, setfilext=.true.)
+          else
+            call genfilname(iqmt=iqmt, auxtype="m", setfilext=.true.)
+          end if
 
           !write(*,*) "filext =", trim(filext)
 

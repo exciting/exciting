@@ -29,7 +29,7 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt, tminus)
     call terminate
   end if
 
-  write(*,*) "b_xsgeneigvec here at rank", rank
+  !write(*,*) "b_xsgeneigvec here at rank", rank
 
   ! Ground state SCF already parallelized for k-point set
   ! Calculate eigenvectors for each q-point (k+q point set)
