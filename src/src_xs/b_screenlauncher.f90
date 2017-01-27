@@ -302,7 +302,11 @@ subroutine b_screenlauncher
 
         ! Set *_SCR_QMTXYZ_m.OUT as ket state file
         iqmt1 = iqmt 
-        call genfilname(iqmt=iqmt1, scrtype='', auxtype='m', setfilext=.true.)
+        if(iqmt1 == iqmtgamma .and. all(qgridoff == 0.0d0)) then 
+          call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
+        else
+          call genfilname(iqmt=iqmt1, scrtype='', auxtype='m', setfilext=.true.)
+        end if
         !write(*,*) "filext=", trim(filext)
       end if
 

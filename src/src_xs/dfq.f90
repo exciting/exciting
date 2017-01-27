@@ -12,7 +12,7 @@ subroutine dfq(iq)
   use modmpi, only: procs, rank, barrier
   use mod_misc, only: task
   use mod_constants, only: zzero, zone, zi, krondelta
-  use mod_kpoint, only: nkpt, wkpt, vkl
+  use mod_kpoint, only: nkpt, wkpt
   use mod_qpoint, only: nqpt, vql
   use mod_lattice, only: omega
   use modxs, only: tfxcbse, tscreen, bzsampl, wpari,&
@@ -719,6 +719,7 @@ subroutine dfq(iq)
             zt1=w(iw)+deou(ist1, ist2)+scis12c(ist1,ist2)+zi*brd
             !   Check for vanishing denominators in case of screening (no broadening)
             if(abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
+! Discuss: Should the weight be wkpt0?
             wou(iw,ist1,ist2) = docc12(ist1, ist2) * wkpt(ik) / omega / zt1
             ! Get anti-resonant weight
             zt1=w(iw)+deuo(ist2, ist1)+scis21c(ist2,ist1)+tordf*zi*brd
