@@ -99,7 +99,7 @@ use m_writecmplxparts
   ! Combinded loop indices 
   integer(4) :: jaoff, iaoff, ia, ja
   ! Aux.
-  integer(4) :: j1, j2, ii,i,jj,j
+  integer(4) :: j1, j2, ii,i,jj,j,igq
   complex(8) :: pref 
   ! Timing vars
   real(8) :: tscc1, tscc0
@@ -922,6 +922,13 @@ use m_writecmplxparts
       ! Calculate M_{o1o2,G} at fixed (k, q)
       call b_ematqk(iq, iknr, moo, ematbc)
       !-----------------------------------------------------------!
+      if(fwp) then
+        do igq=1,numgq
+          call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+          wfc_write='Moo'//trim(adjustl(wfc_write))
+          call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(moo(:,:,igq)), immat=aimag(moo(:,:,igq)), ik1=iknr, ik2=jknr)
+        end do
+      end if
 
       !write(*,*) "  Muu"
       !------------------------------------------------------------------!
@@ -956,9 +963,15 @@ use m_writecmplxparts
 
       ! Calculate M_{o1o2,G} at fixed (k, q)
       call b_ematqk(iq, ikpnr, muu, ematbc)
-
-      !write(*,*) "After ematqk"
       !------------------------------------------------------------------!
+
+      if(fwp) then
+        do igq=1,numgq
+          call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+          wfc_write='Muu'//trim(adjustl(wfc_write))
+          call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muu(:,:,igq)), immat=aimag(muu(:,:,igq)), ik1=iknr, ik2=jknr)
+        end do
+      end if
 
       filext0 = fileext0_save
       filext = fileext_save
@@ -1027,6 +1040,14 @@ use m_writecmplxparts
         call b_ematqk(iq, iknr, mou, ematbc)
         !------------------------------------------------------------!
 
+        if(fwp) then
+          do igq=1,numgq
+            call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+            wfc_write='Mou'//trim(adjustl(wfc_write))
+            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)), immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr)
+          end do
+        end if
+
         !write(*,*) "  Mou"
         !-------------------------------------------------------------!
         ! Calculate M_{iu jo ikp}(G, q) = <iu ikp|e^{-i(q+G)r}|jo jk> !
@@ -1065,6 +1086,14 @@ use m_writecmplxparts
         ! Calculate M_{uo,G} at fixed (k, q)
         call b_ematqk(iq, ikpnr, muo, ematbc)
         !-------------------------------------------------------------!
+
+        if(fwp) then
+          do igq=1,numgq
+            call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+            wfc_write='Muo'//trim(adjustl(wfc_write))
+            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)), immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr)
+          end do
+        end if
 
       else
 
@@ -1114,6 +1143,14 @@ use m_writecmplxparts
         call b_ematqk(iq, iknr, mou, ematbc)
         !------------------------------------------------------------!
 
+        if(fwp) then
+          do igq=1,numgq
+            call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+            wfc_write='Mou_ti'//trim(adjustl(wfc_write))
+            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)), immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr)
+          end do
+        end if
+
         !write(*,*) "  Muo"
         !--------------------------------------------------------------!
         ! Calculate M_{iu jo ikp}(G, q) = <iu ikp|e^{-i(q+G)r}|jo jmk> !
@@ -1158,6 +1195,13 @@ use m_writecmplxparts
         ! Calculate M_{uo,G} at fixed (k, q)
         call b_ematqk(iq, ikpnr, muo, ematbc)
         !-------------------------------------------------------------!
+        if(fwp) then
+          do igq=1,numgq
+            call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+            wfc_write='Muo_ti'//trim(adjustl(wfc_write))
+            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)), immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr)
+          end do
+        end if
 
       end if
 
