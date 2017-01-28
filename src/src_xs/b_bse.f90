@@ -1001,29 +1001,16 @@ contains
 
     ! RR
     call setup_bse(ham(1:hamsize,1:hamsize), iqmt, .false., .false.)
-    ! Make RR part of ham explicitly hermitian, since
-    ! only the upper triangle was constructed.
-    do i=1, hamsize
-      ! Set imaginary part of diagonal exactly 0.
-      ! (It should be zero anyways, but this is a precaution)
-      ham(i,i) = cmplx(dble(ham(i,i)), 0.0d0, 8)
-      do j=i+1, hamsize
-        ham(j,i) = conjg(ham(i,j))
-      end do
-    end do
+
     ! RA
     call setup_bse(ham(1:hamsize,hamsize+1:hamsize*2), iqmt, .true., .false.)
-    ! Make RA part of ham explicitly symmetric.
-    do i=1, hamsize
-      do j=hamsize+i, 2*hamsize
-        ham(j-hamsize,i+hamsize) = ham(i,j)
-      end do
-    end do
-   ! ham(1:hamsize,hamsize+1:hamsize*2) = zzero
+! ham(1:hamsize,hamsize+1:hamsize*2) = zzero
+
     ! AR
     ! Note: AR part is the negative complex conjugate of RA even if qmt /= 0
     ham(hamsize+1:2*hamsize, 1:hamsize) = -conjg(ham(1:hamsize,hamsize+1:hamsize*2))
-   ! ham(hamsize+1:2*hamsize, 1:hamsize) = zzero
+! ham(hamsize+1:2*hamsize, 1:hamsize) = zzero
+
     ! AA
     ! Note: AA part is the negative complex conjugate of RR ONLY if qmt /= 0
     ham(hamsize+1:2*hamsize, hamsize+1:2*hamsize) = -conjg(ham(1:hamsize,1:hamsize))

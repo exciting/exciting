@@ -458,8 +458,14 @@ use m_writecmplxparts
     !write(*,'(a, i4)') "ikkp =", ikkp
 
     ! Get k point indices  (R case k=k, A case k=k, A^ti case k=-k)
+
     iknr = kmap_bse_rg(ik)
     jknr = kmap_bse_rg(jk) 
+
+    !TEST
+    jknr = kmap_bse_rg(ik)
+    iknr = kmap_bse_rg(jk) 
+
 
     !write(*,'(a, i4)') "iknr =", iknr
     !write(*,'(a, i4)') "jknr =", jknr
@@ -700,7 +706,7 @@ use m_writecmplxparts
 
       if(fwp) then 
         call writecmplxparts('Wrr', dble(sccli(1:inou,1:jnou)),&
-          & aimag(sccli(1:inou,1:jnou)), ik1=ik, ik2=jk)
+          & aimag(sccli(1:inou,1:jnou)), ik1=iknr, ik2=jknr)
       end if
 
       ! Parallel write
@@ -816,10 +822,10 @@ use m_writecmplxparts
       if(fwp) then 
         if( fti ) then 
           call writecmplxparts('Wra_ti', dble(sccli(1:inou,1:jnou)),&
-            & aimag(sccli(1:inou,1:jnou)), ik1=ik, ik2=jk)
+            & aimag(sccli(1:inou,1:jnou)), ik1=iknr, ik2=jknr)
         else 
           call writecmplxparts('Wra', dble(sccli(1:inou,1:jnou)),&
-            & aimag(sccli(1:inou,1:jnou)), ik1=ik, ik2=jk)
+            & aimag(sccli(1:inou,1:jnou)), ik1=iknr, ik2=jknr)
         end if
       end if
 

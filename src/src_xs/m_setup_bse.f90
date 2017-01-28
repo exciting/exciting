@@ -275,10 +275,14 @@ module m_setup_bse
           end if
         end if
 
+      ! ikkp loop end
       end do
 
       ! Write lower triangular part in case it is explicitly needed
       do i1 = 1, hamsize
+        if(.not.(fcoup .and. .not. fti)) then
+          ham(i1, i1) = cmplx(dble(ham(i1,i1)), 0.0d0)
+        end if
         do i2 = i1+1, hamsize
           if(fcoup .and. .not. fti) then 
             ham(i2,i1) = ham(i1,i2)
