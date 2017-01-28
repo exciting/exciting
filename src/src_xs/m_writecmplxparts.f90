@@ -4,22 +4,23 @@ module m_writecmplxparts
 
   contains
 
-    subroutine writecmplxparts(fbasename, remat, immat, ik1, ik2, revec, imvec, veclen, appendout)
+    subroutine writecmplxparts(fbasename, remat, immat, ik1, ik2, revec, imvec, veclen, dirname)
       use m_getunit
       character(*), intent(in) :: fbasename
       real(8), intent(in), optional :: remat(:,:), immat(:,:)
       real(8), intent(in), optional :: revec(*), imvec(*)
       integer(4), intent(in), optional :: ik1, ik2, veclen
-      logical, intent(in), optional :: appendout
+      character(*), intent(in), optional :: dirname
 
       integer(4) :: un, a1, a2, n, m
-      character(256) :: fname, tmp1, tmp2, tmp3, frmt, frmtnoa
-      logical :: fapp
+      character(256) :: fname, tmp1, tmp2, tmp3, frmt, frmtnoa, dname, syscommand
 
-      if(present(appendout)) then 
-        fapp = appendout
+      if(present(dirname)) then 
+        dname = dirname
+        syscommand = '[[ ! -e '//trim(adjustl(dname))//' ]] && mkdir '//trim(adjustl(dname))
+        call system(trim(adjustl(syscommand)))
       else
-        fapp = .true.
+        dname = ''
       end if
 
       frmt = '(SP,E23.16)'
@@ -45,6 +46,7 @@ module m_writecmplxparts
 
       fname =''
       write(fname,'("Re_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
+      fname = trim(adjustl(dname))//trim(adjustl(fname))
 
       if(present(remat)) then 
         call getunit(un)
@@ -70,6 +72,8 @@ module m_writecmplxparts
         call getunit(un)
         fname =''
         write(fname,'("Im_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
+        fname = trim(adjustl(dname))//trim(adjustl(fname))
+
         open(unit=un, file=fname, action='write', status='replace')
         do a1=1,n
           write(un,fmt=frmt, advance='no') immat(a1,1)
@@ -83,6 +87,7 @@ module m_writecmplxparts
         call getunit(un)
         fname =''
         write(fname,'("Im_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
+        fname = trim(adjustl(dname))//trim(adjustl(fname))
         open(unit=un, file=fname, action='write', status='replace')
         do a1=1,veclen
           write(un,fmt=frmt) imvec(a1)

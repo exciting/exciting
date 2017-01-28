@@ -454,8 +454,8 @@ use m_writecmplxparts
     !!  hermitian, but one still just needs the upper triangle)
 
     ! Get total k point indices
-    !write(*,*)
-    !write(*,'(a, i4)') "ikkp =", ikkp
+    write(*,*)
+    write(*,'(a, i4)') "ikkp =", ikkp
 
     ! Get k point indices  (R case k=k, A case k=k, A^ti case k=-k)
 
@@ -466,8 +466,8 @@ use m_writecmplxparts
     !jknr = kmap_bse_rg(ik)
     !iknr = kmap_bse_rg(jk) 
 
-    !write(*,'(a, i4)') "iknr =", iknr
-    !write(*,'(a, i4)') "jknr =", jknr
+    write(*,'(a, i4)') "iknr =", iknr
+    write(*,'(a, i4)') "jknr =", jknr
 
     if(fra .and. fti) then 
       ! Get index of -k_j
@@ -586,7 +586,8 @@ use m_writecmplxparts
         call genfilname(iq=iq, dotext='', fileext=wfc_write)
       end if
       wfc_write = 'Wfc'//trim(adjustl(wfc_write))
-      call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(wfc), immat=aimag(wfc))
+      call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(wfc),&
+        & immat=aimag(wfc), dirname='Wfc')
     end if
 
     ! Get ik & jk dependent band ranges for 
@@ -704,8 +705,8 @@ use m_writecmplxparts
       !$OMP END PARALLEL DO
 
       if(fwp) then 
-        call writecmplxparts('Wrr', dble(sccli(1:inou,1:jnou)),&
-          & aimag(sccli(1:inou,1:jnou)), ik1=iknr, ik2=jknr)
+        call writecmplxparts('Wrr', remat=dble(sccli(1:inou,1:jnou)),&
+          & immat=aimag(sccli(1:inou,1:jnou)), ik1=iknr, ik2=jknr, dirname='Wrr')
       end if
 
       ! Parallel write
@@ -821,10 +822,10 @@ use m_writecmplxparts
       if(fwp) then 
         if( fti ) then 
           call writecmplxparts('Wra_ti', dble(sccli(1:inou,1:jnou)),&
-            & aimag(sccli(1:inou,1:jnou)), ik1=iknr, ik2=jknr)
+            & aimag(sccli(1:inou,1:jnou)), ik1=iknr, ik2=jknr, dirname='Wra_ti')
         else 
           call writecmplxparts('Wra', dble(sccli(1:inou,1:jnou)),&
-            & aimag(sccli(1:inou,1:jnou)), ik1=iknr, ik2=jknr)
+            & aimag(sccli(1:inou,1:jnou)), ik1=iknr, ik2=jknr, dirname='Wra')
         end if
       end if
 
@@ -925,7 +926,8 @@ use m_writecmplxparts
         do igq=1,numgq
           call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
           wfc_write='Moo'//trim(adjustl(wfc_write))
-          call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(moo(:,:,igq)), immat=aimag(moo(:,:,igq)), ik1=iknr, ik2=jknr)
+          call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(moo(:,:,igq)),&
+            & immat=aimag(moo(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Moo')
         end do
       end if
 
@@ -968,7 +970,8 @@ use m_writecmplxparts
         do igq=1,numgq
           call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
           wfc_write='Muu'//trim(adjustl(wfc_write))
-          call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muu(:,:,igq)), immat=aimag(muu(:,:,igq)), ik1=iknr, ik2=jknr)
+          call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muu(:,:,igq)),&
+            & immat=aimag(muu(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Muu')
         end do
       end if
 
@@ -1043,7 +1046,8 @@ use m_writecmplxparts
           do igq=1,numgq
             call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
             wfc_write='Mou'//trim(adjustl(wfc_write))
-            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)), immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr)
+            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)),&
+              & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Mou')
           end do
         end if
 
@@ -1090,7 +1094,8 @@ use m_writecmplxparts
           do igq=1,numgq
             call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
             wfc_write='Muo'//trim(adjustl(wfc_write))
-            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)), immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr)
+            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)),&
+              & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Muo')
           end do
         end if
 
@@ -1146,7 +1151,8 @@ use m_writecmplxparts
           do igq=1,numgq
             call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
             wfc_write='Mou_ti'//trim(adjustl(wfc_write))
-            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)), immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr)
+            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)),&
+              & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Mou_ti')
           end do
         end if
 
@@ -1198,7 +1204,8 @@ use m_writecmplxparts
           do igq=1,numgq
             call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
             wfc_write='Muo_ti'//trim(adjustl(wfc_write))
-            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)), immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr)
+            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)),&
+              & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Muo_ti')
           end do
         end if
 
