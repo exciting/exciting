@@ -106,7 +106,7 @@ use m_writecmplxparts
 
   ! Auxilliary strings
   character(256) :: syscommand, fileext_scr_read, fileext_ematrad_write
-  character(256) :: wfc_write
+  character(256) :: wfc_write, dirname
 
   ! External functions
   integer, external :: idxkkp
@@ -926,8 +926,10 @@ use m_writecmplxparts
         do igq=1,numgq
           call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
           wfc_write='Moo'//trim(adjustl(wfc_write))
+          call genfilname(iqmt=iq, dotext='', fileext=dirname)
+          dirname='Moo'//trim(adjustl(dirname))
           call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(moo(:,:,igq)),&
-            & immat=aimag(moo(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Moo')
+            & immat=aimag(moo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
         end do
       end if
 
@@ -970,8 +972,10 @@ use m_writecmplxparts
         do igq=1,numgq
           call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
           wfc_write='Muu'//trim(adjustl(wfc_write))
+          call genfilname(iqmt=iq, dotext='', fileext=dirname)
+          dirname='Muu'//trim(adjustl(dirname))
           call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muu(:,:,igq)),&
-            & immat=aimag(muu(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Muu')
+            & immat=aimag(muu(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
         end do
       end if
 
@@ -1046,8 +1050,10 @@ use m_writecmplxparts
           do igq=1,numgq
             call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
             wfc_write='Mou'//trim(adjustl(wfc_write))
+            call genfilname(iqmt=iq, dotext='', fileext=dirname)
+            dirname='Mou'//trim(adjustl(dirname))
             call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)),&
-              & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Mou')
+              & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
           end do
         end if
 
@@ -1094,8 +1100,10 @@ use m_writecmplxparts
           do igq=1,numgq
             call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
             wfc_write='Muo'//trim(adjustl(wfc_write))
+            call genfilname(iqmt=iq, dotext='', fileext=dirname)
+            dirname='Muo'//trim(adjustl(dirname))
             call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)),&
-              & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Muo')
+              & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
           end do
         end if
 
@@ -1151,8 +1159,10 @@ use m_writecmplxparts
           do igq=1,numgq
             call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
             wfc_write='Mou_ti'//trim(adjustl(wfc_write))
+            call genfilname(iqmt=iq, dotext='', fileext=dirname)
+            dirname='Mou_ti'//trim(adjustl(dirname))
             call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)),&
-              & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Mou_ti')
+              & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
           end do
         end if
 
@@ -1204,8 +1214,10 @@ use m_writecmplxparts
           do igq=1,numgq
             call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
             wfc_write='Muo_ti'//trim(adjustl(wfc_write))
+            call genfilname(iqmt=iq, dotext='', fileext=dirname)
+            dirname='Muo_ti'//trim(adjustl(dirname))
             call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)),&
-              & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname='Muo_ti')
+              & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
           end do
         end if
 

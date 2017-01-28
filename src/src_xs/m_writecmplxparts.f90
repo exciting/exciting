@@ -16,7 +16,7 @@ module m_writecmplxparts
       character(256) :: fname, tmp1, tmp2, tmp3, frmt, frmtnoa, dname, syscommand
 
       if(present(dirname)) then 
-        dname = dirname
+        dname = trim(adjustl(dirname))//'/'
         syscommand = '[[ ! -e '//trim(adjustl(dname))//' ]] && mkdir '//trim(adjustl(dname))
         call system(trim(adjustl(syscommand)))
       else
