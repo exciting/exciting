@@ -462,10 +462,9 @@ use m_writecmplxparts
     iknr = kmap_bse_rg(ik)
     jknr = kmap_bse_rg(jk) 
 
-    !TEST
-    jknr = kmap_bse_rg(ik)
-    iknr = kmap_bse_rg(jk) 
-
+    !!TEST
+    !jknr = kmap_bse_rg(ik)
+    !iknr = kmap_bse_rg(jk) 
 
     !write(*,'(a, i4)') "iknr =", iknr
     !write(*,'(a, i4)') "jknr =", jknr
