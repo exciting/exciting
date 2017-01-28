@@ -99,13 +99,14 @@ use m_writecmplxparts
   ! Combinded loop indices 
   integer(4) :: jaoff, iaoff, ia, ja
   ! Aux.
-  integer(4) :: j1, j2
+  integer(4) :: j1, j2, ii,i,jj,j
   complex(8) :: pref 
   ! Timing vars
   real(8) :: tscc1, tscc0
 
   ! Auxilliary strings
   character(256) :: syscommand, fileext_scr_read, fileext_ematrad_write
+  character(256) :: wfc_write
 
   ! External functions
   integer, external :: idxkkp
@@ -573,6 +574,16 @@ use m_writecmplxparts
       wfc(:,:) = scieffg(1:numgq, 1:numgq, iqr)
     end if
 
+    if(fwp) then 
+      if(fti) then 
+        call genfilname(iq=iq, auxtype='m', dotext='', fileext=wfc_write)
+      else
+        call genfilname(iq=iq, dotext='', fileext=wfc_write)
+      end if
+      wfc_write = 'Wfc'//trim(adjustl(wfc_write))
+      call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(wfc), immat=aimag(wfc))
+    end if
+
     ! Get ik & jk dependent band ranges for 
     ! plane wave matrix calculation (is nstlbse was used in input all k points
     ! contribute the same number of transitions)
@@ -688,9 +699,8 @@ use m_writecmplxparts
       !$OMP END PARALLEL DO
 
       if(fwp) then 
-        if(ikkp == 1) then 
-          call writecmplxparts('ikkp1_Wrr',dble(sccli(1:inou,1:jnou)), aimag(sccli(1:inou,1:jnou)))
-        end if
+        call writecmplxparts('Wrr', dble(sccli(1:inou,1:jnou)),&
+          & aimag(sccli(1:inou,1:jnou)), ik1=ik, ik2=jk)
       end if
 
       ! Parallel write
@@ -804,10 +814,12 @@ use m_writecmplxparts
       !$OMP END PARALLEL DO
 
       if(fwp) then 
-        if(ikkp == 1 .and. fti ) then 
-          call writecmplxparts('ikkp1_Wra_ti',dble(sccli(1:inou,1:jnou)), aimag(sccli(1:inou,1:jnou)))
-        else if(ikkp == 1) then 
-          call writecmplxparts('ikkp1_Wra',dble(sccli(1:inou,1:jnou)), aimag(sccli(1:inou,1:jnou)))
+        if( fti ) then 
+          call writecmplxparts('Wra_ti', dble(sccli(1:inou,1:jnou)),&
+            & aimag(sccli(1:inou,1:jnou)), ik1=ik, ik2=jk)
+        else 
+          call writecmplxparts('Wra', dble(sccli(1:inou,1:jnou)),&
+            & aimag(sccli(1:inou,1:jnou)), ik1=ik, ik2=jk)
         end if
       end if
 

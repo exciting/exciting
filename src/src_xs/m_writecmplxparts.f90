@@ -4,15 +4,23 @@ module m_writecmplxparts
 
   contains
 
-    subroutine writecmplxparts(fbasename, remat, immat, ik1, ik2, revec, imvec, veclen)
+    subroutine writecmplxparts(fbasename, remat, immat, ik1, ik2, revec, imvec, veclen, appendout)
       use m_getunit
       character(*), intent(in) :: fbasename
       real(8), intent(in), optional :: remat(:,:), immat(:,:)
       real(8), intent(in), optional :: revec(*), imvec(*)
       integer(4), intent(in), optional :: ik1, ik2, veclen
+      logical, intent(in), optional :: appendout
 
       integer(4) :: un, a1, a2, n, m
       character(256) :: fname, tmp1, tmp2, tmp3, frmt, frmtnoa
+      logical :: fapp
+
+      if(present(appendout)) then 
+        fapp = appendout
+      else
+        fapp = .true.
+      end if
 
       frmt = '(SP,E23.16)'
       frmtnoa = '(SP,1x,E23.16)'
