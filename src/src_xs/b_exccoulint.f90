@@ -81,6 +81,7 @@ use m_writecmplxparts
   real(8) :: tpw1, tpw0
 
   integer(4) :: igq
+  character(256) :: m_write, dirname
   logical :: fwp
   logical :: fcoup
 
@@ -297,7 +298,6 @@ use m_writecmplxparts
     ! with ikp = ik+qmt
     call getmou(mou(1:ino, 1:inu, 1:numgq))
 
-
     ! and save it for all ik
     ematouk(1:ino, 1:inu, 1:numgq, ik) = mou(1:ino, 1:inu, 1:numgq)
 
@@ -450,21 +450,23 @@ use m_writecmplxparts
       call genwiqggp(0, iqmt, igq1, igq1, potcl(igq1))
     end do
 
+    if(fwp) then 
+      call writecmplxparts('Vfc', revec=dble(potcl), dirname='Vfc')
+    end if
+
     call makeexcli(excli(1:inou,1:jnou))
 
     ! Parallel write
     if(fra) then
       if(fwp) then
-        if(ikkp == 1) then 
-          call writecmplxparts('ikkp1_Vra',dble(excli(1:inou,1:jnou)), aimag(excli(1:inou,1:jnou)))
-        end if
+        call writecmplxparts('Vra', dble(excli(1:inou,1:jnou)),&
+          & aimag(excli(1:inou,1:jnou)), ik1=iknr, ik2=jknr, dirname='Vra')
       end if
       call b_putbsemat(exclifname, 78, ikkp, iqmt, excli)
     else
       if(fwp) then
-        if(ikkp == 1) then 
-          call writecmplxparts('ikkp1_Vrr',dble(excli(1:inou,1:jnou)), aimag(excli(1:inou,1:jnou)))
-        end if
+        call writecmplxparts('Vrr', dble(excli(1:inou,1:jnou)),&
+          & aimag(excli(1:inou,1:jnou)), ik1=iknr, ik2=jknr, dirname='Vrr')
       end if
       call b_putbsemat(exclifname, 77, ikkp, iqmt, excli)
     end if
@@ -540,6 +542,17 @@ use m_writecmplxparts
 
       ! Calculate M_{io iu,G}(ik, qmt)
       call b_ematqk(iqmt, iknr, mou, ematbc)
+      !------------------------------------------------------------------!
+      if(fwp) then
+        do igq=1,numgq
+          call genfilname(iqmt=iqmt, iq=igq, dotext='', fileext=m_write)
+          m_write='Mou'//trim(adjustl(m_write))
+          call genfilname(iqmt=iqmt, dotext='', fileext=dirname)
+          dirname='Mou_exc'//trim(adjustl(dirname))
+          call writecmplxparts(trim(adjustl(m_write)), remat=dble(mou(:,:,igq)),&
+            & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
+        end do
+      end if
 
       filext0 = fileext0_save
       filext = fileext_save
@@ -594,6 +607,17 @@ use m_writecmplxparts
 
       ! Calculate M_{ju jo,G}(jkp, qmt)
       call b_ematqk(iqmt, jkpnr, muo, ematbc)
+      !------------------------------------------------------------------!
+      if(fwp) then
+        do igq=1,numgq
+          call genfilname(iqmt=iqmt, iq=igq, dotext='', fileext=m_write)
+          m_write='Muo'//trim(adjustl(m_write))
+          call genfilname(iqmt=iqmt, dotext='', fileext=dirname)
+          dirname='Muo_exc'//trim(adjustl(dirname))
+          call writecmplxparts(trim(adjustl(m_write)), remat=dble(muo(:,:,igq)),&
+            & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
+        end do
+      end if
 
       filext0 = fileext0_save
       filext = fileext_save
