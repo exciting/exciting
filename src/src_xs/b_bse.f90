@@ -18,7 +18,8 @@ subroutine b_bse
   use modscl
   ! XS
   use modxs, only: evalsv0, unitout, bcbs, ksgapval,&
-                 & qgap, ikmapikq, iqmtgamma, vqlmt
+                 & qgap, ikmapikq, iqmtgamma, vqlmt,&
+                 & vkl0
   ! BSE
   use modbse
   ! Spectrum
@@ -120,7 +121,8 @@ use m_writecmplxparts
 
   ! Allocatable arrays
   real(8), allocatable, dimension(:) :: bevalim, bevalre, w
-  complex(8), allocatable, dimension(:,:) :: ham, bevecr, beveca, bevecaux, oszsr, oszsa
+  complex(8), allocatable, dimension(:,:) :: ham, bevecr, bevecaux
+  complex(8), allocatable, dimension(:,:) :: oszsr, oszsa
   complex(8), allocatable, dimension(:,:) :: cmat, cpmat
   complex(8), allocatable, dimension(:,:,:) :: symspectr
   real(8) :: bsegap
@@ -194,6 +196,8 @@ use m_writecmplxparts
     ! Select relevant transitions for the construction
     ! of the BSE hamiltonian
     ! Also sets nkkp_bse, nk_bse 
+    ! Resets vkl0 to k grid and vkl to k+qmt grid
+    ! Resets eigenvalues and occupancies correspondingly
     call select_transitions(iqmt, serial=.true.)
 
     ! WARNING: ONTOP OF GW STILL IS INCONSISTENT, SINCE OCCUPATION SEARCH IS
@@ -206,7 +210,7 @@ use m_writecmplxparts
       ! If scissor correction is presented, one should nullify it
       input%xs%scissor=0.0d0
       ! Read QP Fermi energies and eigenvalues from file
-      call getevalqp(nkptnr,vkl,evalsv)
+      call getevalqp(nkptnr,vkl0,evalsv)
       write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
     end if
 
@@ -263,6 +267,9 @@ use m_writecmplxparts
       else
         allocate(ham(2*hamsize,2*hamsize))
         call setup_full_bse(ham, iqmt)
+        if(fwp) then 
+          call writecmplxparts('Global_Ham', dble(ham), immat=aimag(ham))
+        end if
       end if
     else
       allocate(ham(hamsize,hamsize))
@@ -290,8 +297,9 @@ use m_writecmplxparts
         allocate(bevalre(hamsize))
         allocate(bevecaux(hamsize, hamsize))
       else
-        allocate(bevalre(2*hamsize), bevecr(2*hamsize, 2*hamsize))
+        allocate(bevalre(2*hamsize))
         allocate(bevalim(2*hamsize))
+        allocate(bevecr(2*hamsize, 2*hamsize))
       end if
     else
       allocate(bevalre(hamsize), bevecr(hamsize, hamsize))
@@ -354,6 +362,7 @@ use m_writecmplxparts
         call writecmplxparts('bevecaux', dble(bevecaux), immat=aimag(bevecaux))
       else
         call writecmplxparts('bevecr', dble(bevecr), immat=aimag(bevecr))
+        call writecmplxparts('evals',revec=dble(bevalre),veclen=size(bevalre))
       end if
     end if
 
@@ -441,7 +450,8 @@ use m_writecmplxparts
       if(fti) then
         call makespectrum_ti(nw, w, symspectr)
       else
-        call makespectrum_full(nw, w, symspectr)
+        !call makespectrum_full(nw, w, symspectr)
+        call makespectrum_full_lr(nw, w, symspectr)
       end if
     else
       call makespectrum_tda(nw, w, symspectr)
@@ -533,7 +543,7 @@ use m_writecmplxparts
         ! If scissor correction is presented, one should nullify it
         input%xs%scissor=0.0d0
         ! Read QP Fermi energies and eigenvalues from file
-        call getevalqp(nkptnr,vkl,evalsv)
+        call getevalqp(nkptnr,vkl0,evalsv)
         write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
       end if
 
@@ -1023,6 +1033,7 @@ contains
 
   subroutine makeoszillatorstrength(oszstrr, oszstra)
     use m_getpmat
+    use m_invertzmat
     
     implicit none
 
@@ -1032,16 +1043,24 @@ contains
 
     ! Local
     real(8) :: t1, t0, ts0, ts1
-    complex(8), allocatable :: pmouk(:,:,:,:), rmat(:,:), xpy(:,:)
+    complex(8), allocatable :: pmouk(:,:,:,:), rmat(:,:), xpy(:,:), rbarmat(:,:)
     integer(4) :: io, iu, ioabs, iuabs, ik, iknr
     integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
     integer(4) :: a1, lambda
     
     write(unitout, '("Info(b_bse:makeos): Making oszillator strengths.")')
     call timesec(ts0)
+
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    ! Building position operator matrix elements using momentum matrix elements  !
+    ! and transition energies. If on top of GW, renormalize the p mat elements.  !
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+
     ! Allocate momentum matrix slice needed.
     allocate(pmouk(3, no_bse_max, nu_bse_max, nk_bse))
+    pmouk=zzero
     allocate(rmat(hamsize, 3))
+    rmat=zzero
 
     write(unitout, '("  Reading Pmat.")')
     call timesec(t0)
@@ -1057,7 +1076,7 @@ contains
       ioabs2 = koulims(4,iknr)
       inu = iuabs2 - iuabs1 + 1
       ino = ioabs2 - ioabs1 + 1
-      call getpmat(iknr, vkl,&
+      call getpmat(iknr, vkl0,&
         & ioabs1, ioabs2, iuabs1, iuabs2,&
         & .true., 'PMAT_XS.OUT', pmouk(:,1:ino,1:inu,ik))
       ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
@@ -1112,12 +1131,122 @@ contains
 
     end do
     !$OMP END PARALLEL DO
-
+    if(rank==0) then 
+      if(fwp) then 
+        do ik = 1, nk_bse
+          call writecmplxparts('Pou_1', remat=dble(pmouk(1,:,:,ik)),&
+            & immat=aimag(pmouk(1,:,:,ik)), ik1=ik)
+          call writecmplxparts('Pou_2', remat=dble(pmouk(2,:,:,ik)),&
+            & immat=aimag(pmouk(2,:,:,ik)), ik1=ik)
+          call writecmplxparts('Pou_3', remat=dble(pmouk(3,:,:,ik)),&
+            & immat=aimag(pmouk(3,:,:,ik)), ik1=ik)
+        end do
+        call writecmplxparts('Rmat', remat=dble(rmat), immat=aimag(rmat))
+      end if
+    end if
     ! Momentum matrix elements no longer needed
     deallocate(pmouk)
     call timesec(t1)
     write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    ! TDA case: Build resonant oscillator strengths                              !
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    if(.not. fcoup) then 
+      write(unitout, '("  Building resonant oscillator strengths.")')
+      call timesec(t0)
+      !! Resonant oscillator strengths
+      ! t^R_{\lambda,i} = <X_\lambda|\tilde{R}^{i*}> =
+      !   \Sum_{a} X^H_{\lambda, a} \tilde{R}^*_{a,i}
+      call zgemm('c','n', nexc, 3, hamsize,&
+        & zone, bevecr(1:hamsize,1:nexc), hamsize, conjg(rmat), hamsize, zzero, oszstrr, nexc)
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    end if
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    ! Full case: Build left and right oscillator strengths                       !
+    !            New version                                                     !
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    if(fcoup .and. .not. fti) then 
+
+      allocate(rbarmat(2*hamsize,3))
+      rbarmat(1:hamsize,1:3) = conjg(rmat)
+      rbarmat(hamsize+1:2*hamsize,1:3) = -rmat
+      deallocate(rmat)
+
+      write(unitout, '("  Building t_r oscillator strengths.")')
+      call timesec(t0)
+
+      !! Oscillator strengths from right eigenvectors
+      ! t_r_{\lambda,i} = <P_\lambda|\bar{R}_i> =
+      !   =  \Sum_{a} P^H_{\lambda,a} \bar{R}_{a,i}
+      call zgemm('c','n', nexc, 3, 2*hamsize,&
+        & zone, bevecr(1:2*hamsize,1:nexc), 2*hamsize, rbarmat, 2*hamsize,&
+        & zzero, oszstrr, nexc)
+
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+
+      write(unitout, '("  Inverting right EV matrix.")')
+      call timesec(t0)
+      call zinvert(bevecr)
+      call timesec(t1)
+
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+      write(unitout, '("  Building t_l oscillator strengths.")')
+      call timesec(t0)
+
+      rbarmat(hamsize+1:2*hamsize,:) = -rbarmat(hamsize+1:2*hamsize,:)
+      !! Oscillator strengths from left eigenvectors
+      ! t_l_{\lambda,i} = < P^-1_\lambda | \bar{R}^s_i> =
+      !   \Sum_{a} P^{-1}_{\lambda, a} \tilde{R}^s_{a,i}
+      call zgemm('n','n', nexc, 3, 2*hamsize,&
+        & zone, bevecr(1:nexc,1:2*hamsize), 2*hamsize,&
+        & rbarmat, 2*hamsize, zzero, oszstra, nexc)
+
+      deallocate(rbarmat)
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+    end if
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    ! Full case: Build left and right oscillator strengths                       !
+    !            Old version                                                     !
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    if(fcoup .and. .not. fti .and. .false.) then 
+      write(unitout, '("  Building resonant oscillator strengths.")')
+      call timesec(t0)
+      !! Resonant oscillator strengths
+      ! t^R_{\lambda,i} = < \tilde{R}^{i*} | X_\lambda> =
+      !   ( \Sum_{a} \tilde{R}^T_{i, a} X_{a, \lambda} )^T =
+      !     \Sum_{a} X^T_{\lambda, a} \tilde{R}_{a,i}
+      call zgemm('t','n', nexc, 3, hamsize,&
+        & zone, bevecr(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+      write(unitout, '("  Building anti-resonant oscillator strengths.")')
+      call timesec(t0)
+      !! Anti-resonant oscillator strengths
+      ! t^A_{\lambda,i} = < \tilde{R}^{i} | Y_\lambda> =
+      !   ( \Sum_{a} \tilde{R}^\dag_{i, a} Y_{a, \lambda} )^T =
+      !     \Sum_{a} Y^T_{\lambda, a} \tilde{R}^*_{a,i}
+      call zgemm('t','n', nexc, 3, hamsize,&
+        & zone, bevecr(hamsize+1:2*hamsize,1:nexc), hamsize,&
+        & conjg(rmat), hamsize, zzero, oszstra, nexc)
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+    end if
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    ! TI case: Build oscillator strength                                         !
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
     if(fcoup .and. fti) then 
       write(unitout, '("  Building (X+Y) from squared EVP EVs.")')
       call timesec(t0)
@@ -1134,55 +1263,24 @@ contains
       allocate(xpy(hamsize, nexc))
       call zgemm('N','N',hamsize, nexc, hamsize, zone, cmat, hamsize,&
         & bevecaux(:,1:nexc), hamsize, zzero, xpy, hamsize)
-
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-    end if
-   
-    if(.not. fcoup .or. fcoup .and. .not. fti) then 
-      write(unitout, '("  Building resonant oscillator strengths.")')
-      call timesec(t0)
-      !! Resonant oscillator strengths
-      ! t^R_{\lambda,i} = < \tilde{R}^{i*} | X_\lambda> =
-      !   ( \Sum_{a} \tilde{R}^T_{i, a} X_{a, \lambda} )^T =
-      !     \Sum_{a} X^T_{\lambda, a} \tilde{R}_{a,i}
-      call zgemm('t','n', nexc, 3, hamsize,&
-        & zone, bevecr(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
-      call timesec(t1)
-      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-    end if
 
-    if(fcoup .and. fti) then
       write(unitout, '("  Building oscillator strengths for time inverted ar basis.")')
       call timesec(t0)
       !! Oscillator strengths
-      ! t_{\lambda,i} = < \tilde{R}^{i*} |(| X_\lambda>+| Y_\lambda>) =
-      !   ( \Sum_{a} \tilde{R}^T_{i, a} (X_{a, \lambda}+Y_{a, \lambda}) )^T =
-      !     \Sum_{a} (X+Y)^T_{\lambda, a} \tilde{R}_{a,i}
-      call zgemm('t','n', nexc, 3, hamsize,&
-        & zone, xpy(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
+      ! t_{\lambda,i} = < (| X_\lambda>+| Y_\lambda>)| \tilde{R}^{i*}> =
+      !     \Sum_{a} (X+Y)^H_{\lambda, a} \tilde{R}^*_{a,i}
+      call zgemm('c','n', nexc, 3, hamsize,&
+        & zone, xpy(1:hamsize,1:nexc), hamsize, conjg(rmat), hamsize,&
+        & zzero, oszstrr, nexc)
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
       deallocate(xpy)
-
     end if
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
-    if(fcoup .and. .not. fti) then
-      write(unitout, '("  Building anti-resonant oscillator strengths.")')
-      call timesec(t0)
-      !! Anti-resonant oscillator strengths
-      ! t^A_{\lambda,i} = < \tilde{R}^{i} | Y_\lambda> =
-      !   ( \Sum_{a} \tilde{R}^\dag_{i, a} Y_{a, \lambda} )^T =
-      !     \Sum_{a} Y^T_{\lambda, a} \tilde{R}^*_{a,i}
-      call zgemm('t','n', nexc, 3, hamsize,&
-        & zone, bevecr(hamsize+1:2*hamsize,1:nexc), hamsize,&
-        & conjg(rmat), hamsize, zzero, oszstra, nexc)
-      call timesec(t1)
-      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-    end if
-
-    deallocate(rmat)
-
+    if(allocated(rmat)) deallocate(rmat)
     call timesec(ts1)
     write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
   end subroutine makeoszillatorstrength
@@ -1265,7 +1363,7 @@ contains
       !$OMP PARALLEL DO &
       !$OMP& DEFAULT(SHARED), PRIVATE(i)
       do i = 1, nexc
-        tmat(i,j) = oszsr(i,o1)*conjg(oszsr(i,o2))
+        tmat(i,j) = conjg(oszsr(i,o1))*oszsr(i,o2)
       end do
       !$OMP END PARALLEL DO
     end do
@@ -1371,7 +1469,7 @@ contains
       nopt = 3
     end if
 
-    ! tmatr_{\lambda, j} = t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
+    ! tmatr_{\lambda, j} = t^{R*}_{\lambda, o1_j} t^R_{\lambda, o2_j} 
     ! where j combines the 2 cartesian directions
     allocate(tmatr(nexc,nopt))
     do j = 1, nopt
@@ -1385,7 +1483,7 @@ contains
       !$OMP PARALLEL DO &
       !$OMP& DEFAULT(SHARED), PRIVATE(i)
       do i = 1, nexc
-        tmatr(i,j) = oszsr(i,o1)*conjg(oszsr(i,o2))
+        tmatr(i,j) = conjg(oszsr(i,o1))*oszsr(i,o2)
       end do
       !$OMP END PARALLEL DO
     end do
@@ -1404,14 +1502,14 @@ contains
     ! nsspectr_{w,j} = \Sum_{\lambda} enwr_{w,\lambda} tmatr_{\lambda, j}
     !   i.e. nsspectr_{w,j} = 
     !     \Sum_{\lambda} 1/(E_\lambda - w - i\delta)
-    !       t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
+    !       (t^R)^H_{o1_j,\lambda} t^R_{\lambda, o2_j} 
     call zgemm('N','N', nfreq, nopt, nexc, zone, enwr, nfreq,&
       & tmatr, nexc, zzero, ns_spectr, nfreq)
 
     ! nsspectr_{w,j} += \Sum_{\lambda} enwa_{w,\lambda} tmatr^*_{\lambda, j}
     !   i.e. nsspectr_{w,j} = nsspectr_{w,j} +
     !     \Sum_{\lambda} 1/(E_\lambda + w + i\delta)
-    !       t^{R*}_{\lambda, o1_j} t^R_{\lambda, o2_j} 
+    !       ( (t^R)^H_{o1_j,\lambda} t^R_{\lambda, o2_j} )^*
     call zgemm('N','N', nfreq, nopt, nexc, zone, enwa, nfreq,&
       & conjg(tmatr), nexc, zone, ns_spectr, nfreq)
     !++++++++++++++++++++++++++++++++++++++++++++!
@@ -1574,6 +1672,92 @@ contains
     write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
 
   end subroutine makespectrum_full
+
+  subroutine makespectrum_full_lr(nfreq, freq, spectrum)
+    implicit none
+
+    ! I/O
+    integer(4), intent(in) :: nfreq
+    real(8), intent(in) :: freq(nfreq)
+    complex(8), intent(out) :: spectrum(3,3,nfreq)
+
+    ! Local
+    integer(4) :: i, j, o1, o2, nopt
+    real(8) :: t1, t0, ts0, ts1
+    complex(8), allocatable :: ns_spectr(:,:)
+    complex(8), allocatable :: tmat(:,:), enw(:,:)
+
+    write(unitout, '("Info(b_bse:makesp): Making spectrum using general formula&
+      & with left and right EVs.")')
+    if(input%xs%dfoffdiag) then
+      write(unitout, '("  Including off diagonals.")')
+    end if
+    ! Total spectrum construction timer
+    call timesec(ts0)
+
+    write(unitout, '("  Making energy denominators ENW.")')
+    call timesec(t0)
+    ! Make energy denominator for each frequency 
+    allocate(enw(nfreq, nexc))
+    !$OMP PARALLEL DO &
+    !$OMP& COLLAPSE(2),&
+    !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
+    do i = 1, nexc
+      do j = 1, nfreq
+        enw(j,i) = zone/(bevalre(i)-freq(j)-zi*input%xs%broad)
+      end do
+    end do
+    !$OMP END PARALLEL DO
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+    write(unitout, '("  Making helper matrix tmat.")')
+    ! tmat_{\lambda,ij} = t_r^*_{\lambda,i}*t_l_{\lambda,j}
+    call timesec(t0)
+    if(input%xs%dfoffdiag) then
+      nopt = 9
+    else
+      nopt = 3
+    end if
+    allocate(tmat(nexc,nopt))
+    do j = 1, nopt
+      if(input%xs%dfoffdiag) then
+        o2 = (j-1)/3 + 1
+        o1 = j-(o2-1)*3
+      else
+        o2 = j
+        o1 = j
+      end if
+      !$OMP PARALLEL DO &
+      !$OMP& DEFAULT(SHARED), PRIVATE(i)
+      do i= 1, nexc
+        tmat(i,j) = conjg(oszsr(i,o1))*oszsa(i,o2)
+      end do
+      !$OMP END PARALLEL DO
+    end do
+    call timesec(t1)
+    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+         
+    write(unitout, '("  Calculating spectrum.")')
+
+    ! Make non-lattice-symmetrized spectrum
+    call timesec(t0)
+    allocate(ns_spectr(nfreq,nopt))
+    ! \epsilon^M_{w,ij} \prop \Sum_\lambda E^-1_{w,\lambda} tmat_{\lambda,ij}
+    call zgemm('N','N', nfreq, nopt, nexc, zone, enw, nfreq,&
+      & tmat, nexc, zzero, ns_spectr, nfreq)
+    ! Helper no longer needed
+    deallocate(tmat,enw)
+
+    ! Postprocess non-lattice-symmetrized spectrum
+    ! -\bar{P}_00(q->0) is needed, + was constructed
+    call finalizespectrum(ns_spectr, spectrum)
+    deallocate(ns_spectr)
+
+    call timesec(ts1)
+    write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
+
+  end subroutine makespectrum_full_lr
 
   subroutine finalizespectrum(nsp, sp)
 

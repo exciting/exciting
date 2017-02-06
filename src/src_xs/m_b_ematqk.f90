@@ -32,6 +32,7 @@ module m_b_ematqk
                      & fnetim, fftmap_type, igkig0,&
                      & cpumtaa, cpumtalo, cpumtloa, cpumtlolo,&
                      & filext0, iqmt0, iqmt1
+      use modxs, only: randphases
       use summations, only: doublesummation_simple_cz
       use m_getapwcmt
       use m_getlocmt
@@ -84,6 +85,8 @@ module m_b_ematqk
       type(fftmap_type) :: fftmap
       real(8) :: emat_gmax
       character(256) :: filename
+
+      integer :: ist
 
       ! If task 330 is 'writeemat'
       if(task .eq. 330) then
@@ -141,6 +144,11 @@ module m_b_ematqk
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
       call getevecfv(vkl(1, ikq), vgkl(1, 1, 1, ikq), evecfv)
+      if(task == 440 .or. task == 441) then 
+        do ist = 1, nstfv
+          evecfv(:,ist,:) = evecfv(:,ist,:)*randphases(ist,ikq)
+        end do
+      end if
 
       ! Save local orbital coefficients
       evecfvu(:, :) = evecfv(ngk(1, ikq)+1:ngk(1, ikq)+nlotot, bc%il2:bc%iu2, 1)
@@ -148,6 +156,11 @@ module m_b_ematqk
       ! Read eigenvectors, eigenvalues and occupancies for k (q=0)
       !   Read first variational eigenvectors from EVECFV_QMT000.OUT 
       call getevecfv0(vkl0(1, ik), vgkl0(1, 1, 1, ik), evecfv0)
+      if(task == 440 .or. task == 441) then 
+        do ist = 1, nstfv
+          evecfv0(:,ist,:) = evecfv0(:,ist,:)*randphases(ist,ik)
+        end do
+      end if
 
       ! Save local orbital coefficients
       evecfvo0(:, :) = evecfv0(ngk0(1, ik)+1:ngk0(1, ik)+nlotot, bc%il1:bc%iu1, 1)

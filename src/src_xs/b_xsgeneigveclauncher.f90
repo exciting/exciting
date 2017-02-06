@@ -14,6 +14,14 @@ subroutine b_xsgeneigveclauncher
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
 
+  !test
+  use mod_misc, only: task
+  use modxs, only: randphasesvec, randphases
+  use mod_kpoint, only: nkpt
+  use mod_eigenvalue_occupancy, only: nstfv
+  use mod_constants, only: pi
+  use m_writecmplxparts
+
   implicit none
 
   ! Local variables
@@ -23,6 +31,9 @@ subroutine b_xsgeneigveclauncher
   logical :: firstisgamma
   real(8), allocatable :: vkloff_kqmtm(:,:), vkloff_mkqmtp(:,:)
   real(8), parameter :: epslat=1.d-6
+
+  integer :: ist, ik, seedsize
+  integer, allocatable :: seeds(:)
 
   !write(*,*) "b_xsgeneigveclauncher here at rank", rank
   !write(*,*) "use screening parameters = ", tscreen 
@@ -43,6 +54,35 @@ subroutine b_xsgeneigveclauncher
   !   * Reads STATE.OUT
   !   * Generates radial functions (mod_APW_LO)
   call init2
+
+  !test
+  if(task == 301) then 
+    if(allocated(randphases)) deallocate(randphases)
+    allocate(randphasesvec(nstfv,nkpt))
+    randphasesvec=0
+    seedsize=1
+    call random_seed(size=seedsize)
+    allocate(seeds(seedsize))
+    seeds=5219
+    call random_seed(put=seeds)
+    call random_number(randphasesvec)
+    randphasesvec = 0
+
+    allocate(randphases(nstfv,nkpt))
+    randphases(:,:)=cmplx(cos(2*pi*randphasesvec(:,:)),sin(2*pi*randphasesvec(:,:)))
+    deallocate(randphasesvec)
+    if(rank==0) then
+      call writecmplxparts('phases', remat=dble(randphases), immat=aimag(randphases))
+    end if
+    !write(*,*) "b_xsgeneigveclauncher: phases:"
+    !do ik=1,nkpt
+    !  do ist=1,nstfv
+    !    write(*,'("ik=",i3," ist=",i3," phase=",SP, 2E11.3,"i"," abs=",E11.3)')&
+    !      & ik, ist, dble(randphases(ist,ik)), aimag(randphases(ist,ik)), abs(randphases(ist,ik))
+    !  end do
+    !end do
+    ! end test
+  end if
 
   if(NORM2(vqlmt(1:3,1)) > epslat) then 
     firstisgamma = .false.

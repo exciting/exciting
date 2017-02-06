@@ -20,6 +20,9 @@ subroutine writeevec(vq, voff, filxt)
   use m_gndstateq, only: gndstateq
   use m_filedel, only: filedel
 
+  use modxs, only: randphases
+  use mod_misc, only: task
+
   implicit none
 
   ! Arguments
@@ -30,6 +33,9 @@ subroutine writeevec(vq, voff, filxt)
   complex(8), allocatable :: apwalm(:, :, :, :)
 
   integer(4) :: iproc
+
+  integer :: ist
+
 #ifdef MPI
   integer :: mpitag, stat(mpi_status_size)
   mpitag = 79
@@ -71,6 +77,11 @@ subroutine writeevec(vq, voff, filxt)
     ! Read the first variational eigenvectors for k-point ik
     ! form file.
     call getevecfv(vkl(1, ik), vgkl(1, 1, 1, ik), evecfv)
+    if(task == 301) then 
+      do ist = 1, nstfv
+        evecfv(:,ist,:) = evecfv(:,ist,:)*randphases(ist,ik)
+      end do
+    end if
 
     ! Compute the matching coefficients of the APWs
     call match(ngk(1, ik), gkc(1, 1, ik), tpgkc(1, 1, 1, ik),&
