@@ -201,8 +201,7 @@
   </xs:element>
   <xs:element ex:importance="essential" ex:unit="" name="plot1d">
     <xs:annotation>
-      <xs:documentation> The element plot1d specifies sample points along a path. The coordinate
-        space (lattice or cartesian)is chosen in the context of the parent.</xs:documentation>
+      <xs:documentation> The element plot1d specifies sample points along a path. The coordinate space (lattice or cartesian)is chosen in the context of the parent.</xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
@@ -210,14 +209,11 @@
           <xs:complexType>
             <xs:sequence>
               <xs:annotation>
-                <xs:documentation>A path consists of at least two points and a number of
-                  divisions.</xs:documentation>
+                <xs:documentation>A path consists of at least two points and a number of divisions.</xs:documentation>
               </xs:annotation>
-              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="2"
-                maxOccurs="unbounded"/>
+              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="1" maxOccurs="unbounded"/>
             </xs:sequence>
-            <xs:attribute ex:importance="essential" ex:unit="" name="steps" type="xs:integer"
-              use="required"/>
+            <xs:attribute ex:importance="essential" ex:unit="" name="steps" type="xs:integer" use="required"/>
             <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix"/>
           </xs:complexType>
         </xs:element>
@@ -230,17 +226,13 @@
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="essential" ex:unit="" name="parallelogram" maxOccurs="1"
-          minOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" name="parallelogram" maxOccurs="1" minOccurs="1">
           <xs:complexType>
             <xs:sequence>
-              <xs:element ex:importance="essential" ex:unit="" ref="origin" minOccurs="1"
-                maxOccurs="1"/>
-              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="2"
-                maxOccurs="2"/>
+              <xs:element ex:importance="essential" ex:unit="" ref="origin" minOccurs="1" maxOccurs="1"/>
+              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="2" maxOccurs="2"/>
             </xs:sequence>
-            <xs:attribute ex:importance="essential" ex:unit="" name="grid" type="integerpair"
-              use="required"/>
+            <xs:attribute ex:importance="essential" ex:unit="" name="grid" type="integerpair" use="required"/>
             <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix"/>
           </xs:complexType>
         </xs:element>
@@ -346,4 +338,5 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+  
 </xs:schema>

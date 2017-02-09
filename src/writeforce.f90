@@ -90,7 +90,17 @@ subroutine writeforce(fnum,verbosity)
                 if (input%groundstate%tfibs) &
                &write(fnum,'(                  T18,": ",3F14.8,"   IBS correction")') &
                &  forceibs(:,ias)
-            end do
+                If ( input%groundstate%vdWcorrection .Ne. "none" ) Then
+                   If ( input%groundstate%vdWcorrection .Eq. "DFTD2" ) Then
+                      write(fnum,'(                  T18,": ",3F14.8,"   DFT-D2 force")') &
+                           &  force_disp(:,ias)
+                   Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then
+                      write(fnum,'(                  T18,": ",3F14.8,"   TS-vdW force")') &
+                           &  force_disp(:,ias)
+                   End If
+                End If
+
+             end do
         end do
     end if
     

@@ -10,6 +10,7 @@
 Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use modmain
       Use modinput
+      Use mod_hybrids, only: ihyb, bxnl
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik
@@ -266,8 +267,8 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
          If (ncmag) Then
 ! non-collinear
             Do ir = 1, ngrtot
-               bir (ir, :) = (bxcir(ir, &
-              & :)+ga4*input%groundstate%spin%bfieldc(:)) * cfunir (ir)
+               bir (ir, :) = &
+               &  (bxcir(ir,:)+ga4*input%groundstate%spin%bfieldc(:))*cfunir(ir)
             End Do
          Else
 ! collinear
@@ -339,10 +340,10 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 !$OMP END PARALLEL
 #endif 
       End If
-      call timesec(tb)
-!      write(*,*) 'sv / interstitial part', tb-ta
+
+!-----------------------------------------
 ! add the diagonal first-variational part
-      call timesec(ta)
+!-----------------------------------------
       i = 0
       Do ispn = 1, nspinor
          Do ist = 1, nstfv
@@ -350,7 +351,20 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
             evecsv (i, i) = evecsv (i, i) + evalfv (ist)
          End Do
       End Do
+      
+!---------------------------------------------------------      
+! add the second-variational \Sigma_x matrix elements
+!---------------------------------------------------------
+      if (associated(input%groundstate%Hybrid)) then
+         if (input%groundstate%Hybrid%exchangetypenumber == 1) then
+            ! Update Hamiltonian
+            if (ihyb>0) evecsv(:,:) = &
+            &  evecsv(:,:) + ex_coef*bxnl(:,:,ik)
+         end if
+      end if      
+      
 ! diagonalise second-variational Hamiltonian
+      call timesec(ta)
       If (ndmag .Eq. 1) Then
 ! collinear: block diagonalise H
 !         do i=1,nstfv

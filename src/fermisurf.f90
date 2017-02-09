@@ -2,6 +2,7 @@
 subroutine fermisurf
 
   use modmain
+  use modmpi
   implicit none
 
 ! local variables
@@ -34,26 +35,30 @@ subroutine fermisurf
   call hmlint
 ! compute "relativistic mass" on the G-grid
   Call genmeffig
-! begin parallel loop over reduced k-points set
-!$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(evalfv,evecfv,evecsv)
-!$OMP DO
-  do ik=1,nkpt
+! begin parallel loop over k-points
+#ifdef MPI
+  do ik = firstofset(mod(rank,nkpt),nkpt), lastofset(mod(rank,nkpt),nkpt)
+#else
+  do ik = 1,nkpt
+#endif
     allocate(evalfv(nstfv,nspnfv))
     allocate(evecfv(nmatmax,nstfv,nspnfv))
     allocate(evecsv(nstsv,nstsv))
-!$OMP CRITICAL
-    write(*,'("Info(fermisurf): ",I6," of ",I6," k-points")') ik,nkpt
-!$OMP END CRITICAL
-! solve the first- and second-variational secular equations
+    ! solve the first- and second-variational secular equations
     call seceqn(ik,evalfv,evecfv,evecsv)
     deallocate(evalfv,evecfv,evecsv)
-! end loop over reduced k-points set
   end do ! ik
-!$OMP END DO
-!$OMP END PARALLEL
+#ifdef MPI  
+  call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
+#endif
   if (allocated(meffig)) deallocate(meffig)
   if (allocated(m2effig)) deallocate(m2effig)
+
+!---------------------------------------------------
+! OUTPUT Block  
+!---------------------------------------------------
+if (rank==0) then
+
   if (task.Eq.101) then
 !---------------------------------------------------
 ! 2D plot
@@ -105,7 +110,7 @@ subroutine fermisurf
           write(fnum,'(3G18.10)') vc(:,i)
         end do
         do ik = 1, nkpt
-          write(fnum,'(G18.10)') evalsv(ist+lst,ik)-efermi
+          write(fnum,'(7G18.10)') evalsv(ist+lst,ik)-efermi
         end do
         write(fnum,*)'END_DATAGRID_2D'
         write(fnum,*)'END_BLOCK_DATAGRID_2D'
@@ -176,7 +181,7 @@ subroutine fermisurf
               j2=i2; if (i2==np3d(2)) j2=0
               j3=i3; if (i3==np3d(3)) j3=0
               ik=ikmap(j1,j2,j3)
-              write(fnum,'(G18.10)') evalsv(ist+lst,ik)-efermi
+              write(fnum,'(7G18.10)') evalsv(ist+lst,ik)-efermi
             end do
           end do
         end do
@@ -198,6 +203,8 @@ subroutine fermisurf
     write(*,'(" Launch as: xcrysden --bxsf FERMISURF(_UP/_DN).bxsf")')
 
   end if 
+
+end if ! rank
 
   return
 end subroutine

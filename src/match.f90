@@ -84,10 +84,18 @@ Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
       Allocate (zd(apwordmax, apwordmax))
       Allocate (zb(apwordmax, ngp*(2*input%groundstate%lmaxapw+1)))
 ! compute the spherical harmonics of the G+p-vectors
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igp)
+!$OMP DO
+#endif
       Do igp = 1, ngp
          Call genylm (input%groundstate%lmaxapw, tpgpc(:, igp), &
         & ylmgp(:, igp))
       End Do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
 ! begin loops over atoms and species
       Do is = 1, nspecies
 ! evaluate the spherical Bessel function derivatives for all G+p-vectors
@@ -96,6 +104,10 @@ Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
             omax = Max (omax, apword(l, is))
          End Do
 !
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igp,t1,io1)
+!$OMP DO
+#endif
          Do igp = 1, ngp
             t1 = gpc (igp) * rmt (is)
             Do io1 = 1, omax
@@ -108,6 +120,10 @@ Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
                djl (:, io1, igp) = t1 * djl (:, io1, igp)
             End Do
          End Do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
 !
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
@@ -132,8 +148,7 @@ Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
                      lm = idxlm (l, m)
                      i = i + 1
                      Do io1 = 1, apword (l, is)
-                        zb (io1, i) = djl (l, io1, igp) * zt2 * conjg &
-                       & (ylmgp(lm, igp))
+                        zb (io1, i) = djl (l, io1, igp) * zt2 * conjg (ylmgp(lm, igp))
                      End Do
                   End Do
                End Do

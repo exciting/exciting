@@ -233,8 +233,8 @@ pyl.grid(True)
 
 os.system("rm tempfile1") ; os.system("rm tempfile2")
 
-plt.plot(x,d3,'go-',label=u'$\Delta$3')
-plt.plot(x,d2,'bo-',label=u'$\Delta$2')
+plt.plot(x,d3,'gd-',label=u'$\Delta$3')
+plt.plot(x,d2,'bs-',label=u'$\Delta$2')
 plt.plot(x,d1,'ro-',label=u'$\Delta$1')
 
 #-------------------------------------------------------------------------------

@@ -61,11 +61,15 @@ print "  7 =>  (   0,    0,    0,  eta,  eta,  eta)  | shear strain along (111)"
 print "  8 =>  ( eta,  eta,    0,    0,    0,    0)  | xy in-plane strain "
 print "  9 =>  ( eta, -eta,    0,    0,    0,    0)  | xy in-plane shear strain"
 print " 10 =>  ( eta,  eta,  eta,  eta,  eta,  eta)  | global strain" 
+print " 11 =>  ( eta,    0,    0,  eta,    0,    0)  | mixed strain" 
+print " 12 =>  ( eta,    0,    0,    0,  eta,    0)  | mixed strain"  
+print " 13 =>  ( eta,    0,    0,    0,    0,  eta)  | mixed strain"  
+print " 14 =>  ( eta,  eta,    0,  eta,    0,    0)  | mixed strain"  
 print "------------------------------------------------------------------------"
 
 deformation_code = input("\nEnter deformation code >>>> ")
-if (0 > deformation_code or deformation_code > 10): 
-    sys.exit("ERROR: Deformation code is out of range [0-10]!\n")
+if (0 > deformation_code or deformation_code > 14): 
+    sys.exit("ERROR: Deformation code is out of range [0-14]!\n")
 
 if (deformation_code == 0 ): dc='EEE000'
 if (deformation_code == 1 ): dc='E00000'
@@ -78,6 +82,10 @@ if (deformation_code == 7 ): dc='000EEE'
 if (deformation_code == 8 ): dc='EE0000'
 if (deformation_code == 9 ): dc='Ee0000'
 if (deformation_code == 10): dc='EEEEEE'
+if (deformation_code == 11): dc='E00E00'
+if (deformation_code == 12): dc='E000E0'
+if (deformation_code == 13): dc='E0000E'
+if (deformation_code == 14): dc='EE0E00'
 
 #-------------------------------------------------------------------------------
 

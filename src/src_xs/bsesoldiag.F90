@@ -50,15 +50,14 @@ else
      liwork=-1 !5*hamsiz
      lwork=-1
      iu=hamsiz
-     Allocate (work(1), rwork(1), iwork(1))
+     Allocate (work(1), rwork(1), iwork(1), isuppz(1))
      Call zheevr ('V', 'A', 'U', hamsiz, ham, hamsiz, vl, vu, il, iu, &
      & abstol, neval, eval, evec, hamsiz, isuppz, work, lwork, rwork, lrwork, iwork, liwork, &
      & info)
-!     deAllocate (work, rwork, iwork)
      lrwork=int(rwork(1))
      liwork=int(iwork(1))
      lwork=int(work(1))
-     deAllocate (work, rwork, iwork)
+     deallocate(work, rwork, iwork, isuppz)
 
 !     write(*,*) lrwork,liwork,lwork
       Allocate (work(lwork), rwork(lrwork), iwork(liwork))

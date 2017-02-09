@@ -38,7 +38,7 @@ Subroutine exccoulint
       Integer :: iv (3), j1, j2
       Integer :: ist1, ist2, ist3, ist4, nst12, nst34, nst13, nst24, &
      & ikkp, nkkp
-      Integer :: sta1, sto1, sta2, sto2, rnst1, rnst2, rnst3, rnst4
+      Integer :: rnst1, rnst2, rnst3, rnst4
       Real (8), Allocatable :: potcl (:)
       Complex (8), Allocatable :: exclit (:, :), excli (:, :, :, :)
       Complex (8), Allocatable :: emat12 (:, :), emat34 (:, :)
@@ -51,10 +51,10 @@ Subroutine exccoulint
       Call init1
       Call init2
   ! set the range of valence/core and conduction states to use
-      sta1 = input%xs%bse%nstlbsemat(1)
-      sto1 = input%xs%bse%nstlbsemat(2)
-      sta2 = input%xs%bse%nstlbsemat(3)
-      sto2 = input%xs%bse%nstlbsemat(4)      
+      sta1 = input%xs%bse%nstlbse(1)
+      sto1 = input%xs%bse%nstlbse(2)
+      sta2 = input%xs%bse%nstlbse(3)
+      sto2 = input%xs%bse%nstlbse(4)      
       rnst1 = sto1-sta1+1
       rnst2 = sto2-sta2+1
       rnst3 = sto2-sta2+1
@@ -166,14 +166,14 @@ Subroutine exccoulint
          Do ist2 = sta2, sto2
             Do ist1 = sta1, sto1
                j1 = j1 + 1
-               emat12 (j1, :) = emat12k (ist1, ist2, :, iknr)
+               emat12 (j1, :) = emat12k (ist1-sta1+1, ist2-sta2+1, :, iknr)
             End Do
          End Do
          j2 = 0
          Do ist4 = sta2, sto2
             Do ist3 = sta1, sto1
                j2 = j2 + 1
-               emat34 (j2, :) = emat12k (ist3, ist4, :, jknr) * potcl &
+               emat34 (j2, :) = emat12k (ist3-sta1+1, ist4-sta2+1, :, jknr) * potcl &
               & (:)
             End Do
          End Do

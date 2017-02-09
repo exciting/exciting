@@ -14,6 +14,7 @@ Subroutine vecplot
 ! !DESCRIPTION:
       Use modinput
       use modplotlabels
+      use modmpi, only : rank
 !   Outputs a 2D or 3D vector field for plotting. The vector field can be the
 !   magnetisation vector field, ${\bf m}$; the exchange-correlation magnetic
 !   field, ${\bf B}_{\rm xc}$; or the electric field
@@ -42,14 +43,15 @@ Subroutine vecplot
 ! allocatable arrays
       Real (8), Allocatable :: rvfmt (:, :, :, :)
       Real (8), Allocatable :: rvfir (:, :)
-      If ((task .Eq. 72) .Or. (task .Eq. 73) .Or. (task .Eq. 82) .Or. &
-     & (task .Eq. 83)) Then
-         If ( .Not. associated(input%groundstate%spin)) Then
-            Write (*,*)
-            Write (*, '("Error(vecplot): spin-unpolarised magnetisation&
-           &/field is zero")')
-            Write (*,*)
-            Stop
+      If ((task .Eq. 72) .Or. (task .Eq. 73) .Or. &
+      &   (task .Eq. 82) .Or. (task .Eq. 83)) Then
+         If (.not.associated(input%groundstate%spin)) Then
+            if (rank==0) then
+              write (*,*)
+              write (*, '("Error(vecplot): spin-unpolarised magnetisation field is zero")')
+              Write (*,*)
+              Stop
+            end if
          End If
       End If
 ! initialise universal variables
@@ -93,10 +95,12 @@ Subroutine vecplot
          rvfir (:, :) = - rvfir (:, :)
       Case (152, 153)
          If (ndmag .Lt. 3) Then
-            Write (*,*)
-            Write (*, '("Error(vecplot): collinear m(r)xB(r) is zero")')
-            Write (*,*)
-            Stop
+            if (rank==0) then
+              Write (*,*)
+              Write (*, '("Error(vecplot): collinear m(r)xB(r) is zero")')
+              Write (*,*)
+              Stop
+            end if
          End If
          Call rvfcross (magmt, bxcmt, magir, bxcir, rvfmt, rvfir)
       End Select
@@ -140,91 +144,90 @@ Subroutine vecplot
             rvfir (ir, 3) = dot_product (vc4(:), vc3(:))
          End Do
          If (task .Eq. 72) Then
-         plot2ddef=>input%properties%mvecfield%plot2d
-         labels=>create_plotlablels("MAG","MAG2D",2)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,3,"Magnetization","????","graceunit")
+           plot2ddef=>input%properties%mvecfield%plot2d
+           labels=>create_plotlablels("MAG","MAG2D",2)
+		       call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,3,"Magnetization","????","graceunit")
          Else If (task .Eq. 82) Then
-
-             labels=>create_plotlablels("BXC","MAG2D",2)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,3,"BXC","????","graceunit")
-		 plot2ddef=>input%properties%xcmvecfield%plot2d
+           labels=>create_plotlablels("BXC","MAG2D",2)
+           call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,3,"BXC","????","graceunit")
+		       plot2ddef=>input%properties%xcmvecfield%plot2d
          Else If (task .Eq. 142) Then
            labels=>create_plotlablels("EF","EF2D",2)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,3,"EF2","????","graceunit")
-         plot2ddef=>input%properties%electricfield%plot2d
+		       call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,3,"EF2","????","graceunit")
+           plot2ddef=>input%properties%electricfield%plot2d
          Else
-          write(*,*) "error in vecplot 2d selection"
-
+           if (rank==0) write(*,*) "error in vecplot 2d selection"
          End If
          Call plot2d (labels, 3, input%groundstate%lmaxvr, lmmaxvr, rvfmt, &
-        & rvfir, plot2ddef)
-       call destroy_plotlablels(labels)
-         Write (*,*)
-         Write (*, '("Info(vecplot):")')
-         If (task .Eq. 72) Then
-            Write (*, '(" 2D magnetisation density written to MAG2D.xml")')
-         Else If (task .Eq. 82) Then
-            Write (*, '(" 2D exchange-correlation field written to BXC2D.xml")')
-         Else If (task .Eq. 142) Then
-            Write (*, '(" 2D electric field written to EF2D.xml")')
-         Else
-            Write (*, '(" 2D m(r) x B_xc(r) written to MCBXC2D.xml")')
-         End If
-         Write (*,*)
+         &            rvfir, plot2ddef)
+         call destroy_plotlablels(labels)
+         if (rank==0) then
+           Write (*,*)
+           Write (*, '("Info(vecplot):")')
+           If (task .Eq. 72) Then
+             Write (*, '(" 2D magnetisation density written to MAG2D.xml")')
+           Else If (task .Eq. 82) Then
+             Write (*, '(" 2D exchange-correlation field written to BXC2D.xml")')
+           Else If (task .Eq. 142) Then
+             Write (*, '(" 2D electric field written to EF2D.xml")')
+           Else
+             Write (*, '(" 2D m(r) x B_xc(r) written to MCBXC2D.xml")')
+           End If
+           Write (*,*)
+         end if
+
       Case (73, 83, 143, 153)
          If (task .Eq. 73) Then
-         labels=>create_plotlablels("MAG","MAG3D",3)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,4,"Magnetization","????","graceunit")
+           labels=>create_plotlablels("MAG","MAG3D",3)
+		       call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,4,"Magnetization","????","graceunit")
            plot3ddef=>input%properties%mvecfield%plot3d
          Else If (task .Eq. 83) Then
-
-         labels=>create_plotlablels("BXC","BXC3D",3)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,4,"BXC","????","graceunit")
+           labels=>create_plotlablels("BXC","BXC3D",3)
+	         call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,4,"BXC","????","graceunit")
            plot3ddef=>input%properties%xcmvecfield%plot3d
          Else If (task .Eq. 143) Then
-            labels=>create_plotlablels("EF","EF3D",3)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,4,"EF","????","graceunit")
-		  plot3ddef=>input%properties%electricfield%plot3d
+           labels=>create_plotlablels("EF","EF3D",3)
+		       call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,4,"EF","????","graceunit")
+		       plot3ddef=>input%properties%electricfield%plot3d
          Else
-
-            labels=>create_plotlablels("MCBXC","MCBXC3D",3)
-		 call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
-		 call set_plotlabel_axis(labels,4,"MCBXC","????","graceunit")
+           labels=>create_plotlablels("MCBXC","MCBXC3D",3)
+           call set_plotlabel_axis(labels,1,"a","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,2,"b","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,3,"c","lattice coordinate","graceunit")
+		       call set_plotlabel_axis(labels,4,"MCBXC","????","graceunit")
          End If
-
          Call plot3d (labels, 3, input%groundstate%lmaxvr, lmmaxvr, rvfmt, &
-        & rvfir,plot3ddef)
-          call destroy_plotlablels(labels)
-
-         Write (*,*)
-         Write (*, '("Info(vecplot):")')
-         If (task .Eq. 73) Then
-            Write (*, '(" 3D magnetisation density written to MAG3D.xml")')
-         Else If (task .Eq. 83) Then
-            Write (*, '(" 3D exchange-correlation field written to BXC3D.xml")')
-         Else If (task .Eq. 143) Then
-            Write (*, '(" 3D electric field written to EF3D.xml")')
-         Else
-            Write (*, '(" 3D m(r) x B_xc(r) written to MCBXC3D.xml")')
-         End If
-         Write (*,*)
+         &            rvfir,plot3ddef)
+         call destroy_plotlablels(labels)
+         if (rank==0) then
+           Write (*,*)
+           Write (*, '("Info(vecplot):")')
+           If (task .Eq. 73) Then
+             Write (*, '(" 3D magnetisation density written to MAG3D.xml")')
+           Else If (task .Eq. 83) Then
+             Write (*, '(" 3D exchange-correlation field written to BXC3D.xml")')
+           Else If (task .Eq. 143) Then
+             Write (*, '(" 3D electric field written to EF3D.xml")')
+           Else
+             Write (*, '(" 3D m(r) x B_xc(r) written to MCBXC3D.xml")')
+           End If
+           Write (*,*)
+          end if
       End Select
       Deallocate (rvfmt, rvfir)
       Return

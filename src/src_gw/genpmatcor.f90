@@ -1,25 +1,19 @@
-
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-
 !BOP
 ! !ROUTINE: genpmat
 ! !INTERFACE:
-subroutine genpmatcor(ik,ngp,apwalm,evecfv,evecsv,pmatc)
+subroutine genpmatcor(vpl,ngp,apwalm,evecfv,evecsv,pmc)
 ! !USES:
     use modinput
     use modmain
     use modgw
 ! !INPUT/OUTPUT PARAMETERS:
+!   vpl    : k-vector (in,real(3))
 !   ngp    : number of G+p-vectors (in,integer)
-!   igpig  : index from G+p-vectors to G-vectors (in,integer(ngkmax))
-!   vgpc   : G+p-vectors in Cartesian coordinates (in,real(3,ngkmax))
 !   apwalm : APW matching coefficients
 !            (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
 !   evecfv : first-variational eigenvector (in,complex(nmatmax,nstfv))
 !   evecsv : second-variational eigenvectors (in,complex(nstsv,nstsv))
-!   pmat   : momentum matrix elements (out,complex(3,nstsv,nstsv))
+!   pmc    : momentum matrix elements (out,complex(3,nstsv,nstsv))
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements
 !   $$ p_{ij}=\langle\Psi_{i,{\bf k}}|-i\nabla|\Psi_{j,{\bf k}}\rangle. $$
@@ -31,84 +25,107 @@ subroutine genpmatcor(ik,ngp,apwalm,evecfv,evecsv,pmatc)
 !BOC
     implicit none
     ! arguments
-    integer, intent(in)     :: ik
+    real(8), intent(in)     :: vpl(3)
     integer, intent(in)     :: ngp
     complex(8), intent(in)  :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
     complex(8), intent(in)  :: evecfv(nmatmax,nstfv)
     complex(8), intent(in)  :: evecsv(nstsv,nstsv)
-    complex(8), intent(out) :: pmatc(3,ncg,nstsv)
+    complex(8), intent(out) :: pmc(3,ncg,nstsv)
 !   local variables
-    integer :: is,ia,ist1,ist2,ist3,ias,lm,m,ir,irc
-    integer :: i,l
-    real(8) :: arg,t1,t2
-    real(8) :: kvec(3)
-    real(8), dimension(nrcmtmax) :: fr,fr1,fr2,gr
+    integer :: ic, icg, ie2, ispn, i, j, n
+    integer :: is, ia, ias, l, m, lm, ir, irc
+    real(8) :: arg, t1, t2
+    real(8), dimension(nrcmtmax) :: fr, fr1, fr2, gr
     real(8), dimension(3,nrcmtmax) :: cf
-    complex(8) :: phs
+    complex(8) :: phs, zt1, zv(3)
 !   allocatable arrays
-    complex(8), allocatable :: wfmt(:,:,:)
-    complex(8), allocatable :: gwfmt(:,:,:,:)
-    complex(8), allocatable :: pmc(:,:,:)
+    complex(8), allocatable :: wfmt(:,:)
+    complex(8), allocatable :: gwfmt(:,:,:)
+    complex(8), allocatable :: pm(:,:,:)
 
-!   external functions
-    allocate(wfmt(lmmaxapw,nrcmtmax,nstfv))
-    allocate(gwfmt(lmmaxapw,nrcmtmax,3,nstfv))
-    allocate(pmc(3,ncg,nstfv))
-!   set the momentum matrix elements to zero
-    pmc(:,:,:)=zzero
-    do i=1,3
-      kvec(i)=-vkl(i,ik)
-    enddo  
-
-!   calculate momentum matrix elements in the muffin-tin
-    do ist1=1,nstfv    
-      ist3=0
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          ias=idxas(ia,is)
-          arg=atposl(1,ia,is)*kvec(1)+ &
-         &    atposl(2,ia,is)*kvec(2)+ &
-         &    atposl(3,ia,is)*kvec(3)
-          phs=cmplx(cos(2.0d0*pi*arg),sin(2.0d0*pi*arg),8)
+!-------------------------------------------------------------------------------    
+    
+    allocate(wfmt(lmmaxapw,nrcmtmax))
+    allocate(gwfmt(lmmaxapw,nrcmtmax,3))
+    allocate(pm(3,ncg,nstfv))
+    pm(:,:,:) = zzero
+    
+    do ie2 = 1, nstsv
+    
+      icg = 0
+      do is = 1, nspecies
+        n = lmmaxvr*nrcmt (is)
+        do ia = 1, natoms(is)
+        
+          ias = idxas(ia,is)
+          arg = atposl(1,ia,is)*vpl(1)+ &
+          &     atposl(2,ia,is)*vpl(2)+ &
+          &     atposl(3,ia,is)*vpl(3)
+          phs = cmplx(cos(2.0d0*pi*arg),-sin(2.0d0*pi*arg),8)
+ 
           ! calculate the wavefunction
           call wavefmt(input%groundstate%lradstep, &
-         &  input%groundstate%lmaxapw,is,ia,ngp,apwalm, &
-         &  evecfv(:,ist1),lmmaxapw,wfmt(:,:,ist1))
+          &  input%groundstate%lmaxapw,is,ia,ngp,apwalm, &
+          &  evecfv(:,ie2),lmmaxapw,wfmt)
+          
           ! calculate the gradient
           call gradzfmt(input%groundstate%lmaxapw,nrcmt(is), &
-         &  rcmt(:,is),lmmaxapw,nrcmtmax,wfmt(:,:,ist1),    &
-         &  gwfmt(:,:,:,ist1))
-          do ist2=1,ncore(is)
-            l=spl(ist2,is)
-            irc=0
-            do ir=1,nrmt(is),input%groundstate%lradstep
-                irc=irc+1
-                fr(irc)=ucore(ir,1,ist2,ias)*spr(ir,is)*spr(ir,is)
-            enddo ! ir
-            do m=-l,l
-              lm=idxlm(l,m)
-              ist3=ist3+1
-              do i=1,3
-                do irc=1,nrcmt(is)
-                  fr1(irc)=fr(irc)*dble(gwfmt(lm,irc,i,ist1))
-                  fr2(irc)=fr(irc)*aimag(gwfmt(lm,irc,i,ist1))
+          &  rcmt(:,is),lmmaxapw,nrcmtmax,wfmt,gwfmt)
+          
+          do ic = 1, ncore(is)
+            l = spl(ic,is)
+            irc = 0
+            do ir = 1, nrmt(is), input%groundstate%lradstep
+              irc = irc+1
+              fr(irc) = ucore(ir,1,ic,ias)*spr(ir,is)*spr(ir,is)
+            end do ! ir
+            do m = -l, l
+              lm = idxlm(l,m)
+              ! combined atom+lm index
+              icg = icg+1
+              do i = 1, 3
+                do irc = 1, nrcmt(is)
+                  fr1(irc) = fr(irc)*dble(gwfmt(lm,irc,i))
+                  fr2(irc) = fr(irc)*aimag(gwfmt(lm,irc,i))
                 enddo  
                 call fderiv(-1,nrcmt(is),rcmt(1,is),fr1,gr,cf)
-                t1=gr(nrcmt(is))
+                t1 = gr(nrcmt(is))
                 call fderiv(-1,nrcmt(is),rcmt(1,is),fr2,gr,cf)
-                t2=gr(nrcmt(is))
-                pmc(i,ist3,ist1)=cmplx(t1,t2,8)*phs
+                t2 = gr(nrcmt(is))
+                pm(i,icg,ie2) = phs*cmplx(t1,t2,8)
               enddo ! i
             end do ! m
-          end do ! ist2
+          end do ! ic
+          
         end do ! ia
       end do ! is
-    end do ! ist1
-
+    end do ! ie2
+    
     ! multiply by -i
-    pmatc(:,:,:)=-zi*pmc(:,:,:)
+    pm(1:3,:,:) = -zi*pm(1:3,:,:)
 
-    deallocate(wfmt,gwfmt,pmc)
+! NEED TO BE CHECKED !!    
+    ! compute the second-variational momentum matrix elements
+    if (input%groundstate%tevecsv) then
+      do icg = 1, ncg
+        do j = 1, nstsv
+          zv(:) = 0.d0
+          do ispn = 1, nspinor
+            l = (ispn-1)*nstfv
+            do ie2 = 1, nstfv
+              l = l+1
+              zt1 = evecsv(l,j)
+              zv(:) = zv(:) + zt1*pm(:,icg,ie2)
+            end do
+          end do
+          pmc(:,icg,j) = zv(:)
+        end do
+      end do
+    else
+       pmc(:,:,:) = pm(:,:,:)
+    end if
+    deallocate(pm)
+
     return
 end subroutine
 !EOC

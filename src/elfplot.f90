@@ -15,7 +15,8 @@ Subroutine elfplot
 ! !USES:
       Use modinput
       Use modmain
-       use modplotlabels
+      use modplotlabels
+      use modmpi, only : rank
 ! !DESCRIPTION:
 !   Outputs the electron localisation function (ELF) for 1D, 2D or 3D plotting.
 !   The spin-averaged ELF is given by
@@ -57,6 +58,7 @@ Subroutine elfplot
       Complex (8), Allocatable :: zfft1 (:), zfft2 (:)
       Complex (8), Allocatable :: evecfv (:, :)
       Complex (8), Allocatable :: evecsv (:, :)
+      Character(256) :: string
 ! initialise universal variables
       Call init0
       Call init1
@@ -74,7 +76,19 @@ Subroutine elfplot
 ! allocate second-variational eigenvector array
       Allocate (evecsv(nstsv, nstsv))
 ! read density and potentials from file
-      Call readstate
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+! in case of HF hybrids use PBE potential
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
+           Else
+               Call readstate
+           End If
+        Else         
+           Call readstate
+        End If 
 ! read Fermi energy from file
       Call readfermi
 ! find the new linearisation energies
@@ -85,6 +99,12 @@ Subroutine elfplot
       Call genlofr
 ! generate the core wavefunctions and densities
       Call gencore
+! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               Call readstate
+           End If
+        End If 
 ! set the gradient squared to zero
       gwf2mt (:, :, :) = 0.d0
       gwf2ir (:) = 0.d0
@@ -171,42 +191,46 @@ Subroutine elfplot
 ! plot the ELF to file
 !
       If (associated(input%properties%elfplot%plot1d)) Then
-          labels=>create_plotlablels("ELF","ELF1D",1)
-		 call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
-		 call set_plotlabel_axis(labels,2,"ELF","???","graceunit")
-         Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
-        & elfmt, elfir, input%properties%elfplot%plot1d)
-         call destroy_plotlablels(labels)
-         Write (*,*)
-         Write (*, '("Info(elfplot): 1D ELF plot written to ELF1D.xml")')
-
+        labels=>create_plotlablels("ELF","ELF1D",1)
+		    call set_plotlabel_axis(labels,1,"Distance","a_0","graceunit")
+		    call set_plotlabel_axis(labels,2,"ELF","???","graceunit")
+        Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
+        &            elfmt, elfir, input%properties%elfplot%plot1d)
+        call destroy_plotlablels(labels)
+        if (rank==0) then
+          Write (*,*)
+          Write (*, '("Info(elfplot): 1D ELF plot written to ELF1D.xml")')
+        end if
       End If
+
       If (associated(input%properties%elfplot%plot2d)) Then
         labels=>create_plotlablels("ELF","ELF2D",2)
-		 call set_plotlabel_axis(labels,1,"a","1","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","1","graceunit")
-		 call set_plotlabel_axis(labels,3,"elfplot","???","graceunit")
-         Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
-        & elfmt, elfir, input%properties%elfplot%plot2d)
+		    call set_plotlabel_axis(labels,1,"a","1","graceunit")
+		    call set_plotlabel_axis(labels,2,"b","1","graceunit")
+		    call set_plotlabel_axis(labels,3,"elfplot","???","graceunit")
+        Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
+        &            elfmt, elfir, input%properties%elfplot%plot2d)
         call destroy_plotlablels(labels)
-         Write (*,*)
-         Write (*, '("Info(elfplot): 2D ELF plot written to ELF2D.xml")&
-        &')
+        if (rank==0) then
+          Write (*,*)
+          Write (*, '("Info(elfplot): 2D ELF plot written to ELF2D.xml")')
+        end if
       End If
       If (associated(input%properties%elfplot%plot3d)) Then
-       labels=>create_plotlablels("ELF","ELF3D",3)
-		 call set_plotlabel_axis(labels,1,"a","1","graceunit")
-		 call set_plotlabel_axis(labels,2,"b","1","graceunit")
-		 call set_plotlabel_axis(labels,3,"b","1","graceunit")
-		 call set_plotlabel_axis(labels,4,"ELF","???","graceunit")
-         Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
-        & elfmt, elfir, input%properties%elfplot%plot3d)
-         call destroy_plotlablels(labels)
-         Write (*,*)
-         Write (*, '("Info(elfplot): 3D ELF plot written to ELF3D.xml")&
-        &')
+        labels=>create_plotlablels("ELF","ELF3D",3)
+		    call set_plotlabel_axis(labels,1,"a","1","graceunit")
+		    call set_plotlabel_axis(labels,2,"b","1","graceunit")
+		    call set_plotlabel_axis(labels,3,"b","1","graceunit")
+		    call set_plotlabel_axis(labels,4,"ELF","???","graceunit")
+        Call plot3d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
+        &            elfmt, elfir, input%properties%elfplot%plot3d)
+        call destroy_plotlablels(labels)
+        if (rank==0) then
+          Write (*,*)
+          Write (*, '("Info(elfplot): 3D ELF plot written to ELF3D.xml")')
+        end if
       End If
-      Write (*,*)
+      if (rank==0) Write (*,*)
       Deallocate (rftp1, rftp2, rftp3)
       Deallocate (grfmt, grfir, gwf2mt, gwf2ir, elfmt, elfir)
       Deallocate (zfft1, zfft2, evecfv, evecsv)

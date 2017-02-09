@@ -29,16 +29,16 @@ Subroutine poteff
       
       Call timesec (ts0)
       
+!---------------------------------------------
+! compute the exchange-correlation potential
+!---------------------------------------------
+      Call potxc
+
 !---------------------------------
 ! compute the Coulomb potential
 !---------------------------------
       Call potcoul
       shift=input%groundstate%energyref
-
-!---------------------------------------------
-! compute the exchange-correlation potential
-!---------------------------------------------
-      Call potxc
 
 !----------------------------------------------------------
 ! add Coulomb and exchange-correlation potentials together
@@ -53,7 +53,11 @@ Subroutine poteff
             Do ir = 1, nrmt (is)
                If (ir .Gt. nrmtinr(is)) lmmax = lmmaxvr
                Do lm = 1, lmmax
-                  veffmt(lm,ir,ias) = vclmt(lm,ir,ias) + vxcmt(lm,ir,ias)
+                  if (associated(input%groundstate%dfthalf)) then
+                    veffmt(lm,ir,ias) = vclmt(lm,ir,ias) + vxcmt(lm,ir,ias) + vhalfmt (lm, ir, ias)
+                  else
+                    veffmt(lm,ir,ias) = vclmt(lm,ir,ias) + vxcmt(lm,ir,ias)
+                  endif
                End Do
                Do lm = lmmax + 1, lmmaxvr
                   veffmt(lm,ir,ias) = 0.d0
@@ -64,7 +68,12 @@ Subroutine poteff
       
       ! interstitial part
       vclir(:) = vclir(:) + shift
-      veffir(:) = vclir(:) + vxcir(:)
+      
+      if (associated(input%groundstate%dfthalf)) then
+        veffir(:) = vclir(:) + vxcir(:) + vhalfir(:)
+      else
+        veffir(:) = vclir(:) + vxcir(:)
+      endif
       
       Call timesec (ts1)
       timepot = timepot + ts1 - ts0

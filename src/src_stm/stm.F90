@@ -19,13 +19,26 @@ Subroutine stm
   ! allocatable arrays
   Complex (8), Allocatable :: evecfv (:, :)
   Complex (8), Allocatable :: evecsv (:, :)
+  Character(256) :: string
   ! initialise universal variables
   Call init0
   Call init1
   Allocate (evecfv(nmatmax, nstfv))
   Allocate (evecsv(nstsv, nstsv))
   ! read the density and potentials from file
-  Call readstate
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+  ! in case of HF hybrids use PBE potential
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
+           Else
+               Call readstate
+           End If
+        Else         
+           Call readstate
+        End If 
   ! read Fermi energy from file
   Call readfermi
   ! find the new linearisation energies
@@ -34,6 +47,12 @@ Subroutine stm
   Call genapwfr
   ! generate the local-orbital radial functions
   Call genlofr
+  ! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               Call readstate
+           End If
+        End If 
   ! verify consistency of input for stm
   Call checkinput
   ! set the occupancies

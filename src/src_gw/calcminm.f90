@@ -4,7 +4,7 @@
 !
 !!INTERFACE:
 !
-subroutine calcminm(ik,iq)
+subroutine calcminm(ik,iq,nstart,nend,mstart,mend,minm)
 !
 ! !DESCRIPTION:
 !
@@ -12,13 +12,23 @@ subroutine calcminm(ik,iq)
 !
 !!USES:
     use modinput
-    use modmain
-    use modgw
+    use modmain,               only : nspecies, natoms, idxas, idxlm, idxlo, &
+    &                                 zzero, zone, intgv, apword, nlorb, lorbl, &
+    &                                 nlomax, pi, apwordmax, nmatmax
+    use modgw,                 only : kqset, Gkset, Gqbarc, Gqset, Gset, fdebug, time_minm
+    use mod_bands,             only : eveck, eveckp, eveckalm, eveckpalm
+    use mod_product_basis,     only : nmix, bigl, bradketa, bradketlo, mpwipw, &
+    &                                 matsiz, locmatsiz, mbindex
+    use mod_misc_gw,           only : vi, atposl
+    use mod_gaunt_coefficients
 
 !!INPUT PARAMETERS:
     implicit none
     integer(4), intent(in) :: ik   ! the index of the first k-point
     integer(4), intent(in) :: iq   ! the index of the q-point
+    integer(4), intent(in) :: nstart, nend  ! range of n states
+    integer(4), intent(in) :: mstart, mend  ! range of m states
+    complex(8), intent(out):: minm(matsiz,nstart:nend,mstart:mend)
       
 !!LOCAL VARIABLES:
     integer(4) :: jk
@@ -26,7 +36,7 @@ subroutine calcminm(ik,iq)
     integer(4) :: i, ia, is, ias 
     integer(4) :: igk1, igk2 
     integer(4) :: io1, io2, ilo1, ilo2 
-    integer(4) :: imix, irm, im
+    integer(4) :: imix, irm
     integer(4) :: ie1, ie2
     integer(4) :: l1, m1, l2, m2, l1m1, l2m2
     integer(4) :: l2min, l2max
@@ -34,10 +44,11 @@ subroutine calcminm(ik,iq)
     integer(4), allocatable :: igqk12(:,:)
     integer(4), dimension(3):: ikv, ig0 ! Indexes of G_1+G'-G
     integer(4) :: ngk1, ngk2
+    integer(4) :: ndim, mdim, nmdim
       
     real(8) :: sqvi, x, arg, angint
     real(8) :: qvec(3)
-    real(8) :: tstart, tend
+    real(8) :: tstart, tend, tmt, tir
     
     real(8) :: t1, t2
     
@@ -66,17 +77,20 @@ subroutine calcminm(ik,iq)
     !-----------------------------------------------
     ! Valence and conduction states for both n and n'
     !-----------------------------------------------
-    if (allocated(minmmat)) deallocate(minmmat)
-    allocate(minmmat(matsiz,nstfv,nstfv))
-    minmmat = zzero
- 
-    jk = kqid(ik,iq)
+    minm(:,:,:) = zzero
+
+    ! index ranges
+    ndim = nend-nstart+1
+    mdim = mend-mstart+1
+    nmdim = ndim*mdim
+      
+    jk = kqset%kqid(ik,iq)
     do i = 1, 3
-      qvec(i) = vql(i,iq)
-      x = vklnr(i,ik)-vklnr(i,jk)-qvec(i)
+      qvec(i) = kqset%vql(i,iq)
+      x = kqset%vkl(i,ik)-kqset%vkl(i,jk)-qvec(i)
       ig0(i) = nint(x)
     end do
-
+    
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(imix,is,ia,ias,irm,bl,bm,arg,phs,l1,m1,l1m1,l2min,l2max,l2,m2,l2m2,angint,ie2,apwterm,io1,io2,ilo2,igk2,loterm,ilo1,ie1,sumterms,igk1)
 !$OMP DO
@@ -109,11 +123,12 @@ subroutine calcminm(ik,iq)
               l2m2 = idxlm(l2,m2)
 
               ! Angular integral
-              angint = gaunt(l1,l2,bl,m1,m2,bm)
+              !angint = gaunt(l1,bl,l2,m1,bm,m2)
+              angint = getgauntcoef(l2,bl,l1,m2,bm)
               if (abs(angint)<1.d-8) cycle
             
               ! Loop over eigenfunctions at k-q
-              do ie2 = 1, nstfv
+              do ie2 = mstart, mend
                   
                 !------------------
                 ! APW contribution
@@ -123,16 +138,16 @@ subroutine calcminm(ik,iq)
                       
                   do io2 = 1, apword(l2,is)
                     apwterm(io1) = apwterm(io1)+ &
-                    &              eveckpalm(ie2,io2,l2m2,ias,1)* &
-                    &              bradketa(ias,irm,l1,io1,l2,io2,2)
+                    &              eveckpalm(ie2,io2,l2m2,ias)* &
+                    &              bradketa(2,irm,l1,io1,l2,io2,ias)
                   end do ! io2
                       
                   do ilo2 = 1, nlorb(is)
                     if (lorbl(ilo2,is)==l2) then
-                      igk2 = ngknr(1,jk)+idxlo(l2m2,ilo2,ias)
+                      igk2 = Gkset%ngk(1,jk)+idxlo(l2m2,ilo2,ias)
                       apwterm(io1) = apwterm(io1)+ &
-                      &              eveckp(igk2,ie2,1)* &
-                      &              bradketa(ias,irm,l1,io1,ilo2,1,3)
+                      &              eveckp(igk2,ie2)* &
+                      &              bradketa(3,irm,l1,io1,ilo2,1,ias)
                     end if
                   end do ! ilo2
                     
@@ -147,16 +162,16 @@ subroutine calcminm(ik,iq)
                   
                     do io2 = 1, apword(l2,is)
                       loterm(ilo1) = loterm(ilo1)+ &
-                      &              eveckpalm(ie2,io2,l2m2,ias,1)* &      
-                      &              bradketlo(ias,irm,ilo1,l2,io2,2)
+                      &              eveckpalm(ie2,io2,l2m2,ias)* &      
+                      &              bradketlo(2,irm,ilo1,l2,io2,ias)
                     end do ! io1
                         
                     do ilo2 = 1, nlorb(is)
                       if (lorbl(ilo2,is)==l2) then
-                        igk2 = ngknr(1,jk)+idxlo(l2m2,ilo2,ias)
+                        igk2 = Gkset%ngk(1,jk)+idxlo(l2m2,ilo2,ias)
                         loterm(ilo1) = loterm(ilo1)+ &
-                        &              eveckp(igk2,ie2,1)* &
-                        &              bradketlo(ias,irm,ilo1,ilo2,1,3)
+                        &              eveckp(igk2,ie2)* &
+                        &              bradketlo(3,irm,ilo1,ilo2,1,ias)
                       end if
                     end do ! ilo2
                   
@@ -164,26 +179,26 @@ subroutine calcminm(ik,iq)
                 end do ! ilo1
                   
                 ! Loop over basis functions at k
-                do ie1 = 1, nstfv
+                do ie1 = nstart, nend
                       
                   sumterms = zzero
                   do io1 = 1, apword(l1,is)
                     sumterms = sumterms + &
-                    &          eveckalm(ie1,io1,l1m1,ias,1)*apwterm(io1)
+                    &          eveckalm(ie1,io1,l1m1,ias)*apwterm(io1)
                   end do ! io1
                       
                   do ilo1 = 1, nlorb(is)
                     if (lorbl(ilo1,is)==l1) then
-                      igk1 = ngknr(1,ik)+idxlo(l1m1,ilo1,ias)
+                      igk1 = Gkset%ngk(1,ik)+idxlo(l1m1,ilo1,ias)
                       sumterms = sumterms + &
-                      &          eveck(igk1,ie1,1)*loterm(ilo1)
+                      &          eveck(igk1,ie1)*loterm(ilo1)
                     end if
                   end do ! ilo2
                   
                   !--------------------------
                   ! sum up all contributions
                   !--------------------------
-                  minmmat(imix,ie1,ie2) = minmmat(imix,ie1,ie2)+phs*angint*sumterms
+                  minm(imix,ie1,ie2) = minm(imix,ie1,ie2)+phs*angint*sumterms
                     
                 end do ! ie1
                   
@@ -201,26 +216,30 @@ subroutine calcminm(ik,iq)
 !$OMP END PARALLEL
 #endif
 
+    call timesec(tmt)
+    write(*,*) 'calcminm, mt',tmt-tstart 
     !======================
     ! Interstitial region
     !======================
     
     ! Loop over the mixed basis functions:
     sqvi = sqrt(vi)
-    ngk1 = ngknr(1,ik)
-    ngk2 = ngknr(1,jk)
+    ngk1 = Gkset%ngk(1,ik)
+    ngk2 = Gkset%ngk(1,jk)
     
     allocate(igqk12(ngk1,ngk2))
     igqk12(:,:) = 0
     
     do igk1 = 1, ngk1 ! loop over G
       do igk2 = 1, ngk2 ! loop over G'
-        ikv(1:3) = ivg(1:3,igkignr(igk1,1,ik)) - &
-        &          ivg(1:3,igkignr(igk2,1,jk)) + ig0(1:3)
-        if ((ikv(1).ge.intgv(1,1)).and.(ikv(1).le.intgv(1,2)).and.       &
-        &   (ikv(2).ge.intgv(2,1)).and.(ikv(2).le.intgv(2,2)).and.       &
-        &   (ikv(3).ge.intgv(3,1)).and.(ikv(3).le.intgv(3,2)))        then
-             igqk12(igk1,igk2)=igigqb(ivgig(ikv(1),ikv(2),ikv(3)),iq)
+        ikv(1:3) = Gset%ivg(1:3,Gkset%igkig(igk1,1,ik)) - &
+        &          Gset%ivg(1:3,Gkset%igkig(igk2,1,jk)) + ig0(1:3)
+        if((ikv(1).ge.Gset%intgv(1,1)).and.(ikv(1).le.Gset%intgv(1,2)).and. &
+        &  (ikv(2).ge.Gset%intgv(2,1)).and.(ikv(2).le.Gset%intgv(2,2)).and. &
+        &  (ikv(3).ge.Gset%intgv(3,1)).and.(ikv(3).le.Gset%intgv(3,2)))  then
+          ig = Gset%ivgig(ikv(1),ikv(2),ikv(3))
+          igqk12(igk1,igk2) = Gqbarc%igigk(ig,1,iq)
+          !write(*,*) igk1, igk2, ig, igqk12(igk1,igk2)
         end if
       end do ! igk2
     end do ! igk1
@@ -230,13 +249,13 @@ subroutine calcminm(ik,iq)
 !#endif
 
     allocate(tmat(ngk2,ngk1))
-    allocate(tmat2(ngk2,nstfv))
-    allocate(mnn(nstfv,nstfv))
+    allocate(tmat2(ngk2,ndim))
+    allocate(mnn(mdim,ndim))
 
 !#ifdef USEOMP
 !!$OMP DO
 !#endif    
-    do igq = 1, ngq(iq)
+    do igq = 1, Gqset%ngk(1,iq)
         
       do igk1 = 1, ngk1 ! loop over G+k
         do igk2 = 1, ngk2 ! loop over G'+k'
@@ -249,22 +268,22 @@ subroutine calcminm(ik,iq)
       end do ! igk1    
       
       call zgemm( 'n', 'n', &
-      &           ngk2, nstfv, ngk1, &
+      &           ngk2, ndim, ngk1, &
       &           zone, &
       &           tmat, ngk2, &
-      &           eveck(1:ngk1,1:nstfv,1), ngk1, &
+      &           eveck(1:ngk1,nstart:nend), ngk1, &
       &           zzero, tmat2, ngk2)
 
       call zgemm( 't', 'n', &
-      &           nstfv, nstfv, ngk2, &
+      &           mdim, ndim, ngk2, &
       &           zone, &
-      &           eveckp(1:ngk2,1:nstfv,1), ngk2, &
+      &           eveckp(1:ngk2,mstart:mend), ngk2, &
       &           tmat2, ngk2, &
-      &           zzero, mnn, nstfv)
+      &           zzero, mnn, mdim)
 
-      do ie2 = 1, nstfv  
-        do ie1 = 1, nstfv
-          minmmat(locmatsiz+igq,ie1,ie2) = sqvi*mnn(ie2,ie1)
+      do ie2 = mstart, mend  
+        do ie1 = nstart, nend
+          minm(locmatsiz+igq,ie1,ie2) = sqvi*mnn(ie2-mstart+1,ie1-nstart+1)
         end do ! ie2
       end do ! ie1
       
@@ -286,7 +305,8 @@ subroutine calcminm(ik,iq)
     !------------------------------------------------------------------
     ! timing
     call timesec(tend)
-
+    time_minm = time_minm+tend-tstart
+    write(*,*) 'calcminm, ir', tend-tmt
     !write(*,*) ' minmmat ik, iq: ', ik, iq
     !do imix = 1, matsiz, matsiz/10
     !  do ie2 = 1, 4

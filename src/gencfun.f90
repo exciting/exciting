@@ -51,9 +51,15 @@ Subroutine gencfun
       cfunig (:) = 0.d0
       cfunig (1) = 1.d0
       t1 = fourpi / omega
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(NONE) SHARED(nspecies,ngrtot,gc,input,rmt,ffacg,natoms,vgc,atposc,cfunig,zfft,igfft,t1) PRIVATE(is,ig,t2,ia,zt1,ifg)
+#endif
 ! begin loop over species
       Do is = 1, nspecies
 ! smooth step function form factors for each species
+#ifdef USEOMP
+!$OMP DO
+#endif
          Do ig = 1, ngrtot
             If (gc(ig) .Gt. input%structure%epslat) Then
                t2 = gc (ig) * rmt (is)
@@ -62,8 +68,14 @@ Subroutine gencfun
                ffacg (ig) = (t1/3.d0) * rmt (is) ** 3
             End If
          End Do
+#ifdef USEOMP
+!$OMP END DO
+#endif
 ! loop over atoms
          Do ia = 1, natoms (is)
+#ifdef USEOMP
+!$OMP DO
+#endif
             Do ig = 1, ngrtot
 ! structure factor
                t2 = - dot_product (vgc(:, ig), atposc(:, ia, is))
@@ -71,12 +83,25 @@ Subroutine gencfun
 ! add to characteristic function in G-space
                cfunig (ig) = cfunig (ig) - zt1 * ffacg (ig)
             End Do
+#ifdef USEOMP
+!$OMP END DO NOWAIT
+#endif
          End Do
       End Do
+#ifdef USEOMP
+!$OMP BARRIER
+!$OMP DO
+#endif
+
       Do ig = 1, ngrtot
          ifg = igfft (ig)
          zfft (ifg) = cfunig (ig)
       End Do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL 
+#endif
+!
 ! Fourier transform to real-space
       Call zfftifc (3, ngrid, 1, zfft)
       cfunir (:) = dble (zfft(:))
@@ -92,3 +117,4 @@ Subroutine gencfun
       Return
 End Subroutine
 !EOC
+

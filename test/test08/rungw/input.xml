@@ -1,6 +1,6 @@
 <input>
   <title>Si crystal</title>
-  <structure speciespath="../../../species/" autormt="false">
+  <structure speciespath="./">
     <crystal>
       <basevect>5.13 5.13 0.00</basevect>
       <basevect>5.13 0.00 5.13</basevect>
@@ -17,18 +17,12 @@
     gmaxvr="12"
     ngridk="2 2 2"
     xctype="LDA_PW"
-    nempty="50"
     >
   </groundstate>
   <gw
-    taskname="gw"
-    ibgw="1"
-    nbgw="15"
+    taskname="g0w0" coreflag="all"
+    ibgw="1" nbgw="15"
+    nempty="22"
     >
-    <mixbasis
-      lmaxmb="3"
-      epsmb="1.0d-4"
-      gmb="1.0"
-    ></mixbasis>
   </gw>
 </input>

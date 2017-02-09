@@ -44,10 +44,9 @@ complex(8) function getdlmm(rot,l,m1,m2)
       integer, intent (in) :: m1
       integer, intent (in) :: m2
 ! local variables
-      integer :: i, j, nm, p
+      integer :: i, j, p
       real(8) :: det, roti(3, 3), ang(3)
       real(8) :: cb, sb, sum, t1, t2, t3
-      real(8) :: par, alpha
       complex(8), parameter :: zzero = (0.d0, 0.d0)
       complex(8), parameter :: zone = (1.d0, 0.d0)
 

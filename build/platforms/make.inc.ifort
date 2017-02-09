@@ -1,6 +1,6 @@
 F90 = ifort
 F90_OPTS = -O3 -ip -unroll  -scalar_rep -openmp -DUSEOMP 
-CPP_ON_OPT = -cpp -DXS -DISO -DTETRA -DLIBXC -DIFORT -DFFTW
+CPP_ON_OPT = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW
 F77 = $(F90)
 F77_OPTS = -O3
 LIB_ARP =libarpack.a
@@ -13,10 +13,10 @@ LIBS = $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
 
 F90_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
    -fp-stack-check -heap-arrays -ftrapuv -check pointers \
-   -check bounds -check all
+   -check bounds -check all -check noarg_temp_created -traceback
 F77_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
    -fp-stack-check -heap-arrays -ftrapuv -check pointers \
-   -check bounds -check all
+   -check bounds -check all -check noarg_temp_created -traceback
 
 #Ignore if you don't have MPI or smplibs
 

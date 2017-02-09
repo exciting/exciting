@@ -1,11 +1,9 @@
 
-
-
 .NOTPARALLEL:
 
-default: build/make.inc all 
+default: build/make.inc all
 
-all:    serial mpi smp spacegroup stateinfo stateconvert species
+all: serial mpi
 
 build/make.inc:
 	perl ./setup.pl
@@ -16,20 +14,13 @@ serial:
 	cd build/serial; $(MAKE) 
 
 mpi:
-	cd build/mpi; $(MAKE) 
-
-smp:
-	cd build/smp; $(MAKE)
+	cd build/mpi; $(MAKE)
 
 debug:
 	cd build/debug; $(MAKE)
 
-mpiandsmp:
-	cd build/mpiandsmp; $(MAKE)
-
 test::
 	cd test/; $(MAKE) summary
-
 
 
 doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc Splitt_inputdoc speciesdoc 
@@ -103,7 +94,6 @@ clean:
 	cd build/smp; $(MAKE) clean cleanlibs
 	cd build/debug; $(MAKE) clean cleanlibs
 	cd build/mpiandsmp; $(MAKE) clean cleanlibs
-	cd test/build ;$(MAKE) clean
 	cd src/eos; $(MAKE) clean
 	cd src/spacegroup; $(MAKE) clean
 	cd src/species; $(MAKE) clean
@@ -115,14 +105,13 @@ clean:
 	rm -f interfaces/*
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
+	cd test; $(MAKE) cleantests
 
 libxcclean:
 	cd src/libXC && make clean 
 
 tgz::doc #libxcclean
-	tar  --exclude-from=".gitignore"  --transform 's,^,/exciting/,' -c -v  -f ./exciting.tar  *
-	tar    -r -v  -f ./exciting.tar  --transform 's,^,/exciting/,' .git/HEAD  .git/refs .git/packed-refs \
-	test/test02/reference/ test/test08/reference/
+	tar --exclude-from=".gitignore"  --transform 's,^,/exciting/,' -c -v -f ./exciting.tar *
 	gzip  -f --best ./exciting.tar 
 	du -h ./exciting.tar.gz 
 

@@ -11,6 +11,7 @@ Subroutine wfplot(dostm)
     Use modmain
     Use modinput
     use modplotlabels
+    use modmpi, only : rank
     Implicit None
     Logical, Intent(in) :: dostm
     ! local variables
@@ -20,6 +21,7 @@ Subroutine wfplot(dostm)
     ! allocatable arrays
     Complex (8), Allocatable :: evecfv (:, :)
     Complex (8), Allocatable :: evecsv (:, :)
+    character(256) :: string
     ! external functions
     Real (8) :: sdelta, stheta
     External sdelta, stheta
@@ -28,42 +30,66 @@ Subroutine wfplot(dostm)
     Call init1
     Allocate (evecfv(nmatmax, nstfv))
     Allocate (evecsv(nstsv, nstsv))
-    ! read the density and potentials from file
-    Call readstate
-    ! read Fermi energy from file
+! initialise the charge density and potentials from file
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+! in case of HF hybrids use PBE potential
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
+           Else
+               Call readstate
+           End If
+        Else         
+           Call readstate
+        End If 
+! read Fermi energy from file
     Call readfermi
-    ! find the new linearisation energies
-    Call linengy
-    ! generate the APW radial functions
-    Call genapwfr
-    ! generate the local-orbital radial functions
-    Call genlofr
+! find the new linearisation energies
+      Call linengy
+! generate the APW radial functions
+      Call genapwfr
+! generate the local-orbital radial functions
+      Call genlofr
+! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               Call readstate
+           End If
+        End If 
     ! set the occupancies
     If ( .Not. dostm) Then
         ! kstlist should only contain one k-point and state for wave-function plot
         if (size(input%properties%wfplot%kstlist%pointstatepair,2).ne.1) then
+          if (rank==0) then
             write(*,*)
             write(*,'("Error(wfplot): /input/properties/wfplot/kstlist must contain")')
             write(*,'(" only one pointstatepair, but ",i6," were defined")') &
                 size(input%properties%wfplot%kstlist%pointstatepair,2)
             write(*,*)
             stop
+          end if
         end if
         ik = input%properties%wfplot%kstlist%pointstatepair(1, 1)
         ist = input%properties%wfplot%kstlist%pointstatepair(2, 1)
         If ((ik .Lt. 1) .Or. (ik .Gt. nkpt)) Then
+          if (rank==0) then
             Write (*,*)
             Write (*, '("Error(wfplot): k-point out of range : ", I8)') &
                 & ik
             Write (*,*)
             Stop
+          end if
         End If
         If ((ist .Lt. 1) .Or. (ist .Gt. nstsv)) Then
+          if (rank==0) then
             Write (*,*)
             Write (*, '("Error(wfplot): state out of range : ", I8)') &
                 & ist
             Write (*,*)
             Stop
+          end if
         End If
         ! plotting a single wavefunction
         occsv (:, :) = 0.d0
@@ -85,6 +111,7 @@ Subroutine wfplot(dostm)
         bias = input%properties%STM%bias
 
         If ( stmtype .Eq. 1 .And. stmmode .Eq. 1) Then
+          if (rank==0) then
             Write(*,*)
             Write (*, '("Info(wfplot):")')
             Write (*, '("Generating constant-height STM image of the differential conductance.")')
@@ -100,10 +127,12 @@ Subroutine wfplot(dostm)
                         & (input%groundstate%stypenumber, x) * t1
                 End Do
             End Do
+          end if
         Else If ( stmtype .Eq. 2 .And. stmmode .Eq. 1) Then
            ! Plots the local density of states integrated between Ef y Ef + bias for positive bias or
            ! between Ef-bias and Ef for negative bias. This way simple STM plot in the Tersoff-Hamann
            ! aproximation can be obtained (PRB 31,805 (1985)).
+          if (rank==0) then
             Write(*,*)
             Write (*, '("Info(wfplot):")')
             Write (*, '("Generating constant-height STM image of the integrated LDOS.")')
@@ -118,6 +147,7 @@ Subroutine wfplot(dostm)
                         & stheta(input%groundstate%stypenumber, y)
                 End Do
             End Do
+          end if
         Else
             call warning('Warning(wfplot): STM still not implemented for direct topographic plot.')
             call warning('For topographic plot generation consider to make a series &
@@ -153,9 +183,11 @@ Subroutine wfplot(dostm)
             Call plot1d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
                 & rhomt, rhoir, input%properties%wfplot%plot1d)
             call destroy_plotlablels(labels)
-            Write (*,*)
-            Write (*, '("Info(wfplot):")')
-            Write (*, '(" 1D wavefunction modulus squared written to WF1D.xml")')
+            if (rank==0) then
+              Write (*,*)
+              Write (*, '("Info(wfplot):")')
+              Write (*, '(" 1D wavefunction modulus squared written to WF1D.xml")')
+            end if
         End If
 
         If (associated(input%properties%wfplot%plot2d)) Then
@@ -166,9 +198,11 @@ Subroutine wfplot(dostm)
             Call plot2d (labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
                 & rhomt, rhoir, input%properties%wfplot%plot2d)
             call destroy_plotlablels(labels)
-            Write (*,*)
-            Write (*, '("Info(wfplot):")')
-            Write (*, '(" 2D wavefunction modulus squared written to WF2D.xml")')
+            if (rank==0) then
+              Write (*,*)
+              Write (*, '("Info(wfplot):")')
+              Write (*, '(" 2D wavefunction modulus squared written to WF2D.xml")')
+            end if
         End If
 
         If (associated(input%properties%wfplot%plot3d)) Then
@@ -181,9 +215,11 @@ Subroutine wfplot(dostm)
             Call plot3d(labels, 1, input%groundstate%lmaxvr, lmmaxvr, &
                 & rhomt, rhoir, input%properties%wfplot%plot3d)
             call destroy_plotlablels(labels)
-            Write(*,*)
-            Write(*, '("Info(wfplot):")')
-            Write(*, '(" 3D wavefunction modulus squared written to WF3D.xml")')
+            if (rank==0) then
+              Write(*,*)
+              Write(*, '("Info(wfplot):")')
+              Write(*, '(" 3D wavefunction modulus squared written to WF3D.xml")')
+            end if
         End If
 
     End If
@@ -197,24 +233,30 @@ Subroutine wfplot(dostm)
             & rhomt, rhoir, input%properties%STM%plot2d)
         call destroy_plotlablels(labels)
         If ( stmmode .Eq. 2) Then
+          if (rank==0) then
             Write (*,*)
             Write (*, '("Info(wfplot):")')
             Write (*, '("STM still not implemented for direct topographic plot.")')
             Write (*, '("For topographic plot generation consider to make a series &
             constant-height calculations at different heights and postprocess the &
                output to find the iso-surface. ")')
+          end if
         Else
+          if (rank==0) then
             Write (*,*)
             Write (*, '("Info(wfplot):")')
             Write (*, '(" 2D STM image written to STM2d2D.xml")')
+          end if
         End If
     End If
     If ( .Not. dostm) Then
+      if (rank==0) then
         Write (*, '(" for k-point ", I6, " and state ", I6)') &
             input%properties%wfplot%kstlist%pointstatepair(1, 1), &
             input%properties%wfplot%kstlist%pointstatepair(2, 1)
+      end if
     End If
-    Write (*,*)
+    if (rank==0) Write (*,*)
     Deallocate (evecfv, evecsv)
     Return
 End Subroutine

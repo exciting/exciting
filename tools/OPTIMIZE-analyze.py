@@ -208,7 +208,7 @@ if (mod == 'VOL'):
     sum_Pi = 0
     for i in range(len(ei)):
         sum_Vi = sum_Vi  + len(str_V[i])
-        sum_dei= sum_dei + len(str_dei[i])
+        sum_dei= sum_dei + len(str_de[i])
         sum_Pi = sum_Pi  + len(str_P[i])
 
     len_Vi = int(sum_Vi /len(ei)) + 1
@@ -236,7 +236,7 @@ if (mod == 'VOL'):
 
     for i in range(len(ei)):
         print >>outf, str_V[i]  + ((len_Vi -len(str_V[i]  ))*' ') + '    ' \
-                    + str_de[i] + ((len_dei-len(str_dei[i]))*' ') + '    ' + str_P[i]
+                    + str_de[i] + ((len_dei-len(str_de[i]))*' ') + '    ' + str_P[i]
 
     outf.close()
     #----------------------------------------------------------------------------------------------

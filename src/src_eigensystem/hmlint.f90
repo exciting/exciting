@@ -80,6 +80,7 @@ Subroutine hmlint
       if (allocated(haloij)) deallocate(haloij)
       if (allocated(haloijSize)) deallocate(haloijSize)
       allocate(haloijSize(nspecies))
+      haloijSize=0
       maxnlo=0
       Do is = 1, nspecies
         ias=idxas (1, is)
@@ -121,6 +122,10 @@ Subroutine hmlint
 !     APW-APW integrals     !
 !---------------------------!
 ! Radial integrals first
+#ifdef USEOMP
+!xOMP PARALLEL DEFAULT(NONE) SHARED(Tsymmetric,input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,r2,veffmt,spr,nr,haaintegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2)
+!$OMP PARALLEL DEFAULT(NONE) SHARED(lorbl,nlorb,Tsymmetric,input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,haaintegrals,hlolointegrals,halointegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2,ilo1,ilo2,io,ilo)
+#endif
             Do l1 = 0, input%groundstate%lmaxmat
                Do io1 = 1, apword (l1, is)
                   Do l3 = 0, input%groundstate%lmaxmat
@@ -147,7 +152,6 @@ Subroutine hmlint
                            haaintegrals (1, io2, l3, io1, l1) = 0.d0
                         End If 
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE) SHARED(lmmaxvr,mfromlm,lfromlm,apwfr,r2,veffmt,spr,nr,haaintegrals,io2,l3,io1,l1,is,ias) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf)
 !$OMP DO
 #endif
                         Do lm2 = 2, lmmaxvr
@@ -161,17 +165,23 @@ Subroutine hmlint
                             haaintegrals (lm2, io2, l3, io1, l1)=gr (nr)
                         End Do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+!$OMP END DO NOWAIT
 #endif
 
                      End Do
                   End Do
                End Do
             End Do
+#ifdef USEOMP
+!xOMP END PARALLEL
+#endif
+
 !--------------------------------------!
 !     local-orbital-APW integtrals     !
 !--------------------------------------!
+#ifdef USEOMP
+!xOMP PARALLEL DEFAULT(NONE) SHARED(apword,nlorb,lorbl,Tsymmetric,rmtable,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,halointegrals,is,ias,input,r2inv) PRIVATE(lm2,m2,l2,ir,t1,t2,fr,gr,cf,ilo,io,l1,l3,angular)
+#endif
             Do ilo = 1, nlorb (is)
                l1 = lorbl (ilo, is)
                Do l3 = 0, input%groundstate%lmaxmat
@@ -184,7 +194,7 @@ Subroutine hmlint
                            t1=apwfr(ir, 1, io, l1, ias)*lofr(ir, 1, ilo, ias)
                            t2=apwfr(ir, 2, io, l1, ias)*lofr(ir, 2, ilo, ias)
                            fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
-                        End Do
+                       End Do
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                         halointegrals (1, io, l3, ilo) = gr (nr) / y00
                        else
@@ -198,7 +208,6 @@ Subroutine hmlint
                         halointegrals (1, io, l3, ilo) = 0.d0
                      End If
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE) SHARED(lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,halointegrals,io,l3,ilo,is,ias) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf)
 !$OMP DO
 #endif
                      Do lm2 = 2, lmmaxvr
@@ -212,12 +221,15 @@ Subroutine hmlint
                        halointegrals (lm2, io, l3, ilo) = gr (nr)  
                      End Do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+!$OMP END DO NOWAIT
 #endif
                   End Do
                End Do
             End Do
+#ifdef USEOMP
+!xOMP END PARALLEL
+#endif
+ 
 !-----------------------------------------------!
 !     local-orbital-local-orbital integrals     !
 !-----------------------------------------------!
@@ -247,7 +259,7 @@ Subroutine hmlint
                      hlolointegrals (1, ilo1, ilo2) = 0.d0
                   End If
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE) SHARED(lmmaxvr,mfromlm,lfromlm,lofr,r2,veffmt,spr,nr,hlolointegrals,ilo1,ilo2,is,ias) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf)
+!xOMP PARALLEL DEFAULT(NONE) SHARED(lmmaxvr,mfromlm,lfromlm,lofr,r2,veffmt,spr,nr,hlolointegrals,ilo1,ilo2,is,ias) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf)
 !$OMP DO
 #endif
                   Do lm2 = 2, lmmaxvr
@@ -262,12 +274,12 @@ Subroutine hmlint
                   End Do
 #ifdef USEOMP
 !$OMP END DO
-!$OMP END PARALLEL
 #endif
                End Do
             End Do
-
-
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif
 
 ! Now the angular integrals
       t1 = 0.5d0 * rmt (is) ** 2

@@ -146,6 +146,85 @@ print '\n     '+ SGN_explanation +'\
 
 #--------------------------------------------------------------------------------------------------
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#%!%!%--- Reading the input file ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
+INOBJ= open(INF, 'r')
+doc  = ET.parse(INOBJ)
+root = doc.getroot()
+#--------------------------------------------------------------------------------------------------
+
+#%!%!%--- Reading the scale, stretch, and base vectors from the input file and calculate the volume
+scale = map(float,doc.xpath('/input/structure/crystal/@scale'))
+if (scale==[]):
+    ascale=1.
+else:
+    ascale=scale[0]
+
+stretchstr = doc.xpath('/input/structure/crystal/@stretch')
+if (stretchstr==[]):
+    stretch=[1.,1.,1.]
+else:
+    stretch=np.array(map(float,stretchstr[0].split()))
+
+basevectsn = doc.xpath('//basevect/text()')
+bv = []
+for basevect in basevectsn:
+    bv.append(map(float,basevect.split()))
+
+M_old= np.array(bv)
+D    = np.linalg.det(M_old)
+V0   = abs(stretch[0]*stretch[1]*stretch[2]*ascale**3*D)
+
+#--------------------------------------------------------------------------------------------------
+# Check compatibility for monoclinic structures
+
+if (LC=='M'):
+  
+    #print M_old
+  
+    epsangle = 1.e-8
+    gammascalarproduct = 0.0
+
+    for icar in range(3):
+        #print M_old[0,icar], M_old[1,icar]
+        gammascalarproduct = gammascalarproduct + M_old[0,icar]*M_old[1,icar]*stretch[0]*stretch[1]
+
+    #print gammascalarproduct 
+
+    if (abs(gammascalarproduct) < epsangle):
+        sys.exit("\n     ... Oops ERROR: Your MONOCLINIC structure is not compatible"+\
+                 "\n                     with the OPTIMIZE internal representation, where"+\
+                 "\n                     the angle GAMMA (between bvec_1 and bvec_2) is the"+\
+                 "\n                     ONLY non right angle between the crystal basis vectors!\n"+\
+                 "\n                     Please, CHECK your input file!\n")
+
+#--------------------------------------------------------------------------------------------------
+
 #%!%!%--- Read optimization type ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 if (LC=='CI' or LC=='CII'):
     dirn = 'VOL'
@@ -210,35 +289,6 @@ if (LC=='N'):
     if (num == 5 ): dirn = 'BETA'
     if (num == 6 ): dirn = 'GAMMA'
 #--------------------------------------------------------------------------------------------------
-
-#%!%!%--- Reading the input file ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
-INOBJ= open(INF, 'r')
-doc  = ET.parse(INOBJ)
-root = doc.getroot()
-#--------------------------------------------------------------------------------------------------
-
-#%!%!%--- Reading the scale, stretch, and base vectors from the input file and calculate the volume
-scale = map(float,doc.xpath('/input/structure/crystal/@scale'))
-if (scale==[]):
-    ascale=1.
-else:
-    ascale=scale[0]
-
-stretchstr = doc.xpath('/input/structure/crystal/@stretch')
-if (stretchstr==[]):
-    stretch=[1.,1.,1.]
-else:
-    stretch=np.array(map(float,stretchstr[0].split()))
-
-basevectsn = doc.xpath('//basevect/text()')
-bv = []
-for basevect in basevectsn:
-    bv.append(map(float,basevect.split()))
-
-M_old= np.array(bv)
-D    = np.linalg.det(M_old)
-V0   = abs(stretch[0]*stretch[1]*stretch[2]*ascale**3*D)
-#----------------------------------------------------------------------------------------------------------------------
 
 #%!%!%--- Directory Management ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
 if (os.path.exists(dirn+'_old')):

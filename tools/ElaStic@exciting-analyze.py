@@ -365,7 +365,7 @@ for i in range(1, ECs+1):
         print >>CVe, TMP[k],
     CVe.close()
 
-    os.system('xmgrace '+ Dstn +'_CVe.dat -param '+ Dstn +'_CVe.par -saveall '+ Dstn +'_CVe.agr &')
+    #os.system('xmgrace '+ Dstn +'_CVe.dat -param '+ Dstn +'_CVe.par -saveall '+ Dstn +'_CVe.agr &')
 
 os.chdir('../')
 

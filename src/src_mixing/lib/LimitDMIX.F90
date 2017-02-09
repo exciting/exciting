@@ -44,7 +44,8 @@
         RatioCLM = (CLMThis*CLMLast/(CLMLast*CLMLast+1D-50))
         RedGot   =  sqrt((RatioCLM + RatioPW)*0.5D0)
         Better   = sqrt(max(RatioPW, RatioCLM))
-        AllBetter= sqrt(FHIST(MEMALL)/FHIST(MEMORY))
+!        AllBetter= sqrt(FHIST(MEMALL)/FHIST(MEMORY))
+        Allbetter = 1 
 !
 !       RedOld is what we predicted we would get as a reduction
 !       RedGot is what we in fact achieved
@@ -60,7 +61,7 @@
 !
 #ifdef DEBUG
      write(*,221)RedGot,RedOld, RedPred,AllBetter
-     format(':INFO :  Reduction ',F8.4,' Expected ',F8.4,' Next ',F8.4,' All ',F8.4)
+     format(':INFO :  Reduction ',F8.4,' Expected ',F8.4,' Next ',F8.4, ' All ',F8.4)
 #endif
         MSECINFO(2)=RedGot
         MSECINFO(3)=RedOld

@@ -204,10 +204,12 @@ endif
 !     electron-nuclear interaction energy     !
 !---------------------------------------------!
       engyen = 2.d0 * (engymad-engynn)
+      
 !------------------------!
 !     Hartree energy     !
 !------------------------!
       engyhar = 0.5d0 * (engyvcl-engyen)
+      
 !------------------------!
 !     Coulomb energy     !
 !------------------------!
@@ -227,30 +229,31 @@ endif
       If ((task .Eq. 5).Or.(task .Eq. 6)) Then
          If (tlast) Call exxengy
       End If
-! Hybrids
-      if (associated(input%groundstate%Hybrid)) then
-        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
-          engyx = engyx + ex_coef*exnl
-        end if
-      end if
 ! calculate exchange energy for OEP-EXX/Hybrids on last iteration
        If (associated(input%groundstate%OEP)) Then
           If (input%groundstate%xctypenumber .Lt. 0) engyx = 0.d0
           If (tlast) Call exxengy
        End If 
-! zero exchange energy for Hartree-Fock
-! calculate exact exchange  Hartree-Fock on last iteration
-      If ((task .Eq. 5) .Or. (task .Eq. 6) ) Then
-         engyx = 0.d0
-         If (tlast) Call exxengy
-      End If
-
+! Hybrids
+      if (associated(input%groundstate%Hybrid)) then
+        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
+           engyx = engyx + ex_coef*exnl
+        end if
+      end if
+      
 !----------------------------!
 !     correlation energy     !
 !----------------------------!
       engyc = rfinp (1, rhomt, ecmt, rhoir, ecir)
 ! zero correlation energy for Hartree-Fock
       If ((task .Eq. 5) .Or. (task .Eq. 6)) engyc = 0.d0
+! Hybrids
+      if (associated(input%groundstate%Hybrid)) then
+        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
+           engyc = ec_coef*engyc
+        end if
+      end if      
+      
 !----------------------!
 !     LDA+U energy     !
 !----------------------!
@@ -289,40 +292,82 @@ endif
            & (ist, ik)
          End Do
       End Do
+
 !------------------------!
 !     kinetic energy     !
 !------------------------!
-! core electron kinetic energy
-      Call energykncr
-! total electron kinetic energy
-      If ((task .Eq. 5) .Or. (task .Eq. 6)) Then
-! Hartree-Fock case
-         engykn = engykncr
-! kinetic energy from valence states
-         Allocate (evecsv(nstsv, nstsv))
-         Allocate (c(nstsv, nstsv))
-         Do ik = 1, nkpt
-            Call getevecsv (vkl(:, ik), evecsv)
-            Call zgemm ('N', 'N', nstsv, nstsv, nstsv, zone, kinmatc(:, &
-           & :, ik), nstsv, evecsv, nstsv, zzero, c, nstsv)
-            Do ist = 1, nstsv
-               zt1 = zdotc (nstsv, evecsv(:, ist), 1, c(:, ist), 1)
-               engykn = engykn + wkpt (ik) * occsv (ist, ik) * dble &
-              & (zt1)
-            End Do
-         End Do
-         Deallocate (evecsv, c)
-      Else
-! Kohn-Sham case
-         engykn = evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
-      End If
+
+      if ((task.Eq.5).Or.(task.Eq.6)) then
+        !-------------------
+        ! Hartree-Fock case
+        !-------------------
+        ! core electron kinetic energy
+        Call energykncr
+        engykn = engykncr
+        ! kinetic energy from valence states
+        Allocate (evecsv(nstsv, nstsv))
+        Allocate (c(nstsv, nstsv))
+        Do ik = 1, nkpt
+          Call getevecsv (vkl(:, ik), evecsv)
+          Call zgemm ('N', 'N', nstsv, nstsv, nstsv, zone, &
+          &           kinmatc(:,:,ik), nstsv, evecsv, nstsv, zzero, c, nstsv)
+          Do ist = 1, nstsv
+            zt1 = zdotc (nstsv, evecsv(:, ist), 1, c(:, ist), 1)
+            engykn = engykn + wkpt(ik) * occsv(ist,ik) * dble(zt1)
+          End Do
+        End Do
+        Deallocate (evecsv, c)
+        
+      else if (associated(input%groundstate%Hybrid)) then
+        !------------------
+        ! HF-based hybrids
+        !------------------
+        if (input%groundstate%Hybrid%exchangetypenumber == 1) then
+          if (ihyb>0) then
+            engykn = engykncr
+            do ik = 1, nkpt
+              do ist = 1, nstfv
+                engykn = engykn + wkpt(ik)*occsv(ist,ik)*engyknst(ist,ik)
+              end do
+            end do
+          else
+            ! Default way
+            engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
+            call energykncr
+          end if
+        Else
+          ! OEP-Hybrids: Default way
+           engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
+        end if
+        
+      else
+        ! Default way
+        engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
+      end if
+!------------------------------!
+!     DFT-1/2 contribution     !
+!------------------------------!
+      if (associated(input%groundstate%dfthalf)) then
+        engyhalf = rfinp (1, rhomt, vhalfmt, rhoir, vhalfir)
+      endif      
 !----------------------!
 !     total energy     !
 !----------------------!
-      engytot = engykn + 0.5d0 * engyvcl + engymad + engyx + engyc + &
-     & engycbc
+      engytot = engykn + 0.5d0 * engyvcl + engymad + engyx + engyc + engycbc
+!dispersion correction
+      If ( tlast .And. input%groundstate%vdWcorrection .Ne. "none" ) Then
+         If ( input%groundstate%vdWcorrection .Eq. "DFTD2" ) Then
+            Call DFT_D2_energy
+         Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then 
+            Call TS_vdW_energy
+         End If
+         engytot = engytot + e_disp
+      End If
+! dipole correction      
+      if ((iscl>0).and.(input%groundstate%dipolecorrection)) engytot = engytot+0.5*endipc      
 ! add the LDA+U correction if required
       If (ldapu .Ne. 0) engytot = engytot + engylu
+! WRITE(*,*) "end energy"
       Return
 End Subroutine
 !EOC

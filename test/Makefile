@@ -1,89 +1,94 @@
 include ../build/make.inc
 
-
-ifeq ($(TestMPI),true)
-TESTDIRS =test01 test02 test03 test04 test05 test06 test07 test08 test09  testmpi
+ifeq ($(BUILDMPI),true)
+EXE = ../bin/excitingmpi
 else
-TESTDIRS =test01 test02 test03 test04 test05 test06 test07 test08 test09
-endif	
+EXE = ../bin/excitingser
+endif
+
+TESTDIRS = test01 test02 test03 test05 test06 test07 test08 test09 test10 test11
 
 test: 
-	$(MAKE) cleantests 
+	$(MAKE) cleantests
 	$(MAKE) $(TESTDIRS)
 
 summary:: test
 	perl perl/makedlist.pl
-	xsltproc report/collectTests.xsl directories.xml >report/reports.xml
-	xsltproc report/reports2html.xsl report/reports.xml >report/report.html
+	xsltproc report/collectTests.xsl directories.xml > report/reports.xml
+	xsltproc report/reports2html.xsl report/reports.xml > report/report.html
+	cp -f report/reports.xml report/oldreports.xml
+
+onlysummary::
+	perl perl/makedlist.pl
+	xsltproc report/collectTests.xsl directories.xml > report/reports.xml
+	xsltproc report/reports2html.xsl report/reports.xml > report/report.html
 	cp -f report/reports.xml report/oldreports.xml
 
 exciting::
-	cd ../build/serial/ && $(MAKE) libs && $(MAKE)
-	cd ../build/debug/ && $(MAKE) libs && $(MAKE)
+	cd $(BINDIR) && $(MAKE) libs && $(MAKE)
 
-	
-test01::exciting
-	cd ./test01/runHe ;../../../build/debug/exciting
-	cd ./test01/runAr; ../../../build/debug/exciting input.xml      ; cp info.xml info-default.xml ; cp atoms.xml atoms-default.xml
-	cd ./test01/runAr; ../../../build/debug/exciting input-nr.xml   ; cp info.xml info-nr.xml      ; cp atoms.xml atoms-nr.xml
-	cd ./test01/runAr; ../../../build/debug/exciting input-zora.xml ; cp info.xml info-zora.xml    ; cp atoms.xml atoms-zora.xml
-	cd ./test01/runAr; ../../../build/debug/exciting input-iora.xml ; cp info.xml info-iora.xml    ; cp atoms.xml atoms-iora.xml
+test01::
+	cd ./test01/runHe; ../../$(EXE)
+	cd ./test01/runAr; ../../$(EXE) input.xml; cp info.xml info-default.xml; cp atoms.xml atoms-default.xml
+	cd ./test01/runAr; ../../$(EXE) input-nr.xml; cp info.xml info-nr.xml; cp atoms.xml atoms-nr.xml
+	cd ./test01/runAr; ../../$(EXE) input-zora.xml; cp info.xml info-zora.xml; cp atoms.xml atoms-zora.xml
+	cd ./test01/runAr; ../../$(EXE) input-iora.xml; cp info.xml info-iora.xml; cp atoms.xml atoms-iora.xml
 	cd ./test01 ; bash assert.sh 
 
-test02::exciting
-	cd ./test02/runlapack ;../../../build/debug/exciting
-	cd ./test02/runarp; ../../../build/debug/exciting
-	cd ./test02/runarpnpacked;../../../build/debug/exciting
-	cd ./test02 ; perl assert.pl
+test02::
+	cd ./test02/runlapack; ../../$(EXE)
+	cd ./test02/runarp; ../../$(EXE)
+	cd ./test02/runarpnpacked; ../../$(EXE)
+	cd ./test02; perl assert.pl
 
-test03::exciting  
-	cd test03/run && ../../../build/debug/exciting
-	cd test03/runmixer2 && ../../../build/debug/exciting
-	cd test03/runmixer3 && ../../../build/debug/exciting
+test03::  
+	cd test03/run && ../../$(EXE)
+	cd test03/runmixer2 && ../../$(EXE)
+	cd test03/runmixer3 && ../../$(EXE)
 	cd test03 && perl report.pl
 
 test04::
-	cd build;$(MAKE) libs  test04
+	cd build; $(MAKE) test04
 	cd ./test04/run ; ../../build/testprogram4
 
+test05::  
+	cd test05/runlibxc && ../../$(EXE)
+	cd test05 && bash assert.sh
 
-test05::exciting  
-	cd test05/runlibxc && ../../../build/debug/exciting
-	cd test05/runelectrstr && ../../../build/debug/exciting
-	cd test05 && bash assert.sh  
+test06::
+	cd test06/runPbTiO3; ../../$(EXE) input-nonsym.xml; cp info.xml info-nonsym.xml
+	cd test06/runPbTiO3; ../../$(EXE) input-sym.xml; cp info.xml info-sym.xml      
+	cd test06; bash assert.sh 
 
-test06::exciting
-	cd ./test06/runPbTiO3; ../../../build/debug/exciting input-nonsym.xml      ; cp info.xml info-nonsym.xml
-	cd ./test06/runPbTiO3; ../../../build/debug/exciting input-sym.xml  ; cp info.xml info-sym.xml      
-	cd ./test06 ; bash assert.sh 
+test07::	 
+	cd test07/runBSE && ../../$(EXE)
+	cd test07/runtddftBSE && ../../$(EXE)
+	cd test07 && python assert.py
 
-test07a::exciting 	
-	cd test07/runBSE && ../../../build/serial/exciting
-test07b::exciting 
-	cd test07/runtddft && ../../../build/serial/exciting
-	
-test07:: test07a test07b	 
-	cd test07 && bash assert.sh  
-
-test08::exciting  
-	cd test08/rungw && ../../../build/debug/exciting
+test08::
+	cd test08/rungw && ../../$(EXE)
 	cd test08 && perl assert.pl 
-	 
+
 test09::
 	cd test09 && bash validate.sh
 	cd test09 && perl assert.pl  
 
+test10::
+	cd test10/run_properties && ../../$(EXE)
+	cd test10 && perl assert.pl
 
+test11::
+	cd test11/run-pbe0-hf  && ../../$(EXE)
+	cd test11/run-pbe0-oep && ../../$(EXE)
+	cd test11 && perl assert.pl 
 
-testmpi::
-	cd ../build/mpi/; $(MAKE) libs; $(MAKE) 
-	cd test02/runlapackmpi ;sh startmpirun test08
-	cd test02 ; perl assertmpi.pl
-	
 cleantests::
 	-rm -f  test*/*.xml
 	-rm -f  test*/run*/*OUT
+	-rm -f  test*/run*/*TXT
 	-rm -f  test*/run*/dos.xml
+	-rm -f  test*/run*/*_scf.xml
+	-rm -f  test*/run*/*_ini.xml
 	-rm -f  test*/run*/bandstructure.xml
 	-rm -f  test*/run*/fermisurface.xml
 	-rm -f  test*/run*/LOSS*
@@ -97,3 +102,9 @@ cleantests::
 	-rm -f  test*/err
 	-rm -f  test*/run*/result*
 	-rm -f  test*/result*
+	-rm -f  test*/run*/*3D.xml
+	-rm -f  test*/run*/*.dat
+	-rm -f  test*/run*/*.DAT
+	-rm -f  test*/run*/*.xsf
+	-rm -f  test*/run*/*.cube
+	-rm -f  directories.xml

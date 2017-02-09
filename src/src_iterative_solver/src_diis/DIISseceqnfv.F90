@@ -240,7 +240,7 @@ Subroutine DIISseceqnfv (ik, ispn, apwalm, vgpc, evalfv, evecfv)
 !
       End If
 !
-      Call deleteystem (system)
+      Call deletesystem (system)
       Deallocate (eigenvalue)
       Deallocate (eigenvector)
       Deallocate (trialvecs)

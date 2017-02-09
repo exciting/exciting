@@ -48,8 +48,24 @@ Subroutine readspeciesxml
 
     else
     
-      Write (spfile_string,*)trim (input%structure%speciespath) // "/" &
-     & // trim (input%structure%speciesarray(is)%species%speciesfile)
+      write(spfile_string,*) trim(input%structure%speciespath) // "/" &
+      & // trim(input%structure%speciesarray(is)%species%speciesfile)
+      
+      !-------------------------------------------------
+      ! Copy all species files to the working directory
+      !-------------------------------------------------
+      if (rank==0) then
+        if ((trim(input%structure%speciespath)/='./').and. &
+        &   (trim(input%structure%speciespath)/='.')) then
+          write(command,*) "cp" // trim(spfile_string) // " ."
+          ! write(*,*) trim(command)
+          call system(trim(command))
+          write(command,*) "f=`basename" // trim(spfile_string) // "`; mv $f ${f//.xml/_ini.xml}"
+          ! write(*,*) trim(command)
+          call system(trim(command))
+        end if
+      end if
+      call barrier
   
     endif
 
@@ -229,7 +245,7 @@ Subroutine readspeciesxml
        do io = 1, apword(0, is)                                              
           apwe0(io, 0, is) = speziesdeflist(is)%sp%basis%default%trialEnergy 
           apwdm(io, 0, is) = io-1                                            
-          apwve(io, 0, is) = speziesdeflist(is)%sp%basis%default%searchE 
+          apwve(io, 0, is) = speziesdeflist(is)%sp%basis%default%searchE
        end do    
 
      end if

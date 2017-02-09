@@ -1,0 +1,12 @@
+PLEASE ADD to the list all elements or attributes referring to another *.xsd file than the one in which they are mentioned.
+and add the correct link as it should appear in the webside
+
+elements:
+#DFTD2 in ref:groundstate -> ref:properties#DFTD2 
+#TSvdW in ref:groundstate -> ref:properties#TSvdW
+#TSvdWparameters in ref:properties.xsd -> ref:groundstate#TSvdWparameters
+#DFTD2parameters in ref:properties.xsd -> ref:groundstate#DFTD2parameters
+
+attributes:
+{{[#attgroundstatevdWcorrection vdWcorrection]}} in ref:properties -> {{[[[ref:groundstate#attvdWcorrection|vdWcorrection]]]}}
+{{[#attepsengy epsengy]}} in ref:relax -> **{{[[[ref:groundstate#attepsengy|epsengy]]]}}**

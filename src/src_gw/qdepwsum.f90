@@ -28,27 +28,46 @@
       integer(4) :: ic  ! counter, run over core states
       integer(4) :: jb  ! counter, run over bands
       integer(4) :: iom ! counter, run over frequencies
-      integer(4) :: ik,ia,is,ias,sgw,jk
+      integer(4) :: ik,ia,is,ias,jk
       integer(4) :: ikp,jkp
-      
+      integer(4) :: fflg,sgw
       real(8) :: edif,edsq,omsq,wk
       real(8) :: tstart,tend
 !
 !EOP
 !BOC      
-      call cpu_time(tstart)
+      call timesec(tstart)
+!
+!     Initialization
+!
+      if (allocated(unw)) deallocate(unw) 
+      allocate(unw(natmtot,ncmax,nstfv,1:freq%nomeg,nkptnr))
+      unw=0.0d0
+
+      if (allocated(kcw)) deallocate(kcw)
+      allocate(kcw(nstfv,nstfv,1:freq%nomeg,nkptnr))
+      kcw=0.0d0
+      
+      select case (freq%fconv)
+        case('nofreq')
+          fflg = 1
+        case('refreq')
+          fflg = 2
+        case('imfreq')
+          fflg = 3
+      end select
+      sgw=5-2*fflg
 ! 
 !     loop over inequivalent atoms    
 !
-      sgw=5-2*fflg
-      wk=2.0d0/dble(nqptnr)
-      do ik = 1, nqptnr
+      wk=2.0d0/dble(kqset%nkpt)
+      do ik = 1, kqset%nkpt
         jk=kqid(ik,iq)
-        ikp=indkp(ik)
-        jkp=indkp(jk)
+        ikp=ik2ikp(ik)
+        jkp=ik2ikp(jk)
         do ib = 1, nstfv
-          if(evaldft(ib,ikp).gt.efermi)then
-            if(evaldft(ib,ikp).lt.900.0)then
+          if(evalsv(ib,ikp).gt.efermi)then
+            if(evalsv(ib,ikp).lt.900.0)then
 !------------------------------------------------------
 !                   CORE-VALENCE
 !------------------------------------------------------
@@ -56,11 +75,11 @@
                 do ia=1,natoms(is)
                   ias=idxas(ia,is)
                   do ic=1,ncore(is)
-                    edif=evaldft(ib,ikp)-evalcr(ic,ias)
+                    edif=evalsv(ib,ikp)-evalcr(ic,ias)
                     edsq=edif*edif
-                    do iom=1,nomeg
-                      omsq=sgw*freqs(iom)*freqs(iom)
-                      unw(ias,ic,ib,iom,ik)=wk*edif/(omsq-edsq)
+                    do iom=1,freq%nomeg
+                      omsq=sgw*freq%freqs(iom)*freq%freqs(iom)
+                      unw(ias,ic,ib,iom,ik)=cmplx(wk*edif/(omsq-edsq),0.d0)
                     enddo ! iom
                   enddo ! ic
                 enddo ! ia
@@ -71,13 +90,13 @@
 !                   VALENCE-VALENCE
 !------------------------------------------------------
             do jb=1,nstfv
-              if(evaldft(jb,jkp).gt.efermi)then
-                if(evaldft(jb,jkp).lt.900.0)then
-                  edif=evaldft(jb,jkp)-evaldft(ib,ikp)
+              if(evalsv(jb,jkp).gt.efermi)then
+                if(evalsv(jb,jkp).lt.900.0)then
+                  edif=evalsv(jb,jkp)-evalsv(ib,ikp)
                   edsq=edif*edif
-                  do iom=1,nomeg
-                    omsq=sgw*freqs(iom)*freqs(iom)
-                    kcw(ib,jb,iom,ik)=wk*edif/(omsq-edsq)
+                  do iom=1,freq%nomeg
+                    omsq=sgw*freq%freqs(iom)*freq%freqs(iom)
+                    kcw(ib,jb,iom,ik)=cmplx(wk*edif/(omsq-edsq),0.d0)
                   enddo ! iom
                 endif
               endif
@@ -86,8 +105,6 @@
         enddo ! ib
       enddo ! ik  
       
-      call cpu_time(tend)
-      call write_cputime(fgw,tend-tstart,'QDEPWSUM')
 
 
 !      write(74,*)'------------------------------------------------------'
@@ -117,6 +134,9 @@
 !      enddo      
 !    1 format(' iat =',i4,' ic =',i4,' ik =',i4,' jb =',i4,' unw =',g18.10)
 !    2 format(' ik =',i4,' ib =',i4,' jb =',i4,' kcw =',g18.10)
+
+      call timesec(tend)
+      time_bzinit = time_bzinit+tend-tstart
 
       end subroutine qdepwsum
 !EOC          

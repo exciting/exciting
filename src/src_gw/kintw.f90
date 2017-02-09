@@ -1,133 +1,110 @@
 !BOP
 !
-! !ROUTINE: kintw
+!!ROUTINE: kintw
 !
-! !INTERFACE:
-      subroutine kintw()
-      
-! !DESCRIPTION:
+!!INTERFACE:
 !
-! This subroutine calculates the weights for BZ integrations.
+subroutine kintw()
+!      
+!!DESCRIPTION:
 !
+! This subroutine calculates the occupancy dependent k-point 
+! weights for BZ integrations.
 !
-! !USES:
-!
-      use modmain
-      use modgw
+!!USES:
+    use modinput
+    use modmain, only: evalsv, evalcr, nstsv, efermi, &
+    &                  natmtot, nspecies, natoms, idxas
+    use modgw,   only: kset, kqset, kiw, ciw, kwfer, metallic, fdebug
+    use mod_core_states, only: ncmax, ncore
      
-! !LOCAL VARIABLES:
-
-      implicit none
-
-      integer(4) :: ia
-      integer(4) :: ias
-      integer(4) :: is
-      integer(4) :: ist
-      integer(4) :: ik, ikp
-      logical    :: lprt=.false.
-      real(8)    :: tstart, tend
-      
-      real(8), allocatable :: bandpar(:,:) ! Band for which the
-!                                            weights are being calculated
-      real(8), allocatable :: cwpar(:,:)   ! weight of one band
-!
+!!LOCAL VARIABLES:
+    implicit none
+    integer(4) :: ia
+    integer(4) :: ias
+    integer(4) :: is
+    integer(4) :: ist
+    integer(4) :: ik, ikp
+    real(8), allocatable :: bandpar(:,:)
+    real(8), allocatable :: cwpar(:,:)
 !EOP
 !BOC
-      call cpu_time(tstart)
-      if(tstart.lt.0.0d0)write(98,*)'warning, tstart < 0'
 
-      if (allocated(kiw)) deallocate(kiw)
-      allocate(kiw(nstfv,nkptnr))
-      if (allocated(kwfer)) deallocate(kwfer)
-      allocate(kwfer(nstfv,nkptnr))
-      kiw=0.0d0
-      kwfer=0.0d0
-      
-      if (iopcore<2) then
-        if (allocated(ciw)) deallocate(ciw)
-        allocate(ciw(natmtot,ncmax))
-        ciw=0.0d0
-      end if
-!
-!     Q-dependent integration weights used to calculate the polarizability
-!     (qdepw.f90)
-!
-      if (allocated(kcw)) deallocate(kcw)
-      allocate(kcw(nstfv,nstfv,1:nomeg,nkptnr))
-      if (iopcore<2) then
-        if (allocated(unw)) deallocate(unw)
-        allocate(unw(natmtot,ncmax,nstfv,1:nomeg,nkptnr))
-      end if
-      if((testid.eq.7).and.(fflg.eq.2)) then
-        if (allocated(kcwsurf)) deallocate(kcwsurf)
-        allocate(kcwsurf(nstfv,nstfv,1:nomeg,nkptnr))
-        kcwsurf=0.0d0
-        if (iopcore<2) then
-          if (allocated(unwsurf)) deallocate(unwsurf)
-          allocate(unwsurf(natmtot,ncmax,nstfv,1:nomeg,nkptnr))
-          unwsurf=0.0d0
-        end if
-      endif
-!
-!     allocate local arrays
-!
-      metallic = .false.
-      
-      if (iopcore<2) then
-!---------------------------------------------------------------------
-!                 core
-!---------------------------------------------------------------------
-        allocate(bandpar(1,nkptnr))
-        allocate(cwpar(1,nkptnr))
-        do is=1,nspecies
-          do ia=1,natoms(is)
-            ias=idxas(ia,is)
-!           Product of core and apw functions
-            do ist=1,ncore(is)
-              bandpar(1,:)=evalcr(ist,ias)       
-              call tetiw(nkptnr,ntetnr,1,bandpar,tnodesnr,wtetnr,tvol,efermi,cwpar)
-              ciw(ias,ist)=cwpar(1,1)
-            enddo ! ist
-          enddo ! ia
-        enddo ! is
-        deallocate(bandpar,cwpar)
-      end if ! iopcore
-
-!---------------------------------------------------------------------
-!                 valence
-!---------------------------------------------------------------------
-      allocate(bandpar(nstfv,nkptnr))
-      do ik=1,nkptnr
-         ikp=indkp(ik)
-         bandpar(1:nstfv,ik)=evaldft(1:nstfv,ikp)
-      enddo  
-
-      call tetiw(nkptnr,ntetnr,nstfv,bandpar,tnodesnr,wtetnr,tvol,efermi,kiw)
-
-      call tetiwsurf(nkptnr,ntetnr,nstfv,bandpar,tnodesnr,wtetnr,tvol,efermi,kwfer)
-      
+    if (allocated(kiw)) deallocate(kiw)
+    allocate(kiw(nstsv,kqset%nkpt))
+    kiw = 0.0d0
+    
+    if (allocated(kwfer)) deallocate(kwfer)
+    allocate(kwfer(nstsv,kqset%nkpt))
+    kwfer = 0.0d0
+    
+    metallic = .false.
+    
+    !-----------------
+    ! Valence states
+    !-----------------
+    allocate(bandpar(nstsv,kqset%nkpt))
+    do ik = 1, kqset%nkpt
+      ikp = kset%ik2ikp(ik)
+      bandpar(:,ik) = evalsv(:,ikp)
+    enddo  
+    call tetiw(kqset%nkpt,kqset%ntet,nstsv,bandpar, &
+    &          kqset%tnodes,kqset%wtet,kqset%tvol,efermi, &
+    &          kiw)
+    call tetiwsurf(kqset%nkpt,kqset%ntet,nstsv,bandpar, &
+    &              kqset%tnodes,kqset%wtet,kqset%tvol,efermi, &
+    &              kwfer)
+    deallocate(bandpar)
+    
+    if (dabs(maxval(kwfer))>1.d-6) metallic = .true.
+    
+    !-------------
+    ! Core states
+    !-------------
+    if ((input%gw%coreflag=='all').or. &
+    &   (input%gw%coreflag=='xal')) then
+    
+      if (allocated(ciw)) deallocate(ciw)
+      allocate(ciw(ncmax,natmtot))
+      ciw = 0.0d0
+    
+      allocate(bandpar(1,kqset%nkpt))
+      allocate(cwpar(1,kqset%nkpt))
+      do is = 1, nspecies
+        do ia = 1, natoms(is)
+          ias = idxas(ia,is)
+          do ist = 1, ncore(is)
+            bandpar(1,:) = evalcr(ist,ias) 
+            call tetiw(kqset%nkpt,kqset%ntet,1,bandpar, &
+            &          kqset%tnodes,kqset%wtet,kqset%tvol,efermi, &
+            &          cwpar)
+            ciw(ist,ias) = cwpar(1,1)
+          end do ! ist
+        end do ! ia
+      end do ! is
       deallocate(bandpar)
+      deallocate(cwpar)
+
+    end if ! core
+    
+    if (input%gw%debug) then
+      call linmsg(fdebug,'-','Info(kintw): BZ integration weights')
+      write(fdebug,*) 'VALENCE: kiw'
+      do ik = 1, kqset%nkpt
+        write(fdebug,*) ik, kiw(:,ik)
+      enddo
+      if (input%gw%coreflag=='all') then
+        write(fdebug,*) 'CORE: ciw'
+        do is = 1, nspecies
+          do ia = 1, natoms(is)
+            ias = idxas(ia,is)
+            write(fdebug,*) ias, ciw(:,ias)
+          end do
+        end do
+      end if
+    endif
       
-      if (maxval(kwfer).ne.0.0d0) metallic=.true.
-      !write(fgw,*)'kwfer: metallic =', metallic
-      
-      if(lprt)then
-        if (iopcore<2) then
-          write(15,*)'core: ciw'
-          write(15,*) ciw(1,:)
-        end if
-        write(15,*)'valence: kiw'
-        do ik=1,nkptnr
-        write(15,*) ik, kiw(:,ik)
-        enddo
-        stop
-      endif
-      
-      call cpu_time(tend)
-      if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
-      call write_cputime(fgw,tend-tstart, 'KINTW')
-      
-      return
-      end subroutine kintw
+    return
+end subroutine
 !EOC          
          

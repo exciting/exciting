@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
+from   lxml  import etree
 from   sys   import stdin
 from   math  import sqrt
 from   math  import factorial
@@ -29,7 +30,7 @@ def inifit(x,y):
 
 def bmeos(v,p):
     v0 = p[0] ; e0 = p[1] ; b0 = p[2] ; bp = p[3]  
-    vv = (v0/v)**(2./3)
+    vv = (v0/v)**(2./3.)
     ff = vv - 1.
     ee = e0 + 9.*b0*v0/16. * ( ff**3*bp + ( 6.-4.*vv )*ff**2 )
     return ee    
@@ -91,30 +92,84 @@ def eos(v,v0,e0,b0,bp):
     ff = vv - 1.
     ee = e0 + 9.*b0*v0/16. * ( ff**3*bp + ( 6.-4.*vv )*ff**2 )
     return ee   
-
+    
+def pickfromfile(filename,nrow,ncol):
+    pfile = open(filename,"r")
+    for i in range(nrow): line = pfile.readline().strip()
+    x = line.split()[ncol-1]
+    pfile.close()
+    return x 
+    
+def vol2eta(v0,vzero,n):
+    v = v0
+    if (n == 0): return v
+    v = v0/vzero
+    y = 1./float(n)
+    e = v**y -1.0
+    x = e + e**2/2.0
+    return x
+    
 #-------------------------------------------------------------------------------
 
-factor     = 2.
-startorder = 0
+maxstrain = 1.
+args = sys.argv[1:]
+if ( (len(args) > 0) and ("-maxstrain" in args) ): 
+    ind = args.index("-maxstrain")
+    maxstrain = float(args[ind+1])
+    
+#-------------------------------------------------------------------------------
+   
+lexciting = os.path.exists('exciting')
+lespresso = os.path.exists('quantum-espresso')
+lvasp     = os.path.exists('vasp')
+lrydberg  = lespresso or lvasp 
+lplanar   = os.path.exists('planar')
+lexsinfo  = os.path.exists('INFO-elastic-constants')
+lexsev    = os.path.exists('energy-vs-volume')
+lexses    = os.path.exists('energy-vs-strain')
+lsource   = os.path.exists('source.xml')
 
-lrydberg = os.path.exists('quantum-espresso') or os.path.exists('vasp')
-lplanar  = os.path.exists('planar')
-lstartor = os.path.exists('startorder')
-lexsinfo = os.path.exists('INFO-elastic-constants')
-lexsev   = os.path.exists('energy-vs-volume')
+if (not(lexsev) and not(lexses)): 
+    sys.exit("\n ERROR: file energy-vs-volume or energy-vs-strain not found!\n")
+    
+#-------------------------------------------------------------------------------
 
-if (lrydberg): factor=1.0
+factor    = 2.
+if (lrydberg): factor = 1.
 
-if (lplanar):   
-    input_planar = open('planar',"r")
-    factor=factor*float(input_planar.readline().strip().split()[0])
+if (lexsev): 
+    print "\n Input file is \"energy-vs-volume\"."
+    input_energy = open('energy-vs-volume',"r")
+    
+else:
+    print "\n Input file is \"energy-vs-strain\"."
+    if (not(lexsinfo)): sys.exit("\n ERROR: file INFO-elastic-constants not found!\n") 
+    input_energy = open('energy-vs-strain',"r")
+    #________________________________________
+    # check dimentionality of the deformation
+    #
+    deformation = int(pickfromfile("INFO-elastic-constants",5,4))
+    if   (deformation == 0): dimension = 3
+    elif (deformation == 8): dimension = 2
+    elif ( (deformation == 1) or (deformation == 2) or (deformation == 3) ): dimension = 1
+    else: sys.exit("\n ERROR: deformation type "+str(deformation)+" not allowed!\n")
+    bfactor = dimension**2
+    #___________________________
+    # read volume at zero strain
+    #
+    vzero = float(pickfromfile("INFO-elastic-constants",4,7))
+    
+#-------------------------------------------------------------------------------
 
-if (lstartor): 
-    input_startorder = open('startorder',"r")
-    startorder=int(input_startorder.readline().strip().split()[0])
-
-if (not(lexsev)):   sys.exit("ERROR: file energy-vs-alat not found!\n")
-
+if (lexses and lplanar):    
+    print " Modified version for strained planar systems!"
+    #_____________________
+    # read alat and covera
+    #
+    alat   = float(pickfromfile('planar',1,1))
+    covera = float(pickfromfile('planar',1,2))
+    factor = factor*alat*covera*5.2917721092e-2
+    
 #-------------------------------------------------------------------------------
 
 bohr_radius     = 0.529177
@@ -129,23 +184,29 @@ unitconv        = electron_charge*rydberg2ev/(1e9*bohr_radius**3)*factor
 
 #-------------------------------------------------------------------------------
 
-input_energy = open('energy-vs-volume',"r")
 output_birch = open('birch-murnaghan',"w")
 
 energy = [] ; volume = []
 
+lstrain = 0.
+
 while True:
     line = input_energy.readline().strip()
     if len(line) == 0: break
-    energy.append(float(line.split()[1]))
-    volume.append(float(line.split()[0]))
-
-nv = len(volume)
-if (nv < 4): sys.exit("\nERROR: Too few volumes ("+str(nv)+")!\n")
+    xvolume = float(line.split()[0])
+    if (lexses): 
+        lstrain = xvolume
+        estrain = sqrt(1.+2.*lstrain)-1
+        xvolume = (1.+estrain)**dimension * vzero
+    if (abs(lstrain) < abs(maxstrain)+1e-6):
+        volume.append(xvolume)
+        energy.append(float(line.split()[1]))
 
 #-------------------------------------------------------------------------------
 
 volume, energy = sortstrain(volume,energy)
+nv = len(volume)
+if (nv < 4): sys.exit("\n ERROR: Too few volumes ("+str(nv)+")!\n")
 
 #-------------------------------------------------------------------------------
 
@@ -162,27 +223,41 @@ for i in range(len(volume)):
     chi=chi+residuals(p[0],energy[i],volume[i])**2
     fchi=fchi+(energy[i]-eos(volume[i],v0,e0,b0/unitconv,bp))**2
     ebm.append(eos(volume[i],v0,e0,b0/unitconv,bp))
-    #eee.append(eos(volume[i],v0,e0,378./unitconv,bp))
-    #print volume[i], ebm[i]
 
 chi=sqrt(chi)/len(volume)
 
-fmt='%10.4f'
-amt='%10.4f'
-bmt='%8.3f'
-pmt='%16.10f'
-lmt='%10.2f'
+fmt='%10.4f' ; amt='%10.4f' ; emt='%9.5f' ; bmt='%8.3f' ; pmt='%16.10f' ; lmt='%10.2f'
+a2t='%12.3f' ; a3t='%14.3f' ; al0='%7.4f'
 
+string     = "     V0        B0        BP         a-sc       as-bcc      a-fcc     log(chi)"
+    
+if (lexses):
+    a2  = b0 * bfactor
+    a3  = -a2 * (dimension*(bp-2.) + 6.)  
+    mls = vol2eta(v0,vzero,dimension)
+    string = "        A2            A3           lagrangian strain at minimum      log(chi)"
+   
 print
 print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-print "     V0        B0        BP         a-sc       a-bcc      a-fcc     log(chi)"
-print fmt%(v0), bmt%(b0), bmt%(bp)," ",  
-print amt%(a0sc), amt%(abcc), amt%(afcc), lmt%(log10(chi))
+print string
+if (lexsev):
+    print fmt%(v0), bmt%(b0), bmt%(bp)," ",  
+    print amt%(a0sc), amt%(abcc), amt%(afcc), lmt%(log10(chi))
+    print >> output_birch, pmt%(v0), pmt%(b0), pmt%(bp),  
+    print >> output_birch, pmt%(a0sc), pmt%(abcc), pmt%(afcc),
+    print >> output_birch, pmt%(log10(chi))
+else:
+    if (lplanar):
+       print a2t%(a2), a3t%(a3),"    ", emt%(mls), 
+       print " ( alat0 =", al0%((1.+mls)*alat),") ",
+    else:
+       print a2t%(a2), a3t%(a3),"   ", "          ", emt%(mls), "           ",
+    print  lmt%(log10(chi))
+    print >> output_birch, pmt%(v0), pmt%(b0), pmt%(bp),  
+    print >> output_birch, pmt%(mls), pmt%(mls), pmt%(mls),
+    print >> output_birch, pmt%(log10(chi))      
 print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 print
-print >> output_birch, pmt%(v0), pmt%(b0), pmt%(bp),  
-print >> output_birch, pmt%(a0sc), pmt%(abcc), pmt%(afcc),
-print >> output_birch, pmt%(log10(chi))
 
 input_energy.close()
 output_birch.close()
@@ -198,11 +273,11 @@ showpyplot = shell_value('SHOWPYPLOT',ev_list,"")[1]
 dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 
 #-------------------------------------------------------------------------------
-
+   
 xlabel = u'Volume [Bohr\u00B3]'
+if (lexses): xlabel = u'Lagrangian strain'
 ylabel = r'Energy [Ha]'
-if (os.path.exists('quantum-espresso')): ylabel = r'Energy [Ry]'
-if (os.path.exists('vasp')): ylabel = r'Energy [Ry]'
+if (lrydberg): ylabel = r'Energy [Ry]'
 
 #-------------------------------------------------------------------------------
 
@@ -246,17 +321,27 @@ plt.xticks(size=fonttick)
 plt.yticks(size=fonttick)
 pyl.grid(True)
 
-plt.plot(xvol,xene,'b-',label='birch-murnaghan fit')
-plt.plot(volume,energy,'go',label='calculated')
-plt.plot(v0,e0,'ro')
+if (lexses):
+    avolume = [] ; axvol = []
+    for i in range(len(volume)): avolume.append(vol2eta(volume[i],vzero,dimension))
+    for i in range(len(xvol)): axvol.append(vol2eta(xvol[i],vzero,dimension))
+    av0     = vol2eta(v0,vzero,dimension)
+else:
+    av0     = v0
+    avolume = volume
+    axvol   = xvol
+    
+plt.plot(axvol,xene,'b-',label='birch-murnaghan fit')
+plt.plot(avolume,energy,'go',label='calculated')
+plt.plot(av0,e0,'ro')
 plt.legend(loc=9,borderaxespad=.8,numpoints=1)
 
 ymax  = max(max(xene),max(energy))
 ymin  = min(min(xene),min(energy))
-dxx   = abs(max(volume)-min(volume))/18
+dxx   = abs(max(avolume)-min(avolume))/18
 dyy   = abs(ymax-ymin)/18
 ax.yaxis.set_major_formatter(yfmt)
-ax.set_xlim(min(volume)-dxx,max(volume)+dxx)
+ax.set_xlim(min(avolume)-dxx,max(avolume)+dxx)
 ax.set_ylim(ymin-dyy,ymax+dyy)
 
 ax.xaxis.set_major_locator(MaxNLocator(7))
@@ -265,8 +350,4 @@ plt.savefig('PLOT.ps', orientation='portrait',format='eps')
 plt.savefig('PLOT.png',orientation='portrait',format='png',dpi=dpipng)
 
 #-------------------------------------------------------------------------------
-
-
-
-
 

@@ -53,15 +53,19 @@ subroutine fourintp(f1,nk1,kvecs1,f2,nk2,kvecs2,nb)
     rbas(:,2) = input%structure%crystal%basevect(:,2)
     rbas(:,3) = input%structure%crystal%basevect(:,3)
 
+    ! disable symmetry (bug somewhere)
+    nsymcrys = 1
+
     ! Set rindex
-    if(.not.setrindex_done) then  
-      nsymcrys = 1
+    if (.not.setrindex_done) then  
       call setrindex
       setrindex_done = .true.
     endif
 
+    ! roughness coefficients
     c1 = 0.25d0
     c2 = 0.25d0
+
     allocate(smat1(nk1,nst), &
     &        smat2(nk2,nst), &
     &        rho(nst),       &
@@ -94,8 +98,8 @@ subroutine fourintp(f1,nk1,kvecs1,f2,nk2,kvecs2,nb)
       if (rst(1,ir).ne.ist) then
         ist = rst(1,ir)
         r(1:3) = dble(rindex(1:3,ir))
-    	do i = 1, 3
-    	  rvec(i) = r(1)*rbas(i,1)+r(2)*rbas(i,2)+r(3)*rbas(i,3)
+    	  do i = 1, 3
+          rvec(i) = r(1)*rbas(i,1)+r(2)*rbas(i,2)+r(3)*rbas(i,3)
         enddo
         rlen = sum(rvec(1:3)*rvec(1:3))
         if (ist.eq.2) rmin = rlen

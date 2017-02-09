@@ -9,6 +9,8 @@ subroutine scf_cycle(verbosity)
     Use modmain
     Use modmpi
     Use scl_xml_out_Module
+    Use TS_vdW_module, Only: C6ab, R0_eff_ab
+    Use mod_hybrids, only: ihyb
 !
 ! !DESCRIPTION:
 !
@@ -23,7 +25,7 @@ subroutine scf_cycle(verbosity)
     Complex (8), Allocatable :: evecfv(:, :, :)
     Complex (8), Allocatable :: evecsv(:, :)
     Logical :: tibs, exist
-    Integer :: ik, is, ia, idm
+    Integer :: ik, is, ia, idm, id
     Integer :: n, nwork
     Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0
@@ -40,6 +42,10 @@ subroutine scf_cycle(verbosity)
         write(string,'("Self-consistent loop started")')
         call printbox(60,"+",string)
     End If
+
+! reset density-dependent dispersion coefficients of Tkatchenko-Scheffler method
+    If (Allocated(C6ab)) Deallocate(C6ab)
+    If (Allocated(R0_eff_ab)) Deallocate(R0_eff_ab)
 
 !_______________________________________________________________
 ! initialise or read the charge density and potentials from file
@@ -72,6 +78,19 @@ subroutine scf_cycle(verbosity)
         write (60, *)
         Call flushifc (60)
     end if
+
+!_____________________________
+! convergence vectors
+
+    If (allocated(vcurrentconvergence)) deallocate(vcurrentconvergence)
+    Allocate(vcurrentconvergence(input%groundstate%niterconvcheck))
+    vcurrentconvergence=0.d0
+    If (allocated(vdeltae)) deallocate(vdeltae)
+    Allocate(vdeltae(input%groundstate%niterconvcheck))
+    vdeltae=0.d0
+    If (allocated(vchgdst)) deallocate(vchgdst)
+    Allocate(vchgdst(input%groundstate%niterconvcheck))
+    vchgdst=0.d0
 
 !_____________________________
 ! reference density
@@ -128,8 +147,17 @@ subroutine scf_cycle(verbosity)
 ! exit self-consistent loop if last iteration is complete
         if (tlast) then
             If ((verbosity>-1).and.(rank==0)) Then
+                call printline(60," ")
+                call printline(60,"+")
+                If (input%groundstate%niterconvcheck.ge.2) Then 
+                   write(string,'("Convergency criteria checked for the last", I2," iterations ")') input%groundstate%niterconvcheck 
+                Else
+                   write(string,'("Convergency criteria checked for the last iteration ")')
+                End If   
+                call printtext(60,"+",string)
                 write(string,'("Convergence targets achieved. Performing final SCF iteration")') 
-                call printbox(60,"+",string)
+                call printtext(60,"+",string)
+                call printline(60,"+")
                 Call flushifc(60)
             End If
         else
@@ -162,7 +190,7 @@ subroutine scf_cycle(verbosity)
 
         Call timesec (ts0)
 
-        if (task.ne.7) then
+        if (task /= 7) then
           ! No updates of core and valence radial functions during PBE0 run
           call gencore          ! generate the core wavefunctions and densities
           call linengy          ! find the new linearization energies
@@ -248,6 +276,7 @@ subroutine scf_cycle(verbosity)
 
 #ifdef MPI
         Call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
+        Call mpi_allgatherv_ifc(nkpt,nstfv,rbuf=engyknst)
         Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
 
@@ -259,7 +288,7 @@ subroutine scf_cycle(verbosity)
 ! write out the eigenvalues and occupation numbers
             Call writeeval
 ! write the Fermi energy to file
-            if (verbosity>-1) Call writefermi
+            Call writefermi
         End If
 !write the occupancies to file
 #ifdef MPI
@@ -347,6 +376,11 @@ subroutine scf_cycle(verbosity)
         End If
 ! generate charge distance
         call chgdist(rhomtref,rhoirref)
+        do id=1, input%groundstate%niterconvcheck-1
+           vchgdst(id) = vchgdst(id+1)
+        end do
+        vchgdst(input%groundstate%niterconvcheck) = chgdst
+        
 ! store density to reference
         rhoirref(:)=rhoir(:)
         rhomtref(:,:,:)=rhomt(:,:,:)
@@ -362,7 +396,14 @@ subroutine scf_cycle(verbosity)
 ! pack interstitial and muffin-tin effective potential and field into one array
         Call packeff (.True., n, v)
 ! mix in the old potential and field with the new
-        If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, nwork)
+        If (rank .Eq. 0) Then
+           Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, nwork)
+           do id=1, input%groundstate%niterconvcheck-1
+              vcurrentconvergence(id) = vcurrentconvergence(id+1)
+           end do
+           vcurrentconvergence(input%groundstate%niterconvcheck) = currentconvergence
+          
+        End If
 #ifdef MPI
         Call MPI_bcast (v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
 #endif
@@ -374,7 +415,7 @@ subroutine scf_cycle(verbosity)
         Call genveffig
         if (allocated(meffig)) deallocate(meffig)
         if (allocated(m2effig)) deallocate(m2effig)
- ! add the fixed spin moment effect field
+! add the fixed spin moment effect field
         If (getfixspinnumber() .Ne. 0) Call fsmfield
         Call genmeffig
 ! reduce the external magnetic fields if required
@@ -415,6 +456,12 @@ subroutine scf_cycle(verbosity)
 
 !! TIME - Third IO segment
         Call timesec(ts0)      
+        deltae=abs(et-engytot)
+        do id=1, input%groundstate%niterconvcheck-1
+           vdeltae(id)=vdeltae(id+1)
+        end do
+        vdeltae(input%groundstate%niterconvcheck)=abs(et-engytot)
+
         If ((verbosity>-1).and.(rank==0)) Then
 ! output energy components
             call writeengy(60)
@@ -467,7 +514,6 @@ subroutine scf_cycle(verbosity)
         If (tlast) goto 20
 
 ! update convergence criteria
-        deltae=abs(et-engytot)
         et = engytot
         if (input%groundstate%tforce) then
             dforcemax=abs(fm-forcemax)
@@ -550,19 +596,17 @@ subroutine scf_cycle(verbosity)
 !-----------------------
 ! check for convergence
 !-----------------------
-            if (input%groundstate%scfconv .eq. 'energy') &
-            &    tlast = (deltae .lt. input%groundstate%epsengy)
 
-            if (input%groundstate%scfconv .eq. 'potential') &
-            &    tlast = (currentconvergence .lt. input%groundstate%epspot)
+            if (input%groundstate%scfconv .eq. 'energy') tlast = all(abs(vdeltae) .lt. input%groundstate%epsengy)
+
+            if (input%groundstate%scfconv .eq. 'potential') tlast = all(abs(vcurrentconvergence) .lt. input%groundstate%epspot)
            
-            if (input%groundstate%scfconv .eq. 'charge') &
-            &   tlast = (chgdst .lt. input%groundstate%epschg)
+            if (input%groundstate%scfconv .eq. 'charge') tlast = all(abs(vchgdst) .lt. input%groundstate%epschg)
 
             if (input%groundstate%scfconv .eq. 'multiple') then
-                tlast = (currentconvergence .lt. input%groundstate%epspot) .and. &
-                &       (deltae .lt. input%groundstate%epsengy) .and. &
-                &       (chgdst .lt. input%groundstate%epschg)
+                tlast = all(abs(vcurrentconvergence) .lt. input%groundstate%epspot) .and. &
+                &       all(abs(vdeltae) .lt. input%groundstate%epsengy) .and. &
+                &       all(abs(vchgdst) .lt. input%groundstate%epschg)
             end if
 
             if (input%groundstate%tforce) then
@@ -603,8 +647,22 @@ subroutine scf_cycle(verbosity)
         call printbox(60,"+",string)
     end if
 ! write density and potentials to file only if maxscl > 1
-    If (input%groundstate%maxscl .Gt. 1) Then
-        Call writestate
+     If ((input%groundstate%maxscl > 1)) Then
+        If (associated(input%groundstate%Hybrid)) Then
+           If ((input%groundstate%Hybrid%exchangetypenumber == 1).and.(ihyb==0)) Then
+             string=filext
+             filext='_PBE.OUT'
+             Call writestate
+             filext=string
+             If ((verbosity>-1).and.(rank==0)) Then
+                 write(60,*) "writing STATE_PBE.OUT"
+             end if
+           Else
+             Call writestate
+           End If
+        Else
+           Call writestate
+        End If
         If ((verbosity>-1).and.(rank==0)) Then
             Write (60, '(" STATE.OUT is written")')
         end if
@@ -690,6 +748,10 @@ subroutine scf_cycle(verbosity)
           Call flushifc(67)
       end if
     End If
+
+    if (associated(input%groundstate%xsLO).and.(rank==0)) then
+      call genxsLOs()
+    end if
 
     Return
 end subroutine

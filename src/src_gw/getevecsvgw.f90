@@ -10,8 +10,7 @@ Subroutine getevecsvgw(ik, evecsv)
       Integer, Intent (In) :: ik
       Complex (8), Intent (Out) :: evecsv (nstsv, nstsv)
 ! local variables
-      Integer :: nstsv_
-      Integer(4) :: recl
+      Integer :: recl, nstsv_
       Real (8) :: vkl_ (3)
       character(256) :: filename
       Logical :: exist
@@ -24,7 +23,7 @@ Subroutine getevecsvgw(ik, evecsv)
         Open (70, File=trim(filename), Action='READ', &
        &  Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
       Else
-        Write (*,*) '(getevecsvgw): Cannot open EVECSV_GW.OUT file!'
+        Write (*,*) '(getevecsvgw): Cannot read eigenvectors!'
         Stop
       End If
       Read (70, Rec=ik) vkl_, nstsv_, evecsv
@@ -32,3 +31,4 @@ Subroutine getevecsvgw(ik, evecsv)
       
 Return
 End Subroutine
+

@@ -142,7 +142,11 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
 ! compute the charge density
          Do ir = 1, nr
             sum = 0.d0
+#ifdef SPECIES
+            if (dirac_eq) then
+#else
             if ((dirac_eq).or.(input%groundstate%ValenceRelativity.eq."kh").or.(input%groundstate%ValenceRelativity.eq."iora")) then
+#endif
               Do ist = 1, nst
                  sum = sum + occ (ist) * (rwf(ir, 1, ist)**2+rwf(ir, 2, ist)**2)
               End Do

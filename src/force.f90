@@ -229,6 +229,21 @@ Subroutine force
          forcetot (:, ias) = forcehf (:, ias) + forcecr (:, ias) + forceibs (:, ias)
       End Do
 
+!dispersion correction
+
+      If ( tlast .And. input%groundstate%vdWcorrection .Ne. "none" ) Then
+         If (allocated(force_disp)) deallocate (force_disp)
+         Allocate(force_disp(3,natmtot))
+         If ( input%groundstate%vdWcorrection .Eq. "DFTD2" ) Then
+            Call DFT_D2_force
+         Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then
+            Call TS_vdW_force
+         End If
+         Do ias = 1, natmtot
+            forcetot (:, ias) = forcetot (:, ias) + force_disp (:, ias)
+         End Do
+      End If
+
 ! symmetrise total force
 
       Call symvect (.False., forcetot)

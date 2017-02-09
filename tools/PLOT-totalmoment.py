@@ -186,6 +186,15 @@ ax.set_axisbelow(True)
 plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
 plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
 
+output_totmoment = open('total-moment',"w")
+
+pmt='%16.10f' 
+
+for i in range(len(x)): 
+    print >> output_totmoment, pmt%(x[i]), pmt%(y[i])
+
+output_totmoment.close()
+
 if (showpyplot): plt.show()
 #-------------------------------------------------------------------------------
 

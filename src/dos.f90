@@ -10,7 +10,7 @@ Subroutine dos
       Use modinput
       Use modmain
       Use FoX_wxml
-      Use modmpi, Only: splittfile
+      Use modmpi, Only: rank, splittfile
 ! !DESCRIPTION:
 !   Produces a total and partial density of states (DOS) for plotting. The total
 !   DOS is written to the file {\tt TDOS.OUT} while the partial DOS is written
@@ -41,6 +41,7 @@ Subroutine dos
       Real (8) :: dw, th, t1
       Real (8) :: v1 (3), v2 (3), v3 (3)
       Character (512) :: buffer
+      Character(256) :: string
       Type (xmlf_t), Save :: xf
       Complex (8) su2 (2, 2), dm1 (2, 2), dm2 (2, 2)
       Character (256) :: fname
@@ -60,6 +61,13 @@ Subroutine dos
       Complex (8), Allocatable :: apwalm (:, :, :, :, :)
       Complex (8), Allocatable :: evecfv (:, :, :)
       Complex (8), Allocatable :: evecsv (:, :)
+      
+      if (associated(input%groundstate%Hybrid)) then
+        if (input%groundstate%Hybrid%exchangetypenumber == 1) then
+          input%groundstate%stypenumber = -1
+        end if
+      end if
+
 ! initialise universal variables
       splittfile=.false.
       Call init0
@@ -84,7 +92,19 @@ Subroutine dos
       Allocate (evecfv(nmatmax, nstfv, nspnfv))
       Allocate (evecsv(nstsv, nstsv))
 ! read density and potentials from file
-      Call readstate
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+! in case of HF hybrids use PBE potential
+            string=filext
+            filext='_PBE.OUT'
+            Call readstate
+            filext=string
+           Else
+               Call readstate
+           End If
+        Else         
+           Call readstate
+        End If 
 ! read Fermi energy from file
       Call readfermi
 ! find the new linearisation energies
@@ -93,6 +113,12 @@ Subroutine dos
       Call genapwfr
 ! generate the local-orbital radial functions
       Call genlofr
+! update potential in case if HF Hybrids
+        If (associated(input%groundstate%Hybrid)) Then
+           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
+               Call readstate
+           End If
+        End If 
 ! generate unitary matrices which convert the (l,m) basis into the irreducible
 ! representation basis of the symmetry group at each atomic site
       If (input%properties%dos%lmirep) Then
@@ -103,11 +129,12 @@ Subroutine dos
       v1 (:) = input%properties%dos%sqados
       t1 = Sqrt (v1(1)**2+v1(2)**2+v1(3)**2)
       If (t1 .Le. input%structure%epslat) Then
-         Write (*,*)
-         Write (*, '("Error(dos): spin-quantisation axis (sqados) has z&
-        &ero length")')
-         Write (*,*)
-         Stop
+        if (rank==0) then
+          Write (*,*)
+          Write (*, '("Error(dos): spin-quantisation axis (sqados) has zero length")')
+          Write (*,*)
+          Stop
+        end if
       End If
       v1 (:) = v1 (:) / t1
       If (v1(3) .Ge. 1.d0-input%structure%epslat) Then
@@ -199,6 +226,9 @@ Subroutine dos
 !-------------------------------------!
 !     calculate and output total DOS  !
 !-------------------------------------!
+
+if (rank==0) then
+
       Open (50, File='TDOS.OUT', Action='WRITE', Form='FORMATTED')
       Call xml_OpenFile ("dos.xml", xf, replace=.True., pretty_print=.True.)
       Call xml_NewElement (xf, "dos")
@@ -508,6 +538,9 @@ Subroutine dos
       Write(*,*)
       Write(*, '("   DOS units are states/Hartree/unit cell")')
       Write(*,*)
+
+end if ! rank
+
       Return
 End Subroutine
 !EOC

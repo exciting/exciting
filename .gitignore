@@ -25,6 +25,7 @@ exciting_debug
 exciting_gfortran
 exciting_interfaces
 *.OUT
+*.TXT
 *.OUT.*
 .out.xml
 *.out

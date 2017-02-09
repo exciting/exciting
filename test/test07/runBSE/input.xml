@@ -18,42 +18,26 @@
     </species>
   </structure>
   
-  <groundstate lmaxvr="8"
-    ngridk="10 10 10" vkloff="0.0 0.0 0.0"
-    gmaxvr="14.0"
-    lradstep="2" />
-
-  <!--   
-    Here are the excited-states parameters, defined in the "xs"-element.
-    Once the screening is calculated, use the run="skip" attribute for the
-    "screening" element to avoid calculating it again.
-  
-    We use a scissors correction of 5.7eV = 0.20947H to mimic the quasi-particle
-    energies.
-  -->
+  <groundstate ngridk="4 4 4"/>
 
   <xs xstype="BSE" 
-   ngridq="4 4 4"
-   ngridk="4 4 4" vkloff="0.05 0.15 0.25" 
-   nempty="3"
+   ngridq="3 3 3"
+   ngridk="3 3 3" vkloff="0.05 0.15 0.25" 
+   nempty="1"
    lmaxapwwf="3" lmaxemat="3"
-   gqmax="3"
+   gqmax="2"
    broad="0.0073499"
    scissor="0.20947"
    tevout="true" nosym="true">
   	
   	 <energywindow intv="0.0 1.0" 
-  	  points="1200" />
+  	  points="50" />
   	
   	 <screening screentype="full"
   	  nempty="115" />
   	 
-<!--      
-     n_v=5, n_c=4
- -->
   	 <BSE bsetype="singlet"
-  	  nstlbsemat="1 5 1 4"
-  	  nstlbse="1 5 1 4" 
+  	  nstlbse="1 5 1 2" 
   	  aresbse="false"/>
        	 
   	 <qpointset>

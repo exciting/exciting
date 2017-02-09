@@ -92,6 +92,12 @@ Subroutine bse
 !BOC
       Implicit None
   ! local variables
+      
+      ! CC
+      integer :: iostat, ievec
+      logical :: exist
+      Character (256) :: locext
+  
       Integer, Parameter :: iqmt = 0
       Integer, Parameter :: noptcmp = 3
       Real (8), Parameter :: epsortho = 1.d-12
@@ -101,8 +107,7 @@ Subroutine bse
       Integer :: unexc, ist1, ist2, ist3, ist4, ikkp, iv, ic, &
      & nvdif, ncdif, optcompt(3), ist, jst
       integer :: oct1, oct2, octu, octl
-      Integer :: sta1, sto1, sta2, sto2, nsta1, nsto1, nsta2, nsto2, &
-     & rnst1, rnst2, rnst3, rnst4, nrnst1, nrnst2, nrnst3, nrnst4
+      Integer ::  nrnst1, nrnst2, nrnst3, nrnst4
       Real (8) :: de, egap, ts0, ts1, sumrls(3)
   ! allocatable arrays
       Integer, Allocatable :: sor (:)
@@ -117,7 +122,6 @@ Subroutine bse
 
       integer :: Recl, nstsv_
       real(8) :: vkl_(3)
-      
       
   ! routine not yet parallelized
   if (rank .ne. 0) goto 10
@@ -139,22 +143,14 @@ Subroutine bse
   ! initialize the selected ranges of valence/core and conduction states (Note
   ! that core states are always understood to be local orbitals set by the user
   ! and actually treated as valence states)
-      sta1 = input%xs%bse%nstlbsemat(1)
-      sto1 = input%xs%bse%nstlbsemat(2)
-      sta2 = input%xs%bse%nstlbsemat(3)
-      sto2 = input%xs%bse%nstlbsemat(4)
-      nsta1 = input%xs%bse%nstlbse(1)
-      nsto1 = input%xs%bse%nstlbse(2)
-      nsta2 = input%xs%bse%nstlbse(3)
-      nsto2 = input%xs%bse%nstlbse(4)
-      rnst1 = sto1-sta1+1
-      rnst2 = sto1-sta1+1
-      rnst3 = sto2-sta2+1
-      rnst4 = sto2-sta2+1
-      nrnst1 = nsto1-nsta1+1
-      nrnst2 = nsto1-nsta1+1
-      nrnst3 = nsto2-nsta2+1
-      nrnst4 = nsto2-nsta2+1 
+      sta1 = input%xs%bse%nstlbse(1)
+      sto1 = input%xs%bse%nstlbse(2)
+      sta2 = input%xs%bse%nstlbse(3)
+      sto2 = input%xs%bse%nstlbse(4)
+      nrnst1 = sto1-sta1+1
+      nrnst2 = sto1-sta1+1
+      nrnst3 = sto2-sta2+1
+      nrnst4 = sto2-sta2+1 
   ! use eigenvector files from screening-calculation
       Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
       Call findocclims (iqmt, istocc0, istocc, istunocc0, istunocc, &
@@ -176,22 +172,14 @@ Subroutine bse
      &, i6)') istl3, istu3, nst3
       Write (unitout, '("  range of fourth index and number :", 2i6, 3x&
      &, i6)') istl4, istu4, nst4
-      If ((nsta1 .Lt. sta1) .Or. (nsto1 .Gt. sto1) .Or. (nsta2 .Lt. sta2)&
-     & .Or. (nsto2 .Gt. sto2)) Then
-         Write (unitout,*)
-         Write (unitout, '("Error(bse): inconsistency in ranges of stat&
-        &es - nstlbse must be within the range of nstlbsemat")')
-         Write (unitout,*)
-         Call terminate
-      End If
   ! size of BSE-Hamiltonian
       hamsiz = nrnst1 * nrnst3 * nkptnr
   ! allocate arrays for Coulomb interactons
-      Allocate (sccli(rnst1, rnst3, rnst2, rnst4))
-      Allocate (excli(rnst1, rnst3, rnst2, rnst4))
+      Allocate (sccli(nrnst1, nrnst3, nrnst2, nrnst4))
+      Allocate (excli(nrnst1, nrnst3, nrnst2, nrnst4))
   ! allocate array for occupation number difference (future use )
-      	Allocate (docc (rnst1, rnst3))
-      	Allocate (kdocc (hamsiz))
+      Allocate (docc (nrnst1, nrnst3))
+      Allocate (kdocc (hamsiz))
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
       Allocate (ham(hamsiz, hamsiz))
       ham (:, :) = zzero
@@ -200,8 +188,7 @@ Subroutine bse
       Do iknr = 1, nkptnr
         Call getevalsv (vkl(1, iknr), evalsv(1, iknr))
       End Do
-
-      if (associated(input%gw)) then
+       if (associated(input%gw)) then                                         ! GW Part
         ! to KS eigenvalues to use them later for renormalizing PMAT
         allocate(eval0(nstsv,nkptnr))
         eval0(:,:)=evalsv(:,:)
@@ -209,30 +196,34 @@ Subroutine bse
         input%xs%scissor=0.0d0
         ! Read QP Fermi energies and eigenvalues from file
         call getevalqp(nkptnr,vkl,evalsv)
-        Write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
-        !do ist1 = 1, nstsv
-        !  write(*,*) ist1, evalsv(ist1,1)
-        !end do
+        ! evalsv = evalsv+efermi
+        write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
+        ! do iknr = 1, nkptnr
+        !   write(71,'(a,i4,3f16.4)') "# ik = ", iknr, vkl(:,iknr)
+        !   do ist1 = 1, nstsv
+        !     write(71,*) ist1, evalsv(ist1,iknr)
+        !   end do
+        !   write(71,*)
+        ! end do
       end if ! GW
 
   ! read mean value of diagonal of direct term
       bsed = 0.d0
       If ((trim(input%xs%bse%bsetype) .Eq. 'singlet') .Or. &
-     & (trim(input%xs%bse%bsetype) .Eq. 'triplet')) Then
+      &   (trim(input%xs%bse%bsetype) .Eq. 'triplet')) Then
          If (input%xs%bse%bsedirsing) Then
             Call getbsediag
-            Write (unitout, '("Info(bse): read diagonal of BSE kernel")&
-           &')
+            Write (unitout, '("Info(bse): read diagonal of BSE kernel")')
             Write (unitout, '(" mean value : ", 2g18.10)') bsed
          End If
       End If
   ! determine gap
       egap = 1.d8
       Do iknr = 1, nkptnr
-         Do ist1 = nsta1, nsto1
-            Do ist3 = nsta2, nsto2
-               egap = Min (egap, evalsv(ist3+istocc, iknr)-evalsv(ist1, &
-              & iknr)+input%xs%scissor)
+         Do ist1 = sta1, sto1
+            Do ist3 = sta2, sto2
+               egap = min(egap, evalsv(ist3+istocc, iknr)- &
+               &                evalsv(ist1,iknr)+input%xs%scissor)
             End Do
          End Do
       End Do
@@ -241,7 +232,7 @@ Subroutine bse
          Write (unitout,*)
          Write (unitout, '("Warning(bse): the system has no gap")')
          Write (unitout,*)
-      End If	  
+      End If  
   ! set up BSE-Hamiltonian
       ikkp = 0
       Do iknr = 1, nkptnr
@@ -256,50 +247,49 @@ Subroutine bse
             Select Case (trim(input%xs%bse%bsetype))
             Case ('singlet', 'triplet')
            ! read screened Coulomb interaction
-               Call getbsemat ('SCCLI.OUT', ikkp, rnst1, rnst3, sccli)
+              Call getbsemat ('SCCLI.OUT', ikkp, nrnst1, nrnst3, sccli)
             End Select
         ! read exchange Coulomb interaction
             Select Case (trim(input%xs%bse%bsetype))
             Case ('RPA', 'singlet')
-               Call getbsemat ('EXCLI.OUT', ikkp, rnst1, rnst3, excli)
+               Call getbsemat ('EXCLI.OUT', ikkp, nrnst1, nrnst3, excli)
             End Select
         ! get occupation numbers (future use for partial occupancy) 			
-      		Call getdocc (iq, iknr, jknr, nsta1, nsto1, istl3+nsta2-1,& 
-      	   & istl3+nsto2-1, docc)
+      		Call getdocc (iq, iknr, jknr, sta1, sto1, istl3,& 
+      	   & istl3+nrnst3-1, docc)
         ! set up matrix
-            Do ist1 = nsta1, nsto1
-               Do ist3 = nsta2, nsto2
-                  Do ist2 = nsta1, nsto1
-                     Do ist4 = nsta2, nsto2
-                        s1 = hamidx (ist1-nsta1+1, ist3-nsta2+1, iknr, nrnst1, &
-                       & nrnst3)
-                        s2 = hamidx (ist2-nsta1+1, ist4-nsta2+1, jknr, nrnst2, &
-                       & nrnst4)
-			kdocc (s1) = docc (ist1-nsta1+1, ist3-nsta2+1)
-                     ! add diagonal term
+            Do ist1 = sta1, sto1
+               Do ist3 = sta2, sto2
+                  Do ist2 = sta1, sto1
+                     Do ist4 = sta2, sto2
+                        s1 = hamidx (ist1-sta1+1, ist3-sta2+1, iknr, nrnst1, nrnst3)
+                        s2 = hamidx (ist2-sta1+1, ist4-sta2+1, jknr, nrnst2, nrnst4)
+                        kdocc (s1) = docc (ist1-sta1+1, ist3-sta2+1)
+                        ! add diagonal term
                         If (s1 .Eq. s2) Then
-                           de = evalsv (ist3+istl3-1, iknr) - evalsv &
+                           de = evalsv (ist3+istl3-sta2, iknr) - evalsv &
                           & (ist1, iknr) + input%xs%scissor                                                                                                       
                             ham (s1, s2) = ham (s1, s2) + de - egap + &
                           & bsed
                         End If
-                    ! write partially occupied states in the output    
-			If (kdocc (s1) .Gt. input%groundstate%epsocc .And. kdocc (s1) &
-			  .Lt. 2.d0-input%groundstate%epsocc) Then
-			   Write (*,*) 'kdocc s1', kdocc(s1), s1
-			End If
-                    ! add exchange term
+                        ! write partially occupied states in the output    
+                        If (kdocc(s1) .Gt. input%groundstate%epsocc .And. &
+                        &   kdocc(s1) .Lt. 2.d0-input%groundstate%epsocc) Then
+                          Write (*,*) 'kdocc s1', kdocc(s1), s1
+                        End If
+                        ! add exchange term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('RPA', 'singlet')
-                           ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
-                           & (ist1-nsta1+1, ist3-nsta2+1, ist2-nsta1+1, ist4-nsta2+1) * &
-                           & kdocc (s1) * 0.5
+                           ham(s1,s2) = ham(s1,s2) + &
+                           &  2.d0*excli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1) * &
+                           &  kdocc(s1) * 0.5
                         End Select
-                    ! add correlation term
+                        ! add correlation term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('singlet', 'triplet')
-                           ham (s1, s2) = ham (s1, s2) - sccli (ist1-nsta1+1, &
-                           & ist3-nsta2+1, ist2-nsta1+1, ist4-nsta2+1) * kdocc (s1) * 0.5
+                          ham(s1,s2) = ham(s1,s2) - &
+                          &  sccli(ist1-sta1+1, ist3-sta2+1, ist2-sta1+1, ist4-sta2+1) * &
+                          &  kdocc(s1) * 0.5
                         End Select
                      End Do
                   End Do
@@ -312,8 +302,7 @@ Subroutine bse
       Write (unitout,*)
       Write (unitout, '("Info(bse): invoking Lapack routine ZHEEVX")')
       Write (unitout, '(" size of BSE-Hamiltonian	   : ", i8)') hamsiz
-      Write (unitout, '(" number of requested solutions : ", i8)') &
-     & input%xs%bse%nexcitmax
+      Write (unitout, '(" number of requested solutions : ", i8)') input%xs%bse%nexcitmax
   ! allocate eigenvector and eigenvalue arrays
       Allocate (beval(hamsiz), bevec(hamsiz, hamsiz))
   ! set number of excitons
@@ -341,8 +330,8 @@ Subroutine bse
          Do iknr = 1, nkptnr
             Call getpmat (iknr, vkl, 1, nstsv, 1, nstsv, .True., &
            & 'PMAT_XS.OUT', pm)
-            Do ist1 = nsta1, nsto1
-               Do ist2 = istl3 + nsta2 - 1, istl3 + nsto2 - 1
+            Do ist1 = sta1, sto1
+               Do ist2 = istl3 , istl3 + nrnst3 -1
 ! DIN: Renormalize pm according to DelSole PRB48, 11789 (1993)
                   if (associated(input%gw)) then
                      pm(1:3,ist1,ist2)=pm(1:3,ist1,ist2)  * &
@@ -350,8 +339,8 @@ Subroutine bse
                     &   (eval0(ist2,iknr)- eval0(ist1,iknr))
                   end if 
 ! DIN
-                  s1 = hamidx (ist1-nsta1+1, ist2-istl3-nsta2+2,&
-                 & iknr, nrnst1, nrnst3)              
+                  s1 = hamidx (ist1-sta1+1, ist2-istl3+1,&
+                 & iknr, nrnst1, nrnst3)    
                   pmat (s1, oct1) = pm (oct1, ist1, ist2)
                End Do
             End Do
@@ -367,8 +356,8 @@ Subroutine bse
                      s2 = hamidx (iv, ic, iknr, nrnst1, nrnst3)
                      oszs (s1, oct1) = oszs (s1, oct1) + bevec (s2, s1) * pmat (s2, oct1) &
                     & * kdocc (s2) * 0.5 & 
-                    & / (evalsv(ic+istl3-1+nsta2-1, iknr)- &
-                    evalsv(iv+nsta1-1, iknr))
+                    & / (evalsv(ic+istl3-1, iknr)- &
+                    evalsv(iv+sta1-1, iknr))
                   End Do
                End Do
             End Do
@@ -506,10 +495,46 @@ Subroutine bse
          Call writesumrls (iq, sumrls, trim(fnsumrules))
         enddo
       end do
+
+      if (associated(input%xs%storeexcitons)) then
+        !-----------------------------------------------------
+        ! upon request, store array with exciton coefficients
+        !-----------------------------------------------------
+        if ( (input%xs%storeexcitons%MinNumberExcitons .lt. 1) .or. &
+          &  (input%xs%storeexcitons%MinNumberExcitons .gt. hamsiz) .or. &
+          &  (input%xs%storeexcitons%MaxNumberExcitons .lt. 1) .or. &
+          &  (input%xs%storeexcitons%MaxNumberExcitons .gt. hamsiz) .or. &
+          &  (input%xs%storeexcitons%MinNumberExcitons .gt. input%xs%storeexcitons%MaxNumberExcitons) ) then
+          write(*,*)
+          write(*,'("Error(bse): wrong range of exciton indices: ", 2I5)') &
+                & input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+          write(*,*)
+          stop
+        end if  
+        ! write bin
+        open(50,File='EXCCOEFF.bin', & 
+             Action='WRITE',Form='UNFORMATTED', IOstat=iostat)
+        if ((iostat/=0) .and. (rank==0)) then
+          write(*,*) iostat
+          write(*,'("Error(bse): error creating EXCCOEFF.bin")')
+          write(*,*)
+          stop
+        end if
+        ! write
+        write(50) input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons, & 
+        &         nkptnr, istl3, sta1, sta2, nrnst1, nrnst3, hamsiz
+        do ievec = input%xs%storeexcitons%MinNumberExcitons, input%xs%storeexcitons%MaxNumberExcitons
+           write(50) beval(ievec), bevec(1:hamsiz,ievec)
+        end do
+        close(50)
+      end if
+
       deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
       if (associated(input%gw)) deallocate(eval0)
-10 continue
-      call barrier      
+
+      10 continue
+      call barrier
+
 Contains
 !
       Integer Function hamidx (i1, i2, ik, n1, n2)
@@ -517,7 +542,7 @@ Contains
          Integer, Intent (In) :: i1, i2, ik, n1, n2
          hamidx = i2 + n2 * (i1-1) + n1 * n2 * (ik-1)
       End Function hamidx
-!
+
 End Subroutine bse
 !EOC
 

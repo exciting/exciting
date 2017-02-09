@@ -1,251 +1,171 @@
 !BOP
+!!ROUTINE: calcselfc
 !
-! !ROUTINE: selfesing
+!!INTERFACE: 
 !
-! !INTERFACE: 
-      subroutine calcselfc(ikp,iqp)
-      
-! !DESCRIPTION:
+subroutine calcselfc(iq)
+!      
+!!DESCRIPTION:
 !
-! This subroutine calculates the singular terms of the selfenergy.
+! This subroutine calculates the q-dependent correaltion self-energy
 !
-! !USES:
+!!USES:
+    use modinput
+    use modmain,    only : nstsv, apwordmax, lmmaxapw, natmtot, nspnfv, &
+    &                      zzero, nmatmax
+    use modgw
+    use mod_mpi_gw, only : myrank, myrank_col
+    use m_getunit
+    
+!!INPUT PARAMETERS:
+    implicit none
+    integer(4), intent(in) :: iq
+    
+!!LOCAL VARIABLES:            
+    integer(4) :: ik, ikp, jk, ispn
+    integer(4) :: mdim
+    integer(4) :: fid
+    character(120) :: fname_mwm
+    real(8) :: tstart, tend, t0, t1
+    complex(8), allocatable :: evecsv(:,:,:)
+    character(len=10), external :: int2str
 
-      use modmain
-      use modgw
-
-! !LOCAL VARIABLES:            
-
-      implicit none
-      integer(4), intent(in) :: ikp
-      integer(4), intent(in) :: iqp
-      
-      integer(4) :: ik, iq, jk, jkp
-      integer(4) :: ia 
-      integer(4) :: is
-      integer(4) :: ic       ! (Counter) Runs over core states.
-      integer(4) :: ias      ! (Counter) Runs over all atoms
-      integer(4) :: ie1      ! (Counter) Runs over bands.
-      integer(4) :: ie12
-      integer(4) :: ie2      ! (Counter) Runs over bands.
-      integer(4) :: iom      ! (Counter) Runs over frequencies.
-      integer(4) :: m, m1, m2
-      integer(4) :: dimtk
-      
-      real(8)    :: tstart, tend, tcore
-      real(8)    :: enk
-      real(8)    :: vi4pi, sqvi4pi
-      real(8)    :: coefs1, coefs2
-      
-      complex(8) :: sum
-      complex(8), allocatable :: wmat(:,:), mmat(:,:), wm(:,:)
-      complex(8), allocatable :: mwm(:,:,:)  ! Sum_ij{M^i*Wc_ij*conjg(M^j)}
-      complex(8), allocatable :: scqval(:,:), scqcor(:,:)
-      
-! !INTRINSIC ROUTINES: 
-
-      
-      intrinsic abs
-      intrinsic sign
-      intrinsic cmplx
-      intrinsic conjg
-      intrinsic cpu_time
-      
-
-! !EXTERNAL ROUTINES: 
-      
-      complex(8), external :: zdotu, zdotc
-      external zhemm
-      complex(8), external :: freqconvl
- 
-! !REVISION HISTORY:
+!!REVISION HISTORY:
 !
-! Created 23.06.05 by RGA.
-! Revisted July 2011 by DIN
+! Created Nov 2013 by DIN
 !
 !EOP
 !BOC
-!
-      call cpu_time(tstart)
-
-      vi4pi=4.d0*pi*vi
-      sqvi4pi=sqrt(vi4pi)
-
-      coefs1=singc1*sqvi4pi
-      coefs2=singc2*vi4pi
-
-      ik=idikp(ikp)
-      iq=idikpq(iqp,ikp)
+    ! if (myrank==0) then
+    !   write(*,*)
+    !   write(*,*) ' ---- calcselfc started ----'
+    !   write(*,*)
+    ! end if
+    call timesec(tstart)
+    
+    !------------------------
+    ! total number of states
+    !------------------------
+    if (input%gw%coreflag=='all') then
+      mdim = nstse+ncg
+    else
+      mdim = nstse
+    end if
+    
+    !-------------------------------------------
+    ! products M*W^c*M
+    !-------------------------------------------
+    if (myrank_col==0) then
+      allocate(mwm(ibgw:nbgw,1:mdim,1:freq%nomeg))
+      msize = sizeof(mwm)*b2mb
+      ! write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
+      !----------------------------
+      ! q-dependent M*W*M products
+      !----------------------------
+      if (input%gw%taskname.eq.'gw0') then
+        fname_mwm = 'MWM'//'-q'//trim(int2str(iq))//'.OUT'
+        call getunit(fid)
+        open(fid,File=fname_mwm,Action='Write',Form='Unformatted')
+      end if ! myrank_col
+    end if
+    
+    allocate(eveckalm(nstsv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveckpalm(nstsv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveck(nmatmax,nstsv))
+    allocate(eveckp(nmatmax,nstsv))
+    allocate(minmmat(1:mbsiz,ibgw:nbgw,1:mdim))
+    msize = sizeof(minmmat)*b2mb
+    ! write(*,'(" calcepsilon: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
+    
+    !================================
+    ! loop over irreducible k-points
+    !================================
+    do ispn = 1, nspinor
+    do ikp = 1, kset%nkpt
+    
+      ! write(*,*)
+      ! write(*,*) 'calcselfc: k-point loop ikp=', ikp
+    
+      ! k vector
+      ik = kset%ikp2ik(ikp)
+      ! k-q vector 
+      jk = kqset%kqid(ik,iq)
       
-      ! k-q point
-      jk=kqid(ik,iq)
-      jkp=indkp(jk)
+      ! get KS eigenvectors
+      call timesec(t0)
+      allocate(evecsv(nmatmax,nstsv,nspinor))
+      call getevecsvgw_new('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
+      eveckp = conjg(evecsv(:,:,ispn))
+      call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+      eveck = evecsv(:,:,ispn)
+      deallocate(evecsv)
+      call timesec(t1)
+      time_io = time_io+t1-t0
+        
+      ! Calculate M^i_{nm}+M^i_{cm}
+      call expand_evec(ik,'t')
+      call expand_evec(jk,'c')
+      call expand_products(ik,iq,ibgw,nbgw,-1,1,mdim,nstse,minmmat)
 
-!-------------------------------- 
-!       Valence contribution
-!-------------------------------- 
+      !================================================================
+      ! Calculate weight(q)*Sum_ij{M^i*W^c_{ij}(k,q;\omega)*conjg(M^j)}
+      !================================================================
+      call calcmwm(ibgw,nbgw,1,mdim)
+      
+      !===========================================================
+      ! Calculate the contribution to the correlation self-energy
+      !===========================================================
+      if (myrank_col==0) then
+        
+        if (input%gw%taskname=='cohsex') then
+          call calcselfc_cohsex(ikp,iq,mdim)
+        else
+          call calcselfc_freqconv(ikp,iq,mdim)
+        end if
+          
+        if (input%gw%taskname=='gw0') then
+          ! store M*W*M in files
+          call timesec(t0)
+          write(fid) mwm
+          call timesec(t1)
+          time_io = time_io+t1-t0
+        end if
 
-      dimtk=nbandsgw*nstfv
-      allocate(mmat(mbsiz,dimtk))
-      ie12=0
-      do ie2 = 1, nstfv
-        do ie1 = ibgw, nbgw
-          ie12=ie12+1
-          mmat(1:mbsiz,ie12)=minmmat(1:mbsiz,ie1,ie2)
-        end do
-      end do
-!
-!     Sum_ij{M^i*W^c_{ij}*conjg(M^j)}
-!
-      allocate(mwm(nomeg,ibgw:nbgw,nstfv))
-      allocate(wmat(mbsiz,mbsiz))
-      allocate(wm(mbsiz,dimtk))
-      do iom = 1, nomeg
-        wmat(1:mbsiz,1:mbsiz)=inveps(1:mbsiz,1:mbsiz,iom)
-        call zhemm('l','u',mbsiz,dimtk, &
-        &          zone,wmat,mbsiz,mmat,mbsiz,zzero,wm,mbsiz)
-        ie12=0
-        do ie2 = 1, nstfv
-          do ie1 = ibgw, nbgw
-            ie12=ie12+1
-            mwm(iom,ie1,ie2) = wkpq(iqp,ikp)*zdotc(mbsiz,mmat(:,ie12),1,wm(:,ie12),1)
-            if ((Gamma).and.(ie1.eq.ie2)) then
-              mwm(iom,ie1,ie2) = mwm(iom,ie1,ie2) + &
-           &    coefs2*head(iom) + &
-           &    coefs1*(zdotu(mbsiz,mmat(:,ie12),1,epsw2(:,iom),1) + &
-           &            zdotc(mbsiz,mmat(:,ie12),1,epsw1(:,iom),1) )
-            end if ! q=\Gamma
-          end do
-        end do
-      end do ! iom
-      deallocate(mmat,wmat,wm)
-!
-!     Frequency convolution
-!
-      allocate(scqval(ibgw:nbgw,1:nomeg))
-      scqval(:,:)=zzero
-
-      do iom = 1, nomeg
-        do ie1 = ibgw, nbgw
-          m1=max(n12dgn(1,ie1,ikp),ibgw) ! low index
-          m2=min(n12dgn(2,ie1,ikp),nbgw) ! upper index
-          sum=zzero
-          do m = m1, m2
-            do ie2 = 1, nstfv
-              enk = evaldft(ie2,jkp)-efermi
-              sum = sum+freqconvl(iom,nomeg,freqs(iom),enk,mwm(1:nomeg,m,ie2),freqs,womeg)
-            end do ! ie2
-          end do ! m
-          scqval(ie1,iom) = scqval(ie1,iom)+sum/dble(m2-m1+1)
-        enddo ! ie1
-      enddo ! iom
+      end if
+      
+      !if (input%gw%selfenergy%secordw) then 
+      !---------------------------------
+      ! Second order screened exchange
+      !---------------------------------
+      !  call calcsecordwselfc(ikp,iq,mdim)
+      !end if
+    
+    end do ! ikp
+    end do ! ispn
+    
+    deallocate(minmmat)
+    deallocate(eveck)
+    deallocate(eveckp)
+    deallocate(eveckalm)
+    deallocate(eveckpalm)
+    
+    ! delete MWM
+    if (myrank_col==0) then
       deallocate(mwm)
-
-!------------------------------------
-!     Core-valence contribution
-!------------------------------------
-
-      call cpu_time(tcore)
-
-      if(iopcore.eq.0)then      
-
-        dimtk=nbandsgw*ncg
-        allocate(mmat(mbsiz,dimtk))
-        ie12=0
-        do ie2 = 1, ncg
-          do ie1 = ibgw, nbgw
-            ie12=ie12+1
-            mmat(1:mbsiz,ie12) = mincmat(1:mbsiz,ie1,ie2)
-          end do
-        end do
-!
-!       Sum_ij{M^i*W^c_{ij}*conjg(M^j)}
-!
-        allocate(mwm(nomeg,ibgw:nbgw,ncg))
-        allocate(wmat(mbsiz,mbsiz))
-        allocate(wm(mbsiz,dimtk))
-        do iom = 1, nomeg
-          wmat(1:mbsiz,1:mbsiz)=inveps(1:mbsiz,1:mbsiz,iom)
-          call zhemm('l','u',mbsiz,dimtk, &
-          &          zone,wmat,mbsiz,mmat,mbsiz,zzero,wm,mbsiz)
-          ie12=0
-          do ie2 = 1, ncg
-            do ie1 = ibgw, nbgw
-              ie12=ie12+1
-              mwm(iom,ie1,ie2) = wkpq(iqp,ikp)*zdotc(mbsiz,mmat(:,ie12),1,wm(:,ie12),1)
-            end do ! ie1
-          end do ! ie2
-        end do ! iom
-        deallocate(mmat,wmat,wm)
-
-        allocate(scqcor(ibgw:nbgw,1:nomeg))
-        scqcor=zzero
-        do iom = 1, nomeg
-          do ie1 = ibgw, nbgw
-            do m = m1, m2
-              sum = zzero
-              ! Sum over ie2
-              do ie2 = 1, ncg
-                is = corind(ie2,1)
-                ia = corind(ie2,2)
-                ias = idxas(ia,is)
-                ic = corind(ie2,3)
-                enk = evalcr(ic,ias)-efermi
-                sum = sum+freqconvl(iom,nomeg,freqs(iom),enk,mwm(1:nomeg,m,ie2),freqs,womeg)
-              end do ! ie2
-              scqcor(ie1,iom) = scqcor(ie1,iom)+sum/dble(m2-m1+1)
-            end do ! m
-          enddo ! ie1
-        enddo ! iom
-        deallocate(mwm)
-
-      endif ! core
-      
-!----------------------------------------
-!     Sum up the contributions
-!----------------------------------------
-
-      write(96,*)'-------- CALCSELFC -------------, ikp = ', ikp, '    iqp = ', iqp
-      if(iopcore.eq.0)then
-        write(96,*)'# omega      core        valence        selfec'
-        do ie1 = ibgw, nbgw
-          write(96,*)'band nr. = ', ie1
-          do iom = 1, nomeg
-            selfec(ie1,ikp,iom)=selfec(ie1,ikp,iom)+scqcor(ie1,iom)+scqval(ie1,iom)
-            write(96,10)iom,scqcor(ie1,iom),scqval(ie1,iom),selfec(ie1,ikp,iom)
-          end do ! iom
-        enddo ! ie1
-        write(96,*)
-        deallocate(scqcor)
-      else 
-        write(96,*)'# omega      valence        selfec'
-        do ie1 = ibgw, nbgw
-          write(96,*)'band nr. = ', ie1
-          do iom = 1, nomeg
-            selfec(ie1,ikp,iom)=selfec(ie1,ikp,iom)+scqval(ie1,iom)
-            write(96,11)iom,scqval(ie1,iom),selfec(ie1,ikp,iom)
-          end do ! iom
-        enddo ! ie1
-        write(96,*)
-      endif
-      deallocate(scqval)
-
-      call cpu_time(tend)
-      if(tend.lt.0.0d0)write(fgw,*)'warning, tend < 0'
-      if(tstart.lt.0.0d0)write(fgw,*)'warning, tstart < 0'
-      call write_cputime(fgw,tend-tstart, 'CALCSELFC')
-      call write_cputime(fgw,tcore-tstart,'CALCSELFC: core')
-      call write_cputime(fgw,tend-tcore,  'CALCSELFC: valence')
-
-   10 format(i4,2f18.10,'  | ',2f18.10,' || ',2f18.10)
-   11 format(i4,2f18.10,' || ',2f18.10)
-
-      return 
-      end subroutine calcselfc
-!EOC        
-              
-                 
-                    
-                    
-                               
+      ! and close the file
+      if (input%gw%taskname.eq.'gw0') close(fid)
+    end if
+    
+    ! timing
+    call timesec(tend)
+    time_selfc = time_selfc+tend-tstart
+    
+    ! if (myrank==0) then
+    !   write(*,*)
+    !   write(*,*) ' ---- calcselfc ended ----'
+    !   write(*,*)
+    ! end if
+    
+    return
+end subroutine
                         

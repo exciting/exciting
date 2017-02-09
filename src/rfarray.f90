@@ -1,7 +1,4 @@
 !
-!
-!
-!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -11,6 +8,9 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
       Use modmain
       Use modinput
       use modmpi
+#ifdef USEOMP
+      use omp_lib
+#endif
       Implicit None
 ! arguments
       Integer, Intent (In) :: lmax
@@ -49,12 +49,14 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
       Do ip = firstofset(mod(rank,np),np), lastofset(mod(rank,np),np)
 #else
       Do ip = 1, np
-#endif      
+#endif
          v2 (:) = vpl (:, ip)
          Call r3frac (input%structure%epslat, v2, iv)
 ! convert point to Cartesian coordinates
          Call r3mv (input%structure%crystal%basevect, v2, v1)
+!----------------------------------------         
 ! check if point is in a muffin-tin
+!----------------------------------------
          Do is = 1, nspecies
             rmt2 = rmt(is)**2
             Do ia = 1, natoms(is)
@@ -107,21 +109,35 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
                End Do
             End Do
          End Do
+!----------------------------------------
 ! otherwise use interstitial function
+!----------------------------------------
          sum = 0.d0
+#ifdef USEOMP
+!$omp parallel &
+!$omp default(shared) &
+!$omp private(ig,ifg,t1)
+!$omp do reduction (+:sum)
+#endif
          Do ig = 1, ngvec
             ifg = igfft (ig)
-            t1 = vgc (1, ig) * v1 (1) + vgc (2, ig) * v1 (2) + vgc (3, &
-           & ig) * v1 (3)
+            t1 = vgc(1,ig)*v1(1) + &
+            &    vgc(2,ig)*v1(2) + &
+            &    vgc(3,ig)*v1(3)
             sum = sum + dble (zfft(ifg)*cmplx(Cos(t1), Sin(t1), 8))
          End Do
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
 10       Continue
          fp (ip) = sum
       End Do
 #ifdef MPI
       Call mpi_allgatherv_ifc(np,1,rbuf=fp)
       Call barrier
-#endif
+#endif    
       Deallocate (rlm, zfft, ya, c)
       Return
 End Subroutine
+

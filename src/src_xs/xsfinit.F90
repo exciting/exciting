@@ -29,7 +29,7 @@ Subroutine xsfinit
       Call system_clock (COUNT=systim0f)
       cput = cputim0f - cputim0i
       wallt = dble (systim0f-systim0i) / dble (cntrate)
-      cputcum = cputim0f - cputimcum
+      cputcum = cputim0f
       walltcum = dble (systim0f-systimcum) / dble (cntrate)
 
   ! write out information
@@ -72,5 +72,9 @@ Subroutine xsfinit
 
   ! remove checkpoint file
       Call filedel (trim(fnresume))
-
+      If (rank .Ne. 0) Call filedel (trim(xsfileout))
+      If (rank .Ne. 0) Call filedel (trim(fnetim))
+      If (trim(fnchi0_t) .Ne. trim(fnchi0)) Call filedel (trim(fnchi0_t))
+      If (rank .Ne. 0) Call filedel (trim(fnxtim))
+      
 End Subroutine xsfinit

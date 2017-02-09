@@ -18,7 +18,115 @@
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="essential" ex:unit="" name="spin" minOccurs="0" maxOccurs="1">
+        
+	<xs:element ex:importance="expert" ex:unit="" name="DFTD2parameters" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation> 
+	      This element allows to customize parameters when either the option <pre>"DFTD2"</pre> of the attribute <attref>vdWcorrection</attref> is chosen, or the subelement <elementref>DFTD2</elementref> of the element <elementref>properties</elementref> is specified.
+	    </xs:documentation>
+            <xs:appinfo></xs:appinfo>
+          </xs:annotation>
+          <xs:complexType>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="s6" type="fortrandouble" default="0.75d0">
+              <xs:annotation>
+                <xs:documentation>
+			Global scaling factor for all <inlinemath>C_6</inlinemath>-dispersion coefficients for the method <pre>"DFTD2"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="sr6" type="fortrandouble" default="1.1d0">
+              <xs:annotation>
+                <xs:documentation>
+			Scaling factor for van-der-Waals radii for the method <pre>"DFTD2"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="d" type="fortrandouble" default="20.0d0">
+              <xs:annotation>
+                <xs:documentation>
+			This damping constant determines the steepnes of the damping function for the method <pre>"DFTD2"</pre>.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="cutoff" type="fortrandouble" default="95.0d0">
+              <xs:annotation>
+                <xs:documentation>
+		  Cutoff distance of interatomic interactions for the method <pre>"DFTD2"</pre>. In the sum over all pairwise interactions, only pairs of atoms are considered which are closer to each other than the value of the <pre>cutoff</pre> attribute.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+	  </xs:complexType>
+	</xs:element>
+
+
+
+	<xs:element ex:importance="expert" ex:unit="" name="TSvdWparameters" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation> 
+	      This element allows to customize parameters when either the option <pre>"TSvdW"</pre> of the attribute <attref>vdWcorrection</attref> is chosen, or the subelement <elementref>TSvdW</elementref> of the element <elementref>properties</elementref> is specified.
+	    </xs:documentation>
+            <xs:appinfo></xs:appinfo>
+          </xs:annotation>
+          <xs:complexType>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="s6" type="fortrandouble" default="1.0d0">
+              <xs:annotation>
+                <xs:documentation>
+			Global scaling factor for all <inlinemath>C_6</inlinemath>-dispersion coefficients for the method <pre>"TSvdW"</pre>.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="sr6" type="fortrandouble" default="0.94d0">
+              <xs:annotation>
+                <xs:documentation>
+			Scaling factor for van-der-Waals radii for the method <pre>"TSvdW"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="d" type="fortrandouble" default="20.0d0">
+              <xs:annotation>
+                <xs:documentation>
+			This damping constant determines the steepnes of the damping function for the method <pre>"TSvdW"</pre>.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="cutoff" type="fortrandouble" default="95.0d0">
+              <xs:annotation>
+                <xs:documentation>
+		  Cutoff distance of interatomic interactions for the method <pre>"TSvdW"</pre>. In the sum over all pairwise interactions, only pairs of atoms are considered which are closer to each other than the value of the <pre>cutoff</pre> attribute.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="nr" type="xs:integer" default="120">
+              <xs:annotation>
+                <xs:documentation>
+		  Number of radial grid points for the Gauss-Chebyshev quadrature.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="nsph" type="xs:integer" default="590">
+              <xs:annotation>
+                <xs:documentation>
+		  Number of Lebedev grid points. The <bf>only</bf> possible values are: <pre>"1"</pre>, <pre>"6"</pre>, <pre>"14"</pre>, <pre>"26"</pre>, <pre>"38"</pre>, <pre>"50"</pre>, <pre>"74"</pre>, <pre>"86"</pre>, <pre>"110"</pre>, <pre>"146"</pre>, <pre>"170"</pre>, <pre>"194"</pre>, <pre>"230"</pre>, <pre>"266"</pre>, <pre>"302"</pre>, <pre>"350"</pre>, <pre>"434"</pre>, <pre>"590"</pre>, <pre>"770"</pre>, <pre>"974"</pre>, <pre>"1202"</pre>, <pre>"1454"</pre>, <pre>"1730"</pre>, <pre>"2030"</pre>, <pre>"2354"</pre>, <pre>"2702"</pre>, <pre>"3074"</pre>, <pre>"3740"</pre>, <pre>"3890"</pre>, <pre>"4334"</pre>, <pre>"4802"</pre>, <pre>"5294"</pre>, <pre>"5810"</pre>.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+	  </xs:complexType>
+	</xs:element>
+
+
+	
+	<xs:element ex:importance="essential" ex:unit="" name="spin" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation> 
 	    If the <elementref>spin</elementref> element is present, calculation is done with
@@ -174,14 +282,35 @@
           </xs:annotation>                 
           <xs:complexType>
           </xs:complexType>
-        </xs:element>
-        
-        <xs:element ex:importance="experimental" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
+          
+          </xs:element>
+                <xs:element ex:importance="expert" ex:unit="" name="dfthalf" minOccurs="0" maxOccurs="1">
+			<xs:annotation>
+			  <xs:documentation>The presence of this element triggers <bf>DFT-1/2</bf> calculations.</xs:documentation>				
+			</xs:annotation>
+			<xs:complexType>
+				<xs:attribute ex:importance="expert" ex:unit="" name="printVSfile" type="xs:boolean"
+							default="false">
+					<xs:annotation>
+						<xs:documentation> When set to <pre>"true"</pre>, the self-energy 
+						correction potential <inlinemath>V_S({\bf r})</inlinemath>
+						(as defined in the <bf>DFT-1/2</bf> method) is calculated for each constituent 
+						atomic species and written into the files <pre>VS_S*.OUT</pre>, 
+						where <pre>*</pre> ranges from <bf>1</bf> to the number of atomic species. 
+						The exciting run quits after the printing. In this case, a serial calculation 
+						is suggested. It is useful to visualize the self-energy potential, or for 
+						debugging purposes.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:complexType>			
+          </xs:element>
+        <xs:element ex:importance="essential" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Options for hybrid functionals.</xs:documentation>
           </xs:annotation>                 
           <xs:complexType>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="exchangetype" default="OEP">
+            <xs:attribute ex:importance="essential" ex:unit="" name="exchangetype" default="HF">
               <xs:annotation>
                   <xs:documentation> Type of exchange (Hartree Fock or OEP) 
                   to be used for the exact exchange.
@@ -206,7 +335,7 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="excoeff" type="fortrandouble"
+            <xs:attribute ex:importance="essential" ex:unit="" name="excoeff" type="fortrandouble"
               default="0.25d0">
               <xs:annotation>
                 <xs:documentation> Define value of the mixing parameter for exact exchange.
@@ -219,6 +348,27 @@
               default="1.0d0">
               <xs:annotation>
                 <xs:documentation> Use for testing purposes only! </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" name="maxscl" type="xs:integer"
+              default="50">
+              <xs:annotation>
+                <xs:documentation>Upper limit for the Hybrids self-consistency loop.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="savepotential" type="xs:boolean" default="true">
+              <xs:annotation>
+                <xs:documentation>
+                  If set to true, the non-local potential will be stored in the file VNLMAT.OUT 
+                  ATTENTION: this file can become extremely large (size: Hamiltoniansize * Hamiltoniansize * k-point number * 16).
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="updateRadial" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  If set to true, the radial functions will be updated after each hybrid cycle.
+                </xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
@@ -1992,7 +2142,54 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+
+        <xs:element ex:importance="experimental" ex:unit="" name="xsLO" minOccurs="0" maxOccurs="1">
+          <xs:annotation><xs:documentation>
+            Generate extra local orbitals for accurate description of the unoccupied states.
+          </xs:documentation></xs:annotation>                 
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="emax" type="fortrandouble" default="30">
+              <xs:annotation><xs:documentation>
+                Energy cutoff for generating excited-states local orbitals.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="lmax" type="xs:integer" default="4">
+              <xs:annotation><xs:documentation>
+                Angular momentum cutoff for generating excited-states local orbitals.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="maxnodes" type="xs:integer" default="10">
+              <xs:annotation><xs:documentation>
+                Maximum number of local orbitals per l-channel.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            
+          </xs:complexType>
+        </xs:element>
+
       </xs:all>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="vdWcorrection"  default="none">
+	<xs:annotation>		
+	  <xs:documentation>
+	    Adds dispersion (van-der-Waals) correction to total energy after the last SCF iteration. If forces are calculated, an appropriate dispersion correction is applied. Available methods are
+	    <list>
+	    <li><pre>"DFTD2"</pre>: This is the <bf>DFT-D2</bf> method by Stefan Grimme which is introduced in <it>Semiempirical GGA-type density functional constructed with a long-range dispersion correction</it>, J. Comput. Chem. <bf>27</bf>, 1787-1799 (2006).</li>
+	    <li><pre>"TSvdW"</pre>: This is the <bf>TS-vdW</bf> method by Alexandre Tkatchenko and Matthias Scheffler introduced in <it>Accurate molecular van-der-Waals interactions from ground-state electron density and free-atom reference data</it>, Phys. Rev. Lett. <bf>102</bf>, 073005 (2009).</li>
+	  </list>
+	  Parameters corresponding to each method can be specified using the subelements <elementref>DFTD2parameters</elementref> and <elementref>TSvdWparameters</elementref> inside the element <elementref>groundstate</elementref>.
+	  It is also possible to decouple these van-der-Waals corrections from a complete ground-state calculation. In this case, you can use the subelements <elementref>DFTD2</elementref> and <elementref>TSvdW</elementref> inside the element <elementref>properties</elementref>.
+	  </xs:documentation>
+	</xs:annotation>
+	<xs:simpleType>
+	  <xs:restriction base="xs:string">
+	    <xs:enumeration value="none"/>
+	    <xs:enumeration value="DFTD2"/>
+	    <xs:enumeration value="TSvdW"/>
+	  </xs:restriction>
+	</xs:simpleType>
+      </xs:attribute>
+      
       <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
         <xs:annotation>
           <xs:appinfo>
@@ -2277,7 +2474,17 @@
       <xs:attribute ex:importance="essential" ex:unit="" name="maxscl" type="xs:integer"
         default="200">
         <xs:annotation>
-          <xs:documentation>Upper limit for te self-consistency loop.</xs:documentation>
+          <xs:documentation>Upper limit for the self-consistency loop.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="essential" ex:unit="" name="niterconvcheck" type="xs:integer"
+        default="2">
+	<xs:annotation>
+	  <xs:documentation>Number of self-consistency iterations over which to test convergence. 
+	  For example, if <attref>niterconvcheck</attref>=2, then both the second and third to last
+	  iterations are compared to the last one to check convergence. The convergence criteria
+	  used are those set up by <attref>scfconv</attref>. 
+	  </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="chgexs" type="fortrandouble"
@@ -2472,7 +2679,7 @@
           <xs:documentation>(Obsolete) Order of predictor-corrector polynomial.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGA_PBE_SOL">
+      <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="GGA_PBE">
         <xs:annotation>
           <xs:documentation> Type of exchange-correlation functional to be used <list>
               <li> No exchange-correlation funtional ( <inlinemath>E_{\rm xc}\equiv 0</inlinemath> ) </li>
@@ -2484,17 +2691,19 @@
                 <bf>81</bf>, 385 (1951) </li>
               <li> LSDA, von Barth-Hedin, <it>J. Phys. C</it>
                 <bf>5</bf>, 1629 (1972) </li>
-              <li> GGA, Perdew-Burke-Ernzerhof, <it>Phys. Rev. Lett.</it>
+              <li> GGA, Perdew-Burke-Ernzerhof (PBE), <it>Phys. Rev. Lett.</it>
                 <bf>77</bf>, 3865 (1996) </li>
               <li> GGA, Revised PBE, Zhang-Yang, <it>Phys. Rev. Lett.</it>
                 <bf>80</bf>, 890 (1998) </li>
               <li> GGA, PBEsol, arXiv:0707.2088v1 (2007) </li>
+              <li> GGA, asymptotically corrected PBE  (acPBE), arXiv:1409.4834 (2014) </li> 
               <li> GGA, Wu-Cohen exchange (WC06) with PBE correlation, <it>Phys. Rev. B</it>
                 <bf>73</bf>, 235116 (2006) </li>
               <li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it>Phys. Rev. B</it>
                 <bf>72</bf>, 085108 (2005) </li>
               <li> EXX, Exact Exchange, <it>Phys. Rev. Lett.</it>
                 <bf>95</bf>, 136402 (2005) </li>
+              <li> Hybrid, PBE0, <it>J. Chem. Phys.</it> <bf>110</bf>, 5029 (1999)</li>
             </list>
           </xs:documentation>
         </xs:annotation>
@@ -2722,6 +2931,14 @@
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="ExplicitKineticEnergy" type="xs:boolean" default="true">
+        <xs:annotation>
+          <xs:documentation> 
+            If true, the kinetic energy expectation values are calculated explicitly and, then, they are used for calculating the total energy.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
 
 
 
@@ -2777,14 +2994,6 @@
             distribution. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="tspecies" type="xs:boolean" default="false">
-        <xs:annotation>
-          <xs:documentation> 
-          If <pre>"true"</pre>, the program generates new species files with the updated (optimized)
-          linearization energies.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>   
       <xs:attribute ex:importance="essential" ex:unit="" name="scfconv" type="xs:string" use="optional" default="multiple">
          <xs:annotation>
               <xs:documentation>
@@ -2805,6 +3014,29 @@
               </xs:documentation>
           </xs:annotation>
        </xs:attribute>
+       
+      <xs:attribute ex:importance="expert" ex:unit="" name="dipolecorrection" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation> 
+            If <pre>"true"</pre>, the dipole correction is applied for slabs oriented 
+	    along the <inlinemath>z</inlinemath>-direction.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      
+      <xs:attribute ex:importance="expert" ex:unit="" name="dipoleposition" type="fortrandouble" default="1.0d0">
+        <xs:annotation>
+          <xs:documentation> 
+	    The value of this attribute indicates the position of the jump in electrostatic potential, 
+	    after the compensating potential (<it>i.e.</it>, the dipole correction) is applied. 
+	    The position is given as a fractional coordinate in the vertical direction. 
+	    Please note that this jump position should be located within the vacuum region enough 
+	    far away from the atomic layers, otherwise the compensating potential cannot be 
+	    correctly applied. It is recommended to put the jump position at the middle of 
+	    the vacuum layer.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
  
           <!--xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
             <xs:annotation>

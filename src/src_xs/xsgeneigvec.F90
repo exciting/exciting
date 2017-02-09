@@ -40,6 +40,7 @@ Subroutine xsgeneigvec
   ! calculate eigenvectors for each q-point (k+q point set)
       Do iq = qi, qf
          If (.Not. tscreen) Call genfilname (iqmt=Max(0, iq), setfilext=.True.)
+         If (skipgnd) filext = '.OUT'
          vqlt (:) = 0.d0
          If (iq .Ne. 0) then
             vqlt (:) = vql (:, iq)

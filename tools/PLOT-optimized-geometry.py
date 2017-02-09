@@ -84,6 +84,11 @@ dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 
 #-------------------------------------------------------------------------------
 
+lespresso = os.path.exists("quantum-espresso")
+if (lespresso): sys.exit("\n ERROR: Quantum ESPRESSO version not yet implemented!\n")
+
+#-------------------------------------------------------------------------------
+
 narg  = len(sys.argv)-1
 
 print "\n**Usage**:    PLOT-optimized-geometry.py [ATOM1 ATOM2 YMIN YMAX]\n"
@@ -206,8 +211,8 @@ plt.yticks(size=fonttick)
 pyl.grid(True)
 
 plt.plot(xx,y1,'ro--',label=u'$\Delta$1')
-plt.plot(xx,y2,'bo--',label=u'$\Delta$2')
-plt.plot(xx,y3,'go--',label=u'$\Delta$3')
+plt.plot(xx,y2,'bs--',label=u'$\Delta$2')
+plt.plot(xx,y3,'gd--',label=u'$\Delta$3')
 
 plt.plot(x0,z1,'r-',label=u'$\Delta$1$_{ref}$')
 plt.plot(x0,z2,'b-',label=u'$\Delta$2$_{ref}$')
@@ -217,9 +222,17 @@ plt.plot(x0,z3,'g-')
 plt.plot(x0,z2,'b-')
 plt.plot(x0,z1,'r-')
 
-plt.plot(xx,y3,'go--')
-plt.plot(xx,y2,'bo--')
+plt.plot(xx,y3,'gd--')
+plt.plot(xx,y2,'bs--')
 plt.plot(xx,y1,'ro--')
+
+geo_output = open("opt-relative-geometry-lattice","w")
+for i in range(len(xx)): 
+    print >>geo_output, xx[i], 
+    print >>geo_output, y1[i]-z1[0], 
+    print >>geo_output, y2[i]-z2[0], 
+    print >>geo_output, y3[i]-z3[0] 
+geo_output.close()
 
 #-------------------------------------------------------------------------------
 

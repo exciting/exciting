@@ -149,8 +149,8 @@ Subroutine gndstate
         call flushifc(60)
     end if
 
-! generate the new species files with the optimized linearization energies
-    If ((rank .Eq. 0).and.(input%groundstate%tspecies)) Call updatespecies
+! (if needed) generate the new species files with the optimized linearization energies
+    if (rank==0) call updatespecies
  
 !------------------------------------!
 !   structure optimization

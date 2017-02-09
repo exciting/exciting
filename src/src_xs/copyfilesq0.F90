@@ -36,7 +36,11 @@ Subroutine copyfilesq0
       Allocate (lolm(nstfv, nlomax,-lolmax:lolmax, natmtot))
       Do ik = 1, nkpt
      ! read files
-         filext = '_QMT001.OUT'
+        If (skipgnd) Then
+           filext = '.OUT'
+        Else
+           filext = '_QMT001.OUT'  
+        End If  
          Call getevecfv (vkl(1, ik), vgkl(1, 1, 1, ik), evecfvt)
          Call getevecsv (vkl(1, ik), evecsv)
          Call getevalsv (vkl(1, ik), evalsv(1, ik))
@@ -56,7 +60,11 @@ Subroutine copyfilesq0
         & lolm)
       End Do
   ! read files
-      filext = '_QMT001.OUT'
+      If (skipgnd) Then
+           filext = '.OUT'
+      Else
+           filext = '_QMT001.OUT'  
+      End If  
       Call readfermi
   ! write files
       filext = '_QMT000.OUT'

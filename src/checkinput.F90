@@ -67,9 +67,9 @@ subroutine checkinput
     end if
   end if
   if (associated(input%xs))then
-    if (input%xs%rgkmax.le.0.d0) then
+    if (input%xs%rgkmax.lt.0.d0) then
       write(*,*)
-      write(*,'("Error(checkinput): /input/xs/@rgkmax <= 0 : ",G18.10)') input%xs%rgkmax
+      write(*,'("Error(checkinput): /input/xs/@rgkmax < 0 : ",G18.10)') input%xs%rgkmax
       write(*,*)
       stop
     end if
@@ -602,19 +602,6 @@ subroutine checkinput
       if (input%xs%tddft%fxcbsesplit.le.0) then
         write(*,*)
         write(*,'("Error(checkinput): /input/xs/tddft/@fxcbsesplit <= 0 : ",g18.10)') input%xs%tddft%fxcbsesplit
-        write(*,*)
-        stop
-      end if
-    end if
-  end if
-  if (associated(input%xs)) then
-    if (associated(input%xs%BSE)) then
-      if ((input%xs%BSE%nstlbsemat(1).lt.0).or.(input%xs%BSE%nstlbsemat(2).lt.0).or. &
-        (input%xs%BSE%nstlbsemat(3).lt.0).or.(input%xs%BSE%nstlbsemat(4).lt.0)) then
-        write(*,*)
-        write(*,'("Error(checkinput): /input/xs/BSE/@nstlbsemat(1), /input/xs/BSE/@nstlbsemat(2), ")')
-        write(*,'(" /input/xs/BSE/@nstlbsemat(3) or /input/xs/BSE/@nstlbsemat(4) <= 0 : ",4I8)') &
-          input%xs%BSE%nstlbsemat
         write(*,*)
         stop
       end if

@@ -57,11 +57,11 @@
 \ \\
 \Huge \textbf{</xsl:text><xsl:apply-templates select="/xs:schema/xs:annotation/xs:appinfo/title"/><xsl:text>} \\
 \ \\
-\huge \textbf{\exciting \texttt{boron}} \\
+\huge \textbf{\exciting \texttt{carbon}} \\
 \Large
 \vfill
 \ \\
-July 2014
+December 2015
 \end{center}
 \end{titlepage}
 
@@ -127,6 +127,7 @@ July 2014
   </xsl:call-template>
   <xsl:text>}</xsl:text>
  </xsl:template>
+
  <xsl:template match="pre-bf">
   <xsl:text>{\usefont{T1}{lmtt}{b}{n} </xsl:text>
   <xsl:call-template name="normalizespace">
@@ -134,6 +135,23 @@ July 2014
   </xsl:call-template>
   <xsl:text>}</xsl:text>
  </xsl:template>
+
+ <xsl:template match="blue">
+  <xsl:text>{\usefont{T1}{lmtt}{b}{n} \color{blue} </xsl:text>
+  <xsl:call-template name="normalizespace">
+   <xsl:with-param name="a" select="."/>
+  </xsl:call-template>
+  <xsl:text>}</xsl:text>
+ </xsl:template>
+
+ <xsl:template match="green">
+  <xsl:text>{\usefont{T1}{lmtt}{b}{n} \color{green} </xsl:text>
+  <xsl:call-template name="normalizespace">
+   <xsl:with-param name="a" select="."/>
+  </xsl:call-template>
+  <xsl:text>}</xsl:text>
+ </xsl:template>
+
  <xsl:template match="it">
   <xsl:text>{\it </xsl:text>
   <xsl:call-template name="normalizespace">
@@ -161,7 +179,7 @@ July 2014
  </xsl:template>
  <xsl:template match="xs:documentation">
   <xsl:apply-templates
-   select="text()|inlinemath|displaymath|pre|pre-bf|bf|pre_ns|it|it_ns|p|exciting|a|list|li|attref|filename|filename_ns|elementref|elementref_ns"
+   select="text()|inlinemath|displaymath|pre|pre-bf|bf|blue|green|pre_ns|it|it_ns|p|exciting|a|list|li|attref|filename|filename_ns|elementref|elementref_ns"
   />
  </xsl:template>
  <xsl:template match="elementref">
@@ -214,10 +232,10 @@ July 2014
  </xsl:template>
  
  <xsl:template match="a">
-  <xsl:text> </xsl:text>
+  <xsl:text>{\usefont{T1}{lmtt}{b}{n} \color{black} </xsl:text>
   <xsl:value-of select="."/>
 
-  <xsl:text> (\url{</xsl:text>
+  <xsl:text> }(\url{</xsl:text>
   <xsl:value-of select="@href"/>
   <xsl:text>})</xsl:text>
 

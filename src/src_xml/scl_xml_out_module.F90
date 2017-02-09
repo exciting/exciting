@@ -23,7 +23,7 @@ Module scl_xml_out_Module
      & charges, atom, xst, timing, nscl, ngroundstate
       Type (DOMConfiguration), Pointer :: configo
       Real (8) :: scltime0 = 0.d0
-      real(8) :: deltae, dforcemax
+      real(8) :: deltae , dforcemax=0d0
       Character (512) :: buffer
 !
 Contains

@@ -2,7 +2,7 @@
 ! Copyright (C) 2004-2010 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+#include "maxdefinitions.inc"
 Module modxs
 ! !DESCRIPTION:
 !   Global variables for the {\tt XS} (eXcited States) implementation
@@ -229,6 +229,9 @@ Module modxs
       Integer :: lmmaxapwwf
   ! Gaunt coefficients array
       Real (8), Allocatable :: xsgnt (:, :, :)
+      Real (8), Allocatable :: xsgntou (:, :, :)
+      Real (8), Allocatable :: xsgntuo (:, :, :)
+      Real (8), Allocatable :: xsgntoo (:, :, :)
   ! radial integrals coefficients (APW-APW)
 !      Complex (8), Allocatable :: intrgaa2 (:, :, :)
 !      Complex (8), Allocatable :: intrgalo2 (:, :, :)
@@ -337,7 +340,8 @@ Module modxs
       Integer :: nafbse
   ! diagonal of BSE kernel (mean value, lower, upper limit and range)
       Complex (8) :: bsed, bsedl, bsedu, bsedd
-
+  ! BSE matrix sizes
+	  Integer :: sta1, sto1, sta2, sto2
   !-----------------------!
   !     I/O variables     !
   !-----------------------!
@@ -436,7 +440,7 @@ Module modxs
   ! initial and final timings for wall clock
       Integer :: systim0i, systim0f, cntrate, systimcum
   ! initial and final timings for CPU timing
-      Real (8) :: cputim0i, cputim0f, cputimcum
+      Real (8) :: cputim0i, cputim0f
   ! muffin-tin timings
 !      Real (8) :: cmt0, cmt1, cmt2, cmt3, cmt4
       Real (8) :: cpumtaa, cpumtalo, cpumtloa, cpumtlolo
@@ -470,7 +474,11 @@ Module modxs
   ! is needed
       Logical :: temat
       Data temat / .True. /
-
+  ! set true if HF-Hybrids are used as starting point
+      Logical :: hybridhf
+      Data  hybridhf / .false. /
+  ! if set to true KS eingenvalues and eigenvectors are not recalculated
+      Logical :: skipgnd
 !STK: include variables necessary for double grid computations
 
   !---------------------------------------------!
@@ -500,7 +508,6 @@ Module modxs
       Character (11) :: doscreen0
   ! backup for XS vkloff
       Real (8) :: vkloff_xs_b(3)
-      
 
 
 End Module modxs

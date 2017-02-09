@@ -5,7 +5,7 @@ F90 = gfortran-mp-4.8
 F77 = $(F90)
 F90_OPTS = -O3 -fopenmp -DUSEOMP -ffree-line-length-0
 F77_OPTS = $(F90_OPTS)
-CPP_ON_OPT = -cpp -DXS -DISO -DTETRA -DLIBXC
+CPP_ON_OPT = -cpp -DXS -DISO -DLIBXC
 LIB_ARP = libarpack.a
 # uncomment this line in case you want to use external LAPACK/BLAS library
 #export USE_SYS_LAPACK=true

@@ -101,12 +101,12 @@ Contains
     End Subroutine newsystem
     !
     !
-    Subroutine deleteystem (self)
+    Subroutine deletesystem (self)
         implicit none
         Type (evsystem), Intent (Inout) :: self
         Call deletematrix (self%hamilton)
         Call deletematrix (self%overlap)
-    End Subroutine deleteystem
+    End Subroutine deletesystem
     !
     !
     Subroutine Hermitianmatrix_rank2update (self, n, alpha, x, y) 
@@ -646,7 +646,7 @@ Contains
 !        timefv = timefv + ts1 - ts0
         !$OMP END CRITICAL
         timefv = timefv + ts1 - ts0
-        Call deleteystem (system)
+        Call deletesystem (system)
         Deallocate (iwork, ifail, w, rwork, v, work)
         else
         vl = 0.d0
@@ -714,7 +714,7 @@ endif
 !        timefv = timefv + ts1 - ts0
         !$OMP END CRITICAL
         timefv = timefv + ts1 - ts0
-        Call deleteystem (system)
+        Call deletesystem (system)
         Deallocate (iwork, ifail, w, rwork, v, work)
         endif
     end subroutine

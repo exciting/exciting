@@ -6,6 +6,7 @@ from   sys  import stdin
 from   math import sqrt
 from   math import factorial
 import numpy
+import glob
 import sys
 import os
 
@@ -28,6 +29,8 @@ def printderiv(etam,bb,nfit,output_file):
     return 
 
 def printnice(etam,bb,nfit,nderiv,orderstep,strainpoints,dc,dl):
+    punit = "[GPa]"
+    if (os.path.exists('planar')): punit = "[N/m]"
     print
     print "###########################################\n"
     print "Fit data-----------------------------------\n"
@@ -40,7 +43,7 @@ def printnice(etam,bb,nfit,nderiv,orderstep,strainpoints,dc,dl):
         order=nderiv+j*orderstep
         if (bb[j] != 99999999):
             print "Polynomial of order", '%2i'%(order), "==>", 
-            print '%10.2f'%(bb[j]), "[GPa]"
+            print '%10.2f'%(bb[j]), punit
     print
     return 
 
@@ -54,7 +57,14 @@ def sortstrain(s,e):
         ss.append(s[s.index(ww[i])])
         ee.append(e[s.index(ww[i])])
     return ss, ee
-
+    
+def pickfromfile(filename,nrow,ncol):
+    pfile = open(filename,"r")
+    for i in range(nrow): line = pfile.readline().strip()
+    x = line.split()[ncol-1]
+    pfile.close()
+    return x 
+    
 #-------------------------------------------------------------------------------
 
 factor=1.
@@ -63,26 +73,46 @@ if (os.path.exists('quantum-espresso') or\
     factor=0.5
 
 if (os.path.exists('planar')): 
-    input_planar = open('planar',"r")
-    factor=factor*float(input_planar.readline().strip().split()[0])
+    alat     = float(pickfromfile('planar',1,1))
+    covera   = float(pickfromfile('planar',1,2))
+    acfactor = alat*covera*5.2917721092e-2
+    factor=factor*acfactor
 
 startorder=0
 if (os.path.exists('startorder')): 
     input_startorder = open('startorder',"r")
     startorder=int(input_startorder.readline().strip().split()[0])
+   
+lINFO = os.path.exists('INFO-elastic-constants')
+levs = os.path.exists('energy-vs-strain')
 
-if (str(os.path.exists('INFO-elastic-constants'))=='False'): 
-    sys.exit("ERROR: file INFO-elastic-constants not found!\n")
-if (str(os.path.exists('energy-vs-strain'))=='False'): 
-    sys.exit("ERROR: file energy-vs-strain not found!\n")
+lelastic = False    
+listene = sorted(glob.glob("*"+"-Energy.dat"))
+if (len(listene) > 0): lelastic = True
 
-input_info = open('INFO-elastic-constants',"r")
-for i in range(3): line = input_info.readline()
-volume = float(input_info.readline().strip().split()[6])
-defcod = int(input_info.readline().strip().split()[3])
-deflab = input_info.readline().strip().split()[3]
-input_info.close()
+if (not(lelastic)):
+    if (not(lINFO)): sys.exit("ERROR: file INFO-elastic-constants not found!\n")
+    if (not(levs)):  sys.exit("ERROR: file energy-vs-strain not found!\n")
+    
+    input_info = open('INFO-elastic-constants',"r")
+    for i in range(3): line = input_info.readline()
+    volume = float(input_info.readline().strip().split()[6])
+    defcod = int(input_info.readline().strip().split()[3])
+    deflab = input_info.readline().strip().split()[3]
+    input_info.close()
+    
+    inputene = "energy-vs-strain"
 
+if (lelastic):
+  
+    input_info = open('../INFO_ElaStic',"r")
+    for i in range(4): line = input_info.readline()
+    volume = float(input_info.readline().strip().split()[6])
+    defcod = 99
+    deflab = "******"
+
+    inputene = str(listene[0])
+    
 #-------------------------------------------------------------------------------
 
 maximum_strain = input("\nEnter maximum strain for the fit >>>> ")
@@ -106,7 +136,7 @@ strain = []
 
 #-------------------------------------------------------------------------------
 
-input_energy = open('energy-vs-strain',"r")
+input_energy = open(inputene,"r")
 
 while True:
     line = input_energy.readline()

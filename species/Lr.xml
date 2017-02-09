@@ -47,7 +47,5 @@
         <wf matchingOrder="0" trialEnergy="-1.6227" searchE="true"/>
       </lo>
     </basis>
-    <!-- Exciting code version: Lithium -->
-    <!-- Generation Scheme: simple -->
   </sp>
 </spdb>
