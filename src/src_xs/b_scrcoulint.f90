@@ -134,7 +134,7 @@ use m_writecmplxparts
   !   main part   !
   !---------------!
 
-!write(*,*) "Hello, this is b_scrcoulint at rank:", rank
+write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
   ! Check number of empty states
   if(input%xs%screening%nempty .lt. input%groundstate%nempty) then
@@ -920,8 +920,10 @@ use m_writecmplxparts
       !write(*,*) "filext =", trim(filext)
 
       ! Set vkl and vkl0 to k-grid
-      call init1offs(k_kqmtp%kset%vkloff)
-      call xssave0
+      if(iqmt /= 1) then
+        call init1offs(k_kqmtp%kset%vkloff)
+        call xssave0
+      end if
       ! Set up ikmapikq to link (ik,iq) to jk
       ! (all other q and G+q dependent variables need not be changed)
       ikmapikq(1:nkpt, 1:nqpt) = q_q%ikiq2ikp_nr(1:nkpt, 1:nqpt)
@@ -965,8 +967,10 @@ use m_writecmplxparts
       !write(*,*) "filext =", trim(filext)
 
       ! Set vkl and vkl0 to k+qmt-grid
-      call init1offs(k_kqmtp%kqmtset%vkloff)
-      call xssave0
+      if(iqmt /= 1) then 
+        call init1offs(k_kqmtp%kqmtset%vkloff)
+        call xssave0
+      end if
       ! Set up ikmapikq to link (ikp,iq) to (jkp)
       ! (all other q and G+q dependent variables need not be changed)
       ikmapikq(1:nkpt, 1:nqpt) = qmtp_qmtp%ikiq2ikp_nr(1:nkpt, 1:nqpt)
@@ -1040,11 +1044,13 @@ use m_writecmplxparts
           !write(*,*) "filext =", trim(filext)
         end if
 
-        ! Set vkl0 to k-grid
-        call init1offs(k_kqmtm%kset%vkloff)
-        call xssave0
-        ! Set vkl to k-qmt-grid
-        call init1offs(k_kqmtm%kqmtset%vkloff)
+        if(iqmt /= 1) then 
+          ! Set vkl0 to k-grid
+          call init1offs(k_kqmtm%kset%vkloff)
+          call xssave0
+          ! Set vkl to k-qmt-grid
+          call init1offs(k_kqmtm%kqmtset%vkloff)
+        end if
 
         ! Set up ikmapikq to link (ik,iq) to jkp 
         ikmapikq(1:nkpt, 1:nqpt) = q_qmtm%ikiq2ikp_nr(1:nkpt, 1:nqpt)
@@ -1090,11 +1096,13 @@ use m_writecmplxparts
         call genfilname(iqmt=iqmt1, setfilext=.true.)
         !write(*,*) "filext =", trim(filext)
 
-        ! Set vkl0 to k+qmt-grid
-        call init1offs(k_kqmtp%kqmtset%vkloff)
-        call xssave0
-        ! Set vkl to k-grid
-        call init1offs(k_kqmtp%kset%vkloff)
+        if(iqmt /= 1) then 
+          ! Set vkl0 to k+qmt-grid
+          call init1offs(k_kqmtp%kqmtset%vkloff)
+          call xssave0
+          ! Set vkl to k-grid
+          call init1offs(k_kqmtp%kset%vkloff)
+        end if
 
         ! Set up ikmapikq to link (ikp,iq) to jk
         ikmapikq(1:nkpt, 1:nqpt) = qmtp_q%ikiq2ikp_nr(1:nkpt, 1:nqpt)
@@ -1144,10 +1152,12 @@ use m_writecmplxparts
         !write(*,*) "filext =", trim(filext)
 
         ! Set vkl0 to k-grid
-        call init1offs(k_kqmtp%kset%vkloff)
-        call xssave0
-        ! Set vkl to k+qmt-grid
-        call init1offs(k_kqmtp%kqmtset%vkloff)
+        if(iqmt /= 1) then 
+          call init1offs(k_kqmtp%kset%vkloff)
+          call xssave0
+          ! Set vkl to k+qmt-grid
+          call init1offs(k_kqmtp%kqmtset%vkloff)
+        end if
 
         ! Set up non reduced ikmapikq to link (ik,iq) to jkp
         ikmapikq(1:nkpt, 1:nqpt) = p_pqmtp%ikip2ikp_nr(1:nkpt, 1:nqpt)
@@ -1193,11 +1203,13 @@ use m_writecmplxparts
         call genfilname(iqmt=iqmt1, setfilext=.true.)
         !write(*,*) "filext =", trim(filext)
 
-        ! Set vkl0 to k+qmt-grid
-        call init1offs(k_kqmtp%kqmtset%vkloff)
-        call xssave0
-        ! Set vkl to k-grid
-        call init1offs(k_kqmtp%kset%vkloff)
+        if(iqmt /= 1) then
+          ! Set vkl0 to k+qmt-grid
+          call init1offs(k_kqmtp%kqmtset%vkloff)
+          call xssave0
+          ! Set vkl to k-grid
+          call init1offs(k_kqmtp%kset%vkloff)
+        end if
 
         ! Set up ikmapikq to link ikp,iq to jk
         ikmapikq(1:nkpt, 1:nqpt) = pqmtp_p%ikip2ikp_nr(1:nkpt, 1:nqpt)

@@ -18,6 +18,7 @@ module m_b_ematqk
       use mod_eigenvalue_occupancy, only: nstfv
       use mod_muffin_tin, only: idxlm
       use mod_Gkvector, only: ngk, vgkl, igkig, gkmax
+use mod_Gvector, only: intgv
       use mod_APW_LO, only: nlotot, apword, nlorb, lorbl
       use mod_Gvector, only: gc, ngvec, cfunig, ivg, ivgig
       use mod_kpoint, only: vkl
@@ -80,14 +81,15 @@ module m_b_ematqk
       real(8) :: cpumalores, cpumloares
       real(8) :: cpumlolores, cpumirres, cpudbg
       real(8) :: cpu0, cpu1, cpu00, cpu01, cpugntlocal, cpumtlocal
-      real(8) :: vkql(3)
+      real(8) :: vkql(3), vkkpq(3)
       integer :: shift(3), iv(3)
       type(fftmap_type) :: fftmap
       real(8) :: emat_gmax
       character(256) :: filename
       real(8), parameter :: epslat = 1.0d-6
 
-      integer :: ist
+      integer :: ist, i
+      logical :: shiftcheck
 
       ! If task 330 is 'writeemat'
       if(task .eq. 330) then
@@ -356,22 +358,47 @@ module m_b_ematqk
 #endif
 
       else mm
+
         ! Fourier transforms
+
+        ! What is done here:
+        ! Consider the integral over the interstitial region of <mk|e^{-i(G+q)r}|nk>.
+        ! Writing it using the Lattice theta function as an integral over
+        ! the whole volume: \int_V \theta(r) \Phi^*_{mk}(r) e^{-i(G+q)r} \Phi_{nk}(r)
+        !
+        ! \int_V \theta(r) \Phi^*_{mk}(r) e^{-i(G+q)r} \Phi_{nk}(r) 
+        ! Insert lattice FT expressions -->
+        ! =\int_V (\Sum_{G1} \theta(G1) e^{iG1r}) (\Sum_{G2} \Phi_{mk}(G2) e^{i(G2+k)r})^*
+        !        e^{-i(G+q)r}(\Sum_{G3} \Phi_{nk}(G3) e^{i(G3+k')r})
+        ! =\int_V (\Sum_{G1} \theta(G1) e^{iG1r}) (\Sum_{G2} \Phi_{mk}(G2) e^{iG2r})^*
+        !         (\Sum_{G3} \Phi_{nk}(G3) e^{iG3)r}) e^{i(k'-k-q)r} e^{-iGr}
+        !
+        ! By design it is e^{i(k'-k-q)r} = e^{i Gshift r} with some Gshift lattice vector.
+        ! If Gshift=0 all sums in the round brackets are directly computable as
+        ! inverse FFT's using the eigenvector coefficients (LAPW part) and \theta(G).
+        ! If it non zero one of the FFT's needs shifted coefficients.
+        ! 
+        ! So 3 inverse FFT's are computed, the real space results multiplied and
+        ! subsequently back transformed with another FFT to get the integral at all G
+        !
+        ! Note: The G shift will be incorporated into the iFFT of \theta.
+
         call timesec(cpu00)
      
         ! Index link between k and k'=k+q grids
         ikq = ikmapikq(ik, iq)
 
-        ! < k |...| k'=k+q >
-        ! Where k is stored in modxs::vkl0
-        ! and k' in mod_kpoint::vkl
-        vkql(:)=vkl0(:, ik)+vql(:, iq)
+        ! Determine G vector that maps k'-k-q back to [0,1)
+        vkkpq(:) = vkl(:,ikq)-vkl0(:,ik)-vql(:,iq)
+        call r3frac(epslat, vkkpq, shift)
+        if(any(abs(vkkpq)>epslat)) then 
+          write(*,*) "Error: k'-k-q does not map back to Gamma"
+          write(*,*) "ikq, vkl", ikq, vkl(:,ikq)
+          write(*,*) "ik, vkl0", ik, vkl0(:,ik)
+          write(*,*) "iq, vql", iq, vql(:,iq)
+          call terminate
+        end if
 
-        ! Umklapp treatment
-        ! Determine G vector that mapps k+q back to [0,1)
-        call r3frac(epslat, vkql, shift)
-        shift = -shift
-          
         emat_gmax=2*gkmax +input%xs%gqmax
 
         call genfftmap(fftmap, emat_gmax)
@@ -382,10 +409,24 @@ module m_b_ematqk
         zfftcf=zzero
 
         ! Inverse FT of characteristic lattice function (0 inside MT, 1 outside)
-        ! form reciprocal to real space
+        ! form reciprocal to real space, incorporate Gshift here.
         do ig=1, ngvec
-          if(gc(ig).lt.emat_gmax) then
-            zfftcf(fftmap%igfft(ig))=cfunig(ig)
+          if(any(shift /= 0)) then 
+            iv = ivg(:,ig) + shift
+            shiftcheck = .true.
+            do i=1,3
+              shiftcheck = (iv(i) >= intgv(i,1) .and. iv(i) <= intgv(i,2) .and. shiftcheck)
+            end do
+            if(shiftcheck) then 
+              igs = ivgig(iv(1),iv(2),iv(3))
+              if(gc(igs).lt.emat_gmax) then
+                zfftcf(fftmap%igfft(igs))=cfunig(ig)
+              end if
+            end if
+          else
+            if(gc(ig).lt.emat_gmax) then
+              zfftcf(fftmap%igfft(ig))=cfunig(ig)
+            end if
           end if
         end do
         call zfftifc(3, fftmap%ngrid, 1, zfftcf)
@@ -414,7 +455,7 @@ module m_b_ematqk
 #endif
        
 #ifdef USEOMP
-    !$omp parallel default(shared) private(ist1, ist2, igk, zfft, iv, igs, zfftres, igq)
+    !$omp parallel default(shared) private(ist1, ist2, igk, zfft, zfftres, igq)
 #endif
         allocate(zfftres(fftmap%ngrtot+1))
         allocate(zfft(fftmap%ngrtot+1))
@@ -427,22 +468,10 @@ module m_b_ematqk
           zfft=zzero
 
           ! Map plane wave coefficients form G+k' onto G fftmap
-          ! shifting if k' contains G component
-          if(any(shift /= 0)) then
-            do igk=1, ngk(1, ikq)
-              ! Get shifted G vector in lattice coordinates
-              iv=ivg(:, igkig(igk, 1, ikq))+shift
-              ! Get corresponding index
-              igs=ivgig(iv(1), iv(2), iv(3))
-              ! Map to fftmap G+k' --> Gs
-              zfft(fftmap%igfft(igs))=evecfvu2(igk, ist2)
-            end do
-          else
-            do igk=1, ngk(1, ikq)
-              ! Map to fftmap G+k' --> G
-              zfft(fftmap%igfft(igkig(igk, 1, ikq)))=evecfvu2(igk, ist2)
-            end do
-          end if
+          do igk=1, ngk(1, ikq)
+            ! Map to fftmap G+k' --> G
+            zfft(fftmap%igfft(igkig(igk, 1, ikq)))=evecfvu2(igk, ist2)
+          end do
           ! Do the iFT of the ket state
           call zfftifc(3, fftmap%ngrid, 1, zfft)
 
@@ -452,7 +481,7 @@ module m_b_ematqk
             ! Take the real space product:
             ! eveck^*_ist1(r)*\Theta(r)*eveckq_ist2(r)
             do ig=1, fftmap%ngrtot
-              zfftres(ig)=zfft(ig)*zfft0(ig, ist1) 
+              zfftres(ig)=zfft0(ig, ist1)*zfft(ig)
             end do
 
             ! Back transform the result to G space
@@ -479,9 +508,6 @@ module m_b_ematqk
         cpufft=cpu01-cpu00
 
       end if mm
-
-      !write(*,*) "ematqk: emat2 = "
-      !write(*,'(2E12.5)') emat
 
       call timesec(cpu1)
       cpumain = cpu1 - cpu0
