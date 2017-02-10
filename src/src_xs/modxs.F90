@@ -44,6 +44,7 @@ Module modxs
   ! What is the q point list index for the gamma point
   integer(4), parameter :: iqmtgamma = 1
   integer(4) :: iqmt0, iqmt1
+  logical :: useemat2
 
   !----------------------------!
   !     symmetry variables     !
@@ -387,7 +388,7 @@ Module modxs
       Character (256) :: fnresume
   ! last value of filext
       Character (256) :: filextrevert
-      Character (256) :: filext0
+      Character (256) :: filext0, filexteps
       logical :: usefilext0 = .false.
   ! file unit for output
       Integer :: unitout

@@ -77,11 +77,11 @@ subroutine writeevec(vq, voff, filxt)
     ! Read the first variational eigenvectors for k-point ik
     ! form file.
     call getevecfv(vkl(1, ik), vgkl(1, 1, 1, ik), evecfv)
-    if(task == 301) then 
-      do ist = 1, nstfv
-        evecfv(:,ist,:) = evecfv(:,ist,:)*randphases(ist,ik)
-      end do
-    end if
+    !if(task == 301) then 
+    !  do ist = 1, nstfv
+    !    evecfv(:,ist,:) = evecfv(:,ist,:)*randphases(ist,ik)
+    !  end do
+    !end if
 
     ! Compute the matching coefficients of the APWs
     call match(ngk(1, ik), gkc(1, 1, ik), tpgkc(1, 1, 1, ik),&

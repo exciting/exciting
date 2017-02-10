@@ -16,7 +16,8 @@ subroutine b_screenlauncher
   use modxs, only: tscreen, xsgnt, nwdf, qpari,&
                    & qparf, unitout, nqmt, vqlmt, qvkloff,&
                    & gqdirname, eps0dirname, scrdirname, timingdirname,&
-                   & ikmapikq, nkpt0, vkl0, usefilext0, filext0, iqmt0, iqmt1
+                   & ikmapikq, nkpt0, vkl0, usefilext0, filext0, filexteps, iqmt0, iqmt1,&
+                   & useemat2
   use mod_xsgrids
   use m_genfilname
   use m_filedel
@@ -32,7 +33,7 @@ subroutine b_screenlauncher
 !BOC
   implicit none
 
-  integer(4) :: iqmt, iq, igq, qi, qf, ik
+  integer(4) :: iqmt, iq, igq, qi, qf, ik, iqnr
   logical :: firstisgamma
   logical :: fcoup, fti
   integer(4), parameter :: iqmtgamma = 1
@@ -42,7 +43,7 @@ subroutine b_screenlauncher
   character(256) :: filex, syscommand
   character(*), parameter :: thisnam = 'b_screenlauncher'
 
-  !write(*,*) "b_screenlauncher here at rank ", rank
+  write(*,*) "b_screenlauncher here at rank ", rank
 
   ! Initialise universal variables
   call init0
@@ -144,14 +145,20 @@ subroutine b_screenlauncher
   ! Set *_SCR_QMT001.OUT as bra state file
   usefilext0 = .true.
   iqmt0 = iqmtgamma
-  call genfilname(iqmt=iqmt0, scrtype='', setfilext=.true.)
-  filext0 = filext
-  !write(*,*) "filext0 =", trim(filext0)
+  call genfilname(iqmt=iqmt0, scrtype='', fileext=filext0)
+  write(*,*) "filext0 =", trim(filext0)
 
   ! Set *_SCR_QMT001.OUT as ket state file
   iqmt1 = iqmtgamma
   call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
-  !write(*,*) "filext=", trim(filext)
+  write(*,*) "filext=", trim(filext)
+
+  ! Set *_QMT001.OUT as file extension for screening files
+  call genfilname(iqmt=iqmt1, fileext=filexteps)
+  write(*,*) "filexteps=", trim(filexteps)
+
+  ! Use <mk|e^{-i(G+q)r}|nk'> for q=k'-k in dfq
+  useemat2 = .false.
 
   ! Set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
   input%xs%emattype = 1
@@ -164,7 +171,7 @@ subroutine b_screenlauncher
 
     ! Write q-point number to fileext, filext = "_SCR_QMT001_QXYZ.OUT"
     call genfilname(scrtype='', iqmt=iqmtgamma, iq=iq, fileext=filex)
-    !write(*,*) "filex=", trim(filex)
+    write(*,*) "filex=", trim(filex)
     ! Write out G+q vectors to file "GQPOINTS_SCR_QMT001_QXYZ.OUT"
     call writegqpts(iq, filex, dirname=gqdirname)
 
@@ -221,7 +228,7 @@ subroutine b_screenlauncher
         cycle
       end if
 
-      ! Generate q-qmt / -(q+qmt) grid offset
+      ! Generate q grid offset
       call xsgrids_init(vqlmt(1:3, iqmt), gkmax)
 
       ! Reset k-grid variables to the unshifted (apart from xs%vkloff) k grid
@@ -241,10 +248,10 @@ subroutine b_screenlauncher
          & Considering momentum transfer vector iqmt=', iqmt
         if(.not. fti) then 
           write(unitout, '(a)') 'Info(' // thisnam // '):&
-            & Using q-qmt grid.'
+            & Using q = kp-k-qmt = q0-qmt grid.'
         else
           write(unitout, '(a)') 'Info(' // thisnam // '):&
-            & Using -(q+qmt) grid.'
+            & Using q = -kp-k-qmt grid.'
         end if
         call printline(unitout, "-")
       end if
@@ -253,12 +260,11 @@ subroutine b_screenlauncher
         ! q-qmt grid
         qgridoff = q_qmtm%qset%vkloff 
       else
-        ! -(q+qmt) grid
-        qgridoff = q_mqmtp%qset%vkloff 
+        ! q=-k'-k-qmt grid
+        !qgridoff = q_mqmtp%qset%vkloff 
+        qgridoff = p_pqmtp%pset%vkloff
       end if
 
-      ! Free the xsgrids (only the offset was needed)
-      call xsgrids_finalize()
 
       if(all(qgridoff == [0.0d0,0.0d0,0.0d0])) then 
 
@@ -275,39 +281,61 @@ subroutine b_screenlauncher
 
       ! Calculate the q vectors (mod_qpoint), G+q vectors with corresponding 
       ! structure factors and spherical harmonics and the square root
-      ! of the Coulomb potential v^1/2(G,q) (modxs). Also creates ikmapikq
-      ! that links (ik,iq) to ikp
+      ! of the Coulomb potential v^1/2(G,q) (modxs). 
+      ! Also creates ikmapikq that links (ik,iq) to ikp ( k+q = k')
+      ! and qvkloff which contains for each q point the offset of the k+q grid.
       call init2offs(qgridoff, input%xs%reduceq)
+      if(fti) then
+        ! Use <mk|e^{-i(G+q)r}|(nk')^*> instead of <mk|e^{-i(G+q)r}|nk'>
+        useemat2 = .true.
+        ! In case of q = -k'-k-qmt use <mk|e^{-i(G+q)r}|(nk')^*> instead of <mk|e^{-i(G+q)r}|nk'>
+        ! Then qvkloff needs to contain offset of k+qmt grid
+        do iq=1,nqpt
+          qvkloff(1:3,iq) = k_kqmtp%kqmtset%vkloff(1:3)
+        end do
+        ! and ikmapikq needs to link k,q -> k'+qmt instead of k,q -> -(k'+qmt)
+        ! in order to use dfq with ematqk2
+        do iq=1,nqpt
+          iqnr=p_pqmtp%pset%ikp2ik(iq)
+          ikmapikq(1:nkpt,iq) = p_pqmtp%ikip2ikp_nr(1:nkpt,iqnr)
+        end do
+      end if
 
-      ! Set the file name extension to _SCR_QMTXYZ_mqmt.OUT / _SCR_QMTXYZ_m.OUT
+      ! Free the xsgrids 
+      call xsgrids_finalize()
+
       if(.not. fti) then 
         ! Set *_SCR_QMT001.OUT as bra state file
         usefilext0 = .true.
         iqmt0 = iqmtgamma
-        call genfilname(iqmt=iqmt0, scrtype='', setfilext=.true.)
-        filext0 = filext
-        !write(*,*) "filext0 =", trim(filext0)
+        call genfilname(iqmt=iqmt0, scrtype='', fileext=filext0)
+        write(*,*) "filext0 =", trim(filext0)
 
         ! Set *_SCR_QMTXYZ_mqmt.OUT as ket state file
         iqmt1 = iqmt 
         call genfilname(iqmt=iqmt1, scrtype='', auxtype='mqmt', setfilext=.true.)
-        !write(*,*) "filext=", trim(filext)
+        write(*,*) "filext=", trim(filext)
+
+        ! Set *_QMTXYZ_mqmt.OUT as filextension for the screening 
+        call genfilname(iqmt=iqmt1, auxtype='mqmt', fileext=filexteps)
+        write(*,*) "filexteps=", trim(filexteps)
+
       else
         ! Set *_SCR_QMT001.OUT as bra state file
         usefilext0 = .true.
         iqmt0 = iqmtgamma
-        call genfilname(iqmt=iqmt0, scrtype='', setfilext=.true.)
-        filext0 = filext
-        !write(*,*) "filext0 =", trim(filext0)
+        call genfilname(iqmt=iqmt0, scrtype='', fileext=filext0)
+        write(*,*) "filext0 =", trim(filext0)
 
-        ! Set *_SCR_QMTXYZ_m.OUT as ket state file
+        ! Set *_SCR_QMTXYZ.OUT as ket state file
         iqmt1 = iqmt 
-        if(iqmt1 == iqmtgamma .and. all(qgridoff == 0.0d0)) then 
-          call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
-        else
-          call genfilname(iqmt=iqmt1, scrtype='', auxtype='m', setfilext=.true.)
-        end if
-        !write(*,*) "filext=", trim(filext)
+        call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
+        write(*,*) "filext=", trim(filext)
+
+        ! Set *_QMTXYZ_mqmt.OUT as filextension for the screening 
+        call genfilname(iqmt=iqmt1, auxtype='m', fileext=filexteps)
+        write(*,*) "filexteps=", trim(filexteps)
+
       end if
 
       ! Set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
@@ -325,7 +353,7 @@ subroutine b_screenlauncher
         else
           call genfilname(scrtype='', iqmt=iqmt, auxtype='m', iq=iq, fileext=filex)
         end if
-        !write(*,*) "filex=", trim(filex)
+        write(*,*) "filex=", trim(filex)
         ! Write out G+q vectors to file GQPOINTS_SCR_QMTXYZ_QXYZ_mqmt.OUT / GQPOINTS_SCR_QMTXYZ_QXYZ_m.OUT
         call writegqpts(iq, filex, dirname=gqdirname)
 
@@ -354,6 +382,8 @@ subroutine b_screenlauncher
 
   end if
 
+  ! Reset
+  useemat2 = .false.
   ! Delete gaunt maps
   call findgntn0_clear
 

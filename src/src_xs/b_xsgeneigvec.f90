@@ -3,7 +3,7 @@
 ! See the file COPYING for license details.
 !
 !
-subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt, tminus)
+subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
   use modmpi
   use modinput, only: input
   use modxs, only: unitout
@@ -16,7 +16,7 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt, tminus)
   ! Arguments
   integer(4), intent(in) :: qi, nqpts
   real(8), intent(in) :: vql(3,nqpts), qvkloff(3,nqpts)
-  logical, intent(in) :: tscr, tmqmt, tminus
+  logical, intent(in) :: tscr, tmqmt
   real(8), parameter :: epslat=1.d-6
 
   ! Local variables
@@ -48,37 +48,20 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt, tminus)
     ! The ending scheme: _SCR to indicate that the screening GS parameter were used
     !                    _QMTXYZ to indicate which qmt list point was used
     !                    _mqmt to indicate that k-qmt was used instead of k+qmt 
-    !                    _m denotes the -(k+-qmt)-grid was used (differs for vkloffs /= 0)
     !                    
     ! 
     ! Set file extension
     if(.not. tscr) then
       if(.not. tmqmt) then 
-        if(.not. tminus) then 
-          call genfilname(iqmt=iq, setfilext=.true.)
-        else
-          call genfilname(iqmt=iq, auxtype="m", setfilext=.true.)
-        end if
+        call genfilname(iqmt=iq, setfilext=.true.)
       else
-        if(.not. tminus) then
-          call genfilname(iqmt=iq, auxtype="mqmt", setfilext=.true.)
-        else
-          call genfilname(iqmt=iq, auxtype="mqmt_m", setfilext=.true.)
-        end if
+        call genfilname(iqmt=iq, auxtype="mqmt", setfilext=.true.)
       end if
     else 
       if(.not. tmqmt) then 
-        if(.not. tminus) then 
-          call genfilname(iqmt=iq, scrtype='', setfilext=.true.)
-        else
-          call genfilname(iqmt=iq, scrtype='', auxtype="m", setfilext=.true.)
-        end if
+        call genfilname(iqmt=iq, scrtype='', setfilext=.true.)
       else
-        if(.not. tminus) then
-          call genfilname(iqmt=iq, scrtype='', auxtype="mqmt", setfilext=.true.)
-        else
-          call genfilname(iqmt=iq, scrtype='', auxtype="mqmt_m", setfilext=.true.)
-        end if
+        call genfilname(iqmt=iq, scrtype='', auxtype="mqmt", setfilext=.true.)
       end if
     end if
 
@@ -103,17 +86,9 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt, tminus)
       end if
       write(unitout, '("vql = ", 3g18.10)') vql(1:3,iq)
       if(tmqmt) then 
-        if(tminus) then 
-          write(unitout, '("-(k-qmt)-grid offset derived form qmt and k offset:")')
-        else
-          write(unitout, '("(k-qmt)-grid offset derived form qmt and k offset:")')
-        end if
+        write(unitout, '("(k-qmt)-grid offset derived form qmt and k offset:")')
       else
-        if(tminus) then 
-          write(unitout, '("-(k+qmt)-grid offset derived form qmt and k offset:")')
-        else
-          write(unitout, '("(k+qmt)-grid offset derived form qmt and k offset:")')
-        end if
+        write(unitout, '("(k+qmt)-grid offset derived form qmt and k offset:")')
       end if
       write(unitout, '("qvkloff = ", 3g18.10)') qvkloff(1:3,iq)
       write(unitout, '("qvkloff/ngridk = ", 3g18.10)') qvkloff(1:3,iq)/input%xs%ngridk

@@ -199,11 +199,11 @@ subroutine writepmatxs
     ! Get the eigenvectors and values from file
     call getevecfv(vkl(1, ik), vgkl(1, 1, 1, ik), evecfvt)
     !test
-    if(task == 320) then
-      do ist = 1, nstfv
-        evecfvt(:,ist) = evecfvt(:,ist)*randphases(ist,ik)
-      end do
-    end if
+    !if(task == 320) then
+    !  do ist = 1, nstfv
+    !    evecfvt(:,ist) = evecfvt(:,ist)*randphases(ist,ik)
+    !  end do
+    !end if
     !end test
     call getevecsv(vkl(1, ik), evecsvt)
 

@@ -31,6 +31,7 @@ subroutine b_scrcoulint(iqmt, fra, fti)
   use m_genfilname
   use m_getunit
   use m_b_ematqk
+  use m_b_ematqk2
   use m_putgetbsemat
   use modbse
   use mod_xsgrids
@@ -98,6 +99,15 @@ use m_writecmplxparts
   integer(4) :: io, jo, iu, ju
   ! Combinded loop indices 
   integer(4) :: jaoff, iaoff, ia, ja
+  ! Maximal l used in the APWs and LOs
+  !   Influences quality of plane wave matrix elements
+  integer(4) :: maxl_apwlo
+  ! Maximal l used in the Reghley expansion of exponential
+  !   Influences quality of plane wave matrix elements
+  integer(4) :: maxl_e
+  ! Maximal l used in the APWs and LOs in the groundstate calculations
+  !   Influences quality of eigencoefficients.
+  integer(4) :: maxl_mat
   ! Aux.
   integer(4) :: j1, j2, ii,i,jj,j,igq
   complex(8) :: pref 
@@ -167,11 +177,33 @@ use m_writecmplxparts
 
   ! Generate gaunt coefficients used in the construction of 
   ! the plane wave matrix elements in ematqk.
-  call xsgauntgen(max(input%groundstate%lmaxapw, lolmax),&
-    & input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
-  ! Find indices for non-zero gaunt coefficients
-  call findgntn0(max(input%xs%lmaxapwwf, lolmax),&
-    & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
+
+  ! gs%lmaxapw defaults to 8, BUT xs%lmaxapw defaults to 10 
+  ! in xsinit gs%lmaxapw is overwritten with the xs%lmaxapw value.
+  ! --> xs%lmaxapw = 10
+  maxl_apwlo = max(input%groundstate%lmaxapw, lolmax)
+
+  ! xs%lmaxapwwf defaults to -1, in which case it is set to gs%lmaxmat by init2
+  ! which in trun was previously overwritten by xs%lmaxmat by xsinit. 
+  ! xs%lmatmax defaults to 5.
+  ! --> xs%lmaxapwwf = xs%lmaxmat = 5
+  maxl_mat = max(input%xs%lmaxapwwf, lolmax)
+
+  ! xs%lmaxemat defaults to 3
+  maxl_e = input%xs%lmaxemat
+
+  ! Allocates xsgnt array of shape 
+  ! ((maxl_apwlo+1)**2, (maxl_e+1)**2, (maxl_apwlo+1)**2)
+  ! and fills it with the corresponding gaunt coefficients
+  ! Note: In the generation of the gaunt coefficients l1 and l3 correspond
+  !       to the APW/LOs while l2 corresponds to the exponetial.
+  call xsgauntgen(maxl_apwlo, maxl_e, maxl_apwlo)
+  ! Find indices for non-zero gaunt coefficients in xsgnt,
+  ! and creates index maps, e.g. given l1,m1,l2,m2 -> non zero l3,m3
+  ! Up l1 up to maxl_mat, l2 up to maxl_mat, l3 up to maxl_e
+  ! Note: In the maps and following plane wave matrix elements l1 and l2 correspond
+  !       to the APW/LOs while l3 corresponds to the exponetial.
+  call findgntn0(maxl_mat, maxl_mat, maxl_e, xsgnt)
 
   if(mpiglobal%rank == 0) then
     write(unitout, '(a)') 'Info(' // thisnam // '):&
@@ -243,7 +275,7 @@ use m_writecmplxparts
     !write(*,*) "Generating reduced q-grid for W Fourier coefficients for RA coupling block."
     if(fti) then 
       !write(*,*) "  Using time inverted anti-resonant basis."
-      vqoff = q_mqmtp%qset%vkloff
+      vqoff = p_pqmtp%pset%vkloff
     else
       !write(*,*) "  Using standard anti-resonant basis."
       vqoff = q_qmtm%qset%vkloff
@@ -258,7 +290,7 @@ use m_writecmplxparts
 
   ! Make reduced q-grid with possible offset
   ! This sets up also G+q quantities and the square root of the Coulomb potential
-  ! but the secound call below will override these
+  ! but the second call below will override these
   call init2offs(vqoff, input%xs%reduceq)
   ! Copy results q-ponit results form mod_qpoint into modxs variables
   nqptr = nqpt
@@ -338,23 +370,23 @@ use m_writecmplxparts
   if(fra) then 
     if(.not. fti) then 
       if(iqmt == 1) then 
-        call genfilname(iqmt=iqmtgamma, scrtype='', fileext=fileext_scr_read)
+        call genfilname(iqmt=iqmtgamma, fileext=fileext_scr_read)
         call genfilname(iqmt=iqmt, fileext=fileext_ematrad_write)
       else
-        call genfilname(iqmt=iqmt, auxtype='mqmt', scrtype='', fileext=fileext_scr_read)
+        call genfilname(iqmt=iqmt, auxtype='mqmt', fileext=fileext_scr_read)
         call genfilname(iqmt=iqmt, auxtype='mqmt', fileext=fileext_ematrad_write)
       end if
     else
       if(all(vqoff == 0.0d0)) then 
-        call genfilname(iqmt=iqmtgamma, scrtype='', fileext=fileext_scr_read)
+        call genfilname(iqmt=iqmtgamma, fileext=fileext_scr_read)
         call genfilname(iqmt=iqmt, fileext=fileext_ematrad_write)
       else
-        call genfilname(iqmt=iqmt, auxtype='m', scrtype='', fileext=fileext_scr_read)
+        call genfilname(iqmt=iqmt, auxtype='m', fileext=fileext_scr_read)
         call genfilname(iqmt=iqmt, auxtype='m', fileext=fileext_ematrad_write)
       end if
     end if
   else
-    call genfilname(iqmt=iqmtgamma, scrtype='', fileext=fileext_scr_read)
+    call genfilname(iqmt=iqmtgamma, fileext=fileext_scr_read)
     call genfilname(iqmt=iqmt, fileext=fileext_ematrad_write)
   end if
 
@@ -454,49 +486,24 @@ use m_writecmplxparts
     !!  hermitian, but one still just needs the upper triangle)
 
     ! Get total k point indices
-    write(*,*)
-    write(*,'(a, i4)') "ikkp =", ikkp
+    !write(*,*)
+    !write(*,'(a, i4)') "ikkp =", ikkp
 
-    ! Get k point indices  (R case k=k, A case k=k, A^ti case k=-k)
-
+    ! Get k point indices  
     iknr = kmap_bse_rg(ik)
     jknr = kmap_bse_rg(jk) 
 
-    !!TEST
-    !jknr = kmap_bse_rg(ik)
-    !iknr = kmap_bse_rg(jk) 
+    !write(*,'(a, i4)') "iknr =", iknr
+    !write(*,'(a, i4)') "jknr =", jknr
 
-    write(*,'(a, i4)') "iknr =", iknr
-    write(*,'(a, i4)') "jknr =", jknr
-
-    if(fra .and. fti) then 
-      ! Get index of -k_j
-      jmknr = mk%ik2ikm(jknr)
-      !write(*,'(a, i4)') "jmknr =", jmknr
-    end if
-    
     ! Get corresponding k' (R case k'=k+qmt, A case k'=k-qmt, A^ti case k'=-(k+qmt))
-    if(fra) then
-      if(fti) then 
-        ! Get index of ik+qmt
-        ikpnr = k_kqmtp%ik2ikqmt(iknr)
-        ! Get index of jk+qmt
-        jkpnr = k_kqmtp%ik2ikqmt(jknr)
-        ! Get index of -(jk+qmt)
-        jmkpnr = mkqmtp%ik2ikm(jkpnr)
-        jmkpnr2 = mk_mkqmtp%ik2ikqmt(jmknr)
-        !write(*,'(a, i4)') "ik+qmt: ikpnr =", ikpnr
-        !write(*,'(a, i4)') "jk+qmt: jkpnr =", jkpnr
-        !write(*,'(a, i4)') "-(jk+qmt): jmkpnr =", jmkpnr
-        !write(*,'(a, i4)') "-jk-qmt: jmkpnr2 =", jmkpnr2
-      else
-        ! Get index of ik+qmt
-        ikpnr = k_kqmtp%ik2ikqmt(iknr)
-        ! Get index of jk-qmt
-        jkpnr = k_kqmtm%ik2ikqmt(jknr)
-        !write(*,'(a, i4)') "ik+qmt: ikpnr =", ikpnr
-        !write(*,'(a, i4)') "jk-qmt: jkpnt =", jkpnr
-      end if
+    if(fra .and. .not. fti) then
+      ! Get index of ik+qmt
+      ikpnr = k_kqmtp%ik2ikqmt(iknr)
+      ! Get index of jk-qmt
+      jkpnr = k_kqmtm%ik2ikqmt(jknr)
+      !write(*,'(a, i4)') "ik+qmt: ikpnr =", ikpnr
+      !write(*,'(a, i4)') "jk-qmt: jkpnt =", jkpnr
     else
       ! Get index of ik+qmt
       ikpnr = k_kqmtp%ik2ikqmt(iknr)
@@ -508,14 +515,14 @@ use m_writecmplxparts
     !write(*,*)
 
     ! Get corresponding q-point
-    ! (RR case: q = jk-ik, RA case: q = jk-ik-qmt, RA^ti case: q = -jk-ik-qmt)
+    ! (RR case: q = jk-ik, RA case: q = jk-ik-qmt, RA^ti case: q = -(jk+qmt)-ik)
     if(fra) then 
       if(fti) then 
-        iq = q_mqmtp%ikikp2iq_nr(iknr, jmkpnr)
-        iqr = q_mqmtp%qset%ik2ikp(iq)
+        iq = p_pqmtp%ikikp2ip_nr(iknr, jkpnr)
+        iqr = p_pqmtp%pset%ik2ikp(iq)
         ! Get corresponding vector in lattice coordinated
-        vqr(:) = q_mqmtp%qset%vkl(:, iqr)
-        vq(:) = q_mqmtp%qset%vklnr(:, iq)
+        vqr(:) = p_pqmtp%pset%vkl(:, iqr)
+        vq(:) = p_pqmtp%pset%vklnr(:, iq)
         !write(*,'(a, i4, 3E10.3)') "-jk-ik-qmt: iq,vq =", iq, vq
         !write(*,'(a, i4, 3E10.3)') "-jk-ik-qmt: iqr,vqr =", iqr, vqr
       else
@@ -541,8 +548,8 @@ use m_writecmplxparts
 
     ! Check if iq is Gamma point (mod_qpoint::vqc(:,iq) has length < 1d-12)
     tq0 = tqgamma(iq)
-    !!write(*,*) "q is gamma?=", tq0, (norm2(vq)<1.0d-6)
-    !!write(*,*)
+    !write(*,*) "q is gamma?=", tq0, (norm2(vq)<1.0d-6)
+    !write(*,*)
 
     ! Local field effects size (Number of G+q vectors)
     numgq = ngq(iq)
@@ -726,9 +733,9 @@ use m_writecmplxparts
       ! where ikp=ik+qmt, jkp=jk-qmt, q=jk-ik-qmt
       !
       ! For time-inverted anti-resonant basis:
-      ! Calculate M_{io ju ik}(G, q) = <io ik|e^{-i(q+G)r}|ju jmkp>
-      ! and       M_{iu jo ikp}(G, q) = <iu ikp|e^{-i(q+G)r}|jo jmk>
-      ! where ikp=ik+qmt, jmkp=-(jk+qmt), jmk=-jk, q=-jk-ik-qmt
+      ! Calculate \tilde{M}_{io ju ik}(G, q) = <io ik|e^{-i(q+G)r}|(ju jkp)^*>
+      ! and       \tilde{M}_{iu jo ikp}(G, q) = <iu ikp|e^{-i(q+G)r}|(jo jk)^*>
+      ! where ikp=ik+qmt, jkp=jk+qmt, q=-(jk+qmt)-ik
       !
       call getpwesra(mou(1:ino,1:jnu,1:numgq), muo(1:inu,1:jno,1:numgq))
 
@@ -1111,10 +1118,10 @@ use m_writecmplxparts
 
         !write(*,*) " TI"
         !write(*,*) "  Mou"
-        !-------------------------------------------------------------!
-        ! Calculate M_{io ju ik}(G, q) = <io ik|e^{-i(q+G)r}|ju jmkp> !
-        ! where jmkp=-(jk+qmt), q=-jk-ik-qmt                          !
-        !-------------------------------------------------------------!
+        !------------------------------------------------------------------------!
+        ! Calculate \tilde{M}_{io ju ik}(G, q) = <io ik|e^{-i(q+G)r}|(ju jkp)^*> !
+        ! where jkp=jk+qmt, q=-(jk+qmt)-ik                                       !
+        !------------------------------------------------------------------------!
         
         ! Bands
         ematbc%n1=ino
@@ -1132,27 +1139,21 @@ use m_writecmplxparts
         !write(*,*) "filext0 =", trim(filext0)
 
         iqmt1 = iqmt
-        if(all(mkqmtp%kset%vkloff == k_kqmtp%kqmtset%vkloff)) then 
-          !write(*,*) "Using equivalent positive grid file"
-          ! Set EVECFV_QMTYZ.OUT as ket state file
-          call genfilname(iqmt=iqmt1, setfilext=.true.)
-        else
-          ! Set EVECFV_QMTYZ_m.OUT as ket state file
-          call genfilname(iqmt=iqmt1, auxtype="m", setfilext=.true.)
-        end if
+        ! Set EVECFV_QMTYZ.OUT as ket state file
+        call genfilname(iqmt=iqmt1, setfilext=.true.)
         !write(*,*) "filext =", trim(filext)
 
         ! Set vkl0 to k-grid
         call init1offs(k_kqmtp%kset%vkloff)
         call xssave0
-        ! Set vkl to -(k+qmt)-grid
-        call init1offs(mkqmtp%kset%vkloff)
+        ! Set vkl to k+qmt-grid
+        call init1offs(k_kqmtp%kqmtset%vkloff)
 
-        ! Set up ikmapikq to link (ik,iq) to jmkp
-        ikmapikq(1:nkpt, 1:nqpt) = q_mqmtp%ikiq2ikp_nr(1:nkpt, 1:nqpt)
+        ! Set up non reduced ikmapikq to link (ik,iq) to jkp
+        ikmapikq(1:nkpt, 1:nqpt) = p_pqmtp%ikip2ikp_nr(1:nkpt, 1:nqpt)
 
         ! Calculate M_{ou,G} at fixed (k, q)
-        call b_ematqk(iq, iknr, mou, ematbc)
+        call b_ematqk2(iq, iknr, mou, ematbc)
         !------------------------------------------------------------!
 
         if(fwp) then
@@ -1167,10 +1168,10 @@ use m_writecmplxparts
         end if
 
         !write(*,*) "  Muo"
-        !--------------------------------------------------------------!
-        ! Calculate M_{iu jo ikp}(G, q) = <iu ikp|e^{-i(q+G)r}|jo jmk> !
-        ! where ikp=ik+qmt, jmk=-jk, q=-jk-ik-qmt                      !
-        !--------------------------------------------------------------!
+        !-------------------------------------------------------------------------!
+        ! Calculate \tilde{M}_{iu jo ikp}(G, q) = <iu ikp|e^{-i(q+G)r}|(jo jk)^*> !
+        ! where ikp=ik+qmt, q=-jk-(ik+qmt)                                        !
+        !-------------------------------------------------------------------------!
 
         ! Bands
         ematbc%n1=inu
@@ -1188,27 +1189,21 @@ use m_writecmplxparts
         !write(*,*) "filext0 =", trim(filext0)
 
         iqmt1=iqmtgamma
-        if(all(mkqmtp%kset%vkloff == k_kqmtp%kqmtset%vkloff)) then 
-          ! Set EVECFV_QMT001.OUT as ket state file
-          !write(*,*) "Using equivalent positive grid file"
-          call genfilname(iqmt=iqmt1, setfilext=.true.)
-        else
-          ! Set EVECFV_QMT001_m.OUT as ket state file
-          call genfilname(iqmt=iqmt1, auxtype="m", setfilext=.true.)
-        end if
+        ! Set EVECFV_QMT001.OUT as ket state file
+        call genfilname(iqmt=iqmt1, setfilext=.true.)
         !write(*,*) "filext =", trim(filext)
 
         ! Set vkl0 to k+qmt-grid
         call init1offs(k_kqmtp%kqmtset%vkloff)
         call xssave0
-        ! Set vkl to (-k)-grid
-        call init1offs(mk%kset%vkloff)
+        ! Set vkl to k-grid
+        call init1offs(k_kqmtp%kset%vkloff)
 
-        ! Set up ikmapikq to link (ikp,iq) to jmk
-        ikmapikq(1:nkpt, 1:nqpt) = qmtp_mq%ikiq2ikp_nr(1:nkpt, 1:nqpt)
+        ! Set up ikmapikq to link ikp,iq to jk
+        ikmapikq(1:nkpt, 1:nqpt) = pqmtp_p%ikip2ikp_nr(1:nkpt, 1:nqpt)
 
         ! Calculate M_{uo,G} at fixed (k, q)
-        call b_ematqk(iq, ikpnr, muo, ematbc)
+        call b_ematqk2(iq, ikpnr, muo, ematbc)
         !-------------------------------------------------------------!
         if(fwp) then
           do igq=1,numgq

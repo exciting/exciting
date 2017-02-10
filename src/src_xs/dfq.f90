@@ -27,7 +27,7 @@ subroutine dfq(iq)
                 & deuo, docc12, docc21, xiou,&
                 & xiuo, pmou, pmuo, nwdf,&
                 & bsed, ikmapikq, tordf, symt2,&
-                & bcbs, filext0,&
+                & bcbs, filext0, filexteps, useemat2,&
                 & gqdirname, eps0dirname, scrdirname, timingdirname
 #ifdef TETRA      
   use mod_eigenvalue_occupancy, only: nstsv, evalsv, efermi 
@@ -43,6 +43,7 @@ subroutine dfq(iq)
   use m_filedel
   use m_genfilname
   use m_b_ematqk
+  use m_b_ematqk2
   use m_writecmplxparts
   use m_putgeteps0
 ! !INPUT/OUTPUT PARAMETERS:
@@ -113,7 +114,7 @@ subroutine dfq(iq)
 
   ! Local variables
   character(*), parameter :: thisnam = 'dfq'
-  character(256) :: fnscreen, fneps0
+  character(256) :: fnscreen, fneps0, filex
   complex(8) :: zt1, winv
   complex(8), allocatable :: w(:)
   complex(8), allocatable :: chi0(:, :, :)
@@ -186,19 +187,25 @@ subroutine dfq(iq)
 #endif               
     call genfilname(basename='PMAT', appfilext=.true., filnam=fnpmat)
     if(input%xs%bse%beyond) then 
+      filex=filext
+      filext=filexteps
       call genfilname(basename=trim(adjustl(scrdirname))//'/'//'SCREEN', appfilext=.true., iq=iq, filnam=fnscreen)
       call genfilname(basename=trim(adjustl(eps0dirname))//'/'//'EPS0', appfilext=.true., iq=iq, filnam=fneps0)
+      filext=filex
     else
       call genfilname(basename='SCREEN', bzsampl=bzsampl, iq=iq, filnam=fnscreen)
       call genfilname(basename='EPS0', iq=iq, filnam=fneps0)
     end if
     if(input%xs%bse%beyond) then 
+      filex=filext
+      filext=filexteps
       call genfilname(nodotpar=.true., basename='EMAT_TIMING', iq=iq,&
        & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
       fnetim=trim(adjustl(timingdirname))//'/'//trim(adjustl(fnetim))
       call genfilname(nodotpar=.true., basename='X0_TIMING', iq=iq,&
        & procs=procs, rank=rank, appfilext=.true., filnam=fnxtim)
       fnxtim=trim(adjustl(timingdirname))//'/'//trim(adjustl(fnxtim))
+      filext=filex
     else
       call genfilname(nodotpar=.true., basename='EMAT_TIMING', iq=iq,&
        & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
@@ -455,7 +462,11 @@ subroutine dfq(iq)
         bc%il2 = istl2
         bc%iu1 = istu1
         bc%iu2 = istu2
-        call b_ematqk(iq, ik, xiou, bc)
+        if(useemat2) then
+          call b_ematqk2(iq, ik, xiou, bc)
+        else
+          call b_ematqk(iq, ik, xiou, bc)
+        end if
         ! Get uo
         if(allocated(xiuo)) deallocate(xiuo)
         allocate(xiuo(nst3, nst4, n))
@@ -465,7 +476,11 @@ subroutine dfq(iq)
         bc%il2 = istl4
         bc%iu1 = istu3
         bc%iu2 = istu4
-        call b_ematqk(iq, ik, xiuo, bc)
+        if(useemat2) then
+          call b_ematqk2(iq, ik, xiuo, bc)
+        else
+          call b_ematqk(iq, ik, xiuo, bc)
+        end if
 
       end if
 

@@ -42,6 +42,12 @@ module mod_xsgrids
   !   -jk - (ik+qmt)
   type(q_set) :: qmtp_mq
 
+  ! The p-grid, i.e. the (-k-kp)
+  !   -(jk+qmt) - ik = ip mapped back to the unit cell
+  type(p_set) :: p_pqmtp
+  !   -jk - (ik+qmt) = ip mapped back to the unit cell
+  type(p_set) :: pqmtp_p
+
   !   G vectors
   type(g_set)  :: g
 
@@ -56,6 +62,10 @@ module mod_xsgrids
   type(gk_set) :: g_qqmtm
   type(gk_set) :: g_qmqmtp
   type(gk_set) :: g_qmtpmq
+
+  ! G+p
+  type(gk_set) :: g_ppqmtp
+  type(gk_set) :: g_pqmtpp
   
   public :: xsgrids_write_grids
   public :: xsgrids_init, xsgrids_finalize, xsgrids_initialized
@@ -68,6 +78,8 @@ module mod_xsgrids
   public :: q_qmtp, qmtp_q
   public :: q_qmtm
   public :: q_mqmtp, qmtp_mq
+
+  public :: p_pqmtp, pqmtp_p
 
   public :: g
 
@@ -155,6 +167,11 @@ module mod_xsgrids
       ! Generate q-grid as differences of -jk - (ik+qmt)
       call generate_q_vectors(qmtp_mq, k_kqmtp%kqmtset, mk%kset, g, reduceq)
 
+      ! Generate p-grid as sums of -(jk+qmt)-ik
+      call generate_p_vectors(p_pqmtp, k_kqmtp%kset, k_kqmtp%kqmtset, g, reduceq)
+      ! Generate p-grid as sums of -jk-(ik+qmt)
+      call generate_p_vectors(pqmtp_p, k_kqmtp%kqmtset, k_kqmtp%kset, g, reduceq)
+
       ! G+k set
       call generate_Gk_vectors(g_k, k_kqmtp%kset, g, gkmax)
       ! G+(k+qmt) set 
@@ -174,6 +191,10 @@ module mod_xsgrids
       call generate_Gk_vectors(g_qqmtm, q_qmtm%qset, g, gqmax)
       call generate_Gk_vectors(g_qmqmtp, q_mqmtp%qset, g, gqmax)
       call generate_Gk_vectors(g_qmtpmq, qmtp_mq%qset, g, gqmax)
+
+      ! G+p sets
+      call generate_Gk_vectors(g_ppqmtp, p_pqmtp%pset, g, gqmax)
+      call generate_Gk_vectors(g_pqmtpp, pqmtp_p%pset, g, gqmax)
 
       ! Info
       if(.false.) then 
@@ -226,6 +247,9 @@ module mod_xsgrids
       call delete_q_vectors(q_mqmtp)
       call delete_q_vectors(qmtp_mq)
 
+      call delete_p_vectors(p_pqmtp)
+      call delete_p_vectors(pqmtp_p)
+
       call delete_G_vectors(g)
 
       call delete_gk_vectors(g_k)
@@ -242,6 +266,9 @@ module mod_xsgrids
       call delete_gk_vectors(g_qqmtm)
       call delete_gk_vectors(g_qmqmtp)
       call delete_gk_vectors(g_qmtpmq)
+
+      call delete_gk_vectors(g_ppqmtp)
+      call delete_gk_vectors(g_pqmtpp)
 
       ! Set module flag 
       initialized = .false.
@@ -346,6 +373,19 @@ module mod_xsgrids
       fname = trim(adjustl(fdir))//'qmtp_mq_qmt'//fext
       open(unit=un, file=trim(fname), action='write', status='replace')
       call print_q_vectors(qmtp_mq, k_kqmtp%kqmtset, mk%kset, g, un) 
+      close(un)
+
+      ! p 
+      call getunit(un)
+      fname = trim(adjustl(fdir))//'p_pqmtp_qmt'//fext
+      open(unit=un, file=trim(fname), action='write', status='replace')
+      call print_p_vectors(p_pqmtp, k_kqmtp%kset, k_kqmtp%kqmtset, g, un) 
+      close(un)
+
+      call getunit(un)
+      fname = trim(adjustl(fdir))//'pqmtp_p_qmt'//fext
+      open(unit=un, file=trim(fname), action='write', status='replace')
+      call print_p_vectors(pqmtp_p, k_kqmtp%kqmtset, k_kqmtp%kset, g, un) 
       close(un)
 
       ! G+k 
@@ -494,6 +534,37 @@ module mod_xsgrids
       open(unit=un, file=trim(fname), action='write', status='replace')
       do i=1, qmtp_mq%qset%nkptnr
         call print_Gknr_vectors(g_qmtpmq, i, un)
+      end do
+      close(un)
+
+      ! G+p
+      call getunit(un)
+      fname = trim(adjustl(fdir))//'g_ppqmtp_qmt'//fext
+      open(unit=un, file=trim(fname), action='write', status='replace')
+      do i=1, p_pqmtp%pset%nkpt
+        call print_Gk_vectors(g_ppqmtp, i, un)
+      end do
+      close(un)
+      call getunit(un)
+      fname = trim(adjustl(fdir))//'g_ppqmtp_nr_qmt'//fext
+      open(unit=un, file=trim(fname), action='write', status='replace')
+      do i=1, p_pqmtp%pset%nkptnr
+        call print_Gknr_vectors(g_ppqmtp, i, un)
+      end do
+      close(un)
+
+      call getunit(un)
+      fname = trim(adjustl(fdir))//'g_pqmtpp_qmt'//fext
+      open(unit=un, file=trim(fname), action='write', status='replace')
+      do i=1, pqmtp_p%pset%nkpt
+        call print_Gk_vectors(g_pqmtpp, i, un)
+      end do
+      close(un)
+      call getunit(un)
+      fname = trim(adjustl(fdir))//'g_pqmtpp_nr_qmt'//fext
+      open(unit=un, file=trim(fname), action='write', status='replace')
+      do i=1, pqmtp_p%pset%nkptnr
+        call print_Gknr_vectors(g_pqmtpp, i, un)
       end do
       close(un)
 

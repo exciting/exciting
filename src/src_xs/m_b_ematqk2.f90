@@ -1,7 +1,7 @@
 ! Copyright(C) 2006-2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-module m_b_ematqk
+module m_b_ematqk2
 
   implicit none
 
@@ -10,7 +10,7 @@ module m_b_ematqk
     !BOP
     ! !ROUTINE: b_ematqk
     ! !INTERFACE:
-    subroutine b_ematqk(iq, ik, emat, bc)
+    subroutine b_ematqk2(iq, ik, emat, bc)
     ! !USES:
       use modinput, only: input
       use mod_misc, only: task, filext
@@ -92,12 +92,12 @@ module m_b_ematqk
       ! If task 330 is 'writeemat'
       if(task .eq. 330) then
         call chkpt(3, (/ task, iq, ik /),&
-          & 'b_ematqk: task, q - point index, k - point index; q - dependent matrix elements')
+          & 'b_ematqk2: task, q - point index, k - point index; q - dependent matrix elements')
       end if
 
       call timesec(cpu0)
 
-      ! Find k+q-point
+      ! Find k'=-k-q-point
       ikq = ikmapikq(ik, iq)
       !write(*,*) "ematqk: ik=",ik," iq=",iq,"ikq=",ikq
 
@@ -141,7 +141,7 @@ module m_b_ematqk
       call timesec(cpu1)
       cpuini = cpu1 - cpu0
 
-      ! Read eigenvectors k'
+      ! Read eigenvectors for k'
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
       call getevecfv(vkl(1, ikq), vgkl(1, 1, 1, ikq), evecfv)
@@ -240,24 +240,24 @@ module m_b_ematqk
       call getapwcmt(iqmt1, ikq, 1, nstfv, input%xs%lmaxapwwf, apwcmt,&
         & tbra=.false., fname=trim(adjustl(filename)))
 
-      ! Repack C*A for APW basis function and C for LO basis functions
+      ! Repack (C*A)^* for APW basis function and C^* for LO basis functions
       ! into one array as above 
       ilo=0
       do is=1, nspecies
         do ia=1, natoms(is)
-          naug=0
           ias = idxas(ia, is)
+          naug=0
           do l=0, input%xs%lmaxapwwf
             do m=-l, l
               do io=1, apword(l, is)
-                naug=naug+1
                 lm=idxlm(l, m)
-                cmtfun(1:bc%n2, naug, ias)=apwcmt(bc%il2:bc%iu2, io, lm, ias)
+                naug=naug+1
+                cmtfun(1:bc%n2, naug, ias)=conjg(apwcmt(bc%il2:bc%iu2, io, lm, ias))
               end do
             end do
           end do
           cmtfun(1:bc%n2, naug+1:naug+losize(is), ias)=&
-            & transpose(evecfvu(ilo+1:ilo+losize(is), 1:bc%n2))
+            & conjg(transpose(evecfvu(ilo+1:ilo+losize(is), 1:bc%n2)))
           ilo=ilo+losize(is)
         end do
       end do
@@ -286,13 +286,13 @@ module m_b_ematqk
       do igq = 1, ngq(iq)
         call timesec(cpu00)
         ! Summation of gaunt coefficients w.r.t. radial integrals
-        call b_ematgntsum(iq, igq, integrals)
+        call b_ematgntsum2(iq, igq, integrals)
 
         call timesec(cpu01)
         if(whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
 
         ! Muffin-tin contribution
-        call b_ematqkgmt(iq, ik, igq, integrals, emat(:,:,igq), bc)
+        call b_ematqkgmt2(iq, ik, igq, integrals, emat(:,:,igq), bc)
         call timesec(cpu00)
 
         if(whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
@@ -320,165 +320,126 @@ module m_b_ematqk
       ! Interstitial contribution                               !
       !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
-      mm: if(input%xs%pwmat.eq.'mm') then
-        ! Matrix-matrix multiplication
+      ! Fourier transforms
+      call timesec(cpu00)
+   
+      ! Index link between k and k'=-(k+q) grids
+      ikq = ikmapikq(ik, iq)
+
+      ! Where k is stored in modxs::vkl0
+      ! and k' in mod_kpoint::vkl
+      vkql(:)=-vkl0(:, ik)-vql(:, iq)
+
+      ! Umklapp treatment
+      ! Determine G vector that mapps -k-q back to [0,1)
+      call r3frac(epslat, vkql, shift)
+      shift = -shift
+        
+      emat_gmax=2*gkmax +input%xs%gqmax
+
+      call genfftmap(fftmap, emat_gmax)
+      allocate(zfft0(fftmap%ngrtot+1, bc%n1))
+      zfft0=zzero
+
+      allocate(zfftcf(fftmap%ngrtot+1))
+      zfftcf=zzero
+
+      ! Inverse FT of characteristic lattice function (0 inside MT, 1 outside)
+      ! form reciprocal to real space
+      do ig=1, ngvec
+        if(gc(ig).lt.emat_gmax) then
+          zfftcf(fftmap%igfft(ig))=cfunig(ig)
+        end if
+      end do
+      call zfftifc(3, fftmap%ngrid, 1, zfftcf)
+
 #ifdef USEOMP
-    !$omp parallel default(shared) private(igq, xihir, cpu00, cpu01, whichthread)
-        whichthread=omp_get_thread_num()
-#endif 
-        allocate(xihir(n0, n))
-#ifdef USEOMP
-    !$omp do
+  !$omp parallel default(shared) private(ist1, igk)
+  !$omp do
 #endif
-        do igq = 1, ngq(iq)
-          call timesec(cpu00)
+      ! Inverse FT of interstitial part of bra state
+      ! form reciprocal to real space for each band
+      do ist1=1, bc%n1
 
-          ! Interstitial contribution
-          call b_ematqkgir(iq, ik, igq, xihir, n0, n)
-          call timesec(cpu01)
-          if(whichthread.eq.0) cpuir = cpuir + cpu01 - cpu00
-
-          ! Interstitial contribution
-          call doublesummation_simple_cz(emat(:, :, igq), evecfvo20,&
-            & xihir, evecfvu2, zone, zone, .true.)
-
-          call timesec(cpu00)
-          if(whichthread.eq.0) cpumirres = cpumirres + cpu00 - cpu01
-          call timesec(cpu01)
-          if(whichthread.eq.0) cpudbg = cpudbg + cpu01 - cpu00
-        end do ! Igq
-#ifdef USEOMP
-    !$omp end do
-#endif
-        deallocate(xihir)
-#ifdef USEOMP
-    !$omp end parallel
-#endif
-
-      else mm
-        ! Fourier transforms
-        call timesec(cpu00)
-     
-        ! Index link between k and k'=k+q grids
-        ikq = ikmapikq(ik, iq)
-
-        ! < k |...| k'=k+q >
-        ! Where k is stored in modxs::vkl0
-        ! and k' in mod_kpoint::vkl
-        vkql(:)=vkl0(:, ik)+vql(:, iq)
-
-        ! Umklapp treatment
-        ! Determine G vector that mapps k+q back to [0,1)
-        call r3frac(epslat, vkql, shift)
-        shift = -shift
-          
-        emat_gmax=2*gkmax +input%xs%gqmax
-
-        call genfftmap(fftmap, emat_gmax)
-        allocate(zfft0(fftmap%ngrtot+1, bc%n1))
-        zfft0=zzero
-
-        allocate(zfftcf(fftmap%ngrtot+1))
-        zfftcf=zzero
-
-        ! Inverse FT of characteristic lattice function (0 inside MT, 1 outside)
-        ! form reciprocal to real space
-        do ig=1, ngvec
-          if(gc(ig).lt.emat_gmax) then
-            zfftcf(fftmap%igfft(ig))=cfunig(ig)
-          end if
+        ! Map plane wave coefficients from G+k onto G fftmap 
+        do igk=1, ngk0(1, ik)
+          zfft0(fftmap%igfft(igkig0(igk, 1, ik)), ist1)=evecfvo20(igk, ist1)
         end do
-        call zfftifc(3, fftmap%ngrid, 1, zfftcf)
+        ! Do the iFT
+        call zfftifc(3, fftmap%ngrid, 1, zfft0(:, ist1))
+        ! Conjugate and multiply by characteristic lattice function
+        zfft0(:, ist1)=conjg(zfft0(:, ist1))*zfftcf(:) 
 
+      end do
 #ifdef USEOMP
-    !$omp parallel default(shared) private(ist1, igk)
-    !$omp do
-#endif
-        ! Inverse FT of interstitial part of bra state
-        ! form reciprocal to real space for each band
-        do ist1=1, bc%n1
-
-          ! Map plane wave coefficients from G+k onto G fftmap 
-          do igk=1, ngk0(1, ik)
-            zfft0(fftmap%igfft(igkig0(igk, 1, ik)), ist1)=evecfvo20(igk, ist1)
-          end do
-          ! Do the iFT
-          call zfftifc(3, fftmap%ngrid, 1, zfft0(:, ist1))
-          ! Conjugate and multiply by characteristic lattice function
-          zfft0(:, ist1)=conjg(zfft0(:, ist1))*zfftcf(:) 
-
-        end do
-#ifdef USEOMP
-    !$omp end do
-    !$omp end parallel
-#endif
-       
-#ifdef USEOMP
-    !$omp parallel default(shared) private(ist1, ist2, igk, zfft, iv, igs, zfftres, igq)
-#endif
-        allocate(zfftres(fftmap%ngrtot+1))
-        allocate(zfft(fftmap%ngrtot+1))
-#ifdef USEOMP
-    !$omp do
-#endif
-        ! For each band used for the ket state do 
-        do ist2=1, bc%n2
-
-          zfft=zzero
-
-          ! Map plane wave coefficients form G+k' onto G fftmap
-          ! shifting if k' contains G component
-          if(any(shift /= 0)) then
-            do igk=1, ngk(1, ikq)
-              ! Get shifted G vector in lattice coordinates
-              iv=ivg(:, igkig(igk, 1, ikq))+shift
-              ! Get corresponding index
-              igs=ivgig(iv(1), iv(2), iv(3))
-              ! Map to fftmap G+k' --> Gs
-              zfft(fftmap%igfft(igs))=evecfvu2(igk, ist2)
-            end do
-          else
-            do igk=1, ngk(1, ikq)
-              ! Map to fftmap G+k' --> G
-              zfft(fftmap%igfft(igkig(igk, 1, ikq)))=evecfvu2(igk, ist2)
-            end do
-          end if
-          ! Do the iFT of the ket state
-          call zfftifc(3, fftmap%ngrid, 1, zfft)
-
-          ! For all bra state bands do
-          do ist1=1, bc%n1
-
-            ! Take the real space product:
-            ! eveck^*_ist1(r)*\Theta(r)*eveckq_ist2(r)
-            do ig=1, fftmap%ngrtot
-              zfftres(ig)=zfft(ig)*zfft0(ig, ist1) 
-            end do
-
-            ! Back transform the result to G space
-            call zfftifc(3, fftmap%ngrid, -1, zfftres)
-
-            ! Add the interstitial result to emat for all G+q within the cutoff
-            do igq=1, ngq(iq)
-              emat(ist1, ist2, igq)=emat(ist1, ist2, igq)&
-                &+ zfftres(fftmap%igfft(igqig(igq, iq)))
-            end do
-          end do
-        end do
-#ifdef USEOMP
-    !$omp end do
-#endif
-        deallocate(zfftres, zfft)
-#ifdef USEOMP
+  !$omp end do
   !$omp end parallel
 #endif
+     
+#ifdef USEOMP
+  !$omp parallel default(shared) private(ist1, ist2, igk, zfft, iv, igs, zfftres, igq)
+#endif
+      allocate(zfftres(fftmap%ngrtot+1))
+      allocate(zfft(fftmap%ngrtot+1))
+#ifdef USEOMP
+  !$omp do
+#endif
+      ! For each band used for the ket state do 
+      do ist2=1, bc%n2
 
-        deallocate(fftmap%igfft)
-        deallocate(zfft0, zfftcf)
-        call timesec(cpu01)
-        cpufft=cpu01-cpu00
+        zfft=zzero
 
-      end if mm
+        ! Map plane wave coefficients form G+k' onto G fftmap
+        ! shifting if k' contains G component
+        if(any(shift /= 0)) then
+          do igk=1, ngk(1, ikq)
+            ! Get shifted G vector in lattice coordinates
+            iv=ivg(:, igkig(igk, 1, ikq))+shift
+            ! Get corresponding index
+            igs=ivgig(iv(1), iv(2), iv(3))
+            ! Map to fftmap G+k' --> Gs
+            zfft(fftmap%igfft(igs))=evecfvu2(igk, ist2)
+          end do
+        else
+          do igk=1, ngk(1, ikq)
+            ! Map to fftmap G+k' --> G
+            zfft(fftmap%igfft(igkig(igk, 1, ikq)))=evecfvu2(igk, ist2)
+          end do
+        end if
+        ! Do the iFT of the ket state
+        call zfftifc(3, fftmap%ngrid, 1, zfft)
+
+        ! For all bra state bands do
+        do ist1=1, bc%n1
+
+          ! Take the real space product:
+          ! eveck^*_ist1(r)*\Theta(r)*eveckq_ist2(r)
+          do ig=1, fftmap%ngrtot
+            zfftres(ig)=conjg(zfft(ig))*zfft0(ig, ist1) 
+          end do
+
+          ! Back transform the result to G space
+          call zfftifc(3, fftmap%ngrid, -1, zfftres)
+
+          ! Add the interstitial result to emat for all G+q within the cutoff
+          do igq=1, ngq(iq)
+            emat(ist1, ist2, igq)=emat(ist1, ist2, igq)&
+              &+ zfftres(fftmap%igfft(igqig(igq, iq)))
+          end do
+        end do
+      end do
+#ifdef USEOMP
+  !$omp end do
+#endif
+      deallocate(zfftres, zfft)
+#ifdef USEOMP
+!$omp end parallel
+#endif
+
+      deallocate(fftmap%igfft)
+      deallocate(zfft0, zfftcf)
+      call timesec(cpu01)
+      cpufft=cpu01-cpu00
 
       !write(*,*) "ematqk: emat2 = "
       !write(*,'(2E12.5)') emat
@@ -500,10 +461,10 @@ module m_b_ematqk
           & cpumtalo, cpumtloa, cpumtlolo, cpufft)
       end if
 
-    end subroutine b_ematqk
+    end subroutine b_ematqk2
     !EOC
 
-    subroutine b_ematqkgmt(iq, ik, igq, integrals, emat, bc)
+    subroutine b_ematqkgmt2(iq, ik, igq, integrals, emat, bc)
       use modinput, only: input
       use mod_constants, only: zzero, zone, fourpi
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
@@ -550,8 +511,8 @@ module m_b_ematqk
       ! Loop over species and atoms
       do is = 1, nspecies
         do ia = 1, natoms(is)
-
           ias = idxas(ia, is)
+
           call timesec(cmt0)
           !---------------------------!
           !     apw-apw contribution  !
@@ -574,9 +535,9 @@ module m_b_ematqk
       end do ! is
 
       deallocate(zm)
-    end subroutine b_ematqkgmt
+    end subroutine b_ematqkgmt2
 
-    subroutine b_ematgntsum(iq, igq, integrals)
+    subroutine b_ematgntsum2(iq, igq, integrals)
       use modinput, only: input
       use mod_misc, only: filext
       use mod_constants, only: zzero, zil
@@ -665,22 +626,28 @@ module m_b_ematqk
           !---------------------------!
           !     apw-apw integrals     !
           !---------------------------!
+          ! Loop over l,m,p combinations of bra apw
+          ! for which there are non zero gaunt coefficients
           do cl1 = 1, l1shape
             l1 = l1map(cl1)
             do cm1 = 1, m1shape(l1)
               m1 = m1map(l1, cm1)
               lm1 = idxlm(l1, m1)
-
               do io1 = 1, apword(l1, is)
 
+                ! Loop over l',m',p' combinations of ket apw
+                ! for which there are non-zero gaunt coefficients 
+                ! given l,m of the bra apw state
                 do cl2 = 1, l2shape(l1, m1)
                   l3 = l2map(l1, m1, cl2)
                   do cm2 = 1, m2shape(l1, m1, l3)
                     m3 = m2map(l1, m1, l3, cm2)
                     lm3 = idxlm(l3, m3)
-
                     do io2 = 1, apword(l3, is)
 
+                      ! Loop over l'',m'' combinations of the 
+                      ! Reighley expansion of e^{-i(G+q)r}, for which
+                      ! there are non-zero gaunt coefficients given l,m and l',m'
                       do cl3 = 1, l3shape(l1, m1, l3, m3)
                         l2 = l3map(l1, m1, l3, m3, cl3)
                         do cm3 = 1, m3shape(l1, m1, l3, m3, l2)
@@ -691,36 +658,53 @@ module m_b_ematqk
                             & intrgaa(lm1, io1, lm3, io2)&
                             &+ conjg(zil(l2)) * riaa(l1, io1, l3, io2, l2, ias, igq)&
                             &* conjg(ylmgq(lm2, igq, iq)) * xsgnt(lm1, lm2, lm3)
+
                         end do
                       end do
+
                       ! Debug output
                       if(input%xs%dbglev .gt. 2) then
                          write(u1, '(6i5, 2g18.10)') igq, ias, &
                            & lm1, io1, lm3, io2, intrgaa(lm1, io1, lm3, io2)
                       end if
+
                     end do
                   end do
                 end do
+
               end do
             end do
           end do
 
+          ! Write APW-APW part in total intrgals array. 
+          !   Note: bra and ket index swapped.
+          ! Changed for calculation of \int \Phi^*_mk e^{-i(G+q)r} \Phi^*_nk'
+
+          ! Combined l',m',p' index 
           iaug2=0
           do l3=0, input%xs%lmaxapwwf
             do m3=-l3, l3
+              ! Change 1: m' --> -m'
+              lm3=idxlm(l3, -m3)
               do io2=1, apword(l3, is)
                 iaug2=iaug2+1
-                lm3=idxlm(l3, m3)
+
+                ! Combined l,m,p index
                 iaug1=0
                 do l1=0, input%xs%lmaxapwwf
                   do m1=-l1, l1
+                      lm1=idxlm(l1, m1)
                       do io1=1, apword(l1, is)
                         iaug1=iaug1+1
-                        lm1=idxlm(l1, m1)
-                        integrals(iaug2, iaug1, ias)=intrgaa(lm1, io1, lm3, io2)
+
+                        ! Change 2: *(-1)^m'
+                        integrals(iaug2, iaug1, ias) =&
+                          & intrgaa(lm1, io1, lm3, io2)*(-1.0d0)**m3
+
                       end do
                     end do
                   end do
+
               end do
             end do
           end do
@@ -728,52 +712,78 @@ module m_b_ematqk
           !-------------------------------------!
           !     apw-local-orbital integrals     !
           !-------------------------------------!
+          ! Loop over l,m,p combinations of bra apw
+          ! for which there are non zero gaunt coefficients
           do cl1 = 1, l1shape
             l1 = l1map(cl1)
             do cm1 = 1, m1shape(l1)
               m1 = m1map(l1, cm1)
               lm1 = idxlm(l1, m1)
               do io = 1, apword(l1, is)
+
+                ! Loop over all local orbitals for that species
+                ! with l',m' combinations for which there are non-zero
+                ! gaunt coefficients given the l,m of the apw
                 do ilo = 1, nlorb(is)
                   l3 = lorbl(ilo, is)
                   do cm2 = 1, m2shape(l1, m1, l3)
                     m3 = m2map(l1, m1, l3, cm2)
                     lm3 = idxlm(l3, m3)
+
+                    ! Loop over l'',m'' combinations of the 
+                    ! Reighley expansion of e^{-i(G+q)r}, for which
+                    ! there are non-zero gaunt coefficients given l,m and l',m'
                     do cl3 = 1, l3shape(l1, m1, l3, m3)
                       l2 = l3map(l1, m1, l3, m3, cl3)
                       do cm3 = 1, m3shape(l1, m1, l3, m3, l2)
                         m2 = m3map(l1, m1, l3, m3, l2, cm3)
                         lm2 = idxlm(l2, m2)
+
                         intrgalo(m3, ilo, lm1, io) = intrgalo(m3, ilo, lm1, io)&
                           &+ conjg(zil(l2)) * riloa(ilo, l1, io, l2, ias, igq)&
                           &* conjg(ylmgq(lm2, igq, iq)) * xsgnt(lm1, lm2, lm3)
+
                       end do
                     end do
+
                     ! Debug output
                     if(input%xs%dbglev .gt. 2) then
                        write(u2, '(6i5, 2g18.10)') igq, ias, &
                          & m3, ilo, lm1, io, intrgalo(m3, ilo, lm1, io)
                     end if
+
                   end do
                 end do
+
               end do
             end do
           end do
 
+          ! Write APW-LO part in total intrgals array. 
+          !   Note: bra and ket index swapped.
+          ! Changed for calculation of \int \Phi^*_mk e^{-i(G+q)r} \Phi^*_nk'
+
+          ! Combined l',m' index (LO)
           iaug2=0
           do ilo = 1, nlorb(is)
             l3 = lorbl(ilo, is)
             do m3=-l3, l3
+              ! Change 1: m' --> -m'
+              lm3=idxlm(l3, -m3)
               iaug2=iaug2+1
-              lm3=idxlm(l3, m3)
              
+              ! Combined l,m,p index (APW)
               iaug1=0
               do l1=0, input%xs%lmaxapwwf
                 do m1=-l1, l1
+                  lm1=idxlm(l1, m1)
                   do io=1, apword(l1, is)
                     iaug1=iaug1+1
-                    lm1=idxlm(l1, m1)
-                    integrals(apwsize(is)+iaug2, iaug1, ias)=intrgalo(m3, ilo, lm1, io)
+
+                    ! Change 2: *(-1)^m'
+                    integrals(apwsize(is)+iaug2, iaug1, ias) =&
+                      & intrgalo(-m3, ilo, lm1, io)*(-1.0d0)**m3
+
                   end do
                 end do
                end do
@@ -784,52 +794,77 @@ module m_b_ematqk
           !-------------------------------------!
           !     local-orbital-apw integrals     !
           !-------------------------------------!
+          ! Loop over all local orbitals for that species (bra)
+          ! with l,m combinations for which there are non zero gaunt coefficients
           do ilo = 1, nlorb(is)
             l1 = lorbl(ilo, is)
             do cm1 = 1, m1shape(l1)
               m1 = m1map(l1, cm1)
               lm1 = idxlm(l1, m1)
+
+              ! Loop over l',m',p' combinations of (ket) apw
+              ! for which there are non zero gaunt coefficients
+              ! given l,m of the LO
               do cl2 = 1, l2shape(l1, m1)
                 l3 = l2map(l1, m1, cl2)
                 do cm2 = 1, m2shape(l1, m1, l3)
                   m3 = m2map(l1, m1, l3, cm2)
                   lm3 = idxlm(l3, m3)
                   do io = 1, apword(l3, is)
+
+                    ! Loop over l'',m'' combinations of the 
+                    ! Reighley expansion of e^{-i(G+q)r}, for which
+                    ! there are non-zero gaunt coefficients given l,m and l',m'
                     do cl3 = 1, l3shape(l1, m1, l3, m3)
                       l2 = l3map(l1, m1, l3, m3, cl3)
                       do cm3 = 1, m3shape(l1, m1, l3, m3, l2)
                         m2 = m3map(l1, m1, l3, m3, l2, cm3)
                         lm2 = idxlm(l2, m2)
+
                         intrgloa(m1, ilo, lm3, io) = intrgloa(m1, ilo, lm3, io)&
                           &+ conjg(zil(l2)) * riloa(ilo, l3, io, l2, ias, igq)&
                           &* conjg(ylmgq(lm2, igq, iq)) * xsgnt(lm1, lm2, lm3)
+
                       end do
                     end do
+
                     ! Debug output
                     if(input%xs%dbglev .gt. 2) then
                        write(u3, '(6i5, 2g18.10)') igq, ias,&
                          & m1, ilo, lm3, io, intrgloa(m1, ilo, lm3, io)
                     end if
+
                   end do
                 end do
               end do
+
             end do
           end do
 
+          ! Write LO-APW part in total intrgals array. 
+          !   Note: bra and ket index swapped.
+          ! Changed for calculation of \int \Phi^*_mk e^{-i(G+q)r} \Phi^*_nk'
+
+          ! Combined l,m index (LO)
           iaug2=0
           do ilo = 1, nlorb(is)
             l3 = lorbl(ilo, is)
             do m3=-l3, l3
-              iaug2=iaug2+1
               lm3=idxlm(l3, m3)
+              iaug2=iaug2+1
 
+              ! Combined l',m',p' index (APW)
               iaug1=0
               do l1=0, input%xs%lmaxapwwf
                 do m1=-l1, l1
+                  ! Change 1: m' --> -m'
+                  lm1=idxlm(l1, -m1)
                   do io=1, apword(l1, is)
                     iaug1=iaug1+1
-                    lm1=idxlm(l1, m1)
-                    integrals(iaug1, apwsize(is)+iaug2, ias)=intrgloa(m3, ilo, lm1, io)
+
+                    integrals(iaug1, apwsize(is)+iaug2, ias) =&
+                      & intrgloa(m3, ilo, lm1, io)*(-1.0d0)**m1
+
                   end do
                 end do
                end do
@@ -840,49 +875,72 @@ module m_b_ematqk
           !-----------------------------------------------!
           !     local-orbital-local-orbital integrals     !
           !-----------------------------------------------!
+          ! Loop over all local orbitals for that species (bra)
+          ! with l,m combinations for which there are non zero gaunt coefficients
           do ilo1 = 1, nlorb(is)
             l1 = lorbl(ilo1, is)
             do cm1 = 1, m1shape(l1)
               m1 = m1map(l1, cm1)
               lm1 = idxlm(l1, m1)
+
+              ! Loop over all local orbitals for that species (ket)
+              ! with l',m' combinations for which there are non zero gaunt coefficients
+              ! given l,m of the other LO
               do ilo2 = 1, nlorb(is)
                 l3 = lorbl(ilo2, is)
                 do cm2 = 1, m2shape(l1, m1, l3)
                   m3 = m2map(l1, m1, l3, cm2)
                   lm3 = idxlm(l3, m3)
+
+                  ! Loop over l'',m'' combinations of the 
+                  ! Reighley expansion of e^{-i(G+q)r}, for which
+                  ! there are non-zero gaunt coefficients given l,m and l',m'
                   do cl3 = 1, l3shape(l1, m1, l3, m3)
                     l2 = l3map(l1, m1, l3, m3, cl3)
                     do cm3 = 1, m3shape(l1, m1, l3, m3, l2)
                       m2 = m3map(l1, m1, l3, m3, l2, cm3)
                       lm2 = idxlm(l2, m2)
+
                       intrglolo(m1, ilo1, m3, ilo2) = intrglolo(m1, ilo1, m3, ilo2)&
                         &+ conjg(zil(l2)) * rilolo(ilo1, ilo2, l2, ias, igq)&
                         &* conjg(ylmgq(lm2, igq, iq)) * xsgnt(lm1, lm2, lm3)
+
                     end do
                   end do
+
                   ! Debug output
                   if(input%xs%dbglev .gt. 2) then
                      write(u4, '(6i5, 2g18.10)') igq, ias, m1, &
                        & ilo1, m3, ilo2, intrglolo(m1, ilo1, m3, ilo2)
                   end if
+
                 end do
               end do
             end do
           end do
 
+          ! Write LO-LO part in total intrgals array. 
+          !   Note: bra and ket index swapped.
+          ! Changed for calculation of \int \Phi^*_mk e^{-i(G+q)r} \Phi^*_nk'
+
+          ! Combined l',m' index (LO)
           iaug2=0
           do ilo2 = 1, nlorb(is)
             l3 = lorbl(ilo2, is)
             do m3=-l3, l3
               iaug2=iaug2+1
 
+              ! Combined l,m index (LO)
               iaug1=0
               do ilo1 = 1, nlorb(is)
                 l1 = lorbl(ilo1, is)
                 do m1=-l1, l1
                   iaug1=iaug1+1
+
+                  ! Change: m'-->-m' & *(-1)^m'
                   integrals(apwsize(is)+iaug2, apwsize(is)+iaug1, ias)=&
-                    & intrglolo(m1, ilo1, m3, ilo2)
+                    & intrglolo(m1, ilo1, -m3, ilo2)*(-1.0d0)**m3
+
                 end do
               end do
 
@@ -908,53 +966,6 @@ module m_b_ematqk
         close(u4)
       end if
           
-    end subroutine b_ematgntsum
+    end subroutine b_ematgntsum2
 
-    subroutine b_ematqkgir(iq, ik, igq, xihir, n0, n)
-      use mod_Gvector, only: ivg, ivgig, cfunig
-      use mod_Gkvector, only: ngkmax, igkig, ngk
-      use mod_qpoint, only: vql
-      use mod_kpoint, only: vkl
-      use modxs, only: ikmapikq, ngkmax0, vkl0, igkig0,&
-                     & igqig, ngk0
-
-      implicit none
-
-      ! Arguments
-      integer, intent(in) :: iq, ik, igq, n0,n
-      complex(8), intent(out) :: xihir(n0,n) 
-
-      ! Local variables
-      character(*), parameter :: thisnam = 'b_ematqkgir'
-      integer :: ikq, ig, ig1, ig2, ig3, igk0, igk, iv(3), iv1(3), iv3(3), ivu(3)
-      integer, allocatable :: aigk0(:), aigk(:)
-
-      ! Grid index for k+q point
-      ikq = ikmapikq(ik, iq)
-      allocate(aigk0(ngkmax0), aigk(ngkmax))
-
-      ! Positive umklapp G-vector
-      ivu(:) = nint(vkl0(:, ik)+vql(:, iq)-vkl(:, ikq))
-
-      ! Precalculate for speedup
-      aigk0(:) = igkig0(:, 1, ik)
-      aigk(:) = igkig(:, 1, ikq)
-      ig3 = igqig(igq, iq)
-      iv3(:) = ivg(:, ig3)
-
-      do igk0 = 1, ngk0(1, ik)
-        ig1 = aigk0(igk0)
-        iv1(:) = ivg(:, ig1) + iv3(:)
-        do igk = 1, ngk(1, ikq)
-          ig2 = aigk(igk)
-          ! Umklapp of k+q vector included
-          iv(:) = iv1(:) - (ivg(:, ig2)-ivu(:))
-          ig = ivgig(iv(1), iv(2), iv(3))
-          xihir(igk0, igk) = cfunig(ig)
-        end do
-      end do
-
-      deallocate(aigk0, aigk)
-    end subroutine b_ematqkgir
-
-end module m_b_ematqk
+end module m_b_ematqk2

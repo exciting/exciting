@@ -27,7 +27,7 @@ subroutine b_xsgeneigveclauncher
   ! Local variables
   character(*), parameter :: thisnam = 'b_xsgeneigveclauncer'
   integer(4) :: iq, qi, qf
-  logical :: tminus, tmqmt
+  logical :: tmqmt
   logical :: firstisgamma
   real(8), allocatable :: vkloff_kqmtm(:,:), vkloff_mkqmtp(:,:)
   real(8), parameter :: epslat=1.d-6
@@ -56,33 +56,33 @@ subroutine b_xsgeneigveclauncher
   call init2
 
   !test
-  if(task == 301) then 
-    if(allocated(randphases)) deallocate(randphases)
-    allocate(randphasesvec(nstfv,nkpt))
-    randphasesvec=0
-    seedsize=1
-    call random_seed(size=seedsize)
-    allocate(seeds(seedsize))
-    seeds=5219
-    call random_seed(put=seeds)
-    call random_number(randphasesvec)
-    randphasesvec = 0
+  !if(task == 301) then 
+  !  if(allocated(randphases)) deallocate(randphases)
+  !  allocate(randphasesvec(nstfv,nkpt))
+  !  randphasesvec=0
+  !  seedsize=1
+  !  call random_seed(size=seedsize)
+  !  allocate(seeds(seedsize))
+  !  seeds=5219
+  !  call random_seed(put=seeds)
+  !  call random_number(randphasesvec)
+  !  randphasesvec = 0
 
-    allocate(randphases(nstfv,nkpt))
-    randphases(:,:)=cmplx(cos(2*pi*randphasesvec(:,:)),sin(2*pi*randphasesvec(:,:)))
-    deallocate(randphasesvec)
-    if(rank==0) then
-      call writecmplxparts('phases', remat=dble(randphases), immat=aimag(randphases))
-    end if
-    !write(*,*) "b_xsgeneigveclauncher: phases:"
-    !do ik=1,nkpt
-    !  do ist=1,nstfv
-    !    write(*,'("ik=",i3," ist=",i3," phase=",SP, 2E11.3,"i"," abs=",E11.3)')&
-    !      & ik, ist, dble(randphases(ist,ik)), aimag(randphases(ist,ik)), abs(randphases(ist,ik))
-    !  end do
-    !end do
-    ! end test
-  end if
+  !  allocate(randphases(nstfv,nkpt))
+  !  randphases(:,:)=cmplx(cos(2*pi*randphasesvec(:,:)),sin(2*pi*randphasesvec(:,:)))
+  !  deallocate(randphasesvec)
+  !  if(rank==0) then
+  !    call writecmplxparts('phases', remat=dble(randphases), immat=aimag(randphases))
+  !  end if
+  !  !write(*,*) "b_xsgeneigveclauncher: phases:"
+  !  !do ik=1,nkpt
+  !  !  do ist=1,nstfv
+  !  !    write(*,'("ik=",i3," ist=",i3," phase=",SP, 2E11.3,"i"," abs=",E11.3)')&
+  !  !      & ik, ist, dble(randphases(ist,ik)), aimag(randphases(ist,ik)), abs(randphases(ist,ik))
+  !  !  end do
+  !  !end do
+  !  ! end test
+  !end if
 
   if(NORM2(vqlmt(1:3,1)) > epslat) then 
     firstisgamma = .false.
@@ -133,11 +133,11 @@ subroutine b_xsgeneigveclauncher
     ! Offset for -(k+qmt) grid
     vkloff_mkqmtp(1:3,iq) = mkqmtp%kset%vkloff
 
-    !write(*,*) "iq=", iq
-    !write(*,*) "vqlmt(1:3,iq)=", vqlmt(1:3,iq)
-    !write(*,*) "off: k+qmt", qvkloff(1:3,iq)
-    !write(*,*) "off: k-qmt", vkloff_kqmtm(1:3,iq)
-    !write(*,*) "off: -(k+qmt)", vkloff_mkqmtp(1:3,iq)
+    write(*,*) "iq=", iq
+    write(*,*) "vqlmt(1:3,iq)=", vqlmt(1:3,iq)
+    write(*,*) "off: k+qmt", qvkloff(1:3,iq)
+    write(*,*) "off: k-qmt", vkloff_kqmtm(1:3,iq)
+    write(*,*) "off: -(k+qmt)", vkloff_mkqmtp(1:3,iq)
 
     call xsgrids_finalize()
 
@@ -146,33 +146,20 @@ subroutine b_xsgeneigveclauncher
   ! Depending on the BSE hamiltonian to be constructed 
   ! the eigensolutions on differing grids are needed.
   if(input%xs%bse%coupling) then 
-    ! Full bse with time inverted anti-resonant basis
-    if(input%xs%bse%ti) then 
-      tmqmt = .false.
-      tminus = .false.
-      ! (k+qmt) grid
-      call b_xsgeneigvec(1, nqpt, vql(1:3,1:nqpt), qvkloff(1:3,1:nqpt), tscreen, tmqmt, tminus)
-      tminus = .true.
-      ! -(k+qmt) grid
-      call b_xsgeneigvec(1, nqpt, vql(1:3,1:nqpt), vkloff_mkqmtp(1:3,1:nqpt), tscreen, tmqmt, tminus)
     ! Full bse 
-    else
-      tmqmt = .false.
-      tminus = .false.
-      ! (k+qmt) grid
-      call b_xsgeneigvec(1, nqpt, vql(1:3,1:nqpt), qvkloff(1:3,1:nqpt), tscreen, tmqmt, tminus)
-      tmqmt = .true.
-      if(nqpt > 1) then 
-        ! (k-qmt) grid
-        call b_xsgeneigvec(2, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt), tscreen, tmqmt, tminus)
-      end if
+    tmqmt = .false.
+    ! (k+qmt) grid
+    call b_xsgeneigvec(1, nqpt, vql(1:3,1:nqpt), qvkloff(1:3,1:nqpt), tscreen, tmqmt)
+    tmqmt = .true.
+    if(nqpt > 1) then 
+      ! (k-qmt) grid
+      call b_xsgeneigvec(2, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt), tscreen, tmqmt)
     end if
-  ! TDA case
+  ! TDA/TI case
   else
     tmqmt = .false.
-    tminus = .false.
     ! (k+qmt) grid
-    call b_xsgeneigvec(1, nqpt, vql(1:3,1:nqpt), qvkloff(1:3,1:nqpt), tscreen, tmqmt, tminus)
+    call b_xsgeneigvec(1, nqpt, vql(1:3,1:nqpt), qvkloff(1:3,1:nqpt), tscreen, tmqmt)
   end if
 
   deallocate(vkloff_kqmtm)
