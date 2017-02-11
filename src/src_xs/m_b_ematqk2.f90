@@ -8,7 +8,7 @@ module m_b_ematqk2
   contains
 
     !BOP
-    ! !ROUTINE: b_ematqk
+    ! !ROUTINE: b_ematqk2
     ! !INTERFACE:
     subroutine b_ematqk2(iq, ik, emat, bc)
     ! !USES:
@@ -335,16 +335,18 @@ use mod_Gvector, only: intgv
       !        e^{-i(G+q)r}(\Sum_{G3} \Phi_{nk}(G3) e^{i(G3+k')r})^*
       ! =\int_V (\Sum_{G1} \theta(G1) e^{iG1r}) (\Sum_{G2} \Phi_{mk}(G2) e^{iG2r})^*
       !         (\Sum_{G3} \Phi_{nk}(G3) e^{iG3)r})^* e^{i(-k'-k-q)r} e^{-iGr}
+      ! =\int_V (\Sum_{G1} \theta(G1) e^{iG1r}) (\Sum_{G2} \Phi_{mk}(G2) e^{iG2r})^*
+      !         (\Sum_{G3} \Phi_{nk}(G3) e^{iG3)r})^* e^{-i(G-Gshift)r}
       !
       ! By design it is e^{i(-k'-k-q)r} = e^{i Gshift r} with some Gshift lattice vector.
-      ! If Gshift=0 all sums in the round brackets are directly computable as
+      ! All sums in the round brackets are directly computable as
       ! inverse FFT's using the eigenvector coefficients (LAPW part) and \theta(G).
-      ! If it non zero one of the FFT's needs shifted coefficients.
+      ! The corresponding real space quantities are then multiplied and subsequently
+      ! transformed back to reciprocal space.
+      ! If Gshift is non zero the final back transform needs to be shifted.
       ! 
       ! So 3 inverse FFT's are computed, the real space results multiplied and
       ! subsequently back transformed with another FFT to get the integral at all G
-      !
-      ! Note: The G shift will be incorporated into the iFFT of \theta.
 
       call timesec(cpu00)
    
@@ -374,25 +376,9 @@ use mod_Gvector, only: intgv
       ! Inverse FT of characteristic lattice function (0 inside MT, 1 outside)
       ! form reciprocal to real space, incorporate Gshift here.
       do ig=1, ngvec
-
-        if(any(shift /= 0)) then 
-          iv = ivg(:,ig) + shift
-          shiftcheck = .true.
-          do i=1,3
-            shiftcheck = (iv(i) >= intgv(i,1) .and. iv(i) <= intgv(i,2) .and. shiftcheck)
-          end do
-          if(shiftcheck) then 
-            igs = ivgig(iv(1),iv(2),iv(3))
-            if(gc(igs).lt.emat_gmax) then
-              zfftcf(fftmap%igfft(igs))=cfunig(ig)
-            end if
-          end if
-        else
-          if(gc(ig).lt.emat_gmax) then
-            zfftcf(fftmap%igfft(ig))=cfunig(ig)
-          end if
+        if(gc(ig).lt.emat_gmax) then
+          zfftcf(fftmap%igfft(ig))=cfunig(ig)
         end if
-
       end do
       call zfftifc(3, fftmap%ngrid, 1, zfftcf)
 
@@ -420,7 +406,7 @@ use mod_Gvector, only: intgv
 #endif
      
 #ifdef USEOMP
-  !$omp parallel default(shared) private(ist1, ist2, igk, zfft, zfftres, igq)
+  !$omp parallel default(shared) private(ist1, ist2, igk, shiftcheck, i, iv, igs, zfft, zfftres, igq)
 #endif
       allocate(zfftres(fftmap%ngrtot+1))
       allocate(zfft(fftmap%ngrtot+1))
@@ -454,9 +440,25 @@ use mod_Gvector, only: intgv
 
           ! Add the interstitial result to emat for all G+q within the cutoff
           do igq=1, ngq(iq)
-            emat(ist1, ist2, igq)=emat(ist1, ist2, igq)&
-              &+ zfftres(fftmap%igfft(igqig(igq, iq)))
+            if(any(shift /= 0)) then 
+              iv = ivg(:,igqig(igq,iq)) - shift
+              shiftcheck=.true.
+              do i=1,3
+                shiftcheck = (iv(i) >= intgv(i,1) .and. iv(i) <= intgv(i,2) .and. shiftcheck)
+              end do
+              if(shiftcheck) then 
+                igs = ivgig(iv(1),iv(2),iv(3))
+                if(gc(igs) .lt. emat_gmax) then 
+                  emat(ist1, ist2, igq)=emat(ist1, ist2, igq)&
+                    &+ zfftres(fftmap%igfft(igs))
+                end if
+              end if
+            else
+              emat(ist1, ist2, igq)=emat(ist1, ist2, igq)&
+                &+ zfftres(fftmap%igfft(igqig(igq, iq)))
+            endif
           end do
+
         end do
       end do
 #ifdef USEOMP
