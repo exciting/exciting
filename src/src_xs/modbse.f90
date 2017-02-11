@@ -492,7 +492,7 @@ module modbse
       wl = input%xs%energywindow%intv(1)
       wu = input%xs%energywindow%intv(2)
       if(wl < 0.0d0 .or. wu < 0.0d0 .or. wu-wl < 0.0d0) then
-        !write(*,*) "Error(select_transitions): Inproper energy interval", wl, wu
+        write(*,*) "Error(select_transitions): Inproper energy interval", wl, wu
         call terminate
       end if
 
@@ -503,7 +503,7 @@ module modbse
       econv = input%xs%bse%econv
 
       if((wu+econv(2)-max(wl+econv(1),0.0d0)) < 0.0d0) then 
-        !write(*,*) "Error(select_transitions): Conflicting econv", econv(1), econv(2)
+        write(*,*) "Error(select_transitions): Conflicting econv", econv(1), econv(2)
         call terminate
       end if
 

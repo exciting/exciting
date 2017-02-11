@@ -2055,6 +2055,11 @@ contains
     ! Distributed oszillator strengths
     call new_dzmat(doszsr, nexc, 3, bi2d, rblck=bi2d%mblck, cblck=1)
 
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    ! Building position operator matrix elements using momentum matrix elements  !
+    ! and transition energies. If on top of GW, renormalize the p mat elements.  !
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+
     ! Distributed position operator matrix
     call new_dzmat(drmat, hamsize, 3, bi2d, rblck=bi2d%mblck, cblck=1)
 
@@ -2063,6 +2068,7 @@ contains
       write(unitout, '("  Building Rmat.")')
       call timesec(t0)
     end if
+
     ! Build R-matrix from P-matrix
     ! \tilde{R}_{a,i} = 
     !   \sqrt{|f_{o_a,k_a}-f_{u_a,k_a}|} *
@@ -2072,8 +2078,31 @@ contains
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
     end if
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
-    ! If time inverted anti-resonant basis is used
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    ! TDA case: Build resonant oscillator strengths                              !
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    if(.not. fcoup) then
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("  Building distributed resonant oscillator strengths.")')
+        call timesec(t0)
+      end if
+
+      !! Resonant oscillator strengths
+      ! t^R_{\lambda,i} = <X_\lambda|\tilde{R}^{i*}> =
+      !   \Sum_{a} X^H_{\lambda, a} \tilde{R}^*_{a,i}
+      drmat%za=conjg(drmat%za)
+      call dzgemm(dbevecr, drmat, doszsr, transa='C', m=nexc)
+
+      ! Deallocating eigenvectors
+      call del_dzmat(dbevecr)
+    end if
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    ! TI case: Build oscillator strength                                         !
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
     if(fcoup .and. fti) then 
 
       if(mpiglobal%rank == 0) then 
@@ -2096,6 +2125,8 @@ contains
       end do
       call new_dzmat(dxpy, hamsize, nexc, bi2d)
       call dzgemm(dcmat, dbevecr, dxpy, n=nexc)
+
+      ! Deallocating eigenvectors
       call del_dzmat(dbevecr)
 
       if(mpiglobal%rank == 0) then 
@@ -2109,29 +2140,16 @@ contains
         call timesec(t0)
       end if
       !! Oscillator strengths
-      ! t_{\lambda,i} = < \tilde{R}^{i*} |(| X_\lambda>+| Y_\lambda>) =
-      !   ( \Sum_{a} \tilde{R}^T_{i, a} (X_{a, \lambda}+Y_{a, \lambda}) )^T =
-      !     \Sum_{a} (X+Y)^T_{\lambda, a} \tilde{R}_{a,i}
-      call dzgemm(dxpy, drmat, doszsr, transa='T', m=nexc) 
+      ! t_{\lambda,i} = < (| X_\lambda>+| Y_\lambda>)| \tilde{R}^{i*}> =
+      !     \Sum_{a} (X+Y)^H_{\lambda, a} \tilde{R}^*_{a,i}
+      drmat%za=conjg(drmat%za)
+      call dzgemm(dxpy, drmat, doszsr, transa='C', m=nexc) 
       call del_dzmat(dxpy)
 
-    ! TDA case
-    else
-
-      if(mpiglobal%rank == 0) then 
-        write(unitout, '("  Building distributed resonant oscillator strengths.")')
-        call timesec(t0)
-      end if
-
-      !! Resonant oscillator strengths
-      ! t^R_{\lambda,i} = < \tilde{R}^{i*} | X_\lambda> =
-      !   ( \Sum_{a} \tilde{R}^T_{i, a} X_{a, \lambda} )^T =
-      !     \Sum_{a} X^T_{\lambda, a} \tilde{R}_{a,i}
-      call dzgemm(dbevecr, drmat, doszsr, transa='T', m=nexc)
-      call del_dzmat(dbevecr)
-
     end if
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
+    ! R mat no longer needed
     call del_dzmat(drmat)
 
     if(mpiglobal%rank == 0) then
@@ -2263,7 +2281,7 @@ contains
 #else
         ig = i
 #endif
-        dtmat%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o2))
+        dtmat%za(i,j) = conjg(oszsr(ig,o1))*oszsr(ig,o2)
       end do
       !$OMP END PARALLEL DO
     end do
@@ -2423,7 +2441,7 @@ contains
       nopt = 3
     end if
 
-    ! tmatr_{\lambda, j} = t^R_{\lambda, o1_j} t^{R*}_{\lambda, o2_j} 
+    ! tmatr_{\lambda, j} = t^{R^*}_{\lambda, o1_j} t^{R}_{\lambda, o2_j} 
     ! where j combines the 2 cartesian directions
     call new_dzmat(dtmatr, nexc, nopt, bi2d,&
       & rblck=bi2d%mblck, cblck=1)
@@ -2452,7 +2470,7 @@ contains
 #else
         ig = i
 #endif
-        dtmatr%za(i,j) = oszsr(ig,o1)*conjg(oszsr(ig,o2))
+        dtmatr%za(i,j) = conjg(oszsr(ig,o1))*oszsr(ig,o2)
       end do
       !$OMP END PARALLEL DO
     end do
