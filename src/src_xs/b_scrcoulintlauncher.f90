@@ -67,7 +67,7 @@ subroutine b_scrcoulintlauncher
       write(unitout,*)
     end if
     ! b_scrcoulint(iqmt, fra=.false., fti=.false.)
-    call b_scrcoulint(iqmt, .false., .false.)
+    call b_scrcoulint(iqmt, .false., fti)
     call barrier(mpiglobal)
 
     ! RA block

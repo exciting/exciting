@@ -4,13 +4,145 @@ module m_setup_rmat
   use modinput
   use m_getunit
   use m_getpmat
+  use mod_constants
   use modbse
-  use mod_kpoint, only: vkl
   use mod_eigenvalue_occupancy, only: evalsv
+  use modxs, only: unitout, vkl0
+  use m_writecmplxparts
 
   implicit none
 
   contains
+
+    !BOP
+    ! !ROUTINE: setup_distributed_rmat
+    ! !INTERFACE:
+    subroutine setup_rmat(rmat)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! In:
+    !   complex(8) :: rmat(hamsize,3)  ! Position operator matrix 
+    ! 
+    ! !DESCRIPTION:
+    !   The routine generates the position matrix elements 
+    !   $R_{\alpha,i} = 
+    !    \langle v_\alpha \vec{k}_\alpha | \hat{r}_i | c_\alpha \vec{k}_\alpha \rangle
+    !    =
+    !    \frac{\langle v_\alpha \vec{k}_\alpha | \hat{p}_i | c_\alpha \vec{k}_\alpha \rangle}
+    !    {\epsilon_{c_\alpha, \vec{k}_\alpha}-\epsilon_{v_alpha \vec{k}_\alpha}}$
+    !   
+    !   Alpha is the combined index used in the BSE Hamiltonian.
+    !
+    ! !REVISION HISTORY:
+    !   Created. (Aurich)
+    !EOP
+    !BOC
+      complex(8), intent(out) :: rmat(hamsize,3)
+
+      complex(8), allocatable :: pmouk(:,:,:,:)
+      real(8) :: t1, t0
+      integer(4) :: io, iu, ioabs, iuabs, ik, iknr
+      integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
+      integer(4) :: a1
+
+      !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+      ! Building position operator matrix elements using momentum matrix elements  !
+      ! and transition energies. If on top of GW, renormalize the p mat elements.  !
+      !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+      ! Allocate momentum matrix slice needed.
+      allocate(pmouk(3, no_bse_max, nu_bse_max, nk_bse))
+      pmouk=zzero
+
+      write(unitout, '("  Reading Pmat.")')
+      call timesec(t0)
+      if(associated(input%gw)) then
+        write(unitout, '("  Also renormalizing Pmat with GW eigenvalues.")')
+      end if
+      ! Read in all needed momentum matrix elements
+      do ik = 1, nk_bse
+        iknr = kmap_bse_rg(ik)
+        iuabs1 = koulims(1,iknr)
+        iuabs2 = koulims(2,iknr)
+        ioabs1 = koulims(3,iknr)
+        ioabs2 = koulims(4,iknr)
+        inu = iuabs2 - iuabs1 + 1
+        ino = ioabs2 - ioabs1 + 1
+        call getpmat(iknr, vkl0,&
+          & ioabs1, ioabs2, iuabs1, iuabs2,&
+          & .true., 'PMAT_XS.OUT', pmouk(:,1:ino,1:inu,ik))
+        ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
+        ! \frac{v^\text{QP}_{okuk}}{E_uk - E_ok} \approx \frac{p^\text{LDA}_{okuk}}{e_uk - e_ok}
+        !   In the case that we use the quasi-particle energies E but the LDA eigenfunctions:
+        !   1) evalsv contains the E, while eval0 contains the e.
+        !   2) The BSE diagonal contains \Delta E
+        !   3) But the q->0 limit of <o|exp^{-iqr}|u> is still expressed in terms of
+        !      \frac{p^\text{LDA}_{okuk}}{e_uk - e_ok}, instead of v and E.
+        !   The following scales the LDA momentum matrix elements so that 3) is 
+        !   true for calculations on top of LDA or GW (Eigenvalues only).
+        if(associated(input%gw)) then
+          !$OMP PARALLEL DO &
+          !$OMP& COLLAPSE(2) &
+          !$OMP& DEFAULT(SHARED), PRIVATE(io,iu)
+          do io = 1, ino
+            do iu = 1, inu
+              pmouk(:,io,iu,ik) = pmouk(:,io,iu,ik)&
+                &* (evalsv(iuabs1+iu-1,iknr)-evalsv(ioabs1+io-1,iknr))&
+                &/ (eval0(iuabs1+iu-1,iknr)- eval0(ioabs1+io-1,iknr))
+            end do
+          end do
+          !$OMP END PARALLEL DO
+        end if 
+      end do
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+
+      write(unitout, '("  Building Rmat.")')
+      call timesec(t0)
+      !$OMP PARALLEL DO &
+      !$OMP& DEFAULT(SHARED), PRIVATE(a1,iuabs,ioabs,iknr,iu,io,ik)
+      do a1 = 1, hamsize
+
+        ! Absolute indices
+        iuabs = smap(1,a1)
+        ioabs = smap(2,a1)
+        iknr  = smap(3,a1)
+
+        ! Relative indices
+        iu = smap_rel(1,a1)
+        io = smap_rel(2,a1)
+        ik = smap_rel(3,a1)
+        
+        ! Build R-matrix from P-matrix
+        ! \tilde{R}_{a,i} = 
+        !   \sqrt{|f_{o_a,k_a}-f_{u_a,k_a}|} *
+        !     P^i_{o_a,u_a,k_a} /(e_{u_a, k_a} - e_{o_a, k_a}) 
+        ! Note: The scissor does not enter here, so subtract it again.
+        rmat(a1, :) = ofac(a1)&
+          &*pmouk(:, io, iu, ik)/(de(a1)-sci)
+
+      end do
+      !$OMP END PARALLEL DO
+      if(rank==0) then 
+        if(input%xs%bse%writeparts) then 
+          do ik = 1, nk_bse
+            call writecmplxparts('Pou_1', remat=dble(pmouk(1,:,:,ik)),&
+              & immat=aimag(pmouk(1,:,:,ik)), ik1=ik)
+            call writecmplxparts('Pou_2', remat=dble(pmouk(2,:,:,ik)),&
+              & immat=aimag(pmouk(2,:,:,ik)), ik1=ik)
+            call writecmplxparts('Pou_3', remat=dble(pmouk(3,:,:,ik)),&
+              & immat=aimag(pmouk(3,:,:,ik)), ik1=ik)
+          end do
+          call writecmplxparts('Rmat', remat=dble(rmat), immat=aimag(rmat))
+        end if
+      end if
+      ! Momentum matrix elements no longer needed
+      deallocate(pmouk)
+
+      call timesec(t1)
+      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+      !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+    end subroutine setup_rmat
+    !EOC
+
 
     !BOP
     ! !ROUTINE: setup_distributed_rmat
@@ -117,7 +249,7 @@ module m_setup_rmat
           ! Get momentum P_ou matrix for ik
           ! and those occupied and unoccupied states that 
           ! are participate at that k point. 
-          call getpmat(iknr, vkl,&
+          call getpmat(iknr, vkl0,&
             & ioabs1, ioabs2, iuabs1, iuabs2,&
             & .true., 'PMAT_XS.OUT', pmou(:,1:ino,1:inu))
 

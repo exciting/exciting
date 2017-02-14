@@ -76,7 +76,9 @@ Module modxs
   ! total number of Q-points in Q-point list
       Integer(4) :: nqmt
   ! finite momentum transfer qmt-vector
-      Real (8), Allocatable :: vqlmt(:, :)
+      Real (8), Allocatable :: totalqlmt(:,:), vqlmt(:, :)
+  ! finite momentum transfer qmt-vector
+      Real (8), Allocatable :: totalqcmt(:,:), vqcmt(:, :)
   ! finite momentum transfer Gmt-vector
       Integer, Allocatable :: ivgmt(:, :)
 

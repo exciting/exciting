@@ -7,7 +7,7 @@ subroutine b_xsgeneigveclauncher
   use modmpi
   use modinput, only: input
   use mod_qpoint, only: nqpt, vql
-  use modxs, only: nqmt, vqlmt, ivgmt, tscreen, qvkloff, unitout
+  use modxs, only: nqmt, totalqlmt, totalqcmt, vqlmt, ivgmt, vqcmt, tscreen, qvkloff, unitout
   use m_genfilname, only: genfilname
   use m_writegqpts, only: writegqpts
   use mod_misc, only: filext
@@ -35,8 +35,8 @@ subroutine b_xsgeneigveclauncher
   integer :: ist, ik, seedsize
   integer, allocatable :: seeds(:)
 
-  !write(*,*) "b_xsgeneigveclauncher here at rank", rank
-  !write(*,*) "use screening parameters = ", tscreen 
+  write(*,*) "b_xsgeneigveclauncher here at rank", rank
+  write(*,*) "use screening parameters = ", tscreen 
 
   ! Initialize universal variables
   call init0
@@ -54,35 +54,6 @@ subroutine b_xsgeneigveclauncher
   !   * Reads STATE.OUT
   !   * Generates radial functions (mod_APW_LO)
   call init2
-
-  !test
-  !if(task == 301) then 
-  !  if(allocated(randphases)) deallocate(randphases)
-  !  allocate(randphasesvec(nstfv,nkpt))
-  !  randphasesvec=0
-  !  seedsize=1
-  !  call random_seed(size=seedsize)
-  !  allocate(seeds(seedsize))
-  !  seeds=5219
-  !  call random_seed(put=seeds)
-  !  call random_number(randphasesvec)
-  !  randphasesvec = 0
-
-  !  allocate(randphases(nstfv,nkpt))
-  !  randphases(:,:)=cmplx(cos(2*pi*randphasesvec(:,:)),sin(2*pi*randphasesvec(:,:)))
-  !  deallocate(randphasesvec)
-  !  if(rank==0) then
-  !    call writecmplxparts('phases', remat=dble(randphases), immat=aimag(randphases))
-  !  end if
-  !  !write(*,*) "b_xsgeneigveclauncher: phases:"
-  !  !do ik=1,nkpt
-  !  !  do ist=1,nstfv
-  !  !    write(*,'("ik=",i3," ist=",i3," phase=",SP, 2E11.3,"i"," abs=",E11.3)')&
-  !  !      & ik, ist, dble(randphases(ist,ik)), aimag(randphases(ist,ik)), abs(randphases(ist,ik))
-  !  !  end do
-  !  !end do
-  !  ! end test
-  !end if
 
   if(NORM2(vqlmt(1:3,1)) > epslat) then 
     firstisgamma = .false.
@@ -134,7 +105,16 @@ subroutine b_xsgeneigveclauncher
     vkloff_mkqmtp(1:3,iq) = mkqmtp%kset%vkloff
 
     write(*,*) "iq=", iq
+    write(*,*) "----------------------"
+    write(*,*) "totalqlmt(1:3,iq)=", totalqlmt(1:3,iq)
+    write(*,*) "totalqcmt(1:3,iq)=", totalqcmt(1:3,iq)
+    write(*,*) "Norm2(totalqcmt)", norm2(totalqcmt(1:3,iq))
+    write(*,*) "----------------------"
     write(*,*) "vqlmt(1:3,iq)=", vqlmt(1:3,iq)
+    write(*,*) "vqcmt(1:3,iq)=", vqcmt(1:3,iq)
+    write(*,*) "----------------------"
+    write(*,*) "ivgmt(1:3,iq)=", ivgmt(1:3,iq)
+    write(*,*) "----------------------"
     write(*,*) "off: k+qmt", qvkloff(1:3,iq)
     write(*,*) "off: k-qmt", vkloff_kqmtm(1:3,iq)
     write(*,*) "off: -(k+qmt)", vkloff_mkqmtp(1:3,iq)
@@ -158,7 +138,7 @@ subroutine b_xsgeneigveclauncher
   ! TDA/TI case
   else
     tmqmt = .false.
-    ! (k+qmt) grid
+    ! (k+qmt) grid(s)
     call b_xsgeneigvec(1, nqpt, vql(1:3,1:nqpt), qvkloff(1:3,1:nqpt), tscreen, tmqmt)
   end if
 

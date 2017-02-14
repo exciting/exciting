@@ -161,7 +161,9 @@ module m_setup_bse
 
       if(mpiglobal%rank == 0) then 
         if(usescc) write(unitout, '("  Reading form W from ", a)') trim(sfname)
+        if(usescc) write(unitout, '("  compatible:",l," identical:",l)') sfcmpt, sfid
         if(useexc) write(unitout, '("  Reading form V from ", a)') trim(efname)
+        if(usescc) write(unitout, '("  compatible:",l," identical:",l)') efcmpt, efid
       end if
 
       ! Set up kkp blocks of RR or RA Hamiltonian

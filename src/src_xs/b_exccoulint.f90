@@ -18,11 +18,11 @@ subroutine b_exccoulint(iqmt, fra, fti)
   use modxs, only: xsgnt, unitout,&
                  & ngq, vgql,&
                  & nqptr, qpari, qparf, ivqr,&
-                 & vqlr, vqcr, wqptr, ngqr, vqlmt,&
+                 & vqlr, vqcr, wqptr, ngqr, vqlmt, ivgmt, vqcmt,&
                  & kpari, kparf,&
                  & ppari, pparf, iqmapr,&
                  & qvkloff, bcbs, iqmtgamma,&
-                 & filext0, usefilext0, iqmt0, iqmt1
+                 & filext0, usefilext0, iqmt0, iqmt1, ivgigq
   use m_xsgauntgen
   use m_findgntn0
   use m_writegqpts
@@ -80,7 +80,7 @@ use m_writecmplxparts
   ! Timinig vars
   real(8) :: tpw1, tpw0
 
-  integer(4) :: igq
+  integer(4) :: igq, igqmt
   character(256) :: m_write, dirname
   logical :: fwp
   logical :: fcoup
@@ -92,7 +92,7 @@ use m_writecmplxparts
   !   main part   !
   !---------------!
 
-!write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
+write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   ! Sanity check 
   if(fra) then
@@ -213,7 +213,7 @@ use m_writecmplxparts
   end do
 
   ! Set vkl to k+qmt-grid
-  call init1offs(k_kqmtp%kqmtset%vkloff)
+  call init1offs(k_kqmtp%kqmtset%vkloff) ! = init1offs(qvkloff(iqmt))
 
   ! Change file extension and write out k points
   call genfilname(iqmt=iqmt, dotext='_EXC.OUT', setfilext=.true.)
@@ -398,10 +398,25 @@ use m_writecmplxparts
 
   allocate(excli(nou_bse_max, nou_bse_max))
 
+  ! Set up coulomb potential
+  ! Construct it via v^{1/2}(G,qmt)*v^{1/2}(G,qmt),
+  ! which corresponds to the first passed flag=0.
+  ! Use all G for which |G+qmt|<gqmax
+  igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
+  do igq1 = 1, numgq
+    call genwiqggp(0, iqmt, igq1, igq1, potcl(igq1))
+  end do
+  ! Set Gmt component term of coulomb potential to zero [Ambegaokar-Kohn]
+  potcl(igqmt) = 0.d0
+  if(fwp) then 
+    call writecmplxparts('Vfc', revec=dble(potcl), dirname='Vfc')
+  end if
+
 
   if(mpiglobal%rank == 0) then
     write(unitout, *)
     write(unitout, '("Info(b_exccoulint): Generating V matrix elements")')
+    write(unitout, '("Info(b_exccoulint): Zeroing Coulomb potential at G+qmt index:", i3)') igqmt
     call timesec(tpw0)
   end if
 
@@ -439,20 +454,6 @@ use m_writecmplxparts
     ! Get number of transitions at ik,jk
     inou = kousize(iknr)
     jnou = kousize(jknr)
-
-    ! Set G=0 term of coulomb potential to zero [Ambegaokar-Kohn]
-    !   Note: Needs discussion when qmt has lattice component.
-    potcl(1) = 0.d0
-    ! Set up coulomb potential
-    ! For G/=0 construct it via v^{1/2}(G,q)*v^{1/2}(G,q),
-    ! which corresponds to the first passed flag=0.
-    do igq1 = 2, numgq
-      call genwiqggp(0, iqmt, igq1, igq1, potcl(igq1))
-    end do
-
-    if(fwp) then 
-      call writecmplxparts('Vfc', revec=dble(potcl), dirname='Vfc')
-    end if
 
     call makeexcli(excli(1:inou,1:jnou))
 

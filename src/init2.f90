@@ -94,8 +94,14 @@ Subroutine init2
       If ((task .Ge. 301) .And. (task .Le. 399) .or. (task >= 400 .and. input%xs%bse%beyond) ) Then
          nqmt = size(input%xs%qpointset%qpoint, 2)
          nqpt = size (input%xs%qpointset%qpoint, 2)
+         If (allocated(totalqlmt)) deallocate (totalqlmt)
+         Allocate (totalqlmt(3, nqpt))
+         If (allocated(totalqcmt)) deallocate (totalqcmt)
+         Allocate (totalqcmt(3, nqpt))
          If (allocated(vqlmt)) deallocate (vqlmt)
          Allocate (vqlmt(3, nqpt))
+         If (allocated(vqcmt)) deallocate (vqcmt)
+         Allocate (vqcmt(3, nqpt))
          If (allocated(ivgmt)) deallocate (ivgmt)
          Allocate (ivgmt(3, nqpt))
          If (allocated(vql)) deallocate (vql)
@@ -104,6 +110,10 @@ Subroutine init2
          Allocate (vqc(3, nqpt))
          Do iq = 1, nqpt
             v(:) = input%xs%qpointset%qpoint(:, iq)
+            totalqlmt(:,iq) = v(:)
+            totalqcmt(:,iq) = v(1)*bvec(:,1) + &
+            &           v(2)*bvec(:,2) + &
+            &           v(3)*bvec(:,3)
             iv(:) = 0
             ! map Q-point to reciprocal unit cell
             If (input%xs%tddft%mdfqtype .Eq. 1 .or. input%xs%bse%beyond) then
@@ -115,6 +125,8 @@ Subroutine init2
             vqc(:,iq) = vql(1,iq)*bvec(:,1) + &
             &           vql(2,iq)*bvec(:,2) + &
             &           vql(3,iq)*bvec(:,3)
+            vqcmt(:,iq) = vqc(:,iq)
+
             ! check consistency of Q-point with gqmax
             v(:) = input%xs%qpointset%qpoint(1,iq)*bvec(:,1)+ &
             &      input%xs%qpointset%qpoint(2,iq)*bvec(:,2)+ &

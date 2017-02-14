@@ -216,7 +216,7 @@ subroutine b_screenlauncher
       write(unitout, *)
     end if
 
-    ! Consider qmt vectors in qmt-list appart from gamma (already computed)
+    ! Consider qmt vectors in qmt-list 
     do iqmt = 1, nqmt
 
       if(.not. fti .and. iqmt == 1) then 
@@ -248,20 +248,19 @@ subroutine b_screenlauncher
          & Considering momentum transfer vector iqmt=', iqmt
         if(.not. fti) then 
           write(unitout, '(a)') 'Info(' // thisnam // '):&
-            & Using q = kp-k-qmt = q0-qmt grid.'
+            & Using q = (kp-qmt)-k = q0-qmt grid.'
         else
           write(unitout, '(a)') 'Info(' // thisnam // '):&
-            & Using q = -kp-k-qmt grid.'
+            & Using q = -(kp+qmt)-k grid.'
         end if
         call printline(unitout, "-")
       end if
 
       if(.not. fti) then 
-        ! q-qmt grid
+        ! q=q0-qmt grid
         qgridoff = q_qmtm%qset%vkloff 
       else
-        ! q=-k'-k-qmt grid
-        !qgridoff = q_mqmtp%qset%vkloff 
+        ! q=-(k'+qmt)-k grid
         qgridoff = p_pqmtp%pset%vkloff
       end if
 
@@ -286,15 +285,17 @@ subroutine b_screenlauncher
       ! and qvkloff which contains for each q point the offset of the k+q grid.
       call init2offs(qgridoff, input%xs%reduceq)
       if(fti) then
-        ! Use <mk|e^{-i(G+q)r}|(nk')^*> instead of <mk|e^{-i(G+q)r}|nk'>
+        ! Interested in q = -k'-k-qmt :
+        ! <mk|e^{-i(G+q)r}|n k'> --> <mk|e^{-i(G+q)r}|n k+q> = <mk|e^{-i(G+q)r}|n -(k+qmt)>
+        ! Exploiting time reversal symmetry:
+        ! Using <mk|e^{-i(G+q)r}|(n k+qmt)^*> instead of <mk|e^{-i(G+q)r}|n -(k+qmt)>
         useemat2 = .true.
-        ! In case of q = -k'-k-qmt use <mk|e^{-i(G+q)r}|(nk')^*> instead of <mk|e^{-i(G+q)r}|nk'>
         ! Then qvkloff needs to contain offset of k+qmt grid
         do iq=1,nqpt
           qvkloff(1:3,iq) = k_kqmtp%kqmtset%vkloff(1:3)
         end do
         ! and ikmapikq needs to link k,q -> k'+qmt instead of k,q -> -(k'+qmt)
-        ! in order to use dfq with ematqk2
+        ! in order to use dfq with ematqk2 (i.e. <mk|e^{-i(G+q)r}|(n k+qmt)^*>)
         do iq=1,nqpt
           iqnr=p_pqmtp%pset%ikp2ik(iq)
           ikmapikq(1:nkpt,iq) = p_pqmtp%ikip2ikp_nr(1:nkpt,iqnr)
@@ -305,6 +306,7 @@ subroutine b_screenlauncher
       call xsgrids_finalize()
 
       if(.not. fti) then 
+
         ! Set *_SCR_QMT001.OUT as bra state file
         usefilext0 = .true.
         iqmt0 = iqmtgamma
@@ -321,6 +323,7 @@ subroutine b_screenlauncher
         write(*,*) "filexteps=", trim(filexteps)
 
       else
+
         ! Set *_SCR_QMT001.OUT as bra state file
         usefilext0 = .true.
         iqmt0 = iqmtgamma
@@ -332,7 +335,7 @@ subroutine b_screenlauncher
         call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
         write(*,*) "filext=", trim(filext)
 
-        ! Set *_QMTXYZ_mqmt.OUT as filextension for the screening 
+        ! Set *_QMTXYZ_m.OUT as filextension for the screening 
         call genfilname(iqmt=iqmt1, auxtype='m', fileext=filexteps)
         write(*,*) "filexteps=", trim(filexteps)
 

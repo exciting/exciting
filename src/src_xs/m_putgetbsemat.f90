@@ -49,18 +49,20 @@ module m_putgetbsemat
       logical :: reducek
       integer(4) :: ngridk(3), ngridq(3)
       real(8) :: vkloff(3)
+      integer(4) :: nstlbse(4)
 
       reducek = input%xs%reducek
       ngridk = input%xs%ngridk
       ngridq = input%xs%ngridq
       vkloff = input%xs%vkloff
+      nstlbse = input%xs%bse%nstlbse
 
       call getunit(un)
 
       ! Get large enough record length 
       inquire(iolength=reclen)&
         & reducek, ngridk, ngridq, vkloff,&
-        & fensel, wl, wu, econv,&
+        & fensel, wl, wu, econv, nstlbse,&
         & iqmt, vqlmt(1:3,iqmt),&
         & nk_max, nk_bse, nou_bse_max, hamsize,&
         & kmap_bse_rg, kmap_bse_gr,&
@@ -72,7 +74,7 @@ module m_putgetbsemat
 
       write(un, rec=1)& 
         & reducek, ngridk, ngridq, vkloff,&
-        & fensel, wl, wu, econv,&
+        & fensel, wl, wu, econv, nstlbse,&
         & iqmt, vqlmt(1:3,iqmt),&
         & nk_max, nk_bse, nou_bse_max, hamsize,&
         & kmap_bse_rg, kmap_bse_gr,&
@@ -113,14 +115,14 @@ module m_putgetbsemat
       logical :: ishere
 
       logical :: reducek, reducek_
-      integer(4) :: ngridk(3), ngridq(3)
+      integer(4) :: ngridk(3), ngridq(3), nstlbse(4)
       integer(4) :: ngridk_(3), ngridq_(3)
       real(8) :: vkloff(3), vkloff_(3)
 
       logical :: iscompatible, isidentical
       logical :: fensel_
       real(8) :: wl_, wu_, econv_(2), vql_(3)
-      integer(4) :: iqmt_, nk_max_, hamsize_
+      integer(4) :: iqmt_, nk_max_, hamsize_, nstlbse_(4)
       integer(4), allocatable :: kmap_bse_rg_(:)
       integer(4), allocatable :: koulims_(:,:)
 
@@ -129,6 +131,7 @@ module m_putgetbsemat
       ngridk = input%xs%ngridk
       ngridq = input%xs%ngridq
       vkloff = input%xs%vkloff
+      nstlbse = input%xs%bse%nstlbse
 
       ! Check if file exists
       inquire(file=trim(fname), exist=ishere)
@@ -141,14 +144,14 @@ module m_putgetbsemat
       ! Get large enough record length 
       inquire(iolength=reclen)&
         & reducek_, ngridk_, ngridq_, vkloff_,&
-        & fensel_, wl_, wu_, econv_,&
+        & fensel_, wl_, wu_, econv_, nstlbse_,&
         & iqmt_, vql_,&
         & nk_max_, nk_bse_, nou_bse_max_, hamsize_
       open(unit=un, file=trim(fname), form='unformatted', action='read',&
         & access='direct', recl=reclen)
       read(un, rec=1)& 
         & reducek_, ngridk_, ngridq_, vkloff_,&
-        & fensel_, wl_, wu_, econv_,&
+        & fensel_, wl_, wu_, econv_, nstlbse_,&
         & iqmt_, vql_,&
         & nk_max_, nk_bse_, nou_bse_max_, hamsize_
       close(un)
@@ -159,8 +162,9 @@ module m_putgetbsemat
 
       ! Check if identical
       if( reducek_ == reducek .and. fensel_ == fensel&
-        & .and. wl_ == wl .and. wu_ == wu&
-        & .and. econv_(1) == econv(1) .and. econv_(2) == econv(2)&
+        & .and. (wl_ == wl .and. wu_ == wu .or. .not. fensel)&
+        & .and. (econv_(1) == econv(1) .and. econv_(2) == econv(2) .or. .not. fensel)&
+        & .and. (all(nstlbse_ == nstlbse) .or. fensel)&
         & .and. iqmt_ == iqmt .and. all(vql_(1:3)==vqlmt(1:3,iqmt)) .and. nk_max_ == nk_max .and. nk_bse_ == nk_bse&
         & .and. hamsize_ == hamsize) then
         if( .not. (any(ngridk_ /= ngridk) .or. any(ngridq_ /= ngridq)&
@@ -220,6 +224,15 @@ module m_putgetbsemat
           write(*, '(" requested (wl, wu, econv): ", 4E12.3)') wl, wu, econv
           write(*, '(" stored (wl_, wu_, econv_): ", 4E12.3)') wl_, wu_, econv_
         end if
+      else
+        if(nstlbse(1) < nstlbse_(1) .or. nstlbse(2) > nstlbse_(2)&
+          & .or. nstlbse(3) < nstlbse_(3) .or. nstlbse(4) > nstlbse_(4)) then 
+          iscompatible = .false.
+          isidentical = .false.
+          write(*, '("Error (b_getbseinfo): Incompatible bands")')
+          write(*, '(" requested nstlbse: ", 4i3)') nstlbse 
+          write(*, '(" stored nstlbse_: ", 4i3)') nstlbse_
+        end if
       end if
       if(nk_bse > nk_bse_) then 
         iscompatible = .false.
@@ -230,32 +243,38 @@ module m_putgetbsemat
       end if
 
       if(iscompatible) then
+
+        if(allocated(kmap_bse_rg_)) deallocate(kmap_bse_rg_)
+        allocate(kmap_bse_rg_(nk_bse_))
+
         if(allocated(kmap_bse_gr_)) deallocate(kmap_bse_gr_)
         allocate(kmap_bse_gr_(nk_max_))
+
+        if(allocated(koulims_)) deallocate(koulims_)
+        allocate(koulims_(4,nk_max_))
+
         if(allocated(kousize_)) deallocate(kousize_)
         allocate(kousize_(nk_max_))
+
         if(allocated(smap_)) deallocate(smap_)
         allocate(smap_(3,hamsize_))
-
-        allocate(kmap_bse_rg_(nk_bse_))
-        allocate(koulims_(4,nk_max_))
 
         ! Get all support info
         call getunit(un)
         inquire(iolength=reclen)&
           & reducek_, ngridk_, ngridq_, vkloff_,&
-          & fensel_, wl_, wu_, econv_,&
+          & fensel_, wl_, wu_, econv_, nstlbse_,&
           & iqmt_, vql_,&
-          & nk_max_, nk_bse_, hamsize_,&
+          & nk_max_, nk_bse_, nou_bse_max_, hamsize_,&
           & kmap_bse_rg_, kmap_bse_gr_,&
           & koulims_, kousize_, smap_
         open(unit=un, file=trim(fname), form='unformatted', action='read',&
           & access='direct', recl=reclen)
         read(un, rec=1)& 
           & reducek_, ngridk_, ngridq_, vkloff_,&
-          & fensel_, wl_, wu_, econv_,&
+          & fensel_, wl_, wu_, econv_, nstlbse_,&
           & iqmt_, vql_,&
-          & nk_max_, nk_bse_, hamsize_,&
+          & nk_max_, nk_bse_, nou_bse_max_, hamsize_,&
           & kmap_bse_rg_, kmap_bse_gr_,&
           & koulims_, kousize_, smap_
         close(un)
@@ -442,6 +461,7 @@ module m_putgetbsemat
       else
         chk = .true.
       end if
+
       ! Inspect meta data of saved computation
       if(chk) then 
 write(*,*) "(b_getbsemat) reading meta info from",infofbasename//'_'//trim(fname)
@@ -522,7 +542,7 @@ write(*,*) "(b_getbsemat) reading meta info from",infofbasename//'_'//trim(fname
         read(un, rec=ikkp_) iqmt_, ikkp_, iknr_, jknr_, inou_, jnou_, zm
         close(un)
         if(iknr_ /= iknr .or. jknr_ /= jknr) then
-          write(*,*) "Mismatch iknr,jknr /= iknr_,jknr_"
+          write(*,*) "Mismatch (iknr,jknr) /= (iknr_,jknr_)"
           write(*,*) "iknr, jknr", iknr, jknr
           write(*,*) "iknr_, jknr_", iknr_, jknr_
           call terminate
@@ -530,15 +550,16 @@ write(*,*) "(b_getbsemat) reading meta info from",infofbasename//'_'//trim(fname
 
         ! Find requested entries in saved matrix
         iaoff_ = sum(kousize_(1:iknr_-1))
-        jaoff_ = sum(kousize_(1:jknr_-1))
         iaoff = sum(kousize(1:iknr-1))
+        jaoff_ = sum(kousize_(1:jknr_-1))
         jaoff = sum(kousize(1:jknr-1))
+
         allocate(imap(inou_))
         imap = .false.
         do ia_=1+iaoff_,inou_+iaoff_
           do ia=1+iaoff, inou+iaoff
             if( all(smap(:,ia) == smap_(:,ia_)) ) then
-              imap(ia_) = .true.
+              imap(ia_-iaoff_) = .true.
             end if
           end do
         end do
@@ -547,12 +568,13 @@ write(*,*) "(b_getbsemat) reading meta info from",infofbasename//'_'//trim(fname
           write(*,*) "count(imap), inou", count(imap), inou
           call terminate
         end if
+
         allocate(jmap(jnou_))
         jmap = .false.
         do ja_=1+jaoff_,jnou_+jaoff_
           do ja=1+jaoff, jnou+jaoff
             if( all(smap(:,ja) == smap_(:,ja_)) ) then
-              jmap(ia_) = .true.
+              jmap(ja_-jaoff_) = .true.
             end if
           end do
         end do

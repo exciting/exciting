@@ -156,7 +156,7 @@ module modbse
       vkloff = k_kqmtp%kset%vkloff
       ! k+qmt
       vkqmtploff = k_kqmtp%kqmtset%vkloff
-      ! k+qmt
+      ! k-qmt
       vkqmtmloff = k_kqmtm%kqmtset%vkloff
 
       !! Mappings between k and k' grids

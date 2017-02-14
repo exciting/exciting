@@ -626,9 +626,9 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       call getpwesrr(moo(1:ino,1:jno,1:numgq), muu(1:inu,1:jnu,1:numgq))
 
       ! Combine indices for matrix elements of plane wave.
-      !$OMP PARALLEL DO &
-      !$OMP& COLLAPSE(2),&
-      !$OMP& DEFAULT(SHARED), PRIVATE(io,jo,j1)
+
+      !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(io,jo,j1,iu,ju,j2)
+      !$OMP DO COLLAPSE(2)
       do jo = 1, jno   ! jo
         do io = 1, ino ! io
           j1 = io + (jo-1)*ino ! iojo
@@ -636,11 +636,8 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
           cmoo(j1, :) = moo(io, jo, 1:numgq)
         end do
       end do
-      !$OMP END PARALLEL DO
-
-      !$OMP PARALLEL DO &
-      !$OMP& COLLAPSE(2),&
-      !$OMP& DEFAULT(SHARED), PRIVATE(iu,ju,j2)
+      !$OMP END DO NOWAIT
+      !$OMP DO COLLAPSE(2)
       do ju = 1, jnu   ! ju
         do iu = 1, inu ! iu
           j2 = iu + (ju-1)*inu ! iuju
@@ -648,7 +645,8 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
           cmuu(j2, :) = muu(iu, ju, 1:numgq)
         end do
       end do
-      !$OMP END PARALLEL DO
+      !$OMP END DO
+      !$OMP END PARALLEL
 
       ! M_{iojo} -> M^*_{iojo}
       cmoo = conjg(cmoo)
@@ -672,10 +670,13 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       deallocate(zm)        
       deallocate(cmoo, cmuu)
 
+      ! Save only the selected transitions
+      jaoff = sum(kousize(1:jknr-1))
+      iaoff = sum(kousize(1:iknr-1))
+
       ! Map back to individual band indices
-      !$OMP PARALLEL DO &
-      !$OMP& COLLAPSE(4),&
-      !$OMP& DEFAULT(SHARED), PRIVATE(iu,ju,io,jo,j1,j2)
+      !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(iu,ju,io,jo,j1,j2,ia,ja)
+      !$OMP DO COLLAPSE(4)
       do ju = 1, jnu    ! ju
         do iu = 1, inu  ! iu
           do jo = 1, jno   ! jo
@@ -688,17 +689,9 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
           end do
         end do
       end do
-      !$OMP END PARALLEL DO
-
+      !$OMP END DO
       ! W^RR matrix element arrays for one jk-ik=q
-
-      ! Save only the selected transitions
-      jaoff = sum(kousize(1:jknr-1))
-      iaoff = sum(kousize(1:iknr-1))
-
-      !$OMP PARALLEL DO &
-      !$OMP& COLLAPSE(2),&
-      !$OMP& DEFAULT(SHARED), PRIVATE(iu,ju,io,jo,ia,ja)
+      !$OMP DO COLLAPSE(2)
       do ja = 1, jnou
         do ia = 1, inou
           ju = smap_rel(1,ja+jaoff)
@@ -709,13 +702,13 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
           sccli(ia, ja) = sccli_t2(iu, io, ju, jo)
         end do
       end do
-      !$OMP END PARALLEL DO
+      !$OMP END DO
+      !$OMP END PARALLEL
 
       if(fwp) then 
         call writecmplxparts('Wrr', remat=dble(sccli(1:inou,1:jnou)),&
           & immat=aimag(sccli(1:inou,1:jnou)), ik1=iknr, ik2=jknr, dirname='Wrr')
       end if
-
       ! Parallel write
       call b_putbsemat(scclifname, 77, ikkp, iqmt, sccli)
 

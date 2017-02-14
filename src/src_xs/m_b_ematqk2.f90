@@ -33,7 +33,6 @@ use mod_Gvector, only: intgv
                      & fnetim, fftmap_type, igkig0,&
                      & cpumtaa, cpumtalo, cpumtloa, cpumtlolo,&
                      & filext0, iqmt0, iqmt1
-      use modxs, only: randphases
       use summations, only: doublesummation_simple_cz
       use m_getapwcmt
       use m_getlocmt
@@ -147,11 +146,6 @@ use mod_Gvector, only: intgv
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
       call getevecfv(vkl(1, ikq), vgkl(1, 1, 1, ikq), evecfv)
-      !if(task == 440 .or. task == 441) then 
-      !  do ist = 1, nstfv
-      !    evecfv(:,ist,:) = evecfv(:,ist,:)*randphases(ist,ikq)
-      !  end do
-      !end if
 
       ! Save local orbital coefficients
       evecfvu(:, :) = evecfv(ngk(1, ikq)+1:ngk(1, ikq)+nlotot, bc%il2:bc%iu2, 1)
@@ -159,11 +153,6 @@ use mod_Gvector, only: intgv
       ! Read eigenvectors for k
       !   Read first variational eigenvectors from EVECFV_QMT000.OUT 
       call getevecfv0(vkl0(1, ik), vgkl0(1, 1, 1, ik), evecfv0)
-      !if(task == 440 .or. task == 441) then 
-      !  do ist = 1, nstfv
-      !    evecfv0(:,ist,:) = evecfv0(:,ist,:)*randphases(ist,ik)
-      !  end do
-      !end if
 
       ! Save local orbital coefficients
       evecfvo0(:, :) = evecfv0(ngk0(1, ik)+1:ngk0(1, ik)+nlotot, bc%il1:bc%iu1, 1)

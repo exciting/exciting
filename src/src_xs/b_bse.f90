@@ -19,7 +19,7 @@ subroutine b_bse
   ! XS
   use modxs, only: evalsv0, unitout, bcbs, ksgapval,&
                  & qgap, ikmapikq, iqmtgamma, vqlmt,&
-                 & vkl0
+                 & vkl0, ivgmt
   ! BSE
   use modbse
   ! Spectrum
@@ -38,6 +38,7 @@ subroutine b_bse
   use m_dzgemm
   use m_setup_bse
   use m_setup_rmat
+  use m_setup_pwmat
   use m_storeexcitons
 
 use m_writecmplxparts
@@ -358,7 +359,7 @@ use m_writecmplxparts
 
     ! Test write out right-eigenvectors
     if(fwp) then
-      if(fti) then 
+      if(fcoup .and. fti) then 
         call writecmplxparts('bevecaux', dble(bevecaux), immat=aimag(bevecaux))
       else
         call writecmplxparts('bevecr', dble(bevecr), immat=aimag(bevecr))
@@ -369,7 +370,7 @@ use m_writecmplxparts
     ! Deallocate BSE-Hamiltonian
     deallocate(ham)
 
-    if(fti) then 
+    if(fcoup .and. fti) then 
 
       ! Take square root of auxiliary eigenvalues
       ! to retrieve actual eigenvalues
@@ -381,7 +382,6 @@ use m_writecmplxparts
       bevalre = sqrt(bevalre)
       
     end if
-
 
     if(fcoup) then 
       if(fti) then 
@@ -427,7 +427,7 @@ use m_writecmplxparts
       & Writing excition energies and oszillator strengths to text file.")')
     if(fcoup) then
       if(fti) then 
-        call writeoscillator(hamsize, nexc, -(bsegap+sci), bevalre, oszsr)
+        call writeoscillator(hamsize, nexc, -(bsegap+sci), bevalre, oszsr, iqmt=iqmt)
       else
         call writeoscillator(2*hamsize, nexc, bsegap+sci, bevalre, oszsr,&
           & evalim=bevalim, oszstra=oszsa, sort=.true.)
@@ -1032,6 +1032,7 @@ contains
   end subroutine setup_full_bse
 
   subroutine makeoszillatorstrength(oszstrr, oszstra)
+    use modxs, only: sptclg
     use m_getpmat
     use m_invertzmat
     
@@ -1043,112 +1044,44 @@ contains
 
     ! Local
     real(8) :: t1, t0, ts0, ts1
-    complex(8), allocatable :: pmouk(:,:,:,:), rmat(:,:), xpy(:,:), rbarmat(:,:)
+    complex(8), allocatable :: projmat(:,:), xpy(:,:), rbarmat(:,:)
     integer(4) :: io, iu, ioabs, iuabs, ik, iknr
     integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
-    integer(4) :: a1, lambda
+    integer(4) :: a1, lambda, igqmt, nopt
+    real(8) :: potcl
     
     write(unitout, '("Info(b_bse:makeos): Making oszillator strengths.")')
+    write(unitout, '("Info(b_bse:makeos): iqmt=", i4)') iqmt
+    write(unitout, '("Info(b_bse:makeos): vqlmt=", 3E11.3)') vqlmt(:,iqmt)
+
     call timesec(ts0)
 
-    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-    ! Building position operator matrix elements using momentum matrix elements  !
-    ! and transition energies. If on top of GW, renormalize the p mat elements.  !
-    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-
-    ! Allocate momentum matrix slice needed.
-    allocate(pmouk(3, no_bse_max, nu_bse_max, nk_bse))
-    pmouk=zzero
-    allocate(rmat(hamsize, 3))
-    rmat=zzero
-
-    write(unitout, '("  Reading Pmat.")')
-    call timesec(t0)
-    if(associated(input%gw)) then
-      write(unitout, '("  Also renormalizing Pmat with GW eigenvalues.")')
+    if(iqmt == 1) then 
+      write(unitout, '("Info(b_bse:makeos): Using zero momentum transfer formalismus.")')
+      write(unitout, '("Info(b_bse:makeos):&
+        & Making oszillator strengths using position operator matrix elements.")')
+      !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+      ! Building position operator matrix elements using momentum matrix elements  !
+      ! and transition energies. If on top of GW, renormalize the p mat elements.  !
+      !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+      nopt=3
+      allocate(projmat(hamsize, nopt))
+      projmat=zzero
+      call setup_rmat(projmat)
+    else
+      write(unitout, '("Info(b_bse:makeos): Making oszillator strengths using&
+        & plane wave matrix elements.")')
+      nopt=1
+      allocate(projmat(hamsize,nopt))
+      ! Multiply plane wave matrix elements with v^(1/2)(qmt)
+      igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
+      write(*,*) "ivgmt", ivgmt(:,iqmt)
+      write(*,*) "igqmt", igqmt
+      write(*,*) "sptctlg=",sptclg(igqmt,iqmt)
+      ! Generate plane wave matrix elements for G=0 and q=qmt
+      call setup_pwmat(projmat, iqmt, igqmt)
+      projmat = projmat*sptclg(igqmt,iqmt)
     end if
-    ! Read in all needed momentum matrix elements
-    do ik = 1, nk_bse
-      iknr = kmap_bse_rg(ik)
-      iuabs1 = koulims(1,iknr)
-      iuabs2 = koulims(2,iknr)
-      ioabs1 = koulims(3,iknr)
-      ioabs2 = koulims(4,iknr)
-      inu = iuabs2 - iuabs1 + 1
-      ino = ioabs2 - ioabs1 + 1
-      call getpmat(iknr, vkl0,&
-        & ioabs1, ioabs2, iuabs1, iuabs2,&
-        & .true., 'PMAT_XS.OUT', pmouk(:,1:ino,1:inu,ik))
-      ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
-      ! \frac{v^\text{QP}_{okuk}}{E_uk - E_ok} \approx \frac{p^\text{LDA}_{okuk}}{e_uk - e_ok}
-      !   In the case that we use the quasi-particle energies E but the LDA eigenfunctions:
-      !   1) evalsv contains the E, while eval0 contains the e.
-      !   2) The BSE diagonal contains \Delta E
-      !   3) But the q->0 limit of <o|exp^{-iqr}|u> is still expressed in terms of
-      !      \frac{p^\text{LDA}_{okuk}}{e_uk - e_ok}, instead of v and E.
-      !   The following scales the LDA momentum matrix elements so that 3) is 
-      !   true for calculations on top of LDA or GW (Eigenvalues only).
-      if(associated(input%gw)) then
-        !$OMP PARALLEL DO &
-        !$OMP& COLLAPSE(2) &
-        !$OMP& DEFAULT(SHARED), PRIVATE(io,iu)
-        do io = 1, ino
-          do iu = 1, inu
-            pmouk(:,io,iu,ik) = pmouk(:,io,iu,ik)&
-              &* (evalsv(iuabs1+iu-1,iknr)-evalsv(ioabs1+io-1,iknr))&
-              &/ (eval0(iuabs1+iu-1,iknr)- eval0(ioabs1+io-1,iknr))
-          end do
-        end do
-        !$OMP END PARALLEL DO
-      end if 
-    end do
-    call timesec(t1)
-    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-
-    write(unitout, '("  Building Rmat.")')
-    call timesec(t0)
-    !$OMP PARALLEL DO &
-    !$OMP& DEFAULT(SHARED), PRIVATE(a1,iuabs,ioabs,iknr,iu,io,ik)
-    do a1 = 1, hamsize
-
-      ! Absolute indices
-      iuabs = smap(1,a1)
-      ioabs = smap(2,a1)
-      iknr  = smap(3,a1)
-
-      ! Relative indices
-      iu = smap_rel(1,a1)
-      io = smap_rel(2,a1)
-      ik = smap_rel(3,a1)
-      
-      ! Build R-matrix from P-matrix
-      ! \tilde{R}_{a,i} = 
-      !   \sqrt{|f_{o_a,k_a}-f_{u_a,k_a}|} *
-      !     P^i_{o_a,u_a,k_a} /(e_{u_a, k_a} - e_{o_a, k_a}) 
-      ! Note: The scissor does not enter here, so subtract it again.
-      rmat(a1, :) = ofac(a1)&
-        &*pmouk(:, io, iu, ik)/(de(a1)-sci)
-
-    end do
-    !$OMP END PARALLEL DO
-    if(rank==0) then 
-      if(fwp) then 
-        do ik = 1, nk_bse
-          call writecmplxparts('Pou_1', remat=dble(pmouk(1,:,:,ik)),&
-            & immat=aimag(pmouk(1,:,:,ik)), ik1=ik)
-          call writecmplxparts('Pou_2', remat=dble(pmouk(2,:,:,ik)),&
-            & immat=aimag(pmouk(2,:,:,ik)), ik1=ik)
-          call writecmplxparts('Pou_3', remat=dble(pmouk(3,:,:,ik)),&
-            & immat=aimag(pmouk(3,:,:,ik)), ik1=ik)
-        end do
-        call writecmplxparts('Rmat', remat=dble(rmat), immat=aimag(rmat))
-      end if
-    end if
-    ! Momentum matrix elements no longer needed
-    deallocate(pmouk)
-    call timesec(t1)
-    write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
     ! TDA case: Build resonant oscillator strengths                              !
@@ -1156,11 +1089,17 @@ contains
     if(.not. fcoup) then 
       write(unitout, '("  Building resonant oscillator strengths.")')
       call timesec(t0)
+      oszstrr = zzero
       !! Resonant oscillator strengths
+      ! qmt=0 case:
       ! t^R_{\lambda,i} = <X_\lambda|\tilde{R}^{i*}> =
       !   \Sum_{a} X^H_{\lambda, a} \tilde{R}^*_{a,i}
-      call zgemm('c','n', nexc, 3, hamsize,&
-        & zone, bevecr(1:hamsize,1:nexc), hamsize, conjg(rmat), hamsize, zzero, oszstrr, nexc)
+      ! qmt/=0 case:
+      ! t^R_{\lambda}(G,qmt) = <X_\lambda|\tilde{M}^*(G,qmt)> =
+      !   \Sum_{a} X^H_{\lambda, a} \tilde{M}^*_{a}(G,qmt)
+      call zgemm('c','n', nexc, nopt, hamsize,&
+        & zone, bevecr(1:hamsize,1:nexc), hamsize, conjg(projmat), hamsize,&
+        & zzero, oszstrr(1:nexc,1:nopt), nexc)
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
     end if
@@ -1173,9 +1112,9 @@ contains
     if(fcoup .and. .not. fti) then 
 
       allocate(rbarmat(2*hamsize,3))
-      rbarmat(1:hamsize,1:3) = conjg(rmat)
-      rbarmat(hamsize+1:2*hamsize,1:3) = -rmat
-      deallocate(rmat)
+      rbarmat(1:hamsize,1:3) = conjg(projmat)
+      rbarmat(hamsize+1:2*hamsize,1:3) = -projmat
+      deallocate(projmat)
 
       write(unitout, '("  Building t_r oscillator strengths.")')
       call timesec(t0)
@@ -1227,7 +1166,7 @@ contains
       !   ( \Sum_{a} \tilde{R}^T_{i, a} X_{a, \lambda} )^T =
       !     \Sum_{a} X^T_{\lambda, a} \tilde{R}_{a,i}
       call zgemm('t','n', nexc, 3, hamsize,&
-        & zone, bevecr(1:hamsize,1:nexc), hamsize, rmat, hamsize, zzero, oszstrr, nexc)
+        & zone, bevecr(1:hamsize,1:nexc), hamsize, projmat, hamsize, zzero, oszstrr, nexc)
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
       write(unitout, '("  Building anti-resonant oscillator strengths.")')
@@ -1238,7 +1177,7 @@ contains
       !     \Sum_{a} Y^T_{\lambda, a} \tilde{R}^*_{a,i}
       call zgemm('t','n', nexc, 3, hamsize,&
         & zone, bevecr(hamsize+1:2*hamsize,1:nexc), hamsize,&
-        & conjg(rmat), hamsize, zzero, oszstra, nexc)
+        & conjg(projmat), hamsize, zzero, oszstra, nexc)
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
     end if
@@ -1268,19 +1207,29 @@ contains
 
       write(unitout, '("  Building oscillator strengths for time inverted ar basis.")')
       call timesec(t0)
-      !! Oscillator strengths
-      ! t_{\lambda,i} = < (| X_\lambda>+| Y_\lambda>)| \tilde{R}^{i*}> =
-      !     \Sum_{a} (X+Y)^H_{\lambda, a} \tilde{R}^*_{a,i}
-      call zgemm('c','n', nexc, 3, hamsize,&
-        & zone, xpy(1:hamsize,1:nexc), hamsize, conjg(rmat), hamsize,&
-        & zzero, oszstrr, nexc)
+      if(iqmt == 1) then 
+        !! Oscillator strengths
+        ! t_{\lambda,i} = < (| X_\lambda>+| Y_\lambda>)| \tilde{R}^{i*}> =
+        !     \Sum_{a} (X+Y)^H_{\lambda, a} \tilde{R}^*_{a,i}
+        call zgemm('c','n', nexc, nopt, hamsize,&
+          & zone, xpy(1:hamsize,1:nexc), hamsize, conjg(projmat), hamsize,&
+          & zzero, oszstrr(1:nexc,1:nopt), nexc)
+      else
+        !! Oscillator strengths
+        ! t_{\lambda}(G,qmt) = < (| X_\lambda>+| Y_\lambda>)| \tilde{M}^*(G,qmt)> =
+        !     \Sum_{a} (X+Y)^H_{\lambda, a} \tilde{M}^*_{a}
+        call zgemm('c','n', nexc, nopt, hamsize,&
+          & zone, xpy(1:hamsize,1:nexc), hamsize, conjg(projmat), hamsize,&
+          & zzero, oszstrr(1:nexc,1:nopt), nexc)
+      end if
+
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
       deallocate(xpy)
     end if
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
-    if(allocated(rmat)) deallocate(rmat)
+    if(allocated(projmat)) deallocate(projmat)
     call timesec(ts1)
     write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
   end subroutine makeoszillatorstrength
@@ -1291,7 +1240,7 @@ contains
     ! I/O
     integer(4), intent(in) :: nfreq
     real(8), intent(in) :: freq(nfreq)
-    complex(8), intent(out) :: spectrum(3,3,nfreq)
+    complex(8), intent(out) :: spectrum(:,:,:)
 
     ! Local
     integer(4) :: i, j, o1, o2, nopt
@@ -1302,9 +1251,17 @@ contains
 
     write(unitout, '("Info(b_bse:makesp_ti):&
      & Making spectrum using formula for coupling with time inverted ar basis.")')
-    if(input%xs%dfoffdiag) then
-      write(unitout, '("  Including off diagonals.")')
+    if(iqmt == 1) then 
+      write(unitout, '("Info(b_bse:makesp_ti):&
+       & Using formalism for vaninshing momentum transfer.")')
+      if(input%xs%dfoffdiag) then
+        write(unitout, '("Info(b_bse:makesp_ti): Including off diagonals.")')
+      end if
+    else
+      write(unitout, '("Info(b_bse:makesp_ti):&
+       & Using formalism for finite momentum transfer. iqmt=",i4)') iqmt
     end if
+
     ! Total time for spectrum construction
     call timesec(ts0)
 
@@ -1343,30 +1300,48 @@ contains
     write(unitout, '("  Making helper matrix tmat.")')
     call timesec(t0)
 
-    if(input%xs%dfoffdiag) then
-      nopt = 9
-    else
-      nopt = 3
-    end if
+    if(iqmt == 1) then 
 
-    ! tmat_{\lambda, j} = t_{\lambda, o1_j} t^*_{\lambda, o2_j} 
-    ! where j combines the Cartesian directions
-    allocate(tmat(nexc,nopt))
-    do j = 1, nopt
       if(input%xs%dfoffdiag) then
-        o2 = (j-1)/3 + 1
-        o1 = j-(o2-1)*3
+        nopt = 9
       else
-        o2 = j
-        o1 = j
+        nopt = 3
       end if
+
+      ! tmat_{\lambda, j} = t^*_{\lambda, o1_j} t_{\lambda, o2_j} 
+      ! where j combines the Cartesian directions
+      allocate(tmat(nexc,nopt))
+      do j = 1, nopt
+        if(input%xs%dfoffdiag) then
+          o2 = (j-1)/3 + 1
+          o1 = j-(o2-1)*3
+        else
+          o2 = j
+          o1 = j
+        end if
+        !$OMP PARALLEL DO &
+        !$OMP& DEFAULT(SHARED), PRIVATE(i)
+        do i = 1, nexc
+          tmat(i,j) = conjg(oszsr(i,o1))*oszsr(i,o2)
+        end do
+        !$OMP END PARALLEL DO
+      end do
+
+    else
+
+      nopt = 1
+
+      ! tmat_{\lambda}(G,qmt) = t^*_{\lambda}(G,qmt) t_{\lambda}(G,qmt) 
+      allocate(tmat(nexc,nopt))
       !$OMP PARALLEL DO &
       !$OMP& DEFAULT(SHARED), PRIVATE(i)
       do i = 1, nexc
-        tmat(i,j) = conjg(oszsr(i,o1))*oszsr(i,o2)
+        tmat(i,1) = conjg(oszsr(i,1))*oszsr(i,1)
       end do
       !$OMP END PARALLEL DO
-    end do
+
+    end if
+
     call timesec(t1)
     write(unitout, '("    Time needed",f12.3,"s")') t1-t0
     !++++++++++++++++++++++++++++++++++++++++++++!
@@ -1379,10 +1354,16 @@ contains
 
     allocate(ns_spectr(nfreq,nopt))
 
+    ! qmt=1 case:
     ! nsspectr_{w,j} = \Sum_{\lambda} enw_{w,\lambda} tmat_{\lambda, j}
     !   i.e. nsspectr_{w,j} = 
     !     \Sum_{\lambda} (1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta))
-    !       t_{\lambda, o1_j} t^*_{\lambda, o2_j} 
+    !       t^*_{\lambda, o1_j} t_{\lambda, o2_j} 
+    ! qmt/=0 case:
+    ! nsspectr_{w,j} = \Sum_{\lambda} enw_{w,\lambda} tmat_{\lambda, j}
+    !   i.e. nsspectr_{w,j} = 
+    !     \Sum_{\lambda} (1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta))
+    !       t^*_{\lambda}(G,qmt) t_{\lambda}(G,qmt) 
     call zgemm('N','N', nfreq, nopt, nexc, zone, enw, nfreq,&
       & tmat, nexc, zzero, ns_spectr, nfreq)
     !++++++++++++++++++++++++++++++++++++++++++++!
@@ -1411,13 +1392,31 @@ contains
     integer(4) :: i, j, o1, o2, nopt
     real(8) :: t1, t0, ts0, ts1
     complex(8), allocatable :: ns_spectr(:,:)
-    complex(8), allocatable :: enwr(:,:), enwa(:,:), tmatr(:,:)
+    complex(8), allocatable :: enw(:,:), enwr(:,:), enwa(:,:), tmatr(:,:)
+    complex(8) :: brd
 
     write(unitout, '("Info(b_bse:makesp_tda):&
      & Making spectrum using TDA formula.")')
-    if(input%xs%dfoffdiag) then
-      write(unitout, '("  Including off diagonals.")')
+    if(iqmt == 1) then 
+      write(unitout, '("Info(b_bse:makesp_tda):&
+       & Using formalism for vaninshing momentum transfer.")')
+      if(input%xs%dfoffdiag) then
+        write(unitout, '("Info(b_bse:makesp_tda): Including off diagonals.")')
+      end if
+    else
+      write(unitout, '("Info(b_bse:makesp_tda):&
+       & Using formalism for finite momentum transfer. iqmt=",i4)') iqmt
     end if
+    if(fti) then 
+      write(unitout, '("Info(b_bse:makesp_tda): Using fomula for ti ar basis.")')
+    end if
+
+    if(iqmt /= 1 .and. .not. fti) then 
+      write(unitout, '("Info(b_bse:makesp_tda):&
+        & Finite momentum transfer only supported for ti ar basis.")')
+      call terminate
+    end if
+
     ! Total time for spectrum construction
     call timesec(ts0)
 
@@ -1428,29 +1427,52 @@ contains
     write(unitout, '("  Making energy denominators ENW.")')
     call timesec(t0)
 
-    ! enwr_{w, \lambda} = 1/(E_\lambda - w - i\delta)
-    allocate(enwr(nfreq, nexc))
-    !$OMP PARALLEL DO &
-    !$OMP& COLLAPSE(2),&
-    !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
-    do j = 1, nexc
-      do i = 1, nfreq
-        enwr(i,j) = zone/(bevalre(j)-freq(i)-zi*input%xs%broad)
-      end do
-    end do
-    !$OMP END PARALLEL DO
+    ! Broadening factor
+    brd = zi*input%xs%broad
 
-    ! enwa_{w, \lambda} = 1/(E_\lambda + w + i\delta)
-    allocate(enwa(nfreq, nexc))
-    !$OMP PARALLEL DO &
-    !$OMP& COLLAPSE(2),&
-    !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
-    do j = 1, nexc
-      do i = 1, nfreq
-        enwa(i,j) = zone/(bevalre(j)+freq(i)+zi*input%xs%broad)
+    if(.not. fti) then 
+
+      ! enwr_{w, \lambda} = 1/(E_\lambda - w - i\delta)
+      allocate(enwr(nfreq, nexc))
+      !$OMP PARALLEL DO &
+      !$OMP& COLLAPSE(2),&
+      !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
+      do j = 1, nexc
+        do i = 1, nfreq
+          enwr(i,j) = zone/(bevalre(j)-freq(i)-brd)
+        end do
       end do
-    end do
-    !$OMP END PARALLEL DO
+      !$OMP END PARALLEL DO
+
+      ! enwa_{w, \lambda} = 1/(E_\lambda + w + i\delta)
+      allocate(enwa(nfreq, nexc))
+      !$OMP PARALLEL DO &
+      !$OMP& COLLAPSE(2),&
+      !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
+      do j = 1, nexc
+        do i = 1, nfreq
+          enwa(i,j) = zone/(bevalre(j)+freq(i)+brd)
+        end do
+      end do
+      !$OMP END PARALLEL DO
+
+    else
+
+      ! enw_{w, \lambda} = 1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta)
+      allocate(enw(nfreq, nexc))
+
+      !$OMP PARALLEL DO &
+      !$OMP& COLLAPSE(2),&
+      !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
+      do j = 1, nexc
+        do i = 1, nfreq
+          enw(i,j) = zone/(bevalre(j)-freq(i)-brd)&
+                  &+ zone/(bevalre(j)+freq(i)+brd)
+        end do
+      end do
+      !$OMP END PARALLEL DO
+
+    end if
 
     call timesec(t1)
     write(unitout, '("    Time needed",f12.3,"s")') t1-t0
@@ -1463,30 +1485,47 @@ contains
     write(unitout, '("  Making helper matrix tmatr.")')
     call timesec(t0)
 
-    if(input%xs%dfoffdiag) then
-      nopt = 9
-    else
-      nopt = 3
-    end if
+    if(iqmt == 1) then 
 
-    ! tmatr_{\lambda, j} = t^{R*}_{\lambda, o1_j} t^R_{\lambda, o2_j} 
-    ! where j combines the 2 cartesian directions
-    allocate(tmatr(nexc,nopt))
-    do j = 1, nopt
       if(input%xs%dfoffdiag) then
-        o2 = (j-1)/3 + 1
-        o1 = j-(o2-1)*3
+        nopt = 9
       else
-        o2 = j
-        o1 = j
+        nopt = 3
       end if
+
+      ! tmatr_{\lambda, j} = t^{R*}_{\lambda, o1_j} t^R_{\lambda, o2_j} 
+      ! where j combines the 2 cartesian directions
+      allocate(tmatr(nexc,nopt))
+      do j = 1, nopt
+        if(input%xs%dfoffdiag) then
+          o2 = (j-1)/3 + 1
+          o1 = j-(o2-1)*3
+        else
+          o2 = j
+          o1 = j
+        end if
+        !$OMP PARALLEL DO &
+        !$OMP& DEFAULT(SHARED), PRIVATE(i)
+        do i = 1, nexc
+          tmatr(i,j) = conjg(oszsr(i,o1))*oszsr(i,o2)
+        end do
+        !$OMP END PARALLEL DO
+      end do
+
+    else
+      
+      nopt = 1
+      ! tmat_{\lambda}(G,qmt) = t^*_{\lambda}(G,qmt) t_{\lambda}(G,qmt) 
+      allocate(tmatr(nexc,nopt))
       !$OMP PARALLEL DO &
       !$OMP& DEFAULT(SHARED), PRIVATE(i)
       do i = 1, nexc
-        tmatr(i,j) = conjg(oszsr(i,o1))*oszsr(i,o2)
+        tmatr(i,nopt) = conjg(oszsr(i,nopt))*oszsr(i,nopt)
       end do
       !$OMP END PARALLEL DO
-    end do
+
+    end if
+
     call timesec(t1)
     write(unitout, '("    Time needed",f12.3,"s")') t1-t0
     !++++++++++++++++++++++++++++++++++++++++++++!
@@ -1499,23 +1538,42 @@ contains
 
     allocate(ns_spectr(nfreq,nopt))
 
-    ! nsspectr_{w,j} = \Sum_{\lambda} enwr_{w,\lambda} tmatr_{\lambda, j}
-    !   i.e. nsspectr_{w,j} = 
-    !     \Sum_{\lambda} 1/(E_\lambda - w - i\delta)
-    !       (t^R)^H_{o1_j,\lambda} t^R_{\lambda, o2_j} 
-    call zgemm('N','N', nfreq, nopt, nexc, zone, enwr, nfreq,&
-      & tmatr, nexc, zzero, ns_spectr, nfreq)
+    if(.not. fti) then 
+      ! nsspectr_{w,j} = \Sum_{\lambda} enwr_{w,\lambda} tmatr_{\lambda, j}
+      !   i.e. nsspectr_{w,j} = 
+      !     \Sum_{\lambda} 1/(E_\lambda - w - i\delta)
+      !       (t^R)^H_{o1_j,\lambda} t^R_{\lambda, o2_j} 
+      call zgemm('N','N', nfreq, nopt, nexc, zone, enwr, nfreq,&
+        & tmatr, nexc, zzero, ns_spectr, nfreq)
 
-    ! nsspectr_{w,j} += \Sum_{\lambda} enwa_{w,\lambda} tmatr^*_{\lambda, j}
-    !   i.e. nsspectr_{w,j} = nsspectr_{w,j} +
-    !     \Sum_{\lambda} 1/(E_\lambda + w + i\delta)
-    !       ( (t^R)^H_{o1_j,\lambda} t^R_{\lambda, o2_j} )^*
-    call zgemm('N','N', nfreq, nopt, nexc, zone, enwa, nfreq,&
-      & conjg(tmatr), nexc, zone, ns_spectr, nfreq)
+      ! nsspectr_{w,j} += \Sum_{\lambda} enwa_{w,\lambda} tmatr^*_{\lambda, j}
+      !   i.e. nsspectr_{w,j} = nsspectr_{w,j} +
+      !     \Sum_{\lambda} 1/(E_\lambda + w + i\delta)
+      !       ( (t^R)^H_{o1_j,\lambda} t^R_{\lambda, o2_j} )^*
+      call zgemm('N','N', nfreq, nopt, nexc, zone, enwa, nfreq,&
+        & conjg(tmatr), nexc, zone, ns_spectr, nfreq)
+    else
+      ! qmt=0 case:
+      ! nsspectr_{w,j} = \Sum_{\lambda} enw_{w,\lambda} tmat_{\lambda, j}
+      !   i.e. nsspectr_{w,j} = 
+      !     \Sum_{\lambda} (1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta))
+      !       t^*_{\lambda, o1_j} t_{\lambda, o2_j} 
+      ! qmt/=0 case:
+      ! nsspectr_{w,j} = \Sum_{\lambda} enw_{w,\lambda} tmat_{\lambda, j}
+      !   i.e. nsspectr_{w,j} = 
+      !     \Sum_{\lambda} (1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta))
+      !       t^*_{\lambda}(G,qmt) t_{\lambda}(G,qmt) 
+      call zgemm('N','N', nfreq, nopt, nexc, zone, enw, nfreq,&
+        & tmatr, nexc, zzero, ns_spectr, nfreq)
+    end if
+
     !++++++++++++++++++++++++++++++++++++++++++++!
 
     ! Helper no longer needed
-    deallocate(tmatr, enwr, enwa)
+    if(allocated(enwr)) deallocate(enwr)
+    if(allocated(enwa)) deallocate(enwa)
+    if(allocated(enw)) deallocate(enw)
+    if(allocated(tmatr)) deallocate(tmatr)
 
     ! Postprocess non-lattice-symmetrized spectrum
     call finalizespectrum(ns_spectr, spectrum)
@@ -1772,20 +1830,32 @@ contains
     ! Check input
     nfreq = size(nsp,1) 
     nopt = size(nsp,2)
-    if(nopt == 9) then 
-      foff = .true.
-    else if(nopt == 3) then
-      foff = .false.
+    if(iqmt==1) then 
+      if(nopt == 9) then 
+        foff = .true.
+      else if(nopt == 3) then
+        foff = .false.
+      else
+        write(*,*) "Error (finalizespectrum): nopt invalid", nopt
+        call terminate
+      end if
     else
-      write(*,*) "Error (finalizespectrum): nopt invalid", nopt
-      call terminate
+      if(nopt /= 1) then 
+        write(*,*) "Error (finalizespectrum): nopt invalid", nopt, " iqmt=",iqmt
+        call terminate
+      end if
+      foff=.false.
     end if
 
     write(unitout, '("Info(b_bse:finalizesp): Finalizing spectrum.")')
     call timesec(t0)
 
     ! Adjusting prfactor and add 1 to diagonal elements
-    pref = 8.d0*pi/omega/nk_bse
+    if(iqmt==1) then 
+      pref = 8.d0*pi/omega/nk_bse
+    else
+      pref = 2.0d0/omega/nk_bse
+    end if
     do j = 1, nopt
       if(foff) then
         !$OMP PARALLEL DO &
@@ -1808,33 +1878,43 @@ contains
       end if
     end do
 
-    ! Write to buffer for symmetry routine
-    allocate(buf(3,3,nfreq))
-    buf=zzero
-    do j = 1, nopt
-      if(foff) then
-        o2 = (j-1)/3 + 1
-        o1 = j-(o2-1)*3
-      else
-        o2 = j
-        o1 = j
-      end if
-      !$OMP PARALLEL DO &
-      !$OMP& DEFAULT(SHARED), PRIVATE(i)
-      do i = 1, nfreq
-        buf(o1,o2,i) = nsp(i,j)
+    if(iqmt == 1) then 
+
+      ! Write to buffer for symmetry routine
+      allocate(buf(3,3,nfreq))
+      buf=zzero
+      do j = 1, nopt
+        if(foff) then
+          o2 = (j-1)/3 + 1
+          o1 = j-(o2-1)*3
+        else
+          o2 = j
+          o1 = j
+        end if
+        !$OMP PARALLEL DO &
+        !$OMP& DEFAULT(SHARED), PRIVATE(i)
+        do i = 1, nfreq
+          buf(o1,o2,i) = nsp(i,j)
+        end do
+        !$OMP END PARALLEL DO
       end do
-      !$OMP END PARALLEL DO
-    end do
     
-    ! Symmetrize spectrum 
-    sp = zzero
-    do o1=1,3
-      do o2=1,3
-        ! Symmetrize the macroscopic dielectric tensor
-        call symt2app(o1, o2, nfreq, symt2, buf, sp(o1,o2,:))
-      end do 
-    end do
+      ! Symmetrize spectrum 
+      sp = zzero
+      do o1=1,3
+        do o2=1,3
+          ! Symmetrize the macroscopic dielectric tensor
+          call symt2app(o1, o2, nfreq, symt2, buf, sp(o1,o2,:))
+        end do 
+      end do
+
+    else
+
+      sp = zzero
+      sp(1,1,:) = nsp(:,1)
+
+    end if
+
     call timesec(t1)
     write(unitout, '("    Time needed",f12.3,"s")') t1-t0
   end subroutine finalizespectrum

@@ -25,7 +25,6 @@ subroutine writepmatxs
   use m_putpmat
   use m_genfilname
 
-  use modxs, only: randphases
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
 !   writes them to direct access file {\tt PMAT.OUT}, {\tt PMAT\_XS.OUT} or
@@ -198,13 +197,6 @@ subroutine writepmatxs
 
     ! Get the eigenvectors and values from file
     call getevecfv(vkl(1, ik), vgkl(1, 1, 1, ik), evecfvt)
-    !test
-    !if(task == 320) then
-    !  do ist = 1, nstfv
-    !    evecfvt(:,ist) = evecfvt(:,ist)*randphases(ist,ik)
-    !  end do
-    !end if
-    !end test
     call getevecsv(vkl(1, ik), evecsvt)
 
     ! Find the matching coefficients

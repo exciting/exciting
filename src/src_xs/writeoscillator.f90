@@ -12,7 +12,7 @@ module m_writeoscillator
   contains
 
     subroutine writeoscillator(hamsize, nexc, eshift, evalre, oszstrr,&
-      & evalim, oszstra, sort)
+      & evalim, oszstra, sort, iqmt)
       ! I/O
       integer(4), intent(in) :: hamsize, nexc
       real(8), intent(in) :: eshift
@@ -21,10 +21,11 @@ module m_writeoscillator
       real(8), intent(in), optional :: evalim(hamsize)
       complex(8), intent(in), optional :: oszstra(nexc,3)
       logical, intent(in), optional :: sort
+      integer(4), intent(in), optional :: iqmt
 
       ! Local
       logical :: fsort
-      integer(4) :: o1, lambda, unexc, i, j
+      integer(4) :: o1, lambda, unexc, i, j, io1, io2
       integer(4), allocatable :: idxsort(:), idxsort2(:)
       real(8), allocatable :: evalre_sorted(:)
       real(8) :: pm
@@ -60,7 +61,16 @@ module m_writeoscillator
       end if
 
       ! Loop over optical components
-      do o1=1,3
+      io1=1
+      io2=3
+      if(present(iqmt)) then 
+        if(iqmt /= 1) then 
+          io1=1
+          io2=1
+        end if
+      end if
+
+      do o1=io1,io2
 
 #ifdef DGRID
         ! Stk: Add case of double grid
@@ -80,9 +90,21 @@ module m_writeoscillator
           
         endif
 #else
-        call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
-          & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
+        if(present(iqmt)) then 
+          if(iqmt /= 1) then 
+            call genfilname(basename='EXCITON', iqmt=iqmt,&
+              & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+              & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
+          else
+            call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
+              & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+              & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
+          end if
+        else
+          call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
+            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+            & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
+        end if
 #endif
 
         ! Write out exciton energies and oscillator strengths
