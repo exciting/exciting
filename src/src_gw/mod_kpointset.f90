@@ -10,7 +10,7 @@ MODULE mod_kpointset
         integer :: nkptnr                   ! total (non-reduced) number of k-points (in case symmetry is used)
         real(8), allocatable :: vkl(:,:)    ! lattice coordinates
         real(8), allocatable :: vkc(:,:)    ! cartesian coordinates
-        integer, allocatable :: ik2ikp(:)   ! index mapping: non-reduced->reduced     k-point
+        integer, allocatable :: ik2ikp(:)   ! index mapping: non-reduced->reduced k-point
         integer, allocatable :: ikp2ik(:)   ! index mapping: reduced->non-reduced k-point
         real(8), allocatable :: wkpt(:)     ! weight of k-point
         ! tetrahedron integration method related data

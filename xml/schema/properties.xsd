@@ -836,6 +836,17 @@
           </xs:annotation>
           <xs:complexType>
 
+            <xs:attribute ex:importance="essential" ex:unit="" name="input" default="groundstate">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="groundstate">
+                  </xs:enumeration>
+                  <xs:enumeration value="gw">
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
             <xs:attribute ex:importance="essential" ex:unit="" name="method" default="opfmax">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -876,6 +887,18 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="projectors" type="integertriple" use="optional">
               <xs:annotation>
                 <xs:documentation>List of space seperated integers representing the local-orbitals used as projection functions.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="innerwindow" type="vect2d" use="optional" default="0.d0 0.d0">
+              <xs:annotation>
+                <xs:documentation>Inner energy-window for band-disentanglement.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="outerwindow" type="vect2d" use="optional" default="0.d0 0.d0">
+              <xs:annotation>
+                <xs:documentation>Outer energy-window for band-disentanglement.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 

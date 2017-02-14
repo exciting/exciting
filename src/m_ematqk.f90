@@ -338,9 +338,10 @@ module m_ematqk
           return
       end subroutine emat_genri
       
-      subroutine emat_genemat( ik, fst1, nst1, fst2, nst2, evec1, evec2, emat)
+      subroutine emat_genemat( veckl, veckc, fst1, nst1, fst2, nst2, evec1, evec2, emat)
           use modxs, only : fftmap_type
-          integer, intent( in) :: ik, fst1, nst1, fst2, nst2
+          integer, intent( in) :: fst1, nst1, fst2, nst2
+          real(8), intent( in) :: veckl(3), veckc(3)
           complex(8), intent( in) :: evec1( ngkmax+nlotot, nstfv), evec2( ngkmax+nlotot, nstfv)
           complex(8), intent( out) :: emat( nst1, nst2)
 
@@ -375,7 +376,7 @@ module m_ematqk
           allocate( apwalm2( ngkmax, apwordmax, lmmaxapw, natmtot))
 
           ! k+q-vector in lattice coordinates
-          veckql(:) = vklnr( :, ik) + vecql(:)
+          veckql = veckl + vecql
           ! map vector components to [0,1) interval
           call r3frac( input%structure%epslat, veckql, iv)
           ! k+q-vector in Cartesian coordinates
@@ -388,7 +389,7 @@ module m_ematqk
           call match( ngkq, gkqc, tpgkqc, sfacgkq, apwalm2)
 
           ! generate the G+k-vectors
-          call gengpvec( vklnr( :, ik), vkcnr( :, ik), ngknr, igkignr, vecgkql, vecgkqc, gkqc, tpgkqc)
+          call gengpvec( veckl, veckc, ngknr, igkignr, vecgkql, vecgkqc, gkqc, tpgkqc)
           ! generate the structure factors
           call gensfacgp( ngknr, vecgkqc, ngkmax, sfacgkq)
           ! find matching coefficients for k-point k
@@ -491,18 +492,11 @@ module m_ematqk
           !--------------------------------------!
  
           !ikq = ikmapikq (ik, iq)
-          veckql(:) = vklnr( :, ik) + vecql(:)        !vkql = veckql
+          veckql = veckl + vecql        !vkql = veckql
                 
           ! umklapp treatment
-          do ix = 1, 3
-            if( veckql( ix) .ge. 1d0-1d-13) then
-              shift( ix) = -1
-            else if( veckql( ix) .lt. -1d-13) then
-              shift( ix) = 1
-            else
-              shift( ix) = 0
-            endif
-          enddo
+          call r3frac( input%structure%epslat, veckql, shift)
+          shift = -shift
           
           emat_gmax = 2*gkmax! +input%xs%gqmax
           

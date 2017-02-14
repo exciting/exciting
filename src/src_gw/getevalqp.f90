@@ -3,7 +3,8 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
 
   use modinput
   use modmain
-  use modgw,    only: ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp
+  use modgw,    only: kset, ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp
+  use mod_wannier
 
   implicit none
       
@@ -17,7 +18,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   real(8)       :: eferks
   character(30) :: fname
   integer(4), allocatable :: idx(:)
-  real(8),    allocatable :: eqp(:)
+  real(8),    allocatable :: eqp(:), eqpwan(:,:), eqpwanint(:,:)
   complex(8), allocatable :: de1(:,:), de2(:,:)
 
   !-----------------------------------------------------------------------------
@@ -111,21 +112,51 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   !-----------------------------------------------------------------------------
   ! Interpolate the energies
   !-----------------------------------------------------------------------------      
-  allocate(de1(nkp1,ibgw:nbgw))
-  do ik = 1, nkp1
-    de1(ik,:) = cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
-  enddo
+  allocate(de1( nkp1, ibgw:nbgw))
 
-  allocate(de2(nkpt,ibgw:nbgw))
+  allocate(de2( nkp2, ibgw:nbgw))
   de2(:,:) = zzero
 
-  call fourintp(de1, nkp1, kvecs1, de2, nkp2, vkl, nbgw-ibgw+1)
-
-  do ib = ibgw, min(nbgw,nstsv)
-     do ik = 1, nkpt
-        eqp2(ib,ik) = eqp2(ib,ik)+dble(de2(ik,ib))-eferqp
-     enddo 
-  enddo
+  if( input%gw%taskname .eq. "wannier") then
+    allocate( eqpwan( ibgw:nbgw, wf_nkpt), eqpwanint( ibgw:nbgw, nkp2))
+    write(*,*) shape( eqp1)
+    if( allocated( vkl)) deallocate( vkl)
+    allocate( vkl( 3, nkp1))
+    vkl = kvecs1
+    do ik = 1, wf_nkpt
+      call findkpt( wf_vkl( :, ik), nb, ib)
+      !write(*,*) ik, ib
+      !write(*,*) wf_vkl( :, ik)
+      !write(*,*) vkl( :, ib)
+      !write(*,*) kvecs1( :, ib)
+      eqpwan( :, ik) = eqp1( ibgw:nbgw, ib)
+      !write(*,'(100F13.6)') eqpwan( :, ik)
+    end do
+    deallocate( vkl)
+    allocate( vkl( 3, nkp2))
+    vkl = kvecs2
+    nkpt = nkp2
+      
+    !write(*,*) shape( eqpwan), shape( wf_vkl), wf_nkpt
+    !write(*,*) shape( eqpwanint), shape( kvecs2), nkp2
+    !write(*,*) shape( eqp2)
+    call wannier_interpolate_eval( eqpwan, wf_nkpt, wf_vkl, eqpwanint, nkp2, kvecs2, ibgw, nbgw)
+    do ib = ibgw, min(nbgw,nstsv)
+       do ik = 1, nkp2
+          eqp2( ib, ik) = eqpwanint( ib, ik) - eferqp - efermi
+       end do 
+     end do
+  else
+    do ik = 1, nkp1
+      de1(ik,:) = cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)
+    end do
+    call fourintp(de1, nkp1, kvecs1, de2, nkp2, vkl, nbgw-ibgw+1)
+    do ib = ibgw, min(nbgw,nstsv)
+       do ik = 1, nkpt
+          eqp2(ib,ik) = eqp2(ib,ik)+dble(de2(ik,ib))-eferqp
+       end do 
+     end do
+  end if
 
   deallocate(de1,de2)
   deallocate(kvecs1,eqp1,eks1)

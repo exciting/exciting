@@ -65,7 +65,7 @@ Subroutine diaghermat ( matsize, mat, eval, evec)
 
       If (info .Ne. 0) Then
          Write (*,*)
-         Write (*, '("Error(bsesoldiag): zheevx returned non-zero info:&
+         Write (*, '("ERROR( diaghermat): zheevr returned non-zero info:&
         &", i6)') info
          Write (*,*)
          Call terminate

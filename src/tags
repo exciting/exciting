@@ -18314,7 +18314,6 @@ am_xc_get_data_OBJECTS	libXC/testsuite/Makefile	/^am_xc_get_data_OBJECTS = xc_ge
 am_xc_regression_OBJECTS	libXC/testsuite/Makefile	/^am_xc_regression_OBJECTS = xc_regression-xc-regression.$(OBJEXT)$/;"	m
 ampl	src_inputparser/inputmodules.f90	/^ real(8)::ampl$/;"	k	type:dfthalfparam_type
 angavsc0	src_xs/angavsc0.F90	/^Subroutine angavsc0 /;"	s
-angchar	mod_wannier.f90	/^    subroutine angchar(/;"	s	module:mod_wannier
 angular_averaging	src_gw/angular_averaging.f90	/^subroutine angular_averaging(/;"	s
 answ	src_other/delaunay.f	/^      character*1 answ$/;"	v	program:main
 any	FoX/common/m_common_element.F90	/^    logical :: any /;"	k	type:element_t
@@ -18990,6 +18989,7 @@ cdu2	ARPACK/EXAMPLES/NONSYM/dndrv5.f	/^     &                  cdd(maxn), cdl(ma
 cdu2	ARPACK/EXAMPLES/NONSYM/dndrv6.f	/^     &                  cdd(maxn), cdl(maxn), cdu(maxn),$/;"	v	program:dndrv6
 cdu2	ARPACK/EXAMPLES/NONSYM/sndrv5.f	/^     &                  cdd(maxn), cdl(maxn), cdu(maxn),$/;"	v	program:sndrv5
 cdu2	ARPACK/EXAMPLES/NONSYM/sndrv6.f	/^     &                  cdd(maxn), cdl(maxn), cdu(maxn),$/;"	v	program:sndrv6
+cell	src_inputparser/inputmodules.f90	/^ integer::cell(/;"	k	type:wannierplot_type
 cf	species/modspecies.F90	/^real(8), allocatable :: fr(:),gr(:),cf(/;"	v	module:modspecies
 cfac	ARPACK/EXAMPLES/BAND/dnbdr1.f	/^      Complex*16  $/;"	v	program:dnbdr1
 cfac	ARPACK/EXAMPLES/BAND/dnbdr2.f	/^      Complex*16  $/;"	v	program:dnbdr2
@@ -19654,7 +19654,9 @@ dgetv0	ARPACK/SRC/dgetv0.f	/^      subroutine dgetv0 /;"	s
 dgrid	src_xs/modxs.F90	/^      Logical :: dgrid$/;"	v	module:modxs
 diaggenmat	diaggenmat.f90	/^Subroutine diaggenmat /;"	s
 diaghermat	diaghermat.f90	/^Subroutine diaghermat /;"	s
+diagrealmat	diagrealmat.f90	/^Subroutine diagrealmat /;"	s
 diagsgi	src_gw/diagsgi.f90	/^subroutine diagsgi(/;"	s
+diagsymmat	diagsymmat.f90	/^Subroutine diagsymmat /;"	s
 dict	FoX/wxml/m_wxml_core.F90	/^    type(dicti/;"	k	type:xmlf_t
 dict_item	FoX/common/m_common_attrs.F90	/^  type dict_item$/;"	t	module:m_common_attrs
 dict_item_ptr	FoX/common/m_common_attrs.F90	/^  type dict_item_ptr$/;"	t	module:m_common_attrs
@@ -21035,7 +21037,6 @@ genlofr	genlofr.f90	/^Subroutine genlofr$/;"	s
 genloss	src_xs/genloss.F90	/^      Subroutine genloss /;"	s	module:m_genloss
 genmbrotmat	src_gw/genmbrotmat.f90	/^subroutine genmbrotmat(/;"	s
 genmeffig	genmeffig.f90	/^Subroutine genmeffig$/;"	s
-genmlwf	mod_wannier.f90	/^    subroutine genmlwf(/;"	s	module:mod_wannier
 genocc	src_stm/genocc.F90	/^Subroutine genocc(/;"	s
 genparidxran	src_xs/genparidxran.F90	/^Subroutine genparidxran /;"	s
 genpchgs	genpchgs.F90	/^subroutine genpchgs(/;"	s
@@ -21078,7 +21079,6 @@ genvmatk	genvmatk.f90	/^Subroutine genvmatk /;"	s
 genvmatlu	src_LDAU/genvmatlu.f90	/^Subroutine genvmatlu$/;"	s
 genvmatlu_12	src_LDAU/genvmatlu.f90	/^Subroutine genvmatlu_12$/;"	s
 genvxcig	src_gw/src_vxc/genvxcig.f90	/^subroutine genvxcig$/;"	s
-genwf	mod_wannier.f90	/^    subroutine genwf(/;"	s	module:mod_wannier
 genwfsv	genwfsv.f90	/^Subroutine genwfsv /;"	s
 genwfsv_new	genwfsv_new.f90	/^subroutine genwfsv_new(/;"	s
 genwgrid	src_xs/genwgrid.F90	/^      Subroutine genwgrid /;"	s	module:m_genwgrid
@@ -21399,6 +21399,8 @@ getstructtddft	src_inputparser/inputmodules.f90	/^function getstructtddft(/;"	f	
 getstructtetra	src_inputparser/inputmodules.f90	/^function getstructtetra(/;"	f	module:modinput
 getstructtrans	src_inputparser/inputmodules.f90	/^function getstructtrans(/;"	f	module:modinput
 getstructtransitions	src_inputparser/inputmodules.f90	/^function getstructtransitions(/;"	f	module:modinput
+getstructwannier	src_inputparser/inputmodules.f90	/^function getstructwannier(/;"	f	module:modinput
+getstructwannierplot	src_inputparser/inputmodules.f90	/^function getstructwannierplot(/;"	f	module:modinput
 getstructwf	src_inputparser/speciesmodules.f90	/^function getstructwf(/;"	f	module:modspdb
 getstructwfplot	src_inputparser/inputmodules.f90	/^function getstructwfplot(/;"	f	module:modinput
 getstructwpos	spacegroup/sginputmodule.f90	/^function getstructwpos(/;"	f	module:modsymmetries
@@ -22104,6 +22106,7 @@ initlibxc	src_inputparser/initlibxc.F90	/^subroutine initlibxc$/;"	s
 initmixermsec	src_mixing/modmixermsec.f90	/^      Subroutine initmixermsec /;"	s	module:modmixermsec
 initocc	src_xs/initocc.F90	/^Subroutine initocc /;"	s
 initsolver	src_inputparser/initsolver.F90	/^subroutine initsolver$/;"	s
+innerwindow	src_inputparser/inputmodules.f90	/^ real(8)::innerwindow(/;"	k	type:wannier_type
 input	src_inputparser/inputmodules.f90	/^   type(input_/;"	v	module:modinput
 inputEncoding	FoX/common/m_common_struct.F90	/^    character, pointer :: inputEncoding(/;"	k	type:xml_doc_state
 inputEncoding	FoX/dom/m_dom_dom.F90	/^    character, pointer :: inputEncoding(/;"	k	type:documentExtras
@@ -23923,6 +23926,8 @@ meffig	mod_potential_and_density.F90	/^      Complex (8), Allocatable :: veffig 
 mersenne	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^    } mersenne;$/;"	m	union:__anon63::__anon64	typeref:struct:__anon63::__anon64::__anon66
 metallic	src_gw/mod_bands.f90	/^    logical :: metallic$/;"	v	module:mod_bands
 method	src_inputparser/inputmodules.f90	/^ character(512)::method$/;"	k	type:relax_type
+method	src_inputparser/inputmodules.f90	/^ character(512)::method$/;"	k	type:wannier_type
+methodnumber	src_inputparser/inputmodules.f90	/^ integer::methodnumber$/;"	k	type:wannier_type
 mgetv0	ARPACK/EXAMPLES/SIMPLE/debug.h	/^      integer  logfil, ndigit, mgetv0,$/;"	v
 mgetv0	ARPACK/EXAMPLES/SIMPLE/debug.h	/^     &         logfil, ndigit, mgetv0,$/;"	v
 mgetv0	ARPACK/EXAMPLES/SVD/debug.h	/^      integer  logfil, ndigit, mgetv0,$/;"	v
@@ -25064,6 +25069,7 @@ nspin	libXC/testsuite/xc-get_data.c	/^  int nspin;$/;"	m	struct:__anon34	file:
 nspinor	mod_spin.F90	/^      Integer :: nspinor$/;"	v	module:mod_spin
 nspnfv	mod_spin.F90	/^      Integer :: nspnfv$/;"	v	module:mod_spin
 nst	src_gw/setrindex.f90	/^    integer(4) :: nst /;"	v	module:fouri
+nst	src_inputparser/inputmodules.f90	/^ integer::nst$/;"	k	type:wannier_type
 nst1	src_xs/modxs.F90	/^      Integer :: nst1,/;"	v	module:modxs
 nst2	src_xs/modxs.F90	/^      Integer :: nst1, istl1, istu1, nst2,/;"	v	module:modxs
 nst3	src_xs/modxs.F90	/^      Integer :: nst3,/;"	v	module:modxs
@@ -25319,6 +25325,7 @@ origin	src_inputparser/inputmodules.f90	/^  type(origin_/;"	k	type:parallelogram
 origin	src_vdwdf/modules.f90	/^   real*8              :: origin(/;"	v	module:param
 origin_type	src_inputparser/inputmodules.f90	/^type origin_type$/;"	t	module:modinput
 orthogonalise	src_iterative_solver/src_diis/orthogonalise.f90	/^Subroutine orthogonalise /;"	s
+outerwindow	src_inputparser/inputmodules.f90	/^ real(8)::outerwindow(/;"	k	type:wannier_type
 outfilenamestring	outfilenamestring.F90	/^Character (256) Function outfilenamestring /;"	f
 outfileprefix	src_inputparser/inputmodules.f90	/^ character(512)::outfileprefix$/;"	k	type:box_type
 outfileprefix	src_inputparser/inputmodules.f90	/^ character(512)::outfileprefix$/;"	k	type:parallelogram_type
@@ -25489,6 +25496,7 @@ plot1d	src_inputparser/inputmodules.f90	/^  type(plot1d_/;"	k	type:gradmvecfield
 plot1d	src_inputparser/inputmodules.f90	/^  type(plot1d_/;"	k	type:gw_type
 plot1d	src_inputparser/inputmodules.f90	/^  type(plot1d_/;"	k	type:hole_type
 plot1d	src_inputparser/inputmodules.f90	/^  type(plot1d_/;"	k	type:phonondispplot_type
+plot1d	src_inputparser/inputmodules.f90	/^  type(plot1d_/;"	k	type:wannierplot_type
 plot1d	src_inputparser/inputmodules.f90	/^  type(plot1d_/;"	k	type:wfplot_type
 plot1d_type	src_inputparser/inputmodules.f90	/^type plot1d_type$/;"	t	module:modinput
 plot2d	plot2d.f90	/^Subroutine plot2d /;"	s
@@ -25502,6 +25510,7 @@ plot2d	src_inputparser/inputmodules.f90	/^  type(plot2d_/;"	k	type:gradmvecfield
 plot2d	src_inputparser/inputmodules.f90	/^  type(plot2d_/;"	k	type:hole_type
 plot2d	src_inputparser/inputmodules.f90	/^  type(plot2d_/;"	k	type:mvecfield_type
 plot2d	src_inputparser/inputmodules.f90	/^  type(plot2d_/;"	k	type:stm_type
+plot2d	src_inputparser/inputmodules.f90	/^  type(plot2d_/;"	k	type:wannierplot_type
 plot2d	src_inputparser/inputmodules.f90	/^  type(plot2d_/;"	k	type:wfplot_type
 plot2d	src_inputparser/inputmodules.f90	/^  type(plot2d_/;"	k	type:xcmvecfield_type
 plot2d_type	src_inputparser/inputmodules.f90	/^type plot2d_type$/;"	t	module:modinput
@@ -25515,6 +25524,7 @@ plot3d	src_inputparser/inputmodules.f90	/^  type(plot3d_/;"	k	type:fermisurfacep
 plot3d	src_inputparser/inputmodules.f90	/^  type(plot3d_/;"	k	type:gradmvecfield_type
 plot3d	src_inputparser/inputmodules.f90	/^  type(plot3d_/;"	k	type:hole_type
 plot3d	src_inputparser/inputmodules.f90	/^  type(plot3d_/;"	k	type:mvecfield_type
+plot3d	src_inputparser/inputmodules.f90	/^  type(plot3d_/;"	k	type:wannierplot_type
 plot3d	src_inputparser/inputmodules.f90	/^  type(plot3d_/;"	k	type:wfplot_type
 plot3d	src_inputparser/inputmodules.f90	/^  type(plot3d_/;"	k	type:xcmvecfield_type
 plot3d_ir	plot3d_ir.f90	/^Subroutine plot3d_ir /;"	s
@@ -25640,6 +25650,7 @@ program_transform_name	libXC/build/Makefile	/^program_transform_name = s,x,x,$/;
 program_transform_name	libXC/src/Makefile	/^program_transform_name = s,x,x,$/;"	m
 program_transform_name	libXC/testsuite/Makefile	/^program_transform_name = s,x,x,$/;"	m
 projectedsecequn	src_iterative_solver/src_diis/projectedsecequn.F90	/^Subroutine projectedsecequn /;"	s
+projectors	src_inputparser/inputmodules.f90	/^ integer::projectors(/;"	k	type:wannier_type
 projgr	Lbfgsb.3.0/lbfgsb.f	/^      subroutine projgr(/;"	s
 projsbf	projsbf.f90	/^Subroutine projsbf$/;"	s
 prompt	src_other/delaunay.f	/^      logical prompt,/;"	v	program:main
@@ -27134,6 +27145,8 @@ startEntity_handler	FoX/dom/m_dom_parse.f90	/^  subroutine startEntity_handler(/
 state	FoX/sax/m_sax_types.F90	/^    integer :: state /;"	k	type:sax_parser_t
 state	src_inputparser/inputmodules.f90	/^ character(512)::state$/;"	k	type:output_type
 state	src_inputparser/inputmodules.f90	/^ integer::state$/;"	k	type:istate_type
+state	src_inputparser/inputmodules.f90	/^ integer::state$/;"	k	type:wannier_type
+state	src_inputparser/inputmodules.f90	/^ integer::state$/;"	k	type:wannierplot_type
 state	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^      int carry, state[24];$/;"	m	struct:__anon63::__anon64::__anon67
 state	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^      state_t state[MERSENNE_N];$/;"	m	struct:__anon63::__anon64::__anon66
 state_1	FoX/wxml/m_wxml_core.F90	/^    integer                   :: state_1 /;"	k	type:xmlf_t
@@ -27327,6 +27340,7 @@ stringtonumberstmstmmode	src_inputparser/inputmodules.f90	/^ integer function  s
 stringtonumberstmstmtype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberstmstmtype(/;"	f	module:modinput
 stringtonumbertddftdo	src_inputparser/inputmodules.f90	/^ integer function  stringtonumbertddftdo(/;"	f	module:modinput
 stringtonumbertddftfxctype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumbertddftfxctype(/;"	f	module:modinput
+stringtonumberwanniermethod	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberwanniermethod(/;"	f	module:modinput
 stringtonumberxsdogroundstate	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberxsdogroundstate(/;"	f	module:modinput
 stringtonumberxsgqmaxtype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberxsgqmaxtype(/;"	f	module:modinput
 stringtonumberxspwmat	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberxspwmat(/;"	f	module:modinput
@@ -27883,6 +27897,7 @@ umbulor	src_gw/mod_product_basis.f90	/^    real(8), allocatable :: umbulor(/;"	v
 umi	src_other/delaunay.f	/^      subroutine umi(/;"	s
 umix	src_gw/mod_product_basis.f90	/^    real(8), pointer :: umix(/;"	v	module:mod_product_basis
 unEscape_alloc	FoX/utils/fox_m_utils_uri.F90	/^  function unEscape_alloc(/;"	f	module:fox_m_utils_uri
+uncertainty	src_inputparser/inputmodules.f90	/^ real(8)::uncertainty$/;"	k	type:wannier_type
 und	ioarray.F90	/^      Integer, Parameter :: und /;"	v	module:ioarray
 unit	FoX/common/m_common_buffer.F90	/^    integer                       :: unit$/;"	k	type:buffer_t
 unit1	src_xs/modxs.F90	/^      Integer :: unit1,/;"	v	module:modxs
@@ -28302,7 +28317,29 @@ vxnl	src_hybrids/mod_hybrids.f90	/^    complex(8), allocatable :: vxnl(/;"	v	mod
 vxnlcc	src_hybrids/mod_hybrids.f90	/^    complex(8), allocatable :: vxnlcc(/;"	v	module:mod_hybrids
 w	src_other/delaunay.f	/^      double precision x(nmax), y(nmax), z(nmax), w(/;"	v	program:main
 w_gauq	src_libbzint/tetra_internal.f90	/^      real(8), allocatable:: x_gauq(:),w_gauq(/;"	v	module:tetra_internal
+wannier	src_inputparser/inputmodules.f90	/^  type(wannier_/;"	k	type:properties_type
 wannier	src_inputparser/inputmodules.f90	/^ logical::wannier$/;"	k	type:bandstructure_type
+wannier_emat	mod_wannier.f90	/^    subroutine wannier_emat$/;"	s	module:mod_wannier
+wannier_gen_fromfile	mod_wannier.f90	/^    subroutine wannier_gen_fromfile(/;"	s	module:mod_wannier
+wannier_gen_max	mod_wannier.f90	/^    subroutine wannier_gen_max(/;"	s	module:mod_wannier
+wannier_gen_opf	mod_wannier.f90	/^    subroutine wannier_gen_opf(/;"	s	module:mod_wannier
+wannier_gen_pro	mod_wannier.f90	/^    subroutine wannier_gen_pro(/;"	s	module:mod_wannier
+wannier_geometry	mod_wannier.f90	/^    subroutine wannier_geometry$/;"	s	module:mod_wannier
+wannier_init	mod_wannier.f90	/^    subroutine wannier_init$/;"	s	module:mod_wannier
+wannier_loc	mod_wannier.f90	/^    subroutine wannier_loc(/;"	s	module:mod_wannier
+wannier_plot	wannier_plot.f90	/^subroutine wannier_plot(/;"	s
+wannier_readfile	mod_wannier.f90	/^    subroutine wannier_readfile(/;"	s	module:mod_wannier
+wannier_showproj	mod_wannier.f90	/^    subroutine wannier_showproj$/;"	s	module:mod_wannier
+wannier_subspace	mod_wannier.f90	/^    subroutine wannier_subspace(/;"	s	module:mod_wannier
+wannier_type	src_inputparser/inputmodules.f90	/^type wannier_type$/;"	t	module:modinput
+wannier_writefile	mod_wannier.f90	/^    subroutine wannier_writefile(/;"	s	module:mod_wannier
+wannier_writeinfo_finish	mod_wannier.f90	/^    subroutine wannier_writeinfo_finish$/;"	s	module:mod_wannier
+wannier_writeinfo_geometry	mod_wannier.f90	/^    subroutine wannier_writeinfo_geometry$/;"	s	module:mod_wannier
+wannier_writeinfo_lo	mod_wannier.f90	/^    subroutine wannier_writeinfo_lo$/;"	s	module:mod_wannier
+wannier_writeinfo_results	mod_wannier.f90	/^    subroutine wannier_writeinfo_results$/;"	s	module:mod_wannier
+wannier_writeinfo_task	mod_wannier.f90	/^    subroutine wannier_writeinfo_task(/;"	s	module:mod_wannier
+wannierplot	src_inputparser/inputmodules.f90	/^  type(wannierplot_/;"	k	type:properties_type
+wannierplot_type	src_inputparser/inputmodules.f90	/^type wannierplot_type$/;"	t	module:modinput
 warning	FoX/common/m_common_struct.F90	/^    logical :: warning /;"	k	type:xml_doc_state
 warning	warning.f90	/^subroutine warning(/;"	s
 wavefcr	wavefcr.f90	/^Subroutine wavefcr /;"	s
@@ -28323,29 +28360,45 @@ weighttol	src_libbzint/tetra_internal.f90	/^      real(8),parameter:: weighttol 
 weightwarn	src_libbzint/tetra_internal.f90	/^      real(8),parameter:: weightwarn /;"	v	module:tetra_internal
 well_formed	FoX/sax/m_sax_types.F90	/^    logical :: well_formed /;"	k	type:sax_parser_t
 wf	src_inputparser/speciesmodules.f90	/^type(wf_/;"	k	type:wf_type_array
-wf_bandstart	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_nprojused, wf_bandstart,/;"	v	module:mod_wannier
-wf_nband	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_nprojused, wf_bandstart, wf_nband$/;"	v	module:mod_wannier
+wf_bandstart	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_bandstart,/;"	v	module:mod_wannier
+wf_centers	mod_wannier.f90	/^  real(8), allocatable :: wf_centers(/;"	v	module:mod_wannier
+wf_disentangle	mod_wannier.f90	/^  logical :: wf_disentangle /;"	v	module:mod_wannier
+wf_emat	mod_wannier.f90	/^  complex(8), allocatable :: wf_emat(/;"	v	module:mod_wannier
+wf_initialized	mod_wannier.f90	/^  logical :: wf_initialized /;"	v	module:mod_wannier
+wf_n_dist	mod_wannier.f90	/^  real(8), allocatable :: wf_n_dist(/;"	v	module:mod_wannier
+wf_n_ik	mod_wannier.f90	/^  integer, allocatable :: wf_n_ik(/;"	v	module:mod_wannier
+wf_n_n	mod_wannier.f90	/^  integer, allocatable :: wf_n_n(/;"	v	module:mod_wannier
+wf_n_usedshells	mod_wannier.f90	/^  integer :: wf_n_usedshells /;"	v	module:mod_wannier
+wf_n_vc	mod_wannier.f90	/^  real(8), allocatable :: wf_n_vl(:,:,:), wf_n_vc(/;"	v	module:mod_wannier
+wf_n_vl	mod_wannier.f90	/^  real(8), allocatable :: wf_n_vl(/;"	v	module:mod_wannier
+wf_n_wgt	mod_wannier.f90	/^  real(8), allocatable :: wf_n_wgt(/;"	v	module:mod_wannier
+wf_nband	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_bandstart, wf_nband$/;"	v	module:mod_wannier
 wf_nprojtot	mod_wannier.f90	/^  integer :: wf_nprojtot,/;"	v	module:mod_wannier
-wf_nprojused	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_nprojused,/;"	v	module:mod_wannier
+wf_omega	mod_wannier.f90	/^  real(8), allocatable :: wf_omega(/;"	v	module:mod_wannier
+wf_opf	mod_wannier.f90	/^  complex(8), allocatable :: wf_opf(/;"	v	module:mod_wannier
+wf_projection	mod_wannier.f90	/^  complex(8), allocatable :: wf_projection(/;"	v	module:mod_wannier
 wf_projst	mod_wannier.f90	/^  integer, allocatable :: wf_projst(/;"	v	module:mod_wannier
 wf_projused	mod_wannier.f90	/^  integer, allocatable :: wf_projst(:,:), wf_projused(/;"	v	module:mod_wannier
+wf_subspace	mod_wannier.f90	/^  complex(8), allocatable :: wf_subspace(/;"	v	module:mod_wannier
+wf_t0	mod_wannier.f90	/^  real(8) :: wf_t0$/;"	v	module:mod_wannier
 wf_transform	mod_wannier.f90	/^  complex(8), allocatable :: wf_transform(/;"	v	module:mod_wannier
 wf_type	src_inputparser/speciesmodules.f90	/^type wf_type$/;"	t	module:modspdb
 wf_type_array	src_inputparser/speciesmodules.f90	/^type wf_type_array$/;"	t	module:modspdb
+wf_win_i	mod_wannier.f90	/^  real(8) :: wf_win_i(/;"	v	module:mod_wannier
+wf_win_idxi	mod_wannier.f90	/^  integer, allocatable :: wf_win_ni(:), wf_win_no(:), wf_win_idxi(/;"	v	module:mod_wannier
+wf_win_idxo	mod_wannier.f90	/^  integer, allocatable :: wf_win_ni(:), wf_win_no(:), wf_win_idxi(:,:), wf_win_idxo(/;"	v	module:mod_wannier
+wf_win_ni	mod_wannier.f90	/^  integer, allocatable :: wf_win_ni(/;"	v	module:mod_wannier
+wf_win_no	mod_wannier.f90	/^  integer, allocatable :: wf_win_ni(:), wf_win_no(/;"	v	module:mod_wannier
+wf_win_o	mod_wannier.f90	/^  real(8) :: wf_win_i(2), wf_win_o(/;"	v	module:mod_wannier
 wfarray	src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfarray(/;"	k	type:custom_type
 wfarray	src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfarray(/;"	k	type:default_type
 wfarray	src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfarray(/;"	k	type:lo_type
 wfc	FoX/common/m_common_entities.F90	/^    logical :: wfc /;"	k	type:entity_t
-wfinit	mod_wannier.f90	/^    subroutine wfinit$/;"	s	module:mod_wannier
-wfneighbors	mod_wannier.f90	/^    subroutine wfneighbors(/;"	s	module:mod_wannier
 wfplot	src_inputparser/inputmodules.f90	/^  type(wfplot_/;"	k	type:properties_type
 wfplot	wfplot.f90	/^Subroutine wfplot(/;"	s
 wfplot_new	wfplot_new.f90	/^subroutine wfplot_new(/;"	s
 wfplot_type	src_inputparser/inputmodules.f90	/^type wfplot_type$/;"	t	module:modinput
 wfproj	src_inputparser/speciesmodules.f90	/^ logical::wfproj$/;"	k	type:lo_type
-wfreadfile	mod_wannier.f90	/^    subroutine wfreadfile(/;"	s	module:mod_wannier
-wfshowproj	mod_wannier.f90	/^    subroutine wfshowproj$/;"	s	module:mod_wannier
-wfwritefile	mod_wannier.f90	/^    subroutine wfwritefile(/;"	s	module:mod_wannier
 wght	src_other/delaunay.f	/^      double precision xcor, ycor, zcor, wght$/;"	v	program:main
 wgrid	src_inputparser/inputmodules.f90	/^ integer::wgrid$/;"	k	type:dielmat_type
 wgrid	src_inputparser/inputmodules.f90	/^ integer::wgrid$/;"	k	type:elnes_type

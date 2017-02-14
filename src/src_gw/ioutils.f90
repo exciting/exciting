@@ -340,7 +340,8 @@
       if(length .GE. MaxLineLength) THEN
         write(fid,'(A80)') ttl
       else
-        str(1:2)="| "
+        str(1:1) = c
+        str(2:2) = ' '
         do i=3,MaxLineLength-1
           str(i:i)=''
         enddo

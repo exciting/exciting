@@ -247,6 +247,7 @@
                     <li>vxc    - Calculate diagonal matrix elements of the exchange-correlation potential</li>
                     <li>pmat   - Calculate matrix elements of the momentum operator</li>
                     <li>acon   - Perform analytic continuation of the correlation self-energy from imaginary to real frequency and calculate QP energies</li>
+                    <li>wannier- </li>
                   </list>
 
   	          </xs:documentation>

@@ -98,7 +98,7 @@ subroutine wannier_plot( ist, cell)
       call r3mv( ainv, wf_centers( :, ist-wf_bandstart+1) + cellc + s*(v1-v2-v3), input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord)
       call r3mv( ainv, wf_centers( :, ist-wf_bandstart+1) + cellc + s*(v2-v3-v1), input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord)
       call r3mv( ainv, wf_centers( :, ist-wf_bandstart+1) + cellc + s*(v3-v1-v2), input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord)
-      grid = gen_3d_rgrid( input%properties%wannierplot%plot3d, 0)
+      grid = gen_3d_rgrid(input%properties%wannierplot%plot3d, 0)
     end if
 
     allocate( zdatatot( grid%npt))
@@ -156,21 +156,20 @@ subroutine wannier_plot( ist, cell)
     do ip = 1, grid%npt
       dist( ip) = norm2( grid%vpc( :, ip) - wf_centers( :, ist-wf_bandstart+1) - cellc(:))
       s = atan2( aimag( zdatatot( ip)), dble( zdatatot( ip)))
-      !write(*,'(F23.16)') s
-      if( s .gt. 0.5d0*pi) s = s - pi
-      if( s .lt. -0.5d0*pi) s = s + pi
+      if( abs( s) .gt. 0.5d0*pi) s = mod( s+pi, pi)
       phi = phi + abs( zdatatot( ip))*s
     end do
     phi = phi/sum( abs( zdatatot))
     ip = minloc( dist, 1) 
-    s = atan2( aimag( zdatatot( ip)), dble( zdatatot( ip)))
-    if( abs( phi - s) .gt. 0.5d0*pi) phi = mod( phi+pi, pi)
+    if( abs( zdatatot( ip))/maxval( abs( zdatatot)) .lt. 1.d-2) ip = maxloc( abs( zdatatot), 1)
     write(*,*) ip
+    write(*,'(3F13.6)') wf_omega( ist-wf_bandstart+1)
+    write(*,'(3F13.6)') wf_centers( :, ist-wf_bandstart+1)
     write(*,'(3F13.6)') wf_centers( :, ist-wf_bandstart+1) + cellc
     write(*,'(3F13.6)') grid%vpc( :, ip)
     write(*,'(3F13.6)') minval( grid%vpc( 1, :)), minval( grid%vpc( 2, :)), minval( grid%vpc( 3, :))
     write(*,'(3F13.6)') maxval( grid%vpc( 1, :)), maxval( grid%vpc( 2, :)), maxval( grid%vpc( 3, :))
-    phase = exp( -zi*phi)
+    phase = exp( -zi*atan2( aimag( zdatatot( ip)), dble( zdatatot( ip))))
     zdatatot = phase*zdatatot
     write(*,'(2F13.6)') minval( dble( zdatatot)), maxval( dble( zdatatot))
     write(*,'(2F13.6)') minval( aimag( zdatatot)), maxval( aimag( zdatatot))
@@ -197,7 +196,7 @@ subroutine wannier_plot( ist, cell)
         write(*,*)
       end if
 
-      call delete_rgrid( grid)
+      call delete_rgrid(grid)
       deallocate(zdatatot)
       
     end if
@@ -221,7 +220,7 @@ subroutine wannier_plot( ist, cell)
         write(*,*)
       end if
 
-      call delete_rgrid( grid)
+      call delete_rgrid(grid)
     end if
 
     !----------------
@@ -247,9 +246,9 @@ subroutine wannier_plot( ist, cell)
         write(fname,'("wannier3d-",i4.4,".cube")') ist
         call str_strip(fname)
         call write_3d_cube(fname, 'squared modulus', grid%boxl(1:4,:), grid%ngrid, grid%npt, abs(zdatatot)**2)
-
-        call delete_rgrid( grid)
       end if
+
+      call delete_rgrid(grid)
     end if
 
     deallocate(zdatatot)
