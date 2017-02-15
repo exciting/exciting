@@ -127,7 +127,7 @@ module mod_ematgrids
 
       integer(4) :: un, i
 
-      call system('[[ ! -e EMATGRIDS ]] && mkdir EMATGRIDS')
+      call system('test ! -e EMATGRIDS && mkdir EMATGRIDS')
 
       if( .not. initialized) then
         write(*,*) "Error(mod_ematgrids::ematgrids_write_grids):&

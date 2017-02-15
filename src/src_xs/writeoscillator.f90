@@ -17,9 +17,9 @@ module m_writeoscillator
       integer(4), intent(in) :: hamsize, nexc
       real(8), intent(in) :: eshift
       real(8), intent(in) :: evalre(hamsize)
-      complex(8), intent(in) :: oszstrr(nexc,3)
+      complex(8), intent(in) :: oszstrr(:,:)
       real(8), intent(in), optional :: evalim(hamsize)
-      complex(8), intent(in), optional :: oszstra(nexc,3)
+      complex(8), intent(in), optional :: oszstra(:,:)
       logical, intent(in), optional :: sort
       integer(4), intent(in), optional :: iqmt
 

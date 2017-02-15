@@ -21639,7 +21639,6 @@ gridsize	gridsize.f90	/^Subroutine gridsize$/;"	s
 groundstate	src_inputparser/inputmodules.f90	/^  type(groundstate_/;"	k	type:input_type
 groundstate_type	src_inputparser/inputmodules.f90	/^type groundstate_type$/;"	t	module:modinput
 groundstatetasklauncher	src_inputparser/groundstatetasklauncher.F90	/^Subroutine groundstatetasklauncher$/;"	s
-gs_lmaxapw_save	m_ematqk.f90	/^  integer(4) :: gs_lmaxapw_save$/;"	v	module:m_ematqk
 gset	mod_ematgrids.f90	/^  type(g_set)  :: gset$/;"	v	module:mod_ematgrids
 gtil	src_gw/calctildeg.f90	/^      module gtil$/;"	m
 guess	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  real guess, chisum, chisqsum, chisq;$/;"	m	struct:__anon49
@@ -23307,16 +23306,20 @@ lmaxapw	m_ematqk.f90	/^  integer(4) :: nlmomax, nidxlomax, lmaxapw,/;"	v	module:
 lmaxapw	src_inputparser/inputmodules.f90	/^ integer::lmaxapw$/;"	k	type:groundstate_type
 lmaxapw	src_inputparser/inputmodules.f90	/^ integer::lmaxapw$/;"	k	type:xs_type
 lmaxapw_b	src_xs/modxs.F90	/^      Integer :: lmaxapw_b$/;"	v	module:modxs
+lmaxapw_save	m_ematqk.f90	/^  integer(4) :: lmaxapw_save$/;"	v	module:m_ematqk
+lmaxapwlo	m_ematqk.f90	/^  integer(4) :: nlmomax, nidxlomax, lmaxapw, lmaxexp, lmaxapwlo,/;"	v	module:m_ematqk
 lmaxapwwf	src_inputparser/inputmodules.f90	/^ integer::lmaxapwwf$/;"	k	type:xs_type
 lmaxdielt	src_inputparser/inputmodules.f90	/^ integer::lmaxdielt$/;"	k	type:BSE_type
 lmaxdielt	src_inputparser/inputmodules.f90	/^ integer::lmaxdielt$/;"	k	type:scrcoul_type
 lmaxemat	src_inputparser/inputmodules.f90	/^ integer::lmaxemat$/;"	k	type:xs_type
-lmaxexp	m_ematqk.f90	/^  integer(4) :: nlmomax, nidxlomax, lmaxapw, lmaxexp$/;"	v	module:m_ematqk
+lmaxexp	m_ematqk.f90	/^  integer(4) :: nlmomax, nidxlomax, lmaxapw, lmaxexp,/;"	v	module:m_ematqk
 lmaxinr	src_inputparser/inputmodules.f90	/^ integer::lmaxinr$/;"	k	type:groundstate_type
 lmaxlu	mod_LDA_LU.F90	/^      Integer, Parameter :: lmaxlu /;"	v	module:mod_LDA_LU
+lmaxmat	m_ematqk.f90	/^  integer(4) :: nlmomax, nidxlomax, lmaxapw, lmaxexp, lmaxapwlo, lmaxmat,/;"	v	module:m_ematqk
 lmaxmat	src_inputparser/inputmodules.f90	/^ integer::lmaxmat$/;"	k	type:groundstate_type
 lmaxmat	src_inputparser/inputmodules.f90	/^ integer::lmaxmat$/;"	k	type:xs_type
 lmaxmat_b	src_xs/modxs.F90	/^      Integer :: lmaxmat_b$/;"	v	module:modxs
+lmaxmatlo	m_ematqk.f90	/^  integer(4) :: nlmomax, nidxlomax, lmaxapw, lmaxexp, lmaxapwlo, lmaxmat, lmaxmatlo$/;"	v	module:m_ematqk
 lmaxmb	src_inputparser/inputmodules.f90	/^ integer::lmaxmb$/;"	k	type:mixbasis_type
 lmaxvr	src_inputparser/inputmodules.f90	/^ integer::lmaxvr$/;"	k	type:groundstate_type
 lmirep	src_inputparser/inputmodules.f90	/^ logical::lmirep$/;"	k	type:dos_type
@@ -23640,6 +23643,7 @@ m_sax_tokenizer	FoX/sax/m_sax_tokenizer.F90	/^module m_sax_tokenizer$/;"	m
 m_sax_types	FoX/sax/m_sax_types.F90	/^module m_sax_types$/;"	m
 m_sax_xml_source	FoX/sax/m_sax_xml_source.F90	/^module m_sax_xml_source$/;"	m
 m_setup_bse	src_xs/m_setup_bse.f90	/^module m_setup_bse$/;"	m
+m_setup_pwmat	src_xs/m_setup_pwmat.f90	/^module m_setup_pwmat$/;"	m
 m_setup_rmat	src_xs/m_setup_rmat.f90	/^module m_setup_rmat$/;"	m
 m_sorteval	src_xs/sorteval.F90	/^Module m_sorteval$/;"	m
 m_sqrtzmat	src_xs/m_sqrtzmat.f90	/^module m_sqrtzmat$/;"	m
@@ -23867,6 +23871,9 @@ maxitr	ARPACK/EXAMPLES/SYM/ssdrv4.f	/^     &                 nconv, maxitr,/;"	v
 maxitr	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^     &                 nconv, maxitr,/;"	v	program:ssdrv5
 maxitr	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 nconv, maxitr,/;"	v	program:ssdrv6
 maxl	species/modspecies.F90	/^integer :: nlx,nlorb,i,l,maxl,/;"	v	module:modspecies
+maxl_apwlo	m_ematqk.f90	/^  integer(4) :: maxl_apwlo,/;"	v	module:m_ematqk
+maxl_e	m_ematqk.f90	/^  integer(4) :: maxl_apwlo, maxl_mat, maxl_e$/;"	v	module:m_ematqk
+maxl_mat	m_ematqk.f90	/^  integer(4) :: maxl_apwlo, maxl_mat,/;"	v	module:m_ematqk
 maxlapw	modmain.F90	/^      Integer, Parameter :: maxlapw /;"	v	module:modmain
 maxlorb	mod_APW_LO.F90	/^      Integer, Parameter :: maxlorb /;"	v	module:mod_APW_LO
 maxlorbord	mod_APW_LO.F90	/^      Integer, Parameter :: maxlorbord /;"	v	module:mod_APW_LO
@@ -24584,6 +24591,7 @@ mx	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 temp(maxn), ax(maxn), m
 mycomm	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm$/;"	v	module:mod_mpi_gw
 mycomm_col	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm_col /;"	v	module:mod_mpi_gw
 mycomm_row	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm_row /;"	v	module:mod_mpi_gw
+myidxlm	m_ematqk.f90	/^  integer(4), allocatable :: nidxlo(:), idxlostart(:), idxlomap(:,:), myidxlm(/;"	v	module:m_ematqk
 mylog2	libXC/testsuite/xc-regression.c	/^static unsigned int mylog2 (unsigned int val) {$/;"	f	file:
 mypcol	src_xs/modscl.f90	/^    integer(4) :: myprow, mypcol$/;"	k	type:blacsinfo
 myprow	src_xs/modscl.f90	/^    integer(4) :: myprow,/;"	k	type:blacsinfo
@@ -27021,6 +27029,8 @@ setup_full_bse	src_xs/b_bse.f90	/^  subroutine setup_full_bse(/;"	s	subroutine:b
 setup_io	FoX/common/m_common_io.F90	/^  subroutine setup_io(/;"	s	module:m_common_io
 setup_node_groups	src_mpi/modmpi.F90	/^    subroutine setup_node_groups$/;"	s	module:modmpi
 setup_proc_groups	src_mpi/modmpi.F90	/^    subroutine setup_proc_groups(/;"	s	module:modmpi
+setup_pwmat	src_xs/m_setup_pwmat.f90	/^    subroutine setup_pwmat(/;"	s	module:m_setup_pwmat
+setup_rmat	src_xs/m_setup_rmat.f90	/^    subroutine setup_rmat(/;"	s	module:m_setup_rmat
 setup_ti_bse	src_xs/b_bse.f90	/^  subroutine setup_ti_bse(/;"	s	subroutine:b_bse
 setupblacs	src_xs/modscl.f90	/^    subroutine setupblacs(/;"	s	module:modscl
 setuphsvect	src_iterative_solver/src_diis/setuphsvect.F90	/^Subroutine setuphsvect /;"	s
@@ -28087,6 +28097,8 @@ tordf	src_xs/modxs.F90	/^      Real (8) :: tordf$/;"	v	module:modxs
 tordfxc	src_inputparser/inputmodules.f90	/^ logical::tordfxc$/;"	k	type:tddft_type
 torfxc	src_xs/modxs.F90	/^      Real (8) :: torfxc$/;"	v	module:modxs
 tot_time	src_vdwdf/main.f90	/^  integer             :: tot_time,/;"	v	program:main
+totalqcmt	src_xs/modxs.F90	/^      Real (8), Allocatable :: totalqcmt(/;"	v	module:modxs
+totalqlmt	src_xs/modxs.F90	/^      Real (8), Allocatable :: totalqlmt(/;"	v	module:modxs
 totals	src_vdwdf/Cuba-3.2/src/cuhre/Integrate.c	/^  Totals totals[];$/;"	m	struct:__anon47	file:
 totals	src_vdwdf/Cuba-3.2/src/divonne/Integrate.c	/^  Totals totals[];$/;"	m	struct:__anon36	file:
 totals	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  Totals *totals;$/;"	m	struct:_this
@@ -28580,11 +28592,12 @@ vplt2	eos/modmain.f90	/^real(8) vplt1,vplt2$/;"	v	module:modmain
 vpt	eos/modmain.f90	/^real(8), allocatable :: vpt(/;"	v	module:modmain
 vqc	mod_qpoint.F90	/^      Real (8), Allocatable :: vqc /;"	v	module:mod_qpoint
 vqc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vqc(/;"	k	type:kq_set
+vqcmt	src_xs/modxs.F90	/^      Real (8), Allocatable :: totalqcmt(:,:), vqcmt(/;"	v	module:modxs
 vqcr	src_xs/modxs.F90	/^      Real (8), Allocatable :: vqcr /;"	v	module:modxs
 vqcss	mod_spin.F90	/^      Real (8) :: vqcss /;"	v	module:mod_spin
 vql	mod_qpoint.F90	/^      Real (8), Allocatable, target :: vql /;"	v	module:mod_qpoint
 vql	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vql(/;"	k	type:kq_set
-vqlmt	src_xs/modxs.F90	/^      Real (8), Allocatable :: vqlmt(/;"	v	module:modxs
+vqlmt	src_xs/modxs.F90	/^      Real (8), Allocatable :: totalqlmt(:,:), vqlmt(/;"	v	module:modxs
 vqloff	src_inputparser/inputmodules.f90	/^ real(8)::vqloff(/;"	k	type:gw_type
 vqloff	src_inputparser/inputmodules.f90	/^ real(8)::vqloff(/;"	k	type:interpolate_type
 vqlr	src_xs/modxs.F90	/^      Real (8), Allocatable, target :: vqlr /;"	v	module:modxs

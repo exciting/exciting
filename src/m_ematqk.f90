@@ -443,7 +443,7 @@ module m_ematqk
 
       ispin = 1
 
-      call system('[[ ! -e EMAT ]] && mkdir EMAT')
+      call system('test ! -d EMAT && mkdir EMAT')
 
       ! Loop over reduced q-points (if q-set was reduced)
       do iq = 1, q_q%qset%nkpt
@@ -565,7 +565,7 @@ module m_ematqk
 
       ispin = 1
 
-      call system('[[ ! -e EMAT ]] && mkdir EMAT')
+      call system('test ! -d EMAT && mkdir EMAT')
 
       call genfilname(basename='EMAT/EMAT_FFT_EVECK', iq=ik, filnam=fname)
 

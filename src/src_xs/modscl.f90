@@ -609,29 +609,57 @@ module modscl
     end subroutine dzmat_send2global_all
     !EOC
 
-!    subroutine unpacktoglobal(zmat, buff, iblck, jblck, prow, pcol, npr, npc)
-!      complex(8), intent(inout) :: zmat(:,:)
-!      complex(8), intent(in) :: buff(:,:)
-!      integer(4), intent(in) :: iblck, jblck, prow, pcol, npr, npc
-!
-!      integer(4) :: ig, jg, il, jl
-!
-!      do jl = 1, size(buff, 2)
-!#ifdef SCAL
-!          jg = indxl2g(jl, jblck, pcol, 0, npc)
-!#endif
-!        do il = 1, size(buff, 1)
-!#ifdef SCAL
-!          ig = indxl2g(il, iblck, prow, 0, npr)
-!#else
-!          ig = il
-!          jg = jl
-!#endif
-!          zmat(ig, jg) = buff(il,jl)
-!        end do
-!      end do
-!    end subroutine unpacktoglobal
+    !BOP
+    ! !ROUTINE: dzmat_global2local
+    ! !INTERFACE:
+    subroutine dzmat_copy_global2local(mat, dmat, binfo)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! IN:
+    !   complex(8) :: mat(:,:)   ! Global matrix
+    !   type(blacsinfo) :: binfo ! Info type for BLACS grid
+    !   integer(4), optional :: rblck, cblck ! row and column block size
+    ! IN/OUT:
+    !   type(dzmat) :: dmat      ! Distributed complex(8) matrix
+    !
+    ! !DESCRIPTION:
+    !   This routine takes a global complex matrix and 
+    !   ceates a 2D block cyclicly distributed copy of it.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2017 (Aurich)
+    !EOP
+    !BOC
 
+      complex(8), intent(in) :: mat(:,:)
+      type(blacsinfo), intent(in) :: binfo
+      type(dzmat), intent(inout) :: dmat
 
+      integer(4) :: mg, ng, m, n, i, j, rb, cb
+
+      if(dmat%context /= binfo%context) then
+        write(*,'("Error(dzmat_copy_global2local):&
+          & Matrix definded on different context:",2i4)') dmat%context, binfo%context
+        call terminate
+      end if
+
+      ! Get dimensions form array
+      mg = size(mat,1)
+      ng = size(mat,2)
+      if(mg /= dmat%nrows .or. ng /= dmat%ncols) then 
+        write(*,'("Error(dzmat_copy_global2local):&
+          & Global and distributed matrix sizes differ:", 2i6,2x,2i6)')&
+          & mg, ng, dmat%nrows, dmat%ncols 
+        call terminate
+      end if
+
+      ! Copy in 
+      do j=1, dmat%ncols_loc
+        do i=1, dmat%nrows_loc
+          dmat%za(i,j) = mat(dmat%r2g(i),dmat%c2g(j))
+        end do
+      end do
+
+    end subroutine dzmat_copy_global2local
+    !EOC
 
 end module modscl

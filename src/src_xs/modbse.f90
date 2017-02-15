@@ -842,6 +842,7 @@ module modbse
       if(mpiglobal%rank == 0) then 
         call printso(iqmt)
       end if
+      call barrier
 
     end subroutine select_transitions
     !EOC
@@ -854,8 +855,8 @@ module modbse
 
       ! Make a folder 
       fdir = 'TRANSINFO'
-      if(rank == 0) then 
-        syscommand = '[[ ! -e '//trim(adjustl(fdir))//' ]] && mkdir '//trim(adjustl(fdir))
+      if(mpiglobal%rank == 0) then 
+        syscommand = 'test ! -d '//trim(adjustl(fdir))//' && mkdir '//trim(adjustl(fdir))
         call system(trim(adjustl(syscommand)))
       end if
       write(fiqmt,*) iqmt

@@ -17,7 +17,7 @@ module m_writecmplxparts
 
       if(present(dirname)) then 
         dname = trim(adjustl(dirname))//'/'
-        syscommand = '[[ ! -e '//trim(adjustl(dname))//' ]] && mkdir '//trim(adjustl(dname))
+        syscommand = 'test ! -e '//trim(adjustl(dname))//' && mkdir '//trim(adjustl(dname))
         call system(trim(adjustl(syscommand)))
       else
         dname = ''

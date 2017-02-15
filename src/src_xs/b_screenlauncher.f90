@@ -90,25 +90,25 @@ subroutine b_screenlauncher
   ! Making folder for GQPOINTS info files
   gqdirname = 'GQPOINTS'
   if(rank == 0) then 
-    syscommand = '[[ ! -e '//trim(adjustl(gqdirname))//' ]] && mkdir '//trim(adjustl(gqdirname))
+    syscommand = 'test ! -e '//trim(adjustl(gqdirname))//' && mkdir '//trim(adjustl(gqdirname))
     call system(trim(adjustl(syscommand)))
   end if
   ! Making folder for the binary screening EPS0 files
   eps0dirname = 'EPS0'
   if(rank == 0) then 
-    syscommand = '[[ ! -e '//trim(adjustl(eps0dirname))//' ]] && mkdir '//trim(adjustl(eps0dirname))
+    syscommand = 'test ! -e '//trim(adjustl(eps0dirname))//' && mkdir '//trim(adjustl(eps0dirname))
     call system(trim(adjustl(syscommand)))
   end if
   ! Making folder for the ascii screening SCREEN files
   scrdirname = 'SCREEN'
   if(rank == 0) then
-    syscommand = '[[ ! -e '//trim(adjustl(scrdirname))//' ]] && mkdir '//trim(adjustl(scrdirname))
+    syscommand = 'test ! -e '//trim(adjustl(scrdirname))//' && mkdir '//trim(adjustl(scrdirname))
     call system(trim(adjustl(syscommand)))
   end if
   ! Making folder for timing related info output
   timingdirname = 'TIMINGS'
   if(rank == 0) then
-    syscommand = '[[ ! -e '//trim(adjustl(timingdirname))//' ]] && mkdir '//trim(adjustl(timingdirname))
+    syscommand = 'test ! -e '//trim(adjustl(timingdirname))//' && mkdir '//trim(adjustl(timingdirname))
     call system(trim(adjustl(syscommand)))
   end if
   call barrier

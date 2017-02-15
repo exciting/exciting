@@ -171,7 +171,7 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   ! Making folder for the radial integals pertaining to the plane wave matrix elements
   ematraddir = 'EMATRAD'
   if(rank == 0) then 
-    syscommand = '[[ ! -e '//trim(adjustl(ematraddir))//' ]] && mkdir '//trim(adjustl(ematraddir))
+    syscommand = 'test ! -e '//trim(adjustl(ematraddir))//' && mkdir '//trim(adjustl(ematraddir))
     call system(trim(adjustl(syscommand)))
   end if
 

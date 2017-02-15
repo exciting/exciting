@@ -283,7 +283,7 @@ module mod_xsgrids
       write(fiqmt,*) iqmt
       fext = trim(adjustl(fiqmt))//'.out'
       fdir = 'XSGRIDS/'
-      call system('[[ ! -e XSGRIDS ]] && mkdir XSGRIDS')
+      call system('test ! -e XSGRIDS && mkdir XSGRIDS')
 
       if( .not. initialized) then
         write(*,*) "Error(mod_xsgrids::xsgrids_write_grids):&

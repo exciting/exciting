@@ -47,16 +47,13 @@ module m_setup_pwmat
       complex(8), intent(out) :: pwmat(hamsize)
 
       real(8) :: t1, t0
-      integer(4) :: io, iu, ik, iknr
+      integer(4) :: io, iu, ik, iknr, ik1, ik2
       integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
       integer(4) :: a1, numgq
 
       type(bcbs) :: ematbc
       character(256) :: fileext0_save, fileext_save
       complex(8), allocatable :: mou(:,:,:), moug(:,:,:)
-
-      write(unitout, '("  Building Pwmat.")')
-      call timesec(t0)
 
       ! Save file extension
       fileext_save = filext
@@ -107,15 +104,17 @@ module m_setup_pwmat
       call ematrad(iqmt)
 
       numgq = ngq(iqmt)
-      !write(*,*) "(setup_pwmat): numgq =", numgq
 
       allocate(mou(no_bse_max, nu_bse_max, numgq))
       allocate(moug(no_bse_max, nu_bse_max, nk_bse))
       mou=zzero
       moug=zzero
 
+      ik1=firstofset(mpiglobal%rank, nk_bse)
+      ik2=lastofset(mpiglobal%rank, nk_bse)
+
       ! Read in all needed momentum matrix elements
-      do ik = 1, nk_bse
+      do ik = ik1, ik2
 
         !----------------------------------------------------------------!
         ! Calculate M_{io iu ik}(G, qmt) = <io ik|e^{-i(qmt+G)r}|iu ikp> !
@@ -149,7 +148,12 @@ module m_setup_pwmat
 
       end do
 
+      ! Gather moug 
+      call mpi_allgatherv_ifc(set=nk_bse, rlen=no_bse_max*nu_bse_max, zbuf=moug,&
+        & inplace=.true., comm=mpiglobal)
+
       call ematqdealloc
+      deallocate(mou)
 
       do a1 = 1, hamsize
         ! Relative indices
@@ -159,14 +163,49 @@ module m_setup_pwmat
         pwmat(a1) = ofac(a1)*moug(io, iu, ik)
       end do
 
+      deallocate(moug)
+
       ! Restore file extension
       filext=fileext_save
       filext0=fileext0_save
-
-      call timesec(t1)
-      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
     end subroutine setup_pwmat
     !EOC
 
+    !BOP
+    ! !ROUTINE: setup_distributed_pwmat
+    ! !INTERFACE:
+    subroutine setup_distributed_pwmat(dpwmat, iqmt, igqmt, binfo)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! In:
+    !   integer(4) :: iqmt            ! Index of momentum transfer
+    !   integer(4) :: igqmt           ! Index of G+qmt
+    !   type(blacsinfo) :: binfo      ! Info type for BLACS grid
+    ! Out:
+    !   type(dzmat) :: dpwma          ! 2D block cyclic distributed plane wave
+    !                                 ! matrix elements 
+    ! 
+    ! !DESCRIPTION:
+    !   The routine generates the plane wave matrix elements 
+    !   $\tilde{M}_{\alpha}(G,qmt) = \sqrt{f_{v_\alpha, \vec{k}_\alpha}-f_{c_\alpha, \vec{k}_\alpha+\vec{q}_\text{mt}}}
+    !    \langle v_\alpha \vec{k}_\alpha | e^{-i(G+qmt)r} | c_\alpha \vec{k}_\alpha+qmt \rangle
+    !
+    !   Alpha is the combined index used in the BSE Hamiltonian.
+    !
+    ! !REVISION HISTORY:
+    !   Created. (Aurich)
+    !EOP
+    !BOC
+      integer(4), intent(in) :: iqmt, igqmt
+      type(blacsinfo), intent(in) :: binfo
+      type(dzmat), intent(inout) :: dpwmat
+
+      complex(8) :: pwmat(hamsize,1)
+
+      call setup_pwmat(pwmat(:,1), iqmt, igqmt)
+
+      call dzmat_copy_global2local(pwmat, dpwmat, binfo)
+      
+    end subroutine setup_distributed_pwmat
+    !EOC
 
 end module m_setup_pwmat
