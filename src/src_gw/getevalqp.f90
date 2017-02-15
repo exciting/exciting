@@ -15,7 +15,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   logical       :: exist
   integer(4)    :: ik, ib, nb, nk, nqp
   integer(4)    :: recl
-  real(8)       :: eferks
+  real(8)       :: eferks, kvecs2_( 3, nkp2)
   character(30) :: fname
   integer(4), allocatable :: idx(:)
   real(8),    allocatable :: eqp(:), eqpwan(:,:), eqpwanint(:,:)
@@ -118,8 +118,9 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   de2(:,:) = zzero
 
   if( input%gw%taskname .eq. "wannier") then
+    call readfermi
+    kvecs2_ = kvecs2
     allocate( eqpwan( ibgw:nbgw, wf_nkpt), eqpwanint( ibgw:nbgw, nkp2))
-    write(*,*) shape( eqp1)
     if( allocated( vkl)) deallocate( vkl)
     allocate( vkl( 3, nkp1))
     vkl = kvecs1
@@ -134,13 +135,13 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     end do
     deallocate( vkl)
     allocate( vkl( 3, nkp2))
-    vkl = kvecs2
+    vkl = kvecs2_
     nkpt = nkp2
       
     !write(*,*) shape( eqpwan), shape( wf_vkl), wf_nkpt
     !write(*,*) shape( eqpwanint), shape( kvecs2), nkp2
     !write(*,*) shape( eqp2)
-    call wannier_interpolate_eval( eqpwan, wf_nkpt, wf_vkl, eqpwanint, nkp2, kvecs2, ibgw, nbgw)
+    call wannier_interpolate_eval( eqpwan, wf_nkpt, wf_vkl, eqpwanint, nkp2, kvecs2_, ibgw, nbgw)
     do ib = ibgw, min(nbgw,nstsv)
        do ik = 1, nkp2
           eqp2( ib, ik) = eqpwanint( ib, ik) - eferqp - efermi
