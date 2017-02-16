@@ -338,7 +338,16 @@ module mod_wannier
       complex(8), allocatable :: evecfv_tmp(:,:,:,:)
       
       write(*,*) "wannier_emat..."
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
       write( 80, '(" calculate plane-wave matrix-elements...")')
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
       call timesec( t0)
 
       if( allocated( wf_emat)) deallocate( wf_emat)
@@ -388,7 +397,7 @@ module mod_wannier
 !$OMP END PARALLEL
 #endif
 #ifdef MPI
-          call mpi_allgatherv_ifc( wf_nkpt, wf_nband**2, zbuf=wf_emat( :, :, n, is, :))
+          call mpi_allgatherv_ifc( wf_nkpt, nstfv**2, zbuf=wf_emat( :, :, n, is, :))
 #endif
           ! make use of symmetry: M(k,-b) = M(k-b,b)**H
           do iknr = 1, wf_nkpt
@@ -399,11 +408,20 @@ module mod_wannier
       call emat_destroy
       deallocate( evecfv_tmp)
       call timesec( t1)
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
       write( 80, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
       write( 80, '(5x,"#k-points: ",T40,7x,I6)') wf_nkpt
       write( 80, '(5x,"#neighbors per k-point: ",T40,7x,I6)') sum( wf_n_n( 1:wf_n_usedshells))
       write( 80, *)
       call flushifc( 80)
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
       return
       !EOC
     end subroutine wannier_emat
@@ -480,8 +498,17 @@ module mod_wannier
         call wannier_writeinfo_task( "pro")
       end if
       
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
       write( 80, '(" generate Wannier functions via projection...")')
       call timesec( t0)
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
 
       allocate( projm( wf_nband, wf_nband), sval( wf_nband), lsvec( wf_nband, wf_nband), rsvec( wf_nband, wf_nband))
       if( allocated( wf_transform)) deallocate( wf_transform)
@@ -520,10 +547,19 @@ module mod_wannier
       call wannier_writefile( 'WANNIER')
       deallocate( projm, sval, lsvec, rsvec)
       call timesec( t1)
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
       write( 80, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
       write( 80, '(5x,"Omega): ",T40,F13.6)') sum( wf_omega)
       write( 80, *)
       call flushifc( 80)
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
       if( (.not. present( frommax)) .or. (present( frommax) .and..not. frommax) ) call wannier_writeinfo_finish
       return
     end subroutine wannier_gen_pro
@@ -610,8 +646,17 @@ module mod_wannier
       ! generate plane-wave matrix-elements
       !write(*,*) 'Computing inner products...'
       if( .not. allocated( wf_emat)) call wannier_emat
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
       write( 80, '(" calculate optimized projection functions (OPF)...")')
       call timesec( t0)
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
 
       lambda = 0.5d0*dot_product( dble( wf_n_n( 1:wf_n_usedshells)), wf_n_wgt( 1:wf_n_usedshells))
       minit = 100
@@ -850,6 +895,9 @@ module mod_wannier
       write(*,'(100F13.6)') wf_centers( 3, :)
       call wannier_writefile( 'WANNIER')
       call timesec( t1)
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
       write( 80, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
       write( 80, '(5x,"minimum iterations: ",T40,7x,I6)') minit
       write( 80, '(5x,"iterations: ",T40,7x,I6)') n
@@ -858,6 +906,12 @@ module mod_wannier
       write( 80, '(5x,"Omega: ",T40,F13.6)') sum( wf_omega)
       write( 80, *)
       call flushifc( 80)
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
       if( (.not. present( frommax)) .or. (present( frommax) .and..not. frommax) ) call wannier_writeinfo_finish
       deallocate( lsvec2, rsvec2, projm, opf_x, auxmat, phihist, opf_mixing, opf_x0, opf_t, opf_transform, lsvec, rsvec, sval, sval2)
       return
@@ -927,13 +981,31 @@ module mod_wannier
           call wannier_writeinfo_geometry
           call wannier_writeinfo_task( "maxfromfile")
           if( .not. succes) then
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
             write( 80, '(" Failed to read Wannier functions from file. Aborted.")')
             write( 80, *)
             write(*,*) " ERROR (wannier_gen_max): Failed to read file. Recalculate Wannier functions."
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
             call wannier_gen_opf( bandstart, wf_nband)
           else
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
             write( 80, '(" file successfully read")')
             write( 80, *)
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
           end if
         end if
       else if( present( loproj)) then
@@ -942,97 +1014,87 @@ module mod_wannier
         call wannier_gen_opf( bandstart, wf_nband, frommax=.true.)
       end if
 
-      allocate( auxmat( maxval( wf_win_no + wf_win_ni), wf_nband))
-      allocate( mlwf_m0( wf_nband, wf_nband, maxval( wf_n_n( 1:wf_n_usedshells)), wf_n_usedshells, wf_nkpt))
-      allocate( mlwf_emat( wf_nband, wf_nband, maxval( wf_n_n( 1:wf_n_usedshells)), wf_n_usedshells, wf_nkpt))
-      allocate( omegai( wf_nband))
-      if( .not. allocated( wf_emat)) then
-        write(*,*) 'Computing inner products...'
-        call wannier_emat
-      endif
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
+        allocate( auxmat( maxval( wf_win_no + wf_win_ni), wf_nband))
+        allocate( mlwf_m0( wf_nband, wf_nband, maxval( wf_n_n( 1:wf_n_usedshells)), wf_n_usedshells, wf_nkpt))
+        allocate( mlwf_emat( wf_nband, wf_nband, maxval( wf_n_n( 1:wf_n_usedshells)), wf_n_usedshells, wf_nkpt))
+        allocate( omegai( wf_nband))
+        if( .not. allocated( wf_emat)) then
+          write(*,*) 'Computing inner products...'
+          call wannier_emat
+        endif
 
-      write( 80, '(" minimize localization functional Omega...")')
-      call timesec( t0)
-      omegai = 0.d0
+        write( 80, '(" minimize localization functional Omega...")')
+        call timesec( t0)
+        omegai = 0.d0
 
-      if( wf_disentangle) then
-        do is = 1, wf_n_usedshells
-          do n = 1, wf_n_n( is)
-            do iknr = 1, wf_nkpt
-              k1 = min( minval( wf_win_idxi( 1:wf_win_ni( iknr), iknr)), minval( wf_win_idxo( 1:wf_win_no( iknr), iknr)))
-              k2 = max( maxval( wf_win_idxi( 1:wf_win_ni( iknr), iknr)), maxval( wf_win_idxo( 1:wf_win_no( iknr), iknr)))
-              call zgemm( 'N', 'N', wf_win_no( iknr)+wf_win_ni( iknr), wf_nband, wf_win_no( iknr)+wf_win_ni( iknr), zzero, &
-                   wf_emat( k1:k2, k1:k2, n, is, iknr), wf_win_no( iknr)+wf_win_ni( iknr), &
-                   wf_subspace( 1:(wf_win_no( iknr)+wf_win_ni( iknr)), :, iknr), wf_win_no( iknr)+wf_win_ni( iknr), zzero, &
-                   auxmat( 1:(wf_win_no( iknr)+wf_win_ni( iknr)), :), wf_win_no( iknr)+wf_win_ni( iknr))
-              call zgemm( 'C', 'N', wf_nband, wf_nband, wf_win_no( iknr)+wf_win_ni( iknr), zzero, &
-                   wf_subspace( 1:(wf_win_no( iknr)+wf_win_ni( iknr)), :, iknr), wf_win_no( iknr)+wf_win_ni( iknr), &
-                   auxmat( 1:(wf_win_no( iknr)+wf_win_ni( iknr)), :), wf_win_no( iknr)+wf_win_ni( iknr), zzero, &
-                   mlwf_emat( :, :, n, is, iknr), wf_nband)
+        if( wf_disentangle) then
+          do is = 1, wf_n_usedshells
+            do n = 1, wf_n_n( is)
+              do iknr = 1, wf_nkpt
+                k1 = min( minval( wf_win_idxi( 1:wf_win_ni( iknr), iknr)), minval( wf_win_idxo( 1:wf_win_no( iknr), iknr)))
+                k2 = max( maxval( wf_win_idxi( 1:wf_win_ni( iknr), iknr)), maxval( wf_win_idxo( 1:wf_win_no( iknr), iknr)))
+                call zgemm( 'N', 'N', wf_win_no( iknr)+wf_win_ni( iknr), wf_nband, wf_win_no( iknr)+wf_win_ni( iknr), zzero, &
+                     wf_emat( k1:k2, k1:k2, n, is, iknr), wf_win_no( iknr)+wf_win_ni( iknr), &
+                     wf_subspace( 1:(wf_win_no( iknr)+wf_win_ni( iknr)), :, iknr), wf_win_no( iknr)+wf_win_ni( iknr), zzero, &
+                     auxmat( 1:(wf_win_no( iknr)+wf_win_ni( iknr)), :), wf_win_no( iknr)+wf_win_ni( iknr))
+                call zgemm( 'C', 'N', wf_nband, wf_nband, wf_win_no( iknr)+wf_win_ni( iknr), zzero, &
+                     wf_subspace( 1:(wf_win_no( iknr)+wf_win_ni( iknr)), :, iknr), wf_win_no( iknr)+wf_win_ni( iknr), &
+                     auxmat( 1:(wf_win_no( iknr)+wf_win_ni( iknr)), :), wf_win_no( iknr)+wf_win_ni( iknr), zzero, &
+                     mlwf_emat( :, :, n, is, iknr), wf_nband)
+              end do
             end do
           end do
-        end do
-      else
-        mlwf_emat(:,:,:,:,:) = wf_emat( wf_bandstart:(wf_bandstart+wf_nband-1), wf_bandstart:(wf_bandstart+wf_nband-1), :, :, :)
-      end if
-      deallocate( auxmat)
-      allocate( auxmat( wf_nband, wf_nband))
+        else
+          mlwf_emat(:,:,:,:,:) = wf_emat( wf_bandstart:(wf_bandstart+wf_nband-1), wf_bandstart:(wf_bandstart+wf_nband-1), :, :, :)
+        end if
+        deallocate( auxmat)
+        allocate( auxmat( wf_nband, wf_nband))
 
-      do is = 1, wf_n_usedshells
-        do n = 1, wf_n_n( is)     
-          k1 = 1
-          k2 = wf_nkpt
-!#ifdef MPI
-!          k1 = firstofset( rank, wf_nkpt)
-!          k2 = lastofset( rank, wf_nkpt)
-!#endif
+        do is = 1, wf_n_usedshells
+          do n = 1, wf_n_n( is)     
+            k1 = 1
+            k2 = wf_nkpt
 #ifdef USEOMP                
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ix, ngknr, auxmat) reduction(+:omegai)
 !$OMP DO  
 #endif
-          do iknr = k1, k2   
-                             
-            call ZGEMM( 'N', 'N', wf_nband, wf_nband, wf_nband, zone, &
-                 mlwf_emat( :, : , n, is, iknr), wf_nband, &
-                 wf_transform( :, :, wf_n_ik( n, is, iknr)), wf_nband, zzero, &
-                 auxmat, wf_nband)
-            call ZGEMM( 'C', 'N', wf_nband, wf_nband, wf_nband, zone, &
-                 wf_transform( :, :, iknr), wf_nband, &
-                 auxmat, wf_nband, zzero, &
-                 mlwf_m0( :, :, n, is, iknr), wf_nband)
+            do iknr = k1, k2   
+                               
+              call ZGEMM( 'N', 'N', wf_nband, wf_nband, wf_nband, zone, &
+                   mlwf_emat( :, : , n, is, iknr), wf_nband, &
+                   wf_transform( :, :, wf_n_ik( n, is, iknr)), wf_nband, zzero, &
+                   auxmat, wf_nband)
+              call ZGEMM( 'C', 'N', wf_nband, wf_nband, wf_nband, zone, &
+                   wf_transform( :, :, iknr), wf_nband, &
+                   auxmat, wf_nband, zzero, &
+                   mlwf_m0( :, :, n, is, iknr), wf_nband)
   
-            ! independent part of localization functional
-            do ix = 1, wf_nband
-              omegai( ix) = omegai( ix) + wf_n_wgt( is)*(1d0 - sum( abs( mlwf_m0( :, ix, n, is, iknr))**2))
-            end do
+              ! independent part of localization functional
+              do ix = 1, wf_nband
+                omegai( ix) = omegai( ix) + wf_n_wgt( is)*(1d0 - sum( abs( mlwf_m0( :, ix, n, is, iknr))**2))
+              end do
 
-          end do
+            end do
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif
-!#ifdef MPI
-!        call mpi_allgatherv_ifc( wf_nkpt, wf_nband**2, zbuf=mlwf_m0(:,:,:,ib))
-!        call mpi_allreduce( omegai, omegaod, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-!#endif
+          end do
         end do
-      end do
-      
-      omegai = omegai/wf_nkpt
-#ifdef MPI
-      omegai = omegaod/wf_nkpt
-#endif
-      !write(*,'("Omega I: ",F23.16)') sum( omegai)
-      
-      ! mixing parameter for self consistent minimization
-      mixing = dble( 0.5)
-      alpha = mixing
-      ! minimum/maximum number of iterations
-      minit = 200
-      maxit = 100000
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+        
+        omegai = omegai/wf_nkpt
+        !write(*,'("Omega I: ",F23.16)') sum( omegai)
+        
+        ! mixing parameter for self consistent minimization
+        mixing = dble( 0.5)
+        alpha = mixing
+        ! minimum/maximum number of iterations
+        minit = 200
+        maxit = 100000
+
         ! initialize transformation matrices
         allocate( mlwf_transform( wf_nband, wf_nband, wf_nkpt))
         mlwf_transform = zzero
@@ -1230,25 +1292,25 @@ module mod_wannier
         write(*,'(100F13.6)') wf_centers( 3, :)
         ! write resulting transformation matrices to file
         call wannier_writefile( 'WANNIER')
+  
+        deallocate( auxmat, eval, evec, mlwf_m0, mlwf_m, mlwf_r, mlwf_t, mlwf_dw, mlwf_transform, omegahist, gradhist)
+        call timesec( t1)
+        write( 80, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
+        write( 80, '(5x,"minimum/maximum iterations: ",T40,I6,"/",I6)') minit, maxit
+        write( 80, '(5x,"iterations: ",T40,7x,I6)') iz
+        write( 80, '(5x,"aimed uncertainty: ",T40,E13.6)') input%properties%wannier%uncertainty
+        write( 80, '(5x,"achieved uncertainty: ",T40,E13.6)') uncertainty
+        write( 80, '(5x,"Omega: ",T40,F13.6)') sum( wf_omega)
+        write( 80, '(5x,"localization gain: ",T40,7x, I5,"%")') nint( 100d0*(omegastart-sum( wf_omega))/sum( wf_omega))
+        write( 80, *)
+        call flushifc( 80)
+        call wannier_writeinfo_finish
 #ifdef MPI
         call barrier
       else
         call barrier
       end if
 #endif
-  
-      deallocate( auxmat, eval, evec, mlwf_m0, mlwf_m, mlwf_r, mlwf_t, mlwf_dw, mlwf_transform, omegahist, gradhist)
-      call timesec( t1)
-      write( 80, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
-      write( 80, '(5x,"minimum/maximum iterations: ",T40,I6,"/",I6)') minit, maxit
-      write( 80, '(5x,"iterations: ",T40,7x,I6)') iz
-      write( 80, '(5x,"aimed uncertainty: ",T40,E13.6)') input%properties%wannier%uncertainty
-      write( 80, '(5x,"achieved uncertainty: ",T40,E13.6)') uncertainty
-      write( 80, '(5x,"Omega: ",T40,F13.6)') sum( wf_omega)
-      write( 80, '(5x,"localization gain: ",T40,7x, I5,"%")') nint( 100d0*(omegastart-sum( wf_omega))/sum( wf_omega))
-      write( 80, *)
-      call flushifc( 80)
-      call wannier_writeinfo_finish
       return
       !EOC
     end subroutine wannier_gen_max
@@ -1258,6 +1320,9 @@ module mod_wannier
       logical :: succes
       real(8), allocatable :: ravg(:,:), omega(:)
 
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
       call wannier_init
       call wannier_readfile( 'WANNIER', succes)
       call wannier_writeinfo_lo
@@ -1272,14 +1337,12 @@ module mod_wannier
         write( 80, *)
         call wannier_writeinfo_finish
       end if
-
-      !allocate( ravg( 3, wf_nband), omega( wf_nband))
-      !call wannier_loc( omega, centers=ravg)
-      !write(*,*) sum( omega)
-      !write(*,'(100F13.6)') omega
-      !write(*,'(100F13.6)') ravg( 1, :)
-      !write(*,'(100F13.6)') ravg( 2, :)
-      !write(*,'(100F13.6)') ravg( 3, :)
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
       return
     end subroutine wannier_gen_fromfile
     
@@ -1846,6 +1909,9 @@ module mod_wannier
     subroutine wannier_writeinfo_lo
       integer :: i
 
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
       call printbox( 80, '*', "Local-orbitals for projection")
       write( 80, *)
       write( 80, '(12x,"#",6x,"species",9x,"atom",12x,"l",12x,"m",9x,"used")')
@@ -1870,12 +1936,21 @@ module mod_wannier
       write( 80, '(36x,"local-orbitals used in total:",4x,I4,"/",I4)') sum( wf_projused), wf_nprojtot
       write( 80, *)
       call flushifc( 80)
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
     end subroutine wannier_writeinfo_lo
     
     subroutine wannier_writeinfo_geometry
       integer :: i, j
       real(8) :: v(3,1), m(3,3)
 
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
       call printbox( 80, '*', "Brillouin zone neighbors for k-gradient")
       write( 80, *)
       write( 80, '(11x,"shell",6x,"#neighbors",8x,"distance",10x,"weight",10x,"used")')
@@ -1922,11 +1997,20 @@ module mod_wannier
 
       write( 80, *)
       call flushifc( 80)
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
     end subroutine wannier_writeinfo_geometry
     
     subroutine wannier_writeinfo_task( task)
       character(*), intent( in) :: task
      
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
       call printbox( 80, '*', "starting Wannierization...")
       write( 80, *)
       write( 80, '(" lowest band:",T30,13x,I3)') wf_bandstart
@@ -1935,17 +2019,32 @@ module mod_wannier
       write( 80, '(" method:",T30,A16)') trim( task)
       write( 80, *)
       call flushifc( 80)
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
     end subroutine wannier_writeinfo_task
     
     subroutine wannier_writeinfo_finish
       real(8) :: t
       
+#ifdef MPI
+      if( rank .eq. 0) then
+#endif
       call timesec( t)
       write( 80, '(" total duration (seconds):",T30,F16.1)') t-wf_t0
       call printbox( 80, '*', "...Wannierization finished")
       write( 80, *)
       call flushifc( 80)
       call wannier_writeinfo_results
+#ifdef MPI
+        call barrier
+      else
+        call barrier
+      end if
+#endif
     end subroutine wannier_writeinfo_finish
     
     subroutine wannier_writeinfo_results
