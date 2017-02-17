@@ -306,6 +306,7 @@ module mod_wannier
       end do 
 
       wf_initialized = .true.
+      write( *, '("nstfv: ",I3)') nstfv
       !call wannier_showproj
       deallocate( auxmat, rolpi, apwalm, evecfv, uf, gf, cf, sfacgknr, vgklnr, vgkcnr, gkcnr, tpgkcnr, igkignr, sval, lsvec, rsvec)
       if( wf_disentangle) call wannier_subspace( maxloc( cnt, 1))
@@ -335,7 +336,8 @@ module mod_wannier
       ! allocatable arrays
       integer, allocatable :: igkignr(:)
       real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:)
-      complex(8), allocatable :: evecfv_tmp(:,:,:,:)
+      !complex(8), allocatable :: evecfv_tmp(:,:,:,:)
+      complex(8), allocatable :: evecfv1(:,:,:), evecfv2(:,:,:)
       
       write(*,*) "wannier_emat..."
 #ifdef MPI
@@ -357,19 +359,21 @@ module mod_wannier
       ! read eigenvectors
       allocate( igkignr( ngkmax))
       allocate( vgklnr( 3, ngkmax, nspinor), vgkcnr( 3, ngkmax, nspinor), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
-      allocate( evecfv_tmp( nmatmax, nstfv, nspinor, wf_nkpt))
-      do iknr = 1, wf_nkpt 
-        if( input%properties%wannier%input .eq. "groundstate") then
-          ! find G+k-vectors and eigenvectors for non-reduced k-point k
-          call gengpvec( wf_vkl( :, iknr), wf_vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-          call getevecfv( wf_vkl( :, iknr), vgklnr, evecfv_tmp(:,:,:,iknr))
-        else if( input%properties%wannier%input .eq. "gw") then
-          call getevecsvgw_new( "GW_EVECSV.OUT", iknr, wf_vkl( :, iknr), nmatmax, nstfv, nspinor, evecfv_tmp(:,:,:,iknr))
-        else
-          call terminate
-        end if
-      end do
-      deallocate( igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
+      !allocate( evecfv_tmp( nmatmax, nstfv, nspinor, wf_nkpt))
+      allocate( evecfv1( nmatmax, nstfv, nspinor))
+      allocate( evecfv2( nmatmax, nstfv, nspinor))
+      !do iknr = 1, wf_nkpt 
+      !  if( input%properties%wannier%input .eq. "groundstate") then
+      !    ! find G+k-vectors and eigenvectors for non-reduced k-point k
+      !    call gengpvec( wf_vkl( :, iknr), wf_vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+      !    call getevecfv( wf_vkl( :, iknr), vgklnr, evecfv_tmp(:,:,:,iknr))
+      !  else if( input%properties%wannier%input .eq. "gw") then
+      !    call getevecsvgw_new( "GW_EVECSV.OUT", iknr, wf_vkl( :, iknr), nmatmax, nstfv, nspinor, evecfv_tmp(:,:,:,iknr))
+      !  else
+      !    call terminate
+      !  end if
+      !end do
+      !deallocate( igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
 
       do is = 1, wf_n_usedshells
         do n = 1, wf_n_n( is)/2    
@@ -381,20 +385,34 @@ module mod_wannier
           k2 = lastofset( rank, wf_nkpt)
 #endif
 #ifdef USEOMP                
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr)
-!$OMP DO  
+!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr)
+!!$OMP DO  
 #endif
           do iknr = k1, k2   
             write(*,*) iknr
+            if( input%properties%wannier%input .eq. "groundstate") then
+              ! find G+k-vectors and eigenvectors for non-reduced k-point k
+              call gengpvec( wf_vkl( :, iknr), wf_vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+              call getevecfv( wf_vkl( :, iknr), vgklnr, evecfv1)
+              call gengpvec( wf_vkl( :, wf_n_ik( n, is, iknr)), wf_vkc( :, wf_n_ik( n, is, iknr)), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+              call getevecfv( wf_vkl( :, wf_n_ik( n, is, iknr)), vgklnr, evecfv2)
+            else if( input%properties%wannier%input .eq. "gw") then
+              call getevecsvgw_new( "GW_EVECSV.OUT", iknr, wf_vkl( :, iknr), nmatmax, nstfv, nspinor, evecfv1)
+              call getevecsvgw_new( "GW_EVECSV.OUT", wf_n_ik( n, is, iknr), wf_vkl( :, wf_n_ik( n, is, iknr)), nmatmax, nstfv, nspinor, evecfv2)
+            else
+              call terminate
+            end if
             ! generate plane-wave matrix elements
             call emat_genemat( wf_vkl( :, iknr), wf_vkc( :, iknr), 1, nstfv, 1, nstfv, &
-                 evecfv_tmp(:,:,1, iknr), &
-                 evecfv_tmp(:,:,1, wf_n_ik( n, is, iknr)), &
+                 !evecfv_tmp(:,:,1, iknr), &
+                 !evecfv_tmp(:,:,1, wf_n_ik( n, is, iknr)), &
+                 evecfv1, &
+                 evecfv2, &
                  wf_emat( :, :, n, is, iknr))
           end do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+!!$OMP END DO
+!!$OMP END PARALLEL
 #endif
 #ifdef MPI
           call mpi_allgatherv_ifc( wf_nkpt, nstfv**2, zbuf=wf_emat( :, :, n, is, :))
@@ -405,8 +423,9 @@ module mod_wannier
           end do
         end do
       end do
+      deallocate( igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
       call emat_destroy
-      deallocate( evecfv_tmp)
+      !deallocate( evecfv_tmp)
       call timesec( t1)
 #ifdef MPI
       if( rank .eq. 0) then
