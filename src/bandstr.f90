@@ -56,7 +56,6 @@ Subroutine bandstr
   complex(8), allocatable :: e0(:,:), e1(:,:)
   logical :: exist,hybcheck
 !WANNIER
-  integer :: fst, lst
   real(8), allocatable :: eval1(:,:), vklold(:,:)
   complex(8), allocatable :: evectmp(:,:)
   integer :: symm, symn
@@ -93,9 +92,7 @@ if (input%properties%bandstructure%wannier) then
   allocate( evalsv( nstfv, nkpt))
   
   ! do interpolation
-  fst = wf_bandstart
-  lst = fst+wf_nband-1
-  call wannier_interpolate_eval( eval1( fst:lst, :), wf_nkpt, vklold, evalsv( fst:lst, :), nkpt, vkl, fst, lst)
+  call wannier_interpolate_eval( eval1( wf_fst:wf_lst, :), wf_nkpt, vklold, evalsv( wf_fst:wf_lst, :), nkpt, vkl, wf_fst, wf_lst)
   evalsv = evalsv - efermi
 
   ! output
@@ -110,7 +107,7 @@ if (input%properties%bandstructure%wannier) then
     call xml_NewElement( xf, "title")
     call xml_AddCharacters( xf, trim( input%title))
     call xml_endElement( xf, "title")
-    do ist = fst, lst
+    do ist = wf_fst, wf_lst
       call xml_NewElement( xf, "band")
       do ik = 1, nkpt
         write( 50, '(2G18.10)') dpp1d (ik), evalsv (ist, ik)

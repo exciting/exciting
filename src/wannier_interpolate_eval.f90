@@ -31,8 +31,8 @@ subroutine wannier_interpolate_eval( eval1, nk1, kvl1, eval2, nk2, kvl2, fst, ls
   complex(8), allocatable :: auxmat(:,:), auxmat2(:,:,:), wanme(:,:,:), evectmp(:,:)
 
   ! check band-range
-  if( (fst .lt. wf_bandstart) .or. (lst .ge. wf_bandstart+wf_nband)) then
-    write( *, '(" ERROR (wannier_interpolate_eval): The selected band-range for interpolation (",I3,"-",I3,") does not lie in the band-range for Wannier-functions (",I3,"-",I3,").")') fst, lst, wf_bandstart, wf_bandstart+wf_nband-1
+  if( (fst .lt. wf_fst) .or. (lst .gt. wf_lst)) then
+    write( *, '(" ERROR (wannier_interpolate_eval): The selected band-range for interpolation (",I3,"-",I3,") does not lie in the band-range for Wannier-functions (",I3,"-",I3,").")') fst, lst, wf_fst, wf_lst
     call terminate
   end if
   ! check k-points
@@ -72,7 +72,7 @@ subroutine wannier_interpolate_eval( eval1, nk1, kvl1, eval2, nk2, kvl2, fst, ls
       do ix = fst, lst
         auxmat2( iknr, ix, iy) = zzero
         do iz = fst, lst  
-          auxmat2( iknr, ix, iy) = auxmat2( iknr, ix, iy) + eval1( iz, iknr)*wf_transform( iz-wf_bandstart+1, ix-wf_bandstart+1, ik)*conjg( wf_transform( iz-wf_bandstart+1, iy-wf_bandstart+1, ik))
+          auxmat2( iknr, ix, iy) = auxmat2( iknr, ix, iy) + eval1( iz, iknr)*wf_transform( iz-fst+wf_fst, ix-fst+wf_fst, ik)*conjg( wf_transform( iz-fst+wf_fst, iy-fst+wf_fst, ik))
         end do
       end do
     end do

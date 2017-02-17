@@ -338,14 +338,14 @@ module m_ematqk
           return
       end subroutine emat_genri
       
-      subroutine emat_genemat( veckl, veckc, fst1, nst1, fst2, nst2, evec1, evec2, emat)
+      subroutine emat_genemat( veckl, veckc, fst1, lst1, fst2, lst2, evec1, evec2, emat)
           use modxs, only : fftmap_type
-          integer, intent( in) :: fst1, nst1, fst2, nst2
+          integer, intent( in) :: fst1, lst1, fst2, lst2
           real(8), intent( in) :: veckl(3), veckc(3)
-          complex(8), intent( in) :: evec1( ngkmax+nlotot, nstfv), evec2( ngkmax+nlotot, nstfv)
-          complex(8), intent( out) :: emat( nst1, nst2)
+          complex(8), intent( in) :: evec1( ngkmax+nlotot, fst1:lst1), evec2( ngkmax+nlotot, fst2:lst2)
+          complex(8), intent( out) :: emat( fst1:lst1, fst2:lst2)
 
-          integer :: iv(3), ngknr, ngkq, i, is, ia, ias, l, m, o, lmo, lm
+          integer :: iv(3), ngknr, ngkq, i, is, ia, ias, l, m, o, lmo, lm, nst1, nst2
           real(8) :: t1, veckql(3), veckqc(3)
           
           integer :: ix, shift(3), ig, ist1, ist2, igs
@@ -359,13 +359,15 @@ module m_ematqk
           complex(8), allocatable :: blockmt(:,:), auxmat(:,:), match_combined1(:,:), match_combined2(:,:)
           complex(8), allocatable :: aamat(:,:), almat(:,:), lamat(:,:)
           
+          nst1 = lst1-fst1+1
+          nst2 = lst2-fst2+2
           emat = zzero
 
           ! check if q-vector is zero
           t1 = vecql(1)**2 + vecql(2)**2 + vecql(3)**2
           if( t1 .lt. input%structure%epslat) then
-            do i = 1, min( nst1, nst2)
-              emat( i, i) = zone
+            do i = 1, min( lst1-fst1, lst2-fst1)-1
+              emat( fst1+i, fst1+i) = zone
             end do
             return
           end if
@@ -467,12 +469,12 @@ module m_ematqk
           allocate( auxmat( ngknr+nlotot, nst2))
           call ZGEMM( 'N', 'N', ngknr+nlotot, nst2, ngkq+nlotot, zone, &
                blockmt(:,:), ngknr+nlotot, &
-               evec2( 1:(ngkq+nlotot), fst2:(fst2+nst2-1)), ngkq+nlotot, zzero, &
+               evec2( 1:(ngkq+nlotot), fst2:lst2), ngkq+nlotot, zzero, &
                auxmat(:,:), ngknr+nlotot)
           call ZGEMM( 'C', 'N', nst1, nst2, ngknr+nlotot, cmplx( fourpi, 0.d0, 8), &
-               evec1( 1:(ngknr+nlotot), fst1:(fst1+nst1-1)), ngknr+nlotot, &
+               evec1( 1:(ngknr+nlotot), fst1:lst1), ngknr+nlotot, &
                auxmat(:,:), ngknr+nlotot, zzero, &
-               emat(:,:), nst1)
+               emat( fst1:lst1, fst2:lst2), nst1)
           
           !if( norm2( vecql(:) - (/0.25, 0.00, 0.00/)) .lt. input%structure%epslat) then
           !  write(*,*) ik
@@ -501,7 +503,7 @@ module m_ematqk
           emat_gmax = 2*gkmax! +input%xs%gqmax
           
           call genfftmap( fftmap, emat_gmax)
-          allocate( zfft0( fftmap%ngrtot+1, nst1))
+          allocate( zfft0( fftmap%ngrtot+1, fst1:lst1))
           zfft0 = zzero
           
           allocate( zfftcf( fftmap%ngrtot+1))
@@ -517,9 +519,9 @@ module m_ematqk
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ist1,ig)
 !$OMP DO
 #endif
-          do ist1 = 1, nst1
+          do ist1 = fst1, lst1
             do ig = 1, ngknr !ngk0 ?
-              zfft0( fftmap%igfft( igkignr( ig)), ist1) = evec1( ig, fst1+ist1-1)
+              zfft0( fftmap%igfft( igkignr( ig)), ist1) = evec1( ig, ist1)
             enddo
             call zfftifc( 3, fftmap%ngrid, 1, zfft0( :, ist1))
             zfft0( :, ist1) = conjg( zfft0( :, ist1))*zfftcf(:) 
@@ -538,24 +540,24 @@ module m_ematqk
 #ifdef USEOMP
 !$OMP DO
 #endif
-          do ist2 = 1, nst2
+          do ist2 = fst2, lst2
             zfft = zzero
             if( sum( abs( shift)) .ne. 0) then
               do ig = 1, ngkq !ngkq
                 iv = ivg( :, igkqig( ig)) + shift
                 igs = ivgig( iv(1), iv(2), iv(3))
-                zfft( fftmap%igfft( igs)) = evec2( ig, fst2+ist2-1)
+                zfft( fftmap%igfft( igs)) = evec2( ig, ist2)
               enddo
             else
               do ig = 1, ngkq !ngkq
-                zfft( fftmap%igfft( igkqig( ig))) = evec2( ig, fst2+ist2-1)
+                zfft( fftmap%igfft( igkqig( ig))) = evec2( ig, ist2)
                 !zfft( fftmap%igfft( igkig( ig, 1, ikq))) = evec2( ig, fst2+ist2-1)
               enddo
             endif
           
             call zfftifc( 3, fftmap%ngrid, 1, zfft)
 
-            do ist1 = 1, nst1
+            do ist1 = fst1, lst1
               do ig = 1, fftmap%ngrtot
                 zfftres( ig) = zfft( ig)*zfft0( ig, ist1) 
               enddo
