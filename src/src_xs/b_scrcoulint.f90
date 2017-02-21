@@ -924,15 +924,17 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       ! Calculate M_{o1o2,G} at fixed (k, q)
       call b_ematqk(iq, iknr, moo, ematbc)
       !-----------------------------------------------------------!
-      if(fwp) then
-        do igq=1,numgq
-          call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
-          wfc_write='Moo'//trim(adjustl(wfc_write))
-          call genfilname(iqmt=iq, dotext='', fileext=dirname)
-          dirname='Moo'//trim(adjustl(dirname))
-          call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(moo(:,:,igq)),&
-            & immat=aimag(moo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
-        end do
+      if(.false.) then 
+        if(fwp) then
+          do igq=1,numgq
+            call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+            wfc_write='Moo'//trim(adjustl(wfc_write))
+            call genfilname(iqmt=iq, dotext='', fileext=dirname)
+            dirname='Moo'//trim(adjustl(dirname))
+            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(moo(:,:,igq)),&
+              & immat=aimag(moo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
+          end do
+        end if
       end if
 
       !write(*,*) "  Muu"
@@ -972,15 +974,17 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       call b_ematqk(iq, ikpnr, muu, ematbc)
       !------------------------------------------------------------------!
 
-      if(fwp) then
-        do igq=1,numgq
-          call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
-          wfc_write='Muu'//trim(adjustl(wfc_write))
-          call genfilname(iqmt=iq, dotext='', fileext=dirname)
-          dirname='Muu'//trim(adjustl(dirname))
-          call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muu(:,:,igq)),&
-            & immat=aimag(muu(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
-        end do
+      if(.false.) then
+        if(fwp) then
+          do igq=1,numgq
+            call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+            wfc_write='Muu'//trim(adjustl(wfc_write))
+            call genfilname(iqmt=iq, dotext='', fileext=dirname)
+            dirname='Muu'//trim(adjustl(dirname))
+            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muu(:,:,igq)),&
+              & immat=aimag(muu(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
+          end do
+        end if
       end if
 
       filext0 = fileext0_save
@@ -1052,15 +1056,17 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         call b_ematqk(iq, iknr, mou, ematbc)
         !------------------------------------------------------------!
 
-        if(fwp) then
-          do igq=1,numgq
-            call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
-            wfc_write='Mou'//trim(adjustl(wfc_write))
-            call genfilname(iqmt=iq, dotext='', fileext=dirname)
-            dirname='Mou'//trim(adjustl(dirname))
-            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)),&
-              & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
-          end do
+        if(.false.) then 
+          if(fwp) then
+            do igq=1,numgq
+              call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+              wfc_write='Mou'//trim(adjustl(wfc_write))
+              call genfilname(iqmt=iq, dotext='', fileext=dirname)
+              dirname='Mou'//trim(adjustl(dirname))
+              call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)),&
+                & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
+            end do
+          end if
         end if
 
         !write(*,*) "  Mou"
@@ -1104,15 +1110,17 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         call b_ematqk(iq, ikpnr, muo, ematbc)
         !-------------------------------------------------------------!
 
-        if(fwp) then
-          do igq=1,numgq
-            call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
-            wfc_write='Muo'//trim(adjustl(wfc_write))
-            call genfilname(iqmt=iq, dotext='', fileext=dirname)
-            dirname='Muo'//trim(adjustl(dirname))
-            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)),&
-              & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
-          end do
+        if(.false.) then 
+          if(fwp) then
+            do igq=1,numgq
+              call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+              wfc_write='Muo'//trim(adjustl(wfc_write))
+              call genfilname(iqmt=iq, dotext='', fileext=dirname)
+              dirname='Muo'//trim(adjustl(dirname))
+              call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)),&
+                & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
+            end do
+          end if
         end if
 
       else
@@ -1159,15 +1167,17 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         call b_ematqk2(iq, iknr, mou, ematbc)
         !------------------------------------------------------------!
 
-        if(fwp) then
-          do igq=1,numgq
-            call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
-            wfc_write='Mou_ti'//trim(adjustl(wfc_write))
-            call genfilname(iqmt=iq, dotext='', fileext=dirname)
-            dirname='Mou_ti'//trim(adjustl(dirname))
-            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)),&
-              & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
-          end do
+        if(.false.) then
+          if(fwp) then
+            do igq=1,numgq
+              call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+              wfc_write='Mou_ti'//trim(adjustl(wfc_write))
+              call genfilname(iqmt=iq, dotext='', fileext=dirname)
+              dirname='Mou_ti'//trim(adjustl(dirname))
+              call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(mou(:,:,igq)),&
+                & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
+            end do
+          end if
         end if
 
         !write(*,*) "  Muo"
@@ -1210,15 +1220,17 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         ! Calculate M_{uo,G} at fixed (k, q)
         call b_ematqk2(iq, ikpnr, muo, ematbc)
         !-------------------------------------------------------------!
-        if(fwp) then
-          do igq=1,numgq
-            call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
-            wfc_write='Muo_ti'//trim(adjustl(wfc_write))
-            call genfilname(iqmt=iq, dotext='', fileext=dirname)
-            dirname='Muo_ti'//trim(adjustl(dirname))
-            call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)),&
-              & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
-          end do
+        if(.false.) then 
+          if(fwp) then
+            do igq=1,numgq
+              call genfilname(iqmt=iq, iq=igq, dotext='', fileext=wfc_write)
+              wfc_write='Muo_ti'//trim(adjustl(wfc_write))
+              call genfilname(iqmt=iq, dotext='', fileext=dirname)
+              dirname='Muo_ti'//trim(adjustl(dirname))
+              call writecmplxparts(trim(adjustl(wfc_write)), remat=dble(muo(:,:,igq)),&
+                & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
+            end do
+          end if
         end if
 
       end if

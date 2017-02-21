@@ -544,15 +544,17 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       ! Calculate M_{io iu,G}(ik, qmt)
       call b_ematqk(iqmt, iknr, mou, ematbc)
       !------------------------------------------------------------------!
-      if(fwp) then
-        do igq=1,numgq
-          call genfilname(iqmt=iqmt, iq=igq, dotext='', fileext=m_write)
-          m_write='Mou'//trim(adjustl(m_write))
-          call genfilname(iqmt=iqmt, dotext='', fileext=dirname)
-          dirname='Mou_exc'//trim(adjustl(dirname))
-          call writecmplxparts(trim(adjustl(m_write)), remat=dble(mou(:,:,igq)),&
-            & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
-        end do
+      if(.false.) then 
+        if(fwp) then
+          do igq=1,numgq
+            call genfilname(iqmt=iqmt, iq=igq, dotext='', fileext=m_write)
+            m_write='Mou'//trim(adjustl(m_write))
+            call genfilname(iqmt=iqmt, dotext='', fileext=dirname)
+            dirname='Mou_exc'//trim(adjustl(dirname))
+            call writecmplxparts(trim(adjustl(m_write)), remat=dble(mou(:,:,igq)),&
+              & immat=aimag(mou(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
+          end do
+        end if
       end if
 
       filext0 = fileext0_save
@@ -609,15 +611,17 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       ! Calculate M_{ju jo,G}(jkp, qmt)
       call b_ematqk(iqmt, jkpnr, muo, ematbc)
       !------------------------------------------------------------------!
-      if(fwp) then
-        do igq=1,numgq
-          call genfilname(iqmt=iqmt, iq=igq, dotext='', fileext=m_write)
-          m_write='Muo'//trim(adjustl(m_write))
-          call genfilname(iqmt=iqmt, dotext='', fileext=dirname)
-          dirname='Muo_exc'//trim(adjustl(dirname))
-          call writecmplxparts(trim(adjustl(m_write)), remat=dble(muo(:,:,igq)),&
-            & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
-        end do
+      if(.false.) then 
+        if(fwp) then
+          do igq=1,numgq
+            call genfilname(iqmt=iqmt, iq=igq, dotext='', fileext=m_write)
+            m_write='Muo'//trim(adjustl(m_write))
+            call genfilname(iqmt=iqmt, dotext='', fileext=dirname)
+            dirname='Muo_exc'//trim(adjustl(dirname))
+            call writecmplxparts(trim(adjustl(m_write)), remat=dble(muo(:,:,igq)),&
+              & immat=aimag(muo(:,:,igq)), ik1=iknr, ik2=jknr, dirname=dirname)
+          end do
+        end if
       end if
 
       filext0 = fileext0_save
