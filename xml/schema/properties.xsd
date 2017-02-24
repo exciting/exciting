@@ -843,6 +843,8 @@
                   </xs:enumeration>
                   <xs:enumeration value="gw">
                   </xs:enumeration>
+                  <xs:enumeration value="hybrid">
+                  </xs:enumeration>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
