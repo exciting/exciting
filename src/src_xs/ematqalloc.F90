@@ -10,8 +10,8 @@ subroutine ematqalloc
   use mod_kpoint, only: nkpt
   use mod_APW_LO, only: nlotot, apwordmax, nlomax, lolmax
   use mod_atoms, only: natmtot
-  use modxs, only: evecfv, evecfv0, evalsv0, nmatmax0,&
-                 & xih, apwcmt, lmmaxapwwf, apwcmt0,&
+  use modxs, only: evecfv, evecfvb, evecfv0, evecfv0b, evalsv0, nmatmax0,&
+                 & xih, apwcmt, apwcmtb, lmmaxapwwf, apwcmt0, apwcmt0b,&
                  & locmt, locmt0
 
   implicit none
@@ -19,8 +19,14 @@ subroutine ematqalloc
   ! Allocate eigenvalue and eigenvector arrays
   if(allocated(evecfv)) deallocate(evecfv)
   allocate(evecfv(nmatmax, nstfv, nspnfv))
+  if(allocated(evecfvb)) deallocate(evecfvb)
+  allocate(evecfvb(nmatmax, nstfv, nspnfv))
+
   if(allocated(evecfv0)) deallocate(evecfv0)
   allocate(evecfv0(nmatmax0, nstfv, nspnfv))
+  if(allocated(evecfv0b)) deallocate(evecfv0b)
+  allocate(evecfv0b(nmatmax0, nstfv, nspnfv))
+
   if(allocated(evalsv0)) deallocate(evalsv0)
   allocate(evalsv0(nstsv, nkpt))
   
@@ -31,6 +37,7 @@ subroutine ematqalloc
   ! Allocate contracted coefficients array for apw-part
   if(allocated(apwcmt)) deallocate(apwcmt)
   allocate(apwcmt(nstfv, apwordmax, lmmaxapwwf, natmtot))
+
   if(allocated(apwcmt0)) deallocate(apwcmt0)
   allocate(apwcmt0(nstfv, apwordmax, lmmaxapwwf, natmtot))
 

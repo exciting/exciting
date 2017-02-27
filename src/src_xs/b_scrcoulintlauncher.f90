@@ -42,6 +42,10 @@ subroutine b_scrcoulintlauncher
   ! Testing 
   iqmti = 1
   iqmtf = size(input%xs%qpointset%qpoint, 2)
+  if(input%xs%bse%iqmt /= -1) then 
+    iqmti=input%xs%bse%iqmt
+    iqmtf=input%xs%bse%iqmt
+  end if
 
   do iqmt = iqmti, iqmtf
 

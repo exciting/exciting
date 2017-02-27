@@ -113,7 +113,12 @@ module m_setup_pwmat
       ik1=firstofset(mpiglobal%rank, nk_bse)
       ik2=lastofset(mpiglobal%rank, nk_bse)
 
-      ! Read in all needed momentum matrix elements
+      emat_ccket=.false.
+      ! Set up ikmapikq to link (ik,iqmt) to (ikp)
+      ikmapikq_ptr => ikmapikq
+      ! Set vkl0_ptr,... to k-grid and vkl1_ptr, ... to k+qmt-grid
+      call setptr01
+
       do ik = ik1, ik2
 
         !----------------------------------------------------------------!

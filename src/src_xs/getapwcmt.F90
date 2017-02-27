@@ -8,7 +8,7 @@ module m_getapwcmt
 
   contains
 
-    subroutine getapwcmt(iq, ik, isti, istf, lmax, apwlm, fname, tbra)
+    subroutine getapwcmt(iq, ik, isti, istf, lmax, apwlm, fname, vpl)
       use modmpi
       use modmain
       use modinput
@@ -21,23 +21,16 @@ module m_getapwcmt
       integer, intent(in) :: iq, ik, isti, istf, lmax
       complex(8), intent(out) :: apwlm(:, :, :, :)
       character(*), intent(in), optional :: fname
-      logical, intent(in), optional :: tbra
+      real(8), intent(in), optional :: vpl(3)
 
       ! local variables
       character(*), parameter :: thisnam = 'getapwcmt'
       character(256) :: filextt
       character(256) :: filename
-      logical :: isbra
       integer :: un, reclen, nerr, nstfv_, apwordmax_, lmaxapw_
       real(8) :: vql_(3), vkl_(3), vklt(3), vqlt(3)
       complex(8), allocatable :: apwlmt(:, :, :, :)
       real(8), external :: r3dist
-
-      if(present(tbra)) then 
-        isbra = tbra
-      else
-        isbra = .true.
-      end if
 
       nerr = 0
 
@@ -176,14 +169,12 @@ module m_getapwcmt
 
       ! Check q-point and k-point
       if(input%xs%bse%beyond) then 
-        if(isbra) then 
-          ! Gamma q-point
-          vklt(:) = vkl0(:, ik)
-          vqlt(:) = vqlmt(:, iq)
+        if(present(vpl)) then 
+          vklt(:) = vpl
         else
-          vklt(:) = vkl(:, ik)
-          vqlt(:) = vqlmt(:, iq)
+          vklt(:) = vkl(:,ik)
         end if
+        vqlt(:) = vqlmt(:, iq)
       else
         if(iq .eq. 0) then
           ! Gamma q-point

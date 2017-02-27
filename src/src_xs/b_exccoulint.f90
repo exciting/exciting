@@ -10,18 +10,15 @@ subroutine b_exccoulint(iqmt, fra, fti)
   use mod_misc, only: filext
   use mod_constants, only: zone, zzero
   use mod_APW_LO, only: lolmax
-  use mod_qpoint, only: iqmap, ngridq, vql, vqc, nqpt, ivq, wqpt
-  use mod_kpoint, only: nkptnr, ivknr
   use mod_lattice, only: omega
   use modinput, only: input
   use modmpi, only: rank, barrier, mpi_allgatherv_ifc
   use modxs, only: xsgnt, unitout,&
-                 & ngq, vgql,&
-                 & nqptr, qpari, qparf, ivqr,&
-                 & vqlr, vqcr, wqptr, ngqr, vqlmt, ivgmt, vqcmt,&
+                 & ngq,&
+                 & vqlmt, ivgmt,&
                  & kpari, kparf,&
-                 & ppari, pparf, iqmapr,&
-                 & qvkloff, bcbs, iqmtgamma,&
+                 & ppari, pparf,& 
+                 & bcbs, iqmtgamma,&
                  & filext0, usefilext0, iqmt0, iqmt1, ivgigq
   use m_xsgauntgen
   use m_findgntn0
@@ -67,7 +64,7 @@ use m_writecmplxparts
   real(8), allocatable :: potcl(:)
   ! ik jk q points 
   integer(4) :: ikkp
-  integer(4) :: ik, jk, iknr, ikpnr, jknr, jkpnr, iqr, iq
+  integer(4) :: ik, jk, iknr, ikpnr, jknr, jkpnr
   ! Number of occupied/unoccupied states at ik and jk
   integer(4) :: ino, inu, jno, jnu
   ! Number of transitions at ik and jk
@@ -76,7 +73,15 @@ use m_writecmplxparts
   integer(4) :: io, jo, iu, ju
   ! Aux.
   integer(4) :: igq1, numgq
-  integer(4) :: iv(3), j1, j2
+  ! Maximal l used in the APWs and LOs
+  !   Influences quality of plane wave matrix elements
+  integer(4) :: maxl_apwlo
+  ! Maximal l used in the Reghley expansion of exponential
+  !   Influences quality of plane wave matrix elements
+  integer(4) :: maxl_e
+  ! Maximal l used in the APWs and LOs in the groundstate calculations
+  !   Influences quality of eigencoefficients.
+  integer(4) :: maxl_mat
   ! Timinig vars
   real(8) :: tpw1, tpw0
 
@@ -93,6 +98,13 @@ use m_writecmplxparts
   !---------------!
 
 write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
+
+  if(iqmt /= 1 .and. .not. fti) then 
+    write(*, '("Error(",a,"):&
+     & Finite momentum tranfer currently only supported&
+     & when using time reversal symmetry.")') trim(thisnam)
+    call terminate
+  end if
 
   ! Sanity check 
   if(fra) then
@@ -136,11 +148,33 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   ! Generate gaunt coefficients used in the construction of 
   ! the plane wave matrix elements in ematqk.
-  call xsgauntgen(max(input%groundstate%lmaxapw, lolmax),&
-    & input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
-  ! Find indices for non-zero gaunt coefficients
-  call findgntn0(max(input%xs%lmaxapwwf, lolmax),&
-    & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
+
+  ! gs%lmaxapw defaults to 8, BUT xs%lmaxapw defaults to 10 
+  ! in xsinit gs%lmaxapw is overwritten with the xs%lmaxapw value.
+  ! --> xs%lmaxapw = 10
+  maxl_apwlo = max(input%groundstate%lmaxapw, lolmax)
+
+  ! xs%lmaxapwwf defaults to -1, in which case it is set to gs%lmaxmat by init2
+  ! which in trun was previously overwritten by xs%lmaxmat by xsinit. 
+  ! xs%lmatmax defaults to 5.
+  ! --> xs%lmaxapwwf = xs%lmaxmat = 5
+  maxl_mat = max(input%xs%lmaxapwwf, lolmax)
+
+  ! xs%lmaxemat defaults to 3
+  maxl_e = input%xs%lmaxemat
+
+  ! Allocates xsgnt array of shape 
+  ! ((maxl_apwlo+1)**2, (maxl_e+1)**2, (maxl_apwlo+1)**2)
+  ! and fills it with the corresponding gaunt coefficients
+  ! Note: In the generation of the gaunt coefficients l1 and l3 correspond
+  !       to the APW/LOs while l2 corresponds to the exponetial.
+  call xsgauntgen(maxl_apwlo, maxl_e, maxl_apwlo)
+  ! Find indices for non-zero gaunt coefficients in xsgnt,
+  ! and creates index maps, e.g. given l1,m1,l2,m2 -> non zero l3,m3
+  ! Up l1 up to maxl_mat, l2 up to maxl_mat, l3 up to maxl_e
+  ! Note: In the maps and following plane wave matrix elements l1 and l2 correspond
+  !       to the APW/LOs while l3 corresponds to the exponetial.
+  call findgntn0(maxl_mat, maxl_mat, maxl_e, xsgnt)
 
   if(rank .eq. 0) then
     write(unitout, '(a,3i8)') 'Info(' // thisnam // '):&
@@ -197,21 +231,6 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
     call writekpts
   end if
 
-  !write(*,*)
-  !write(*,*) "iq vql"
-  do iq = 1, nqpt
-    !write(*,'(i3, 3E10.3)') iq, vql(1:3,iq)
-  end do
-
-  !write(*,*)
-  do iq = 1, nqpt
-    !write(*,*) "iq=",iq
-    !write(*,*) "  ik ikp"
-    do ik = 1, nkptnr
-      !write(*,'(2i3)') ik, ikmapikq(ik, iq)
-    end do
-  end do
-
   ! Set vkl to k+qmt-grid
   call init1offs(k_kqmtp%kqmtset%vkloff) ! = init1offs(qvkloff(iqmt))
 
@@ -223,11 +242,6 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   ! Number of G+qmt points 
   numgq = ngq(iqmt) 
-  !write(*,*) "iqmt=", iqmt, " numgq=", numgq
-  !write(*,*) "vgql"
-  do igq=1,numgq
-    !write(*,'(3E12.4)') vgql(1:3,igq,iqmt)
-  end do
 
   ! Calculate radial integrals used in the construction 
   ! of the plane wave matrix elements for exponent (qmt+G)
@@ -253,7 +267,6 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   allocate(mou(no_bse_max, nu_bse_max, numgq))
   mou = zzero
-  !write(*,*) "no_bse_max, nu_bse_max, numgq", no_bse_max, nu_bse_max, numgq
 
   if(fra) then 
     allocate(muo(nu_bse_max, no_bse_max, numgq))
@@ -261,7 +274,8 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   if(mpiglobal%rank == 0) then
     write(unitout, *)
-    write(unitout, '("Info(b_exccoulint): Generating plane wave matrix elements for momentum transfer iqmt=",i4)'), iqmt
+    write(unitout, '("Info(b_exccoulint):&
+     & Generating plane wave matrix elements for momentum transfer iqmt=",i4)') iqmt
     call timesec(tpw0)
   end if
 
@@ -402,11 +416,11 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
   ! Construct it via v^{1/2}(G,qmt)*v^{1/2}(G,qmt),
   ! which corresponds to the first passed flag=0.
   ! Use all G for which |G+qmt|<gqmax
-  igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
   do igq1 = 1, numgq
     call genwiqggp(0, iqmt, igq1, igq1, potcl(igq1))
   end do
   ! Set Gmt component term of coulomb potential to zero [Ambegaokar-Kohn]
+  igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
   potcl(igqmt) = 0.d0
   if(fwp) then 
     call writecmplxparts('Vfc', revec=dble(potcl), dirname='Vfc')
@@ -529,18 +543,23 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       ematbc%il2=koulims(1,iknr)
       ematbc%iu2=koulims(2,iknr)
 
-      ! Set EVECFV_QMT001.OUT as bra state file
       usefilext0 = .true.
+      ! Set EVECFV_QMT001.OUT as bra state file
       iqmt0 = iqmtgamma
       call genfilname(iqmt=iqmt0, setfilext=.true.)
       filext0 = filext
       !write(*,*) "filext0 =", trim(filext0)
 
-      ! Set EVECFV_QMTXYZ.OUT as ket state file
       iqmt1 = iqmt
+      ! Set EVECFV_QMTXYZ.OUT as ket state file
       call genfilname(iqmt=iqmt1, setfilext=.true.)
       !write(*,*) "filext =", trim(filext)
 
+      emat_ccket=.false.
+      ! Set up ikmapikq to link (ik,iqmt) to (ikp)
+      ikmapikq_ptr => ikmapikq
+      ! Set vkl0_ptr,... to k-grid and vkl1_ptr, ... to k+qmt-grid
+      call setptr01
       ! Calculate M_{io iu,G}(ik, qmt)
       call b_ematqk(iqmt, iknr, mou, ematbc)
       !------------------------------------------------------------------!
@@ -591,12 +610,13 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       ematbc%il2=koulims(3,jknr)
       ematbc%iu2=koulims(4,jknr)
 
-      ! Set EVECFV_QMTXYZ_mqmt.OUT as bra state file
       usefilext0 = .true.
       if(iqmt /= 1) then 
+        ! Set EVECFV_QMTXYZ_mqmt.OUT as bra state file
         iqmt0 = iqmt
         call genfilname(iqmt=iqmt, auxtype='mqmt', setfilext=.true.)
       else
+        ! Set EVECFV_QMT001.OUT as bra state file
         iqmt0 = iqmtgamma
         call genfilname(iqmt=iqmt0, setfilext=.true.)
       end if
@@ -608,6 +628,12 @@ write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
       call genfilname(iqmt=iqmt1, setfilext=.true.)
       !write(*,*) "filext =", trim(filext)
 
+      emat_ccket=.false.
+      ! Note: Currently working only for qmt=0
+      ! Set up ikmapikq to link (jkp,iqmt) to (jk)
+      ikmapikq_ptr => ikmapikq
+      ! Set vkl0_ptr k-qmt-grid, vkl1_ptr, ... to k-grid
+      call setptr01
       ! Calculate M_{ju jo,G}(jkp, qmt)
       call b_ematqk(iqmt, jkpnr, muo, ematbc)
       !------------------------------------------------------------------!

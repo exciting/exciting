@@ -65,14 +65,14 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
       end if
     end if
 
-    !if(iq /= 1 .and. all(qvkloff(1:3,iq) == qvkloff(1:3,1))) then
-    !  if(rank == 0) then 
-    !    write(unitout, '("Info(", a, "): Q-point ", i4,&
-    !    &  " has the same k-grid offset as the Q=0 qmt point, skipping GS calculation.")')&
-    !    &  thisnam, iq
-    !  end if
-    !  cycle
-    !end if
+    if(iq /= 1 .and. all(qvkloff(1:3,iq) == qvkloff(1:3,1))) then
+      if(rank == 0) then 
+        write(unitout, '("Info(", a, "): Q-point ", i4,&
+        &  " has the same k-grid offset as the Q=0 qmt point, skipping GS calculation.")')&
+        &  thisnam, iq
+      end if
+      cycle
+    end if
 
     ! Call groundstate and write results
     call writeevec(vql(1:3,iq), qvkloff(1:3, iq), filext)

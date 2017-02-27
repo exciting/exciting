@@ -27,8 +27,8 @@ subroutine dfq(iq)
                 & deuo, docc12, docc21, xiou,&
                 & xiuo, pmou, pmuo, nwdf,&
                 & bsed, ikmapikq, tordf, symt2,&
-                & bcbs, filext0, filexteps, useemat2,&
-                & gqdirname, eps0dirname, scrdirname, timingdirname
+                & bcbs, filext0, filexteps,&
+                & eps0dirname, scrdirname, timingdirname
 #ifdef TETRA      
   use mod_eigenvalue_occupancy, only: nstsv, evalsv, efermi 
   use modtetra
@@ -43,7 +43,6 @@ subroutine dfq(iq)
   use m_filedel
   use m_genfilname
   use m_b_ematqk
-  use m_b_ematqk2
   use m_writecmplxparts
   use m_putgeteps0
 ! !INPUT/OUTPUT PARAMETERS:
@@ -255,6 +254,7 @@ subroutine dfq(iq)
 
   ! Find highest (partially) occupied and lowest (partially) unoccupied states
   ! for k and k+q points 
+  write(*,*) "dfq: ikmapikq(:,iq)", ikmapikq(:,iq)
   call findocclims(iq, ikmapikq(:,iq), istocc0, istunocc0, isto0, isto, istu0, istu)
   istunocc = istunocc0
   istocc = istocc0
@@ -413,6 +413,7 @@ subroutine dfq(iq)
     call timesec(cpu0)
 
     ikq = ikmapikq(ik, iq)
+    write(*,*) "dfq: ik, iq, ikq", ik, iq, ikq
 
     ! Get second variational KS transition energies, scissor shifts 
     ! and occupancy differences for current k+q/k point combination 
@@ -462,11 +463,10 @@ subroutine dfq(iq)
         bc%il2 = istl2
         bc%iu1 = istu1
         bc%iu2 = istu2
-        if(useemat2) then
-          call b_ematqk2(iq, ik, xiou, bc)
-        else
-          call b_ematqk(iq, ik, xiou, bc)
-        end if
+        ikmapikq_ptr => ikmapikq
+        call setptr01
+        call b_ematqk(iq, ik, xiou, bc)
+
         ! Get uo
         if(allocated(xiuo)) deallocate(xiuo)
         allocate(xiuo(nst3, nst4, n))
@@ -476,11 +476,9 @@ subroutine dfq(iq)
         bc%il2 = istl4
         bc%iu1 = istu3
         bc%iu2 = istu4
-        if(useemat2) then
-          call b_ematqk2(iq, ik, xiuo, bc)
-        else
-          call b_ematqk(iq, ik, xiuo, bc)
-        end if
+        ikmapikq_ptr => ikmapikq
+        call setptr01
+        call b_ematqk(iq, ik, xiuo, bc)
 
       end if
 

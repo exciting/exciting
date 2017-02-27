@@ -83,6 +83,9 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
     if(iq .ne. 0) ikq = ikiq2ikp(ik)
 
     !write(*,*) "ik, ik'", ik, ikq
+    !write(*,*) "findocclims: ik,ikq", ik, ikq
+    !write(*,*) "findocclims: vkl0(:,ikq)", vkl0(:,ik)
+    !write(*,*) "findocclims: vkl(:,ikq)", vkl(:,ikq)
 
     ! Get occupancies and eigenvalues form EVECSV and EVALSV 
     ! files that have file extensions that was set before calling
@@ -141,14 +144,18 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
     ! Lowest and highest valence energy 
     ! Lowest energy over all k+q and k
     evlmin = min(minval(evalsv(1, :)), minval(evalsv0(1, :)))
+    !write(*,*) "findocclims: evlmin=", evlmin
     ! Highest energy over all k+q and k
     evlmax = max(maxval(evalsv(nstsv, :)), maxval(evalsv0(nstsv, :)))
+    !write(*,*) "findocclims: evlmax=", evlmax
 
     ! Lower and higher cutoff valence energy
     ! Highest lowest energy over all k+q and k
     evlmincut = max(maxval(evalsv(1, :)), maxval(evalsv0(1, :)))
+    !write(*,*) "findocclims: evlmincut=", evlmincut
     ! Lowest highest energy over all k+q and k
     evlmaxcut = min(minval(evalsv(nstsv, :)), minval(evalsv0(nstsv, :)))
+    !write(*,*) "findocclims: evlmaxcut=", evlmaxcut
 
   else
 
@@ -169,14 +176,19 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
   ! Find the highest (partially) occupied state over all k (k+q) 
   iocc0 = maxval(io0)
   iocc = maxval(io)
+  !write(*,*) "findocclims: iocc0=", iocc0
+  !write(*,*) "findocclims: iocc=", iocc
 
   ! Find the lowest (partially) unoccupied state over all k (k+q)
   iunocc0 = minval(iu0)
   iunocc = minval(iu)
+  !write(*,*) "findocclims: iunocc0=", iunocc0
+  !write(*,*) "findocclims: iunocc=", iunocc
 
   ! Calculate minimal q-gap (only reasonalble if system has a gap)
   if(iq /= 0) then 
     qgap = minval(evalsv(iunocc, ikiq2ikp(:)) - evalsv0(iocc0, :))
+    !write(*,*) "findocclims: qgap=", qgap
   else
     qgap = minval(evalsv(iunocc, :) - evalsv0(iocc0, :))
   end if
@@ -185,14 +197,18 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
   ! commensurate can cause partially occupied states that are absent for the
   ! k-mesh
   iocc_common = max(iocc0, iocc)
+  !write(*,*) "findocclims: iocc_common =", iocc_common
   iunocc_common = min(iunocc0, iunocc)
+  !write(*,*) "findocclims: iunocc_common =", iunocc_common
 
   ! Determine if system has a gap in energy
   if(iq .ne. 0) then
     ! Highest (partially) occupied state energy
     evlhpo = max(maxval(evalsv(iocc_common, :)), maxval(evalsv0(iocc_common, :)))
+    !write(*,*) "findocclims: evlhpo=", evlhpo
     ! Lowest (partially) unoccupied state energy
     evllpu = min(minval(evalsv(iunocc_common, :)), minval(evalsv0(iunocc_common, :)))
+    !write(*,*) "findocclims: evllpu=", evllpu
   else
     ! Highest (partially) occupied state energy
     evlhpo = maxval(evalsv(iocc_common, :))
@@ -202,6 +218,8 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
 
   ! Determine if system has a gap in energy
   ksgap = evlhpo .lt. efermi
+  !write(*,*) "findocclims: efermi=", efermi
+  !write(*,*) "findocclims: ksgap=", ksgap
 
   ! Gap estimate 
   if(ksgap) then
@@ -226,7 +244,7 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
     write(unitout, '(a,E23.16)') '  Gap(q)/H: ', qgap
     write(unitout, '(a,E23.16)') '  Gap(q)/eV: ', qgap*h2ev
   else
-    write(unitout, '(a)') 'Info(findocclims): No kohn-sham gap found'
+    write(unitout, '(a)') 'Info(findocclims): No Kohn-Sham gap found'
   end if
 
   ! Debug output

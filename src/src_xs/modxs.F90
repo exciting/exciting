@@ -44,7 +44,6 @@ Module modxs
   ! What is the q point list index for the gamma point
   integer(4), parameter :: iqmtgamma = 1
   integer(4) :: iqmt0, iqmt1
-  logical :: useemat2
 
   !----------------------------!
   !     symmetry variables     !
@@ -134,9 +133,9 @@ Module modxs
   !     k-point set  variables      !
   !---------------------------------!
   ! number of k-points for q=0
-      Integer :: nkpt0
+      Integer, target :: nkpt0
   ! k-points in lattice coordinates for q=0
-      Real (8), Allocatable :: vkl0 (:, :)
+      Real (8), Allocatable, target :: vkl0 (:, :)
   ! maximum number of space group operations in stars over all k
       Integer :: nsymcrysstrmax
   ! number of space group operations for stars
@@ -157,27 +156,27 @@ Module modxs
   ! offset for k+q-point set derived from q-point
       Real (8), Allocatable :: qvkloff (:, :)
   ! map from k-point index to k+q point index for same k
-      Integer, Allocatable :: ikmapikq (:, :)
+      Integer, Allocatable, target :: ikmapikq (:, :)
 
   !-----------------------------------------!
   !     G+k-vector set  variables (q=0)     !
   !-----------------------------------------!
   ! number of G+k-vectors for augmented plane waves
-      Integer, Allocatable :: ngk0 (:, :)
+      Integer, Allocatable, target :: ngk0 (:, :)
   ! maximum number of G+k-vectors over all k-points
-      Integer :: ngkmax0
+      Integer, target :: ngkmax0
   ! index from G+k-vectors to G-vectors
-      Integer, Allocatable :: igkig0 (:, :, :)
+      Integer, Allocatable, target :: igkig0 (:, :, :)
   ! G+k-vectors in lattice coordinates
-      Real (8), Allocatable :: vgkl0 (:, :, :, :)
+      Real (8), Allocatable, target :: vgkl0 (:, :, :, :)
   ! G+k-vectors in Cartesian coordinates
-      Real (8), Allocatable :: vgkc0 (:, :, :, :)
+      Real (8), Allocatable, target :: vgkc0 (:, :, :, :)
   ! length of G+k-vectors
-      Real (8), Allocatable :: gkc0 (:, :, :)
+      Real (8), Allocatable, target :: gkc0 (:, :, :)
   ! (theta, phi) coordinates of G+k-vectors
-      Real (8), Allocatable :: tpgkc0 (:, :, :, :)
+      Real (8), Allocatable, target :: tpgkc0 (:, :, :, :)
   ! structure factor for the G+k-vectors
-      Complex (8), Allocatable :: sfacgk0 (:, :, :, :)
+      Complex (8), Allocatable, target :: sfacgk0 (:, :, :, :)
 
 
   !-----------------------------------------!
@@ -190,23 +189,27 @@ Module modxs
   !     Hamiltonian and APW variables     !
   !---------------------------------------!
   ! maximum nmat over all k-points (q=0)
-      Integer :: nmatmax0
+      Integer, target :: nmatmax0
   ! order of overlap and Hamiltonian matrices for each k-point (q=0)
-      Integer, Allocatable :: nmat0 (:, :)
+      Integer, Allocatable, target :: nmat0 (:, :)
   ! first-variational eigenvectors
-      Complex (8), Allocatable :: evecfv (:, :, :)
+      Complex (8), Allocatable, target :: evecfv (:, :, :)
+      Complex (8), Allocatable, target :: evecfvb (:, :, :)
   ! second variational eigenvectors
       Complex (8), Allocatable :: evecsv (:, :)
   ! first-variational eigenvectors (q=0)
-      Complex (8), Allocatable :: evecfv0 (:, :, :)
+      Complex (8), Allocatable, target :: evecfv0 (:, :, :)
+      Complex (8), Allocatable, target :: evecfv0b (:, :, :)
   ! first variational eigenvalues
       Real (8), Allocatable :: evalfv (:, :)
   ! second-variational eigenvalues
       Real (8), Allocatable :: evalsv0 (:, :)
   ! expansion coefficients of APW functions
-      Complex (8), Allocatable :: apwcmt (:, :, :, :)
+      Complex (8), Allocatable, target :: apwcmt (:, :, :, :)
+      Complex (8), Allocatable, target :: apwcmtb (:, :, :, :)
   ! expansion coefficients of APW functions (q=0)
-      Complex (8), Allocatable :: apwcmt0 (:, :, :, :)
+      Complex (8), Allocatable, target :: apwcmt0 (:, :, :, :)
+      Complex (8), Allocatable, target :: apwcmt0b (:, :, :, :)
 
   ! expansion coefficients of local orbitals functions
       Complex (8), Allocatable :: locmt (:, :, :, :)

@@ -29,7 +29,7 @@ subroutine b_xsgeneigveclauncher
   integer(4) :: iq, qi, qf
   logical :: tmqmt
   logical :: firstisgamma
-  real(8), allocatable :: vkloff_kqmtm(:,:), vkloff_mkqmtp(:,:)
+  real(8), allocatable :: vkloff_kqmtm(:,:)
   real(8), parameter :: epslat=1.d-6
 
   integer :: ist, ik, seedsize
@@ -86,9 +86,6 @@ subroutine b_xsgeneigveclauncher
   ! Groundstate offsets for the k-qmt grid
   allocate(vkloff_kqmtm(3,nqpt))
 
-  ! Groundstate offsets for the -(k+qmt) grid
-  allocate(vkloff_mkqmtp(3,nqpt))
-
   ! For each Q-point in the Q-point list generate grids and
   ! save offsets.
   do iq = 1, nqpt
@@ -100,9 +97,6 @@ subroutine b_xsgeneigveclauncher
 
     ! Offset for (k-qmt) grid
     vkloff_kqmtm(1:3,iq) = k_kqmtm%kqmtset%vkloff
-
-    ! Offset for -(k+qmt) grid
-    vkloff_mkqmtp(1:3,iq) = mkqmtp%kset%vkloff
 
     write(*,*) "iq=", iq
     write(*,*) "----------------------"
@@ -117,7 +111,6 @@ subroutine b_xsgeneigveclauncher
     write(*,*) "----------------------"
     write(*,*) "off: k+qmt", qvkloff(1:3,iq)
     write(*,*) "off: k-qmt", vkloff_kqmtm(1:3,iq)
-    write(*,*) "off: -(k+qmt)", vkloff_mkqmtp(1:3,iq)
 
     call xsgrids_finalize()
 
@@ -143,6 +136,5 @@ subroutine b_xsgeneigveclauncher
   end if
 
   deallocate(vkloff_kqmtm)
-  deallocate(vkloff_mkqmtp)
 
 end subroutine b_xsgeneigveclauncher

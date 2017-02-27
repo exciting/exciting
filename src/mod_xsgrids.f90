@@ -28,15 +28,15 @@ module mod_xsgrids
 
   ! The q-grid, i.e. the difference vectors 
   !   jk - ik = iq mapped back to the unit cell
-  type(q_set) :: q_q
+  type(q_set), target :: q_q
   !   (jk+qmt) - (ik+qmt) = iq mapped back to the unit cell
-  type(q_set) :: qmtp_qmtp
+  type(q_set), target :: qmtp_qmtp
   !   (jk+qmt) - ik = iq mapped back to the unit cell
   type(q_set) :: q_qmtp
   !    ik - (jk+qmt) = iq mapped back to the unit cell
-  type(q_set) :: qmtp_q
+  type(q_set), target :: qmtp_q
   !   (jk-qmt) - ik = iq mapped back to the unit cell
-  type(q_set) :: q_qmtm
+  type(q_set), target :: q_qmtm
   !   -(jk+qmt) - ik = iq mapped back to the unit cell
   type(q_set) :: q_mqmtp
   !   -jk - (ik+qmt)
@@ -44,9 +44,9 @@ module mod_xsgrids
 
   ! The p-grid, i.e. the (-k-kp)
   !   -(jk+qmt) - ik = ip mapped back to the unit cell
-  type(p_set) :: p_pqmtp
+  type(p_set), target :: p_pqmtp
   !   -jk - (ik+qmt) = ip mapped back to the unit cell
-  type(p_set) :: pqmtp_p
+  type(p_set), target :: pqmtp_p
 
   !   G vectors
   type(g_set)  :: g

@@ -5,7 +5,7 @@
 !BOP
 ! !ROUTINE: b_bse
 ! !INTERFACE:
-subroutine b_bse
+subroutine b_bse(iqmt)
 ! !USES:
   ! Basics
   use mod_misc, only: filext
@@ -113,9 +113,12 @@ use m_writecmplxparts
 
   implicit none
 
+  ! I/O
+  integer(4), intent(in) :: iqmt
+
   ! Local variables
   ! Variables
-  integer(4) :: iknr, iq, iqmt, ik, ikq, io, iu, a1
+  integer(4) :: iknr, iq, ik, ikq, io, iu, a1
   integer(4) :: nexc
   real(8) :: ts0, ts1
   logical :: fcoup, fwp, fscal, fti
@@ -147,9 +150,6 @@ use m_writecmplxparts
 
   ! Use ScaLAPACK
   fscal = input%xs%bse%distribute
-
-  ! Which momentum transfer?
-  iqmt = input%xs%bse%iqmt
 
   if(fscal .and. fcoup .and. .not. fti ) then 
     write(*,*) "Coupling and scalapack not supported in standard basis"

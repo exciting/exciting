@@ -5,11 +5,13 @@
 !
 subroutine ematqdealloc
   use modxs, only: evecfv, evecfv0, evalsv0, xih,&
-                 & apwcmt, apwcmt0, locmt, locmt0
+                 & apwcmt, apwcmt0, locmt, locmt0,&
+                 & evecfvb, evecfv0b, apwcmtb, apwcmt0b
 
   implicit none
 
   deallocate(evecfv, evecfv0, evalsv0)
   deallocate(xih, apwcmt, apwcmt0, locmt, locmt0)
+  deallocate(evecfvb, evecfv0b)
 
 end subroutine ematqdealloc

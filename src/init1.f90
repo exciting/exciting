@@ -86,8 +86,10 @@ Subroutine init1
         & nvp1d, npp1d, vplp1d, dvp1d, dpp1d)
 !
          nkpt = input%properties%bandstructure%plot1d%path%steps
+         nkpt_ptr => nkpt
          If (allocated(vkl)) deallocate (vkl)
          Allocate (vkl(3, nkpt))
+         vkl_ptr => vkl
          If (allocated(vkc)) deallocate (vkc)
          Allocate (vkc(3, nkpt))
          Do ik = 1, nkpt
@@ -97,10 +99,12 @@ Subroutine init1
       Else If (task .Eq. 25) Then
 ! effective mass calculation
          nkpt = (2*input%properties%masstensor%ndspem+1) ** 3
+         nkpt_ptr => nkpt
          If (allocated(ivk)) deallocate (ivk)
          Allocate (ivk(3, nkpt))
          If (allocated(vkl)) deallocate (vkl)
          Allocate (vkl(3, nkpt))
+         vkl_ptr => vkl
          If (allocated(vkc)) deallocate (vkc)
          Allocate (vkc(3, nkpt))
 ! map vector to [0,1)
@@ -158,8 +162,10 @@ Subroutine init1
               stop
            end if
            nkpt = np2d(1)*np2d(2)
+           nkpt_ptr => nkpt
            If (allocated(vkl)) deallocate (vkl)
            Allocate (vkl(3, nkpt))
+           vkl_ptr => vkl
            If (allocated(vkc)) deallocate (vkc)
            Allocate (vkc(3, nkpt))
            ik = 0
@@ -212,6 +218,7 @@ Subroutine init1
          Allocate (ivk(3,nkptnr))
          If (allocated(vkl)) deallocate (vkl)
          Allocate (vkl(3,nkptnr))
+         vkl_ptr => vkl
          If (allocated(vkc)) deallocate (vkc)
          Allocate (vkc(3,nkptnr))
          If (allocated(wkpt)) deallocate (wkpt)
@@ -246,6 +253,7 @@ Subroutine init1
          call genppts(input%groundstate%reducek, .False., &
          &            input%groundstate%ngridk, boxl, nkpt, &
          &            ikmap, ivk, vkl, vkc, wkpt)
+         nkpt_ptr => nkpt
         
 #ifdef TETRA
   ! call to module routine
@@ -289,13 +297,16 @@ Subroutine init1
       End If
 ! find the maximum number of G+k-vectors
       Call getngkmax
+      ngkmax_ptr => ngkmax
 ! allocate the G+k-vector arrays
       If (allocated(ngk)) deallocate (ngk)
       Allocate (ngk(nspnfv, nkpt))
+      ngk_ptr => ngk
       If (allocated(igkig)) deallocate (igkig)
       Allocate (igkig(ngkmax, nspnfv, nkpt))
       If (allocated(vgkl)) deallocate (vgkl)
       Allocate (vgkl(3, ngkmax, nspnfv, nkpt))
+      vgkl_ptr => vgkl
       If (allocated(vgkc)) deallocate (vgkc)
       Allocate (vgkc(3, ngkmax, nspnfv, nkpt))
       If (allocated(gkc)) deallocate (gkc)
@@ -403,9 +414,11 @@ Subroutine init1
 ! overlap and Hamiltonian matrix sizes
       If (allocated(nmat)) deallocate (nmat)
       Allocate (nmat(nspnfv, nkpt))
+      nmat_ptr => nmat
       If (allocated(npmat)) deallocate (npmat)
       Allocate (npmat(nspnfv, nkpt))
       nmatmax = 0
+      nmatmax_ptr => nmatmax
       Do ik = 1, nkpt
          Do ispn = 1, nspnfv
             nmat (ispn, ik) = ngk (ispn, ik) + nlotot

@@ -7,8 +7,10 @@
 !
 !
 Subroutine findkpt (vpl, isym, ik)
-      Use modmain
       Use modinput
+      !use mod_kpoint, only: vkl, nkpt
+      use mod_kpoint, only: vkl_ptr, nkpt_ptr
+      use mod_symmetry, only: lsplsymc, symlat, nsymcrys
       Implicit None
 ! arguments
       Real (8), Intent (In) :: vpl (3)
@@ -22,8 +24,8 @@ Subroutine findkpt (vpl, isym, ik)
          s (:, :) = dble (symlat(:, :, lspl))
          Call r3mtv (s, vpl, v1)
          Call r3frac (input%structure%epslat, v1, iv)
-         Do ik = 1, nkpt
-            v2 (:) = vkl (:, ik)
+         Do ik = 1, nkpt_ptr
+            v2 (:) = vkl_ptr (:, ik)
             Call r3frac (input%structure%epslat, v2, iv)
             t1 = Abs (v1(1)-v2(1)) + Abs (v1(2)-v2(2)) + Abs &
            & (v1(3)-v2(3))

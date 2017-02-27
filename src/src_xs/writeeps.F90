@@ -44,6 +44,11 @@ module m_writeeps
       ! Kramers-Kronig transform imaginary part
       imeps(:) = aimag(eps(:))
 
+      !write(*,*) "iop1,iop2,n", iop1, iop2, n
+      !write(*,*) "w"
+      !write(*,'(g10.3)') w
+      !write(*,*) "imeps"
+      !write(*,'(g10.3)') imeps
       Call kramkron(iop1, iop2, 1.d-8, n, w, imeps, kkeps)
 
       Call getunit(unit1)

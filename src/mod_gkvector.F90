@@ -16,21 +16,24 @@ Module mod_Gkvector
 ! maximum |G+k| cut-off for APW functions
       Real (8) :: gkmax
 ! number of G+k-vectors for augmented plane waves
-      Integer, Allocatable :: ngk (:, :)
+      integer, pointer :: ngk_ptr(:,:)
+      Integer, Allocatable, target :: ngk (:, :)
 ! maximum number of G+k-vectors over all k-points
-      Integer :: ngkmax
+      integer, pointer :: ngkmax_ptr
+      Integer, target :: ngkmax
 ! index from G+k-vectors to G-vectors
-      Integer, Allocatable :: igkig (:, :, :)
+      Integer, Allocatable, target :: igkig (:, :, :)
 ! G+k-vectors in lattice coordinates
-      Real (8), Allocatable :: vgkl (:, :, :, :)
+      Real (8), pointer :: vgkl_ptr(:, :, :, :)
+      Real (8), Allocatable, target :: vgkl (:, :, :, :)
 ! G+k-vectors in Cartesian coordinates
-      Real (8), Allocatable :: vgkc (:, :, :, :)
+      Real (8), Allocatable, target :: vgkc (:, :, :, :)
 ! length of G+k-vectors
-      Real (8), Allocatable :: gkc (:, :, :)
+      Real (8), Allocatable, target :: gkc (:, :, :)
 ! (theta, phi) coordinates of G+k-vectors
-      Real (8), Allocatable :: tpgkc (:, :, :, :)
+      Real (8), Allocatable, target :: tpgkc (:, :, :, :)
 ! structure factor for the G+k-vectors
-      Complex (8), Allocatable :: sfacgk (:, :, :, :)
+      Complex (8), Allocatable, target :: sfacgk (:, :, :, :)
 ! dimensions of the FFT grid for APW functions
       Integer :: ngkfft(3)
 ! number of FFT grid points

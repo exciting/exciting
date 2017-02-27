@@ -390,7 +390,7 @@ subroutine xstasklauncher
     ! Task 445 corresponds to "bse" plan
     task = 445
     call xsinit
-    call b_bse
+    call b_bselauncher
     call xsfinit
 
   else

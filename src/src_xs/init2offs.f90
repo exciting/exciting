@@ -20,8 +20,13 @@ subroutine init2offs(voffk, reduceq)
   integer(4) :: iq, iv(3)
   real(8) :: boxl(3, 4)
 
+
+  !write(*,*) "init2offs: voffk=", voffk
+
   ! Map offset to first k-parallelepiped
   call r3frac(input%structure%epslat, voffk, iv)
+
+  !write(*,*) "init2offs: reduced voffk=", voffk
 
   ! q-point grid with offset
   boxl(:,1) = voffk/dble(ngridq)
@@ -48,6 +53,11 @@ subroutine init2offs(voffk, reduceq)
   call genppts(reduceq, input%xs%bse%fbzq, ngridq,&
     & boxl, nqpt, iqmap, ivq, vql, vqc, wqpt)
 
+  !write(*,*) "init2offs: vql="
+  do iq = 1, nqpt
+    !write(*,*) "iq, vql", iq , vql(:,iq)
+  end do
+
   ! Derive offset of k+q grid from k-grid offset vkloff and q points
   ! Also generate k,q --> k' mapping
   if(allocated(qvkloff)) deallocate(qvkloff)
@@ -55,13 +65,16 @@ subroutine init2offs(voffk, reduceq)
   if(allocated(ikmapikq)) deallocate(ikmapikq)
   allocate(ikmapikq(nkpt, nqpt))
   qvkloff(:, 0) = input%groundstate%vkloff(:)
+  !write(*,*) "qvkloff(:,0)=", qvkloff(:,0)
   do iq = 1, nqpt
     ! offset for k+q-point set derived from q-point
     call genqvkloff(vql(1,iq), qvkloff(1,iq))
+    !write(*,*) "init2offs: iq=", iq
+    !write(*,*) "init2offs: vql(:,iq)=", vql(:,iq)
+    !write(*,*) "init2offs: qvkloff(:,iq)=", qvkloff(:,iq)
     ! map from k-point index to k+q point index for same k
     call findkmapkq(vql(1,iq), qvkloff(1,iq), ikmapikq(1,iq))
   end do
-
 
   !---------------------!
   !     G+q-point set   !

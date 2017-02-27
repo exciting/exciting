@@ -46,14 +46,18 @@ Subroutine kramkron (i1, i2, eps, n, w, im, re)
       Do iw = 1, n
          Do jw = 1, n
             t2 = w (jw) ** 2 - w (iw) ** 2
+            !write(*,*) "iw, jw, t2", iw, jw, t2
         ! tolerance for range of integrand part w'/(w^2-w'^2)
             If (Abs(t2) .Gt. eps) Then
                fw (jw) = w (jw) * im (jw) / t2
+               !write(*,*) "fw(jw)", fw(jw)
             Else
                fw (jw) = 0.d0
+               !write(*,*) "fw(jw)", fw(jw)
             End If
          End Do
          Call fderiv (-1, n, w, fw, g, cf)
+         !write(*,*) "g(n)", g(n)
          re (iw) = t1 + (2.d0/pi) * g (n)
       End Do
       Deallocate (fw, g, cf)

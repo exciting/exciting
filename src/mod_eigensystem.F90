@@ -12,9 +12,11 @@ Module mod_eigensystem
 !     overlap and Hamiltonian variables     !
 !-------------------------------------------!
 ! order of overlap and Hamiltonian matrices for each k-point
-      Integer, Allocatable :: nmat (:, :)
+      Integer, pointer :: nmat_ptr(:, :)
+      Integer, Allocatable, target :: nmat (:, :)
 ! maximum nmat over all k-points
-      Integer :: nmatmax
+      integer, pointer :: nmatmax_ptr
+      Integer, target :: nmatmax
 ! size of packed matrices
       Integer, Allocatable :: npmat (:, :)
 ! index to the position of the local-orbitals in the H and O matrices

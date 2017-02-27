@@ -11,9 +11,23 @@
 !
 Subroutine getevecfv (vpl, vgpl, evecfv)
 ! !USES:
-      Use modmain
-      Use modinput
-      Use modmpi
+  Use modmpi
+  Use modinput
+  !use mod_kpoint, only: vkl
+  !use mod_Gkvector, only: ngkmax, vgkl, ngk
+  !use mod_eigensystem, only: nmatmax, nmat
+  use mod_kpoint, only: vkl_ptr
+  use mod_Gkvector, only: ngkmax_ptr, vgkl_ptr, ngk_ptr
+  use mod_eigensystem, only: nmatmax_ptr, nmat_ptr
+  use mod_eigensystem, only: idxlo
+  use mod_eigenvalue_occupancy, only: nstfv
+  use mod_spin, only: nspnfv
+  use mod_names, only: filetag_evecfv
+  use mod_symmetry, only: lsplsymc, isymlat, symlat, symlatc, vtlsymc, ieqatom
+  use mod_constants, only: twopi
+  use mod_APW_LO, only: nlotot, nlorb, lorbl
+  use mod_muffin_tin, only: idxlm
+  use mod_atoms, only: natoms, nspecies, idxas
 ! !DESCRIPTION:
 !   The file where the (first-variational) eigenvectors are stored is
 !   {\tt EVECFV.OUT}.
@@ -56,18 +70,17 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 !BOC
       Implicit None
   ! arguments
-      Real (8), Intent (In) :: vpl (3)
-      Real (8), Intent (In) :: vgpl(3,ngkmax,nspnfv)
-      Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv, nspnfv)
+      Real (8), Intent (In) :: vpl(3)
+      Real (8), Intent (In) :: vgpl(3,ngkmax_ptr,nspnfv)
+      Complex (8), Intent (Out) :: evecfv(nmatmax_ptr,nstfv,nspnfv)
   ! local variables
       Logical :: exist
       integer isym,lspl,ilspl
       integer ispn,ilo,l,lm,i,j,m,m1,lm1
-      integer ik,igp,igk,ig
+      integer ik,igp,igk
       integer is,ia,ja,ias,jas
       Integer :: recl, nmatmax_, nstfv_, nspnfv_, koffset
-      integer :: iv(3)
-      Real (8) :: vkl_ (3), v (3), v1(3), v2(3)
+      Real (8) :: vkl_ (3), v(3), v1(3)
       Real (8) :: sl(3,3), sc(3,3), t1
       Complex(8) ::  zt1
   ! allocatable arrays
@@ -79,9 +92,9 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
       Character (256) :: filetag
       Character (256), External :: outfilenamestring
       complex(8), external :: getdlmm
-      
+
   ! find the equivalent k-point number and crystal symmetry element
-      Call findkpt (vpl, isym, ik)
+      Call findkpt(vpl, isym, ik)
       
   ! find the record length
 #ifdef XS
@@ -138,24 +151,24 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 #endif
       Close (70)
   !$OMP END CRITICAL
-      t1 = Abs (vkl(1, ik)-vkl_(1)) + Abs (vkl(2, ik)-vkl_(2)) + Abs &
-     & (vkl(3, ik)-vkl_(3))
+      t1 = Abs (vkl_ptr(1, ik)-vkl_(1)) + Abs (vkl_ptr(2, ik)-vkl_(2)) + Abs &
+     & (vkl_ptr(3, ik)-vkl_(3))
       If (t1 .Gt. input%structure%epslat) Then
          Write (*,*)
          Write (*, '("Error(getevecfv): differing vectors for k-point "&
         &, I8)') ik
-         Write (*, '(" current	  : ", 3G18.10)') vkl (:, ik)
+         Write (*, '(" current	  : ", 3G18.10)') vkl_ptr (:, ik)
          Write (*, '(" EVECFV.OUT : ", 3G18.10)') vkl_
          Write (*, '(" file	  : ", a      )') trim &
         & (outfilenamestring(filetag, ik))
          Write (*,*)
          Stop
       End If
-      If (nmatmax .Ne. nmatmax_) Then
+      If (nmatmax_ptr .Ne. nmatmax_) Then
          Write (*,*)
          Write (*, '("Error(getevecfv): differing nmatmax for k-point "&
         &, I8)') ik
-         Write (*, '(" current	  : ", I8)') nmatmax
+         Write (*, '(" current	  : ", I8)') nmatmax_ptr
          Write (*, '(" EVECFV.OUT : ", I8)') nmatmax_
          Write (*, '(" file	  : ", a      )') trim &
         & (outfilenamestring(filetag, ik))
@@ -187,9 +200,9 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
       End If
             
       ! if p = k then return
-      t1 = Abs (vpl(1)-vkl(1, ik)) + &
-      &    Abs (vpl(2)-vkl(2, ik)) + &
-      &    Abs (vpl(3)-vkl(3, ik))
+      t1 = Abs (vpl(1)-vkl_ptr(1, ik)) + &
+      &    Abs (vpl(2)-vkl_ptr(2, ik)) + &
+      &    Abs (vpl(3)-vkl_ptr(3, ik))
       If (t1 .Lt. input%structure%epslat) Return
       
       ! index to spatial rotation in lattice point group
@@ -203,19 +216,19 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 !-----------------------------------------------!
 !     translate and rotate APW coefficients     !
 !-----------------------------------------------!
-      allocate(evecfvt(nmatmax,nstfv))
+      allocate(evecfvt(nmatmax_ptr,nstfv))
       evecfvt(:,:) = 0.d0
       
       do ispn = 1, nspnfv
-        do igk = 1, ngk(ispn,ik)
-          v(:) = dble(vgkl(:,igk,ispn,ik))
+        do igk = 1, ngk_ptr(ispn,ik)
+          v(:) = dble(vgkl_ptr(:,igk,ispn,ik))
           t1 = -twopi*dot_product(v(:),vtlsymc(:,isym))
           zt1 = cmplx(cos(t1),sin(t1),8)
           evecfvt(igk,:) = zt1*evecfv(igk,:,ispn)
         end do
-        do igk = 1, ngk(ispn,ik)
-          call r3mtv(sl,vgkl(:,igk,ispn,ik),v)
-          do igp = 1, ngk(ispn,ik)
+        do igk = 1, ngk_ptr(ispn,ik)
+          call r3mtv(sl,vgkl_ptr(:,igk,ispn,ik),v)
+          do igp = 1, ngk_ptr(ispn,ik)
             t1 = abs(v(1)-vgpl(1,igp,ispn)) &
                + abs(v(2)-vgpl(2,igp,ispn)) &
                + abs(v(3)-vgpl(3,igp,ispn))
@@ -233,13 +246,13 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 
       if (nlotot>0) then
       
-        call r3mtv(sl,vkl(:,ik),v)
+        call r3mtv(sl,vkl_ptr(:,ik),v)
 
 ! loop over the first-variational spins
         do ispn = 1, nspnfv
         
 ! make a copy of the local-orbital coefficients
-          do i = ngk(ispn,ik)+1, nmat(ispn,ik)
+          do i = ngk_ptr(ispn,ik)+1, nmat_ptr(ispn,ik)
             evecfvt(i,:) = evecfv(i,:,ispn)
           end do
           
@@ -256,7 +269,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
             !---------------
             
             v1(:) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-            t1 = -twopi*dot_product(vkl(:,ik),v1(:)+vtlsymc(:,isym))
+            t1 = -twopi*dot_product(vkl_ptr(:,ik),v1(:)+vtlsymc(:,isym))
             zt1 = cmplx(cos(t1),sin(t1),8)
             t1 = twopi*dot_product(v(:),input%structure%speciesarray(is)%species%atomarray(ja)%atom%coord(:))
             zt1 = zt1*cmplx(cos(t1),sin(t1),8)
@@ -265,11 +278,11 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
               l = lorbl(ilo,is)
               do m1 = -l, l
                 lm1 = idxlm(l,m1)
-                i = ngk(ispn,ik)+idxlo(lm1,ilo,jas)
+                i = ngk_ptr(ispn,ik)+idxlo(lm1,ilo,jas)
                 evecfv(i,:,ispn) = 0.d0
                 do m = -l, l
                   lm = idxlm(l,m)
-                  j = ngk(ispn,ik)+idxlo(lm,ilo,ias)
+                  j = ngk_ptr(ispn,ik)+idxlo(lm,ilo,ias)
                   evecfv(i,:,ispn) = evecfv(i,:,ispn)+ &
                   &                  zt1*evecfvt(j,:)*getdlmm(sc,l,m1,m)
                 end do
@@ -300,7 +313,8 @@ Contains
     ! arguments
          Character (*), Intent (In) :: fname
          Integer, Intent (In) :: isti, istf
-         Real (8), Intent (In) :: vpl (3), vgpl (3, ngkmax)
+         Real (8), Intent (In) :: vpl (3)
+         Real (8), Intent (In) :: vgpl(3,ngkmax_ptr,nspnfv)
          Complex (8), Intent (Out) :: evecfv (:, :, :)
     ! local variables
          Integer :: err
@@ -329,11 +343,11 @@ Contains
             Write (*,*)
             err = err + 1
          End If
-         If (size(evecfv, 1) .Ne. nmatmax) Then
+         If (size(evecfv, 1) .Ne. nmatmax_ptr) Then
             Write (*,*)
             Write (*, '("Error(getevecfvr): output array does not match&
            & for nmatmax:")')
-            Write (*, '(" nmatmax   : ", i6)') nmatmax
+            Write (*, '(" nmatmax   : ", i6)') nmatmax_ptr
             Write (*, '(" array size: ", i6)') size (evecfv, 1)
             Write (*,*)
             err = err + 1
@@ -348,7 +362,7 @@ Contains
             err = err + 1
          End If
          If (err .Ne. 0) Stop
-         Allocate (evecfvt(nmatmax, nstfv, nspnfv))
+         Allocate (evecfvt(nmatmax_ptr, nstfv, nspnfv))
          filetag_evecfv = trim (fname)
          str1 = trim (filext)
          filext = ''

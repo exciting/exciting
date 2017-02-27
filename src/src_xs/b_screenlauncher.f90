@@ -11,13 +11,12 @@ subroutine b_screenlauncher
   use modinput, only: input
   use mod_misc, only: filext
   use mod_APW_LO, only: lolmax
-  use mod_kpoint, only: nkpt, vkl, ikmap, ikmapnr
-  use mod_qpoint, only: nqpt, vql
-  use modxs, only: tscreen, xsgnt, nwdf, qpari,&
+  use mod_kpoint, only: nkpt
+  use mod_qpoint, only: nqpt
+  use modxs, only: xsgnt, nwdf, qpari,&
                    & qparf, unitout, nqmt, vqlmt, qvkloff,&
                    & gqdirname, eps0dirname, scrdirname, timingdirname,&
-                   & ikmapikq, nkpt0, vkl0, usefilext0, filext0, filexteps, iqmt0, iqmt1,&
-                   & useemat2
+                   & ikmapikq, nkpt0, vkl0, usefilext0, filext0, filexteps, iqmt0, iqmt1
   use mod_xsgrids
   use m_genfilname
   use m_filedel
@@ -25,6 +24,7 @@ subroutine b_screenlauncher
   use m_xsgauntgen
   use m_findgntn0
   use mod_Gkvector, only: gkmax
+  use m_b_ematqk
 ! !DESCRIPTION:
 ! 
 ! !REVISION HISTORY:
@@ -33,7 +33,7 @@ subroutine b_screenlauncher
 !BOC
   implicit none
 
-  integer(4) :: iqmt, iq, igq, qi, qf, ik, iqnr
+  integer(4) :: iqmt, iq, iqnr
   logical :: firstisgamma
   logical :: fcoup, fti
   integer(4), parameter :: iqmtgamma = 1
@@ -130,6 +130,11 @@ subroutine b_screenlauncher
   ! Only one frequency if BSE is used (w=0)
   nwdf = 1
 
+  ! Read Fermi energy from file EFERMI
+  ! Use EFERMI_SCR_QMT001.OUT (corresponding to the xs groundstate run for the unshifted k grid)
+  call genfilname(iqmt=iqmtgamma, scrtype='', setfilext=.true.)
+  call readfermi
+
   !------------------------------------------------------------!
   ! Make Screening for qmt=0 and calculate it for all q-points !
   ! q=k'-k (or the reduced q point set)                        !
@@ -158,8 +163,7 @@ subroutine b_screenlauncher
   write(*,*) "filexteps=", trim(filexteps)
 
   ! Use <mk|e^{-i(G+q)r}|nk'> for q=k'-k in dfq
-  useemat2 = .false.
-
+  emat_ccket = .false.
   ! Set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
   input%xs%emattype = 1
 
@@ -289,7 +293,7 @@ subroutine b_screenlauncher
         ! <mk|e^{-i(G+q)r}|n k'> --> <mk|e^{-i(G+q)r}|n k+q> = <mk|e^{-i(G+q)r}|n -(k+qmt)>
         ! Exploiting time reversal symmetry:
         ! Using <mk|e^{-i(G+q)r}|(n k+qmt)^*> instead of <mk|e^{-i(G+q)r}|n -(k+qmt)>
-        useemat2 = .true.
+        emat_ccket = .true.
         ! Then qvkloff needs to contain offset of k+qmt grid
         do iq=1,nqpt
           qvkloff(1:3,iq) = k_kqmtp%kqmtset%vkloff(1:3)
@@ -386,7 +390,7 @@ subroutine b_screenlauncher
   end if
 
   ! Reset
-  useemat2 = .false.
+  emat_ccket = .false.
   ! Delete gaunt maps
   call findgntn0_clear
 

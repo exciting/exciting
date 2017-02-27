@@ -12,8 +12,7 @@ subroutine b_scrcoulint(iqmt, fra, fti)
   use modmpi
   use mod_constants, only: zzero, zone, fourpi
   use mod_APW_LO, only: lolmax
-  use mod_qpoint, only: iqmap, ngridq, vql, vqc, nqpt, ivq, wqpt
-  use mod_kpoint, only: nkptnr, ivknr
+  use mod_qpoint, only: iqmap, vql, vqc, nqpt, ivq, wqpt
   use mod_lattice, only: omega
   use mod_symmetry, only: maxsymcrys
   use modxs, only: xsgnt, unitout,&
@@ -21,8 +20,7 @@ subroutine b_scrcoulint(iqmt, fra, fti)
                  & nqptr, qpari, qparf, ivqr,&
                  & ngq, ppari, pparf, iqmapr,&
                  & vqlr, vqcr, wqptr, ngqr, vqlmt,&
-                 & bsedl, bsedu, bsedd,&
-                 & bsed, bcbs, ematraddir, eps0dirname,&
+                 & bcbs, ematraddir, eps0dirname,&
                  & filext0, usefilext0, iqmt0, iqmt1,&
                  & iqmtgamma
   use m_xsgauntgen
@@ -31,7 +29,6 @@ subroutine b_scrcoulint(iqmt, fra, fti)
   use m_genfilname
   use m_getunit
   use m_b_ematqk
-  use m_b_ematqk2
   use m_putgetbsemat
   use modbse
   use mod_xsgrids
@@ -83,11 +80,10 @@ use m_writecmplxparts
   integer(4) :: nsc, ivgsym(3)
   logical :: tphf
   ! Mappings of jk ik combinations to q points
-  integer(4) :: ikkp, iknr, jknr, jmknr, jmkpnr, jmkpnr2, ikpnr, jkpnr, ik, jk
+  integer(4) :: ikkp, iknr, jknr, ikpnr, jkpnr, ik, jk
   integer(4) :: iqrnr, iqr, iq
   real(8) :: vqr(3), vq(3)
   integer(4) :: numgq
-  integer(4) :: iv(3)
   logical :: tq0
   ! Number of occupied/unoccupied states at ik and jk
   integer(4) :: ino, inu, jno, jnu
@@ -109,7 +105,7 @@ use m_writecmplxparts
   !   Influences quality of eigencoefficients.
   integer(4) :: maxl_mat
   ! Aux.
-  integer(4) :: j1, j2, ii,i,jj,j,igq
+  integer(4) :: j1, j2, igq
   complex(8) :: pref 
   ! Timing vars
   real(8) :: tscc1, tscc0
@@ -135,6 +131,13 @@ use m_writecmplxparts
   !---------------!
 
 write(*,*) "Hello, this is b_scrcoulint at rank:", rank
+
+  if(iqmt /= 1 .and. .not. fti) then 
+    write(*, '("Error(",a,"):&
+     & Finite momentum tranfer currently only supported&
+     & when using time reversal symmetry.")') trim(thisnam)
+    call terminate
+  end if
 
   ! Check number of empty states
   if(input%xs%screening%nempty .lt. input%groundstate%nempty) then
@@ -272,25 +275,26 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   !write(*,*)
   call xsgrids_init(vqlmt(1:3,iqmt), gkmax)
   if(fra) then 
-    !write(*,*) "Generating reduced q-grid for W Fourier coefficients for RA coupling block."
+    write(*,*) "Generating reduced q-grid for W Fourier coefficients for RA coupling block."
     if(fti) then 
-      !write(*,*) "  Using time inverted anti-resonant basis."
+      write(*,*) "  Using time inverted anti-resonant basis."
       vqoff = p_pqmtp%pset%vkloff
     else
-      !write(*,*) "  Using standard anti-resonant basis."
+      write(*,*) "  Using standard anti-resonant basis."
       vqoff = q_qmtm%qset%vkloff
     end if
   else
-    !write(*,*) "Generating reduced q-grid for W Fourier coefficients for RR block."
+    write(*,*) "Generating reduced q-grid for W Fourier coefficients for RR block."
     vqoff =  q_q%qset%vkloff
   end if
 
-  !write(*,*)
-  !write(*,'(a,3E10.3)') "vqoff = ", vqoff
+  write(*,*)
+  write(*,'(a,3E10.3)') "vqoff = ", vqoff
 
   ! Make reduced q-grid with possible offset
   ! This sets up also G+q quantities and the square root of the Coulomb potential
   ! but the second call below will override these
+  call init1offs(k_kqmtp%kset%vkloff)
   call init2offs(vqoff, input%xs%reduceq)
   ! Copy results q-ponit results form mod_qpoint into modxs variables
   nqptr = nqpt
@@ -306,21 +310,9 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     call flushifc(unitout)
   end if
 
-  !write(*,*)
-  !write(*,*) "iqr vqlr"
-  do iq = 1, nqptr
-    !write(*,'(i3, 3E10.3)') iq, vqlr(1:3,iq)
-  end do
-    
   ! Make non-reduced q-grid with possible offset
   ! This sets up also G+q quantities and the square root of the Coulomb potential
   call init2offs(vqoff, .false.)
-
-  !write(*,*)
-  !write(*,*) "iq vql"
-  do iq = 1, nqpt
-    !write(*,'(i3, 3E10.3)') iq, vql(1:3,iq)
-  end do
 
   ! Make also ngqr
   if(allocated(ngqr)) deallocate(ngqr)
@@ -330,6 +322,9 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
     iqr = iqmapr(ivq(1,iq), ivq(2,iq), ivq(3,iq))
     ngqr(iqr) = ngq(iq)
   end do
+
+  ! Set the default k,G arrays to the k+qmt grid
+  call init1offs(k_kqmtp%kqmtset%vkloff)
 
   ! Change file extension and write out k an q points
   call genfilname(dotext='_SCI.OUT', setfilext=.true.)
@@ -869,10 +864,10 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   end if
 
   call xsgrids_finalize()
+  call ematqdealloc
+  call findgntn0_clear
 
   call barrier
-
-  call findgntn0_clear
 
   contains
 
@@ -912,15 +907,11 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       call genfilname(iqmt=iqmt1, setfilext=.true.)
       !write(*,*) "filext =", trim(filext)
 
-      ! Set vkl and vkl0 to k-grid
-      if(iqmt /= 1) then
-        call init1offs(k_kqmtp%kset%vkloff)
-        call xssave0
-      end if
+      emat_ccket=.false.
       ! Set up ikmapikq to link (ik,iq) to jk
-      ! (all other q and G+q dependent variables need not be changed)
-      ikmapikq(1:nkpt, 1:nqpt) = q_q%ikiq2ikp_nr(1:nkpt, 1:nqpt)
-
+      ikmapikq_ptr => q_q%ikiq2ikp_nr
+      ! Set vkl0_ptr, vkl1_ptr, ...  to k-grid 
+      call setptr00()
       ! Calculate M_{o1o2,G} at fixed (k, q)
       call b_ematqk(iq, iknr, moo, ematbc)
       !-----------------------------------------------------------!
@@ -948,28 +939,22 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
       ematbc%n2=jnu
       ematbc%il2=koulims(1,jknr)
       ematbc%iu2=koulims(2,jknr)
-
       ! Set EVECFV_QMTXYZ.OUT as bra state file
       usefilext0 = .true.
       iqmt0 = iqmt
       call genfilname(iqmt=iqmt0, setfilext=.true.)
       filext0 = filext
       !write(*,*) "filext0 =", trim(filext0)
-
       ! Set EVECFV_QMTXYZ.OUT as ket state file
       iqmt1 = iqmt
       call genfilname(iqmt=iqmt1, setfilext=.true.)
       !write(*,*) "filext =", trim(filext)
 
-      ! Set vkl and vkl0 to k+qmt-grid
-      if(iqmt /= 1) then 
-        call init1offs(k_kqmtp%kqmtset%vkloff)
-        call xssave0
-      end if
+      emat_ccket=.false.
       ! Set up ikmapikq to link (ikp,iq) to (jkp)
-      ! (all other q and G+q dependent variables need not be changed)
-      ikmapikq(1:nkpt, 1:nqpt) = qmtp_qmtp%ikiq2ikp_nr(1:nkpt, 1:nqpt)
-
+      ikmapikq_ptr => qmtp_qmtp%ikiq2ikp_nr
+      ! Set vkl0_ptr, vkl1_ptr, ... to k+qmt-grid
+      call setptr11
       ! Calculate M_{o1o2,G} at fixed (k, q)
       call b_ematqk(iq, ikpnr, muu, ematbc)
       !------------------------------------------------------------------!
@@ -1006,6 +991,8 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
       ! Standard anti-resonant basis
       if(.not. fti) then 
+
+        ! Note: Currently restricted to qmt = 0
 
         !write(*,*) " Std"
         !write(*,*) "  Mou"
@@ -1049,9 +1036,12 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
           call init1offs(k_kqmtm%kqmtset%vkloff)
         end if
 
+        emat_ccket=.false.
         ! Set up ikmapikq to link (ik,iq) to jkp 
-        ikmapikq(1:nkpt, 1:nqpt) = q_qmtm%ikiq2ikp_nr(1:nkpt, 1:nqpt)
-
+        ikmapikq_ptr => q_qmtm%ikiq2ikp_nr
+        ! Note: Restriction qmt=0 here
+        ! Set vkl0_ptr, vkl1_ptr, ... to k-grid
+        call setptr00
         ! Calculate M_{ou,G} at fixed (k, q)
         call b_ematqk(iq, iknr, mou, ematbc)
         !------------------------------------------------------------!
@@ -1103,9 +1093,12 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
           call init1offs(k_kqmtp%kset%vkloff)
         end if
 
+        emat_ccket=.false.
         ! Set up ikmapikq to link (ikp,iq) to jk
-        ikmapikq(1:nkpt, 1:nqpt) = qmtp_q%ikiq2ikp_nr(1:nkpt, 1:nqpt)
-
+        ikmapikq_ptr => qmtp_q%ikiq2ikp_nr
+        ! Note: Restriction qmt=0 here
+        ! Set vkl0_ptr, vkl1_ptr, ... to k-grid
+        call setptr00
         ! Calculate M_{uo,G} at fixed (k, q)
         call b_ematqk(iq, ikpnr, muo, ematbc)
         !-------------------------------------------------------------!
@@ -1152,19 +1145,13 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         call genfilname(iqmt=iqmt1, setfilext=.true.)
         !write(*,*) "filext =", trim(filext)
 
-        ! Set vkl0 to k-grid
-        if(iqmt /= 1) then 
-          call init1offs(k_kqmtp%kset%vkloff)
-          call xssave0
-          ! Set vkl to k+qmt-grid
-          call init1offs(k_kqmtp%kqmtset%vkloff)
-        end if
-
+        emat_ccket=.true.
         ! Set up non reduced ikmapikq to link (ik,iq) to jkp
-        ikmapikq(1:nkpt, 1:nqpt) = p_pqmtp%ikip2ikp_nr(1:nkpt, 1:nqpt)
-
+        ikmapikq_ptr => p_pqmtp%ikip2ikp_nr
+        ! Set vkl0_ptr,... to k-grid and vkl1_ptr,... to k+qmt-grid
+        call setptr01()
         ! Calculate M_{ou,G} at fixed (k, q)
-        call b_ematqk2(iq, iknr, mou, ematbc)
+        call b_ematqk(iq, iknr, mou, ematbc)
         !------------------------------------------------------------!
 
         if(.false.) then
@@ -1206,19 +1193,13 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
         call genfilname(iqmt=iqmt1, setfilext=.true.)
         !write(*,*) "filext =", trim(filext)
 
-        if(iqmt /= 1) then
-          ! Set vkl0 to k+qmt-grid
-          call init1offs(k_kqmtp%kqmtset%vkloff)
-          call xssave0
-          ! Set vkl to k-grid
-          call init1offs(k_kqmtp%kset%vkloff)
-        end if
-
+        emat_ccket=.true.
         ! Set up ikmapikq to link ikp,iq to jk
-        ikmapikq(1:nkpt, 1:nqpt) = pqmtp_p%ikip2ikp_nr(1:nkpt, 1:nqpt)
-
+        ikmapikq_ptr => pqmtp_p%ikip2ikp_nr
+        ! Set vkl0_ptr,... to k+qmt-grid and vkl1_ptr,... to k-grid
+        call setptr10()
         ! Calculate M_{uo,G} at fixed (k, q)
-        call b_ematqk2(iq, ikpnr, muo, ematbc)
+        call b_ematqk(iq, ikpnr, muo, ematbc)
         !-------------------------------------------------------------!
         if(.false.) then 
           if(fwp) then

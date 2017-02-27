@@ -18,7 +18,8 @@ Module mod_kpoint
 ! k-point grid sizes
 !replaced by inputstructureinteger::ngridk(3)
 ! total number of k-points
-      Integer :: nkpt
+      integer, pointer :: nkpt_ptr
+      Integer, target :: nkpt
 ! k-point offset
 !replaced by inputstructurereal(8)::vkloff(3)
 ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
@@ -26,7 +27,8 @@ Module mod_kpoint
 ! locations of k-points on integer grid
       Integer, Allocatable :: ivk (:, :)
 ! k-points in lattice coordinates
-      Real (8), Allocatable :: vkl (:, :)
+      real(8), pointer :: vkl_ptr(:,:)
+      Real (8), Allocatable, target :: vkl(:,:)
 ! k-points in Cartesian coordinates
       Real (8), Allocatable :: vkc (:, :)
 ! k-point weights

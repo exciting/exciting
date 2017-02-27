@@ -42,6 +42,10 @@ subroutine b_exccoulintlauncher
   ! Testing 
   iqmti = 1
   iqmtf = size(input%xs%qpointset%qpoint, 2)
+  if(input%xs%bse%iqmt /= -1) then 
+    iqmti=input%xs%bse%iqmt
+    iqmtf=input%xs%bse%iqmt
+  end if
 
   do iqmt = iqmti, iqmtf
 
@@ -66,7 +70,7 @@ subroutine b_exccoulintlauncher
         & Calculating RR block of V")')
       write(unitout,*)
     end if
-    call b_exccoulint(iqmt, .false., .false.)
+    call b_exccoulint(iqmt, .false., fti)
     call barrier(mpiglobal)
 
     ! RA block

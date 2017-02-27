@@ -174,7 +174,7 @@ Subroutine xsmain (plan)
             Call xas
             Call xasfinit
           else if (input%xs%bse%beyond) then
-            call b_bse
+            call b_bselauncher
           else
             Call BSE
           end if

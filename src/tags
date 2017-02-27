@@ -14846,10 +14846,10 @@ FCFLAGS_f90	libXC/build/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/src/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/testsuite/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCLD	libXC/src/Makefile	/^FCLD = $(FC)$/;"	m
-FCLIBS	libXC/Makefile	/^FCLIBS =  -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib64 -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib64 -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib64 -L\/usr\/lib -L\/usr\/lib\/i386-linux-gnu -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
-FCLIBS	libXC/build/Makefile	/^FCLIBS =  -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib64 -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib64 -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib64 -L\/usr\/lib -L\/usr\/lib\/i386-linux-gnu -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
-FCLIBS	libXC/src/Makefile	/^FCLIBS =  -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib64 -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib64 -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib64 -L\/usr\/lib -L\/usr\/lib\/i386-linux-gnu -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
-FCLIBS	libXC/testsuite/Makefile	/^FCLIBS =  -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib64 -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib64 -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib64 -L\/usr\/lib -L\/usr\/lib\/i386-linux-gnu -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/Makefile	/^FCLIBS =  -L\/home1\/aurich\/lib -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/build/Makefile	/^FCLIBS =  -L\/home1\/aurich\/lib -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/src/Makefile	/^FCLIBS =  -L\/home1\/aurich\/lib -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/testsuite/Makefile	/^FCLIBS =  -L\/home1\/aurich\/lib -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
 FCLINK	libXC/src/Makefile	/^FCLINK = $(LIBTOOL) --mode=link --tag=F77 $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \\$/;"	m
 FC_FUNC	libXC/config.h	27;"	d
 FC_FUNC_	libXC/config.h	30;"	d
@@ -15698,10 +15698,10 @@ SGTTRF	LAPACK/sgttrf.f	/^      SUBROUTINE SGTTRF(/;"	s
 SGTTRS	LAPACK/sgttrs.f	/^      SUBROUTINE SGTTRS(/;"	s
 SGTTS2	LAPACK/sgtts2.f	/^      SUBROUTINE SGTTS2(/;"	s
 SHARPEDGES	src_vdwdf/Cuba-3.2/src/common/stddecl.h	71;"	d
-SHELL	libXC/Makefile	/^SHELL = \/bin\/sh$/;"	m
-SHELL	libXC/build/Makefile	/^SHELL = \/bin\/sh$/;"	m
-SHELL	libXC/src/Makefile	/^SHELL = \/bin\/sh$/;"	m
-SHELL	libXC/testsuite/Makefile	/^SHELL = \/bin\/sh$/;"	m
+SHELL	libXC/Makefile	/^SHELL = \/bin\/bash$/;"	m
+SHELL	libXC/build/Makefile	/^SHELL = \/bin\/bash$/;"	m
+SHELL	libXC/src/Makefile	/^SHELL = \/bin\/bash$/;"	m
+SHELL	libXC/testsuite/Makefile	/^SHELL = \/bin\/bash$/;"	m
 SHGEQZ	LAPACK/shgeqz.f	/^      SUBROUTINE SHGEQZ(/;"	s
 SHIFT	src_raman/shift.f90	/^subroutine SHIFT(/;"	s
 SHM_ONLY	src_vdwdf/Cuba-3.2/src/common/stddecl.h	137;"	d
@@ -18336,8 +18336,12 @@ appendPaths	FoX/utils/fox_m_utils_uri.F90	/^  function appendPaths(/;"	f	module:
 append_nl	FoX/dom/m_dom_dom.F90	/^  subroutine append_nl(/;"	s	module:m_dom_dom
 append_nnm	FoX/dom/m_dom_dom.F90	/^  subroutine append_nnm(/;"	s	module:m_dom_dom
 apwcmt	src_gw/mod_pmat.f90	/^  complex(8), allocatable :: apwcmt(/;"	v	module:mod_pmat
-apwcmt	src_xs/modxs.F90	/^      Complex (8), Allocatable :: apwcmt /;"	v	module:modxs
-apwcmt0	src_xs/modxs.F90	/^      Complex (8), Allocatable :: apwcmt0 /;"	v	module:modxs
+apwcmt	src_xs/modxs.F90	/^      Complex (8), Allocatable, target :: apwcmt /;"	v	module:modxs
+apwcmt0	src_xs/modxs.F90	/^      Complex (8), Allocatable, target :: apwcmt0 /;"	v	module:modxs
+apwcmt0_ptr	src_xs/mod_ematptr.f90	/^  complex(8), pointer :: apwcmt0_ptr(/;"	v	module:mod_ematptr
+apwcmt0b	src_xs/modxs.F90	/^      Complex (8), Allocatable, target :: apwcmt0b /;"	v	module:modxs
+apwcmt1_ptr	src_xs/mod_ematptr.f90	/^  complex(8), pointer :: apwcmt0_ptr(:,:,:,:), apwcmt1_ptr(/;"	v	module:mod_ematptr
+apwcmtb	src_xs/modxs.F90	/^      Complex (8), Allocatable, target :: apwcmtb /;"	v	module:modxs
 apwdescr	species/modspecies.F90	/^character(256) :: bname,str,apwdescr,/;"	v	module:modspecies
 apwdfr	mod_APW_LO.F90	/^      Real (8), Allocatable :: apwdfr /;"	v	module:mod_APW_LO
 apwdm	mod_APW_LO.F90	/^      Integer :: apwdm /;"	v	module:mod_APW_LO
@@ -18604,19 +18608,19 @@ b_PBE_sol	libXC/src/gga_x_hjs.c	/^static const FLOAT b_PBE_sol[] = $/;"	v	file:
 b_TH1	libXC/src/gga_xc_th.c	/^static int   b_TH1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0};$/;"	v	file:
 b_TH2	libXC/src/gga_xc_th.c	/^static int   b_TH2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};$/;"	v	file:
 b_TH3	libXC/src/gga_xc_th.c	/^static int   b_TH3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0};$/;"	v	file:
-b_bse	src_xs/b_bse.f90	/^subroutine b_bse$/;"	s
+b_bse	src_xs/b_bse.f90	/^subroutine b_bse(/;"	s
+b_bselauncher	src_xs/b_bselauncher.f90	/^subroutine b_bselauncher$/;"	s
 b_ematgntsum	src_xs/m_b_ematqk.f90	/^    subroutine b_ematgntsum(/;"	s	module:m_b_ematqk
-b_ematgntsum2	src_xs/m_b_ematqk2.f90	/^    subroutine b_ematgntsum2(/;"	s	module:m_b_ematqk2
 b_ematqk	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqk(/;"	s	module:m_b_ematqk
-b_ematqk2	src_xs/m_b_ematqk2.f90	/^    subroutine b_ematqk2(/;"	s	module:m_b_ematqk2
 b_ematqkgir	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqkgir(/;"	s	module:m_b_ematqk
 b_ematqkgmt	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqkgmt(/;"	s	module:m_b_ematqk
-b_ematqkgmt2	src_xs/m_b_ematqk2.f90	/^    subroutine b_ematqkgmt2(/;"	s	module:m_b_ematqk2
 b_exccoulint	src_xs/b_exccoulint.f90	/^subroutine b_exccoulint(/;"	s
 b_exccoulintlauncher	src_xs/b_exccoulintlauncher.f90	/^subroutine b_exccoulintlauncher$/;"	s
 b_findgqmap	src_xs/b_findgqmap.f90	/^subroutine b_findgqmap(/;"	s
 b_getbseinfo	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbseinfo(/;"	s	module:m_putgetbsemat
 b_getbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbsemat(/;"	s	module:m_putgetbsemat
+b_getevecfv0	src_xs/b_getevecfv0.f90	/^subroutine b_getevecfv0(/;"	s
+b_getevecfv1	src_xs/b_getevecfv1.f90	/^subroutine b_getevecfv1(/;"	s
 b_m08_hx	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m08_hx[12] = {$/;"	v	file:
 b_m08_so	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m08_so[12] = {$/;"	v	file:
 b_m11	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m11[12] = {$/;"	v	file:
@@ -20000,6 +20004,7 @@ dysonsym	src_xs/dysonsym.F90	/^      Subroutine dysonsym /;"	s	module:m_dysonsym
 dzgemm	src_xs/m_dzgemm.f90	/^    subroutine dzgemm(/;"	s	module:m_dzgemm
 dzinvert	src_xs/m_invertzmat.f90	/^    subroutine dzinvert(/;"	s	module:m_invertzmat
 dzmat	src_xs/modscl.f90	/^  type dzmat$/;"	t	module:modscl
+dzmat_copy_global2local	src_xs/modscl.f90	/^    subroutine dzmat_copy_global2local(/;"	s	module:modscl
 dzmat_send2global_all	src_xs/modscl.f90	/^    subroutine dzmat_send2global_all(/;"	s	module:modscl
 dzmat_send2global_root	src_xs/modscl.f90	/^    subroutine dzmat_send2global_root(/;"	s	module:modscl
 dznrm2	ARPACK/EXAMPLES/BAND/znbdr1.f	/^      Double precision $/;"	v	program:znbdr1
@@ -20087,6 +20092,7 @@ elval	species/modspecies.F90	/^real(8) :: elval(/;"	v	module:modspecies
 emass_si	eos/modmain.f90	/^real(8), parameter :: emass_si=/;"	v	module:modmain
 emat_alloc_radial	m_ematqk.f90	/^    subroutine emat_alloc_radial(/;"	s	module:m_ematqk
 emat_buffer_ffts	m_ematqk.f90	/^    subroutine emat_buffer_ffts(/;"	s	module:m_ematqk
+emat_ccket	src_xs/m_b_ematqk.f90	/^  logical :: emat_ccket$/;"	v	module:m_b_ematqk
 emat_fetch_fft	m_ematqk.f90	/^    subroutine emat_fetch_fft(/;"	s	module:m_ematqk
 emat_fetch_rad	m_ematqk.f90	/^    subroutine emat_fetch_rad(/;"	s	module:m_ematqk
 emat_fft_init	m_ematqk.f90	/^    subroutine emat_fft_init(/;"	s	module:m_ematqk
@@ -20287,8 +20293,12 @@ evalsum	mod_energy.F90	/^      Real (8) :: evalsum$/;"	v	module:mod_energy
 evalsv	mod_eigenvalue_occupancy.F90	/^      Real (8), Allocatable :: evalsv /;"	v	module:mod_eigenvalue_occupancy
 evalsv0	src_xs/modxs.F90	/^      Real (8), Allocatable :: evalsv0 /;"	v	module:modxs
 evaltol	src_inputparser/inputmodules.f90	/^ real(8)::evaltol$/;"	k	type:solver_type
-evecfv	src_xs/modxs.F90	/^      Complex (8), Allocatable :: evecfv /;"	v	module:modxs
-evecfv0	src_xs/modxs.F90	/^      Complex (8), Allocatable :: evecfv0 /;"	v	module:modxs
+evecfv	src_xs/modxs.F90	/^      Complex (8), Allocatable, target :: evecfv /;"	v	module:modxs
+evecfv0	src_xs/modxs.F90	/^      Complex (8), Allocatable, target :: evecfv0 /;"	v	module:modxs
+evecfv0_ptr	src_xs/mod_ematptr.f90	/^  complex(8), pointer :: evecfv0_ptr(/;"	v	module:mod_ematptr
+evecfv0b	src_xs/modxs.F90	/^      Complex (8), Allocatable, target :: evecfv0b /;"	v	module:modxs
+evecfv1_ptr	src_xs/mod_ematptr.f90	/^  complex(8), pointer :: evecfv0_ptr(:,:,:), evecfv1_ptr(/;"	v	module:mod_ematptr
+evecfvb	src_xs/modxs.F90	/^      Complex (8), Allocatable, target :: evecfvb /;"	v	module:modxs
 eveck	src_gw/mod_bands.f90	/^    complex(8), allocatable :: eveck(/;"	v	module:mod_bands
 eveckalm	src_gw/mod_bands.f90	/^    complex(8), allocatable :: eveckalm(/;"	v	module:mod_bands
 eveckp	src_gw/mod_bands.f90	/^    complex(8), allocatable :: eveckp(/;"	v	module:mod_bands
@@ -20563,7 +20573,7 @@ findgqmap	src_xs/findgqmap.F90	/^subroutine findgqmap(/;"	s
 findgroupq	src_xs/findgroupq.F90	/^Subroutine findgroupq /;"	s
 findigp0	findigp0.f90	/^Subroutine findigp0 /;"	s
 findindep	src_raman/construct_symvec.f90	/^subroutine findindep(/;"	s	module:m_symvec
-findkmapkq	src_xs/findkmapkq.F90	/^Subroutine findkmapkq /;"	s
+findkmapkq	src_xs/findkmapkq.F90	/^Subroutine findkmapkq(/;"	s
 findkpt	findkpt.f90	/^Subroutine findkpt /;"	s
 findlinentype	src_inputparser/inputmodules.f90	/^ character(512)::findlinentype$/;"	k	type:groundstate_type
 findlinentypenumber	src_inputparser/inputmodules.f90	/^ integer::findlinentypenumber$/;"	k	type:groundstate_type
@@ -21584,9 +21594,11 @@ ggamt_sp_1	src_xc/ggamt_sp_1.f90	/^subroutine ggamt_sp_1(/;"	s
 ggamt_sp_2a	src_xc/ggamt_sp_2a.f90	/^subroutine ggamt_sp_2a(/;"	s
 ggamt_sp_2b	src_xc/ggamt_sp_2b.f90	/^subroutine ggamt_sp_2b(/;"	s
 githash	mod_misc.F90	/^      character(40) :: githash$/;"	v	module:mod_misc
-gkc	mod_gkvector.F90	/^      Real (8), Allocatable :: gkc /;"	v	module:mod_Gkvector
+gkc	mod_gkvector.F90	/^      Real (8), Allocatable, target :: gkc /;"	v	module:mod_Gkvector
 gkc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: gkc(/;"	k	type:Gk_set
-gkc0	src_xs/modxs.F90	/^      Real (8), Allocatable :: gkc0 /;"	v	module:modxs
+gkc0	src_xs/modxs.F90	/^      Real (8), Allocatable, target :: gkc0 /;"	v	module:modxs
+gkc0_ptr	src_xs/mod_ematptr.f90	/^  real(8), pointer :: gkc0_ptr(/;"	v	module:mod_ematptr
+gkc1_ptr	src_xs/mod_ematptr.f90	/^  real(8), pointer :: gkc0_ptr(:,:,:), gkc1_ptr(/;"	v	module:mod_ematptr
 gkcnr	src_gw/mod_kqpts.f90	/^    Real (8), Allocatable :: gkcnr(/;"	v	module:mod_kqpts
 gkmax	mod_gkvector.F90	/^      Real (8) :: gkmax$/;"	v	module:mod_Gkvector
 gkmax	src_gw/mod_kpointset.f90	/^        real(8) :: gkmax /;"	k	type:Gk_set
@@ -22061,9 +22073,11 @@ igigknr	src_gw/mod_kpointset.f90	/^        integer, allocatable :: igigknr(/;"	k
 igigq	src_gw/mod_product_basis.f90	/^    integer, allocatable :: igigq(/;"	v	module:mod_product_basis
 igigqb	src_gw/mod_kqpts.f90	/^    integer, allocatable :: igigqb(/;"	v	module:mod_kqpts
 igkfft	mod_gkvector.F90	/^      Integer, Allocatable :: igkfft /;"	v	module:mod_Gkvector
-igkig	mod_gkvector.F90	/^      Integer, Allocatable :: igkig /;"	v	module:mod_Gkvector
+igkig	mod_gkvector.F90	/^      Integer, Allocatable, target :: igkig /;"	v	module:mod_Gkvector
 igkig	src_gw/mod_kpointset.f90	/^        integer, allocatable :: igkig(/;"	k	type:Gk_set
-igkig0	src_xs/modxs.F90	/^      Integer, Allocatable :: igkig0 /;"	v	module:modxs
+igkig0	src_xs/modxs.F90	/^      Integer, Allocatable, target :: igkig0 /;"	v	module:modxs
+igkig0_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: igkig0_ptr(/;"	v	module:mod_ematptr
+igkig1_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: igkig0_ptr(:,:,:), igkig1_ptr(/;"	v	module:mod_ematptr
 igkignr	src_gw/mod_kqpts.f90	/^    Integer, Allocatable :: igkignr(/;"	v	module:mod_kqpts
 igknrig	src_gw/mod_kpointset.f90	/^        integer, allocatable :: igknrig(/;"	k	type:Gk_set
 igkshift	src_gw/mod_kpointset.f90	/^    subroutine igkshift(/;"	s	module:mod_kpointset
@@ -22107,7 +22121,8 @@ ikm2ik	src_gw/mod_kpointset.f90	/^      integer(4), allocatable :: ikm2ik(/;"	k	
 ikm2ik_nr	src_gw/mod_kpointset.f90	/^      integer(4), allocatable :: ikm2ik_nr(/;"	k	type:km_set
 ikmap	mod_kpoint.F90	/^      Integer, Allocatable :: ikmap /;"	v	module:mod_kpoint
 ikmap	src_gw/mod_kpointset.f90	/^        integer(4), allocatable ::  ikmap(/;"	k	type:k_set
-ikmapikq	src_xs/modxs.F90	/^      Integer, Allocatable :: ikmapikq /;"	v	module:modxs
+ikmapikq	src_xs/modxs.F90	/^      Integer, Allocatable, target :: ikmapikq /;"	v	module:modxs
+ikmapikq_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: ikmapikq_ptr(/;"	v	module:mod_ematptr
 ikmapnr	mod_kpoint.F90	/^      Integer, Allocatable :: ikmapnr /;"	v	module:mod_kpoint
 ikmapnr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable ::  ikmapnr(/;"	k	type:k_set
 ikp2ik	mod_kpoint.F90	/^      integer(4), allocatable :: ikp2ik(/;"	v	module:mod_kpoint
@@ -23560,7 +23575,6 @@ m2shape	src_xs/findgntn0.F90	/^      Integer, Allocatable :: m1shape (:), l2shap
 m3map	src_xs/findgntn0.F90	/^      Integer, Allocatable :: l3map (:, :, :, :, :), m3map /;"	v	module:m_findgntn0
 m3shape	src_xs/findgntn0.F90	/^      Integer, Allocatable :: l3shape (:, :, :, :), m3shape /;"	v	module:m_findgntn0
 m_b_ematqk	src_xs/m_b_ematqk.f90	/^module m_b_ematqk$/;"	m
-m_b_ematqk2	src_xs/m_b_ematqk2.f90	/^module m_b_ematqk2$/;"	m
 m_bandgap	src_xs/bandgap.F90	/^Module m_bandgap$/;"	m
 m_common_attrs	FoX/common/m_common_attrs.F90	/^module m_common_attrs$/;"	m
 m_common_buffer	FoX/common/m_common_buffer.F90	/^module m_common_buffer$/;"	m
@@ -24298,6 +24312,7 @@ mod_dielectric_function	src_gw/mod_dielectric_function.f90	/^module mod_dielectr
 mod_eigensystem	mod_eigensystem.F90	/^Module mod_eigensystem$/;"	m
 mod_eigenvalue_occupancy	mod_eigenvalue_occupancy.F90	/^Module mod_eigenvalue_occupancy$/;"	m
 mod_ematgrids	mod_ematgrids.f90	/^module mod_ematgrids$/;"	m
+mod_ematptr	src_xs/mod_ematptr.f90	/^module mod_ematptr$/;"	m
 mod_energy	mod_energy.F90	/^Module mod_energy$/;"	m
 mod_exciton_wf	src_xs/mod_exciton_wf.f90	/^module mod_exciton_wf$/;"	m
 mod_force	mod_force.F90	/^Module mod_force$/;"	m
@@ -25074,13 +25089,19 @@ ngenr	src_sym/modsym.F90	/^      Integer :: ngenr$/;"	v	module:modsym
 ngiven	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	integer ngiven,/;"	v	program:CubaTest
 ngiven	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  number ngiven, nextra;$/;"	m	struct:_this
 ngiven	src_vdwdf/modules.f90	/^   integer*8  ngiven,/;"	v	module:param
-ngk	mod_gkvector.F90	/^      Integer, Allocatable :: ngk /;"	v	module:mod_Gkvector
+ngk	mod_gkvector.F90	/^      Integer, Allocatable, target :: ngk /;"	v	module:mod_Gkvector
 ngk	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ngk(/;"	k	type:Gk_set
-ngk0	src_xs/modxs.F90	/^      Integer, Allocatable :: ngk0 /;"	v	module:modxs
+ngk0	src_xs/modxs.F90	/^      Integer, Allocatable, target :: ngk0 /;"	v	module:modxs
+ngk0_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: ngk0_ptr(/;"	v	module:mod_ematptr
+ngk1_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: ngk0_ptr(:,:), ngk1_ptr(/;"	v	module:mod_ematptr
+ngk_ptr	mod_gkvector.F90	/^      integer, pointer :: ngk_ptr(/;"	v	module:mod_Gkvector
 ngkfft	mod_gkvector.F90	/^      Integer :: ngkfft(/;"	v	module:mod_Gkvector
-ngkmax	mod_gkvector.F90	/^      Integer :: ngkmax$/;"	v	module:mod_Gkvector
+ngkmax	mod_gkvector.F90	/^      Integer, target :: ngkmax$/;"	v	module:mod_Gkvector
 ngkmax	src_gw/mod_kpointset.f90	/^        integer :: ngkmax$/;"	k	type:Gk_set
-ngkmax0	src_xs/modxs.F90	/^      Integer :: ngkmax0$/;"	v	module:modxs
+ngkmax0	src_xs/modxs.F90	/^      Integer, target :: ngkmax0$/;"	v	module:modxs
+ngkmax0_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: ngkmax0_ptr,/;"	v	module:mod_ematptr
+ngkmax1_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: ngkmax0_ptr, ngkmax1_ptr$/;"	v	module:mod_ematptr
+ngkmax_ptr	mod_gkvector.F90	/^      integer, pointer :: ngkmax_ptr$/;"	v	module:mod_Gkvector
 ngknr	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ngknr(/;"	k	type:Gk_set
 ngknr	src_gw/mod_kqpts.f90	/^    Integer, Allocatable :: ngknr(/;"	v	module:mod_kqpts
 ngknrmax	src_gw/mod_kpointset.f90	/^        integer :: ngknrmax$/;"	k	type:Gk_set
@@ -25139,10 +25160,13 @@ nka	src_xs/mod_exciton_wf.f90	/^  integer :: nka$/;"	v	module:mod_exciton_wf
 nkkp_bse	src_xs/modbse.f90	/^  integer(4) :: nk_max, nk_bse, nkkp_bse$/;"	v	module:modbse
 nkp1	src_gw/mod_bands.f90	/^    integer(4) :: nkp1$/;"	v	module:mod_bands
 nkp2	src_gw/mod_bands.f90	/^    integer(4) :: nkp2$/;"	v	module:mod_bands
-nkpt	mod_kpoint.F90	/^      Integer :: nkpt$/;"	v	module:mod_kpoint
+nkpt	mod_kpoint.F90	/^      Integer, target :: nkpt$/;"	v	module:mod_kpoint
 nkpt	src_gw/mod_kpointset.f90	/^        integer :: nkpt /;"	k	type:kq_set
 nkpt	src_gw/mod_kpointset.f90	/^        integer(4) :: nkpt /;"	k	type:k_set
-nkpt0	src_xs/modxs.F90	/^      Integer :: nkpt0$/;"	v	module:modxs
+nkpt0	src_xs/modxs.F90	/^      Integer, target :: nkpt0$/;"	v	module:modxs
+nkpt0_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: nkpt0_ptr,/;"	v	module:mod_ematptr
+nkpt1_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: nkpt0_ptr, nkpt1_ptr$/;"	v	module:mod_ematptr
+nkpt_ptr	mod_kpoint.F90	/^      integer, pointer :: nkpt_ptr$/;"	v	module:mod_kpoint
 nkptnr	mod_kpoint.F90	/^      Integer :: nkptnr$/;"	v	module:mod_kpoint
 nkptnr	src_gw/mod_kpointset.f90	/^        integer(4) :: nkptnr /;"	k	type:k_set
 nkptq	src_gw/mod_kpointset.f90	/^        integer, allocatable :: nkptq(/;"	k	type:kq_set
@@ -25163,10 +25187,16 @@ nlorb	species/modspecies.F90	/^integer :: nlx,nlorb,/;"	v	module:modspecies
 nlorbsc	species/modspecies.F90	/^integer :: apword,apwdm(maxapword),nlorbsc$/;"	v	module:modspecies
 nlotot	mod_APW_LO.F90	/^      Integer :: nlotot$/;"	v	module:mod_APW_LO
 nlx	species/modspecies.F90	/^integer :: nlx,/;"	v	module:modspecies
-nmat	mod_eigensystem.F90	/^      Integer, Allocatable :: nmat /;"	v	module:mod_eigensystem
-nmat0	src_xs/modxs.F90	/^      Integer, Allocatable :: nmat0 /;"	v	module:modxs
-nmatmax	mod_eigensystem.F90	/^      Integer :: nmatmax$/;"	v	module:mod_eigensystem
-nmatmax0	src_xs/modxs.F90	/^      Integer :: nmatmax0$/;"	v	module:modxs
+nmat	mod_eigensystem.F90	/^      Integer, Allocatable, target :: nmat /;"	v	module:mod_eigensystem
+nmat0	src_xs/modxs.F90	/^      Integer, Allocatable, target :: nmat0 /;"	v	module:modxs
+nmat0_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: nmat0_ptr(/;"	v	module:mod_ematptr
+nmat1_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: nmat0_ptr(:,:), nmat1_ptr(/;"	v	module:mod_ematptr
+nmat_ptr	mod_eigensystem.F90	/^      Integer, pointer :: nmat_ptr(/;"	v	module:mod_eigensystem
+nmatmax	mod_eigensystem.F90	/^      Integer, target :: nmatmax$/;"	v	module:mod_eigensystem
+nmatmax0	src_xs/modxs.F90	/^      Integer, target :: nmatmax0$/;"	v	module:modxs
+nmatmax0_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: nmatmax0_ptr,/;"	v	module:mod_ematptr
+nmatmax1_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: nmatmax0_ptr, nmatmax1_ptr$/;"	v	module:mod_ematptr
+nmatmax_ptr	mod_eigensystem.F90	/^      integer, pointer :: nmatmax_ptr$/;"	v	module:mod_eigensystem
 nmax	src_other/delaunay.f	/^      integer nmax,/;"	v	program:main
 nmax_procs	src_gw/mod_mpi_gw.f90	/^    integer, parameter :: nmax_procs=/;"	v	module:mod_mpi_gw
 nmin	src_vdwdf/Cuba-3.2/src/divonne/Integrate.c	/^  number nmin, nrand;$/;"	m	struct:__anon36	file:
@@ -25637,7 +25667,7 @@ p_eval_plus	src_xs/modbse.f90	/^  real(8), pointer :: p_eval_plus(/;"	v	module:m
 p_evec	src_xs/modbse.f90	/^  complex(8), pointer :: p_evec_/;"	v	module:modbse
 p_evec_minus	src_xs/modbse.f90	/^  complex(8), pointer :: p_evec_plus(:,:), p_evec(:,:), p_evec_minus(/;"	v	module:modbse
 p_evec_plus	src_xs/modbse.f90	/^  complex(8), pointer :: p_evec_plus(/;"	v	module:modbse
-p_pqmtp	mod_xsgrids.f90	/^  type(p_set) :: p_pqmtp$/;"	v	module:mod_xsgrids
+p_pqmtp	mod_xsgrids.f90	/^  type(p_set), target :: p_pqmtp$/;"	v	module:mod_xsgrids
 p_set	src_gw/mod_kpointset.f90	/^    type p_set$/;"	t	module:mod_kpointset
 packed	src_eigensystem/modfvsystem.f90	/^        Logical :: packed,/;"	k	type:HermitianMatrix
 packedmatrixstorage	src_inputparser/inputmodules.f90	/^ logical::packedmatrixstorage$/;"	k	type:solver_type
@@ -25872,7 +25902,7 @@ powx	src_vdwdf/Cuba-3.2/src/suave/Fluct.c	14;"	d	file:
 powx	src_vdwdf/Cuba-3.2/src/suave/Fluct.c	22;"	d	file:
 pparf	src_xs/modxs.F90	/^      Integer :: pparf$/;"	v	module:modxs
 ppari	src_xs/modxs.F90	/^      Integer :: ppari$/;"	v	module:modxs
-pqmtp_p	mod_xsgrids.f90	/^  type(p_set) :: pqmtp_p$/;"	v	module:mod_xsgrids
+pqmtp_p	mod_xsgrids.f90	/^  type(p_set), target :: pqmtp_p$/;"	v	module:mod_xsgrids
 prec	fftlib/cfftnd.f90	/^integer, parameter :: prec=/;"	v	module:fftpack5
 precompute_ffts	m_ematqk.f90	/^  logical :: precompute_radial, precompute_ffts,/;"	v	module:m_ematqk
 precompute_radial	m_ematqk.f90	/^  logical :: precompute_radial,/;"	v	module:m_ematqk
@@ -26046,8 +26076,8 @@ q0eps	src_inputparser/inputmodules.f90	/^ real(8)::q0eps(/;"	k	type:scrcoul_type
 q1	species/species.f90	/^  real(8), allocatable :: p0(:), p1(:), q0(:), q1(/;"	v	program:species
 qOPab	libXC/src/gga_c_op.c	/^  FLOAT qOPab;$/;"	m	struct:__anon33	file:
 q_mqmtp	mod_xsgrids.f90	/^  type(q_set) :: q_mqmtp$/;"	v	module:mod_xsgrids
-q_q	mod_xsgrids.f90	/^  type(q_set) :: q_q$/;"	v	module:mod_xsgrids
-q_qmtm	mod_xsgrids.f90	/^  type(q_set) :: q_qmtm$/;"	v	module:mod_xsgrids
+q_q	mod_xsgrids.f90	/^  type(q_set), target :: q_q$/;"	v	module:mod_xsgrids
+q_qmtm	mod_xsgrids.f90	/^  type(q_set), target :: q_qmtm$/;"	v	module:mod_xsgrids
 q_qmtp	mod_xsgrids.f90	/^  type(q_set) :: q_qmtp$/;"	v	module:mod_xsgrids
 q_set	src_gw/mod_kpointset.f90	/^    type q_set$/;"	t	module:mod_kpointset
 qdepwsum	src_gw/qdepwsum.f90	/^      subroutine qdepwsum(/;"	s
@@ -26055,8 +26085,8 @@ qdepwtet	src_gw/qdepwtet.f90	/^subroutine qdepwtet(/;"	s
 qgap	src_xs/modxs.F90	/^      real(8) :: qgap$/;"	v	module:modxs
 qmtmgap	src_xs/modxs.F90	/^      real(8) :: qmtpgap, qmtmgap$/;"	v	module:modxs
 qmtp_mq	mod_xsgrids.f90	/^  type(q_set) :: qmtp_mq$/;"	v	module:mod_xsgrids
-qmtp_q	mod_xsgrids.f90	/^  type(q_set) :: qmtp_q$/;"	v	module:mod_xsgrids
-qmtp_qmtp	mod_xsgrids.f90	/^  type(q_set) :: qmtp_qmtp$/;"	v	module:mod_xsgrids
+qmtp_q	mod_xsgrids.f90	/^  type(q_set), target :: qmtp_q$/;"	v	module:mod_xsgrids
+qmtp_qmtp	mod_xsgrids.f90	/^  type(q_set), target :: qmtp_qmtp$/;"	v	module:mod_xsgrids
 qmtpgap	src_xs/modxs.F90	/^      real(8) :: qmtpgap,/;"	v	module:modxs
 qmx	src_mixing/modmixermsec.f90	/^      Real (8) :: scl_plane, qmx,/;"	v	module:modmixermsec
 qmx_input	src_mixing/modmixermsec.f90	/^      Real (8) :: scl_plane, qmx, RedOld, RedPred, qmx_input,/;"	v	module:modmixermsec
@@ -27010,6 +27040,10 @@ setnod_debugerr	src_libbzint/setnodes.f90	/^      subroutine setnod_debugerr$/;"
 setnodes	src_libbzint/setnodes.f90	/^      subroutine setnodes$/;"	s
 setownerDocument	FoX/dom/m_dom_dom.F90	/^subroutine setownerDocument(/;"	s	module:m_dom_dom
 setpatrd	src_gw/src_acfreq/setpatrd.f90	/^      subroutine setpatrd(/;"	s
+setptr00	src_xs/mod_ematptr.f90	/^    subroutine setptr00(/;"	s	module:mod_ematptr
+setptr01	src_xs/mod_ematptr.f90	/^    subroutine setptr01(/;"	s	module:mod_ematptr
+setptr10	src_xs/mod_ematptr.f90	/^    subroutine setptr10(/;"	s	module:mod_ematptr
+setptr11	src_xs/mod_ematptr.f90	/^    subroutine setptr11(/;"	s	module:mod_ematptr
 setranges_modxs	src_xs/modbse.f90	/^    subroutine setranges_modxs(/;"	s	module:modbse
 setrindex	src_gw/setrindex.f90	/^subroutine setrindex$/;"	s
 setrindex_done	src_gw/setrindex.f90	/^    logical :: setrindex_done /;"	v	module:fouri
@@ -27024,6 +27058,7 @@ setup_YY	src_mixing/setup_YY.f90	/^Subroutine setup_YY /;"	s
 setup_bse	src_xs/m_setup_bse.f90	/^    subroutine setup_bse(/;"	s	module:m_setup_bse
 setup_dis_ti_bse	src_xs/b_bse.f90	/^  subroutine setup_dis_ti_bse(/;"	s	subroutine:b_bse
 setup_distributed_bse	src_xs/m_setup_bse.f90	/^    subroutine setup_distributed_bse(/;"	s	module:m_setup_bse
+setup_distributed_pwmat	src_xs/m_setup_pwmat.f90	/^    subroutine setup_distributed_pwmat(/;"	s	module:m_setup_pwmat
 setup_distributed_rmat	src_xs/m_setup_rmat.f90	/^    subroutine setup_distributed_rmat(/;"	s	module:m_setup_rmat
 setup_full_bse	src_xs/b_bse.f90	/^  subroutine setup_full_bse(/;"	s	subroutine:b_bse
 setup_io	FoX/common/m_common_io.F90	/^  subroutine setup_io(/;"	s	module:m_common_io
@@ -27041,9 +27076,11 @@ setwpa	src_gw/src_acfreq/setwpa.f90	/^       subroutine setwpa(/;"	s
 setxmlStandalone	FoX/dom/m_dom_dom.F90	/^subroutine setxmlStandalone(/;"	s	module:m_dom_dom
 severity	FoX/common/m_common_error.F90	/^    integer :: severity /;"	k	type:error_t
 sfacg	mod_Gvector.F90	/^      Complex (8), Allocatable :: sfacg /;"	v	module:mod_Gvector
-sfacgk	mod_gkvector.F90	/^      Complex (8), Allocatable :: sfacgk /;"	v	module:mod_Gkvector
+sfacgk	mod_gkvector.F90	/^      Complex (8), Allocatable, target :: sfacgk /;"	v	module:mod_Gkvector
 sfacgk	src_gw/mod_kpointset.f90	/^        complex(8), allocatable :: sfacgk(/;"	k	type:Gk_set
-sfacgk0	src_xs/modxs.F90	/^      Complex (8), Allocatable :: sfacgk0 /;"	v	module:modxs
+sfacgk0	src_xs/modxs.F90	/^      Complex (8), Allocatable, target :: sfacgk0 /;"	v	module:modxs
+sfacgk0_ptr	src_xs/mod_ematptr.f90	/^  complex(8), pointer :: sfacgk0_ptr(/;"	v	module:mod_ematptr
+sfacgk1_ptr	src_xs/mod_ematptr.f90	/^  complex(8), pointer :: sfacgk0_ptr(:,:,:,:), sfacgk1_ptr(/;"	v	module:mod_ematptr
 sfacgknr	src_gw/mod_kpointset.f90	/^        complex(8), allocatable :: sfacgknr(/;"	k	type:Gk_set
 sfacgknr	src_gw/mod_kqpts.f90	/^    Complex (8), Allocatable :: sfacgknr(/;"	v	module:mod_kqpts
 sfacgq	src_xs/modxs.F90	/^      Complex (8), Allocatable :: sfacgq /;"	v	module:modxs
@@ -28105,9 +28142,11 @@ totals	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  Totals *totals;$/;"	m	struct:_t
 totals	src_vdwdf/Cuba-3.2/src/suave/Integrate.c	/^  Result totals[];$/;"	m	struct:__anon54	file:
 tparend	ioarray.F90	/^      Logical, Parameter :: tparend /;"	v	module:ioarray
 tpartcharges	src_inputparser/inputmodules.f90	/^ logical::tpartcharges$/;"	k	type:groundstate_type
-tpgkc	mod_gkvector.F90	/^      Real (8), Allocatable :: tpgkc /;"	v	module:mod_Gkvector
+tpgkc	mod_gkvector.F90	/^      Real (8), Allocatable, target :: tpgkc /;"	v	module:mod_Gkvector
 tpgkc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: tpgkc(/;"	k	type:Gk_set
-tpgkc0	src_xs/modxs.F90	/^      Real (8), Allocatable :: tpgkc0 /;"	v	module:modxs
+tpgkc0	src_xs/modxs.F90	/^      Real (8), Allocatable, target :: tpgkc0 /;"	v	module:modxs
+tpgkc0_ptr	src_xs/mod_ematptr.f90	/^  real(8), pointer :: tpgkc0_ptr(/;"	v	module:mod_ematptr
+tpgkc1_ptr	src_xs/mod_ematptr.f90	/^  real(8), pointer :: tpgkc0_ptr(:,:,:,:), tpgkc1_ptr(/;"	v	module:mod_ematptr
 tpgkcnr	src_gw/mod_kqpts.f90	/^    Real (8), Allocatable :: tpgkcnr(/;"	v	module:mod_kqpts
 tpgknrc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: tpgknrc(/;"	k	type:Gk_set
 tpgqc	src_xs/modxs.F90	/^      Real (8), Allocatable :: tpgqc /;"	v	module:modxs
@@ -28294,7 +28333,6 @@ usage	FoX/FoX-config	/^usage()$/;"	f
 usage	FoX/FoX-config.in	/^usage()$/;"	f
 usage	libXC/testsuite/xc-reference.pl	/^sub usage {$/;"	s
 usedlibzint	src_gw/mod_kpointset.f90	/^        logical :: usedlibzint /;"	k	type:k_set
-useemat2	src_xs/modxs.F90	/^  logical :: useemat2$/;"	v	module:modxs
 usefilext0	src_xs/modxs.F90	/^      logical :: usefilext0 /;"	v	module:modxs
 useforces	src_inputparser/inputmodules.f90	/^ logical::useforces$/;"	k	type:raman_type
 userdata	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	double precision epsrel, epsabs, userdata$/;"	v	program:CubaTest
@@ -28516,13 +28554,18 @@ versionname	mod_misc.F90	/^      character(40) :: versionname /;"	v	module:mod_m
 versions_gt	versions_gt.F90	/^logical function versions_gt(/;"	f
 vgc	mod_Gvector.F90	/^      Real (8), Allocatable :: vgc /;"	v	module:mod_Gvector
 vgc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vgc(/;"	k	type:G_set
-vgkc	mod_gkvector.F90	/^      Real (8), Allocatable :: vgkc /;"	v	module:mod_Gkvector
+vgkc	mod_gkvector.F90	/^      Real (8), Allocatable, target :: vgkc /;"	v	module:mod_Gkvector
 vgkc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vgkc(/;"	k	type:Gk_set
-vgkc0	src_xs/modxs.F90	/^      Real (8), Allocatable :: vgkc0 /;"	v	module:modxs
+vgkc0	src_xs/modxs.F90	/^      Real (8), Allocatable, target :: vgkc0 /;"	v	module:modxs
+vgkc0_ptr	src_xs/mod_ematptr.f90	/^  real(8), pointer :: vgkc0_ptr(/;"	v	module:mod_ematptr
+vgkc1_ptr	src_xs/mod_ematptr.f90	/^  real(8), pointer :: vgkc0_ptr(:,:,:,:), vgkc1_ptr(/;"	v	module:mod_ematptr
 vgkcnr	src_gw/mod_kqpts.f90	/^    Real (8), Allocatable :: vgkcnr(/;"	v	module:mod_kqpts
-vgkl	mod_gkvector.F90	/^      Real (8), Allocatable :: vgkl /;"	v	module:mod_Gkvector
+vgkl	mod_gkvector.F90	/^      Real (8), Allocatable, target :: vgkl /;"	v	module:mod_Gkvector
 vgkl	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vgkl(/;"	k	type:Gk_set
-vgkl0	src_xs/modxs.F90	/^      Real (8), Allocatable :: vgkl0 /;"	v	module:modxs
+vgkl0	src_xs/modxs.F90	/^      Real (8), Allocatable, target :: vgkl0 /;"	v	module:modxs
+vgkl0_ptr	src_xs/mod_ematptr.f90	/^  real(8), pointer :: vgkl0_ptr(/;"	v	module:mod_ematptr
+vgkl1_ptr	src_xs/mod_ematptr.f90	/^  real(8), pointer :: vgkl0_ptr(:,:,:,:), vgkl1_ptr(/;"	v	module:mod_ematptr
+vgkl_ptr	mod_gkvector.F90	/^      Real (8), pointer :: vgkl_ptr(/;"	v	module:mod_Gkvector
 vgklnr	src_gw/mod_kqpts.f90	/^    Real (8), Allocatable :: vgklnr(/;"	v	module:mod_kqpts
 vgknrc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vgknrc(/;"	k	type:Gk_set
 vgknrl	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vgknrl(/;"	k	type:Gk_set
@@ -28542,10 +28585,13 @@ vkc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkc(/;"	k	type:k_
 vkc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkc(/;"	k	type:kq_set
 vkcnr	mod_kpoint.F90	/^      Real (8), Allocatable :: vkcnr /;"	v	module:mod_kpoint
 vkcnr	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkcnr(/;"	k	type:k_set
-vkl	mod_kpoint.F90	/^      Real (8), Allocatable :: vkl /;"	v	module:mod_kpoint
+vkl	mod_kpoint.F90	/^      Real (8), Allocatable, target :: vkl(/;"	v	module:mod_kpoint
 vkl	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkl(/;"	k	type:k_set
 vkl	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkl(/;"	k	type:kq_set
-vkl0	src_xs/modxs.F90	/^      Real (8), Allocatable :: vkl0 /;"	v	module:modxs
+vkl0	src_xs/modxs.F90	/^      Real (8), Allocatable, target :: vkl0 /;"	v	module:modxs
+vkl0_ptr	src_xs/mod_ematptr.f90	/^  real(8), pointer :: vkl0_ptr(/;"	v	module:mod_ematptr
+vkl1_ptr	src_xs/mod_ematptr.f90	/^  real(8), pointer :: vkl0_ptr(:,:), vkl1_ptr(/;"	v	module:mod_ematptr
+vkl_ptr	mod_kpoint.F90	/^      real(8), pointer :: vkl_ptr(/;"	v	module:mod_kpoint
 vklem	src_inputparser/inputmodules.f90	/^ real(8)::vklem(/;"	k	type:masstensor_type
 vklnr	mod_kpoint.F90	/^      Real (8), Allocatable :: vklnr /;"	v	module:mod_kpoint
 vklnr	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vklnr(/;"	k	type:k_set
