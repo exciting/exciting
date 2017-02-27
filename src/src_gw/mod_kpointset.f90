@@ -8,7 +8,6 @@ MODULE mod_kpointset
         ! k-points
         integer :: nkpt                     ! number of k-points
         integer :: nkptnr                   ! total (non-reduced) number of k-points (in case symmetry is used)
-        integer :: ngridk(3)                ! gridsize
         real(8), allocatable :: vkl(:,:)    ! lattice coordinates
         real(8), allocatable :: vkc(:,:)    ! cartesian coordinates
         integer, allocatable :: ik2ikp(:)   ! index mapping: non-reduced->reduced k-point
@@ -141,7 +140,6 @@ CONTAINS
         ! initialize k-set
         self%nkptnr = ngridk(1)*ngridk(2)*ngridk(3)
         self%nkpt = self%nkptnr
-        self%ngridk = ngridk
         if (allocated(self%vkl)) deallocate(self%vkl)
         allocate(self%vkl(3,self%nkpt))
         if (allocated(self%vkc)) deallocate(self%vkc)
