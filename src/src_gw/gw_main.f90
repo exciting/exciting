@@ -182,8 +182,8 @@ subroutine gw_main()
             call init_gw
             if( associated( input%properties%wannier)) then
               input%properties%wannier%input = "gw"
-              input%properties%wannier%state = ibgw
-              input%properties%wannier%nst = nbgw - ibgw + 1
+              !input%properties%wannier%fst = ibgw
+              !input%properties%wannier%lst = nbgw
               call wannierlauncher
               call task_band 
             end if
