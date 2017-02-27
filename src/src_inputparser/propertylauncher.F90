@@ -17,7 +17,7 @@ Subroutine propertylauncher
 
       !--------------------------------------------------------
       if( associated( input%properties%wannier)) then
-        if( input%properties%wannier%input .eq. "groundstate") then
+        if( input%properties%wannier%input .ne. "gw") then
           call rereadinput
           call wannierlauncher
         end if
