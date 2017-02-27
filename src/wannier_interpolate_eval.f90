@@ -24,10 +24,10 @@ subroutine wannier_interpolate_eval( eval1, nk1, kvl1, eval2, nk2, kvl2, fst, ls
   real(8), intent( out) :: eval2( fst:lst, nk2)
   
   integer :: nrpt, ia, ix, iy, iz, iknr, ik, ir
-  real(8) :: vc(3), energy
+  real(8) :: vc(3)
   complex(8) :: ftweight
 
-  real(8), allocatable :: rptc(:,:), rptl(:,:), evaltmp(:), kdiff(:,:), eval1_tmp(:,:)
+  real(8), allocatable :: rptc(:,:), rptl(:,:), evaltmp(:), kdiff(:,:)
   complex(8), allocatable :: auxmat(:,:), auxmat2(:,:,:), wanme(:,:,:), evectmp(:,:)
 
   ! check band-range
@@ -36,23 +36,18 @@ subroutine wannier_interpolate_eval( eval1, nk1, kvl1, eval2, nk2, kvl2, fst, ls
     call terminate
   end if
   ! check k-points
-  if( nk1 .ne. wf_kset%nkpt) then
+  if( nk1 .ne. wf_nkpt) then
     write( *, '(" ERROR (wannier_interpolate_eval): Different numbers of k-points.")')
     call terminate
   end if
-  
-  allocate( eval1_tmp( fst:lst, nk1))
-  eval1_tmp( lst, :) = eval1( lst, :)
-  eval1_tmp( lst-1, :) = eval1( lst, :)
-  eval1_tmp( fst:(lst-2), :) = eval1( (fst+2):lst, :)
 
   ! generate set of lattice vectors 
   nrpt = nk1
   allocate( rptc( 3, nrpt), rptl( 3, nrpt))
   ia = 0
-  do iz = -wf_kset%ngridk(3)/2, -wf_kset%ngridk(3)/2+wf_kset%ngridk(3)-1
-    do iy = -wf_kset%ngridk(2)/2, -wf_kset%ngridk(2)/2+wf_kset%ngridk(2)-1
-      do ix = -wf_kset%ngridk(1)/2, -wf_kset%ngridk(1)/2+wf_kset%ngridk(1)-1
+  do iz = -wf_ngridk(3)/2, -wf_ngridk(3)/2+wf_ngridk(3)-1
+    do iy = -wf_ngridk(2)/2, -wf_ngridk(2)/2+wf_ngridk(2)-1
+      do ix = -wf_ngridk(1)/2, -wf_ngridk(1)/2+wf_ngridk(1)-1
         ia = ia + 1
         rptl( :, ia) = (/ dble( ix), dble( iy), dble( iz)/)
         call r3mv( input%structure%crystal%basevect, rptl( :, ia), rptc( :, ia))
@@ -63,28 +58,25 @@ subroutine wannier_interpolate_eval( eval1, nk1, kvl1, eval2, nk2, kvl2, fst, ls
   ! calculate Hamlitonian matrix elements in Wannier representation 
   allocate( auxmat( nrpt, nk1), auxmat2( nk1, fst:lst, fst:lst))
   allocate( wanme( nrpt, fst:lst, fst:lst))
-  allocate( kdiff( 3, wf_kset%nkpt))
+  allocate( kdiff( 3, nk1))
   do iknr = 1, nk1
-    kdiff( 1, :) = wf_kset%vkl( 1, :) - kvl1( 1, iknr)
-    kdiff( 2, :) = wf_kset%vkl( 2, :) - kvl1( 2, iknr)
-    kdiff( 3, :) = wf_kset%vkl( 3, :) - kvl1( 3, iknr)
+    do ik = 1, nk1
+      kdiff( :, ik) = wf_vkl( :, ik) - kvl1( :, iknr)
+    end do
     ik = minloc( norm2( kdiff, 1), 1)
-    if( norm2( kdiff( :, ik)) .gt. input%structure%epslat) then
+    if( norm2( wf_vkl( :, ik) - kvl1( :, iknr)) .gt. input%structure%epslat) then
       write( *, '(" ERROR (wannier_interpolate_eval): k-point does not belong to Wannier k-grid.")')
-      write( *, '(" k-point: ",3F13.6)') kvl1( :, iknr)
       call terminate
     end if
-    !write( *, '(3F13.6)') kvl1( :, iknr)
     do iy = fst, lst
-      !write( *, '(I3,F23.16)') iy, eval1_tmp( iy, iknr)
       do ix = fst, lst
         auxmat2( iknr, ix, iy) = zzero
-        do iz = fst, lst
+        do iz = fst, lst  
           auxmat2( iknr, ix, iy) = auxmat2( iknr, ix, iy) + eval1( iz, iknr)*wf_transform( iz-fst+wf_fst, ix-fst+wf_fst, ik)*conjg( wf_transform( iz-fst+wf_fst, iy-fst+wf_fst, ik))
         end do
       end do
     end do
-    call r3mv( bvec, wf_kset%vkl( :, ik), vc)
+    call r3mv( bvec, kvl1( :, iknr), vc)
     do ir = 1, nrpt 
       auxmat( ir, iknr) = exp( -zi*dot_product( rptc( :, ir), vc))
     end do
