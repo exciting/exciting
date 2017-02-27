@@ -56,12 +56,14 @@ Subroutine bandstr
   complex(8), allocatable :: e0(:,:), e1(:,:)
   logical :: exist,hybcheck
 !WANNIER
+  integer :: fst, lst
   real(8), allocatable :: eval1(:,:), vklold(:,:)
   complex(8), allocatable :: evectmp(:,:)
   integer :: symm, symn
 !END WANNIER
 ! initialise universal variables
   Call init0
+  Call init1
 
 if (input%properties%bandstructure%wannier) then
   !--------------------------------------------------!      
@@ -78,16 +80,11 @@ if (input%properties%bandstructure%wannier) then
 
   allocate( eval1( nstfv, nkptnr), evalfv( nstfv, nspinor), vklold( 3, nkptnr))
   ! read FV eigenvalues
-  !vklold = vklnr
-  !nkpt0 = nkpt
-  !vkl = wf_kset%vkl
-  !nkpt = wf_kset%nkpt
-  do iknr = 1, wf_kset%nkpt
-    call getevalfv( wf_kset%vkl( :, iknr), evalfv)
+  do iknr = 1, nkptnr
+    call getevalfv( vklnr( :, iknr), evalfv)
     eval1( :, iknr) = evalfv( :, 1)
   end do
-  !vkl = vklold
-  !nkpt = nkpt0
+  vklold = vklnr
   
   ! reread k-points on BZ-path
   input%properties%bandstructure%wannier = .FALSE. 
@@ -96,7 +93,9 @@ if (input%properties%bandstructure%wannier) then
   allocate( evalsv( nstfv, nkpt))
   
   ! do interpolation
-  call wannier_interpolate_eval( eval1( wf_fst:wf_lst, :), wf_kset%nkpt, wf_kset%vkl, evalsv( wf_fst:wf_lst, :), nkpt, vkl, wf_fst, wf_lst)
+  fst = wf_bandstart
+  lst = fst+wf_nband-1
+  call wannier_interpolate_eval( eval1( fst:lst, :), wf_nkpt, vklold, evalsv( fst:lst, :), nkpt, vkl, fst, lst)
   evalsv = evalsv - efermi
 
   ! output
@@ -111,7 +110,7 @@ if (input%properties%bandstructure%wannier) then
     call xml_NewElement( xf, "title")
     call xml_AddCharacters( xf, trim( input%title))
     call xml_endElement( xf, "title")
-    do ist = wf_fst, wf_lst
+    do ist = fst, lst
       call xml_NewElement( xf, "band")
       do ik = 1, nkpt
         write( 50, '(2G18.10)') dpp1d (ik), evalsv (ist, ik)
@@ -170,7 +169,6 @@ stop
 
 
 else
-  Call init1
   !------------------------------------------      
   ! Calculate bandstructure by interpolation
   !------------------------------------------
