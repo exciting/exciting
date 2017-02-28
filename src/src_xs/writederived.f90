@@ -24,6 +24,22 @@ subroutine writederived(iqmt, eps, nw, w)
   complex(8) :: sigma(nw)
   real(8) :: sumrls(3)
   logical :: foff
+  character(256) :: tdastring, bsetypestring, tistring, scrtypestring
+
+  if(input%xs%bse%coupling) then
+    tdastring="-noTDA"
+  else
+    tdastring="-TDA"
+  end if
+
+  if(input%xs%bse%ti) then 
+    tistring="-TI"
+  else
+    tistring=''
+  end if
+
+  bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
+  scrtypestring = '-'//trim(input%xs%screening%screentype)
 
   ! Generate loss function as inverted dielectric tensor
   if(iqmt == 0) then 
@@ -58,31 +74,31 @@ subroutine writederived(iqmt, eps, nw, w)
       ! Generate File names for resulting quantities
       if(iqmt == 1) then 
         call genfilname(basename='EPSILON', tq0=.true., oc1=o1, oc2=o2,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+          & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fneps)
 
         call genfilname(basename='LOSS', tq0=.true., oc1=o1, oc2=o2,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+          & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fnloss)
 
         call genfilname(basename='SIGMA', tq0=.true., oc1=o1, oc2=o2,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+          & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fnsigma)
 
         call genfilname(basename='SUMRULES', tq0=.true., oc1=o1, oc2=o2,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+          & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
       else
         call genfilname(basename='EPSILON', iqmt=iqmt,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+          & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fneps)
 
         call genfilname(basename='SIGMA', iqmt=iqmt,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+          & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fnsigma)
 
         call genfilname(basename='SUMRULES', iqmt=iqmt,&
-          & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+          & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
       end if
 

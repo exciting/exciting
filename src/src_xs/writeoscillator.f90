@@ -29,7 +29,7 @@ module m_writeoscillator
       integer(4), allocatable :: idxsort(:), idxsort2(:)
       real(8), allocatable :: evalre_sorted(:)
       real(8) :: pm
-      character(256) :: fnexc, frmt
+      character(256) :: fnexc, frmt, tdastring, bsetypestring, tistring, scrtypestring
 #ifdef DGRID
       character(256) :: dgrid_dotext
 #endif
@@ -39,6 +39,22 @@ module m_writeoscillator
       else
         fsort = .false.
       end if
+
+      if(input%xs%bse%coupling) then
+        tdastring="-noTDA"
+      else
+        tdastring="-TDA"
+      end if
+
+      if(input%xs%bse%ti) then 
+        tistring="-TI"
+      else
+        tistring=''
+      end if
+
+      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
+      scrtypestring = '-'//trim(input%xs%screening%screentype)
+
 
       allocate(idxsort(hamsize))
       if(fsort) then 
@@ -79,13 +95,13 @@ module m_writeoscillator
           write(dgrid_dotext, '("_SG", i3.3, ".OUT")') iksubpt
 
           call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
-            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+            & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
             & nar= .not. input%xs%bse%aresbse, dotext=dgrid_dotext, filnam=fnexc)
 
         else
 
           call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
-            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+            & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
             & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
           
         endif
@@ -93,16 +109,16 @@ module m_writeoscillator
         if(present(iqmt)) then 
           if(iqmt /= 1) then 
             call genfilname(basename='EXCITON', iqmt=iqmt,&
-              & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+              & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
               & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
           else
             call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
-              & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+              & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
               & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
           end if
         else
           call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
-            & bsetype=input%xs%bse%bsetype, scrtype=input%xs%screening%screentype,&
+            & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
             & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
         end if
 #endif

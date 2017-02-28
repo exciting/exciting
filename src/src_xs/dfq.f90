@@ -236,7 +236,7 @@ subroutine dfq(iq)
   ! and then calling init1
   call init1offs(qvkloff(1:3, iq))
 
-  write(*,*) "df: qvkloff=", qvkloff(1:3,iq)
+  !write(*,*) "df: qvkloff=", qvkloff(1:3,iq)
 
   ! TETRA: Generate link array for tetrahedra
   if(input%xs%tetra%tetradf) then
@@ -250,11 +250,11 @@ subroutine dfq(iq)
 #endif            
   end if
 
-  write(*,*) "dfq: iq=", iq, " filext=", trim(filext)
+  !write(*,*) "dfq: iq=", iq, " filext=", trim(filext)
 
   ! Find highest (partially) occupied and lowest (partially) unoccupied states
   ! for k and k+q points 
-  write(*,*) "dfq: ikmapikq(:,iq)", ikmapikq(:,iq)
+  !write(*,*) "dfq: ikmapikq(:,iq)", ikmapikq(:,iq)
   call findocclims(iq, ikmapikq(:,iq), istocc0, istunocc0, isto0, isto, istu0, istu)
   istunocc = istunocc0
   istocc = istocc0
@@ -413,7 +413,7 @@ subroutine dfq(iq)
     call timesec(cpu0)
 
     ikq = ikmapikq(ik, iq)
-    write(*,*) "dfq: ik, iq, ikq", ik, iq, ikq
+    !write(*,*) "dfq: ik, iq, ikq", ik, iq, ikq
 
     ! Get second variational KS transition energies, scissor shifts 
     ! and occupancy differences for current k+q/k point combination 
