@@ -62,6 +62,7 @@ Subroutine bandstr
 !END WANNIER
 ! initialise universal variables
   Call init0
+  Call init1
 
 if (input%properties%bandstructure%wannier) then
   !--------------------------------------------------!      
@@ -78,16 +79,11 @@ if (input%properties%bandstructure%wannier) then
 
   allocate( eval1( nstfv, nkptnr), evalfv( nstfv, nspinor), vklold( 3, nkptnr))
   ! read FV eigenvalues
-  !vklold = vklnr
-  !nkpt0 = nkpt
-  !vkl = wf_kset%vkl
-  !nkpt = wf_kset%nkpt
-  do iknr = 1, wf_kset%nkpt
-    call getevalfv( wf_kset%vkl( :, iknr), evalfv)
+  do iknr = 1, nkptnr
+    call getevalfv( vklnr( :, iknr), evalfv)
     eval1( :, iknr) = evalfv( :, 1)
   end do
-  !vkl = vklold
-  !nkpt = nkpt0
+  vklold = vklnr
   
   ! reread k-points on BZ-path
   input%properties%bandstructure%wannier = .FALSE. 
@@ -96,7 +92,7 @@ if (input%properties%bandstructure%wannier) then
   allocate( evalsv( nstfv, nkpt))
   
   ! do interpolation
-  call wannier_interpolate_eval( eval1( wf_fst:wf_lst, :), wf_kset%nkpt, wf_kset%vkl, evalsv( wf_fst:wf_lst, :), nkpt, vkl, wf_fst, wf_lst)
+  call wannier_interpolate_eval( eval1( wf_fst:wf_lst, :), wf_nkpt, vklold, evalsv( wf_fst:wf_lst, :), nkpt, vkl, wf_fst, wf_lst)
   evalsv = evalsv - efermi
 
   ! output
@@ -170,7 +166,6 @@ stop
 
 
 else
-  Call init1
   !------------------------------------------      
   ! Calculate bandstructure by interpolation
   !------------------------------------------

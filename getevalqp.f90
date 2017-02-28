@@ -120,14 +120,14 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   if( input%gw%taskname .eq. "wannier") then
     call readfermi
     kvecs2_ = kvecs2
-    allocate( eqpwan( ibgw:nbgw, wf_kset%nkpt), eqpwanint( ibgw:nbgw, nkp2))
+    allocate( eqpwan( ibgw:nbgw, wf_nkpt), eqpwanint( ibgw:nbgw, nkp2))
     if( allocated( vkl)) deallocate( vkl)
     allocate( vkl( 3, nkp1))
     vkl = kvecs1
-    do ik = 1, wf_kset%nkpt
-      call findkpt( wf_kset%vkl( :, ik), nb, ib)
+    do ik = 1, wf_nkpt
+      call findkpt( wf_vkl( :, ik), nb, ib)
       !write(*,*) ik, ib
-      !write(*,*) wf_kset%vkl( :, ik)
+      !write(*,*) wf_vkl( :, ik)
       !write(*,*) vkl( :, ib)
       !write(*,*) kvecs1( :, ib)
       eqpwan( :, ik) = eqp1( ibgw:nbgw, ib)
@@ -138,10 +138,10 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     vkl = kvecs2_
     nkpt = nkp2
       
-    !write(*,*) shape( eqpwan), shape( wf_kset%vkl), wf_kset%nkpt
+    !write(*,*) shape( eqpwan), shape( wf_vkl), wf_nkpt
     !write(*,*) shape( eqpwanint), shape( kvecs2), nkp2
     !write(*,*) shape( eqp2)
-    call wannier_interpolate_eval( eqpwan, wf_kset%nkpt, wf_kset%vkl, eqpwanint, nkp2, kvecs2_, ibgw, nbgw)
+    call wannier_interpolate_eval( eqpwan, wf_nkpt, wf_vkl, eqpwanint, nkp2, kvecs2_, ibgw, nbgw)
     do ib = ibgw, min(nbgw,nstsv)
        do ik = 1, nkp2
           eqp2( ib, ik) = eqpwanint( ib, ik) - eferqp - efermi

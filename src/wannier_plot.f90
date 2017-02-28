@@ -22,7 +22,7 @@ subroutine wannier_plot( ist, cell)
     ! allocatable arrays
     integer, allocatable :: igkignr(:)
     real(8), allocatable :: vvl(:,:), dist(:)
-    real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:)
+    real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:), vgkltmp(:,:,:,:)
     complex(8), allocatable :: apwalm(:,:,:,:), sfacgkc(:,:)
     complex(8), allocatable :: evecfv(:,:)
     complex(8), allocatable :: evecsv(:,:)
@@ -47,7 +47,7 @@ subroutine wannier_plot( ist, cell)
     ! generate the local-orbital radial functions
     call genlofr
 
-    if ((ist<1) .or. (ist>nstsv)) then
+    if ((ist<wf_fst) .or. (ist>wf_lst)) then
       if (rank==0) then
         write (*,*)
         write (*, '("Error (wannierplot): state out of range : ", I8)') ist
@@ -103,6 +103,18 @@ subroutine wannier_plot( ist, cell)
 
     allocate( zdatatot( grid%npt))
     zdatatot = zzero
+    ! calculate non-reduced G+k vectors
+    allocate( vgkltmp( 3, ngkmax, nspnfv, nkpt))
+    allocate( igkignr( ngkmax))
+    allocate( vgkcnr( 3, ngkmax, nspnfv), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
+    vgkltmp = vgkl
+    deallocate( vgkl)
+    allocate( vgkl( 3, ngkmax, nspnfv, nkptnr))
+    do iknr = 1, nkptnr
+      call gengpvec( vklnr( :, iknr), vkcnr( :, iknr), ngknr, igkignr, vgkl(:,:,1,iknr), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+    end do
+    deallocate( vgkcnr, gkcnr, tpgkcnr, igkignr)
+      
     ! calculate the Wannier function on the grid
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, iknr, evecfv, evecsv, apwalm, wfmt, wfir, jst, zdata, phase, igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr, sfacgkc, ngknr) reduction(+:zdatatot)
@@ -149,6 +161,9 @@ subroutine wannier_plot( ist, cell)
 #ifdef USEOMP
 !$OMP END PARALLEL
 #endif
+    deallocate( vgkl)
+    allocate( vgkl( 3, ngkmax, nspnfv, nkpt))
+    vgkl = vgkltmp
     zdatatot = zdatatot/nkptnr
     ! phase correction
     allocate( dist( grid%npt)) 
