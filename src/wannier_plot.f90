@@ -103,19 +103,9 @@ subroutine wannier_plot( ist, cell)
 
     allocate( zdatatot( grid%npt))
     zdatatot = zzero
-    ! calculate non-reduced G+k vectors
-    allocate( vgkltmp( 3, ngkmax, nspnfv, nkpt))
-    allocate( igkignr( ngkmax))
-    allocate( vgkcnr( 3, ngkmax, nspnfv), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
-    vgkltmp = vgkl
-    deallocate( vgkl)
-    allocate( vgkl( 3, ngkmax, nspnfv, nkptnr))
-    do iknr = 1, nkptnr
-      call gengpvec( vklnr( :, iknr), vkcnr( :, iknr), ngknr, igkignr, vgkl(:,:,1,iknr), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-    end do
-    deallocate( vgkcnr, gkcnr, tpgkcnr, igkignr)
-      
     ! calculate the Wannier function on the grid
+    allocate( vgkltmp( 3, ngkmax, nspnfv, nkpt))
+
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, iknr, evecfv, evecsv, apwalm, wfmt, wfir, jst, zdata, phase, igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr, sfacgkc, ngknr) reduction(+:zdatatot)
 #endif
@@ -161,9 +151,6 @@ subroutine wannier_plot( ist, cell)
 #ifdef USEOMP
 !$OMP END PARALLEL
 #endif
-    deallocate( vgkl)
-    allocate( vgkl( 3, ngkmax, nspnfv, nkpt))
-    vgkl = vgkltmp
     zdatatot = zdatatot/nkptnr
     ! phase correction
     allocate( dist( grid%npt)) 

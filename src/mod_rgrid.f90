@@ -417,17 +417,21 @@ contains
     real(8), allocatable :: xa(:), ya(:), c(:)
     real(8), external :: polynom
 
-    ngktmp = ngk( 1, ik)
-    vgkltmp = vgkl( :, :, :, ik)
-    vkltmp = vkl( :, ik)
-
     if( present( nosym)) then
       if( nosym) then
         vkltmp = vklnr( :, ik)
         allocate( igkignr( ngkmax), vgkcnr( 3, ngkmax, nspnfv), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
         call gengpvec( vklnr( :, ik), vkcnr( :, ik), ngktmp, igkignr, vgkltmp, vgkcnr(:,:,1), gkcnr, tpgkcnr)
         deallocate( igkignr, vgkcnr, gkcnr, tpgkcnr)
+      else
+        ngktmp = ngk( 1, ik)
+        vgkltmp = vgkl( :, :, :, ik)
+        vkltmp = vkl( :, ik)
       end if
+    else
+      ngktmp = ngk( 1, ik)
+      vgkltmp = vgkl( :, :, :, ik)
+      vkltmp = vkl( :, ik)
     end if
 
     np2 = input%groundstate%nprad/2

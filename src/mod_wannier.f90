@@ -745,7 +745,7 @@ module mod_wannier
         lambda = lambda + 0.5d0*wf_n_n( wf_n_usedshells( i))*wf_n_wgt( wf_n_usedshells( i))
       end do
       minit = nint( wf_nst*(wf_nprojtot - 0.5d0*(wf_nst + 1)))
-      limit = min( 1.d-3, 1.d2*input%properties%wannier%uncertainty)
+      limit = 1.d-3
 
       !********************************************************************
       ! build enlarged overlap and constraint matrices
@@ -1744,9 +1744,9 @@ module mod_wannier
       nvlt = 0.d0
       nvct = 0.d0
       i = 0
-      do iz = 0, wf_kset%ngridk(3)-1
-        do iy = 0, wf_kset%ngridk(2)-1
-          do ix = 0, wf_kset%ngridk(1)-1
+      do iz = wf_kset%ngridk(3)-1, -wf_kset%ngridk(3)+1, -1
+        do iy = wf_kset%ngridk(2)-1, -wf_kset%ngridk(2)+1, -1
+          do ix = wf_kset%ngridk(1)-1, -wf_kset%ngridk(1)+1, -1
             if( (abs(ix)+abs(iy)+abs(iz)) .ne. 0) then
               vl = (/dble( ix)/wf_kset%ngridk(1), dble( iy)/wf_kset%ngridk(2), dble( iz)/wf_kset%ngridk(3)/)
               call r3mv( bvec, vl, vc)

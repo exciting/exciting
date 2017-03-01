@@ -179,11 +179,11 @@ subroutine gw_main()
             if (rank==0) call plot_selfenergy
 
         case('wannier')
-            call init_gw
+            !call init_gw
             if( associated( input%properties%wannier)) then
               input%properties%wannier%input = "gw"
-              input%properties%wannier%fst = ibgw
-              input%properties%wannier%lst = nbgw
+              !input%properties%wannier%fst = ibgw
+              !input%properties%wannier%lst = nbgw
               call wannierlauncher
               call task_band 
             end if

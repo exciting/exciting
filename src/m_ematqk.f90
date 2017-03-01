@@ -356,7 +356,7 @@ module m_ematqk
           integer, allocatable :: igkignr(:), igkqig(:) 
           real(8), allocatable :: vecgkql(:,:), vecgkqc(:,:), gkqc(:), tpgkqc(:,:)
           complex(8), allocatable :: sfacgkq(:,:), apwalm1(:,:,:,:), apwalm2(:,:,:,:)
-          complex(8), allocatable :: blockmt(:,:), auxmat(:,:), match_combined1(:,:), match_combined2(:,:)
+          complex(8), allocatable :: blockmt(:,:), auxmat(:,:), match_combined1(:,:,:), match_combined2(:,:,:)
           complex(8), allocatable :: aamat(:,:), almat(:,:), lamat(:,:)
           
           nst1 = lst1-fst1+1
@@ -376,6 +376,8 @@ module m_ematqk
           allocate( sfacgkq( ngkmax, natmtot))
           allocate( apwalm1( ngkmax, apwordmax, lmmaxapw, natmtot))
           allocate( apwalm2( ngkmax, apwordmax, lmmaxapw, natmtot))
+          write( *, '("size of apwalm1: ",5I)') shape( apwalm1), sizeof( apwalm1)
+          write( *, '("size of apwalm2: ",5I)') shape( apwalm2), sizeof( apwalm2)
 
           ! k+q-vector in lattice coordinates
           veckql = veckl + vecql
@@ -399,19 +401,43 @@ module m_ematqk
           
           deallocate( vecgkql, vecgkqc, gkqc, tpgkqc, sfacgkq) 
           
+          allocate( match_combined1( nlmomax, ngknr, natmtot), &
+                    match_combined2( nlmomax, ngkq, natmtot))
+          write( *, '("size of match_combined1: ",4I)') shape( match_combined1), sizeof( match_combined1)
+          write( *, '("size of match_combined2: ",4I)') shape( match_combined2), sizeof( match_combined2)
+
+          match_combined1 = zzero
+          match_combined2 = zzero
+          do is = 1, nspecies
+            do ia = 1, natoms( is)
+              ias = idxas( ia, is)
+              ! write combined matching coefficient matrices
+              do lmo = 1, nlmo( is)
+                l = lmo2l( lmo, is)
+                m = lmo2m( lmo, is)
+                o = lmo2o( lmo, is)
+                lm = idxlm( l, m)
+                match_combined1( lmo, :, ias) = apwalm1( 1:ngknr, o, lm, ias)
+                match_combined2( lmo, :, ias) = apwalm2( 1:ngkq, o, lm, ias)
+              end do
+            end do
+          end do
+
+          deallocate( apwalm1, apwalm2)
+
           ! build block matrix
           ! [_AA_|_AL_]
           ! [ LA | LL ]
 
           allocate( blockmt( ngknr+nlotot, ngkq+nlotot))
+          write( *, '("size of blockmt: ",3I)') shape( blockmt), sizeof( blockmt)
           blockmt(:,:) = zzero
 #ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( is, ia, ias, match_combined1, match_combined2, lmo, l, m, o, lm, auxmat, aamat, almat, lamat)
-!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( is, ia, ias, match_combined1, match_combined2, lmo, l, m, o, lm, auxmat)
+!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( is, ia, ias, auxmat)
 #endif
           allocate( auxmat( nlmomax, ngkq))
-          allocate( match_combined1( nlmomax, ngknr), &
-                    match_combined2( nlmomax, ngkq))
+          write( *, '("size of auxmat: ",3I)') shape( auxmat), sizeof( auxmat)
           !allocate( aamat( ngknr, ngkq), &
           !          almat( ngknr, nlotot), &
           !          lamat( nlotot, ngkq))
@@ -421,39 +447,29 @@ module m_ematqk
           do is = 1, nspecies
             do ia = 1, natoms( is)
               ias = idxas( ia, is)
-              ! write combined matching coefficient matrices
-              match_combined1(:,:) = zzero
-              match_combined2(:,:) = zzero
-              do lmo = 1, nlmo( is)
-                l = lmo2l( lmo, is)
-                m = lmo2m( lmo, is)
-                o = lmo2o( lmo, is)
-                lm = idxlm( l, m)
-                match_combined1( lmo, :) = apwalm1( 1:ngknr, o, lm, ias)
-                match_combined2( lmo, :) = apwalm2( 1:ngkq, o, lm, ias)
-              end do
               ! sum up block matrix
               ! APW-APW
               auxmat(:,:) = zzero
+              write(*,*) ias
               call ZGEMM( 'N', 'N', nlmo( is), ngkq, nlmo( is), zone, &
                    rigntaa( 1:nlmo( is), 1:nlmo( is), ias), nlmo( is), &
-                   match_combined2( 1:nlmo( is), :), nlmo( is), zzero, &
+                   match_combined2( 1:nlmo( is), :, ias), nlmo( is), zzero, &
                    auxmat( 1:nlmo( is), :), nlmo( is))
               call ZGEMM( 'C', 'N', ngknr, ngkq, nlmo( is), zone, &
-                   match_combined1( 1:nlmo( is), :), nlmo( is), &
+                   match_combined1( 1:nlmo( is), :, ias), nlmo( is), &
                    auxmat( 1:nlmo( is), :), nlmo( is), zone, &
                    blockmt( 1:ngknr, 1:ngkq), ngknr)
               !blockmt( 1:ngknr, 1:ngkq) = blockmt( 1:ngknr, 1:ngkq) + aamat(:,:)
               ! APW-LO
               call ZGEMM( 'C', 'N', ngknr, nlotot, nlmo( is), zone, &
-                   match_combined1( 1:nlmo( is), :), nlmo( is), &
+                   match_combined1( 1:nlmo( is), :, ias), nlmo( is), &
                    rigntal( 1:nlmo( is), :, ias), nlmo( is), zone, &
                    blockmt( 1:ngknr, (ngkq+1):(ngkq+nlotot)), ngknr)
               !blockmt( 1:ngknr, (ngkq+1):(ngkq+nlotot)) = blockmt( 1:ngknr, (ngkq+1):(ngkq+nlotot)) + almat(:,:)
               ! LO-APW
               call ZGEMM( 'N','N', nlotot, ngkq, nlmo( is), zone, &
                    rigntla( :, 1:nlmo( is), ias), nlotot, &
-                   match_combined2( 1:nlmo( is), :), nlmo( is), zone, &
+                   match_combined2( 1:nlmo( is), :, ias), nlmo( is), zone, &
                    blockmt( (ngknr+1):(ngknr+nlotot), 1:ngkq), nlotot)
               !blockmt( (ngknr+1):(ngknr+nlotot), 1:ngkq) = blockmt( (ngknr+1):(ngknr+nlotot), 1:ngkq) + lamat(:,:)
               ! LO-LO
@@ -464,10 +480,11 @@ module m_ematqk
 !!$OMP END DO
 #endif
           !deallocate( match_combined1, match_combined2, aamat, almat, lamat, auxmat)
-          deallocate( match_combined1, match_combined2, auxmat)
+          deallocate( auxmat)
 #ifdef USEOMP
 !!$OMP END PARALLEL
 #endif
+          deallocate( match_combined1, match_combined2)
 
           ! compute final total muffin tin contribution
           allocate( auxmat( ngknr+nlotot, nst2))
@@ -480,7 +497,7 @@ module m_ematqk
                auxmat(:,:), ngknr+nlotot, zzero, &
                emat( fst1:lst1, fst2:lst2), nst1)
 
-          deallocate( blockmt, apwalm1, apwalm2, auxmat)
+          deallocate( blockmt, auxmat)
           
           !if( norm2( vecql(:) - (/0.25, 0.00, 0.00/)) .lt. input%structure%epslat) then
           !  write(*,*) ik
