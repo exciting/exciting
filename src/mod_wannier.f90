@@ -101,7 +101,7 @@ module mod_wannier
       do is = 1, nspecies
         do ia = 1, natoms( is)
           do ilo = 1, nlorb( is)
-            if( lorbwfproj( ilo, is)) then
+            !if( lorbwfproj( ilo, is)) then
               l = lorbl( ilo, is)
               do m = -l, l
                 wf_nprojtot = wf_nprojtot + 1
@@ -111,7 +111,7 @@ module mod_wannier
                 wf_projst( wf_nprojtot, 4) = l
                 wf_projst( wf_nprojtot, 5) = m 
               end do
-            end if
+            !end if
           end do
         end do
       end do
@@ -428,140 +428,169 @@ module mod_wannier
       !BOC
 
       ! local variables
-      integer :: i, is, n, k1, k2, iknr, ngknr, maxn, idxn
+      integer :: i, is, n, k1, k2, iknr, ngknr, maxn, idxn, n2
       real(8) :: t0, t1
+      logical :: succes
 
       ! allocatable arrays
       integer, allocatable :: igkignr(:)
-      real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:)
+      real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:), dist(:)
       !complex(8), allocatable :: evecfv_tmp(:,:,:,:)
       complex(8), allocatable :: evecfv1(:,:,:), evecfv2(:,:,:)
       
       write(*,*) "wannier_emat..."
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
       write( wf_info, '(" calculate plane-wave matrix-elements...")')
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
       call timesec( t0)
 
-      maxn = 0
-      do i = 1, wf_n_nshells
-        maxn = max( maxn, wf_n_n( wf_n_usedshells( i)))
-      end do
-      write(*,*) maxn
+      ! check for existing file
+      succes = .true.
+      inquire( file="WANNIER_EMAT"//trim( filext), exist=succes)
+      if( succes) then
+        call wannier_reademat( "WANNIER", succes)
+        if( succes) then
+          call timesec( t1)
+          write( wf_info, '(" ...plane-wave matrix-elements read from file.")')
+          write( wf_info, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
+          write( wf_info, '(5x,"#k-points: ",T40,7x,I6)') wf_kset%nkpt
+          write( wf_info, '(5x,"#neighbors per k-point: ",T40,7x,I6)') wf_n_ntot
+        end if
+      end if
 
-      if( allocated( wf_emat)) deallocate( wf_emat)
-      !allocate( wf_emat( nstfv, nstfv, maxval( wf_n_n( 1:wf_n_nshells)), wf_n_nshells, wf_kset%nkpt))
-      allocate( wf_emat( wf_fst:wf_lst, wf_fst:wf_lst, wf_n_ntot, wf_kset%nkpt))
-      wf_emat = zzero
-      
-      ! read eigenvectors
-      allocate( igkignr( ngkmax))
-      allocate( vgklnr( 3, ngkmax, nspinor), vgkcnr( 3, ngkmax, nspinor), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
-      !allocate( evecfv_tmp( nmatmax, wf_fst:wf_lst, nspinor, wf_kset%nkpt))
-      allocate( evecfv1( nmatmax, nstfv, nspinor))
-      allocate( evecfv2( nmatmax, nstfv, nspinor))
-      !do iknr = 1, wf_kset%nkpt 
-      !  if( input%properties%wannier%input .eq. "groundstate") then
-      !    ! find G+k-vectors and eigenvectors for non-reduced k-point k
-      !    call gengpvec( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-      !    call getevecfv( wf_kset%vkl( :, iknr), vgklnr, evecfv1)
-      !    evecfv_tmp( :, :, :, iknr) = evecfv1( :, wf_fst:wf_nst, :)
-      !  else if( input%properties%wannier%input .eq. "gw") then
-      !    call getevecsvgw_new( "GW_EVECSV.OUT", iknr, wf_kset%vkl( :, iknr), nmatmax, nstfv, nspinor, evecfv1)
-      !    evecfv_tmp( :, :, :, iknr) = evecfv1( :, wf_fst:wf_nst, :)
-      !  else
-      !    call terminate
-      !  end if
-      !end do
-      !deallocate( igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
-      !write( *, '("size of evecs: ",I)') sizeof( evecfv_tmp)
+      if( .not. succes) then          
+        maxn = 0
+        do i = 1, wf_n_nshells
+          maxn = max( maxn, wf_n_n( wf_n_usedshells( i)))
+        end do
+        write(*,*) maxn
 
-      do i = 1, wf_n_nshells
-        is = wf_n_usedshells( i) 
-        write(*,*) is 
-        do n = 1, wf_n_n( is)/2
-          idxn = wf_n_ns2n( n, is)
-          call emat_init( wf_n_vl( :, n, is), (/0, 0, 0/), input%groundstate%lmaxapw, 8)
-          k1 = 1
-          k2 = wf_kset%nkpt
-#ifdef MPI
-          k1 = firstofset( rank, wf_kset%nkpt)
-          k2 = lastofset( rank, wf_kset%nkpt)
-#endif
+        if( allocated( wf_emat)) deallocate( wf_emat)
+        !allocate( wf_emat( nstfv, nstfv, maxval( wf_n_n( 1:wf_n_nshells)), wf_n_nshells, wf_kset%nkpt))
+        allocate( wf_emat( wf_fst:wf_lst, wf_fst:wf_lst, wf_n_ntot, wf_kset%nkpt))
+        wf_emat = zzero
+        allocate( dist( wf_n_ntot))
+        
+        ! read eigenvectors
+        allocate( igkignr( ngkmax))
+        allocate( vgklnr( 3, ngkmax, nspinor), vgkcnr( 3, ngkmax, nspinor), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
+        !allocate( evecfv_tmp( nmatmax, wf_fst:wf_lst, nspinor, wf_kset%nkpt))
+        allocate( evecfv1( nmatmax, nstfv, nspinor))
+        allocate( evecfv2( nmatmax, nstfv, nspinor))
+        !do iknr = 1, wf_kset%nkpt 
+        !  if( input%properties%wannier%input .eq. "groundstate") then
+        !    ! find G+k-vectors and eigenvectors for non-reduced k-point k
+        !    call gengpvec( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+        !    call getevecfv( wf_kset%vkl( :, iknr), vgklnr, evecfv1)
+        !    evecfv_tmp( :, :, :, iknr) = evecfv1( :, wf_fst:wf_nst, :)
+        !  else if( input%properties%wannier%input .eq. "gw") then
+        !    call getevecsvgw_new( "GW_EVECSV.OUT", iknr, wf_kset%vkl( :, iknr), nmatmax, nstfv, nspinor, evecfv1)
+        !    evecfv_tmp( :, :, :, iknr) = evecfv1( :, wf_fst:wf_nst, :)
+        !  else
+        !    call terminate
+        !  end if
+        !end do
+        !deallocate( igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
+        !write( *, '("size of evecs: ",I)') sizeof( evecfv_tmp)
+
+        do i = 1, wf_n_nshells
+          is = wf_n_usedshells( i) 
+          write(*,*) is 
+          do n = 1, wf_n_n( is)/2
+            idxn = wf_n_ns2n( n, is)
+            call emat_init( wf_n_vl( :, n, is), (/0, 0, 0/), input%groundstate%lmaxapw, 8)
+            k1 = 1
+            k2 = wf_kset%nkpt
+!#ifdef MPI
+!          k1 = firstofset( rank, wf_kset%nkpt)
+!          k2 = lastofset( rank, wf_kset%nkpt)
+!#endif
 #ifdef USEOMP                
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr)
 !!$OMP DO  
 #endif
-          do iknr = k1, k2   
-            !write(*,*) iknr
-            if( input%properties%wannier%input .eq. "groundstate") then
-              ! find G+k-vectors and eigenvectors for non-reduced k-point k
-              call gengpvec( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-              call getevecfv( wf_kset%vkl( :, iknr), vgklnr, evecfv1)
-              call gengpvec( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), wf_kset%vkc( :, wf_n_ik( n, is, iknr)), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-              call getevecfv( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), vgklnr, evecfv2)
-            else if( input%properties%wannier%input .eq. "hybrid") then
-              ! find G+k-vectors and eigenvectors for non-reduced k-point k
-              call gengpvec( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-              call getevecfv( wf_kset%vkl( :, iknr), vgklnr, evecfv1)
-              call gengpvec( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), wf_kset%vkc( :, wf_n_ik( n, is, iknr)), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-              call getevecfv( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), vgklnr, evecfv2)
-            else if( input%properties%wannier%input .eq. "gw") then
-              call getevecsvgw_new( "GW_EVECSV.OUT", iknr, wf_kset%vkl( :, iknr), nmatmax, nstfv, nspinor, evecfv1)
-              call getevecsvgw_new( "GW_EVECSV.OUT", wf_n_ik( n, is, iknr), wf_kset%vkl( :, wf_n_ik( n, is, iknr)), nmatmax, nstfv, nspinor, evecfv2)
-            else
-              call terminate
-            end if
-            ! generate plane-wave matrix elements
-            call emat_genemat( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), wf_fst, wf_lst, wf_fst, wf_lst, &
-                 evecfv1( :, wf_fst:wf_lst, 1), &
-                 evecfv2( :, wf_fst:wf_lst, 1), &
-                 wf_emat( :, :, idxn, iknr))
-            !call emat_genemat( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), wf_fst, wf_lst, wf_fst, wf_lst, &
-            !     evecfv_tmp(:,:,1, iknr), &
-            !     evecfv_tmp(:,:,1, wf_n_ik( n, is, iknr)), &
-            !     wf_emat( :, :, n, is, iknr))
-          end do
+            do iknr = k1, k2   
+              write(*,*) iknr
+              if( input%properties%wannier%input .eq. "groundstate") then
+                ! find G+k-vectors and eigenvectors for non-reduced k-point k
+                call gengpvec( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+                call getevecfv( wf_kset%vkl( :, iknr), vgklnr, evecfv1)
+                call gengpvec( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), wf_kset%vkc( :, wf_n_ik( n, is, iknr)), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+                call getevecfv( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), vgklnr, evecfv2)
+              else if( input%properties%wannier%input .eq. "hybrid") then
+                ! find G+k-vectors and eigenvectors for non-reduced k-point k
+                call gengpvec( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+                call getevecfv( wf_kset%vkl( :, iknr), vgklnr, evecfv1)
+                call gengpvec( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), wf_kset%vkc( :, wf_n_ik( n, is, iknr)), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
+                call getevecfv( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), vgklnr, evecfv2)
+              else if( input%properties%wannier%input .eq. "gw") then
+                call getevecsvgw_new( "GW_EVECSV.OUT", iknr, wf_kset%vkl( :, iknr), nmatmax, nstfv, nspinor, evecfv1)
+                call getevecsvgw_new( "GW_EVECSV.OUT", wf_n_ik( n, is, iknr), wf_kset%vkl( :, wf_n_ik( n, is, iknr)), nmatmax, nstfv, nspinor, evecfv2)
+              else
+                call terminate
+              end if
+              ! generate plane-wave matrix elements
+              call emat_genemat( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), wf_fst, wf_lst, wf_fst, wf_lst, &
+                   evecfv1( :, wf_fst:wf_lst, 1), &
+                   evecfv2( :, wf_fst:wf_lst, 1), &
+                   wf_emat( :, :, idxn, iknr))
+              !call emat_genemat( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), wf_fst, wf_lst, wf_fst, wf_lst, &
+              !     evecfv_tmp(:,:,1, iknr), &
+              !     evecfv_tmp(:,:,1, wf_n_ik( n, is, iknr)), &
+              !     wf_emat( :, :, n, is, iknr))
+            end do
 #ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
 #endif
-#ifdef MPI
-          call mpi_allgatherv_ifc( wf_kset%nkpt, nstfv**2, zbuf=wf_emat( :, :, idxn, :))
-#endif
-          ! make use of symmetry: M(k,-b) = M(k-b,b)**H
-          write(*,*) idxn, wf_n_ns2n( wf_n_n( is)-n+1, is)
-          do iknr = 1, wf_kset%nkpt
-            wf_emat( :, :, wf_n_ns2n( wf_n_n( is)-n+1, is), iknr) = conjg( transpose( wf_emat( :, :, idxn, wf_n_ik( wf_n_n( is)-n+1, is, iknr)))) 
+!#ifdef MPI
+!          call mpi_allgatherv_ifc( wf_kset%nkpt, nstfv**2, zbuf=wf_emat( :, :, idxn, :))
+!#endif
+            ! make use of symmetry: M(k,-b) = M(k-b,b)**H
+            dist = 1.d13
+            do n2 = 1, wf_n_n( is)
+              dist( n2) = norm2( wf_n_vl( :, n, is) + wf_n_vl( :, n2, is))
+            end do
+            n2 = minloc( dist( 1:wf_n_n( is)), 1)
+            if( dist( n2) .lt. input%structure%epslat) then
+              do iknr = 1, wf_kset%nkpt
+                wf_emat( :, :, wf_n_ns2n( n2, is), iknr) = conjg( transpose( wf_emat( :, :, idxn, wf_n_ik( n2, is, iknr)))) 
+              end do
+            else
+              write( *, '(" ERROR (wannier_emat): Negative neighboring vector not found for ",3F13.6)') wf_n_vl( :, n, is)
+              call terminate
+            end if
           end do
         end do
-      end do
-      deallocate( igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
-      call emat_destroy
-      !deallocate( evecfv_tmp)
-      call timesec( t1)
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
-      write( wf_info, '(" ...plane-wave matrix-elements calculated.")')
-      write( wf_info, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
-      write( wf_info, '(5x,"#k-points: ",T40,7x,I6)') wf_kset%nkpt
-      write( wf_info, '(5x,"#neighbors per k-point: ",T40,7x,I6)') wf_n_ntot
+        deallocate( igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
+        call emat_destroy
+        call wannier_writeemat( "WANNIER")
+        !deallocate( evecfv_tmp)
+        call timesec( t1)
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
+        write( wf_info, '(" ...plane-wave matrix-elements calculated.")')
+        write( wf_info, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
+        write( wf_info, '(5x,"#k-points: ",T40,7x,I6)') wf_kset%nkpt
+        write( wf_info, '(5x,"#neighbors per k-point: ",T40,7x,I6)') wf_n_ntot
+      end if
+
       write( wf_info, *)
       call flushifc( wf_info)
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
       return
       !EOC
     end subroutine wannier_emat
@@ -605,17 +634,17 @@ module mod_wannier
       complex(8), allocatable :: projm(:,:), lsvec(:,:), rsvec(:,:)
 
 
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
       write( wf_info, '(" perform simple projection step...")')
       call timesec( t0)
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
       !********************************************************************
       ! build transformation matrices
       !********************************************************************
@@ -653,20 +682,20 @@ module mod_wannier
       call wannier_writefile( 'WANNIER')
       deallocate( projm, sval, lsvec, rsvec)
       call timesec( t1)
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
       write( wf_info, '(" ...simple projection step performed.")')
       write( wf_info, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
       write( wf_info, '(5x,"Omega): ",T40,F13.6)') sum( wf_omega)
       write( wf_info, *)
       call flushifc( wf_info)
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
       return
     end subroutine wannier_gen_pro
     !EOC
@@ -703,17 +732,17 @@ module mod_wannier
       complex(8), allocatable :: auxmat(:,:), projm(:,:), lsvec2(:,:), rsvec2(:,:)
       real(8), allocatable :: sval(:), opf_t(:), sval2(:), phihist(:)
 
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
       write( wf_info, '(" calculate optimized projection functions (OPF)...")')
       call timesec( t0)
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
 
       !********************************************************************
       ! build rectangular transformation matrices
@@ -987,9 +1016,9 @@ module mod_wannier
       call wannier_loc
       call wannier_writefile( 'WANNIER')
       call timesec( t1)
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
       write( wf_info, '(" ...optimized projection functions (OPF) calculated.")')
       write( wf_info, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
       write( wf_info, '(5x,"minimum iterations: ",T40,7x,I6)') minit
@@ -999,12 +1028,12 @@ module mod_wannier
       write( wf_info, '(5x,"Omega: ",T40,F13.6)') sum( wf_omega)
       write( wf_info, *)
       call flushifc( wf_info)
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
       deallocate( lsvec2, rsvec2, projm, opf_x, auxmat, phihist, opf_mixing, opf_x0, opf_t, opf_transform, lsvec, rsvec, sval, sval2)
       return
       !EOC
@@ -1052,9 +1081,9 @@ module mod_wannier
       complex(8), allocatable :: evecfv1(:,:,:), evecfv2(:,:,:)
       complex(8), allocatable :: auxmatread(:,:)
 
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
         allocate( auxmat( wf_nst, wf_nst))
         allocate( mlwf_m0( wf_nst, wf_nst, wf_n_ntot, wf_kset%nkpt))
         allocate( omegai( wf_nst))
@@ -1335,12 +1364,12 @@ module mod_wannier
         write( wf_info, '(5x,"localization gain: ",T40,7x, I5,"%")') nint( 100d0*(omegastart-sum( wf_omega))/sum( wf_omega))
         write( wf_info, *)
         call flushifc( wf_info)
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
       return
       !EOC
     end subroutine wannier_maxloc
@@ -1350,9 +1379,9 @@ module mod_wannier
       logical :: succes
       real(8), allocatable :: ravg(:,:), omega(:)
 
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
       call wannier_readfile( 'WANNIER', succes)
       if( .not. succes) then
         write( wf_info, '(" Failed to read Wannier functions from file. Aborted.")')
@@ -1362,12 +1391,12 @@ module mod_wannier
         write( wf_info, '(" file successfully read")')
         write( wf_info, *)
       end if
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
       return
     end subroutine wannier_gen_fromfile
     
@@ -1709,6 +1738,110 @@ module mod_wannier
       return
     end subroutine wannier_writefile  
 
+    subroutine wannier_reademat( filename, succes)
+      character(*), intent( in) :: filename
+      logical, intent( out) :: succes
+
+      ! local variables
+      integer :: i, j, is, n, idxn, ik, ix, iy, iz, un
+      integer :: fst_, lst_, nst_, ntot_, nkpt_
+      real(8) :: vln(3), vkl_( 3), vkl_tmp( 3, wf_kset%nkpt)
+
+      call getunit( un)
+
+      succes = .true.
+      inquire( file=trim( filename)//"_EMAT"//trim( filext), exist=succes)
+      if( .not. succes) then
+        write(*,*) 'ERROR (wannier_reademat): File '//trim( filename)//"_EMAT"//trim( filext)//' does not exist.'
+        return
+      end if
+      open( un, file=trim( filename)//"_EMAT"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
+      read( un) fst_, lst_, nst_, ntot_, nkpt_
+      if( (fst_ .ne. wf_fst) .or. (lst_ .ne. wf_lst)) then
+        write( *, '(" ERROR (wannier_reademat): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+        call terminate
+      end if
+      if( ntot_ .ne. wf_n_ntot) then
+        write( *, '(" ERROR (wannier_reademat): different number of BZ-neighbors in input (",I4,") and file (",I4,").")'), wf_n_ntot, ntot_
+        call terminate
+      end if
+      if( nkpt_ .ne. wf_kset%nkpt) then
+        write( *, '(" ERROR (wannier_reademat): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
+        call terminate
+      end if
+      if( allocated( wf_emat)) deallocate( wf_emat)
+      allocate( wf_emat( wf_fst:wf_lst, wf_fst:wf_lst, wf_n_ntot, wf_kset%nkpt))
+      do i = 1, wf_n_ntot
+        read( un) vln
+        ! find index of neighbor
+        idxn = 0
+        do j = 1, wf_n_nshells
+          is = wf_n_usedshells( j)
+          do n = 1, wf_n_n( is)
+            if( norm2( wf_n_vl( :, n, is) - vln) .lt. input%structure%epslat) then
+              idxn = wf_n_ns2n( n, is)
+              exit
+            end if
+          end do
+          if( idxn .gt. 0) then
+            do ik = 1, wf_kset%nkpt
+              read( un) vkl_
+              vkl_tmp( 1, :) = wf_kset%vkl( 1, :) - vkl_( 1)
+              vkl_tmp( 2, :) = wf_kset%vkl( 2, :) - vkl_( 2)
+              vkl_tmp( 3, :) = wf_kset%vkl( 3, :) - vkl_( 3)
+              iz = minloc( norm2( vkl_tmp( :, :), 1), 1)
+              if( norm2( vkl_tmp( :, iz)) .gt. input%structure%epslat) then
+                write( *, '(" ERROR (wannier_reademat): k-point in file not in k-point-set.")')
+                write( *, '(3F23.6)') vkl_
+                call terminate
+              end if
+              do iy = wf_fst, wf_lst
+                do ix = wf_fst, wf_lst
+                  read( un) wf_emat( ix, iy, idxn, ik)
+                end do
+              end do
+            end do
+          else
+            write( *, '(" ERROR (wannier_reademat): neighboring vector in file not consistens with input.")')
+            write( *, '(3F23.6)') vln
+          end if
+        end do
+      end do
+      close( un)
+      if( succes) write(*,*) 'Plane-wave matrix-elements succesfully read.'
+      return
+    end subroutine wannier_reademat
+    
+    ! writes transformation matrices to file
+    subroutine wannier_writeemat( filename)
+      character(*), intent( in) :: filename
+      ! local variables
+      integer :: i, ik, is, n, idxn, ix, iy, un
+      
+      call getunit( un)
+
+      open( un, file=trim( filename)//"_EMAT"//trim( filext), action='WRITE', form='UNFORMATTED')
+      write( un) wf_fst, wf_lst, wf_nst, wf_n_ntot, wf_kset%nkpt
+      do i = 1, wf_n_nshells
+        is = wf_n_usedshells( i)
+        do n = 1, wf_n_n( is)
+          idxn = wf_n_ns2n( n, is)
+          write( un) wf_n_vl( :, n, is)
+          do ik = 1, wf_kset%nkpt
+            write( un) wf_kset%vkl( :, ik)
+            do iy = wf_fst, wf_lst
+              do ix = wf_fst, wf_lst
+                write( un) wf_emat( ix, iy, idxn, ik)
+              end do
+            end do
+          end do
+        end do
+      end do
+      close( un)
+      write( *, '(a,a)') ' Plane-wave matrix-elements written to file ', trim( filename)//"_EMAT"//trim( filext)
+      return
+    end subroutine wannier_writeemat  
+
     !BOP
     ! !ROUTINE: wannier_geometry
     ! !INTERFACE:
@@ -1944,9 +2077,9 @@ module mod_wannier
     subroutine wannier_writeinfo_lo
       integer :: i
 
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
       call printbox( wf_info, '*', "Local-orbitals for projection")
       write( wf_info, *)
       write( wf_info, '(12x,"#",6x,"species",9x,"atom",12x,"l",12x,"m",9x,"used")')
@@ -1971,21 +2104,21 @@ module mod_wannier
       write( wf_info, '(36x,"local-orbitals used in total:",4x,I4,"/",I4)') sum( wf_projused), wf_nprojtot
       write( wf_info, *)
       call flushifc( wf_info)
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
     end subroutine wannier_writeinfo_lo
     
     subroutine wannier_writeinfo_geometry
       integer :: i, j
       real(8) :: v(3,1), m(3,3)
 
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
       call printbox( wf_info, '*', "Brillouin zone neighbors for k-gradient")
       write( wf_info, *)
       write( wf_info, '(11x,"shell",6x,"#neighbors",8x,"distance",10x,"weight",10x,"used")')
@@ -2032,20 +2165,20 @@ module mod_wannier
 
       write( wf_info, *)
       call flushifc( wf_info)
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
     end subroutine wannier_writeinfo_geometry
     
     subroutine wannier_writeinfo_task( task)
       character(*), intent( in) :: task
      
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
       call printbox( wf_info, '*', "starting Wannierization...")
       write( wf_info, *)
       write( wf_info, '(" lowest band:",T30,13x,I3)') wf_fst
@@ -2054,32 +2187,32 @@ module mod_wannier
       write( wf_info, '(" method:",T30,A16)') trim( task)
       write( wf_info, *)
       call flushifc( wf_info)
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
     end subroutine wannier_writeinfo_task
     
     subroutine wannier_writeinfo_finish
       real(8) :: t
       
-#ifdef MPI
-      if( rank .eq. 0) then
-#endif
+!#ifdef MPI
+!      if( rank .eq. 0) then
+!#endif
       call timesec( t)
       write( wf_info, '(" total duration (seconds):",T30,F16.1)') t-wf_t0
       call printbox( wf_info, '*', "...Wannierization finished")
       write( wf_info, *)
       call flushifc( wf_info)
       call wannier_writeinfo_results
-#ifdef MPI
-        call barrier
-      else
-        call barrier
-      end if
-#endif
+!#ifdef MPI
+!        call barrier
+!      else
+!        call barrier
+!      end if
+!#endif
     end subroutine wannier_writeinfo_finish
     
     subroutine wannier_writeinfo_results

@@ -56,9 +56,11 @@ Subroutine bandstr
   complex(8), allocatable :: e0(:,:), e1(:,:)
   logical :: exist,hybcheck
 !WANNIER
-  real(8), allocatable :: eval1(:,:), vklold(:,:)
+  integer :: nv
+  real(8) :: s(3), v1(3), dt
+  real(8), allocatable :: eval1(:,:), vklold(:,:), dist(:), vvl(:,:)
   complex(8), allocatable :: evectmp(:,:)
-  integer :: symm, symn
+  type( k_set) :: redkset
 !END WANNIER
 ! initialise universal variables
   Call init0
@@ -76,10 +78,10 @@ if (input%properties%bandstructure%wannier) then
 
   write(*,*) 'Interpolate band-structure...'
 
-  allocate( eval1( nstfv, nkptnr), evalfv( nstfv, nspinor), vklold( 3, nkptnr))
+  allocate( eval1( nstfv, nkptnr), evalfv( nstfv, nspinor), vklold( 3, nkpt))
   ! read FV eigenvalues
-  !vklold = vklnr
-  !nkpt0 = nkpt
+  vklold = vklnr
+  nkpt0 = nkpt
   !vkl = wf_kset%vkl
   !nkpt = wf_kset%nkpt
   do iknr = 1, wf_kset%nkpt
@@ -105,6 +107,7 @@ if (input%properties%bandstructure%wannier) then
   call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
        &'/visualizationtemplates/bandstructure2html.xsl" type="text/xsl"')
     
+  allocate( dist( wf_kset%nkpt))
   if( .not. input%properties%bandstructure%character) then
     open( 50, file='BAND_WANNIER.OUT', action='WRITE', form='FORMATTED')
     call xml_NewElement( xf, "bandstructure")
@@ -114,7 +117,10 @@ if (input%properties%bandstructure%wannier) then
     do ist = wf_fst, wf_lst
       call xml_NewElement( xf, "band")
       do ik = 1, nkpt
-        write( 50, '(2G18.10)') dpp1d (ik), evalsv (ist, ik)
+        do iknr = 1, wf_kset%nkpt
+          dist( iknr) = norm2( wf_kset%vkc( :, iknr) - vkc( :, ik))
+        end do
+        write( 50, '(3G18.10)') dpp1d (ik), evalsv (ist, ik), 1.d0/(1.d0+minval( dist))
         call xml_NewElement( xf, "point")
         write( buffer, '(5G18.10)') dpp1d (ik)
         call xml_AddAttribute( xf, "distance", trim( adjustl( buffer)))
@@ -130,6 +136,42 @@ if (input%properties%bandstructure%wannier) then
     write( *, '("Info (bandstr):")')
     write( *, '(" band structure plot written to BAND_WANNIER.OUT")')
   end if
+
+  nv = size( input%properties%bandstructure%plot1d%path%pointarray)
+  allocate( vvl( 3, nv))
+  
+  do ik = 1, nv
+    vvl( :, ik) = input%properties%bandstructure%plot1d%path%pointarray( ik)%point%coord
+  end do
+  call generate_k_vectors( redkset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek)
+  if( allocated( vkl)) deallocate( vkl)
+  allocate( vkl( 3, redkset%nkpt))
+  vkl = redkset%vkl
+  nkpt = redkset%nkpt
+  
+  open( 50, file='BANDONGRID.OUT', action='WRITE', form='FORMATTED')
+  dt = 0.d0
+  do ik = 1, nv-1
+    v1 = vvl( :, ik+1) - vvl( :, ik)
+    do iknr = 1, wf_kset%nkpt
+      s = 0.d0
+      if( abs( v1( 1)) .ge. input%structure%epslat) s(1) = (wf_kset%vkl( 1, iknr) - vvl( 1, ik))/v1( 1)
+      if( abs( v1( 2)) .ge. input%structure%epslat) s(2) = (wf_kset%vkl( 2, iknr) - vvl( 2, ik))/v1( 2)
+      if( abs( v1( 3)) .ge. input%structure%epslat) s(3) = (wf_kset%vkl( 3, iknr) - vvl( 3, ik))/v1( 3)
+      !write( *, '(3F13.6)') s
+      if( (s(2) .gt. 0.d0) .and. (s(2) .le. 1.d0)) s(1) = s(2)
+      if( (s(3) .gt. 0.d0) .and. (s(3) .le. 1.d0)) s(1) = s(3)
+      if( (s(1) .gt. 0.d0) .and. (s(1) .le. 1.d0) .and. &
+          (norm2( vvl( :, ik) + s(1)*v1 - wf_kset%vkl( :, iknr)) .lt. input%structure%epslat)) then
+        call r3mv( bvec, wf_kset%vkl( :, iknr)-vvl( :, ik), s)
+        call findkpt( wf_kset%vkl( :, iknr), is, iv)
+        write( 50, '(7G18.10,I)') dt + norm2( s), wf_kset%vkl( :, iknr), vkl( :, iv), iv
+      end if
+    end do
+    call r3mv( bvec, v1, s)
+    dt = dt + norm2( s)
+  end do
+  close( 50)
    
   !------------------------------!
   ! End of Wannier interpolation !
