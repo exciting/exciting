@@ -226,11 +226,21 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   ! This also reads in 
   ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
   ! modxs:evalsv0, modxs:occsv0
+  if(mpiglobal%rank == 0) then
+    write(unitout, '(a)') 'Info(' // thisnam // '):&
+      & Inspecting occupations...'
+    call flushifc(unitout)
+  end if
   call setranges_modxs(iqmt, input%xs%bse%coupling, input%xs%bse%ti)
 
   ! Select relevant transitions for the construction
   ! of the BSE hamiltonian
   ! Also sets nkkp_bse, nk_bse 
+  if(mpiglobal%rank == 0) then
+    write(unitout, '(a)') 'Info(' // thisnam // '):&
+      & Selecting transitions...'
+    call flushifc(unitout)
+  end if
   call select_transitions(iqmt, serial=.false.)
 
   ! Write support information to file
@@ -275,21 +285,14 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   !write(*,*)
   call xsgrids_init(vqlmt(1:3,iqmt), gkmax)
   if(fra) then 
-    write(*,*) "Generating reduced q-grid for W Fourier coefficients for RA coupling block."
     if(fti) then 
-      write(*,*) "  Using time inverted anti-resonant basis."
       vqoff = p_pqmtp%pset%vkloff
     else
-      write(*,*) "  Using standard anti-resonant basis."
       vqoff = q_qmtm%qset%vkloff
     end if
   else
-    write(*,*) "Generating reduced q-grid for W Fourier coefficients for RR block."
     vqoff =  q_q%qset%vkloff
   end if
-
-  write(*,*)
-  write(*,'(a,3E10.3)') "vqoff = ", vqoff
 
   ! Make reduced q-grid with possible offset
   ! This sets up also G+q quantities and the square root of the Coulomb potential
@@ -304,15 +307,16 @@ write(*,*) "Hello, this is b_scrcoulint at rank:", rank
   vqcr = vqc
   wqptr = wqpt
 
-  if(mpiglobal%rank == 0) then
-    write(unitout, '(a, i6)') 'Info(' // thisnam // '): Number of reduced q-points: ', nqptr
-    write(unitout,*)
-    call flushifc(unitout)
-  end if
-
   ! Make non-reduced q-grid with possible offset
   ! This sets up also G+q quantities and the square root of the Coulomb potential
   call init2offs(vqoff, .false.)
+
+  if(mpiglobal%rank == 0) then
+    write(unitout, '(a, i6)') 'Info(' // thisnam // '): Number of reduced q-points: ', nqptr
+    write(unitout, '(a, i6)') 'Info(' // thisnam // '): Number of non-reduced q-points: ', nqpt
+    write(unitout,*)
+    call flushifc(unitout)
+  end if
 
   ! Make also ngqr
   if(allocated(ngqr)) deallocate(ngqr)

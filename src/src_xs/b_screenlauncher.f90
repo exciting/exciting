@@ -33,7 +33,7 @@ subroutine b_screenlauncher
 !BOC
   implicit none
 
-  integer(4) :: iqmt, iq, iqnr
+  integer(4) :: iqmt, iq, iqnr, iqmti, iqmtf
   logical :: firstisgamma
   logical :: fcoup, fti
   integer(4), parameter :: iqmtgamma = 1
@@ -73,7 +73,7 @@ subroutine b_screenlauncher
   end if
   if(.not. firstisgamma) then 
     if(rank == 0) then 
-      write(*,*) "First Q-point needs to be the gamma point."
+      write(*,*) "Error(b_screenlauncher): First Q-point needs to be the gamma point."
     end if
     call terminate
   end if
@@ -139,65 +139,69 @@ subroutine b_screenlauncher
   ! Make Screening for qmt=0 and calculate it for all q-points !
   ! q=k'-k (or the reduced q point set)                        !
   !------------------------------------------------------------!
-  if(rank == 0) then 
-    call printline(unitout, "+")
-    write(unitout, '(a, i8)') 'Info(' // thisnam // '):&
-      & Calculating screening for unshifted q-grid.'
-    call printline(unitout, "+")
-    write(unitout, *)
+  if(input%xs%screening%iqmt == -1 .or. input%xs%screening%iqmt == 1) then 
+
+    if(rank == 0) then 
+      call printline(unitout, "+")
+      write(unitout, '(a, i8)') 'Info(' // thisnam // '):&
+        & Calculating screening for unshifted q-grid.'
+      call printline(unitout, "+")
+      write(unitout, *)
+    end if
+
+    ! Set *_SCR_QMT001.OUT as bra state file
+    usefilext0 = .true.
+    iqmt0 = iqmtgamma
+    call genfilname(iqmt=iqmt0, scrtype='', fileext=filext0)
+    write(*,*) "filext0 =", trim(filext0)
+
+    ! Set *_SCR_QMT001.OUT as ket state file
+    iqmt1 = iqmtgamma
+    call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
+    write(*,*) "filext=", trim(filext)
+
+    ! Set *_QMT001.OUT as file extension for screening files
+    call genfilname(iqmt=iqmt1, fileext=filexteps)
+    write(*,*) "filexteps=", trim(filexteps)
+
+    ! Use <mk|e^{-i(G+q)r}|nk'> for q=k'-k in dfq
+    emat_ccket = .false.
+    ! Set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
+    input%xs%emattype = 1
+
+    ! Use q point parallelization instead of w
+    call genparidxran('q', nqpt)
+
+    ! Loop over q-points 
+    do iq = qpari, qparf
+
+      ! Write q-point number to fileext, filext = "_SCR_QMT001_QXYZ.OUT"
+      call genfilname(scrtype='', iqmt=iqmtgamma, iq=iq, fileext=filex)
+      write(*,*) "filex=", trim(filex)
+      ! Write out G+q vectors to file "GQPOINTS_SCR_QMT001_QXYZ.OUT"
+      call writegqpts(iq, filex, dirname=gqdirname)
+
+      ! Generate screening for the given q-point
+      call dfq(iq)
+
+      write(unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sham&
+        & response function finished for q - point:', iq
+      call printline(unitout, "-")
+
+    end do
+
+    if(rank == 0) then 
+      call printline(unitout, "+")
+      write(unitout, '(a, i8)') 'Info(' // thisnam // '):&
+        & Screening for unshifted q-grid finished'
+      call printline(unitout, "+")
+      write(unitout, *)
+    end if
+
+    ! Synchronize
+    call barrier
+
   end if
-
-  ! Set *_SCR_QMT001.OUT as bra state file
-  usefilext0 = .true.
-  iqmt0 = iqmtgamma
-  call genfilname(iqmt=iqmt0, scrtype='', fileext=filext0)
-  write(*,*) "filext0 =", trim(filext0)
-
-  ! Set *_SCR_QMT001.OUT as ket state file
-  iqmt1 = iqmtgamma
-  call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
-  write(*,*) "filext=", trim(filext)
-
-  ! Set *_QMT001.OUT as file extension for screening files
-  call genfilname(iqmt=iqmt1, fileext=filexteps)
-  write(*,*) "filexteps=", trim(filexteps)
-
-  ! Use <mk|e^{-i(G+q)r}|nk'> for q=k'-k in dfq
-  emat_ccket = .false.
-  ! Set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
-  input%xs%emattype = 1
-
-  ! Use q point parallelization instead of w
-  call genparidxran('q', nqpt)
-
-  ! Loop over q-points 
-  do iq = qpari, qparf
-
-    ! Write q-point number to fileext, filext = "_SCR_QMT001_QXYZ.OUT"
-    call genfilname(scrtype='', iqmt=iqmtgamma, iq=iq, fileext=filex)
-    write(*,*) "filex=", trim(filex)
-    ! Write out G+q vectors to file "GQPOINTS_SCR_QMT001_QXYZ.OUT"
-    call writegqpts(iq, filex, dirname=gqdirname)
-
-    ! Generate screening for the given q-point
-    call dfq(iq)
-
-    write(unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sham&
-      & response function finished for q - point:', iq
-    call printline(unitout, "-")
-
-  end do
-
-  if(rank == 0) then 
-    call printline(unitout, "+")
-    write(unitout, '(a, i8)') 'Info(' // thisnam // '):&
-      & Screening for unshifted q-grid finished'
-    call printline(unitout, "+")
-    write(unitout, *)
-  end if
-
-  ! Synchronize
-  call barrier
   !------------------------------------------------------------!
 
   !------------------------------------------------------------!
@@ -220,8 +224,15 @@ subroutine b_screenlauncher
       write(unitout, *)
     end if
 
+    iqmti = 1
+    iqmtf = nqmt
+    if(input%xs%screening%iqmt /= -1) then 
+      iqmti=input%xs%screening%iqmt
+      iqmtf=input%xs%screening%iqmt
+    end if
+
     ! Consider qmt vectors in qmt-list 
-    do iqmt = 1, nqmt
+    do iqmt = iqmti, iqmtf
 
       if(.not. fti .and. iqmt == 1) then 
         if(rank == 0) then 
@@ -304,6 +315,8 @@ subroutine b_screenlauncher
           iqnr=p_pqmtp%pset%ikp2ik(iq)
           ikmapikq(1:nkpt,iq) = p_pqmtp%ikip2ikp_nr(1:nkpt,iqnr)
         end do
+      else
+        emat_ccket = .false.
       end if
 
       ! Free the xsgrids 

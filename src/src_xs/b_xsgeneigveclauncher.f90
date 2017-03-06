@@ -14,14 +14,6 @@ subroutine b_xsgeneigveclauncher
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
 
-  !test
-  use mod_misc, only: task
-  use modxs, only: randphasesvec, randphases
-  use mod_kpoint, only: nkpt
-  use mod_eigenvalue_occupancy, only: nstfv
-  use mod_constants, only: pi
-  use m_writecmplxparts
-
   implicit none
 
   ! Local variables
@@ -31,9 +23,6 @@ subroutine b_xsgeneigveclauncher
   logical :: firstisgamma
   real(8), allocatable :: vkloff_kqmtm(:,:)
   real(8), parameter :: epslat=1.d-6
-
-  integer :: ist, ik, seedsize
-  integer, allocatable :: seeds(:)
 
   write(*,*) "b_xsgeneigveclauncher here at rank", rank
   write(*,*) "use screening parameters = ", tscreen 
@@ -98,27 +87,13 @@ subroutine b_xsgeneigveclauncher
     ! Offset for (k-qmt) grid
     vkloff_kqmtm(1:3,iq) = k_kqmtm%kqmtset%vkloff
 
-    write(*,*) "iq=", iq
-    write(*,*) "----------------------"
-    write(*,*) "totalqlmt(1:3,iq)=", totalqlmt(1:3,iq)
-    write(*,*) "totalqcmt(1:3,iq)=", totalqcmt(1:3,iq)
-    write(*,*) "Norm2(totalqcmt)", norm2(totalqcmt(1:3,iq))
-    write(*,*) "----------------------"
-    write(*,*) "vqlmt(1:3,iq)=", vqlmt(1:3,iq)
-    write(*,*) "vqcmt(1:3,iq)=", vqcmt(1:3,iq)
-    write(*,*) "----------------------"
-    write(*,*) "ivgmt(1:3,iq)=", ivgmt(1:3,iq)
-    write(*,*) "----------------------"
-    write(*,*) "off: k+qmt", qvkloff(1:3,iq)
-    write(*,*) "off: k-qmt", vkloff_kqmtm(1:3,iq)
-
     call xsgrids_finalize()
 
   end do
 
   ! Depending on the BSE hamiltonian to be constructed 
   ! the eigensolutions on differing grids are needed.
-  if(input%xs%bse%coupling) then 
+  if(input%xs%bse%coupling .and. .not. input%xs%bse%ti) then 
     ! Full bse 
     tmqmt = .false.
     ! (k+qmt) grid

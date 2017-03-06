@@ -38,9 +38,6 @@ Module modxs
       character(256) :: gqdirname, eps0dirname, scrdirname, timingdirname
       character(256) :: ematraddir
 
-      real(8), allocatable :: randphasesvec(:,:)
-      complex(8), allocatable :: randphases(:,:)
-
   ! What is the q point list index for the gamma point
   integer(4), parameter :: iqmtgamma = 1
   integer(4) :: iqmt0, iqmt1

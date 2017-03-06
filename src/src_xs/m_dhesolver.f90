@@ -22,7 +22,6 @@ module m_dhesolver
     ! IN/OUT:
     !   type(dzmat) :: ham         ! 2D block cyclic distributed hermitian matrix 
     !   real(8) :: eval(ham%nrows) ! Real valued eigenvalues in ascending order 
-    !                              ! (the first solsize elements are set)
     !   type(dzmat), optional :: evec   ! 2D block cyclic distributed eigenvector matrix
     ! OUT:
     !   integer(4), optional :: found ! How many solutions were found
@@ -58,7 +57,7 @@ module m_dhesolver
       character(1) :: rangechar, jobzchar
       integer(4) :: info
       integer(4) :: lwork, lrwork, liwork
-      integer(4) :: il, iu, solsize
+      integer(4) :: il, iu
       real(8) :: abstol, vl, vu
       complex(8), allocatable :: work(:)
       real(8), allocatable :: rwork(:)

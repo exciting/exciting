@@ -55,10 +55,11 @@ Contains
          Call fderiv (-1, n, w, f, g, cf)
          sumrls (1) = g (n)
 !
-    ! first frequency moment sumrule
-         f (:) = aimag (-1/eps(:)) * w (:)
-         Call fderiv (-1, n, w, f, g, cf)
-         sumrls (2) = g (n)
+   ! ! first frequency moment sumrule
+   !      f (:) = aimag (-1/eps(:)) * w (:)
+   !      Call fderiv (-1, n, w, f, g, cf)
+   !      sumrls (2) = g (n)
+         sumrls(2) = 0
 !
     ! one over frequency sumrule (pi half sumrule)
          f (1) = 0.d0

@@ -41,7 +41,7 @@ module m_writeoscillator
       end if
 
       if(input%xs%bse%coupling) then
-        tdastring="-noTDA"
+        tdastring=''
       else
         tdastring="-TDA"
       end if

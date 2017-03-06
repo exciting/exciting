@@ -6,7 +6,7 @@
 subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
   use modmpi
   use modinput, only: input
-  use modxs, only: unitout
+  use modxs, only: unitout, vqlmt, vqcmt
   use mod_misc, only: filext
   use m_filedel, only: filedel
   use m_genfilname, only: genfilname
@@ -84,7 +84,13 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
       if(tscr) then 
         write(unitout, '("Using screening GS parameters.")')
       end if
-      write(unitout, '("vql = ", 3g18.10)') vql(1:3,iq)
+      !write(unitout, '("vql = ", 3g18.10)') vql(1:3,iq)
+      write(unitout, '("vqlmt = ", 3g18.10)') vqlmt(1:3,iq)
+      write(unitout, '("vqcmt = ", 3g18.10)') vqcmt(1:3,iq)
+      write(unitout, '("Norm2 = ", 1g18.10)') norm2(vqcmt(1:3,iq))
+      if(norm2(vqcmt(1:3,iq)) > 1.0d-8) then 
+        write(unitout, '("vqcmt/Norm2 = ", 3g18.10)') vqcmt(1:3,iq)/norm2(vqcmt(1:3,iq))
+      end if
       if(tmqmt) then 
         write(unitout, '("(k-qmt)-grid offset derived form qmt and k offset:")')
       else

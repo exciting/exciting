@@ -23,13 +23,21 @@ subroutine b_exccoulintlauncher
 
   logical :: fcoup, fti
   integer(4) :: iqmt, iqmti, iqmtf
+  character(256) :: casestring
   real(8) :: vqmt(3)
+
+  ! Calculate RR, RA or RR and RA blocks
+  casestring = input%xs%bse%blocks
 
   ! Also calculate coupling blocks
   if(input%xs%bse%coupling == .true.) then 
     fcoup = .true.
   else
     fcoup = .false.
+    if(trim(casestring) /= "RR") then 
+      write(*,*) "Ignoring input%xs%bse%blocks, since no RA coupling enabled"
+      casestring="RR"
+    end if
   end if
 
   ! Use time inverted anti-resonant basis
@@ -39,7 +47,7 @@ subroutine b_exccoulintlauncher
     fti = .false.
   end if
 
-  ! Testing 
+  ! Which Q points to consider 
   iqmti = 1
   iqmtf = size(input%xs%qpointset%qpoint, 2)
   if(input%xs%bse%iqmt /= -1) then 
@@ -64,31 +72,72 @@ subroutine b_exccoulintlauncher
       write(unitout,*)
     end if
 
-    ! RR block
-    if(mpiglobal%rank == 0) then
-      write(unitout, '("Info(b_exccoulintlauncher):&
-        & Calculating RR block of V")')
-      write(unitout,*)
-    end if
-    call b_exccoulint(iqmt, .false., fti)
-    call barrier(mpiglobal)
+    select case(trim(casestring))
 
-    ! RA block
-    if(fcoup) then 
-      if(mpiglobal%rank == 0) then
-        call printline(unitout, "-")
-        write(unitout, '("Info(b_exccoulintlauncher):&
-          & Calculating RA block of V")')
-      end if
-      if(fti) then
-        call printline(unitout, "-")
-        write(unitout, '("Info(b_exccoulintlauncher):&
-          & RR = RA^{ti} no further calculation needed.")')
-      else
-        call b_exccoulint(iqmt, .true., fti)
-      end if
-      call barrier(mpiglobal)
-    end if
+      case("RR","rr")
+
+        ! RR block
+        if(mpiglobal%rank == 0) then
+          write(unitout, '("Info(b_exccoulintlauncher):&
+            & Calculating RR block of V")')
+          write(unitout,*)
+        end if
+        call b_exccoulint(iqmt, .false., fti)
+        call barrier(mpiglobal)
+
+      case("RA","ra")
+
+        ! RA block
+        if(fcoup) then 
+          if(mpiglobal%rank == 0) then
+            call printline(unitout, "-")
+            write(unitout, '("Info(b_exccoulintlauncher):&
+              & Calculating RA block of V")')
+          end if
+          if(fti) then
+            call printline(unitout, "-")
+            write(unitout, '("Info(b_exccoulintlauncher):&
+              & RR = RA^{ti} no further calculation needed.")')
+          else
+            call b_exccoulint(iqmt, .true., fti)
+          end if
+          call barrier(mpiglobal)
+        end if
+        
+      case("both","BOTH")
+
+        ! RR block
+        if(mpiglobal%rank == 0) then
+          write(unitout, '("Info(b_exccoulintlauncher):&
+            & Calculating RR block of V")')
+          write(unitout,*)
+        end if
+        call b_exccoulint(iqmt, .false., fti)
+        call barrier(mpiglobal)
+
+        ! RA block
+        if(fcoup) then 
+          if(mpiglobal%rank == 0) then
+            call printline(unitout, "-")
+            write(unitout, '("Info(b_exccoulintlauncher):&
+              & Calculating RA block of V")')
+          end if
+          if(fti) then
+            call printline(unitout, "-")
+            write(unitout, '("Info(b_exccoulintlauncher):&
+              & RR = RA^{ti} no further calculation needed.")')
+          else
+            call b_exccoulint(iqmt, .true., fti)
+          end if
+          call barrier(mpiglobal)
+        end if
+
+      case default
+
+        write(*,*) "Error(b_exccoulintlauncher): Unrecongnized casesting:", trim(casestring)
+        call terminate
+
+    end select
 
     if(mpiglobal%rank == 0) then
       call printline(unitout, "+")

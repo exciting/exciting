@@ -4,7 +4,7 @@ subroutine writederived(iqmt, eps, nw, w)
   use m_genfilname
   use m_genloss
   use m_gensigma
-  use m_gensumrls
+  !use m_gensumrls
   use m_writeeps
   use m_writeloss
   use m_writesigma
@@ -27,7 +27,7 @@ subroutine writederived(iqmt, eps, nw, w)
   character(256) :: tdastring, bsetypestring, tistring, scrtypestring
 
   if(input%xs%bse%coupling) then
-    tdastring="-noTDA"
+    tdastring=''
   else
     tdastring="-TDA"
   end if
@@ -85,9 +85,9 @@ subroutine writederived(iqmt, eps, nw, w)
           & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fnsigma)
 
-        call genfilname(basename='SUMRULES', tq0=.true., oc1=o1, oc2=o2,&
-          & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
-          & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
+       ! call genfilname(basename='SUMRULES', tq0=.true., oc1=o1, oc2=o2,&
+       !   & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
+       !   & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
       else
         call genfilname(basename='EPSILON', iqmt=iqmt,&
           & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
@@ -97,15 +97,15 @@ subroutine writederived(iqmt, eps, nw, w)
           & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fnsigma)
 
-        call genfilname(basename='SUMRULES', iqmt=iqmt,&
-          & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
-          & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
+       ! call genfilname(basename='SUMRULES', iqmt=iqmt,&
+       !   & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
+       !   & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
       end if
 
 
       ! Generate optical functions
       call gensigma(w, eps(o1,o2,:), optvec(1:2), sigma)
-      call gensumrls(w, eps(o1,o2,:), sumrls)
+      !call gensumrls(w, eps(o1,o2,:), sumrls)
 
       ! Write optical functions to file
       call writeeps(iqmt, o1, o2, w, eps(o1,o2,:), trim(fneps)) ! iqmt not used
@@ -114,7 +114,7 @@ subroutine writederived(iqmt, eps, nw, w)
         call writeloss(iqmt, w, loss(o1, o2, :), trim(fnloss))
       end if
       call writesigma(iqmt, w, sigma, trim(fnsigma))  ! iqmt not used
-      call writesumrls(iqmt, sumrls, trim(fnsumrules)) ! iqmt not used
+      !call writesumrls(iqmt, sumrls, trim(fnsumrules)) ! iqmt not used
 
     ! End loop over optical components
     end do

@@ -231,6 +231,7 @@ module m_setup_bse
         ! * sqrt(abs(f_{jo jk}-f_{ju jk+qmt})) or sqrt(abs(f_{jo jk}-f_{ju jk-qmt}))
         if(usescc .and. useexc) then 
           if(fwp) then 
+            !write(*,*) "i1:i2,j1:j2", i1,i2,j1,j2
             call setint(ham(i1:i2,j1:j2),&
               & ofac(i1:i2), ofac(j1:j2),&
               & scc=sccli_t(1:inou,1:jnou), exc=excli_t(1:inou,1:jnou),&
@@ -270,7 +271,7 @@ module m_setup_bse
         if(.not. fcoup) then 
           if(iknr .eq. jknr) then
             if(fwp) then 
-              call addkstransdiag(i1, ham(i1:i2,j1:j2), diag(i1:i1,1))
+              call addkstransdiag(i1, ham(i1:i2,j1:j2), diag(i1:i2,1))
             else
               call addkstransdiag(i1, ham(i1:i2,j1:j2))
             end if
@@ -280,10 +281,14 @@ module m_setup_bse
       ! ikkp loop end
       end do
 
+      !write(*,*) "ham(1,1)", ham(1,1)
+      !write(*,*) "dble(ham(1,1))", dble(ham(1,1))
+      !write(*,*) "real(ham(1,1),8)", real(ham(1,1),8)
+
       ! Write lower triangular part in case it is explicitly needed
       do i1 = 1, hamsize
         if(.not.(fcoup .and. .not. fti)) then
-          ham(i1, i1) = cmplx(dble(ham(i1,i1)), 0.0d0)
+          ham(i1, i1) = cmplx(dble(ham(i1,i1)), 0.0d0, 8)
         end if
         do i2 = i1+1, hamsize
           if(fcoup .and. .not. fti) then 
@@ -293,6 +298,8 @@ module m_setup_bse
           end if
         end do
       end do
+
+      !write(*,*) "ham(1,1)", ham(1,1)
 
       call timesec(ts1)
       write(unitout, '(" Matrix build.")')
@@ -433,6 +440,10 @@ module m_setup_bse
             do j= 1, size(hamblock,2)
               do i= 1, size(hamblock,1)
                 hamblock(i,j) = oc1(i)*oc2(j) * (2.0d0 * exc(i,j) - scc(i,j))
+                !write(*,*) "i,j", i, j
+                !write(*,*) "oc1,oc2", oc1(i), oc1(j)
+                !write(*,*) "exc,scc", exc(i,j), scc(i,j)
+                !write(*,*) "hamblock", hamblock(i,j)
               end do
             end do
           else if(present(scc)) then 
@@ -471,6 +482,7 @@ module m_setup_bse
             ! Note: only qmt=0 supported
             hamblock(i,i) = hamblock(i,i)&
               & + cmplx(de(ig+i-1), 0.0d0, 8)
+            !write(*,*) "i, hamblock+de", i, hamblock(i,i)
             if(present(d)) then 
               d(i) = cmplx(de(ig+i-1), 0.0d0, 8)
             end if
@@ -1171,6 +1183,10 @@ module m_setup_bse
           if(present(exc) .and. present(scc)) then
             ! Singlet case with exchange interaction
             hamblck(r, c) = occ1(r) * (ztwo * exc(r, c) - scc(r, c)) * occ2(c)
+            !write(*,*) "r,c", r, c
+            !write(*,*) "occ1,occ2", occ1(r), occ2(c)
+            !write(*,*) "exc,scc", exc(r,c), scc(r,c)
+            !write(*,*) "hamblck", hamblck(r,c)
           else if(present(scc)) then
             ! Triplet case without exchange interaction
             hamblck(r, c) = -occ1(r) * scc(r, c) * occ2(c)
@@ -1185,6 +1201,7 @@ module m_setup_bse
           if(.not. fc) then 
             if(ig+r-1 == jg+c-1) then 
               hamblck(r, c) = hamblck(r, c) + cmplx(de(ig+r-1), 0.0d0, 8)
+              !write(*,*) "hamblck+de", hamblck(r,c)
             end if
           end if
         end do

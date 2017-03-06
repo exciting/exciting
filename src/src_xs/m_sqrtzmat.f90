@@ -114,9 +114,9 @@ use m_writecmplxparts
       ! Diagonalize hermitian matrix
       call dhesolver(hepdmat, evals, binfo, evecs, eecs=clustersize)
 
-      if(mpiglobal%rank == 0) then 
-        call writecmplxparts('amb_evals', revec=evals, veclen=size(evals))
-      end if
+      !if(mpiglobal%rank == 0) then 
+      !  call writecmplxparts('amb_evals', revec=evals, veclen=size(evals))
+      !end if
 
       ! Take square root of eigenvalues
       if(any(evals < 0.0d0)) then 

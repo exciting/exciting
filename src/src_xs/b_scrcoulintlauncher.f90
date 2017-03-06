@@ -23,13 +23,21 @@ subroutine b_scrcoulintlauncher
 
   logical :: fcoup, fti
   integer(4) :: iqmt, iqmti, iqmtf
+  character(256) :: casestring
   real(8) :: vqmt(3)
+
+  ! Calculate RR, RA or RR and RA blocks
+  casestring = input%xs%bse%blocks
 
   ! Also calculate coupling blocks
   if(input%xs%bse%coupling == .true.) then 
     fcoup = .true.
   else
     fcoup = .false.
+    if(trim(casestring) /= "rr") then 
+      write(*,*) "Ignoring input%xs%bse%blocks, since no RA coupling enabled"
+      casestring="rr"
+    end if
   end if
 
   ! Use time inverted anti-resonant basis
@@ -39,7 +47,7 @@ subroutine b_scrcoulintlauncher
     fti = .false.
   end if
 
-  ! Testing 
+  ! Which Q points to consider 
   iqmti = 1
   iqmtf = size(input%xs%qpointset%qpoint, 2)
   if(input%xs%bse%iqmt /= -1) then 
@@ -64,31 +72,72 @@ subroutine b_scrcoulintlauncher
       write(unitout,*)
     end if
 
-    ! RR block
-    if(mpiglobal%rank == 0) then
-      write(unitout, '("Info(b_scrcoulintlauncher):&
-        & Calculating RR block of W")')
-      write(unitout,*)
-    end if
-    ! b_scrcoulint(iqmt, fra=.false., fti=.false.)
-    call b_scrcoulint(iqmt, .false., fti)
-    call barrier(mpiglobal)
+    select case(trim(casestring))
 
-    ! RA block
-    if(fcoup) then 
-      if(mpiglobal%rank == 0) then
-        call printline(unitout, "-")
-        write(unitout, '("Info(b_scrcoulintlauncher):&
-          & Calculating RA block of W")')
-        if(fti) then
+      case("RR","rr")
+
+        ! RR block
+        if(mpiglobal%rank == 0) then
           write(unitout, '("Info(b_scrcoulintlauncher):&
-            & Using time inverted anti-resonant basis")')
+            & Calculating RR block of W")')
+          write(unitout,*)
         end if
-        write(unitout,*)
-      end if
-      call b_scrcoulint(iqmt, .true., fti)
-      call barrier(mpiglobal)
-    end if
+        ! b_scrcoulint(iqmt, fra=.false., fti=.false.)
+        call b_scrcoulint(iqmt, .false., fti)
+        call barrier(mpiglobal)
+
+      case("RA","ra")
+
+        ! RA block
+        if(fcoup) then 
+          if(mpiglobal%rank == 0) then
+            call printline(unitout, "-")
+            write(unitout, '("Info(b_scrcoulintlauncher):&
+              & Calculating RA block of W")')
+            if(fti) then
+              write(unitout, '("Info(b_scrcoulintlauncher):&
+                & Using time inverted anti-resonant basis")')
+            end if
+            write(unitout,*)
+          end if
+          call b_scrcoulint(iqmt, .true., fti)
+          call barrier(mpiglobal)
+        end if
+
+      case("both","BOTH")
+
+        ! RR block
+        if(mpiglobal%rank == 0) then
+          write(unitout, '("Info(b_scrcoulintlauncher):&
+            & Calculating RR block of W")')
+          write(unitout,*)
+        end if
+        ! b_scrcoulint(iqmt, fra=.false., fti=.false.)
+        call b_scrcoulint(iqmt, .false., fti)
+        call barrier(mpiglobal)
+
+        ! RA block
+        if(fcoup) then 
+          if(mpiglobal%rank == 0) then
+            call printline(unitout, "-")
+            write(unitout, '("Info(b_scrcoulintlauncher):&
+              & Calculating RA block of W")')
+            if(fti) then
+              write(unitout, '("Info(b_scrcoulintlauncher):&
+                & Using time inverted anti-resonant basis")')
+            end if
+            write(unitout,*)
+          end if
+          call b_scrcoulint(iqmt, .true., fti)
+          call barrier(mpiglobal)
+        end if
+
+      case default
+
+        write(*,*) "Error(b_scrcoulintlauncher): Unrecongnized casesting:", trim(casestring)
+        call terminate
+
+    end select
 
     if(mpiglobal%rank == 0) then
       call printline(unitout, "+")

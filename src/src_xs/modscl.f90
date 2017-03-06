@@ -27,7 +27,7 @@ module modscl
     integer(4) :: ierr
   end type
 
-  type(blacsinfo) :: bi2d, bi1d
+  type(blacsinfo) :: bi2d, bi1d, bi0d
 
   ! Distributed complex matrix type
   type dzmat
@@ -35,6 +35,8 @@ module modscl
     logical :: isdistributed
     ! Global dimension of the matrix
     integer(4) :: nrows, ncols
+    ! Global submatrix
+    integer(4) :: subm, subn, subi, subj
     ! Dimension of local part
     integer(4) :: nrows_loc, ncols_loc
     ! Local block cyclic part
@@ -94,6 +96,10 @@ module modscl
       ! Process grid shape
       integer(4) :: nprows
       integer(4) :: npcols
+      ! Process to grid mapping
+      ! (for the creation of the blacs context containing only the current process)
+      integer(4) :: ldumap
+      integer(4), allocatable :: usermap(:,:)
       ! Coordinates of current process
       integer(4) :: myprow
       integer(4) :: mypcol
@@ -181,12 +187,39 @@ module modscl
           nblck = BLOCKSIZE*BLOCKSIZE
           ! Write info about BLACS grid
           if(mpicom%rank == 0) then
-            write(unitout,'("Info (setupblacs): Aux. ",i4," x",i4,&
+            write(unitout,'("Info(setupblacs): Aux. ",i4," x",i4,&
               &" process grid. Ctxt(",i12,") MPIcom(",i12,")")')&
               & nprows, npcols, ictxt, mpicom%comm
           end if
 
+        ! Make 0D process grid (one pocess) for inter-context
+        ! gathering and scattering of matrices 
+        case('0D','0d','single','Single','SINGLE')
+          npcols = 1
+          nprows = 1
+          nprocs = 1
+          ! Setup mapping mpi --> Blacs grid for just the current rank
+          allocate(usermap(nprows, npcols))
+          ldumap = nprows
+          usermap(1,1) = mpicom%rank
+          ! Use MPI communicator as basis
+          ictxt = mpicom%comm
+          ! Make the blacs grid
+          call blacs_gridmap(ictxt, usermap, ldumap, nprows, npcols)
+          call blacs_gridinfo(ictxt, nprows, npcols, myprow, mypcol)
+          ! Set default block sizes
+          mblck = BLOCKSIZE
+          nblck = BLOCKSIZE
+          ! Write info about BLACS grid
+          if(mpicom%rank == 0) then 
+            write(unitout,'("Info(setupblacs): Aux. 1x1&
+              & process grid. Ctxt(",i12,") MPIcom(",i12,") MPIrank(",i4,")")')&
+              & ictxt, mpicom%comm, mpicom%rank
+          end if
+          deallocate(usermap)
+
         case default
+
           write(*,'("Error (setupblacs): Using unknown type: ",a)') typechars
           call terminate
 
@@ -283,7 +316,7 @@ module modscl
       type(blacsinfo), intent(in) :: binfo
       integer(4), intent(in), optional :: rblck, cblck
 
-      integer(4) :: con, i, j
+      integer(4) :: i, j
 
       ! Defaults
       self%isdistributed = .false.
@@ -294,6 +327,10 @@ module modscl
       self%context = binfo%context
       self%mblck = 1
       self%nblck = 1
+      self%subm = self%nrows
+      self%subn = self%ncols
+      self%subi = 1
+      self%subj = 1
 
 #ifdef SCAL
 
@@ -350,6 +387,65 @@ module modscl
       if(self%nrows_loc > 0) self%za = cmplx(0,0,8)
 
     end subroutine new_dzmat
+    !EOC
+
+    !BOP
+    ! !ROUTINE: setview_dzmat
+    ! !INTERFACE:
+    subroutine setview_dzmat(self, nrows, ncols, ir, ic)
+    ! !INPUTP/OUTPUT PARAMETERS:
+    ! IN:
+    !   integer(4) :: nrows      ! Number of rows for submatrix
+    !   integer(4) :: ncols      ! Number of columns for submatrix
+    !   integer(4) :: ir, ic     ! Upper left corner of submatrix within the full matrix
+    ! IN/OUT:
+    !   type(dzmat) :: self ! The distributed complex(8) matrix
+    !
+    ! !DESCRIPTION:
+    !   This routine sets the current submatrix view of a distributed matrix.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
+
+      type(dzmat), intent(inout) :: self
+      integer(4), intent(in) :: nrows, ncols
+      integer(4), intent(in) :: ir, ic
+      logical :: ferr
+
+      ferr = .false.
+      if(nrows <= self%nrows) then
+        self%subm = nrows
+      else
+        ferr = .true.
+      end if
+      if(ncols <= self%ncols) then
+        self%subn = ncols
+      else
+        ferr = .true.
+      end if
+      if(ir < 1 .or. ir > self%nrows) then 
+        ferr = .true.
+      else
+        self%subi = ir
+      end if
+      if(ic < 1 .or. ic > self%ncols) then
+        ferr = .true.
+      else
+        self%subj = ic
+      end if
+      if(self%nrows-ir+1 < nrows .or. self%ncols-ic+1 < ncols) then
+        ferr = .true.
+      end if
+      if(ferr) then 
+        write(*,*) "Error(setview_dzmat): Invalid matrix view."
+        write(*,*) "self%nrows, self%ncols", self%nrows, self%ncols
+        write(*,*) "nrows, ncols, ir, ic", nrows, ncols, ir, ic
+        call terminate
+      end if
+
+    end subroutine setview_dzmat
     !EOC
 
     !BOP
@@ -634,7 +730,7 @@ module modscl
       type(blacsinfo), intent(in) :: binfo
       type(dzmat), intent(inout) :: dmat
 
-      integer(4) :: mg, ng, m, n, i, j, rb, cb
+      integer(4) :: mg, ng, i, j
 
       if(dmat%context /= binfo%context) then
         write(*,'("Error(dzmat_copy_global2local):&
@@ -660,6 +756,122 @@ module modscl
       end do
 
     end subroutine dzmat_copy_global2local
+    !EOC
+
+    !BOP
+    ! !ROUTINE: dzmat_copy
+    ! !INTERFACE:
+    subroutine dzmat_copy(context, m, n, dmata, dmatb, ra, ca, rb, cb)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! IN:
+    !   integer(4) :: context ! Context that is at least the union of contexts A and B
+    !   integer(4) :: m, n    ! Number of rows and columns of the global submatrix of A
+    !   type(dzmat), optional :: dmata  ! Distributed complex(8) matrix 
+    !   integer(4), optional  :: ra, ca ! Upper left corner coordinates of the submatrix in A        
+    !   integer(4), optional  :: rb, cb ! Upper left corner coordinates of the submatrix in B        
+    ! OUT:
+    !   type(dzmat), optional :: dmatb  ! Distributed complex(8) matrix 
+    !
+    ! !DESCRIPTION:
+    !   This routine copys the submatrix of the distributed matrix A to 
+    !   a equally sized submatrix of the distributed matrix B. The passed
+    !   context must contain the porcesses holding A and B, all processes of that
+    !   context must call this routine.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
+
+      integer(4), intent(in) :: context, m, n
+      type(dzmat), intent(in), optional, target :: dmata
+      type(dzmat), intent(inout), optional, target :: dmatb
+      integer(4), intent(in), optional :: ra, ca, rb, cb
+
+      integer(4) :: ia, ja, ib, jb
+      complex(8), target :: dummy(3,3)
+      complex(8), pointer :: za(:,:) => null()
+      complex(8), pointer :: zb(:,:) => null()
+      integer(4) :: desca(9), descb(9)
+
+      ! Set dummy descriptors
+      if(.not. present(dmata) .and. .not. present(dmatb)) then 
+        write(*,*) "Warning(dzmat_copy): No matrix passed"
+        return
+      end if
+      if(.not. present(dmata)) then 
+        desca = -1
+        desca(1) = 1 
+        za => dummy
+      else
+        desca = dmata%desc
+        za => dmata%za
+      end if
+      if(.not. present(dmatb)) then 
+        descb = -1
+        descb(1) = 1
+        zb => dummy
+      else
+        descb = dmatb%desc
+        zb => dmatb%za
+      end if
+
+      ! Set Optional inputs
+      if(present(ra)) then 
+        ia = ra
+      else
+        ia = 1
+      end if
+      if(present(ca)) then 
+        ja = ca
+      else
+        ja = 1
+      end if
+      if(present(rb)) then 
+        ib = rb
+      else
+        ib = 1
+      end if
+      if(present(cb)) then 
+        jb = cb
+      else
+        jb = 1
+      end if
+
+      ! Check matrix sizes
+      if(present(dmata)) then
+        if(m > dmata%nrows .or. m < 1&
+          &.or. n > dmata%ncols .or. n < 1&
+          &.or. ia < 1 .or. ia > dmata%nrows .or. m > dmata%nrows-ia+1&
+          &.or. ja < 1 .or. ja > dmata%ncols .or. n > dmata%ncols-ja+1) then
+          if(mpiglobal%rank==0) then 
+            write(*,*) "Error(dzmat_copy): Submatrix selection of matrix A invalid."
+            write(*,*) "dmata%nrows=",dmata%nrows, " dmata%ncols", dmata%ncols
+            write(*,*) "m=", m, " n=", n, " ia=", ia, " ja=", ja
+          end if
+          call terminate
+        end if
+      end if
+      if(present(dmatb)) then 
+        if(m > dmatb%nrows .or. m < 1 .or. n > dmatb%ncols .or. n < 1&
+          &.or. ib < 1 .or. ib > dmatb%nrows .or. m > dmatb%nrows-ib+1&
+          &.or. jb < 1 .or. jb > dmatb%ncols .or. n > dmatb%ncols-jb+1) then
+          if(mpiglobal%rank==0) then 
+            write(*,*) "Error(dzmat_copy): Submatrix selection of matrix B invalid."
+            write(*,*) "dmatb%nrows=", dmatb%nrows, " dmatb%ncols", dmatb%ncols
+            write(*,*) "m=", m, " n=", n, " ib=", ib, " jb=", jb
+          end if
+          call terminate
+        end if
+      end if
+#ifdef SCAL
+      call pzgemr2d(m, n, za, ia, ja, desca,&
+        & zb, ib, jb, descb, context)
+#else
+      zb(ib:ib+m-1,jb:jb+n-1) = za(ia:ia+m-1,ja:ja+n-1)
+#endif
+
+    end subroutine dzmat_copy
     !EOC
 
 end module modscl

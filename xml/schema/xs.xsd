@@ -25,6 +25,19 @@
 	    <attref>MaxNumberExcitons</attref>.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="" name="useev" type="xs:boolean"
+              default="true">
+              <xs:annotation>
+                <xs:documentation>
+                  <pre>"true"</pre> if energy input is in eV. </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="selectenergy" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> Set to <pre>"true"</pre> if excitons within a specified energy interval shall be stored.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
 	    <xs:attribute ex:importance="expert" ex:unit="" name="MinNumberExcitons" type="xs:integer"
 		    default="1">
 	      <xs:annotation>
@@ -35,6 +48,18 @@
 		    default="10">
 	      <xs:annotation>
 	        <xs:documentation>It represents the upper limit of the number of stored excitons.</xs:documentation>
+	      </xs:annotation>
+            </xs:attribute>
+	    <xs:attribute ex:importance="expert" ex:unit="" name="MinEnergyExcitons" type="fortrandouble"
+		    default="0.0">
+	      <xs:annotation>
+	        <xs:documentation>Lower limit of the energy interval for the stored excitons.</xs:documentation>
+	      </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="MaxEnergyExcitons" type="fortrandouble"
+		    default="100.0">
+	      <xs:annotation>
+	        <xs:documentation>Upper limit of the energy interval for the stored excitons.</xs:documentation>
 	      </xs:annotation>
             </xs:attribute>
           </xs:complexType>
@@ -48,6 +73,19 @@
             </xs:documentation>
           </xs:annotation>
           <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="" name="useev" type="xs:boolean"
+              default="true">
+              <xs:annotation>
+                <xs:documentation>
+                  <pre>"true"</pre> if energy input is in eV. </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="selectenergy" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> Set to <pre>"true"</pre> if excitons within a specified energy interval shall written.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="MinNumberExcitons" type="xs:integer" default="1">
               <xs:annotation>
                 <xs:documentation>It represents the lower limit of the number of written excitons.
@@ -57,6 +95,18 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="MaxNumberExcitons" type="xs:integer" default="10">
               <xs:annotation>
                 <xs:documentation>It represents the upper limit of the number of written excitons.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="MinEnergyExcitons" type="fortrandouble" default="0.0">
+              <xs:annotation>
+                <xs:documentation>Lower limit of the energy interval of the written excitons.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="MaxEnergyExcitons" type="fortrandouble" default="100.0">
+              <xs:annotation>
+                <xs:documentation>Upper limit of the energy interval of the written excitons.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -495,6 +545,12 @@
                   screening.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="iqmt" type="xs:integer"
+              default="1">
+              <xs:annotation>
+                <xs:documentation>Momentum transfer vector index. Default uses only gamma point. A value of -1 uses all listed Q-points.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nempty" type="xs:integer"
               default="0">
               <xs:annotation>
@@ -758,7 +814,7 @@
               default="1">
               <xs:annotation>
                 <xs:documentation>For which point in the q-point list should the BSE
-                  Matrix be constructed.</xs:documentation>
+                  Matrix be constructed. A value of -1 uses all listed Q-points.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nexc" type="xs:integer"
@@ -809,6 +865,19 @@
                   <xs:enumeration value="RPA"/>
                   <xs:enumeration value="singlet"/>
                   <xs:enumeration value="triplet"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="blocks" default="rr">
+              <xs:annotation>
+                <xs:documentation>Defines which blocks of the BSE Hamiltonian are to be
+                  set up (resonant-resonat, resonant-anti-resonant or both).</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="rr"/>
+                  <xs:enumeration value="ra"/>
+                  <xs:enumeration value="both"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>

@@ -12,13 +12,14 @@ module m_diagfull
     !BOP
     ! !ROUTINE: diagfull
     ! !INTERFACE:
-    subroutine diagfull(n, ham, evalre, evalim, evecr, evecl, fbalance, frcond)
+    subroutine diagfull(n, ham, evalre, evalim, evecr, evecl, fbalance, frcond, fsort)
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     !   integer(4) :: n
     !   complex(8) :: ham(n,n)          ! Complex square matrix 
     !   logical, optional :: fbalance   ! Balance matrix
     !   logical, optional :: frcond     ! Calculate reciprocal conditioning numbers
+    !   logical, optional :: fsort      ! Sort solutions by real part of eigenvalues
     ! OUT:
     !   real(8) :: evalre(n)                        ! Real part of eigenvalues
     !   real(8), optional :: evalim(n)              ! Imaginary part of eigenvalues
@@ -46,7 +47,7 @@ module m_diagfull
       ! I/O
       integer(4), intent(in) :: n
       complex(8), intent(in) :: ham(n, n)
-      logical, intent(in), optional :: frcond, fbalance
+      logical, intent(in), optional :: frcond, fbalance, fsort
 
       real(8), intent(out) :: evalre(n)
       real(8), intent(out), optional :: evalim(n)
@@ -57,7 +58,7 @@ module m_diagfull
       real(8) :: absnorm
       integer(4) :: lwork, info
       integer(4) :: ilo, ihi
-      logical :: frc, fba
+      logical :: frc, fba, fso
       character(1) :: bchar, vrchar, vlchar, schar
       
       ! Arrays
@@ -66,6 +67,7 @@ module m_diagfull
       complex(8) :: evals(n)
 
       ! Allocatable arrays
+      integer(4), allocatable :: idxsort(:)
       complex(8), allocatable :: work(:)
       complex(8), allocatable, target :: evecright(:,:)
       complex(8), allocatable, target :: evecleft(:,:)
@@ -84,6 +86,12 @@ module m_diagfull
         frc = frcond
       else
         frc = .false.
+      end if
+
+      if(present(fsort)) then
+        fso = fsort
+      else
+        fso = .false.
       end if
 
       ! Set chars
@@ -176,6 +184,22 @@ module m_diagfull
       evalre = dble(evals)
       if(present(evalim)) then
         evalim = aimag(evals)
+      end if
+
+      ! Sort according to real part
+      if(fso) then 
+        allocate(idxsort(n))
+        call sortidx(n, evalre, idxsort)
+        evalre = evalre(idxsort)
+        if(present(evalim)) then
+          evalim = evalim(idxsort)
+        end if
+        if(present(evecr)) then 
+          pevecr(:,:) = pevecr(:, idxsort)
+        end if
+        if(present(evecl)) then 
+          pevecl(:,:) = pevecl(:, idxsort)
+        end if
       end if
 
       ! Deallocate eigenvector arrays that were only needed for

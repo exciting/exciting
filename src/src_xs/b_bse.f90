@@ -39,7 +39,8 @@ subroutine b_bse(iqmt)
   use m_setup_bse
   use m_setup_rmat
   use m_setup_pwmat
-  use m_storeexcitons
+  use m_genexevec
+  use m_putgetexcitons
 
 use m_writecmplxparts
 ! !DESCRIPTION:
@@ -126,18 +127,20 @@ use m_writecmplxparts
   ! Allocatable arrays
   real(8), allocatable, dimension(:) :: bevalim, bevalre, w
   complex(8), allocatable, dimension(:,:) :: ham, bevecr, bevecaux
+  complex(8), allocatable, dimension(:,:) :: resvec, aresvec 
   complex(8), allocatable, dimension(:,:) :: oszsr, oszsa
   complex(8), allocatable, dimension(:,:) :: cmat, cpmat
   complex(8), allocatable, dimension(:,:,:) :: symspectr
+
   real(8) :: bsegap
-  real(8) :: v1, v2
-  integer(4) :: i1, i2, i,j
+  real(8) :: v1, v2, en1, en2
+  integer(4) :: i1, i2, i,j, iex1, iex2, nreq
   logical :: efind
   ! Distributed arrays
   integer(4) :: ip
   complex(8), allocatable :: buff(:,:)
-  type(dzmat) :: dham, dbevecr, doszsr
-  type(dzmat) :: dcmat, dcpmat, dbevecaux
+  type(dzmat) :: dham, dbevecr, doszsr, dresvec, daresvec
+  type(dzmat) :: dcmat, dcpmat
 
   ! Write Hamilton matrix parts to readable file
   fwp = input%xs%bse%writeparts
@@ -175,7 +178,7 @@ use m_writecmplxparts
     ! q-point and qmt-point setup
     !   Init 2 sets up (task 445):
     !   * A list of momentum transfer vectors form the q-point list 
-    !     (modxs::vqmtl and mod_qpoint::vql)
+    !     (modxs::vqlmt and mod_qpoint::vql)
     !   * Offset of the k+qmt grid derived from k offset an qmt point (modxs::qvkloff)
     !   * non-reduced mapping between ik,qmt and ik' grids (modxs::ikmapikq)
     !   * G+qmt quantities (modxs)
@@ -201,7 +204,7 @@ use m_writecmplxparts
     ! Select relevant transitions for the construction
     ! of the BSE hamiltonian
     ! Also sets nkkp_bse, nk_bse 
-    ! Resets vkl0 to k grid and vkl to k+qmt grid
+    ! NOTE: Resets vkl0 to k grid and vkl to k+qmt grid
     ! Resets eigenvalues and occupancies correspondingly
     call select_transitions(iqmt, serial=.true.)
 
@@ -320,7 +323,7 @@ use m_writecmplxparts
     if(fcoup) then
       if(.not. fti) then 
         call diagfull(2*hamsize, ham, bevalre,&
-          & evalim=bevalim, evecr=bevecr, fbalance=.false., frcond=.false.)
+          & evalim=bevalim, evecr=bevecr, fbalance=.false., frcond=.false., fsort=.true.)
         nexc = 2*hamsize
       else
         if(efind) then
@@ -413,6 +416,73 @@ use m_writecmplxparts
     write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
     write(unitout,*)
 
+    ! Store excitonic energies and wave functions to file
+    if(associated(input%xs%storeexcitons)) then
+
+      if(input%xs%storeexcitons%selectenergy) then 
+        en1=input%xs%storeexcitons%minenergyexcitons
+        en2=input%xs%storeexcitons%maxenergyexcitons
+        write(*,*) "b_bse: en1, en2", en1, en2
+        if(input%xs%storeexcitons%useev) then 
+          en1=en1/h2ev
+          en2=en2/h2ev
+        end if
+        write(*,*) "b_bse: en1, en2", en1, en2
+        if(fcoup .and. .not. fti) then 
+          call energy2index(2*hamsize, nexc, bevalre, en1, en2, iex1, iex2)
+        else
+          call energy2index(hamsize, nexc, bevalre, en1, en2, iex1, iex2)
+        endif 
+        write(*,*) "b_bse: iex1, iex2", iex1, iex2
+      else
+        iex1=input%xs%storeexcitons%minnumberexcitons
+        iex2=input%xs%storeexcitons%maxnumberexcitons
+      end if
+      nreq=iex2-iex1+1
+      write(*,*) "b_bse: iex1=", iex1, " iex2=", iex2, " nreq=", nreq
+
+      if(nreq < 1 .or. nreq > nexc .or. iex1<1 .or. iex2<1 ) then
+        write(*,*) "Error(b_bse): storeexcitons index mismatch."
+        write(*,*) "iex1, iex2, nreq, nex", iex1, iex2, nreq, nexc
+        call terminate
+      end if
+
+      write(unitout, '("Info(b_bse): Writing excition eigenvectors for index range=",2i8)') iex1, iex2
+
+      if(fcoup .and. fti) then 
+        allocate(resvec(hamsize, nreq))
+        allocate(aresvec(hamsize, nreq))
+
+        write(unitout, '("Info(b_bse): Generating resonant&
+          & and anti-resonant exciton coefficients from auxilliary squared EVP eigenvectors.")')
+        call genexevec(iex1, iex2, nexc, cmat, cpmat, bevecaux, bevalre,&
+          & rvecp=resvec, avecp=aresvec)
+
+        write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file.")')
+        call put_excitons(bevalre(iex1:iex2), resvec, avec=aresvec,&
+          & iqmt=iqmt, a1=iex1, a2=iex2)
+
+        if(allocated(resvec)) deallocate(resvec)
+        if(allocated(aresvec)) deallocate(aresvec)
+
+      else if(fcoup .and. .not. fti) then 
+
+        write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file.")')
+        call put_excitons(bevalre(iex1:iex2), bevecr(1:hamsize,iex1:iex2),&
+          & avec=bevecr(hamsize+1:2*hamsize,iex1:iex2),&
+          & iqmt=iqmt, a1=iex1, a2=iex2)
+
+      else
+
+        write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file.")')
+        call put_excitons(bevalre(iex1:iex2), bevecr(:,iex1:iex2),&
+          & iqmt=iqmt, a1=iex1, a2=iex2)
+
+      end if
+
+    end if
+
+
     ! Calculate oscillator strengths.
     allocate(oszsr(nexc,3))
     if(fcoup .and. .not. fti) then
@@ -462,11 +532,6 @@ use m_writecmplxparts
     call writederived(iqmt, symspectr, nw, w)
     write(unitout, '("  Derived quantities written.")')
 
-   ! ! Store excitonic energies and wave functions to file
-   ! if(associated(input%xs%storeexcitons)) then
-   !   call storeexcitons(nexc,bevalre,bevecr,fcoup)
-   ! end if
-
     ! Clean up
     deallocate(bevalre, oszsr, w, symspectr, evalsv)
     if(allocated(bevecr)) deallocate(bevecr)
@@ -490,10 +555,12 @@ use m_writecmplxparts
     write(*,*) "b_bse: Running parallel version at rank:", mpiglobal%rank
 
     ! Set up process grids for BLACS 
-    !   Make square'ish process grid
+    !   Make square'ish process grid (context 0)
     call setupblacs(mpiglobal, 'grid', bi2d)
-    !   Also make 1d grids with the same number of processes
+    !   Also make 1d grid with the same number of processes (context 1)
     call setupblacs(mpiglobal, 'row', bi1d, np=bi2d%nprocs)
+    !   Also make 0d grid containing only the current processes (context 2)
+    call setupblacs(mpiglobal, '0d', bi0d, np=1)
 
     ! General init
     call init0
@@ -702,6 +769,77 @@ use m_writecmplxparts
         end if
         write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
         write(unitout,*)
+      end if
+
+
+      ! Store excitonic energies and wave functions to file
+      if(associated(input%xs%storeexcitons)) then
+
+        if(input%xs%storeexcitons%selectenergy) then 
+          en1=input%xs%storeexcitons%minenergyexcitons
+          en2=input%xs%storeexcitons%maxenergyexcitons
+          if(bi2d%isroot) then 
+            write(*,*) "b_bse: en1, en2", en1, en2
+          end if
+          if(input%xs%storeexcitons%useev) then 
+            en1=en1/h2ev
+            en2=en2/h2ev
+          end if
+          call energy2index(hamsize, nexc, bevalre, en1, en2, iex1, iex2)
+          if(bi2d%isroot) then 
+            write(*,*) "b_bse: iex1, iex2", iex1, iex2
+          end if
+        else
+          iex1=input%xs%storeexcitons%minnumberexcitons
+          iex2=input%xs%storeexcitons%maxnumberexcitons
+        end if
+        nreq=iex2-iex1+1
+        if(bi2d%isroot) then 
+          write(*,*) "b_bse: iex1=", iex1, " iex2=", iex2, " nreq=", nreq
+        end if
+
+        if(nreq < 1 .or. nreq > nexc .or. iex1<1 .or. iex2<1 ) then
+          if(bi2d%isroot) then 
+            write(*,*) "Error(b_bse): storeexcitons index mismatch."
+            write(*,*) "iex1, iex2, nreq, nex", iex1, iex2, nreq, nexc
+          end if
+          call terminate
+        end if
+
+        if(bi2d%isroot) then 
+          write(unitout, '("Info(b_bse): Writing excition eigenvectors for index range=",2i8)') iex1, iex2
+        end if
+
+        if(fcoup .and. fti) then 
+
+          call new_dzmat(dresvec, hamsize, nreq, bi2d)
+          call new_dzmat(daresvec, hamsize, nreq, bi2d)
+
+          if(bi2d%isroot) then 
+            write(unitout, '("Info(b_bse): Generating resonant&
+              & and anti-resonant exciton coefficients from&
+              & auxilliary squared EVP eigenvectors.")')
+          end if
+          call gendexevec(iex1, iex2, nexc, dcmat, dcpmat, dbevecr, bevalre,&
+            & drvecp=dresvec, davecp=daresvec)
+
+          write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file.")')
+          call putd_excitons(bevalre(iex1:iex2), dresvec, davec=daresvec,&
+            & iqmt=iqmt, a1=iex1, a2=iex2)
+
+          call del_dzmat(dresvec)
+          call del_dzmat(daresvec)
+
+        else 
+
+          write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file.")')
+          call setview_dzmat(dbevecr, hamsize, nreq, 1, iex1)
+          call putd_excitons(bevalre(iex1:iex2), dbevecr,&
+            & iqmt=iqmt, a1=iex1, a2=iex2)
+          call setview_dzmat(dbevecr, hamsize, nexc, 1, 1)
+
+        end if
+
       end if
 
       ! Calculate oscillator strengths.
