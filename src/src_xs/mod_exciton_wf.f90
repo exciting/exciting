@@ -5,6 +5,7 @@ module mod_exciton_wf
   use modxs
   use modxas
   use modmpi
+  use m_putgetexcitons
   implicit none
 
   integer ::  nrnst1, nrnst3, hamsiz
@@ -137,7 +138,36 @@ contains
     !----------------------------------------
     ! read exciton wavefunction coefficients
     !----------------------------------------
-    call read_exccoeff("EXCCOEFF.bin")
+    if(input%xs%bse%beyond) then 
+      ! Get data form EXCCOEFF*.OUT
+      call get_excitons()
+      ! Check compatibility (needs TDA and fixed number of transition over all k)
+      if(fcoup_==.true. .or. fesel_==.true.) then 
+        write(*,*) "Error(plot_excitonWavefunction): Data retrieved with get_excitions invalid"
+        call terminate
+      end if
+      ! Copy to corresponding module variables
+      nkptnr=nk_bse_
+      ! lowest v state (absolute index)
+      sta1=koulims_(3,1)
+      ! number of v states
+      nrnst1=koulims_(4,1)-koulims_(3,1)+1
+      ! reference c state 
+      istl3=iuref_
+      ! lowest c state (relative index)
+      sta2 = koulims_(1,1)-iuref_+1
+      ! number of c states
+      nrnst3=koulims_(2,1)-koulims_(1,1)+1
+      if(allocated(beval)) deallocate(beval)
+      allocate(beval(hamsize_))
+      if(allocated(bevec)) deallocate(bevec)
+      allocate(bevec(hamsize_,iex1_:iex2_))
+      beval=evals_
+      bevec=rvec_
+      call clear_excitons
+    else
+      call read_exccoeff("EXCCOEFF.bin")
+    end if
    
     !----------------------------------------
     ! Loop over excitons

@@ -97,7 +97,7 @@ use m_writecmplxparts
   !   main part   !
   !---------------!
 
-write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
+  !write(*,*) "Hello, this is b_exccoulint at rank:", mpiglobal%rank
 
   if(iqmt /= 1 .and. .not. fti) then 
     write(*, '("Error(",a,"):&

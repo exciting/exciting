@@ -166,7 +166,7 @@ use m_writecmplxparts
   ! Non-parallelized code.
   if(.not. fscal .and. mpiglobal%rank == 0) then 
 
-    write(*,*) "b_bse: Running non parallel version."
+    !write(*,*) "b_bse: Running non parallel version."
 
     ! General init
     call init0
@@ -187,8 +187,8 @@ use m_writecmplxparts
     !   * Generates radial functions (mod_APW_LO)
     call init2
 
-    write(*,*) "b_bse: iqmt=", iqmt
-    write(*,*) "b_bse: vqlmt=", vqlmt(1:3, iqmt)
+    !write(*,*) "b_bse: iqmt=", iqmt
+    !write(*,*) "b_bse: vqlmt=", vqlmt(1:3, iqmt)
 
     ! Read Fermi energy from file
     ! Use EFERMI_QMT001.OUT
@@ -422,24 +422,24 @@ use m_writecmplxparts
       if(input%xs%storeexcitons%selectenergy) then 
         en1=input%xs%storeexcitons%minenergyexcitons
         en2=input%xs%storeexcitons%maxenergyexcitons
-        write(*,*) "b_bse: en1, en2", en1, en2
+        !write(*,*) "b_bse: en1, en2", en1, en2
         if(input%xs%storeexcitons%useev) then 
           en1=en1/h2ev
           en2=en2/h2ev
         end if
-        write(*,*) "b_bse: en1, en2", en1, en2
+        !write(*,*) "b_bse: en1, en2", en1, en2
         if(fcoup .and. .not. fti) then 
           call energy2index(2*hamsize, nexc, bevalre, en1, en2, iex1, iex2)
         else
           call energy2index(hamsize, nexc, bevalre, en1, en2, iex1, iex2)
         endif 
-        write(*,*) "b_bse: iex1, iex2", iex1, iex2
+        !write(*,*) "b_bse: iex1, iex2", iex1, iex2
       else
         iex1=input%xs%storeexcitons%minnumberexcitons
         iex2=input%xs%storeexcitons%maxnumberexcitons
       end if
       nreq=iex2-iex1+1
-      write(*,*) "b_bse: iex1=", iex1, " iex2=", iex2, " nreq=", nreq
+      !write(*,*) "b_bse: iex1=", iex1, " iex2=", iex2, " nreq=", nreq
 
       if(nreq < 1 .or. nreq > nexc .or. iex1<1 .or. iex2<1 ) then
         write(*,*) "Error(b_bse): storeexcitons index mismatch."
@@ -552,7 +552,7 @@ use m_writecmplxparts
   ! Parallel version 
   else if (fscal) then
     
-    write(*,*) "b_bse: Running parallel version at rank:", mpiglobal%rank
+    !write(*,*) "b_bse: Running parallel version at rank:", mpiglobal%rank
 
     ! Set up process grids for BLACS 
     !   Make square'ish process grid (context 0)
@@ -779,7 +779,7 @@ use m_writecmplxparts
           en1=input%xs%storeexcitons%minenergyexcitons
           en2=input%xs%storeexcitons%maxenergyexcitons
           if(bi2d%isroot) then 
-            write(*,*) "b_bse: en1, en2", en1, en2
+            !write(*,*) "b_bse: en1, en2", en1, en2
           end if
           if(input%xs%storeexcitons%useev) then 
             en1=en1/h2ev
@@ -787,7 +787,7 @@ use m_writecmplxparts
           end if
           call energy2index(hamsize, nexc, bevalre, en1, en2, iex1, iex2)
           if(bi2d%isroot) then 
-            write(*,*) "b_bse: iex1, iex2", iex1, iex2
+            !write(*,*) "b_bse: iex1, iex2", iex1, iex2
           end if
         else
           iex1=input%xs%storeexcitons%minnumberexcitons
@@ -795,7 +795,7 @@ use m_writecmplxparts
         end if
         nreq=iex2-iex1+1
         if(bi2d%isroot) then 
-          write(*,*) "b_bse: iex1=", iex1, " iex2=", iex2, " nreq=", nreq
+          !write(*,*) "b_bse: iex1=", iex1, " iex2=", iex2, " nreq=", nreq
         end if
 
         if(nreq < 1 .or. nreq > nexc .or. iex1<1 .or. iex2<1 ) then

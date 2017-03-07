@@ -34,9 +34,9 @@ subroutine b_exccoulintlauncher
     fcoup = .true.
   else
     fcoup = .false.
-    if(trim(casestring) /= "RR") then 
+    if(trim(casestring) /= "rr") then 
       write(*,*) "Ignoring input%xs%bse%blocks, since no RA coupling enabled"
-      casestring="RR"
+      casestring="rr"
     end if
   end if
 

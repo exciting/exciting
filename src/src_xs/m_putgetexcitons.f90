@@ -67,8 +67,6 @@ module m_putgetexcitons
       m = size(rvec,1)
       n = size(rvec,2)
 
-      write(*,*) "put_excitons: m,n", m,n
-
       ! Input checking
       if(size(evals) /= size(rvec,2)) then 
         write(*,'("Error(put_excitons): Array sizes invalid")')
@@ -96,8 +94,6 @@ module m_putgetexcitons
         i2=n
         nexcstored = i2-i1+1
       end if
-
-      write(*,*) "put_excitons: i1,i2,nexcstored", i1,i2,nexcstored
 
       if(i1 > i2 .or. i1<1 .or. i2<1 .or. nexcstored /= n) then 
         write(*,'("Error(put_excitons): Index range invalid")')
@@ -232,8 +228,6 @@ module m_putgetexcitons
         useindex=.false.
         useenergy=.true.
       end if
-      write(*,*) "useindex=", useindex
-      write(*,*) "useenergy=", useenergy
 
       nexcreq = -1
       if(useindex) then 
@@ -326,8 +320,6 @@ module m_putgetexcitons
         & vqlmt_       ! Momentum transver vector
       inquire(unexc, pos=mypos)
 
-      write(*,*) "get_excitons: meta 1 data read, mypos=", mypos
-
       ! Check read parameters against requested ones
       if(fcoup_ /= fcoup .or. fti_ /= fti) then 
         write(*,*)
@@ -375,12 +367,10 @@ module m_putgetexcitons
         & smap_rel_,&   ! Index map  alpha -> c,v,k (relative c,v,k indices)
         & evalstmp      ! Excitonic enegies
       inquire(unexc, pos=mypos)
-      write(*,*) "get_excitons: meta 2 data read, mypos=", mypos
 
       ! Inquire ouput length of a complex number (in units of 4 byte by default)
       inquire(iolength=cmplxlen) zdummy
       cmplxlen=cmplxlen*4
-      write(*,*) "get_excitons: cmplxlen/bytes=", cmplxlen
 
       if(useenergy) then 
         call energy2index(size(evalstmp), size(evalstmp),&
@@ -391,8 +381,6 @@ module m_putgetexcitons
         i1=iex1_
         i2=iex2_
       end if
-
-      write(*,*) "get_excitons: i1, i2", i1, i2
 
       if(i1 < iex1_ .or. i2 > iex2_) then 
         write(*,*)
@@ -453,10 +441,6 @@ module m_putgetexcitons
       m = drvec%nrows
       n = drvec%ncols
   
-      if(bi2d%isroot) then 
-        write(*,*) "putd_excitons: m,n", m,n
-      end if
-
       ! Input checking
       if(present(a1) .and. .not. present(a2) .or. .not. present(a1) .and. present(a2)) then
         if(bi2d%isroot) then 
@@ -499,10 +483,6 @@ module m_putgetexcitons
           end if
           call terminate
         end if
-      end if
-
-      if(bi2d%isroot) then 
-        write(*,*) "putd_excitons: i1,i2,nexcstored", i1,i2,nexcstored
       end if
 
       if(present(iqmt)) then 
@@ -586,12 +566,10 @@ module m_putgetexcitons
         call new_dzmat(dauxmat, m, 1, bi0d)
 
         do i= 1, nexcstored
-          !write(*,*) "rank",rank," Receiving eigenvector column", i+drvec%subj-1, " for global column", i1+i-1 
           ! Copy i'th column of distributed eigenvector matrix to root 
           call dzmat_copy(drvec%context, m, 1, dmata=drvec, dmatb=dauxmat,&
             & ra=1, ca=i+drvec%subj-1)
           ! Write eigenvector
-          !write(*,*) "rank",rank," writing eigenvector column", i+drvec%subj-1, " for ", i1+i-1 
           write(unexc) dauxmat%za(1:m,1)
         end do
 
@@ -613,7 +591,6 @@ module m_putgetexcitons
       else
 
         do i= 1, nexcstored
-          !write(*,*) "rank",rank," Sending eigenvector column", i+drvec%subj-1, " for global column", i1+i-1 
           ! Copy i'th column of distributed eigenvector matrix to root 
           call dzmat_copy(drvec%context, m, 1, dmata=drvec,&
             & ra=1, ca=i+drvec%subj-1)

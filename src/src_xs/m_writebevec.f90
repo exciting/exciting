@@ -72,7 +72,7 @@ module m_writebevec
 
           call getunit(un)
 
-          write(lambdastring, '("_lambda",i4.4)') lambda
+          write(lambdastring, '("_LAMBDA",i4.4)') lambda
           fname=trim('BEVEC'//trim(lambdastring)//'.OUT')
 
           open(unit=un, file=trim(fname), form='formatted', action='write')
@@ -153,7 +153,7 @@ module m_writebevec
 
           call getunit(un)
 
-          write(lambdastring, '("_lambda",i4.4)') lambda
+          write(lambdastring, '("_LAMBDA",i4.4)') lambda
           fname=trim('BEVEC_KSUM'//trim(lambdastring)//'.OUT')
 
           open(unit=un, file=trim(fname), form='formatted', action='write')

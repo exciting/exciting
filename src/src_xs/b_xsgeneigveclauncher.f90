@@ -24,8 +24,8 @@ subroutine b_xsgeneigveclauncher
   real(8), allocatable :: vkloff_kqmtm(:,:)
   real(8), parameter :: epslat=1.d-6
 
-  write(*,*) "b_xsgeneigveclauncher here at rank", rank
-  write(*,*) "use screening parameters = ", tscreen 
+  !write(*,*) "b_xsgeneigveclauncher here at rank", rank
+  !write(*,*) "use screening parameters = ", tscreen 
 
   ! Initialize universal variables
   call init0

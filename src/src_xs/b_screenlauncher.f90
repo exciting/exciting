@@ -43,7 +43,7 @@ subroutine b_screenlauncher
   character(256) :: filex, syscommand
   character(*), parameter :: thisnam = 'b_screenlauncher'
 
-  write(*,*) "b_screenlauncher here at rank ", rank
+  !write(*,*) "b_screenlauncher here at rank ", rank
 
   ! Initialise universal variables
   call init0
@@ -153,16 +153,16 @@ subroutine b_screenlauncher
     usefilext0 = .true.
     iqmt0 = iqmtgamma
     call genfilname(iqmt=iqmt0, scrtype='', fileext=filext0)
-    write(*,*) "filext0 =", trim(filext0)
+    !write(*,*) "filext0 =", trim(filext0)
 
     ! Set *_SCR_QMT001.OUT as ket state file
     iqmt1 = iqmtgamma
     call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
-    write(*,*) "filext=", trim(filext)
+    !write(*,*) "filext=", trim(filext)
 
     ! Set *_QMT001.OUT as file extension for screening files
     call genfilname(iqmt=iqmt1, fileext=filexteps)
-    write(*,*) "filexteps=", trim(filexteps)
+    !write(*,*) "filexteps=", trim(filexteps)
 
     ! Use <mk|e^{-i(G+q)r}|nk'> for q=k'-k in dfq
     emat_ccket = .false.
@@ -177,7 +177,7 @@ subroutine b_screenlauncher
 
       ! Write q-point number to fileext, filext = "_SCR_QMT001_QXYZ.OUT"
       call genfilname(scrtype='', iqmt=iqmtgamma, iq=iq, fileext=filex)
-      write(*,*) "filex=", trim(filex)
+      !write(*,*) "filex=", trim(filex)
       ! Write out G+q vectors to file "GQPOINTS_SCR_QMT001_QXYZ.OUT"
       call writegqpts(iq, filex, dirname=gqdirname)
 
@@ -328,16 +328,16 @@ subroutine b_screenlauncher
         usefilext0 = .true.
         iqmt0 = iqmtgamma
         call genfilname(iqmt=iqmt0, scrtype='', fileext=filext0)
-        write(*,*) "filext0 =", trim(filext0)
+        !write(*,*) "filext0 =", trim(filext0)
 
         ! Set *_SCR_QMTXYZ_mqmt.OUT as ket state file
         iqmt1 = iqmt 
         call genfilname(iqmt=iqmt1, scrtype='', auxtype='mqmt', setfilext=.true.)
-        write(*,*) "filext=", trim(filext)
+        !write(*,*) "filext=", trim(filext)
 
         ! Set *_QMTXYZ_mqmt.OUT as filextension for the screening 
         call genfilname(iqmt=iqmt1, auxtype='mqmt', fileext=filexteps)
-        write(*,*) "filexteps=", trim(filexteps)
+        !write(*,*) "filexteps=", trim(filexteps)
 
       else
 
@@ -345,16 +345,16 @@ subroutine b_screenlauncher
         usefilext0 = .true.
         iqmt0 = iqmtgamma
         call genfilname(iqmt=iqmt0, scrtype='', fileext=filext0)
-        write(*,*) "filext0 =", trim(filext0)
+        !write(*,*) "filext0 =", trim(filext0)
 
         ! Set *_SCR_QMTXYZ.OUT as ket state file
         iqmt1 = iqmt 
         call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
-        write(*,*) "filext=", trim(filext)
+        !write(*,*) "filext=", trim(filext)
 
         ! Set *_QMTXYZ_m.OUT as filextension for the screening 
         call genfilname(iqmt=iqmt1, auxtype='m', fileext=filexteps)
-        write(*,*) "filexteps=", trim(filexteps)
+        !write(*,*) "filexteps=", trim(filexteps)
 
       end if
 
@@ -373,7 +373,7 @@ subroutine b_screenlauncher
         else
           call genfilname(scrtype='', iqmt=iqmt, auxtype='m', iq=iq, fileext=filex)
         end if
-        write(*,*) "filex=", trim(filex)
+        !write(*,*) "filex=", trim(filex)
         ! Write out G+q vectors to file GQPOINTS_SCR_QMTXYZ_QXYZ_mqmt.OUT / GQPOINTS_SCR_QMTXYZ_QXYZ_m.OUT
         call writegqpts(iq, filex, dirname=gqdirname)
 

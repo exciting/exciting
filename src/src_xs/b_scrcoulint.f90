@@ -130,7 +130,7 @@ use m_writecmplxparts
   !   main part   !
   !---------------!
 
-write(*,*) "Hello, this is b_scrcoulint at rank:", rank
+!write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
   if(iqmt /= 1 .and. .not. fti) then 
     write(*, '("Error(",a,"):&
