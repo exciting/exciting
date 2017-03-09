@@ -133,67 +133,96 @@ module mod_xsgrids
       end if
 
       ! Generate G set
+      !write(*,*) "mod_xsgrids: g"
       call generate_G_vectors(g, bvec, intgv, gmaxvr)
 
       !! Setup k-space grids (not using libzint)
       ! Generate k and k'=k+qmt grids and maps between them
+      !write(*,*) "mod_xsgrids: k,k+qmt"
       call generate_kkqmt_vectors(k_kqmtp, g, bvec, ngridk, vkloff, reducek,&
         & vqmtl, uselibzint=.false.)
       ! Generate k and k'=k-qmt grids and maps between them
+      !write(*,*) "mod_xsgrids: k,k-qmt"
       call generate_kkqmt_vectors(k_kqmtm, g, bvec, ngridk, vkloff, reducek,&
         & -vqmtl, uselibzint=.false.)
 
       ! Generate k and k'=-k grids and maps between them
+      !write(*,*) "mod_xsgrids: -k"
       call generate_km_vectors(mk, k_kqmtp%kset)
       ! Generate k=k+qmt and k'=-(k+qmt) set
+      !write(*,*) "mod_xsgrids: -(k+qmt)"
       call generate_km_vectors(mkqmtp, k_kqmtp%kqmtset)
 
       ! Generate -k and -k-qmt grids and maps between them
+      !write(*,*) "mod_xsgrids: -k,-k-qmt"
       call generate_kkqmt_vectors(mk_mkqmtp, g, bvec, ngridk, mk%kset%vkloff, reducek,&
         & -vqmtl, uselibzint=.false.)
 
       ! Generate q-grid as differences of jk-ik
+      !write(*,*) "mod_xsgrids: q"
       call generate_q_vectors(q_q, k_kqmtp%kset, k_kqmtp%kset, g, reduceq)
       ! Generate q-grid as differences of (jk+qmt)-(ik+qmt)
+      !write(*,*) "mod_xsgrids: qmt"
       call generate_q_vectors(qmtp_qmtp, k_kqmtp%kqmtset, k_kqmtp%kqmtset, g, reduceq)
       ! Generate q-grid as differences of (jk+qmt)-ik
+      !write(*,*) "mod_xsgrids: q_qmtp"
       call generate_q_vectors(q_qmtp, k_kqmtp%kset, k_kqmtp%kqmtset, g, reduceq)
       ! Generate q-grid as differences of ik - (jk+qmt)
+      !write(*,*) "mod_xsgrids: qmtp_q"
       call generate_q_vectors(qmtp_q, k_kqmtp%kqmtset, k_kqmtp%kset, g, reduceq)
       ! Generate q-grid as differences of (jk-qmt)-ik
+      !write(*,*) "mod_xsgrids: q_qmtm"
       call generate_q_vectors(q_qmtm, k_kqmtm%kset, k_kqmtm%kqmtset, g, reduceq)
       ! Generate q-grid as differences of -(jk+qmt)-ik
+      !write(*,*) "mod_xsgrids: q_qmtp"
       call generate_q_vectors(q_mqmtp, k_kqmtp%kset, mkqmtp%kset, g, reduceq)
       ! Generate q-grid as differences of -jk - (ik+qmt)
+      !write(*,*) "mod_xsgrids: qmtp_mq"
       call generate_q_vectors(qmtp_mq, k_kqmtp%kqmtset, mk%kset, g, reduceq)
 
       ! Generate p-grid as sums of -(jk+qmt)-ik
+      !write(*,*) "mod_xsgrids: p_pqmtp"
       call generate_p_vectors(p_pqmtp, k_kqmtp%kset, k_kqmtp%kqmtset, g, reduceq)
       ! Generate p-grid as sums of -jk-(ik+qmt)
+      !write(*,*) "mod_xsgrids: pqmtp_p"
       call generate_p_vectors(pqmtp_p, k_kqmtp%kqmtset, k_kqmtp%kset, g, reduceq)
 
       ! G+k set
+      !write(*,*) "mod_xsgrids: G_k"
       call generate_Gk_vectors(g_k, k_kqmtp%kset, g, gkmax)
       ! G+(k+qmt) set 
+      !write(*,*) "mod_xsgrids: G_kqmtp"
       call generate_Gk_vectors(g_kqmtp, k_kqmtp%kqmtset, g, gkmax)
       ! G+(k-qmt) set 
+      !write(*,*) "mod_xsgrids: G_kqmtm"
       call generate_Gk_vectors(g_kqmtm, k_kqmtm%kqmtset, g, gkmax)
       ! G+(-k) set 
+      !write(*,*) "mod_xsgrids: G_mk"
       call generate_Gk_vectors(g_mk, mk%kset, g, gkmax)
       ! G+(-k-qmt) set 
+      !write(*,*) "mod_xsgrids: G_mkqmtp"
       call generate_Gk_vectors(g_mkqmtp, mkqmtp%kset, g, gkmax)
 
       ! G+q sets
+      !write(*,*) "mod_xsgrids: G_qq"
       call generate_Gk_vectors(g_qq, q_q%qset, g, gqmax)
+      !write(*,*) "mod_xsgrids: G_qmtqmt"
       call generate_Gk_vectors(g_qmtpqmtp, qmtp_qmtp%qset, g, gqmax)
+      !write(*,*) "mod_xsgrids: G_qqmtp"
       call generate_Gk_vectors(g_qqmtp, q_qmtp%qset, g, gqmax)
+      !write(*,*) "mod_xsgrids: G_qmtpq"
       call generate_Gk_vectors(g_qmtpq, qmtp_q%qset, g, gqmax)
+      !write(*,*) "mod_xsgrids: G_qqmtm"
       call generate_Gk_vectors(g_qqmtm, q_qmtm%qset, g, gqmax)
+      !write(*,*) "mod_xsgrids: G_qmqmtp"
       call generate_Gk_vectors(g_qmqmtp, q_mqmtp%qset, g, gqmax)
+      !write(*,*) "mod_xsgrids: G_qmtpmq"
       call generate_Gk_vectors(g_qmtpmq, qmtp_mq%qset, g, gqmax)
 
       ! G+p sets
+      !write(*,*) "mod_xsgrids: G_ppqmtp"
       call generate_Gk_vectors(g_ppqmtp, p_pqmtp%pset, g, gqmax)
+      !write(*,*) "mod_xsgrids: G_pqmtpp"
       call generate_Gk_vectors(g_pqmtpp, pqmtp_p%pset, g, gqmax)
 
       ! Info

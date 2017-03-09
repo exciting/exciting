@@ -50,8 +50,10 @@ module modbse
   real(8) :: sci
   ! Occupation factors for Hamiltonian construction
   real(8), allocatable :: ofac(:)
-  ! KS energy differences
+  ! KS/QP energy differences
   real(8), allocatable :: de(:)
+  ! KS eigenvalue in case of GW QP energie usage
+  real(8), allocatable, dimension(:,:) :: eval0
   ! Combined BSE index map
   integer(4), allocatable :: smap(:,:)
   integer(4), allocatable :: smap_rel(:,:)
@@ -83,9 +85,6 @@ module modbse
   character(256) :: scclifname
   character(256) :: exclifname
 
-  ! Legacy
-  ! GW eigenvalue backup 
-  real(8), allocatable, dimension(:,:) :: eval0
 
   contains
 
@@ -141,10 +140,6 @@ module modbse
       logical :: fgap
       real(8) :: gap
 
-      !write(*,*) "setranges_modxs here!"
-      !write(*,*) "iqmt=", iqmt
-      !write(*,'(a,3E10.3)') "vqlmt=", vqlmt(1:3,iqmt)
-
       !---------------------------------------------------!
       ! Get offsets of and mapping between k and k' grids !
       !---------------------------------------------------!
@@ -172,21 +167,6 @@ module modbse
       call xsgrids_finalize()
       !---------------------------------------------------!
 
-      !write(*,*)
-      !write(*,'(a,3E10.3)') "vkloff = ", vkloff
-      !write(*,'(a,3E10.3)') "vkqmtploff = ", vkqmtploff
-      !write(*,'(a,3E10.3)') "vkqmtmloff = ", vkqmtmloff
-      !write(*,*)
-      !write(*,*) "ik2ikqmtp mapping"
-      do ik = 1, nkpt
-        !write(*,'(2i3)') ik, ik2ikqmtp(ik)
-      end do
-      !write(*,*)
-      !write(*,*) "ik2ikqmtm mapping"
-      do ik = 1, nkpt
-        !write(*,'(2i3)') ik, ik2ikqmtm(ik)
-      end do
-
       !---------------------------------------------------!
       ! Inspect occupancies for k, k'=k+qmt               !
       !---------------------------------------------------!
@@ -194,30 +174,12 @@ module modbse
       ! (apart from xs%vkloff)
       call init1offs(vkloff)
 
-      !write(*,*)
-      !write(*,*) "ik vkl"
-      do ik = 1, nkpt
-        !write(*,'(i3, 3E10.3)') ik, vkl(1:3,ik)
-      end do
-
       ! Save the k-grid to modxs vkl0 etc 
       call xssave0
-
-      !write(*,*)
-      !write(*,*) "ik vkl0"
-      do ik = 1, nkpt
-        !write(*,'(i3, 3E10.3)') ik, vkl0(1:3,ik)
-      end do
 
       ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector 
       ! to those of the k' grid.
       call init1offs(vkqmtploff)
-
-      !write(*,*)
-      !write(*,*) "ik vkl"
-      do ik = 1, nkpt
-        !write(*,'(i3, 3E10.3)') ik, vkl(1:3,ik)
-      end do
 
       ! Allocate k eigenvalues
       ! Note: If evalsv0 is allocated before findocclims is called it gets read in 
@@ -230,13 +192,9 @@ module modbse
       call genfilname(iqmt=iqmtgamma, setfilext=.true.)
       filext0 = filext
 
-      !write(*,*) "filext0 =", trim(filext0)
-
       ! Set k' file extension
       ! Set EVALSV_QMTXYZ.OUT as second reference for the occupation search
       call genfilname(iqmt=iqmt, setfilext=.true.)
-
-      !write(*,*) "filext =", trim(filext)
 
       allocate(io_k(nkpt), iu_k(nkpt))
       allocate(io_kqmtp(nkpt), iu_kqmtp(nkpt))
@@ -253,15 +211,7 @@ module modbse
       !   Size of qmt dependent gap (with qmt=0 this is the direct gap)
       qmtpgap = qgap
 
-      !!write(*,*) "fgap =", fgap
-      !write(*,*) "ksgap =", gap
-      !write(*,*) "qmtpgap =", qgap
 
-      !write(*,*) "ksgapval", ksgapval
-      !write(*,*) "max(io_k)", maxval(io_k)
-      !write(*,*) "max(io_kqmtp)", maxval(io_kqmtp)
-      !write(*,*) "min(iu_k)", minval(iu_k)
-      !write(*,*) "min(iu_kqmtp)", maxval(iu_kqmtp)
 
       deallocate(io_k, iu_k)
       deallocate(io_kqmtp, iu_kqmtp)
@@ -274,8 +224,6 @@ module modbse
       !---------------------------------------------------!
       if(fcoup .and. .not. fti) then 
 
-        !write(*,*) "COUPLING k k-qmt"
-
         !---------------------------------------------------!
         ! Inspect occupancies for k, k'=k-qmt               !
         !---------------------------------------------------!
@@ -283,38 +231,18 @@ module modbse
         ! (apart from xs%vkloff)
         call init1offs(vkloff)
 
-        !write(*,*)
-        !write(*,*) "ik vkl"
-        do ik = 1, nkpt
-          !write(*,'(i3, 3E10.3)') ik, vkl(1:3,ik)
-        end do
-
         ! Save the k-grid to modxs vkl0 etc 
         call xssave0
-
-        !write(*,*)
-        !write(*,*) "ik vkl0"
-        do ik = 1, nkpt
-          !write(*,'(i3, 3E10.3)') ik, vkl0(1:3,ik)
-        end do
 
         ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector 
         ! to those of the k' grid.
         call init1offs(vkqmtmloff)
-
-        !write(*,*)
-        !write(*,*) "ik vkl"
-        do ik = 1, nkpt
-          !write(*,'(i3, 3E10.3)') ik, vkl(1:3,ik)
-        end do
 
         ! Explicitly specify k file extension
         usefilext0 = .true.
         ! Set EVALSV_QMT001.OUT as first reference for the occupation search
         call genfilname(iqmt=iqmtgamma, setfilext=.true.)
         filext0 = filext
-
-        !write(*,*) "filext0 =", trim(filext0)
 
         ! Set k' file extension
         ! Set EVALSV_QMTXYZ_mqmt.OUT as second reference for the occupation limits search
@@ -323,8 +251,6 @@ module modbse
         else
           call genfilname(iqmt=iqmt, setfilext=.true.)
         end if
-
-        !write(*,*) "filext =", trim(filext)
 
         allocate(io_k(nkpt), iu_k(nkpt))
         allocate(io_kqmtm(nkpt), iu_kqmtm(nkpt))
@@ -342,16 +268,6 @@ module modbse
         !   Gap with -qmt direction
         qmtmgap = qgap
 
-        !!write(*,*) "fgap =", fgap
-        !write(*,*) "ksgap =", gap
-        !write(*,*) "qmtmgap =", qgap
-
-        !write(*,*) "ksgapval", ksgapval
-        !write(*,*) "max(io_k)", maxval(io_k)
-        !write(*,*) "max(io_kqmtm)", maxval(io_kqmtm)
-        !write(*,*) "min(iu_k)", minval(iu_k)
-        !write(*,*) "min(iu_kqmtm)", maxval(iu_kqmtm)
-
         ! Use the highest partially occupied band over all k, k+qmt, k-qmt
         iomax = max(iomax_kkqmtp, iomax_kkqmtm)
         ! Use the lowest partially unoccupied band over all k, k+qmt, k-qmt
@@ -368,9 +284,6 @@ module modbse
         iumin = iumin_kkqmtp
         
       end if
-
-      !write(*,*) "iomax=", iomax
-      !write(*,*) "iumin=", iumin
 
       ! Set gap status in modxs
       ksgap = fgap
@@ -419,6 +332,7 @@ module modbse
       use mod_misc, only: filext
       use modxs, only: usefilext0, filext0, vkl0
       use m_genfilname
+      use mod_symmetry, only: nsymcrys
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! integer(4) :: iqmt  ! q-point index (on unshifted k-mesh)
@@ -462,6 +376,7 @@ module modbse
       real(8), parameter :: maxocc = 2.0d0
 
       integer(4) :: nk_loc, hamsize_loc
+      integer(4) :: nsymcrys_save
       integer(4), allocatable :: smap_loc(:,:)
       real(8) :: detmp
       real(8), allocatable :: ofac_loc(:)
@@ -470,8 +385,6 @@ module modbse
       integer(4) :: buflen, buflen_r
       integer(4) :: k1, k2, k1_r, k2_r
       integer(4) :: iproc, i1, i2, il_r, iu_r
-
-      !write(*,*) "select_transitions here with iqmt=", iqmt
 
       if(present(serial)) then 
         fserial = serial
@@ -516,6 +429,19 @@ module modbse
         io2 = istocc0
         iu1 = istunocc0
         iu2 = nstsv
+        if(associated(input%gw) .and. iqmt==1) then
+          if(input%gw%ibgw /= 1 .or. input%gw%nbgw /= nstsv) then
+            if(mpiglobal%rank==0) then 
+              write(*,'("Error(select_transitions):&
+                & Energy selection + GW needs all bands.")')
+              write(*,'("  &
+                & io1=",i6, " iu2=",i6)') io1, iu2
+              write(*,'("  &
+                & ibgw=",i6, " nbgw=",i6)') input%gw%ibgw, input%gw%nbgw
+            end if
+            call terminate
+          end if
+        end if
       else
         io1 = input%xs%bse%nstlbse(1)
         io2 = input%xs%bse%nstlbse(2)
@@ -536,7 +462,7 @@ module modbse
           write(unitout, '("    ",2E10.3," /eV")')&
             & max(econv(1), -wl)*h2ev, econv(2)*h2ev
         else
-          write(unitout, '("Info(select_transitions): Searching for KS transitions in&
+          write(unitout, '("Info(select_transitions): Searching for transitions in&
             & the band interval:")')
           write(unitout, '("  io1:", i4, " io2:", i4, " iu1:", i4, " iu2:", i4)')&
             & io1, io2, iu1, iu2
@@ -546,7 +472,6 @@ module modbse
       end if
 
       !! Read in eigenvalues and occupancies for k and k+qmt
-      !write(*,*) "reading in eigenvalues and occupancies"
 
       ! Reset mod_kpoint / mod_Gkvector variables to the unshifted k-grid
       ! (apart from xs%vkloff)
@@ -556,24 +481,47 @@ module modbse
       ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector 
       ! to those of the k'=k+qmt grid.
       call init1offs(vkqmtploff)
-      ! Explicitly specify k file extension
-      usefilext0 = .true.
-      ! Set EVALSV_QMT001.OUT as first reference for the occupation search
-      call genfilname(iqmt=iqmtgamma, setfilext=.true.)
-      filext0 = filext
-      !write(*,*) "filext0 =", trim(filext0)
-      do ik = 1, nkpt
-        call getoccsv0(vkl0(1:3, ik), occsv0(1:nstsv, ik))
-        call getevalsv0(vkl0(1:3, ik), evalsv0(1:nstsv, ik))
-      end do
-      ! Set k' file extension
-      ! Set EVALSV_QMTXYZ.OUT as second reference for the occupation search
-      call genfilname(iqmt=iqmt, setfilext=.true.)
-      !write(*,*) "filext =", trim(filext)
-      do ik = 1, nkpt
-        call getoccsv(vkl(1:3, ik), occsv(1:nstsv, ik))
-        call getevalsv(vkl(1:3, ik), evalsv(1:nstsv, ik))
-      end do
+
+      if(.not. associated(input%gw)) then 
+        ! Explicitly specify k file extension
+        usefilext0 = .true.
+        ! Set EVALSV_QMT001.OUT as first reference for the occupation search
+        call genfilname(iqmt=iqmtgamma, setfilext=.true.)
+        filext0 = filext
+        do ik = 1, nkpt
+          call getoccsv0(vkl0(1:3, ik), occsv0(1:nstsv, ik))
+          call getevalsv0(vkl0(1:3, ik), evalsv0(1:nstsv, ik))
+        end do
+        ! Set k' file extension
+        ! Set EVALSV_QMTXYZ.OUT as second reference for the occupation search
+        call genfilname(iqmt=iqmt, setfilext=.true.)
+        do ik = 1, nkpt
+          call getoccsv(vkl(1:3, ik), occsv(1:nstsv, ik))
+          call getevalsv(vkl(1:3, ik), evalsv(1:nstsv, ik))
+        end do
+      else if(associated(input%gw) .and. iqmt==1) then 
+        ! Get KS occupations/eigenvalues
+        do ik = 1, nkpt
+          call getoccsv(vkl(1:3, ik), occsv(1:nstsv, ik))
+          call getevalsv(vkl(1:3, ik), evalsv(1:nstsv, ik))
+        end do
+        ! Read QP Fermi energies and eigenvalues from file
+        ! only the eigenvalues are used in the following
+        ! NOTE: QP evals are shifted by -efermi-eferqp with respect to KS evals
+        ! NOTE: getevalqp sets mod_symmetry::nsymcrys to 1
+        ! NOTE: getevalqp needs the KS eigenvalues as input
+        nsymcrys_save = nsymcrys
+        call getevalqp(nkptnr,vkl0,evalsv)
+        nsymcrys = nsymcrys_save
+        ! Set k and k'=k grid eigenvalues to QP energies
+        evalsv0=evalsv
+        occsv0=occsv
+      else if(associated(input%gw) .and. iqmt /= 1) then 
+        if(mpiglobal%rank==0) then 
+          write(*,'("Error(b_bse): BSE+GW only supported for 0 momentum transfer.")')
+        end if
+        call terminate
+      end if
 
       ! Sizes local/maximal
       if(fserial) then 

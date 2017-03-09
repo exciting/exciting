@@ -159,7 +159,7 @@ subroutine getevalsv(vpl, evalsvp)
 #ifndef XS
   if(nstsv .ne. nstsv_) then
     write(*,*)
-    write(*, '("error(getevalsv): differing nstsv for k-point ",i8)') ik
+    write(*, '("Error(getevalsv): differing nstsv for k-point ",i8)') ik
     write(*, '(" current    : ",i8)') nstsv
     write(*, '(" evalsv.out : ",i8)') nstsv_
     write(*, '(" file       : ",a      )') trim(outfilenamestring(filetag, ik))

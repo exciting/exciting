@@ -12,7 +12,7 @@ subroutine b_screenlauncher
   use mod_misc, only: filext
   use mod_APW_LO, only: lolmax
   use mod_kpoint, only: nkpt
-  use mod_qpoint, only: nqpt
+  use mod_qpoint, only: nqpt, vql
   use modxs, only: xsgnt, nwdf, qpari,&
                    & qparf, unitout, nqmt, vqlmt, qvkloff,&
                    & gqdirname, eps0dirname, scrdirname, timingdirname,&

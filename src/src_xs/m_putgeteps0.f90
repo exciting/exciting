@@ -343,7 +343,7 @@ module m_putgeteps0
 
       close(un)
 
-      ! Check consitency of requested data with saved data 
+      ! Check consistency of requested data with saved data 
       if(ngq_ .ne. ngq_p(iq)&
         & .or. any(vql_ .ne. vql_p(:,iq))&
         & .or. w_ .ne. w) then

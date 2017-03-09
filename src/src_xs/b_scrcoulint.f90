@@ -14,7 +14,7 @@ subroutine b_scrcoulint(iqmt, fra, fti)
   use mod_APW_LO, only: lolmax
   use mod_qpoint, only: iqmap, vql, vqc, nqpt, ivq, wqpt
   use mod_lattice, only: omega
-  use mod_symmetry, only: maxsymcrys
+  use mod_symmetry, only: maxsymcrys, nsymcrys
   use modxs, only: xsgnt, unitout,&
                  & ngqmax,&
                  & nqptr, qpari, qparf, ivqr,&
@@ -130,7 +130,7 @@ use m_writecmplxparts
   !   main part   !
   !---------------!
 
-!write(*,*) "Hello, this is b_scrcoulint at rank:", rank
+  !write(*,*) "Hello, this is b_scrcoulint at rank:", rank
 
   if(iqmt /= 1 .and. .not. fti) then 
     write(*, '("Error(",a,"):&
@@ -298,6 +298,7 @@ use m_writecmplxparts
   ! This sets up also G+q quantities and the square root of the Coulomb potential
   ! but the second call below will override these
   call init1offs(k_kqmtp%kset%vkloff)
+  vql = 0.0d0
   call init2offs(vqoff, input%xs%reduceq)
   ! Copy results q-ponit results form mod_qpoint into modxs variables
   nqptr = nqpt

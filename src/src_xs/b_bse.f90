@@ -26,6 +26,7 @@ subroutine b_bse(iqmt)
   use invert
   use mod_lattice, only: omega
   use modxs, only: symt2
+  use mod_symmetry, only: nsymcrys
   ! Interface modules
   use m_putgetbsemat
   use m_genwgrid
@@ -41,6 +42,8 @@ subroutine b_bse(iqmt)
   use m_setup_pwmat
   use m_genexevec
   use m_putgetexcitons
+  use modgw, only: eferqp
+  use mod_eigenvalue_occupancy, only: efermi
 
 use m_writecmplxparts
 ! !DESCRIPTION:
@@ -135,6 +138,7 @@ use m_writecmplxparts
   real(8) :: bsegap
   real(8) :: v1, v2, en1, en2
   integer(4) :: i1, i2, i,j, iex1, iex2, nreq
+  integer(4) :: nsymcrys_save
   logical :: efind
   ! Distributed arrays
   integer(4) :: ip
@@ -190,7 +194,8 @@ use m_writecmplxparts
     !write(*,*) "b_bse: iqmt=", iqmt
     !write(*,*) "b_bse: vqlmt=", vqlmt(1:3, iqmt)
 
-    ! Read Fermi energy from file
+    ! Read Fermi energy from file 
+    ! (only needed in setranges_modxs::findocclims to check whether system has a gap)
     ! Use EFERMI_QMT001.OUT
     call genfilname(iqmt=iqmtgamma, setfilext=.true.)
     call readfermi
@@ -201,30 +206,56 @@ use m_writecmplxparts
     ! modxs:evalsv0, modxs:occsv0
     call setranges_modxs(iqmt, fcoup, fti)
 
-    ! Select relevant transitions for the construction
-    ! of the BSE hamiltonian
-    ! Also sets nkkp_bse, nk_bse 
-    ! NOTE: Resets vkl0 to k grid and vkl to k+qmt grid
-    ! Resets eigenvalues and occupancies correspondingly
-    call select_transitions(iqmt, serial=.true.)
-
     ! WARNING: ONTOP OF GW STILL IS INCONSISTENT, SINCE OCCUPATION SEARCH IS
     ! NOT DONE ON EVALQP.OUT !?!
     ! If on top of GW
-    if(associated(input%gw)) then
+    if(associated(input%gw) .and. iqmt==1) then
       ! Save KS eigenvalues to use them later for renormalizing PMAT
       allocate(eval0(nstsv, nkptnr))
       eval0=evalsv
       ! If scissor correction is presented, one should nullify it
       input%xs%scissor=0.0d0
       ! Read QP Fermi energies and eigenvalues from file
+      ! NOTE: QP evals are shifted by -efermi-eferqp with respect to KS evals
+      ! NOTE: getevalqp sets mod_symmetry::nsymcrys to 1
+      ! NOTE: getevalqp needs the KS eigenvalues as input
+      nsymcrys_save = nsymcrys
       call getevalqp(nkptnr,vkl0,evalsv)
-      write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
+      nsymcrys = nsymcrys_save
+      !if(mpiglobal%rank == 0) then 
+      !  write(*,'("efermi=", f10.7)') efermi
+      !  write(*,'("eferqp=", f10.7)') eferqp
+      !  do ik=1, nkptnr
+      !    write(*,'("k-point #", i6,":", 3f10.7)') ik, vkl0(:,ik)
+      !    write(*,'(" state    Eks    E+efermi+eferqp    E+eferqp    E+efermi    E")')
+      !    do i=input%gw%ibgw, input%gw%nbgw
+      !      write(*,'(i6, 5(4x, f10.7))') i, eval0(i,ik), evalsv(i, ik)+efermi+eferqp,&
+      !        & evalsv(i, ik)+eferqp, evalsv(i, ik)+efermi, evalsv(i, ik) 
+      !    end do
+      !  end do
+      !  write(unitout,'("Info(b_bse): Quasi particle energies are read from EVALQP.OUT")')
+      !end if
+      ! Set k and k'=k grid eigenvalues to QP energies
+      evalsv0=evalsv
+    else if(associated(input%gw) .and. iqmt /= 1) then 
+      if(mpiglobal%rank==0) then 
+        write(*,'("Error(b_bse): BSE+GW only supported for 0 momentum transfer.")')
+      end if
+      call terminate
     end if
+
+    ! Select relevant transitions for the construction
+    ! of the BSE hamiltonian
+    ! Also sets nkkp_bse, nk_bse 
+    ! NOTE: Resets vkl0 to k grid and vkl to k+qmt grid
+    ! Resets eigenvalues and occupancies correspondingly
+    ! NOTE: If GW and iqmt=1, then it reads in QP energies.
+    ! NOTE: Sets transition energy array used on the diagonal of the BSE (modbse::de)
+    call select_transitions(iqmt, serial=.true.)
 
     ! Determine "BSE"-gap, i.e. the lowest energy 
     ! KS transition which is considered.
-    bsegap = (evalsv(nstsv, 1)-evalsv0(1,1))*100.0d0
+    bsegap = 1.0d16
     !$OMP PARALLEL DO &
     !$OMP& DEFAULT(SHARED), PRIVATE(a1,iu,io,ik,ikq),&
     !$OMP& REDUCTION(min:bsegap)
@@ -592,6 +623,47 @@ use m_writecmplxparts
     ! modxs:evalsv0, modxs:occsv0
     call setranges_modxs(iqmt, fcoup, fti)
 
+    ! WARNING: ONTOP OF GW STILL IS INCONSISTENT, SINCE OCCUPATION SEARCH IS
+    ! NOT DONE ON EVALQP.OUT !?!
+    ! If on top of GW
+    if(associated(input%gw) .and. iqmt==1) then
+      ! Save KS eigenvalues to use them later for renormalizing PMAT
+      allocate(eval0(nstsv, nkptnr))
+      eval0=evalsv
+      ! If scissor correction is presented, one should nullify it
+      input%xs%scissor=0.0d0
+      ! Read QP Fermi energies and eigenvalues from file
+      ! NOTE: QP evals are shifted by -efermi-eferqp with respect to KS evals
+      ! NOTE: getevalqp sets mod_symmetry::nsymcrys to 1
+      ! NOTE: getevalqp needs the KS eigenvalues as input
+      nsymcrys_save = nsymcrys
+      call getevalqp(nkptnr,vkl0,evalsv)
+      nsymcrys = nsymcrys_save
+      if(bi2d%isroot) then
+        write(*,'("efermi=", f10.7)') efermi
+        write(*,'("eferqp=", f10.7)') eferqp
+        do ik=1, nkptnr
+          write(*,'("k-point #", i6,":", 3f10.7)') ik, vkl0(:,ik)
+          write(*,'(" state    Eks    E+efermi+eferqp    E+eferqp    E+efermi    E")')
+          do i=input%gw%ibgw, input%gw%nbgw
+            write(*,'(i6, 5(4x, f10.7))') i, eval0(i,ik), evalsv(i, ik)+efermi+eferqp,&
+              & evalsv(i, ik)+eferqp, evalsv(i, ik)+efermi, evalsv(i, ik) 
+          end do
+        end do
+      end if
+      ! Set k and k'=k grid eigenvalues to QP energies
+      evalsv0=evalsv
+      if(bi2d%isroot) then
+        write(unitout,'("Info(b_bse): Quasi particle energies are read from EVALQP.OUT")')
+      end if
+    else if(associated(input%gw) .and. iqmt /= 1) then 
+      if(bi2d%isroot) then 
+        write(*,'("Error(b_bse): BSE+GW only supported for 0 momentum transfer.")')
+      end if
+      call terminate
+    end if
+    call barrier
+
     ! Select relevant transitions for the construction
     ! of the BSE hamiltonian
     ! Also sets nkkp_bse, nk_bse 
@@ -602,21 +674,9 @@ use m_writecmplxparts
     ! BLACS grid process proceed.
     if(bi2d%isactive) then 
 
-      ! If on top of GW
-      if(associated(input%gw)) then
-        ! Save KS eigenvalues to use them later for renormalizing PMAT
-        allocate(eval0(nstsv,nkptnr))
-        eval0=evalsv
-        ! If scissor correction is presented, one should nullify it
-        input%xs%scissor=0.0d0
-        ! Read QP Fermi energies and eigenvalues from file
-        call getevalqp(nkptnr,vkl0,evalsv)
-        write(unitout,'("  Quasi particle energies are read from EVALQP.OUT")')
-      end if
-
       ! Determine "BSE"-gap, i.e. the lowest energy 
       ! KS transition which is considered.
-      bsegap = (evalsv(nstsv, 1)-evalsv0(1,1))*100.0d0
+      bsegap = 1.0d16
       !$OMP PARALLEL DO &
       !$OMP& DEFAULT(SHARED), PRIVATE(a1,iu,io,ik,ikq),&
       !$OMP& REDUCTION(min:bsegap)

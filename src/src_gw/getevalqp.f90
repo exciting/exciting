@@ -1,6 +1,7 @@
 
 subroutine getevalqp(nkp2,kvecs2,eqp2)
 
+  use modmpi
   use modinput
   use modmain
   use modgw,    only: ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp
@@ -9,7 +10,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
       
   integer, intent(in) :: nkp2
   real(8), intent(in) :: kvecs2(3,nkp2)
-  real(8), intent(out):: eqp2(nstsv,nkp2)
+  real(8), intent(inout):: eqp2(nstsv,nkp2)
 
   logical       :: exist
   integer(4)    :: ik, ib, nb, nk, nqp
@@ -68,12 +69,14 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     &    eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik), &
     &    eferqp, eferks
 
-    !write(fgw,*) '# ik    kvecs1    ibgw,    nbgw'
-    !write(fgw,*) ik, kvecs1(:,ik), ib, nb
-    !write(fgw,*) '# ib    eqp1    eks1'
-    !do ib = ibgw, nbgw
-    !  write(fgw,*) ib, eqp1(ib,ik), eks1(ib,ik)
-    !end do          
+    !if(rank == 0) then 
+    !  write(*,*) '# ik    kvecs1    ibgw,    nbgw'
+    !  write(*,*) ik, kvecs1(:,ik), ib, nb
+    !  write(*,*) '# ib    eqp1    eks1,   eferqp,   eferks'
+    !  do ib = ibgw, nbgw
+    !    write(*,'(i4,4f12.7)') ib, eqp1(ib,ik), eks1(ib,ik), eferqp, eferks
+    !  end do          
+    !end if
   end do ! ik
   close(70)
   deallocate(idx)
@@ -126,6 +129,24 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
         eqp2(ib,ik) = eqp2(ib,ik)+dble(de2(ik,ib))-eferqp
      enddo 
   enddo
+
+  ! NOTE: if one interpolates the energies directly and hase no offset,
+  !       the interpolation inputs are outputted exactly.
+ ! allocate(de1(nkp1,ibgw:nbgw))
+ ! do ik = 1, nkp1
+ !   de1(ik,:) = cmplx(eqp1(ibgw:nbgw,ik)+eferqp+eferks,0.d0,8)
+ ! end do
+
+ ! allocate(de2(nkpt,ibgw:nbgw))
+ ! de2(:,:) = zzero
+
+ ! call fourintp(de1, nkp1, kvecs1, de2, nkp2, vkl, nbgw-ibgw+1)
+
+ ! do ib = ibgw, min(nbgw,nstsv)
+ !    do ik = 1, nkpt
+ !       eqp2(ib,ik) = de2(ik,ib)-eferqp-eferks
+ !    end do 
+ ! end do
 
   deallocate(de1,de2)
   deallocate(kvecs1,eqp1,eks1)

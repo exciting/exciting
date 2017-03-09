@@ -477,12 +477,8 @@ module m_setup_bse
 
           ! Calculate ks energy differences
           do i = 1, size(hamblock,1)
-            ! de = e_{u, k+qmt} - e_{o, k} + scissor + energyshift (RR)
-            ! de = e_{u, k-qmt} - e_{o, k} + scissor + energyshift (AA)
-            ! Note: only qmt=0 supported
             hamblock(i,i) = hamblock(i,i)&
               & + cmplx(de(ig+i-1), 0.0d0, 8)
-            !write(*,*) "i, hamblock+de", i, hamblock(i,i)
             if(present(d)) then 
               d(i) = cmplx(de(ig+i-1), 0.0d0, 8)
             end if
@@ -1183,10 +1179,6 @@ module m_setup_bse
           if(present(exc) .and. present(scc)) then
             ! Singlet case with exchange interaction
             hamblck(r, c) = occ1(r) * (ztwo * exc(r, c) - scc(r, c)) * occ2(c)
-            !write(*,*) "r,c", r, c
-            !write(*,*) "occ1,occ2", occ1(r), occ2(c)
-            !write(*,*) "exc,scc", exc(r,c), scc(r,c)
-            !write(*,*) "hamblck", hamblck(r,c)
           else if(present(scc)) then
             ! Triplet case without exchange interaction
             hamblck(r, c) = -occ1(r) * scc(r, c) * occ2(c)
@@ -1201,7 +1193,6 @@ module m_setup_bse
           if(.not. fc) then 
             if(ig+r-1 == jg+c-1) then 
               hamblck(r, c) = hamblck(r, c) + cmplx(de(ig+r-1), 0.0d0, 8)
-              !write(*,*) "hamblck+de", hamblck(r,c)
             end if
           end if
         end do
