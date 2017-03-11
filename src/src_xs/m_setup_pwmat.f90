@@ -54,6 +54,8 @@ module m_setup_pwmat
       type(bcbs) :: ematbc
       character(256) :: fileext0_save, fileext_save
       complex(8), allocatable :: mou(:,:,:), moug(:,:,:)
+      real(8), parameter :: epslat = 1.0d-8
+      logical :: fsamek
 
       ! Save file extension
       fileext_save = filext
@@ -66,18 +68,6 @@ module m_setup_pwmat
       filext0 = filext
       !write(*,*) "(setup_pwmat): filext0 =", trim(filext)
 
-      if(iqmt /= 1) then 
-        ! Set EVECFV_QMTXYZ.OUT as ket state file
-        iqmt1 = iqmt
-        call genfilname(iqmt=iqmt1, setfilext=.true.)
-        !write(*,*) "(setup_pwmat): filext =", trim(filext)
-      else
-        ! Set EVECFV_QMT001.OUT as ket state file
-        iqmt1 = iqmtgamma
-        call genfilname(iqmt=iqmt1, setfilext=.true.)
-        !write(*,*) "(setup_pwmat): filext =", trim(filext)
-      end if
-
       ! Set vkl0 to k-grid
       ! Note: This needs init2 to be called form task 441 beforehand
       !write(*,*) "(setup_pwmat): iqmt=", iqmt
@@ -87,6 +77,22 @@ module m_setup_pwmat
       ! Set vkl to k+qmt-grid
       !write(*,*) "(setup_pwmat): qvkloff(:,iqmt) =", qvkloff(:,iqmt)
       call init1offs(qvkloff(:,iqmt))
+
+      if(all(abs(qvkloff(:,1)-qvkloff(:,iqmt)) < epslat)) then
+        fsamek = .true.
+      end if
+
+      if(fsamek) then 
+        ! Set EVECFV_QMT001.OUT as ket state file
+        iqmt1 = iqmtgamma
+        call genfilname(iqmt=iqmt1, setfilext=.true.)
+      else
+        ! Set EVECFV_QMTXYZ.OUT as ket state file
+        iqmt1 = iqmt
+        call genfilname(iqmt=iqmt1, setfilext=.true.)
+      end if
+      !write(*,*) "(setup_pwmat): filext =", trim(filext)
+
 
       ! Generate gaunt coefficients used in the construction of 
       ! the plane wave matrix elements in ematqk.

@@ -3,7 +3,6 @@
 ! See the file COPYING for license details.
 
 module m_writeeps
-  !use modmain
   use mod_misc, only: version
   use modmpi
   use modxs

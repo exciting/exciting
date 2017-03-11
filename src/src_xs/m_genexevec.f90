@@ -5,18 +5,18 @@ module m_genexevec
   use modscl
   use m_dzgemm
   use mod_constants
+  use m_writecmplxparts
 
   implicit none
 
   contains
 
-    subroutine genexevec(i1, i2, nex, cmat, cpmat, auxvec, evals, rvecp, avecp, rvecm, avecm)
+    subroutine genexevec(i1, i2, nex, cmat, cpmat, auxvec, evals, rvecp, avecp)
 
       integer(4), intent(in) :: i1, i2, nex
       complex(8), intent(in) :: cmat(:,:), cpmat(:,:), auxvec(:,:)
       real(8), intent(in) :: evals(:)
       complex(8), intent(out), optional :: rvecp(:,:), avecp(:,:)
-      complex(8), intent(out), optional :: rvecm(:,:), avecm(:,:)
 
       complex(8), allocatable :: aux1(:,:), aux2(:,:)
       integer(4) :: nreq, m, i
@@ -76,36 +76,19 @@ module m_genexevec
         ! Y^+ = 1/2 (aux1-aux2)
         avecp(1:m,1:nreq) = 0.5d0 *(aux1-aux2)
       end if
-      if(present(rvecm)) then 
-        if(size(rvecm,1) < m .or. size(rvecm,2) < nreq) then 
-          write(*,*) "Error(genexevec): Size mismatch. shape(rvecm)=", shape(rvecm)
-          call terminate
-        end if
-        ! X^- = 1/2 (aux1-aux2)
-        rvecm(1:m,1:nreq) = 0.5d0 *(aux1-aux2)
-      end if
-      if(present(avecm)) then 
-        if(size(avecm,1) < m .or. size(avecm,2) < nreq) then 
-          write(*,*) "Error(genexevec): Size mismatch. shape(avecm)=", shape(avecm)
-          call terminate
-        end if
-        ! Y^- = 1/2 (aux1-aux2)
-        avecm(1:m,1:nreq) = 0.5d0 *(aux1+aux2)
-      end if
 
       deallocate(aux1,aux2)
 
     end subroutine genexevec
 
     subroutine gendexevec(i1, i2, nex, dcmat, dcpmat, dauxvec, evals,&
-       & drvecp, davecp, drvecm, davecm)
+       & drvecp, davecp)
 
       ! I/O
       integer(4), intent(in) :: i1, i2, nex
       type(dzmat), intent(in) :: dcmat, dcpmat, dauxvec
       real(8), intent(in) :: evals(:)
       type(dzmat), intent(inout), optional :: drvecp, davecp 
-      type(dzmat), intent(inout), optional :: drvecm, davecm 
 
       
       ! Local
@@ -179,42 +162,6 @@ module m_genexevec
           call terminate
         end if
       end if
-      if(present(drvecm)) then 
-        if(drvecm%context /= context) then 
-          if(mpiglobal%rank == 0) then 
-            write(*,*) "Error(gendexevec): Context mismatch"
-            write(*,*) "context of dcmat, drvecm :"
-            write(*,*) dcmat%context, drvecm%context
-          end if
-          call terminate
-        end if
-        if(drvecm%nrows /= m .or. drvecm%ncols /= nreq) then
-          if(mpiglobal%rank == 0) then 
-            write(*,*) "Error(gendexevec): Size mismatch"
-            write(*,*) "shape(dcmat)=", dcmat%nrows, dcmat%ncols
-            write(*,*) "shape(drvecm)=", drvecm%nrows, drvecm%ncols
-          end if
-          call terminate
-        end if
-      end if
-      if(present(davecm)) then 
-        if(davecm%context /= context) then 
-          if(mpiglobal%rank == 0) then 
-            write(*,*) "Error(gendexevec): Context mismatch"
-            write(*,*) "context of dcmat, davecm :"
-            write(*,*) dcmat%context, davecm%context
-          end if
-          call terminate
-        end if
-        if(davecm%nrows /= m .or. davecm%ncols /= nreq) then
-          if(mpiglobal%rank == 0) then 
-            write(*,*) "Error(gendexevec): Size mismatch"
-            write(*,*) "shape(dcmat)=", dcmat%nrows, dcmat%ncols
-            write(*,*) "shape(davecm)=", davecm%nrows, davecm%ncols
-          end if
-          call terminate
-        end if
-      end if
       
       ! Make (A-B)^{1/2} |E_\lambda|^-{1/2} Z_\lambda
       call new_dzmat(daux1, m, nreq, bi2d)
@@ -245,14 +192,6 @@ module m_genexevec
       if(present(davecp)) then 
         ! Y^+ = 1/2 (aux1-aux2)
         davecp%za(:,:) = 0.5d0 *(daux1%za(:,:)-daux2%za(:,:))
-      end if
-      if(present(drvecm)) then 
-        ! X^- = 1/2 (aux1-aux2)
-        drvecm%za(:,:) = 0.5d0 *(daux1%za(:,:)-daux2%za(:,:))
-      end if
-      if(present(davecm)) then 
-        ! Y^- = 1/2 (aux1-aux2)
-        davecm%za(:,:) = 0.5d0 *(daux1%za(:,:)+daux2%za(:,:))
       end if
 
       call del_dzmat(daux1)

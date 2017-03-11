@@ -14,7 +14,7 @@ module m_putgetexcitons
   logical ::  excitons_allocated = .false.
 
   ! Read in quantities
-  logical :: fcoup_, fti_, fesel_, fminus_
+  logical :: fcoup_, fti_, fesel_
   integer(4) :: nk_max_, nk_bse_
   integer(4) :: hamsize_, nexcstored_, iex1_, iex2_
   integer(4) :: iq_
@@ -46,7 +46,7 @@ module m_putgetexcitons
 
     end subroutine clear_excitons
 
-    subroutine put_excitons(evals, rvec, avec, iqmt, a1, a2, fminus)
+    subroutine put_excitons(evals, rvec, avec, iqmt, a1, a2)
 
       implicit none
 
@@ -55,16 +55,14 @@ module m_putgetexcitons
       complex(8), intent(in) :: rvec(:,:)
       complex(8), intent(in), optional :: avec(:,:)
       integer(4), intent(in), optional :: iqmt, a1, a2
-      logical, intent(in), optional :: fminus
 
       ! Local
       integer(4) :: stat, unexc
-      logical :: fcoup, fti, fesel, fm
+      logical :: fcoup, fti, fesel
       integer(4) :: i1, i2, nexcstored, iq, m, n
 
       character(256) :: fname
       character(256) :: tdastring, bsetypestring, tistring, scrtypestring
-      character(256) :: minusstring
 
       m = size(rvec,1)
       n = size(rvec,2)
@@ -112,12 +110,6 @@ module m_putgetexcitons
         call terminate
       end if
 
-      if(present(fminus)) then 
-        fm = fminus
-      else
-        fm = .false.
-      end if
-
       ! BSE type
       fcoup = input%xs%bse%coupling 
       fti = input%xs%bse%ti
@@ -140,16 +132,9 @@ module m_putgetexcitons
       end if
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
-      if(fm) then 
-        minusstring='minus'
-        ! Set filename to EXCCOEFF_*.OUT
-        call genfilname(basename='EXCCOEFF', auxtype=trim(minusstring), iqmt=iq, bsetype=trim(bsetypestring),&
-          & scrtype=trim(scrtypestring), filnam=fname)
-      else
-        ! Set filename to EXCCOEFF_*.OUT
-        call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
-          & scrtype=trim(scrtypestring), filnam=fname)
-      end if
+      ! Set filename to EXCCOEFF_*.OUT
+      call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
+        & scrtype=trim(scrtypestring), filnam=fname)
 
       ! Open stream access file 
       call getunit(unexc)
@@ -167,7 +152,6 @@ module m_putgetexcitons
       !   Meta data
       write(unexc)&
         & fcoup,&       ! Was the TDA used?
-        & fm,&          ! Eigenvectors for the negative frequencies (if fcoup and fti)
         & fti,&         ! Was the time reversed anti-resonant basis used?
         & fesel,&       ! Where the participating transitions chosen by energy?
         & nk_max,&      ! Number of non-reduced k-points 
@@ -196,28 +180,21 @@ module m_putgetexcitons
 
     end subroutine put_excitons
 
-    subroutine get_excitons(iqmt, a1, a2, e1, e2, fminus)
+    subroutine get_excitons(iqmt, a1, a2, e1, e2)
 
       integer(4), intent(in), optional :: iqmt, a1, a2
       real(8), intent(in), optional :: e1, e2
-      logical, intent(in), optional :: fminus
 
       integer(4) :: i1, i2, nexcreq, iq, ivec(3)
       real(8) :: r1, r2, vqlmt(3), erange
       real(8), allocatable :: evalstmp(:)
       real(8), parameter :: epslat = 1.0d-6
       integer(4) :: stat, unexc, mypos, cmplxlen, pos1, pos2
-      logical :: fcoup, fti, fesel, fex, fm, useindex, useenergy
+      logical :: fcoup, fti, fesel, fex, useindex, useenergy
       complex(8) :: zdummy
 
       character(256) :: fname
-      character(256) :: tdastring, bsetypestring, tistring, scrtypestring, minusstring
-
-      if(present(fminus)) then
-        fm = fminus
-      else
-        fm = .false.
-      end if
+      character(256) :: tdastring, bsetypestring, tistring, scrtypestring
 
       if(present(iqmt)) then 
         iq = iqmt
@@ -300,16 +277,9 @@ module m_putgetexcitons
       end if
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
-      if(fm) then 
-        minusstring='minus'
-        ! Set filename to EXCCOEFF_*.OUT
-        call genfilname(basename='EXCCOEFF', auxtype=trim(minusstring), iqmt=iq, bsetype=trim(bsetypestring),&
-          & scrtype=trim(scrtypestring), filnam=fname)
-      else
-        ! Set filename to EXCCOEFF_*.OUT
-        call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
-          & scrtype=trim(scrtypestring), filnam=fname)
-      end if
+      ! Set filename to EXCCOEFF_*.OUT
+      call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
+        & scrtype=trim(scrtypestring), filnam=fname)
 
       ! Check if file exists
       inquire(file=trim(fname), exist=fex)
@@ -338,7 +308,6 @@ module m_putgetexcitons
       ! Read Meta data
       read(unexc)&
         & fcoup_,&       ! Was the TDA used?
-        & fminus_,&      ! Eigenvectors for the negative frequencies (if fcoup)
         & fti_,&         ! Was the time reversed anti-resonant basis used?
         & fesel_,&
         & nk_max_,&      ! Number of non-reduced k-points 
@@ -357,14 +326,6 @@ module m_putgetexcitons
         write(*,'("Error(get_excitons): BSE type differs")')
         write(*,'(" Requested: fcoup=", l," fti=", l)') fcoup, fti
         write(*,'(" Stored: fcoup_=", l," fti_=", l)') fcoup_, fti_
-        write(*,*)
-        call terminate
-      end if
-      if(fminus_ /= fm) then 
-        write(*,*)
-        write(*,'("Error(get_excitons): BSE type differs")')
-        write(*,'(" Requested: fminus=", l)') fm
-        write(*,'(" Stored: fminus_=", l)') fminus_
         write(*,*)
         call terminate
       end if
@@ -458,7 +419,7 @@ module m_putgetexcitons
 
     end subroutine get_excitons
 
-    subroutine putd_excitons(evals, drvec, davec, iqmt, a1, a2, fminus)
+    subroutine putd_excitons(evals, drvec, davec, iqmt, a1, a2)
 
       implicit none
 
@@ -467,17 +428,15 @@ module m_putgetexcitons
       type(dzmat), intent(in) :: drvec
       type(dzmat), intent(in), optional :: davec
       integer(4), intent(in), optional :: iqmt, a1, a2
-      logical, intent(in), optional :: fminus
 
       ! Local
       type(dzmat) :: dauxmat
       integer(4) :: stat, unexc
-      logical :: fcoup, fti, fesel, fm
+      logical :: fcoup, fti, fesel
       integer(4) :: i1, i2, nexcstored, iq, m, n, m2, n2, i
 
       character(256) :: fname
       character(256) :: tdastring, bsetypestring, tistring, scrtypestring
-      character(256) :: minusstring
 
       m = drvec%nrows
       n = drvec%ncols
@@ -538,12 +497,6 @@ module m_putgetexcitons
         call terminate
       end if
 
-      if(present(fminus)) then 
-        fm = fminus
-      else
-        fm = .false.
-      end if
-
       ! BSE type
       fcoup = input%xs%bse%coupling 
       fti = input%xs%bse%ti
@@ -569,16 +522,9 @@ module m_putgetexcitons
         end if
         bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
         scrtypestring = '-'//trim(input%xs%screening%screentype)
-        if(fm) then 
-          minusstring='minus'
-          ! Set filename to EXCCOEFF_*.OUT
-          call genfilname(basename='EXCCOEFF', auxtype=trim(minusstring), iqmt=iq, bsetype=trim(bsetypestring),&
-            & scrtype=trim(scrtypestring), filnam=fname)
-        else
-          ! Set filename to EXCCOEFF_*.OUT
-          call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
-            & scrtype=trim(scrtypestring), filnam=fname)
-        end if
+        ! Set filename to EXCCOEFF_*.OUT
+        call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
+          & scrtype=trim(scrtypestring), filnam=fname)
 
         ! Open stream access file 
         call getunit(unexc)
@@ -595,7 +541,6 @@ module m_putgetexcitons
         !   Meta data
         write(unexc)&
           & fcoup,&       ! Was the TDA used?
-          & fm,&          ! Eigenvectors for the negative frequencies (if fcoup)
           & fti,&         ! Was the time reversed anti-resonant basis used?
           & fesel,&       ! Where the participating transitions chosen by energy?
           & nk_max,&      ! Number of non-reduced k-points 

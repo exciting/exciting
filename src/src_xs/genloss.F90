@@ -24,6 +24,10 @@ module m_genloss
       complex(8) :: t3(3, 3)
       character(*), parameter :: thisnam = 'genloss'
 
+      if(nc /= 1 .and. nc /= 3) then 
+        write(unitout, '(a,i2)') 'Error(' // thisnam // '): nc invalid, nc=', nc
+        call terminate
+      end if
 
       if(any(shape(eps) .ne. shape(loss))) then
         write(unitout, '(a)') 'Error(' // thisnam // '): input and&
@@ -33,16 +37,16 @@ module m_genloss
 
       ! Loss function
       ! stk
-      if(nc.eq.1) then
+      if(nc .eq. 1) then
 
-        loss(1,1,:) = - aimag(1/eps(1,1,:))
+        loss(1,1,:) = - aimag(1.0d0/eps(1,1,:))
 
-      else
+      else if(nc .eq. 3) then
 
         do iw = 1, input%xs%energywindow%points
           call z3minv(eps(:, :, iw), t3(:, :))
           loss(:, :, iw) = -aimag(t3)
-        enddo
+        end do
 
       end if
     end subroutine genloss

@@ -491,20 +491,8 @@ use m_writecmplxparts
           & rvecp=resvec, avecp=aresvec)
 
         write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file (pos. E).")')
-        call put_excitons(bevalre(iex1:iex2), resvec, avec=aresvec,&
-          & iqmt=iqmt, a1=iex1, a2=iex2, fminus=.false.)
-
-        if(input%xs%bse%writeminus) then
-          write(unitout, '("Info(b_bse): Generating resonant&
-            & and anti-resonant exciton coefficients from&
-            & auxilliary squared EVP eigenvectors (neg. E).")')
-          call genexevec(iex1, iex2, nexc, cmat, cpmat, bevecaux, bevalre,&
-            & rvecm=resvec, avecm=aresvec)
-
-          write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file (neg. E).")')
-          call put_excitons(bevalre(iex1:iex2), resvec, avec=aresvec,&
-            & iqmt=iqmt, a1=iex1, a2=iex2, fminus=.true.)
-        end if
+        call put_excitons(bevalre(iex1:iex2), rvec=resvec, avec=aresvec,&
+          & iqmt=iqmt, a1=iex1, a2=iex2)
 
         if(allocated(resvec)) deallocate(resvec)
         if(allocated(aresvec)) deallocate(aresvec)
@@ -897,24 +885,8 @@ use m_writecmplxparts
             & drvecp=dresvec, davecp=daresvec)
 
           write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file.")')
-          call putd_excitons(bevalre(iex1:iex2), dresvec, davec=daresvec,&
-            & iqmt=iqmt, a1=iex1, a2=iex2, fminus=.false.)
-
-          if(input%xs%bse%writeminus) then
-
-            if(bi2d%isroot) then 
-              write(unitout, '("Info(b_bse): Generating resonant&
-                & and anti-resonant exciton coefficients from&
-                & auxilliary squared EVP eigenvectors (neg. E).")')
-            end if
-            call gendexevec(iex1, iex2, nexc, dcmat, dcpmat, dbevecr, bevalre,&
-              & drvecm=dresvec, davecm=daresvec)
-
-            write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file.")')
-            call putd_excitons(bevalre(iex1:iex2), dresvec, davec=daresvec,&
-              & iqmt=iqmt, a1=iex1, a2=iex2, fminus=.true.)
-
-          end if
+          call putd_excitons(bevalre(iex1:iex2), drvec=dresvec, davec=daresvec,&
+            & iqmt=iqmt, a1=iex1, a2=iex2)
 
           call del_dzmat(dresvec)
           call del_dzmat(daresvec)

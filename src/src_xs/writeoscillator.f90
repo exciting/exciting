@@ -1,4 +1,5 @@
 module m_writeoscillator
+  use modmpi
   use modinput, only: input
   use modxs, only: bsed, escale
 #ifdef DGRID
@@ -30,9 +31,16 @@ module m_writeoscillator
       real(8), allocatable :: evalre_sorted(:)
       real(8) :: pm
       character(256) :: fnexc, frmt, tdastring, bsetypestring, tistring, scrtypestring
+      character(256) :: syscommand, excitondir
 #ifdef DGRID
       character(256) :: dgrid_dotext
 #endif
+      
+      excitondir='EXCITON'
+      if(mpiglobal%rank == 0) then 
+        syscommand = 'test ! -e '//trim(adjustl(excitondir))//' && mkdir '//trim(adjustl(excitondir))
+        call system(trim(adjustl(syscommand)))
+      end if
       
       if(present(sort)) then 
         fsort = sort
@@ -122,6 +130,7 @@ module m_writeoscillator
             & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
         end if
 #endif
+        fnexc=trim(excitondir)//'/'//trim(fnexc)
 
         ! Write out exciton energies and oscillator strengths
         call getunit(unexc)

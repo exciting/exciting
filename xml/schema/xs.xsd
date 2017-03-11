@@ -80,6 +80,20 @@
                   <pre>"true"</pre> if energy input is in eV. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="abscutres" type="vect2d" default="0.0d0 1.0d10">
+              <xs:annotation>
+                <xs:documentation>
+                  Cutoff interval for exciton eigenvector writeout (resonant). 
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="abscutares" type="vect2d" default="0.0d0 1.0d10">
+              <xs:annotation>
+                <xs:documentation>
+                  Cutoff interval for exciton eigenvector writeout (anit-resonant). 
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="selectenergy" type="xs:boolean"
               default="false">
               <xs:annotation>

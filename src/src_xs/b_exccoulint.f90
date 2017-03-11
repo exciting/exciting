@@ -89,6 +89,8 @@ use m_writecmplxparts
   character(256) :: m_write, dirname
   logical :: fwp
   logical :: fcoup
+  real(8), parameter :: epslat = 1.0d-8
+  logical :: fsamek
 
   fcoup = input%xs%bse%coupling
   fwp = input%xs%bse%writeparts
@@ -233,6 +235,14 @@ use m_writecmplxparts
 
   ! Set vkl to k+qmt-grid
   call init1offs(k_kqmtp%kqmtset%vkloff) ! = init1offs(qvkloff(iqmt))
+
+  if(all(abs(k_kqmtp%kset%vkloff-k_kqmtp%kqmtset%vkloff) < epslat)) then 
+    write(unitout, '("Info(b_exccoulint): Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
+    fsamek=.true.
+  else
+    write(unitout, '("Info(b_exccoulint): Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
+    fsamek=.false.
+  end if
 
   ! Change file extension and write out k points
   call genfilname(iqmt=iqmt, dotext='_EXC.OUT', setfilext=.true.)
@@ -550,8 +560,13 @@ use m_writecmplxparts
       filext0 = filext
       !write(*,*) "filext0 =", trim(filext0)
 
-      iqmt1 = iqmt
-      ! Set EVECFV_QMTXYZ.OUT as ket state file
+      if(fsamek) then 
+        ! Set EVECFV_QMT001.OUT as ket state file
+        iqmt1 = iqmtgamma
+      else
+        ! Set EVECFV_QMTXYZ.OUT as ket state file
+        iqmt1 = iqmt
+      end if
       call genfilname(iqmt=iqmt1, setfilext=.true.)
       !write(*,*) "filext =", trim(filext)
 

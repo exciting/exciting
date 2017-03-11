@@ -17,7 +17,7 @@ Contains
       Subroutine genfilname (nodotpar, basename, etype, asc, bzsampl, &
      & acont, nar, tord, nlf, fxctype, fxctypestr, scrtype, bsetype, markfxcbse, &
      & tq0, oc1, oc2, iq, iqmt, procs, rank, dotext, setfilext, &
-     & revertfilext, appfilext, filnam, fileext, auxtype)
+     & revertfilext, appfilext, filnam, fileext, auxtype, lambda, dirname)
 ! !USES:
          use modmpi, only: terminate
          Use modmain, Only: filext
@@ -35,13 +35,13 @@ Contains
          Implicit None
     ! arguments
          Integer, Optional, Intent (In) :: bzsampl, fxctype, oc1, oc2, &
-        & iq, iqmt, procs, rank
+        & iq, iqmt, lambda, procs, rank
          Integer, Optional, Intent (In) :: etype
          Logical, Optional, Intent (In) :: nodotpar, asc, acont, nar, &
         & tord, nlf, tq0, markfxcbse
          Logical, Optional, Intent (In) :: revertfilext, setfilext, &
         & appfilext
-         Character (*), Optional, Intent (In) :: basename, dotext, fxctypestr, &
+         Character (*), Optional, Intent (In) :: basename, dirname, dotext, fxctypestr, &
         & scrtype, bsetype, auxtype
          Character (256), Optional, Intent (Out) :: filnam, fileext
     ! local variables
@@ -185,6 +185,11 @@ Contains
             Write (s1, '("_",a)') trim (adjustl(auxtype))
             s = trim (s) // trim (s1)
          End If
+    ! auxilliary index
+         If (present(lambda)) Then
+            Write (s1, '("_LAMBDA",i6.6)') lambda
+            s = trim (s) // trim (s1)
+         End If
     ! parallelization
          If (present(rank) .And. present(procs)) Then
             If ((procs > 1) .And. ((nodot0 .And. (rank > 0)) .Or. ( &
@@ -212,6 +217,8 @@ Contains
          If (setfxt) filext = trim (s)
     ! basename
          If (present(basename)) s = trim (basename) // trim (s)
+    ! dirname
+         If (present(dirname)) s = trim(dirname)//'/'// trim (s)
     ! dot in front of filename determined by procs, rank and nodotpar
          If (present(rank) .And. present(procs)) Then
             If (((procs > 1) .And. (rank > 0)) .Or. (( .Not. nodot0) &

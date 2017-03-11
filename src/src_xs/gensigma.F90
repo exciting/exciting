@@ -25,7 +25,7 @@ module m_gensigma
       real(8) :: delt
 
       if(any(shape(eps) .ne. shape(sigma))) then
-        write(unitout, '(a)') 'error(' // thisnam // '): input and&
+        write(unitout, '(a)') 'Error(' // thisnam // '): input and&
           & output arrays have diffenrent shape'
         call terminate
       end if

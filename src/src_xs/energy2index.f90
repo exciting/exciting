@@ -10,10 +10,6 @@ subroutine energy2index(n, ns, evals, e1, e2, i1, i2)
   f1=.false.
   f2=.false.
 
-  if(rank == 0) then 
-    write(*,*) "energy2index: n, ns, e1, e2", n, ns, e1, e2
-  end if
-
   if(e2-e1 < 0.0d0) then 
     if(rank == 0) then 
       write(*,'("Error(energy2index): e2 < e1", 2E12.3)') e1, e2

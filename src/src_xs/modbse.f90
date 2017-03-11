@@ -136,8 +136,9 @@ module modbse
       integer(4), dimension(:), allocatable :: io_mkqmtp, iu_mkqmtp
 
       integer(4) :: ik
+      real(8), parameter :: epslat = 1.0d-8
 
-      logical :: fgap
+      logical :: fgap, fsamek
       real(8) :: gap
 
       !---------------------------------------------------!
@@ -181,6 +182,14 @@ module modbse
       ! to those of the k' grid.
       call init1offs(vkqmtploff)
 
+      if(all(abs(vkloff-vkqmtploff) < epslat)) then 
+        write(unitout, '("Info(setranges_modxs): Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        fsamek=.true.
+      else
+        write(unitout, '("Info(setranges_modxs): Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        fsamek=.false.
+      end if
+
       ! Allocate k eigenvalues
       ! Note: If evalsv0 is allocated before findocclims is called it gets read in 
       ! and stays allocated.
@@ -193,8 +202,13 @@ module modbse
       filext0 = filext
 
       ! Set k' file extension
-      ! Set EVALSV_QMTXYZ.OUT as second reference for the occupation search
-      call genfilname(iqmt=iqmt, setfilext=.true.)
+      if(fsamek) then 
+        ! Set EVALSV_QMT001.OUT as second reference for the occupation search
+        call genfilname(iqmt=iqmtgamma, setfilext=.true.)
+      else
+        ! Set EVALSV_QMTXYZ.OUT as second reference for the occupation search
+        call genfilname(iqmt=iqmt, setfilext=.true.)
+      end if
 
       allocate(io_k(nkpt), iu_k(nkpt))
       allocate(io_kqmtp(nkpt), iu_kqmtp(nkpt))
@@ -238,6 +252,14 @@ module modbse
         ! to those of the k' grid.
         call init1offs(vkqmtmloff)
 
+        if(all(abs(vkloff-vkqmtmloff) < epslat)) then 
+          write(unitout, '("Info(setranges_modxs): Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
+          fsamek=.true.
+        else
+          write(unitout, '("Info(setranges_modxs): Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
+          fsamek=.false.
+        end if
+
         ! Explicitly specify k file extension
         usefilext0 = .true.
         ! Set EVALSV_QMT001.OUT as first reference for the occupation search
@@ -245,11 +267,12 @@ module modbse
         filext0 = filext
 
         ! Set k' file extension
-        ! Set EVALSV_QMTXYZ_mqmt.OUT as second reference for the occupation limits search
-        if(iqmt /= 1) then 
-          call genfilname(iqmt=iqmt, auxtype="mqmt", setfilext=.true.)
+        if(fsamek) then 
+          ! Set EVALSV_QMT001.OUT as second reference for the occupation limits search
+          call genfilname(iqmt=iqmtgamma, setfilext=.true.)
         else
-          call genfilname(iqmt=iqmt, setfilext=.true.)
+          ! Set EVALSV_QMTXYZ_mqmt.OUT as second reference for the occupation limits search
+          call genfilname(iqmt=iqmt, auxtype="mqmt", setfilext=.true.)
         end if
 
         allocate(io_k(nkpt), iu_k(nkpt))
@@ -374,6 +397,7 @@ module modbse
       integer(4) :: iomax, iumax
       integer(4) :: iomin, iumin
       real(8), parameter :: maxocc = 2.0d0
+      real(8), parameter :: epslat = 1.0d-8
 
       integer(4) :: nk_loc, hamsize_loc
       integer(4) :: nsymcrys_save
@@ -381,6 +405,7 @@ module modbse
       real(8) :: detmp
       real(8), allocatable :: ofac_loc(:)
       real(8), allocatable :: de_loc(:)
+      logical :: fsamek
       logical, allocatable :: sflag(:)
       integer(4) :: buflen, buflen_r
       integer(4) :: k1, k2, k1_r, k2_r
@@ -482,6 +507,14 @@ module modbse
       ! to those of the k'=k+qmt grid.
       call init1offs(vkqmtploff)
 
+      if(all(abs(vkloff-vkqmtploff) < epslat)) then
+        write(unitout, '("Info(select_transitions): Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        fsamek=.true.
+      else
+        write(unitout, '("Info(select_transitions): Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        fsamek=.false.
+      end if
+
       if(.not. associated(input%gw)) then 
         ! Explicitly specify k file extension
         usefilext0 = .true.
@@ -493,8 +526,13 @@ module modbse
           call getevalsv0(vkl0(1:3, ik), evalsv0(1:nstsv, ik))
         end do
         ! Set k' file extension
-        ! Set EVALSV_QMTXYZ.OUT as second reference for the occupation search
-        call genfilname(iqmt=iqmt, setfilext=.true.)
+        if(fsamek) then 
+          ! Set EVALSV_QMT001.OUT as second reference for the occupation search
+          call genfilname(iqmt=iqmtgamma, setfilext=.true.)
+        else
+          ! Set EVALSV_QMTXYZ.OUT as second reference for the occupation search
+          call genfilname(iqmt=iqmt, setfilext=.true.)
+        end if
         do ik = 1, nkpt
           call getoccsv(vkl(1:3, ik), occsv(1:nstsv, ik))
           call getevalsv(vkl(1:3, ik), evalsv(1:nstsv, ik))

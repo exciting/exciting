@@ -45,9 +45,9 @@ module m_hesolver
       integer(4) :: solsize, hematsize
       real(8) :: vl, vu, abstol
       integer(4) :: il, iu, lwork, info, lrwork, liwork
+      complex(8) :: evecdummy(3,3)
 
       ! Allocatable arrays
-      complex(8), allocatable :: evecdummy(:,:)
       complex(8), allocatable :: work(:)
       real(8), allocatable :: rwork(:)
       integer, allocatable :: iwork(:), isuppz(:)
