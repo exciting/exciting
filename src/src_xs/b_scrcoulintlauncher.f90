@@ -35,7 +35,7 @@ subroutine b_scrcoulintlauncher
   else
     fcoup = .false.
     if(trim(casestring) /= "rr") then 
-      write(*,*) "Ignoring input%xs%bse%blocks, since no RA coupling enabled"
+      ! silently set default from default of "both" to "rr"
       casestring="rr"
     end if
   end if

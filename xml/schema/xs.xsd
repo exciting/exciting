@@ -891,7 +891,7 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="blocks" default="rr">
+            <xs:attribute ex:importance="expert" ex:unit="" name="blocks" default="both">
               <xs:annotation>
                 <xs:documentation>Defines which blocks of the BSE Hamiltonian are to be
                   set up (resonant-resonat, resonant-anti-resonant or both).</xs:documentation>
