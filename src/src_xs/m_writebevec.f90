@@ -166,8 +166,10 @@ module m_writebevec
               vklv = vkl0_(1:3,iknr)
               vklc = vkl_(1:3,iknr)
               if(fti_) then 
-                call r3frac(epslat, -vklv, ivec)
-                call r3frac(epslat, -vklc, ivec)
+                vklv = -vklv
+                vklc = -vklc
+                call r3frac(epslat, vklv, ivec)
+                call r3frac(epslat, vklc, ivec)
               end if
               if(absvec(alpha) > abscutoffares(1) .and. absvec(alpha) < abscutoffares(2)) then
                 write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,E23.16))')&
@@ -331,13 +333,16 @@ module m_writebevec
         !---------------------------------------------------------------------------
         ! din: new output file for the bandstructure to be able to post-process it
         !---------------------------------------------------------------------------
-        if(iq_ ==1 .and. fcoup_ == .false. .and. fesel_ == .false.) then
+        if(iq_ ==1 .and. fesel_ == .false.) then
+
+          ! Write out resonant coefficients
+
           ! Loop over eigenvectors
           do lambda = iex1_, iex2_
 
             call getunit(un)
 
-            write(fname, '("exciton_evec_",i4.4,".dat")') lambda
+            write(fname, '("exciton_evec_res_",i4.4,".dat")') lambda
             fname=trim(excitonevecdir)//'/'//trim(fname)
 
             open(unit=un, file=trim(fname), form='formatted', action='write')
@@ -354,17 +359,65 @@ module m_writebevec
               ic = smap_(1,alpha)
               iv = smap_(2,alpha)
               iknr = smap_(3,alpha)
+              vklv(1:3) = vkl0_(:,iknr)
 
               ! Resonant
               rbevec = rvec_(alpha, lambda) * conjg(rvec_(alpha, lambda))
               write(un, '(i8, 4x, 3f10.6, 2i8, g18.10)')&
-                & iknr, vkl0_(:, iknr), iv, ic, rbevec
+                & iknr, vklv, iv, ic, rbevec
 
             end do
 
             close (un)
 
           end do
+          
+          if(fcoup_) then 
+
+            ! Write out anti-resonant coefficients
+
+            ! Loop over eigenvectors
+            do lambda = iex1_, iex2_
+
+              call getunit(un)
+
+              write(fname, '("exciton_evec_ares_",i4.4,".dat")') lambda
+              fname=trim(excitonevecdir)//'/'//trim(fname)
+
+              open(unit=un, file=trim(fname), form='formatted', action='write')
+
+              ! nkpt total, nv, iv0, nc, ic0
+              write(un,*) "# ", nk_bse_, &
+              &                 nvmax, ioref_,  &
+              &                 ncmax, iuref_
+
+              ! Loop over transitions
+              do alpha = 1, hamsize_
+
+                ! Get absolute indices form combinded index
+                ic = smap_(1,alpha)
+                iv = smap_(2,alpha)
+                iknr = smap_(3,alpha)
+                vklv(1:3) = vkl0_(:,iknr)
+                ! vklv -> -vklv
+                if(fti_) then 
+                  vklv = -vklv
+                  call r3frac(epslat, vklv, ivec)
+                end if
+
+                ! Anti-resonant
+                abevec = avec_(alpha, lambda) * conjg(avec_(alpha, lambda))
+                write(un, '(i8, 4x, 3f10.6, 2i8, g18.10)')&
+                  & iknr, vklv, iv, ic, abevec
+
+              end do
+
+              close (un)
+
+            end do
+
+          end if
+
         end if
         !====================================================!
 
