@@ -140,7 +140,11 @@ module modbse
 
       logical :: fgap, fsamek
       real(8) :: gap
+      real(8) :: t0,t1
 
+      if(mpiglobal%rank==0) then 
+        call timesec(t0)
+      end if
       !---------------------------------------------------!
       ! Get offsets of and mapping between k and k' grids !
       !---------------------------------------------------!
@@ -335,14 +339,21 @@ module modbse
       ! Scissor
       sci = input%xs%scissor
 
-      if(ksgapval == 0.0d0) then
-        write(unitout, '("Warning (setranges_modxs): The system has no gap")')
-        if(sci /= 0.0d0) then 
-          write(unitout, '("Warning (setranges_modxs):&
-            &   Scissor > 0 but no gap. Setting scissor to 0.")')
-          sci = 0.0d0
-        end if
-      end if  
+      if(mpiglobal%rank==0) then 
+        if(ksgapval == 0.0d0) then
+          write(unitout, '("Warning (setranges_modxs): The system has no gap")')
+          if(sci /= 0.0d0) then 
+            write(unitout, '("Warning (setranges_modxs):&
+              &   Scissor > 0 but no gap. Setting scissor to 0.")')
+            sci = 0.0d0
+          end if
+        end if  
+      end if
+      if(mpiglobal%rank==0) then 
+        call timesec(t1)
+        write(unitout, '("Info(setranges_modxs):&
+          & Time needed/s.", f12.7)') t1-t0
+      end if
 
     end subroutine setranges_modxs
     !EOC
@@ -405,11 +416,16 @@ module modbse
       real(8) :: detmp
       real(8), allocatable :: ofac_loc(:)
       real(8), allocatable :: de_loc(:)
+      real(8) :: t0, t1
       logical :: fsamek
       logical, allocatable :: sflag(:)
       integer(4) :: buflen, buflen_r
       integer(4) :: k1, k2, k1_r, k2_r
       integer(4) :: iproc, i1, i2, il_r, iu_r
+
+      if(mpiglobal%rank == 0) then 
+        call timesec(t0)
+      end if
 
       if(present(serial)) then 
         fserial = serial
@@ -827,6 +843,11 @@ module modbse
 
       if(mpiglobal%rank == 0) then 
         call printso(iqmt)
+      end if
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("Info(select_transitions):&
+          & Time needed/s:", f12.7)') t1-t0
       end if
       call barrier
 

@@ -349,8 +349,8 @@ module m_writebevec
 
             ! nkpt total, nv, iv0, nc, ic0
             write(un,*) "# ", nk_bse_, &
-            &                 nvmax, ioref_,  &
-            &                 ncmax, iuref_
+            &                 nvmax, ivmin,  &
+            &                 ncmax, icmin
 
             ! Loop over transitions
             do alpha = 1, hamsize_
@@ -388,8 +388,8 @@ module m_writebevec
 
               ! nkpt total, nv, iv0, nc, ic0
               write(un,*) "# ", nk_bse_, &
-              &                 nvmax, ioref_,  &
-              &                 ncmax, iuref_
+              &                 nvmax, ivmin,  &
+              &                 ncmax, icmin
 
               ! Loop over transitions
               do alpha = 1, hamsize_
