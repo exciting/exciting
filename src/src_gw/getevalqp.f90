@@ -5,6 +5,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   use modmain
   use modgw,    only: kset, ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp
   use mod_wannier
+  use m_wannier_interpolate
 
   implicit none
       
@@ -20,6 +21,11 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   integer(4), allocatable :: idx(:)
   real(8),    allocatable :: eqp(:), eqpwan(:,:), eqpwanint(:,:)
   complex(8), allocatable :: de1(:,:), de2(:,:)
+
+  ! for band-character
+  real(4) :: sum
+  real(4), allocatable :: bc(:,:,:,:)
+  integer :: lmax, is, ia, ias, ist, l
 
   !-----------------------------------------------------------------------------
   ! Read the file
@@ -38,8 +44,11 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   read(70, Rec=1) nkp1, ibgw, nbgw
   close(70)
       
+  if( allocated( kvecs1)) deallocate( kvecs1)
   allocate(kvecs1(1:3,nkp1))
+  if( allocated( eqp1)) deallocate( eqp1)
   allocate(eqp1(ibgw:nbgw,nkp1))
+  if( allocated( eks1)) deallocate( eks1)
   allocate(eks1(ibgw:nbgw,nkp1))
   
   ! old format (gwmod-boron)    
@@ -120,7 +129,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   if( input%gw%taskname .eq. "wannier") then
     call readfermi
     kvecs2_ = kvecs2
-    allocate( eqpwan( ibgw:nbgw, wf_kset%nkpt), eqpwanint( ibgw:nbgw, nkp2))
+    allocate( eqpwan( wf_fst:wf_lst, wf_kset%nkpt), eqpwanint( wf_fst:wf_lst, nkp2))
     if( allocated( vkl)) deallocate( vkl)
     allocate( vkl( 3, nkp1))
     vkl = kvecs1
@@ -130,7 +139,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
       !write(*,*) wf_kset%vkl( :, ik)
       !write(*,*) vkl( :, ib)
       !write(*,*) kvecs1( :, ib)
-      eqpwan( :, ik) = eqp1( ibgw:nbgw, ib)
+      eqpwan( :, ik) = eqp1( wf_fst:wf_lst, ib)
       !write(*,'(100F13.6)') eqpwan( :, ik)
     end do
     deallocate( vkl)
@@ -141,11 +150,36 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     !write(*,*) shape( eqpwan), shape( wf_kset%vkl), wf_kset%nkpt
     !write(*,*) shape( eqpwanint), shape( kvecs2), nkp2
     !write(*,*) shape( eqp2)
-    call wannier_interpolate_eval( eqpwan, wf_kset%nkpt, wf_kset%vkl, eqpwanint, nkp2, kvecs2_, ibgw, nbgw)
-    do ib = ibgw, min(nbgw,nstsv)
+    lmax = min( 3, input%groundstate%lmaxapw)
+    allocate( bc( natmtot, 0:lmax, wf_fst:wf_lst, nkp2))
+    call wannier_interpolate_eval( eqpwan, nkp2, kvecs2_, eqpwanint, bandchar=bc, lmax=lmax)
+    do ib = wf_fst, wf_lst
        do ik = 1, nkp2
           eqp2( ib, ik) = eqpwanint( ib, ik) - eferqp - efermi
        end do 
+     end do
+
+     do is = 1, nspecies
+       do ia = 1, natoms (is)
+         ias = idxas (ia, is)
+         write (fname, '("BAND-QP_WANNIER_S", I2.2, "_A", I4.4, ".OUT")') &
+              & is, ia
+         open (50, File=trim(fname), Action='WRITE', Form='FORMAT&
+              &TED')
+         !
+         do ist = wf_fst, wf_lst
+           do ik = 1, nkpt
+             ! sum band character over l
+             sum = 0.d0
+             do l = 0, lmax
+               sum = sum + bc( ias, l, ist, ik)
+             end do
+             write (50, '(G18.10, 8F12.6)') eqp2( ist, ik), sum, (bc( ias, l, ist, ik), l=0, lmax)
+           end do
+           write (50, '("	  ")')
+         end do
+         close (50)
+       end do
      end do
   else
     do ik = 1, nkp1
@@ -160,7 +194,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   end if
 
   deallocate(de1,de2)
-  deallocate(kvecs1,eqp1,eks1)
+  !deallocate(kvecs1,eqp1,eks1)
 
   return
 end subroutine

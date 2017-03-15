@@ -430,7 +430,7 @@ module mod_wannier
       ! local variables
       integer :: i, is, n, k1, k2, iknr, ngknr, maxn, idxn, n2
       real(8) :: t0, t1
-      logical :: succes
+      logical :: success
 
       ! allocatable arrays
       integer, allocatable :: igkignr(:)
@@ -452,11 +452,11 @@ module mod_wannier
       call timesec( t0)
 
       ! check for existing file
-      succes = .true.
-      inquire( file="WANNIER_EMAT"//trim( filext), exist=succes)
-      if( succes) then
-        call wannier_reademat( "WANNIER", succes)
-        if( succes) then
+      success = .true.
+      inquire( file="WANNIER_EMAT"//trim( filext), exist=success)
+      if( success) then
+        call wannier_reademat( "WANNIER", success)
+        if( success) then
           call timesec( t1)
           write( wf_info, '(" ...plane-wave matrix-elements read from file.")')
           write( wf_info, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
@@ -465,7 +465,7 @@ module mod_wannier
         end if
       end if
 
-      if( .not. succes) then          
+      if( .not. success) then          
         maxn = 0
         do i = 1, wf_n_nshells
           maxn = max( maxn, wf_n_n( wf_n_usedshells( i)))
@@ -839,7 +839,7 @@ module mod_wannier
       phihist = 0.d0
       uncertainty = 1.d0
       ! start minimization
-      do while( (n .lt. minit) .or. ((n .lt. 500000) .and. (uncertainty .gt. limit)))
+      do while( (n .lt. minit) .or. ((n .lt. 5000000) .and. (uncertainty .gt. limit)))
         i = 1
         do while( (i .le. wf_nst) .and. ((n .lt. minit) .or. (uncertainty .gt. limit)))
           j = i + 1
@@ -1069,7 +1069,7 @@ module mod_wannier
       real(8) :: t0, t1, v1(3), v2(3)
       real(8), allocatable :: omegai(:), omegad(:), omegaod(:)
       integer :: minit, maxit
-      logical :: succes
+      logical :: success
 
       ! allocatable arrays
       integer, allocatable :: nn(:), integerlist(:)
@@ -1170,7 +1170,7 @@ module mod_wannier
         omegahist = 0.d0
         gradhist = 1.d0
         grad = 1.d0
-        succes = .false.
+        success = .false.
 
         nwgt = 0.d0
         do i = 1, wf_n_nshells
@@ -1181,7 +1181,7 @@ module mod_wannier
       !************************************************************
       !* start of minimization
       !************************************************************
-        do while( .not. succes)
+        do while( .not. success)
           iz = iz + 1
           ! centers of Wannier functions
           ravg = 0.d0
@@ -1309,12 +1309,12 @@ module mod_wannier
           if( (minval( v1)*maxval( v1) .ge. 0.d0) .and. &
               (minval( v2)*maxval( v2) .ge. 0.d0) .and. &
               (minval( v1)+maxval( v1) .ge. 0.d0) .and. &
-              (minval( v2)+maxval( v2) .le. 0.d0)) succes = .true.
-          !if( omega .gt. omegastart) succes = .true.
-          if( uncertainty .le. input%properties%wannier%uncertainty) succes = .true.
-          if( maxval( gradhist) .le. input%properties%wannier%uncertainty) succes = .true.
-          if( iz .lt. minit) succes = .false.
-          if( iz .ge. maxit) succes = .true.
+              (minval( v2)+maxval( v2) .le. 0.d0)) success = .true.
+          !if( omega .gt. omegastart) success = .true.
+          if( uncertainty .le. input%properties%wannier%uncertainty) success = .true.
+          if( maxval( gradhist) .le. input%properties%wannier%uncertainty) success = .true.
+          if( iz .lt. minit) success = .false.
+          if( iz .ge. maxit) success = .true.
           write(*,'(I4,10F23.16)') iz, omega, uncertainty, grad, maxval( gradhist)!, omega2 !omegai+omegad+omegaod
         end do
       !************************************************************
@@ -1327,7 +1327,7 @@ module mod_wannier
         else if( iz .ge. maxit) then
           write(*, '("ERROR (genmlwf): Not converged after ",I6," cycles.")') maxit
         else
-          write(*,'(" SUCCES: Convergence reached after ",I4," cycles.")') iz 
+          write(*,'(" success: Convergence reached after ",I4," cycles.")') iz 
           write(*,'(" Localization gain: ",I3,"%")') nint( 100d0*(omegastart-omega)/omega)
         end if
         
@@ -1376,19 +1376,19 @@ module mod_wannier
     !EOP
     
     subroutine wannier_gen_fromfile()
-      logical :: succes
+      logical :: success
       real(8), allocatable :: ravg(:,:), omega(:)
 
 !#ifdef MPI
 !      if( rank .eq. 0) then
 !#endif
-      call wannier_readfile( 'WANNIER', succes)
-      if( .not. succes) then
+      call wannier_readfile( 'WANNIER', success)
+      if( .not. success) then
         write( wf_info, '(" Failed to read Wannier functions from file. Aborted.")')
         write( wf_info, *)
         call terminate
       else
-        write( wf_info, '(" file successfully read")')
+        write( wf_info, '(" file successsfully read")')
         write( wf_info, *)
       end if
 !#ifdef MPI
@@ -1638,9 +1638,9 @@ module mod_wannier
     end subroutine wannier_showproj
     
     ! reads transformation matrices from file
-    subroutine wannier_readfile( filename, succes)
+    subroutine wannier_readfile( filename, success)
       character(*), intent( in) :: filename
-      logical, intent( out) :: succes
+      logical, intent( out) :: success
 
       ! local variables
       integer :: ik, ix, iy, iz, un
@@ -1649,9 +1649,9 @@ module mod_wannier
 
       call getunit( un)
 
-      succes = .true.
-      inquire( file=trim( filename)//trim( filext), exist=succes)
-      if( .not. succes) then
+      success = .true.
+      inquire( file=trim( filename)//trim( filext), exist=success)
+      if( .not. success) then
         write(*,*) 'ERROR (wannier_readfile): File '//trim( filename)//trim( filext)//' does not exist.'
         return
       end if
@@ -1700,7 +1700,7 @@ module mod_wannier
         end do
       end do
       close( un)
-      if( succes) write(*,*) 'Transformation matrices succesfully read.'
+      if( success) write(*,*) 'Transformation matrices successfully read.'
       return
     end subroutine wannier_readfile
     
@@ -1738,9 +1738,9 @@ module mod_wannier
       return
     end subroutine wannier_writefile  
 
-    subroutine wannier_reademat( filename, succes)
+    subroutine wannier_reademat( filename, success)
       character(*), intent( in) :: filename
-      logical, intent( out) :: succes
+      logical, intent( out) :: success
 
       ! local variables
       integer :: i, j, is, n, idxn, ik, ix, iy, iz, un
@@ -1749,9 +1749,9 @@ module mod_wannier
 
       call getunit( un)
 
-      succes = .true.
-      inquire( file=trim( filename)//"_EMAT"//trim( filext), exist=succes)
-      if( .not. succes) then
+      success = .true.
+      inquire( file=trim( filename)//"_EMAT"//trim( filext), exist=success)
+      if( .not. success) then
         write(*,*) 'ERROR (wannier_reademat): File '//trim( filename)//"_EMAT"//trim( filext)//' does not exist.'
         return
       end if
@@ -1759,15 +1759,18 @@ module mod_wannier
       read( un) fst_, lst_, nst_, ntot_, nkpt_
       if( (fst_ .ne. wf_fst) .or. (lst_ .ne. wf_lst)) then
         write( *, '(" ERROR (wannier_reademat): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
-        call terminate
+        success = .false.
+        return
       end if
       if( ntot_ .ne. wf_n_ntot) then
         write( *, '(" ERROR (wannier_reademat): different number of BZ-neighbors in input (",I4,") and file (",I4,").")'), wf_n_ntot, ntot_
-        call terminate
+        success = .false.
+        return
       end if
       if( nkpt_ .ne. wf_kset%nkpt) then
         write( *, '(" ERROR (wannier_reademat): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
-        call terminate
+        success = .false.
+        return
       end if
       if( allocated( wf_emat)) deallocate( wf_emat)
       allocate( wf_emat( wf_fst:wf_lst, wf_fst:wf_lst, wf_n_ntot, wf_kset%nkpt))
@@ -1793,6 +1796,7 @@ module mod_wannier
               if( norm2( vkl_tmp( :, iz)) .gt. input%structure%epslat) then
                 write( *, '(" ERROR (wannier_reademat): k-point in file not in k-point-set.")')
                 write( *, '(3F23.6)') vkl_
+                success = .false.
                 call terminate
               end if
               do iy = wf_fst, wf_lst
@@ -1808,7 +1812,7 @@ module mod_wannier
         end do
       end do
       close( un)
-      if( succes) write(*,*) 'Plane-wave matrix-elements succesfully read.'
+      if( success) write(*,*) 'Plane-wave matrix-elements successfully read.'
       return
     end subroutine wannier_reademat
     
