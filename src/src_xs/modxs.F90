@@ -77,6 +77,7 @@ Module modxs
       Real (8), Allocatable :: totalqcmt(:,:), vqcmt(:, :)
   ! finite momentum transfer Gmt-vector
       Integer, Allocatable :: ivgmt(:, :)
+      real(8), allocatable :: vgcmt(:, :)
 
   ! index of current q-point
       Integer :: iqcu

@@ -104,6 +104,8 @@ Subroutine init2
          Allocate (vqcmt(3, nqpt))
          If (allocated(ivgmt)) deallocate (ivgmt)
          Allocate (ivgmt(3, nqpt))
+         If (allocated(vgcmt)) deallocate (vgcmt)
+         Allocate (vgcmt(3, nqpt))
          If (allocated(vql)) deallocate (vql)
          Allocate (vql(3, nqpt))
          If (allocated(vqc)) deallocate (vqc)
@@ -121,6 +123,9 @@ Subroutine init2
             end if
             vqlmt(:,iq) = v(:)
             ivgmt(:,iq) = iv(:)
+            vgcmt(:,iq) = ivgmt(1,iq)*bvec(:,1) + &
+            &           ivgmt(2,iq)*bvec(:,2) + &
+            &           ivgmt(3,iq)*bvec(:,3)
             vql(:,iq) = vqlmt(:,iq)
             vqc(:,iq) = vql(1,iq)*bvec(:,1) + &
             &           vql(2,iq)*bvec(:,2) + &

@@ -9,10 +9,9 @@ subroutine b_screenlauncher
 ! !USES:
   use modmpi
   use modinput, only: input
-  use mod_misc, only: filext
   use mod_APW_LO, only: lolmax
   use mod_kpoint, only: nkpt
-  use mod_qpoint, only: nqpt, vql
+  use mod_qpoint, only: nqpt
   use modxs, only: xsgnt, nwdf, qpari,&
                    & qparf, unitout, nqmt, vqlmt, qvkloff,&
                    & gqdirname, eps0dirname, scrdirname, timingdirname,&
@@ -38,8 +37,8 @@ subroutine b_screenlauncher
   logical :: fcoup, fti
   integer(4), parameter :: iqmtgamma = 1
   integer(4) :: ispin
-  real(8), parameter :: epslat=1.d-6
-  real(8) :: qgridoff(3)
+  real(8), parameter :: epslat=1.d-8
+  real(8) :: qgridoff(3), qgridoffgamma(3)
   character(256) :: filex, syscommand
   character(*), parameter :: thisnam = 'b_screenlauncher'
 
@@ -216,6 +215,19 @@ subroutine b_screenlauncher
 
   if(fcoup) then 
 
+    ! Save zero momentum transfer q grid offset
+    call xsgrids_init(vqlmt(1:3, iqmtgamma), gkmax)
+    if(fti) then 
+      qgridoffgamma(1:3) = p_pqmtp%pset%vkloff
+    else
+      qgridoffgamma(1:3) = q_qmtm%qset%vkloff
+    end if
+    if(rank == 0) then 
+      write(*,*) "b_screenlauncher: qgridoffgamma"
+      write(*,*) qgridoffgamma
+    end if
+    call xsgrids_finalize()
+
     if(rank == 0) then
       call printline(unitout, "+")
       write(unitout, '(a)') 'Info(' // thisnam // '):&
@@ -280,12 +292,12 @@ subroutine b_screenlauncher
       end if
 
 
-      if(all(qgridoff == [0.0d0,0.0d0,0.0d0])) then 
+      if(all(abs(qgridoff-qgridoffgamma) < epslat) .and. iqmt/=1) then 
 
         if(rank == 0) then 
-          write(unitout, '(a, i3)') 'Info(' // thisnam // '):&
-            & Shifted q-grid is identical to unshifted q-grid,&
-            & skipping calculation.'
+          write(unitout, '("Info(",a,"):&
+            & Shifted q-grid for iqmt=", i4, " is identical to q-grid,&
+            & for iqmt=1. Skipping calculation.")') trim(thisnam), iqmt
           call printline(unitout, "-")
         end if
 

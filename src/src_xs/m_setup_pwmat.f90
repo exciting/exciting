@@ -46,7 +46,6 @@ module m_setup_pwmat
       integer(4), intent(in) :: iqmt, igqmt
       complex(8), intent(out) :: pwmat(hamsize)
 
-      real(8) :: t1, t0
       integer(4) :: io, iu, ik, iknr, ik1, ik2
       integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
       integer(4) :: a1, numgq

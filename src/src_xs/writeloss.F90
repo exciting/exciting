@@ -28,6 +28,7 @@ module m_writeloss
       character(*), intent(in) :: fn
 
       ! Local variables
+      real(8) :: nval 
       character(*), parameter :: thisnam = 'writeloss'
       type(xmlf_t), save :: xf
       character(256) :: buffer
@@ -52,13 +53,32 @@ module m_writeloss
       ! Get Gmt+qmt index
       igqmt = ivgigq(ivgmt(1, iq), ivgmt(2, iq), ivgmt(3, iq), iq)
 
-      write(un, '("# Gmt:",3i4)') ivgmt(1:3,iq) 
-      write(un, '("# qmt:",3f12.7)') vqlmt(1:3,iq) 
-      write(un, '("#",a22,1x,a23,1x,a29)')&
-        & "Frequency/(eV/hbar)", "L(w)", "L(w)*|G+q|^2*V/(4 pi^2 Q_val)"
+      ! Compute avarage valence density = total valence charge / unti cell volume
+      nval = chgval/omega
+
+      write(un, '("#",1x,"Loss function L(Q,w) and dynamical structure factor S(Q,w)")')
+      write(un, '("#")')
+      write(un, '("#",1x,"L(Q,w)= -Im(1/eps_m(Q,w) [1]")')
+      write(un, '("#",1x,"S(Q,w)= L(Q,w)*|Q|^2*/(4 pi^2 n_val) [Energy^-1]")')
+      write(un, '("#")')
+      write(un, '("# Momentum transfer Q=G+q in lattice cooridnates")')
+      write(un, '("# G:",3i4)') ivgmt(1:3,iq) 
+      write(un, '("# q:",3f12.7)') vqlmt(1:3,iq) 
+      write(un, '("# Momentum transfer Q=G+q in Cartesian cooridnates")')
+      write(un, '("# G:",3f12.7)') vgcmt(1:3,iq) 
+      write(un, '("# q:",3f12.7)') vqcmt(1:3,iq) 
+      write(un, '("# Norm2(G+q)",f12.7)') norm2(vgcmt(:,iq)+vqcmt(:,iq))
+      write(un, '("# Crosscheck: gqc",f12.7)') gqc(igqmt,iq)
+      write(un, '("#")')
+      write(un, '("# Avarage valence charge density:",f12.7)') nval
+      write(un, '("#")')
+      write(un, '("# Energy scale",f12.7)') escale
+      write(un, '("#")')
+      write(un, '("#",a22,1x,a23,1x,a23)')&
+        & "Frequency/(eV/hbar)", "L(Q,w)", "S(Q,w)*1000"
       write(un, '(SP,E23.16,1x,E23.16,1x,E23.16)')&
         &(w(iw)*escale, loss(iw), &
-        & loss(iw)/escale*(gqc(igqmt, iq)**2/(4.d0*pi**2*chgval/omega)), iw=1,  n)
+        & 1000.0d0*loss(iw)/escale*(gqc(igqmt, iq)**2/(4.d0*pi**2*nval)), iw=1,  n)
 
       ! write relevant parameters to file
       !Call writevars(un, iq, iq)

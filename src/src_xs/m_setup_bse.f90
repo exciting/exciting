@@ -86,6 +86,12 @@ module m_setup_bse
       usescc = .false.
       useexc = .false.
       select case(trim(input%xs%bse%bsetype))
+        case('IP')
+          usescc = .false.
+          useexc = .false.
+          if(mpiglobal%rank==0) then
+            write(unitout, '("Info(setup_bse): Using IP")')
+          end if
         case('singlet')
           usescc = .true.
           useexc = .true.
@@ -579,6 +585,12 @@ module m_setup_bse
         usescc = .false.
         useexc = .false.
         select case(trim(input%xs%bse%bsetype))
+          case('IP')
+            usescc = .false.
+            useexc = .false.
+            if(mpiglobal%rank==0) then
+              write(unitout, '("Info(setup_distributed_bse): Using IP")')
+            end if
           case('singlet')
             usescc = .true.
             useexc = .true.

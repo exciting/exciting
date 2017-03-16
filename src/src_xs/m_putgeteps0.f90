@@ -223,6 +223,7 @@ module m_putgeteps0
       integer(4) :: un, stat, reclen
       integer(4) :: ngq_, iq_, iw_
       real(8) :: vql_(3), w_
+      real(8), parameter :: epslat=1.0d-8
       logical :: tq0, existent
       integer(4), pointer :: ivq_p(:,:), nqpt_p, ngq_p(:)
       real(8), pointer :: vql_p(:,:)
@@ -345,7 +346,7 @@ module m_putgeteps0
 
       ! Check consistency of requested data with saved data 
       if(ngq_ .ne. ngq_p(iq)&
-        & .or. any(vql_ .ne. vql_p(:,iq))&
+        & .or. any(abs(vql_-vql_p(:,iq)) > epslat)&
         & .or. w_ .ne. w) then
 
         write(*, '(a)') 'Error(' // trim(thisnam) // '):&

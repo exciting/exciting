@@ -435,13 +435,13 @@ if (hybcheck) then
     !---------------------------------------------------------------------------
     if (rank==0) then
       open(50, File="bandstructure.dat", Action='Write', Form='Formatted')
-      write(50,*) "# ", 1, nstsv, nkpt
+      write(50,'(a2,i8,1x,i8,1x,i8)') "# ", 1, nstsv, nkpt
       ! path, energy, ist, ik, vkl
       do ist = 1, nstsv
-      do ik = 1, nkpt
-        write(50,'(2I6, 3F12.6, 2G18.10)') ist, ik, vkl(:,ik), dpp1d(ik), evalsv(ist,ik)
-      end do
-      write(50,*)
+        do ik = 1, nkpt
+          write(50,'(2I6, 3F12.6, 2E18.10)') ist, ik, vkl(:,ik), dpp1d(ik), evalsv(ist,ik)
+        end do
+        write(50,*)
       end do
       close(50)
     end if

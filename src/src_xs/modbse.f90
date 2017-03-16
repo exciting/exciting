@@ -99,11 +99,10 @@ module modbse
     subroutine setranges_modxs(iqmt, fcoup, fti)
       use modinput
       use mod_misc, only: filext
-      use mod_kpoint, only: nkpt, vkl
       use mod_xsgrids
       use mod_Gkvector, only: gkmax
       use modxs, only: vqlmt, evalsv0, usefilext0, filext0,&
-                     & ksgap, ksgapval, qmtpgap, qmtmgap, unitout, vkl0
+                     & ksgap, ksgapval, qmtpgap, qmtmgap, unitout
       use m_genfilname
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
@@ -127,15 +126,11 @@ module modbse
 
       integer(4) :: iomax_kkqmtp, iumin_kkqmtp
       integer(4) :: iomax_kkqmtm, iumin_kkqmtm
-      integer(4) :: iomax_mkmkqmtp, iumin_mkmkqmtp
 
       integer(4), dimension(:), allocatable :: io_k, iu_k
       integer(4), dimension(:), allocatable :: io_kqmtp, iu_kqmtp
       integer(4), dimension(:), allocatable :: io_kqmtm, iu_kqmtm 
-      integer(4), dimension(:), allocatable :: io_mk, iu_mk
-      integer(4), dimension(:), allocatable :: io_mkqmtp, iu_mkqmtp
 
-      integer(4) :: ik
       real(8), parameter :: epslat = 1.0d-8
 
       logical :: fgap, fsamek
@@ -340,10 +335,21 @@ module modbse
       sci = input%xs%scissor
 
       if(mpiglobal%rank==0) then 
+        write(unitout, '("Info(setranges_modxs):&
+          & Number of states considered:",i9)') nstsv
+        write(unitout, '("Info(setranges_modxs):&
+          & Number of (partially) occupied state:", i9)') no_max
+        write(unitout, '("Info(setranges_modxs):&
+          & Highest (partially) occupied state:", i9)') iomax
+        write(unitout, '("Info(setranges_modxs):&
+          & Number of (partially) unoccupied state:", i9)') nu_max
+        write(unitout, '("Info(setranges_modxs):&
+          & Lowest (partially) unoccupied state:", i9)') iumin
+
         if(ksgapval == 0.0d0) then
-          write(unitout, '("Warning (setranges_modxs): The system has no gap")')
+          write(unitout, '("Warning(setranges_modxs): The system has no gap")')
           if(sci /= 0.0d0) then 
-            write(unitout, '("Warning (setranges_modxs):&
+            write(unitout, '("Warning(setranges_modxs):&
               &   Scissor > 0 but no gap. Setting scissor to 0.")')
             sci = 0.0d0
           end if
@@ -361,7 +367,7 @@ module modbse
     !BOP
     ! !ROUTINE: select_transitions
     ! !INTERFACE:
-    subroutine select_transitions(iqmt, serial)
+    subroutine select_transitions(iqmt, serial, dirname)
       use mod_kpoint, only: vkl
       use mod_misc, only: filext
       use modxs, only: usefilext0, filext0, vkl0
@@ -400,6 +406,7 @@ module modbse
 
       integer(4), intent(in) :: iqmt
       logical, intent(in), optional :: serial
+      character(*), intent(in), optional :: dirname
 
       logical :: fserial
       integer(4) :: ik, ikq, s, iknr
@@ -419,9 +426,8 @@ module modbse
       real(8) :: t0, t1
       logical :: fsamek
       logical, allocatable :: sflag(:)
-      integer(4) :: buflen, buflen_r
-      integer(4) :: k1, k2, k1_r, k2_r
-      integer(4) :: iproc, i1, i2, il_r, iu_r
+      integer(4) :: k1, k2
+      integer(4) :: i1, i2
 
       if(mpiglobal%rank == 0) then 
         call timesec(t0)
@@ -842,7 +848,11 @@ module modbse
       end if
 
       if(mpiglobal%rank == 0) then 
-        call printso(iqmt)
+        if(present(dirname)) then 
+          call printso(iqmt, dirname)
+        else
+          call printso(iqmt, dirname)
+        endif 
       end if
       if(mpiglobal%rank == 0) then 
         call timesec(t1)
@@ -854,16 +864,20 @@ module modbse
     end subroutine select_transitions
     !EOC
 
-    subroutine printso(iqmt)
+    subroutine printso(iqmt, dirname)
       implicit none 
 
       integer(4) :: i, un, iqmt
       character(256) :: fdir, syscommand, fext, fname, fiqmt
+      character(*), intent(in), optional :: dirname
 
       ! Make a folder 
       fdir = 'TRANSINFO'
+      if(present(dirname)) then 
+        fdir = trim(dirname)//'/'//trim(fdir)
+      end if
       if(mpiglobal%rank == 0) then 
-        syscommand = 'test ! -d '//trim(adjustl(fdir))//' && mkdir '//trim(adjustl(fdir))
+        syscommand = 'test ! -d '//trim(adjustl(fdir))//' && mkdir -p '//trim(adjustl(fdir))
         call system(trim(adjustl(syscommand)))
       end if
       write(fiqmt,*) iqmt
@@ -907,12 +921,12 @@ module modbse
       call getunit(un)
       fname = trim(adjustl(fdir))//'/'//'EKSTRANS_sorted'//fext
       open(un, file=trim(adjustl(fname)), action='write', status='replace')
-      write(un,'("# KS transition energies associated with each combined index&
+      write(un,'("# KS transition energies (eV) associated with each combined index&
         & @ iqmt =", i3)') iqmt
       write(un,'("# s de de+sci")')
       do i = 1, hamsize
         write(un, '(I8,1x,E23.16,1x,E23.16)')&
-          & ensortidx(i), de(ensortidx(i))-sci, de(ensortidx(i))
+          & ensortidx(i), (de(ensortidx(i))-sci)*h2ev, de(ensortidx(i))*h2ev
       end do
       close(un)
 

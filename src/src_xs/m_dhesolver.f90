@@ -207,10 +207,12 @@ module m_dhesolver
 
         ! Compute
         if(evalsonly) then 
+          call new_dzmat(evecdummy,1,1,binfo)
           call pzheevx(jobzchar, rangechar, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
             & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
             & evecdummy%za, iz, jz, evecdummy%desc, work, lwork, rwork, lrwork, iwork, liwork,&
             & ifail, iclustr, gap, info)
+          call del_dzmat(evecdummy)
         else
           call pzheevx(jobzchar, rangechar, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
             & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
@@ -366,10 +368,12 @@ module m_dhesolver
           allocate(work(3), rwork(3), iwork(3))
 
           if(jobtype == 'N') then 
+            call new_dzmat(evecdummy,1,1,binfo)
             call pzheevx(jobtype, rangetype, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
               & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
               & evecdummy%za, iz, jz, evecdummy%desc, work, lwork, rwork, lrwork, iwork, liwork,&
               & ifail, iclustr, gap, info)
+            call del_dzmat(evecdummy)
           else
             call pzheevx(jobtype, rangetype, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
               & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&

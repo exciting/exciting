@@ -22,6 +22,7 @@ module m_putgetexcitons
   integer(4), allocatable :: ikmapikq_(:), kousize_(:), koulims_(:,:)
   integer(4), allocatable :: smap_(:,:), smap_rel_(:,:)
   real(8), allocatable :: vqlmt_(:)
+  integer(4), allocatable :: ngridk_(:), ikmap_(:,:,:)
   real(8), allocatable :: vkl_(:,:), vkl0_(:,:)
   real(8), allocatable :: evals_(:)
   complex(8), allocatable :: rvec_(:, :), avec_(:,:)
@@ -35,6 +36,8 @@ module m_putgetexcitons
       if(allocated(koulims_)) deallocate(koulims_)
       if(allocated(smap_)) deallocate(smap_)
       if(allocated(smap_rel_)) deallocate(smap_rel_)
+      if(allocated(ngridk_)) deallocate(ngridk_)
+      if(allocated(ikmap_)) deallocate(ikmap_)
       if(allocated(vkl0_)) deallocate(vkl0_)
       if(allocated(vkl_)) deallocate(vkl_)
       if(allocated(vqlmt_)) deallocate(vqlmt_)
@@ -47,6 +50,8 @@ module m_putgetexcitons
     end subroutine clear_excitons
 
     subroutine put_excitons(evals, rvec, avec, iqmt, a1, a2)
+      use mod_kpoint, only: ikmap
+      use modinput
 
       implicit none
 
@@ -59,11 +64,13 @@ module m_putgetexcitons
       ! Local
       integer(4) :: stat, unexc
       logical :: fcoup, fti, fesel
-      integer(4) :: i1, i2, nexcstored, iq, m, n
+      integer(4) :: i1, i2, nexcstored, iq, m, n, ngridk(3)
 
       character(256) :: fname
       character(256) :: tdastring, bsetypestring, tistring, scrtypestring
 
+      ngridk = input%groundstate%ngridk
+      
       m = size(rvec,1)
       n = size(rvec,2)
 
@@ -162,6 +169,8 @@ module m_putgetexcitons
         & ioref, iuref,&! Reference absolute state index for occpied and unoccupied index (usually lowest and 1st unoccupied)
         & iq,&          ! Index of momentum transfer vector
         & vqlmt(1:3,iq),& ! Momentum transver vector
+        & ngridk,&      ! k-grid spacing
+        & ikmap,&       ! k-grid index map 3d -> 1d 
         & vkl0,&        ! Lattice vectors for k grid
         & vkl,&         ! Lattice vectors for k'=k+qmt grid
         & ikmapikq(:,iq),& ! ik -> ik' index map
@@ -304,6 +313,7 @@ module m_putgetexcitons
       ! Deallocate arrays
       call clear_excitons()
       allocate(vqlmt_(3))
+      allocate(ngridk_(3))
 
       ! Read Meta data
       read(unexc)&
@@ -317,7 +327,8 @@ module m_putgetexcitons
         & iex1_, iex2_,& ! Range of saved eigenvectors
         & ioref_, iuref_,&! Reference absolute state index for occpied and unoccupied index (usually lowest and 1st unoccupied)
         & iq_,&          ! Index of momentum transfer vector
-        & vqlmt_       ! Momentum transver vector
+        & vqlmt_,&       ! Momentum transver vector
+        & ngridk_        ! k-grid spacing
       inquire(unexc, pos=mypos)
 
       ! Check read parameters against requested ones
@@ -347,6 +358,7 @@ module m_putgetexcitons
       end if
 
       ! Allocate and read meta data arrays
+      allocate(ikmap_(0:ngridk_(1)-1,0:ngridk_(2)-1,0:ngridk_(3)-1))
       allocate(vkl0_(3,nk_max_))
       allocate(vkl_(3,nk_max_))
       allocate(ikmapikq_(nk_max_))
@@ -358,6 +370,7 @@ module m_putgetexcitons
       allocate(evalstmp(iex1_:iex2_))
 
       read(unexc, pos=mypos)&
+        & ikmap_,&      ! Non reduced k-grid index map 3d -> 1d 
         & vkl0_,&       ! Lattice vectors for k grid
         & vkl_,&        ! Lattice vectors for k'=k+qmt grid
         & ikmapikq_,&   ! ik -> ik' index map

@@ -35,7 +35,6 @@ Subroutine xsmain (plan)
       Use modtetra
 #endif
       Use modxs
-      use m_writebevec
       use mod_exciton_wf
       Implicit None
       Type (plan_type) :: plan
@@ -192,9 +191,19 @@ Subroutine xsmain (plan)
          Case (447)
      ! ASCII output of BSE eigenvectors
             if(input%xs%bse%beyond) then 
-              call b_writebevec
+              call b_writeexcevec
             else
               Call writebevec
+            end if
+         Case (448)
+     ! ASCII output of BSE eigenvectors
+            if(input%xs%bse%beyond) then 
+              call b_writekpathweights
+            end if
+         Case (449)
+     ! BSE transition survey
+            if(input%xs%bse%beyond) then 
+              call b_bsesurvey
             end if
          Case (450)
      ! BSE-kernel
