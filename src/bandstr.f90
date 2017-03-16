@@ -243,6 +243,7 @@ else
            Open (50, File='BAND.OUT', Action='WRITE', Form='FORMATTED')
 
            Call xml_NewElement (xf, "bandstructure")
+           Call xml_AddAttribute (xf, "character", "false")
            Call xml_NewElement (xf, "title")
            Call xml_AddCharacters (xf, trim(input%title))
            Call xml_endElement (xf, "title")
@@ -275,9 +276,13 @@ else
            Do is = 1, nspecies
               Call xml_NewElement (xf, "species")
               Call xml_AddAttribute (xf, "name", trim(spname(is)))
+              Write (buffer, '(i3)') is
+              Call xml_AddAttribute (xf, "speciesnr", trim(adjustl(buffer)))
               Call xml_AddAttribute (xf, "chemicalSymbol", trim(input%structure%speciesarray(is)%species%chemicalSymbol))
               Do ia = 1, natoms (is)
                  Call xml_NewElement (xf, "atom")
+                 Write (buffer, '(i3)') ia
+                 Call xml_AddAttribute (xf, "atomnr", trim(adjustl(buffer)))
                  Write (buffer, '(5G18.10)') atposc (:, ia, is)
                  Call xml_AddAttribute (xf, "coord", &
                       & trim(adjustl(buffer)))
