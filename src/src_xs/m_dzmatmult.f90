@@ -1,13 +1,13 @@
-module m_dzgemm
+module m_dzmatmult
 
   implicit none
 
   contains
 
     !BOP
-    ! !ROUTINE: dzgemm
+    ! !ROUTINE: dzmatmult
     ! !INTERFACE:
-    subroutine dzgemm(zma, zmb, zmc,&
+    subroutine dzmatmult(zma, zmb, zmc,&
        & m, n, k, ia, ja, ib, jb, ic, jc,&
        & alpha, beta, transa, transb)
     ! !USES:
@@ -134,7 +134,7 @@ module m_dzgemm
           case('T','t','C','c')
             ropa = zma%ncols
           case default
-            write(*,*) "dzgemm (ERROR): TRANSA invalid"
+            write(*,*) "dzmatmult (ERROR): TRANSA invalid"
         end select
       end if
       if(present(n)) then 
@@ -146,7 +146,7 @@ module m_dzgemm
           case('T','t','C','c')
             copb = zmb%nrows
           case default
-            write(*,*) "dzgemm (ERROR): TRANSB invalid"
+            write(*,*) "dzmatmult (ERROR): TRANSB invalid"
         end select
       end if
       if(present(k)) then 
@@ -158,7 +158,7 @@ module m_dzgemm
           case('T','t','C','c')
             copa = zma%nrows
           case default
-            write(*,*) "dzgemm (ERROR): TRANSB invalid"
+            write(*,*) "dzmatmult (ERROR): TRANSB invalid"
         end select
       end if
 
@@ -172,22 +172,22 @@ module m_dzgemm
       rmatc = zmc%nrows
       cmatc = zmc%ncols
       if(copa > ropb) then 
-        write(*,'("dzgemm@rank",i2,":(ERROR) copa > robp",2i4)') copa, ropb 
+        write(*,'("dzmatmult@rank",i2,":(ERROR) copa > robp",2i4)') copa, ropb 
         call terminate
       else if(copa /= ropb) then
-        write(*,'("dzgemm@rank",i2,":(Warning) copa /= robp",2i4)') copa, ropb 
+        write(*,'("dzmatmult@rank",i2,":(Warning) copa /= robp",2i4)') copa, ropb 
       end if
       if(ropa > rmatc) then 
-        write(*,'("dzgemm@rank",i2,":(ERROR) ropa > rmatc",2i4)') ropa, rmatc 
+        write(*,'("dzmatmult@rank",i2,":(ERROR) ropa > rmatc",2i4)') ropa, rmatc 
         call terminate
       else if(ropa /= rmatc) then 
-        write(*,'("dzgemm@rank",i2,":(Warning) ropa /= rmatc",2i4)') ropa, rmatc 
+        write(*,'("dzmatmult@rank",i2,":(Warning) ropa /= rmatc",2i4)') ropa, rmatc 
       end if
       if(copb > rmatc) then 
-        write(*,'("dzgemm@rank",i2,":(ERROR) copb > cmatc",2i4)') copb, cmatc 
+        write(*,'("dzmatmult@rank",i2,":(ERROR) copb > cmatc",2i4)') copb, cmatc 
         call terminate
       else if(copb > rmatc) then 
-        write(*,'("dzgemm@rank",i2,":(Warning) copb /= cmatc",2i4)') copb, cmatc 
+        write(*,'("dzmatmult@rank",i2,":(Warning) copb /= cmatc",2i4)') copb, cmatc 
       end if
 
 
@@ -204,7 +204,7 @@ module m_dzgemm
         & zmb%za, zmb%nrows, b, zmc%za, zmc%nrows)
 #endif
 
-    end subroutine dzgemm
+    end subroutine dzmatmult
     !EOC
     
-end module m_dzgemm
+end module m_dzmatmult

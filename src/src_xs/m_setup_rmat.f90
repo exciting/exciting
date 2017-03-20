@@ -15,7 +15,7 @@ module m_setup_rmat
   contains
 
     !BOP
-    ! !ROUTINE: setup_distributed_rmat
+    ! !ROUTINE: setup_rmat
     ! !INTERFACE:
     subroutine setup_rmat(rmat)
     ! !INPUT/OUTPUT PARAMETERS:
@@ -145,9 +145,9 @@ module m_setup_rmat
 
 
     !BOP
-    ! !ROUTINE: setup_distributed_rmat
+    ! !ROUTINE: setup_rmat_dist
     ! !INTERFACE:
-    subroutine setup_distributed_rmat(rmat, binfo)
+    subroutine setup_rmat_dist(rmat, binfo)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     !   type(blacsinfo) :: binfo ! Info type for BLACS grid
@@ -186,7 +186,7 @@ module m_setup_rmat
       ! Context
       context = rmat%context
       if(context /= binfo%context) then
-        write(*,*) "Error (setup_distributed_rmat): Context mismatch"
+        write(*,*) "Error (setup_rmat_dist): Context mismatch"
         call terminate
       end if
 
@@ -408,7 +408,7 @@ module m_setup_rmat
       ! ik loop
       end do
 
-    end subroutine setup_distributed_rmat
+    end subroutine setup_rmat_dist
     !EOC
 
     !BOP

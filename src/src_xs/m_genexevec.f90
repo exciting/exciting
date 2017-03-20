@@ -3,7 +3,7 @@ module m_genexevec
   use modmpi
   use modbse
   use modscl
-  use m_dzgemm
+  use m_dzmatmult
   use mod_constants
   use m_writecmplxparts
 
@@ -166,7 +166,7 @@ module m_genexevec
       ! Make (A-B)^{1/2} |E_\lambda|^-{1/2} Z_\lambda
       call new_dzmat(daux1, m, nreq, bi2d)
       !  Aux1 = (A-B)^{1/2} Z
-      call dzgemm(dcmat, dauxvec, daux1, n=nreq, jb=i1)
+      call dzmatmult(dcmat, dauxvec, daux1, n=nreq, jb=i1)
       !  Aux1_{m,\lambda} = Aux1_{m,\lambda} * |E_\lambda|^-{1/2}
       ! Loop over local column index
       do i=1, daux1%ncols_loc
@@ -178,7 +178,7 @@ module m_genexevec
       ! Make (A-B)^{-1/2} |E_\lambda|^{1/2} Z_\lambda
       call new_dzmat(daux2, m, nreq, bi2d)
       !  Aux2 = (A-B)^{-1/2} Z
-      call dzgemm(dcpmat, dauxvec, daux2, n=nreq, jb=i1)
+      call dzmatmult(dcpmat, dauxvec, daux2, n=nreq, jb=i1)
       !  Aux2_{m,\lambda} = Aux2_{m,\lambda} * |E_\lambda|^{1/2}
       do i=1, daux2%ncols_loc
         ig = daux2%c2g(i)

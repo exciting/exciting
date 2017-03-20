@@ -402,11 +402,14 @@ module m_dhesolver
             write(*,'("Error(dhesolver) cause: Invalid input")')
 
           else if(mod(ierror,2) /= 0) then
+
             write(*,'("Error(dhesolver) cause: Eigenvectors not converged")')
             write(*,'("dhesolver ifail")')
             write(*,'(I8)') ifail
 
           else if(mod(ierror/2,2) /= 0) then
+
+            maxcs = 0
             ! Inspect iclstr
             do i = 1, size(iclustr)-1
               tmp = iclustr(i+1) - iclustr(i)

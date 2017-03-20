@@ -1,28 +1,336 @@
 module m_setup_bse
-  use modmpi
-  use modscl
-  use modinput, only: input
-  use mod_constants, only: zzero, zone
-  use mod_eigenvalue_occupancy, only: evalsv
-  use modxs, only: evalsv0
-  use modbse
-  use m_getunit
-  use m_genfilname
-  use m_putgetbsemat
-  use m_writecmplxparts
       
   implicit none
 
   private
 
-  public :: setup_bse, setup_distributed_bse
+  public :: setup_bse_ti, setup_bse_full, setup_bse_block
+  public :: setup_bse_ti_dist, setup_bse_block_dist
 
   contains
 
+    !! Serial versions
+
     !BOP
-    ! !ROUTINE: setup_bse
+    ! !ROUTINE: setup_bse_full
     ! !INTERFACE:
-    subroutine setup_bse(ham, iqmt, fcoup, fti)
+    subroutine setup_bse_full(ham, iqmt)
+    ! !USES:
+      use modmpi
+      use modbse, only: hamsize
+      use modxs, only: unitout
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! In:
+    !   integer(4) :: iqmt  ! Index of momentum transfer Q
+    !                       ! Note, currently only zero momentum transfer allowed
+    ! In/Out:
+    !   complex(8) :: ham(:,:) ! Full BSE matrix with coupling blocks
+    ! 
+    ! !DESCRIPTION:
+    !   The routine sets up the full BSE matrix including
+    !   resonant-resonant and resonant-antiresonant blocks.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
+
+      ! I/O
+      complex(8), intent(inout) :: ham(:, :)
+      integer(4), intent(in) :: iqmt
+
+      ! Timings
+      real(8) :: ts0, ts1
+
+      call timesec(ts0)
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_full): Setting up full hamiltonian")')
+      end if
+
+      ! RR
+      call setup_bse_block(ham(1:hamsize,1:hamsize), iqmt, .false., .false.)
+
+      ! RA
+      call setup_bse_block(ham(1:hamsize,hamsize+1:hamsize*2), iqmt, .true., .false.)
+      ! ham(1:hamsize,hamsize+1:hamsize*2) = zzero
+
+      ! AR
+      ! Note: AR part is the negative complex conjugate of RA even if qmt /= 0
+      ham(hamsize+1:2*hamsize, 1:hamsize) = -conjg(ham(1:hamsize,hamsize+1:hamsize*2))
+      ! ham(hamsize+1:2*hamsize, 1:hamsize) = zzero
+
+      ! AA
+      ! Note: AA part is the negative complex conjugate of RR ONLY if qmt /= 0
+      ham(hamsize+1:2*hamsize, hamsize+1:2*hamsize) = -conjg(ham(1:hamsize,1:hamsize))
+
+      call timesec(ts1)
+      write(unitout, '(" Matrix build.")')
+      write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
+
+    end subroutine setup_bse_full
+    !EOC
+
+    !BOP
+    ! !ROUTINE: setup_bse_ti
+    ! !INTERFACE:
+    subroutine setup_bse_ti(smat, cmat, cpmat, iqmt)
+    ! !USES:
+      use modmpi
+      use modinput, only: input
+      use mod_constants, only: zzero, zone
+      use modbse, only: hamsize
+      use modxs, only: unitout
+      use m_writecmplxparts
+      use m_hesolver
+      use m_sqrtzmat
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! In:
+    !   integer(4) :: iqmt  ! Index of momentum transfer Q
+    !
+    ! Out:
+    !   complex(8) :: smat(:,:)  ! Aux. EVP matrix S=(A-B)^{1/2}(A+B)(A-B)^{1/2}
+    !   complex(8) :: cmat(:,:)  ! C = (A-B)^{1/2}
+    !   complex(8) :: cpmat(:,:) ! C'= (A-B)^{-1/2}
+    ! 
+    ! !DESCRIPTION:
+    !   The routine sets up the auxilliary EVP matrix.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
+
+      ! I/O
+      integer(4), intent(in) :: iqmt
+      complex(8), allocatable, intent(inout) :: smat(:,:)
+      complex(8), allocatable, intent(inout) :: cmat(:,:)
+      complex(8), allocatable, intent(inout) :: cpmat(:,:)
+
+      ! Local 
+      complex(8), allocatable :: rrmat(:, :)
+      complex(8), allocatable :: ramat(:, :)
+      complex(8), allocatable :: auxmat(:, :)
+
+      integer(4) :: info, lwork
+      integer(4), allocatable :: ipiv(:)
+      complex(8), allocatable :: work(:)
+
+      real(8) :: ts0, ts1, t1, t0
+      integer(4) :: i, j
+
+      real(8) :: evals(hamsize)
+      logical :: fwp
+
+      fwp = input%xs%bse%writeparts
+
+      evals = 0.0d0
+
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti): Setting up matrices for squared EVP")')
+        call timesec(ts0)
+      end if
+
+      ! Get RR part of BSE Hamiltonian
+
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti): Setting up RR Block of orignial BSE")')
+        call timesec(t0)
+      end if
+      allocate(rrmat(hamsize,hamsize))
+      call setup_bse_block(rrmat, iqmt, .false., .false.)
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+
+      ! Get RA^{ti} part of BSE Hamiltonian
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti):&
+          & Setting up RA^{ti} Block of orignial BSE")')
+        call timesec(t0)
+      end if
+      allocate(ramat(hamsize,hamsize))
+      call setup_bse_block(ramat, iqmt, .true., .true.)
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+
+      ! Make combination matrices
+
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti): Setting up RR+RA and RR-RA matrices")')
+        call timesec(t0)
+      end if
+      ! RR - RA^{it}
+      allocate(cpmat(hamsize,hamsize))
+      do j = 1, hamsize
+        do i = 1, hamsize
+          cpmat(i,j) = rrmat(i,j) - ramat(i,j)
+        end do
+      end do
+      ! RR + RA^{it}
+      deallocate(rrmat)
+      allocate(cmat(hamsize, hamsize))
+      do j = 1, hamsize
+        do i = 1, hamsize
+          cmat(i,j) = cpmat(i,j) + 2.0d0*ramat(i,j)
+        end do
+      end do
+      !deallocate(ramat)
+
+      ! Check positive definitness of (A+B)
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti): Checking positve definitness of RR+RA")')
+        call timesec(t0)
+      end if
+      ramat = cmat
+      if(fwp) then
+        call writecmplxparts("nd_apb_mat", remat=dble(ramat), immat=aimag(ramat))
+      end if
+      call hesolver(ramat, evals)
+
+      !write(*,*) "writing apm evals"
+      if(fwp) then
+        call writecmplxparts("nd_apb_evals", revec=evals, veclen=size(evals))
+      end if
+
+      if(any(evals < 0.0d0)) then 
+        write(*,*) "Error(setup_bse_ti): A+B matrix is not positive definit"
+        write(*,'(E10.3)') evals
+        call terminate
+      end if
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  RR+RA is positive definite")')
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+      deallocate(ramat)
+
+      ! Take the square root of (A-B) (currently in cpmat)
+      ! Note: It is assumed to be positive definit.
+      if(fwp) then 
+        call writecmplxparts("nd_amb_mat", remat=dble(cpmat), immat=aimag(cpmat))
+      end if
+
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti): Taking square root of RR-RA matrix")')
+        call timesec(t0)
+      end if
+      call sqrtzmat_hepd(cpmat)
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  RR-RA is positive definite")')
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+
+      if(fwp) then
+        call writecmplxparts("nd_sqrtamb_mat", remat=dble(cpmat), immat=aimag(cpmat))
+      end if
+
+      ! Construct S Matrix
+      ! S = (A-B)^{1/2} (A+B) (A-B)^{1/2}
+
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti): Constructing S matrix")')
+        call timesec(t0)
+      end if
+
+      allocate(auxmat(hamsize,hamsize))
+      call zgemm('N','N', hamsize, hamsize, hamsize, zone, cpmat, hamsize,&
+        & cmat, hamsize, zzero, auxmat, hamsize)
+
+      allocate(smat(hamsize, hamsize))
+      call zgemm('N','N', hamsize, hamsize, hamsize, zone, auxmat, hamsize,&
+        & cpmat, hamsize, zzero, smat, hamsize)
+
+      !write(*,*) "printing s mat"
+      if(fwp) then 
+        call writecmplxparts('nd_s_mat', remat=dble(smat), immat=aimag(smat))
+      end if
+
+      deallocate(auxmat)
+
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+
+      ! Cmat = (A-B)^1/2
+      do j = 1, hamsize
+        do i = 1, hamsize
+          cmat(i,j) = cpmat(i,j)
+        end do
+      end do
+
+      ! Cpmat = (A-B)^-1/2
+
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti): Inverting (RR-RA)^1/2 matrix")')
+        call timesec(t0)
+      end if
+      allocate(ipiv(hamsize))
+      call zgetrf(hamsize, hamsize, cpmat, hamsize, ipiv, info)
+      if(info /= 0) then
+        write(*,'("Info(setup_bse_ti): ZGETRF has returned non-zero info.")')
+        if(info < 0) then
+          write(*,'("  ZGETRF: Incorrect input.")')
+        else
+          write(*,'("  ZGETRF: U is exactly singular.")')
+        end if
+        call terminate
+      end if
+      lwork = -1
+      allocate(work(3))
+      call zgetri(hamsize, cpmat, hamsize, ipiv, work, lwork, info)
+      lwork = int(work(1))
+      deallocate(work)
+      allocate(work(lwork))
+      call zgetri(hamsize, cpmat, hamsize, ipiv, work, lwork, info)
+      if(info /= 0) then
+        write(*,'("dzinvert (ERROR): ZGETRI has returned non-zero info.")')
+        if(info < 0) then
+          write(*,'("  ZGETRF: Incorrect input.")')
+        else
+          write(*,'("  ZGETRF: Matrix singular.")')
+        end if
+        call terminate
+      end if
+      deallocate(work)
+      deallocate(ipiv)
+
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+
+      if(mpiglobal%rank == 0) then 
+        call timesec(ts1)
+        write(unitout, '("Info(setup_bse_ti): Total time needed",f12.3,"s")') ts1-ts0
+      end if
+
+    end subroutine setup_bse_ti
+    !EOC
+
+    !BOP
+    ! !ROUTINE: setup_bse_block
+    ! !INTERFACE:
+    subroutine setup_bse_block(ham, iqmt, fcoup, fti)
+    ! !USES:
+      use modmpi
+      use modinput, only: input
+      use mod_constants, only: zzero, zone
+      use modxs, only: unitout
+      use modbse, only: de, nou_bse_max, hamsize, kmap_bse_rg,&
+                      & kousize, nkkp_bse, nk_bse, ofac,&
+                      & scclifbasename, exclifbasename,&
+                      & scclicfbasename, exclicfbasename,&
+                      & scclictifbasename, infofbasename,&
+                      & ensortidx
+      use m_getunit
+      use m_genfilname
+      use m_putgetbsemat
+      use m_writecmplxparts
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     !   integer(4) :: iqmt  ! Index of momentum transfer Q
@@ -73,11 +381,11 @@ module m_setup_bse
       call timesec(ts0)
       if(mpiglobal%rank == 0) then 
         if(.not. fcoup) then 
-          write(unitout, '("Info(setup_bse): Setting up RR part of hamiltonian")')
+          write(unitout, '("Info(setup_bse_block): Setting up RR part of hamiltonian")')
         else
-          write(unitout, '("Info(setup_bse): Setting up RA part of hamiltonian")')
+          write(unitout, '("Info(setup_bse_block): Setting up RA part of hamiltonian")')
           if(fti) then 
-            write(unitout, '("Info(setup_bse):&
+            write(unitout, '("Info(setup_bse_block):&
               & Using time inverted anti-resonant basis")')
           end if
         end if
@@ -90,25 +398,25 @@ module m_setup_bse
           usescc = .false.
           useexc = .false.
           if(mpiglobal%rank==0) then
-            write(unitout, '("Info(setup_bse): Using IP")')
+            write(unitout, '("Info(setup_bse_block): Using IP")')
           end if
         case('singlet')
           usescc = .true.
           useexc = .true.
           if(mpiglobal%rank==0) then
-            write(unitout, '("Info(setup_bse): Using singlet")')
+            write(unitout, '("Info(setup_bse_block): Using singlet")')
           end if
         case('triplet')
           usescc = .true.
           useexc = .false.
           if(mpiglobal%rank==0) then
-            write(unitout, '("Info(setup_bse): Using triplet")')
+            write(unitout, '("Info(setup_bse_block): Using triplet")')
           end if
         case('RPA')
           usescc = .false.
           useexc = .true.
           if(mpiglobal%rank==0) then
-            write(unitout, '("Info(setup_bse): Using RPA")')
+            write(unitout, '("Info(setup_bse_block): Using RPA")')
           end if
       end select
 
@@ -159,7 +467,7 @@ module m_setup_bse
         & fcmpt=efcmpt, fid=efid)
       if(usescc .and. useexc) then 
         if(efcmpt /= sfcmpt .or. efid /= sfid) then 
-          write(*, '("Error(setup_bse): Info files differ")')
+          write(*, '("Error(setup_bse_block): Info files differ")')
           write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
           call terminate
         end if
@@ -316,12 +624,12 @@ module m_setup_bse
         call timesec(ts0)
         if(mpiglobal%rank == 0) then 
           if(.not. fcoup) then 
-            write(unitout, '("Info(setup_bse): Writing RR: H, W, V and E to file")')
+            write(unitout, '("Info(setup_bse_block): Writing RR: H, W, V and E to file")')
           else
             if(fti) then 
-              write(unitout, '("Info(setup_bse): Writing RA^ti: H, W, V to file")')
+              write(unitout, '("Info(setup_bse_block): Writing RA^ti: H, W, V to file")')
             else
-              write(unitout, '("Info(setup_bse): Writing RA: H, W, V to file")')
+              write(unitout, '("Info(setup_bse_block): Writing RA: H, W, V to file")')
             end if
           end if
         end if
@@ -491,13 +799,256 @@ module m_setup_bse
           end do
         end subroutine addkstransdiag
 
-    end subroutine setup_bse
+    end subroutine setup_bse_block
+    !EOC
+
+    !! Distributed versions
+
+    !BOP
+    ! !ROUTINE: setup_bse_ti_dist
+    ! !INTERFACE:
+    subroutine setup_bse_ti_dist(smat, cmat, cpmat, iqmt, binfo)
+    ! !USES:
+      use modmpi
+      use modscl
+      use modinput, only: input
+      use mod_constants, only: zzero, zone
+      use modxs, only: unitout
+      use modbse, only: hamsize
+      use m_dhesolver
+      use m_sqrtzmat
+      use m_invertzmat
+      use m_writecmplxparts
+      use m_dzmatmult
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! In:
+    !   integer(4) :: iqmt  ! Index of momentum transfer Q
+    !
+    ! In/Out:
+    !   complex(8) :: smat(:,:)  ! Aux. EVP matrix S=(A-B)^{1/2}(A+B)(A-B)^{1/2}
+    !   complex(8) :: cmat(:,:)  ! C = (A-B)^{1/2}
+    !   complex(8) :: cpmat(:,:) ! C'= (A-B)^{-1/2}
+    ! 
+    ! !DESCRIPTION:
+    !   The routine sets up the auxilliary EVP matrix using block cyclic
+    !   distributed matrices for ScaLapack.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
+
+      ! I/O
+      integer(4), intent(in) :: iqmt
+      type(dzmat), intent(inout) :: smat
+      type(dzmat), intent(inout) :: cmat
+      type(dzmat), intent(inout) :: cpmat
+      type(blacsinfo), intent(in) :: binfo
+
+      ! Local 
+      type(dzmat) :: rrmat
+      type(dzmat) :: ramat
+      type(dzmat) :: auxmat
+
+      real(8) :: ts0, ts1, t1, t0
+      integer(4) :: i, j
+
+      real(8) :: evals(hamsize)
+
+      ! Test writeout
+      complex(8), allocatable :: localmat(:,:)
+      logical fwp 
+
+      fwp = input%xs%bse%writeparts
+
+      evals = 0.0d0
+
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti_dist):&
+          & Setting up distributed matrices for squared EVP")')
+        call timesec(ts0)
+      end if
+
+      ! Get RR part of BSE Hamiltonian
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti_dist): Setting up RR Block of orignial BSE")')
+        call timesec(t0)
+      end if
+      call new_dzmat(rrmat, hamsize, hamsize, binfo)
+      call setup_bse_block_dist(rrmat, iqmt, .false., .false., binfo)
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+
+      ! Get RA^{ti} part of BSE Hamiltonian
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti_dist):&
+          & Setting up RA^{ti} Block of orignial BSE")')
+        call timesec(t0)
+      end if
+      call new_dzmat(ramat, hamsize, hamsize, binfo)
+      call setup_bse_block_dist(ramat, iqmt, .true., .true., binfo)
+
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+
+      ! Make combination matrices
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti_dist): Setting up RR+RA and RR-RA matrices")')
+      !  call timesec(t0)
+      end if
+
+      ! RR - RA^{it}
+      call new_dzmat(cpmat, hamsize, hamsize, binfo)
+      do j = 1, cpmat%ncols_loc
+        do i = 1, cpmat%nrows_loc
+          cpmat%za(i,j) = rrmat%za(i,j) - ramat%za(i,j)
+        end do
+      end do
+      ! RR + RA^{it}
+      call del_dzmat(rrmat)
+      call new_dzmat(cmat, hamsize, hamsize, binfo)
+      do j = 1, cmat%ncols_loc
+        do i = 1, cmat%nrows_loc
+          cmat%za(i,j) = cpmat%za(i,j) + 2.0d0*ramat%za(i,j)
+        end do
+      end do
+      !call del_dzmat(ramat)
+
+      ! Check positive definitness of (A+B)
+
+      if(fwp) then 
+        call dzmat_send2global_root(localmat, cmat, binfo)
+        if(mpiglobal%rank == 0) then
+          call writecmplxparts('apb_mat', remat=dble(localmat), immat=aimag(localmat))
+        end if
+      end if
+
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti_dist): Checking positve definitness of RR+RA")')
+        call timesec(t0)
+      end if
+      ramat%za = cmat%za
+      call dhesolver(ramat, evals, binfo)
+      if(fwp) then
+        if(mpiglobal%rank == 0) then 
+          write(*,*) "Writing evals for A+B"
+          call writecmplxparts('apb_evals', revec=evals, veclen=size(evals))
+        end if
+      end if
+      if(any(evals < 0.0d0)) then 
+        write(*,*) "Error(setup_bse_ti_dist): RR+RA matrix is not positive definit"
+        write(*,'(E10.3)') evals
+        call terminate
+      end if
+      call del_dzmat(ramat)
+
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  RR+RA is positive definite")')
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+
+      ! Take the square root of (A-B) (currently in cpmat)
+      if(fwp) then 
+        call dzmat_send2global_root(localmat, cpmat, binfo)
+        if(mpiglobal%rank == 0) then
+          call writecmplxparts('amb_mat', remat=dble(localmat), immat=aimag(localmat))
+        end if
+      end if
+
+      ! Note: It is assumed to be positive definit.
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti_dist): Taking square root of RR-RA matrix")')
+        call timesec(t0)
+      end if
+      call sqrtdzmat_hepd(cpmat, binfo, eecs=input%xs%bse%eecs)
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  RR-RA is positive definite")')
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+
+      if(fwp) then 
+        call dzmat_send2global_root(localmat, cpmat, binfo)
+        if(mpiglobal%rank == 0) then
+          call writecmplxparts('sqrtamb_mat', remat=dble(localmat), immat=aimag(localmat))
+        end if
+      end if
+
+      ! Construct S Matrix
+      ! S = (A-B)^{1/2} (A+B) (A-B)^{1/2}
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti_dist): Constructing S matrix")')
+        call timesec(t0)
+      end if
+      call new_dzmat(auxmat, hamsize, hamsize, binfo)
+
+      call dzmatmult(cpmat, cmat, auxmat)
+
+      call new_dzmat(smat, hamsize, hamsize, binfo)
+      call dzmatmult(auxmat, cpmat, smat)
+      call del_dzmat(auxmat)
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+
+      if(fwp) then 
+        call dzmat_send2global_root(localmat, smat, binfo)
+        if(mpiglobal%rank == 0) then
+          call writecmplxparts('s_mat', remat=dble(localmat), immat=aimag(localmat))
+        end if
+      end if
+
+      ! Cmat = (A-B)^1/2
+      do j = 1, cmat%ncols_loc
+        do i = 1, cmat%nrows_loc
+          cmat%za(i,j) = cpmat%za(i,j)
+        end do
+      end do
+
+      ! Cpmat = (A-B)^-1/2
+      if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(setup_bse_ti_dist): Inverting (RR-RA)^1/2 matrix")')
+        call timesec(t0)
+      end if
+      call dzinvert(cpmat)
+      if(mpiglobal%rank == 0) then 
+        call timesec(t1)
+        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+      end if
+
+      if(mpiglobal%rank == 0) then 
+        call timesec(ts1)
+        write(unitout, '("Info(setup_bse_ti_dist): Total time needed",f12.3,"s")') ts1-ts0
+      end if
+
+    end subroutine setup_bse_ti_dist
     !EOC
 
     !BOP
-    ! !ROUTINE: setup_distributed_bse
+    ! !ROUTINE: setup_bse_block_dist
     ! !INTERFACE:
-    subroutine setup_distributed_bse(ham, iqmt, fcoup, fti, binfo)
+    subroutine setup_bse_block_dist(ham, iqmt, fcoup, fti, binfo)
+    ! !USES:
+      use modmpi
+      use modscl
+      use modinput, only: input
+      use mod_constants, only: zzero, zone
+      use modxs, only: unitout
+      use modbse, only: nou_bse_max, kmap_bse_rg,&
+                      & kousize, nkkp_bse, nk_bse, ofac,&
+                      & scclifbasename, exclifbasename,&
+                      & scclicfbasename, exclicfbasename,&
+                      & scclictifbasename, infofbasename
+      use m_getunit
+      use m_genfilname
+      use m_putgetbsemat
+      use m_writecmplxparts
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     !   integer(4) :: iqmt ! Index of momentum transfer Q
@@ -589,25 +1140,25 @@ module m_setup_bse
             usescc = .false.
             useexc = .false.
             if(mpiglobal%rank==0) then
-              write(unitout, '("Info(setup_distributed_bse): Using IP")')
+              write(unitout, '("Info(setup_bse_block_dist): Using IP")')
             end if
           case('singlet')
             usescc = .true.
             useexc = .true.
             if(mpiglobal%rank==0) then
-              write(unitout, '("Info(setup_distributed_bse): Using singlet")')
+              write(unitout, '("Info(setup_bse_block_dist): Using singlet")')
             end if
           case('triplet')
             usescc = .true.
             useexc = .false.
             if(mpiglobal%rank==0) then
-              write(unitout, '("Info(setup_distributed_bse): Using triplet")')
+              write(unitout, '("Info(setup_bse_block_dist): Using triplet")')
             end if
           case('RPA')
             usescc = .false.
             useexc = .true.
             if(mpiglobal%rank==0) then
-              write(unitout, '("Info(setup_distributed_bse): Using RPA")')
+              write(unitout, '("Info(setup_bse_block_dist): Using RPA")')
             end if
         end select
 
@@ -616,13 +1167,13 @@ module m_setup_bse
         if(binfo%isroot) then 
 
           if(.not. fcoup) then 
-            write(unitout, '("Info(setup_distributed_bse):&
+            write(unitout, '("Info(setup_bse_block_dist):&
               & Setting up RR part of hamiltonian")')
           else
-            write(unitout, '("Info(setup_distributed_bse):&
+            write(unitout, '("Info(setup_bse_block_dist):&
               & Setting up RA part of hamiltonian")')
             if(fti) then 
-              write(unitout, '("Info(setup_distributed_bse):&
+              write(unitout, '("Info(setup_bse_block_dist):&
                 & Using time inverted anti-resonant basis")')
             end if
           end if
@@ -661,7 +1212,7 @@ module m_setup_bse
 
           if(usescc .and. useexc) then 
             if(efcmpt /= sfcmpt .or. efid /= sfid) then 
-              write(*, '("Error(setup_distributed_bse): Info files differ")')
+              write(*, '("Error(setup_bse_block_dist): Info files differ")')
               write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
               call terminate
             end if
@@ -686,7 +1237,7 @@ module m_setup_bse
         ! Context
         context = ham%context
         if(context /= binfo%context) then 
-          write(*, '("Error(setup_distributed_bse): Context mismatch:", 2i4)')&
+          write(*, '("Error(setup_bse_block_dist): Context mismatch:", 2i4)')&
             & context, binfo%context
           call terminate
         end if
@@ -1124,23 +1675,25 @@ module m_setup_bse
         ! ikkp loop
         end do
 #else
-        write(*,*) "Error(setup_distributed_bse): Scalapack needed."
+        write(*,*) "Error(setup_bse_block_dist): Scalapack needed."
         call terminate
 #endif
 
       else
 
-        call setup_bse(ham%za, iqmt, fcoup, fti)
+        call setup_bse_block(ham%za, iqmt, fcoup, fti)
 
       end if
 
-    end subroutine setup_distributed_bse
+    end subroutine setup_bse_block_dist
     !EOC
 
     !BOP
     ! !ROUTINE: buildham
     ! !INTERFACE:
     subroutine buildham(fc, hamblck, ig, jg, ib, jb, occ1, occ2, scc, exc)
+    ! !USES:
+      use modbse, only: de
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! logical :: fc ! Build RA instead of RR

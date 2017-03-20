@@ -222,10 +222,6 @@ subroutine b_screenlauncher
     else
       qgridoffgamma(1:3) = q_qmtm%qset%vkloff
     end if
-    if(rank == 0) then 
-      write(*,*) "b_screenlauncher: qgridoffgamma"
-      write(*,*) qgridoffgamma
-    end if
     call xsgrids_finalize()
 
     if(rank == 0) then

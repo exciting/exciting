@@ -79,6 +79,8 @@ module m_setup_pwmat
 
       if(all(abs(qvkloff(:,1)-qvkloff(:,iqmt)) < epslat)) then
         fsamek = .true.
+      else
+        fsamek = .false.
       end if
 
       if(fsamek) then 
@@ -182,9 +184,9 @@ module m_setup_pwmat
     !EOC
 
     !BOP
-    ! !ROUTINE: setup_distributed_pwmat
+    ! !ROUTINE: setup_pwmat_dist
     ! !INTERFACE:
-    subroutine setup_distributed_pwmat(dpwmat, iqmt, igqmt, binfo)
+    subroutine setup_pwmat_dist(dpwmat, iqmt, igqmt, binfo)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     !   integer(4) :: iqmt            ! Index of momentum transfer
@@ -215,7 +217,7 @@ module m_setup_pwmat
 
       call dzmat_copy_global2local(pwmat, dpwmat, binfo)
       
-    end subroutine setup_distributed_pwmat
+    end subroutine setup_pwmat_dist
     !EOC
 
 end module m_setup_pwmat

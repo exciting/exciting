@@ -15281,9 +15281,11 @@ Marked	src_vdwdf/Cuba-3.2/src/divonne/Sample.c	10;"	d	file:
 Max	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^static inline real Max(creal a, creal b) {$/;"	f
 MaxEnergyExcitons	src_inputparser/inputmodules.f90	/^ real(8)::MaxEnergyExcitons$/;"	k	type:storeexcitons_type
 MaxEnergyExcitons	src_inputparser/inputmodules.f90	/^ real(8)::MaxEnergyExcitons$/;"	k	type:writeexcitons_type
+MaxEnergyExcitons	src_inputparser/inputmodules.f90	/^ real(8)::MaxEnergyExcitons$/;"	k	type:writekpathweights_type
 MaxErr	src_vdwdf/Cuba-3.2/src/common/stddecl.h	106;"	d
 MaxNumberExcitons	src_inputparser/inputmodules.f90	/^ integer::MaxNumberExcitons$/;"	k	type:storeexcitons_type
 MaxNumberExcitons	src_inputparser/inputmodules.f90	/^ integer::MaxNumberExcitons$/;"	k	type:writeexcitons_type
+MaxNumberExcitons	src_inputparser/inputmodules.f90	/^ integer::MaxNumberExcitons$/;"	k	type:writekpathweights_type
 MemAlloc	src_vdwdf/Cuba-3.2/src/common/stddecl.h	122;"	d
 MersenneGet	src_vdwdf/Cuba-3.2/src/common/Random.c	/^static void MersenneGet(This *t, real *x)$/;"	f	file:
 MersenneIni	src_vdwdf/Cuba-3.2/src/common/Random.c	/^static inline void MersenneIni(This *t)$/;"	f	file:
@@ -15294,8 +15296,10 @@ Min	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^static inline real Min(creal a, cr
 Min1	src_vdwdf/Cuba-3.2/src/common/stddecl.h	417;"	d
 MinEnergyExcitons	src_inputparser/inputmodules.f90	/^ real(8)::MinEnergyExcitons$/;"	k	type:storeexcitons_type
 MinEnergyExcitons	src_inputparser/inputmodules.f90	/^ real(8)::MinEnergyExcitons$/;"	k	type:writeexcitons_type
+MinEnergyExcitons	src_inputparser/inputmodules.f90	/^ real(8)::MinEnergyExcitons$/;"	k	type:writekpathweights_type
 MinNumberExcitons	src_inputparser/inputmodules.f90	/^ integer::MinNumberExcitons$/;"	k	type:storeexcitons_type
 MinNumberExcitons	src_inputparser/inputmodules.f90	/^ integer::MinNumberExcitons$/;"	k	type:writeexcitons_type
+MinNumberExcitons	src_inputparser/inputmodules.f90	/^ integer::MinNumberExcitons$/;"	k	type:writekpathweights_type
 Move	src_vdwdf/Cuba-3.2/src/common/stddecl.h	92;"	d
 N	FoX/utils/fox_m_utils_mtprng.F90	/^    integer(INT/;"	v	module:fox_m_utils_mtprng
 N	libXC/src/lda_c_2d_prm.c	/^  FLOAT N;$/;"	m	struct:__anon28	file:
@@ -18108,6 +18112,8 @@ abs_top_srcdir	libXC/Makefile	/^abs_top_srcdir = \/users\/stud\/aurich\/local\/e
 abs_top_srcdir	libXC/build/Makefile	/^abs_top_srcdir = \/users\/stud\/aurich\/local\/excitings\/beyondtd-exciting\/src\/libXC$/;"	m
 abs_top_srcdir	libXC/src/Makefile	/^abs_top_srcdir = \/users\/stud\/aurich\/local\/excitings\/beyondtd-exciting\/src\/libXC$/;"	m
 abs_top_srcdir	libXC/testsuite/Makefile	/^abs_top_srcdir = \/users\/stud\/aurich\/local\/excitings\/beyondtd-exciting\/src\/libXC$/;"	m
+abscutares	src_inputparser/inputmodules.f90	/^ real(8)::abscutares(/;"	k	type:writeexcitons_type
+abscutres	src_inputparser/inputmodules.f90	/^ real(8)::abscutres(/;"	k	type:writeexcitons_type
 ac	spacegroup/modmain.f90	/^real(8) ab,ac,/;"	v	module:modmain
 ac	spacegroup/modspacegroup.f90	/^real(8)::ab, ac,/;"	v	module:modspacegroup
 ac	spacegroup/sginputmodule.f90	/^ real(8)::ac$/;"	k	type:lattice_type
@@ -18181,7 +18187,7 @@ addcoords_xyz3_dp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyz3_dp(
 addcoords_xyz3_sp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyz3_sp(/;"	s	module:m_wcml_molecule
 addcoords_xyzfrac_dp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyzfrac_dp(/;"	s	module:m_wcml_molecule
 addcoords_xyzfrac_sp	FoX/wcml/m_wcml_molecule.F90	/^  subroutine addcoords_xyzfrac_sp(/;"	s	module:m_wcml_molecule
-addkstransdiag	src_xs/m_setup_bse.f90	/^        subroutine addkstransdiag(/;"	s	subroutine:setup_bse
+addkstransdiag	src_xs/m_setup_bse.f90	/^        subroutine addkstransdiag(/;"	s	subroutine:setup_bse_block
 addrhocr	addrhocr.f90	/^Subroutine addrhocr$/;"	s
 addtohistory	src_inputparser/inputmodules.f90	/^ logical::addtohistory$/;"	k	type:relax_type
 adl	ARPACK/EXAMPLES/SYM/dsdrv2.f	/^     &                 ad(maxn), adl(/;"	v	program:dsdrv2
@@ -18615,6 +18621,7 @@ b_TH2	libXC/src/gga_xc_th.c	/^static int   b_TH2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0,
 b_TH3	libXC/src/gga_xc_th.c	/^static int   b_TH3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0};$/;"	v	file:
 b_bse	src_xs/b_bse.f90	/^subroutine b_bse(/;"	s
 b_bselauncher	src_xs/b_bselauncher.f90	/^subroutine b_bselauncher$/;"	s
+b_bsesurvey	src_xs/b_bsesurvey.f90	/^subroutine b_bsesurvey$/;"	s
 b_ematgntsum	src_xs/m_b_ematqk.f90	/^    subroutine b_ematgntsum(/;"	s	module:m_b_ematqk
 b_ematqk	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqk(/;"	s	module:m_b_ematqk
 b_ematqkgir	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqkgir(/;"	s	module:m_b_ematqk
@@ -18636,7 +18643,8 @@ b_putbsereset	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbsereset$/;"	s	mod
 b_scrcoulint	src_xs/b_scrcoulint.f90	/^subroutine b_scrcoulint(/;"	s
 b_scrcoulintlauncher	src_xs/b_scrcoulintlauncher.f90	/^subroutine b_scrcoulintlauncher$/;"	s
 b_screenlauncher	src_xs/b_screenlauncher.f90	/^subroutine b_screenlauncher$/;"	s
-b_writebevec	src_xs/m_writebevec.f90	/^    subroutine b_writebevec$/;"	s	module:m_writebevec
+b_writeexcevec	src_xs/b_writeexcevec.f90	/^subroutine b_writeexcevec$/;"	s
+b_writekpathweights	src_xs/b_writekpathweights.f90	/^subroutine b_writekpathweights$/;"	s
 b_xsgeneigvec	src_xs/b_xsgeneigvec.f90	/^subroutine b_xsgeneigvec(/;"	s
 b_xsgeneigveclauncher	src_xs/b_xsgeneigveclauncher.f90	/^subroutine b_xsgeneigveclauncher$/;"	s
 backup0	src_xs/backup0.F90	/^Subroutine backup0$/;"	s
@@ -18672,6 +18680,12 @@ bc	spacegroup/modmain.f90	/^real(8) ab,ac,bc$/;"	v	module:modmain
 bc	spacegroup/modspacegroup.f90	/^real(8)::ab, ac, bc$/;"	v	module:modspacegroup
 bc	spacegroup/sginputmodule.f90	/^ real(8)::bc$/;"	k	type:lattice_type
 bcbs	src_xs/modxs.F90	/^      type bcbs$/;"	t	module:modxs
+bcoef	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:),allocatable :: bcoef /;"	v
+bcoef	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:,:),allocatable :: bcoef /;"	v
+bcoef	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:,:,:),allocatable :: bcoef /;"	v
+bcoef	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:,:,:,:),allocatable :: bcoef /;"	v
+bcoef	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:,:,:,:,:),allocatable :: bcoef /;"	v
+bcoef	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:,:,:,:,:,:),allocatable :: bcoef /;"	v
 besk0	src_gw/gencoulcut.f90	/^Real (8) Function besk0 /;"	f
 besk1	src_gw/gencoulcut.f90	/^Real (8) Function besk1 /;"	f
 bessel_I0	libXC/src/bessel.c	/^double bessel_I0(const double x)$/;"	f
@@ -18832,6 +18846,7 @@ br_newt_raph	libXC/src/mgga_x_br89.c	/^br_newt_raph(FLOAT a, FLOAT tol,  FLOAT *
 bradketa	src_gw/mod_product_basis.f90	/^    real(8), allocatable :: bradketa(/;"	v	module:mod_product_basis
 bradketc	src_gw/mod_product_basis.f90	/^    real(8), allocatable :: bradketc(/;"	v	module:mod_product_basis
 bradketlo	src_gw/mod_product_basis.f90	/^    real(8), allocatable :: bradketlo(/;"	v	module:mod_product_basis
+brange_	src_xs/m_read_bandstructure.f90	/^  integer(4), allocatable :: brange_(/;"	v	module:m_read_bandstructure
 broad	src_inputparser/inputmodules.f90	/^ real(8)::broad$/;"	k	type:raman_type
 broad	src_inputparser/inputmodules.f90	/^ real(8)::broad$/;"	k	type:xs_type
 brokenNS	FoX/dom/m_dom_dom.F90	/^    logical :: brokenNS /;"	k	type:documentExtras
@@ -18848,6 +18863,31 @@ bsegenspec	src_xs/bsegenspec.F90	/^Subroutine bsegenspec /;"	s
 bsesoldiag	src_xs/bsesoldiag.F90	/^subroutine bsesoldiag(/;"	s
 bsetype	src_inputparser/inputmodules.f90	/^ character(512)::bsetype$/;"	k	type:BSE_type
 bsetypenumber	src_inputparser/inputmodules.f90	/^ integer::bsetypenumber$/;"	k	type:BSE_type
+bspline_1d_constructor_auto_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_1d_constructor_auto_knots(/;"	f
+bspline_1d_constructor_empty	src_xs/bspline_oo_module.f90	/^    pure elemental function bspline_1d_constructor_empty(/;"	f
+bspline_1d_constructor_specify_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_1d_constructor_specify_knots(/;"	f
+bspline_2d_constructor_auto_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_2d_constructor_auto_knots(/;"	f
+bspline_2d_constructor_empty	src_xs/bspline_oo_module.f90	/^    elemental function bspline_2d_constructor_empty(/;"	f
+bspline_2d_constructor_specify_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_2d_constructor_specify_knots(/;"	f
+bspline_3d_constructor_auto_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_3d_constructor_auto_knots(/;"	f
+bspline_3d_constructor_empty	src_xs/bspline_oo_module.f90	/^    elemental function bspline_3d_constructor_empty(/;"	f
+bspline_3d_constructor_specify_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_3d_constructor_specify_knots(/;"	f
+bspline_4d_constructor_auto_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_4d_constructor_auto_knots(/;"	f
+bspline_4d_constructor_empty	src_xs/bspline_oo_module.f90	/^    elemental function bspline_4d_constructor_empty(/;"	f
+bspline_4d_constructor_specify_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_4d_constructor_specify_knots(/;"	f
+bspline_5d_constructor_auto_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_5d_constructor_auto_knots(/;"	f
+bspline_5d_constructor_empty	src_xs/bspline_oo_module.f90	/^    elemental function bspline_5d_constructor_empty(/;"	f
+bspline_5d_constructor_specify_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_5d_constructor_specify_knots(/;"	f
+bspline_6d_constructor_auto_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_6d_constructor_auto_knots(/;"	f
+bspline_6d_constructor_empty	src_xs/bspline_oo_module.f90	/^    elemental function bspline_6d_constructor_empty(/;"	f
+bspline_6d_constructor_specify_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_6d_constructor_specify_knots(/;"	f
+bspline_module	src_xs/bspline_module.f90	/^    module bspline_module$/;"	m
+bspline_oo_module	src_xs/bspline_oo_module.f90	/^    module bspline_oo_module$/;"	m
+bspline_order_cubic	src_xs/bspline_sub_module.f90	/^    integer,parameter,public :: bspline_order_cubic /;"	v	module:bspline_sub_module
+bspline_order_quadratic	src_xs/bspline_sub_module.f90	/^    integer,parameter,public :: bspline_order_quadratic /;"	v	module:bspline_sub_module
+bspline_order_quartic	src_xs/bspline_sub_module.f90	/^    integer,parameter,public :: bspline_order_quartic /;"	v	module:bspline_sub_module
+bspline_order_quintic	src_xs/bspline_sub_module.f90	/^    integer,parameter,public :: bspline_order_quintic /;"	v	module:bspline_sub_module
+bspline_sub_module	src_xs/bspline_sub_module.f90	/^    module bspline_sub_module$/;"	m
 buffer	FoX/wxml/m_wxml_core.F90	/^    type(buffer_/;"	k	type:xmlf_t
 buffer	libXC/src/libxc_master.F90	/^    integer, pointer :: buffer$/;"	k	type:XC_F90
 buffer	src_xml/scl_xml_out_module.F90	/^      Character (512) :: buffer$/;"	v	module:scl_xml_out_Module
@@ -19079,6 +19119,7 @@ charges	src_xml/scl_xml_out_module.F90	/^      Type (Node), Pointer :: sclDoc, r
 cheb_eval	libXC/src/util.h	/^cheb_eval(const double x, const double *cs, const int N)$/;"	f
 cheb_series	libXC/src/special_functions.c	/^typedef struct cheb_series_struct cheb_series;$/;"	t	typeref:struct:cheb_series_struct	file:
 cheb_series_struct	libXC/src/special_functions.c	/^struct cheb_series_struct {$/;"	s	file:
+check	src_xs/bspline_sub_module.f90	/^        pure subroutine check(/;"	s	subroutine:check_inputs
 checkAttValue	FoX/common/m_common_namecheck.F90	/^  function checkAttValue(/;"	f	module:m_common_namecheck
 checkAttributes	FoX/sax/m_sax_parser.F90	/^    subroutine checkAttributes(/;"	s	subroutine:sax_parse
 checkAuthority	FoX/utils/fox_m_utils_uri.F90	/^  function checkAuthority(/;"	f	module:fox_m_utils_uri
@@ -19123,8 +19164,15 @@ checkXMLAttributes	FoX/sax/m_sax_parser.F90	/^    subroutine checkXMLAttributes$
 check_acoustic	src_raman/check_acoustic.f90	/^subroutine check_acoustic(/;"	s
 check_buffer	FoX/common/m_common_buffer.F90	/^  subroutine check_buffer(/;"	s	module:m_common_buffer
 check_duplicates	FoX/common/m_common_element.F90	/^      function check_duplicates(/;"	f	subroutine:parse_dtd_element
+check_inputs	src_xs/bspline_sub_module.f90	/^    pure subroutine check_inputs(/;"	s	module:bspline_sub_module
+check_k	src_xs/bspline_sub_module.f90	/^        pure subroutine check_k(/;"	s	subroutine:check_inputs
+check_knot_vectors_sizes	src_xs/bspline_oo_module.f90	/^    pure subroutine check_knot_vectors_sizes(/;"	s
 check_msecparameters	src_mixing/check_msecparameters.f90	/^Subroutine check_msecparameters /;"	s
+check_n	src_xs/bspline_sub_module.f90	/^        pure subroutine check_n(/;"	s	subroutine:check_inputs
 check_raman	src_raman/check_raman.f90	/^subroutine check_raman /;"	s
+check_t	src_xs/bspline_sub_module.f90	/^        pure subroutine check_t(/;"	s	subroutine:check_inputs
+check_value	src_xs/bspline_sub_module.f90	/^    pure function check_value(/;"	f	module:bspline_sub_module
+check_x	src_xs/bspline_sub_module.f90	/^        pure subroutine check_x(/;"	s	subroutine:check_inputs
 check_xf	FoX/wxml/m_wxml_core.F90	/^  subroutine check_xf(/;"	s	module:m_wxml_core
 checkinput	checkinput.F90	/^subroutine checkinput$/;"	s
 checkinput_stm	src_stm/checkinput_stm.F90	/^Subroutine checkinput_stm(/;"	s
@@ -19173,6 +19221,8 @@ class	src_raman/mod_raman.f90	/^integer :: class(/;"	v	module:raman_symmetry
 cleanUp	FoX/utils/fox_m_utils_uri.F90	/^      subroutine cleanUp$/;"	s	function:parseURI
 clean_gndstate	src_gw/clean_gndstate.f90	/^subroutine clean_gndstate$/;"	s
 clean_transitions	src_xs/mod_exciton_wf.f90	/^  subroutine clean_transitions(/;"	s	module:mod_exciton_wf
+clear_bandstructure	src_xs/m_read_bandstructure.f90	/^    subroutine clear_bandstructure(/;"	s	module:m_read_bandstructure
+clear_bspline_flag	src_xs/bspline_oo_module.f90	/^    elemental subroutine clear_bspline_flag(/;"	s
 clear_excitons	src_xs/m_putgetexcitons.f90	/^    subroutine clear_excitons$/;"	s	module:m_putgetexcitons
 clear_pmat	src_gw/mod_pmat.f90	/^  subroutine clear_pmat(/;"	s	module:mod_pmat
 clebgor	src_lib/clebgor.f90	/^Real (8) Function clebgor /;"	f
@@ -19560,8 +19610,27 @@ datarootdir	libXC/build/Makefile	/^datarootdir = ${prefix}\/share$/;"	m
 datarootdir	libXC/src/Makefile	/^datarootdir = ${prefix}\/share$/;"	m
 datarootdir	libXC/testsuite/Makefile	/^datarootdir = ${prefix}\/share$/;"	m
 daxpy	Lbfgsb.3.0/blas.f	/^      subroutine daxpy(/;"	s
+db1ink	src_xs/bspline_sub_module.f90	/^    pure subroutine db1ink(/;"	s	module:bspline_sub_module
+db1val	src_xs/bspline_sub_module.f90	/^    pure subroutine db1val(/;"	s	module:bspline_sub_module
+db2ink	src_xs/bspline_sub_module.f90	/^    pure subroutine db2ink(/;"	s	module:bspline_sub_module
+db2val	src_xs/bspline_sub_module.f90	/^    pure subroutine db2val(/;"	s	module:bspline_sub_module
+db3ink	src_xs/bspline_sub_module.f90	/^    pure subroutine db3ink(/;"	s	module:bspline_sub_module
+db3val	src_xs/bspline_sub_module.f90	/^    pure subroutine db3val(/;"	s	module:bspline_sub_module
+db4ink	src_xs/bspline_sub_module.f90	/^    pure subroutine db4ink(/;"	s	module:bspline_sub_module
+db4val	src_xs/bspline_sub_module.f90	/^    pure subroutine db4val(/;"	s	module:bspline_sub_module
+db5ink	src_xs/bspline_sub_module.f90	/^    pure subroutine db5ink(/;"	s	module:bspline_sub_module
+db5val	src_xs/bspline_sub_module.f90	/^    pure subroutine db5val(/;"	s	module:bspline_sub_module
+db6ink	src_xs/bspline_sub_module.f90	/^    pure subroutine db6ink(/;"	s	module:bspline_sub_module
+db6val	src_xs/bspline_sub_module.f90	/^    pure subroutine db6val(/;"	s	module:bspline_sub_module
 dbase	src_mixing/modmixermsec.f90	/^      Integer, Parameter :: icond = 1, dbase /;"	v	module:modmixermsec
 dbglev	src_inputparser/inputmodules.f90	/^ integer::dbglev$/;"	k	type:xs_type
+dbintk	src_xs/bspline_sub_module.f90	/^    pure subroutine dbintk(/;"	s	module:bspline_sub_module
+dbknot	src_xs/bspline_sub_module.f90	/^    pure subroutine dbknot(/;"	s	module:bspline_sub_module
+dbnfac	src_xs/bspline_sub_module.f90	/^    pure subroutine dbnfac(/;"	s	module:bspline_sub_module
+dbnslv	src_xs/bspline_sub_module.f90	/^    pure subroutine dbnslv(/;"	s	module:bspline_sub_module
+dbspvn	src_xs/bspline_sub_module.f90	/^    pure subroutine dbspvn(/;"	s	module:bspline_sub_module
+dbtpcf	src_xs/bspline_sub_module.f90	/^    pure subroutine dbtpcf(/;"	s	module:bspline_sub_module
+dbvalu	src_xs/bspline_sub_module.f90	/^    pure subroutine dbvalu(/;"	s	module:bspline_sub_module
 dbxcplot	dbxcplot.f90	/^Subroutine dbxcplot$/;"	s
 dcell	src_raman/dcell.f90	/^Subroutine dcell /;"	s
 dcopy	Lbfgsb.3.0/blas.f	/^      subroutine dcopy(/;"	s
@@ -19671,8 +19740,15 @@ destroyNode	FoX/dom/m_dom_dom.F90	/^  recursive subroutine destroyNode(/;"	s	mod
 destroyNodeContents	FoX/dom/m_dom_dom.F90	/^  subroutine destroyNodeContents(/;"	s	module:m_dom_dom
 destroyNodeList	FoX/dom/m_dom_dom.F90	/^  subroutine destroyNodeList(/;"	s	module:m_dom_dom
 destroyURI	FoX/utils/fox_m_utils_uri.F90	/^  subroutine destroyURI(/;"	s	module:fox_m_utils_uri
+destroy_1d	src_xs/bspline_oo_module.f90	/^    pure subroutine destroy_1d(/;"	s
+destroy_2d	src_xs/bspline_oo_module.f90	/^    pure subroutine destroy_2d(/;"	s
+destroy_3d	src_xs/bspline_oo_module.f90	/^    pure subroutine destroy_3d(/;"	s
+destroy_4d	src_xs/bspline_oo_module.f90	/^    pure subroutine destroy_4d(/;"	s
+destroy_5d	src_xs/bspline_oo_module.f90	/^    pure subroutine destroy_5d(/;"	s
+destroy_6d	src_xs/bspline_oo_module.f90	/^    pure subroutine destroy_6d(/;"	s
 destroy_attribute_list	FoX/common/m_common_element.F90	/^  subroutine destroy_attribute_list(/;"	s	module:m_common_element
 destroy_attribute_t	FoX/common/m_common_element.F90	/^  subroutine destroy_attribute_t(/;"	s	module:m_common_element
+destroy_base	src_xs/bspline_oo_module.f90	/^    pure subroutine destroy_base(/;"	s
 destroy_dict	FoX/common/m_common_attrs.F90	/^  subroutine destroy_dict(/;"	s	module:m_common_attrs
 destroy_dict_item	FoX/common/m_common_attrs.F90	/^  subroutine destroy_dict_item(/;"	s	module:m_common_attrs
 destroy_element_list	FoX/common/m_common_element.F90	/^  subroutine destroy_element_list(/;"	s	module:m_common_element
@@ -19746,6 +19822,7 @@ diisinterfaces	src_iterative_solver/src_diis/diisinterfaces.F90	/^Module diisint
 diismax	src_iterative_solver/SclControlModule.F90	/^      Integer, Parameter :: diismax /;"	v	module:sclcontroll
 diisthreshould	src_iterative_solver/SclControlModule.F90	/^      Real (8), Parameter :: diisthreshould /;"	v	module:sclcontroll
 diisupdate	src_iterative_solver/src_diis/diisupdate.F90	/^Subroutine diisupdate /;"	s
+dintrv	src_xs/bspline_sub_module.f90	/^    pure subroutine dintrv(/;"	s	module:bspline_sub_module
 dipole_correction	dipole_correction.f90	/^subroutine dipole_correction(/;"	s
 dipolecorrection	src_inputparser/inputmodules.f90	/^ logical::dipolecorrection$/;"	k	type:groundstate_type
 dipoleposition	src_inputparser/inputmodules.f90	/^ real(8)::dipoleposition$/;"	k	type:groundstate_type
@@ -20011,13 +20088,13 @@ dynsymapp	src_phonon/dynsymapp.f90	/^Subroutine dynsymapp /;"	s
 dyntask	src_phonon/dyntask.f90	/^Subroutine dyntask /;"	s
 dyson	src_xs/dyson.F90	/^      Subroutine dyson /;"	s	module:m_dyson
 dysonsym	src_xs/dysonsym.F90	/^      Subroutine dysonsym /;"	s	module:m_dysonsym
-dzgemm	src_xs/m_dzgemm.f90	/^    subroutine dzgemm(/;"	s	module:m_dzgemm
 dzinvert	src_xs/m_invertzmat.f90	/^    subroutine dzinvert(/;"	s	module:m_invertzmat
 dzmat	src_xs/modscl.f90	/^  type dzmat$/;"	t	module:modscl
 dzmat_copy	src_xs/modscl.f90	/^    subroutine dzmat_copy(/;"	s	module:modscl
 dzmat_copy_global2local	src_xs/modscl.f90	/^    subroutine dzmat_copy_global2local(/;"	s	module:modscl
 dzmat_send2global_all	src_xs/modscl.f90	/^    subroutine dzmat_send2global_all(/;"	s	module:modscl
 dzmat_send2global_root	src_xs/modscl.f90	/^    subroutine dzmat_send2global_root(/;"	s	module:modscl
+dzmatmult	src_xs/m_dzmatmult.f90	/^    subroutine dzmatmult(/;"	s	module:m_dzmatmult
 dznrm2	ARPACK/EXAMPLES/BAND/znbdr1.f	/^      Double precision $/;"	v	program:znbdr1
 dznrm2	ARPACK/EXAMPLES/BAND/znbdr2.f	/^      Double precision $/;"	v	program:znbdr2
 dznrm2	ARPACK/EXAMPLES/BAND/znbdr3.f	/^      Double precision $/;"	v	program:znbdr3
@@ -20173,6 +20250,7 @@ energy2index	src_xs/energy2index.f90	/^subroutine energy2index(/;"	s
 energykncr	energykncr.f90	/^Subroutine energykncr$/;"	s
 energynn	energynn.f90	/^Subroutine energynn$/;"	s
 energyref	src_inputparser/inputmodules.f90	/^ real(8)::energyref$/;"	k	type:groundstate_type
+energyval_	src_xs/m_read_bandstructure.f90	/^  real(8), allocatable :: vklpath_(:,:,:), kpathlength_(:,:), energyval_(/;"	v	module:m_read_bandstructure
 energywindow	src_inputparser/inputmodules.f90	/^  type(energywindow_/;"	k	type:raman_type
 energywindow	src_inputparser/inputmodules.f90	/^  type(energywindow_/;"	k	type:xs_type
 energywindow_type	src_inputparser/inputmodules.f90	/^type energywindow_type$/;"	t	module:modinput
@@ -20306,6 +20384,12 @@ evalsum	mod_energy.F90	/^      Real (8) :: evalsum$/;"	v	module:mod_energy
 evalsv	mod_eigenvalue_occupancy.F90	/^      Real (8), Allocatable :: evalsv /;"	v	module:mod_eigenvalue_occupancy
 evalsv0	src_xs/modxs.F90	/^      Real (8), Allocatable :: evalsv0 /;"	v	module:modxs
 evaltol	src_inputparser/inputmodules.f90	/^ real(8)::evaltol$/;"	k	type:solver_type
+evaluate_1d	src_xs/bspline_oo_module.f90	/^    pure subroutine evaluate_1d(/;"	s
+evaluate_2d	src_xs/bspline_oo_module.f90	/^    pure subroutine evaluate_2d(/;"	s
+evaluate_3d	src_xs/bspline_oo_module.f90	/^    pure subroutine evaluate_3d(/;"	s
+evaluate_4d	src_xs/bspline_oo_module.f90	/^    pure subroutine evaluate_4d(/;"	s
+evaluate_5d	src_xs/bspline_oo_module.f90	/^    pure subroutine evaluate_5d(/;"	s
+evaluate_6d	src_xs/bspline_oo_module.f90	/^    pure subroutine evaluate_6d(/;"	s
 evecfv	src_xs/modxs.F90	/^      Complex (8), Allocatable, target :: evecfv /;"	v	module:modxs
 evecfv0	src_xs/modxs.F90	/^      Complex (8), Allocatable, target :: evecfv0 /;"	v	module:modxs
 evecfv0_ptr	src_xs/mod_ematptr.f90	/^  complex(8), pointer :: evecfv0_ptr(/;"	v	module:mod_ematptr
@@ -20462,6 +20546,7 @@ extractDataContentRealDpSca	FoX/dom/m_dom_extras.F90	/^subroutine extractDataCon
 extractDataContentRealSpArr	FoX/dom/m_dom_extras.F90	/^subroutine extractDataContentRealSpArr(/;"	s	module:m_dom_extras
 extractDataContentRealSpMat	FoX/dom/m_dom_extras.F90	/^subroutine extractDataContentRealSpMat(/;"	s	module:m_dom_extras
 extractDataContentRealSpSca	FoX/dom/m_dom_extras.F90	/^subroutine extractDataContentRealSpSca(/;"	s	module:m_dom_extras
+extrap	src_xs/bspline_oo_module.f90	/^        logical :: extrap /;"	v	module:bspline_oo_module
 exxengy	src_advanced/exxengy.f90	/^Subroutine exxengy$/;"	s
 exxengyk	src_advanced/exxengyk.f90	/^Subroutine exxengyk /;"	s
 f	FoX/sax/m_sax_reader.F90	/^    type(xml_source_t), pointer :: f(/;"	k	type:file_buffer_t
@@ -20577,7 +20662,13 @@ filexteps	src_xs/modxs.F90	/^      Character (256) :: filext0, filexteps$/;"	v	m
 filextrevert	src_xs/modxs.F90	/^      Character (256) :: filextrevert$/;"	v	module:modxs
 fin	src_vdwdf/Cuba-3.2/src/divonne/Sample.c	258;"	d	file:
 final	src_inputparser/inputmodules.f90	/^ integer::final$/;"	k	type:trans_type
-finalizespectrum	src_xs/b_bse.f90	/^  subroutine finalizespectrum(/;"	s	subroutine:b_bse
+finalize_1d	src_xs/bspline_oo_module.f90	/^    pure elemental subroutine finalize_1d(/;"	s
+finalize_2d	src_xs/bspline_oo_module.f90	/^    pure elemental subroutine finalize_2d(/;"	s
+finalize_3d	src_xs/bspline_oo_module.f90	/^    pure elemental subroutine finalize_3d(/;"	s
+finalize_4d	src_xs/bspline_oo_module.f90	/^    pure elemental subroutine finalize_4d(/;"	s
+finalize_5d	src_xs/bspline_oo_module.f90	/^    pure elemental subroutine finalize_5d(/;"	s
+finalize_6d	src_xs/bspline_oo_module.f90	/^    pure elemental subroutine finalize_6d(/;"	s
+finalizespectrum	src_xs/m_makespectrum.f90	/^    subroutine finalizespectrum(/;"	s	module:m_makespectrum
 find_eor_eof	FoX/common/m_common_io.F90	/^  subroutine find_eor_eof(/;"	s	module:m_common_io
 find_mt_points	mod_rgrid.f90	/^  subroutine find_mt_points(/;"	s	module:mod_rgrid
 find_stack_direction	libXC/configure	/^find_stack_direction ()$/;"	f
@@ -21225,6 +21316,7 @@ genvmatk	genvmatk.f90	/^Subroutine genvmatk /;"	s
 genvmatlu	src_LDAU/genvmatlu.f90	/^Subroutine genvmatlu$/;"	s
 genvmatlu_12	src_LDAU/genvmatlu.f90	/^Subroutine genvmatlu_12$/;"	s
 genvxcig	src_gw/src_vxc/genvxcig.f90	/^subroutine genvxcig$/;"	s
+genweights	src_xs/b_writekpathweights.f90	/^    subroutine genweights(/;"	s	subroutine:b_writekpathweights
 genwfsv	genwfsv.f90	/^Subroutine genwfsv /;"	s
 genwfsv_new	genwfsv_new.f90	/^subroutine genwfsv_new(/;"	s
 genwgrid	src_xs/genwgrid.F90	/^    subroutine genwgrid(/;"	s	module:m_genwgrid
@@ -21323,6 +21415,7 @@ get_attdecl_by_index	FoX/common/m_common_element.F90	/^  function get_attdecl_by
 get_attdecl_by_name	FoX/common/m_common_element.F90	/^  function get_attdecl_by_name(/;"	f	module:m_common_element
 get_attlist_size	FoX/common/m_common_element.F90	/^  function get_attlist_size(/;"	f	module:m_common_element
 get_attribute	FoX/common/m_common_element.F90	/^  function get_attribute(/;"	f	module:m_common_element
+get_bspline_status_message	src_xs/bspline_oo_module.f90	/^    pure function get_bspline_status_message(/;"	f
 get_char_from_file	FoX/sax/m_sax_xml_source.F90	/^  function get_char_from_file(/;"	f	module:m_sax_xml_source
 get_character	FoX/sax/m_sax_reader.F90	/^  function get_character(/;"	f	module:m_sax_reader
 get_element	FoX/common/m_common_element.F90	/^  function get_element(/;"	f	module:m_common_element
@@ -21350,6 +21443,8 @@ get_point	libXC/testsuite/xc-regression.c	/^void get_point(xc_func_type *func, v
 get_prefix_by_index	FoX/common/m_common_attrs.F90	/^  pure function get_prefix_by_index(/;"	f	module:m_common_attrs
 get_prefix_by_keyname	FoX/common/m_common_attrs.F90	/^  pure function get_prefix_by_keyname(/;"	f	module:m_common_attrs
 get_prefix_by_keyname_len	FoX/common/m_common_attrs.F90	/^  pure function get_prefix_by_keyname_len(/;"	f	module:m_common_attrs
+get_status_message	src_xs/bspline_sub_module.f90	/^    pure function get_status_message(/;"	f	module:bspline_sub_module
+get_temp_x_for_extrap	src_xs/bspline_sub_module.f90	/^    pure function get_temp_x_for_extrap(/;"	f	module:bspline_sub_module
 get_top_elstack	FoX/common/m_common_elstack.F90	/^  pure function get_top_elstack(/;"	f	module:m_common_elstack
 get_unit	FoX/common/m_common_io.F90	/^  subroutine get_unit(/;"	s	module:m_common_io
 get_utc_since_1582	FoX/utils/fox_m_utils_uuid.F90	/^  function get_utc_since_1582(/;"	f	module:fox_m_utils_uuid
@@ -21554,6 +21649,7 @@ getstructwf	src_inputparser/speciesmodules.f90	/^function getstructwf(/;"	f	modu
 getstructwfplot	src_inputparser/inputmodules.f90	/^function getstructwfplot(/;"	f	module:modinput
 getstructwpos	spacegroup/sginputmodule.f90	/^function getstructwpos(/;"	f	module:modsymmetries
 getstructwriteexcitons	src_inputparser/inputmodules.f90	/^function getstructwriteexcitons(/;"	f	module:modinput
+getstructwritekpathweights	src_inputparser/inputmodules.f90	/^function getstructwritekpathweights(/;"	f	module:modinput
 getstructwspecies	spacegroup/sginputmodule.f90	/^function getstructwspecies(/;"	f	module:modsymmetries
 getstructxcmvecfield	src_inputparser/inputmodules.f90	/^function getstructxcmvecfield(/;"	f	module:modinput
 getstructxs	src_inputparser/inputmodules.f90	/^function getstructxs(/;"	f	module:modinput
@@ -22087,6 +22183,7 @@ iex1_	src_xs/m_putgetexcitons.f90	/^  integer(4) :: hamsize_, nexcstored_, iex1_
 iex2_	src_xs/m_putgetexcitons.f90	/^  integer(4) :: hamsize_, nexcstored_, iex1_, iex2_$/;"	v	module:m_putgetexcitons
 ifl	src_other/delaunay.f	/^      integer icon(8,nvmax), is(nmax), ifl(/;"	v	program:main
 iflag	mod_rgrid.f90	/^    integer :: iflag /;"	k	type:rgrid
+iflag	src_xs/bspline_oo_module.f90	/^        integer :: iflag /;"	v	module:bspline_oo_module
 iflpi	src_other/delaunay.f	/^      integer ideli, ipnti, iflpi,/;"	v	program:main
 ifparseerrorstop	src_inputparser/modinputdom.f90	/^      Subroutine ifparseerrorstop /;"	s	module:inputdom
 igfft	mod_Gvector.F90	/^      Integer, Allocatable :: igfft /;"	v	module:mod_Gvector
@@ -22144,6 +22241,7 @@ ikm2ik	src_gw/mod_kpointset.f90	/^      integer(4), allocatable :: ikm2ik(/;"	k	
 ikm2ik_nr	src_gw/mod_kpointset.f90	/^      integer(4), allocatable :: ikm2ik_nr(/;"	k	type:km_set
 ikmap	mod_kpoint.F90	/^      Integer, Allocatable :: ikmap /;"	v	module:mod_kpoint
 ikmap	src_gw/mod_kpointset.f90	/^        integer(4), allocatable ::  ikmap(/;"	k	type:k_set
+ikmap_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ngridk_(:), ikmap_(/;"	v	module:m_putgetexcitons
 ikmapikq	src_xs/modxs.F90	/^      Integer, Allocatable, target :: ikmapikq /;"	v	module:modxs
 ikmapikq_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ikmapikq_(/;"	v	module:m_putgetexcitons
 ikmapikq_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: ikmapikq_ptr(/;"	v	module:mod_ematptr
@@ -22166,6 +22264,11 @@ ikvcm	src_gw/mod_bands.f90	/^    integer(4) :: ikvcm$/;"	v	module:mod_bands
 il1	src_xs/modxs.F90	/^        integer(4) :: il1,/;"	k	type:bcbs
 il2	src_xs/modxs.F90	/^        integer(4) :: il1, il2$/;"	k	type:bcbs
 illFormed	FoX/dom/m_dom_dom.F90	/^    logical :: illFormed /;"	k	type:docTypeExtras
+iloq	src_xs/bspline_oo_module.f90	/^        integer :: iloq /;"	v
+ilor	src_xs/bspline_oo_module.f90	/^        integer :: ilor /;"	v
+ilos	src_xs/bspline_oo_module.f90	/^        integer :: ilos /;"	v
+iloy	src_xs/bspline_oo_module.f90	/^        integer :: iloy /;"	v
+iloz	src_xs/bspline_oo_module.f90	/^        integer :: iloz /;"	v
 imk2imkqmtp	src_xs/modbse.f90	/^  integer(4), dimension(:), allocatable :: ik2ikqmtp, ik2ikqmtm, imk2imkqmtp$/;"	v	module:modbse
 implementation	FoX/dom/m_dom_dom.F90	/^    type(DOMImplementation), pointer :: implementation /;"	k	type:documentExtras
 importNode	FoX/dom/m_dom_dom.F90	/^  function importNode(/;"	f	module:m_dom_dom
@@ -22173,6 +22276,12 @@ inDocument	FoX/dom/m_dom_dom.F90	/^    logical :: inDocument /;"	k	type:Node
 inException	FoX/dom/m_dom_error.f90	/^  function inException(/;"	f	module:m_dom_error
 inIntSubset	FoX/sax/m_sax_types.F90	/^    logical :: inIntSubset /;"	k	type:sax_parser_t
 in_error	FoX/common/m_common_error.F90	/^  function in_error(/;"	f	module:m_common_error
+inbvq	src_xs/bspline_oo_module.f90	/^        integer :: inbvq /;"	v
+inbvr	src_xs/bspline_oo_module.f90	/^        integer :: inbvr /;"	v
+inbvs	src_xs/bspline_oo_module.f90	/^        integer :: inbvs /;"	v
+inbvx	src_xs/bspline_oo_module.f90	/^        integer :: inbvx /;"	v	module:bspline_oo_module
+inbvy	src_xs/bspline_oo_module.f90	/^        integer :: inbvy /;"	v
+inbvz	src_xs/bspline_oo_module.f90	/^        integer :: inbvz /;"	v
 incgam	src_gw/cutoffs.f90	/^    function incgam(/;"	f	module:incgamma
 incgamma	src_gw/cutoffs.f90	/^module incgamma$/;"	m
 include_HEADERS	libXC/Makefile	/^include_HEADERS = xc_version.h$/;"	m
@@ -22313,10 +22422,23 @@ initatomcounters	spacegroup/initatomcounter.f90	/^subroutine initatomcounters$/;
 initatomcounters	src_inputparser/initatomcounter.F90	/^Subroutine initatomcounters$/;"	s
 initfun	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  subroutine initfun;$/;"	m	struct:__anon62
 initial	src_inputparser/inputmodules.f90	/^ integer::initial$/;"	k	type:trans_type
+initialize_1d_auto_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_1d_auto_knots(/;"	s
+initialize_1d_specify_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_1d_specify_knots(/;"	s
+initialize_2d_auto_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_2d_auto_knots(/;"	s
+initialize_2d_specify_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_2d_specify_knots(/;"	s
+initialize_3d_auto_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_3d_auto_knots(/;"	s
+initialize_3d_specify_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_3d_specify_knots(/;"	s
+initialize_4d_auto_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_4d_auto_knots(/;"	s
+initialize_4d_specify_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_4d_specify_knots(/;"	s
+initialize_5d_auto_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_5d_auto_knots(/;"	s
+initialize_5d_specify_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_5d_specify_knots(/;"	s
+initialize_6d_auto_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_6d_auto_knots(/;"	s
+initialize_6d_specify_knots	src_xs/bspline_oo_module.f90	/^    pure subroutine initialize_6d_specify_knots(/;"	s
 initialized	FoX/utils/fox_m_utils_uuid.F90	/^  logical, save :: initialized /;"	v	module:fox_m_utils_uuid
 initialized	m_ematqk.f90	/^  logical :: initialized /;"	v	module:m_ematqk
 initialized	mod_ematgrids.f90	/^  logical :: initialized /;"	v	module:mod_ematgrids
 initialized	mod_xsgrids.f90	/^  logical :: initialized /;"	v	module:mod_xsgrids
+initialized	src_xs/bspline_oo_module.f90	/^        logical :: initialized /;"	v	module:bspline_oo_module
 initlattice	src_inputparser/initlattice.f90	/^Subroutine initlattice$/;"	s
 initldapu	src_inputparser/initldapu.F90	/^subroutine initldapu$/;"	s
 initlibxc	src_inputparser/initlibxc.F90	/^subroutine initlibxc$/;"	s
@@ -22353,6 +22475,7 @@ install_sh_SCRIPT	libXC/testsuite/Makefile	/^install_sh_SCRIPT = $(install_sh) -
 int32ToHexOctets	FoX/utils/fox_m_utils_uuid.F90	/^    function int32ToHexOctets(/;"	f	function:generate_uuid
 int64ToHexOctets	FoX/utils/fox_m_utils_uuid.F90	/^    function int64ToHexOctets(/;"	f	function:generate_uuid
 intSubset	FoX/common/m_common_struct.F90	/^    character, pointer :: intSubset(/;"	k	type:xml_doc_state
+int_size	src_xs/bspline_oo_module.f90	/^    integer,parameter :: int_size /;"	v	module:bspline_oo_module
 intdos1t	src_libbzint/intdos1t.f90	/^       real(8) function intdos1t(/;"	f
 integr_fn	libXC/src/util.h	/^typedef void integr_fn(FLOAT *x, int n, void *ex);$/;"	t
 integral	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	double precision integral(/;"	v	program:CubaTest
@@ -22383,6 +22506,7 @@ internal	FoX/common/m_common_element.F90	/^    logical :: internal /;"	k	type:el
 internalEntityDecl_handler	FoX/dom/m_dom_parse.f90	/^  subroutine internalEntityDecl_handler(/;"	s
 internal_error	FoX/dom/m_dom_error.f90	/^  subroutine internal_error(/;"	s	module:m_dom_error
 interpolate	src_inputparser/inputmodules.f90	/^  type(interpolate_/;"	k	type:phonons_type
+interpolate_kpathweights	src_xs/b_writekpathweights.f90	/^    subroutine interpolate_kpathweights(/;"	s	subroutine:b_writekpathweights
 interpolate_type	src_inputparser/inputmodules.f90	/^type interpolate_type$/;"	t	module:modinput
 intevecpm	src_gw/src_tests/intevecpm.f90	/^      subroutine intevecpm(/;"	s
 intevecpp	src_gw/src_tests/intevecpp.f90	/^      subroutine intevecpp(/;"	s
@@ -22391,6 +22515,7 @@ intgv	mod_Gvector.F90	/^      Integer :: intgv /;"	v	module:mod_Gvector
 intgv	src_gw/mod_kpointset.f90	/^        integer, allocatable :: intgv(/;"	k	type:G_set
 intins	src_other/delaunay.f	/^      subroutine intins(/;"	s
 intnodes	src_libbzint/polyhedron.f90	/^      real(8), dimension(3,20) :: intnodes /;"	v	module:polyhedron
+intorder	src_inputparser/inputmodules.f90	/^ integer::intorder$/;"	k	type:writekpathweights_type
 intraband	src_inputparser/inputmodules.f90	/^ logical::intraband$/;"	k	type:BSE_type
 intraband	src_inputparser/inputmodules.f90	/^ logical::intraband$/;"	k	type:dielmat_type
 intraband	src_inputparser/inputmodules.f90	/^ logical::intraband$/;"	k	type:moke_type
@@ -23031,10 +23156,12 @@ kousize_	src_xs/m_putgetbsemat.f90	/^  integer(4), allocatable :: kousize_(/;"	v
 kousize_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ikmapikq_(:), kousize_(/;"	v	module:m_putgetexcitons
 kparf	src_xs/modxs.F90	/^      Integer :: kparf$/;"	v	module:modxs
 kpari	src_xs/modxs.F90	/^      Integer :: kpari$/;"	v	module:modxs
+kpathlength_	src_xs/m_read_bandstructure.f90	/^  real(8), allocatable :: vklpath_(:,:,:), kpathlength_(/;"	v	module:m_read_bandstructure
 kplusq	src_xs/modtetra/mod_control.f90	/^  logical, save :: kplusq$/;"	v	module:control
 kpointnumber	src_inputparser/inputmodules.f90	/^ integer::kpointnumber$/;"	k	type:istate_type
 kpointnumber	src_inputparser/inputmodules.f90	/^ integer::kpointnumber$/;"	k	type:range_type
 kpointnumber	src_inputparser/inputmodules.f90	/^ integer::kpointnumber$/;"	k	type:trans_type
+kq	src_xs/bspline_oo_module.f90	/^        integer :: kq /;"	v
 kq_bzintw	src_gw/mod_bzintw.f90	/^    type kq_bzintw$/;"	t	module:mod_bzintw
 kq_set	src_gw/mod_kpointset.f90	/^    type kq_set$/;"	t	module:mod_kpointset
 kqgen	src_libbzint/kqgen.f90	/^      subroutine kqgen(/;"	s
@@ -23043,8 +23170,10 @@ kqid	src_gw/mod_kpointset.f90	/^        integer, allocatable :: kqid(/;"	k	type:
 kqid	src_gw/mod_kqpts.f90	/^    integer(4), allocatable :: kqid(/;"	v	module:mod_kqpts
 kqmtset	src_gw/mod_kpointset.f90	/^        type(k_set) :: kqmtset$/;"	k	type:kkqmt_set
 kqset	src_gw/modgw.f90	/^    type(kq_set) :: kqset$/;"	v	module:modgw
+kr	src_xs/bspline_oo_module.f90	/^        integer :: kr /;"	v
 kramkron	src_xs/kramkron.F90	/^Subroutine kramkron /;"	s
 krondelta	mod_constants.F90	/^      Integer, Parameter :: krondelta /;"	v	module:mod_constants
+ks	src_xs/bspline_oo_module.f90	/^        integer :: ks /;"	v
 kset	src_gw/mod_kpointset.f90	/^        type(k_set) :: kset$/;"	k	type:kkqmt_set
 kset	src_gw/mod_kpointset.f90	/^      type(k_set) :: kset$/;"	k	type:km_set
 kset	src_gw/modgw.f90	/^    type(k_set)  :: kset$/;"	v	module:modgw
@@ -23092,7 +23221,10 @@ kvecs1	src_gw/mod_bands.f90	/^    real(8), allocatable :: kvecs1(/;"	v	module:mo
 kvecs2	src_gw/mod_bands.f90	/^    real(8), allocatable :: kvecs2(/;"	v	module:mod_bands
 kwfer	src_gw/mod_bzintw.f90	/^        real(8), allocatable :: kwfer(/;"	k	type:k_bzintw
 kwfer	src_gw/modgw.f90	/^    real(8), allocatable :: kwfer(/;"	v	module:modgw
+kx	src_xs/bspline_oo_module.f90	/^        integer :: kx /;"	v
 kxc	libXC/src/util.h	/^void XC(lda_kxc_fd)(const XC(func_type) *p, int np, const FLOAT *rho, FLOAT *kxc);$/;"	v
+ky	src_xs/bspline_oo_module.f90	/^        integer :: ky /;"	v
+kz	src_xs/bspline_oo_module.f90	/^        integer :: kz /;"	v
 l	species/modspecies.F90	/^integer :: nlx/;"	v	module:modspecies
 l	src_inputparser/inputmodules.f90	/^ integer::l$/;"	k	type:LDAplusU_type
 l	src_inputparser/speciesmodules.f90	/^ integer::l$/;"	k	type:atomicState_type
@@ -23432,6 +23564,7 @@ logfil	ARPACK/EXAMPLES/SIMPLE/debug.h	/^     &         logfil, ndigit, mgetv0,$/
 logfil	ARPACK/EXAMPLES/SVD/debug.h	/^     &         logfil, ndigit, mgetv0,$/;"	v
 logfil	ARPACK/SRC/debug.h	/^     &         logfil, ndigit, mgetv0,$/;"	v
 logfil	src_iterative_solver/debugf90.h	/^      	logfil, ndigit, mgetv0,&$/;"	v
+logical_size	src_xs/bspline_oo_module.f90	/^    integer,parameter :: logical_size /;"	v	module:bspline_oo_module
 lolmax	mod_APW_LO.F90	/^      Integer :: lolmax$/;"	v	module:mod_APW_LO
 lolmmax	mod_APW_LO.F90	/^      Integer :: lolmmax$/;"	v	module:mod_APW_LO
 lolo	src_xs/modxs.F90	/^        Complex (8), Allocatable :: lolo /;"	k	type:mtints_type
@@ -23633,7 +23766,7 @@ m_dom_parse	FoX/dom/m_dom_parse.f90	/^module m_dom_parse$/;"	m
 m_dom_utils	FoX/dom/m_dom_utils.f90	/^module m_dom_utils$/;"	m
 m_dyson	src_xs/dyson.F90	/^Module m_dyson$/;"	m
 m_dysonsym	src_xs/dysonsym.F90	/^Module m_dysonsym$/;"	m
-m_dzgemm	src_xs/m_dzgemm.f90	/^module m_dzgemm$/;"	m
+m_dzmatmult	src_xs/m_dzmatmult.f90	/^module m_dzmatmult$/;"	m
 m_eigvec	src_raman/eigvec.f90	/^module m_eigvec$/;"	m
 m_ematqk	m_ematqk.f90	/^module m_ematqk$/;"	m
 m_emattim	src_xs/emattim.F90	/^Module m_emattim$/;"	m
@@ -23671,6 +23804,8 @@ m_got	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  int m_dimx, m_dimy, m_got;$/;"	m
 m_hesolver	src_xs/m_hesolver.f90	/^module m_hesolver$/;"	m
 m_ieee	FoX/fsys/m_ieee.f90	/^module m_ieee$/;"	m
 m_invertzmat	src_xs/m_invertzmat.f90	/^module m_invertzmat$/;"	m
+m_makeoscistr	src_xs/m_makeoscistr.f90	/^module m_makeoscistr$/;"	m
+m_makespectrum	src_xs/m_makespectrum.f90	/^module m_makespectrum$/;"	m
 m_pade	src_xs/pade.F90	/^Module m_pade$/;"	m
 m_printer	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  QPrinter *m_printer;$/;"	m	class:PartitionViewer	file:
 m_putemat	src_xs/putemat.F90	/^Module m_putemat$/;"	m
@@ -23681,6 +23816,7 @@ m_putpmat	src_xs/putpmat.F90	/^module m_putpmat$/;"	m
 m_puttetcw	src_xs/puttetcw.F90	/^Module m_puttetcw$/;"	m
 m_putx0	src_xs/putx0.F90	/^module m_putx0$/;"	m
 m_raman_utils	src_raman/raman_utils.f90	/^Module m_raman_utils$/;"	m
+m_read_bandstructure	src_xs/m_read_bandstructure.f90	/^module m_read_bandstructure$/;"	m
 m_regions	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  regionList m_regions;$/;"	m	class:PartitionPlane	file:
 m_sax_operate	FoX/sax/m_sax_operate.F90	/^module m_sax_operate$/;"	m
 m_sax_parser	FoX/sax/m_sax_parser.F90	/^module m_sax_parser$/;"	m
@@ -23705,12 +23841,11 @@ m_wcml_molecule	FoX/wcml/m_wcml_molecule.F90	/^module m_wcml_molecule$/;"	m
 m_wcml_parameter	FoX/wcml/m_wcml_parameter.F90	/^module m_wcml_parameter$/;"	m
 m_wcml_property	FoX/wcml/m_wcml_property.F90	/^module m_wcml_property$/;"	m
 m_wcml_stml	FoX/wcml/m_wcml_stml.F90	/^module m_wcml_stml$/;"	m
-m_writebevec	src_xs/m_writebevec.f90	/^module m_writebevec$/;"	m
 m_writecmplxparts	src_xs/m_writecmplxparts.f90	/^module m_writecmplxparts$/;"	m
 m_writeeps	src_xs/writeeps.F90	/^module m_writeeps$/;"	m
 m_writegqpts	src_xs/writegqpts.F90	/^Module m_writegqpts$/;"	m
 m_writekerr	src_xs/writekerr.F90	/^Module m_writekerr$/;"	m
-m_writeloss	src_xs/writeloss.F90	/^Module m_writeloss$/;"	m
+m_writeloss	src_xs/writeloss.F90	/^module m_writeloss$/;"	m
 m_writeoscillator	src_xs/writeoscillator.f90	/^module m_writeoscillator$/;"	m
 m_writesigma	src_xs/writesigma.F90	/^Module m_writesigma$/;"	m
 m_writesumrls	src_xs/writesumrls.F90	/^Module m_writesumrls$/;"	m
@@ -23753,17 +23888,16 @@ main	stateconvert/main.F90	/^program main$/;"	p
 main	stateinfo/main.F90	/^program main$/;"	p
 mainDoc	FoX/dom/m_dom_parse.f90	/^  type(Node), pointer, save  :: mainDoc /;"	v	module:m_dom_parse
 mainlb	Lbfgsb.3.0/lbfgsb.f	/^      subroutine mainlb(/;"	s
-make_dist_spectrum_tda	src_xs/b_bse.f90	/^  subroutine make_dist_spectrum_tda(/;"	s	subroutine:b_bse
-make_dist_spectrum_ti	src_xs/b_bse.f90	/^  subroutine make_dist_spectrum_ti(/;"	s	subroutine:b_bse
-make_doszstren	src_xs/b_bse.f90	/^  subroutine make_doszstren(/;"	s	subroutine:b_bse
 make_token_group	FoX/common/m_common_element.F90	/^  function make_token_group(/;"	f	module:m_common_element
 make_token_group_len	FoX/common/m_common_element.F90	/^  pure function make_token_group_len(/;"	f	module:m_common_element
 makeexcli	src_xs/b_exccoulint.f90	/^    subroutine makeexcli(/;"	s	subroutine:b_exccoulint
-makeoszillatorstrength	src_xs/b_bse.f90	/^  subroutine makeoszillatorstrength(/;"	s	subroutine:b_bse
-makespectrum_full	src_xs/b_bse.f90	/^  subroutine makespectrum_full(/;"	s	subroutine:b_bse
-makespectrum_full_lr	src_xs/b_bse.f90	/^  subroutine makespectrum_full_lr(/;"	s	subroutine:b_bse
-makespectrum_tda	src_xs/b_bse.f90	/^  subroutine makespectrum_tda(/;"	s	subroutine:b_bse
-makespectrum_ti	src_xs/b_bse.f90	/^  subroutine makespectrum_ti(/;"	s	subroutine:b_bse
+makeoscistr	src_xs/m_makeoscistr.f90	/^    subroutine makeoscistr(/;"	s	module:m_makeoscistr
+makeoscistr_dist	src_xs/m_makeoscistr.f90	/^    subroutine makeoscistr_dist(/;"	s	module:m_makeoscistr
+makespectrum_full	src_xs/m_makespectrum.f90	/^    subroutine makespectrum_full(/;"	s	module:m_makespectrum
+makespectrum_tda	src_xs/m_makespectrum.f90	/^    subroutine makespectrum_tda(/;"	s	module:m_makespectrum
+makespectrum_tda_dist	src_xs/m_makespectrum.f90	/^    subroutine makespectrum_tda_dist(/;"	s	module:m_makespectrum
+makespectrum_ti	src_xs/m_makespectrum.f90	/^    subroutine makespectrum_ti(/;"	s	module:m_makespectrum
+makespectrum_ti_dist	src_xs/m_makespectrum.f90	/^    subroutine makespectrum_ti_dist(/;"	s	module:m_makespectrum
 mallocset	src_vdwdf/Cuba-3.2/src/common/stddecl.h	109;"	d
 mallocset	src_vdwdf/Cuba-3.2/src/common/stddecl.h	112;"	d
 malpha	libXC/src/lda_c_2d_amgb.c	/^malpha(int order, int i, FLOAT *rs,$/;"	f	file:
@@ -23771,6 +23905,7 @@ mandir	libXC/Makefile	/^mandir = ${datarootdir}\/man$/;"	m
 mandir	libXC/build/Makefile	/^mandir = ${datarootdir}\/man$/;"	m
 mandir	libXC/src/Makefile	/^mandir = ${datarootdir}\/man$/;"	m
 mandir	libXC/testsuite/Makefile	/^mandir = ${datarootdir}\/man$/;"	m
+map_inputdata	src_xs/b_writekpathweights.f90	/^    subroutine map_inputdata(/;"	s	subroutine:b_writekpathweights
 mapkto01	src_xs/genqvkloff.F90	/^Subroutine mapkto01 /;"	s
 mapto01	src_libbzint/reduk.f90	/^  subroutine mapto01(/;"	s	subroutine:reduk
 mapxsparameters	src_xs/mapxsparameters.F90	/^Subroutine mapxsparameters$/;"	s
@@ -25156,6 +25291,7 @@ ngridk	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ngridk(/;"	
 ngridk	src_inputparser/inputmodules.f90	/^ integer::ngridk(/;"	k	type:groundstate_type
 ngridk	src_inputparser/inputmodules.f90	/^ integer::ngridk(/;"	k	type:screening_type
 ngridk	src_inputparser/inputmodules.f90	/^ integer::ngridk(/;"	k	type:xs_type
+ngridk_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ngridk_(/;"	v	module:m_putgetexcitons
 ngridk_b	src_xs/modxs.F90	/^      Integer :: ngridk_b /;"	v	module:modxs
 ngridksub	src_inputparser/inputmodules.f90	/^ integer::ngridksub(/;"	k	type:BSE_type
 ngridq	mod_qpoint.F90	/^      Integer(4) :: ngridq /;"	v	module:mod_qpoint
@@ -25360,11 +25496,13 @@ npsden	src_inputparser/inputmodules.f90	/^ integer::npsden$/;"	k	type:groundstat
 npt	mod_rgrid.f90	/^    integer :: npt$/;"	k	type:rgrid
 nptir	src_gw/src_tests/mod_rpath.f90	/^        integer :: nptir /;"	k	type:r_path
 nptot	src_gw/src_tests/mod_rpath.f90	/^        integer :: nptot /;"	k	type:r_path
+nq	src_xs/bspline_oo_module.f90	/^        integer :: nq /;"	v
 nqmt	src_xs/modxs.F90	/^      Integer(4) :: nqmt$/;"	v	module:modxs
 nqpt	mod_qpoint.F90	/^      Integer(4), target :: nqpt$/;"	v	module:mod_qpoint
 nqptnr	src_gw/mod_kqpts.f90	/^    integer :: nqptnr$/;"	v	module:mod_kqpts
 nqptr	src_xs/modxs.F90	/^      Integer(4), target :: nqptr$/;"	v	module:modxs
 nr	src_inputparser/inputmodules.f90	/^ integer::nr$/;"	k	type:TSvdWparameters_type
+nr	src_xs/bspline_oo_module.f90	/^        integer :: nr /;"	v
 nrand	src_vdwdf/Cuba-3.2/src/divonne/Integrate.c	/^  number nmin, nrand;$/;"	m	struct:__anon36	file:
 nrand	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  number neval, neval_opt, neval_cut, nrand;$/;"	m	struct:_this
 nrcmt	mod_muffin_tin.F90	/^      Integer :: nrcmt /;"	v	module:mod_muffin_tin
@@ -25395,6 +25533,7 @@ nrules	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^enum { nrules = 5 };$/;"	e	enum:_
 nrx	src_vdwdf/modules.f90	/^   integer             :: nrx,/;"	v	module:param
 nry	src_vdwdf/modules.f90	/^   integer             :: nrx,nry,/;"	v	module:param
 nrz	src_vdwdf/modules.f90	/^   integer             :: nrx,nry,nrz$/;"	v	module:param
+ns	src_xs/bspline_oo_module.f90	/^        integer :: ns /;"	v
 nsDict	FoX/wxml/m_wxml_core.F90	/^    type(namespaceDictionary) :: nsDict$/;"	k	type:xmlf_t
 nsURI	FoX/common/m_common_attrs.F90	/^    character(len=1), pointer, dimension(:) :: nsURI /;"	k	type:dict_item
 nsamples	src_vdwdf/Cuba-3.2/src/vegas/Integrate.c	/^  number nsamples, neval;$/;"	m	struct:__anon59	file:
@@ -25526,13 +25665,16 @@ nx	ARPACK/EXAMPLES/SIMPLE/znsimp.f	/^      integer           ido, n, nx,/;"	v	pr
 nx	ARPACK/EXAMPLES/SYM/dsdrv1.f	/^      integer          ido, n, nev, ncv, lworkl, info, ierr, j, $/;"	v	program:dsdrv1
 nx	ARPACK/EXAMPLES/SYM/ssdrv1.f	/^      integer          ido, n, nev, ncv, lworkl, info, ierr, j, $/;"	v	program:ssdrv1
 nx	src_vdwdf/modules.f90	/^   integer             :: nx,/;"	v	module:param
+nx	src_xs/bspline_oo_module.f90	/^        integer :: nx /;"	v
 nxas	src_xs/xas/modxas.f90	/^       integer(4) :: nxas$/;"	v	module:modxas
 nxi	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^     &                 n, nxi,/;"	v	program:cnbdr2
 nxi	ARPACK/EXAMPLES/BAND/znbdr2.f	/^     &                 n, nxi,/;"	v	program:znbdr2
 nxstasks	src_xs/xsmain.F90	/^      Integer :: nxstasks$/;"	v	module:modxsmain
 ny	src_vdwdf/modules.f90	/^   integer             :: nx,ny,/;"	v	module:param
+ny	src_xs/bspline_oo_module.f90	/^        integer :: ny /;"	v
 nz	species/modspecies.F90	/^integer :: nz,/;"	v	module:modspecies
 nz	src_vdwdf/modules.f90	/^   integer             :: nx,ny,nz$/;"	v	module:param
+nz	src_xs/bspline_oo_module.f90	/^        integer :: nz /;"	v
 oalo	mod_eigensystem.F90	/^      Real (8), Allocatable :: oalo /;"	v	module:mod_eigensystem
 occ	src_inputparser/speciesmodules.f90	/^ real(8)::occ$/;"	k	type:atomicState_type
 occmax	mod_eigenvalue_occupancy.F90	/^      Real (8) :: occmax$/;"	v	module:mod_eigenvalue_occupancy
@@ -25992,6 +26134,7 @@ print_values	libXC/testsuite/xc-get_data.c	/^void print_values(xc_values_type *x
 print_values	libXC/testsuite/xc-regression.c	/^void print_values(char *desc, int nspin, int n_val, double *val)$/;"	f
 printbandgap	printbandgap.f90	/^subroutine printbandgap(/;"	s
 printbox	src_gw/ioutils.f90	/^      subroutine printbox(/;"	s
+printgridweights	src_inputparser/inputmodules.f90	/^ logical::printgridweights$/;"	k	type:writekpathweights_type
 printline	src_gw/ioutils.f90	/^      subroutine printline(/;"	s
 printso	src_xs/modbse.f90	/^    subroutine printso(/;"	s	module:modbse
 printtext	src_gw/ioutils.f90	/^      subroutine printtext(/;"	s
@@ -26295,6 +26438,7 @@ rdqagse	libXC/src/integrate.c	/^void rdqagse(integr_fn f, void *ex, FLOAT *a, FL
 rdqelg	libXC/src/integrate.c	/^static void rdqelg(int *n, FLOAT *epstab, FLOAT *$/;"	f	file:
 rdqk21	libXC/src/integrate.c	/^static void  rdqk21(integr_fn f, void *ex, FLOAT *a, FLOAT *b, FLOAT *result,$/;"	f	file:
 rdqpsrt	libXC/src/integrate.c	/^static void rdqpsrt(int *limit, int *last, int *maxerr,$/;"	f	file:
+read_bandstructure	src_xs/m_read_bandstructure.f90	/^    subroutine read_bandstructure(/;"	s	module:m_read_bandstructure
 read_densities	src_vdwdf/read_densities.f90	/^subroutine read_densities(/;"	s
 read_exccoeff	src_xs/mod_exciton_wf.f90	/^  subroutine read_exccoeff(/;"	s	module:mod_exciton_wf
 read_file	libXC/src/get_funcs.pl	/^sub read_file() {$/;"	s
@@ -26323,6 +26467,7 @@ readstate	readstate.f90	/^Subroutine readstate$/;"	s
 readvxcnn	src_gw/src_vxc/readvxcnn.f90	/^subroutine readvxcnn$/;"	s
 real	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^typedef \/*long*\/ double real;$/;"	t
 real_dp_str	FoX/fsys/fox_m_fsys_format.F90	/^  pure function real_dp_str(/;"	f	module:fox_m_fsys_format
+real_size	src_xs/bspline_oo_module.f90	/^    integer,parameter :: real_size /;"	v	module:bspline_oo_module
 real_sp_str	FoX/fsys/fox_m_fsys_format.F90	/^  pure function real_sp_str(/;"	f	module:fox_m_fsys_format
 reallocate	src_gw/reallocate.f90	/^       module reallocate$/;"	m
 reallocset	src_vdwdf/Cuba-3.2/src/common/stddecl.h	110;"	d
@@ -27018,6 +27163,7 @@ select_transitions	src_xs/modbse.f90	/^    subroutine select_transitions(/;"	s	m
 selectedcomp	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  count selectedcomp, size;$/;"	m	struct:_this
 selectenergy	src_inputparser/inputmodules.f90	/^ logical::selectenergy$/;"	k	type:storeexcitons_type
 selectenergy	src_inputparser/inputmodules.f90	/^ logical::selectenergy$/;"	k	type:writeexcitons_type
+selectenergy	src_inputparser/inputmodules.f90	/^ logical::selectenergy$/;"	k	type:writekpathweights_type
 selfcGW_vs_selfcW2	src_gw/selfcGW_vs_selfcW2.f90	/^subroutine selfcGW_vs_selfcW2$/;"	s
 selfec	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfec(/;"	v	module:mod_selfenergy
 selfecSR	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfecSR(/;"	v	module:mod_selfenergy
@@ -27055,6 +27201,7 @@ setTextContent	FoX/dom/m_dom_dom.F90	/^  subroutine setTextContent(/;"	s	module:
 setValue	FoX/dom/m_dom_dom.F90	/^  subroutine setValue(/;"	s	module:m_dom_dom
 setXds	FoX/dom/m_dom_dom.F90	/^  subroutine setXds(/;"	s	module:m_dom_dom
 setXmlVersion	FoX/dom/m_dom_dom.F90	/^  subroutine setXmlVersion(/;"	s	module:m_dom_dom
+set_extrap_flag	src_xs/bspline_oo_module.f90	/^    pure subroutine set_extrap_flag(/;"	s
 set_localName_by_index_s	FoX/common/m_common_attrs.F90	/^  subroutine set_localName_by_index_s(/;"	s	module:m_common_attrs
 set_localName_by_index_vs	FoX/common/m_common_attrs.F90	/^  subroutine set_localName_by_index_vs(/;"	s	module:m_common_attrs
 set_mpi_group	src_gw/mod_mpi_gw.f90	/^    subroutine set_mpi_group(/;"	s	module:mod_mpi_gw
@@ -27070,7 +27217,7 @@ setdocumentURI	FoX/dom/m_dom_dom.F90	/^subroutine setdocumentURI(/;"	s	module:m_
 setdomConfig	FoX/dom/m_dom_dom.F90	/^subroutine setdomConfig(/;"	s	module:m_dom_dom
 setgqvars	src_xs/setgqvars.f90	/^subroutine setgqvars(/;"	s
 setillFormed	FoX/dom/m_dom_dom.F90	/^  subroutine setillFormed(/;"	s	module:m_dom_dom
-setint	src_xs/m_setup_bse.f90	/^        subroutine setint(/;"	s	subroutine:setup_bse
+setint	src_xs/m_setup_bse.f90	/^        subroutine setint(/;"	s	subroutine:setup_bse_block
 setisId_DOM	FoX/dom/m_dom_dom.F90	/^subroutine setisId_DOM(/;"	s	module:m_dom_dom
 setliveNodeLists	FoX/dom/m_dom_dom.F90	/^subroutine setliveNodeLists(/;"	s	module:m_dom_dom
 setnamespaceURI	FoX/dom/m_dom_dom.F90	/^subroutine setnamespaceURI(/;"	s	module:m_dom_dom
@@ -27093,18 +27240,19 @@ setstringValue	FoX/dom/m_dom_dom.F90	/^  subroutine setstringValue(/;"	s	module:
 setulb	Lbfgsb.3.0/lbfgsb.f	/^      subroutine setulb(/;"	s
 setumix	src_gw/setumix.f90	/^subroutine setumix(/;"	s
 setup_YY	src_mixing/setup_YY.f90	/^Subroutine setup_YY /;"	s
-setup_bse	src_xs/m_setup_bse.f90	/^    subroutine setup_bse(/;"	s	module:m_setup_bse
-setup_dis_ti_bse	src_xs/b_bse.f90	/^  subroutine setup_dis_ti_bse(/;"	s	subroutine:b_bse
-setup_distributed_bse	src_xs/m_setup_bse.f90	/^    subroutine setup_distributed_bse(/;"	s	module:m_setup_bse
-setup_distributed_pwmat	src_xs/m_setup_pwmat.f90	/^    subroutine setup_distributed_pwmat(/;"	s	module:m_setup_pwmat
-setup_distributed_rmat	src_xs/m_setup_rmat.f90	/^    subroutine setup_distributed_rmat(/;"	s	module:m_setup_rmat
-setup_full_bse	src_xs/b_bse.f90	/^  subroutine setup_full_bse(/;"	s	subroutine:b_bse
+setup_bse_block	src_xs/m_setup_bse.f90	/^    subroutine setup_bse_block(/;"	s	module:m_setup_bse
+setup_bse_block_dist	src_xs/m_setup_bse.f90	/^    subroutine setup_bse_block_dist(/;"	s	module:m_setup_bse
+setup_bse_full	src_xs/m_setup_bse.f90	/^    subroutine setup_bse_full(/;"	s	module:m_setup_bse
+setup_bse_ti	src_xs/m_setup_bse.f90	/^    subroutine setup_bse_ti(/;"	s	module:m_setup_bse
+setup_bse_ti_dist	src_xs/m_setup_bse.f90	/^    subroutine setup_bse_ti_dist(/;"	s	module:m_setup_bse
 setup_io	FoX/common/m_common_io.F90	/^  subroutine setup_io(/;"	s	module:m_common_io
 setup_node_groups	src_mpi/modmpi.F90	/^    subroutine setup_node_groups$/;"	s	module:modmpi
 setup_proc_groups	src_mpi/modmpi.F90	/^    subroutine setup_proc_groups(/;"	s	module:modmpi
 setup_pwmat	src_xs/m_setup_pwmat.f90	/^    subroutine setup_pwmat(/;"	s	module:m_setup_pwmat
+setup_pwmat_dist	src_xs/m_setup_pwmat.f90	/^    subroutine setup_pwmat_dist(/;"	s	module:m_setup_pwmat
 setup_rmat	src_xs/m_setup_rmat.f90	/^    subroutine setup_rmat(/;"	s	module:m_setup_rmat
-setup_ti_bse	src_xs/b_bse.f90	/^  subroutine setup_ti_bse(/;"	s	subroutine:b_bse
+setup_rmat_dist	src_xs/m_setup_rmat.f90	/^    subroutine setup_rmat_dist(/;"	s	module:m_setup_rmat
+setup_xyz	src_xs/b_writekpathweights.f90	/^    subroutine setup_xyz(/;"	s	subroutine:b_writekpathweights
 setupblacs	src_xs/modscl.f90	/^    subroutine setupblacs(/;"	s	module:modscl
 setuphsvect	src_iterative_solver/src_diis/setuphsvect.F90	/^Subroutine setuphsvect /;"	s
 setupprojectedhamilton	src_iterative_solver/src_diis/setupprojectedhamilton.F90	/^Subroutine setupprojectedhamilton /;"	s
@@ -27314,7 +27462,14 @@ size	src_vdwdf/Cuba-3.2/src/divonne/Integrate.c	/^  count phase, iter, pass, siz
 size	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  count selectedcomp, size;$/;"	m	struct:_this
 size	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  size_t size;$/;"	m	struct:region
 sizeHint	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  QSize sizeHint() const {$/;"	f	class:PartitionPlane
+size_1d	src_xs/bspline_oo_module.f90	/^    pure function size_1d(/;"	f
+size_2d	src_xs/bspline_oo_module.f90	/^    pure function size_2d(/;"	f
+size_3d	src_xs/bspline_oo_module.f90	/^    pure function size_3d(/;"	f
+size_4d	src_xs/bspline_oo_module.f90	/^    pure function size_4d(/;"	f
+size_5d	src_xs/bspline_oo_module.f90	/^    pure function size_5d(/;"	f
+size_6d	src_xs/bspline_oo_module.f90	/^    pure function size_6d(/;"	f
 size_el	FoX/common/m_common_entities.F90	/^  function size_el(/;"	f	module:m_common_entities
+size_func	src_xs/bspline_oo_module.f90	/^        pure function size_func(/;"	f
 skipgnd	src_inputparser/inputmodules.f90	/^ logical::skipgnd$/;"	k	type:gw_type
 skipgnd	src_inputparser/inputmodules.f90	/^ logical::skipgnd$/;"	k	type:xs_type
 skipgnd	src_xs/modxs.F90	/^      Logical :: skipgnd$/;"	v	module:modxs
@@ -27590,6 +27745,7 @@ statefile	src_vdwdf/main.f90	/^  character*(*)       :: statefile$/;"	v	program:
 statenumber	src_inputparser/inputmodules.f90	/^ integer::statenumber$/;"	k	type:output_type
 statestype	src_inputparser/inputmodules.f90	/^ character(512)::statestype$/;"	k	type:istate_type
 statestype	src_inputparser/inputmodules.f90	/^ character(512)::statestype$/;"	k	type:range_type
+status_ok	src_xs/bspline_oo_module.f90	/^    elemental function status_ok(/;"	f
 stctol	src_inputparser/inputmodules.f90	/^ real(8)::stctol$/;"	k	type:barecoul_type
 stdesc	src_gw/src_acfreq/stdesc.f90	/^      subroutine stdesc(/;"	s
 stepbound	src_mixing/stepbound.f90	/^Subroutine stepbound /;"	s
@@ -28197,7 +28353,9 @@ tpgknrc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: tpgknrc(/;"	k
 tpgqc	src_xs/modxs.F90	/^      Real (8), Allocatable :: tpgqc /;"	v	module:modxs
 tplane	src_mixing/modmixermsec.f90	/^      Real (8) :: MSECINFO (20), rtrap, SCHARGE, TCharge, splane, &$/;"	v	module:modmixermsec
 tpss_eq_13_14	libXC/src/mgga_c_pkzb.c	/^tpss_eq_13_14(FLOAT zeta, FLOAT csi2, int order, FLOAT *C, FLOAT *dCdzeta, FLOAT *dCdcsi2)$/;"	f	file:
+tq	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:),allocatable :: tq /;"	v
 tqgamma	src_xs/tqgamma.F90	/^logical function tqgamma(/;"	f
+tr	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:),allocatable :: tr /;"	v
 trace	src_raman/construct_chartabl.f90	/^function trace(/;"	f	subroutine:construct_chartabl
 trans	src_inputparser/inputmodules.f90	/^type(trans_/;"	k	type:trans_type_array
 trans_type	src_inputparser/inputmodules.f90	/^type trans_type$/;"	t	module:modinput
@@ -28227,6 +28385,7 @@ trial_sigma	libXC/testsuite/xc-regression.c	/^static double trial_sigma[] = {   
 trial_tau	libXC/testsuite/xc-regression.c	/^static double trial_tau[]   = {     0.0,  0.12E-02,  0.88E-01,  0.17E+01,  0.82E+02,  0.18E+04,  0.53E+05};$/;"	v	file:
 trsort	src_other/delaunay.f	/^      subroutine trsort(/;"	s
 true	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^typedef enum { false, true } bool;$/;"	e	enum:__anon61
+ts	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:),allocatable :: ts /;"	v
 tsaitr	ARPACK/SRC/stat.h	/^      real       tsaupd, tsaup2, tsaitr, tseigt, tsgets, tsapps, tsconv,$/;"	v
 tsaitr	ARPACK/SRC/stat.h	/^     &           tsaupd, tsaup2, tsaitr, tseigt, tsgets, tsapps, tsconv,$/;"	v
 tsapps	ARPACK/SRC/stat.h	/^      real       tsaupd, tsaup2, tsaitr, tseigt, tsgets, tsapps, tsconv,$/;"	v
@@ -28313,12 +28472,15 @@ two	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^     &                 zero, one, two,/;"	v	p
 two	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 zero, one, two,/;"	v	program:ssdrv6
 twopi	eos/modmain.f90	/^real(8), parameter :: twopi=/;"	v	module:modmain
 twopi	mod_constants.F90	/^      Real (8), Parameter :: twopi /;"	v	module:mod_constants
+tx	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:),allocatable :: tx /;"	v
 txml	stateconvert/main.F90	/^  logical :: exis, tbin, txml$/;"	v	program:main
+ty	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:),allocatable :: ty /;"	v
 type	FoX/common/m_common_attrs.F90	/^    integer :: type /;"	k	type:dict_item
 type	src_inputparser/inputmodules.f90	/^ character(512)::type$/;"	k	type:solver_type
 type	src_inputparser/speciesmodules.f90	/^ character(512)::type$/;"	k	type:custom_type
 type	src_inputparser/speciesmodules.f90	/^ character(512)::type$/;"	k	type:default_type
 typenumber	src_inputparser/inputmodules.f90	/^ integer::typenumber$/;"	k	type:solver_type
+tz	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:),allocatable :: tz /;"	v
 u	ARPACK/EXAMPLES/SVD/dsvd.f	/^     &                 v(ldv,maxncv), u(/;"	v	program:dsvd
 u	ARPACK/EXAMPLES/SVD/ssvd.f	/^     &                 v(ldv,maxncv), u(/;"	v	program:ssvd
 uadua	src_gw/mod_pmat.f90	/^  real(8), allocatable :: uadua(/;"	v	module:mod_pmat
@@ -28380,6 +28542,7 @@ usage	libXC/testsuite/xc-reference.pl	/^sub usage {$/;"	s
 usedlibzint	src_gw/mod_kpointset.f90	/^        logical :: usedlibzint /;"	k	type:k_set
 useev	src_inputparser/inputmodules.f90	/^ logical::useev$/;"	k	type:storeexcitons_type
 useev	src_inputparser/inputmodules.f90	/^ logical::useev$/;"	k	type:writeexcitons_type
+useev	src_inputparser/inputmodules.f90	/^ logical::useev$/;"	k	type:writekpathweights_type
 usefilext0	src_xs/modxs.F90	/^      logical :: usefilext0 /;"	v	module:modxs
 useforces	src_inputparser/inputmodules.f90	/^ logical::useforces$/;"	k	type:raman_type
 userdata	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	double precision epsrel, epsabs, userdata$/;"	v	program:CubaTest
@@ -28601,6 +28764,7 @@ versionname	mod_misc.F90	/^      character(40) :: versionname /;"	v	module:mod_m
 versions_gt	versions_gt.F90	/^logical function versions_gt(/;"	f
 vgc	mod_Gvector.F90	/^      Real (8), Allocatable :: vgc /;"	v	module:mod_Gvector
 vgc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vgc(/;"	k	type:G_set
+vgcmt	src_xs/modxs.F90	/^      real(8), allocatable :: vgcmt(/;"	v	module:modxs
 vgkc	mod_gkvector.F90	/^      Real (8), Allocatable, target :: vgkc /;"	v	module:mod_Gkvector
 vgkc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vgkc(/;"	k	type:Gk_set
 vgkc0	src_xs/modxs.F90	/^      Real (8), Allocatable, target :: vgkc0 /;"	v	module:modxs
@@ -28652,6 +28816,7 @@ vkloff	src_inputparser/inputmodules.f90	/^ real(8)::vkloff(/;"	k	type:xs_type
 vkloff	src_xs/modbse.f90	/^  real(8), dimension(3) :: vkloff,/;"	v	module:modbse
 vkloff_b	src_xs/modxs.F90	/^      Real (8) :: vkloff_b /;"	v	module:modxs
 vkloff_xs_b	src_xs/modxs.F90	/^      Real (8) :: vkloff_xs_b(/;"	v	module:modxs
+vklpath_	src_xs/m_read_bandstructure.f90	/^  real(8), allocatable :: vklpath_(/;"	v	module:m_read_bandstructure
 vkqmtmloff	src_xs/modbse.f90	/^  real(8), dimension(3) :: vkloff, vkqmtploff, vkqmtmloff$/;"	v	module:modbse
 vkqmtploff	src_xs/modbse.f90	/^  real(8), dimension(3) :: vkloff, vkqmtploff,/;"	v	module:modbse
 vksubc	src_xs/modxs.F90	/^      Real (8), Allocatable :: vksubc /;"	v	module:modxs
@@ -29124,6 +29289,7 @@ workl	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 v(ldv,maxncv), workl
 workspacequery	src_xs/bsesoldiag.F90	/^    subroutine workspacequery(/;"	s	subroutine:bsesoldiag
 workspacequery	src_xs/m_dhesolver.f90	/^        subroutine workspacequery(/;"	s	subroutine:dhesolver
 workspacequery	src_xs/m_hesolver.f90	/^        subroutine workspacequery(/;"	s	subroutine:hesolver
+wp	src_xs/bspline_sub_module.f90	/^    integer,parameter :: wp /;"	v	module:bspline_sub_module
 wparf	src_xs/modxs.F90	/^      Integer :: wparf$/;"	v	module:modxs
 wpari	src_xs/modxs.F90	/^      Integer :: wpari$/;"	v	module:modxs
 wpos	spacegroup/modmain.f90	/^real(8) wpos(/;"	v	module:modmain
@@ -29184,14 +29350,18 @@ writeiktetmap	src_xs/modtetra/modtetra.F90	/^      Subroutine writeiktetmap /;"	
 writeinfo	writeinfo.f90	/^Subroutine writeinfo /;"	s
 writekerr	src_xs/writekerr.F90	/^      Subroutine writekerr /;"	s	module:m_writekerr
 writekmapkq	src_xs/writekmapkq.F90	/^Subroutine writekmapkq /;"	s
+writekpathplot	src_xs/b_writekpathweights.f90	/^    subroutine writekpathplot(/;"	s	subroutine:b_writekpathweights
+writekpathweights	src_inputparser/inputmodules.f90	/^  type(writekpathweights_/;"	k	type:xs_type
+writekpathweights_type	src_inputparser/inputmodules.f90	/^type writekpathweights_type$/;"	t	module:modinput
 writekpts	writekpts.f90	/^subroutine writekpts$/;"	s
 writelambda	src_phonon/writelambda.f90	/^Subroutine writelambda /;"	s
 writelat	writelat.f90	/^Subroutine writelat$/;"	s
 writeldapu	src_LDAU/writeldapu.f90	/^Subroutine writeldapu$/;"	s
 writelinen	writelinen.f90	/^Subroutine writelinen$/;"	s
-writeloss	src_xs/writeloss.F90	/^      Subroutine writeloss /;"	s	module:m_writeloss
+writeloss	src_xs/writeloss.F90	/^    subroutine writeloss(/;"	s	module:m_writeloss
 writelsj	writelsj.f90	/^Subroutine writelsj$/;"	s
 writemeta	src_xs/m_putgetbsemat.f90	/^  logical :: writemeta=/;"	v	module:m_putgetbsemat
+writeminus	src_inputparser/inputmodules.f90	/^ logical::writeminus$/;"	k	type:BSE_type
 writeoptminitdata	relax.f90	/^subroutine writeoptminitdata(/;"	s
 writeoscillator	src_xs/writeoscillator.f90	/^    subroutine writeoscillator(/;"	s	module:m_writeoscillator
 writeparts	src_inputparser/inputmodules.f90	/^ logical::writeparts$/;"	k	type:BSE_type
@@ -29217,6 +29387,7 @@ writesymt2	src_xs/writesymt2.F90	/^Subroutine writesymt2$/;"	s
 writetime	writetime.f90	/^Subroutine writetime /;"	s
 writetorque	writetorque.f90	/^subroutine writetorque(/;"	s
 writevars	src_xs/writevars.F90	/^      Subroutine writevars /;"	s	module:m_writevars
+writeweights	src_xs/b_writekpathweights.f90	/^    subroutine writeweights(/;"	s	subroutine:b_writekpathweights
 writewiq2	writewiq2.f90	/^Subroutine writewiq2$/;"	s
 writexmlspecies	species/writexmlspecies.F90	/^subroutine writexmlspecies$/;"	s
 wrnmsg	src_gw/ioutils.f90	/^      subroutine wrnmsg(/;"	s

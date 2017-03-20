@@ -3,9 +3,7 @@ module m_sqrtzmat
   use modmpi
   use modscl
   use m_dhesolver
-  use m_dzgemm
-
-use m_writecmplxparts
+  use m_dzmatmult
 
   implicit none
 
@@ -40,9 +38,6 @@ use m_writecmplxparts
 
       ! Diagonalize hermitian matrix
       call hesolver(hepdmat, evals, evec=evecs)
-
-      !write(*,*) "Writing amp evals"
-      !call writecmplxparts("nd_amb_evals", revec=evals, veclen=size(evals))
 
       ! Take square root of eigenvalues
       if(any(evals < 0.0d0)) then 
@@ -114,10 +109,6 @@ use m_writecmplxparts
       ! Diagonalize hermitian matrix
       call dhesolver(hepdmat, evals, binfo, evecs, eecs=clustersize)
 
-      !if(mpiglobal%rank == 0) then 
-      !  call writecmplxparts('amb_evals', revec=evals, veclen=size(evals))
-      !end if
-
       ! Take square root of eigenvalues
       if(any(evals < 0.0d0)) then 
         write(*,*) "Error(sqrtmat_hepd): Matrix is not positive definit"
@@ -137,7 +128,7 @@ use m_writecmplxparts
       end do
       
       ! Construct square root matrix
-      call dzgemm(evecs, evecs, hepdmat, transb='C')
+      call dzmatmult(evecs, evecs, hepdmat, transb='C')
 
       deallocate(evals)
       call del_dzmat(evecs)

@@ -1,7 +1,7 @@
 module m_writeoscillator
   use modmpi
   use modinput, only: input
-  use modxs, only: bsed, escale
+  use modxs, only: bsed, escale, ivgmt, vqlmt, vgcmt, vqcmt
 #ifdef DGRID
   use modxs, only: dgrid, iksubpt
 #endif
@@ -12,21 +12,21 @@ module m_writeoscillator
 
   contains
 
-    subroutine writeoscillator(hamsize, nexc, eshift, evalre, oszstrr,&
-      & evalim, oszstra, sort, iqmt)
+    subroutine writeoscillator(hamsize, nexc, eshift, evalre, oscstrr,&
+      & evalim, oscstra, sort, iqmt)
       ! I/O
       integer(4), intent(in) :: hamsize, nexc
       real(8), intent(in) :: eshift
       real(8), intent(in) :: evalre(hamsize)
-      complex(8), intent(in) :: oszstrr(:,:)
+      complex(8), intent(in) :: oscstrr(:,:)
       real(8), intent(in), optional :: evalim(hamsize)
-      complex(8), intent(in), optional :: oszstra(:,:)
+      complex(8), intent(in), optional :: oscstra(:,:)
       logical, intent(in), optional :: sort
       integer(4), intent(in), optional :: iqmt
 
       ! Local
       logical :: fsort
-      integer(4) :: o1, lambda, unexc, i, j, io1, io2
+      integer(4) :: o1, lambda, unexc, i, io1, io2
       integer(4), allocatable :: idxsort(:), idxsort2(:)
       real(8), allocatable :: evalre_sorted(:)
       real(8) :: pm
@@ -135,11 +135,23 @@ module m_writeoscillator
         ! Write out exciton energies and oscillator strengths
         call getunit(unexc)
         open(unexc, file=fnexc, form='formatted', action='write', status='replace')
+        write(unexc, '("#",1x,"Excitonic eigen energies and oscillator strengths")')
+        write(unexc, '("#")')
+        write(unexc, '("# Momentum transfer Q=G+q in lattice cooridnates")')
+        write(unexc, '("# G:",3i4)') ivgmt(1:3,iqmt) 
+        write(unexc, '("# q:",3f12.7)') vqlmt(1:3,iqmt) 
+        write(unexc, '("# Momentum transfer Q=G+q in Cartesian cooridnates")')
+        write(unexc, '("# G:",3f12.7)') vgcmt(1:3,iqmt) 
+        write(unexc, '("# q:",3f12.7)') vqcmt(1:3,iqmt) 
+        write(unexc, '("# Norm2(G+q)",f12.7)') norm2(vgcmt(:,iqmt)+vqcmt(:,iqmt))
+        write(unexc, '("#")')
         if(input%xs%tevout) write(unexc, '("# All energies are given in electron volts")')
+        write(unexc, '("# Energy scale",f12.7)') escale
         write(unexc, '("# E_shift : ", SP, E23.16)') eshift * escale
+        write(unexc, '("#")')
 
         ! Full BSE
-        if(present(oszstra) .and. present(evalim)) then
+        if(present(oscstra) .and. present(evalim)) then
 
           frmt='(a1,a7,9(1x,a23))'
           write(unexc, frmt) "#", "Nr.",&
@@ -163,15 +175,15 @@ module m_writeoscillator
               & evalre(idxsort(lambda))*escale,&
               & (evalre(idxsort(lambda))+eshift*pm)*escale,&
               & evalim(idxsort(lambda))*escale,&
-              & abs(oszstrr(idxsort(lambda), o1)),&
-              & dble(oszstrr(idxsort(lambda), o1)),&
-              & aimag(oszstrr(idxsort(lambda), o1)),&
-              & abs(oszstra(idxsort(lambda), o1)),&
-              & dble(oszstra(idxsort(lambda), o1)),&
-              & aimag(oszstra(idxsort(lambda), o1))
+              & abs(oscstrr(idxsort(lambda), o1)),&
+              & dble(oscstrr(idxsort(lambda), o1)),&
+              & aimag(oscstrr(idxsort(lambda), o1)),&
+              & abs(oscstra(idxsort(lambda), o1)),&
+              & dble(oscstra(idxsort(lambda), o1)),&
+              & aimag(oscstra(idxsort(lambda), o1))
           end do
 
-        else if(present(oszstra)) then
+        else if(present(oscstra)) then
 
           frmt='(a1,a7,8(1x,a23))'
           write(unexc, frmt) "#", "Nr.",&
@@ -193,12 +205,12 @@ module m_writeoscillator
             write(unexc, frmt) idxsort(lambda),&
               & evalre(idxsort(lambda))*escale,&
               & (evalre(idxsort(lambda))+eshift*pm)*escale,&
-              & abs(oszstrr(idxsort(lambda), o1)),&
-              & dble(oszstrr(idxsort(lambda), o1)),&
-              & aimag(oszstrr(idxsort(lambda), o1)),&
-              & abs(oszstra(idxsort(lambda), o1)),&
-              & dble(oszstra(idxsort(lambda), o1)),&
-              & aimag(oszstra(idxsort(lambda), o1))
+              & abs(oscstrr(idxsort(lambda), o1)),&
+              & dble(oscstrr(idxsort(lambda), o1)),&
+              & aimag(oscstrr(idxsort(lambda), o1)),&
+              & abs(oscstra(idxsort(lambda), o1)),&
+              & dble(oscstra(idxsort(lambda), o1)),&
+              & aimag(oscstra(idxsort(lambda), o1))
           end do
 
         ! TDA case or coupling with time inverted ar basis
@@ -216,9 +228,9 @@ module m_writeoscillator
             write(unexc, frmt) lambda,&
               & evalre(lambda)*escale,&
               & (evalre(lambda)+eshift)*escale,&
-              & abs(oszstrr(lambda, o1)),&
-              & dble(oszstrr(lambda, o1)),&
-              & aimag(oszstrr(lambda, o1))
+              & abs(oscstrr(lambda, o1)),&
+              & dble(oscstrr(lambda, o1)),&
+              & aimag(oscstrr(lambda, o1))
           end do
 
         end if

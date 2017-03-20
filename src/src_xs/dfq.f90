@@ -27,7 +27,7 @@ subroutine dfq(iq)
                 & deuo, docc12, docc21, xiou,&
                 & xiuo, pmou, pmuo, nwdf,&
                 & bsed, ikmapikq, tordf, symt2,&
-                & bcbs, filext0, filexteps,&
+                & bcbs, filexteps,&
                 & eps0dirname, scrdirname, timingdirname
 #ifdef TETRA      
   use mod_eigenvalue_occupancy, only: nstsv, evalsv, efermi 
@@ -447,9 +447,6 @@ subroutine dfq(iq)
 
       else
 
-        !write(*,*) "dfq: filext=",trim(filext)
-        !write(*,*) "dfq: filext0=",trim(filext0)
-
         ! The plane wave elements for ou and uo transitions are 
         ! calculated and stored in xiou and xiuo
         ! Set 12=ou 34=uo
@@ -539,8 +536,8 @@ subroutine dfq(iq)
     end if
 
 !****************** Plane wave elements magic  WRONG ??******************!
+    ! Old behaviour - no idea why that should be right
     if(tscreen .and. .not. input%xs%bse%beyond) then
-      ! Old behaviour - no idea why that should be right
       ! we don't need anti-resonant parts here, assign them the same
       ! value as for resonant parts, resulting in a factor of two.
       do igq = 1, n
