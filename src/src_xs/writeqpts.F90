@@ -33,10 +33,10 @@ subroutine writeqpts
   Call genfilname(basename='QPOINTS', appfilext=.True., filnam=filnam)
 
   open(un, file=trim(filnam), action='WRITE', form='FORMATTED')
-  write(un, '(I6, " : nqpt; q-point, vql, vqc, wqpt, ngq below")') nqpt
+  write(un, '(I6, " : nqpt; q-point, vql, vqc, ngq below")') nqpt
 
   do iq = 1, nqpt
-    write(un, '(i6, 6g18.10, i8)') iq, vql(:, iq), vqc(:, iq), ngq(iq)
+    write(un, '(i6, 6E18.10, i8)') iq, vql(:, iq), vqc(:, iq), ngq(iq)
   end do
 
   close(un)
@@ -49,7 +49,7 @@ subroutine writeqpts
     write(un, '(i6, " : nqptr; q-point, vqlr, vqcr, wqptr below")') nqptr
 
     do iq = 1, nqptr
-      write(un, '(i6, 7g18.10)') iq, vqlr(:, iq), vqcr(:, iq), wqptr(iq)
+      write(un, '(i6, 7E18.10)') iq, vqlr(:, iq), vqcr(:, iq), wqptr(iq)
     end do
 
     close(un)

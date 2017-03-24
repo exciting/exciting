@@ -171,9 +171,17 @@ use m_writecmplxparts
     !write(*,*) "b_bse: Running non parallel version."
 
     ! General init
+    call timesec(ts0)
     call init0
+    call timesec(ts1)
+    write(unitout, '("Info(b_bse):&
+      & Init0 time:", f12.6)') ts1 - ts0
     ! k-grid init
+    call timesec(ts0)
     call init1
+    call timesec(ts1)
+    write(unitout, '("Info(b_bse):&
+      & Init1 time:", f12.6)') ts1 - ts0
     ! Save variables of the unshifted (apart from xs:vkloff) k grid 
     ! to modxs (vkl0, ngk0, ...)
     call xssave0
@@ -187,7 +195,11 @@ use m_writecmplxparts
     !   * The square root of the Coulomb potential for the G+qmt points
     !   * Reads STATE.OUT
     !   * Generates radial functions (mod_APW_LO)
+    call timesec(ts0)
     call init2
+    call timesec(ts1)
+    write(unitout, '("Info(b_bse):&
+      & Init2 time:", f12.6)') ts1 - ts0
 
     !write(*,*) "b_bse: iqmt=", iqmt
     !write(*,*) "b_bse: vqlmt=", vqlmt(1:3, iqmt)
@@ -557,13 +569,12 @@ use m_writecmplxparts
       & Writing excition energies and oscillator strengths to text file.")')
     if(fcoup .and. .not. fti) then
       call writeoscillator(2*hamsize, nexc, bsegap+sci, bevalre, oscsr,&
-        & evalim=bevalim, oscstra=oscsa, sort=.true.)
+        & evalim=bevalim, oscstra=oscsa, sort=.true., iqmt=iqmt)
     else
       call writeoscillator(hamsize, nexc, -(bsegap+sci), bevalre, oscsr, iqmt=iqmt)
     end if
 
     ! Calculate lattice symmetrized spectrum.
-    allocate(symspectr(3,3,nw))
     if(fcoup) then 
       if(fti) then
         call makespectrum_ti(iqmt, nexc, nk_bse, bevalre, oscsr, symspectr)
@@ -574,8 +585,6 @@ use m_writecmplxparts
       call makespectrum_tda(iqmt, nexc, nk_bse, bevalre, oscsr, symspectr)
     end if
 
-    write(unitout, '("Info(b_bse): Writing derived quantities.")')
-
     ! Generate an evenly spaced frequency grid 
     allocate(w(nw))
     call genwgrid(nw, input%xs%energywindow%intv,&
@@ -583,8 +592,6 @@ use m_writecmplxparts
 
     ! Generate and write derived optical quantities
     call writederived(iqmt, symspectr, nw, w)
-
-    write(unitout, '("  Derived quantities written.")')
 
     ! Clean up
     deallocate(bevalre, oscsr, w, symspectr, evalsv)
@@ -619,6 +626,9 @@ use m_writecmplxparts
     call setupblacs(mpiglobal, '0d', bi0d, np=1)
 
     ! General init
+    if(bi2d%isroot) then 
+      call timesec(ts0)
+    end if
     call init0
     ! k-grid init
     call init1
@@ -636,6 +646,11 @@ use m_writecmplxparts
     !   * Reads STATE.OUT
     !   * Generates radial functions (mod_APW_LO)
     call init2
+    if(bi2d%isroot) then 
+      call timesec(ts1)
+      write(unitout, '("Info(b_bse):&
+        & Init time:", f12.6)') ts1 - ts0
+    end if
 
     ! Read Fermi energy from file
     ! Use EFERMI_QMT001.OUT

@@ -184,10 +184,11 @@ Subroutine xsmain (plan)
             call xasinit
             call bsegenspec
             call xasfinit
+          else if(input%xs%bse%beyond) then
+            call b_bsegenspec
           else
             Call bsegenspec
           end if
-          Call bsegenspec
          Case (447)
      ! ASCII output of BSE eigenvectors
             if(input%xs%bse%beyond) then 

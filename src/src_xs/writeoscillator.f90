@@ -26,7 +26,7 @@ module m_writeoscillator
 
       ! Local
       logical :: fsort
-      integer(4) :: o1, lambda, unexc, i, io1, io2
+      integer(4) :: o1, lambda, unexc, i, io1, io2, iq
       integer(4), allocatable :: idxsort(:), idxsort2(:)
       real(8), allocatable :: evalre_sorted(:)
       real(8) :: pm
@@ -63,7 +63,6 @@ module m_writeoscillator
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
 
-
       allocate(idxsort(hamsize))
       if(fsort) then 
         allocate(idxsort2(hamsize/2))
@@ -85,13 +84,17 @@ module m_writeoscillator
       end if
 
       ! Loop over optical components
+      if(present(iqmt)) then 
+        iq = iqmt
+      else
+        iq = 1
+      end if
+
       io1=1
       io2=3
-      if(present(iqmt)) then 
-        if(iqmt /= 1) then 
-          io1=1
-          io2=1
-        end if
+      if(iq /= 1) then 
+        io1=1
+        io2=1
       end if
 
       do o1=io1,io2
@@ -114,16 +117,10 @@ module m_writeoscillator
           
         endif
 #else
-        if(present(iqmt)) then 
-          if(iqmt /= 1) then 
-            call genfilname(basename='EXCITON', iqmt=iqmt,&
-              & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
-              & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
-          else
-            call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
-              & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
-              & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
-          end if
+        if(iq /= 1) then 
+          call genfilname(basename='EXCITON', iqmt=iq,&
+            & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
+            & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
         else
           call genfilname(basename='EXCITON', tq0=.true., oc1=o1, oc2=o1,&
             & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
@@ -138,14 +135,13 @@ module m_writeoscillator
         write(unexc, '("#",1x,"Excitonic eigen energies and oscillator strengths")')
         write(unexc, '("#")')
         write(unexc, '("# Momentum transfer Q=G+q in lattice cooridnates")')
-        write(unexc, '("# G:",3i4)') ivgmt(1:3,iqmt) 
-        write(unexc, '("# q:",3f12.7)') vqlmt(1:3,iqmt) 
+        write(unexc, '("# G:",3i4)') ivgmt(1:3,iq) 
+        write(unexc, '("# q:",3f12.7)') vqlmt(1:3,iq) 
         write(unexc, '("# Momentum transfer Q=G+q in Cartesian cooridnates")')
-        write(unexc, '("# G:",3f12.7)') vgcmt(1:3,iqmt) 
-        write(unexc, '("# q:",3f12.7)') vqcmt(1:3,iqmt) 
-        write(unexc, '("# Norm2(G+q)",f12.7)') norm2(vgcmt(:,iqmt)+vqcmt(:,iqmt))
+        write(unexc, '("# G:",3f12.7)') vgcmt(1:3,iq) 
+        write(unexc, '("# q:",3f12.7)') vqcmt(1:3,iq) 
+        write(unexc, '("# Norm2(G+q)",f12.7)') norm2(vgcmt(:,iq)+vqcmt(:,iq))
         write(unexc, '("#")')
-        if(input%xs%tevout) write(unexc, '("# All energies are given in electron volts")')
         write(unexc, '("# Energy scale",f12.7)') escale
         write(unexc, '("# E_shift : ", SP, E23.16)') eshift * escale
         write(unexc, '("#")')

@@ -1,6 +1,6 @@
 subroutine writederived(iqmt, eps, nw, w)
   use modmpi
-  use modxs, only: fneps, fnloss, fnsigma, fnsumrules
+  use modxs, only: unitout, fneps, fnloss, fnsigma, fnsumrules
   use modinput, only: input
   use m_genfilname
   use m_genloss
@@ -23,11 +23,14 @@ subroutine writederived(iqmt, eps, nw, w)
   integer(4) :: optvec(3)
   real(8) :: loss(3, 3, nw)
   complex(8) :: sigma(nw)
-  real(8) :: sumrls(3)
+  !real(8) :: sumrls(3)
   logical :: foff
   character(256) :: tdastring, bsetypestring, tistring, scrtypestring
   character(256) :: syscommand, epsilondir, lossdir, sigmadir
 
+  character(*), parameter :: thisname = "writederived"
+
+  write(unitout, '("Info(",a,"): Writing eps_m derived quantities.")') trim(thisname)
 
   epsilondir='EPSILON'
   lossdir='LOSS'
@@ -141,4 +144,6 @@ subroutine writederived(iqmt, eps, nw, w)
     ! End loop over optical components
     end do
   end do
+
+  write(unitout, '("  Derived quantities written.")')
 end subroutine writederived

@@ -79,6 +79,7 @@ subroutine b_screenlauncher
 
   ! Write out q-points
   if(rank == 0) then
+    call genfilname(iqmt=iqmtgamma, scrtype='', setfilext=.true.)
     call writeqpts
   end if
 
@@ -329,6 +330,16 @@ subroutine b_screenlauncher
 
       ! Free the xsgrids 
       call xsgrids_finalize()
+
+      ! Write out q-points
+      if(rank == 0) then
+        if(fti) then 
+          call genfilname(iqmt=iqmt, scrtype='', auxtype='m', setfilext=.true.)
+        else
+          call genfilname(iqmt=iqmt, scrtype='', auxtype='mqmt', setfilext=.true.)
+        end if
+        call writeqpts
+      end if
 
       if(.not. fti) then 
 

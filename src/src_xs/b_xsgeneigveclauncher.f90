@@ -59,6 +59,7 @@ subroutine b_xsgeneigveclauncher
 
   if(rank .eq. 0) then 
     ! Write Q-points
+    call writeqmtpts
     call writeqpts
     do iq = 1, nqpt
       if(tscreen) then 

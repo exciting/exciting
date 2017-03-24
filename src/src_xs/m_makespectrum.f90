@@ -19,7 +19,7 @@ module m_makespectrum
       integer(4), intent(in) :: iqmt, nexc, nk
       real(8), intent(in) :: bevalre(:)
       complex(8), intent(in) :: oscsr(:,:)
-      complex(8), intent(out) :: spectrum(:,:,:)
+      complex(8), allocatable, intent(inout) :: spectrum(:,:,:)
 
       ! Local
       integer(4) :: nfreq
@@ -36,6 +36,7 @@ module m_makespectrum
       ! Allocate frequency array used in spectrum construction
       nfreq = input%xs%energywindow%points
       allocate(freq(nfreq))
+      allocate(spectrum(3,3,nfreq))
 
       ! Generate an evenly spaced frequency grid 
       call genwgrid(nfreq, input%xs%energywindow%intv,&
@@ -64,7 +65,7 @@ module m_makespectrum
         write(unitout, '("Info(",a,"): Using fomula for ti ar basis.")') trim(thisname)
       end if
       if(iqmt /= 1 .and. .not. useti) then 
-        write(unitout, '("Info(",a,"):&
+        write(unitout, '("Error(",a,"):&
           & Finite momentum transfer only supported for ti ar basis.")') trim(thisname)
         call terminate
       end if
@@ -249,7 +250,7 @@ module m_makespectrum
       integer(4), intent(in) :: iqmt, nexc, nk
       real(8), intent(in) :: bevalre(:)
       complex(8), intent(in) :: oscsr(:,:), oscsa(:,:)
-      complex(8), intent(out) :: spectrum(:,:,:)
+      complex(8), allocatable, intent(inout) :: spectrum(:,:,:)
 
       ! Local
       integer(4) :: nfreq
@@ -275,6 +276,7 @@ module m_makespectrum
       ! Allocate frequency array used in spectrum construction
       nfreq = input%xs%energywindow%points
       allocate(freq(nfreq))
+      allocate(spectrum(3,3,nfreq))
 
       ! Generate an evenly spaced frequency grid 
       call genwgrid(nfreq, input%xs%energywindow%intv,&
@@ -369,7 +371,7 @@ module m_makespectrum
       integer(4), intent(in) :: iqmt, nexc, nk
       real(8), intent(in) :: bevalre(:)
       complex(8), intent(in) :: oscsr(:,:)
-      complex(8), intent(out) :: spectrum(:,:,:)
+      complex(8), allocatable, intent(inout) :: spectrum(:,:,:)
 
       ! Local
       integer(4) :: nfreq
@@ -386,6 +388,7 @@ module m_makespectrum
       ! Allocate frequency array used in spectrum construction
       nfreq = input%xs%energywindow%points
       allocate(freq(nfreq))
+      allocate(spectrum(3,3,nfreq))
 
       ! Generate an evenly spaced frequency grid 
       call genwgrid(nfreq, input%xs%energywindow%intv,&
