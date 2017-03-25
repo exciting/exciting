@@ -61,7 +61,8 @@ subroutine writederived(iqmt, eps, nw, w)
 
   ! Generate loss function as inverted dielectric tensor
   ! or 1/epsm for finite q
-  if(iqmt == 0) then 
+  loss = 0.0d0
+  if(iqmt == 1) then 
     call genloss(eps, loss, 3)
   else
     call genloss(eps, loss, 1)

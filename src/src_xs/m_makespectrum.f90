@@ -36,7 +36,9 @@ module m_makespectrum
       ! Allocate frequency array used in spectrum construction
       nfreq = input%xs%energywindow%points
       allocate(freq(nfreq))
+      if(allocated(spectrum)) deallocate(spectrum)
       allocate(spectrum(3,3,nfreq))
+      spectrum = zzero
 
       ! Generate an evenly spaced frequency grid 
       call genwgrid(nfreq, input%xs%energywindow%intv,&
@@ -276,7 +278,9 @@ module m_makespectrum
       ! Allocate frequency array used in spectrum construction
       nfreq = input%xs%energywindow%points
       allocate(freq(nfreq))
+      if(allocated(spectrum)) deallocate(spectrum)
       allocate(spectrum(3,3,nfreq))
+      spectrum = zzero
 
       ! Generate an evenly spaced frequency grid 
       call genwgrid(nfreq, input%xs%energywindow%intv,&
@@ -388,7 +392,9 @@ module m_makespectrum
       ! Allocate frequency array used in spectrum construction
       nfreq = input%xs%energywindow%points
       allocate(freq(nfreq))
+      if(allocated(spectrum)) deallocate(spectrum)
       allocate(spectrum(3,3,nfreq))
+      spectrum = zzero
 
       ! Generate an evenly spaced frequency grid 
       call genwgrid(nfreq, input%xs%energywindow%intv,&
