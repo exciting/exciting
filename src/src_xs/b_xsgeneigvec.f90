@@ -65,7 +65,7 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
       end if
     end if
 
-    if(iq /= 1 .and. all(qvkloff(1:3,iq) == qvkloff(1:3,1))) then
+    if(iq /= 1 .and. all(abs(qvkloff(1:3,iq)-qvkloff(1:3,1)) < epslat)) then
       if(rank == 0) then 
         write(unitout, '("Info(", a, "): Q-point ", i4,&
         &  " has the same k-grid offset as the Q=0 qmt point, skipping GS calculation.")')&
