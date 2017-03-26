@@ -882,11 +882,11 @@ use m_writecmplxparts
     deallocate(igqmap)
     deallocate(wfc)
 
-    !if(rank == 0) then
-    !  write(6, '(a,"Scrcoulint progess:", f10.3)', advance="no")&
-    !    & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
-    !  flush(6)
-    !end if
+    if(rank == 0) then
+      write(6, '(a,"Scrcoulint progess:", f10.3)', advance="no")&
+        & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
+      flush(6)
+    end if
 
   ! End loop over(k,kp)-pairs
   end do kkploop
