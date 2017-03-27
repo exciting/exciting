@@ -215,7 +215,9 @@ module m_setup_pwmat
 
       call setup_pwmat(pwmat(:,1), iqmt, igqmt)
 
-      call dzmat_copy_global2local(pwmat, dpwmat, binfo)
+      if(binfo%isactive) then 
+        call dzmat_copy_global2local(pwmat, dpwmat, binfo)
+      end if
       
     end subroutine setup_pwmat_dist
     !EOC

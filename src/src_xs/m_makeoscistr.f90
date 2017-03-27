@@ -329,33 +329,38 @@ module m_makeoscistr
 
         nopt=3
 
-        ! Distributed oscillator strengths
-        call new_dzmat(doscsr, nexc, nopt, binfo, rblck=binfo%mblck, cblck=1)
+        if(binfo%isactive) then 
 
-        !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-        ! Building position operator matrix elements using momentum matrix elements  !
-        ! and transition energies. If on top of GW, renormalize the p mat elements.  !
-        !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-        ! Distributed position operator matrix
-        call new_dzmat(dprojmat, hamsize, nopt, binfo, rblck=binfo%mblck, cblck=1)
+          ! Distributed oscillator strengths
+          call new_dzmat(doscsr, nexc, nopt, binfo, rblck=binfo%mblck, cblck=1)
 
-        ! Build position operator matrix elements
-        if(binfo%isroot) then 
-          write(unitout, '("  Building Rmat.")')
-          call timesec(t0)
+          !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+          ! Building position operator matrix elements using momentum matrix elements  !
+          ! and transition energies. If on top of GW, renormalize the p mat elements.  !
+          !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+          ! Distributed position operator matrix
+          call new_dzmat(dprojmat, hamsize, nopt, binfo, rblck=binfo%mblck, cblck=1)
+
+
+          ! Build position operator matrix elements
+          if(binfo%isroot) then 
+            write(unitout, '("  Building Rmat.")')
+            call timesec(t0)
+          end if
+
+          ! Build R-matrix from P-matrix
+          ! \tilde{R}_{a,i} = 
+          !   \sqrt{|f_{o_a,k_a}-f_{u_a,k_a}|} *
+          !     P^i_{o_a,u_a,k_a} /(e_{u_a, k_a} - e_{o_a, k_a})
+          call setup_rmat_dist(dprojmat, binfo)
+
+          if(binfo%isroot) then
+            call timesec(t1)
+            write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+          end if
+          !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+
         end if
-
-        ! Build R-matrix from P-matrix
-        ! \tilde{R}_{a,i} = 
-        !   \sqrt{|f_{o_a,k_a}-f_{u_a,k_a}|} *
-        !     P^i_{o_a,u_a,k_a} /(e_{u_a, k_a} - e_{o_a, k_a})
-        call setup_rmat_dist(dprojmat, binfo)
-
-        if(binfo%isroot) then
-          call timesec(t1)
-          write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-        end if
-        !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
       else
 
@@ -367,14 +372,18 @@ module m_makeoscistr
 
         nopt=1
 
-        ! Distributed oscillator strengths
-        call new_dzmat(doscsr, nexc, nopt, binfo, rblck=binfo%mblck, cblck=1)
+        if(binfo%isactive) then 
 
-        !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-        ! Building plane wave matrix elements                                        !
-        !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-        ! Distributed position operator matrix
-        call new_dzmat(dprojmat, hamsize, nopt, binfo, rblck=binfo%mblck, cblck=1)
+          ! Distributed oscillator strengths
+          call new_dzmat(doscsr, nexc, nopt, binfo, rblck=binfo%mblck, cblck=1)
+
+          !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+          ! Building plane wave matrix elements                                        !
+          !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+          ! Distributed position operator matrix
+          call new_dzmat(dprojmat, hamsize, nopt, binfo, rblck=binfo%mblck, cblck=1)
+
+        end if
 
         ! Build plane wave matrix elements
         if(binfo%isroot) then 
@@ -391,127 +400,133 @@ module m_makeoscistr
           write(unitout, '("    Time needed",f12.3,"s")') t1-t0
         end if
         !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+
       end if
 
-      !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-      ! TDA case: Build resonant oscillator strengths                              !
-      !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-      if(.not. usecoup) then
+      if(binfo%isactive) then
 
-        if(binfo%isroot) then 
-          write(unitout, '("  Building distributed resonant oscillator strengths.")')
-          call timesec(t0)
-        end if
-
-        !! Resonant oscillator strengths
-        if(.not. useip) then
-          ! qmt=0 case:
-          ! t^R_{\lambda,i} = <X_\lambda|\tilde{R}^{i*}> =
-          !   \Sum_{a} X^H_{\lambda, a} \tilde{R}^*_{a,i}
-          ! qmt/=0 case:
-          ! t^R_{\lambda}(G,qmt) = <X_\lambda|\tilde{M}^*(G,qmt)> =
-          !   \Sum_{a} X^H_{\lambda, a} \tilde{M}^*_{a}(G,qmt)
-          dprojmat%za=conjg(dprojmat%za)
-          call dzmatmult(dbevecr, dprojmat, doscsr, transa='C', m=nexc)
-          ! Deallocating eigenvectors
-          call del_dzmat(dbevecr)
-        else
-          ! IP: X_{\alpha,\lambda} = \delta_{\alpha,\lambda}
-          ! qmt=0 case:
-          ! t^R_{\lambda,i} = <X_\lambda|\tilde{R}^{i*}> =
-          !   \tilde{R}^*_{\lambda,i}
-          ! qmt/=0 case:
-          ! t^R_{\lambda}(G,qmt) = <X_\lambda|\tilde{M}^*(G,qmt)> =
-          !   \tilde{M}^*_{\lambda}(G,qmt)
-          doscsr%za(:,:) = conjg(dprojmat%za(:,:))
-        end if
-      end if
-      !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-
-      !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-      ! TI case: Build oscillator strength                                         !
-      !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-      if(usecoup .and. useti) then 
-
-        if(.not. useip) then 
-
-          if(.not. present(bevalre) .or. .not. present(dcmat)) then
-            write(unitout, '("Error(",a,"): Pass eigenvaues and dcmat!")') trim(thisname)
-            call terminate
-          end if
+        !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+        ! TDA case: Build resonant oscillator strengths                              !
+        !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+        if(.not. usecoup) then
 
           if(binfo%isroot) then 
-            write(unitout, '("  Building (X+Y) from squared EVP EVs.")')
+            write(unitout, '("  Building distributed resonant oscillator strengths.")')
             call timesec(t0)
           end if
 
-          ! Interested in X^+ + Y^+, so we rescale the 
-          ! auxiliary eigenvectors Z by the square root of the eigenvalues
-          ! so that 
-          ! (X+Y)_{a,lambda} = \Sum_{a'} (A-B)^{1/2}_{a,a'} * E^{-1/2}_lambda * Z_{a',lambda}
-          do j = 1, dbevecr%ncols_loc
-            lambda = dbevecr%c2g(j)
-            sqrteval = sqrt(bevalre(lambda))
-            if(lambda <= nexc) then 
-              do i = 1, dbevecr%nrows_loc
-                dbevecr%za(i, j) = dbevecr%za(i, j) / sqrteval
-              end do
-            end if
-          end do
-          call new_dzmat(dxpy, hamsize, nexc, binfo)
-          call dzmatmult(dcmat, dbevecr, dxpy, n=nexc)
+          !! Resonant oscillator strengths
+          if(.not. useip) then
+            ! qmt=0 case:
+            ! t^R_{\lambda,i} = <X_\lambda|\tilde{R}^{i*}> =
+            !   \Sum_{a} X^H_{\lambda, a} \tilde{R}^*_{a,i}
+            ! qmt/=0 case:
+            ! t^R_{\lambda}(G,qmt) = <X_\lambda|\tilde{M}^*(G,qmt)> =
+            !   \Sum_{a} X^H_{\lambda, a} \tilde{M}^*_{a}(G,qmt)
+            dprojmat%za=conjg(dprojmat%za)
+            call dzmatmult(dbevecr, dprojmat, doscsr, transa='C', m=nexc)
+            ! Deallocating eigenvectors
+            call del_dzmat(dbevecr)
+          else
+            ! IP: X_{\alpha,\lambda} = \delta_{\alpha,\lambda}
+            ! qmt=0 case:
+            ! t^R_{\lambda,i} = <X_\lambda|\tilde{R}^{i*}> =
+            !   \tilde{R}^*_{\lambda,i}
+            ! qmt/=0 case:
+            ! t^R_{\lambda}(G,qmt) = <X_\lambda|\tilde{M}^*(G,qmt)> =
+            !   \tilde{M}^*_{\lambda}(G,qmt)
+            doscsr%za(:,:) = conjg(dprojmat%za(:,:))
+          end if
+        end if
+        !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
-          ! Deallocating eigenvectors
-          call del_dzmat(dbevecr)
+        !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+        ! TI case: Build oscillator strength                                         !
+        !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+        if(usecoup .and. useti) then 
+
+          if(.not. useip) then 
+
+            if(.not. present(bevalre) .or. .not. present(dcmat)) then
+              write(unitout, '("Error(",a,"): Pass eigenvaues and dcmat!")') trim(thisname)
+              call terminate
+            end if
+
+            if(binfo%isroot) then 
+              write(unitout, '("  Building (X+Y) from squared EVP EVs.")')
+              call timesec(t0)
+            end if
+
+            ! Interested in X^+ + Y^+, so we rescale the 
+            ! auxiliary eigenvectors Z by the square root of the eigenvalues
+            ! so that 
+            ! (X+Y)_{a,lambda} = \Sum_{a'} (A-B)^{1/2}_{a,a'} * E^{-1/2}_lambda * Z_{a',lambda}
+            do j = 1, dbevecr%ncols_loc
+              lambda = dbevecr%c2g(j)
+              sqrteval = sqrt(bevalre(lambda))
+              if(lambda <= nexc) then 
+                do i = 1, dbevecr%nrows_loc
+                  dbevecr%za(i, j) = dbevecr%za(i, j) / sqrteval
+                end do
+              end if
+            end do
+            call new_dzmat(dxpy, hamsize, nexc, binfo)
+            call dzmatmult(dcmat, dbevecr, dxpy, n=nexc)
+
+            ! Deallocating eigenvectors
+            call del_dzmat(dbevecr)
+
+            if(binfo%isroot) then 
+              call timesec(t1)
+              write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+            end if
+          end if
 
           if(binfo%isroot) then 
-            call timesec(t1)
-            write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+            write(unitout, '("  Building distributed oscillator strengths&
+              & for time inverted ar basis.")')
+            call timesec(t0)
           end if
+
+          if(.not. useip) then 
+            !! Oscillator strengths
+            ! qmt=0
+            ! t_{\lambda,i} = < (| X_\lambda>+| Y_\lambda>)| \tilde{R}^{i*}> =
+            !     \Sum_{a} (X+Y)^H_{\lambda, a} \tilde{R}^*_{a,i}
+            ! qmt/=0
+            ! t_{\lambda}(G,qmt) = < (| X_\lambda>+| Y_\lambda>)| \tilde{M}^*(G,qmt)> =
+            !     \Sum_{a} (X+Y)^H_{\lambda, a} \tilde{M}^*_{a}
+            dprojmat%za=conjg(dprojmat%za)
+            call dzmatmult(dxpy, dprojmat, doscsr, transa='C', m=nexc) 
+            call del_dzmat(dxpy)
+          else
+            ! IP= (X+Y)_{\alpha,\lambda} = \delta_{\alpha,\lambda}
+            ! qmt=0
+            ! t_{\lambda,i} = < (| X_\lambda>+| Y_\lambda>)| \tilde{R}^{i*}> =
+            !     \tilde{R}^*_{\lambda,i}
+            ! qmt/=0
+            ! t_{\lambda}(G,qmt) = < (| X_\lambda>+| Y_\lambda>)| \tilde{M}^*(G,qmt)> =
+            !     \tilde{M}^*_{\lambda}
+            doscsr%za(:,:) = conjg(dprojmat%za(:,:))
+          end if
+
+        end if
+        !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+
+        ! Projection matrix no longer needed
+        call del_dzmat(dprojmat)
+
+        if(binfo%isroot) then
+          call timesec(t1)
+          write(unitout, '("    Time needed",f12.3,"s")') t1-t0
         end if
 
         if(binfo%isroot) then 
-          write(unitout, '("  Building distributed oscillator strengths&
-            & for time inverted ar basis.")')
-          call timesec(t0)
+          call timesec(ts1)
+          write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
         end if
 
-        if(.not. useip) then 
-          !! Oscillator strengths
-          ! qmt=0
-          ! t_{\lambda,i} = < (| X_\lambda>+| Y_\lambda>)| \tilde{R}^{i*}> =
-          !     \Sum_{a} (X+Y)^H_{\lambda, a} \tilde{R}^*_{a,i}
-          ! qmt/=0
-          ! t_{\lambda}(G,qmt) = < (| X_\lambda>+| Y_\lambda>)| \tilde{M}^*(G,qmt)> =
-          !     \Sum_{a} (X+Y)^H_{\lambda, a} \tilde{M}^*_{a}
-          dprojmat%za=conjg(dprojmat%za)
-          call dzmatmult(dxpy, dprojmat, doscsr, transa='C', m=nexc) 
-          call del_dzmat(dxpy)
-        else
-          ! IP= (X+Y)_{\alpha,\lambda} = \delta_{\alpha,\lambda}
-          ! qmt=0
-          ! t_{\lambda,i} = < (| X_\lambda>+| Y_\lambda>)| \tilde{R}^{i*}> =
-          !     \tilde{R}^*_{\lambda,i}
-          ! qmt/=0
-          ! t_{\lambda}(G,qmt) = < (| X_\lambda>+| Y_\lambda>)| \tilde{M}^*(G,qmt)> =
-          !     \tilde{M}^*_{\lambda}
-          doscsr%za(:,:) = conjg(dprojmat%za(:,:))
-        end if
-
-      end if
-      !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-
-      ! Projection matrix no longer needed
-      call del_dzmat(dprojmat)
-
-      if(binfo%isroot) then
-        call timesec(t1)
-        write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-      end if
-
-      if(binfo%isroot) then 
-        call timesec(ts1)
-        write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
+      ! is active
       end if
 
     end subroutine makeoscistr_dist

@@ -875,6 +875,7 @@ use m_writecmplxparts
         end if
 
 
+
         ! Store excitonic energies and wave functions to file
         if(associated(input%xs%storeexcitons)) then
 
@@ -940,6 +941,7 @@ use m_writecmplxparts
 
           end if
 
+        ! End root writeout
         end if
 
       ! IP
@@ -955,13 +957,18 @@ use m_writecmplxparts
 
       end if
 
-      ! Calculate oscillator strengths.
-      ! Note: Deallocates eigenvectors
-      if(fti) then 
-        call makeoscistr_dist(iqmt, nexc, dbevecr, doscsr, bi2d, bevalre, dcmat)
-      else
-        call makeoscistr_dist(iqmt, nexc, dbevecr, doscsr, bi2d)
-      end if
+    ! End on 2d process grid
+    end if
+
+    ! Calculate oscillator strengths.
+    ! Note: Deallocates eigenvectors
+    if(fti) then 
+      call makeoscistr_dist(iqmt, nexc, dbevecr, doscsr, bi2d, bevalre, dcmat)
+    else
+      call makeoscistr_dist(iqmt, nexc, dbevecr, doscsr, bi2d)
+    end if
+
+    if(bi2d%isactive) then 
 
       ! Every process gets a copy of the oscillator strength
       ! (actually only rank 0 writes them to file, but is is not much 
@@ -999,10 +1006,8 @@ use m_writecmplxparts
         call genwgrid(nw, input%xs%energywindow%intv,&
           & input%xs%tddft%acont, 0.d0, w_real=w)
 
-        write(unitout, '("Writing derived quantities.")')
         ! Generate and write derived optical quantities
         call writederived(iqmt, symspectr, nw, w)
-        write(unitout, '("  Derived quantities written.")')
 
       end if
 
@@ -1023,6 +1028,7 @@ use m_writecmplxparts
       ! Ranks that are on the BLACS grid signal that they are done
       call barrier
 
+    ! MPI rank not on 2D grid
     else
 
       write(*, '("Warning(b_bse): Rank", i4, " is idle.")') mpiglobal%rank
