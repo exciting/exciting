@@ -1219,7 +1219,9 @@ module m_setup_bse
           end if
 
           if(usescc) write(unitout, '("  Reading form W from ", a)') trim(sfname)
+          if(usescc) write(unitout, '("  compatible:",l," identical:",l)') sfcmpt, sfid
           if(useexc) write(unitout, '("  Reading form V from ", a)') trim(efname)
+          if(usescc) write(unitout, '("  compatible:",l," identical:",l)') efcmpt, efid
 
           allocate(excli_t(nou_bse_max, nou_bse_max))
           allocate(sccli_t(nou_bse_max, nou_bse_max))
@@ -1229,10 +1231,6 @@ module m_setup_bse
         ! Block sizes of global matrix
         iblck = ham%mblck
         jblck = ham%nblck 
-
-!if(binfo%isroot) then 
-!  write(*,*) "iblck, jblck", iblck, jblck
-!end if
 
         ! Context
         context = ham%context
@@ -1258,9 +1256,6 @@ module m_setup_bse
         !       so ikkp labels ikjk blocks of the upper triangular part of the matrix
         do ikkp = 1, nkkp_bse
 
-!if(binfo%isroot) then 
-!  write(*,*) "ikkp", ikkp
-!end if
           ! Get index ik jk form combination index ikkp
           call kkpmap(ikkp, nk_bse, ik, jk)
 
@@ -1276,13 +1271,6 @@ module m_setup_bse
           ! Size of sub-matrix
           inou = kousize(iknr)
           jnou = kousize(jknr)
-
-!if(binfo%isroot) then 
-!  write(*,*) "inou x jnou", inou, jnou
-!end if
-!if(binfo%isroot) then 
-!  write(*,*) "ii, jj", ii, jj
-!end if
 
           !!***********!!
           !! READ DATA !!
@@ -1399,15 +1387,6 @@ module m_setup_bse
             ! Get column position of ib*jb block in local matrix
             jl = indxg2l( jg, jblck, pc, 0, binfo%npcols)
 
-!if(binfo%isroot) then 
-!  write(*,*) "j, jg", j, jg
-!  write(*,*) "jb", jb
-!end if
-!if(binfo%isroot) then 
-!  write(*,*) "pc", pc
-!  write(*,*) "jl", jl
-!end if
-
             ! Get corresponding quantities in the lower 
             ! triangular part of the matrix.
             if(iknr /= jknr) then 
@@ -1416,10 +1395,6 @@ module m_setup_bse
               ! Get row position of jb*ib block in local matrix
               il2 = indxg2l( jg, iblck, pr2, 0, binfo%nprows)
 
-!if(binfo%isroot) then 
-!  write(*,*) "pr2", pr2
-!  write(*,*) "il2", il2
-!end if
             end if
 
             ! Row index of global sub-matrix
@@ -1447,15 +1422,6 @@ module m_setup_bse
               ! Get row position of ib*jb block in local matrix
               il = indxg2l( ig, iblck, pr, 0, binfo%nprows)
 
-!if(binfo%isroot) then 
-!  write(*,*) "i, ig", i, ig
-!  write(*,*) "ib", ib
-!end if
-!if(binfo%isroot) then 
-!  write(*,*) "pr", pr
-!  write(*,*) "il", il
-!end if
-
               ! Get corresponding quantities in the lower 
               ! triangular part of the matrix.
               if(iknr /= jknr) then 
@@ -1464,10 +1430,6 @@ module m_setup_bse
                 ! Get column position of jb*ib block in local matrix
                 jl2 = indxg2l( ig, jblck, pc2, 0, binfo%npcols)
 
-!if(binfo%isroot) then 
-!  write(*,*) "pc2", pc2
-!  write(*,*) "jl2", jl2
-!end if
               end if
 
 
@@ -1493,8 +1455,6 @@ module m_setup_bse
 
                 ! Upper triangular part
                 if( pr == 0 .and. pc == 0) then
-
-!write(*,'("(",i2,",",i2,"): Building upper")') binfo%myprow, binfo%mypcol
 
                   ! Singlet
                   if(useexc .and. usescc) then 
@@ -1524,9 +1484,6 @@ module m_setup_bse
                 ! Send data 
                 else
 
-!write(*,'("(",i2,",",i2,"): Sending upper to: ("i2,",",i2,")")')&
-! binfo%myprow, binfo%mypcol, pr, pc
-
                   if(usescc) call zgesd2d(context, ib, jb, sbuff, iblck, pr, pc)
                   if(useexc) call zgesd2d(context, ib, jb, ebuff, iblck, pr, pc)
 
@@ -1536,8 +1493,6 @@ module m_setup_bse
                 if(iknr /= jknr) then 
 
                   if( pr2 == 0 .and. pc2 == 0) then 
-
-!write(*,'("(",i2,",",i2,"): Building lower")') binfo%myprow, binfo%mypcol
 
                     if(useexc .and. usescc) then 
                       call buildham(fcoup, ham%za(il2:il2+jb-1, jl2:jl2+ib-1),&
@@ -1563,9 +1518,6 @@ module m_setup_bse
                   ! Send data 
                   else
 
-!write(*,'("(",i2,",",i2,"): Sending lower to: ("i2,",",i2,")")')&
-! binfo%myprow, binfo%mypcol, pr, pc
-
                     if(usescc) call zgesd2d(context, jb, ib, sbuff2, jblck, pr2, pc2)
                     if(useexc) call zgesd2d(context, jb, ib, ebuff2, jblck, pr2, pc2)
 
@@ -1579,14 +1531,9 @@ module m_setup_bse
                 ! Upper triangular part
                 if(pr == binfo%myprow  .and. pc == binfo%mypcol) then
 
-!write(*,'("(",i2,",",i2,"): Receiving upper form: ("i2,",",i2,")")')&
-! binfo%myprow, binfo%mypcol, 0 , 0
-
                   ! Receive block
                   if(usescc) call zgerv2d(context, ib, jb, sbuff, iblck, 0, 0)
                   if(useexc) call zgerv2d(context, ib, jb, ebuff, iblck, 0, 0)
-
-!write(*,'("(",i2,",",i2,"): Building upper")') binfo%myprow, binfo%mypcol
 
                   ! Assemble sub-block in local Hamilton matrix
                   if(useexc .and. usescc) then 
@@ -1617,14 +1564,9 @@ module m_setup_bse
 
                   if(pr2 == binfo%myprow  .and. pc2 == binfo%mypcol) then
 
-!write(*,'("(",i2,",",i2,"): Receiving lower form: ("i2,",",i2,")")')&
-! binfo%myprow, binfo%mypcol, 0 , 0
-
                     ! Receive block
                     if(usescc) call zgerv2d(context, jb, ib, sbuff2, jblck, 0, 0)
                     if(useexc) call zgerv2d(context, jb, ib, ebuff2, jblck, 0, 0)
-
-!write(*,'("(",i2,",",i2,"): Building lower")') binfo%myprow, binfo%mypcol
 
                     ! Lower triangular part
                     if(useexc .and. usescc) then 
