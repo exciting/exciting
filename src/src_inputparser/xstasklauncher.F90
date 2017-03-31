@@ -8,6 +8,8 @@ subroutine xstasklauncher
   use modxs, only: dgrid, nksubpt, iksubpt, temat, doscreen0, vkloff_xs_b,hybridhf,skipgnd
   use inputdom
 
+  implicit none
+
   ! SET DEFAULTS
   ! Set the default values if "TDDFT" element is not present
   if( .not. associated(input%xs%tddft) ) then

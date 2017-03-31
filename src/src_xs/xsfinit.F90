@@ -93,5 +93,7 @@ subroutine xsfinit
   if(rank .ne. 0) call filedel(trim(fnetim))
   if(trim(fnchi0_t) .ne. trim(fnchi0)) call filedel(trim(fnchi0_t))
   if(rank .ne. 0) call filedel(trim(fnxtim))
+
+  call barrier
       
 end subroutine xsfinit

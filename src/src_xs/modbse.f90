@@ -358,7 +358,7 @@ module modbse
       if(mpiglobal%rank==0) then 
         call timesec(t1)
         write(unitout, '("Info(setranges_modxs):&
-          & Time needed/s.", f12.7)') t1-t0
+          & Time needed/s = ", f12.7)') t1-t0
       end if
 
     end subroutine setranges_modxs
@@ -859,7 +859,10 @@ module modbse
         write(unitout, '("Info(select_transitions):&
           & Time needed/s:", f12.7)') t1-t0
       end if
-      call barrier
+
+      if( .not. fserial) then 
+        call barrier
+      end if
 
     end subroutine select_transitions
     !EOC

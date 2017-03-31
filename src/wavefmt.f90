@@ -13,7 +13,12 @@
 Subroutine wavefmt (lrstp, lmax, is, ia, ngp, apwalm, evecfv, ld, wfmt)
 ! !USES:
       Use modinput
-      Use modmain
+      use mod_atoms, only: idxas, natmtot
+      use mod_muffin_tin, only: idxlm, nrmt, lmmaxapw
+      use mod_eigensystem, only: idxlo, nmatmax_ptr
+      use mod_APW_LO, only: apword, apwordmax, apwfr,&
+                          & lofr, nlorb, lorbl
+      use mod_Gkvector, only: ngkmax_ptr
 ! !INPUT/OUTPUT PARAMETERS:
 !   lrstp  : radial step length (in,integer)
 !   lmax   : maximum angular momentum required (in,integer)
@@ -55,9 +60,9 @@ Subroutine wavefmt (lrstp, lmax, is, ia, ngp, apwalm, evecfv, ld, wfmt)
       Integer, Intent (In) :: is
       Integer, Intent (In) :: ia
       Integer, Intent (In) :: ngp
-      Complex (8), Intent (In) :: apwalm (ngkmax, apwordmax, lmmaxapw, &
+      Complex (8), Intent (In) :: apwalm (ngkmax_ptr, apwordmax, lmmaxapw, &
      & natmtot)
-      Complex (8), Intent (In) :: evecfv (nmatmax)
+      Complex (8), Intent (In) :: evecfv (nmatmax_ptr)
       Integer, Intent (In) :: ld
       Complex (8), Intent (Out) :: wfmt (ld,*)
 ! local variables

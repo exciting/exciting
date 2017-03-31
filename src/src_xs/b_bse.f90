@@ -128,6 +128,7 @@ use m_writecmplxparts
   complex(8), allocatable, dimension(:,:) :: cmat, cpmat
   complex(8), allocatable, dimension(:,:,:) :: symspectr
 
+  character(*), parameter :: thisname = "b_bse"
   real(8) :: bsegap
   real(8) :: v1, v2, en1, en2
   integer(4) :: i1, i2, iex1, iex2, nreq
@@ -168,20 +169,20 @@ use m_writecmplxparts
   ! Non-parallelized code.
   if(.not. fscal .and. mpiglobal%rank == 0) then 
 
-    !write(*,*) "b_bse: Running non parallel version."
+    write(*, '("Info(",a,"): Running non parallel version")') trim(thisname)
 
     ! General init
     call timesec(ts0)
     call init0
     call timesec(ts1)
-    write(unitout, '("Info(b_bse):&
-      & Init0 time:", f12.6)') ts1 - ts0
+    write(unitout, '("Info(",a,"):&
+      & Init0 time:", f12.6)') trim(thisname), ts1 - ts0
     ! k-grid init
     call timesec(ts0)
     call init1
     call timesec(ts1)
-    write(unitout, '("Info(b_bse):&
-      & Init1 time:", f12.6)') ts1 - ts0
+    write(unitout, '("Info(",a,"):&
+      & Init1 time:", f12.6)') trim(thisname), ts1 - ts0
     ! Save variables of the unshifted (apart from xs:vkloff) k grid 
     ! to modxs (vkl0, ngk0, ...)
     call xssave0
@@ -198,11 +199,8 @@ use m_writecmplxparts
     call timesec(ts0)
     call init2
     call timesec(ts1)
-    write(unitout, '("Info(b_bse):&
-      & Init2 time:", f12.6)') ts1 - ts0
-
-    !write(*,*) "b_bse: iqmt=", iqmt
-    !write(*,*) "b_bse: vqlmt=", vqlmt(1:3, iqmt)
+    write(unitout, '("Info(",a,"):&
+      & Init2 time:", f12.6)') trim(thisname), ts1 - ts0
 
     ! Read Fermi energy from file 
     ! (only needed in setranges_modxs::findocclims to check whether system has a gap)
@@ -250,7 +248,8 @@ use m_writecmplxparts
       evalsv0=evalsv
     else if(associated(input%gw) .and. iqmt /= 1) then 
       if(mpiglobal%rank==0) then 
-        write(*,'("Error(b_bse): BSE+GW only supported for 0 momentum transfer.")')
+        write(*,'("Error(",a,"): BSE+GW only supported for 0 momentum transfer.")')&
+          & trim(thisname)
       end if
       call terminate
     end if
@@ -280,15 +279,16 @@ use m_writecmplxparts
     !$OMP END PARALLEL DO
 
     write(unitout,*)
-    write(unitout, '("Info(b_bse):&
+    write(unitout, '("Info(",a,"):&
       & bsegap, bsegap+scissor (eV):", E23.16,1x,E23.16)')&
-      & bsegap*h2ev, (bsegap+sci)*h2ev
+      & trim(thisname), bsegap*h2ev, (bsegap+sci)*h2ev
 
     ! Write Info
     if(fip) then 
-      write(unitout, '("Info(b_bse): IP requested, nothing much to do")') 
+      write(unitout, '("Info(",a,"): IP requested, nothing much to do")')&
+        & trim(thisname)
     else
-      write(unitout, '("Info(b_bse): Assembling BSE matrix")')
+      write(unitout, '("Info(",a,"): Assembling BSE matrix")') trim(thisname)
       write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
       write(unitout, '("  Shape=",i8)') hamsize
       write(unitout, '("  nk_bse=", i8)') nk_bse
@@ -303,8 +303,8 @@ use m_writecmplxparts
         end if
       end if
       if(fwp) then
-        write(unitout, '("Info(b_bse):&
-          & Writing real and imaginary parts of Hamiltonian to file ")')
+        write(unitout, '("Info(",a,"):&
+          & Writing real and imaginary parts of Hamiltonian to file ")') trim(thisname)
       end if
     end if
 
@@ -335,15 +335,15 @@ use m_writecmplxparts
       write(unitout,*)
       if(fcoup) then
         if(fti) then 
-          write(unitout, '("Info(b_bse): Solving hermitian squared EVP")')
-          write(unitout, '("Info(b_bse): Invoking lapack routine ZHEEVR")')
+          write(unitout, '("Info(",a,"): Solving hermitian squared EVP")') trim(thisname)
+          write(unitout, '("Info(",a,"): Invoking lapack routine ZHEEVR")') trim(thisname)
         else
-          write(unitout, '("Info(b_bse): Diagonalizing full non symmetric Hamiltonian")')
-          write(unitout, '("Info(b_bse): Invoking lapack routine ZGEEVX")')
+          write(unitout, '("Info(",a,"): Diagonalizing full non symmetric Hamiltonian")') trim(thisname)
+          write(unitout, '("Info(",a,"): Invoking lapack routine ZGEEVX")') trim(thisname)
         end if
       else
-        write(unitout, '("Info(b_bse): Diagonalizing RR Hamiltonian (TDA)")')
-        write(unitout, '("Info(b_bse): Invoking lapack routine ZHEEVR")')
+        write(unitout, '("Info(",a,"): Diagonalizing RR Hamiltonian (TDA)")') trim(thisname)
+        write(unitout, '("Info(",a,"): Invoking lapack routine ZHEEVR")') trim(thisname)
       end if
 
       ! Allocate eigenvector and eigenvalue arrays
@@ -424,7 +424,8 @@ use m_writecmplxparts
         ! Take square root of auxiliary eigenvalues
         ! to retrieve actual eigenvalues
         if(any(bevalre < 0.0d0)) then 
-          write(*,*) "Error(b_bse): Negative squared EVP evals occured"
+          write(*, '("Error(",a,"): Negative squared EVP evals occured")')&
+            & trim(thisname)
           write(*,'(E23.16)') bevalre
           call terminate
         end if
@@ -484,24 +485,26 @@ use m_writecmplxparts
         !write(*,*) "b_bse: iex1=", iex1, " iex2=", iex2, " nreq=", nreq
 
         if(nreq < 1 .or. nreq > nexc .or. iex1<1 .or. iex2<1 ) then
-          write(*,*) "Error(b_bse): storeexcitons index mismatch."
+          write(*, '("Error(",a,"): storeexcitons index mismatch.")') trim(thisname)
           write(*,*) "iex1, iex2, nreq, nex", iex1, iex2, nreq, nexc
           call terminate
         end if
 
-        write(unitout, '("Info(b_bse): Writing excition eigenvectors for index range=",2i8)') iex1, iex2
+        write(unitout, '("Info(",a,"):&
+          & Writing excition eigenvectors for index range=",2i8)') trim(thisname), iex1, iex2
 
         if(fcoup .and. fti) then 
           allocate(resvec(hamsize, nreq))
           allocate(aresvec(hamsize, nreq))
 
-          write(unitout, '("Info(b_bse): Generating resonant&
+          write(unitout, '("Info(",a,"): Generating resonant&
             & and anti-resonant exciton coefficients from&
-            & auxilliary squared EVP eigenvectors (pos. E).")')
+            & auxilliary squared EVP eigenvectors (pos. E).")') trim(thisname)
           call genexevec(iex1, iex2, nexc, cmat, cpmat, bevecr, bevalre,&
             & rvecp=resvec, avecp=aresvec)
 
-          write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file (pos. E).")')
+          write(unitout, '("Info(",a,"):&
+            & Writing exciton eigenvectors to file (pos. E).")') trim(thisname)
           call put_excitons(bevalre(iex1:iex2), rvec=resvec, avec=aresvec,&
             & iqmt=iqmt, a1=iex1, a2=iex2)
 
@@ -510,14 +513,14 @@ use m_writecmplxparts
 
         else if(fcoup .and. .not. fti) then 
 
-          write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file.")')
+          write(unitout, '("Info(",a,"): Writing exciton eigenvectors to file.")') trim(thisname)
           call put_excitons(bevalre(iex1:iex2), bevecr(1:hamsize,iex1:iex2),&
             & avec=bevecr(hamsize+1:2*hamsize,iex1:iex2),&
             & iqmt=iqmt, a1=iex1, a2=iex2)
 
         else
 
-          write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file.")')
+          write(unitout, '("Info(",a,"): Writing exciton eigenvectors to file.")') trim(thisname)
           call put_excitons(bevalre(iex1:iex2), bevecr(:,iex1:iex2),&
             & iqmt=iqmt, a1=iex1, a2=iex2)
 
@@ -565,8 +568,8 @@ use m_writecmplxparts
 
     ! Write excition energies and oscillator strengths to 
     ! text file. 
-    write(unitout, '("Info(b_bse):&
-      & Writing excition energies and oscillator strengths to text file.")')
+    write(unitout, '("Info(",a,"):&
+      & Writing excition energies and oscillator strengths to text file.")') trim(thisname)
     if(fcoup .and. .not. fti) then
       call writeoscillator(2*hamsize, nexc, bsegap+sci, bevalre, oscsr,&
         & evalim=bevalim, oscstra=oscsa, sort=.true., iqmt=iqmt)
@@ -610,12 +613,14 @@ use m_writecmplxparts
     write(unitout, '("BSE calculation finished")')
 
     ! Rank 0 says I am finished to all others
-    call barrier
+    call barrier(callername=thisname)
+
+    write(*, '("Warning(",a,"): Rank", i4, " is done.")') trim(thisname), mpiglobal%rank
 
   ! Parallel version 
   else if (fscal) then
     
-    !write(*,*) "b_bse: Running parallel version at rank:", mpiglobal%rank
+    write(*,*) "b_bse: Running parallel version at rank:", mpiglobal%rank
 
     ! Set up process grids for BLACS 
     !   Make square'ish process grid (context 0)
@@ -648,7 +653,7 @@ use m_writecmplxparts
     call init2
     if(bi2d%isroot) then 
       call timesec(ts1)
-      write(unitout, '("Info(b_bse):&
+      write(unitout, '("Info(",a,"):&
         & Init time:", f12.6)') ts1 - ts0
     end if
 
@@ -695,15 +700,17 @@ use m_writecmplxparts
       ! Set k and k'=k grid eigenvalues to QP energies
       evalsv0=evalsv
       if(bi2d%isroot) then
-        write(unitout,'("Info(b_bse): Quasi particle energies are read from EVALQP.OUT")')
+        write(unitout,'("Info(",a,"):&
+          & Quasi particle energies are read from EVALQP.OUT")') trim(thisname)
       end if
     else if(associated(input%gw) .and. iqmt /= 1) then 
       if(bi2d%isroot) then 
-        write(*,'("Error(b_bse): BSE+GW only supported for 0 momentum transfer.")')
+        write(*,'("Error(",a,"):&
+         & BSE+GW only supported for 0 momentum transfer.")') trim(thisname)
       end if
       call terminate
     end if
-    call barrier
+    call barrier(callername=thisname)
 
     ! Select relevant transitions for the construction
     ! of the BSE hamiltonian
@@ -732,9 +739,9 @@ use m_writecmplxparts
 
       if(bi2d%isroot) then
         write(unitout,*)
-        write(unitout, '("Info(b_bse):&
+        write(unitout, '("Info(",a,"):&
           & bsegap, bsegap+scissor (eV):", E23.16,1x,E23.16)')&
-          & bsegap*h2ev, (bsegap+sci)*h2ev
+          & trim(thisname), bsegap*h2ev, (bsegap+sci)*h2ev
       end if
 
       if(.not. fip) then 
@@ -745,7 +752,7 @@ use m_writecmplxparts
         ! Write Info
         if(bi2d%isroot) then
           write(unitout,*)
-          write(unitout, '("Info(b_bse): Assembling distributed BSE matrix")')
+          write(unitout, '("Info(",a,"): Assembling distributed BSE matrix")') trim(thisname)
           if(fcoup .and. fti) then
             write(unitout, '(" Including coupling terms ")')
             write(unitout, '(" Using time inverted anti-resonant basis")')
@@ -788,11 +795,15 @@ use m_writecmplxparts
         ! Write Info
         if(bi2d%isroot) then
           if(fcoup .and. fti) then 
-            write(unitout, '("Info(b_bse): Solving hermitian squared EVP")')
-            write(unitout, '("Info(b_bse): Invoking scalapack routine PZHEEVX")')
+            write(unitout, '("Info(",a,"):&
+              & Solving hermitian squared EVP")') trim(thisname)
+            write(unitout, '("Info(",a,"):&
+              & Invoking scalapack routine PZHEEVX")') trim(thisname)
           else 
-            write(unitout, '("Info(b_bse): Diagonalizing RR Hamiltonian (TDA)")')
-            write(unitout, '("Info(b_bse): Invoking scalapack routine PZHEEVX")')
+            write(unitout, '("Info(",a,"):&
+              & Diagonalizing RR Hamiltonian (TDA)")') trim(thisname)
+            write(unitout, '("Info(",a,"):&
+              & Invoking scalapack routine PZHEEVX")') trim(thisname)
           end if
         end if
 
@@ -843,7 +854,8 @@ use m_writecmplxparts
           ! Take square root of auxilliary eigenvalues
           ! to retrieve actual eigenvalues
           if(any(bevalre < 0.0d0)) then 
-            write(*,*) "Error(b_bse): Negative squared EVP evals occured"
+            write(*, '("Error(",a,"): Negative squared EVP evals occured")')&
+              & trim(thisname)
             write(*,'(E23.16)') bevalre
             call terminate
           end if
@@ -874,8 +886,6 @@ use m_writecmplxparts
           write(unitout,*)
         end if
 
-
-
         ! Store excitonic energies and wave functions to file
         if(associated(input%xs%storeexcitons)) then
 
@@ -883,7 +893,7 @@ use m_writecmplxparts
             en1=input%xs%storeexcitons%minenergyexcitons
             en2=input%xs%storeexcitons%maxenergyexcitons
             if(bi2d%isroot) then 
-              !write(*,*) "b_bse: en1, en2", en1, en2
+              !write(*,*) "",a,": en1, en2", en1, en2
             end if
             if(input%xs%storeexcitons%useev) then 
               en1=en1/h2ev
@@ -901,14 +911,16 @@ use m_writecmplxparts
 
           if(nreq < 1 .or. nreq > nexc .or. iex1<1 .or. iex2<1 ) then
             if(bi2d%isroot) then 
-              write(*,*) "Error(b_bse): storeexcitons index mismatch."
+              write(*,'("Error(",a,"): storeexcitons index mismatch.")') trim(thisname)
               write(*,*) "iex1, iex2, nreq, nex", iex1, iex2, nreq, nexc
             end if
             call terminate
           end if
 
           if(bi2d%isroot) then 
-            write(unitout, '("Info(b_bse): Writing excition eigenvectors for index range=",2i8)') iex1, iex2
+            write(unitout, '("Info(",a,"):&
+              & Writing excition eigenvectors for index range=",2i8)')&
+              & trim(thisname), iex1, iex2
           end if
 
           if(fcoup .and. fti) then 
@@ -917,14 +929,15 @@ use m_writecmplxparts
             call new_dzmat(daresvec, hamsize, nreq, bi2d)
 
             if(bi2d%isroot) then 
-              write(unitout, '("Info(b_bse): Generating resonant&
+              write(unitout, '("Info(",a,"): Generating resonant&
                 & and anti-resonant exciton coefficients from&
-                & auxilliary squared EVP eigenvectors (pos. E).")')
+                & auxilliary squared EVP eigenvectors (pos. E).")') trim(thisname)
             end if
             call gendexevec(iex1, iex2, nexc, dcmat, dcpmat, dbevecr, bevalre,&
               & drvecp=dresvec, davecp=daresvec)
 
-            write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file.")')
+            write(unitout, '("Info(",a,"):&
+              & Writing exciton eigenvectors to file.")') trim(thisname)
             call putd_excitons(bevalre(iex1:iex2), drvec=dresvec, davec=daresvec,&
               & iqmt=iqmt, a1=iex1, a2=iex2)
 
@@ -933,7 +946,8 @@ use m_writecmplxparts
 
           else 
 
-            write(unitout, '("Info(b_bse): Writing exciton eigenvectors to file.")')
+            write(unitout, '("Info(",a,"):&
+              & Writing exciton eigenvectors to file.")') trim(thisname)
             call setview_dzmat(dbevecr, hamsize, nreq, 1, iex1)
             call putd_excitons(bevalre(iex1:iex2), dbevecr,&
               & iqmt=iqmt, a1=iex1, a2=iex2)
@@ -948,7 +962,8 @@ use m_writecmplxparts
       else
 
         if(bi2d%isroot) then 
-          write(unitout, '("Info(b_bse): IP requested, nothing much to do")') 
+          write(unitout, '("Info(",a,"):&
+            & IP requested, nothing much to do")') trim(thisname)
         end if
 
         nexc = hamsize
@@ -981,8 +996,9 @@ use m_writecmplxparts
       if(bi2d%isroot) then
         ! Write excition energies and oscillator strengths to 
         ! text file. 
-        write(unitout, '("Info(b_bse):&
-          & Writing excition energies and oscillator strengths to text file.")')
+        write(unitout, '("Info(",a,"):&
+          & Writing excition energies and oscillator strengths to text file.")')&
+          & trim(thisname)
         call writeoscillator(hamsize, nexc, -(bsegap+sci), bevalre, oscsr, iqmt=iqmt)
       end if
 
@@ -1026,24 +1042,26 @@ use m_writecmplxparts
 
       ! MPI
       ! Ranks that are on the BLACS grid signal that they are done
-      call barrier
+      call barrier(callername=thisname)
 
     ! MPI rank not on 2D grid
     else
 
-      write(*, '("Warning(b_bse): Rank", i4, " is idle.")') mpiglobal%rank
+      write(*, '("Warning(",a,"): Rank", i4, " is idle.")')&
+        & trim(thisname), mpiglobal%rank
 
       ! Ranks that are not on the BLACS grid wait 
-      call barrier
+      call barrier(callername=thisname)
 
     end if
 
   else ! not fscal and not rank 0
 
-    write(*, '("Warning(b_bse): Rank", i4, " is idle.")') mpiglobal%rank
+    write(*, '("Warning(",a,"): Rank", i4, " is idle.")')&
+      & trim(thisname), mpiglobal%rank
 
     ! Rank /= 0 wait for rank 0
-    call barrier
+    call barrier(callername=thisname)
 
   end if
 

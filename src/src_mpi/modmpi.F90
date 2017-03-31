@@ -30,7 +30,7 @@ module modmpi
   type mpiinfo
     integer(4) :: rank
     integer(4) :: procs
-    integer(4) :: comm
+    integer :: comm
     integer(4) :: ierr
   end type mpiinfo
 
@@ -593,7 +593,7 @@ module modmpi
     !BOP
     ! !ROUTINE: barrier
     ! !INTERFACE:
-    subroutine barrier(mpicom)
+    subroutine barrier(mpicom, callername)
     ! !DESCRIPTION:
     !   If -DMPI calls {\tt mpi\_barrier}, else nothing.
     !
@@ -603,6 +603,9 @@ module modmpi
     !BOC
       implicit none
       type(mpiinfo), intent(in), optional :: mpicom
+      character(*), intent(in), optional :: callername
+      
+      character(*), parameter :: thisname = "barrier"
 
       type(mpiinfo) :: mpinf
 
@@ -612,9 +615,11 @@ module modmpi
         mpinf = mpiglobal
       end if
 
-      if(.false.) then 
-        write(*,*) "rank", mpinf%rank,&
-          & "in barrier for mpicom", mpinf%comm 
+      if(present(callername)) then 
+        if(.false.) then 
+          write(*, '("Info(",a,"): Rank ",i3," of mpicom", i16," called barrier from ", a)')&
+            & trim(thisname), mpinf%rank, mpinf%comm, trim(callername)
+        end if
       end if
 
       ! do nothing if only one process
@@ -1261,6 +1266,7 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
 
       color = mpinodes%id
       key = mpiglobal%rank
+
       ! Split global comm intra-group comms
       call mpi_comm_split(mpiglobal%comm, color, key,&
         & mpinodes%mpi%comm, mpinodes%mpi%ierr)
@@ -1275,7 +1281,6 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
       ! Get number of procs in group comm 
       call mpi_comm_size(mpinodes%mpi%comm, mpinodes%mpi%procs, mpinodes%mpi%ierr)
 
-
       !   Error checking
       if(mpinodes%mpi%ierr .ne. 0) then
         write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
@@ -1285,6 +1290,7 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
 
       ! Get rank
       call mpi_comm_rank(mpinodes%mpi%comm, mpinodes%mpi%rank,  mpinodes%mpi%ierr)
+      call barrier(mpinodes%mpi)
 
       !   Error checking
       if(mpinodes%mpi%ierr .ne. 0) then
