@@ -138,16 +138,6 @@ use m_writecmplxparts
   !   * Generates radial functions (mod_APW_LO)
   call init2
 
-  ! Check number of empty states
-  if(input%xs%screening%nempty .lt. input%groundstate%nempty) then
-    write(*,*)
-    write(*, '("Error(",a,"): Too few empty states in screening eigenvector file&
-      & - the screening should include many empty states (bse/screening)", 2i8)')&
-      & trim(thisnam), input%groundstate%nempty, input%xs%screening%nempty
-    write(*,*)
-    call terminate
-  end if
-
   ! Generate gaunt coefficients used in the construction of 
   ! the plane wave matrix elements in ematqk.
 

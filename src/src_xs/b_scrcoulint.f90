@@ -141,17 +141,6 @@ use m_writecmplxparts
     call terminate
   end if
 
-  ! Check number of empty states
-  if(input%xs%screening%nempty .lt. input%groundstate%nempty) then
-    write(*,*)
-    write(*, '("Error(",a,"): Too few empty states in&
-      & screening eigenvector file - the screening should&
-      & include many empty states (BSE/screening)", 2i8)')&
-      & trim(thisnam), input%groundstate%nempty, input%xs%screening%nempty
-    write(*,*)
-    call terminate
-  end if
-
   ! General setup
   call init0
   ! k-point setup
