@@ -69,7 +69,7 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
   !write(*,*)
   !write(*,*) "findocclims here"
 
-  call timesec(t1)
+  call timesec(t0)
 
   t = allocated(evalsv0)
   if( .not. t) allocate(evalsv0(nstsv, nkpt))

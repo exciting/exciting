@@ -80,7 +80,7 @@ subroutine b_xsgeneigveclauncher
   ! save offsets.
   do iq = 1, nqpt
 
-    call xsgrids_init(vqlmt(1:3, iq), gkmax)
+    call xsgrids_init(vqlmt(1:3, iq), gkmax, makegk_=.true., makegq_=.true.)
     if(mpiglobal%rank == 0) then 
       call xsgrids_write_grids(iq)
     end if

@@ -1002,7 +1002,8 @@ use m_writecmplxparts
 
       emat_ccket=.false.
       ! Set up ikmapikq to link (ikp,iq) to (jkp)
-      ikmapikq_ptr => qmtp_qmtp%ikiq2ikp_nr
+      !ikmapikq_ptr => qmtp_qmtp%ikiq2ikp_nr
+      ikmapikq_ptr => q_q%ikiq2ikp_nr
       ! Set vkl0_ptr, vkl1_ptr, ... to k+qmt-grid
       call setptr11
       ! Calculate M_{o1o2,G} at fixed (k, q)
