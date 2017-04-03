@@ -83,6 +83,13 @@ subroutine b_writeexcevec
     ivmin = minval(koulims_(3,:))
     ivmax = maxval(koulims_(4,:))
 
+    write(unitout,'("Info(",a,"): nvmax, ncmax",2i8)')&
+      & trim(thisname), nvmax, ncmax
+    write(unitout,'("Info(",a,"): icmin, icmax",2i8)')&
+      & trim(thisname), icmin, icmax
+    write(unitout,'("Info(",a,"): ivmin, ivmax",2i8)')&
+      & trim(thisname), ivmin, ivmax
+
     !====================================================!
     ! Selective write of exciton coefficients to file.   !
     !====================================================!
@@ -153,7 +160,7 @@ subroutine b_writeexcevec
         vklv = vkl0_(1:3,ikv)
         vklc = vkl_(1:3,ikv)
         if(absvec(alpha) > abscutoffres(1) .and. absvec(alpha) < abscutoffres(2)) then
-          write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,E23.16))')&
+          write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,3E23.16))')&
             & alpha, lambda, ic, iv, vklc, vklv,&
             & absvec(alpha), dble(rvec_(alpha,lambda)), aimag(rvec_(alpha, lambda))
           rcount = rcount + 1
@@ -188,7 +195,7 @@ subroutine b_writeexcevec
             call r3frac(epslat, vklc, ivec)
           end if
           if(absvec(alpha) > abscutoffares(1) .and. absvec(alpha) < abscutoffares(2)) then
-            write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,E23.16))')&
+            write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,3E23.16))')&
               & alpha+hamsize_, lambda, ic, iv, vklc, vklv,&
               & absvec(alpha), dble(avec_(alpha,lambda)), aimag(avec_(alpha, lambda))
             acount=acount+1
@@ -247,7 +254,7 @@ subroutine b_writeexcevec
             & ikv, vkl0_(:, ikv), ikc, vkl_(:,ikc),&
             & iv, ic, rbevec, abevec
         else
-          write(un, '(2(i8, 3E14.7), 2i8, E14.7)')&
+          write(un, '(2(i8, 3E14.7), 2i8, 3E14.7)')&
             & ikv, vkl0_(:, ikv), ikc, vkl_(:,ikc),&
             & iv, ic, rbevec
         end if

@@ -433,6 +433,8 @@ module m_putgetexcitons
     end subroutine get_excitons
 
     subroutine putd_excitons(evals, drvec, davec, iqmt, a1, a2)
+      use mod_kpoint, only: ikmap
+      use modinput
 
       implicit none
 
@@ -446,10 +448,12 @@ module m_putgetexcitons
       type(dzmat) :: dauxmat
       integer(4) :: stat, unexc
       logical :: fcoup, fti, fesel
-      integer(4) :: i1, i2, nexcstored, iq, m, n, m2, n2, i
+      integer(4) :: i1, i2, nexcstored, iq, m, n, m2, n2, i, ngridk(3)
 
       character(256) :: fname
       character(256) :: tdastring, bsetypestring, tistring, scrtypestring
+
+      ngridk = input%groundstate%ngridk
 
       m = drvec%nrows
       n = drvec%ncols
@@ -564,6 +568,8 @@ module m_putgetexcitons
           & ioref, iuref,&! Reference absolute state index for occpied and unoccupied index (usually lowest and 1st unoccupied)
           & iq,&          ! Index of momentum transfer vector
           & vqlmt(1:3,iq),& ! Momentum transver vector
+          & ngridk,&      ! k-grid spacing
+          & ikmap,&       ! k-grid index map 3d -> 1d 
           & vkl0,&        ! Lattice vectors for k grid
           & vkl,&         ! Lattice vectors for k'=k+qmt grid
           & ikmapikq(:,iq),& ! ik -> ik' index map
