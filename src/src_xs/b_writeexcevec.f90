@@ -60,12 +60,18 @@ subroutine b_writeexcevec
         en1=en1/h2ev
         en2=en2/h2ev
       end if
+      write(unitout,'("Info(",a,"): Getting excitons in energy range:",2f12.6)')&
+        & trim(thisname), en1, en2
       call get_excitons(iqmt=iqmt, e1=en1, e2=en2)
     else
       i1 = input%xs%writeexcitons%minnumberexcitons
       i2 = input%xs%writeexcitons%maxnumberexcitons
+      write(unitout,'("Info(",a,"): Getting excitons in index range:",2i8)')&
+        & trim(thisname), i1, i2
       call get_excitons(iqmt=iqmt, a1=i1, a2=i2)
     end if
+    write(unitout,'("Info(",a,"): Excitons read in for range:",2i8)')&
+      & trim(thisname), iex1_, iex2_
     !====================================================!
 
     ! Set maximal number of valence and conduction states over all k-points
@@ -100,6 +106,9 @@ subroutine b_writeexcevec
     allocate(idxsort(hamsize_), idxsort_desc(hamsize_))
 
     do lambda = iex1_, iex2_
+
+      write(unitout,'("Info(",a,"): Writing EXEVEC for lambda =",i8)')&
+        & trim(thisname), lambda
 
       call genfilname(dirname=trim(excitonevecdir), basename="EXEVEC",&
         & lambda=lambda, iqmt=iq_,&
@@ -193,6 +202,9 @@ subroutine b_writeexcevec
 
     end do
 
+    write(unitout,'("Info(",a,"): Writing of EXEVEC finished")')&
+      & trim(thisname)
+
     deallocate(idxsort, idxsort_desc)
     deallocate(absvec)
     !====================================================!
@@ -204,6 +216,9 @@ subroutine b_writeexcevec
 
     ! Loop over eigenvectors
     lambdaloop: do lambda = iex1_, iex2_
+
+      write(unitout,'("Info(",a,"): Writing BEVEC for lambda =",i8)')&
+        & trim(thisname), lambda
 
       call getunit(un)
 
@@ -258,6 +273,8 @@ subroutine b_writeexcevec
       close (un)
 
     end do lambdaloop
+    write(unitout,'("Info(",a,"): Writing BEVEC finished")')&
+      & trim(thisname)
     !====================================================!
 
     !====================================================!
@@ -272,6 +289,8 @@ subroutine b_writeexcevec
     end if
 
     do lambda = iex1_, iex2_
+      write(unitout,'("Info(",a,"): Writing BEVEC_KSUM for lambda =",i8)')&
+        & trim(thisname), lambda
 
       rbevec_ksum=0.0d0
       if(fcoup_) abevec_ksum=0.0d0
