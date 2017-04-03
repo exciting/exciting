@@ -61,12 +61,15 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
   integer, intent(out) :: io0(nkpt), io(nkpt), iu0(nkpt), iu(nkpt)
 
   ! Local variables
+  real(8) :: t1, t0
   integer :: iocc0, iocc, iunocc0, iunocc
   integer :: ik, ikq, i0, i
   logical :: t
 
   !write(*,*)
   !write(*,*) "findocclims here"
+
+  call timesec(t1)
 
   t = allocated(evalsv0)
   if( .not. t) allocate(evalsv0(nstsv, nkpt))
@@ -261,6 +264,9 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
   end if
 
   if( .not. t) deallocate(evalsv0)
+
+  call timesec(t1)
+  write(unitout, '(a, f12.6)') 'Info(findocclims): Time needed/s = ', t1-t0
 
 end subroutine findocclims
 !EOC
