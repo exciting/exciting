@@ -233,6 +233,10 @@ use m_writecmplxparts
     call flushifc(unitout)
   end if
   call select_transitions(iqmt, serial=.false.)
+  if(mpiglobal%rank == 0) then
+    write(unitout, '(a)') 'Info(' // thisnam // '):&
+      & Transitions selected'
+  end if
 
   ! Write support information to file
   if(mpiglobal%rank == 0) then
@@ -272,6 +276,10 @@ use m_writecmplxparts
   !! q-grid setup
 
   ! Setup reduced q-points in modxs
+  if(mpiglobal%rank == 0) then
+    write(unitout, '(a)') 'Info(' // thisnam // '):&
+      & Getting q0-grid offset..'
+  end if
 
   ! Get q grid offsets for qmt=0
   call xsgrids_init(vqlmt(1:3,iqmtgamma), gkmax)
@@ -286,7 +294,17 @@ use m_writecmplxparts
   end if
   call xsgrids_finalize()
 
+  if(mpiglobal%rank == 0) then
+    write(unitout, '(a)') 'Info(' // thisnam // '):&
+      & Done'
+  end if
+
   !write(*,*)
+  if(mpiglobal%rank == 0) then
+    write(unitout, '(a)') 'Info(' // thisnam // '):&
+      & Getting q-grid offset..'
+  end if
+
   call xsgrids_init(vqlmt(1:3,iqmt), gkmax)
   if(fra) then 
     if(fti) then 
@@ -296,6 +314,11 @@ use m_writecmplxparts
     end if
   else
     vqoff =  q_q%qset%vkloff
+  end if
+
+  if(mpiglobal%rank == 0) then
+    write(unitout, '(a)') 'Info(' // thisnam // '):&
+      & Done'
   end if
 
   if(all(abs(vqoffgamma-vqoff) < epslat)) then 
