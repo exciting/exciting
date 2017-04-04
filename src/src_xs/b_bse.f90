@@ -654,7 +654,7 @@ use m_writecmplxparts
     if(bi2d%isroot) then 
       call timesec(ts1)
       write(unitout, '("Info(",a,"):&
-        & Init time:", f12.6)') ts1 - ts0
+        & Init time:", f12.6)') trim(thisname), ts1 - ts0
     end if
 
     ! Read Fermi energy from file

@@ -148,7 +148,7 @@ subroutine b_writeexcevec
       end do
 
       write(un,'("# Resonant contribution")')
-      write(un,'("#",1x,a,3x,a,7x,a,7x,a,3x,a,33x,a,33x,a,19x,a,15x,a)')&
+      write(un,'("#",1x,a,3x,a,7x,a,7x,a,3x,a,33x,a,35x,a,19x,a,15x,a)')&
         & "alpha","lambda", "ic", "iv", "k_c", "k_v",&
         & "|evec|", "real(evec)", "im(evec)"
       rcount=0
@@ -170,7 +170,7 @@ subroutine b_writeexcevec
 
       if(fcoup_) then 
         write(un,'("# Anti-resonant contribution")')
-        write(un,'("#",1x,a,3x,a,7x,a,7x,a,3x,a,33x,a,33x,a,19x,a,15x,a)')&
+        write(un,'("#",1x,a,3x,a,7x,a,7x,a,3x,a,33x,a,35x,a,19x,a,15x,a)')&
           & "alpha","lambda", "ic", "iv", "k_c", "k_v",&
           & "|evec|", "real(evec)", "im(evec)"
 
