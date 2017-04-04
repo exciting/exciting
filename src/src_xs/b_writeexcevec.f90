@@ -160,7 +160,7 @@ subroutine b_writeexcevec
         vklv = vkl0_(1:3,ikv)
         vklc = vkl_(1:3,ikv)
         if(absvec(alpha) > abscutoffres(1) .and. absvec(alpha) < abscutoffres(2)) then
-          write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,3E23.16))')&
+          write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,3E25.16))')&
             & alpha, lambda, ic, iv, vklc, vklv,&
             & absvec(alpha), dble(rvec_(alpha,lambda)), aimag(rvec_(alpha, lambda))
           rcount = rcount + 1
@@ -195,7 +195,7 @@ subroutine b_writeexcevec
             call r3frac(epslat, vklc, ivec)
           end if
           if(absvec(alpha) > abscutoffares(1) .and. absvec(alpha) < abscutoffares(2)) then
-            write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,3E23.16))')&
+            write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,3E25.16))')&
               & alpha+hamsize_, lambda, ic, iv, vklc, vklv,&
               & absvec(alpha), dble(avec_(alpha,lambda)), aimag(avec_(alpha, lambda))
             acount=acount+1
@@ -229,7 +229,7 @@ subroutine b_writeexcevec
 
       call getunit(un)
 
-      write(lambdastring, '("_LAMBDA",i4.4)') lambda
+      write(lambdastring, '("_LAMBDA",i8.8)') lambda
       fname=trim('BEVEC'//trim(lambdastring)//'.OUT')
       fname=trim(bevecdir)//'/'//trim(fname)
 
@@ -315,7 +315,7 @@ subroutine b_writeexcevec
 
       call getunit(un)
 
-      write(lambdastring, '("_LAMBDA",i4.4)') lambda
+      write(lambdastring, '("_LAMBDA",i8.8)') lambda
       fname=trim('BEVEC_KSUM'//trim(lambdastring)//'.OUT')
       fname=trim(bevecksumdir)//'/'//trim(fname)
 
