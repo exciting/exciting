@@ -74,14 +74,19 @@ Subroutine xsmain (plan)
 			 if (input%xs%BSE%xas) then
 				Call xasinit
 				Call writepmatxs
-				Call writepmatxs
 				Call xasfinit
 			else
 				Call writepmatxs
 			end if
          Case (321)
      ! ASCII output of momentum matrix elements
-            Call writepmatasc
+        if (input%xs%BSE%xas) then
+          Call xasinit
+          Call writepmatasc
+          Call xasfinit
+        else
+          Call writepmatasc
+        end if
          Case (322)
      ! convert momentum matrix elements file to old format
             Call pmatxs2orig

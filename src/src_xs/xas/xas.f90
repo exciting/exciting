@@ -115,7 +115,7 @@ Subroutine xas
      & oszs (:, :), spectr (:), sigma(:), buf(:,:,:)
   ! external functions
       Integer, External :: l2int
-
+     
       integer :: Recl, nstsv_
       real(8) :: vkl_(3)
       
