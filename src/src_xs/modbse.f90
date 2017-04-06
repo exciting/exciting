@@ -9,6 +9,9 @@
 !BOC
 module modbse
   use modmpi
+#ifdef USEOMP
+  use omp_lib
+#endif
   use modinput, only: input
   use mod_constants, only: h2ev
   use modxs, only: unitout
@@ -336,6 +339,8 @@ module modbse
 
       if(mpiglobal%rank==0) then 
         write(unitout, '("Info(setranges_modxs):&
+          & Number of non-reduced k-points:",i9)') nk_max
+        write(unitout, '("Info(setranges_modxs):&
           & Number of states considered:",i9)') nstsv
         write(unitout, '("Info(setranges_modxs):&
           & Number of (partially) occupied state:", i9)') no_max
@@ -537,6 +542,7 @@ module modbse
         fsamek=.false.
       end if
 
+
       if(.not. associated(input%gw)) then 
         ! Explicitly specify k file extension
         usefilext0 = .true.
@@ -671,7 +677,9 @@ module modbse
                   sflag(s) = .true.
                   
                   ! Write to combinded index map
-                  smap_loc(:,s) = [iu, io, ik]
+                  smap_loc(1,s) = iu
+                  smap_loc(2,s) = io
+                  smap_loc(3,s) = ik
 
                   ! Save energy difference
                   de_loc(s) = detmp 
@@ -711,7 +719,9 @@ module modbse
                 sflag(s) = .true.
                 
                 ! Write to combinded index map
-                smap_loc(:,s) = [iu, io, ik]
+                smap_loc(1,s) = iu
+                smap_loc(2,s) = io
+                smap_loc(3,s) = ik
 
                 ! Save energy difference
                 de_loc(s) = evalsv(iu,ikq)-evalsv0(io,ik)+sci
@@ -737,7 +747,10 @@ module modbse
         end do
         !$OMP END PARALLEL DO
 
-        koulims(:,ik) = [ iumin, iumax, iomin, iomax ] 
+        koulims(1,ik) = iumin
+        koulims(2,ik) = iumax
+        koulims(3,ik) = iomin
+        koulims(4,ik) = iomax
 
         kousize(ik) = kous
         

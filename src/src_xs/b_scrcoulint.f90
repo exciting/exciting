@@ -233,10 +233,6 @@ use m_writecmplxparts
     call flushifc(unitout)
   end if
   call select_transitions(iqmt, serial=.false.)
-  if(mpiglobal%rank == 0) then
-    write(unitout, '(a)') 'Info(' // thisnam // '):&
-      & Transitions selected'
-  end if
 
   ! Write support information to file
   if(mpiglobal%rank == 0) then
@@ -276,10 +272,6 @@ use m_writecmplxparts
   !! q-grid setup
 
   ! Setup reduced q-points in modxs
-  if(mpiglobal%rank == 0) then
-    write(unitout, '(a)') 'Info(' // thisnam // '):&
-      & Getting q0-grid offset..'
-  end if
 
   ! Get q grid offsets for qmt=0
   call xsgrids_init(vqlmt(1:3,iqmtgamma), gkmax)
@@ -294,17 +286,7 @@ use m_writecmplxparts
   end if
   call xsgrids_finalize()
 
-  if(mpiglobal%rank == 0) then
-    write(unitout, '(a)') 'Info(' // thisnam // '):&
-      & Done'
-  end if
-
   !write(*,*)
-  if(mpiglobal%rank == 0) then
-    write(unitout, '(a)') 'Info(' // thisnam // '):&
-      & Getting q-grid offset..'
-  end if
-
   call xsgrids_init(vqlmt(1:3,iqmt), gkmax)
   if(fra) then 
     if(fti) then 
@@ -314,11 +296,6 @@ use m_writecmplxparts
     end if
   else
     vqoff =  q_q%qset%vkloff
-  end if
-
-  if(mpiglobal%rank == 0) then
-    write(unitout, '(a)') 'Info(' // thisnam // '):&
-      & Done'
   end if
 
   if(all(abs(vqoffgamma-vqoff) < epslat)) then 
@@ -478,6 +455,12 @@ use m_writecmplxparts
     !write(*,*) "writing emat to =", trim(filext)
     call putematrad(iqr, iqrnr)
 
+    if(mpiglobal%rank == 0) then
+      write(6, '(a,"Scrcoulint progess WGGp(q):", f10.3)', advance="no")&
+        & achar( 13), 100.0d0*dble(iqr-qpari+1)/dble(qparf-qpari+1)
+      flush(6)
+    end if
+
   end do
 
   ! Set file extesion for later read EMATRAD in getematrad
@@ -511,11 +494,10 @@ use m_writecmplxparts
     allocate(muu(nu_bse_max, nu_bse_max, ngqmax))
     allocate(moo(no_bse_max, no_bse_max, ngqmax))
   else
-    allocate(sccli_t1(no_bse_max*nu_bse_max, nu_bse_max*nu_bse_max))
+    allocate(sccli_t1(no_bse_max*nu_bse_max, nu_bse_max*no_bse_max))
     allocate(mou(no_bse_max, nu_bse_max, ngqmax))
     allocate(muo(nu_bse_max, no_bse_max, ngqmax))
   end if
-
 
   if(mpiglobal%rank == 0) then
     write(unitout, '("Info(b_scrcoulint): W matrix elements")')
@@ -611,6 +593,7 @@ use m_writecmplxparts
     ! Local field effects size (Number of G+q vectors)
     numgq = ngq(iq)
     !write(*,*) "numgq=", numgq
+
 
     if(allocated(igqmap)) deallocate(igqmap)
     allocate(igqmap(numgq))
@@ -817,7 +800,6 @@ use m_writecmplxparts
       ! M_{ioju} -> M^*_{ioju}
       cmou = conjg(cmou)
 
-      ! Allocate helper array
       allocate(zm(nou,numgq))
 
       ! Calculate matrix elements of screened coulomb interaction scclict_{j1, j2}(q)
@@ -834,7 +816,9 @@ use m_writecmplxparts
       !   M^*_{io_j1,ju_j1,ik}(G,q-qmt) W(G, G',q-qmt) M_{iu_j2,jo_j2,ik+qmt}(G',q-qmt)
       call zgemm('n', 't', nou, nuo, numgq, pref, zm,&
         & nou, cmuo, nuo, zzero, sccli_t1(1:nou,1:nuo), nou)
+
       deallocate(zm)        
+
       deallocate(cmou, cmuo)
 
       ! Save only the selected transitions
@@ -891,11 +875,12 @@ use m_writecmplxparts
     end if
 
     ! Deallocate G+q dependent work arrays
+
     deallocate(igqmap)
     deallocate(wfc)
 
-    if(rank == 0) then
-      write(6, '(a,"Scrcoulint progess:", f10.3)', advance="no")&
+    if(mpiglobal%rank == 0) then
+      write(6, '(a,"Scrcoulint progess W:", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
       flush(6)
     end if
@@ -903,9 +888,8 @@ use m_writecmplxparts
   ! End loop over(k,kp)-pairs
   end do kkploop
 
-  !if(rank == 0) then
-  !  write(*,*)
-  !end if
+  if(allocated(igqmap)) deallocate(igqmap)
+  if(allocated(wfc)) deallocate(wfc)
 
   if(mpiglobal%rank == 0) then
     call timesec(tscc1)

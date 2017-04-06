@@ -7,7 +7,7 @@ subroutine b_xsgeneigveclauncher
   use modmpi
   use modinput, only: input
   use mod_qpoint, only: nqpt, vql
-  use modxs, only: nqmt, totalqlmt, totalqcmt, vqlmt, ivgmt, vqcmt, tscreen, qvkloff, unitout
+  use modxs, only: vqlmt, tscreen, qvkloff
   use m_genfilname, only: genfilname
   use m_writegqpts, only: writegqpts
   use mod_misc, only: filext
@@ -18,14 +18,14 @@ subroutine b_xsgeneigveclauncher
 
   ! Local variables
   character(*), parameter :: thisnam = 'b_xsgeneigveclauncer'
-  integer(4) :: iq, qi, qf
+  integer(4) :: iq
   logical :: tmqmt
   logical :: firstisgamma
   real(8), allocatable :: vkloff_kqmtm(:,:)
   real(8), parameter :: epslat=1.d-6
 
-  !write(*,*) "b_xsgeneigveclauncher here at rank", rank
-  !write(*,*) "use screening parameters = ", tscreen 
+  write(*,*) "b_xsgeneigveclauncher here at rank", rank
+  write(*,*) "use screening parameters = ", tscreen 
 
   ! Initialize universal variables
   call init0
