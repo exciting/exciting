@@ -14,6 +14,7 @@ Subroutine bandstr
   Use modmpi
   use mod_wannier
   use m_wannier_interpolate
+  use m_wannier_interpolate_eigsys
   Use FoX_wxml
 
   ! !DESCRIPTION:
@@ -57,7 +58,7 @@ Subroutine bandstr
   integer :: nv, ix, iy, iz
   real(8) :: s(3), vk(3), v1(3), dt
   real(8), allocatable :: eval1(:,:), eval2(:,:), vklold(:,:), dist(:), vvl(:,:)
-  complex(8), allocatable :: evectmp(:,:)
+  complex(8), allocatable :: evectmp(:,:), evecint(:,:,:,:)
   type( k_set) :: redkset
 !END WANNIER
 ! initialise universal variables
@@ -95,16 +96,59 @@ Subroutine bandstr
     write(*,*) iz, nkpt
     write(*,*) shape( vklold)
     write(*,*) shape( vkl)
+    allocate( evecint( nmatmax, nstsv, nspinor, iz))
+    evecint = zzero
     
     ! do interpolation
     lmax = min( 3, input%groundstate%lmaxapw)
+    lmmax = (lmax+1) ** 2
     if( input%properties%bandstructure%character) then
       write(*,*) "true"
-      allocate( bc( natmtot, 0:lmax, wf_fst:wf_lst, iz))
-      call wannier_interpolate_eval( eval1( wf_fst:wf_lst, :), iz, vklold, eval2( wf_fst:wf_lst, :), bandchar=bc, lmax=lmax)
+      Allocate (bc(0:lmax, natmtot, nstsv, iz))
+      !call wannier_interpolate_eval( eval1( wf_fst:wf_lst, :), iz, vklold, eval2( wf_fst:wf_lst, :), bandchar=bc, lmax=lmax)
+      call wannier_interpolate_eigsys( eval1( wf_fst:wf_lst, :), iz, vklold, eval2( wf_fst:wf_lst, :), evecint( :, wf_fst:wf_lst, 1, :))
+      Allocate (dmat(lmmax, lmmax, nspinor, nspinor, nstsv))
+      Allocate (evecsv(nstsv, nstsv))
+      Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
+      evecsv = zzero
+      ! k-points along path
+      input%properties%bandstructure%wannier = .false.
+      call init1
+      do ik = 1, iz
+        ! find the matching coefficients
+        Do ispn = 1, nspnfv
+           Call match( ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, &
+                & ispn, ik), sfacgk(:, :, ispn, ik), apwalm(:, :, :, :, &
+                & ispn))
+        End Do
+        ! average band character over spin and m for all atoms
+        Do is = 1, nspecies
+           Do ia = 1, natoms (is)
+              ias = idxas (ia, is)
+              ! generate the diagonal of the density matrix
+              Call gendmat (.True., .True., 0, lmax, is, ia, ngk(:, &
+                   & ik), apwalm, evecint( :, :, :, ik), evecsv, lmmax, dmat)
+              Do ist = 1, nstsv
+                 Do l = 0, lmax
+                    sum = 0.d0
+                    Do m = - l, l
+                       lm = idxlm (l, m)
+                       Do ispn = 1, nspinor
+                          sum = sum + dble (dmat(lm, lm, ispn, &
+                               & ispn, ist))
+                       End Do
+                    End Do
+                    bc (l, ias, ist, ik) = real (sum)
+                 End Do
+              End Do
+           End Do
+        End Do
+      end do
+      Deallocate (dmat, apwalm, bc, evecsv)
     else
       write(*,*) "false"
-      call wannier_interpolate_eval( eval1( wf_fst:wf_lst, :), iz, vklold, eval2( wf_fst:wf_lst, :))
+      call wannier_interpolate_eval( eval1( wf_fst:wf_lst, :), iz, vklold, eval2( wf_fst:wf_lst, :), lmax=-1)
+      !call wannier_interpolate_eigsys( eval1( wf_fst:wf_lst, :), iz, vklold, eval2( wf_fst:wf_lst, :), evecint( :, wf_fst:wf_lst, 1, :))
     end if
     eval2 = eval2 - efermi
   
@@ -264,7 +308,7 @@ Subroutine bandstr
       dt = dt + norm2( s)
     end do
     close( 50)
-    call eqpongrid 
+    !call eqpongrid 
   
     ! go back on BZ-path
     input%properties%bandstructure%wannier = .false.
@@ -693,7 +737,7 @@ Subroutine bandstr
   if (rank==0) then
     open(50, File="bandstructure.dat", Action='Write', Form='Formatted')
     if( input%properties%bandstructure%wannier) then
-      write(50,*) "# ", 1, wf_nst, nkpt
+      write(50,*) "# ", wf_fst, wf_lst, nkpt
       ! path, energy, ist, ik, vkl
       do ist = wf_fst, wf_lst
         do ik = 1, nkpt

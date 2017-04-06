@@ -11,7 +11,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
       
   integer, intent(in) :: nkp2
   real(8), intent(in) :: kvecs2(3,nkp2)
-  real(8), intent(out):: eqp2(nstsv,nkp2)
+  real(8), intent(out):: eqp2( nstsv, nkp2)
 
   logical       :: exist
   integer(4)    :: ik, ib, nb, nk, nqp
@@ -23,7 +23,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   complex(8), allocatable :: de1(:,:), de2(:,:)
 
   ! for band-character
-  real(4) :: sum
+  real(4) :: su
   real(4), allocatable :: bc(:,:,:,:)
   integer :: lmax, is, ia, ias, ist, l
 
@@ -135,52 +135,37 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     vkl = kvecs1
     do ik = 1, wf_kset%nkpt
       call findkpt( wf_kset%vkl( :, ik), nb, ib)
-      !write(*,*) ik, ib
-      !write(*,*) wf_kset%vkl( :, ik)
-      !write(*,*) vkl( :, ib)
-      !write(*,*) kvecs1( :, ib)
       eqpwan( :, ik) = eqp1( wf_fst:wf_lst, ib)
-      !write(*,'(100F13.6)') eqpwan( :, ik)
     end do
     deallocate( vkl)
     allocate( vkl( 3, nkp2))
     vkl = kvecs2_
     nkpt = nkp2
       
-    !write(*,*) shape( eqpwan), shape( wf_kset%vkl), wf_kset%nkpt
-    !write(*,*) shape( eqpwanint), shape( kvecs2), nkp2
-    !write(*,*) shape( eqp2)
     lmax = min( 3, input%groundstate%lmaxapw)
     allocate( bc( natmtot, 0:lmax, wf_fst:wf_lst, nkp2))
-    call wannier_interpolate_eval( eqpwan, nkp2, kvecs2_, eqpwanint, bandchar=bc, lmax=lmax)
+    call wannier_interpolate_eval( eqpwan, nkp2, kvecs2_, eqpwanint, bandchar=bc, lmax=-1)
     do ib = wf_fst, wf_lst
-       do ik = 1, nkp2
-          eqp2( ib, ik) = eqpwanint( ib, ik) - eferqp - efermi
-       end do 
-     end do
+      do ik = 1, nkp2
+        eqp2( ib, ik) = eqpwanint( ib, ik) - eferqp - efermi
+      end do 
+    end do
 
-     do is = 1, nspecies
-       do ia = 1, natoms (is)
-         ias = idxas (ia, is)
-         write (fname, '("BAND-QP_WANNIER_S", I2.2, "_A", I4.4, ".OUT")') &
-              & is, ia
-         open (50, File=trim(fname), Action='WRITE', Form='FORMAT&
-              &TED')
-         !
-         do ist = wf_fst, wf_lst
-           do ik = 1, nkpt
-             ! sum band character over l
-             sum = 0.d0
-             do l = 0, lmax
-               sum = sum + bc( ias, l, ist, ik)
-             end do
-             write (50, '(G18.10, 8F12.6)') eqp2( ist, ik), sum, (bc( ias, l, ist, ik), l=0, lmax)
-           end do
-           write (50, '("	  ")')
-         end do
-         close (50)
-       end do
-     end do
+    do is = 1, nspecies
+      do ia = 1, natoms (is)
+        ias = idxas (ia, is)
+        write (fname, '("BAND-QP_WANNIER_S", I2.2, "_A", I4.4, ".OUT")') is, ia
+        open (50, File=trim(fname), Action='WRITE', Form='FORMATTED')
+        do ist = wf_fst, wf_lst
+          do ik = 1, nkp2
+            su = sum( bc( ias, :, ist, ik))
+            write (50, '(2G18.10, 8F12.6)') dpp1d( ik), eqp2( ist, ik), su, (bc( ias, l, ist, ik), l=0, lmax)
+          end do
+          write (50, '("	  ")')
+        end do
+        close (50)
+      end do
+    end do
   else
     do ik = 1, nkp1
       de1(ik,:) = cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)

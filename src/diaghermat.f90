@@ -38,8 +38,6 @@ Subroutine diaghermat ( matsize, mat, eval, evec)
       iu = matsize
   ! tolerance parameter
       abstol = 2.d0 * dlamch ('S')
-  ! workspace size (*** improve later ***)
-      lwork = (32+1) * matsize
   ! LAPACK 3.0 call
      lrwork=-1 !hamsiz
      liwork=-1 !5*hamsiz

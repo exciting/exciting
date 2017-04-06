@@ -193,12 +193,14 @@ module mod_wannier
           write(*, '(" ERROR (wannier_init): ",a," is not a valid input.")') input%properties%wannier%input
           call terminate
       end select
+      write(*, '(" k-grid loaded.")')
 
       !********************************************************************
       ! find geometry
       !********************************************************************
       call wannier_geometry
       call wannier_writeinfo_geometry
+      write(*, '(" geometry analysed.")')
       
       call wannier_writeinfo_task( input%properties%wannier%method)
       
@@ -1864,18 +1866,20 @@ module mod_wannier
       !BOC
 
       integer :: ix, iy, iz, i, j, nshell, nkmax, iknr, d
-      integer :: mt( wf_kset%nkpt), vi(3)
+      integer :: vi(3)
       real(8) :: vl(3), vc(3), dist
-      real(8) :: nvlt( 3, wf_kset%nkpt, wf_kset%nkpt), nvct( 3, wf_kset%nkpt, wf_kset%nkpt), dt( wf_kset%nkpt)
+      real(8) :: nvlt( 3, wf_kset%nkpt, wf_kset%nkpt), nvct( 3, wf_kset%nkpt, wf_kset%nkpt)
       real(8) :: coeff(6,6), coeffcpy(6,6), right(6), sval(6), lsvec(6,6), rsvec(6,6), coeffinv(6,6)
       real(8) :: mat1(3,3), mat2(3,3), mat3(3,3)
       logical :: stopshell
 
       integer :: lwork, info
-      real(8), allocatable :: work(:)
-      integer, allocatable :: iwork(:)
+      real(8), allocatable :: work(:), dt(:)
+      integer, allocatable :: iwork(:), mt(:)
       
       ! find possible distances (shells)
+      nkmax = (wf_kset%ngridk(3)-1)*(2*wf_kset%ngridk(2)-1)*(2*wf_kset%ngridk(1)-1)+(wf_kset%ngridk(2)-1)*(2*wf_kset%ngridk(1)-1)+wf_kset%ngridk(1)-1
+      allocate( dt( nkmax), mt( nkmax))
       dt = 0.d0
       mt = 0
       nvlt = 0.d0
@@ -1892,36 +1896,35 @@ module mod_wannier
                 i = i + 1
                 dt( i) = dist
               end if
-            end if
-          end do
-        end do
-      end do
-      
-      ! find all possible neighbors
-      nshell = i
-      nkmax = 0
-      do iz = wf_kset%ngridk(3)-1, -wf_kset%ngridk(3)+1, -1
-        do iy = wf_kset%ngridk(2)-1, -wf_kset%ngridk(2)+1, -1
-          do ix = wf_kset%ngridk(1)-1, -wf_kset%ngridk(1)+1, -1
-            if( (abs(ix)+abs(iy)+abs(iz)) .ne. 0) then
-              vl = (/dble( ix)/wf_kset%ngridk(1), dble( iy)/wf_kset%ngridk(2), dble( iz)/wf_kset%ngridk(3)/)
-              call r3mv( bvec, vl, vc)
-              dist = norm2( vc)
               j = minloc( abs( dt(:) - dist), 1)
               if( abs( dt( j) - dist) .lt. input%structure%epslat) then
                 mt( j) = mt( j) + 1
-                nkmax = max( nkmax, mt(j))
-                nvlt( :, mt( j), j) = vl
-                nvct( :, mt( j), j) = vc
               end if
             end if
           end do
         end do
       end do
-      
+      iz = i
+      nshell = min( iz, 6)
+
       ! allocating geometry arrays
       if( .not. allocated( wf_n_dist))          allocate( wf_n_dist( nshell))
       if( .not. allocated( wf_n_n))             allocate( wf_n_n( nshell))
+
+      ! sort shells by distance
+      wf_n_dist = 0.d0
+      wf_n_n = 0
+      dist = minval( dt)
+      do i = 1, nshell
+        j = minloc( abs( dt( 1:iz) - dist), 1)
+        wf_n_dist( i) = dt( j)
+        wf_n_n( i) = mt( j)
+        dt( j) = 1.d13 
+        dist = minval( dt)
+      end do
+      nkmax = maxval( wf_n_n)
+      
+      ! allocating geometry arrays
       if( .not. allocated( wf_n_ik))            allocate( wf_n_ik( nkmax, nshell, wf_kset%nkpt))
       if( .not. allocated( wf_n_vl))            allocate( wf_n_vl( 3, nkmax, nshell))
       if( .not. allocated( wf_n_vc))            allocate( wf_n_vc( 3, nkmax, nshell))
@@ -1929,21 +1932,28 @@ module mod_wannier
       if( .not. allocated( wf_n_usedshells))    allocate( wf_n_usedshells( nshell))
       if( .not. allocated( wf_n_ns2n))          allocate( wf_n_ns2n( nkmax, nshell))
 
-      ! sort everything by distance
-      wf_n_n = 0
-      wf_n_dist = 0.d0
+      ! find all possible neighbors
       wf_n_vl = 0.d0
       wf_n_vc = 0.d0
-      dist = minval( dt)
-      do i = 1, nshell
-        j = minloc( abs( dt( 1:nshell) - dist), 1)
-        wf_n_dist( i) = dt( j)
-        wf_n_n( i) = mt( j)
-        wf_n_vl( :, :, i) = nvlt( :, :, j)
-        wf_n_vc( :, :, i) = nvct( :, :, j)
-        dt( j) = 1.d13 
-        dist = minval( dt)
+      mt = 0
+      do iz = wf_kset%ngridk(3)-1, -wf_kset%ngridk(3)+1, -1
+        do iy = wf_kset%ngridk(2)-1, -wf_kset%ngridk(2)+1, -1
+          do ix = wf_kset%ngridk(1)-1, -wf_kset%ngridk(2)+1, -1
+            if( (abs(ix)+abs(iy)+abs(iz)) .ne. 0) then
+              vl = (/dble( ix)/wf_kset%ngridk(1), dble( iy)/wf_kset%ngridk(2), dble( iz)/wf_kset%ngridk(3)/)
+              call r3mv( bvec, vl, vc)
+              dist = norm2( vc)
+              j = minloc( abs( wf_n_dist(:) - dist), 1)
+              if( abs( wf_n_dist( j) - dist) .lt. input%structure%epslat) then
+                mt( j) = mt( j) + 1
+                wf_n_vl( :, mt( j), j) = vl
+                wf_n_vc( :, mt( j), j) = vc
+              end if
+            end if
+          end do
+        end do
       end do
+      !stop
       
       ! find k-point indices of neighbors
       do iknr = 1, wf_kset%nkpt
@@ -1952,9 +1962,10 @@ module mod_wannier
             vl = wf_kset%vkl( :, iknr) + wf_n_vl( :, i, j)
             call r3frac( input%structure%epslat, vl, vi) 
             do iy = 1, wf_kset%nkpt
+              !write(*,*) iknr, j, i, iy
               dt( iy) = norm2( vl - wf_kset%vkl( :, iy))
             end do
-            iz = minloc( dt, 1)
+            iz = minloc( dt( 1:wf_kset%nkpt), 1)
             if( norm2( vl - wf_kset%vkl( :, iz)) .lt. input%structure%epslat) then
               wf_n_ik( i, j, iknr) = iz
               !write(*,'(3(3F13.6,3x))') wf_kset%vkl( :, iknr), wf_n_vl( :, i, j), wf_kset%vkl( :, wf_n_ik( i, j, iknr))
@@ -2066,12 +2077,7 @@ module mod_wannier
       end do
       wf_n_nshells = j
 
-      do i = 1, wf_n_nshells
-        ix = wf_n_usedshells( i)
-        do j = 1, wf_n_n( ix)
-          write(*,*) i, ix, j, wf_n_ns2n( j, ix)
-        end do
-      end do
+      deallocate( dt, mt, work, iwork)
 
       return
       !EOC
