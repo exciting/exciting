@@ -94,10 +94,10 @@ subroutine wannier_plot( ist, cell)
       v2 = input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord
       v3 = input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord
       s = input%structure%crystal%scale
-      call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc - s*(v1+v2+v3), input%properties%wannierplot%plot3d%box%origin%coord)
-      call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc + s*(v1-v2-v3), input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord)
-      call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc + s*(v2-v3-v1), input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord)
-      call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc + s*(v3-v1-v2), input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord)
+      call r3mv( ainv, wf_centers( :, ist) + cellc - s*(v1+v2+v3), input%properties%wannierplot%plot3d%box%origin%coord)
+      call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v1-v2-v3), input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord)
+      call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v2-v3-v1), input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord)
+      call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v3-v1-v2), input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord)
       grid = gen_3d_rgrid( input%properties%wannierplot%plot3d, 0)
     end if
 
@@ -156,7 +156,7 @@ subroutine wannier_plot( ist, cell)
     allocate( dist( grid%npt)) 
     phi = 0.d0
     do ip = 1, grid%npt
-      dist( ip) = norm2( grid%vpc( :, ip) - wf_centers( :, ist-wf_fst+1) - cellc(:))
+      dist( ip) = norm2( grid%vpc( :, ip) - wf_centers( :, ist) - cellc(:))
       s = atan2( aimag( zdatatot( ip)), dble( zdatatot( ip)))
       !write(*,'(F23.16)') s
       if( s .gt. 0.5d0*pi) s = s - pi
@@ -168,7 +168,7 @@ subroutine wannier_plot( ist, cell)
     s = atan2( aimag( zdatatot( ip)), dble( zdatatot( ip)))
     if( abs( phi - s) .gt. 0.5d0*pi) phi = mod( phi+pi, pi)
     write(*,*) ip
-    write(*,'(3F13.6)') wf_centers( :, ist-wf_fst+1) + cellc
+    write(*,'(3F13.6)') wf_centers( :, ist) + cellc
     write(*,'(3F13.6)') grid%vpc( :, ip)
     write(*,'(3F13.6)') minval( grid%vpc( 1, :)), minval( grid%vpc( 2, :)), minval( grid%vpc( 3, :))
     write(*,'(3F13.6)') maxval( grid%vpc( 1, :)), maxval( grid%vpc( 2, :)), maxval( grid%vpc( 3, :))

@@ -20155,6 +20155,7 @@ eq_29	libXC/src/mgga_x_tau_hcth.c	/^eq_29(int order, FLOAT x, FLOAT *ux, FLOAT *
 eqatoms	mod_symmetry.F90	/^      Logical, Allocatable :: eqatoms /;"	v	module:mod_symmetry
 eqp1	src_gw/mod_bands.f90	/^    real(8), allocatable :: eks1(:,:), eqp1(/;"	v	module:mod_bands
 eqp2	src_gw/mod_bands.f90	/^    real(8), allocatable :: eks2(:,:), eqp2(/;"	v	module:mod_bands
+eqpongrid	eqpongrid.f90	/^subroutine eqpongrid$/;"	s
 er	src_gw/setrindex.f90	/^    complex(8), allocatable :: er(/;"	v	module:fouri
 erf	src_lib/erf.f90	/^Real (8) Function erf /;"	f
 err	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  real avg, err, lastavg, lasterr;$/;"	m	struct:__anon49
@@ -23427,6 +23428,8 @@ m_sax_xml_source	FoX/sax/m_sax_xml_source.F90	/^module m_sax_xml_source$/;"	m
 m_sorteval	src_xs/sorteval.F90	/^Module m_sorteval$/;"	m
 m_symvec	src_raman/construct_symvec.f90	/^module m_symvec /;"	m
 m_tabs	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  QTabWidget *m_tabs;$/;"	m	class:PartitionViewer	file:
+m_wannier_interpolate	wannier_interpolate_eval.f90	/^module m_wannier_interpolate$/;"	m
+m_wannier_interpolate_eigsys	wannier_interpolate_eigsys.f90	/^module m_wannier_interpolate_eigsys$/;"	m
 m_wcml_coma	FoX/wcml/m_wcml_coma.F90	/^module m_wcml_coma$/;"	m
 m_wcml_core	FoX/wcml/m_wcml_core.F90	/^module m_wcml_core$/;"	m
 m_wcml_geometry	FoX/wcml/m_wcml_geometry.F90	/^module m_wcml_geometry$/;"	m
@@ -28330,7 +28333,8 @@ wannier_gen_opf	mod_wannier.f90	/^    subroutine wannier_gen_opf(/;"	s	module:mo
 wannier_gen_pro	mod_wannier.f90	/^    subroutine wannier_gen_pro(/;"	s	module:mod_wannier
 wannier_geometry	mod_wannier.f90	/^    subroutine wannier_geometry$/;"	s	module:mod_wannier
 wannier_init	mod_wannier.f90	/^    subroutine wannier_init$/;"	s	module:mod_wannier
-wannier_interpolate_eval	wannier_interpolate_eval.f90	/^subroutine wannier_interpolate_eval(/;"	s
+wannier_interpolate_eigsys	wannier_interpolate_eigsys.f90	/^subroutine wannier_interpolate_eigsys(/;"	s	module:m_wannier_interpolate_eigsys
+wannier_interpolate_eval	wannier_interpolate_eval.f90	/^subroutine wannier_interpolate_eval(/;"	s	module:m_wannier_interpolate
 wannier_loc	mod_wannier.f90	/^    subroutine wannier_loc(/;"	s	module:mod_wannier
 wannier_maxloc	mod_wannier.f90	/^    subroutine wannier_maxloc(/;"	s	module:mod_wannier
 wannier_plot	wannier_plot.f90	/^subroutine wannier_plot(/;"	s

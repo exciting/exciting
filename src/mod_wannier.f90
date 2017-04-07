@@ -1748,6 +1748,7 @@ module mod_wannier
       integer :: i, j, is, n, idxn, ik, ix, iy, iz, un
       integer :: fst_, lst_, nst_, ntot_, nkpt_
       real(8) :: vln(3), vkl_( 3), vkl_tmp( 3, wf_kset%nkpt)
+      complex(8) :: ztmp
 
       call getunit( un)
 
@@ -1759,8 +1760,8 @@ module mod_wannier
       end if
       open( un, file=trim( filename)//"_EMAT"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
       read( un) fst_, lst_, nst_, ntot_, nkpt_
-      if( (fst_ .ne. wf_fst) .or. (lst_ .ne. wf_lst)) then
-        write( *, '(" ERROR (wannier_reademat): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+      if( (fst_ .gt. wf_fst) .or. (lst_ .lt. wf_lst)) then
+        write( *, '(" ERROR (wannier_reademat): bands in input (",I4,":",I4,") out of file band range (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
         success = .false.
         return
       end if
@@ -1795,20 +1796,21 @@ module mod_wannier
               vkl_tmp( 2, :) = wf_kset%vkl( 2, :) - vkl_( 2)
               vkl_tmp( 3, :) = wf_kset%vkl( 3, :) - vkl_( 3)
               iz = minloc( norm2( vkl_tmp( :, :), 1), 1)
-              if( norm2( vkl_tmp( :, iz)) .gt. input%structure%epslat) then
+              if( norm2( wf_kset%vkl( :, iz) - vkl_(:)) .gt. input%structure%epslat) then
                 write( *, '(" ERROR (wannier_reademat): k-point in file not in k-point-set.")')
                 write( *, '(3F23.6)') vkl_
                 success = .false.
                 call terminate
               end if
-              do iy = wf_fst, wf_lst
-                do ix = wf_fst, wf_lst
-                  read( un) wf_emat( ix, iy, idxn, ik)
+              do iy = fst_, lst_
+                do ix = fst_, lst_
+                  read( un) ztmp
+                  if( (ix .ge. wf_fst) .and. (ix .le. wf_lst) .and. (iy .ge. wf_fst) .and. (iy .le. wf_lst)) wf_emat( ix, iy, idxn, ik) = ztmp
                 end do
               end do
             end do
           else
-            write( *, '(" ERROR (wannier_reademat): neighboring vector in file not consistens with input.")')
+            write( *, '(" ERROR (wannier_reademat): neighboring vector in file not consistent with input.")')
             write( *, '(3F23.6)') vln
           end if
         end do
