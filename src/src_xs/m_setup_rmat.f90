@@ -66,9 +66,15 @@ module m_setup_rmat
         ioabs2 = koulims(4,iknr)
         inu = iuabs2 - iuabs1 + 1
         ino = ioabs2 - ioabs1 + 1
-        call getpmat(iknr, vkl0,&
-          & ioabs1, ioabs2, iuabs1, iuabs2,&
-          & .true., 'PMAT_XS.OUT', pmouk(:,1:ino,1:inu,ik))
+        if (input%xs%bse%xas) then
+          call getpmatxas(iknr, vkl0,&
+            & ioabs1, ioabs2, iuabs1, iuabs2,&
+            & .true., 'PMAT_XS.OUT', pmouk(:,1:ino,1:inu,ik))
+        else
+          call getpmat(iknr, vkl0,&
+            & ioabs1, ioabs2, iuabs1, iuabs2,&
+            & .true., 'PMAT_XS.OUT', pmouk(:,1:ino,1:inu,ik))
+        end if
         ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
         ! \frac{v^\text{QP}_{okuk}}{E_uk - E_ok} \approx \frac{p^\text{LDA}_{okuk}}{e_uk - e_ok}
         !   In the case that we use the quasi-particle energies E but the LDA eigenfunctions:

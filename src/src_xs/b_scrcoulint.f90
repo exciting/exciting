@@ -192,6 +192,7 @@ use m_writecmplxparts
   ! Note: In the generation of the gaunt coefficients l1 and l3 correspond
   !       to the APW/LOs while l2 corresponds to the exponetial.
   call xsgauntgen(maxl_apwlo, maxl_e, maxl_apwlo)
+  call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax)) 
   ! Find indices for non-zero gaunt coefficients in xsgnt,
   ! and creates index maps, e.g. given l1,m1,l2,m2 -> non zero l3,m3
   ! Up l1 up to maxl_mat, l2 up to maxl_mat, l3 up to maxl_e
@@ -282,6 +283,7 @@ use m_writecmplxparts
       vqoffgamma = q_qmtm%qset%vkloff
     end if
   else
+    ! CV? Isn't this type commented out in mod_xsgrids
     vqoffgamma = q_qmtp%qset%vkloff
   end if
   call xsgrids_finalize()
@@ -430,7 +432,7 @@ use m_writecmplxparts
     call timesec(tscc0)
   end if
 
-  !write(*,*) "W Fourier coefficients"
+  write(*,*) "W Fourier coefficients"
   do iqr = qpari, qparf ! Reduced q
 
     !write(*,*) "iqr=", iqr
@@ -925,7 +927,7 @@ use m_writecmplxparts
       !write(*,*)
       !write(*,*) "getpwesrr:"
       !write(*,*) "  Moo"
-
+      ! CV? where are the filext variables coming from
       fileext0_save = filext0
       fileext_save = filext
 
@@ -951,14 +953,18 @@ use m_writecmplxparts
       iqmt1 = iqmtgamma
       call genfilname(iqmt=iqmt1, setfilext=.true.)
       !write(*,*) "filext =", trim(filext)
-
+      ! CV? What is the meaning of emat_ccket
       emat_ccket=.false.
       ! Set up ikmapikq to link (ik,iq) to jk
       ikmapikq_ptr => q_q%ikiq2ikp_nr
       ! Set vkl0_ptr, vkl1_ptr, ...  to k-grid 
       call setptr00()
       ! Calculate M_{o1o2,G} at fixed (k, q)
-      call b_ematqk(iq, iknr, moo, ematbc)
+      if (input%xs%bse%xas) then
+        call b_ematqk_core(iq, iknr, moo, ematbc, 'oo')
+      else
+        call b_ematqk(iq, iknr, moo, ematbc)
+      end if
       !-----------------------------------------------------------!
       if(.false.) then 
         if(fwp) then
@@ -1013,7 +1019,7 @@ use m_writecmplxparts
       ikmapikq_ptr => q_q%ikiq2ikp_nr
       ! Set vkl0_ptr, vkl1_ptr, ... to k+qmt-grid
       call setptr11
-      ! Calculate M_{o1o2,G} at fixed (k, q)
+      ! Calculate M_{u1u2,G} at fixed (k, q)
       call b_ematqk(iq, ikpnr, muu, ematbc)
       !------------------------------------------------------------------!
 
@@ -1101,7 +1107,11 @@ use m_writecmplxparts
         ! Set vkl0_ptr, vkl1_ptr, ... to k-grid
         call setptr00
         ! Calculate M_{ou,G} at fixed (k, q)
-        call b_ematqk(iq, iknr, mou, ematbc)
+        if (.not. input%xs%bse%xas) then
+          call b_ematqk(iq, iknr, mou, ematbc)
+        else
+          call b_ematqk_core(iq, iknr, mou, ematbc, 'ou')
+        end if
         !------------------------------------------------------------!
 
         if(.false.) then 
@@ -1158,8 +1168,12 @@ use m_writecmplxparts
         ! Set vkl0_ptr, vkl1_ptr, ... to k-grid
         call setptr00
         ! Calculate M_{uo,G} at fixed (k, q)
-        call b_ematqk(iq, ikpnr, muo, ematbc)
-        !-------------------------------------------------------------!
+        if (.not. input%xs%bse%xas) then
+          call b_ematqk(iq, ikpnr, muo, ematbc)
+        else
+          call b_ematqk_core(iq, ikpnr, muo, ematbc, 'uo')
+        end if
+            !-------------------------------------------------------------!
 
         if(.false.) then 
           if(fwp) then

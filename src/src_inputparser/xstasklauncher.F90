@@ -236,105 +236,72 @@ subroutine xstasklauncher
        input%xs%screening%do = doscreen0
     endif
 
-  else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%xas) then
+  else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%xas .and. input%xs%bse%beyond) then
 
-    ! STK
-    ! Apply double grid technique if requested
-    if (any(input%xs%bse%ngridksub .gt. 1)) then
-      dgrid = .true.
-    else
-      dgrid = .false.
-      nksubpt = 1
-    endif
+    !! Removed dubble grid code, since no-one knows how it works.
+    !! Removed tetra code, since no-one knows if it works.
 
-    if(dgrid) then
-      ! append xs output
-      input%xs%tappinfo = .true.
-      ! backup input xs vkloff (it will be added to all generated grids)
-      vkloff_xs_b(:) = input%xs%vkloff(:)
-      ! save screening status for later use
-      doscreen0 = input%xs%screening%do
-      ! generate subgrid
-      call genksubpts
-    endif
+    ! Task 301 corresponds to "xsgeneigvec" plan
+    ! One shot GS calculation with xs%ngridk, xs%nempty and potential xs%vkloff.
+    task = 301
+    call xsinit
+    call b_xsgeneigveclauncher
+    call xsfinit
 
-    do iksubpt = 1, nksubpt
-      if(dgrid) call bsedgridinit
+    ! Task 320 corresponds to "writepmatxs" plan
+    ! Calculates the momentum matrix elements for the xs GS calculation.
+    task = 320
+    call xsinit
+    call xasinit
+    call writepmatxs
+    call xasfinit
+    call xsfinit
 
-      task = 301
+    ! Task 401 corresponds to "scrgeneigvec" plan
+    ! One shot GS calculation with more empty states xs%screening%nempty 
+    ! but otherwise identical parameters as "xsgeneigvec".
+    task = 401
+    call xsinit
+    call b_xsgeneigveclauncher ! Does one shot GS runs with screening GS parameters
+    call xsfinit
+
+    ! Task 420 corresponds to "scrwritepmat" plan
+    task = 420
+    call xsinit
+    call scrwritepmat ! Calls writepmatxs to write PMAT_XS.OUT
+    call xsfinit
+
+    if(input%xs%screening%do .eq. "fromscratch") then
+      ! Task 430 corresponds to "screen" plan
+      task = 430
       call xsinit
-      call xsgeneigvec
+      call b_screenlauncher
       call xsfinit
 
-      task = 320
-      call xsinit
-      call xasinit
-      call writepmatxs
-      call xasfinit
-      call xsfinit
-
-      task = 401
-      call xsinit
-      call scrgeneigvec
-      call xsfinit
-
-      if ((input%xs%tetra%tetradf)) then
-#ifdef TETRA            
-        task = 410
-        call xsinit
-        call scrtetcalccw
-        call xsfinit
-#else
-        ! added by din
-        write(*,*) 'tetrahedron method for xs is disabled!'
-        write(*,*) 'check -dtetra option in make.inc' 
-        stop
-#endif
-      end if
-
-      task = 420
-      call xsinit
-      call scrwritepmat
-      call xsfinit
-
-      if (input%xs%screening%do .eq. "fromscratch") then
-        task = 430
-        call xsinit
-        call screen
-        call xsfinit
-
-        task = 440
-        call xsinit
-        call xasinit
-        call xas_scrcoulint
-        call xasfinit
-        call xsfinit
-      end if
-
-      task = 441
+      ! Task 440 corresponds to "scrcoulint" plan
+      task = 440
       call xsinit
       call xasinit
-      call xas_exccoulint
+      call b_scrcoulintlauncher
       call xasfinit
       call xsfinit
+    end if
 
-      task = 445
-      call xsinit
-      call xasinit
-      call xas
-      call xasfinit
-      call xsfinit
+    ! Task 441 corresponds to "exccoulint" plan
+    task = 441
+    call xsinit
+    call xasinit
+    call b_exccoulintlauncher
+    call xasfinit
+    call xsfinit
 
-      if (dgrid) input%xs%screening%do = "skip"
-
-    enddo
-
-    if (dgrid) then
-      call bsedgrid
-      ! restore input settings
-      input%xs%vkloff(:) = vkloff_xs_b(:)
-      input%xs%screening%do = doscreen0
-    endif
+    ! Task 445 corresponds to "bse" plan
+    task = 445
+    call xsinit
+    call xasinit
+    call b_bselauncher
+    call xasfinit
+    call xsfinit
 
   else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%beyond==.true.) then
 

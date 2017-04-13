@@ -751,15 +751,23 @@ module m_setup_bse
           integer(4) :: i, j
 
           if(present(exc) .and. present(scc)) then 
-            do j= 1, size(hamblock,2)
-              do i= 1, size(hamblock,1)
-                hamblock(i,j) = oc1(i)*oc2(j) * (2.0d0 * exc(i,j) - scc(i,j))
+            if (input%xs%bse%xas) then
+              do j= 1, size(hamblock,2)
+                do i= 1, size(hamblock,1)
+                  hamblock(i,j) = oc1(i)*oc2(j) * (exc(i,j) - scc(i,j))
+                end do
+              end do
+            else
+              do j= 1, size(hamblock,2)
+                do i= 1, size(hamblock,1)
+                  hamblock(i,j) = oc1(i)*oc2(j) * (2.0d0 * exc(i,j) - scc(i,j))
                 !write(*,*) "i,j", i, j
                 !write(*,*) "oc1,oc2", oc1(i), oc1(j)
                 !write(*,*) "exc,scc", exc(i,j), scc(i,j)
                 !write(*,*) "hamblock", hamblock(i,j)
+                end do
               end do
-            end do
+            end if
           else if(present(scc)) then 
             do j= 1, size(hamblock,2)
               do i= 1, size(hamblock,1)
@@ -767,11 +775,19 @@ module m_setup_bse
               end do
             end do
           else if(present(exc)) then 
-            do j= 1, size(hamblock,2)
-              do i= 1, size(hamblock,1)
-                hamblock(i,j) = oc1(i)*oc2(j) * 2.0d0 * exc(i,j)
+            if (input%xs%bse%xas) then
+              do j= 1, size(hamblock,2)
+                do i= 1, size(hamblock,1)
+                  hamblock(i,j) = oc1(i)*oc2(j) * exc(i,j)
+                end do
               end do
-            end do
+            else
+              do j= 1, size(hamblock,2)
+                do i= 1, size(hamblock,1)
+                  hamblock(i,j) = oc1(i)*oc2(j) * 2.0d0 * exc(i,j)
+                end do
+              end do
+            end if
           end if
 
           if(present(w)) then 

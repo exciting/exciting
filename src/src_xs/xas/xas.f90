@@ -12,8 +12,8 @@ Subroutine xas
       Use modmain
       use modmpi
       Use modxs
+      Use m_getpmat
       Use m_genwgrid
-      Use m_getpmatxas
       Use m_genfilname
       Use m_getunit
       Use m_genloss
