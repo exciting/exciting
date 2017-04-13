@@ -193,7 +193,7 @@ contains
             end if
             ! output
             if (rank==0) then
-              write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".xsf")') lambda, ip
+              write(fname,'("excitonWavefunction-", I6.6, "-", I6.6, ".xsf")') lambda, ip
               write(label,'("hole position: ", 3F12.6)') r0%vpl(:,1)
               call write_structure_xsf(fname)
               select case (ndim_e)
@@ -203,7 +203,7 @@ contains
                   call write_2d_xsf(fname, label, r_e%boxl, r_e%ngrid, r_e%npt, abs(zwfeh)**2)
                 case(3)
                   call write_3d_xsf(fname, label, r_e%boxl, r_e%ngrid, r_e%npt, abs(zwfeh)**2)
-                  write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".cube")') lambda, ip
+                  write(fname,'("excitonWavefunction-", I6.6, "-", I6.6, ".cube")') lambda, ip
                   call write_3d_cube(fname, label, r_e%boxl, r_e%ngrid, r_e%npt, abs(zwfeh)**2)
               end select
             end if
@@ -220,7 +220,7 @@ contains
             call calc_eh_zwf(lambda, r_h, r0, zwfeh)
             ! output
             if (rank==0) then
-              write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".xsf")') lambda, ip
+              write(fname,'("excitonWavefunction-", I6.6, "-", I6.6, ".xsf")') lambda, ip
               write(label,'("electron position: ", 3F12.6)') r0%vpl(:,1)
               call write_structure_xsf(fname)
               select case (ndim_h)
@@ -230,7 +230,7 @@ contains
                   call write_2d_xsf(fname, label, r_h%boxl, r_h%ngrid, r_h%npt, abs(zwfeh)**2)
                 case(3)
                   call write_3d_xsf(fname, label, r_h%boxl, r_h%ngrid, r_h%npt, abs(zwfeh)**2)
-                  write(fname,'("excitonWavefunction-", I2.2, "-", I6.6, ".cube")') lambda, ip
+                  write(fname,'("excitonWavefunction-", I6.6, "-", I6.6, ".cube")') lambda, ip
                   call write_3d_cube(fname, label, r_h%boxl, r_h%ngrid, r_h%npt, abs(zwfeh)**2)
               end select
             end if
