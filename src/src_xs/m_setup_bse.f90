@@ -807,7 +807,7 @@ module m_setup_bse
     !BOP
     ! !ROUTINE: setup_bse_ti_dist
     ! !INTERFACE:
-    subroutine setup_bse_ti_dist(smat, cmat, cpmat, iqmt, binfo)
+    subroutine setup_bse_ti_dist(iqmt, binfo, smat, cmat, cpmat)
     ! !USES:
       use modmpi
       use modscl
@@ -823,11 +823,13 @@ module m_setup_bse
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     !   integer(4) :: iqmt  ! Index of momentum transfer Q
+    !   type(blacsinfo) :: binfo  ! Info struct for BLACS grid on which the
+    !   matrices are distributed
     !
     ! In/Out:
-    !   complex(8) :: smat(:,:)  ! Aux. EVP matrix S=(A-B)^{1/2}(A+B)(A-B)^{1/2}
-    !   complex(8) :: cmat(:,:)  ! C = (A-B)^{1/2}
-    !   complex(8) :: cpmat(:,:) ! C'= (A-B)^{-1/2}
+    !   type(dzmat), optional :: smat(:,:)  ! Aux. EVP matrix S=(A-B)^{1/2}(A+B)(A-B)^{1/2}
+    !   type(dzmat), optional :: cmat(:,:)  ! C = (A-B)^{1/2}
+    !   type(dzmat), optional :: cpmat(:,:) ! C'= (A-B)^{-1/2}
     ! 
     ! !DESCRIPTION:
     !   The routine sets up the auxilliary EVP matrix using block cyclic
@@ -840,28 +842,44 @@ module m_setup_bse
 
       ! I/O
       integer(4), intent(in) :: iqmt
-      type(dzmat), intent(inout) :: smat
-      type(dzmat), intent(inout) :: cmat
-      type(dzmat), intent(inout) :: cpmat
       type(blacsinfo), intent(in) :: binfo
+      type(dzmat), intent(inout), optional :: smat
+      type(dzmat), intent(inout), optional :: cmat
+      type(dzmat), intent(inout), optional :: cpmat
 
       ! Local 
+      character(*), parameter :: thisname = "setup_bse_ti_dist"
       type(dzmat) :: rrmat
       type(dzmat) :: ramat
       type(dzmat) :: auxmat
 
+      logical :: fcheckpos, fsmat, fcmat, fcpmat
+
       real(8) :: ts0, ts1, t1, t0
       integer(4) :: i, j
 
-      real(8) :: evals(hamsize)
+      real(8), allocatable :: evals(:)
 
       ! Test writeout
+      logical :: fwp 
       complex(8), allocatable :: localmat(:,:)
-      logical fwp 
 
       fwp = input%xs%bse%writeparts
+      fcheckpos = input%xs%bse%checkposdef
 
-      evals = 0.0d0
+      fsmat = .false.
+      fcmat = .false.
+      fcpmat = .false.
+      if(present(smat)) fsmat = .true.
+      if(present(cmat)) fcmat = .true.
+      if(present(cpmat)) fcpmat = .true.
+      if(.not. (fsmat .or. fcmat .or. fcpmat)) then
+        if(mpiglobal%rank == 0) then 
+          write(unitout, '("Error(",a,"):&
+            & No matrix to build specified.")') trim(thisname)
+          end if
+        call terminate
+      end if
 
       if(mpiglobal%rank == 0) then 
         write(unitout, '("Info(setup_bse_ti_dist):&
@@ -869,9 +887,13 @@ module m_setup_bse
         call timesec(ts0)
       end if
 
+      !===========================================================!
+      ! Getting main and coupling blocks of BSE hamiltonian       !
+      !===========================================================!
       ! Get RR part of BSE Hamiltonian
       if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(setup_bse_ti_dist): Setting up RR Block of orignial BSE")')
+        write(unitout, '("Info(",a,"):&
+          & Setting up RR Block of orignial BSE")') trim(thisname)
         call timesec(t0)
       end if
       call new_dzmat(rrmat, hamsize, hamsize, binfo)
@@ -880,151 +902,215 @@ module m_setup_bse
         call timesec(t1)
         write(unitout, '("  Time needed",f12.3,"s")') t1-t0
       end if
-
       ! Get RA^{ti} part of BSE Hamiltonian
       if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(setup_bse_ti_dist):&
-          & Setting up RA^{ti} Block of orignial BSE")')
+        write(unitout, '("Info(",a,"):&
+          & Setting up RA^{ti} Block of orignial BSE")') trim(thisname)
         call timesec(t0)
       end if
       call new_dzmat(ramat, hamsize, hamsize, binfo)
       call setup_bse_block_dist(ramat, iqmt, .true., .true., binfo)
-
       if(mpiglobal%rank == 0) then 
         call timesec(t1)
         write(unitout, '("  Time needed",f12.3,"s")') t1-t0
       end if
+      !===========================================================!
 
-      ! Make combination matrices
+      !===========================================================!
+      ! Make combination matrices                                 !
+      !===========================================================!
       if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(setup_bse_ti_dist): Setting up RR+RA and RR-RA matrices")')
-      !  call timesec(t0)
+        write(unitout, '("Info(",a,"):&
+         & Setting up RR-RA matrix")') trim(thisname)
       end if
-
-      ! RR - RA^{it}
-      call new_dzmat(cpmat, hamsize, hamsize, binfo)
-      do j = 1, cpmat%ncols_loc
-        do i = 1, cpmat%nrows_loc
-          cpmat%za(i,j) = rrmat%za(i,j) - ramat%za(i,j)
+      ! rrmat = RR - RA^{it} = A-B
+      do j = 1, rrmat%ncols_loc
+        do i = 1, rrmat%nrows_loc
+          rrmat%za(i,j) = rrmat%za(i,j) - ramat%za(i,j)
         end do
       end do
-      ! RR + RA^{it}
-      call del_dzmat(rrmat)
-      call new_dzmat(cmat, hamsize, hamsize, binfo)
-      do j = 1, cmat%ncols_loc
-        do i = 1, cmat%nrows_loc
-          cmat%za(i,j) = cpmat%za(i,j) + 2.0d0*ramat%za(i,j)
-        end do
-      end do
-      !call del_dzmat(ramat)
 
-      ! Check positive definitness of (A+B)
-
-      if(fwp) then 
-        call dzmat_send2global_root(localmat, cmat, binfo)
-        if(mpiglobal%rank == 0) then
-          call writecmplxparts('apb_mat', remat=dble(localmat), immat=aimag(localmat))
-        end if
-      end if
-
-      if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(setup_bse_ti_dist): Checking positve definitness of RR+RA")')
-        call timesec(t0)
-      end if
-      ramat%za = cmat%za
-      call dhesolver(ramat, evals, binfo)
-      if(fwp) then
+      ! Construct S matrix - A+B only needed for S
+      if(fsmat) then 
         if(mpiglobal%rank == 0) then 
-          write(*,*) "Writing evals for A+B"
-          call writecmplxparts('apb_evals', revec=evals, veclen=size(evals))
+          write(unitout, '("Info(",a,"):&
+           & Setting up RR+RA matrix")') trim(thisname)
         end if
+        ! ramat = RR + RA^{it} = A+B = A - B + 2B
+        do j = 1, rrmat%ncols_loc
+          do i = 1, rrmat%nrows_loc
+            ramat%za(i,j) = rrmat%za(i,j) + 2.0d0*ramat%za(i,j)
+          end do
+        end do
+        ! Check positive definitness of (A+B) (should usually be positive)
+        ! Defaults to false.
+        if(fcheckpos) then 
+          if(mpiglobal%rank == 0) then 
+            write(unitout, '("Info(",a,"):&
+              & Checking positve definitness of RR+RA")') trim(thisname)
+            call timesec(t0)
+          end if
+          ! Get eigenvalues of A+B
+          allocate(evals(hamsize))
+          call new_dzmat(auxmat, hamsize, hamsize, binfo)
+          auxmat%za = ramat%za
+          call dhesolver(auxmat, evals, binfo)
+          if(fwp) then
+            if(mpiglobal%rank == 0) then 
+              write(*,*) "Writing evals for A+B"
+              call writecmplxparts('apb_evals', revec=evals, veclen=size(evals))
+              call barrier
+            else
+              call barrier
+            end if
+          end if
+          if(any(evals < 0.0d0)) then 
+            write(*,'("Error(",a,"):&
+              & RR+RA matrix is not positive definit")') trim(thisname)
+            write(*,'(E10.3)') evals
+            call terminate
+          end if
+          deallocate(evals)
+          call del_dzmat(auxmat)
+          if(mpiglobal%rank == 0) then 
+            call timesec(t1)
+            write(unitout, '("  RR+RA is positive definite")')
+            write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+          end if
+        else
+          if(mpiglobal%rank == 0) then 
+            write(unitout, '("  RR+RA is assumed to be positive definite")')
+          end if
+        end if
+      ! Do not construct S
+      else
+        ! B not needed if S is not to be constructed
+        call del_dzmat(ramat)
       end if
-      if(any(evals < 0.0d0)) then 
-        write(*,*) "Error(setup_bse_ti_dist): RR+RA matrix is not positive definit"
-        write(*,'(E10.3)') evals
-        call terminate
-      end if
-      call del_dzmat(ramat)
 
-      if(mpiglobal%rank == 0) then 
-        call timesec(t1)
-        write(unitout, '("  RR+RA is positive definite")')
-        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
-      end if
-
-      ! Take the square root of (A-B) (currently in cpmat)
+      ! Test writeouts
       if(fwp) then 
-        call dzmat_send2global_root(localmat, cpmat, binfo)
+        if(fsmat) then 
+          ! A+B
+          call dzmat_send2global_root(localmat, ramat, binfo)
+          if(mpiglobal%rank == 0) then
+            call writecmplxparts('apb_mat', remat=dble(localmat), immat=aimag(localmat))
+          end if
+        end if
+        ! A-B
+        call dzmat_send2global_root(localmat, rrmat, binfo)
         if(mpiglobal%rank == 0) then
           call writecmplxparts('amb_mat', remat=dble(localmat), immat=aimag(localmat))
         end if
       end if
+      !===========================================================!
 
-      ! Note: It is assumed to be positive definit.
+      !===========================================================!
+      ! Take the square root of (A-B)                             !
+      ! Note: It is assumed to be positive definit.               !
+      !===========================================================!
       if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(setup_bse_ti_dist): Taking square root of RR-RA matrix")')
+        write(unitout, '("Info(",a,"):&
+          & Taking square root of RR-RA matrix")') trim(thisname)
         call timesec(t0)
       end if
-      call sqrtdzmat_hepd(cpmat, binfo, eecs=input%xs%bse%eecs)
+      ! rrmat = (A-B)^1/2
+      call sqrtdzmat_hepd(rrmat, binfo, eecs=input%xs%bse%eecs)
       if(mpiglobal%rank == 0) then 
         call timesec(t1)
         write(unitout, '("  RR-RA is positive definite")')
         write(unitout, '("  Time needed",f12.3,"s")') t1-t0
       end if
-
+      ! Test writeout
       if(fwp) then 
-        call dzmat_send2global_root(localmat, cpmat, binfo)
+        call dzmat_send2global_root(localmat, rrmat, binfo)
         if(mpiglobal%rank == 0) then
           call writecmplxparts('sqrtamb_mat', remat=dble(localmat), immat=aimag(localmat))
         end if
       end if
+      !===========================================================!
 
-      ! Construct S Matrix
-      ! S = (A-B)^{1/2} (A+B) (A-B)^{1/2}
-      if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(setup_bse_ti_dist): Constructing S matrix")')
-        call timesec(t0)
-      end if
-      call new_dzmat(auxmat, hamsize, hamsize, binfo)
-
-      call dzmatmult(cpmat, cmat, auxmat)
-
-      call new_dzmat(smat, hamsize, hamsize, binfo)
-      call dzmatmult(auxmat, cpmat, smat)
-      call del_dzmat(auxmat)
-      if(mpiglobal%rank == 0) then 
-        call timesec(t1)
-        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
-      end if
-
-      if(fwp) then 
-        call dzmat_send2global_root(localmat, smat, binfo)
-        if(mpiglobal%rank == 0) then
-          call writecmplxparts('s_mat', remat=dble(localmat), immat=aimag(localmat))
+      if(fsmat) then 
+        !===========================================================!
+        ! Construct S Matrix                                        !
+        ! S = (A-B)^{1/2} (A+B) (A-B)^{1/2}                         !
+        !===========================================================!
+        if(mpiglobal%rank == 0) then 
+          write(unitout, '("Info(",a,"):&
+            & Constructing S matrix")') trim(thisname)
+          call timesec(t0)
         end if
+        !   C = (A-B)^{1/2} (A+B)
+        call new_dzmat(auxmat, hamsize, hamsize, binfo)
+        call dzmatmult(rrmat, ramat, auxmat)
+        call del_dzmat(ramat)
+        !   S = C (A-B)^{1/2}
+        call new_dzmat(smat, hamsize, hamsize, binfo)
+        call dzmatmult(auxmat, rrmat, smat)
+        call del_dzmat(auxmat)
+        if(mpiglobal%rank == 0) then 
+          call timesec(t1)
+          write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+        end if
+        ! Test writeout
+        if(fwp) then 
+          call dzmat_send2global_root(localmat, smat, binfo)
+          if(mpiglobal%rank == 0) then
+            call writecmplxparts('s_mat', remat=dble(localmat), immat=aimag(localmat))
+          end if
+        end if
+        !===========================================================!
       end if
 
-      ! Cmat = (A-B)^1/2
-      do j = 1, cmat%ncols_loc
-        do i = 1, cmat%nrows_loc
-          cmat%za(i,j) = cpmat%za(i,j)
+      if(fcmat) then
+        !===========================================================!
+        ! Make C Matrix                                             !
+        ! Cmat = (A-B)^1/2                                          !
+        ! Cmat is needed to build Oscillator strengths              !
+        !===========================================================!
+        if(mpiglobal%rank == 0) then 
+          write(unitout, '("Info(",a,"):&
+            & Retruning C=(RR-RA)^1/2 matrix")') trim(thisname)
+        end if
+        call new_dzmat(cmat, hamsize, hamsize, binfo)
+        do j = 1, rrmat%ncols_loc
+          do i = 1, rrmat%nrows_loc
+            cmat%za(i,j) = rrmat%za(i,j)
+          end do
         end do
-      end do
-
-      ! Cpmat = (A-B)^-1/2
-      if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(setup_bse_ti_dist): Inverting (RR-RA)^1/2 matrix")')
-        call timesec(t0)
-      end if
-      call dzinvert(cpmat)
-      if(mpiglobal%rank == 0) then 
-        call timesec(t1)
-        write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+        !===========================================================!
       end if
 
+      if(fcpmat) then 
+        !===========================================================!
+        ! Make C' Matrix                                            !
+        ! Cpmat = (A-B)^{-1/2}                                      !
+        ! Cpmat is needed additionally to build eigenvectors        !
+        !===========================================================!
+        if(mpiglobal%rank == 0) then 
+          write(unitout, '("Info(",a,"):&
+            & Inverting C=(RR-RA)^1/2 matrix")') trim(thisname)
+          call timesec(t0)
+        end if
+        call dzinvert(rrmat)
+        call new_dzmat(cpmat, hamsize, hamsize, binfo)
+        do j = 1, rrmat%ncols_loc
+          do i = 1, rrmat%nrows_loc
+            cpmat%za(i,j) = rrmat%za(i,j)
+          end do
+        end do
+        if(mpiglobal%rank == 0) then 
+          call timesec(t1)
+          write(unitout, '("  Time needed",f12.3,"s")') t1-t0
+        end if
+        !===========================================================!
+      end if
+
+      call del_dzmat(rrmat)
       if(mpiglobal%rank == 0) then 
         call timesec(ts1)
-        write(unitout, '("Info(setup_bse_ti_dist): Total time needed",f12.3,"s")') ts1-ts0
+        write(unitout, '("Info(",a,"):&
+          & Total time needed",f12.3,"s")') trim(thisname), ts1-ts0
       end if
 
     end subroutine setup_bse_ti_dist

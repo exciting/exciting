@@ -36,6 +36,7 @@ subroutine b_bse(iqmt)
   use m_putgetexcitons
   use m_makeoscistr
   use m_makespectrum
+  use m_invertzmat
 
 use m_writecmplxparts
 ! !DESCRIPTION:
@@ -114,7 +115,7 @@ use m_writecmplxparts
 
   ! Local variables
   ! Variables
-  integer(4) :: i
+  integer(4) :: i,j
   integer(4) :: ik, ikq, io, iu, a1
   integer(4) :: nexc
   real(8) :: ts0, ts1
@@ -769,8 +770,10 @@ use m_writecmplxparts
         ! Assemble Hamiltonian matrix
         if(bi2d%isroot) call timesec(ts0)
         if(fcoup .and. fti) then 
-          call setup_bse_ti_dist(dham, dcmat, dcpmat, iqmt, bi2d)
+          ! Get aux. EVP matrices S=C(RR+RA)C and C=(RR-RA)^1/2 
+          call setup_bse_ti_dist(iqmt, bi2d, smat=dham, cmat=dcmat)
         else
+          ! Get TDA hamiltonian H=RR
           call setup_bse_block_dist(dham, iqmt, .false., .false., bi2d)
         end if
 
@@ -886,15 +889,16 @@ use m_writecmplxparts
           write(unitout,*)
         end if
 
-        ! Store excitonic energies and wave functions to file
-        if(associated(input%xs%storeexcitons)) then
+        ! =================================================================!
+        ! Store excitonic energies and wave functions to file if requested !
+        ! =================================================================!
+        store: if(associated(input%xs%storeexcitons)) then
 
+          ! Select which solutions to store
+          !   Select by energy
           if(input%xs%storeexcitons%selectenergy) then 
             en1=input%xs%storeexcitons%minenergyexcitons
             en2=input%xs%storeexcitons%maxenergyexcitons
-            if(bi2d%isroot) then 
-              !write(*,*) "",a,": en1, en2", en1, en2
-            end if
             if(input%xs%storeexcitons%useev) then 
               en1=en1/h2ev
               en2=en2/h2ev
@@ -903,15 +907,18 @@ use m_writecmplxparts
             if(bi2d%isroot) then 
               !write(*,*) "b_bse: iex1, iex2", iex1, iex2
             end if
+          !   Select by number
           else
             iex1=input%xs%storeexcitons%minnumberexcitons
             iex2=input%xs%storeexcitons%maxnumberexcitons
           end if
           nreq=iex2-iex1+1
 
+          ! Check requested range
           if(nreq < 1 .or. nreq > nexc .or. iex1<1 .or. iex2<1 ) then
             if(bi2d%isroot) then 
-              write(*,'("Error(",a,"): storeexcitons index mismatch.")') trim(thisname)
+              write(*,'("Error(",a,"):&
+                & storeexcitons index mismatch.")') trim(thisname)
               write(*,*) "iex1, iex2, nreq, nex", iex1, iex2, nreq, nexc
             end if
             call terminate
@@ -923,6 +930,9 @@ use m_writecmplxparts
               & trim(thisname), iex1, iex2
           end if
 
+          ! When full BSE with time inversion symmetry is jused
+          ! the original eigenvectors need to be reconstructed from the 
+          ! auxilliary ones.
           if(fcoup .and. fti) then 
 
             call new_dzmat(dresvec, hamsize, nreq, bi2d)
@@ -933,9 +943,37 @@ use m_writecmplxparts
                 & and anti-resonant exciton coefficients from&
                 & auxilliary squared EVP eigenvectors (pos. E).")') trim(thisname)
             end if
+
+            !===========================================================!
+            ! Make C' Matrix                                            !
+            ! Cpmat = (A-B)^{-1/2} = C^-1                               !
+            ! Cpmat is needed additionally to build eigenvectors        !
+            !===========================================================!
+            if(mpiglobal%rank == 0) then 
+              write(unitout, '("Info(",a,"):&
+                & Inverting C=(RR-RA)^1/2 matrix")') trim(thisname)
+              call timesec(ts0)
+            end if
+            call new_dzmat(dcpmat, hamsize, hamsize, bi2d)
+            do j = 1, dcmat%ncols_loc
+              do i = 1, dcmat%nrows_loc
+                dcpmat%za(i,j) = dcmat%za(i,j)
+              end do
+            end do
+            call dzinvert(dcpmat)
+            if(mpiglobal%rank == 0) then 
+              call timesec(ts1)
+              write(unitout, '("  Time needed",f12.3,"s")') ts1-ts0
+            end if
+            !===========================================================!
+
+            ! Make selected eigenvectors
             call gendexevec(iex1, iex2, nexc, dcmat, dcpmat, dbevecr, bevalre,&
               & drvecp=dresvec, davecp=daresvec)
 
+            call del_dzmat(dcpmat)
+
+            ! Write to binary file
             write(unitout, '("Info(",a,"):&
               & Writing exciton eigenvectors to file.")') trim(thisname)
             call putd_excitons(bevalre(iex1:iex2), drvec=dresvec, davec=daresvec,&
@@ -944,7 +982,8 @@ use m_writecmplxparts
             call del_dzmat(dresvec)
             call del_dzmat(daresvec)
 
-          else 
+          ! For TDA we can directly write out the desired eigenvectors
+          else if(.not. fcoup) then  
 
             write(unitout, '("Info(",a,"):&
               & Writing exciton eigenvectors to file.")') trim(thisname)
@@ -955,8 +994,8 @@ use m_writecmplxparts
 
           end if
 
-        ! End root writeout
-        end if
+        end if store
+        ! =================================================================!
 
       ! IP
       else
