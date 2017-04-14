@@ -416,6 +416,7 @@ module modbse
       logical :: fserial
       integer(4) :: ik, ikq, s, iknr
       integer(4) :: io, iu, kous
+      integer(4) :: gwiomin, gwiumax
       integer(4) :: io1, io2, iu1, iu2
       integer(4) :: iomax, iumax
       integer(4) :: iomin, iumin
@@ -434,6 +435,8 @@ module modbse
       integer(4) :: k1, k2
       integer(4) :: i1, i2
 
+      character(*), parameter :: thisname = "select_transitions"
+
       if(mpiglobal%rank == 0) then 
         call timesec(t0)
       end if
@@ -444,7 +447,7 @@ module modbse
         fserial = .false.
       end if
 
-      ! Search for needed KS transitions automatically
+      ! Search for needed IP/QP transitions automatically
       ! depending on the chosen energy window?
       if(any(input%xs%bse%nstlbse == 0)) then
         fensel = .true.
@@ -477,23 +480,31 @@ module modbse
       
       ! Bands to inspect
       if(fensel) then
+
+        ! By default use all available XS GS states for the search
         io1 = 1
         io2 = istocc0
         iu1 = istunocc0
         iu2 = nstsv
+
+        ! If GW QP energies were computed base restrict the search
+        ! to the computed GW range, also finite momentum transfer
+        ! is not yet included.
         if(associated(input%gw) .and. iqmt==1) then
-          if(input%gw%ibgw /= 1 .or. input%gw%nbgw /= nstsv) then
-            if(mpiglobal%rank==0) then 
-              write(*,'("Error(select_transitions):&
-                & Energy selection + GW needs all bands.")')
-              write(*,'("  &
-                & io1=",i6, " iu2=",i6)') io1, iu2
-              write(*,'("  &
-                & ibgw=",i6, " nbgw=",i6)') input%gw%ibgw, input%gw%nbgw
-            end if
-            call terminate
+
+          gwiomin = input%gw%ibgw
+          gwiumax = input%gw%nbgw
+          io1 = gwiomin
+          iu2 = gwiumax
+
+          if(mpiglobal%rank==0) then 
+            write(unitout,'("Info(",a,"):&
+              & Energy selection ontop of GW.")') trim(thisname)
           end if
+
         end if
+
+      ! Use the specified bands, and only inspect occupations.
       else
         io1 = input%xs%bse%nstlbse(1)
         io2 = input%xs%bse%nstlbse(2)
@@ -502,8 +513,12 @@ module modbse
       end if
 
       if(mpiglobal%rank == 0) then 
+        write(unitout, '("Info(select_transitions): Searching for transitions in&
+          & the band interval:")')
+        write(unitout, '("  io1:", i4, " io2:", i4, " iu1:", i4, " iu2:", i4)')&
+          & io1, io2, iu1, iu2
         if(fensel) then
-          write(unitout, '("Info(select_transitions): Searching for KS transitions in&
+          write(unitout, '("Info(select_transitions): Selecting KS/QP transitions in&
             & the energy interval:")')
           write(unitout, '("  [",E10.3,",",E10.3,"]/H")') max(wl+econv(1),0.0d0), wu+econv(2)
           write(unitout, '("  [",E10.3,",",E10.3,"]/eV")')&
@@ -513,11 +528,6 @@ module modbse
             & max(econv(1), -wl), econv(2)
           write(unitout, '("    ",2E10.3," /eV")')&
             & max(econv(1), -wl)*h2ev, econv(2)*h2ev
-        else
-          write(unitout, '("Info(select_transitions): Searching for transitions in&
-            & the band interval:")')
-          write(unitout, '("  io1:", i4, " io2:", i4, " iu1:", i4, " iu2:", i4)')&
-            & io1, io2, iu1, iu2
         end if
         write(unitout, '("  Opening gap with a scissor of:",&
           & E10.3,"/H", E10.3,"/eV")'), sci, sci*h2ev
@@ -565,7 +575,12 @@ module modbse
           call getoccsv(vkl(1:3, ik), occsv(1:nstsv, ik))
           call getevalsv(vkl(1:3, ik), evalsv(1:nstsv, ik))
         end do
+
+        gwiomin = 1
+        gwiumax = nstsv
+
       else if(associated(input%gw) .and. iqmt==1) then 
+
         ! Get KS occupations/eigenvalues
         do ik = 1, nkpt
           call getoccsv(vkl(1:3, ik), occsv(1:nstsv, ik))
@@ -655,7 +670,7 @@ module modbse
         do io = io1, io2
           do iu = iu1, iu2 
 
-            if(fensel) then
+            if(fensel ) then
 
               detmp = evalsv(iu, ikq) - evalsv0(io, ik) + sci 
 
