@@ -74,6 +74,8 @@ module m_sqrtzmat
       integer(4) :: m, n, i, j, jg, clustersize
       type(dzmat) :: evecs
       real(8), allocatable :: evals(:)
+
+      character(*), parameter :: thisname = "sqrtdzmat_hepd"
       
       if(present(eecs)) then
         clustersize = eecs
@@ -87,9 +89,12 @@ module m_sqrtzmat
       end if
 
       if(hepdmat%context /= binfo%context) then
-        write(*,*) "Error(sqrtdzmat_hepd): Wrong BLACS context."
-        write(*,*) "  mat%context =", hepdmat%context
-        write(*,*) "  binfo%context =", binfo%context
+        if(binfo%isroot) then 
+          write(*,*) "Error(sqrtdzmat_hepd): Wrong BLACS context."
+          write(*,*) "  mat%context =", hepdmat%context
+          write(*,*) "  binfo%context =", binfo%context
+        end if
+        call blacs_barrier(binfo%context, "A")
         call terminate
       end if
 
@@ -97,7 +102,10 @@ module m_sqrtzmat
       n = hepdmat%ncols
 
       if(m /= n) then 
-        write(*,*) "Error(sqrtdzmat_hepd): m /= n"
+        if(binfo%isroot) then 
+          write(*,*) "Error(sqrtdzmat_hepd): m /= n"
+        end if
+        call blacs_barrier(binfo%context, "A")
         call terminate
       end if
 
@@ -109,10 +117,19 @@ module m_sqrtzmat
       ! Diagonalize hermitian matrix
       call dhesolver(hepdmat, evals, binfo, evecs, eecs=clustersize)
 
+
+      if(binfo%isroot) then 
+        write(*,'("Info(",a,"): Passed diagonalizaion")') trim(thisname)
+      end if
+
       ! Take square root of eigenvalues
       if(any(evals < 0.0d0)) then 
-        write(*,*) "Error(sqrtmat_hepd): Matrix is not positive definit"
-        write(*,'(E10.3)') evals
+        if(binfo%isroot) then 
+          write(*,'("Error(",a,"):&
+            & Matrix is not positive definit")') trim(thisname)
+          write(*,'(E10.3)') evals
+        end if
+        call blacs_barrier(binfo%context, "A")
         call terminate
       else
         ! Take D^{1/4} for: A^1/2 = Q D^1/2 Q^H = (Q D^1/4)*(Q D^1/4)^H
@@ -126,9 +143,17 @@ module m_sqrtzmat
           evecs%za(i,j) = evecs%za(i,j)*evals(jg)
         end do
       end do
+
+      if(binfo%isroot) then 
+        write(*,'("Info(",a,"): Q*D^1/4")') trim(thisname)
+      end if
       
       ! Construct square root matrix
       call dzmatmult(evecs, evecs, hepdmat, transb='C')
+
+      if(binfo%isroot) then 
+        write(*,'("Info(",a,"): Matrix mult.")') trim(thisname)
+      end if
 
       deallocate(evals)
       call del_dzmat(evecs)
