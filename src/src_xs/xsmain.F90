@@ -147,9 +147,9 @@ Subroutine xsmain (plan)
             end if
          Case (440)
      ! screened Coulomb interaction
-            if (input%xs%BSE%xas) then
+            if (input%xs%BSE%xas .and. input%xs%bse%beyond) then
               Call xasinit
-              Call xas_scrcoulint
+              Call b_scrcoulintlauncher
               Call xasfinit
             else if (input%xs%bse%beyond) then
               call b_scrcoulintlauncher
@@ -158,9 +158,9 @@ Subroutine xsmain (plan)
             end if
          Case (441)
      ! exchange Coulomb interaction
-          if (input%xs%BSE%xas) then
+          if (input%xs%BSE%xas .and. input%xs%BSE%beyond) then
             Call xasinit
-            Call xas_exccoulint
+            Call b_exccoulintlauncher
             Call xasfinit
           else if (input%xs%bse%beyond) then
             call b_exccoulintlauncher
@@ -169,9 +169,9 @@ Subroutine xsmain (plan)
           end if
          Case (445)
      ! Bethe-Salpeter equation
-          if (input%xs%BSE%xas) then
+          if (input%xs%BSE%xas .and. input%xs%bse%beyond) then
             Call xasinit
-            Call xas
+            Call b_bselauncher
             Call xasfinit
           else if (input%xs%bse%beyond) then
             call b_bselauncher
@@ -182,7 +182,7 @@ Subroutine xsmain (plan)
      ! regenerate BSE spectrum from exciton output
           if (input%xs%BSE%xas) then
             call xasinit
-            call bsegenspec
+            call b_bsegenspec
             call xasfinit
           else if(input%xs%bse%beyond) then
             call b_bsegenspec

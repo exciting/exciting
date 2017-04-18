@@ -18,6 +18,7 @@ subroutine b_bse(iqmt)
   use modxs, only: evalsv0, unitout, bcbs, ksgapval,&
                  & qgap, ikmapikq, iqmtgamma, vqlmt,&
                  & vkl0, ivgmt
+  use modxas, only: ecore
   ! BSE
   use modbse
   ! Spectrum
@@ -275,7 +276,11 @@ use m_writecmplxparts
       io = smap(2,a1)
       ik = smap(3,a1)
       ikq = ikmapikq(ik, iqmt)
-      bsegap = min(bsegap, evalsv(iu,ik)-evalsv0(io,ikq))
+      if (input%xs%bse%xas) then
+        bsegap=min(bsegap, evalsv(iu,ik)-ecore(io))
+      else
+        bsegap = min(bsegap, evalsv(iu,ik)-evalsv0(io,ikq))
+      end if
     end do
     !$OMP END PARALLEL DO
 
@@ -546,7 +551,11 @@ use m_writecmplxparts
       else 
         nexc = hamsize
         allocate(bevalre(nexc))
-        bevalre(1:hamsize) = de(ensortidx) 
+        bevalre(1:hamsize) = de(ensortidx)
+        write(*,*) 'de'
+        write(*,*) '*************************************' 
+        write(*,*) de(ensortidx)
+        write(*,*) '*************************************' 
       end if
 
     end if

@@ -99,6 +99,7 @@ module m_setup_pwmat
       ! the plane wave matrix elements in ematqk.
       call xsgauntgen(max(input%groundstate%lmaxapw, lolmax),&
         & input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
+      call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax)) 
       ! Find indices for non-zero gaunt coefficients
       call findgntn0(max(input%xs%lmaxapwwf, lolmax),&
         & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
@@ -151,8 +152,11 @@ module m_setup_pwmat
         ematbc%iu2=iuabs2
 
         ! Calculate M_{o1o2,G} at fixed (k, q)
-        call b_ematqk(iqmt, iknr, mou(1:ino,1:inu,:), ematbc)
-
+        if (input%xs%bse%xas) then
+          call b_ematqk(iqmt, iknr, mou(1:ino,1:inu,:), ematbc)
+        else
+          call b_ematqk_core(iqmt, iknr, mou(1:ino,1:inu,:),ematbc,'ou')
+        end if
         !write(*,*) "passed ematqk"
 
         ! Save only selected G

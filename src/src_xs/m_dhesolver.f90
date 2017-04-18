@@ -339,9 +339,9 @@ module m_dhesolver
       end if
 #endif
 
+#ifdef SCAL
       contains
 
-#ifdef SCAL
         subroutine workspacequery(jobtype, rangetype)
 
           character(1), intent(in) :: jobtype, rangetype

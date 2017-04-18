@@ -161,6 +161,7 @@ use m_writecmplxparts
   ! Note: In the generation of the gaunt coefficients l1 and l3 correspond
   !       to the APW/LOs while l2 corresponds to the exponetial.
   call xsgauntgen(maxl_apwlo, maxl_e, maxl_apwlo)
+  call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax))
   ! Find indices for non-zero gaunt coefficients in xsgnt,
   ! and creates index maps, e.g. given l1,m1,l2,m2 -> non zero l3,m3
   ! Up l1 up to maxl_mat, l2 up to maxl_mat, l3 up to maxl_e
@@ -566,7 +567,11 @@ use m_writecmplxparts
       ! Set vkl0_ptr,... to k-grid and vkl1_ptr, ... to k+qmt-grid
       call setptr01
       ! Calculate M_{io iu,G}(ik, qmt)
-      call b_ematqk(iqmt, iknr, mou, ematbc)
+      if (input%xs%bse%xas) then
+        call b_ematqk_core(iqmt, iknr, mou, ematbc, 'ou')
+      else
+        call b_ematqk(iqmt, iknr, mou, ematbc)
+      end if
       !------------------------------------------------------------------!
       if(.false.) then 
         if(fwp) then
@@ -640,7 +645,11 @@ use m_writecmplxparts
       ! Set vkl0_ptr k-qmt-grid, vkl1_ptr, ... to k-grid
       call setptr01
       ! Calculate M_{ju jo,G}(jkp, qmt)
-      call b_ematqk(iqmt, jkpnr, muo, ematbc)
+      if (input%xs%bse%xas) then
+        call b_ematqk_core(iqmt, jkpnr, muo, ematbc, 'uo')
+      else
+        call b_ematqk(iqmt, jkpnr, muo, ematbc)
+      end if
       !------------------------------------------------------------------!
       if(.false.) then 
         if(fwp) then

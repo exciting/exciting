@@ -376,6 +376,7 @@ module modbse
       use mod_kpoint, only: vkl
       use mod_misc, only: filext
       use modxs, only: usefilext0, filext0, vkl0
+      use modxas, only: xasstart, xasstop, ecore
       use m_genfilname
       use mod_symmetry, only: nsymcrys
     ! !INPUT/OUTPUT PARAMETERS:
@@ -434,7 +435,7 @@ module modbse
       logical, allocatable :: sflag(:)
       integer(4) :: k1, k2
       integer(4) :: i1, i2
-
+      logical :: posdiff
       character(*), parameter :: thisname = "select_transitions"
 
       if(mpiglobal%rank == 0) then 
@@ -449,7 +450,8 @@ module modbse
 
       ! Search for needed IP/QP transitions automatically
       ! depending on the chosen energy window?
-      if(any(input%xs%bse%nstlbse == 0)) then
+      if((any(input%xs%bse%nstlbse == 0) .and. .not. input%xs%bse%xas) &
+       & .or. (any(input%xs%bse%nstlxas ==0) .and. input%xs%bse%xas)) then
         fensel = .true.
       else
         fensel = .false.
@@ -482,10 +484,17 @@ module modbse
       if(fensel) then
 
         ! By default use all available XS GS states for the search
-        io1 = 1
-        io2 = istocc0
-        iu1 = istunocc0
-        iu2 = nstsv
+        if (input%xs%bse%xas) then
+          io1=xasstart
+          io2=xasstop
+          iu1=istunocc0
+          iu2=nstsv
+        else 
+          io1 = 1
+          io2 = istocc0
+          iu1 = istunocc0
+          iu2 = nstsv
+        end if
 
         ! If GW QP energies were computed base restrict the search
         ! to the computed GW range, also finite momentum transfer
@@ -506,10 +515,17 @@ module modbse
 
       ! Use the specified bands, and only inspect occupations.
       else
-        io1 = input%xs%bse%nstlbse(1)
-        io2 = input%xs%bse%nstlbse(2)
-        iu1 = input%xs%bse%nstlbse(3)+istunocc0-1
-        iu2 = input%xs%bse%nstlbse(4)+istunocc0-1
+        if (input%xs%bse%xas) then
+          io1 = xasstart
+          io2 = xasstop
+          iu1 = input%xs%bse%nstlxas(1)+istunocc0-1
+          iu2 = input%xs%bse%nstlxas(2)+istunocc0-1
+        else
+          io1= input%xs%bse%nstlbse(1)
+          io2= input%xs%bse%nstlbse(2)
+          iu1=input%xs%bse%nstlbse(3)+istunocc0-1
+          iu2=input%xs%bse%nstlbse(4)+istunocc0-1
+        end if
       end if
 
       if(mpiglobal%rank == 0) then 
@@ -672,7 +688,11 @@ module modbse
 
             if(fensel ) then
 
-              detmp = evalsv(iu, ikq) - evalsv0(io, ik) + sci 
+              if (input%xs%bse%xas) then
+                detmp= evalsv(iu, ikq) - ecore(io) + sci
+              else
+                detmp = evalsv(iu, ikq) - evalsv0(io, ik) + sci
+              end if 
 
               ! Only consider transitions which are in the energy window
               ! \Delta E = \epsilon_{u ki+q} - \epsilon_{o ki}
@@ -680,7 +700,16 @@ module modbse
 
                 ! Only consider transitions which have a positve non-zero 
                 ! occupancy difference f_{o ki} - f_{u ki+q}
-                if( occsv0(io, ik) - occsv(iu, ikq) > cutoffocc) then 
+                if (.NOT. input%xs%bse%xas .AND. (occsv0(io, ik) - occsv(iu, ikq)&
+                  &> cutoffocc)) then
+                  posdiff=.TRUE.
+                elseif (input%xs%bse%xas .AND. (1.0d0 -occsv(iu, ikq))> cutoffocc) then 
+                  posdiff=.TRUE.
+                else
+                  posdiff=.FALSE.
+                end if
+
+                if(posdiff) then 
 
                   ! Combine u, o and k index
                   ! u is counted from lumo=1 upwards
@@ -722,7 +751,15 @@ module modbse
 
               ! Only consider transitions which have a positve non-zero 
               ! occupancy difference f_{o ki} - f_{u ki+q}
-              if( occsv0(io, ik) - occsv(iu, ikq) > cutoffocc) then 
+              if (.NOT. input%xs%bse%xas .AND. (occsv0(io, ik) - occsv(iu, ikq)&
+                &> cutoffocc)) then
+                posdiff=.TRUE.
+              elseif (input%xs%bse%xas .AND. (1.0d0 -occsv(iu, ikq))> cutoffocc) then
+                posdiff=.TRUE.
+              else
+                posdiff=.FALSE.
+              end if
+              if(posdiff) then 
 
                 ! Combine u, o and k index
                 ! u is counted from lumo=1 upwards
@@ -739,10 +776,18 @@ module modbse
                 smap_loc(3,s) = ik
 
                 ! Save energy difference
-                de_loc(s) = evalsv(iu,ikq)-evalsv0(io,ik)+sci
+                if (input%xs%bse%xas) then
+                  de_loc(s)=evalsv(iu,ikq)-ecore(io)+sci
+                else
+                  de_loc(s) = evalsv(iu,ikq)-evalsv0(io,ik)+sci
+                end if
 
                 ! Save occupation factor
-                ofac_loc(s) = sqrt((occsv0(io, ik) - occsv(iu, ikq))/maxocc)
+                if (input%xs%bse%xas) then
+                  ofac_loc(s)= sqrt(1.0d0 - occsv(iu, ikq)/maxocc)
+                else
+                  ofac_loc(s) = sqrt((occsv0(io, ik) - occsv(iu, ikq))/maxocc)
+                end if
 
                 ! Keep track of how many valid transitions
                 ! are considered at current k point.
