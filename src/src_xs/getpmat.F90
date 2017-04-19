@@ -154,7 +154,7 @@ module m_getpmat
       close(un)
 
       ! Check k-point
-      if(r3dist(vkl_, vklt(1, ik)) .gt. input%structure%epslat) then
+      if(r3dist(vkl_, vklt(:, ik)) .gt. input%structure%epslat) then
         write(unitout,*)
         write(unitout, '(a)') 'Error(' // thisnam // '):&
           & differring parameters for matrix elements(current/file): '
@@ -218,7 +218,7 @@ module m_getpmat
            &states:")') thisnam
             Write (unitout, '(" limits (lo/hi) : ", 2(2i6, 2x))') i1, &
            & f1, i2, f2
-            Write (unitout, '(" maximum value  : ", 2(i6, x)))') ncg,nstsv
+            Write (unitout, '(" maximum value  : ", 2(i6, x))') ncg,nstsv
             Write (unitout,*)
             Call flushifc (unitout)
             err = err + 1
@@ -278,7 +278,7 @@ module m_getpmat
          Read (un, Rec=ikr) vkl_, nstsv_, pmt
          Close (un)
     ! check k-point
-         If (r3dist(vkl_, vklt(1, ik)) .Gt. input%structure%epslat) &
+         If (r3dist(vkl_, vklt(:, ik)) .Gt. input%structure%epslat) &
         & Then
             Write (unitout,*)
             Write (unitout, '(a)') 'Error(' // thisnam // '): differrin&
