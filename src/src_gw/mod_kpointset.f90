@@ -288,13 +288,13 @@ CONTAINS
 
         if (allocated(self%vkloff)) deallocate(self%vkloff)
         allocate(self%vkloff(3))
+        self%vkloff = vkloff
         if(any(abs(vkloff) > 1.0d0) .or. any(vkloff < 0.0d0)) then 
           write(*,*) "Warning(generate_k_vectors): vkloff mapped back to first k-parallelepiped"
-          write(*,*) "vkloff",vkloff
-          call r3frac(epslat, vkloff, iv)
-          write(*,*) "vkloffp",vkloff, "kshift", iv
+          write(*,*) "vkloff", vkloff
+          call r3frac(epslat, self%vkloff, iv)
+          write(*,*) "vkloffp", self%vkloff, "kshift", iv
         end if
-        self%vkloff = vkloff
 
         if (allocated(self%ngridk)) deallocate(self%ngridk)
         allocate(self%ngridk(3))
@@ -359,8 +359,8 @@ CONTAINS
           end do
           
           ! k-mesh shift
-          !call factorize(3,vkloff,ikloff,dkloff) !<-- Libbzint routine
-          call rtorat(vkloff,ikloff,dkloff)
+          !call factorize(3,self%vkloff,ikloff,dkloff) !<-- Libbzint routine
+          call rtorat(self%vkloff,ikloff,dkloff)
 
           ! call LibBZint library
           allocate(ivk(3,self%nkpt))
