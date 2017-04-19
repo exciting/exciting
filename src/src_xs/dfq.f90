@@ -889,7 +889,7 @@ subroutine dfq(iq)
     end forall
 
     if(rank .eq. 0)&
-      & call writedielt('DIELTENS0_NOSYM', 1, 0.d0, eps0(:, :, 1), 0)
+      & call writedielt('DIELTENS0_NOSYM', 1, [0.d0], eps0(:, :, 1), 0)
 
     ! Symmetrize the head of \chi, w.r.t. the lattice
     do oct1 = 1, 3
@@ -905,7 +905,7 @@ subroutine dfq(iq)
       eps0(:, :, iw) = dble(krondelta) - chi0hs(:, :, iw)
     end forall
     if(rank .eq. 0)&
-     & call writedielt('DIELTENS0', 1, 0.d0, eps0(:, :, 1), 0)
+     & call writedielt('DIELTENS0', 1, [0.d0], eps0(:, :, 1), 0)
 
     deallocate(chi0hs, eps0)
 

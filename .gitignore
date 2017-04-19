@@ -37,6 +37,9 @@ build/*/exciting
 .settings
 .metadata
 build/gfortran
+build/mpi
+build/serial
+build/debug
 src/eos/eos
 src/spacegroup/spacegroup
 src/stateconvert/stateconvert

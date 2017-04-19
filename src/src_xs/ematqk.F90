@@ -33,7 +33,7 @@ Subroutine ematqk (iq, ik)
 !      type(mtints_type) :: integrals
       
   ! arguments
-      Integer, Intent (InOut) :: iq, ik
+      Integer, Intent (In) :: iq, ik
   ! local variables
       Character (*), Parameter :: thisnam = 'ematqk'
   ! allocatable arrays

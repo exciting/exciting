@@ -57,7 +57,7 @@ Contains
          End If
     ! record position for k-point
          ikr = ik
-         If ( .Not. tarec) Call getridx (procs, nkpt, ik, ikr)
+         If ( .Not. tarec) Call getridx(nkpt, ik, ikr)
     ! check limits for states
          lerr = (l1 .Lt. 1) .Or. (l1 .Gt. nstsv) .Or. (h1 .Lt. 1) .Or. &
         & (h1 .Gt. nstsv) .Or. (l2 .Lt. 1) .Or. (l2 .Gt. nstsv) .Or. &

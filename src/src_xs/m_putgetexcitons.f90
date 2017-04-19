@@ -198,7 +198,8 @@ module m_putgetexcitons
       real(8) :: r1, r2, vqlmt(3), erange
       real(8), allocatable :: evalstmp(:)
       real(8), parameter :: epslat = 1.0d-6
-      integer(4) :: stat, unexc, mypos, cmplxlen, pos1, pos2
+      integer(4) :: stat, unexc, cmplxlen
+      integer(8) :: mypos, pos1, pos2
       logical :: fcoup, fti, fesel, fex, useindex, useenergy
       complex(8) :: zdummy
 
@@ -215,6 +216,10 @@ module m_putgetexcitons
         call terminate
       end if
 
+      ! If neither index nor energy range is specified, get all saved excitions.
+      ! If energy range is passed [e1,e2), the corresponding exciton indices
+      ! will be computed. If a index interval is passed [i1,i2] those excitons
+      ! are read.
       useindex=.false.
       useenergy=.false.
       if((present(a1) .or. present(a2)) .and. (present(e1) .or. present(e2))) then 
@@ -316,7 +321,7 @@ module m_putgetexcitons
       allocate(ngridk_(3))
 
       ! Read Meta data
-      read(unexc)&
+      read(unexc, pos=1)&
         & fcoup_,&       ! Was the TDA used?
         & fti_,&         ! Was the time reversed anti-resonant basis used?
         & fesel_,&
@@ -411,14 +416,14 @@ module m_putgetexcitons
 
       ! Resonant part of the eigenvectors
       allocate(rvec_(hamsize_, i1:i2))
-      pos1=(i1-iex1_)*cmplxlen*hamsize_+mypos
+      pos1=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
       read(unexc, pos=pos1) rvec_
 
       if(fcoup_) then  
         ! Anti-resonant part of the eigenvectors
         allocate(avec_(hamsize_, i1:i2))
-        pos1=(iex2_-iex1_+1)*cmplxlen*hamsize_+mypos
-        pos2=(i1-iex1_)*cmplxlen*hamsize_+pos1
+        pos1=int(iex2_-iex1_+1,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
+        pos2=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+pos1
         read(unexc, pos=pos2) avec_
       end if
 
