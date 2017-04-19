@@ -429,8 +429,8 @@ subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
 
   if(n .gt. 1) deallocate(b, bi, u, v, s, t)
 
-  call writedielt('DIELTENS', 1, 0.d0, dielten, 1)
-  call writedielt('DIELTENS_NOSYM', 1, 0.d0, dtns, 1)
+  call writedielt('DIELTENS', 1, [0.d0], dielten, 1)
+  call writedielt('DIELTENS_NOSYM', 1, [0.d0], dtns, 1)
 
 end subroutine angavsc0
 !EOC

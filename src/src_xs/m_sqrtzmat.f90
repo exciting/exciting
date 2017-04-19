@@ -88,6 +88,7 @@ module m_sqrtzmat
         return
       end if
 
+#ifdef SCAL
       if(hepdmat%context /= binfo%context) then
         if(binfo%isroot) then 
           write(*,*) "Error(sqrtdzmat_hepd): Wrong BLACS context."
@@ -157,6 +158,10 @@ module m_sqrtzmat
 
       deallocate(evals)
       call del_dzmat(evecs)
+#else
+      write(*,'("Error(",a,"): -DSCAL was not specified but matrix is distributed.")') trim(thisname)
+      call terminate
+#endif
 
     end subroutine sqrtdzmat_hepd
 

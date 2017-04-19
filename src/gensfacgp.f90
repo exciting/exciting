@@ -1,6 +1,3 @@
-!
-!
-!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -10,9 +7,9 @@
 ! !INTERFACE:
 !
 !
-Subroutine gensfacgp (ngp, vgpc, ld, sfacgp)
+Subroutine gensfacgp(ngp, vgpc, ld, sfacgp)
 ! !USES:
-      Use modmain
+      Use mod_atoms, only: nspecies, natoms, natmtot, idxas, atposc
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp    : number of G+p-vectors (in,integer)
 !   vgpc   : G+p-vectors in Cartesian coordinates (in,real(3,*))
