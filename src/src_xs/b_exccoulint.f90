@@ -316,16 +316,17 @@ use m_writecmplxparts
     ! and save it for all ik
     ematouk(1:ino, 1:inu, 1:numgq, ik) = mou(1:ino, 1:inu, 1:numgq)
 
-    !if(mpiglobal%rank == 0) then
-    !  write(6, '(a,"Exccoulint - mou progess:", f10.3)', advance="no")&
-    !    & achar( 13), 100.0d0*dble(ik-kpari+1)/dble(kparf-kpari+1)
-    !  flush(6)
-    !end if
+    if(mpiglobal%rank == 0) then
+      write(6, '(a,"Exccoulint - mou progess:", f10.3)', advance="no")&
+        & achar( 13), 100.0d0*dble(ik-kpari+1)/dble(kparf-kpari+1)
+      flush(6)
+    end if
 
   end do
 
-  !write(*,*)
-  !write(*,*)
+  if(mpiglobal%rank == 0) then
+    write(6, *)
+  end if
 
   !! RA:  M_uok-qmt(G,qmt) = < ju jkp|e^{-i(qmt+G)r}|jo jk>
   !!      with jkp = jk-qmt
@@ -487,18 +488,18 @@ use m_writecmplxparts
       call b_putbsemat(exclifname, 77, ikkp, iqmt, excli)
     end if
 
-    !if(mpiglobal%rank == 0) then
-    !  write(6, '(a,"Exccoulint progess:", f10.3)', advance="no")&
-    !    & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
-    !  flush(6)
-    !end if
+    if(mpiglobal%rank == 0) then
+      write(6, '(a,"Exccoulint progess:", f10.3)', advance="no")&
+        & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
+      flush(6)
+    end if
 
   ! End loop over(k,kp) pairs
   end do kkp
 
-  !if(mpiglobal%rank == 0) then
-  !  write(*,*)
-  !end if
+  if(mpiglobal%rank == 0) then
+    write(6,*)
+  end if
   
   call barrier
 
