@@ -889,7 +889,9 @@ use m_writecmplxparts
 
   ! End loop over(k,kp)-pairs
   end do kkploop
-
+  if(mpiglobal%rank == 0) then
+    write(6,*)
+  end if
   if(allocated(igqmap)) deallocate(igqmap)
   if(allocated(wfc)) deallocate(wfc)
 

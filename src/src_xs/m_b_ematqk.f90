@@ -767,19 +767,26 @@ module m_b_ematqk
       ! Loop over G+q vectors
       cpugntlocal=0.0d0
       cpumtlocal=0.0d0
-
+       
 #ifdef USEOMP
-    !$omp parallel default(shared) private(igq, cpu00, cpu01, whichthread)
+    !$omp parallel default(shared) private(igq, cpu00, cpu01, whichthread,integral)
 #endif
 #ifdef USEOMP
       whichthread=omp_get_thread_num()
+      ! Allocation of radial integrals
+      if (flag == 'oo') then
+        allocate(integral(input%xs%lmaxemat+1,nxas,nxas,1))
+      else if (flag == 'ou') then
+        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2))
+      else if (flag == 'uo') then
+        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2))
+      end if
     !$omp do
 #endif
       do igq = 1, ngq(iq)
         call timesec(cpu00)
         ! Summation of gaunt coefficients w.r.t. radial integrals
         if (flag .eq. 'oo') then ! core-core matrix elements
-          allocate(integral(input%xs%lmaxemat+1,nxas,nxas,1))
           call ematradoo(iq, ik, igq, integral)
           call timesec(cpu01)
           if(whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
@@ -789,7 +796,6 @@ module m_b_ematqk
           if(whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
         
         else if (flag .eq. 'ou') then ! core-conduction matrix elements
-          allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2))
           call ematradou(iq, ik, igq,ngk1_ptr(1, ik), apwalmt,evecfv1_ptr(:,:,1), bc,&
            & integral)
           call timesec (cpu01)
@@ -800,7 +806,6 @@ module m_b_ematqk
           if (whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
         
         else if (flag .eq. 'uo') then ! conductuin-core matrix elements
-          allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2))
           call ematraduo(iq, ik, igq,ngk(1, ik), apwalmt0,evecfv0_ptr(:,:,1), bc, integral)
           call timesec (cpu01)
           if (whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
@@ -809,17 +814,17 @@ module m_b_ematqk
           call timesec (cpu00)
           if (whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
         end if
-        deallocate(integral)
           end do ! igq
 #ifdef USEOMP
     !$omp end do
 #endif
-      deallocate(apwalmt, apwalmt0)        
+         deallocate(integral)
 
 #ifdef USEOMP
     !$omp end parallel
 #endif
 
+      deallocate(apwalmt, apwalmt0)        
       call timesec(cpu1)
       cpumain = cpu1 - cpu0
 
