@@ -568,12 +568,10 @@ use m_writecmplxparts
 
     if(fcoup .and. .not. fti) then 
       call makeoscistr(iqmt, nexc, bevecr, oscsr, oscstra=oscsa)
+    else if(fcoup .and. fti) then 
+      call makeoscistr(iqmt, nexc, bevecr, oscsr, bevalre=bevalre, cmat=cmat)
     else
-      if(fti) then
-        call makeoscistr(iqmt, nexc, bevecr, oscsr, bevalre=bevalre, cmat=cmat)
-      else
-        call makeoscistr(iqmt, nexc, bevecr, oscsr)
-      end if
+      call makeoscistr(iqmt, nexc, bevecr, oscsr)
     end if
 
     ! Write excition energies and oscillator strengths to 
@@ -1025,7 +1023,7 @@ use m_writecmplxparts
 
     ! Calculate oscillator strengths.
     ! Note: Deallocates eigenvectors
-    if(fti) then 
+    if(fti .and. fcoup) then 
       call makeoscistr_dist(iqmt, nexc, dbevecr, doscsr, bi2d, bevalre, dcmat)
     else
       call makeoscistr_dist(iqmt, nexc, dbevecr, doscsr, bi2d)

@@ -465,6 +465,10 @@ use m_writecmplxparts
 
   end do
 
+  if(mpiglobal%rank == 0) then
+    write(6, *)
+  end if
+
   ! Set file extesion for later read EMATRAD in getematrad
   ! (some ranks may not participate in the qr loop above)
   filext = fileext_ematrad_write
@@ -889,7 +893,10 @@ use m_writecmplxparts
 
   ! End loop over(k,kp)-pairs
   end do kkploop
-
+  
+  if(mpiglobal%rank == 0) then
+    write(6, *)
+  end if
   if(allocated(igqmap)) deallocate(igqmap)
   if(allocated(wfc)) deallocate(wfc)
 
@@ -1047,8 +1054,7 @@ use m_writecmplxparts
       character(256) :: fileext0_save, fileext_save
       type(bcbs) :: ematbc
 
-      !write(*,*)
-      !write(*,*) "getpwesra:"
+      !! NOTE: Q/=0 only for fti=true
 
       fileext0_save = filext0
       fileext_save = filext
@@ -1188,10 +1194,9 @@ use m_writecmplxparts
           end if
         end if
 
+      ! TI
       else
 
-        !write(*,*) " TI"
-        !write(*,*) "  Mou"
         !------------------------------------------------------------------------!
         ! Calculate \tilde{M}_{io ju ik}(G, q) = <io ik|e^{-i(q+G)r}|(ju jkp)^*> !
         ! where jkp=jk+qmt, q=-(jk+qmt)-ik                                       !
