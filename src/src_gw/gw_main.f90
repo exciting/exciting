@@ -185,6 +185,7 @@ subroutine gw_main()
               !input%properties%wannier%fst = ibgw
               !input%properties%wannier%lst = nbgw
               call wannierlauncher
+              !call task_eph ()
               call task_band 
             end if
 

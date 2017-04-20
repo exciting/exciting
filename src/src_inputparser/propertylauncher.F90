@@ -16,12 +16,23 @@ Subroutine propertylauncher
 ! properties which depend on the ground state only
 
       !--------------------------------------------------------
+!      if( associated( input%properties%wannier)) then
+!        if( input%properties%wannier%input .ne. "gw") then
+!          call rereadinput
+!          call wannierlauncher
+!        end if
+!      end if
+
+       !--------------------------------------------------------
       if( associated( input%properties%wannier)) then
         if( input%properties%wannier%input .ne. "gw") then
           call rereadinput
           call wannierlauncher
+          !call task_eph 
         end if
       end if
+ 
+      
 
       !--------------------------------------------------------
       if( associated( input%properties%wannierplot)) then
