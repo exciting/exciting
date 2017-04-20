@@ -551,10 +551,6 @@ use m_writecmplxparts
         nexc = hamsize
         allocate(bevalre(nexc))
         bevalre(1:hamsize) = de(ensortidx)
-        write(*,*) 'de'
-        write(*,*) '*************************************' 
-        write(*,*) de(ensortidx)
-        write(*,*) '*************************************' 
       end if
 
     end if
