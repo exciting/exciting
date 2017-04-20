@@ -1738,6 +1738,7 @@ module m_setup_bse
     subroutine buildham(fc, hamblck, ig, jg, ib, jb, occ1, occ2, scc, exc)
     ! !USES:
       use modbse, only: de
+      use modinput, only: input
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! logical :: fc ! Build RA instead of RR
@@ -1782,18 +1783,27 @@ module m_setup_bse
       
       integer(4) :: r, c
       complex(8), parameter :: ztwo=(2.0d0,0.0d0) 
+      complex(8), parameter :: zone=(1.0d0,0.0d0) 
       
       do c = 1, jb
         do r = 1, ib
           if(present(exc) .and. present(scc)) then
             ! Singlet case with exchange interaction
-            hamblck(r, c) = occ1(r) * (ztwo * exc(r, c) - scc(r, c)) * occ2(c)
+            if (input%xs%bse%xas) then
+              hamblck(r, c) = occ1(r) * (zone * exc(r, c) - scc(r, c)) * occ2(c)
+            else
+              hamblck(r, c) = occ1(r) * (ztwo * exc(r, c) - scc(r, c)) * occ2(c)
+            end if
           else if(present(scc)) then
             ! Triplet case without exchange interaction
             hamblck(r, c) = -occ1(r) * scc(r, c) * occ2(c)
           else if(present(exc)) then
             ! RPA
-            hamblck(r, c) = occ1(r) * ztwo * exc(r, c) * occ2(c)
+            if (input%xs%bse%xas)
+              hamblck(r, c) = occ1(r) * zone * exc(r, c) * occ2(c)
+            else
+              hamblck(r, c) = occ1(r) * ztwo * exc(r, c) * occ2(c)
+            end if
           else
             ! IP
             hamblck(r, c) = (0.0d0,0.0d0)
