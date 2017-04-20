@@ -36,7 +36,7 @@ Subroutine bandstr
   Implicit None
   ! local variables
   Integer :: lmax, lmmax, l, m, lm
-  Integer :: ik, iknr, ispn, is, ia, ias, iv, ist, isym
+  Integer :: ik, ispn, is, ia, ias, iv, ist, isym
   Real (8) :: emin, emax, sum
   Character (256) :: fname
   ! allocatable arrays
@@ -44,6 +44,7 @@ Subroutine bandstr
   ! low precision for band character array saves memory
   Real (4), Allocatable :: bc (:, :, :, :)
   Complex (8), Allocatable :: dmat (:, :, :, :, :)
+  Complex (8), Allocatable :: mydmat (:, :, :)
   Complex (8), Allocatable :: apwalm (:, :, :, :, :)
   Complex (8), Allocatable :: evecfv (:, :, :)
   Complex (8), Allocatable :: evecsv (:, :)
@@ -55,16 +56,20 @@ Subroutine bandstr
   complex(8), allocatable :: e0(:,:), e1(:,:)
   logical :: exist,hybcheck
 !WANNIER
-  integer :: nv, ix, iy, iz
-  real(8) :: s(3), vk(3), v1(3), dt
-  real(8), allocatable :: eval1(:,:), eval2(:,:), vklold(:,:), dist(:), vvl(:,:)
+  integer :: iq, nv, ix, iy, iz, ngqwf, ngkmaxint, ngkmaxwf, ngqtmp
+  real(8) :: s(3), vk(3), v1(3), vl(3), vc(3), dt
+  real(8), allocatable :: eval1(:,:), evalint(:,:), dist(:), vvl(:,:)
   complex(8), allocatable :: evectmp(:,:), evecint(:,:,:,:)
-  type( k_set) :: redkset
+  type( k_set) :: int_kset
+  type( G_set) :: int_Gset
+  type( Gk_set) :: int_Gkset
 !END WANNIER
 ! initialise universal variables
   Call init0
 
   if( input%properties%bandstructure%wannier) then
+    !call checkwanint( .true.)
+    !stop
     !--------------------------------------------------!      
     ! Calculate bandstructure by Wannier interpolation !
     !--------------------------------------------------!
@@ -73,86 +78,145 @@ Subroutine bandstr
       call terminate
     end if
   
-    call readfermi                !saves fermi energy in variable 'efermi'
-  
     write(*,*) 'Interpolate band-structure...'
   
     allocate( eval1( nstfv, nkptnr), evalfv( nstfv, nspinor))
     ! read FV eigenvalues
-    do iknr = 1, wf_kset%nkpt
-      call getevalfv( wf_kset%vkl( :, iknr), evalfv)
-      eval1( :, iknr) = evalfv( :, 1)
+    do ik = 1, wf_kset%nkpt
+      call getevalfv( wf_kset%vkl( :, ik), evalfv)
+      eval1( :, ik) = evalfv( :, 1)
     end do
     
-    ! k-points along path
+    ! k-points for interpolation
     input%properties%bandstructure%wannier = .false.
+    write(*,*) "  0"
     call init1
-    iz = nkpt
-    allocate( vklold( 3, iz))
-    allocate( eval2( nstfv, iz))
-    vklold = vkl
+    write(*,*) "  1"
+    call generate_k_vectors( int_kset, bvec, (/1, 1, nkpt/), (/0.d0, 0.d0, 0.d0/), .false.)
+    write(*,*) "  2"
+    int_kset%vkl = vkl
+    int_kset%vkc = vkc
+    !call generate_G_vectors( int_Gset, bvec, intgv, input%groundstate%gmaxvr)
+    call generate_Gk_vectors( int_Gkset, int_kset, wf_Gset, gkmax)
+    write(*,*) "  3"
+    ngkmaxint = int_Gkset%ngkmax
+    ngkmaxwf = wf_Gkset%ngkmax
+    write(*,'("ngkmax sys = ",I)') ngkmax
+    write(*,'("ngkmax int = ",I)') ngkmaxint
+    write(*,'("ngkmax wan = ",I)') ngkmaxwf
+    allocate( evalint( wf_fst:wf_lst, int_kset%nkpt))
+    allocate( evecint( nmatmax, wf_fst:wf_lst, nspinor, int_kset%nkpt))
+    write(*,'("  interpolation grid set up")')
+
+    ! k-points on grid
     input%properties%bandstructure%wannier = .true.
     call init1
-    write(*,*) iz, nkpt
-    write(*,*) shape( vklold)
-    write(*,*) shape( vkl)
-    allocate( evecint( nmatmax, nstsv, nspinor, iz))
-    evecint = zzero
+    select case (input%properties%wannier%input)
+      case( "groundstate")
+      case( "gw")
+        call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, input%gw%reduceq)
+        vkl = wf_kset%vkl
+        vkc = wf_kset%vkc
+        nkpt = wf_kset%nkpt
+        call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, .false.)
+      case( "hybrid")
+        call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek)
+        vkl = wf_kset%vkl
+        vkc = wf_kset%vkc
+        nkpt = wf_kset%nkpt
+        ! recalculate G+k-vectors
+        do ik = 1, nkpt
+          do is = 1, nspnfv
+            vl (:) = vkl(:, ik)
+            vc (:) = vkc(:, ik)
+            call gengpvec( vl, vc, ngk( is, ik), igkig( :, is, ik), vgkl( :, :, is, ik), vgkc( :, :, is, ik), gkc( :, is, ik), tpgkc( :, :, is, ik))
+            call gensfacgp( ngk(is, ik), vgkc( :, :, is, ik), ngkmax, sfacgk( :, :, is, ik))
+          end do
+        end do
+        call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
+      case default
+        write(*, '(" ERROR (wannier_init): ",a," is not a valid input.")') input%properties%wannier%input
+        call terminate
+    end select
     
+    ! read Fermi energy from file
+    Call readfermi
+      
     ! do interpolation
+    write(*,'("  do interpolation")')
     lmax = min( 3, input%groundstate%lmaxapw)
-    lmmax = (lmax+1) ** 2
+    lmmax = (lmax+1)**2
     if( input%properties%bandstructure%character) then
-      write(*,*) "true"
-      Allocate (bc(0:lmax, natmtot, nstsv, iz))
-      !call wannier_interpolate_eval( eval1( wf_fst:wf_lst, :), iz, vklold, eval2( wf_fst:wf_lst, :), bandchar=bc, lmax=lmax)
-      call wannier_interpolate_eigsys( eval1( wf_fst:wf_lst, :), iz, vklold, eval2( wf_fst:wf_lst, :), evecint( :, wf_fst:wf_lst, 1, :))
-      Allocate (dmat(lmmax, lmmax, nspinor, nspinor, nstsv))
-      Allocate (evecsv(nstsv, nstsv))
-      Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
-      evecsv = zzero
+      write(*,*) "character true"
+      ! interpolate eigenenergies and eigenvectors
+      call wannier_interpolate_eigsys( eval1( wf_fst:wf_lst, :), int_kset, int_Gkset, evalint( wf_fst:wf_lst, :), evecint( :, :, 1, :))
+
       ! k-points along path
       input%properties%bandstructure%wannier = .false.
       call init1
-      do ik = 1, iz
+  
+      ! find the new linearisation energies
+      Call linengy
+      ! generate the APW radial functions
+      Call genapwfr
+      ! generate the local-orbital radial functions
+      Call genlofr
+
+      ngkmax = ngkmaxint
+
+      allocate( bc( 0:lmax, natmtot, wf_fst:wf_lst, int_kset%nkpt))
+      allocate( mydmat( lmmax, lmmax, wf_fst:wf_lst))
+      allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
+      !write(*,'(1000F23.16)') apwfr(:,1,1,1,1)
+      do iq = 1, int_kset%nkpt
+        !write(*,'(I,3F13.6)') iq, vkl( :, iq)
         ! find the matching coefficients
-        Do ispn = 1, nspnfv
-           Call match( ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, &
-                & ispn, ik), sfacgk(:, :, ispn, ik), apwalm(:, :, :, :, &
-                & ispn))
-        End Do
+        apwalm = zzero
+        do ispn = 1, nspnfv
+          ngqtmp = int_Gkset%ngk( ispn, iq)
+          call match( ngqtmp, int_Gkset%gkc( :, ispn, iq), int_Gkset%tpgkc( :, :, ispn, iq), int_Gkset%sfacgk( :, :, ispn, iq), apwalm( :, :, :, :, ispn))
+        end do
         ! average band character over spin and m for all atoms
-        Do is = 1, nspecies
-           Do ia = 1, natoms (is)
-              ias = idxas (ia, is)
-              ! generate the diagonal of the density matrix
-              Call gendmat (.True., .True., 0, lmax, is, ia, ngk(:, &
-                   & ik), apwalm, evecint( :, :, :, ik), evecsv, lmmax, dmat)
-              Do ist = 1, nstsv
-                 Do l = 0, lmax
-                    sum = 0.d0
-                    Do m = - l, l
-                       lm = idxlm (l, m)
-                       Do ispn = 1, nspinor
-                          sum = sum + dble (dmat(lm, lm, ispn, &
-                               & ispn, ist))
-                       End Do
-                    End Do
-                    bc (l, ias, ist, ik) = real (sum)
-                 End Do
-              End Do
-           End Do
-        End Do
+        do is = 1, nspecies
+          do ia = 1, natoms (is)
+             ias = idxas (ia, is)
+             ! generate the diagonal of the density matrix
+             !if( iq .eq. 1) then
+             !  write(*, '(3F13.6,I)') vkl( :, iq), ias
+             !  write(*, '(3F13.6,I)') int_kset%vkl( :, iq), ias
+             !  write(*,*) "matching coefficients"
+             !  write(*,*) shape( apwalm( :, 1, :, ias, 1))
+             !  call plotmat( apwalm( :, 1, :, ias, 1))
+             !  write(*,*) "eigenvector"
+             !  write(*,*) shape( evecint( :, :, 1, iq))
+             !  call plotmat( evecint( :, :, 1, iq), .true.)
+             !  write(*,*)
+             !end if
+             call gendmat_nospin( wf_fst, wf_lst, 0, lmax, is, ia, ngqtmp, apwalm, evecint( :, :, :, iq), lmmax, mydmat)
+             do ist = wf_fst, wf_lst
+               do l = 0, lmax
+                 sum = 0.d0
+                 do m = - l, l
+                   lm = idxlm (l, m)
+                   do ispn = 1, nspinor
+                     sum = sum + dble( mydmat( lm, lm, ist))
+                   end do
+                 end do
+                 bc( l, ias, ist, iq) = real (sum)
+               end do
+             end Do
+          end do
+        end do
       end do
-      Deallocate (dmat, apwalm, bc, evecsv)
+      deallocate( mydmat, apwalm)
     else
       write(*,*) "false"
-      call wannier_interpolate_eval( eval1( wf_fst:wf_lst, :), iz, vklold, eval2( wf_fst:wf_lst, :), lmax=-1)
-      !call wannier_interpolate_eigsys( eval1( wf_fst:wf_lst, :), iz, vklold, eval2( wf_fst:wf_lst, :), evecint( :, wf_fst:wf_lst, 1, :))
+      call wannier_interpolate_eval( eval1( wf_fst:wf_lst, :), int_kset%nkpt, int_kset%vkl, evalint( wf_fst:wf_lst, :), lmax=-1)
     end if
-    eval2 = eval2 - efermi
+    evalint = evalint - efermi
   
     ! output
+    ! k-points along path
     input%properties%bandstructure%wannier = .false.
     call init1
 
@@ -170,15 +234,15 @@ Subroutine bandstr
       call xml_endElement( xf, "title")
       do ist = wf_fst, wf_lst
         call xml_NewElement( xf, "band")
-        do ik = 1, nkpt
-          do iknr = 1, wf_kset%nkpt
-            dist( iknr) = norm2( wf_kset%vkc( :, iknr) - vkc( :, ik))
+        do iq = 1, int_kset%nkpt
+          do ik = 1, wf_kset%nkpt
+            dist( ik) = norm2( wf_kset%vkc( :, ik) - int_kset%vkc( :, iq))
           end do
-          write( 50, '(3G18.10)') dpp1d (ik), eval2 (ist, ik), 1.d0/(1.d0+minval( dist))
+          write( 50, '(3G18.10)') dpp1d (iq), evalint (ist, iq), 1.d0/(1.d0+minval( dist))
           call xml_NewElement( xf, "point")
-          write( buffer, '(5G18.10)') dpp1d (ik)
+          write( buffer, '(5G18.10)') dpp1d (iq)
           call xml_AddAttribute( xf, "distance", trim( adjustl( buffer)))
-          write( buffer, '(5G18.10)') eval2( ist, ik)
+          write( buffer, '(5G18.10)') evalint( ist, iq)
           call xml_AddAttribute (xf, "eval", trim( adjustl( buffer)))
           call xml_endElement( xf, "point")
         end do
@@ -207,42 +271,34 @@ Subroutine bandstr
           call xml_AddAttribute (xf, "coord", &
                & trim(adjustl(buffer)))
           ias = idxas (ia, is)
-          write (fname, '("BAND_WANNIER_S", I2.2, "_A", I4.4, ".OUT")') &
-               & is, ia
-          open (50, File=trim(fname), Action='WRITE', Form='FORMAT&
-               &TED')
+          write (fname, '("BAND_WANNIER_S", I2.2, "_A", I4.4, ".OUT")') is, ia
+          open (50, File=trim(fname), Action='WRITE', Form='FORMATTED')
           !
           do ist = wf_fst, wf_lst
             call xml_NewElement (xf, "band")
-            do ik = 1, nkpt
+            do iq = 1, int_kset%nkpt
               ! sum band character over l
               sum = 0.d0
               do l = 0, lmax
-                sum = sum + bc( ias, l, ist, ik)
+                sum = sum + bc( l, ias, ist, iq)
               end do
               call xml_NewElement (xf, "point")
-              write (buffer, '(5G18.10)') dpp1d (ik)
-              call xml_AddAttribute (xf, "distance", &
-                   & trim(adjustl(buffer)))
-              write (buffer, '(5G18.10)') eval2( ist, ik)
-              call xml_AddAttribute (xf, "eval", &
-                   & trim(adjustl(buffer)))
+              write (buffer, '(5G18.10)') dpp1d (iq)
+              call xml_AddAttribute (xf, "distance", trim(adjustl(buffer)))
+              write (buffer, '(5G18.10)') evalint( ist, iq)
+              call xml_AddAttribute (xf, "eval", trim(adjustl(buffer)))
               write (buffer, '(5G18.10)') sum
-              call xml_AddAttribute (xf, "sum", &
-                   & trim(adjustl(buffer)))
+              call xml_AddAttribute (xf, "sum", trim(adjustl(buffer)))
               do l = 0, lmax
                 call xml_NewElement (xf, "bc")
                 write (buffer,*) l
-                call xml_AddAttribute (xf, "l", &
-                     & trim(adjustl(buffer)))
-                write (buffer, '(5G18.10)') bc( ias, l, ist, &
-                     & ik)
-                call xml_AddAttribute (xf, "character", &
-                     & trim(adjustl(buffer)))
+                call xml_AddAttribute (xf, "l", trim(adjustl(buffer)))
+                write (buffer, '(5G18.10)') bc( l, ias, ist, iq)
+                call xml_AddAttribute (xf, "character", trim(adjustl(buffer)))
                 call xml_endElement (xf, "bc")
               end do
               call xml_endElement (xf, "point")
-              write (50, '(2G18.10, 8F12.6)') dpp1d (ik), eval2( ist, ik), sum, (bc( ias, l, ist, ik), l=0, lmax)
+              write (50, '(2G18.10, 8F12.6)') dpp1d (iq), evalint( ist, iq), sum, (bc( l, ias, ist, iq), l=0, lmax)
             end do
             call xml_endElement (xf, "band")
             write (50, '("	  ")')
@@ -256,8 +312,7 @@ Subroutine bandstr
       call xml_close( xf)
       write (*,*)
       write (*, '("Info(bandstr):")')
-      write (*, '(" band structure plot written to BAND_WANNIER_Sss_Aaaaa.OU&
-           &T")')
+      write (*, '(" band structure plot written to BAND_WANNIER_Sss_Aaaaa.OUT")')
       write (*, '("	for all species and atoms")')
     end if
   
@@ -267,13 +322,41 @@ Subroutine bandstr
     do ik = 1, nv
       vvl( :, ik) = input%properties%bandstructure%plot1d%path%pointarray( ik)%point%coord
     end do
+
     ! go back on k-grid
     input%properties%bandstructure%wannier = .true.
     call init1
+    select case (input%properties%wannier%input)
+      case( "groundstate")
+      case( "gw")
+        call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, input%gw%reduceq)
+        vkl = wf_kset%vkl
+        vkc = wf_kset%vkc
+        nkpt = wf_kset%nkpt
+        call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, .false.)
+      case( "hybrid")
+        call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek)
+        vkl = wf_kset%vkl
+        vkc = wf_kset%vkc
+        nkpt = wf_kset%nkpt
+        ! recalculate G+k-vectors
+        do ik = 1, nkpt
+          do is = 1, nspnfv
+            vl (:) = vkl(:, ik)
+            vc (:) = vkc(:, ik)
+            call gengpvec( vl, vc, ngk( is, ik), igkig( :, is, ik), vgkl( :, :, is, ik), vgkc( :, :, is, ik), gkc( :, is, ik), tpgkc( :, :, is, ik))
+            call gensfacgp( ngk(is, ik), vgkc( :, :, is, ik), ngkmax, sfacgk( :, :, is, ik))
+          end do
+        end do
+        call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
+      case default
+        write(*, '(" ERROR (wannier_init): ",a," is not a valid input.")') input%properties%wannier%input
+        call terminate
+    end select
     
-    do iknr = 1, nkpt
-      call getevalfv( vkl( :, iknr), evalfv)
-      eval1( :, iknr) = evalfv( :, 1)
+    do ik = 1, wf_kset%nkpt
+      call getevalfv( wf_kset%vkl( :, ik), evalfv)
+      eval1( :, ik) = evalfv( :, 1)
     end do
     open( 50, file='BANDONGRID.OUT', action='WRITE', form='FORMATTED')
     dt = 0.d0
@@ -451,6 +534,7 @@ Subroutine bandstr
       emin = 1.d5
       emax = - 1.d5
   
+      !write(*,'(1000F23.16)') apwfr(:,1,1,1,1)
       !---------------------------------------
       ! begin parallel loop over k-points
       !---------------------------------------
@@ -741,11 +825,11 @@ Subroutine bandstr
       ! path, energy, ist, ik, vkl
       do ist = wf_fst, wf_lst
         do ik = 1, nkpt
-          write(50,'(2I6, 3F12.6, 2G18.10)') ist, ik, vkl(:,ik), dpp1d(ik), eval2(ist,ik)
+          write(50,'(2I6, 3F12.6, 2G18.10)') ist, ik, vkl(:,ik), dpp1d(ik), evalint(ist,ik)
         end do
       write(50,*)
       end do
-      deallocate( eval2)
+      deallocate( evalint)
     else
       write(50,*) "# ", 1, nstsv, nkpt
       ! path, energy, ist, ik, vkl

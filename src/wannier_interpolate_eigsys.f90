@@ -2,7 +2,7 @@ module m_wannier_interpolate_eigsys
     implicit none
     contains
 
-subroutine wannier_interpolate_eigsys( evalin, nqin, vqlin, evalout, evecout)
+subroutine wannier_interpolate_eigsys( evalin, int_kset, int_Gkset, evalout, evecout)
   use mod_wannier
   use m_wsweight
   use m_plotmat
@@ -11,32 +11,32 @@ subroutine wannier_interpolate_eigsys( evalin, nqin, vqlin, evalout, evecout)
   use mod_eigenvalue_occupancy
 
   implicit none
-  integer, intent( in) :: nqin
   real(8), intent( in) :: evalin( wf_fst:wf_lst, wf_kset%nkpt)
-  real(8), intent( in) :: vqlin( 3, nqin)
-  real(8), intent( out) :: evalout( wf_fst:wf_lst, nqin)
-  complex(8), intent( out) :: evecout( nmatmax, wf_fst:wf_lst, nqin)
+  type( k_set), intent( in) :: int_kset
+  type( Gk_set), intent( in) :: int_Gkset
+  real(8), intent( out) :: evalout( wf_fst:wf_lst, int_kset%nkpt)
+  complex(8), intent( out) :: evecout( int_Gkset%ngkmax+nlotot, wf_fst:wf_lst, int_kset%nkpt)
   
-  integer :: nrpt, ix, iy, iz, ik, iq, ir, ngqwf, ngkwf, ngkmaxtmp
+  integer :: nrpt, ix, iy, iz, ik, iq, ir
+  integer :: ngkmaxwf, nmatmaxwf, ngkmaxint, nmatmaxint, ngkmax0, nmatmax0 
   complex(8) :: ftweight
-  real(8) :: vqcin(3), v(3), ffac, t1
+  real(8) :: vqcin(3), v(3), vi(3), ffac, t1
 
   real(8), allocatable :: rptl(:,:), vkctmp(:,:)
   complex(8), allocatable :: auxmat(:,:), ueu(:,:,:), phase(:,:), hamilton(:,:,:), evecint(:,:,:), evecfv(:,:,:), apwolp(:,:), uv(:,:), cuv(:,:), rhs(:,:)
   complex(8), allocatable :: evecq(:,:)
   
-  integer :: o, is, ia, ias, l, m, lm, lmo, nlmomax, igq, igk
+  integer :: o, is, ia, ias, l, m, lm, lmo, nlmomax, igq, igk, ngktmp, ngqtmp
   integer, allocatable :: nlmo(:), lmo2l(:,:), lmo2m(:,:), lmo2o(:,:), lm2l(:)
-  integer, allocatable :: igxigwf(:)
-  real(8), allocatable :: vgxlwf(:,:,:), vgqcwf(:,:,:), gxcwf(:), tpgxcwf(:,:), sfacwf(:,:)
-  real(8), allocatable :: vgkcwf(:,:,:)
   complex(8), allocatable :: matchq(:,:,:), matchk(:,:,:), apwalm(:,:,:,:,:)
+  complex(8), allocatable :: p1(:,:), p2(:,:)
 
   integer :: lapack_lwork, lapack_info
   integer, allocatable :: lapack_ipiv(:)
   complex(8), allocatable :: lapack_work(:)
 
   logical :: ongrid
+  character(256) :: fname
 
   !**********************************************
   ! interpolated eigenenergies and corresponding 
@@ -58,14 +58,15 @@ subroutine wannier_interpolate_eigsys( evalin, nqin, vqlin, evalout, evecout)
   
   ! calculate Hamlitonian matrix elements in Wannier representation 
   allocate( ueu( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt))
-  allocate( phase( wf_kset%nkpt, nqin))
-  allocate( hamilton( wf_fst:wf_lst, wf_fst:wf_lst, nqin))
+  allocate( phase( wf_kset%nkpt, int_kset%nkpt))
+  allocate( hamilton( wf_fst:wf_lst, wf_fst:wf_lst, int_kset%nkpt))
+
 #ifdef USEOMP
-!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, iy, auxmat, iq, ftweight) reduction(+:phase)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, iy, auxmat)
 #endif
   allocate( auxmat( wf_fst:wf_lst, wf_fst:wf_lst))
 #ifdef USEOMP
-!!$OMP DO
+!$OMP DO
 #endif
   do ik = 1, wf_kset%nkpt
     do iy = wf_fst, wf_lst
@@ -76,24 +77,42 @@ subroutine wannier_interpolate_eigsys( evalin, nqin, vqlin, evalout, evecout)
          ueu( :, :, ik), wf_nst, zzero, &
          auxmat, wf_nst)
     ueu( :, :, ik) = auxmat
-    do iq = 1, nqin
-      phase( ik, iq) = zzero
-      do ir = 1, nrpt
-        call ws_weight( rptl( :, ir), rptl( :, ir), vqlin( :, iq)-wf_kset%vkl( :, ik), ftweight, kgrid=.true.)
-        phase( ik, iq) = phase( ik, iq) + conjg( ftweight)
-      end do
-    end do
   end do
 #ifdef USEOMP
-!!$OMP END DO
+!$OMP END DO
 #endif
   deallocate( auxmat)
 #ifdef USEOMP
-!!$OMP END PARALLEL
+!$OMP END PARALLEL
 #endif
+
+  allocate( p1( wf_kset%nkpt, nrpt), p2( int_kset%nkpt, nrpt))
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, iq, ir)
+!$OMP DO
+#endif
+  do ir = 1, nrpt
+    do iq = 1, int_kset%nkpt
+      call ws_weight( rptl( :, ir), rptl( :, ir), int_kset%vkl( :, iq), p2( iq, ir), kgrid=.true.)
+    end do
+    do ik = 1, wf_kset%nkpt
+      call ws_weight( rptl( :, ir), rptl( :, ir), wf_kset%vkl( :, ik), p1( ik, ir), kgrid=.true.)
+    end do
+  end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+  call zgemm( 'N', 'C', wf_kset%nkpt, int_kset%nkpt, nrpt, zone, &
+       p1, wf_kset%nkpt, &
+       p2, int_kset%nkpt, zzero, &
+       phase, wf_kset%nkpt)
+
+  deallocate( p1, p2)
+
   phase = phase/wf_kset%nkpt
   do iy = wf_fst, wf_lst
-    call zgemm( 'N', 'N', wf_nst, nqin, wf_kset%nkpt, zone, &
+    call zgemm( 'N', 'N', wf_nst, int_kset%nkpt, wf_kset%nkpt, zone, &
          ueu( iy, :, :), wf_nst, &
          phase, wf_kset%nkpt, zzero, &
          hamilton( iy, :, :), wf_nst)
@@ -101,12 +120,12 @@ subroutine wannier_interpolate_eigsys( evalin, nqin, vqlin, evalout, evecout)
   deallocate( ueu)
 
   ! interpolation
-  allocate( evecint( wf_fst:wf_lst, wf_fst:wf_lst, nqin))
+  allocate( evecint( wf_fst:wf_lst, wf_fst:wf_lst, int_kset%nkpt))
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq)
 !$OMP DO
 #endif
-  do iq = 1, nqin 
+  do iq = 1, int_kset%nkpt 
     call diaghermat( wf_nst, hamilton( :, :, iq), evalout( :, iq), evecint( :, :, iq))
   end do
 #ifdef USEOMP
@@ -114,28 +133,18 @@ subroutine wannier_interpolate_eigsys( evalin, nqin, vqlin, evalout, evecout)
 !$OMP END PARALLEL
 #endif
   deallocate( rptl, hamilton)
+!  allocate( evecint( wf_fst:wf_lst, wf_fst:wf_lst, int_kset%nkpt))
+!  allocate( phase( wf_kset%nkpt, int_kset%nkpt))
+!  evecint = zone
+!  evalout = zzero
+!  phase = zone
   
   !**********************************************
   ! interpolated eigenvectors in LAPW+lo basis
   !**********************************************
 
-  ! determine ngkmax for all k and q
-  allocate( vkctmp( 3, nkpt))
-  vkctmp = vkc
-  ngkmaxtmp = ngkmax
-  deallocate( vkc)
-  allocate( vkc( 3, nqin))
-  do iq = 1, nqin
-    call r3mv( bvec, vqlin( :, iq), vkc( :, iq))
-  end do
-  call getngkmax
-  deallocate( vkc)
-  allocate( vkc( 3, nkpt))
-  vkc = vkctmp
-  write(*,*) ngkmax, ngkmaxtmp
-  ngkmax = 2*max( ngkmax, ngkmaxtmp)
-
-  ! generate APW radial functions
+  call readfermi
+  call linengy
   call genapwfr
 
   ! count combined (l,m,o) indices and build index maps
@@ -158,33 +167,37 @@ subroutine wannier_interpolate_eigsys( evalin, nqin, vqlin, evalout, evecout)
     end do
     nlmomax = max( nlmomax, nlmo( is))
   end do
+  
+  ngkmaxwf = wf_Gkset%ngkmax
+  nmatmaxwf = ngkmaxwf+nlotot
+  ngkmaxint = int_Gkset%ngkmax
+  nmatmaxint = ngkmaxint+nlotot
+  ngkmax0 = ngkmax
+  nmatmax0 = nmatmax
+  ngkmax = ngkmaxwf
+  nmatmax = nmatmaxwf
+  !nmatmax = max( nmatmaxwf, nmatmaxint)
 
-  allocate( evecfv( nmatmax, nstsv, nspinor))
-  allocate( igxigwf( ngkmax))
-  allocate( vgxlwf( 3, ngkmax, nspinor), vgqcwf( 3, ngkmax, nspinor), gxcwf( ngkmax), tpgxcwf( 2, ngkmax))
-  allocate( vgkcwf( 3, ngkmax, nspinor))
-  allocate( sfacwf( ngkmax, natmtot))
-  allocate( uv( wf_fst:wf_lst, wf_fst:wf_lst))
-  allocate( cuv( nmatmax, wf_fst:wf_lst))
-  allocate( rhs( ngkmax, wf_fst:wf_lst))
-  allocate( matchq( nlmomax, ngkmax, natmtot))
-  allocate( matchk( nlmomax, ngkmax, natmtot))
-  allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspinor))
-  allocate( evecq( nmatmax, wf_fst:wf_lst))
+  !allocate( evecfv( nmatmaxwf, nstsv, nspinor))
+  !allocate( uv( wf_fst:wf_lst, wf_fst:wf_lst))
+  !allocate( cuv( nmatmaxwf, wf_fst:wf_lst))
+  allocate( matchq( nlmomax, ngkmaxint, natmtot))
+  !allocate( matchk( nlmomax, ngkmaxwf, natmtot))
+  !allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspinor))
+  allocate( evecq( nmatmaxint, wf_fst:wf_lst))
+  !allocate( apwolp( ngkmax, ngkmax))
+  allocate( rhs( ngkmaxint, wf_fst:wf_lst))
 
-  do iq = 1, nqin
-    ! generate G+q vectors
-    call r3mv( bvec, vqlin( :, iq), vqcin)
-    call gengpvec( vqlin( :, iq), vqcin, ngqwf, igxigwf, vgxlwf(:,:,1), vgqcwf(:,:,1), gxcwf, tpgxcwf)
-    if( ngqwf .gt. ngkmax) then
-      write( *, '("ngkmax ",I)') iq
-      ngqwf = ngkmax
-    endif
-    ngqwf = min( ngqwf, ngkmax)
-
+  write(*,*) int_Gkset%ngk( 1, :)
+  do iq = 1, int_kset%nkpt
+    write(*, '(I)') iq 
+    ngkmax = ngkmaxint
     ! get matching coefficients for G+q        
-    call gensfacgp( ngqwf, vgqcwf, ngkmax, sfacwf)
-    call match( ngqwf, gxcwf, tpgxcwf, sfacwf, apwalm(:, :, :, :, 1))
+    allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspinor))
+    write(*,*) int_kset%nkpt, int_Gkset%ngk( 1, iq)
+    ngqtmp = int_Gkset%ngk( 1, iq)
+    apwalm = zzero
+    call match( ngqtmp, int_Gkset%gkc( :, 1, iq), int_Gkset%tpgkc( :, :, 1, iq), int_Gkset%sfacgk( :, :, 1, iq), apwalm( :, :, :, :, 1))
     matchq = zzero
     do is = 1, nspecies
       do ia = 1, natoms( is)
@@ -194,62 +207,61 @@ subroutine wannier_interpolate_eigsys( evalin, nqin, vqlin, evalout, evecout)
           m = lmo2m( lmo, is)
           o = lmo2o( lmo, is)
           lm = idxlm( l, m)
-          matchq( lmo, 1:ngqwf, ias) = apwalm( 1:ngqwf, o, lm, ias, 1)
+          matchq( lmo, 1:ngqtmp, ias) = apwalm( 1:ngqtmp, o, lm, ias, 1)
         end do
       end do
     end do
+    deallocate( apwalm)
 
     rhs = zzero
     evecq = zzero
+    ngkmax = ngkmaxwf
     ongrid = .false.
 
-    write(*, '(I,3F13.6)') iq, vqlin( :, iq) 
-    !write(*,*) "-----------------"
+    write(*, '(3F13.6)') int_kset%vkl( :, iq) 
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, evecfv, uv, cuv, ngktmp, apwalm, matchk, is, ia, ias, lmo, l, m, o, lm, apwolp, igk, igq, v, t1, ffac), reduction(+:rhs, evecq)
+#endif    
+  allocate( evecfv( nmatmaxwf, nstsv, nspinor))
+  allocate( uv( wf_fst:wf_lst, wf_fst:wf_lst))
+  allocate( cuv( nmatmaxwf, wf_fst:wf_lst))
+  allocate( matchk( nlmomax, ngkmaxwf, natmtot))
+  allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspinor))
+  allocate( apwolp( ngkmaxint, ngkmaxwf))
+#ifdef USEOMP
+!$OMP DO
+#endif    
     do ik = 1, wf_kset%nkpt
-      !write(*, '(I,3F13.6)') ik, wf_kset%vkl( :, ik) 
+      !write( *, '(I3.3,2x)') ik
 
-      ! generate G+k vectors
-      call gengpvec( wf_kset%vkl( :, ik), wf_kset%vkc( :, ik), ngkwf, igxigwf, vgxlwf(:,:,1), vgkcwf(:,:,1), gxcwf, tpgxcwf)
       ! read eigenvector      
       if( input%properties%wannier%input .eq. "groundstate") then
-        call getevecfv( wf_kset%vkl( :, ik), vgxlwf, evecfv)
+        call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
       else if( input%properties%wannier%input .eq. "hybrid") then
-        call getevecfv( wf_kset%vkl( :, ik), vgxlwf, evecfv)
+        call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
       else if( input%properties%wannier%input .eq. "gw") then
-        call getevecsvgw_new( "GW_EVECSV.OUT", ik, wf_kset%vkl( :, ik), nmatmax, nstfv, nspinor, evecfv)
+        call getevecsvgw_new( "GW_EVECSV.OUT", ik, wf_kset%vkl( :, ik), nmatmaxwf, nstfv, nspinor, evecfv)
       else
         call terminate
       end if
     
       call zgemm( 'N', 'N', wf_nst, wf_nst, wf_nst, zone, &
            wf_transform( :, :, ik), wf_nst, &
-           !wf_transform( :, :, ik), wf_nst, zzero, &
-           !evecint( :, :, iq), wf_nst, &
            evecint( :, :, iq), wf_nst, zzero, &
            uv, wf_nst)
       
-      if( norm2( wf_kset%vkl( :, ik) - vqlin( :, iq)) .lt. input%structure%epslat) then
-      !  write( *, '(3F13.6)') vqlin( :, iq)
-      !  write( *, '(3F13.6)') wf_kset%vkl( :, ik)
-      !  call plotmat( uv)
-      !  write( *, '(2F13.6)') phase( ik, iq)
-        ongrid = .true.
-        write(*,*) "original"
-        call plotmat( evecfv( :, wf_fst:wf_lst, 1), .true.)
-        write(*,*)
-      end if
-
-      call zgemm( 'N', 'N', nmatmax, wf_nst, wf_nst, zone, &
-           evecfv( :, wf_fst:wf_lst, 1), nmatmax, &
+      call zgemm( 'N', 'N', nmatmaxwf, wf_nst, wf_nst, zone, &
+           evecfv( :, wf_fst:wf_lst, 1), nmatmaxwf, &
            uv, wf_nst, zzero, &
-           cuv, nmatmax)
+           cuv, nmatmaxwf)
 
       !----------!
       ! APW part !
       !----------!
       ! get matching coefficients for G+k        
-      call gensfacgp( ngkwf, vgkcwf, ngkmax, sfacwf)
-      call match( ngkwf, gxcwf, tpgxcwf, sfacwf, apwalm(:, :, :, :, 1))
+      ngktmp = wf_Gkset%ngk( 1, ik)
+      apwalm = zzero
+      call match( ngktmp, wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm( :, :, :, :, 1))
       matchk = zzero
       do is = 1, nspecies
         do ia = 1, natoms( is)
@@ -259,74 +271,108 @@ subroutine wannier_interpolate_eigsys( evalin, nqin, vqlin, evalout, evecout)
             m = lmo2m( lmo, is)
             o = lmo2o( lmo, is)
             lm = idxlm( l, m)
-            matchk( lmo, 1:ngkwf, ias) = apwalm( 1:ngkwf, o, lm, ias, 1)
+            matchk( lmo, 1:ngktmp, ias) = apwalm( 1:ngktmp, o, lm, ias, 1)
           end do
         end do
       end do
+
+      !if( norm2( wf_kset%vkl( :, ik) - int_kset%vkl( :, iq)) .lt. input%structure%epslat) then
+      !  write( *, '(3F13.6)') int_kset%vkl( :, iq)
+      !  write( *, '(3F13.6)') wf_kset%vkl( :, ik)
+      !  call plotmat( uv)
+      !  write( *, '(2F13.6)') phase( ik, iq)
+      !  ongrid = .true.
+      !  write(*,*) "original"
+      !  call plotmat( evecfv( :, wf_fst:wf_lst, 1), .true.)
+      !end if
+
       ! build APW q-k overlap
-      if( allocated( apwolp)) deallocate( apwolp)
-      allocate( apwolp( ngqwf, ngkwf))
         ! muffin tin region
       apwolp = zzero
       do is = 1, nspecies
         do ia = 1, natoms( is)
           ias = idxas( ia, is)
-          call zgemm( 'C', 'N', ngqwf, ngkwf, nlmo( is), zone, &
-               matchq( :, 1:ngqwf, ias), nlmo( is), &
-               matchk( :, 1:ngkwf, ias), nlmo( is), zone, &
-               apwolp, ngqwf)
+          call zgemm( 'C', 'N', ngqtmp, ngktmp, nlmo( is), zone, &
+               matchq( 1:nlmo( is), 1:ngqtmp, ias), nlmo( is), &
+               matchk( 1:nlmo( is), 1:ngktmp, ias), nlmo( is), zone, &
+               apwolp( 1:ngqtmp, 1:ngktmp), ngqtmp)
         end do
       end do
         ! interstitial region
-      do igk = 1, ngkwf
-        do igq = 1, ngqwf
-          v(:) = vgkcwf( :, igk, 1) - vgqcwf( :, igq, 1)
-          if( norm2( v) .lt. input%structure%epslat) apwolp( igq, igk) = apwolp( igq, igk) + zone
-          do is = 1, nspecies
-            t1 = norm2( v)*rmt( is)
-            if( norm2( v) .lt. input%structure%epslat) then
-              ffac = fourpi/(3.d0*omega)*rmt( is)**3
-            else
-              ffac = fourpi/omega*(sin( t1) - t1*cos( t1))/norm2( v)**3
-            end if
-            do ia = 1, natoms( is)
-              t1 = -dot_product( v, atposc( :, ia, is))
-              apwolp( igq, igk) = apwolp( igq, igk) - cmplx( cos( t1), sin( t1), 8)*ffac
+        ! contributes just if q = k
+      if( norm2( wf_kset%vkl( :, ik) - int_kset%vkl( :, iq)) .lt. input%structure%epslat) then
+        do igk = 1, ngktmp
+          do igq = 1, ngqtmp
+            v(:) = wf_Gkset%vgkc( :, igk, 1, ik) - int_Gkset%vgkc( :, igq, 1, iq)
+            if( norm2( v) .lt. input%structure%epslat) apwolp( igq, igk) = apwolp( igq, igk) + zone
+            do is = 1, nspecies
+              t1 = norm2( v)*rmt( is)
+              if( norm2( v) .lt. input%structure%epslat) then
+                ffac = fourpi/(3.d0*omega)*rmt( is)**3
+              else
+                ffac = fourpi/omega*(sin( t1) - t1*cos( t1))/norm2( v)**3
+              end if
+              do ia = 1, natoms( is)
+                t1 = -dot_product( v, atposc( :, ia, is))
+                apwolp( igq, igk) = apwolp( igq, igk) - cmplx( cos( t1), sin( t1), 8)*ffac
+              end do
             end do
           end do
         end do
-      end do
+      end if
+      !write( fname, '("olpqk_",I3.3,"_",I3.3)') iq, ik
+      !call writematlab( apwolp, fname)
       ! sum up right hand side of linear system of equations
-      call zgemm( 'N', 'N', ngqwf, wf_nst, ngkwf, phase( ik, iq), &
-           apwolp, ngqwf, &
-           cuv( 1:ngkwf, :), ngkwf, zone, &
-           rhs( 1:ngqwf, :), ngqwf)
+      call zgemm( 'N', 'N', ngqtmp, wf_nst, ngktmp, phase( ik, iq), &
+           apwolp( 1:ngqtmp, 1:ngktmp), ngqtmp, &
+           cuv( 1:ngktmp, :), ngktmp, zone, &
+           rhs( 1:ngqtmp, :), ngqtmp)
 
       !---------!
       ! LO part !
       !---------!
       !evecq( (ngqwf+1):(ngqwf+nlotot), :) = evecq( (ngqwf+1):(ngqwf+nlotot), :) + phase( ik, iq)*cuv( (ngqwf+1):(ngqwf+nlotot), :)
-      evecq( (ngqwf+1):nmatmax, :) = evecq( (ngqwf+1):nmatmax, :) + phase( ik, iq)*cuv( (ngqwf+1):nmatmax, :)
+      evecq( (ngqtmp+1):(ngqtmp+nlotot), :) = evecq( (ngqtmp+1):(ngqtmp+nlotot), :) + phase( ik, iq)*cuv( (ngktmp+1):(ngktmp+nlotot), :)
       
     end do
+#ifdef USEOMP
+!$OMP END DO
+#endif    
+  deallocate( evecfv, uv, cuv, matchk, apwalm, apwolp)
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif    
+    write(*,*)
+    write(*, '("rhs built")')
     ! build APW q-q overlap
-    if( allocated( apwolp)) deallocate( apwolp)
-    allocate( apwolp( ngqwf, ngqwf))
+    allocate( apwolp( ngkmaxint, ngkmaxint))
       ! muffin tin region
     apwolp = zzero
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( is, ia, ias), reduction(+:apwolp)
+!$OMP DO
+#endif    
     do is = 1, nspecies
       do ia = 1, natoms( is)
         ias = idxas( ia, is)
-        call zgemm( 'C', 'N', ngqwf, ngqwf, nlmo( is), zone, &
-             matchq( :, 1:ngqwf, ias), nlmo( is), &
-             matchq( :, 1:ngqwf, ias), nlmo( is), zone, &
-             apwolp, ngqwf)
+        call zgemm( 'C', 'N', ngqtmp, ngqtmp, nlmo( is), zone, &
+             matchq( 1:nlmo( is), 1:ngqtmp, ias), nlmo( is), &
+             matchq( 1:nlmo( is), 1:ngqtmp, ias), nlmo( is), zone, &
+             apwolp( 1:ngqtmp, 1:ngqtmp), ngqtmp)
       end do
     end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif    
       ! interstitial region
-    do igk = 1, ngqwf
-      do igq = 1, ngqwf
-        v(:) = vgqcwf( :, igk, 1) - vgqcwf( :, igq, 1)
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( igk, igq, v, is, t1, ffac, ia), reduction(+:apwolp)
+!$OMP DO
+#endif    
+    do igk = 1, ngqtmp
+      do igq = 1, ngqtmp
+        v(:) = int_Gkset%vgkc( :, igk, 1, iq) - int_Gkset%vgkc( :, igq, 1, iq)
         if( norm2( v) .lt. input%structure%epslat) apwolp( igq, igk) = apwolp( igq, igk) + zone
         do is = 1, nspecies
           t1 = norm2( v)*rmt( is)
@@ -342,35 +388,53 @@ subroutine wannier_interpolate_eigsys( evalin, nqin, vqlin, evalout, evecout)
         end do
       end do
     end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif    
+    write(*, '("olp built")')
+
+    !write( fname, '("olpqq_",I3.3)') iq
+    !call writematlab( apwolp, fname)
+    !write( fname, '("rhs_",I3.3)') iq
+    !call writematlab( rhs, fname)
+
     ! solve linear system of equations
     if( allocated( lapack_ipiv)) deallocate( lapack_ipiv)
-    allocate( lapack_ipiv( ngqwf))
+    allocate( lapack_ipiv( int_Gkset%ngk( 1, iq)))
     if( allocated( lapack_work)) deallocate( lapack_work)
     allocate( lapack_work( 1))
-    call zhesv( 'U', ngqwf, wf_nst, apwolp, ngqwf, lapack_ipiv, rhs( 1:ngqwf, :), ngqwf, lapack_work, -1, lapack_info)
+    call zhesv( 'U', ngqtmp, wf_nst, apwolp( 1:ngqtmp, 1:ngqtmp), ngqtmp, lapack_ipiv, rhs( 1:ngqtmp, :), ngqtmp, lapack_work, -1, lapack_info)
     lapack_lwork = lapack_work( 1)
     if( allocated( lapack_work)) deallocate( lapack_work)
     allocate( lapack_work( lapack_lwork))
-    call zhesv( 'U', ngqwf, wf_nst, apwolp, ngqwf, lapack_ipiv, rhs( 1:ngqwf, :), ngqwf, lapack_work, lapack_lwork, lapack_info)
+    call zhesv( 'U', ngqtmp, wf_nst, apwolp( 1:ngqtmp, 1:ngqtmp), ngqtmp, lapack_ipiv, rhs( 1:ngqtmp, :), ngqtmp, lapack_work, lapack_lwork, lapack_info)
     if( lapack_info .ne. 0) then
       write( *, '(" ERROR (wannier_interpolate_eigsys): Lapack-routine ZHESV returned info ",I," for q-point ",I)') lapack_info, iq
     end if
     ! assign solutions to interpolated eigenvector
-    evecq( 1:ngqwf, :) = rhs( 1:ngqwf, :)
+    evecq( 1:ngqtmp, :) = rhs( 1:ngqtmp, :)
+    write(*, '("system solved")')
 
     !write( *, '(2F13.6)') dot_product( conjg( evecq( :, wf_fst)), evecq( :, wf_fst))
     !write( *, '(2F13.6)') dot_product( conjg( evecq( :, wf_fst)), evecq( :, wf_lst))
-    if( ongrid) then
-      write(*,*) "interpolated"
-      call plotmat( evecq, .true.)
-      write(*,*)
-    end if
+    !if( ongrid) then
+    !  write(*,*) "interpolated"
+    !  call plotmat( evecq, .true.)
+    !  write(*,*)
+    !end if
     evecout( :, :, iq) = evecq
+    !call plotmat( evecout( :, :, iq))
+    write(*,*)
+    deallocate( apwolp)
 
+    !write(*,*) "-----------------"
   end do
 
-  deallocate( evecint, nlmo, lmo2l, lmo2m, lmo2o, evecfv, igxigwf, vgxlwf, gxcwf, tpgxcwf, vgkcwf, vgqcwf, sfacwf, uv, cuv, rhs, matchq, matchk, apwalm, evecq, lapack_work, lapack_ipiv)
-  ngkmax = ngkmaxtmp
+  deallocate( evecint, nlmo, lmo2l, lmo2m, lmo2o, rhs, matchq, evecq, lapack_work, lapack_ipiv)
+
+  ngkmax = ngkmax0
+  nmatmax = nmatmax0
 
   return
 end subroutine wannier_interpolate_eigsys

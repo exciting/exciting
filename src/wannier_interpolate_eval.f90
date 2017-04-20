@@ -18,6 +18,7 @@ subroutine wannier_interpolate_eval( eval1, nk2, kvl2, evalint, bandchar, lmax)
   
   integer :: nrpt, ia, ix, iy, iz, iknr, iknr2, ik, ir
   complex(8) :: ftweight
+  real(8) :: t1, v1(3), v2(3)
 
   real(8), allocatable :: rptl(:,:), evaltmp(:)
   complex(8), allocatable :: auxmat(:,:), ueu(:,:,:), phase(:,:), hamilton(:,:,:), evecint(:,:,:)
@@ -28,6 +29,7 @@ subroutine wannier_interpolate_eval( eval1, nk2, kvl2, evalint, bandchar, lmax)
   integer, allocatable :: igkignr(:), cnt(:)
   real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:), sval(:)
   complex(8), allocatable :: apwalm(:,:,:,:,:), sfacgknr(:,:), evecfv(:,:,:), wfmt(:,:,:,:), rint(:,:), purint(:,:,:)
+  complex(8), allocatable :: p1(:,:), p2(:,:)
 
   ! generate set of lattice vectors 
   nrpt = wf_kset%nkpt
@@ -46,12 +48,13 @@ subroutine wannier_interpolate_eval( eval1, nk2, kvl2, evalint, bandchar, lmax)
   allocate( ueu( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt))
   allocate( phase( wf_kset%nkpt, nk2))
   allocate( hamilton( wf_fst:wf_lst, wf_fst:wf_lst, nk2))
+  phase = zzero
 #ifdef USEOMP
-!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, iy, auxmat, ik, ftweight) reduction(+:phase)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ik, iy, auxmat)
 #endif
   allocate( auxmat( wf_fst:wf_lst, wf_fst:wf_lst))
 #ifdef USEOMP
-!!$OMP DO
+!$OMP DO
 #endif
   do iknr = 1, wf_kset%nkpt
     do iy = wf_fst, wf_lst
@@ -62,21 +65,43 @@ subroutine wannier_interpolate_eval( eval1, nk2, kvl2, evalint, bandchar, lmax)
          ueu( :, :, iknr), wf_nst, zzero, &
          auxmat, wf_nst)
     ueu( :, :, iknr) = auxmat
-    do ik = 1, nk2
-      phase( iknr, ik) = zzero
-      do ir = 1, nrpt
-        call ws_weight( rptl( :, ir), rptl( :, ir), kvl2( :, ik)-wf_kset%vkl( :, iknr), ftweight, kgrid=.true.)
-        phase( iknr, ik) = phase( iknr, ik) + conjg( ftweight)
-      end do
-    end do
   end do
 #ifdef USEOMP
-!!$OMP END DO
+!$OMP END DO
 #endif
   deallocate( auxmat)
 #ifdef USEOMP
-!!$OMP END PARALLEL
+!$OMP END PARALLEL
 #endif
+
+  allocate( p1( wf_kset%nkpt, nrpt), p2( nk2, nrpt))
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ik, ir, t1, v1, v2)
+!$OMP DO
+#endif
+  do ir = 1, nrpt
+    !call r3mv( input%structure%crystal%basevect, rptl( :, ir), v1)
+    do ik = 1, nk2
+      call ws_weight( rptl( :, ir), rptl( :, ir), kvl2( :, ik), p2( ik, ir), kgrid=.true.)
+      !call r3mv( bvec, kvl2( :, ik), v2)
+      !t1 = dot_product( v1, v2)
+      !p2( ik, ir) = cmplx( cos( t1), sin( t1), 8)
+    end do
+    do iknr = 1, wf_kset%nkpt
+      call ws_weight( rptl( :, ir), rptl( :, ir), wf_kset%vkl( :, iknr), p1( iknr, ir), kgrid=.true.)
+      !t1 = dot_product( v1, wf_kset%vkc( :, iknr))
+      !p1( iknr, ir) = cmplx( cos( t1), sin( t1), 8)
+    end do
+  end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+  call zgemm( 'N', 'C', wf_kset%nkpt, nk2, nrpt, zone, &
+       p1, wf_kset%nkpt, &
+       p2, nk2, zzero, &
+       phase, wf_kset%nkpt)
+
   phase = phase/wf_kset%nkpt
   do iy = wf_fst, wf_lst
     call zgemm( 'N', 'N', wf_nst, nk2, wf_kset%nkpt, zone, &
@@ -84,7 +109,7 @@ subroutine wannier_interpolate_eval( eval1, nk2, kvl2, evalint, bandchar, lmax)
          phase, wf_kset%nkpt, zzero, &
          hamilton( iy, :, :), wf_nst)
   end do
-  deallocate( ueu)
+  deallocate( ueu, p1, p2)
 
   ! interpolation
   allocate( evecint( wf_fst:wf_lst, wf_fst:wf_lst, nk2))
