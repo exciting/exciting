@@ -419,11 +419,11 @@ CONTAINS
         if (allocated(self%sfacgk)) deallocate(self%sfacgk)
         allocate(self%sfacgk(self%ngkmax,natmtot,nspnfv,kset%nkpt))
         do ispn = 1, nspnfv
-          do ik = 1, kset%nkpt
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igp,ig)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ik,igp,ig)
 !$OMP DO
 #endif    
+          do ik = 1, kset%nkpt
             do igp = 1, self%ngk(ispn,ik)
               ig = igk2ig(igp,ik,ispn)
               ! index to G-vector
@@ -439,11 +439,11 @@ CONTAINS
               call gensfacgp(self%ngk(ispn,ik),self%vgkc(:,:,ispn,ik), &
               &              self%ngkmax,self%sfacgk(:,:,ispn,ik))
             end do
+          end do
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif    
-          end do
         end do
         deallocate(igk2ig)
         return

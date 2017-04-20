@@ -4,6 +4,7 @@ module mod_wannier
   use mod_kpoint
   use mod_constants
   use mod_muffin_tin
+  use mod_Gvector
   use mod_Gkvector
   use mod_kpointset
   use mod_eigensystem, only: nmatmax, idxlo
@@ -32,6 +33,8 @@ module mod_wannier
   real(8) :: wf_t0
   real(8) :: wf_win_i(2), wf_win_o(2)
   type( k_set) :: wf_kset
+  type( G_set) :: wf_Gset
+  type( Gk_set) :: wf_Gkset
   
   integer, allocatable :: wf_projst(:,:)                ! l, m, species, atom of local-orbitals for projection
   integer, allocatable :: wf_projused(:)                ! flag wether a local-obital was used for projection
@@ -75,9 +78,8 @@ module mod_wannier
       integer :: iproj, is, ia, js, ja, ias, nr, l, m, lm, io, ilo, ir, ig
       integer :: ik, iknr, ngknr
       real(8) :: ecenter, t0, t1, vl(3), vc(3)
-      integer, allocatable :: igkignr(:), cnt(:)
-      real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:), sval(:)
-      complex(8), allocatable :: sfacgknr(:,:)
+      integer, allocatable :: cnt(:)
+      real(8), allocatable :: sval(:)
       complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), auxmat(:,:), lsvec(:,:), rsvec(:,:) 
       real(8), allocatable :: rolpi(:,:), uf(:), gf(:), cf(:,:), evalfv(:,:)
       
@@ -167,7 +169,6 @@ module mod_wannier
           call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
           wf_kset%vkl = vklnr
           wf_kset%vkc = vkcnr
-          write(*,*) wf_kset%nkpt, nkpt, nkptnr
         case( "gw")
           call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, input%gw%reduceq)
           vkl = wf_kset%vkl
@@ -193,6 +194,8 @@ module mod_wannier
           write(*, '(" ERROR (wannier_init): ",a," is not a valid input.")') input%properties%wannier%input
           call terminate
       end select
+      call generate_G_vectors( wf_Gset, bvec, intgv, input%groundstate%gmaxvr)
+      call generate_Gk_vectors( wf_Gkset, wf_kset, wf_Gset, gkmax)
       write(*, '(" k-grid loaded.")')
 
       !********************************************************************
@@ -328,22 +331,13 @@ module mod_wannier
       allocate( sval( min( nstfv, wf_nprojtot)), &
                 lsvec( nstfv, nstfv), &
                 rsvec( wf_nprojtot, wf_nprojtot))
-      allocate( igkignr( ngkmax))
-      allocate( vgklnr( 3, ngkmax, nspinor), vgkcnr( 3, ngkmax, nspinor), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
-      allocate( sfacgknr( ngkmax, natmtot))
 
       do iknr = 1, wf_kset%nkpt
-        vgklnr = zzero
-        ! find G+k-vectors for non-reduced k-point
-        call gengpvec( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-        ! find structure factors
-        call gensfacgp( ngknr, vgkcnr, ngkmax, sfacgknr)
-        ! get basis function coefficients and matching coefficients
-        call match( ngknr, gkcnr, tpgkcnr, sfacgknr, apwalm(:, :, :, :, 1))
+        call match( wf_Gkset%ngk( 1, iknr), wf_Gkset%gkc( :, 1, iknr), wf_Gkset%tpgkc( :, :, 1, iknr), wf_Gkset%sfacgk( :, :, 1, iknr), apwalm(:, :, :, :, 1))
         if( input%properties%wannier%input .eq. "groundstate") then
-          call getevecfv( wf_kset%vkl(:, iknr), vgklnr, evecfv)
+          call getevecfv( wf_kset%vkl(:, iknr), wf_Gkset%vgkl( :, :, :, iknr), evecfv)
         else if( input%properties%wannier%input .eq. "hybrid") then
-          call getevecfv( wf_kset%vkl(:, iknr), vgklnr, evecfv)
+          call getevecfv( wf_kset%vkl(:, iknr), wf_GKset%vgkl( :, :, :, iknr), evecfv)
         else if( input%properties%wannier%input .eq. "gw") then
           call getevecsvgw_new( "GW_EVECSV.OUT", iknr, wf_kset%vkl( :, iknr), nmatmax, nstfv, nspinor, evecfv)
         else
@@ -355,7 +349,7 @@ module mod_wannier
           is = wf_projst( iproj, 1)
           ias = idxas( wf_projst( iproj, 2), is)
           lm = idxlm( wf_projst( iproj, 4), wf_projst( iproj, 5))
-          do ig = 1, ngknr
+          do ig = 1, wf_Gkset%ngk( 1, iknr) !ngknr
             auxmat( ig, iproj) = zzero
             do io = 1, apword( wf_projst( iproj, 4), is)
               auxmat( ig, iproj) = auxmat( ig, iproj) + conjg( apwalm( ig, io, lm, ias, 1))*rolpi( iproj, io)
@@ -366,7 +360,7 @@ module mod_wannier
               do ilo = 1, nlorb( js)
                 l = lorbl( ilo, js)
                 do m = -l, l
-                  ig = ngknr + idxlo( idxlm( l, m), ilo, idxas( ja, js))
+                  ig = wf_Gkset%ngk( 1, iknr) + idxlo( idxlm( l, m), ilo, idxas( ja, js))
                   auxmat( ig, iproj) = zzero
                   if( (idxas( ja, js) .eq. ias) .and. (idxlm( l, m) .eq. lm)) then
                     auxmat( ig, iproj) = cmplx( rolpi( iproj, apwordmax+ilo), 0, 8)
@@ -377,9 +371,9 @@ module mod_wannier
           end do
         end do
 
-        call ZGEMM( 'C', 'N', nstfv, wf_nprojtot, ngknr+nlotot, zone, &
-             evecfv( 1:(ngknr+nlotot), :, 1), ngknr+nlotot, &
-             auxmat( 1:(ngknr+nlotot), :), ngknr+nlotot, zzero, &
+        call ZGEMM( 'C', 'N', nstfv, wf_nprojtot, wf_Gkset%ngk( 1, iknr)+nlotot, zone, &
+             evecfv( 1:(wf_Gkset%ngk( 1, iknr)+nlotot), :, 1), wf_Gkset%ngk( 1, iknr)+nlotot, &
+             auxmat( 1:(wf_Gkset%ngk( 1, iknr)+nlotot), :), wf_Gkset%ngk( 1, iknr)+nlotot, zzero, &
              wf_projection( :, :, iknr), nstfv)
       end do 
       call timesec( t1)
@@ -408,7 +402,7 @@ module mod_wannier
       
       wf_initialized = .true.
       !call wannier_showproj
-      deallocate( auxmat, rolpi, apwalm, evecfv, uf, gf, cf, sfacgknr, vgklnr, vgkcnr, gkcnr, tpgkcnr, igkignr, sval, lsvec, rsvec)
+      deallocate( auxmat, rolpi, apwalm, evecfv, uf, gf, cf, sval, lsvec, rsvec)
       if( wf_disentangle) call wannier_subspace( maxloc( cnt, 1))
       return
     end subroutine wannier_init
@@ -435,8 +429,7 @@ module mod_wannier
       logical :: success
 
       ! allocatable arrays
-      integer, allocatable :: igkignr(:)
-      real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:), dist(:)
+      real(8), allocatable :: dist(:)
       !complex(8), allocatable :: evecfv_tmp(:,:,:,:)
       complex(8), allocatable :: evecfv1(:,:,:), evecfv2(:,:,:)
       
@@ -481,8 +474,6 @@ module mod_wannier
         allocate( dist( wf_n_ntot))
         
         ! read eigenvectors
-        allocate( igkignr( ngkmax))
-        allocate( vgklnr( 3, ngkmax, nspinor), vgkcnr( 3, ngkmax, nspinor), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
         !allocate( evecfv_tmp( nmatmax, wf_fst:wf_lst, nspinor, wf_kset%nkpt))
         allocate( evecfv1( nmatmax, nstfv, nspinor))
         allocate( evecfv2( nmatmax, nstfv, nspinor))
@@ -521,17 +512,11 @@ module mod_wannier
             do iknr = k1, k2   
               write(*,*) iknr
               if( input%properties%wannier%input .eq. "groundstate") then
-                ! find G+k-vectors and eigenvectors for non-reduced k-point k
-                call gengpvec( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-                call getevecfv( wf_kset%vkl( :, iknr), vgklnr, evecfv1)
-                call gengpvec( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), wf_kset%vkc( :, wf_n_ik( n, is, iknr)), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-                call getevecfv( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), vgklnr, evecfv2)
+                call getevecfv( wf_kset%vkl( :, iknr), wf_Gkset%vgkl( :, :, :, iknr), evecfv1)
+                call getevecfv( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), wf_Gkset%vgkl( :, :, :, wf_n_ik( n, is, iknr)), evecfv2)
               else if( input%properties%wannier%input .eq. "hybrid") then
-                ! find G+k-vectors and eigenvectors for non-reduced k-point k
-                call gengpvec( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-                call getevecfv( wf_kset%vkl( :, iknr), vgklnr, evecfv1)
-                call gengpvec( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), wf_kset%vkc( :, wf_n_ik( n, is, iknr)), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-                call getevecfv( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), vgklnr, evecfv2)
+                call getevecfv( wf_kset%vkl( :, iknr), wf_Gkset%vgkl( :, :, :, iknr), evecfv1)
+                call getevecfv( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), wf_Gkset%vgkl( :, :, :, wf_n_ik( n, is, iknr)), evecfv2)
               else if( input%properties%wannier%input .eq. "gw") then
                 call getevecsvgw_new( "GW_EVECSV.OUT", iknr, wf_kset%vkl( :, iknr), nmatmax, nstfv, nspinor, evecfv1)
                 call getevecsvgw_new( "GW_EVECSV.OUT", wf_n_ik( n, is, iknr), wf_kset%vkl( :, wf_n_ik( n, is, iknr)), nmatmax, nstfv, nspinor, evecfv2)
@@ -571,7 +556,6 @@ module mod_wannier
             end if
           end do
         end do
-        deallocate( igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
         call emat_destroy
         call wannier_writeemat( "WANNIER")
         !deallocate( evecfv_tmp)

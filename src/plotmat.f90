@@ -113,4 +113,25 @@ module m_plotmat
       close( 50)
       return
     end subroutine readmat
+
+    subroutine writematlab( mat, fname)
+      complex(8), intent( in) :: mat(:,:)
+      character(*), intent( in) :: fname
+
+      integer :: sx, sy, x, y
+      logical :: ml
+      
+      sx = size( mat, 1)
+      sy = size( mat, 2)
+
+      open( 50, file=trim( fname)//".mat", action='WRITE', form='FORMATTED')
+      do x = 1, sx
+        do y = 1, sy
+          write( 50, '(SP,E23.16,E23.16,"i",5x)', advance='no') mat( x, y)
+        end do
+        write( 50, *)
+      end do
+      close( 50)
+      return
+    end subroutine writematlab
 end module m_plotmat

@@ -20999,6 +20999,7 @@ gencore	gencore.f90	/^Subroutine gencore$/;"	s
 gencoulcut	src_gw/gencoulcut.f90	/^      Subroutine gencoulcut /;"	s
 gencrystal	spacegroup/gencrystal.f90	/^subroutine gencrystal$/;"	s
 gendmat	gendmat.f90	/^Subroutine gendmat /;"	s
+gendmat_nospin	gendmat_nospin.f90	/^Subroutine gendmat_nospin /;"	s
 gendmatlu	src_LDAU/gendmatlu.f90	/^Subroutine gendmatlu$/;"	s
 genepmat	src_phonon/genepmat.f90	/^Subroutine genepmat /;"	s
 generate_G_vectors	src_gw/mod_kpointset.f90	/^    subroutine generate_G_vectors(/;"	s	module:mod_kpointset

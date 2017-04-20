@@ -105,7 +105,9 @@ Subroutine bandstr
     write(*,'("ngkmax int = ",I)') ngkmaxint
     write(*,'("ngkmax wan = ",I)') ngkmaxwf
     allocate( evalint( wf_fst:wf_lst, int_kset%nkpt))
-    allocate( evecint( nmatmax, wf_fst:wf_lst, nspinor, int_kset%nkpt))
+    !allocate( evecint( nmatmax, wf_fst:wf_lst, nspinor, int_kset%nkpt))
+    allocate( evecint( nmatmax, nstsv, nspinor, int_kset%nkpt))
+    evecint = zzero
     write(*,'("  interpolation grid set up")')
 
     ! k-points on grid
@@ -166,7 +168,10 @@ Subroutine bandstr
 
       allocate( bc( 0:lmax, natmtot, wf_fst:wf_lst, int_kset%nkpt))
       allocate( mydmat( lmmax, lmmax, wf_fst:wf_lst))
+      allocate( dmat( lmmax, lmmax, nspinor, nspinor, nstsv))
+      allocate( evecsv( nstsv, nstsv))
       allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
+      evecsv = zzero
       !write(*,'(1000F23.16)') apwfr(:,1,1,1,1)
       do iq = 1, int_kset%nkpt
         !write(*,'(I,3F13.6)') iq, vkl( :, iq)
@@ -192,17 +197,18 @@ Subroutine bandstr
              !  call plotmat( evecint( :, :, 1, iq), .true.)
              !  write(*,*)
              !end if
-             call gendmat_nospin( wf_fst, wf_lst, 0, lmax, is, ia, ngqtmp, apwalm, evecint( :, :, :, iq), lmmax, mydmat)
+             !call gendmat_nospin( wf_fst, wf_lst, 0, lmax, is, ia, ngqtmp, apwalm, evecint( :, :, :, iq), lmmax, mydmat)
+             Call gendmat( .True., .True., 0, lmax, is, ia, ngqtmp, apwalm, evecint( :, :, :, iq), evecsv, lmmax, dmat)
              do ist = wf_fst, wf_lst
                do l = 0, lmax
                  sum = 0.d0
                  do m = - l, l
                    lm = idxlm (l, m)
                    do ispn = 1, nspinor
-                     sum = sum + dble( mydmat( lm, lm, ist))
+                     sum = sum + dble( dmat( lm, lm, ispn, ispn, ist))
                    end do
                  end do
-                 bc( l, ias, ist, iq) = real (sum)
+                 bc( l, ias, ist, iq) = real( sum)
                end do
              end Do
           end do
