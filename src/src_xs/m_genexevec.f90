@@ -115,39 +115,6 @@ module m_genexevec
         write(*,*) "shape(dauxvec)=", dauxvec%nrows, dauxvec%ncols
         call terminate
       end if
-      ! Check output matrices
-      if(drvecp%context /= context) then 
-        if(mpiglobal%rank == 0) then 
-          write(*,*) "Error(gendexevec): Context mismatch"
-          write(*,*) "context of dcmat, drvecp :"
-          write(*,*) dcmat%context, drvecp%context
-        end if
-        call terminate
-      end if
-      if(drvecp%nrows /= m .or. drvecp%ncols /= nreq) then
-        if(mpiglobal%rank == 0) then 
-          write(*,*) "Error(gendexevec): Size mismatch"
-          write(*,*) "shape(dcmat)=", dcmat%nrows, dcmat%ncols
-          write(*,*) "shape(drvecp)=", drvecp%nrows, drvecp%ncols
-        end if
-        call terminate
-      end if
-      if(davecp%context /= context) then 
-        if(mpiglobal%rank == 0) then 
-          write(*,*) "Error(gendexevec): Context mismatch"
-          write(*,*) "context of dcmat, davecp :"
-          write(*,*) dcmat%context, davecp%context
-        end if
-        call terminate
-      end if
-      if(davecp%nrows /= m .or. davecp%ncols /= nreq) then
-        if(mpiglobal%rank == 0) then 
-          write(*,*) "Error(gendexevec): Size mismatch"
-          write(*,*) "shape(dcmat)=", dcmat%nrows, dcmat%ncols
-          write(*,*) "shape(davecp)=", davecp%nrows, davecp%ncols
-        end if
-        call terminate
-      end if
 
       ! Y
       call new_dzmat(davecp, m, nreq, bi2d)
