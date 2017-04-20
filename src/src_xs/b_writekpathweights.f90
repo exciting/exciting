@@ -28,7 +28,8 @@ subroutine b_writekpathweights
   real(wp), allocatable :: inputdata(:,:,:)
 
   ! Data on gird
-  real(8), allocatable :: abs2(:), rvwgrid(:,:), rcwgrid(:,:), arvwgrid(:,:), arcwgrid(:,:) 
+  real(8), allocatable :: abs2(:), rvwgrid(:,:), rcwgrid(:,:),&
+    & arvwgrid(:,:), arcwgrid(:,:) 
 
   ! Interpolated data
   real(8), allocatable :: rvw(:,:), rcw(:,:), arvw(:,:), arcw(:,:)
@@ -108,10 +109,10 @@ subroutine b_writekpathweights
     write(unitout,'("Info(",a,"):&
       & Calculating valence weights in the range:", 2i8)') trim(thisname), iv1, iv2
     write(unitout,'("Info(",a,"):&
-      & Calculating conduction weights in the range:", 2i8)') trim(thisname),ic1, ic2
+      & Calculating conduction weights in the range:", 2i8)') trim(thisname), ic1, ic2
     if(iv2 >= ic1) then 
       write(unitout,'("Error(",a,"):&
-        & Non-Insulators not yet implemented.")') trim(thisname)
+        & iv2 >= ic1 Non-Insulators not yet implemented.")') trim(thisname)
       call terminate
     end if
 
@@ -257,8 +258,7 @@ subroutine b_writekpathweights
       nz = ngridk(3)
 
       ! Use supercell -1:2 as input to capture periodicity 
-
-      ! Interpolate points inside 0:1 exclusively
+      ! and interpolate points inside 0:1 exclusively
       allocate(x(3*nx))
       allocate(y(3*ny))
       allocate(z(3*nz))
@@ -293,11 +293,18 @@ subroutine b_writekpathweights
       integer(4) :: i, ip, a, ik, ikkp
 
       if(.not. present(ikkpmap)) then
+        ! Loop valence or conduction band index i
         do i = i1, i2
+          ! Loop over transitons (hamiltonian index)
           do a = 1, n
+            ! Get valence or conduction band index of transition a
             ip = imap(a)
+            ! Add to corresponding weight
             if(i == ip) then
+              ! Get k index of transition a
               ik = ikmap(a)
+              ! Add contributon to sum
+              !   w_{ik,v} = \Sum_c |A_{(ik,v),(ik,c)}|^2
               weight(ik, i) = weight(ik, i) + abs2(a)
             end if
           end do
@@ -307,8 +314,12 @@ subroutine b_writekpathweights
           do a = 1, n
             ip = imap(a)
             if(i == ip) then
+              ! Get k index of transition a
               ik = ikmap(a)
+              ! Get k'=k+qmt index of transition a
               ikkp = ikkpmap(ik)
+              ! Add contributon to sum
+              !   w_{ik',c} = \Sum_v |A_{(ik,v),(ik',c)}|^2
               weight(ikkp, i) = weight(ikkp, i) + abs2(a)
             end if
           end do
@@ -459,9 +470,10 @@ subroutine b_writekpathweights
           yp = real(vklpath_remapped(2), wp)
           zp = real(vklpath_remapped(3), wp)
 
-          call spline%evaluate(xp,yp,zp,derivx,derivy,derivz,intervalue,iflag)
+          call spline%evaluate(xp, yp, zp, derivx, derivy, derivz, intervalue, iflag)
           if(iflag /= 0) then 
-            write(unitout,'("Error(m_writebevec): spline eval returned non zero iflag:", i8)') iflag
+            write(unitout,'("Error(m_writebevec):&
+              & spline eval returned non zero iflag:", i8)') iflag
             write(unitout,'(" ",a)') get_status_message(iflag)
             call terminate
           end if
@@ -493,7 +505,7 @@ subroutine b_writekpathweights
       ! Copy to 0:1 part of input data
       do ikz=1, nz
         do iky=1, ny
-          do ikx=1, nz
+          do ikx=1, nx
             iknr = ikmap(ikx-1,iky-1,ikz-1)
             inputdata(ikx+nx, iky+ny, ikz+nz) = weights(iknr)
           end do

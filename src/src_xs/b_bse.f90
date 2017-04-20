@@ -500,22 +500,21 @@ use m_writecmplxparts
           & Writing excition eigenvectors for index range=",2i8)') trim(thisname), iex1, iex2
 
         if(fcoup .and. fti) then 
-          allocate(resvec(hamsize, nreq))
-          allocate(aresvec(hamsize, nreq))
 
           write(unitout, '("Info(",a,"): Generating resonant&
             & and anti-resonant exciton coefficients from&
             & auxilliary squared EVP eigenvectors (pos. E).")') trim(thisname)
+          ! Allocates resvec,aresvec & deallocates cpmat
           call genexevec(iex1, iex2, nexc, cmat, cpmat, bevecr, bevalre,&
-            & rvecp=resvec, avecp=aresvec)
+            & resvec, aresvec)
 
           write(unitout, '("Info(",a,"):&
             & Writing exciton eigenvectors to file (pos. E).")') trim(thisname)
           call put_excitons(bevalre(iex1:iex2), rvec=resvec, avec=aresvec,&
             & iqmt=iqmt, a1=iex1, a2=iex2)
 
-          if(allocated(resvec)) deallocate(resvec)
-          if(allocated(aresvec)) deallocate(aresvec)
+          deallocate(resvec)
+          deallocate(aresvec)
 
         else if(fcoup .and. .not. fti) then 
 
@@ -566,9 +565,11 @@ use m_writecmplxparts
       allocate(oscsa(nexc,3))
     end if
 
+    ! Note: deallocates bevcr
     if(fcoup .and. .not. fti) then 
       call makeoscistr(iqmt, nexc, bevecr, oscsr, oscstra=oscsa)
     else if(fcoup .and. fti) then 
+      ! Note: also deallocates cmat
       call makeoscistr(iqmt, nexc, bevecr, oscsr, bevalre=bevalre, cmat=cmat)
     else
       call makeoscistr(iqmt, nexc, bevecr, oscsr)
@@ -942,9 +943,6 @@ use m_writecmplxparts
           ! auxilliary ones.
           if(fcoup .and. fti) then 
 
-            call new_dzmat(dresvec, hamsize, nreq, bi2d)
-            call new_dzmat(daresvec, hamsize, nreq, bi2d)
-
             if(bi2d%isroot) then 
               write(unitout, '("Info(",a,"): Generating resonant&
                 & and anti-resonant exciton coefficients from&
@@ -975,10 +973,9 @@ use m_writecmplxparts
             !===========================================================!
 
             ! Make selected eigenvectors
+            ! Note: allocates dresvec,daresvec and deallocates dcpmat
             call gendexevec(iex1, iex2, nexc, dcmat, dcpmat, dbevecr, bevalre,&
-              & drvecp=dresvec, davecp=daresvec)
-
-            call del_dzmat(dcpmat)
+              & dresvec, daresvec)
 
             ! Write to binary file
             write(unitout, '("Info(",a,"):&
@@ -986,6 +983,7 @@ use m_writecmplxparts
             call putd_excitons(bevalre(iex1:iex2), drvec=dresvec, davec=daresvec,&
               & iqmt=iqmt, a1=iex1, a2=iex2)
 
+            ! Explicit resonant/antiresonant eigenvectors no longer needed
             call del_dzmat(dresvec)
             call del_dzmat(daresvec)
 
@@ -1022,7 +1020,7 @@ use m_writecmplxparts
     end if
 
     ! Calculate oscillator strengths.
-    ! Note: Deallocates eigenvectors
+    ! Note: Deallocates dbevecr and dcmat
     if(fti .and. fcoup) then 
       call makeoscistr_dist(iqmt, nexc, dbevecr, doscsr, bi2d, bevalre, dcmat)
     else

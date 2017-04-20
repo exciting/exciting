@@ -14,11 +14,11 @@ module m_genexevec
     subroutine genexevec(i1, i2, nex, cmat, cpmat, auxvec, evals, rvecp, avecp)
 
       integer(4), intent(in) :: i1, i2, nex
-      complex(8), intent(in) :: cmat(:,:), cpmat(:,:), auxvec(:,:)
+      complex(8), intent(in) :: cmat(:,:), auxvec(:,:)
+      complex(8), allocatable, intent(inout) :: cpmat(:,:)
       real(8), intent(in) :: evals(:)
-      complex(8), intent(out), optional :: rvecp(:,:), avecp(:,:)
+      complex(8), allocatable, intent(out) :: rvecp(:,:), avecp(:,:)
 
-      complex(8), allocatable :: aux1(:,:), aux2(:,:)
       integer(4) :: nreq, m, i
 
       ! Reqested number of solutions
@@ -40,44 +40,33 @@ module m_genexevec
         call terminate
       end if
 
-      ! Make (A-B)^{1/2} |E_\lambda|^-{1/2} Z_\lambda
-      allocate(aux1(m,nreq))
-      !  Aux1 = (A-B)^{1/2} Z
-      call zgemm('N','N', m, nreq, m, zone, cmat, m,&
-        & auxvec(:,i1:i2), m, zzero, aux1, m)
-      !  Aux1_{m,\lambda} = Aux1_{m,\lambda} * |E_\lambda|^-{1/2}
-      do i=1, nreq
-        aux1(:,i) = 1.0d0/sqrt(evals(i+i1-1)) * Aux1(:,i)
-      end do
-
+      ! Y
       ! Make (A-B)^{-1/2} |E_\lambda|^{1/2} Z_\lambda
-      allocate(aux2(m,nreq))
-      !  Aux2 = (A-B)^{-1/2} Z
+      allocate(avecp(m,nreq))
+      !  Aux2 = (A-B)^{-1/2} Z -> Y
       call zgemm('N','N', m, nreq, m, zone, cpmat, m,&
-        & auxvec(:,i1:i2), m, zzero, aux2, m)
+        & auxvec(:,i1:i2), m, zzero, avecp, m)
       !  Aux2_{m,\lambda} = Aux2_{m,\lambda} * |E_\lambda|^{1/2}
       do i=1, nreq
-        aux2(:,i) = sqrt(evals(i+i1-1)) * aux2(:,i)
+        avecp(:,i) = sqrt(evals(i+i1-1)) * avecp(:,i)
+      end do
+      deallocate(cpmat)
+
+      ! X
+      ! Make (A-B)^{1/2} |E_\lambda|^-{1/2} Z_\lambda
+      allocate(rvecp(m,nreq))
+      !  Aux1 = (A-B)^{1/2} Z -> X
+      call zgemm('N','N', m, nreq, m, zone, cmat, m,&
+        & auxvec(:,i1:i2), m, zzero, rvecp, m)
+      !  Aux1_{m,\lambda} = Aux1_{m,\lambda} * |E_\lambda|^-{1/2}
+      do i=1, nreq
+        rvecp(:,i) = 1.0d0/sqrt(evals(i+i1-1)) * rvecp(:,i)
       end do
 
-      if(present(rvecp)) then 
-        if(size(rvecp,1) < m .or. size(rvecp,2) < nreq) then 
-          write(*,*) "Error(genexevec): Size mismatch. shape(rvecp)=", shape(rvecp)
-          call terminate
-        end if
-        ! X^+ = 1/2 (aux1+aux2)
-        rvecp(1:m,1:nreq) = 0.5d0 *(aux1+aux2)
-      end if
-      if(present(avecp)) then 
-        if(size(avecp,1) < m .or. size(avecp,2) < nreq) then 
-          write(*,*) "Error(genexevec): Size mismatch. shape(avecp)=", shape(avecp)
-          call terminate
-        end if
-        ! Y^+ = 1/2 (aux1-aux2)
-        avecp(1:m,1:nreq) = 0.5d0 *(aux1-aux2)
-      end if
-
-      deallocate(aux1,aux2)
+      ! X^+ = 1/2 (aux1+aux2)
+      rvecp(1:m,1:nreq) = 0.5d0 *(rvecp+avecp)
+      ! Y^+ = 1/2 (aux1-aux2)
+      avecp(1:m,1:nreq) = rvecp - avecp
 
     end subroutine genexevec
 
@@ -86,14 +75,15 @@ module m_genexevec
 
       ! I/O
       integer(4), intent(in) :: i1, i2, nex
-      type(dzmat), intent(in) :: dcmat, dcpmat, dauxvec
+      type(dzmat), intent(in) :: dcmat, dauxvec
+      type(dzmat), intent(inout) :: dcpmat
       real(8), intent(in) :: evals(:)
-      type(dzmat), intent(inout), optional :: drvecp, davecp 
+      type(dzmat), intent(inout) :: drvecp, davecp 
 
-      
       ! Local
-      type(dzmat) :: daux1, daux2
       integer(4) :: nreq, m, i, context, ig
+
+      character(*), parameter :: thisname = "gendexevec"
 
       ! Reqested number of solutions
       nreq = i2-i1+1
@@ -126,76 +116,69 @@ module m_genexevec
         call terminate
       end if
       ! Check output matrices
-      if(present(drvecp)) then 
-        if(drvecp%context /= context) then 
-          if(mpiglobal%rank == 0) then 
-            write(*,*) "Error(gendexevec): Context mismatch"
-            write(*,*) "context of dcmat, drvecp :"
-            write(*,*) dcmat%context, drvecp%context
-          end if
-          call terminate
+      if(drvecp%context /= context) then 
+        if(mpiglobal%rank == 0) then 
+          write(*,*) "Error(gendexevec): Context mismatch"
+          write(*,*) "context of dcmat, drvecp :"
+          write(*,*) dcmat%context, drvecp%context
         end if
-        if(drvecp%nrows /= m .or. drvecp%ncols /= nreq) then
-          if(mpiglobal%rank == 0) then 
-            write(*,*) "Error(gendexevec): Size mismatch"
-            write(*,*) "shape(dcmat)=", dcmat%nrows, dcmat%ncols
-            write(*,*) "shape(drvecp)=", drvecp%nrows, drvecp%ncols
-          end if
-          call terminate
-        end if
+        call terminate
       end if
-      if(present(davecp)) then 
-        if(davecp%context /= context) then 
-          if(mpiglobal%rank == 0) then 
-            write(*,*) "Error(gendexevec): Context mismatch"
-            write(*,*) "context of dcmat, davecp :"
-            write(*,*) dcmat%context, davecp%context
-          end if
-          call terminate
+      if(drvecp%nrows /= m .or. drvecp%ncols /= nreq) then
+        if(mpiglobal%rank == 0) then 
+          write(*,*) "Error(gendexevec): Size mismatch"
+          write(*,*) "shape(dcmat)=", dcmat%nrows, dcmat%ncols
+          write(*,*) "shape(drvecp)=", drvecp%nrows, drvecp%ncols
         end if
-        if(davecp%nrows /= m .or. davecp%ncols /= nreq) then
-          if(mpiglobal%rank == 0) then 
-            write(*,*) "Error(gendexevec): Size mismatch"
-            write(*,*) "shape(dcmat)=", dcmat%nrows, dcmat%ncols
-            write(*,*) "shape(davecp)=", davecp%nrows, davecp%ncols
-          end if
-          call terminate
-        end if
+        call terminate
       end if
-      
-      ! Make (A-B)^{1/2} |E_\lambda|^-{1/2} Z_\lambda
-      call new_dzmat(daux1, m, nreq, bi2d)
-      !  Aux1 = (A-B)^{1/2} Z
-      call dzmatmult(dcmat, dauxvec, daux1, n=nreq, jb=i1)
-      !  Aux1_{m,\lambda} = Aux1_{m,\lambda} * |E_\lambda|^-{1/2}
-      ! Loop over local column index
-      do i=1, daux1%ncols_loc
-        ! Get global column index
-        ig = daux1%c2g(i)
-        daux1%za(:,i) = 1.0d0/sqrt(evals(ig+i1-1)) * daux1%za(:,i)
-      end do
+      if(davecp%context /= context) then 
+        if(mpiglobal%rank == 0) then 
+          write(*,*) "Error(gendexevec): Context mismatch"
+          write(*,*) "context of dcmat, davecp :"
+          write(*,*) dcmat%context, davecp%context
+        end if
+        call terminate
+      end if
+      if(davecp%nrows /= m .or. davecp%ncols /= nreq) then
+        if(mpiglobal%rank == 0) then 
+          write(*,*) "Error(gendexevec): Size mismatch"
+          write(*,*) "shape(dcmat)=", dcmat%nrows, dcmat%ncols
+          write(*,*) "shape(davecp)=", davecp%nrows, davecp%ncols
+        end if
+        call terminate
+      end if
 
+      ! Y
+      call new_dzmat(davecp, m, nreq, bi2d)
       ! Make (A-B)^{-1/2} |E_\lambda|^{1/2} Z_\lambda
-      call new_dzmat(daux2, m, nreq, bi2d)
-      !  Aux2 = (A-B)^{-1/2} Z
-      call dzmatmult(dcpmat, dauxvec, daux2, n=nreq, jb=i1)
-      !  Aux2_{m,\lambda} = Aux2_{m,\lambda} * |E_\lambda|^{1/2}
-      do i=1, daux2%ncols_loc
-        ig = daux2%c2g(i)
-        daux2%za(:,i) = sqrt(evals(ig+i1-1)) * daux2%za(:,i)
+      !  Aux2 = (A-B)^{-1/2} Z -> Y
+      call dzmatmult(dcpmat, dauxvec, davecp, n=nreq, jb=i1)
+      ! C' no longer needed 
+      call del_dzmat(dcpmat)
+      !  Aux2_{m,\lambda} = Aux2_{m,\lambda} * |E_\lambda|^{1/2} -> Y
+      do i=1, davecp%ncols_loc
+        ig = davecp%c2g(i)
+        davecp%za(:,i) = sqrt(evals(ig+i1-1)) * davecp%za(:,i)
+      end do
+      
+      ! X
+      call new_dzmat(drvecp, m, nreq, bi2d)
+      ! Make (A-B)^{1/2} |E_\lambda|^-{1/2} Z_\lambda
+      !  Aux1 = (A-B)^{1/2} Z -> X
+      call dzmatmult(dcmat, dauxvec, drvecp, n=nreq, jb=i1)
+      !  Aux1_{m,\lambda} = Aux1_{m,\lambda} * |E_\lambda|^-{1/2} -> X
+      ! Loop over local column index
+      do i=1, drvecp%ncols_loc
+        ! Get global column index
+        ig = drvecp%c2g(i)
+        drvecp%za(:,i) = 1.0d0/sqrt(evals(ig+i1-1)) * drvecp%za(:,i)
       end do
 
-      if(present(drvecp)) then 
-        ! X^+ = 1/2 (aux1+aux2)
-        drvecp%za(:,:) = 0.5d0 *(daux1%za(:,:)+daux2%za(:,:))
-      end if
-      if(present(davecp)) then 
-        ! Y^+ = 1/2 (aux1-aux2)
-        davecp%za(:,:) = 0.5d0 *(daux1%za(:,:)-daux2%za(:,:))
-      end if
-
-      call del_dzmat(daux1)
-      call del_dzmat(daux2)
+      ! X^+ = 1/2 (aux1+aux2) 
+      drvecp%za(:,:) = 0.5d0 *(drvecp%za(:,:)+davecp%za(:,:))
+      ! Y^+ = 1/2 (aux1-aux2) = X^+ - aux2
+      davecp%za(:,:) = drvecp%za(:,:)-davecp%za(:,:)
 
     end subroutine gendexevec
     

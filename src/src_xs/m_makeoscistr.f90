@@ -21,7 +21,7 @@ module m_makeoscistr
       complex(8), intent(out) :: oscstrr(nexc,3)
       complex(8), intent(out), optional :: oscstra(nexc, 3)
       real(8), intent(in), optional :: bevalre(:)
-      complex(8), intent(in), optional :: cmat(:, :)
+      complex(8), intent(inout), optional :: cmat(:, :)
 
       ! Local
       logical :: useip, useti, usecoup
@@ -288,7 +288,7 @@ module m_makeoscistr
       type(dzmat), intent(inout) :: doscsr
       type(blacsinfo), intent(in) :: binfo
       real(8), intent(in), optional :: bevalre(:)
-      type(dzmat), intent(in), optional :: dcmat
+      type(dzmat), intent(inout), optional :: dcmat
 
       ! Local
       logical :: useip, useti, usecoup
@@ -473,7 +473,8 @@ module m_makeoscistr
             call new_dzmat(dxpy, hamsize, nexc, binfo)
             call dzmatmult(dcmat, dbevecr, dxpy, n=nexc)
 
-            ! Deallocating eigenvectors
+            ! C and Z matrix no longer needed.
+            call del_dzmat(dcmat)
             call del_dzmat(dbevecr)
 
             if(binfo%isroot) then 
