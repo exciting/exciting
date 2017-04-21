@@ -212,9 +212,6 @@ Subroutine xsmain (plan)
          Case (451)
      ! BSE-kernel, simple version, very slow
             Call kernxc_bse3
-         Case (499)
-     ! call to test xs-routine
-            Call testxs
          case (999)
             call testmain
          case (710)

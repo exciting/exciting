@@ -168,10 +168,11 @@ use m_writecmplxparts
     call terminate
   end if
 
-  ! Non-parallelized code.
-  if(.not. fscal .and. mpiglobal%rank == 0) then 
+  ! Non-parallelized EVP code 
+  if(.not. fscal) then 
 
-    write(*, '("Info(",a,"): Running non parallel version")') trim(thisname)
+    write(*, '("Info(",a,"): Running non parallel version at rank", i3)')&
+      & trim(thisname), mpiglobal%rank
 
     ! General init
     call timesec(ts0)
@@ -249,10 +250,8 @@ use m_writecmplxparts
       ! Set k and k'=k grid eigenvalues to QP energies
       evalsv0=evalsv
     else if(associated(input%gw) .and. iqmt /= 1) then 
-      if(mpiglobal%rank==0) then 
-        write(*,'("Error(",a,"): BSE+GW only supported for 0 momentum transfer.")')&
-          & trim(thisname)
-      end if
+      write(*,'("Error(",a,"): BSE+GW only supported for 0 momentum transfer.")')&
+        & trim(thisname)
       call terminate
     end if
 
@@ -617,13 +616,8 @@ use m_writecmplxparts
 
     write(unitout, '("BSE calculation finished")')
 
-    ! Rank 0 says I am finished to all others
-    call barrier(callername=thisname)
-
-    write(*, '("Warning(",a,"): Rank", i4, " is done.")') trim(thisname), mpiglobal%rank
-
   ! Parallel version 
-  else if (fscal) then
+  else 
     
     write(*,*) "b_bse: Running parallel version at rank:", mpiglobal%rank
 
@@ -1094,14 +1088,6 @@ use m_writecmplxparts
       call barrier(callername=thisname)
 
     end if
-
-  else ! not fscal and not rank 0
-
-    write(*, '("Warning(",a,"): Rank", i4, " is idle.")')&
-      & trim(thisname), mpiglobal%rank
-
-    ! Rank /= 0 wait for rank 0
-    call barrier(callername=thisname)
 
   end if
 

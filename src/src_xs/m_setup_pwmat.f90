@@ -118,8 +118,13 @@ module m_setup_pwmat
       mou=zzero
       moug=zzero
 
-      ik1=firstofset(mpiglobal%rank, nk_bse)
-      ik2=lastofset(mpiglobal%rank, nk_bse)
+      if(input%xs%bse%distribute) then 
+        ik1=firstofset(mpiglobal%rank, nk_bse)
+        ik2=lastofset(mpiglobal%rank, nk_bse)
+      else
+        ik1=1
+        ik2=nk_bse
+      end if
 
       emat_ccket=.false.
       ! Set up ikmapikq to link (ik,iqmt) to (ikp)
@@ -152,10 +157,10 @@ module m_setup_pwmat
         ematbc%iu2=iuabs2
 
         ! Calculate M_{o1o2,G} at fixed (k, q)
-        if (input%xs%bse%xas) then
-          call b_ematqk(iqmt, iknr, mou(1:ino,1:inu,:), ematbc)
-        else
+        if(input%xs%bse%xas) then
           call b_ematqk_core(iqmt, iknr, mou(1:ino,1:inu,:),ematbc,'ou')
+        else
+          call b_ematqk(iqmt, iknr, mou(1:ino,1:inu,:), ematbc)
         end if
         !write(*,*) "passed ematqk"
 
@@ -165,8 +170,10 @@ module m_setup_pwmat
       end do
 
       ! Gather moug 
-      call mpi_allgatherv_ifc(set=nk_bse, rlen=no_bse_max*nu_bse_max, zbuf=moug,&
-        & inplace=.true., comm=mpiglobal)
+      if(input%xs%bse%distribute) then 
+        call mpi_allgatherv_ifc(set=nk_bse, rlen=no_bse_max*nu_bse_max, zbuf=moug,&
+          & inplace=.true., comm=mpiglobal)
+      end if
 
       call ematqdealloc
       deallocate(mou)

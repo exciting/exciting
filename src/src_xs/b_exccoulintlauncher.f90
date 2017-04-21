@@ -23,8 +23,9 @@ subroutine b_exccoulintlauncher
 
   logical :: fcoup, fti
   integer(4) :: iqmt, iqmti, iqmtf
-  character(256) :: casestring
   real(8) :: vqmt(3)
+  character(256) :: casestring
+  character(*), parameter :: thisname = "b_exccoulintlauncher"
 
   write(*,*) "b_exccoulintlauncher here at rank", rank
 
@@ -50,12 +51,21 @@ subroutine b_exccoulintlauncher
   end if
 
   ! Which Q points to consider 
+  !   Use all
   iqmti = 1
   iqmtf = size(input%xs%qpointset%qpoint, 2)
+  !   or use only one
   if(input%xs%bse%iqmt /= -1) then 
     iqmti=input%xs%bse%iqmt
     iqmtf=input%xs%bse%iqmt
   end if
+
+  call printline(unitout, "+")
+  write(unitout, '("Info(",a,"):", a)') trim(thisname),&
+    & " Setting up exchange interaction matrix."
+  write(unitout, '("Info(",a,"):", a, i3, a, i3)') trim(thisname),&
+    & " Using momentum transfer vectors from list : ", iqmti, " to", iqmtf
+  call printline(unitout, "+")
 
   do iqmt = iqmti, iqmtf
 
@@ -64,11 +74,11 @@ subroutine b_exccoulintlauncher
     if(mpiglobal%rank == 0) then
       write(unitout, *)
       call printline(unitout, "+")
-      write(unitout, '("Info(b_exccoulintlauncher):", a)')&
+      write(unitout, '("Info(",a,"):", a)') trim(thisname), &
         & "Calculating exchange interaction matrix V"
-      write(unitout, '("Info(b_exccoulintlauncher):", a, i3)')&
+      write(unitout, '("Info(",a,"):", a, i3)') trim(thisname), &
         & " Momentum tranfer list index: iqmt=", iqmt
-      write(unitout, '("Info(b_exccoulintlauncher):", a, 3f8.3)')&
+      write(unitout, '("Info(",a,"):", a, 3f8.3)') trim(thisname), &
         & " Momentum tranfer: vqmtl=", vqmt(1:3)
       call printline(unitout, "+")
       write(unitout,*)
@@ -80,8 +90,8 @@ subroutine b_exccoulintlauncher
 
         ! RR block
         if(mpiglobal%rank == 0) then
-          write(unitout, '("Info(b_exccoulintlauncher):&
-            & Calculating RR block of V")')
+          write(unitout, '("Info(",a,"):&
+            & Calculating RR block of V")') trim(thisname)
           write(unitout,*)
         end if
         call b_exccoulint(iqmt, .false., fti)
@@ -93,13 +103,13 @@ subroutine b_exccoulintlauncher
         if(fcoup) then 
           if(mpiglobal%rank == 0) then
             call printline(unitout, "-")
-            write(unitout, '("Info(b_exccoulintlauncher):&
-              & Calculating RA block of V")')
+            write(unitout, '("Info(",a,"):&
+              & Calculating RA block of V")') trim(thisname)
           end if
           if(fti) then
             call printline(unitout, "-")
-            write(unitout, '("Info(b_exccoulintlauncher):&
-              & RR = RA^{ti} no further calculation needed.")')
+            write(unitout, '("Info(",a,"):&
+              & RR = RA^{ti} no further calculation needed.")') trim(thisname)
           else
             call b_exccoulint(iqmt, .true., fti)
           end if
@@ -110,8 +120,8 @@ subroutine b_exccoulintlauncher
 
         ! RR block
         if(mpiglobal%rank == 0) then
-          write(unitout, '("Info(b_exccoulintlauncher):&
-            & Calculating RR block of V")')
+          write(unitout, '("Info(",a,"):&
+            & Calculating RR block of V")') trim(thisname)
           write(unitout,*)
         end if
         call b_exccoulint(iqmt, .false., fti)
@@ -121,13 +131,13 @@ subroutine b_exccoulintlauncher
         if(fcoup) then 
           if(mpiglobal%rank == 0) then
             call printline(unitout, "-")
-            write(unitout, '("Info(b_exccoulintlauncher):&
-              & Calculating RA block of V")')
+            write(unitout, '("Info(",a,"):&
+              & Calculating RA block of V")') trim(thisname)
           end if
           if(fti) then
             call printline(unitout, "-")
-            write(unitout, '("Info(b_exccoulintlauncher):&
-              & RR = RA^{ti} no further calculation needed.")')
+            write(unitout, '("Info(",a,"):&
+              & RR = RA^{ti} no further calculation needed.")') trim(thisname)
           else
             call b_exccoulint(iqmt, .true., fti)
           end if
@@ -136,17 +146,16 @@ subroutine b_exccoulintlauncher
 
       case default
 
-        write(*,*) "Error(b_exccoulintlauncher): Unrecongnized casesting:", trim(casestring)
+        write(*,'("Error(",a,"): Unrecongnized casesting:", a)') trim(thisname),&
+          & trim(casestring)
         call terminate
 
     end select
 
-    if(mpiglobal%rank == 0) then
-      call printline(unitout, "+")
-      write(unitout, '("Info(b_exccoulintlauncher): Exchange interaction&
-        & finished for iqmt=",i4)') iqmt
-      call printline(unitout, "+")
-    end if
+    call printline(unitout, "+")
+    write(unitout, '("Info(",a,"): Exchange interaction&
+      & finished for iqmt=",i4)') trim(thisname),  iqmt
+    call printline(unitout, "+")
 
   end do
 

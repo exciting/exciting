@@ -432,7 +432,6 @@ use m_writecmplxparts
     call timesec(tscc0)
   end if
 
-  write(*,*) "W Fourier coefficients"
   do iqr = qpari, qparf ! Reduced q
 
     !write(*,*) "iqr=", iqr

@@ -140,9 +140,7 @@ module modbse
       real(8) :: gap
       real(8) :: t0,t1
 
-      if(mpiglobal%rank==0) then 
-        call timesec(t0)
-      end if
+      call timesec(t0)
       !---------------------------------------------------!
       ! Get offsets of and mapping between k and k' grids !
       !---------------------------------------------------!
@@ -226,8 +224,6 @@ module modbse
       gap = ksgapval
       !   Size of qmt dependent gap (with qmt=0 this is the direct gap)
       qmtpgap = qgap
-
-
 
       deallocate(io_k, iu_k)
       deallocate(io_kqmtp, iu_kqmtp)
@@ -337,34 +333,31 @@ module modbse
       ! Scissor
       sci = input%xs%scissor
 
-      if(mpiglobal%rank==0) then 
-        write(unitout, '("Info(setranges_modxs):&
-          & Number of non-reduced k-points:",i9)') nk_max
-        write(unitout, '("Info(setranges_modxs):&
-          & Number of states considered:",i9)') nstsv
-        write(unitout, '("Info(setranges_modxs):&
-          & Number of (partially) occupied state:", i9)') no_max
-        write(unitout, '("Info(setranges_modxs):&
-          & Highest (partially) occupied state:", i9)') iomax
-        write(unitout, '("Info(setranges_modxs):&
-          & Number of (partially) unoccupied state:", i9)') nu_max
-        write(unitout, '("Info(setranges_modxs):&
-          & Lowest (partially) unoccupied state:", i9)') iumin
+      write(unitout, '("Info(setranges_modxs):&
+        & Number of non-reduced k-points:",i9)') nk_max
+      write(unitout, '("Info(setranges_modxs):&
+        & Number of states considered:",i9)') nstsv
+      write(unitout, '("Info(setranges_modxs):&
+        & Number of (partially) occupied state:", i9)') no_max
+      write(unitout, '("Info(setranges_modxs):&
+        & Highest (partially) occupied state:", i9)') iomax
+      write(unitout, '("Info(setranges_modxs):&
+        & Number of (partially) unoccupied state:", i9)') nu_max
+      write(unitout, '("Info(setranges_modxs):&
+        & Lowest (partially) unoccupied state:", i9)') iumin
 
-        if(ksgapval == 0.0d0) then
-          write(unitout, '("Warning(setranges_modxs): The system has no gap")')
-          if(sci /= 0.0d0) then 
-            write(unitout, '("Warning(setranges_modxs):&
-              &   Scissor > 0 but no gap. Setting scissor to 0.")')
-            sci = 0.0d0
-          end if
-        end if  
-      end if
-      if(mpiglobal%rank==0) then 
-        call timesec(t1)
-        write(unitout, '("Info(setranges_modxs):&
-          & Time needed/s = ", f12.7)') t1-t0
-      end if
+      if(ksgapval == 0.0d0) then
+        write(unitout, '("Warning(setranges_modxs): The system has no gap")')
+        if(sci /= 0.0d0) then 
+          write(unitout, '("Warning(setranges_modxs):&
+            &   Scissor > 0 but no gap. Setting scissor to 0.")')
+          sci = 0.0d0
+        end if
+      end if  
+
+      call timesec(t1)
+      write(unitout, '("Info(setranges_modxs):&
+        & Time needed/s = ", f12.7)') t1-t0
 
     end subroutine setranges_modxs
     !EOC
@@ -438,9 +431,7 @@ module modbse
       logical :: posdiff
       character(*), parameter :: thisname = "select_transitions"
 
-      if(mpiglobal%rank == 0) then 
-        call timesec(t0)
-      end if
+      call timesec(t0)
 
       if(present(serial)) then 
         fserial = serial
@@ -506,10 +497,8 @@ module modbse
           io1 = gwiomin
           iu2 = gwiumax
 
-          if(mpiglobal%rank==0) then 
-            write(unitout,'("Info(",a,"):&
-              & Energy selection ontop of GW.")') trim(thisname)
-          end if
+          write(unitout,'("Info(",a,"):&
+            & Energy selection ontop of GW.")') trim(thisname)
 
         end if
 
@@ -528,26 +517,24 @@ module modbse
         end if
       end if
 
-      if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(select_transitions): Searching for transitions in&
-          & the band interval:")')
-        write(unitout, '("  io1:", i4, " io2:", i4, " iu1:", i4, " iu2:", i4)')&
-          & io1, io2, iu1, iu2
-        if(fensel) then
-          write(unitout, '("Info(select_transitions): Selecting KS/QP transitions in&
-            & the energy interval:")')
-          write(unitout, '("  [",E10.3,",",E10.3,"]/H")') max(wl+econv(1),0.0d0), wu+econv(2)
-          write(unitout, '("  [",E10.3,",",E10.3,"]/eV")')&
-            & max(wl+econv(1),0.0d0)*h2ev, (wu+econv(2))*h2ev
-          write(unitout, '("  Using convergence energy of:")')
-          write(unitout, '("    ",2E10.3," /H")')&
-            & max(econv(1), -wl), econv(2)
-          write(unitout, '("    ",2E10.3," /eV")')&
-            & max(econv(1), -wl)*h2ev, econv(2)*h2ev
-        end if
-        write(unitout, '("  Opening gap with a scissor of:",&
-          & E10.3,"/H", E10.3,"/eV")'), sci, sci*h2ev
+      write(unitout, '("Info(select_transitions): Searching for transitions in&
+        & the band interval:")')
+      write(unitout, '("  io1:", i4, " io2:", i4, " iu1:", i4, " iu2:", i4)')&
+        & io1, io2, iu1, iu2
+      if(fensel) then
+        write(unitout, '("Info(select_transitions): Selecting KS/QP transitions in&
+          & the energy interval:")')
+        write(unitout, '("  [",E10.3,",",E10.3,"]/H")') max(wl+econv(1),0.0d0), wu+econv(2)
+        write(unitout, '("  [",E10.3,",",E10.3,"]/eV")')&
+          & max(wl+econv(1),0.0d0)*h2ev, (wu+econv(2))*h2ev
+        write(unitout, '("  Using convergence energy of:")')
+        write(unitout, '("    ",2E10.3," /H")')&
+          & max(econv(1), -wl), econv(2)
+        write(unitout, '("    ",2E10.3," /eV")')&
+          & max(econv(1), -wl)*h2ev, econv(2)*h2ev
       end if
+      write(unitout, '("  Opening gap with a scissor of:",&
+        & E10.3,"/H", E10.3,"/eV")'), sci, sci*h2ev
 
       !! Read in eigenvalues and occupancies for k and k+qmt
 
@@ -614,9 +601,7 @@ module modbse
         evalsv0=evalsv
         occsv0=occsv
       else if(associated(input%gw) .and. iqmt /= 1) then 
-        if(mpiglobal%rank==0) then 
-          write(*,'("Error(b_bse): BSE+GW only supported for 0 momentum transfer.")')
-        end if
+        write(*,'("Error(b_bse): BSE+GW only supported for 0 momentum transfer.")')
         call terminate
       end if
 
@@ -915,23 +900,24 @@ module modbse
         smap_rel(3,i1) = kmap_bse_gr(iknr)
       end do
 
-      if(mpiglobal%rank == 0) then 
-        write(unitout, '("Info(select_transitions):&
-          & Number of participating transitions:", I8)') sum(kousize) 
-      end if
+      write(unitout, '("Info(select_transitions):&
+        & Number of participating transitions:", I8)') sum(kousize) 
 
-      if(mpiglobal%rank == 0) then 
+      if(fserial) then 
         if(present(dirname)) then 
           call printso(iqmt, dirname)
-        else
-          call printso(iqmt, dirname)
         endif 
+      else
+        if(mpiglobal%rank == 0) then 
+          if(present(dirname)) then 
+            call printso(iqmt, dirname)
+          end if 
+        end if
       end if
-      if(mpiglobal%rank == 0) then 
-        call timesec(t1)
-        write(unitout, '("Info(select_transitions):&
-          & Time needed/s:", f12.7)') t1-t0
-      end if
+
+      call timesec(t1)
+      write(unitout, '("Info(select_transitions):&
+        & Time needed/s:", f12.7)') t1-t0
 
       if( .not. fserial) then 
         call barrier

@@ -1789,7 +1789,7 @@ module m_setup_bse
         do r = 1, ib
           if(present(exc) .and. present(scc)) then
             ! Singlet case with exchange interaction
-            if (input%xs%bse%xas) then
+            if(input%xs%bse%xas) then
               hamblck(r, c) = occ1(r) * (zone * exc(r, c) - scc(r, c)) * occ2(c)
             else
               hamblck(r, c) = occ1(r) * (ztwo * exc(r, c) - scc(r, c)) * occ2(c)
@@ -1799,7 +1799,7 @@ module m_setup_bse
             hamblck(r, c) = -occ1(r) * scc(r, c) * occ2(c)
           else if(present(exc)) then
             ! RPA
-            if (input%xs%bse%xas) then 
+            if(input%xs%bse%xas) then 
               hamblck(r, c) = occ1(r) * zone * exc(r, c) * occ2(c)
             else
               hamblck(r, c) = occ1(r) * ztwo * exc(r, c) * occ2(c)

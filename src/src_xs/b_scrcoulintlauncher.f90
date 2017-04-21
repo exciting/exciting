@@ -23,8 +23,9 @@ subroutine b_scrcoulintlauncher
 
   logical :: fcoup, fti
   integer(4) :: iqmt, iqmti, iqmtf
-  character(256) :: casestring
   real(8) :: vqmt(3)
+  character(256) :: casestring
+  character(*), parameter :: thisname = "b_scrcoulintlauncher"
 
   write(*,*) "b_scrcoulintlauncher here at rank", rank
 
@@ -57,6 +58,13 @@ subroutine b_scrcoulintlauncher
     iqmtf=input%xs%bse%iqmt
   end if
 
+  call printline(unitout, "+")
+  write(unitout, '("Info(",a,"):", a)') trim(thisname),&
+    & " Setting up screened interaction matrix."
+  write(unitout, '("Info(",a,"):", a, i3, a, i3)') trim(thisname),&
+    & " Using momentum transfer vectors from list : ", iqmti, " to", iqmtf
+  call printline(unitout, "+")
+
   do iqmt = iqmti, iqmtf
 
     vqmt(:) = input%xs%qpointset%qpoint(:, iqmt)
@@ -64,11 +72,11 @@ subroutine b_scrcoulintlauncher
     if(mpiglobal%rank == 0) then
       write(unitout, *)
       call printline(unitout, "+")
-      write(unitout, '("Info(b_scrcoulintlauncher):", a)')&
+      write(unitout, '("Info(",a,"):", a)') trim(thisname), &
         & " Calculating screened Coulomb interaction matrix W"
-      write(unitout, '("Info(b_scrcoulintlauncher):", a, i3)')&
+      write(unitout, '("Info(",a,"):", a, i3)') trim(thisname), &
         & " Momentum tranfer list index: iqmt=", iqmt
-      write(unitout, '("Info(b_scrcoulintlauncher):", a, 3f8.3)')&
+      write(unitout, '("Info(",a,"):", a, 3f8.3)') trim(thisname), &
         & " Momentum tranfer: vqmtl=", vqmt(1:3)
       call printline(unitout, "+")
       write(unitout,*)
@@ -80,8 +88,8 @@ subroutine b_scrcoulintlauncher
 
         ! RR block
         if(mpiglobal%rank == 0) then
-          write(unitout, '("Info(b_scrcoulintlauncher):&
-            & Calculating RR block of W")')
+          write(unitout, '("Info(",a,"):&
+            & Calculating RR block of W")') trim(thisname) 
           write(unitout,*)
         end if
         ! b_scrcoulint(iqmt, fra=.false., fti=.false.)
@@ -94,11 +102,11 @@ subroutine b_scrcoulintlauncher
         if(fcoup) then 
           if(mpiglobal%rank == 0) then
             call printline(unitout, "-")
-            write(unitout, '("Info(b_scrcoulintlauncher):&
-              & Calculating RA block of W")')
+            write(unitout, '("Info(",a,"):&
+              & Calculating RA block of W")') trim(thisname) 
             if(fti) then
-              write(unitout, '("Info(b_scrcoulintlauncher):&
-                & Using time inverted anti-resonant basis")')
+              write(unitout, '("Info(",a,"):&
+                & Using time inverted anti-resonant basis")') trim(thisname) 
             end if
             write(unitout,*)
           end if
@@ -110,8 +118,8 @@ subroutine b_scrcoulintlauncher
 
         ! RR block
         if(mpiglobal%rank == 0) then
-          write(unitout, '("Info(b_scrcoulintlauncher):&
-            & Calculating RR block of W")')
+          write(unitout, '("Info(",a,"):&
+            & Calculating RR block of W")') trim(thisname) 
           write(unitout,*)
         end if
         ! b_scrcoulint(iqmt, fra=.false., fti=.false.)
@@ -122,11 +130,11 @@ subroutine b_scrcoulintlauncher
         if(fcoup) then 
           if(mpiglobal%rank == 0) then
             call printline(unitout, "-")
-            write(unitout, '("Info(b_scrcoulintlauncher):&
-              & Calculating RA block of W")')
+            write(unitout, '("Info(",a,"):&
+              & Calculating RA block of W")') trim(thisname) 
             if(fti) then
-              write(unitout, '("Info(b_scrcoulintlauncher):&
-                & Using time inverted anti-resonant basis")')
+              write(unitout, '("Info(",a,"):&
+                & Using time inverted anti-resonant basis")') trim(thisname) 
             end if
             write(unitout,*)
           end if
@@ -136,15 +144,16 @@ subroutine b_scrcoulintlauncher
 
       case default
 
-        write(*,*) "Error(b_scrcoulintlauncher): Unrecongnized casesting:", trim(casestring)
+        write(*,'("Error(",a,"): Unrecongnized casesting:", a)')&
+          & trim(thisname), trim(casestring)
         call terminate
 
     end select
 
     if(mpiglobal%rank == 0) then
       call printline(unitout, "+")
-      write(unitout, '("Info(b_scrcoulintlauncher): Screened coulomb interaction&
-        & finished for iqmt=",i4)') iqmt
+      write(unitout, '("Info(",a,"): Screened coulomb interaction&
+        & finished for iqmt=",i4)') trim(thisname), iqmt
       call printline(unitout, "+")
     end if
 
