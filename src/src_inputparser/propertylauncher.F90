@@ -154,7 +154,11 @@ Subroutine propertylauncher
 ! IP-RPA dielectric tensor      
       If (associated(input%properties%dielmat)) Then
          call rereadinput
-         call dielmat
+         if(input%properties%dielmat%kubodc) then
+            call kubo
+         else
+            call dielmat
+         end if
       End If    
 
 ! MOKE effect      
