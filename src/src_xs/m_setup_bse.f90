@@ -1030,7 +1030,7 @@ module m_setup_bse
           & Taking square root of RR-RA matrix")') trim(thisname)
         call timesec(t0)
       end if
-      ! rrmat = (A-B)^1/2
+      ! rrmat -> (A-B)^1/2
       call sqrtdzmat_hepd(rrmat, binfo, eecs=input%xs%bse%eecs)
       if(mpiglobal%rank == 0) then 
         call timesec(t1)

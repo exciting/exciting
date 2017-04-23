@@ -48,6 +48,8 @@ module m_dzmatmult
       complex(8), intent(in), optional :: alpha, beta
       character(1), intent(in), optional :: transa, transb
 
+      ! Local
+      character(*), parameter :: thisname = "dzmatmult"
       complex(8) :: a, b
       character(1) :: ta, tb
       integer(4) :: ropa, copa, ropb, copb, rmatc, cmatc
@@ -88,7 +90,8 @@ module m_dzmatmult
       ! Check contexts
       if(zma%context /= zmb%context .or. zma%context /= zmc%context &
         & .or. zmb%context /= zmc%context) then
-        write(*,*) "Error PBALS does not perform inter-context operations"
+        write(*, '("Error(",a,"):&
+          & PBALS does not perform inter-context operations.")') trim(thisname)
         call terminate
       end if
       ! Subselections of global arrays
@@ -125,6 +128,7 @@ module m_dzmatmult
 #endif
 
       ! Default values for m,n,k
+      ! C = alpha* Op(A)*Op(B) + beta*C
       if(present(m)) then
         ropa = m
       else
@@ -134,7 +138,8 @@ module m_dzmatmult
           case('T','t','C','c')
             ropa = zma%ncols
           case default
-            write(*,*) "dzmatmult (ERROR): TRANSA invalid"
+            write(*, '("Error(",a,"): TRANSA invalid")') trim(thisname)
+            call terminate
         end select
       end if
       if(present(n)) then 
@@ -146,7 +151,8 @@ module m_dzmatmult
           case('T','t','C','c')
             copb = zmb%nrows
           case default
-            write(*,*) "dzmatmult (ERROR): TRANSB invalid"
+            write(*, '("Error(",a,"): TRANSB invalid")') trim(thisname)
+            call terminate
         end select
       end if
       if(present(k)) then 
@@ -158,7 +164,8 @@ module m_dzmatmult
           case('T','t','C','c')
             copa = zma%nrows
           case default
-            write(*,*) "dzmatmult (ERROR): TRANSB invalid"
+            write(*, '("Error(",a,"): TRANSA invalid")') trim(thisname)
+            call terminate
         end select
       end if
 
@@ -189,7 +196,6 @@ module m_dzmatmult
       else if(copb > rmatc) then 
         write(*,'("dzmatmult@rank",i2,":(Warning) copb /= cmatc",2i4)') copb, cmatc 
       end if
-
 
 #ifdef SCAL
       if(.not. zma%isdistributed) then

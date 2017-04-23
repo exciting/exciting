@@ -113,11 +113,9 @@ module m_sqrtzmat
       allocate(evals(m))
       evals = 0.0d0
 
-      call new_dzmat(evecs, m, n, binfo, hepdmat%mblck, hepdmat%nblck)
-
       ! Diagonalize hermitian matrix
-      call dhesolver(hepdmat, evals, binfo, evecs, eecs=clustersize)
-
+      call new_dzmat(evecs, m, n, binfo, hepdmat%mblck, hepdmat%nblck)
+      call dhesolver(hepdmat, evals, binfo, evec=evecs, eecs=clustersize)
 
       if(binfo%isroot) then 
         write(*,'("Info(",a,"): Passed diagonalizaion")') trim(thisname)
@@ -146,20 +144,29 @@ module m_sqrtzmat
       end do
 
       if(binfo%isroot) then 
-        write(*,'("Info(",a,"): Q*D^1/4")') trim(thisname)
+        write(*,'("Info(",a,"): Q*D^1/4 passed")') trim(thisname)
       end if
+
+      write(*,'("Info(",a," at rank ", i3"): evecs descriptor = ", 9i5)')&
+        & trim(thisname), mpiglobal%rank, evecs%desc
+      write(*,'("Info(",a," at rank ", i3"): hepdmat descriptor = ", 9i5)')&
+        & trim(thisname), mpiglobal%rank, hepdmat%desc
       
-      ! Construct square root matrix
+      ! Construct square root matrix A^1/2 = (Q D^1/4)*( Q D^1/4)^H
       call dzmatmult(evecs, evecs, hepdmat, transb='C')
 
+      write(*,'("Info(",a," at rank ", i3"): Passed matrix mult.)')&
+        & trim(thisname), mpiglobal%rank
+
       if(binfo%isroot) then 
-        write(*,'("Info(",a,"): Matrix mult.")') trim(thisname)
+        write(*,'("Info(",a,"): Matrix mult. passed")') trim(thisname)
       end if
 
       deallocate(evals)
       call del_dzmat(evecs)
 #else
-      write(*,'("Error(",a,"): -DSCAL was not specified but matrix is distributed.")') trim(thisname)
+      write(*,'("Error(",a,"): -DSCAL was not specified but matrix is distributed.")')&
+        & trim(thisname)
       call terminate
 #endif
 
