@@ -783,15 +783,15 @@ CONTAINS
               ! G+k-vector length and (theta, phi) coordinates
               call sphcrd(self%vgkc(:,igp,ispn,ik),self%gkc(igp,ispn,ik),&
               &           self%tpgkc(:,igp,ispn,ik))
-              ! generate structure factors for G+k-vectors
-              call gensfacgp(self%ngk(ispn,ik),self%vgkc(:,:,ispn,ik), &
-              &              self%ngkmax,self%sfacgk(:,:,ispn,ik))
-
             end do
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif    
+            ! generate structure factors for G+k-vectors
+            call gensfacgp(self%ngk(ispn,ik),self%vgkc(:,:,ispn,ik), &
+            &              self%ngkmax,self%sfacgk(:,:,ispn,ik))
+
           end do
         end do
         deallocate(igk2ig)
@@ -875,14 +875,15 @@ CONTAINS
                 ! G+k-vector length and (theta, phi) coordinates
                 call sphcrd(self%vgknrc(:,igp,ispn,ik),self%gknrc(igp,ispn,ik),&
                 &           self%tpgknrc(:,igp,ispn,ik))
-                ! generate structure factors for G+k-vectors
-                call gensfacgp(self%ngknr(ispn,ik),self%vgknrc(:,:,ispn,ik), &
-                &              self%ngknrmax,self%sfacgknr(:,:,ispn,ik))
               end do
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif    
+              ! generate structure factors for G+k-vectors
+              call gensfacgp(self%ngknr(ispn,ik),self%vgknrc(:,:,ispn,ik), &
+              &              self%ngknrmax,self%sfacgknr(:,:,ispn,ik))
+
             end do
           end do
           deallocate(igk2ig)

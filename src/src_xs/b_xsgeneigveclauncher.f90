@@ -23,6 +23,7 @@ subroutine b_xsgeneigveclauncher
   logical :: firstisgamma
   real(8), allocatable :: vkloff_kqmtm(:,:)
   real(8), parameter :: epslat=1.d-6
+  logical :: fwg
 
   write(*,*) "b_xsgeneigveclauncher here at rank", rank
   write(*,*) "use screening parameters = ", tscreen 
@@ -78,10 +79,16 @@ subroutine b_xsgeneigveclauncher
 
   ! For each Q-point in the Q-point list generate grids and
   ! save offsets.
+  if(input%xs%writexsgrids) then 
+    fwg = .true.
+  else
+    fwg = .false.
+  end if
+
   do iq = 1, nqpt
 
-    call xsgrids_init(vqlmt(1:3, iq), gkmax, makegk_=.true., makegq_=.true.)
-    if(mpiglobal%rank == 0) then 
+    call xsgrids_init(vqlmt(1:3, iq), gkmax, makegk_=fwg, makegq_=fwg)
+    if(mpiglobal%rank == 0 .and. fwg) then 
       call xsgrids_write_grids(iq)
     end if
 

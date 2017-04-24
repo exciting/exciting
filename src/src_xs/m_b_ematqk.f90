@@ -745,16 +745,16 @@ module m_b_ematqk
       ngkmax_save=ngkmax
       ngkmax=ngkmax1_ptr
       allocate (apwalmt(ngkmax, apwordmax, lmmaxapw, natmtot))
-      call match(ngk1_ptr(1, ikq), gkc1_ptr(1,1,ikq), tpgkc1_ptr(1,1,1,ikq), &
-        & sfacgk1_ptr(1,1,1,ikq), apwalmt)
+      call match(ngk1_ptr(1, ikq), gkc1_ptr(:,1,ikq), tpgkc1_ptr(:,:,1,ikq), &
+        & sfacgk1_ptr(:,:,1,ikq), apwalmt)
       ngkmax=ngkmax_save
 
       ! Generate matching coefficients for k
       ngkmax_save=ngkmax
       ngkmax=ngkmax0_ptr
       allocate (apwalmt0(ngkmax, apwordmax, lmmaxapw, natmtot))
-      call match(ngk0_ptr(1, ik), gkc0_ptr(1,1,ik), tpgkc0_ptr(1,1,1,ik), &
-        & sfacgk0_ptr(1,1,1,ik), apwalmt)
+      call match(ngk0_ptr(1, ik), gkc0_ptr(:,1,ik), tpgkc0_ptr(:,:,1,ik), &
+        & sfacgk0_ptr(:,:,1,ik), apwalmt)
       ngkmax=ngkmax_save
       call timesec(cpu0)
       cpuread = cpu0 - cpu1

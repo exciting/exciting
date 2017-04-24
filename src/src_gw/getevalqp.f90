@@ -3,8 +3,10 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
 
   use modmpi
   use modinput
-  use modmain
-  use modgw,    only: ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp
+  use mod_constants, only: zzero
+  use mod_kpoint, only: nkpt, vkl
+  use mod_eigenvalue_occupancy, only: nstsv
+  use modgw, only: ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp
 
   implicit none
       

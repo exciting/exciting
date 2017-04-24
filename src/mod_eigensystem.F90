@@ -28,7 +28,7 @@ Module mod_eigensystem
 ! APW-APW Hamiltonian integrals
       Real (8), Allocatable :: haa (:, :, :, :, :, :)
       Complex (8), Allocatable :: haaij(:,:,:)
-      integer haaijSize
+      integer :: haaijSize
 ! local-orbital-APW Hamiltonian integrals
       Real (8), Allocatable :: hloa (:, :, :, :, :)
       Complex (8), Allocatable :: haloij(:,:,:)
@@ -43,7 +43,7 @@ Module mod_eigensystem
       Real (8), Allocatable :: h1loa (:, :, :)
 ! local-orbital-local-orbital Hamiltonian integrals
       Real (8), Allocatable :: h1lolo (:, :, :)
-      logical h1on
+      logical :: h1on
 ! complex Gaunt coefficient array
       Complex (8), Allocatable :: gntyry (:, :, :),gntryy (:, :, :),gntnonz(:)
 ! list of non-zero Gaunt coefficients

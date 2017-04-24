@@ -146,7 +146,7 @@ module modscl
             if(nprocs2d /= nprocs) then
               write(unitout,'("Info(setupblacs):&
                 & Warning - Processes do not fit 2d grid")')
-              write(unitout,'("Info (setup2dblacs):&
+              write(unitout,'("Info(setup2dblacs):&
                 & Warning - ",i2," processes not used")') nprocs-nprocs2d
             end if
           end if

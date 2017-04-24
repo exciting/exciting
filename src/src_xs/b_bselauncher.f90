@@ -77,7 +77,17 @@ subroutine b_bselauncher
       &trim(thisname), iqmt
     call printline(unitout, "-")
 
+    if(mpiglobal%rank == 0) then
+      write(6, '(a,"BSE(q) Progress:", f10.3)', advance="no")&
+        & achar( 13), 100.0d0*dble(iqmt-iqmti+1)/dble(iq2-iq1+1)
+      flush(6)
+    end if
+
   end do
+
+  if(mpiglobal%rank == 0) then
+    write(6, *)
+  end if
 
   if(iq2<0) then
     write(unitout, '("Info(",a,"): Rank= ", i3, " is idle.")')&

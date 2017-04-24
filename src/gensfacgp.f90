@@ -22,6 +22,7 @@ Subroutine gensfacgp(ngp, vgpc, ld, sfacgp)
 !
 ! !REVISION HISTORY:
 !   Created January 2003 (JKD)
+!   Added OMP, removed modmpi 2017 (BA)
 !EOP
 !BOC
       Implicit None
@@ -31,17 +32,28 @@ Subroutine gensfacgp(ngp, vgpc, ld, sfacgp)
       Integer, Intent (In) :: ld
       Complex (8), Intent (Out) :: sfacgp (ld, natmtot)
 ! local variables
-      Integer :: is, ia, ias, igp
+      Integer :: is, ia, igp
       Real (8) :: t1
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igp,t1,is,ia)
+#endif    
       Do is = 1, nspecies
-         Do ia = 1, natoms (is)
-            ias = idxas (ia, is)
+         Do ia = 1, natoms(is)
+#ifdef USEOMP
+!$OMP DO 
+#endif    
             Do igp = 1, ngp
                t1 = dot_product (vgpc(:, igp), atposc(:, ia, is))
-               sfacgp (igp, ias) = cmplx (Cos(t1), Sin(t1), 8)
+               sfacgp (igp, idxas(ia, is)) = cmplx (Cos(t1), Sin(t1), 8)
             End Do
+#ifdef USEOMP
+!$OMP END DO
+#endif    
          End Do
       End Do
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif    
       Return
 End Subroutine
 !EOC

@@ -49,7 +49,8 @@ subroutine xsinit
   !     output file     !
   !---------------------!
   ! name of output file
-  call genfilname(nodotpar=.true., basename='INFOXS', procs=procs, rank=rank, filnam=xsfileout)
+  call genfilname(nodotpar=.true., basename='INFOXS', procs=procs,&
+    & rank=rank, filnam=xsfileout)
   call genfilname(basename='EMAT_TIMING', procs=procs, rank=rank, filnam=fnetim)
   call genfilname(basename='X0', procs=procs, rank=rank, filnam=fnchi0_t)
   call genfilname(basename='X0_TIMING', procs=procs, rank=rank, filnam=fnxtim)

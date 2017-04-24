@@ -68,6 +68,7 @@ module m_makeoscistr
         projmat=zzero
         call setup_rmat(projmat)
 
+      ! qmt /= 0
       else
 
         write(unitout, '("Info(",a,"): Making oscillator strengths using&
@@ -309,23 +310,20 @@ module m_makeoscistr
       ! Use time reversed anti-resonant basis
       useti = input%xs%bse%ti
 
-      if(binfo%isroot) then
-        write(unitout, '("Info(",a,"):&
-          & Making oscillator strengths (distributed).")') trim(thisname)
-        write(unitout, '("Info(",a,"): iqmt=", i4)') trim(thisname), iqmt
-        write(unitout, '("Info(",a,"): vqlmt=", 3E15.6)') trim(thisname), vqlmt(:,iqmt)
-        call timesec(ts0)
-      end if
+      write(unitout, '("Info(",a,"):&
+        & Making oscillator strengths (distributed).")') trim(thisname)
+      write(unitout, '("Info(",a,"): iqmt=", i4)') trim(thisname), iqmt
+      write(unitout, '("Info(",a,"): vqlmt=", 3E15.6)') trim(thisname), vqlmt(:,iqmt)
+      call timesec(ts0)
 
+      ! qmt = 0
       if(iqmt == 1) then 
 
-        if(binfo%isroot) then
-          write(unitout, '("Info(",a,"):&
-            & Using zero momentum transfer formalismus.")') trim(thisname)
-          write(unitout, '("Info(",a,"):&
-            & Making oscillator strengths using position operator matrix elements.")')&
-            & trim(thisname)
-        end if
+        write(unitout, '("Info(",a,"):&
+          & Using zero momentum transfer formalismus.")') trim(thisname)
+        write(unitout, '("Info(",a,"):&
+          & Making oscillator strengths using position operator matrix elements.")')&
+          & trim(thisname)
 
         nopt=3
 
@@ -343,10 +341,8 @@ module m_makeoscistr
 
 
           ! Build position operator matrix elements
-          if(binfo%isroot) then 
-            write(unitout, '("  Building Rmat.")')
-            call timesec(t0)
-          end if
+          write(unitout, '("  Building Rmat.")')
+          call timesec(t0)
 
           ! Build R-matrix from P-matrix
           ! \tilde{R}_{a,i} = 
@@ -354,21 +350,23 @@ module m_makeoscistr
           !     P^i_{o_a,u_a,k_a} /(e_{u_a, k_a} - e_{o_a, k_a})
           call setup_rmat_dist(dprojmat, binfo)
 
-          if(binfo%isroot) then
-            call timesec(t1)
-            write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-          end if
+          call timesec(t1)
+          write(unitout, '("    Time needed",f12.3,"s")') t1-t0
           !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+        else
+
+          write(unitout, '("Info(",a," at rank ", i3,"):&
+            & Not active.")')&
+            & trim(thisname), mpiglobal%rank
 
         end if
 
+      ! qmt /= 0
       else
 
-        if(binfo%isroot) then
-          write(unitout, '("Info(",a,"):&
-            & Making oscillator strengths using plane wave matrix elements.")')&
-            & trim(thisname)
-        end if
+        write(unitout, '("Info(",a,"):&
+          & Making oscillator strengths using plane wave matrix elements.")')&
+          & trim(thisname)
 
         nopt=1
 
@@ -383,24 +381,27 @@ module m_makeoscistr
           ! Distributed position operator matrix
           call new_dzmat(dprojmat, hamsize, nopt, binfo, rblck=binfo%mblck, cblck=1)
 
+        else
+
+          write(unitout, '("Info(",a," at rank ", i3,"):&
+            & Not active.")')&
+            & trim(thisname), mpiglobal%rank
+
         end if
 
         ! Build plane wave matrix elements
-        if(binfo%isroot) then 
-          write(unitout, '("  Building Pwmat.")')
-          call timesec(t0)
-        end if
+        write(unitout, '("  Building Pwmat.")')
+        call timesec(t0)
 
         ! Generate plane wave matrix elements for G=Gmt and q=qmt
         igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
         call setup_pwmat_dist(dprojmat, iqmt, igqmt, binfo)
 
-        if(binfo%isroot) then
-          call timesec(t1)
-          write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-        end if
+        call timesec(t1)
+        write(unitout, '("    Time needed",f12.3,"s")') t1-t0
         !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
+      ! qmt 0 or not
       end if
 
       if(binfo%isactive) then
@@ -452,10 +453,8 @@ module m_makeoscistr
               call terminate
             end if
 
-            if(binfo%isroot) then 
-              write(unitout, '("  Building (X+Y) from squared EVP EVs.")')
-              call timesec(t0)
-            end if
+            write(unitout, '("  Building (X+Y) from squared EVP EVs.")')
+            call timesec(t0)
 
             ! Interested in X^+ + Y^+, so we rescale the 
             ! auxiliary eigenvectors Z by the square root of the eigenvalues
@@ -477,17 +476,13 @@ module m_makeoscistr
             call del_dzmat(dcmat)
             call del_dzmat(dbevecr)
 
-            if(binfo%isroot) then 
-              call timesec(t1)
-              write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-            end if
+            call timesec(t1)
+            write(unitout, '("    Time needed",f12.3,"s")') t1-t0
           end if
 
-          if(binfo%isroot) then 
-            write(unitout, '("  Building distributed oscillator strengths&
-              & for time inverted ar basis.")')
-            call timesec(t0)
-          end if
+          write(unitout, '("  Building distributed oscillator strengths&
+            & for time inverted ar basis.")')
+          call timesec(t0)
 
           if(.not. useip) then 
             !! Oscillator strengths
@@ -517,15 +512,17 @@ module m_makeoscistr
         ! Projection matrix no longer needed
         call del_dzmat(dprojmat)
 
-        if(binfo%isroot) then
-          call timesec(t1)
-          write(unitout, '("    Time needed",f12.3,"s")') t1-t0
-        end if
+        call timesec(t1)
+        write(unitout, '("    Time needed",f12.3,"s")') t1-t0
 
-        if(binfo%isroot) then 
-          call timesec(ts1)
-          write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
-        end if
+        call timesec(ts1)
+        write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
+
+      else
+
+        write(unitout, '("Info(",a," at rank ", i3,"):&
+          & Not active.")')&
+          & trim(thisname), mpiglobal%rank
 
       ! is active
       end if

@@ -8,9 +8,22 @@
 !
 !
 Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
-      Use modmain
-      Use modinput
+      Use modinput, only: input, isspinorb
+      Use mod_constants, only: y00, zone, zzero, zi
+      Use mod_LDA_LU, only: ldapu, llu, vmatlu, lmmaxlu
+      Use mod_Gvector, only: ngrtot, cfunir, igfft, ngrid
+      Use mod_Gkvector, only: ngkmax, ngk, igkig
+      Use mod_atoms, only: natmtot, nspecies, natoms, idxas, spr
+      Use mod_muffin_tin, only: lmmaxvr, nrcmtmax, lmmaxapw, nrmtmax,&
+                              & nrmt, nrcmt, idxlm, rcmt
+      Use mod_potential_and_density, only: bxcmt, veffmt, bxcir, ex_coef
+      Use mod_SHT, only: rbshtvr, zbshtvr, zfshtvr
+      Use mod_eigensystem, only: nmatmax
+      Use mod_spin, only: ncmag, nspinor, ndmag
+      Use mod_eigenvalue_occupancy, only: nstfv, nstsv, evalsv
+      Use mod_APW_LO, only: apwordmax
       Use mod_hybrids, only: ihyb, bxnl
+      Use mod_timing, only: timesv
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik
@@ -33,7 +46,6 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Real (8) :: rm, t1
       Real (8) :: ts0, ts1, ta,tb,tc,td
 ! automatic arrays
-      Complex (8) zftp1 (lmmaxvr), zftp2 (lmmaxvr)
       Complex (8) zlflm (lmmaxvr, 3)
 ! allocatable arrays
       Real (8), Allocatable :: bmt (:, :, :)

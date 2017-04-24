@@ -1,4 +1,5 @@
-!
+! NOTE "FANCY" CODE: 
+!   Not compilable with debug options because a complex array is passed to a real array dummy argument.
 !
 !
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.

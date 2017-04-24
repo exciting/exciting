@@ -151,7 +151,7 @@ Subroutine hybrids
         call gencore
         call linengy
         call genapwfr
-        call genlofr(.false.)
+        call genlofr
         call olprad
         !______________________________
         ! step 2: read density and (local) potential from previous run

@@ -630,9 +630,8 @@ use m_writecmplxparts
     call setupblacs(mpiglobal, '0d', bi0d, np=1)
 
     ! General init
-    if(bi2d%isroot) then 
-      call timesec(ts0)
-    end if
+    call timesec(ts0)
+
     call init0
     ! k-grid init
     call init1
@@ -650,11 +649,10 @@ use m_writecmplxparts
     !   * Reads STATE.OUT
     !   * Generates radial functions (mod_APW_LO)
     call init2
-    if(bi2d%isroot) then 
-      call timesec(ts1)
-      write(unitout, '("Info(",a,"):&
-        & Init time:", f12.6)') trim(thisname), ts1 - ts0
-    end if
+
+    call timesec(ts1)
+    write(unitout, '("Info(",a,"):&
+      & Init time:", f12.6)') trim(thisname), ts1 - ts0
 
     ! Read Fermi energy from file
     ! Use EFERMI_QMT001.OUT
@@ -698,10 +696,8 @@ use m_writecmplxparts
       !end if
       ! Set k and k'=k grid eigenvalues to QP energies
       evalsv0=evalsv
-      if(bi2d%isroot) then
-        write(unitout,'("Info(",a,"):&
-          & Quasi particle energies are read from EVALQP.OUT")') trim(thisname)
-      end if
+      write(unitout,'("Info(",a,"):&
+        & Quasi particle energies are read from EVALQP.OUT")') trim(thisname)
     else if(associated(input%gw) .and. iqmt /= 1) then 
       if(bi2d%isroot) then 
         write(*,'("Error(",a,"):&
@@ -749,24 +745,22 @@ use m_writecmplxparts
         call new_dzmat(dham, hamsize, hamsize, bi2d)
 
         ! Write Info
-        if(bi2d%isroot) then
-          write(unitout,*)
-          write(unitout, '("Info(",a,"): Assembling distributed BSE matrix")') trim(thisname)
-          if(fcoup .and. fti) then
-            write(unitout, '(" Including coupling terms ")')
-            write(unitout, '(" Using time inverted anti-resonant basis")')
-            write(unitout, '(" Using squared EVP")')
-          end if
-          write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
-          write(unitout, '("  Shape=",i8)') hamsize
-          write(unitout, '("  nk=", i8)') nk_bse
-          write(unitout, '("  Distributing matrix to ",i3," processes")') bi2d%nprocs
-          write(unitout, '("  Local matrix shape ",i6," x",i6)')&
-            & dham%nrows_loc, dham%ncols_loc
+        write(unitout,*)
+        write(unitout, '("Info(",a,"): Assembling distributed BSE matrix")') trim(thisname)
+        if(fcoup .and. fti) then
+          write(unitout, '(" Including coupling terms ")')
+          write(unitout, '(" Using time inverted anti-resonant basis")')
+          write(unitout, '(" Using squared EVP")')
         end if
+        write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
+        write(unitout, '("  Shape=",i8)') hamsize
+        write(unitout, '("  nk=", i8)') nk_bse
+        write(unitout, '("  Distributing matrix to ",i3," processes")') bi2d%nprocs
+        write(unitout, '("  Local matrix shape ",i6," x",i6)')&
+          & dham%nrows_loc, dham%ncols_loc
 
         ! Assemble Hamiltonian matrix
-        if(bi2d%isroot) call timesec(ts0)
+        call timesec(ts0)
         if(fcoup .and. fti) then 
           ! Get aux. EVP matrices S=C(RR+RA)C and C=(RR-RA)^1/2 
           call setup_bse_ti_dist(iqmt, bi2d, smat=dham, cmat=dcmat)
@@ -775,11 +769,9 @@ use m_writecmplxparts
           call setup_bse_block_dist(dham, iqmt, .false., .false., bi2d)
         end if
 
-        if(bi2d%isroot) then
-          call timesec(ts1)
-          write(unitout, '("All processes build their local matrix")')
-          write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
-        end if
+        call timesec(ts1)
+        write(unitout, '("All processes build their local matrix")')
+        write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
         
         if(fwp) then
           call dzmat_send2global_root(ham, dham, bi2d)
@@ -794,18 +786,16 @@ use m_writecmplxparts
         end if
 
         ! Write Info
-        if(bi2d%isroot) then
-          if(fcoup .and. fti) then 
-            write(unitout, '("Info(",a,"):&
-              & Solving hermitian squared EVP")') trim(thisname)
-            write(unitout, '("Info(",a,"):&
-              & Invoking scalapack routine PZHEEVX")') trim(thisname)
-          else 
-            write(unitout, '("Info(",a,"):&
-              & Diagonalizing RR Hamiltonian (TDA)")') trim(thisname)
-            write(unitout, '("Info(",a,"):&
-              & Invoking scalapack routine PZHEEVX")') trim(thisname)
-          end if
+        if(fcoup .and. fti) then 
+          write(unitout, '("Info(",a,"):&
+            & Solving hermitian squared EVP")') trim(thisname)
+          write(unitout, '("Info(",a,"):&
+            & Invoking scalapack routine PZHEEVX")') trim(thisname)
+        else 
+          write(unitout, '("Info(",a,"):&
+            & Diagonalizing RR Hamiltonian (TDA)")') trim(thisname)
+          write(unitout, '("Info(",a,"):&
+            & Invoking scalapack routine PZHEEVX")') trim(thisname)
         end if
 
         ! Eigenvectors are distributed
@@ -820,7 +810,7 @@ use m_writecmplxparts
         efind = input%xs%bse%efind
 
         ! Diagonalize Hamiltonian (destroys the content of ham)
-        if(bi2d%isroot) call timesec(ts0)
+        call timesec(ts0)
 
         if(efind) then
 
@@ -866,26 +856,24 @@ use m_writecmplxparts
         ! Deallocate BSE-Hamiltonian
         call del_dzmat(dham)
 
-        if(bi2d%isroot) call timesec(ts1)
+        call timesec(ts1)
 
-        if(bi2d%isroot) then
-          if(efind) then
-            if(fcoup .and. fti) then 
-              write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
-              write(unitout, '("  [",E10.3,",",E10.3,"]/H^2")') sqrt(v1), sqrt(v2)
-              write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') sqrt(v1)*h2ev, sqrt(v2)*h2ev
-            else
-              write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
-              write(unitout, '("  [",E10.3,",",E10.3,"]/H")') v1, v2
-              write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') v1*h2ev, v2*h2ev
-            end if
+        if(efind) then
+          if(fcoup .and. fti) then 
+            write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
+            write(unitout, '("  [",E10.3,",",E10.3,"]/H^2")') sqrt(v1), sqrt(v2)
+            write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') sqrt(v1)*h2ev, sqrt(v2)*h2ev
           else
             write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
-            write(unitout, '("  i1=",i8," i2=",i8)') i1, i2
+            write(unitout, '("  [",E10.3,",",E10.3,"]/H")') v1, v2
+            write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') v1*h2ev, v2*h2ev
           end if
-          write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
-          write(unitout,*)
+        else
+          write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
+          write(unitout, '("  i1=",i8," i2=",i8)') i1, i2
         end if
+        write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
+        write(unitout,*)
 
         ! =================================================================!
         ! Store excitonic energies and wave functions to file if requested !
@@ -922,22 +910,18 @@ use m_writecmplxparts
             call terminate
           end if
 
-          if(bi2d%isroot) then 
-            write(unitout, '("Info(",a,"):&
-              & Writing excition eigenvectors for index range=",2i8)')&
-              & trim(thisname), iex1, iex2
-          end if
+          write(unitout, '("Info(",a,"):&
+            & Writing excition eigenvectors for index range=",2i8)')&
+            & trim(thisname), iex1, iex2
 
           ! When full BSE with time inversion symmetry is jused
           ! the original eigenvectors need to be reconstructed from the 
           ! auxilliary ones.
           if(fcoup .and. fti) then 
 
-            if(bi2d%isroot) then 
-              write(unitout, '("Info(",a,"): Generating resonant&
-                & and anti-resonant exciton coefficients from&
-                & auxilliary squared EVP eigenvectors (pos. E).")') trim(thisname)
-            end if
+            write(unitout, '("Info(",a,"): Generating resonant&
+              & and anti-resonant exciton coefficients from&
+              & auxilliary squared EVP eigenvectors (pos. E).")') trim(thisname)
 
             !===========================================================!
             ! Make C' Matrix                                            !
@@ -995,10 +979,8 @@ use m_writecmplxparts
       ! IP
       else
 
-        if(bi2d%isroot) then 
-          write(unitout, '("Info(",a,"):&
-            & IP requested, nothing much to do")') trim(thisname)
-        end if
+        write(unitout, '("Info(",a,"):&
+          & IP requested, nothing much to do")') trim(thisname)
 
         nexc = hamsize
         allocate(bevalre(nexc))
@@ -1006,8 +988,17 @@ use m_writecmplxparts
 
       end if
 
-    ! End on 2d process grid
+    ! Process is not on 2d process grid
+    else
+
+      ! 
+
     end if
+
+    ! Note: the following allocation is only needed for processes that are not
+    !       on the process grid and serves the only purpose that the debugger
+    !       is not complaining here.
+    if(.not. allocated(bevalre)) allocate(bevalre(hamsize))
 
     ! Calculate oscillator strengths.
     ! Note: Deallocates dbevecr and dcmat

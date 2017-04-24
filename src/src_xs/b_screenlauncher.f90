@@ -404,7 +404,17 @@ subroutine b_screenlauncher
         call printline(unitout, "-")
         write(unitout, *)
 
+        if(mpiglobal%rank == 0) then
+          write(6, '(a,"b_screenlauncher: Progess epsilon(q):", f10.3)', advance="no")&
+            & achar( 13), 100.0d0*dble(iq-qpari+1)/dble(qparf-qpari+1)
+          flush(6)
+        end if
+
       end do
+
+      if(mpiglobal%rank == 0) then
+        write(6, *)
+      end if
 
       ! Synchronize
       call barrier

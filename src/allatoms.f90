@@ -36,6 +36,7 @@ Subroutine allatoms(verbosity)
       integer :: verbosity
 ! always use LDA to setup atomic densities
       Integer, Parameter :: xctype_ = 3
+      Integer :: xctypearray(3)
       Integer, Parameter :: xcgrad_ = 0
       Integer :: fnum_ = 333 ! file where Vs (see DFT-1/2 details) is written
       Integer :: is, i, ir, n, nshell
@@ -69,6 +70,8 @@ Subroutine allatoms(verbosity)
       endif
 !write(*,*) 'approaching the loop'
 
+      ! All libxc routines expect xctype(3) instead of a single integer
+      xctypearray(1:3) = xctype_
 #ifdef USEOMPallatoms
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(rwf,fnum_,fname,i,ir,n,ampl,cut,cutfunction,aux,nshell,shell,ionization,newspocc,rhoslave)
@@ -77,7 +80,7 @@ Subroutine allatoms(verbosity)
       Do is = 1, nspecies
          Allocate (rwf(spnrmax, 2, spnstmax))
          Call atom (input%groundstate%ptnucl, spzn(is), spnst(is), &
-        & spn(:, is), spl(:, is), spk(:, is), spocc(:, is), xctype_, &
+        & spn(:, is), spl(:, is), spk(:, is), spocc(:, is), xctypearray, &
         & xcgrad_, spnr(is), spr(:, is), &
         & speval(:, is), sprho(:, is), spvr(:, is), rwf,nrmt(is),dirac_eq)
          Deallocate (rwf)
@@ -154,9 +157,10 @@ Subroutine allatoms(verbosity)
            Enddo
 !          Now, we calculate the ionized atom
            Call atom (input%groundstate%ptnucl, spzn(is), spnst(is), &
-             & spn(:, is), spl(:, is), spk(:, is), newspocc(:), xctype_, &
+             & spn(:, is), spl(:, is), spk(:, is), newspocc(:), xctypearray, &
              & xcgrad_, spnr(is), spr(:, is), &
-             & speval(:, is), rhoslave, vhalfsph(:, is), rwf,nrmt(is),dirac_eq)
+             & speval(:, is), rhoslave, vhalfsph(:, is), rwf,nrmt(is), &
+             & dirac_eq)
            vhalfsph(:,is) = vhalfsph(:,is)-spvr(:,is)
            Do ir = 1, spnr(is)
 !          Now we can introduce the cut-function

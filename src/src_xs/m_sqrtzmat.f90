@@ -155,7 +155,7 @@ module m_sqrtzmat
       ! Construct square root matrix A^1/2 = (Q D^1/4)*( Q D^1/4)^H
       call dzmatmult(evecs, evecs, hepdmat, transb='C')
 
-      write(*,'("Info(",a," at rank ", i3"): Passed matrix mult.)')&
+      write(*,'("Info(",a," at rank ", i3"): Passed matrix mult.")')&
         & trim(thisname), mpiglobal%rank
 
       if(binfo%isroot) then 

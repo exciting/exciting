@@ -1727,6 +1727,12 @@
         </xs:simpleType>
       </xs:attribute>
 
+      <xs:attribute ex:importance="expert" ex:unit="" name="writexsgrids" type="xs:boolean"
+        default="false">
+        <xs:annotation>
+          <xs:documentation><pre>"true"</pre> to write out k, k+q, g, g+k, g+q grids to file.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="tappinfo" type="xs:boolean"
         default="false">
         <xs:annotation>
