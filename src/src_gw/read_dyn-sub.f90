@@ -3,25 +3,30 @@ MODULE mod_dynmat
   !
   IMPLICIT NONE
   !
+  INTEGER :: nat 
+  INTEGER :: ntyp
   INTEGER :: ndynmat                   ! size of the dynamical matrix 
   INTEGER :: nqredtot                  ! number of reducible points in the BZ (coarse grid)
   INTEGER :: nqirr                     ! number of irreducible points in the BZ  (coarse grid)
   INTEGER :: nqred (3)                 ! nqx, nqy, nqz
   !
-  COMPLEX(8),  ALLOCATABLE :: dynmat  (:,:,:) ! the dynamical matrix 
-  COMPLEX(8),  ALLOCATABLE :: dynmatD (:,:,:) ! the dynamical matrix 
-  REAL(8),     ALLOCATABLE :: ev     (:,:)   ! the eigenvalues of the dynamical matrix 
-  REAL(8),     ALLOCATABLE :: xqcirr (:,:)   ! reducible q-point mesh in Cartesian coordinates in units of 2\pi/alat 
-  REAL(8),     ALLOCATABLE :: xqcred (:,:)   ! reducible q-point mesh in Cartesian coordinates in units of 2\pi/alat 
-  REAL(8),     ALLOCATABLE :: xqlred (:,:)   ! reducible q-point mesh in lattice coordinates in units of 2\pi/alat 
-
-  INTEGER,     ALLOCATABLE :: xqirrdeg(:) ! degeneracy of the irreducible q-point 
+  COMPLEX(8),  ALLOCATABLE :: dynmat   (:,:,:) ! the dynamical matrix 
+  COMPLEX(8),  ALLOCATABLE :: dynmatD  (:,:,:) ! the dynamical matrix on the dense grid
+  REAL   (8),  ALLOCATABLE :: ev       (:,:)   ! the eigenvalues of the dynamical matrix 
+  REAL   (8),  ALLOCATABLE :: wphdense (:,:)   ! the eigenvalues of the dynamical matrix on the dense grid 
+  REAL   (8),  ALLOCATABLE :: xqcirr   (:,:)   ! reducible q-point mesh in Cartesian coordinates in units of 2\pi/alat 
+  REAL   (8),  ALLOCATABLE :: xqcred   (:,:)   ! reducible q-point mesh in Cartesian coordinates in units of 2\pi/alat 
+  REAL   (8),  ALLOCATABLE :: xqlred   (:,:)   ! reducible q-point mesh in lattice coordinates in units of 2\pi/alat 
+  REAL   (8),  ALLOCATABLE :: amass    (:)
   !
-  INTEGER, ALLOCATABLE :: irr2red (:)  ! map index between irreducible and reducible set of q points 
-  ! 
-  REAL(8), PARAMETER   :: RY_TO_THZ=3289.8419608358563
-  REAL(8), PARAMETER   :: RY_TO_CMM1=109737.31570111268
-  REAL(8), PARAMETER   :: AMU_RY=911.44424213227251
+  INTEGER,     ALLOCATABLE :: ityp  (:)
+  INTEGER,     ALLOCATABLE :: xqirrdeg(:) ! degeneracy of the irreducible q-point 
+  INTEGER,     ALLOCATABLE :: irr2red (:)  ! map index between irreducible and reducible set of q points 
+  !            
+  REAL(8),     PARAMETER   :: RY_TO_THZ  = 3289.8419608358563
+  REAL(8),     PARAMETER   :: RY_TO_CMM1 = 109737.31570111268
+  REAL(8),     PARAMETER   :: AMU_RY     = 911.44424213227251
+  REAL(8)              :: tpiba 
   !
 END MODULE mod_dynmat 
 !--------------------------------------
@@ -30,17 +35,20 @@ SUBROUTINE read_dyn
 
   !----------------------------------------------------------------------------
   !
-  USE mod_dynmat, ONLY : ndynmat, nqred, nqredtot, xqcred, xqcirr, nqirr, irr2red, xqirrdeg
+  USE mod_dynmat, ONLY : ndynmat, nqred, nqredtot, xqcred, xqcirr, nqirr, irr2red, xqirrdeg, dynmat
   ! 
   IMPLICIT NONE
   !
   CHARACTER(LEN=:), ALLOCATABLE :: id
   CHARACTER(LEN=100) :: tmpstr, fname
 
-  INTEGER :: iqirr, iqred
+  INTEGER :: iqirr, iqred, iqred1
  
   tmpstr='diam.dyn'
   
+
+  WRITE(6,*) ' -- Importing the dynamical matrix -- '  
+
   ! read the total number of q points 
   write(fname,*)'diam.dyn0'
   OPEN(unit=2,file=fname,action='read')
@@ -55,36 +63,31 @@ SUBROUTINE read_dyn
   ALLOCATE(xqcirr(3,nqirr),xqirrdeg(nqirr))
 
   iqred = 0 
+  iqred1 = 0 
   DO iqirr = 1, nqirr  ! loop over all q points 
     ! 
-    WRITE(6,*) ' -- Diagonalizing the dynamical matrix for iqirr = ', iqirr 
-     
     ! define file names for reading the dynamical matrix 
     if(iqirr > 9 ) write(fname,101)'diam.dyn',iqirr
     if(iqirr < 10) write(fname,102)'diam.dyn',iqirr
     101 format(A8,i2)
     102 format(A8,i1)
     !
-    ! read the dynamical matrix from file for each q 
-    !
+    ! import the q-mesh
     CALL load_qmesh (fname,iqirr,iqred) 
-    !
-    CALL load_dynmat(fname,iqirr) 
-    !CALL diag_dynmat()
-    !CALL print_ev () 
-    !
-    !DEALLOCATE(ev)
+
+    ! read the dynamical matrix from file for each q 
+    CALL load_dynmat_red(fname,iqirr,iqred1) 
     !
   ENDDO ! loop over q points found in diam.dyn0 
 
-  PRINT*, ' I found ', iqred , ' reducible q points '
+  !PRINT*, ' I found ', iqred , ' reducible q points '
 END SUBROUTINE read_dyn
 !----------------------------------------------------------
 
 !----------------------------------------------------------
 SUBROUTINE load_qmesh (fname, iqirr, iqred)
   ! 
-  USE mod_dynmat, ONLY : xqcred, nqredtot, irr2red, nqirr, xqcirr, xqirrdeg
+  USE mod_dynmat, ONLY : xqcred, nqredtot, irr2red, nqirr, xqcirr, xqirrdeg, tpiba
   !
   IMPLICIT NONE
   !
@@ -98,7 +101,7 @@ SUBROUTINE load_qmesh (fname, iqirr, iqred)
   CHARACTER(LEN=75) :: line
   !
 
-  IF(iqred==0) PRINT*, 'I am trying to load the q-mesh '
+  !IF(iqred==0) PRINT*, 'I am trying to load the q-mesh '
   OPEN(unit=1,file=fname,action='read')
   
   READ(1,*)
@@ -116,6 +119,7 @@ SUBROUTINE load_qmesh (fname, iqirr, iqred)
       READ(1,'(a)',iostat=ios) line
       iqred = iqred + 1 
       READ(line(11:75),*) (xqcred(i,iqred),i=1,3)
+      xqcred(:,iqred) = xqcred(:,iqred) * tpiba
       irr2red(iqred) = iqirr
       IF(first) xqcirr(:,iqirr)=xqcred(:,iqred)
       !
@@ -125,15 +129,10 @@ SUBROUTINE load_qmesh (fname, iqirr, iqred)
   ENDDO 
   xqirrdeg(iqirr) = counter 
   !
-  PRINT*, " Degeneracy = ", xqirrdeg(iqirr)
-  ! 
   IF(iqred .GT. nqredtot) THEN 
     PRINT*, 'There are too many k-points in the dynamical matrix files, check it! Dunno how to deal with this shit. STOP!  '
     STOP 
   ENDIF
-  !
-  !IF (iqred .EQ. nqredtot ) PRINT*, xqcred
-  !IF (iqred .EQ. nqredtot ) PRINT*,irr2red 
   !
   CLOSE(1)
   RETURN
@@ -142,22 +141,22 @@ END SUBROUTINE load_qmesh
 !----------------------------------------------------------
 
 !----------------------------------------------------------
-SUBROUTINE load_dynmat (fname, iqirr)
+SUBROUTINE load_dynmat_red (fname, iqirr, iqred)
   ! 
-  USE mod_dynmat, ONLY : ndynmat, dynmat, ev, nqirr
+  USE mod_dynmat, ONLY : ndynmat, dynmat, ev, nqirr, nqredtot, tpiba, nat, ityp, amass, ntyp
+  USE mod_constants, ONLY : twopi 
   !
   IMPLICIT NONE
   !
   CHARACTER(LEN=100), INTENT(IN) :: fname
   INTEGER,            INTENT(IN) :: iqirr 
+  INTEGER,            INTENT(OUT) :: iqred
 
   LOGICAL, SAVE                 :: first =.TRUE.
 
   REAL (8),         ALLOCATABLE :: tau   (:,:)
   COMPLEX(8),      ALLOCATABLE :: phiq  (:,:,:,:)
-  REAL (8),         ALLOCATABLE :: amass (:)
   CHARACTER(LEN=3), ALLOCATABLE :: atm(:)
-  INTEGER,  ALLOCATABLE :: ityp  (:)
 
   REAL(8) :: epsil(3,3)
   REAL(8) :: phir(3), phii(3)
@@ -168,7 +167,7 @@ SUBROUTINE load_dynmat (fname, iqirr)
 
   ! I/O variables
   LOGICAL :: lrigid
-  INTEGER :: nqs, ntyp, nat, ibrav, i1, j1
+  INTEGER :: nqs, ibrav, i1, j1
   ! 
   ! local variables
   INTEGER :: ntyp1,nat1,ibrav1,ityp1
@@ -188,7 +187,15 @@ SUBROUTINE load_dynmat (fname, iqirr)
      ! read cell information from file
      !
      READ(1,*) ntyp,nat,ibrav,(celldm(i),i=1,6)
-     ALLOCATE (atm(ntyp),amass(ntyp))
+     !
+     tpiba = twopi / celldm(1)
+     !
+     ALLOCATE (atm(ntyp),tau(3,nat) )
+     ALLOCATE ( phiq (3,3,nat,nat) )
+     IF(iqirr .EQ. 1)THEN
+       ALLOCATE ( ityp(nat),amass(ntyp)) 
+     ENDIF
+
      if (ibrav==0) then
         read (1,'(a)') atm1  ! for compatibility
         read (1,*) ((at(i,j),i=1,3),j=1,3)
@@ -196,20 +203,20 @@ SUBROUTINE load_dynmat (fname, iqirr)
      DO nt = 1,ntyp
         READ(1,*) i,atm(nt),amass(nt)
      END DO
-     ALLOCATE ( ityp(nat), tau(3,nat) )
      DO na=1,nat
         READ(1,*) i,ityp(na),(tau(j,na),j=1,3)
      END DO
      !
-     ALLOCATE ( phiq (3,3,nat,nat) )
      !
-     ndynmat=3*nat 
-     IF(ALLOCATED(dynmat))DEALLOCATE(dynmat) 
-     ALLOCATE(dynmat(ndynmat,ndynmat,nqirr)) 
-     IF(ALLOCATED(ev))DEALLOCATE(ev)
-     ALLOCATE(ev(ndynmat,nqirr))
-     dynmat(:,:,:)=(0.d0,0.d0)
-     ev(:,:)=0.d0
+     IF (iqirr .EQ. 1)THEN
+       ndynmat=3*nat 
+       IF(ALLOCATED(dynmat))DEALLOCATE(dynmat) 
+       ALLOCATE(dynmat(ndynmat,ndynmat,nqredtot)) 
+       IF(ALLOCATED(ev))DEALLOCATE(ev)
+       ALLOCATE(ev(ndynmat,nqredtot))
+       dynmat(:,:,:)=(0.d0,0.d0)
+       ev(:,:)=0.d0
+     ENDIF
      !
      first=.FALSE.
      !
@@ -233,12 +240,13 @@ SUBROUTINE load_dynmat (fname, iqirr)
   !
   ! REPORT READ DATA 
   IF(iqirr.eq.1)THEN
-  WRITE(6,*) 'READING THE DYNAMICAL MATRIX I FOUND THE FOLLOWING STUFF: ' 
+  WRITE(6,*) 'READING THE REDUCIBLE DYNAMICAL MATRIX I FOUND THE FOLLOWING STUFF: ' 
   WRITE(6,*) ' Number of atomic species   : ',  ntyp
   WRITE(6,*) ' Atomic species             : ',  atm
   WRITE(6,*) ' Number of atoms            : ',  nat
   WRITE(6,*) ' Atomic masses found        : ',  amass
   WRITE(6,*) ' Bravais Lattice index (QE) : ',  ibrav 
+  WRITE(6,*) ' twopi / alat               : ',  tpiba 
   ENDIF
   !
   nqs = 0
@@ -257,64 +265,112 @@ SUBROUTINE load_dynmat (fname, iqirr)
   READ(1,*)
   !
   DO na=1,nat
-     DO nb=1,nat
-        READ(1,*) i,j
-        DO i=1,3
-           READ (1,*) (phir(j),phii(j),j=1,3)
-           DO j = 1,3
-              phiq (i,j,na,nb) = CMPLX(phir(j),phii(j))
-           END DO
+    DO nb=1,nat
+      READ(1,*) i,j
+      DO i=1,3
+        READ (1,*) (phir(j),phii(j),j=1,3)
+        DO j = 1,3
+          phiq (i,j,na,nb) = CMPLX(phir(j),phii(j))
         END DO
-     END DO
+      END DO
+    END DO
   END DO
 
-  CALL dyndiag2 (nat,ntyp,amass,ityp,phiq,iqirr)
-  CALL print_ev (iqirr) 
-  !
+  iqred = iqred + 1 
+  DO na = 1,nat
+    DO nb = 1,nat
+      DO i= 1,3
+        DO j= 1,3
+          dynmat((na-1)*3+i,(nb-1)*3+j,iqred) = phiq(i,j,na,nb)
+        END DO
+      END DO
+    END DO
+  END DO
+
+
+  CALL dyndiag2 (nat,ntyp,amass,ityp,dynmat(:,:,iqred),ev(:,iqred))
+  !CALL print_ev2 (ev(:,iqred)) 
+
   ! NOTA BENE: 
   ! If the following GOTO is activated, the subrouting does the diagonalization for all
   ! the reducible points (they are all listed in the dynamical matrix file), if it's commented
   ! only the first point is considered (the eigenvalues are the same for symmetry, but eigenvectors 
   ! should be rotated using the symmetry operations). 
   !
-  !GOTO 100 
+  GOTO 100 
   !
 201  CLOSE(1)
   !
-END SUBROUTINE load_dynmat 
+END SUBROUTINE load_dynmat_red 
 
 !----------------------------------------------------------
-!
-SUBROUTINE print_ev (iqirr)
+
+!----------------------------------------------------------
+SUBROUTINE print_ev2 (ev)
   !
-  USE mod_dynmat, ONLY : ndynmat, ev, RY_TO_THZ, RY_TO_CMM1
+  USE mod_dynmat, ONLY : ndynmat, RY_TO_THZ, RY_TO_CMM1
   !
   IMPLICIT NONE
   !
-  INTEGER, INTENT(IN) :: iqirr
+  REAL(8),    INTENT(IN) :: ev (ndynmat)
   INTEGER             :: iw 
 
-  DO iw=1, ndynmat 
-    WRITE(6,*) iw , SQRT(ABS(ev(iw,iqirr))) * RY_TO_THZ, ' [THz] ', SQRT(ABS(ev(iw,iqirr))) * RY_TO_CMM1, ' [cm-1] ' 
+  PRINT*,' '
+  DO iw=1, ndynmat
+    WRITE(6,*) iw , SQRT(ABS(ev(iw))) * RY_TO_THZ, ' [THz] ', SQRT(ABS(ev(iw))) * RY_TO_CMM1, ' [cm-1] '
   ENDDO
   
-END SUBROUTINE print_ev
+END SUBROUTINE print_ev2
+
+!----------------------------------------------------------
+SUBROUTINE print_ev3 (ev,nq,vkl,str)
+  !
+  USE mod_dynmat, ONLY : ndynmat, RY_TO_THZ, RY_TO_CMM1
+  USE m_getunit
+  !
+  IMPLICIT NONE
+  !
+  INTEGER, INTENT(IN)    :: nq
+  REAL(8),    INTENT(IN) :: ev (ndynmat,nq)
+  REAL(8),    INTENT(IN) :: vkl(3,nq)
+  INTEGER                :: iw , iq, fid
+  CHARACTER(1)           :: str
+
+
+  CALL getunit (fid)
+  IF (str .EQ. 'd') OPEN(fid,file='ph-dense.OUT',action='Write',status='Unknown')
+  IF (str .EQ. 'c') OPEN(fid,file='ph-coarse.OUT',action='Write',status='Unknown')
+
+  DO iq=1, nq
+    WRITE(fid,*)'  ' 
+    WRITE(fid,103) iq , nq , vkl(:,iq)  
+    DO iw=1, ndynmat 
+      WRITE(fid,*) iw , SQRT(ABS(ev(iw,iq))) * RY_TO_THZ, ' [THz] ', SQRT(ABS(ev(iw,iq))) * RY_TO_CMM1, ' [cm-1] ' 
+    ENDDO
+  ENDDO
+  103 format(' iq = ',3x,i4,'/',i4,' | q = ( ',3f8.4,' ) ')
+
+  CLOSE(fid)
+  
+  RETURN
+END SUBROUTINE print_ev3
 
 !-----------------------------------------------------------------------
-subroutine dyndiag2 (nat,ntyp,amass,ityp,dyn,iqirr)
+subroutine dyndiag2 (nat,ntyp,amass,ityp,dyn,ev)
   !-----------------------------------------------------------------------
   !
   !   diagonalise the dynamical matrix
   !   On input:  amass = masses, in amu
   !   On output: ev = energies, z = displacements
   !
-  USE mod_dynmat, ONLY: AMU_RY, ev, dynmat
+  USE mod_dynmat, ONLY: AMU_RY !, dynmat
   
   implicit none
   ! input
-  integer, intent (in) :: iqirr
   integer nat, ntyp, ityp(nat)
-  complex(8) dyn(3,3,nat,nat)
+  REAL(8), INTENT (OUT) :: ev (3*nat)   ! the eigenvalues of the dynamical matrix 
+  !complex(8) dyn(3,3,nat,nat)
+  complex(8) dyn(3*nat,3*nat)
   real(8) amass(ntyp)
   ! output
   !complex(8) z(3*nat,3*nat)
@@ -326,20 +382,10 @@ subroutine dyndiag2 (nat,ntyp,amass,ityp,dyn,iqirr)
   !  fill the two-indices dynamical matrix
   !
   nat3 = 3*nat
-  allocate(dyn2 (nat3, nat3))
+  allocate(dyn2 (nat3, nat3)) 
+  dyn2 = dyn
   !
-  do na = 1,nat
-     do nb = 1,nat
-        do ipol = 1,3
-           do jpol = 1,3
-              dyn2((na-1)*3+ipol, (nb-1)*3+jpol) = dyn(ipol,jpol,na,nb)
-           end do
-        end do
-     end do
-  end do
-  !
-  !  impose hermiticity
-  !
+  ! impose hermiticity
   diff = 0.d0
   difrel=0.d0
   do i = 1,nat3
@@ -355,8 +401,8 @@ subroutine dyndiag2 (nat,ntyp,amass,ityp,dyn,iqirr)
         dyn2(j,i) = CONJG(dyn2(i,j))
      end do
   end do
-  if ( diff > 1.d-6 ) write (6,'(5x,"Max |d(i,j)-d*(j,i)| = ",f9.6,/,5x, &
-       & "Max |d(i,j)-d*(j,i)|/|d(i,j)|: ",f8.4,"%")') diff, difrel*100
+  !if ( diff > 1.d-6 ) write (6,'(5x,"Max |d(i,j)-d*(j,i)| = ",f9.6,/,5x, &
+  !     & "Max |d(i,j)-d*(j,i)|/|d(i,j)|: ",f8.4,"%")') diff, difrel*100
   !
   !  divide by the square root of masses
   !
@@ -374,11 +420,11 @@ subroutine dyndiag2 (nat,ntyp,amass,ityp,dyn,iqirr)
     end do
  end do
  !
- dynmat(:,:,iqirr) = dyn2(:,:)
  !
+ !print*, 'check 4;'
  !  diagonalisation
  !
- call cdiagh2(nat3,dynmat(:,:,iqirr),nat3,ev(:,iqirr))
+ call cdiagh2(nat3,dyn2,nat3,ev)
  !
  deallocate(dyn2)
  !
@@ -409,7 +455,7 @@ subroutine cdiagh2 (n,h,ldh,e)
   integer          n,       &! dimension of the matrix to be diagonalized
        &           ldh       ! leading dimension of h, as declared
   ! in the calling pgm unit
-  complex(8)  h(ldh,n)  ! matrix to be diagonalized
+  complex(8), intent (in)  :: h(ldh,n)  ! matrix to be diagonalized
   !
   ! on OUTPUT
   real(8)     e(n)      ! eigenvalues
@@ -434,9 +480,15 @@ subroutine cdiagh2 (n,h,ldh,e)
   else
      lwork = (nb+1)*n
   endif
+  !print*, 'check 5.0;', nb
   !
+  !if ( lwork .LT. 10 ) lwork = 10
+  if(allocated(work))deallocate(work)
   allocate(work (lwork))
+  if(allocated(rwork))deallocate(rwork)
   allocate(rwork (3*n-2))
+
+  !print*, 'check 5;'
   call ZHEEV('N','U',n,h,ldh,e,work,lwork,rwork,info)
   deallocate(rwork)
   deallocate(work)

@@ -135,59 +135,64 @@ subroutine task_eph()
     print*,  eval1 
   endif
 
-  !------------------------------------
-  ! Read the dynamical matrix from file 
-  !------------------------------------
-  call read_dyn()
+  !--------------------------------------
+  ! Import the dynamical matrix from file 
+  !--------------------------------------
+  call read_dyn() 
   !
-  !------------------------------------------------
+  !--------------------------------------------------------
   ! convert the reducible coarse grid from cartesian 
   ! to lattice coord (read from the dynamical matrix files) 
-  !------------------------------------------------
+  !--------------------------------------------------------
   if(allocated(xqlred)) deallocate(xqlred) 
   allocate(xqlred(3,nqredtot)) 
+  xqlred = 0.d0
   do iq =1, nqredtot
     call r3mv (binv, xqcred(:,iq), xqlred(:,iq)) 
-    write(6,103), iq, xqcred (:,iq), xqlred(:,iq)
+    if(.false.) write(6,103), iq, xqcred (:,iq), xqlred(:,iq)
   enddo
   103 format(i4,3x,3f8.4,4x,3f8.4)
+  !CALL print_ev3 (ev,nqredtot,xqlred,'c')
    
-
-  if (.false.)then 
+  !----------------------------------------------------------------
+  ! Wannier interpolation of dynamical matrix on the dense BZ grid
+  !----------------------------------------------------------------
+  if (.true.)then 
     ! interpolation on the dense q-mesh on the whole BZ
     if(allocated(dynmatD)) deallocate(dynmatD) 
     allocate(dynmatD(ndynmat,ndynmat,ngridkqtot)) 
     dynmatD=zzero
-    CALL wann_ph (dynmat, ndynmat, nqirr, nqredtot, xqcirr, xqirrdeg, dynmatD, ngridkqtot, qsetd%vkcnr, nqred)
-    print*, ' Wannier interpolation of the phonons: DONE! '
-  else 
-    ! interpolation on a path 
+    if(allocated(wphdense)) deallocate(wphdense) 
+    allocate(wphdense(ndynmat,ngridkqtot)) 
+    wphdense=0.d0
+
+    CALL wann_ph (nqredtot,xqlred,ngridkqtot,qsetd%vkl,nqred,wphdense)
+    CALL print_ev3 (wphdense,ngridkqtot,qsetd%vkl,'c')
+  endif
+
+  !-------------------------------------------------------------------
+  ! Wannier interpolation of dynamical matrix on a path (for plotting)
+  !-------------------------------------------------------------------
+  if (.true.)then 
+    ! interpolate phonons on a path for visualization
     if(allocated(dynmatD)) deallocate(dynmatD) 
     allocate(dynmatD(ndynmat,ndynmat,nkpt)) 
     dynmatD=zzero
-    CALL wann_ph (dynmat, ndynmat, nqirr, nqredtot, xqcirr, & 
-                  xqirrdeg, dynmatD, nkpt, vkcnr, nqred)
-    print*, ' Wannier interpolation of the phonons: DONE! '
+    if(allocated(wphdense)) deallocate(wphdense) 
+    allocate(wphdense(ndynmat,nkpt)) 
+    wphdense=0.d0
 
-    allocate(phfreq(ndynmat,nkpt)) 
-    do iq = 1 , nkpt
-      print*, 'cdiagh2 for iq = ', iq
-      call cdiagh2(ndynmat,dynmatD(:,:,iq),ndynmat,phfreq(:,iq))
-      do imode = 1, ndynmat 
-        print*, iq, imode, phfreq(imode,iq)
-      enddo
-    enddo
+    CALL wann_ph (nqredtot,xqlred,nkpt,vkl,nqred,wphdense)
+    CALL print_ev3 (wphdense,nkpt,vkl,'d')
   endif 
 
-  stop 
+  !----------------------------------------
   ! interpolate KS eigenvalues on the path 
-
+  !----------------------------------------
   ! This vector will store the Wannier-interpolated eigenvalues 
   if( allocated(evalpath)) deallocate( evalpath)
   allocate( evalpath( nstfv, nkpt))
   evalpath = 0.d0
-!  call wannier_interpolate_eval( eval1( wf_fst:wf_lst,:), wf_kset%nkpt, wf_kset%vkl, &
-!                              evalpath( wf_fst:wf_lst,:), nkpt, vkl, wf_fst, wf_lst)
   call wannier_interpolate_eval ( eval1( wf_fst:wf_lst,:), nkpt, vkl, evalpath( wf_fst:wf_lst,:), lmax=-1)
   !
   ! Print out the band on the path as a test  
@@ -201,20 +206,16 @@ subroutine task_eph()
     enddo
     close(fid)
   endif  
-  !
+  
   if(allocated(selfeph0))deallocate(selfeph0)
   allocate(selfeph0(ibeph:nbeph,nkpt)) 
   selfeph0(:,:)=0.d0
-
   if(allocated(selfeph))deallocate(selfeph)
   allocate(selfeph(ibeph:nbeph,nomegeph,nkpt)) 
   selfeph(:,:,:)=0.d0
-
   if(allocated(speceph))deallocate(speceph)
   allocate(speceph(ibeph:nbeph,nomegeph,nkpt)) 
   speceph(:,:,:)=0.d0
-
-  ! LOOP over all the k-points on the path 
 
   if (myrank==0) then
     call boxmsg(fgw,'=','EPH self-energy calculations starts ')
@@ -232,6 +233,9 @@ subroutine task_eph()
   !call generate_k_vectors(qsetd,bvec,ngridkqtot, &
   !                        input%eph%vqloffeph,.false.,.false.) ! generate a dense reducible k-point mesh
 
+  !----------------------------------------
+  ! LOOP over all the k-points on the path 
+  !----------------------------------------
   do ik = 1 , nkpt 
 
    print*, " ik = ", ik , " / ", nkpt
@@ -247,11 +251,9 @@ subroutine task_eph()
   ! 
   !call generate_k_vectors(kqsetd,bvec,ngridkqtot, &
   !                       input%eph%vqloffeph,.false.,.false.) ! generate a dense reducible k-point mesh
- 
 
   call generate_kkqmt_vectors (kqsetd,gset,bvec,ngridkq, &
                           input%eph%vqloffeph, .false., vkl(:,ik),.false.)  
-
   !call getunit(fid)
   !call print_kkqmt_vectors (kqsetd,gset,fid)
 
@@ -274,8 +276,8 @@ subroutine task_eph()
   if( allocated(eval2)) deallocate(eval2)
   allocate( eval2( nstfv, ngridkqtot))
   eval2 = 0.d0
-  print*, 'ngridkqtot = ' , ngridkqtot
-  print*, 'kqsetd%kqmtset%vkl', kqsetd%kqmtset%vkl
+  !print*, 'ngridkqtot = ' , ngridkqtot
+  !print*, 'kqsetd%kqmtset%vkl', kqsetd%kqmtset%vkl
 
 !  call wannier_interpolate_eval( eval1( wf_fst:wf_lst,:), wf_kset%nkpt, wf_kset%vkl, &
 !                                 eval2( wf_fst:wf_lst,:), ngridkqtot, kqsetd%kqmtset%vkl, wf_fst, wf_lst)
@@ -344,7 +346,6 @@ subroutine task_eph()
    endif 
   endif 
 
-
   !===========================================================================
   ! Main loop: BZ integration
   !===========================================================================    
@@ -371,12 +372,12 @@ subroutine task_eph()
   !iomend = freq%nomeg
 #endif
 
-  l_speceph=.false.
+  l_speceph=.true.
   if (l_speceph)then 
     call calcspeceph(eval2, evalpath, ik)
   endif
   
-  l_sigmaeph=.true.
+  l_sigmaeph=.false.
   if (l_sigmaeph)then 
     call calcselfeph(eval2, evalpath, ik)
   endif 
