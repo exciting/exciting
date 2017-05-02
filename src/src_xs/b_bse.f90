@@ -119,6 +119,7 @@ use m_writecmplxparts
   integer(4) :: i,j
   integer(4) :: ik, ikq, io, iu, a1
   integer(4) :: nexc
+  real(8) :: ramscale
   real(8) :: ts0, ts1
   logical :: fcoup, fwp, fscal, fti, fip
 
@@ -292,6 +293,7 @@ use m_writecmplxparts
     if(fip) then 
       write(unitout, '("Info(",a,"): IP requested, nothing much to do")')&
         & trim(thisname)
+      ramscale=0.0d0
     else
       write(unitout, '("Info(",a,"): Assembling BSE matrix")') trim(thisname)
       write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
@@ -302,27 +304,32 @@ use m_writecmplxparts
         if(fti) then 
           write(unitout, '(" Using time inverted anti-resonant basis")')
           write(unitout, '(" Using squared EVP")')
+          ramscale=3.0d0
         else
           write(unitout, '(" Full BSE-Hamiltonian:")')
           write(unitout, '("  Shape=",i8)') 2*hamsize
+          ramscale=4.0d0
         end if
       end if
+      ramscale=1.0d0
       if(fwp) then
         write(unitout, '("Info(",a,"):&
           & Writing real and imaginary parts of Hamiltonian to file ")') trim(thisname)
       end if
     end if
 
+    write(unitout, '("Info(",a,"): max RAM needed for BSE matrices ~ ", f12.6, " GB" )')&
+      & trim(thisname), ramscale*int(hamsize,8)**2*16.0d0/1024.0d0**3
+
     ! Assemble Hamiltonian matrix 
     if(.not. fip) then 
 
       if(fcoup) then 
         if(fti) then 
-          call setup_bse_ti(ham, cmat, cpmat,  iqmt)
+          call setup_bse_ti(iqmt, smat=ham, cmat=cmat)
           if(fwp) then 
             call writecmplxparts('HamS', dble(ham), immat=aimag(ham))
             call writecmplxparts('cmat', dble(cmat), immat=aimag(cmat))
-            call writecmplxparts('cpmat', dble(cpmat), immat=aimag(cpmat))
           end if
         else
           allocate(ham(2*hamsize,2*hamsize))
@@ -464,6 +471,12 @@ use m_writecmplxparts
       write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
       write(unitout,*)
 
+      if(nexc <= 0) then 
+        write(*, '("Error(",a,"): No eigen solutions found.")')&
+          & trim(thisname)
+        call terminate
+      end if
+
       ! Store excitonic energies and wave functions to file
       if(associated(input%xs%storeexcitons)) then
 
@@ -500,12 +513,31 @@ use m_writecmplxparts
 
         if(fcoup .and. fti) then 
 
+          !===========================================================!
+          ! Make C' Matrix                                            !
+          ! Cpmat = (A-B)^{-1/2}                                      !
+          ! Cpmat is needed additionally to build eigenvectors        !
+          !===========================================================!
+          write(unitout, '("Info(",a,"):&
+            & Inverting C=(RR-RA)^1/2 matrix")') trim(thisname)
+          call timesec(ts0)
+          allocate(cpmat(hamsize,hamsize))
+          cpmat = cmat
+          call zinvert(cpmat)
+          call timesec(ts1)
+          if(fwp) then
+            call writecmplxparts('cpmat', dble(cpmat), immat=aimag(cpmat))
+          end if
+          write(unitout, '("  Time needed",f12.3,"s")') ts1-ts0
+          !===========================================================!
+
           write(unitout, '("Info(",a,"): Generating resonant&
             & and anti-resonant exciton coefficients from&
             & auxilliary squared EVP eigenvectors (pos. E).")') trim(thisname)
           ! Allocates resvec,aresvec & deallocates cpmat
           call genexevec(iex1, iex2, nexc, cmat, cpmat, bevecr, bevalre,&
             & resvec, aresvec)
+          deallocate(cpmat)
 
           write(unitout, '("Info(",a,"):&
             & Writing exciton eigenvectors to file (pos. E).")') trim(thisname)
@@ -747,10 +779,12 @@ use m_writecmplxparts
         ! Write Info
         write(unitout,*)
         write(unitout, '("Info(",a,"): Assembling distributed BSE matrix")') trim(thisname)
+        ramscale = 1.0d0
         if(fcoup .and. fti) then
           write(unitout, '(" Including coupling terms ")')
           write(unitout, '(" Using time inverted anti-resonant basis")')
           write(unitout, '(" Using squared EVP")')
+          ramscale = 3.0d0
         end if
         write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
         write(unitout, '("  Shape=",i8)') hamsize
@@ -758,6 +792,9 @@ use m_writecmplxparts
         write(unitout, '("  Distributing matrix to ",i3," processes")') bi2d%nprocs
         write(unitout, '("  Local matrix shape ",i6," x",i6)')&
           & dham%nrows_loc, dham%ncols_loc
+
+        write(unitout, '("Info(",a,"): max local RAM needed for BSE matrices ~ ", f12.6, " GB" )')&
+          & trim(thisname), ramscale*int(dham%nrows_loc,8)*dham%ncols_loc*16.0d0/1024.0d0**3
 
         ! Assemble Hamiltonian matrix
         call timesec(ts0)
@@ -928,11 +965,9 @@ use m_writecmplxparts
             ! Cpmat = (A-B)^{-1/2} = C^-1                               !
             ! Cpmat is needed additionally to build eigenvectors        !
             !===========================================================!
-            if(mpiglobal%rank == 0) then 
-              write(unitout, '("Info(",a,"):&
-                & Inverting C=(RR-RA)^1/2 matrix")') trim(thisname)
-              call timesec(ts0)
-            end if
+            write(unitout, '("Info(",a,"):&
+              & Inverting C=(RR-RA)^1/2 matrix")') trim(thisname)
+            call timesec(ts0)
             call new_dzmat(dcpmat, hamsize, hamsize, bi2d)
             do j = 1, dcmat%ncols_loc
               do i = 1, dcmat%nrows_loc
@@ -940,10 +975,8 @@ use m_writecmplxparts
               end do
             end do
             call dzinvert(dcpmat)
-            if(mpiglobal%rank == 0) then 
-              call timesec(ts1)
-              write(unitout, '("  Time needed",f12.3,"s")') ts1-ts0
-            end if
+            call timesec(ts1)
+            write(unitout, '("  Time needed",f12.3,"s")') ts1-ts0
             !===========================================================!
 
             ! Make selected eigenvectors

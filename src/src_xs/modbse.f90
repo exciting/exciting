@@ -920,7 +920,7 @@ module modbse
         & Time needed/s:", f12.7)') t1-t0
 
       if( .not. fserial) then 
-        call barrier
+        call barrier(callername=trim(thisname))
       end if
 
     end subroutine select_transitions

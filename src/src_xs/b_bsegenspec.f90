@@ -23,7 +23,8 @@ subroutine b_bsegenspec()
 
   implicit none
 
-  integer(4) :: iqmt, io1, no, nexc, nk, nw
+  integer(4) :: io1, no, nexc, nk, nw
+  integer(4) :: iqmt, iqmti, iqmtf, nqmt, iq1, iq2
   logical :: fcoup, fti, foff
   real(8), allocatable :: evals(:), bindevals(:), evalsim(:), w(:)
   complex(8), allocatable :: oscir(:), oscia(:)
@@ -50,11 +51,18 @@ subroutine b_bsegenspec()
     !   * Generates radial functions (mod_APW_LO)
     call init2
 
-    ! Get Q point index
-    iqmt = input%xs%bse%iqmt
-    if(iqmt == -1) then 
-      write(*,'("Warning(",a,"): iqmt = -1, setting it to 1")') trim(thisname)
+    ! Q-point list entries
+    !   Use all
+    iqmti = 1
+    iqmtf = size(input%xs%qpointset%qpoint, 2)
+    !   or use only one
+    if(input%xs%bse%iqmtrange(1) /= -1) then 
+      iqmti=input%xs%bse%iqmtrange(1)
+      iqmtf=input%xs%bse%iqmtrange(2)
     end if
+    nqmt = iqmtf-iqmti+1
+    iq1 = 1
+    iq2 = nqmt
 
     ! Get BSE structure flags
     fcoup = input%xs%bse%coupling
@@ -62,91 +70,97 @@ subroutine b_bsegenspec()
     ! Use offdiagonal elements
     foff = input%xs%dfoffdiag
 
-    ! Read in exciton energies and oscillator strengths
 
-    if(iqmt == 1) then 
-      no = 3
-    else
-      no = 1
-    end if
+    do iqmt = iqmti+iq1-1, iqmti+iq2-1
 
-    !! Read in directional components
+      ! Read in exciton energies and oscillator strengths
 
-    do io1 = 1, no
-
-      if(fcoup .and. .not. fti) then 
-        call readoscillator(iqmt, io1, evals, bindevals, oscir, oscia, evalsim)
+      if(iqmt == 1) then 
+        no = 3
       else
-        call readoscillator(iqmt, io1, evals, bindevals, oscir)
+        no = 1
       end if
 
-      if(.not. allocated(oscirmat)) then 
-        allocate(oscirmat(size(oscir), 3))
-        oscirmat = zzero
+      !! Read in directional components
+
+      do io1 = 1, no
+
         if(fcoup .and. .not. fti) then 
-          allocate(osciamat(size(oscir), 3))
-          osciamat = zzero
+          call readoscillator(iqmt, io1, evals, bindevals, oscir, oscia, evalsim)
+        else
+          call readoscillator(iqmt, io1, evals, bindevals, oscir)
         end if
+
+        if(.not. allocated(oscirmat)) then 
+          allocate(oscirmat(size(oscir), 3))
+          oscirmat = zzero
+          if(fcoup .and. .not. fti) then 
+            allocate(osciamat(size(oscir), 3))
+            osciamat = zzero
+          end if
+        end if
+
+        oscirmat(:,io1) = oscir
+        if(fcoup .and. .not. fti) then 
+          osciamat(:,io1) = oscia
+        end if
+      
+      end do
+      if(allocated(oscir)) deallocate(oscir)
+      if(allocated(oscia)) deallocate(oscia)
+
+      !! Make the spectrum
+
+      nexc = size(evals)
+      nk = nkptnr
+      
+      nk_bse = nkptnr
+
+      write(*,*) "nexc=", nexc
+      write(*,*) "nk", nk
+      write(*,*) "omega", omega
+
+      if(input%xs%tevout) then 
+        evals = evals/h2ev
       end if
 
-      oscirmat(:,io1) = oscir
-      if(fcoup .and. .not. fti) then 
-        osciamat(:,io1) = oscia
-      end if
-    
-    end do
-    if(allocated(oscir)) deallocate(oscir)
-    if(allocated(oscia)) deallocate(oscia)
-
-    !! Make the spectrum
-
-    nexc = size(evals)
-    nk = nkptnr
-    
-    nk_bse = nkptnr
-
-    write(*,*) "nexc=", nexc
-    write(*,*) "nk", nk
-    write(*,*) "omega", omega
-
-    if(input%xs%tevout) then 
-      evals = evals/h2ev
-    end if
-
-    ! Calculate lattice symmetrized spectrum.
-    if(fcoup) then 
-      if(fti) then
-        call makespectrum_ti(iqmt, nexc, nk, evals, oscirmat, symspectr)
+      ! Calculate lattice symmetrized spectrum.
+      if(fcoup) then 
+        if(fti) then
+          call makespectrum_ti(iqmt, nexc, nk, evals, oscirmat, symspectr)
+        else
+          call makespectrum_full(iqmt, nexc, nk, evals, oscirmat, osciamat, symspectr)
+        end if
       else
-        call makespectrum_full(iqmt, nexc, nk, evals, oscirmat, osciamat, symspectr)
+        call makespectrum_tda(iqmt, nexc, nk, evals, oscirmat, symspectr)
       end if
-    else
-      call makespectrum_tda(iqmt, nexc, nk, evals, oscirmat, symspectr)
-    end if
 
-    ! Generate an evenly spaced frequency grid 
-    nw = input%xs%energywindow%points
-    allocate(w(nw))
-    call genwgrid(nw, input%xs%energywindow%intv,&
-      & input%xs%tddft%acont, 0.d0, w_real=w)
-    ! Generate and write derived optical quantities
-    call writederived(iqmt, symspectr, nw, w)
-    deallocate(w)
+      ! Generate an evenly spaced frequency grid 
+      nw = input%xs%energywindow%points
+      allocate(w(nw))
+      call genwgrid(nw, input%xs%energywindow%intv,&
+        & input%xs%tddft%acont, 0.d0, w_real=w)
+      ! Generate and write derived optical quantities
+      call writederived(iqmt, symspectr, nw, w)
+      deallocate(w)
 
-    ! Some cleaning up
-    deallocate(symspectr)
-    if(allocated(oscirmat)) deallocate(oscirmat)
-    if(allocated(osciamat)) deallocate(osciamat)
-    if(allocated(evals)) deallocate(evals)
-    if(allocated(evalsim)) deallocate(evalsim)
+      ! Some cleaning up
+      deallocate(symspectr)
+      if(allocated(oscirmat)) deallocate(oscirmat)
+      if(allocated(osciamat)) deallocate(osciamat)
+      if(allocated(evals)) deallocate(evals)
+      if(allocated(evalsim)) deallocate(evalsim)
 
-    call barrier
+    ! iqmt
+    end do
+
+    call barrier(callername=trim(thisname))
 
   else
 
     write(*,'("Info(",a,"): Rank ", i4," is waiting...")') trim(thisname), mpiglobal%rank
 
-    call barrier
+    call barrier(callername=trim(thisname))
 
   end if
 

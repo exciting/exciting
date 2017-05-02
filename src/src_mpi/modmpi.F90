@@ -616,7 +616,7 @@ module modmpi
       end if
 
       if(present(callername)) then 
-        if(.false.) then 
+        if(.true.) then 
           write(*, '("Info(",a,"): Rank ",i3," of mpicom", i16," called barrier from ", a)')&
             & trim(thisname), mpinf%rank, mpinf%comm, trim(callername)
         end if

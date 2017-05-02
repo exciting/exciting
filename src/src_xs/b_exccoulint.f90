@@ -54,7 +54,7 @@ use m_writecmplxparts
 
   ! Local variables
 
-  character(*), parameter :: thisnam = 'b_exccoulint'
+  character(*), parameter :: thisname = 'b_exccoulint'
   ! ik,jk block of V matrix (final product)
   complex(8), allocatable :: excli(:, :)
   ! Auxilliary arrays for the construction of excli
@@ -104,7 +104,7 @@ use m_writecmplxparts
   if(iqmt /= 1 .and. .not. fti) then 
     write(*, '("Error(",a,"):&
      & Finite momentum tranfer currently only supported&
-     & when using time reversal symmetry.")') trim(thisnam)
+     & when using time reversal symmetry.")') trim(thisname)
     call terminate
   end if
 
@@ -170,7 +170,7 @@ use m_writecmplxparts
   call findgntn0(maxl_mat, maxl_mat, maxl_e, xsgnt)
 
   if(rank .eq. 0) then
-    write(unitout, '(a,3i8)') 'Info(' // thisnam // '):&
+    write(unitout, '(a,3i8)') 'Info(' // thisname // '):&
       & Gaunt coefficients generated within lmax values:',&
       & input%groundstate%lmaxapw, input%xs%lmaxemat, input%groundstate%lmaxapw
     call flushifc(unitout)
@@ -211,6 +211,10 @@ use m_writecmplxparts
   else
     call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname)
   end if
+
+  write(unitout, '("Info(",a,"): Size of file ",a," will be ", f12.6, " GB" )')&
+    & trim(thisname), trim(exclifbasename), int(nou_bse_max,8)**2*int(nkkp_bse,8)*16.0d0/1024.0d0**3
+  call flushifc(unitout)
 
   call xsgrids_init(vqlmt(1:3, iqmt), gkmax) 
 
@@ -501,7 +505,7 @@ use m_writecmplxparts
     write(6,*)
   end if
   
-  call barrier
+  call barrier(callername=trim(thisname))
 
   if(mpiglobal%rank == 0) then
     call timesec(tpw1)

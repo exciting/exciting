@@ -55,9 +55,9 @@ subroutine b_exccoulintlauncher
   iqmti = 1
   iqmtf = size(input%xs%qpointset%qpoint, 2)
   !   or use only one
-  if(input%xs%bse%iqmt /= -1) then 
-    iqmti=input%xs%bse%iqmt
-    iqmtf=input%xs%bse%iqmt
+  if(input%xs%bse%iqmtrange(1) /= -1) then 
+    iqmti=input%xs%bse%iqmtrange(1)
+    iqmtf=input%xs%bse%iqmtrange(2)
   end if
 
   call printline(unitout, "+")
@@ -95,7 +95,7 @@ subroutine b_exccoulintlauncher
           write(unitout,*)
         end if
         call b_exccoulint(iqmt, .false., fti)
-        call barrier(mpiglobal)
+        call barrier(mpiglobal, callername=trim(thisname))
 
       case("RA","ra")
 
@@ -113,7 +113,7 @@ subroutine b_exccoulintlauncher
           else
             call b_exccoulint(iqmt, .true., fti)
           end if
-          call barrier(mpiglobal)
+          call barrier(mpiglobal, callername=trim(thisname))
         end if
         
       case("both","BOTH")
@@ -125,7 +125,7 @@ subroutine b_exccoulintlauncher
           write(unitout,*)
         end if
         call b_exccoulint(iqmt, .false., fti)
-        call barrier(mpiglobal)
+        call barrier(mpiglobal, callername=trim(thisname))
 
         ! RA block
         if(fcoup) then 
@@ -141,7 +141,7 @@ subroutine b_exccoulintlauncher
           else
             call b_exccoulint(iqmt, .true., fti)
           end if
-          call barrier(mpiglobal)
+          call barrier(mpiglobal, callername=trim(thisname))
         end if
 
       case default

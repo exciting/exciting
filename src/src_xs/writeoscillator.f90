@@ -37,10 +37,8 @@ module m_writeoscillator
 #endif
       
       excitondir='EXCITON'
-      if(mpiglobal%rank == 0) then 
-        syscommand = 'test ! -e '//trim(adjustl(excitondir))//' && mkdir '//trim(adjustl(excitondir))
-        call system(trim(adjustl(syscommand)))
-      end if
+      syscommand = 'test ! -e '//trim(adjustl(excitondir))//' && mkdir '//trim(adjustl(excitondir))
+      call system(trim(adjustl(syscommand)))
       
       if(present(sort)) then 
         fsort = sort

@@ -9,6 +9,8 @@ subroutine b_bsesurvey
   logical :: fcoup, fti
   integer(4) :: nsymcrys_save
 
+  character(*), parameter :: thisname = "b_bsesurvey"
+
   write(*,*) "b_bsesurvey: Hi!"
 
   ! General init
@@ -30,7 +32,7 @@ subroutine b_bsesurvey
   !   * Generates radial functions (mod_APW_LO)
   call init2
 
-  iqmt = input%xs%bse%iqmt
+  iqmt = input%xs%bse%iqmtrange(1)
   fcoup = input%xs%bse%coupling
   fti = input%xs%bse%ti
 
@@ -79,7 +81,7 @@ subroutine b_bsesurvey
     end if
     call terminate
   end if
-  call barrier
+  call barrier(callername=trim(thisname))
 
   ! Select relevant transitions for the construction
   ! of the BSE hamiltonian

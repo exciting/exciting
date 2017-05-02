@@ -35,14 +35,12 @@ subroutine writederived(iqmt, eps, nw, w)
   epsilondir='EPSILON'
   lossdir='LOSS'
   sigmadir='SIGMA'
-  if(mpiglobal%rank == 0) then 
-    syscommand = 'test ! -e '//trim(adjustl(epsilondir))//' && mkdir '//trim(adjustl(epsilondir))
-    call system(trim(adjustl(syscommand)))
-    syscommand = 'test ! -e '//trim(adjustl(lossdir))//' && mkdir '//trim(adjustl(lossdir))
-    call system(trim(adjustl(syscommand)))
-    syscommand = 'test ! -e '//trim(adjustl(sigmadir))//' && mkdir '//trim(adjustl(sigmadir))
-    call system(trim(adjustl(syscommand)))
-  end if
+  syscommand = 'test ! -e '//trim(adjustl(epsilondir))//' && mkdir '//trim(adjustl(epsilondir))
+  call system(trim(adjustl(syscommand)))
+  syscommand = 'test ! -e '//trim(adjustl(lossdir))//' && mkdir '//trim(adjustl(lossdir))
+  call system(trim(adjustl(syscommand)))
+  syscommand = 'test ! -e '//trim(adjustl(sigmadir))//' && mkdir '//trim(adjustl(sigmadir))
+  call system(trim(adjustl(syscommand)))
 
   if(input%xs%bse%coupling) then
     tdastring=''

@@ -112,7 +112,7 @@ subroutine dfq(iq)
   integer(4), intent(in) :: iq
 
   ! Local variables
-  character(*), parameter :: thisnam = 'dfq'
+  character(*), parameter :: thisname = 'dfq'
   character(256) :: fnscreen, fneps0, filex
   complex(8) :: zt1, winv
   complex(8), allocatable :: w(:)
@@ -265,25 +265,25 @@ subroutine dfq(iq)
 
   ! Check if q-point is gamma point (uses mod_qpoint::vqc)
   write(unitout, *)
-  write(unitout, '(a,i4)') 'Info(' // trim(thisnam) // '):&
+  write(unitout, '(a,i4)') 'Info(' // trim(thisname) // '):&
    & Calculating screening for q-point: ', iq 
   tq0 = tqgamma(iq)
   if(tq0) then
-    write(unitout, '(a)') 'Info(' // trim(thisnam) // '):&
+    write(unitout, '(a)') 'Info(' // trim(thisname) // '):&
      & Gamma q-point: using momentum matrix elements for dielectric function'
   end if
   ! Write out matrix size of response function and contributing bands
-  write(unitout, '(a, i6)') 'Info(' // thisnam // '):&
+  write(unitout, '(a, i6)') 'Info(' // thisname // '):&
     & number of G + q vectors (local field effects):', ngq(iq)
-  write(unitout, '(a, 4i6)') 'Info(' // thisnam // '):&
+  write(unitout, '(a, 4i6)') 'Info(' // thisname // '):&
     & lowest (partially)  unoccupied state: ', istunocc0
-  write(unitout, '(a, 4i6)') 'Info(' // thisnam // '):&
+  write(unitout, '(a, 4i6)') 'Info(' // thisname // '):&
     & highest (partially) occupied state  : ', istocc0
-  write(unitout, '(a, 4i5)') 'Info(' // thisnam // '):&
+  write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
     & band-combination limits  nst1,  nst2,  nst3,  nst4:',  nst1,  nst2,  nst3,  nst4 
-  write(unitout, '(a, 4i5)') 'Info(' // thisnam // '):&
+  write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
     & band-combination limits istl1, istu1, istl2, istu2:', istl1, istu1, istl2, istu2
-  write(unitout, '(a, 4i5)') 'Info(' // thisnam // '):&
+  write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
     & band-combination limits istl3, istu3, istl4, istu4:', istl3, istu3, istl4, istu4
 
   ! Allocate arrays for eigenvalue and occupation number differences
@@ -384,7 +384,7 @@ subroutine dfq(iq)
     call filedel(trim(fnetim))
 
     ! Write information
-    write(unitout, '(a, i6)') 'Info(' // thisnam // '):&
+    write(unitout, '(a, i6)') 'Info(' // thisname // '):&
       & number of G + q vectors:', ngq(iq)
     call ematqalloc
   end if
@@ -392,7 +392,7 @@ subroutine dfq(iq)
   ! Read BSE diagonal for BSE TDDFT kernel
   if(tfxcbse) then
     call getbsediag
-    write(unitout, '("Info(", a, "): read diagonal of BSE kernel")') trim(thisnam)
+    write(unitout, '("Info(", a, "): read diagonal of BSE kernel")') trim(thisname)
     write(unitout, '(" mean value : ", 2g18.10)') bsed
     bsedg(:, :) = bsed
   end if
@@ -851,7 +851,7 @@ subroutine dfq(iq)
 
     ! Why is taht nescessary?
     ! Synchronize
-    if( .not. tscreen) call barrier
+    if( .not. tscreen) call barrier(callername=trim(thisname))
 
   ! End loop over k-points
   end do kloop
@@ -958,7 +958,7 @@ subroutine dfq(iq)
         end do
       end if
       ! Why is that nescessary
-      call barrier
+      call barrier(callername=trim(thisname))
     end do
   end if
 

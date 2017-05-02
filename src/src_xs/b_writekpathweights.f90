@@ -13,7 +13,7 @@ subroutine b_writekpathweights
   character(256) :: exckpathdir, syscommand
 
   logical :: fwritegridweights
-  integer(4) :: iqmt
+  integer(4) :: iqmt, iqmti, iqmtf, nqmt, iq1, iq2
   real(8) :: en1, en2
   integer(4) :: i1, i2
 
@@ -59,186 +59,198 @@ subroutine b_writekpathweights
     ! Write out excitonic weights on grid?
     fwritegridweights = input%xs%writekpathweights%printgridweights
 
-    !====================================================!
-    ! Read in data to putgetexcitons module              !
-    !====================================================!
-    ! Requested iqmt
-    iqmt = input%xs%bse%iqmt
-    if(iqmt == -1) then
-      write(unitout,'("Warning(",a,"): iqmt=-1, setting it to 1")') trim(thisname)
-      iqmt = 1
+    ! Q-point list entries
+    !   Use all
+    iqmti = 1
+    iqmtf = size(input%xs%qpointset%qpoint, 2)
+    !   or use only one
+    if(input%xs%bse%iqmtrange(1) /= -1) then 
+      iqmti=input%xs%bse%iqmtrange(1)
+      iqmtf=input%xs%bse%iqmtrange(2)
     end if
-    ! Requested excition index range
-    if(input%xs%writekpathweights%selectenergy) then 
-      en1=input%xs%writekpathweights%minenergyexcitons
-      en2=input%xs%writekpathweights%maxenergyexcitons
-      if(input%xs%storeexcitons%useev) then 
-        en1=en1/h2ev
-        en2=en2/h2ev
+    nqmt = iqmtf-iqmti+1
+    iq1 = 1
+    iq2 = nqmt
+
+    do iqmt = iqmti+iq1-1, iqmti+iq2-1
+
+      !====================================================!
+      ! Read in data to putgetexcitons module              !
+      !====================================================!
+      ! Requested excition index range
+      if(input%xs%writekpathweights%selectenergy) then 
+        en1=input%xs%writekpathweights%minenergyexcitons
+        en2=input%xs%writekpathweights%maxenergyexcitons
+        if(input%xs%storeexcitons%useev) then 
+          en1=en1/h2ev
+          en2=en2/h2ev
+        end if
+        call get_excitons(iqmt=iqmt, e1=en1, e2=en2)
+      else
+        i1 = input%xs%writekpathweights%minnumberexcitons
+        i2 = input%xs%writekpathweights%maxnumberexcitons
+        call get_excitons(iqmt=iqmt, a1=i1, a2=i2)
       end if
-      call get_excitons(iqmt=iqmt, e1=en1, e2=en2)
-    else
-      i1 = input%xs%writekpathweights%minnumberexcitons
-      i2 = input%xs%writekpathweights%maxnumberexcitons
-      call get_excitons(iqmt=iqmt, a1=i1, a2=i2)
-    end if
-    !====================================================!
+      !====================================================!
 
-    ! Set maximal number of valence and conduction states over all k-points
-    nvmax = maxval(koulims_(4,:)-koulims_(3,:)+1)
-    ncmax = maxval(koulims_(2,:)-koulims_(1,:)+1)
-    ! Set minimal and maximal valence and conduction state index over all k-points
-    icmin = minval(koulims_(1,:))
-    icmax = maxval(koulims_(2,:))
-    ivmin = minval(koulims_(3,:))
-    ivmax = maxval(koulims_(4,:))
-
-    write(unitout,'("Info(",a,"):&
-      & Weights can be interpolated in the range:", 2i8)')&
-      & trim(thisname), ivmin, icmax
-
-    ! Set index ranges that agree with read in bandstructure and exciton data
-    ib1 = brange_(1)
-    ib2 = brange_(2)
-    nsteps = brange_(3)
-    iv1 = max(ivmin, ib1)
-    iv2 = min(ivmax, ib2)
-    ic1 = max(icmin, ib1)
-    ic2 = min(icmax, ib2)
-
-    write(unitout,'("Info(",a,"):&
-      & Calculating valence weights in the range:", 2i8)') trim(thisname), iv1, iv2
-    write(unitout,'("Info(",a,"):&
-      & Calculating conduction weights in the range:", 2i8)') trim(thisname), ic1, ic2
-    if(iv2 >= ic1) then 
-      write(unitout,'("Error(",a,"):&
-        & iv2 >= ic1 Non-Insulators not yet implemented.")') trim(thisname)
-      call terminate
-    end if
-
-    ! Squared modulus of coefficients
-    allocate(abs2(hamsize_))
-
-    ! Weight data on grid
-    allocate(rvwgrid(nk_max_, ivmin:ivmax))
-    allocate(rcwgrid(nk_max_, icmin:icmax))
-    if(fcoup_) then
-      allocate(arvwgrid(nk_max_, ivmin:ivmax))
-      allocate(arcwgrid(nk_max_, icmin:icmax))
-    end if
-
-    ! Interpolation arrays on -1:1 supercell 
-    ! to mimic periodicity
-    call setup_xyz(ngridk_, ikmap_, vkl_, x, y, z)
-    call setup_xyz(ngridk_, ikmap_, vkl0_, x0, y0, z0)
-    allocate(inputdata(3*ngridk_(1),3*ngridk_(2),3*ngridk_(3)))
-
-    ! Interpolated weigts on k-path points
-    intorder = input%xs%writekpathweights%intorder
-    allocate(rvw(nsteps,iv1:iv2))
-    allocate(rcw(nsteps,ic1:ic2))
-    if(fcoup_) then 
-      allocate(arvw(nsteps,iv1:iv2))
-      allocate(arcw(nsteps,ic1:ic2))
-    end if
-
-    ! Looping over all selected excitons
-    do lambda = iex1_, iex2_
+      ! Set maximal number of valence and conduction states over all k-points
+      nvmax = maxval(koulims_(4,:)-koulims_(3,:)+1)
+      ncmax = maxval(koulims_(2,:)-koulims_(1,:)+1)
+      ! Set minimal and maximal valence and conduction state index over all k-points
+      icmin = minval(koulims_(1,:))
+      icmax = maxval(koulims_(2,:))
+      ivmin = minval(koulims_(3,:))
+      ivmax = maxval(koulims_(4,:))
 
       write(unitout,'("Info(",a,"):&
-        & Calculating interpolated weights for excition index:", i8, " /", i8)')&
-        & trim(thisname), lambda, iex2_
+        & Weights can be interpolated in the range:", 2i8)')&
+        & trim(thisname), ivmin, icmax
 
-      !====================================================!
-      ! Calculating weigths on the k-grid                  !
-      !====================================================!
+      ! Set index ranges that agree with read in bandstructure and exciton data
+      ib1 = brange_(1)
+      ib2 = brange_(2)
+      nsteps = brange_(3)
+      iv1 = max(ivmin, ib1)
+      iv2 = min(ivmax, ib2)
+      ic1 = max(icmin, ib1)
+      ic2 = min(icmax, ib2)
 
-      ! Zeroing weights
-      rvwgrid=0.0d0
-      rcwgrid=0.0d0
-      if(fcoup_) then 
-        arvwgrid=0.0d0
-        arcwgrid=0.0d0
+      write(unitout,'("Info(",a,"):&
+        & Calculating valence weights in the range:", 2i8)') trim(thisname), iv1, iv2
+      write(unitout,'("Info(",a,"):&
+        & Calculating conduction weights in the range:", 2i8)') trim(thisname), ic1, ic2
+      if(iv2 >= ic1) then 
+        write(unitout,'("Error(",a,"):&
+          & iv2 >= ic1 Non-Insulators not yet implemented.")') trim(thisname)
+        call terminate
       end if
 
-      !! Make resonant weights
-      abs2 = abs(rvec_(1:hamsize_,lambda))**2
-      !   Valence 
-      call genweights(ivmin, ivmax, hamsize_, nk_max_,&
-        & smap_(2,:), smap_(3,:), abs2, rvwgrid)
-      !   Conduction
-      call genweights(icmin, icmax, hamsize_, nk_max_,&
-        & smap_(1,:), smap_(3,:), abs2, rcwgrid, ikmapikq_)
+      ! Squared modulus of coefficients
+      allocate(abs2(hamsize_))
 
-      !! Make anti-resonant weights
+      ! Weight data on grid
+      allocate(rvwgrid(nk_max_, ivmin:ivmax))
+      allocate(rcwgrid(nk_max_, icmin:icmax))
+      if(fcoup_) then
+        allocate(arvwgrid(nk_max_, ivmin:ivmax))
+        allocate(arcwgrid(nk_max_, icmin:icmax))
+      end if
+
+      ! Interpolation arrays on -1:1 supercell 
+      ! to mimic periodicity
+      call setup_xyz(ngridk_, ikmap_, vkl_, x, y, z)
+      call setup_xyz(ngridk_, ikmap_, vkl0_, x0, y0, z0)
+      allocate(inputdata(3*ngridk_(1),3*ngridk_(2),3*ngridk_(3)))
+
+      ! Interpolated weigts on k-path points
+      intorder = input%xs%writekpathweights%intorder
+      allocate(rvw(nsteps,iv1:iv2))
+      allocate(rcw(nsteps,ic1:ic2))
       if(fcoup_) then 
-        abs2 = abs(avec_(1:hamsize_, lambda))**2
-        !   Valence
+        allocate(arvw(nsteps,iv1:iv2))
+        allocate(arcw(nsteps,ic1:ic2))
+      end if
+
+      ! Looping over all selected excitons
+      do lambda = iex1_, iex2_
+
+        write(unitout,'("Info(",a,"):&
+          & Calculating interpolated weights for excition index:", i8, " /", i8)')&
+          & trim(thisname), lambda, iex2_
+
+        !====================================================!
+        ! Calculating weigths on the k-grid                  !
+        !====================================================!
+
+        ! Zeroing weights
+        rvwgrid=0.0d0
+        rcwgrid=0.0d0
+        if(fcoup_) then 
+          arvwgrid=0.0d0
+          arcwgrid=0.0d0
+        end if
+
+        !! Make resonant weights
+        abs2 = abs(rvec_(1:hamsize_,lambda))**2
+        !   Valence 
         call genweights(ivmin, ivmax, hamsize_, nk_max_,&
-          & smap_(2,:), smap_(3,:), abs2, arvwgrid)
+          & smap_(2,:), smap_(3,:), abs2, rvwgrid)
         !   Conduction
         call genweights(icmin, icmax, hamsize_, nk_max_,&
-          & smap_(1,:), smap_(3,:), abs2, arcwgrid, ikmapikq_)
-      end if
+          & smap_(1,:), smap_(3,:), abs2, rcwgrid, ikmapikq_)
 
-      if(fwritegridweights) then 
-        ! Print weights
-        call writeweights()
-      end if
+        !! Make anti-resonant weights
+        if(fcoup_) then 
+          abs2 = abs(avec_(1:hamsize_, lambda))**2
+          !   Valence
+          call genweights(ivmin, ivmax, hamsize_, nk_max_,&
+            & smap_(2,:), smap_(3,:), abs2, arvwgrid)
+          !   Conduction
+          call genweights(icmin, icmax, hamsize_, nk_max_,&
+            & smap_(1,:), smap_(3,:), abs2, arcwgrid, ikmapikq_)
+        end if
 
-      !====================================================!
-      ! Interpolate weigths onto the banstructute path.    !
-      !====================================================!
+        if(fwritegridweights) then 
+          ! Print weights
+          call writeweights()
+        end if
 
-      !! Resonant weights
-      !   Valence
-      call interpolate_kpathweights(iv1, iv2, x0, y0, z0,&
-        & rvwgrid(:,iv1:iv2), rvw(:,iv1:iv2))
-      !   Conduction
-      call interpolate_kpathweights(ic1, ic2, x, y, z,&
-        & rcwgrid(:,ic1:ic2), rcw(:,ic1:ic2))
+        !====================================================!
+        ! Interpolate weigths onto the banstructute path.    !
+        !====================================================!
 
-      if(fcoup_) then 
-        !! Anti-resonant weights
+        !! Resonant weights
         !   Valence
         call interpolate_kpathweights(iv1, iv2, x0, y0, z0,&
-          & arvwgrid(:,iv1:iv2), arvw(:,iv1:iv2))
+          & rvwgrid(:,iv1:iv2), rvw(:,iv1:iv2))
         !   Conduction
         call interpolate_kpathweights(ic1, ic2, x, y, z,&
-          & arcwgrid(:,ic1:ic2), arcw(:,ic1:ic2))
-      end if
+          & rcwgrid(:,ic1:ic2), rcw(:,ic1:ic2))
 
-      ! Writeout
-      call writekpathplot()
+        if(fcoup_) then 
+          !! Anti-resonant weights
+          !   Valence
+          call interpolate_kpathweights(iv1, iv2, x0, y0, z0,&
+            & arvwgrid(:,iv1:iv2), arvw(:,iv1:iv2))
+          !   Conduction
+          call interpolate_kpathweights(ic1, ic2, x, y, z,&
+            & arcwgrid(:,ic1:ic2), arcw(:,ic1:ic2))
+        end if
 
-      !====================================================!
+        ! Writeout
+        call writekpathplot()
 
-    ! Exciton loop
+        !====================================================!
+
+      ! Exciton loop
+      end do
+
+      call clear_bandstructure()
+      call clear_excitons()
+
+      deallocate(abs2)
+      deallocate(rvwgrid, rcwgrid)
+      if(allocated(arvwgrid)) deallocate(arvwgrid)
+      if(allocated(arcwgrid)) deallocate(arcwgrid)
+      deallocate(rvw, rcw)
+      if(allocated(arvw)) deallocate(arvw)
+      if(allocated(arcw)) deallocate(arcw)
+
+      deallocate(x,y,z)
+      deallocate(x0,y0,z0)
+      deallocate(inputdata)
+
+    ! iqmt
     end do
 
-    call clear_bandstructure()
-    call clear_excitons()
-
-    deallocate(abs2)
-    deallocate(rvwgrid, rcwgrid)
-    if(allocated(arvwgrid)) deallocate(arvwgrid)
-    if(allocated(arcwgrid)) deallocate(arcwgrid)
-    deallocate(rvw, rcw)
-    if(allocated(arvw)) deallocate(arvw)
-    if(allocated(arcw)) deallocate(arcw)
-
-    deallocate(x,y,z)
-    deallocate(x0,y0,z0)
-    deallocate(inputdata)
-
-    call barrier
+    call barrier(callername=trim(thisname))
 
   else
 
     write(unitout,'("Info(",a,"): Rank ",i3," is waiting..")')&
       & trim(thisname), mpiglobal%rank
 
-    call barrier
+    call barrier(callername=trim(thisname))
 
   end if
 

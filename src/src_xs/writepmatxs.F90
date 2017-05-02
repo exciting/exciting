@@ -48,6 +48,8 @@ subroutine writepmatxs
   character(256) :: string
   logical :: fast
 
+  character(*), parameter :: thisname="writepmatxs"
+
   ! External functions
   logical, external :: tqgamma
 
@@ -239,7 +241,7 @@ subroutine writepmatxs
 
   end do kloop
 
-  call barrier
+  call barrier(callername=trim(thisname))
 
   inquire(iolength=reclen) vkl(:, ik), nstsv, pmat
   deallocate(apwalmt, evecfvt, evecsvt, pmat)
@@ -253,7 +255,7 @@ subroutine writepmatxs
     end if
   end if
 
-  call barrier
+  call barrier(callername=trim(thisname))
 
   if(.not. input%sharedfs) call cpfiletonodes(trim(fnpmat))
 

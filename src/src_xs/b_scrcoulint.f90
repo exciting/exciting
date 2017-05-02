@@ -55,7 +55,7 @@ use m_writecmplxparts
   logical, intent(in) :: fti  ! Use time inverted anti-resonant basis
 
   ! Local variables
-  character(*), parameter :: thisnam = 'b_scrcoulint'
+  character(*), parameter :: thisname = 'b_scrcoulint'
 
   ! ik,jk block of W matrix (final product)
   complex(8), allocatable :: sccli(:,:)
@@ -137,7 +137,7 @@ use m_writecmplxparts
   if(iqmt /= 1 .and. .not. fti) then 
     write(*, '("Error(",a,"):&
      & Finite momentum tranfer currently only supported&
-     & when using time reversal symmetry.")') trim(thisnam)
+     & when using time reversal symmetry.")') trim(thisname)
     call terminate
   end if
 
@@ -164,10 +164,9 @@ use m_writecmplxparts
 
   ! Making folder for the radial integals pertaining to the plane wave matrix elements
   ematraddir = 'EMATRAD'
-  if(rank == 0) then 
-    syscommand = 'test ! -e '//trim(adjustl(ematraddir))//' && mkdir '//trim(adjustl(ematraddir))
-    call system(trim(adjustl(syscommand)))
-  end if
+
+  syscommand = 'test ! -e '//trim(adjustl(ematraddir))//' && mkdir '//trim(adjustl(ematraddir))
+  call system(trim(adjustl(syscommand)))
 
   ! Generate gaunt coefficients used in the construction of 
   ! the plane wave matrix elements in ematqk.
@@ -200,14 +199,12 @@ use m_writecmplxparts
   !       to the APW/LOs while l3 corresponds to the exponetial.
   call findgntn0(maxl_mat, maxl_mat, maxl_e, xsgnt)
 
-  if(mpiglobal%rank == 0) then
-    write(unitout, '(a)') 'Info(' // thisnam // '):&
-      & Gaunt coefficients generated within lmax values:'
-    write(unitout, '(a, i8)') "lmax1 = lmaxapw =", input%groundstate%lmaxapw
-    write(unitout, '(a, i8)') "lmax2 = lmaxemat=", input%xs%lmaxemat
-    write(unitout, '(a, i8)') "lmax3 = lmaxapw =", input%groundstate%lmaxapw
-    call flushifc(unitout)
-  end if
+  write(unitout, '(a)') 'Info(' // thisname // '):&
+    & Gaunt coefficients generated within lmax values:'
+  write(unitout, '(a, i8)') "lmax1 = lmaxapw =", input%groundstate%lmaxapw
+  write(unitout, '(a, i8)') "lmax2 = lmaxemat=", input%xs%lmaxemat
+  write(unitout, '(a, i8)') "lmax3 = lmaxapw =", input%groundstate%lmaxapw
+  call flushifc(unitout)
 
   ! Read Fermi energy from file EFERMI
   ! Use EFERMI_QMT001.OUT (corresponding to the xs groundstate run for the unshifted k grid)
@@ -218,21 +215,19 @@ use m_writecmplxparts
   ! This also reads in 
   ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
   ! modxs:evalsv0, modxs:occsv0
-  if(mpiglobal%rank == 0) then
-    write(unitout, '(a)') 'Info(' // thisnam // '):&
-      & Inspecting occupations...'
-    call flushifc(unitout)
-  end if
+  write(unitout, '(a)') 'Info(' // thisname // '):&
+    & Inspecting occupations...'
+  call flushifc(unitout)
+
   call setranges_modxs(iqmt, input%xs%bse%coupling, input%xs%bse%ti)
 
   ! Select relevant transitions for the construction
   ! of the BSE hamiltonian
   ! Also sets nkkp_bse, nk_bse 
-  if(mpiglobal%rank == 0) then
-    write(unitout, '(a)') 'Info(' // thisnam // '):&
-      & Selecting transitions...'
-    call flushifc(unitout)
-  end if
+  write(unitout, '(a)') 'Info(' // thisname // '):&
+    & Selecting transitions...'
+  call flushifc(unitout)
+
   call select_transitions(iqmt, serial=.false.)
 
   ! Write support information to file
@@ -264,6 +259,10 @@ use m_writecmplxparts
   else
     call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=scclifname)
   end if
+
+  write(unitout, '("Info(",a,"): Size of file ",a," will be ", f12.6, " GB" )')&
+    & trim(thisname), trim(scclifbasename), int(nou_bse_max,8)**2*int(nkkp_bse,8)*16.0d0/1024.0d0**3
+  call flushifc(unitout)
 
   !------------------------------------!
   ! GENERATE FOURIER COEFFICIENTS OF W !     
@@ -333,12 +332,10 @@ use m_writecmplxparts
   ! This sets up also G+q quantities and the square root of the Coulomb potential
   call init2offs(vqoff, .false.)
 
-  if(mpiglobal%rank == 0) then
-    write(unitout, '(a, i6)') 'Info(' // thisnam // '): Number of reduced q-points: ', nqptr
-    write(unitout, '(a, i6)') 'Info(' // thisnam // '): Number of non-reduced q-points: ', nqpt
-    write(unitout,*)
-    call flushifc(unitout)
-  end if
+  write(unitout, '(a, i6)') 'Info(' // thisname // '): Number of reduced q-points: ', nqptr
+  write(unitout, '(a, i6)') 'Info(' // thisname // '): Number of non-reduced q-points: ', nqpt
+  write(unitout,*)
+  call flushifc(unitout)
 
   ! Make also ngqr
   if(allocated(ngqr)) deallocate(ngqr)
@@ -426,11 +423,9 @@ use m_writecmplxparts
     call genfilname(iqmt=iqmt, fileext=fileext_ematrad_write)
   end if
 
-  if(mpiglobal%rank == 0) then
-    write(unitout, '("Info(b_scrcoulint):&
-      & Calculating W(G1,G2,qr) fourier coefficients")')
-    call timesec(tscc0)
-  end if
+  write(unitout, '("Info(b_scrcoulint):&
+    & Calculating W(G1,G2,qr) fourier coefficients")')
+  call timesec(tscc0)
 
   do iqr = qpari, qparf ! Reduced q
 
@@ -920,7 +915,7 @@ use m_writecmplxparts
   call ematqdealloc
   call findgntn0_clear
 
-  call barrier
+  call barrier(callername=trim(thisname))
 
   contains
 

@@ -15,7 +15,7 @@ subroutine xsfinit
   implicit none
 
   ! Local variables
-  character(*), parameter :: thisnam = 'xsfinit'
+  character(*), parameter :: thisname = 'xsfinit'
   character(10) :: dat, tim
   real(8) :: cput, wallt, cputcum, walltcum
   real(8) :: hrs
@@ -36,7 +36,7 @@ subroutine xsfinit
   walltcum = dble(systim0f-systimcum) / dble(cntrate)
 
   ! Write out information
-  write(unitout, '(a,i8,a)') 'Info(' // thisnam // '): task Nr.', task,&
+  write(unitout, '(a,i8,a)') 'Info(' // thisname // '): task Nr.', task,&
     & ' stopped gracefully'
   write(unitout,*)
   write(unitout, '(a)') ' Timings: '
@@ -94,6 +94,6 @@ subroutine xsfinit
   if(trim(fnchi0_t) .ne. trim(fnchi0)) call filedel(trim(fnchi0_t))
   if(rank .ne. 0) call filedel(trim(fnxtim))
 
-  call barrier
+  call barrier(callername=trim(thisname))
       
 end subroutine xsfinit

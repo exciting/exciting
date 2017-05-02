@@ -20,7 +20,7 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
   real(8), parameter :: epslat=1.d-6
 
   ! Local variables
-  character(*), parameter :: thisnam = 'b_xsgeneigvec'
+  character(*), parameter :: thisname = 'b_xsgeneigvec'
   integer(4) :: iq
 
   ! Check 
@@ -69,7 +69,7 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
       if(rank == 0) then 
         write(unitout, '("Info(", a, "): Q-point ", i4,&
         &  " has the same k-grid offset as the Q=0 qmt point, skipping GS calculation.")')&
-        &  thisnam, iq
+        &  thisname, iq
       end if
       cycle
     end if
@@ -80,7 +80,7 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
     if(rank == 0) then 
       write(unitout, &
         & '("Info(", a, "): Eigenvectors generated for Q-point ", i6)')&
-        & thisnam, iq
+        & thisname, iq
       if(tscr) then 
         write(unitout, '("Using screening GS parameters.")')
       end if
@@ -129,10 +129,10 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
   ! End loop over q-points
   end do
 
-  call barrier
+  call barrier(callername=trim(thisname))
 
   if(rank == 0) then 
-    write(unitout, '("Info(", a, "): Generation of eigenvectors finished")') thisnam
+    write(unitout, '("Info(", a, "): Generation of eigenvectors finished")') thisname
     write(unitout, *)
   end if
 

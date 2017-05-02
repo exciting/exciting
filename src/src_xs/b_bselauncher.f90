@@ -29,9 +29,9 @@ subroutine b_bselauncher
   iqmti = 1
   iqmtf = size(input%xs%qpointset%qpoint, 2)
   !   or use only one
-  if(input%xs%bse%iqmt /= -1) then 
-    iqmti=input%xs%bse%iqmt
-    iqmtf=input%xs%bse%iqmt
+  if(input%xs%bse%iqmtrange(1)/= -1) then 
+    iqmti=input%xs%bse%iqmtrange(1)
+    iqmtf=input%xs%bse%iqmtrange(2)
   end if
   nqmt = iqmtf-iqmti+1
 

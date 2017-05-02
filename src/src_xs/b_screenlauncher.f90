@@ -40,7 +40,7 @@ subroutine b_screenlauncher
   real(8), parameter :: epslat=1.d-8
   real(8) :: qgridoff(3), qgridoffgamma(3)
   character(256) :: filex, syscommand
-  character(*), parameter :: thisnam = 'b_screenlauncher'
+  character(*), parameter :: thisname = 'b_screenlauncher'
 
   !write(*,*) "b_screenlauncher here at rank ", rank
 
@@ -111,7 +111,7 @@ subroutine b_screenlauncher
     syscommand = 'test ! -e '//trim(adjustl(timingdirname))//' && mkdir '//trim(adjustl(timingdirname))
     call system(trim(adjustl(syscommand)))
   end if
-  call barrier
+  call barrier(callername=trim(thisname))
   !------------------------------------------------------------!
 
 
@@ -139,11 +139,11 @@ subroutine b_screenlauncher
   ! Make Screening for qmt=0 and calculate it for all q-points !
   ! q=k'-k (or the reduced q point set)                        !
   !------------------------------------------------------------!
-  if(input%xs%screening%iqmt == -1 .or. input%xs%screening%iqmt == 1) then 
+  if(input%xs%screening%iqmtrange(1) == -1 .or. input%xs%screening%iqmtrange(1) == 1) then 
 
     if(rank == 0) then 
       call printline(unitout, "+")
-      write(unitout, '(a, i8)') 'Info(' // thisnam // '):&
+      write(unitout, '(a, i8)') 'Info(' // thisname // '):&
         & Calculating screening for unshifted q-grid.'
       call printline(unitout, "+")
       write(unitout, *)
@@ -184,7 +184,7 @@ subroutine b_screenlauncher
       ! Generate screening for the given q-point
       call dfq(iq)
 
-      write(unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sham&
+      write(unitout, '(a, i8)') 'Info(' // thisname // '): Kohn Sham&
         & response function finished for q - point:', iq
       call printline(unitout, "-")
 
@@ -192,14 +192,14 @@ subroutine b_screenlauncher
 
     if(rank == 0) then 
       call printline(unitout, "+")
-      write(unitout, '(a, i8)') 'Info(' // thisnam // '):&
+      write(unitout, '(a, i8)') 'Info(' // thisname // '):&
         & Screening for unshifted q-grid finished'
       call printline(unitout, "+")
       write(unitout, *)
     end if
 
     ! Synchronize
-    call barrier
+    call barrier(callername=trim(thisname))
 
   end if
   !------------------------------------------------------------!
@@ -227,7 +227,7 @@ subroutine b_screenlauncher
 
     if(rank == 0) then
       call printline(unitout, "+")
-      write(unitout, '(a)') 'Info(' // thisnam // '):&
+      write(unitout, '(a)') 'Info(' // thisname // '):&
         & Calculating screening on a shifted q-grid.'
       call printline(unitout, "+")
       write(unitout, *)
@@ -235,9 +235,9 @@ subroutine b_screenlauncher
 
     iqmti = 1
     iqmtf = nqmt
-    if(input%xs%screening%iqmt /= -1) then 
-      iqmti=input%xs%screening%iqmt
-      iqmtf=input%xs%screening%iqmt
+    if(input%xs%screening%iqmtrange(1) /= -1) then 
+      iqmti=input%xs%screening%iqmtrange(1)
+      iqmtf=input%xs%screening%iqmtrange(2)
     end if
 
     ! Consider qmt vectors in qmt-list 
@@ -245,7 +245,7 @@ subroutine b_screenlauncher
 
       if(.not. fti .and. iqmt == 1) then 
         if(rank == 0) then 
-          write(unitout, '(a, i3)') 'Info(' // thisnam // '):&
+          write(unitout, '(a, i3)') 'Info(' // thisname // '):&
            & For vqmtl=0 no unshifted q grid is needed.'
           call printline(unitout, "-")
         end if
@@ -268,13 +268,13 @@ subroutine b_screenlauncher
       ! considered momentum transver vector qmt.                   !
       !------------------------------------------------------------!
       if(rank == 0) then 
-        write(unitout, '(a, i3)') 'Info(' // thisnam // '):&
+        write(unitout, '(a, i3)') 'Info(' // thisname // '):&
          & Considering momentum transfer vector iqmt=', iqmt
         if(.not. fti) then 
-          write(unitout, '(a)') 'Info(' // thisnam // '):&
+          write(unitout, '(a)') 'Info(' // thisname // '):&
             & Using q = (kp-qmt)-k = q0-qmt grid.'
         else
-          write(unitout, '(a)') 'Info(' // thisnam // '):&
+          write(unitout, '(a)') 'Info(' // thisname // '):&
             & Using q = -(kp+qmt)-k grid.'
         end if
         call printline(unitout, "-")
@@ -294,7 +294,7 @@ subroutine b_screenlauncher
         if(rank == 0) then 
           write(unitout, '("Info(",a,"):&
             & Shifted q-grid for iqmt=", i4, " is identical to q-grid,&
-            & for iqmt=1. Skipping calculation.")') trim(thisnam), iqmt
+            & for iqmt=1. Skipping calculation.")') trim(thisname), iqmt
           call printline(unitout, "-")
         end if
 
@@ -399,7 +399,7 @@ subroutine b_screenlauncher
         ! Generate screening for the given q-point
         call dfq(iq)
 
-        write(unitout, '(a, i4)') 'Info(' // thisnam // '): Kohn Sham&
+        write(unitout, '(a, i4)') 'Info(' // thisname // '): Kohn Sham&
           & response function finished for q - point:', iq
         call printline(unitout, "-")
         write(unitout, *)
@@ -417,13 +417,13 @@ subroutine b_screenlauncher
       end if
 
       ! Synchronize
-      call barrier
+      call barrier(callername=trim(thisname))
 
     end do
 
     if(rank == 0) then 
       call printline(unitout, "+")
-      write(unitout, '(a)') 'Info(' // thisnam // '):&
+      write(unitout, '(a)') 'Info(' // thisname // '):&
         & Screening for shifted q-grid finished'
       call printline(unitout, "+")
       write(unitout, *)
