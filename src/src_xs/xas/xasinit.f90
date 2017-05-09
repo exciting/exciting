@@ -51,7 +51,7 @@ subroutine xasinit
 		end if
 	end do
         if (ic==0) then
-                write(*,*)'No Core State in Species file. Please tell Christian he sucks.'
+                write(*,*)'No Core State in Species file. Check input and/or species file.'
                 call terminate 
         end if
 	ncmax=max(ncmax,ncore)
