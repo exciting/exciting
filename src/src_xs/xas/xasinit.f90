@@ -15,6 +15,7 @@ subroutine xasinit
 ! 
 ! !USES:
 	Use modmain
+        Use modmpi
 	Use modinput
 	Use modxs
 	Use modxas
@@ -49,6 +50,10 @@ subroutine xasinit
 			end do
 		end if
 	end do
+        if (ic==0) then
+                write(*,*)'No Core State in Species file. Check input and/or species file.'
+                call terminate 
+        end if
 	ncmax=max(ncmax,ncore)
 	nclm=max(nclm,ic)
 	ncg=ic
