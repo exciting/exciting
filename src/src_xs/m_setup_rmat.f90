@@ -255,9 +255,15 @@ module m_setup_rmat
           ! Get momentum P_ou matrix for ik
           ! and those occupied and unoccupied states that 
           ! are participate at that k point. 
-          call getpmat(iknr, vkl0,&
-            & ioabs1, ioabs2, iuabs1, iuabs2,&
-            & .true., 'PMAT_XS.OUT', pmou(:,1:ino,1:inu))
+          if (input%xs%bse%xas) then
+            call getpmatxas(iknr, vkl0,&
+              & ioabs1, ioabs2, iuabs1, iuabs2,&
+              & .true., 'PMAT_XS.OUT', pmou(:,1:ino,1:inu))
+          else
+            call getpmat(iknr, vkl0,&
+              & ioabs1, ioabs2, iuabs1, iuabs2,&
+              & .true., 'PMAT_XS.OUT', pmou(:,1:ino,1:inu))
+          end if
 
           ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
           ! \frac{v^\text{QP}_{okuk}}{E_uk - E_ok} \approx \frac{p^\text{LDA}_{okuk}}{e_uk - e_ok}
