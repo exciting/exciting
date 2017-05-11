@@ -1226,7 +1226,11 @@ use m_writecmplxparts
         ! Set vkl0_ptr,... to k-grid and vkl1_ptr,... to k+qmt-grid
         call setptr01()
         ! Calculate M_{ou,G} at fixed (k, q)
-        call b_ematqk(iq, iknr, mou, ematbc)
+        if (.not. input%xs%bse%xas) then
+          call b_ematqk(iq, iknr, mou, ematbc)
+        else
+          call b_ematqk_core(iq, iknr, mou, ematbc, 'ou')
+        end if
         !------------------------------------------------------------!
 
         if(.false.) then
@@ -1278,7 +1282,11 @@ use m_writecmplxparts
         ! Set vkl0_ptr,... to k+qmt-grid and vkl1_ptr,... to k-grid
         call setptr10()
         ! Calculate M_{uo,G} at fixed (k, q)
-        call b_ematqk(iq, ikpnr, muo, ematbc)
+        if (.not. input%xs%bse%xas) then
+          call b_ematqk(iq, ikpnr, muo, ematbc)
+        else
+          call b_ematqk_core(iq, ikpnr, muo, ematbc, 'uo')
+        end if
         !-------------------------------------------------------------!
         if(.false.) then 
           if(fwp) then

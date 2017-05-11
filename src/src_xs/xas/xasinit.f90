@@ -14,247 +14,208 @@ subroutine xasinit
 ! This is the main initialization subroutine of the BSE-XAS program.
 ! 
 ! !USES:
-	Use modmain
-        Use modmpi
-	Use modinput
-	Use modxs
-	Use modxas
-	Implicit none
-	Integer :: is, ist, m, ic, ias, l, ir, ia, k
+  Use modmain
+  Use modmpi
+  Use modinput
+  Use modxs
+  Use modxas
+  Implicit none
+  Integer :: is, ist, m, ic, ias, l, ir, ia, k
 ! !REVISION HISTORY:
 !
 ! Created June 2015 by C. Vorwerk
 !
 !EOP
 !BOC
-    call init0
-    call init1
-    call init2
-	call gencore
-    ncmax=0
-    nclm=0
-    ncg=0
-    lcoremax=0
+  call init0
+  call init1
+  call init2
+  call gencore
+  ncmax=0
+  nclm=0
+  ncg=0
+  lcoremax=0
 !   count all real core states and set radial wavefunction ucore=rwfcr/r
-	ia=input%xs%bse%xasatom
-	is=input%xs%bse%xasspecies
-	ncore=0
-	ic = 0
-	do ist=1,spnst(is)
-		if (spcore(ist,is)) then
-			ncore=ncore+1
-			l=spl(ist,is)
-			lcoremax=max(lcoremax,l)
-			do m=-spk(ist,is),spk(ist,is)-1
-				ic=ic+1
-			end do
-		end if
-	end do
+  ia=input%xs%bse%xasatom
+  is=input%xs%bse%xasspecies
+  ncore=0
+  ic = 0
+  do ist=1,spnst(is)
+    if (spcore(ist,is)) then
+      ncore=ncore+1
+      l=spl(ist,is)
+      lcoremax=max(lcoremax,l)
+      do m=-spk(ist,is),spk(ist,is)-1
+        ic=ic+1
+      end do
+    end if
+  end do
         if (ic==0) then
                 write(*,*)'No Core State in Species file. Check input and/or species file.'
                 call terminate 
         end if
-	ncmax=max(ncmax,ncore)
-	nclm=max(nclm,ic)
-	ncg=ic
+  ncmax=max(ncmax,ncore)
+  nclm=max(nclm,ic)
+  ncg=ic
 !	Fill ucore
 !	if (allocated(ucore)) deallocate(ucore)
-	allocate(ucore(spnrmax,ncg))
-	ias=idxas(ia,is)
-	ic=0
-	do ist=1,ncore
-		do m=-spk(ist,is), spk(ist,is)-1
-			ic=ic+1
-			do ir=1,nrmt(is)
-				ucore(ir,ic)=rwfcr(ir,1,ist,ias)/spr(ir,is)
-			end do
-		end do
-	enddo ! ist
+  allocate(ucore(spnrmax,ncg))
+  ias=idxas(ia,is)
+  ic=0
+  do ist=1,ncore
+    do m=-spk(ist,is), spk(ist,is)-1
+      ic=ic+1
+      do ir=1,nrmt(is)
+        ucore(ir,ic)=rwfcr(ir,1,ist,ias)/spr(ir,is)
+      end do
+    end do
+  enddo ! ist
 !	Set array with core state energies
-	allocate(ecore(ncg))
-	ic=0
-	do ist=1,ncore
-		do m=-spk(ist,is), spk(ist,is)-1
-			ic=ic+1
-			ecore(ic)=evalcr(ist, idxas(ia,is))
-		end do
-	end do
-	
-!	if(allocated(mj2ml)) deallocate(mj2ml)
-	allocate(mj2ml(ncg,2))                      ! Not completely general, enough for K,L1,L2,L3,M1,M2,M3,M4-edge calculations
-!	if(allocated(preml)) deallocate(preml)
-	allocate(preml(ncg,2))                      ! Not completely general, enough for K,L1,L2,L3,M1,M2,M3,M4-edge calculations
-
-! Set prefactor and mj2ml-pointers for the spin spherical harmonics
-	preml=0.0
-	mj2ml=0
-	preml(1,1)=0.0d0	! 1s(1/2,-1/2)
-	preml(1,2)=1.0d0
-	preml(2,1)=1.0d0    ! 1s(1/2,1/2)
-	preml(2,2)=0.0d0	
-	if (ncg .gt. 2) then
-		preml(3,1)=1.0d0	! 2s(1/2,-1/2)
-		preml(4,2)=1.0d0	! 2s(1/2,1/2)
-	end if
-	if (ncg .gt. 4) then
-		mj2ml(5,1)=-1   ! 2p(1/2,-1/2)
-		mj2ml(5,2)=0
-		preml(5,1)=-sqrt(2.0d0/3.0d0)
-		preml(5,2)=sqrt(1.0d0/3.0d0)
-		mj2ml(6,1)=0	! 2p(1/2,1/2)
-		mj2ml(6,2)=1
-		preml(6,1)=-sqrt(1.0d0/3.0d0)
-		preml(6,2)=sqrt(2.0d0/3.0d0)
-		mj2ml(7,1)=0	! 2p(3/2,-3/2)
-		mj2ml(7,2)=-1
-		preml(7,1)=-0.0d0
-		preml(7,2)=1.0d0
-		mj2ml(8,1)=-1	! 2p(3/2,-1/2)
-		mj2ml(8,2)=0
-		preml(8,1)=sqrt(1.0d0/3.0d0)
-		preml(8,2)=sqrt(2.0d0/3.0d0)
-		mj2ml(9,1)=0	! 2p(3/2,1/2)
-		mj2ml(9,2)=1
-		preml(9,1)=sqrt(2.0d0/3.0d0)
-		preml(9,2)=sqrt(1.0d0/3.0d0)
-		mj2ml(10,1)=1	! 2p(3/2,3/2)
-		mj2ml(10,2)=0
-		preml(10,1)=1.0d0
-		preml(10,2)=0.0d0
-	end if
-	if (ncg .gt. 10) then
-		preml(11,1)=1.0d0	! 3s(1/2,-1/2)
-		preml(12,2)=1.0d0	! 3s(1/2,1/2)
-	end if
-	if (ncg .gt. 12) then
-		mj2ml(13,1)=-1   ! 3p(1/2,-1/2)
-		mj2ml(13,2)=0
-		preml(13,1)=-sqrt(2.0d0/3.0d0)
-		preml(13,2)=sqrt(1.0d0/3.0d0)
-		mj2ml(14,1)=0	! 3p(1/2,1/2)
-		mj2ml(14,2)=1
-		preml(14,1)=-sqrt(1.0d0/3.0d0)
-		preml(14,2)=sqrt(2.0d0/3.0d0)
-		mj2ml(15,1)=0	! 3p(3/2,-3/2)
-		mj2ml(15,2)=-1
-		preml(15,1)=-0.0d0
-		preml(15,2)=1.0d0
-		mj2ml(16,1)=-1	! 3p(3/2,-1/2)
-		mj2ml(16,2)=0
-		preml(16,1)=sqrt(1.0d0/3.0d0)
-		preml(16,2)=sqrt(2.0d0/3.0d0)
-		mj2ml(17,1)=0	! 3p(3/2,1/2)
-		mj2ml(17,2)=1
-		preml(17,1)=sqrt(2.0d0/3.0d0)
-		preml(17,2)=sqrt(1.0d0/3.0d0)
-		mj2ml(18,1)=1	! 3p(3/2,3/2)
-		mj2ml(18,2)=0
-		preml(18,1)=1.0d0
-		preml(18,2)=0.0d0
-	end if
-	if (ncg .gt. 12) then
-		mj2ml(19,1)=-2	! 3d(3/2,-3/2)
-		mj2ml(19,2)=-1
-		preml(19,1)=-sqrt(4.0d0/5.0d0)
-		preml(19,2)=sqrt(1.0d0/5.0d0)
-		mj2ml(20,1)=-1	! 3d(3/2,-1/2)
-		mj2ml(20,2)=0
-		preml(20,1)=-sqrt(3.0d0/5.0d0)
-		preml(20,2)=sqrt(2.0d0/5.0d0)
-		mj2ml(21,1)=0	! 3d(3/2,1/2)
-		mj2ml(21,2)=1
-		preml(21,1)=-sqrt(2.0d0/5.0d0)
-		preml(21,2)=sqrt(3.0d0/5.0d0)
-		mj2ml(22,1)=1	! 3d(3/2,3/2)
-		mj2ml(22,2)=2
-		preml(22,1)=-sqrt(1.0d0/5.0d0)
-		preml(22,2)=sqrt(4.0d0/5.0d0)
-		mj2ml(23,1)=0	! d(5/2,-5/2)
-		mj2ml(23,2)=-2	
-		preml(23,1)=0.0d0
-		preml(23,2)=1.0d0
-		mj2ml(24,1)=-2	! d(5/2,-3/2)
-		mj2ml(24,2)=-1	
-		preml(24,1)=sqrt(1.0d0/5.0d0)
-		preml(24,2)=sqrt(4.0d0/5.0d0)
-		mj2ml(25,1)=-1	! d(5/2,-1/2)
-		mj2ml(25,2)=0
-		preml(25,1)=sqrt(2.0d0/5.0d0)
-		preml(25,2)=sqrt(3.0d0/5.0d0)
-		mj2ml(26,1)=0	! d(5/2,1/2)
-		mj2ml(26,2)=1
-		preml(26,1)=sqrt(3.0d0/5.0d0)
-		preml(26,2)=sqrt(2.0d0/5.0d0)
-		mj2ml(27,1)=1 	! d(5/2,3/2)
-		mj2ml(27,2)=2
-		preml(27,1)=sqrt(4.0d0/5.0d0)
-		preml(27,2)=sqrt(1.0d0/5.0d0)
-		mj2ml(28,1)=2 	! d(5/2,5/2)
-		mj2ml(28,2)=0
-		preml(28,1)=1.0d0
-		preml(28,2)=0.0d0
-	end if
+  allocate(ecore(ncg))
+  ic=0
+  do ist=1,ncore
+    do m=-spk(ist,is), spk(ist,is)-1
+      ic=ic+1
+      ecore(ic)=evalcr(ist, idxas(ia,is))
+    end do
+  end do
+  
+! Set j- and mj-quantum numbers
+  allocate(spj(ncg))
+  allocate(mj(ncg))
+  ! K
+  spj(1)=0.5d0  ! 1s(1/2,-1/2)
+  mj(1)=-0.5d0
+  spj(2)=0.5d0   ! 1s(1/2,1/2)
+  mj(2)=-0.5d0
+  ! L1
+  if (ncg .gt. 2) then
+    spj(3)=0.5d0  ! 2s(1/2,-1/2)
+    mj(3)=-0.5d0
+    spj(4)=0.5d0  ! 2s(1/2,1/2)
+    mj(4)=0.5d0
+  end if
+  ! L23
+  if (ncg .gt. 4) then
+    spj(5)=0.5d0  ! 2p(1/2,-1/2)
+    mj(5)=-0.5d0
+    spj(6)=0.5d0  ! 2p(1/2,1/2)
+    mj(6)=0.5d0
+    spj(7)=1.5d0  ! 2p(3/2,-3/2)
+    mj(7)=-1.5d0 
+    spj(8)=1.5d0  ! 2p(3/2,-1/2)
+    mj(8)=-0.5d0
+    spj(9)=1.5d0  ! 2p(3/2,1/2)
+    mj(9)=0.5d0
+    spj(10)=1.5d0 ! 2p(3/2,3/2)
+    mj(10)=1.5d0
+  end if
+  ! M1
+  if (ncg .gt. 10) then
+    spj(11)=0.5d0 ! 3s(1/2,-1/2)
+    mj(11)=-0.5d0
+    spj(12)=0.5d0 ! 3s(1/2,1/2)
+    mj(12)=0.5d0
+  end if
+  ! M23
+  if (ncg .gt. 12) then
+    spj(13)=0.5d0   ! 3p(1/2,-1/2)
+    mj(13)=-0.5d0
+    spj(14)=0.5d0   ! 3p(1/2,1/2)
+    mj(14)=0.5d0
+    spj(15)=1.5d0   ! 3p(3/2,-3/2)
+    mj(15)=-1.5d0
+    spj(16)=1.5d0   ! 3p(3/2,-1/2)
+    mj(16)=-0.5d0
+    spj(17)=1.5d0   ! 3p(3/2,1/2)
+    mj(17)=0.5d0
+    spj(18)=1.5d0   ! 3p(3/2,3/2)
+    mj(18)=1.5d0
+  end if
+  ! M45
+  if (ncg .gt. 12) then
+    spj(19)=1.5d0   ! 3d(3/2,-3/2)
+    mj(19)=-1.5d0
+    spj(20)=1.5d0   ! 3d(3/2,-1/2)
+    mj(20)=-0.5d0
+    spj(21)=1.5d0   ! 3d(3/2,1/2)
+    mj(21)=0.5d0
+    spj(22)=1.5d0   ! 3d(3/2,3/2)
+    mj(22)=1.5d0
+    spj(23)=2.5d0   ! d(5/2,-5/2)
+    mj(23)=-2.5d0
+    spj(24)=2.5d0   ! d(5/2,-3/2)
+    mj(24)=-1.5d0
+    spj(25)=2.5d0   ! d(5/2,-1/2)
+    mj(25)=-0.5d0
+    spj(26)=2.5d0   ! d(5/2,1/2)
+    mj(26)=0.5d0
+    spj(27)=2.5d0   ! d(5/2,3/2)
+    mj(27)=1.5d0
+    spj(28)=2.5d0   ! d(5/2,5/2)
+    mj(28)=2.5d0
+  end if
 ! Obtain boundaries for different edges	
-	if (input%xs%bse%xasedge .eq. 'K') then
-		xasstart=1
-		xasstop=2
-		lxas=0
-	elseif (input%xs%bse%xasedge .eq. 'L1') then
-		xasstart=3
-		xasstop=4
-		lxas=0
-	elseif (input%xs%bse%xasedge .eq. 'L2') then
-		xasstart=5
-		xasstop=6
-		lxas=1
-	elseif (input%xs%bse%xasedge .eq. 'L3') then
-		xasstart=7
-		xasstop=10
-		lxas=1
-	elseif (input%xs%bse%xasedge .eq. 'L23') then
-		xasstart=5
-		xasstop=10
-		lxas=1
-	elseif (input%xs%bse%xasedge .eq. 'M1') then
-		xasstart=11
-		xasstop=12
-		lxas=0
-	elseif (input%xs%bse%xasedge .eq. 'M2') then
-		xasstart=13
-		xasstop=14
-		lxas=1
-	elseif (input%xs%bse%xasedge .eq. 'M3') then
-		xasstart=15
-		xasstop=18
-		lxas=1
-	elseif (input%xs%bse%xasedge .eq. 'M23') then
-		xasstart=13
-		xasstop=18
-		lxas=1
-	elseif (input%xs%bse%xasedge .eq. 'M4') then
-		xasstart=19
-		xasstop=22
-		lxas=2
-	elseif (input%xs%bse%xasedge .eq. 'M5') then
-		xasstart=23
-		xasstop=28
-		lxas=2
-	elseif (input%xs%bse%xasedge .eq. 'M45') then
-		xasstart=19
-		xasstop=28
-		lxas=2
-	end if
+  if (input%xs%bse%xasedge .eq. 'K') then
+    xasstart=1
+    xasstop=2
+    lxas=0
+  elseif (input%xs%bse%xasedge .eq. 'L1') then
+    xasstart=3
+    xasstop=4
+    lxas=0
+  elseif (input%xs%bse%xasedge .eq. 'L2') then
+    xasstart=5
+    xasstop=6
+    lxas=1
+  elseif (input%xs%bse%xasedge .eq. 'L3') then
+    xasstart=7
+    xasstop=10
+    lxas=1
+  elseif (input%xs%bse%xasedge .eq. 'L23') then
+    xasstart=5
+    xasstop=10
+    lxas=1
+  elseif (input%xs%bse%xasedge .eq. 'M1') then
+    xasstart=11
+    xasstop=12
+    lxas=0
+  elseif (input%xs%bse%xasedge .eq. 'M2') then
+    xasstart=13
+    xasstop=14
+    lxas=1
+  elseif (input%xs%bse%xasedge .eq. 'M3') then
+    xasstart=15
+    xasstop=18
+    lxas=1
+  elseif (input%xs%bse%xasedge .eq. 'M23') then
+    xasstart=13
+    xasstop=18
+    lxas=1
+  elseif (input%xs%bse%xasedge .eq. 'M4') then
+    xasstart=19
+    xasstop=22
+    lxas=2
+  elseif (input%xs%bse%xasedge .eq. 'M5') then
+    xasstart=23
+    xasstop=28
+    lxas=2
+  elseif (input%xs%bse%xasedge .eq. 'M45') then
+    xasstart=19
+    xasstop=28
+    lxas=2
+  end if
 ! define number of core states in XAS calculation
-	nxas=xasstop-xasstart+1
+  nxas=xasstop-xasstart+1
 !    additional arrays used for convenience
-	do is=1,nspecies
-		do ia=1,natoms(is)
-			ias=idxas(ia,is)
+  do is=1,nspecies
+    do ia=1,natoms(is)
+      ias=idxas(ia,is)
 !         shortcut for atomic positions
-			atposl(:,ia,is)=input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-		end do
+      atposl(:,ia,is)=input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+    end do
 !       calculate the muffin-tin volume
-		vmt(is)=4.0d0*pi*rmt(is)*rmt(is)*rmt(is)/(3.0d0*omega)
-	end do
+    vmt(is)=4.0d0*pi*rmt(is)*rmt(is)*rmt(is)/(3.0d0*omega)
+  end do
 end subroutine xasinit
 ! EOC

@@ -35,14 +35,15 @@ module modxas
       real(8), allocatable :: ucore(:,:)
 !  core energies for given kappa and m
 	  real(8), allocatable :: ecore(:)
-!  corresponding ml for a given (l,j,mj)-state
-	  integer(4), allocatable :: mj2ml(:,:)
-! prefactor for the spherical harmonics within the spin spherical harmonics
-	  real(8), allocatable :: preml(:,:)
 ! unique lowest and highest core state for XAS calculation
-	  integer(4) :: xasstart, xasstop
+    integer(4) :: xasstart, xasstop
 ! l-value of the considered XAS edge
-	  integer(4) :: lxas
+    integer(4) :: lxas
+! j-value of given core state
+    real(8), allocatable :: spj(:)
+! mj-value of a given core state
+    real(8), allocatable :: mj(:)
+
 !----------------------------!
 !     general                !
 !----------------------------!
@@ -54,6 +55,38 @@ module modxas
 !      Complex (8), Allocatable :: xioo (:, :, :)
 !! plane wave matrix elements array (u-u part)
 !      Complex (8), Allocatable :: xiuu (:, :, :)
+contains
+  integer function mj2ml(m,i)
+    implicit none
+    real(8), intent(in) :: m
+    integer, intent(in) :: i
+    if (i==1) then
+      mj2ml=Int(m-0.50d0)
+    else if (i==2) then
+      mj2ml=Int(m+0.50d0)
+    end if
+    return
+  end function mj2ml
 
+  real function preml(l,j,m,i)
+    implicit none
+    integer, intent(in) :: l, i
+    real(8), intent(in) :: j, m
+
+    if (j==dble(l)+0.50d0) then ! j=l+1/2
+      if (i==1) then
+        preml=sqrt((dble(l)+m+0.50d0)/(2*dble(l)+1.0d0))
+      else if (i==2) then
+        preml=sqrt((dble(l)-m+0.50d0)/(2*dble(l)+1.0d0))
+      end if
+    else if (j==dble(l)-0.50d0) then ! j=l-1/2
+      if (i==1) then
+        preml=-sqrt((dble(l)-m+0.50d0)/(2*dble(l)+1.0d0))
+      else if (i==2) then
+        preml=sqrt((dble(l)+m+0.50d0)/(2*dble(l)+1.0d0))
+      end if
+    end if
+    return
+  end function preml
 end module modxas
 !EOC

@@ -1784,7 +1784,11 @@ End Subroutine ematradoo
                 lm3=idxlm(l3,m3)
                 Do irc=1,nrcmt(input%xs%bse%xasspecies)
                   fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,n2+bcs%il2-1))
-                  fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
+                  if (.not. emat_ccket) then
+                    fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
+                  else ! use complex conjugate of the wavefunction
+                    fr3(irc)=-(1.0d0)*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
+                  end if
                 End Do
                 ! Radial integration
                 Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr2, gr, cf)
