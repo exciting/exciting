@@ -1425,13 +1425,13 @@ module m_ematqk
 #endif
           allocate(matchk(nlmomax, ngk))
           allocate(matchkq(nlmomax, ngkq))
-#ifdef USEOMP
-!$OMP DO COLLAPSE(2)
-#endif
           ! Make product of Matching coefficients A and 
           ! eigenvector coefficients C, as computation helper
           ! AC_{lmo,ist;ias} = \Sum_G+k A_{lmo,G+k;ias}*C_{G+k,ist}
           ! Also append the coefficients of the corresponding local orbitals.
+#ifdef USEOMP
+!$OMP DO
+#endif
           do is = 1, nspecies
             do ia = 1, natoms(is)
               ias = idxas(ia, is)

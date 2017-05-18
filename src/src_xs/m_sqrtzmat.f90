@@ -83,7 +83,7 @@ module m_sqrtzmat
         clustersize = 3
       end if
 
-      if(hepdmat%isdistributed == .false.) then
+      if(hepdmat%isdistributed .eqv. .false.) then
         call sqrtzmat_hepd(hepdmat%za)
         return
       end if

@@ -303,7 +303,7 @@ subroutine xstasklauncher
     call xasfinit
     call xsfinit
 
-  else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%beyond==.true.) then
+  else if(trim(input%xs%xstype) == "BSE" .and. input%xs%bse%beyond .eqv. .true.) then
 
     !! Removed dubble grid code, since no-one knows how it works.
     !! Removed tetra code, since no-one knows if it works.

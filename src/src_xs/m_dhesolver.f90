@@ -76,7 +76,7 @@ module m_dhesolver
       if(present(evec)) then
         evalsonly = .false.
         distributed = ham%isdistributed .and. evec%isdistributed
-        sane = (ham%isdistributed == evec%isdistributed)
+        sane = (ham%isdistributed .eqv. evec%isdistributed)
       else
         evalsonly = .true.
         distributed = ham%isdistributed

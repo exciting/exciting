@@ -161,7 +161,7 @@ module m_putgetbsemat
       iscompatible = .true.
 
       ! Check if identical
-      if( reducek_ == reducek .and. fensel_ == fensel&
+      if( reducek_ .eqv. reducek .and. fensel_ .eqv. fensel&
         & .and. (wl_ == wl .and. wu_ == wu .or. .not. fensel)&
         & .and. (econv_(1) == econv(1) .and. econv_(2) == econv(2) .or. .not. fensel)&
         & .and. (all(nstlbse_ == nstlbse) .or. fensel)&
@@ -175,7 +175,7 @@ module m_putgetbsemat
       end if
 
       ! Check necessary compatibility
-      if( reducek_ /= reducek) then
+      if( reducek_ .neqv. reducek) then
         iscompatible = .false.
         isidentical = .false.
         write(*, '("Error (b_getbseinfo):&
@@ -189,8 +189,8 @@ module m_putgetbsemat
         isidentical = .false.
         write(*, '("Error (b_getbseinfo):&
           & ngridk,ngridq or vkloff differ")')
-        write(*, '(" requested: ", 3i,1x,3i,1x,3f)') ngridk, ngridq, vkloff 
-        write(*, '(" stored: ", 3i,1x,3i,1x,3f)') ngridk_, ngridq_, vkloff_
+        write(*, '(" requested: ", 3i4,1x,3i4,1x,3f12.6)') ngridk, ngridq, vkloff 
+        write(*, '(" stored: ", 3i4,1x,3i4,1x,3f12.6)') ngridk_, ngridq_, vkloff_
       end if
       if(iqmt_ /= iqmt) then 
         iscompatible = .false.
@@ -208,7 +208,7 @@ module m_putgetbsemat
         write(*, '(" requested vqlmt: ", 3E10.3)') vqlmt(1:3,iqmt)  
         write(*, '(" stored vql_: ", 3E10.3)') vql_(1:3)
       end if
-      if(fensel_ /= fensel) then
+      if(fensel_ .neqv. fensel) then
         iscompatible = .false.
         isidentical = .false.
         write(*, '("Error (b_getbseinfo):&

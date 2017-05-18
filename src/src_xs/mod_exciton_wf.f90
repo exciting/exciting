@@ -142,7 +142,7 @@ contains
       ! Get data form EXCCOEFF*.OUT
       call get_excitons()
       ! Check compatibility (needs TDA and fixed number of transition over all k)
-      if(fcoup_==.true. .or. fesel_==.true.) then 
+      if(fcoup_ .eqv. .true. .or. fesel_ .eqv. .true.) then 
         write(*,*) "Error(plot_excitonWavefunction): Data retrieved with get_excitions invalid"
         call terminate
       end if

@@ -33,7 +33,7 @@ subroutine b_exccoulintlauncher
   casestring = input%xs%bse%blocks
 
   ! Also calculate coupling blocks
-  if(input%xs%bse%coupling == .true.) then 
+  if(input%xs%bse%coupling .eqv. .true.) then 
     fcoup = .true.
   else
     fcoup = .false.
@@ -44,7 +44,7 @@ subroutine b_exccoulintlauncher
   end if
 
   ! Use time inverted anti-resonant basis
-  if(input%xs%bse%ti == .true.) then 
+  if(input%xs%bse%ti .eqv. .true.) then 
     fti = .true.
   else
     fti = .false.

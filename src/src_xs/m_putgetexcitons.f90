@@ -337,7 +337,7 @@ module m_putgetexcitons
       inquire(unexc, pos=mypos)
 
       ! Check read parameters against requested ones
-      if(fcoup_ /= fcoup .or. fti_ /= fti) then 
+      if(fcoup_ .neqv. fcoup .or. fti_ .neqv. fti) then 
         write(*,*)
         write(*,'("Error(get_excitons): BSE type differs")')
         write(*,'(" Requested: fcoup=", l," fti=", l)') fcoup, fti
@@ -345,7 +345,7 @@ module m_putgetexcitons
         write(*,*)
         call terminate
       end if
-      if(fesel_ /= fesel) then 
+      if(fesel_ .neqv. fesel) then 
         write(*,*)
         write(*,'("Error(get_excitons):  Transition selection schemes differs")')
         write(*,'(" Requested: fensel=", l)') fesel

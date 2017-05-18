@@ -26,7 +26,7 @@ module mod_ematgrids
 
   contains
 
-    logical function ematgrids_initialized
+    logical function ematgrids_initialized()
       ematgrids_initialized = initialized
     end function ematgrids_initialized
 

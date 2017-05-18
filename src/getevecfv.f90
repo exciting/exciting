@@ -132,8 +132,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
         &)') ik
          Write (*, '(" current    : ", I8)') nstfv
          Write (*, '(" EVECFV.OUT : ", I8)') nstfv_
-         Write (*, '(" file	     : ", a	 )') trim &
-        & (outfilenamestring(filetag, ik))
+         Write (*, '(" file	     : ", a	 )') trim(outfilenamestring(filetag, ik))
          Write (*,*)
          Stop
       End If

@@ -797,7 +797,7 @@ CONTAINS
         deallocate(igk2ig)
 
         !! Also make non-reduced quantities
-        if(kset%usedlibzint == .false.) then
+        if(kset%usedlibzint .eqv. .false.) then
 
           ! Map (igknr,iknr,ispin) --> ig
           allocate(igk2ig(gset%ngrtot,kset%nkptnr,nspnfv))
@@ -1304,7 +1304,7 @@ CONTAINS
 
         if(present(uselibzint)) then 
           uselz = uselibzint
-          if(uselz == .true.) then
+          if(uselz .eqv. .true.) then
             write(*,*) "Error(generate_kkqmt_vectors): libzint not supported. Using genppts"
             uselz = .false.
           end if
@@ -1633,7 +1633,7 @@ CONTAINS
         integer(4) :: ivg(3), iv(3), ik, ikp, iq, nkkp, ikkp
 
         ! Libzint not supported rigth now
-        if(kpset%usedlibzint == .true. .or. kset%usedlibzint == .true.) then
+        if(kpset%usedlibzint .eqv. .true. .or. kset%usedlibzint .eqv. .true.) then
           write(*,*) 'ERROR(mod_kpoints::generate_kkq_vectors):&
             & libzint not supported'
           stop
@@ -1874,7 +1874,7 @@ CONTAINS
         integer(4) :: ivg(3), iv(3), ik, ikp, ip, nkkp, ikkp
 
         ! Libzint not supported right now
-        if(kpset%usedlibzint == .true. .or. kset%usedlibzint == .true.) then
+        if(kpset%usedlibzint .eqv. .true. .or. kset%usedlibzint .eqv. .true.) then
           write(*,*) 'ERROR(mod_kpoints::generate_kkq_vectors):&
             & libzint not supported'
           stop

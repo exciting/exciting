@@ -113,7 +113,7 @@ module m_invertzmat
       integer(4), allocatable :: iwork(:)
       complex(8), allocatable :: work(:)
 
-      if(zmat%isdistributed == .false.) then 
+      if(zmat%isdistributed .eqv. .false.) then 
         call zinvert(zmat%za)
         return
       end if

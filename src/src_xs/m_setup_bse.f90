@@ -468,7 +468,7 @@ module m_setup_bse
       if(useexc) call b_getbseinfo(trim(einfofname), iqmt,&
         & fcmpt=efcmpt, fid=efid)
       if(usescc .and. useexc) then 
-        if(efcmpt /= sfcmpt .or. efid /= sfid) then 
+        if(efcmpt .neqv. sfcmpt .or. efid .neqv. sfid) then 
           write(*, '("Error(setup_bse_block): Info files differ")')
           write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
           call terminate
@@ -515,17 +515,17 @@ module m_setup_bse
         end if
 
         if(fwp) then 
-          if(ikkp == 1 .and. fcoup == .false.) then 
+          if(ikkp == 1 .and. fcoup .eqv. .false.) then 
             if(usescc) call writecmplxparts('ikkp1_read_Wrr',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
             if(useexc) call writecmplxparts('ikkp1_read_Vrr',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
           end if
 
-          if(ikkp == 1 .and. fcoup == .true. .and. fti == .false.) then 
+          if(ikkp == 1 .and. fcoup .eqv. .true. .and. fti .eqv. .false.) then 
             if(usescc) call writecmplxparts('ikkp1_read_Wra',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
             if(useexc) call writecmplxparts('ikkp1_read_Vra',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
           end if
 
-          if(ikkp == 1 .and. fcoup == .true. .and. fti == .true.) then 
+          if(ikkp == 1 .and. fcoup .eqv. .true. .and. fti .eqv. .true.) then 
             if(usescc) call writecmplxparts('ikkp1_read_Wra_ti',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
             if(useexc) call writecmplxparts('ikkp1_read_Vra_ti',dble(excli_t(1:inou,1:jnou)), aimag(excli_t(1:inou,1:jnou)))
           end if
@@ -1275,7 +1275,7 @@ module m_setup_bse
             & fcmpt=efcmpt, fid=efid)
 
           if(usescc .and. useexc) then 
-            if(efcmpt /= sfcmpt .or. efid /= sfid) then 
+            if(efcmpt .neqv. sfcmpt .or. efid .neqv. sfid) then 
               write(*, '("Error(setup_bse_block_dist): Info files differ")')
               write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
               call terminate
@@ -1357,7 +1357,7 @@ module m_setup_bse
             end if
 
             if(fwp) then
-              if(ikkp == 1 .and. fcoup == .false.) then 
+              if(ikkp == 1 .and. fcoup .eqv. .false.) then 
                 if(usescc) then 
                   call writecmplxparts('ikkp1_read_Wrr',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
                 end if
@@ -1366,7 +1366,7 @@ module m_setup_bse
                 end if
               end if
 
-              if(ikkp == 1 .and. fcoup == .true. .and. fti == .false.) then 
+              if(ikkp == 1 .and. fcoup .eqv. .true. .and. fti .eqv. .false.) then 
                 if(usescc) then 
                   call writecmplxparts('ikkp1_read_Wra',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
                 end if
@@ -1375,7 +1375,7 @@ module m_setup_bse
                 end if
               end if
 
-              if(ikkp == 1 .and. fcoup == .true. .and. fti == .true.) then 
+              if(ikkp == 1 .and. fcoup .eqv. .true. .and. fti .eqv. .true.) then 
                 if(usescc) then 
                   call writecmplxparts('ikkp1_read_Wra_ti',dble(sccli_t(1:inou,1:jnou)), aimag(sccli_t(1:inou,1:jnou)))
                 end if
