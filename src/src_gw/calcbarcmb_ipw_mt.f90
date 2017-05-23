@@ -56,6 +56,12 @@ subroutine calcbarcmb_ipw_mt(iq)
       gqvec(1:3) = Gset%vgc(1:3,Gqbarc%igkig(ipw,1,iq))+kqset%vqc(1:3,iq)
       ! length of G+q vector
       gqlen = dsqrt(gqvec(1)*gqvec(1)+gqvec(2)*gqvec(2)+gqvec(3)*gqvec(3))
+
+      ! when testing Gamma=.false. case
+      if (abs(gqlen) < 1.d-8) then
+        write(*,*) 'WARNING(calcbarcmb_ipw_mt.f90): Zero length vector!' 
+        cycle
+      endif
       
       if (vccut) then
      
