@@ -87,7 +87,7 @@ subroutine xasinit
   spj(1)=0.5d0  ! 1s(1/2,-1/2)
   mj(1)=-0.5d0
   spj(2)=0.5d0   ! 1s(1/2,1/2)
-  mj(2)=-0.5d0
+  mj(2)=0.5d0
   ! L1
   if (ncg .gt. 2) then
     spj(3)=0.5d0  ! 2s(1/2,-1/2)

@@ -41,6 +41,7 @@ module m_b_ematqk
       use m_emattim
       use m_getunit
       use m_genfilname
+      use m_b_getgrst
       use mod_spin, only: nspnfv
 #ifdef USEOMP
       use omp_lib
@@ -153,7 +154,10 @@ module m_b_ematqk
       !write(*,*) "shape(evecfv1_ptr)", shape(evecfv1_ptr)
       call b_getevecfv1(vkl1_ptr(1:3, ikq),&
        & vgkl1_ptr(1:3, 1:ngkmax1_ptr, 1:nspnfv, ikq), evecfv1_ptr)
-
+        write(*,*) '***************************************************' 
+        write(*,*) 'evecfv1_ptr(:,',bc%il2,')'
+        write(*,*) evecfv1_ptr(:,bc%il2,1)
+        write(*,*) '***************************************************' 
       ! Save local orbital coefficients
       evecfvu(:, :) = evecfv1_ptr(ngk1_ptr(1, ikq)+1:ngk1_ptr(1, ikq)+nlotot,&
         & bc%il2:bc%iu2, 1)
@@ -638,7 +642,10 @@ module m_b_ematqk
       use m_emattim
       use m_getunit
       use m_genfilname
+      use m_b_getgrst
       use mod_spin, only: nspnfv
+      use mod_eigensystem, only: nmatmax_ptr
+      
 #ifdef USEOMP
       use omp_lib
 #endif
@@ -734,6 +741,12 @@ module m_b_ematqk
       call b_getevecfv1(vkl1_ptr(1:3, ikq),&
        & vgkl1_ptr(1:3, 1:ngkmax1_ptr, 1:nspnfv, ikq), evecfv1_ptr)
 
+        write(*,*) '***************************************************'
+        write(*,*) 'nmatmax_ptr=', nmatmax_ptr 
+        write(*,*) 'nmatmax1_ptr=', nmatmax1_ptr 
+        write(*,*) 'evecfv1_ptr(:',bc%il2,')=', shape(evecfv1_ptr)
+        write(*,*) evecfv1_ptr(:,bc%il2,1)
+        write(*,*) '***************************************************' 
       ! Read eigenvectors for k
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
@@ -745,7 +758,7 @@ module m_b_ematqk
       ngkmax_save=ngkmax
       ngkmax=ngkmax1_ptr
       allocate (apwalmt(ngkmax, apwordmax, lmmaxapw, natmtot))
-      call match(ngk1_ptr(1, ikq), gkc1_ptr(:,1,ikq), tpgkc1_ptr(:,:,1,ikq), &
+      call b_match1(ngk1_ptr(1, ikq), gkc1_ptr(:,1,ikq), tpgkc1_ptr(:,:,1,ikq), &
         & sfacgk1_ptr(:,:,1,ikq), apwalmt)
       ngkmax=ngkmax_save
 
@@ -753,8 +766,8 @@ module m_b_ematqk
       ngkmax_save=ngkmax
       ngkmax=ngkmax0_ptr
       allocate (apwalmt0(ngkmax, apwordmax, lmmaxapw, natmtot))
-      call match(ngk0_ptr(1, ik), gkc0_ptr(:,1,ik), tpgkc0_ptr(:,:,1,ik), &
-        & sfacgk0_ptr(:,:,1,ik), apwalmt)
+      call b_match0(ngk0_ptr(1, ik), gkc0_ptr(:,1,ik), tpgkc0_ptr(:,:,1,ik), &
+        & sfacgk0_ptr(:,:,1,ik), apwalmt0)
       ngkmax=ngkmax_save
       call timesec(cpu0)
       cpuread = cpu0 - cpu1
@@ -1713,6 +1726,7 @@ End Subroutine ematradoo
     use mod_eigenvalue_occupancy, only: nstfv
     use mod_Gkvector, only: ngkmax
     use mod_APW_LO, only: apwordmax
+    use m_b_getgrst, only: b_wavefmt1
     !Use m_getunit 
     !Use modxas
     ! !INPUT/OUTPUT PARAMETERS:
@@ -1773,11 +1787,19 @@ End Subroutine ematradoo
       Do n1=1,nxas
         Do n2=1,bcs%n2
           ! Obtain radial wavefunction of the conduction state		
-          call wavefmt(input%groundstate%lradstep, &
+          call b_wavefmt1(input%groundstate%lradstep, &
           &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,input%xs%bse%xasatom,ngp&
             , apwalm, &
           &  evecfvo(:,n2+bcs%il2-1),lmmaxapw,wfmt(:,:,n2+bcs%il2-1))
              
+          if (igq == 1 .and. n2==1) then
+            write(*,*) '***************************************************' 
+            write(*,*) 'apwalm'
+            write(*,*) '***************************************************' 
+            write(*,*) 'wfmt(3,:,1)'
+            write(*,*) wfmt(3,:,n2+bcs%il2-1)
+            write(*,*) '***************************************************' 
+          end if
           Do l2=0, lmax2
             Do l3=0,input%xs%lmaxapw
               Do m3=-l3,l3
@@ -1797,7 +1819,10 @@ End Subroutine ematradoo
                 t2=gr (nrcmt(input%xs%bse%xasspecies))
                 !	integral(l2+1,lm3,n1,n2) = gr (nrcmt(input%xs%bse%xasspecies))
                 integral(l2+1,lm3,n1,n2) = cmplx(t1,t2,8)
-              End Do
+                if (igq == 1 .and. (lm3 ==3 .or. lm3==4)) then
+                  write(*,*) 'integral(', l2+1, ',', lm3, ',', n1, ',', n2, ')=', integral(l2+1,lm3,n1,n2) 
+                end if
+                End Do
             End Do
           End Do
         End Do
@@ -2029,11 +2054,13 @@ End Subroutine ematradoo
                 xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2)*conjg &
                   & (ylmgq(lm2, igq, iq)) * xsgntou &
                   & (n1, lm2, lm3)
-              End Do
+                End Do
             End Do
           End Do
         End Do
-        !write(*,*) 'xi(', n1, ',', n2, ',', igq, ')=', xi(n1,n2)
+        if (igq==1) then
+          write(*,*) 'xi(', n1, ',', n2,  ')=', xi(n1,n2)
+        end if
       End Do
     End Do
     vk (:) = vkl (:, ik)

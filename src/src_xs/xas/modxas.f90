@@ -65,6 +65,10 @@ contains
     else if (i==2) then
       mj2ml=Int(m+0.50d0)
     end if
+    if (mj2ml< -lxas .or. mj2ml> lxas) then
+      mj2ml=0.0d0
+      !write(*,*) 'MJ= ', m, 'inconsistent with lxas= ', lxas
+    end if
     return
   end function mj2ml
 

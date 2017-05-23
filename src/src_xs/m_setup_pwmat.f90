@@ -140,7 +140,7 @@ module m_setup_pwmat
         !----------------------------------------------------------------!
         iknr = kmap_bse_rg(ik)
 
-        !write(*,*) "(setup_pwmat): calculating pwmat for ik =", iknr
+        write(*,*) "(setup_pwmat): calculating pwmat for ik =", iknr
 
         iuabs1 = koulims(1,iknr)
         iuabs2 = koulims(2,iknr)
@@ -156,7 +156,7 @@ module m_setup_pwmat
         ematbc%il2=iuabs1
         ematbc%iu2=iuabs2
 
-        ! Calculate M_{o1o2,G} at fixed (k, q)
+        ! Calculate M_{o1u2,G} at fixed (k, q)
         if(input%xs%bse%xas) then
           call b_ematqk_core(iqmt, iknr, mou(1:ino,1:inu,:),ematbc,'ou')
         else

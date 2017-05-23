@@ -76,14 +76,13 @@ Subroutine xsmain (plan)
 #endif            
          Case (320)
      ! parallel version of momentum matrix elements
-			 if (input%xs%BSE%xas) then
-				Call xasinit
-				Call writepmatxs
-				Call writepmatxs
-				Call xasfinit
-			else
-				Call writepmatxs
-			end if
+      if (input%xs%BSE%xas) then
+        Call xasinit
+        Call writepmatxs
+        Call xasfinit
+      else
+        Call writepmatxs
+      end if
          Case (321)
      ! ASCII output of momentum matrix elements
             Call writepmatasc
