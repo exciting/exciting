@@ -28,6 +28,7 @@ module m_putpmat
     !   The routine collects the momentum matrix elements
     !   for each k-point form the {\tt MPI} processes and
     !   writes them to a direct access file.
+    !   Note: The content of pm is destroyed on exit.
     !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. 2016 (Aurich)
@@ -40,8 +41,8 @@ module m_putpmat
       ! arguments
       integer, intent(in) :: ik
       character(*), intent(in) :: filnam
-      integer, intent(in), optional :: tag
       complex(8), intent(inout) :: pm(:, :, :)
+      integer, intent(in), optional :: tag
 
       integer :: un, reclen, ikr
 

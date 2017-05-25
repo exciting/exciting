@@ -33,6 +33,7 @@ subroutine writepmatxs
 ! !REVISION HISTORY:
 !   Created 2006 (S. Sagmeister)
 !   Modifications, August 2010 (S. Sagmeister)
+!   Removed dead code, added comments, 2017 (Aurich)
 !EOP
 !BOC
 
@@ -236,6 +237,7 @@ subroutine writepmatxs
       write(50,rec=ik) pmat
     else
       ! Parallel write
+      ! Note: Destroys content of pmat on rank 0
       call putpmat(ik, trim(fnpmat), pmat)
     end if
 
@@ -243,7 +245,6 @@ subroutine writepmatxs
 
   call barrier(callername=trim(thisname))
 
-  inquire(iolength=reclen) vkl(:, ik), nstsv, pmat
   deallocate(apwalmt, evecfvt, evecsvt, pmat)
 
   if(fast) then
