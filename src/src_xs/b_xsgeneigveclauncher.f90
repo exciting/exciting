@@ -7,7 +7,7 @@ subroutine b_xsgeneigveclauncher
   use modmpi
   use modinput, only: input
   use mod_qpoint, only: nqpt, vql
-  use modxs, only: vqlmt, tscreen, qvkloff
+  use modxs, only: totalqlmt, tscreen, qvkloff
   use m_genfilname, only: genfilname
   use m_writegqpts, only: writegqpts
   use mod_misc, only: filext
@@ -45,7 +45,7 @@ subroutine b_xsgeneigveclauncher
   !   * Generates radial functions (mod_APW_LO)
   call init2
 
-  if(NORM2(vqlmt(1:3,1)) > epslat) then 
+  if(NORM2(totalqlmt(1:3,1)) > epslat) then 
     firstisgamma = .false.
   else
     firstisgamma = .true.
@@ -87,7 +87,7 @@ subroutine b_xsgeneigveclauncher
 
   do iq = 1, nqpt
 
-    call xsgrids_init(vqlmt(1:3, iq), gkmax, makegk_=fwg, makegq_=fwg)
+    call xsgrids_init(totalqlmt(1:3, iq), gkmax, makegk_=fwg, makegq_=fwg)
     if(mpiglobal%rank == 0 .and. fwg) then 
       call xsgrids_write_grids(iq)
     end if

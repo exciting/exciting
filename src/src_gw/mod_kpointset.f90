@@ -1323,6 +1323,7 @@ CONTAINS
         allocate(self%vqmtl_g(3))
         allocate(self%vqmtc_g(3))
 
+        ! Save total momentum transfer vector in lattice coordinates
         self%vqmtl = veclqmt
 
         ! Get Cartesian coordinates
@@ -1339,7 +1340,7 @@ CONTAINS
 
         ! Derive k+qmt-grid offset from qmt
         ! vkloff: Offset vector in coordinates "k-grid coordinates {b_i/N_i}"
-        !   --> vkloff/ngridk: Offset vector in b_i coordinates
+        !   --> vkloff/ngridk: Offset vector in b_i lattice coordinates
         ! ngridk: The N_i's 
         ! Check origin of shifted k-grid
         !   Shifted k-grid origin vector is outside [0,1) unit cell
