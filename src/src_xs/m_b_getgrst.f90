@@ -73,7 +73,6 @@ module m_b_getgrst
       vgkl_ptr => vgkl0_ptr
 
       filext = filext0
-      evecfvt(:,:,:)=zzero
       ! Call to getevecfv with changed default (G+)k-set pointers / matrix size
       call getevecfv(vpl, vgpl, evecfvt)
 
@@ -101,6 +100,7 @@ module m_b_getgrst
       use mod_eigenvalue_occupancy, only: nstfv
       use mod_ematptr
       use mod_constants, only: zzero
+      use mod_misc, only: filext
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     !   real(8) :: vpl(3)          ! k-point vector in lattice coordinates
@@ -152,6 +152,7 @@ module m_b_getgrst
 
       ! Call to getevecfv with changed default (G+)k-set pointers / matrix size
       evecfvt(:,:,:)=zzero
+      write(*,*) 'filext in b_getevecsv:', filext
       call getevecfv(vpl, vgpl, evecfvt)
 
      ! Restore default pointers
@@ -224,6 +225,8 @@ module m_b_getgrst
       use mod_atoms, only: natmtot
       use mod_APW_LO, only: apwordmax
       use mod_muffin_tin, only: lmmaxapw
+      use mod_misc, only: filext
+      use modxs, only: filext0
       implicit none
       ! arguments
       integer, intent (in) :: ngp
@@ -233,6 +236,7 @@ module m_b_getgrst
       complex (8), intent (out) :: apwalm (ngkmax0_ptr, apwordmax, lmmaxapw, &
      & natmtot)
       ! Local variables
+      character(256) :: filext_save
       integer, pointer :: nmatmax_ptr_save, ngkmax_ptr_save
       integer, pointer :: ngk_ptr_save(:,:)
       real(8), pointer :: vkl_ptr_save(:,:), vgkl_ptr_save(:,:,:,:)
@@ -248,7 +252,7 @@ module m_b_getgrst
       ngk_ptr_save => ngk_ptr
       vkl_ptr_save => vkl_ptr
       vgkl_ptr_save => vgkl_ptr
-
+      filext_save=filext
       ! Set default pointers to ket state quantities
       nmatmax_ptr => nmatmax0_ptr
       ngkmax_ptr => ngkmax0_ptr
@@ -256,16 +260,18 @@ module m_b_getgrst
       vkl_ptr => vkl0_ptr
       vgkl_ptr => vgkl0_ptr
 
+      filext = filext0
       ! Call to match with changed default (G+)k-set pointers / matrix size
       call match(ngp, gpc, tpgpc, sfacgp, apwalm)
-
+      
+      filext = filext_save
      ! Restore default pointers
       nmatmax_ptr => nmatmax_ptr_save
       ngkmax_ptr => ngkmax_ptr_save
       ngk_ptr => ngk_ptr_save
       vkl_ptr => vkl_ptr_save
       vgkl_ptr => vgkl_ptr_save
-    
+      filext=filext_save
     end subroutine b_match0
     
     subroutine b_wavefmt1(lrstp, lmax, is, ia, ngp, apwalm, evecfv, ld, wfmt)

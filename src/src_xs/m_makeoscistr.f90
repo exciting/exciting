@@ -89,6 +89,13 @@ module m_makeoscistr
       ! matching indexing to eigenvalue sorting.
       if(useip) then 
         projmat(:,:) = projmat(ensortidx,:)
+        do i=1,hamsize
+          if (input%xs%bse%xas) then
+            write(*,*) 'projmat(,',i,')=', abs(projmat(i,1))*sqrt(2.0d0)
+          else
+            write(*,*) 'projmat(,',i,')=', abs(projmat(i,1))
+          end if
+        end do
       end if
 
       !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!

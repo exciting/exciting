@@ -105,7 +105,7 @@ contains
                   & ,2))
                 ! time-reversal prefactor
                 xsgntuo(n1,lm2,lm3)=(-1.0d0)**(lxas+0.5d0-spj(n1+xasstart-1))*(-1.0d0)**&
-                  & (-mj(n1+xasstart-1))*xsgntou(n1,lm2,lm3)
+                  & (-mj(n1+xasstart-1))*xsgntuo(n1,lm2,lm3)
                 xsgntou(n1,lm2,lm3)=(-1.0d0)**(m3)*xsgntou(n1,lm2,lm3)
               end if
             End Do

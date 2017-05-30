@@ -126,7 +126,6 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 #ifdef XS
       Read (70, Rec=1) vkl_, nmatmax_, nstfv_, nspnfv_
       Close (70)
-      write(*,*) 'nmatmax_ in getevevfv=', nmatmax_
       If (nstfv .Gt. nstfv_) Then
          Write (*,*)
          Write (*, '("Error(getevecfv): invalid nstfv for k-point ", I8&

@@ -49,7 +49,7 @@ module m_setup_pwmat
       integer(4) :: io, iu, ik, iknr, ik1, ik2
       integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
       integer(4) :: a1, numgq
-
+      integer(4) :: i,j
       type(bcbs) :: ematbc
       character(256) :: fileext0_save, fileext_save
       complex(8), allocatable :: mou(:,:,:), moug(:,:,:)
@@ -92,9 +92,10 @@ module m_setup_pwmat
         iqmt1 = iqmt
         call genfilname(iqmt=iqmt1, setfilext=.true.)
       end if
-      !write(*,*) "(setup_pwmat): filext =", trim(filext)
+      write(*,*) "(setup_pwmat): filext =", trim(filext)
 
-
+      write(*,*) 'emat_ccket=', emat_ccket
+      emat_ccket=.false.
       ! Generate gaunt coefficients used in the construction of 
       ! the plane wave matrix elements in ematqk.
       call xsgauntgen(max(input%groundstate%lmaxapw, lolmax),&
@@ -166,7 +167,16 @@ module m_setup_pwmat
 
         ! Save only selected G
         moug(1:ino, 1:inu, ik) = mou(1:ino,1:inu,igqmt)
-
+        write(*,*) 'at k-point=', ik
+        do i=1,ino
+          do j=1,inu
+            if (input%xs%bse%xas) then
+              write(*,*) 'moug(', i, ',', j, ')=', abs(moug(i,j,ik))*sqrt(2.0d0)
+            else
+              write(*,*) 'moug(', i, ',', j, ')=', abs(moug(i,j,ik))
+            end if
+          end do
+        end do
       end do
 
       ! Gather moug 
