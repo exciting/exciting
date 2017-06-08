@@ -468,16 +468,22 @@
                 </xs:annotation>
               </xs:element>
             </xs:sequence>
-            
-            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.30">
+
+	    <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.30">
               <xs:annotation>
-                <xs:documentation>Upper energy limit for the dielectric matrix calculations.</xs:documentation>
+                <xs:documentation>Energy maximum for the dielectric matrix calculations.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+ 	    <xs:attribute ex:importance="essential" ex:unit="" name="deltaw" type="fortrandouble" default="0.30">
+              <xs:annotation>
+                <xs:documentation>Energy range around the EFermi for the dielectric matrix calculations.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             
             <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="400">
               <xs:annotation>
-                <xs:documentation>Number of grid points inside [0,wmax] interval.</xs:documentation>
+                <xs:documentation>Number of grid points inside [efermi-deltaw/2,efermi+deltaw/2] interval.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
@@ -523,6 +529,29 @@
               </xs:annotation>
             </xs:attribute>            
 
+	    <xs:attribute ex:importance="expert" ex:unit="" name="tempgrid" type="xs:integer" default="1">
+              <xs:annotation>
+                <xs:documentation>Number of temperature points interval.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="temprange" type="vect2d" default="300.0d0 300.0d0">
+              <xs:annotation>
+                <xs:documentation>Temperature range [temp_inital temp_final] in Kelvin.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+ 	    <xs:attribute ex:importance="essential" ex:unit="" name="deltamu" type="fortrandouble" default="0.10">
+              <xs:annotation>
+                <xs:documentation>Range of the chemical potential around the EFermi.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="mugrid" type="xs:integer" default="1">
+              <xs:annotation>
+                <xs:documentation>Number of grid points inside [efermi-deltamu/2,efermi+deltamu/2] interval.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
 
           </xs:complexType>
         </xs:element>

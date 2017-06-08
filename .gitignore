@@ -82,3 +82,13 @@ xml/sgroupinput.xsd
 xml/excitinginput.xsd
 src/src_inputparser/inputmodules.f90
 src/src_inputparser/speciesmodules.f90
+src/libXC/config.status.lineno
+src/libXC/configure.lineno
+src/src_inputparser/#inputmodules.f90#
+src/src_inputparser/inputmodules.f90~
+xml/.#excitinginput.xsd
+src/libXC/config.h.in~
+src/libXC/testsuite/xc-consistency
+src/libXC/testsuite/xc-get_data
+src/libXC/testsuite/xc-regression
+				
