@@ -260,11 +260,24 @@ subroutine kubo
 !--------------------------       
 !--------------------------       
             do ist = 1, nstsv
+               !zt1 = pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
+               !t1 = (evalsvt(ist)-efermi)/(tempi*kb)
+               !sigmak(l) = sigmak(l)+ zt1*sdelta(3,t1)/(tempi*kb)
+               !if (occsvt(ist) > 0 ) then
                zt1 = pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
                t1 = (evalsvt(ist)-efermi)/(tempi*kb)
-               t2 = exp(t1)
-               t3 = t2/((t2+1)**2 * tempi*kb)
+               if (t1 > 20) then
+                  t3=0
+               else if (t1 < -20 ) then
+                  t3=0
+               else
+                  t2 = exp(t1)
+                  t3 = t2/((t2+1)**2 * tempi*kb)
+               end if
+               !write(*,*) occsvt(ist), evalsvt(ist), efermi
+               !write(*,*) zt1, t3
                sigmak(l) = sigmak(l)+ zt1*t3
+               !end if
             end do ! ist
 
             
