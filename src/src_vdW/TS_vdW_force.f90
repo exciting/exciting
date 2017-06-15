@@ -2,11 +2,13 @@ Subroutine TS_vdW_force
   !Tkatchenko-Scheffler van der Waals correction 
   Use TS_vdW_module, Only: get_TS_parameters, C6ab, R0_eff_ab!, s6, sr6, damping_const, cutoff
   Use mod_atoms, Only: natmtot
-  Use vdw_general_routines, Only: vdw_force_pairwiseC6
+  Use vdw_general_routines, Only: vdw_force_pairwiseC6, set_default_vdW_parameters
   Use mod_force, Only: force_disp
   Use modinput
   Implicit None
 
+  Call set_default_vdW_parameters
+  
   If (.Not. Allocated(C6ab)) Then
      Allocate(C6ab(natmtot,natmtot), R0_eff_ab(natmtot,natmtot))
      Call get_TS_parameters()
