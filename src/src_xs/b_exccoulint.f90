@@ -84,6 +84,7 @@ use m_writecmplxparts
   integer(4) :: maxl_mat
   ! Timinig vars
   real(8) :: tpw1, tpw0
+  integer(4) :: flg_analytic
 
   integer(4) :: igq, igqmt
   character(256) :: m_write, dirname
@@ -422,8 +423,20 @@ use m_writecmplxparts
   ! Construct it via v^{1/2}(G,qmt)*v^{1/2}(G,qmt),
   ! which corresponds to the first passed flag=0.
   ! Use all G for which |G+qmt|<gqmax
+  ! Use cutoff if requested
+  select case(trim(input%xs%bse%cuttype))
+    case("none")
+      flg_analytic = 0
+    case("0d")
+      flg_analytic = 4
+    case("2d")
+      flg_analytic = 5
+    case default
+      write(*,*) "Error(b_exccoulint): Invalid cuttype"
+      call terminate
+  end select
   do igq1 = 1, numgq
-    call genwiqggp(0, iqmt, igq1, igq1, potcl(igq1))
+    call genwiqggp(flg_analytic, iqmt, igq1, igq1, potcl(igq1))
   end do
   ! Set Gmt component term of coulomb potential to zero [Ambegaokar-Kohn]
   igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)

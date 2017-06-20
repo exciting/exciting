@@ -8,6 +8,7 @@
 !
 subroutine genwiqggp(flag, iq, igq1, igq2, clwt)
 ! !USES:
+  use modinput
   use modmpi, only: terminate
   use mod_constants, only: pi, twopi, fourpi
   use mod_lattice, only: omega, bvec, binv
@@ -19,7 +20,8 @@ subroutine genwiqggp(flag, iq, igq1, igq2, clwt)
 !   Effective integrals of Coulomb interaction. See routine {\tt genwiq2}.
 !
 ! !REVISION HISTORY:
-!   Created February 2008(Sagmeister)
+!   Created February 2008 (Sagmeister)
+!   Added comments, formatting and truncated potentials (Aurich)
 !EOP
 !BOC
 
@@ -37,6 +39,8 @@ subroutine genwiqggp(flag, iq, igq1, igq2, clwt)
   real(8) :: qsz
   real(8), allocatable :: xa(:), ya(:), c(:)
   real(8) :: vsc(3), v01(3), v02(3), v11(3), v21(3), v31(3), v32(3)
+  real(8) :: smod1, smod2, gpq1, gpq2, kxy1, kz1, kxy2, kz2, rccut
+  real(8) :: avecz(3)
 
   ! External functions
   real(8), external :: polynom
@@ -47,9 +51,11 @@ subroutine genwiqggp(flag, iq, igq1, igq2, clwt)
 
   ! Integrate out singularities and/or improve accuracy in summations
   select case(flag)
+
     case(0)
       ! Modified coulomb potential in reciprocal space
       clwt = sptclg(igq1, iq) * sptclg(igq2, iq)
+
     case(1)
       ! Radius of sphere with same volume than subcell
       qsz = (6*pi**2/(omega*nqpt)) ** (1.d0/3.d0)
@@ -65,6 +71,7 @@ subroutine genwiqggp(flag, iq, igq1, igq2, clwt)
         write(*,*)
         call terminate
       end if
+
     case(2)
       np = 2
       ! Higher order extrapolation for 1/q^2 term
@@ -112,6 +119,7 @@ subroutine genwiqggp(flag, iq, igq1, igq2, clwt)
       ! Extrapolate the volume element to zero with a polynomial
       clwt = polynom(0, np, xa, ya, c, 0.d0) * fourpi * nqpt
       deallocate(xa, ya, c)
+
     case(3)
       ! Rim method: Documentation of self code by Andrea Marini
       ! Find maximum extension of small Brillouin zone
@@ -156,6 +164,43 @@ subroutine genwiqggp(flag, iq, igq1, igq2, clwt)
         end if
       end do
       clwt = t1 * (omegabox/nrbox) * fourpi * nqpt * omega / (twopi) ** 3
+
+    ! 0d cutoff for Coulomb potential
+    case(4)
+
+      ! Get a_z
+      avecz(:) = input%structure%crystal%basevect(:,3)
+      ! Get cut parameter 
+      rccut = 0.5d0*dsqrt(dot_product(avecz,avecz))
+      ! Get length of G+q and G'+q
+      gpq1 = gqc(igq1, iq)
+      gpq2 = gqc(igq2, iq)
+      ! Make modifier for square root of Coulomb potential
+      smod1 = dsqrt(1.d0-dcos(dsqrt(gpq1)*rccut))
+      smod2 = dsqrt(1.d0-dcos(dsqrt(gpq2)*rccut))
+      ! GG' symmetrized and truncated Coulomb potential 
+      clwt = sptclg(igq1, iq)*smod1 * sptclg(igq2, iq)*smod2
+
+    ! 2d cutoff for Coulomb potential
+    case(5)
+
+      ! Get a_z
+      avecz(:) = input%structure%crystal%basevect(:,3)
+      ! Get cut parameter 
+      rccut = 0.5d0*dsqrt(dot_product(avecz,avecz))
+      ! Modified coulomb potential in reciprocal space
+      kxy1 = dsqrt(v01(1)*v01(1)+v01(2)*v01(2))
+      kz1 = dabs(v01(3))
+      kxy2 = dsqrt(v02(1)*v02(1)+v02(2)*v02(2))
+      kz2 = dabs(v02(3))
+      smod1 = dsqrt(1.d0-dexp(-kxy1*rccut)*dcos(kz1*rccut))
+      smod2 = dsqrt(1.d0-dexp(-kxy2*rccut)*dcos(kz2*rccut))
+      clwt = sptclg(igq1, iq)*smod1 * sptclg(igq2, iq)*smod2
+
+    case default
+      write(*,*) "Error(genwiqggq): Invalid flag passed."
+      call terminate
+
   end select
 end subroutine genwiqggp
 !EOC

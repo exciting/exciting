@@ -437,12 +437,11 @@ use m_writecmplxparts
     ! Get number of G+q vectors for current q
     numgq = ngq(iqrnr)
 
-    ! Calculate effective screened coulomb interaction
+    ! Calculate effective screened Coulomb interaction
     ! by inverting the symmetrized RPA dielectric matrix for a given q and
     ! 0 frequency and then multiplying
     ! it with v^{1/2} from both sides.
     filext = fileext_scr_read
-    !write(*,*) "reading screening form =", trim(filext)
     call genscclieff(iqr, iqrnr, ngqmax, numgq, scieffg(:,:,iqr))
 
     ! Generate radial integrals for matrix elements of plane wave

@@ -131,6 +131,7 @@ subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
 
   ! Calculate averaged screened coulomb interaction in Fourier space at gamma point
   select case(trim(input%xs%bse%sciavtype))
+    ! Default
     case('spherical')
       ! Scaling factor
       t00 = (omega/(twopi)**3) * product(ngridq)
@@ -160,6 +161,7 @@ subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
       allocate(spc2(ntpsph))
       allocate(w(ntpsph))
 
+      ! Default
       if(tleblaik) then
         ! Generate lebedev laikov grid
         call leblaik(ntpsph, spc, w)
