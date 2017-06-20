@@ -9,8 +9,10 @@ module m_setup_pwmat
   use mod_APW_LO, only: lolmax
   use modxs, only: unitout, bcbs,&
                  & vkl0, usefilext0, filext0, iqmt0, iqmt1, iqmtgamma,&
-                 & qvkloff, ngq, ivgigq, xsgnt
+                 & qvkloff, ngq, ivgigq, xsgnt, nqmt
   use mod_Gvector, only: ivg
+  use mod_Gkvector, only: gkmax
+  use mod_xsgrids
   use m_b_ematqk
   use m_genfilname
   use m_writecmplxparts
@@ -30,12 +32,18 @@ module m_setup_pwmat
     !   integer(4) :: iqmt            ! Index of momentum transfer
     !   integer(4) :: igqmt           ! Index of G+qmt
     ! Out:
-    !   complex(8) :: pwmat(hamsize)  ! Plane wave matrix elemens <ok|e^{-i(G+qmt)r}|uk+qmt>
+    !   complex(8) :: pwmat(hamsize)  ! Plane wave matrix elemens
     ! 
     ! !DESCRIPTION:
     !   The routine generates the plane wave matrix elements 
-    !   $\tilde{M}_{\alpha}(G,qmt) = \sqrt{f_{v_\alpha, \vec{k}_\alpha}-f_{c_\alpha, \vec{k}_\alpha+\vec{q}_\text{mt}}}
-    !    \langle v_\alpha \vec{k}_\alpha | e^{-i(G+qmt)r} | c_\alpha \vec{k}_\alpha+qmt \rangle
+    !   $\tilde{M}_{\alpha}(G,qmt) = 
+    !    \sqrt{
+    !    f_{o_\alpha, \vec{k}_{\alpha+\vec{q}_\text{mt}/2}}
+    !   -f_{u_\alpha, \vec{k}_{\alpha-\vec{q}_\text{mt}/2}}
+    !    }
+    !    \langle u_\alpha \vec{k}_{\alpha-\vec{q}_\text{mt}/2}
+    !    | e^{-i(\vec{G}+\vec{q}_\text{mt})r} |
+    !    o_\alpha \vec{k}_{\alpha+\vec{q}_\text{mt}} \rangle$
     !
     !   Alpha is the combined index used in the BSE Hamiltonian.
     !
@@ -46,54 +54,83 @@ module m_setup_pwmat
       integer(4), intent(in) :: iqmt, igqmt
       complex(8), intent(out) :: pwmat(hamsize)
 
-      integer(4) :: io, iu, ik, iknr, ik1, ik2
+      integer(4) :: io, iu, ik, iknr, ikmnr, ik1, ik2
       integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
       integer(4) :: a1, numgq
 
       type(bcbs) :: ematbc
       character(256) :: fileext0_save, fileext_save
-      complex(8), allocatable :: mou(:,:,:), moug(:,:,:)
+      complex(8), allocatable :: muo(:,:,:), muog(:,:,:)
+      integer(4), allocatable, target :: ikm2ikp_dummy(:,:)
       real(8), parameter :: epslat = 1.0d-8
-      logical :: fsamek
+      logical :: fsamekm, fsamekp
 
+      !------------------------------------!
+      ! Setup grids k, k-qmt/2 and k+qmt/2
+      !------------------------------------!
+      call xsgrids_init(totalqlmt(1:3, iqmt), gkmax) 
+
+      ! Save the k,G arrays of the k-qmt/2 grid to modxs::vkl0 etc
+      call init1offs(k_kqmtm%kqmtset%vkloff)
+      call xssave0
+      ! Save the k,G arrays of the k+qmt/2 grid to the default locations
+      call init1offs(k_kqmtp%kqmtset%vkloff)
+
+      ! Check whether k+-qmt/2 grids are identical to k grid
+      if(all(abs(k_kqmtp%kqmtset%vkloff-k_kqmtp%kset%vkloff) < epslat)) then 
+        write(unitout, '("Info(setup_pwmat):&
+          & k+qmt/2-grid is identical for to iqmt=1 grid, iqmt=",i3)') iqmt
+        fsamekp=.true.
+      else
+        fsamekp=.false.
+      end if
+      if(all(abs(k_kqmtm%kqmtset%vkloff-k_kqmtm%kset%vkloff) < epslat)) then 
+        write(unitout, '("Info(setup_pwmat): k-qmt/2-grid is identical for to iqmt=1 grid, iqmt=",i3)') iqmt
+        fsamekm=.true.
+      else
+        fsamekm=.false.
+      end if
+
+      ! Make link map connecting ik-qmt/2 to ik+qmt/2
+      ! ( only the iqmt component will be used ...)
+      if(allocated(ikm2ikp_dummy)) deallocate(ikm2ikp_dummy)
+      allocate(ikm2ikp_dummy(k_kqmtp%kset%nkptnr, nqmt))
+      ikm2ikp_dummy=0
+      ikm2ikp_dummy(:, iqmt) = ikm2ikp(:)
+      !------------------------------------!
+
+      !----------------------------------!
+      ! Specify form which files to read
+      !----------------------------------!
       ! Save file extension
       fileext_save = filext
       fileext0_save = filext0
 
-      ! Set EVECFV_QMT001.OUT as bra state file
       usefilext0 = .true.
-      iqmt0 = iqmtgamma
-      call genfilname(iqmt=iqmt0, setfilext=.true.)
-      filext0 = filext
-      !write(*,*) "(setup_pwmat): filext0 =", trim(filext)
-
-      ! Set vkl0 to k-grid
-      ! Note: This needs init2 to be called form task 441 beforehand
-      !write(*,*) "(setup_pwmat): iqmt=", iqmt
-      !write(*,*) "(setup_pwmat): qvkloff(:,1) =", qvkloff(:,1)
-      call init1offs(qvkloff(:,1))
-      call xssave0
-      ! Set vkl to k+qmt-grid
-      !write(*,*) "(setup_pwmat): qvkloff(:,iqmt) =", qvkloff(:,iqmt)
-      call init1offs(qvkloff(:,iqmt))
-
-      if(all(abs(qvkloff(:,1)-qvkloff(:,iqmt)) < epslat)) then
-        fsamek = .true.
+      if(fsamekm) then 
+        ! Set EVECFV_QMT001.OUT as bra state file
+        iqmt0 = iqmtgamma
+        call genfilname(iqmt=iqmt0, setfilext=.true.)
       else
-        fsamek = .false.
+        ! Set EVECFV_QMTXYZ_mqmt.OUT as bra state file
+        iqmt0 = iqmt
+        call genfilname(iqmt=iqmt0, auxtype="mqmt", fileext=filext0)
       end if
 
-      if(fsamek) then 
-        ! Set EVECFV_QMT001.OUT as ket state file
-        iqmt1 = iqmtgamma
-        call genfilname(iqmt=iqmt1, setfilext=.true.)
-      else
-        ! Set EVECFV_QMTXYZ.OUT as ket state file
-        iqmt1 = iqmt
-        call genfilname(iqmt=iqmt1, setfilext=.true.)
-      end if
-      !write(*,*) "(setup_pwmat): filext =", trim(filext)
+      ! Set EVECFV_QMTXYZ.OUT as ket state file (k+qmt/2 grid)
+      iqmt1 = iqmt
+      ! Set to EVECFV_QMT001.OUT if it is the same grid
+      if(fsamekp) iqmt1 = iqmtgamma
+      call genfilname(iqmt=iqmt1, setfilext=.true.)
+      !----------------------------------!
 
+      ! Use normal computation of the plane wave matrix elements M
+      emat_ccket=.false.
+
+      ! Set up ikmapikq to link (jkm,iqmt) to (jkp)
+      ikmapikq_ptr => ikm2ikp_dummy
+      ! Set vkl0_ptr k-qmt/2-grid, vkl1_ptr, ... to k+qmt/2-grid
+      call setptr01()
 
       ! Generate gaunt coefficients used in the construction of 
       ! the plane wave matrix elements in ematqk.
@@ -108,15 +145,14 @@ module m_setup_pwmat
 
       ! Calculate radial integrals used in the construction 
       ! of the plane wave matrix elements for exponent (G+qmt)
-      !write(*,*) "(setup_pwmat): calculating radial integrals"
       call ematrad(iqmt)
 
       numgq = ngq(iqmt)
 
-      allocate(mou(no_bse_max, nu_bse_max, numgq))
-      allocate(moug(no_bse_max, nu_bse_max, nk_bse))
-      mou=zzero
-      moug=zzero
+      allocate(muo(nu_bse_max, no_bse_max, numgq))
+      allocate(muog(nu_bse_max, no_bse_max, nk_bse))
+      muo=zzero
+      muog=zzero
 
       if(input%xs%bse%distribute) then 
         ik1=firstofset(mpiglobal%rank, nk_bse)
@@ -126,22 +162,17 @@ module m_setup_pwmat
         ik2=nk_bse
       end if
 
-      emat_ccket=.false.
-      ! Set up ikmapikq to link (ik,iqmt) to (ikp)
-      ikmapikq_ptr => ikmapikq
-      ! Set vkl0_ptr,... to k-grid and vkl1_ptr, ... to k+qmt-grid
-      call setptr01
-
       do ik = ik1, ik2
 
-        !----------------------------------------------------------------!
-        ! Calculate M_{io iu ik}(G, qmt) = <io ik|e^{-i(qmt+G)r}|iu ikp> !
-        ! where ikp = ik+qmt                                             !
-        !----------------------------------------------------------------!
+        !------------------------------------------------------------------!
+        ! Calculate M_{iu io ikm}(G, qmt) = <iu ikm|e^{-i(G+qmt)r}|io ikp> !
+        ! where ikp = ik+qmt/2 and ikm = ik-qmt/2                          !
+        !------------------------------------------------------------------!
+
+        ! Get non reduced global k index 
         iknr = kmap_bse_rg(ik)
 
-        !write(*,*) "(setup_pwmat): calculating pwmat for ik =", iknr
-
+        ! Get selected occupation limits for that k point
         iuabs1 = koulims(1,iknr)
         iuabs2 = koulims(2,iknr)
         ioabs1 = koulims(3,iknr)
@@ -149,48 +180,56 @@ module m_setup_pwmat
         inu = iuabs2 - iuabs1 + 1
         ino = ioabs2 - ioabs1 + 1
 
-        ematbc%n1=ino
-        ematbc%il1=ioabs1
-        ematbc%iu1=ioabs2
-        ematbc%n2=inu
-        ematbc%il2=iuabs1
-        ematbc%iu2=iuabs2
+        ! Get index of associated ik-qmt/2
+        ikmnr = k_kqmtm%ik2ikqmt(iknr)
 
-        ! Calculate M_{o1o2,G} at fixed (k, q)
+        ! Set ranges for the calculation of the plane wave matrix elements 
+        ematbc%n1=inu
+        ematbc%il1=iuabs1
+        ematbc%iu1=iuabs2
+        ematbc%n2=ino
+        ematbc%il2=ioabs1
+        ematbc%iu2=ioabs2
+
+        ! Calculate M_{uo,G} at fixed (k, q)
         if(input%xs%bse%xas) then
-          call b_ematqk_core(iqmt, iknr, mou(1:ino,1:inu,:),ematbc,'ou')
+          call b_ematqk_core(iqmt, ikmnr, muo(1:inu,1:ino,:),ematbc,'uo')
         else
-          call b_ematqk(iqmt, iknr, mou(1:ino,1:inu,:), ematbc)
+          call b_ematqk(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
         end if
-        !write(*,*) "passed ematqk"
 
         ! Save only selected G
-        moug(1:ino, 1:inu, ik) = mou(1:ino,1:inu,igqmt)
+        muog(1:inu, 1:ino, ik) = muo(1:inu,1:ino,igqmt)
 
       end do
 
       ! Gather moug 
       if(input%xs%bse%distribute) then 
-        call mpi_allgatherv_ifc(set=nk_bse, rlen=no_bse_max*nu_bse_max, zbuf=moug,&
+        call mpi_allgatherv_ifc(set=nk_bse, rlen=nu_bse_max*no_bse_max, zbuf=muog,&
           & inplace=.true., comm=mpiglobal)
       end if
 
       call ematqdealloc
-      deallocate(mou)
+      deallocate(muo)
 
+      ! Return plane wave matrix elements weighted with 
+      ! occupation factors in combined index notation.
       do a1 = 1, hamsize
         ! Relative indices
         iu = smap_rel(1,a1)
         io = smap_rel(2,a1)
         ik = smap_rel(3,a1)
-        pwmat(a1) = ofac(a1)*moug(io, iu, ik)
+        pwmat(a1) = ofac(a1)*muog(iu, io, ik)
       end do
 
-      deallocate(moug)
+      deallocate(muog)
+      deallocate(ikm2ikp_dummy)
+      call xsgrids_finalize()
 
       ! Restore file extension
       filext=fileext_save
       filext0=fileext0_save
+
     end subroutine setup_pwmat
     !EOC
 
@@ -226,9 +265,7 @@ module m_setup_pwmat
 
       call setup_pwmat(pwmat(:,1), iqmt, igqmt)
 
-      if(binfo%isactive) then 
-        call dzmat_copy_global2local(pwmat, dpwmat, binfo)
-      end if
+      call dzmat_copy_global2local(pwmat, dpwmat, binfo)
       
     end subroutine setup_pwmat_dist
     !EOC

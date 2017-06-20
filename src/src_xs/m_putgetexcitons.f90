@@ -14,7 +14,7 @@ module m_putgetexcitons
   logical ::  excitons_allocated = .false.
 
   ! Read in quantities
-  logical :: fcoup_, fti_, fesel_
+  logical :: fcoup_, fesel_
   integer(4) :: nk_max_, nk_bse_
   integer(4) :: hamsize_, nexcstored_, iex1_, iex2_
   integer(4) :: iq_
@@ -63,11 +63,11 @@ module m_putgetexcitons
 
       ! Local
       integer(4) :: stat, unexc
-      logical :: fcoup, fti, fesel
+      logical :: fcoup, fesel
       integer(4) :: i1, i2, nexcstored, iq, m, n, ngridk(3)
 
       character(256) :: fname
-      character(256) :: tdastring, bsetypestring, tistring, scrtypestring
+      character(256) :: tdastring, bsetypestring, scrtypestring
 
       ngridk = input%groundstate%ngridk
       
@@ -119,7 +119,6 @@ module m_putgetexcitons
 
       ! BSE type
       fcoup = input%xs%bse%coupling 
-      fti = input%xs%bse%ti
       if(any(input%xs%bse%nstlbse == 0)) then
         fesel = .true.
       else
@@ -132,12 +131,7 @@ module m_putgetexcitons
       else
         tdastring="-TDA"
       end if
-      if(fti) then 
-        tistring="-TI"
-      else
-        tistring=''
-      end if
-      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
+      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
       ! Set filename to EXCCOEFF_*.OUT
       call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
@@ -159,7 +153,6 @@ module m_putgetexcitons
       !   Meta data
       write(unexc)&
         & fcoup,&       ! Was the TDA used?
-        & fti,&         ! Was the time reversed anti-resonant basis used?
         & fesel,&       ! Where the participating transitions chosen by energy?
         & nk_max,&      ! Number of non-reduced k-points 
         & nk_bse,&      ! Number of k-points used in the bse hamiltonian
@@ -200,11 +193,11 @@ module m_putgetexcitons
       real(8), parameter :: epslat = 1.0d-6
       integer(4) :: stat, unexc, cmplxlen
       integer(8) :: mypos, pos1, pos2
-      logical :: fcoup, fti, fesel, fex, useindex, useenergy
+      logical :: fcoup, fesel, fex, useindex, useenergy
       complex(8) :: zdummy
 
       character(256) :: fname
-      character(256) :: tdastring, bsetypestring, tistring, scrtypestring
+      character(256) :: tdastring, bsetypestring, scrtypestring
 
       if(present(iqmt)) then 
         iq = iqmt
@@ -268,7 +261,6 @@ module m_putgetexcitons
 
       ! BSE type
       fcoup = input%xs%bse%coupling 
-      fti = input%xs%bse%ti
       if(any(input%xs%bse%nstlbse == 0)) then
         fesel = .true.
       else
@@ -284,12 +276,7 @@ module m_putgetexcitons
       else
         tdastring="-TDA"
       end if
-      if(fti) then 
-        tistring="-TI"
-      else
-        tistring=''
-      end if
-      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
+      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
       ! Set filename to EXCCOEFF_*.OUT
       call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
@@ -323,7 +310,6 @@ module m_putgetexcitons
       ! Read Meta data
       read(unexc, pos=1)&
         & fcoup_,&       ! Was the TDA used?
-        & fti_,&         ! Was the time reversed anti-resonant basis used?
         & fesel_,&
         & nk_max_,&      ! Number of non-reduced k-points 
         & nk_bse_,&      ! Number of k-points used in the bse hamiltonian
@@ -337,11 +323,11 @@ module m_putgetexcitons
       inquire(unexc, pos=mypos)
 
       ! Check read parameters against requested ones
-      if(fcoup_ .neqv. fcoup .or. fti_ .neqv. fti) then 
+      if(fcoup_ .neqv. fcoup) then 
         write(*,*)
         write(*,'("Error(get_excitons): BSE type differs")')
-        write(*,'(" Requested: fcoup=", l," fti=", l)') fcoup, fti
-        write(*,'(" Stored: fcoup_=", l," fti_=", l)') fcoup_, fti_
+        write(*,'(" Requested: fcoup=", l)') fcoup
+        write(*,'(" Stored: fcoup_=", l)') fcoup_
         write(*,*)
         call terminate
       end if
@@ -452,11 +438,11 @@ module m_putgetexcitons
       ! Local
       type(dzmat) :: dauxmat
       integer(4) :: stat, unexc
-      logical :: fcoup, fti, fesel
+      logical :: fcoup, fesel
       integer(4) :: i1, i2, nexcstored, iq, m, n, m2, n2, i, ngridk(3)
 
       character(256) :: fname
-      character(256) :: tdastring, bsetypestring, tistring, scrtypestring
+      character(256) :: tdastring, bsetypestring, scrtypestring
 
       ngridk = input%groundstate%ngridk
 
@@ -521,7 +507,6 @@ module m_putgetexcitons
 
       ! BSE type
       fcoup = input%xs%bse%coupling 
-      fti = input%xs%bse%ti
       if(any(input%xs%bse%nstlbse == 0)) then
         fesel = .true.
       else
@@ -537,12 +522,7 @@ module m_putgetexcitons
         else
           tdastring="-TDA"
         end if
-        if(fti) then 
-          tistring="-TI"
-        else
-          tistring=''
-        end if
-        bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
+        bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
         scrtypestring = '-'//trim(input%xs%screening%screentype)
         ! Set filename to EXCCOEFF_*.OUT
         call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
@@ -563,7 +543,6 @@ module m_putgetexcitons
         !   Meta data
         write(unexc)&
           & fcoup,&       ! Was the TDA used?
-          & fti,&         ! Was the time reversed anti-resonant basis used?
           & fesel,&       ! Where the participating transitions chosen by energy?
           & nk_max,&      ! Number of non-reduced k-points 
           & nk_bse,&      ! Number of k-points used in the bse hamiltonian

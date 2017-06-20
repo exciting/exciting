@@ -6,7 +6,7 @@ subroutine b_bsesurvey
   use mod_symmetry, only: nsymcrys
 
   integer(4) :: iqmt
-  logical :: fcoup, fti
+  logical :: fcoup
   integer(4) :: nsymcrys_save
 
   character(*), parameter :: thisname = "b_bsesurvey"
@@ -34,7 +34,6 @@ subroutine b_bsesurvey
 
   iqmt = input%xs%bse%iqmtrange(1)
   fcoup = input%xs%bse%coupling
-  fti = input%xs%bse%ti
 
   if(iqmt == -1) then
     write(*,'("Warning(b_bsesurvey): iqmt=-1, setting it to iqmt = 1")')
@@ -51,7 +50,7 @@ subroutine b_bsesurvey
   ! This also reads in 
   ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
   ! modxs:evalsv0, modxs:occsv0
-  call setranges_modxs(iqmt, fcoup, fti)
+  call setranges_modxs(iqmt)
 
   ! WARNING: ONTOP OF GW STILL IS INCONSISTENT, SINCE OCCUPATION SEARCH IS
   ! NOT DONE ON EVALQP.OUT !?!

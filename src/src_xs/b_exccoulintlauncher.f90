@@ -21,8 +21,8 @@ subroutine b_exccoulintlauncher
 
   implicit none
 
-  logical :: fcoup, fti
-  integer(4) :: iqmt, iqmti, iqmtf
+  logical :: fcoup
+  integer(4) :: iqmt, iqmti, iqmtf, nqmt
   real(8) :: vqmt(3)
   character(256) :: casestring
   character(*), parameter :: thisname = "b_exccoulintlauncher"
@@ -43,21 +43,19 @@ subroutine b_exccoulintlauncher
     end if
   end if
 
-  ! Use time inverted anti-resonant basis
-  if(input%xs%bse%ti .eqv. .true.) then 
-    fti = .true.
-  else
-    fti = .false.
-  end if
-
   ! Which Q points to consider 
-  !   Use all
+  nqmt = size(input%xs%qpointset%qpoint, 2)
   iqmti = 1
-  iqmtf = size(input%xs%qpointset%qpoint, 2)
-  !   or use only one
+  iqmtf = nqmt
+  !   or use selected range
   if(input%xs%bse%iqmtrange(1) /= -1) then 
     iqmti=input%xs%bse%iqmtrange(1)
     iqmtf=input%xs%bse%iqmtrange(2)
+  end if
+  if(iqmtf > nqmt .or. iqmti < -1 .or. iqmti > iqmtf) then 
+    write(unitout, '("Error(",a,"):", a)') trim(thisname),&
+      & " iqmtrange incompatible with qpointset list"
+    call terminate
   end if
 
   call printline(unitout, "+")
@@ -94,26 +92,16 @@ subroutine b_exccoulintlauncher
             & Calculating RR block of V")') trim(thisname)
           write(unitout,*)
         end if
-        call b_exccoulint(iqmt, .false., fti)
+        call b_exccoulint(iqmt)
         call barrier(mpiglobal, callername=trim(thisname))
 
       case("RA","ra")
 
         ! RA block
         if(fcoup) then 
-          if(mpiglobal%rank == 0) then
-            call printline(unitout, "-")
-            write(unitout, '("Info(",a,"):&
-              & Calculating RA block of V")') trim(thisname)
-          end if
-          if(fti) then
-            call printline(unitout, "-")
-            write(unitout, '("Info(",a,"):&
-              & RR = RA^{ti} no further calculation needed.")') trim(thisname)
-          else
-            call b_exccoulint(iqmt, .true., fti)
-          end if
-          call barrier(mpiglobal, callername=trim(thisname))
+          call printline(unitout, "-")
+          write(unitout, '("Info(",a,"):&
+            & RR = RA^{tr} no further calculation needed.")') trim(thisname)
         end if
         
       case("both","BOTH")
@@ -124,24 +112,14 @@ subroutine b_exccoulintlauncher
             & Calculating RR block of V")') trim(thisname)
           write(unitout,*)
         end if
-        call b_exccoulint(iqmt, .false., fti)
+        call b_exccoulint(iqmt)
         call barrier(mpiglobal, callername=trim(thisname))
 
         ! RA block
         if(fcoup) then 
-          if(mpiglobal%rank == 0) then
-            call printline(unitout, "-")
-            write(unitout, '("Info(",a,"):&
-              & Calculating RA block of V")') trim(thisname)
-          end if
-          if(fti) then
-            call printline(unitout, "-")
-            write(unitout, '("Info(",a,"):&
-              & RR = RA^{ti} no further calculation needed.")') trim(thisname)
-          else
-            call b_exccoulint(iqmt, .true., fti)
-          end if
-          call barrier(mpiglobal, callername=trim(thisname))
+          call printline(unitout, "-")
+          write(unitout, '("Info(",a,"):&
+            & RR = RA^{tr} no further calculation needed.")') trim(thisname)
         end if
 
       case default

@@ -4,7 +4,7 @@ module m_readoscillator
 
   contains
 
-    subroutine readoscillator(iqmt, io1, evals, bindevals, oscir, oscia, evalsim)
+    subroutine readoscillator(iqmt, io1, evals, bindevals, oscir)
       use modinput
       use m_getunit
       use m_genfilname
@@ -13,15 +13,12 @@ module m_readoscillator
       integer(4), intent(in) :: io1
       real(8), allocatable, intent(inout), optional :: evals(:), bindevals(:)
       complex(8), allocatable, intent(inout), optional :: oscir(:)
-      real(8), allocatable, intent(inout), optional :: evalsim(:)
-      complex(8), allocatable, intent(inout), optional :: oscia(:)
 
-      logical :: fex, fcoup, fti
+      logical :: fex, fcoup
       integer(4) :: un, i, nexc, idummy, ncommentlines, nlines
-      real(8), allocatable :: reevals(:), rebindevals(:), imevals(:)
+      real(8), allocatable :: reevals(:), rebindevals(:)
       real(8), allocatable :: absoscir(:), reoscir(:), imoscir(:)
-      real(8), allocatable :: absoscia(:), reoscia(:), imoscia(:)
-      character(256) :: frmt, tdastring, bsetypestring, tistring, scrtypestring
+      character(256) :: frmt, tdastring, bsetypestring, scrtypestring
       character(256) :: excitondir, fnexc
 
       character(*), parameter :: thisname = "readoscillator"
@@ -39,20 +36,10 @@ module m_readoscillator
       else
         tdastring="-TDA"
       end if
-      fti=input%xs%bse%ti
-      if(fti) then 
-        tistring="-TI"
-      else
-        tistring=''
-      end if
-      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
+      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
 
-      if(fcoup .and. .not. fti) then 
-        frmt='(I8,9(1x,E23.16))'
-      else
-        frmt='(I8,5(1x,E23.16))'
-      end if
+      frmt='(I8,5(1x,E23.16))'
 
 
       if(iqmt /= 1) then 
@@ -89,17 +76,6 @@ module m_readoscillator
       if(allocated(imoscir)) deallocate(imoscir)
       allocate(imoscir(nexc))
 
-      if(fcoup .and. .not. fti) then 
-        if(allocated(imevals)) deallocate(imevals)
-        allocate(imevals(nexc))
-        if(allocated(absoscia)) deallocate(absoscia)
-        allocate(absoscia(nexc))
-        if(allocated(reoscia)) deallocate(reoscia)
-        allocate(reoscia(nexc))
-        if(allocated(imoscia)) deallocate(imoscia)
-        allocate(imoscia(nexc))
-      end if
-
       call getunit(un) 
 
       open(un, file=trim(fnexc), action="read", form="formatted", status="old")
@@ -108,13 +84,8 @@ module m_readoscillator
         read(un,*)
       end do
       do i=1, nexc
-        if(fcoup .and. .not. fti) then 
-          read(un, fmt=frmt) idummy, reevals(i), rebindevals(i), imevals(i),&
-            & absoscir(i), reoscir(i), imoscir(i), absoscia(i), reoscia(i), imoscia(i)
-        else
-          read(un, fmt=frmt) idummy, reevals(i), rebindevals(i),&
-            & absoscir(i), reoscir(i), imoscir(i)
-        end if
+        read(un, fmt=frmt) idummy, reevals(i), rebindevals(i),&
+          & absoscir(i), reoscir(i), imoscir(i)
       end do
 
       close(un)
@@ -135,18 +106,6 @@ module m_readoscillator
         if(allocated(oscir)) deallocate(oscir)
         allocate(oscir(nexc))
         oscir = cmplx(reoscir,imoscir,8)
-      end if
-
-      if(present(oscia) .and. fcoup .and. .not. fti) then 
-        if(allocated(oscia)) deallocate(oscia)
-        allocate(oscia(nexc))
-        oscia = cmplx(reoscia,imoscia,8)
-      end if
-
-      if(present(evalsim) .and. fcoup .and. .not. fti) then 
-        if(allocated(evalsim)) deallocate(evalsim)
-        allocate(evalsim(nexc))
-        evalsim = imevals
       end if
 
       contains

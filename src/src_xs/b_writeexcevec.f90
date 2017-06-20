@@ -26,7 +26,7 @@ subroutine b_writeexcevec
 
   character(256) :: fname, lambdastring
   character(256) :: syscommand, bevecdir, bevecksumdir, excitonevecdir
-  character(256) :: tdastring, bsetypestring, tistring, scrtypestring
+  character(256) :: tdastring, bsetypestring, scrtypestring
 
   if(mpiglobal%rank == 0) then 
 
@@ -117,12 +117,7 @@ subroutine b_writeexcevec
       else
         tdastring="-TDA"
       end if
-      if(fti_) then 
-        tistring="-TI"
-      else
-        tistring=''
-      end if
-      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
+      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
 
       abscutoffres(1:2) = input%xs%writeexcitons%abscutres
@@ -146,9 +141,6 @@ subroutine b_writeexcevec
         open(unit=un, file=trim(fname), form='formatted', action='write')
 
         write(un,'("#",1x,"BSE eigenvector")')
-        if(fti_) then 
-          write(un,'("#",1x,"Time reversal symmetry was used")') 
-        end if
         write(un,'("#")')
         write(un,'("#",1x,"Momentum transfer q_mt:",3f12.7)') vqlmt_
         write(un,'("#",1x,"Size of RR part of the Hamiltonian:",i8)') hamsize_
@@ -207,12 +199,12 @@ subroutine b_writeexcevec
             ikv = smap_(3,alpha)
             vklv = vkl0_(1:3,ikv)
             vklc = vkl_(1:3,ikv)
-            if(fti_) then 
-              vklv = -vklv
-              vklc = -vklc
-              call r3frac(epslat, vklv, ivec)
-              call r3frac(epslat, vklc, ivec)
-            end if
+
+            vklv = -vklv
+            vklc = -vklc
+            call r3frac(epslat, vklv, ivec)
+            call r3frac(epslat, vklc, ivec)
+
             if(absvec(alpha) > abscutoffares(1) .and. absvec(alpha) < abscutoffares(2)) then
               write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,3E25.16))')&
                 & alpha+hamsize_, lambda, ic, iv, vklc, vklv,&

@@ -7,7 +7,7 @@ subroutine b_xsgeneigveclauncher
   use modmpi
   use modinput, only: input
   use mod_qpoint, only: nqpt, vql
-  use modxs, only: totalqlmt, tscreen, qvkloff
+  use modxs, only: unitout, totalqlmt, tscreen
   use m_genfilname, only: genfilname
   use m_writegqpts, only: writegqpts
   use mod_misc, only: filext
@@ -22,6 +22,7 @@ subroutine b_xsgeneigveclauncher
   logical :: tmqmt
   logical :: firstisgamma
   real(8), allocatable :: vkloff_kqmtm(:,:)
+  real(8), allocatable :: vkloff_kqmtp(:,:)
   real(8), parameter :: epslat=1.d-6
   logical :: fwg
 
@@ -33,7 +34,7 @@ subroutine b_xsgeneigveclauncher
   ! k-point setup
   ! Also allocated the radial functions (mod_APW_LO)
   call init1
-  ! q-point and qmt-point setup
+  ! q-point and qmt-list setup
   !   Init 2 sets up (task 301/401):
   !   * A list of momentum transfer vectors form the q-point list 
   !     (modxs::vqmtl and mod_qpoint::vql)
@@ -72,9 +73,9 @@ subroutine b_xsgeneigveclauncher
     end do
   end if
 
-  ! Offsets for k+qmt grid are stored in qvkloff
-
-  ! Groundstate offsets for the k-qmt grid
+  ! Offsets for k+qmt/2 grids
+  allocate(vkloff_kqmtp(3,nqpt))
+  ! Offsets for the k-qmt/2 grid
   allocate(vkloff_kqmtm(3,nqpt))
 
   ! For each Q-point in the Q-point list generate grids and
@@ -92,32 +93,36 @@ subroutine b_xsgeneigveclauncher
       call xsgrids_write_grids(iq)
     end if
 
-    ! Offset for (k-qmt) grid
+    !! Only save offsets
+    ! Offset for (k+qmt/2) grid
+    vkloff_kqmtp(1:3,iq) = k_kqmtp%kqmtset%vkloff
+    ! Offset for (k-qmt/2) grid
     vkloff_kqmtm(1:3,iq) = k_kqmtm%kqmtset%vkloff
 
+    ! Clear grids again
     call xsgrids_finalize()
 
   end do
 
   ! Depending on the BSE hamiltonian to be constructed 
   ! the eigensolutions on differing grids are needed.
-  if(input%xs%bse%coupling .and. .not. input%xs%bse%ti) then 
-    ! Full bse 
-    tmqmt = .false.
-    ! (k+qmt) grid
-    call b_xsgeneigvec(1, nqpt, vql(1:3,1:nqpt), qvkloff(1:3,1:nqpt), tscreen, tmqmt)
-    tmqmt = .true.
-    if(nqpt > 1) then 
-      ! (k-qmt) grid
-      call b_xsgeneigvec(2, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt), tscreen, tmqmt)
-    end if
-  ! TDA/TI case
-  else
-    tmqmt = .false.
-    ! (k+qmt) grid(s)
-    call b_xsgeneigvec(1, nqpt, vql(1:3,1:nqpt), qvkloff(1:3,1:nqpt), tscreen, tmqmt)
+
+  ! (k+qmt/2) grid
+  tmqmt=.false.
+  call printline(unitout, "+")
+  write(unitout, '("One-shot GS runs for k+qmt/2 grids")')
+  call printline(unitout, "+")
+  call b_xsgeneigvec(1, nqpt, vql(1:3,1:nqpt), vkloff_kqmtp(1:3,1:nqpt), tscreen, tmqmt)
+  ! (k-qmt/2) grid
+  if(nqpt > 1) then 
+    call printline(unitout, "+")
+    write(unitout, '("One-shot GS runs for k-qmt/2 grids")')
+    call printline(unitout, "+")
+    tmqmt=.true.
+    call b_xsgeneigvec(2, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt), tscreen, tmqmt)
   end if
 
+  deallocate(vkloff_kqmtp)
   deallocate(vkloff_kqmtm)
 
 end subroutine b_xsgeneigveclauncher

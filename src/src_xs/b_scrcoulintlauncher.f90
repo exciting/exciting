@@ -21,15 +21,15 @@ subroutine b_scrcoulintlauncher
 
   implicit none
 
-  logical :: fcoup, fti
-  integer(4) :: iqmt, iqmti, iqmtf
+  logical :: fcoup
+  integer(4) :: iqmt, iqmti, iqmtf, nqmt
   real(8) :: vqmt(3)
   character(256) :: casestring
   character(*), parameter :: thisname = "b_scrcoulintlauncher"
 
   write(*,*) "b_scrcoulintlauncher here at rank", rank
 
-  ! Calculate RR, RA or RR and RA blocks
+  ! Calculate RR or RA blocks
   casestring = input%xs%bse%blocks
 
   ! Also calculate coupling blocks
@@ -43,19 +43,18 @@ subroutine b_scrcoulintlauncher
     end if
   end if
 
-  ! Use time inverted anti-resonant basis
-  if(input%xs%bse%ti .eqv. .true.) then 
-    fti = .true.
-  else
-    fti = .false.
-  end if
-
   ! Which Q points to consider 
+  nqmt = size(input%xs%qpointset%qpoint, 2)
   iqmti = 1
-  iqmtf = size(input%xs%qpointset%qpoint, 2)
+  iqmtf = nqmt
   if(input%xs%bse%iqmtrange(1) /= -1) then 
     iqmti=input%xs%bse%iqmtrange(1)
     iqmtf=input%xs%bse%iqmtrange(2)
+  end if
+  if(iqmtf > nqmt .or. iqmti < -1 .or. iqmti > iqmtf) then 
+    write(unitout, '("Error(",a,"):", a)') trim(thisname),&
+      & " iqmtrange incompatible with qpointset list"
+    call terminate
   end if
 
   call printline(unitout, "+")
@@ -92,8 +91,7 @@ subroutine b_scrcoulintlauncher
             & Calculating RR block of W")') trim(thisname) 
           write(unitout,*)
         end if
-        ! b_scrcoulint(iqmt, fra=.false., fti=.false.)
-        call b_scrcoulint(iqmt, .false., fti)
+        call b_scrcoulint(iqmt, .false.)
         call barrier(mpiglobal, callername=trim(thisname))
 
       case("RA","ra")
@@ -104,13 +102,9 @@ subroutine b_scrcoulintlauncher
             call printline(unitout, "-")
             write(unitout, '("Info(",a,"):&
               & Calculating RA block of W")') trim(thisname) 
-            if(fti) then
-              write(unitout, '("Info(",a,"):&
-                & Using time inverted anti-resonant basis")') trim(thisname) 
-            end if
             write(unitout,*)
           end if
-          call b_scrcoulint(iqmt, .true., fti)
+          call b_scrcoulint(iqmt, .true.)
           call barrier(mpiglobal, callername=trim(thisname))
         end if
 
@@ -122,8 +116,7 @@ subroutine b_scrcoulintlauncher
             & Calculating RR block of W")') trim(thisname) 
           write(unitout,*)
         end if
-        ! b_scrcoulint(iqmt, fra=.false., fti=.false.)
-        call b_scrcoulint(iqmt, .false., fti)
+        call b_scrcoulint(iqmt, .false.)
         call barrier(mpiglobal, callername=trim(thisname))
 
         ! RA block
@@ -132,13 +125,9 @@ subroutine b_scrcoulintlauncher
             call printline(unitout, "-")
             write(unitout, '("Info(",a,"):&
               & Calculating RA block of W")') trim(thisname) 
-            if(fti) then
-              write(unitout, '("Info(",a,"):&
-                & Using time inverted anti-resonant basis")') trim(thisname) 
-            end if
             write(unitout,*)
           end if
-          call b_scrcoulint(iqmt, .true., fti)
+          call b_scrcoulint(iqmt, .true.)
           call barrier(mpiglobal, callername=trim(thisname))
         end if
 

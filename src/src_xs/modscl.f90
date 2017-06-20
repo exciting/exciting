@@ -27,7 +27,8 @@ module modscl
     integer(4) :: ierr
   end type
 
-  type(blacsinfo) :: bi2d, bi1d, bi0d
+  type(blacsinfo), target :: bi2d, bi1d, bi0d
+  type(blacsinfo), pointer :: bicurrent
 
   ! Distributed complex matrix type
   type dzmat
@@ -139,16 +140,14 @@ module modscl
           mblck = BLOCKSIZE
           nblck = BLOCKSIZE
           ! Write info about BLACS grid
-          if(mpicom%rank == 0) then
-            write(unitout,'("Info(setupblacs): Using ", i4, " x", i4,&
-              & " process grid. Ctxt(", i3, ") MPIcom(", i12, ")")')&
-              & nprows, npcols, ictxt, mpicom%comm
-            if(nprocs2d /= nprocs) then
-              write(unitout,'("Info(setupblacs):&
-                & Warning - Processes do not fit 2d grid")')
-              write(unitout,'("Info(setup2dblacs):&
-                & Warning - ",i2," processes not used")') nprocs-nprocs2d
-            end if
+          write(unitout,'("Info(setupblacs): Using ", i4, " x", i4,&
+            & " process grid. Ctxt(", i3, ") MPIcom(", i12, ")")')&
+            & nprows, npcols, ictxt, mpicom%comm
+          if(nprocs2d /= nprocs) then
+            write(unitout,'("Info(setupblacs):&
+              & Warning - Processes do not fit 2d grid")')
+            write(unitout,'("Info(setup2dblacs):&
+              & Warning - ",i2," processes not used")') nprocs-nprocs2d
           end if
           nprocs = nprocs2d
 
@@ -166,11 +165,9 @@ module modscl
           mblck = BLOCKSIZE*BLOCKSIZE
           nblck = 1
           ! Write info about BLACS grid
-          if(mpicom%rank == 0) then
-            write(unitout,'("Info(setupblacs): Aux. ",i4," x",i4,&
-              &" process grid. Ctxt(",i3,") MPIcom(",i12,")")')&
-              & nprows, npcols, ictxt, mpicom%comm
-          end if
+          write(unitout,'("Info(setupblacs): Aux. ",i4," x",i4,&
+            &" process grid. Ctxt(",i3,") MPIcom(",i12,")")')&
+            & nprows, npcols, ictxt, mpicom%comm
 
         ! Make 1D process grid (one column) 
         case('1Dc','1DC','1dc','1dC','column','Column','COLUMN')
@@ -186,11 +183,9 @@ module modscl
           mblck = 1
           nblck = BLOCKSIZE*BLOCKSIZE
           ! Write info about BLACS grid
-          if(mpicom%rank == 0) then
-            write(unitout,'("Info(setupblacs): Aux. ",i4," x",i4,&
-              &" process grid. Ctxt(",i12,") MPIcom(",i12,")")')&
-              & nprows, npcols, ictxt, mpicom%comm
-          end if
+          write(unitout,'("Info(setupblacs): Aux. ",i4," x",i4,&
+            &" process grid. Ctxt(",i12,") MPIcom(",i12,")")')&
+            & nprows, npcols, ictxt, mpicom%comm
 
         ! Make 0D process grid (one pocess) for inter-context
         ! gathering and scattering of matrices 
@@ -211,11 +206,9 @@ module modscl
           mblck = BLOCKSIZE
           nblck = BLOCKSIZE
           ! Write info about BLACS grid
-          if(mpicom%rank == 0) then 
-            write(unitout,'("Info(setupblacs): Aux. 1x1&
-              & process grid. Ctxt(",i12,") MPIcom(",i12,") MPIrank(",i4,")")')&
-              & ictxt, mpicom%comm, mpicom%rank
-          end if
+          write(unitout,'("Info(setupblacs): Aux. 1x1&
+            & process grid. Ctxt(",i12,") MPIcom(",i12,") MPIrank(",i4,")")')&
+            & ictxt, mpicom%comm, mpicom%rank
           deallocate(usermap)
 
         case default
@@ -317,6 +310,7 @@ module modscl
       integer(4), intent(in), optional :: rblck, cblck
 
       integer(4) :: i, j
+      logical :: isempty
 
       ! Defaults
       self%isdistributed = .false.
@@ -348,27 +342,38 @@ module modscl
         if(present(rblck)) self%mblck = min(rblck, self%nrows)
         if(present(cblck)) self%nblck = min(cblck, self%ncols)
 
-        ! Get number of locas rows and columns
+        ! Get number of locas rows and columns (are negative on non-participating ranks)
         self%nrows_loc = numroc(self%nrows, self%mblck, binfo%myprow, 0, binfo%nprows)
         self%ncols_loc = numroc(self%ncols, self%nblck, binfo%mypcol, 0, binfo%npcols)
+
+        if(self%nrows_loc <= 0 .and. self%ncols_loc <= 0) then 
+          isempty = .true.
+        else
+          isempty = .false.
+        end if
 
         ! Write index maps
         if(allocated(self%r2g)) deallocate(self%r2g)
         if(allocated(self%c2g)) deallocate(self%c2g)
-        allocate(self%r2g(self%nrows_loc))
-        allocate(self%c2g(self%ncols_loc))
-        do i = 1, self%nrows_loc
-          self%r2g(i) = indxl2g(i, self%mblck, binfo%myprow, 0, binfo%nprows)
-        end do
-        do j = 1, self%ncols_loc
-          self%c2g(j) = indxl2g(j, self%nblck, binfo%mypcol, 0, binfo%npcols)
-        end do
+
+        if( .not. isempty) then 
+          allocate(self%r2g(self%nrows_loc))
+          allocate(self%c2g(self%ncols_loc))
+          do i = 1, self%nrows_loc
+            self%r2g(i) = indxl2g(i, self%mblck, binfo%myprow, 0, binfo%nprows)
+          end do
+          do j = 1, self%ncols_loc
+            self%c2g(j) = indxl2g(j, self%nblck, binfo%mypcol, 0, binfo%npcols)
+          end do
+        end if
 
         ! Make descriptor
         if(allocated(self%desc)) deallocate(self%desc)
         allocate(self%desc(9))
         call descinit(self%desc, self%nrows, self%ncols, &
-          & self%mblck, self%nblck, 0, 0, self%context, max(1,self%nrows_loc), binfo%ierr)
+          & self%mblck, self%nblck, 0, 0, self%context,&
+          & max(1,self%nrows_loc), binfo%ierr)
+
         if(binfo%ierr /= 0) then
           write(*,'("new_dzmat@rank(",i3,1x,i3,") (Error):&
             & descinit returned non zero error code")')&
@@ -864,10 +869,13 @@ module modscl
           call terminate
         end if
       end if
+
 #ifdef SCAL
+      ! Inter-context copy
       call pzgemr2d(m, n, za, ia, ja, desca,&
         & zb, ib, jb, descb, context)
 #else
+      ! Copy
       zb(ib:ib+m-1,jb:jb+n-1) = za(ia:ia+m-1,ja:ja+n-1)
 #endif
 

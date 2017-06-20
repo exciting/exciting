@@ -93,3 +93,4 @@ src/libXC/testsuite/xc-regression
 src/libXC/config.h.in
 src/libXC/configure
 src/libXC/config.h.in~
+*.un~

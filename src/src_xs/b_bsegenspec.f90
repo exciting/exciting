@@ -25,10 +25,10 @@ subroutine b_bsegenspec()
 
   integer(4) :: io1, no, nexc, nk, nw
   integer(4) :: iqmt, iqmti, iqmtf, nqmt, iq1, iq2
-  logical :: fcoup, fti, foff
-  real(8), allocatable :: evals(:), bindevals(:), evalsim(:), w(:)
-  complex(8), allocatable :: oscir(:), oscia(:)
-  complex(8), allocatable :: oscirmat(:,:), osciamat(:,:)
+  logical :: fcoup, foff
+  real(8), allocatable :: evals(:), bindevals(:), w(:)
+  complex(8), allocatable :: oscir(:)
+  complex(8), allocatable :: oscirmat(:,:)
   complex(8), allocatable, dimension(:,:,:) :: symspectr
 
   character(*), parameter :: thisname = "b_bsegenspec"
@@ -66,7 +66,6 @@ subroutine b_bsegenspec()
 
     ! Get BSE structure flags
     fcoup = input%xs%bse%coupling
-    fti = input%xs%bse%ti
     ! Use offdiagonal elements
     foff = input%xs%dfoffdiag
 
@@ -85,29 +84,17 @@ subroutine b_bsegenspec()
 
       do io1 = 1, no
 
-        if(fcoup .and. .not. fti) then 
-          call readoscillator(iqmt, io1, evals, bindevals, oscir, oscia, evalsim)
-        else
-          call readoscillator(iqmt, io1, evals, bindevals, oscir)
-        end if
+        call readoscillator(iqmt, io1, evals, bindevals, oscir)
 
         if(.not. allocated(oscirmat)) then 
           allocate(oscirmat(size(oscir), 3))
           oscirmat = zzero
-          if(fcoup .and. .not. fti) then 
-            allocate(osciamat(size(oscir), 3))
-            osciamat = zzero
-          end if
         end if
 
         oscirmat(:,io1) = oscir
-        if(fcoup .and. .not. fti) then 
-          osciamat(:,io1) = oscia
-        end if
       
       end do
       if(allocated(oscir)) deallocate(oscir)
-      if(allocated(oscia)) deallocate(oscia)
 
       !! Make the spectrum
 
@@ -125,15 +112,7 @@ subroutine b_bsegenspec()
       end if
 
       ! Calculate lattice symmetrized spectrum.
-      if(fcoup) then 
-        if(fti) then
-          call makespectrum_ti(iqmt, nexc, nk, evals, oscirmat, symspectr)
-        else
-          call makespectrum_full(iqmt, nexc, nk, evals, oscirmat, osciamat, symspectr)
-        end if
-      else
-        call makespectrum_tda(iqmt, nexc, nk, evals, oscirmat, symspectr)
-      end if
+      call makespectrum(iqmt, nexc, nk, evals, oscirmat, symspectr)
 
       ! Generate an evenly spaced frequency grid 
       nw = input%xs%energywindow%points
@@ -147,9 +126,7 @@ subroutine b_bsegenspec()
       ! Some cleaning up
       deallocate(symspectr)
       if(allocated(oscirmat)) deallocate(oscirmat)
-      if(allocated(osciamat)) deallocate(osciamat)
       if(allocated(evals)) deallocate(evals)
-      if(allocated(evalsim)) deallocate(evalsim)
 
     ! iqmt
     end do
