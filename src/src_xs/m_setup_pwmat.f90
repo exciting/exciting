@@ -127,11 +127,6 @@ module m_setup_pwmat
       ! Use normal computation of the plane wave matrix elements M
       emat_ccket=.false.
 
-      ! Set up ikmapikq to link (jkm,iqmt) to (jkp)
-      ikmapikq_ptr => ikm2ikp_dummy
-      ! Set vkl0_ptr k-qmt/2-grid, vkl1_ptr, ... to k+qmt/2-grid
-      call setptr01()
-
       ! Generate gaunt coefficients used in the construction of 
       ! the plane wave matrix elements in ematqk.
       call xsgauntgen(max(input%groundstate%lmaxapw, lolmax),&
@@ -141,7 +136,16 @@ module m_setup_pwmat
       call findgntn0(max(input%xs%lmaxapwwf, lolmax),&
         & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
 
+      ! Allocate needed arrays (evecfv etc.)
       call ematqalloc
+
+      ! Set up ikmapikq to link (jkm,iqmt) to (jkp)
+      ikmapikq_ptr => ikm2ikp_dummy
+
+      ! Set vkl0_ptr k-qmt/2-grid, vkl1_ptr, ... to k+qmt/2-grid
+      ! Note: Needs to be called after ematqalloc
+      call setptr01()
+
 
       ! Calculate radial integrals used in the construction 
       ! of the plane wave matrix elements for exponent (G+qmt)

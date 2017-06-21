@@ -2,7 +2,6 @@ subroutine testingfun
   use modinput
   use modmpi
   use mod_ematgrids
-  use m_ematqk
   use mod_misc, only: task
 
   implicit none
