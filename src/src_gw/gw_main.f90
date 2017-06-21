@@ -30,8 +30,8 @@ subroutine gw_main()
     !---------------------
     if (rank==0) then
         call getunit(fgw)
-        ! open(fgw,File='GW_INFO.OUT')
-        open(fgw,File='GW_INFO.OUT',Access='Append')
+        open(fgw,File='GW_INFO.OUT')
+        ! open(fgw,File='GW_INFO.OUT',Access='Append')
         if (input%gw%debug) then
             call getunit(fdebug)
             open(fdebug,File='debug.info',Action='Write')
@@ -122,6 +122,9 @@ subroutine gw_main()
         ! Calculate and store the (q,\omega)-dependent dielectric function
         case('eps_r')
             call task_eps_r
+
+        case('vcoul')
+            call test_vcoul
                         
         ! Calculate the eigenvalues the LDA dielectric function and its inverse
         ! case('epsev')

@@ -23,13 +23,17 @@ subroutine calcpmatgw
 !BOC
     implicit none
 ! local variables
-    integer    :: ik, ikp, fid, ispn, i
+    integer    :: ik, ikp, fid, ispn, i, j
     integer(8) :: recl
-    real(8) :: tstart, tend, t0, t1
+    real(8)    :: tstart, tend, t0, t1
     complex(8), allocatable :: apwalm(:,:,:,:)
     complex(8), allocatable :: evecsv(:,:,:)
     complex(8), allocatable :: pmv_k(:,:,:), pmc_k(:,:,:)
     complex(8), allocatable :: pmv(:,:,:,:), pmc(:,:,:,:)
+
+    integer    :: k, isym, lspl
+    real(8)    :: v(3), v1(3), v2(3), pm(9), sl(3,3), sc(3,3)
+    complex(8) :: p(3), o(6)
     
     integer :: ikstart, ikend
     integer, allocatable :: ikp2rank(:)

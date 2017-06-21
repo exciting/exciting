@@ -106,8 +106,14 @@ subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
           call zgemv('n',mbsiz,nmdim,coefw,tmat,mbsiz,pm,1,zzero,tvec,1)
         end if
         epsw2(:,iom,iop) = epsw2(:,iom,iop)+conjg(tvec(:))
+
+        ! write(11,*) "iop, iom=", iop, iom
+        ! do ie12 = 1, mbsiz
+        !   write(11,'(4f18.8)') epsw1(ie12,iom,iop), epsw2(ie12,iom,iop)
+        ! enddo
+
       end do ! iom
-      
+
     end do ! iop
     
     deallocate(tmat)

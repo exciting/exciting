@@ -108,7 +108,8 @@ subroutine parse_gwinput
             if (rank==0) write(fgw,*) '  sepl - (testing option) Plot Selfenergy as a function of frequency'
         case('rotmat')
             if (rank==0) write(fgw,*) '  rotmat - (testing option) Calculate and check the MB rotation matrices (symmetry feature)'
-        
+        case('vcoul')
+            if (rank==0) write(fgw,*) '  vcoul - (testing option) Test the Coulomb potential)'       
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Wrong task name!'
             if (rank==0) write(*,*)

@@ -24,7 +24,7 @@ subroutine angular_averaging(iom,n,bi)
     integer :: iop, jop, itp, lm, ntpsph
     real(8) :: vomega, t00, r, qsz
     real(8) :: q0eps(3), modq0
-    complex (8) :: L(3,3), dtns(3,3), w1, w2
+    complex(8) :: L(3,3), dtns(3,3), w1, w2
     
     real(8), allocatable :: plat(:,:), p(:), tp(:,:), spc(:,:), w(:)
     complex(8), allocatable :: m00lm(:), mx0lm(:), mxxlm(:)
@@ -33,7 +33,7 @@ subroutine angular_averaging(iom,n,bi)
     complex(8), allocatable :: ylm(:), zylm(:, :)
     complex(8), allocatable :: u(:,:), v(:,:), s(:,:), t(:,:) 
     complex(8), allocatable :: e3(:,:), ie3(:,:)
-      
+    
     ! crystal volume
     vomega = omega*product(input%gw%ngridq)
     ! Wigner-Seitz radius and spherical approximation to 1/q^2 average
@@ -46,6 +46,7 @@ subroutine angular_averaging(iom,n,bi)
     ! definition of U_{\alpha} (column wing) (B.7)
     allocate(u(n,3))
     u(:,:) = epsw1(:,iom,:)
+
     ! row wing
     allocate(v(3,n))
     v(:,:) = transpose(epsw2(:,iom,:))
@@ -53,12 +54,13 @@ subroutine angular_averaging(iom,n,bi)
     ! definition of S{\alpha} (B.13)
     allocate(s(n,3))
     s(:,:) = matmul(bi,u)
+
     allocate(t(3,n))
     t(:,:) = matmul(v,bi)
 
     ! definition of L = H-conjg(U)*S (B.14) = \epsilon_{00}+LFE
-    L(:,:) = epsh(iom,:,:)-matmul(v,s)
-        
+    L(:,:) = epsh(iom,:,:) - matmul(v,s)
+
     ! symmetrize the dielectric tensor
     dtns(:,:) = L(:,:)
     do iop = 1, 3
@@ -66,6 +68,11 @@ subroutine angular_averaging(iom,n,bi)
         call symt2app(iop,jop,1,symt2,dtns,L(iop,jop))
       end do
     end do
+
+    write(12,*) iom
+    do i1 = 1, 3
+      write(12,'(3f18.8)') L(i1,:)
+    enddo
 
     !-------------------------------------------
     ! Store the symmetrized macroscopic tensor
@@ -96,6 +103,8 @@ subroutine angular_averaging(iom,n,bi)
           &           epsw1(j1,iom,1)*epsw2(j2,iom,1)/epsh(iom,1,1)
         end do
       end do
+
+      write(*,*) 'epsh=', epsh(iom,1,1)
       
     case ('anisotropic')
     

@@ -76,26 +76,21 @@ contains
         integer(4) :: ie1, ie2, nmdim
         real(8)    :: wkq
         real(8)    :: vi4pi, coefs1, coefs2
-        complex(8) :: wm(mbsiz,nstart:nend,mstart:mend)
+        complex(8), allocatable :: wm(:)
         complex(8), external :: zdotu, zdotc
         external zhemm
         
-        vi4pi = 4.d0*pi*vi
+        vi4pi  = 4.d0*pi*vi
         coefs1 = singc1*sqrt(vi4pi)
         coefs2 = singc2*vi4pi
-        
-        ! q-point weight
-        wkq = 1.d0/dble(kqset%nkpt)
+        wkq    = 1.d0/dble(kqset%nkpt) ! q-point weight
 
-        ! calculate \sum_{j} W^c_{ij}M^j_{nm}
-        nmdim = (nend-nstart+1)*(mend-mstart+1)
-        call zhemm('l','u',mbsiz,nmdim, &
-        &          zone,epsilon(:,:,iom),mbsiz,minmmat,mbsiz, &
-        &          zzero,wm,mbsiz)
-
+        ! calculate \sum_{ij} M^i_{nm}* W^c_{ij} M^j_{nm}
+        allocate(wm(mbsiz))
         do ie2 = mstart, mend
           do ie1 = nstart, nend
-            xnm(ie1,ie2) = wkq*zdotc(mbsiz,minmmat(:,ie1,ie2),1,wm(:,ie1,ie2),1)
+            call zhemv('u',mbsiz,zone,epsilon(:,:,iom),mbsiz,minmmat(:,ie1,ie2),1,zzero,wm,1)
+            xnm(ie1,ie2) = wkq*zdotc(mbsiz,minmmat(:,ie1,ie2),1,wm,1)
             if ((Gamma).and.(ie1==ie2)) then
               xnm(ie1,ie2) = xnm(ie1,ie2) + &
               &  coefs2*epsh(iom,1,1) + &
@@ -104,6 +99,7 @@ contains
             end if ! singular term
           end do
         end do
+        deallocate(wm)
 
         return 
     end subroutine
