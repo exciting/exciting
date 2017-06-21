@@ -73,6 +73,9 @@ module mod_xsgrids
 
       character(*), parameter :: thisname = "xsgrids_init"
 
+      ! Clear preexisting arrays and structures
+      call xsgrids_finalize()
+
       call timesec(t0)
       
       !! Setting k-space grid parameters
@@ -182,12 +185,6 @@ module mod_xsgrids
     end subroutine xsgrids_init
 
     subroutine xsgrids_finalize()
-
-      if( .not. initialized) then
-        write(*,*) "Warning(mod_xsgrids::xsgrids_filanlize):&
-          & Module was not initialize."
-        return
-      end if
 
       ! Free k-space grids
       call delete_kkqmt_vectors(k_kqmtp)

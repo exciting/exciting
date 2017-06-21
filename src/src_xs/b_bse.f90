@@ -263,7 +263,7 @@ subroutine b_bse(iqmt)
   ! Write some Info
   write(unitout,*)
   write(unitout, '("Info(",a,"):&
-    & bsegap, bsegap+scissor (eV):", E23.16,1x,E23.16)')&
+    & bsegap-scissor, bsegap (eV):", E23.16,1x,E23.16)')&
     & trim(thisname), (bsegap-sci)*h2ev, bsegap*h2ev
   !---------------------------------------------------------------------------!
 
@@ -549,7 +549,7 @@ subroutine b_bse(iqmt)
       write(unitout, '("Info(",a,"):&
         & Writing excition energies and oscillator strengths to text file.")')&
         & trim(thisname)
-      call writeoscillator(hamsize, nexc, -(bsegap+sci), exeval, oscsr, iqmt=iqmt)
+      call writeoscillator(hamsize, nexc, -bsegap, exeval, oscsr, iqmt=iqmt)
     end if
 
     ! Allocate arrays used in spectrum construction
