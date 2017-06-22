@@ -553,6 +553,12 @@
               </xs:annotation>
             </xs:attribute>
 
+ 	    <xs:attribute ex:importance="expert" ex:unit="" name="dshift" type="fortrandouble" default="0.0">
+              <xs:annotation>
+                <xs:documentation>Delta of momentum matrix elements to calculate the second derivative of the energy. If dshift=0.0, no second derivative is calculated.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
           </xs:complexType>
         </xs:element>
 
