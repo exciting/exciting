@@ -16,17 +16,19 @@ subroutine kubo
     real(8) :: wplas, swidth, eji, t1, t2, t3
     real(8) :: v1 (3), v2 (3), sc(3,3)
     real(8) :: kb
-    real(8) :: deltaw
+    real(8) :: deltaw, dshift
     real(8) :: tempi,tempf,temps,temp
     real(8) :: mui, muf, mus, mu, deltamu
     complex(8) :: sigmaboltz(9)
     complex(8) :: sigmak(9)
-    complex(8) :: zt1, zt2
+    complex(8) :: sigmaktwo(9)
+    complex(8) :: zt1, zt2, zt3
     character(256) :: fname
 ! allocatable arrays
     real(8), allocatable :: w(:)
     real(8), allocatable :: evalsvt(:), occsvt(:)
     complex (8), allocatable :: pmat(:,:,:)
+    complex (8), allocatable :: pmatd(:,:,:)
     complex (8), allocatable :: sigma(:)
     complex (8), allocatable :: sigmab(:)
     complex (8), allocatable :: seebeck(:)
@@ -59,7 +61,7 @@ subroutine kubo
     wgrid = input%properties%dielmat%wgrid
     mugrid = input%properties%dielmat%mugrid
     tempgrid = input%properties%dielmat%tempgrid
-
+    dshift = 0.0001
 !    write(*,*) wgrid
 !    write(*,*) mugrid
 !    write(*,*) tempgrid
@@ -124,6 +126,12 @@ subroutine kubo
     open(50,File='PMAT.OUT',Action='READ',Form='UNFORMATTED', &
     &    Access='DIRECT',Recl=recl,IOstat=iostat)
 
+! the momentum matrix elements with delta for second derivative
+    allocate(pmatd(3,nstsv,nstsv))
+    inquire(iolength=recl) pmatd
+    open(80,File='PMATD.OUT',Action='READ',Form='UNFORMATTED', &
+    &    Access='DIRECT',Recl=recl,IOstat=iostat)
+
 ! KS eigenvalues and occupancies    
     allocate(evalsvt(nstsv),occsvt(nstsv))
 
@@ -165,6 +173,7 @@ subroutine kubo
 ! initialize sigmaboltz to zeros
     sigmaboltz(:) = zzero
     sigmak(:) = zzero
+    sigmaktwo(:) = zzero
 
     tempi=input%properties%dielmat%temprange(1)
     tempf=input%properties%dielmat%temprange(2)
@@ -224,7 +233,24 @@ subroutine kubo
                     end do
                 end do
             end if
-        
+
+            
+! read momentum matrix elements of shifted k grid by delta from direct-access file
+            read(80,Rec=jk) pmatd
+
+! rotate the matrix elements from the reduced to non-reduced k-point
+            if (isym > 1) then
+                do ist = 1, nstsv
+                    do jst = 1, nstsv
+                        sc(:,:)=symlatc(:,:,lsplsymc(isym))
+                        call r3mv(sc,dble(pmatd(:,ist,jst)),v1)
+                        call r3mv(sc,aimag(pmatd(:,ist,jst)),v2)
+                        pmatd(:,ist,jst) = cmplx(v1(:),v2(:),8)
+                    end do
+                end do
+            end if            
+
+            
 ! read eigenvalues and occupancies from files
             call getevalsv(vkl(:,jk),evalsvt)
             call getoccsv(vkl(:,jk),occsvt)
@@ -259,6 +285,8 @@ subroutine kubo
 ! sigmak from Kubo
 !--------------------------       
 !--------------------------       
+! formula with first derivative: produkt of pmat elements:
+!-------------------------       
             do ist = 1, nstsv
                !zt1 = pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
                !t1 = (evalsvt(ist)-efermi)/(tempi*kb)
@@ -279,6 +307,31 @@ subroutine kubo
                sigmak(l) = sigmak(l)+ zt1*t3
                !end if
             end do ! ist
+
+!--------------------------       
+! formula with second derivative: determined by pmat and pmatd
+!--------------------------
+            do ist = 1, nstsv
+               !zt1 = pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
+               !t1 = (evalsvt(ist)-efermi)/(tempi*kb)
+               !sigmak(l) = sigmak(l)+ zt1*sdelta(3,t1)/(tempi*kb)
+               !if (occsvt(ist) > 0 ) then
+               zt3 = (pmatd(a,ist,ist)-pmat(b,ist,ist))/dshift
+               t1 = (evalsvt(ist)-efermi)/(tempi*kb)
+               !if (t1 > 20) then
+               !   t3=0
+               !else if (t1 < -20 ) then
+               !   t3=0
+               !else
+               t2 = exp(t1)
+               t3 = 1/(t2+1)
+               !end if
+               !write(*,*) occsvt(ist), evalsvt(ist), efermi
+               !write(*,*) zt1, t3
+               sigmaktwo(l) = sigmaktwo(l)+ zt1*t3
+               !end if
+            end do ! ist
+
 
             
 !--------------------------
@@ -580,11 +633,21 @@ subroutine kubo
           write(60, '(2I1,2G18.10)') epscomp(1,l), epscomp(2,l), sigmak(l)
        end do
       close(60)
+    ! write the optical components of conductivity from Kubo with second derivative
+       write(fname, '("SIGMAKUBOTWO.OUT")')
+       write(*, '("  Optical conductivity components written to ", a)') trim(adjustl(fname))
+       open(60, file=trim(fname), action='WRITE', form='FORMATTED')
+       !write(*,*) sigmaboltz
+       do l = 1, ncomp
+          write(60, '(2I1,2G18.10)') epscomp(1,l), epscomp(2,l), sigmaktwo(l)
+       end do
+      close(60)
     end if
     
     close(50) 
+    close(80) 
 
-    deallocate(pmat)
+    deallocate(pmat,pmatd)
     deallocate(evalsvt,occsvt)
     deallocate(w,sigma,sigmab,seebeck,thermalcond,zt,eta,td)
     
