@@ -331,14 +331,20 @@ use m_writecmplxparts
     call genwiqggp(0, iqmt, igq1, igq1, potcl(igq1))
   end do
 
-  ! Set Gmt component term of coulomb potential to zero [Ambegaokar-Kohn]
-  igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
-  potcl(igqmt) = 0.d0
+  ! If Q=0 compute \bar{P}, so use the truncated Coulomb potential.
+  ! Set Gmt component term of Coulomb potential to zero [Ambegaokar-Kohn]
+  if(iqmt==1) then 
+    igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
+    potcl(igqmt) = 0.d0
+  end if
+  ! If Q\=0 compute \chi, so use the full Coulomb potential.
 
   if(mpiglobal%rank == 0) then
     write(unitout, *)
     write(unitout, '("Info(b_exccoulint): Generating V matrix elements")')
-    write(unitout, '("Info(b_exccoulint): Zeroing Coulomb potential at G+qmt index:", i3)') igqmt
+    if(iqmt == 1) then 
+      write(unitout, '("Info(b_exccoulint): Zeroing Coulomb potential at G+qmt index:", i3)') igqmt
+    end if
     call timesec(tpw0)
   end if
 

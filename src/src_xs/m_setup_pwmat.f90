@@ -146,7 +146,6 @@ module m_setup_pwmat
       ! Note: Needs to be called after ematqalloc
       call setptr01()
 
-
       ! Calculate radial integrals used in the construction 
       ! of the plane wave matrix elements for exponent (G+qmt)
       call ematrad(iqmt)
@@ -269,7 +268,9 @@ module m_setup_pwmat
 
       call setup_pwmat(pwmat(:,1), iqmt, igqmt)
 
-      call dzmat_copy_global2local(pwmat, dpwmat, binfo)
+      if(binfo%isactive) then 
+        call dzmat_copy_global2local(pwmat, dpwmat, binfo)
+      end if
       
     end subroutine setup_pwmat_dist
     !EOC

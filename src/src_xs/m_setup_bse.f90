@@ -369,6 +369,8 @@ module m_setup_bse
         end if
       end if
 
+      write(*,*) "rank", rank, "sfid,efid",sfid,efid
+
       if(usescc) write(unitout, '("  Reading form W from ", a)') trim(sfname)
       if(usescc) write(unitout, '("  compatible:",l," identical:",l)') sfcmpt, sfid
       if(useexc) write(unitout, '("  Reading form V from ", a)') trim(efname)
@@ -1277,20 +1279,14 @@ module m_setup_bse
               ! Next row block
               i = i + ib
 
-              call blacs_barrier(binfo%context, 'A')
-
             ! i while loop
             end do
 
             ! Next column block
             j = j + jb
 
-            call blacs_barrier(binfo%context, 'A')
-
           ! j while loop
           end do
-
-          call blacs_barrier(binfo%context, 'A')
 
         ! ikkp loop
         end do

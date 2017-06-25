@@ -34,6 +34,7 @@ module modscl
   type dzmat
     ! Distributed or not?
     logical :: isdistributed
+    logical :: isempty
     ! Global dimension of the matrix
     integer(4) :: nrows, ncols
     ! Global submatrix
@@ -219,12 +220,12 @@ module modscl
       end select
 
 #else
-      ictxt = -1
-      nprocs = 0
-      nprows = -1
-      npcols = -1 
-      myprow = -1 
-      mypcol = -1
+      ictxt = -2 ! signals that no ScaLapack is used.
+      nprocs = 1
+      nprows = 1
+      npcols = 1 
+      myprow = 0
+      mypcol = 0
       mblck = 1
       nblck = 1
 #endif
@@ -256,7 +257,7 @@ module modscl
 
     !BOP
     ! !ROUTINE: exitblacs
-    subroutine exitblacs(blacscom)
+    subroutine blacsbarrier(blacscom)
     ! !INPUT/OUTPUT PARAMTERS:
     ! IN:
     !   type(blacsinfo) :: blacscom
@@ -273,6 +274,29 @@ module modscl
       type(blacsinfo), intent(in) :: blacscom
 #ifdef SCAL
       call blacs_barrier(blacscom%context, 'A')
+#endif
+    end subroutine blacsbarrier
+    !EOC
+
+    !BOP
+    ! !ROUTINE: exitblacs
+    subroutine exitblacs(blacscom)
+    ! !INPUT/OUTPUT PARAMTERS:
+    ! IN:
+    !   type(blacsinfo) :: blacscom
+    !
+    ! !DESCRIPTION:
+    !   This routine waits untill all porcesses of
+    !   the passed {\tt BLACS} grid have reached it and
+    !   then terminated the grid.
+    !
+    ! !REVISION HISTORY:
+    !   Created. 2016 (Aurich)
+    !EOP
+    !BOC
+      type(blacsinfo), intent(in) :: blacscom
+      call blacsbarrier(blacscom)
+#ifdef SCAL
       call blacs_gridexit(blacscom%context)
 #endif
     end subroutine exitblacs
@@ -314,6 +338,7 @@ module modscl
 
       ! Defaults
       self%isdistributed = .false.
+      self%isempty = .false.
       self%nrows = nrows
       self%ncols = ncols
       self%nrows_loc = nrows
@@ -328,7 +353,7 @@ module modscl
 
 #ifdef SCAL
 
-      if(self%context == -1) then
+      if(self%context == -2) then
         self%isdistributed = .false.
       else
         self%isdistributed = .true.
@@ -348,9 +373,12 @@ module modscl
 
         if(self%nrows_loc <= 0 .and. self%ncols_loc <= 0) then 
           isempty = .true.
+          self%nrows_loc = 0
+          self%ncols_loc = 0
         else
           isempty = .false.
         end if
+        self%isempty = isempty
 
         ! Write index maps
         if(allocated(self%r2g)) deallocate(self%r2g)
@@ -370,23 +398,37 @@ module modscl
         ! Make descriptor
         if(allocated(self%desc)) deallocate(self%desc)
         allocate(self%desc(9))
-        call descinit(self%desc, self%nrows, self%ncols, &
-          & self%mblck, self%nblck, 0, 0, self%context,&
-          & max(1,self%nrows_loc), binfo%ierr)
-
-        if(binfo%ierr /= 0) then
-          write(*,'("new_dzmat@rank(",i3,1x,i3,") (Error):&
-            & descinit returned non zero error code")')&
-            & binfo%mpi%rank, mpiglobal%rank, binfo%ierr
-          call terminate
+        if( .not. isempty) then
+          call descinit(self%desc, self%nrows, self%ncols, &
+            & self%mblck, self%nblck, 0, 0, self%context,&
+            & max(1,self%nrows_loc), binfo%ierr)
+          if(binfo%ierr /= 0) then
+            write(*,'("new_dzmat@rank(",i3,1x,i3,") (Error):&
+              & descinit returned non zero error code: ", i9)')&
+              & binfo%mpi%rank, mpiglobal%rank, binfo%ierr
+            call terminate
+          end if
+        else
+          self%desc(1) = 1
+          self%desc(2:9) = -1
         end if
+
 
       end if
 #endif
 
       ! Allocate local array for global matrix
       if(allocated(self%za)) deallocate(self%za)
-      allocate(self%za(self%nrows_loc, self%ncols_loc))
+      if(.not. self%isempty) then 
+        allocate(self%za(self%nrows_loc, self%ncols_loc))
+      end if
+
+      ! Dummy descriptor
+      if(.not. self%isdistributed) then
+        if(allocated(self%desc)) deallocate(self%desc)
+        allocate(self%desc(9))
+        self%desc(9) = -2
+      end if
 
       ! Zero it for good measure.
       if(self%nrows_loc > 0) self%za = cmplx(0,0,8)
@@ -881,5 +923,65 @@ module modscl
 
     end subroutine dzmat_copy
     !EOC
+
+    subroutine printblacsinfo(binfo)
+      type(blacsinfo), intent(in) :: binfo
+
+      write(*,*) "-----------------"
+      write(*,*) "BLACSINFO"
+      write(*,*) "-----------------"
+      write(*,*) " MPIINFO"
+      write(*,*) "   rank", binfo%mpi%rank
+      write(*,*) "   procs", binfo%mpi%procs
+      write(*,*) "   comm", binfo%mpi%comm
+      write(*,*) "-----------------"
+      write(*,*) " context", binfo%context
+      write(*,*) " nprocs", binfo%nprocs
+      write(*,*) " nprows", binfo%nprows
+      write(*,*) " npcols", binfo%npcols
+      write(*,*) "-----------------"
+      write(*,*) " isroot", binfo%isroot
+      write(*,*) " isactive", binfo%isactive
+      write(*,*) "-----------------"
+      write(*,*) " myprow", binfo%myprow
+      write(*,*) " mypcol", binfo%mypcol
+      write(*,*) "-----------------"
+      write(*,*) " mblck", binfo%mblck
+      write(*,*) " nblck", binfo%nblck
+      write(*,*) "-----------------"
+
+    end subroutine printblacsinfo
+
+    subroutine printdzmatinfo(mat)
+      type(dzmat), intent(in) :: mat
+
+      write(*,*) "-----------------"
+      write(*,*) "DZMATINFO"
+      write(*,*) "-----------------"
+      write(*,*) " context", mat%context
+      write(*,*) " nrows", mat%nrows
+      write(*,*) " ncols", mat%ncols
+      write(*,*) "-----------------"
+      write(*,*) " isdistributed", mat%isdistributed
+      write(*,*) " isempty", mat%isempty
+      write(*,*) "-----------------"
+      write(*,*) " nrows_loc", mat%nrows_loc
+      write(*,*) " ncols_loc", mat%ncols_loc
+      write(*,*) "-----------------"
+      write(*,*) " mblck", mat%mblck
+      write(*,*) " nblck", mat%nblck
+      write(*,*) "-----------------"
+      write(*,*) " DTYPE_A", mat%desc(1)
+      write(*,*) " CTXT_A", mat%desc(2)
+      write(*,*) " M_A", mat%desc(3)
+      write(*,*) " N_A", mat%desc(4)
+      write(*,*) " MB_A", mat%desc(5)
+      write(*,*) " NB_A", mat%desc(6)
+      write(*,*) " RSRC_A", mat%desc(7)
+      write(*,*) " CSRC_A", mat%desc(8)
+      write(*,*) " LLD_A", mat%desc(9)
+      write(*,*) "-----------------"
+
+    end subroutine printdzmatinfo
 
 end module modscl

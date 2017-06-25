@@ -440,9 +440,33 @@ module m_putgetexcitons
       integer(4) :: stat, unexc
       logical :: fcoup, fesel
       integer(4) :: i1, i2, nexcstored, iq, m, n, m2, n2, i, ngridk(3)
+      logical :: sane, distributed
+
 
       character(256) :: fname
       character(256) :: tdastring, bsetypestring, scrtypestring
+
+      if(present(davec)) then
+        sane = drvec%isdistributed == davec%isdistributed
+      else
+        sane = .true.
+      end if
+
+      distributed = drvec%isdistributed
+
+      if(.not. distributed .and. sane) then 
+        if(present(davec)) then 
+          call put_excitons(evals(a1:a2), drvec%za(:,a1:a2), avec=davec%za(:,a1:a2),&
+           & iqmt=iqmt, a1=a1, a2=a2)
+        else
+          call put_excitons(evals(a1:a2), drvec%za(:,a1:a2),&
+           & iqmt=iqmt, a1=a1, a2=a2)
+        end if
+        return
+      else if(.not. sane) then 
+        write(*,*) "putd_excitions: input not sane"
+        call terminate
+      end if
 
       ngridk = input%groundstate%ngridk
 

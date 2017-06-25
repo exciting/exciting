@@ -75,7 +75,7 @@ module m_writeeps
       write(unit1, '("#")')
       write(unit1, '("# Number of k-points=", i8)') nk_bse
       write(unit1, '("# Unit cell volume [au]=", f12.6)') omega
-      write(unit1, '("# Coulomb potential v(Q) [au]=", f12.6)') sptclg(igqmt,iq)**2
+      write(unit1, '("# Coulomb potential v(Q) [au]=", f18.6)') sptclg(igqmt,iq)**2
       write(unit1, '("#")')
       write(unit1, '("#",a22,1x,a23,1x,a23,1x,a23)')&
         & "Frequency", "Re(epsm)", "Im(epsm)", "Re(epsm) form KKT"
