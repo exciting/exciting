@@ -14,7 +14,7 @@ module modbse
 #endif
   use modinput, only: input
   use mod_constants, only: h2ev
-  use modxs, only: unitout
+  use modxs, only: unitout, totalqlmt
   use modxs, only: evalsv0, occsv0, ikmapikq
   use modxs, only: istocc0, istocc, istunocc0, istunocc,&
                  & isto0, isto, istu0, istu, ksgapval, qgap, iqmtgamma
@@ -81,9 +81,7 @@ module modbse
   character(256) :: infofbasename = "BSEINFO"
   character(256) :: scclifbasename = "SCCLI"
   character(256) :: scclicfbasename = "SCCLIC"
-  character(256) :: scclictifbasename = "SCCLICTI"
   character(256) :: exclifbasename = "EXCLI"
-  character(256) :: exclicfbasename = "EXCLIC"
   character(256) :: infofname
   character(256) :: scclifname
   character(256) :: exclifname
@@ -99,12 +97,11 @@ module modbse
     !BOP
     ! !ROUTINE: setranges_modxs
     ! !INTERFACE:
-    subroutine setranges_modxs(iqmt, fcoup, fti)
+    subroutine setranges_modxs(iqmt)
       use modinput
-      use mod_misc, only: filext
       use mod_xsgrids
       use mod_Gkvector, only: gkmax
-      use modxs, only: vqlmt, evalsv0, usefilext0, filext0,&
+      use modxs, only: totalqlmt, evalsv0, usefilext0, filext0,&
                      & ksgap, ksgapval, qmtpgap, qmtmgap, unitout
       use m_genfilname
     ! !INPUT/OUTPUT PARAMETERS:
@@ -123,7 +120,6 @@ module modbse
 
       implicit none
       integer(4), intent(in) :: iqmt
-      logical, intent(in) :: fcoup, fti
 
       integer(4) :: iomax, iumin
 
@@ -144,23 +140,23 @@ module modbse
       !---------------------------------------------------!
       ! Get offsets of and mapping between k and k' grids !
       !---------------------------------------------------!
-      ! Note: requires init2 to set up vqlmt
-      call xsgrids_init(vqlmt(1:3,iqmt), gkmax)
+      ! Note: requires init2 to set up totalqlmt
+      call xsgrids_init(totalqlmt(1:3,iqmt), gkmax)
 
       !! Offsets for k and k' grids
       ! k
       vkloff = k_kqmtp%kset%vkloff
-      ! k+qmt
+      ! k+qmt/2
       vkqmtploff = k_kqmtp%kqmtset%vkloff
-      ! k-qmt
+      ! k-qmt/2
       vkqmtmloff = k_kqmtm%kqmtset%vkloff
 
       !! Mappings between k and k' grids
-      ! k --> k+qmt
+      ! k --> k+qmt/2
       if(allocated(ik2ikqmtp)) deallocate(ik2ikqmtp)
       allocate(ik2ikqmtp(nkpt))
       ik2ikqmtp(:) = k_kqmtp%ik2ikqmt(:)
-      ! k --> k-qmt
+      ! k --> k-qmt/2
       if(allocated(ik2ikqmtm)) deallocate(ik2ikqmtm)
       allocate(ik2ikqmtm(nkpt))
       ik2ikqmtm(:) = k_kqmtm%ik2ikqmt(:)
@@ -169,7 +165,7 @@ module modbse
       !---------------------------------------------------!
 
       !---------------------------------------------------!
-      ! Inspect occupancies for k, k'=k+qmt               !
+      ! Inspect occupancies for k, k'=k+qmt/2             !
       !---------------------------------------------------!
       ! Reset mod_kpoint / mod_Gkvector variables to the unshifted k-grid
       ! (apart from xs%vkloff)
@@ -183,10 +179,10 @@ module modbse
       call init1offs(vkqmtploff)
 
       if(all(abs(vkloff-vkqmtploff) < epslat)) then 
-        write(unitout, '("Info(setranges_modxs): Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        write(unitout, '("Info(setranges_modxs): (+) Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
         fsamek=.true.
       else
-        write(unitout, '("Info(setranges_modxs): Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        write(unitout, '("Info(setranges_modxs): (+) Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
         fsamek=.false.
       end if
 
@@ -198,8 +194,7 @@ module modbse
       ! Explicitly specify k file extension
       usefilext0 = .true.
       ! Set EVALSV_QMT001.OUT as first reference for the occupation search
-      call genfilname(iqmt=iqmtgamma, setfilext=.true.)
-      filext0 = filext
+      call genfilname(iqmt=iqmtgamma, fileext=filext0)
 
       ! Set k' file extension
       if(fsamek) then 
@@ -213,12 +208,12 @@ module modbse
       allocate(io_k(nkpt), iu_k(nkpt))
       allocate(io_kqmtp(nkpt), iu_kqmtp(nkpt))
 
-      ! Inspect occupation limits for k and k+qmt grids
+      ! Inspect occupation limits for k and k+qmt/2 grids
       call findocclims(iqmt, ik2ikqmtp, iomax_kkqmtp, iumin_kkqmtp,&
         & io_k, io_kqmtp, iu_k, iu_kqmtp)
 
       ! Save gap status
-      !   Was an indirect gap found?
+      !   Was an (indirect) gap found?
       fgap = ksgap
       !   Size of found gap
       gap = ksgapval
@@ -230,92 +225,69 @@ module modbse
       !---------------------------------------------------!
 
       !---------------------------------------------------!
-      ! When using couping terms in the BSE               !
-      ! (in the std ar basis) also k, k'=k-qmt occupation !
-      ! limits need to be inspected.                      !
+      ! Inspect occupancies for k, k'=k-qmt/2             !
       !---------------------------------------------------!
-      if(fcoup .and. .not. fti) then 
+      ! Reset mod_kpoint / mod_Gkvector variables to the unshifted k-grid
+      ! (apart from xs%vkloff)
+      call init1offs(vkloff)
 
-        !---------------------------------------------------!
-        ! Inspect occupancies for k, k'=k-qmt               !
-        !---------------------------------------------------!
-        ! Reset mod_kpoint / mod_Gkvector variables to the unshifted k-grid
-        ! (apart from xs%vkloff)
-        call init1offs(vkloff)
+      ! Save the k-grid to modxs vkl0 etc 
+      call xssave0
 
-        ! Save the k-grid to modxs vkl0 etc 
-        call xssave0
+      ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector 
+      ! to those of the k' grid.
+      call init1offs(vkqmtmloff)
 
-        ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector 
-        ! to those of the k' grid.
-        call init1offs(vkqmtmloff)
-
-        if(all(abs(vkloff-vkqmtmloff) < epslat)) then 
-          write(unitout, '("Info(setranges_modxs): Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
-          fsamek=.true.
-        else
-          write(unitout, '("Info(setranges_modxs): Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
-          fsamek=.false.
-        end if
-
-        ! Explicitly specify k file extension
-        usefilext0 = .true.
-        ! Set EVALSV_QMT001.OUT as first reference for the occupation search
-        call genfilname(iqmt=iqmtgamma, setfilext=.true.)
-        filext0 = filext
-
-        ! Set k' file extension
-        if(fsamek) then 
-          ! Set EVALSV_QMT001.OUT as second reference for the occupation limits search
-          call genfilname(iqmt=iqmtgamma, setfilext=.true.)
-        else
-          ! Set EVALSV_QMTXYZ_mqmt.OUT as second reference for the occupation limits search
-          call genfilname(iqmt=iqmt, auxtype="mqmt", setfilext=.true.)
-        end if
-
-        allocate(io_k(nkpt), iu_k(nkpt))
-        allocate(io_kqmtm(nkpt), iu_kqmtm(nkpt))
-
-        call findocclims(iqmt, ik2ikqmtm, iomax_kkqmtm, iumin_kkqmtm,&
-          & io_k, io_kqmtm, iu_k, iu_kqmtm)
-        !---------------------------------------------------!
-
-        ! Refine gap status
-        !   Does the system still have a gap with this different choice of the
-        !   k mesh?
-        fgap = ksgap .and. fgap
-        !   Was a smaller indirect gap found?
-        gap = min(ksgapval, gap)
-        !   Gap with -qmt direction
-        qmtmgap = qgap
-
-        ! Use the highest partially occupied band over all k, k+qmt, k-qmt
-        iomax = max(iomax_kkqmtp, iomax_kkqmtm)
-        ! Use the lowest partially unoccupied band over all k, k+qmt, k-qmt
-        iumin = min(iumin_kkqmtp, iumin_kkqmtm)
-
-        deallocate(io_k, iu_k)
-        deallocate(io_kqmtm, iu_kqmtm)
-
+      if(all(abs(vkloff-vkqmtmloff) < epslat)) then 
+        write(unitout, '("Info(setranges_modxs): (-) Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        fsamek=.true.
       else
-
-        ! Use the highest partially occupied band over all k, k+qmt
-        iomax = iomax_kkqmtp
-        ! Use the lowest partially unoccupied band over all k, k+qmt
-        iumin = iumin_kkqmtp
-        
+        write(unitout, '("Info(setranges_modxs): (-) Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        fsamek=.false.
       end if
+
+      ! Explicitly specify k file extension
+      usefilext0 = .true.
+      ! Set EVALSV_QMT001.OUT as first reference for the occupation search
+      call genfilname(iqmt=iqmtgamma, fileext=filext0)
+
+      ! Set k' file extension
+      if(fsamek) then 
+        ! Set EVALSV_QMT001.OUT as second reference for the occupation limits search
+        call genfilname(iqmt=iqmtgamma, setfilext=.true.)
+      else
+        ! Set EVALSV_QMTXYZ_mqmt.OUT as second reference for the occupation limits search
+        call genfilname(iqmt=iqmt, auxtype="mqmt", setfilext=.true.)
+      end if
+
+      allocate(io_k(nkpt), iu_k(nkpt))
+      allocate(io_kqmtm(nkpt), iu_kqmtm(nkpt))
+
+      call findocclims(iqmt, ik2ikqmtm, iomax_kkqmtm, iumin_kkqmtm,&
+        & io_k, io_kqmtm, iu_k, iu_kqmtm)
+      !---------------------------------------------------!
+
+      ! Refine gap status
+      !   Does the system still have a gap with this different choice of the
+      !   k mesh?
+      fgap = ksgap .and. fgap
+      !   Was a smaller indirect gap found?
+      gap = min(ksgapval, gap)
+      !   Gap with -qmt direction
+      qmtmgap = qgap
+
+      ! Use the highest partially occupied band over all k, k+qmt/2, k-qmt/2
+      iomax = max(iomax_kkqmtp, iomax_kkqmtm)
+      ! Use the lowest partially unoccupied band over all k, k+qmt/2, k-qmt/2
+      iumin = min(iumin_kkqmtp, iumin_kkqmtm)
+
+      deallocate(io_k, iu_k)
+      deallocate(io_kqmtm, iu_kqmtm)
 
       ! Set gap status in modxs
       ksgap = fgap
       ksgapval = gap
 
-      ! Do I need to set modxs: 
-      !   isto, isto0, istu0, istu, istunocc0, istunocc, istocc0, istocc
-      ! ?
-      !call findocclims(iqmt, istocc0, istocc, istunocc0,&
-      !  & istunocc, isto0, isto, istu0, istu)
-      
       ! Setting modxs variables for occupation limits
       istocc0 = iomax
       istocc = iomax
@@ -367,7 +339,6 @@ module modbse
     ! !INTERFACE:
     subroutine select_transitions(iqmt, serial, dirname)
       use mod_kpoint, only: vkl
-      use mod_misc, only: filext
       use modxs, only: usefilext0, filext0, vkl0
       use modxas, only: xasstart, xasstop, ecore
       use m_genfilname
@@ -408,7 +379,7 @@ module modbse
       character(*), intent(in), optional :: dirname
 
       logical :: fserial
-      integer(4) :: ik, ikq, s, iknr
+      integer(4) :: ik, ikqp, ikqm, s, iknr
       integer(4) :: io, iu, kous
       integer(4) :: gwiomin, gwiumax
       integer(4) :: io1, io2, iu1, iu2
@@ -440,7 +411,7 @@ module modbse
       end if
 
       ! Search for needed IP/QP transitions automatically
-      ! depending on the chosen energy window?
+      ! depending on the chosen energy window.
       if((any(input%xs%bse%nstlbse == 0) .and. .not. input%xs%bse%xas) &
        & .or. (any(input%xs%bse%nstlxas ==0) .and. input%xs%bse%xas)) then
         fensel = .true.
@@ -504,6 +475,7 @@ module modbse
 
       ! Use the specified bands, and only inspect occupations.
       else
+
         if (input%xs%bse%xas) then
           io1 = xasstart
           io2 = xasstop
@@ -515,6 +487,7 @@ module modbse
           iu1=input%xs%bse%nstlbse(3)+istunocc0-1
           iu2=input%xs%bse%nstlbse(4)+istunocc0-1
         end if
+
       end if
 
       write(unitout, '("Info(select_transitions): Searching for transitions in&
@@ -536,47 +509,48 @@ module modbse
       write(unitout, '("  Opening gap with a scissor of:",&
         & E10.3,"/H", E10.3,"/eV")'), sci, sci*h2ev
 
-      !! Read in eigenvalues and occupancies for k and k+qmt
+      !! Read in eigenvalues and occupancies for k-qmt/2 and k+qmt/2
 
-      ! Reset mod_kpoint / mod_Gkvector variables to the unshifted k-grid
-      ! (apart from xs%vkloff)
-      call init1offs(vkloff)
-      ! Save the k-grid to modxs vkl0 etc 
+      ! Set mod_kpoint / mod_Gkvector variables to the k-qmt/2-grid
+      call init1offs(vkqmtmloff)
+      ! Save the k-qmt/2-grid to modxs::vkl0 etc 
       call xssave0
       ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector 
-      ! to those of the k'=k+qmt grid.
+      ! to those of the k'=k+qmt/2 grid.
       call init1offs(vkqmtploff)
 
-      if(all(abs(vkloff-vkqmtploff) < epslat)) then
-        write(unitout, '("Info(select_transitions): Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
+      if(all(abs(vkqmtmloff-vkqmtploff) < epslat)) then
+        write(unitout, '("Info(select_transitions): Same k-grids for + and - grids at iqmt=",i3)') iqmt
         fsamek=.true.
       else
-        write(unitout, '("Info(select_transitions): Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        write(unitout, '("Info(select_transitions): Different k-grids for + and - grids at iqmt=",i3)') iqmt
         fsamek=.false.
       end if
 
-
+      ! Normal case: based on KS energies
       if(.not. associated(input%gw)) then 
-        ! Explicitly specify k file extension
-        usefilext0 = .true.
-        ! Set EVALSV_QMT001.OUT as first reference for the occupation search
-        call genfilname(iqmt=iqmtgamma, setfilext=.true.)
-        filext0 = filext
-        do ik = 1, nkpt
-          call getoccsv0(vkl0(1:3, ik), occsv0(1:nstsv, ik))
-          call getevalsv0(vkl0(1:3, ik), evalsv0(1:nstsv, ik))
-        end do
-        ! Set k' file extension
-        if(fsamek) then 
-          ! Set EVALSV_QMT001.OUT as second reference for the occupation search
-          call genfilname(iqmt=iqmtgamma, setfilext=.true.)
-        else
-          ! Set EVALSV_QMTXYZ.OUT as second reference for the occupation search
-          call genfilname(iqmt=iqmt, setfilext=.true.)
-        end if
+
+        !! Get energies and occupancies for the k+qmt/2 grid
+        ! Set EVALSV_QMTXYZ.OUT as read file
+        call genfilname(iqmt=iqmt, setfilext=.true.)
         do ik = 1, nkpt
           call getoccsv(vkl(1:3, ik), occsv(1:nstsv, ik))
           call getevalsv(vkl(1:3, ik), evalsv(1:nstsv, ik))
+        end do
+
+        !! Get energies and occupancies for k-qmt/2
+        !! and save them in the 0 named variables
+        usefilext0 = .true.
+        if(fsamek) then 
+          ! Set EVALSV_QMTXYZ.OUT as read file
+          call genfilname(iqmt=iqmt, setfilext=.true., fileext=filext0)
+        else
+          ! Set EVALSV_QMTXYZ_mqmt.OUT as read file
+          call genfilname(iqmt=iqmt, auxtype="mqmt", setfilext=.true., fileext=filext0)
+        end if
+        do ik = 1, nkpt
+          call getoccsv0(vkl0(1:3, ik), occsv0(1:nstsv, ik))
+          call getevalsv0(vkl0(1:3, ik), evalsv0(1:nstsv, ik))
         end do
 
         gwiomin = 1
@@ -600,19 +574,21 @@ module modbse
         ! Set k and k'=k grid eigenvalues to QP energies
         evalsv0=evalsv
         occsv0=occsv
+
       else if(associated(input%gw) .and. iqmt /= 1) then 
+
         write(*,'("Error(b_bse): BSE+GW only supported for 0 momentum transfer.")')
         call terminate
+
       end if
 
       ! Sizes local/maximal
       if(fserial) then 
         nk_loc = nk_max
-        hamsize_loc = nk_loc*nou_max
       else
         nk_loc = ceiling(real(nk_max,8)/real(mpiglobal%procs,8))
-        hamsize_loc = nk_loc*nou_max
       end if
+      hamsize_loc = nk_loc*nou_max
 
       ! The index mapping we want to build 
       ! s(1) = iuabs, s(2) = ioabs, s(3) = iknr
@@ -649,9 +625,12 @@ module modbse
 
       ikloop: do ik = k1, k2
 
-        ! Get k+q index form k index
-        ikq = ik
-        if(iqmt .ne. 0) ikq = ik2ikqmtp(ik)
+        ! Get k+qmt/2 index form k index
+        ikqp = ik
+        if(iqmt .ne. 0) ikqp = ik2ikqmtp(ik)
+        ! Get k-qmt/2 index form k index
+        ikqm = ik
+        if(iqmt .ne. 0) ikqm = ik2ikqmtm(ik)
 
         kous = 0
         iomax = 0
@@ -674,21 +653,21 @@ module modbse
             if(fensel ) then
 
               if (input%xs%bse%xas) then
-                detmp= evalsv(iu, ikq) - ecore(io) + sci
+                detmp= evalsv0(iu, ikqm) - ecore(io) + sci
               else
-                detmp = evalsv(iu, ikq) - evalsv0(io, ik) + sci
+                ! \Delta E = E_{u,k-qmt/2} - E_{o,k+qmt/2} + shift
+                detmp = evalsv0(iu, ikqm) - evalsv(io, ikqp) + sci
               end if 
 
               ! Only consider transitions which are in the energy window
-              ! \Delta E = \epsilon_{u ki+q} - \epsilon_{o ki}
               if(detmp <= wu+econv(2) .and. detmp >= max(wl+econv(1),0.0d0)) then
 
                 ! Only consider transitions which have a positve non-zero 
-                ! occupancy difference f_{o ki} - f_{u ki+q}
-                if (.NOT. input%xs%bse%xas .AND. (occsv0(io, ik) - occsv(iu, ikq)&
+                ! occupancy difference f_{o ki+qmt/2} - f_{u ki-qmt/2}
+                if (.not. input%xs%bse%xas .and. (occsv(io, ikqp) - occsv0(iu, ikqm)&
                   &> cutoffocc)) then
                   posdiff=.TRUE.
-                elseif (input%xs%bse%xas .AND. (1.0d0 -occsv(iu, ikq))> cutoffocc) then 
+                elseif (input%xs%bse%xas .AND. (1.0d0 -occsv0(iu, ikqm))> cutoffocc) then 
                   posdiff=.TRUE.
                 else
                   posdiff=.FALSE.
@@ -714,7 +693,7 @@ module modbse
                   de_loc(s) = detmp 
 
                   ! Save occupation factor
-                  ofac_loc(s) = sqrt((occsv0(io, ik) - occsv(iu, ikq))/maxocc)
+                  ofac_loc(s) = sqrt((occsv(io, ikqp) - occsv0(iu, ikqm))/maxocc)
 
                   ! Keep track of how many valid transitions
                   ! are considered at current k point.
@@ -736,14 +715,15 @@ module modbse
 
               ! Only consider transitions which have a positve non-zero 
               ! occupancy difference f_{o ki} - f_{u ki+q}
-              if (.NOT. input%xs%bse%xas .AND. (occsv0(io, ik) - occsv(iu, ikq)&
+              if (.not. input%xs%bse%xas .and. (occsv(io, ikqp) - occsv0(iu, ikqm)&
                 &> cutoffocc)) then
                 posdiff=.TRUE.
-              elseif (input%xs%bse%xas .AND. (1.0d0 -occsv(iu, ikq))> cutoffocc) then
+              else if (input%xs%bse%xas .and. (1.0d0 -occsv0(iu, ikqm))> cutoffocc) then
                 posdiff=.TRUE.
               else
                 posdiff=.FALSE.
               end if
+
               if(posdiff) then 
 
                 ! Combine u, o and k index
@@ -762,16 +742,17 @@ module modbse
 
                 ! Save energy difference
                 if (input%xs%bse%xas) then
-                  de_loc(s)=evalsv(iu,ikq)-ecore(io)+sci
+                  de_loc(s)=evalsv0(iu,ikqm)-ecore(io)+sci
                 else
-                  de_loc(s) = evalsv(iu,ikq)-evalsv0(io,ik)+sci
+                  ! \Delta E = E_{u,k-qmt/2} - E_{o,k+qmt/2} + shift
+                  de_loc(s) = evalsv0(iu,ikqm)-evalsv(io,ikqp)+sci
                 end if
 
                 ! Save occupation factor
                 if (input%xs%bse%xas) then
-                  ofac_loc(s)= sqrt(1.0d0 - occsv(iu, ikq)/maxocc)
+                  ofac_loc(s)= sqrt(1.0d0 - occsv0(iu, ikqm)/maxocc)
                 else
-                  ofac_loc(s) = sqrt((occsv0(io, ik) - occsv(iu, ikq))/maxocc)
+                  ofac_loc(s) = sqrt((occsv(io, ikqp) - occsv0(iu, ikqm))/maxocc)
                 end if
 
                 ! Keep track of how many valid transitions

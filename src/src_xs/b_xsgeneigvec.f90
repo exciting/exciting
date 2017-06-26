@@ -29,10 +29,8 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
     call terminate
   end if
 
-  !write(*,*) "b_xsgeneigvec here at rank", rank
-
   ! Ground state SCF already parallelized for k-point set
-  ! Calculate eigenvectors for each q-point (k+q point set)
+  ! Calculate eigenvectors for each qmt-point using the passed offsets qvkloff
   do iq = qi, nqpts
 
     ! Execute a GS run with an offset derived from qmt and 
@@ -65,41 +63,37 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
       end if
     end if
 
+    write(unitout, &
+      & '("Info(", a, "): Generating eigenvectors for Q-point ", i6)')&
+      & thisname, iq
+    if(tscr) then 
+      write(unitout, '("Using screening GS parameters.")')
+    end if
+    write(unitout, '("vqlmt = ", 3g18.10)') vqlmt(1:3,iq)
+    write(unitout, '("vqcmt = ", 3g18.10)') vqcmt(1:3,iq)
+    write(unitout, '("Norm2 = ", 1g18.10)') norm2(vqcmt(1:3,iq))
+    if(norm2(vqcmt(1:3,iq)) > 1.0d-8) then 
+      write(unitout, '("vqcmt/Norm2 = ", 3g18.10)') vqcmt(1:3,iq)/norm2(vqcmt(1:3,iq))
+    end if
+    if(tmqmt) then 
+      write(unitout, '("(k-qmt/2)-grid offset derived form qmt and k offset:")')
+    else
+      write(unitout, '("(k+qmt/2)-grid offset derived form qmt and k offset:")')
+    end if
+    write(unitout, '("qvkloff = ", 3g18.10)') qvkloff(1:3,iq)
+    write(unitout, '("qvkloff/ngridk = ", 3g18.10)') qvkloff(1:3,iq)/input%xs%ngridk
     if(iq /= 1 .and. all(abs(qvkloff(1:3,iq)-qvkloff(1:3,1)) < epslat)) then
-      if(rank == 0) then 
-        write(unitout, '("Info(", a, "): Q-point ", i4,&
-        &  " has the same k-grid offset as the Q=0 qmt point, skipping GS calculation.")')&
-        &  thisname, iq
-      end if
+      write(unitout, '("Info(", a, "): Q-point ", i4,&
+      &  " has the same k-grid offset as the Q=0 qmt point, skipping GS calculation.")')&
+      &  thisname, iq
+      call printline(unitout, "-")
       cycle
+    else
+      call printline(unitout, "-")
     end if
 
     ! Call groundstate and write results
     call writeevec(vql(1:3,iq), qvkloff(1:3, iq), filext)
-
-    if(rank == 0) then 
-      write(unitout, &
-        & '("Info(", a, "): Eigenvectors generated for Q-point ", i6)')&
-        & thisname, iq
-      if(tscr) then 
-        write(unitout, '("Using screening GS parameters.")')
-      end if
-      !write(unitout, '("vql = ", 3g18.10)') vql(1:3,iq)
-      write(unitout, '("vqlmt = ", 3g18.10)') vqlmt(1:3,iq)
-      write(unitout, '("vqcmt = ", 3g18.10)') vqcmt(1:3,iq)
-      write(unitout, '("Norm2 = ", 1g18.10)') norm2(vqcmt(1:3,iq))
-      if(norm2(vqcmt(1:3,iq)) > 1.0d-8) then 
-        write(unitout, '("vqcmt/Norm2 = ", 3g18.10)') vqcmt(1:3,iq)/norm2(vqcmt(1:3,iq))
-      end if
-      if(tmqmt) then 
-        write(unitout, '("(k-qmt)-grid offset derived form qmt and k offset:")')
-      else
-        write(unitout, '("(k+qmt)-grid offset derived form qmt and k offset:")')
-      end if
-      write(unitout, '("qvkloff = ", 3g18.10)') qvkloff(1:3,iq)
-      write(unitout, '("qvkloff/ngridk = ", 3g18.10)') qvkloff(1:3,iq)/input%xs%ngridk
-      write(unitout, *)
-    end if
 
     if(rank == 0) then
       ! Safely remove unnecessary files

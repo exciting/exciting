@@ -165,14 +165,28 @@ module m_putgetbsemat
         & .and. (wl_ == wl .and. wu_ == wu .or. .not. fensel)&
         & .and. (econv_(1) == econv(1) .and. econv_(2) == econv(2) .or. .not. fensel)&
         & .and. (all(nstlbse_ == nstlbse) .or. fensel)&
-        & .and. iqmt_ == iqmt .and. all(vql_(1:3)==vqlmt(1:3,iqmt)) .and. nk_max_ == nk_max .and. nk_bse_ == nk_bse&
+        & .and. iqmt_ == iqmt .and. all(abs(vql_(1:3)-vqlmt(1:3,iqmt)) < 1.0d-8)&
+        & .and. nk_max_ == nk_max .and. nk_bse_ == nk_bse&
         & .and. hamsize_ == hamsize) then
         if( .not. (any(ngridk_ /= ngridk) .or. any(ngridq_ /= ngridq)&
           &.or. any(vkloff_ /= vkloff)) ) then
           isidentical = .true.
           iscompatible = .true.
+          write(*,*) "rank", rank, "is good"
         end if
+        write(*,*) "rank", rank, "is nearly good"
       end if
+
+      !write(*,*) "rank read,", rank,&
+      !  & reducek_, ngridk_, ngridq_, vkloff_,&
+      !  & fensel_, wl_, wu_, econv_, nstlbse_,&
+      !  & iqmt_, vql_,&
+      !  & nk_max_, nk_bse_, nou_bse_max_, hamsize_
+      !write(*,*) "rank,", rank,&
+      !  & reducek, ngridk, ngridq, vkloff,&
+      !  & fensel, wl, wu, econv, nstlbse,&
+      !  & iqmt, vqlmt(1:3,iqmt),&
+      !  & nk_max, nk_bse, nou_bse_max, hamsize
 
       ! Check necessary compatibility
       if( reducek_ .neqv. reducek) then
@@ -184,7 +198,7 @@ module m_putgetbsemat
         write(*, '(" stored: ", l)') reducek_
       end if
       if( any(ngridk_ /= ngridk) .or. any(ngridq_ /= ngridq)&
-        &.or. any(vkloff_ /= vkloff)) then
+        &.or. any(abs(vkloff_ - vkloff) > 1.0d-8)) then
         iscompatible = .false.
         isidentical = .false.
         write(*, '("Error (b_getbseinfo):&
@@ -200,7 +214,7 @@ module m_putgetbsemat
         write(*, '(" requested iqmt: ", i4)') iqmt 
         write(*, '(" stored iqmt_: ", i4)') iqmt_
       end if
-      if(any(vql_ /= vqlmt(1:3,iqmt))) then 
+      if(any(abs(vql_ - vqlmt(1:3,iqmt)) > 1.0d-8)) then 
         iscompatible = .false.
         isidentical = .false.
         write(*, '("Error (b_getbseinfo):&

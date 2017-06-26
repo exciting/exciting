@@ -345,7 +345,7 @@ subroutine b_writekpathweights
 
       integer(4) :: un, iv, ic, iknr
       character(256) :: fname
-      character(256) :: tdastring, bsetypestring, tistring, scrtypestring
+      character(256) :: tdastring, bsetypestring, scrtypestring
 
       ! Set output name modifiers
       if(fcoup_) then
@@ -353,12 +353,7 @@ subroutine b_writekpathweights
       else
         tdastring="-TDA"
       end if
-      if(fti_) then 
-        tistring="-TI"
-      else
-        tistring=''
-      end if
-      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
+      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
 
       ! Make filename
@@ -372,9 +367,6 @@ subroutine b_writekpathweights
       open(unit=un, file=trim(fname), form='formatted', action='write')
 
       write(un,'("#",1x,"BSE excitonic weights")')
-      if(fti_) then 
-        write(un,'("#",1x,"Time reversal symmetry was used")') 
-      end if
       write(un,'("#")')
       write(un,'("#",1x,"Momentum transfer q_mt:",3f12.7)') vqlmt_
       write(un,'("#",1x,"Size of RR part of the Hamiltonian:",i8)') hamsize_
@@ -543,7 +535,7 @@ subroutine b_writekpathweights
 
       integer(4) :: un, ib, istep, nsteps, ib1, ib2
       character(256) :: fname
-      character(256) :: tdastring, bsetypestring, tistring, scrtypestring
+      character(256) :: tdastring, bsetypestring, scrtypestring
 
       ! Set output name modifiers
       if(fcoup_) then
@@ -551,12 +543,7 @@ subroutine b_writekpathweights
       else
         tdastring="-TDA"
       end if
-      if(fti_) then 
-        tistring="-TI"
-      else
-        tistring=''
-      end if
-      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
+      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
 
       call genfilname(dirname=trim(exckpathdir), basename="KPATH",&

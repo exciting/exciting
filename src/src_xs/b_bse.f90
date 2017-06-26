@@ -11,14 +11,13 @@ subroutine b_bse(iqmt)
   use modinput, only: input
   use mod_constants, only: zone, zi, zzero, pi, h2ev
   use mod_eigenvalue_occupancy, only: evalsv, nstsv
+  use mod_kpoint, only: nkptnr
   ! MPI and BLACS/ScaLAPACK
   use modmpi
   use modscl
   ! XS
-  use modxs, only: evalsv0, unitout, bcbs, ksgapval,&
-                 & qgap, ikmapikq, iqmtgamma, vqlmt,&
-                 & vkl0, ivgmt
-  use modxas, only: ecore
+  use mod_xsgrids
+  use modxs, only: vkl0, occsv0, evalsv0, unitout, iqmtgamma
   ! BSE
   use modbse
   ! Spectrum
@@ -29,7 +28,6 @@ subroutine b_bse(iqmt)
   use m_genfilname
   use m_diagfull
   use m_writeoscillator
-  use m_writecmplxparts
   use m_dhesolver
   use m_hesolver
   use m_setup_bse
@@ -39,7 +37,6 @@ subroutine b_bse(iqmt)
   use m_makespectrum
   use m_invertzmat
 
-use m_writecmplxparts
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem(thanks to the spectral theorem that can
@@ -115,964 +112,467 @@ use m_writecmplxparts
   integer(4), intent(in) :: iqmt
 
   ! Local variables
-  ! Variables
-  integer(4) :: i,j
-  integer(4) :: ik, ikq, io, iu, a1
+  character(*), parameter :: thisname = "b_bse"
+
+  integer(4) :: i, j
   integer(4) :: nexc
   real(8) :: ramscale
   real(8) :: ts0, ts1
-  logical :: fcoup, fwp, fscal, fti, fip
+  logical :: fcoup, fdist, fip
 
   ! Allocatable arrays
-  real(8), allocatable, dimension(:) :: bevalim, bevalre, w
-  complex(8), allocatable, dimension(:,:) :: ham, bevecr
-  complex(8), allocatable, dimension(:,:) :: resvec, aresvec 
-  complex(8), allocatable, dimension(:,:) :: oscsr, oscsa
-  complex(8), allocatable, dimension(:,:) :: cmat, cpmat
+  real(8), allocatable, dimension(:) :: exeval, w
   complex(8), allocatable, dimension(:,:,:) :: symspectr
+  complex(8), allocatable, dimension(:,:) :: oscsr
 
-  character(*), parameter :: thisname = "b_bse"
   real(8) :: bsegap
   real(8) :: v1, v2, en1, en2
   integer(4) :: i1, i2, iex1, iex2, nreq
   integer(4) :: nsymcrys_save
   logical :: efind
+
   ! Distributed arrays
-  type(dzmat) :: dham, dbevecr, doscsr, dresvec, daresvec
+  type(dzmat) :: dham, dexevec, doscsr, dresvec, daresvec
   type(dzmat) :: dcmat, dcpmat
 
-  ! Indepenedent particle formalism is used
+  !! Greeting
+  !write(*, '("Info(",a,"): Running at rank", i3)')&
+  !  & trim(thisname), mpiglobal%rank
+
+  ! Independent particle formalism is used
   if(input%xs%bse%bsetype == "IP") then
     fip = .true.
   else
     fip = .false.
   end if
 
-  ! Write Hamilton matrix parts to readable file
-  fwp = input%xs%bse%writeparts
-
   ! Include coupling terms
   fcoup = input%xs%bse%coupling
 
-  ! Use time inverted anti-resonant basis
-  fti = input%xs%bse%ti
+  ! Distribute Hamilton matrix if ScaLapack is used
+  fdist = input%xs%bse%distribute
 
-  ! Use ScaLAPACK
-  fscal = input%xs%bse%distribute
+  !---------------------------------------------------------------------------!
+  ! Set up process grids for BLACS (if compiled with DSCAL, dummies otherwise)
+  !---------------------------------------------------------------------------!
+  !   Make square'ish process grid (context 0)
+  call setupblacs(mpiglobal, 'grid', bi2d)
+  !   Also make 1d grid with the same number of processes (context 1)
+  call setupblacs(mpiglobal, 'row', bi1d, np=bi2d%nprocs)
+  !   Also make 0d grid containing only the current processes (context 2)
+  call setupblacs(mpiglobal, '0d', bi0d, np=1)
 
-  if(fscal .and. fcoup .and. .not. fti ) then 
-    write(*,*) "Coupling and scalapack not supported in standard basis"
-    call terminate
+  ! If fdist, then distribute Hamiltonian on 2d blacs grid, otherwise
+  ! use only current rank.
+  if(fdist) then 
+    bicurrent => bi2d
+  else
+    bicurrent => bi0d
   end if
-  if(iqmt/=1 .and. .not. fti) then 
-    write(*,*) "Finite momentum transfer only supported in ti ar basis"
-    call terminate
-  end if
+  !---------------------------------------------------------------------------!
 
-  ! Non-parallelized EVP code 
-  if(.not. fscal) then 
+  !---------------------------------------------------------------------------!
+  ! Find occupation limits using k, k-qmt/2 and k+qmt/2 grids
+  !---------------------------------------------------------------------------!
+  ! Read Fermi energy from file
+  ! (only needed in setranges_modxs::findocclims to check whether system has a gap)
+  ! Use EFERMI_QMT001.OUT
+  call genfilname(iqmt=iqmtgamma, setfilext=.true.)
+  call readfermi
+  ! Set ist* variables and ksgap in modxs using findocclims
+  ! Needs: init2
+  ! On exit: k-grid quantities are stored in vkl0, evalsv0 etc and
+  !          k-qmt/2 grid quantities are stored in vkl, evalsv etc
+  call setranges_modxs(iqmt)
+  !---------------------------------------------------------------------------!
 
-    write(*, '("Info(",a,"): Running non parallel version at rank", i3)')&
-      & trim(thisname), mpiglobal%rank
+  !---------------------------------------------------------------------------!
+  ! On top of GW
+  !---------------------------------------------------------------------------!
+  !
+  ! WARNING: This still is inconsistent, since occupation search is
+  !          not done on EVALQP.OUT
+  ! WARNING: Only works for Qmt=0, in this case vkl0 = vkl
+  !
+  if(associated(input%gw) .and. iqmt==1) then
 
-    ! General init
-    call timesec(ts0)
-    call init0
-    call timesec(ts1)
-    write(unitout, '("Info(",a,"):&
-      & Init0 time:", f12.6)') trim(thisname), ts1 - ts0
-    ! k-grid init
-    call timesec(ts0)
-    call init1
-    call timesec(ts1)
-    write(unitout, '("Info(",a,"):&
-      & Init1 time:", f12.6)') trim(thisname), ts1 - ts0
-    ! Save variables of the unshifted (apart from xs:vkloff) k grid 
-    ! to modxs (vkl0, ngk0, ...)
-    call xssave0
-    ! q-point and qmt-point setup
-    !   Init 2 sets up (task 445):
-    !   * A list of momentum transfer vectors form the q-point list 
-    !     (modxs::vqlmt and mod_qpoint::vql)
-    !   * Offset of the k+qmt grid derived from k offset an qmt point (modxs::qvkloff)
-    !   * non-reduced mapping between ik,qmt and ik' grids (modxs::ikmapikq)
-    !   * G+qmt quantities (modxs)
-    !   * The square root of the Coulomb potential for the G+qmt points
-    !   * Reads STATE.OUT
-    !   * Generates radial functions (mod_APW_LO)
-    call timesec(ts0)
-    call init2
-    call timesec(ts1)
-    write(unitout, '("Info(",a,"):&
-      & Init2 time:", f12.6)') trim(thisname), ts1 - ts0
+    ! Save KS eigenvalues of the k-grid to use them later for renormalizing PMAT
+    if(allocated(eval0)) deallocate(eval0)
+    allocate(eval0(nstsv, nkptnr))
+    eval0=evalsv0
 
-    ! Read Fermi energy from file 
-    ! (only needed in setranges_modxs::findocclims to check whether system has a gap)
-    ! Use EFERMI_QMT001.OUT
-    call genfilname(iqmt=iqmtgamma, setfilext=.true.)
-    call readfermi
+    ! If scissor correction is presented, one should nullify it
+    input%xs%scissor=0.0d0
 
-    ! Set ist* variables and ksgap in modxs using findocclims
-    ! This also reads in 
-    ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
-    ! modxs:evalsv0, modxs:occsv0
-    call setranges_modxs(iqmt, fcoup, fti)
+    ! Read QP Fermi energies and eigenvalues from file
+    ! NOTE: QP evals are shifted by -efermi-eferqp with respect to KS evals
+    ! NOTE: getevalqp sets mod_symmetry::nsymcrys to 1
+    ! NOTE: getevalqp needs the KS eigenvalues as input
+    nsymcrys_save = nsymcrys
+    call getevalqp(nkptnr, vkl0, evalsv)
+    nsymcrys = nsymcrys_save
 
-    ! WARNING: ONTOP OF GW STILL IS INCONSISTENT, SINCE OCCUPATION SEARCH IS
-    ! NOT DONE ON EVALQP.OUT !?!
-    ! If on top of GW
-    if(associated(input%gw) .and. iqmt==1) then
-      ! Save KS eigenvalues to use them later for renormalizing PMAT
-      if(allocated(eval0)) deallocate(eval0)
-      allocate(eval0(nstsv, nkptnr))
-      eval0=evalsv
-      ! If scissor correction is presented, one should nullify it
-      input%xs%scissor=0.0d0
-      ! Read QP Fermi energies and eigenvalues from file
-      ! NOTE: QP evals are shifted by -efermi-eferqp with respect to KS evals
-      ! NOTE: getevalqp sets mod_symmetry::nsymcrys to 1
-      ! NOTE: getevalqp needs the KS eigenvalues as input
-      nsymcrys_save = nsymcrys
-      call getevalqp(nkptnr,vkl0,evalsv)
-      nsymcrys = nsymcrys_save
-      !if(mpiglobal%rank == 0) then 
-      !  write(*,'("efermi=", f10.7)') efermi
-      !  write(*,'("eferqp=", f10.7)') eferqp
-      !  do ik=1, nkptnr
-      !    write(*,'("k-point #", i6,":", 3f10.7)') ik, vkl0(:,ik)
-      !    write(*,'(" state    Eks    E+efermi+eferqp    E+eferqp    E+efermi    E")')
-      !    do i=input%gw%ibgw, input%gw%nbgw
-      !      write(*,'(i6, 5(4x, f10.7))') i, eval0(i,ik), evalsv(i, ik)+efermi+eferqp,&
-      !        & evalsv(i, ik)+eferqp, evalsv(i, ik)+efermi, evalsv(i, ik) 
-      !    end do
-      !  end do
-      !  write(unitout,'("Info(b_bse): Quasi particle energies are read from EVALQP.OUT")')
-      !end if
-      ! Set k and k'=k grid eigenvalues to QP energies
-      evalsv0=evalsv
-    else if(associated(input%gw) .and. iqmt /= 1) then 
-      write(*,'("Error(",a,"): BSE+GW only supported for 0 momentum transfer.")')&
-        & trim(thisname)
-      call terminate
+    ! Set k and k'=k grid eigenvalues to QP energies
+    evalsv0=evalsv
+
+    write(unitout,'("Info(",a,"):&
+      & Quasi particle energies are read from EVALQP.OUT")') trim(thisname)
+
+  else if(associated(input%gw) .and. iqmt /= 1) then 
+
+    if(bicurrent%isroot) then 
+      write(*,'("Error(",a,"):&
+       & BSE+GW only supported for 0 momentum transfer.")') trim(thisname)
     end if
+    call terminate
 
-    ! Select relevant transitions for the construction
-    ! of the BSE hamiltonian
-    ! Also sets nkkp_bse, nk_bse 
-    ! NOTE: Resets vkl0 to k grid and vkl to k+qmt grid
-    ! Resets eigenvalues and occupancies correspondingly
-    ! NOTE: If GW and iqmt=1, then it reads in QP energies.
-    ! NOTE: Sets transition energy array used on the diagonal of the BSE (modbse::de)
+  end if
+
+  call barrier(callername=thisname)
+  !---------------------------------------------------------------------------!
+
+  !---------------------------------------------------------------------------!
+  ! Setup participating transitions and index maps
+  !---------------------------------------------------------------------------!
+  ! Select relevant transitions for the construction
+  ! of the BSE Hamiltonian.
+  ! Sets up transition energies in de array, combined index maps and 
+  ! other helpers in modbse
+  !
+  ! Note: Operates on mpiglobal
+  ! Note: On exit k-grid/2 quantities are stored in vkl0, evalsv0 etc and
+  !       k+qmt/2 grid quantities are stored in vkl, evalsv etc
+  !
+  if(fdist) then 
+    ! Use all ranks on mpiglobal
+    call select_transitions(iqmt, serial=.false.)
+  else
+    ! Use all current rank only
     call select_transitions(iqmt, serial=.true.)
+  end if
 
-    ! Determine "BSE"-gap, i.e. the lowest energy 
-    ! KS transition which is considered.
-    bsegap = 1.0d16
-    !$OMP PARALLEL DO &
-    !$OMP& DEFAULT(SHARED), PRIVATE(a1,iu,io,ik,ikq),&
-    !$OMP& REDUCTION(min:bsegap)
-    do a1 = 1, hamsize
-      iu = smap(1,a1)
-      io = smap(2,a1)
-      ik = smap(3,a1)
-      ikq = ikmapikq(ik, iqmt)
-      if (input%xs%bse%xas) then
-        bsegap=min(bsegap, evalsv(iu,ik)-ecore(io))
-      else
-        bsegap = min(bsegap, evalsv(iu,ik)-evalsv0(io,ikq))
-      end if
-    end do
-    !$OMP END PARALLEL DO
+  ! Determine "BSE"-gap, i.e. the lowest energy 
+  ! KS transition with momentum transfer qmt which is considered.
+  ! (includes scissor).
+  bsegap = minval(de)
+  ! Write some Info
+  write(unitout,*)
+  write(unitout, '("Info(",a,"):&
+    & bsegap-scissor, bsegap (eV):", E23.16,1x,E23.16)')&
+    & trim(thisname), (bsegap-sci)*h2ev, bsegap*h2ev
+  !---------------------------------------------------------------------------!
 
-    write(unitout,*)
+  ! Independent particle approximation needs no solution of any EVP
+  if(fip) then 
+
     write(unitout, '("Info(",a,"):&
-      & bsegap, bsegap+scissor (eV):", E23.16,1x,E23.16)')&
-      & trim(thisname), bsegap*h2ev, (bsegap+sci)*h2ev
+      & IP requested, nothing much to do")') trim(thisname)
 
-    ! Write Info
-    if(fip) then 
-      write(unitout, '("Info(",a,"): IP requested, nothing much to do")')&
+    nexc = hamsize
+
+    ! "Exciton" energies are just the KS transition energies
+    allocate(exeval(nexc))
+    exeval(1:hamsize) = de(ensortidx) 
+
+  ! Do the actual BSE 
+  else
+
+    ! Process is on the process grid
+    if(bicurrent%isactive) then 
+
+      ! Define global distributed Hamiltonian matrix.
+      ! Note: If the context of bicurrent is -1, i.e. the rank is not on the blacs
+      !       process grid 
+      ! Note: If not compiled with -DSCAL this just allocates a local array.
+      call new_dzmat(dham, hamsize, hamsize, bicurrent)
+
+      !------------------------------------------------------------------------!
+      ! Write info
+      !------------------------------------------------------------------------!
+      write(unitout, '("Info(",a,"): Assembling BSE matrix")')&
         & trim(thisname)
-      ramscale=0.0d0
-    else
-      write(unitout, '("Info(",a,"): Assembling BSE matrix")') trim(thisname)
       write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
       write(unitout, '("  Shape=",i8)') hamsize
       write(unitout, '("  nk_bse=", i8)') nk_bse
+      ramscale=1.0d0
+
       if(fcoup) then
         write(unitout, '(" Including coupling terms ")')
-        if(fti) then 
-          write(unitout, '(" Using time inverted anti-resonant basis")')
-          write(unitout, '(" Using squared EVP")')
-          ramscale=3.0d0
-        else
-          write(unitout, '(" Full BSE-Hamiltonian:")')
-          write(unitout, '("  Shape=",i8)') 2*hamsize
-          ramscale=4.0d0
-        end if
+        write(unitout, '(" Using squared EVP")')
+        ramscale=3.0d0
       end if
-      ramscale=1.0d0
-      if(fwp) then
-        write(unitout, '("Info(",a,"):&
-          & Writing real and imaginary parts of Hamiltonian to file ")') trim(thisname)
-      end if
-    end if
 
-    write(unitout, '("Info(",a,"): max RAM needed for BSE matrices ~ ", f12.6, " GB" )')&
-      & trim(thisname), ramscale*int(hamsize,8)**2*16.0d0/1024.0d0**3
+      write(unitout, '("  Distributing matrix to ",i3," processes")') bicurrent%nprocs
+      write(unitout, '("  Local matrix shape ",i6," x",i6)')&
+        & dham%nrows_loc, dham%ncols_loc
 
-    ! Assemble Hamiltonian matrix 
-    if(.not. fip) then 
+      write(unitout, '("Info(",a,"):&
+        & max local RAM needed for BSE matrices ~ ", f12.6, " GB" )')&
+        & trim(thisname),&
+        & ramscale*int(dham%nrows_loc,8)*dham%ncols_loc*16.0d0/1024.0d0**3
+      !------------------------------------------------------------------------!
+
+      !------------------------------------------------------------------------!
+      ! Assemble Hamiltonian matrix
+      !------------------------------------------------------------------------!
+      call timesec(ts0)
 
       if(fcoup) then 
-        if(fti) then 
-          call setup_bse_ti(iqmt, smat=ham, cmat=cmat)
-          if(fwp) then 
-            call writecmplxparts('HamS', dble(ham), immat=aimag(ham))
-            call writecmplxparts('cmat', dble(cmat), immat=aimag(cmat))
-          end if
-        else
-          allocate(ham(2*hamsize,2*hamsize))
-          call setup_bse_full(ham, iqmt)
-          if(fwp) then 
-            call writecmplxparts('Global_Ham', dble(ham), immat=aimag(ham))
-          end if
-        end if
+        ! Get aux. EVP matrices S=C(RR+RA)C and C=(RR-RA)^1/2 
+        call setup_bse_tr_dist(iqmt, bicurrent, smat=dham, cmat=dcmat)
       else
-        allocate(ham(hamsize,hamsize))
-        call setup_bse_block(ham, iqmt, .false., .false.)
+        ! Get TDA Hamiltonian H=H^RR
+        call setup_bse_block_dist(dham, iqmt, .false., bicurrent)
       end if
 
-      ! Write Info
-      write(unitout,*)
-      if(fcoup) then
-        if(fti) then 
-          write(unitout, '("Info(",a,"): Solving hermitian squared EVP")') trim(thisname)
-          write(unitout, '("Info(",a,"): Invoking lapack routine ZHEEVR")') trim(thisname)
-        else
-          write(unitout, '("Info(",a,"): Diagonalizing full non symmetric Hamiltonian")') trim(thisname)
-          write(unitout, '("Info(",a,"): Invoking lapack routine ZGEEVX")') trim(thisname)
-        end if
-      else
-        write(unitout, '("Info(",a,"): Diagonalizing RR Hamiltonian (TDA)")') trim(thisname)
-        write(unitout, '("Info(",a,"): Invoking lapack routine ZHEEVR")') trim(thisname)
-      end if
+      call timesec(ts1)
+      write(unitout, '("All processes build their local matrix")')
+      write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
+      !------------------------------------------------------------------------!
 
-      ! Allocate eigenvector and eigenvalue arrays
-      if(fcoup .and. .not. fti) then 
-        allocate(bevalre(2*hamsize))
-        allocate(bevalim(2*hamsize))
-        allocate(bevecr(2*hamsize, 2*hamsize))
-      else
-        allocate(bevalre(hamsize), bevecr(hamsize, hamsize))
-      end if
-      bevalre = 0.0d0
+      !------------------------------------------------------------------------!
+      ! Solve EVP or squared EVP
+      !------------------------------------------------------------------------!
 
-      ! Find only eigenvalues relevant for requested 
-      ! spectrum?
+      ! Print some info
+      if(fcoup) then 
+        write(unitout, '("Info(",a,"):&
+          & Solving hermitian squared EVP")') trim(thisname)
+      else 
+        write(unitout, '("Info(",a,"):&
+          & Diagonalizing RR Hamiltonian (TDA)")') trim(thisname)
+      end if
+#ifdef SCAL
+      write(unitout, '("Info(",a,"):&
+        & Invoking scalapack routine PZHEEVX")') trim(thisname)
+#else
+      write(unitout, '("Info(",a,"):&
+        & Invoking Lapack routine ZHEEVR")') trim(thisname)
+#endif
+
+      ! Eigenvectors are distributed
+      ! must be NxN because ScaLapack solver expects it so
+      call new_dzmat(dexevec, hamsize, hamsize, bicurrent) 
+
+      ! Eigenvalues are global
+      allocate(exeval(hamsize))
+      exeval = 0.0d0
+
+      ! Find only eigenvalues relevant for requested spectrum?
       efind = input%xs%bse%efind
 
       ! Diagonalize Hamiltonian (destroys the content of ham)
       call timesec(ts0)
-      if(fcoup) then
-        if(.not. fti) then 
-          call diagfull(2*hamsize, ham, bevalre,&
-            & evalim=bevalim, evecr=bevecr, fbalance=.false., frcond=.false., fsort=.true.)
-          nexc = 2*hamsize
+
+      ! Find solutions in energy window only
+      if(efind) then
+
+        if(fcoup) then 
+          v1=(max(wl, 0.0d0))**2
+          v2=(wu)**2
         else
-          if(efind) then
-            v1=(max(wl, 0.0d0))**2
-            v2=(wu)**2
-            call hesolver(hemat=ham, evec=bevecr, eval=bevalre,&
-             & v1=v1, v2=v2, found=nexc)
-          else
-            if(input%xs%bse%nexc == -1) then 
-              i2 = hamsize
-            else
-              i2 = input%xs%bse%nexc
-            end if
-            i1 = 1
-            call hesolver(hemat=ham, evec=bevecr, eval=bevalre,&
-             & i1=i1, i2=i2, found=nexc)
-          end if
+          v1=max(wl, 0.0d0)
+          v2=wu
         end if
+
+        call dhesolver(dham, exeval, bicurrent, dexevec,&
+         & v1=v1, v2=v2, found=nexc,&
+         & eecs=input%xs%bse%eecs)
+
+      ! Find the nexc lowest solutions
       else
-        if(efind) then
-            v1=max(wl, 0.0d0)
-            v2=wu
-          call hesolver(hemat=ham, evec=bevecr, eval=bevalre,&
-           & v1=v1, v2=v2, found=nexc)
+
+        if(input%xs%bse%nexc == -1) then 
+          i2 = hamsize
         else
-          if(input%xs%bse%nexc == -1) then 
-            i2 = hamsize
-          else
-            i2 = input%xs%bse%nexc
-          end if
-          i1 = 1
-          call hesolver(hemat=ham, evec=bevecr, eval=bevalre,&
-           & i1=i1, i2=i2, found=nexc)
+          i2 = input%xs%bse%nexc
         end if
-      end if
-      call timesec(ts1)
+        i1 = 1
 
-      !write(*,*) "writing s evals"
-      !call writecmplxparts('nd_s_evals', revec=bevalre, veclen=size(bevalre))
+        call dhesolver(dham, exeval, bicurrent, dexevec,&
+         & i1=i1, i2=i2, found=nexc,&
+         & eecs=input%xs%bse%eecs)
 
-      ! Test write out right-eigenvectors
-      if(fwp) then
-        if(fcoup .and. fti) then 
-          call writecmplxparts('bevecaux', dble(bevecr), immat=aimag(bevecr))
-        else
-          call writecmplxparts('bevecr', dble(bevecr), immat=aimag(bevecr))
-          call writecmplxparts('evals',revec=dble(bevalre),veclen=size(bevalre))
-        end if
-      end if
-
-      ! Deallocate BSE-Hamiltonian
-      deallocate(ham)
-
-      if(fcoup .and. fti) then 
-
-        ! Take square root of auxiliary eigenvalues
-        ! to retrieve actual eigenvalues
-        if(any(bevalre < 0.0d0)) then 
-          write(*, '("Error(",a,"): Negative squared EVP evals occured")')&
-            & trim(thisname)
-          write(*,'(E23.16)') bevalre
-          call terminate
-        end if
-        bevalre = sqrt(bevalre)
-        
       end if
 
       if(fcoup) then 
-        if(fti) then 
-          if(efind) then
-            write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
-            write(unitout, '("  [",E10.3,",",E10.3,"]/H^2")') v1, v2
-            write(unitout, '("  [",E10.3,",",E10.3,"]/eV^2")') v1*h2ev**2, v2*h2ev**2
-          else
-            write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
-            write(unitout, '("  i1=",i8," i2=",i8)') i1, i2
-          end if
-        else
-          write(unitout, '("  All eigen solutions found.")')
+        ! Take square root of auxiliary eigenvalues
+        ! to retrieve actual eigenvalues
+        if(any(exeval < 0.0d0)) then 
+          write(*, '("Error(",a,"): Negative squared EVP evals occured")')&
+            & trim(thisname)
+          write(*,'(E23.16)') exeval
+          call terminate
         end if
-      else
-        if(efind) then
+        exeval = sqrt(exeval)
+      end if
+
+      ! Deallocate BSE-Hamiltonian
+      call del_dzmat(dham)
+
+      ! Stop timer for diagonalization 
+      call timesec(ts1)
+
+      call blacsbarrier(bicurrent)
+
+      ! Print some info
+      if(efind) then
+        if(fcoup) then 
+          write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
+          write(unitout, '("  [",E10.3,",",E10.3,"]/H^2")') sqrt(v1), sqrt(v2)
+          write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') sqrt(v1)*h2ev, sqrt(v2)*h2ev
+        else
           write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
           write(unitout, '("  [",E10.3,",",E10.3,"]/H")') v1, v2
           write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') v1*h2ev, v2*h2ev
-        else
-          write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
-          write(unitout, '("  i1=",i8," i2=",i8)') i1, i2
         end if
+      else
+        write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
+        write(unitout, '("  i1=",i8," i2=",i8)') i1, i2
       end if
       write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
       write(unitout,*)
+      !------------------------------------------------------------------------!
 
-      if(nexc <= 0) then 
-        write(*, '("Error(",a,"): No eigen solutions found.")')&
-          & trim(thisname)
-        call terminate
-      end if
+      ! =================================================================!
+      ! Store excitonic energies and wave functions to file if requested !
+      ! =================================================================!
+      store: if(associated(input%xs%storeexcitons)) then
 
-      ! Store excitonic energies and wave functions to file
-      if(associated(input%xs%storeexcitons)) then
-
+        ! Select which solutions to store
+        !   Select by energy
         if(input%xs%storeexcitons%selectenergy) then 
           en1=input%xs%storeexcitons%minenergyexcitons
           en2=input%xs%storeexcitons%maxenergyexcitons
-          !write(*,*) "b_bse: en1, en2", en1, en2
           if(input%xs%storeexcitons%useev) then 
             en1=en1/h2ev
             en2=en2/h2ev
           end if
-          !write(*,*) "b_bse: en1, en2", en1, en2
-          if(fcoup .and. .not. fti) then 
-            call energy2index(2*hamsize, nexc, bevalre, en1, en2, iex1, iex2)
-          else
-            call energy2index(hamsize, nexc, bevalre, en1, en2, iex1, iex2)
-          endif 
-          !write(*,*) "b_bse: iex1, iex2", iex1, iex2
+          call energy2index(hamsize, nexc, exeval, en1, en2, iex1, iex2)
+        !   Select by number
         else
           iex1=input%xs%storeexcitons%minnumberexcitons
           iex2=input%xs%storeexcitons%maxnumberexcitons
         end if
         nreq=iex2-iex1+1
-        !write(*,*) "b_bse: iex1=", iex1, " iex2=", iex2, " nreq=", nreq
 
+        ! Check requested range
         if(nreq < 1 .or. nreq > nexc .or. iex1<1 .or. iex2<1 ) then
-          write(*, '("Error(",a,"): storeexcitons index mismatch.")') trim(thisname)
-          write(*,*) "iex1, iex2, nreq, nex", iex1, iex2, nreq, nexc
+          if(bicurrent%isroot) then 
+            write(*,'("Error(",a,"):&
+              & storeexcitons index mismatch.")') trim(thisname)
+            write(*,*) "iex1, iex2, nreq, nex", iex1, iex2, nreq, nexc
+          end if
           call terminate
         end if
 
         write(unitout, '("Info(",a,"):&
-          & Writing excition eigenvectors for index range=",2i8)') trim(thisname), iex1, iex2
+          & Writing excition eigenvectors for index range=",2i8)')&
+          & trim(thisname), iex1, iex2
 
-        if(fcoup .and. fti) then 
+        ! When full BSE with time reversal symmetry is used 
+        ! the original eigenvectors need to be reconstructed from the 
+        ! auxiliary ones.
+        if(fcoup) then 
+
+          write(unitout, '("Info(",a,"): Generating resonant&
+            & and anti-resonant exciton coefficients from&
+            & auxilliary squared EVP eigenvectors (pos. E).")') trim(thisname)
 
           !===========================================================!
           ! Make C' Matrix                                            !
-          ! Cpmat = (A-B)^{-1/2}                                      !
+          ! Cpmat = (A-B)^{-1/2} = C^-1                               !
           ! Cpmat is needed additionally to build eigenvectors        !
           !===========================================================!
           write(unitout, '("Info(",a,"):&
             & Inverting C=(RR-RA)^1/2 matrix")') trim(thisname)
           call timesec(ts0)
-          allocate(cpmat(hamsize,hamsize))
-          cpmat = cmat
-          call zinvert(cpmat)
+          call new_dzmat(dcpmat, hamsize, hamsize, bicurrent)
+          do j = 1, dcmat%ncols_loc
+            do i = 1, dcmat%nrows_loc
+              dcpmat%za(i,j) = dcmat%za(i,j)
+            end do
+          end do
+          call dzinvert(dcpmat)
           call timesec(ts1)
-          if(fwp) then
-            call writecmplxparts('cpmat', dble(cpmat), immat=aimag(cpmat))
-          end if
           write(unitout, '("  Time needed",f12.3,"s")') ts1-ts0
           !===========================================================!
 
-          write(unitout, '("Info(",a,"): Generating resonant&
-            & and anti-resonant exciton coefficients from&
-            & auxilliary squared EVP eigenvectors (pos. E).")') trim(thisname)
-          ! Allocates resvec,aresvec & deallocates cpmat
-          call genexevec(iex1, iex2, nexc, cmat, cpmat, bevecr, bevalre,&
-            & resvec, aresvec)
-          deallocate(cpmat)
+          ! Make selected eigenvectors
+          ! Note: allocates dresvec, daresvec and deallocates dcpmat
+          call gendexevec(iex1, iex2, nexc, dcmat, dcpmat, dexevec, exeval,&
+            & dresvec, daresvec)
 
+          ! Write to binary file
           write(unitout, '("Info(",a,"):&
-            & Writing exciton eigenvectors to file (pos. E).")') trim(thisname)
-          call put_excitons(bevalre(iex1:iex2), rvec=resvec, avec=aresvec,&
+            & Writing exciton eigenvectors to file.")') trim(thisname)
+          call putd_excitons(exeval(iex1:iex2), drvec=dresvec, davec=daresvec,&
             & iqmt=iqmt, a1=iex1, a2=iex2)
 
-          deallocate(resvec)
-          deallocate(aresvec)
+          ! Explicit resonant/anti-resonant eigenvectors no longer needed
+          call del_dzmat(dresvec)
+          call del_dzmat(daresvec)
 
-        else if(fcoup .and. .not. fti) then 
+        ! For TDA we can directly write out the desired eigenvectors
+        else if(.not. fcoup) then  
 
-          write(unitout, '("Info(",a,"): Writing exciton eigenvectors to file.")') trim(thisname)
-          call put_excitons(bevalre(iex1:iex2), bevecr(1:hamsize,iex1:iex2),&
-            & avec=bevecr(hamsize+1:2*hamsize,iex1:iex2),&
+          write(unitout, '("Info(",a,"):&
+            & Writing exciton eigenvectors to file.")') trim(thisname)
+          call setview_dzmat(dexevec, hamsize, nreq, 1, iex1)
+          call putd_excitons(exeval(iex1:iex2), dexevec,&
             & iqmt=iqmt, a1=iex1, a2=iex2)
-
-        else
-
-          write(unitout, '("Info(",a,"): Writing exciton eigenvectors to file.")') trim(thisname)
-          call put_excitons(bevalre(iex1:iex2), bevecr(:,iex1:iex2),&
-            & iqmt=iqmt, a1=iex1, a2=iex2)
+          call setview_dzmat(dexevec, hamsize, nexc, 1, 1)
 
         end if
 
-      end if
-
-    ! IP
-    else
-
-      if(fcoup .and. .not. fti) then
-        nexc = 2*hamsize 
-        allocate(bevalre(nexc))
-        allocate(bevalim(nexc))
-        bevalim = 0.0d0
-        ! Eigenvalues are always saved in ascending order,
-        ! doing the same for IP
-        do i = 1, hamsize
-          bevalre(i) = -de(ensortidx(hamsize-i+1))
-        end do
-        bevalre(hamsize+1:2*hamsize) = de(ensortidx) 
-      else 
-        nexc = hamsize
-        allocate(bevalre(nexc))
-        bevalre(1:hamsize) = de(ensortidx)
-      end if
-
-    end if
-
-    ! Calculate oscillator strengths.
-    allocate(oscsr(nexc,3))
-    if(fcoup .and. .not. fti) then
-      allocate(oscsa(nexc,3))
-    end if
-
-    ! Note: deallocates bevcr
-    if(fcoup .and. .not. fti) then 
-      call makeoscistr(iqmt, nexc, bevecr, oscsr, oscstra=oscsa)
-    else if(fcoup .and. fti) then 
-      ! Note: also deallocates cmat
-      call makeoscistr(iqmt, nexc, bevecr, oscsr, bevalre=bevalre, cmat=cmat)
-    else
-      call makeoscistr(iqmt, nexc, bevecr, oscsr)
-    end if
-
-    ! Write excition energies and oscillator strengths to 
-    ! text file. 
-    write(unitout, '("Info(",a,"):&
-      & Writing excition energies and oscillator strengths to text file.")') trim(thisname)
-    if(fcoup .and. .not. fti) then
-      call writeoscillator(2*hamsize, nexc, bsegap+sci, bevalre, oscsr,&
-        & evalim=bevalim, oscstra=oscsa, sort=.true., iqmt=iqmt)
-    else
-      call writeoscillator(hamsize, nexc, -(bsegap+sci), bevalre, oscsr, iqmt=iqmt)
-    end if
-
-    ! Calculate lattice symmetrized spectrum.
-    if(fcoup) then 
-      if(fti) then
-        call makespectrum_ti(iqmt, nexc, nk_bse, bevalre, oscsr, symspectr)
-      else
-        call makespectrum_full(iqmt, nexc, nk_bse, bevalre, oscsr, oscsa, symspectr)
-      end if
-    else
-      call makespectrum_tda(iqmt, nexc, nk_bse, bevalre, oscsr, symspectr)
-    end if
-
-    ! Generate an evenly spaced frequency grid 
-    allocate(w(nw))
-    call genwgrid(nw, input%xs%energywindow%intv,&
-      & input%xs%tddft%acont, 0.d0, w_real=w)
-
-    ! Generate and write derived optical quantities
-    call writederived(iqmt, symspectr, nw, w)
-
-    ! Clean up
-    deallocate(bevalre, oscsr, w, symspectr, evalsv)
-    if(allocated(bevecr)) deallocate(bevecr)
-    if(fcoup) then 
-      if(fti) then 
-        if(allocated(cmat)) deallocate(cmat)
-        if(allocated(cpmat)) deallocate(cpmat)
-      else
-        if(allocated(bevalim)) deallocate(bevalim)
-        if(allocated(oscsa)) deallocate(oscsa)
-      end if
-    end if
-    if(associated(input%gw)) deallocate(eval0)
-
-    write(unitout, '("BSE calculation finished")')
-
-  ! Parallel version 
-  else 
-    
-    write(*,*) "b_bse: Running parallel version at rank:", mpiglobal%rank
-
-    ! Set up process grids for BLACS 
-    !   Make square'ish process grid (context 0)
-    call setupblacs(mpiglobal, 'grid', bi2d)
-    !   Also make 1d grid with the same number of processes (context 1)
-    call setupblacs(mpiglobal, 'row', bi1d, np=bi2d%nprocs)
-    !   Also make 0d grid containing only the current processes (context 2)
-    call setupblacs(mpiglobal, '0d', bi0d, np=1)
-
-    ! General init
-    call timesec(ts0)
-
-    call init0
-    ! k-grid init
-    call init1
-    ! Save variables of the unshifted (apart from xs:vkloff) k grid 
-    ! to modxs (vkl0, ngk0, ...)
-    call xssave0
-    ! q-point and qmt-point setup
-    !   Init 2 sets up (task 445):
-    !   * A list of momentum transfer vectors form the q-point list 
-    !     (modxs::vqmtl and mod_qpoint::vql)
-    !   * Offset of the k+qmt grid derived from k offset an qmt point (modxs::qvkloff)
-    !   * non-reduced mapping between ik,qmt and ik' grids (modxs::ikmapikq)
-    !   * G+qmt quantities (modxs)
-    !   * The square root of the Coulomb potential for the G+qmt points
-    !   * Reads STATE.OUT
-    !   * Generates radial functions (mod_APW_LO)
-    call init2
-
-    call timesec(ts1)
-    write(unitout, '("Info(",a,"):&
-      & Init time:", f12.6)') trim(thisname), ts1 - ts0
-
-    ! Read Fermi energy from file
-    ! Use EFERMI_QMT001.OUT
-    call genfilname(iqmt=iqmtgamma, setfilext=.true.)
-    call readfermi
-
-    ! Set ist* variables and ksgap in modxs using findocclims
-    ! This also reads in 
-    ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
-    ! modxs:evalsv0, modxs:occsv0
-    call setranges_modxs(iqmt, fcoup, fti)
-
-    ! WARNING: ONTOP OF GW STILL IS INCONSISTENT, SINCE OCCUPATION SEARCH IS
-    ! NOT DONE ON EVALQP.OUT !?!
-    ! If on top of GW
-    if(associated(input%gw) .and. iqmt==1) then
-      ! Save KS eigenvalues to use them later for renormalizing PMAT
-      if(allocated(eval0)) deallocate(eval0)
-      allocate(eval0(nstsv, nkptnr))
-      eval0=evalsv
-      ! If scissor correction is presented, one should nullify it
-      input%xs%scissor=0.0d0
-      ! Read QP Fermi energies and eigenvalues from file
-      ! NOTE: QP evals are shifted by -efermi-eferqp with respect to KS evals
-      ! NOTE: getevalqp sets mod_symmetry::nsymcrys to 1
-      ! NOTE: getevalqp needs the KS eigenvalues as input
-      nsymcrys_save = nsymcrys
-      call getevalqp(nkptnr,vkl0,evalsv)
-      nsymcrys = nsymcrys_save
-      !if(bi2d%isroot) then
-      !  write(*,'("efermi=", f10.7)') efermi
-      !  write(*,'("eferqp=", f10.7)') eferqp
-      !  do ik=1, nkptnr
-      !    write(*,'("k-point #", i6,":", 3f10.7)') ik, vkl0(:,ik)
-      !    write(*,'(" state    Eks    E+efermi+eferqp    E+eferqp    E+efermi    E")')
-      !    do i=input%gw%ibgw, input%gw%nbgw
-      !      write(*,'(i6, 5(4x, f10.7))') i, eval0(i,ik), evalsv(i, ik)+efermi+eferqp,&
-      !        & evalsv(i, ik)+eferqp, evalsv(i, ik)+efermi, evalsv(i, ik) 
-      !    end do
-      !  end do
-      !end if
-      ! Set k and k'=k grid eigenvalues to QP energies
-      evalsv0=evalsv
-      write(unitout,'("Info(",a,"):&
-        & Quasi particle energies are read from EVALQP.OUT")') trim(thisname)
-    else if(associated(input%gw) .and. iqmt /= 1) then 
-      if(bi2d%isroot) then 
-        write(*,'("Error(",a,"):&
-         & BSE+GW only supported for 0 momentum transfer.")') trim(thisname)
-      end if
-      call terminate
-    end if
-    call barrier(callername=thisname)
-
-    ! Select relevant transitions for the construction
-    ! of the BSE hamiltonian
-    ! Also sets nkkp_bse, nk_bse 
-    !   Note: Operates on mpiglobal
-    call select_transitions(iqmt, serial=.false.)
-
-    ! Only MPI ranks that have an associated 
-    ! BLACS grid process proceed.
-    if(bi2d%isactive) then 
-
-      ! Determine "BSE"-gap, i.e. the lowest energy 
-      ! KS transition which is considered.
-      bsegap = 1.0d16
-      !$OMP PARALLEL DO &
-      !$OMP& DEFAULT(SHARED), PRIVATE(a1,iu,io,ik,ikq),&
-      !$OMP& REDUCTION(min:bsegap)
-      do a1 = 1, hamsize
-        iu = smap(1,a1)
-        io = smap(2,a1)
-        ik = smap(3,a1)
-        ikq = ikmapikq(ik, iqmt)
-        bsegap = min(bsegap, evalsv(iu,ik)-evalsv0(io,ikq))
-      end do
-      !$OMP END PARALLEL DO
-
-      if(bi2d%isroot) then
-        write(unitout,*)
-        write(unitout, '("Info(",a,"):&
-          & bsegap, bsegap+scissor (eV):", E23.16,1x,E23.16)')&
-          & trim(thisname), bsegap*h2ev, (bsegap+sci)*h2ev
-      end if
-
-      if(.not. fip) then 
-
-        ! Define global distributed Hamiltonian matrix.
-        call new_dzmat(dham, hamsize, hamsize, bi2d)
-
-        ! Write Info
-        write(unitout,*)
-        write(unitout, '("Info(",a,"): Assembling distributed BSE matrix")') trim(thisname)
-        ramscale = 1.0d0
-        if(fcoup .and. fti) then
-          write(unitout, '(" Including coupling terms ")')
-          write(unitout, '(" Using time inverted anti-resonant basis")')
-          write(unitout, '(" Using squared EVP")')
-          ramscale = 3.0d0
-        end if
-        write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
-        write(unitout, '("  Shape=",i8)') hamsize
-        write(unitout, '("  nk=", i8)') nk_bse
-        write(unitout, '("  Distributing matrix to ",i3," processes")') bi2d%nprocs
-        write(unitout, '("  Local matrix shape ",i6," x",i6)')&
-          & dham%nrows_loc, dham%ncols_loc
-
-        write(unitout, '("Info(",a,"): max local RAM needed for BSE matrices ~ ", f12.6, " GB" )')&
-          & trim(thisname), ramscale*int(dham%nrows_loc,8)*dham%ncols_loc*16.0d0/1024.0d0**3
-
-        ! Assemble Hamiltonian matrix
-        call timesec(ts0)
-        if(fcoup .and. fti) then 
-          ! Get aux. EVP matrices S=C(RR+RA)C and C=(RR-RA)^1/2 
-          call setup_bse_ti_dist(iqmt, bi2d, smat=dham, cmat=dcmat)
-        else
-          ! Get TDA hamiltonian H=RR
-          call setup_bse_block_dist(dham, iqmt, .false., .false., bi2d)
-        end if
-
-        call timesec(ts1)
-        write(unitout, '("All processes build their local matrix")')
-        write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
-        
-        if(fwp) then
-          call dzmat_send2global_root(ham, dham, bi2d)
-          if(bi2d%isroot) then
-            if(fcoup .and. fti) then 
-              call writecmplxparts("GlobalHamS", dble(ham), immat=aimag(ham))
-            else
-              call writecmplxparts("GlobalHam", dble(ham), immat=aimag(ham))
-            end if
-            deallocate(ham)
-          end if
-        end if
-
-        ! Write Info
-        if(fcoup .and. fti) then 
-          write(unitout, '("Info(",a,"):&
-            & Solving hermitian squared EVP")') trim(thisname)
-          write(unitout, '("Info(",a,"):&
-            & Invoking scalapack routine PZHEEVX")') trim(thisname)
-        else 
-          write(unitout, '("Info(",a,"):&
-            & Diagonalizing RR Hamiltonian (TDA)")') trim(thisname)
-          write(unitout, '("Info(",a,"):&
-            & Invoking scalapack routine PZHEEVX")') trim(thisname)
-        end if
-
-        ! Eigenvectors are distributed
-        ! must be NxN because Scalapack solver expects it so
-        call new_dzmat(dbevecr, hamsize, hamsize, bi2d) 
-        ! Eigenvalues are global
-        allocate(bevalre(hamsize))
-        bevalre = 0.0d0
-
-        ! Find only eigenvalues relevant for requested 
-        ! spectrum?
-        efind = input%xs%bse%efind
-
-        ! Diagonalize Hamiltonian (destroys the content of ham)
-        call timesec(ts0)
-
-        if(efind) then
-
-          if(fcoup .and. fti) then 
-            v1=(max(wl, 0.0d0))**2
-            v2=(wu)**2
-          else
-            v1=max(wl, 0.0d0)
-            v2=wu
-          end if
-
-          call dhesolver(dham, bevalre, bi2d, dbevecr,&
-           & v1=v1, v2=v2, found=nexc,&
-           & eecs=input%xs%bse%eecs)
-
-        else
-
-          if(input%xs%bse%nexc == -1) then 
-            i2 = hamsize
-          else
-            i2 = input%xs%bse%nexc
-          end if
-          i1 = 1
-
-          call dhesolver(dham, bevalre, bi2d, dbevecr,&
-           & i1=i1, i2=i2, found=nexc,&
-           & eecs=input%xs%bse%eecs)
-
-        end if
-
-        if(fcoup .and. fti) then 
-          ! Take square root of auxilliary eigenvalues
-          ! to retrieve actual eigenvalues
-          if(any(bevalre < 0.0d0)) then 
-            write(*, '("Error(",a,"): Negative squared EVP evals occured")')&
-              & trim(thisname)
-            write(*,'(E23.16)') bevalre
-            call terminate
-          end if
-          bevalre = sqrt(bevalre)
-        end if
-
-        ! Deallocate BSE-Hamiltonian
-        call del_dzmat(dham)
-
-        call timesec(ts1)
-
-        if(efind) then
-          if(fcoup .and. fti) then 
-            write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
-            write(unitout, '("  [",E10.3,",",E10.3,"]/H^2")') sqrt(v1), sqrt(v2)
-            write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') sqrt(v1)*h2ev, sqrt(v2)*h2ev
-          else
-            write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
-            write(unitout, '("  [",E10.3,",",E10.3,"]/H")') v1, v2
-            write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') v1*h2ev, v2*h2ev
-          end if
-        else
-          write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
-          write(unitout, '("  i1=",i8," i2=",i8)') i1, i2
-        end if
-        write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
-        write(unitout,*)
-
-        ! =================================================================!
-        ! Store excitonic energies and wave functions to file if requested !
-        ! =================================================================!
-        store: if(associated(input%xs%storeexcitons)) then
-
-          ! Select which solutions to store
-          !   Select by energy
-          if(input%xs%storeexcitons%selectenergy) then 
-            en1=input%xs%storeexcitons%minenergyexcitons
-            en2=input%xs%storeexcitons%maxenergyexcitons
-            if(input%xs%storeexcitons%useev) then 
-              en1=en1/h2ev
-              en2=en2/h2ev
-            end if
-            call energy2index(hamsize, nexc, bevalre, en1, en2, iex1, iex2)
-            if(bi2d%isroot) then 
-              !write(*,*) "b_bse: iex1, iex2", iex1, iex2
-            end if
-          !   Select by number
-          else
-            iex1=input%xs%storeexcitons%minnumberexcitons
-            iex2=input%xs%storeexcitons%maxnumberexcitons
-          end if
-          nreq=iex2-iex1+1
-
-          ! Check requested range
-          if(nreq < 1 .or. nreq > nexc .or. iex1<1 .or. iex2<1 ) then
-            if(bi2d%isroot) then 
-              write(*,'("Error(",a,"):&
-                & storeexcitons index mismatch.")') trim(thisname)
-              write(*,*) "iex1, iex2, nreq, nex", iex1, iex2, nreq, nexc
-            end if
-            call terminate
-          end if
-
-          write(unitout, '("Info(",a,"):&
-            & Writing excition eigenvectors for index range=",2i8)')&
-            & trim(thisname), iex1, iex2
-
-          ! When full BSE with time inversion symmetry is jused
-          ! the original eigenvectors need to be reconstructed from the 
-          ! auxilliary ones.
-          if(fcoup .and. fti) then 
-
-            write(unitout, '("Info(",a,"): Generating resonant&
-              & and anti-resonant exciton coefficients from&
-              & auxilliary squared EVP eigenvectors (pos. E).")') trim(thisname)
-
-            !===========================================================!
-            ! Make C' Matrix                                            !
-            ! Cpmat = (A-B)^{-1/2} = C^-1                               !
-            ! Cpmat is needed additionally to build eigenvectors        !
-            !===========================================================!
-            write(unitout, '("Info(",a,"):&
-              & Inverting C=(RR-RA)^1/2 matrix")') trim(thisname)
-            call timesec(ts0)
-            call new_dzmat(dcpmat, hamsize, hamsize, bi2d)
-            do j = 1, dcmat%ncols_loc
-              do i = 1, dcmat%nrows_loc
-                dcpmat%za(i,j) = dcmat%za(i,j)
-              end do
-            end do
-            call dzinvert(dcpmat)
-            call timesec(ts1)
-            write(unitout, '("  Time needed",f12.3,"s")') ts1-ts0
-            !===========================================================!
-
-            ! Make selected eigenvectors
-            ! Note: allocates dresvec,daresvec and deallocates dcpmat
-            call gendexevec(iex1, iex2, nexc, dcmat, dcpmat, dbevecr, bevalre,&
-              & dresvec, daresvec)
-
-            ! Write to binary file
-            write(unitout, '("Info(",a,"):&
-              & Writing exciton eigenvectors to file.")') trim(thisname)
-            call putd_excitons(bevalre(iex1:iex2), drvec=dresvec, davec=daresvec,&
-              & iqmt=iqmt, a1=iex1, a2=iex2)
-
-            ! Explicit resonant/antiresonant eigenvectors no longer needed
-            call del_dzmat(dresvec)
-            call del_dzmat(daresvec)
-
-          ! For TDA we can directly write out the desired eigenvectors
-          else if(.not. fcoup) then  
-
-            write(unitout, '("Info(",a,"):&
-              & Writing exciton eigenvectors to file.")') trim(thisname)
-            call setview_dzmat(dbevecr, hamsize, nreq, 1, iex1)
-            call putd_excitons(bevalre(iex1:iex2), dbevecr,&
-              & iqmt=iqmt, a1=iex1, a2=iex2)
-            call setview_dzmat(dbevecr, hamsize, nexc, 1, 1)
-
-          end if
-
-        end if store
-        ! =================================================================!
-
-      ! IP
-      else
-
-        write(unitout, '("Info(",a,"):&
-          & IP requested, nothing much to do")') trim(thisname)
-
-        nexc = hamsize
-        allocate(bevalre(nexc))
-        bevalre(1:hamsize) = de(ensortidx) 
-
-      end if
+      end if store
+      ! =================================================================!
 
     ! Process is not on 2d process grid
-    else
-
-      ! 
-
     end if
 
     ! Note: the following allocation is only needed for processes that are not
     !       on the process grid and serves the only purpose that the debugger
     !       is not complaining here.
-    if(.not. allocated(bevalre)) allocate(bevalre(hamsize))
+    if(.not. allocated(exeval)) allocate(exeval(hamsize))
 
     ! Calculate oscillator strengths.
-    ! Note: Deallocates dbevecr and dcmat
-    if(fti .and. fcoup) then 
-      call makeoscistr_dist(iqmt, nexc, dbevecr, doscsr, bi2d, bevalre, dcmat)
+    ! Note: Deallocates dexevec and dcmat
+    if(fcoup) then 
+      call makeoscistr_dist(iqmt, nexc, dexevec, doscsr, bicurrent, exeval, dcmat)
     else
-      call makeoscistr_dist(iqmt, nexc, dbevecr, doscsr, bi2d)
+      call makeoscistr_dist(iqmt, nexc, dexevec, doscsr, bicurrent)
     end if
 
-    if(bi2d%isactive) then 
+    ! Back to the process grid.
+    if(bicurrent%isactive) then 
 
       ! Every process gets a copy of the oscillator strength
       ! (actually only rank 0 writes them to file, but is is not much 
       !  memory and it make the setup for the spectrum calculation easier) 
-      call dzmat_send2global_all(oscsr, doscsr, bi2d)
+      call dzmat_send2global_all(oscsr, doscsr, bicurrent)
       if(fip) then
         oscsr = oscsr(ensortidx,:)
       end if
 
-      if(bi2d%isroot) then
+      if(bicurrent%isroot) then
         ! Write excition energies and oscillator strengths to 
         ! text file. 
         write(unitout, '("Info(",a,"):&
           & Writing excition energies and oscillator strengths to text file.")')&
           & trim(thisname)
-        call writeoscillator(hamsize, nexc, -(bsegap+sci), bevalre, oscsr, iqmt=iqmt)
+        call writeoscillator(hamsize, nexc, -bsegap, exeval, oscsr, iqmt=iqmt)
       end if
 
       ! Allocate arrays used in spectrum construction
-      if(bi2d%isroot) then
+      if(bicurrent%isroot) then
         allocate(symspectr(3,3,nw))
       end if
 
-      ! Only process 0 gets an acctual output for symspectr
-      if(fcoup .and. fti) then 
-        call makespectrum_ti_dist(iqmt, nexc, nk_bse, bevalre, oscsr, symspectr, bi2d)
-      else
-        call makespectrum_tda_dist(iqmt, nexc, nk_bse, bevalre, oscsr, symspectr, bi2d)
-      end if
+      ! Only process root gets an acctual output for symspectr
+      call makespectrum_dist(iqmt, nexc, nk_bse, exeval, oscsr, symspectr, bicurrent)
 
-      if(bi2d%isroot) then
+      if(bicurrent%isroot) then
 
         ! Allocate arrays used in spectrum construction
         allocate(w(nw))
@@ -1086,9 +586,9 @@ use m_writecmplxparts
       end if
 
       ! Clean up
-      deallocate(bevalre, oscsr, evalsv)
+      deallocate(exeval, oscsr)
       if(associated(input%gw)) deallocate(eval0)
-      if(bi2d%isroot) then 
+      if(bicurrent%isroot) then 
         deallocate(w)
         deallocate(symspectr)
       end if
@@ -1102,7 +602,6 @@ use m_writecmplxparts
       ! Ranks that are on the BLACS grid signal that they are done
       call barrier(callername=thisname)
 
-    ! MPI rank not on 2D grid
     else
 
       write(*, '("Warning(",a,"): Rank", i4, " is idle.")')&
@@ -1113,6 +612,7 @@ use m_writecmplxparts
 
     end if
 
+  ! IP end if
   end if
 
 end subroutine b_bse

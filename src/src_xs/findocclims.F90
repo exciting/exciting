@@ -93,8 +93,8 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
     ! Get occupancies and eigenvalues form EVECSV and EVALSV 
     ! files that have file extensions that was set before calling
     ! findocclims.
-    call getoccsv(vkl(1, ikq), occsv(1, ikq))
-    call getevalsv(vkl(1, ikq), evalsv(1, ikq))
+    call getoccsv(vkl(1:3, ikq), occsv(1:nstsv, ikq))
+    call getevalsv(vkl(1:3, ikq), evalsv(1:nstsv, ikq))
 
     ! Go from low to high through the sates at k+q, and
     ! check whether they are (partially) occupied, in the sense that
@@ -117,8 +117,8 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
     ! Do the same counting for the k point without q 
     if(iq .ne. 0) then
       ! k-point set (q=0)
-      call getoccsv0(vkl0(1, ik), occsv0(1, ik))
-      call getevalsv0(vkl0(1, ik), evalsv0(1, ik))
+      call getoccsv0(vkl0(1:3, ik), occsv0(1:nstsv, ik))
+      call getevalsv0(vkl0(1:3, ik), evalsv0(1:nstsv, ik))
       do i0 = 1, nstsv
         if(occsv0(i0, ik) .lt. input%groundstate%epsocc) exit
       end do

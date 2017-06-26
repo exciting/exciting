@@ -394,9 +394,10 @@ module m_dhesolver
         end subroutine workspacequery
 
         subroutine errorinspect(ierror)
+          use m_getunit
           integer(4), intent(in) :: ierror
 
-          integer(4) :: i, maxcs, tmp
+          integer(4) :: i, maxcs, tmp, un
 
           if( ierror < 0) then
             write(*,'("Error(dhesolver) cause: Invalid input")')

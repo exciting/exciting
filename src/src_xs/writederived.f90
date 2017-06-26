@@ -25,7 +25,7 @@ subroutine writederived(iqmt, eps, nw, w)
   complex(8) :: sigma(nw)
   !real(8) :: sumrls(3)
   logical :: foff
-  character(256) :: tdastring, bsetypestring, tistring, scrtypestring
+  character(256) :: tdastring, bsetypestring, scrtypestring
   character(256) :: syscommand, epsilondir, lossdir, sigmadir
 
   character(*), parameter :: thisname = "writederived"
@@ -48,13 +48,7 @@ subroutine writederived(iqmt, eps, nw, w)
     tdastring="-TDA"
   end if
 
-  if(input%xs%bse%ti) then 
-    tistring="-TI"
-  else
-    tistring=''
-  end if
-
-  bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
+  bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
   scrtypestring = '-'//trim(input%xs%screening%screentype)
 
   ! Generate loss function as inverted dielectric tensor

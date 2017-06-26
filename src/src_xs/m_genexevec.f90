@@ -125,7 +125,11 @@ module m_genexevec
       call del_dzmat(dcpmat)
       !  Aux2_{m,\lambda} = Aux2_{m,\lambda} * |E_\lambda|^{1/2} -> Y
       do i=1, davecp%ncols_loc
-        ig = davecp%c2g(i)
+        if(davecp%isdistributed) then
+          ig = davecp%c2g(i)
+        else
+          ig = i
+        end if
         davecp%za(:,i) = sqrt(evals(ig+i1-1)) * davecp%za(:,i)
       end do
       
@@ -138,7 +142,11 @@ module m_genexevec
       ! Loop over local column index
       do i=1, drvecp%ncols_loc
         ! Get global column index
-        ig = drvecp%c2g(i)
+        if(drvecp%isdistributed) then 
+          ig = drvecp%c2g(i)
+        else
+          ig = i 
+        end if
         drvecp%za(:,i) = 1.0d0/sqrt(evals(ig+i1-1)) * drvecp%za(:,i)
       end do
 
