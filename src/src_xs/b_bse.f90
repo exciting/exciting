@@ -135,8 +135,6 @@ subroutine b_bse(iqmt)
   type(dzmat) :: dham, dexevec, doscsr, dresvec, daresvec
   type(dzmat) :: dcmat, dcpmat
 
-  integer :: iproc
-
   !! Greeting
   !write(*, '("Info(",a,"): Running at rank", i3)')&
   !  & trim(thisname), mpiglobal%rank
@@ -171,27 +169,6 @@ subroutine b_bse(iqmt)
   else
     bicurrent => bi0d
   end if
-
-  !do iproc=0, procs
-  !  if(rank == iproc) then
-  !    write(*,*) "----"
-  !    write(*,*) "rank", rank
-  !    write(*,*) "----"
-  !    write(*,*) "bi2d"
-  !    call printblacsinfo(bi2d)
-  !    write(*,*) "----"
-  !    write(*,*) "bi1d"
-  !    call printblacsinfo(bi1d)
-  !    write(*,*) "----"
-  !    write(*,*) "bi0d"
-  !    call printblacsinfo(bi0d)
-  !    write(*,*) "----"
-  !    write(*,*) "bicurrent"
-  !    call printblacsinfo(bicurrent)
-  !  end if
-  !  call barrier
-  !end do
-    
   !---------------------------------------------------------------------------!
 
   !---------------------------------------------------------------------------!
@@ -567,6 +544,7 @@ subroutine b_bse(iqmt)
       call makeoscistr_dist(iqmt, nexc, dexevec, doscsr, bicurrent)
     end if
 
+    ! Back to the process grid.
     if(bicurrent%isactive) then 
 
       ! Every process gets a copy of the oscillator strength

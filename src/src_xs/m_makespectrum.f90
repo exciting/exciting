@@ -404,7 +404,15 @@ module m_makespectrum
       nfreq = size(nsp,1) 
       nopt = size(nsp,2)
 
-      ! Zero momentum transfer
+      ! Zero momentum transfer:
+      !
+      !   Using \bar{P} formalism:
+      !     epsilon^{ij}_M(w) = 
+      !       \delta_{ij} + 4*pi 1/(V*nk) 
+      !       * \sum_\lambda [1/(E_\lambda-w) + 1/(E_\lambda+w)]
+      !       * t^*_{\lambda,i} t_{\lambda,j}
+      !  
+      !   nsp(i,j) = \delta_{ij} + pref*nsp(i,j)
       if(iqmt==1) then 
 
         if(nopt == 9) then 
@@ -417,6 +425,15 @@ module m_makespectrum
         end if
 
       ! Finite momentum transfer
+      !
+      !   Using \chi formalism:
+      !     epsilon_M(\ve{Q},w) = { 
+      !       1 - 4*pi/|Q|^2 1/(V*nk) 
+      !       * \sum_\lambda [1/(E_\lambda-w) + 1/(E_\lambda+w)]
+      !       * t^*_{\lambda}(Q) t_{\lambda}(Q)
+      !       }^{-1}
+      !  
+      !   nsp(i,j) = \delta_{ij} + pref*nsp(i,j)
       else
 
         if(nopt /= 1) then 
@@ -431,13 +448,14 @@ module m_makespectrum
       write(unitout, '("Info(",a,"): Finalizing spectrum.")') trim(thisname)
       call timesec(t0)
 
-      ! Adjusting prfactor 
+      ! Adjusting prfactor, the factor 2 accounts for spin degeneracy
       if(iqmt==1) then 
+        ! 2* 4 pi * 1/V * 1/nk
         pref = 2.d0*4.d0*pi/omega/nk
       else
-        ! 2 * ( (4pi/|Gmt+qmt|^2)^1/2 )^2 * 1/V * 1/nk
+        ! -2 * ( (4 pi/|Gmt+qmt|^2)^1/2 )^2 * 1/V * 1/nk
         igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
-        pref = 2.0d0*sptclg(igqmt,iqmt)**2/omega/nk
+        pref = -2.0d0*sptclg(igqmt,iqmt)**2/omega/nk
       end if
 
       ! Add 1 to diagonal elements
@@ -447,7 +465,7 @@ module m_makespectrum
           !$OMP& DEFAULT(SHARED), PRIVATE(i)
           do i = 1, nfreq
             if(j == 1 .or. j == 5 .or. j == 9) then 
-              nsp(i,j) = nsp(i,j)*pref+zone
+              nsp(i,j) = zone + nsp(i,j)*pref
             else
               nsp(i,j) = nsp(i,j)*pref
             end if
@@ -457,13 +475,14 @@ module m_makespectrum
           !$OMP PARALLEL DO &
           !$OMP& DEFAULT(SHARED), PRIVATE(i)
           do i = 1, nfreq
-            nsp(i,j) = nsp(i,j)*pref+zone
+            nsp(i,j) = zone + nsp(i,j)*pref
           end do
           !$OMP END PARALLEL DO
         end if
       end do
 
       ! Zero momentum transfer --> tensor structure
+      !   Symmetrize using the crystal symmetries
       if(iqmt == 1) then 
 
         ! Write to buffer for symmetry routine
@@ -498,7 +517,9 @@ module m_makespectrum
       else
 
         sp = zzero
-        sp(1,1,:) = nsp(:,1)
+
+        ! As noted above nsp contains 1/epsm(Q,w) 
+        sp(1,1,:) = 1.0d0/nsp(:,1)
 
       end if
 
