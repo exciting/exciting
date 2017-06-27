@@ -3,13 +3,40 @@
 ! See the file COPYING for license details.
 !
 !
+!BOP
+! !ROUTINE: b_xsgeneigvec
+! !INTERFACE:
 subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
+! !USES:
   use modmpi
   use modinput, only: input
   use modxs, only: unitout, vqlmt, vqcmt
   use mod_misc, only: filext
   use m_filedel, only: filedel
   use m_genfilname, only: genfilname
+! !INPUT/OUTPUT PARAMETERS:
+! In:
+!   integer(4) :: qi    ! Range qi:qi+nqpts-1 of momentum transfer Qs form Q-point list
+!   integer(4) :: nqpts ! for which to do one-shot GS runs 
+!   real(8)    :: vql(3,nqpts)     ! Q-point vectors form list
+!   real(8)    :: qvkloff(3,nqpts) ! Offsets of corresponding k-grids
+!   logical    :: tscr  ! If true use screening file extension
+!   logical    :: tmqmt ! If true use file extension indicating that -Q was used
+! 
+! !DESCRIPTION:
+!   The routine generates the one-shot GS quantities used in the BSE.
+!   The routine writes the files {\tt APWCMT_*.OUT, EIGVAL_*.OUT, EVALSV_*.OUT,
+!   EVECFV_*.OUT, EVECSV_*.OUT, BONDLENGTH_*.OUT, EFERMI_*.OUT,
+!   LOCMT_*.OUT, OCCSV_*.OUT, geometry_*.xml}. The file extension contains
+!   the number of the considered Q-point {\tt _QMTxyz}, the information whether 
+!   the +Q/2 or -Q/2 shift was used {\tt _mqmt}. If the screening parameter were
+!   used the extension {\tt _SCR} is added.
+!
+! !REVISION HISTORY:
+!   Based on xsgeneigvec
+!   Created. 2016 (Aurich)
+!EOP
+!BOC
 
   implicit none
 
@@ -131,3 +158,4 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
   end if
 
 end subroutine b_xsgeneigvec
+!EOC

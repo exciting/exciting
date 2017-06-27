@@ -16,7 +16,7 @@ subroutine dfq(iq)
   use mod_qpoint, only: nqpt, vql
   use mod_lattice, only: omega
   use modxs, only: tfxcbse, tscreen, bzsampl, wpari,&
-                & wparf, ngq, fnwtet, fnpmat,&
+                & wparf, ngq, fnpmat,&
                 & fnetim, fnxtim, fnemat, fnchi0,&
                 & fnchi0_t, qvkloff, istocc0, istocc,&
                 & istunocc0, istunocc, isto0, isto,&
@@ -30,6 +30,7 @@ subroutine dfq(iq)
                 & bcbs, filexteps,&
                 & eps0dirname, scrdirname, timingdirname
 #ifdef TETRA      
+  use modxs, only: fnwtet
   use mod_eigenvalue_occupancy, only: nstsv, evalsv, efermi 
   use modtetra
 #endif

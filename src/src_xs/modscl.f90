@@ -423,11 +423,22 @@ module modscl
         allocate(self%za(self%nrows_loc, self%ncols_loc))
       end if
 
-      ! Dummy descriptor
       if(.not. self%isdistributed) then
+        ! Dummy descriptor
         if(allocated(self%desc)) deallocate(self%desc)
         allocate(self%desc(9))
-        self%desc(9) = -2
+        self%desc(:) = -2
+        ! Dummy maps
+        if(allocated(self%r2g)) deallocate(self%r2g)
+        if(allocated(self%c2g)) deallocate(self%c2g)
+        allocate(self%r2g(self%nrows_loc))
+        allocate(self%c2g(self%ncols_loc))
+        do i = 1, self%nrows_loc
+          self%r2g(i) = i
+        end do
+        do j = 1, self%ncols_loc
+          self%c2g(j) = j
+        end do
       end if
 
       ! Zero it for good measure.

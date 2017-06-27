@@ -135,6 +135,7 @@ subroutine b_bse(iqmt)
   type(dzmat) :: dham, dexevec, doscsr, dresvec, daresvec
   type(dzmat) :: dcmat, dcpmat
 
+
   !! Greeting
   !write(*, '("Info(",a,"): Running at rank", i3)')&
   !  & trim(thisname), mpiglobal%rank
@@ -150,7 +151,10 @@ subroutine b_bse(iqmt)
   fcoup = input%xs%bse%coupling
 
   ! Distribute Hamilton matrix if ScaLapack is used
+  fdist = .false.
+#ifdef SCAL
   fdist = input%xs%bse%distribute
+#endif
 
   !---------------------------------------------------------------------------!
   ! Set up process grids for BLACS (if compiled with DSCAL, dummies otherwise)
@@ -169,6 +173,8 @@ subroutine b_bse(iqmt)
   else
     bicurrent => bi0d
   end if
+
+  !call printblacsinfo(bicurrent)
   !---------------------------------------------------------------------------!
 
   !---------------------------------------------------------------------------!
@@ -227,8 +233,6 @@ subroutine b_bse(iqmt)
     call terminate
 
   end if
-
-  call barrier(callername=thisname)
   !---------------------------------------------------------------------------!
 
   !---------------------------------------------------------------------------!
@@ -600,7 +604,9 @@ subroutine b_bse(iqmt)
 
       ! MPI
       ! Ranks that are on the BLACS grid signal that they are done
-      call barrier(callername=thisname)
+      if(fdist) then 
+        call barrier(callername=thisname)
+      end if
 
     else
 
@@ -608,7 +614,9 @@ subroutine b_bse(iqmt)
         & trim(thisname), mpiglobal%rank
 
       ! Ranks that are not on the BLACS grid wait 
-      call barrier(callername=thisname)
+      if(fdist) then 
+        call barrier(callername=thisname)
+      end if
 
     end if
 

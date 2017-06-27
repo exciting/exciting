@@ -1,9 +1,8 @@
-! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-!
-!
-subroutine b_xsgeneigveclauncher
+!BOP
+! !ROUTINE: setup_bse_block
+! !INTERFACE:
+subroutine b_xsgeneigveclauncher()
+! !USES:
   use modmpi
   use modinput, only: input
   use mod_qpoint, only: nqpt, vql
@@ -13,6 +12,14 @@ subroutine b_xsgeneigveclauncher
   use mod_misc, only: filext
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
+! !DESCRIPTION:
+!   Wrapper routine for one-shot ground state calculations
+!   needed for Q-dependent BSE.
+!
+! !REVISION HISTORY:
+!   Created. 2017 (Aurich)
+!EOP
+!BOC
 
   implicit none
 
@@ -126,3 +133,4 @@ subroutine b_xsgeneigveclauncher
   deallocate(vkloff_kqmtm)
 
 end subroutine b_xsgeneigveclauncher
+!EOC

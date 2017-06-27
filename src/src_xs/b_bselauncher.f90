@@ -73,12 +73,24 @@ subroutine b_bselauncher
     & " Using momentum transfer vectors from list : ", iqmti, " to", iqmtf
   call printline(unitout, "+")
 
+#ifndef SCAL
+  if(input%xs%bse%distribute) then 
+    write(*,'("Warning(",a,"):",a)') trim(thisname),&
+      & "Setting distribute=false, since code was not&
+      & compiled with -DSCAL"
+  end if
+  input%xs%bse%distribute = .false.
+#endif
+
+#ifdef MPI
+  ! Distribute over qmt points and do diagonalization serial
   if(.not. input%xs%bse%distribute) then 
     write(unitout, '("Info(",a,"):", a, i3, a)') trim(thisname),&
       & " Distributing qmt-points over ", mpiglobal%procs, " processes."
     call printline(unitout, "+")
     iq1 = firstofset(mpiglobal%rank, nqmtselected, mpiglobal%procs)
     iq2 = lastofset(mpiglobal%rank, nqmtselected, mpiglobal%procs)
+  ! Distribute diagonalization and loop over qmt points serially
   else
     write(unitout, '("Info(",a,"):", a)') trim(thisname),&
       & " Distributing BSE matrix, not qmt-points"
@@ -86,6 +98,15 @@ subroutine b_bselauncher
     iq1 = 1
     iq2 = nqmtselected
   end if
+#else
+  write(unitout, '("Info(",a,"):", a)') trim(thisname),&
+    & " Serial execution"
+  call printline(unitout, "+")
+  iq1 = 1
+  iq2 = nqmtselected
+#endif
+
+  ! Does current rank do anything?
 
   ! Construct and solve BSE for each Q-point in range
   do iqmt = iqmti+iq1-1, iqmti+iq2-1
@@ -119,7 +140,7 @@ subroutine b_bselauncher
   end if
 
   if(iq2<0) then
-    write(unitout, '("Info(",a,"): Rank= ", i3, " is idle.")')&
+    write(*, '("Info(",a,"): Rank= ", i3, " is idle.")')&
       & trim(thisname), mpiglobal%rank
   end if
 

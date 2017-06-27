@@ -288,6 +288,7 @@ module m_setup_bse
       character(256) :: efname, einfofname
       logical :: efcmpt, efid
       logical :: sfcmpt, sfid
+      logical :: esfcmpt, esfid, ferror
       logical :: useexc, usescc
 
       ! Timings
@@ -361,15 +362,17 @@ module m_setup_bse
       efid=.false.
       if(useexc) call b_getbseinfo(trim(einfofname), iqmt,&
         & fcmpt=efcmpt, fid=efid)
+
       if(usescc .and. useexc) then 
-        if(efcmpt .neqv. sfcmpt .or. efid .neqv. sfid) then 
+        esfcmpt = efcmpt .and. sfcmpt
+        esfid = efid .and. sfid
+        ferror = .not. (esfcmpt .and. esfid)
+        if(ferror) then 
           write(*, '("Error(setup_bse_block): Info files differ")')
-          write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
+          write(*, '("  efcmpt, efid, sfcmpt, sfcmpt", 4l)') efcmpt, efid, sfcmpt, sfcmpt
           call terminate
         end if
       end if
-
-      write(*,*) "rank", rank, "sfid,efid",sfid,efid
 
       if(usescc) write(unitout, '("  Reading form W from ", a)') trim(sfname)
       if(usescc) write(unitout, '("  compatible:",l," identical:",l)') sfcmpt, sfid
@@ -854,7 +857,7 @@ module m_setup_bse
       character(256) :: efname, einfofname
       logical :: efcmpt, efid
       logical :: sfcmpt, sfid
-
+      logical :: esfcmpt, esfid, ferror
       logical :: useexc, usescc
 
       if(ham%isdistributed) then 
@@ -936,7 +939,10 @@ module m_setup_bse
             & fcmpt=efcmpt, fid=efid)
 
           if(usescc .and. useexc) then 
-            if(efcmpt .neqv. sfcmpt .or. efid .neqv. sfid) then 
+            esfcmpt = efcmpt .and. sfcmpt
+            esfid = efid .and. sfid
+            ferror = .not. (esfcmpt .and. esfid)
+            if(ferror) then 
               write(*, '("Error(setup_bse_block_dist): Info files differ")')
               write(*, '("  efcmpt, efid, sfcmpt, sfcmpt")') efcmpt, efid, sfcmpt, sfcmpt
               call terminate

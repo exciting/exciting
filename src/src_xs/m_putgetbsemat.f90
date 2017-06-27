@@ -80,6 +80,9 @@ module m_putgetbsemat
         & kmap_bse_rg, kmap_bse_gr,&
         & koulims, kousize, smap
 
+      write(*,*) "b_putbseinfo:",&
+        & "vkloff =", vkloff
+
       close(un)
     end subroutine b_putbseinfo
     !EOC
@@ -113,6 +116,7 @@ module m_putgetbsemat
       ! Local variables
       integer(4) :: reclen, un
       logical :: ishere
+      logical :: ftmp
 
       logical :: reducek, reducek_
       integer(4) :: ngridk(3), ngridq(3), nstlbse(4)
@@ -126,6 +130,7 @@ module m_putgetbsemat
       integer(4), allocatable :: kmap_bse_rg_(:)
       integer(4), allocatable :: koulims_(:,:)
 
+      real(8), parameter :: eps = 1.0d-8
 
       reducek = input%xs%reducek
       ngridk = input%xs%ngridk
@@ -157,36 +162,69 @@ module m_putgetbsemat
       close(un)
 
       ! Defaults
-      isidentical = .false.
+      isidentical = .true.
       iscompatible = .true.
 
-      ! Check if identical
-      if( reducek_ .eqv. reducek .and. fensel_ .eqv. fensel&
-        & .and. (wl_ == wl .and. wu_ == wu .or. .not. fensel)&
-        & .and. (econv_(1) == econv(1) .and. econv_(2) == econv(2) .or. .not. fensel)&
-        & .and. (all(nstlbse_ == nstlbse) .or. fensel)&
-        & .and. iqmt_ == iqmt .and. all(abs(vql_(1:3)-vqlmt(1:3,iqmt)) < 1.0d-8)&
-        & .and. nk_max_ == nk_max .and. nk_bse_ == nk_bse&
-        & .and. hamsize_ == hamsize) then
-        if( .not. (any(ngridk_ /= ngridk) .or. any(ngridq_ /= ngridq)&
-          &.or. any(vkloff_ /= vkloff)) ) then
-          isidentical = .true.
-          iscompatible = .true.
-          write(*,*) "rank", rank, "is good"
-        end if
-        write(*,*) "rank", rank, "is nearly good"
-      end if
+      !--------------------------------------------------!
+      ! Check possibility for compatible saved quantities 
+      !--------------------------------------------------!
+      ftmp = reducek_ .eqv. reducek
+      iscompatible = ftmp .and. iscompatible
+      !write(*,*) "reducek_, reducek, iscompatible", reducek_, reducek, iscompatible
 
-      !write(*,*) "rank read,", rank,&
-      !  & reducek_, ngridk_, ngridq_, vkloff_,&
-      !  & fensel_, wl_, wu_, econv_, nstlbse_,&
-      !  & iqmt_, vql_,&
-      !  & nk_max_, nk_bse_, nou_bse_max_, hamsize_
-      !write(*,*) "rank,", rank,&
-      !  & reducek, ngridk, ngridq, vkloff,&
-      !  & fensel, wl, wu, econv, nstlbse,&
-      !  & iqmt, vqlmt(1:3,iqmt),&
-      !  & nk_max, nk_bse, nou_bse_max, hamsize
+      ftmp = all(ngridk_ == ngridk)
+      iscompatible = ftmp .and. iscompatible
+      !write(*,*) "ngridk, iscompatible ", ngridk_, ngridk, iscompatible
+
+      ftmp = all(abs(vkloff_ - vkloff) < eps)
+      iscompatible = ftmp .and. iscompatible
+      !write(*,*) "vkloff, iscompatible ", vkloff_, vkloff, iscompatible
+
+      ftmp = all(ngridq_ == ngridq)
+      iscompatible = ftmp .and. iscompatible
+      !write(*,*) "ngridq, iscompatible ", ngridq_, ngridq, iscompatible
+
+      ftmp = iqmt_ == iqmt 
+      iscompatible = ftmp .and. iscompatible
+      !write(*,*) "same iqmt, iscompatible ", iqmt_, iqmt, iscompatible
+
+      ftmp = all(abs(vql_(1:3)-vqlmt(1:3,iqmt)) < eps)
+      iscompatible = ftmp .and. iscompatible
+      !write(*,*) "vql, iscompatible ", vql_, vqlmt(:,iqmt), iscompatible
+      !--------------------------------------------------!
+
+      !------------------------------------------!
+      ! Check for identical saved quantities
+      !------------------------------------------!
+      isidentical = iscompatible
+      ftmp = fensel_ .eqv. fensel
+      isidentical = ftmp .and. isidentical
+      !write(*,*) "fensel_, fensel, isidentical", fensel_, fensel, isidentical
+
+      ftmp = abs(wl_ - wl) < eps .and. abs(wu_ - wu) < eps
+      isidentical = (ftmp .or. .not. fensel) .and. isidentical
+      !write(*,*) "energy range is the same?, isidentical ", wl_, wl, wu_, wu, isidentical
+
+      ftmp = all(abs(econv_(1:2) - econv(1:2)) < eps)
+      isidentical = (ftmp .or. .not. fensel) .and. isidentical
+      !write(*,*) "energy convergence range is the same?, isidentical ", econv_, econv, isidentical
+
+      ftmp = all(nstlbse_ == nstlbse)
+      isidentical = (ftmp .or. fensel) .and. isidentical
+      !write(*,*) "same band selection, isidentical ", nstlbse_, nstlbse, isidentical
+
+      ftmp =  nk_max_ == nk_max
+      isidentical = ftmp .and. isidentical
+      !write(*,*) "nk_max, isidentical ", nk_max_, nk_max, isidentical
+
+      ftmp =  nk_bse_ == nk_bse
+      isidentical = ftmp .and. isidentical
+      !write(*,*) "nk_bse, isidentical ", nk_bse_, nk_bse, isidentical
+
+      ftmp =  hamsize_ == hamsize
+      isidentical = ftmp .and. isidentical
+      !write(*,*) "hamsize, isidentical ", hamsize_, hamsize, isidentical
+      !------------------------------------------!
 
       ! Check necessary compatibility
       if( reducek_ .neqv. reducek) then
@@ -198,7 +236,7 @@ module m_putgetbsemat
         write(*, '(" stored: ", l)') reducek_
       end if
       if( any(ngridk_ /= ngridk) .or. any(ngridq_ /= ngridq)&
-        &.or. any(abs(vkloff_ - vkloff) > 1.0d-8)) then
+        &.or. any(abs(vkloff_ - vkloff) > eps)) then
         iscompatible = .false.
         isidentical = .false.
         write(*, '("Error (b_getbseinfo):&
@@ -214,7 +252,7 @@ module m_putgetbsemat
         write(*, '(" requested iqmt: ", i4)') iqmt 
         write(*, '(" stored iqmt_: ", i4)') iqmt_
       end if
-      if(any(abs(vql_ - vqlmt(1:3,iqmt)) > 1.0d-8)) then 
+      if(any(abs(vql_ - vqlmt(1:3,iqmt)) > eps)) then 
         iscompatible = .false.
         isidentical = .false.
         write(*, '("Error (b_getbseinfo):&
