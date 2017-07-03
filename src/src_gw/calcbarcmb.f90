@@ -60,35 +60,23 @@ subroutine calcbarcmb(iq)
         !------------------------------------------------
         ! Matrix elements for the singular q=0, L=0 case
         !------------------------------------------------
-        !call timesec(t0)
         call barcq0
-        !call timesec(t1)
-        !write(*,*) 'barcq0', t1-t0 
       end if
         
       !-----------------------------------------------------------
       ! Matrix elements between MT and MT mixed product functions
       !-----------------------------------------------------------
-      !call timesec(t0)
       call calcbarcmb_mt_mt(iq)
-      !call timesec(t1)
-      !write(*,*) 'calcbarcmb_mt_mt', t1-t0 
     
       !-----------------------------------------------------------
       ! Matrix elements between an atomic mixed function and an IPW
       !-----------------------------------------------------------
-      !call timesec(t0)
       call calcbarcmb_ipw_mt(iq)
-      !call timesec(t1)
-      !write(*,*) 'calcbarcmb_ipw_mt', t1-t0 
     
       !-----------------------------------------------------------
       ! Matrix elements between two IPW's
       !-----------------------------------------------------------
-      !call timesec(t0)
       call calcbarcmb_ipw_ipw(iq)
-      !call timesec(t1)
-      !write(*,*) 'calcbarcmb_ipw_ipw', t1-t0
       
     case default
     
@@ -101,24 +89,12 @@ subroutine calcbarcmb(iq)
 ! Diagonalize the bare coulomb matrix
 !===============================================================================
 
-    !call timesec(t0)
-
     if (allocated(vmat)) deallocate(vmat)
     allocate(vmat(matsiz,matsiz))
       
     if (allocated(barcev)) deallocate(barcev)
     allocate(barcev(matsiz))
     
-if (.false.) then 
-    vmat(1:matsiz,1:matsiz) = barc(1:matsiz,1:matsiz)
-    deallocate(barc)  
-    lwork = 2*matsiz
-    allocate(work(lwork),rwork(3*matsiz))
-    call zheev( 'v','u',matsiz,vmat,matsiz, &
-    &           barcev,work,lwork,rwork,info)
-    call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheev !!!")
-    deallocate(work,rwork)
-else
     lrwork = -1
     liwork = -1
     lwork = -1
@@ -142,10 +118,6 @@ else
     call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheevr !!!")
     deallocate(work,rwork,iwork,isuppz)
     deallocate(barc)
-end if
-
-    !call timesec(t1)
-    !write(*,*) 'barc diagonalization', t1-t0
 
 !----------------------    
 ! debug info
