@@ -15,7 +15,8 @@ subroutine b_screenlauncher
   use modxs, only: xsgnt, nwdf, qpari,&
                    & qparf, unitout, totalqlmt, qvkloff,&
                    & gqdirname, eps0dirname, scrdirname, timingdirname,&
-                   & ikmapikq, nkpt0, vkl0, usefilext0, filext0, filexteps, iqmt0, iqmt1
+                   & ikmapikq, nkpt0, vkl0, usefilext0, filext0, filexteps,&
+                   & iqmt0, iqmt1
   use mod_xsgrids
   use m_genfilname
   use m_filedel
@@ -79,7 +80,7 @@ subroutine b_screenlauncher
 
   ! Write out q-points
   if(rank == 0) then
-    call genfilname(iqmt=iqmtgamma, scrtype='', setfilext=.true.)
+    call genfilname(scrtype='', setfilext=.true.)
     call writeqpts
   end if
 
@@ -132,7 +133,7 @@ subroutine b_screenlauncher
   ! Read Fermi energy from file EFERMI
   ! Use EFERMI_SCR_QMT001.OUT (corresponding to the xs groundstate run
   ! for the original k grid)
-  call genfilname(iqmt=iqmtgamma, scrtype='', setfilext=.true.)
+  call genfilname(scrtype='', setfilext=.true.)
   call readfermi
 
   !------------------------------------------------------------!
@@ -149,17 +150,17 @@ subroutine b_screenlauncher
     write(unitout, *)
   end if
 
-  ! Set *_SCR_QMT001.OUT as bra state file
+  ! Set *_SCR.OUT as bra state file
   usefilext0 = .true.
-  iqmt0 = iqmtgamma
-  call genfilname(iqmt=iqmt0, scrtype='', fileext=filext0)
+  iqmt0 = 1
+  call genfilname(scrtype='', fileext=filext0)
 
-  ! Set *_SCR_QMT001.OUT as ket state file
-  iqmt1 = iqmtgamma
-  call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
+  ! Set *_SCR.OUT as ket state file
+  iqmt1 = 1
+  call genfilname(scrtype='', setfilext=.true.)
 
-  ! Set *_QMT001.OUT as file extension for screening files
-  call genfilname(iqmt=iqmt1, fileext=filexteps)
+  ! Set *.OUT as file extension for screening files
+  call genfilname(fileext=filexteps)
 
   ! Use <mk|e^{-i(G+q)r}|nk'> for q=k'-k in dfq
   emat_ccket = .false.
@@ -172,10 +173,10 @@ subroutine b_screenlauncher
   ! Loop over q-points 
   do iq = qpari, qparf
 
-    ! Write q-point number to fileext, filext = "_SCR_QMT001_QXYZ.OUT"
-    call genfilname(scrtype='', iqmt=iqmtgamma, iq=iq, fileext=filex)
+    ! Write q-point number to fileext, filext = "_SCR_QXYZ.OUT"
+    call genfilname(scrtype='', iq=iq, fileext=filex)
 
-    ! Write out G+q vectors to file "GQPOINTS_SCR_QMT001_QXYZ.OUT"
+    ! Write out G+q vectors to file "GQPOINTS_SCR_QXYZ.OUT"
     call writegqpts(iq, filex, dirname=gqdirname)
 
     ! Generate screening for the given q-point
@@ -281,21 +282,21 @@ subroutine b_screenlauncher
 
       ! Write out q-points
       if(rank == 0) then
-        call genfilname(iqmt=iqmtgamma, scrtype='', auxtype='m', setfilext=.true.)
+        call genfilname(scrtype='', auxtype='m', setfilext=.true.)
         call writeqpts
       end if
 
-      ! Set *_SCR_QMT001.OUT as bra state file
+      ! Set *_SCR.OUT as bra state file
       usefilext0 = .true.
-      iqmt0 = iqmtgamma
-      call genfilname(iqmt=iqmt0, scrtype='', fileext=filext0)
+      iqmt0 = 1
+      call genfilname(scrtype='', fileext=filext0)
 
-      ! Set *_SCR_QMT001.OUT as ket state file
-      iqmt1 = iqmtgamma 
-      call genfilname(iqmt=iqmt1, scrtype='', setfilext=.true.)
+      ! Set *_SCR.OUT as ket state file
+      iqmt1 = 1
+      call genfilname(scrtype='', setfilext=.true.)
 
-      ! Set *_QMT001_m.OUT as filextension for the screening 
-      call genfilname(iqmt=iqmt1, auxtype='m', fileext=filexteps)
+      ! Set *_m.OUT as filextension for the screening 
+      call genfilname(auxtype='m', fileext=filexteps)
 
       ! Set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
       input%xs%emattype = 1
@@ -306,8 +307,8 @@ subroutine b_screenlauncher
       ! Loop over q-points 
       do iq = qpari, qparf
 
-        ! Write q-point number to fileext, filext = _SCR_QMT001_QXYZ_m.OUT
-        call genfilname(scrtype='', iqmt=iqmtgamma, auxtype='m', iq=iq, fileext=filex)
+        ! Write q-point number to fileext, filext = _SCR_QXYZ_m.OUT
+        call genfilname(scrtype='', auxtype='m', iq=iq, fileext=filex)
         ! Write out G+q vectors to file GQPOINTS_SCR_QMTXYZ_QXYZ_m.OUT
         call writegqpts(iq, filex, dirname=gqdirname)
 

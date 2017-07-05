@@ -54,7 +54,6 @@ subroutine writepmatxs
   ! External functions
   logical, external :: tqgamma
 
-  integer :: ist
 
   !write(*,*) "writepmatxs here at rank", rank
 
@@ -159,9 +158,10 @@ subroutine writepmatxs
     call genfilname(iqmt=iqmtgamma, setfilext=.true.)
   end if
 
-  ! Get screening eigenvectors for qmt=0, i.e. set file extension to SCR_QMT001
+  ! Get screening eigenvectors are calculated for qmt=0 only,
+  ! i.e. set file extension to SCR
   if( tscreen .and. input%xs%bse%beyond) then 
-    call genfilname(iqmt=iqmtgamma, scrtype='', setfilext=.true.)
+    call genfilname(scrtype='', setfilext=.true.)
   end if
 
   ! Generate band combinations

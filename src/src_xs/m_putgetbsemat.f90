@@ -80,9 +80,6 @@ module m_putgetbsemat
         & kmap_bse_rg, kmap_bse_gr,&
         & koulims, kousize, smap
 
-      write(*,*) "b_putbseinfo:",&
-        & "vkloff =", vkloff
-
       close(un)
     end subroutine b_putbseinfo
     !EOC

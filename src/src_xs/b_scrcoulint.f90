@@ -341,16 +341,16 @@ subroutine b_scrcoulint(iqmt, fra)
   if(fra) then 
     ! p=-k'-k grid is identical to q=k'-k grid (zero offset)
     if(all(abs(vqoff) < epslat)) then 
-      call genfilname(iqmt=iqmtgamma, fileext=fileext_scr_read)
+      call genfilname(fileext=fileext_scr_read)
     ! p=-k'-k grid is shifted compared to q=k'-k grid (by -2*vkloff)
     else
-      call genfilname(iqmt=iqmtgamma, auxtype='m', fileext=fileext_scr_read)
+      call genfilname(auxtype='m', fileext=fileext_scr_read)
     end if
     call genfilname(iqmt=iqmt, auxtype='m', fileext=fileext_ematrad_write)
   ! RR
   else
     ! q-grid (zero offset)
-    call genfilname(iqmt=iqmtgamma, fileext=fileext_scr_read)
+    call genfilname(fileext=fileext_scr_read)
     call genfilname(iqmt=iqmt, fileext=fileext_ematrad_write)
   end if
 
@@ -852,9 +852,9 @@ subroutine b_scrcoulint(iqmt, fra)
         iqmt0 = iqmtgamma
         call genfilname(iqmt=iqmt0, setfilext=.true.)
       else
-        ! Set EVECFV_QMTXYZ_mqmt.OUT as bra state file
+        ! Set EVECFV_QMTXYZ_m.OUT as bra state file
         iqmt0 = iqmt
-        call genfilname(iqmt=iqmt0, auxtype="mqmt", setfilext=.true.)
+        call genfilname(iqmt=iqmt0, auxtype="m", setfilext=.true.)
       end if
       filext0 = filext
 
@@ -863,9 +863,9 @@ subroutine b_scrcoulint(iqmt, fra)
         iqmt1 = iqmtgamma
         call genfilname(iqmt=iqmt1, setfilext=.true.)
       else
-        ! Set EVECFV_QMTXYZ_mqmt.OUT as ket state file
+        ! Set EVECFV_QMTXYZ_m.OUT as ket state file
         iqmt1 = iqmt
-        call genfilname(iqmt=iqmt1, auxtype="mqmt", setfilext=.true.)
+        call genfilname(iqmt=iqmt1, auxtype="m", setfilext=.true.)
       end if
 
       ! Use normal M matrix elements
@@ -921,9 +921,9 @@ subroutine b_scrcoulint(iqmt, fra)
         iqmt1 = iqmtgamma
         call genfilname(iqmt=iqmt1, setfilext=.true.)
       else
-        ! Set EVECFV_QMTXYZ_mqmt.OUT as ket state file
+        ! Set EVECFV_QMTXYZ_m.OUT as ket state file
         iqmt1 = iqmt
-        call genfilname(iqmt=iqmt1, auxtype="mqmt", setfilext=.true.)
+        call genfilname(iqmt=iqmt1, auxtype="m", setfilext=.true.)
       end if
 
       ! Use variant of the plane wave routine that calculates N 
@@ -960,9 +960,9 @@ subroutine b_scrcoulint(iqmt, fra)
         iqmt0 = iqmtgamma
         call genfilname(iqmt=iqmt0, setfilext=.true.)
       else
-        ! Set EVECFV_QMTXYZ_mqmt.OUT as bra state file (k-qmt/2 grid)
+        ! Set EVECFV_QMTXYZ_m.OUT as bra state file (k-qmt/2 grid)
         iqmt0 = iqmt
-        call genfilname(iqmt=iqmt0, auxtype="mqmt", setfilext=.true.)
+        call genfilname(iqmt=iqmt0, auxtype="m", setfilext=.true.)
       end if
       filext0 = filext
 

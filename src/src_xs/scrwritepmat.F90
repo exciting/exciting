@@ -7,9 +7,7 @@ subroutine scrwritepmat
   use modxs, only: unitout
   use m_genfilname
 
-  integer(4), parameter :: iqmtgamma = 1
-
-  call genfilname(iqmt=iqmtgamma, scrtype='', setfilext=.true.)
+  call genfilname(scrtype='', setfilext=.true.)
 
   ! Calculate momentum matrix elements
   call writepmatxs

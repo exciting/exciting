@@ -256,8 +256,8 @@ module modbse
         ! Set EVALSV_QMT001.OUT as second reference for the occupation limits search
         call genfilname(iqmt=iqmtgamma, setfilext=.true.)
       else
-        ! Set EVALSV_QMTXYZ_mqmt.OUT as second reference for the occupation limits search
-        call genfilname(iqmt=iqmt, auxtype="mqmt", setfilext=.true.)
+        ! Set EVALSV_QMTXYZ_m.OUT as second reference for the occupation limits search
+        call genfilname(iqmt=iqmt, auxtype="m", setfilext=.true.)
       end if
 
       allocate(io_k(nkpt), iu_k(nkpt))
@@ -545,8 +545,8 @@ module modbse
           ! Set EVALSV_QMTXYZ.OUT as read file
           call genfilname(iqmt=iqmt, setfilext=.true., fileext=filext0)
         else
-          ! Set EVALSV_QMTXYZ_mqmt.OUT as read file
-          call genfilname(iqmt=iqmt, auxtype="mqmt", setfilext=.true., fileext=filext0)
+          ! Set EVALSV_QMTXYZ_m.OUT as read file
+          call genfilname(iqmt=iqmt, auxtype="m", setfilext=.true., fileext=filext0)
         end if
         do ik = 1, nkpt
           call getoccsv0(vkl0(1:3, ik), occsv0(1:nstsv, ik))

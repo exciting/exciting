@@ -4,9 +4,9 @@
 !
 !
 !BOP
-! !ROUTINE: b_xsgeneigvec
+! !ROUTINE: b\_xsgeneigvec
 ! !INTERFACE:
-subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
+subroutine b_xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
 ! !USES:
   use modmpi
   use modinput, only: input
@@ -16,21 +16,21 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
   use m_genfilname, only: genfilname
 ! !INPUT/OUTPUT PARAMETERS:
 ! In:
-!   integer(4) :: qi    ! Range qi:qi+nqpts-1 of momentum transfer Qs form Q-point list
-!   integer(4) :: nqpts ! for which to do one-shot GS runs 
+!   integer(4) :: qi, qf ! Range qi:qf of then nqpts momentum transfer Qs form Q-point list
+!   integer(4) :: nqpts  ! for which to do one-shot GS runs 
 !   real(8)    :: vql(3,nqpts)     ! Q-point vectors form list
 !   real(8)    :: qvkloff(3,nqpts) ! Offsets of corresponding k-grids
 !   logical    :: tscr  ! If true use screening file extension
-!   logical    :: tmqmt ! If true use file extension indicating that -Q was used
+!   logical    :: tmqmt ! If true use file extension indicating that -Q/2 was used
 ! 
 ! !DESCRIPTION:
 !   The routine generates the one-shot GS quantities used in the BSE.
-!   The routine writes the files {\tt APWCMT_*.OUT, EIGVAL_*.OUT, EVALSV_*.OUT,
-!   EVECFV_*.OUT, EVECSV_*.OUT, BONDLENGTH_*.OUT, EFERMI_*.OUT,
-!   LOCMT_*.OUT, OCCSV_*.OUT, geometry_*.xml}. The file extension contains
-!   the number of the considered Q-point {\tt _QMTxyz}, the information whether 
-!   the +Q/2 or -Q/2 shift was used {\tt _mqmt}. If the screening parameter were
-!   used the extension {\tt _SCR} is added.
+!   The routine writes the files {\tt APWCMT\_*.OUT, EIGVAL\_*.OUT, EVALSV\_*.OUT,
+!   EVECFV\_*.OUT, EVECSV\_*.OUT, BONDLENGTH\_*.OUT, EFERMI\_*.OUT,
+!   LOCMT\_*.OUT, OCCSV\_*.OUT, geometry\_*.xml}. The file extension contains
+!   the number of the considered Q-point {\tt \_QMTxyz}, the information whether 
+!   the +Q/2 or -Q/2 shift was used {\tt \_m}. If the screening parameter were
+!   used the extension {\tt \_SCR} is added.
 !
 ! !REVISION HISTORY:
 !   Based on xsgeneigvec
@@ -41,7 +41,7 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
   implicit none
 
   ! Arguments
-  integer(4), intent(in) :: qi, nqpts
+  integer(4), intent(in) :: qi, qf, nqpts
   real(8), intent(in) :: vql(3,nqpts), qvkloff(3,nqpts)
   logical, intent(in) :: tscr, tmqmt
   real(8), parameter :: epslat=1.d-6
@@ -51,14 +51,24 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
   integer(4) :: iq
 
   ! Check 
-  if(qi > nqpts) then 
-    write(*,*) "ERROR(b_xsgeneigvec): qi > nqpts"
+  if(qi > nqpts .or. qi < 1) then 
+    write(*,*) "ERROR(b_xsgeneigvec): qi invalid"
     call terminate
+  end if
+  if(qf > nqpts .or. qf < 1 .or. qf < qi) then 
+    write(*,*) "ERROR(b_xsgeneigvec): qf invalid"
+    call terminate
+  end if
+  if(tscr .and. (qi /= 1 .or. qf /= 1)) then
+    write(*,'("Error(",a,"):&
+      & Screening eigenvectors only needed on (QMT=1) original k-grid.")')&
+      & thisname
+    call terminate()
   end if
 
   ! Ground state SCF already parallelized for k-point set
   ! Calculate eigenvectors for each qmt-point using the passed offsets qvkloff
-  do iq = qi, nqpts
+  do iq = qi, qf
 
     ! Execute a GS run with an offset derived from qmt and 
     ! write eigenvectors, -values and occupancies.
@@ -72,7 +82,7 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
     !
     ! The ending scheme: _SCR to indicate that the screening GS parameter were used
     !                    _QMTXYZ to indicate which qmt list point was used
-    !                    _mqmt to indicate that k-qmt was used instead of k+qmt 
+    !                    _m to indicate that k-qmt/2 was used instead of k+qmt/2 
     !                    
     ! 
     ! Set file extension
@@ -80,13 +90,16 @@ subroutine b_xsgeneigvec(qi, nqpts, vql, qvkloff, tscr, tmqmt)
       if(.not. tmqmt) then 
         call genfilname(iqmt=iq, setfilext=.true.)
       else
-        call genfilname(iqmt=iq, auxtype="mqmt", setfilext=.true.)
+        call genfilname(iqmt=iq, auxtype="m", setfilext=.true.)
       end if
     else 
       if(.not. tmqmt) then 
-        call genfilname(iqmt=iq, scrtype='', setfilext=.true.)
+        call genfilname(scrtype='', setfilext=.true.)
       else
-        call genfilname(iqmt=iq, scrtype='', auxtype="mqmt", setfilext=.true.)
+        write(*,'("Error(",a,"):&
+          & Screening eigenvectors only needed on original k-grid.")')&
+          & thisname
+        call terminate()
       end if
     end if
 

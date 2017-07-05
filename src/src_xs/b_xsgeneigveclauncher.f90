@@ -25,7 +25,7 @@ subroutine b_xsgeneigveclauncher()
 
   ! Local variables
   character(*), parameter :: thisnam = 'b_xsgeneigveclauncer'
-  integer(4) :: iq
+  integer(4) :: iq, qf
   logical :: tmqmt
   logical :: firstisgamma
   real(8), allocatable :: vkloff_kqmtm(:,:)
@@ -33,8 +33,8 @@ subroutine b_xsgeneigveclauncher()
   real(8), parameter :: epslat=1.d-6
   logical :: fwg
 
-  write(*,*) "b_xsgeneigveclauncher here at rank", rank
-  write(*,*) "use screening parameters = ", tscreen 
+  !write(*,*) "b_xsgeneigveclauncher here at rank", rank
+  !write(*,*) "use screening parameters = ", tscreen 
 
   ! Initialize universal variables
   call init0
@@ -66,13 +66,20 @@ subroutine b_xsgeneigveclauncher()
     call terminate
   end if
 
+  ! For the screening only the reference grid is needed.
+  if(tscreen) then
+    qf = 1
+  else
+    qf = nqpt
+  end if
+
   if(rank .eq. 0) then 
     ! Write Q-points
     call writeqmtpts
     call writeqpts
-    do iq = 1, nqpt
+    do iq = 1, qf
       if(tscreen) then 
-        call genfilname(iqmt=iq, scrtype='', setfilext=.true.)
+        call genfilname(scrtype='', setfilext=.true.)
       else
         call genfilname(iqmt=iq, setfilext=.true.)
       end if
@@ -119,14 +126,14 @@ subroutine b_xsgeneigveclauncher()
   call printline(unitout, "+")
   write(unitout, '("One-shot GS runs for k+qmt/2 grids")')
   call printline(unitout, "+")
-  call b_xsgeneigvec(1, nqpt, vql(1:3,1:nqpt), vkloff_kqmtp(1:3,1:nqpt), tscreen, tmqmt)
+  call b_xsgeneigvec(1, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtp(1:3,1:nqpt), tscreen, tmqmt)
   ! (k-qmt/2) grid
-  if(nqpt > 1) then 
+  if(qf > 1) then 
     call printline(unitout, "+")
     write(unitout, '("One-shot GS runs for k-qmt/2 grids")')
     call printline(unitout, "+")
     tmqmt=.true.
-    call b_xsgeneigvec(2, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt), tscreen, tmqmt)
+    call b_xsgeneigvec(2, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt), tscreen, tmqmt)
   end if
 
   deallocate(vkloff_kqmtp)

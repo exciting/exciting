@@ -112,9 +112,9 @@ module m_setup_pwmat
         iqmt0 = iqmtgamma
         call genfilname(iqmt=iqmt0, setfilext=.true.)
       else
-        ! Set EVECFV_QMTXYZ_mqmt.OUT as bra state file
+        ! Set EVECFV_QMTXYZ_m.OUT as bra state file
         iqmt0 = iqmt
-        call genfilname(iqmt=iqmt0, auxtype="mqmt", fileext=filext0)
+        call genfilname(iqmt=iqmt0, auxtype="m", fileext=filext0)
       end if
 
       ! Set EVECFV_QMTXYZ.OUT as ket state file (k+qmt/2 grid)
