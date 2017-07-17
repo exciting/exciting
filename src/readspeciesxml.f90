@@ -58,10 +58,8 @@ Subroutine readspeciesxml
         if ((trim(input%structure%speciespath)/='./').and. &
         &   (trim(input%structure%speciespath)/='.')) then
           write(command,*) "cp" // trim(spfile_string) // " ."
-          ! write(*,*) trim(command)
           call system(trim(command))
-          write(command,*) "f=`basename" // trim(spfile_string) // "`; mv $f ${f//.xml/_ini.xml}"
-          ! write(*,*) trim(command)
+          write(command,*) "f=`basename " // trim(spfile_string) // " .xml`; mv ${f}.xml ${f}_ini.xml" 
           call system(trim(command))
         end if
       end if
