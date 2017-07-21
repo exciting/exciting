@@ -94,10 +94,9 @@ subroutine ematrad(iq)
     write(u33, '(a)') '-----------------------------------------------------'
 
   end if
-
+  
   ! Begin loop over G+q vectors
   do igq = 1, ngq(iq)
-
     ! Begin loop over species
     do is = 1, nspecies
 

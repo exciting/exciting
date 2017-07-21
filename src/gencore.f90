@@ -12,8 +12,16 @@
 !
 Subroutine gencore
 ! !USES:
-      Use modinput
-      Use modmain
+      use modinput, only: input
+      use mod_atoms, only: natoms, idxas, spvr, spnr, nspecies, &
+        & spnst, spcore, spn, spr, spk, spl, spocc, natmmax, &
+        & spnrmax
+      use mod_symmetry, only: eqatoms
+      use mod_muffin_tin, only: nrmt
+      use mod_potential_and_density, only: veffmt
+      use mod_constants, only: y00, fourpi
+      use mod_corestate, only: rhocr, rwfcr, evalcr
+      !Use modmain
 ! !DESCRIPTION:
 !   Computes the core radial wavefunctions, eigenvalues and densities. The
 !   radial Dirac equation is solved in the spherical part of the effective

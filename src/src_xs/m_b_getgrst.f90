@@ -152,7 +152,7 @@ module m_b_getgrst
 
       ! Call to getevecfv with changed default (G+)k-set pointers / matrix size
       evecfvt(:,:,:)=zzero
-      write(*,*) 'filext in b_getevecsv:', filext
+      !write(*,*) 'filext in b_getevecsv:', filext
       call getevecfv(vpl, vgpl, evecfvt)
 
      ! Restore default pointers

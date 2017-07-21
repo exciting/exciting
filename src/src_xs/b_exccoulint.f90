@@ -319,7 +319,6 @@ use m_writecmplxparts
 
     ! and save it for all ik
     ematouk(1:ino, 1:inu, 1:numgq, ik) = mou(1:ino, 1:inu, 1:numgq)
-
     if(mpiglobal%rank == 0) then
       write(6, '(a,"Exccoulint - mou progess:", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(ik-kpari+1)/dble(kparf-kpari+1)
@@ -357,9 +356,6 @@ use m_writecmplxparts
       ! from the BSE k-point index set.
       jknr = kmap_bse_rg(jk)
       jkpnr = k_kqmtm%ik2ikqmt(jknr) 
-
-      !write(*,*)
-      !write(*,*) "jk, jkp=", jknr, jkpnr
 
       ! Get the number of participating occupied/unoccupied
       ! states at current k point
@@ -526,11 +522,11 @@ use m_writecmplxparts
 
       type(bcbs) :: ematbc
       character(256) :: fileext0_save, fileext_save
-
+      integer :: i,j,k
       !write(*,*)
       !write(*,*) "getmou:"
       !write(*,*) "  Mou"
-
+  
       !write(*,*) "shape(mou)", shape(mou)
 
       fileext0_save = filext0
@@ -577,6 +573,7 @@ use m_writecmplxparts
       else
         call b_ematqk(iqmt, iknr, mou, ematbc)
       end if
+      
       !------------------------------------------------------------------!
       if(.false.) then 
         if(fwp) then
@@ -594,9 +591,6 @@ use m_writecmplxparts
       filext0 = fileext0_save
       filext = fileext_save
 
-      !write(*,*)
-      !write(*,*)
-
     end subroutine getmou
 
     subroutine getmuo(muo)
@@ -604,10 +598,6 @@ use m_writecmplxparts
 
       type(bcbs) :: ematbc
       character(256) :: fileext0_save, fileext_save
-
-      !!write(*,*)
-      !!write(*,*) "getmuo:"
-      !!write(*,*) "  Muo"
 
       fileext0_save = filext0
       fileext_save = filext
