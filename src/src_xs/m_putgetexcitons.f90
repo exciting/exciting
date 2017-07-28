@@ -52,6 +52,7 @@ module m_putgetexcitons
     subroutine put_excitons(evals, rvec, avec, iqmt, a1, a2)
       use mod_kpoint, only: ikmap
       use modinput
+      use mod_hdf5
 
       implicit none
 
@@ -66,8 +67,12 @@ module m_putgetexcitons
       logical :: fcoup, fti, fesel
       integer(4) :: i1, i2, nexcstored, iq, m, n, ngridk(3)
 
+      character(128) :: fhdf5, group
       character(256) :: fname
       character(256) :: tdastring, bsetypestring, tistring, scrtypestring
+      
+      ! test variables
+      integer :: test(12,4)
 
       ngridk = input%groundstate%ngridk
       
@@ -137,6 +142,7 @@ module m_putgetexcitons
       else
         tistring=''
       end if
+#ifndef _HDF5_
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)//trim(tistring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
       ! Set filename to EXCCOEFF_*.OUT
@@ -153,9 +159,49 @@ module m_putgetexcitons
         write(*,*)
         call terminate
       end if
-
+#endif
+#ifdef _HDF5_  
+      ! Create hdf5 File
+      call hdf5_initialize()
+      fhdf5="bse_output.h5"
+      call hdf5_create_file(fhdf5)
+      if (.not. hdf5_exist_group(fhdf5,"/","excitons")) then
+        call hdf5_create_group(fhdf5,"/","excitons")
+      end if
+      ! Write Metadata
+      call hdf5_create_group(fhdf5, "/excitons/", "parameters")
+      group= "/excitons/parameters"
+      call hdf5_write(fhdf5,group,"fcoup",fcoup)    ! Was the TDA used?
+      call hdf5_write(fhdf5,group,"fti",fti)
+      call hdf5_write(fhdf5,group,"fesel",fesel)
+      call hdf5_write(fhdf5,group,"nk_max",nk_max)
+      call hdf5_write(fhdf5,group,"nk_bse",nk_bse)
+      call hdf5_write(fhdf5,group,"hamsize",hamsize)
+      call hdf5_write(fhdf5,group,"iq", iq)
+      call hdf5_write(fhdf5,group,"vqlmt(iq)", vqlmt(1,iq), shape(vqlmt(1:3,iq)))
+      call hdf5_write(fhdf5,group,"ngridk", ngridk(1), shape(ngridk))
+      call hdf5_write(fhdf5,group,"ikmap", ikmap(1,1,1), shape(ikmap))
+      call hdf5_write(fhdf5,group,"vkl0", vkl0(1,1), shape(vkl0))
+      call hdf5_write(fhdf5,group,"vkl", vkl(1,1), shape(vkl))
+      call hdf5_write(fhdf5,group,"ikmapikq(iq)",ikmapikq(1,iq), shape(ikmapikq(:,iq)))
+      call hdf5_write(fhdf5,group,"kousize", kousize(1), shape(kousize))
+      call hdf5_write(fhdf5,group,"koulims",koulims(1,1), shape(koulims))
+      call hdf5_write(fhdf5,group,"smap",smap(1,1), shape(smap))
+      call hdf5_write(fhdf5,group,"smap_rel",smap_rel(1,1), shape(smap_rel))
+      call hdf5_write(fhdf5,group,"nexcstored",nexcstored)
+      call hdf5_write(fhdf5,group,"i1",i1)
+      call hdf5_write(fhdf5,group,"i2",i2)
+      call hdf5_write(fhdf5,group,"ioref",ioref)
+      call hdf5_write(fhdf5,group,"iuref",iuref)
+      ! Write actual data
+      call hdf5_write(fhdf5,"/excitons/","evals",evals(1), shape(evals))
+      call hdf5_write(fhdf5,"/excitons/","rvec", rvec(1,1), shape(rvec))
+      if(present(avec)) then
+        call hdf5_write(fhdf5,"/excitons/","avec", avec(1,1), shape(avec))
+      end if 
+      call hdf5_finalize()
       ! Write data 
-
+#else
       !   Meta data
       write(unexc)&
         & fcoup,&       ! Was the TDA used?
@@ -186,11 +232,12 @@ module m_putgetexcitons
       end if
 
       close(unexc)
-
+#endif
     end subroutine put_excitons
 
     subroutine get_excitons(iqmt, a1, a2, e1, e2)
-
+      use mod_hdf5
+      
       integer(4), intent(in), optional :: iqmt, a1, a2
       real(8), intent(in), optional :: e1, e2
 
@@ -205,7 +252,7 @@ module m_putgetexcitons
 
       character(256) :: fname
       character(256) :: tdastring, bsetypestring, tistring, scrtypestring
-
+      character(128) :: group
       if(present(iqmt)) then 
         iq = iqmt
       else
@@ -294,7 +341,9 @@ module m_putgetexcitons
       ! Set filename to EXCCOEFF_*.OUT
       call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
         & scrtype=trim(scrtypestring), filnam=fname)
-
+#ifdef _HDF5_
+      fname="/home/development/testing/hdf5/bse_output.h5"  
+#endif
       ! Check if file exists
       inquire(file=trim(fname), exist=fex)
       if(.not. fex ) then
@@ -303,7 +352,7 @@ module m_putgetexcitons
         write(*,*)
         call terminate
       end if
-
+#ifndef _HDF5_
       ! Open stream access file 
       call getunit(unexc)
       open(unexc, file=trim(fname), access='stream',&
@@ -314,12 +363,32 @@ module m_putgetexcitons
         write(*,*)
         call terminate
       end if
-
-      ! Deallocate arrays
+#endif
+      ! Allocate arrays
       call clear_excitons()
       allocate(vqlmt_(3))
       allocate(ngridk_(3))
 
+#ifdef _HDF5_
+      ! Read Meta data
+      group="/excitons/parameters"
+      write(*,*) 'filename=', fname
+      call hdf5_initialize()
+      call hdf5_read(fname,group,"fcoup",fcoup_)      
+      call hdf5_read(fname,group,"fti",fti_)      
+      call hdf5_read(fname,group,"fesel",fesel_)      
+      call hdf5_read(fname,group,"nk_max",nk_max_)
+      call hdf5_read(fname,group,"nk_bse",nk_bse_)
+      call hdf5_read(fname,group,"hamsize",hamsize_)
+      call hdf5_read(fname,group,"iq", iq_)
+      call hdf5_read(fname,group,"vqlmt(iq)", vqlmt_(1), (/3/))
+      call hdf5_read(fname,group,"ngridk", ngridk_(1), shape(ngridk_))
+      call hdf5_read(fname,group,"nexcstored",nexcstored_)
+      call hdf5_read(fname,group,"i1",iex1_)
+      call hdf5_read(fname,group,"i2",iex2_)
+      call hdf5_read(fname,group,"ioref",ioref_)
+      call hdf5_read(fname,group,"iuref",iuref_)
+#else
       ! Read Meta data
       read(unexc, pos=1)&
         & fcoup_,&       ! Was the TDA used?
@@ -335,7 +404,7 @@ module m_putgetexcitons
         & vqlmt_,&       ! Momentum transver vector
         & ngridk_        ! k-grid spacing
       inquire(unexc, pos=mypos)
-
+#endif  
       ! Check read parameters against requested ones
       if(fcoup_ /= fcoup .or. fti_ /= fti) then 
         write(*,*)
@@ -373,7 +442,17 @@ module m_putgetexcitons
       allocate(smap_rel_(3,hamsize_))
 
       allocate(evalstmp(iex1_:iex2_))
-
+#ifdef _HDF5_
+      call hdf5_read(fname,group,"ikmap", ikmap_(1,1,1), shape(ikmap_))
+      call hdf5_read(fname,group,"vkl0", vkl0_(1,1), shape(vkl0_))
+      call hdf5_read(fname,group,"vkl", vkl_(1,1), shape(vkl_))
+      call hdf5_read(fname,group,"ikmapikq(iq)",ikmapikq_(1), (/nk_max_/))
+      call hdf5_read(fname,group,"kousize", kousize_(1), shape(kousize_))
+      call hdf5_read(fname,group,"koulims",koulims_(1,1), shape(koulims_))
+      call hdf5_read(fname,group,"smap",smap_(1,1), shape(smap_))
+      call hdf5_read(fname,group,"smap_rel",smap_rel_(1,1), shape(smap_rel_))
+      call hdf5_read(fname,"/excitons/","evals",evalstmp(1), shape(evalstmp))
+#else
       read(unexc, pos=mypos)&
         & ikmap_,&      ! Non reduced k-grid index map 3d -> 1d 
         & vkl0_,&       ! Lattice vectors for k grid
@@ -389,7 +468,7 @@ module m_putgetexcitons
       ! Inquire ouput length of a complex number (in units of 4 byte by default)
       inquire(iolength=cmplxlen) zdummy
       cmplxlen=cmplxlen*4
-
+#endif
       if(useenergy) then 
         call energy2index(size(evalstmp), size(evalstmp),&
           & evalstmp(iex1_:iex2_), r1, r2, i1, i2)
@@ -413,7 +492,20 @@ module m_putgetexcitons
       allocate(evals_(i1:i2))
       evals_(:) = evalstmp(i1:i2)
       deallocate(evalstmp)
-
+#ifdef _HDF5_
+      ! Resonant part of the eigenvectors
+      allocate(rvec_(hamsize_, i1:i2))
+      pos1=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
+      call hdf5_read(fname,"/excitons/","rvec", rvec_(1,1), shape(rvec_))
+      if(fcoup_) then  
+        ! Anti-resonant part of the eigenvectors
+        allocate(avec_(hamsize_, i1:i2))
+        pos1=int(iex2_-iex1_+1,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
+        pos2=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+pos1
+        call hdf5_write(fname,"/excitons/","avec", avec_(1,1), shape(avec_))
+      end if
+      call hdf5_finalize()
+#else
       ! Resonant part of the eigenvectors
       allocate(rvec_(hamsize_, i1:i2))
       pos1=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
@@ -426,12 +518,11 @@ module m_putgetexcitons
         pos2=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+pos1
         read(unexc, pos=pos2) avec_
       end if
-
+      close(unexc)
+#endif
       ! Set stored index range
       iex1_ = i1
       iex2_ = i2
-
-      close(unexc)
 
       excitons_allocated = .true.
 

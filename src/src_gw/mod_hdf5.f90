@@ -15,14 +15,16 @@ module mod_hdf5
         module procedure hdf5_write_i4, &
         &                hdf5_write_d,  &
         &                hdf5_write_z,  &
-        &                hdf5_write_c
+        &                hdf5_write_c,  &
+        &                hdf5_write_l
     end interface
 
     interface hdf5_read
         module procedure hdf5_read_i4, &
         &                hdf5_read_d,  &
         &                hdf5_read_z,  &
-        &                hdf5_read_c
+        &                hdf5_read_c,  &
+        &                hdf5_read_l
     end interface
 
     public hdf5_initialize
@@ -183,7 +185,7 @@ contains
         character(*), intent(in) :: fname
         character(*), intent(in) :: path
         character(*), intent(in) :: dname
-        integer, intent(in) :: val
+        integer(4), intent(in) :: val
         integer, optional, dimension(:), intent(in) :: dims
 #ifdef _HDF5_
         integer ndims
@@ -259,6 +261,7 @@ contains
 #endif
     end subroutine
 
+
 !-------------------------------------------------------------------------------    
     subroutine hdf5_read_i4(fname,path,dname,val,dims)
 #ifdef _HDF5_
@@ -268,8 +271,8 @@ contains
         character(*), intent(in) :: fname
         character(*), intent(in) :: path
         character(*), intent(in) :: dname
-        integer, intent(out) :: val
-        integer, optional, dimension(:), intent(in) :: dims
+        integer(4), intent(out) :: val
+        integer(4), optional, dimension(:), intent(in) :: dims
 #ifdef _HDF5_
         integer ndims
         integer, allocatable :: dims_(:)
@@ -373,6 +376,24 @@ contains
     end subroutine
 
 !-------------------------------------------------------------------------------
+    subroutine hdf5_write_l(fname,path,dname,val)
+#ifdef _HDF5_
+        use hdf5
+#endif
+        implicit none
+        character(*), intent(in) :: fname
+        character(*), intent(in) :: path
+        character(*), intent(in) :: dname
+        logical, intent(in) :: val
+#ifdef _HDF5_
+        if (val) then
+          call hdf5_write_array_c("true",1,1,fname,path,dname)
+        else
+          call hdf5_write_array_c("false",1,1,fname,path,dname)
+        end if
+#endif
+    end subroutine
+!-------------------------------------------------------------------------------
     subroutine hdf5_read_c(fname,path,dname,val,dims)
 #ifdef _HDF5_
         use hdf5
@@ -399,7 +420,26 @@ contains
         deallocate(dims_)
 #endif
     end subroutine    
-    
+!-------------------------------------------------------------------------------
+    subroutine hdf5_read_l(fname,path,dname,val)
+#ifdef _HDF5_
+        use hdf5
+#endif
+        implicit none
+        character(*), intent(in) :: fname
+        character(*), intent(in) :: path
+        character(*), intent(in) :: dname
+        logical, intent(out) :: val
+#ifdef _HDF5_
+        character(100) :: val_
+        call hdf5_read_array_c(val_,1,1,fname,path,dname)
+        if (trim(val_) == "true") then
+          val=.TRUE.
+        else
+          val=.FALSE.
+        end if
+#endif
+    end subroutine    
 end module
 
 !===============================================================================

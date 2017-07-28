@@ -83,7 +83,7 @@ module m_writeloss
       ! write relevant parameters to file
       !Call writevars(un, iq, iq)
       Close(un)
-
+#ifndef _HDF5_
       ! write to XML file
       Call xml_OpenFile(trim(fn)//'.xml', xf, replace=.True., pretty_print=.True.)
       Call xml_NewElement(xf, "loss")
@@ -116,7 +116,7 @@ module m_writeloss
       Call xml_AddComment(xf, " Exciting code version : "//trim(adjustl(buffer)))
       Call xml_endElement(xf, "loss")
       Call xml_Close(xf)
-
+#endif
     End Subroutine writeloss
 
 End Module m_writeloss
