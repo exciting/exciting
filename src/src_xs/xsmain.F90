@@ -85,7 +85,9 @@ Subroutine xsmain (plan)
       end if
          Case (321)
      ! ASCII output of momentum matrix elements
-            Call writepmatasc
+          Call xasinit  
+          Call writepmatxs_hdf5
+          Call xasfinit
          Case (322)
      ! convert momentum matrix elements file to old format
             Call pmatxs2orig
