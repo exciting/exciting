@@ -82,7 +82,7 @@ subroutine writederived(iqmt, eps, nw, w)
   gname="spectra"//trim(bsetypestring)//trim(scrtypestring)
 
   !Write optical functions to hdf5
-  call write_hdf5(iqmt, foff, w, eps, loss, sigma, gname)
+  call write_spectra_hdf5(iqmt, foff, w, eps, loss, sigma, gname)
   do o1 = io1, io2
 
     if(foff) then

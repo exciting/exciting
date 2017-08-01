@@ -50,6 +50,7 @@ module m_putgetexcitons
     end subroutine clear_excitons
 
     subroutine put_excitons(evals, rvec, avec, iqmt, a1, a2)
+      use modxs, only: fhdf5
       use mod_kpoint, only: ikmap
       use modinput
       use mod_hdf5
@@ -67,7 +68,7 @@ module m_putgetexcitons
       logical :: fcoup, fti, fesel
       integer(4) :: i1, i2, nexcstored, iq, m, n, ngridk(3)
 
-      character(128) :: fhdf5, group
+      character(128) :: group
       character(256) :: fname
       character(256) :: tdastring, bsetypestring, tistring, scrtypestring
       
@@ -162,15 +163,12 @@ module m_putgetexcitons
 #endif
 #ifdef _HDF5_  
       ! Create hdf5 File
-      call hdf5_initialize()
-      fhdf5="bse_output.h5"
-      call hdf5_create_file(fhdf5)
-      if (.not. hdf5_exist_group(fhdf5,"/","excitons")) then
-        call hdf5_create_group(fhdf5,"/","excitons")
+      if (.not. hdf5_exist_group(fhdf5,"/","eigvec")) then
+        call hdf5_create_group(fhdf5,"/","eigvec")
       end if
       ! Write Metadata
-      call hdf5_create_group(fhdf5, "/excitons/", "parameters")
-      group= "/excitons/parameters"
+      call hdf5_create_group(fhdf5, "/eigvec/", "parameters")
+      group= "/eigvec/parameters"
       call hdf5_write(fhdf5,group,"fcoup",fcoup)    ! Was the TDA used?
       call hdf5_write(fhdf5,group,"fti",fti)
       call hdf5_write(fhdf5,group,"fesel",fesel)
@@ -194,10 +192,10 @@ module m_putgetexcitons
       call hdf5_write(fhdf5,group,"ioref",ioref)
       call hdf5_write(fhdf5,group,"iuref",iuref)
       ! Write actual data
-      call hdf5_write(fhdf5,"/excitons/","evals",evals(1), shape(evals))
-      call hdf5_write(fhdf5,"/excitons/","rvec", rvec(1,1), shape(rvec))
+      call hdf5_write(fhdf5,"/eigvec/","evals",evals(1), shape(evals))
+      call hdf5_write(fhdf5,"/eigvec/","rvec", rvec(1,1), shape(rvec))
       if(present(avec)) then
-        call hdf5_write(fhdf5,"/excitons/","avec", avec(1,1), shape(avec))
+        call hdf5_write(fhdf5,"/eigvec/","avec", avec(1,1), shape(avec))
       end if 
       call hdf5_finalize()
       ! Write data 
@@ -371,7 +369,7 @@ module m_putgetexcitons
 
 #ifdef _HDF5_
       ! Read Meta data
-      group="/excitons/parameters"
+      group="/eigvec/parameters"
       write(*,*) 'filename=', fname
       call hdf5_initialize()
       call hdf5_read(fname,group,"fcoup",fcoup_)      
@@ -451,7 +449,7 @@ module m_putgetexcitons
       call hdf5_read(fname,group,"koulims",koulims_(1,1), shape(koulims_))
       call hdf5_read(fname,group,"smap",smap_(1,1), shape(smap_))
       call hdf5_read(fname,group,"smap_rel",smap_rel_(1,1), shape(smap_rel_))
-      call hdf5_read(fname,"/excitons/","evals",evalstmp(1), shape(evalstmp))
+      call hdf5_read(fname,"/eigvec/","evals",evalstmp(1), shape(evalstmp))
 #else
       read(unexc, pos=mypos)&
         & ikmap_,&      ! Non reduced k-grid index map 3d -> 1d 

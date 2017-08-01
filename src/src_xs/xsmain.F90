@@ -36,11 +36,17 @@ Subroutine xsmain (plan)
 #endif
       Use modxs
       use mod_exciton_wf
+      use mod_hdf5
       Implicit None
       Type (plan_type) :: plan
       Integer :: i
   ! initialization
-!
+#ifdef _HDF5_
+  call hdf5_initialize()
+  fhdf5="bse_output.h5"
+  call hdf5_create_file(fhdf5)
+#endif
+  !
   ! task selection
       Do i = 1, size (plan%doonlyarray)
          task = plan%doonlyarray(i)%doonly%tasknumber
@@ -232,5 +238,9 @@ Subroutine xsmain (plan)
          Call xsfinit
       End Do
   ! summarize information on run
+  ! Finalization
+#ifdef _HDF5_
+  call hdf5_finalize()
+#endif
 !
 End Subroutine xsmain

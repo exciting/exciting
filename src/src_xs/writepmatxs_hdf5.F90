@@ -22,7 +22,7 @@ subroutine writepmatxs_hdf5
   use modxs, only: tscreen, fnpmat, fnpmat_t, kpari,&
                   & kparf, hybridhf, ripaa, ripalo,&
                   & riploa, riplolo, apwcmt, locmt,&
-                  & unitout, iqmtgamma
+                  & unitout, iqmtgamma, fhdf5
   use m_putpmat
   use m_genfilname
   use mod_hdf5
@@ -50,7 +50,6 @@ subroutine writepmatxs_hdf5
   complex(8), allocatable :: pmat(:, :, :)
   character(256) :: string
   logical :: fast
-  character(*), parameter :: fhdf5="bse_output.h5"
   character(*), parameter :: thisname="writepmatxs"
   character(128) :: gname, cik
   ! External functions
@@ -135,8 +134,6 @@ subroutine writepmatxs_hdf5
     call pmatrad
   end if
 #ifdef _HDF5_
-  call hdf5_initialize()
-  call hdf5_create_file(fhdf5)
   if (.not. hdf5_exist_group(fhdf5, "/", "pmat")) then
     call hdf5_create_group(fhdf5,"/", "pmat")
   end if
@@ -189,7 +186,6 @@ subroutine writepmatxs_hdf5
     call hdf5_write(fhdf5,gname,'pmat', pmat(1,1,1), shape(pmat(:,:,:)))
     
   end do kloop
-  call hdf5_finalize()
 #endif
   call barrier(callername=trim(thisname))
 

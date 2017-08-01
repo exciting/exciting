@@ -5,9 +5,10 @@
 subroutine xstasklauncher
   use modinput
   use modmain, only: task
-  use modxs, only: dgrid, nksubpt, iksubpt, temat, doscreen0, vkloff_xs_b,hybridhf,skipgnd
+  use modxs, only: dgrid, nksubpt, iksubpt, temat, doscreen0, vkloff_xs_b, &
+    & hybridhf,skipgnd, fhdf5
   use inputdom
-
+  use mod_hdf5
   implicit none
 
   ! SET DEFAULTS
@@ -240,7 +241,14 @@ subroutine xstasklauncher
 
     !! Removed dubble grid code, since no-one knows how it works.
     !! Removed tetra code, since no-one knows if it works.
-
+    
+    ! HDF5 Initialzation
+#ifdef _HDF5_
+    call hdf5_initialize()
+    fhdf5="bse_output.h5"
+    call hdf5_create_file(fhdf5)
+    write(*,*) 'file created'
+#endif
     ! Task 301 corresponds to "xsgeneigvec" plan
     ! One shot GS calculation with xs%ngridk, xs%nempty and potential xs%vkloff.
     task = 301
@@ -302,11 +310,22 @@ subroutine xstasklauncher
     call b_bselauncher
     call xasfinit
     call xsfinit
-
+    
+    ! HDF5 Finalization
+#ifdef _HDF5_
+    call hdf5_finalize()
+#endif
   else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%beyond==.true.) then
 
     !! Removed dubble grid code, since no-one knows how it works.
     !! Removed tetra code, since no-one knows if it works.
+
+    ! HDF5 Initialzation
+#ifdef _HDF5_
+    call hdf5_initialize()
+    fhdf5="bse_output.h5"
+    call hdf5_create_file(fhdf5)
+#endif
 
     ! Task 301 corresponds to "xsgeneigvec" plan
     ! One shot GS calculation with xs%ngridk, xs%nempty and potential xs%vkloff.
@@ -362,6 +381,10 @@ subroutine xstasklauncher
     call b_bselauncher
     call xsfinit
 
+    ! HDF5 Finalization
+#ifdef _HDF5_
+    call hdf5_finalize()
+#endif
   else
 
      write (*,*) "error xstasklauncher"
