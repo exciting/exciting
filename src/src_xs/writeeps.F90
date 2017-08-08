@@ -34,7 +34,7 @@ module m_writeeps
       character(*), parameter :: thisnam = 'writeeps'
       integer :: n, iw, igqmt
       real(8), allocatable :: imeps(:), kkeps(:)
-
+      character(128) :: fhdf5, group, ciq
       if(any(shape(w) .ne. shape(eps))) then
         write(unitout, '(a)') 'Error(' // thisnam // '): input&
           & arrays have diffenrent shape'
@@ -82,7 +82,7 @@ module m_writeeps
       write(unit1, '(SP,E23.16,1x,E23.16,1x,E23.16,1x,E23.16)')&
         & (w(iw)*escale, eps(iw), kkeps(iw), iw=1, n)
       Close(unit1)
-
+#ifndef _HDF5_
       ! Write to XML file
       Call xml_OpenFile(trim(fn)//'.xml', xf, replace=.True., &
         & pretty_print=.True.)
@@ -125,6 +125,7 @@ module m_writeeps
         & trim(adjustl(buffer)))
       Call xml_endElement(xf, "dielectric")
       Call xml_Close(xf)
+#endif
 
       deallocate(imeps, kkeps)
    end subroutine writeeps

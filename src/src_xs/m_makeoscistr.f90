@@ -77,14 +77,24 @@ module m_makeoscistr
         allocate(projmat(hamsize,nopt))
         ! Generate plane wave matrix elements for G=Gqmt and q=qmt
         igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
+        write(*,*) 'igqmt=', igqmt
         call setup_pwmat(projmat, iqmt, igqmt)
-
+        !do i=1,hamsize
+         ! write(*,*) 'projmat(,',i,')=', projmat(i,1) 
+        !end do
       end if
 
       ! In case of IP the eigenvectors are not computed, manually
       ! matching indexing to eigenvalue sorting.
       if(useip) then 
         projmat(:,:) = projmat(ensortidx,:)
+        do i=1,hamsize
+          if (input%xs%bse%xas) then
+            write(*,*) 'projmat(,',i,')=', abs(projmat(i,1))*sqrt(2.0d0)
+          else
+            write(*,*) 'projmat(,',i,')=', abs(projmat(i,1))
+          end if
+        end do
       end if
 
       !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!

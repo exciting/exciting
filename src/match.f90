@@ -12,15 +12,21 @@
 !
 Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
 ! !USES:
-      Use modinput
-      Use modmain
+      use modinput
+      use mod_constants, only: fourpi, zil
+      use mod_lattice, only: omega
+      use mod_APW_LO, only: apwordmax, apword, apwfr
+      use mod_atoms, only: nspecies, natoms, idxas, spr, natmtot
+      use mod_muffin_tin, only: rmt, nrmt, idxlm, lmmaxapw
+      use mod_Gkvector, only: ngkmax_ptr
+      !Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp    : number of G+p-vectors (in,integer)
-!   gpc    : length of G+p-vectors (in,real(ngkmax))
-!   tpgpc  : (theta, phi) coordinates of G+p-vectors (in,real(2,ngkmax))
-!   sfacgp : structure factors of G+p-vectors (in,complex(ngkmax,natmtot))
+!   gpc    : length of G+p-vectors (in,real(ngkmax_ptr))
+!   tpgpc  : (theta, phi) coordinates of G+p-vectors (in,real(2,ngkmax_ptr))
+!   sfacgp : structure factors of G+p-vectors (in,complex(ngkmax_ptr,natmtot))
 !   apwalm : APW matching coefficients
-!            (out,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
+!            (out,complex(ngkmax_ptr,apwordmax,lmmaxapw,natmtot))
 ! !DESCRIPTION:
 !   Computes the $({\bf G+p})$-dependent matching coefficients for the APW basis
 !   functions. Inside muffin-tin $\alpha$, the APW functions are given by
@@ -53,10 +59,10 @@ Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
       Implicit None
 ! arguments
       Integer, Intent (In) :: ngp
-      Real (8), Intent (In) :: gpc (ngkmax)
-      Real (8), Intent (In) :: tpgpc (2, ngkmax)
-      Complex (8), Intent (In) :: sfacgp (ngkmax, natmtot)
-      Complex (8), Intent (Out) :: apwalm (ngkmax, apwordmax, lmmaxapw, &
+      Real (8), Intent (In) :: gpc (ngkmax_ptr)
+      Real (8), Intent (In) :: tpgpc (2, ngkmax_ptr)
+      Complex (8), Intent (In) :: sfacgp (ngkmax_ptr, natmtot)
+      Complex (8), Intent (Out) :: apwalm (ngkmax_ptr, apwordmax, lmmaxapw, &
      & natmtot)
 ! local variables
       Integer :: np, is, ia, ias, omax
