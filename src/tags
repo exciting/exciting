@@ -18665,7 +18665,7 @@ b_screenlauncher	src_xs/b_screenlauncher.f90	/^subroutine b_screenlauncher$/;"	s
 b_writeexcevec	src_xs/b_writeexcevec.f90	/^subroutine b_writeexcevec$/;"	s
 b_writekpathweights	src_xs/b_writekpathweights.f90	/^subroutine b_writekpathweights$/;"	s
 b_xsgeneigvec	src_xs/b_xsgeneigvec.f90	/^subroutine b_xsgeneigvec(/;"	s
-b_xsgeneigveclauncher	src_xs/b_xsgeneigveclauncher.f90	/^subroutine b_xsgeneigveclauncher$/;"	s
+b_xsgeneigveclauncher	src_xs/b_xsgeneigveclauncher.f90	/^subroutine b_xsgeneigveclauncher(/;"	s
 backup0	src_xs/backup0.F90	/^Subroutine backup0$/;"	s
 backup1	src_xs/backup1.F90	/^Subroutine backup1$/;"	s
 backup2	src_xs/backup2.F90	/^Subroutine backup2$/;"	s
@@ -19519,6 +19519,8 @@ cutoff	src_inputparser/inputmodules.f90	/^ real(8)::cutoff$/;"	k	type:DFTD2param
 cutoff	src_inputparser/inputmodules.f90	/^ real(8)::cutoff$/;"	k	type:TSvdWparameters_type
 cutoffocc	src_xs/modbse.f90	/^  real(8) :: cutoffocc$/;"	v	module:modbse
 cutofftype	src_inputparser/inputmodules.f90	/^ character(512)::cutofftype$/;"	k	type:barecoul_type
+cuttype	src_inputparser/inputmodules.f90	/^ character(512)::cuttype$/;"	k	type:BSE_type
+cuttypenumber	src_inputparser/inputmodules.f90	/^ integer::cuttypenumber$/;"	k	type:BSE_type
 cw1k	src_inputparser/inputmodules.f90	/^ logical::cw1k$/;"	k	type:tetra_type
 cygmcc	src_vdwdf/Cuba-3.2/tools/mcc	/^cygmcc()$/;"	f
 d	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^     &                 resid(/;"	v	program:cnbdr1
@@ -27816,6 +27818,7 @@ string_t	FoX/fsys/fox_m_fsys_string_list.F90	/^  type string_t$/;"	t	module:fox_
 stringtim	src_xs/stringtim.F90	/^Character (256) Function stringtim /;"	f
 stringtonumberBSEblocks	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberBSEblocks(/;"	f	module:modinput
 stringtonumberBSEbsetype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberBSEbsetype(/;"	f	module:modinput
+stringtonumberBSEcuttype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberBSEcuttype(/;"	f	module:modinput
 stringtonumberBSEsciavtype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberBSEsciavtype(/;"	f	module:modinput
 stringtonumberBSExasedge	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberBSExasedge(/;"	f	module:modinput
 stringtonumberHybridexchangetype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberHybridexchangetype(/;"	f	module:modinput

@@ -1,5 +1,5 @@
 !BOP
-! !ROUTINE: setup_bse_block
+! !ROUTINE: b_xsgeneigveclauncher
 ! !INTERFACE:
 subroutine b_xsgeneigveclauncher()
 ! !USES:
@@ -13,8 +13,9 @@ subroutine b_xsgeneigveclauncher()
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
 ! !DESCRIPTION:
-!   Wrapper routine for one-shot ground state calculations
-!   needed for Q-dependent BSE.
+!   Wrapper routine for \texttt{b_xsgeneigvec}. Launches one-shot ground state 
+!   calculations needed for Q-dependent BSE. Note: First Q-point in the Q-point
+!   list needs to be the Gamma point.
 !
 ! !REVISION HISTORY:
 !   Created. 2017 (Aurich)
@@ -33,9 +34,6 @@ subroutine b_xsgeneigveclauncher()
   real(8), parameter :: epslat=1.d-6
   logical :: fwg
 
-  !write(*,*) "b_xsgeneigveclauncher here at rank", rank
-  !write(*,*) "use screening parameters = ", tscreen 
-
   ! Initialize universal variables
   call init0
   ! k-point setup
@@ -53,12 +51,12 @@ subroutine b_xsgeneigveclauncher()
   !   * Generates radial functions (mod_APW_LO)
   call init2
 
+  ! Check if first entry in Q-point list is the Gamma point.
   if(NORM2(totalqlmt(1:3,1)) > epslat) then 
     firstisgamma = .false.
   else
     firstisgamma = .true.
   end if
-
   if(.not. firstisgamma) then 
     if(rank == 0) then 
       write(*,*) "First Q-point needs to be the gamma point."
@@ -67,14 +65,15 @@ subroutine b_xsgeneigveclauncher()
   end if
 
   ! For the screening only the reference grid is needed.
+  ! Note: tscreen is true, for the tasks scrgeneigvec.
   if(tscreen) then
     qf = 1
   else
     qf = nqpt
   end if
 
+  ! Write Q-points
   if(rank .eq. 0) then 
-    ! Write Q-points
     call writeqmtpts
     call writeqpts
     do iq = 1, qf
@@ -93,7 +92,9 @@ subroutine b_xsgeneigveclauncher()
   allocate(vkloff_kqmtm(3,nqpt))
 
   ! For each Q-point in the Q-point list generate grids and
-  ! save offsets.
+  ! save offsets which are needed to call the gound state routine.
+
+  ! Write out detailed information about the used grids.
   if(input%xs%writexsgrids) then 
     fwg = .true.
   else
@@ -118,22 +119,28 @@ subroutine b_xsgeneigveclauncher()
 
   end do
 
-  ! Depending on the BSE hamiltonian to be constructed 
+  ! Depending on the BSE Hamiltonian to be constructed 
   ! the eigensolutions on differing grids are needed.
 
-  ! (k+qmt/2) grid
+  !! (k+qmt/2) grid
   tmqmt=.false.
   call printline(unitout, "+")
   write(unitout, '("One-shot GS runs for k+qmt/2 grids")')
   call printline(unitout, "+")
-  call b_xsgeneigvec(1, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtp(1:3,1:nqpt), tscreen, tmqmt)
-  ! (k-qmt/2) grid
+  ! Do one-shot GS calculations for qmt-points number 1 to qf
+  call b_xsgeneigvec(1, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtp(1:3,1:nqpt),&
+    & tscreen, tmqmt)
+
+  !! (k-qmt/2) grid
+  ! Skip Gamma (assumed to be the first entry)
   if(qf > 1) then 
+    tmqmt=.true.
     call printline(unitout, "+")
     write(unitout, '("One-shot GS runs for k-qmt/2 grids")')
     call printline(unitout, "+")
-    tmqmt=.true.
-    call b_xsgeneigvec(2, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt), tscreen, tmqmt)
+    ! Do one-shot GS calculations for qmt-points number 2 to qf
+    call b_xsgeneigvec(2, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt),&
+      & tscreen, tmqmt)
   end if
 
   deallocate(vkloff_kqmtp)

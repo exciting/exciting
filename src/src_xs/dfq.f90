@@ -132,6 +132,7 @@ subroutine dfq(iq)
   integer(4) :: numpo
   integer(4) :: oct1, oct2, un
   logical :: tq0
+  logical :: doares
   type(bcbs) :: bc
 
   ! External functions
@@ -170,12 +171,27 @@ subroutine dfq(iq)
 
   ! Zero broadening for analytic continuation
   brd = input%xs%broad
+  ! acont defaults to false
   if(input%xs%tddft%acont) brd = 0.d0
 
 !! DISCUSS
-  ! Zero broadening for dielectric matrix (w=0) for band-gap systems
+  doares = .true.
   ! Task 430 is 'screen'
-  if(task .eq. 430) brd = 0.d0
+  if(task .eq. 430) then 
+    ! Zero broadening for dielectric matrix (w=0) for band-gap systems
+    brd = 0.d0
+    ! Calculate anti-resonant part of chi explicitly ?
+    !   Old version does not explicitly calculate ares part
+    if( (.not. input%xs%screening%tr) .and. (.not. input%xs%bse%beyond)) then
+      write(*,*) "Old BSE needs input%xs%screening%tr = true"
+      call terminate
+    end if
+    if( .not. input%xs%bse%beyond) then
+      doares = .false.
+    else
+      doares = .not. input%xs%screening%tr
+    end if
+  end if
 
   ! File extension for q-point (not in 'screen')
   if( .not. tscreen) call genfilname(iqmt=iq, setfilext=.true.)
@@ -363,10 +379,12 @@ subroutine dfq(iq)
   ! Real frequency grid
   wreal(:) = dble(w(wi:wf))
 
-  ! Set first real frequency to 10^{-8}
-  !! For task 'screen' this sets the zero frequency to 10^{-8},
-  !! why is that needed?
-  if(wreal(1) .lt. epstetra) wreal(1) = epstetra
+  ! Tetra is not used with beyond, use w = 0
+  if(.not. input%xs%bse%beyond) then 
+    ! Set first real frequency to 10^{-8}
+    !! For task 'screen' this sets the zero frequency to 10^{-8},
+    if(wreal(1) .lt. epstetra) wreal(1) = epstetra
+  end if
 
   ! Zeroing chi arrays
   chi0(:, :, :) = zzero
@@ -420,18 +438,26 @@ subroutine dfq(iq)
     ! and occupancy differences for current k+q/k point combination 
     ! and the specified band ranges.
     ! ou
+    !   deou = e_{ok} - e_{uk+q}
+    !   docc12 = f_{ok} - f_{uk+q}
     call getdevaldoccsv(iq, ik, ikq, istl1, istu1, istl2, istu2,&
       & deou, docc12, scis12)
-    ! uo
-    call getdevaldoccsv(iq, ik, ikq, istl2, istu2, istl1, istu1,&
-      & deuo, docc21, scis21)
+
+    if(doares) then
+      ! uo
+      !   deuo = e_{uk} - e_{ok+q}
+      !   docc21 = f_{uk} - f_{ok+q}
+      call getdevaldoccsv(iq, ik, ikq, istl2, istu2, istl1, istu1,&
+        & deuo, docc21, scis21)
+    end if
 
     ! Create copies of scissor shifts
     scis12c(:,:)=scis12(:,:)
     scis21c(:,:)=scis21(:,:)
 
     if(tscreen) then
-      ! Do not use scissors correction for screening
+
+      ! Do not use scissors correction for screening (why?)
       if(task .eq. 430) then
         scis12c(:, :) = zzero
         scis21c(:, :) = zzero
@@ -465,18 +491,28 @@ subroutine dfq(iq)
         call setptr01
         call b_ematqk(iq, ik, xiou, bc)
 
+
         ! Get uo
         if(allocated(xiuo)) deallocate(xiuo)
         allocate(xiuo(nst3, nst4, n))
-        bc%n1 = nst3
-        bc%n2 = nst4
-        bc%il1 = istl3
-        bc%il2 = istl4
-        bc%iu1 = istu3
-        bc%iu2 = istu4
-        ikmapikq_ptr => ikmapikq
-        call setptr01
-        call b_ematqk(iq, ik, xiuo, bc)
+
+        ! Note:
+        ! The uo plane wave matrix elements are not needed
+        ! if the time reversal symmetry is applied to the 
+        ! anti-resonant part of Chi0. 
+
+        ! t.r. sym not used
+        if( doares ) then
+          bc%n1 = nst3
+          bc%n2 = nst4
+          bc%il1 = istl3
+          bc%il2 = istl4
+          bc%iu1 = istu3
+          bc%iu2 = istu4
+          ikmapikq_ptr => ikmapikq
+          call setptr01
+          call b_ematqk(iq, ik, xiuo, bc)
+        end if
 
       end if
 
@@ -484,6 +520,7 @@ subroutine dfq(iq)
 !********************************************************!
 
     ! Add BSE diagonal shift use with bse-kernel
+    ! For 'screen' this is all zero
     scis12c(:, :) = scis12c(:, :) + bsedg(:, :)
     scis21c(:, :) = scis21c(:, :) + transpose(bsedg(:, :))
 
@@ -493,11 +530,16 @@ subroutine dfq(iq)
     !     p12=-Sqrt{4pi}P12/dE12, 
     !     p34=-Sqrt{4pi}P34/dE34
     ! Momentum matrix elements are always read from file.
-    ! If tscreen, then xiou and xiou need to be already present 
-    ! in modxs.
+    ! NOTE: If tscreen, then xiou and xiou need to be already present 
+    ! in modxs. And they are used implicitly as intent inout.
 
-    call getpemat(iq, ik, trim(fnpmat), trim(fnemat),&
-      & m12=xiou, m34=xiuo, p12=pmou, p34=pmuo)
+    if(doares) then
+      call getpemat(iq, ik, trim(fnpmat), trim(fnemat),&
+        & m12=xiou, m34=xiuo, p12=pmou, p34=pmuo)
+    else
+      call getpemat(iq, ik, trim(fnpmat), trim(fnemat),&
+        & m12=xiou, p12=pmou)
+    end if
 
     ! Set matrix elements to one for Lindhard function (default is false)
     if(input%xs%tddft%lindhard) then
@@ -536,44 +578,39 @@ subroutine dfq(iq)
 #endif            
     end if
 
-!****************** Plane wave elements magic  WRONG ??******************!
-    ! Old behaviour - no idea why that should be right
-    if(tscreen .and. .not. input%xs%bse%beyond) then
-      ! we don't need anti-resonant parts here, assign them the same
-      ! value as for resonant parts, resulting in a factor of two.
-      do igq = 1, n
-        ! v^1/2(G,q)*M_uo(G,q) = v^1/2(G,q)*M_ou(G,q) ( ???? )
-        xiuo(:, :, igq) = transpose(xiou(:, :, igq))
-      end do
-      do j = 1, 3
-        ! v^1/2(G)*p_uo(G) = v^1/2(G)*p_ou(G) ( ???? )
-        pmuo(j, :, :) = transpose(pmou(j, :, :))
-      end do
-      ! (????)
-      deuo(:, :) = transpose(deou(:, :))
-      docc21(:, :) = transpose(docc12(:, :))
-      scis21c(:, :) = transpose(scis12c(:, :))
+    !! Time reversal symmetry treatment of anti-resonant part of chi0 in the 
+    !! case of static screening without broadening.
+    !if(tscreen) then
 
-    end if
-!***************************************************************!
+    !  if(input%xs%screening%tr) then 
 
-    if(.false.) then 
-      ! Test output
-      if(rank == 0) then
-        if(iq == 1) then 
-          call writecmplxparts('vemat_ou',dble(xiou(:,:,1)),immat=aimag(xiou(:,:,1)),ik1=iq)
-          call writecmplxparts('vemat_uo',dble(xiuo(:,:,1)),immat=aimag(xiuo(:,:,1)),ik1=iq)
-          call writecmplxparts('vp1mat_ou',dble(pmou(1,:,:)),immat=aimag(pmou(1,:,:)),ik1=iq)
-          call writecmplxparts('vp1mat_uo',dble(pmuo(1,:,:)),immat=aimag(pmuo(1,:,:)),ik1=iq)
-        end if
-        if(iq == 2) then 
-          call writecmplxparts('vemat_ou',dble(xiou(:,:,1)),immat=aimag(xiou(:,:,1)),ik1=iq)
-          call writecmplxparts('vemat_uo',dble(xiuo(:,:,1)),immat=aimag(xiuo(:,:,1)),ik1=iq)
-          call writecmplxparts('vp1mat_ou',dble(pmou(1,:,:)),immat=aimag(pmou(1,:,:)),ik1=iq)
-          call writecmplxparts('vp1mat_uo',dble(pmuo(1,:,:)),immat=aimag(pmuo(1,:,:)),ik1=iq)
-        end if
-      end if
-    end if
+    !    ! Since omega=0 and brd=0, we can use the time reversal symmetry
+    !    ! to equate the anti-resonant part of Chi0 with the resonant one.
+    !    ! We repace the uo quantities with the ou one in the following,
+    !    ! this amounts Chi0 = 2*Chi0^{res}
+    !     
+    !    do igq = 1, n
+    !      ! v^1/2(G,q)*M_uo(G,q) <-- v^1/2(G,q)*M_ou(G,q)
+    !      xiuo(:, :, igq) = transpose(xiou(:, :, igq))
+    !    end do
+
+    !    do j = 1, 3
+    !      ! sqrt(4pi)*p_uo <-- sqrt(4pi)*p_ou
+    !      pmuo(j, :, :) = transpose(pmou(j, :, :))
+    !    end do
+
+    !    ! deuo = e_{uk} - e_{ok+q} <-- deou = e_{ok} - e_{uk+q}
+    !    deuo(:, :) = transpose(deou(:, :))
+
+    !    ! docc21 = f_{uk} - f_{ok+q} <-- docc12 = f_{ok} - f_{uk+q}
+    !    docc21(:, :) = transpose(docc12(:, :))
+
+    !    ! Scissors are set to 0 anyways?
+    !    scis21c(:, :) = transpose(scis12c(:, :))
+
+    !  end if
+
+    !end if
 
     ! Not screen: Turn off anti-resonant terms (type 2-1 band combinations) for Kohn-Sham
     ! response function (default skip if)
@@ -611,38 +648,37 @@ subroutine dfq(iq)
         ! transitions from energetically higher to lower bands.
         ! Exclude diagonal for momentum matrix, since weights should be 
         ! zero due to f_nk-f_nk (q is always 0 for momentum matrix).
-        if(input%xs%bse%beyond) then
-          if(ist1 .ge. ist2) then
-            pmou(:, j, ist2) = zzero
-          end if
-        else ! Old behaviour
-          if(ist1 .gt. ist2) then
-            pmou(:, j, ist2) = zzero
-          end if
+
+        ! >= (p is used for q=0, and no intraband is possible)
+        if(ist1 .ge. ist2) then
+          pmou(:, j, ist2) = zzero
         end if
         if(ist1 .gt. ist2) then
           xiou(j, ist2, :) = zzero
         end if
-        ! Set diagonal to zero (project out intra-band contributions)
-        ! intra-band input defaults to "false"
-!! Intra-band contribution should be "true" by default for any one zero q.
-        if( ist1 .eq. ist2) then 
-          if(.not. input%xs%tddft%intraband .and. .not. input%xs%bse%beyond) then
-            xiou(j, ist2, :) = zzero
-          else if(input%xs%bse%beyond .and. .not. input%xs%bse%intraband) then
-            xiou(j, ist2, :) = zzero
-          end if
-          if(.not. input%xs%bse%beyond) then ! Old behaviour
-            pmou(:, j, ist2) = zzero
+        if(.not. doares) then 
+          ! Account for double counting of interband contributions
+          ! when Chi0 = 2*Chi0^Res is used.
+          if(ist1 .eq. ist2) then
+            xiou(j, ist2, :) = xiou(j, ist2, :)*0.5d0
           end if
         end if
-        ! Set upper triangle of pu/po block to zero, i.e. allow only
-        ! transitions from energetically lower to higher bands.
-        ! The diagonal needs to be excluded since those transitions
-        ! are already included in M_ou.
-        if(ist1 .ge. ist2) then
-          xiuo(ist2, j, :) = zzero
-          pmuo(:, ist2, j) = zzero
+        ! Set diagonal to zero (project out intra-band contributions)?
+        ! Intraband default changed to true
+        if( ist1 .eq. ist2) then 
+          if(.not. input%xs%tddft%intraband) then
+            xiou(j, ist2, :) = zzero
+          end if
+        end if
+        if(doares) then
+          ! Set upper triangle of pu/po block to zero, i.e. allow only
+          ! transitions from energetically lower to higher bands.
+          ! The diagonal needs to be excluded since those transitions
+          ! are already included in M_ou.
+          if(ist1 .ge. ist2) then
+            xiuo(ist2, j, :) = zzero
+            pmuo(:, ist2, j) = zzero
+          end if
         end if
       ! End loop over partial occupied bands
       end do
@@ -726,15 +762,24 @@ subroutine dfq(iq)
           ! Build weights for all frequencies including occupation number differences
           do iw=wi,wf
             ! Get resonant weight
-            !   Get energy denominator
+            !   Get energy denominator 
+            ! Note: For 'screen' scis12c=0, brd=0 and w only contains w(1) = 0
+            !       --> zt1 = e_{ok} - e_{uk+q}
             zt1=w(iw)+deou(ist1, ist2)+scis12c(ist1,ist2)+zi*brd
             !   Check for vanishing denominators in case of screening (no broadening)
             if(abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
 ! Discuss: Should the weight be wkpt0?
+            ! Note: For 'screen' : wou = (f_{ok} - f_{uk+q})/(e_{ok} - e_{uk+q})
             wou(iw,ist1,ist2) = docc12(ist1, ist2) * wkpt(ik) / omega / zt1
-            ! Get anti-resonant weight
+            ! Get anti-resonant weight 
+            ! Note: tordf defaults to 1, yielding the retarded response. 
+            !       For the time orderded resoponse set input%xs%tddft%torddf=true (tordf = -1)
+            ! Note: For 'screen': zt1 = e_{uk} - e_{ok+q}
+            !       or for t.r. sym. : zt1 = e_{ok} - e_{uk+q}
             zt1=w(iw)+deuo(ist2, ist1)+scis21c(ist2,ist1)+tordf*zi*brd
             if(abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
+            ! Note: For 'screen' : wuo = (f_{uk} - f_{ok+q})/(e_{uk} - e_{ok+q})
+            !       or for t.r. sym: wuo = wou (relies of w=0 and brd=0)
             wuo(iw,ist1,ist2) = docc21(ist2, ist1) * wkpt(ik) / omega / zt1
           end do
 
@@ -755,6 +800,8 @@ subroutine dfq(iq)
         ! zv_ou = v^{1/2} M_ou 
         zvou(:) = xiou(ist1, ist2, :)
         ! zv_uo = v^{1/2} M_uo 
+        ! Note: For 'screen' and t.r. sym xiou(1,2,:) = xiuo(2,1,:)
+        !       i.e. zvou(:) = zvuo(:)
         zvuo(:) = xiuo(ist2, ist1, :)
 
         ! Treatments of head and wings of of chi
@@ -763,29 +810,45 @@ subroutine dfq(iq)
           G0: if(tq0) then
 
             do oct1 = 1, 3
-              ! Wings G=0,G'/=0,q=0
-              chi0w(2:, 1, oct1, iw-wi+1) = chi0w(2:, 1, oct1, iw-wi+1)&
-                &+ wouw(iw) * pmou(oct1, ist1, ist2) * conjg(zvou(2:))&
-                &+ wuow(iw) * pmuo(oct1, ist2, ist1) * conjg(zvuo(2:))
-              chi0w(2:, 2, oct1, iw-wi+1) = chi0w(2:, 2, oct1, iw-wi+1)&
-                &+ wouw(iw) * zvou(2:) * conjg(pmou(oct1, ist1, ist2))&
-                &+ wuow(iw) * zvuo(2:) * conjg(pmuo(oct1, ist2, ist1))
+
+              if(doares) then
+                ! Wings G=0,G'/=0,q=0
+                chi0w(2:, 1, oct1, iw-wi+1) = chi0w(2:, 1, oct1, iw-wi+1)&
+                  &+ wouw(iw) * pmou(oct1, ist1, ist2) * conjg(zvou(2:))&
+                  &+ wuow(iw) * pmuo(oct1, ist2, ist1) * conjg(zvuo(2:))
+                chi0w(2:, 2, oct1, iw-wi+1) = chi0w(2:, 2, oct1, iw-wi+1)&
+                  &+ wouw(iw) * zvou(2:) * conjg(pmou(oct1, ist1, ist2))&
+                  &+ wuow(iw) * zvuo(2:) * conjg(pmuo(oct1, ist2, ist1))
+              else
+                ! Wings G=0,G'/=0,q=0
+                chi0w(2:, 1, oct1, iw-wi+1) = chi0w(2:, 1, oct1, iw-wi+1)&
+                  &+ wouw(iw) * pmou(oct1, ist1, ist2) * conjg(zvou(2:))
+                chi0w(2:, 2, oct1, iw-wi+1) = chi0w(2:, 2, oct1, iw-wi+1)&
+                  &+ wouw(iw) * zvou(2:) * conjg(pmou(oct1, ist1, ist2))
+              end if
 
               do oct2 = 1, 3
-                ! Head G=0,G'=0,q=0
-                if(.not.input%xs%tddft%ahc) then
-                  chi0h(oct1, oct2, iw-wi+1) = chi0h(oct1, oct2, iw-wi+1)&
-                    &+ wouh(iw) * pmou(oct1, ist1, ist2) * conjg(pmou(oct2, ist1, ist2))&
-                    &+ wuoh(iw) * pmuo(oct1, ist2, ist1) * conjg(pmuo(oct2, ist2, ist1))
+
+                if(doares) then
+                  ! Head G=0,G'=0,q=0
+                  if(.not.input%xs%tddft%ahc) then
+                    chi0h(oct1, oct2, iw-wi+1) = chi0h(oct1, oct2, iw-wi+1)&
+                      &+ wouh(iw) * pmou(oct1, ist1, ist2) * conjg(pmou(oct2, ist1, ist2))&
+                      &+ wuoh(iw) * pmuo(oct1, ist2, ist1) * conjg(pmuo(oct2, ist2, ist1))
+                  else
+                    ! Treatment for anomalous hall conductivity
+                    winv=1.0d0/(w(iw)+zi*brd)
+                    if(abs(w(iw)).lt.1.d-8) winv=1.d0
+                    chi0h(oct1, oct2, iw-wi+1) = chi0h(oct1, oct2, iw-wi+1)&
+                      &+ wouh(iw) * pmou(oct1, ist1, ist2) * conjg(pmou(oct2, ist1, ist2))&
+                      &* deou(ist1, ist2) * winv&
+                      &+ wuoh(iw) * pmuo(oct1, ist2, ist1) * conjg(pmuo(oct2, ist2, ist1))&
+                      &* deuo(ist2, ist1) * winv 
+                  end if
                 else
-                  ! Treatment for anomalous hall conductivity
-                  winv=1.0d0/(w(iw)+zi*brd)
-                  if(abs(w(iw)).lt.1.d-8) winv=1.d0
+                  ! Head G=0,G'=0,q=0
                   chi0h(oct1, oct2, iw-wi+1) = chi0h(oct1, oct2, iw-wi+1)&
-                    &+ wouh(iw) * pmou(oct1, ist1, ist2) * conjg(pmou(oct2, ist1, ist2))&
-                    &* deou(ist1, ist2) * winv&
-                    &+ wuoh(iw) * pmuo(oct1, ist2, ist1) * conjg(pmuo(oct2, ist2, ist1))&
-                    &* deuo(ist2, ist1) * winv 
+                    &+ wouh(iw) * pmou(oct1, ist1, ist2) * conjg(pmou(oct2, ist1, ist2))
                 end if
 
               end do
@@ -807,12 +870,13 @@ subroutine dfq(iq)
     allocate(zm(n,nst1,nst2))
     do iw=wi,wf
       ! zm_ou(G) = ( w_ou(omega) * \tilde{M}_{ou}(G) )^*
+      ! Note: For 'screen' only wou(0) is used and it is real-valued since no broadening is used
       do ist2 = 1, nst2
         do ist1 = 1, nst1
           zm(:,ist1,ist2)=conjg(wou(iw,ist1,ist2)*xiou(ist1,ist2,:))
         end do
       end do
-      ! Chi0(omega)_{GG'} = Sum_{ou} zmou_{GG1} * xiou{G1G'} + Chi0(omega)_{GG'}
+      ! Chi0(omega)_{GG'} = Sum_{ou} zmou_{G ou} * xiou{ou G'} + Chi0(omega)_{GG'}
       !   The lapack routine considers zm to be of the shape zm(n,*)
       !   and xiou to be in the form xiou(*,n). 
       !   That means: zm(:,ist1,ist2) -> zm(:, ist1+(ist2-1)*nst1)
@@ -823,19 +887,24 @@ subroutine dfq(iq)
     ! Energy loop
     end do
 
-    ! Calculate anti-resonant contributions to chi (actually chi^*)
-    ! Allocate helper array for matrix matrix multiplication anti-resonant
-    deallocate(zm)
-    allocate(zm(n,nst2,nst1))
-    do iw=wi,wf
-      do ist2 = 1, nst2
-        do ist1 = 1, nst1
-          zm(:,ist2,ist1)=conjg(wuo(iw,ist1,ist2)*xiuo(ist2,ist1,:))
+    if( doares ) then
+      ! Calculate anti-resonant contributions to chi (actually chi^*)
+      ! Allocate helper array for matrix matrix multiplication anti-resonant
+      deallocate(zm)
+      allocate(zm(n,nst2,nst1))
+      do iw=wi,wf
+        ! Note: For 'screen' only wuo(0) is used and it is real-valued since no broadening is used
+        !       if t.r. sym. is used wuo = wou and xiuo = xiou. So the matrix multiplication 
+        !       just adds the same as the resonant part.
+        do ist2 = 1, nst2
+          do ist1 = 1, nst1
+            zm(:,ist2,ist1)=conjg(wuo(iw,ist1,ist2)*xiuo(ist2,ist1,:))
+          end do
         end do
+        call zgemm('n', 'n', n, n, nst1*nst2, zone, zm(1,1,1),&
+          & n, xiuo(1,1,1), nst1*nst2, zone, chi0(1,1,iw-wi+1), n)
       end do
-      call zgemm('n', 'n', n, n, nst1*nst2, zone, zm(1,1,1),&
-        & n, xiuo(1,1,1), nst1*nst2, zone, chi0(1,1,iw-wi+1), n)
-    end do
+    end if
 
     ! Timing
     call timesec(cpu1)
@@ -859,7 +928,15 @@ subroutine dfq(iq)
 
   ! The way the helper array zm was constructed, actually
   ! the complex conjugated of chi was computed. Now fix that:
-  chi0(:,:,:)=conjg(chi0(:,:,:))
+  ! Also multiply by 2 to include antires contributions, if
+  ! they were omitted
+  if(.not. doares) then 
+    chi0=2.0d0*conjg(chi0)
+    chi0w = 2.0d0 * chi0w
+    chi0h = 2.0d0 * chi0h
+  else
+    chi0=conjg(chi0)
+  end if
 
   ! Semi-classical Drude approximation to intraband terms
   ! Default drude = [0.0 0.0]
@@ -917,6 +994,7 @@ subroutine dfq(iq)
     ! Write out symmetrized dielectric function/tensor 
 
     ! Write out static (\omega = 0) screening for current q to text file
+    ! eps = 1 - chi0
     call getunit(un)
     open(un, file=trim(fnscreen), form='formatted', action='write', status='replace')
     call putscreen(un, tq0, n, chi0(:, :, 1), chi0h(:, :, 1), chi0w(:, :, :, 1))

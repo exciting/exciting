@@ -270,7 +270,7 @@
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
+            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="true">
               <xs:annotation>
                 <xs:documentation> By setting it to <pre>"true"</pre>, the intraband
                   contribution is included in the calculation for the finite q. 
@@ -568,6 +568,15 @@
                   <xs:enumeration value="skip"/>
                 </xs:restriction>
               </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="tr" type="xs:boolean"
+              default="true">
+              <xs:annotation>
+                <xs:documentation>
+                  <attref>tr</attref> is <pre>"true"</pre> if the time reversal symmetry is used to equate the 
+                  anit-resonant with the resonant part of Chi0 in the case of static screening without broadening.
+                </xs:documentation>
+              </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nosym" type="xs:boolean"
               default="false">
