@@ -26,6 +26,12 @@ subroutine b_screenlauncher
   use mod_Gkvector, only: gkmax
   use m_b_ematqk
 ! !DESCRIPTION:
+!   This is a wrapper routine for the call of \texttt{dfq.f90} in
+!   the screen task of the BSE calculation. It stats the calculation
+!   of the Kohn-Sham dielectric matrix (in RPA) for the q-points
+!   formed from the k-point differences $\vec{q} = \vec{k}'-\vec{k}$. 
+!   If the BSE coupling blocks are included, the dielectric matrix is also calculated for
+!   a shifted set of q-point which are formed form $q = -\vec{k}'-\vec{k}$.
 ! 
 ! !REVISION HISTORY:
 !   Added to documentation scheme. (Aurich)
@@ -42,8 +48,6 @@ subroutine b_screenlauncher
   real(8) :: pgridoff(3)
   character(256) :: filex, syscommand
   character(*), parameter :: thisname = 'b_screenlauncher'
-
-  !write(*,*) "b_screenlauncher here at rank ", rank
 
   ! Initialise universal variables
   call init0
@@ -150,22 +154,25 @@ subroutine b_screenlauncher
     write(unitout, *)
   end if
 
+  !! Set parameters for the plane-wave matrix element calculation,
+  !! e.g. which files to use for bra and ket states.
+  !
   ! Set *_SCR.OUT as bra state file
   usefilext0 = .true.
   iqmt0 = 1
   call genfilname(scrtype='', fileext=filext0)
-
+  !
   ! Set *_SCR.OUT as ket state file
   iqmt1 = 1
   call genfilname(scrtype='', setfilext=.true.)
-
-  ! Set *.OUT as file extension for screening files
-  call genfilname(fileext=filexteps)
-
+  !
   ! Use <mk|e^{-i(G+q)r}|nk'> for q=k'-k in dfq
   emat_ccket = .false.
   ! Set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
   input%xs%emattype = 1
+
+  ! Set *.OUT as file extension for screening files
+  call genfilname(fileext=filexteps)
 
   ! Use q point parallelization instead of frequency w points
   call genparidxran('q', nqpt)
@@ -262,6 +269,7 @@ subroutine b_screenlauncher
         ikmapikq(1:nkpt,iq) = pqmt%ikip2ikp_nr(1:nkpt,iqnr)
       end do
 
+      ! Info output
       if(rank == 0) then
         call printline(unitout, "+")
         write(unitout, '(a)') 'Info(' // thisname // '):&
@@ -286,11 +294,13 @@ subroutine b_screenlauncher
         call writeqpts
       end if
 
+      !! Set which files to use in pwe construction
+      !
       ! Set *_SCR.OUT as bra state file
       usefilext0 = .true.
       iqmt0 = 1
       call genfilname(scrtype='', fileext=filext0)
-
+      !
       ! Set *_SCR.OUT as ket state file
       iqmt1 = 1
       call genfilname(scrtype='', setfilext=.true.)

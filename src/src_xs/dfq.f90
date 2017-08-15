@@ -102,8 +102,9 @@ subroutine dfq(iq)
 !   Created March 2005 (Sagmeister)
 !   Added band and k-point analysis, 2007-2008 (Sagmeister)
 !   Changed parts that are unique to execution of dfq with tscreen = true (Aurich)
-!     Changed Plane wave matrix elements construction 
+!     Changed Plane wave matrix elements construction call
 !     Changed write out of EPS
+!     Added possibility to fully calculate anti-resonant part
 !EOP
 !BOC
 
