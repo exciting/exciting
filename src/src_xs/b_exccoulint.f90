@@ -30,17 +30,11 @@ subroutine b_exccoulint(iqmt)
   use m_putgetbsemat
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
-
-use m_writecmplxparts
 ! !DESCRIPTION:
 !   Calculates the exchange term of the Bethe-Salpeter Hamiltonian.
 !
 ! !REVISION HISTORY:
-!   Created June 2008 (S. Sagmeister)
-!   Addition of explicit energy ranges for states below and above the Fermi
-!   level for the treatment of core excitations(using local orbitals).
-!   October 2010 (Weine Olovsson)
-!   Forked from exccoulint.F90 and adapted for non TDA BSE. (Aurich)
+!   Forked from exccoulint.F90 and adapted for non-TDA and Q-dependent BSE. (Aurich)
 !EOP
 !BOC      
 
@@ -204,13 +198,15 @@ use m_writecmplxparts
   call init1offs(k_kqmtp%kqmtset%vkloff)
   ! Check whether k+-qmt/2 grids are identical to k grid
   if(all(abs(k_kqmtp%kqmtset%vkloff-k_kqmtp%kset%vkloff) < epslat)) then 
-    write(unitout, '("Info(b_exccoulint): k+qmt/2-grid is identical for to iqmt=1 grid, iqmt=",i3)') iqmt
+    write(unitout, '("Info(b_exccoulint):&
+      & k+qmt/2-grid is identical to iqmt=1 grid for, iqmt=",i3)') iqmt
     fsamekp=.true.
   else
     fsamekp=.false.
   end if
   if(all(abs(k_kqmtm%kqmtset%vkloff-k_kqmtm%kset%vkloff) < epslat)) then 
-    write(unitout, '("Info(b_exccoulint): k-qmt/2-grid is identical for to iqmt=1 grid, iqmt=",i3)') iqmt
+    write(unitout, '("Info(b_exccoulint):&
+      & k-qmt/2-grid is identical to iqmt=1 grid for, iqmt=",i3)') iqmt
     fsamekm=.true.
   else
     fsamekm=.false.
@@ -238,7 +234,7 @@ use m_writecmplxparts
   ! of the plane wave matrix elements for exponent (qmt+G)
   call ematrad(iqmt)
 
-  ! Allocate \bar{v}_{G}(qmt)
+  ! Allocate \bar{v}_{G}(qmt) (or v_{G}(qmt))
   allocate(potcl(numgq))
   potcl = 0.d0
 
@@ -252,6 +248,7 @@ use m_writecmplxparts
   allocate(muo(nu_bse_max, no_bse_max, numgq))
   muo = zzero
 
+  ! Info out
   if(mpiglobal%rank == 0) then
     write(unitout, *)
     write(unitout, '("Info(b_exccoulint):&
@@ -281,6 +278,10 @@ use m_writecmplxparts
 
     ! Get the number of participating occupied/unoccupied
     ! states at current k point
+    ! Note: Needs to be adapted to consider the occupations
+    ! at k+qmt/2 and k-qmt/2. Currently the are considered to be
+    ! the same limits as those at k itself.
+    ! For insulators and band-selection this is the same.
     inu = koulims(2,iknr) - koulims(1,iknr) + 1
     ino = koulims(4,iknr) - koulims(3,iknr) + 1
 
@@ -375,9 +376,6 @@ use m_writecmplxparts
     !! needed.
 
     ! Get total k point indices
-    !write(*,*)
-    !write(*,'(a, i4)') "ikkp =", ikkp
-
     iknr = kmap_bse_rg(ik)
     jknr = kmap_bse_rg(jk) 
 
@@ -518,7 +516,7 @@ use m_writecmplxparts
         ju = smap_rel(1, ja+jaoff) ! ju (jk-qmt/2)
         ! Get jo index relative to io range of jk
         jo = smap_rel(2, ja+jaoff) ! jo (jk+qmt/2)
-        ! emat34_ja = (M_u1o1kj,M_u2o1kj,...,M_uMo1kj,M_u1o2kj,...,M_uMoMkj)*\bar{v}
+        ! emat34_ja = (M_u1o1kj,M_u2o1kj,...,M_uMo1kj,M_u1o2kj,...,M_uMoMkj)*v
         emat34(ja, :) = ematuok(ju, jo, :, jk) * potcl(:)
       end do
 

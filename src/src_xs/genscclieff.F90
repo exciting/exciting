@@ -39,7 +39,7 @@ subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
     call genfilname(basename=trim(adjustl(eps0dirname))//'/'//'EPS0',&
      & appfilext=.true., iq=iqr, filnam=fneps0)
     ! Read form direct access file.
-    call geteps0(reduced=.true., iq=iqr, iw=1, w=1.0d-8,&
+    call geteps0(reduced=.true., iq=iqr, iw=1, w=0.0d0,&
       & eps0=scrn, eps0wg=scrnw, eps0hd=scrnh, fname=fneps0)
   else
     ! Read from text file 

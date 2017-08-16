@@ -225,7 +225,7 @@ module m_makespectrum
       zbrd = zi*input%xs%broad
 
       write(unitout, '("Info(",a,"):&
-        & Making spectrum using formula for coupling with time inverted ar basis.")')&
+        & Making spectrum using formula for coupling with time reversed ar basis.")')&
         & trim(thisname)
       if(iqmt == 1) then 
         write(unitout, '("Info(",a,"):&
@@ -242,12 +242,16 @@ module m_makespectrum
 
       !++++++++++++++++++++++++++++++++++++++++++++!
       ! Make energy denominator for each frequency !
+      ! The signs of the complex shifts are such   !
+      ! that the response is retarded.             !
       ! (resonant & anti-resonant)                 !
+      ! resonant = poles for positive omega        !
+      ! anti-resonant = poles for negative omega   !
       !++++++++++++++++++++++++++++++++++++++++++++!
       write(unitout, '("  Making energy denominators ENW.")')
       call timesec(t0)
 
-      ! enw_{w, \lambda} = 1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta)
+      ! enw_{w, \lambda} = 1/(w - E_\lambda + i\delta) + 1/(-w - E_\lambda - i\delta)
       call new_dzmat(denw, nfreq, nexc, binfo)
 
       !$OMP PARALLEL DO &
@@ -263,11 +267,11 @@ module m_makespectrum
           ! Get corresponding global indices
           ig = denw%r2g(i)
           jg = denw%c2g(j)
-          denw%za(i,j) = zone/(bevalre(jg)-freq(ig)-zbrd)&
-                       &+ zone/(bevalre(jg)+freq(ig)+zbrd)
+          denw%za(i,j) = zone/(freq(ig)-bevalre(jg)+zbrd)&
+                       &+ zone/(-freq(ig)-bevalre(jg)-zbrd)
 #else
-          denw%za(i,j) = zone/(bevalre(j)-freq(i)-zbrd)&
-                       &+ zone/(bevalre(j)+freq(i)+zbrd)
+          denw%za(i,j) = zone/(freq(i)-bevalre(j)+zbrd)&
+                       &+ zone/(-freq(i)-bevalre(j)-zbrd)
 #endif
         end do
       end do
@@ -316,6 +320,7 @@ module m_makespectrum
             o2 = jg
             o1 = jg
           end if
+        ! Finite qmt is longitudinal only
         else
           o2=1
           o1=1
@@ -340,7 +345,9 @@ module m_makespectrum
       !++++++++++++++++++++++++++++++++++++++++++++!
            
       !++++++++++++++++++++++++++++++++++++++++++++!
-      ! Make non-lattice-symmetrized spectrum      !
+      ! Make non-lattice-symmetrized response functions
+      ! Chi_{Gmt,Gmt}(qmt,omega) for qmt/=0,
+      ! \bar{P}^{ij}_{00}(0,omega) for qmt=0
       !++++++++++++++++++++++++++++++++++++++++++++!
       write(unitout, '("  Calculating spectrum.")')
       call timesec(t0)
@@ -351,12 +358,12 @@ module m_makespectrum
       ! qmt=0 case:
       ! nsspectr_{w,j} = \Sum_{\lambda} enw_{w,\lambda} tmat_{\lambda, j}
       !   i.e. nsspectr_{w,j} = 
-      !     \Sum_{\lambda} (1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta))
+      !     \Sum_{\lambda} (1/(w - E_\lambda + i\delta) + 1/(-w - E_\lambda - i\delta))
       !       t^*_{\lambda, o1_j} t_{\lambda, o2_j} 
       ! qmt/=0 case:
       ! nsspectr_{w,j} = \Sum_{\lambda} enw_{w,\lambda} tmat_{\lambda, j}
       !   i.e. nsspectr_{w,j} = 
-      !     \Sum_{\lambda} (1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta))
+      !     \Sum_{\lambda} (1/(w - E_\lambda + i\delta) + 1/(-w - E_\lambda - i\delta))
       !       t^*_{\lambda}(Gmt,qmt) t_{\lambda}(Gmt,qmt) 
       call dzmatmult(denw, dtmat, dns_spectr)
       !++++++++++++++++++++++++++++++++++++++++++++!
@@ -408,11 +415,11 @@ module m_makespectrum
       !
       !   Using \bar{P} formalism:
       !     epsilon^{ij}_M(w) = 
-      !       \delta_{ij} + 4*pi 1/(V*nk) 
-      !       * \sum_\lambda [1/(E_\lambda-w) + 1/(E_\lambda+w)]
+      !       \delta_{ij} - 4*pi 1/(V*nk) 
+      !       * \sum_\lambda [1/(w-E_\lambda+i\delta) + 1/(-w-E_\lambda-i\delta)]
       !       * t^*_{\lambda,i} t_{\lambda,j}
       !  
-      !   nsp(i,j) = \delta_{ij} + pref*nsp(i,j)
+      !   nsp(i,j) = \delta_{ij} + pref * nsp(i,j)
       if(iqmt==1) then 
 
         if(nopt == 9) then 
@@ -427,15 +434,16 @@ module m_makespectrum
       ! Finite momentum transfer
       !
       !   Using \chi formalism:
-      !     epsilon_M(\ve{Q},w) = { 
-      !       1 - 4*pi/|Q|^2 1/(V*nk) 
-      !       * \sum_\lambda [1/(E_\lambda-w) + 1/(E_\lambda+w)]
+      !     epsilon_M(\vec{Q},w) = { 
+      !       1 + 4*pi/|Q|^2 * 1/(V*nk) 
+      !       * \sum_\lambda [1/(w - E_\lambda + i\delta) + 1/(-w - E_\lambda - i\delta)]
       !       * t^*_{\lambda}(Q) t_{\lambda}(Q)
       !       }^{-1}
       !  
-      !   nsp(i,j) = \delta_{ij} + pref*nsp(i,j)
+      !   nsp(i,j) = 1 + pref' * nsp(i,j)
       else
 
+        ! For finite qmt, only the component along q is calculated 
         if(nopt /= 1) then 
           write(*,'("Error(",a,"): nopt= ", i8, "while iqmt= ", i8)')&
             & trim(thisname), nopt, iqmt
@@ -450,12 +458,12 @@ module m_makespectrum
 
       ! Adjusting prfactor, the factor 2 accounts for spin degeneracy
       if(iqmt==1) then 
-        ! 2* 4 pi * 1/V * 1/nk
-        pref = 2.d0*4.d0*pi/omega/nk
+        ! -1 * 2 * 4 pi * 1/V * 1/nk
+        pref = -2.d0*4.d0*pi/omega/nk
       else
-        ! -2 * ( (4 pi/|Gmt+qmt|^2)^1/2 )^2 * 1/V * 1/nk
+        ! 2 * ( (4 pi/|Gmt+qmt|^2)^1/2 )^2 * 1/V * 1/nk
         igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
-        pref = -2.0d0*sptclg(igqmt,iqmt)**2/omega/nk
+        pref = 2.0d0*sptclg(igqmt,iqmt)**2/omega/nk
       end if
 
       ! Add 1 to diagonal elements
@@ -513,12 +521,12 @@ module m_makespectrum
           end do 
         end do
 
-      ! Finite momentum transfer --> function
+      ! Finite momentum transfer --> scalar function
       else
 
         sp = zzero
 
-        ! As noted above nsp contains 1/epsm(Q,w) 
+        ! As noted above nsp contains 1/epsm(Q,w), save epsm
         sp(1,1,:) = 1.0d0/nsp(:,1)
 
       end if

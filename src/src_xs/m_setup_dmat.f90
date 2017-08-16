@@ -20,7 +20,7 @@ module m_setup_dmat
     ! !INTERFACE:
     subroutine setup_dmat(dmat)
     ! !INPUT/OUTPUT PARAMETERS:
-    ! In:
+    ! Out:
     !   complex(8) :: dmat(hamsize,3)  ! Dipole operator matrix 
     ! 
     ! !DESCRIPTION:
@@ -102,7 +102,7 @@ module m_setup_dmat
       call timesec(t1)
       write(unitout, '("    Time needed",f12.3,"s")') t1-t0
 
-      write(unitout, '("  Building Rmat.")')
+      write(unitout, '("  Building Dmat.")')
       call timesec(t0)
       !$OMP PARALLEL DO &
       !$OMP& DEFAULT(SHARED), PRIVATE(a1,iuabs,ioabs,iknr,iu,io,ik)
@@ -123,7 +123,7 @@ module m_setup_dmat
         !   \sqrt{|f_{o_a,k_a}-f_{u_a,k_a}|} *
         !     i * P^j_{u_a,o_a,k_a} /(e_{u_a, k_a} - e_{o_a, k_a}) 
         ! Note: The scissor does not enter here, so subtract it again.
-        dmat(a1, :) = zone * ofac(a1)&
+        dmat(a1, :) = zi * ofac(a1)&
           &*pmuok(:, iu, io, ik)/(de(a1)-sci)
 
       end do
@@ -154,6 +154,14 @@ module m_setup_dmat
     !   2d block cyclic distributed dipole operator matrix. Process 0 
     !   reads {\tt PMATXS.OUT} for each {\tt ik}
     !   record and send the data block-wise to the responsible processes.
+    !
+    !   $D^\text{rr}_{\alpha,j} = 
+    !    \langle u_\alpha \vec{k}_\alpha | -\hat{r}_j | o_\alpha \vec{k}_\alpha \rangle
+    !    =
+    !    i \frac{\langle u_\alpha \vec{k}_\alpha | \hat{p}_j | o_\alpha \vec{k}_\alpha \rangle}
+    !    {\epsilon_{u_\alpha, \vec{k}_\alpha}-\epsilon_{o_alpha \vec{k}_\alpha}}$
+    !   
+    !   Alpha is the combined index used in the BSE Hamiltonian.
     !
     ! !REVISION HISTORY:
     !   Created. (Aurich)
@@ -462,13 +470,13 @@ module m_setup_dmat
       
       !! Construct local 2d block cyclic dmat elements
       ! Build D-matrix from P-matrix 
-      ! \tilde{D}_{u_{alpha},o_{alpha},k_{alpha}},i = 
+      ! \tilde{D}_{u_{alpha},o_{alpha},k_{alpha}},j = 
       !   \sqrt{f_{o_{alpha},k_{alpha}}-f_{u_{alpha},k_{alpha}}} *
-      !   i*P_{u_{alpha},o_{alpha},k_{alpha}},i /
+      !   i*P_{u_{alpha},o_{alpha},k_{alpha}},j /
       !     (e_{u_{alpha} k_{alpha}} - e_{o_{alpha} k_{alpha}})
       do c = 1, jb
         do r =1, ib
-        builddmat(r, c) = occ(r)*zone*pmat(r, c)/ediff(r)
+        builddmat(r, c) = occ(r)*zi*pmat(r, c)/ediff(r)
         end do
       end do
 

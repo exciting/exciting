@@ -190,14 +190,11 @@ module m_dhesolver
         jz = 1
 
         ! Set guess for eigenvalue clustering
+        clusterguess = ceiling(ham%nrows*0.2d0)
         if(present(eecs)) then
           if(eecs >= 1) then
             clusterguess = eecs
-          else
-            clusterguess = 3
           end if
-        else
-          clusterguess = 3
         end if
       
 
@@ -424,7 +421,8 @@ module m_dhesolver
             write(*,'("Warning(dhesolver) cause: Reorthogonalization failed,&
               & insufficent workspace. There are", i8," clusters of eignevalues&
               & and the lagest one has size ", i8,". &
-              & Increase eecs to ", i8," to guarantee orthogonal eigenvectors")')&
+              & Increase input%xs%bse%eecs to ", i8," to guarantee orthogonal eigenvectors.&
+              & (usually the results are still good)")')&
               & i, maxcs, maxcs
             write(*,'("dhesolver iclustr:")')
             write(*,'(I8)') iclustr

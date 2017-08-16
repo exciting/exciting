@@ -273,7 +273,10 @@ module modscl
     !BOC
       type(blacsinfo), intent(in) :: blacscom
 #ifdef SCAL
-      call blacs_barrier(blacscom%context, 'A')
+      ! Nothing to do for dummies
+      if(blacscom%context > -1) then 
+        call blacs_barrier(blacscom%context, 'A')
+      end if
 #endif
     end subroutine blacsbarrier
     !EOC
@@ -297,7 +300,10 @@ module modscl
       type(blacsinfo), intent(in) :: blacscom
       call blacsbarrier(blacscom)
 #ifdef SCAL
-      call blacs_gridexit(blacscom%context)
+      ! Nothing to do for dummies
+      if(blacscom%context > -1) then 
+        call blacs_gridexit(blacscom%context)
+      end if
 #endif
     end subroutine exitblacs
     !EOC

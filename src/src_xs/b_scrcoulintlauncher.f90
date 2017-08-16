@@ -12,7 +12,8 @@ subroutine b_scrcoulintlauncher
   use modinput, only: input
   use modbse
 ! !DESCRIPTION:
-!   Launches the calculation of the direct term of the Bethe-Salpeter Hamiltonian.
+!   Launches the calculation of the direct term of the Bethe-Salpeter Hamiltonian
+!   for each specified momentum transfer vector.
 !
 ! !REVISION HISTORY:
 !   Created. 2016 (Aurich)
@@ -43,7 +44,7 @@ subroutine b_scrcoulintlauncher
     end if
   end if
 
-  ! Which Q points to consider 
+  ! Which momentum transfer Q points to consider 
   nqmt = size(input%xs%qpointset%qpoint, 2)
   iqmti = 1
   iqmtf = nqmt
@@ -57,6 +58,7 @@ subroutine b_scrcoulintlauncher
     call terminate
   end if
 
+  ! Info output
   call printline(unitout, "+")
   write(unitout, '("Info(",a,"):", a)') trim(thisname),&
     & " Setting up screened interaction matrix."
@@ -64,10 +66,13 @@ subroutine b_scrcoulintlauncher
     & " Using momentum transfer vectors from list : ", iqmti, " to", iqmtf
   call printline(unitout, "+")
 
+  ! Loop over (subset of) Q points
   do iqmt = iqmti, iqmtf
 
+    ! Get full Q vector for info out
     vqmt(:) = input%xs%qpointset%qpoint(:, iqmt)
 
+    ! Info output
     if(mpiglobal%rank == 0) then
       write(unitout, *)
       call printline(unitout, "+")
@@ -139,6 +144,7 @@ subroutine b_scrcoulintlauncher
 
     end select
 
+    ! Info out
     if(mpiglobal%rank == 0) then
       call printline(unitout, "+")
       write(unitout, '("Info(",a,"): Screened coulomb interaction&

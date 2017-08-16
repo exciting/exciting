@@ -29,8 +29,8 @@ Subroutine genphasedm(iq, jsym, nmax, n, phfdm, tphf)
 !   due to the translational vector $\vec{t}$ of the crystal symmetry operation 
 !   chosen to reduce $\vec{q}$ to $\vec{q}_\text{r}$. The rotaional effects of the
 !   symmetry operation are accounted for differently by remapping 
-!   the set of $\left\{\vec{G}+\vec{q}\right\} vectors to the set of 
-!   $\left\{\vec{G}+\vec{q}_\text{r}\right\} vectors. It is
+!   the set of $\left\{\vec{G}+\vec{q}\right\}$ vectors to the set of 
+!   $\left\{\vec{G}+\vec{q}_\text{r}\right\}$ vectors. It is
 !   $\epsilon_{\vec{G},\vec{G}'}(\vec{q}) = 
 !     e^{i 2*pi (\vec{G}-\vec{G}') \cdot \vec{t}}
 !     \epsilon_{\tilde{\vec{G}},\tilde{\vec{G}}'}(\vec{q}_r)$

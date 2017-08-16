@@ -33,16 +33,13 @@ subroutine b_scrcoulint(iqmt, fra)
   use modbse
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
-
 ! !DESCRIPTION:
-!   Calculates the direct term of the Bethe-Salpeter Hamiltonian.
+!   Calculates the resonant-resonant or resonant-anit-resonant block of the
+!   direct term of the Bethe-Salpeter Hamiltonian for a momentum transfer 
+!   $\vec{Q}_{mt}$.
 !
 ! !REVISION HISTORY:
-!   Created June 2008 (S. Sagmeister)
-!   Addition of explicit energy ranges for states below and above the Fermi
-!      level for the treatment of core excitations (using local orbitals).
-!      October 2010 (Weine Olovsson)
-!   Forked from scrcoulint.F90 and adapted for non TDA BSE. (Aurich)
+!   Forked from scrcoulint.F90 and adapted for non-TDA BSE and finite Q. (Aurich)
 !EOP
 !BOC      
 
@@ -280,11 +277,13 @@ subroutine b_scrcoulint(iqmt, fra)
   vqlr = vql
   vqcr = vqc
   wqptr = wqpt
-  ! Make non-reduced q-grid with possible offset
+  ! Make non-reduced q-grid with possible offset (written into mod_qpoint variables)
   ! This sets up also G+q quantities and the square root of the Coulomb potential
   call init2offs(vqoff, .false.)
-  write(unitout, '(a, i6)') 'Info(' // thisname // '): Number of reduced q-points: ', nqptr
-  write(unitout, '(a, i6)') 'Info(' // thisname // '): Number of non-reduced q-points: ', nqpt
+  write(unitout, '(a, i6)') 'Info(' // thisname // '):&
+    & Number of reduced q-points: ', nqptr
+  write(unitout, '(a, i6)') 'Info(' // thisname // '):&
+    & Number of non-reduced q-points: ', nqpt
   write(unitout,*)
   call flushifc(unitout)
   ! Make also ngqr
@@ -329,13 +328,13 @@ subroutine b_scrcoulint(iqmt, fra)
   ! W(G,G',qr)
   allocate(scieffg(ngqmax, ngqmax, nqptr))
   scieffg(:, :, :) = zzero
-  ! Phases for transformations form reduced q points to non reduced ones.
+  ! Phases for transformations form reduced q points to non-reduced ones.
   allocate(phf(ngqmax, ngqmax))
 
   ! Parallelize over reduced q-point set
   call genparidxran('q', nqptr)
 
-  ! Set file to read RPA screening from 
+  ! Set file to read the static, non-broadened RPA screening from 
   eps0dirname = 'EPS0'
   ! RA
   if(fra) then 
@@ -411,7 +410,7 @@ subroutine b_scrcoulint(iqmt, fra)
   ! Normalization factor 1/V and per k point
   pref=1.0d0/(omega*dble(nk_bse))
 
-  ! Allocate arrays used in ematqk (do not change in the following loop)
+  ! Allocate arrays used in ematqk (does not change in the following loop)
   call ematqalloc
 
   ! Work arrays (allocate for maximal size over all participating k points)
@@ -449,10 +448,9 @@ subroutine b_scrcoulint(iqmt, fra)
     !! then because of W_{j,i} = W^*_{i,j} only kj = ki,..,kN is 
     !! needed (the diagonal blocks where k'=k will be fully computed 
     !! but only the upper triangle will be needed in the end).
-    !! (The RA part in the standard basis is symmetric instead of 
-    !!  hermitian, but one still just needs the upper triangle)
 
-    ! Get k point indices  
+    ! Get global k point indices form
+    ! the k point index of the selected set of k-points
     iknr = kmap_bse_rg(ik)
     jknr = kmap_bse_rg(jk) 
 
@@ -464,13 +462,13 @@ subroutine b_scrcoulint(iqmt, fra)
     jkpnr = k_kqmtp%ik2ikqmt(jknr)
     jkmnr = k_kqmtm%ik2ikqmt(jknr)
 
-    ! Get corresponding q-point
+    ! Get corresponding none-reduced and reduced q-point
     ! (RR case: q = jk-ik,
     !  RA case: q = -jk-ik)
     if(fra) then 
       iq = pqmt%ikikp2ip_nr(iknr, jkpnr)
       iqr = pqmt%pset%ik2ikp(iq)
-      ! Get corresponding vector in lattice coordinated
+      ! Get corresponding vectors in lattice coordinated
       vq(:) = pqmt%pset%vklnr(:, iq)
       vqr(:) = pqmt%pset%vkl(:, iqr)
     else
@@ -548,7 +546,7 @@ subroutine b_scrcoulint(iqmt, fra)
       ! jkp=jk+qmt/2, jkm=jk-qmt/2
       call getpwesrr(moo(1:ino,1:jno,1:numgq), muu(1:inu,1:jnu,1:numgq))
 
-      ! Combine indices for matrix elements of plane wave.
+      ! Combine state indices for plane-wave matrix elements.
 
       !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(io,jo,j1,iu,ju,j2)
       !$OMP DO COLLAPSE(2)
@@ -590,10 +588,10 @@ subroutine b_scrcoulint(iqmt, fra)
       call zgemm('n', 't', nuu, noo, numgq, pref, zm, nuu,&
         & cmoo, noo, zzero, sccli_t1(1:nuu,1:noo), nuu)
 
-      deallocate(zm)        
+      deallocate(zm)
       deallocate(cmoo, cmuu)
 
-      ! Save only the selected transitions
+      ! Offset in combined index for ik and jk
       jaoff = sum(kousize(1:jknr-1))
       iaoff = sum(kousize(1:iknr-1))
 
@@ -615,7 +613,7 @@ subroutine b_scrcoulint(iqmt, fra)
       !$OMP END DO
 
       ! W^RR matrix element arrays for one jk-ik=q
-
+      ! Save only the selected transitions, i.e. W^RR_{alpha,alpha'}
       !$OMP DO COLLAPSE(2)
       do ja = 1, jnou
         do ia = 1, inou
@@ -650,7 +648,8 @@ subroutine b_scrcoulint(iqmt, fra)
       ! ikm=ik-qmt/2, jkm=jk-qmt/2
       call getpwesra(mou(1:ino,1:jnu,1:numgq), muo(1:inu,1:jno,1:numgq))
 
-      ! Combine indices for matrix elements of plane wave.
+      ! Combine state indices for plane-wave matrix elements.
+
       !$OMP PARALLEL DEFAULT(SHARED), PRIVATE(iu,io,ju,jo,j1,j2)
       !$OMP DO COLLAPSE(2)
       do jo = 1, jno   ! jo
@@ -719,7 +718,7 @@ subroutine b_scrcoulint(iqmt, fra)
       !$OMP END DO
 
       ! W^RA matrix elements
-
+      ! Save W^RA_{alpha,alpha'}
       !$OMP DO COLLAPSE(2)
       do ja = 1, jnou
         do ia = 1, inou

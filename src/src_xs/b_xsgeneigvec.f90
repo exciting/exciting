@@ -4,7 +4,7 @@
 !
 !
 !BOP
-! !ROUTINE: b\_xsgeneigvec
+! !ROUTINE: b_xsgeneigvec
 ! !INTERFACE:
 subroutine b_xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
 ! !USES:

@@ -23,9 +23,9 @@ subroutine getevecfv0(vpl, vgpl, evecfvt)
 !
 ! !DESCRIPTION:
 !   This routine is a wrapper for {\tt getevecfv} that changes the $k$ and $G+k$ 
-!   quantities in {\tt mod_kpoint} and {\tt mod_Gkvector} to the corresponding
+!   quantities in {\tt mod\_kpoint} and {\tt mod\_Gkvector} to the corresponding
 !   quantities saved in {\tt modxs} (nmatmax0, vkl0,  ngk0, etc.), changes
-!   the file extension in {\tt mod_misc} accordingly, reads in the Eigenvector
+!   the file extension in {\tt mod\_misc} accordingly, reads in the Eigenvector
 !   and finally restores the original state.
 !
 ! !REVISION HISTORY:

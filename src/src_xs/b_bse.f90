@@ -36,7 +36,6 @@ subroutine b_bse(iqmt)
   use m_makeoscistr
   use m_makespectrum
   use m_invertzmat
-
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem(thanks to the spectral theorem that can
@@ -102,7 +101,7 @@ subroutine b_bse(iqmt)
 !      level for the treatment of core excitations(using local orbitals).
 !      October 2010(Weine Olovsson)
 !   Added possibility to compute off-diagonal optical components, Dec 2013(Stefan Kontur, STK)
-!   Forked from bse.F90 and adapted for non TDA BSE. (Aurich)
+!   Forked from bse.F90 and adapted for non-TDA and Q-dependent BSE. (Aurich)
 !EOP
 !BOC
 
@@ -135,7 +134,6 @@ subroutine b_bse(iqmt)
   type(dzmat) :: dham, dexevec, doscsr, dresvec, daresvec
   type(dzmat) :: dcmat, dcpmat
 
-
   !! Greeting
   !write(*, '("Info(",a,"): Running at rank", i3)')&
   !  & trim(thisname), mpiglobal%rank
@@ -151,31 +149,11 @@ subroutine b_bse(iqmt)
   fcoup = input%xs%bse%coupling
 
   ! Distribute Hamilton matrix if ScaLapack is used
+  ! and distribution is desired
   fdist = .false.
 #ifdef SCAL
   fdist = input%xs%bse%distribute
 #endif
-
-  !---------------------------------------------------------------------------!
-  ! Set up process grids for BLACS (if compiled with DSCAL, dummies otherwise)
-  !---------------------------------------------------------------------------!
-  !   Make square'ish process grid (context 0)
-  call setupblacs(mpiglobal, 'grid', bi2d)
-  !   Also make 1d grid with the same number of processes (context 1)
-  call setupblacs(mpiglobal, 'row', bi1d, np=bi2d%nprocs)
-  !   Also make 0d grid containing only the current processes (context 2)
-  call setupblacs(mpiglobal, '0d', bi0d, np=1)
-
-  ! If fdist, then distribute Hamiltonian on 2d blacs grid, otherwise
-  ! use only current rank.
-  if(fdist) then 
-    bicurrent => bi2d
-  else
-    bicurrent => bi0d
-  end if
-
-  !call printblacsinfo(bicurrent)
-  !---------------------------------------------------------------------------!
 
   !---------------------------------------------------------------------------!
   ! Find occupation limits using k, k-qmt/2 and k+qmt/2 grids
@@ -186,9 +164,9 @@ subroutine b_bse(iqmt)
   call genfilname(iqmt=iqmtgamma, setfilext=.true.)
   call readfermi
   ! Set ist* variables and ksgap in modxs using findocclims
-  ! Needs: init2
-  ! On exit: k-grid quantities are stored in vkl0, evalsv0 etc and
-  !          k-qmt/2 grid quantities are stored in vkl, evalsv etc
+  ! Needs: init2 (is called by b_bselauncher)
+  ! On exit: k-grid quantities are stored in modxs: vkl0, evalsv0 etc
+  !          k-qmt/2 grid quantities are stored in default locations: vkl, evalsv etc
   call setranges_modxs(iqmt)
   !---------------------------------------------------------------------------!
 
@@ -240,7 +218,7 @@ subroutine b_bse(iqmt)
   !---------------------------------------------------------------------------!
   ! Select relevant transitions for the construction
   ! of the BSE Hamiltonian.
-  ! Sets up transition energies in de array, combined index maps and 
+  ! Sets up transition energies in array "de", combined index maps and 
   ! other helpers in modbse
   !
   ! Note: Operates on mpiglobal
@@ -347,8 +325,13 @@ subroutine b_bse(iqmt)
           & Diagonalizing RR Hamiltonian (TDA)")') trim(thisname)
       end if
 #ifdef SCAL
-      write(unitout, '("Info(",a,"):&
-        & Invoking scalapack routine PZHEEVX")') trim(thisname)
+      if(fdist) then
+        write(unitout, '("Info(",a,"):&
+          & Invoking scalapack routine PZHEEVX")') trim(thisname)
+      else
+        write(unitout, '("Info(",a,"):&
+          & Invoking Lapack routine ZHEEVR")') trim(thisname)
+      end if
 #else
       write(unitout, '("Info(",a,"):&
         & Invoking Lapack routine ZHEEVR")') trim(thisname)
@@ -399,6 +382,7 @@ subroutine b_bse(iqmt)
 
       end if
 
+      ! Square root of EVs
       if(fcoup) then 
         ! Take square root of auxiliary eigenvalues
         ! to retrieve actual eigenvalues
@@ -533,94 +517,94 @@ subroutine b_bse(iqmt)
       ! =================================================================!
 
     ! Process is not on 2d process grid
-    end if
-
-    ! Note: the following allocation is only needed for processes that are not
-    !       on the process grid and serves the only purpose that the debugger
-    !       is not complaining here.
-    if(.not. allocated(exeval)) allocate(exeval(hamsize))
-
-    ! Calculate oscillator strengths.
-    ! Note: Deallocates dexevec and dcmat
-    if(fcoup) then 
-      call makeoscistr_dist(iqmt, nexc, dexevec, doscsr, bicurrent, exeval, dcmat)
     else
-      call makeoscistr_dist(iqmt, nexc, dexevec, doscsr, bicurrent)
+      write(*,*) "Info(",trim(thisname),"): rank,", rank," is not on the grid"
     end if
 
-    ! Back to the process grid.
-    if(bicurrent%isactive) then 
+  ! IP or not if
+  end if
 
-      ! Every process gets a copy of the oscillator strength
-      ! (actually only rank 0 writes them to file, but is is not much 
-      !  memory and it make the setup for the spectrum calculation easier) 
-      call dzmat_send2global_all(oscsr, doscsr, bicurrent)
-      if(fip) then
-        oscsr = oscsr(ensortidx,:)
-      end if
+  ! Note: The following allocation is only needed for processes that are not
+  !       on the process grid and serves the only purpose that the debugger
+  !       is not complaining here.
+  if(.not. allocated(exeval)) allocate(exeval(hamsize))
 
-      if(bicurrent%isroot) then
-        ! Write excition energies and oscillator strengths to 
-        ! text file. 
-        write(unitout, '("Info(",a,"):&
-          & Writing excition energies and oscillator strengths to text file.")')&
-          & trim(thisname)
-        call writeoscillator(hamsize, nexc, -bsegap, exeval, oscsr, iqmt=iqmt)
-      end if
+  ! Calculate oscillator strengths.
+  ! Note: Deallocates dexevec and dcmat
+  if(fcoup) then 
+    call makeoscistr_dist(iqmt, nexc, dexevec, doscsr, bicurrent, exeval, dcmat)
+  else
+    call makeoscistr_dist(iqmt, nexc, dexevec, doscsr, bicurrent)
+  end if
+
+  ! Back to the process grid.
+  if(bicurrent%isactive) then 
+
+    ! Every process gets a copy of the oscillator strength
+    ! (actually only rank 0 writes them to file, but is is not much 
+    !  memory and it make the setup for the spectrum calculation easier) 
+    call dzmat_send2global_all(oscsr, doscsr, bicurrent)
+    if(fip) then
+      oscsr = oscsr(ensortidx,:)
+    end if
+
+    if(bicurrent%isroot) then
+      ! Write excition energies and oscillator strengths to 
+      ! text file. 
+      write(unitout, '("Info(",a,"):&
+        & Writing excition energies and oscillator strengths to text file.")')&
+        & trim(thisname)
+      call writeoscillator(hamsize, nexc, -bsegap, exeval, oscsr, iqmt=iqmt)
+    end if
+
+    ! Allocate arrays used in spectrum construction
+    if(bicurrent%isroot) then
+      allocate(symspectr(3,3,nw))
+    end if
+
+    ! Only process root gets an acctual output for symspectr
+    call makespectrum_dist(iqmt, nexc, nk_bse, exeval, oscsr, symspectr, bicurrent)
+
+    ! Only root writes derived outputs
+    if(bicurrent%isroot) then
 
       ! Allocate arrays used in spectrum construction
-      if(bicurrent%isroot) then
-        allocate(symspectr(3,3,nw))
-      end if
+      allocate(w(nw))
+      ! Generate an evenly spaced frequency grid 
+      call genwgrid(nw, input%xs%energywindow%intv,&
+        & input%xs%tddft%acont, 0.d0, w_real=w)
 
-      ! Only process root gets an acctual output for symspectr
-      call makespectrum_dist(iqmt, nexc, nk_bse, exeval, oscsr, symspectr, bicurrent)
-
-      if(bicurrent%isroot) then
-
-        ! Allocate arrays used in spectrum construction
-        allocate(w(nw))
-        ! Generate an evenly spaced frequency grid 
-        call genwgrid(nw, input%xs%energywindow%intv,&
-          & input%xs%tddft%acont, 0.d0, w_real=w)
-
-        ! Generate and write derived optical quantities
-        call writederived(iqmt, symspectr, nw, w)
-
-      end if
-
-      ! Clean up
-      deallocate(exeval, oscsr)
-      if(associated(input%gw)) deallocate(eval0)
-      if(bicurrent%isroot) then 
-        deallocate(w)
-        deallocate(symspectr)
-      end if
-
-      ! Exit BLACS 
-      call exitblacs(bi2d)
-      call exitblacs(bi1d)
-      call exitblacs(bi0d)
-
-      ! MPI
-      ! Ranks that are on the BLACS grid signal that they are done
-      if(fdist) then 
-        call barrier(callername=thisname)
-      end if
-
-    else
-
-      write(*, '("Warning(",a,"): Rank", i4, " is idle.")')&
-        & trim(thisname), mpiglobal%rank
-
-      ! Ranks that are not on the BLACS grid wait 
-      if(fdist) then 
-        call barrier(callername=thisname)
-      end if
+      ! Generate and write derived optical quantities
+      call writederived(iqmt, symspectr, nw, w)
 
     end if
 
-  ! IP end if
+    ! Clean up
+    deallocate(exeval, oscsr)
+    if(associated(input%gw)) deallocate(eval0)
+
+    if(bicurrent%isroot) then 
+      deallocate(w)
+      deallocate(symspectr)
+    end if
+
+    ! MPI
+    ! Ranks that are on the BLACS grid signal that they are done
+    if(fdist) then 
+      call barrier(callername=thisname)
+    end if
+
+  ! Not on grid
+  else
+
+    write(*, '("Warning(",a,"): Rank", i4, " is idle.")')&
+      & trim(thisname), mpiglobal%rank
+
+    ! Ranks that are not on the BLACS grid wait 
+    if(fdist) then 
+      call barrier(callername=thisname)
+    end if
+
   end if
 
 end subroutine b_bse

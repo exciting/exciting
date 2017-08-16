@@ -12,7 +12,8 @@ subroutine b_exccoulintlauncher
   use modinput, only: input
   use modbse
 ! !DESCRIPTION:
-!   Launches the calculation of the exchange term of the Bethe-Salpeter Hamiltonian.
+!   Launches the calculation of the exchange term of the Bethe-Salpeter Hamiltonian
+!   for the specified momentum transfer vectors $\vec{Q}_\text{mt}$.
 !
 ! !REVISION HISTORY:
 !   Created. 2016 (Aurich)
@@ -26,8 +27,6 @@ subroutine b_exccoulintlauncher
   real(8) :: vqmt(3)
   character(256) :: casestring
   character(*), parameter :: thisname = "b_exccoulintlauncher"
-
-  !write(*,*) "b_exccoulintlauncher here at rank", rank
 
   ! Calculate RR, RA or RR and RA blocks
   casestring = input%xs%bse%blocks
@@ -43,7 +42,7 @@ subroutine b_exccoulintlauncher
     end if
   end if
 
-  ! Which Q points to consider 
+  ! Which momentum transfer Q points to consider 
   nqmt = size(input%xs%qpointset%qpoint, 2)
   iqmti = 1
   iqmtf = nqmt
@@ -58,6 +57,7 @@ subroutine b_exccoulintlauncher
     call terminate
   end if
 
+  ! Info output
   call printline(unitout, "+")
   write(unitout, '("Info(",a,"):", a)') trim(thisname),&
     & " Setting up exchange interaction matrix."
@@ -65,10 +65,13 @@ subroutine b_exccoulintlauncher
     & " Using momentum transfer vectors from list : ", iqmti, " to", iqmtf
   call printline(unitout, "+")
 
+  ! Loop over (subset of) Q points
   do iqmt = iqmti, iqmtf
 
+    ! Get full Q vector for info out
     vqmt(:) = input%xs%qpointset%qpoint(:, iqmt)
 
+    ! Info output
     if(mpiglobal%rank == 0) then
       write(unitout, *)
       call printline(unitout, "+")
@@ -130,6 +133,7 @@ subroutine b_exccoulintlauncher
 
     end select
 
+    ! Info out
     call printline(unitout, "+")
     write(unitout, '("Info(",a,"): Exchange interaction&
       & finished for iqmt=",i4)') trim(thisname),  iqmt

@@ -355,7 +355,7 @@ module m_putgeteps0
         write(*, '(a, 3f12.6, a, 3f12.6)') 'vql', vql_p(:,iq), ', ', vql_
         write(*, '(a, 2i6)') 'for q-point :', iq, iq_
         write(*, '(a, 2i6)') 'for w-point :', iw, iw_
-        write(*, '(a, 2f12.6)') 'w', w, w_
+        write(*, '(a, 2E13.6)') 'w', w, w_
         write(*, '(a)') ' file: ', trim(filename) 
         call terminate
 

@@ -13,7 +13,7 @@ subroutine b_xsgeneigveclauncher()
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
 ! !DESCRIPTION:
-!   Wrapper routine for \texttt{b_xsgeneigvec}. Launches one-shot ground state 
+!   Wrapper routine for \texttt{b\_xsgeneigvec}. Launches one-shot ground state 
 !   calculations needed for Q-dependent BSE. Note: First Q-point in the Q-point
 !   list needs to be the Gamma point.
 !

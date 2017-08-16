@@ -36,14 +36,17 @@ module m_setup_pwmat
     ! 
     ! !DESCRIPTION:
     !   The routine generates the plane wave matrix elements 
-    !   $\tilde{M}_{\alpha}(G,qmt) = 
+    !
+    !   \begin{equation*}
+    !   \tilde{M}_{\alpha}(\vec{G},\vec{q}_\text{mt}) = 
     !    \sqrt{
     !    f_{o_\alpha, \vec{k}_{\alpha+\vec{q}_\text{mt}/2}}
     !   -f_{u_\alpha, \vec{k}_{\alpha-\vec{q}_\text{mt}/2}}
     !    }
     !    \langle u_\alpha \vec{k}_{\alpha-\vec{q}_\text{mt}/2}
-    !    | e^{-i(\vec{G}+\vec{q}_\text{mt})r} |
-    !    o_\alpha \vec{k}_{\alpha+\vec{q}_\text{mt}} \rangle$
+    !    | e^{-i(\vec{G}_\text{mt}+\vec{q}_\text{mt})r} |
+    !    o_\alpha \vec{k}_{\alpha+\vec{q}_\text{mt}} \rangle
+    !   \end{equation*}
     !
     !   Alpha is the combined index used in the BSE Hamiltonian.
     !
@@ -201,7 +204,7 @@ module m_setup_pwmat
           call b_ematqk(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
         end if
 
-        ! Save only selected G
+        ! Save only selected G=G_mt
         muog(1:inu, 1:ino, ik) = muo(1:inu,1:ino,igqmt)
 
       end do
@@ -251,8 +254,11 @@ module m_setup_pwmat
     ! 
     ! !DESCRIPTION:
     !   The routine generates the plane wave matrix elements 
-    !   $\tilde{M}_{\alpha}(G,qmt) = \sqrt{f_{v_\alpha, \vec{k}_\alpha}-f_{c_\alpha, \vec{k}_\alpha+\vec{q}_\text{mt}}}
-    !    \langle v_\alpha \vec{k}_\alpha | e^{-i(G+qmt)r} | c_\alpha \vec{k}_\alpha+qmt \rangle
+    !   \begin{equation*}
+    !     \tilde{M}_{\alpha}(G,qmt) =
+    !     \sqrt{f_{v_\alpha, \vec{k}_\alpha}-f_{c_\alpha, \vec{k}_\alpha+\vec{q}_\text{mt}}}
+    !     \langle v_\alpha \vec{k}_\alpha | e^{-i(G+qmt)r} | c_\alpha \vec{k}_\alpha+qmt \rangle
+    !   \end{equation*}
     !
     !   Alpha is the combined index used in the BSE Hamiltonian.
     !
