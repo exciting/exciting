@@ -41,6 +41,7 @@ module m_b_ematqk
       use m_emattim
       use m_getunit
       use m_genfilname
+      use m_b_getgrst
       use mod_spin, only: nspnfv
 #ifdef USEOMP
       use omp_lib
@@ -102,7 +103,7 @@ module m_b_ematqk
 
       ! Find k+q-point
       ikq = ikmapikq_ptr(ik, iq)
-      !write(*,*) "ematqk: ik=",ik," iq=",iq,"ikq=",ikq
+     
 
       ! Check for stop statement
       write(msg, *) 'for q-point', iq, ': k-point:', ik - 1, ' finished'
@@ -638,7 +639,10 @@ module m_b_ematqk
       use m_emattim
       use m_getunit
       use m_genfilname
+      use m_b_getgrst
       use mod_spin, only: nspnfv
+      use mod_eigensystem, only: nmatmax_ptr
+      
 #ifdef USEOMP
       use omp_lib
 #endif
@@ -692,7 +696,6 @@ module m_b_ematqk
 
       ! Find k+q-point
       ikq = ikmapikq_ptr(ik, iq)
-      !write(*,*) "ematqk: ik=",ik," iq=",iq,"ikq=",ikq
 
       ! Check for stop statement
       write(msg, *) 'for q-point', iq, ': k-point:', ik - 1, ' finished'
@@ -745,7 +748,7 @@ module m_b_ematqk
       ngkmax_save=ngkmax
       ngkmax=ngkmax1_ptr
       allocate (apwalmt(ngkmax, apwordmax, lmmaxapw, natmtot))
-      call match(ngk1_ptr(1, ikq), gkc1_ptr(:,1,ikq), tpgkc1_ptr(:,:,1,ikq), &
+      call b_match1(ngk1_ptr(1, ikq), gkc1_ptr(:,1,ikq), tpgkc1_ptr(:,:,1,ikq), &
         & sfacgk1_ptr(:,:,1,ikq), apwalmt)
       ngkmax=ngkmax_save
 
@@ -753,8 +756,8 @@ module m_b_ematqk
       ngkmax_save=ngkmax
       ngkmax=ngkmax0_ptr
       allocate (apwalmt0(ngkmax, apwordmax, lmmaxapw, natmtot))
-      call match(ngk0_ptr(1, ik), gkc0_ptr(:,1,ik), tpgkc0_ptr(:,:,1,ik), &
-        & sfacgk0_ptr(:,:,1,ik), apwalmt)
+      call b_match0(ngk0_ptr(1, ik), gkc0_ptr(:,1,ik), tpgkc0_ptr(:,:,1,ik), &
+        & sfacgk0_ptr(:,:,1,ik), apwalmt0)
       ngkmax=ngkmax_save
       call timesec(cpu0)
       cpuread = cpu0 - cpu1
@@ -796,17 +799,17 @@ module m_b_ematqk
           if(whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
         
         else if (flag .eq. 'ou') then ! core-conduction matrix elements
-          call ematradou(iq, ik, igq,ngk1_ptr(1, ik), apwalmt,evecfv1_ptr(:,:,1), bc,&
+          call ematradou(iq, igq,ngk1_ptr(1, ikq), apwalmt,evecfv1_ptr(:,:,1), bc,&
            & integral)
           call timesec (cpu01)
           if (whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
           ! Muffin-tin contribution
-          call ematsumou (iq, ik, igq, bc, integral, emat(:,:,igq))
+          call ematsumou (iq, igq, bc, integral, emat(:,:,igq))
           call timesec (cpu00)
           if (whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
         
         else if (flag .eq. 'uo') then ! conductuin-core matrix elements
-          call ematraduo(iq, ik, igq,ngk(1, ik), apwalmt0,evecfv0_ptr(:,:,1), bc, integral)
+          call ematraduo(iq, ik, igq,ngk0_ptr(1, ik), apwalmt0,evecfv0_ptr(:,:,1), bc, integral)
           call timesec (cpu01)
           if (whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
           ! Muffin-tin contribution
@@ -1702,7 +1705,7 @@ End Subroutine ematradoo
 !BOP
   ! !ROUTINE: ematradou
   ! !INTERFACE:
-  Subroutine ematradou (iq,ik, igq, ngp, apwalm, evecfvo, bcs, integral)
+  Subroutine ematradou (iq, igq, ngp, apwalm, evecfvo, bcs, integral)
     ! !USES:
     use modinput, only: input
     use modxs, only: bcbs, gqc
@@ -1713,11 +1716,11 @@ End Subroutine ematradoo
     use mod_eigenvalue_occupancy, only: nstfv
     use mod_Gkvector, only: ngkmax
     use mod_APW_LO, only: apwordmax
+    use m_b_getgrst, only: b_wavefmt1
     !Use m_getunit 
     !Use modxas
     ! !INPUT/OUTPUT PARAMETERS:
     !   iq       : q-point position (in,integer)
-    !   ik       : k-point position (in,integer)
     !   ngp      : number of G+p-vectors (in,integer)
     !   apwalm   : APW matching coefficients
     !              (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
@@ -1736,7 +1739,7 @@ End Subroutine ematradoo
     !BOC      
 
       Implicit none
-      Integer, Intent (In) :: iq, ik, igq
+      Integer, Intent (In) :: iq, igq
       integer, intent(in)     :: ngp
       complex(8), intent(in)  :: apwalm(ngkmax1_ptr,apwordmax,lmmaxapw,natmtot)
       complex(8), intent(in)  :: evecfvo(nmatmax1_ptr,nstfv)
@@ -1773,7 +1776,7 @@ End Subroutine ematradoo
       Do n1=1,nxas
         Do n2=1,bcs%n2
           ! Obtain radial wavefunction of the conduction state		
-          call wavefmt(input%groundstate%lradstep, &
+          call b_wavefmt1(input%groundstate%lradstep, &
           &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,input%xs%bse%xasatom,ngp&
             , apwalm, &
           &  evecfvo(:,n2+bcs%il2-1),lmmaxapw,wfmt(:,:,n2+bcs%il2-1))
@@ -1784,7 +1787,11 @@ End Subroutine ematradoo
                 lm3=idxlm(l3,m3)
                 Do irc=1,nrcmt(input%xs%bse%xasspecies)
                   fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,n2+bcs%il2-1))
-                  fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
+                  if (.not. emat_ccket) then
+                    fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
+                  else ! use complex conjugate of the wavefunction
+                    fr3(irc)=-(1.0d0)*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
+                  end if
                 End Do
                 ! Radial integration
                 Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr2, gr, cf)
@@ -1793,7 +1800,7 @@ End Subroutine ematradoo
                 t2=gr (nrcmt(input%xs%bse%xasspecies))
                 !	integral(l2+1,lm3,n1,n2) = gr (nrcmt(input%xs%bse%xasspecies))
                 integral(l2+1,lm3,n1,n2) = cmplx(t1,t2,8)
-              End Do
+                End Do
             End Do
           End Do
         End Do
@@ -1844,7 +1851,7 @@ End Subroutine ematradoo
       Integer, Intent (In) :: iq, ik, igq
       integer, intent(in)     :: ngp
       complex(8), intent(in)  :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-      complex(8), intent(in)  :: evecfvo(nmatmax,nstfv)
+      complex(8), intent(in)  :: evecfvo(nmatmax0_ptr,nstfv)
       Type(bcbs), intent (in) :: bcs 
       Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2)
       ! local variables
@@ -1971,20 +1978,20 @@ End Subroutine ematradoo
   !BOP
   ! !ROUTINE: ematsumou
   ! !INTERFACE:
-  Subroutine ematsumou (iq,ik, igq, bcs, integral, xi)
+  Subroutine ematsumou (iq, igq, bcs, integral, xi)
     ! !USES:
     !Use modmain
     Use mod_muffin_tin, only: idxlm, lmmaxapw
     Use mod_constants, only: zzero, zil, fourpi
     Use mod_atoms, only: idxas
     Use mod_kpoint, only: vkl
-    Use modinput
-    Use modxs
-    Use m_getunit 
-    Use modxas
+    Use modinput, only: input
+    Use modxs, only: sfacgq, bcbs, xsgntou, ylmgq
+    use modxas, only: nxas 
+    !Use m_getunit 
+    !Use modxas
     ! !INPUT/OUTPUT PARAMETERS:
     !   iq       : q-point position (in,integer)
-    !   ik       : k-point position (in,integer)
     !   igq		 : (q+G)-point position (in, integer)
     !   integral : radial planewave integral 
     !              (in, complex(lmaxemat+1,lmmaxapw,nxas,sta2:sto2))
@@ -1999,14 +2006,13 @@ End Subroutine ematradoo
     !BOC      
     
     Implicit none
-    Integer, Intent (In) :: iq, ik, igq
+    Integer, Intent (In) :: iq, igq
     Type(bcbs), Intent (In) :: bcs
     Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2)
     Complex(8), Intent (InOut):: xi(nxas, bcs%n2)
     ! local variables
     Integer :: n1, n2, l2, lmax2, m2, lm2, l3, m3, lm3, ias,ia, is
     Complex(8) :: prefactor
-    Real (8) :: vk (3)
     ! Setting xioo to zero
     xi(:,:)=zzero
     is=input%xs%bse%xasspecies
@@ -2029,10 +2035,8 @@ End Subroutine ematradoo
             End Do
           End Do
         End Do
-        !write(*,*) 'xi(', n1, ',', n2, ',', igq, ')=', xi(n1,n2)
       End Do
     End Do
-    vk (:) = vkl (:, ik)
     ! Multiply with Structure Factor
     prefactor=fourpi*conjg(sfacgq(igq, ias, iq))
     xi(:,:)=xi(:,:)*prefactor

@@ -7,6 +7,7 @@ module m_writeoscillator
 #endif
   use m_genfilname
   use m_getunit
+  use m_write_hdf5
 
   implicit none
 
@@ -24,10 +25,11 @@ module m_writeoscillator
       integer(4) :: o1, lambda, unexc, io1, io2, iq
       character(256) :: fnexc, frmt, tdastring, bsetypestring, scrtypestring
       character(256) :: syscommand, excitondir
+      character(128) :: gname
 #ifdef DGRID
       character(256) :: dgrid_dotext
 #endif
-      
+     
       excitondir='EXCITON'
       syscommand = 'test ! -e '//trim(adjustl(excitondir))//' && mkdir '//trim(adjustl(excitondir))
       call system(trim(adjustl(syscommand)))
@@ -40,6 +42,11 @@ module m_writeoscillator
 
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
+
+      !write hdf5 output
+      gname="excitons"//trim(bsetypestring)//trim(scrtypestring)
+      call write_excitons_hdf5(hamsize, nexc, eshift, evalre, oscstrr,&
+      & gname, iqmt=iqmt)
 
       ! Loop over optical components
       if(present(iqmt)) then 

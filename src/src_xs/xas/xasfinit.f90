@@ -1,13 +1,9 @@
 subroutine xasfinit
-	Use modmain
-	Use modinput
-	Use modxs
-	Use modxas
-	Implicit none
+  Use modxas, only: ucore, ecore, mj, spj
+  Implicit none
     ! Deallocation of global arrays
-	deallocate(ucore)
-	deallocate(ecore)
-	deallocate(mj2ml)
-	deallocate(preml)
-
+  deallocate(ucore)
+  deallocate(ecore)
+  deallocate(spj)
+  deallocate(mj)
 end subroutine xasfinit

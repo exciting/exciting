@@ -554,4 +554,9 @@ Module modxs
       Real (8) :: vkloff_xs_b(3)
 
 
+  !---------------------------------------!
+  !               HDF5 Variable           !
+  !---------------------------------------!
+  ! hdf5 filename
+  character(128) :: fhdf5
 End Module modxs

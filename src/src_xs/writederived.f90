@@ -9,6 +9,7 @@ subroutine writederived(iqmt, eps, nw, w)
   use m_writeeps
   use m_writeloss
   use m_writesigma
+  use m_write_hdf5
   use m_writesumrls
 
   implicit none
@@ -27,6 +28,7 @@ subroutine writederived(iqmt, eps, nw, w)
   logical :: foff
   character(256) :: tdastring, bsetypestring, scrtypestring
   character(256) :: syscommand, epsilondir, lossdir, sigmadir
+  character(256) :: gname
 
   character(*), parameter :: thisname = "writederived"
 
@@ -70,7 +72,11 @@ subroutine writederived(iqmt, eps, nw, w)
     io2=1
     foff =.false.
   end if
+  ! Generate filename for hdf5 datablock
+  gname="spectra"//trim(bsetypestring)//trim(scrtypestring)
 
+  !Write optical functions to hdf5
+  call write_spectra_hdf5(iqmt, foff, w, eps, loss, sigma, gname)
   do o1 = io1, io2
 
     if(foff) then
@@ -127,7 +133,7 @@ subroutine writederived(iqmt, eps, nw, w)
       ! Generate optical functions
       call gensigma(w, eps(o1,o2,:), optvec(1:2), sigma)
       !call gensumrls(w, eps(o1,o2,:), sumrls)
-
+      
       ! Write optical functions to file
       call writeeps(iqmt, o1, o2, w, eps(o1,o2,:), trim(fneps)) ! iqmt not used
       call writeloss(iqmt, w, loss(o1, o2, :), trim(fnloss))

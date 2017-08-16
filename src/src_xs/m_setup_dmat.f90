@@ -179,7 +179,7 @@ module m_setup_dmat
       integer(4) :: io, iu, ioabs, iuabs
       integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
 
-      complex(8), allocatable :: pmuo(:,:,:), pmuo_t(:,:), pbuff(:,:)
+      complex(8), allocatable :: pmuo(:,:,:), pmuo_t(:,:), pbuff(:,:), pmou_(:,:,:)
 
       integer(4) :: context, pr, pc
       integer(4) :: ig, jg, ii, jj, iblck, jblck
@@ -255,9 +255,15 @@ module m_setup_dmat
             ! and those occupied and unoccupied states that 
             ! are participate at that k point. 
             if (input%xs%bse%xas) then
+              ! Only pmou is written to file, but pmuo is needed
+              allocate(pmou_(3,ino,inu))
               call getpmatxas(iknr, vkl0,&
-                &  iuabs1, iuabs2, ioabs1, ioabs2,&
-                & .true., 'PMAT_XS.OUT', pmuo(:,1:inu,1:ino))
+                &  ioabs1, ioabs2, iuabs1, iuabs2,&
+                & .true., 'PMAT_XS.OUT', pmou_(:,1:ino,1:inu))
+              do i=1,3
+                pmuo(i,:,:)=transpose(conjg(pmou_(i,:,:))) 
+              end do
+              deallocate(pmou_)
             else
               call getpmat(iknr, vkl0,&
                 & iuabs1, iuabs2, ioabs1, ioabs2,&
