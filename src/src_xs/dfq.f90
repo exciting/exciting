@@ -579,40 +579,6 @@ subroutine dfq(iq)
 #endif            
     end if
 
-    !! Time reversal symmetry treatment of anti-resonant part of chi0 in the 
-    !! case of static screening without broadening.
-    !if(tscreen) then
-
-    !  if(input%xs%screening%tr) then 
-
-    !    ! Since omega=0 and brd=0, we can use the time reversal symmetry
-    !    ! to equate the anti-resonant part of Chi0 with the resonant one.
-    !    ! We repace the uo quantities with the ou one in the following,
-    !    ! this amounts Chi0 = 2*Chi0^{res}
-    !     
-    !    do igq = 1, n
-    !      ! v^1/2(G,q)*M_uo(G,q) <-- v^1/2(G,q)*M_ou(G,q)
-    !      xiuo(:, :, igq) = transpose(xiou(:, :, igq))
-    !    end do
-
-    !    do j = 1, 3
-    !      ! sqrt(4pi)*p_uo <-- sqrt(4pi)*p_ou
-    !      pmuo(j, :, :) = transpose(pmou(j, :, :))
-    !    end do
-
-    !    ! deuo = e_{uk} - e_{ok+q} <-- deou = e_{ok} - e_{uk+q}
-    !    deuo(:, :) = transpose(deou(:, :))
-
-    !    ! docc21 = f_{uk} - f_{ok+q} <-- docc12 = f_{ok} - f_{uk+q}
-    !    docc21(:, :) = transpose(docc12(:, :))
-
-    !    ! Scissors are set to 0 anyways?
-    !    scis21c(:, :) = transpose(scis12c(:, :))
-
-    !  end if
-
-    !end if
-
     ! Not screen: Turn off anti-resonant terms (type 2-1 band combinations) for Kohn-Sham
     ! response function (default skip if)
     if(( .not. input%xs%tddft%aresdf) .and. ( .not. tscreen)) then
@@ -772,16 +738,18 @@ subroutine dfq(iq)
 ! Discuss: Should the weight be wkpt0?
             ! Note: For 'screen' : wou = (f_{ok} - f_{uk+q})/(e_{ok} - e_{uk+q})
             wou(iw,ist1,ist2) = docc12(ist1, ist2) * wkpt(ik) / omega / zt1
-            ! Get anti-resonant weight 
-            ! Note: tordf defaults to 1, yielding the retarded response. 
-            !       For the time orderded resoponse set input%xs%tddft%torddf=true (tordf = -1)
-            ! Note: For 'screen': zt1 = e_{uk} - e_{ok+q}
-            !       or for t.r. sym. : zt1 = e_{ok} - e_{uk+q}
-            zt1=w(iw)+deuo(ist2, ist1)+scis21c(ist2,ist1)+tordf*zi*brd
-            if(abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
-            ! Note: For 'screen' : wuo = (f_{uk} - f_{ok+q})/(e_{uk} - e_{ok+q})
-            !       or for t.r. sym: wuo = wou (relies of w=0 and brd=0)
-            wuo(iw,ist1,ist2) = docc21(ist2, ist1) * wkpt(ik) / omega / zt1
+            if(doares) then
+              ! Get anti-resonant weight 
+              ! Note: tordf defaults to 1, yielding the retarded response. 
+              !       For the time orderded resoponse set input%xs%tddft%torddf=true (tordf = -1)
+              ! Note: For 'screen': zt1 = e_{uk} - e_{ok+q}
+              !       or for t.r. sym. : zt1 = e_{ok} - e_{uk+q}
+              zt1=w(iw)+deuo(ist2, ist1)+scis21c(ist2,ist1)+tordf*zi*brd
+              if(abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
+              ! Note: For 'screen' : wuo = (f_{uk} - f_{ok+q})/(e_{uk} - e_{ok+q})
+              !       or for t.r. sym: wuo = wou (relies of w=0 and brd=0)
+              wuo(iw,ist1,ist2) = docc21(ist2, ist1) * wkpt(ik) / omega / zt1
+            end if
           end do
 
           ! Save weights for current ist1/ist2 combination
@@ -800,10 +768,12 @@ subroutine dfq(iq)
         !----------------------------------!
         ! zv_ou = v^{1/2} M_ou 
         zvou(:) = xiou(ist1, ist2, :)
-        ! zv_uo = v^{1/2} M_uo 
-        ! Note: For 'screen' and t.r. sym xiou(1,2,:) = xiuo(2,1,:)
-        !       i.e. zvou(:) = zvuo(:)
-        zvuo(:) = xiuo(ist2, ist1, :)
+        if(doares) then
+          ! zv_uo = v^{1/2} M_uo 
+          ! Note: For 'screen' and t.r. sym xiou(1,2,:) = xiuo(2,1,:)
+          !       i.e. zvou(:) = zvuo(:)
+          zvuo(:) = xiuo(ist2, ist1, :)
+        end if
 
         ! Treatments of head and wings of of chi
         do iw = wi, wf
