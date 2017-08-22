@@ -4,7 +4,7 @@ module m_putgetexcitons
   use modbse
   use modscl
   use mod_kpoint, only: vkl
-  use modxs, only: vkl0, vqlmt, ikmapikq
+  use modxs, only: vkl0, vqlmt
   use m_getunit
   use m_genfilname
 
@@ -19,7 +19,8 @@ module m_putgetexcitons
   integer(4) :: hamsize_, nexcstored_, iex1_, iex2_
   integer(4) :: iq_
   integer(4) :: ioref_, iuref_
-  integer(4), allocatable :: ikmapikq_(:), kousize_(:), koulims_(:,:)
+  integer(4), allocatable :: ik2ikqmtp_(:), ik2ikqmtm_(:), ikqmtm2ikqmtp_(:)
+  integer(4), allocatable :: kousize_(:), koulims_(:,:)
   integer(4), allocatable :: smap_(:,:), smap_rel_(:,:)
   real(8), allocatable :: vqlmt_(:)
   integer(4), allocatable :: ngridk_(:), ikmap_(:,:,:)
@@ -31,7 +32,9 @@ module m_putgetexcitons
 
     subroutine clear_excitons
 
-      if(allocated(ikmapikq_)) deallocate(ikmapikq_)
+      if(allocated(ik2ikqmtp_)) deallocate(ik2ikqmtp_)
+      if(allocated(ik2ikqmtm_)) deallocate(ik2ikqmtm_)
+      if(allocated(ikqmtm2ikqmtp_)) deallocate(ikqmtm2ikqmtp_)
       if(allocated(kousize_)) deallocate(kousize_)
       if(allocated(koulims_)) deallocate(koulims_)
       if(allocated(smap_)) deallocate(smap_)
@@ -172,7 +175,9 @@ module m_putgetexcitons
       call hdf5_write(fhdf5,group,"ikmap", ikmap(1,1,1), shape(ikmap))
       call hdf5_write(fhdf5,group,"vkl0", vkl0(1,1), shape(vkl0))
       call hdf5_write(fhdf5,group,"vkl", vkl(1,1), shape(vkl))
-      call hdf5_write(fhdf5,group,"ikmapikq(iq)",ikmapikq(1,iq), shape(ikmapikq(:,iq)))
+      call hdf5_write(fhdf5,group,"ik2ikqmtp",ik2ikqmtp(1), shape(ik2ikqmtp(:)))
+      call hdf5_write(fhdf5,group,"ik2ikqmtm",ik2ikqmtm(1), shape(ik2ikqmtm(:)))
+      call hdf5_write(fhdf5,group,"ikqmtm2ikqmtp",ikqmtm2ikqmtp(1), shape(ikqmtm2ikqmtp(:)))
       call hdf5_write(fhdf5,group,"kousize", kousize(1), shape(kousize))
       call hdf5_write(fhdf5,group,"koulims",koulims(1,1), shape(koulims))
       call hdf5_write(fhdf5,group,"smap",smap(1,1), shape(smap))
@@ -205,9 +210,11 @@ module m_putgetexcitons
         & vqlmt(1:3,iq),& ! Momentum transver vector
         & ngridk,&      ! k-grid spacing
         & ikmap,&       ! k-grid index map 3d -> 1d 
-        & vkl0,&        ! Lattice vectors for k grid
-        & vkl,&         ! Lattice vectors for k'=k+qmt grid
-        & ikmapikq(:,iq),& ! ik -> ik' index map
+        & vkl0,&        ! Lattice vectors for k=k-qmt/2 grid
+        & vkl,&         ! Lattice vectors for k'=k+qmt/2 grid
+        & ik2ikqmtm(:),& ! ik -> ik-qmt/2 index map
+        & ik2ikqmtp(:),& ! ik -> ik+qmt/2 index map
+        & ikqmtm2ikqmtp(:),& ! ik-qmt/2 -> ik+qmt/2 index map
         & kousize,&     ! Number of transitions at each k point
         & koulims,&     ! For each k-point, lower and upper c and v index 
         & smap,&        ! Index map  alpha -> c,v,k (absolute c,v,k indices)
@@ -418,7 +425,9 @@ module m_putgetexcitons
       allocate(ikmap_(0:ngridk_(1)-1,0:ngridk_(2)-1,0:ngridk_(3)-1))
       allocate(vkl0_(3,nk_max_))
       allocate(vkl_(3,nk_max_))
-      allocate(ikmapikq_(nk_max_))
+      allocate(ik2ikqmtm_(nk_max_))
+      allocate(ik2ikqmtp_(nk_max_))
+      allocate(ikqmtm2ikqmtp_(nk_max_))
       allocate(kousize_(nk_max_))
       allocate(koulims_(4,nk_max_))
       allocate(smap_(3,hamsize_))
@@ -429,7 +438,9 @@ module m_putgetexcitons
       call hdf5_read(fname,group,"ikmap", ikmap_(1,1,1), shape(ikmap_))
       call hdf5_read(fname,group,"vkl0", vkl0_(1,1), shape(vkl0_))
       call hdf5_read(fname,group,"vkl", vkl_(1,1), shape(vkl_))
-      call hdf5_read(fname,group,"ikmapikq(iq)",ikmapikq_(1), (/nk_max_/))
+      call hdf5_read(fname,group,"ik2ikqmtm",ik2ikqmtm_(1), (/nk_max_/))
+      call hdf5_read(fname,group,"ik2ikqmtp",ik2ikqmtp_(1), (/nk_max_/))
+      call hdf5_read(fname,group,"ikqmtm2ikqmtp",ikqmtm2ikqmtp_(1), (/nk_max_/))
       call hdf5_read(fname,group,"kousize", kousize_(1), shape(kousize_))
       call hdf5_read(fname,group,"koulims",koulims_(1,1), shape(koulims_))
       call hdf5_read(fname,group,"smap",smap_(1,1), shape(smap_))
@@ -438,9 +449,11 @@ module m_putgetexcitons
 #else
       read(unexc, pos=mypos)&
         & ikmap_,&      ! Non reduced k-grid index map 3d -> 1d 
-        & vkl0_,&       ! Lattice vectors for k grid
-        & vkl_,&        ! Lattice vectors for k'=k+qmt grid
-        & ikmapikq_,&   ! ik -> ik' index map
+        & vkl0_,&       ! Lattice vectors for k=k-qmt/2 grid
+        & vkl_,&        ! Lattice vectors for k'=k+qmt/2 grid
+        & ik2ikqmtm_,&  ! ik -> ik-qmt/2 index map
+        & ik2ikqmtp_,&  ! ik -> ik+qmt/2 index map
+        & ikqmtm2ikqmtp_,& ! ik-qmt/2 -> ik+qmt/2 index map
         & kousize_,&    ! Number of transitions at each k point
         & koulims_,&    ! For each k-point, lower and upper c and v index 
         & smap_,&       ! Index map  alpha -> c,v,k (absolute c,v,k indices)
@@ -666,9 +679,11 @@ module m_putgetexcitons
           & vqlmt(1:3,iq),& ! Momentum transver vector
           & ngridk,&      ! k-grid spacing
           & ikmap,&       ! k-grid index map 3d -> 1d 
-          & vkl0,&        ! Lattice vectors for k grid
-          & vkl,&         ! Lattice vectors for k'=k+qmt grid
-          & ikmapikq(:,iq),& ! ik -> ik' index map
+          & vkl0,&        ! Lattice vectors for k=k-qmt/2 grid
+          & vkl,&         ! Lattice vectors for k'=k+qmt/2 grid
+          & ik2ikqmtm(:),& ! ik -> ik-qmt/2 index map
+          & ik2ikqmtp(:),& ! ik -> ik+qmt/2 index map
+          & ikqmtm2ikqmtp(:),& ! ik-qmt/2 -> ik+qmt/2 index map
           & kousize,&     ! Number of transitions at each k point
           & koulims,&     ! For each k-point, lower and upper c and v index 
           & smap,&        ! Index map  alpha -> c,v,k (absolute c,v,k indices)

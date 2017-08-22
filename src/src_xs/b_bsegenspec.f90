@@ -55,7 +55,7 @@ subroutine b_bsegenspec()
     !   Use all
     iqmti = 1
     iqmtf = size(input%xs%qpointset%qpoint, 2)
-    !   or use only one
+    !   or range
     if(input%xs%bse%iqmtrange(1) /= -1) then 
       iqmti=input%xs%bse%iqmtrange(1)
       iqmtf=input%xs%bse%iqmtrange(2)
@@ -68,7 +68,6 @@ subroutine b_bsegenspec()
     fcoup = input%xs%bse%coupling
     ! Use offdiagonal elements
     foff = input%xs%dfoffdiag
-
 
     do iqmt = iqmti+iq1-1, iqmti+iq2-1
 

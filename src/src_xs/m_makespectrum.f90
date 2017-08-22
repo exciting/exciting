@@ -50,7 +50,7 @@ module m_makespectrum
       zbrd = zi*input%xs%broad
 
       write(unitout, '("Info(",a,"):&
-       & Making spectrum using formula for coupling with time inverted ar basis.")')&
+       & Making spectrum using formula for coupling with time reversed ar basis.")')&
        & trim(thisname)
       if(iqmt == 1) then 
         write(unitout, '("Info(",a,"):&
@@ -74,7 +74,7 @@ module m_makespectrum
       write(unitout, '("  Making energy denominators ENW.")')
       call timesec(t0)
 
-      ! enw_{w, \lambda} = 1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta)
+      ! enw_{w, \lambda} = 1/(w - E_\lambda + i\delta) + 1/(-w - E_\lambda - i\delta)
       allocate(enw(nfreq, nexc))
 
       !$OMP PARALLEL DO &
@@ -82,8 +82,8 @@ module m_makespectrum
       !$OMP& DEFAULT(SHARED), PRIVATE(i,j)
       do j = 1, nexc
         do i = 1, nfreq
-          enw(i,j) = zone/(bevalre(j)-freq(i)-zbrd)&
-                  &+ zone/(bevalre(j)+freq(i)+zbrd)
+          enw(i,j) = zone/(freq(i) - bevalre(j) + zbrd)&
+                  &+ zone/(-freq(i) -bevalre(j) - zbrd)
         end do
       end do
       !$OMP END PARALLEL DO
@@ -146,7 +146,9 @@ module m_makespectrum
       !++++++++++++++++++++++++++++++++++++++++++++!
            
       !++++++++++++++++++++++++++++++++++++++++++++!
-      ! Make non-lattice-symmetrized spectrum      !
+      ! Make non-lattice-symmetrized response functions
+      ! Chi_{Gmt,Gmt}(qmt,omega) for qmt/=0,
+      ! \bar{P}^{ij}_{00}(0,omega) for qmt=0
       !++++++++++++++++++++++++++++++++++++++++++++!
       write(unitout, '("  Calculating spectrum.")')
       call timesec(t0)
@@ -156,13 +158,13 @@ module m_makespectrum
       ! qmt=0 case:
       ! nsspectr_{w,j} = \Sum_{\lambda} enw_{w,\lambda} tmat_{\lambda, j}
       !   i.e. nsspectr_{w,j} = 
-      !     \Sum_{\lambda} (1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta))
+      !     \Sum_{\lambda} (1/(w - E_\lambda + i\delta) + 1/(-w - E_\lambda - i\delta))
       !       t^*_{\lambda, o1_j} t_{\lambda, o2_j} 
       ! qmt/=0 case:
       ! nsspectr_{w,j} = \Sum_{\lambda} enw_{w,\lambda} tmat_{\lambda, j}
       !   i.e. nsspectr_{w,j} = 
-      !     \Sum_{\lambda} (1/(E_\lambda - w - i\delta) + 1/(E_\lambda + w + i\delta))
-      !       t^*_{\lambda}(G,qmt) t_{\lambda}(G,qmt) 
+      !     \Sum_{\lambda} (1/(w - E_\lambda + i\delta) + 1/(-w - E_\lambda - i\delta))
+      !       t^*_{\lambda}(Gmt,qmt) t_{\lambda}(Gmt,qmt) 
       call zgemm('N','N', nfreq, nopt, nexc, zone, enw, nfreq,&
         & tmat, nexc, zzero, ns_spectr, nfreq)
       !++++++++++++++++++++++++++++++++++++++++++++!

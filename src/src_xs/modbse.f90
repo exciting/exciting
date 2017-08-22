@@ -15,7 +15,7 @@ module modbse
   use modinput, only: input
   use mod_constants, only: h2ev
   use modxs, only: unitout, totalqlmt
-  use modxs, only: evalsv0, occsv0, ikmapikq
+  use modxs, only: evalsv0, occsv0
   use modxs, only: istocc0, istocc, istunocc0, istunocc,&
                  & isto0, isto, istu0, istu, ksgapval, qgap, iqmtgamma
   use mod_eigenvalue_occupancy, only: evalsv, occsv, nstsv
@@ -73,7 +73,7 @@ module modbse
   integer(4), allocatable :: koulims(:,:)
 
   ! Mapping between k and k' grids
-  integer(4), dimension(:), allocatable :: ik2ikqmtp, ik2ikqmtm, imk2imkqmtp
+  integer(4), dimension(:), allocatable :: ik2ikqmtp, ik2ikqmtm, ikqmtm2ikqmtp
   ! Offsets of k grids
   real(8), dimension(3) :: vkloff, vkqmtploff, vkqmtmloff
 
@@ -160,6 +160,10 @@ module modbse
       if(allocated(ik2ikqmtm)) deallocate(ik2ikqmtm)
       allocate(ik2ikqmtm(nkpt))
       ik2ikqmtm(:) = k_kqmtm%ik2ikqmt(:)
+      ! k-qmt/2 --> k+qmt/2
+      if(allocated(ikqmtm2ikqmtp)) deallocate(ikqmtm2ikqmtp)
+      allocate(ikqmtm2ikqmtp(nkpt))
+      ikqmtm2ikqmtp(:) = ikm2ikp(:)
 
       call xsgrids_finalize()
       !---------------------------------------------------!
@@ -929,7 +933,7 @@ module modbse
       call getunit(un)
       fname = trim(adjustl(fdir))//'/'//'BSE_SINDEX'//fext
       open(un, file=trim(adjustl(fname)), action='write', status='replace')
-      write(un,'("# Combined BSE index @ q =", 3(E10.3,1x))')  0.0d0, 0.0d0, 0.0d0
+      write(un,'("# Combined BSE index @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
       write(un,'("# s iu io ik iu_rel io_rel ik_rel occ")')
       do i = 1, size(ofac)
         write(un, '(7(I8,1x),1x,E23.16)')&

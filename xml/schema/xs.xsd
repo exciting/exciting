@@ -664,15 +664,6 @@
                   used for BSE. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="writeminus" type="xs:boolean"
-              default="true">
-              <xs:annotation>
-                <xs:documentation>
-                  It store excition is specified and the time inverted anti resonant basis
-                  is used, also store the exciton eigenvectors corresponding to the negative eigenvalues.
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="distribute" type="xs:boolean"
               default="false">
               <xs:annotation>
@@ -714,12 +705,6 @@
                   for a desired energy window needs to be converged with respect to this parameter. First/second entry is convergence energy for the
                   lower/upper end of the spectrum. 
                 </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="blindread" type="xs:boolean"
-              default="false">
-              <xs:annotation>
-                <xs:documentation> Set to <pre>"true"</pre> to skip checks when reading W and V form file.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="coupling" type="xs:boolean"

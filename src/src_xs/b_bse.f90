@@ -165,8 +165,11 @@ subroutine b_bse(iqmt)
   call readfermi
   ! Set ist* variables and ksgap in modxs using findocclims
   ! Needs: init2 (is called by b_bselauncher)
-  ! On exit: k-grid quantities are stored in modxs: vkl0, evalsv0 etc
-  !          k-qmt/2 grid quantities are stored in default locations: vkl, evalsv etc
+  ! On exit: - k-grid quantities are stored in modxs: vkl0, evalsv0 etc
+  !            k-qmt/2 grid quantities are stored in default locations: vkl, evalsv etc
+  !            This is altered by select_transitions below
+  !          - Saves mappings k -> k+qmt/2, k -> k-qmt/2 and k-qmt/2 -> k+qmt/2 
+  !            to modbse
   call setranges_modxs(iqmt)
   !---------------------------------------------------------------------------!
 
@@ -224,7 +227,6 @@ subroutine b_bse(iqmt)
   ! Note: Operates on mpiglobal
   ! Note: On exit k-grid/2 quantities are stored in vkl0, evalsv0 etc and
   !       k+qmt/2 grid quantities are stored in vkl, evalsv etc
-  !
   if(fdist) then 
     ! Use all ranks on mpiglobal
     call select_transitions(iqmt, serial=.false.)
