@@ -399,7 +399,7 @@ module modbse
       real(8), allocatable :: ofac_loc(:)
       real(8), allocatable :: de_loc(:)
       real(8) :: t0, t1
-      logical :: fsamek
+      logical :: fsamek0, fsamek1, fsamek
       logical, allocatable :: sflag(:)
       integer(4) :: k1, k2
       integer(4) :: i1, i2
@@ -523,6 +523,22 @@ module modbse
       ! to those of the k'=k+qmt/2 grid.
       call init1offs(vkqmtploff)
 
+      if(all(abs(vkqmtmloff-vkloff) < epslat)) then
+        write(unitout, '("Info(select_transitions): Same k-grids for - and ref. grids at iqmt=",i3)') iqmt
+        fsamek0=.true.
+      else
+        write(unitout, '("Info(select_transitions): Different k-grids for - and ref. grids at iqmt=",i3)') iqmt
+        fsamek0=.false.
+      end if
+
+      if(all(abs(vkqmtploff-vkloff) < epslat)) then
+        write(unitout, '("Info(select_transitions): Same k-grids for + and ref. grids at iqmt=",i3)') iqmt
+        fsamek1=.true.
+      else
+        write(unitout, '("Info(select_transitions): Different k-grids for + and ref. grids at iqmt=",i3)') iqmt
+        fsamek1=.false.
+      end if
+
       if(all(abs(vkqmtmloff-vkqmtploff) < epslat)) then
         write(unitout, '("Info(select_transitions): Same k-grids for + and - grids at iqmt=",i3)') iqmt
         fsamek=.true.
@@ -536,7 +552,11 @@ module modbse
 
         !! Get energies and occupancies for the k+qmt/2 grid
         ! Set EVALSV_QMTXYZ.OUT as read file
-        call genfilname(iqmt=iqmt, setfilext=.true.)
+        if(fsamek1) then 
+          call genfilname(iqmt=iqmtgamma, setfilext=.true.)
+        else
+          call genfilname(iqmt=iqmt, setfilext=.true.)
+        end if
         do ik = 1, nkpt
           call getoccsv(vkl(1:3, ik), occsv(1:nstsv, ik))
           call getevalsv(vkl(1:3, ik), evalsv(1:nstsv, ik))
@@ -545,12 +565,19 @@ module modbse
         !! Get energies and occupancies for k-qmt/2
         !! and save them in the 0 named variables
         usefilext0 = .true.
-        if(fsamek) then 
-          ! Set EVALSV_QMTXYZ.OUT as read file
-          call genfilname(iqmt=iqmt, setfilext=.true., fileext=filext0)
+        if(fsamek0) then
+          ! Set EVALSV_QMT001.OUT as read file
+          call genfilname(iqmt=iqmtgamma, setfilext=.true., fileext=filext0)
         else
-          ! Set EVALSV_QMTXYZ_m.OUT as read file
-          call genfilname(iqmt=iqmt, auxtype="m", setfilext=.true., fileext=filext0)
+          ! If + - grids are the same use the + one
+          if(fsamek) then 
+            ! Set EVALSV_QMTXYZ.OUT as read file
+            call genfilname(iqmt=iqmt, setfilext=.true., fileext=filext0)
+          ! Normal case: use the - grid 
+          else
+            ! Set EVALSV_QMTXYZ_m.OUT as read file
+            call genfilname(iqmt=iqmt, auxtype="m", setfilext=.true., fileext=filext0)
+          end if
         end if
         do ik = 1, nkpt
           call getoccsv0(vkl0(1:3, ik), occsv0(1:nstsv, ik))
