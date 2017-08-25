@@ -134,6 +134,10 @@ subroutine b_bse(iqmt)
   type(dzmat) :: dham, dexevec, doscsr, dresvec, daresvec
   type(dzmat) :: dcmat, dcpmat
 
+  ! Write out the coupling measures ? 
+  logical :: fmeasure
+  fmeasure = input%xs%bse%measure
+
   !! Greeting
   !write(*, '("Info(",a,"): Running at rank", i3)')&
   !  & trim(thisname), mpiglobal%rank
@@ -423,6 +427,15 @@ subroutine b_bse(iqmt)
       write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
       write(unitout,*)
       !------------------------------------------------------------------------!
+
+      ! Testing
+      if(fmeasure) then 
+        if(bicurrent%isroot) then 
+          write(unitout, '("Info(",a,"): Writing coupling measures to file")')&
+            & trim(thisname)
+          call writemeasures(iqmt, nexc, exeval, fcoup)
+        end if
+      end if
 
       ! =================================================================!
       ! Store excitonic energies and wave functions to file if requested !

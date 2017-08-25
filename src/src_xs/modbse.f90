@@ -77,6 +77,9 @@ module modbse
   ! Offsets of k grids
   real(8), dimension(3) :: vkloff, vkqmtploff, vkqmtmloff
 
+  ! Testing array for coupling measures
+  real(8), allocatable :: vwdiffrr(:), vwdiffar(:)
+
   ! Filebasenames
   character(256) :: infofbasename = "BSEINFO"
   character(256) :: scclifbasename = "SCCLI"
@@ -1005,6 +1008,111 @@ module modbse
       close(un)
 
     end subroutine printso
+
+    ! Write out the coupling measures for each calculated exciton
+    subroutine writemeasures(iqmt, nexc, evals, fcoup, dirname)
+      implicit none 
+
+      integer(4), intent(in) :: iqmt, nexc
+      logical, intent(in) :: fcoup
+      real(8), intent(in) :: evals(:)
+      character(*), intent(in), optional :: dirname
+
+      character(256) :: fdir, syscommand, fext, fname, fiqmt
+      integer(4) :: un
+
+      real(8), allocatable :: measuresrr(:), measuresar(:)
+      integer(4) :: alphamaxrr, alphamaxar, i, j
+      integer(4), allocatable :: sorti(:)
+
+      ! Make a folder 
+      fdir = 'MEASURES'
+      if(present(dirname)) then 
+        fdir = trim(dirname)//'/'//trim(fdir)
+      end if
+      if(mpiglobal%rank == 0) then 
+        syscommand = 'test ! -d '//trim(adjustl(fdir))//' && mkdir -p '//trim(adjustl(fdir))
+        call system(trim(adjustl(syscommand)))
+      end if
+      write(fiqmt,*) iqmt
+      fext = '_QMT'//trim(adjustl(fiqmt))//'.OUT'
+
+      ! Make measures
+      allocate(measuresrr(hamsize))
+      allocate(measuresar(hamsize))
+      allocate(sorti(hamsize))
+
+      measuresrr = 0.0d0
+      alphamaxrr = 1
+      measuresrr = vwdiffrr(1:hamsize)/de(1:hamsize)
+      alphamaxrr = maxloc(measuresrr,1)
+
+      measuresar = 0.0d0
+      alphamaxar = 1
+      if(fcoup) then
+        measuresar = vwdiffar(1:hamsize)/de(1:hamsize)
+        alphamaxar = maxloc(measuresar,1)
+      end if
+
+      call getunit(un)
+
+      fname = trim(adjustl(fdir))//'/'//'Measures'//fext
+      open(un, file=trim(adjustl(fname)), action='write', status='replace')
+      write(un,'("# Measures for excitions @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
+      write(un,'("#")')
+      write(un,'("# RR: Max_{a,b} |V_ab - W^rr_ab|/dE^ip_a")')
+      write(un,'("# a=",i8," dE=",E13.4)') alphamaxrr, de(alphamaxrr)*h2ev
+      if(fcoup) then
+        write(un,'("# AR: Max_{a,b} |V_ab - W^ar_ab|/dE^ip_a")')
+        write(un,'("# a=",i8," dE=",E13.4)') alphamaxar, de(alphamaxar)*h2ev
+      end if
+      write(un,'("# lambda, exenrgy, MaxMeasure_rr, MaxMeasure_ar")')
+
+      do i = 1, nexc
+
+        measuresrr = 0.0d0
+        measuresrr = vwdiffrr(1:hamsize)/(de(1:hamsize)+evals(i))
+
+        measuresar = 0.0d0
+        if(fcoup) then
+          measuresar = vwdiffar(1:hamsize)/(de(1:hamsize)+evals(i))
+        end if
+
+        write(un, '(I8,1x,E13.4,1x,2(E13.4,1x))')&
+          & i, evals(i)*h2ev,&
+          & measuresrr(alphamaxrr),&
+          & measuresar(alphamaxar)
+
+      end do
+
+      close(un)
+
+      call getunit(un)
+      fname = trim(adjustl(fdir))//'/'//'VWdiffs'//fext
+      open(un, file=trim(adjustl(fname)), action='write', status='replace')
+      write(un,'("# max per row of |V-W| @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
+      write(un,'("# alpha, ipen, VWdiff_rr, VWdiff_ra")')
+
+      call sortidx(hamsize, de, sorti)
+
+      do i = 1, hamsize
+
+        j = sorti(i)
+        if(fcoup) then 
+          write(un, '(I8,1x,E13.4,1x,2(E13.4,1x))')&
+            & j, de(j)*h2ev,&
+            & vwdiffrr(j), vwdiffar(j)
+        else
+          write(un, '(I8,1x,E13.4,1x,2(E13.4,1x))')&
+            & j, de(j)*h2ev,&
+            & vwdiffrr(j), 0.0d0
+        end if
+
+      end do
+
+      close(un)
+
+    end subroutine writemeasures
 
     !+++++++++++++++++++++++++++++++++++++++++++!
     ! Simple continuous combined index mappers  !
