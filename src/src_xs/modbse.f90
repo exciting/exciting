@@ -1011,6 +1011,7 @@ module modbse
 
     ! Write out the coupling measures for each calculated exciton
     subroutine writemeasures(iqmt, nexc, evals, fcoup, dirname)
+      use m_genfilname
       implicit none 
 
       integer(4), intent(in) :: iqmt, nexc
@@ -1018,12 +1019,13 @@ module modbse
       real(8), intent(in) :: evals(:)
       character(*), intent(in), optional :: dirname
 
-      character(256) :: fdir, syscommand, fext, fname, fiqmt
+      character(256) :: fdir, syscommand, fext, fname
       integer(4) :: un
 
       real(8), allocatable :: measuresrr(:), measuresar(:)
       integer(4) :: alphamaxrr, alphamaxar, i, j
       integer(4), allocatable :: sorti(:)
+      character(256) :: tdastring, bsetypestring, scrtypestring
 
       ! Make a folder 
       fdir = 'MEASURES'
@@ -1034,8 +1036,15 @@ module modbse
         syscommand = 'test ! -d '//trim(adjustl(fdir))//' && mkdir -p '//trim(adjustl(fdir))
         call system(trim(adjustl(syscommand)))
       end if
-      write(fiqmt,*) iqmt
-      fext = '_QMT'//trim(adjustl(fiqmt))//'.OUT'
+
+      if(input%xs%bse%coupling) then
+        tdastring=''
+      else
+        tdastring="-TDA"
+      end if
+
+      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
+      scrtypestring = '-'//trim(input%xs%screening%screentype)
 
       ! Make measures
       allocate(measuresrr(hamsize))
@@ -1056,7 +1065,10 @@ module modbse
 
       call getunit(un)
 
-      fname = trim(adjustl(fdir))//'/'//'Measures'//fext
+      call genfilname(basename='Coupling_Measures', iqmt=iqmt,&
+        & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
+        & nar= .not. input%xs%bse%aresbse, filnam=fname, dirname=trim(fdir))
+
       open(un, file=trim(adjustl(fname)), action='write', status='replace')
       write(un,'("# Measures for excitions @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
       write(un,'("#")')
@@ -1088,7 +1100,11 @@ module modbse
       close(un)
 
       call getunit(un)
-      fname = trim(adjustl(fdir))//'/'//'VWdiffs'//fext
+
+      call genfilname(basename='VW_diff', iqmt=iqmt,&
+        & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
+        & nar= .not. input%xs%bse%aresbse, filnam=fname, dirname=trim(fdir))
+
       open(un, file=trim(adjustl(fname)), action='write', status='replace')
       write(un,'("# max per row of |V-W| @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
       write(un,'("# alpha, ipen, VWdiff_rr, VWdiff_ra")')
