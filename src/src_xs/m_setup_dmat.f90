@@ -39,11 +39,11 @@ module m_setup_dmat
     !BOC
       complex(8), intent(out) :: dmat(hamsize,3)
 
-      complex(8), allocatable :: pmuok(:,:,:,:)
+      complex(8), allocatable :: pmuok(:,:,:,:), pmou_(:,:,:)
       real(8) :: t1, t0
       integer(4) :: io, iu, ioabs, iuabs, ik, iknr
       integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
-      integer(4) :: a1
+      integer(4) :: a1, i
 
       !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
       ! Building position operator matrix elements using momentum matrix elements  !
@@ -68,9 +68,14 @@ module m_setup_dmat
         inu = iuabs2 - iuabs1 + 1
         ino = ioabs2 - ioabs1 + 1
         if (input%xs%bse%xas) then
+          allocate(pmou_(3,ino,inu))
           call getpmatxas(iknr, vkl0,&
-            & iuabs1, iuabs2, ioabs1, ioabs2,&
-            & .true., 'PMAT_XS.OUT', pmuok(:,1:inu,1:ino,ik))
+            & ioabs1, ioabs2, iuabs1, iuabs2,&
+            & .true., 'PMAT_XS.OUT', pmou_(:,1:ino,1:inu))
+          do i=1,3
+            pmuok(i,:,:,ik)=transpose(conjg(pmou_(i,:,:))) 
+          end do
+          deallocate(pmou_)
         else
           call getpmat(iknr, vkl0,&
             & iuabs1, iuabs2, ioabs1, ioabs2,&

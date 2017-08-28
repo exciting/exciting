@@ -18,6 +18,7 @@ module m_setup_pwmat
   use m_writecmplxparts
   use m_xsgauntgen
   use m_findgntn0
+  use mod_variation, only: getmuo_sv
 
   implicit none
 
@@ -27,6 +28,7 @@ module m_setup_pwmat
     ! !ROUTINE: setup_pwmat
     ! !INTERFACE:
     subroutine setup_pwmat(pwmat, iqmt, igqmt)
+      
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     !   integer(4) :: iqmt            ! Index of momentum transfer
@@ -201,7 +203,11 @@ module m_setup_pwmat
         if(input%xs%bse%xas) then
           call b_ematqk_core(iqmt, ikmnr, muo(1:inu,1:ino,:),ematbc,'uo')
         else
-          call b_ematqk(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
+          if (.not. (input%groundstate%tevecsv)) then
+            call b_ematqk(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
+          else
+            call getmuo_sv(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
+          end if
         end if
 
         ! Save only selected G=G_mt

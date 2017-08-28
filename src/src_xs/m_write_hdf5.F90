@@ -158,7 +158,6 @@ module m_write_hdf5
       integer(4), allocatable :: idxsort(:), idxsort2(:)
       real(8), allocatable :: evalre_sorted(:)
       real(8), allocatable :: evalim_(:), evalre_(:)
-      complex(8), allocatable :: oscstrr_(:), oscstra_(:)
       real(8) :: pm
       character(256) :: fnexc, frmt, tdastring, bsetypestring, tistring, scrtypestring
       character(256) :: syscommand, excitondir
@@ -189,10 +188,10 @@ module m_write_hdf5
         call hdf5_create_group(fhdf5,gname_, "parameters")
       end if
       group=trim(adjustl(gname_))//"parameters"     
-      call hdf5_write(fhdf5,group,"ivgmt", ivgmt(1,iq), shape(ivgmt(1:3,iq)))
-      call hdf5_write(fhdf5,group,"vqlmt",vqlmt(1,iq), shape(vqlmt(1:3,iq)))
-      call hdf5_write(fhdf5,group,"vgcmt",vgcmt(1,iq), shape(vgcmt(1:3,iq)))
-      call hdf5_write(fhdf5,group,"vqcmt",vqcmt(1,iq), shape(vqcmt(1:3,iq)))
+      call hdf5_write(fhdf5,group,"ivgmt", ivgmt(1,iqmt), shape(ivgmt(1:3,iqmt)))
+      call hdf5_write(fhdf5,group,"vqlmt",vqlmt(1,iqmt), shape(vqlmt(1:3,iqmt)))
+      call hdf5_write(fhdf5,group,"vgcmt",vgcmt(1,iqmt), shape(vgcmt(1:3,iqmt)))
+      call hdf5_write(fhdf5,group,"vqcmt",vqcmt(1,iqmt), shape(vqcmt(1:3,iqmt)))
       call hdf5_write(fhdf5,group,"escale",escale)
       call hdf5_write(fhdf5,group,"eshift",eshift*escale)
       
@@ -228,7 +227,6 @@ module m_write_hdf5
         end if
         group=trim(adjustl(gname_))//trim(adjustl(ci))//"/"
         write(*,*) 'group in write_exciton:', group
-        allocate(oscstrr_(nexc))
         call hdf5_write(fhdf5,group,"oscstrr", oscstrr(1,o1), shape(oscstrr(1:nexc,o1)))
       end do
 #endif

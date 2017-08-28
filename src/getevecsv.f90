@@ -12,9 +12,12 @@
 !
 Subroutine getevecsv (vpl, evecsv)
 ! !USES:
-      Use modmain
       Use modinput
       Use modmpi
+      Use mod_eigenvalue_occupancy, only: nstfv, nstsv
+      Use mod_names, only: filetag_evecsv
+      Use mod_kpoint, only: vkl
+      Use mod_symmetry, only: lspnsymc, symlatc
 ! !DESCRIPTION:
 !   The file where the (second-variational) eigenvectors are stored is
 !   {\tt EVECSV.OUT}.

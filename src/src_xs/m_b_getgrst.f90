@@ -332,4 +332,61 @@ module m_b_getgrst
     
     end subroutine b_wavefmt1
 
+    subroutine b_wavefmt0(lrstp, lmax, is, ia, ngp, apwalm, evecfv, ld, wfmt)
+      use mod_ematptr, only: nmatmax0_ptr, ngkmax0_ptr, ngk0_ptr, vkl0_ptr, vgkl0_ptr
+      use mod_eigensystem, only: nmatmax_ptr 
+      use mod_Gkvector, only: ngkmax_ptr, ngk_ptr, vgkl_ptr
+      use mod_kpoint, only: vkl_ptr
+      use mod_atoms, only: natmtot
+      use mod_APW_LO, only: apwordmax
+      use mod_muffin_tin, only: lmmaxapw
+      
+      implicit none
+      ! arguments
+      integer, intent (in) :: lrstp
+      integer, intent (in) :: lmax
+      integer, intent (in) :: is
+      integer, intent (in) :: ia
+      integer, intent (in) :: ngp
+      complex (8), intent (in) :: apwalm (ngkmax0_ptr, apwordmax, lmmaxapw, &
+        & natmtot)
+      complex (8), intent (in) :: evecfv (nmatmax0_ptr)
+      integer, intent (in) :: ld
+      complex (8), Intent (out) :: wfmt (ld,*)
+      ! Local variables
+      integer, pointer :: nmatmax_ptr_save, ngkmax_ptr_save
+      integer, pointer :: ngk_ptr_save(:,:)
+      real(8), pointer :: vkl_ptr_save(:,:), vgkl_ptr_save(:,:,:,:)
+      nullify(nmatmax_ptr_save)
+      nullify(ngkmax_ptr_save)
+      nullify(ngk_ptr_save)
+      nullify(vkl_ptr_save)
+      nullify(vgkl_ptr_save)
+
+      ! Backup pointers to default locations
+      nmatmax_ptr_save => nmatmax_ptr
+      ngkmax_ptr_save => ngkmax_ptr
+      ngk_ptr_save => ngk_ptr
+      vkl_ptr_save => vkl_ptr
+      vgkl_ptr_save => vgkl_ptr
+
+      ! Set default pointers to ket state quantities
+      nmatmax_ptr => nmatmax0_ptr
+      ngkmax_ptr => ngkmax0_ptr
+      ngk_ptr => ngk0_ptr
+      vkl_ptr => vkl0_ptr
+      vgkl_ptr => vgkl0_ptr
+
+      ! Call to match with changed default (G+)k-set pointers / matrix size
+      call wavefmt(lrstp, lmax, is, ia, ngp, apwalm, evecfv, ld, wfmt)
+
+
+     ! Restore default pointers
+      nmatmax_ptr => nmatmax_ptr_save
+      ngkmax_ptr => ngkmax_ptr_save
+      ngk_ptr => ngk_ptr_save
+      vkl_ptr => vkl_ptr_save
+      vgkl_ptr => vgkl_ptr_save
+    
+    end subroutine b_wavefmt0
 end module

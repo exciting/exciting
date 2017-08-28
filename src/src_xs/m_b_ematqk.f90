@@ -673,7 +673,8 @@ module m_b_ematqk
       ! Allocatable arrays
       complex(8), allocatable :: evecfvo0(:, :)
       complex(8), allocatable :: evecfvu(:, :)
-      complex(8), allocatable :: integral(:,:,:,:)
+      complex(8), allocatable :: evecsvt0(:,:), evecsvt1(:,:)
+      complex(8), allocatable :: integral(:,:,:,:,:)
       Complex (8), Allocatable :: apwalmt (:, :, :, :), apwalmt0 (:, :, :, :)
       integer :: whichthread
       real(8) :: cpuini, cpuread, cpumain, cpuwrite, cpuall
@@ -743,7 +744,6 @@ module m_b_ematqk
       !write(*,*) "vkl0_ptr(1:3,ik) =", vkl0_ptr(1:3,ik)
       call b_getevecfv0(vkl0_ptr(1:3, ik),&
         & vgkl0_ptr(1:3, 1:ngkmax0_ptr, 1:nspnfv, ik), evecfv0_ptr)
-      
       ! Generate matching coefficients for k'
       ngkmax_save=ngkmax
       ngkmax=ngkmax1_ptr
@@ -778,11 +778,11 @@ module m_b_ematqk
       whichthread=omp_get_thread_num()
       ! Allocation of radial integrals
       if (flag == 'oo') then
-        allocate(integral(input%xs%lmaxemat+1,nxas,nxas,1))
+        allocate(integral(input%xs%lmaxemat+1,nxas,nxas,1,1))
       else if (flag == 'ou') then
-        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2))
+        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2,2))
       else if (flag == 'uo') then
-        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2))
+        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2,2))
       end if
     !$omp do
 #endif
@@ -790,16 +790,16 @@ module m_b_ematqk
         call timesec(cpu00)
         ! Summation of gaunt coefficients w.r.t. radial integrals
         if (flag .eq. 'oo') then ! core-core matrix elements
-          call ematradoo(iq, ik, igq, integral)
+          call ematradoo(iq, ik, igq, integral(:,:,:,1,1))
           call timesec(cpu01)
           if(whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
           ! Muffin-tin contribution
-          call ematsumoo(iq, ik, igq, integral, emat(:,:,igq))
+          call ematsumoo(iq, ik, igq, integral(:,:,:,1,1), emat(:,:,igq))
           call timesec(cpu00)
           if(whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
         
         else if (flag .eq. 'ou') then ! core-conduction matrix elements
-          call ematradou(iq, igq,ngk1_ptr(1, ikq), apwalmt,evecfv1_ptr(:,:,1), bc,&
+          call ematradou(ikq, iq, igq,ngk1_ptr(1, ikq), apwalmt,evecfv1_ptr(:,:,1), bc,&
            & integral)
           call timesec (cpu01)
           if (whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
@@ -808,8 +808,10 @@ module m_b_ematqk
           call timesec (cpu00)
           if (whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
         
-        else if (flag .eq. 'uo') then ! conductuin-core matrix elements
-          call ematraduo(iq, ik, igq,ngk0_ptr(1, ik), apwalmt0,evecfv0_ptr(:,:,1), bc, integral)
+        else if (flag .eq. 'uo') then ! conduction-core matrix elements
+          write(*,*) 'reached ematraduo'
+          call ematraduo(ik, iq, igq,ngk0_ptr(1, ik), apwalmt0,evecfv0_ptr(:,:,1), bc, integral)
+          write(*,*) 'reached ematsumuo'
           call timesec (cpu01)
           if (whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
           ! Muffin-tin contribution
@@ -1126,7 +1128,7 @@ module m_b_ematqk
           !-------------------------------------!
           !     apw-local-orbital integrals     !
           !-------------------------------------!
-          ! Loop over l,m,p combinations of bra apw
+            ! Loop over l,m,p combinations of bra apw
           ! for which there are non zero gaunt coefficients
           do cl1 = 1, l1shape
             l1 = l1map(cl1)
@@ -1636,210 +1638,28 @@ module m_b_ematqk
       deallocate(aigk0, aigk)
     end subroutine b_ematqkgir
 
-!BOP
-! !ROUTINE: ematradoo
-! !INTERFACE:
-Subroutine ematradoo (iq,ik, igq, integral)
-! !USES:
-  !Use modmain
-   use modinput, only: input
-   use mod_muffin_tin, only: nrmt, nrmtmax
-   use mod_atoms, only: spr
-   use modxs, only: gqc
-   use modxas, only: xasstart, nxas, ucore
-  !Use modxas
-! !INPUT/OUTPUT PARAMETERS:
-!   iq       : q-point position (in,integer)
-!   ik       : k-point position (in,integer)
-!   igq      : (q+G)-point position (in,integer)
-!   integral : radial planewave integral 
-!              (out, complex(lmaxemat+1,nxas,nxas))
-! !DESCRIPTION:
-!   Calculates the radial integral part $R^{l}_{\mu \mu'}(\mathbf{q}+\mathbf{G})$
-!   of the planewave matrix element between two core states. 
-!   See Vorwerk's Master thesis for more details. 
-!
-! !REVISION HISTORY:
-!  Based on the subroutine ematqk.F90
-!  Created November 2015 (Christian Vorwerk)
-!EOP
-!BOC      
-
-  Implicit none
-  Integer, Intent (In) :: iq, ik, igq
-  Complex(8), Intent (Out) :: integral(input%xs%lmaxemat+1,nxas,nxas)
-  ! local variables
-  Integer :: is, ia, ir, nr, lmax2, n1, n2, l2
-	Real(8) :: t1
-	Real (8), Allocatable :: jl (:, :), jhelp (:)
-	Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3,nrmtmax)
-  
-  is=input%xs%bse%xasspecies
-  ia=input%xs%bse%xasatom
-  lmax2 = input%xs%lmaxemat
-  Allocate (jl(nrmtmax,0:lmax2))
-  Allocate (jhelp(0:lmax2))
-    nr = nrmt (is)
-    Do ir = 1, nr
-      ! calculate r^2
-      r2 (ir) = spr (ir, is) ** 2
-      ! calculate spherical Bessel functions of first kind j_l(|G+q|r_a)
-      Call sbessel (lmax2, gqc(igq, iq)*spr(ir, is), jhelp)
-      jl (ir,:) = jhelp (:)
-  End Do 
-  Do n1=1,nxas
-    Do n2=1,nxas
-      Do l2=0, lmax2
-        Do ir=1,nr
-          t1=ucore(ir,n1+xasstart-1)*ucore(ir,n2+xasstart-1)*r2(ir)
-          fr(ir)=t1*jl(ir,l2)
-        End Do
-        Call fderiv (-1, nr, spr(1, is), fr, gr, cf)
-        integral(l2+1,n1,n2) = gr (nr)
-      End Do
-    End Do
-  End Do
-End Subroutine ematradoo
-! EOC
-
-!BOP
-  ! !ROUTINE: ematradou
-  ! !INTERFACE:
-  Subroutine ematradou (iq, igq, ngp, apwalm, evecfvo, bcs, integral)
+    !BOP
+    ! !ROUTINE: ematradoo
+    ! !INTERFACE:
+    Subroutine ematradoo (iq,ik, igq, integral)
     ! !USES:
-    use modinput, only: input
-    use modxs, only: bcbs, gqc
-    use mod_atoms, only: spr, natmtot
-    use modxas, only: xasstart, nxas, ucore
-    use mod_muffin_tin, only: idxlm, nrcmt, nrmt, lmmaxapw, nrmtmax, &
-      & nrcmtmax
-    use mod_eigenvalue_occupancy, only: nstfv
-    use mod_Gkvector, only: ngkmax
-    use mod_APW_LO, only: apwordmax
-    use m_b_getgrst, only: b_wavefmt1
-    !Use m_getunit 
+    !Use modmain
+      use modinput, only: input
+      use mod_muffin_tin, only: nrmt, nrmtmax
+      use mod_atoms, only: spr
+      use modxs, only: gqc
+      use modxas, only: xasstart, nxas, ucore
     !Use modxas
     ! !INPUT/OUTPUT PARAMETERS:
     !   iq       : q-point position (in,integer)
-    !   ngp      : number of G+p-vectors (in,integer)
-    !   apwalm   : APW matching coefficients
-    !              (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
-    !   evecfvo  : first-variational eigenvector (in,complex(nmatmax))
-    !   integral : radial planewave integral 
-    !              (out, complex(lmaxemat+1,lmmaxapw,nxas,sta2:sto2))
-    ! !DESCRIPTION:
-    !   Calculates the radial integral part $R^{ll'}_{\mu m(\mathbf{k}+\mathbf{q})}(\mathbf{q}+\mathbf{G})$
-    !   of the planewave matrix element between a 
-    !   core state and a conduction state. See Vorwerk's Master thesis for more details. 
-    !
-    ! !REVISION HISTORY:
-    !  Based on the subroutine ematqk.F90
-    !  Created November 2015 (Christian Vorwerk)
-    !EOP
-    !BOC      
-
-      Implicit none
-      Integer, Intent (In) :: iq, igq
-      integer, intent(in)     :: ngp
-      complex(8), intent(in)  :: apwalm(ngkmax1_ptr,apwordmax,lmmaxapw,natmtot)
-      complex(8), intent(in)  :: evecfvo(nmatmax1_ptr,nstfv)
-      Type(bcbs), intent (in) :: bcs 
-      Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2)
-      ! local variables
-      Integer :: is, ia, ir, nr, lmax2, n1, n2, l2,l3,m3,lm3, irc
-	    Real(8) :: t1, t2
-	    Real (8), Allocatable :: jl (:, :), jhelp (:)
-	    Real (8) :: r2 (nrmtmax), fr2 (nrcmtmax), fr3(nrcmtmax), gr (nrcmtmax), cf (3,nrcmtmax)
-    	Real (8), allocatable :: fr1(:,:,:)
-      complex(8), allocatable :: wfmt(:,:,:)
-      lmax2 = input%xs%lmaxemat
-      is=input%xs%bse%xasspecies
-      ia=input%xs%bse%xasatom
-      Allocate (fr1(0:lmax2,nxas,nrcmtmax))
-      Allocate (jl(nrmtmax,0:lmax2))
-      Allocate (jhelp(0:lmax2))
-      allocate(wfmt(lmmaxapw,nrcmtmax,nstfv))
-      nr = nrmt (is)
-      irc=0
-      ! Calculate product of core radial wavefunction and Bessel functions    
-      Do ir = 1,nrmt(is),input%groundstate%lradstep
-        irc=irc+1
-        ! calculate r^2
-        r2 (ir) = spr (ir, is) ** 2
-        ! calculate spherical Bessel functions of first kind j_l(|G+q|r_a)
-        Call sbessel (lmax2, gqc(igq, iq)*spr(ir, is), jhelp)
-        jl (ir,:) = jhelp (:)
-        do n1=1,nxas
-          fr1(:,n1,irc)=r2(ir)*jl(ir,:)*ucore(ir,n1+xasstart-1)
-        end do
-      End Do  
-      Do n1=1,nxas
-        Do n2=1,bcs%n2
-          ! Obtain radial wavefunction of the conduction state		
-          call b_wavefmt1(input%groundstate%lradstep, &
-          &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,input%xs%bse%xasatom,ngp&
-            , apwalm, &
-          &  evecfvo(:,n2+bcs%il2-1),lmmaxapw,wfmt(:,:,n2+bcs%il2-1))
-             
-          Do l2=0, lmax2
-            Do l3=0,input%xs%lmaxapw
-              Do m3=-l3,l3
-                lm3=idxlm(l3,m3)
-                Do irc=1,nrcmt(input%xs%bse%xasspecies)
-                  fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,n2+bcs%il2-1))
-                  if (.not. emat_ccket) then
-                    fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
-                  else ! use complex conjugate of the wavefunction
-                    fr3(irc)=-(1.0d0)*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
-                  end if
-                End Do
-                ! Radial integration
-                Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr2, gr, cf)
-                t1=gr (nrcmt(input%xs%bse%xasspecies))
-                Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr3, gr, cf)
-                t2=gr (nrcmt(input%xs%bse%xasspecies))
-                !	integral(l2+1,lm3,n1,n2) = gr (nrcmt(input%xs%bse%xasspecies))
-                integral(l2+1,lm3,n1,n2) = cmplx(t1,t2,8)
-                End Do
-            End Do
-          End Do
-        End Do
-      End Do
-      ! Deallocate local variables
-      deallocate (fr1)
-      deallocate(jl)
-      deallocate (jhelp)
-      deallocate (wfmt)
-  End Subroutine ematradou
-  ! EOC
-
-  !BOP
-  ! !ROUTINE: ematradou
-  ! !INTERFACE:
-  Subroutine ematraduo (iq,ik, igq, ngp, apwalm, evecfvo, bcs, integral)
-    ! !USES:
-    use modinput, only: input
-    use modxs, only: bcbs, gqc
-    use mod_atoms, only: spr, natmtot
-    use modxas, only: xasstart, nxas, ucore
-    use mod_muffin_tin, only: idxlm, nrcmt, nrmt, lmmaxapw, nrmtmax, &
-      & nrcmtmax
-    use mod_eigenvalue_occupancy, only: nstfv
-    use mod_Gkvector, only: ngkmax
-    use mod_APW_LO, only: apwordmax   !Use modmain
-    ! !INPUT/OUTPUT PARAMETERS:
-    !   iq       : q-point position (in,integer)
     !   ik       : k-point position (in,integer)
-    !   ngp      : number of G+p-vectors (in,integer)
-    !   apwalm   : APW matching coefficients
-    !              (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
-    !   evecfvo  : first-variational eigenvector (in,complex(nmatmax))
+    !   igq      : (q+G)-point position (in,integer)
     !   integral : radial planewave integral 
-    !              (out, complex(lmaxemat+1,lmmaxapw,nxas,sta2:sto2))
+    !              (out, complex(lmaxemat+1,nxas,nxas))
     ! !DESCRIPTION:
-    !   Calculates the radial integral part $R^{ll'}_{\mu m(\mathbf{k}+\mathbf{q})}(\mathbf{q}+\mathbf{G})$
-    !   of the planewave matrix element between a 
-    !   core state and a conduction state. See Vorwerk's Master thesis for more details. 
+    !   Calculates the radial integral part $R^{l}_{\mu \mu'}(\mathbf{q}+\mathbf{G})$
+    !   of the planewave matrix element between two core states. 
+    !   See Vorwerk's Master thesis for more details. 
     !
     ! !REVISION HISTORY:
     !  Based on the subroutine ematqk.F90
@@ -1849,241 +1669,598 @@ End Subroutine ematradoo
 
       Implicit none
       Integer, Intent (In) :: iq, ik, igq
-      integer, intent(in)     :: ngp
-      complex(8), intent(in)  :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-      complex(8), intent(in)  :: evecfvo(nmatmax0_ptr,nstfv)
-      Type(bcbs), intent (in) :: bcs 
-      Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2)
+      Complex(8), Intent (Out) :: integral(input%xs%lmaxemat+1,nxas,nxas)
       ! local variables
-      Integer :: is, ia, ir, nr, lmax2, n1, n2, l2,l3,m3,lm3, irc
-	    Real(8) :: t1, t2
+      Integer :: is, ia, ir, nr, lmax2, n1, n2, l2
+	    Real(8) :: t1
 	    Real (8), Allocatable :: jl (:, :), jhelp (:)
-	    Real (8) :: r2 (nrmtmax), fr2 (nrcmtmax), fr3(nrcmtmax), gr (nrcmtmax), cf (3,nrcmtmax)
-    	Real (8), allocatable :: fr1(:,:,:)
-      complex(8), allocatable :: wfmt(:,:,:)
-      lmax2 = input%xs%lmaxemat
+	    Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3,nrmtmax)
+  
       is=input%xs%bse%xasspecies
       ia=input%xs%bse%xasatom
-
-      Allocate (fr1(0:lmax2,nxas,nrcmtmax))
+      lmax2 = input%xs%lmaxemat
       Allocate (jl(nrmtmax,0:lmax2))
       Allocate (jhelp(0:lmax2))
-      allocate(wfmt(lmmaxapw,nrcmtmax,nstfv))
       nr = nrmt (is)
-      irc=0
-      ! Calculate product of core radial wavefunction and Bessel functions    
-      Do ir = 1,nrmt(is),input%groundstate%lradstep
-        irc=irc+1
-        ! calculate r^2
+      Do ir = 1, nr
+      ! calculate r^2
         r2 (ir) = spr (ir, is) ** 2
         ! calculate spherical Bessel functions of first kind j_l(|G+q|r_a)
         Call sbessel (lmax2, gqc(igq, iq)*spr(ir, is), jhelp)
         jl (ir,:) = jhelp (:)
-        do n1=1,nxas
-          fr1(:,n1,irc)=r2(ir)*jl(ir,:)*ucore(ir,n1+xasstart-1)
-        end do
-      End Do  
+      End Do 
       Do n1=1,nxas
-        Do n2=1,bcs%n2
-          ! Obtain radial wavefunction of the conduction state		
-          call wavefmt(input%groundstate%lradstep, &
-          &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,input%xs%bse%xasatom,ngp,apwalm, &
-          &  evecfvo(:,n2+bcs%il2-1),lmmaxapw,wfmt(:,:,n2+bcs%il2-1))
-             
+        Do n2=1,nxas
           Do l2=0, lmax2
-            Do l3=0,input%xs%lmaxapw
-              Do m3=-l3,l3
-                lm3=idxlm(l3,m3)
-                Do irc=1,nrcmt(input%xs%bse%xasspecies)
-                  fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,n2+bcs%il2-1))
-                  ! Use complex conjugate of the wavefunction
-                  fr3(irc)=-1.0d0*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
+            Do ir=1,nr
+              t1=ucore(ir,n1+xasstart-1)*ucore(ir,n2+xasstart-1)*r2(ir)
+              fr(ir)=t1*jl(ir,l2)
+            End Do
+            Call fderiv (-1, nr, spr(1, is), fr, gr, cf)
+            integral(l2+1,n1,n2) = gr (nr)
+          End Do
+        End Do
+      End Do
+    End Subroutine ematradoo
+    ! EOC
+
+    !BOP
+      ! !ROUTINE: ematradou
+      ! !INTERFACE:
+      Subroutine ematradou (ik, iq, igq, ngp, apwalm, evecfvo, bcs, integral)
+        ! !USES:
+        use modinput, only: input
+        use modxs, only: bcbs, gqc
+        use mod_atoms, only: spr, natmtot
+        use modxas, only: xasstart, nxas, ucore
+        use mod_muffin_tin, only: idxlm, nrcmt, nrmt, lmmaxapw, nrmtmax, &
+          & nrcmtmax
+        use mod_eigenvalue_occupancy, only: nstfv, nstsv
+        use mod_Gkvector, only: ngkmax
+        use mod_APW_LO, only: apwordmax
+        use m_b_getgrst, only: b_wavefmt1
+        use mod_constants, only: zzero, zi
+        use mod_variation, only: b_wavefmtsv1
+        !Use m_getunit 
+        !Use modxas
+        ! !INPUT/OUTPUT PARAMETERS:
+        !   iq       : q-point position (in,integer)
+        !   ngp      : number of G+p-vectors (in,integer)
+        !   apwalm   : APW matching coefficients
+        !              (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
+        !   evecfvo  : first-variational eigenvector (in,complex(nmatmax))
+        !   integral : radial planewave integral 
+        !              (out, complex(lmaxemat+1,lmmaxapw,nxas,sta2:sto2))
+        ! !DESCRIPTION:
+        !   Calculates the radial integral part $R^{ll'}_{\mu m(\mathbf{k}+\mathbf{q})}(\mathbf{q}+\mathbf{G})$
+        !   of the planewave matrix element between a 
+        !   core state and a conduction state. See Vorwerk's Master thesis for more details. 
+        !
+        ! !REVISION HISTORY:
+        !  Based on the subroutine ematqk.F90
+        !  Created November 2015 (Christian Vorwerk)
+        !EOP
+        !BOC      
+
+          Implicit none
+          Integer, Intent (In) :: ik, iq, igq
+          integer, intent(in)     :: ngp
+          complex(8), intent(in)  :: apwalm(ngkmax1_ptr,apwordmax,lmmaxapw,natmtot)
+          complex(8), intent(in)  :: evecfvo(nmatmax1_ptr,nstfv)
+          Type(bcbs), intent (in) :: bcs 
+          Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2,2)
+          ! local variables
+          Integer :: is, ia, ir, nr, lmax2, n1, n2, l2,l3,m3,lm3, irc, nsp
+	        Real(8) :: t1, t2
+	        Real (8), Allocatable :: jl (:, :), jhelp (:)
+	        Real (8) :: r2 (nrmtmax), fr2 (nrcmtmax), fr3(nrcmtmax), gr (nrcmtmax), cf (3,nrcmtmax)
+    	    Real (8), allocatable :: fr1(:,:,:)
+          complex(8), allocatable :: wfmt(:,:,:,:), evecsvt(:,:)
+          lmax2 = input%xs%lmaxemat
+          is=input%xs%bse%xasspecies
+          ia=input%xs%bse%xasatom
+          Allocate (fr1(0:lmax2,nxas,nrcmtmax))
+          Allocate (jl(nrmtmax,0:lmax2))
+          Allocate (jhelp(0:lmax2))
+          ! Size of wfmt depends on whether spin is included or not
+          if (.not. (input%groundstate%tevecsv)) then
+            allocate(wfmt(lmmaxapw,nrcmtmax,1,nstfv))
+          else
+            allocate(wfmt(lmmaxapw,nrcmtmax,2,nstsv))
+          end if
+          ! For 2nd variational treatment, get eigenvectors
+          if (input%groundstate%tevecsv) then
+              allocate(evecsvt(nstsv, nstsv))
+              call getevecsv(vkl1_ptr(:,ik), evecsvt)
+          end if
+
+          nr = nrmt (is)
+          irc=0
+          ! Calculate product of core radial wavefunction and Bessel functions    
+          Do ir = 1,nrmt(is),input%groundstate%lradstep
+            irc=irc+1
+            ! calculate r^2
+            r2 (ir) = spr (ir, is) ** 2
+            ! calculate spherical Bessel functions of first kind j_l(|G+q|r_a)
+            Call sbessel (lmax2, gqc(igq, iq)*spr(ir, is), jhelp)
+            jl (ir,:) = jhelp (:)
+            do n1=1,nxas
+              fr1(:,n1,irc)=r2(ir)*jl(ir,:)*ucore(ir,n1+xasstart-1)
+            end do
+          End Do
+          ! Zero all radial integrals
+          integral(:,:,:,:,:)=zzero
+
+          !------------------------------------------------!
+          !     First Variational Treatment                !
+          !------------------------------------------------!  
+          if (.not. (input%groundstate%tevecsv)) then
+            Do n1=1,nxas
+              Do n2=1,bcs%n2
+                ! Obtain radial wavefunction of the conduction state		
+                call b_wavefmt1(input%groundstate%lradstep, &
+                &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,input%xs%bse%xasatom,ngp&
+                  , apwalm, &
+                &  evecfvo(:,n2+bcs%il2-1),lmmaxapw,wfmt(:,:,1,n2+bcs%il2-1))
+             
+                Do l2=0, lmax2
+                  Do l3=0,input%xs%lmaxapw
+                    Do m3=-l3,l3
+                      lm3=idxlm(l3,m3)
+                      Do irc=1,nrcmt(input%xs%bse%xasspecies)
+                        fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,1,n2+bcs%il2-1))
+                        if (.not. emat_ccket) then
+                          fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,1,n2+bcs%il2-1))
+                        else ! use complex conjugate of the wavefunction
+                          fr3(irc)=-(1.0d0)*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,1,n2+bcs%il2-1))
+                        end if
+                      End Do
+                      ! Radial integration
+                      Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr2, gr, cf)
+                      t1=gr (nrcmt(input%xs%bse%xasspecies))
+                      Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr3, gr, cf)
+                      t2=gr (nrcmt(input%xs%bse%xasspecies))
+                      !	integral(l2+1,lm3,n1,n2) = gr (nrcmt(input%xs%bse%xasspecies))
+                      integral(l2+1,lm3,n1,n2,1) = cmplx(t1,t2,8)
+                    End Do
+                  End Do
                 End Do
-                ! Radial integration
-                Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr2, gr, cf)
-                t1=gr (nrcmt(input%xs%bse%xasspecies))
-                Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr3, gr, cf)
-                t2=gr (nrcmt(input%xs%bse%xasspecies))
-                !	integral(l2+1,lm3,n1,n2) = gr (nrcmt(input%xs%bse%xasspecies))
-                integral(l2+1,lm3,n1,n2) = cmplx(t1,t2,8)
+              End Do
+            End Do
+          !------------------------------------------------!
+          !       Second Variational Treatment             !
+          !------------------------------------------------!  
+          else 
+            Do n1=1,nxas
+              Do n2=1,bcs%n2
+                ! Obtain radial wavefunction of the conduction state		
+                call b_wavefmtsv1(input%groundstate%lradstep, &
+                &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,&
+                &  input%xs%bse%xasatom,ngp,n2+bcs%il2-1, apwalm, &
+                &  evecfvo,evecsvt, wfmt(:,:,:,n2+bcs%il2-1))
+                Do nsp=1,2
+                  Do l2=0, lmax2
+                    Do l3=0,input%xs%lmaxapw
+                      Do m3=-l3,l3
+                        lm3=idxlm(l3,m3)
+                        Do irc=1,nrcmt(input%xs%bse%xasspecies)
+                          fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,nsp,n2+bcs%il2-1))
+                          if (.not. emat_ccket) then
+                            fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,nsp,n2+bcs%il2-1))
+                          else ! use complex conjugate of the wavefunction
+                            fr3(irc)=-(1.0d0)*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,nsp,n2+bcs%il2-1))
+                          end if
+                        End Do
+                        ! Radial integration
+                        Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr2, gr, cf)
+                        t1=gr (nrcmt(input%xs%bse%xasspecies))
+                        Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr3, gr, cf)
+                        t2=gr (nrcmt(input%xs%bse%xasspecies))
+                        !	integral(l2+1,lm3,n1,n2) = gr (nrcmt(input%xs%bse%xasspecies))
+                        if (nsp ==1) then
+                          integral(l2+1,lm3,n1,n2, 2) = -1.0d0*zi*cmplx(t1,t2,8)
+                        else
+                          integral(l2+1,lm3,n1,n2, 1) = zi*cmplx(t1,t2,8)
+                        end if
+                      End Do
+                    End Do
+                  End Do
+                End Do
+              End Do
+            End Do
+            deallocate(evecsvt)
+          end if
+            ! Deallocate local variables
+            deallocate (fr1, jl, jhelp, wfmt)
+            
+      End Subroutine ematradou
+      ! EOC
+
+      !BOP
+      ! !ROUTINE: ematradou
+      ! !INTERFACE:
+      Subroutine ematraduo (ik,iq, igq, ngp, apwalm, evecfvo, bcs, integral)
+        ! !USES:
+        use modinput, only: input
+        use modxs, only: bcbs, gqc
+        use mod_atoms, only: spr, natmtot
+        use modxas, only: xasstart, nxas, ucore
+        use mod_muffin_tin, only: idxlm, nrcmt, nrmt, lmmaxapw, nrmtmax, &
+          & nrcmtmax
+        use mod_eigenvalue_occupancy, only: nstfv, nstsv
+        use mod_Gkvector, only: ngkmax
+        use mod_APW_LO, only: apwordmax 
+        use mod_constants, only: zzero, zi
+        use mod_variation, only: b_wavefmtsv1
+        use m_b_getgrst, only: b_wavefmt0
+        ! !INPUT/OUTPUT PARAMETERS:
+        !   iq       : q-point position (in,integer)
+        !   ik       : k-point position (in,integer)
+        !   ngp      : number of G+p-vectors (in,integer)
+        !   apwalm   : APW matching coefficients
+        !              (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
+        !   evecfvo  : first-variational eigenvector (in,complex(nmatmax))
+        !   integral : radial planewave integral 
+        !              (out, complex(lmaxemat+1,lmmaxapw,nxas,sta2:sto2))
+        ! !DESCRIPTION:
+        !   Calculates the radial integral part $R^{ll'}_{\mu m(\mathbf{k}+\mathbf{q})}(\mathbf{q}+\mathbf{G})$
+        !   of the planewave matrix element between a 
+        !   core state and a conduction state. See Vorwerk's Master thesis for more details. 
+        !
+        ! !REVISION HISTORY:
+        !  Based on the subroutine ematqk.F90
+        !  Created November 2015 (Christian Vorwerk)
+        !EOP
+        !BOC      
+
+          Implicit none
+          Integer, Intent (In) :: ik, iq, igq
+          integer, intent(in)     :: ngp
+          complex(8), intent(in)  :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
+          complex(8), intent(in)  :: evecfvo(nmatmax0_ptr,nstfv)
+          Type(bcbs), intent (in) :: bcs 
+          Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2,2)
+          ! local variables
+          Integer :: is, ia, ir, nr, lmax2, n1, n2, l2,l3,m3,lm3, irc, nsp
+	        Real(8) :: t1, t2
+	        Real (8), Allocatable :: jl (:, :), jhelp (:)
+	        Real (8) :: r2 (nrmtmax), fr2 (nrcmtmax), fr3(nrcmtmax), gr (nrcmtmax), cf (3,nrcmtmax)
+    	    Real (8), allocatable :: fr1(:,:,:)
+          complex(8), allocatable :: wfmt(:,:,:,:), evecsvt(:,:)
+          lmax2 = input%xs%lmaxemat
+          is=input%xs%bse%xasspecies
+          ia=input%xs%bse%xasatom
+
+          Allocate (fr1(0:lmax2,nxas,nrcmtmax))
+          Allocate (jl(nrmtmax,0:lmax2))
+          Allocate (jhelp(0:lmax2))
+          ! Size of wfmt depends on whether spin is included or not
+          if (.not. (input%groundstate%tevecsv)) then
+            allocate(wfmt(lmmaxapw,nrcmtmax,1,nstfv))
+          else
+            allocate(wfmt(lmmaxapw,nrcmtmax,2,nstsv))
+          end if
+          ! For 2nd variational treatment, get eigenvectors
+          if (input%groundstate%tevecsv) then
+              allocate(evecsvt(nstsv, nstsv))
+              call getevecsv(vkl1_ptr(:,ik), evecsvt)
+          end if
+
+          nr = nrmt (is)
+          irc=0
+          ! Calculate product of core radial wavefunction and Bessel functions    
+          Do ir = 1,nrmt(is),input%groundstate%lradstep
+            irc=irc+1
+            ! calculate r^2
+            r2 (ir) = spr (ir, is) ** 2
+            ! calculate spherical Bessel functions of first kind j_l(|G+q|r_a)
+            Call sbessel (lmax2, gqc(igq, iq)*spr(ir, is), jhelp)
+            jl (ir,:) = jhelp (:)
+            do n1=1,nxas
+              fr1(:,n1,irc)=r2(ir)*jl(ir,:)*ucore(ir,n1+xasstart-1)
+            end do
+          End Do  
+          ! Zero all radial integrals
+          integral(:,:,:,:,:)=zzero
+
+          !------------------------------------------------!
+          !     First Variational Treatment                !
+          !------------------------------------------------!  
+          if (.not.(input%groundstate%tevecsv)) then
+            Do n1=1,nxas
+              Do n2=1,bcs%n2
+                ! Obtain radial wavefunction of the conduction state		
+                call b_wavefmt0(input%groundstate%lradstep, &
+                &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,input%xs%bse%xasatom,ngp,apwalm, &
+                &  evecfvo(:,n2+bcs%il2-1),lmmaxapw,wfmt(:,:,1,n2+bcs%il2-1))
+             
+                Do l2=0, lmax2
+                  Do l3=0,input%xs%lmaxapw
+                    Do m3=-l3,l3
+                      lm3=idxlm(l3,m3)
+                      Do irc=1,nrcmt(input%xs%bse%xasspecies)
+                        fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,1,n2+bcs%il2-1))
+                        fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,1,n2+bcs%il2-1))
+                      End Do
+                      ! Radial integration
+                      Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr2, gr, cf)
+                      t1=gr (nrcmt(input%xs%bse%xasspecies))
+                      Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr3, gr, cf)
+                      t2=gr (nrcmt(input%xs%bse%xasspecies))
+                      integral(l2+1,lm3,n1,n2,1) = cmplx(t1,t2,8)
+                    End Do
+                  End Do
+                End Do
+              End Do
+            End Do
+          else
+          !------------------------------------------------!
+          !       Second Variational Treatment             !
+          !------------------------------------------------!  
+            Do n1=1,nxas
+              Do n2=1,bcs%n2
+                ! Obtain radial wavefunction of the conduction state
+                call b_wavefmtsv1(input%groundstate%lradstep, &
+                &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,&
+                &  input%xs%bse%xasatom,ngp,n2+bcs%il2-1, apwalm, &
+                &  evecfvo,evecsvt, wfmt(:,:,:,n2+bcs%il2-1))
+                Do nsp=1,2  
+                  Do l2=0, lmax2
+                    Do l3=0,input%xs%lmaxapw
+                      Do m3=-l3,l3
+                        lm3=idxlm(l3,m3)
+                        Do irc=1,nrcmt(input%xs%bse%xasspecies)
+                          fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,nsp,n2+bcs%il2-1))
+                          fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,nsp,n2+bcs%il2-1))
+                        End Do
+                        ! Radial integration
+                        Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr2, gr, cf)
+                        t1=gr (nrcmt(input%xs%bse%xasspecies))
+                        Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr3, gr, cf)
+                        t2=gr (nrcmt(input%xs%bse%xasspecies))
+                        if (.not.(emat_ccket)) then
+                          integral(l2+1,lm3,n1,n2, nsp) = cmplx(t1,t2,8)
+                        else
+                          integral(l2+1,lm3,n1,n2, nsp) = zi*cmplx(t1,t2,8)
+                        end if
+                      End Do
+                    End Do
+                  End Do
+                End Do
+              End Do
+            End Do
+          end if
+        ! Deallocate local variables
+        deallocate (fr1)
+        deallocate(jl)
+        deallocate (jhelp)
+        deallocate (wfmt)
+      End Subroutine ematraduo
+      ! EOC
+      Subroutine ematsumoo (iq,ik, igq, integral, xi)
+        ! !USES:  Use modmain
+        Use modinput
+        Use modxs
+        Use modxas
+        Use mod_constants, only: zzero, zil, fourpi
+        Use mod_atoms, only: idxas
+        Use mod_muffin_tin, only: idxlm
+        Use mod_qpoint, only: vql
+
+        ! !INPUT/OUTPUT PARAMETERS:
+        !   iq       : q-point position (in,integer)
+        !   ik       : k-point position (in,integer)
+        !   igq		 : (q+G)-point position (in, integer)
+        !   integral : radial planewave integral 
+        !              (in, complex(lmaxemat+1,nxas,nxas))
+        !	xi       : planewave matrix element (inout,complex(nxas, sta2:sto2, ngq(iq))
+        ! !DESCRIPTION:
+        ! Calculates planewave matrix elements between two core states, using the radial integrals.
+        ! Fore more information, see Christian Vorwerk's Master thesis, Eq. (5.16).
+        ! !REVISION HISTORY:
+        !  Based on the subroutine ematqkgmt.F90
+        !  Created November 2015 (Christian Vorwerk)
+        !EOP
+        !BOC      
+        Implicit none
+        Integer, Intent (In) :: iq, ik, igq
+        Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,nxas,nxas)
+        Complex(8), Intent (InOut):: xi(nxas, nxas)
+        ! local variables
+        Integer :: n1, n2, l2, lmax2, m2, lm2, ias,ia, is
+        Complex(8) :: prefactor, inter(nxas,nxas)
+        Real (8) :: vq (3)
+        ! Setting xi to zero
+        inter(:,:)=zzero
+        is=input%xs%bse%xasspecies 
+        ia=input%xs%bse%xasatom
+        ias=idxas(ia,is)
+        lmax2=input%xs%lmaxemat
+
+        Do n1=1,nxas
+          Do n2=1,nxas
+            Do l2=0,lmax2
+              Do m2=-l2,l2
+                lm2=idxlm(l2,m2)
+                inter(n1,n2)=inter(n1,n2)+conjg (zil(l2))*integral(l2+1,n1,n2)*&
+                & conjg (ylmgq(lm2, igq, iq)) * xsgntoo (n1, lm2, n2)    
               End Do
             End Do
           End Do
         End Do
-      End Do
-      ! Deallocate local variables
-      deallocate (fr1)
-      deallocate(jl)
-      deallocate (jhelp)
-      deallocate (wfmt)
-  End Subroutine ematraduo
-  ! EOC
-  Subroutine ematsumoo (iq,ik, igq, integral, xi)
-    ! !USES:  Use modmain
-    Use modinput
-    Use modxs
-    Use modxas
-    Use mod_constants, only: zzero, zil, fourpi
-    Use mod_atoms, only: idxas
-    Use mod_muffin_tin, only: idxlm
-    Use mod_qpoint, only: vql
+        vq (:) = vql (:, iq)
+        prefactor=fourpi*conjg(sfacgq(igq, ias, iq))
+        xi(:,:)=prefactor*inter(:,:)
+      End Subroutine ematsumoo
+      ! EOC
 
-    ! !INPUT/OUTPUT PARAMETERS:
-    !   iq       : q-point position (in,integer)
-    !   ik       : k-point position (in,integer)
-    !   igq		 : (q+G)-point position (in, integer)
-    !   integral : radial planewave integral 
-    !              (in, complex(lmaxemat+1,nxas,nxas))
-    !	xi       : planewave matrix element (inout,complex(nxas, sta2:sto2, ngq(iq))
-    ! !DESCRIPTION:
-    ! Calculates planewave matrix elements between two core states, using the radial integrals.
-    ! Fore more information, see Christian Vorwerk's Master thesis, Eq. (5.16).
-    ! !REVISION HISTORY:
-    !  Based on the subroutine ematqkgmt.F90
-    !  Created November 2015 (Christian Vorwerk)
-    !EOP
-    !BOC      
-    Implicit none
-    Integer, Intent (In) :: iq, ik, igq
-    Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,nxas,nxas)
-    Complex(8), Intent (InOut):: xi(nxas, nxas)
-    ! local variables
-    Integer :: n1, n2, l2, lmax2, m2, lm2, ias,ia, is
-    Complex(8) :: prefactor, inter(nxas,nxas)
-    Real (8) :: vq (3)
-    ! Setting xi to zero
-    inter(:,:)=zzero
-    is=input%xs%bse%xasspecies 
-    ia=input%xs%bse%xasatom
-    ias=idxas(ia,is)
-    lmax2=input%xs%lmaxemat
-
-    Do n1=1,nxas
-      Do n2=1,nxas
-        Do l2=0,lmax2
-          Do m2=-l2,l2
-            lm2=idxlm(l2,m2)
-            inter(n1,n2)=inter(n1,n2)+conjg (zil(l2))*integral(l2+1,n1,n2)*&
-              & conjg (ylmgq(lm2, igq, iq)) * xsgntoo (n1, lm2, n2)    
-          End Do
-        End Do
-      End Do
-    End Do
-    vq (:) = vql (:, iq)
-    prefactor=fourpi*conjg(sfacgq(igq, ias, iq))
-    xi(:,:)=prefactor*inter(:,:)
-  End Subroutine ematsumoo
-  ! EOC
-
-  !BOP
-  ! !ROUTINE: ematsumou
-  ! !INTERFACE:
-  Subroutine ematsumou (iq, igq, bcs, integral, xi)
-    ! !USES:
-    !Use modmain
-    Use mod_muffin_tin, only: idxlm, lmmaxapw
-    Use mod_constants, only: zzero, zil, fourpi
-    Use mod_atoms, only: idxas
-    Use mod_kpoint, only: vkl
-    Use modinput, only: input
-    Use modxs, only: sfacgq, bcbs, xsgntou, ylmgq
-    use modxas, only: nxas 
-    !Use m_getunit 
-    !Use modxas
-    ! !INPUT/OUTPUT PARAMETERS:
-    !   iq       : q-point position (in,integer)
-    !   igq		 : (q+G)-point position (in, integer)
-    !   integral : radial planewave integral 
-    !              (in, complex(lmaxemat+1,lmmaxapw,nxas,sta2:sto2))
-    !	xi       : planewave matrix element (inout,complex(nxas, sta2:sto2, ngq(iq))
-    ! !DESCRIPTION:
-    ! Calculates planewave matrix elements between a core and a conduction state, using the radial integrals.
-    ! Fore more information, see Christian Vorwerk's Master thesis, Eq. (5.20).
-    ! !REVISION HISTORY:
-    !  Based on the subroutine ematqkgmt.F90
-    !  Created November 2015 (Christian Vorwerk)
-    !EOP
-    !BOC      
+      !BOP
+      ! !ROUTINE: ematsumou
+      ! !INTERFACE:
+      Subroutine ematsumou (iq, igq, bcs, integral, xi)
+        !   !USES:
+        !Use modmain
+        Use mod_muffin_tin, only: idxlm, lmmaxapw
+        Use mod_constants, only: zzero, zil, fourpi
+        Use mod_atoms, only: idxas
+        Use mod_kpoint, only: vkl
+        Use modinput, only: input
+        Use modxs, only: sfacgq, bcbs, xsgntou, xsgntousv, ylmgq
+        use modxas, only: nxas 
+        !Use m_getunit 
+        !Use modxas
+        ! !INPUT/OUTPUT PARAMETERS:
+        !   iq       : q-point position (in,integer)
+        !   igq		 : (q+G)-point position (in, integer)
+        !   integral : radial planewave integral 
+        !              (in, complex(lmaxemat+1,lmmaxapw,nxas,sta2:sto2))
+        !	xi       : planewave matrix element (inout,complex(nxas, sta2:sto2, ngq(iq))
+        ! !DESCRIPTION:
+        ! Calculates planewave matrix elements between a core and a conduction state, using the radial integrals.
+        ! Fore more information, see Christian Vorwerk's Master thesis, Eq. (5.20).
+        ! !REVISION HISTORY:
+        !  Based on the subroutine ematqkgmt.F90
+        !  Created November 2015 (Christian Vorwerk)
+        !EOP
+        !BOC      
     
-    Implicit none
-    Integer, Intent (In) :: iq, igq
-    Type(bcbs), Intent (In) :: bcs
-    Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2)
-    Complex(8), Intent (InOut):: xi(nxas, bcs%n2)
-    ! local variables
-    Integer :: n1, n2, l2, lmax2, m2, lm2, l3, m3, lm3, ias,ia, is
-    Complex(8) :: prefactor
-    ! Setting xioo to zero
-    xi(:,:)=zzero
-    is=input%xs%bse%xasspecies
-    ia=input%xs%bse%xasatom
-    ias=idxas(ia,is)
-    lmax2=input%xs%lmaxemat
+        Implicit none
+        Integer, Intent (In) :: iq, igq
+        Type(bcbs), Intent (In) :: bcs
+        Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2,2)
+        Complex(8), Intent (InOut):: xi(nxas, bcs%n2)
+        ! local variables
+        Integer :: n1, n2, l2, lmax2, m2, lm2, l3, m3, lm3, ias,ia, is, nsp
+        Complex(8) :: prefactor
+        ! Setting xioo to zero
+        xi(:,:)=zzero
+        is=input%xs%bse%xasspecies
+        ia=input%xs%bse%xasatom
+        ias=idxas(ia,is)
+        lmax2=input%xs%lmaxemat
 
-    Do n1=1,nxas
-      Do n2=1,bcs%n2
-        Do l2=0,lmax2
-          Do m2=-l2,l2
-            lm2=idxlm(l2,m2)
-            Do l3=0, input%xs%lmaxapw
-              Do m3=-l3,l3
-                lm3=idxlm(l3,m3)
-                xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2)*conjg &
-                  & (ylmgq(lm2, igq, iq)) * xsgntou &
-                  & (n1, lm2, lm3)
+        !------------------------------------------------!
+        !         First Variational Treatment            !
+        !------------------------------------------------!  
+        if (.not.(input%groundstate%tevecsv)) then
+          Do n1=1,nxas
+            Do n2=1,bcs%n2
+              Do l2=0,lmax2
+                Do m2=-l2,l2
+                  lm2=idxlm(l2,m2)
+                  Do l3=0, input%xs%lmaxapw
+                    Do m3=-l3,l3
+                      lm3=idxlm(l3,m3)
+                      xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2,1)*conjg &
+                        & (ylmgq(lm2, igq, iq)) * xsgntou &
+                        & (n1, lm2, lm3)
+                    End Do
+                  End Do
+                End Do
               End Do
             End Do
           End Do
-        End Do
-      End Do
-    End Do
-    ! Multiply with Structure Factor
-    prefactor=fourpi*conjg(sfacgq(igq, ias, iq))
-    xi(:,:)=xi(:,:)*prefactor
-  End Subroutine ematsumou
-  !EOC
-
-  Subroutine ematsumuo (iq,ik, igq, bcs, integral, xi)
-    Use modmain 
-    Use modinput
-    Use modxs
-    Use m_getunit 
-    Use modxas
-    Implicit none
-    Integer, Intent (In) :: iq, ik, igq
-    Type(bcbs), Intent (In) :: bcs
-    Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2)
-    Complex(8), Intent (InOut):: xi(nxas, bcs%n2)
-    ! local variables 
-    Integer :: n1, n2, l2, lmax2, m2, lm2, l3, m3, lm3, ias,ia, is
-    Complex(8) :: prefactor 
-    Real (8) :: vk (3), vq(3), vkq(3)
-    ! Setting xioo to zero
-    xi(:,:)=zzero
-    is=input%xs%bse%xasspecies
-    ia=input%xs%bse%xasatom
-    ias=idxas(ia,is)
-    lmax2=input%xs%lmaxemat
-
-    Do n1=1,nxas
-      Do n2=1, bcs%n2
-        Do l2=0,lmax2
-          Do m2=-l2,l2
-            lm2=idxlm(l2,m2)
-            Do l3=0, input%groundstate%lmaxapw
-              Do m3=-l3,l3
-                lm3=idxlm(l3,m3)
-                xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2)*&
-                  conjg(ylmgq(lm2, igq, iq)) * xsgntuo(n1, lm2, lm3)
+        else
+        !------------------------------------------------!
+        !         Second Variational Treatment           !
+        !------------------------------------------------!  
+          Do nsp=1,2
+            Do n1=1,nxas
+              Do n2=1,bcs%n2
+                Do l2=0,lmax2
+                  Do m2=-l2,l2
+                    lm2=idxlm(l2,m2)
+                    Do l3=0, input%xs%lmaxapw
+                      Do m3=-l3,l3
+                        lm3=idxlm(l3,m3)
+                          xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2,nsp)*conjg &
+                            & (ylmgq(lm2, igq, iq)) * xsgntousv &
+                            & (n1, lm2, lm3, nsp)
+                      End Do
+                    End Do
+                  End Do
+                End Do
               End Do
             End Do
           End Do
-        End Do
-      End Do
-    End Do
-    
-    prefactor=fourpi*conjg(sfacgq(igq, ias, iq))
-    xi(:,:)=xi(:,:)*prefactor
-  End Subroutine ematsumuo
+        end if
+        ! Multiply with Structure Factor
+        prefactor=fourpi*conjg(sfacgq(igq, ias, iq))
+        xi(:,:)=xi(:,:)*prefactor
+      End Subroutine ematsumou
+      !EOC
 
-end module m_b_ematqk
+      Subroutine ematsumuo (iq,ik, igq, bcs, integral, xi)
+        Use modmain 
+        Use modinput
+        Use modxs
+        Use m_getunit 
+        Use modxas
+        Implicit none
+        Integer, Intent (In) :: iq, ik, igq
+        Type(bcbs), Intent (In) :: bcs
+        Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2,2)
+        Complex(8), Intent (InOut):: xi(nxas, bcs%n2)
+        ! local variables 
+        Integer :: n1, n2, l2, lmax2, m2, lm2, l3, m3, lm3, ias,ia, is, nsp
+        Complex(8) :: prefactor 
+        Real (8) :: vk (3), vq(3), vkq(3)
+        ! Setting xioo to zero
+        xi(:,:)=zzero
+        is=input%xs%bse%xasspecies
+        ia=input%xs%bse%xasatom
+        ias=idxas(ia,is)
+        lmax2=input%xs%lmaxemat
+
+        !------------------------------------------------!
+        !         First Variational Treatment            !
+        !------------------------------------------------!  
+        if (.not.(input%groundstate%tevecsv)) then
+          Do n1=1,nxas
+            Do n2=1, bcs%n2
+              Do l2=0,lmax2
+                Do m2=-l2,l2
+                  lm2=idxlm(l2,m2)
+                  Do l3=0, input%groundstate%lmaxapw
+                    Do m3=-l3,l3
+                      lm3=idxlm(l3,m3)
+                      xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2,1)*&
+                        conjg(ylmgq(lm2, igq, iq)) * xsgntuo(n1, lm2, lm3)
+                    End Do
+                  End Do
+                End Do
+              End Do
+            End Do
+          End Do
+        else
+        !------------------------------------------------!
+        !         Second Variational Treatment           !
+        !------------------------------------------------!  
+          Do nsp=1,2
+            Do n1=1,nxas
+              Do n2=1, bcs%n2
+                Do l2=0,lmax2
+                  Do m2=-l2,l2
+                    lm2=idxlm(l2,m2)
+                    Do l3=0, input%groundstate%lmaxapw
+                      Do m3=-l3,l3
+                        lm3=idxlm(l3,m3)
+                        xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2,nsp)*&
+                          conjg(ylmgq(lm2, igq, iq)) * xsgntuosv(n1, lm2, lm3, nsp)
+                      End Do
+                    End Do
+                  End Do
+                End Do
+              End Do
+            End Do
+          End Do
+        end if
+        prefactor=fourpi*conjg(sfacgq(igq, ias, iq))
+        xi(:,:)=xi(:,:)*prefactor
+      End Subroutine ematsumuo
+
+      !BOP
+      ! !ROUTINE: b_ematqk
+      ! !INTERFACE:
+      
+  end module m_b_ematqk

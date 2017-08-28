@@ -134,7 +134,6 @@ subroutine b_exccoulint(iqmt)
   ! Note: In the generation of the gaunt coefficients l1 and l3 correspond
   !       to the APW/LOs while l2 corresponds to the exponetial.
   call xsgauntgen(maxl_apwlo, maxl_e, maxl_apwlo)
-  call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax))
   ! Find indices for non-zero gaunt coefficients in xsgnt,
   ! and creates index maps, e.g. given l1,m1,l2,m2 -> non zero l3,m3
   ! Up l1 up to maxl_mat, l2 up to maxl_mat, l3 up to maxl_e
@@ -293,7 +292,7 @@ subroutine b_exccoulint(iqmt)
     ematuok(1:inu, 1:ino, 1:numgq, ik) = muo(1:inu, 1:ino, 1:numgq)
 
     if(mpiglobal%rank == 0) then
-      write(6, '(a,"Exccoulint - muo progess:", f10.3)', advance="no")&
+      write(6, '(a,"Exccoulint - muo progress:", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(ik-kpari+1)/dble(kparf-kpari+1)
       flush(6)
     end if
@@ -427,6 +426,7 @@ subroutine b_exccoulint(iqmt)
   contains 
 
     subroutine getmuo(muo)
+      use mod_variation, only: getmuo_sv
       complex(8), intent(out) :: muo(:,:,:)
 
       type(bcbs) :: ematbc
@@ -476,9 +476,19 @@ subroutine b_exccoulint(iqmt)
 
       ! Calculate M_{iu io,G}(ikm, qmt)
       if (input%xs%bse%xas) then
+        call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax))
+        write(*,*) 'iqmt=', iqmt
+        write(*,*) 'iknr=', iknr
+        write(*,*) 'reach ematqk_core'
         call b_ematqk_core(iqmt, ikmnr, muo, ematbc, 'uo')
+
       else
-        call b_ematqk(iqmt, ikmnr, muo, ematbc)
+        if (.not. (input%groundstate%tevecsv)) then ! 1st variation
+          call b_ematqk(iqmt, ikmnr, muo, ematbc)
+        else                                        ! 2nd variation 
+          call getmuo_sv(iqmt, ikmnr, muo, ematbc)  
+        end if
+        
       end if
       !------------------------------------------------------------------!
 
