@@ -134,6 +134,10 @@ subroutine b_bse(iqmt)
   type(dzmat) :: dham, dexevec, doscsr, dresvec, daresvec
   type(dzmat) :: dcmat, dcpmat
 
+  ! Write out the coupling measures ? 
+  logical :: fmeasure
+  fmeasure = input%xs%bse%measure
+
   !! Greeting
   !write(*, '("Info(",a,"): Running at rank", i3)')&
   !  & trim(thisname), mpiglobal%rank
@@ -165,8 +169,11 @@ subroutine b_bse(iqmt)
   call readfermi
   ! Set ist* variables and ksgap in modxs using findocclims
   ! Needs: init2 (is called by b_bselauncher)
-  ! On exit: k-grid quantities are stored in modxs: vkl0, evalsv0 etc
-  !          k-qmt/2 grid quantities are stored in default locations: vkl, evalsv etc
+  ! On exit: - k-grid quantities are stored in modxs: vkl0, evalsv0 etc
+  !            k-qmt/2 grid quantities are stored in default locations: vkl, evalsv etc
+  !            This is altered by select_transitions below
+  !          - Saves mappings k -> k+qmt/2, k -> k-qmt/2 and k-qmt/2 -> k+qmt/2 
+  !            to modbse
   call setranges_modxs(iqmt)
   !---------------------------------------------------------------------------!
 
@@ -224,7 +231,6 @@ subroutine b_bse(iqmt)
   ! Note: Operates on mpiglobal
   ! Note: On exit k-grid/2 quantities are stored in vkl0, evalsv0 etc and
   !       k+qmt/2 grid quantities are stored in vkl, evalsv etc
-  !
   if(fdist) then 
     ! Use all ranks on mpiglobal
     call select_transitions(iqmt, serial=.false.)
@@ -421,6 +427,15 @@ subroutine b_bse(iqmt)
       write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
       write(unitout,*)
       !------------------------------------------------------------------------!
+
+      ! Testing
+      if(fmeasure) then 
+        if(bicurrent%isroot) then 
+          write(unitout, '("Info(",a,"): Writing coupling measures to file")')&
+            & trim(thisname)
+          call writemeasures(iqmt, nexc, exeval, fcoup)
+        end if
+      end if
 
       ! =================================================================!
       ! Store excitonic energies and wave functions to file if requested !

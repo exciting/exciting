@@ -28,8 +28,6 @@ subroutine b_scrcoulintlauncher
   character(256) :: casestring
   character(*), parameter :: thisname = "b_scrcoulintlauncher"
 
-  write(*,*) "b_scrcoulintlauncher here at rank", rank
-
   ! Calculate RR or RA blocks
   casestring = input%xs%bse%blocks
 

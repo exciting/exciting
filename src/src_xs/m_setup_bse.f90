@@ -248,7 +248,8 @@ module m_setup_bse
                       & kousize, nkkp_bse, nk_bse, ofac,&
                       & scclifbasename, exclifbasename,&
                       & scclicfbasename,&
-                      & infofbasename
+                      & infofbasename,&
+                      & vwdiffrr, vwdiffar
       use m_getunit
       use m_genfilname
       use m_putgetbsemat
@@ -294,6 +295,9 @@ module m_setup_bse
       ! Timings
       real(8) :: ts0, ts1
       
+      ! Write out the coupling measure ? 
+      logical :: fmeasure
+      fmeasure = input%xs%bse%measure
 
       call timesec(ts0)
       if(.not. fcoup) then 
@@ -379,6 +383,19 @@ module m_setup_bse
       if(useexc) write(unitout, '("  Reading form V from ", a)') trim(efname)
       if(usescc) write(unitout, '("  compatible:",l," identical:",l)') efcmpt, efid
 
+      ! Allocate measures
+      if(fmeasure) then
+        if(fcoup) then 
+          if(allocated(vwdiffar)) deallocate(vwdiffar)
+          allocate(vwdiffar(hamsize))
+          vwdiffar=0.0d0
+        else
+          if(allocated(vwdiffrr)) deallocate(vwdiffrr)
+          allocate(vwdiffrr(hamsize))
+          vwdiffrr=0.0d0
+        end if
+      end if
+
       ! Set up kkp blocks of RR or RA Hamiltonian
       !! Note: If the Hamilton matrix 
       !! has the elements H^RR_{i,j}(qmt) and the indices enumerate the
@@ -439,17 +456,20 @@ module m_setup_bse
             & exc=excli_t(1:inou,1:jnou))
         end if
 
-        !! RR only
-        ! For blocks on the diagonal, add the KS transition
-        ! energies to the diagonal of the block.
-        if(.not. fcoup) then 
-          if(iknr .eq. jknr) then
-            call addkstransdiag(i1, ham(i1:i2,j1:j2))
-          end if
+        ! Maximum V-W for each row
+        if(fmeasure) then 
+          call makemeasure(i1, ham(i1:i2,j1:j2), fcoup)
         end if
 
       ! ikkp loop end
       end do
+
+      !! RR only
+      ! For blocks on the diagonal, add the KS transition
+      ! energies to the diagonal of the block.
+      if(.not. fcoup) then 
+        call addkstransdiag(1, ham(:,:))
+      end if
 
       ! Write lower triangular part in case it is explicitly needed
       do i1 = 1, hamsize
@@ -793,7 +813,8 @@ module m_setup_bse
                       & kousize, nkkp_bse, nk_bse, ofac,&
                       & scclifbasename, exclifbasename,&
                       & scclicfbasename,&
-                      & infofbasename
+                      & infofbasename, &
+                      & vwdiffrr, vwdiffar, hamsize
       use m_getunit
       use m_genfilname
       use m_putgetbsemat
@@ -835,6 +856,8 @@ module m_setup_bse
 
       ! Arrays to read V and W from file
       complex(8), allocatable, dimension(:,:) :: excli_t, sccli_t
+      ! V-W array
+      complex(8), allocatable, dimension(:,:) :: vwdiff_t
 
       ! Send buffers for distributing V and W 
       complex(8), allocatable, dimension(:,:) :: ebuff, sbuff
@@ -867,6 +890,10 @@ module m_setup_bse
       logical :: sfcmpt, sfid
       logical :: esfcmpt, esfid, ferror
       logical :: useexc, usescc
+
+      ! Make coupling measures? 
+      logical :: fmeasure
+      fmeasure = input%xs%bse%measure
 
       if(ham%isdistributed) then 
 
@@ -965,6 +992,21 @@ module m_setup_bse
           allocate(excli_t(nou_bse_max, nou_bse_max))
           allocate(sccli_t(nou_bse_max, nou_bse_max))
 
+          ! Allocate measure arrays
+          if(fmeasure) then
+            allocate(vwdiff_t(nou_bse_max, nou_bse_max))
+            if(fcoup) then 
+              if(allocated(vwdiffar)) deallocate(vwdiffar)
+              allocate(vwdiffar(hamsize))
+              vwdiffar=0.0d0
+            else
+              if(allocated(vwdiffrr)) deallocate(vwdiffrr)
+              allocate(vwdiffrr(hamsize))
+              vwdiffrr=0.0d0
+            end if
+          end if
+
+        ! is root
         end if
 
         ! Block sizes of global matrix
@@ -1045,6 +1087,24 @@ module m_setup_bse
               end do
             end if
 
+            ! Find maximal |V-W| per row
+            if(fmeasure) then 
+
+              vwdiff_t = 0.0d0
+              if(usescc .and. useexc) then
+                vwdiff_t(1:inou,1:jnou) = 2.0d0*excli_t(1:inou,1:jnou)&
+                  & - sccli_t(1:inou,1:jnou)
+              else if(usescc) then
+                vwdiff_t(1:inou,1:jnou) = -sccli_t(1:inou,1:jnou)
+              else if(useexc) then
+                vwdiff_t(1:inou,1:jnou) = 2.0d0*excli_t(1:inou,1:jnou)
+              end if
+
+              call makemeasure(ii, vwdiff_t(1:inou,1:jnou), fcoup)
+
+            end if
+
+          ! is root
           end if
 
           !!******************!!
@@ -1311,6 +1371,8 @@ module m_setup_bse
 
       else
 
+        write(*,*) "serial setup"
+
         call setup_bse_block(ham%za, iqmt, fcoup)
 
       end if
@@ -1405,5 +1467,34 @@ module m_setup_bse
 
     end subroutine buildham
     !EOC
+
+    ! Finds the maximal component of |V-W| for each row
+    subroutine makemeasure(ig, hamblock, fcoup)
+      use modbse, only: vwdiffar, vwdiffrr
+      integer(4), intent(in) :: ig
+      complex(8), intent(in) :: hamblock(:,:)
+      logical, intent(in) :: fcoup
+
+      integer(4) :: i, m, n
+      real(8) :: maxdiffrow
+
+      m = size(hamblock,1)
+      n = size(hamblock,2)
+
+      ! Get maximal |V-W| for each row 
+      do i = 1, m
+        maxdiffrow = maxval(abs(hamblock(i,:)))
+        if(fcoup) then 
+          if(vwdiffar(ig+i-1) < maxdiffrow) then
+            vwdiffar(ig+i-1) = maxdiffrow
+          end if
+        else
+          if(vwdiffrr(ig+i-1) < maxdiffrow) then
+            vwdiffrr(ig+i-1) = maxdiffrow
+          end if
+        end if
+      end do
+    end subroutine makemeasure
+
 
 end module m_setup_bse

@@ -11,8 +11,6 @@ subroutine b_bsesurvey
 
   character(*), parameter :: thisname = "b_bsesurvey"
 
-  write(*,*) "b_bsesurvey: Hi!"
-
   ! General init
   call init0
   ! k-grid init

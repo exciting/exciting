@@ -15,7 +15,7 @@ module modbse
   use modinput, only: input
   use mod_constants, only: h2ev
   use modxs, only: unitout, totalqlmt
-  use modxs, only: evalsv0, occsv0, ikmapikq
+  use modxs, only: evalsv0, occsv0
   use modxs, only: istocc0, istocc, istunocc0, istunocc,&
                  & isto0, isto, istu0, istu, ksgapval, qgap, iqmtgamma
   use mod_eigenvalue_occupancy, only: evalsv, occsv, nstsv
@@ -73,9 +73,12 @@ module modbse
   integer(4), allocatable :: koulims(:,:)
 
   ! Mapping between k and k' grids
-  integer(4), dimension(:), allocatable :: ik2ikqmtp, ik2ikqmtm, imk2imkqmtp
+  integer(4), dimension(:), allocatable :: ik2ikqmtp, ik2ikqmtm, ikqmtm2ikqmtp
   ! Offsets of k grids
   real(8), dimension(3) :: vkloff, vkqmtploff, vkqmtmloff
+
+  ! Testing array for coupling measures
+  real(8), allocatable :: vwdiffrr(:), vwdiffar(:)
 
   ! Filebasenames
   character(256) :: infofbasename = "BSEINFO"
@@ -160,6 +163,10 @@ module modbse
       if(allocated(ik2ikqmtm)) deallocate(ik2ikqmtm)
       allocate(ik2ikqmtm(nkpt))
       ik2ikqmtm(:) = k_kqmtm%ik2ikqmt(:)
+      ! k-qmt/2 --> k+qmt/2
+      if(allocated(ikqmtm2ikqmtp)) deallocate(ikqmtm2ikqmtp)
+      allocate(ikqmtm2ikqmtp(nkpt))
+      ikqmtm2ikqmtp(:) = ikm2ikp(:)
 
       call xsgrids_finalize()
       !---------------------------------------------------!
@@ -395,7 +402,7 @@ module modbse
       real(8), allocatable :: ofac_loc(:)
       real(8), allocatable :: de_loc(:)
       real(8) :: t0, t1
-      logical :: fsamek
+      logical :: fsamek0, fsamek1, fsamek
       logical, allocatable :: sflag(:)
       integer(4) :: k1, k2
       integer(4) :: i1, i2
@@ -519,6 +526,22 @@ module modbse
       ! to those of the k'=k+qmt/2 grid.
       call init1offs(vkqmtploff)
 
+      if(all(abs(vkqmtmloff-vkloff) < epslat)) then
+        write(unitout, '("Info(select_transitions): Same k-grids for - and ref. grids at iqmt=",i3)') iqmt
+        fsamek0=.true.
+      else
+        write(unitout, '("Info(select_transitions): Different k-grids for - and ref. grids at iqmt=",i3)') iqmt
+        fsamek0=.false.
+      end if
+
+      if(all(abs(vkqmtploff-vkloff) < epslat)) then
+        write(unitout, '("Info(select_transitions): Same k-grids for + and ref. grids at iqmt=",i3)') iqmt
+        fsamek1=.true.
+      else
+        write(unitout, '("Info(select_transitions): Different k-grids for + and ref. grids at iqmt=",i3)') iqmt
+        fsamek1=.false.
+      end if
+
       if(all(abs(vkqmtmloff-vkqmtploff) < epslat)) then
         write(unitout, '("Info(select_transitions): Same k-grids for + and - grids at iqmt=",i3)') iqmt
         fsamek=.true.
@@ -532,7 +555,11 @@ module modbse
 
         !! Get energies and occupancies for the k+qmt/2 grid
         ! Set EVALSV_QMTXYZ.OUT as read file
-        call genfilname(iqmt=iqmt, setfilext=.true.)
+        if(fsamek1) then 
+          call genfilname(iqmt=iqmtgamma, setfilext=.true.)
+        else
+          call genfilname(iqmt=iqmt, setfilext=.true.)
+        end if
         do ik = 1, nkpt
           call getoccsv(vkl(1:3, ik), occsv(1:nstsv, ik))
           call getevalsv(vkl(1:3, ik), evalsv(1:nstsv, ik))
@@ -541,12 +568,19 @@ module modbse
         !! Get energies and occupancies for k-qmt/2
         !! and save them in the 0 named variables
         usefilext0 = .true.
-        if(fsamek) then 
-          ! Set EVALSV_QMTXYZ.OUT as read file
-          call genfilname(iqmt=iqmt, setfilext=.true., fileext=filext0)
+        if(fsamek0) then
+          ! Set EVALSV_QMT001.OUT as read file
+          call genfilname(iqmt=iqmtgamma, setfilext=.true., fileext=filext0)
         else
-          ! Set EVALSV_QMTXYZ_m.OUT as read file
-          call genfilname(iqmt=iqmt, auxtype="m", setfilext=.true., fileext=filext0)
+          ! If + - grids are the same use the + one
+          if(fsamek) then 
+            ! Set EVALSV_QMTXYZ.OUT as read file
+            call genfilname(iqmt=iqmt, setfilext=.true., fileext=filext0)
+          ! Normal case: use the - grid 
+          else
+            ! Set EVALSV_QMTXYZ_m.OUT as read file
+            call genfilname(iqmt=iqmt, auxtype="m", setfilext=.true., fileext=filext0)
+          end if
         end if
         do ik = 1, nkpt
           call getoccsv0(vkl0(1:3, ik), occsv0(1:nstsv, ik))
@@ -929,7 +963,7 @@ module modbse
       call getunit(un)
       fname = trim(adjustl(fdir))//'/'//'BSE_SINDEX'//fext
       open(un, file=trim(adjustl(fname)), action='write', status='replace')
-      write(un,'("# Combined BSE index @ q =", 3(E10.3,1x))')  0.0d0, 0.0d0, 0.0d0
+      write(un,'("# Combined BSE index @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
       write(un,'("# s iu io ik iu_rel io_rel ik_rel occ")')
       do i = 1, size(ofac)
         write(un, '(7(I8,1x),1x,E23.16)')&
@@ -974,6 +1008,127 @@ module modbse
       close(un)
 
     end subroutine printso
+
+    ! Write out the coupling measures for each calculated exciton
+    subroutine writemeasures(iqmt, nexc, evals, fcoup, dirname)
+      use m_genfilname
+      implicit none 
+
+      integer(4), intent(in) :: iqmt, nexc
+      logical, intent(in) :: fcoup
+      real(8), intent(in) :: evals(:)
+      character(*), intent(in), optional :: dirname
+
+      character(256) :: fdir, syscommand, fext, fname
+      integer(4) :: un
+
+      real(8), allocatable :: measuresrr(:), measuresar(:)
+      integer(4) :: alphamaxrr, alphamaxar, i, j
+      integer(4), allocatable :: sorti(:)
+      character(256) :: tdastring, bsetypestring, scrtypestring
+
+      ! Make a folder 
+      fdir = 'MEASURES'
+      if(present(dirname)) then 
+        fdir = trim(dirname)//'/'//trim(fdir)
+      end if
+      if(mpiglobal%rank == 0) then 
+        syscommand = 'test ! -d '//trim(adjustl(fdir))//' && mkdir -p '//trim(adjustl(fdir))
+        call system(trim(adjustl(syscommand)))
+      end if
+
+      if(input%xs%bse%coupling) then
+        tdastring=''
+      else
+        tdastring="-TDA"
+      end if
+
+      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
+      scrtypestring = '-'//trim(input%xs%screening%screentype)
+
+      ! Make measures
+      allocate(measuresrr(hamsize))
+      allocate(measuresar(hamsize))
+      allocate(sorti(hamsize))
+
+      measuresrr = 0.0d0
+      alphamaxrr = 1
+      measuresrr = vwdiffrr(1:hamsize)/de(1:hamsize)
+      alphamaxrr = maxloc(measuresrr,1)
+
+      measuresar = 0.0d0
+      alphamaxar = 1
+      if(fcoup) then
+        measuresar = vwdiffar(1:hamsize)/de(1:hamsize)
+        alphamaxar = maxloc(measuresar,1)
+      end if
+
+      call getunit(un)
+
+      call genfilname(basename='Coupling_Measures', iqmt=iqmt,&
+        & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
+        & nar= .not. input%xs%bse%aresbse, filnam=fname, dirname=trim(fdir))
+
+      open(un, file=trim(adjustl(fname)), action='write', status='replace')
+      write(un,'("# Measures for excitions @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
+      write(un,'("#")')
+      write(un,'("# RR: Max_{a,b} |V_ab - W^rr_ab|/dE^ip_a")')
+      write(un,'("# a=",i8," dE=",E13.4)') alphamaxrr, de(alphamaxrr)*h2ev
+      if(fcoup) then
+        write(un,'("# AR: Max_{a,b} |V_ab - W^ar_ab|/dE^ip_a")')
+        write(un,'("# a=",i8," dE=",E13.4)') alphamaxar, de(alphamaxar)*h2ev
+      end if
+      write(un,'("# lambda, exenrgy, MaxMeasure_rr, MaxMeasure_ar")')
+
+      do i = 1, nexc
+
+        measuresrr = 0.0d0
+        measuresrr = vwdiffrr(1:hamsize)/(de(1:hamsize)+evals(i))
+
+        measuresar = 0.0d0
+        if(fcoup) then
+          measuresar = vwdiffar(1:hamsize)/(de(1:hamsize)+evals(i))
+        end if
+
+        write(un, '(I8,1x,E13.4,1x,2(E13.4,1x))')&
+          & i, evals(i)*h2ev,&
+          & measuresrr(alphamaxrr),&
+          & measuresar(alphamaxar)
+
+      end do
+
+      close(un)
+
+      call getunit(un)
+
+      call genfilname(basename='VW_diff', iqmt=iqmt,&
+        & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
+        & nar= .not. input%xs%bse%aresbse, filnam=fname, dirname=trim(fdir))
+
+      open(un, file=trim(adjustl(fname)), action='write', status='replace')
+      write(un,'("# max per row of |V-W| @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
+      write(un,'("# alpha, ipen, VWdiff_rr, VWdiff_ra")')
+
+      call sortidx(hamsize, de, sorti)
+
+      do i = 1, hamsize
+
+        j = sorti(i)
+        if(fcoup) then 
+          write(un, '(I8,1x,E13.4,1x,2(E13.4,1x))')&
+            & j, de(j)*h2ev,&
+            & vwdiffrr(j), vwdiffar(j)
+        else
+          write(un, '(I8,1x,E13.4,1x,2(E13.4,1x))')&
+            & j, de(j)*h2ev,&
+            & vwdiffrr(j), 0.0d0
+        end if
+
+      end do
+
+      close(un)
+
+    end subroutine writemeasures
 
     !+++++++++++++++++++++++++++++++++++++++++++!
     ! Simple continuous combined index mappers  !

@@ -16,7 +16,7 @@ subroutine b_screenlauncher
                    & qparf, unitout, totalqlmt, qvkloff,&
                    & gqdirname, eps0dirname, scrdirname, timingdirname,&
                    & ikmapikq, nkpt0, vkl0, usefilext0, filext0, filexteps,&
-                   & iqmt0, iqmt1
+                   & iqmt0, iqmt1, evalsv0
   use mod_xsgrids
   use m_genfilname
   use m_filedel
@@ -68,6 +68,9 @@ subroutine b_screenlauncher
   !   * Reads STATE.OUT
   !   * Generates radial functions (mod_APW_LO)
   call init2
+
+  ! Clear modxs:ecalsv0 
+  if(allocated(evalsv0)) deallocate(evalsv0)
 
   ! First Q-point in the list needs to be the Gamma point
   if(NORM2(totalqlmt(1:3,1)) > epslat) then 
@@ -135,8 +138,8 @@ subroutine b_screenlauncher
   nwdf = 1
 
   ! Read Fermi energy from file EFERMI
-  ! Use EFERMI_SCR_QMT001.OUT (corresponding to the xs groundstate run
-  ! for the original k grid)
+  ! Use EFERMI_SCR.OUT (corresponding to the scr groundstate run
+  ! for the reference k grid)
   call genfilname(scrtype='', setfilext=.true.)
   call readfermi
 

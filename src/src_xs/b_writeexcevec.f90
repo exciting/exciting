@@ -1,4 +1,8 @@
-subroutine b_writeexcevec
+!BOP
+! !ROUTINE: b_writeexcevec
+! !INTERFACE:
+subroutine b_writeexcevec()
+! !USES:
   use modxs, only: unitout
   use modinput
   use modmpi
@@ -6,16 +10,27 @@ subroutine b_writeexcevec
   use m_getunit
   use m_genfilname
   use m_putgetexcitons
+! !DESCRIPTION:
+!   Reads the binary file \texttt{EXCCOEFF} containing the eigenvector coefficients
+!   of the BSE calculation and prints selected coefficients to human readable files.
+!   Writes to the folders \texttt{EXCITON\_EVEC}, \texttt{BEVEC} and \texttt{BEVEC\_KSUM}.
+!
+! !REVISION HISTORY:
+!   Created 2016 (Aurich)
+!
+!EOP
+!BOC
 
   implicit none
 
   character(*), parameter :: thisname = 'b_writeexcevec'
 
+  ! Local vars
   integer(4) :: alpha, lambda, nvmax, ncmax, icmin, icmax, ivmin, ivmax 
   real(8) :: rbevec, abevec, en1, en2
   real(8), parameter :: epslat = 1.0d-8
   real(8), allocatable :: rbevec_ksum(:,:), abevec_ksum(:,:)
-  integer(4) :: i, i1, i2, iv, ic, ikv, ikc, ivec(3), rcount, acount
+  integer(4) :: i, i1, i2, iv, ic, ik, ikv, ikc, ivec(3), rcount, acount
   integer(4) :: un
   real(8) :: abscutoffres(2), abscutoffares(2)
   real(8) :: vklv(3), vklc(3)
@@ -28,8 +43,10 @@ subroutine b_writeexcevec
   character(256) :: syscommand, bevecdir, bevecksumdir, excitonevecdir
   character(256) :: tdastring, bsetypestring, scrtypestring
 
+  ! Only rank=0 does the work
   if(mpiglobal%rank == 0) then 
 
+    ! Use Unix system calls to create folders
     bevecdir='BEVEC'
     syscommand = 'test ! -e '//trim(adjustl(bevecdir))//' && mkdir '//trim(adjustl(bevecdir))
     call system(trim(adjustl(syscommand)))
@@ -49,7 +66,7 @@ subroutine b_writeexcevec
     !   Use all
     iqmti = 1
     iqmtf = size(input%xs%qpointset%qpoint, 2)
-    !   or use only one
+    !   or use range
     if(input%xs%bse%iqmtrange(1) /= -1) then 
       iqmti=input%xs%bse%iqmtrange(1)
       iqmtf=input%xs%bse%iqmtrange(2)
@@ -58,6 +75,7 @@ subroutine b_writeexcevec
     iq1 = 1
     iq2 = nqmt
 
+    ! Info out
     call printline(unitout, "+")
     write(unitout, '("Info(",a,"):", a, i3, a, i3)') trim(thisname),&
       & " Using momentum transfer vectors from list : ", iqmti, " to", iqmtf
@@ -65,6 +83,7 @@ subroutine b_writeexcevec
 
     do iqmt = iqmti+iq1-1, iqmti+iq2-1
 
+      call printline(unitout, "-")
       write(unitout, '("Info(",a,"):", a, i3)') trim(thisname),&
         & " QMT index: ", iqmt
 
@@ -72,6 +91,7 @@ subroutine b_writeexcevec
       ! Read in data to putgetexcitons module              !
       !====================================================!
       ! Requested excition index range
+      !   Use energy selection
       if(input%xs%writeexcitons%selectenergy) then 
         en1=input%xs%writeexcitons%minenergyexcitons
         en2=input%xs%writeexcitons%maxenergyexcitons
@@ -81,12 +101,15 @@ subroutine b_writeexcevec
         end if
         write(unitout,'("Info(",a,"): Getting excitons in energy range:",2f12.6)')&
           & trim(thisname), en1, en2
+        ! Read excition coefficients from binary file
         call get_excitons(iqmt=iqmt, e1=en1, e2=en2)
+      !   Use index selection
       else
         i1 = input%xs%writeexcitons%minnumberexcitons
         i2 = input%xs%writeexcitons%maxnumberexcitons
         write(unitout,'("Info(",a,"): Getting excitons in index range:",2i8)')&
           & trim(thisname), i1, i2
+        ! Read excition coefficients from binary file
         call get_excitons(iqmt=iqmt, a1=i1, a2=i2)
       end if
       write(unitout,'("Info(",a,"): Excitons read in for range:",2i8)')&
@@ -102,6 +125,7 @@ subroutine b_writeexcevec
       ivmin = minval(koulims_(3,:))
       ivmax = maxval(koulims_(4,:))
 
+      ! Info out
       write(unitout,'("Info(",a,"): nvmax, ncmax",2i8)')&
         & trim(thisname), nvmax, ncmax
       write(unitout,'("Info(",a,"): icmin, icmax",2i8)')&
@@ -112,6 +136,8 @@ subroutine b_writeexcevec
       !====================================================!
       ! Selective write of exciton coefficients to file.   !
       !====================================================!
+
+      ! Determine file name from BSE type
       if(fcoup_) then
         tdastring=''
       else
@@ -120,12 +146,15 @@ subroutine b_writeexcevec
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
 
+      ! Printout cutoff for resonant and anti-resonant coefficients
       abscutoffres(1:2) = input%xs%writeexcitons%abscutres
       abscutoffares(1:2) = input%xs%writeexcitons%abscutares
 
       allocate(absvec(hamsize_))
       allocate(idxsort(hamsize_), idxsort_desc(hamsize_))
 
+      ! For each requested exciton write out the resonant (anti-resonant)
+      ! eigen-coefficients sorted by absolute value to text files in folder EXCITON_EVEC
       do lambda = iex1_, iex2_
 
         write(unitout,'("Info(",a,"): Writing EXEVEC for lambda =",i8)')&
@@ -140,6 +169,7 @@ subroutine b_writeexcevec
 
         open(unit=un, file=trim(fname), form='formatted', action='write')
 
+        ! Write header
         write(un,'("#",1x,"BSE eigenvector")')
         write(un,'("#")')
         write(un,'("#",1x,"Momentum transfer q_mt:",3f12.7)') vqlmt_
@@ -152,24 +182,44 @@ subroutine b_writeexcevec
         write(un,'("#")')
         write(un,'("# Eigenvector number:",i6," with energy/eV: ", f12.7)'), lambda, evals_(lambda)*h2ev
         
+        ! Get sorting index for sorting by absolute value
         absvec = abs(rvec_(1:hamsize_,lambda))
         call sortidx(hamsize_, absvec, idxsort)
         do i = 1, hamsize_ 
           idxsort_desc(i) = idxsort(hamsize_-i+1)
         end do
 
+        ! Write resonant coefficients
         write(un,'("# Resonant contribution")')
         write(un,'("#",1x,a,3x,a,7x,a,7x,a,3x,a,33x,a,35x,a,19x,a,15x,a)')&
           & "alpha","lambda", "ic", "iv", "k_c", "k_v",&
           & "|evec|", "real(evec)", "im(evec)"
+
+        ! Note: Resonant basis functions are
+        ! \psi^\text{r}_{\alpha,\vec{q}_\text{mt}}(\vec{r},\vec{r}') = 
+        !   \phi_{o_\alpha \vec{k}_\alpha+\vec{q}_\text{mt}/2}(\vec{r})
+        !   * \phi^*_{u_\alpha \vec{k}_\alpha-\vec{q}_\text{mt}/2}(\vec{r}')
+
+        ! Counter for number of coefficients found in the specified range
         rcount=0
+
         do i = 1, hamsize_
+          ! Get individual indices from combined BSE index
+          !   Get combined index from sorted list
           alpha = idxsort_desc(i)
+          !   Get corresponding unoccupied state
           ic = smap_(1,alpha)
+          !   Get corresponding occupied state
           iv = smap_(2,alpha)
-          ikv = smap_(3,alpha)
-          vklv = vkl0_(1:3,ikv)
-          vklc = vkl_(1:3,ikv)
+          !   Get reference k-point
+          ik = smap_(3,alpha)
+          !   Get corresponding k-qmt/2 index and vector
+          ikc = ik2ikqmtm_(ik)
+          vklc = vkl0_(1:3,ikc)
+          !   Get corresponding k+qmt/2 index and vector
+          ikv = ik2ikqmtp_(ik)
+          vklv = vkl_(1:3,ikv)
+          ! Only write out, if the modulus of the coefficient in the required range
           if(absvec(alpha) > abscutoffres(1) .and. absvec(alpha) < abscutoffres(2)) then
             write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,3E25.16))')&
               & alpha, lambda, ic, iv, vklc, vklv,&
@@ -180,31 +230,56 @@ subroutine b_writeexcevec
         write(un,'("# rcount=",i8)'), rcount
 
         if(fcoup_) then 
+
+          ! Write anti-resonant coefficients
           write(un,'("# Anti-resonant contribution")')
           write(un,'("#",1x,a,3x,a,7x,a,7x,a,3x,a,33x,a,35x,a,19x,a,15x,a)')&
             & "alpha","lambda", "ic", "iv", "k_c", "k_v",&
             & "|evec|", "real(evec)", "im(evec)"
 
+          ! Note: Anti-resonant basis functions are
+          ! \psi^\text{a}_{\alpha,\vec{q}_\text{mt}}(\vec{r},\vec{r}') = 
+          !   \phi_{u_\alpha -\vec{k}_\alpha+\vec{q}_\text{mt}/2}(\vec{r})
+          !   * \phi^*_{o_\alpha -\vec{k}_\alpha-\vec{q}_\text{mt}/2}(\vec{r}')
+          ! which is using time reversal symmetry just
+          ! \psi^\text{a}_{\alpha,\vec{q}_\text{mt}}(\vec{r},\vec{r}') =
+          ! \psi^\text{r}_{\alpha,\vec{q}_\text{mt}}(\vec{r}',\vec{r}) = 
+          !   \phi_{o_\alpha \vec{k}_\alpha+\vec{q}_\text{mt}/2}(\vec{r}')
+          !   * \phi^*_{u_\alpha \vec{k}_\alpha-\vec{q}_\text{mt}/2}(\vec{r})
+
+          ! Get sorting index for sorting by absolute value
           absvec = abs(avec_(1:hamsize_, lambda))
           call sortidx(hamsize_, absvec, idxsort)
           do i = 1, hamsize_ 
             idxsort_desc(i) = idxsort(hamsize_-i+1)
           end do
 
+          ! Counter for number of coefficients found in the specified range
           acount=0
+
           do i = 1, hamsize_
+            ! Get individual indices from combined BSE index
+            !   Get combined index from sorted list
             alpha = idxsort_desc(i)
+            !   Get corresponding unoccupied state
             ic = smap_(1,alpha)
+            !   Get corresponding occupied state
             iv = smap_(2,alpha)
-            ikv = smap_(3,alpha)
-            vklv = vkl0_(1:3,ikv)
-            vklc = vkl_(1:3,ikv)
+            !   Get reference k-point
+            ik = smap_(3,alpha)
+            !   Get corresponding k-qmt/2 index and vector
+            ikc = ik2ikqmtm_(ik)
+            vklc = vkl0_(1:3,ikc)
+            !   Get corresponding k+qmt/2 index and vector
+            ikv = ik2ikqmtp_(ik)
+            vklv = vkl_(1:3,ikv)
 
-            vklv = -vklv
-            vklc = -vklc
-            call r3frac(epslat, vklv, ivec)
-            call r3frac(epslat, vklc, ivec)
+            !vklv = -vklv
+            !vklc = -vklc
+            !call r3frac(epslat, vklv, ivec)
+            !call r3frac(epslat, vklc, ivec)
 
+            ! Only write out, if the modulus of the coefficient in the required range
             if(absvec(alpha) > abscutoffares(1) .and. absvec(alpha) < abscutoffares(2)) then
               write(un,'(i7,3(2x,i7),2(3f12.7),3(2x,3E25.16))')&
                 & alpha+hamsize_, lambda, ic, iv, vklc, vklv,&
@@ -249,12 +324,18 @@ subroutine b_writeexcevec
         ! Loop over transitions
         do alpha = 1, hamsize_
 
-          ! Get absolute indices form combinded index
+          !   Get corresponding unoccupied state
           ic = smap_(1,alpha)
+          !   Get corresponding occupied state
           iv = smap_(2,alpha)
-          ikv = smap_(3,alpha)
-
-          ikc = ikmapikq_(ikv)
+          !   Get reference k-point
+          ik = smap_(3,alpha)
+          !   Get corresponding k-qmt/2 index and vector
+          ikc = ik2ikqmtm_(ik)
+          vklc = vkl0_(1:3,ikc)
+          !   Get corresponding k+qmt/2 index and vector
+          ikv = ik2ikqmtp_(ik)
+          vklv = vkl_(1:3,ikv)
 
           ! Resonant
           rbevec = rvec_(alpha, lambda) * conjg(rvec_(alpha, lambda))
@@ -262,11 +343,11 @@ subroutine b_writeexcevec
             ! Anti-resonant
             abevec = avec_(alpha, lambda) * conjg(avec_(alpha, lambda))
             write(un, '(2(i8, 3E14.7), 2i8, 2E14.7)')&
-              & ikv, vkl0_(:, ikv), ikc, vkl_(:,ikc),&
+              & ikv, vklv, ikc, vklc,&
               & iv, ic, rbevec, abevec
           else
             write(un, '(2(i8, 3E14.7), 2i8, 3E14.7)')&
-              & ikv, vkl0_(:, ikv), ikc, vkl_(:,ikc),&
+              & ikv, vklv, ikc, vklc,&
               & iv, ic, rbevec
           end if
 
@@ -314,8 +395,11 @@ subroutine b_writeexcevec
         if(fcoup_) abevec_ksum=0.0d0
 
         do alpha=1, hamsize_
+          !   Get corresponding unoccupied state
           ic = smap_(1,alpha)
+          !   Get corresponding occupied state
           iv = smap_(2,alpha)
+
           rbevec_ksum(ic, iv) = rbevec_ksum(ic, iv) +&
             & rvec_(alpha, lambda)*conjg(rvec_(alpha, lambda))
           if(fcoup_) then 
@@ -382,3 +466,4 @@ subroutine b_writeexcevec
   end if
 
 end subroutine b_writeexcevec
+!EOC

@@ -74,6 +74,7 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
   t = allocated(evalsv0)
   if( .not. t) allocate(evalsv0(nstsv, nkpt))
   ! Note: occsv0 is allocated during init1
+  !   Only evalsv0 is not properly allocated/deallocated ?
 
   ! This routine is exclusively called withing the xs part at the moment.
   ! nkpt may reference the reduced or the non-reduced k set depending

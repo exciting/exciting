@@ -1,3 +1,11 @@
+! !MODULE: mod_xsgrids
+! !DESCRIPTION:
+!   Global variables and setup routines for
+!   the shifted $\vec{k}$ grids needed for the
+!   q-dependent BSE.
+!
+! !REVISION HISTORY:
+!   Created 2016 (Aurich)
 module mod_xsgrids
   use modmpi
   use modinput
@@ -58,8 +66,38 @@ module mod_xsgrids
       xsgrids_initialized = initialized
     end function xsgrids_initialized
 
-    subroutine xsgrids_init(vqmtl, gkmax, gqmax_, reducek_, reduceq_, makegk_, makegq_)
+    !BOP
+    ! !ROUTINE: xsgrids_init
+    ! !INTERFACE:
+    subroutine xsgrids_init(vqmtl, gkmax, gqmax_, reducek_,&
+      & reduceq_, makegk_, makegq_)
+    ! !USES:
       use modxs, only: unitout
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! In:
+    ! real(8) :: vqmtl(3) ! Momentum transfer vector in lattice coordinates
+    ! real(8) :: gkmax    ! Cutoff for G+k
+    ! real(8), optional :: gqmax_    ! Cutoff for G+q
+    ! logical, optional :: reducek_  ! Flag for k-point symmetry reduction
+    ! logical, optional :: reduceq_  ! Flag for q-point symmetry reduction
+    ! logical, optional :: makegk_   ! Construct the G+k vectors or not
+    ! logical, optional :: makegq_   ! Construct the G+q vectors or not
+    !
+    ! !DESCRIPTION:
+    !   Given a momentum transfer vector $\vec{Q}_\text{mt} = \vec{G}_\text{mt} + \vec{q}_\text{mt}$,
+    !   the routine sets up the associated k-grids $\{\vec{k}\}$,
+    !   $\{\vec{k}_+ = \vec{k}+\vec{q}_\text{mt}/2\}$ and $\{\vec{k}_- = \vec{k}-\vec{q}_\text{mt}/2\}$.
+    !   Additionally, the q-grids formed from $\{\vec{q} = \vec{k}'-\vec{k}\}$ and 
+    !   $\{\vec{q} = -\vec{k}'_+ - \vec{k}_-\}$ are set up. 
+    !   Various index maps are created relating the points of the different
+    !   grids.
+    !   If requested also the corresponding $\vec{G}+\vec{k}$ and $\vec{G}+\vec{q}$
+    !   are created.
+    !
+    ! !REVISION HISTORY:
+    !   Created 2016 (Aurich)
+    !EOP
+    !BOC
 
       real(8), intent(in) :: vqmtl(3)
       real(8), intent(in) :: gkmax
@@ -103,7 +141,7 @@ module mod_xsgrids
       else
         makegq = .false.
       end if
-      ! Default maximal G vecort length
+      ! Default maximal G vector length
       gmaxvr = input%groundstate%gmaxvr
       ! G+q cutoff
       gqmax = input%xs%gqmax
@@ -117,7 +155,8 @@ module mod_xsgrids
       call generate_G_vectors(g, bvec, intgv, gmaxvr)
 
       !! Setup k-space grids (not using libzint)
-      !!  Given a k-grid, generate the symmetrically shifted k-grids k+qmt/2 and k-qmt/2
+      !!  Given a k-grid, generate the symmetrically shifted k-grids
+      !!  k+qmt/2 and k-qmt/2
 
       ! Generate k and k'=k+qmt/2 grids and maps between them
       call generate_kkqmt_vectors(k_kqmtp, g, bvec, ngridk, vkloff, reducek,&
@@ -183,8 +222,20 @@ module mod_xsgrids
       write(unitout,'("Info(",a,"): Time needed/s =", f12.6)') trim(thisname), t1-t0
 
     end subroutine xsgrids_init
+    !EOC
 
+    !BOP
+    ! !ROUTINE: xsgrids_finalize
+    ! !INTERFACE:
     subroutine xsgrids_finalize()
+    !
+    ! !DESCRIPTION:
+    !   Clears module variables.
+    !
+    ! !REVISION HISTORY:
+    !   Created 2016 (Aurich)
+    !EOP
+    !BOC
 
       ! Free k-space grids
       call delete_kkqmt_vectors(k_kqmtp)
@@ -214,9 +265,26 @@ module mod_xsgrids
       makegk = .false.
       makegq = .false.
     end subroutine xsgrids_finalize
+    !EOC
 
+    !BOP
+    ! !ROUTINE: xsgrids_write_grids
+    ! !INTERFACE:
     subroutine xsgrids_write_grids(iqmt)
+    ! !USES:
       use m_getunit
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! In:
+    ! integer(4) :: iqmt ! Considered Q-point
+    !
+    ! !DESCRIPTION:
+    !   Writes out detailed information about the generated
+    !   k-grids. Creates the folder {\tt XSGRIDS}.
+    !
+    ! !REVISION HISTORY:
+    !   Created 2016 (Aurich)
+    !EOP
+    !BOC
 
       integer(4) :: un, i, iqmt, ikm
       character(256) :: fext, fiqmt, fdir, fname
@@ -351,5 +419,7 @@ module mod_xsgrids
 
       return
     end subroutine xsgrids_write_grids
+    !EOC
 
 end module mod_xsgrids
+!EOC

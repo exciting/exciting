@@ -102,6 +102,10 @@ subroutine b_writekpathweights
       ivmin = minval(koulims_(3,:))
       ivmax = maxval(koulims_(4,:))
 
+      call printline(unitout, "+")
+      write(unitout,'("Info(",a,"):&
+        & Considering momentum transver vector:", i8)')&
+        & trim(thisname), iqmt
       write(unitout,'("Info(",a,"):&
         & Weights can be interpolated in the range:", 2i8)')&
         & trim(thisname), ivmin, icmax
@@ -124,6 +128,7 @@ subroutine b_writekpathweights
           & iv2 >= ic1 Non-Insulators not yet implemented.")') trim(thisname)
         call terminate
       end if
+      call printline(unitout, "-")
 
       ! Squared modulus of coefficients
       allocate(abs2(hamsize_))
@@ -174,20 +179,20 @@ subroutine b_writekpathweights
         abs2 = abs(rvec_(1:hamsize_,lambda))**2
         !   Valence 
         call genweights(ivmin, ivmax, hamsize_, nk_max_,&
-          & smap_(2,:), smap_(3,:), abs2, rvwgrid)
+          & smap_(2,:), smap_(3,:), abs2, rvwgrid, ik2ikqmtp_)
         !   Conduction
         call genweights(icmin, icmax, hamsize_, nk_max_,&
-          & smap_(1,:), smap_(3,:), abs2, rcwgrid, ikmapikq_)
+          & smap_(1,:), smap_(3,:), abs2, rcwgrid, ik2ikqmtm_)
 
         !! Make anti-resonant weights
         if(fcoup_) then 
           abs2 = abs(avec_(1:hamsize_, lambda))**2
           !   Valence
           call genweights(ivmin, ivmax, hamsize_, nk_max_,&
-            & smap_(2,:), smap_(3,:), abs2, arvwgrid)
+            & smap_(2,:), smap_(3,:), abs2, arvwgrid, ik2ikqmtp_)
           !   Conduction
           call genweights(icmin, icmax, hamsize_, nk_max_,&
-            & smap_(1,:), smap_(3,:), abs2, arcwgrid, ikmapikq_)
+            & smap_(1,:), smap_(3,:), abs2, arcwgrid, ik2ikqmtm_)
         end if
 
         if(fwritegridweights) then 
@@ -201,19 +206,19 @@ subroutine b_writekpathweights
 
         !! Resonant weights
         !   Valence
-        call interpolate_kpathweights(iv1, iv2, x0, y0, z0,&
+        call interpolate_kpathweights(iv1, iv2, x, y, z,&
           & rvwgrid(:,iv1:iv2), rvw(:,iv1:iv2))
         !   Conduction
-        call interpolate_kpathweights(ic1, ic2, x, y, z,&
+        call interpolate_kpathweights(ic1, ic2, x0, y0, z0,&
           & rcwgrid(:,ic1:ic2), rcw(:,ic1:ic2))
 
         if(fcoup_) then 
           !! Anti-resonant weights
           !   Valence
-          call interpolate_kpathweights(iv1, iv2, x0, y0, z0,&
+          call interpolate_kpathweights(iv1, iv2, x, y, z,&
             & arvwgrid(:,iv1:iv2), arvw(:,iv1:iv2))
           !   Conduction
-          call interpolate_kpathweights(ic1, ic2, x, y, z,&
+          call interpolate_kpathweights(ic1, ic2, x0, y0, z0,&
             & arcwgrid(:,ic1:ic2), arcw(:,ic1:ic2))
         end if
 
@@ -225,7 +230,6 @@ subroutine b_writekpathweights
       ! Exciton loop
       end do
 
-      call clear_bandstructure()
       call clear_excitons()
 
       deallocate(abs2)
@@ -242,6 +246,8 @@ subroutine b_writekpathweights
 
     ! iqmt
     end do
+
+    call clear_bandstructure()
 
     call barrier(callername=trim(thisname))
 
@@ -298,45 +304,28 @@ subroutine b_writekpathweights
     subroutine genweights(i1, i2, n, nk, imap, ikmap, abs2, weight, ikkpmap)
       integer(4), intent(in) :: i1, i2, n, nk
       integer(4), intent(in) :: imap(1:n), ikmap(1:n)
-      integer(4), intent(in), optional :: ikkpmap(1:nk)
+      integer(4), intent(in) :: ikkpmap(1:nk)
       real(8), intent(in) :: abs2(1:n)
       real(8), intent(inout) :: weight(1:nk,i1:i2)
 
       integer(4) :: i, ip, a, ik, ikkp
 
-      if(.not. present(ikkpmap)) then
-        ! Loop valence or conduction band index i
-        do i = i1, i2
-          ! Loop over transitons (hamiltonian index)
-          do a = 1, n
-            ! Get valence or conduction band index of transition a
-            ip = imap(a)
-            ! Add to corresponding weight
-            if(i == ip) then
-              ! Get k index of transition a
-              ik = ikmap(a)
-              ! Add contributon to sum
-              !   w_{ik,v} = \Sum_c |A_{(ik,v),(ik,c)}|^2
-              weight(ik, i) = weight(ik, i) + abs2(a)
-            end if
-          end do
+      do i = i1, i2
+        do a = 1, n
+          ip = imap(a)
+          if(i == ip) then
+            ! Get reference k index of transition a
+            ik = ikmap(a)
+            ! Get k'=k_c=k-qmt/2 or k'=k_v=k+qmt/2 index of transition a
+            ikkp = ikkpmap(ik)
+            ! Add contributon to sum
+            !   w_{ikc,c} = \Sum_v |A_{(ik,v),(ik',c)}|^2
+            ! or
+            !   w_{ikv,v} = \Sum_c |A_{(ik,v),(ik',c)}|^2
+            weight(ikkp, i) = weight(ikkp, i) + abs2(a)
+          end if
         end do
-      else
-        do i = i1, i2
-          do a = 1, n
-            ip = imap(a)
-            if(i == ip) then
-              ! Get k index of transition a
-              ik = ikmap(a)
-              ! Get k'=k+qmt index of transition a
-              ikkp = ikkpmap(ik)
-              ! Add contributon to sum
-              !   w_{ik',c} = \Sum_v |A_{(ik,v),(ik',c)}|^2
-              weight(ikkp, i) = weight(ikkp, i) + abs2(a)
-            end if
-          end do
-        end do
-      end if
+      end do
     end subroutine genweights
 
     subroutine writeweights()
@@ -384,7 +373,7 @@ subroutine b_writekpathweights
       do iv = ivmin, ivmax
         do iknr = 1,nk_max_
           write(un,'(3f12.7, i8, i8,1x, E23.16)')&
-            & vkl0_(:,iknr), iv, iknr, rvwgrid(iknr, iv)
+            & vkl_(:,iknr), iv, iknr, rvwgrid(iknr, iv)
         end do
       end do
 
@@ -394,7 +383,7 @@ subroutine b_writekpathweights
       do ic = icmin, icmax
         do iknr = 1, nk_max_
           write(un,'(3f12.7, i8, i8, E23.16)')&
-            & vkl_(:,iknr), ic, iknr, rcwgrid(iknr, ic)
+            & vkl0_(:,iknr), ic, iknr, rcwgrid(iknr, ic)
         end do
       end do
 
@@ -405,14 +394,14 @@ subroutine b_writekpathweights
         write(un,'("#",a11,2a12,a8,a8,1x,a23)') "vkv1", "vkv2", "vkv2", "iv", "ik_v", "w_v"
         do iv = ivmin, ivmax
           do iknr = 1, nk_max_
-            write(un,'(3f12.7, i8, i8, E23.16)') vkl0_(:,iknr), iv, iknr, arvwgrid(iknr, iv)
+            write(un,'(3f12.7, i8, i8, E23.16)') vkl_(:,iknr), iv, iknr, arvwgrid(iknr, iv)
           end do
         end do
         write(un,'("#  Conduction band weights")')
         write(un,'("#",a11,2a12,a8,a8,1x,a23)') "vkc1", "vkc2", "vkc2", "ic", "ik_c", "w_c"
         do ic = icmin, icmax
           do iknr = 1, nk_max_
-            write(un,'(3f12.7, i8, i8, E23.16)') vkl_(:,iknr), ic, iknr, arcwgrid(iknr, ic)
+            write(un,'(3f12.7, i8, i8, E23.16)') vkl0_(:,iknr), ic, iknr, arcwgrid(iknr, ic)
           end do
         end do
       end if
