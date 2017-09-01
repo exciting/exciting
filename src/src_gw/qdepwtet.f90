@@ -28,7 +28,7 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
 !!LOCAL VARIABLES:
     integer(4) :: ik, ikp, ib, ic, icg
     integer(4) :: ia, is, ias
-    integer(4) :: iom
+    integer(4) :: iom, n, m
     integer(4) :: fflg, sgw
      
     real(8) :: emaxb ! maximum energy of the second band
@@ -171,6 +171,18 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
       deallocate(cwpar)
       
     end if ! core
+
+    if (.false.) then
+      iom = 1
+      do ik = 1, kqset%nkpt
+        write(*,*) 'iq, ik = ', iq, ik
+        do n = 1, nomax
+        do m = numin, nstsv
+          write(*,'(2i4,2f12.6)') n, m, fnm(n,m,iom,ik)
+        end do
+        end do
+      end do
+    end if
 
     !-------------------------
     ! Debugging info

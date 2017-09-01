@@ -1,143 +1,93 @@
-!BOP
-!
-! !ROUTINE: qdepw
-!
-! !INTERFACE:
-      subroutine qdepwsum(iq)
-      
-! !DESCRIPTION:
-!
-! This subroutine calculates the weights for q dependent BZ integrations.
-! \textbf{needs checking!!}
-!
-!
-! !USES:
-!
-      use modmain
-      use modgw
-!
-! !INPUT PARAMETERS:
 
-      implicit none
+subroutine qdepwsum(iq,iomstart,iomend,ndim)
       
-      integer(4) :: iq  !ID. number of the q-point
-      
-! !LOCAL VARIABLES:
+    use modmain
+    use modgw
 
-      integer(4) :: ib  ! counter, run over bands
-      integer(4) :: ic  ! counter, run over core states
-      integer(4) :: jb  ! counter, run over bands
-      integer(4) :: iom ! counter, run over frequencies
-      integer(4) :: ik,ia,is,ias,jk
-      integer(4) :: ikp,jkp
-      integer(4) :: fflg,sgw
-      real(8) :: edif,edsq,omsq,wk
-      real(8) :: tstart,tend
-!
-!EOP
-!BOC      
-      call timesec(tstart)
-!
-!     Initialization
-!
-      if (allocated(unw)) deallocate(unw) 
-      allocate(unw(natmtot,ncmax,nstfv,1:freq%nomeg,nkptnr))
-      unw=0.0d0
-
-      if (allocated(kcw)) deallocate(kcw)
-      allocate(kcw(nstfv,nstfv,1:freq%nomeg,nkptnr))
-      kcw=0.0d0
+    implicit none
+    integer(4), intent(in) :: iq
+    integer(4), intent(in) :: iomstart, iomend
+    integer(4), intent(in) :: ndim
       
-      select case (freq%fconv)
-        case('nofreq')
-          fflg = 1
-        case('refreq')
-          fflg = 2
-        case('imfreq')
-          fflg = 3
-      end select
-      sgw=5-2*fflg
-! 
-!     loop over inequivalent atoms    
-!
-      wk=2.0d0/dble(kqset%nkpt)
+    integer(4) :: iom, n, m
+    integer(4) :: ik, jk, ikp, jkp
+    integer(4) :: ia, is, ias, ic, icg
+    real(8)    :: de, wkp, e0, eta, ff
+    complex(8) :: z1, z2
+    real(8)    :: tstart,tend
+    complex(8), allocatable :: om(:)
+
+    call timesec(tstart)
+
+    if (allocated(fnm)) deallocate(fnm)
+    allocate(fnm(1:ndim,numin:nstsv,iomstart:iomend,1:kqset%nkpt))
+    fnm(:,:,:,:) = zzero
+
+    if (allocated(om)) deallocate(om)
+    allocate(om(iomstart:iomend))
+
+    select case (freq%fconv)
+      case('refreq')
+        om(iomstart:iomend) = freq%freqs(iomstart:iomend)
+        eta = 1.d-4
+      case('imfreq')
+        om(iomstart:iomend) = zi*freq%freqs(iomstart:iomend)
+        eta = 0.d0
+      case default
+        stop 'Not supported option!'
+    end select
+
+    wkp = 1.0d0 / dble(kqset%nkpt)
+
+    do ik = 1, kqset%nkpt
+      jk  = kqset%kqid(ik,iq)
+      ikp = kset%ik2ikp(ik)
+      jkp = kset%ik2ikp(jk)
+
+      do n = 1, ndim
+
+        if (n <= nomax) then
+          e0 = evalsv(n,ikp)
+        else
+          icg = n - nomax
+          is  = corind(icg,1)
+          ia  = corind(icg,2)
+          ic  = corind(icg,3)
+          ias = idxas(ia,is)
+          e0  = evalcr(ic,ias)
+        end if
+
+        do m = numin, nstsv
+          
+          do iom = iomstart, iomend
+            ff = occsv(n,ikp)/occmax * ( 1.d0 - occsv(m,jkp)/occmax )
+            de = evalsv(m,jkp) - e0
+            z1 = om(iom) - de + zi*eta
+            z2 = om(iom) + de - zi*eta
+            fnm(n,m,iom,ik) = ff * (1.d0/z1 - 1.d0/z2) * wkp
+          end do ! iom
+
+        end do ! m
+
+      end do ! n
+      
+    end do ! ik
+
+    deallocate(om)
+
+    if (.false.) then
+      iom = 1
       do ik = 1, kqset%nkpt
-        jk=kqid(ik,iq)
-        ikp=ik2ikp(ik)
-        jkp=ik2ikp(jk)
-        do ib = 1, nstfv
-          if(evalsv(ib,ikp).gt.efermi)then
-            if(evalsv(ib,ikp).lt.900.0)then
-!------------------------------------------------------
-!                   CORE-VALENCE
-!------------------------------------------------------
-              do is=1,nspecies
-                do ia=1,natoms(is)
-                  ias=idxas(ia,is)
-                  do ic=1,ncore(is)
-                    edif=evalsv(ib,ikp)-evalcr(ic,ias)
-                    edsq=edif*edif
-                    do iom=1,freq%nomeg
-                      omsq=sgw*freq%freqs(iom)*freq%freqs(iom)
-                      unw(ias,ic,ib,iom,ik)=cmplx(wk*edif/(omsq-edsq),0.d0)
-                    enddo ! iom
-                  enddo ! ic
-                enddo ! ia
-              enddo ! is  
-            endif
-          else
-!------------------------------------------------------
-!                   VALENCE-VALENCE
-!------------------------------------------------------
-            do jb=1,nstfv
-              if(evalsv(jb,jkp).gt.efermi)then
-                if(evalsv(jb,jkp).lt.900.0)then
-                  edif=evalsv(jb,jkp)-evalsv(ib,ikp)
-                  edsq=edif*edif
-                  do iom=1,freq%nomeg
-                    omsq=sgw*freq%freqs(iom)*freq%freqs(iom)
-                    kcw(ib,jb,iom,ik)=cmplx(wk*edif/(omsq-edsq),0.d0)
-                  enddo ! iom
-                endif
-              endif
-            enddo ! jb
-          endif
-        enddo ! ib
-      enddo ! ik  
-      
+        write(*,*) 'iq, ik = ', iq, ik
+        do n = 1, nomax
+        do m = numin, nstsv
+          write(*,'(2i4,2f12.6)') n, m, fnm(n,m,iom,ik)
+        end do
+        end do
+      end do
+    end if
 
+    call timesec(tend)
+    time_bzinit = time_bzinit+tend-tstart
 
-!      write(74,*)'------------------------------------------------------'
-!      write(74,*)'       convolution weights for iq =',iq
-!      write(74,*)'------------------------------------------------------'
-!      write(74,*)'------------------------------------------------------'
-!      write(74,*)'                   CORE '
-!      write(74,*)'------------------------------------------------------'
-!      do iat=1,nat
-!        do ic=1,ncore(iat)
-!          do ik=1,nkpt
-!            do jb=1,nb(ik)     
-!              write(75,1)iat,ic,ik,jb,unw(iat,ic,jb,1,ik)
-!            enddo      
-!          enddo ! jb
-!        enddo ! ic  
-!      enddo ! iat
-!      write(74,*)'------------------------------------------------------'
-!      write(74,*)'                   VALENCE '
-!      write(74,*)'------------------------------------------------------'
-!       do ik=1,nkpt
-!        do ib=1,nstfv
-!          do jb=1,nstfv
-!            write(75,2)ik,ib,jb,kcw(ib,jb,1,ik)
-!          enddo
-!        enddo
-!      enddo      
-!    1 format(' iat =',i4,' ic =',i4,' ik =',i4,' jb =',i4,' unw =',g18.10)
-!    2 format(' ik =',i4,' ib =',i4,' jb =',i4,' kcw =',g18.10)
-
-      call timesec(tend)
-      time_bzinit = time_bzinit+tend-tstart
-
-      end subroutine qdepwsum
-!EOC          
-         
+end subroutine

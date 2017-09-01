@@ -198,29 +198,6 @@
                   Plasmon-pole model fitting parameter (plasmon frequency).
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="sciavtype" default="isotropic">
-                  <xs:annotation><xs:documentation>
-                  Type of volume averaging: 
-                    isotropic - Simple averaging along a specified direction using 
-                                only diagonal components of the dielectric tensor;
-                    anisotropic - Anisotropic screening by C. Freysoldt et al., CPC 176, 1-13 (2007).
-                  </xs:documentation></xs:annotation>
-                 </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="lmaxdielt" default="2"> 
-                  <xs:annotation><xs:documentation>
-                  Angular momentum cutoff in anisotropy treatment.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nleblaik" default="5810">
-                  <xs:annotation><xs:documentation>
-                  Number of Lebedev-Laikov grid points in anisotropy treatment.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:boolean" ex:unit="" name="sciavbd" default="false"> 
-                  <xs:annotation><xs:documentation>
-                  Flag for anisotropic averaging of the dielectric tensor 'body' part.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
                 <xs:attribute ex:importance="expert" ex:unit="" name="q0eps" type="vect3d" default="1.0d0 1.0d0 1.0d0">
                   <xs:annotation><xs:documentation>
                   q0eps - averaging direction q <inlinemath>\to</inlinemath> 0.
@@ -416,6 +393,19 @@
             <xs:annotation>
               <xs:documentation>
                 Determine the basis size for the Fourier-series based interpolation subroutine used for the QP bandstructure plot.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="qdepw" type="xs:string" default="tet">
+            <xs:annotation>
+              <xs:documentation>
+                  Option for calculating occupation, k/q- and frequency dependent prefactors in the expression for polarizability. 
+                  Valid options are:
+                  <list>
+                    <li>tet (default) - Using the tetrahedron method as implemented in LibBZInt library</li>
+                    <li>sum - Straightforward implementation (for testing purposes)</li>
+                </list>
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>

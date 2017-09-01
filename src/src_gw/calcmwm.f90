@@ -97,6 +97,7 @@ contains
               &  coefs1*(zdotu(mbsiz,minmmat(:,ie1,ie2),1,epsw2(:,iom,1),1) + &
               &          zdotc(mbsiz,minmmat(:,ie1,ie2),1,epsw1(:,iom,1),1))
             end if ! singular term
+            ! write(7,'(2i,2f16.6)') ie1, ie2, xnm(ie1,ie2)
           end do
         end do
         deallocate(wm)

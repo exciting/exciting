@@ -68,8 +68,8 @@ subroutine plot_selfenergy()
 #else
     do ik = 1, kset%nkpt
       ik_ = kset%ikp2ik(ik)
-      call getevalsvgw_new('GW_EVALSV.OUT',ik_,kqset%vkl(:,ik_), &
-      &                     nstsv,evalsv(1,ik))
+      call getevalsvgw('GW_EVALSV.OUT',ik_,kqset%vkl(:,ik_), &
+      &                nstsv,evalsv(1,ik))
       evalks(ibgw:nbgw,ik) = evalsv(ibgw:nbgw,ik)
     end do
     call getunit(fid)

@@ -51,7 +51,7 @@
     allocate(evecmt(nrmtmax))
     
     allocate(evecsv(nmatmax,nstfv,nspinor))
-    call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+    call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
     
     call match(Gkset%ngk(1,ik), &
     &          Gkset%gkc(:,1,ik), &

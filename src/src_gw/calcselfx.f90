@@ -66,7 +66,7 @@ subroutine calcselfx(iq)
       end do
     else
       ! singular term prefactor (q->0)
-      sxs2 = -4.d0*pi*vi
+      sxs2 = 4.d0*pi*vi
       !----------------------------------------
       ! Set v-diagonal mixed product basis set
       !----------------------------------------
@@ -111,11 +111,11 @@ subroutine calcselfx(iq)
       ! get KS eigenvectors
       call timesec(t0)
       allocate(evecsv(nmatmax,nstsv,nspinor))
-      call getevecsvgw_new('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
+      call getevecsvgw('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
       !call getevecfv(kqset%vkl(:,jk),Gkset%vgkl(:,:,:,jk),evecsv)
       eveckp = conjg(evecsv(:,:,ispn))
       
-      call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+      call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
       !call getevecfv(kqset%vkl(:,ik),Gkset%vgkl(:,:,:,ik),evecsv)
       eveck = evecsv(:,:,ispn)
       deallocate(evecsv)
@@ -144,7 +144,7 @@ subroutine calcselfx(iq)
           !======================= 
           if (ie2 <= nomax) then
             mvm = zdotc(mbsiz,minmmat(:,ie1,ie2),1,minmmat(:,ie1,ie2),1)
-            sx = sx-kiw(ie2,jk)*mvm
+            sx = sx - kiw(ie2,jk)*mvm           
           else
             !============================= 
             ! Core electron contribution
@@ -155,15 +155,15 @@ subroutine calcselfx(iq)
             ias = idxas(ia,is)
             ic = corind(icg,3)
             mvm = zdotc(mbsiz,minmmat(:,ie1,ie2),1,minmmat(:,ie1,ie2),1)
-            sx = sx-ciw(ic,ias)*mvm
+            sx = sx - ciw(ic,ias)*mvm
           end if ! occupied states
+
         end do ! ie2
-        
+
         ! add singular term (q->0)
-        if (Gamma.and.(ie1<=nomax)) sx = sx+sxs2*singc2*kiw(ie1,ik)*kqset%nkpt
-        !if (Gamma.and.(dabs(kiw(ie1,ik))>1.d-6)) sx = sx+sxs2*singc2*kiw(ie1,ik)*kqset%nkpt
+        if (Gamma.and.(ie1<=nomax)) sx = sx - sxs2*singc2*kiw(ie1,ik)*kqset%nkpt
         
-        selfex(ie1,ikp) = selfex(ie1,ikp)+sx
+        selfex(ie1,ikp) = selfex(ie1,ikp) + sx
         
       end do ! ie1
 #ifdef USEOMP

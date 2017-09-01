@@ -12,7 +12,7 @@ subroutine task_analytic_continuation()
     ! local variables
     integer :: ik, ik_, ie, ie_, fid, recl
     real(8) :: egap
-    character(20) :: s1, s2
+    character(20) :: s1, s2, v(3)
        
     call init0
     call init1
@@ -25,7 +25,7 @@ subroutine task_analytic_continuation()
     &                      input%gw%freqgrid%fconv, &
     &                      input%gw%freqgrid%nomeg, &
     &                      input%gw%freqgrid%freqmax)
-    
+
     if (myrank==0) then
     
       ! allocate the arrays
@@ -47,35 +47,45 @@ subroutine task_analytic_continuation()
         call hdf5_read(fgwh5,path,"selfec",selfec(ibgw,1,ik),(/nbandsgw,freq%nomeg/))
       end do ! ik
 #else
+      ! KS eigenvalues
       do ik = 1, kset%nkpt
         ik_ = kset%ikp2ik(ik)
-        call getevalsvgw_new('GW_EVALSV.OUT',ik_,kqset%vkl(:,ik_), &
-        &                     nstsv,evalsv(1,ik))
+        call getevalsvgw('GW_EVALSV.OUT',ik_,kqset%vkl(:,ik_), &
+        &                nstsv,evalsv(:,ik))
         evalks(ibgw:nbgw,ik) = evalsv(ibgw:nbgw,ik)
       end do
+      ! XC potential
       call getunit(fid)
       open(fid,file='VXCNN.OUT',form='FORMATTED',status='OLD',action='READ')
       do ik = 1, kset%nkpt
-        read(fid,*) s1, ik_, s2, kset%vkl(:,ik)
+        read(fid,*) s1, ik_, s2, v
         do ie = ibgw, nbgw
           read(fid,*) ie_, vxcnn(ie,ik)
         end do
         read(fid,*)
       end do
       close(fid)
+      ! Self energy
       call readselfx
       call readselfc
 #endif
 
       ! KS states analysis
+      ! call fermi_exciting(input%groundstate%tevecsv, &
+      ! &                   chgval, &
+      ! &                   nstsv, kset%nkpt, evalsv, &
+      ! &                   kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
+      ! &                   efermi, egap, fermidos)
+      ! print*, efermi, egap, fermidos
+      ! call bandstructure_analysis('KS', 1, nstsv, kset%nkpt, evalsv, efermi)
       call fermi_exciting(input%groundstate%tevecsv, &
       &                   nvelgw, &
-      &                   nbandsgw,kset%nkpt,evalks(ibgw:nbgw,:), &
-      &                   kset%ntet,kset%tnodes,kset%wtet,kset%tvol, &
-      &                   efermi,egap)
+      &                   nbandsgw, kset%nkpt, evalks(ibgw:nbgw,:), &
+      &                   kset%ntet, kset%tnodes, kset%wtet,kset%tvol, &
+      &                   efermi, egap, fermidos)
       call bandstructure_analysis('KS', &
       &  ibgw,nbgw,kset%nkpt,evalks(ibgw:nbgw,:),efermi)
-    
+
       !======================================
       ! Calculate the quasiparticle energies
       !======================================

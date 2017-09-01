@@ -35,19 +35,7 @@ subroutine write_gw_parameters_hdf5
     call hdf5_write(fgwh5,"/parameters/barecoul","cutofftype",input%gw%barecoul%cutofftype)
     
     call hdf5_create_group(fgwh5,"/parameters","scrcoul")
-    call hdf5_write(fgwh5,"/parameters/scrcoul","sciavtype",input%gw%scrcoul%sciavtype)
-    select case (trim(input%gw%scrcoul%sciavtype))
-      case('isotropic')
-        call hdf5_write(fgwh5,"/parameters/scrcoul","q0eps",input%gw%scrcoul%q0eps(1),(/3/))    
-      case('anisotropic')
-        call hdf5_write(fgwh5,"/parameters/scrcoul","lmaxdielt",input%gw%scrcoul%lmaxdielt)
-        call hdf5_write(fgwh5,"/parameters/scrcoul","nleblaik",input%gw%scrcoul%nleblaik)
-        if (input%gw%scrcoul%sciavbd) then
-          call hdf5_write(fgwh5,"/parameters/scrcoul","sciavbd","true")
-        else
-          call hdf5_write(fgwh5,"/parameters/scrcoul","sciavbd","false")
-        end if
-    end select
+    call hdf5_write(fgwh5,"/parameters/scrcoul","q0eps",input%gw%scrcoul%q0eps(1),(/3/))    
     
     return
 end subroutine

@@ -124,34 +124,20 @@ subroutine init_gw()
     
     ! Frequency grid initialization
     call timesec(t0)
-    if (input%gw%taskname=='g0w0' .or. &
-    &   input%gw%taskname=='gw0'  .or. &
-    &   input%gw%taskname=='emac') then
-      call generate_freqgrid(freq, &
-      &                      input%gw%freqgrid%fgrid, &
-      &                      input%gw%freqgrid%fconv, &
-      &                      input%gw%freqgrid%nomeg, &
-      &                      input%gw%freqgrid%freqmax)
-      if (rank==0) call print_freqgrid(freq,fgw)
+    call generate_freqgrid(freq, &
+    &                      input%gw%freqgrid%fgrid, &
+    &                      input%gw%freqgrid%fconv, &
+    &                      input%gw%freqgrid%nomeg, &
+    &                      input%gw%freqgrid%freqmax)
+    if (rank==0) call print_freqgrid(freq,fgw)
 #ifdef _HDF5_      
-      if (rank==0) then
-        call hdf5_write(fgwh5,"/parameters/freqgrid","freqs", &
-        &               freq%freqs(1),(/freq%nomeg/))
-        call hdf5_write(fgwh5,"/parameters/freqgrid","womeg", &
-        &               freq%womeg(1),(/freq%nomeg/))
-      end if
-#endif
-
-    else
-      ! frequency independent method
-      freq%nomeg = 1
-      freq%freqmax = 0.d0
-      freq%fconv = 'imfreq'
-      allocate(freq%freqs(freq%nomeg))
-      freq%freqs(1) = 1.d-3
-      allocate(freq%womeg(freq%nomeg))
-      freq%womeg(1) = 1.d0
+    if (rank==0) then
+      call hdf5_write(fgwh5,"/parameters/freqgrid","freqs", &
+      &               freq%freqs(1),(/freq%nomeg/))
+      call hdf5_write(fgwh5,"/parameters/freqgrid","womeg", &
+      &               freq%womeg(1),(/freq%nomeg/))
     end if
+#endif
       
     call timesec(t1)
     time_initfreq = time_initfreq+t1-t0

@@ -95,8 +95,8 @@
 !----------------------------------------------------------------------------!
 !         calculate wavefunction ( ik, ib1 )
 !----------------------------------------------------------------------------!
-          call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik), &
-          &                    nmatmax,nstsv,nspinor,evecfv)
+          call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik), &
+          &                nmatmax,nstsv,nspinor,evecfv)
 
           zzk(1:ngik,:) = evecfv(1:ngik,:)
           
@@ -112,8 +112,8 @@
 !----------------------------------------------------------------------------!
 !         calculate wavefunction( jkp, ib2 )
 !----------------------------------------------------------------------------!
-          call getevecsvgw_new('GW_EVECSV.OUT',jk,kqset%vkl(:,jk), &
-          &                    nmatmax,nstsv,nspinor,evecfv)
+          call getevecsvgw('GW_EVECSV.OUT',jk,kqset%vkl(:,jk), &
+          &                nmatmax,nstsv,nspinor,evecfv)
 
           zzq(1:ngjk,:) = evecfv(1:ngjk,:)
           

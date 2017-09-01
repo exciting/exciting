@@ -5,8 +5,7 @@
 subroutine calcselfc_freqconv(ikp,iq,mdim)
     use modinput
     use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi
-    use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
-    &                   ncg, corind, fdebug
+    use modgw
     ! input variables
     implicit none
     integer(4), intent(in) :: ikp
@@ -59,7 +58,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
             enk = evalcr(ic,ias)-efermi
             xnm(1:freq%nomeg) = mwm(ie1,ie2,1:freq%nomeg)
           end if ! val/cor
-          
+
           !------------------------
           ! Frequency convolution
           !------------------------

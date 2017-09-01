@@ -87,7 +87,7 @@ subroutine calcpmatgw
       !-------------------------------------------
       ! get the eigenvectors and values from file
       !-------------------------------------------
-      call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+      call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
       
       do ispn = 1, nspinor
         call genevecalm(Gkset%ngk(1,ik),nstsv,evecsv(:,:,ispn),apwalm)

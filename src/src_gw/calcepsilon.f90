@@ -89,7 +89,12 @@ subroutine calcepsilon(iq,iomstart,iomend)
     !==================================================
     ! Calculate the q-dependent BZ integration weights
     !==================================================
-    call qdepwtet(iq,iomstart,iomend,ndim)
+    select case (trim(input%gw%qdepw))
+    case('sum')
+      call qdepwsum(iq,iomstart,iomend,ndim)
+    case default
+      call qdepwtet(iq,iomstart,iomend,ndim)
+    end select
 
     !==========================
     ! Momentum matrix elements
@@ -152,9 +157,9 @@ subroutine calcepsilon(iq,iomstart,iomend)
       ! get KS eigenvectors
       call timesec(t0)
       allocate(evecsv(nmatmax,nstsv,nspinor))
-      call getevecsvgw_new('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
+      call getevecsvgw('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
       eveckp = conjg(evecsv(:,:,ispn))
-      call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+      call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
       eveck = evecsv(:,:,ispn)
       deallocate(evecsv)
       call timesec(t1)

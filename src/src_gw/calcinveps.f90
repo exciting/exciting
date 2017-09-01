@@ -94,12 +94,10 @@ subroutine calcinveps(iomstart,iomend)
         epsw1(:,iom,1) = epsw1(:,iom,1)*q0eps(1) + &
         &                epsw1(:,iom,2)*q0eps(2) + &
         &                epsw1(:,iom,3)*q0eps(3)
-        ! epsw1(:,iom,1) = 0.d0
         
         epsw2(:,iom,1) = epsw2(:,iom,1)*q0eps(1) + &
         &                epsw2(:,iom,2)*q0eps(2) + &
         &                epsw2(:,iom,3)*q0eps(3)
-        ! epsw2(:,iom,1) = 0.d0
 
         select case (freq%fconv)
           case('refreq')
@@ -122,7 +120,7 @@ subroutine calcinveps(iomstart,iomend)
         ! wing^{-1}
         epsw1(:,iom,1) = -h*bw1(:)
         epsw2(:,iom,1) = -h*w2b(:)
-        
+
         ! body^{-1}
         do jm = 1, mbsiz
         do im = 1, mbsiz

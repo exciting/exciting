@@ -3,7 +3,7 @@ subroutine init_dft_eigenvalues()
 
     use modinput
     use modmain, only : nstsv, nmatmax, evalsv, efermi, evalcr, &
-    &                   occmax, chgval, nspinor
+    &                   occmax, occsv, chgval, nspinor
     use modgw
     use mod_mpi_gw, only : myrank
     use mod_hdf5
@@ -25,9 +25,10 @@ subroutine init_dft_eigenvalues()
     !----------------------------------------
     do ik = 1, kset%nkpt
       ik0 = kset%ikp2ik(ik)
-      !call getevalsvgw(ik0,evalsv(:,ik))
-      call getevalsvgw_new('GW_EVALSV.OUT',ik0,kqset%vkl(:,ik0), &
-      &                     nstsv,evalsv(1,ik))
+      call getevalsvgw('GW_EVALSV.OUT',ik0,kqset%vkl(:,ik0), &
+      &                nstsv,evalsv(:,ik))
+      call getoccsvgw('GW_OCCSV.OUT',ik0,kqset%vkl(:,ik0), &
+      &                nstsv,occsv(:,ik))
     end do
     
     !----------------------------------------
@@ -43,9 +44,9 @@ subroutine init_dft_eigenvalues()
     !&           chgval,nspinor,efermi,egap)
     call fermi_exciting(input%groundstate%tevecsv, &
     &                   chgval, &
-    &                   nstsv,nkpt,evalsv, &
-    &                   ntet,tnodes,wtet,tvol, &
-    &                   efermi,egap,fermidos)
+    &                   nstsv, kset%nkpt, evalsv, &
+    &                   kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
+    &                   efermi, egap, fermidos)
     
     !evalsv(:,:) = evalsv(:,:)-efermi
     !evalcr(:,:) = evalcr(:,:)-efermi
@@ -63,13 +64,13 @@ subroutine init_dft_eigenvalues()
     ! Search for the indices of VBM and CBM (nomax and numin)
     !---------------------------------------------------------
     call bandstructure_analysis('Kohn-Sham bandstructure analysis', &
-    &  1,nstsv,kset%nkpt,evalsv(1:nstsv,:),efermi)
+    &  1, nstsv, kset%nkpt, evalsv(1:nstsv,:), efermi)
        
     !-----------------------------------------------------------------
     ! Check for consistency with specified QP bands range [ibgw,nbgw]
     !-----------------------------------------------------------------
     ! lower QP band index
-    if ((ibgw<1) .or. (ibgw>nstsv)) ibgw = 1
+    if ( (ibgw<1) .or. (ibgw>nstsv) ) ibgw = 1
     if (ibgw >= numin) then
         if (myrank==0) then
           write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval is chosen!"

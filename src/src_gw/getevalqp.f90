@@ -14,7 +14,6 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   logical       :: exist
   integer(4)    :: ik, ib, nb, nk, nqp
   integer(4)    :: recl
-  real(8)       :: eferks
   character(30) :: fname
   integer(4), allocatable :: idx(:)
   real(8),    allocatable :: eqp(:)
@@ -48,7 +47,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   ! new format (carbon)
   inquire(IoLength=recl) nkp1, ibgw, nbgw, kvecs1(1:3,1), &
   &       eqp1(ibgw:nbgw,1), eks1(ibgw:nbgw,1), &
-  &       eferqp, eferks
+  &       eferqp, efermi
   
   open(70, File=fname, Action='READ', Form='UNFORMATTED', &
   &    Access='DIRECT', Recl=recl)
@@ -66,7 +65,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     ! new format (carbon)
     read(70, Rec=ik) nk, ib, nb, kvecs1(:,ik), &
     &    eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik), &
-    &    eferqp, eferks
+    &    eferqp, efermi
 
     !write(fgw,*) '# ik    kvecs1    ibgw,    nbgw'
     !write(fgw,*) ik, kvecs1(:,ik), ib, nb
