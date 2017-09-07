@@ -210,8 +210,10 @@ Subroutine genpmatxs (ngp, igpig, vgpc, evecfv, evecsv, pmat)
   ! compute the second-variational momentum matrix elements
       If (input%groundstate%tevecsv) Then
         allocate(zv3(nstsv,nstsv))
-        call variation_multiplication(evecsv,pm(:,:,j),evecsv,zv3,nstsv,nstsv,1,1)
-        pmat (j,:,:)=zv3(:,:)
+        do j=1,3
+          call variation_multiplication(evecsv,pm(:,:,j),evecsv,zv3,nstsv,nstsv,1,1)
+          pmat (j,:,:)=zv3(:,:)
+        end do
         deallocate(zv3)
       Else
          Do j = 1, 3

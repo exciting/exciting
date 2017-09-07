@@ -11,7 +11,8 @@
 !
 Character (256) Function outfilenamestring (filetag, ik)
       Use modmpi, Only: procs, lastk, firstk, procofk, splittfile
-      Use modmain, Only: scrpath, filext, task
+      Use modmain, Only: scrpath, task
+      Use mod_misc, Only: filext
       Use modinput
       Implicit None
 !external lastk,firstk

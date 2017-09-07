@@ -41,7 +41,7 @@ module m_b_ematqk
       use m_emattim
       use m_getunit
       use m_genfilname
-      use m_b_getgrst
+      use m_b_getgrst, only: b_getevecfv1, b_getevecfv0
       use mod_spin, only: nspnfv
 #ifdef USEOMP
       use omp_lib
@@ -632,16 +632,18 @@ module m_b_ematqk
                      & fnetim, fftmap_type,&
                      & cpumtaa, cpumtalo, cpumtloa, cpumtlolo
       use summations, only: doublesummation_simple_cz
-      use mod_ematptr, only: sfacgk0_ptr, sfacgk1_ptr
       use m_getapwcmt
       use m_getlocmt
       use m_putemat
       use m_emattim
       use m_getunit
       use m_genfilname
-      use m_b_getgrst
       use mod_spin, only: nspnfv
       use mod_eigensystem, only: nmatmax_ptr
+      use m_b_getgrst, only: b_getevecfv1, b_getevecfv0, b_getevecsv0, &
+        & b_getevecsv1, b_match0, b_match1
+      use mod_eigenvalue_occupancy, only: nstsv
+
       
 #ifdef USEOMP
       use omp_lib
@@ -673,9 +675,9 @@ module m_b_ematqk
       ! Allocatable arrays
       complex(8), allocatable :: evecfvo0(:, :)
       complex(8), allocatable :: evecfvu(:, :)
-      complex(8), allocatable :: evecsvt0(:,:), evecsvt1(:,:)
       complex(8), allocatable :: integral(:,:,:,:,:)
       Complex (8), Allocatable :: apwalmt (:, :, :, :), apwalmt0 (:, :, :, :)
+      complex(8)               :: evecsvt0(nstsv,nstsv), evecsvt1(nstsv,nstsv)
       integer :: whichthread
       real(8) :: cpuini, cpuread, cpumain, cpuwrite, cpuall
       real(8) :: cpugnt, cpumt, cpuir, cpufft
@@ -731,19 +733,17 @@ module m_b_ematqk
       ! Read eigenvectors k'
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
-      !write(*,*) "vkl1_ptr(1:3,ikq) =", vkl1_ptr(1:3,ikq)
-      !write(*,*) "ngkmax1_ptr", ngkmax0_ptr
-      !write(*,*) "shape(vgkl1_ptr)", shape(vgkl1_ptr)
-      !write(*,*) "shape(evecfv1_ptr)", shape(evecfv1_ptr)
       call b_getevecfv1(vkl1_ptr(1:3, ikq),&
        & vgkl1_ptr(1:3, 1:ngkmax1_ptr, 1:nspnfv, ikq), evecfv1_ptr)
 
       ! Read eigenvectors for k
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
-      !write(*,*) "vkl0_ptr(1:3,ik) =", vkl0_ptr(1:3,ik)
       call b_getevecfv0(vkl0_ptr(1:3, ik),&
         & vgkl0_ptr(1:3, 1:ngkmax0_ptr, 1:nspnfv, ik), evecfv0_ptr)
+      ! Read 2nd variational states
+      call b_getevecsv1(ikq, evecsvt1)
+      call b_getevecsv0(ik, evecsvt0)
       ! Generate matching coefficients for k'
       ngkmax_save=ngkmax
       ngkmax=ngkmax1_ptr
@@ -761,7 +761,8 @@ module m_b_ematqk
       ngkmax=ngkmax_save
       call timesec(cpu0)
       cpuread = cpu0 - cpu1
-
+      
+      
       ! Zero matrix elements array
       emat(:, :, :) = zzero
 
@@ -782,7 +783,7 @@ module m_b_ematqk
       else if (flag == 'ou') then
         allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2,2))
       else if (flag == 'uo') then
-        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2,2))
+        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n1,2))
       end if
     !$omp do
 #endif
@@ -809,9 +810,8 @@ module m_b_ematqk
           if (whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
         
         else if (flag .eq. 'uo') then ! conduction-core matrix elements
-          write(*,*) 'reached ematraduo'
-          call ematraduo(ik, iq, igq,ngk0_ptr(1, ik), apwalmt0,evecfv0_ptr(:,:,1), bc, integral)
-          write(*,*) 'reached ematsumuo'
+          call ematraduo(ik, iq, igq,ngk0_ptr(1, ik), apwalmt0, &
+            & evecfv0_ptr(:,:,1), evecsvt0, bc, integral)
           call timesec (cpu01)
           if (whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
           ! Muffin-tin contribution
@@ -819,16 +819,12 @@ module m_b_ematqk
           call timesec (cpu00)
           if (whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
         end if
-          end do ! igq
+      end do ! igq
 #ifdef USEOMP
     !$omp end do
-#endif
-         deallocate(integral)
-
-#ifdef USEOMP
+      deallocate(integral)
     !$omp end parallel
 #endif
-
       deallocate(apwalmt, apwalmt0)        
       call timesec(cpu1)
       cpumain = cpu1 - cpu0
@@ -1718,9 +1714,9 @@ module m_b_ematqk
         use mod_eigenvalue_occupancy, only: nstfv, nstsv
         use mod_Gkvector, only: ngkmax
         use mod_APW_LO, only: apwordmax
-        use m_b_getgrst, only: b_wavefmt1
+        use m_b_getgrst, only: b_wavefmt1, b_getevecsv1, b_wavefmtsv1
         use mod_constants, only: zzero, zi
-        use mod_variation, only: b_wavefmtsv1
+        use mod_misc, only: filext
         !Use m_getunit 
         !Use modxas
         ! !INPUT/OUTPUT PARAMETERS:
@@ -1771,7 +1767,7 @@ module m_b_ematqk
           ! For 2nd variational treatment, get eigenvectors
           if (input%groundstate%tevecsv) then
               allocate(evecsvt(nstsv, nstsv))
-              call getevecsv(vkl1_ptr(:,ik), evecsvt)
+              call b_getevecsv1(ik, evecsvt)
           end if
 
           nr = nrmt (is)
@@ -1879,10 +1875,10 @@ module m_b_ematqk
       !BOP
       ! !ROUTINE: ematradou
       ! !INTERFACE:
-      Subroutine ematraduo (ik,iq, igq, ngp, apwalm, evecfvo, bcs, integral)
+      Subroutine ematraduo (ik,iq, igq, ngp, apwalm, evecfvo, evecsvt, bcs, integral)
         ! !USES:
         use modinput, only: input
-        use modxs, only: bcbs, gqc
+        use modxs, only: bcbs, gqc, filext0
         use mod_atoms, only: spr, natmtot
         use modxas, only: xasstart, nxas, ucore
         use mod_muffin_tin, only: idxlm, nrcmt, nrmt, lmmaxapw, nrmtmax, &
@@ -1891,8 +1887,8 @@ module m_b_ematqk
         use mod_Gkvector, only: ngkmax
         use mod_APW_LO, only: apwordmax 
         use mod_constants, only: zzero, zi
-        use mod_variation, only: b_wavefmtsv1
-        use m_b_getgrst, only: b_wavefmt0
+        use m_b_getgrst, only: b_wavefmt0, b_getevecsv0, b_wavefmtsv0
+
         ! !INPUT/OUTPUT PARAMETERS:
         !   iq       : q-point position (in,integer)
         !   ik       : k-point position (in,integer)
@@ -1918,15 +1914,16 @@ module m_b_ematqk
           integer, intent(in)     :: ngp
           complex(8), intent(in)  :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
           complex(8), intent(in)  :: evecfvo(nmatmax0_ptr,nstfv)
+          complex(8), intent(in)  :: evecsvt(nstsv, nstsv)
           Type(bcbs), intent (in) :: bcs 
-          Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2,2)
+          Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n1,2)
           ! local variables
           Integer :: is, ia, ir, nr, lmax2, n1, n2, l2,l3,m3,lm3, irc, nsp
 	        Real(8) :: t1, t2
 	        Real (8), Allocatable :: jl (:, :), jhelp (:)
 	        Real (8) :: r2 (nrmtmax), fr2 (nrcmtmax), fr3(nrcmtmax), gr (nrcmtmax), cf (3,nrcmtmax)
     	    Real (8), allocatable :: fr1(:,:,:)
-          complex(8), allocatable :: wfmt(:,:,:,:), evecsvt(:,:)
+          complex(8), allocatable :: wfmt(:,:,:,:)
           lmax2 = input%xs%lmaxemat
           is=input%xs%bse%xasspecies
           ia=input%xs%bse%xasatom
@@ -1940,15 +1937,9 @@ module m_b_ematqk
           else
             allocate(wfmt(lmmaxapw,nrcmtmax,2,nstsv))
           end if
-          ! For 2nd variational treatment, get eigenvectors
-          if (input%groundstate%tevecsv) then
-              allocate(evecsvt(nstsv, nstsv))
-              call getevecsv(vkl1_ptr(:,ik), evecsvt)
-          end if
-
           nr = nrmt (is)
           irc=0
-          ! Calculate product of core radial wavefunction and Bessel functions    
+          ! Calculate product of core radial wavefunction and Bessel functions
           Do ir = 1,nrmt(is),input%groundstate%lradstep
             irc=irc+1
             ! calculate r^2
@@ -1968,19 +1959,20 @@ module m_b_ematqk
           !------------------------------------------------!  
           if (.not.(input%groundstate%tevecsv)) then
             Do n1=1,nxas
-              Do n2=1,bcs%n2
+              Do n2=1,bcs%n1
                 ! Obtain radial wavefunction of the conduction state		
                 call b_wavefmt0(input%groundstate%lradstep, &
                 &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,input%xs%bse%xasatom,ngp,apwalm, &
-                &  evecfvo(:,n2+bcs%il2-1),lmmaxapw,wfmt(:,:,1,n2+bcs%il2-1))
+                &  evecfvo(:,n2+bcs%il1-1),lmmaxapw,wfmt(:,:,1,n2+bcs%il1-1))
              
                 Do l2=0, lmax2
                   Do l3=0,input%xs%lmaxapw
                     Do m3=-l3,l3
                       lm3=idxlm(l3,m3)
                       Do irc=1,nrcmt(input%xs%bse%xasspecies)
-                        fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,1,n2+bcs%il2-1))
-                        fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,1,n2+bcs%il2-1))
+                        fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,1,n2+bcs%il1-1))
+                        ! since unoccupied state is the bra, we use the complex conjugate wfct
+                        fr3(irc)=-1.0d0*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,1,n2+bcs%il1-1))
                       End Do
                       ! Radial integration
                       Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr2, gr, cf)
@@ -1998,20 +1990,21 @@ module m_b_ematqk
           !       Second Variational Treatment             !
           !------------------------------------------------!  
             Do n1=1,nxas
-              Do n2=1,bcs%n2
+              Do n2=1,bcs%n1
                 ! Obtain radial wavefunction of the conduction state
-                call b_wavefmtsv1(input%groundstate%lradstep, &
+                call b_wavefmtsv0(input%groundstate%lradstep, &
                 &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,&
-                &  input%xs%bse%xasatom,ngp,n2+bcs%il2-1, apwalm, &
-                &  evecfvo,evecsvt, wfmt(:,:,:,n2+bcs%il2-1))
+                &  input%xs%bse%xasatom,ngp,n2+bcs%il1-1, apwalm, &
+                &  evecfvo,evecsvt, wfmt(:,:,:,n2+bcs%il1-1))
                 Do nsp=1,2  
                   Do l2=0, lmax2
                     Do l3=0,input%xs%lmaxapw
                       Do m3=-l3,l3
                         lm3=idxlm(l3,m3)
                         Do irc=1,nrcmt(input%xs%bse%xasspecies)
-                          fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,nsp,n2+bcs%il2-1))
-                          fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,nsp,n2+bcs%il2-1))
+                          fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,nsp,n2+bcs%il1-1))
+                        ! since unoccupied state is the bra, we use the complex conjugate wfct
+                          fr3(irc)=-1.0d0*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,nsp,n2+bcs%il1-1))
                         End Do
                         ! Radial integration
                         Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr2, gr, cf)
@@ -2040,8 +2033,8 @@ module m_b_ematqk
       Subroutine ematsumoo (iq,ik, igq, integral, xi)
         ! !USES:  Use modmain
         Use modinput
-        Use modxs
-        Use modxas
+        Use modxs, only: ylmgq, xsgntoo, sfacgq, ngq
+        Use modxas, only: nxas
         Use mod_constants, only: zzero, zil, fourpi
         Use mod_atoms, only: idxas
         Use mod_muffin_tin, only: idxlm
@@ -2076,7 +2069,6 @@ module m_b_ematqk
         ia=input%xs%bse%xasatom
         ias=idxas(ia,is)
         lmax2=input%xs%lmaxemat
-
         Do n1=1,nxas
           Do n2=1,nxas
             Do l2=0,lmax2
@@ -2199,8 +2191,8 @@ module m_b_ematqk
         Implicit none
         Integer, Intent (In) :: iq, ik, igq
         Type(bcbs), Intent (In) :: bcs
-        Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2,2)
-        Complex(8), Intent (InOut):: xi(nxas, bcs%n2)
+        Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n1,2)
+        Complex(8), Intent (InOut):: xi(bcs%n1, nxas)
         ! local variables 
         Integer :: n1, n2, l2, lmax2, m2, lm2, l3, m3, lm3, ias,ia, is, nsp
         Complex(8) :: prefactor 
@@ -2217,14 +2209,14 @@ module m_b_ematqk
         !------------------------------------------------!  
         if (.not.(input%groundstate%tevecsv)) then
           Do n1=1,nxas
-            Do n2=1, bcs%n2
+            Do n2=1, bcs%n1
               Do l2=0,lmax2
                 Do m2=-l2,l2
                   lm2=idxlm(l2,m2)
                   Do l3=0, input%groundstate%lmaxapw
                     Do m3=-l3,l3
                       lm3=idxlm(l3,m3)
-                      xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2,1)*&
+                      xi(n2,n1)=xi(n2,n1)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2,1)*&
                         conjg(ylmgq(lm2, igq, iq)) * xsgntuo(n1, lm2, lm3)
                     End Do
                   End Do
@@ -2238,14 +2230,14 @@ module m_b_ematqk
         !------------------------------------------------!  
           Do nsp=1,2
             Do n1=1,nxas
-              Do n2=1, bcs%n2
+              Do n2=1, bcs%n1
                 Do l2=0,lmax2
                   Do m2=-l2,l2
                     lm2=idxlm(l2,m2)
                     Do l3=0, input%groundstate%lmaxapw
                       Do m3=-l3,l3
                         lm3=idxlm(l3,m3)
-                        xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2,nsp)*&
+                        xi(n2,n1)=xi(n2,n1)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2,nsp)*&
                           conjg(ylmgq(lm2, igq, iq)) * xsgntuosv(n1, lm2, lm3, nsp)
                       End Do
                     End Do

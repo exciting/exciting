@@ -266,7 +266,8 @@ module m_setup_dmat
                 &  ioabs1, ioabs2, iuabs1, iuabs2,&
                 & .true., 'PMAT_XS.OUT', pmou_(:,1:ino,1:inu))
               do i=1,3
-                pmuo(i,:,:)=transpose(conjg(pmou_(i,:,:))) 
+              !pmuo(i,:,:)=transpose(conjg(pmou_(i,:,:))) 
+              pmuo(i,:,:)=transpose(pmou_(i,:,:)) 
               end do
               deallocate(pmou_)
             else

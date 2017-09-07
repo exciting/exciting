@@ -85,26 +85,26 @@ contains
                 if (.not. emat_ccket) then
                   !resonant part
                   xsgntou (n1, lm2, lm3) = prefac*preml(lxas,spj(n1+xasstart-1),&
-                    & mj(n1+xasstart-1),1)*gaunt (lxas, l2, l3, mj2ml(mj(n1+xasstart-1),1),&
+                    & mj(n1+xasstart-1),1)*gaunt (lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),1),&
                     & m2, m3)+prefac*preml(lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*gaunt&
-                    & (lxas, l2, l3, mj2ml(mj(n1+xasstart-1),2), m2, m3)
+                    & (lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),2), m2, m3)
                   ! anti-resonant
                   xsgntuo (n1, lm2, lm3) = prefac*preml(lxas,spj(n1+xasstart-1),mj(n1+&
                     & xasstart-1),1)*gaunt (l3, l2, lxas, m3, m2,&
-                    & mj2ml(mj(n1+xasstart-1),1))+prefac*preml(lxas,spj(n1+xasstart-1),mj&
-                    & (n1+xasstart-1),2)*gaunt(l3, l2, lxas, m3, m2, mj2ml(mj(n1+xasstart-1)&
+                    & mj2ml(lxas,mj(n1+xasstart-1),1))+prefac*preml(lxas,spj(n1+xasstart-1),mj&
+                    & (n1+xasstart-1),2)*gaunt(l3, l2, lxas, m3, m2, mj2ml(lxas,mj(n1+xasstart-1)&
                     & ,2))
                 else
                   !resonant part
                   xsgntou (n1, lm2, lm3) = prefac*preml(lxas,spj(n1+xasstart-1),&
-                    & mj(n1+xasstart-1),1)*gaunt(lxas, l2, l3, mj2ml(mj(n1+xasstart-1),1),&
+                    & mj(n1+xasstart-1),1)*gaunt(lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),1),&
                     & m2,-m3)+prefac*preml(lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*gaunt&
-                    & (lxas, l2, l3, mj2ml(mj(n1+xasstart-1),2), m2, -m3)
+                    & (lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),2), m2, -m3)
                   ! anti-resonant
                   xsgntuo (n1, lm2, lm3) = prefac*preml(lxas,spj(n1+xasstart-1),-mj(n1+&
                     & xasstart-1),1)*gaunt (l3, l2, lxas, m3, m2,&
-                    & mj2ml(-mj(n1+xasstart-1),1))+prefac*preml(lxas,spj(n1+xasstart-1),mj&
-                    & (n1+xasstart-1),2)*gaunt(l3, l2, lxas, m3, m2, mj2ml(-mj(n1+xasstart-1)&
+                    & mj2ml(lxas,-mj(n1+xasstart-1),1))+prefac*preml(lxas,spj(n1+xasstart-1),mj&
+                    & (n1+xasstart-1),2)*gaunt(l3, l2, lxas, m3, m2, mj2ml(lxas,-mj(n1+xasstart-1)&
                     & ,2))
                   ! time-reversal prefactor
                   xsgntuo(n1,lm2,lm3)=(-1.0d0)**(lxas+0.5d0-spj(n1+xasstart-1))*(-1.0d0)**&
@@ -117,17 +117,17 @@ contains
               if (.not. emat_ccket) then
                 xsgntoo(n1,lm2,n2)=preml(lxas, spj(n1+xasstart-1), mj(n1+xasstart-1),1)&
                   & *preml(lxas, spj(n2+xasstart-1), mj(n2+xasstart-1),1)*gaunt (lxas, l2,&
-                  & lxas, mj2ml(mj(n1+xasstart-1),1), m2, mj2ml(mj(n2+xasstart-1),1))+preml&
+                  & lxas, mj2ml(lxas,mj(n1+xasstart-1),1), m2, mj2ml(lxas,mj(n2+xasstart-1),1))+preml&
                   & (lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*preml(lxas,spj(n2+xasstart&
-                  &-1), mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(mj(n1+xasstart-1),&
-                  & 2), m2,mj2ml(mj(n2+xasstart-1),2))
+                  &-1), mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
+                  & 2), m2,mj2ml(lxas,mj(n2+xasstart-1),2))
               else
                 xsgntoo(n1,lm2,n2)=preml(lxas, spj(n1+xasstart-1), mj(n1+xasstart-1),1)&
                   & *preml(lxas, spj(n2+xasstart-1), -mj(n2+xasstart-1),1)*gaunt (lxas, l2,&
-                  & lxas, mj2ml(mj(n1+xasstart-1),1), m2, mj2ml(-mj(n2+xasstart-1),1))+preml&
+                  & lxas, mj2ml(lxas,mj(n1+xasstart-1),1), m2, mj2ml(lxas,-mj(n2+xasstart-1),1))+preml&
                   & (lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*preml(lxas,spj(n2+xasstart&
-                  &-1), -mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(mj(n1+xasstart-1),&
-                  & 2), m2,mj2ml(-mj(n2+xasstart-1),2))
+                  &-1), -mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
+                  & 2), m2,mj2ml(lxas,-mj(n2+xasstart-1),2))
                 xsgntoo(n1,lm2,n2)=(-1.0d0)**(lxas+0.5d0-spj(n2+xasstart-1))*(-1.0d0)**&
                   & (-mj(n2+xasstart-1))*xsgntoo(n1,lm2,n2)
               end if
@@ -156,21 +156,21 @@ contains
                   if (.not. emat_ccket) then
                     !resonant part
                     xsgntousv (n1, lm2, lm3, nsp) = preml(lxas,spj(n1+xasstart-1),&
-                      & mj(n1+xasstart-1),nsp)*gaunt (lxas, l2, l3, mj2ml(mj(n1+xasstart-1),nsp),&
+                      & mj(n1+xasstart-1),nsp)*gaunt (lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),nsp),&
                       & m2, m3)
-                  ! anti-resonant
-                  xsgntuosv (n1, lm2, lm3, nsp) =preml(lxas,spj(n1+xasstart-1),mj(n1+&
-                    & xasstart-1),nsp)*gaunt (l3, l2, lxas, m3, m2,&
-                    & mj2ml(mj(n1+xasstart-1),nsp))
+                    ! anti-resonant
+                    xsgntuosv (n1, lm2, lm3, nsp) =preml(lxas,spj(n1+xasstart-1),mj(n1+&
+                      & xasstart-1),nsp)*gaunt (l3, l2, lxas, m3, m2,&
+                      & mj2ml(lxas,mj(n1+xasstart-1),nsp))
                   else
                     !resonant part
                     xsgntousv (n1, lm2, lm3, nsp) = preml(lxas,spj(n1+xasstart-1),&
-                      & mj(n1+xasstart-1),nsp)*gaunt(lxas, l2, l3, mj2ml(mj(n1+xasstart-1),nsp),&
+                      & mj(n1+xasstart-1),nsp)*gaunt(lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),nsp),&
                       & m2,-m3)
                     ! anti-resonant
                     xsgntuosv (n1, lm2, lm3, nsp) = preml(lxas,spj(n1+xasstart-1),-mj(n1+&
                       & xasstart-1),nsp)*gaunt (l3, l2, lxas, m3, m2,&
-                      & mj2ml(-mj(n1+xasstart-1),nsp))                    ! time-reversal prefactor
+                      & mj2ml(lxas,-mj(n1+xasstart-1),nsp))                    ! time-reversal prefactor
                     xsgntuosv(n1,lm2,lm3,nsp)=(-1.0d0)**(lxas+0.5d0-spj(n1+xasstart-1))*(-1.0d0)**&
                       & (-mj(n1+xasstart-1))*xsgntuosv(n1,lm2,lm3,nsp)
                     xsgntousv(n1,lm2,lm3,nsp)=(-1.0d0)**(m3)*xsgntousv(n1,lm2,lm3,nsp)
@@ -182,17 +182,17 @@ contains
               if (.not. emat_ccket) then
                 xsgntoo(n1,lm2,n2)=preml(lxas, spj(n1+xasstart-1), mj(n1+xasstart-1),1)&
                   & *preml(lxas, spj(n2+xasstart-1), mj(n2+xasstart-1),1)*gaunt (lxas, l2,&
-                  & lxas, mj2ml(mj(n1+xasstart-1),1), m2, mj2ml(mj(n2+xasstart-1),1))+preml&
+                  & lxas, mj2ml(lxas,mj(n1+xasstart-1),1), m2, mj2ml(lxas,mj(n2+xasstart-1),1))+preml&
                   & (lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*preml(lxas,spj(n2+xasstart&
-                  &-1), mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(mj(n1+xasstart-1),&
-                  & 2), m2,mj2ml(mj(n2+xasstart-1),2))
+                  &-1), mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
+                  & 2), m2,mj2ml(lxas,mj(n2+xasstart-1),2))
               else
                 xsgntoo(n1,lm2,n2)=preml(lxas, spj(n1+xasstart-1), mj(n1+xasstart-1),1)&
                   & *preml(lxas, spj(n2+xasstart-1), -mj(n2+xasstart-1),1)*gaunt (lxas, l2,&
-                  & lxas, mj2ml(mj(n1+xasstart-1),1), m2, mj2ml(-mj(n2+xasstart-1),1))+preml&
+                  & lxas, mj2ml(lxas,mj(n1+xasstart-1),1), m2, mj2ml(lxas,-mj(n2+xasstart-1),1))+preml&
                   & (lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*preml(lxas,spj(n2+xasstart&
-                  &-1), -mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(mj(n1+xasstart-1),&
-                  & 2), m2,mj2ml(-mj(n2+xasstart-1),2))
+                  &-1), -mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
+                  & 2), m2,mj2ml(lxas,-mj(n2+xasstart-1),2))
                 xsgntoo(n1,lm2,n2)=(-1.0d0)**(lxas+0.5d0-spj(n2+xasstart-1))*(-1.0d0)**&
                   & (-mj(n2+xasstart-1))*xsgntoo(n1,lm2,n2)
               end if

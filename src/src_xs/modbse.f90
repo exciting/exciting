@@ -392,7 +392,7 @@ module modbse
       integer(4) :: io1, io2, iu1, iu2
       integer(4) :: iomax, iumax
       integer(4) :: iomin, iumin
-      real(8), parameter :: maxocc = 2.0d0
+      real(8) :: maxocc
       real(8), parameter :: epslat = 1.0d-8
 
       integer(4) :: nk_loc, hamsize_loc
@@ -424,6 +424,12 @@ module modbse
         fensel = .true.
       else
         fensel = .false.
+      end if
+      ! Set maxocc factor: 2.0d0 for spin-unpolarized, 1.0d0 for spin-polarized
+      if (input%groundstate%tevecsv) then
+        maxocc=1.0d0
+      else
+        maxocc=2.0d0
       end if
 
       ! What energy range is of interest?
@@ -675,7 +681,7 @@ module modbse
         ! Loop over KS transition energies 
         !$OMP PARALLEL DO &
         !$OMP& COLLAPSE(2),&
-        !$OMP& DEFAULT(SHARED), PRIVATE(io,iu,s,detmp),&
+        !$OMP& DEFAULT(SHARED), PRIVATE(io,iu,s,detmp,posdiff),&
         !$OMP& REDUCTION(+:kous),&
         !$OMP& REDUCTION(max:iomax),&
         !$OMP& REDUCTION(min:iomin),&
@@ -683,7 +689,6 @@ module modbse
         !$OMP& REDUCTION(min:iumin)
         do io = io1, io2
           do iu = iu1, iu2 
-
             if(fensel ) then
 
               if (input%xs%bse%xas) then
@@ -753,6 +758,7 @@ module modbse
                 &> cutoffocc)) then
                 posdiff=.TRUE.
               else if (input%xs%bse%xas .and. (1.0d0 -occsv0(iu, ikqm))> cutoffocc) then
+              !else if (input%xs%bse%xas) then
                 posdiff=.TRUE.
               else
                 posdiff=.FALSE.
@@ -784,7 +790,7 @@ module modbse
 
                 ! Save occupation factor
                 if (input%xs%bse%xas) then
-                  ofac_loc(s)= sqrt(1.0d0 - occsv0(iu, ikqm)/maxocc)
+                 ofac_loc(s)= sqrt(1.0d0 - occsv0(iu, ikqm)/maxocc)
                 else
                   ofac_loc(s) = sqrt((occsv(io, ikqp) - occsv0(iu, ikqm))/maxocc)
                 end if
@@ -915,9 +921,8 @@ module modbse
         smap_rel(3,i1) = kmap_bse_gr(iknr)
       end do
 
-      write(unitout, '("Info(select_transitions):&
-        & Number of participating transitions:", I8)') sum(kousize) 
-
+      !write(unitout, '("Info(select_transitions):&
+      !  & Number of participating transitions:", I8)') sum(kousize) 
       if(fserial) then 
         if(present(dirname)) then 
           call printso(iqmt, dirname)

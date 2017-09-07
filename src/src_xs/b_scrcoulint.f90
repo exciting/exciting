@@ -783,7 +783,7 @@ subroutine b_scrcoulint(iqmt, fra)
   contains
 
     subroutine getpwesrr(moo, muu)
-      use mod_variation, only: getmoo_sv, getmuu_sv
+      use mod_variation, only: ematqk_sv
       complex(8), intent(out) :: moo(:,:,:), muu(:,:,:)
 
       type(bcbs) :: ematbc
@@ -832,7 +832,7 @@ subroutine b_scrcoulint(iqmt, fra)
         if (.not. (input%groundstate%tevecsv)) then 
           call b_ematqk(iq, ikpnr, moo, ematbc)
         else
-          call getmoo_sv(iq, ikpnr, moo, ematbc)
+          call ematqk_sv(iq, ikpnr, moo, ematbc)
         end if
       end if
       !-----------------------------------------------------------!
@@ -883,7 +883,7 @@ subroutine b_scrcoulint(iqmt, fra)
       if (.not. (input%groundstate%tevecsv)) then
         call b_ematqk(iq, ikmnr, muu, ematbc)
       else
-        call getmuu_sv(iq, ikmnr, muu, ematbc)
+        call ematqk_sv(iq, ikmnr, muu, ematbc)
       end if
       !------------------------------------------------------------------!
 
@@ -893,7 +893,7 @@ subroutine b_scrcoulint(iqmt, fra)
     end subroutine getpwesrr
 
     subroutine getpwesra(mou, muo)
-      use mod_variation, only: getmuo_sv, getmou_sv
+      use mod_variation, only: ematqk_sv 
       
       complex(8), intent(out) :: mou(:,:,:), muo(:,:,:)
 
@@ -950,7 +950,8 @@ subroutine b_scrcoulint(iqmt, fra)
         if (.not. (input%groundstate%tevecsv)) then
           call b_ematqk(iq, ikpnr, mou, ematbc)
         else
-          call getmou_sv(iq, ikpnr, mou, ematbc)
+          call ematqk_sv(iq, ikpnr, mou, ematbc)
+
         end if
       else
         call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax)) 
@@ -1005,7 +1006,7 @@ subroutine b_scrcoulint(iqmt, fra)
         if (.not. (input%groundstate%tevecsv)) then
           call b_ematqk(iq, ikmnr, muo, ematbc)
         else
-          call getmuo_sv(iq,ikmnr, muo,ematbc)
+          call ematqk_sv(iq,ikmnr, muo,ematbc)
         end if
       else
         call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax)) 

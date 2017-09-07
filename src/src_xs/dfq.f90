@@ -46,6 +46,8 @@ subroutine dfq(iq)
   use m_b_ematqk
   use m_writecmplxparts
   use m_putgeteps0
+  use mod_variation, only: ematqk_sv
+
 ! !INPUT/OUTPUT PARAMETERS:
 ! In:
 ! integer(4) :: iq  ! q-point index
@@ -490,7 +492,11 @@ subroutine dfq(iq)
         bc%iu2 = istu2
         ikmapikq_ptr => ikmapikq
         call setptr01
-        call b_ematqk(iq, ik, xiou, bc)
+        if (.not. input%groundstate%tevecsv) then
+          call b_ematqk(iq, ik, xiou, bc)
+        else
+          call ematqk_sv(iq, ik, xiou, bc)
+        end if
 
 
         ! Get uo
@@ -512,7 +518,11 @@ subroutine dfq(iq)
           bc%iu2 = istu4
           ikmapikq_ptr => ikmapikq
           call setptr01
-          call b_ematqk(iq, ik, xiuo, bc)
+          if (.not. input%groundstate%tevecsv) then
+            call b_ematqk(iq, ik, xiuo, bc)
+          else
+            call ematqk_sv(iq, ik, xiuo, bc)
+          end if
         end if
 
       end if

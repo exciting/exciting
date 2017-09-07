@@ -44,7 +44,7 @@ module m_hesolver
       character(1) :: jobzchar, rangechar
       integer(4) :: solsize, hematsize
       real(8) :: vl, vu, abstol
-      integer(4) :: il, iu, lwork, info, lrwork, liwork
+      integer(4) :: il, iu, lwork, info, lrwork, liwork, nsol
       complex(8) :: evecdummy(3,3)
 
       ! Allocatable arrays
@@ -134,32 +134,64 @@ module m_hesolver
       else
         jobzchar = 'N'
       end if
-
-      ! Get optimal work array lengths
-      call workspacequery(jobzchar, rangechar)
-      allocate(work(lwork), rwork(lrwork), iwork(liwork))
-
-      ! Diagonalize
-      if(jobzchar == 'N') then 
-        call zheevr(jobzchar, rangechar, 'u', hematsize, hemat, hematsize, vl, vu, il, iu, &
-          & abstol, solsize, eval, evecdummy, hematsize, isuppz, work, lwork, rwork,&
-          & lrwork, iwork, liwork, info)
+      ! Get number of requested solutions
+      if (rangechar=='I') then
+        nsol=iu-il+1
+      elseif (rangechar=='V') then
+        nsol=vu-vl
       else
-        call zheevr(jobzchar, rangechar, 'u', hematsize, hemat, hematsize, vl, vu, il, iu, &
-          & abstol, solsize, eval, evec, hematsize, isuppz, work, lwork, rwork,&
+        nsol=hematsize
+      end if
+      ! if the full matrix has to be diagonalized, we use zheevd instead of zheevr
+      ! zheevr is found to be instable for full-range calculation in the case of 
+      ! spin-polarized RPA calculations
+      if ((nsol==hematsize) .and. (jobzchar=='V')) then
+        ! Get optimal work array lengths
+        call workspacequery_zheevd(jobzchar, rangechar)
+        allocate(work(lwork), rwork(lrwork), iwork(liwork))
+        
+        call zheevd(jobzchar,'u', hematsize, hemat, hematsize, eval, work, lwork, rwork,&
           & lrwork, iwork, liwork, info)
-      end if
+        evec(:,:)=hemat(:,:)
 
-      if(info .ne. 0) then
-       write(*,*)
-       write(*, '("Error (hermitian_solver): zheevr returned non-zero info:", i6)') info
-       call errorinspect(info)
-       write(*,*)
-       call terminate
-      end if
+        if(info .ne. 0) then
+          write(*,*)
+          write(*, '("Error (hermitian_solver): zheevd returned non-zero info:", i6)') info
+          call errorinspect(info)
+          write(*,*)
+          call terminate
+        end if
 
-      if(present(found)) then 
-        found = solsize
+        if(present(found)) then 
+          found=hematsize
+        end if
+      else
+        ! Get optimal work array lengths
+        call workspacequery_zheevr(jobzchar, rangechar)
+        allocate(work(lwork), rwork(lrwork), iwork(liwork))
+      
+        ! Diagonalize
+        if(jobzchar == 'N') then 
+          call zheevr(jobzchar, rangechar, 'u', hematsize, hemat, hematsize, vl, vu, il, iu, &
+            & abstol, solsize, eval, evecdummy, hematsize, isuppz, work, lwork, rwork,&
+            & lrwork, iwork, liwork, info)
+        else
+          call zheevr(jobzchar, rangechar, 'u', hematsize, hemat, hematsize, vl, vu, il, iu, &
+            & abstol, solsize, eval, evec, hematsize, isuppz, work, lwork, rwork,&
+            & lrwork, iwork, liwork, info)
+        end if
+
+        if(info .ne. 0) then
+          write(*,*)
+          write(*, '("Error (hermitian_solver): zheevr returned non-zero info:", i6)') info
+          call errorinspect(info)
+          write(*,*)
+          call terminate
+        end if
+
+        if(present(found)) then 
+          found = solsize
+        end if
       end if
 
       deallocate(isuppz)
@@ -167,7 +199,7 @@ module m_hesolver
 
       contains
 
-        subroutine workspacequery(jobztype, rangetype)
+        subroutine workspacequery_zheevr(jobztype, rangetype)
 
           character(1), intent(in) :: jobztype, rangetype
 
@@ -194,7 +226,29 @@ module m_hesolver
 
           deallocate(work, rwork, iwork)
 
-        end subroutine workspacequery
+        end subroutine workspacequery_zheevr
+
+        subroutine workspacequery_zheevd(jobztype, rangetype)
+
+          character(1), intent(in) :: jobztype, rangetype
+          
+          lwork=-1
+          lrwork=-1
+          liwork=-1
+                      
+          allocate(work(1), rwork(1), iwork(1))
+          
+          call zheevd(jobzchar,'u', hematsize, hemat, hematsize, eval, work, lwork, rwork,&
+          & lrwork, iwork, liwork, info)
+          
+          ! Adjust workspace
+          lwork=int(work(1))
+          lrwork=int(rwork(1))
+          liwork=int(iwork(1))
+
+          deallocate(work, rwork, iwork)
+
+        end subroutine workspacequery_zheevd
 
         subroutine errorinspect(ierror)
           integer(4) :: ierror

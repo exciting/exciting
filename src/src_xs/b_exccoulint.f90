@@ -426,7 +426,7 @@ subroutine b_exccoulint(iqmt)
   contains 
 
     subroutine getmuo(muo)
-      use mod_variation, only: getmuo_sv
+      use mod_variation, only: ematqk_sv
       complex(8), intent(out) :: muo(:,:,:)
 
       type(bcbs) :: ematbc
@@ -477,16 +477,13 @@ subroutine b_exccoulint(iqmt)
       ! Calculate M_{iu io,G}(ikm, qmt)
       if (input%xs%bse%xas) then
         call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax))
-        write(*,*) 'iqmt=', iqmt
-        write(*,*) 'iknr=', iknr
-        write(*,*) 'reach ematqk_core'
         call b_ematqk_core(iqmt, ikmnr, muo, ematbc, 'uo')
 
       else
         if (.not. (input%groundstate%tevecsv)) then ! 1st variation
           call b_ematqk(iqmt, ikmnr, muo, ematbc)
         else                                        ! 2nd variation 
-          call getmuo_sv(iqmt, ikmnr, muo, ematbc)  
+          call ematqk_sv(iqmt, ikmnr, muo, ematbc)  
         end if
         
       end if

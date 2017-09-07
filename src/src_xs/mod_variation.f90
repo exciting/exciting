@@ -156,141 +156,14 @@ contains
     end if
       Deallocate (o0, o)
   end subroutine
-!--------------------------------------------------------------------------------
-  subroutine b_wavefmtsv1(lrstp ,lmax ,is ,ia , ngp, ist1, apwalm, evecfv, evecsv, wfmtsv)
-
-    use modinput
-    use m_b_getgrst, only: b_wavefmt1
-    use mod_muffin_tin, only: nrmt, lmmaxapw, nrmtmax
-    use mod_atoms, only: idxas, natmtot
-    use mod_eigenvalue_occupancy, only: nstfv, nstsv
-    use mod_ematptr, only: ngkmax1_ptr
-    use mod_APW_LO, only: apwordmax
-    use mod_eigensystem, only: nmatmax
-    use mod_spin, only: nspinor
-    !use modmain
-    implicit none
-
-    ! arguments
-    integer, intent (in) :: lrstp
-    integer, intent (in) :: lmax
-    integer, intent (in) :: is
-    integer, intent (in) :: ia
-    integer, intent (in) :: ngp
-    integer,    intent(in)  :: ist1
-    complex(8), intent(in)  :: apwalm(ngkmax1_ptr,apwordmax,lmmaxapw,natmtot)
-    complex(8), intent(in)  :: evecfv(nmatmax,nstfv)
-    complex(8), intent(in)  :: evecsv(nstsv,nstsv)
-    complex(8), intent(out) :: wfmtsv(lmmaxapw,nrmtmax,nspinor)
-    ! local variables
-    integer    :: ispn, ias
-    integer    :: i, j, n, ist, igp
-    complex(8) :: zt1
-    ! allocatable arrays
-    logical,    allocatable :: done (:)
-    complex(8), allocatable :: wfmt1(:,:,:)
-
-    wfmtsv(:,:,:) = 0.d0
-
-    allocate(done(nstfv))
-    allocate (wfmt1(lmmaxapw,nrmtmax,nstsv))
-
-    wfmt1(:,:,:)=0.0d0
-    n = lmmaxapw*nrmt(is)
-    ias = idxas(ia,is)
-    done(:) = .false.
-    ! generate spinor wavefunction from second-variational eigenvectors
-    i = 0
-    do ispn = 1, nspinor
-      do ist = 1, nstfv
-        i = i + 1
-        zt1 = evecsv(i,ist1)
-        if (abs(zt1)>1.d-8) then
-          if (.not.done(ist)) then
-            call b_wavefmt1(lrstp, lmax, is, ia, &
-              & ngp, apwalm, evecfv(:,ist), lmmaxapw, wfmt1(:,:,ist))
-            done(ist) = .true.
-          end if
-          ! add to spinor wavefunction
-          call zaxpy(n, zt1, wfmt1(:,:,ist), 1, &
-          &          wfmtsv(:,:,ispn), 1)
-        end if
-      end do ! ist
-    end do ! ispn
-    deallocate(done, wfmt1)
-    return
- end subroutine b_wavefmtsv1
-!--------------------------------------------------------------------------------
-  subroutine b_wavefmtsv0(lrstp ,lmax ,is ,ia , ngp, ist1, apwalm, evecfv, evecsv, wfmtsv)
-
-    use modinput
-    use m_b_getgrst, only: b_wavefmt0
-    use mod_muffin_tin, only: nrmt, lmmaxapw, nrmtmax
-    use mod_atoms, only: idxas, natmtot
-    use mod_eigenvalue_occupancy, only: nstfv, nstsv
-    use mod_ematptr, only: ngkmax0_ptr
-    use mod_APW_LO, only: apwordmax
-    use mod_eigensystem, only: nmatmax
-    use mod_spin, only: nspinor
-    !use modmain
-    implicit none
-
-    ! arguments
-    integer, intent (in) :: lrstp
-    integer, intent (in) :: lmax
-    integer, intent (in) :: is
-    integer, intent (in) :: ia
-    integer, intent (in) :: ngp
-    integer,    intent(in)  :: ist1
-    complex(8), intent(in)  :: apwalm(ngkmax0_ptr,apwordmax,lmmaxapw,natmtot)
-    complex(8), intent(in)  :: evecfv(nmatmax,nstfv)
-    complex(8), intent(in)  :: evecsv(nstsv,nstsv)
-    complex(8), intent(out) :: wfmtsv(lmmaxapw,nrmtmax,nspinor)
-    ! local variables
-    integer    :: ispn, ias
-    integer    :: i, j, n, ist, igp
-    complex(8) :: zt1
-    ! allocatable arrays
-    logical,    allocatable :: done (:)
-    complex(8), allocatable :: wfmt1(:,:,:)
-
-    wfmtsv(:,:,:) = 0.d0
-
-    allocate(done(nstfv))
-    allocate (wfmt1(lmmaxapw,nrmtmax,nstsv))
-
-    wfmt1(:,:,:)=0.0d0
-    n = lmmaxapw*nrmt(is)
-    ias = idxas(ia,is)
-    done(:) = .false.
-    ! generate spinor wavefunction from second-variational eigenvectors
-    i = 0
-    do ispn = 1, nspinor
-      do ist = 1, nstfv
-        i = i + 1
-        zt1 = evecsv(i,ist1)
-        if (abs(zt1)>1.d-8) then
-          if (.not.done(ist)) then
-            call b_wavefmt0(lrstp, lmax, is, ia, &
-              & ngp, apwalm, evecfv(:,ist), lmmaxapw, wfmt1(:,:,ist))
-            done(ist) = .true.
-          end if
-          ! add to spinor wavefunction
-          call zaxpy(n, zt1, wfmt1(:,:,ist), 1, &
-          &          wfmtsv(:,:,ispn), 1)
-        end if
-      end do ! ist
-    end do ! ispn
-    deallocate(done, wfmt1)
-    return
- end subroutine b_wavefmtsv0
  !--------------------------------------------------------------------------------
 
-    subroutine getmoo_sv(iq, ik, emat, bc)
+    subroutine ematqk_sv(iq, ik, emat, bc)
       use mod_eigenvalue_occupancy, only: nstfv, nstsv
       use modxs, only: bcbs, ngq
-      use mod_ematptr, only: vkl0_ptr
+      use mod_ematptr, only: ikmapikq_ptr
       use m_b_ematqk, only: b_ematqk
+      use m_b_getgrst, only: b_getevecsv0, b_getevecsv1
       implicit none
           
       ! Arguments
@@ -298,163 +171,34 @@ contains
       type(bcbs), intent(in) :: bc
       complex(8), intent(inout) :: emat(:,:,:)
       ! local variables
-      type(bcbs) :: emat_
-      complex(8), allocatable :: moo_(:,:,:)
-      complex(8) :: evecsvt0(nstsv,nstsv), evecsvt1(nstsv,nstsv)
-      integer :: igq
-      ! Set intermediate bands to calculate all combinations
-      emat_%n1=nstfv
-      emat_%il1=1
-      emat_%iu1=nstfv
-      emat_%n2=nstfv
-      emat_%il2=1
-      emat_%iu2=nstfv
-      !Calculate all first-variational matrix elements
-      allocate(moo_(nstfv,nstfv,ngq(iq)))
-      call b_ematqk(iq,ik, moo_, emat_)
-      ! Get 2nd variational eigenstates
-      Call getevecsv (vkl0_ptr(1, ik), evecsvt1)
-      Call getevecsv (vkl0_ptr(1, ik), evecsvt0)
-      ! Calculate 2nd variational matrix elements
-      Do igq=1,ngq(iq)
-        call variation_multiplication(evecsvt1,moo_(:,:,igq),evecsvt0,emat(:,:,igq),&
-          & bc%n1, bc%n2, bc%il1, bc%il2)
-      End Do
-      deallocate(moo_)
-    end subroutine getmoo_sv
- !--------------------------------------------------------------------------------
-    
-    subroutine getmuu_sv(iq, ik, emat, bc)
-      use mod_eigenvalue_occupancy, only: nstfv, nstsv
-      use modxs, only: bcbs
-      use mod_ematptr, only: vkl1_ptr, ikmapikq_ptr
-      use modxs, only: ngq, bcbs
-      use m_b_ematqk, only: b_ematqk
-
-      implicit none
-          
-      ! Arguments
-      integer, intent(in) :: iq, ik
-      type(bcbs), intent(in) :: bc
-      complex(8), intent(inout) :: emat(:,:,:)
-      ! local variables
-      type(bcbs) :: emat_
-      complex(8), allocatable :: muu_(:,:,:)
+      type(bcbs) :: bc_
+      complex(8), allocatable :: emat_(:,:,:)
       complex(8) :: evecsvt0(nstsv,nstsv), evecsvt1(nstsv,nstsv)
       integer :: igq, ikq
-
+      
       ! Find ikq point
       ikq = ikmapikq_ptr(ik, iq)
+      
       ! Set intermediate bands to calculate all combinations
-      emat_%n1=nstfv
-      emat_%il1=1
-      emat_%iu1=nstfv
-      emat_%n2=nstfv
-      emat_%il2=1
-      emat_%iu2=nstfv
+      bc_%n1=nstfv
+      bc_%il1=1
+      bc_%iu1=nstfv
+      bc_%n2=nstfv
+      bc_%il2=1
+      bc_%iu2=nstfv
       !Calculate all first-variational matrix elements
-      allocate(muu_(nstfv,nstfv,ngq(iq)))
-      call b_ematqk(iq,ik, muu_, emat_)
+      allocate(emat_(nstfv,nstfv,ngq(iq)))
+      call b_ematqk(iq,ik, emat_, bc_)
       ! Get 2nd variational eigenstates
-      Call getevecsv (vkl1_ptr(1, ikq), evecsvt1)
-      Call getevecsv (vkl1_ptr(1, ikq), evecsvt0)
+      Call b_getevecsv0 (ik, evecsvt0)
+      Call b_getevecsv1 (ikq, evecsvt1)
       ! Calculate 2nd variational matrix elements
       Do igq=1,ngq(iq)
-        call variation_multiplication(evecsvt1,muu_(:,:,igq),evecsvt0,emat(:,:,igq),&
+        call variation_multiplication(evecsvt0,emat_(:,:,igq),evecsvt1,emat(:,:,igq),&
           & bc%n1, bc%n2, bc%il1, bc%il2)
       End Do
-      deallocate(muu_)
-    end subroutine getmuu_sv
+      deallocate(emat_)
+    end subroutine ematqk_sv
  !--------------------------------------------------------------------------------
-    
-    subroutine getmou_sv(iq, ik, emat, bc)
-      use mod_eigenvalue_occupancy, only: nstfv, nstsv
-      use modxs, only: bcbs
-      use mod_ematptr, only: vkl0_ptr, vkl1_ptr, ikmapikq_ptr
-      use modxs, only: ngq, bcbs
-      use m_b_ematqk, only: b_ematqk
-
-
-
-      implicit none
-          
-      ! Arguments
-      integer, intent(in) :: iq, ik
-      type(bcbs), intent(in) :: bc
-      complex(8), intent(inout) :: emat(:,:,:)
-      ! local variables
-      type(bcbs) :: emat_
-      complex(8), allocatable :: mou_(:,:,:)
-      complex(8) :: evecsvt0(nstsv,nstsv), evecsvt1(nstsv,nstsv)
-      integer :: igq, ikq
-
-      ! Find ikq point
-      ikq = ikmapikq_ptr(ik, iq)
-      ! Set intermediate bands to calculate all combinations
-      emat_%n1=nstfv
-      emat_%il1=1
-      emat_%iu1=nstfv
-      emat_%n2=nstfv
-      emat_%il2=1
-      emat_%iu2=nstfv
-      !Calculate all first-variational matrix elements
-      allocate(mou_(nstfv,nstfv,ngq(iq)))
-      call b_ematqk(iq,ik, mou_, emat_)
-      ! Get 2nd variational eigenstates
-      Call getevecsv (vkl0_ptr(1, ik), evecsvt1)
-      Call getevecsv (vkl1_ptr(1, ikq), evecsvt0)
-      ! Calculate 2nd variational matrix elements
-      Do igq=1,ngq(iq)
-        call variation_multiplication(evecsvt1,mou_(:,:,igq),evecsvt0,emat(:,:,igq),&
-          & bc%n1, bc%n2, bc%il1, bc%il2)
-      End Do
-      deallocate(mou_)
-    end subroutine getmou_sv
-    
- !--------------------------------------------------------------------------------
-    
-    subroutine getmuo_sv(iq, ik, emat, bc)
-      use mod_eigenvalue_occupancy, only: nstfv, nstsv
-      use modxs, only: bcbs
-      use mod_ematptr, only: vkl0_ptr, vkl1_ptr, ikmapikq_ptr
-      use modxs, only: ngq, bcbs
-      use m_b_ematqk, only: b_ematqk
-
-
-
-      implicit none
-          
-      ! Arguments
-      integer, intent(in) :: iq, ik
-      type(bcbs), intent(in) :: bc
-      complex(8), intent(inout) :: emat(:,:,:)
-      ! local variables
-      type(bcbs) :: emat_
-      complex(8), allocatable :: muo_(:,:,:)
-      complex(8) :: evecsvt0(nstsv,nstsv), evecsvt1(nstsv,nstsv)
-      integer :: igq, ikq
-
-      ! Find ikq point
-      ikq = ikmapikq_ptr(ik, iq)
-      ! Set intermediate bands to calculate all combinations
-      emat_%n1=nstfv
-      emat_%il1=1
-      emat_%iu1=nstfv
-      emat_%n2=nstfv
-      emat_%il2=1
-      emat_%iu2=nstfv
-      !Calculate all first-variational matrix elements
-      allocate(muo_(nstfv,nstfv,ngq(iq)))
-      call b_ematqk(iq,ik, muo_, emat_)
-      ! Get 2nd variational eigenstates
-      Call getevecsv (vkl1_ptr(1, ik), evecsvt1)
-      Call getevecsv (vkl0_ptr(1, ikq), evecsvt0)
-      ! Calculate 2nd variational matrix elements
-      Do igq=1,ngq(iq)
-        call variation_multiplication(evecsvt1,muo_(:,:,igq),evecsvt0,emat(:,:,igq),&
-          & bc%n1, bc%n2, bc%il1, bc%il2)
-      End Do
-      deallocate(muo_)
-    end subroutine getmuo_sv
     
 end module

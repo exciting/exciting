@@ -14826,28 +14826,28 @@ F90_ACCEPTS_LINE_NUMBERS	libXC/src/Makefile	/^F90_ACCEPTS_LINE_NUMBERS = yes$/;"
 F90_ACCEPTS_LINE_NUMBERS	libXC/testsuite/Makefile	/^F90_ACCEPTS_LINE_NUMBERS = yes$/;"	m
 F90_OPTS	species/Makefile	/^F90_OPTS=$(F90_OPTS) -DSPECIES$/;"	m
 FALSE	libXC/src/integrate.c	34;"	d	file:
-FC	libXC/Makefile	/^FC = h5fc$/;"	m
-FC	libXC/build/Makefile	/^FC = h5fc$/;"	m
-FC	libXC/src/Makefile	/^FC = h5fc$/;"	m
-FC	libXC/testsuite/Makefile	/^FC = h5fc$/;"	m
+FC	libXC/Makefile	/^FC = ifort$/;"	m
+FC	libXC/build/Makefile	/^FC = ifort$/;"	m
+FC	libXC/src/Makefile	/^FC = ifort$/;"	m
+FC	libXC/testsuite/Makefile	/^FC = ifort$/;"	m
 FCCOMPILE	libXC/src/Makefile	/^FCCOMPILE = $(FC) $(AM_FCFLAGS) $(FCFLAGS)$/;"	m
 FCCPP	libXC/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/build/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/src/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/testsuite/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
-FCFLAGS	libXC/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
-FCFLAGS	libXC/build/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
-FCFLAGS	libXC/src/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
-FCFLAGS	libXC/testsuite/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
+FCFLAGS	libXC/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  $/;"	m
+FCFLAGS	libXC/build/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  $/;"	m
+FCFLAGS	libXC/src/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  $/;"	m
+FCFLAGS	libXC/testsuite/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  $/;"	m
 FCFLAGS_f90	libXC/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/build/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/src/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/testsuite/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCLD	libXC/src/Makefile	/^FCLD = $(FC)$/;"	m
-FCLIBS	libXC/Makefile	/^FCLIBS =  -L\/home\/bin\/hdf5-1.10.1\/lib -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5hl_fortran.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5_hl.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5_fortran.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5.a -lz -ldl -limf -lm -lifport -lifcoremt -lsvml -lipgo -lirc -lpthread -lirc_s$/;"	m
-FCLIBS	libXC/build/Makefile	/^FCLIBS =  -L\/home\/bin\/hdf5-1.10.1\/lib -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5hl_fortran.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5_hl.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5_fortran.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5.a -lz -ldl -limf -lm -lifport -lifcoremt -lsvml -lipgo -lirc -lpthread -lirc_s$/;"	m
-FCLIBS	libXC/src/Makefile	/^FCLIBS =  -L\/home\/bin\/hdf5-1.10.1\/lib -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5hl_fortran.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5_hl.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5_fortran.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5.a -lz -ldl -limf -lm -lifport -lifcoremt -lsvml -lipgo -lirc -lpthread -lirc_s$/;"	m
-FCLIBS	libXC/testsuite/Makefile	/^FCLIBS =  -L\/home\/bin\/hdf5-1.10.1\/lib -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5hl_fortran.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5_hl.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5_fortran.a \/home\/bin\/hdf5-1.10.1\/lib\/libhdf5.a -lz -ldl -limf -lm -lifport -lifcoremt -lsvml -lipgo -lirc -lpthread -lirc_s$/;"	m
+FCLIBS	libXC/Makefile	/^FCLIBS =  -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/build/Makefile	/^FCLIBS =  -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/src/Makefile	/^FCLIBS =  -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/testsuite/Makefile	/^FCLIBS =  -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
 FCLINK	libXC/src/Makefile	/^FCLINK = $(LIBTOOL) --mode=link --tag=F77 $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \\$/;"	m
 FC_FUNC	libXC/config.h	27;"	d
 FC_FUNC_	libXC/config.h	30;"	d
@@ -18650,10 +18650,10 @@ b_exccoulintlauncher	src_xs/b_exccoulintlauncher.f90	/^subroutine b_exccoulintla
 b_findgqmap	src_xs/b_findgqmap.f90	/^subroutine b_findgqmap(/;"	s
 b_getbseinfo	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbseinfo(/;"	s	module:m_putgetbsemat
 b_getbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbsemat(/;"	s	module:m_putgetbsemat
-b_getevecfv0	src_xs/b_getevecfv0.f90	/^subroutine b_getevecfv0(/;"	s
 b_getevecfv0	src_xs/m_b_getgrst.f90	/^    subroutine b_getevecfv0(/;"	s	module:m_b_getgrst
-b_getevecfv1	src_xs/b_getevecfv1.f90	/^subroutine b_getevecfv1(/;"	s
 b_getevecfv1	src_xs/m_b_getgrst.f90	/^    subroutine b_getevecfv1(/;"	s	module:m_b_getgrst
+b_getevecsv0	src_xs/m_b_getgrst.f90	/^    subroutine b_getevecsv0(/;"	s	module:m_b_getgrst
+b_getevecsv1	src_xs/m_b_getgrst.f90	/^    subroutine b_getevecsv1(/;"	s	module:m_b_getgrst
 b_m08_hx	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m08_hx[12] = {$/;"	v	file:
 b_m08_so	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m08_so[12] = {$/;"	v	file:
 b_m11	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m11[12] = {$/;"	v	file:
@@ -18666,8 +18666,12 @@ b_putbsereset	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbsereset$/;"	s	mod
 b_scrcoulint	src_xs/b_scrcoulint.f90	/^subroutine b_scrcoulint(/;"	s
 b_scrcoulintlauncher	src_xs/b_scrcoulintlauncher.f90	/^subroutine b_scrcoulintlauncher$/;"	s
 b_screenlauncher	src_xs/b_screenlauncher.f90	/^subroutine b_screenlauncher$/;"	s
+b_wavefmt0	src_xs/m_b_getgrst.f90	/^    subroutine b_wavefmt0(/;"	s	module:m_b_getgrst
 b_wavefmt1	src_xs/m_b_getgrst.f90	/^    subroutine b_wavefmt1(/;"	s	module:m_b_getgrst
-b_writeexcevec	src_xs/b_writeexcevec.f90	/^subroutine b_writeexcevec$/;"	s
+b_wavefmtsv	src_xs/m_b_getgrst.f90	/^  subroutine b_wavefmtsv(/;"	s	module:m_b_getgrst
+b_wavefmtsv0	src_xs/m_b_getgrst.f90	/^  subroutine b_wavefmtsv0(/;"	s	module:m_b_getgrst
+b_wavefmtsv1	src_xs/m_b_getgrst.f90	/^  subroutine b_wavefmtsv1(/;"	s	module:m_b_getgrst
+b_writeexcevec	src_xs/b_writeexcevec.f90	/^subroutine b_writeexcevec(/;"	s
 b_writekpathweights	src_xs/b_writekpathweights.f90	/^subroutine b_writekpathweights$/;"	s
 b_xsgeneigvec	src_xs/b_xsgeneigvec.f90	/^subroutine b_xsgeneigvec(/;"	s
 b_xsgeneigveclauncher	src_xs/b_xsgeneigveclauncher.f90	/^subroutine b_xsgeneigveclauncher(/;"	s
@@ -18774,7 +18778,6 @@ blacsbarrier	src_xs/modscl.f90	/^    subroutine blacsbarrier(/;"	s	module:modscl
 blacsinfo	src_xs/modscl.f90	/^  type blacsinfo$/;"	t	module:modscl
 blaswrappers	src_xs/summations.F90	/^Module blaswrappers$/;"	m
 blend103	src_vdwdf/blend103.f90	/^subroutine blend103(/;"	s
-blindread	src_inputparser/inputmodules.f90	/^ logical::blindread$/;"	k	type:BSE_type
 blocks	src_inputparser/inputmodules.f90	/^ character(512)::blocks$/;"	k	type:BSE_type
 blocksnumber	src_inputparser/inputmodules.f90	/^ integer::blocksnumber$/;"	k	type:BSE_type
 bloechlcor	src_libbzint/bloechlcor.f90	/^       subroutine bloechlcor(/;"	s
@@ -19524,6 +19527,8 @@ cutoff	src_inputparser/inputmodules.f90	/^ real(8)::cutoff$/;"	k	type:DFTD2param
 cutoff	src_inputparser/inputmodules.f90	/^ real(8)::cutoff$/;"	k	type:TSvdWparameters_type
 cutoffocc	src_xs/modbse.f90	/^  real(8) :: cutoffocc$/;"	v	module:modbse
 cutofftype	src_inputparser/inputmodules.f90	/^ character(512)::cutofftype$/;"	k	type:barecoul_type
+cuttype	src_inputparser/inputmodules.f90	/^ character(512)::cuttype$/;"	k	type:BSE_type
+cuttypenumber	src_inputparser/inputmodules.f90	/^ integer::cuttypenumber$/;"	k	type:BSE_type
 cw1k	src_inputparser/inputmodules.f90	/^ logical::cw1k$/;"	k	type:tetra_type
 cygmcc	src_vdwdf/Cuba-3.2/tools/mcc	/^cygmcc()$/;"	f
 d	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^     &                 resid(/;"	v	program:cnbdr1
@@ -21451,7 +21456,7 @@ getchildNodes	FoX/dom/m_dom_dom.F90	/^function getchildNodes(/;"	f	module:m_dom_
 getdata	FoX/dom/m_dom_dom.F90	/^function getdata(/;"	f	module:m_dom_dom
 getdata_len	FoX/dom/m_dom_dom.F90	/^  pure function getdata_len(/;"	f	module:m_dom_dom
 getdevaldoccsv	src_xs/getdevaldoccsv.F90	/^subroutine getdevaldoccsv(/;"	s
-getdiffocc	src_xs/mod_variation.f90	/^	subroutine getdiffocc(/;"	s	module:mod_variation
+getdiffocc	src_xs/mod_variation.f90	/^  subroutine getdiffocc(/;"	s	module:mod_variation
 getdlmm	src_gw/getdlmm.f90	/^complex(8) function getdlmm(/;"	f
 getdocType	FoX/dom/m_dom_dom.F90	/^function getdocType(/;"	f	module:m_dom_dom
 getdocc	src_xs/getdocc.F90	/^subroutine getdocc(/;"	s
@@ -21492,8 +21497,11 @@ getlatticerepetition	src_vdW/vdw_general_routines.f90	/^  Subroutine getlatticer
 getlines	src_xs/m_readoscillator.f90	/^        subroutine getlines(/;"	s	subroutine:readoscillator
 getliveNodeLists	FoX/dom/m_dom_dom.F90	/^function getliveNodeLists(/;"	f	module:m_dom_dom
 getlocmt	src_xs/getlocmt.F90	/^      Subroutine getlocmt /;"	s	module:m_getlocmt
+getmoo_sv	src_xs/mod_variation.f90	/^    subroutine getmoo_sv(/;"	s	module:mod_variation
+getmou_sv	src_xs/mod_variation.f90	/^    subroutine getmou_sv(/;"	s	module:mod_variation
 getmuo	src_xs/b_exccoulint.f90	/^    subroutine getmuo(/;"	s	subroutine:b_exccoulint
-getmuo_sv	src_xs/b_exccoulint.f90	/^    subroutine getmuo_sv(/;"	s	subroutine:b_exccoulint
+getmuo_sv	src_xs/mod_variation.f90	/^    subroutine getmuo_sv(/;"	s	module:mod_variation
+getmuu_sv	src_xs/mod_variation.f90	/^    subroutine getmuu_sv(/;"	s	module:mod_variation
 getname	FoX/dom/m_dom_dom.F90	/^function getname(/;"	f	module:m_dom_dom
 getname_len	FoX/dom/m_dom_dom.F90	/^  pure function getname_len(/;"	f	module:m_dom_dom
 getnamespaceNodes	FoX/dom/m_dom_dom.F90	/^  function getnamespaceNodes(/;"	f	module:m_dom_dom
@@ -22209,7 +22217,9 @@ ik2ikpq	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ik2ikpq(/;"	k
 ik2ikqmt	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ik2ikqmt(/;"	k	type:kkqmt_set
 ik2ikqmt_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ik2ikqmt_nr(/;"	k	type:kkqmt_set
 ik2ikqmtm	src_xs/modbse.f90	/^  integer(4), dimension(:), allocatable :: ik2ikqmtp, ik2ikqmtm,/;"	v	module:modbse
+ik2ikqmtm_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ik2ikqmtp_(:), ik2ikqmtm_(/;"	v	module:m_putgetexcitons
 ik2ikqmtp	src_xs/modbse.f90	/^  integer(4), dimension(:), allocatable :: ik2ikqmtp,/;"	v	module:modbse
+ik2ikqmtp_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ik2ikqmtp_(/;"	v	module:m_putgetexcitons
 ikcbm	src_gw/mod_bands.f90	/^    integer(4) :: ikcbm$/;"	v	module:mod_bands
 ikikp2ig_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikikp2ig_nr(/;"	k	type:p_set
 ikikp2ig_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikikp2ig_nr(/;"	k	type:q_set
@@ -22228,7 +22238,6 @@ ikmap	mod_kpoint.F90	/^      Integer, Allocatable :: ikmap /;"	v	module:mod_kpoi
 ikmap	src_gw/mod_kpointset.f90	/^        integer(4), allocatable ::  ikmap(/;"	k	type:k_set
 ikmap_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ngridk_(:), ikmap_(/;"	v	module:m_putgetexcitons
 ikmapikq	src_xs/modxs.F90	/^      Integer, Allocatable, target :: ikmapikq /;"	v	module:modxs
-ikmapikq_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ikmapikq_(/;"	v	module:m_putgetexcitons
 ikmapikq_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: ikmapikq_ptr(/;"	v	module:mod_ematptr
 ikmapnr	mod_kpoint.F90	/^      Integer, Allocatable :: ikmapnr /;"	v	module:mod_kpoint
 ikmapnr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable ::  ikmapnr(/;"	k	type:k_set
@@ -22240,6 +22249,8 @@ ikpid	src_libbzint/kgen_internals.f90	/^      integer, allocatable  :: ikpid(/;"
 ikpik2iqivgnr	src_gw/mod_kpointset.f90	/^    subroutine ikpik2iqivgnr(/;"	s	module:mod_kpointset
 ikqmt2ik	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikqmt2ik(/;"	k	type:kkqmt_set
 ikqmt2ik_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikqmt2ik_nr(/;"	k	type:kkqmt_set
+ikqmtm2ikqmtp	src_xs/modbse.f90	/^  integer(4), dimension(:), allocatable :: ik2ikqmtp, ik2ikqmtm, ikqmtm2ikqmtp$/;"	v	module:modbse
+ikqmtm2ikqmtp_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ik2ikqmtp_(:), ik2ikqmtm_(:), ikqmtm2ikqmtp_(/;"	v	module:m_putgetexcitons
 ikstrmapiknr	src_xs/modxs.F90	/^      Integer, Allocatable :: ikstrmapiknr /;"	v	module:modxs
 iksubmap	src_xs/modxs.F90	/^      Integer, Allocatable :: iksubmap /;"	v	module:modxs
 iksubpt	src_xs/modxs.F90	/^      Integer :: iksubpt$/;"	v	module:modxs
@@ -22255,7 +22266,6 @@ ilor	src_xs/bspline_oo_module.f90	/^        integer :: ilor /;"	v
 ilos	src_xs/bspline_oo_module.f90	/^        integer :: ilos /;"	v
 iloy	src_xs/bspline_oo_module.f90	/^        integer :: iloy /;"	v
 iloz	src_xs/bspline_oo_module.f90	/^        integer :: iloz /;"	v
-imk2imkqmtp	src_xs/modbse.f90	/^  integer(4), dimension(:), allocatable :: ik2ikqmtp, ik2ikqmtm, imk2imkqmtp$/;"	v	module:modbse
 implementation	FoX/dom/m_dom_dom.F90	/^    type(DOMImplementation), pointer :: implementation /;"	k	type:documentExtras
 importNode	FoX/dom/m_dom_dom.F90	/^  function importNode(/;"	f	module:m_dom_dom
 inDocument	FoX/dom/m_dom_dom.F90	/^    logical :: inDocument /;"	k	type:Node
@@ -22689,7 +22699,6 @@ iqmt0	src_xs/modxs.F90	/^  integer(4) :: iqmt0,/;"	v	module:modxs
 iqmt1	src_xs/modxs.F90	/^  integer(4) :: iqmt0, iqmt1$/;"	v	module:modxs
 iqmtgamma	src_xs/modxs.F90	/^  integer(4), parameter :: iqmtgamma /;"	v	module:modxs
 iqmtrange	src_inputparser/inputmodules.f90	/^ integer::iqmtrange(/;"	k	type:BSE_type
-iqmtrange	src_inputparser/inputmodules.f90	/^ integer::iqmtrange(/;"	k	type:screening_type
 iqsig1	src_other/delaunay.f	/^      subroutine iqsig1(/;"	s
 iqsig2	src_other/delaunay.f	/^      subroutine iqsig2(/;"	s
 iqsign	src_other/delaunay.f	/^      subroutine iqsign(/;"	s
@@ -23134,10 +23143,10 @@ kndi	ioarray.F90	/^      Integer, Parameter :: kndi /;"	v	module:ioarray
 kndr	ioarray.F90	/^      Integer, Parameter :: kndr /;"	v	module:ioarray
 kordexc	src_inputparser/inputmodules.f90	/^ logical::kordexc$/;"	k	type:tetra_type
 koulims	src_xs/modbse.f90	/^  integer(4), allocatable :: koulims(/;"	v	module:modbse
-koulims_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ikmapikq_(:), kousize_(:), koulims_(/;"	v	module:m_putgetexcitons
+koulims_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: kousize_(:), koulims_(/;"	v	module:m_putgetexcitons
 kousize	src_xs/modbse.f90	/^  integer(4), allocatable :: kousize(/;"	v	module:modbse
 kousize_	src_xs/m_putgetbsemat.f90	/^  integer(4), allocatable :: kousize_(/;"	v	module:m_putgetbsemat
-kousize_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ikmapikq_(:), kousize_(/;"	v	module:m_putgetexcitons
+kousize_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: kousize_(/;"	v	module:m_putgetexcitons
 kparf	src_xs/modxs.F90	/^      Integer :: kparf$/;"	v	module:modxs
 kpari	src_xs/modxs.F90	/^      Integer :: kpari$/;"	v	module:modxs
 kpathlength_	src_xs/m_read_bandstructure.f90	/^  real(8), allocatable :: vklpath_(:,:,:), kpathlength_(/;"	v	module:m_read_bandstructure
@@ -23862,8 +23871,10 @@ mainDoc	FoX/dom/m_dom_parse.f90	/^  type(Node), pointer, save  :: mainDoc /;"	v	
 mainlb	Lbfgsb.3.0/lbfgsb.f	/^      subroutine mainlb(/;"	s
 make_token_group	FoX/common/m_common_element.F90	/^  function make_token_group(/;"	f	module:m_common_element
 make_token_group_len	FoX/common/m_common_element.F90	/^  pure function make_token_group_len(/;"	f	module:m_common_element
+makeexcli	src_xs/b_exccoulint.f90	/^    subroutine makeexcli(/;"	s	subroutine:b_exccoulint
 makegk	mod_xsgrids.f90	/^  logical :: makegk,/;"	v	module:mod_xsgrids
 makegq	mod_xsgrids.f90	/^  logical :: makegk, makegq$/;"	v	module:mod_xsgrids
+makemeasure	src_xs/m_setup_bse.f90	/^    subroutine makemeasure(/;"	s	module:m_setup_bse
 makeoscistr_dist	src_xs/m_makeoscistr.f90	/^    subroutine makeoscistr_dist(/;"	s	module:m_makeoscistr
 makespectrum	src_xs/m_makespectrum.f90	/^    subroutine makespectrum(/;"	s	module:m_makespectrum
 makespectrum_dist	src_xs/m_makespectrum.f90	/^    subroutine makespectrum_dist(/;"	s	module:m_makespectrum
@@ -24311,6 +24322,7 @@ md	ARPACK/EXAMPLES/NONSYM/sndrv3.f	/^     &                  workl(3*maxncv*maxn
 mdfqtype	src_inputparser/inputmodules.f90	/^ integer::mdfqtype$/;"	k	type:tddft_type
 me	ARPACK/EXAMPLES/NONSYM/dndrv3.f	/^     &                  md(maxn), me(/;"	v	program:dndrv3
 me	ARPACK/EXAMPLES/NONSYM/sndrv3.f	/^     &                  md(maxn), me(/;"	v	program:sndrv3
+measure	src_inputparser/inputmodules.f90	/^ logical::measure$/;"	k	type:BSE_type
 meffig	mod_potential_and_density.F90	/^      Complex (8), Allocatable :: veffig (:),meffig /;"	v	module:mod_potential_and_density
 mersenne	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^    } mersenne;$/;"	m	union:__anon63::__anon64	typeref:struct:__anon63::__anon64::__anon66
 metallic	src_gw/mod_bands.f90	/^    logical :: metallic$/;"	v	module:mod_bands
@@ -27830,6 +27842,7 @@ string_t	FoX/fsys/fox_m_fsys_string_list.F90	/^  type string_t$/;"	t	module:fox_
 stringtim	src_xs/stringtim.F90	/^Character (256) Function stringtim /;"	f
 stringtonumberBSEblocks	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberBSEblocks(/;"	f	module:modinput
 stringtonumberBSEbsetype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberBSEbsetype(/;"	f	module:modinput
+stringtonumberBSEcuttype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberBSEcuttype(/;"	f	module:modinput
 stringtonumberBSEsciavtype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberBSEsciavtype(/;"	f	module:modinput
 stringtonumberBSExasedge	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberBSExasedge(/;"	f	module:modinput
 stringtonumberHybridexchangetype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberHybridexchangetype(/;"	f	module:modinput
@@ -28088,7 +28101,6 @@ threshold	libXC/src/gga_x_lb.c	/^  FLOAT threshold; \/* when to start using the 
 threshold	libXC/src/gga_x_lb.c	/^XC(gga_lb_set_params)(XC(func_type) *p, int modified, FLOAT threshold, FLOAT ip, FLOAT qtot)$/;"	v
 threshold	libXC/src/xc.h	/^void XC(gga_lb_set_params)        (XC(func_type) *p, int modified, FLOAT threshold, FLOAT ip, FLOAT qtot);$/;"	v
 throw_exception	FoX/dom/m_dom_error.f90	/^  subroutine throw_exception(/;"	s	module:m_dom_error
-ti	src_inputparser/inputmodules.f90	/^ logical::ti$/;"	k	type:BSE_type
 tildeg	src_gw/tildeg.f90	/^      real(8) function tildeg(/;"	f
 tilg	src_gw/calctildeg.f90	/^      real(8), allocatable :: tilg(/;"	v	module:gtil
 time0	src_vdwdf/main.f90	/^  integer             :: time0,/;"	v	program:main
@@ -28294,6 +28306,7 @@ tplane	src_mixing/modmixermsec.f90	/^      Real (8) :: MSECINFO (20), rtrap, SCH
 tpss_eq_13_14	libXC/src/mgga_c_pkzb.c	/^tpss_eq_13_14(FLOAT zeta, FLOAT csi2, int order, FLOAT *C, FLOAT *dCdzeta, FLOAT *dCdcsi2)$/;"	f	file:
 tq	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:),allocatable :: tq /;"	v
 tqgamma	src_xs/tqgamma.F90	/^logical function tqgamma(/;"	f
+tr	src_inputparser/inputmodules.f90	/^ logical::tr$/;"	k	type:screening_type
 tr	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:),allocatable :: tr /;"	v
 trace	src_raman/construct_chartabl.f90	/^function trace(/;"	f	subroutine:construct_chartabl
 trans	src_inputparser/inputmodules.f90	/^type(trans_/;"	k	type:trans_type_array
@@ -28869,6 +28882,8 @@ vtau	libXC/testsuite/xc-get_data.c	/^  double vtau[2];        \/* vtaua, vtaub *
 vtau	libXC/testsuite/xc-regression.c	/^  double zk, vrho[2], vsigma[3], vlapl[2], vtau[2];$/;"	m	struct:values_t	file:
 vtlsymc	mod_symmetry.F90	/^      Real (8) :: vtlsymc /;"	v	module:mod_symmetry
 vvlp1d	mod_plotting.F90	/^      Real (8), Allocatable :: vvlp1d /;"	v	module:mod_plotting
+vwdiffar	src_xs/modbse.f90	/^  real(8), allocatable :: vwdiffrr(:), vwdiffar(/;"	v	module:modbse
+vwdiffrr	src_xs/modbse.f90	/^  real(8), allocatable :: vwdiffrr(/;"	v	module:modbse
 vwn_consts	libXC/src/lda_c_vwn.c	/^static vwn_consts_type vwn_consts[2] = {$/;"	v	file:
 vwn_consts_type	libXC/src/lda_c_vwn.c	/^} vwn_consts_type;$/;"	t	typeref:struct:__anon29	file:
 vxcaa	src_gw/src_vxc/vxcaa.f90	/^subroutine vxcaa(/;"	s
@@ -29302,11 +29317,10 @@ writeldapu	src_LDAU/writeldapu.f90	/^Subroutine writeldapu$/;"	s
 writelinen	writelinen.f90	/^Subroutine writelinen$/;"	s
 writeloss	src_xs/writeloss.F90	/^    subroutine writeloss(/;"	s	module:m_writeloss
 writelsj	writelsj.f90	/^Subroutine writelsj$/;"	s
+writemeasures	src_xs/modbse.f90	/^    subroutine writemeasures(/;"	s	module:modbse
 writemeta	src_xs/m_putgetbsemat.f90	/^  logical :: writemeta=/;"	v	module:m_putgetbsemat
-writeminus	src_inputparser/inputmodules.f90	/^ logical::writeminus$/;"	k	type:BSE_type
 writeoptminitdata	relax.f90	/^subroutine writeoptminitdata(/;"	s
 writeoscillator	src_xs/writeoscillator.f90	/^    subroutine writeoscillator(/;"	s	module:m_writeoscillator
-writeparts	src_inputparser/inputmodules.f90	/^ logical::writeparts$/;"	k	type:BSE_type
 writepchgs	writepchgs.F90	/^subroutine writepchgs(/;"	s
 writephn	src_phonon/writephn.f90	/^subroutine writephn$/;"	s
 writephnlist	src_phonon/writephnlist.F90	/^Subroutine writephnlist(/;"	s
@@ -29505,7 +29519,9 @@ xsgeneigvec	src_xs/xsgeneigvec.F90	/^subroutine xsgeneigvec$/;"	s
 xsgnt	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgnt /;"	v	module:modxs
 xsgntoo	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntoo /;"	v	module:modxs
 xsgntou	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntou /;"	v	module:modxs
+xsgntousv	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntousv /;"	v	module:modxs
 xsgntuo	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntuo /;"	v	module:modxs
+xsgntuosv	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntuosv /;"	v	module:modxs
 xsgrids_finalize	mod_xsgrids.f90	/^    subroutine xsgrids_finalize(/;"	s	module:mod_xsgrids
 xsgrids_init	mod_xsgrids.f90	/^    subroutine xsgrids_init(/;"	s	module:mod_xsgrids
 xsgrids_initialized	mod_xsgrids.f90	/^    logical function xsgrids_initialized(/;"	f	module:mod_xsgrids
