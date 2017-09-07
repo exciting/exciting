@@ -452,7 +452,7 @@ subroutine b_exccoulint(iqmt)
       if(fsamekm) then 
         ! Set EVECFV_QMT001.OUT as bra state file
         iqmt0 = iqmtgamma
-        call genfilname(iqmt=iqmt0, setfilext=.true.)
+        call genfilname(iqmt=iqmt0, setfilext=.true., fileext=filext0)
       else
         ! Set EVECFV_QMTXYZ_m.OUT as bra state file (k-qmt/2 grid)
         iqmt0 = iqmt
