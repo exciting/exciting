@@ -347,7 +347,7 @@ subroutine b_exccoulint(iqmt)
 
   ! If Q=0 compute \bar{P}, so use the truncated Coulomb potential.
   ! Set Gmt component term of Coulomb potential to zero [Ambegaokar-Kohn]
-  if(iqmt==1) then 
+  if(iqmt==1 .or. input%xs%bse%chibarq) then 
     igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
     potcl(igqmt) = 0.d0
   end if
@@ -356,7 +356,7 @@ subroutine b_exccoulint(iqmt)
   if(mpiglobal%rank == 0) then
     write(unitout, *)
     write(unitout, '("Info(b_exccoulint): Generating V matrix elements")')
-    if(iqmt == 1) then 
+    if(iqmt == 1 .or. input%xs%bse%chibarq) then 
       write(unitout, '("Info(b_exccoulint): Zeroing Coulomb potential at G+qmt index:", i3)') igqmt
     end if
     call timesec(tpw0)

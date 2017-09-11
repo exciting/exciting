@@ -22,7 +22,7 @@ subroutine b_exccoulintlauncher
 
   implicit none
 
-  logical :: fcoup
+  logical :: fcoup, fchibarq
   integer(4) :: iqmt, iqmti, iqmtf, nqmt
   real(8) :: vqmt(3)
   character(256) :: casestring
@@ -41,6 +41,23 @@ subroutine b_exccoulintlauncher
       casestring="rr"
     end if
   end if
+
+  ! For BSE with coupling at finite Q, always use the full Chi
+  ! and not \bar{Chi}. For TDA warn if \bar{Chi} is not used.
+  fchibarq = input%xs%bse%chibarq
+  ! If it is not the default of true
+  if(.not. fchibarq) then 
+    if(.not. fcoup .and. .not. fchibarq) then
+      write(unitout, '("Waring(",a,"):", a)') trim(thisname),&
+        & " TDA and Chi not compatible!"
+    end if
+  ! Otherwise determin value with fcoup
+  else
+    if(fcoup) fchibarq = .false.
+    if(.not. fcoup) fchibarq = .true.
+    input%xs%bse%chibarq = fchibarq
+  end if
+
 
   ! Which momentum transfer Q points to consider 
   nqmt = size(input%xs%qpointset%qpoint, 2)
