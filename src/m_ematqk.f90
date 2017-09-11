@@ -131,6 +131,9 @@ module m_ematqk
                     rial( 0:lmaxexp, 0:lmaxapw, apwordmax, nlomax), &
                     rill( 0:lmaxexp, nlomax, nlomax))
           ! generate radial functions
+          call readstate
+          call readfermi
+          call linengy
           call genapwfr
           call genlofr
           ! multiply radial integral with Gaunt coefficients and expansion prefactor
@@ -533,7 +536,7 @@ module m_ematqk
           zfftcf = zzero
           do ig = 1, ngvec
             if( gc( ig) .lt. emat_gmax) then
-             zfftcf( fftmap%igfft( ig)) = cfunig( ig)
+              zfftcf( fftmap%igfft( ig)) = cfunig( ig)
             endif
           enddo
           call zfftifc( 3, fftmap%ngrid, 1, zfftcf)

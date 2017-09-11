@@ -831,10 +831,25 @@
         <xs:element ex:importance="essential" ex:unit="" name="wannier" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation> 
-            If the <elementref>wannier</elementref> element is present, in addition Wannier functions ares calculated.
+            When the <elementref>wannier</elementref> element is present, in addition Wannier functions ares calculated.
             </xs:documentation>
           </xs:annotation>
           <xs:complexType>
+
+            <xs:sequence>
+              <xs:element ex:importance="essential" ex:unit="" name="projector" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                  <xs:documentation>Defines a local-orbital to be used as projection function.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:attribute ex:importance="essential" ex:unit="" name="nr" type="xs:integer" use="required">
+                    <xs:annotation>
+                      <xs:documentation>Number of the local-orbital.</xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
 
             <xs:attribute ex:importance="essential" ex:unit="" name="input" default="groundstate">
               <xs:simpleType>
@@ -854,9 +869,13 @@
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="pro">
                   </xs:enumeration>
+                  <xs:enumeration value="prowan">
+                  </xs:enumeration>
                   <xs:enumeration value="opf">
                   </xs:enumeration>
                   <xs:enumeration value="promax">
+                  </xs:enumeration>
+                  <xs:enumeration value="prowanmax">
                   </xs:enumeration>
                   <xs:enumeration value="opfmax">
                   </xs:enumeration>

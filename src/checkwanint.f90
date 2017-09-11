@@ -9,9 +9,9 @@ Subroutine checkwanint( b)
 
   logical, intent( in) :: b
 
-  integer :: ik, iq, ngkmaxint, ngkmaxwf, nmatmaxwf
+  integer :: ik, iq, is, ia, ias, l, m, lm, ngkmaxint, ngkmaxwf, nmatmaxwf
   real(8), allocatable :: eval1(:,:), evalfv(:,:), evalint(:,:)
-  complex(8), allocatable :: evecint(:,:,:,:)
+  complex(8), allocatable :: evecint(:,:,:,:), evec1(:,:,:), evec2(:,:,:), apwalm1(:,:,:,:), apwalm2(:,:,:,:), dmat(:,:,:)
   type( k_set) :: int_kset
   type( G_set) :: int_Gset
   type( Gk_set) :: int_Gkset
@@ -42,13 +42,76 @@ Subroutine checkwanint( b)
   write(*, '("ngkmax sys: ",I5.5)') ngkmax
 
   if( b) then
-    allocate( evalint( wf_fst:wf_lst, int_kset%nkpt))
-    allocate( evecint( ngkmaxint+nlotot, wf_fst:wf_lst, nspinor, int_kset%nkpt))
-    call wannier_interpolate_eigsys( eval1( wf_fst:wf_lst, :), int_kset, int_Gkset, evalint( wf_fst:wf_lst, :), evecint( :, :, 1, :))
-    do iq = 1, int_kset%nkpt
-      write( fname, '("evecint/evecint_",I3.3,"_",I3.3,"_",I3.3)') nint( int_kset%vkl( :, iq)*1000)
-      call writematlab( evecint( :, :, 1, iq), fname)
-    end do
+    !allocate( evalint( wf_fst:wf_lst, int_kset%nkpt))
+    !allocate( evecint( ngkmaxint+nlotot, wf_fst:wf_lst, nspinor, int_kset%nkpt))
+    !call wannier_interpolate_eigsys( eval1( wf_fst:wf_lst, :), int_kset, int_Gkset, evalint( wf_fst:wf_lst, :), evecint( :, :, 1, :))
+    !do iq = 1, int_kset%nkpt
+    !  write( fname, '("evecint/evecint_",I3.3,"_",I3.3,"_",I3.3)') nint( int_kset%vkl( :, iq)*1000)
+    !  call writematlab( evecint( 1:(int_Gkset%ngk( 1, iq)+nlotot), wf_fst:wf_lst, 1, iq), fname)
+    !end do
+    !deallocate( evecint)
+    call readstate
+    call linengy
+    call genapwfr
+    call genlofr
+    allocate( apwalm1( ngkmax, apwordmax, lmmaxapw, natmtot))
+    allocate( apwalm2( ngkmax, apwordmax, lmmaxapw, natmtot))
+    allocate( evec1( nmatmaxwf, nstsv, nspinor))
+    allocate( evec2( nmatmaxwf, nstsv, nspinor))
+    allocate( dmat( (input%groundstate%lmaxapw+1)**2, wf_fst:wf_lst, wf_fst:wf_lst))
+    do ik = 1, wf_kset%nkpt
+      if( input%properties%wannier%input .eq. "groundstate") then
+        call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evec1)
+      else if( input%properties%wannier%input .eq. "hybrid") then
+        call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evec1)
+      else if( input%properties%wannier%input .eq. "gw") then
+        call getevecsvgw_new( "GW_EVECSV.OUT", ik, wf_kset%vkl( :, ik), nmatmaxwf, nstfv, nspinor, evec1)
+      else
+        call terminate
+      end if
+      call match( wf_Gkset%ngk( 1, ik), &
+                  wf_Gkset%gkc( :, 1, ik), &
+                  wf_Gkset%tpgkc( :, :, 1, ik), &
+                  wf_Gkset%sfacgk( :, :, 1, ik), &
+                  apwalm1)
+      do iq = 1, ik
+        write(*,*) ik, iq
+        if( input%properties%wannier%input .eq. "groundstate") then
+          call getevecfv( wf_kset%vkl( :, iq), wf_Gkset%vgkl( :, :, :, iq), evec2)
+        else if( input%properties%wannier%input .eq. "hybrid") then
+          call getevecfv( wf_kset%vkl( :, iq), wf_Gkset%vgkl( :, :, :, iq), evec2)
+        else if( input%properties%wannier%input .eq. "gw") then
+          call getevecsvgw_new( "GW_EVECSV.OUT", iq, wf_kset%vkl( :, iq), nmatmaxwf, nstfv, nspinor, evec2)
+        else
+          call terminate
+        end if
+        call match( wf_Gkset%ngk( 1, iq), &
+                    wf_Gkset%gkc( :, 1, iq), &
+                    wf_Gkset%tpgkc( :, :, 1, iq), &
+                    wf_Gkset%sfacgk( :, :, 1, iq), &
+                    apwalm2)
+        do is = 1, nspecies
+          do ia = 1, natoms( is)
+            ias = idxas( ia, is)
+            call mygendmat( input%groundstate%lmaxapw, &
+                            wf_fst, wf_lst, &
+                            is, ia, &
+                            wf_Gkset%ngk( 1, ik), &
+                            wf_Gkset%ngk( 1, iq), &
+                            apwalm1, apwalm2, &
+                            evec1( :, :, 1), evec2( :, :, 1), &
+                            dmat)
+            do l = 0, input%groundstate%lmaxapw
+              do m = -l, l
+                lm = idxlm( l, m)
+                write( fname, '("rmat/rmat",4("_",I3.3))') ik, iq, lm, ias
+                call writematlab( dmat( lm, :, :), fname)
+              end do
+            end do
+          end do
+        end do
+      end do
+    end do 
   else
     allocate( evecint( nmatmaxwf, nstsv, nspinor, 1))
     do ik = 1, wf_kset%nkpt
@@ -62,7 +125,7 @@ Subroutine checkwanint( b)
         call terminate
       end if
       write( fname, '("eveccal/eveccal_",I3.3,"_",I3.3,"_",I3.3)') nint( wf_kset%vkl( :, ik)*1000)
-      call writematlab( evecint( :, wf_fst:wf_lst, 1, 1), fname)
+      call writematlab( evecint( 1:(wf_Gkset%ngk( 1, ik)+nlotot), wf_fst:wf_lst, 1, 1), fname)
     end do 
   end if
 

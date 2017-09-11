@@ -144,7 +144,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
       
     lmax = min( 3, input%groundstate%lmaxapw)
     allocate( bc( natmtot, 0:lmax, wf_fst:wf_lst, nkp2))
-    call wannier_interpolate_eval( eqpwan, nkp2, kvecs2_, eqpwanint, bandchar=bc, lmax=-1)
+    call wannier_interpolate_eval( eqpwan, nkp2, kvecs2_, eqpwanint)!, bandchar=bc, lmax=-1)
     do ib = wf_fst, wf_lst
       do ik = 1, nkp2
         eqp2( ib, ik) = eqpwanint( ib, ik) - eferqp - efermi

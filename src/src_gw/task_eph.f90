@@ -193,7 +193,7 @@ subroutine task_eph()
   if( allocated(evalpath)) deallocate( evalpath)
   allocate( evalpath( nstfv, nkpt))
   evalpath = 0.d0
-  call wannier_interpolate_eval ( eval1( wf_fst:wf_lst,:), nkpt, vkl, evalpath( wf_fst:wf_lst,:), lmax=-1)
+  call wannier_interpolate_eval ( eval1( wf_fst:wf_lst,:), nkpt, vkl, evalpath( wf_fst:wf_lst,:))!, lmax=-1)
   !
   ! Print out the band on the path as a test  
   if (.true.) then
@@ -281,7 +281,7 @@ subroutine task_eph()
 
 !  call wannier_interpolate_eval( eval1( wf_fst:wf_lst,:), wf_kset%nkpt, wf_kset%vkl, &
 !                                 eval2( wf_fst:wf_lst,:), ngridkqtot, kqsetd%kqmtset%vkl, wf_fst, wf_lst)
-  call wannier_interpolate_eval( eval1( wf_fst:wf_lst,:), ngridkqtot, kqsetd%kqmtset%vkl,eval2( wf_fst:wf_lst,:),lmax=-1)
+  call wannier_interpolate_eval( eval1( wf_fst:wf_lst,:), ngridkqtot, kqsetd%kqmtset%vkl,eval2( wf_fst:wf_lst,:))!,lmax=-1)
                                  !eval2( wf_fst:wf_lst,:), kqsetd%kset%nkpt, kqsetd%kqmtset%vkl, wf_fst, wf_lst)
  
   ! find the Fermi energy on the new mesh

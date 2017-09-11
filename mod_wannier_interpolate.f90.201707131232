@@ -1,0 +1,833 @@
+module mod_wfint
+  use modmain
+  use mod_wannier
+  use m_plotmat
+  implicit none
+
+! module variables
+  type( k_set) :: wfint_kset                        ! k-point set on which the interpolation is performed
+  logical :: wfint_initialized = .false.
+  real(8) :: wfint_efermi                           ! interpolated fermi energy
+
+  real(8), allocatable :: wfint_eval(:,:)           ! interpolated eigenenergies
+  complex(8), allocatable :: wfint_transform(:,:,:) ! corresponding expansion coefficients
+  real(8), allocatable :: wfint_occ(:,:)            ! interpolated occupation numbers
+  real(8), allocatable :: wfint_phase(:,:)          ! summed phase factors in interpolation
+  complex(8), allocatable :: wfint_pkr(:,:)
+  complex(8), allocatable :: wfint_pqr(:,:)
+
+! methods
+  contains
+    !BOP
+    ! !ROUTINE: wfint_init
+    ! !INTERFACE:
+    !
+    subroutine wfint_init( int_kset)
+      ! !USES:
+      ! !INPUT PARAMETERS:
+      !   int_kset : k-point set on which the interpolation is performed on (in, type k_set)
+      ! !DESCRIPTION:
+      !   Sets up the interpolation grid and calculates the interpolated eigenenergies as well as 
+      !   the corresponding expansion coefficients and phasefactors for the interpolated wavefunctions.
+      !
+      ! !REVISION HISTORY:
+      !   Created July 2017 (SeTi)
+      !EOP
+      !BOC
+        type( k_set), intent( in) :: int_kset
+    
+        integer :: ik
+        real(8), allocatable :: evalfv(:,:), evalin(:,:)
+    
+        wfint_kset = int_kset
+    
+        allocate( evalfv( nstfv, nspnfv))
+        allocate( evalin( wf_fst:wf_lst, wf_kset%nkpt))
+    
+        do ik = 1, wf_kset%nkpt
+          call getevalfv( wf_kset%vkl( :, ik), evalfv)
+          evalin( :, ik) = evalfv( wf_fst:wf_lst, 1)
+        end do
+    
+        allocate( wfint_phase( wf_kset%nkpt, wfint_kset%nkpt))
+        allocate( wfint_pkr( wf_kset%nkpt, wf_kset%nkpt))
+        allocate( wfint_pqr( wfint_kset%nkpt, wf_kset%nkpt))
+        allocate( wfint_eval( wf_fst:wf_lst, wfint_kset%nkpt))
+        allocate( wfint_transform( wf_fst:wf_lst, wf_fst:wf_lst, wfint_kset%nkpt))
+        call wfint_interpolate_eigsys( evalin)
+    
+        wfint_initialized = .true.
+        return
+    end subroutine wfint_init
+    !EOC
+
+!--------------------------------------------------------------------------------------
+    
+    !BOP
+    ! !ROUTINE: wfint_interpolate_eigsys
+    ! !INTERFACE:
+    !
+    subroutine wfint_interpolate_eigsys( evalin)
+      ! !USES:
+      use m_wsweight
+      ! !INPUT PARAMETERS:
+      !   evalin : eigenenergies on original grid (in, real( wf_fst:wf_lst, wf_kset%nkpt))
+      ! !DESCRIPTION:
+      !   Calculates the interpolated eigenenergies as well as the corresponding expansion 
+      !   coefficients and phasefactors for the interpolated wavefunctions.
+      !
+      ! !REVISION HISTORY:
+      !   Created July 2017 (SeTi)
+      !EOP
+      !BOC
+
+      !use mod_kqpts
+      !use mod_lattice
+      !use mod_eigenvalue_occupancy
+      !use mod_eigensystem
+      !use mod_atoms
+      !use mod_muffin_tin
+      !use mod_lattice
+      !use mod_constants
+    
+      implicit none
+      real(8), intent( in) :: evalin( wf_fst:wf_lst, wf_kset%nkpt)
+      
+      integer :: nrpt, ix, iy, iz, ik, iq, ir
+      complex(8) :: ftweight, z1
+    
+      real(8), allocatable :: rptl(:,:)
+      complex(8), allocatable :: auxmat(:,:), ueu(:,:,:), hamilton(:,:,:)
+    
+      !**********************************************
+      ! interpolated eigenenergies and corresponding 
+      ! eigenvectors in Wannier basis
+      !**********************************************
+    
+      ! generate set of lattice vectors 
+      nrpt = wf_kset%nkpt
+      allocate( rptl( 3, nrpt))
+      ir = 0
+      do iz = -wf_kset%ngridk(3)/2, -wf_kset%ngridk(3)/2+wf_kset%ngridk(3)-1
+        do iy = -wf_kset%ngridk(2)/2, -wf_kset%ngridk(2)/2+wf_kset%ngridk(2)-1
+          do ix = -wf_kset%ngridk(1)/2, -wf_kset%ngridk(1)/2+wf_kset%ngridk(1)-1
+            ir = ir + 1
+            rptl( :, ir) = (/ dble( ix), dble( iy), dble( iz)/)
+          end do
+        end do
+      end do
+      
+      ! calculate Hamlitonian matrix elements in Wannier representation 
+      allocate( ueu( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt))
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, iy, auxmat)
+#endif
+      allocate( auxmat( wf_fst:wf_lst, wf_fst:wf_lst))
+#ifdef USEOMP
+!$OMP DO
+#endif
+      do ik = 1, wf_kset%nkpt
+        auxmat = zzero
+        do iy = wf_fst, wf_lst
+          auxmat( iy, :) = wf_transform( iy, :, ik)*evalin( iy, ik)
+        end do
+        call zgemm( 'C', 'N', wf_nst, wf_nst, wf_nst, zone, &
+             wf_transform( :, :, ik), wf_nst, &
+             auxmat, wf_nst, zzero, &
+             ueu( :, :, ik), wf_nst)
+      end do
+#ifdef USEOMP
+!$OMP END DO
+#endif
+      deallocate( auxmat)
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif
+    
+      ! calculate phases for Fourier transform on Wigner-Seitz supercell
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, iq, ir)
+!$OMP DO
+#endif
+      do ir = 1, nrpt
+        do iq = 1, wfint_kset%nkpt
+          call ws_weight( rptl( :, ir), rptl( :, ir), wfint_kset%vkl( :, iq), wfint_pqr( iq, ir), kgrid=.true.)
+        end do
+        do ik = 1, wf_kset%nkpt
+          call ws_weight( rptl( :, ir), rptl( :, ir), wf_kset%vkl( :, ik), wfint_pkr( ik, ir), kgrid=.true.)
+        end do
+      end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+      allocate( auxmat( wfint_kset%nkpt, wf_kset%nkpt))
+      call zgemm( 'N', 'C', wfint_kset%nkpt, wf_kset%nkpt, nrpt, zone, &
+           wfint_pqr, wfint_kset%nkpt, &
+           wfint_pkr, wf_kset%nkpt, zzero, &
+           auxmat, wfint_kset%nkpt)
+      wfint_phase = dble( transpose( auxmat))/wf_kset%nkpt
+      deallocate( auxmat)
+    
+      ! calculate interpolated Hamiltonian
+      allocate( hamilton( wf_fst:wf_lst, wf_fst:wf_lst, wfint_kset%nkpt))
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iy)
+!$OMP DO
+#endif
+      do iy = wf_fst, wf_lst
+        call zgemm( 'N', 'N', wf_nst, wfint_kset%nkpt, wf_kset%nkpt, zone, &
+             ueu( iy, :, :), wf_nst, &
+             cmplx( wfint_phase, 0, 8), wf_kset%nkpt, zzero, &
+             hamilton( iy, :, :), wf_nst)
+      end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+      deallocate( ueu)
+    
+      ! diagonalize interpolated Hamiltonian
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq)
+!$OMP DO
+#endif
+      do iq = 1, wfint_kset%nkpt 
+        call diaghermat( wf_nst, hamilton( :, :, iq), wfint_eval( :, iq), wfint_transform( :, :, iq))
+      end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+      deallocate( rptl, hamilton)
+    
+      return
+    end subroutine wfint_interpolate_eigsys
+    !EOC
+
+!--------------------------------------------------------------------------------------
+    
+    !BOP
+    ! !ROUTINE: wfint_interpolate_occupancy
+    ! !INTERFACE:
+    !
+    subroutine wfint_interpolate_occupancy
+      ! !USES:
+      use mod_eigenvalue_occupancy, only: occmax
+      use mod_charge_and_moment, only: chgval
+      ! !DESCRIPTION:
+      !   Calclulates the interpolated occupation numbers for the wannierized bands and
+      !   interpolated Fermi energy.
+      !
+      ! !REVISION HISTORY:
+      !   Created July 2017 (SeTi)
+      !EOP
+      !BOC
+
+      integer, parameter :: maxit = 1000
+      
+      integer :: iq, ist, nvm, it
+      real(8) :: e0, e1, fermidos, chg, x, t1
+      
+      real(8) :: sdelta, stheta
+    
+      allocate( wfint_occ( wf_fst:wf_lst, wfint_kset%nkpt))
+
+      if( input%groundstate%stypenumber .ge. 0 ) then
+        t1 = 1.d0/input%groundstate%swidth
+        nvm = nint( chgval/occmax)
+        if( (wf_fst .ne. 1) .or. (nvm .ge. wf_lst)) then
+          write( *, '("Error (wfint_interpolate_occupancy): Please wannierize all occupied and at least one unoccupied band for the calculation of occupation numbers.")')
+          call terminate
+        end if
+        ! check for insulator or semiconductor
+        e0 = maxval( wfint_eval( nvm, :))
+        e1 = minval( wfint_eval( nvm+1, :))
+        wfint_efermi = 0.5*(e0 + e1)
+    
+        fermidos = 0.d0
+        chg = 0.d0
+#ifdef USEOMP                
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ist, x) reduction(+: chg, fermidos)
+!$OMP DO  
+#endif
+        do iq = 1, wfint_kset%nkpt
+          do ist = wf_fst, wf_lst
+            x = (wfint_eval( ist, iq) - wfint_efermi)*t1
+            fermidos = fermidos + wfint_kset%wkpt( iq)*sdelta( input%groundstate%stypenumber, x)*t1
+            wfint_occ( ist, iq) = occmax*stheta( input%groundstate%stypenumber, -x)
+            chg = chg + wfint_kset%wkpt( iq)*wfint_occ( ist, iq)
+          end do
+        end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+        fermidos = fermidos+occmax
+        if( (e1 .ge. e0) .and. (abs( chg - chgval) .lt. input%groundstate%epsocc)) then
+        !  write( *, '("Info (wannier_interpolate_occupancy): System has gap. Simplistic method used in determining efermi and occupation")')
+        else
+        ! metal found
+          e0 = wfint_eval( 1, 1)
+          e1 = e0
+          do ist = wf_fst, wf_lst
+            e0 = min( e0, minval( wfint_eval( ist, :)))
+            e1 = max( e1, maxval( wfint_eval( ist, :)))
+          end do
+    
+          it = 0
+          do while( it .lt. maxit)
+            wfint_efermi = 0.5*(e0 + e1)
+            chg = 0.d0
+#ifdef USEOMP                
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ist, x) reduction(+: chg)
+!$OMP DO  
+#endif
+            do iq = 1, wfint_kset%nkpt
+              do ist = wf_fst, wf_lst
+                x = (wfint_efermi - wfint_eval( ist, iq))*t1
+                wfint_occ( ist, iq) = occmax*stheta( input%groundstate%stypenumber, x)
+                chg = chg + wfint_kset%wkpt( iq)*wfint_occ( ist, iq)
+              end do
+            end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+            if( chg .lt. chgval) then
+              e0 = wfint_efermi
+            else
+              e1 = wfint_efermi
+            end if
+            if( (e1-e0) .lt. input%groundstate%epsocc) then
+              it = maxit+1
+            else
+              it = it + 1
+            end if
+          end do
+        end if
+        if( it .eq. maxit) then
+          write( *, '("Error (wfint_interpolate_occupancy): Fermi energy could not be found.")')
+          call terminate
+        end if
+      else
+        write( *, '("Error (wfint_interpolate_occupancy): Not implemented for this stype.")')
+        call terminate
+      end if
+    
+      return
+    end subroutine wfint_interpolate_occupancy
+    !EOC
+
+!--------------------------------------------------------------------------------------
+    
+    !BOP
+    ! !ROUTINE: wfint_interpolate_occupancy
+    ! !INTERFACE:
+    !
+    subroutine wfint_interpolate_density
+      ! !USES:
+      ! !DESCRIPTION:
+      !   Calclulates the interpolated occupation numbers for the wannierized bands and
+      !   interpolated Fermi energy.
+      !
+      ! !REVISION HISTORY:
+      !   Created July 2017 (SeTi)
+      !EOP
+      !BOC
+
+      integer :: ik, iq, igk, ir, irc, tp, ist, jst, is, ia, ias
+      integer :: tpr2r( lmmaxvr, nrcmtmax)
+
+      real(8), allocatable :: rhomt_int(:,:,:), rhoir_int(:)
+      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), wfmtlm(:,:)
+      real(8), allocatable :: auxmat(:,:)
+      complex(8), allocatable :: auxten(:,:,:)
+      complex(8), allocatable :: wfir(:,:), wfmt(:,:)
+      complex(8), allocatable :: wanfmt(:,:,:,:), wanfir(:,:,:)
+      complex(8), allocatable :: phiqmt(:,:), phiqir(:,:), wfqmt(:,:), wfqir(:,:)
+      
+      ir = 1
+      do tp = 1, lmmaxvr
+        do irc = 1, nrcmtmax
+          ir = ir + 1
+          tpr2r( tp, irc) = ir
+        end do
+      end do
+
+      call wfint_interpolate_occupancy
+
+      call readstate
+      call readfermi
+      call linengy
+      call genapwfr
+      call genlofr
+      call olprad
+      
+      allocate( evecfv( nmatmax, nstfv, nspnfv))
+      allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
+      allocate( wfmtlm( lmmaxvr, nrcmtmax))
+      allocate( wfir( wf_Gset%ngrtot, wf_fst:wf_lst))
+      allocate( wfmt( lmmaxvr*nrcmtmax, wf_fst:wf_lst))
+      allocate( wanfmt( lmmaxvr*nrcmtmax, wf_fst:wf_lst, wf_kset%nkpt, natmtot))
+      allocate( wanfir( wf_Gset%ngrtot, wf_fst:wf_lst, wf_kset%nkpt))
+      allocate( auxten( lmmaxvr, nrcmtmax, wf_fst:wf_lst))
+      
+      wanfmt = zzero
+      wanfir = zzero
+
+      do ik = 1, wf_kset%nkpt
+        write(*,*) ik
+        ! get matching coefficients
+        call match( wf_Gkset%ngk( 1, ik), wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm( :, :, :, :, 1))
+          
+        ! read eigenvector      
+        if( input%properties%wannier%input .eq. "groundstate") then
+          call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
+        else if( input%properties%wannier%input .eq. "hybrid") then
+          call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
+        else if( input%properties%wannier%input .eq. "gw") then
+          call getevecsvgw_new( "GW_EVECSV.OUT", ik, wf_kset%vkl( :, ik), nmatmax, nstfv, nspnfv, evecfv)
+        else
+          call terminate
+        end if
+        
+        do is = 1, nspecies
+          do ia = 1, natoms( is)
+            ias = idxas( ia, is)
+#ifdef USEOMP                
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ist, wfmtlm)
+!$OMP DO  
+#endif
+            do ist = wf_fst, wf_lst
+              call wavefmt( input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, wf_Gkset%ngk( 1, ik), &
+                   apwalm, evecfv( :, ist, 1), lmmaxvr, wfmtlm( :, :))
+              call zgemm( 'N', 'N', lmmaxvr, nrcmt( is), lmmaxvr, zone, &
+                   zbshtvr, lmmaxvr, &
+                   wfmtlm( :, 1:nrcmt( is)), lmmaxvr, zzero, &
+                   auxten( :, 1:nrcmt( is), ist), lmmaxvr)
+            end do
+#ifdef USEOMP                
+!$OMP END DO  
+!$OMP END PARALLEL
+#endif
+            do tp = 1, lmmaxvr
+              do irc = 1, nrcmt( is)
+                wfmt( tpr2r( tp, irc), :) = auxten( tp, irc, :)
+              end do
+            end do
+
+#ifdef USEOMP                
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ir)
+!$OMP DO  
+#endif
+            do ir = 1, wf_kset%nkpt
+              call zgemm( 'N', 'N', lmmaxvr*nrcmtmax, wf_nst, wf_nst, conjg( wfint_pkr( ik, ir))/wf_kset%nkpt, &
+                   wfmt, lmmaxvr*nrcmtmax, &
+                   wf_transform( :, :, ik), wf_nst, zone, &
+                   wanfmt( :, :, ir, ias), lmmaxvr*nrcmtmax)
+            end do
+#ifdef USEOMP                
+!$OMP END DO  
+!$OMP END PARALLEL
+#endif
+          end do
+        end do
+
+        wfir = zzero
+        do ist = wf_fst, wf_lst
+          do igk = 1, wf_Gkset%ngk( 1, ik)
+            wfir( igfft( wf_Gkset%igkig( igk, 1, ik)), ist) = evecfv( igk, ist, 1)
+          end do
+          call zfftifc( 3, ngrid, 1, wfir( :, ist))
+        end do
+
+#ifdef USEOMP                
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ir)
+!$OMP DO  
+#endif
+        do ir = 1, wf_kset%nkpt
+          call zgemm( 'N', 'N', wf_Gset%ngrtot, wf_nst, wf_nst, conjg( wfint_pkr( ik, ir))/wf_kset%nkpt, &
+               wfir, wf_Gset%ngrtot, &
+               wf_transform( :, :, ik), wf_nst, zone, &
+               wanfir( :, :, ir), wf_Gset%ngrtot)
+        end do
+#ifdef USEOMP                
+!$OMP END DO  
+!$OMP END PARALLEL
+#endif
+
+      end do
+      
+      deallocate( evecfv, apwalm, wfmtlm, auxten)
+
+      allocate( rhomt_int( lmmaxvr, nrmtmax, natmtot))
+      allocate( rhoir_int( wf_Gset%ngrtot))
+      rhomt_int = zzero
+      rhoir_int = zzero
+
+      allocate( phiqmt( lmmaxvr*nrcmtmax, wf_fst:wf_lst))
+      allocate( wfqmt( lmmaxvr*nrcmtmax, wf_fst:wf_lst))
+      allocate( phiqir( wf_Gset%ngrtot, wf_fst:wf_lst))
+      allocate( wfqir( wf_Gset%ngrtot, wf_fst:wf_lst))
+      allocate( auxmat( lmmaxvr, nrcmtmax))
+
+      write(*,*) 1.d0*sizeof( wanfmt)/1024/1024/1024
+      write(*,*) 1.d0*sizeof( wanfir)/1024/1024/1024
+
+      do iq = 1, wfint_kset%nkpt
+        write(*,*) iq
+        do is = 1, nspecies
+          do ia =1,  natoms( is)
+            ias = idxas( ia, is)
+            phiqmt = zzero
+            do ir = 1, wf_kset%nkpt
+              phiqmt(:,:) = phiqmt(:,:) + wfint_pqr( iq, ir)*wanfmt( :, :, ir, ias)
+            end do
+            call zgemm( 'N', 'N', lmmaxvr*nrcmtmax, wf_nst, wf_nst, zone, &
+                 phiqmt, lmmaxvr*nrcmtmax, &
+                 wfint_transform( :, :, iq), wf_nst, zzero, &
+                 wfqmt, lmmaxvr*nrcmtmax)
+            auxmat = 0.d0
+            do ist = wf_fst, wf_lst
+              do tp = 1, lmmaxvr
+                do irc = 1, nrcmt( is)
+                  auxmat( tp, irc) = auxmat( tp, irc) + wfint_kset%wkpt( iq)*wfint_occ( ist, iq)*(real( wfqmt( tpr2r( tp, irc), ist))**2 + aimag( wfqmt( tpr2r( tp, irc), ist))**2)
+                end do
+              end do
+            end do
+#ifdef USEOMP                
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ir, irc)
+!$OMP DO  
+#endif
+            do ir = 1, nrmt( is), input%groundstate%lradstep
+              irc = 1 + (ir-1)/input%groundstate%lradstep
+              call dgemv( 'N', lmmaxvr, lmmaxvr, 1.d0, &
+                   rfshtvr, lmmaxvr, &
+                   auxmat( :, irc), 1, 1.d0, &
+                   rhomt_int( :, ir, ias), 1)
+            end do
+#ifdef USEOMP                
+!$OMP END DO  
+!$OMP END PARALLEL
+#endif
+
+          end do
+        end do
+
+        phiqir = zzero
+        do ir = 1, wf_kset%nkpt
+          phiqir = phiqir + wfint_pqr( iq, ir)*wanfir( :, :, ir)
+        end do
+        call zgemm( 'N', 'N', wf_Gset%ngrtot, wf_nst, wf_nst, zone, &
+             phiqir, wf_Gset%ngrtot, &
+             wfint_transform( :, :, iq), wf_nst, zzero, &
+             wfqir, wf_Gset%ngrtot)
+        do ist = wf_fst, wf_lst
+          do ir = 1, wf_Gset%ngrtot
+            rhoir_int( ir) = rhoir_int( ir) + wfint_kset%wkpt( iq)*wfint_occ( ist, iq)*(real( wfqir( ir, ist))**2 + aimag( wfqir( ir, ist))**2)/omega
+          end do
+        end do
+
+      end do
+
+      rhomt = rhomt_int
+      rhoir = rhoir_int
+
+      deallocate( rhomt_int, rhoir_int, phiqmt, phiqir, wfqmt, wfqir, auxmat)
+
+      !call symrf( input%groundstate%lradstep, rhomt, rhoir)
+      call addrhocr
+      call charge
+
+      write(*,'(100F13.6)') chgmt
+      write(*,'(F13.6)') chgir
+      write(*,'(F13.6)') chgcalc
+      write(*,'(F13.6)') chgtot
+
+      call rhonorm
+
+      write(*,'(100F13.6)') chgmt
+      write(*,'(F13.6)') chgir
+      write(*,'(F13.6)') chgcalc
+      write(*,'(F13.6)') chgtot
+      
+    end subroutine wfint_interpolate_density
+    !EOC
+
+!--------------------------------------------------------------------------------------
+
+    subroutine wfint_interpolate_me( mein, meout)
+      complex(8), intent( in) :: mein( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt)
+      complex(8), intent( out) :: meout( wf_fst:wf_lst, wf_fst:wf_lst, wfint_kset%nkpt)
+
+      integer :: ir, ik, iq
+      complex(8), allocatable :: or(:,:,:), oqwan(:,:), ou(:,:), uou(:,:)
+
+      allocate( or( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt))
+
+      or = zzero
+#ifdef USEOMP                
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, ir, ou, uou), reduction(+:or)
+#endif
+      allocate( ou( wf_fst:wf_lst, wf_fst:wf_lst))
+      allocate( uou( wf_fst:wf_lst, wf_fst:wf_lst))
+#ifdef USEOMP                
+!$OMP DO  
+#endif
+      do ik = 1, wf_kset%nkpt
+        call zgemm( 'N', 'N', wf_nst, wf_nst, wf_nst, zone, &
+             mein( :, :, ik), wf_nst, &
+             wf_transform( :, :, ik), wf_nst, zzero, &
+             ou, wf_nst)
+        call zgemm( 'C', 'N', wf_nst, wf_nst, wf_nst, zone, &
+             wf_transform( :, :, ik), wf_nst, &
+             ou, wf_nst, zzero, &
+             uou, wf_nst)
+        do ir = 1, wf_kset%nkpt
+          or( :, :, ir) = or( :, :, ir) + uou(:,:)*conjg( wfint_pkr( ik, ir))/wf_kset%nkpt
+        end do
+      end do
+#ifdef USEOMP                
+!$OMP END DO  
+#endif
+      deallocate( ou, uou)
+#ifdef USEOMP                
+!$OMP END PARALLEL
+#endif
+
+#ifdef USEOMP                
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ir, ou, oqwan)
+#endif
+      allocate( ou( wf_fst:wf_lst, wf_fst:wf_lst))
+      allocate( oqwan( wf_fst:wf_lst, wf_fst:wf_lst))
+#ifdef USEOMP                
+!$OMP DO  
+#endif
+      do iq = 1, wfint_kset%nkpt
+        oqwan = zzero 
+        do ir = 1, wf_kset%nkpt
+          oqwan(:,:) = oqwan(:,:) + or( :, :, ir)*wfint_pqr( iq, ir)
+        end do
+        call zgemm( 'N', 'N', wf_nst, wf_nst, wf_nst, zone, &
+             oqwan, wf_nst, &
+             wfint_transform( :, :, iq), wf_nst, zzero, &
+             ou, wf_nst)
+        call zgemm( 'C', 'N', wf_nst, wf_nst, wf_nst, zone, &
+             wfint_transform( :, :, iq), wf_nst, &
+             ou, wf_nst, zzero, &
+             meout( :, :, iq), wf_nst)
+      end do
+#ifdef USEOMP                
+!$OMP END DO  
+#endif
+      deallocate( ou, oqwan)
+#ifdef USEOMP                
+!$OMP END PARALLEL
+#endif
+
+      deallocate( or)
+
+    end subroutine wfint_interpolate_me
+
+!--------------------------------------------------------------------------------------
+! helper functions
+
+    subroutine wfint_putwfmt( ik, ias, wfmttp)
+      use m_getunit
+    
+      integer, intent( in) :: ik, ias
+      complex(8), intent( in) :: wfmttp( lmmaxvr, nrcmtmax, wf_fst:wf_lst)
+    
+      integer :: un, recl, offset
+      character(256) :: filename
+    
+      inquire( iolength=recl) wf_kset%vkl( :, ik), ias, wf_fst, wf_lst, lmmaxvr, nrcmtmax, natmtot, wfmttp
+    
+      filename = 'WANNIER_WFMT.TMP'
+      call getunit( un)
+      open( un, file=filename, action='write', form='unformatted', access='direct', recl=recl)
+      offset = (ik-1)*natmtot + ias
+      write( un, rec=offset) wf_kset%vkl( :, ik), ias, wf_fst, wf_lst, lmmaxvr, nrcmtmax, natmtot, wfmttp
+      close( un)
+    
+      return
+    end subroutine wfint_putwfmt
+    
+    subroutine wfint_putwfir( ik, wfir)
+      use m_getunit
+    
+      integer, intent( in) :: ik
+      complex(8), intent( in) :: wfir( wf_Gset%ngrtot, wf_fst:wf_lst)
+    
+      integer :: un, recl
+      character(256) :: filename
+    
+      inquire( iolength=recl) wf_kset%vkl( :, ik), wf_fst, wf_lst, wf_Gset%ngrtot, wfir
+    
+      filename = 'WANNIER_WFIR.TMP'
+      call getunit( un)
+      open( un, file=filename, action='write', form='unformatted', access='direct', recl=recl)
+      write( un, rec=ik) wf_kset%vkl( :, ik), wf_fst, wf_lst, wf_Gset%ngrtot, wfir
+      close( un)
+    
+      return
+    end subroutine wfint_putwfir
+    
+    subroutine wfint_getwfmt( ik, ias, wfmttp)
+      use m_getunit
+    
+      integer, intent( in) :: ik, ias
+      complex(8), intent( out) :: wfmttp( lmmaxvr*nrcmtmax, wf_fst:wf_lst)
+    
+      integer :: i, un, recl, offset, fst, lst, ias_, lmmaxvr_, nrcmtmax_, natmtot_
+      real(8) :: vl(3)
+      character(256) :: filename
+      logical :: exist
+    
+      inquire( iolength=recl) wf_kset%vkl( :, ik), ias, wf_fst, wf_lst, lmmaxvr, nrcmtmax, natmtot, wfmttp
+    
+      filename = 'WANNIER_WFMT.TMP'
+      call getunit( un)
+    
+      do i = 1, 100
+        inquire( file=filename, exist=exist)
+        if( exist) then
+          open( un, file=filename, action='read', form='unformatted', access='direct', recl=recl)
+          exit
+        else
+          call system( 'sync')
+          write(*,*) "Waiting for other process to write"
+          call sleep( 1)
+        end if
+      end do
+    
+      offset = (ik-1)*natmtot + ias
+      read( un, rec=offset) vl, ias_, fst, lst, lmmaxvr_, nrcmtmax_, natmtot_, wfmttp
+      if( norm2( vl - wf_kset%vkl( :, ik)) .gt. input%structure%epslat) then
+        write(*, '("Error (wannier_getwfir): differing vectors for k-point ",I8)') ik
+        Write (*, '(" current	   : ", 3G18.10)') wf_kset%vkl (:, ik)
+        Write (*, '(" WANNIER_WFMT.TMP : ", 3G18.10)') vl
+        Write (*, '(" file	  : ", a      )') filename
+        stop
+      end if
+      if( (fst .ne. wf_fst) .or. (lst .ne. wf_lst)) then
+        write(*, '("Error (wannier_getwfir): invalid band ranges")')
+        Write (*, '(" current	   : ", 2I8)') wf_fst, wf_lst
+        Write (*, '(" WANNIER_WFMT.TMP : ", 2I8)') fst, lst
+        Write (*, '(" file	  : ", a      )') filename
+        stop
+      end if
+      if( ias_ .ne. ias) then
+        write(*, '("Error (wannier_getwfir): differing atom-index")')
+        Write (*, '(" current	   : ", I8)') ias
+        Write (*, '(" WANNIER_WFMT.TMP : ", I8)') ias_
+        Write (*, '(" file	  : ", a      )') filename
+        stop
+      end if
+      if( nrcmtmax_ .ne. nrcmtmax) then
+        write(*, '("Error (wannier_getwfir): invalid number of radial points")')
+        Write (*, '(" current	   : ", I8)') nrcmtmax
+        Write (*, '(" WANNIER_WFMT.TMP : ", I8)') nrcmtmax_
+        Write (*, '(" file	  : ", a      )') filename
+        stop
+      end if
+      if( lmmaxvr_ .ne. lmmaxvr) then
+        write(*, '("Error (wannier_getwfir): invalid number of angular points")')
+        Write (*, '(" current	   : ", I8)') lmmaxvr
+        Write (*, '(" WANNIER_WFMT.TMP : ", I8)') lmmaxvr_
+        Write (*, '(" file	  : ", a      )') filename
+        stop
+      end if
+      if( natmtot_ .ne. natmtot) then
+        write(*, '("Error (wannier_getwfir): invalid number of atoms")')
+        Write (*, '(" current	   : ", I8)') natmtot
+        Write (*, '(" WANNIER_WFMT.TMP : ", I8)') natmtot_
+        Write (*, '(" file	  : ", a      )') filename
+        stop
+      end if
+      close( un)
+    
+      return
+    end subroutine wfint_getwfmt
+    
+    subroutine wfint_getwfir( ik, wfir)
+      use m_getunit
+    
+      integer, intent( in) :: ik
+      complex(8), intent( out) :: wfir( wf_Gset%ngrtot, wf_fst:wf_lst)
+    
+      integer :: i, un, recl, fst, lst, ng
+      real(8) :: vl(3)
+      character(256) :: filename
+      logical :: exist
+    
+      inquire( iolength=recl) wf_kset%vkl( :, ik), wf_fst, wf_lst, wf_Gset%ngrtot, wfir
+    
+      filename = 'WANNIER_WFIR.TMP'
+      call getunit( un)
+    
+      do i = 1, 100
+        inquire( file=filename, exist=exist)
+        if( exist) then
+          open( un, file=filename, action='read', form='unformatted', access='direct', recl=recl)
+          exit
+        else
+          call system( 'sync')
+          write(*,*) "Waiting for other process to write"
+          call sleep( 1)
+        end if
+      end do
+    
+      open( un, file=filename, action='read', form='unformatted', access='direct', recl=recl)
+      read( un, rec=ik) vl, fst, lst, ng, wfir
+      if( norm2( vl - wf_kset%vkl( :, ik)) .gt. input%structure%epslat) then
+        write(*, '("Error (wannier_getwfir): differing vectors for k-point ",I8)') ik
+        Write (*, '(" current	   : ", 3G18.10)') wf_kset%vkl (:, ik)
+        Write (*, '(" WANNIER_WFIR.TMP : ", 3G18.10)') vl
+        Write (*, '(" file	  : ", a      )') filename
+        stop
+      end if
+      if( (fst .ne. wf_fst) .or. (lst .ne. wf_lst)) then
+        write(*, '("Error (wannier_getwfir): invalid band ranges")')
+        Write (*, '(" current	   : ", 2I8)') wf_fst, wf_lst
+        Write (*, '(" WANNIER_WFIR.TMP : ", 2I8)') fst, lst
+        Write (*, '(" file	  : ", a      )') filename
+        stop
+      end if
+      if( ng .ne. wf_Gset%ngrtot) then
+        write(*, '("Error (wannier_getwfir): invalid number of spatial points")')
+        Write (*, '(" current	   : ", I8)') wf_Gset%ngrtot
+        Write (*, '(" WANNIER_WFIR.TMP : ", I8)') ng
+        Write (*, '(" file	  : ", a      )') filename
+        stop
+      end if
+      close( un)
+    
+      return
+    end subroutine wfint_getwfir
+    
+    subroutine wfint_destroywf
+      use m_getunit
+    
+      integer :: un
+      logical :: exist
+    
+      inquire( file='WANNIER_WFMT.TMP', exist=exist)
+      if( exist) then
+        call getunit( un)
+        open( un, file='WANNIER_WFMT.TMP')
+        close( un, status='delete')
+      end if
+    
+      inquire( file='WANNIER_WFIR.TMP', exist=exist)
+      if( exist) then
+        call getunit( un)
+        open( un, file='WANNIER_WFIR.TMP')
+        close( un, status='delete')
+      end if
+    
+      return
+    end subroutine wfint_destroywf
+
+end module mod_wfint

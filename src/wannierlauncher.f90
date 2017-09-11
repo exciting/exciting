@@ -6,9 +6,19 @@ subroutine wannierlauncher
     call wannier_init
     if( input%properties%wannier%method .eq. "pro") then
       call wannier_gen_pro
+    else if( input%properties%wannier%method .eq. "prowan") then
+      call wannier_projonwan
+      call wannier_gen_pro
     else if( input%properties%wannier%method .eq. "opf") then
       call wannier_gen_opf
+    else if( input%properties%wannier%method .eq. "opfwan") then
+      call wannier_projonwan
+      call wannier_gen_opf
     else if( input%properties%wannier%method .eq. "promax") then
+      call wannier_gen_pro
+      call wannier_maxloc
+    else if( input%properties%wannier%method .eq. "prowanmax") then
+      call wannier_projonwan
       call wannier_gen_pro
       call wannier_maxloc
     else if( input%properties%wannier%method .eq. "opfmax") then

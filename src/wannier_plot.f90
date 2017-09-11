@@ -14,16 +14,15 @@ subroutine wannier_plot( ist, cell)
     ! input/output
     integer, intent(in) :: ist, cell(3)
     ! local variables
-    integer :: ip, np, iv, nv, ik, iknr, jst, ngknr
+    integer :: ip, np, iv, nv, ik, iknr, jst
     character(80) :: fname
     integer :: igrid(3)
     real(8) :: boxl(4,3), cellc(3), s, phi, v1(3), v2(3), v3(3)
     complex(8) :: phase
     ! allocatable arrays
-    integer, allocatable :: igkignr(:)
     real(8), allocatable :: vvl(:,:), dist(:)
-    real(8), allocatable :: vgklnr(:,:,:), vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:), vgkltmp(:,:,:,:)
-    complex(8), allocatable :: apwalm(:,:,:,:), sfacgkc(:,:)
+    real(8), allocatable :: vgkltmp(:,:,:,:)
+    complex(8), allocatable :: apwalm(:,:,:,:)
     complex(8), allocatable :: evecfv(:,:)
     complex(8), allocatable :: evecsv(:,:)
     complex(8), allocatable :: wfmt(:,:,:,:,:)
@@ -38,13 +37,9 @@ subroutine wannier_plot( ist, cell)
     input%groundstate%lradstep = 1
     call init0
     call init1    
-    ! read the density and potentials from file
     call readstate
-    ! find the new linearisation energies
     call linengy
-    ! generate the APW radial functions
     call genapwfr
-    ! generate the local-orbital radial functions
     call genlofr
 
     if ((ist<wf_fst) .or. (ist>wf_lst)) then
@@ -107,37 +102,40 @@ subroutine wannier_plot( ist, cell)
     allocate( vgkltmp( 3, ngkmax, nspnfv, nkpt))
 
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, iknr, evecfv, evecsv, apwalm, wfmt, wfir, jst, zdata, phase, igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr, sfacgkc, ngknr) reduction(+:zdatatot)
+!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, iknr, evecfv, evecsv, apwalm, wfmt, wfir, jst, zdata, phase) reduction(+:zdatatot)
 #endif
     allocate( zdata( grid%npt))
     allocate( wfmt( lmmaxapw, nrmtmax, natmtot, nspinor, nstsv))
     allocate( wfir( ngrtot, nspinor, nstsv))
-    allocate( apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
-    allocate( evecfv(nmatmax,nstfv))
-    allocate( evecsv(nstsv,nstsv))
-    allocate( igkignr( ngkmax))
-    allocate( vgklnr( 3, ngkmax, nspnfv), vgkcnr( 3, ngkmax, nspnfv), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
-    allocate( sfacgkc( ngkmax, natmtot))
+    allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot))
+    allocate( evecfv( nmatmax, nstfv))
+    allocate( evecsv( nstsv, nstsv))
 #ifdef USEOMP
-!$OMP DO
+!!$OMP DO
 #endif
-    do iknr = 1, nkptnr
-      call findkpt( vklnr( :, iknr), ip, ik)
+    do iknr = 1, wf_kset%nkpt
+      call findkpt( wf_kset%vkl( :, iknr), ip, ik)
       ! get the eigenvectors and values from file
-      !call getevalsv( vkl(:,ik), evalsv)
-      call gengpvec( vklnr( :, iknr), vkcnr( :, iknr), ngknr, igkignr, vgklnr(:,:,1), vgkcnr(:,:,1), gkcnr, tpgkcnr)
-      call getevecfv( vklnr( :, iknr), vgklnr, evecfv)
-      call getevecsv( vklnr( :, iknr), evecsv)
+      if( input%properties%wannier%input .eq. "groundstate") then
+        call getevecfv( wf_kset%vkl( :, iknr), wf_Gkset%vgkl( :, :, :, iknr), evecfv)
+        call getevecsv( wf_kset%vkl( :, iknr), evecsv)
+      else if( input%properties%wannier%input .eq. "hybrid") then
+        call getevecfv( wf_kset%vkl( :, iknr), wf_Gkset%vgkl( :, :, :, iknr), evecfv)
+        call getevecsv( wf_kset%vkl( :, iknr), evecsv)
+      else if( input%properties%wannier%input .eq. "gw") then
+        call getevecsvgw_new( "GW_EVECSV.OUT", iknr, wf_kset%vkl( :, iknr), nmatmax, nstfv, nspinor, evecfv)
+        call getevecsv( wf_kset%vkl( :, iknr), evecsv)
+      else
+        call terminate
+      end if
       
       ! find the matching coefficients
-      call gensfacgp( ngknr, vgkcnr, ngkmax, sfacgkc)
-      call match( ngknr, gkcnr, tpgkcnr, sfacgkc, apwalm)
-      !call match( ngk(1,ik), gkc(:,1,ik), tpgkc(:,:,1,ik), sfacgk(:,:,1,ik), apwalm)
+      call match( wf_Gkset%ngk( 1, iknr), wf_Gkset%gkc( :, 1, iknr), wf_Gkset%tpgkc( :, :, 1, iknr), wf_Gkset%sfacgk( :, :, 1, iknr), apwalm)
       
       ! calculate the wavefunctions for all states
       call genwfsv_new( ik, 1, nstsv, apwalm, evecfv, evecsv, wfmt, wfir)
       
-      call ws_weight( dble( cell), dble( cell), vklnr( :, iknr), phase, .true.)
+      call ws_weight( dble( cell), dble( cell), wf_kset%vkl( :, iknr), phase, .true.)
 
       do jst = wf_fst, wf_lst
         call calc_zdata_rgrid( grid, iknr, wfmt(:,:,:,1,jst), wfir(:,1,jst), zdata, nosym=.true.)
@@ -145,13 +143,13 @@ subroutine wannier_plot( ist, cell)
       end do
     end do        
 #ifdef USEOMP
-!$OMP END DO 
+!!$OMP END DO 
 #endif
     deallocate( zdata, wfmt, wfir, apwalm, evecfv, evecsv)
 #ifdef USEOMP
-!$OMP END PARALLEL
+!!$OMP END PARALLEL
 #endif
-    zdatatot = zdatatot/nkptnr
+    zdatatot = zdatatot/wf_kset%nkpt
     ! phase correction
     allocate( dist( grid%npt)) 
     phi = 0.d0

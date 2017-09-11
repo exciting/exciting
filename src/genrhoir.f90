@@ -137,6 +137,11 @@ Subroutine genrhoir (ik, evecfv, evecsv)
             End If
          End If
       End Do
+      !write(*,*) ik
+      !write(*,*) ik, ik
+      !write(*,'(3F13.6)') vkl( :, ik)
+      !write(*,'(SP,5F13.6)') rhoir_k( 1:100)
+      !write(*,*)
       Deallocate (zfft)
 !      Call timesec (ts1)
 !$OMP CRITICAL

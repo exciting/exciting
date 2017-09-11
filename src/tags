@@ -2056,8 +2056,11 @@
 100	src_gw/calcbradket.f90	/^    100 format(\/,5x,'Integrals <v_(NL)u_(l1)|u_(l2)> for atom ',I4,", ", &$/;"	l	subroutine:calcbradket	file:
 100	src_gw/calcevalqp.f90	/^                100 format(' Suspicious Znk',' irk=',i4,' ie=',i4, &$/;"	l	subroutine:calcevalqp_gw	file:
 100	src_gw/calcrlamint.f90	/^    100 format("Species : ",I4,", ",A)$/;"	l	subroutine:calcrlamint	file:
+100	src_gw/mod_kpointset.f90	/^        100 format(3E11.4)$/;"	l	subroutine:print_kkqmt_vectors	file:
 100	src_gw/mod_kpointset.f90	/^        100 format(i4,4x,3f8.4,4x,3f8.4,4x,f8.4)$/;"	l	subroutine:print_k_vectors	file:
+100	src_gw/read_dyn-sub.f90	/^  100 CONTINUE$/;"	l	subroutine:load_dynmat_red	file:
 100	src_gw/setumix.f90	/^    100 format(\/,10x,'Mixed basis functions for atom',1x,a10,\/)$/;"	l	subroutine:setumix	file:
+100	src_gw/task_eph.f90	/^    100 format(i4,3x,3f8.4,1x,3f10.6)$/;"	l	subroutine:task_eph	file:
 100	src_libbzint/generictetra.f90	/^  100 format('#wt=',4g16.6)$/;"	l	subroutine:generictetra	file:
 100	src_mixing/lib/Fproject.f90	/^100     deallocate (SYINV, YTG, YPROJ, YT )$/;"	l	function:GBMProject	file:
 100	src_mixing/lib/Fproject.f90	/^100     deallocate(YT, YTG, YPROJ, YYINV,ETA,XI) !,TTT)$/;"	l	function:Fprojmem	file:
@@ -2160,18 +2163,30 @@
 1007	Lbfgsb.3.0/lbfgsb.f	/^ 1007 format (\/, $/;"	l	subroutine:mainlb	file:
 1008	Lbfgsb.3.0/lbfgsb.f	/^ 1008 format (\/, $/;"	l	subroutine:mainlb	file:
 101	src_gw/calcrlamint.f90	/^    101 format(5x,'Radial integrals',\/,13x,'N',3x,'<r^L|v_L>')$/;"	l	subroutine:calcrlamint	file:
+101	src_gw/calcselfeph.f90	/^          101 format(i4,2x,6f15.6)$/;"	l	subroutine:calcselfeph	file:
+101	src_gw/calcspeceph.f90	/^          101 format(i4,2x,6f15.6)$/;"	l	subroutine:calcspeceph	file:
+101	src_gw/mod_kpointset.f90	/^        101 format(3i11)$/;"	l	subroutine:print_kkqmt_vectors	file:
+101	src_gw/mod_kpointset.f90	/^        101 format(3i11)$/;"	l	subroutine:print_km_vectors	file:
 101	src_gw/mod_kpointset.f90	/^        101 format(i6,e16.8)$/;"	l	subroutine:print_k_vectors	file:
+101	src_gw/read_dyn-sub.f90	/^    101 format(A8,i2)$/;"	l	subroutine:read_dyn	file:
 101	src_gw/setumix.f90	/^    101 format(10x,'L =',i2,' Nr. of products:',i4,' Nr. of basis functions',i4)  $/;"	l	subroutine:setumix	file:
 101	src_gw/src_tests/eptest.f90	/^101 format(\/,'Data for q-point nr.:',i4,\/,4x, &$/;"	l	subroutine:eptest	file:
 101	src_gw/src_tests/test_mbrotmat.f90	/^  101 format(10x,'Data for q-point nr.:',i4,\/\/,10x,'Mixed basis:',\/,10x, &$/;"	l	subroutine:test_mbrotmat	file:
+101	src_gw/task_eph.f90	/^  101 format(i4,2x,i4,3x,7f15.6)$/;"	l	subroutine:task_eph	file:
 1010	Lbfgsb.3.0/lbfgsb.f	/^ 1010 format ('Cauchy X =  ',\/,(4x,1p,6(1x,d11.4)))$/;"	l	subroutine:cauchy	file:
 102	src_gw/calcrlamint.f90	/^    102 format(10x,i4,(1pg18.10,1x))$/;"	l	subroutine:calcrlamint	file:
 102	src_gw/mod_kpointset.f90	/^        102 format(i6,4x,3i4,4x,i6,4x,4f10.4)$/;"	l	subroutine:print_G_vectors	file:
+102	src_gw/read_dyn-sub.f90	/^    102 format(A8,i1)$/;"	l	subroutine:read_dyn	file:
 102	src_gw/setumix.f90	/^    102 format(59x,'----',\/,10x,'Total number of radial functions',17x,   &$/;"	l	subroutine:setumix	file:
+102	src_gw/task_eph.f90	/^  102 format(i4,2x,i4,3x,3f15.6)$/;"	l	subroutine:task_eph	file:
 102	src_other/delaunay.f	/^  102 continue$/;"	l	subroutine:trsort	file:
 103	src_gw/mod_kpointset.f90	/^        103 format(i6,2x,i6,4x,3f8.4,4x,3f8.4,4x,f8.4,4x,2f8.4,4x,2f8.4)$/;"	l	subroutine:print_Gk_vectors	file:
+103	src_gw/mod_kpointset.f90	/^        103 format(i6,2x,i6,4x,3f8.4,4x,3f8.4,4x,f8.4,4x,2f8.4,4x,2f8.4)$/;"	l	subroutine:print_Gknr_vectors	file:
+103	src_gw/read_dyn-sub.f90	/^  103 format(' iq = ',3x,i4,'\/',i4,' | q = ( ',3f8.4,' ) ')$/;"	l	subroutine:print_ev3	file:
 103	src_gw/setumix.f90	/^    103 format(26x,'N',3x,'L',2x,'deg.')$/;"	l	subroutine:setumix	file:
+103	src_gw/task_eph.f90	/^  103 format(i4,3x,3f8.4,4x,3f8.4)$/;"	l	subroutine:task_eph	file:
 104	src_gw/mod_kpointset.f90	/^        104 format(i4,4x,3f8.4,4x,3f8.4,4x,f8.4)$/;"	l	subroutine:print_kq_vectors	file:
+104	src_gw/mod_kpointset.f90	/^        104 format(i6,2x,i6)$/;"	l	subroutine:print_Gknr_vectors	file:
 104	src_gw/setumix.f90	/^    104 format(23x,3i4)$/;"	l	subroutine:setumix	file:
 105	LAPACK/clatbs.f	/^  105          CONTINUE$/;"	l	subroutine:CLATBS	file:
 105	LAPACK/clatps.f	/^  105          CONTINUE$/;"	l	subroutine:CLATPS	file:
@@ -2181,6 +2196,7 @@
 105	src_other/delaunay.f	/^  105 continue$/;"	l	subroutine:trsort	file:
 106	src_gw/mod_kpointset.f90	/^        106 format(' ik\/iq |',8i4)      $/;"	l	subroutine:print_kq_vectors	file:
 107	src_gw/mod_kpointset.f90	/^        107 format(i4,'   |',8i4)      $/;"	l	subroutine:print_kq_vectors	file:
+108	src_gw/mod_kpointset.f90	/^        108 format(i4,4x,3i4,4x,3f8.4,4x,3f8.4,4x,f8.4)$/;"	l	subroutine:print_k_vectors	file:
 11	ARPACK/SRC/cneupd.f	/^   11    continue$/;"	l	subroutine:cneupd	file:
 11	ARPACK/SRC/dneupd.f	/^   11    continue$/;"	l	subroutine:dneupd	file:
 11	ARPACK/SRC/dseupd.f	/^   11    continue$/;"	l	subroutine:dseupd	file:
@@ -2615,6 +2631,7 @@
 110	LAPACK/ztrrfs.f	/^  110                CONTINUE$/;"	l	subroutine:ZTRRFS	file:
 110	LAPACK/ztrsyl.f	/^  110       CONTINUE$/;"	l	subroutine:ZTRSYL	file:
 110	Lbfgsb.3.0/linpack.f	/^  110    continue$/;"	l	subroutine:dtrsl	file:
+110	src_gw/mod_kpointset.f90	/^        110 format(i4,4x,i4)$/;"	l	subroutine:print_k_vectors	file:
 110	src_other/delaunay.f	/^  110 continue$/;"	l	subroutine:trsort	file:
 1100	ARPACK/SRC/cnaup2.f	/^ 1100 continue$/;"	l	subroutine:cnaup2	file:
 1100	ARPACK/SRC/cnaupd.f	/^ 1100    format ($/;"	l	subroutine:cnaupd	file:
@@ -6229,6 +6246,7 @@
 2002	LAPACK/dgsvj0.f	/^ 2002                CONTINUE$/;"	l	subroutine:DGSVJ0	file:
 2002	LAPACK/sgesvj.f	/^ 2002                CONTINUE$/;"	l	subroutine:SGESVJ	file:
 2002	LAPACK/sgsvj0.f	/^ 2002                CONTINUE$/;"	l	subroutine:SGSVJ0	file:
+201	src_gw/read_dyn-sub.f90	/^201  CLOSE(1)$/;"	l	subroutine:load_dynmat_red	file:
 2010	LAPACK/dgesvj.f	/^ 2010       CONTINUE$/;"	l	subroutine:DGESVJ	file:
 2010	LAPACK/dgsvj0.f	/^ 2010       CONTINUE$/;"	l	subroutine:DGSVJ0	file:
 2010	LAPACK/dgsvj1.f	/^ 2010       CONTINUE$/;"	l	subroutine:DGSVJ1	file:
@@ -13323,7 +13341,9 @@
 972	LAPACK/sgejsv.f	/^  972          CONTINUE$/;"	l	subroutine:SGEJSV	file:
 973	LAPACK/dgejsv.f	/^  973          CONTINUE$/;"	l	subroutine:DGEJSV	file:
 973	LAPACK/sgejsv.f	/^  973          CONTINUE$/;"	l	subroutine:SGEJSV	file:
+98	src_gw/mod_kpointset.f90	/^        98 format(3i4)$/;"	l	subroutine:print_k_vectors	file:
 99	lbfgs_driver.f90	/^99    continue$/;"	l	subroutine:lbfgs_driver	file:
+99	src_gw/mod_kpointset.f90	/^        99 format(3f8.4)$/;"	l	subroutine:print_k_vectors	file:
 99	src_raman/interpol.f90	/^  99  format(3f14.8)$/;"	l	subroutine:INTERPOL	file:
 9927	ARPACK/UTIL/cvout.f	/^ 9927 FORMAT( 1X, I4, ' - ', I4, ':', 1X,$/;"	l	subroutine:CVOUT	file:
 9927	ARPACK/UTIL/zvout.f	/^ 9927 FORMAT( 1X, I4, ' - ', I4, ':', 1X,$/;"	l	subroutine:ZVOUT	file:
@@ -13488,10 +13508,10 @@ A6	src_raman/mod_raman.f90	/^real(8) :: A0,A1,A2,A3,A4,A5,A6$/;"	v	module:raman_
 ABORT	src_vdwdf/Cuba-3.2/src/common/stddecl.h	86;"	d
 ABS	libXC/src/xc_config.h	30;"	d
 ABS	libXC/src/xc_config.h	6;"	d
-ACLOCAL	libXC/Makefile	/^ACLOCAL = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run aclocal-1.11$/;"	m
-ACLOCAL	libXC/build/Makefile	/^ACLOCAL = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run aclocal-1.11$/;"	m
-ACLOCAL	libXC/src/Makefile	/^ACLOCAL = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run aclocal-1.11$/;"	m
-ACLOCAL	libXC/testsuite/Makefile	/^ACLOCAL = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/build/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/src/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/testsuite/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run aclocal-1.11$/;"	m
 ACLOCAL_AMFLAGS	libXC/Makefile	/^ACLOCAL_AMFLAGS = -I m4$/;"	m
 ACLOCAL_M4	libXC/Makefile	/^ACLOCAL_M4 = $(top_srcdir)\/aclocal.m4$/;"	m
 ACLOCAL_M4	libXC/build/Makefile	/^ACLOCAL_M4 = $(top_srcdir)\/aclocal.m4$/;"	m
@@ -13508,10 +13528,11 @@ ALLOCA	libXC/build/Makefile	/^ALLOCA = $/;"	m
 ALLOCA	libXC/src/Makefile	/^ALLOCA = $/;"	m
 ALLOCA	libXC/testsuite/Makefile	/^ALLOCA = $/;"	m
 AMP	FoX/wxml/m_wxml_escape.F90	/^  integer, parameter :: AMP /;"	v	module:m_wxml_escape
-AMTAR	libXC/Makefile	/^AMTAR = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run tar$/;"	m
-AMTAR	libXC/build/Makefile	/^AMTAR = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run tar$/;"	m
-AMTAR	libXC/src/Makefile	/^AMTAR = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run tar$/;"	m
-AMTAR	libXC/testsuite/Makefile	/^AMTAR = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/build/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/src/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/testsuite/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run tar$/;"	m
+AMU_RY	src_gw/read_dyn-sub.f90	/^  REAL(8),     PARAMETER   :: AMU_RY /;"	v	module:mod_dynmat
 AM_RECURSIVE_TARGETS	libXC/Makefile	/^AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \\$/;"	m
 APOS	FoX/wxml/m_wxml_escape.F90	/^  integer, parameter :: APOS /;"	v	module:m_wxml_escape
 AR	BLAS/Makefile	/^AR = ar$/;"	m
@@ -13545,18 +13566,18 @@ ATT_NOTATION	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_NOTAT
 ATT_NULL	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_NULL /;"	v	module:m_common_element
 ATT_REQUIRED	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_REQUIRED /;"	v	module:m_common_element
 ATT_TYPES	FoX/common/m_common_element.F90	/^  character(len=8), parameter :: ATT_TYPES(/;"	v	module:m_common_element
-AUTOCONF	libXC/Makefile	/^AUTOCONF = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOCONF	libXC/build/Makefile	/^AUTOCONF = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOCONF	libXC/src/Makefile	/^AUTOCONF = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOCONF	libXC/testsuite/Makefile	/^AUTOCONF = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOHEADER	libXC/Makefile	/^AUTOHEADER = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOHEADER	libXC/build/Makefile	/^AUTOHEADER = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOHEADER	libXC/src/Makefile	/^AUTOHEADER = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOHEADER	libXC/testsuite/Makefile	/^AUTOHEADER = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOMAKE	libXC/Makefile	/^AUTOMAKE = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run automake-1.11$/;"	m
-AUTOMAKE	libXC/build/Makefile	/^AUTOMAKE = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run automake-1.11$/;"	m
-AUTOMAKE	libXC/src/Makefile	/^AUTOMAKE = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run automake-1.11$/;"	m
-AUTOMAKE	libXC/testsuite/Makefile	/^AUTOMAKE = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOCONF	libXC/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/build/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/src/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/testsuite/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOHEADER	libXC/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/build/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/src/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/testsuite/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOMAKE	libXC/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/build/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/src/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/testsuite/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run automake-1.11$/;"	m
 AWK	libXC/Makefile	/^AWK = gawk$/;"	m
 AWK	libXC/build/Makefile	/^AWK = gawk$/;"	m
 AWK	libXC/src/Makefile	/^AWK = gawk$/;"	m
@@ -14835,10 +14856,10 @@ FCFLAGS_f90	libXC/build/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/src/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/testsuite/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCLD	libXC/src/Makefile	/^FCLD = $(FC)$/;"	m
-FCLIBS	libXC/Makefile	/^FCLIBS =  -L\/home\/Sebastian\/intel\/\/clck\/3.0.1.030\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/..\/compiler\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/mkl\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/tbb\/lib\/intel64\/gcc4.4 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/lib\/intel64_lin -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/compiler\/lib\/intel64_lin -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib64 -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib64 -L\/usr\/lib\/..\/lib\/ -L\/home\/Sebastian\/intel\/\/clck\/3.0.1.030\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/..\/compiler\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/mkl\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/tbb\/lib\/intel64\/gcc4.4\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/compiler\/lib\/intel64_lin\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib64 -L\/usr\/lib -L\/usr\/lib\/i386-linux-gnu -lifport -lifcore -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
-FCLIBS	libXC/build/Makefile	/^FCLIBS =  -L\/home\/Sebastian\/intel\/\/clck\/3.0.1.030\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/..\/compiler\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/mkl\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/tbb\/lib\/intel64\/gcc4.4 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/lib\/intel64_lin -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/compiler\/lib\/intel64_lin -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib64 -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib64 -L\/usr\/lib\/..\/lib\/ -L\/home\/Sebastian\/intel\/\/clck\/3.0.1.030\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/..\/compiler\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/mkl\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/tbb\/lib\/intel64\/gcc4.4\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/compiler\/lib\/intel64_lin\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib64 -L\/usr\/lib -L\/usr\/lib\/i386-linux-gnu -lifport -lifcore -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
-FCLIBS	libXC/src/Makefile	/^FCLIBS =  -L\/home\/Sebastian\/intel\/\/clck\/3.0.1.030\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/..\/compiler\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/mkl\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/tbb\/lib\/intel64\/gcc4.4 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/lib\/intel64_lin -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/compiler\/lib\/intel64_lin -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib64 -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib64 -L\/usr\/lib\/..\/lib\/ -L\/home\/Sebastian\/intel\/\/clck\/3.0.1.030\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/..\/compiler\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/mkl\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/tbb\/lib\/intel64\/gcc4.4\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/compiler\/lib\/intel64_lin\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib64 -L\/usr\/lib -L\/usr\/lib\/i386-linux-gnu -lifport -lifcore -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
-FCLIBS	libXC/testsuite/Makefile	/^FCLIBS =  -L\/home\/Sebastian\/intel\/\/clck\/3.0.1.030\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/..\/compiler\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/mkl\/lib\/intel64 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/tbb\/lib\/intel64\/gcc4.4 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/lib\/intel64_lin -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/compiler\/lib\/intel64_lin -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib64 -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib64 -L\/usr\/lib\/..\/lib\/ -L\/home\/Sebastian\/intel\/\/clck\/3.0.1.030\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/..\/compiler\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/ipp\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/compiler\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/mkl\/lib\/intel64\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/tbb\/lib\/intel64\/gcc4.4\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/compiler\/lib\/intel64_lin\/ -L\/home\/Sebastian\/intel\/compilers_and_libraries_2016.0.109\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.7\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib64 -L\/usr\/lib -L\/usr\/lib\/i386-linux-gnu -lifport -lifcore -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/Makefile	/^FCLIBS =  -L\/home1\/Sebastian\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/Sebastian\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/build/Makefile	/^FCLIBS =  -L\/home1\/Sebastian\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/Sebastian\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/src/Makefile	/^FCLIBS =  -L\/home1\/Sebastian\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/Sebastian\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/testsuite/Makefile	/^FCLIBS =  -L\/home1\/Sebastian\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/Sebastian\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/Sebastian\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
 FCLINK	libXC/src/Makefile	/^FCLINK = $(LIBTOOL) --mode=link --tag=F77 $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \\$/;"	m
 FC_FUNC	libXC/config.h	27;"	d
 FC_FUNC_	libXC/config.h	30;"	d
@@ -15213,10 +15234,10 @@ Lower	src_vdwdf/Cuba-3.2/src/divonne/Split.c	18;"	d	file:
 LowerBound	src_mixing/lib/LimitDMIX.F90	/^        real*8 LowerBound,/;"	v
 M	FoX/utils/fox_m_utils_mtprng.F90	/^    integer(INT32), parameter :: M /;"	v	module:fox_m_utils_mtprng
 MAKE	Makefile	/^MAKE = make$/;"	m
-MAKEINFO	libXC/Makefile	/^MAKEINFO = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run makeinfo$/;"	m
-MAKEINFO	libXC/build/Makefile	/^MAKEINFO = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run makeinfo$/;"	m
-MAKEINFO	libXC/src/Makefile	/^MAKEINFO = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run makeinfo$/;"	m
-MAKEINFO	libXC/testsuite/Makefile	/^MAKEINFO = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/build/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/src/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/testsuite/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run makeinfo$/;"	m
 MANIFEST_TOOL	libXC/Makefile	/^MANIFEST_TOOL = :$/;"	m
 MANIFEST_TOOL	libXC/build/Makefile	/^MANIFEST_TOOL = :$/;"	m
 MANIFEST_TOOL	libXC/src/Makefile	/^MANIFEST_TOOL = :$/;"	m
@@ -15523,6 +15544,8 @@ ROUTINE	src_vdwdf/Cuba-3.2/src/vegas/Vegas.c	10;"	d	file:
 RS	libXC/src/util.h	100;"	d
 RTDELTA	src_vdwdf/Cuba-3.2/src/divonne/FindMinimum.c	14;"	d	file:
 RTEPS	src_vdwdf/Cuba-3.2/src/divonne/FindMinimum.c	10;"	d	file:
+RY_TO_CMM1	src_gw/read_dyn-sub.f90	/^  REAL(8),     PARAMETER   :: RY_TO_CMM1 /;"	v	module:mod_dynmat
+RY_TO_THZ	src_gw/read_dyn-sub.f90	/^  REAL(8),     PARAMETER   :: RY_TO_THZ /;"	v	module:mod_dynmat
 RanluxGet	src_vdwdf/Cuba-3.2/src/common/Random.c	/^static void RanluxGet(This *t, real *x)$/;"	f	file:
 RanluxIni	src_vdwdf/Cuba-3.2/src/common/Random.c	/^static inline void RanluxIni(This *t)$/;"	f	file:
 RanluxInt	src_vdwdf/Cuba-3.2/src/common/Random.c	/^static inline int RanluxInt(This *t, count n)$/;"	f	file:
@@ -15687,10 +15710,10 @@ SGTTRF	LAPACK/sgttrf.f	/^      SUBROUTINE SGTTRF(/;"	s
 SGTTRS	LAPACK/sgttrs.f	/^      SUBROUTINE SGTTRS(/;"	s
 SGTTS2	LAPACK/sgtts2.f	/^      SUBROUTINE SGTTS2(/;"	s
 SHARPEDGES	src_vdwdf/Cuba-3.2/src/common/stddecl.h	71;"	d
-SHELL	libXC/Makefile	/^SHELL = \/bin\/sh$/;"	m
-SHELL	libXC/build/Makefile	/^SHELL = \/bin\/sh$/;"	m
-SHELL	libXC/src/Makefile	/^SHELL = \/bin\/sh$/;"	m
-SHELL	libXC/testsuite/Makefile	/^SHELL = \/bin\/sh$/;"	m
+SHELL	libXC/Makefile	/^SHELL = \/bin\/bash$/;"	m
+SHELL	libXC/build/Makefile	/^SHELL = \/bin\/bash$/;"	m
+SHELL	libXC/src/Makefile	/^SHELL = \/bin\/bash$/;"	m
+SHELL	libXC/testsuite/Makefile	/^SHELL = \/bin\/bash$/;"	m
 SHGEQZ	LAPACK/shgeqz.f	/^      SUBROUTINE SHGEQZ(/;"	s
 SHIFT	src_raman/shift.f90	/^subroutine SHIFT(/;"	s
 SHM_ONLY	src_vdwdf/Cuba-3.2/src/common/stddecl.h	137;"	d
@@ -16250,6 +16273,8 @@ SolveEqs	src_vdwdf/Cuba-3.2/src/divonne/Split.c	/^static inline void SolveEqs(Cu
 SomeCut	src_vdwdf/Cuba-3.2/src/divonne/Split.c	/^static void SomeCut(This *t, Cut *cut, Bounds *b)$/;"	f	file:
 SpectralFunctionPlot	src_inputparser/inputmodules.f90	/^  type(SpectralFunctionPlot_/;"	k	type:selfenergy_type
 SpectralFunctionPlot_type	src_inputparser/inputmodules.f90	/^type SpectralFunctionPlot_type$/;"	t	module:modinput
+SpectralFunctionPloteph	src_inputparser/inputmodules.f90	/^  type(SpectralFunctionPloteph_/;"	k	type:selfenergyeph_type
+SpectralFunctionPloteph_type	src_inputparser/inputmodules.f90	/^type SpectralFunctionPloteph_type$/;"	t	module:modinput
 Split	src_vdwdf/Cuba-3.2/src/divonne/Split.c	/^static void Split(This *t, ccount iregion)$/;"	f	file:
 Sq	src_vdwdf/Cuba-3.2/demo/demo-c.c	/^static inline double Sq(double x) {$/;"	f	file:
 Sq	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^static inline real Sq(creal x) {$/;"	f
@@ -18077,22 +18102,22 @@ abort	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  jmp_buf abort;$/;"	m	struct:_this
 abort	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  jmp_buf abort;$/;"	m	struct:_this
 abort1	src_vdwdf/Cuba-3.2/src/common/stddecl.h	117;"	d
 abort2	src_vdwdf/Cuba-3.2/src/common/stddecl.h	118;"	d
-abs_builddir	libXC/Makefile	/^abs_builddir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC$/;"	m
-abs_builddir	libXC/build/Makefile	/^abs_builddir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/build$/;"	m
-abs_builddir	libXC/src/Makefile	/^abs_builddir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/src$/;"	m
-abs_builddir	libXC/testsuite/Makefile	/^abs_builddir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/testsuite$/;"	m
-abs_srcdir	libXC/Makefile	/^abs_srcdir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC$/;"	m
-abs_srcdir	libXC/build/Makefile	/^abs_srcdir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/build$/;"	m
-abs_srcdir	libXC/src/Makefile	/^abs_srcdir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/src$/;"	m
-abs_srcdir	libXC/testsuite/Makefile	/^abs_srcdir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/testsuite$/;"	m
-abs_top_builddir	libXC/Makefile	/^abs_top_builddir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC$/;"	m
-abs_top_builddir	libXC/build/Makefile	/^abs_top_builddir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC$/;"	m
-abs_top_builddir	libXC/src/Makefile	/^abs_top_builddir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC$/;"	m
-abs_top_builddir	libXC/testsuite/Makefile	/^abs_top_builddir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/Makefile	/^abs_top_srcdir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/build/Makefile	/^abs_top_srcdir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/src/Makefile	/^abs_top_srcdir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/testsuite/Makefile	/^abs_top_srcdir = \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC$/;"	m
+abs_builddir	libXC/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
+abs_builddir	libXC/build/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/build$/;"	m
+abs_builddir	libXC/src/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/src$/;"	m
+abs_builddir	libXC/testsuite/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/testsuite$/;"	m
+abs_srcdir	libXC/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
+abs_srcdir	libXC/build/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/build$/;"	m
+abs_srcdir	libXC/src/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/src$/;"	m
+abs_srcdir	libXC/testsuite/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/testsuite$/;"	m
+abs_top_builddir	libXC/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
+abs_top_builddir	libXC/build/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
+abs_top_builddir	libXC/src/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
+abs_top_builddir	libXC/testsuite/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/build/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/src/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/testsuite/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
 ac	spacegroup/modmain.f90	/^real(8) ab,ac,/;"	v	module:modmain
 ac	spacegroup/modspacegroup.f90	/^real(8)::ab, ac,/;"	v	module:modspacegroup
 ac	spacegroup/sginputmodule.f90	/^ real(8)::ac$/;"	k	type:lattice_type
@@ -18312,6 +18337,7 @@ am_libxc_la_OBJECTS	libXC/src/Makefile	/^am_libxc_la_OBJECTS = $(am__objects_1) 
 am_xc_consistency_OBJECTS	libXC/testsuite/Makefile	/^am_xc_consistency_OBJECTS = xc_consistency-xc-consistency.$(OBJEXT)$/;"	m
 am_xc_get_data_OBJECTS	libXC/testsuite/Makefile	/^am_xc_get_data_OBJECTS = xc_get_data-xc-get_data.$(OBJEXT)$/;"	m
 am_xc_regression_OBJECTS	libXC/testsuite/Makefile	/^am_xc_regression_OBJECTS = xc_regression-xc-regression.$(OBJEXT)$/;"	m
+amass	src_gw/read_dyn-sub.f90	/^  REAL   (8),  ALLOCATABLE :: amass /;"	v	module:mod_dynmat
 ampl	src_inputparser/inputmodules.f90	/^ real(8)::ampl$/;"	k	type:dfthalfparam_type
 angavsc0	src_xs/angavsc0.F90	/^Subroutine angavsc0 /;"	s
 angular_averaging	src_gw/angular_averaging.f90	/^subroutine angular_averaging(/;"	s
@@ -18372,12 +18398,16 @@ as_fn_success	src_vdwdf/Cuba-3.2/configure	/^as_fn_success () { as_fn_return 0; 
 as_fn_unset	src_vdwdf/Cuba-3.2/configure	/^as_fn_unset ()$/;"	f
 as_func_failure	FoX/configure	/^as_func_failure () {$/;"	f
 as_func_failure	libXC/configure	/^as_func_failure () {$/;"	f
+as_func_failure	libXC/configure.lineno	/^as_func_failure () {$/;"	f
 as_func_ret_failure	FoX/configure	/^as_func_ret_failure () {$/;"	f
 as_func_ret_failure	libXC/configure	/^as_func_ret_failure () {$/;"	f
+as_func_ret_failure	libXC/configure.lineno	/^as_func_ret_failure () {$/;"	f
 as_func_ret_success	FoX/configure	/^as_func_ret_success () {$/;"	f
 as_func_ret_success	libXC/configure	/^as_func_ret_success () {$/;"	f
+as_func_ret_success	libXC/configure.lineno	/^as_func_ret_success () {$/;"	f
 as_func_success	FoX/configure	/^as_func_success () {$/;"	f
 as_func_success	libXC/configure	/^as_func_success () {$/;"	f
+as_func_success	libXC/configure.lineno	/^as_func_success () {$/;"	f
 at1	src_inputparser/inputmodules.f90	/^ integer::at1$/;"	k	type:gw_type
 at2	src_inputparser/inputmodules.f90	/^ integer::at2$/;"	k	type:gw_type
 atom	atom.f90	/^Subroutine atom /;"	s
@@ -18563,6 +18593,7 @@ ax_cv_f90_modext	libXC/testsuite/Makefile	/^ax_cv_f90_modext = mod$/;"	m
 axangsu2	src_lib/axangsu2.f90	/^Subroutine axangsu2 /;"	s
 axis	mod_plotlabels.f90	/^        type(axisd/;"	k	type:plotlabels
 axis	src_inputparser/inputmodules.f90	/^ character(512)::axis$/;"	k	type:SpectralFunctionPlot_type
+axis	src_inputparser/inputmodules.f90	/^ character(512)::axis$/;"	k	type:SpectralFunctionPloteph_type
 axisdesc	mod_plotlabels.f90	/^    type axisdesc$/;"	t	module:modplotlabels
 b	libXC/src/gga_x_hjs.c	/^  const FLOAT *a, *b; \/* pointers to the a and b parameters *\/$/;"	m	struct:__anon3	file:
 b	libXC/src/gga_x_optx.c	/^  FLOAT a, b, gamma;$/;"	m	struct:__anon18	file:
@@ -18833,6 +18864,8 @@ builddir	libXC/src/Makefile	/^builddir = .$/;"	m
 builddir	libXC/testsuite/Makefile	/^builddir = .$/;"	m
 building	FoX/common/m_common_struct.F90	/^    logical :: building /;"	k	type:xml_doc_state
 bvec	mod_lattice.F90	/^      Real (8) :: bvec /;"	v	module:mod_lattice
+bvec	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: bvec(/;"	k	type:G_set
+bvec	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: bvec(/;"	k	type:k_set
 bxcir	mod_potential_and_density.F90	/^      Real (8), Allocatable :: bxcir /;"	v	module:mod_potential_and_density
 bxcmt	mod_potential_and_density.F90	/^      Real (8), Allocatable :: bxcmt /;"	v	module:mod_potential_and_density
 bxnl	src_hybrids/mod_hybrids.f90	/^    complex(8), allocatable :: bxnl(/;"	v	module:mod_hybrids
@@ -18945,7 +18978,9 @@ calcselfcSR	src_gw/calcselfcSR.f90	/^subroutine calcselfcSR(/;"	s
 calcselfcSR_k	src_gw/calcselfcSR.f90	/^    subroutine calcselfcSR_k(/;"	s	subroutine:calcselfcSR
 calcselfc_cohsex	src_gw/calcselfc_cohsex.f90	/^subroutine calcselfc_cohsex(/;"	s
 calcselfc_freqconv	src_gw/calcselfc_freqconv.f90	/^subroutine calcselfc_freqconv(/;"	s
+calcselfeph	src_gw/calcselfeph.f90	/^subroutine calcselfeph(/;"	s
 calcselfx	src_gw/calcselfx.f90	/^subroutine calcselfx(/;"	s
+calcspeceph	src_gw/calcspeceph.f90	/^subroutine calcspeceph(/;"	s
 calctildeg	src_gw/calctildeg.f90	/^      subroutine calctildeg(/;"	s
 calculate_preconditioner	src_iterative_solver/SclControlModule.F90	/^      Function calculate_preconditioner /;"	f	module:sclcontroll
 calcupdatevectors	src_iterative_solver/src_diis/calcupdatevector.F90	/^Subroutine calcupdatevectors /;"	s
@@ -18966,6 +19001,7 @@ cat_logfiles	src_gw/cat_logfiles.f90	/^subroutine cat_logfiles(/;"	s
 cauchy	Lbfgsb.3.0/lbfgsb.f	/^      subroutine cauchy(/;"	s
 cbin_t	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^typedef const bin_t cbin_t;$/;"	t
 cbin_t	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^typedef const bin_t cbin_t;$/;"	t
+cbm	src_gw/modgw.f90	/^    real   (8) :: efnew, cbm$/;"	v	module:modgw
 cbool	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^typedef const bool cbool;$/;"	t
 cc	libXC/src/gga_x_htbs.c	/^static FLOAT cc[6];$/;"	v	file:
 cc	libXC/src/gga_x_pw86.c	/^  FLOAT aa, bb, cc;$/;"	m	struct:__anon19	file:
@@ -18977,6 +19013,7 @@ cdd	ARPACK/EXAMPLES/NONSYM/dndrv5.f	/^      Complex*16         $/;"	v	program:dn
 cdd	ARPACK/EXAMPLES/NONSYM/dndrv6.f	/^      Complex*16         $/;"	v	program:dndrv6
 cdd	ARPACK/EXAMPLES/NONSYM/sndrv5.f	/^      Complex         $/;"	v	program:sndrv5
 cdd	ARPACK/EXAMPLES/NONSYM/sndrv6.f	/^      Complex         $/;"	v	program:sndrv6
+cdiagh2	src_gw/read_dyn-sub.f90	/^subroutine cdiagh2 /;"	s
 cdl	ARPACK/EXAMPLES/NONSYM/dndrv5.f	/^     &                  cdd(maxn), cdl(/;"	v	program:dndrv5
 cdl	ARPACK/EXAMPLES/NONSYM/dndrv6.f	/^     &                  cdd(maxn), cdl(/;"	v	program:dndrv6
 cdl	ARPACK/EXAMPLES/NONSYM/sndrv5.f	/^     &                  cdd(maxn), cdl(/;"	v	program:sndrv5
@@ -19072,6 +19109,7 @@ checkinput	checkinput.F90	/^subroutine checkinput$/;"	s
 checkinput_stm	src_stm/checkinput_stm.F90	/^Subroutine checkinput_stm(/;"	s
 checkmbrot	src_gw/src_tests/checkmbrot.f90	/^subroutine checkmbrot(/;"	s
 checkmt	checkmt.f90	/^Subroutine checkmt$/;"	s
+checkwanint	checkwanint.f90	/^Subroutine checkwanint(/;"	s
 chemicalSymbol	src_inputparser/inputmodules.f90	/^ character(512)::chemicalSymbol$/;"	k	type:species_type
 chemicalSymbol	src_inputparser/speciesmodules.f90	/^ character(1024)::chemicalSymbol$/;"	k	type:sp_type
 chgcalc	mod_charge_and_moment.F90	/^      Real (8) :: chgcalc$/;"	v	module:mod_charge_and_moment
@@ -19521,6 +19559,7 @@ ddot	Lbfgsb.3.0/blas.f	/^      double precision function ddot(/;"	f
 de	src_raman/mod_raman.f90	/^real(8), allocatable :: e1(:),e2(:),e3(:),de(/;"	v	module:raman_ew
 deband	src_inputparser/inputmodules.f90	/^ real(8)::deband$/;"	k	type:groundstate_type
 debug	src_inputparser/inputmodules.f90	/^ logical::debug$/;"	k	type:gw_type
+debugeph	src_inputparser/inputmodules.f90	/^ logical::debugeph$/;"	k	type:eph_type
 declared	FoX/common/m_common_attrs.F90	/^    logical :: declared /;"	k	type:dict_item
 declared_element	FoX/common/m_common_element.F90	/^  function declared_element(/;"	f	module:m_common_element
 decmp2	src_other/delaunay.f	/^      subroutine decmp2(/;"	s
@@ -19547,9 +19586,13 @@ delete_gaunt_coefficients	src_gw/mod_gaunt_coefficients.f90	/^    subroutine del
 delete_init1_variables	src_gw/init_kqpoint_set.f90	/^    subroutine delete_init1_variables(/;"	s	subroutine:init_kqpoint_set
 delete_k_bzintw	src_gw/mod_bzintw.f90	/^    subroutine delete_k_bzintw(/;"	s	module:mod_bzintw
 delete_k_vectors	src_gw/mod_kpointset.f90	/^    subroutine delete_k_vectors(/;"	s	module:mod_kpointset
+delete_kkqmt_vectors	src_gw/mod_kpointset.f90	/^    subroutine delete_kkqmt_vectors(/;"	s	module:mod_kpointset
+delete_km_vectors	src_gw/mod_kpointset.f90	/^    subroutine delete_km_vectors(/;"	s	module:mod_kpointset
 delete_kq_bzintw	src_gw/mod_bzintw.f90	/^    subroutine delete_kq_bzintw(/;"	s	module:mod_bzintw
 delete_kq_vectors	src_gw/mod_kpointset.f90	/^    subroutine delete_kq_vectors(/;"	s	module:mod_kpointset
+delete_p_vectors	src_gw/mod_kpointset.f90	/^    subroutine delete_p_vectors(/;"	s	module:mod_kpointset
 delete_product_basis	src_gw/mod_product_basis.f90	/^    subroutine delete_product_basis(/;"	s	module:mod_product_basis
+delete_q_vectors	src_gw/mod_kpointset.f90	/^    subroutine delete_q_vectors(/;"	s	module:mod_kpointset
 delete_rgrid	mod_rgrid.f90	/^  subroutine delete_rgrid(/;"	s	module:mod_rgrid
 delete_selfenergy	src_gw/mod_selfenergy.f90	/^    subroutine delete_selfenergy$/;"	s	module:mod_selfenergy
 delete_warnings	warning.f90	/^subroutine delete_warnings(/;"	s
@@ -19934,6 +19977,9 @@ dvp1d	mod_plotting.F90	/^      Real (8), Allocatable :: dvp1d /;"	v	module:mod_p
 dvq	src_gw/mod_kqpts.f90	/^    integer(4) :: dvq$/;"	v	module:mod_kqpts
 dx	src_vdwdf/Cuba-3.2/src/divonne/FindMinimum.c	/^typedef struct { real dx, f; } Point;$/;"	m	struct:__anon35	file:
 dyndiag	src_phonon/dyndiag.f90	/^Subroutine dyndiag /;"	s
+dyndiag2	src_gw/read_dyn-sub.f90	/^subroutine dyndiag2 /;"	s
+dynmat	src_gw/read_dyn-sub.f90	/^  COMPLEX(8),  ALLOCATABLE :: dynmat /;"	v	module:mod_dynmat
+dynmatD	src_gw/read_dyn-sub.f90	/^  COMPLEX(8),  ALLOCATABLE :: dynmatD /;"	v	module:mod_dynmat
 dynqtor	src_phonon/dynqtor.f90	/^Subroutine dynqtor /;"	s
 dynrtoq	src_phonon/dynrtoq.f90	/^Subroutine dynrtoq /;"	s
 dynsym	src_phonon/dynsym.f90	/^Subroutine dynsym /;"	s
@@ -19976,6 +20022,7 @@ ef	src_libbzint/polyhedron.f90	/^      real(8) :: ef /;"	v	module:polyhedron
 efermi	mod_eigenvalue_occupancy.F90	/^      Real (8) :: efermi$/;"	v	module:mod_eigenvalue_occupancy
 eferqp	src_gw/mod_selfenergy.f90	/^    real(8) :: eferqp$/;"	v	module:mod_selfenergy
 effmass	effmass.f90	/^Subroutine effmass$/;"	s
+efnew	src_gw/modgw.f90	/^    real   (8) :: efnew,/;"	v	module:modgw
 eigen	src_raman/mod_raman.f90	/^real(8), allocatable :: eigen(/;"	v	module:raman_ew
 eigenvalues	src_eigensystem/modfvsystem.f90	/^        complex(8), pointer :: eigenvalues(/;"	k	type:HermitianMatrix
 eigenvaluessp	src_eigensystem/modfvsystem.f90	/^        complex(4), pointer :: eigenvaluessp(/;"	k	type:HermitianMatrix
@@ -20105,6 +20152,8 @@ env	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	character*16 env$/;"	v	program:Cub
 eof	FoX/sax/m_sax_xml_source.F90	/^    logical :: eof /;"	k	type:xml_source_t
 eos	eos/eos.f90	/^program eos$/;"	p
 epcouple	src_phonon/epcouple.f90	/^Subroutine epcouple$/;"	s
+eph	src_inputparser/inputmodules.f90	/^  type(eph_/;"	k	type:input_type
+eph_type	src_inputparser/inputmodules.f90	/^type eph_type$/;"	t	module:modinput
 eps	src_raman/mod_raman.f90	/^real(8), parameter :: eps /;"	v	module:raman_params
 eps	src_vdwdf/modules.f90	/^   real*8, parameter   :: eps /;"	v	module:param
 eps0	libXC/src/lda_c_1d_loos.c	/^static FLOAT kappa, eta0, eta1, eps0, eps1;$/;"	v	file:
@@ -20183,6 +20232,7 @@ escape_string	FoX/wxml/m_wxml_escape.F90	/^  function escape_string(/;"	f	module
 escape_string_len	FoX/wxml/m_wxml_escape.F90	/^  pure function escape_string_len(/;"	f	module:m_wxml_escape
 esccut	species/modspecies.F90	/^real(8) :: esccut$/;"	v	module:modspecies
 eta	src_inputparser/inputmodules.f90	/^ real(8)::eta$/;"	k	type:SpectralFunctionPlot_type
+eta	src_inputparser/inputmodules.f90	/^ real(8)::eta$/;"	k	type:SpectralFunctionPloteph_type
 eta0	libXC/src/lda_c_1d_loos.c	/^static FLOAT kappa, eta0, eta1, eps0, eps1;$/;"	v	file:
 eta1	libXC/src/lda_c_1d_loos.c	/^static FLOAT kappa, eta0, eta1, eps0, eps1;$/;"	v	file:
 eta_refreq	src_libbzint/tetra_internal.f90	/^      real(8) :: eta_refreq=/;"	v	module:tetra_internal
@@ -20190,6 +20240,7 @@ etol	src_inputparser/inputmodules.f90	/^ real(8)::etol$/;"	k	type:shg_type
 etx	src_gw/cutoffs.f90	/^      real(8), private :: etx /;"	v	module:incgamma
 etype	eos/modmain.f90	/^integer etype$/;"	v	module:modmain
 euler	src_lib/euler.f90	/^Subroutine euler /;"	s
+ev	src_gw/read_dyn-sub.f90	/^  REAL   (8),  ALLOCATABLE :: ev /;"	v	module:mod_dynmat
 eval	species/modspecies.F90	/^real(8) spocc(maxspst),eval(/;"	v	module:modspecies
 evalGradients	src_vdwdf/read_gradients.f90	/^subroutine evalGradients(/;"	s
 evalcr	mod_corestate.F90	/^      Real (8), Allocatable :: evalcr /;"	v	module:mod_corestate
@@ -20457,6 +20508,7 @@ final	src_inputparser/inputmodules.f90	/^ integer::final$/;"	k	type:trans_type
 find_eor_eof	FoX/common/m_common_io.F90	/^  subroutine find_eor_eof(/;"	s	module:m_common_io
 find_mt_points	mod_rgrid.f90	/^  subroutine find_mt_points(/;"	s	module:mod_rgrid
 find_stack_direction	libXC/configure	/^find_stack_direction ()$/;"	f
+find_stack_direction	libXC/configure.lineno	/^find_stack_direction ()$/;"	f
 find_vbm_cbm	src_gw/find_vbm_cbm.f90	/^subroutine find_vbm_cbm(/;"	s
 findband	findband.f90	/^Subroutine findband /;"	s
 findgntn0	src_xs/findgntn0.F90	/^      Subroutine findgntn0 /;"	s	module:m_findgntn0
@@ -20640,8 +20692,11 @@ freq	src_gw/modgw.f90	/^    type(frequ/;"	v	module:modgw
 freqconv	src_gw/freqconv.f90	/^complex(8) function freqconv(/;"	f
 freqgrid	src_inputparser/inputmodules.f90	/^  type(freqgrid_/;"	k	type:gw_type
 freqgrid_type	src_inputparser/inputmodules.f90	/^type freqgrid_type$/;"	t	module:modinput
+freqgrideph	src_inputparser/inputmodules.f90	/^  type(freqgrideph_/;"	k	type:eph_type
+freqgrideph_type	src_inputparser/inputmodules.f90	/^type freqgrideph_type$/;"	t	module:modinput
 freqmax	src_gw/mod_frequency.f90	/^        real(8) :: freqmax /;"	k	type:frequency
 freqmax	src_inputparser/inputmodules.f90	/^ real(8)::freqmax$/;"	k	type:freqgrid_type
+freqmaxeph	src_inputparser/inputmodules.f90	/^ real(8)::freqmaxeph$/;"	k	type:freqgrideph_type
 freqs	src_gw/mod_frequency.f90	/^        real(8), allocatable :: freqs(/;"	k	type:frequency
 frequency	src_gw/mod_frequency.f90	/^    type frequency$/;"	t	module:mod_frequency
 frnmha	src_raman/mod_raman.f90	/^real(8), parameter :: frnmha /;"	v	module:raman_params
@@ -20675,19 +20730,27 @@ func	src_libbzint/stweight_numeric.f90	/^      funct/;"	f	subroutine:stweight_nu
 func1	libXC/src/lda_x_1d.c	/^static void func1(FLOAT *x, int n, void *ex)$/;"	f	file:
 func2	libXC/src/lda_x_1d.c	/^static void func2(FLOAT *x, int n, void *ex)$/;"	f	file:
 func_append	libXC/config.status	/^func_append ()\\$/;"	f
+func_append	libXC/config.status.lineno	/^func_append ()\\$/;"	f
 func_append	libXC/configure	/^func_append ()\\$/;"	f
+func_append	libXC/configure.lineno	/^func_append ()\\$/;"	f
 func_append	libXC/libtool	/^func_append ()$/;"	f
 func_append	libXC/ltmain.sh	/^func_append ()$/;"	f
 func_append_quoted	libXC/config.status	/^func_append_quoted ()\\$/;"	f
+func_append_quoted	libXC/config.status.lineno	/^func_append_quoted ()\\$/;"	f
 func_append_quoted	libXC/configure	/^func_append_quoted ()\\$/;"	f
+func_append_quoted	libXC/configure.lineno	/^func_append_quoted ()\\$/;"	f
 func_append_quoted	libXC/libtool	/^func_append_quoted ()$/;"	f
 func_append_quoted	libXC/ltmain.sh	/^func_append_quoted ()$/;"	f
 func_arith	libXC/config.status	/^func_arith ()\\$/;"	f
+func_arith	libXC/config.status.lineno	/^func_arith ()\\$/;"	f
 func_arith	libXC/configure	/^func_arith ()\\$/;"	f
+func_arith	libXC/configure.lineno	/^func_arith ()\\$/;"	f
 func_arith	libXC/libtool	/^func_arith ()$/;"	f
 func_arith	libXC/ltmain.sh	/^func_arith ()$/;"	f
 func_basename	libXC/config.status	/^func_basename ()\\$/;"	f
+func_basename	libXC/config.status.lineno	/^func_basename ()\\$/;"	f
 func_basename	libXC/configure	/^func_basename ()\\$/;"	f
+func_basename	libXC/configure.lineno	/^func_basename ()\\$/;"	f
 func_basename	libXC/libtool	/^func_basename ()$/;"	f
 func_basename	libXC/ltmain.sh	/^func_basename ()$/;"	f
 func_check_version_match	libXC/libtool	/^func_check_version_match ()$/;"	f
@@ -20746,17 +20809,22 @@ func_cygming_ms_implib_p	libXC/ltmain.sh	/^func_cygming_ms_implib_p ()$/;"	f
 func_cygpath	libXC/libtool	/^func_cygpath ()$/;"	f
 func_cygpath	libXC/ltmain.sh	/^func_cygpath ()$/;"	f
 func_dirname	libXC/config.status	/^func_dirname ()\\$/;"	f
+func_dirname	libXC/config.status.lineno	/^func_dirname ()\\$/;"	f
 func_dirname	libXC/configure	/^func_dirname ()\\$/;"	f
+func_dirname	libXC/configure.lineno	/^func_dirname ()\\$/;"	f
 func_dirname	libXC/libtool	/^func_dirname ()$/;"	f
 func_dirname	libXC/ltmain.sh	/^func_dirname ()$/;"	f
 func_dirname_and_basename	libXC/config.status	/^func_dirname_and_basename ()\\$/;"	f
+func_dirname_and_basename	libXC/config.status.lineno	/^func_dirname_and_basename ()\\$/;"	f
 func_dirname_and_basename	libXC/configure	/^func_dirname_and_basename ()\\$/;"	f
+func_dirname_and_basename	libXC/configure.lineno	/^func_dirname_and_basename ()\\$/;"	f
 func_dirname_and_basename	libXC/libtool	/^func_dirname_and_basename ()$/;"	f
 func_dirname_and_basename	libXC/ltmain.sh	/^func_dirname_and_basename ()$/;"	f
 func_eab	libXC/src/gga_c_ft97.c	/^void func_eab(FLOAT mu, int order, FLOAT *eab, FLOAT *deabdmu)$/;"	f
 func_echo	libXC/libtool	/^func_echo ()$/;"	f
 func_echo	libXC/ltmain.sh	/^func_echo ()$/;"	f
 func_echo_all	libXC/configure	/^func_echo_all ()$/;"	f
+func_echo_all	libXC/configure.lineno	/^func_echo_all ()$/;"	f
 func_echo_all	libXC/libtool	/^func_echo_all ()$/;"	f
 func_echo_all	libXC/ltmain.sh	/^func_echo_all ()$/;"	f
 func_emit_cwrapperexe_src	libXC/libtool	/^func_emit_cwrapperexe_src ()$/;"	f
@@ -20779,8 +20847,11 @@ func_extract_archives	libXC/libtool	/^func_extract_archives ()$/;"	f
 func_extract_archives	libXC/ltmain.sh	/^func_extract_archives ()$/;"	f
 func_factor	libXC/src/gga_c_ft97.c	/^void func_factor(FLOAT rs, int order, FLOAT *fa, FLOAT *dfa)$/;"	f
 func_fallback_echo	libXC/config.status	/^func_fallback_echo ()$/;"	f
+func_fallback_echo	libXC/config.status.lineno	/^func_fallback_echo ()$/;"	f
 func_fallback_echo	libXC/configure	/^  func_fallback_echo ()$/;"	f
 func_fallback_echo	libXC/configure	/^func_fallback_echo ()$/;"	f
+func_fallback_echo	libXC/configure.lineno	/^  func_fallback_echo ()$/;"	f
+func_fallback_echo	libXC/configure.lineno	/^func_fallback_echo ()$/;"	f
 func_fallback_echo	libXC/libtool	/^func_fallback_echo ()$/;"	f
 func_fallback_echo	libXC/ltmain.sh	/^func_fallback_echo ()$/;"	f
 func_fatal_configuration	libXC/libtool	/^func_fatal_configuration ()$/;"	f
@@ -20814,11 +20885,15 @@ func_lalib_p	libXC/ltmain.sh	/^func_lalib_p ()$/;"	f
 func_lalib_unsafe_p	libXC/libtool	/^func_lalib_unsafe_p ()$/;"	f
 func_lalib_unsafe_p	libXC/ltmain.sh	/^func_lalib_unsafe_p ()$/;"	f
 func_len	libXC/config.status	/^func_len ()\\$/;"	f
+func_len	libXC/config.status.lineno	/^func_len ()\\$/;"	f
 func_len	libXC/configure	/^func_len ()\\$/;"	f
+func_len	libXC/configure.lineno	/^func_len ()\\$/;"	f
 func_len	libXC/libtool	/^func_len ()$/;"	f
 func_len	libXC/ltmain.sh	/^func_len ()$/;"	f
 func_lo2o	libXC/config.status	/^func_lo2o ()\\$/;"	f
+func_lo2o	libXC/config.status.lineno	/^func_lo2o ()\\$/;"	f
 func_lo2o	libXC/configure	/^func_lo2o ()\\$/;"	f
+func_lo2o	libXC/configure.lineno	/^func_lo2o ()\\$/;"	f
 func_lo2o	libXC/libtool	/^func_lo2o ()$/;"	f
 func_lo2o	libXC/ltmain.sh	/^func_lo2o ()$/;"	f
 func_lt_dump_args	libXC/libtool	/^func_lt_dump_args ()$/;"	f
@@ -20872,18 +20947,25 @@ func_show_eval_locale	libXC/ltmain.sh	/^func_show_eval_locale ()$/;"	f
 func_source	libXC/libtool	/^func_source ()$/;"	f
 func_source	libXC/ltmain.sh	/^func_source ()$/;"	f
 func_split_long_opt	libXC/config.status	/^func_split_long_opt ()\\$/;"	f
+func_split_long_opt	libXC/config.status.lineno	/^func_split_long_opt ()\\$/;"	f
 func_split_long_opt	libXC/configure	/^func_split_long_opt ()\\$/;"	f
+func_split_long_opt	libXC/configure.lineno	/^func_split_long_opt ()\\$/;"	f
 func_split_long_opt	libXC/libtool	/^func_split_long_opt ()$/;"	f
 func_split_long_opt	libXC/ltmain.sh	/^func_split_long_opt ()$/;"	f
 func_split_short_opt	libXC/config.status	/^func_split_short_opt ()\\$/;"	f
+func_split_short_opt	libXC/config.status.lineno	/^func_split_short_opt ()\\$/;"	f
 func_split_short_opt	libXC/configure	/^func_split_short_opt ()\\$/;"	f
+func_split_short_opt	libXC/configure.lineno	/^func_split_short_opt ()\\$/;"	f
 func_split_short_opt	libXC/libtool	/^func_split_short_opt ()$/;"	f
 func_split_short_opt	libXC/ltmain.sh	/^func_split_short_opt ()$/;"	f
 func_stripname	libXC/config.status	/^func_stripname ()\\$/;"	f
+func_stripname	libXC/config.status.lineno	/^func_stripname ()\\$/;"	f
 func_stripname	libXC/configure	/^func_stripname ()\\$/;"	f
+func_stripname	libXC/configure.lineno	/^func_stripname ()\\$/;"	f
 func_stripname	libXC/libtool	/^func_stripname ()$/;"	f
 func_stripname	libXC/ltmain.sh	/^func_stripname ()$/;"	f
 func_stripname_cnf	libXC/configure	/^func_stripname_cnf ()$/;"	f
+func_stripname_cnf	libXC/configure.lineno	/^func_stripname_cnf ()$/;"	f
 func_to_host_file	libXC/libtool	/^func_to_host_file ()$/;"	f
 func_to_host_file	libXC/ltmain.sh	/^func_to_host_file ()$/;"	f
 func_to_host_path	libXC/libtool	/^func_to_host_path ()$/;"	f
@@ -20907,7 +20989,9 @@ func_win32_libid	libXC/ltmain.sh	/^func_win32_libid ()$/;"	f
 func_write_libtool_object	libXC/libtool	/^func_write_libtool_object ()$/;"	f
 func_write_libtool_object	libXC/ltmain.sh	/^func_write_libtool_object ()$/;"	f
 func_xform	libXC/config.status	/^func_xform ()\\$/;"	f
+func_xform	libXC/config.status.lineno	/^func_xform ()\\$/;"	f
 func_xform	libXC/configure	/^func_xform ()\\$/;"	f
+func_xform	libXC/configure.lineno	/^func_xform ()\\$/;"	f
 func_xform	libXC/libtool	/^func_xform ()$/;"	f
 func_xform	libXC/ltmain.sh	/^func_xform ()$/;"	f
 funcs_id	libXC/src/util.c	/^XC(mix_init)(XC(func_type) *p, int n_funcs, const int *funcs_id, const FLOAT *mix_coef)$/;"	v
@@ -20941,6 +21025,7 @@ fxml	FoX/dom/m_dom_parse.f90	/^  type(xml_t), target, save :: fxml$/;"	v	module:
 g	libXC/src/lda_c_2d_amgb.c	/^static FLOAT g[3] = {  0.33997,    6.68467e-2,  0.0       };$/;"	v	file:
 g	libXC/src/lda_c_pw.c	/^static void g(int func, int order, int k, FLOAT *rs, $/;"	f	file:
 g	src_libbzint/stweight_numeric.f90	/^      function g(/;"	f	subroutine:stweight_numeric
+g2eph	src_gw/modgw.f90	/^    real   (8), allocatable :: g2eph /;"	v	module:modgw
 gamm	libXC/src/gga_c_pbe.c	/^static FLOAT gamm[7];$/;"	v	file:
 gamm	libXC/src/gga_x_lb.c	/^  FLOAT gamm;$/;"	m	struct:__anon12	file:
 gamma	libXC/src/gga_k_tflw.c	/^  FLOAT gamma, lambda;$/;"	m	struct:__anon22	file:
@@ -20970,6 +21055,7 @@ gauntyry	src_lib/gauntyry.f90	/^Complex (8) Function gauntyry /;"	f
 gauq_x	src_libbzint/stweight_numeric.f90	/^      subroutine gauq_x(/;"	s	subroutine:stweight_numeric
 gauq_y	src_libbzint/stweight_numeric.f90	/^      subroutine gauq_y(/;"	s	subroutine:stweight_numeric
 gauq_z	src_libbzint/stweight_numeric.f90	/^      subroutine gauq_z(/;"	s	subroutine:stweight_numeric
+gauss_freq	src_gw/calcselfeph.f90	/^function gauss_freq /;"	f
 gaussj	src_gw/src_acfreq/gaussj.f90	/^      subroutine gaussj(/;"	s
 gbas	src_libbzint/kgen_internals.f90	/^      real(8), dimension(3,3) :: gbas /;"	v	module:kgen_internals
 gbass	src_libbzint/gbass.f90	/^      subroutine gbass(/;"	s
@@ -21007,9 +21093,13 @@ generate_Gk_vectors	src_gw/mod_kpointset.f90	/^    subroutine generate_Gk_vector
 generate_freqgrid	src_gw/mod_frequency.f90	/^    subroutine generate_freqgrid(/;"	s	module:mod_frequency
 generate_k_bzintw	src_gw/mod_bzintw.f90	/^    subroutine generate_k_bzintw(/;"	s	module:mod_bzintw
 generate_k_vectors	src_gw/mod_kpointset.f90	/^    subroutine generate_k_vectors(/;"	s	module:mod_kpointset
+generate_kkqmt_vectors	src_gw/mod_kpointset.f90	/^    subroutine generate_kkqmt_vectors(/;"	s	module:mod_kpointset
+generate_km_vectors	src_gw/mod_kpointset.f90	/^    subroutine generate_km_vectors(/;"	s	module:mod_kpointset
 generate_kq_bzintw	src_gw/mod_bzintw.f90	/^    subroutine generate_kq_bzintw(/;"	s	module:mod_bzintw
 generate_kq_vectors	src_gw/mod_kpointset.f90	/^    subroutine generate_kq_vectors(/;"	s	module:mod_kpointset
 generate_nan	FoX/fsys/m_ieee.f90	/^  function generate_nan(/;"	f	module:m_ieee
+generate_p_vectors	src_gw/mod_kpointset.f90	/^    subroutine generate_p_vectors(/;"	s	module:mod_kpointset
+generate_q_vectors	src_gw/mod_kpointset.f90	/^    subroutine generate_q_vectors(/;"	s	module:mod_kpointset
 generate_small_group_q	src_gw/mod_kpointset.f90	/^    subroutine generate_small_group_q(/;"	s	module:mod_kpointset
 generate_uuid	FoX/utils/fox_m_utils_uuid.F90	/^  function generate_uuid(/;"	f	module:fox_m_utils_uuid
 genericfunf	src_libbzint/genericfunf.f90	/^      subroutine genericfunf(/;"	s
@@ -21310,6 +21400,7 @@ getstructLSJ	src_inputparser/inputmodules.f90	/^function getstructLSJ(/;"	f	modu
 getstructOEP	src_inputparser/inputmodules.f90	/^function getstructOEP(/;"	f	module:modinput
 getstructRDMFT	src_inputparser/inputmodules.f90	/^function getstructRDMFT(/;"	f	module:modinput
 getstructSpectralFunctionPlot	src_inputparser/inputmodules.f90	/^function getstructSpectralFunctionPlot(/;"	f	module:modinput
+getstructSpectralFunctionPloteph	src_inputparser/inputmodules.f90	/^function getstructSpectralFunctionPloteph(/;"	f	module:modinput
 getstructTSvdW	src_inputparser/inputmodules.f90	/^function getstructTSvdW(/;"	f	module:modinput
 getstructTSvdWparameters	src_inputparser/inputmodules.f90	/^function getstructTSvdWparameters(/;"	f	module:modinput
 getstructWyckoffPositions	spacegroup/sginputmodule.f90	/^function getstructWyckoffPositions(/;"	f	module:modsymmetries
@@ -21336,12 +21427,14 @@ getstructelfplot	src_inputparser/inputmodules.f90	/^function getstructelfplot(/;
 getstructeliashberg	src_inputparser/inputmodules.f90	/^function getstructeliashberg(/;"	f	module:modinput
 getstructelnes	src_inputparser/inputmodules.f90	/^function getstructelnes(/;"	f	module:modinput
 getstructenergywindow	src_inputparser/inputmodules.f90	/^function getstructenergywindow(/;"	f	module:modinput
+getstructeph	src_inputparser/inputmodules.f90	/^function getstructeph(/;"	f	module:modinput
 getstructexccplot	src_inputparser/inputmodules.f90	/^function getstructexccplot(/;"	f	module:modinput
 getstructexciton	src_inputparser/inputmodules.f90	/^function getstructexciton(/;"	f	module:modinput
 getstructexcitonPlot	src_inputparser/inputmodules.f90	/^function getstructexcitonPlot(/;"	f	module:modinput
 getstructexpiqr	src_inputparser/inputmodules.f90	/^function getstructexpiqr(/;"	f	module:modinput
 getstructfermisurfaceplot	src_inputparser/inputmodules.f90	/^function getstructfermisurfaceplot(/;"	f	module:modinput
 getstructfreqgrid	src_inputparser/inputmodules.f90	/^function getstructfreqgrid(/;"	f	module:modinput
+getstructfreqgrideph	src_inputparser/inputmodules.f90	/^function getstructfreqgrideph(/;"	f	module:modinput
 getstructgradmvecfield	src_inputparser/inputmodules.f90	/^function getstructgradmvecfield(/;"	f	module:modinput
 getstructgroundstate	src_inputparser/inputmodules.f90	/^function getstructgroundstate(/;"	f	module:modinput
 getstructgw	src_inputparser/inputmodules.f90	/^function getstructgw(/;"	f	module:modinput
@@ -21375,6 +21468,7 @@ getstructplot1d	src_inputparser/inputmodules.f90	/^function getstructplot1d(/;"	
 getstructplot2d	src_inputparser/inputmodules.f90	/^function getstructplot2d(/;"	f	module:modinput
 getstructplot3d	src_inputparser/inputmodules.f90	/^function getstructplot3d(/;"	f	module:modinput
 getstructpoint	src_inputparser/inputmodules.f90	/^function getstructpoint(/;"	f	module:modinput
+getstructprojector	src_inputparser/inputmodules.f90	/^function getstructprojector(/;"	f	module:modinput
 getstructproperties	src_inputparser/inputmodules.f90	/^function getstructproperties(/;"	f	module:modinput
 getstructqpointset	src_inputparser/inputmodules.f90	/^function getstructqpointset(/;"	f	module:modinput
 getstructraman	src_inputparser/inputmodules.f90	/^function getstructraman(/;"	f	module:modinput
@@ -21386,6 +21480,7 @@ getstructrelax	src_inputparser/inputmodules.f90	/^function getstructrelax(/;"	f	
 getstructscrcoul	src_inputparser/inputmodules.f90	/^function getstructscrcoul(/;"	f	module:modinput
 getstructscreening	src_inputparser/inputmodules.f90	/^function getstructscreening(/;"	f	module:modinput
 getstructselfenergy	src_inputparser/inputmodules.f90	/^function getstructselfenergy(/;"	f	module:modinput
+getstructselfenergyeph	src_inputparser/inputmodules.f90	/^function getstructselfenergyeph(/;"	f	module:modinput
 getstructshell	src_inputparser/inputmodules.f90	/^function getstructshell(/;"	f	module:modinput
 getstructshg	src_inputparser/inputmodules.f90	/^function getstructshg(/;"	f	module:modinput
 getstructsolver	src_inputparser/inputmodules.f90	/^function getstructsolver(/;"	f	module:modinput
@@ -21473,6 +21568,9 @@ gkc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: gkc(/;"	k	type:Gk
 gkc0	src_xs/modxs.F90	/^      Real (8), Allocatable :: gkc0 /;"	v	module:modxs
 gkcnr	src_gw/mod_kqpts.f90	/^    Real (8), Allocatable :: gkcnr(/;"	v	module:mod_kqpts
 gkmax	mod_gkvector.F90	/^      Real (8) :: gkmax$/;"	v	module:mod_Gkvector
+gkmax	src_gw/mod_kpointset.f90	/^        real(8) :: gkmax /;"	k	type:Gk_set
+gknrc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: gknrc(/;"	k	type:Gk_set
+gmaxvr	src_gw/mod_kpointset.f90	/^        real(8) :: gmaxvr /;"	k	type:G_set
 gmaxvr	src_inputparser/inputmodules.f90	/^ real(8)::gmaxvr$/;"	k	type:groundstate_type
 gmb	src_inputparser/inputmodules.f90	/^ real(8)::gmb$/;"	k	type:mixbasis_type
 gndcheck	gndcheck.f90	/^Subroutine gndcheck$/;"	s
@@ -21737,9 +21835,11 @@ i	species/modspecies.F90	/^in/;"	v	module:modspecies
 i	src_other/delaunay.f	/^      in/;"	v	program:main
 i	src_vdwdf/Cuba-3.2/src/common/Fork.c	/^  number n, m, i;$/;"	m	struct:__anon68	file:
 i	src_vdwdf/Cuba-3.2/src/divonne/Split.c	/^  count i;$/;"	m	struct:__anon45	file:
+i1dnr	src_gw/mod_kpointset.f90	/^        pure function i1dnr(/;"	f	subroutine:ikpik2iqivgnr
 i24	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^      count n24, i24, j24, nskip;$/;"	m	struct:__anon63::__anon64::__anon67
 i2str	portstate.F90	/^      Character (256) Function i2str /;"	f	subroutine:portstate
 i2str	src_xs/i2str.F90	/^Function i2str /;"	f
+i3dnr	src_gw/mod_kpointset.f90	/^        pure function i3dnr(/;"	f	subroutine:ikpik2iqivgnr
 i3mdet	src_lib/i3mdet.f90	/^Integer Function i3mdet /;"	f
 i3minv	src_lib/i3minv.f90	/^Subroutine i3minv /;"	s
 i3mtv	src_lib/i3mtv.f90	/^Subroutine i3mtv /;"	s
@@ -21747,12 +21847,16 @@ i4b	FoX/utils/fox_m_utils_uuid.F90	/^  integer, parameter :: i4b /;"	v	module:fo
 i8b	FoX/utils/fox_m_utils_uuid.F90	/^  integer, parameter :: i8b /;"	v	module:fox_m_utils_uuid
 i_sz	src_gw/mod_coulomb_potential.f90	/^    real(8) :: rccut, i_sz$/;"	v	module:mod_coulomb_potential
 iarti	src_other/delaunay.f	/^      integer ideli, ipnti, iflpi, iarti,/;"	v	program:main
+ibeph	src_gw/modgw.f90	/^    integer(4) :: ibeph /;"	v	module:modgw
+ibeph	src_inputparser/inputmodules.f90	/^ integer::ibeph$/;"	k	type:eph_type
 ibgw	src_gw/modgw.f90	/^    integer(4) :: ibgw$/;"	v	module:modgw
 ibgw	src_inputparser/inputmodules.f90	/^ integer::ibgw$/;"	k	type:gw_type
 ibmax	src_inputparser/inputmodules.f90	/^ integer::ibmax$/;"	k	type:gw_type
 ibmax2	src_inputparser/inputmodules.f90	/^ integer::ibmax2$/;"	k	type:gw_type
 ibmin	src_inputparser/inputmodules.f90	/^ integer::ibmin$/;"	k	type:gw_type
 ibmin2	src_inputparser/inputmodules.f90	/^ integer::ibmin2$/;"	k	type:gw_type
+ibsumeph	src_gw/modgw.f90	/^    integer(4) :: ibsumeph /;"	v	module:modgw
+ibsumeph	src_inputparser/inputmodules.f90	/^ integer::ibsumeph$/;"	k	type:eph_type
 icfig	src_other/delaunay.f	/^      integer nv, nw, nt, nd, naddl, isu, jsu, ksu, nsu, icfig,/;"	v	program:main
 icnteq	ARPACK/UTIL/icnteq.f	/^      integer function icnteq /;"	f
 icon	src_other/delaunay.f	/^      integer icon(/;"	v	program:main
@@ -21921,6 +22025,7 @@ ifparseerrorstop	src_inputparser/modinputdom.f90	/^      Subroutine ifparseerror
 igfft	mod_Gvector.F90	/^      Integer, Allocatable :: igfft /;"	v	module:mod_Gvector
 igfft	src_xs/modxs.F90	/^        integer, pointer :: igfft(/;"	k	type:fftmap_type
 igigk	src_gw/mod_kpointset.f90	/^        integer, allocatable :: igigk(/;"	k	type:Gk_set
+igigknr	src_gw/mod_kpointset.f90	/^        integer, allocatable :: igigknr(/;"	k	type:Gk_set
 igigq	src_gw/mod_product_basis.f90	/^    integer, allocatable :: igigq(/;"	v	module:mod_product_basis
 igigqb	src_gw/mod_kqpts.f90	/^    integer, allocatable :: igigqb(/;"	v	module:mod_kqpts
 igkfft	mod_gkvector.F90	/^      Integer, Allocatable :: igkfft /;"	v	module:mod_Gkvector
@@ -21928,6 +22033,8 @@ igkig	mod_gkvector.F90	/^      Integer, Allocatable :: igkig /;"	v	module:mod_Gk
 igkig	src_gw/mod_kpointset.f90	/^        integer, allocatable :: igkig(/;"	k	type:Gk_set
 igkig0	src_xs/modxs.F90	/^      Integer, Allocatable :: igkig0 /;"	v	module:modxs
 igkignr	src_gw/mod_kqpts.f90	/^    Integer, Allocatable :: igkignr(/;"	v	module:mod_kqpts
+igknrig	src_gw/mod_kpointset.f90	/^        integer, allocatable :: igknrig(/;"	k	type:Gk_set
+igkshift	src_gw/mod_kpointset.f90	/^    subroutine igkshift(/;"	s	module:mod_kpointset
 igmax	src_inputparser/inputmodules.f90	/^ integer::igmax$/;"	k	type:gw_type
 igmin	src_inputparser/inputmodules.f90	/^ integer::igmin$/;"	k	type:gw_type
 ignorableWhitespace	FoX/dom/m_dom_dom.F90	/^    logical :: ignorableWhitespace /;"	k	type:Node
@@ -21940,18 +22047,42 @@ ihyb	src_hybrids/mod_hybrids.f90	/^    integer :: ihyb$/;"	v	module:mod_hybrids
 ii	libXC/src/lda_c_1d_csc.c	/^  int ii;           \/* index in the parameter list *\/$/;"	m	struct:__anon15	file:
 iik	src_inputparser/inputmodules.f90	/^ integer::iik$/;"	k	type:gw_type
 iio	src_libbzint/kgen_internals.f90	/^      integer, allocatable :: iio(/;"	v	module:kgen_internals
+ik2ig	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ik2ig(/;"	k	type:kkqmt_set
+ik2ig_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ik2ig_nr(/;"	k	type:kkqmt_set
+ik2ikm	src_gw/mod_kpointset.f90	/^      integer(4), allocatable :: ik2ikm(/;"	k	type:km_set
+ik2ikm_nr	src_gw/mod_kpointset.f90	/^      integer(4), allocatable :: ik2ikm_nr(/;"	k	type:km_set
 ik2ikp	mod_kpoint.F90	/^      integer(4), allocatable :: ik2ikp(/;"	v	module:mod_kpoint
-ik2ikp	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ik2ikp(/;"	k	type:k_set
+ik2ikp	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ik2ikp(/;"	k	type:k_set
 ik2ikpq	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ik2ikpq(/;"	k	type:kq_set
+ik2ikqmt	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ik2ikqmt(/;"	k	type:kkqmt_set
+ik2ikqmt_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ik2ikqmt_nr(/;"	k	type:kkqmt_set
 ikcbm	src_gw/mod_bands.f90	/^    integer(4) :: ikcbm$/;"	v	module:mod_bands
+ikikp2ig_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikikp2ig_nr(/;"	k	type:p_set
+ikikp2ig_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikikp2ig_nr(/;"	k	type:q_set
+ikikp2ip_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikikp2ip_nr(/;"	k	type:p_set
+ikikp2iq_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikikp2iq_nr(/;"	k	type:q_set
+ikip2ig_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikip2ig_nr(/;"	k	type:p_set
+ikip2ikp_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikip2ikp_nr(/;"	k	type:p_set
+ikiq2ig_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikiq2ig_nr(/;"	k	type:q_set
+ikiq2ikp_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikiq2ikp_nr(/;"	k	type:q_set
+ikkp2ig_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikkp2ig_nr(/;"	k	type:q_set
+ikkp2iq_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikkp2iq_nr(/;"	k	type:q_set
+ikkp_qordered	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikkp_qordered(/;"	k	type:q_set
 ikloff	mod_kpoint.F90	/^      Integer (4) :: ikloff /;"	v	module:mod_kpoint
+ikm2ik	src_gw/mod_kpointset.f90	/^      integer(4), allocatable :: ikm2ik(/;"	k	type:km_set
+ikm2ik_nr	src_gw/mod_kpointset.f90	/^      integer(4), allocatable :: ikm2ik_nr(/;"	k	type:km_set
 ikmap	mod_kpoint.F90	/^      Integer, Allocatable :: ikmap /;"	v	module:mod_kpoint
+ikmap	src_gw/mod_kpointset.f90	/^        integer(4), allocatable ::  ikmap(/;"	k	type:k_set
 ikmapikq	src_xs/modxs.F90	/^      Integer, Allocatable :: ikmapikq /;"	v	module:modxs
 ikmapnr	mod_kpoint.F90	/^      Integer, Allocatable :: ikmapnr /;"	v	module:mod_kpoint
+ikmapnr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable ::  ikmapnr(/;"	k	type:k_set
 ikp2ik	mod_kpoint.F90	/^      integer(4), allocatable :: ikp2ik(/;"	v	module:mod_kpoint
-ikp2ik	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ikp2ik(/;"	k	type:k_set
+ikp2ik	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikp2ik(/;"	k	type:k_set
 ikp2ikq	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ikp2ikq(/;"	k	type:kq_set
 ikpid	src_libbzint/kgen_internals.f90	/^      integer, allocatable  :: ikpid(/;"	v	module:kgen_internals
+ikpik2iqivgnr	src_gw/mod_kpointset.f90	/^    subroutine ikpik2iqivgnr(/;"	s	module:mod_kpointset
+ikqmt2ik	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikqmt2ik(/;"	k	type:kkqmt_set
+ikqmt2ik_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikqmt2ik_nr(/;"	k	type:kkqmt_set
 ikstrmapiknr	src_xs/modxs.F90	/^      Integer, Allocatable :: ikstrmapiknr /;"	v	module:modxs
 iksubmap	src_xs/modxs.F90	/^      Integer, Allocatable :: iksubmap /;"	v	module:modxs
 iksubpt	src_xs/modxs.F90	/^      Integer :: iksubpt$/;"	v	module:modxs
@@ -22122,10 +22253,10 @@ inputnumber	src_inputparser/inputmodules.f90	/^ integer::inputnumber$/;"	k	type:
 insertBefore	FoX/dom/m_dom_dom.F90	/^  function insertBefore(/;"	f	module:m_dom_dom
 insertData	FoX/dom/m_dom_dom.F90	/^  subroutine insertData(/;"	s	module:m_dom_dom
 inspecies	species/modspecies.F90	/^character(256) :: bname,str,apwdescr,apwtype,suffix,inspecies$/;"	v	module:modspecies
-install_sh	libXC/Makefile	/^install_sh = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/install-sh$/;"	m
-install_sh	libXC/build/Makefile	/^install_sh = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/install-sh$/;"	m
-install_sh	libXC/src/Makefile	/^install_sh = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/install-sh$/;"	m
-install_sh	libXC/testsuite/Makefile	/^install_sh = ${SHELL} \/home\/Sebastian\/exciting\/master-exciting\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/build/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/src/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/testsuite/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/install-sh$/;"	m
 install_sh_DATA	libXC/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
 install_sh_DATA	libXC/build/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
 install_sh_DATA	libXC/src/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
@@ -22176,7 +22307,7 @@ intevecpm	src_gw/src_tests/intevecpm.f90	/^      subroutine intevecpm(/;"	s
 intevecpp	src_gw/src_tests/intevecpp.f90	/^      subroutine intevecpp(/;"	s
 intgqv	src_xs/modxs.F90	/^      Integer :: intgqv /;"	v	module:modxs
 intgv	mod_Gvector.F90	/^      Integer :: intgv /;"	v	module:mod_Gvector
-intgv	src_gw/mod_kpointset.f90	/^        integer :: intgv(/;"	k	type:G_set
+intgv	src_gw/mod_kpointset.f90	/^        integer, allocatable :: intgv(/;"	k	type:G_set
 intins	src_other/delaunay.f	/^      subroutine intins(/;"	s
 intnodes	src_libbzint/polyhedron.f90	/^      real(8), dimension(3,20) :: intnodes /;"	v	module:polyhedron
 intraband	src_inputparser/inputmodules.f90	/^ logical::intraband$/;"	k	type:dielmat_type
@@ -22375,6 +22506,7 @@ iregion	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  int iregion;$/;"	m	struct:__an
 irep_ch	src_raman/mod_raman.f90	/^character(4) :: irep_ch(/;"	v	module:raman_symmetry
 iric	src_other/delaunay.f	/^      integer np, i, j, iric,/;"	v	program:main
 irk	src_gw/setrindex.f90	/^    integer(4), allocatable :: irk(/;"	v	module:fouri
+irr2red	src_gw/read_dyn-sub.f90	/^  INTEGER,     ALLOCATABLE :: irr2red /;"	v	module:mod_dynmat
 irsign	src_other/delaunay.f	/^      subroutine irsign(/;"	s
 is	src_other/delaunay.f	/^      integer icon(8,nvmax), is(/;"	v	program:main
 isAbsoluteURI	FoX/utils/fox_m_utils_uri.F90	/^  function isAbsoluteURI(/;"	f	module:fox_m_utils_uri
@@ -22460,6 +22592,7 @@ ishfts	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^     &                 nconv, maxitr, ishf
 ishfts	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 nconv, maxitr, ishfts,/;"	v	program:ssdrv6
 ispacked	src_eigensystem/modfvsystem.f90	/^    Function ispacked /;"	f	module:modfvsystem
 isreadstate0	src_xs/modxs.F90	/^      Logical :: isreadstate0$/;"	v	module:modxs
+isreduced	src_gw/mod_kpointset.f90	/^        logical :: isreduced /;"	k	type:k_set
 isspinorb	src_inputparser/inputmodules.f90	/^function isspinorb(/;"	f	module:modinput
 isspinspiral	src_inputparser/inputmodules.f90	/^function isspinspiral(/;"	f	module:modinput
 ist	species/modspecies.F90	/^integer :: ist,/;"	v	module:modspecies
@@ -22559,6 +22692,7 @@ item_nnm	FoX/dom/m_dom_dom.F90	/^  function item_nnm(/;"	f	module:m_dom_dom
 iter	src_vdwdf/Cuba-3.2/src/divonne/Integrate.c	/^  count phase, iter, pass, size;$/;"	m	struct:__anon36	file:
 iter_dmp_xml	FoX/dom/m_dom_utils.f90	/^  subroutine iter_dmp_xml(/;"	s	module:m_dom_utils
 iterativearpacksecequn	src_iterative_solver/iterativearpacksequn.F90	/^Subroutine iterativearpacksecequn /;"	s
+ityp	src_gw/read_dyn-sub.f90	/^  INTEGER,     ALLOCATABLE :: ityp /;"	v	module:mod_dynmat
 iv	mod_rgrid.f90	/^    integer, allocatable :: iv(/;"	k	type:rgrid
 ivg	mod_Gvector.F90	/^      Integer, Allocatable :: ivg /;"	v	module:mod_Gvector
 ivg	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ivg(/;"	k	type:G_set
@@ -22567,7 +22701,9 @@ ivgig	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ivgig(/;"	k	typ
 ivgigq	src_xs/modxs.F90	/^      Integer, Allocatable :: ivgigq /;"	v	module:modxs
 ivgmt	src_xs/modxs.F90	/^      Integer, Allocatable :: ivgmt /;"	v	module:modxs
 ivk	mod_kpoint.F90	/^      Integer, Allocatable :: ivk /;"	v	module:mod_kpoint
+ivk	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ivk(/;"	k	type:k_set
 ivknr	mod_kpoint.F90	/^      Integer, Allocatable :: ivknr /;"	v	module:mod_kpoint
+ivknr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ivknr(/;"	k	type:k_set
 ivksub	src_xs/modxs.F90	/^      Integer, Allocatable :: ivksub /;"	v	module:modxs
 ivq	mod_qpoint.F90	/^      Integer, Allocatable :: ivq /;"	v	module:mod_qpoint
 ivqr	src_xs/modxs.F90	/^      Integer, Allocatable :: ivqr /;"	v	module:modxs
@@ -22746,6 +22882,7 @@ kir	src_gw/setrindex.f90	/^    integer(4), allocatable :: kir(/;"	v	module:fouri
 kiw	src_gw/mod_bzintw.f90	/^        real(8), allocatable :: kiw(/;"	k	type:k_bzintw
 kiw	src_gw/modgw.f90	/^    real(8), allocatable :: kiw(/;"	v	module:modgw
 kkpmap	src_xs/kkpmap.F90	/^Subroutine kkpmap /;"	s
+kkqmt_set	src_gw/mod_kpointset.f90	/^    type kkqmt_set$/;"	t	module:mod_kpointset
 kl	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^      integer          nev, ncv, kl,/;"	v	program:cnbdr1
 kl	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^      integer          nev, ncv, kl,/;"	v	program:cnbdr2
 kl	ARPACK/EXAMPLES/BAND/cnbdr3.f	/^      integer          nev, ncv, ku, kl,/;"	v	program:cnbdr3
@@ -22779,6 +22916,7 @@ kl	ARPACK/EXAMPLES/BAND/znbdr2.f	/^      integer          nev, ncv, kl,/;"	v	pro
 kl	ARPACK/EXAMPLES/BAND/znbdr3.f	/^      integer          nev, ncv, ku, kl,/;"	v	program:znbdr3
 kl	ARPACK/EXAMPLES/BAND/znbdr4.f	/^      integer          nev, ncv, ku, kl,/;"	v	program:zndrv4
 klinkq	src_libbzint/tetra_internal.f90	/^      integer,pointer:: klinkq(/;"	v	module:tetra_internal
+km_set	src_gw/mod_kpointset.f90	/^    type km_set$/;"	t	module:mod_kpointset
 kndc	ioarray.F90	/^      Integer, Parameter :: kndc /;"	v	module:ioarray
 kndi	ioarray.F90	/^      Integer, Parameter :: kndi /;"	v	module:ioarray
 kndr	ioarray.F90	/^      Integer, Parameter :: kndr /;"	v	module:ioarray
@@ -22795,9 +22933,13 @@ kqgen	src_libbzint/kqgen.f90	/^      subroutine kqgen(/;"	s
 kqgen_exciting	src_xs/modtetra/kqgen_exciting.f90	/^      subroutine kqgen_exciting(/;"	s
 kqid	src_gw/mod_kpointset.f90	/^        integer, allocatable :: kqid(/;"	k	type:kq_set
 kqid	src_gw/mod_kqpts.f90	/^    integer(4), allocatable :: kqid(/;"	v	module:mod_kqpts
+kqmtset	src_gw/mod_kpointset.f90	/^        type(k_set) :: kqmtset$/;"	k	type:kkqmt_set
 kqset	src_gw/modgw.f90	/^    type(kq_set) :: kqset$/;"	v	module:modgw
+kqsetd	src_gw/modgw.f90	/^    type(kkqmt_set) :: kqsetd$/;"	v	module:modgw
 kramkron	src_xs/kramkron.F90	/^Subroutine kramkron /;"	s
 krondelta	mod_constants.F90	/^      Integer, Parameter :: krondelta /;"	v	module:mod_constants
+kset	src_gw/mod_kpointset.f90	/^        type(k_set) :: kset$/;"	k	type:kkqmt_set
+kset	src_gw/mod_kpointset.f90	/^      type(k_set) :: kset$/;"	k	type:km_set
 kset	src_gw/modgw.f90	/^    type(k_set)  :: kset$/;"	v	module:modgw
 ksgap	src_xs/modxs.F90	/^      Logical :: ksgap$/;"	v	module:modxs
 kstlist	src_inputparser/inputmodules.f90	/^  type(kstlist_/;"	k	type:LSJ_type
@@ -23148,6 +23290,8 @@ lo	src_inputparser/speciesmodules.f90	/^type(lo_/;"	k	type:lo_type_array
 lo_type	src_inputparser/speciesmodules.f90	/^type lo_type$/;"	t	module:modspdb
 lo_type_array	src_inputparser/speciesmodules.f90	/^type lo_type_array$/;"	t	module:modspdb
 loa	src_xs/modxs.F90	/^        Complex (8), Allocatable :: loa /;"	k	type:mtints_type
+load_dynmat_red	src_gw/read_dyn-sub.f90	/^SUBROUTINE load_dynmat_red /;"	s
+load_qmesh	src_gw/read_dyn-sub.f90	/^SUBROUTINE load_qmesh /;"	s
 loadinputDOM	src_inputparser/modinputdom.f90	/^      Subroutine loadinputDOM /;"	s	module:inputdom
 loadoldpar	src_vdW/DFT_D2_module.f90	/^  Subroutine loadoldpar(/;"	s	module:DFT_D2_module
 loarray	src_inputparser/speciesmodules.f90	/^  type(lo_type_array),pointer::loarray(/;"	k	type:basis_type
@@ -23430,7 +23574,10 @@ m_sorteval	src_xs/sorteval.F90	/^Module m_sorteval$/;"	m
 m_symvec	src_raman/construct_symvec.f90	/^module m_symvec /;"	m
 m_tabs	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  QTabWidget *m_tabs;$/;"	m	class:PartitionViewer	file:
 m_wannier_interpolate	wannier_interpolate_eval.f90	/^module m_wannier_interpolate$/;"	m
+m_wannier_interpolate_density	wannier_interpolate_density.f90	/^module m_wannier_interpolate_density$/;"	m
 m_wannier_interpolate_eigsys	wannier_interpolate_eigsys.f90	/^module m_wannier_interpolate_eigsys$/;"	m
+m_wannier_interpolate_eigsys2	wannier_interpolate_eigsys2.f90	/^module m_wannier_interpolate_eigsys2$/;"	m
+m_wannier_interpolate_fft	wannier_interpolate_fft.f90	/^module m_wannier_interpolate_fft$/;"	m
 m_wcml_coma	FoX/wcml/m_wcml_coma.F90	/^module m_wcml_coma$/;"	m
 m_wcml_core	FoX/wcml/m_wcml_core.F90	/^module m_wcml_core$/;"	m
 m_wcml_geometry	FoX/wcml/m_wcml_geometry.F90	/^module m_wcml_geometry$/;"	m
@@ -23472,6 +23619,7 @@ main	FoX/config/config.guess	/^main ()$/;"	f
 main	libXC/config.guess	/^		main()$/;"	f
 main	libXC/config.guess	/^	main ()$/;"	f
 main	libXC/config.guess	/^main ()$/;"	f
+main	libXC/configure.lineno	/^main ()$/;"	f
 main	libXC/testsuite/xc-consistency.c	/^int main(int argc, char *argv[])$/;"	f
 main	libXC/testsuite/xc-get_data.c	/^int main(int argc, char *argv[])$/;"	f
 main	libXC/testsuite/xc-regression.c	/^int main(int argc, char *argv[])$/;"	f
@@ -24060,6 +24208,7 @@ mod_corestate	mod_corestate.F90	/^Module mod_corestate$/;"	m
 mod_coulomb_potential	src_gw/mod_coulomb_potential.f90	/^module mod_coulomb_potential$/;"	m
 mod_cube_format	mod_cube_format.f90	/^module mod_cube_format$/;"	m
 mod_dielectric_function	src_gw/mod_dielectric_function.f90	/^module mod_dielectric_function$/;"	m
+mod_dynmat	src_gw/read_dyn-sub.f90	/^MODULE mod_dynmat /;"	m
 mod_eigensystem	mod_eigensystem.F90	/^Module mod_eigensystem$/;"	m
 mod_eigenvalue_occupancy	mod_eigenvalue_occupancy.F90	/^Module mod_eigenvalue_occupancy$/;"	m
 mod_energy	mod_energy.F90	/^Module mod_energy$/;"	m
@@ -24094,6 +24243,7 @@ mod_symmetry	mod_symmetry.F90	/^Module mod_symmetry$/;"	m
 mod_timing	mod_timing.F90	/^Module mod_timing$/;"	m
 mod_vxc	src_gw/src_vxc/mod_vxc.f90	/^module mod_vxc$/;"	m
 mod_wannier	mod_wannier.f90	/^module mod_wannier$/;"	m
+mod_wfint	mod_wannier_interpolate.f90	/^module mod_wfint$/;"	m
 mod_xsf_format	mod_xsf_format.f90	/^module mod_xsf_format$/;"	m
 mode	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^     &                 n, nx, lo, isub, isup, idiag, maxitr, mode,/;"	v	program:cnbdr1
 mode	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^     &                 n, nxi, lo, isub, isup, idiag, maxitr, mode,/;"	v	program:cnbdr2
@@ -24347,6 +24497,9 @@ mx	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 temp(maxn), ax(maxn), m
 mycomm	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm$/;"	v	module:mod_mpi_gw
 mycomm_col	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm_col /;"	v	module:mod_mpi_gw
 mycomm_row	src_gw/mod_mpi_gw.f90	/^    integer :: mycomm_row /;"	v	module:mod_mpi_gw
+myfindkpt	myfindkpt.f90	/^subroutine myfindkpt(/;"	s
+myfindsym	myfindsym.f90	/^subroutine myfindsym(/;"	s
+mygendmat	mygendmat.f90	/^Subroutine mygendmat /;"	s
 mylog2	libXC/testsuite/xc-regression.c	/^static unsigned int mylog2 (unsigned int val) {$/;"	f	file:
 myrank	src_gw/mod_mpi_gw.f90	/^    integer :: myrank /;"	v	module:mod_mpi_gw
 myrank_col	src_gw/mod_mpi_gw.f90	/^    integer :: myrank_col /;"	v	module:mod_mpi_gw
@@ -24478,6 +24631,7 @@ namespaceFixup	FoX/dom/m_dom_dom.F90	/^  recursive subroutine namespaceFixup(/;"
 namespaceNodes	FoX/dom/m_dom_dom.F90	/^    type(NodeList) :: namespaceNodes$/;"	k	type:elementOrAttributeExtras
 namespaceURI	FoX/dom/m_dom_dom.F90	/^    character, pointer :: namespaceURI(/;"	k	type:NodeList
 namespaceURI	FoX/dom/m_dom_dom.F90	/^    character, pointer, dimension(:) :: namespaceURI /;"	k	type:elementOrAttributeExtras
+nat	src_gw/read_dyn-sub.f90	/^  INTEGER :: nat /;"	v	module:mod_dynmat
 natmmax	mod_atoms.F90	/^      Integer :: natmmax$/;"	v	module:mod_atoms
 natmtot	mod_atoms.F90	/^      Integer :: natmtot$/;"	v	module:mod_atoms
 natmtot	spacegroup/modmain.f90	/^integer natmtot$/;"	v	module:modmain
@@ -24492,10 +24646,14 @@ nband	src_libbzint/tetra_internal.f90	/^      integer :: nband /;"	v	module:tetr
 nbandsgw	src_gw/modgw.f90	/^    integer(4) :: nbandsgw$/;"	v	module:modgw
 nbatch	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	integer nstart, nincrease, nbatch,/;"	v	program:CubaTest
 nbatch	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  number nstart, nincrease, nbatch;$/;"	m	struct:_this
+nbeph	src_gw/modgw.f90	/^    integer(4) :: nbeph /;"	v	module:modgw
+nbeph	src_inputparser/inputmodules.f90	/^ integer::nbeph$/;"	k	type:eph_type
 nbfbse	src_xs/modxs.F90	/^      Integer :: nbfbse$/;"	v	module:modxs
 nbfce	src_xs/modxs.F90	/^      Integer :: nbfce$/;"	v	module:modxs
 nbgw	src_gw/modgw.f90	/^    integer(4) :: nbgw$/;"	v	module:modgw
 nbgw	src_inputparser/inputmodules.f90	/^ integer::nbgw$/;"	k	type:gw_type
+nbsumeph	src_gw/modgw.f90	/^    integer(4) :: nbsumeph /;"	v	module:modgw
+nbsumeph	src_inputparser/inputmodules.f90	/^ integer::nbsumeph$/;"	k	type:eph_type
 nbx	ARPACK/SRC/stat.h	/^      integer    nopx, nbx, nrorth, nitref, nrstrt$/;"	v
 nbx	ARPACK/SRC/stat.h	/^     &           nopx, nbx, nrorth, nitref, nrstrt,$/;"	v
 nca	src_xs/mod_exciton_wf.f90	/^  integer, allocatable :: nca(/;"	v	module:mod_exciton_wf
@@ -24688,6 +24846,7 @@ ndim	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  count ndim, ncomp;$/;"	m	struct:_th
 ndim	src_vdwdf/main.f90	/^  integer, parameter  :: ndim=/;"	v	program:main
 ndmag	mod_spin.F90	/^      Integer :: ndmag$/;"	v	module:mod_spin
 ndspem	src_inputparser/inputmodules.f90	/^ integer::ndspem$/;"	k	type:masstensor_type
+ndynmat	src_gw/read_dyn-sub.f90	/^  INTEGER :: ndynmat /;"	v	module:mod_dynmat
 neff	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  number n, neff;$/;"	m	struct:samples
 negenr	src_sym/modsym.F90	/^      Integer, Allocatable :: negenr /;"	v	module:modsym
 nempty	src_inputparser/inputmodules.f90	/^ integer::nempty$/;"	k	type:groundstate_type
@@ -24696,6 +24855,7 @@ nempty	src_inputparser/inputmodules.f90	/^ integer::nempty$/;"	k	type:screening_
 nempty	src_inputparser/inputmodules.f90	/^ integer::nempty$/;"	k	type:selfenergy_type
 nempty	src_inputparser/inputmodules.f90	/^ integer::nempty$/;"	k	type:xs_type
 nempty_b	src_xs/modxs.F90	/^      Integer :: nempty_b$/;"	v	module:modxs
+nemptyeph	src_inputparser/inputmodules.f90	/^ integer::nemptyeph$/;"	k	type:eph_type
 nev	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^      integer          nev,/;"	v	program:cnbdr1
 nev	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^      integer          nev,/;"	v	program:cnbdr2
 nev	ARPACK/EXAMPLES/BAND/cnbdr3.f	/^      integer          nev,/;"	v	program:cnbdr3
@@ -24827,7 +24987,9 @@ ngkfft	mod_gkvector.F90	/^      Integer :: ngkfft(/;"	v	module:mod_Gkvector
 ngkmax	mod_gkvector.F90	/^      Integer :: ngkmax$/;"	v	module:mod_Gkvector
 ngkmax	src_gw/mod_kpointset.f90	/^        integer :: ngkmax$/;"	k	type:Gk_set
 ngkmax0	src_xs/modxs.F90	/^      Integer :: ngkmax0$/;"	v	module:modxs
+ngknr	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ngknr(/;"	k	type:Gk_set
 ngknr	src_gw/mod_kqpts.f90	/^    Integer, Allocatable :: ngknr(/;"	v	module:mod_kqpts
+ngknrmax	src_gw/mod_kpointset.f90	/^        integer :: ngknrmax$/;"	k	type:Gk_set
 ngktotfft	mod_gkvector.F90	/^      Integer :: ngktotfft /;"	v	module:mod_Gkvector
 ngq	src_gw/mod_product_basis.f90	/^    integer(4), allocatable :: ngq(/;"	v	module:mod_product_basis
 ngq	src_xs/modxs.F90	/^      Integer, Allocatable :: ngq /;"	v	module:modxs
@@ -24841,11 +25003,12 @@ ngrid	src_inputparser/inputmodules.f90	/^ integer::ngrid$/;"	k	type:elnes_type
 ngrid	src_xs/modxs.F90	/^        integer :: ngrid(/;"	k	type:fftmap_type
 ngrid0	mod_phonon.F90	/^      Integer :: ngrid0 /;"	v	module:mod_phonon
 ngridgq	src_xs/modxs.F90	/^      Integer :: ngridgq /;"	v	module:modxs
-ngridk	src_gw/mod_kpointset.f90	/^        integer :: ngridk(/;"	k	type:k_set
+ngridk	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ngridk(/;"	k	type:k_set
 ngridk	src_inputparser/inputmodules.f90	/^ integer::ngridk(/;"	k	type:groundstate_type
 ngridk	src_inputparser/inputmodules.f90	/^ integer::ngridk(/;"	k	type:screening_type
 ngridk	src_inputparser/inputmodules.f90	/^ integer::ngridk(/;"	k	type:xs_type
 ngridk_b	src_xs/modxs.F90	/^      Integer :: ngridk_b /;"	v	module:modxs
+ngridkqtot	src_gw/modgw.f90	/^    integer(4) :: ngridkqtot$/;"	v	module:modgw
 ngridksub	src_inputparser/inputmodules.f90	/^ integer::ngridksub(/;"	k	type:BSE_type
 ngridq	mod_qpoint.F90	/^      Integer :: ngridq /;"	v	module:mod_qpoint
 ngridq	src_inputparser/inputmodules.f90	/^ integer::ngridq(/;"	k	type:gw_type
@@ -24853,6 +25016,7 @@ ngridq	src_inputparser/inputmodules.f90	/^ integer::ngridq(/;"	k	type:interpolat
 ngridq	src_inputparser/inputmodules.f90	/^ integer::ngridq(/;"	k	type:phonons_type
 ngridq	src_inputparser/inputmodules.f90	/^ integer::ngridq(/;"	k	type:xs_type
 ngridq_b	src_xs/modxs.F90	/^      Integer :: ngridq_b /;"	v	module:modxs
+ngridqeph	src_inputparser/inputmodules.f90	/^ integer::ngridqeph(/;"	k	type:eph_type
 ngroundstate	src_xml/scl_xml_out_module.F90	/^     & charges, atom, xst, timing, nscl, ngroundstate$/;"	v	module:scl_xml_out_Module
 ngrtot	mod_Gvector.F90	/^      Integer :: ngrtot$/;"	v	module:mod_Gvector
 ngrtot	src_gw/mod_kpointset.f90	/^        integer :: ngrtot /;"	k	type:G_set
@@ -24876,11 +25040,11 @@ nka	src_xs/mod_exciton_wf.f90	/^  integer :: nka$/;"	v	module:mod_exciton_wf
 nkp1	src_gw/mod_bands.f90	/^    integer(4) :: nkp1$/;"	v	module:mod_bands
 nkp2	src_gw/mod_bands.f90	/^    integer(4) :: nkp2$/;"	v	module:mod_bands
 nkpt	mod_kpoint.F90	/^      Integer :: nkpt$/;"	v	module:mod_kpoint
-nkpt	src_gw/mod_kpointset.f90	/^        integer :: nkpt /;"	k	type:k_set
 nkpt	src_gw/mod_kpointset.f90	/^        integer :: nkpt /;"	k	type:kq_set
+nkpt	src_gw/mod_kpointset.f90	/^        integer(4) :: nkpt /;"	k	type:k_set
 nkpt0	src_xs/modxs.F90	/^      Integer :: nkpt0$/;"	v	module:modxs
 nkptnr	mod_kpoint.F90	/^      Integer :: nkptnr$/;"	v	module:mod_kpoint
-nkptnr	src_gw/mod_kpointset.f90	/^        integer :: nkptnr /;"	k	type:k_set
+nkptnr	src_gw/mod_kpointset.f90	/^        integer(4) :: nkptnr /;"	k	type:k_set
 nkptq	src_gw/mod_kpointset.f90	/^        integer, allocatable :: nkptq(/;"	k	type:kq_set
 nkptq	src_gw/mod_kqpts.f90	/^    integer, allocatable :: nkptq(/;"	v	module:mod_kqpts
 nksubpt	src_xs/modxs.F90	/^      Integer :: nksubpt$/;"	v	module:modxs
@@ -24936,6 +25100,8 @@ noldstepsmax	src_mixing/modmixermsec.f90	/^     & MUSE, IDSCALE, noldstepsmax$/;
 nomax	src_gw/mod_bands.f90	/^    integer(4) :: nomax$/;"	v	module:mod_bands
 nomeg	src_gw/mod_frequency.f90	/^        integer :: nomeg /;"	k	type:frequency
 nomeg	src_inputparser/inputmodules.f90	/^ integer::nomeg$/;"	k	type:freqgrid_type
+nomegeph	src_gw/modgw.f90	/^    integer(4) :: nomegeph /;"	v	module:modgw
+nomegeph	src_inputparser/inputmodules.f90	/^ integer::nomegeph$/;"	k	type:freqgrideph_type
 noptcomp	mod_DOS_optics_response.F90	/^      Integer :: noptcomp$/;"	v	module:mod_DOS_optics_response
 nopx	ARPACK/SRC/stat.h	/^      integer    nopx, nbx, nrorth, nitref, nrstrt$/;"	v
 nopx	ARPACK/SRC/stat.h	/^     &           nopx, nbx, nrorth, nitref, nrstrt,$/;"	v
@@ -25024,10 +25190,14 @@ npsden	src_inputparser/inputmodules.f90	/^ integer::npsden$/;"	k	type:groundstat
 npt	mod_rgrid.f90	/^    integer :: npt$/;"	k	type:rgrid
 nptir	src_gw/src_tests/mod_rpath.f90	/^        integer :: nptir /;"	k	type:r_path
 nptot	src_gw/src_tests/mod_rpath.f90	/^        integer :: nptot /;"	k	type:r_path
+nqirr	src_gw/read_dyn-sub.f90	/^  INTEGER :: nqirr /;"	v	module:mod_dynmat
 nqpt	mod_qpoint.F90	/^      Integer :: nqpt$/;"	v	module:mod_qpoint
 nqptnr	src_gw/mod_kqpts.f90	/^    integer :: nqptnr$/;"	v	module:mod_kqpts
 nqptr	src_xs/modxs.F90	/^      Integer :: nqptr$/;"	v	module:modxs
+nqred	src_gw/read_dyn-sub.f90	/^  INTEGER :: nqred /;"	v	module:mod_dynmat
+nqredtot	src_gw/read_dyn-sub.f90	/^  INTEGER :: nqredtot /;"	v	module:mod_dynmat
 nr	src_inputparser/inputmodules.f90	/^ integer::nr$/;"	k	type:TSvdWparameters_type
+nr	src_inputparser/inputmodules.f90	/^ integer::nr$/;"	k	type:projector_type
 nrand	src_vdwdf/Cuba-3.2/src/divonne/Integrate.c	/^  number nmin, nrand;$/;"	m	struct:__anon36	file:
 nrand	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  number neval, neval_opt, neval_cut, nrand;$/;"	m	struct:_this
 nrcmt	mod_muffin_tin.F90	/^      Integer :: nrcmt /;"	v	module:mod_muffin_tin
@@ -25114,11 +25284,12 @@ nt	src_other/delaunay.f	/^      inte/;"	v	program:main
 ntasks	mod_misc.F90	/^      Integer :: ntasks$/;"	v	module:mod_misc
 ntemp	src_inputparser/inputmodules.f90	/^ integer::ntemp$/;"	k	type:phonondos_type
 ntet	mod_kpoint.F90	/^      Integer (4) :: ntet$/;"	v	module:mod_kpoint
-ntet	src_gw/mod_kpointset.f90	/^        integer :: ntet /;"	k	type:k_set
 ntet	src_gw/mod_kpointset.f90	/^        integer :: ntet /;"	k	type:kq_set
+ntet	src_gw/mod_kpointset.f90	/^        integer(4) :: ntet /;"	k	type:k_set
 ntet	src_libbzint/tetra_internal.f90	/^      integer :: ntet /;"	v	module:tetra_internal
 ntetnr	src_gw/mod_kqpts.f90	/^    integer(4) :: ntetnr /;"	v	module:mod_kqpts
 ntetra	mod_opt_tetra.f90	/^  integer :: ntetra /;"	v	module:mod_opt_tetra
+ntyp	src_gw/read_dyn-sub.f90	/^  INTEGER :: ntyp$/;"	v	module:mod_dynmat
 ntype	src_libbzint/polyhedron.f90	/^      integer(1), dimension(20) :: ntype /;"	v	module:polyhedron
 nullnode	src_inputparser/modinputdom.f90	/^      Type (Node), Pointer :: doc, inputnp, nullnode,/;"	v	module:inputdom
 num	spacegroup/modmain.f90	/^character(20) num$/;"	v	module:modmain
@@ -25153,6 +25324,7 @@ nwdf	src_xs/modxs.F90	/^      Integer :: nwdf$/;"	v	module:modxs
 nwdos	src_inputparser/inputmodules.f90	/^ integer::nwdos$/;"	k	type:dos_type
 nwdos	src_inputparser/inputmodules.f90	/^ integer::nwdos$/;"	k	type:phonondos_type
 nwgrid	src_inputparser/inputmodules.f90	/^ integer::nwgrid$/;"	k	type:SpectralFunctionPlot_type
+nwgrid	src_inputparser/inputmodules.f90	/^ integer::nwgrid$/;"	k	type:SpectralFunctionPloteph_type
 nwpos	spacegroup/modmain.f90	/^integer nwpos(/;"	v	module:modmain
 nwpos	spacegroup/modspacegroup.f90	/^integer::nwpos(/;"	v	module:modspacegroup
 nwrite	src_inputparser/inputmodules.f90	/^ integer::nwrite$/;"	k	type:groundstate_type
@@ -25353,6 +25525,7 @@ p	libXC/src/gga_c_op.c	/^    (const XC(func_type) *p, int order, FLOAT x, FLOAT 
 p	libXC/src/gga_x_ityh.c	/^    (const XC(func_type) *p, int order, FLOAT x, FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2);$/;"	m	struct:__anon14	file:
 p0	species/species.f90	/^  real(8), allocatable :: p0(/;"	v	program:species
 p1	species/species.f90	/^  real(8), allocatable :: p0(:), p1(/;"	v	program:species
+p_set	src_gw/mod_kpointset.f90	/^    type p_set$/;"	t	module:mod_kpointset
 packed	src_eigensystem/modfvsystem.f90	/^        Logical :: packed,/;"	k	type:HermitianMatrix
 packedmatrixstorage	src_inputparser/inputmodules.f90	/^ logical::packedmatrixstorage$/;"	k	type:solver_type
 packedmatrixstorage	src_iterative_solver/SclControlModule.F90	/^      Logical :: packedmatrixstorage$/;"	v	module:sclcontroll
@@ -25620,17 +25793,24 @@ printLogical	writegeometryxml.f90	/^      function printLogical(/;"	f	subroutine
 printVSfile	src_inputparser/inputmodules.f90	/^ logical::printVSfile$/;"	k	type:dfthalf_type
 print_G_vectors	src_gw/mod_kpointset.f90	/^    subroutine print_G_vectors(/;"	s	module:mod_kpointset
 print_Gk_vectors	src_gw/mod_kpointset.f90	/^    subroutine print_Gk_vectors(/;"	s	module:mod_kpointset
+print_Gknr_vectors	src_gw/mod_kpointset.f90	/^    subroutine print_Gknr_vectors(/;"	s	module:mod_kpointset
 print_buffer	FoX/common/m_common_buffer.F90	/^  subroutine print_buffer(/;"	s	module:m_common_buffer
 print_dict	FoX/common/m_common_attrs.F90	/^  subroutine print_dict(/;"	s	module:m_common_attrs
 print_elstack	FoX/common/m_common_elstack.F90	/^  subroutine print_elstack(/;"	s	module:m_common_elstack
 print_entity_list	FoX/common/m_common_entities.F90	/^  subroutine print_entity_list(/;"	s	module:m_common_entities
 print_error	libXC/testsuite/xc-consistency.c	/^void print_error(char *type, char *what, double diff, xc_func_type *func, double *p)$/;"	f
+print_ev2	src_gw/read_dyn-sub.f90	/^SUBROUTINE print_ev2 /;"	s
+print_ev3	src_gw/read_dyn-sub.f90	/^SUBROUTINE print_ev3 /;"	s
 print_freqgrid	src_gw/mod_frequency.f90	/^    subroutine print_freqgrid(/;"	s	module:mod_frequency
 print_k_bzintw	src_gw/mod_bzintw.f90	/^    subroutine print_k_bzintw(/;"	s	module:mod_bzintw
 print_k_vectors	src_gw/mod_kpointset.f90	/^    subroutine print_k_vectors(/;"	s	module:mod_kpointset
+print_kkqmt_vectors	src_gw/mod_kpointset.f90	/^    subroutine print_kkqmt_vectors(/;"	s	module:mod_kpointset
+print_km_vectors	src_gw/mod_kpointset.f90	/^    subroutine print_km_vectors(/;"	s	module:mod_kpointset
 print_kq_bzintw	src_gw/mod_bzintw.f90	/^    subroutine print_kq_bzintw(/;"	s	module:mod_bzintw
 print_kq_vectors	src_gw/mod_kpointset.f90	/^    subroutine print_kq_vectors(/;"	s	module:mod_kpointset
 print_memory_usage	src_gw/init_gw.f90	/^    subroutine print_memory_usage$/;"	s	subroutine:init_gw
+print_p_vectors	src_gw/mod_kpointset.f90	/^    subroutine print_p_vectors(/;"	s	module:mod_kpointset
+print_q_vectors	src_gw/mod_kpointset.f90	/^    subroutine print_q_vectors(/;"	s	module:mod_kpointset
 print_rgrid	mod_rgrid.f90	/^  subroutine print_rgrid(/;"	s	module:mod_rgrid
 print_timing	src_gw/modgw.f90	/^    subroutine print_timing$/;"	s	module:modgw
 print_values	libXC/testsuite/xc-get_data.c	/^void print_values(xc_values_type *xc)$/;"	f
@@ -25658,6 +25838,10 @@ program_transform_name	libXC/build/Makefile	/^program_transform_name = s,x,x,$/;
 program_transform_name	libXC/src/Makefile	/^program_transform_name = s,x,x,$/;"	m
 program_transform_name	libXC/testsuite/Makefile	/^program_transform_name = s,x,x,$/;"	m
 projectedsecequn	src_iterative_solver/src_diis/projectedsecequn.F90	/^Subroutine projectedsecequn /;"	s
+projector	src_inputparser/inputmodules.f90	/^type(projector_/;"	k	type:projector_type_array
+projector_type	src_inputparser/inputmodules.f90	/^type projector_type$/;"	t	module:modinput
+projector_type_array	src_inputparser/inputmodules.f90	/^type projector_type_array$/;"	t	module:modinput
+projectorarray	src_inputparser/inputmodules.f90	/^  type(projector_type_array),pointer::projectorarray(/;"	k	type:wannier_type
 projectors	src_inputparser/inputmodules.f90	/^ integer::projectors(/;"	k	type:wannier_type
 projgr	Lbfgsb.3.0/lbfgsb.f	/^      subroutine projgr(/;"	s
 projsbf	projsbf.f90	/^Subroutine projsbf$/;"	s
@@ -25702,11 +25886,13 @@ propertyRealSpSca	FoX/wcml/m_wcml_property.F90	/^  subroutine propertyRealSpSca 
 propertylauncher	src_inputparser/propertylauncher.F90	/^Subroutine propertylauncher$/;"	s
 prototypes	FoX/configure	/^   function prototypes and stuff, but not '\\xHH' hex character constants.$/;"	f
 prototypes	libXC/configure	/^   function prototypes and stuff, but not '\\xHH' hex character constants.$/;"	f
+prototypes	libXC/configure.lineno	/^   function prototypes and stuff, but not '\\xHH' hex character constants.$/;"	f
 prototypes	src_vdwdf/Cuba-3.2/configure	/^   function prototypes and stuff, but not '\\xHH' hex character constants.$/;"	f
 psdir	libXC/Makefile	/^psdir = ${docdir}$/;"	m
 psdir	libXC/build/Makefile	/^psdir = ${docdir}$/;"	m
 psdir	libXC/src/Makefile	/^psdir = ${docdir}$/;"	m
 psdir	libXC/testsuite/Makefile	/^psdir = ${docdir}$/;"	m
+pset	src_gw/mod_kpointset.f90	/^        type(k_set) :: pset$/;"	k	type:p_set
 ptclg	src_xs/genptclg.F90	/^Real (8) Function ptclg /;"	f
 ptnucl	src_inputparser/inputmodules.f90	/^ logical::ptnucl$/;"	k	type:groundstate_type
 publicId	FoX/common/m_common_entities.F90	/^    character(len=1), dimension(:), pointer :: publicId /;"	k	type:entity_t
@@ -25752,8 +25938,11 @@ q0	species/species.f90	/^  real(8), allocatable :: p0(:), p1(:), q0(/;"	v	progra
 q0eps	src_inputparser/inputmodules.f90	/^ real(8)::q0eps(/;"	k	type:scrcoul_type
 q1	species/species.f90	/^  real(8), allocatable :: p0(:), p1(:), q0(:), q1(/;"	v	program:species
 qOPab	libXC/src/gga_c_op.c	/^  FLOAT qOPab;$/;"	m	struct:__anon33	file:
+q_set	src_gw/mod_kpointset.f90	/^    type q_set$/;"	t	module:mod_kpointset
 qdepwsum	src_gw/qdepwsum.f90	/^      subroutine qdepwsum(/;"	s
 qdepwtet	src_gw/qdepwtet.f90	/^subroutine qdepwtet(/;"	s
+qe_erf	src_gw/calcselfeph.f90	/^function qe_erf /;"	f
+qe_erfc	src_gw/calcselfeph.f90	/^function qe_erfc /;"	f
 qmx	src_mixing/modmixermsec.f90	/^      Real (8) :: scl_plane, qmx,/;"	v	module:modmixermsec
 qmx_input	src_mixing/modmixermsec.f90	/^      Real (8) :: scl_plane, qmx, RedOld, RedPred, qmx_input,/;"	v	module:modmixermsec
 qparf	src_xs/modxs.F90	/^      Integer :: qparf$/;"	v	module:modxs
@@ -25762,6 +25951,8 @@ qpoint	src_inputparser/inputmodules.f90	/^ real(8),pointer::qpoint(/;"	k	type:qp
 qpointset	src_inputparser/inputmodules.f90	/^  type(qpointset_/;"	k	type:phonons_type
 qpointset	src_inputparser/inputmodules.f90	/^  type(qpointset_/;"	k	type:xs_type
 qpointset_type	src_inputparser/inputmodules.f90	/^type qpointset_type$/;"	t	module:modinput
+qset	src_gw/mod_kpointset.f90	/^        type(k_set) :: qset$/;"	k	type:q_set
+qsetd	src_gw/modgw.f90	/^    type(k_set)  :: qsetd$/;"	v	module:modgw
 qtot	libXC/src/gga_x_lb.c	/^  FLOAT qtot;      \/* total charge in the region *\/$/;"	m	struct:__anon12	file:
 qtot	libXC/src/xc.h	/^void XC(gga_lb_set_params)        (XC(func_type) *p, int modified, FLOAT threshold, FLOAT ip, FLOAT qtot);$/;"	v
 qtot	src_mixing/modmixermsec.f90	/^     & tplane, qtot$/;"	v	module:modmixermsec
@@ -25919,6 +26110,7 @@ rdqelg	libXC/src/integrate.c	/^static void rdqelg(int *n, FLOAT *epstab, FLOAT *
 rdqk21	libXC/src/integrate.c	/^static void  rdqk21(integr_fn f, void *ex, FLOAT *a, FLOAT *b, FLOAT *result,$/;"	f	file:
 rdqpsrt	libXC/src/integrate.c	/^static void rdqpsrt(int *limit, int *last, int *maxerr,$/;"	f	file:
 read_densities	src_vdwdf/read_densities.f90	/^subroutine read_densities(/;"	s
+read_dyn	src_gw/read_dyn-sub.f90	/^SUBROUTINE read_dyn /;"	s
 read_exccoeff	src_xs/mod_exciton_wf.f90	/^  subroutine read_exccoeff(/;"	s	module:mod_exciton_wf
 read_file	libXC/src/get_funcs.pl	/^sub read_file() {$/;"	s
 read_gradients	src_vdwdf/read_gradients.f90	/^subroutine read_gradients(/;"	s
@@ -26633,6 +26825,10 @@ selfecSR	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfecSR(/;"
 selfecw2	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfecw2(/;"	v	module:mod_selfenergy
 selfenergy	src_inputparser/inputmodules.f90	/^  type(selfenergy_/;"	k	type:gw_type
 selfenergy_type	src_inputparser/inputmodules.f90	/^type selfenergy_type$/;"	t	module:modinput
+selfenergyeph	src_inputparser/inputmodules.f90	/^  type(selfenergyeph_/;"	k	type:eph_type
+selfenergyeph_type	src_inputparser/inputmodules.f90	/^type selfenergyeph_type$/;"	t	module:modinput
+selfeph	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfeph(/;"	v	module:mod_selfenergy
+selfeph0	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfeph0(/;"	v	module:mod_selfenergy
 selfex	src_gw/mod_selfenergy.f90	/^    complex(8), allocatable :: selfex(/;"	v	module:mod_selfenergy
 seq	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^      number seq;$/;"	m	struct:__anon63::__anon64::__anon65
 serialize	FoX/dom/m_dom_utils.f90	/^  subroutine serialize(/;"	s	module:m_dom_utils
@@ -26707,6 +26903,7 @@ sfacg	mod_Gvector.F90	/^      Complex (8), Allocatable :: sfacg /;"	v	module:mod
 sfacgk	mod_gkvector.F90	/^      Complex (8), Allocatable :: sfacgk /;"	v	module:mod_Gkvector
 sfacgk	src_gw/mod_kpointset.f90	/^        complex(8), allocatable :: sfacgk(/;"	k	type:Gk_set
 sfacgk0	src_xs/modxs.F90	/^      Complex (8), Allocatable :: sfacgk0 /;"	v	module:modxs
+sfacgknr	src_gw/mod_kpointset.f90	/^        complex(8), allocatable :: sfacgknr(/;"	k	type:Gk_set
 sfacgknr	src_gw/mod_kqpts.f90	/^    Complex (8), Allocatable :: sfacgknr(/;"	v	module:mod_kqpts
 sfacgq	src_xs/modxs.F90	/^      Complex (8), Allocatable :: sfacgq /;"	v	module:modxs
 sfact	src_raman/mod_raman.f90	/^real(8) :: sfact$/;"	v	module:raman_fij
@@ -27019,6 +27216,7 @@ spcore	mod_atoms.F90	/^      Logical :: spcore /;"	v	module:mod_atoms
 spcore	species/modspecies.F90	/^logical spcore(/;"	v	module:modspecies
 spdb	src_inputparser/speciesmodules.f90	/^   type(spdb_/;"	v	module:modspdb
 spdb_type	src_inputparser/speciesmodules.f90	/^type spdb_type$/;"	t	module:modspdb
+speceph	src_gw/mod_selfenergy.f90	/^    real(8),    allocatable :: speceph(/;"	v	module:mod_selfenergy
 species	species/species.f90	/^program species$/;"	p
 species	src_inputparser/inputmodules.f90	/^type(species_/;"	k	type:species_type_array
 species_type	src_inputparser/inputmodules.f90	/^type species_type$/;"	t	module:modinput
@@ -27460,11 +27658,13 @@ task_chi0_r	src_gw/task_chi0_r.f90	/^subroutine task_chi0_r$/;"	s
 task_dos	src_gw/task_dos.f90	/^subroutine task_dos(/;"	s
 task_emac	src_gw/task_emac.f90	/^subroutine task_emac(/;"	s
 task_emac_q	src_gw/task_emac_q.f90	/^subroutine task_emac_q(/;"	s
+task_eph	src_gw/task_eph.f90	/^subroutine task_eph(/;"	s
 task_eps_r	src_gw/task_eps_r.f90	/^subroutine task_eps_r$/;"	s
 task_epsilon	src_gw/task_epsilon.f90	/^subroutine task_epsilon$/;"	s
 task_gw	src_gw/task_gw.f90	/^subroutine task_gw(/;"	s
 tasklauncher	src_inputparser/tasklauncher.f90	/^Subroutine tasklauncher$/;"	s
 taskname	src_inputparser/inputmodules.f90	/^ character(512)::taskname$/;"	k	type:gw_type
+tasknameeph	src_inputparser/inputmodules.f90	/^ character(512)::tasknameeph$/;"	k	type:eph_type
 tasknumber	src_inputparser/inputmodules.f90	/^ integer::tasknumber$/;"	k	type:doonly_type
 tasks	mod_misc.F90	/^      Integer :: tasks /;"	v	module:mod_misc
 tau	libXC/src/mgga.c	/^		 const FLOAT *rho, const FLOAT *sigma, const FLOAT *lapl, const FLOAT *tau,$/;"	v
@@ -27647,7 +27847,7 @@ tnconv	ARPACK/SRC/stat.h	/^     &           tnaupd, tnaup2, tnaitr, tneigh, tnge
 tneigh	ARPACK/SRC/stat.h	/^     &           tnaupd, tnaup2, tnaitr, tneigh, tngets, tnapps, tnconv,$/;"	v
 tngets	ARPACK/SRC/stat.h	/^     &           tnaupd, tnaup2, tnaitr, tneigh, tngets, tnapps, tnconv,$/;"	v
 tnodes	mod_kpoint.F90	/^      Integer (4), Allocatable :: tnodes /;"	v	module:mod_kpoint
-tnodes	src_gw/mod_kpointset.f90	/^        integer, allocatable :: tnodes(/;"	k	type:k_set
+tnodes	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: tnodes(/;"	k	type:k_set
 tnodes	src_gw/mod_kpointset.f90	/^        integer, allocatable :: tnodes(/;"	k	type:kq_set
 tnodesnr	src_gw/mod_kqpts.f90	/^    integer(4), allocatable :: tnodesnr(/;"	v	module:mod_kqpts
 toLower	FoX/fsys/fox_m_fsys_string.F90	/^  function toLower(/;"	f	module:fox_m_fsys_string
@@ -27762,7 +27962,9 @@ tpgkc	mod_gkvector.F90	/^      Real (8), Allocatable :: tpgkc /;"	v	module:mod_G
 tpgkc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: tpgkc(/;"	k	type:Gk_set
 tpgkc0	src_xs/modxs.F90	/^      Real (8), Allocatable :: tpgkc0 /;"	v	module:modxs
 tpgkcnr	src_gw/mod_kqpts.f90	/^    Real (8), Allocatable :: tpgkcnr(/;"	v	module:mod_kqpts
+tpgknrc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: tpgknrc(/;"	k	type:Gk_set
 tpgqc	src_xs/modxs.F90	/^      Real (8), Allocatable :: tpgqc /;"	v	module:modxs
+tpiba	src_gw/read_dyn-sub.f90	/^  REAL(8)              :: tpiba /;"	v	module:mod_dynmat
 tplane	src_mixing/modmixermsec.f90	/^      Real (8) :: MSECINFO (20), rtrap, SCHARGE, TCharge, splane, &$/;"	v	module:modmixermsec
 tpss_eq_13_14	libXC/src/mgga_c_pkzb.c	/^tpss_eq_13_14(FLOAT zeta, FLOAT csi2, int order, FLOAT *C, FLOAT *dCdzeta, FLOAT *dCdcsi2)$/;"	f	file:
 tqgamma	src_xs/tqgamma.F90	/^Logical Function tqgamma /;"	f
@@ -27946,6 +28148,7 @@ urilist	FoX/common/m_common_namespaces.F90	/^    type(URIMapping), dimension(:),
 usage	FoX/FoX-config	/^usage()$/;"	f
 usage	FoX/FoX-config.in	/^usage()$/;"	f
 usage	libXC/testsuite/xc-reference.pl	/^sub usage {$/;"	s
+usedlibzint	src_gw/mod_kpointset.f90	/^        logical :: usedlibzint /;"	k	type:k_set
 useforces	src_inputparser/inputmodules.f90	/^ logical::useforces$/;"	k	type:raman_type
 userdata	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	double precision epsrel, epsabs, userdata$/;"	v	program:CubaTest
 userdata	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  void *userdata;$/;"	m	struct:_this
@@ -28178,6 +28381,8 @@ vgkl	mod_gkvector.F90	/^      Real (8), Allocatable :: vgkl /;"	v	module:mod_Gkv
 vgkl	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vgkl(/;"	k	type:Gk_set
 vgkl0	src_xs/modxs.F90	/^      Real (8), Allocatable :: vgkl0 /;"	v	module:modxs
 vgklnr	src_gw/mod_kqpts.f90	/^    Real (8), Allocatable :: vgklnr(/;"	v	module:mod_kqpts
+vgknrc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vgknrc(/;"	k	type:Gk_set
+vgknrl	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vgknrl(/;"	k	type:Gk_set
 vgqc	src_gw/mod_product_basis.f90	/^    real(8), allocatable :: vgqc(/;"	v	module:mod_product_basis
 vgqc	src_xs/modxs.F90	/^      Real (8), Allocatable :: vgqc /;"	v	module:modxs
 vgql	src_gw/mod_product_basis.f90	/^    real(8), allocatable :: vgql(/;"	v	module:mod_product_basis
@@ -28193,12 +28398,15 @@ vkc	mod_kpoint.F90	/^      Real (8), Allocatable :: vkc /;"	v	module:mod_kpoint
 vkc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkc(/;"	k	type:k_set
 vkc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkc(/;"	k	type:kq_set
 vkcnr	mod_kpoint.F90	/^      Real (8), Allocatable :: vkcnr /;"	v	module:mod_kpoint
+vkcnr	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkcnr(/;"	k	type:k_set
 vkl	mod_kpoint.F90	/^      Real (8), Allocatable :: vkl /;"	v	module:mod_kpoint
 vkl	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkl(/;"	k	type:k_set
 vkl	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkl(/;"	k	type:kq_set
 vkl0	src_xs/modxs.F90	/^      Real (8), Allocatable :: vkl0 /;"	v	module:modxs
 vklem	src_inputparser/inputmodules.f90	/^ real(8)::vklem(/;"	k	type:masstensor_type
 vklnr	mod_kpoint.F90	/^      Real (8), Allocatable :: vklnr /;"	v	module:mod_kpoint
+vklnr	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vklnr(/;"	k	type:k_set
+vkloff	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkloff(/;"	k	type:k_set
 vkloff	src_inputparser/inputmodules.f90	/^ real(8)::vkloff(/;"	k	type:BSE_type
 vkloff	src_inputparser/inputmodules.f90	/^ real(8)::vkloff(/;"	k	type:groundstate_type
 vkloff	src_inputparser/inputmodules.f90	/^ real(8)::vkloff(/;"	k	type:screening_type
@@ -28245,9 +28453,16 @@ vql	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vql(/;"	k	type:kq
 vqlmt	src_xs/modxs.F90	/^      Real (8), Allocatable :: vqlmt /;"	v	module:modxs
 vqloff	src_inputparser/inputmodules.f90	/^ real(8)::vqloff(/;"	k	type:gw_type
 vqloff	src_inputparser/inputmodules.f90	/^ real(8)::vqloff(/;"	k	type:interpolate_type
+vqloffeph	src_inputparser/inputmodules.f90	/^ real(8)::vqloffeph(/;"	k	type:eph_type
 vqlr	src_xs/modxs.F90	/^      Real (8), Allocatable :: vqlr /;"	v	module:modxs
 vqlss	src_inputparser/inputmodules.f90	/^ real(8)::vqlss(/;"	k	type:spin_type
 vqlwrt	mod_phonon.F90	/^      Real (8), Allocatable :: vqlwrt /;"	v	module:mod_phonon
+vqmtc	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vqmtc(/;"	k	type:kkqmt_set
+vqmtc_g	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vqmtc_g(/;"	k	type:kkqmt_set
+vqmtc_q	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vqmtc_q(/;"	k	type:kkqmt_set
+vqmtl	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vqmtl(/;"	k	type:kkqmt_set
+vqmtl_g	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: vqmtl_g(/;"	k	type:kkqmt_set
+vqmtl_q	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vqmtl_q(/;"	k	type:kkqmt_set
 vr	species/modspecies.F90	/^real(8), allocatable :: r(:),rho(:),vr(/;"	v	module:modspecies
 vrho	libXC/src/gga.c	/^		FLOAT *zk, FLOAT *vrho, FLOAT *vsigma)$/;"	v
 vrho	libXC/src/gga.c	/^	     FLOAT *zk, FLOAT *vrho, FLOAT *vsigma,$/;"	v
@@ -28325,27 +28540,39 @@ vxnl	src_hybrids/mod_hybrids.f90	/^    complex(8), allocatable :: vxnl(/;"	v	mod
 vxnlcc	src_hybrids/mod_hybrids.f90	/^    complex(8), allocatable :: vxnlcc(/;"	v	module:mod_hybrids
 w	src_other/delaunay.f	/^      double precision x(nmax), y(nmax), z(nmax), w(/;"	v	program:main
 w_gauq	src_libbzint/tetra_internal.f90	/^      real(8), allocatable:: x_gauq(:),w_gauq(/;"	v	module:tetra_internal
+wann_ph	src_gw/wann_ph.f90	/^subroutine wann_ph /;"	s
 wannier	src_inputparser/inputmodules.f90	/^  type(wannier_/;"	k	type:properties_type
 wannier	src_inputparser/inputmodules.f90	/^ logical::wannier$/;"	k	type:bandstructure_type
+wannier_delemat	mod_wannier.f90	/^    subroutine wannier_delemat$/;"	s	module:mod_wannier
+wannier_delfun	mod_wannier.f90	/^    subroutine wannier_delfun$/;"	s	module:mod_wannier
 wannier_destroy	mod_wannier.f90	/^    subroutine wannier_destroy$/;"	s	module:mod_wannier
 wannier_emat	mod_wannier.f90	/^    subroutine wannier_emat$/;"	s	module:mod_wannier
-wannier_gen_fromfile	mod_wannier.f90	/^    subroutine wannier_gen_fromfile(/;"	s	module:mod_wannier
-wannier_gen_opf	mod_wannier.f90	/^    subroutine wannier_gen_opf(/;"	s	module:mod_wannier
-wannier_gen_pro	mod_wannier.f90	/^    subroutine wannier_gen_pro(/;"	s	module:mod_wannier
+wannier_gen_fromfile	mod_wannier.f90	/^    subroutine wannier_gen_fromfile$/;"	s	module:mod_wannier
+wannier_gen_opf	mod_wannier.f90	/^    subroutine wannier_gen_opf$/;"	s	module:mod_wannier
+wannier_gen_pro	mod_wannier.f90	/^    subroutine wannier_gen_pro$/;"	s	module:mod_wannier
 wannier_geometry	mod_wannier.f90	/^    subroutine wannier_geometry$/;"	s	module:mod_wannier
 wannier_init	mod_wannier.f90	/^    subroutine wannier_init$/;"	s	module:mod_wannier
+wannier_interpolate_bandchar	wannier_interpolate_bandchar.f90	/^Subroutine wannier_interpolate_bandchar(/;"	s
+wannier_interpolate_density	wannier_interpolate_density.f90	/^subroutine wannier_interpolate_density(/;"	s	module:m_wannier_interpolate_density
 wannier_interpolate_eigsys	wannier_interpolate_eigsys.f90	/^subroutine wannier_interpolate_eigsys(/;"	s	module:m_wannier_interpolate_eigsys
+wannier_interpolate_eigsys2	wannier_interpolate_eigsys2.f90	/^subroutine wannier_interpolate_eigsys2(/;"	s	module:m_wannier_interpolate_eigsys2
 wannier_interpolate_eval	wannier_interpolate_eval.f90	/^subroutine wannier_interpolate_eval(/;"	s	module:m_wannier_interpolate
-wannier_loc	mod_wannier.f90	/^    subroutine wannier_loc(/;"	s	module:mod_wannier
-wannier_maxloc	mod_wannier.f90	/^    subroutine wannier_maxloc(/;"	s	module:mod_wannier
+wannier_interpolate_fft	wannier_interpolate_fft.f90	/^subroutine wannier_interpolate_fft(/;"	s	module:m_wannier_interpolate_fft
+wannier_interpolate_occupancy	wannier_interpolate_density.f90	/^subroutine wannier_interpolate_occupancy(/;"	s	module:m_wannier_interpolate_density
+wannier_loc	mod_wannier.f90	/^    subroutine wannier_loc$/;"	s	module:mod_wannier
+wannier_maxloc	mod_wannier.f90	/^    subroutine wannier_maxloc$/;"	s	module:mod_wannier
 wannier_plot	wannier_plot.f90	/^subroutine wannier_plot(/;"	s
+wannier_projonwan	mod_wannier.f90	/^    subroutine wannier_projonwan$/;"	s	module:mod_wannier
 wannier_reademat	mod_wannier.f90	/^    subroutine wannier_reademat(/;"	s	module:mod_wannier
 wannier_readfile	mod_wannier.f90	/^    subroutine wannier_readfile(/;"	s	module:mod_wannier
+wannier_readfunir	mod_wannier.f90	/^    subroutine wannier_readfunir(/;"	s	module:mod_wannier
+wannier_readfunmt	mod_wannier.f90	/^    subroutine wannier_readfunmt(/;"	s	module:mod_wannier
 wannier_showproj	mod_wannier.f90	/^    subroutine wannier_showproj$/;"	s	module:mod_wannier
 wannier_subspace	mod_wannier.f90	/^    subroutine wannier_subspace(/;"	s	module:mod_wannier
 wannier_type	src_inputparser/inputmodules.f90	/^type wannier_type$/;"	t	module:modinput
-wannier_writeemat	mod_wannier.f90	/^    subroutine wannier_writeemat(/;"	s	module:mod_wannier
-wannier_writefile	mod_wannier.f90	/^    subroutine wannier_writefile(/;"	s	module:mod_wannier
+wannier_writeemat	mod_wannier.f90	/^    subroutine wannier_writeemat$/;"	s	module:mod_wannier
+wannier_writefile	mod_wannier.f90	/^    subroutine wannier_writefile$/;"	s	module:mod_wannier
+wannier_writefun	mod_wannier.f90	/^    subroutine wannier_writefun$/;"	s	module:mod_wannier
 wannier_writeinfo_finish	mod_wannier.f90	/^    subroutine wannier_writeinfo_finish$/;"	s	module:mod_wannier
 wannier_writeinfo_geometry	mod_wannier.f90	/^    subroutine wannier_writeinfo_geometry$/;"	s	module:mod_wannier
 wannier_writeinfo_lo	mod_wannier.f90	/^    subroutine wannier_writeinfo_lo$/;"	s	module:mod_wannier
@@ -28374,13 +28601,17 @@ weighttol	src_libbzint/tetra_internal.f90	/^      real(8),parameter:: weighttol 
 weightwarn	src_libbzint/tetra_internal.f90	/^      real(8),parameter:: weightwarn /;"	v	module:tetra_internal
 well_formed	FoX/sax/m_sax_types.F90	/^    logical :: well_formed /;"	k	type:sax_parser_t
 wf	src_inputparser/speciesmodules.f90	/^type(wf_/;"	k	type:wf_type_array
+wf_Gkset	mod_wannier.f90	/^  type( Gk_set) :: wf_Gkset$/;"	v	module:mod_wannier
+wf_Gset	mod_wannier.f90	/^  type( G_set) :: wf_Gset$/;"	v	module:mod_wannier
 wf_centers	mod_wannier.f90	/^  real(8), allocatable :: wf_centers(/;"	v	module:mod_wannier
 wf_disentangle	mod_wannier.f90	/^  logical :: wf_disentangle /;"	v	module:mod_wannier
 wf_emat	mod_wannier.f90	/^  complex(8), allocatable :: wf_emat(/;"	v	module:mod_wannier
+wf_filename	mod_wannier.f90	/^  character(265) :: wf_filename$/;"	v	module:mod_wannier
 wf_fst	mod_wannier.f90	/^  integer :: wf_fst /;"	v	module:mod_wannier
 wf_info	mod_wannier.f90	/^  integer :: wf_info /;"	v	module:mod_wannier
 wf_initialized	mod_wannier.f90	/^  logical :: wf_initialized /;"	v	module:mod_wannier
 wf_kset	mod_wannier.f90	/^  type( k_set) :: wf_kset$/;"	v	module:mod_wannier
+wf_kset_red	mod_wannier.f90	/^  type( k_set) :: wf_kset_red$/;"	v	module:mod_wannier
 wf_lst	mod_wannier.f90	/^  integer :: wf_lst /;"	v	module:mod_wannier
 wf_n_dist	mod_wannier.f90	/^  real(8), allocatable :: wf_n_dist(/;"	v	module:mod_wannier
 wf_n_ik	mod_wannier.f90	/^  integer, allocatable :: wf_n_ik(/;"	v	module:mod_wannier
@@ -28395,6 +28626,9 @@ wf_n_wgt	mod_wannier.f90	/^  real(8), allocatable :: wf_n_wgt(/;"	v	module:mod_w
 wf_nprojtot	mod_wannier.f90	/^  integer :: wf_nprojtot /;"	v	module:mod_wannier
 wf_nst	mod_wannier.f90	/^  integer :: wf_nst /;"	v	module:mod_wannier
 wf_omega	mod_wannier.f90	/^  real(8), allocatable :: wf_omega(/;"	v	module:mod_wannier
+wf_omega_d	mod_wannier.f90	/^  real(8), allocatable :: wf_omega_d(/;"	v	module:mod_wannier
+wf_omega_i	mod_wannier.f90	/^  real(8), allocatable :: wf_omega_i(/;"	v	module:mod_wannier
+wf_omega_od	mod_wannier.f90	/^  real(8), allocatable :: wf_omega_od(/;"	v	module:mod_wannier
 wf_opf	mod_wannier.f90	/^  complex(8), allocatable :: wf_opf(/;"	v	module:mod_wannier
 wf_projection	mod_wannier.f90	/^  complex(8), allocatable :: wf_projection(/;"	v	module:mod_wannier
 wf_projst	mod_wannier.f90	/^  integer, allocatable :: wf_projst(/;"	v	module:mod_wannier
@@ -28414,11 +28648,33 @@ wfarray	src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfar
 wfarray	src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfarray(/;"	k	type:default_type
 wfarray	src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfarray(/;"	k	type:lo_type
 wfc	FoX/common/m_common_entities.F90	/^    logical :: wfc /;"	k	type:entity_t
+wfint_destroy	mod_wannier_interpolate.f90	/^    subroutine wfint_destroy$/;"	s	module:mod_wfint
+wfint_destroywf	mod_wannier_interpolate.f90	/^    subroutine wfint_destroywf$/;"	s	module:mod_wfint
+wfint_efermi	mod_wannier_interpolate.f90	/^  real(8) :: wfint_efermi /;"	v	module:mod_wfint
+wfint_eval	mod_wannier_interpolate.f90	/^  real(8), allocatable :: wfint_eval(/;"	v	module:mod_wfint
+wfint_getwfir	mod_wannier_interpolate.f90	/^    subroutine wfint_getwfir(/;"	s	module:mod_wfint
+wfint_getwfmt	mod_wannier_interpolate.f90	/^    subroutine wfint_getwfmt(/;"	s	module:mod_wfint
+wfint_init	mod_wannier_interpolate.f90	/^    subroutine wfint_init(/;"	s	module:mod_wfint
+wfint_initialized	mod_wannier_interpolate.f90	/^  logical :: wfint_initialized /;"	v	module:mod_wfint
+wfint_interpolate_bandchar	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_bandchar(/;"	s	module:mod_wfint
+wfint_interpolate_density	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_density$/;"	s	module:mod_wfint
+wfint_interpolate_eigsys	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_eigsys(/;"	s	module:mod_wfint
+wfint_interpolate_me	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_me(/;"	s	module:mod_wfint
+wfint_interpolate_occupancy	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_occupancy$/;"	s	module:mod_wfint
+wfint_kset	mod_wannier_interpolate.f90	/^  type( k_set) :: wfint_kset /;"	v	module:mod_wfint
+wfint_occ	mod_wannier_interpolate.f90	/^  real(8), allocatable :: wfint_occ(/;"	v	module:mod_wfint
+wfint_phase	mod_wannier_interpolate.f90	/^  real(8), allocatable :: wfint_phase(/;"	v	module:mod_wfint
+wfint_pkr	mod_wannier_interpolate.f90	/^  complex(8), allocatable :: wfint_pkr(/;"	v	module:mod_wfint
+wfint_pqr	mod_wannier_interpolate.f90	/^  complex(8), allocatable :: wfint_pqr(/;"	v	module:mod_wfint
+wfint_putwfir	mod_wannier_interpolate.f90	/^    subroutine wfint_putwfir(/;"	s	module:mod_wfint
+wfint_putwfmt	mod_wannier_interpolate.f90	/^    subroutine wfint_putwfmt(/;"	s	module:mod_wfint
+wfint_transform	mod_wannier_interpolate.f90	/^  complex(8), allocatable :: wfint_transform(/;"	v	module:mod_wfint
 wfplot	src_inputparser/inputmodules.f90	/^  type(wfplot_/;"	k	type:properties_type
 wfplot	wfplot.f90	/^Subroutine wfplot(/;"	s
 wfplot_new	wfplot_new.f90	/^subroutine wfplot_new(/;"	s
 wfplot_type	src_inputparser/inputmodules.f90	/^type wfplot_type$/;"	t	module:modinput
 wfproj	src_inputparser/speciesmodules.f90	/^ logical::wfproj$/;"	k	type:lo_type
+wgauss	src_gw/calcselfeph.f90	/^function wgauss /;"	f
 wght	src_other/delaunay.f	/^      double precision xcor, ycor, zcor, wght$/;"	v	program:main
 wgrid	src_inputparser/inputmodules.f90	/^ integer::wgrid$/;"	k	type:dielmat_type
 wgrid	src_inputparser/inputmodules.f90	/^ integer::wgrid$/;"	k	type:elnes_type
@@ -28506,6 +28762,7 @@ wkpq	src_gw/mod_kqpts.f90	/^    real(8), allocatable :: wkpq(/;"	v	module:mod_kq
 wkpt	mod_kpoint.F90	/^      Real (8), Allocatable :: wkpt /;"	v	module:mod_kpoint
 wkpt	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: wkpt(/;"	k	type:k_set
 wkptnr	mod_kpoint.F90	/^      Real (8), Allocatable :: wkptnr /;"	v	module:mod_kpoint
+wkptnr	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: wkptnr(/;"	k	type:k_set
 wkptq	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: wkptq(/;"	k	type:kq_set
 wksubpt	src_xs/modxs.F90	/^      Real (8), Allocatable :: wksubpt /;"	v	module:modxs
 wleb	src_gw/src_tests/mod_ang_int.f90	/^    real(8), allocatable :: wleb(/;"	v	module:mod_ang_int
@@ -28515,11 +28772,13 @@ wleny	src_other/delaunay.f	/^      double precision wlenx, wleny,/;"	v	program:m
 wlenz	src_other/delaunay.f	/^      double precision wlenx, wleny, wlenz,/;"	v	program:main
 wlsm	mod_opt_tetra.f90	/^  real(8), allocatable, save :: wlsm(/;"	v	module:mod_opt_tetra
 wmax	src_inputparser/inputmodules.f90	/^ real(8)::wmax$/;"	k	type:SpectralFunctionPlot_type
+wmax	src_inputparser/inputmodules.f90	/^ real(8)::wmax$/;"	k	type:SpectralFunctionPloteph_type
 wmax	src_inputparser/inputmodules.f90	/^ real(8)::wmax$/;"	k	type:dielmat_type
 wmax	src_inputparser/inputmodules.f90	/^ real(8)::wmax$/;"	k	type:elnes_type
 wmax	src_inputparser/inputmodules.f90	/^ real(8)::wmax$/;"	k	type:moke_type
 wmax	src_inputparser/inputmodules.f90	/^ real(8)::wmax$/;"	k	type:shg_type
 wmin	src_inputparser/inputmodules.f90	/^ real(8)::wmin$/;"	k	type:SpectralFunctionPlot_type
+wmin	src_inputparser/inputmodules.f90	/^ real(8)::wmin$/;"	k	type:SpectralFunctionPloteph_type
 wmin	src_inputparser/inputmodules.f90	/^ real(8)::wmin$/;"	k	type:elnes_type
 womeg	src_gw/mod_frequency.f90	/^        real(8), allocatable :: womeg(/;"	k	type:frequency
 work	src_mixing/modmixadapt.f90	/^      Real (8), Allocatable :: work /;"	v	module:modmixadapt
@@ -28729,6 +28988,7 @@ workl	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 v(ldv,maxncv), workl
 world_group	src_mpi/modmpi.F90	/^      integer:: world_group,/;"	v	module:modmpi
 wparf	src_xs/modxs.F90	/^      Integer :: wparf$/;"	v	module:modxs
 wpari	src_xs/modxs.F90	/^      Integer :: wpari$/;"	v	module:modxs
+wphdense	src_gw/read_dyn-sub.f90	/^  REAL   (8),  ALLOCATABLE :: wphdense /;"	v	module:mod_dynmat
 wpos	spacegroup/modmain.f90	/^real(8) wpos(/;"	v	module:modmain
 wpos	spacegroup/modspacegroup.f90	/^real(8)::wpos(/;"	v	module:modspacegroup
 wpos	spacegroup/sginputmodule.f90	/^type(wpos_/;"	k	type:wpos_type_array
@@ -28793,6 +29053,7 @@ writelinen	writelinen.f90	/^Subroutine writelinen$/;"	s
 writeloss	src_xs/writeloss.F90	/^      Subroutine writeloss /;"	s	module:m_writeloss
 writelsj	writelsj.f90	/^Subroutine writelsj$/;"	s
 writemat	plotmat.f90	/^    subroutine writemat(/;"	s	module:m_plotmat
+writematlab	plotmat.f90	/^    subroutine writematlab(/;"	s	module:m_plotmat
 writeoptminitdata	relax.f90	/^subroutine writeoptminitdata(/;"	s
 writepchgs	writepchgs.F90	/^subroutine writepchgs(/;"	s
 writephn	src_phonon/writephn.f90	/^subroutine writephn$/;"	s
@@ -28825,7 +29086,7 @@ wspecies_type	spacegroup/sginputmodule.f90	/^type wspecies_type$/;"	t	module:mod
 wspecies_type_array	spacegroup/sginputmodule.f90	/^type wspecies_type_array$/;"	t	module:modsymmetries
 wspeciesarray	spacegroup/sginputmodule.f90	/^  type(wspecies_type_array),pointer::wspeciesarray(/;"	k	type:WyckoffPositions_type
 wtet	mod_kpoint.F90	/^      Integer (4), Allocatable :: wtet /;"	v	module:mod_kpoint
-wtet	src_gw/mod_kpointset.f90	/^        integer, allocatable :: wtet(/;"	k	type:k_set
+wtet	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: wtet(/;"	k	type:k_set
 wtet	src_gw/mod_kpointset.f90	/^        integer, allocatable :: wtet(/;"	k	type:kq_set
 wtetnr	src_gw/mod_kqpts.f90	/^    integer(4), allocatable :: wtetnr(/;"	v	module:mod_kqpts
 wxml_error_xf	FoX/wxml/m_wxml_core.F90	/^  subroutine wxml_error_xf(/;"	s	module:m_wxml_core
@@ -28976,6 +29237,10 @@ xmlf_opentag	FoX/wxml/m_wxml_core.F90	/^  function xmlf_opentag(/;"	f	module:m_w
 xmlf_opentag_len	FoX/wxml/m_wxml_core.F90	/^  pure function xmlf_opentag_len(/;"	f	module:m_wxml_core
 xmlf_t	FoX/wxml/m_wxml_core.F90	/^  type xmlf_t$/;"	t	module:m_wxml_core
 xpot	src_raman/mod_raman.f90	/^real(8), allocatable :: xpot(/;"	v	module:raman_inter
+xqcirr	src_gw/read_dyn-sub.f90	/^  REAL   (8),  ALLOCATABLE :: xqcirr /;"	v	module:mod_dynmat
+xqcred	src_gw/read_dyn-sub.f90	/^  REAL   (8),  ALLOCATABLE :: xqcred /;"	v	module:mod_dynmat
+xqirrdeg	src_gw/read_dyn-sub.f90	/^  INTEGER,     ALLOCATABLE :: xqirrdeg(/;"	v	module:mod_dynmat
+xqlred	src_gw/read_dyn-sub.f90	/^  REAL   (8),  ALLOCATABLE :: xqlred /;"	v	module:mod_dynmat
 xs	src_inputparser/inputmodules.f90	/^  type(xs_/;"	k	type:input_type
 xsLO	src_inputparser/inputmodules.f90	/^  type(xsLO_/;"	k	type:groundstate_type
 xsLO_type	src_inputparser/inputmodules.f90	/^type xsLO_type$/;"	t	module:modinput
