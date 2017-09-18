@@ -164,7 +164,6 @@ module m_putgetexcitons
       call hdf5_create_group(fhdf5, "/eigvec/", "parameters")
       group= "/eigvec/parameters"
       call hdf5_write(fhdf5,group,"fcoup",fcoup)    ! Was the TDA used?
-      call hdf5_write(fhdf5,group,"fti",fti)
       call hdf5_write(fhdf5,group,"fesel",fesel)
       call hdf5_write(fhdf5,group,"nk_max",nk_max)
       call hdf5_write(fhdf5,group,"nk_bse",nk_bse)
@@ -366,7 +365,6 @@ module m_putgetexcitons
       write(*,*) 'filename=', fname
       call hdf5_initialize()
       call hdf5_read(fname,group,"fcoup",fcoup_)      
-      call hdf5_read(fname,group,"fti",fti_)      
       call hdf5_read(fname,group,"fesel",fesel_)      
       call hdf5_read(fname,group,"nk_max",nk_max_)
       call hdf5_read(fname,group,"nk_bse",nk_bse_)
