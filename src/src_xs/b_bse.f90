@@ -426,6 +426,12 @@ subroutine b_bse(iqmt)
       end if
       write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
       write(unitout,*)
+
+      if(nexc < 1) then 
+        write(unitout, '("No eigenvalues found the energy window, check input")')
+        call terminate
+      end if
+        
       !------------------------------------------------------------------------!
 
       ! Testing

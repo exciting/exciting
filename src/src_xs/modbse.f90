@@ -513,8 +513,8 @@ module modbse
         write(unitout, '("    ",2E10.3," /eV")')&
           & max(econv(1), -wl)*h2ev, econv(2)*h2ev
       end if
-      write(unitout, '("  Opening gap with a scissor of:",&
-        & E10.3,"/H", E10.3,"/eV")'), sci, sci*h2ev
+      write(unitout, '("  Opening gap with a scissor of: ",&
+        & E10.3,"/H ", E10.3,"/eV")'), sci, sci*h2ev
 
       !! Read in eigenvalues and occupancies for k-qmt/2 and k+qmt/2
 
