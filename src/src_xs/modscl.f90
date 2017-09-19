@@ -4,7 +4,7 @@ module modscl
 
   implicit none
 
-#define BLOCKSIZE 8
+#define BLOCKSIZE 64
 
   type blacsinfo
     ! Underlying MPI communicator
