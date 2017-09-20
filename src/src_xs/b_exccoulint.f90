@@ -290,10 +290,8 @@ subroutine b_exccoulint(iqmt)
 
     ! Get the number of participating occupied/unoccupied
     ! states at current k point
-    ! Note: Needs to be adapted to consider the occupations
-    ! at k+qmt/2 and k-qmt/2. Currently the are considered to be
-    ! the same limits as those at k itself.
-    ! For insulators and band-selection this is the same.
+    ! Note: The saved ranges refer to the to k associated k_- points for the 
+    !       unoccupied, and to the k_+ points for the occupied states
     inu = koulims(2,iknr) - koulims(1,iknr) + 1
     ino = koulims(4,iknr) - koulims(3,iknr) + 1
 
@@ -347,8 +345,14 @@ subroutine b_exccoulint(iqmt)
       flg_analytic = 0
     case("0d")
       flg_analytic = 4
+      write(unitout, '("Info(b_exccoulint):&
+        & Applying Coulomb cutoff for low dimensional systems. Type:",a)') &
+        & trim(input%xs%bse%cuttype)
     case("2d")
       flg_analytic = 5
+      write(unitout, '("Info(b_exccoulint):&
+        & Applying Coulomb cutoff for low dimensional systems. Type:",a)') &
+        & trim(input%xs%bse%cuttype)
     case default
       write(*,*) "Error(b_exccoulint): Invalid cuttype"
       call terminate
@@ -358,12 +362,12 @@ subroutine b_exccoulint(iqmt)
   end do
 
   ! If Q=0 compute \bar{P}, so use the truncated Coulomb potential.
-  ! Set Gmt component term of Coulomb potential to zero [Ambegaokar-Kohn]
+  ! If Q/=0 and TDA compute \bar{P}, if chibarq = .true. (default)
+  ! If Q/=0 and non-TDA compute \chi, i.e. no zeroing of the Coulomb potential.
   if(iqmt==1 .or. input%xs%bse%chibarq) then 
     igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
     potcl(igqmt) = 0.d0
   end if
-  ! If Q\=0 compute \chi, so use the full Coulomb potential.
 
   if(mpiglobal%rank == 0) then
     write(unitout, *)
@@ -399,7 +403,8 @@ subroutine b_exccoulint(iqmt)
     jkpnr = k_kqmtp%ik2ikqmt(jknr)
     jkmnr = k_kqmtm%ik2ikqmt(jknr)
 
-    ! Get number of transitions at ik,jk
+    ! Get number of transitions at reference k-points
+    ! ik, jk for current qmt 
     inou = kousize(iknr)
     jnou = kousize(jknr)
 
@@ -453,6 +458,8 @@ subroutine b_exccoulint(iqmt)
       !------------------------------------------------------------------!
 
       ! Bands
+      ! Note: The saved ranges refer to the to k associated k_- points for the 
+      !       unoccupied, and to the k_+ points for the occupied states
       ematbc%n1=inu
       ematbc%il1=koulims(1,iknr)
       ematbc%iu1=koulims(2,iknr)
