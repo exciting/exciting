@@ -47,17 +47,20 @@ subroutine b_exccoulintlauncher
   fchibarq = input%xs%bse%chibarq
   ! If it is not the default of true
   if(.not. fchibarq) then 
-    if(.not. fcoup .and. .not. fchibarq) then
+    if(.not. fcoup) then
       write(unitout, '("Waring(",a,"):", a)') trim(thisname),&
-        & " TDA and Chi not compatible!"
+        & " TDA and full Chi produce bad results for finite Q, use \bar{Chi}!&
+        &   set input%xs%bse%chibarq = .true."
     end if
   ! Otherwise determin value with fcoup
   else
+    ! Use full Chi if ra coupling is used
     if(fcoup) fchibarq = .false.
+    ! Use truncated Coulomb potential (\bar{Chi}) for TDA
     if(.not. fcoup) fchibarq = .true.
+    ! Overwrite input 
     input%xs%bse%chibarq = fchibarq
   end if
-
 
   ! Which momentum transfer Q points to consider 
   nqmt = size(input%xs%qpointset%qpoint, 2)

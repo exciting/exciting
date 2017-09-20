@@ -37,7 +37,11 @@ module m_writeoscillator
       if(input%xs%bse%coupling) then
         tdastring=''
       else
-        tdastring="-TDA"
+        if(input%xs%bse%chibarq) then 
+          tdastring="-TDA-BAR"
+        else
+          tdastring="-TDA"
+        end if
       end if
 
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
