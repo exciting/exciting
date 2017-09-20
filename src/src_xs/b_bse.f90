@@ -297,7 +297,7 @@ subroutine b_bse(iqmt)
       write(unitout, '("Info(",a,"):&
         & max local RAM needed for BSE matrices ~ ", f12.6, " GB" )')&
         & trim(thisname),&
-        & ramscale*int(dham%nrows_loc,8)*dham%ncols_loc*16.0d0/1024.0d0**3
+        & dble(ramscale)*dham%nrows_loc*dham%ncols_loc*16.0d0/1024.0d0**3
       !------------------------------------------------------------------------!
 
       !------------------------------------------------------------------------!
