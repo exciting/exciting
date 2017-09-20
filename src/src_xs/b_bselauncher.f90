@@ -24,7 +24,7 @@ subroutine b_bselauncher
   integer(4) :: iqmt, iqmti, iqmtf, nqmt, nqmtselected, iq1, iq2
   real(8) :: ts0, ts1
   real(8) :: vqmt(3)
-  logical :: fdist
+  logical :: fdist, fcoup, fchibarq
 
   !---------------------------------------------------------------------------!
   ! Init0,1,2 General inits
@@ -144,6 +144,22 @@ subroutine b_bselauncher
   iq1 = 1
   iq2 = nqmtselected
 #endif
+  !---------------------------------------------------------------------------!
+  
+  !---------------------------------------------------------------------------!
+  ! General BSE checks
+  !---------------------------------------------------------------------------!
+  fcoup = input%xs%bse%coupling
+  fchibarq = input%xs%bse%chibarq
+  ! If TDA and full Coulomb potential, print warning
+  if(.not. fchibarq .and. .not. fcoup) then 
+    call printline(unitout, "!")
+    write(unitout, '("Warning(",a,"):", a)') trim(thisname),&
+      & " TDA and full Chi produce bad results for finite Q, use \bar{Chi}!"
+    write(unitout, '("Warning(",a,"):", a)') trim(thisname),&
+      & " set input%xs%bse%chibarq = .true."
+    call printline(unitout, "!")
+  end if
   !---------------------------------------------------------------------------!
 
   !---------------------------------------------------------------------------!
