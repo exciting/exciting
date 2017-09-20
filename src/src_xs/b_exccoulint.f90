@@ -84,8 +84,10 @@ subroutine b_exccoulint(iqmt)
   logical :: fcoup
   real(8), parameter :: epslat = 1.0d-8
   logical :: fsamekp, fsamekm
+  logical :: fchibarq
 
   fcoup = input%xs%bse%coupling
+  fchibarq = input%xs%bse%chibarq
 
   !---------------!
   !   main part   !
@@ -167,13 +169,23 @@ subroutine b_exccoulint(iqmt)
 
   ! Write support information to file
   if(mpiglobal%rank == 0) then
-    call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
-      & iqmt=iqmt, filnam=infofname)
-    call b_putbseinfo(infofname, iqmt)
+    if(fchibarq) then 
+      call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
+        &  bsetype='-BAR', iqmt=iqmt, filnam=infofname)
+      call b_putbseinfo(infofname, iqmt)
+    else
+      call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
+        & iqmt=iqmt, filnam=infofname)
+      call b_putbseinfo(infofname, iqmt)
+    end if
   end if
 
   ! Set output file names
-  call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname)
+  if(fchibarq) then
+    call genfilname(basename=exclifbasename, bsetype='-BAR', iqmt=iqmt, filnam=exclifname)
+  else
+    call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname)
+  end if
 
   write(unitout, '("Info(",a,"): Size of file ",a," will be about ", f12.6, " GB" )')&
     & trim(thisname), trim(exclifbasename),&
@@ -347,7 +359,7 @@ subroutine b_exccoulint(iqmt)
 
   ! If Q=0 compute \bar{P}, so use the truncated Coulomb potential.
   ! Set Gmt component term of Coulomb potential to zero [Ambegaokar-Kohn]
-  if(iqmt==1) then 
+  if(iqmt==1 .or. input%xs%bse%chibarq) then 
     igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
     potcl(igqmt) = 0.d0
   end if
@@ -356,7 +368,7 @@ subroutine b_exccoulint(iqmt)
   if(mpiglobal%rank == 0) then
     write(unitout, *)
     write(unitout, '("Info(b_exccoulint): Generating V matrix elements")')
-    if(iqmt == 1) then 
+    if(iqmt == 1 .or. input%xs%bse%chibarq) then 
       write(unitout, '("Info(b_exccoulint): Zeroing Coulomb potential at G+qmt index:", i3)') igqmt
     end if
     call timesec(tpw0)

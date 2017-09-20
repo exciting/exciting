@@ -141,7 +141,11 @@ subroutine b_writeexcevec()
       if(fcoup_) then
         tdastring=''
       else
-        tdastring="-TDA"
+        if(input%xs%bse%chibarq) then
+          tdastring="-TDA-BAR"
+        else
+          tdastring="-TDA"
+        end if
       end if
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
