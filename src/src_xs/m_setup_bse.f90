@@ -519,20 +519,12 @@ module m_setup_bse
               do j= 1, size(hamblock,2)
                 do i= 1, size(hamblock,1)
                   hamblock(i,j) = oc1(i)*oc2(j)* 2.0d0 * exc(i,j)
-                write(*,*) "i,j", i, j
-                write(*,*) "oc1,oc2", oc1(i), oc2(j)
-                write(*,*) "exc", exc(i,j)
-                write(*,*) "hamblock", hamblock(i,j)
                 end do
               end do
             else
               do j= 1, size(hamblock,2)
                 do i= 1, size(hamblock,1)
                   hamblock(i,j) = oc1(i)*oc2(j) * 2.0d0 * exc(i,j)
-                write(*,*) "i,j", i, j
-                write(*,*) "oc1,oc2", oc1(i), oc2(j)
-                write(*,*) "exc", exc(i,j)
-                write(*,*) "hamblock", hamblock(i,j)
                 end do
               end do
             end if

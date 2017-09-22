@@ -188,7 +188,10 @@ module m_write_hdf5
       if (.not. hdf5_exist_group(fhdf5, gname_, "parameters")) then
         call hdf5_create_group(fhdf5,gname_, "parameters")
       end if
-      group=trim(adjustl(gname_))//"parameters"     
+      print *, 'iqmt=', iqmt
+      iq=iqmt
+      group=trim(adjustl(gname_))//"parameters"
+      print *, 'group=', group     
       call hdf5_write(fhdf5,group,"ivgmt", ivgmt(1,iq), shape(ivgmt(1:3,iq)))
       call hdf5_write(fhdf5,group,"vqlmt",vqlmt(1,iq), shape(vqlmt(1:3,iq)))
       call hdf5_write(fhdf5,group,"vgcmt",vgcmt(1,iq), shape(vgcmt(1:3,iq)))
@@ -204,13 +207,6 @@ module m_write_hdf5
       call hdf5_write(fhdf5,gname_,"evalre", evalre_(1), shape(evalre_))
       deallocate(evalre_)
       
-
-      ! Loop over optical components
-      if(present(iqmt)) then 
-        iq = iqmt
-      else
-        iq = 1
-      end if
 
       io1=1
       io2=3
@@ -228,7 +224,6 @@ module m_write_hdf5
         end if
         group=trim(adjustl(gname_))//trim(adjustl(ci))//"/"
         write(*,*) 'group in write_exciton:', group
-        allocate(oscstrr_(nexc))
         call hdf5_write(fhdf5,group,"oscstrr", oscstrr(1,o1), shape(oscstrr(1:nexc,o1)))
       end do
 #endif
