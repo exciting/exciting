@@ -4,7 +4,7 @@ module modscl
 
   implicit none
 
-#define BLOCKSIZE 8
+#define BLOCKSIZE 64
 
   type blacsinfo
     ! Underlying MPI communicator
@@ -311,7 +311,7 @@ module modscl
     !BOP
     ! !ROUTINE: new_dzmat
     ! !INTERFACE:
-    subroutine new_dzmat(self, nrows, ncols, binfo, rblck, cblck)
+    subroutine new_dzmat(self, nrows, ncols, binfo, rblck, cblck, fzero)
     ! !INPUTP/OUTPUT PARAMETERS:
     ! IN:
     !   integer(4) :: nrows      ! Global number of rows of self
@@ -338,6 +338,7 @@ module modscl
       integer(4), intent(in) :: nrows, ncols
       type(blacsinfo), intent(in) :: binfo
       integer(4), intent(in), optional :: rblck, cblck
+      logical, intent(in), optional :: fzero
 
       integer(4) :: i, j
       logical :: isempty
@@ -448,7 +449,13 @@ module modscl
       end if
 
       ! Zero it for good measure.
-      if(self%nrows_loc > 0) self%za = cmplx(0,0,8)
+      if(present(fzero)) then 
+        if(fzero) then 
+          if(self%nrows_loc > 0) self%za = cmplx(0,0,8)
+        end if
+      else
+        if(self%nrows_loc > 0) self%za = cmplx(0,0,8)
+      end if
 
     end subroutine new_dzmat
     !EOC

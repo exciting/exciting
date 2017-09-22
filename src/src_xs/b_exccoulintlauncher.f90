@@ -22,7 +22,7 @@ subroutine b_exccoulintlauncher
 
   implicit none
 
-  logical :: fcoup
+  logical :: fcoup, fchibarq
   integer(4) :: iqmt, iqmti, iqmtf, nqmt
   real(8) :: vqmt(3)
   character(256) :: casestring
@@ -40,6 +40,26 @@ subroutine b_exccoulintlauncher
       ! silently set default from default of "both" to "rr"
       casestring="rr"
     end if
+  end if
+
+  ! For BSE with coupling at finite Q, always use the full Chi
+  ! and not \bar{Chi}. For TDA warn if \bar{Chi} is not used.
+  fchibarq = input%xs%bse%chibarq
+  ! If it is not the default of true
+  if(.not. fchibarq) then 
+    if(.not. fcoup) then
+      write(unitout, '("Waring(",a,"):", a)') trim(thisname),&
+        & " TDA and full Chi produce bad results for finite Q, use \bar{Chi}!&
+        &   set input%xs%bse%chibarq = .true."
+    end if
+  ! Otherwise determin value with fcoup
+  else
+    ! Use full Chi if ra coupling is used
+    if(fcoup) fchibarq = .false.
+    ! Use truncated Coulomb potential (\bar{Chi}) for TDA
+    if(.not. fcoup) fchibarq = .true.
+    ! Overwrite input 
+    input%xs%bse%chibarq = fchibarq
   end if
 
   ! Which momentum transfer Q points to consider 

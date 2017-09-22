@@ -68,7 +68,7 @@ module m_putgetexcitons
 
       ! Local
       integer(4) :: stat, unexc
-      logical :: fcoup, fesel
+      logical :: fcoup, fesel, fchibarq
       integer(4) :: i1, i2, nexcstored, iq, m, n, ngridk(3)
 
       character(128) :: group, gname, gname_, ciq
@@ -123,6 +123,9 @@ module m_putgetexcitons
         call terminate
       end if
 
+      ! Was the Coulomb potential truncated?
+      fchibarq = input%xs%bse%chibarq
+
       ! BSE type
       fcoup = input%xs%bse%coupling 
       if(any(input%xs%bse%nstlbse == 0)) then
@@ -135,7 +138,11 @@ module m_putgetexcitons
       if(fcoup) then
         tdastring=''
       else
-        tdastring="-TDA"
+        if(fchibarq) then 
+          tdastring="-TDA-BAR"
+        else
+          tdastring="-TDA"
+        end if
       end if
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
@@ -249,7 +256,7 @@ module m_putgetexcitons
       real(8), parameter :: epslat = 1.0d-6
       integer(4) :: stat, unexc, cmplxlen
       integer(8) :: mypos, pos1, pos2
-      logical :: fcoup, fesel, fex, useindex, useenergy
+      logical :: fcoup, fesel, fex, useindex, useenergy, fchibarq
       complex(8) :: zdummy
 
       character(256) :: fname
@@ -328,11 +335,17 @@ module m_putgetexcitons
       vqlmt = input%xs%qpointset%qpoint(:,iq)
       call r3frac(epslat, vqlmt, ivec)
 
+      ! Was the Coulomb potential truncated?
+      fchibarq = input%xs%bse%chibarq
       ! Generate file name  
       if(fcoup) then
         tdastring=''
       else
-        tdastring="-TDA"
+        if(fchibarq) then 
+          tdastring="-TDA-BAR"
+        else
+          tdastring="-TDA"
+        end if
       end if
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
@@ -551,7 +564,7 @@ module m_putgetexcitons
       ! Local
       type(dzmat) :: dauxmat
       integer(4) :: stat, unexc
-      logical :: fcoup, fesel
+      logical :: fcoup, fesel, fchibarq
       integer(4) :: i1, i2, nexcstored, iq, m, n, m2, n2, i, ngridk(3)
       logical :: sane, distributed
 
@@ -650,6 +663,9 @@ module m_putgetexcitons
         fesel = .false.
       end if
 
+      ! Was the Coulomb potential truncated?
+      fchibarq = input%xs%bse%chibarq
+
       ! Root does the writing to file
       if(bi2d%isroot) then 
 
@@ -657,7 +673,11 @@ module m_putgetexcitons
         if(fcoup) then
           tdastring=''
         else
-          tdastring="-TDA"
+          if(fchibarq) then 
+            tdastring="-TDA-BAR"
+          else
+            tdastring="-TDA"
+          end if
         end if
         bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
         scrtypestring = '-'//trim(input%xs%screening%screentype)
