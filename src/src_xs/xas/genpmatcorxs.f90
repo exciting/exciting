@@ -93,8 +93,8 @@ subroutine genpmatcorxs(ik,ngp,apwalm,evecfv,evecsv,pmatc)
             irc=irc+1
             fr(irc)=ucore(ir,ist2)*spr(ir,is)*spr(ir,is)
           enddo ! ir
-          lm1=idxlm(lxas,mj2ml(l,mj(ist2),1))
-          lm2=idxlm(lxas,mj2ml(l,mj(ist2),2))
+          lm1=idxlm(lxas,mj2ml(lxas,mj(ist2),1))
+          lm2=idxlm(lxas,mj2ml(lxas,mj(ist2),2))
           do i=1,3
             do irc=1,nrcmt(is)
               fr1(irc)=1.0d0/sqrt(2.0d0)*(preml(lxas,spj(ist2),mj(ist2),1)*fr(irc)& 
@@ -140,8 +140,8 @@ subroutine genpmatcorxs(ik,ngp,apwalm,evecfv,evecsv,pmatc)
             irc=irc+1
             fr(irc)=ucore(ir,ist2)*spr(ir,is)*spr(ir,is)
           enddo ! ir
-          lm1=idxlm(lxas,mj2ml(l,mj(ist2),1))
-          lm2=idxlm(lxas,mj2ml(l,mj(ist2),2))
+          lm1=idxlm(lxas,mj2ml(lxas,mj(ist2),1))
+          lm2=idxlm(lxas,mj2ml(lxas,mj(ist2),2))
           do i=1,3
             do irc=1,nrmt(is)
               fr1(irc)=preml(lxas,spj(ist2),mj(ist2),1)*fr(irc)*dble(gwfmtsv(lm1,irc,i,1,ist1))+ &

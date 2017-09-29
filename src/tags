@@ -14835,10 +14835,10 @@ FCCPP	libXC/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/build/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/src/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/testsuite/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
-FCFLAGS	libXC/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  $/;"	m
-FCFLAGS	libXC/build/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  $/;"	m
-FCFLAGS	libXC/src/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  $/;"	m
-FCFLAGS	libXC/testsuite/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  $/;"	m
+FCFLAGS	libXC/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
+FCFLAGS	libXC/build/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
+FCFLAGS	libXC/src/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
+FCFLAGS	libXC/testsuite/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
 FCFLAGS_f90	libXC/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/build/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/src/Makefile	/^FCFLAGS_f90 = $/;"	m
@@ -20222,6 +20222,7 @@ ematqalloc	src_xs/ematqalloc.F90	/^subroutine ematqalloc$/;"	s
 ematqdealloc	src_xs/ematqdealloc.F90	/^subroutine ematqdealloc$/;"	s
 ematqk	src_xs/ematqk.F90	/^Subroutine ematqk /;"	s
 ematqk1	src_xs/ematqk1.F90	/^Subroutine ematqk1 /;"	s
+ematqk_sv	src_xs/mod_variation.f90	/^    subroutine ematqk_sv(/;"	s	module:mod_variation
 ematqkgir	src_xs/ematqkgir.F90	/^Subroutine ematqkgir /;"	s
 ematqkgmt	src_xs/ematqkgmt.F90	/^Subroutine ematqkgmt /;"	s
 ematrad	src_xs/ematrad.F90	/^subroutine ematrad(/;"	s
@@ -21497,11 +21498,7 @@ getlatticerepetition	src_vdW/vdw_general_routines.f90	/^  Subroutine getlatticer
 getlines	src_xs/m_readoscillator.f90	/^        subroutine getlines(/;"	s	subroutine:readoscillator
 getliveNodeLists	FoX/dom/m_dom_dom.F90	/^function getliveNodeLists(/;"	f	module:m_dom_dom
 getlocmt	src_xs/getlocmt.F90	/^      Subroutine getlocmt /;"	s	module:m_getlocmt
-getmoo_sv	src_xs/mod_variation.f90	/^    subroutine getmoo_sv(/;"	s	module:mod_variation
-getmou_sv	src_xs/mod_variation.f90	/^    subroutine getmou_sv(/;"	s	module:mod_variation
 getmuo	src_xs/b_exccoulint.f90	/^    subroutine getmuo(/;"	s	subroutine:b_exccoulint
-getmuo_sv	src_xs/mod_variation.f90	/^    subroutine getmuo_sv(/;"	s	module:mod_variation
-getmuu_sv	src_xs/mod_variation.f90	/^    subroutine getmuu_sv(/;"	s	module:mod_variation
 getname	FoX/dom/m_dom_dom.F90	/^function getname(/;"	f	module:m_dom_dom
 getname_len	FoX/dom/m_dom_dom.F90	/^  pure function getname_len(/;"	f	module:m_dom_dom
 getnamespaceNodes	FoX/dom/m_dom_dom.F90	/^  function getnamespaceNodes(/;"	f	module:m_dom_dom
@@ -29243,7 +29240,8 @@ workl	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^     &                 v(ldv,maxncv), workl
 workl	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 v(ldv,maxncv), workl(/;"	v	program:ssdrv6
 workspacequery	src_xs/bsesoldiag.F90	/^    subroutine workspacequery(/;"	s	subroutine:bsesoldiag
 workspacequery	src_xs/m_dhesolver.f90	/^        subroutine workspacequery(/;"	s	subroutine:dhesolver
-workspacequery	src_xs/m_hesolver.f90	/^        subroutine workspacequery(/;"	s	subroutine:hesolver
+workspacequery_zheevd	src_xs/m_hesolver.f90	/^        subroutine workspacequery_zheevd(/;"	s	subroutine:hesolver
+workspacequery_zheevr	src_xs/m_hesolver.f90	/^        subroutine workspacequery_zheevr(/;"	s	subroutine:hesolver
 wp	src_xs/bspline_sub_module.f90	/^    integer,parameter :: wp /;"	v	module:bspline_sub_module
 wparf	src_xs/modxs.F90	/^      Integer :: wparf$/;"	v	module:modxs
 wpari	src_xs/modxs.F90	/^      Integer :: wpari$/;"	v	module:modxs
