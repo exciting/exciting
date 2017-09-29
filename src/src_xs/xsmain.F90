@@ -42,9 +42,11 @@ Subroutine xsmain (plan)
       Integer :: i
   ! initialization
 #ifdef _HDF5_
-  call hdf5_initialize()
-  fhdf5="bse_output.h5"
-  call hdf5_create_file(fhdf5)
+  if (mpiglobal%rank == 0) then
+    call hdf5_initialize()
+    fhdf5="bse_output.h5"
+    call hdf5_create_file(fhdf5)
+  endif
 #endif
   !
   ! task selection
@@ -240,7 +242,9 @@ Subroutine xsmain (plan)
   ! summarize information on run
   ! Finalization
 #ifdef _HDF5_
-  call hdf5_finalize()
+  if (mpiglobal%rank == 0) then
+    call hdf5_finalize()
+  endif
 #endif
 !
 End Subroutine xsmain

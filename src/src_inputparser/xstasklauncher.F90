@@ -244,10 +244,12 @@ subroutine xstasklauncher
     
     ! HDF5 Initialzation
 #ifdef _HDF5_
-    call hdf5_initialize()
-    fhdf5="bse_output.h5"
-    call hdf5_create_file(fhdf5)
-    write(*,*) 'file created'
+    if (mpiglobal%rank == 0) then
+      call hdf5_initialize()
+      fhdf5="bse_output.h5"
+      call hdf5_create_file(fhdf5)
+      write(*,*) 'file created'
+    end if
 #endif
     ! Task 301 corresponds to "xsgeneigvec" plan
     ! One shot GS calculation with xs%ngridk, xs%nempty and potential xs%vkloff.
@@ -314,7 +316,9 @@ subroutine xstasklauncher
     
     ! HDF5 Finalization
 #ifdef _HDF5_
-    call hdf5_finalize()
+    if (mpiglobal%rank == 0) then
+      call hdf5_finalize()
+    end if
 #endif
   else if(trim(input%xs%xstype)=="BSE" .and. input%xs%bse%beyond .eqv. .true.) then
 
@@ -324,9 +328,11 @@ subroutine xstasklauncher
 
     ! HDF5 Initialzation
 #ifdef _HDF5_
-    call hdf5_initialize()
-    fhdf5="bse_output.h5"
-    call hdf5_create_file(fhdf5)
+    if (mpiglobal%rank == 0) then
+      call hdf5_initialize()
+      fhdf5="bse_output.h5"
+      call hdf5_create_file(fhdf5)
+    end if
 #endif
 
     ! Task 301 corresponds to "xsgeneigvec" plan
@@ -385,7 +391,9 @@ subroutine xstasklauncher
 
     ! HDF5 Finalization
 #ifdef _HDF5_
-    call hdf5_finalize()
+    if (mpiglobal%rank == 0) then
+      call hdf5_finalize()
+    end if
 #endif
   else
 
