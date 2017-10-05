@@ -9,6 +9,7 @@ subroutine xstasklauncher
     & hybridhf,skipgnd, fhdf5
   use inputdom
   use mod_hdf5
+  use modmpi
   implicit none
 
   ! SET DEFAULTS

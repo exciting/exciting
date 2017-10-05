@@ -71,7 +71,7 @@ module m_putgetexcitons
       logical :: fcoup, fesel, fchibarq
       integer(4) :: i1, i2, nexcstored, iq, m, n, ngridk(3)
 
-      character(128) :: group, gname, gname_, ciq
+      character(128) :: group, gname, gname_, ciq, ci
       character(256) :: fname
       character(256) :: tdastring, bsetypestring, scrtypestring
 
@@ -569,7 +569,7 @@ module m_putgetexcitons
       logical :: sane, distributed
 
 
-      character(256) :: fname, ciq
+      character(256) :: fname, ciq, ci
       character(256) :: tdastring, bsetypestring, scrtypestring
       character(256) :: group, gname_, gname
       if(present(davec)) then
@@ -712,7 +712,7 @@ module m_putgetexcitons
         gname_=trim(adjustl(gname_))//trim(adjustl(ciq))//"/"
         ! Write Metadata
         call hdf5_create_group(fhdf5, gname_, "parameters")
-        group= trim(adjustl(group))//'parameters'
+        group= trim(adjustl(gname_))//'parameters'
         call hdf5_write(fhdf5,group,"fcoup",fcoup)    ! Was the TDA used?
         call hdf5_write(fhdf5,group,"fesel",fesel)
         call hdf5_write(fhdf5,group,"nk_max",nk_max)
@@ -786,8 +786,9 @@ module m_putgetexcitons
             & ra=1, ca=i+drvec%subj-1)
           ! Write eigenvector
 #ifdef _HDF5_
-          write(ciq, '(I4.8)') i
-          call hdf5_write(fhdf5, group, ciq, dauxmat%za(1,1),  shape(dauxmat%za(1:m,1)))
+          write(ci, '(I8.8)') i
+          print *, 'ci=', trim(ci)
+          call hdf5_write(fhdf5, group, ci, dauxmat%za(1,1),  shape(dauxmat%za(1:m,1)))
 #else          
           write(unexc) dauxmat%za(1:m,1)
 #endif
@@ -802,8 +803,8 @@ module m_putgetexcitons
               & ra=1, ca=i+davec%subj-1)
             ! Write eigenvector
 #ifdef _HDF5_
-            write(ciq, '(I4.8)') i
-            call hdf5_write(fhdf5, group, ciq, dauxmat%za(1,1), shape(dauxmat%za(1:m,1)))
+            write(ci, '(I4.8)') i
+            call hdf5_write(fhdf5, group, ci, dauxmat%za(1,1), shape(dauxmat%za(1:m,1)))
 #else          
             write(unexc) dauxmat%za(1:m,1)
 #endif
