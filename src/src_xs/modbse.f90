@@ -398,7 +398,7 @@ module modbse
       integer(4) :: nk_loc, hamsize_loc
       integer(4) :: nsymcrys_save
       integer(4), allocatable :: smap_loc(:,:)
-      real(8) :: detmp
+      real(8) :: detmp, doctmp
       real(8), allocatable :: ofac_loc(:)
       real(8), allocatable :: de_loc(:)
       real(8) :: t0, t1
@@ -406,21 +406,29 @@ module modbse
       logical, allocatable :: sflag(:)
       integer(4) :: k1, k2
       integer(4) :: i1, i2
-      logical :: posdiff
+      logical :: fxas, posdiff
       character(*), parameter :: thisname = "select_transitions"
 
       call timesec(t0)
 
+      ! Check whether mpi is used for the selection
       if(present(serial)) then 
         fserial = serial
       else
         fserial = .false.
       end if
 
+      ! Check is XAS is used
+      if(input%xs%bse%xas) then
+        fxas = .true.
+      else
+        fxas = .false.
+      end if
+
       ! Search for needed IP/QP transitions automatically
       ! depending on the chosen energy window.
-      if((any(input%xs%bse%nstlbse == 0) .and. .not. input%xs%bse%xas) &
-       & .or. (any(input%xs%bse%nstlxas ==0) .and. input%xs%bse%xas)) then
+      if((any(input%xs%bse%nstlbse == 0) .and. .not. fxas) &
+       & .or. (any(input%xs%bse%nstlxas ==0) .and. fxas)) then
         fensel = .true.
       else
         fensel = .false.
@@ -453,7 +461,7 @@ module modbse
       if(fensel) then
 
         ! By default use all available XS GS states for the search
-        if (input%xs%bse%xas) then
+        if(fxas) then
           io1=xasstart
           io2=xasstop
           iu1=istunocc0
@@ -483,7 +491,7 @@ module modbse
       ! Use the specified bands, and only inspect occupations.
       else
 
-        if (input%xs%bse%xas) then
+        if(fxas) then
           io1 = xasstart
           io2 = xasstop
           iu1 = input%xs%bse%nstlxas(1)+istunocc0-1
@@ -491,10 +499,16 @@ module modbse
         else
           io1= input%xs%bse%nstlbse(1)
           io2= input%xs%bse%nstlbse(2)
-          iu1=input%xs%bse%nstlbse(3)+istunocc0-1
-          iu2=input%xs%bse%nstlbse(4)+istunocc0-1
+          iu1= input%xs%bse%nstlbse(3)+istunocc0-1
+          iu2= input%xs%bse%nstlbse(4)+istunocc0-1
         end if
 
+      end if
+
+      if(istunocc0 < io1) then
+        write(*, '("Waring(select_transitions):", a, 2i4)') &
+          & "Lowest (partially) unoccupied band is below the first &
+           considered (partially) occupied band.", istunocc0, io1
       end if
 
       write(unitout, '("Info(select_transitions): Searching for transitions in&
@@ -677,7 +691,7 @@ module modbse
         ! Loop over KS transition energies 
         !$OMP PARALLEL DO &
         !$OMP& COLLAPSE(2),&
-        !$OMP& DEFAULT(SHARED), PRIVATE(io,iu,s,detmp),&
+        !$OMP& DEFAULT(SHARED), PRIVATE(io,iu,s,detmp,doctmp,posdiff),&
         !$OMP& REDUCTION(+:kous),&
         !$OMP& REDUCTION(max:iomax),&
         !$OMP& REDUCTION(min:iomin),&
@@ -686,12 +700,12 @@ module modbse
         do io = io1, io2
           do iu = iu1, iu2 
 
-            if(fensel ) then
+            if(fensel) then
 
-              if (input%xs%bse%xas) then
+              ! \Delta E = E_{u,k-qmt/2} - E_{o,k+qmt/2} + shift
+              if (fxas) then
                 detmp= evalsv0(iu, ikqm) - ecore(io) + sci
               else
-                ! \Delta E = E_{u,k-qmt/2} - E_{o,k+qmt/2} + shift
                 detmp = evalsv0(iu, ikqm) - evalsv(io, ikqp) + sci
               end if 
 
@@ -700,13 +714,18 @@ module modbse
 
                 ! Only consider transitions which have a positve non-zero 
                 ! occupancy difference f_{o ki+qmt/2} - f_{u ki-qmt/2}
-                if (.not. input%xs%bse%xas .and. &
-                  & (occsv(io, ikqp) - occsv0(iu, ikqm) > cutoffocc)) then
-                  posdiff=.true.
-                else if (input%xs%bse%xas .and. &
-                  & (1.0d0 - occsv0(iu, ikqm)) > cutoffocc) then 
-                  posdiff=.true.
+                !
+                ! If it is a XAS comutation:
+                if(fxas) then 
+                  doctmp = 1.0d0 - occsv0(iu, ikqm)
+                ! If it is a optics comutation:
                 else
+                  doctmp = occsv(io, ikqp) - occsv0(iu, ikqm)
+                end if
+                ! Check if positive
+                if(doctmp > cutoffocc) then
+                  posdiff=.true.
+                else 
                   posdiff=.false.
                 end if
 
@@ -751,14 +770,19 @@ module modbse
             else
 
               ! Only consider transitions which have a positve non-zero 
-              ! occupancy difference f_{o ki} - f_{u ki+q}
-              if (.not. input%xs%bse%xas .and. &
-                & (occsv(io, ikqp) - occsv0(iu, ikqm) > cutoffocc)) then
-                posdiff=.true.
-              else if (input%xs%bse%xas .and. &
-                & (1.0d0 -occsv0(iu, ikqm)) > cutoffocc) then
-                posdiff=.true.
+              ! occupancy difference f_{o ki+qmt/2} - f_{u ki-qmt/2}
+              !
+              ! If it is a XAS comutation:
+              if(fxas) then 
+                doctmp = 1.0d0 - occsv0(iu, ikqm)
+              ! If it is a optics comutation:
               else
+                doctmp = occsv(io, ikqp) - occsv0(iu, ikqm)
+              end if
+              ! Check if positive
+              if(doctmp > cutoffocc) then
+                posdiff=.true.
+              else 
                 posdiff=.false.
               end if
 
@@ -779,15 +803,15 @@ module modbse
                 smap_loc(3,s) = ik
 
                 ! Save energy difference
-                if (input%xs%bse%xas) then
+                ! \Delta E = E_{u,k-qmt/2} - E_{o,k+qmt/2} + shift
+                if (fxas) then
                   de_loc(s)=evalsv0(iu,ikqm)-ecore(io)+sci
                 else
-                  ! \Delta E = E_{u,k-qmt/2} - E_{o,k+qmt/2} + shift
                   de_loc(s) = evalsv0(iu,ikqm)-evalsv(io,ikqp)+sci
                 end if
 
                 ! Save occupation factor
-                if (input%xs%bse%xas) then
+                if (fxas) then
                   ofac_loc(s) = sqrt(1.0d0 - occsv0(iu, ikqm)/maxocc)
                 else
                   ofac_loc(s) = sqrt((occsv(io, ikqp) - occsv0(iu, ikqm))/maxocc)
