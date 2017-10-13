@@ -134,16 +134,19 @@ subroutine writepmatxs_hdf5
     call pmatrad
   end if
 #ifdef _HDF5_
-  if (.not. hdf5_exist_group(fhdf5, "/", "pmat")) then
-    call hdf5_create_group(fhdf5,"/", "pmat")
+  if (rank == 0) then
+    if (.not. hdf5_exist_group(fhdf5, "/", "pmat")) then
+      call hdf5_create_group(fhdf5,"/", "pmat")
+    end if
   end if
   kloop: do ik = kpari, kparf
-    write(cik, '(I4.4)') ik
-    if (.not. hdf5_exist_group(fhdf5, "/pmat/", trim(adjustl(cik)))) then
-      call hdf5_create_group(fhdf5,"/pmat/", trim(adjustl(cik)))
+    if (rank == 0) then 
+      write(cik, '(I4.4)') ik
+      if (.not. hdf5_exist_group(fhdf5, "/pmat/", trim(adjustl(cik)))) then
+        call hdf5_create_group(fhdf5,"/pmat/", trim(adjustl(cik)))
+      end if
+      gname="/pmat/"//trim(adjustl(cik))
     end if
-    gname="/pmat/"//trim(adjustl(cik))
-
     if(task .ne. 120) call chkpt(2, (/ task, ik /), 'ematqk:&
      & task, k - point index; momentum matrix elements')
 
@@ -181,9 +184,11 @@ subroutine writepmatxs_hdf5
 
     end if
     ! Write hdf5
-    write(*,*) 'shape(pmat)=', shape(pmat)
-    write(*,*) "pmat(1,1,1)=", pmat(1,1,1)
-    call hdf5_write(fhdf5,gname,'pmat', pmat(1,1,1), shape(pmat(:,:,:)))
+    if (rank == 0) then
+      write(*,*) 'shape(pmat)=', shape(pmat)
+      write(*,*) "pmat(1,1,1)=", pmat(1,1,1)
+      call hdf5_write(fhdf5,gname,'pmat', pmat(1,1,1), shape(pmat(:,:,:)))
+    end if
     
   end do kloop
 #endif

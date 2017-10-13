@@ -579,7 +579,7 @@ module m_putgetexcitons
       end if
 
       distributed = drvec%isdistributed
-
+      print *, 'distributed=', distributed
       if(.not. distributed .and. sane) then 
         if(present(davec)) then 
           call put_excitons(evals(a1:a2), drvec%za(:,a1:a2), avec=davec%za(:,a1:a2),&
@@ -812,10 +812,10 @@ module m_putgetexcitons
         end if
 
         call del_dzmat(dauxmat)
-
+#ifndef _HDF5_
         ! Done
         close(unexc)
-
+#endif
       ! Send to root
       else
 
