@@ -69,12 +69,15 @@ Subroutine bandstr
   Call init0
 
   if( input%properties%bandstructure%wannier) then
-    !do ik = 8, 50, 2
+    !call wfint_interpolate_bandgap
+    !stop
+    !do ik = 4, 4, 2
     !  !write(*,*) ik
     !  call generate_k_vectors( int_kset, bvec, (/ik, ik, ik/), (/0.d0, 0.d0, 0.d0/), .true.)
     !  !write(*,*) int_kset%nkpt
     !  !call wannier_interpolate_density( int_kset)
     !  call wfint_init( int_kset)
+    !  call wfint_interpolate_eigvec
     !  !call wfint_interpolate_occupancy
     !  call wfint_interpolate_density
     !  write(*,'(I3.3,F23.16)') ik, wfint_efermi
@@ -113,42 +116,43 @@ Subroutine bandstr
     ! k-points on grid
     input%properties%bandstructure%wannier = .true.
     call init1
-    select case (input%properties%wannier%input)
-      case( "groundstate")
-      case( "gw")
-        call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, input%gw%reduceq)
-        vkl = wf_kset%vkl
-        vkc = wf_kset%vkc
-        nkpt = wf_kset%nkpt
-        call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, .false.)
-      case( "hybrid")
-        call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek)
-        vkl = wf_kset%vkl
-        vkc = wf_kset%vkc
-        nkpt = wf_kset%nkpt
-        ! recalculate G+k-vectors
-        do ik = 1, nkpt
-          do is = 1, nspnfv
-            vl (:) = vkl(:, ik)
-            vc (:) = vkc(:, ik)
-            call gengpvec( vl, vc, ngk( is, ik), igkig( :, is, ik), vgkl( :, :, is, ik), vgkc( :, :, is, ik), gkc( :, is, ik), tpgkc( :, :, is, ik))
-            call gensfacgp( ngk(is, ik), vgkc( :, :, is, ik), ngkmax, sfacgk( :, :, is, ik))
-          end do
-        end do
-        call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
-      case default
-        write(*, '(" ERROR (wannier_init): ",a," is not a valid input.")') input%properties%wannier%input
-        call terminate
-    end select
+    call readkpts
+    !select case (input%properties%wannier%input)
+    !  case( "groundstate")
+    !  case( "gw")
+    !    call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, input%gw%reduceq)
+    !    vkl = wf_kset%vkl
+    !    vkc = wf_kset%vkc
+    !    nkpt = wf_kset%nkpt
+    !    call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, .false.)
+    !  case( "hybrid")
+    !    call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek)
+    !    !vkl = wf_kset%vkl
+    !    !vkc = wf_kset%vkc
+    !    !nkpt = wf_kset%nkpt
+    !    !! recalculate G+k-vectors
+    !    !do ik = 1, nkpt
+    !    !  do is = 1, nspnfv
+    !    !    vl (:) = vkl(:, ik)
+    !    !    vc (:) = vkc(:, ik)
+    !    !    call gengpvec( vl, vc, ngk( is, ik), igkig( :, is, ik), vgkl( :, :, is, ik), vgkc( :, :, is, ik), gkc( :, is, ik), tpgkc( :, :, is, ik))
+    !    !    call gensfacgp( ngk(is, ik), vgkc( :, :, is, ik), ngkmax, sfacgk( :, :, is, ik))
+    !    !  end do
+    !    !end do
+    !    call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
+    !  case default
+    !    write(*, '(" ERROR (wannier_init): ",a," is not a valid input.")') input%properties%wannier%input
+    !    call terminate
+    !end select
 
     allocate( eval1( nstfv, wf_kset%nkpt))
+    write(*,'("  do interpolation")')
     call wfint_init( int_kset)
     
     ! read Fermi energy from file
     Call readfermi
       
     ! do interpolation
-    write(*,'("  do interpolation")')
     lmax = min( 3, input%groundstate%lmaxapw)
     lmmax = (lmax+1)**2
     evalint = wfint_eval
@@ -272,33 +276,34 @@ Subroutine bandstr
     ! go back on k-grid
     input%properties%bandstructure%wannier = .true.
     call init1
-    select case (input%properties%wannier%input)
-      case( "groundstate")
-      case( "gw")
-        call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, input%gw%reduceq)
-        vkl = wf_kset%vkl
-        vkc = wf_kset%vkc
-        nkpt = wf_kset%nkpt
-        call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, .false.)
-      case( "hybrid")
-        call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek)
-        vkl = wf_kset%vkl
-        vkc = wf_kset%vkc
-        nkpt = wf_kset%nkpt
-        ! recalculate G+k-vectors
-        do ik = 1, nkpt
-          do is = 1, nspnfv
-            vl (:) = vkl(:, ik)
-            vc (:) = vkc(:, ik)
-            call gengpvec( vl, vc, ngk( is, ik), igkig( :, is, ik), vgkl( :, :, is, ik), vgkc( :, :, is, ik), gkc( :, is, ik), tpgkc( :, :, is, ik))
-            call gensfacgp( ngk(is, ik), vgkc( :, :, is, ik), ngkmax, sfacgk( :, :, is, ik))
-          end do
-        end do
-        call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
-      case default
-        write(*, '(" ERROR (wannier_init): ",a," is not a valid input.")') input%properties%wannier%input
-        call terminate
-    end select
+    call readkpts
+    !select case (input%properties%wannier%input)
+    !  case( "groundstate")
+    !  case( "gw")
+    !    call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, input%gw%reduceq)
+    !    vkl = wf_kset%vkl
+    !    vkc = wf_kset%vkc
+    !    nkpt = wf_kset%nkpt
+    !    call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, .false.)
+    !  case( "hybrid")
+    !    call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek)
+    !    vkl = wf_kset%vkl
+    !    vkc = wf_kset%vkc
+    !    nkpt = wf_kset%nkpt
+    !    ! recalculate G+k-vectors
+    !    do ik = 1, nkpt
+    !      do is = 1, nspnfv
+    !        vl (:) = vkl(:, ik)
+    !        vc (:) = vkc(:, ik)
+    !        call gengpvec( vl, vc, ngk( is, ik), igkig( :, is, ik), vgkl( :, :, is, ik), vgkc( :, :, is, ik), gkc( :, is, ik), tpgkc( :, :, is, ik))
+    !        call gensfacgp( ngk(is, ik), vgkc( :, :, is, ik), ngkmax, sfacgk( :, :, is, ik))
+    !      end do
+    !    end do
+    !    call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
+    !  case default
+    !    write(*, '(" ERROR (wannier_init): ",a," is not a valid input.")') input%properties%wannier%input
+    !    call terminate
+    !end select
     
     allocate( evalfv( nstfv, nspnfv))
     do ik = 1, wf_kset%nkpt

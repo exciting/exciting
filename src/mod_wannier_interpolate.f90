@@ -6,10 +6,12 @@ module mod_wfint
 
 ! module variables
   type( k_set) :: wfint_kset                        ! k-point set on which the interpolation is performed
+  type( Gk_set) :: wfint_Gkset                      ! G+k-point set on which the interpolation is performed
   logical :: wfint_initialized = .false.
   real(8) :: wfint_efermi                           ! interpolated fermi energy
 
   real(8), allocatable :: wfint_eval(:,:)           ! interpolated eigenenergies
+  complex(8), allocatable :: wfint_evec(:,:,:)      ! interpolated eigenvectors
   complex(8), allocatable :: wfint_transform(:,:,:) ! corresponding expansion coefficients
   real(8), allocatable :: wfint_occ(:,:)            ! interpolated occupation numbers
   real(8), allocatable :: wfint_phase(:,:)          ! summed phase factors in interpolation
@@ -22,7 +24,7 @@ module mod_wfint
     ! !ROUTINE: wfint_init
     ! !INTERFACE:
     !
-    subroutine wfint_init( int_kset)
+    subroutine wfint_init( int_kset, evalin_)
       ! !USES:
       ! !INPUT PARAMETERS:
       !   int_kset : k-point set on which the interpolation is performed on (in, type k_set)
@@ -35,6 +37,7 @@ module mod_wfint
       !EOP
       !BOC
         type( k_set), intent( in) :: int_kset
+        real(8), optional, intent( in) :: evalin_( wf_fst:wf_lst, wf_kset%nkpt)
     
         integer :: ik
         real(8), allocatable :: evalfv(:,:), evalin(:,:)
@@ -46,10 +49,17 @@ module mod_wfint
         allocate( evalfv( nstfv, nspnfv))
         allocate( evalin( wf_fst:wf_lst, wf_kset%nkpt))
     
-        do ik = 1, wf_kset%nkpt
-          call getevalfv( wf_kset%vkl( :, ik), evalfv)
-          evalin( :, ik) = evalfv( wf_fst:wf_lst, 1)
-        end do
+        if( present( evalin_)) then
+          evalin = evalin_
+          !do ik = 1, wf_kset%nkpt
+          !  write(*,'(I,1000F13.6)') ik, evalin( :, ik)
+          !end do
+        else
+          do ik = 1, wf_kset%nkpt
+            call getevalfv( wf_kset%vkl( :, ik), evalfv)
+            evalin( :, ik) = evalfv( wf_fst:wf_lst, 1)
+          end do
+        end if
     
         allocate( wfint_phase( wf_kset%nkpt, wfint_kset%nkpt))
         allocate( wfint_pkr( wf_kset%nkpt, wf_kset%nkpt))
@@ -351,6 +361,221 @@ module mod_wfint
     
       return
     end subroutine wfint_interpolate_occupancy
+    !EOC
+
+!--------------------------------------------------------------------------------------
+
+    !BOP
+    ! !ROUTINE: wfint_interpolate_bandgap
+    ! !INTERFACE:
+    !
+    subroutine wfint_interpolate_bandgap( factor_)
+      ! !USES:
+      ! !DESCRIPTION:
+      !   Finds the position of VBM and CBM, the fundamental gap and the electron effective-mass tensor
+      !
+      ! !REVISION HISTORY:
+      !   Created October 2017 (SeTi)
+      !EOP
+      !BOC
+
+      integer, optional, intent( in) :: factor_
+
+      integer, parameter :: maxit = 1000
+      integer, parameter :: nline = 1000
+      real(8), parameter :: infh = 1.d-3
+
+      integer :: factor, ik, ist, i, j, n, imax, iv(3), ik0
+      integer :: istvbm, istcbm
+      integer :: lapack_info, lapack_ipiv(10)
+      real(8) :: evbm, ecbm, kvbm(3), kcbm(3), dir(3,3), v(3)
+      real(8) :: inv(10,10), coeff(10,1), energy(10,1), meff(3,3)
+      real(8) :: a, amin, amax, eold, demax, d, length, l1, l2
+      type( k_set) :: tmp_kset
+      
+      factor = 5
+      if( present( factor_)) then
+        if( factor_ .gt. 0) factor = factor_
+      end if
+
+      ! interpolate energies on fine grid
+      call generate_k_vectors( tmp_kset, bvec, wf_kset%ngridk*factor, (/0.d0, 0.d0, 0.d0/), .true.)
+      call wfint_init( tmp_kset)
+      call wfint_interpolate_occupancy
+
+      write(*,*) wfint_efermi
+      ! find guess for VBM and CBM
+      evbm = -1.d23
+      ecbm = 1.d23
+      do ik = 1, wfint_kset%nkpt
+        do ist = wf_fst, wf_lst
+          if( wfint_eval( ist, ik) .lt. wfint_efermi) then 
+            if( wfint_eval( ist, ik) .gt. evbm) then
+              evbm = wfint_eval( ist, ik)
+              kvbm = wfint_kset%vkl( :, ik)
+            end if
+          else
+            if( wfint_eval( ist, ik) .lt. ecbm) then
+              ecbm = wfint_eval( ist, ik)
+              kcbm = wfint_kset%vkl( :, ik)
+            end if
+          end if
+        end do
+      end do
+      write(*,'(F23.16)') evbm
+      write(*,'(3F23.16)') kvbm
+      write(*,'(F23.16)') ecbm
+      write(*,'(3F23.16)') kcbm
+      write(*,*)
+
+      call generate_k_vectors( tmp_kset, bvec, (/1, 1, nline+1/), (/0.d0, 0.d0, 0.d0/), .false.)
+
+      ! find correct VBM
+      n = 0
+      d = 1.d0
+      length = 1.0d0
+      do while( d .gt. input%structure%epslat)
+        n = n + 1
+        if( mod( n, 3) .eq. 1) then
+          dir = 0.d0
+          dir(1,1) = 1.d0
+          dir(2,2) = 1.d0
+          dir(3,3) = 1.d0
+        end if
+
+        v = kvbm
+        demax = 0.d0
+        write(*,'(3F13.6)') dir(1,:)
+        write(*,'(3F13.6)') dir(2,:)
+        write(*,'(3F13.6)') dir(3,:)
+        write(*,*)
+        do i = 1, 3
+          eold = evbm
+          do ik = 0, nline
+            tmp_kset%vkl( :, ik+1) = v + (-0.5d0*length + ik*length/nline)*dir(:,i)
+          end do
+          call wfint_init( tmp_kset)
+          ik0 = -1
+          do ik = 1, wfint_kset%nkpt
+            do ist = wf_fst, wf_lst
+              if( (wfint_eval( ist, ik) .lt. wfint_efermi) .and. (wfint_eval( ist, ik) .gt. evbm)) then
+                evbm = wfint_eval( ist, ik)
+                v = wfint_kset%vkl( :, ik)
+                ik0 = ik-1
+              end if
+            end do
+          end do
+          if( evbm - eold .ge. demax) then
+            demax = evbm - eold
+            imax = i
+          end if
+          write(*,'(I,F23.16)') i, evbm - eold
+        end do
+        write(*,*) imax
+        dir( :, imax) = v - kvbm
+        dir( :, imax) = dir( :, imax)/norm2( dir( :, imax))
+
+        write(*,'("-----------------")')
+        do ik = 0, nline
+          tmp_kset%vkl( :, ik+1) = kvbm + (-0.5d0*length + ik*length/nline)*dir(:,imax)
+        end do
+        call wfint_init( tmp_kset)
+        ik0 = -1
+        do ik = 1, wfint_kset%nkpt
+          do ist = wf_fst, wf_lst
+            if( (wfint_eval( ist, ik) .lt. wfint_efermi) .and. (wfint_eval( ist, ik) .gt. evbm)) then
+              evbm = wfint_eval( ist, ik)
+              v = wfint_kset%vkl( :, ik)
+              istvbm = ist
+              ik0 = ik-1
+            end if
+          end do
+        end do
+        !call r3frac( input%structure%epslat, v, iv)
+        d = norm2( kvbm - v)
+        kvbm = v
+        write(*,'(F23.16)') evbm
+        write(*,'(3F23.16)') kvbm
+        write(*,'(F23.16)') d
+        write(*,'("-----------------")')
+        write(*,*)
+        length = 0.5d0*length
+      end do
+
+      write(*,'("-----------------")')
+      write(*,'("VBM at:   ",3F13.6)') kvbm
+      write(*,'("E at VBM: ",F13.6," (band ",I3.3,")")') evbm, istvbm
+      write(*,'("CBM at:   ",3F13.6)') kcbm
+      write(*,'("E at CBM: ",F13.6," (band ",I3.3,")")') ecbm, istcbm
+      write(*,'("fundamental gap: ",F13.6)') ecbm-evbm
+
+      ! calculate electron effective mass tensor
+      call generate_k_vectors( tmp_kset, bvec, (/1, 1, 10/), (/0.d0, 0.d0, 0.d0/), .false.)
+      do i = 0, 20
+        write(*,'(F23.16)') infh*0.5d0**i
+        write(*,'(3F23.16)') kvbm
+        write(*,*)
+        l2 = 0.5d0**0*infh
+        tmp_kset%vkl( :, 1) = kvbm + l2             *(/ 1,  0,  0/)
+        tmp_kset%vkl( :, 2) = kvbm + l2             *(/ 0,  1,  0/)
+        tmp_kset%vkl( :, 3) = kvbm + l2             *(/ 0,  0,  1/)
+        tmp_kset%vkl( :, 4) = kvbm + l2/dsqrt( 2.d0)*(/ 1,  1,  0/)
+        tmp_kset%vkl( :, 5) = kvbm + l2/dsqrt( 2.d0)*(/ 1,  0,  1/)
+        tmp_kset%vkl( :, 6) = kvbm + l2/dsqrt( 2.d0)*(/ 0,  1,  1/)
+        tmp_kset%vkl( :, 7) = kvbm + l2/dsqrt( 3.d0)*(/-1,  1,  1/)
+        tmp_kset%vkl( :, 8) = kvbm + l2/dsqrt( 3.d0)*(/ 1, -1,  1/)
+        tmp_kset%vkl( :, 9) = kvbm + l2/dsqrt( 3.d0)*(/ 1,  1, -1/)
+        tmp_kset%vkl( :, 10) = kvbm
+        call wfint_init( tmp_kset)
+        evbm = wfint_eval( istvbm, 10)
+        do ik = 1, 10
+          energy( ik, 1) = wfint_eval( istvbm, ik)
+          inv( ik, 1) = wfint_kset%vkl( 1, ik)**2
+          inv( ik, 2) = wfint_kset%vkl( 2, ik)**2
+          inv( ik, 3) = wfint_kset%vkl( 3, ik)**2
+          inv( ik, 4) = 2.d0*wfint_kset%vkl( 1, ik)*wfint_kset%vkl( 2, ik)
+          inv( ik, 5) = 2.d0*wfint_kset%vkl( 1, ik)*wfint_kset%vkl( 3, ik)
+          inv( ik, 6) = 2.d0*wfint_kset%vkl( 2, ik)*wfint_kset%vkl( 3, ik)
+          inv( ik, 7) = wfint_kset%vkl( 1, ik)
+          inv( ik, 8) = wfint_kset%vkl( 2, ik)
+          inv( ik, 9) = wfint_kset%vkl( 3, ik)
+          inv( ik, 10) = 1.d0
+          write(*,'(F23.16)') energy( ik, 1)
+        end do
+        call dgesv( 10, 1, inv, 10, lapack_ipiv, energy, 10, lapack_info)
+        if( lapack_info .ne. 0) then
+          write(*,'("Aborted! INFO: ",I)') lapack_info
+          stop
+        end if
+        !energy = energy/infh/infh
+        dir(1,1) = energy(1,1)
+        dir(2,2) = energy(2,1)
+        dir(3,3) = energy(3,1)
+        dir(1,2) = energy(4,1)
+        dir(2,1) = energy(4,1)
+        dir(1,3) = energy(5,1)
+        dir(3,1) = energy(5,1)
+        dir(2,3) = energy(6,1)
+        dir(3,2) = energy(6,1)
+        v(1) = energy(7,1)
+        v(2) = energy(8,1)
+        v(3) = energy(9,1)
+        call r3minv( 2.d0*dir, meff)
+        call r3mv( meff, -v, dir(:,1))
+        write(*,*)
+        write(*,'(3F13.6)') meff(1,:)
+        write(*,'(3F13.6)') meff(2,:)
+        write(*,'(3F13.6)') meff(3,:)
+        write(*,*)
+        write(*,'(3F23.16)') dir(:,1)-kvbm
+        write(*,*)
+        write(*,'(F23.16)') energy(10,1)
+        write(*,*)
+        write(*,*)
+        kvbm = dir(:,1)
+      end do
+      return
+    end subroutine wfint_interpolate_bandgap
     !EOC
 
 !--------------------------------------------------------------------------------------
@@ -817,6 +1042,7 @@ module mod_wfint
       real(8), allocatable :: rfmt(:,:,:,:), rfir(:)
 
       lmmax = (lmax + 1)**2
+      write(*,*) nmatmax, wf_Gkset%ngkmax+nlotot
 
       ! count combined (l,m,o) indices and build index maps
       allocate( nlmo( nspecies))
@@ -847,12 +1073,12 @@ module mod_wfint
         end do
       end do
 
-      call readstate
-      call readfermi
-      call linengy
-      call genapwfr
-      call genlofr
-      call olprad
+      !call readstate
+      !call readfermi
+      !call linengy
+      !call genapwfr
+      !call genlofr
+      !call olprad
 
       allocate( evecfv( nmatmax, nstfv, nspnfv))
       allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
@@ -985,7 +1211,7 @@ module mod_wfint
               end do
               do lm = 1, lmmax
                 do ir = 1, nrmt( is)
-                  rfmt( lm, ir, ias, ist) = dble( wfrad( lm, ir))**2 + aimag( wfrad( lm, ir))**2
+                  rfmt( lm, ir, ias, ist) = dble( wfrad( lm, ir)*conjg( wfrad( lm, ir)))
                 end do
               end do
 
@@ -995,7 +1221,7 @@ module mod_wfint
         end do
               
         do ist = wf_fst, wf_lst
-          call symrf( 1, rfmt( :, :, :, ist), rfir)
+          !call symrf( 1, rfmt( :, :, :, ist), rfir)
 
           do is = 1, nspecies
             do ia = 1, natoms( is)
@@ -1105,6 +1331,278 @@ module mod_wfint
       deallocate( or)
 
     end subroutine wfint_interpolate_me
+
+!--------------------------------------------------------------------------------------
+
+    subroutine wfint_interpolate_eigvec
+      integer :: ik, iq, is, ia, ias, l, m, lm, o, lmo, nlmomax, ilo1, ilo2
+      integer :: i1, i2, i3, i4, iv(3)
+      integer :: ngk, ngq, igk, igq
+      integer :: ngkmax_old
+
+      integer, allocatable :: nlmo(:), lmo2l(:,:), lmo2m(:,:), lmo2o(:,:)
+      complex(8), allocatable :: evecfv(:,:,:), matchk(:,:,:), matchq(:,:,:)
+      complex(8), allocatable :: cuv(:,:), uv(:,:)
+      complex(8), allocatable :: olp_qk(:,:), olp_al_k(:,:), olp_al_q(:,:), z_q(:,:), z_q_H(:,:)
+      complex(8), allocatable :: lsvec(:,:), rsvec(:,:)
+      real(8), allocatable :: olp_ll(:,:), sval(:)
+
+      complex(8), allocatable :: apwalm(:,:,:,:), sfacgp(:,:)
+      real(8), allocatable :: gpc(:), tpgpc(:,:)
+      
+      character(256) :: fname
+
+      ! build G+k-point set for interpolation
+      call generate_Gk_vectors( wfint_Gkset, wfint_kset, wf_Gset, wf_Gkset%gkmax)
+      if( allocated( wfint_evec)) deallocate( wfint_evec)
+      ngkmax_old = ngkmax
+      ngkmax = max( wf_Gkset%ngkmax, wfint_Gkset%ngkmax)
+
+      ! count combined (l,m,o) indices and build index maps
+      allocate( nlmo( nspecies))
+      allocate( lmo2l( (input%groundstate%lmaxapw + 1)**2*apwordmax, nspecies), &
+                lmo2m( (input%groundstate%lmaxapw + 1)**2*apwordmax, nspecies), &
+                lmo2o( (input%groundstate%lmaxapw + 1)**2*apwordmax, nspecies))
+      nlmomax = 0
+      do is = 1, nspecies
+        nlmo( is) = 0
+        do l = 0, input%groundstate%lmaxapw
+          do o = 1, apword( l, is)
+            do m = -l, l
+              nlmo( is) = nlmo( is) + 1
+              lmo2l( nlmo( is), is) = l
+              lmo2m( nlmo( is), is) = m
+              lmo2o( nlmo( is), is) = o
+            end do
+          end do
+        end do
+        nlmomax = max( nlmomax, nlmo( is))
+      end do
+
+      ! generate radial overlaps
+      ! WARNING: make sure, the correct state is read in advance according to wannier%input type
+      !call genapwfr
+      !call genlofr
+      call olprad
+
+      allocate( wfint_evec( wfint_Gkset%ngkmax+nlotot, wf_fst:wf_lst, wfint_kset%nkpt))
+      wfint_evec = zzero
+
+      allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot))
+      allocate( gpc (ngkmax))
+      allocate( tpgpc (2, ngkmax))
+      allocate( sfacgp (ngkmax, natmtot))
+
+      allocate( evecfv( nmatmax, nstsv, nspinor))
+      allocate( matchk( nlmomax, wf_Gkset%ngkmax, natmtot))
+      allocate( matchq( nlmomax, wfint_Gkset%ngkmax, natmtot))
+      allocate( olp_qk( wfint_Gkset%ngkmax+nlotot, wf_Gkset%ngkmax+nlotot))
+      allocate( olp_al_k( nlotot, wf_Gkset%ngkmax))
+      allocate( olp_al_q( wfint_Gkset%ngkmax, nlotot))
+      allocate( olp_ll( nlotot, nlotot))
+      allocate( uv( wf_fst:wf_lst, wf_fst:wf_lst))
+      allocate( cuv( nmatmax, wf_fst:wf_lst))
+      allocate( z_q( wfint_Gkset%ngkmax+nlotot, wf_fst:wf_lst))
+      allocate( z_q_h( wf_fst:wf_lst, wfint_Gkset%ngkmax+nlotot))
+      allocate( sval( wf_fst:wf_lst))
+      allocate( lsvec( wf_fst:wf_lst, wf_fst:wf_lst))
+      allocate( rsvec( 1:(wfint_Gkset%ngkmax+nlotot), 1:(wfint_Gkset%ngkmax+nlotot)))
+
+      ! build k- and q-independent LO-LO overlap
+      olp_ll = 0.d0
+      do is = 1, nspecies
+        do ia = 1, natoms( is)
+          ias = idxas( ia, is)
+          do ilo1 = 1, nlorb( is)
+            l = lorbl( ilo1, is)
+            do ilo2 = 1, nlorb( is)
+              if( l .eq. lorbl( ilo2, is)) then
+                i1 = idxlm( l, -l)
+                i3 = idxlo( i1, ilo1, ias)
+                i4 = idxlo( i1, ilo2, ias)
+                do i2 = idxlm( l, -l), idxlm( l, l)
+                  olp_ll( i3+i2-i1, i4+i2-i1) = ololo( ilo1, ilo2, ias)
+                end do
+                !do m = -l, l
+                !  lm = idxlm( l, m)
+                !  i1 = idxlo( lm, ilo1, ias)
+                !  i2 = idxlo( lm, ilo2, ias)
+                !  olp_ll( i1, i2) = ololo( ilo1, ilo2, ias)
+                !end do
+              end if
+            end do
+          end do
+        end do
+      end do
+
+      do iq = 1, wfint_kset%nkpt
+        z_q = zzero
+        ngq = wfint_Gkset%ngk( 1, iq)
+        ! find matching coefficients for G+q
+        gpc( 1:ngq) = wfint_Gkset%gkc( 1:ngq, 1, iq)
+        tpgpc( :, 1:ngq) = wfint_Gkset%tpgkc( :, 1:ngq, 1, iq)
+        sfacgp( 1:ngq, :) = wfint_Gkset%sfacgk( 1:ngq, :, 1, iq)
+        call match( ngq, gpc, tpgpc, sfacgp, apwalm)
+        ! build q-dependent APW-LO overlap and combined matching-coefficients
+        matchq = zzero
+        olp_al_q = zzero
+        do is = 1, nspecies
+          do ia = 1, natoms( is)
+            ias = idxas( ia, is)
+            do ilo1 = 1, nlorb( is)
+              l = lorbl( ilo1, is)
+              i1 = idxlm( l, -l)
+              i2 = idxlm( l, l)
+              i3 = idxlo( i1, ilo1, ias)
+              i4 = idxlo( i2, ilo1, ias)
+              do o = 1, apword( l, is)
+                olp_al_q( 1:ngq, i3:i4) = olp_al_q( 1:ngq, i3:i4) + conjg( apwalm( 1:ngq, o, i1:i2, ias))*oalo( o, ilo1, ias)
+              end do
+            end do
+            do lmo = 1, nlmo( is)
+              l = lmo2l( lmo, is)
+              m = lmo2m( lmo, is)
+              o = lmo2o( lmo, is)
+              lm = idxlm( l, m)
+              matchq( lmo, 1:ngq, ias) = apwalm( 1:ngq, o, lm, ias)
+            end do
+          end do
+        end do
+          
+        do ik = 1, wf_kset%nkpt
+          if( abs( wfint_phase( ik, iq)) .gt. input%structure%epslat) then
+            write(*,*) ik
+            olp_qk = zzero
+            ngk = wf_Gkset%ngk( 1, ik)
+            ! find matching coefficients for G+k
+            gpc( 1:ngk) = wf_Gkset%gkc( 1:ngk, 1, ik)
+            tpgpc( :, 1:ngk) = wf_Gkset%tpgkc( :, 1:ngk, 1, ik)
+            sfacgp( 1:ngk, :) = wf_Gkset%sfacgk( 1:ngk, :, 1, ik)
+            call match( ngk, gpc, tpgpc, sfacgp, apwalm)
+            ! build k-dependent APW-LO overlap and combined matching-coefficients
+            matchk = zzero
+            olp_al_k = zzero
+            do is = 1, nspecies
+              do ia = 1, natoms( is)
+                ias = idxas( ia, is)
+                do ilo1 = 1, nlorb( is)
+                  l = lorbl( ilo1, is)
+                  do m = -l, l
+                  lm = idxlm( l, m)
+                  i1 = idxlo( lm, ilo1, ias)
+                    do o = 1, apword( l, is)
+                      olp_al_k( i1, 1:ngk) = olp_al_k( i1, 1:ngk) + apwalm( 1:ngk, o, lm, ias)*oalo( o, ilo1, ias)
+                    end do
+                  end do
+                end do
+                do lmo = 1, nlmo( is)
+                  l = lmo2l( lmo, is)
+                  m = lmo2m( lmo, is)
+                  o = lmo2o( lmo, is)
+                  lm = idxlm( l, m)
+                  matchk( lmo, 1:ngk, ias) = apwalm( 1:ngk, o, lm, ias)
+                end do
+              end do
+            end do
+            ! build q-k-overlap
+            do is = 1, nspecies
+              do ia = 1, natoms( is)
+                ias = idxas( ia, is)
+                call zgemm( 'C', 'N', ngq, ngk, nlmo( is), zone, &
+                     matchq( 1:nlmo( is), 1:ngq, ias), nlmo( is), &
+                     matchk( 1:nlmo( is), 1:ngk, ias), nlmo( is), zone, &
+                     olp_qk( 1:ngq, 1:ngk), ngq)
+              end do
+            end do
+            if( norm2( wf_kset%vkl( :, ik) - wfint_kset%vkl( :, iq)) .lt. input%structure%epslat) then
+              write(*,'(2I,3F13.6)') iq, ik, wf_kset%vkl( :, ik)
+              do igk = 1, ngk
+                do igq = 1, ngq
+                  iv(:) = -wf_Gset%ivg( :, wf_Gkset%igkig( igk, 1, ik)) + wf_Gset%ivg( :, wfint_Gkset%igkig( igq, 1, iq))
+                  i1 = ivgig( iv(1), iv(2), iv(3))
+                  if( (i1 .gt. 0) .and. (i1 .le. ngvec)) then
+                    olp_qk( igq, igk) = olp_qk( igq, igk) + cfunig( i1)
+                  end if
+                end do
+              end do
+            end if
+            i1 = ngq+1
+            i2 = ngq+nlotot
+            i3 = ngk+1
+            i4 = ngk+nlotot
+            olp_qk( i1:i2, i3:i4) = zone*olp_ll(:,:)
+            olp_qk( 1:ngq, i3:i4) = olp_al_q( 1:ngq, :)
+            olp_qk( i1:i2, 1:ngk) = olp_al_k( :, 1:ngk)
+            
+            ! read eigenvector      
+            if( input%properties%wannier%input .eq. "groundstate") then
+              call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
+            else if( input%properties%wannier%input .eq. "hybrid") then
+              call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
+            else if( input%properties%wannier%input .eq. "gw") then
+              call getevecsvgw_new( "GW_EVECSV.OUT", ik, wf_kset%vkl( :, ik), nmatmax, nstfv, nspinor, evecfv)
+            else
+              call terminate
+            end if
+            write( fname, '("evec/evec_cal_",I3.3)') ik
+            call writematlab( evecfv( 1:i4, wf_fst:wf_lst, 1), fname)
+
+            ! sum up Zq
+            call zgemm( 'N', 'N', wf_nst, wf_nst, wf_nst, zone, &
+                 wf_transform( :, :, ik), wf_nst, &
+                 wfint_transform( :, :, iq), wf_nst, zzero, &
+                 uv, wf_nst)
+            call plotmat( uv)
+            call zgemm( 'N', 'N', i4, wf_nst, wf_nst, zone, &
+                 evecfv( 1:i4, wf_fst:wf_lst, 1), i4, &
+                 uv, wf_nst, zzero, &
+                 cuv( 1:i4, :), i4)
+            call zgemm( 'N', 'N', i2, wf_nst, i4, cmplx( wfint_phase( ik, iq), 0, 8), &
+                 olp_qk( 1:i2, 1:i4), i2, &
+                 cuv( 1:i4, :), i4, zone, &
+                 z_q( 1:i2, :), i2)
+            if( norm2( wf_kset%vkl( :, ik) - wfint_kset%vkl( :, iq)) .lt. input%structure%epslat) then
+              write( fname, '("olp/olp",3I3.3)') nint( wf_kset%vkl( :, ik)*1000)
+              call writematlab( olp_qk( 1:i2, 1:i4), fname)
+              call plotmat( uv, matlab=.true.)
+              write(*,*) wfint_phase( ik, iq)
+            end if
+          end if
+        end do !ik
+        
+        ! calculate interpolated eigenvectors
+        i2 = ngq+nlotot
+        z_q_h = conjg( transpose( z_q))
+        call zgesdd_wrapper( z_q_h, wf_nst, i2, sval, lsvec, rsvec( 1:i2, 1:i2))
+        lsvec = conjg( transpose( lsvec))
+        rsvec = conjg( transpose( rsvec))
+        do i1 = 1, wf_nst
+          if( sval( i1) .lt. input%structure%epslat) then
+            write(*,'(2I,F23.16)') iq, i1+wf_fst-1, sval( i1)
+            rsvec( :, i1) = zzero
+          else
+            rsvec( :, i1) = rsvec( :, i1)/sval( i1)
+          end if
+        end do
+        call zgemm( 'N', 'N', i2, wf_nst, wf_nst, zone, &
+             rsvec( 1:i2, 1:wf_nst), i2, &
+             lsvec, wf_nst, zzero, &
+             wfint_evec( 1:i2, :, iq), i2)
+        write( fname, '("evec/evec_int_",I3.3)') iq
+        call writematlab( wfint_evec( 1:i2, :, iq), fname)
+        !call zgemm( 'N', 'N', wf_nst, wf_nst, i2, zone, &
+        !     z_q_h( :, 1:i2), wf_nst, &
+        !     wfint_evec( 1:i2, :, iq), i2, zzero, &
+        !     lsvec, wf_nst)
+        !write(*,*) iq
+        !call plotmat( lsvec)
+      end do !iq
+
+      deallocate( evecfv, apwalm, matchk, matchq, olp_qk, olp_al_k, olp_al_q, olp_ll, uv, cuv, z_q, z_q_h, sval, lsvec, rsvec, gpc, tpgpc, sfacgp) 
+      ngkmax = ngkmax_old
+
+    end subroutine wfint_interpolate_eigvec
+
 
 !--------------------------------------------------------------------------------------
 ! helper functions

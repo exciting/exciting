@@ -45,6 +45,7 @@ Subroutine init1
       Complex (8) gauntyry
       External gauntyry
 !
+      write(*,'("init1")')
       Call timesec (ts0)
 !
 !---------------------!

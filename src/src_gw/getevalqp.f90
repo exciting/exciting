@@ -5,7 +5,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   use modmain
   use modgw,    only: kset, ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp
   use mod_wannier
-  use m_wannier_interpolate
+  use mod_wfint
 
   implicit none
       
@@ -21,6 +21,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   integer(4), allocatable :: idx(:)
   real(8),    allocatable :: eqp(:), eqpwan(:,:), eqpwanint(:,:)
   complex(8), allocatable :: de1(:,:), de2(:,:)
+  type( k_set) :: int_kset
 
   ! for band-character
   real(4) :: su
@@ -77,6 +78,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     read(70, Rec=ik) nk, ib, nb, kvecs1(:,ik), &
     &    eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik), &
     &    eferqp, eferks
+    write(*,'(1000F13.6)') eqp1( wf_fst:wf_lst, ik)
 
     !write(fgw,*) '# ik    kvecs1    ibgw,    nbgw'
     !write(fgw,*) ik, kvecs1(:,ik), ib, nb
@@ -128,6 +130,8 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
 
   if( input%gw%taskname .eq. "wannier") then
     call readfermi
+    call generate_k_vectors( int_kset, bvec, (/1, 1, nkp2/), (/0.d0, 0.d0, 0.d0/), .false.)
+    int_kset%vkl = kvecs2
     kvecs2_ = kvecs2
     allocate( eqpwan( wf_fst:wf_lst, wf_kset%nkpt), eqpwanint( wf_fst:wf_lst, nkp2))
     if( allocated( vkl)) deallocate( vkl)
@@ -142,30 +146,33 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     vkl = kvecs2_
     nkpt = nkp2
       
-    lmax = min( 3, input%groundstate%lmaxapw)
-    allocate( bc( natmtot, 0:lmax, wf_fst:wf_lst, nkp2))
-    call wannier_interpolate_eval( eqpwan, nkp2, kvecs2_, eqpwanint)!, bandchar=bc, lmax=-1)
+    !lmax = min( 3, input%groundstate%lmaxapw)
+    !allocate( bc( natmtot, 0:lmax, wf_fst:wf_lst, nkp2))
+    !call wannier_interpolate_eval( eqpwan, nkp2, kvecs2_, eqpwanint)!, bandchar=bc, lmax=-1)
+    call wfint_init( int_kset, eqpwan)
     do ib = wf_fst, wf_lst
       do ik = 1, nkp2
-        eqp2( ib, ik) = eqpwanint( ib, ik) - eferqp - efermi
+        !eqp2( ib, ik) = eqpwanint( ib, ik) - eferqp - efermi
+        eqp2( ib, ik) = wfint_eval( ib, ik)
       end do 
     end do
+    eqp2 = eqp2 - eferqp - efermi
 
-    do is = 1, nspecies
-      do ia = 1, natoms (is)
-        ias = idxas (ia, is)
-        write (fname, '("BAND-QP_WANNIER_S", I2.2, "_A", I4.4, ".OUT")') is, ia
-        open (50, File=trim(fname), Action='WRITE', Form='FORMATTED')
-        do ist = wf_fst, wf_lst
-          do ik = 1, nkp2
-            su = sum( bc( ias, :, ist, ik))
-            write (50, '(2G18.10, 8F12.6)') dpp1d( ik), eqp2( ist, ik), su, (bc( ias, l, ist, ik), l=0, lmax)
-          end do
-          write (50, '("	  ")')
-        end do
-        close (50)
-      end do
-    end do
+    !do is = 1, nspecies
+    !  do ia = 1, natoms (is)
+    !    ias = idxas (ia, is)
+    !    write (fname, '("BAND-QP_WANNIER_S", I2.2, "_A", I4.4, ".OUT")') is, ia
+    !    open (50, File=trim(fname), Action='WRITE', Form='FORMATTED')
+    !    do ist = wf_fst, wf_lst
+    !      do ik = 1, nkp2
+    !        su = sum( bc( ias, :, ist, ik))
+    !        write (50, '(2G18.10, 8F12.6)') dpp1d( ik), eqp2( ist, ik), su, (bc( ias, l, ist, ik), l=0, lmax)
+    !      end do
+    !      write (50, '("	  ")')
+    !    end do
+    !    close (50)
+    !  end do
+    !end do
   else
     do ik = 1, nkp1
       de1(ik,:) = cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik),0.d0,8)

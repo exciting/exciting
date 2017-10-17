@@ -68,6 +68,8 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       allocate(zm2(nmatp,nstfv))
      
       zm=system%overlap%za
+      !write( fname, '("olp/olpcal",3I3.3)') nint( vkl( :, ik)*1000)
+      !call writematlab( zm( 1:nmatp, 1:nmatp), fname)
   !------------------------------------------------------------------------!
   !     If Hybrid potential is used apply the non-local exchange potential !
   !------------------------------------------------------------------------!

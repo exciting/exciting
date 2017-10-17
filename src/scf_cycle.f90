@@ -11,8 +11,6 @@ subroutine scf_cycle(verbosity)
     Use scl_xml_out_Module
     Use TS_vdW_module, Only: C6ab, R0_eff_ab
     Use mod_hybrids, only: ihyb
-    use mod_wannier
-    use mod_wfint
 !
 ! !DESCRIPTION:
 !
@@ -32,7 +30,6 @@ subroutine scf_cycle(verbosity)
     Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0
     character*(77) :: string, acoord
-    type( k_set) :: int_kset
     
     ! Charge distance
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
@@ -356,8 +353,6 @@ subroutine scf_cycle(verbosity)
         If (associated(input%groundstate%spin)) Call symrvf(input%groundstate%lradstep, magmt, magir)
 ! convert the density from a coarse to a fine radial mesh
         Call rfmtctof (rhomt)
-        call charge
-        write(*,'(100F13.6)') chgmt
 ! convert the magnetisation from a coarse to a fine radial mesh
         Do idm = 1, ndmag
             Call rfmtctof (magmt(:, :, :, idm))
@@ -641,19 +636,6 @@ subroutine scf_cycle(verbosity)
         Call timesec(ts1)
         timeio=ts1-ts0+timeio
 !! TIME - End of fourth IO segment
-
-! Wannier interpolated density
-        !if( iscl .gt. 1) then
-        !  call wannier_delemat
-        !  call wannier_init
-        !  call wannier_gen_opf
-        !  call wannier_maxloc
-
-        !  call generate_k_vectors( int_kset, bvec, 4*input%groundstate%ngridk, (/0.d0, 0.d0, 0.d0/), .true.)
-        !  call wfint_init( int_kset)
-        !  call wfint_interpolate_density
-        !end if
-
 
     End Do ! iscl
 ! end the self-consistent loop

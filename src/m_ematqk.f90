@@ -131,11 +131,11 @@ module m_ematqk
                     rial( 0:lmaxexp, 0:lmaxapw, apwordmax, nlomax), &
                     rill( 0:lmaxexp, nlomax, nlomax))
           ! generate radial functions
-          call readstate
+          !call readstate
           call readfermi
-          call linengy
-          call genapwfr
-          call genlofr
+          !call linengy
+          !call genapwfr
+          !call genlofr
           ! multiply radial integral with Gaunt coefficients and expansion prefactor
           idxlostart = 0
           ! generate spherical harmonics
@@ -559,7 +559,7 @@ module m_ematqk
              
 #ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ist2,ig,zfft,iv,igs,zfftres,igq)
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist1,ist2,ig,zfft,iv,igs,zfftres)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ist1, ist2, ig, zfft, iv, igs, zfftres)
 #endif
           allocate( zfftres( fftmap%ngrtot+1))
           allocate( zfft( fftmap%ngrtot+1))
