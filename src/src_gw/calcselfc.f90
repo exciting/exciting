@@ -57,6 +57,13 @@ subroutine calcselfc(iq)
       nblk = mdim / mblksiz
     end if
     if (mod(mdim,mblksiz) /= 0) nblk = nblk+1
+    
+    !-------------------------------------------
+    ! products M*W^c*M
+    !-------------------------------------------
+    allocate(mwm(ibgw:nbgw,1:mdim,1:freq%nomeg))
+    msize = sizeof(mwm)*b2mb
+    ! write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
  
     !----------------------------
     ! q-dependent M*W*M products
@@ -119,32 +126,29 @@ subroutine calcselfc(iq)
         !================================================================
         ! Calculate weight(q)*Sum_ij{M^i*W^c_{ij}(k,q;\omega)*conjg(M^j)}
         !================================================================
-        allocate(mwm(ibgw:nbgw,mstart:mend,1:freq%nomeg))
-        ! msize = sizeof(mwm)*b2mb
-        ! write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
         call calcmwm(ibgw, nbgw, mstart, mend, minmmat)
 
         deallocate(minmmat)
 
-        !=======================================
-        ! Calculate the correlation self-energy
-        !=======================================
-        if (input%gw%taskname=='cohsex') then
-          call calcselfc_cohsex(ikp,iq,mstart,mend)
-        else
-          call calcselfc_freqconv(ikp,iq,mdim)
-        end if
-
-        if (input%gw%taskname=='gw0') then
-          ! store M*W*M in files
-          call timesec(t0)
-          write(fid) mwm
-          call timesec(t1)
-          time_io = time_io+t1-t0
-        end if
-
       end do ! iblk
 
+      !=======================================
+      ! Calculate the correlation self-energy
+      !=======================================
+      if (input%gw%taskname=='cohsex') then
+        call calcselfc_cohsex(ikp,iq,mdim)
+      else
+        call calcselfc_freqconv(ikp,iq,mdim)
+      end if
+
+      if (input%gw%taskname=='gw0') then
+        ! store M*W*M in files
+        call timesec(t0)
+        write(fid) mwm
+        call timesec(t1)
+        time_io = time_io+t1-t0
+      end if
+    
     end do ! ikp
     end do ! ispn
     
