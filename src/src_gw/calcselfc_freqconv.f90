@@ -23,7 +23,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
     ! k point
     ik = kset%ikp2ik(ikp)
     ! k-q point
-    jk = kqset%kqid(ik,iq)
+    jk  = kqset%kqid(ik,iq)
     jkp = kset%ik2ikp(jk)
 
     !------------------------

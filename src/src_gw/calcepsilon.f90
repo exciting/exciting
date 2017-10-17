@@ -32,6 +32,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     integer(4) :: im, jm, iop, jop
     
     integer(4) :: ndim, mdim, nmdim
+    integer(4) :: nblk, iblk, mstart, mend
     
     integer(8) :: recl
       
@@ -76,6 +77,15 @@ subroutine calcepsilon(iq,iomstart,iomend)
     mdim = nstdf-numin+1
     nmdim = ndim*mdim
     
+    ! block size
+    print*, mblksiz
+    if (mblksiz >= mdim) then
+      nblk = 1
+    else
+      nblk = mdim / mblksiz
+    end if
+    if ( mod(mdim,mblksiz) /= 0 ) nblk = nblk+1
+
     ! arrays to store products of KS eigenvectors with the matching coefficients
     allocate(eveckalm(nstsv,apwordmax,lmmaxapw,natmtot))
     allocate(eveckpalm(nstsv,apwordmax,lmmaxapw,natmtot))
@@ -92,8 +102,10 @@ subroutine calcepsilon(iq,iomstart,iomend)
     select case (trim(input%gw%qdepw))
     case('sum')
       call qdepwsum(iq,iomstart,iomend,ndim)
-    case default
+    case('tet')
       call qdepwtet(iq,iomstart,iomend,ndim)
+    case default
+      stop "Error(calcepsilon): Unknown qdepw method!"
     end select
 
     !==========================
@@ -125,11 +137,6 @@ subroutine calcepsilon(iq,iomstart,iomend)
       ! write(*,'(" calcepsilon: rank, size(pmat) (Mb):",i4,f8.2)') myrank, msize
     end if
     
-    allocate(minm(1:mbsiz,1:ndim,numin:nstdf))
-    allocate(minmmat(1:mbsiz,1:ndim,numin:nstdf))
-    msize = 2*sizeof(minmmat)*b2mb
-    ! write(*,'(" calcepsilon: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
-
     !=================
     ! BZ integration
     !=================
@@ -165,57 +172,61 @@ subroutine calcepsilon(iq,iomstart,iomend)
       call timesec(t1)
       time_io = time_io+t1-t0
         
-      ! Calculate M^i_{nm}+M^i_{cm}
       call expand_evec(ik,'t')
       call expand_evec(jk,'c')
-      call expand_products(ik,iq,1,ndim,nomax,numin,nstdf,-1,minmmat)
-        
-      if (Gamma) then
-        !==============
-        ! Wings
-        !==============
-        call calcwings(ik,iq,iomstart,iomend,ndim,numin,nstdf)
-      end if
 
-      !==============
-      ! Body
-      !==============
-      do iom = iomstart, iomend
-          
-        do ie2 = numin, nstdf
-          do ie1 = 1, ndim
-            minm(1:mbsiz,ie1,ie2) = fnm(ie1,ie2,iom,ik)* &
-            &                       minmmat(1:mbsiz,ie1,ie2)
-          end do ! ie1
-        end do ! ie2
-          
-        call zgemm( 'n','c',mbsiz,mbsiz,nmdim, &
-        &            coefb,minm,mbsiz,minmmat,mbsiz, &
-        &            zone,epsilon(:,:,iom),mbsiz)
-          
-      end do ! iom
+      !=================================================
+      ! Loop over m-blocks in M^i_{nm}(\vec{k},\vec{q})
+      !=================================================
+      do iblk = 1, nblk
+      
+        mstart = numin+(iblk-1)*mblksiz
+        mend = min(nstdf,mstart+mblksiz-1)
+        nmdim = ndim*(mend-mstart+1)
+
+        allocate(minmmat(mbsiz,ndim,mstart:mend))
+        msize = sizeof(minmmat)*b2mb
+        write(*,'(" calcepsilon: rank, size(minmmat) (Mb):",3i4,f12.2)') myrank, mstart, mend, msize
+
+        ! Calculate M^i_{nm}+M^i_{cm}
+        call expand_products(ik, iq, 1, ndim, nomax, mstart, mend, -1, minmmat)
+        
+        if (Gamma) then
+          !==============
+          ! Wings
+          !==============
+          call calcwings(ik, iq, iomstart, iomend, ndim, mstart, mend)
+        end if
+
+        !==============
+        ! Body
+        !==============
+        allocate(minm(mbsiz,ndim,mstart:mend))
+        do iom = iomstart, iomend
+
+          do ie2 = mstart, mend
+            do ie1 = 1, ndim
+              minm(1:mbsiz,ie1,ie2) = fnm(ie1,ie2,iom,ik) * &
+              &                       minmmat(1:mbsiz,ie1,ie2)
+            end do ! ie1
+          end do ! ie2
+
+          call zgemm( 'n', 'c', mbsiz, mbsiz, nmdim, &
+          &            coefb, minm, mbsiz, minmmat, mbsiz, &
+          &            zone, epsilon(:,:,iom), mbsiz)
+
+        end do ! iom
+
+        deallocate(minm, minmmat)
+
+      end do ! iblk
       
     end do ! ik
     end do ! ispn
     
-    if (input%gw%selfenergy%secordw) then
-      !---------------------------------
-      ! Second order screened exchange:
-      ! -- store v^{1/2}*P_{0}*v^{1/2}
-      !---------------------------------
-      vPv(:,:,:) = -epsilon(:,:,:)
-      if (Gamma) then
-        vPvh(:) = -(epsh(:,1,1)+ epsh(:,2,2)+epsh(:,3,3))/3.d0
-        vPvw1(:,:) = -(epsw1(:,:,1)+epsw1(:,:,2)+epsw1(:,:,3))/dsqrt(3.d0)
-        vPvw2(:,:) = -(epsw2(:,:,1)+epsw2(:,:,2)+epsw2(:,:,3))/dsqrt(3.d0)
-      end if
-    end if
-    
     !-------------------
     ! Clear memory
     !-------------------
-    deallocate(minm)
-    deallocate(minmmat)
     if (Gamma) then
       ! deallocate the momentum matrix elements
       deallocate(pmatvv)
@@ -237,7 +248,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
         head(:,:) = epsh(iom,:,:)
         do iop = 1, 3
           do jop = 1, 3
-            call symt2app(iop,jop,1,symt2,head,epsh(iom,iop,jop))
+            call symt2app(iop, jop, 1, symt2, head, epsh(iom,iop,jop))
           end do
         end do
       end do ! iom
