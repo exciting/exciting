@@ -107,13 +107,6 @@ subroutine writepmatxs_hdf5
   ! Get eigenvectors for qmt=0, i.e. set file extension to _QMT001
   call genfilname(iqmt=iqmtgamma, setfilext=.true.)
 
-  ! Get screening eigenvectors for qmt=0, i.e. set file extension to SCR_QMT001
-  call genfilname(iqmt=iqmtgamma, scrtype='', setfilext=.true.)
-
-  ! Generate band combinations
-  ! C.V.: Can I delete this?
-  !call ematbdcmbs(1)
-
   if(.true.) then
     if(allocated(apwcmt)) deallocate(apwcmt)
     allocate(apwcmt(nstfv, apwordmax, lmmaxapw, natmtot))

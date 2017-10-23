@@ -351,7 +351,7 @@ module m_setup_bse
       else
         call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=sfname)
       end if
-      if(fchibarq) then 
+      if(.not. fchibarq) then
         call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
       else
         call genfilname(basename=exclifbasename, bsetype="-BAR", iqmt=iqmt, filnam=efname)
