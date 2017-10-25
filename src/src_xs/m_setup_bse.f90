@@ -523,7 +523,6 @@ module m_setup_bse
             do j= 1, size(hamblock,2)
               do i= 1, size(hamblock,1)
                 hamblock(i,j) = oc1(i)*oc2(j) *excfac * exc(i,j)
-                print *, 'exc(',i, ',', j, ')=', exc(i,j)
               end do
             end do
           end if
