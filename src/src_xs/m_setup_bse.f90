@@ -1440,7 +1440,6 @@ module m_setup_bse
           if(present(exc) .and. present(scc)) then
             ! Singlet case with exchange interaction
             hamblck(r, c) = occ1(r) * (excfac * exc(r, c) - scc(r, c)) * occ2(c)
-            end if
           else if(present(scc)) then
             ! Triplet case without exchange interaction
             hamblck(r, c) = -occ1(r) * scc(r, c) * occ2(c)
