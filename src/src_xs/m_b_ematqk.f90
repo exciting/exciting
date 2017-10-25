@@ -780,9 +780,9 @@ module m_b_ematqk
       if (flag == 'oo') then
         allocate(integral(input%xs%lmaxemat+1,nxas,nxas,1))
       else if (flag == 'ou') then
-        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2))
+        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n1))
       else if (flag == 'uo') then
-        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2))
+        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n1))
       end if
     !$omp do
 #endif
@@ -1744,7 +1744,7 @@ End Subroutine ematradoo
       complex(8), intent(in)  :: apwalm(ngkmax1_ptr,apwordmax,lmmaxapw,natmtot)
       complex(8), intent(in)  :: evecfvo(nmatmax1_ptr,nstfv)
       Type(bcbs), intent (in) :: bcs 
-      Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2)
+      Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n1)
       ! local variables
       Integer :: is, ia, ir, nr, lmax2, n1, n2, l2,l3,m3,lm3, irc
 	    Real(8) :: t1, t2
@@ -1774,23 +1774,23 @@ End Subroutine ematradoo
         end do
       End Do  
       Do n1=1,nxas
-        Do n2=1,bcs%n2
+        Do n2=1,bcs%n1
           ! Obtain radial wavefunction of the conduction state		
           call b_wavefmt1(input%groundstate%lradstep, &
           &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,input%xs%bse%xasatom,ngp&
             , apwalm, &
-          &  evecfvo(:,n2+bcs%il2-1),lmmaxapw,wfmt(:,:,n2+bcs%il2-1))
+          &  evecfvo(:,n2+bcs%il1-1),lmmaxapw,wfmt(:,:,n2+bcs%il1-1))
              
           Do l2=0, lmax2
             Do l3=0,input%xs%lmaxapw
               Do m3=-l3,l3
                 lm3=idxlm(l3,m3)
                 Do irc=1,nrcmt(input%xs%bse%xasspecies)
-                  fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,n2+bcs%il2-1))
+                  fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,n2+bcs%il1-1))
                   if (.not. emat_ccket) then
-                    fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
+                    fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il1-1))
                   else ! use complex conjugate of the wavefunction
-                    fr3(irc)=-(1.0d0)*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
+                    fr3(irc)=-(1.0d0)*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il1-1))
                   end if
                 End Do
                 ! Radial integration
@@ -1853,7 +1853,7 @@ End Subroutine ematradoo
       complex(8), intent(in)  :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
       complex(8), intent(in)  :: evecfvo(nmatmax0_ptr,nstfv)
       Type(bcbs), intent (in) :: bcs 
-      Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2)
+      Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n1)
       ! local variables
       Integer :: is, ia, ir, nr, lmax2, n1, n2, l2,l3,m3,lm3, irc
 	    Real(8) :: t1, t2
@@ -1884,20 +1884,20 @@ End Subroutine ematradoo
         end do
       End Do  
       Do n1=1,nxas
-        Do n2=1,bcs%n2
+        Do n2=1,bcs%n1
           ! Obtain radial wavefunction of the conduction state		
           call wavefmt(input%groundstate%lradstep, &
           &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,input%xs%bse%xasatom,ngp,apwalm, &
-          &  evecfvo(:,n2+bcs%il2-1),lmmaxapw,wfmt(:,:,n2+bcs%il2-1))
+          &  evecfvo(:,n2+bcs%il1-1),lmmaxapw,wfmt(:,:,n2+bcs%il1-1))
              
           Do l2=0, lmax2
             Do l3=0,input%xs%lmaxapw
               Do m3=-l3,l3
                 lm3=idxlm(l3,m3)
                 Do irc=1,nrcmt(input%xs%bse%xasspecies)
-                  fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,n2+bcs%il2-1))
+                  fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,n2+bcs%il1-1))
                   ! Use complex conjugate of the wavefunction
-                  fr3(irc)=-1.0d0*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il2-1))
+                  fr3(irc)=-1.0d0*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,n2+bcs%il1-1))
                 End Do
                 ! Radial integration
                 Call fderiv (-1, nrcmt(input%xs%bse%xasspecies), spr(1, is), fr2, gr, cf)
@@ -2008,8 +2008,8 @@ End Subroutine ematradoo
     Implicit none
     Integer, Intent (In) :: iq, igq
     Type(bcbs), Intent (In) :: bcs
-    Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2)
-    Complex(8), Intent (InOut):: xi(nxas, bcs%n2)
+    Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n1)
+    Complex(8), Intent (InOut):: xi(nxas, bcs%n1)
     ! local variables
     Integer :: n1, n2, l2, lmax2, m2, lm2, l3, m3, lm3, ias,ia, is
     Complex(8) :: prefactor
@@ -2021,7 +2021,7 @@ End Subroutine ematradoo
     lmax2=input%xs%lmaxemat
 
     Do n1=1,nxas
-      Do n2=1,bcs%n2
+      Do n2=1,bcs%n1
         Do l2=0,lmax2
           Do m2=-l2,l2
             lm2=idxlm(l2,m2)
@@ -2052,8 +2052,8 @@ End Subroutine ematradoo
     Implicit none
     Integer, Intent (In) :: iq, ik, igq
     Type(bcbs), Intent (In) :: bcs
-    Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2)
-    Complex(8), Intent (InOut):: xi(nxas, bcs%n2)
+    Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n1)
+    Complex(8), Intent (InOut):: xi(bcs%n1,nxas)
     ! local variables 
     Integer :: n1, n2, l2, lmax2, m2, lm2, l3, m3, lm3, ias,ia, is
     Complex(8) :: prefactor 
@@ -2066,14 +2066,14 @@ End Subroutine ematradoo
     lmax2=input%xs%lmaxemat
 
     Do n1=1,nxas
-      Do n2=1, bcs%n2
+      Do n2=1, bcs%n1
         Do l2=0,lmax2
           Do m2=-l2,l2
             lm2=idxlm(l2,m2)
             Do l3=0, input%groundstate%lmaxapw
               Do m3=-l3,l3
                 lm3=idxlm(l3,m3)
-                xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2)*&
+                xi(n2,n1)=xi(n2,n1)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2)*&
                   conjg(ylmgq(lm2, igq, iq)) * xsgntuo(n1, lm2, lm3)
               End Do
             End Do
