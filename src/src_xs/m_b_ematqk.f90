@@ -781,7 +781,7 @@ module m_b_ematqk
       if (flag == 'oo') then
         allocate(integral(input%xs%lmaxemat+1,nxas,nxas,1,1))
       else if (flag == 'ou') then
-        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n2,2))
+        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n1,2))
       else if (flag == 'uo') then
         allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n1,2))
       end if
@@ -1744,7 +1744,7 @@ module m_b_ematqk
           complex(8), intent(in)  :: apwalm(ngkmax1_ptr,apwordmax,lmmaxapw,natmtot)
           complex(8), intent(in)  :: evecfvo(nmatmax1_ptr,nstfv)
           Type(bcbs), intent (in) :: bcs 
-          Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2,2)
+          Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n1,2)
           ! local variables
           Integer :: is, ia, ir, nr, lmax2, n1, n2, l2,l3,m3,lm3, irc, nsp
 	        Real(8) :: t1, t2
@@ -1792,23 +1792,23 @@ module m_b_ematqk
           !------------------------------------------------!  
           if (.not. (input%groundstate%tevecsv)) then
             Do n1=1,nxas
-              Do n2=1,bcs%n2
+              Do n2=1,bcs%n1
                 ! Obtain radial wavefunction of the conduction state		
                 call b_wavefmt1(input%groundstate%lradstep, &
                 &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,input%xs%bse%xasatom,ngp&
                   , apwalm, &
-                &  evecfvo(:,n2+bcs%il2-1),lmmaxapw,wfmt(:,:,1,n2+bcs%il2-1))
+                &  evecfvo(:,n2+bcs%il1-1),lmmaxapw,wfmt(:,:,1,n2+bcs%il1-1))
              
                 Do l2=0, lmax2
                   Do l3=0,input%xs%lmaxapw
                     Do m3=-l3,l3
                       lm3=idxlm(l3,m3)
                       Do irc=1,nrcmt(input%xs%bse%xasspecies)
-                        fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,1,n2+bcs%il2-1))
+                        fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,1,n2+bcs%il1-1))
                         if (.not. emat_ccket) then
-                          fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,1,n2+bcs%il2-1))
+                          fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,1,n2+bcs%il1-1))
                         else ! use complex conjugate of the wavefunction
-                          fr3(irc)=-(1.0d0)*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,1,n2+bcs%il2-1))
+                          fr3(irc)=-(1.0d0)*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,1,n2+bcs%il1-1))
                         end if
                       End Do
                       ! Radial integration
@@ -1828,23 +1828,23 @@ module m_b_ematqk
           !------------------------------------------------!  
           else 
             Do n1=1,nxas
-              Do n2=1,bcs%n2
+              Do n2=1,bcs%n1
                 ! Obtain radial wavefunction of the conduction state		
                 call b_wavefmtsv1(input%groundstate%lradstep, &
                 &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,&
-                &  input%xs%bse%xasatom,ngp,n2+bcs%il2-1, apwalm, &
-                &  evecfvo,evecsvt, wfmt(:,:,:,n2+bcs%il2-1))
+                &  input%xs%bse%xasatom,ngp,n2+bcs%il1-1, apwalm, &
+                &  evecfvo,evecsvt, wfmt(:,:,:,n2+bcs%il1-1))
                 Do nsp=1,2
                   Do l2=0, lmax2
                     Do l3=0,input%xs%lmaxapw
                       Do m3=-l3,l3
                         lm3=idxlm(l3,m3)
                         Do irc=1,nrcmt(input%xs%bse%xasspecies)
-                          fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,nsp,n2+bcs%il2-1))
+                          fr2(irc)=fr1(l2,n1,irc)*dble(wfmt(lm3,irc,nsp,n2+bcs%il1-1))
                           if (.not. emat_ccket) then
-                            fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,nsp,n2+bcs%il2-1))
+                            fr3(irc)=fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,nsp,n2+bcs%il1-1))
                           else ! use complex conjugate of the wavefunction
-                            fr3(irc)=-(1.0d0)*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,nsp,n2+bcs%il2-1))
+                            fr3(irc)=-(1.0d0)*fr1(l2,n1,irc)*aimag(wfmt(lm3,irc,nsp,n2+bcs%il1-1))
                           end if
                         End Do
                         ! Radial integration
@@ -1873,7 +1873,7 @@ module m_b_ematqk
       ! EOC
 
       !BOP
-      ! !ROUTINE: ematradou
+      ! !ROUTINE: ematraduo
       ! !INTERFACE:
       Subroutine ematraduo (ik,iq, igq, ngp, apwalm, evecfvo, evecsvt, bcs, integral)
         ! !USES:
@@ -2119,8 +2119,8 @@ module m_b_ematqk
         Implicit none
         Integer, Intent (In) :: iq, igq
         Type(bcbs), Intent (In) :: bcs
-        Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n2,2)
-        Complex(8), Intent (InOut):: xi(nxas, bcs%n2)
+        Complex(8), Intent (In) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n1,2)
+        Complex(8), Intent (InOut):: xi(nxas, bcs%n1)
         ! local variables
         Integer :: n1, n2, l2, lmax2, m2, lm2, l3, m3, lm3, ias,ia, is, nsp
         Complex(8) :: prefactor
@@ -2136,7 +2136,7 @@ module m_b_ematqk
         !------------------------------------------------!  
         if (.not.(input%groundstate%tevecsv)) then
           Do n1=1,nxas
-            Do n2=1,bcs%n2
+            Do n2=1,bcs%n1
               Do l2=0,lmax2
                 Do m2=-l2,l2
                   lm2=idxlm(l2,m2)
@@ -2158,7 +2158,7 @@ module m_b_ematqk
         !------------------------------------------------!  
           Do nsp=1,2
             Do n1=1,nxas
-              Do n2=1,bcs%n2
+              Do n2=1,bcs%n1
                 Do l2=0,lmax2
                   Do m2=-l2,l2
                     lm2=idxlm(l2,m2)

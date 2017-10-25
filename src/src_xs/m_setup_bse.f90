@@ -523,6 +523,7 @@ module m_setup_bse
             do j= 1, size(hamblock,2)
               do i= 1, size(hamblock,1)
                 hamblock(i,j) = oc1(i)*oc2(j) *excfac * exc(i,j)
+                print *, 'exc(',i, ',', j, ')=', exc(i,j)
               end do
             end do
           end if
@@ -1420,26 +1421,32 @@ module m_setup_bse
       integer(4) :: r, c
       complex(8), parameter :: ztwo=(2.0d0,0.0d0) 
       complex(8), parameter :: zone=(1.0d0,0.0d0) 
+      complex(8) :: excfac 
+      
+      ! Set prefactor for exchange term in Hamiltonian
+      if (input%xs%bse%xas) then
+        if ((.not. input%groundstate%tevecsv) .and. (input%xs%bse%xasedge == 'K')) then
+          excfac=ztwo
+        else
+          excfac=zone
+        end if
+      else
+        if (.not. input%groundstate%tevecsv) excfac=ztwo
+        if (input%groundstate%tevecsv) excfac=zone
+      end if
       
       do c = 1, jb
         do r = 1, ib
           if(present(exc) .and. present(scc)) then
             ! Singlet case with exchange interaction
-            if(input%xs%bse%xas .and. (.not. trim(adjustl(input%xs%bse%xasedge)) == 'K')) then
-              hamblck(r, c) = occ1(r) * (zone * exc(r, c) - scc(r, c)) * occ2(c)
-            else
-              hamblck(r, c) = occ1(r) * (ztwo * exc(r, c) - scc(r, c)) * occ2(c)
+            hamblck(r, c) = occ1(r) * (excfac * exc(r, c) - scc(r, c)) * occ2(c)
             end if
           else if(present(scc)) then
             ! Triplet case without exchange interaction
             hamblck(r, c) = -occ1(r) * scc(r, c) * occ2(c)
           else if(present(exc)) then
             ! RPA
-            if(input%xs%bse%xas.and. (.not. trim(adjustl(input%xs%bse%xasedge)) == 'K')) then 
-              hamblck(r, c) = occ1(r) * zone * exc(r, c) * occ2(c)
-            else
-              hamblck(r, c) = occ1(r) * ztwo * exc(r, c) * occ2(c)
-            end if
+            hamblck(r, c) = occ1(r) * excfac * exc(r, c) * occ2(c)
           else
             ! IP
             hamblck(r, c) = (0.0d0,0.0d0)
