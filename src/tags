@@ -20070,7 +20070,9 @@ emass_si	eos/modmain.f90	/^real(8), parameter :: emass_si=/;"	v	module:modmain
 emat_destroy	m_ematqk.f90	/^      subroutine emat_destroy$/;"	s	module:m_ematqk
 emat_genemat	m_ematqk.f90	/^      subroutine emat_genemat(/;"	s	module:m_ematqk
 emat_genri	m_ematqk.f90	/^      subroutine emat_genri(/;"	s	module:m_ematqk
+emat_gmax	m_ematqk.f90	/^  real(8) :: emat_gmax$/;"	v	module:m_ematqk
 emat_init	m_ematqk.f90	/^      subroutine emat_init(/;"	s	module:m_ematqk
+emat_init_qg	m_ematqk.f90	/^      subroutine emat_init_qg(/;"	s	module:m_ematqk
 emat_wannier	emat_wannier.f90	/^Subroutine emat_wannier /;"	s
 ematbdcmbs	src_xs/ematbdcmbs.F90	/^Subroutine ematbdcmbs /;"	s
 ematbdlims	src_xs/ematbdlims.F90	/^Subroutine ematbdlims /;"	s
@@ -20475,6 +20477,7 @@ fermitetifc	src_xs/modtetra/modtetra.F90	/^      Subroutine fermitetifc /;"	s
 fevha	src_raman/mod_raman.f90	/^real(8), parameter :: fevha /;"	v	module:raman_params
 fevry	src_raman/mod_raman.f90	/^real(8), parameter :: fevry /;"	v	module:raman_params
 fextra	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  real *xextra, *fextra;$/;"	m	struct:_this
+fftmap	m_ematqk.f90	/^  type( fftmap_/;"	v	module:m_ematqk
 fftmap_type	src_xs/modxs.F90	/^      Type fftmap_type$/;"	t	module:modxs
 fftpack5	fftlib/cfftnd.f90	/^module fftpack5$/;"	m
 fgew	src_raman/mod_raman.f90	/^real(8) :: fgew$/;"	v	module:raman_ew
@@ -21973,6 +21976,7 @@ ido	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^      integer          ido,/;"	v	program:ssdr
 idos	src_libbzint/idos.f90	/^      real(8) function idos(/;"	f
 idos_exciting	src_libbzint/idos_exciting.f90	/^real(8) function idos_exciting(/;"	f
 idxas	mod_atoms.F90	/^      Integer :: idxas /;"	v	module:mod_atoms
+idxgnt	m_ematqk.f90	/^  integer, allocatable :: nlmo(:), lmo2l(:,:), lmo2m(:,:), lmo2o(:,:), lm2l(:), idxgnt(/;"	v	module:m_ematqk
 idxkkp	src_xs/idxkkp.F90	/^Integer Function idxkkp /;"	f
 idxlm	mod_muffin_tin.F90	/^      Integer, Allocatable :: idxlm /;"	v	module:mod_muffin_tin
 idxlo	mod_eigensystem.F90	/^      Integer, Allocatable :: idxlo /;"	v	module:mod_eigensystem
@@ -22233,7 +22237,6 @@ initatomcounters	src_inputparser/initatomcounter.F90	/^Subroutine initatomcounte
 initfun	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  subroutine initfun;$/;"	m	struct:__anon62
 initial	src_inputparser/inputmodules.f90	/^ integer::initial$/;"	k	type:trans_type
 initialized	FoX/utils/fox_m_utils_uuid.F90	/^  logical, save :: initialized /;"	v	module:fox_m_utils_uuid
-initialized	m_ematqk.f90	/^  logical :: initialized /;"	v	module:m_ematqk
 initlattice	src_inputparser/initlattice.f90	/^Subroutine initlattice$/;"	s
 initldapu	src_inputparser/initldapu.F90	/^subroutine initldapu$/;"	s
 initlibxc	src_inputparser/initlibxc.F90	/^subroutine initlibxc$/;"	s
@@ -23003,6 +23006,7 @@ lambda	libXC/src/gga_k_tflw.c	/^  FLOAT gamma, lambda;$/;"	m	struct:__anon22	fil
 lambda	libXC/src/gga_k_tflw.c	/^XC(gga_k_tflw_set_params)(XC(func_type) *p, FLOAT gamma, FLOAT lambda, FLOAT N)$/;"	v
 lambda	libXC/src/xc.h	/^void XC(gga_k_tflw_set_params)    (XC(func_type) *p, FLOAT gamma, FLOAT lambda, FLOAT N);$/;"	v
 lambda	src_inputparser/inputmodules.f90	/^ integer::lambda$/;"	k	type:exciton_type
+lambdaopf	src_inputparser/inputmodules.f90	/^ real(8)::lambdaopf$/;"	k	type:wannier_type
 lambert_w	libXC/src/special_functions.c	/^double lambert_w(double z)$/;"	f
 lapl	libXC/src/mgga.c	/^		 const FLOAT *rho, const FLOAT *sigma, const FLOAT *lapl, const FLOAT *tau,$/;"	v
 lapl	libXC/src/mgga.c	/^	     const FLOAT *rho, const FLOAT *sigma, const FLOAT *lapl, const FLOAT *tau,$/;"	v
@@ -23227,6 +23231,7 @@ list	FoX/common/m_common_notations.F90	/^    type(notation), dimension(:), point
 list	FoX/fsys/fox_m_fsys_string_list.F90	/^    type(string_t), pointer :: list(/;"	k	type:string_list
 list_of_positions_hirshfeld	src_vdW/TS_vdW_module.f90	/^  Real(8), Allocatable :: list_of_positions_hirshfeld(/;"	v	module:TS_vdW_module
 list_of_species_hirshfeld	src_vdW/TS_vdW_module.f90	/^  Integer, Allocatable :: list_of_species_hirshfeld(/;"	v	module:TS_vdW_module
+listgnt	m_ematqk.f90	/^  real(8), allocatable :: listgnt(/;"	v	module:m_ematqk
 lists	src_inputparser/inputmodules.f90	/^  type(lists_/;"	k	type:transitions_type
 lists_type	src_inputparser/inputmodules.f90	/^type lists_type$/;"	t	module:modinput
 liveNodeLists	FoX/common/m_common_struct.F90	/^    logical :: liveNodeLists /;"	k	type:xml_doc_state
@@ -23348,6 +23353,7 @@ lowerCase	FoX/common/m_common_charset.F90	/^  character(len=*), parameter :: low
 lowerCase	FoX/common/m_common_namecheck.F90	/^  character(len=*), parameter :: lowerCase /;"	v	module:m_common_namecheck
 lowesteval	src_iterative_solver/SclControlModule.F90	/^      Real (8) :: lowesteval$/;"	v	module:sclcontroll
 lradstep	src_inputparser/inputmodules.f90	/^ integer::lradstep$/;"	k	type:groundstate_type
+ls	src_inputparser/inputmodules.f90	/^ logical::ls$/;"	k	type:wannier_type
 lsplsymc	mod_symmetry.F90	/^      Integer :: lsplsymc /;"	v	module:mod_symmetry
 lsplsyms	mod_symmetry.F90	/^      Integer, Allocatable :: lsplsyms /;"	v	module:mod_symmetry
 lspnsymc	mod_symmetry.F90	/^      Integer :: lspnsymc /;"	v	module:mod_symmetry
@@ -23576,7 +23582,6 @@ m_tabs	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  QTabWidget *m_tabs;$/;"	m	class
 m_wannier_interpolate	wannier_interpolate_eval.f90	/^module m_wannier_interpolate$/;"	m
 m_wannier_interpolate_density	wannier_interpolate_density.f90	/^module m_wannier_interpolate_density$/;"	m
 m_wannier_interpolate_eigsys	wannier_interpolate_eigsys.f90	/^module m_wannier_interpolate_eigsys$/;"	m
-m_wannier_interpolate_eigsys2	wannier_interpolate_eigsys2.f90	/^module m_wannier_interpolate_eigsys2$/;"	m
 m_wannier_interpolate_fft	wannier_interpolate_fft.f90	/^module m_wannier_interpolate_fft$/;"	m
 m_wcml_coma	FoX/wcml/m_wcml_coma.F90	/^module m_wcml_coma$/;"	m
 m_wcml_core	FoX/wcml/m_wcml_core.F90	/^module m_wcml_core$/;"	m
@@ -23715,6 +23720,7 @@ maxeval	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  number mineval, maxeval;$/;"	m
 maxeval	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  number mineval, maxeval;$/;"	m	struct:_this
 maxeval	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  number mineval, maxeval;$/;"	m	struct:_this
 maxeval	src_vdwdf/modules.f90	/^   integer*8  mineval, maxeval$/;"	v	module:param
+maxit	src_inputparser/inputmodules.f90	/^ integer::maxit$/;"	k	type:wannier_type
 maxitc	src_inputparser/inputmodules.f90	/^ integer::maxitc$/;"	k	type:RDMFT_type
 maxitn	src_inputparser/inputmodules.f90	/^ integer::maxitn$/;"	k	type:RDMFT_type
 maxitoep	src_inputparser/inputmodules.f90	/^ integer::maxitoep$/;"	k	type:OEP_type
@@ -24128,6 +24134,7 @@ mineval	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  number mineval, maxeval;$/;"	m	s
 mineval	src_vdwdf/modules.f90	/^   integer*8  mineval,/;"	v	module:param
 minf_nm	eos/minf_nm.f90	/^subroutine minf_nm(/;"	s
 minimize_overrun	FoX/wxml/m_wxml_core.F90	/^    logical                   :: minimize_overrun /;"	k	type:xmlf_t
+minit	src_inputparser/inputmodules.f90	/^ integer::minit$/;"	k	type:wannier_type
 minmmat	src_gw/mod_product_basis.f90	/^    complex(8), allocatable :: minmmat(/;"	v	module:mod_product_basis
 minutes	src_vdwdf/main.f90	/^  integer             :: tot_time, minutes,/;"	v	program:main
 minverse	src_mixing/lib/minvers.f90	/^      subroutine minverse /;"	s
@@ -25094,6 +25101,7 @@ nofk	src_mpi/modmpi.F90	/^      Function nofk /;"	f	module:modmpi
 nofset	src_mpi/modmpi.F90	/^      Function nofset /;"	f	module:modmpi
 noinst_HEADERS	libXC/src/Makefile	/^noinst_HEADERS = \\$/;"	m
 noinst_PROGRAMS	libXC/testsuite/Makefile	/^noinst_PROGRAMS = xc-get_data$(EXEEXT) xc-consistency$(EXEEXT) \\$/;"	m
+noise	src_inputparser/inputmodules.f90	/^ real(8)::noise$/;"	k	type:wannier_type
 noldsteps	src_mixing/modmixermsec.f90	/^      Integer :: record_of_last_iter, noldstepsi/;"	v	module:modmixermsec
 noldstepsin_file	src_mixing/modmixermsec.f90	/^      Integer :: record_of_last_iter, noldstepsin_file,/;"	v	module:modmixermsec
 noldstepsmax	src_mixing/modmixermsec.f90	/^     & MUSE, IDSCALE, noldstepsmax$/;"	v	module:modmixermsec
@@ -26126,6 +26134,7 @@ readgamma	src_phonon/readgamma.f90	/^Subroutine readgamma /;"	s
 reading_first_entity	FoX/sax/m_sax_reader.F90	/^ function reading_first_entity(/;"	f	module:m_sax_reader
 reading_main_file	FoX/sax/m_sax_reader.F90	/^  function reading_main_file(/;"	f	module:m_sax_reader
 readinput	eos/readinput.f90	/^subroutine readinput$/;"	s
+readkpts	readkpts.f90	/^Subroutine readkpts$/;"	s
 readmat	plotmat.f90	/^    subroutine readmat(/;"	s	module:m_plotmat
 readonly	FoX/dom/m_dom_dom.F90	/^    logical :: readonly /;"	k	type:NamedNodeMap
 readonly	FoX/dom/m_dom_dom.F90	/^    logical :: readonly /;"	k	type:Node
@@ -27104,6 +27113,7 @@ skipgnd	src_xs/modxs.F90	/^      Logical :: skipgnd$/;"	v	module:modxs
 skippedEntity_handler	FoX/dom/m_dom_parse.f90	/^  subroutine skippedEntity_handler(/;"	s
 skippedExternal	FoX/sax/m_sax_types.F90	/^    logical :: skippedExternal /;"	k	type:sax_parser_t
 skiprandom	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  void (*skiprandom)(struct _this *t, cnumber n);$/;"	m	struct:__anon63
+sl	src_inputparser/inputmodules.f90	/^ real(8)::sl$/;"	k	type:wannier_type
 slapy2	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^     &                  scnrm2, slapy2$/;"	v	program:cnbdr1
 slapy2	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^     &                  scnrm2, slapy2$/;"	v	program:cnbdr2
 slapy2	ARPACK/EXAMPLES/BAND/cnbdr3.f	/^     &                  scnrm2, slapy2$/;"	v	program:cnbdr3
@@ -27189,7 +27199,9 @@ sol	src_vdwdf/Cuba-3.2/src/divonne/Split.c	/^  real lhs, row, sol;$/;"	m	struct:
 solvediis	src_iterative_solver/src_diis/solvediis.F90	/^Subroutine solvediis /;"	s
 solvediislin	src_iterative_solver/src_diis/solvediislin.F90	/^Subroutine solvediislin /;"	s
 solver	src_inputparser/inputmodules.f90	/^  type(solver_/;"	k	type:groundstate_type
+solver	src_inputparser/inputmodules.f90	/^ character(512)::solver$/;"	k	type:wannier_type
 solver_type	src_inputparser/inputmodules.f90	/^type solver_type$/;"	t	module:modinput
+solvernumber	src_inputparser/inputmodules.f90	/^ integer::solvernumber$/;"	k	type:wannier_type
 solvewithlapack	src_eigensystem/modfvsystem.f90	/^    Subroutine solvewithlapack(/;"	s	module:modfvsystem
 sopmat	src_raman/mod_raman.f90	/^real(8) :: sopmat(/;"	v	module:raman_symmetry
 sopmatc	src_raman/mod_raman.f90	/^real(8) :: sopmatc(/;"	v	module:raman_symmetry
@@ -27255,6 +27267,7 @@ spl	species/modspecies.F90	/^integer spn(maxspst),spl(/;"	v	module:modspecies
 splane	src_mixing/modmixermsec.f90	/^      Real (8) :: MSECINFO (20), rtrap, SCHARGE, TCharge, splane,/;"	v	module:modmixermsec
 spline	src_lib/spline.f90	/^Subroutine spline /;"	s
 spline4	src_xc/splline4.f90	/^subroutine spline4(/;"	s
+split	src_inputparser/inputmodules.f90	/^ integer::split$/;"	k	type:wannier_type
 splitText	FoX/dom/m_dom_dom.F90	/^  function splitText(/;"	f	module:m_dom_dom
 splittfile	src_mpi/modmpi.F90	/^      Logical :: splittfile,/;"	v	module:modmpi
 spmass	mod_atoms.F90	/^      Real (8) :: spmass /;"	v	module:mod_atoms
@@ -27547,6 +27560,7 @@ stringtonumbertddftdo	src_inputparser/inputmodules.f90	/^ integer function  stri
 stringtonumbertddftfxctype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumbertddftfxctype(/;"	f	module:modinput
 stringtonumberwannierinput	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberwannierinput(/;"	f	module:modinput
 stringtonumberwanniermethod	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberwanniermethod(/;"	f	module:modinput
+stringtonumberwanniersolver	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberwanniersolver(/;"	f	module:modinput
 stringtonumberxsdogroundstate	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberxsdogroundstate(/;"	f	module:modinput
 stringtonumberxsgqmaxtype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberxsgqmaxtype(/;"	f	module:modinput
 stringtonumberxspwmat	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberxspwmat(/;"	f	module:modinput
@@ -28555,24 +28569,22 @@ wannier_init	mod_wannier.f90	/^    subroutine wannier_init$/;"	s	module:mod_wann
 wannier_interpolate_bandchar	wannier_interpolate_bandchar.f90	/^Subroutine wannier_interpolate_bandchar(/;"	s
 wannier_interpolate_density	wannier_interpolate_density.f90	/^subroutine wannier_interpolate_density(/;"	s	module:m_wannier_interpolate_density
 wannier_interpolate_eigsys	wannier_interpolate_eigsys.f90	/^subroutine wannier_interpolate_eigsys(/;"	s	module:m_wannier_interpolate_eigsys
-wannier_interpolate_eigsys2	wannier_interpolate_eigsys2.f90	/^subroutine wannier_interpolate_eigsys2(/;"	s	module:m_wannier_interpolate_eigsys2
 wannier_interpolate_eval	wannier_interpolate_eval.f90	/^subroutine wannier_interpolate_eval(/;"	s	module:m_wannier_interpolate
 wannier_interpolate_fft	wannier_interpolate_fft.f90	/^subroutine wannier_interpolate_fft(/;"	s	module:m_wannier_interpolate_fft
 wannier_interpolate_occupancy	wannier_interpolate_density.f90	/^subroutine wannier_interpolate_occupancy(/;"	s	module:m_wannier_interpolate_density
-wannier_loc	mod_wannier.f90	/^    subroutine wannier_loc$/;"	s	module:mod_wannier
+wannier_loc	mod_wannier.f90	/^    subroutine wannier_loc(/;"	s	module:mod_wannier
 wannier_maxloc	mod_wannier.f90	/^    subroutine wannier_maxloc$/;"	s	module:mod_wannier
 wannier_plot	wannier_plot.f90	/^subroutine wannier_plot(/;"	s
 wannier_projonwan	mod_wannier.f90	/^    subroutine wannier_projonwan$/;"	s	module:mod_wannier
 wannier_reademat	mod_wannier.f90	/^    subroutine wannier_reademat(/;"	s	module:mod_wannier
 wannier_readfile	mod_wannier.f90	/^    subroutine wannier_readfile(/;"	s	module:mod_wannier
-wannier_readfunir	mod_wannier.f90	/^    subroutine wannier_readfunir(/;"	s	module:mod_wannier
-wannier_readfunmt	mod_wannier.f90	/^    subroutine wannier_readfunmt(/;"	s	module:mod_wannier
+wannier_readfun	mod_wannier.f90	/^    subroutine wannier_readfun(/;"	s	module:mod_wannier
 wannier_showproj	mod_wannier.f90	/^    subroutine wannier_showproj$/;"	s	module:mod_wannier
 wannier_subspace	mod_wannier.f90	/^    subroutine wannier_subspace(/;"	s	module:mod_wannier
 wannier_type	src_inputparser/inputmodules.f90	/^type wannier_type$/;"	t	module:modinput
 wannier_writeemat	mod_wannier.f90	/^    subroutine wannier_writeemat$/;"	s	module:mod_wannier
 wannier_writefile	mod_wannier.f90	/^    subroutine wannier_writefile$/;"	s	module:mod_wannier
-wannier_writefun	mod_wannier.f90	/^    subroutine wannier_writefun$/;"	s	module:mod_wannier
+wannier_writefun	mod_wannier.f90	/^    subroutine wannier_writefun(/;"	s	module:mod_wannier
 wannier_writeinfo_finish	mod_wannier.f90	/^    subroutine wannier_writeinfo_finish$/;"	s	module:mod_wannier
 wannier_writeinfo_geometry	mod_wannier.f90	/^    subroutine wannier_writeinfo_geometry$/;"	s	module:mod_wannier
 wannier_writeinfo_lo	mod_wannier.f90	/^    subroutine wannier_writeinfo_lo$/;"	s	module:mod_wannier
@@ -28605,7 +28617,6 @@ wf_Gkset	mod_wannier.f90	/^  type( Gk_set) :: wf_Gkset$/;"	v	module:mod_wannier
 wf_Gset	mod_wannier.f90	/^  type( G_set) :: wf_Gset$/;"	v	module:mod_wannier
 wf_centers	mod_wannier.f90	/^  real(8), allocatable :: wf_centers(/;"	v	module:mod_wannier
 wf_disentangle	mod_wannier.f90	/^  logical :: wf_disentangle /;"	v	module:mod_wannier
-wf_emat	mod_wannier.f90	/^  complex(8), allocatable :: wf_emat(/;"	v	module:mod_wannier
 wf_filename	mod_wannier.f90	/^  character(265) :: wf_filename$/;"	v	module:mod_wannier
 wf_fst	mod_wannier.f90	/^  integer :: wf_fst /;"	v	module:mod_wannier
 wf_info	mod_wannier.f90	/^  integer :: wf_info /;"	v	module:mod_wannier
@@ -28613,9 +28624,13 @@ wf_initialized	mod_wannier.f90	/^  logical :: wf_initialized /;"	v	module:mod_wa
 wf_kset	mod_wannier.f90	/^  type( k_set) :: wf_kset$/;"	v	module:mod_wannier
 wf_kset_red	mod_wannier.f90	/^  type( k_set) :: wf_kset_red$/;"	v	module:mod_wannier
 wf_lst	mod_wannier.f90	/^  integer :: wf_lst /;"	v	module:mod_wannier
+wf_m	mod_wannier.f90	/^  complex(8), allocatable :: wf_m(/;"	v	module:mod_wannier
+wf_m0	mod_wannier.f90	/^  complex(8), allocatable :: wf_m0(/;"	v	module:mod_wannier
 wf_n_dist	mod_wannier.f90	/^  real(8), allocatable :: wf_n_dist(/;"	v	module:mod_wannier
 wf_n_ik	mod_wannier.f90	/^  integer, allocatable :: wf_n_ik(/;"	v	module:mod_wannier
+wf_n_ik2	mod_wannier.f90	/^  integer, allocatable :: wf_n_ik2(/;"	v	module:mod_wannier
 wf_n_n	mod_wannier.f90	/^  integer, allocatable :: wf_n_n(/;"	v	module:mod_wannier
+wf_n_n2neg	mod_wannier.f90	/^  integer, allocatable :: wf_n_n2neg(/;"	v	module:mod_wannier
 wf_n_ns2n	mod_wannier.f90	/^  integer, allocatable :: wf_n_ns2n(/;"	v	module:mod_wannier
 wf_n_nshells	mod_wannier.f90	/^  integer :: wf_n_nshells /;"	v	module:mod_wannier
 wf_n_ntot	mod_wannier.f90	/^  integer :: wf_n_ntot /;"	v	module:mod_wannier
@@ -28624,6 +28639,7 @@ wf_n_vc	mod_wannier.f90	/^  real(8), allocatable :: wf_n_vl(:,:,:), wf_n_vc(/;"	
 wf_n_vl	mod_wannier.f90	/^  real(8), allocatable :: wf_n_vl(/;"	v	module:mod_wannier
 wf_n_wgt	mod_wannier.f90	/^  real(8), allocatable :: wf_n_wgt(/;"	v	module:mod_wannier
 wf_nprojtot	mod_wannier.f90	/^  integer :: wf_nprojtot /;"	v	module:mod_wannier
+wf_nprojused	mod_wannier.f90	/^  integer :: wf_nprojused /;"	v	module:mod_wannier
 wf_nst	mod_wannier.f90	/^  integer :: wf_nst /;"	v	module:mod_wannier
 wf_omega	mod_wannier.f90	/^  real(8), allocatable :: wf_omega(/;"	v	module:mod_wannier
 wf_omega_d	mod_wannier.f90	/^  real(8), allocatable :: wf_omega_d(/;"	v	module:mod_wannier
@@ -28648,17 +28664,21 @@ wfarray	src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfar
 wfarray	src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfarray(/;"	k	type:default_type
 wfarray	src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfarray(/;"	k	type:lo_type
 wfc	FoX/common/m_common_entities.F90	/^    logical :: wfc /;"	k	type:entity_t
+wfint_Gkset	mod_wannier_interpolate.f90	/^  type( Gk_set) :: wfint_Gkset /;"	v	module:mod_wfint
 wfint_destroy	mod_wannier_interpolate.f90	/^    subroutine wfint_destroy$/;"	s	module:mod_wfint
 wfint_destroywf	mod_wannier_interpolate.f90	/^    subroutine wfint_destroywf$/;"	s	module:mod_wfint
 wfint_efermi	mod_wannier_interpolate.f90	/^  real(8) :: wfint_efermi /;"	v	module:mod_wfint
 wfint_eval	mod_wannier_interpolate.f90	/^  real(8), allocatable :: wfint_eval(/;"	v	module:mod_wfint
+wfint_evec	mod_wannier_interpolate.f90	/^  complex(8), allocatable :: wfint_evec(/;"	v	module:mod_wfint
 wfint_getwfir	mod_wannier_interpolate.f90	/^    subroutine wfint_getwfir(/;"	s	module:mod_wfint
 wfint_getwfmt	mod_wannier_interpolate.f90	/^    subroutine wfint_getwfmt(/;"	s	module:mod_wfint
 wfint_init	mod_wannier_interpolate.f90	/^    subroutine wfint_init(/;"	s	module:mod_wfint
 wfint_initialized	mod_wannier_interpolate.f90	/^  logical :: wfint_initialized /;"	v	module:mod_wfint
 wfint_interpolate_bandchar	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_bandchar(/;"	s	module:mod_wfint
+wfint_interpolate_bandgap	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_bandgap(/;"	s	module:mod_wfint
 wfint_interpolate_density	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_density$/;"	s	module:mod_wfint
 wfint_interpolate_eigsys	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_eigsys(/;"	s	module:mod_wfint
+wfint_interpolate_eigvec	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_eigvec$/;"	s	module:mod_wfint
 wfint_interpolate_me	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_me(/;"	s	module:mod_wfint
 wfint_interpolate_occupancy	mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_occupancy$/;"	s	module:mod_wfint
 wfint_kset	mod_wannier_interpolate.f90	/^  type( k_set) :: wfint_kset /;"	v	module:mod_wfint
@@ -29367,6 +29387,7 @@ zero	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^     &                 zero,/;"	v	program:ss
 zero	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 zero,/;"	v	program:ssdrv6
 zeta	libXC/src/stoll.c	/^XC(lda_stoll) (const XC(func_type) *pw, FLOAT dens, FLOAT zeta, int order, XC(lda_work_t) res[3])$/;"	v
 zeta	libXC/src/util.h	/^void XC(lda_stoll)(const XC(func_type) *pw, FLOAT dens, FLOAT zeta, int order, XC(lda_work_t) res[3]);$/;"	v
+zfftcf	m_ematqk.f90	/^  complex(8), allocatable :: rigntaa(:,:,:), rigntal(:,:,:), rigntla(:,:,:), rigntll(:,:,:), zfftcf(/;"	v	module:m_ematqk
 zfftifc	zfftifc.f90	/^Subroutine zfftifc /;"	s
 zfinp	zfinp.f90	/^Complex (8) Function zfinp /;"	f
 zfinp2	src_xs/zfinp2.F90	/^Complex (8) Function zfinp2 /;"	f

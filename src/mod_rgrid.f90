@@ -38,7 +38,7 @@ contains
     write(*,*) " size: ", self%npt
     write(*,*) " ip  vpl  mtpoint  atom"
     do ip = 1, self%npt
-      write(*,'(i4,3f12.4,L)') ip, self%vpl(:,ip), self%mtpoint(ip)
+      write(*,'(i6,3f12.4,L)') ip, self%vpl(:,ip), self%mtpoint(ip)
       if (self%mtpoint(ip)) then 
         write(*,'(2i4,4x,3i4)') self%atom(:,ip), self%iv(:,ip)
       end if

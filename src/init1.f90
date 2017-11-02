@@ -40,11 +40,14 @@ Subroutine init1
       real (8) :: vl1(3),vl2(3),vc1(3),vc2(3)
       real (8) :: d1,d2,d12,t1,t2
       Real (8) :: blen(3), lambdab
+      logical :: wannierband
       
 ! external functions
       Complex (8) gauntyry
       External gauntyry
 !
+      wannierband = .false.
+      if( associated( input%properties%bandstructure)) wannierband = input%properties%bandstructure%wannier
       write(*,'("init1")')
       Call timesec (ts0)
 !
@@ -72,7 +75,7 @@ Subroutine init1
         input%groundstate%ngridk(:)=np3d(:)
       End If
 
-      If (((task .Eq. 20) .Or. (task .Eq. 21)).and..not.(input%properties%bandstructure%wannier)) Then
+      If (((task .Eq. 20) .Or. (task .Eq. 21)).and..not.(wannierband)) Then
 ! for band structure plots generate k-points along a line
          nvp1d = size &
         & (input%properties%bandstructure%plot1d%path%pointarray)

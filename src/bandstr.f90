@@ -14,7 +14,6 @@ Subroutine bandstr
   Use modmpi
   use mod_wannier
   use mod_wfint
-  use m_wannier_interpolate_eigsys2
   use m_wannier_interpolate_density
   Use FoX_wxml
 
@@ -102,12 +101,12 @@ Subroutine bandstr
     int_kset%vkl = vkl
     int_kset%vkc = vkc
     !call generate_G_vectors( int_Gset, bvec, intgv, input%groundstate%gmaxvr)
-    call generate_Gk_vectors( int_Gkset, int_kset, wf_Gset, gkmax)
-    ngkmaxint = int_Gkset%ngkmax
-    ngkmaxwf = wf_Gkset%ngkmax
-    write(*,'("ngkmax sys = ",I)') ngkmax
-    write(*,'("ngkmax int = ",I)') ngkmaxint
-    write(*,'("ngkmax wan = ",I)') ngkmaxwf
+    !call generate_Gk_vectors( int_Gkset, int_kset, wf_Gset, gkmax)
+    !ngkmaxint = int_Gkset%ngkmax
+    !ngkmaxwf = wf_Gkset%ngkmax
+    !write(*,'("ngkmax sys = ",I)') ngkmax
+    !write(*,'("ngkmax int = ",I)') ngkmaxint
+    !write(*,'("ngkmax wan = ",I)') ngkmaxwf
     allocate( evalint( wf_fst:wf_lst, int_kset%nkpt))
     allocate( evecint( nmatmax, nstsv, nspinor, int_kset%nkpt))
     evecint = zzero
@@ -153,7 +152,7 @@ Subroutine bandstr
     Call readfermi
       
     ! do interpolation
-    lmax = min( 3, input%groundstate%lmaxapw)
+    lmax = min( 5, input%groundstate%lmaxapw)
     lmmax = (lmax+1)**2
     evalint = wfint_eval
     if( input%properties%bandstructure%character) then
@@ -247,7 +246,7 @@ Subroutine bandstr
                 call xml_endElement (xf, "bc")
               end do
               call xml_endElement (xf, "point")
-              write (50, '(2G18.10, 8F12.6)') dpp1d( iq), evalint( ist, iq), sum, (bc8( l, ias, ist, iq), l=0, lmax)
+              write (50, '(2G18.10, 20F12.6)') dpp1d( iq), evalint( ist, iq), sum, (bc8( l, ias, ist, iq), l=0, lmax)
               !write (50, '(2(G18.10,1x), 8(G12.6,1x))') dpp1d (iq), evalint( ist, iq), sum, (bc( l, ias, ist, iq), l=0, lmax)
             end do
             call xml_endElement (xf, "band")

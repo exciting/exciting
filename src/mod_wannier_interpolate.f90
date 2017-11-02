@@ -1031,71 +1031,101 @@ module mod_wfint
       integer, intent( in) :: lmax
       real(8), intent( out) :: bc( 0:lmax, natmtot, wf_fst:wf_lst, wfint_kset%nkpt)
 
-      integer :: ik, iq, ist, jst, is, ia, ias, l, m, lm, o, lmo, ilo, lmmax, ir, ngknr, nlmomax
-      real(8) :: fr( nrmtmax), gr( nrmtmax), cf( 3, nrmtmax)
+      integer :: ik, iq, ir, is, ia, ias, l, m, lm, o, ilo1, ilo2, lmmax, ngknr, maxdim
+      integer :: lmcnt( 0:lmax, nspecies), o2idx( apwordmax, 0:lmax, nspecies), lo2idx( nlomax, 0:lmax, nspecies)
+      real(8) :: f
       complex(8) :: z
 
-      integer, allocatable :: nlmo(:), lmo2l(:,:), lmo2m(:,:), lmo2o(:,:), lm2l(:)
-      complex(8), allocatable :: dmatr(:,:,:,:), dmatq(:,:), wfrad(:,:)
-      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), match_combined(:,:,:), dmatkwan(:,:,:,:)
-      complex(8), allocatable :: auxmat(:,:)
-      real(8), allocatable :: rfmt(:,:,:,:), rfir(:)
+      character(256) :: fname
+
+      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), dmatk(:,:,:,:,:), dmatr(:,:,:,:,:), dmatq(:,:)
+      real(8), allocatable :: rolpint(:,:,:,:), rholm(:,:,:,:)
 
       lmmax = (lmax + 1)**2
-      write(*,*) nmatmax, wf_Gkset%ngkmax+nlotot
 
-      ! count combined (l,m,o) indices and build index maps
-      allocate( nlmo( nspecies))
-      allocate( lmo2l( lmmax*apwordmax, nspecies), &
-                lmo2m( lmmax*apwordmax, nspecies), &
-                lmo2o( lmmax*apwordmax, nspecies))
-      nlmomax = 0
+      fname = filext
+      if( input%properties%wannier%input .eq. "hybrid") filext = '_PBE.OUT'
+      call readstate
+      filext = fname
+      call readfermi
+      call linengy
+      call genapwfr
+      call genlofr
+      call olprad
+
+      maxdim = 0
       do is = 1, nspecies
-        nlmo( is) = 0
+        o2idx( :, :, is) = 0
+        lo2idx( :, :, is) = 0
+        lmcnt( :, is) = 0
         do l = 0, lmax
           do o = 1, apword( l, is)
-            do m = -l, l
-              nlmo( is) = nlmo( is) + 1
-              lmo2l( nlmo( is), is) = l
-              lmo2m( nlmo( is), is) = m
-              lmo2o( nlmo( is), is) = o
+            lmcnt( l, is) = lmcnt( l, is) + 1
+            o2idx( o, l, is) = lmcnt( l, is)
+          end do
+        end do
+        do ilo1 = 1, nlorb( is)
+          l = lorbl( ilo1, is)
+          lmcnt( l, is) = lmcnt( l, is) + 1
+          lo2idx( ilo1, l, is) = lmcnt( l, is)
+        end do
+        maxdim = max( maxdim, maxval( lmcnt( :, is)))
+      end do
+
+      ! radial overlap-intergrals
+      allocate( rolpint( maxdim, maxdim, 0:lmax, natmtot))
+      rolpint = 0.d0
+      do is = 1, nspecies
+        do ia = 1, natoms( is)
+          ias = idxas( ia, is)
+          ! APW-APW integral
+          do l = 0, lmax
+            do o = 1, apword( l, is)
+              rolpint( o2idx( o, l, is), o2idx( o, l, is), l, ias) = 1.d0
+            end do
+          end do
+          do ilo1 = 1, nlorb( is)
+            l = lorbl( ilo1, is)
+            do o = 1, apword( l, is)
+              if( (o2idx( o, l, is) .gt. 0) .and. (lo2idx( ilo1, l, is) .gt. 0)) then
+                rolpint( o2idx( o, l, is), lo2idx( ilo1, l, is), l, ias) = oalo( o, ilo1, ias)
+                rolpint( lo2idx( ilo1, l, is), o2idx( o, l, is), l, ias) = oalo( o, ilo1, ias)
+              end if
+            end do
+            do ilo2 = 1, nlorb( is)
+              if( lorbl( ilo2, is) .eq. l) then
+                if( (lo2idx( ilo1, l, is) .gt. 0) .and. (lo2idx( ilo2, l, is) .gt. 0)) then
+                  rolpint( lo2idx( ilo1, l, is), lo2idx( ilo2, l, is), l, ias) = ololo( ilo1, ilo2, ias)
+                  rolpint( lo2idx( ilo2, l, is), lo2idx( ilo1, l, is), l, ias) = ololo( ilo2, ilo1, ias)
+                end if
+              end if
             end do
           end do
         end do
-        nlmomax = max( nlmomax, nlmo( is))
       end do
+   
+      allocate( dmatk( wf_fst:wf_lst, maxdim, lmmax, natmtot, wf_kset%nkpt))
 
-      allocate( lm2l( lmmax))
-      do l = 0, lmax
-        do m = -l, l
-          lm = idxlm( l, m)
-          lm2l( lm) = l
-        end do
-      end do
+      dmatk = zzero
 
-      !call readstate
-      !call readfermi
-      !call linengy
-      !call genapwfr
-      !call genlofr
-      !call olprad
-
+      ! build k-point density coefficients
+#ifdef USEOMP                
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, ngknr, apwalm, evecfv, is, ia, ias, l, m, lm, o, ilo1)
+#endif
       allocate( evecfv( nmatmax, nstfv, nspnfv))
       allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
-      allocate( match_combined( nlmomax, ngkmax, natmtot))
-      allocate( auxmat( nmatmax, wf_fst:wf_lst))
-      allocate( dmatkwan( wf_kset%nkpt, nlmomax+nlotot, wf_fst:wf_lst, natmtot))
-
-      dmatkwan = zzero
-
-      ! build real space density matrix
+#ifdef USEOMP                
+!$OMP DO
+#endif
       do ik = 1, wf_kset%nkpt
-        write(*,*) ik
         ngknr = wf_Gkset%ngk( 1, ik)
 
         ! get matching coefficients
         call match( ngknr, wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm( :, :, :, :, 1))
           
+#ifdef USEOMP                
+!$OMP CRITICAL (readevec)
+#endif
         ! read eigenvector      
         if( input%properties%wannier%input .eq. "groundstate") then
           call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
@@ -1106,147 +1136,113 @@ module mod_wfint
         else
           call terminate
         end if
-
-        match_combined = zzero
-        do is = 1, nspecies
-          do ia = 1, natoms( is)
-            ias = idxas( ia, is)
-            do lmo = 1, nlmo( is)
-              l = lmo2l( lmo, is)
-              m = lmo2m( lmo, is)
-              o = lmo2o( lmo, is)
-              lm = idxlm( l, m)
-              match_combined( lmo, 1:ngknr, ias) = apwalm( 1:ngknr, o, lm, ias, 1)
-            end do
-          end do
-        end do
-
-        call zgemm( 'N', 'N', nmatmax, wf_nst, wf_nst, zone, &
-             evecfv( :, wf_fst:wf_lst, 1), nmatmax, &
-             wf_transform( :, :, ik), wf_nst, zzero, &
-             auxmat, nmatmax)
+#ifdef USEOMP                
+!$OMP END CRITICAL (readevec)
+#endif
 
         do is = 1, nspecies
           do ia = 1, natoms( is)
             ias = idxas( ia, is)
-            call zgemm( 'N', 'N', nlmo( is), wf_nst, ngknr, zone, &
-                 match_combined( 1:nlmo( is), 1:ngknr, ias), nlmo( is), &
-                 auxmat( 1:ngknr, :), ngknr, zzero, &
-                 dmatkwan( ik, 1:nlmo( is), :, ias), nlmo( is))
-            do ilo = 1, nlorb( is)
-              l = lorbl( ilo, is)
+            ! APW contribution
+            do l = 0, lmax
               do m = -l, l
                 lm = idxlm( l, m)
-                dmatkwan( ik, nlmo( is)+idxlo( lm, ilo, ias), :, ias) = auxmat( ngknr+idxlo( lm, ilo, ias), :)
+                do o = 1, apword( l, is)
+                  call zgemv( 'T', ngknr, wf_nst, zone, &
+                       evecfv( 1:ngknr, wf_fst:wf_lst, 1), ngknr, &
+                       apwalm( 1:ngknr, o, lm, ias, 1), 1, zzero, &
+                       dmatk( :, o2idx( o, l, is), lm, ias, ik), 1)
+                end do
               end do
             end do
-
-          end do
-        end do
-
-      end do   
-
-      deallocate( evecfv, apwalm, auxmat, match_combined)
-      allocate( dmatr( wf_kset%nkpt, nlmomax+nlotot, wf_fst:wf_lst, natmtot))
-
-      dmatr = zzero
-
-      do is = 1, nspecies
-        do ia = 1, natoms( is)
-          ias = idxas( ia, is)
-          do ist = wf_fst, wf_lst
-            call zgemm( 'C', 'N', wf_kset%nkpt, nlmo( is)+nlotot, wf_kset%nkpt, zone/wf_kset%nkpt, &
-                 wfint_pkr, wf_kset%nkpt, &
-                 dmatkwan( :, 1:(nlmo( is)+nlotot), ist, ias), wf_kset%nkpt, zzero, &
-                 dmatr( :, 1:(nlmo( is)+nlotot), ist, ias), wf_kset%nkpt)
+            ! LO contribution
+            do ilo1 = 1, nlorb( is)
+              l = lorbl( ilo1, is)
+              do m = -l, l
+                lm = idxlm( l, m)
+                dmatk( :, lo2idx( ilo1, l, is), lm, ias, ik) = evecfv( ngknr+idxlo( lm, ilo1, ias), wf_fst:wf_lst, 1)
+              end do
+            end do
           end do
         end do
       end do
+#ifdef USEOMP                
+!$OMP END DO
+#endif
+      deallocate( evecfv, apwalm)
+#ifdef USEOMP                
+!$OMP END PARALLEL
+#endif
 
-      deallocate( dmatkwan)
-
-      allocate( auxmat( nlmomax+nlotot, wf_fst:wf_lst))
-      allocate( dmatq( nlmomax+nlotot, wf_fst:wf_lst))
-      allocate( wfrad( lmmax, nrmtmax))
-      allocate( rfmt( lmmaxvr, nrmtmax, natmtot, wf_fst:wf_lst))
-      allocate( rfir( ngrtot))
-      rfir = 0.d0
-
-      bc = 0.d0
-
-      do iq = 1, wfint_kset%nkpt
-        write(*,*) iq
-        rfmt = 0.d0
-        do is = 1, nspecies
-          do ia = 1, natoms( is)
-            ias = idxas( ia, is)
-            do ist = wf_fst, wf_lst
-              call zgemv( 'T', wf_kset%nkpt, nlmomax+nlotot, zone, &
-                   dmatr( :, :, ist, ias), wf_kset%nkpt, &
-                   wfint_pqr( iq, :), 1, zzero, &
-                   auxmat( :, ist), 1)
-            end do
-            call zgemm( 'N', 'N', nlmomax+nlotot, wf_nst, wf_nst, zone, &
-                 auxmat, nlmomax+nlotot, &
-                 wfint_transform( :, :, iq), wf_nst, zzero, &
-                 dmatq, nlmomax+nlotot)
-
-            do ist = wf_fst, wf_lst
-              wfrad = zzero
-              do lmo = 1, nlmo( is)
-                l = lmo2l( lmo, is)
-                m = lmo2m( lmo, is)
-                o = lmo2o( lmo, is)
-                lm = idxlm( l, m)
-                wfrad( lm, :) = wfrad( lm, :) + dmatq( lmo, ist)*apwfr( :, 1, o, l, ias)
-              end do
-              do ilo = 1, nlorb( is)
-                l = lorbl( ilo, is)
-                if( l .le. lmax) then
-                  do m = -l, l
-                    lm = idxlm( l, m)
-                    wfrad( lm, :) = wfrad( lm, :) + dmatq( nlmo( is)+idxlo( lm, ilo, ias), ist)*lofr( :, 1, ilo, ias)
-                  end do
-                end if
-              end do
-              do lm = 1, lmmax
-                do ir = 1, nrmt( is)
-                  rfmt( lm, ir, ias, ist) = dble( wfrad( lm, ir)*conjg( wfrad( lm, ir)))
-                end do
-              end do
-
-            end do
-
-          end do
-        end do
-              
-        do ist = wf_fst, wf_lst
-          !call symrf( 1, rfmt( :, :, :, ist), rfir)
-
+      ! build R-point density coefficients
+      allocate( dmatr( wf_fst:wf_lst, maxdim, lmmax, natmtot, wf_kset%nkpt))
+      dmatr = zzero
+#ifdef USEOMP                
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ir, ik, is, ia, ias, lm)
+!$OMP DO
+#endif
+      do ir = 1, wf_kset%nkpt
+        do ik = 1, wf_kset%nkpt
           do is = 1, nspecies
             do ia = 1, natoms( is)
               ias = idxas( ia, is)
-
-              do l = 0, lmax
-                do m = -l, l
-                  lm = idxlm( l, m)
-                  
-                  do ir = 1, nrmt( is)
-                    fr( ir) = spr( ir, is)**2*rfmt( lm, ir, ias, ist)
-                  end do
-                  call fderiv( -1, nrmt( is), spr( :, is), fr, gr, cf)
-                  bc( l, ias, ist, iq) = bc( l, ias, ist, iq) + gr( nrmt( is))
-            
-                end do
+              do lm = 1, lmmax
+                call zgemm( 'T', 'N', wf_nst, maxdim, wf_nst, conjg( wfint_pkr( ik, ir))/wf_kset%nkpt, &
+                     wf_transform( :, :, ik), wf_nst, &
+                     dmatk( :, :, lm, ias, ik), wf_nst, zone, &
+                     dmatr( :, :, lm, ias, ir), wf_nst)
               end do
-
             end do
           end do
-
-        end do              
-
+        end do
       end do
+#ifdef USEOMP                
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+      
+      deallocate( dmatk)
 
+      ! build q-point density coefficients
+      allocate( dmatq( wf_fst:wf_lst, maxdim))
+      bc = 0.d0
+#ifdef USEOMP                
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ir, is, ia, ias, l, m, lm, ilo1, ilo2, dmatq) REDUCTION(+:bc)
+!$OMP DO
+#endif
+      do iq = 1, wfint_kset%nkpt
+        do is = 1, nspecies
+          do ia = 1, natoms( is)
+            ias = idxas( ia, is)
+            do l = 0, lmax
+              do m = -l, l
+                lm = idxlm( l, m)
+                ! calculate q-point density coefficient
+                dmatq = zzero
+                do ir = 1, wf_kset%nkpt
+                  call zgemm( 'T', 'N', wf_nst, maxdim, wf_nst, wfint_pqr( iq, ir), &
+                       wfint_transform( :, :, iq), wf_nst, &
+                       dmatr( :, :, lm, ias, ir), wf_nst, zone, &
+                       dmatq, wf_nst)
+                end do
+                ! add to bandcharacter
+                do ilo1 = 1, lmcnt( l, is)
+                  bc( l, ias, :, iq) = bc( l, ias, :, iq) + dble( conjg( dmatq( :, ilo1))*dmatq( :, ilo1))*rolpint( ilo1, ilo1, l, ias)
+                  do ilo2 = ilo1+1, lmcnt( l, is)
+                    bc( l, ias, :, iq) = bc( l, ias, :, iq) + 2.0d0*dble( conjg( dmatq( :, ilo1))*dmatq( :, ilo2))*rolpint( ilo1, ilo2, l, ias)
+                  end do
+                end do
+              end do
+            end do
+          end do
+        end do
+      end do
+#ifdef USEOMP                
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+
+      deallocate( dmatr, dmatq, rolpint)
       return
       
     end subroutine wfint_interpolate_bandchar

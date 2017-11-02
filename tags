@@ -4,8 +4,6 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-#1	docs/exciting/excitinginput.tex	/^\\newcommand{\\subsubsubsection}[1]{\\paragraph{#1} \\paragraph*{} }$/;"	P
-#1	docs/spacegroup/spacegroupinput.tex	/^\\newcommand{\\subsubsubsection}[1]{\\paragraph{#1} \\paragraph*{} }$/;"	P
 #1	docs/species/species.tex	/^\\newcommand{\\subsubsubsection}[1]{\\paragraph{#1} \\paragraph*{} }$/;"	P
 -exclude-from	Makefile	/^	tar --exclude-from=".gitignore"  --transform 's,^,\/exciting\/,' -c -v -f .\/exciting.tar *$/;"	m
 1	src/ARPACK/UTIL/ivout.f	/^    1 CONTINUE$/;"	l	subroutine:IVOUT	file:
@@ -13601,8 +13599,6 @@ AWK	src/libXC/src/Makefile	/^AWK = gawk$/;"	m
 AWK	src/libXC/testsuite/Makefile	/^AWK = gawk$/;"	m
 A_eq14	src/libXC/src/gga_c_pw91.c	/^A_eq14(int order, FLOAT ec, FLOAT g, FLOAT *A, $/;"	f	file:
 Abort	src/src_vdwdf/Cuba-3.2/src/common/stddecl.h	116;"	d
-About this Document	docs/exciting/excitinginput.tex	/^\\definecolor{green}{rgb}{0,0.5,0}$/;"	s
-About this Document	docs/spacegroup/spacegroupinput.tex	/^\\definecolor{green}{rgb}{0,0.5,0}$/;"	s
 About this Document	docs/species/species.tex	/^\\definecolor{green}{rgb}{0,0.5,0}$/;"	s
 Abs1	src/src_vdwdf/Cuba-3.2/src/common/stddecl.h	420;"	d
 Alloc	src/src_vdwdf/Cuba-3.2/src/common/stddecl.h	124;"	d
@@ -13616,31 +13612,6 @@ ArpackShift	src/src_inputparser/inputmodules.f90	/^ real(8)::ArpackShift$/;"	k	t
 ArpackUserDefinedShift	src/src_inputparser/inputmodules.f90	/^ logical::ArpackUserDefinedShift$/;"	k	type:solver_type
 Array	src/src_vdwdf/Cuba-3.2/src/common/stddecl.h	129;"	d
 Array	src/src_vdwdf/Cuba-3.2/src/common/stddecl.h	133;"	d
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{CoreRelativity}{groundstate:}, \\attref{ExplicitKineticEnergy}{groundstate:}, \\attref{PrelimLinSteps}{groundstate:}, \\attref{SymmetricKineticEnergy}{groundstate:}, \\attref{ValenceRelativity}{groundstate:}, \\attref{autokpt}{groundstate:}, \\attref{beta0}{groundstate:}, \\attref{betadec}{groundstate:}, \\attref{betainc}{groundstate:}, \\attref{cfdamp}{groundstate:}, \\attref{chgexs}{groundstate:}, \\attref{deband}{groundstate:}, \\attref{dipolecorrection}{groundstate:}, \\attref{dipoleposition}{groundstate:}, \\attref{dlinengyfermi}{groundstate:}, \\attref{do}{groundstate:}, \\attref{energyref}{groundstate:}, \\attref{epsband}{groundstate:}, \\attref{epschg}{groundstate:}, \\attref{epsengy}{groundstate:}, \\attref{epsforcescf}{groundstate:}, \\attref{epsocc}{groundstate:}, \\attref{epspot}{groundstate:}, \\attref{fermilinengy}{groundstate:}, \\attref{findlinentype}{groundstate:}, \\attref{fracinr}{groundstate:}, \\attref{frozencore}{groundstate:}, \\attref{gmaxvr}{groundstate:}, \\attref{isgkmax}{groundstate:}, \\attref{ldapu}{groundstate:}, \\attref{lmaxapw}{groundstate:}, \\attref{lmaxinr}{groundstate:}, \\attref{lmaxmat}{groundstate:}, \\attref{lmaxvr}{groundstate:}, \\attref{lorecommendation}{groundstate:}, \\attref{lradstep}{groundstate:}, \\attref{maxscl}{groundstate:}, \\attref{mixer}{groundstate:}, \\attref{mixerswitch}{groundstate:}, \\attref{modifiedsv}{groundstate:}, \\attref{msecStoredSteps}{groundstate:}, \\attref{nempty}{groundstate:}, \\attref{ngridk}{groundstate:}, \\attref{niterconvcheck}{groundstate:}, \\attref{nktot}{groundstate:}, \\attref{nosource}{groundstate:}, \\attref{nosym}{groundstate:}, \\attref{nprad}{groundstate:}, \\attref{npsden}{groundstate:}, \\attref{nwrite}{groundstate:}, \\attref{outputlevel}{groundstate:}, \\attref{ptnucl}{groundstate:}, \\attref{radialgridtype}{groundstate:}, \\attref{radkpt}{groundstate:}, \\attref{reducek}{groundstate:}, \\attref{rgkmax}{groundstate:}, \\attref{scfconv}{groundstate:}, \\attref{stype}{groundstate:}, \\attref{swidth}{groundstate:}, \\attref{symmorph}{groundstate:}, \\attref{tevecsv}{groundstate:}, \\attref{tfibs}{groundstate:}, \\attref{tforce}{groundstate:}, \\attref{tpartcharges}{groundstate:}, \\attref{vdWcorrection}{groundstate:}, \\attref{vkloff}{groundstate:}, \\attref{xctype}{groundstate:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{J}{LDAplusU:}, \\attref{U}{LDAplusU:}, \\attref{l}{LDAplusU:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{action}{trans:}, \\attref{final}{trans:}, \\attref{initial}{trans:}, \\attref{kpointnumber}{trans:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{actype}{selfenergy:}, \\attref{iopes}{selfenergy:}, \\attref{nempty}{selfenergy:}, \\attref{npol}{selfenergy:}, \\attref{secordw}{selfenergy:}, \\attref{singularity}{selfenergy:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{ampl}{dfthalfparam:}, \\attref{cut}{dfthalfparam:}, \\attref{exponent}{dfthalfparam:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{aresbse}{BSE:}, \\attref{bsedirsing}{BSE:}, \\attref{bsetype}{BSE:}, \\attref{fbzq}{BSE:}, \\attref{lmaxdielt}{BSE:}, \\attref{nexcitmax}{BSE:}, \\attref{ngridksub}{BSE:}, \\attref{nleblaik}{BSE:}, \\attref{nosym}{BSE:}, \\attref{nstlbse}{BSE:}, \\attref{nstlxas}{BSE:}, \\attref{reducek}{BSE:}, \\attref{rgkmax}{BSE:}, \\attref{sciavbd}{BSE:}, \\attref{sciavqbd}{BSE:}, \\attref{sciavqhd}{BSE:}, \\attref{sciavqwg}{BSE:}, \\attref{sciavtype}{BSE:}, \\attref{scrherm}{BSE:}, \\attref{vkloff}{BSE:}, \\attref{xas}{BSE:}, \\attref{xasatom}{BSE:}, \\attref{xasedge}{BSE:}, \\attref{xasspecies}{BSE:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{at1}{gw:}, \\attref{at2}{gw:}, \\attref{coreflag}{gw:}, \\attref{debug}{gw:}, \\attref{ibgw}{gw:}, \\attref{ibmax}{gw:}, \\attref{ibmax2}{gw:}, \\attref{ibmin}{gw:}, \\attref{ibmin2}{gw:}, \\attref{igmax}{gw:}, \\attref{igmin}{gw:}, \\attref{iik}{gw:}, \\attref{jjk}{gw:}, \\attref{nbgw}{gw:}, \\attref{nempty}{gw:}, \\attref{ngridq}{gw:}, \\attref{reduceq}{gw:}, \\attref{rmax}{gw:}, \\attref{rpath}{gw:}, \\attref{rpmat}{gw:}, \\attref{skipgnd}{gw:}, \\attref{taskname}{gw:}, \\attref{vqloff}{gw:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{coord}{atom:} \\nolinebreak {\\color{red}(required)}, \\attref{bfcmt}{atom:}, \\attref{lockxyz}{atom:}, \\attref{mommtfix}{atom:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{cw1k}{tetra:}, \\attref{kordexc}{tetra:}, \\attref{qweights}{tetra:}, \\attref{tetradf}{tetra:}, \\attref{tetraocc}{tetra:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{do}{screening:}, \\attref{nempty}{screening:}, \\attref{ngridk}{screening:}, \\attref{nosym}{screening:}, \\attref{reducek}{screening:}, \\attref{rgkmax}{screening:}, \\attref{screentype}{screening:}, \\attref{vkloff}{screening:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{fconv}{freqgrid:}, \\attref{fgrid}{freqgrid:}, \\attref{freqmax}{freqgrid:}, \\attref{nomeg}{freqgrid:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{ionization}{shell:}, \\attref{number}{shell:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{scale}{crystal:}, \\attref{stretch}{crystal:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{sharedfs}{input:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{speciesfile}{species:} \\nolinebreak {\\color{red}(required)}, \\attref{rmt}{species:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{speciespath}{structure:} \\nolinebreak {\\color{red}(required)}, \\attref{autormt}{structure:}, \\attref{cartesian}{structure:}, \\attref{epslat}{structure:}, \\attref{primcell}{structure:}, \\attref{rmtapm}{structure:}, \\attref{tshift}{structure:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{statestype}{istate:} \\nolinebreak {\\color{red}(required)}, \\attref{action}{istate:}, \\attref{kpointnumber}{istate:}, \\attref{state}{istate:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{statestype}{range:} \\nolinebreak {\\color{red}(required)}, \\attref{action}{range:}, \\attref{kpointnumber}{range:}, \\attref{start}{range:}, \\attref{stop}{range:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{task}{doonly:} \\nolinebreak {\\color{red}(required)}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/exciting/excitinginput.tex	/^\\end{longtable}$/;"	b
-Attribute textcolor green	docs/spacegroup/spacegroupinput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{HermannMauguinSymbol}{symmetries:} \\nolinebreak {\\color{red}(required)}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/spacegroup/spacegroupinput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{a}{lattice:} \\nolinebreak {\\color{red}(required)}, \\attref{ab}{lattice:} \\nolinebreak {\\color{red}(required)}, \\attref{ac}{lattice:} \\nolinebreak {\\color{red}(required)}, \\attref{b}{lattice:} \\nolinebreak {\\color{red}(required)}, \\attref{bc}{lattice:} \\nolinebreak {\\color{red}(required)}, \\attref{c}{lattice:} \\nolinebreak {\\color{red}(required)}, \\attref{epslat}{lattice:}, \\attref{ncell}{lattice:}, \\attref{primcell}{lattice:}, \\attref{scale}{lattice:}, \\attref{speciespath}{lattice:}, \\attref{stretch}{lattice:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/spacegroup/spacegroupinput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{coord}{wpos:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/spacegroup/spacegroupinput.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{speciesfile}{wspecies:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
-Attribute textcolor green	docs/spacegroup/spacegroupinput.tex	/^\\end{longtable}$/;"	b
 Attribute textcolor green	docs/species/species.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{chemicalSymbol}{sp:} \\nolinebreak {\\color{red}(required)}, \\attref{mass}{sp:} \\nolinebreak {\\color{red}(required)}, \\attref{z}{sp:} \\nolinebreak {\\color{red}(required)}, \\attref{name}{sp:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
 Attribute textcolor green	docs/species/species.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{core}{atomicState:} \\nolinebreak {\\color{red}(required)}, \\attref{kappa}{atomicState:} \\nolinebreak {\\color{red}(required)}, \\attref{l}{atomicState:} \\nolinebreak {\\color{red}(required)}, \\attref{n}{atomicState:} \\nolinebreak {\\color{red}(required)}, \\attref{occ}{atomicState:} \\nolinebreak {\\color{red}(required)}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
 Attribute textcolor green	docs/species/species.tex	/^   allows for specification of the following attributes: \\begin{quotation}\\attref{l}{custom:} \\nolinebreak {\\color{red}(required)}, \\attref{searchE}{custom:}, \\attref{trialEnergy}{custom:}, \\attref{type}{custom:}\\end{quotation}\\subsection{Attribute: {\\textcolor{green}{{}$/;"	b
@@ -14890,7 +14861,6 @@ DZASUM	src/BLAS/dzasum.f	/^      DOUBLE PRECISION FUNCTION DZASUM(/;"	f
 DZLAUX	src/LAPACK/Makefile	/^DZLAUX = \\$/;"	m
 DZNRM2	src/BLAS/dznrm2.f	/^      DOUBLE PRECISION FUNCTION DZNRM2(/;"	f
 DZSUM1	src/LAPACK/dzsum1.f	/^      DOUBLE PRECISION FUNCTION DZSUM1(/;"	f
-Data Types	docs/spacegroup/spacegroupinput.tex	/^  The following elements can occur more than once in the input file. Therefore they are listed separately.$/;"	s
 Data Types	docs/species/species.tex	/^\\end{longtable}$/;"	s
 Dcutoff	src/src_vdwdf/modules.f90	/^   real*8              :: dmin,dmax,dstep,Dcutoff$/;"	v	module:param
 DecompPrec	src/src_inputparser/inputmodules.f90	/^ character(512)::DecompPrec$/;"	k	type:solver_type
@@ -15025,10 +14995,6 @@ EXX_dir	tools/PLOT-PBE0bands.py	/^EXX_dir=raw_input("name of PBE0 directory: ")$
 EXX_dir	tools/PLOT-bands.py	/^EXX_dir=raw_input("name of EXX directory: ")$/;"	v
 E_eos	tools/OPTIMIZE-analyze.py	/^def E_eos(p0, V):$/;"	f
 ElDic	xml/inputfileconverter/Wien2ktoExciting.py	/^        ,'110':'Ds','111':'Rg','112':'Cn','113':'Uut','114':'Uuq','115':'Uup','116':'Uuh','117':'Uus','118':'Uuo'}$/;"	v
-Element textcolor blue	docs/exciting/excitinginput.tex	/^    {\\usefont{T1}{lmtt}{b}{n} Note:} The electron charge is positive, so that the atomic numbers $ Z $ are negative.   \\part{Input Elements}$/;"	s
-Element textcolor blue	docs/exciting/excitinginput.tex	/^\\end{longtable}$/;"	s
-Element textcolor blue	docs/spacegroup/spacegroupinput.tex	/^     \\part{Input Elements}$/;"	s
-Element textcolor blue	docs/spacegroup/spacegroupinput.tex	/^\\end{longtable}$/;"	s
 Element textcolor blue	docs/species/species.tex	/^     This document describes the file format for the species definitions.  \\part{Input Elements}$/;"	s
 Element textcolor blue	docs/species/species.tex	/^  The following elements can occur more than once in the input file. Therefore they are listed separately.$/;"	s
 Element textcolor blue	docs/species/species.tex	/^\\end{longtable}$/;"	s
@@ -15358,8 +15324,6 @@ IniRandom	src/src_vdwdf/Cuba-3.2/src/common/Random.c	/^static inline void IniRan
 InitialNCNameChars	src/FoX/common/m_common_charset.F90	/^  character(len=*), parameter :: InitialNCNameChars /;"	v	module:m_common_charset
 InitialNameChars	src/FoX/common/m_common_charset.F90	/^  character(len=*), parameter :: InitialNameChars /;"	v	module:m_common_charset
 InitialSize	src/src_vdwdf/Cuba-3.2/tools/partview.cpp	/^    InitialSize = 400,$/;"	e	enum:PartitionPlane::__anon70	file:
-Input Elements	docs/exciting/excitinginput.tex	/^    {\\usefont{T1}{lmtt}{b}{n} Note:} The electron charge is positive, so that the atomic numbers $ Z $ are negative.   \\part{Input Elements}$/;"	p
-Input Elements	docs/spacegroup/spacegroupinput.tex	/^\\section*{About this Document}$/;"	p
 Input Elements	docs/species/species.tex	/^     This document describes the file format for the species definitions.  \\part{Input Elements}$/;"	p
 Int2Str	src/src_gw/ioutils.f90	/^      function Int2Str(/;"	f
 Integrand	src/src_vdwdf/Cuba-3.2/demo/demo-c.c	/^static int Integrand(const int *ndim, const double xx[],$/;"	f	file:
@@ -16021,13 +15985,11 @@ Result	src/src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^} Result;$/;"	t	typeref:struct:
 Result	src/src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^} Result;$/;"	t	typeref:struct:__anon44
 Result	src/src_vdwdf/Cuba-3.2/src/suave/decl.h	/^} Result;$/;"	t	typeref:struct:__anon55
 ResultSize	src/src_vdwdf/Cuba-3.2/src/divonne/decl.h	79;"	d
-Reused Elements	docs/spacegroup/spacegroupinput.tex	/^\\end{longtable}$/;"	p
 Reused Elements	docs/species/species.tex	/^\\end{longtable}$/;"	p
 Reweight	src/src_vdwdf/Cuba-3.2/src/suave/Grid.c	/^static void Reweight(cThis *t, Bounds *b,$/;"	f	file:
 RoD	tools/ElaStic_Result_Energy_2nd.py	/^RoD = OBJ.read().strip().split()$/;"	v
 RoD	tools/ElaStic_Result_Energy_3rd.py	/^RoD = OBJ.read().strip().split()$/;"	v
 RoD	tools/STRESS-exciting-result.py	/^RoD = OBJ.read().strip().split()$/;"	v
-Routine Function Prologues	docs/exciting/doc.tex	/^\\newpage$/;"	s
 Routine Function Prologues	src/spacegroup/doc.tex	/^\\newpage$/;"	s
 Rule	src/src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^} Rule;$/;"	t	typeref:struct:__anon53
 Rule	src/src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^} Rule;$/;"	t	typeref:struct:__anon42
@@ -16881,17 +16843,7 @@ Totals	src/src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^} Totals;$/;"	t	typeref:struct:
 Totals	src/src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^} Totals;$/;"	t	typeref:struct:__anon39
 TrueQ	src/src_vdwdf/Cuba-3.2/src/common/stddecl.h	414;"	d
 Twist	src/src_vdwdf/Cuba-3.2/src/common/Random.c	/^static inline state_t Twist(state_t a, state_t b)$/;"	f	file:
-Type booleanlist	docs/spacegroup/spacegroupinput.tex	/^   The type {\\tt fortrandouble} allows to use the letters {\\tt "eEdDqQ"} for exponent operators. This alters in what precision the number is parsed. $/;"	b
-Type booleantriple	docs/spacegroup/spacegroupinput.tex	/^   List of space separated booleans.$/;"	b
-Type fortrandouble	docs/spacegroup/spacegroupinput.tex	/^ The Input definition uses derived data types. These are described here.$/;"	b
 Type fortrandouble	docs/species/species.tex	/^ The Input definition uses derived data types. These are described here.$/;"	b
-Type integerlist	docs/spacegroup/spacegroupinput.tex	/^   Example: {\\tt  "1.3 2.3e4 3 90"}    $/;"	b
-Type integerpair	docs/spacegroup/spacegroupinput.tex	/^   Example: {\\tt  "1 2 3 4" }    $/;"	b
-Type integerquadrupel	docs/spacegroup/spacegroupinput.tex	/^   Example: {\\tt  "1 2 3" }    $/;"	b
-Type integertriple	docs/spacegroup/spacegroupinput.tex	/^   Two dimensional vector as two space separated floating point numbers.$/;"	b
-Type vect2d	docs/spacegroup/spacegroupinput.tex	/^   Three dimensional vector as three space separated floating point numbers.$/;"	b
-Type vect3d	docs/spacegroup/spacegroupinput.tex	/^   List of space separated integers.$/;"	b
-Type vector	docs/spacegroup/spacegroupinput.tex	/^  Example: {\\tt  "true false true" }  $/;"	b
 U	src/src_inputparser/inputmodules.f90	/^ real(8)::U$/;"	k	type:LDAplusU_type
 UPPERAlphabet	src/FoX/fsys/fox_m_fsys_string.F90	/^  character(len=26), parameter :: UPPERAlphabet /;"	v	module:fox_m_fsys_string
 URI	src/FoX/common/m_common_namespaces.F90	/^    character, dimension(:), pointer :: URI$/;"	k	type:URIMapping
@@ -18893,7 +18845,6 @@ alege	tools/PLOT-dforce.py	/^alege=0$/;"	v
 alege	tools/PLOT-status.py	/^       alege = 1$/;"	v
 alege	tools/PLOT-status.py	/^alege=0$/;"	v
 allatoms	src/allatoms.f90	/^Subroutine allatoms(/;"	s
-allatoms Source File allatoms f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 allconverged	src/src_iterative_solver/SclControlModule.F90	/^      Function allconverged /;"	f	module:sclcontroll
 allowed	tools/planeAverage.py	/^allowed = "xyzXYZ"$/;"	v
 allowed_encoding	src/FoX/common/m_common_charset.F90	/^  function allowed_encoding(/;"	f	module:m_common_charset
@@ -19113,7 +19064,6 @@ atom	src/atom.f90	/^Subroutine atom /;"	s
 atom	src/mod_rgrid.f90	/^    integer, allocatable :: atom(/;"	k	type:rgrid
 atom	src/src_inputparser/inputmodules.f90	/^type(atom_/;"	k	type:atom_type_array
 atom	src/src_xml/scl_xml_out_module.F90	/^     & charges, atom,/;"	v	module:scl_xml_out_Module
-atom Source File atom f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 atom1	src/src_gw/src_tests/mod_rpath.f90	/^        integer :: atom1(/;"	k	type:r_path
 atom2	src/src_gw/src_tests/mod_rpath.f90	/^        integer :: atom2(/;"	k	type:r_path
 atom3	tools/SETUP-diamond-phonon-x.py	/^atom3=etree.SubElement(spe[0],"atom")$/;"	v
@@ -19464,9 +19414,7 @@ bdummy	tools/OPTIMIZE-setup.py	/^        bdummy = '%22.16f'%(M_new[j,0]) + '%22.
 bdummy	tools/STRESS-exciting-setup.py	/^            bdummy = '%22.16f'%(M_new[j,0]) + '%22.16f'%(M_new[j,1]) + '%22.16f'%(M_new[j,2])+' '$/;"	v
 beg_item	build/utilities/scripts/protex	/^sub beg_item {$/;"	s
 besk0	src/src_gw/gencoulcut.f90	/^Real (8) Function besk0 /;"	f
-besk0 Source File gencoulcut f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 besk1	src/src_gw/gencoulcut.f90	/^Real (8) Function besk1 /;"	f
-besk1 Source File gencoulcut f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 bessel_I0	src/libXC/src/bessel.c	/^double bessel_I0(const double x)$/;"	f
 bessel_I0_scaled	src/libXC/src/bessel.c	/^double bessel_I0_scaled(const double x)$/;"	f
 bessel_I1	src/libXC/src/bessel.c	/^double bessel_I1(const double x)$/;"	f
@@ -19850,7 +19798,6 @@ calchead	src/src_gw/calchead.f90	/^subroutine calchead(/;"	s
 calcidosve	src/src_libbzint/calcidosve.f90	/^      subroutine calcidosve(/;"	s
 calcinveps	src/src_gw/calcinveps.f90	/^subroutine calcinveps(/;"	s
 calck0	src/src_gw/gencoulcut.f90	/^subroutine calck0 /;"	s
-calck0 Source File gencoulcut f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 calck1	src/src_gw/gencoulcut.f90	/^subroutine calck1 /;"	s
 calcmicm	src/src_gw/calcmicm.f90	/^    subroutine calcmicm(/;"	s
 calcminc	src/src_gw/calcminc.f90	/^    subroutine calcminc(/;"	s
@@ -20736,7 +20683,6 @@ depcomp	src/libXC/testsuite/Makefile	/^depcomp = $(SHELL) $(top_srcdir)\/depcomp
 depth	src/src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  int depth, next;$/;"	m	struct:region
 deq	src/src_raman/mod_raman.f90	/^complex (8), dimension (3, 3) :: deq,/;"	v	module:raman_coeff
 derfc	src/src_gw/derfc.f90	/^      real(8) function derfc(/;"	f
-derfc Source File derfc f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 description_txt	test/test07/assert.py	/^description_txt = "Passes if mean square error of real and imaginary parts of dielectric function lower than %g"%(eps_tol)$/;"	v
 destroyAllNodesRecursively	src/FoX/dom/m_dom_dom.F90	/^  recursive subroutine destroyAllNodesRecursively(/;"	s	module:m_dom_dom
 destroyCP	src/FoX/common/m_common_content_model.F90	/^  subroutine destroyCP(/;"	s	module:m_common_content_model
@@ -21048,18 +20994,6 @@ dopart_type	src/src_inputparser/inputmodules.f90	/^type dopart_type$/;"	t	module
 dopart_type_array	src/src_inputparser/inputmodules.f90	/^type dopart_type_array$/;"	t	module:modinput
 dopartarray	src/src_inputparser/inputmodules.f90	/^  type(dopart_type_array),pointer::dopartarray(/;"	k	type:parts_type
 doprerotate_preconditioner	src/src_iterative_solver/SclControlModule.F90	/^      Function doprerotate_preconditioner /;"	f	module:sclcontroll
-doreallocate _I4 _d2	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-doreallocate _i4 _d1	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-doreallocate _i4 _d3	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-doreallocate _r8 _d1	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-doreallocate _r8 _d2	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-doreallocate _r8 _d3	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-doreallocate _r8 _d4	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-doreallocate _r8 _d5	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-doreallocate _r8 _d6	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-doreallocate _z8 _d1	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-doreallocate _z8 _d2	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-doreallocate _z8 _d3	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 doreallocate_i4_d1	src/src_gw/reallocate.f90	/^          subroutine doreallocate_i4_d1(/;"	s	module:reallocate
 doreallocate_i4_d2	src/src_gw/reallocate.f90	/^          subroutine doreallocate_i4_d2(/;"	s	module:reallocate
 doreallocate_i4_d3	src/src_gw/reallocate.f90	/^          subroutine doreallocate_i4_d3(/;"	s	module:reallocate
@@ -21074,7 +21008,6 @@ doreallocate_z8_d2	src/src_gw/reallocate.f90	/^          subroutine doreallocate
 doreallocate_z8_d3	src/src_gw/reallocate.f90	/^          subroutine doreallocate_z8_d3(/;"	s	module:reallocate
 dos	src/dos.f90	/^Subroutine dos$/;"	s
 dos	src/src_inputparser/inputmodules.f90	/^  type(dos_/;"	k	type:properties_type
-dos Source File dos f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 dos1t	src/src_libbzint/dos1t.f90	/^       real(8) function dos1t(/;"	f
 dos_type	src/src_inputparser/inputmodules.f90	/^type dos_type$/;"	t	module:modinput
 doscreen0	src/src_xs/modxs.F90	/^      Character (11) :: doscreen0$/;"	v	module:modxs
@@ -21296,7 +21229,6 @@ e	src/src_libbzint/polyhedron.f90	/^      rea/;"	v	module:polyhedron
 e	tools/SETUP-elastic-strain.py	/^    e=[]$/;"	v
 e1	src/src_raman/mod_raman.f90	/^real(8), allocatable :: e1(/;"	v	module:raman_ew
 e1xb	src/src_gw/eixb.f90	/^        function e1xb(/;"	f
-e1xb Source File eixb f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 e2	src/src_raman/mod_raman.f90	/^real(8), allocatable :: e1(:),e2(/;"	v	module:raman_ew
 e3	src/src_raman/mod_raman.f90	/^real(8), allocatable :: e1(:),e2(:),e3(/;"	v	module:raman_ew
 e_disp	src/mod_energy.F90	/^      Real (8) :: e_disp$/;"	v	module:mod_energy
@@ -22217,7 +22149,6 @@ findsymeqiv	src/src_xs/findsymeqiv.F90	/^Subroutine findsymeqiv /;"	s
 findsymgenr	src/src_sym/findsymgenr.F90	/^Subroutine findsymgenr /;"	s
 findsymi	src/src_xs/findsymi.F90	/^Subroutine findsymi /;"	s
 findsymlat	src/findsymlat.f90	/^Subroutine findsymlat$/;"	s
-findsymlat Source File findsymlat f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 findsymsite	src/findsymsite.f90	/^Subroutine findsymsite$/;"	s
 findtext	tools/PLOT-findtext.py	/^findtext = str(sys.argv[1])$/;"	v
 findxslorb	src/species/findxslorb.f90	/^subroutine findxslorb$/;"	s
@@ -22479,7 +22410,6 @@ forcecr	src/mod_force.F90	/^      Real (8), Allocatable :: forcecr /;"	v	module:
 forcehf	src/mod_force.F90	/^      Real (8), Allocatable :: forcehf /;"	v	module:mod_force
 forceibs	src/mod_force.F90	/^      Real (8), Allocatable :: forceibs /;"	v	module:mod_force
 forcek	src/forcek.f90	/^Subroutine forcek /;"	s
-forcek Source File forcek f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 forcemax	src/mod_force.F90	/^      Real (8) :: forcemax$/;"	v	module:mod_force
 forcetot	src/mod_force.F90	/^      Real (8), Allocatable :: forcetot /;"	v	module:mod_force
 forcetp	src/mod_force.F90	/^      Real (8), Allocatable :: forcetp /;"	v	module:mod_force
@@ -22916,11 +22846,8 @@ gammascalarproduct	tools/ElaStic@exciting-setup.py	/^    gammascalarproduct = 0.
 gammascalarproduct	tools/OPTIMIZE-setup.py	/^        gammascalarproduct = gammascalarproduct + M_old[0,icar]*M_old[1,icar]*stretch[0]*stretch[1]$/;"	v
 gammascalarproduct	tools/OPTIMIZE-setup.py	/^    gammascalarproduct = 0.0$/;"	v
 gammln	src/src_gw/gammln.f90	/^      real(8) function gammln(/;"	f
-gammln Source File gammln f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 gaulag	src/src_gw/gaulag.f90	/^      subroutine gaulag(/;"	s
-gaulag Source File gaulag f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 gauleg	src/src_gw/gauleg.f90	/^      subroutine gauleg(/;"	s
-gauleg Source File gauleg f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 gaunt	src/src_lib/gaunt.f90	/^Real (8) Function gaunt /;"	f
 gauntcoef	src/src_gw/mod_gaunt_coefficients.f90	/^    real(8), allocatable :: gauntcoef(/;"	v	module:mod_gaunt_coefficients
 gauntyry	src/src_lib/gauntyry.f90	/^Complex (8) Function gauntyry /;"	f
@@ -22953,7 +22880,6 @@ genapwfr	src/genapwfr.f90	/^Subroutine genapwfr$/;"	s
 genauxf	src/src_gw/setsingc.f90	/^    subroutine genauxf(/;"	s	subroutine:setsingc
 genbmatk	src/genbmatk.f90	/^Subroutine genbmatk /;"	s
 gencfun	src/gencfun.f90	/^Subroutine gencfun$/;"	s
-gencfun Source File gencfun f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 gencore	src/gencore.f90	/^Subroutine gencore$/;"	s
 gencoulcut	src/src_gw/gencoulcut.f90	/^      Subroutine gencoulcut /;"	s
 gencrystal	src/spacegroup/gencrystal.f90	/^subroutine gencrystal$/;"	s
@@ -22982,11 +22908,9 @@ genevecalm	src/src_gw/mod_pmat.f90	/^  subroutine genevecalm(/;"	s	module:mod_pm
 genexpiqr	src/genexpiqr.f90	/^Subroutine genexpiqr /;"	s
 genffacg	src/genffacg.f90	/^Subroutine genffacg /;"	s
 genfftmap	src/genfftmap.f90	/^Subroutine genfftmap(/;"	s
-genfftmap Source File genfftmap f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 genfilextread	src/src_xs/genfilextread.F90	/^Subroutine genfilextread /;"	s
 genfilname	src/src_xs/genfilname.F90	/^      Subroutine genfilname /;"	s	module:m_genfilname
 gengpvec	src/gengpvec.f90	/^Subroutine gengpvec /;"	s
-gengpvec Source File gengpvec f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 gengqvec	src/src_xs/gengqvec.F90	/^Subroutine gengqvec /;"	s
 gengrid	src/plot3d.f90	/^  Subroutine gengrid /;"	s	subroutine:plot3d
 gengroup	src/spacegroup/gengroup.f90	/^subroutine gengroup(/;"	s
@@ -23002,14 +22926,12 @@ genksubpts	src/src_xs/genksubpts.F90	/^Subroutine genksubpts /;"	s
 genlmirep	src/genlmirep.f90	/^Subroutine genlmirep /;"	s
 genlocmt	src/src_xs/genlocmt.F90	/^Subroutine genlocmt /;"	s
 genlofr	src/genlofr.f90	/^Subroutine genlofr$/;"	s
-genlofr Source File genlofr f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 genloss	src/src_xs/genloss.F90	/^      Subroutine genloss /;"	s	module:m_genloss
 genmbrotmat	src/src_gw/genmbrotmat.f90	/^subroutine genmbrotmat(/;"	s
 genmeffig	src/genmeffig.f90	/^Subroutine genmeffig$/;"	s
 genocc	src/src_stm/genocc.F90	/^Subroutine genocc(/;"	s
 genparidxran	src/src_xs/genparidxran.F90	/^Subroutine genparidxran /;"	s
 genpchgs	src/genpchgs.F90	/^subroutine genpchgs(/;"	s
-genpchgs Source File genpchgs F90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 genphasedm	src/src_xs/genphasedm.F90	/^Subroutine genphasedm /;"	s
 genplot2d	src/src_stm/genplot2d.F90	/^Subroutine genplot2d(/;"	s
 genplot3d	src/src_stm/genplot3d.F90	/^Subroutine genplot3d(/;"	s
@@ -23032,10 +22954,8 @@ genrmesh	src/genrmesh.f90	/^Subroutine genrmesh$/;"	s
 genrstr	src/src_gw/sigma.f90	/^subroutine genrstr(/;"	s
 genscclieff	src/src_xs/genscclieff.F90	/^Subroutine genscclieff /;"	s
 gensdmat	src/gensdmat.f90	/^Subroutine gensdmat /;"	s
-gensdmat Source File gensdmat f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 gensfacgp	src/gensfacgp.f90	/^Subroutine gensfacgp /;"	s
 genshtmat	src/genshtmat.f90	/^Subroutine genshtmat$/;"	s
-genshtmat Source File genshtmat f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 gensigma	src/src_xs/gensigma.F90	/^      Subroutine gensigma /;"	s	module:m_gensigma
 gensmallq	src/src_gw/gensmallq.f90	/^SUBROUTINE gensmallq$/;"	s
 gensumrls	src/src_xs/gensumrls.F90	/^      Subroutine gensumrls /;"	s	module:m_gensumrls
@@ -23046,14 +22966,12 @@ gentetlinkp	src/src_xs/modtetra/gentetlinkp.F90	/^Subroutine gentetlinkp /;"	s
 gentim	src/src_xs/gentim.F90	/^Subroutine gentim /;"	s
 genveelu	src/src_LDAU/genveelu.f90	/^Subroutine genveelu /;"	s
 genveffig	src/genveffig.f90	/^Subroutine genveffig$/;"	s
-genveffig Source File genveffig f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 genvmat	src/genvmat.f90	/^Subroutine genvmat /;"	s
 genvmatk	src/genvmatk.f90	/^Subroutine genvmatk /;"	s
 genvmatlu	src/src_LDAU/genvmatlu.f90	/^Subroutine genvmatlu$/;"	s
 genvmatlu_12	src/src_LDAU/genvmatlu.f90	/^Subroutine genvmatlu_12$/;"	s
 genvxcig	src/src_gw/src_vxc/genvxcig.f90	/^subroutine genvxcig$/;"	s
 genwfsv	src/genwfsv.f90	/^Subroutine genwfsv /;"	s
-genwfsv Source File genwfsv f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 genwfsv_new	src/genwfsv_new.f90	/^subroutine genwfsv_new(/;"	s
 genwgrid	src/src_xs/genwgrid.F90	/^      Subroutine genwgrid /;"	s	module:m_genwgrid
 genwiq2	src/src_advanced/genwiq2.f90	/^Subroutine genwiq2$/;"	s
@@ -23064,7 +22982,6 @@ genxiuo	src/src_xs/xas/genxiuo.f90	/^Subroutine genxiuo /;"	s
 genxsLOs	src/genxsLOs.f90	/^subroutine genxsLOs$/;"	s
 genylm	src/src_lib/genylm.f90	/^Subroutine genylm /;"	s
 genylmg	src/genylmg.f90	/^Subroutine genylmg$/;"	s
-genylmg Source File genylmg f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 genylmgq	src/src_xs/genylmgq.F90	/^Subroutine genylmgq /;"	s
 geo_output	tools/PLOT-optimized-geometry.py	/^geo_output = open("opt-relative-geometry-lattice","w")$/;"	v
 geomplot	src/geomplot.f90	/^Subroutine geomplot$/;"	s
@@ -23206,7 +23123,6 @@ getdata	src/FoX/dom/m_dom_dom.F90	/^function getdata(/;"	f	module:m_dom_dom
 getdata_len	src/FoX/dom/m_dom_dom.F90	/^  pure function getdata_len(/;"	f	module:m_dom_dom
 getdevaldoccsv	src/src_xs/getdevaldoccsv.F90	/^Subroutine getdevaldoccsv /;"	s
 getdlmm	src/src_gw/getdlmm.f90	/^complex(8) function getdlmm(/;"	f
-getdlmm Source File getdlmm f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 getdocType	src/FoX/dom/m_dom_dom.F90	/^function getdocType(/;"	f	module:m_dom_dom
 getdocc	src/src_xs/getdocc.F90	/^Subroutine getdocc /;"	s
 getdocumentElement	src/FoX/dom/m_dom_dom.F90	/^function getdocumentElement(/;"	f	module:m_dom_dom
@@ -23230,7 +23146,6 @@ getevecfv0	src/src_xs/getevecfv0.F90	/^Subroutine getevecfv0 /;"	s
 getevecfvgw	src/src_gw/getevecfvgw.f90	/^subroutine getevecfvgw(/;"	s
 getevecfvr	src/getevecfv.f90	/^      Subroutine getevecfvr /;"	s	module:m_getevecfvr
 getevecsv	src/getevecsv.f90	/^Subroutine getevecsv /;"	s
-getevecsv Source File getevecsv f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 getevecsvgw	src/src_gw/getevecsvgw.f90	/^Subroutine getevecsvgw(/;"	s
 getevecsvgw_new	src/src_gw/getevecsvgw_new.f90	/^subroutine getevecsvgw_new(/;"	s
 getevecsvr	src/getevecsv.f90	/^      Subroutine getevecsvr /;"	s	module:m_getevecsvr
@@ -23251,7 +23166,6 @@ getname_len	src/FoX/dom/m_dom_dom.F90	/^  pure function getname_len(/;"	f	module
 getnamespaceNodes	src/FoX/dom/m_dom_dom.F90	/^  function getnamespaceNodes(/;"	f	module:m_dom_dom
 getnextSibling	src/FoX/dom/m_dom_dom.F90	/^function getnextSibling(/;"	f	module:m_dom_dom
 getngkmax	src/getngkmax.f90	/^Subroutine getngkmax$/;"	s
-getngkmax Source File getngkmax f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 getngqmax	src/src_xs/getngqmax.F90	/^Subroutine getngqmax$/;"	s
 getnodeName	src/FoX/dom/m_dom_dom.F90	/^function getnodeName(/;"	f	module:m_dom_dom
 getnodeName_len	src/FoX/dom/m_dom_dom.F90	/^  pure function getnodeName_len(/;"	f	module:m_dom_dom
@@ -23409,7 +23323,6 @@ gette2	src/src_other/delaunay.f	/^      subroutine gette2(/;"	s
 gettet	src/src_other/delaunay.f	/^      subroutine gettet(/;"	s
 gettetcw	src/src_xs/gettetcw.F90	/^      Subroutine gettetcw /;"	s	module:m_gettetcw
 gettildeg	src/src_gw/calctildeg.f90	/^      real(8) function gettildeg(/;"	f
-gettildeg Source File calctildeg f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 getunit	src/src_xs/getunit.F90	/^      Subroutine getunit /;"	s	module:m_getunit
 getvalue	xml/blocktoxml.pl	/^sub getvalue{$/;"	s
 getvalueofbasevect	src/src_inputparser/inputmodules.f90	/^function getvalueofbasevect(/;"	f	module:modinput
@@ -24184,7 +24097,6 @@ inifit	tools/PLOT-bmeos.py	/^def inifit(x,y):$/;"	f
 inifit	tools/PLOT-pbirch.py	/^def inifit(x,y):$/;"	f
 inifit	tools/PLOT-vinet.py	/^def inifit(x,y):$/;"	f
 init	src/libXC/src/xc.h	/^  void (*init)(struct XC(func_type) *p);$/;"	m	struct:__anon2
-init _relax Source File init _relax f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 init0	src/init0.f90	/^Subroutine init0$/;"	s
 init0symonly	src/src_xs/modxs.F90	/^      Logical :: init0symonly$/;"	v	module:modxs
 init1	src/init1.f90	/^Subroutine init1$/;"	s
@@ -25033,7 +24945,6 @@ kgen_exciting	src/src_libbzint/kgen_exciting.f90	/^      subroutine kgen_excitin
 kgen_internals	src/src_libbzint/kgen_internals.f90	/^      module kgen_internals$/;"	m
 kgenq	src/src_libbzint/kgenq.f90	/^      subroutine kgenq(/;"	s
 kind	src/libXC/src/xc.h	/^  int   kind;     \/* XC_EXCHANGE, XC_CORRELATION, or XC_EXCHANGE_CORRELATION *\/$/;"	m	struct:__anon2
-kinetic Source File kinetic f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 kinmatc	src/mod_OEP_HF.F90	/^      Complex (8), Allocatable :: kinmatc /;"	v	module:mod_OEP_HF
 kintw	src/src_gw/kintw.f90	/^subroutine kintw(/;"	s
 kir	src/src_gw/setrindex.f90	/^    integer(4), allocatable :: kir(/;"	v	module:fouri
@@ -25226,6 +25137,7 @@ lambda	src/libXC/src/gga_k_tflw.c	/^  FLOAT gamma, lambda;$/;"	m	struct:__anon22
 lambda	src/libXC/src/gga_k_tflw.c	/^XC(gga_k_tflw_set_params)(XC(func_type) *p, FLOAT gamma, FLOAT lambda, FLOAT N)$/;"	v
 lambda	src/libXC/src/xc.h	/^void XC(gga_k_tflw_set_params)    (XC(func_type) *p, FLOAT gamma, FLOAT lambda, FLOAT N);$/;"	v
 lambda	src/src_inputparser/inputmodules.f90	/^ integer::lambda$/;"	k	type:exciton_type
+lambdaopf	src/src_inputparser/inputmodules.f90	/^ real(8)::lambdaopf$/;"	k	type:wannier_type
 lambert_w	src/libXC/src/special_functions.c	/^double lambert_w(double z)$/;"	f
 lapl	src/libXC/src/mgga.c	/^		 const FLOAT *rho, const FLOAT *sigma, const FLOAT *lapl, const FLOAT *tau,$/;"	v
 lapl	src/libXC/src/mgga.c	/^	     const FLOAT *rho, const FLOAT *sigma, const FLOAT *lapl, const FLOAT *tau,$/;"	v
@@ -25786,6 +25698,7 @@ lrydberg	tools/PLOT-birch.py	/^lrydberg  = lespresso or lvasp $/;"	v
 lrydberg	tools/PLOT-bmeos.py	/^lrydberg  = lespresso or lvasp $/;"	v
 lrydberg	tools/PLOT-pbirch.py	/^lrydberg = os.path.exists('quantum-espresso') or os.path.exists('vasp')$/;"	v
 lrydberg	tools/PLOT-vinet.py	/^lrydberg = os.path.exists('quantum-espresso') or os.path.exists('vasp')$/;"	v
+ls	src/src_inputparser/inputmodules.f90	/^ logical::ls$/;"	k	type:wannier_type
 ls	tools/PLOT-MOKE-spectrum.py	/^    ls=l.split()$/;"	v
 lsource	tools/PLOT-birch.py	/^lsource   = os.path.exists('source.xml')$/;"	v
 lsource	tools/PLOT-bmeos.py	/^lsource   = os.path.exists('source.xml')$/;"	v
@@ -26362,6 +26275,7 @@ maximum_strain	tools/CHECKFIT-internal-vs-strain.py	/^maximum_strain = input("\\
 maximum_strain	tools/FIND-minenergy.py	/^maximum_strain = 1$/;"	v
 maximum_strain	tools/SETUP-elastic-strain.py	/^maximum_strain = input("\\nEnter maximum Lagrangian strain [smax] >>>> ")$/;"	v
 maximum_strain	tools/SETUP-volume-optimization.py	/^maximum_strain = 0.05$/;"	v
+maxit	src/src_inputparser/inputmodules.f90	/^ integer::maxit$/;"	k	type:wannier_type
 maxitc	src/src_inputparser/inputmodules.f90	/^ integer::maxitc$/;"	k	type:RDMFT_type
 maxitn	src/src_inputparser/inputmodules.f90	/^ integer::maxitn$/;"	k	type:RDMFT_type
 maxitoep	src/src_inputparser/inputmodules.f90	/^ integer::maxitoep$/;"	k	type:OEP_type
@@ -26803,6 +26717,7 @@ minf_nm	src/eos/minf_nm.f90	/^subroutine minf_nm(/;"	s
 minimize_overrun	src/FoX/wxml/m_wxml_core.F90	/^    logical                   :: minimize_overrun /;"	k	type:xmlf_t
 minimum_displ	tools/SETUP-interlayer-distance.py	/^              input("\\nEnter minimum interlayer distance dmin [Bohr] >>>> ")$/;"	v
 minimum_displ	tools/SETUP-slide.py	/^              input("\\nEnter minimum coordinate umin >>>> ")$/;"	v
+minit	src/src_inputparser/inputmodules.f90	/^ integer::minit$/;"	k	type:wannier_type
 minmmat	src/src_gw/mod_product_basis.f90	/^    complex(8), allocatable :: minmmat(/;"	v	module:mod_product_basis
 minutes	src/src_vdwdf/main.f90	/^  integer             :: tot_time, minutes,/;"	v	program:main
 minverse	src/src_mixing/lib/minvers.f90	/^      subroutine minverse /;"	s
@@ -27030,7 +26945,6 @@ moke	src/src_optics/moke.f90	/^subroutine moke$/;"	s
 moke_type	src/src_inputparser/inputmodules.f90	/^type moke_type$/;"	t	module:modinput
 molecule	src/src_inputparser/inputmodules.f90	/^ logical::molecule$/;"	k	type:raman_type
 moment	src/moment.f90	/^Subroutine moment$/;"	s
-moment Source File moment f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 momentummatrix	src/src_inputparser/inputmodules.f90	/^  type(momentummatrix_/;"	k	type:properties_type
 momentummatrix_type	src/src_inputparser/inputmodules.f90	/^type momentummatrix_type$/;"	t	module:modinput
 momfix	src/src_inputparser/inputmodules.f90	/^ real(8)::momfix(/;"	k	type:spin_type
@@ -27041,7 +26955,6 @@ mommttot	src/mod_charge_and_moment.F90	/^      Real (8) :: mommttot /;"	v	module
 momtot	src/mod_charge_and_moment.F90	/^      Real (8) :: momtot /;"	v	module:mod_charge_and_moment
 mossbauer	src/mossbauer.f90	/^Subroutine mossbauer$/;"	s
 mossbauer	src/src_inputparser/inputmodules.f90	/^  type(mossbauer_/;"	k	type:properties_type
-mossbauer Source File mossbauer f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 mossbauer_type	src/src_inputparser/inputmodules.f90	/^type mossbauer_type$/;"	t	module:modinput
 mpi_allgatherv_ifc	src/src_mpi/modmpi.F90	/^      subroutine mpi_allgatherv_ifc(/;"	s	module:modmpi
 mpi_free_group	src/src_gw/mod_mpi_gw.f90	/^    subroutine mpi_free_group$/;"	s	module:mod_mpi_gw
@@ -27889,6 +27802,7 @@ nofk	src/src_mpi/modmpi.F90	/^      Function nofk /;"	f	module:modmpi
 nofset	src/src_mpi/modmpi.F90	/^      Function nofset /;"	f	module:modmpi
 noinst_HEADERS	src/libXC/src/Makefile	/^noinst_HEADERS = \\$/;"	m
 noinst_PROGRAMS	src/libXC/testsuite/Makefile	/^noinst_PROGRAMS = xc-get_data$(EXEEXT) xc-consistency$(EXEEXT) \\$/;"	m
+noise	src/src_inputparser/inputmodules.f90	/^ real(8)::noise$/;"	k	type:wannier_type
 noldsteps	src/src_mixing/modmixermsec.f90	/^      Integer :: record_of_last_iter, noldstepsi/;"	v	module:modmixermsec
 noldstepsin_file	src/src_mixing/modmixermsec.f90	/^      Integer :: record_of_last_iter, noldstepsin_file,/;"	v	module:modmixermsec
 noldstepsmax	src/src_mixing/modmixermsec.f90	/^     & MUSE, IDSCALE, noldstepsmax$/;"	v	module:modmixermsec
@@ -29010,7 +28924,6 @@ pos	src/FoX/sax/m_sax_xml_source.F90	/^    integer :: pos /;"	k	type:buffer_t
 pot	src/src_raman/mod_raman.f90	/^real(8), allocatable :: pot(/;"	v	module:raman_inter
 potcoul	src/potcoul.f90	/^Subroutine potcoul$/;"	s
 poteff	src/poteff.f90	/^Subroutine poteff$/;"	s
-poteff Source File poteff f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 potinx	src/src_raman/mod_raman.f90	/^real(8), allocatable :: potinx(/;"	v	module:raman_coeff
 potiny	src/src_raman/mod_raman.f90	/^real(8), allocatable :: potinx(:, :),potiny(/;"	v	module:raman_coeff
 potl	tools/planeAverage.py	/^potl = np.zeros([ngridpts[0]-1,ngridpts[1]-1,ngridpts[2]-1],np.float)$/;"	v
@@ -29020,7 +28933,6 @@ potl_	tools/planeAverage.py	/^potl_ = np.array(potl_).swapaxes(0,2)$/;"	v
 potl_	tools/planeAverage.py	/^potl_ = zip(*[iter(potl_)]*gt[1])$/;"	v
 potnucl	src/src_lib/potnucl.f90	/^Subroutine potnucl /;"	s
 potplot	src/potplot.f90	/^Subroutine potplot$/;"	s
-potplot Source File potplot f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 potxc	src/potxc.f90	/^subroutine potxc$/;"	s
 powx	src/src_vdwdf/Cuba-3.2/src/suave/Fluct.c	14;"	d	file:
 powx	src/src_vdwdf/Cuba-3.2/src/suave/Fluct.c	22;"	d	file:
@@ -29558,13 +29470,12 @@ readdveff	src/src_phonon/readdveff.f90	/^Subroutine readdveff /;"	s
 readdyn	src/src_phonon/readdyn.f90	/^Subroutine readdyn /;"	s
 readenergy	tools/OPTIMIZE-analyze.py	/^def readenergy():$/;"	f
 readfermi	src/readfermi.f90	/^Subroutine readfermi$/;"	s
-readfermi Source File readfermi f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 readfvib	tools/THERMAL-cubic.py	/^def readfvib(f,t,a):$/;"	f
 readgamma	src/src_phonon/readgamma.f90	/^Subroutine readgamma /;"	s
 reading_first_entity	src/FoX/sax/m_sax_reader.F90	/^ function reading_first_entity(/;"	f	module:m_sax_reader
 reading_main_file	src/FoX/sax/m_sax_reader.F90	/^  function reading_main_file(/;"	f	module:m_sax_reader
-readingw Source File parse _gwinput f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 readinput	src/eos/readinput.f90	/^subroutine readinput$/;"	s
+readkpts	src/readkpts.f90	/^Subroutine readkpts$/;"	s
 readmat	src/plotmat.f90	/^    subroutine readmat(/;"	s	module:m_plotmat
 readonly	src/FoX/dom/m_dom_dom.F90	/^    logical :: readonly /;"	k	type:NamedNodeMap
 readonly	src/FoX/dom/m_dom_dom.F90	/^    logical :: readonly /;"	k	type:Node
@@ -29646,7 +29557,6 @@ relax	src/src_inputparser/inputmodules.f90	/^  type(relax_/;"	k	type:input_type
 relax	tools/PLOT-generalopt.py	/^def relax(filin,idf):$/;"	f
 relax	tools/PLOT-optimized-geometry.py	/^def relax(filin,idf):$/;"	f
 relax	tools/PLOT-vol-optimized-geometry.py	/^def relax(filin,idf):$/;"	f
-relax Source File relax f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 relax_type	src/src_inputparser/inputmodules.f90	/^type relax_type$/;"	t	module:modinput
 relnodes	src/src_libbzint/relnodes.f90	/^      subroutine relnodes(/;"	s
 removeAttribute	src/FoX/dom/m_dom_dom.F90	/^  subroutine removeAttribute(/;"	s	module:m_dom_dom
@@ -29891,9 +29801,7 @@ rhoinit	src/rhoinit.f90	/^Subroutine rhoinit$/;"	s
 rhoir	src/mod_potential_and_density.F90	/^      Real (8), Allocatable :: rhoir /;"	v	module:mod_potential_and_density
 rhomt	src/mod_potential_and_density.F90	/^      Real (8), Allocatable :: rhomt /;"	v	module:mod_potential_and_density
 rhonorm	src/rhonorm.f90	/^Subroutine rhonorm$/;"	s
-rhonorm Source File rhonorm f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 rhoplot	src/rhoplot.f90	/^Subroutine rhoplot$/;"	s
-rhoplot Source File rhoplot f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 rhovalk	src/rhovalk.f90	/^Subroutine rhovalk /;"	s
 riaa	src/src_xs/modxs.F90	/^      Real (8), Allocatable :: riaa /;"	v	module:modxs
 rigntaa	m_ematqk.f90	/^  complex(8), allocatable :: rigntaa(/;"	v	module:m_ematqk
@@ -30008,7 +29916,6 @@ rstr	src/src_gw/sigma.f90	/^    real(8), allocatable :: rstr(/;"	v	module:strcon
 rtl	src/src_gw/mod_product_basis.f90	/^    real(8), allocatable :: rtl(/;"	v	module:mod_product_basis
 rtorat	src/mod_kpoint.F90	/^      Subroutine rtorat /;"	s	module:mod_kpoint
 rtorat	src/src_gw/mod_kpointset.f90	/^    subroutine rtorat(/;"	s	module:mod_kpointset
-rtorat Source File mod _kpoint F90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 rtozflm	src/src_lib/rtozflm.f90	/^Subroutine rtozflm /;"	s
 rtrap	src/src_mixing/modmixermsec.f90	/^      Real (8) :: MSECINFO (20), rtrap,/;"	v	module:modmixermsec
 rule	src/src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  Rule rule;$/;"	m	struct:_this
@@ -30343,7 +30250,6 @@ searchlocorb	src/species/modspecies.F90	/^logical :: locorb,locorbsc,searchlocor
 searchlocorbxs	src/species/modspecies.F90	/^logical :: locorbxs, searchlocorbxs$/;"	v	module:modspecies
 seceqfvprecond	src/src_iterative_solver/src_diis/secequnfvprecond.F90	/^Subroutine seceqfvprecond /;"	s
 seceqn	src/seceqn.f90	/^Subroutine seceqn /;"	s
-seceqn Source File seceqn f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 seceqnfv	src/seceqnfv.f90	/^Subroutine seceqnfv(/;"	s
 seceqnhf	src/seceqnhf.f90	/^Subroutine seceqnhf /;"	s
 seceqnit	src/seceqnit.f90	/^Subroutine seceqnit /;"	s
@@ -30839,6 +30745,7 @@ skipgnd	src/src_xs/modxs.F90	/^      Logical :: skipgnd$/;"	v	module:modxs
 skippedEntity_handler	src/FoX/dom/m_dom_parse.f90	/^  subroutine skippedEntity_handler(/;"	s
 skippedExternal	src/FoX/sax/m_sax_types.F90	/^    logical :: skippedExternal /;"	k	type:sax_parser_t
 skiprandom	src/src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  void (*skiprandom)(struct _this *t, cnumber n);$/;"	m	struct:__anon63
+sl	src/src_inputparser/inputmodules.f90	/^ real(8)::sl$/;"	k	type:wannier_type
 slapy2	src/ARPACK/EXAMPLES/BAND/cnbdr1.f	/^     &                  scnrm2, slapy2$/;"	v	program:cnbdr1
 slapy2	src/ARPACK/EXAMPLES/BAND/cnbdr2.f	/^     &                  scnrm2, slapy2$/;"	v	program:cnbdr2
 slapy2	src/ARPACK/EXAMPLES/BAND/cnbdr3.f	/^     &                  scnrm2, slapy2$/;"	v	program:cnbdr3
@@ -30926,7 +30833,9 @@ sol	src/src_vdwdf/Cuba-3.2/src/divonne/Split.c	/^  real lhs, row, sol;$/;"	m	str
 solvediis	src/src_iterative_solver/src_diis/solvediis.F90	/^Subroutine solvediis /;"	s
 solvediislin	src/src_iterative_solver/src_diis/solvediislin.F90	/^Subroutine solvediislin /;"	s
 solver	src/src_inputparser/inputmodules.f90	/^  type(solver_/;"	k	type:groundstate_type
+solver	src/src_inputparser/inputmodules.f90	/^ character(512)::solver$/;"	k	type:wannier_type
 solver_type	src/src_inputparser/inputmodules.f90	/^type solver_type$/;"	t	module:modinput
+solvernumber	src/src_inputparser/inputmodules.f90	/^ integer::solvernumber$/;"	k	type:wannier_type
 solvewithlapack	src/src_eigensystem/modfvsystem.f90	/^    Subroutine solvewithlapack(/;"	s	module:modfvsystem
 sopmat	src/src_raman/mod_raman.f90	/^real(8) :: sopmat(/;"	v	module:raman_symmetry
 sopmatc	src/src_raman/mod_raman.f90	/^real(8) :: sopmatc(/;"	v	module:raman_symmetry
@@ -31037,6 +30946,7 @@ splf	tools/QHA-approximation.py	/^splf = interpolate.splrep(t,eps0,s=0)$/;"	v
 splf	tools/QHA-approximation.py	/^splf = interpolate.splrep(t,epss,s=0)$/;"	v
 spline	src/src_lib/spline.f90	/^Subroutine spline /;"	s
 spline4	src/src_xc/splline4.f90	/^subroutine spline4(/;"	s
+split	src/src_inputparser/inputmodules.f90	/^ integer::split$/;"	k	type:wannier_type
 splitText	src/FoX/dom/m_dom_dom.F90	/^  function splitText(/;"	f	module:m_dom_dom
 splittfile	src/src_mpi/modmpi.F90	/^      Logical :: splittfile,/;"	v	module:modmpi
 spmass	src/mod_atoms.F90	/^      Real (8) :: spmass /;"	v	module:mod_atoms
@@ -31524,6 +31434,7 @@ stringtonumbertddftdo	src/src_inputparser/inputmodules.f90	/^ integer function  
 stringtonumbertddftfxctype	src/src_inputparser/inputmodules.f90	/^ integer function  stringtonumbertddftfxctype(/;"	f	module:modinput
 stringtonumberwannierinput	src/src_inputparser/inputmodules.f90	/^ integer function  stringtonumberwannierinput(/;"	f	module:modinput
 stringtonumberwanniermethod	src/src_inputparser/inputmodules.f90	/^ integer function  stringtonumberwanniermethod(/;"	f	module:modinput
+stringtonumberwanniersolver	src/src_inputparser/inputmodules.f90	/^ integer function  stringtonumberwanniersolver(/;"	f	module:modinput
 stringtonumberxsdogroundstate	src/src_inputparser/inputmodules.f90	/^ integer function  stringtonumberxsdogroundstate(/;"	f	module:modinput
 stringtonumberxsgqmaxtype	src/src_inputparser/inputmodules.f90	/^ integer function  stringtonumberxsgqmaxtype(/;"	f	module:modinput
 stringtonumberxspwmat	src/src_inputparser/inputmodules.f90	/^ integer function  stringtonumberxspwmat(/;"	f	module:modinput
@@ -31611,14 +31522,10 @@ symmetries_type	src/src_inputparser/inputmodules.f90	/^type symmetries_type$/;"	
 symmetrize	src/src_gw/mod_pmat.f90	/^  subroutine symmetrize(/;"	s	module:mod_pmat
 symmorph	src/src_inputparser/inputmodules.f90	/^ logical::symmorph$/;"	k	type:groundstate_type
 symrf	src/symrf.f90	/^Subroutine symrf /;"	s
-symrf Source File symrf f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 symrfir	src/symrfir.f90	/^Subroutine symrfir /;"	s
-symrfir Source File symrfir f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 symrfmt	src/symrfmt.f90	/^Subroutine symrfmt /;"	s
-symrfmt Source File symrfmt f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 symrvf	src/symrvf.f90	/^Subroutine symrvf /;"	s
 symrvfir	src/symrvfir.f90	/^Subroutine symrvfir /;"	s
-symrvfir Source File symrvfir f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 symsci0	src/src_xs/symsci0.F90	/^Subroutine symsci0 /;"	s
 symt2	src/src_xs/modxs.F90	/^      Real (8) :: symt2 /;"	v	module:modxs
 symt2app	src/src_xs/symt2app.F90	/^Subroutine symt2app /;"	s
@@ -32793,7 +32700,7 @@ wannier_interpolate_occupancy	mod_wannier_interpolate.f90	/^subroutine wannier_i
 wannier_interpolate_occupancy	src/wannier_interpolate_density.f90	/^subroutine wannier_interpolate_occupancy(/;"	s	module:m_wannier_interpolate_density
 wannier_interpolate_occupancy	wannier_interpolate_density_otf.f90	/^subroutine wannier_interpolate_occupancy(/;"	s	module:m_wannier_interpolate_density
 wannier_loc	mod_wannier.f90	/^    subroutine wannier_loc(/;"	s	module:mod_wannier
-wannier_loc	src/mod_wannier.f90	/^    subroutine wannier_loc$/;"	s	module:mod_wannier
+wannier_loc	src/mod_wannier.f90	/^    subroutine wannier_loc(/;"	s	module:mod_wannier
 wannier_maxloc	mod_wannier.f90	/^    subroutine wannier_maxloc(/;"	s	module:mod_wannier
 wannier_maxloc	src/mod_wannier.f90	/^    subroutine wannier_maxloc$/;"	s	module:mod_wannier
 wannier_plot	backup.f90	/^subroutine wannier_plot(/;"	s
@@ -32802,8 +32709,7 @@ wannier_projonwan	src/mod_wannier.f90	/^    subroutine wannier_projonwan$/;"	s	m
 wannier_reademat	src/mod_wannier.f90	/^    subroutine wannier_reademat(/;"	s	module:mod_wannier
 wannier_readfile	mod_wannier.f90	/^    subroutine wannier_readfile(/;"	s	module:mod_wannier
 wannier_readfile	src/mod_wannier.f90	/^    subroutine wannier_readfile(/;"	s	module:mod_wannier
-wannier_readfunir	src/mod_wannier.f90	/^    subroutine wannier_readfunir(/;"	s	module:mod_wannier
-wannier_readfunmt	src/mod_wannier.f90	/^    subroutine wannier_readfunmt(/;"	s	module:mod_wannier
+wannier_readfun	src/mod_wannier.f90	/^    subroutine wannier_readfun(/;"	s	module:mod_wannier
 wannier_showproj	mod_wannier.f90	/^    subroutine wannier_showproj$/;"	s	module:mod_wannier
 wannier_showproj	src/mod_wannier.f90	/^    subroutine wannier_showproj$/;"	s	module:mod_wannier
 wannier_subspace	mod_wannier.f90	/^    subroutine wannier_subspace(/;"	s	module:mod_wannier
@@ -32812,7 +32718,7 @@ wannier_type	src/src_inputparser/inputmodules.f90	/^type wannier_type$/;"	t	modu
 wannier_writeemat	src/mod_wannier.f90	/^    subroutine wannier_writeemat$/;"	s	module:mod_wannier
 wannier_writefile	mod_wannier.f90	/^    subroutine wannier_writefile(/;"	s	module:mod_wannier
 wannier_writefile	src/mod_wannier.f90	/^    subroutine wannier_writefile$/;"	s	module:mod_wannier
-wannier_writefun	src/mod_wannier.f90	/^    subroutine wannier_writefun$/;"	s	module:mod_wannier
+wannier_writefun	src/mod_wannier.f90	/^    subroutine wannier_writefun(/;"	s	module:mod_wannier
 wannier_writeinfo_finish	mod_wannier.f90	/^    subroutine wannier_writeinfo_finish$/;"	s	module:mod_wannier
 wannier_writeinfo_finish	src/mod_wannier.f90	/^    subroutine wannier_writeinfo_finish$/;"	s	module:mod_wannier
 wannier_writeinfo_geometry	mod_wannier.f90	/^    subroutine wannier_writeinfo_geometry$/;"	s	module:mod_wannier
@@ -32834,8 +32740,6 @@ warnings	tools/ElaStic@exciting-analyze.py	/^import warnings$/;"	i
 warnings	tools/STRESS-exciting-analyze.py	/^import warnings$/;"	i
 wavefcr	src/wavefcr.f90	/^Subroutine wavefcr /;"	s
 wavefmt	src/wavefmt.f90	/^Subroutine wavefmt /;"	s
-wavefmt Source File wavefmt f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-wavefmt _add Source File wavefmt f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 wavefmt_add	src/wavefmt.f90	/^Subroutine wavefmt_add /;"	s
 wavefmt_apw	src/src_xs/wavefmt_apw.F90	/^Subroutine wavefmt_apw /;"	s
 wavefmt_lo	src/src_xs/wavefmt_lo.F90	/^Subroutine wavefmt_lo /;"	s
@@ -32859,7 +32763,6 @@ wf_centers	src/mod_wannier.f90	/^  real(8), allocatable :: wf_centers(/;"	v	modu
 wf_disentangle	mod_wannier.f90	/^  logical :: wf_disentangle /;"	v	module:mod_wannier
 wf_disentangle	src/mod_wannier.f90	/^  logical :: wf_disentangle /;"	v	module:mod_wannier
 wf_emat	mod_wannier.f90	/^  complex(8), allocatable :: wf_emat(/;"	v	module:mod_wannier
-wf_emat	src/mod_wannier.f90	/^  complex(8), allocatable :: wf_emat(/;"	v	module:mod_wannier
 wf_filename	src/mod_wannier.f90	/^  character(265) :: wf_filename$/;"	v	module:mod_wannier
 wf_fst	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_fst,/;"	v	module:mod_wannier
 wf_fst	src/mod_wannier.f90	/^  integer :: wf_fst /;"	v	module:mod_wannier
@@ -32871,12 +32774,16 @@ wf_kset	src/mod_wannier.f90	/^  type( k_set) :: wf_kset$/;"	v	module:mod_wannier
 wf_kset_red	src/mod_wannier.f90	/^  type( k_set) :: wf_kset_red$/;"	v	module:mod_wannier
 wf_lst	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_fst, wf_lst,/;"	v	module:mod_wannier
 wf_lst	src/mod_wannier.f90	/^  integer :: wf_lst /;"	v	module:mod_wannier
+wf_m	src/mod_wannier.f90	/^  complex(8), allocatable :: wf_m(/;"	v	module:mod_wannier
+wf_m0	src/mod_wannier.f90	/^  complex(8), allocatable :: wf_m0(/;"	v	module:mod_wannier
 wf_n_dist	mod_wannier.f90	/^  real(8), allocatable :: wf_n_dist(/;"	v	module:mod_wannier
 wf_n_dist	src/mod_wannier.f90	/^  real(8), allocatable :: wf_n_dist(/;"	v	module:mod_wannier
 wf_n_ik	mod_wannier.f90	/^  integer, allocatable :: wf_n_ik(/;"	v	module:mod_wannier
 wf_n_ik	src/mod_wannier.f90	/^  integer, allocatable :: wf_n_ik(/;"	v	module:mod_wannier
+wf_n_ik2	src/mod_wannier.f90	/^  integer, allocatable :: wf_n_ik2(/;"	v	module:mod_wannier
 wf_n_n	mod_wannier.f90	/^  integer, allocatable :: wf_n_n(/;"	v	module:mod_wannier
 wf_n_n	src/mod_wannier.f90	/^  integer, allocatable :: wf_n_n(/;"	v	module:mod_wannier
+wf_n_n2neg	src/mod_wannier.f90	/^  integer, allocatable :: wf_n_n2neg(/;"	v	module:mod_wannier
 wf_n_ns2n	src/mod_wannier.f90	/^  integer, allocatable :: wf_n_ns2n(/;"	v	module:mod_wannier
 wf_n_nshells	src/mod_wannier.f90	/^  integer :: wf_n_nshells /;"	v	module:mod_wannier
 wf_n_ntot	src/mod_wannier.f90	/^  integer :: wf_n_ntot /;"	v	module:mod_wannier
@@ -32892,6 +32799,7 @@ wf_ngridk	mod_wannier.f90	/^  integer :: wf_nkpt, wf_ngridk(/;"	v	module:mod_wan
 wf_nkpt	mod_wannier.f90	/^  integer :: wf_nkpt,/;"	v	module:mod_wannier
 wf_nprojtot	mod_wannier.f90	/^  integer :: wf_nprojtot,/;"	v	module:mod_wannier
 wf_nprojtot	src/mod_wannier.f90	/^  integer :: wf_nprojtot /;"	v	module:mod_wannier
+wf_nprojused	src/mod_wannier.f90	/^  integer :: wf_nprojused /;"	v	module:mod_wannier
 wf_nst	mod_wannier.f90	/^  integer :: wf_nprojtot, wf_fst, wf_lst, wf_nst,/;"	v	module:mod_wannier
 wf_nst	src/mod_wannier.f90	/^  integer :: wf_nst /;"	v	module:mod_wannier
 wf_omega	mod_wannier.f90	/^  real(8), allocatable :: wf_omega(/;"	v	module:mod_wannier
@@ -32933,20 +32841,21 @@ wfarray	src/src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::
 wfarray	src/src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfarray(/;"	k	type:default_type
 wfarray	src/src_inputparser/speciesmodules.f90	/^  type(wf_type_array),pointer::wfarray(/;"	k	type:lo_type
 wfc	src/FoX/common/m_common_entities.F90	/^    logical :: wfc /;"	k	type:entity_t
-wfint _init Source File mod _wannier _interpolate f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-wfint _interpolate _eigsys Source File mod _wannier _interpolate f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
-wfint _interpolate _occupancy Source File mod _wannier _interpolate f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
+wfint_Gkset	src/mod_wannier_interpolate.f90	/^  type( Gk_set) :: wfint_Gkset /;"	v	module:mod_wfint
 wfint_destroy	src/mod_wannier_interpolate.f90	/^    subroutine wfint_destroy$/;"	s	module:mod_wfint
 wfint_destroywf	src/mod_wannier_interpolate.f90	/^    subroutine wfint_destroywf$/;"	s	module:mod_wfint
 wfint_efermi	src/mod_wannier_interpolate.f90	/^  real(8) :: wfint_efermi /;"	v	module:mod_wfint
 wfint_eval	src/mod_wannier_interpolate.f90	/^  real(8), allocatable :: wfint_eval(/;"	v	module:mod_wfint
+wfint_evec	src/mod_wannier_interpolate.f90	/^  complex(8), allocatable :: wfint_evec(/;"	v	module:mod_wfint
 wfint_getwfir	src/mod_wannier_interpolate.f90	/^    subroutine wfint_getwfir(/;"	s	module:mod_wfint
 wfint_getwfmt	src/mod_wannier_interpolate.f90	/^    subroutine wfint_getwfmt(/;"	s	module:mod_wfint
 wfint_init	src/mod_wannier_interpolate.f90	/^    subroutine wfint_init(/;"	s	module:mod_wfint
 wfint_initialized	src/mod_wannier_interpolate.f90	/^  logical :: wfint_initialized /;"	v	module:mod_wfint
 wfint_interpolate_bandchar	src/mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_bandchar(/;"	s	module:mod_wfint
+wfint_interpolate_bandgap	src/mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_bandgap(/;"	s	module:mod_wfint
 wfint_interpolate_density	src/mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_density$/;"	s	module:mod_wfint
 wfint_interpolate_eigsys	src/mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_eigsys(/;"	s	module:mod_wfint
+wfint_interpolate_eigvec	src/mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_eigvec$/;"	s	module:mod_wfint
 wfint_interpolate_me	src/mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_me(/;"	s	module:mod_wfint
 wfint_interpolate_occupancy	src/mod_wannier_interpolate.f90	/^    subroutine wfint_interpolate_occupancy$/;"	s	module:mod_wfint
 wfint_kset	src/mod_wannier_interpolate.f90	/^  type( k_set) :: wfint_kset /;"	v	module:mod_wfint
@@ -33323,7 +33232,6 @@ writedielt	src/src_xs/writedielt.F90	/^Subroutine writedielt /;"	s
 writedveff	src/src_phonon/writedveff.f90	/^Subroutine writedveff /;"	s
 writedynamicalmatrices	src/src_phonon/writedynamicalmatrices.F90	/^subroutine writedynamicalmatrices(/;"	s
 writeefg	src/writeefg.f90	/^Subroutine writeefg$/;"	s
-writeefg Source File writeefg f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 writeeigenvectors	src/src_inputparser/inputmodules.f90	/^ logical::writeeigenvectors$/;"	k	type:interpolate_type
 writeemat	src/src_xs/writeemat.F90	/^Subroutine writeemat$/;"	s
 writeematasc	src/src_xs/writeematasc.F90	/^Subroutine writeematasc$/;"	s
@@ -33343,9 +33251,7 @@ writegeometryxml	src/writegeometryxml.f90	/^Subroutine writegeometryxml /;"	s
 writegeomxml	src/spacegroup/writegeomxml.f90	/^subroutine writegeomxml$/;"	s
 writegqpts	src/src_xs/writegqpts.F90	/^      Subroutine writegqpts /;"	s	module:m_writegqpts
 writehistory	src/writehistory.f90	/^Subroutine writehistory$/;"	s
-writehistory Source File writehistory f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 writeiad	src/writeiad.f90	/^Subroutine writeiad /;"	s
-writeiad Source File writeiad f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 writeiktetmap	src/src_xs/modtetra/modtetra.F90	/^      Subroutine writeiktetmap /;"	s
 writeinfo	src/writeinfo.f90	/^Subroutine writeinfo /;"	s
 writekerr	src/src_xs/writekerr.F90	/^      Subroutine writekerr /;"	s	module:m_writekerr
@@ -33355,7 +33261,6 @@ writelambda	src/src_phonon/writelambda.f90	/^Subroutine writelambda /;"	s
 writelat	src/writelat.f90	/^Subroutine writelat$/;"	s
 writeldapu	src/src_LDAU/writeldapu.f90	/^Subroutine writeldapu$/;"	s
 writelinen	src/writelinen.f90	/^Subroutine writelinen$/;"	s
-writelinen Source File writelinen f90	docs/exciting/doc.tex	/^\\section{Routine\/Function Prologues} \\label{app:ProLogues}$/;"	b
 writeloss	src/src_xs/writeloss.F90	/^      Subroutine writeloss /;"	s	module:m_writeloss
 writelsj	src/writelsj.f90	/^Subroutine writelsj$/;"	s
 writemat	src/plotmat.f90	/^    subroutine writemat(/;"	s	module:m_plotmat
@@ -33376,7 +33281,6 @@ writesccli	src/src_xs/writesccli.F90	/^Subroutine writesccli$/;"	s
 writesigma	src/src_xs/writesigma.F90	/^      Subroutine writesigma /;"	s	module:m_writesigma
 writesock	src/src_vdwdf/Cuba-3.2/src/common/Fork.c	/^static inline int writesock(int fd, const void *data, size_t n)$/;"	f	file:
 writestate	src/writestate.f90	/^Subroutine writestate$/;"	s
-writestate Source File writestate f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 writesumrls	src/src_xs/writesumrls.F90	/^      Subroutine writesumrls /;"	s	module:m_writesumrls
 writesym	src/writesym.f90	/^Subroutine writesym$/;"	s
 writesym2	src/src_sym/writesym2.F90	/^Subroutine writesym2$/;"	s
@@ -33387,10 +33291,8 @@ writetime	src/writetime.f90	/^Subroutine writetime /;"	s
 writetorque	src/writetorque.f90	/^subroutine writetorque(/;"	s
 writevars	src/src_xs/writevars.F90	/^      Subroutine writevars /;"	s	module:m_writevars
 writewiq2	src/writewiq2.f90	/^Subroutine writewiq2$/;"	s
-writewiq2 Source File writewiq2 f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 writexmlspecies	src/species/writexmlspecies.F90	/^subroutine writexmlspecies$/;"	s
 wrnmsg	src/src_gw/ioutils.f90	/^      subroutine wrnmsg(/;"	s
-ws _weight Source File m _wsweight f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 ws_weight	src/m_wsweight.f90	/^Subroutine ws_weight /;"	s	module:m_wsweight
 wspecies	src/spacegroup/sginputmodule.f90	/^type(wspecies_/;"	k	type:wspecies_type_array
 wspecies_type	src/spacegroup/sginputmodule.f90	/^type wspecies_type$/;"	t	module:modsymmetries
@@ -34059,13 +33961,11 @@ zeta	src/libXC/src/stoll.c	/^XC(lda_stoll) (const XC(func_type) *pw, FLOAT dens,
 zeta	src/libXC/src/util.h	/^void XC(lda_stoll)(const XC(func_type) *pw, FLOAT dens, FLOAT zeta, int order, XC(lda_work_t) res[3]);$/;"	v
 zeta	tools/SETUP-slide.py	/^              input("\\nEnter internal displacement zeta >>>> ")$/;"	v
 zfftifc	src/zfftifc.f90	/^Subroutine zfftifc /;"	s
-zfftifc Source File zfftifc f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 zfinp	src/zfinp.f90	/^Complex (8) Function zfinp /;"	f
 zfinp2	src/src_xs/zfinp2.F90	/^Complex (8) Function zfinp2 /;"	f
 zfint	src/zfint.f90	/^Complex (8) Function zfint /;"	f
 zflmconj	src/src_lib/zflmconj.f90	/^Subroutine zflmconj /;"	s
 zfmtinp	src/zfmtinp.f90	/^Complex (8) Function zfmtinp /;"	f
-zfmtinp Source File zfmtinp f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 zfshtapw	src/mod_SHT.F90	/^      Complex (8), Allocatable :: zfshtapw /;"	v	module:mod_SHT
 zfshtvr	src/mod_SHT.F90	/^      Complex (8), Allocatable :: zfshtvr /;"	v	module:mod_SHT
 zfunir	src/src_gw/mod_misc_gw.f90	/^    complex(8), allocatable :: zfunir(/;"	v	module:mod_misc_gw
@@ -34122,7 +34022,6 @@ zone	src/mod_constants.F90	/^      Complex (8), Parameter :: zone /;"	v	module:m
 zone	src/src_raman/mod_raman.f90	/^complex(8), parameter :: zone /;"	v	module:raman_params
 zoutpr	src/src_xs/zoutpr.F90	/^Subroutine zoutpr /;"	s
 zpotclmt	src/zpotclmt.f90	/^Subroutine zpotclmt /;"	s
-zpotclmt Source File zpotclmt f90	docs/exciting/doc.tex	/^\\mbox{}\\hrulefill\\ $/;"	b
 zpotcoul	src/zpotcoul.f90	/^Subroutine zpotcoul /;"	s
 zrange	src/src_inputparser/inputmodules.f90	/^ real(8)::zrange(/;"	k	type:region_type
 zrhogp	src/src_advanced/zrhogp.f90	/^Subroutine zrhogp /;"	s
