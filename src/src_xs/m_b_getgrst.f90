@@ -456,7 +456,7 @@ module m_b_getgrst
 
       filext = filext0
       ! Call to getevecfv with changed default (G+)k-set pointers / matrix size
-      call getevecsv(vkl0_ptr(1:3,ik), evecsvt)
+      call getevecsv(vkl_ptr(1:3,ik), evecsvt)
       ! Restore default pointers
       nmatmax_ptr => nmatmax_ptr_save
       ngkmax_ptr => ngkmax_ptr_save

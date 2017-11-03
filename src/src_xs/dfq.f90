@@ -135,7 +135,7 @@ subroutine dfq(iq)
   integer(4) :: numpo
   integer(4) :: oct1, oct2, un
   logical :: tq0
-  logical :: doares
+  logical :: doares, fintraband
   type(bcbs) :: bc
 
   ! External functions
@@ -195,7 +195,8 @@ subroutine dfq(iq)
       doares = .not. input%xs%screening%tr
     end if
   end if
-
+!! Set whether intraband should be used
+  fintraband=input%xs%tddft%intraband .or. input%xs%screening%intraband
   ! File extension for q-point (not in 'screen')
   if( .not. tscreen) call genfilname(iqmt=iq, setfilext=.true.)
 
@@ -497,8 +498,6 @@ subroutine dfq(iq)
         else
           call ematqk_sv(iq, ik, xiou, bc)
         end if
-
-
         ! Get uo
         if(allocated(xiuo)) deallocate(xiuo)
         allocate(xiuo(nst3, nst4, n))
@@ -588,7 +587,21 @@ subroutine dfq(iq)
       stop
 #endif            
     end if
-
+    !Temporary Beginning
+    If (tscreen) Then
+        ! we don't need anti-resonant parts here, assign them the same
+        ! value as for resonant parts, resulting in a factor of two.
+            Do igq = 1, n
+               xiuo (:, :, igq) = transpose (xiou(:, :, igq))
+            End Do
+            Do j = 1, 3
+               pmuo (j, :, :) = transpose (pmou(j, :, :))
+            End Do
+            deuo (:, :) = transpose (deou(:, :))
+            docc21 (:, :) = transpose (docc12(:, :))
+            scis21c (:, :) = transpose (scis12c(:, :))
+         End If
+    ! Temporary end
     ! Not screen: Turn off anti-resonant terms (type 2-1 band combinations) for Kohn-Sham
     ! response function (default skip if)
     if(( .not. input%xs%tddft%aresdf) .and. ( .not. tscreen)) then
@@ -643,7 +656,7 @@ subroutine dfq(iq)
         ! Set diagonal to zero (project out intra-band contributions)?
         ! Intraband default changed to true
         if( ist1 .eq. ist2) then 
-          if(.not. input%xs%tddft%intraband) then
+          if(.not. fintraband) then
             xiou(j, ist2, :) = zzero
           end if
         end if
