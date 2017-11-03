@@ -1,4 +1,4 @@
--include ../make.inc
+include ../make.inc
 .NOTPARALLEL:
 	
 SOURCEDIRS=	\
@@ -35,12 +35,16 @@ LIBXCMOD= ../../src/libXC/src/libxc.f90  ../../src/libXC/src/libxc_funcs.f90
 
 #all:bin
 
+# Version number to file
+# Make makefile using template from all source dirs and files
+# Make exciting unsing the generated make files
+# Copy executable and append suffix
 bin::../make.inc libs $(GeneratedFiles)  $(LIBXCMOD)
-	perl ../../build/utilities/versionstamp.pl  
-	../../build/utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
-	$(SOURCEDIRS)  $(LIBXCMOD)	../../src/mainxml/ \
-	&& $(MAKE) -f Makefile.mkmf exciting \
-	&& cp exciting ../../bin/exciting$(SUFFIX)
+	perl ../../build/utilities/versionstamp.pl 
+	../../build/utilities/mkmf -t ./template -f -m Makefile.mkmf\
+         -p exciting $(SOURCEDIRS)  $(LIBXCMOD) ../../src/mainxml/\
+        && $(MAKE) -f Makefile.mkmf exciting
+	cp exciting ../../bin/exciting$(SUFFIX)
 	
 	
 doc::
@@ -60,12 +64,11 @@ libs::  libbzint.a libblas.a liblapack.a fftlib.a libarpack.a libmsec.a \
 	libfox leblaiklib.a libxc.a liblbfgs.a
 endif
 
+# Blas and lapack (usually system libs)
 libblas.a:: 
 	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.blas -p libblas.a \
 	../../src/BLAS\
 	&& $(MAKE) -f Makefile.blas libblas.a 
-	
-
 liblapack.a:: 
 	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.lapack -p liblapack.a \
 	../../src/LAPACK\

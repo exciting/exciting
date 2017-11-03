@@ -1,0 +1,73 @@
+# Include file for main make file specifying librarys and compiler options
+# Template for DUNE. 
+
+# Compiler (F90)
+F90 = ifort
+# Compiler options (F90)
+#   Release options
+F90_OPTS = -O3 -ip -unroll -scalar_rep -qopenmp 
+#   Debug options
+F90_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
+   -fp-stack-check -heap-arrays -ftrapuv -check pointers \
+   -check bounds -check all -check noarg_temp_created -traceback
+
+# Compiler (F77) needed for some libs
+F77 = $(F90)
+# Compiler option (F77)
+#   Release options
+F77_OPTS = -O3
+#   Debug options
+F77_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
+   -fp-stack-check -heap-arrays -ftrapuv -check pointers \
+   -check bounds -check all -check noarg_temp_created -traceback
+
+# Preprocessor flags always used
+CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP 
+
+### Libraries
+
+#   ARPACK
+LIB_ARP =libarpack.a
+
+#   LAPACK  (blas,lapack,scalapack should always be system libs)
+export USE_SYS_LAPACK=true
+#     Use intel mkl
+LIB_LPK = -mkl=parallel 
+# Scalapack
+LIB_SCLPK = -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64
+# Full mkl linkage (example not used)
+INC_MKL = -I${MKLROOT}/include/intel64/lp64 -I${MKLROOT}/include
+LIB_MKL = ${MKLROOT}/lib/intel64/libmkl_blas95_lp64.a ${MKLROOT}/lib/intel64/libmkl_lapack95_lp64.a \
+          -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core \
+          -lmkl_blacs_intelmpi_lp64 -liomp5 -lpthread -lm -ldl
+
+#   FFT library 
+LIB_FFT = fftlib.a
+
+#   Tetrahedron integration library
+LIB_BZINT = libbzint.a
+
+LIBS = $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
+
+# Threaded librarys
+SMP_LIBS = $(LIBS) -mkl=parallel 
+
+# MPI fortran compiler
+MPIF90 = mpiifort
+MPIF90_CPP_OPTS = -DMPI -DMPIRHO -DMPISEC # -DMPI1
+CPP_SCLPK = -DSCAL
+MPIF90_OPTS = $(F90_OPTS) $(CPP_ON_OPTS) $(MPIF90_CPP_OPTS)
+MPIF90_DEBUGOPTS = $(F90_DEBUGOPTS) $(CPP_ON_OPTS) $(MPIF90_CPP_OPTS)
+LD_MPI_OPTS =
+
+# (??)
+F77MT=$(F77)
+F90MT=$(F90)
+SMPF90_OPTS = $(F90_OPTS)
+SMPF77_OPTS = $(SMPF90_OPTS)
+MPISMPF90_OPTS = $(SMPF90_OPTS) -DMPI -DMPIRHO -DMPISECBUILDMPI=false
+MPIF90MT = $(MPIF90)
+
+BUILDSMP = true
+
+# Options below added by setup perl script

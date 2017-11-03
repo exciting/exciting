@@ -1381,8 +1381,6 @@ module m_setup_bse
 
       else
 
-        write(*,*) "serial setup"
-
         call setup_bse_block(ham%za, iqmt, fcoup)
 
       end if

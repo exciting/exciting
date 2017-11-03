@@ -579,7 +579,6 @@ module m_putgetexcitons
       end if
 
       distributed = drvec%isdistributed
-      print *, 'distributed=', distributed
       if(.not. distributed .and. sane) then 
         if(present(davec)) then 
           call put_excitons(evals(a1:a2), drvec%za(:,a1:a2), avec=davec%za(:,a1:a2),&
@@ -601,7 +600,7 @@ module m_putgetexcitons
   
       ! Input checking
       if(present(a1) .and. .not. present(a2) .or. .not. present(a1) .and. present(a2)) then
-        if(bi2d%isroot) then 
+        if(bicurrent%isroot) then 
           write(*,'("Error(putd_excitons): Specify upper and lower index.")')
         end if
         call terminate
@@ -616,7 +615,7 @@ module m_putgetexcitons
         nexcstored = i2-i1+1
       end if
       if(i1 > i2 .or. i1<1 .or. i2<1 .or. nexcstored > n) then 
-        if(bi2d%isroot) then 
+        if(bicurrent%isroot) then 
           write(*,'("Error(putd_excitons): Index range invalid")')
           write(*,'("  i1=",i8," i2=",i8," nexcstored=", i8," m=",i8," n=",i8)')&
             & i1,i2,nexcstored,m,n
@@ -624,7 +623,7 @@ module m_putgetexcitons
         call terminate
       end if
       if(size(evals) /= nexcstored) then 
-        if(bi2d%isroot) then 
+        if(bicurrent%isroot) then 
           write(*,'("Error(putd_excitons): Array sizes invalid")')
           write(*,'("  size(evals)=",i8," nexcstored=",i8," shape(drvec)=", 2i8)')&
             & size(evals), nexcstored, m, n
@@ -635,7 +634,7 @@ module m_putgetexcitons
         m2 = davec%nrows
         n2 = davec%ncols
         if(m /= m2 .or. n /= n2) then 
-          if(bi2d%isroot) then 
+          if(bicurrent%isroot) then 
             write(*,'("Error(putd_excitons): Array sizes invalid")')
             write(*,'("  shape(drvec)=",2i8," shape(davec)=", 2i8)') m, n, m2, n2
           end if
@@ -667,7 +666,7 @@ module m_putgetexcitons
       fchibarq = input%xs%bse%chibarq
 
       ! Root does the writing to file
-      if(bi2d%isroot) then 
+      if(bicurrent%isroot) then 
 
         ! Generate file name  
         if(fcoup) then

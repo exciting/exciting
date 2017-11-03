@@ -117,7 +117,7 @@ module m_genexevec
       end if
 
       ! Y
-      call new_dzmat(davecp, m, nreq, bi2d)
+      call new_dzmat(davecp, m, nreq, bicurrent)
       ! Make (A-B)^{-1/2} |E_\lambda|^{1/2} Z_\lambda
       !  Aux2 = (A-B)^{-1/2} Z -> Y
       call dzmatmult(dcpmat, dauxvec, davecp, n=nreq, jb=i1)
@@ -134,7 +134,7 @@ module m_genexevec
       end do
       
       ! X
-      call new_dzmat(drvecp, m, nreq, bi2d)
+      call new_dzmat(drvecp, m, nreq, bicurrent)
       ! Make (A-B)^{1/2} |E_\lambda|^-{1/2} Z_\lambda
       !  Aux1 = (A-B)^{1/2} Z -> X
       call dzmatmult(dcmat, dauxvec, drvecp, n=nreq, jb=i1)

@@ -3,11 +3,13 @@
 
 default: build/make.inc all
 
-all: serial mpi
-
+# Scipt that copies a platform specific template make.inc files to build/make.inc
 build/make.inc:
 	perl ./setup.pl
 
+all: serial mpi
+
+# Include platform specific variable settings (will be passed on to other make calls)
 include build/make.inc
 
 serial:
@@ -18,6 +20,9 @@ mpi:
 
 debug:
 	cd build/debug; $(MAKE)
+
+debugmpi:
+	cd build/debugmpi; $(MAKE)
 
 test::
 	cd test/; $(MAKE) summary

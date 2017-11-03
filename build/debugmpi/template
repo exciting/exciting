@@ -1,8 +1,10 @@
 include ../make.inc
 include ../libraries.inc
+
 FC = $(MPIF90) 
-FFLAGS = $(MPIF90_OPTS) $(MPIF90_CPP_OPTS) -Ifinclude
+FFLAGS = $(MPIF90_DEBUGOPTS) $(MPIF90_CPP_OPTS) -Ifinclude
+F77_OPTS =$(F77_DEBUGOPTS)
 LD = $(FC)
 LDFLAGS =$(LD_MPI_OPTS) $(LIBS) $(LIBS_MPI) $(INTERNALLIBS)
 TMPFILES = *.mod
-SUFFIX=mpi
+SUFFIX=debugmpi

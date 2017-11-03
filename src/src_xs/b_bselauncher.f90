@@ -155,7 +155,7 @@ subroutine b_bselauncher
   if(.not. fchibarq .and. .not. fcoup) then 
     call printline(unitout, "!")
     write(unitout, '("Warning(",a,"):", a)') trim(thisname),&
-      & " TDA and full Chi produce bad results for finite Q, use \bar{Chi}!"
+      & " TDA using full Chi produces bad results for finite Q, use \bar{Chi}!"
     write(unitout, '("Warning(",a,"):", a)') trim(thisname),&
       & " set input%xs%bse%chibarq = .true."
     call printline(unitout, "!")

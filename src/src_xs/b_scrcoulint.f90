@@ -146,7 +146,7 @@ subroutine b_scrcoulint(iqmt, fra)
   ! Making folder for the radial integals pertaining to the plane wave matrix elements
   ematraddir = 'EMATRAD'
 
-  syscommand = 'test ! -e '//trim(adjustl(ematraddir))&
+  syscommand = 'test ! -d '//trim(adjustl(ematraddir))&
     & //' && mkdir '//trim(adjustl(ematraddir))
   call system(trim(adjustl(syscommand)))
 
