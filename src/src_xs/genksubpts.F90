@@ -25,20 +25,19 @@ Subroutine genksubpts ()
 !BOC
      Implicit None
 ! local variables
-     Integer :: un
+     Integer :: un, ngrids
      Real (8) :: boxl (3, 4)
      Character (77) :: string
 
+     ngrids = product(input%xs%BSE%ngridksub(1:3))
+
 ! allocate the reduced k-point set arrays
      If (allocated(ivksub)) deallocate (ivksub)
-     Allocate (ivksub(3, input%xs%BSE%ngridksub(1)*&
-        & input%xs%BSE%ngridksub(2)*input%xs%BSE%ngridksub(3)))
+     Allocate (ivksub(3, ngrids))
      If (allocated(vksubl)) deallocate (vksubl)
-     Allocate (vksubl(3, input%xs%BSE%ngridksub(1)*&
-        & input%xs%BSE%ngridksub(2)*input%xs%BSE%ngridksub(3)))
+     Allocate (vksubl(3, ngrids))
      If (allocated(vksubc)) deallocate (vksubc)
-     Allocate (vksubc(3, input%xs%BSE%ngridksub(1)*&
-        & input%xs%BSE%ngridksub(2)*input%xs%BSE%ngridksub(3)))
+     Allocate (vksubc(3, ngrids))
      If (allocated(wksubpt)) deallocate (wksubpt)
      Allocate (wksubpt(input%xs%BSE%ngridksub(1)*&
         & input%xs%BSE%ngridksub(2)*input%xs%BSE%ngridksub(3)))

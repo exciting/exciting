@@ -4,6 +4,7 @@
 !
 !
 subroutine xsfinit
+  use modinput, only: input
   use mod_misc, only: task, versionname
   use modxs, only: cputim0f, systim0f, cputim0i, systim0i,&
                   & cntrate, systimcum, unitout,&
@@ -25,6 +26,9 @@ subroutine xsfinit
 
   ! External functions
   character(256), external :: stringtim, r2str
+
+  ! Some xas specific finalizations
+  if(input%xs%bse%xas) call xasfinit
 
   ! Finalize global counters
   call date_and_time(date=dat, time=tim)

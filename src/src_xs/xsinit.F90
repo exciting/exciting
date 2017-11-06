@@ -4,7 +4,7 @@
 !
 !
 subroutine xsinit
-  use modinput,only: input, isspinspiral
+  use modinput, only: input, isspinspiral
   use mod_names,only: revert_names
   use mod_qpoint,only: ngridq
   use mod_constants,only: h2ev
@@ -30,6 +30,11 @@ subroutine xsinit
   real(8) :: tv(3)
   real(8), parameter :: eps=1.d-7
   character(77) :: string
+
+  ! Backups of groundstate variables
+  call backup0
+  call backup1
+  call backup2
 
   !---------------------------!
   !     initialize timing     !
@@ -348,5 +353,8 @@ subroutine xsinit
   call chkptchk
   ! define checkpoint
   call chkpt(1, (/ task /), 'passed xsinit')
+
+  ! Some xas specific init
+  if(input%xs%bse%xas) call xasinit
 
 end subroutine xsinit

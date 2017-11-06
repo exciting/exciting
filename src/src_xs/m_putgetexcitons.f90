@@ -410,7 +410,7 @@ module m_putgetexcitons
       ! Read Meta data
       read(unexc, pos=1)&
         & fcoup_,&       ! Was the TDA used?
-        & fesel_,&
+        & fesel_,&       ! Where the transitions selected by energy?
         & nk_max_,&      ! Number of non-reduced k-points 
         & nk_bse_,&      ! Number of k-points used in the bse hamiltonian
         & hamsize_,&     ! Size of the RR block of the BSE hamiltonian and number of considered transitions
@@ -573,7 +573,7 @@ module m_putgetexcitons
       character(256) :: tdastring, bsetypestring, scrtypestring
       character(256) :: group, gname_, gname
       if(present(davec)) then
-        sane = drvec%isdistributed == davec%isdistributed
+        sane = drvec%isdistributed .eqv. davec%isdistributed
       else
         sane = .true.
       end if

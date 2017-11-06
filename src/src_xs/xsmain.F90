@@ -27,7 +27,7 @@ Module modxsmain
 End Module
 !
 !
-Subroutine xsmain (plan)
+Subroutine xsmain(plan, nxstasks)
       Use modmain
       Use modinput
       Use modmpi
@@ -39,6 +39,7 @@ Subroutine xsmain (plan)
       use mod_hdf5
       Implicit None
       Type (plan_type) :: plan
+      integer(4), intent(in) :: nxstasks
       Integer :: i
   ! initialization
 #ifdef _HDF5_
@@ -50,7 +51,7 @@ Subroutine xsmain (plan)
 #endif
   !
   ! task selection
-      Do i = 1, size (plan%doonlyarray)
+      Do i = 1, nxstasks
          task = plan%doonlyarray(i)%doonly%tasknumber
          !write(*,*) "xsmain starting task nr:",task
          Call xsinit

@@ -21,6 +21,6 @@ Subroutine tasklauncher
         Call gwtasklauncher ()
 
     If (associated(input%xs)) &
-        Call xstasklauncher ()
+        Call b_xstasklauncher ()
 
 End Subroutine

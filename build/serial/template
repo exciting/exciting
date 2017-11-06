@@ -7,6 +7,6 @@ LD = $(FC)
 LDFLAGS = $(F90_OPTS) $(LIBS) $(INTERNALLIBS)
 AR = ar
 ARFLAGS = -rc
-F77=$(F77) $(F77_OPTS)
+F77=$(F90) $(F77_OPTS)
 TMPFILES = *.mod
 SUFFIX=ser

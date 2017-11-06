@@ -53,6 +53,7 @@ subroutine xstasklauncher
 
   else if(trim(input%xs%xstype) .eq. "TDDFT") then
 
+    ! Defaults to "fromscratch"
     if(input%xs%tddft%do .eq. "fromkernel") go to 10
 
     task = 301
@@ -81,14 +82,17 @@ subroutine xstasklauncher
 
     task = 330
     call xsinit
+    ! True if, non-zero momentum transfer points present
     if(temat) then
       call writeemat
     end if
     call xsfinit
 
     ! What is fxctypenumber ? - Benjmain Aurich 2016-08-01
+    ! 7 = "MB1_NLF", 8 = "BO"
     if(input%xs%tddft%fxctypenumber .eq. 7 .or. &
        & input%xs%tddft%fxctypenumber .eq. 8) then
+      ! 400 = 401 ?
       task = 400
       call xsinit
       call scrgeneigvec
@@ -347,7 +351,9 @@ subroutine xstasklauncher
     ! Calculates the momentum matrix elements for the xs GS calculation.
     task = 320
     call xsinit
+    if(input%xs%bse%xas) call xasinit
     call writepmatxs
+    if(input%xs%bse%xas) call xasfinit
     call xsfinit
 
     ! Task 401 corresponds to "scrgeneigvec" plan
@@ -381,12 +387,15 @@ subroutine xstasklauncher
     ! Task 441 corresponds to "exccoulint" plan
     task = 441
     call xsinit
+    if(input%xs%bse%xas) call xasinit
     call b_exccoulintlauncher
+    if(input%xs%bse%xas) call xasfinit
     call xsfinit
 
     ! Task 445 corresponds to "bse" plan
     task = 445
     call xsinit
+    if(input%xs%bse%xas) call xasinit
     call b_bselauncher
     call xsfinit
 
