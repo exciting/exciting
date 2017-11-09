@@ -448,7 +448,7 @@ subroutine b_scrcoulint(iqmt, fra)
     !! needed (the diagonal blocks where k'=k will be fully computed 
     !! but only the upper triangle will be needed in the end).
 
-    ! Get global k point indices form
+    ! Get global k point indices from
     ! the k point index of the selected set of k-points
     iknr = kmap_bse_rg(ik)
     jknr = kmap_bse_rg(jk) 
@@ -517,6 +517,8 @@ subroutine b_scrcoulint(iqmt, fra)
     ! Get ik & jk dependent band ranges for 
     ! plane wave matrix calculation (if nstlbse was used in the input all k points
     ! contribute the same number of transitions)
+    ! Note: The saved ranges refer to the to k associated k_- points for the 
+    !       unoccupied, and to the k_+ points for the occupied states
     inu = koulims(2,iknr) - koulims(1,iknr) + 1
     ino = koulims(4,iknr) - koulims(3,iknr) + 1
     jnu = koulims(2,jknr) - koulims(1,jknr) + 1
@@ -796,8 +798,8 @@ subroutine b_scrcoulint(iqmt, fra)
       ! Calculate M_{io jo ikp}(G, q) = <io ikp|e^{-i(q+G)r}|jo jkp> !
       !--------------------------------------------------------------!
       ! Bands
-      !  Note: Assuming same limits for ikp and ik, jkp and jk
-      !        This is ok for systems with a gap, but needs future investigation.
+      ! Note: The saved ranges refer to the to k associated k_- points for the 
+      !       unoccupied, and to the k_+ points for the occupied states
       ematbc%n1=ino
       ematbc%il1=koulims(3,iknr)
       ematbc%iu1=koulims(4,iknr)
@@ -841,8 +843,8 @@ subroutine b_scrcoulint(iqmt, fra)
       ! Calculate M_{iu ju ikm}(G, q) = <iu ikm|e^{-i(q+G)r}|ju jkm> !
       !--------------------------------------------------------------!
       ! Bands
-      !  Note: Assuming same limits for ikm and ik, jkm and jk
-      !        This is ok for systems with a gap, but needs future investigation.
+      ! Note: The saved ranges refer to the to k associated k_- points for the 
+      !       unoccupied, and to the k_+ points for the occupied states
       ematbc%n1=inu
       ematbc%il1=koulims(1,iknr)
       ematbc%iu1=koulims(2,iknr)
@@ -909,8 +911,8 @@ subroutine b_scrcoulint(iqmt, fra)
       !------------------------------------------------------------------------!
       
       ! Bands
-      !  Note: Assuming same limits for ikp and ik, jkm and jk
-      !        This is ok for systems with a gap, but needs future investigation.
+      ! Note: The saved ranges refer to the to k associated k_- points for the 
+      !       unoccupied, and to the k_+ points for the occupied states
       ematbc%n1=ino
       ematbc%il1=koulims(3,iknr)
       ematbc%iu1=koulims(4,iknr)
@@ -965,8 +967,8 @@ subroutine b_scrcoulint(iqmt, fra)
       !------------------------------------------------------------------!
 
       ! Bands
-      !  Note: Assuming same limits for ikm and ik, jkp and jk
-      !        This is ok for systems with a gap, but needs future investigation.
+      ! Note: The saved ranges refer to the to k associated k_- points for the 
+      !       unoccupied, and to the k_+ points for the occupied states
       ematbc%n1=inu
       ematbc%il1=koulims(1,iknr)
       ematbc%iu1=koulims(2,iknr)

@@ -297,7 +297,7 @@ subroutine b_bse(iqmt)
       write(unitout, '("Info(",a,"):&
         & max local RAM needed for BSE matrices ~ ", f12.6, " GB" )')&
         & trim(thisname),&
-        & ramscale*int(dham%nrows_loc,8)*dham%ncols_loc*16.0d0/1024.0d0**3
+        & dble(ramscale)*dham%nrows_loc*dham%ncols_loc*16.0d0/1024.0d0**3
       !------------------------------------------------------------------------!
 
       !------------------------------------------------------------------------!
@@ -357,6 +357,13 @@ subroutine b_bse(iqmt)
       ! Diagonalize Hamiltonian (destroys the content of ham)
       call timesec(ts0)
 
+      ! Use Lapack instead of ScaLapck if only current 
+      ! rank diagonalizes, i.e. bi0d is used. (bit of a workaround)
+      if(fdist .eqv. .false.) then 
+        dham%isdistributed = .false.
+        dexevec%isdistributed = .false.
+      end if
+
       ! Find solutions in energy window only
       if(efind) then
 
@@ -386,6 +393,12 @@ subroutine b_bse(iqmt)
          & i1=i1, i2=i2, found=nexc,&
          & eecs=input%xs%bse%eecs)
 
+      end if
+
+      ! Set it back (see above)
+      if(fdist .eqv. .false.) then 
+        dham%isdistributed = .true.
+        dexevec%isdistributed = .true.
       end if
 
       ! Square root of EVs

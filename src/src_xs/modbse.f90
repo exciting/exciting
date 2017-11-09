@@ -398,7 +398,7 @@ module modbse
       integer(4) :: nk_loc, hamsize_loc
       integer(4) :: nsymcrys_save
       integer(4), allocatable :: smap_loc(:,:)
-      real(8) :: detmp
+      real(8) :: detmp, doctmp
       real(8), allocatable :: ofac_loc(:)
       real(8), allocatable :: de_loc(:)
       real(8) :: t0, t1
@@ -406,21 +406,29 @@ module modbse
       logical, allocatable :: sflag(:)
       integer(4) :: k1, k2
       integer(4) :: i1, i2
-      logical :: posdiff
+      logical :: fxas, posdiff
       character(*), parameter :: thisname = "select_transitions"
 
       call timesec(t0)
 
+      ! Check whether mpi is used for the selection
       if(present(serial)) then 
         fserial = serial
       else
         fserial = .false.
       end if
 
+      ! Check is XAS is used
+      if(input%xs%bse%xas) then
+        fxas = .true.
+      else
+        fxas = .false.
+      end if
+
       ! Search for needed IP/QP transitions automatically
       ! depending on the chosen energy window.
-      if((any(input%xs%bse%nstlbse == 0) .and. .not. input%xs%bse%xas) &
-       & .or. (any(input%xs%bse%nstlxas ==0) .and. input%xs%bse%xas)) then
+      if((any(input%xs%bse%nstlbse == 0) .and. .not. fxas) &
+       & .or. (any(input%xs%bse%nstlxas ==0) .and. fxas)) then
         fensel = .true.
       else
         fensel = .false.
@@ -459,19 +467,19 @@ module modbse
       if(fensel) then
 
         ! By default use all available XS GS states for the search
-        if (input%xs%bse%xas) then
+        if(fxas) then
           io1=xasstart
           io2=xasstop
           iu1=istunocc0
           iu2=nstsv
         else 
           io1 = 1
-          io2 = istocc0
-          iu1 = istunocc0
+          io2 = istocc0 ! highest partially occupied "band" over k_+, k_- and k
+          iu1 = istunocc0 ! lowest partially unoccupied band over k_+, k_- and k
           iu2 = nstsv
         end if
 
-        ! If GW QP energies were computed base restrict the search
+        ! If GW QP energies were computed, restrict the search
         ! to the computed GW range, also finite momentum transfer
         ! is not yet included.
         if(associated(input%gw) .and. iqmt==1) then
@@ -489,7 +497,7 @@ module modbse
       ! Use the specified bands, and only inspect occupations.
       else
 
-        if (input%xs%bse%xas) then
+        if(fxas) then
           io1 = xasstart
           io2 = xasstop
           iu1 = input%xs%bse%nstlxas(1)+istunocc0-1
@@ -497,10 +505,16 @@ module modbse
         else
           io1= input%xs%bse%nstlbse(1)
           io2= input%xs%bse%nstlbse(2)
-          iu1=input%xs%bse%nstlbse(3)+istunocc0-1
-          iu2=input%xs%bse%nstlbse(4)+istunocc0-1
+          iu1= input%xs%bse%nstlbse(3)+istunocc0-1
+          iu2= input%xs%bse%nstlbse(4)+istunocc0-1
         end if
 
+      end if
+
+      if(istunocc0 < io1) then
+        write(*, '("Waring(select_transitions):", a, 2i4)') &
+          & "Lowest (partially) unoccupied band is below the first &
+           considered (partially) occupied band.", istunocc0, io1
       end if
 
       write(unitout, '("Info(select_transitions): Searching for transitions in&
@@ -532,6 +546,7 @@ module modbse
       ! to those of the k'=k+qmt/2 grid.
       call init1offs(vkqmtploff)
 
+      ! Check for coinciding k-grids 
       if(all(abs(vkqmtmloff-vkloff) < epslat)) then
         write(unitout, '("Info(select_transitions): Same k-grids for - and ref. grids at iqmt=",i3)') iqmt
         fsamek0=.true.
@@ -539,7 +554,6 @@ module modbse
         write(unitout, '("Info(select_transitions): Different k-grids for - and ref. grids at iqmt=",i3)') iqmt
         fsamek0=.false.
       end if
-
       if(all(abs(vkqmtploff-vkloff) < epslat)) then
         write(unitout, '("Info(select_transitions): Same k-grids for + and ref. grids at iqmt=",i3)') iqmt
         fsamek1=.true.
@@ -547,7 +561,6 @@ module modbse
         write(unitout, '("Info(select_transitions): Different k-grids for + and ref. grids at iqmt=",i3)') iqmt
         fsamek1=.false.
       end if
-
       if(all(abs(vkqmtmloff-vkqmtploff) < epslat)) then
         write(unitout, '("Info(select_transitions): Same k-grids for + and - grids at iqmt=",i3)') iqmt
         fsamek=.true.
@@ -573,19 +586,20 @@ module modbse
 
         !! Get energies and occupancies for k-qmt/2
         !! and save them in the 0 named variables
+        ! Use modxs:filext0 in getoccsv0 and getevalsv0
         usefilext0 = .true.
         if(fsamek0) then
           ! Set EVALSV_QMT001.OUT as read file
-          call genfilname(iqmt=iqmtgamma, setfilext=.true., fileext=filext0)
+          call genfilname(iqmt=iqmtgamma, fileext=filext0)
         else
           ! If + - grids are the same use the + one
           if(fsamek) then 
             ! Set EVALSV_QMTXYZ.OUT as read file
-            call genfilname(iqmt=iqmt, setfilext=.true., fileext=filext0)
+            call genfilname(iqmt=iqmt, fileext=filext0)
           ! Normal case: use the - grid 
           else
             ! Set EVALSV_QMTXYZ_m.OUT as read file
-            call genfilname(iqmt=iqmt, auxtype="m", setfilext=.true., fileext=filext0)
+            call genfilname(iqmt=iqmt, auxtype="m", fileext=filext0)
           end if
         end if
         do ik = 1, nkpt
@@ -596,6 +610,7 @@ module modbse
         gwiomin = 1
         gwiumax = nstsv
 
+      ! On top of GW
       else if(associated(input%gw) .and. iqmt==1) then 
 
         ! Get KS occupations/eigenvalues
@@ -663,6 +678,7 @@ module modbse
         k2 = lastofset(mpiglobal%rank, nk_max, mpiglobal%procs)
       end if
 
+      ! Loop over reference k-grid
       ikloop: do ik = k1, k2
 
         ! Get k+qmt/2 index form k index
@@ -681,7 +697,7 @@ module modbse
         ! Loop over KS transition energies 
         !$OMP PARALLEL DO &
         !$OMP& COLLAPSE(2),&
-        !$OMP& DEFAULT(SHARED), PRIVATE(io,iu,s,detmp,posdiff),&
+        !$OMP& DEFAULT(SHARED), PRIVATE(io,iu,s,detmp,doctmp,posdiff),&
         !$OMP& REDUCTION(+:kous),&
         !$OMP& REDUCTION(max:iomax),&
         !$OMP& REDUCTION(min:iomin),&
@@ -689,12 +705,13 @@ module modbse
         !$OMP& REDUCTION(min:iumin)
         do io = io1, io2
           do iu = iu1, iu2 
-            if(fensel ) then
 
-              if (input%xs%bse%xas) then
+            if(fensel) then
+
+              ! \Delta E = E_{u,k-qmt/2} - E_{o,k+qmt/2} + shift
+              if (fxas) then
                 detmp= evalsv0(iu, ikqm) - ecore(io) + sci
               else
-                ! \Delta E = E_{u,k-qmt/2} - E_{o,k+qmt/2} + shift
                 detmp = evalsv0(iu, ikqm) - evalsv(io, ikqp) + sci
               end if 
 
@@ -703,13 +720,19 @@ module modbse
 
                 ! Only consider transitions which have a positve non-zero 
                 ! occupancy difference f_{o ki+qmt/2} - f_{u ki-qmt/2}
-                if (.not. input%xs%bse%xas .and. (occsv(io, ikqp) - occsv0(iu, ikqm)&
-                  &> cutoffocc)) then
-                  posdiff=.TRUE.
-                elseif (input%xs%bse%xas .AND. (1.0d0 -occsv0(iu, ikqm))> cutoffocc) then 
-                  posdiff=.TRUE.
+                !
+                ! If it is a XAS comutation:
+                if(fxas) then 
+                  doctmp = 1.0d0 - occsv0(iu, ikqm)
+                ! If it is a optics comutation:
                 else
-                  posdiff=.FALSE.
+                  doctmp = occsv(io, ikqp) - occsv0(iu, ikqm)
+                end if
+                ! Check if positive
+                if(doctmp > cutoffocc) then
+                  posdiff=.true.
+                else 
+                  posdiff=.false.
                 end if
 
                 if(posdiff) then 
@@ -753,15 +776,20 @@ module modbse
             else
 
               ! Only consider transitions which have a positve non-zero 
-              ! occupancy difference f_{o ki} - f_{u ki+q}
-              if (.not. input%xs%bse%xas .and. (occsv(io, ikqp) - occsv0(iu, ikqm)&
-                &> cutoffocc)) then
-                posdiff=.TRUE.
-              else if (input%xs%bse%xas .and. (1.0d0 -occsv0(iu, ikqm))> cutoffocc) then
-              !else if (input%xs%bse%xas) then
-                posdiff=.TRUE.
+              ! occupancy difference f_{o ki+qmt/2} - f_{u ki-qmt/2}
+              !
+              ! If it is a XAS comutation:
+              if(fxas) then 
+                doctmp = 1.0d0 - occsv0(iu, ikqm)
+              ! If it is a optics comutation:
               else
-                posdiff=.FALSE.
+                doctmp = occsv(io, ikqp) - occsv0(iu, ikqm)
+              end if
+              ! Check if positive
+              if(doctmp > cutoffocc) then
+                posdiff=.true.
+              else 
+                posdiff=.false.
               end if
 
               if(posdiff) then 
@@ -781,16 +809,16 @@ module modbse
                 smap_loc(3,s) = ik
 
                 ! Save energy difference
-                if (input%xs%bse%xas) then
+                ! \Delta E = E_{u,k-qmt/2} - E_{o,k+qmt/2} + shift
+                if (fxas) then
                   de_loc(s)=evalsv0(iu,ikqm)-ecore(io)+sci
                 else
-                  ! \Delta E = E_{u,k-qmt/2} - E_{o,k+qmt/2} + shift
                   de_loc(s) = evalsv0(iu,ikqm)-evalsv(io,ikqp)+sci
                 end if
 
                 ! Save occupation factor
-                if (input%xs%bse%xas) then
-                 ofac_loc(s)= sqrt(1.0d0 - occsv0(iu, ikqm)/maxocc)
+                if (fxas) then
+                  ofac_loc(s) = sqrt(1.0d0 - occsv0(iu, ikqm)/maxocc)
                 else
                   ofac_loc(s) = sqrt((occsv(io, ikqp) - occsv0(iu, ikqm))/maxocc)
                 end if
@@ -809,10 +837,13 @@ module modbse
 
             end if
 
+          ! io iu loops
           end do
         end do
         !$OMP END PARALLEL DO
 
+        ! u limits refer to the corresponding k_- 
+        ! o limits refer to the corresponding k_+ 
         koulims(1,ik) = iumin
         koulims(2,ik) = iumax
         koulims(3,ik) = iomin
@@ -833,13 +864,14 @@ module modbse
           & inplace=.true., comm=mpiglobal)
       end if
 #endif
-      ! Calculate maximal no(k) and nu(k)
+      ! Calculate maximal no(k_+) and nu(k_-)
       no_bse_max=0
       nu_bse_max=0
       do ik = 1, nk_max
         no_bse_max = max(koulims(4, ik)-koulims(3, ik)+1, no_bse_max)
         nu_bse_max = max(koulims(2, ik)-koulims(1, ik)+1, nu_bse_max)
       end do
+      ! Maximal number of transitions at one k
       nou_bse_max=maxval(kousize)
       ! Global results
       ! Number of contributing k points
@@ -853,6 +885,10 @@ module modbse
       allocate(kmap_bse_gr(nk_max))
       ik = 0
       do iknr = 1, nk_max
+        ! If there is a valid transition from ik_- to ik_+,
+        ! add the k-point to the bse-index. Keep maps
+        ! between relative indexing (i.e. bse-k-point) and
+        ! the global index of the full k-grid. 
         if(kousize(iknr) /= 0) then
           ik = ik + 1
           kmap_bse_rg(ik) = iknr
@@ -862,7 +898,8 @@ module modbse
         end if
       end do
 
-      ! Size of the resulting resonant BSE Hamiltonian
+      ! Size of the resulting resonant BSE Hamiltonian, i.e.
+      ! number of transitions.
       hamsize = sum(kousize)
       ! Combined index map
       if(allocated(smap)) deallocate(smap)
@@ -921,8 +958,10 @@ module modbse
         smap_rel(3,i1) = kmap_bse_gr(iknr)
       end do
 
-      !write(unitout, '("Info(select_transitions):&
-      !  & Number of participating transitions:", I8)') sum(kousize) 
+      write(unitout, '("Info(select_transitions):&
+        & Number of participating transitions:", I8)') sum(kousize) 
+
+      ! Print mappings to human readable file
       if(fserial) then 
         if(present(dirname)) then 
           call printso(iqmt, dirname)
@@ -959,16 +998,19 @@ module modbse
         fdir = trim(dirname)//'/'//trim(fdir)
       end if
       if(mpiglobal%rank == 0) then 
-        syscommand = 'test ! -d '//trim(adjustl(fdir))//' && mkdir -p '//trim(adjustl(fdir))
+        syscommand = 'test ! -d '//trim(adjustl(fdir))&
+         &//' && mkdir -p '//trim(adjustl(fdir))
         call system(trim(adjustl(syscommand)))
       end if
       write(fiqmt,*) iqmt
       fext = '_QMT'//trim(adjustl(fiqmt))//'.OUT'
 
+      ! Write bse index map
       call getunit(un)
       fname = trim(adjustl(fdir))//'/'//'BSE_SINDEX'//fext
       open(un, file=trim(adjustl(fname)), action='write', status='replace')
-      write(un,'("# Combined BSE index @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
+      write(un,'("# Combined BSE index @ Q =", 3(E10.3,1x))')&
+        &  input%xs%qpointset%qpoint(:, iqmt)
       write(un,'("# s iu io ik iu_rel io_rel ik_rel occ")')
       do i = 1, size(ofac)
         write(un, '(7(I8,1x),1x,E23.16)')&
@@ -976,18 +1018,22 @@ module modbse
       end do
       close(un)
 
+      ! Write ranges of occupied/unoccupied states involved at ik
       call getunit(un)
       fname = trim(adjustl(fdir))//'/'//'KOU'//fext
       open(un, file=trim(adjustl(fname)), action='write', status='replace')
       write(un,'("# k-o-u ranges used in combined BSE index @ iqmt =", i3)')&
         & iqmt
-      write(un,'("# ik iu1 iu2 io1 io2 nou")')
+      write(un,'("# u ranges refer to k_-, o ranges refer to k_+")')
+      write(un,'("# ik ikm ikp iu1 iu2 io1 io2 nou")')
       do i = 1, nk_max
-        write(un, '(6(I8,1x))')&
-          & i, koulims(1,i), koulims(2,i), koulims(3,i), koulims(4,i), kousize(i)
+        write(un, '(8(I8,1x))')&
+          & i, ik2ikqmtm(i), ik2ikqmtp(i),&
+          & koulims(1,i), koulims(2,i), koulims(3,i), koulims(4,i), kousize(i)
       end do
       close(un)
 
+      ! Write IP/QP transition energies
       call getunit(un)
       fname = trim(adjustl(fdir))//'/'//'EKSTRANS'//fext
       open(un, file=trim(adjustl(fname)), action='write', status='replace')
@@ -999,7 +1045,7 @@ module modbse
           & i, de(i)-sci, de(i)
       end do
       close(un)
-
+      ! Same but energy-sorted
       call getunit(un)
       fname = trim(adjustl(fdir))//'/'//'EKSTRANS_sorted'//fext
       open(un, file=trim(adjustl(fname)), action='write', status='replace')
@@ -1045,7 +1091,11 @@ module modbse
       if(input%xs%bse%coupling) then
         tdastring=''
       else
-        tdastring="-TDA"
+        if(input%xs%bse%chibarq) then 
+          tdastring="-TDA-BAR"
+        else
+          tdastring="-TDA"
+        end if
       end if
 
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)

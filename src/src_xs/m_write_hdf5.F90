@@ -187,11 +187,12 @@ module m_write_hdf5
       if (.not. hdf5_exist_group(fhdf5, gname_, "parameters")) then
         call hdf5_create_group(fhdf5,gname_, "parameters")
       end if
-      group=trim(adjustl(gname_))//"parameters"     
-      call hdf5_write(fhdf5,group,"ivgmt", ivgmt(1,iqmt), shape(ivgmt(1:3,iqmt)))
-      call hdf5_write(fhdf5,group,"vqlmt",vqlmt(1,iqmt), shape(vqlmt(1:3,iqmt)))
-      call hdf5_write(fhdf5,group,"vgcmt",vgcmt(1,iqmt), shape(vgcmt(1:3,iqmt)))
-      call hdf5_write(fhdf5,group,"vqcmt",vqcmt(1,iqmt), shape(vqcmt(1:3,iqmt)))
+      iq=iqmt
+      group=trim(adjustl(gname_))//"parameters"
+      call hdf5_write(fhdf5,group,"ivgmt", ivgmt(1,iq), shape(ivgmt(1:3,iq)))
+      call hdf5_write(fhdf5,group,"vqlmt",vqlmt(1,iq), shape(vqlmt(1:3,iq)))
+      call hdf5_write(fhdf5,group,"vgcmt",vgcmt(1,iq), shape(vgcmt(1:3,iq)))
+      call hdf5_write(fhdf5,group,"vqcmt",vqcmt(1,iq), shape(vqcmt(1:3,iq)))
       call hdf5_write(fhdf5,group,"escale",escale)
       call hdf5_write(fhdf5,group,"eshift",eshift*escale)
       
@@ -203,13 +204,6 @@ module m_write_hdf5
       call hdf5_write(fhdf5,gname_,"evalre", evalre_(1), shape(evalre_))
       deallocate(evalre_)
       
-
-      ! Loop over optical components
-      if(present(iqmt)) then 
-        iq = iqmt
-      else
-        iq = 1
-      end if
 
       io1=1
       io2=3

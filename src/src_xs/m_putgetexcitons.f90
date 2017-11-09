@@ -68,10 +68,10 @@ module m_putgetexcitons
 
       ! Local
       integer(4) :: stat, unexc
-      logical :: fcoup, fesel
+      logical :: fcoup, fesel, fchibarq
       integer(4) :: i1, i2, nexcstored, iq, m, n, ngridk(3)
 
-      character(128) :: group
+      character(128) :: group, gname, gname_, ciq, ci
       character(256) :: fname
       character(256) :: tdastring, bsetypestring, scrtypestring
 
@@ -123,6 +123,9 @@ module m_putgetexcitons
         call terminate
       end if
 
+      ! Was the Coulomb potential truncated?
+      fchibarq = input%xs%bse%chibarq
+
       ! BSE type
       fcoup = input%xs%bse%coupling 
       if(any(input%xs%bse%nstlbse == 0)) then
@@ -135,11 +138,15 @@ module m_putgetexcitons
       if(fcoup) then
         tdastring=''
       else
-        tdastring="-TDA"
+        if(fchibarq) then 
+          tdastring="-TDA-BAR"
+        else
+          tdastring="-TDA"
+        end if
       end if
-#ifndef _HDF5_
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
+#ifndef _HDF5_
       ! Set filename to EXCCOEFF_*.OUT
       call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
         & scrtype=trim(scrtypestring), filnam=fname)
@@ -157,12 +164,21 @@ module m_putgetexcitons
 #endif
 #ifdef _HDF5_  
       ! Create hdf5 File
-      if (.not. hdf5_exist_group(fhdf5,"/","eigvec")) then
-        call hdf5_create_group(fhdf5,"/","eigvec")
+      write(ciq, '(I4.4)') iq ! Generate string out of momentum transfer index
+      gname="eigvec"//trim(bsetypestring)//trim(scrtypestring)
+      if (.not. hdf5_exist_group(fhdf5,"/",gname)) then
+        call hdf5_create_group(fhdf5,"/",gname)
       end if
+      gname_=trim(adjustl(gname))//"/"
+      ! Generate subgroup for each iqmt
+      if (.not. hdf5_exist_group(fhdf5,gname_,ciq)) then
+        call hdf5_create_group(fhdf5,gname,ciq)
+      end if
+      gname_=trim(adjustl(gname_))//trim(adjustl(ciq))//"/"
+      
       ! Write Metadata
-      call hdf5_create_group(fhdf5, "/eigvec/", "parameters")
-      group= "/eigvec/parameters"
+      call hdf5_create_group(fhdf5, gname_, "parameters")
+      group= trim(adjustl(gname_))//"parameters"
       call hdf5_write(fhdf5,group,"fcoup",fcoup)    ! Was the TDA used?
       call hdf5_write(fhdf5,group,"fesel",fesel)
       call hdf5_write(fhdf5,group,"nk_max",nk_max)
@@ -187,13 +203,11 @@ module m_putgetexcitons
       call hdf5_write(fhdf5,group,"ioref",ioref)
       call hdf5_write(fhdf5,group,"iuref",iuref)
       ! Write actual data
-      call hdf5_write(fhdf5,"/eigvec/","evals",evals(1), shape(evals))
-      call hdf5_write(fhdf5,"/eigvec/","rvec", rvec(1,1), shape(rvec))
+      call hdf5_write(fhdf5,gname_,"evals",evals(1), shape(evals))
+      call hdf5_write(fhdf5,gname_,"rvec", rvec(1,1), shape(rvec))
       if(present(avec)) then
-        call hdf5_write(fhdf5,"/eigvec/","avec", avec(1,1), shape(avec))
+        call hdf5_write(fhdf5,gname_,"avec", avec(1,1), shape(avec))
       end if 
-      call hdf5_finalize()
-      ! Write data 
 #else
       !   Meta data
       write(unexc)&
@@ -230,6 +244,7 @@ module m_putgetexcitons
     end subroutine put_excitons
 
     subroutine get_excitons(iqmt, a1, a2, e1, e2)
+      use modxs, only: fhdf5
       use mod_hdf5
       
       integer(4), intent(in), optional :: iqmt, a1, a2
@@ -241,13 +256,13 @@ module m_putgetexcitons
       real(8), parameter :: epslat = 1.0d-6
       integer(4) :: stat, unexc, cmplxlen
       integer(8) :: mypos, pos1, pos2
-      logical :: fcoup, fesel, fex, useindex, useenergy
+      logical :: fcoup, fesel, fex, useindex, useenergy, fchibarq
       complex(8) :: zdummy
 
       character(256) :: fname
 
       character(256) :: tdastring, bsetypestring, scrtypestring
-      character(128) :: group
+      character(128) :: group, ciq, gname, gname_
 
       if(present(iqmt)) then 
         iq = iqmt
@@ -320,20 +335,24 @@ module m_putgetexcitons
       vqlmt = input%xs%qpointset%qpoint(:,iq)
       call r3frac(epslat, vqlmt, ivec)
 
+      ! Was the Coulomb potential truncated?
+      fchibarq = input%xs%bse%chibarq
       ! Generate file name  
       if(fcoup) then
         tdastring=''
       else
-        tdastring="-TDA"
+        if(fchibarq) then 
+          tdastring="-TDA-BAR"
+        else
+          tdastring="-TDA"
+        end if
       end if
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
+#ifndef _HDF5_
       ! Set filename to EXCCOEFF_*.OUT
       call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
         & scrtype=trim(scrtypestring), filnam=fname)
-#ifdef _HDF5_
-      fname="/home/development/testing/hdf5/bse_output.h5"  
-#endif
       ! Check if file exists
       inquire(file=trim(fname), exist=fex)
       if(.not. fex ) then
@@ -342,7 +361,6 @@ module m_putgetexcitons
         write(*,*)
         call terminate
       end if
-#ifndef _HDF5_
       ! Open stream access file 
       call getunit(unexc)
       open(unexc, file=trim(fname), access='stream',&
@@ -360,23 +378,34 @@ module m_putgetexcitons
       allocate(ngridk_(3))
 
 #ifdef _HDF5_
+      ! Create hdf5 File
+      write(ciq, '(I4.4)') iq ! Generate string out of momentum transfer index
+      gname="eigvec"//trim(bsetypestring)//trim(scrtypestring)
+      if (.not. hdf5_exist_group(fhdf5,"/",gname)) then
+        call hdf5_create_group(fhdf5,"/",gname)
+      end if
+      gname_=trim(adjustl(gname))//"/"
+      ! Generate subgroup for each iqmt
+      if (.not. hdf5_exist_group(fhdf5,gname_,ciq)) then
+        call hdf5_create_group(fhdf5,gname,ciq)
+      end if
+      gname_=trim(adjustl(gname_))//trim(adjustl(ciq))//"/"
       ! Read Meta data
-      group="/eigvec/parameters"
-      write(*,*) 'filename=', fname
+      group=trim(adjustl(gname_))//"parameters"
       call hdf5_initialize()
-      call hdf5_read(fname,group,"fcoup",fcoup_)      
-      call hdf5_read(fname,group,"fesel",fesel_)      
-      call hdf5_read(fname,group,"nk_max",nk_max_)
-      call hdf5_read(fname,group,"nk_bse",nk_bse_)
-      call hdf5_read(fname,group,"hamsize",hamsize_)
-      call hdf5_read(fname,group,"iq", iq_)
-      call hdf5_read(fname,group,"vqlmt(iq)", vqlmt_(1), (/3/))
-      call hdf5_read(fname,group,"ngridk", ngridk_(1), shape(ngridk_))
-      call hdf5_read(fname,group,"nexcstored",nexcstored_)
-      call hdf5_read(fname,group,"i1",iex1_)
-      call hdf5_read(fname,group,"i2",iex2_)
-      call hdf5_read(fname,group,"ioref",ioref_)
-      call hdf5_read(fname,group,"iuref",iuref_)
+      call hdf5_read(fhdf5,group,"fcoup",fcoup_)      
+      call hdf5_read(fhdf5,group,"fesel",fesel_)      
+      call hdf5_read(fhdf5,group,"nk_max",nk_max_)
+      call hdf5_read(fhdf5,group,"nk_bse",nk_bse_)
+      call hdf5_read(fhdf5,group,"hamsize",hamsize_)
+      call hdf5_read(fhdf5,group,"iq", iq_)
+      call hdf5_read(fhdf5,group,"vqlmt(iq)", vqlmt_(1), (/3/))
+      call hdf5_read(fhdf5,group,"ngridk", ngridk_(1), shape(ngridk_))
+      call hdf5_read(fhdf5,group,"nexcstored",nexcstored_)
+      call hdf5_read(fhdf5,group,"i1",iex1_)
+      call hdf5_read(fhdf5,group,"i2",iex2_)
+      call hdf5_read(fhdf5,group,"ioref",ioref_)
+      call hdf5_read(fhdf5,group,"iuref",iuref_)
 #else
       ! Read Meta data
       read(unexc, pos=1)&
@@ -433,17 +462,17 @@ module m_putgetexcitons
 
       allocate(evalstmp(iex1_:iex2_))
 #ifdef _HDF5_
-      call hdf5_read(fname,group,"ikmap", ikmap_(1,1,1), shape(ikmap_))
-      call hdf5_read(fname,group,"vkl0", vkl0_(1,1), shape(vkl0_))
-      call hdf5_read(fname,group,"vkl", vkl_(1,1), shape(vkl_))
-      call hdf5_read(fname,group,"ik2ikqmtm",ik2ikqmtm_(1), (/nk_max_/))
-      call hdf5_read(fname,group,"ik2ikqmtp",ik2ikqmtp_(1), (/nk_max_/))
-      call hdf5_read(fname,group,"ikqmtm2ikqmtp",ikqmtm2ikqmtp_(1), (/nk_max_/))
-      call hdf5_read(fname,group,"kousize", kousize_(1), shape(kousize_))
-      call hdf5_read(fname,group,"koulims",koulims_(1,1), shape(koulims_))
-      call hdf5_read(fname,group,"smap",smap_(1,1), shape(smap_))
-      call hdf5_read(fname,group,"smap_rel",smap_rel_(1,1), shape(smap_rel_))
-      call hdf5_read(fname,"/eigvec/","evals",evalstmp(1), shape(evalstmp))
+      call hdf5_read(fhdf5,group,"ikmap", ikmap_(1,1,1), shape(ikmap_))
+      call hdf5_read(fhdf5,group,"vkl0", vkl0_(1,1), shape(vkl0_))
+      call hdf5_read(fhdf5,group,"vkl", vkl_(1,1), shape(vkl_))
+      call hdf5_read(fhdf5,group,"ik2ikqmtm",ik2ikqmtm_(1), (/nk_max_/))
+      call hdf5_read(fhdf5,group,"ik2ikqmtp",ik2ikqmtp_(1), (/nk_max_/))
+      call hdf5_read(fhdf5,group,"ikqmtm2ikqmtp",ikqmtm2ikqmtp_(1), (/nk_max_/))
+      call hdf5_read(fhdf5,group,"kousize", kousize_(1), shape(kousize_))
+      call hdf5_read(fhdf5,group,"koulims",koulims_(1,1), shape(koulims_))
+      call hdf5_read(fhdf5,group,"smap",smap_(1,1), shape(smap_))
+      call hdf5_read(fhdf5,group,"smap_rel",smap_rel_(1,1), shape(smap_rel_))
+      call hdf5_read(fhdf5,gname_,"evals",evalstmp(1), shape(evalstmp))
 #else
       read(unexc, pos=mypos)&
         & ikmap_,&      ! Non reduced k-grid index map 3d -> 1d 
@@ -489,16 +518,12 @@ module m_putgetexcitons
 #ifdef _HDF5_
       ! Resonant part of the eigenvectors
       allocate(rvec_(hamsize_, i1:i2))
-      pos1=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
-      call hdf5_read(fname,"/excitons/","rvec", rvec_(1,1), shape(rvec_))
+      call hdf5_read(fhdf5,gname_,"rvec", rvec_(1,1), shape(rvec_))
       if(fcoup_) then  
         ! Anti-resonant part of the eigenvectors
         allocate(avec_(hamsize_, i1:i2))
-        pos1=int(iex2_-iex1_+1,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
-        pos2=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+pos1
-        call hdf5_write(fname,"/excitons/","avec", avec_(1,1), shape(avec_))
+        call hdf5_write(fhdf5,gname_,"avec", avec_(1,1), shape(avec_))
       end if
-      call hdf5_finalize()
 #else
       ! Resonant part of the eigenvectors
       allocate(rvec_(hamsize_, i1:i2))
@@ -523,6 +548,8 @@ module m_putgetexcitons
     end subroutine get_excitons
 
     subroutine putd_excitons(evals, drvec, davec, iqmt, a1, a2)
+      use modxs, only: fhdf5
+      use mod_hdf5
       use mod_kpoint, only: ikmap
       use modinput
 
@@ -537,14 +564,14 @@ module m_putgetexcitons
       ! Local
       type(dzmat) :: dauxmat
       integer(4) :: stat, unexc
-      logical :: fcoup, fesel
+      logical :: fcoup, fesel, fchibarq
       integer(4) :: i1, i2, nexcstored, iq, m, n, m2, n2, i, ngridk(3)
       logical :: sane, distributed
 
 
-      character(256) :: fname
+      character(256) :: fname, ciq, ci
       character(256) :: tdastring, bsetypestring, scrtypestring
-
+      character(256) :: group, gname_, gname
       if(present(davec)) then
         sane = drvec%isdistributed == davec%isdistributed
       else
@@ -636,6 +663,9 @@ module m_putgetexcitons
         fesel = .false.
       end if
 
+      ! Was the Coulomb potential truncated?
+      fchibarq = input%xs%bse%chibarq
+
       ! Root does the writing to file
       if(bi2d%isroot) then 
 
@@ -643,10 +673,15 @@ module m_putgetexcitons
         if(fcoup) then
           tdastring=''
         else
-          tdastring="-TDA"
+          if(fchibarq) then 
+            tdastring="-TDA-BAR"
+          else
+            tdastring="-TDA"
+          end if
         end if
         bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
         scrtypestring = '-'//trim(input%xs%screening%screentype)
+#ifndef _HDF5_
         ! Set filename to EXCCOEFF_*.OUT
         call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
           & scrtype=trim(scrtypestring), filnam=fname)
@@ -661,7 +696,57 @@ module m_putgetexcitons
           write(*,*)
           call terminate
         end if
-
+#endif
+#ifdef _HDF5_
+        ! Create hdf5 File
+        write(ciq, '(I4.4)') iq ! Generate string out of momentum transfer index
+        gname="eigvec"//trim(bsetypestring)//trim(scrtypestring)
+        if (.not. hdf5_exist_group(fhdf5,"/",gname)) then
+          call hdf5_create_group(fhdf5,"/",gname)
+        end if
+        gname_=trim(adjustl(gname))//"/"
+        ! Generate subgroup for each iqmt
+        if (.not. hdf5_exist_group(fhdf5,gname_,ciq)) then
+          call hdf5_create_group(fhdf5,gname,ciq)
+        end if
+        gname_=trim(adjustl(gname_))//trim(adjustl(ciq))//"/"
+        ! Write Metadata
+        call hdf5_create_group(fhdf5, gname_, "parameters")
+        group= trim(adjustl(gname_))//'parameters'
+        call hdf5_write(fhdf5,group,"fcoup",fcoup)    ! Was the TDA used?
+        call hdf5_write(fhdf5,group,"fesel",fesel)
+        call hdf5_write(fhdf5,group,"nk_max",nk_max)
+        call hdf5_write(fhdf5,group,"nk_bse",nk_bse)
+        call hdf5_write(fhdf5,group,"hamsize",hamsize)
+        call hdf5_write(fhdf5,group,"iq", iq)
+        call hdf5_write(fhdf5,group,"vqlmt(iq)", vqlmt(1,iq), shape(vqlmt(1:3,iq)))
+        call hdf5_write(fhdf5,group,"ngridk", ngridk(1), shape(ngridk))
+        call hdf5_write(fhdf5,group,"ikmap", ikmap(1,1,1), shape(ikmap))
+        call hdf5_write(fhdf5,group,"vkl0", vkl0(1,1), shape(vkl0))
+        call hdf5_write(fhdf5,group,"vkl", vkl(1,1), shape(vkl))
+        call hdf5_write(fhdf5,group,"ik2ikqmtp",ik2ikqmtp(1), shape(ik2ikqmtp(:)))
+        call hdf5_write(fhdf5,group,"ik2ikqmtm",ik2ikqmtm(1), shape(ik2ikqmtm(:)))
+        call hdf5_write(fhdf5,group,"ikqmtm2ikqmtp",ikqmtm2ikqmtp(1), shape(ikqmtm2ikqmtp(:)))
+        call hdf5_write(fhdf5,group,"kousize", kousize(1), shape(kousize))
+        call hdf5_write(fhdf5,group,"koulims",koulims(1,1), shape(koulims))
+        call hdf5_write(fhdf5,group,"smap",smap(1,1), shape(smap))
+        call hdf5_write(fhdf5,group,"smap_rel",smap_rel(1,1), shape(smap_rel))
+        call hdf5_write(fhdf5,group,"nexcstored",nexcstored)
+        call hdf5_write(fhdf5,group,"i1",i1)
+        call hdf5_write(fhdf5,group,"i2",i2)
+        call hdf5_write(fhdf5,group,"ioref",ioref)
+        call hdf5_write(fhdf5,group,"iuref",iuref)
+        ! Write actual data
+        call hdf5_write(fhdf5,gname_,"evals",evals(1), shape(evals))
+        ! Create groups for distributed eigenvectors
+        if (.not. hdf5_exist_group(fhdf5,gname_,"rvec")) then
+          call hdf5_create_group(fhdf5,gname_,"rvec")
+        end if
+        if ((present(davec)) .and. (.not. hdf5_exist_group(fhdf5,gname_,"avec"))) then
+          call hdf5_create_group(fhdf5,gname_,"avec")
+        end if
+#endif
+#ifndef _HDF5_
         ! Write data 
         !   Meta data
         write(unexc)&
@@ -688,33 +773,49 @@ module m_putgetexcitons
           & smap_rel      ! Index map  alpha -> c,v,k (relative c,v,k indices)
         ! Evals
         write(unexc) evals
-
+#endif
         ! Collect eigenvectors column wise and write them to file 
 
         call new_dzmat(dauxmat, m, 1, bi0d)
-
+#ifdef _HDF5_
+        group=trim(adjustl(gname_))//'rvec'
+#endif
         do i= 1, nexcstored
           ! Copy i'th column of distributed eigenvector matrix to root 
           call dzmat_copy(drvec%context, m, 1, dmata=drvec, dmatb=dauxmat,&
             & ra=1, ca=i+drvec%subj-1)
           ! Write eigenvector
+#ifdef _HDF5_
+          write(ci, '(I8.8)') i
+          print *, 'ci=', trim(ci)
+          call hdf5_write(fhdf5, group, ci, dauxmat%za(1,1),  shape(dauxmat%za(1:m,1)))
+#else          
           write(unexc) dauxmat%za(1:m,1)
-        end do
+#endif
+          end do
 
+#ifdef _HDF5_
+        group=trim(adjustl(gname_))//'avec'
+#endif
         if(present(davec)) then 
           do i= 1, nexcstored
             call dzmat_copy(davec%context, m, 1, dmata=davec, dmatb=dauxmat,&
               & ra=1, ca=i+davec%subj-1)
             ! Write eigenvector
+#ifdef _HDF5_
+            write(ci, '(I4.8)') i
+            call hdf5_write(fhdf5, group, ci, dauxmat%za(1,1), shape(dauxmat%za(1:m,1)))
+#else          
             write(unexc) dauxmat%za(1:m,1)
-          end do
+#endif
+            end do
         end if
 
         call del_dzmat(dauxmat)
-
+#ifndef _HDF5_
         ! Done
         close(unexc)
-
+#endif
       ! Send to root
       else
 

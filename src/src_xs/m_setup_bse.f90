@@ -295,9 +295,14 @@ module m_setup_bse
       ! Timings
       real(8) :: ts0, ts1
       
-      ! Write out the coupling measure ? 
+      logical :: fchibarq
       logical :: fmeasure
+
+      ! Write out the coupling measure ? 
       fmeasure = input%xs%bse%measure
+
+      ! Use truncated Coulomb potential
+      fchibarq = input%xs%bse%chibarq
 
       call timesec(ts0)
       if(.not. fcoup) then 
@@ -343,10 +348,13 @@ module m_setup_bse
       ! Select form which files W and V are to be read
       if(.not. fcoup) then
         call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=sfname)
-        call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
       else
         call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=sfname)
+      end if
+      if(.not. fchibarq) then
         call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
+      else
+        call genfilname(basename=exclifbasename, bsetype="-BAR", iqmt=iqmt, filnam=efname)
       end if
 
       sinfofname = trim(infofbasename)//'_'//trim(sfname)
@@ -879,9 +887,15 @@ module m_setup_bse
       logical :: esfcmpt, esfid, ferror
       logical :: useexc, usescc
 
-      ! Make coupling measures? 
       logical :: fmeasure
+      logical :: fchibarq
+
+      ! Make coupling measures? 
       fmeasure = input%xs%bse%measure
+
+      ! Use truncated Coulomb potential? 
+      fchibarq = input%xs%bse%chibarq
+
 
       if(ham%isdistributed) then 
 
@@ -941,7 +955,11 @@ module m_setup_bse
           else
             call genfilname(basename=scclicfbasename, iqmt=iqmt, filnam=sfname)
           end if
-          call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
+          if(fchibarq) then 
+            call genfilname(basename=exclifbasename, bsetype="-BAR", iqmt=iqmt, filnam=efname)
+          else
+            call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=efname)
+          end if
 
           sinfofname = trim(infofbasename)//'_'//trim(sfname)
           einfofname = trim(infofbasename)//'_'//trim(efname)
@@ -1419,7 +1437,7 @@ module m_setup_bse
       
       integer(4) :: r, c
       complex(8), parameter :: ztwo=(2.0d0,0.0d0) 
-      complex(8), parameter :: zone=(1.0d0,0.0d0) 
+      complex(8), parameter :: zone=(1.0d0,0.0d0)
       complex(8) :: excfac 
       
       ! Set prefactor for exchange term in Hamiltonian

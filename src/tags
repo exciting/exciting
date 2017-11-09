@@ -13497,10 +13497,17 @@ A6	src_raman/mod_raman.f90	/^real(8) :: A0,A1,A2,A3,A4,A5,A6$/;"	v	module:raman_
 ABORT	src_vdwdf/Cuba-3.2/src/common/stddecl.h	86;"	d
 ABS	libXC/src/xc_config.h	30;"	d
 ABS	libXC/src/xc_config.h	6;"	d
+<<<<<<< HEAD
 ACLOCAL	libXC/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run aclocal-1.11$/;"	m
 ACLOCAL	libXC/build/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run aclocal-1.11$/;"	m
 ACLOCAL	libXC/src/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run aclocal-1.11$/;"	m
 ACLOCAL	libXC/testsuite/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+=======
+ACLOCAL	libXC/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/build/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/src/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/testsuite/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+>>>>>>> bse_v2.0
 ACLOCAL_AMFLAGS	libXC/Makefile	/^ACLOCAL_AMFLAGS = -I m4$/;"	m
 ACLOCAL_M4	libXC/Makefile	/^ACLOCAL_M4 = $(top_srcdir)\/aclocal.m4$/;"	m
 ACLOCAL_M4	libXC/build/Makefile	/^ACLOCAL_M4 = $(top_srcdir)\/aclocal.m4$/;"	m
@@ -13517,10 +13524,17 @@ ALLOCA	libXC/build/Makefile	/^ALLOCA = $/;"	m
 ALLOCA	libXC/src/Makefile	/^ALLOCA = $/;"	m
 ALLOCA	libXC/testsuite/Makefile	/^ALLOCA = $/;"	m
 AMP	FoX/wxml/m_wxml_escape.F90	/^  integer, parameter :: AMP /;"	v	module:m_wxml_escape
+<<<<<<< HEAD
 AMTAR	libXC/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run tar$/;"	m
 AMTAR	libXC/build/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run tar$/;"	m
 AMTAR	libXC/src/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run tar$/;"	m
 AMTAR	libXC/testsuite/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run tar$/;"	m
+=======
+AMTAR	libXC/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/build/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/src/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/testsuite/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run tar$/;"	m
+>>>>>>> bse_v2.0
 AM_RECURSIVE_TARGETS	libXC/Makefile	/^AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \\$/;"	m
 APOS	FoX/wxml/m_wxml_escape.F90	/^  integer, parameter :: APOS /;"	v	module:m_wxml_escape
 AR	BLAS/Makefile	/^AR = ar$/;"	m
@@ -13554,6 +13568,7 @@ ATT_NOTATION	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_NOTAT
 ATT_NULL	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_NULL /;"	v	module:m_common_element
 ATT_REQUIRED	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_REQUIRED /;"	v	module:m_common_element
 ATT_TYPES	FoX/common/m_common_element.F90	/^  character(len=8), parameter :: ATT_TYPES(/;"	v	module:m_common_element
+<<<<<<< HEAD
 AUTOCONF	libXC/Makefile	/^AUTOCONF = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run autoconf$/;"	m
 AUTOCONF	libXC/build/Makefile	/^AUTOCONF = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run autoconf$/;"	m
 AUTOCONF	libXC/src/Makefile	/^AUTOCONF = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run autoconf$/;"	m
@@ -13566,6 +13581,20 @@ AUTOMAKE	libXC/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_test
 AUTOMAKE	libXC/build/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run automake-1.11$/;"	m
 AUTOMAKE	libXC/src/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run automake-1.11$/;"	m
 AUTOMAKE	libXC/testsuite/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run automake-1.11$/;"	m
+=======
+AUTOCONF	libXC/Makefile	/^AUTOCONF = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/build/Makefile	/^AUTOCONF = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/src/Makefile	/^AUTOCONF = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/testsuite/Makefile	/^AUTOCONF = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOHEADER	libXC/Makefile	/^AUTOHEADER = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/build/Makefile	/^AUTOHEADER = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/src/Makefile	/^AUTOHEADER = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/testsuite/Makefile	/^AUTOHEADER = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOMAKE	libXC/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/build/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/src/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/testsuite/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run automake-1.11$/;"	m
+>>>>>>> bse_v2.0
 AWK	libXC/Makefile	/^AWK = gawk$/;"	m
 AWK	libXC/build/Makefile	/^AWK = gawk$/;"	m
 AWK	libXC/src/Makefile	/^AWK = gawk$/;"	m
@@ -13648,10 +13677,17 @@ CBRT	libXC/src/xc_config.h	21;"	d
 CBRT	libXC/src/xc_config.h	23;"	d
 CBRT	libXC/src/xc_config.h	39;"	d
 CBRT	libXC/src/xc_config.h	41;"	d
+<<<<<<< HEAD
 CC	libXC/Makefile	/^CC = icc$/;"	m
 CC	libXC/build/Makefile	/^CC = icc$/;"	m
 CC	libXC/src/Makefile	/^CC = icc$/;"	m
 CC	libXC/testsuite/Makefile	/^CC = icc$/;"	m
+=======
+CC	libXC/Makefile	/^CC = cc$/;"	m
+CC	libXC/build/Makefile	/^CC = cc$/;"	m
+CC	libXC/src/Makefile	/^CC = cc$/;"	m
+CC	libXC/testsuite/Makefile	/^CC = cc$/;"	m
+>>>>>>> bse_v2.0
 CCDEPMODE	libXC/Makefile	/^CCDEPMODE = depmode=gcc3$/;"	m
 CCDEPMODE	libXC/build/Makefile	/^CCDEPMODE = depmode=gcc3$/;"	m
 CCDEPMODE	libXC/src/Makefile	/^CCDEPMODE = depmode=gcc3$/;"	m
@@ -13994,10 +14030,17 @@ CPOTF2	LAPACK/cpotf2.f	/^      SUBROUTINE CPOTF2(/;"	s
 CPOTRF	LAPACK/cpotrf.f	/^      SUBROUTINE CPOTRF(/;"	s
 CPOTRI	LAPACK/cpotri.f	/^      SUBROUTINE CPOTRI(/;"	s
 CPOTRS	LAPACK/cpotrs.f	/^      SUBROUTINE CPOTRS(/;"	s
+<<<<<<< HEAD
 CPP	libXC/Makefile	/^CPP = icc -E$/;"	m
 CPP	libXC/build/Makefile	/^CPP = icc -E$/;"	m
 CPP	libXC/src/Makefile	/^CPP = icc -E$/;"	m
 CPP	libXC/testsuite/Makefile	/^CPP = icc -E$/;"	m
+=======
+CPP	libXC/Makefile	/^CPP = cc -E$/;"	m
+CPP	libXC/build/Makefile	/^CPP = cc -E$/;"	m
+CPP	libXC/src/Makefile	/^CPP = cc -E$/;"	m
+CPP	libXC/testsuite/Makefile	/^CPP = cc -E$/;"	m
+>>>>>>> bse_v2.0
 CPPCON	LAPACK/cppcon.f	/^      SUBROUTINE CPPCON(/;"	s
 CPPEQU	LAPACK/cppequ.f	/^      SUBROUTINE CPPEQU(/;"	s
 CPPFLAGS	libXC/Makefile	/^CPPFLAGS = $/;"	m
@@ -14835,10 +14878,17 @@ FCCPP	libXC/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/build/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/src/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/testsuite/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
+<<<<<<< HEAD
 FCFLAGS	libXC/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
 FCFLAGS	libXC/build/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
 FCFLAGS	libXC/src/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
 FCFLAGS	libXC/testsuite/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT  -D_HDF5_$/;"	m
+=======
+FCFLAGS	libXC/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT$/;"	m
+FCFLAGS	libXC/build/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT$/;"	m
+FCFLAGS	libXC/src/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT$/;"	m
+FCFLAGS	libXC/testsuite/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT$/;"	m
+>>>>>>> bse_v2.0
 FCFLAGS_f90	libXC/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/build/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/src/Makefile	/^FCFLAGS_f90 = $/;"	m
@@ -15218,10 +15268,17 @@ Lower	src_vdwdf/Cuba-3.2/src/divonne/Split.c	18;"	d	file:
 LowerBound	src_mixing/lib/LimitDMIX.F90	/^        real*8 LowerBound,/;"	v
 M	FoX/utils/fox_m_utils_mtprng.F90	/^    integer(INT32), parameter :: M /;"	v	module:fox_m_utils_mtprng
 MAKE	Makefile	/^MAKE = make$/;"	m
+<<<<<<< HEAD
 MAKEINFO	libXC/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run makeinfo$/;"	m
 MAKEINFO	libXC/build/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run makeinfo$/;"	m
 MAKEINFO	libXC/src/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run makeinfo$/;"	m
 MAKEINFO	libXC/testsuite/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/missing --run makeinfo$/;"	m
+=======
+MAKEINFO	libXC/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/build/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/src/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/testsuite/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run makeinfo$/;"	m
+>>>>>>> bse_v2.0
 MANIFEST_TOOL	libXC/Makefile	/^MANIFEST_TOOL = :$/;"	m
 MANIFEST_TOOL	libXC/build/Makefile	/^MANIFEST_TOOL = :$/;"	m
 MANIFEST_TOOL	libXC/src/Makefile	/^MANIFEST_TOOL = :$/;"	m
@@ -18086,6 +18143,7 @@ abort	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  jmp_buf abort;$/;"	m	struct:_this
 abort	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  jmp_buf abort;$/;"	m	struct:_this
 abort1	src_vdwdf/Cuba-3.2/src/common/stddecl.h	117;"	d
 abort2	src_vdwdf/Cuba-3.2/src/common/stddecl.h	118;"	d
+<<<<<<< HEAD
 abs_builddir	libXC/Makefile	/^abs_builddir = \/home\/development\/bse_v2.0_testing\/src\/libXC$/;"	m
 abs_builddir	libXC/build/Makefile	/^abs_builddir = \/home\/development\/bse_v2.0_testing\/src\/libXC\/build$/;"	m
 abs_builddir	libXC/src/Makefile	/^abs_builddir = \/home\/development\/bse_v2.0_testing\/src\/libXC\/src$/;"	m
@@ -18102,6 +18160,24 @@ abs_top_srcdir	libXC/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_t
 abs_top_srcdir	libXC/build/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_testing\/src\/libXC$/;"	m
 abs_top_srcdir	libXC/src/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_testing\/src\/libXC$/;"	m
 abs_top_srcdir	libXC/testsuite/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_testing\/src\/libXC$/;"	m
+=======
+abs_builddir	libXC/Makefile	/^abs_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
+abs_builddir	libXC/build/Makefile	/^abs_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/build$/;"	m
+abs_builddir	libXC/src/Makefile	/^abs_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/src$/;"	m
+abs_builddir	libXC/testsuite/Makefile	/^abs_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/testsuite$/;"	m
+abs_srcdir	libXC/Makefile	/^abs_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
+abs_srcdir	libXC/build/Makefile	/^abs_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/build$/;"	m
+abs_srcdir	libXC/src/Makefile	/^abs_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/src$/;"	m
+abs_srcdir	libXC/testsuite/Makefile	/^abs_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/testsuite$/;"	m
+abs_top_builddir	libXC/Makefile	/^abs_top_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
+abs_top_builddir	libXC/build/Makefile	/^abs_top_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
+abs_top_builddir	libXC/src/Makefile	/^abs_top_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
+abs_top_builddir	libXC/testsuite/Makefile	/^abs_top_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/build/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/src/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/testsuite/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
+>>>>>>> bse_v2.0
 abscutares	src_inputparser/inputmodules.f90	/^ real(8)::abscutares(/;"	k	type:writeexcitons_type
 abscutres	src_inputparser/inputmodules.f90	/^ real(8)::abscutres(/;"	k	type:writeexcitons_type
 ac	spacegroup/modmain.f90	/^real(8) ab,ac,/;"	v	module:modmain
@@ -18111,10 +18187,17 @@ ac_ct_AR	libXC/Makefile	/^ac_ct_AR = ar$/;"	m
 ac_ct_AR	libXC/build/Makefile	/^ac_ct_AR = ar$/;"	m
 ac_ct_AR	libXC/src/Makefile	/^ac_ct_AR = ar$/;"	m
 ac_ct_AR	libXC/testsuite/Makefile	/^ac_ct_AR = ar$/;"	m
+<<<<<<< HEAD
 ac_ct_CC	libXC/Makefile	/^ac_ct_CC = icc$/;"	m
 ac_ct_CC	libXC/build/Makefile	/^ac_ct_CC = icc$/;"	m
 ac_ct_CC	libXC/src/Makefile	/^ac_ct_CC = icc$/;"	m
 ac_ct_CC	libXC/testsuite/Makefile	/^ac_ct_CC = icc$/;"	m
+=======
+ac_ct_CC	libXC/Makefile	/^ac_ct_CC = cc$/;"	m
+ac_ct_CC	libXC/build/Makefile	/^ac_ct_CC = cc$/;"	m
+ac_ct_CC	libXC/src/Makefile	/^ac_ct_CC = cc$/;"	m
+ac_ct_CC	libXC/testsuite/Makefile	/^ac_ct_CC = cc$/;"	m
+>>>>>>> bse_v2.0
 ac_ct_DUMPBIN	libXC/Makefile	/^ac_ct_DUMPBIN = $/;"	m
 ac_ct_DUMPBIN	libXC/build/Makefile	/^ac_ct_DUMPBIN = $/;"	m
 ac_ct_DUMPBIN	libXC/src/Makefile	/^ac_ct_DUMPBIN = $/;"	m
@@ -18650,7 +18733,9 @@ b_exccoulintlauncher	src_xs/b_exccoulintlauncher.f90	/^subroutine b_exccoulintla
 b_findgqmap	src_xs/b_findgqmap.f90	/^subroutine b_findgqmap(/;"	s
 b_getbseinfo	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbseinfo(/;"	s	module:m_putgetbsemat
 b_getbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbsemat(/;"	s	module:m_putgetbsemat
+b_getevecfv0	src_xs/b_getevecfv0.f90	/^subroutine b_getevecfv0(/;"	s
 b_getevecfv0	src_xs/m_b_getgrst.f90	/^    subroutine b_getevecfv0(/;"	s	module:m_b_getgrst
+b_getevecfv1	src_xs/b_getevecfv1.f90	/^subroutine b_getevecfv1(/;"	s
 b_getevecfv1	src_xs/m_b_getgrst.f90	/^    subroutine b_getevecfv1(/;"	s	module:m_b_getgrst
 b_getevecsv0	src_xs/m_b_getgrst.f90	/^    subroutine b_getevecsv0(/;"	s	module:m_b_getgrst
 b_getevecsv1	src_xs/m_b_getgrst.f90	/^    subroutine b_getevecsv1(/;"	s	module:m_b_getgrst
@@ -18778,6 +18863,10 @@ blacsbarrier	src_xs/modscl.f90	/^    subroutine blacsbarrier(/;"	s	module:modscl
 blacsinfo	src_xs/modscl.f90	/^  type blacsinfo$/;"	t	module:modscl
 blaswrappers	src_xs/summations.F90	/^Module blaswrappers$/;"	m
 blend103	src_vdwdf/blend103.f90	/^subroutine blend103(/;"	s
+<<<<<<< HEAD
+=======
+blindread	src_inputparser/inputmodules.f90	/^ logical::blindread$/;"	k	type:BSE_type
+>>>>>>> bse_v2.0
 blocks	src_inputparser/inputmodules.f90	/^ character(512)::blocks$/;"	k	type:BSE_type
 blocksnumber	src_inputparser/inputmodules.f90	/^ integer::blocksnumber$/;"	k	type:BSE_type
 bloechlcor	src_libbzint/bloechlcor.f90	/^       subroutine bloechlcor(/;"	s
@@ -22448,10 +22537,17 @@ inputnp	src_inputparser/modinputdom.f90	/^      Type (Node), Pointer :: doc, inp
 insertBefore	FoX/dom/m_dom_dom.F90	/^  function insertBefore(/;"	f	module:m_dom_dom
 insertData	FoX/dom/m_dom_dom.F90	/^  subroutine insertData(/;"	s	module:m_dom_dom
 inspecies	species/modspecies.F90	/^character(256) :: bname,str,apwdescr,apwtype,suffix,inspecies$/;"	v	module:modspecies
+<<<<<<< HEAD
 install_sh	libXC/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/install-sh$/;"	m
 install_sh	libXC/build/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/install-sh$/;"	m
 install_sh	libXC/src/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/install-sh$/;"	m
 install_sh	libXC/testsuite/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_testing\/src\/libXC\/install-sh$/;"	m
+=======
+install_sh	libXC/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/build/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/src/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/testsuite/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/install-sh$/;"	m
+>>>>>>> bse_v2.0
 install_sh_DATA	libXC/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
 install_sh_DATA	libXC/build/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
 install_sh_DATA	libXC/src/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
@@ -23871,7 +23967,10 @@ make_token_group_len	FoX/common/m_common_element.F90	/^  pure function make_toke
 makeexcli	src_xs/b_exccoulint.f90	/^    subroutine makeexcli(/;"	s	subroutine:b_exccoulint
 makegk	mod_xsgrids.f90	/^  logical :: makegk,/;"	v	module:mod_xsgrids
 makegq	mod_xsgrids.f90	/^  logical :: makegk, makegq$/;"	v	module:mod_xsgrids
+<<<<<<< HEAD
 makemeasure	src_xs/m_setup_bse.f90	/^    subroutine makemeasure(/;"	s	module:m_setup_bse
+=======
+>>>>>>> bse_v2.0
 makeoscistr_dist	src_xs/m_makeoscistr.f90	/^    subroutine makeoscistr_dist(/;"	s	module:m_makeoscistr
 makespectrum	src_xs/m_makespectrum.f90	/^    subroutine makespectrum(/;"	s	module:m_makespectrum
 makespectrum_dist	src_xs/m_makespectrum.f90	/^    subroutine makespectrum_dist(/;"	s	module:m_makespectrum
@@ -29317,6 +29416,7 @@ writeloss	src_xs/writeloss.F90	/^    subroutine writeloss(/;"	s	module:m_writelo
 writelsj	writelsj.f90	/^Subroutine writelsj$/;"	s
 writemeasures	src_xs/modbse.f90	/^    subroutine writemeasures(/;"	s	module:modbse
 writemeta	src_xs/m_putgetbsemat.f90	/^  logical :: writemeta=/;"	v	module:m_putgetbsemat
+writeminus	src_inputparser/inputmodules.f90	/^ logical::writeminus$/;"	k	type:BSE_type
 writeoptminitdata	relax.f90	/^subroutine writeoptminitdata(/;"	s
 writeoscillator	src_xs/writeoscillator.f90	/^    subroutine writeoscillator(/;"	s	module:m_writeoscillator
 writepchgs	writepchgs.F90	/^subroutine writepchgs(/;"	s

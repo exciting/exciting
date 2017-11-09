@@ -37,16 +37,15 @@ module m_writeoscillator
       if(input%xs%bse%coupling) then
         tdastring=''
       else
-        tdastring="-TDA"
+        if(input%xs%bse%chibarq) then 
+          tdastring="-TDA-BAR"
+        else
+          tdastring="-TDA"
+        end if
       end if
 
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
-
-      !write hdf5 output
-      gname="excitons"//trim(bsetypestring)//trim(scrtypestring)
-      call write_excitons_hdf5(hamsize, nexc, eshift, evalre, oscstrr,&
-      & gname, iqmt=iqmt)
 
       ! Loop over optical components
       if(present(iqmt)) then 
@@ -54,6 +53,11 @@ module m_writeoscillator
       else
         iq = 1
       end if
+
+      !write hdf5 output
+      gname="excitons"//trim(bsetypestring)//trim(scrtypestring)
+      call write_excitons_hdf5(hamsize, nexc, eshift, evalre, oscstrr,&
+      & gname, iqmt=iq)
 
       io1=1
       io2=3

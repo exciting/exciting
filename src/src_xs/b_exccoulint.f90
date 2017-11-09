@@ -84,8 +84,10 @@ subroutine b_exccoulint(iqmt)
   logical :: fcoup
   real(8), parameter :: epslat = 1.0d-8
   logical :: fsamekp, fsamekm
+  logical :: fchibarq
 
   fcoup = input%xs%bse%coupling
+  fchibarq = input%xs%bse%chibarq
 
   !---------------!
   !   main part   !
@@ -166,13 +168,23 @@ subroutine b_exccoulint(iqmt)
 
   ! Write support information to file
   if(mpiglobal%rank == 0) then
-    call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
-      & iqmt=iqmt, filnam=infofname)
-    call b_putbseinfo(infofname, iqmt)
+    if(fchibarq) then 
+      call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
+        &  bsetype='-BAR', iqmt=iqmt, filnam=infofname)
+      call b_putbseinfo(infofname, iqmt)
+    else
+      call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
+        & iqmt=iqmt, filnam=infofname)
+      call b_putbseinfo(infofname, iqmt)
+    end if
   end if
 
   ! Set output file names
-  call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname)
+  if(fchibarq) then
+    call genfilname(basename=exclifbasename, bsetype='-BAR', iqmt=iqmt, filnam=exclifname)
+  else
+    call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname)
+  end if
 
   write(unitout, '("Info(",a,"): Size of file ",a," will be about ", f12.6, " GB" )')&
     & trim(thisname), trim(exclifbasename),&
@@ -277,10 +289,8 @@ subroutine b_exccoulint(iqmt)
 
     ! Get the number of participating occupied/unoccupied
     ! states at current k point
-    ! Note: Needs to be adapted to consider the occupations
-    ! at k+qmt/2 and k-qmt/2. Currently the are considered to be
-    ! the same limits as those at k itself.
-    ! For insulators and band-selection this is the same.
+    ! Note: The saved ranges refer to the to k associated k_- points for the 
+    !       unoccupied, and to the k_+ points for the occupied states
     inu = koulims(2,iknr) - koulims(1,iknr) + 1
     ino = koulims(4,iknr) - koulims(3,iknr) + 1
 
@@ -334,8 +344,14 @@ subroutine b_exccoulint(iqmt)
       flg_analytic = 0
     case("0d")
       flg_analytic = 4
+      write(unitout, '("Info(b_exccoulint):&
+        & Applying Coulomb cutoff for low dimensional systems. Type:",a)') &
+        & trim(input%xs%bse%cuttype)
     case("2d")
       flg_analytic = 5
+      write(unitout, '("Info(b_exccoulint):&
+        & Applying Coulomb cutoff for low dimensional systems. Type:",a)') &
+        & trim(input%xs%bse%cuttype)
     case default
       write(*,*) "Error(b_exccoulint): Invalid cuttype"
       call terminate
@@ -345,17 +361,17 @@ subroutine b_exccoulint(iqmt)
   end do
 
   ! If Q=0 compute \bar{P}, so use the truncated Coulomb potential.
-  ! Set Gmt component term of Coulomb potential to zero [Ambegaokar-Kohn]
-  if(iqmt==1) then 
+  ! If Q/=0 and TDA compute \bar{P}, if chibarq = .true. (default)
+  ! If Q/=0 and non-TDA compute \chi, i.e. no zeroing of the Coulomb potential.
+  if(iqmt==1 .or. input%xs%bse%chibarq) then 
     igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
     potcl(igqmt) = 0.d0
   end if
-  ! If Q\=0 compute \chi, so use the full Coulomb potential.
 
   if(mpiglobal%rank == 0) then
     write(unitout, *)
     write(unitout, '("Info(b_exccoulint): Generating V matrix elements")')
-    if(iqmt == 1) then 
+    if(iqmt == 1 .or. input%xs%bse%chibarq) then 
       write(unitout, '("Info(b_exccoulint): Zeroing Coulomb potential at G+qmt index:", i3)') igqmt
     end if
     call timesec(tpw0)
@@ -386,7 +402,8 @@ subroutine b_exccoulint(iqmt)
     jkpnr = k_kqmtp%ik2ikqmt(jknr)
     jkmnr = k_kqmtm%ik2ikqmt(jknr)
 
-    ! Get number of transitions at ik,jk
+    ! Get number of transitions at reference k-points
+    ! ik, jk for current qmt 
     inou = kousize(iknr)
     jnou = kousize(jknr)
 
@@ -441,6 +458,8 @@ subroutine b_exccoulint(iqmt)
       !------------------------------------------------------------------!
 
       ! Bands
+      ! Note: The saved ranges refer to the to k associated k_- points for the 
+      !       unoccupied, and to the k_+ points for the occupied states
       ematbc%n1=inu
       ematbc%il1=koulims(1,iknr)
       ematbc%iu1=koulims(2,iknr)

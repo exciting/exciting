@@ -184,9 +184,9 @@ module m_makespectrum
     ! Distributed versions
 
     subroutine makespectrum_dist(iqmt, nexc, nk, bevalre, oscsr, symsp, binfo)
-      use modinput
       use mod_constants, only: zone, zi, pi
       use modxs, only: unitout
+      use modinput, only: input
       use modmpi
       use modscl
       use m_genwgrid
@@ -208,7 +208,7 @@ module m_makespectrum
       real(8) :: t1, t0, ts0, ts1
       complex(8) :: zbrd
       complex(8), allocatable :: ns_spectr(:,:)
-      logical :: useoff
+      logical :: useoff, usechibar
       type(dzmat) :: denw, dtmat, dns_spectr
 
       character(*), parameter :: thisname = "makespectrum_dist"
@@ -399,6 +399,7 @@ module m_makespectrum
       use mod_lattice, only: omega
       use modxs, only: symt2
       use mod_constants
+      use modinput, only: input
 
       integer(4), intent(in) :: iqmt, nk
       complex(8), intent(inout) :: nsp(:,:)
@@ -407,8 +408,24 @@ module m_makespectrum
       complex(8), allocatable :: buf(:,:,:)
       integer(4) :: nfreq, nopt, i, j, o1, o2, igqmt
       real(8) :: pref, t0, t1
-      logical :: foff
+      logical :: foff, usechibar, fcoup
       character(*), parameter :: thisname = "finalizespectrum"
+
+      ! For BSE with coupling at finite Q, always use the full Chi
+      ! and not \bar{Chi}. For TDA warn if \bar{Chi} is not used.
+      fcoup = input%xs%bse%coupling
+      usechibar = input%xs%bse%chibarq
+      ! If it is not the default of true
+      if(.not. usechibar) then 
+        if(.not. fcoup .and. .not. usechibar) then
+          write(unitout, '("Waring(",a,"):", a)') trim(thisname),&
+            & " TDA and Chi not compatible!"
+        end if
+      ! Otherwise determin value with fcoup
+      else
+        if(fcoup) usechibar = .false.
+        if(.not. fcoup) usechibar = .true.
+      end if
 
       ! Check input
       nfreq = size(nsp,1) 
@@ -442,6 +459,9 @@ module m_makespectrum
       !       * \sum_\lambda [1/(w - E_\lambda + i\delta) + 1/(-w - E_\lambda - i\delta)]
       !       * t^*_{\lambda}(Q) t_{\lambda}(Q)
       !       }^{-1}
+      !
+      !   OR use also \bar{P} formalism for finite q, needs zeroing of G+q
+      !   component of coulomb interaction
       !  
       !   nsp(i,j) = 1 + pref' * nsp(i,j)
       else
@@ -457,6 +477,9 @@ module m_makespectrum
       end if
 
       write(unitout, '("Info(",a,"): Finalizing spectrum.")') trim(thisname)
+      if(usechibar) then 
+        write(unitout, '("Info(",a,"): Using modified Chi to build spectrum.")') trim(thisname)
+      end if
       call timesec(t0)
 
       ! Adjusting prfactor, the factor 2 accounts for spin degeneracy
@@ -478,6 +501,10 @@ module m_makespectrum
           igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
           pref = sptclg(igqmt,iqmt)**2/omega/nk
         end if
+	! BENJAMIN: stimmt das noch?
+	if (usechibar) then
+	  pref=-pref
+	end if
       end if
 
       ! Add 1 to diagonal elements
@@ -540,8 +567,14 @@ module m_makespectrum
 
         sp = zzero
 
-        ! As noted above nsp contains 1/epsm(Q,w), save epsm
-        sp(1,1,:) = 1.0d0/nsp(:,1)
+        if(usechibar) then 
+          ! Use chibar also for finte q, needs zeroing of G+q in the coulomb
+          ! interaction
+          sp(1,1,:) = nsp(:,1)
+        else
+          ! As noted above nsp contains 1/epsm(Q,w), save epsm
+          sp(1,1,:) = 1.0d0/nsp(:,1)
+        end if
 
       end if
 

@@ -181,6 +181,8 @@ module m_setup_pwmat
         iknr = kmap_bse_rg(ik)
 
         ! Get selected occupation limits for that k point
+        ! Note: The saved ranges refer to the to k associated k_- points for the 
+        !       unoccupied, and to the k_+ points for the occupied states
         iuabs1 = koulims(1,iknr)
         iuabs2 = koulims(2,iknr)
         ioabs1 = koulims(3,iknr)
