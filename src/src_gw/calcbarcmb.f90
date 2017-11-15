@@ -100,6 +100,7 @@ subroutine calcbarcmb(iq)
     lwork = -1
     iu = matsiz
     abstol = 2.d0*dlamch('S')
+if (.false.) then
     allocate(work(1),rwork(1),iwork(1),isuppz(1))
     call zheevr('V', 'A', 'U', matsiz, barc, matsiz, vl, vu, il, iu, &
     &           abstol, neval, barcev, vmat, matsiz, isuppz, work, lwork, rwork, &
@@ -117,6 +118,22 @@ subroutine calcbarcmb(iq)
     &           lrwork, iwork, liwork, info)
     call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheevr !!!")
     deallocate(work,rwork,iwork,isuppz)
+else
+    allocate(work(1),rwork(1),iwork(1))
+    call zheevd('V', 'U', matsiz, barc, matsiz, barcev, work, lwork, rwork, lrwork, iwork, liwork, info)
+    call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheevd !!!")
+    lrwork=int(rwork(1))
+    liwork=int(iwork(1))
+    lwork=int(work(1))
+    ! write(*,*) lrwork,liwork,lwork
+    deallocate(work,rwork,iwork)
+    allocate(work(lwork),rwork(lrwork),iwork(liwork))
+    call zheevd('V', 'U', matsiz, barc, matsiz, barcev, work, lwork, rwork, lrwork, iwork, liwork, info)
+    call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheevd !!!")
+    deallocate(work,rwork,iwork)
+    vmat=barc
+   
+endif
     deallocate(barc)
 
 !----------------------    

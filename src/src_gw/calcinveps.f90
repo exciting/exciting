@@ -71,7 +71,9 @@ subroutine calcinveps(iomstart,iomend)
         case('imfreq')
           call zhetrf('u',mbsiz,eps,mbsiz,ipiv,work,lwork,info)
           call errmsg0(info,sname,"calling zhetrf")
-          call zhetri('u',mbsiz,eps,mbsiz,ipiv,work,info)
+!          call zhetri('u',mbsiz,eps,mbsiz,ipiv,work,info)
+          call zhetri_rook('u',mbsiz,eps,mbsiz,ipiv,work,info)
+!      call zhetri_rook( uplo, n, a, lda, ipiv, work, info )
           call errmsg0(info,sname,"calling zhetri")
       end select
 
