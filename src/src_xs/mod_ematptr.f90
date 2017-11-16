@@ -4,7 +4,7 @@ module mod_ematptr
   use mod_Gkvector, only: ngkmax, ngk, igkig, vgkl,&
                         & vgkc, gkc, tpgkc, sfacgk
   use mod_eigensystem, only: nmatmax, nmat
-  ! modxs images of k,G arrays
+  ! modxs mirror images of k,G arrays
   use modxs, only: vkl0, ngk0, igkig0, vgkl0,&
                  & vgkc0, gkc0, tpgkc0, sfacgk0,&
                  & nmat0, nkpt0, ngkmax0, nmatmax0

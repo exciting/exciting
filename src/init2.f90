@@ -11,7 +11,7 @@ Subroutine init2
 #endif
       Implicit None
 ! local variables
-      logical :: redq
+      logical :: redq, fremapq
       Integer :: is, ia, ist, ic, m
       Real (8) :: ts0, ts1
       Real (8) :: boxl (3, 4)
@@ -91,7 +91,7 @@ Subroutine init2
       ! boxl(:,4) = boxl(:,4) + boxl(:,1)
 
 ! assign momentum transfer Q-points set to q-point set
-      If ((task .Ge. 301) .And. (task .Le. 399) .or. (task >= 400 .and. input%xs%bse%beyond) ) Then
+      If ( task .Ge. 301 ) Then
          nqmt = size(input%xs%qpointset%qpoint, 2)
          nqpt = size (input%xs%qpointset%qpoint, 2)
          If (allocated(totalqlmt)) deallocate (totalqlmt)
@@ -112,13 +112,17 @@ Subroutine init2
          Allocate (vqc(3, nqpt))
          Do iq = 1, nqpt
             v(:) = input%xs%qpointset%qpoint(:, iq)
+            ! Save full Q vectors
             totalqlmt(:,iq) = v(:)
             totalqcmt(:,iq) = v(1)*bvec(:,1) + &
             &           v(2)*bvec(:,2) + &
             &           v(3)*bvec(:,3)
+            ! map Q-point to reciprocal unit cell 
+            ! (mdfqtype defaults to 0)
             iv(:) = 0
-            ! map Q-point to reciprocal unit cell
-            If (input%xs%tddft%mdfqtype .Eq. 1 .or. input%xs%bse%beyond) then
+            fremapq = input%xs%tddft%mdfqtype .Eq. 1
+            fremapq = fremapq .or. (input%xs%xstype == "BSE")
+            If (fremapq) then
               Call r3frac(input%structure%epslat, v, iv)
             end if
             vqlmt(:,iq) = v(:)
@@ -168,24 +172,7 @@ Subroutine init2
                   stop
                 end if
               end if
-              if (input%xs%xstype .eq. "BSE" .and. .not. input%xs%bse%beyond) then
-                write(*,*)
-                write(*,'("Error(init2): BSE only works for optics (Q=0) - code limitation")')
-                write(*,*)
-                stop
-              end if
             end if
-         End Do
-      Else if (task .ge. 400 .and. .not. input%xs%bse%beyond) then
-         ! determine only integer-part of Q-points
-         If (allocated(ivgmt)) deallocate (ivgmt)
-         Allocate (ivgmt(3, size(input%xs%qpointset%qpoint, 2)))
-         Do iq = 1, size(input%xs%qpointset%qpoint, 2)
-            v(:) = input%xs%qpointset%qpoint(:,iq)
-            iv(:) = 0
-            ! map Q-point to reciprocal unit cell
-            If (input%xs%tddft%mdfqtype .Eq. 1) Call r3frac(input%structure%epslat, v, iv)
-            ivgmt(:,iq) = iv(:)
          End Do
       End If
 
@@ -196,8 +183,8 @@ Subroutine init2
       ! two k grids that have the same offset (Mapped to [0,1) (default) or 1st Bz).
       ! input%xs%reduceq is true by default.
       If ((task .Ge. 400) .And. (task .Le. 439) &
-       & .and. .not. (task == 401 .and. input%xs%bse%beyond)&
-       & .and. .not. (task == 420 .and. input%xs%bse%beyond)) Then
+       & .and. .not. (task == 401)&
+       & .and. .not. (task == 420)) Then
          If (allocated(ivq)) deallocate (ivq)
          Allocate (ivq(3, ngridq(1)*ngridq(2)*ngridq(3)))
          If (allocated(vql)) deallocate (vql)
@@ -216,9 +203,7 @@ Subroutine init2
 
       ! BSE specific tasks require reduced and non-reduced 
       ! q-points (in the above sense).
-      If ((task .Eq. 440) .Or. (task .Eq. 441 .and. .not. input%xs%bse%beyond) .Or. &
-      &   (task .Eq. 445 .and. .not. input%xs%bse%beyond)&
-      &    .Or. (task .Eq. 446 .and. .not. input%xs%bse%beyond) .Or. &
+      If ((task .Eq. 440) .Or. &
       &   (task .Eq. 450) .Or. (task .Eq. 451) .Or. &
       &   (task .Eq. 499) .Or. (task .Eq. 700) .Or. &
       &   (task .Eq. 710)) Then
@@ -336,9 +321,7 @@ Subroutine init2
       End Do
 
       ! Make ngq list for reduced set
-      If ((task .Eq. 440) .Or. (task .Eq. 441 .and. .not. input%xs%bse%beyond) .Or. &
-      &   (task .Eq. 445 .and. .not. input%xs%bse%beyond) &
-      &   .Or. (task .Eq. 446 .and. .not. input%xs%bse%beyond) .Or. &
+      If ((task .Eq. 440) .Or. &
       &   (task .Eq. 450) .Or. (task .Eq. 451) .Or. &
       &   (task .Eq. 499) .Or. (task .Eq. 700) .Or. &
       &   (task .Eq. 710)) Then

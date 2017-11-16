@@ -29,25 +29,13 @@ subroutine genfilextread(task)
 
   integer(4), intent(in) :: task
 
-  if(.not. input%xs%bse%beyond) then 
-    select case(task)
-      ! Task in TDDFT and BSE
-      ! Task 121 is taks 'dielectric' (does that still exist?)
-      case(121, 330, 331, 340, 350, 440, 441, 445, 450, 451)
-        call genfilname(iqmt=0, setfilext=.true.)
-      ! Task='screen'
-      case(430)
-        call genfilname(dotext='_SCR.OUT', setfilext=.true.)
-    end select
-  else
-    select case(task)
-      ! Task='screen'
-      case(430)
-        call genfilname(iqmt=1, scrtype='', setfilext=.true.)
-      case(440, 441, 445)
-        call genfilname(iqmt=1, setfilext=.true.)
-    end select
-  end if
+  select case(task)
+    ! Task='screen'
+    case(430)
+      call genfilname(iqmt=1, scrtype='', setfilext=.true.)
+    case default
+      call genfilname(iqmt=1, setfilext=.true.)
+  end select
 
 end subroutine genfilextread
 !EOC

@@ -115,11 +115,7 @@ subroutine b_xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
     if(norm2(vqcmt(1:3,iq)) > 1.0d-8) then 
       write(unitout, '("vqcmt/Norm2 = ", 3g18.10)') vqcmt(1:3,iq)/norm2(vqcmt(1:3,iq))
     end if
-    if(tmqmt) then 
-      write(unitout, '("(k-qmt/2)-grid offset derived form qmt and k offset:")')
-    else
-      write(unitout, '("(k+qmt/2)-grid offset derived form qmt and k offset:")')
-    end if
+    write(unitout, '("k-grid offset derived form qmt and k offset:")')
     write(unitout, '("qvkloff = ", 3g18.10)') qvkloff(1:3,iq)
     write(unitout, '("qvkloff/ngridk = ", 3g18.10)') qvkloff(1:3,iq)/input%xs%ngridk
     if(iq /= 1 .and. all(abs(qvkloff(1:3,iq)-qvkloff(1:3,1)) < epslat)) then

@@ -14,7 +14,8 @@ subroutine ematbdlims(typ, n1, lo1, hi1, n2, lo2, hi2)
   integer, intent(in) :: typ
   integer, intent(out) :: n1, n2, lo1, hi1, lo2, hi2
 
-  if(task .ge. 440 .and. task .le. 446) then
+  ! BSE tasks or BSE derived TDDFT kernel construction
+  if(task .ge. 440 .and. task .le. 446 .or. task == 450) then
 
     select case(typ)
       case(0)

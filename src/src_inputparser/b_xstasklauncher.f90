@@ -4,12 +4,10 @@
 
 subroutine b_xstasklauncher
   use modinput
-  use modmain, only: task
-  use modxs, only: dgrid, nksubpt, iksubpt, temat, doscreen0, vkloff_xs_b, &
-    & hybridhf,skipgnd, fhdf5
+  use modxs, only: temat, skipgnd, hybridhf
   use inputdom
   use mod_hdf5
-  use modmpi
+
   implicit none
 
   integer(4) :: nxstasks, nxstasksmax, i
@@ -56,6 +54,7 @@ subroutine b_xstasklauncher
   else if(trim(input%xs%xstype) .eq. "TDDFT") then
 
     ! Allocate plan
+    nxstasks = 0
     nxstasksmax = 10
     allocate(input%xs%plan)
     allocate(input%xs%plan%doonlyarray(nxstasksmax))
@@ -64,11 +63,11 @@ subroutine b_xstasklauncher
     end do
 
     ! Setup default plan
-    if(input%xs%tddft%do .eq. "fromkernel") then
+    if(input%xs%tddft%do .eq. "fromscratch") then
 
       ! Task 301 corresponds to "xsgeneigvec" plan
       ! One shot GS calculation with xs%ngridk, xs%nempty and potential xs%vkloff.
-      nxstasks=1
+      nxstasks = nxstasks+1
       input%xs%plan%doonlyarray(nxstasks)%doonly%task="xsgeneigvec"
 
       ! Task 320 corresponds to "writepmatxs" plan
@@ -77,9 +76,10 @@ subroutine b_xstasklauncher
       input%xs%plan%doonlyarray(nxstasks)%doonly%task="writepmatxs"
 
       ! Task 330 corresponds to "writeemat" plan
-      ! Calculates the plane wave matrix elements in case of fintie Q
+      ! Calculates the plane wave matrix elements, is skipped when
+      ! gqmax = 0 and only gamma point is considered
       temat=.true.
-      if((size(input%xs%qpointset%qpoint, 2).eq.1).and.(input%xs%gqmax.lt.eps)) then
+      if( (size(input%xs%qpointset%qpoint, 2) .eq. 1) .and. (input%xs%gqmax .lt. eps)) then
         if(sum(abs(input%xs%qpointset%qpoint(:, 1))) .lt. eps) then 
           temat = .false.
         end if
@@ -127,6 +127,16 @@ subroutine b_xstasklauncher
       ! Task 340 corresponds to "df" plan
       nxstasks = nxstasks+1
       input%xs%plan%doonlyarray(nxstasks)%doonly%task="df"
+
+      ! Task 350 corresponds to "idf" plan
+      nxstasks = nxstasks+1
+      input%xs%plan%doonlyarray(nxstasks)%doonly%task="idf"
+
+    else
+
+      ! Task 350 corresponds to "idf" plan
+      nxstasks = nxstasks+1
+      input%xs%plan%doonlyarray(nxstasks)%doonly%task="idf"
 
     end if
 

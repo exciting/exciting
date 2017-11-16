@@ -968,9 +968,9 @@ module m_setup_bse
           sinfofname = trim(infofbasename)//'_'//trim(sfname)
           einfofname = trim(infofbasename)//'_'//trim(efname)
 
-          if(usescc) write(unitout, '("  Reading form info from ", a)')&
+          if(usescc) write(unitout, '("  Reading info from ", a)')&
             & trim(sinfofname)
-          if(useexc) write(unitout, '("  Reading form info from ", a)')&
+          if(useexc) write(unitout, '("  Reading info from ", a)')&
             & trim(einfofname)
 
           ! Check saved quantities for compatibility
@@ -994,9 +994,9 @@ module m_setup_bse
             end if
           end if
 
-          if(usescc) write(unitout, '("  Reading form W from ", a)') trim(sfname)
+          if(usescc) write(unitout, '("  Reading W from ", a)') trim(sfname)
           if(usescc) write(unitout, '("  compatible:",l," identical:",l)') sfcmpt, sfid
-          if(useexc) write(unitout, '("  Reading form V from ", a)') trim(efname)
+          if(useexc) write(unitout, '("  Reading V from ", a)') trim(efname)
           if(usescc) write(unitout, '("  compatible:",l," identical:",l)') efcmpt, efid
 
           allocate(excli_t(nou_bse_max, nou_bse_max))

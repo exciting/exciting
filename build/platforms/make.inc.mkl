@@ -22,7 +22,7 @@ F77_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
    -check bounds -check all -check noarg_temp_created -traceback
 
 # Preprocessor flags always used
-CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP 
+CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFTW
 
 ### Libraries
 

@@ -182,16 +182,7 @@ subroutine dfq(iq)
     ! Zero broadening for dielectric matrix (w=0) for band-gap systems
     brd = 0.d0
     ! Calculate anti-resonant part of chi explicitly ?
-    !   Old version does not explicitly calculate ares part
-    if( (.not. input%xs%screening%tr) .and. (.not. input%xs%bse%beyond)) then
-      write(*,*) "Old BSE needs input%xs%screening%tr = true"
-      call terminate
-    end if
-    if( .not. input%xs%bse%beyond) then
-      doares = .false.
-    else
-      doares = .not. input%xs%screening%tr
-    end if
+    doares = .not. input%xs%screening%tr
   end if
 
   ! File extension for q-point (not in 'screen')
@@ -203,32 +194,22 @@ subroutine dfq(iq)
     call genfilname(basename='TETW', iq=iq, appfilext=.true., filnam=fnwtet)
 #endif               
     call genfilname(basename='PMAT', appfilext=.true., filnam=fnpmat)
-    if(input%xs%bse%beyond) then 
-      filex=filext
-      filext=filexteps
-      call genfilname(basename=trim(adjustl(scrdirname))//'/'//'SCREEN', appfilext=.true., iq=iq, filnam=fnscreen)
-      call genfilname(basename=trim(adjustl(eps0dirname))//'/'//'EPS0', appfilext=.true., iq=iq, filnam=fneps0)
-      filext=filex
-    else
-      call genfilname(basename='SCREEN', bzsampl=bzsampl, iq=iq, filnam=fnscreen)
-      call genfilname(basename='EPS0', iq=iq, filnam=fneps0)
-    end if
-    if(input%xs%bse%beyond) then 
-      filex=filext
-      filext=filexteps
-      call genfilname(nodotpar=.true., basename='EMAT_TIMING', iq=iq,&
-       & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
-      fnetim=trim(adjustl(timingdirname))//'/'//trim(adjustl(fnetim))
-      call genfilname(nodotpar=.true., basename='X0_TIMING', iq=iq,&
-       & procs=procs, rank=rank, appfilext=.true., filnam=fnxtim)
-      fnxtim=trim(adjustl(timingdirname))//'/'//trim(adjustl(fnxtim))
-      filext=filex
-    else
-      call genfilname(nodotpar=.true., basename='EMAT_TIMING', iq=iq,&
-       & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
-      call genfilname(nodotpar=.true., basename='X0_TIMING', iq=iq,&
-       & procs=procs, rank=rank, appfilext=.true., filnam=fnxtim)
-    end if
+    filex=filext
+    filext=filexteps
+    call genfilname(basename=trim(adjustl(scrdirname))//'/'//'SCREEN', appfilext=.true., iq=iq, filnam=fnscreen)
+    call genfilname(basename=trim(adjustl(eps0dirname))//'/'//'EPS0', appfilext=.true., iq=iq, filnam=fneps0)
+    filext=filex
+
+    filex=filext
+    filext=filexteps
+    call genfilname(nodotpar=.true., basename='EMAT_TIMING', iq=iq,&
+     & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
+    fnetim=trim(adjustl(timingdirname))//'/'//trim(adjustl(fnetim))
+    call genfilname(nodotpar=.true., basename='X0_TIMING', iq=iq,&
+     & procs=procs, rank=rank, appfilext=.true., filnam=fnxtim)
+    fnxtim=trim(adjustl(timingdirname))//'/'//trim(adjustl(fnxtim))
+    filext=filex
+
   else
 #ifdef TETRA               
     call genfilname(basename='TETW', iqmt=iq, filnam=fnwtet)
@@ -380,12 +361,10 @@ subroutine dfq(iq)
   ! Real frequency grid
   wreal(:) = dble(w(wi:wf))
 
-  ! Tetra is not used with beyond, use w = 0
-  if(.not. input%xs%bse%beyond) then 
-    ! Set first real frequency to 10^{-8}
-    !! For task 'screen' this sets the zero frequency to 10^{-8},
-    if(wreal(1) .lt. epstetra) wreal(1) = epstetra
-  end if
+#ifdef TETRA
+  ! Set first real frequency to 10^{-8}
+  if(wreal(1) .lt. epstetra) wreal(1) = epstetra
+#endif
 
   ! Zeroing chi arrays
   chi0(:, :, :) = zzero
@@ -466,59 +445,49 @@ subroutine dfq(iq)
 
 !*********** Plane wave calculation *****************************!
       ! For screening calculate matrix elements of plane wave on the fly.
-      if(.not. input%xs%bse%beyond) then
 
-        ! Get ou
-        Call ematqk1(iq, ik)
-        If( .Not. allocated(xiuo)) allocate(xiuo(nst3, nst4, n))
-        If( .Not. allocated(pmuo)) allocate(pmuo(3, nst3, nst4))
+      ! The plane wave elements for ou and uo transitions are 
+      ! calculated and stored in xiou and xiuo
+      ! Set 12=ou 34=uo
+      call ematbdcmbs(1)
+      ! Get ou
+      if(allocated(xiou)) deallocate(xiou)
+      allocate(xiou(nst1, nst2, n))
+      bc%n1 = nst1
+      bc%n2 = nst2
+      bc%il1 = istl1
+      bc%il2 = istl2
+      bc%iu1 = istu1
+      bc%iu2 = istu2
+      ikmapikq_ptr => ikmapikq
+      call setptr01
+      call b_ematqk(iq, ik, xiou, bc)
 
-      else
 
-        ! The plane wave elements for ou and uo transitions are 
-        ! calculated and stored in xiou and xiuo
-        ! Set 12=ou 34=uo
-        call ematbdcmbs(1)
-        ! Get ou
-        if(allocated(xiou)) deallocate(xiou)
-        allocate(xiou(nst1, nst2, n))
-        bc%n1 = nst1
-        bc%n2 = nst2
-        bc%il1 = istl1
-        bc%il2 = istl2
-        bc%iu1 = istu1
-        bc%iu2 = istu2
+      ! Get uo
+      if(allocated(xiuo)) deallocate(xiuo)
+      allocate(xiuo(nst3, nst4, n))
+
+      ! Note:
+      ! The uo plane wave matrix elements are not needed
+      ! if the time reversal symmetry is applied to the 
+      ! anti-resonant part of Chi0. 
+
+      ! t.r. sym not used
+      if( doares ) then
+        bc%n1 = nst3
+        bc%n2 = nst4
+        bc%il1 = istl3
+        bc%il2 = istl4
+        bc%iu1 = istu3
+        bc%iu2 = istu4
         ikmapikq_ptr => ikmapikq
         call setptr01
-        call b_ematqk(iq, ik, xiou, bc)
-
-
-        ! Get uo
-        if(allocated(xiuo)) deallocate(xiuo)
-        allocate(xiuo(nst3, nst4, n))
-
-        ! Note:
-        ! The uo plane wave matrix elements are not needed
-        ! if the time reversal symmetry is applied to the 
-        ! anti-resonant part of Chi0. 
-
-        ! t.r. sym not used
-        if( doares ) then
-          bc%n1 = nst3
-          bc%n2 = nst4
-          bc%il1 = istl3
-          bc%il2 = istl4
-          bc%iu1 = istu3
-          bc%iu2 = istu4
-          ikmapikq_ptr => ikmapikq
-          call setptr01
-          call b_ematqk(iq, ik, xiuo, bc)
-        end if
-
+        call b_ematqk(iq, ik, xiuo, bc)
       end if
 
-    end if
 !********************************************************!
+    end if
 
     ! Add BSE diagonal shift use with bse-kernel
     ! For 'screen' this is all zero
@@ -971,31 +940,29 @@ subroutine dfq(iq)
     call putscreen(un, tq0, n, chi0(:, :, 1), chi0h(:, :, 1), chi0w(:, :, :, 1))
     close(un)
 
-    if(input%xs%bse%beyond) then 
-      ! Parallel output of q- and w-dependent \epsilon=1-\chi to direct access file
-      ! Make microscopic epsilon matrix
-      ! Head 
-      forall(iw=1:nwdf)
-        chi0h(:, :, iw) = dble(krondelta) - chi0h(:, :, iw)
-      end forall
-      ! Wings
-      chi0w = -chi0w
-      ! Body
-      chi0 = -chi0
-      forall(igq=1:n)
-        chi0(igq,igq,:) = zone + chi0(igq,igq,:)
-      end forall
-      ! Write to direct access file
-      do iw = wi, wf
-        ! It uses the reduced set, but the grid parameters are saved in 
-        ! mod_qpoint, where in the case of task >430 the non-reduces parameters 
-        ! are saved...
-        call puteps0(reduced=.false.,&
-          & iq=iq, iw=iw, w=wreal(iw-wi+1),&
-          & eps0=chi0(:,:,iw-wi+1), eps0wg=chi0w(:,:,:,iw-wi+1),&
-          & eps0hd=chi0h(:,:,iw-wi+1), fname=fneps0)
-      end do
-    end if
+    ! Parallel output of q- and w-dependent \epsilon=1-\chi to direct access file
+    ! Make microscopic epsilon matrix
+    ! Head 
+    forall(iw=1:nwdf)
+      chi0h(:, :, iw) = dble(krondelta) - chi0h(:, :, iw)
+    end forall
+    ! Wings
+    chi0w = -chi0w
+    ! Body
+    chi0 = -chi0
+    forall(igq=1:n)
+      chi0(igq,igq,:) = zone + chi0(igq,igq,:)
+    end forall
+    ! Write to direct access file
+    do iw = wi, wf
+      ! It uses the reduced set, but the grid parameters are saved in 
+      ! mod_qpoint, where in the case of task >430 the non-reduces parameters 
+      ! are saved...
+      call puteps0(reduced=.false.,&
+        & iq=iq, iw=iw, w=wreal(iw-wi+1),&
+        & eps0=chi0(:,:,iw-wi+1), eps0wg=chi0w(:,:,:,iw-wi+1),&
+        & eps0hd=chi0h(:,:,iw-wi+1), fname=fneps0)
+    end do
   ! Not tscreen
   else
     ! Parallel output of frequency dependent \chi to direct access file

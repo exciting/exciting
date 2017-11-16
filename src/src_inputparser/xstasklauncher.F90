@@ -43,6 +43,7 @@ subroutine xstasklauncher
     end if
   end if    
 
+  ! Backup groundstate parameters
   call backup0
   call backup1
   call backup2

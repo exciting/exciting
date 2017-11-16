@@ -168,27 +168,16 @@ module m_getapwcmt
       close(un)
 
       ! Check q-point and k-point
-      if(input%xs%bse%beyond) then 
-        if(present(vpl)) then 
-          vklt(:) = vpl
-        else
-          vklt(:) = vkl(:,ik)
-        end if
-        vqlt(:) = vqlmt(:, iq)
+      if(present(vpl)) then 
+        vklt(:) = vpl
       else
-        if(iq .eq. 0) then
-          ! Gamma q-point
-          vklt(:) = vkl0(:, ik)
-          vqlt(:) = 0.d0
-        else
-          vklt(:) = vkl(:, ik)
-          vqlt(:) = vql(:, iq)
-        end if
+        vklt(:) = vkl(:,ik)
       end if
+      vqlt(:) = vqlmt(:, iq)
 
       if( r3dist(vkl_, vklt) .gt. input%structure%epslat .or.&
         & (r3dist(vql_, vqlt) .gt. input%structure%epslat .and. .not. tscreen) .or.&
-        & (r3dist(vql_, vqlt) .gt. input%structure%epslat .and. input%xs%bse%beyond ))&
+        & (r3dist(vql_, vqlt) .gt. input%structure%epslat))&
         & then
 
         write(unitout,*)

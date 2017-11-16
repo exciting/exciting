@@ -22,7 +22,8 @@ subroutine b_scrcoulint(iqmt, fra)
                  & vqlr, vqcr, wqptr, ngqr,&
                  & bcbs, ematraddir, eps0dirname,&
                  & filext0, usefilext0, iqmt0, iqmt1,&
-                 & iqmtgamma
+                 & iqmtgamma,&
+                 & bsedl, bsedu, bsedd, bsed
   use m_xsgauntgen
   use m_findgntn0
   use m_writevars
@@ -54,6 +55,9 @@ subroutine b_scrcoulint(iqmt, fra)
 
   ! ik,jk block of W matrix (final product)
   complex(8), allocatable :: sccli(:,:)
+
+  ! Diagonal of W (needed for MB TDDFT kernels)
+  complex(8), allocatable :: bsedt(:, :)
 
   ! Auxilliary arrays for the construction of sccli
   complex(8), allocatable :: sccli_t1(:, :), sccli_t2(:, :, :, :)
@@ -101,7 +105,8 @@ subroutine b_scrcoulint(iqmt, fra)
   integer(4) :: maxl_mat
   ! Aux.
   integer(4) :: j1, j2
-  complex(8) :: pref 
+  complex(8) :: pref, zt1
+  real(8) :: t1
   ! Timing vars
   real(8) :: tscc1, tscc0
 
@@ -435,6 +440,12 @@ subroutine b_scrcoulint(iqmt, fra)
   ! that contribute to the desired energy range (or bands).
   call genparidxran('p', nkkp_bse)
 
+  ! Gather W diagonal (only for Q=0 used)
+  allocate(bsedt(3, 0:mpiglobal%procs-1))
+  bsedt(1, :) = 1.d8
+  bsedt(2, :) = -1.d8
+  bsedt(3, :) = zzero
+
   kkploop: do ikkp = ppari, pparf
 
     ! Get individual k-point indices from combined ik jk index.
@@ -633,6 +644,20 @@ subroutine b_scrcoulint(iqmt, fra)
       ! Parallel write
       call b_putbsemat(scclifname, 77, ikkp, iqmt, sccli)
 
+      ! Analyze BSE diagonal
+      if(iknr .eq. jknr) then
+        do ia = 1, inou
+          zt1 = sccli(ia, ia)
+          t1 = dble(zt1)
+          ! Find minimal real part of diagonal elements
+          bsedt(1, mpiglobal%rank) = min(dble(bsedt(1, mpiglobal%rank)), t1)
+          ! Find maximal real part of diagonal elements
+          bsedt(2, mpiglobal%rank) = max(dble(bsedt(2, mpiglobal%rank)), t1)
+          ! Average diagonal element 
+          bsedt(3, mpiglobal%rank) = bsedt(3, mpiglobal%rank) + zt1 / inou
+        end do
+      end if
+
     ! W^{RA}
     else
       !-------------------------------!
@@ -753,6 +778,18 @@ subroutine b_scrcoulint(iqmt, fra)
 
   ! End loop over(k,kp)-pairs
   end do kkploop
+
+  ! Gather info about resonant diagonal elements 
+  !   Communicate array-parts wrt. q-points
+  call mpi_allgatherv_ifc(mpiglobal%procs,rlen=3,zbuf=bsedt)
+  !   BSE kernel diagonal parameters
+  bsedl = minval(dble(bsedt(1, :)))
+  bsedu = maxval(dble(bsedt(2, :)))
+  bsedd = bsedu - bsedl
+  bsed = sum(bsedt(3, :)) / nk_bse
+  deallocate(bsedt)
+  !   Write BSE kernel diagonal parameters
+  if(mpiglobal%rank .eq. 0) call putbsediag('BSEDIAG.OUT')
   
   if(mpiglobal%rank == 0) then
     write(6, *)

@@ -160,7 +160,7 @@ subroutine writepmatxs
 
   ! Get screening eigenvectors are calculated for qmt=0 only,
   ! i.e. set file extension to SCR
-  if( tscreen .and. input%xs%bse%beyond) then 
+  if(tscreen) then 
     call genfilname(scrtype='', setfilext=.true.)
   end if
 

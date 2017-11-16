@@ -6,7 +6,7 @@ subroutine b_xsgeneigveclauncher()
   use modmpi
   use modinput, only: input
   use mod_qpoint, only: nqpt, vql
-  use modxs, only: unitout, totalqlmt, tscreen
+  use modxs, only: unitout, totalqlmt, tscreen, qvkloff
   use m_genfilname, only: genfilname
   use m_writegqpts, only: writegqpts
   use mod_misc, only: filext
@@ -86,65 +86,94 @@ subroutine b_xsgeneigveclauncher()
     end do
   end if
 
-  ! Offsets for k+qmt/2 grids
-  allocate(vkloff_kqmtp(3,nqpt))
-  ! Offsets for the k-qmt/2 grid
-  allocate(vkloff_kqmtm(3,nqpt))
+  ! BSE uses +/- Q/2 grids (symmetrically shifted k grids
+  ! for each momentum transfer Q), while TDDFT uses +Q grids (asymmetrically shifted).
+  if(input%xs%xstype == "BSE") then 
 
-  ! For each Q-point in the Q-point list generate grids and
-  ! save offsets which are needed to call the gound state routine.
+    call printline(unitout, "=")
+    write(unitout, '("One-shot GS runs for BSE calculations")')
+    call printline(unitout, "=")
 
-  ! Write out detailed information about the used grids.
-  if(input%xs%writexsgrids) then 
-    fwg = .true.
-  else
-    fwg = .false.
-  end if
+    ! Offsets for k+qmt/2 grids
+    allocate(vkloff_kqmtp(3,nqpt))
+    ! Offsets for the k-qmt/2 grid
+    allocate(vkloff_kqmtm(3,nqpt))
 
-  do iq = 1, nqpt
+    ! For each Q-point in the Q-point list generate grids and
+    ! save offsets which are needed to call the gound state routine.
 
-    call xsgrids_init(totalqlmt(1:3, iq), gkmax, makegk_=fwg, makegq_=fwg)
-    if(mpiglobal%rank == 0 .and. fwg) then 
-      call xsgrids_write_grids(iq)
+    ! Write out detailed information about the used grids.
+    if(input%xs%writexsgrids) then 
+      fwg = .true.
+    else
+      fwg = .false.
     end if
 
-    !! Only save offsets
-    ! Offset for (k+qmt/2) grid
-    vkloff_kqmtp(1:3,iq) = k_kqmtp%kqmtset%vkloff
-    ! Offset for (k-qmt/2) grid
-    vkloff_kqmtm(1:3,iq) = k_kqmtm%kqmtset%vkloff
+    do iq = 1, nqpt
 
-    ! Clear grids again
-    call xsgrids_finalize()
+      call xsgrids_init(totalqlmt(1:3, iq), gkmax, makegk_=fwg, makegq_=fwg)
+      if(mpiglobal%rank == 0 .and. fwg) then 
+        call xsgrids_write_grids(iq)
+      end if
 
-  end do
+      !! Only save offsets
+      ! Offset for (k+qmt/2) grid
+      vkloff_kqmtp(1:3,iq) = k_kqmtp%kqmtset%vkloff
+      ! Offset for (k-qmt/2) grid
+      vkloff_kqmtm(1:3,iq) = k_kqmtm%kqmtset%vkloff
 
-  ! Depending on the BSE Hamiltonian to be constructed 
-  ! the eigensolutions on differing grids are needed.
+      ! Clear grids again
+      call xsgrids_finalize()
 
-  !! (k+qmt/2) grid
-  tmqmt=.false.
-  call printline(unitout, "+")
-  write(unitout, '("One-shot GS runs for k+qmt/2 grids")')
-  call printline(unitout, "+")
-  ! Do one-shot GS calculations for qmt-points number 1 to qf
-  call b_xsgeneigvec(1, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtp(1:3,1:nqpt),&
-    & tscreen, tmqmt)
+    end do
 
-  !! (k-qmt/2) grid
-  ! Skip Gamma (assumed to be the first entry)
-  if(qf > 1) then 
-    tmqmt=.true.
+    ! Depending on the BSE Hamiltonian to be constructed 
+    ! the eigensolutions on differing grids are needed.
+
+    !! (k+qmt/2) grid
+    tmqmt=.false.
     call printline(unitout, "+")
-    write(unitout, '("One-shot GS runs for k-qmt/2 grids")')
+    write(unitout, '("One-shot GS runs for k+qmt/2 grids")')
     call printline(unitout, "+")
-    ! Do one-shot GS calculations for qmt-points number 2 to qf
-    call b_xsgeneigvec(2, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt),&
+    ! Do one-shot GS calculations for qmt-points number 1 to qf
+    call b_xsgeneigvec(1, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtp(1:3,1:nqpt),&
       & tscreen, tmqmt)
-  end if
 
-  deallocate(vkloff_kqmtp)
-  deallocate(vkloff_kqmtm)
+    !! (k-qmt/2) grid
+    ! Skip Gamma (assumed to be the first entry)
+    if(qf > 1) then 
+      tmqmt=.true.
+      call printline(unitout, "+")
+      write(unitout, '("One-shot GS runs for k-qmt/2 grids")')
+      call printline(unitout, "+")
+      ! Do one-shot GS calculations for qmt-points number 2 to qf
+      call b_xsgeneigvec(2, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt),&
+        & tscreen, tmqmt)
+    end if
+
+    deallocate(vkloff_kqmtp)
+    deallocate(vkloff_kqmtm)
+
+  else if(input%xs%xstype == "TDDFT") then
+
+    call printline(unitout, "=")
+    write(unitout, '("One-shot GS runs for TDDFT calculations")')
+    call printline(unitout, "=")
+
+    !! (k+qmt) grid
+    tmqmt=.false.
+    call printline(unitout, "+")
+    write(unitout, '("One-shot GS runs for k+qmt grids")')
+    call printline(unitout, "+")
+    ! Do one-shot GS calculations for qmt-points number 1 to qf
+    call b_xsgeneigvec(1, qf, nqpt, vql(1:3,1:nqpt), qvkloff(1:3,1:nqpt),&
+      & tscreen, tmqmt)
+
+  else
+
+    write(*,*) "What? We should not be here."
+
+  end if
 
 end subroutine b_xsgeneigveclauncher
 !EOC
