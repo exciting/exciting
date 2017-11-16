@@ -64,12 +64,10 @@ module m_writeoscillator
       if(iqmt==1) then
         if (.not. input%groundstate%tevecsv) then 
           ! -1 * 2 * 4 pi * 1/V * 1/nk
-          !pref = -2.d0*4.d0*pi/omega/nk
-          pref = -1.0d0/omega/nk
+          pref = -2.d0*4.d0*pi/omega/nk
         else
           ! -1 * 4 pi * 1/V * 1/nk
-         ! pref = -4.d0*pi/omega/nk
-         pref = -1.0d0/omega/nk
+          pref = -4.d0*pi/omega/nk
         end if
       else
         if (.not. input%groundstate%tevecsv) then
