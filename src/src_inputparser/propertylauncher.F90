@@ -37,7 +37,7 @@ Subroutine propertylauncher
       !--------------------------------------------------------
       if( associated( input%properties%wannierplot)) then
         call rereadinput
-        call wannier_plot( input%properties%wannierplot%state, input%properties%wannierplot%cell)
+        call wannier_plot( input%properties%wannierplot%fst, input%properties%wannierplot%lst, input%properties%wannierplot%cell)
       end if
 
       !--------------------------------------------------------

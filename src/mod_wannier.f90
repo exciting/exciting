@@ -14,6 +14,7 @@ module mod_wannier
   use modgw, only: kset
   use m_getunit
   use m_ematqk
+  use mod_pwmat
   use m_plotmat
   use modmpi
   use mod_misc
@@ -88,9 +89,9 @@ module mod_wannier
       integer :: iproj, is, ia, js, ja, ias, nr, l, m, lm, io, ilo, ir, ig
       integer :: ik, iknr, ngknr
       real(8) :: ecenter, t0, t1, vl(3), vc(3)
-      integer, allocatable :: cnt(:)
+      !integer, allocatable :: cnt(:)
       complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), auxmat(:,:) 
-      real(8), allocatable :: rolpi(:,:), evalfv(:,:)
+      real(8), allocatable :: rolpi(:,:)
 
       character(256) :: fname
       
@@ -200,6 +201,7 @@ module mod_wannier
       !********************************************************************
       select case (input%properties%wannier%input)
         case( "groundstate")
+          !call readkpts
           !call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek)
           !wf_kset%vkl = vkl
           !wf_kset%vkc = vkc
@@ -246,19 +248,7 @@ module mod_wannier
       call generate_Gk_vectors( wf_Gkset, wf_kset, wf_Gset, gkmax)
       write(*, '(" k-grid loaded.")')
 
-  !call readfermi
-
-  !allocate( eval1( nstfv, nkpt), evalfv( nstfv, nspinor))
-  !write(*,*) nkpt
-  !do ik = 1, nkpt
-  !  call getevalfv( vkl( :, ik), evalfv)
-  !  eval1( :, ik) = evalfv( :, 1)
-  !end do
-  !write( fname, '("acc/evalcal_fermical",3("_",I2.2))') input%groundstate%ngridk
-  !call writematlab( zone*(eval1( 1:40, :) - efermi), fname)
-  !stop
-
-      
+      !call readfermi
 
       !********************************************************************
       ! find geometry
@@ -355,7 +345,7 @@ module mod_wannier
       call genlofr      ! LO radial functions
       call olprad
 
-      allocate( rolpi( wf_nprojtot, apwordmax+maxlorb))
+      allocate( rolpi( wf_nprojtot, apwordmax+nlomax))
       rolpi(:,:) = zzero
       do iproj = 1, wf_nprojtot
         is = wf_projst( iproj, 1)
@@ -378,21 +368,21 @@ module mod_wannier
       !********************************************************************
       if( allocated( wf_projection)) deallocate( wf_projection)
       allocate( wf_projection( nstfv, wf_nprojtot, wf_kset%nkpt))
-      allocate( evecfv( nmatmax, nstfv, nspinor))
-      allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspinor))
-      allocate( auxmat( ngkmax+nlotot, wf_nprojtot))
 
 #ifdef USEOMP                
-!!$OMP PARALLEL DEFAULT(shared) PRIVATE( iknr, evecfv, apwalm, auxmat, iproj, is, ias, lm, ig, io, js, ja, ilo, l, m) COPYIN( evecfv, apwalm, auxmat)
+!!$omp parallel default( shared) private( iknr, iproj, is, ias, lm, ig, io, js, ja, ilo, l, m, apwalm, evecfv, auxmat)
 #endif
+      allocate( evecfv( nmatmax, nstfv, nspinor))
+      allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspinor))
+      allocate( auxmat( nmatmax, wf_nprojtot))
 #ifdef USEOMP                
-!!$OMP DO  
+!!$omp do 
 #endif
       do iknr = 1, wf_kset%nkpt   
-        call match( wf_Gkset%ngk( 1, iknr), wf_Gkset%gkc( :, 1, iknr), wf_Gkset%tpgkc( :, :, 1, iknr), wf_Gkset%sfacgk( :, :, 1, iknr), apwalm(:, :, :, :, 1))
 #ifdef USEOMP                
-!!$OMP CRITICAL (readevec1)
+!!$omp critical( readevec1)
 #endif
+        !write(*,'("projection matrix: ",I,3F13.6)') iknr, wf_kset%vkl( :, iknr)
         if( input%properties%wannier%input .eq. "groundstate") then
           call getevecfv( wf_kset%vkl(:, iknr), wf_Gkset%vgkl( :, :, :, iknr), evecfv)
         else if( input%properties%wannier%input .eq. "hybrid") then
@@ -403,8 +393,10 @@ module mod_wannier
           call terminate
         end if
 #ifdef USEOMP                
-!!$OMP END CRITICAL (readevec1)
+!!$omp end critical( readevec1)
 #endif
+
+        call match( wf_Gkset%ngk( 1, iknr), wf_Gkset%gkc( :, 1, iknr), wf_Gkset%tpgkc( :, :, 1, iknr), wf_Gkset%sfacgk( :, :, 1, iknr), apwalm(:, :, :, :, 1))
 
         ! projection matrices 
         do iproj = 1, wf_nprojtot
@@ -434,17 +426,18 @@ module mod_wannier
         end do
 
         call ZGEMM( 'C', 'N', nstfv, wf_nprojtot, wf_Gkset%ngk( 1, iknr)+nlotot, zone, &
-             evecfv( 1:(wf_Gkset%ngk( 1, iknr)+nlotot), :, 1), wf_Gkset%ngk( 1, iknr)+nlotot, &
-             auxmat( 1:(wf_Gkset%ngk( 1, iknr)+nlotot), :), wf_Gkset%ngk( 1, iknr)+nlotot, zzero, &
+             evecfv( :, :, 1), nmatmax, &
+             auxmat, nmatmax, zzero, &
              wf_projection( :, :, iknr), nstfv)
       end do 
 #ifdef USEOMP
-!!$OMP END DO
-#endif
-#ifdef USEOMP                
-!!$OMP END PARALLEL
+!!$omp end do
 #endif
       deallocate( evecfv, apwalm, auxmat)
+#ifdef USEOMP                
+!!$omp end parallel
+#endif
+      deallocate( rolpi)
 
       call timesec( t1)
       write( wf_info, '(" ...projection overlap matrices calculated.")')
@@ -472,8 +465,7 @@ module mod_wannier
       
       wf_initialized = .true.
       !call wannier_showproj
-      deallocate( rolpi)
-      if( wf_disentangle) call wannier_subspace( maxloc( cnt, 1))
+      !if( wf_disentangle) call wannier_subspace( maxloc( cnt, 1))
       return
     end subroutine wannier_init
     !EOC
@@ -494,13 +486,12 @@ module mod_wannier
       !BOC
 
       ! local variables
-      integer :: i, is, n, k1, k2, iknr, ngknr, maxn, idxn, n2
+      integer :: i, is, n, k1, k2, iknr, ngknr, maxn, idxn, cntk
       real(8) :: t0, t1
       logical :: success
 
       ! allocatable arrays
-      !complex(8), allocatable :: evecfv_tmp(:,:,:,:)
-      complex(8), allocatable :: evecfv1(:,:,:), evecfv2(:,:,:), auxmat(:,:)
+      complex(8), allocatable :: evecfv1(:,:,:), evecfv2(:,:,:)
       
       write(*,*) "wannier_emat..."
       write( wf_info, '(" calculate plane-wave matrix-elements...")')
@@ -524,73 +515,86 @@ module mod_wannier
         if( allocated( wf_m0)) deallocate( wf_m0)
         allocate( wf_m0( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt, wf_n_ntot))
 
-        wf_m0 = zzero
-        
-        call emat_init( input%groundstate%lmaxapw, 8)
+        wf_m0(:,:,:,:) = zzero
 
-        allocate( evecfv1( nmatmax, nstfv, nspinor))
-        allocate( evecfv2( nmatmax, nstfv, nspinor))
+        write(*,'("shape of M0:   ",4I4)') shape( wf_m0)
+        write(*,'("shape of evec: ",3I4)') nmatmax, nstfv, nspinor
+        
+        call pwmat_init( input%groundstate%lmaxapw, 8)
 
         do i = 1, wf_n_nshells
           is = wf_n_usedshells( i) 
           do n = 1, wf_n_n( is)
             idxn = wf_n_ns2n( n, is)
-            write(*,*) is, n, idxn
-            call emat_init_qg( wf_n_vl( :, n, is), (/0, 0, 0/))
-#ifdef USEOMP                
-!!$OMP PARALLEL DEFAULT(shared) PRIVATE( iknr, evecfv1, evecfv2, auxmat) COPYIN( evecfv1, evecfv2, auxmat)
+            call pwmat_init_qg( wf_n_vl( :, n, is), (/0, 0, 0/))
+            cntk = 0
+            write(*,'(1a1,"  neighbor ",i2," of ",i2,": ",i3,"%",$)') char(13), idxn, wf_n_ntot, nint( 100.d0*cntk/wf_kset%nkpt)
+#ifdef USEOMP
+!$omp parallel default( shared) private( iknr, evecfv1, evecfv2)
 #endif
-#ifdef USEOMP                
-!!$OMP DO  
+        allocate( evecfv1( nmatmax, nstfv, nspinor))
+        allocate( evecfv2( nmatmax, nstfv, nspinor))
+#ifdef USEOMP
+!$omp do
 #endif
             do iknr = 1, wf_kset%nkpt   
-              write(*,'(I)') iknr
-#ifdef USEOMP                
-!!$OMP CRITICAL (readevec)
+              !write(*,'(I)') iknr
+#ifdef USEOMP
+!$omp critical( readevec)
 #endif
               ! read eigenvectors
               if( input%properties%wannier%input .eq. "groundstate") then
                 call getevecfv( wf_kset%vkl( :, iknr), wf_Gkset%vgkl( :, :, :, iknr), evecfv1)
-                write(*,'("got evec 1")')
+                !write(*,'("got evec 1")')
                 call getevecfv( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), wf_Gkset%vgkl( :, :, :, wf_n_ik( n, is, iknr)), evecfv2)
-                write(*,'("got evec 2")')
+                !write(*,'("got evec 2")')
               else if( input%properties%wannier%input .eq. "hybrid") then
                 call getevecfv( wf_kset%vkl( :, iknr), wf_Gkset%vgkl( :, :, :, iknr), evecfv1)
-                write(*,'("got evec 1")')
+                !write(*,'("got evec 1")')
                 call getevecfv( wf_kset%vkl( :, wf_n_ik( n, is, iknr)), wf_Gkset%vgkl( :, :, :, wf_n_ik( n, is, iknr)), evecfv2)
-                write(*,'("got evec 2")')
+                !write(*,'("got evec 2")')
               else if( input%properties%wannier%input .eq. "gw") then
                 call getevecsvgw_new( "GW_EVECSV.OUT", iknr, wf_kset%vkl( :, iknr), nmatmax, nstfv, nspinor, evecfv1)
                 call getevecsvgw_new( "GW_EVECSV.OUT", wf_n_ik( n, is, iknr), wf_kset%vkl( :, wf_n_ik( n, is, iknr)), nmatmax, nstfv, nspinor, evecfv2)
               else
                 call terminate
               end if
-#ifdef USEOMP                
-!!$OMP END CRITICAL (readevec)
+#ifdef USEOMP
+!$omp end critical( readevec)
 #endif
-              write(*,'(" calc ")')
               ! generate plane-wave matrix elements
-              call emat_genemat( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), wf_fst, wf_lst, wf_fst, wf_lst, &
+              call pwmat_genpwmat( wf_kset%vkl( :, iknr), wf_kset%vkc( :, iknr), wf_fst, wf_lst, wf_fst, wf_lst, &
                    evecfv1( :, wf_fst:wf_lst, 1), &
                    evecfv2( :, wf_fst:wf_lst, 1), &
                    wf_m0( :, :, iknr, idxn))
-              !wf_m0( :, :, iknr, idxn) = auxmat
-              write(*,'(" done")')
+#ifdef USEOMP
+!$omp atomic update
+#endif
+              cntk = cntk + 1
+#ifdef USEOMP
+!$omp end atomic
+#endif
+              write(*,'(1a1,"o neighbor ",i2," of ",i2,": ",i3,"%",$)') char(13), idxn, wf_n_ntot, nint( 100.d0*cntk/wf_kset%nkpt)
             end do
 #ifdef USEOMP
-!!$OMP END DO
+!$omp end do
 #endif
-#ifdef USEOMP                
-!!$OMP END PARALLEL
+        deallocate( evecfv1, evecfv2)
+#ifdef USEOMP
+!$omp end parallel
 #endif
+            write(*,*)
+            !do iknr = 1, wf_kset%nkpt
+            !  write(*,*) iknr
+            !  call plotmat( wf_m0( :, :, iknr, idxn))
+            !  write(*,*)
+            !end do
           end do
         end do
 
-            deallocate( evecfv1, evecfv2)
-        
-        write(*,*) "destroy"
-        call emat_destroy
-        write(*,*) "write"
+        !write(*,*) "destroy"
+        call pwmat_destroy
+        !write(*,*) "write"
         call wannier_writeemat
         call timesec( t1)
         write( wf_info, '(" ...plane-wave matrix-elements calculated.")')
@@ -643,7 +647,6 @@ module mod_wannier
       real(8) :: t0, t1
       real(8), allocatable :: sval(:), ravg(:,:), omega(:)
       complex(8), allocatable :: projm(:,:), lsvec(:,:), rsvec(:,:)
-      logical :: error
 
 !#ifdef MPI
 !      if( rank .eq. 0) then
@@ -664,7 +667,6 @@ module mod_wannier
       if( allocated( wf_transform)) deallocate( wf_transform)
       allocate( wf_transform( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt))
          
-      error = .false.
 #ifdef USEOMP                
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, i, j, projm, sval, lsvec, rsvec)
 !$OMP DO  
@@ -678,9 +680,10 @@ module mod_wannier
           end if
         end do
         call zgesdd_wrapper( projm, wf_nst, wf_nst, sval, lsvec, rsvec)
-        if( minval( sval) .lt. input%structure%epslat) then
-          error = .true.
-        end if
+        ! for numerical stability
+        do i = 1, wf_nst
+          if( sval( i) .lt. 1.d-10) lsvec( :, i) = zzero
+        end do
         call ZGEMM( 'N', 'N', wf_nst, wf_nst, wf_nst, zone, &
              lsvec, wf_nst, &
              rsvec, wf_nst, zzero, &
@@ -690,9 +693,6 @@ module mod_wannier
 !$OMP END DO
 !$OMP END PARALLEL
 #endif
-      if( error) then
-        write(*,*) ' WARNING (wannier_gen_pro): The local-orbitals selected for projection may not describe the angular character of the selected bands sufficiently. Add local-orbitals with different angular momentum.'
-      end if
       call wannier_loc
       call wannier_writefile
       deallocate( projm, sval, lsvec, rsvec)
@@ -765,6 +765,7 @@ module mod_wannier
       allocate( opf_transform( wf_nst, wf_nprojused, wf_kset%nkpt))
       allocate( opf_projm( wf_nst, wf_nprojused, wf_kset%nkpt))
       allocate( lsvec( wf_nst, wf_nst), rsvec( wf_nprojused, wf_nprojused), sval( wf_nst))
+      write(*,'("used orbitals: ",I)') wf_nprojused
       do iknr = 1, wf_kset%nkpt
         if( wf_disentangle) then
           i = min( minval( wf_win_idxi( 1:wf_win_ni( iknr), iknr)), minval( wf_win_idxo( 1:wf_win_no( iknr), iknr)))
@@ -780,13 +781,19 @@ module mod_wannier
             if( wf_projused( i) .eq. 1) then
               j = j+1
               opf_projm( :, j, iknr) = wf_projection( wf_fst:wf_lst, i, iknr)
+              !if( iknr .eq. 1) write(*,*) j, i
             end if
           end do
         end if
         call zgesdd_wrapper( opf_projm( :, :, iknr), wf_nst, wf_nprojused, sval, lsvec, rsvec)
+        ! for numerical stability
+        do ist = 1, wf_nst
+          if( sval( ist) .lt. 1.d-10) lsvec( :, ist) = zzero
+        end do
+        
         call zgemm( 'N', 'N', wf_nst, wf_nprojused, wf_nst, zone, &
              lsvec, wf_nst, &
-             rsvec( 1:wf_nst, :), wf_nst, zzero, &
+             rsvec, wf_nprojused, zzero, &
              opf_transform( :, :, iknr), wf_nst)
       end do
 
@@ -816,7 +823,7 @@ module mod_wannier
             idxn = wf_n_ns2n( n, is)
             i = i + 1
             call zgemm( 'N', 'N', wf_nst, wf_nprojused, wf_nst, zone, &
-                 wf_m0( wf_fst:wf_lst, wf_fst:wf_lst, iknr, idxn), wf_nst, &
+                 wf_m0( :, :, iknr, idxn), wf_nst, &
                  opf_transform( :, :, wf_n_ik( n, is, iknr)), wf_nst, zzero, &
                  auxmat, wf_nst)
             call zgemm( 'C', 'N', wf_nprojused, wf_nprojused, wf_nst, zone, &
@@ -850,7 +857,10 @@ module mod_wannier
       allocate( wf_transform( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt))
 
       allocate( opf_mixing( wf_nprojused, wf_nprojused))
-      allocate( projm( wf_fst:wf_lst, wf_fst:wf_lst), sval2( wf_nst), lsvec2( wf_nst, wf_nst), rsvec2( wf_nst, wf_nst))
+      allocate( projm( wf_fst:wf_lst, wf_fst:wf_lst))
+      allocate( sval2( wf_nst))
+      allocate( lsvec2( wf_nst, wf_nst))
+      allocate( rsvec2( wf_nst, wf_nst))
       allocate( phihist( minit))
       deallocate( lsvec, rsvec)
       allocate( lsvec(3,3), rsvec(3,3))
@@ -912,7 +922,7 @@ module mod_wannier
                 lsvec = conjg( transpose( lsvec))
                 rsvec = conjg( transpose( rsvec))
                 do is = 1, 3
-                  if( eval( is) .gt. 1.d-6) then
+                  if( eval( is) .gt. 1.d-10) then
                     rsvec( :, is) = rsvec( :, is)/eval( is)
                   else
                     rsvec( :, is) = zzero
@@ -978,9 +988,13 @@ module mod_wannier
         do iknr = 1, wf_kset%nkpt
           call zgemm( 'N', 'N', wf_nst, wf_nst, wf_nprojused, zone, &
                opf_projm( :, :, iknr), wf_nst, &
-               wf_opf( :, wf_fst:wf_lst), wf_nprojused, zzero, &
+               wf_opf, wf_nprojused, zzero, &
                projm, wf_nst)
           call zgesdd_wrapper( projm, wf_nst, wf_nst, sval2, lsvec2, rsvec2)
+          ! for numerical stability
+          do ist = 1, wf_nst
+            if( sval2( ist) .lt. 1.d-10) lsvec2( :, ist) = zzero
+          end do
           call ZGEMM( 'N', 'N', wf_nst, wf_nst, wf_nst, zone, &
                lsvec2, wf_nst, &
                rsvec2, wf_nst, zzero, &
@@ -1071,6 +1085,10 @@ module mod_wannier
              wf_opf( :, wf_fst:wf_lst), wf_nprojused, zzero, &
              projm, wf_nst)
         call zgesdd_wrapper( projm, wf_nst, wf_nst, sval2, lsvec2, rsvec2)
+        ! for numerical stability
+        do ist = 1, wf_nst
+          if( sval2( ist) .lt. 1.d-10) lsvec2( :, ist) = zzero
+        end do
         call ZGEMM( 'N', 'N', wf_nst, wf_nst, wf_nst, zone, &
              lsvec2, wf_nst, &
              rsvec2, wf_nst, zzero, &
@@ -1185,6 +1203,7 @@ module mod_wannier
       !********************************************************************
       ! mixing parameter for self consistent minimization
       alpha = mixing
+      last_step = alpha
 
       ! start minimization loop
       allocate( mlwf_transform( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt))
@@ -1219,6 +1238,7 @@ module mod_wannier
         is = wf_n_usedshells( i)
         nwgt = nwgt + wf_n_wgt( is)*wf_n_n( is)
       end do
+      nwgt = nwgt*4.0d0
 
       !************************************************************
       !* start of minimization
@@ -1324,13 +1344,14 @@ module mod_wannier
         !r1 = dble( zdotc( wf_kset%nkpt*wf_nst*wf_nst, mlwf_dir, 1, mlwf_dir_last, 1))
         !write(*,'(2F13.6," ANGLE: ",F13.6)') r1, r2, acos( r1/r2)*180/pi
 
-        r1 = dble( zdotc( wf_kset%nkpt*wf_nst*wf_nst, mlwf_grad, 1, mlwf_dir, 1))/4.0d0/nwgt
+        r1 = dble( zdotc( wf_kset%nkpt*wf_nst*wf_nst, mlwf_grad, 1, mlwf_dir, 1))/nwgt
+        !write(*,'(2F23.16)') r1, alpha
 
         ! reset if necessary
         if((mod( ncg, maxcg) .eq. 0) .or. (r1 .ge. 0.d0)) then
           !write(*,'("RESET")')
           mlwf_dir = -mlwf_grad
-          r1 = dble( zdotc( wf_kset%nkpt*wf_nst*wf_nst, mlwf_grad, 1, mlwf_dir, 1))/4.0d0/nwgt
+          r1 = -grad_norm*grad_norm/nwgt
           ncg = 0
         end if
         !write(*,'(2F13.6)') r1
@@ -1339,18 +1360,18 @@ module mod_wannier
         mlwf_dir_last = mlwf_dir
 
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr)
-!$OMP DO SCHEDULE( guided)
+!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr)
+!!$OMP DO
 #endif
         ! diagonalize update directions
         do iknr = 1, wf_kset%nkpt
-          call diaghermat( wf_nst, zi*mlwf_dir( :, :, iknr), eval( :, iknr), mlwf_grad( :, :, iknr))
+          call diaghermat( wf_nst, zi*mlwf_dir( :, :, iknr)/nwgt, eval( :, iknr), mlwf_grad( :, :, iknr))
           ! copy transformation matrices befor line search
           mlwf_dir( :, :, iknr) = wf_transform( :, :, iknr)
         end do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+!!$OMP END DO
+!!$OMP END PARALLEL
 #endif
         omega_old = sum( wf_omega)
         if( input%properties%wannier%ls) then
@@ -1373,7 +1394,7 @@ module mod_wannier
 #endif
               do iknr = 1, wf_kset%nkpt
                 do ix = wf_fst, wf_lst
-                  auxmat( :, ix) = exp( -zi*alpha/4.d0/nwgt*eval( ix, iknr))*mlwf_grad( :, ix, iknr) 
+                  auxmat( :, ix) = exp( -zi*alpha*eval( ix, iknr))*mlwf_grad( :, ix, iknr) 
                 end do
                 call ZGEMM( 'N', 'N', wf_nst, wf_nst, wf_nst, zone, &
                      mlwf_dir( :, :, iknr), wf_nst, &
@@ -1473,7 +1494,7 @@ module mod_wannier
 #endif
         do iknr = 1, wf_kset%nkpt
           do ix = wf_fst, wf_lst
-            auxmat( :, ix) = exp( -zi*alpha/4.0d0/nwgt*eval( ix, iknr))*mlwf_grad( :, ix, iknr) 
+            auxmat( :, ix) = exp( -zi*alpha*eval( ix, iknr))*mlwf_grad( :, ix, iknr) 
           end do
           call ZGEMM( 'N', 'C', wf_nst, wf_nst, wf_nst, zone, &
                auxmat, wf_nst, &
@@ -2072,13 +2093,13 @@ module mod_wannier
           do n = 1, wf_n_n( is)
             idxn = wf_n_ns2n( n, is)
             call ZGEMM( 'N', 'N', wf_nst, wf_nst, wf_nst, zone, &
-                 wf_m0( wf_fst:wf_lst, wf_fst:wf_lst, iknr, idxn), wf_nst, &
+                 wf_m0( :, :, iknr, idxn), wf_nst, &
                  wf_transform( wf_fst:wf_lst, wf_fst:wf_lst, wf_n_ik( n, is, iknr)), wf_nst, zzero, &
-                 auxmat( wf_fst:wf_lst, wf_fst:wf_lst), wf_nst)
+                 auxmat, wf_nst)
             call ZGEMM( 'C', 'N', wf_nst, wf_nst, wf_nst, zone, &
                  wf_transform( wf_fst:wf_lst, wf_fst:wf_lst, iknr), wf_nst, &
-                 auxmat( 1:wf_nst, :), wf_nst, zzero, &
-                 wf_m( wf_fst:wf_lst, wf_fst:wf_lst, iknr, idxn), wf_nst)
+                 auxmat, wf_nst, zzero, &
+                 wf_m( :, :, iknr, idxn), wf_nst)
           end do
         end do
       end do
@@ -3176,15 +3197,18 @@ module mod_wannier
     end subroutine wannier_writeinfo_finish
     
     subroutine wannier_writeinfo_results
+      use mod_lattice, only: ainv 
       integer :: i
+      real(8) :: vl(3)
 
       call printbox( wf_info, '*', "Wannier functions")
       write( wf_info, *)
-      write( wf_info, '(6x,"band",15x,"localization center (cartesian)",5x,"Omega (bohr^2)",3x,"Omega_I (bohr^2)",3x,"Omega_D (bohr^2)",2x,"Omega_OD (bohr^2)")')
+      write( wf_info, '(6x,"band",17x,"localization center (lattice)",5x,"Omega (bohr^2)",3x,"Omega_I (bohr^2)",3x,"Omega_D (bohr^2)",2x,"Omega_OD (bohr^2)")')
       write( wf_info, '(80("-"))')
 
       do i = wf_fst, wf_lst
-        write( wf_info, '(6x,I4,7x,3F13.6,4(3x,F16.6))') i, wf_centers( :, i), wf_omega( i), wf_omega_i( i), wf_omega_d( i), wf_omega_od( i)
+        call r3mv( ainv, wf_centers( :, i), vl)
+        write( wf_info, '(6x,I4,7x,3F13.6,4(3x,F16.6))') i, vl, wf_omega( i), wf_omega_i( i), wf_omega_d( i), wf_omega_od( i)
       end do
 
       write( wf_info, '(80("-"))')
@@ -3207,6 +3231,7 @@ module mod_wannier
       if( allocated( wf_projection)) deallocate( wf_projection)
       if( allocated( wf_opf)) deallocate( wf_opf)
       if( allocated( wf_m0)) deallocate( wf_m0)
+      if( allocated( wf_m)) deallocate( wf_m)
       if( allocated( wf_subspace)) deallocate( wf_subspace)
       if( allocated( wf_centers)) deallocate( wf_centers)
       if( allocated( wf_omega)) deallocate( wf_omega)
@@ -3222,6 +3247,7 @@ module mod_wannier
       if( allocated( wf_n_vl)) deallocate( wf_n_vl)
       if( allocated( wf_n_vc)) deallocate( wf_n_vc)
       if( allocated( wf_n_wgt)) deallocate( wf_n_wgt)
+      if( allocated( wf_n_usedshells)) deallocate( wf_n_usedshells)
       wf_initialized = .false.
     end subroutine wannier_destroy
 end module mod_wannier

@@ -989,9 +989,15 @@
               <xs:documentation>Plot the Wannier function for given state.</xs:documentation>
             </xs:annotation>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="state" type="xs:integer" default="0">
+            <xs:attribute ex:importance="essential" ex:unit="" name="fst" type="xs:integer" default="0">
               <xs:annotation>
-                  <xs:documentation>State.</xs:documentation>
+                  <xs:documentation>First state.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="lst" type="xs:integer" default="0">
+              <xs:annotation>
+                  <xs:documentation>Last state.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
