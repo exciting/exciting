@@ -1,7 +1,7 @@
 !BOP
-! !ROUTINE: b_writeexcevec
+! !ROUTINE: writeexcevec
 ! !INTERFACE:
-subroutine b_writeexcevec()
+subroutine writeexcevec()
 ! !USES:
   use modxs, only: unitout
   use modinput
@@ -23,7 +23,7 @@ subroutine b_writeexcevec()
 
   implicit none
 
-  character(*), parameter :: thisname = 'b_writeexcevec'
+  character(*), parameter :: thisname = 'writeexcevec'
 
   ! Local vars
   integer(4) :: alpha, lambda, nvmax, ncmax, icmin, icmax, ivmin, ivmax 
@@ -469,5 +469,5 @@ subroutine b_writeexcevec()
 
   end if
 
-end subroutine b_writeexcevec
+end subroutine writeexcevec
 !EOC

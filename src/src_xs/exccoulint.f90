@@ -3,9 +3,9 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: b_exccoulint
+! !ROUTINE: exccoulint
 ! !INTERFACE:
-subroutine b_exccoulint(iqmt)
+subroutine exccoulint(iqmt)
 ! !USES:
   use mod_misc, only: filext
   use mod_constants, only: zone, zzero
@@ -26,7 +26,7 @@ subroutine b_exccoulint(iqmt)
   use m_genfilname
   use m_getunit
   use modbse
-  use m_b_ematqk
+  use m_ematqk
   use m_putgetbsemat
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
@@ -46,7 +46,7 @@ subroutine b_exccoulint(iqmt)
 
   ! Local variables
 
-  character(*), parameter :: thisname = 'b_exccoulint'
+  character(*), parameter :: thisname = 'exccoulint'
   ! ik,jk block of V matrix (final product)
   complex(8), allocatable :: excli(:, :)
   ! Auxilliary arrays for the construction of excli
@@ -172,11 +172,11 @@ subroutine b_exccoulint(iqmt)
     if(fchibarq) then 
       call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
         &  bsetype='-BAR', iqmt=iqmt, filnam=infofname)
-      call b_putbseinfo(infofname, iqmt)
+      call putbseinfo(infofname, iqmt)
     else
       call genfilname(basename=trim(infofbasename)//'_'//trim(exclifbasename),&
         & iqmt=iqmt, filnam=infofname)
-      call b_putbseinfo(infofname, iqmt)
+      call putbseinfo(infofname, iqmt)
     end if
   end if
 
@@ -210,14 +210,14 @@ subroutine b_exccoulint(iqmt)
   call init1offs(k_kqmtp%kqmtset%vkloff)
   ! Check whether k+-qmt/2 grids are identical to k grid
   if(all(abs(k_kqmtp%kqmtset%vkloff-k_kqmtp%kset%vkloff) < epslat)) then 
-    write(unitout, '("Info(b_exccoulint):&
+    write(unitout, '("Info(exccoulint):&
       & k+qmt/2-grid is identical to iqmt=1 grid for, iqmt=",i3)') iqmt
     fsamekp=.true.
   else
     fsamekp=.false.
   end if
   if(all(abs(k_kqmtm%kqmtset%vkloff-k_kqmtm%kset%vkloff) < epslat)) then 
-    write(unitout, '("Info(b_exccoulint):&
+    write(unitout, '("Info(exccoulint):&
       & k-qmt/2-grid is identical to iqmt=1 grid for, iqmt=",i3)') iqmt
     fsamekm=.true.
   else
@@ -263,7 +263,7 @@ subroutine b_exccoulint(iqmt)
   ! Info out
   if(mpiglobal%rank == 0) then
     write(unitout, *)
-    write(unitout, '("Info(b_exccoulint):&
+    write(unitout, '("Info(exccoulint):&
      & Generating plane wave matrix elements for momentum transfer iqmt=",i4)') iqmt
     call timesec(tpw0)
   end if
@@ -345,16 +345,16 @@ subroutine b_exccoulint(iqmt)
       flg_analytic = 0
     case("0d")
       flg_analytic = 4
-      write(unitout, '("Info(b_exccoulint):&
+      write(unitout, '("Info(exccoulint):&
         & Applying Coulomb cutoff for low dimensional systems. Type:",a)') &
         & trim(input%xs%bse%cuttype)
     case("2d")
       flg_analytic = 5
-      write(unitout, '("Info(b_exccoulint):&
+      write(unitout, '("Info(exccoulint):&
         & Applying Coulomb cutoff for low dimensional systems. Type:",a)') &
         & trim(input%xs%bse%cuttype)
     case default
-      write(*,*) "Error(b_exccoulint): Invalid cuttype"
+      write(*,*) "Error(exccoulint): Invalid cuttype"
       call terminate
   end select
   do igq1 = 1, numgq
@@ -371,9 +371,9 @@ subroutine b_exccoulint(iqmt)
 
   if(mpiglobal%rank == 0) then
     write(unitout, *)
-    write(unitout, '("Info(b_exccoulint): Generating V matrix elements")')
+    write(unitout, '("Info(exccoulint): Generating V matrix elements")')
     if(iqmt == 1 .or. input%xs%bse%chibarq) then 
-      write(unitout, '("Info(b_exccoulint): Zeroing Coulomb potential at G+qmt index:", i3)') igqmt
+      write(unitout, '("Info(exccoulint): Zeroing Coulomb potential at G+qmt index:", i3)') igqmt
     end if
     call timesec(tpw0)
   end if
@@ -411,7 +411,7 @@ subroutine b_exccoulint(iqmt)
     call makeexcli(excli(1:inou,1:jnou))
 
     ! Parallel write
-    call b_putbsemat(exclifname, 77, ikkp, iqmt, excli)
+    call putbsemat(exclifname, 77, ikkp, iqmt, excli)
 
     if(mpiglobal%rank == 0) then
       write(6, '(a,"Exccoulint progess:", f10.3)', advance="no")&
@@ -495,9 +495,9 @@ subroutine b_exccoulint(iqmt)
 
       ! Calculate M_{iu io,G}(ikm, qmt)
       if (input%xs%bse%xas) then
-        call b_ematqk_core(iqmt, ikmnr, muo, ematbc, 'uo')
+        call ematqk_core(iqmt, ikmnr, muo, ematbc, 'uo')
       else
-        call b_ematqk(iqmt, ikmnr, muo, ematbc)
+        call ematqk(iqmt, ikmnr, muo, ematbc)
       end if
       !------------------------------------------------------------------!
 
@@ -548,6 +548,6 @@ subroutine b_exccoulint(iqmt)
 
     end subroutine makeexcli
 
-end subroutine b_exccoulint
+end subroutine exccoulint
 !EOC
 

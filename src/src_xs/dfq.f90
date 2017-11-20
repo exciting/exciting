@@ -43,7 +43,7 @@ subroutine dfq(iq)
   use m_writevars
   use m_filedel
   use m_genfilname
-  use m_b_ematqk
+  use m_ematqk
   use m_writecmplxparts
   use m_putgeteps0
 ! !INPUT/OUTPUT PARAMETERS:
@@ -461,7 +461,7 @@ subroutine dfq(iq)
       bc%iu2 = istu2
       ikmapikq_ptr => ikmapikq
       call setptr01
-      call b_ematqk(iq, ik, xiou, bc)
+      call ematqk(iq, ik, xiou, bc)
 
 
       ! Get uo
@@ -483,7 +483,7 @@ subroutine dfq(iq)
         bc%iu2 = istu4
         ikmapikq_ptr => ikmapikq
         call setptr01
-        call b_ematqk(iq, ik, xiuo, bc)
+        call ematqk(iq, ik, xiuo, bc)
       end if
 
 !********************************************************!

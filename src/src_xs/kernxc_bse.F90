@@ -41,7 +41,7 @@ subroutine kernxc_bse
   use m_getunit
   use m_genfilname
   use m_putgetbsemat
-  use m_b_ematqk
+  use m_ematqk
   use modbse
 ! !INPUT/OUTPUT PARAMETERS:
 !   oct   : optical diagonal tensor component (in,integer)
@@ -287,7 +287,7 @@ subroutine kernxc_bse
     bc%il2 = istl2
     bc%iu1 = istu1
     bc%iu2 = istu2
-    call b_ematqk(iqmt, iknr, xiou, bc)
+    call ematqk(iqmt, iknr, xiou, bc)
 
     ! Get uo
     if(allocated(xiuo)) deallocate(xiuo)
@@ -298,7 +298,7 @@ subroutine kernxc_bse
     bc%il2 = istl4
     bc%iu1 = istu3
     bc%iu2 = istu4
-    call b_ematqk(iqmt, iknr, xiuo, bc)
+    call ematqk(iqmt, iknr, xiuo, bc)
 
     emat(:, :, :, iknr) = xiou(:, :, :)
     emata(:, :, :, iknr) = xiuo(:, :, :)
@@ -320,7 +320,7 @@ subroutine kernxc_bse
   ! Get info about saved W matrix
   call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=sfname)
   sinfofname = trim(infofbasename)//'_'//trim(sfname)
-  call b_getbseinfo(trim(sinfofname), iqmt, fcmpt=sfcmpt, fid=sfid)
+  call getbseinfo(trim(sinfofname), iqmt, fcmpt=sfcmpt, fid=sfid)
   write(unitout, '("  Reading info from ", a)') trim(sinfofname)
   write(unitout, '("  Reading W from ", a)') trim(sfname)
   write(unitout, '("    W compatible:",l," W identical:",l)') sfcmpt, sfid
@@ -431,13 +431,13 @@ subroutine kernxc_bse
       if(iknr .le. jknr) then
 
         ! Get ikkp block of W
-        call b_getbsemat(trim(sfname), iqmt, ikkp,&
+        call getbsemat(trim(sfname), iqmt, ikkp,&
           & scclit(1:nst12,1:nst12), check=.false.)
 
       else
 
         ! Get ikkp block of W
-        call b_getbsemat(trim(sfname), iqmt, ikkp,&
+        call getbsemat(trim(sfname), iqmt, ikkp,&
           & scclith(1:nst12,1:nst12), check=.false.)
 
         ! use hermitian property for lower triangle

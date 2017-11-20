@@ -18,7 +18,7 @@ subroutine ematq(iq)
   use m_writegqpts
   use m_filedel
   use m_genfilname
-  use m_b_ematqk
+  use m_ematqk
   use m_putemat
 
   implicit none
@@ -100,7 +100,7 @@ subroutine ematq(iq)
     bc%iu2 = istu2
     ikmapikq_ptr => ikmapikq
     call setptr01
-    call b_ematqk(iq, ik, xiou, bc)
+    call ematqk(iq, ik, xiou, bc)
 
     ! Get uo
     if(allocated(xiuo)) deallocate(xiuo)
@@ -113,7 +113,7 @@ subroutine ematq(iq)
     bc%iu2 = istu4
     ikmapikq_ptr => ikmapikq
     call setptr01
-    call b_ematqk(iq, ik, xiuo, bc)
+    call ematqk(iq, ik, xiuo, bc)
 
     ! Store to file
     call putemat(iq, ik, .True.,&

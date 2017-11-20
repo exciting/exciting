@@ -18,9 +18,9 @@ Subroutine tasklauncher
         call phononstasklauncher()
 
     If (associated(input%gw)) &
-        Call gwtasklauncher ()
+        Call gwtasklauncher()
 
     If (associated(input%xs)) &
-        Call b_xstasklauncher ()
+        Call xstasklauncher()
 
 End Subroutine

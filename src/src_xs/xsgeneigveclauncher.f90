@@ -1,7 +1,7 @@
 !BOP
-! !ROUTINE: b_xsgeneigveclauncher
+! !ROUTINE: xsgeneigveclauncher
 ! !INTERFACE:
-subroutine b_xsgeneigveclauncher()
+subroutine xsgeneigveclauncher()
 ! !USES:
   use modmpi
   use modinput, only: input
@@ -25,7 +25,7 @@ subroutine b_xsgeneigveclauncher()
   implicit none
 
   ! Local variables
-  character(*), parameter :: thisnam = 'b_xsgeneigveclauncer'
+  character(*), parameter :: thisnam = 'xsgeneigveclauncer'
   integer(4) :: iq, qf
   logical :: tmqmt
   logical :: firstisgamma
@@ -136,7 +136,7 @@ subroutine b_xsgeneigveclauncher()
     write(unitout, '("One-shot GS runs for k+qmt/2 grids")')
     call printline(unitout, "+")
     ! Do one-shot GS calculations for qmt-points number 1 to qf
-    call b_xsgeneigvec(1, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtp(1:3,1:nqpt),&
+    call xsgeneigvec(1, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtp(1:3,1:nqpt),&
       & tscreen, tmqmt)
 
     !! (k-qmt/2) grid
@@ -147,7 +147,7 @@ subroutine b_xsgeneigveclauncher()
       write(unitout, '("One-shot GS runs for k-qmt/2 grids")')
       call printline(unitout, "+")
       ! Do one-shot GS calculations for qmt-points number 2 to qf
-      call b_xsgeneigvec(2, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt),&
+      call xsgeneigvec(2, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt),&
         & tscreen, tmqmt)
     end if
 
@@ -166,7 +166,7 @@ subroutine b_xsgeneigveclauncher()
     write(unitout, '("One-shot GS runs for k+qmt grids")')
     call printline(unitout, "+")
     ! Do one-shot GS calculations for qmt-points number 1 to qf
-    call b_xsgeneigvec(1, qf, nqpt, vql(1:3,1:nqpt), qvkloff(1:3,1:nqpt),&
+    call xsgeneigvec(1, qf, nqpt, vql(1:3,1:nqpt), qvkloff(1:3,1:nqpt),&
       & tscreen, tmqmt)
 
   else
@@ -175,5 +175,5 @@ subroutine b_xsgeneigveclauncher()
 
   end if
 
-end subroutine b_xsgeneigveclauncher
+end subroutine xsgeneigveclauncher
 !EOC

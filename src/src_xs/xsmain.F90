@@ -61,7 +61,7 @@ subroutine xsmain(plan, nxstasks)
       case(301)
         ! generate eigenvectors, eigenvalues, occupancies and MT-coefficients
         ! for q-point set
-        call b_xsgeneigveclauncher
+        call xsgeneigveclauncher
 
       ! Taksname 'writepmatxs'
       case(320)
@@ -127,7 +127,7 @@ subroutine xsmain(plan, nxstasks)
       case(401)
         ! generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
         ! for screening and BSE(-kernel)
-        call b_xsgeneigveclauncher
+        call xsgeneigveclauncher
 
       ! Taskname 'scrwritepmat'
       case(420)
@@ -137,52 +137,47 @@ subroutine xsmain(plan, nxstasks)
       ! Taskname 'screen'
       case(430)
         ! RPA screening
-        call b_screenlauncher
+        call screenlauncher
 
       ! Taskname 'scrcoulint'
       case(440)
         ! screened Coulomb interaction
-        call b_scrcoulintlauncher
+        call scrcoulintlauncher
 
       ! Taskname 'exccoulint'
       case(441)
         ! exchange Coulomb interaction
-        call b_exccoulintlauncher
+        call exccoulintlauncher
 
       ! Taskname 'bse'
       case(445)
         ! Bethe-Salpeter equation
-        call b_bselauncher
+        call bselauncher
 
       ! Taskname 'bsegenspec'
       case(446)
         ! regenerate BSE spectrum from exciton output
-        call b_bsegenspec
+        call bsegenspec
 
       ! Taskname 'writebevec'
       case(447)
         ! ASCII output of BSE eigenvectors
-        call b_writeexcevec
+        call writeexcevec
 
       ! Taskname 'writekpathweights'
       case(448)
         ! ASCII output of excitonic weights
-        call b_writekpathweights
+        call writekpathweights
 
       ! Taskname 'bsesurvey'
       case(449)
         ! BSE transition survey
-        call b_bsesurvey
+        call bsesurvey
 
       ! Taskname 'kernxc_bse'
       case(450)
         ! BSE-kernel
         call kernxc_bse
-
-      ! Taskname 'kernxc_bse3'
-      case(451)
-        ! BSE-kernel, simple version, very slow
-        call kernxc_bse3
 
       ! Taskname 'xsestimate'
       case(700)

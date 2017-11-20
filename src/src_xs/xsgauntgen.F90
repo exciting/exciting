@@ -53,7 +53,7 @@ contains
     use modxs, only: xsgntou, xsgntuo, xsgntoo
     use modxas, only: nxas, lxas, xasstart, xasstop, preml, mj2ml, spj, mj
     use mod_muffin_tin, only: idxlm
-    use m_b_ematqk, only: emat_ccket
+    use m_ematqk, only: emat_ccket
     Implicit None
     ! arguments
     Integer, Intent (In) :: lmax2, lmax3

@@ -1,7 +1,7 @@
 !BOP
-! !ROUTINE: b_bsegenspec
+! !ROUTINE: bsegenspec
 ! !INTERFACE:
-subroutine b_bsegenspec()
+subroutine bsegenspec()
 ! !USES:
   use modmpi
   use modinput
@@ -31,7 +31,7 @@ subroutine b_bsegenspec()
   complex(8), allocatable :: oscirmat(:,:)
   complex(8), allocatable, dimension(:,:,:) :: symspectr
 
-  character(*), parameter :: thisname = "b_bsegenspec"
+  character(*), parameter :: thisname = "bsegenspec"
 
   if(mpiglobal%rank == 0) then 
 
@@ -140,5 +140,5 @@ subroutine b_bsegenspec()
 
   end if
 
-end subroutine b_bsegenspec
+end subroutine bsegenspec
 !EOC

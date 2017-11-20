@@ -681,12 +681,6 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="beyond" type="xs:boolean"
-              default="false">
-              <xs:annotation>
-                <xs:documentation> Set to <pre>"true"</pre> to perform BSE without Tamm-Dancoff approximation.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="measure" type="xs:boolean"
               default="false">
               <xs:annotation>

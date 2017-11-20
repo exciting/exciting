@@ -3,9 +3,9 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: b_screenlauncher
+! !ROUTINE: screenlauncher
 ! !INTERFACE:
-subroutine b_screenlauncher
+subroutine screenlauncher
 ! !USES:
   use modmpi
   use modinput, only: input
@@ -24,7 +24,7 @@ subroutine b_screenlauncher
   use m_xsgauntgen
   use m_findgntn0
   use mod_Gkvector, only: gkmax
-  use m_b_ematqk
+  use m_ematqk
 ! !DESCRIPTION:
 !   This is a wrapper routine for the call of \texttt{dfq.f90} in
 !   the screen task of the BSE calculation. It stats the calculation
@@ -47,7 +47,7 @@ subroutine b_screenlauncher
   real(8), parameter :: epslat=1.d-8
   real(8) :: pgridoff(3)
   character(256) :: filex, syscommand
-  character(*), parameter :: thisname = 'b_screenlauncher'
+  character(*), parameter :: thisname = 'screenlauncher'
 
   ! Initialise universal variables
   call init0
@@ -80,7 +80,7 @@ subroutine b_screenlauncher
   end if
   if(.not. firstisgamma) then 
     if(rank == 0) then 
-      write(*,*) "Error(b_screenlauncher): First Q-point needs to be the gamma point."
+      write(*,*) "Error(screenlauncher): First Q-point needs to be the gamma point."
     end if
     call terminate
   end if
@@ -197,7 +197,7 @@ subroutine b_screenlauncher
     call printline(unitout, "-")
 
     if(mpiglobal%rank == 0) then
-      write(6, '(a,"b_screenlauncher: Progess epsilon(q):", f10.3)', advance="no")&
+      write(6, '(a,"screenlauncher: Progess epsilon(q):", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(iq-qpari+1)/dble(qparf-qpari+1)
       flush(6)
     end if
@@ -334,7 +334,7 @@ subroutine b_screenlauncher
         write(unitout, *)
 
         if(mpiglobal%rank == 0) then
-          write(6, '(a,"b_screenlauncher: Progess epsilon(q):", f10.3)', advance="no")&
+          write(6, '(a,"screenlauncher: Progess epsilon(q):", f10.3)', advance="no")&
             & achar( 13), 100.0d0*dble(iq-qpari+1)/dble(qparf-qpari+1)
           flush(6)
         end if
@@ -376,8 +376,8 @@ subroutine b_screenlauncher
   call findgntn0_clear
 
   if(rank == 0) then
-    write(unitout, '(a)') "Info(b_screenlauncher): Screening finished"
+    write(unitout, '(a)') "Info(screenlauncher): Screening finished"
   end if
 
-end subroutine b_screenlauncher
+end subroutine screenlauncher
 !EOC

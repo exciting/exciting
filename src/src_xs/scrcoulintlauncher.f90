@@ -1,19 +1,19 @@
-! Copyright(C) 2008-2010 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2008-2010 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: b_exccoulintlauncher
+! !ROUTINE: scrcoulintlauncher
 ! !INTERFACE:
-subroutine b_exccoulintlauncher
+subroutine scrcoulintlauncher
 ! !USES:
   use modmpi
   use modxs, only: unitout
   use modinput, only: input
   use modbse
 ! !DESCRIPTION:
-!   Launches the calculation of the exchange term of the Bethe-Salpeter Hamiltonian
-!   for the specified momentum transfer vectors $\vec{Q}_\text{mt}$.
+!   Launches the calculation of the direct term of the Bethe-Salpeter Hamiltonian
+!   for each specified momentum transfer vector.
 !
 ! !REVISION HISTORY:
 !   Created. 2016 (Aurich)
@@ -22,13 +22,13 @@ subroutine b_exccoulintlauncher
 
   implicit none
 
-  logical :: fcoup, fchibarq
+  logical :: fcoup
   integer(4) :: iqmt, iqmti, iqmtf, nqmt
   real(8) :: vqmt(3)
   character(256) :: casestring
-  character(*), parameter :: thisname = "b_exccoulintlauncher"
+  character(*), parameter :: thisname = "scrcoulintlauncher"
 
-  ! Calculate RR, RA or RR and RA blocks
+  ! Calculate RR or RA blocks
   casestring = input%xs%bse%blocks
 
   ! Also calculate coupling blocks
@@ -42,31 +42,10 @@ subroutine b_exccoulintlauncher
     end if
   end if
 
-  ! For BSE with coupling at finite Q, always use the full Chi
-  ! and not \bar{Chi}. For TDA warn if \bar{Chi} is not used.
-  fchibarq = input%xs%bse%chibarq
-  ! If it is not the default of true
-  if(.not. fchibarq) then 
-    if(.not. fcoup) then
-      write(unitout, '("Waring(",a,"):", a)') trim(thisname),&
-        & " TDA and full Chi produce bad results for finite Q, use \bar{Chi}!&
-        &   set input%xs%bse%chibarq = .true."
-    end if
-  ! Otherwise determin value with fcoup
-  else
-    ! Use full Chi if ra coupling is used
-    if(fcoup) fchibarq = .false.
-    ! Use truncated Coulomb potential (\bar{Chi}) for TDA
-    if(.not. fcoup) fchibarq = .true.
-    ! Overwrite input 
-    input%xs%bse%chibarq = fchibarq
-  end if
-
   ! Which momentum transfer Q points to consider 
   nqmt = size(input%xs%qpointset%qpoint, 2)
   iqmti = 1
   iqmtf = nqmt
-  !   or use selected range
   if(input%xs%bse%iqmtrange(1) /= -1) then 
     iqmti=input%xs%bse%iqmtrange(1)
     iqmtf=input%xs%bse%iqmtrange(2)
@@ -80,7 +59,7 @@ subroutine b_exccoulintlauncher
   ! Info output
   call printline(unitout, "+")
   write(unitout, '("Info(",a,"):", a)') trim(thisname),&
-    & " Setting up exchange interaction matrix."
+    & " Setting up screened interaction matrix."
   write(unitout, '("Info(",a,"):", a, i3, a, i3)') trim(thisname),&
     & " Using momentum transfer vectors from list : ", iqmti, " to", iqmtf
   call printline(unitout, "+")
@@ -96,7 +75,7 @@ subroutine b_exccoulintlauncher
       write(unitout, *)
       call printline(unitout, "+")
       write(unitout, '("Info(",a,"):", a)') trim(thisname), &
-        & "Calculating exchange interaction matrix V"
+        & " Calculating screened Coulomb interaction matrix W"
       write(unitout, '("Info(",a,"):", a, i3)') trim(thisname), &
         & " Momentum tranfer list index: iqmt=", iqmt
       write(unitout, '("Info(",a,"):", a, 3f8.3)') trim(thisname), &
@@ -112,55 +91,67 @@ subroutine b_exccoulintlauncher
         ! RR block
         if(mpiglobal%rank == 0) then
           write(unitout, '("Info(",a,"):&
-            & Calculating RR block of V")') trim(thisname)
+            & Calculating RR block of W")') trim(thisname) 
           write(unitout,*)
         end if
-        call b_exccoulint(iqmt)
+        call scrcoulint(iqmt, .false.)
         call barrier(mpiglobal, callername=trim(thisname))
 
       case("RA","ra")
 
         ! RA block
         if(fcoup) then 
-          call printline(unitout, "-")
-          write(unitout, '("Info(",a,"):&
-            & RR = RA^{tr} no further calculation needed.")') trim(thisname)
+          if(mpiglobal%rank == 0) then
+            call printline(unitout, "-")
+            write(unitout, '("Info(",a,"):&
+              & Calculating RA block of W")') trim(thisname) 
+            write(unitout,*)
+          end if
+          call scrcoulint(iqmt, .true.)
+          call barrier(mpiglobal, callername=trim(thisname))
         end if
-        
+
       case("both","BOTH")
 
         ! RR block
         if(mpiglobal%rank == 0) then
           write(unitout, '("Info(",a,"):&
-            & Calculating RR block of V")') trim(thisname)
+            & Calculating RR block of W")') trim(thisname) 
           write(unitout,*)
         end if
-        call b_exccoulint(iqmt)
+        call scrcoulint(iqmt, .false.)
         call barrier(mpiglobal, callername=trim(thisname))
 
         ! RA block
         if(fcoup) then 
-          call printline(unitout, "-")
-          write(unitout, '("Info(",a,"):&
-            & RR = RA^{tr} no further calculation needed.")') trim(thisname)
+          if(mpiglobal%rank == 0) then
+            call printline(unitout, "-")
+            write(unitout, '("Info(",a,"):&
+              & Calculating RA block of W")') trim(thisname) 
+            write(unitout,*)
+          end if
+          call scrcoulint(iqmt, .true.)
+          call barrier(mpiglobal, callername=trim(thisname))
         end if
 
       case default
 
-        write(*,'("Error(",a,"): Unrecongnized casesting:", a)') trim(thisname),&
-          & trim(casestring)
+        write(*,'("Error(",a,"): Unrecongnized casesting:", a)')&
+          & trim(thisname), trim(casestring)
         call terminate
 
     end select
 
     ! Info out
-    call printline(unitout, "+")
-    write(unitout, '("Info(",a,"): Exchange interaction&
-      & finished for iqmt=",i4)') trim(thisname),  iqmt
-    call printline(unitout, "+")
+    if(mpiglobal%rank == 0) then
+      call printline(unitout, "+")
+      write(unitout, '("Info(",a,"): Screened coulomb interaction&
+        & finished for iqmt=",i4)') trim(thisname), iqmt
+      call printline(unitout, "+")
+    end if
 
   end do
 
-end subroutine b_exccoulintlauncher
+end subroutine scrcoulintlauncher
 !EOC
 

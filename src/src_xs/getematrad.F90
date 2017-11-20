@@ -53,12 +53,9 @@ Subroutine getematrad(iqr, iq)
   if(allocated(rilolo)) deallocate(rilolo)
   allocate(rilolo(nlomax, nlomax, 0:lmax2, natmtot, ngq(iq)))
 
-  if(input%xs%bse%beyond) then 
-    call genfilname(basename=trim(adjustl(ematraddir))//'/'//'EMATRAD',&
-      & iq=iqr, appfilext=.true., filnam=fname)
-  else
-    call genfilname(basename='EMATRAD', iq=iqr, filnam=fname)
-  end if
+  call genfilname(basename=trim(adjustl(ematraddir))//'/'//'EMATRAD',&
+    & iq=iqr, appfilext=.true., filnam=fname)
+
   call getunit(un)
   open(un, file=trim(fname), form='unformatted', action='read', status='old')
   read(un) riaa, riloa, rilolo

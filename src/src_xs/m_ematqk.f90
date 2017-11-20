@@ -1,7 +1,7 @@
 ! Copyright(C) 2006-2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-module m_b_ematqk
+module m_ematqk
   use mod_ematptr
 
   implicit none
@@ -11,9 +11,9 @@ module m_b_ematqk
   contains
 
     !BOP
-    ! !ROUTINE: b_ematqk
+    ! !ROUTINE: ematqk
     ! !INTERFACE:
-    subroutine b_ematqk(iq, ik, emat, bc)
+    subroutine ematqk(iq, ik, emat, bc)
     ! !USES:
       use modinput, only: input
       use mod_misc, only: task, filext
@@ -41,7 +41,7 @@ module m_b_ematqk
       use m_emattim
       use m_getunit
       use m_genfilname
-      use m_b_getgrst
+      use m_getgrst
       use mod_spin, only: nspnfv
 #ifdef USEOMP
       use omp_lib
@@ -66,7 +66,7 @@ module m_b_ematqk
       complex(8), intent(inout) :: emat(:,:,:)
 
       ! Local variables
-      character(*), parameter :: thisnam = 'b_ematqk'
+      character(*), parameter :: thisnam = 'ematqk'
       ! Allocatable arrays
       complex(8), allocatable :: evecfvo0(:, :)
       complex(8), allocatable :: evecfvu(:, :)
@@ -96,7 +96,7 @@ module m_b_ematqk
       ! If task 330 is 'writeemat'
       if(task .eq. 330) then
         call chkpt(3, (/ task, iq, ik /),&
-          & 'b_ematqk: task, q - point index, k - point index; q - dependent matrix elements')
+          & 'ematqk: task, q - point index, k - point index; q - dependent matrix elements')
       end if
 
       call timesec(cpu0)
@@ -152,7 +152,7 @@ module m_b_ematqk
       !write(*,*) "ngkmax1_ptr", ngkmax0_ptr
       !write(*,*) "shape(vgkl1_ptr)", shape(vgkl1_ptr)
       !write(*,*) "shape(evecfv1_ptr)", shape(evecfv1_ptr)
-      call b_getevecfv1(vkl1_ptr(1:3, ikq),&
+      call getevecfv1(vkl1_ptr(1:3, ikq),&
        & vgkl1_ptr(1:3, 1:ngkmax1_ptr, 1:nspnfv, ikq), evecfv1_ptr)
 
       ! Save local orbital coefficients
@@ -163,7 +163,7 @@ module m_b_ematqk
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
       !write(*,*) "vkl0_ptr(1:3,ik) =", vkl0_ptr(1:3,ik)
-      call b_getevecfv0(vkl0_ptr(1:3, ik),&
+      call getevecfv0(vkl0_ptr(1:3, ik),&
         & vgkl0_ptr(1:3, 1:ngkmax0_ptr, 1:nspnfv, ik), evecfv0_ptr)
 
       ! Save local orbital coefficients
@@ -316,13 +316,13 @@ module m_b_ematqk
       do igq = 1, ngq(iq)
         call timesec(cpu00)
         ! Summation of gaunt coefficients w.r.t. radial integrals
-        call b_ematgntsum(iq, igq, integrals)
+        call ematgntsum(iq, igq, integrals)
 
         call timesec(cpu01)
         if(whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
 
         ! Muffin-tin contribution
-        call b_ematqkgmt(iq, ik, igq, integrals, emat(:,:,igq), bc)
+        call ematqkgmt(iq, ik, igq, integrals, emat(:,:,igq), bc)
         call timesec(cpu00)
 
         if(whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
@@ -364,7 +364,7 @@ module m_b_ematqk
           call timesec(cpu00)
 
           ! Build matrix form lattice theta function \Theta_{G1,G2}(G,q,k)
-          call b_ematqkgir(iq, ik, igq, xihir, n0, n)
+          call ematqkgir(iq, ik, igq, xihir, n0, n)
           call timesec(cpu01)
           if(whichthread.eq.0) cpuir = cpuir + cpu01 - cpu00
 
@@ -613,13 +613,13 @@ module m_b_ematqk
           & cpumtalo, cpumtloa, cpumtlolo, cpufft)
       end if
 
-    end subroutine b_ematqk
+    end subroutine ematqk
     !EOC
 
     !BOP
-    ! !ROUTINE: b_ematqk
+    ! !ROUTINE: ematqk
     ! !INTERFACE:
-    subroutine b_ematqk_core(iq, ik, emat, bc, flag)
+    subroutine ematqk_core(iq, ik, emat, bc, flag)
     ! !USES:
       use modinput, only: input
       use modxas, only: nxas
@@ -639,7 +639,7 @@ module m_b_ematqk
       use m_emattim
       use m_getunit
       use m_genfilname
-      use m_b_getgrst
+      use m_getgrst
       use mod_spin, only: nspnfv
       use mod_eigensystem, only: nmatmax_ptr
       
@@ -667,7 +667,7 @@ module m_b_ematqk
       character(2), intent(in) :: flag
 
       ! Local variables
-      character(*), parameter :: thisnam = 'b_ematqk'
+      character(*), parameter :: thisnam = 'ematqk'
       ! Allocatable arrays
       integer :: ikq, igq, n, n0
       ! Allocatable arrays
@@ -689,7 +689,7 @@ module m_b_ematqk
       ! If task 330 is 'writeemat'
       if(task .eq. 330) then
         call chkpt(3, (/ task, iq, ik /),&
-          & 'b_ematqk: task, q - point index, k - point index; q - dependent matrix elements')
+          & 'ematqk: task, q - point index, k - point index; q - dependent matrix elements')
       end if
 
       call timesec(cpu0)
@@ -734,21 +734,21 @@ module m_b_ematqk
       !write(*,*) "ngkmax1_ptr", ngkmax0_ptr
       !write(*,*) "shape(vgkl1_ptr)", shape(vgkl1_ptr)
       !write(*,*) "shape(evecfv1_ptr)", shape(evecfv1_ptr)
-      call b_getevecfv1(vkl1_ptr(1:3, ikq),&
+      call getevecfv1(vkl1_ptr(1:3, ikq),&
        & vgkl1_ptr(1:3, 1:ngkmax1_ptr, 1:nspnfv, ikq), evecfv1_ptr)
 
       ! Read eigenvectors for k
       !   Read first variational eigenvectors from EVECFV_QMTXXX.OUT 
       !   (file extension needs to be set by calling routine)
       !write(*,*) "vkl0_ptr(1:3,ik) =", vkl0_ptr(1:3,ik)
-      call b_getevecfv0(vkl0_ptr(1:3, ik),&
+      call getevecfv0(vkl0_ptr(1:3, ik),&
         & vgkl0_ptr(1:3, 1:ngkmax0_ptr, 1:nspnfv, ik), evecfv0_ptr)
       
       ! Generate matching coefficients for k'
       ngkmax_save=ngkmax
       ngkmax=ngkmax1_ptr
       allocate (apwalmt(ngkmax, apwordmax, lmmaxapw, natmtot))
-      call b_match1(ngk1_ptr(1, ikq), gkc1_ptr(:,1,ikq), tpgkc1_ptr(:,:,1,ikq), &
+      call match1(ngk1_ptr(1, ikq), gkc1_ptr(:,1,ikq), tpgkc1_ptr(:,:,1,ikq), &
         & sfacgk1_ptr(:,:,1,ikq), apwalmt)
       ngkmax=ngkmax_save
 
@@ -756,7 +756,7 @@ module m_b_ematqk
       ngkmax_save=ngkmax
       ngkmax=ngkmax0_ptr
       allocate (apwalmt0(ngkmax, apwordmax, lmmaxapw, natmtot))
-      call b_match0(ngk0_ptr(1, ik), gkc0_ptr(:,1,ik), tpgkc0_ptr(:,:,1,ik), &
+      call match0(ngk0_ptr(1, ik), gkc0_ptr(:,1,ik), tpgkc0_ptr(:,:,1,ik), &
         & sfacgk0_ptr(:,:,1,ik), apwalmt0)
       ngkmax=ngkmax_save
       call timesec(cpu0)
@@ -845,10 +845,10 @@ module m_b_ematqk
           & cpumtalo, cpumtloa, cpumtlolo, cpufft)
       end if
 
-    end subroutine b_ematqk_core
+    end subroutine ematqk_core
     !EOC
 
-    subroutine b_ematqkgmt(iq, ik, igq, integrals, emat, bc)
+    subroutine ematqkgmt(iq, ik, igq, integrals, emat, bc)
       use modinput, only: input
       use mod_constants, only: zzero, zone, fourpi
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
@@ -870,7 +870,7 @@ module m_b_ematqk
       complex(8) :: integrals(apwmaxsize+lomaxsize,apwmaxsize+lomaxsize,natmtot)
 
       ! Local variables
-      character(*), parameter :: thisnam = 'b_ematqkgmt'
+      character(*), parameter :: thisnam = 'ematqkgmt'
       integer :: is, ia, ias
       integer :: lmax1, lmax3, ikt, zmsize, whichthread
       complex(8), allocatable :: zm(:,:)
@@ -919,9 +919,9 @@ module m_b_ematqk
       end do ! is
 
       deallocate(zm)
-    end subroutine b_ematqkgmt
+    end subroutine ematqkgmt
 
-    subroutine b_ematgntsum(iq, igq, integrals)
+    subroutine ematgntsum(iq, igq, integrals)
       use modinput, only: input
       use mod_misc, only: filext
       use mod_constants, only: zzero, zil
@@ -1471,9 +1471,9 @@ module m_b_ematqk
         close(u4)
       end if
           
-    end subroutine b_ematgntsum
+    end subroutine ematgntsum
 
-    subroutine b_ematqkgir(iq, ik, igq, xihir, n0, n)
+    subroutine ematqkgir(iq, ik, igq, xihir, n0, n)
       use mod_Gvector, only: ivg, ivgig, cfunig
       use mod_qpoint, only: vql
       use modxs, only: igqig
@@ -1486,7 +1486,7 @@ module m_b_ematqk
       complex(8), intent(out) :: xihir(n0,n) 
 
       ! Local variables
-      character(*), parameter :: thisnam = 'b_ematqkgir'
+      character(*), parameter :: thisnam = 'ematqkgir'
       integer :: ikq, ig, ig1, ig2, ig3, igk0, igk, iv(3), iv1(3), iv3(3), shift(3)
       integer, allocatable :: aigk0(:), aigk(:)
       real(8) :: vkkpq(3)
@@ -1634,7 +1634,7 @@ module m_b_ematqk
       end if
 
       deallocate(aigk0, aigk)
-    end subroutine b_ematqkgir
+    end subroutine ematqkgir
 
 !BOP
 ! !ROUTINE: ematradoo
@@ -1716,7 +1716,7 @@ End Subroutine ematradoo
     use mod_eigenvalue_occupancy, only: nstfv
     use mod_Gkvector, only: ngkmax
     use mod_APW_LO, only: apwordmax
-    use m_b_getgrst, only: b_wavefmt1
+    use m_getgrst, only: wavefmt1
     !Use m_getunit 
     !Use modxas
     ! !INPUT/OUTPUT PARAMETERS:
@@ -1776,7 +1776,7 @@ End Subroutine ematradoo
       Do n1=1,nxas
         Do n2=1,bcs%n1
           ! Obtain radial wavefunction of the conduction state		
-          call b_wavefmt1(input%groundstate%lradstep, &
+          call wavefmt1(input%groundstate%lradstep, &
           &  input%groundstate%lmaxapw,input%xs%bse%xasspecies,input%xs%bse%xasatom,ngp&
             , apwalm, &
           &  evecfvo(:,n2+bcs%il1-1),lmmaxapw,wfmt(:,:,n2+bcs%il1-1))
@@ -2086,4 +2086,4 @@ End Subroutine ematradoo
     xi(:,:)=xi(:,:)*prefactor
   End Subroutine ematsumuo
 
-end module m_b_ematqk
+end module m_ematqk

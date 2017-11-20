@@ -2,7 +2,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine b_xstasklauncher
+subroutine xstasklauncher
   use modinput
   use modxs, only: temat, skipgnd, hybridhf
   use inputdom

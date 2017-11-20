@@ -16,14 +16,14 @@ module m_putgetbsemat
 
   logical :: writemeta=.true., readmeta=.true.
 
-  public :: b_putbseinfo, b_getbseinfo, b_putbsemat, b_getbsemat, b_putbsereset
+  public :: putbseinfo, getbseinfo, putbsemat, getbsemat, putbsereset
 
   contains
 
     !BOP
-    ! !ROUTINE: b_putbseinfo
+    ! !ROUTINE: putbseinfo
     ! !INTERFACE:
-    subroutine b_putbseinfo(fname, iqmt)
+    subroutine putbseinfo(fname, iqmt)
     ! !USES:
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
@@ -81,13 +81,13 @@ module m_putgetbsemat
         & koulims, kousize, smap
 
       close(un)
-    end subroutine b_putbseinfo
+    end subroutine putbseinfo
     !EOC
 
     !BOP
-    ! !ROUTINE: b_getbseinfo
+    ! !ROUTINE: getbseinfo
     ! !INTERFACE:
-    subroutine b_getbseinfo(fname, iqmt, fcmpt, fid)
+    subroutine getbseinfo(fname, iqmt, fcmpt, fid)
     ! !USES:
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
@@ -138,7 +138,7 @@ module m_putgetbsemat
       ! Check if file exists
       inquire(file=trim(fname), exist=ishere)
       if(.not. ishere) then 
-        write(*,*) "Error (b_getbseifo): file does not exsist fname=",trim(fname)
+        write(*,*) "Error (getbseifo): file does not exsist fname=",trim(fname)
         call terminate
       end if
 
@@ -227,7 +227,7 @@ module m_putgetbsemat
       if( reducek_ .neqv. reducek) then
         iscompatible = .false.
         isidentical = .false.
-        write(*, '("Error (b_getbseinfo):&
+        write(*, '("Error (getbseinfo):&
           & reducek_ /= reducek")')
         write(*, '(" requested: ",l)') reducek
         write(*, '(" stored: ", l)') reducek_
@@ -236,7 +236,7 @@ module m_putgetbsemat
         &.or. any(abs(vkloff_ - vkloff) > eps)) then
         iscompatible = .false.
         isidentical = .false.
-        write(*, '("Error (b_getbseinfo):&
+        write(*, '("Error (getbseinfo):&
           & ngridk,ngridq or vkloff differ")')
         write(*, '(" requested: ", 3i4,1x,3i4,1x,3f12.6)') ngridk, ngridq, vkloff 
         write(*, '(" stored: ", 3i4,1x,3i4,1x,3f12.6)') ngridk_, ngridq_, vkloff_
@@ -244,7 +244,7 @@ module m_putgetbsemat
       if(iqmt_ /= iqmt) then 
         iscompatible = .false.
         isidentical = .false.
-        write(*, '("Error (b_getbseinfo):&
+        write(*, '("Error (getbseinfo):&
           & Requested momentum transfer index differs")')
         write(*, '(" requested iqmt: ", i4)') iqmt 
         write(*, '(" stored iqmt_: ", i4)') iqmt_
@@ -252,7 +252,7 @@ module m_putgetbsemat
       if(any(abs(vql_ - vqlmt(1:3,iqmt)) > eps)) then 
         iscompatible = .false.
         isidentical = .false.
-        write(*, '("Error (b_getbseinfo):&
+        write(*, '("Error (getbseinfo):&
           & Requested momentum transfer vector differs")')
         write(*, '(" requested vqlmt: ", 3E10.3)') vqlmt(1:3,iqmt)  
         write(*, '(" stored vql_: ", 3E10.3)') vql_(1:3)
@@ -260,7 +260,7 @@ module m_putgetbsemat
       if(fensel_ .neqv. fensel) then
         iscompatible = .false.
         isidentical = .false.
-        write(*, '("Error (b_getbseinfo):&
+        write(*, '("Error (getbseinfo):&
           & Saved data has different selection mode")')
         write(*, '(" requested enegyselect: ", l)') fensel 
         write(*, '(" stored fensel: ", l)') fensel_
@@ -269,7 +269,7 @@ module m_putgetbsemat
         if(wl+econv(1) < wl_+econv_(1) .or. wu+econv(2) > wu_+econv_(2)) then 
           iscompatible = .false.
           isidentical = .false.
-          write(*, '("Error (b_getbseinfo): Requested energy range incompatible")')
+          write(*, '("Error (getbseinfo): Requested energy range incompatible")')
           write(*, '(" requested (wl, wu, econv): ", 4E12.3)') wl, wu, econv
           write(*, '(" stored (wl_, wu_, econv_): ", 4E12.3)') wl_, wu_, econv_
         end if
@@ -278,7 +278,7 @@ module m_putgetbsemat
           & .or. nstlbse(3) < nstlbse_(3) .or. nstlbse(4) > nstlbse_(4)) then 
           iscompatible = .false.
           isidentical = .false.
-          write(*, '("Error (b_getbseinfo): Incompatible bands")')
+          write(*, '("Error (getbseinfo): Incompatible bands")')
           write(*, '(" requested nstlbse: ", 4i3)') nstlbse 
           write(*, '(" stored nstlbse_: ", 4i3)') nstlbse_
         end if
@@ -286,7 +286,7 @@ module m_putgetbsemat
       if(nk_bse > nk_bse_) then 
         iscompatible = .false.
         isidentical = .false.
-        write(*, '("Error (b_getbseinfo): Differring number of relevant k-points")')
+        write(*, '("Error (getbseinfo): Differring number of relevant k-points")')
         write(*, '(" requested nk_bse: ", i4)') nk_bse 
         write(*, '(" stored nk_bse_: ", i4)') nk_bse_
       end if
@@ -336,13 +336,13 @@ module m_putgetbsemat
         fid = isidentical
       end if
 
-    end subroutine b_getbseinfo
+    end subroutine getbseinfo
     !EOC
 
     !BOP
-    ! !ROUTINE: b_putbsereset
+    ! !ROUTINE: putbsereset
     ! !INTERFACE:
-    subroutine b_putbsereset
+    subroutine putbsereset
     ! !DESCRIPTION:
     !   Resets module vars.
     !
@@ -359,13 +359,13 @@ module m_putgetbsemat
       writemeta = .true.
       readmeta = .true.
 
-    end subroutine b_putbsereset
+    end subroutine putbsereset
     !EOC
 
     !BOP
-    ! !ROUTINE: b_putbsemat
+    ! !ROUTINE: putbsemat
     ! !INTERFACE:
-    subroutine b_putbsemat(fname, tag, ikkp, iqmt, zmat)
+    subroutine putbsemat(fname, tag, ikkp, iqmt, zmat)
     ! !USES:
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
@@ -458,13 +458,13 @@ module m_putgetbsemat
         end do
       end if
 #endif
-    end subroutine b_putbsemat
+    end subroutine putbsemat
     !EOC
 
     !BOP
-    ! !ROUTINE: b_getbsemat
+    ! !ROUTINE: getbsemat
     ! !INTERFACE:
-    subroutine b_getbsemat(fname, iqmt, ikkp, zmat, check, fcmpt, fid)
+    subroutine getbsemat(fname, iqmt, ikkp, zmat, check, fcmpt, fid)
     ! !DESCRIPTION:
     !   This routine is used for reading the screened coulomb interaction
     !   and exchange interaction from file. It works for ou,ou combinations.
@@ -501,7 +501,7 @@ module m_putgetbsemat
       ! Check if file exists
       inquire(file=trim(fname), exist=ishere)
       if(.not. ishere) then 
-        write(*,*) "Error (b_getbsemat): file does not exsist fname=",trim(fname)
+        write(*,*) "Error (getbsemat): file does not exsist fname=",trim(fname)
         call terminate
       end if
 
@@ -513,8 +513,8 @@ module m_putgetbsemat
 
       ! Inspect meta data of saved computation
       if(chk) then 
-write(*,*) "(b_getbsemat) reading meta info from",infofbasename//'_'//trim(fname)
-        call b_getbseinfo(infofbasename//'_'//trim(fname), iqmt,&
+write(*,*) "(getbsemat) reading meta info from",infofbasename//'_'//trim(fname)
+        call getbseinfo(infofbasename//'_'//trim(fname), iqmt,&
           & fcmpt=iscompatible, fid=isidentical)
       else
         isidentical = .true.
@@ -528,7 +528,7 @@ write(*,*) "(b_getbsemat) reading meta info from",infofbasename//'_'//trim(fname
       end if
 
       if(.not. iscompatible) then
-        write(*,*) "Error (b_getbsemat): Saved data is incompatible"
+        write(*,*) "Error (getbsemat): Saved data is incompatible"
         call terminate
       end if
 
@@ -539,7 +539,7 @@ write(*,*) "(b_getbsemat) reading meta info from",infofbasename//'_'//trim(fname
         inquire(iolength=reclen) iqmt_, ikkp_, iknr_, jknr_, inou_, jnou_
         reclen = reclen+nou_bse_max_**2*zreclen
         
-!write(*,*) "(b_getbsemat) data is identical, reclen", reclen 
+!write(*,*) "(getbsemat) data is identical, reclen", reclen 
 
         call getunit(un)
         open(unit=un, file=trim(fname), form='unformatted',&
@@ -647,7 +647,7 @@ write(*,*) "(b_getbsemat) reading meta info from",infofbasename//'_'//trim(fname
 
       end if
 
-    end subroutine b_getbsemat
+    end subroutine getbsemat
     !EOC
 
 end module m_putgetbsemat

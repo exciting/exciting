@@ -1,7 +1,7 @@
 !BOP
-! !ROUTINE: b_bselauncher
+! !ROUTINE: bselauncher
 ! !INTERFACE:
-subroutine b_bselauncher
+subroutine bselauncher
 ! !USES:
   use modmpi
   use modscl
@@ -20,7 +20,7 @@ subroutine b_bselauncher
   implicit none
 
   ! Local vars
-  character(*), parameter :: thisname = "b_bselauncher"
+  character(*), parameter :: thisname = "bselauncher"
   integer(4) :: iqmt, iqmti, iqmtf, nqmt, nqmtselected, iq1, iq2
   real(8) :: ts0, ts1
   real(8) :: vqmt(3)
@@ -179,7 +179,7 @@ subroutine b_bselauncher
     call printline(unitout, "-")
 
     ! Assemble and solve BSE
-    call b_bse(iqmt)
+    call bse(iqmt)
 
     ! Info out
     call printline(unitout, "-")
@@ -212,5 +212,5 @@ subroutine b_bselauncher
   call exitblacs(bi1d)
   call exitblacs(bi0d)
 
-end subroutine b_bselauncher
+end subroutine bselauncher
 !EOC

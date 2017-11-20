@@ -1,4 +1,4 @@
-subroutine b_bsesurvey
+subroutine bsesurvey
   use modxs
   use modbse
   use mod_kpoint
@@ -9,7 +9,7 @@ subroutine b_bsesurvey
   logical :: fcoup
   integer(4) :: nsymcrys_save
 
-  character(*), parameter :: thisname = "b_bsesurvey"
+  character(*), parameter :: thisname = "bsesurvey"
 
   ! General init
   call init0
@@ -34,10 +34,10 @@ subroutine b_bsesurvey
   fcoup = input%xs%bse%coupling
 
   if(iqmt == -1) then
-    write(*,'("Warning(b_bsesurvey): iqmt=-1, setting it to iqmt = 1")')
+    write(*,'("Warning(bsesurvey): iqmt=-1, setting it to iqmt = 1")')
     iqmt = 1
   end if
-  write(unitout, '("Info(b_bsesurvey): Inspecting transitions for iqmt=",i6)') iqmt
+  write(unitout, '("Info(bsesurvey): Inspecting transitions for iqmt=",i6)') iqmt
 
   ! Read Fermi energy from file
   ! Use EFERMI_QMT001.OUT
@@ -70,11 +70,11 @@ subroutine b_bsesurvey
     ! Set k and k'=k grid eigenvalues to QP energies
     evalsv0=evalsv
     if(mpiglobal%rank==0) then
-      write(unitout,'("Info(b_bsesurvey): Quasi particle energies are read from EVALQP.OUT")')
+      write(unitout,'("Info(bsesurvey): Quasi particle energies are read from EVALQP.OUT")')
     end if
   else if(associated(input%gw) .and. iqmt /= 1) then 
     if(mpiglobal%rank==0) then 
-      write(*,'("Error(b_bsesurvey): BSE+GW only supported for 0 momentum transfer.")')
+      write(*,'("Error(bsesurvey): BSE+GW only supported for 0 momentum transfer.")')
     end if
     call terminate
   end if
@@ -86,4 +86,4 @@ subroutine b_bsesurvey
   !   Note: Operates on mpiglobal
   call select_transitions(iqmt, serial=.false., dirname="BSESURVEY")
 
-end subroutine b_bsesurvey
+end subroutine bsesurvey

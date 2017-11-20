@@ -3,9 +3,9 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: b_getevecfv1
+! !ROUTINE: getevecfv1
 ! !INTERFACE:
-subroutine b_getevecfv1(vpl, vgpl, evecfvt)
+subroutine getevecfv1(vpl, vgpl, evecfvt)
 ! !USES:
   use mod_kpoint, only: vkl_ptr
   use mod_Gkvector, only: ngkmax_ptr, vgkl_ptr, ngk_ptr
@@ -73,5 +73,5 @@ subroutine b_getevecfv1(vpl, vgpl, evecfvt)
   vkl_ptr => vkl_ptr_save
   vgkl_ptr => vgkl_ptr_save
 
-end subroutine b_getevecfv1
+end subroutine getevecfv1
 !EOC

@@ -3,9 +3,9 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: b_bse
+! !ROUTINE: bse
 ! !INTERFACE:
-subroutine b_bse(iqmt)
+subroutine bse(iqmt)
 ! !USES:
   ! Basics
   use modinput, only: input
@@ -159,6 +159,11 @@ subroutine b_bse(iqmt)
   fdist = input%xs%bse%distribute
 #endif
 
+  if(associated(input%gw)) then 
+    ! If scissor correction is presented, one should nullify it
+    input%xs%scissor=0.0d0
+  end if
+
   !---------------------------------------------------------------------------!
   ! Find occupation limits using k, k-qmt/2 and k+qmt/2 grids
   !---------------------------------------------------------------------------!
@@ -191,9 +196,6 @@ subroutine b_bse(iqmt)
     if(allocated(eval0)) deallocate(eval0)
     allocate(eval0(nstsv, nkptnr))
     eval0=evalsv0
-
-    ! If scissor correction is presented, one should nullify it
-    input%xs%scissor=0.0d0
 
     ! Read QP Fermi energies and eigenvalues from file
     ! NOTE: QP evals are shifted by -efermi-eferqp with respect to KS evals
@@ -641,5 +643,5 @@ subroutine b_bse(iqmt)
 
   end if
 
-end subroutine b_bse
+end subroutine bse
 !EOC

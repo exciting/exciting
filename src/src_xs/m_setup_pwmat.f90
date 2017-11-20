@@ -13,7 +13,7 @@ module m_setup_pwmat
   use mod_Gvector, only: ivg
   use mod_Gkvector, only: gkmax
   use mod_xsgrids
-  use m_b_ematqk
+  use m_ematqk
   use m_genfilname
   use m_writecmplxparts
   use m_xsgauntgen
@@ -201,9 +201,9 @@ module m_setup_pwmat
 
         ! Calculate M_{uo,G} at fixed (k, q)
         if(input%xs%bse%xas) then
-          call b_ematqk_core(iqmt, ikmnr, muo(1:inu,1:ino,:),ematbc,'uo')
+          call ematqk_core(iqmt, ikmnr, muo(1:inu,1:ino,:),ematbc,'uo')
         else
-          call b_ematqk(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
+          call ematqk(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
         end if
 
         ! Save only selected G=G_mt

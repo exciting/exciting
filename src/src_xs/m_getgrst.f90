@@ -1,13 +1,13 @@
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-module m_b_getgrst
+module m_getgrst
   contains
     
     !BOP
-    ! !ROUTINE: b_getevecfv0
+    ! !ROUTINE: getevecfv0
     ! !INTERFACE:
-    subroutine b_getevecfv0(vpl, vgpl, evecfvt)
+    subroutine getevecfv0(vpl, vgpl, evecfvt)
     ! !USES:
       use mod_kpoint, only: vkl_ptr
       use mod_Gkvector, only: ngkmax_ptr, vgkl_ptr, ngk_ptr
@@ -85,13 +85,13 @@ module m_b_getgrst
 
       filext = filext_save
 
-    end subroutine b_getevecfv0
+    end subroutine getevecfv0
     !EOC
     
     !BOP
-    ! !ROUTINE: b_getevecfv1
+    ! !ROUTINE: getevecfv1
     ! !INTERFACE:
-    subroutine b_getevecfv1(vpl, vgpl, evecfvt)
+    subroutine getevecfv1(vpl, vgpl, evecfvt)
     ! !USES:
       use mod_kpoint, only: vkl_ptr
       use mod_Gkvector, only: ngkmax_ptr, vgkl_ptr, ngk_ptr
@@ -152,7 +152,7 @@ module m_b_getgrst
 
       ! Call to getevecfv with changed default (G+)k-set pointers / matrix size
       evecfvt(:,:,:)=zzero
-      !write(*,*) 'filext in b_getevecsv:', filext
+      !write(*,*) 'filext in getevecsv:', filext
       call getevecfv(vpl, vgpl, evecfvt)
 
      ! Restore default pointers
@@ -162,10 +162,10 @@ module m_b_getgrst
       vkl_ptr => vkl_ptr_save
       vgkl_ptr => vgkl_ptr_save
 
-    end subroutine b_getevecfv1
+    end subroutine getevecfv1
     !EOC
 
-    subroutine b_match1(ngp, gpc, tpgpc, sfacgp, apwalm)
+    subroutine match1(ngp, gpc, tpgpc, sfacgp, apwalm)
       use mod_ematptr
       use mod_eigensystem, only: nmatmax_ptr 
       use mod_Gkvector, only: ngkmax_ptr, ngk_ptr, vgkl_ptr
@@ -215,9 +215,9 @@ module m_b_getgrst
       vkl_ptr => vkl_ptr_save
       vgkl_ptr => vgkl_ptr_save
     
-    end subroutine b_match1
+    end subroutine match1
     
-    subroutine b_match0(ngp, gpc, tpgpc, sfacgp, apwalm)
+    subroutine match0(ngp, gpc, tpgpc, sfacgp, apwalm)
       use mod_ematptr
       use mod_eigensystem, only: nmatmax_ptr 
       use mod_Gkvector, only: ngkmax_ptr, ngk_ptr, vgkl_ptr
@@ -272,9 +272,9 @@ module m_b_getgrst
       vkl_ptr => vkl_ptr_save
       vgkl_ptr => vgkl_ptr_save
       filext=filext_save
-    end subroutine b_match0
+    end subroutine match0
     
-    subroutine b_wavefmt1(lrstp, lmax, is, ia, ngp, apwalm, evecfv, ld, wfmt)
+    subroutine wavefmt1(lrstp, lmax, is, ia, ngp, apwalm, evecfv, ld, wfmt)
       use mod_ematptr, only: nmatmax1_ptr, ngkmax1_ptr, ngk1_ptr, vkl1_ptr, vgkl1_ptr
       use mod_eigensystem, only: nmatmax_ptr 
       use mod_Gkvector, only: ngkmax_ptr, ngk_ptr, vgkl_ptr
@@ -330,6 +330,6 @@ module m_b_getgrst
       vkl_ptr => vkl_ptr_save
       vgkl_ptr => vgkl_ptr_save
     
-    end subroutine b_wavefmt1
+    end subroutine wavefmt1
 
 end module

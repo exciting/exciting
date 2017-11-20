@@ -1,4 +1,4 @@
-subroutine b_writekpathweights
+subroutine writekpathweights
   use modxs, only: unitout
   use modinput
   use m_read_bandstructure
@@ -9,7 +9,7 @@ subroutine b_writekpathweights
 
   implicit none
 
-  character(*), parameter :: thisname = 'b_writekpathweights'
+  character(*), parameter :: thisname = 'writekpathweights'
   character(256) :: exckpathdir, syscommand
 
   logical :: fwritegridweights
@@ -599,4 +599,4 @@ subroutine b_writekpathweights
 
     end subroutine writekpathplot
 
-end subroutine b_writekpathweights
+end subroutine writekpathweights

@@ -18,12 +18,8 @@ subroutine putematrad(iqr, iq)
   integer :: un
 
   ! Calculate radial integrals
-  if(input%xs%bse%beyond) then 
-    call genfilname(basename=trim(adjustl(ematraddir))//'/'//'EMATRAD',&
-      & iq=iqr, appfilext=.true., filnam=fname)
-  else
-    call genfilname(basename='EMATRAD', iq=iqr, filnam=fname)
-  end if
+  call genfilname(basename=trim(adjustl(ematraddir))//'/'//'EMATRAD',&
+    & iq=iqr, appfilext=.true., filnam=fname)
   call ematrad(iq)
   call getunit(un)
 

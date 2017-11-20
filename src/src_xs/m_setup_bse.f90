@@ -368,11 +368,11 @@ module m_setup_bse
       ! Check saved Quantities for compatiblity
       sfcmpt=.false.
       sfid=.false.
-      if(usescc) call b_getbseinfo(trim(sinfofname), iqmt,&
+      if(usescc) call getbseinfo(trim(sinfofname), iqmt,&
         & fcmpt=sfcmpt, fid=sfid)
       efcmpt=.false.
       efid=.false.
-      if(useexc) call b_getbseinfo(trim(einfofname), iqmt,&
+      if(useexc) call getbseinfo(trim(einfofname), iqmt,&
         & fcmpt=efcmpt, fid=efid)
 
       if(usescc .and. useexc) then 
@@ -428,13 +428,13 @@ module m_setup_bse
 
         ! Read corresponding ikkp blocks of W and V from file
         if(usescc) then 
-          call b_getbsemat(trim(sfname), iqmt, ikkp,&
+          call getbsemat(trim(sfname), iqmt, ikkp,&
             & sccli_t(1:inou,1:jnou), check=.false., fcmpt=sfcmpt, fid=sfid)
         end if
 
         if(useexc) then 
           ! Read RR/RA part of exchange interaction v_{iuioik,jujojk}(qmt)
-          call b_getbsemat(trim(efname), iqmt, ikkp,&
+          call getbsemat(trim(efname), iqmt, ikkp,&
             & excli_t(1:inou,1:jnou), check=.false., fcmpt=efcmpt, fid=efid)
         end if
 
@@ -976,11 +976,11 @@ module m_setup_bse
           ! Check saved quantities for compatibility
           sfcmpt=.false.
           sfid=.false.
-          if(usescc) call b_getbseinfo(trim(sinfofname), iqmt,&
+          if(usescc) call getbseinfo(trim(sinfofname), iqmt,&
             & fcmpt=sfcmpt, fid=sfid)
           efcmpt=.false.
           efid=.false.
-          if(useexc) call b_getbseinfo(trim(einfofname), iqmt,&
+          if(useexc) call getbseinfo(trim(einfofname), iqmt,&
             & fcmpt=efcmpt, fid=efid)
 
           if(usescc .and. useexc) then 
@@ -1072,14 +1072,14 @@ module m_setup_bse
             ! Read in screened coulomb interaction for ikkp
             if(usescc) then 
               ! Read RR/RA part of screened coulomb interaction W_{iuioik,jujojk}(qmt)
-              call b_getbsemat(trim(sfname), iqmt, ikkp,&
+              call getbsemat(trim(sfname), iqmt, ikkp,&
                 & sccli_t(1:inou,1:jnou), check=.false., fcmpt=sfcmpt, fid=sfid)
             end if
 
             ! Read in exchange interaction for ikkp
             if(useexc) then 
               ! Read RR/RA part of exchange interaction v_{iuioik,jujojk}(qmt)
-              call b_getbsemat(trim(efname), iqmt, ikkp,&
+              call getbsemat(trim(efname), iqmt, ikkp,&
                 & excli_t(1:inou,1:jnou), check=.false., fcmpt=efcmpt, fid=efid)
             end if
 

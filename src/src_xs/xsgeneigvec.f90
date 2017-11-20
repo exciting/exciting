@@ -4,9 +4,9 @@
 !
 !
 !BOP
-! !ROUTINE: b_xsgeneigvec
+! !ROUTINE: xsgeneigvec
 ! !INTERFACE:
-subroutine b_xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
+subroutine xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
 ! !USES:
   use modmpi
   use modinput, only: input
@@ -47,16 +47,16 @@ subroutine b_xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
   real(8), parameter :: epslat=1.d-6
 
   ! Local variables
-  character(*), parameter :: thisname = 'b_xsgeneigvec'
+  character(*), parameter :: thisname = 'xsgeneigvec'
   integer(4) :: iq
 
   ! Check 
   if(qi > nqpts .or. qi < 1) then 
-    write(*,*) "ERROR(b_xsgeneigvec): qi invalid"
+    write(*,*) "ERROR(xsgeneigvec): qi invalid"
     call terminate
   end if
   if(qf > nqpts .or. qf < 1 .or. qf < qi) then 
-    write(*,*) "ERROR(b_xsgeneigvec): qf invalid"
+    write(*,*) "ERROR(xsgeneigvec): qf invalid"
     call terminate
   end if
   if(tscr .and. (qi /= 1 .or. qf /= 1)) then
@@ -166,5 +166,5 @@ subroutine b_xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
     write(unitout, *)
   end if
 
-end subroutine b_xsgeneigvec
+end subroutine xsgeneigvec
 !EOC

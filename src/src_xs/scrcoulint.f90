@@ -3,9 +3,9 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: b_scrcoulint
+! !ROUTINE: scrcoulint
 ! !INTERFACE:
-subroutine b_scrcoulint(iqmt, fra)
+subroutine scrcoulint(iqmt, fra)
 ! !USES:
   use mod_misc, only: filext
   use modinput, only: input
@@ -29,7 +29,7 @@ subroutine b_scrcoulint(iqmt, fra)
   use m_writevars
   use m_genfilname
   use m_getunit
-  use m_b_ematqk
+  use m_ematqk
   use m_putgetbsemat
   use modbse
   use mod_xsgrids
@@ -51,7 +51,7 @@ subroutine b_scrcoulint(iqmt, fra)
   logical, intent(in) :: fra  ! Construct RA coupling block
 
   ! Local variables
-  character(*), parameter :: thisname = 'b_scrcoulint'
+  character(*), parameter :: thisname = 'scrcoulint'
 
   ! ik,jk block of W matrix (final product)
   complex(8), allocatable :: sccli(:,:)
@@ -125,7 +125,7 @@ subroutine b_scrcoulint(iqmt, fra)
   !   main part   !
   !---------------!
 
-  !write(*,*) "Hello, this is b_scrcoulint at rank:", rank
+  !write(*,*) "Hello, this is scrcoulint at rank:", rank
 
   ! General setup
   call init0
@@ -226,7 +226,7 @@ subroutine b_scrcoulint(iqmt, fra)
       call genfilname(basename=trim(infofbasename)//'_'//trim(scclifbasename),&
         & iqmt=iqmt, filnam=infofname)
     end if
-    call b_putbseinfo(infofname, iqmt)
+    call putbseinfo(infofname, iqmt)
   end if
 
   ! Set output file name
@@ -262,10 +262,10 @@ subroutine b_scrcoulint(iqmt, fra)
 
   ! Check whether q and p grid are identical
   if(all(abs(vqoff) < epslat)) then 
-    write(unitout, '("Info(b_scrcoulint): Using q-grid")')
+    write(unitout, '("Info(scrcoulint): Using q-grid")')
     fsameq=.true.
   else
-    write(unitout, '("Info(b_scrcoulint): Using shifted q-grid (p-grid)")')
+    write(unitout, '("Info(scrcoulint): Using shifted q-grid (p-grid)")')
     fsameq=.false.
   end if
 
@@ -311,14 +311,14 @@ subroutine b_scrcoulint(iqmt, fra)
   call init1offs(k_kqmtp%kqmtset%vkloff)
   ! Check whether k+-qmt/2 grids are identical to k grid
   if(all(abs(k_kqmtp%kqmtset%vkloff-k_kqmtp%kset%vkloff) < epslat)) then 
-    write(unitout, '("Info(b_scrcoulint):&
+    write(unitout, '("Info(scrcoulint):&
       & k+qmt/2-grid is identical for to iqmt=1 grid, iqmt=",i3)') iqmt
     fsamekp=.true.
   else
     fsamekp=.false.
   end if
   if(all(abs(k_kqmtm%kqmtset%vkloff-k_kqmtm%kset%vkloff) < epslat)) then 
-    write(unitout, '("Info(b_scrcoulint):&
+    write(unitout, '("Info(scrcoulint):&
       & k-qmt/2-grid is identical for to iqmt=1 grid, iqmt=",i3)') iqmt
     fsamekm=.true.
   else
@@ -358,7 +358,7 @@ subroutine b_scrcoulint(iqmt, fra)
     call genfilname(iqmt=iqmt, fileext=fileext_ematrad_write)
   end if
 
-  write(unitout, '("Info(b_scrcoulint):&
+  write(unitout, '("Info(scrcoulint):&
     & Calculating W(G1,G2,qr) fourier coefficients")')
   call timesec(tscc0)
 
@@ -432,7 +432,7 @@ subroutine b_scrcoulint(iqmt, fra)
   end if
 
   if(mpiglobal%rank == 0) then
-    write(unitout, '("Info(b_scrcoulint): W matrix elements")')
+    write(unitout, '("Info(scrcoulint): W matrix elements")')
     call timesec(tscc0)
   end if
 
@@ -642,7 +642,7 @@ subroutine b_scrcoulint(iqmt, fra)
       !$OMP END PARALLEL
 
       ! Parallel write
-      call b_putbsemat(scclifname, 77, ikkp, iqmt, sccli)
+      call putbsemat(scclifname, 77, ikkp, iqmt, sccli)
 
       ! Analyze BSE diagonal
       if(iknr .eq. jknr) then
@@ -761,7 +761,7 @@ subroutine b_scrcoulint(iqmt, fra)
       !$OMP END PARALLEL
 
       ! Parallel write
-      call b_putbsemat(scclifname, 78, ikkp, iqmt, sccli)
+      call putbsemat(scclifname, 78, ikkp, iqmt, sccli)
 
     end if
 
@@ -865,9 +865,9 @@ subroutine b_scrcoulint(iqmt, fra)
       call setptr11()
       ! Calculate M_{o1o2,G} at fixed (k, q)
       if (input%xs%bse%xas) then
-        call b_ematqk_core(iq, ikpnr, moo, ematbc, 'oo')
+        call ematqk_core(iq, ikpnr, moo, ematbc, 'oo')
       else
-        call b_ematqk(iq, ikpnr, moo, ematbc)
+        call ematqk(iq, ikpnr, moo, ematbc)
       end if
       !-----------------------------------------------------------!
 
@@ -914,7 +914,7 @@ subroutine b_scrcoulint(iqmt, fra)
       ! Set vkl0_ptr, vkl1_ptr, ... to k-qmt-grid
       call setptr00()
       ! Calculate M_{u1u2,G} at fixed (k, q)
-      call b_ematqk(iq, ikmnr, muu, ematbc)
+      call ematqk(iq, ikmnr, muu, ematbc)
       !------------------------------------------------------------------!
 
       filext0 = fileext0_save
@@ -974,7 +974,7 @@ subroutine b_scrcoulint(iqmt, fra)
       call setptr10()
 
       ! Calculate N_{ou,G} at fixed (k, q)
-      call b_ematqk(iq, ikpnr, mou, ematbc)
+      call ematqk(iq, ikpnr, mou, ematbc)
       !------------------------------------------------------------!
 
       !------------------------------------------------------------------!
@@ -1020,13 +1020,13 @@ subroutine b_scrcoulint(iqmt, fra)
       call setptr01()
 
       ! Calculate N_{uo,G} at fixed (k, q)
-      call b_ematqk(iq, ikmnr, muo, ematbc)
+      call ematqk(iq, ikmnr, muo, ematbc)
       !-------------------------------------------------------------!
 
       filext0 = fileext0_save
       filext = fileext_save
     end subroutine getpwesra
 
-end subroutine b_scrcoulint
+end subroutine scrcoulint
 !EOC
 

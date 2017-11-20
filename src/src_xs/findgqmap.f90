@@ -3,9 +3,9 @@
 ! See the file COPYING for license details.
 !
 !BOP
-! !ROUTINE: b_findgqmap
+! !ROUTINE: findgqmap
 ! !INTERFACE:
-subroutine b_findgqmap(iqnr, iq, nsc, sc, ivgsc, n, isc, isci, ivgu, igqmap)
+subroutine findgqmap(iqnr, iq, nsc, sc, ivgsc, n, isc, isci, ivgu, igqmap)
 ! !USES:
   use modmpi, only: terminate
   use modinput, only: input
@@ -165,5 +165,5 @@ subroutine b_findgqmap(iqnr, iq, nsc, sc, ivgsc, n, isc, isci, ivgu, igqmap)
   call terminate
 
 20    continue
-end subroutine b_findgqmap
+end subroutine findgqmap
 !EOC
