@@ -6,25 +6,23 @@ module mod_pwmat
   use mod_constants
   use mod_eigensystem, only : idxlo, nmatmax
   use mod_lattice, only : bvec
-  use mod_Gvector, only : ngvec, gc, cfunig, ivg, ivgig
+  use mod_Gvector, only : ngvec, gc, cfunig, ivg, ivgig, ngrtot, ngrid, intgv
   use mod_Gkvector, only : gkmax, ngkmax
   use m_plotmat
-  use modxs, only : fftmap_type
 
   implicit none
-  !private
+  private
 
   integer :: nlammax, nlmlammax, pw_lmaxapw, pw_lmaxexp
   real(8) :: pwmat_gmax
   real(8) :: vecql(3), vecqc(3), vecgc(3)
   integer :: vecgl(3)
-  type( fftmap_type) :: fftmap
 
   integer, allocatable :: nlam(:,:), nlmlam(:), lam2apwlo(:,:,:), idxlmlam(:,:,:), lm2l(:), idxgnt(:,:,:)
   real(8), allocatable :: listgnt(:,:,:)
-  complex(8), allocatable :: rignt(:,:,:), zfftcf(:)
+  complex(8), allocatable :: rignt(:,:,:)
 
-  !public :: pwmat_init, pwmat_init_qg, pwmat_genpwmat, pwmat_destroy
+  public :: pwmat_init, pwmat_init_qg, pwmat_genpwmat, pwmat_destroy
 
 ! variable
 
@@ -81,6 +79,7 @@ module mod_pwmat
             end do
           end do
           nlmlammax = maxval( nlmlam, 1)
+          write(*,'("pwmat init: nlmlammax = :",I4)') nlmlammax
 
           ! build non-zero Gaunt list
           allocate( idxgnt( pw_lmaxapw + 1, (pw_lmaxapw + 1)**2, (pw_lmaxapw + 1)**2), &
@@ -114,17 +113,6 @@ module mod_pwmat
             end do
           end do
 
-          ! FFT of characteristic function
-          pwmat_gmax = 2*gkmax! +input%xs%gqmax
-          call genfftmap( fftmap, pwmat_gmax)
-          allocate( zfftcf( fftmap%ngrtot+1))
-          zfftcf = zzero
-          do i = 1, ngvec
-            if( gc( i) .lt. pwmat_gmax) then
-              zfftcf( fftmap%igfft( i)) = cfunig( i)
-            end if
-          end do
-          call zfftifc( 3, fftmap%ngrid, 1, zfftcf)
           return
       end subroutine pwmat_init
       
@@ -308,18 +296,16 @@ module mod_pwmat
           complex(8), intent( in) :: evec1( nmatmax, pw_fst1:pw_lst1), evec2( nmatmax, pw_fst2:pw_lst2)
           complex(8), intent( out) :: pwmat( pw_fst1:pw_lst1, pw_fst2:pw_lst2)
 
-          integer :: iv(3), ngknr, ngkq, i, is, ia, ias, l, m, lm, o, ilo, lam
+          integer :: ngknr, ngkq, i, is, ia, ias, l, m, lm, o, ilo, lam
           integer :: pw_nst1, pw_nst2
           real(8) :: t1, veckql(3), veckqc(3)
           
-          integer :: ix, shift(3), ig, ist1, ist2, igs
-          complex(8), allocatable :: zfft0(:,:), zfftres(:), zfft(:)
+          integer :: shift(3), igk, igq, ig1, ig2, g(3)
 
           integer, allocatable :: igkignr(:), igkqig(:) 
           real(8), allocatable :: vecgkql(:,:), vecgkqc(:,:), gkqc(:), tpgkqc(:,:)
-          complex(8), allocatable :: sfacgkq(:,:), apwalm1(:,:,:,:), apwalm2(:,:,:,:)
-          complex(8), allocatable :: auxmat(:,:), auxvec(:), evecshort1(:,:), evecshort2(:,:)
-          !complex(8), allocatable :: aamat(:,:), almat(:,:), lamat(:,:)
+          complex(8), allocatable :: sfacgkq(:,:), apwalm(:,:,:,:)
+          complex(8), allocatable :: auxmat(:,:), auxvec(:), evecshort1(:,:), evecshort2(:,:,:), cfunmat(:,:)
 
           complex(8) :: zdotc
           
@@ -336,51 +322,71 @@ module mod_pwmat
             return
           end if
 
-          allocate( igkignr( ngkmax), igkqig( ngkmax), vecgkql( 3, ngkmax), vecgkqc( 3, ngkmax), gkqc( ngkmax), tpgkqc( 2, ngkmax))
-          allocate( sfacgkq( ngkmax, natmtot))
-          allocate( apwalm1( ngkmax, apwordmax, lmmaxapw, natmtot))
-          allocate( apwalm2( ngkmax, apwordmax, lmmaxapw, natmtot))
-          !write( *, '("size of apwalm1: ",5I)') shape( apwalm1), sizeof( apwalm1)
-          !write( *, '("size of apwalm2: ",5I)') shape( apwalm2), sizeof( apwalm2)
-
           ! k+q-vector in lattice coordinates
           veckql = veckl + vecql
           ! map vector components to [0,1) interval
-          call r3frac( input%structure%epslat, veckql, iv)
+          call r3frac( input%structure%epslat, veckql, g)
           ! k+q-vector in Cartesian coordinates
           call r3mv( bvec, veckql, veckqc)
+          
+          !--------------------------------------!
+          !      muffin-tin matrix elements      !
+          !--------------------------------------!
+
+          allocate( igkignr( ngkmax), igkqig( ngkmax), vecgkql( 3, ngkmax), vecgkqc( 3, ngkmax), gkqc( ngkmax), tpgkqc( 2, ngkmax))
+          allocate( sfacgkq( ngkmax, natmtot))
+          allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot))
+          allocate( evecshort2( pw_fst2:pw_lst2, nlmlammax, natmtot))
+          allocate( auxvec( max( pw_nst1, pw_nst2)))
+
           ! generate the G+k+q-vectors
           call gengpvec( veckql, veckqc, ngkq, igkqig, vecgkql, vecgkqc, gkqc, tpgkqc)
           ! generate the structure factors
           call gensfacgp( ngkq, vecgkqc, ngkmax, sfacgkq)
           ! find matching coefficients for k-point k+q
-          call match( ngkq, gkqc, tpgkqc, sfacgkq, apwalm2)
+          call match( ngkq, gkqc, tpgkqc, sfacgkq, apwalm)
+
+          do is = 1, nspecies
+            do ia = 1, natoms( is)
+              ias = idxas( ia, is)
+              evecshort2( :, :, ias) = zzero
+              do lm = 1, (pw_lmaxapw + 1)**2
+                l = lm2l( lm)
+                do lam = 1, nlam( l, is)
+                  ! lam belongs to apw
+                  if( lam2apwlo( lam, l, is) .gt. 0) then
+                    o = lam2apwlo( lam, l, is)
+                    call zgemv( 'T', ngkq, pw_nst2, zone, &
+                         evec2, nmatmax, &
+                         apwalm( :, o, lm, ias), 1, zzero, &
+                         auxvec, 1)
+                    evecshort2( :, idxlmlam( lm, lam, is), ias) = auxvec( 1:pw_nst2)
+                  end if
+                  ! lam belongs to lo
+                  if( lam2apwlo( lam, l, is) .lt. 0) then
+                    ilo = -lam2apwlo( lam, l, is)
+                    evecshort2( :, idxlmlam( lm, lam, is), ias) = evec2( ngkq+idxlo( lm, ilo, ias), :)
+                  end if
+                end do
+              end do
+            end do
+          end do
 
           ! generate the G+k-vectors
           call gengpvec( veckl, veckc, ngknr, igkignr, vecgkql, vecgkqc, gkqc, tpgkqc)
           ! generate the structure factors
           call gensfacgp( ngknr, vecgkqc, ngkmax, sfacgkq)
           ! find matching coefficients for k-point k
-          call match( ngknr, gkqc, tpgkqc, sfacgkq, apwalm1)
+          call match( ngknr, gkqc, tpgkqc, sfacgkq, apwalm)
           
-          deallocate( vecgkql, vecgkqc, gkqc, tpgkqc, sfacgkq) 
-          
-          allocate( evecshort1( nlmlammax, pw_fst1:pw_lst1))
-          allocate( evecshort2( nlmlammax, pw_fst2:pw_lst2))
-
+          allocate( evecshort1( pw_fst2:pw_lst2, nlmlammax))
           allocate( auxmat( pw_fst1:pw_lst1, nlmlammax))
-          allocate( auxvec( max( pw_nst1, pw_nst2)))
           
-          !--------------------------------------!
-          !      muffin-tin matrix elements      !
-          !--------------------------------------!
-
           do is = 1, nspecies
             do ia = 1, natoms( is)
               ias = idxas( ia, is)
 
               evecshort1(:,:) = zzero
-              evecshort2(:,:) = zzero
               do lm = 1, (pw_lmaxapw + 1)**2
                 l = lm2l( lm)
                 do lam = 1, nlam( l, is)
@@ -389,36 +395,31 @@ module mod_pwmat
                     o = lam2apwlo( lam, l, is)
                     call zgemv( 'T', ngknr, pw_nst1, zone, &
                          evec1, nmatmax, &
-                         apwalm1( :, o, lm, ias), 1, zzero, &
+                         apwalm( :, o, lm, ias), 1, zzero, &
                          auxvec, 1)
-                    evecshort1( idxlmlam( lm, lam, is), :) = auxvec( 1:pw_nst1)
-                    call zgemv( 'T', ngkq, pw_nst2, zone, &
-                         evec2, nmatmax, &
-                         apwalm2( :, o, lm, ias), 1, zzero, &
-                         auxvec, 1)
-                    evecshort2( idxlmlam( lm, lam, is), :) = auxvec( 1:pw_nst2)
+                    evecshort1( :, idxlmlam( lm, lam, is)) = conjg( auxvec( 1:pw_nst1))
                   end if
                   ! lam belongs to lo
                   if( lam2apwlo( lam, l, is) .lt. 0) then
                     ilo = -lam2apwlo( lam, l, is)
-                    evecshort1( idxlmlam( lm, lam, is), :) = evec1( ngknr+idxlo( lm, ilo, ias), :)
-                    evecshort2( idxlmlam( lm, lam, is), :) = evec2( ngkq+idxlo( lm, ilo, ias), :)
+                    evecshort1( :, idxlmlam( lm, lam, is)) = conjg( evec1( ngknr+idxlo( lm, ilo, ias), :))
                   end if
                 end do
               end do
 
-              call zgemm( 'C', 'N', pw_nst1, nlmlam( is), nlmlam( is), zone, &
-                   evecshort1, nlmlammax, &
+              call zgemm( 'N', 'N', pw_nst1, nlmlam( is), nlmlam( is), zone, &
+                   evecshort1, pw_nst1, &
                    rignt( :, :, ias), nlmlammax, zzero, &
                    auxmat, pw_nst1)
-              call zgemm( 'N', 'N', pw_nst1, pw_nst2, nlmlam( is), zone, &
+              call zgemm( 'N', 'T', pw_nst1, pw_nst2, nlmlam( is), zone, &
                    auxmat, pw_nst1, &
-                   evecshort2, nlmlammax, zone, &
+                   evecshort2( :, :, ias), pw_nst2, zone, &
                    pwmat, pw_nst1)
             end do
           end do
 
-          deallocate( evecshort1, evecshort2, auxmat, apwalm1, apwalm2, auxvec)
+          deallocate( vecgkql, vecgkqc, gkqc, tpgkqc, sfacgkq, apwalm) 
+          deallocate( evecshort1, evecshort2, auxmat, auxvec)
           
           !--------------------------------------!
           !     interstitial matrix elements     !
@@ -431,46 +432,32 @@ module mod_pwmat
           call r3frac( input%structure%epslat, veckql, shift)
           shift = -shift
           
-          allocate( zfft0( fftmap%ngrtot+1, pw_fst1:pw_lst1))
-          allocate( zfftres( fftmap%ngrtot+1))
-          allocate( zfft( fftmap%ngrtot+1))
-          zfft0 = zzero
-          
-          do ist1 = pw_fst1, pw_lst1
-            do ig = 1, ngknr
-              zfft0( fftmap%igfft( igkignr( ig)), ist1) = evec1( ig, ist1)
-            end do
-            call zfftifc( 3, fftmap%ngrid, 1, zfft0( :, ist1))
-            zfft0( :, ist1) = conjg( zfft0( :, ist1))*zfftcf(:) 
-          end do
-
-          do ist2 = pw_fst2, pw_lst2
-            zfft = zzero
-            if( sum( abs( shift)) .ne. 0) then
-              do ig = 1, ngkq
-                iv = ivg( :, igkqig( ig)) + shift
-                igs = ivgig( iv(1), iv(2), iv(3))
-                zfft( fftmap%igfft( igs)) = evec2( ig, ist2)
-              end do
-            else
-              do ig = 1, ngkq
-                zfft( fftmap%igfft( igkqig( ig))) = evec2( ig, ist2)
-              end do
-            end if
-          
-            call zfftifc( 3, fftmap%ngrid, 1, zfft)
-
-            do ist1 = pw_fst1, pw_lst1
-              do ig = 1, fftmap%ngrtot
-                zfftres( ig) = zfft( ig)*zfft0( ig, ist1) 
-              end do
-          
-              call zfftifc( 3, fftmap%ngrid, -1, zfftres)
-              pwmat( ist1, ist2) = pwmat( ist1, ist2) + zfftres( fftmap%igfft( ivgig( vecgl(1), vecgl(2), vecgl(3))))
+          allocate( cfunmat( ngknr, ngkq))
+          allocate( auxmat( pw_fst1:pw_lst1, ngkq))
+          cfunmat(:,:) = zzero
+          do igk = 1, ngknr
+            do igq = 1, ngkq
+              ig1 = igkignr( igk)
+              ig2 = igkqig( igq)
+              g = ivg( :, ig1) - ivg( :, ig2) - shift
+              if( (g(1) .ge. intgv(1,1)) .and. (g(1) .le. intgv(1,2)) .and. &
+                  (g(2) .ge. intgv(2,1)) .and. (g(2) .le. intgv(2,2)) .and. &
+                  (g(3) .ge. intgv(3,1)) .and. (g(3) .le. intgv(3,2))) then
+                cfunmat( igk, igq) = cfunig( ivgig( g(1), g(2), g(3)))
+              end if
             end do
           end do
 
-          deallocate( zfftres, zfft, zfft0, igkignr, igkqig)
+          call zgemm( 'C', 'N', pw_nst1, ngkq, ngknr, zone, &
+               evec1, nmatmax, &
+               cfunmat, ngknr, zzero, &
+               auxmat, pw_nst1)
+          call zgemm( 'N', 'N', pw_nst1, pw_nst2, ngkq, zone, &
+               auxmat, pw_nst1, &
+               evec2, nmatmax, zone, &
+               pwmat, pw_nst1)
+
+          deallocate( auxmat, cfunmat, igkignr, igkqig)
 
           return
       end subroutine pwmat_genpwmat
@@ -482,7 +469,6 @@ module mod_pwmat
           if( allocated( idxlmlam)) deallocate( idxlmlam)
           if( allocated( lm2l)) deallocate( lm2l)
           if( allocated( rignt)) deallocate( rignt)
-          if( allocated( zfftcf)) deallocate( zfftcf)
           if( allocated( idxgnt)) deallocate( idxgnt)
           if( allocated( listgnt)) deallocate( listgnt)
           

@@ -543,39 +543,39 @@ module m_ematqk
           allocate( zfft( fftmap%ngrtot+1))
           zfft0 = zzero
           
-          !do ist1 = fst1, lst1
-          !  do ig = 1, ngknr !ngk0 ?
-          !    zfft0( fftmap%igfft( igkignr( ig)), ist1) = evec1( ig, ist1)
-          !  end do
-          !  call zfftifc( 3, fftmap%ngrid, 1, zfft0( :, ist1))
-          !  zfft0( :, ist1) = conjg( zfft0( :, ist1))*zfftcf(:) 
-          !end do
+          do ist1 = fst1, lst1
+            do ig = 1, ngknr !ngk0 ?
+              zfft0( fftmap%igfft( igkignr( ig)), ist1) = evec1( ig, ist1)
+            end do
+            call zfftifc( 3, fftmap%ngrid, 1, zfft0( :, ist1))
+            zfft0( :, ist1) = conjg( zfft0( :, ist1))*zfftcf(:) 
+          end do
 
-          !do ist2 = fst2, lst2
-          !  zfft = zzero
-          !  if( sum( abs( shift)) .ne. 0) then
-          !    do ig = 1, ngkq !ngkq
-          !      iv = ivg( :, igkqig( ig)) + shift
-          !      igs = ivgig( iv(1), iv(2), iv(3))
-          !      zfft( fftmap%igfft( igs)) = evec2( ig, ist2)
-          !    end do
-          !  else
-          !    do ig = 1, ngkq !ngkq
-          !      zfft( fftmap%igfft( igkqig( ig))) = evec2( ig, ist2)
-          !    end do
-          !  end if
-          !
-          !  call zfftifc( 3, fftmap%ngrid, 1, zfft)
+          do ist2 = fst2, lst2
+            zfft = zzero
+            if( sum( abs( shift)) .ne. 0) then
+              do ig = 1, ngkq !ngkq
+                iv = ivg( :, igkqig( ig)) + shift
+                igs = ivgig( iv(1), iv(2), iv(3))
+                zfft( fftmap%igfft( igs)) = evec2( ig, ist2)
+              end do
+            else
+              do ig = 1, ngkq !ngkq
+                zfft( fftmap%igfft( igkqig( ig))) = evec2( ig, ist2)
+              end do
+            end if
+          
+            call zfftifc( 3, fftmap%ngrid, 1, zfft)
 
-          !  do ist1 = fst1, lst1
-          !    do ig = 1, fftmap%ngrtot
-          !      zfftres( ig) = zfft( ig)*zfft0( ig, ist1) 
-          !    end do
-          !
-          !    call zfftifc( 3, fftmap%ngrid, -1, zfftres)
-          !    emat( ist1, ist2) = emat( ist1, ist2) + zfftres( fftmap%igfft( ivgig( vecgl(1), vecgl(2), vecgl(3))))
-          !  end do
-          !end do
+            do ist1 = fst1, lst1
+              do ig = 1, fftmap%ngrtot
+                zfftres( ig) = zfft( ig)*zfft0( ig, ist1) 
+              end do
+          
+              call zfftifc( 3, fftmap%ngrid, -1, zfftres)
+              emat( ist1, ist2) = emat( ist1, ist2) + zfftres( fftmap%igfft( ivgig( vecgl(1), vecgl(2), vecgl(3))))
+            end do
+          end do
 
           deallocate( zfftres, zfft, zfft0, igkignr, igkqig)
 

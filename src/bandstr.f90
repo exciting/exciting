@@ -59,7 +59,7 @@ Subroutine bandstr
   real(8) :: s(3), vk(3), v1(3), vl(3), vc(3), dt
   real(8), allocatable :: eval1(:,:), evalint(:,:), dist(:), vvl(:,:)
   real(8), Allocatable :: bc8 (:, :, :, :)
-  complex(8), allocatable :: evectmp(:,:), evecint(:,:,:,:)
+  complex(8), allocatable :: evectmp(:,:)
   type( k_set) :: int_kset
   type( G_set) :: int_Gset
   type( Gk_set) :: int_Gkset
@@ -108,8 +108,6 @@ Subroutine bandstr
     !write(*,'("ngkmax int = ",I)') ngkmaxint
     !write(*,'("ngkmax wan = ",I)') ngkmaxwf
     allocate( evalint( wf_fst:wf_lst, int_kset%nkpt))
-    allocate( evecint( nmatmax, nstsv, nspinor, int_kset%nkpt))
-    evecint = zzero
     write(*,'("  interpolation grid set up")')
 
     ! k-points on grid
